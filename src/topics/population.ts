@@ -7,12 +7,17 @@ export const population: TopicDefinition = {
   shortTitle: '人口',
   defaultIndicator: 'total',
   defaultYear: 2023,
-  boxEstimate: { indicator: 'total', label: '人口' },
+  boxEstimate: { indicator: 'total', label: '人口', grid: 'grid.json' },
   sources: [
     {
       name: 'United Nations, World Population Prospects 2024（中推估）',
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
+    },
+    {
+      name: 'European Commission JRC, GHS-POP R2023A（框選估算的網格人口）',
+      url: 'https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php',
+      license: 'CC BY 4.0',
     },
   ],
   indicators: [

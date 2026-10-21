@@ -17,6 +17,7 @@ import common
 STEPS = {
     "geo": "build_geo",
     "population": "topics.population",
+    "population-grid": "topics.population_grid",  # 要先有 geo 的國界；第一次會下載 460 MB
     "income": "topics.income",
     "sectors": "topics.sectors",
     "agriculture": "topics.agriculture",

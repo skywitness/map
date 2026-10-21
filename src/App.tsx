@@ -4,7 +4,14 @@ import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
 import { useJson } from './lib/data';
 import { useUrlState } from './lib/url-state';
-import { buildRawIndex, sharesInBox, type Box } from './map/boxEstimate';
+import {
+  buildGridIndex,
+  buildRawIndex,
+  gridInBox,
+  landAreaInBox,
+  type Box,
+  type PopulationGrid,
+} from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
 import { WorldMap } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
@@ -233,6 +240,7 @@ export function App() {
                       total={boxResult.total}
                       landKm2={boxResult.landKm2}
                       contributions={boxResult.contributions}
+                      grid={boxResult.grid}
                       countries={countries}
                       onClear={() => setBox(null)}
                     />
@@ -309,7 +317,10 @@ function groupOptions<T extends { group?: string }>(options: T[]): [string | und
   return [...groups];
 }
 
-/** 框選估算：框內面積比例 × 各國總量 */
+/**
+ * 框選估算：網格決定國內怎麼分布，選定年份的國家總量決定水準。
+ * 某國的框內估計 = 框內網格人數 ÷ 該國網格總人數 × 該國當年總量。
+ */
 function useBoxEstimate(
   topic: TopicDefinition,
   item: string | null,
@@ -321,27 +332,54 @@ function useBoxEstimate(
   const indicator = spec ? topic.indicators.find((i) => i.id === spec.indicator) : undefined;
   const active = Boolean(spec && indicator && box && features);
   const { data } = useJson<IndicatorData>(active && indicator ? indicatorPath(topic, indicator, item) : null);
+  const grid = useJson<PopulationGrid>(active && spec ? `topics/${topic.id}/${spec.grid}` : null).data;
 
-  const shares = useMemo(
-    () => (active && features && box ? sharesInBox(buildRawIndex(features), box) : null),
+  const landKm2 = useMemo(
+    () => (active && features && box ? landAreaInBox(buildRawIndex(features), box) : null),
     [active, features, box],
+  );
+  const gridIndex = useMemo(() => (grid ? buildGridIndex(grid) : null), [grid]);
+  const inBox = useMemo(
+    () => (active && gridIndex && box ? gridInBox(gridIndex, box) : null),
+    [active, gridIndex, box],
   );
 
   return useMemo(() => {
-    if (!spec || !indicator || !shares) return null;
+    if (!spec || !indicator || landKm2 === null) return null;
     const yearIndex = data ? data.years.indexOf(year) : -1;
     let total: number | null = null;
     const contributions: BoxContribution[] = [];
-    if (data && yearIndex >= 0) {
+    if (data && yearIndex >= 0 && gridIndex && inBox) {
+      // 沒有國家總量的區域（南極洲、地圖上沒有國界的小島）改用世界總量的變化來縮放
+      const world = data.aggregates?.WLD;
+      const worldNow = world?.[yearIndex];
+      const worldAtEpoch = world?.[data.years.indexOf(gridIndex.epoch)];
+      const worldScale = worldNow && worldAtEpoch ? worldNow / worldAtEpoch : 1;
       total = 0;
-      for (const [iso3, share] of shares.shares) {
-        const v = data.values[iso3]?.[yearIndex];
-        if (v == null) continue;
-        contributions.push({ iso3, share, value: v * share });
-        total += v * share;
+      for (let c = 0; c < gridIndex.countries.length; c++) {
+        const gridValue = inBox.byCountry[c];
+        if (gridValue <= 0) continue;
+        const iso3 = gridIndex.countries[c];
+        const share = gridValue / gridIndex.totals[c];
+        const level = data.values[iso3]?.[yearIndex];
+        const value = level != null ? share * level : gridValue * worldScale;
+        total += value;
+        if (value >= 0.5) contributions.push({ iso3, share, value }); // 框邊只擦到一點點的國家不列出
+      }
+      if (inBox.unassigned > 0) {
+        const value = inBox.unassigned * worldScale;
+        total += value;
+        if (value >= 0.5) contributions.push({ iso3: null, share: null, value });
       }
       contributions.sort((a, b) => b.value - a.value);
     }
-    return { label: spec.label, unit: indicator.unit, total, landKm2: shares.landKm2, contributions };
-  }, [spec, indicator, shares, data, year]);
+    return {
+      label: spec.label,
+      unit: indicator.unit,
+      total,
+      landKm2,
+      contributions,
+      grid: gridIndex && { epoch: gridIndex.epoch, cellSize: gridIndex.cellSize },
+    };
+  }, [spec, indicator, landKm2, gridIndex, inBox, data, year]);
 }

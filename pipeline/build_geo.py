@@ -30,6 +30,37 @@ def as_multipolygon_arcs(geom: dict) -> list:
     raise ValueError(f"未預期的幾何類型 {geom['type']}")
 
 
+def load_countries() -> dict[str, dict]:
+    """讀回 build() 產生的國界，解成 {iso3: GeoJSON 幾何}（經緯度）。"""
+    with open(OUT_DIR / "geo" / "countries-50m.json", encoding="utf-8") as f:
+        topo = json.load(f)
+    (sx, sy), (tx, ty) = topo["transform"]["scale"], topo["transform"]["translate"]
+    arcs: list[list[tuple[float, float]]] = []
+    for arc in topo["arcs"]:  # 量化後逐點差分編碼
+        x = y = 0
+        points = []
+        for dx, dy in arc:
+            x += dx
+            y += dy
+            points.append((x * sx + tx, y * sy + ty))
+        arcs.append(points)
+
+    def ring(ids: list[int]) -> list[tuple[float, float]]:
+        coords: list[tuple[float, float]] = []
+        for i in ids:
+            points = arcs[i] if i >= 0 else arcs[~i][::-1]  # 負數代表反向的 arc
+            coords.extend(points if not coords else points[1:])
+        return coords
+
+    return {
+        geom["id"]: {
+            "type": "MultiPolygon",
+            "coordinates": [[ring(r) for r in polygon] for polygon in as_multipolygon_arcs(geom)],
+        }
+        for geom in topo["objects"]["countries"]["geometries"]
+    }
+
+
 def build() -> None:
     src = download(WORLD_ATLAS_URL, "world-atlas", "countries-50m.json")
     with open(src, encoding="utf-8") as f:

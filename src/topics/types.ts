@@ -81,8 +81,11 @@ export interface TopicDefinition {
    * `panelExtra: () => import('./electricity-panel')`
    */
   panelExtra?: () => Promise<{ default: React.ComponentType<PanelExtraProps> }>;
-  /** 地圖框選：用面積比例估算框內的總量（例如人口）。indicator 必須是可加總的總量。 */
-  boxEstimate?: { indicator: string; label: string };
+  /**
+   * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，
+   * 網格只決定國內的分布，各國水準縮放到 indicator 當年的值。grid 是主題資料夾裡的網格檔。
+   */
+  boxEstimate?: { indicator: string; label: string; grid: string };
   /** 顯示在頁尾的資料說明 */
   note?: string;
 }

@@ -41,9 +41,11 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`income`、`sectors`、`agriculture`、`electricity`、`industry`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 450 MB（主要是 FAOSTAT 的貿易檔），世界銀行 API 比較慢，全部跑完約 10 分鐘。
+`population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
+
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 910 MB（主要是 FAOSTAT 的貿易檔和 GHS-POP 的網格人口），世界銀行 API 比較慢，全部跑完約 12 分鐘。
 
 ## 建置
 
