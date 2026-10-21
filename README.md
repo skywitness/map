@@ -3,6 +3,8 @@
 用世界地圖瀏覽各國資料，目前有「人口」主題（UN World Population Prospects 2024，1950–2100）。
 架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
 
+網站：https://skywitness.github.io/map/
+
 ## 開發
 
 ```bash
@@ -40,3 +42,8 @@ npm run build
 ```
 
 輸出在 `dist/`，可以放到任何靜態主機。
+
+## 部署
+
+推送到 `main` 後，GitHub Actions（`.github/workflows/deploy.yml`）會自動建置並發佈到 GitHub Pages，約 1–2 分鐘。
+資料檔已經在版本庫裡，所以更新資料的流程是：本機執行 `npm run data`，再把 `public/data/` 的變更提交、推送。
