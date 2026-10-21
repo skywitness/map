@@ -120,6 +120,35 @@ button {
   gap: 8px;
 }
 
+.controls-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.select-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.select-field select {
+  height: 34px;
+  max-width: 260px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .indicator-picker,
 .view-toggle {
   display: inline-flex;
@@ -286,6 +315,130 @@ button {
 .map-zoom button:disabled {
   color: var(--ink-muted);
   cursor: default;
+}
+
+/* ── 框選 ───────────────────────────── */
+.map.is-box-mode svg,
+.map.is-box-mode .countries path,
+.map.is-box-mode .bubble,
+.map.is-box-mode .tiny-marker {
+  cursor: crosshair;
+}
+
+.map-zoom .box-tool {
+  display: grid;
+  place-items: center;
+}
+
+.map-zoom .box-tool.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.box-select {
+  fill-opacity: 0.1;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.map-hint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.map-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  max-width: min(320px, calc(100% - 72px));
+}
+
+.map-overlay.is-right {
+  left: auto;
+  right: 56px; /* 留給縮放按鈕 */
+}
+
+.box-result {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.box-result header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.box-result-title {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.box-result-value {
+  margin: 2px 0 0;
+  font-size: 24px;
+  font-weight: 650;
+}
+
+.box-result-meta,
+.box-result-empty {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.box-result-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.box-result-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 12px;
+  padding: 3px 0;
+  border-top: 1px solid var(--grid);
+}
+
+.box-result-list .value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.box-result-list .share {
+  grid-column: 1 / -1;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.box-result-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.icon-button.small {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
 }
 
 .map-tooltip {
@@ -515,6 +668,173 @@ button {
   color: var(--ink-muted);
 }
 
+/* ── 側欄：主題額外區塊 ─────────────── */
+.panel-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--grid);
+}
+
+.panel-section h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.panel-section h3:not(:first-child) {
+  margin-top: 20px;
+}
+
+.panel-section h4 {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.panel-subsection + .panel-subsection {
+  margin-top: 20px;
+}
+
+.panel-year-note,
+.panel-figure {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.panel-figure {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.bar-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.bar-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: 10px;
+  align-items: baseline;
+  padding: 4px 0 6px;
+}
+
+.bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.bar-share {
+  min-width: 3.2em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.bar-track {
+  grid-column: 1 / -1;
+  height: 6px;
+  margin-top: 3px;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+
+.bar-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
+.stack-bars {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.stack-bar-row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.stack-bar {
+  display: flex;
+  gap: 2px;
+  height: 16px;
+}
+
+.stack-bar span {
+  height: 100%;
+}
+
+.stack-bar span:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.stack-bar span:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.stack-bar-rest {
+  background: repeating-linear-gradient(45deg, var(--axis) 0 1px, transparent 1px 4px), var(--grid);
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--grid);
+  text-align: left;
+  font-weight: 400;
+}
+
+.mini-table thead th {
+  color: var(--ink-secondary);
+}
+
+.mini-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-key-box {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
 /* ── 排名表 ─────────────────────────── */
 .ranking {
   position: absolute;
@@ -624,46 +944,78 @@ button {
 .time-track {
   position: relative;
   flex: 1;
-  padding-bottom: 16px;
+  padding-bottom: 14px;
 }
 
 .time-track input[type='range'] {
+  /* 整條 28px 高都能點、能拖；視覺上的軌道只有 4px，畫在 runnable-track 上 */
+  display: block;
   width: 100%;
+  height: 28px;
   margin: 0;
-  accent-color: var(--accent);
-  /* 推估區段用淡色顯示 */
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.time-track input[type='range']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 推估區段用淡色顯示 */
+.time-track input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
   background: linear-gradient(
     to right,
     var(--axis) 0 var(--projection-pct),
     var(--grid) var(--projection-pct) 100%
   );
+}
+
+.time-track input[type='range']::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  appearance: none;
-  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--axis) 0 var(--projection-pct),
+    var(--grid) var(--projection-pct) 100%
+  );
 }
 
 .time-track input[type='range']::-webkit-slider-thumb {
   appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--accent), 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+}
+
+.time-track input[type='range']:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.time-track input[type='range']::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: var(--accent);
-  border: 2px solid var(--surface);
+  border: 3px solid var(--surface);
   box-shadow: 0 0 0 1px var(--accent);
-}
-
-.time-track input[type='range']::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: 2px solid var(--surface);
+  cursor: grab;
 }
 
 .time-ticks span {
   position: absolute;
-  top: 12px;
+  top: 26px;
   font-size: 11px;
   color: var(--ink-muted);
   transform: translateX(-50%);

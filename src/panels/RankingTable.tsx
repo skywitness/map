@@ -6,6 +6,7 @@ import { ranking } from './stats';
 
 interface RankingTableProps {
   indicator: IndicatorDef;
+  title: string;
   values: Map<string, number>;
   world: number | null;
   year: number;
@@ -15,7 +16,8 @@ interface RankingTableProps {
 }
 
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
-export function RankingTable({ indicator, values, world, year, countries, selected, onSelect }: RankingTableProps) {
+export function RankingTable(props: RankingTableProps) {
+  const { indicator, title, values, world, year, countries, selected, onSelect } = props;
   const rows = useMemo(() => ranking(values), [values]);
   const max = rows[0]?.[1] ?? 0;
   const showBars = rows.length > 0 && rows[rows.length - 1][1] >= 0;
@@ -25,13 +27,15 @@ export function RankingTable({ indicator, values, world, year, countries, select
     <div className="ranking">
       <table>
         <caption>
-          {year} 年各國{indicator.label}排名（{rows.length} 個國家/地區）
+          {year} 年各國{title}排名（{rows.length} 個國家/地區）
         </caption>
         <thead>
           <tr>
             <th scope="col" className="num">名次</th>
             <th scope="col">國家/地區</th>
-            <th scope="col" className="num">{indicator.label}</th>
+            <th scope="col" className="num">
+              {title}
+            </th>
             {showShare && <th scope="col" className="num">占全球</th>}
           </tr>
         </thead>

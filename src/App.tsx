@@ -4,20 +4,24 @@ import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
 import { useJson } from './lib/data';
 import { useUrlState } from './lib/url-state';
+import { buildRawIndex, sharesInBox, type Box } from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
 import { WorldMap } from './map/WorldMap';
+import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
-import { getTopic, PLANNED_TOPICS, TOPICS } from './topics';
-import type { IndicatorData } from './topics/types';
+import { getTopic, TOPICS } from './topics';
+import { indicatorPath, usesDimension, type IndicatorData, type TopicDefinition } from './topics/types';
 import { useTheme } from './theme/useTheme';
 
 // 側欄的 ECharts 佔了大部分 JS，點國家時才載入，地圖可以先出來
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
 
+/** 指標超過這個數量就改用下拉選單 */
+const MAX_SEGMENTS = 5;
+
 interface Manifest {
   generatedAt: string;
-  source: string;
 }
 
 export function App() {
@@ -28,11 +32,14 @@ export function App() {
   const indicator =
     topic.indicators.find((i) => i.id === state.indicator) ??
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  const item = topic.dimension
+    ? (topic.dimension.options.find((o) => o.id === state.item)?.id ?? topic.dimension.defaultOption)
+    : null;
 
   const geo = useJson<Topology>('geo/countries-50m.json');
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(`topics/${topic.id}/manifest.json`).data;
-  const { data, loading, error } = useJson<IndicatorData>(`topics/${topic.id}/${indicator.file}`);
+  const { data, loading, error } = useJson<IndicatorData>(indicatorPath(topic, indicator, item));
 
   const features = useMemo(() => (geo.data ? toCountryFeatures(geo.data) : null), [geo.data]);
 
@@ -45,6 +52,9 @@ export function App() {
 
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
   const selectCountry = useCallback((iso3: string | null) => update({ country: iso3 }), [update]);
+  const setBox = useCallback((box: Box | null) => update({ box }), [update]);
+
+  const boxResult = useBoxEstimate(topic, item, state.box, features, year);
 
   const searchOptions = useMemo(
     () =>
@@ -56,9 +66,12 @@ export function App() {
     [data, countries],
   );
 
+  const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
+  const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
+  const indicatorTitle = itemLabel && usesDimension(indicator) ? `${itemLabel}${indicator.label}` : indicator.label;
+
   const renderTooltip = (iso3: string) => {
     const v = values.get(iso3);
-    const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
     return (
       <>
         <div className="tt-value">{v !== undefined ? indicator.format(v) : '無資料'}</div>
@@ -69,8 +82,6 @@ export function App() {
       </>
     );
   };
-
-  const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
 
   return (
     <div className="app">
@@ -83,14 +94,9 @@ export function App() {
               type="button"
               className={`topic${t.id === topic.id ? ' is-active' : ''}`}
               aria-current={t.id === topic.id ? 'page' : undefined}
-              onClick={() => update({ topic: t.id, indicator: null })}
+              onClick={() => update({ topic: t.id, indicator: null, item: null })}
             >
               {t.shortTitle}
-            </button>
-          ))}
-          {PLANNED_TOPICS.map((title) => (
-            <button key={title} type="button" className="topic" disabled title="規劃中">
-              {title}
             </button>
           ))}
         </nav>
@@ -106,19 +112,58 @@ export function App() {
       </header>
 
       <div className="controls">
-        <div className="indicator-picker" role="radiogroup" aria-label="指標">
-          {topic.indicators.map((ind) => (
-            <button
-              key={ind.id}
-              type="button"
-              role="radio"
-              aria-checked={ind.id === indicator.id}
-              className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
-              onClick={() => update({ indicator: ind.id })}
-            >
-              {ind.label}
-            </button>
-          ))}
+        <div className="controls-left">
+          {topic.dimension && usesDimension(indicator) && (
+            <label className="select-field">
+              <span>{topic.dimension.label}</span>
+              <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
+                {groupOptions(topic.dimension.options).map(([group, options]) =>
+                  group ? (
+                    <optgroup key={group} label={group}>
+                      {options.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : (
+                    options.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.label}
+                      </option>
+                    ))
+                  ),
+                )}
+              </select>
+            </label>
+          )}
+          {topic.indicators.length > MAX_SEGMENTS ? (
+            <label className="select-field">
+              <span>指標</span>
+              <select value={indicator.id} onChange={(e) => update({ indicator: e.target.value })}>
+                {topic.indicators.map((ind) => (
+                  <option key={ind.id} value={ind.id}>
+                    {ind.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <div className="indicator-picker" role="radiogroup" aria-label="指標">
+              {topic.indicators.map((ind) => (
+                <button
+                  key={ind.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={ind.id === indicator.id}
+                  className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
+                  onClick={() => update({ indicator: ind.id })}
+                >
+                  {ind.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="controls-right">
           <input
@@ -128,7 +173,8 @@ export function App() {
             placeholder="搜尋國家"
             aria-label="搜尋國家"
             onChange={(e) => {
-              const match = searchOptions.find((o) => o.name === e.target.value || o.iso3 === e.target.value.toUpperCase());
+              const query = e.target.value.trim();
+              const match = searchOptions.find((o) => o.name === query || o.iso3 === query.toUpperCase());
               if (match) {
                 selectCountry(match.iso3);
                 e.target.value = '';
@@ -166,14 +212,32 @@ export function App() {
               <WorldMap
                 countries={features}
                 indicator={indicator}
+                legendTitle={indicatorTitle}
                 values={values}
                 bubbleMax={bubbleMax}
                 tokens={tokens}
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={`世界地圖：${year} 年各國${indicator.label}${projected ? '（推估值）' : ''}`}
+                ariaLabel={`世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
                 dimmed={loading}
+                box={topic.boxEstimate ? state.box : null}
+                onBoxChange={topic.boxEstimate ? setBox : undefined}
+                boxToolLabel={topic.boxEstimate && `框選範圍，估算${topic.boxEstimate.label}`}
+                overlay={
+                  boxResult && (
+                    <BoxResult
+                      label={boxResult.label}
+                      unit={boxResult.unit}
+                      year={year}
+                      total={boxResult.total}
+                      landKm2={boxResult.landKm2}
+                      contributions={boxResult.contributions}
+                      countries={countries}
+                      onClear={() => setBox(null)}
+                    />
+                  )
+                }
               />
             ) : (
               <p className="loading">地圖載入中…</p>
@@ -181,6 +245,7 @@ export function App() {
           ) : (
             <RankingTable
               indicator={indicator}
+              title={indicatorTitle}
               values={values}
               world={world}
               year={year}
@@ -195,6 +260,8 @@ export function App() {
             <CountryPanel
               topic={topic}
               indicator={indicator}
+              item={item}
+              itemLabel={itemLabel ?? null}
               iso3={state.country}
               year={year}
               countries={countries}
@@ -210,19 +277,71 @@ export function App() {
 
       <footer className="footer">
         資料來源：
-        {topic.sources.map((s) => (
-          <a key={s.url} href={s.url} target="_blank" rel="noreferrer">
-            {s.name}
-          </a>
+        {topic.sources.map((s, i) => (
+          <span key={s.url}>
+            {i > 0 && '、'}
+            <a href={s.url} target="_blank" rel="noreferrer">
+              {s.name}
+            </a>
+            （{s.license}）
+          </span>
         ))}
-        （{topic.sources.map((s) => s.license).join('、')}）· 國界：
+        · 國界：
         <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
           Natural Earth
         </a>
         （公有領域）
         {manifest && <> · 資料產生於 {manifest.generatedAt.slice(0, 10)}</>}
+        {topic.note && <span className="footer-note">{topic.note}</span>}
         <span className="footer-note">國界與名稱僅為資料呈現，不代表任何政治立場。</span>
       </footer>
     </div>
   );
+}
+
+function groupOptions<T extends { group?: string }>(options: T[]): [string | undefined, T[]][] {
+  const groups = new Map<string | undefined, T[]>();
+  for (const o of options) {
+    const list = groups.get(o.group) ?? [];
+    list.push(o);
+    groups.set(o.group, list);
+  }
+  return [...groups];
+}
+
+/** 框選估算：框內面積比例 × 各國總量 */
+function useBoxEstimate(
+  topic: TopicDefinition,
+  item: string | null,
+  box: Box | null,
+  features: ReturnType<typeof toCountryFeatures> | null,
+  year: number,
+) {
+  const spec = topic.boxEstimate;
+  const indicator = spec ? topic.indicators.find((i) => i.id === spec.indicator) : undefined;
+  const active = Boolean(spec && indicator && box && features);
+  const { data } = useJson<IndicatorData>(active && indicator ? indicatorPath(topic, indicator, item) : null);
+
+  const shares = useMemo(
+    () => (active && features && box ? sharesInBox(buildRawIndex(features), box) : null),
+    [active, features, box],
+  );
+
+  return useMemo(() => {
+    if (!spec || !indicator || !shares) return null;
+    const yearIndex = data ? data.years.indexOf(year) : -1;
+    let total: number | null = null;
+    const contributions: BoxContribution[] = [];
+    if (data && yearIndex >= 0) {
+      total = 0;
+      for (const [iso3, share] of shares.shares) {
+        const v = data.values[iso3]?.[yearIndex];
+        if (v == null) continue;
+        contributions.push({ iso3, share, value: v * share });
+        total += v * share;
+      }
+      contributions.sort((a, b) => b.value - a.value);
+    }
+    return { label: spec.label, unit: indicator.unit, total, landKm2: shares.landKm2, contributions };
+  }, [spec, indicator, shares, data, year]);
 }

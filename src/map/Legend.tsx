@@ -1,13 +1,15 @@
-import type { ScaleThreshold } from 'd3-scale';
+import type { ScalePower, ScaleThreshold } from 'd3-scale';
+import { niceLegendValues } from '../lib/format';
 import type { IndicatorDef } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 
 interface ChoroplethLegendProps {
   indicator: IndicatorDef;
+  title: string;
   scale: ScaleThreshold<number, string>;
 }
 
-export function ChoroplethLegend({ indicator, scale }: ChoroplethLegendProps) {
+export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendProps) {
   const colors = scale.range();
   const thresholds = scale.domain();
   const tick = indicator.formatTick ?? indicator.format;
@@ -17,7 +19,7 @@ export function ChoroplethLegend({ indicator, scale }: ChoroplethLegendProps) {
   return (
     <div className="legend">
       <div className="legend-title">
-        {indicator.label}
+        {title}
         <span className="legend-unit">（{indicator.unit}）</span>
       </div>
       <div className="legend-scale" style={{ width: colors.length * swatchWidth }}>
@@ -43,12 +45,14 @@ const LABEL_GAP = 13;
 
 interface BubbleLegendProps {
   indicator: IndicatorDef;
-  radius: (value: number) => number;
+  title: string;
+  radius: ScalePower<number, number>;
   tokens: Tokens;
 }
 
-export function BubbleLegend({ indicator, radius, tokens }: BubbleLegendProps) {
-  const values = indicator.layer.kind === 'bubble' ? indicator.layer.legendValues : [];
+export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
+  const spec = indicator.layer.kind === 'bubble' ? indicator.layer.legendValues : [];
+  const values = spec === 'auto' ? niceLegendValues(radius.domain()[1]) : spec;
   const tick = indicator.formatTick ?? indicator.format;
   const maxR = Math.max(...values.map(radius));
   const top = 7; // 最大圓的標籤在圓頂，留半行字高
@@ -67,7 +71,7 @@ export function BubbleLegend({ indicator, radius, tokens }: BubbleLegendProps) {
   return (
     <div className="legend">
       <div className="legend-title">
-        {indicator.label}
+        {title}
         <span className="legend-unit">（{indicator.unit}）</span>
       </div>
       <svg width={labelX + 52} height={height} aria-hidden="true">

@@ -23,6 +23,9 @@ interface TimeSeriesInput {
 /** 歷年折線：估計值實線、推估值虛線，同一個國家用同一個 series 名稱，圖例與 tooltip 才會合併 */
 export function timeSeriesOption({ years, lines, projectionFrom, year, indicator, tokens }: TimeSeriesInput): ChartOption {
   const categories = years.map(String);
+  // 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年
+  const span = years[years.length - 1] - years[0];
+  const tickStep = span > 100 ? 50 : span > 50 ? 20 : span > 25 ? 10 : 5;
   const tick = indicator.formatTick ?? indicator.format;
 
   const series: LineSeriesOption[] = lines.flatMap((line, lineIndex) => {
@@ -120,7 +123,7 @@ export function timeSeriesOption({ years, lines, projectionFrom, year, indicator
       axisLabel: {
         color: tokens.inkMuted,
         fontSize: 11,
-        interval: (_index: number, value: string) => Number(value) % 50 === 0,
+        interval: (_index: number, value: string) => Number(value) % tickStep === 0,
       },
     },
     yAxis: {

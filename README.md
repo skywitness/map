@@ -1,7 +1,15 @@
 # 世界資料地圖
 
-用世界地圖瀏覽各國資料，目前有「人口」主題（UN World Population Prospects 2024，1950–2100）。
-架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
+用世界地圖瀏覽各國資料，目前有六個主題：
+
+- 人口
+- 人均收入
+- 發電量
+- 產業結構
+- 工業
+- 農業
+
+人口主題可以在地圖上框選範圍，估算框內人口。資料來源、架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
 
 網站：https://skywitness.github.io/map/
 
@@ -33,7 +41,9 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。
+可用的步驟：`geo`、`population`、`income`、`sectors`、`agriculture`、`electricity`、`industry`。
+
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 450 MB（主要是 FAOSTAT 的貿易檔），世界銀行 API 比較慢，全部跑完約 10 分鐘。
 
 ## 建置
 

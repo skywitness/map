@@ -1,16 +1,25 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
 import { EChart } from '../charts/EChart';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
 import { enName, zhName, type CountryTable } from '../lib/countries';
 import { useJsonMany } from '../lib/data';
 import { formatPercent } from '../lib/format';
-import type { IndicatorData, IndicatorDef, TopicDefinition } from '../topics/types';
+import {
+  indicatorPath,
+  usesDimension,
+  type IndicatorData,
+  type IndicatorDef,
+  type PanelExtraProps,
+  type TopicDefinition,
+} from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 import { rankOf, valuesAt } from './stats';
 
 interface CountryPanelProps {
   topic: TopicDefinition;
   indicator: IndicatorDef;
+  item: string | null;
+  itemLabel: string | null;
   iso3: string;
   year: number;
   countries: CountryTable | null;
@@ -19,9 +28,23 @@ interface CountryPanelProps {
   onIndicatorChange: (id: string) => void;
 }
 
+// 每個主題的額外側欄區塊只建立一次 lazy 元件
+const extraCache = new Map<string, LazyExoticComponent<ComponentType<PanelExtraProps>>>();
+function panelExtraFor(topic: TopicDefinition) {
+  if (!topic.panelExtra) return null;
+  let component = extraCache.get(topic.id);
+  if (!component) {
+    component = lazy(topic.panelExtra);
+    extraCache.set(topic.id, component);
+  }
+  return component;
+}
+
 export function CountryPanel(props: CountryPanelProps) {
-  const { topic, indicator, iso3, year, countries, tokens, onClose, onIndicatorChange } = props;
-  const files = useMemo(() => topic.indicators.map((i) => `topics/${topic.id}/${i.file}`), [topic]);
+  const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange } = props;
+  const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
+  const label = (ind: IndicatorDef) => (itemLabel && usesDimension(ind) ? `${itemLabel}${ind.label}` : ind.label);
+  const Extra = panelExtraFor(topic);
   const allData = useJsonMany<IndicatorData>(files);
   const name = zhName(iso3, countries);
 
@@ -60,6 +83,7 @@ export function CountryPanel(props: CountryPanelProps) {
   }, [activeData, iso3, name, indicator, year, tokens]);
 
   const projectionFrom = activeData?.projectionFrom;
+  const note = activeData?.notes?.[iso3];
 
   return (
     <aside className="panel" aria-label={`${name}的資料`}>
@@ -88,7 +112,7 @@ export function CountryPanel(props: CountryPanelProps) {
             onClick={() => onIndicatorChange(ind.id)}
             aria-pressed={ind.id === indicator.id}
           >
-            <span className="stat-label">{ind.label}</span>
+            <span className="stat-label">{label(ind)}</span>
             <span className="stat-value">{value != null ? ind.format(value) : '無資料'}</span>
             <span className="stat-meta">
               {rank != null && `第 ${rank} / ${total} 名`}
@@ -99,14 +123,21 @@ export function CountryPanel(props: CountryPanelProps) {
       </div>
 
       <section className="panel-chart">
-        <h3>{indicator.label}的變化</h3>
+        <h3>{label(indicator)}的變化</h3>
         {option ? (
-          <EChart option={option} height={220} ariaLabel={`${name}歷年${indicator.label}折線圖`} />
+          <EChart option={option} height={220} ariaLabel={`${name}歷年${label(indicator)}折線圖`} />
         ) : (
           <p className="empty">{activeData ? '這個國家沒有這項資料。' : '載入中…'}</p>
         )}
         {projectionFrom !== undefined && option && <p className="note">虛線為 {projectionFrom} 年起的推估值。</p>}
+        {note && <p className="note">附註：{note}</p>}
       </section>
+
+      {Extra && (
+        <Suspense fallback={<p className="empty">載入中…</p>}>
+          <Extra topic={topic} iso3={iso3} year={year} item={item} countryName={name} tokens={tokens} />
+        </Suspense>
+      )}
     </aside>
   );
 }

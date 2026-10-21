@@ -4,6 +4,7 @@ import { select } from 'd3-selection';
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
 import type { IndicatorDef } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
+import { normalizeBox, type Box } from './boxEstimate';
 import type { CountryFeature } from './geometry';
 import { BubbleLegend, ChoroplethLegend } from './Legend';
 import { bubbleScale, choroplethScale } from './scales';
@@ -12,6 +13,8 @@ import { useElementSize } from './useElementSize';
 interface WorldMapProps {
   countries: CountryFeature[];
   indicator: IndicatorDef;
+  /** 圖例標題，例如「稻米產量」 */
+  legendTitle: string;
   /** 目前年份的數值，只放有資料的國家 */
   values: Map<string, number>;
   /** 比例圓用：所有年份中的最大值 */
@@ -23,6 +26,12 @@ interface WorldMapProps {
   ariaLabel: string;
   /** 新資料載入中，先調淡舊畫面 */
   dimmed?: boolean;
+  /** 框選範圍（原始投影座標）；有傳 onBoxChange 才會出現框選工具 */
+  box?: Box | null;
+  onBoxChange?: (box: Box | null) => void;
+  boxToolLabel?: string;
+  /** 疊在地圖左上角的內容，例如框選結果 */
+  overlay?: ReactNode;
 }
 
 interface Shape {
@@ -36,16 +45,25 @@ interface Shape {
 const PADDING = 12;
 const TINY_AREA = 6;
 const MAX_ZOOM = 12;
+/** 拖曳距離小於這個值（px）視為點一下，不建立框 */
+const MIN_BOX_PX = 6;
 
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
+  const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const size = useElementSize(containerRef);
   const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity);
   const [hover, setHover] = useState<{ iso3: string; x: number; y: number } | null>(null);
+  // 框選工具：按下工具鈕後，下一次拖曳畫框（不平移地圖）
+  const [boxMode, setBoxMode] = useState(false);
+  const boxModeRef = useRef(false);
+  boxModeRef.current = boxMode;
+  const dragRef = useRef<{ start: [number, number]; startScreen: [number, number] } | null>(null);
+  const suppressClickRef = useRef(false);
 
   // 投影只跟版面大小有關；縮放用 <g transform>，不重算路徑
   const geo = useMemo(() => {
@@ -64,7 +82,13 @@ export function WorldMap(props: WorldMapProps) {
       area: path.area(c.feature),
       anchor: projection(c.anchor) ?? [0, 0],
     }));
-    return { sphere: path({ type: 'Sphere' }) ?? '', shapes, byIso: new Map(shapes.map((s) => [s.iso3, s])) };
+    return {
+      sphere: path({ type: 'Sphere' }) ?? '',
+      shapes,
+      byIso: new Map(shapes.map((s) => [s.iso3, s])),
+      scale: projection.scale(),
+      translate: projection.translate(),
+    };
   }, [countries, size]);
 
   useEffect(() => {
@@ -72,6 +96,10 @@ export function WorldMap(props: WorldMapProps) {
     if (!svg) return;
     const behavior = zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, MAX_ZOOM])
+      // 框選模式下拖曳是用來畫框，只保留滾輪縮放
+      .filter((event: MouseEvent & WheelEvent) =>
+        boxModeRef.current ? event.type === 'wheel' : (!event.ctrlKey || event.type === 'wheel') && !event.button,
+      )
       .on('zoom', (event: { transform: ZoomTransform }) => setTransform(event.transform));
     select(svg).call(behavior);
     zoomRef.current = behavior;
@@ -89,7 +117,10 @@ export function WorldMap(props: WorldMapProps) {
     zoomRef.current.extent(extent).translateExtent(extent);
   }, [size]);
 
-  const colorScale = indicator.layer.kind === 'choropleth' ? choroplethScale(indicator.layer.scale, tokens) : null;
+  const colorScale = useMemo(
+    () => (indicator.layer.kind === 'choropleth' ? choroplethScale(indicator.layer.scale, tokens) : null),
+    [indicator, tokens],
+  );
   const radius = useMemo(() => bubbleScale(bubbleMax, size?.width ?? 1000), [bubbleMax, size]);
 
   const fills = useMemo(() => {
@@ -120,12 +151,59 @@ export function WorldMap(props: WorldMapProps) {
   const isoFromEvent = (e: { target: EventTarget }) =>
     (e.target as Element).closest?.('[data-iso3]')?.getAttribute('data-iso3') ?? null;
 
+  /** 螢幕座標 → 原始投影座標（先去掉縮放，再去掉 fitExtent 的 scale/translate） */
+  const toRaw = (e: PointerEvent): { raw: [number, number]; screen: [number, number] } | null => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect || !geo) return null;
+    const screen: [number, number] = [e.clientX - rect.left, e.clientY - rect.top];
+    const [mx, my] = transform.invert(screen);
+    return { raw: [(mx - geo.translate[0]) / geo.scale, (my - geo.translate[1]) / geo.scale], screen };
+  };
+
+  const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
+    if (!boxMode || !onBoxChange) return;
+    const point = toRaw(e);
+    if (!point) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { start: point.raw, startScreen: point.screen };
+    setHover(null);
+  };
+
   const onPointerMove = (e: PointerEvent) => {
+    const drag = dragRef.current;
+    if (drag) {
+      const point = toRaw(e);
+      if (!point) return;
+      const moved = Math.hypot(point.screen[0] - drag.startScreen[0], point.screen[1] - drag.startScreen[1]);
+      if (moved >= MIN_BOX_PX) onBoxChange?.(normalizeBox(drag.start, point.raw));
+      return;
+    }
+    if (boxMode) return;
     const iso3 = isoFromEvent(e);
     const rect = containerRef.current?.getBoundingClientRect();
     if (!iso3 || !rect) return setHover(null);
     setHover({ iso3, x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
+
+  const onPointerUp = () => {
+    if (!dragRef.current) return;
+    dragRef.current = null;
+    suppressClickRef.current = true;
+    setBoxMode(false);
+  };
+
+  useEffect(() => {
+    if (!boxMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dragRef.current = null;
+        setBoxMode(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [boxMode]);
 
   const zoomBy = (factor: number) => {
     if (svgRef.current && zoomRef.current) zoomRef.current.scaleBy(select(svgRef.current), factor);
@@ -137,18 +215,41 @@ export function WorldMap(props: WorldMapProps) {
   const k = transform.k;
   const selectedShape = selected ? geo?.byIso.get(selected) : undefined;
   const hoverShape = hover ? geo?.byIso.get(hover.iso3) : undefined;
+  const boxRect =
+    box && geo
+      ? {
+          x: box[0] * geo.scale + geo.translate[0],
+          y: box[1] * geo.scale + geo.translate[1],
+          width: (box[2] - box[0]) * geo.scale,
+          height: (box[3] - box[1]) * geo.scale,
+        }
+      : null;
+  // 框在地圖左半邊時，結果卡片放右邊，才不會蓋住框
+  const overlayOnRight = Boolean(
+    boxRect && size && transform.applyX(boxRect.x + boxRect.width / 2) < size.width / 2,
+  );
 
   return (
-    <div ref={containerRef} className={`map${dimmed ? ' is-dimmed' : ''}`}>
+    <div ref={containerRef} className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}`}>
       <svg
         ref={svgRef}
         width={size?.width ?? 0}
         height={size?.height ?? 0}
         role="img"
         aria-label={ariaLabel}
+        onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onLostPointerCapture={onPointerUp}
         onPointerLeave={() => setHover(null)}
-        onClick={(e) => onSelect(isoFromEvent(e))}
+        onClick={(e) => {
+          if (suppressClickRef.current || boxMode) {
+            suppressClickRef.current = false;
+            return;
+          }
+          onSelect(isoFromEvent(e));
+        }}
       >
         <defs>
           <pattern id="no-data" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -188,6 +289,7 @@ export function WorldMap(props: WorldMapProps) {
             {hoverShape && hoverShape !== selectedShape && (
               <path d={hoverShape.d} className="outline" stroke={tokens.ink} />
             )}
+            {boxRect && <rect className="box-select" {...boxRect} stroke={tokens.ink} fill={tokens.accent} />}
           </g>
         )}
       </svg>
@@ -202,13 +304,30 @@ export function WorldMap(props: WorldMapProps) {
         <button type="button" onClick={resetZoom} aria-label="重設縮放" disabled={k === 1 && transform.x === 0}>
           ⟲
         </button>
+        {onBoxChange && (
+          <button
+            type="button"
+            className={`box-tool${boxMode ? ' is-active' : ''}`}
+            onClick={() => setBoxMode((m) => !m)}
+            aria-pressed={boxMode}
+            aria-label={boxToolLabel}
+            title={boxMode ? '在地圖上拖曳畫框（Esc 取消）' : boxToolLabel}
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <rect x="2.5" y="3.5" width="11" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.5 1.5" />
+            </svg>
+          </button>
+        )}
       </div>
+
+      {boxMode && <div className="map-hint">在地圖上拖曳畫出範圍（Esc 取消）</div>}
+      {overlay && <div className={`map-overlay${overlayOnRight ? ' is-right' : ''}`}>{overlay}</div>}
 
       <div className="map-legend">
         {colorScale ? (
-          <ChoroplethLegend indicator={indicator} scale={colorScale} />
+          <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} />
         ) : (
-          <BubbleLegend indicator={indicator} radius={radius} tokens={tokens} />
+          <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
         )}
       </div>
 

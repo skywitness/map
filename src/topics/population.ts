@@ -7,6 +7,7 @@ export const population: TopicDefinition = {
   shortTitle: '人口',
   defaultIndicator: 'total',
   defaultYear: 2023,
+  boxEstimate: { indicator: 'total', label: '人口' },
   sources: [
     {
       name: 'United Nations, World Population Prospects 2024（中推估）',

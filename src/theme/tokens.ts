@@ -8,6 +8,10 @@
 
 export type ThemeMode = 'light' | 'dark';
 
+/** 類別色的八個色相。多系列圖表依固定順序取用（藍、橘、綠松、黃…），不要循環或自己生成。 */
+export type Hue = 'blue' | 'orange' | 'aqua' | 'yellow' | 'magenta' | 'green' | 'violet' | 'red';
+export const HUE_ORDER: Hue[] = ['blue', 'orange', 'aqua', 'yellow', 'magenta', 'green', 'violet', 'red'];
+
 const BLUE = {
   100: '#cde2fb', 200: '#9ec5f4', 300: '#6da7ec', 400: '#3987e5',
   500: '#256abf', 600: '#184f95', 700: '#0d366b',
@@ -39,6 +43,8 @@ export interface Tokens {
   sequential: string[];
   /** 7 級發散色，由負到正，中間為中性 */
   diverging: string[];
+  /** 類別色（已用配色驗證工具檢查過色盲分辨度） */
+  hues: Record<Hue, string>;
 }
 
 export const TOKENS: Record<ThemeMode, Tokens> = {
@@ -60,6 +66,10 @@ export const TOKENS: Record<ThemeMode, Tokens> = {
     context: '#898781',
     sequential: [BLUE[100], BLUE[200], BLUE[300], BLUE[400], BLUE[500], BLUE[600], BLUE[700]],
     diverging: [RED[600], RED[400], RED[200], '#f0efec', BLUE[200], BLUE[400], BLUE[600]],
+    hues: {
+      blue: '#2a78d6', orange: '#eb6834', aqua: '#1baf7a', yellow: '#eda100',
+      magenta: '#e87ba4', green: '#008300', violet: '#6250d6', red: '#e34948',
+    },
   },
   dark: {
     mode: 'dark',
@@ -79,6 +89,10 @@ export const TOKENS: Record<ThemeMode, Tokens> = {
     context: '#898781',
     sequential: [BLUE[700], BLUE[600], BLUE[500], BLUE[400], BLUE[300], BLUE[200], BLUE[100]],
     diverging: [RED[200], RED[400], RED[600], '#383835', BLUE[600], BLUE[400], BLUE[200]],
+    hues: {
+      blue: '#3987e5', orange: '#d95926', aqua: '#199e70', yellow: '#c98500',
+      magenta: '#d55181', green: '#008300', violet: '#9085e9', red: '#e66767',
+    },
   },
 };
 

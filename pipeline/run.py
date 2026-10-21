@@ -17,6 +17,11 @@ import common
 STEPS = {
     "geo": "build_geo",
     "population": "topics.population",
+    "income": "topics.income",
+    "sectors": "topics.sectors",
+    "agriculture": "topics.agriculture",
+    "electricity": "topics.electricity",
+    "industry": "topics.industry",
 }
 
 
