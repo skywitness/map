@@ -75,6 +75,17 @@ export const en: Messages = {
   boxToolActive: 'Drag on the map to draw a box (Esc to cancel)',
   boxHint: 'Drag on the map to draw an area (Esc to cancel)',
   basemapFailed: 'The basemap failed to load. Check your connection and reload the page.',
+  threeD: '3D map',
+  threeDEnter:
+    '3D map: show values as height. In 3D the map switches to flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
+  threeDLeave: 'Leave 3D and return to flat colours',
+  globeIn3d: 'In 3D the map is flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
+  boxIn3d: 'Area selection is not available in 3D (the map can rotate and tilt). Turn off 3D first.',
+  compass: 'Face north and reset the tilt',
+  compassTitle: 'Face north and reset the tilt (right-drag or Ctrl+drag to rotate and tilt)',
+  threeDHintTouch: 'Twist two fingers to rotate; slide two fingers up or down to tilt',
+  threeDHintMouse: 'Right-drag or Ctrl+drag to rotate and tilt',
+  threeDHintGlobe: '. In 3D the map is flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
   unitSuffix: (unit) => ` (${unit})`,
   layers: 'Layers',
 

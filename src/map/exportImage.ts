@@ -8,7 +8,14 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { messages, tr } from '../i18n';
 import { SPACE_GRADIENT, type Tokens } from '../theme/tokens';
-import type { BubbleLegendModel, ChoroplethLegendModel } from './Legend';
+import {
+  COLUMN_NOTE,
+  STEP_MAX_PX,
+  STEPPED_NOTE,
+  type BubbleLegendModel,
+  type ChoroplethLegendModel,
+  type ColumnLegendModel,
+} from './Legend';
 import type { LayerKey } from './Overlays';
 
 /** 匯出至少用 2 倍解析度，在高解析度螢幕上看也清楚；只在匯出的那一下調高，之後還原 */
@@ -50,8 +57,11 @@ export async function captureMap(map: MaplibreMap): Promise<{ canvas: HTMLCanvas
 }
 
 export type ImageLegend =
-  | { kind: 'choropleth'; title: string; unit: string; model: ChoroplethLegendModel }
-  | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel };
+  /** stepped：3D 模式，色塊畫成階梯並加上高度說明 */
+  | { kind: 'choropleth'; title: string; unit: string; model: ChoroplethLegendModel; stepped?: boolean }
+  | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel }
+  /** 3D 模式的柱子 */
+  | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string };
 
 /** 圖片上的文字，由呼叫端（知道主題、年份、來源的 App）提供 */
 export interface MapImageContent {
@@ -204,6 +214,8 @@ function drawLegends(
 const LEGEND_TITLE = 16;
 const TITLE_GAP = 6;
 const NO_DATA_ROW = 18;
+/** 3D 圖例標題下的高度說明（.legend-note） */
+const NOTE_ROW = 18;
 
 function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: Tokens, font: string): Card {
   const t = messages();
@@ -214,6 +226,9 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
   const titleTotal = titleWidth + ctx.measureText(unit).width;
   ctx.font = `11px ${font}`;
   const noDataWidth = 22 + ctx.measureText(t.noData).width;
+  const noteText = legend.kind === 'column' ? COLUMN_NOTE : legend.kind === 'choropleth' && legend.stepped ? STEPPED_NOTE : null;
+  const note = noteText && tr(noteText);
+  const noteWidth = note ? ctx.measureText(note).width : 0;
 
   const drawTitle = () => {
     ctx.font = `600 12px ${font}`;
@@ -222,6 +237,10 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
     ctx.font = `12px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;
     ctx.fillText(unit, titleWidth, LEGEND_TITLE / 2);
+    if (note) {
+      ctx.font = `11px ${font}`;
+      ctx.fillText(note, 0, LEGEND_TITLE + TITLE_GAP + 5);
+    }
   };
   const drawNoData = (top: number) => {
     const y = top + 4;
@@ -231,13 +250,16 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
     ctx.fillText(t.noData, 22, y + 7);
   };
 
-  const top = LEGEND_TITLE + TITLE_GAP;
+  const top = LEGEND_TITLE + TITLE_GAP + (note ? NOTE_ROW : 0);
   if (legend.kind === 'choropleth') {
     const { colors, labels, swatchWidth } = legend.model;
+    const stepped = Boolean(legend.stepped);
     const scaleWidth = colors.length * swatchWidth;
-    const scaleHeight = 28;
+    // 階梯色塊（3D）比平的高，刻度跟著往下移（跟 .legend-scale.is-stepped 一樣）
+    const swatchesHeight = stepped ? STEP_MAX_PX : 10;
+    const scaleHeight = swatchesHeight + 18;
     return {
-      width: Math.max(titleTotal, scaleWidth, noDataWidth),
+      width: Math.max(titleTotal, noteWidth, scaleWidth, noDataWidth),
       height: top + scaleHeight + NO_DATA_ROW,
       draw: () => {
         drawTitle();
@@ -248,15 +270,48 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
           const x = i * (w + gap);
           const first = i === 0;
           const last = i === colors.length - 1;
-          roundRect(ctx, x, top, w, 10, [first ? 2 : 0, last ? 2 : 0, last ? 2 : 0, first ? 2 : 0]);
+          if (stepped) {
+            const h = ((i + 1) / colors.length) * STEP_MAX_PX;
+            roundRect(ctx, x, top + STEP_MAX_PX - h, w, h, [2, 2, 0, 0]);
+          } else {
+            roundRect(ctx, x, top, w, 10, [first ? 2 : 0, last ? 2 : 0, last ? 2 : 0, first ? 2 : 0]);
+          }
           ctx.fill();
         });
         ctx.font = `11px ${font}`;
         ctx.fillStyle = tokens.inkSecondary;
         ctx.textAlign = 'center';
-        labels.forEach((label, i) => ctx.fillText(label, ((i + 1) / colors.length) * scaleWidth, top + 14 + 7));
+        labels.forEach((label, i) => ctx.fillText(label, ((i + 1) / colors.length) * scaleWidth, top + swatchesHeight + 4 + 7));
         ctx.textAlign = 'left';
         drawNoData(top + scaleHeight);
+      },
+    };
+  }
+
+  if (legend.kind === 'column') {
+    const { bars, baseline, width, height } = legend.model;
+    return {
+      width: Math.max(titleTotal, noteWidth, width, noDataWidth),
+      height: top + height + NO_DATA_ROW,
+      draw: () => {
+        drawTitle();
+        ctx.font = `11px ${font}`;
+        ctx.textAlign = 'center';
+        for (const { label, x, h } of bars) {
+          ctx.fillStyle = legend.color;
+          roundRect(ctx, x - 6, top + baseline - h, 12, h, [1.5, 1.5, 0, 0]);
+          ctx.fill();
+          ctx.fillStyle = tokens.inkSecondary;
+          ctx.fillText(label, x, top + baseline - h - 4 - 4);
+        }
+        ctx.textAlign = 'left';
+        ctx.strokeStyle = tokens.axis;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, top + baseline + 0.5);
+        ctx.lineTo(width, top + baseline + 0.5);
+        ctx.stroke();
+        drawNoData(top + height);
       },
     };
   }

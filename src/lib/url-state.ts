@@ -13,6 +13,8 @@ export interface ViewState {
   item: string | null;
   /** 框選範圍（經緯度 [西, 南, 東, 北]） */
   box: Box | null;
+  /** 3D 立體地圖（3d=1） */
+  threeD: boolean;
 }
 
 function read(): ViewState {
@@ -27,6 +29,7 @@ function read(): ViewState {
     item: p.get('item'),
     // bbox= 是經緯度；舊版網址的 box= 是 Equal Earth 投影座標，換算過來
     box: parseBox(p.get('bbox')) ?? legacyBox(p.get('box')),
+    threeD: p.get('3d') === '1',
   };
 }
 
@@ -54,6 +57,7 @@ function write(state: ViewState): void {
   if (state.country) p.set('country', state.country);
   if (state.view !== 'map') p.set('view', state.view);
   if (state.box) p.set('bbox', state.box.map((v) => v.toFixed(3)).join(','));
+  if (state.threeD) p.set('3d', '1');
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);

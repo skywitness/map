@@ -77,6 +77,17 @@ export const zh = {
   boxToolActive: '在地圖上拖曳畫框（Esc 取消）',
   boxHint: '在地圖上拖曳畫出範圍（Esc 取消）',
   basemapFailed: '底圖載入失敗，請檢查網路連線後重新整理。',
+  // 3D
+  threeD: '3D 立體地圖',
+  threeDEnter: '3D 立體地圖：用高度呈現數值。3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
+  threeDLeave: '離開 3D，回到平面上色',
+  globeIn3d: '3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
+  boxIn3d: '3D 模式不能框選（地圖可以旋轉、傾斜），請先關閉 3D',
+  compass: '朝北並回到預設傾角',
+  compassTitle: '朝北並回到預設傾角（右鍵或 Ctrl＋拖曳可旋轉、傾斜）',
+  threeDHintTouch: '雙指轉動可旋轉、雙指上下滑動可傾斜',
+  threeDHintMouse: '右鍵或 Ctrl＋拖曳可旋轉、傾斜',
+  threeDHintGlobe: '；3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
   unitSuffix: (unit: string) => `（${unit}）`,
   layers: '圖層',
 

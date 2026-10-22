@@ -260,7 +260,23 @@ async function main() {
     await check(page, 'population 框選模式');
     await page.keyboard.press('Escape');
 
-    // ── 4. 分享選單、快捷鍵說明、用中文名稱搜尋 ──
+    // ── 4. 3D：面量圖的階梯圖例、總量的柱子圖例與操作提示 ──
+    for (const ind of ['density', 'total']) {
+      await page.goto(`${base}?topic=population&ind=${ind}&lang=en&3d=1`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('.map-legend .legend');
+      await settle(page);
+      await check(page, `3D ${ind}`);
+    }
+    const threeD = await page.$('.map-toggle');
+    if (threeD) {
+      await threeD.click(); // 關掉
+      await settle(page);
+      await (await page.$('.map-toggle'))?.click(); // 再打開，出現操作提示
+      await sleep(300);
+      await check(page, '3D 操作提示');
+    }
+
+    // ── 5. 分享選單、快捷鍵說明、用中文名稱搜尋 ──
     await page.click('.share-button');
     await sleep(150);
     await check(page, '分享選單');
