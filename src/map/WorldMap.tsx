@@ -23,6 +23,7 @@ import { geoArea, geoDistance } from 'd3-geo';
 import { useLang, useT } from '../i18n';
 import type { AirportsData, Indicator } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
+import { noteMapRequest } from '../lib/serviceWorker';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
@@ -42,7 +43,6 @@ import {
 } from './Legend';
 import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
-import { noteMapRequest } from '../lib/serviceWorker';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
 import { useElementSize } from './useElementSize';
 
