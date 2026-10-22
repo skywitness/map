@@ -1,13 +1,14 @@
 """健康主題：平均壽命、嬰兒與五歲以下死亡率、醫療支出、醫師數。
 
-- 壽命與死亡率用 UN WPP 2024（各國同一套估計方法，含台灣），只取 2023 年以前的估計值。
+- 壽命與死亡率用 UN WPP 2024（各國同一套估計方法），只取 2023 年以前的估計值。
+  台灣改用內政部的簡易生命表：WPP 對台灣的估計跟官方差不少，嬰幼兒死亡率差最多。
 - 醫療支出、醫師數用 World Bank WDI（WHO 全球醫療支出資料庫、全球衛生人力統計）；
   WDI 沒有台灣，台灣用衛生福利部的國民醫療保健支出與醫事人員統計。
 """
 from __future__ import annotations
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
-from sources import mohw, worldbank, wpp
+from sources import moi, mohw, worldbank, wpp
 
 # 輸出檔名 -> (WPP 欄位, 單位, 小數位數)
 WPP_INDICATORS = {
@@ -19,23 +20,37 @@ WPP_INDICATORS = {
     "life-expectancy-male": ("LExMale", "歲", 2),
 }
 
-# 聯合國對台灣的估計跟內政部的簡易生命表不同，嬰幼兒死亡率差最多
-WPP_TAIWAN_NOTES = {
-    "life-expectancy": "聯合國的估計值；內政部 112 年（2023）簡易生命表是 80.23 歲",
-    "infant-mortality": "聯合國的估計值，比官方統計低；內政部 112 年（2023）簡易生命表的 0 歲死亡機率是 4.31‰",
-    "under5-mortality": "聯合國的估計值，比官方統計低；內政部 112 年（2023）簡易生命表的未滿 5 歲死亡機率是 5.12‰",
-}
-WPP_TAIWAN_NOTES_EN = {
-    "life-expectancy": "UN estimate; the Ministry of the Interior's 2023 abridged life table gives 80.23 years",
+# 台灣的附註：內政部的資料說明，再附上 WPP 最新一年的估計對照。(中文說明, 英文說明, 數值格式)
+TAIWAN_NOTES = {
+    "life-expectancy": (
+        f"內政部簡易生命表的 0 歲平均餘命，{moi.NATIONAL_FROM} 年起（男女分開的從 1970 年起，"
+        f"{moi.NATIONAL_FROM - 1} 年以前不含金門、連江）",
+        "Life expectancy at birth from the Ministry of the Interior's abridged life tables, "
+        f"from {moi.NATIONAL_FROM} (by sex from 1970, excluding Kinmen and Matsu before {moi.NATIONAL_FROM})",
+        ("{} 歲", "{} years"),
+    ),
     "infant-mortality": (
-        "UN estimate, lower than the official figure; the Ministry of the Interior's 2023 abridged life table "
-        "gives an infant death probability of 4.31‰"
+        f"內政部簡易生命表的 0 歲死亡機率，{moi.NATIONAL_FROM} 年起",
+        f"Probability of dying before age 1 from the Ministry of the Interior's abridged life tables, from {moi.NATIONAL_FROM}",
+        ("{}‰", "{}‰"),
     ),
     "under5-mortality": (
-        "UN estimate, lower than the official figure; the Ministry of the Interior's 2023 abridged life table "
-        "gives an under-5 death probability of 5.12‰"
+        f"內政部簡易生命表的未滿 5 歲死亡機率，{moi.NATIONAL_FROM} 年起",
+        f"Probability of dying before age 5 from the Ministry of the Interior's abridged life tables, from {moi.NATIONAL_FROM}",
+        ("{}‰", "{}‰"),
     ),
 }
+
+
+def taiwan_notes(key: str, un_estimate: dict[int, float]) -> dict:
+    zh, en, (fmt_zh, fmt_en) = TAIWAN_NOTES[key]
+    year = max(un_estimate)
+    value = f"{un_estimate[year]:.2f}"
+    return {
+        "notes": {"TWN": f"{zh}；聯合國 WPP 的估計不同，{year} 年是 {fmt_zh.format(value)}"},
+        "notesEn": {"TWN": f"{en}; the UN WPP estimate differs: {fmt_en.format(value)} in {year}"},
+    }
+
 
 # 輸出檔名 -> (World Bank 代碼, 單位, 小數位數, 頭尾年份至少要有最多那年幾成的國家)
 WB_INDICATORS = {
@@ -50,20 +65,27 @@ def build() -> None:
     out = OUT_DIR / "topics" / "health"
 
     demo = wpp.demographic([col for col, _unit, _digits in WPP_INDICATORS.values()])
+    life = moi.life_expectancy()
+    infant, under5 = moi.child_mortality()
+    taiwan_life = {
+        "life-expectancy": life["total"],
+        "infant-mortality": infant,
+        "under5-mortality": under5,
+        "life-expectancy-female": life["female"],
+        "life-expectancy-male": life["male"],
+    }
     for key, (col, unit, digits) in WPP_INDICATORS.items():
         countries = dict(demo[col])
         world = countries.pop("WLD", {})
+        un_taiwan = countries.get("TWN", {})
+        countries["TWN"] = taiwan_life[key]  # 內政部有比 WPP 估計值更新的年份，year_span 會截掉
         years = year_span(countries)
         write_json(
             out / f"{key}.json",
             indicator_file(
                 key, unit, years, {iso3: to_series(s, years, digits) for iso3, s in countries.items()},
                 aggregates={"WLD": to_series(world, years, digits)},
-                **(
-                    {"notes": {"TWN": WPP_TAIWAN_NOTES[key]}, "notesEn": {"TWN": WPP_TAIWAN_NOTES_EN[key]}}
-                    if key in WPP_TAIWAN_NOTES
-                    else {}
-                ),
+                **(taiwan_notes(key, un_taiwan) if key in TAIWAN_NOTES else {}),
             ),
         )
 
@@ -83,5 +105,5 @@ def build() -> None:
         )
     write_json(
         out / "manifest.json",
-        {"topic": "health", "generatedAt": now_iso(), "source": "UN WPP 2024; World Bank WDI (WHO); 衛生福利部"},
+        {"topic": "health", "generatedAt": now_iso(), "source": "UN WPP 2024; 內政部; World Bank WDI (WHO); 衛生福利部"},
     )

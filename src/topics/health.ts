@@ -5,6 +5,7 @@ import type { TopicDefinition } from './types';
 const perThousand = (v: number) => `${fixed(v, v < 10 ? 1 : 0)}‰`;
 const YEARS = { zh: '歲', en: 'years' };
 const PER_1000 = { zh: '人/千人', en: 'per 1,000 people' };
+const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 export const health: TopicDefinition = {
   id: 'health',
@@ -19,6 +20,11 @@ export const health: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
     {
+      name: { zh: '內政部簡易生命表', en: 'Ministry of the Interior (Taiwan), abridged life tables' },
+      url: 'https://www.moi.gov.tw/cl.aspx?n=2906',
+      license: OPEN_DATA_TW,
+    },
+    {
       name: {
         zh: 'World Bank, World Development Indicators（WHO 醫療支出與醫師資料）',
         en: 'World Bank, World Development Indicators (WHO health spending and physician data)',
@@ -29,12 +35,12 @@ export const health: TopicDefinition = {
     {
       name: { zh: '衛生福利部統計處', en: 'Ministry of Health and Welfare (Taiwan), Department of Statistics' },
       url: 'https://dep.mohw.gov.tw/dos/',
-      license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+      license: OPEN_DATA_TW,
     },
   ],
   note: {
-    zh: '平均壽命與嬰幼兒死亡率是聯合國用同一套方法估計的，可能跟各國官方統計不同，例如台灣 2023 年的嬰兒死亡率聯合國估 3.0‰，內政部生命表是 4.3‰。醫療支出與醫師數的台灣資料來自衛生福利部。',
-    en: "Life expectancy and child mortality are UN estimates made with one method for every country and may differ from official national figures: for Taiwan's 2023 infant mortality, for example, the UN estimate is 3.0‰ and the Ministry of the Interior's life table gives 4.3‰. Taiwan's health spending and physician figures come from the Ministry of Health and Welfare.",
+    zh: '平均壽命與嬰幼兒死亡率是聯合國用同一套方法估計的，可能跟各國官方統計不同。台灣改用內政部的簡易生命表（1992 年起），聯合國對台灣嬰幼兒死亡率的估計低了不少，例如 2023 年的嬰兒死亡率聯合國估 3.0‰，內政部是 4.3‰。醫療支出與醫師數的台灣資料來自衛生福利部。',
+    en: "Life expectancy and child mortality are UN estimates made with one method for every country and may differ from official national figures. For Taiwan the Ministry of the Interior's abridged life tables are used instead (from 1992), as the UN estimates of Taiwan's child mortality are noticeably lower: 3.0‰ versus the official 4.3‰ for infant mortality in 2023, for example. Taiwan's health spending and physician figures come from the Ministry of Health and Welfare.",
   },
   panelExtra: () => import('./panels/HealthPanel'),
   indicators: [
