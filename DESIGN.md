@@ -13,6 +13,7 @@
 | 側欄圖表 | **ECharts 6**，按需引入 | 點國家時才載入（約 180 KB gzip），不拖慢首頁 |
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
 | 前端 | Vite + React + TypeScript | |
+| 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟直接從快取載入；看過一次就能離線開啟；可以安裝成 App（見第 11 節） |
 | 資料處理 | Python（`pipeline/`），離線執行 | 前端只讀靜態 JSON，不需要後端 |
 | 部署 | GitHub Pages（GitHub Actions 自動建置） | `vite.config.ts` 已設 `base: './'` |
 
@@ -33,6 +34,7 @@
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
    ├─ geo/countries-50m.json              國界（TopoJSON，id 已換成 ISO alpha-3）
+   ├─ geo/countries-110m.json             粗略國界，只用來畫第一個畫面（見第 11 節）
    ├─ countries.json                      ISO 對照表（alpha-3 → alpha-2、英文名）
    └─ topics/<主題>/
         ├─ <指標>.json                    每個指標一個檔，含所有年份
@@ -45,16 +47,19 @@ public/data/                              ← 靜態 JSON，會進版本控制
 src/
    ├─ topics/          每個主題一個設定檔（TopicDefinition）  ← 新增主題主要改這裡
    │   └─ panels/      主題自訂的側欄區塊（動態載入）
-   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx）：資料圖層、圖例、tooltip、框選、疊加圖層
+   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx，自己一個 chunk）：資料圖層、圖例、tooltip、框選、疊加圖層；
+   │                   底圖樣式的下載與改寫在 style.ts（不含 MapLibre，首頁一啟動就先抓）
    ├─ charts/          ECharts 包裝、折線／堆疊面積 option、長條清單
    ├─ panels/          國家側欄、排名表、框選結果
    ├─ controls/        時間軸
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
-   └─ lib/             資料讀取、國名、網址狀態、數字格式
+   ├─ lib/             資料讀取（含指標檔還原）、國名、網址狀態、數字格式、連線狀態
+   └─ sw.ts            service worker（快取策略見第 11 節）
 
 pipeline/
    ├─ run.py           入口：npm run data -- <步驟>
-   ├─ common.py        下載快取、輸出 JSON、指標檔格式
+   ├─ common.py        下載快取、輸出 JSON、指標檔格式（含數值壓縮）
+   ├─ compact.py       把還沒壓縮的舊指標檔改成差分編碼（npm run data -- compact）
    ├─ build_geo.py     國界與 ISO 對照表
    ├─ geoindex.py      經緯度 → 國家（用上面的國界判斷）
    ├─ sources/         各資料來源的下載與解析（worldbank、imf、faostat、atlas、dgbas、ghsl、epoch、osm…）
@@ -88,6 +93,26 @@ pipeline/
 - `projectionFrom`（選填）：從這一年開始是推估值，時間軸與折線圖會標示成虛線。
 - `aggregates`（選填）：世界合計，用來算「占全球比例」和畫對照線。
 - `notes`（選填）：個別國家的附註，例如改用其他來源補上，會顯示在側欄。
+
+**實際存檔時數值會壓縮**（`"encoding": "delta"`，`common.compact_indicator()`）：
+
+```json
+{ "indicator": "total", "years": [1950, 1951, 1952, "…"], "encoding": "delta",
+  "values": { "TWN": [3, 7597, 266, 286, "…"] } }
+```
+
+- 每個序列的第一個數是十進位指數 e，之後是跟前一個非 null 值的差（整數），值 = 累加 × 10^e，`null` 不影響累加。
+- 上面的台灣：e = 3，所以是 7,597,000、7,863,000、8,149,000……（原始值 7,596,530、7,862,796、8,148,990）
+- 逐年變化通常很小，差分後 gzip 壓得很好：
+  - 全部 145 個指標檔 gzip 後從 2.49 MB 變 1.98 MB。
+  - 首頁的總人口從 137 KB 變 55 KB。
+- 精度：序列最大值保留 5 位有效數字，每個非 0 的值至少保留 4 位（畫面上最多顯示 4 位，例如「2,332 萬」），也不會比原本的小數位數更細。
+  - 驗證過全部 122 萬個值：89% 跟原值完全相同，最大相對誤差 0.05%。
+  - 只有 6 位數以上、畫面上顯示到個位數的值（例如人均 GDP 超過 10 萬）最後一位會變成 0。
+- 前端的 `fetchJson()`（`src/lib/data.ts`）讀取時就還原，主題設定、側欄、排名表看到的都是上面那種一般格式。沒有 `encoding` 的舊檔照樣能讀。
+- 各主題用 `indicator_file()` 輸出時會自動壓縮；別的分支產生的舊檔可以用 `npm run data -- compact` 一次轉換（已經壓縮過的會跳過）。
+
+**為什麼不改成每年一個檔**：地圖第一個畫面只需要當年的值，但比例圓的大小要用所有年份的最大值，時間軸也要知道有哪些年份；而同一個國家相鄰年份的值很接近，整條序列放在一起差分最省。現在一個指標一個檔、gzip 後大多只有幾十 KB，再拆開反而多出很多請求。
 
 ## 4. 新增一個主題
 
@@ -260,7 +285,10 @@ pipeline/
 - **框選的國內分布跟著年份變**：GHS-POP 有 1975–2030 每 5 年一期，可以依時間軸挑最近的一期（每期 gzip 後約 1.6 MB），1950 年代與 2100 年仍只能用最接近的一期。
 - **地圖上的圓餅圖層**：在國家位置畫發電結構圓餅，在 `LayerSpec` 加 `kind: 'pie'`。
 - **農產品貿易流向**：用 FAOSTAT 雙邊貿易矩陣（TM）畫流向弧線。
-- **縮減資料量**：農業與工業的國家明細檔可以只保留近 30 年，目前 `public/data` 約 26 MB（其中框選網格 7.5 MB）。
+- **縮減資料量**：指標檔已經壓縮（第 3 節）。還可以做的：
+  - 農業與工業的國家明細檔（`countries/<ISO3>.json`，共約 12 MB，點國家才載入）可以只保留近 30 年，或也改成差分編碼。
+  - 框選網格（7.5 MB，gzip 後 1.6 MB）可以改成整數、差分編碼。
+  - 鐵路（gzip 後約 300 KB）可以依縮放分成兩層，全球視角只載入主要幹線。
 
 ## 10. 開發注意事項
 
@@ -276,3 +304,9 @@ pipeline/
   - 用腳本連續改同一個檔案時，Vite 偶爾會在檔案寫到一半時讀進來並快取住，瀏覽器出現「does not provide an export named …」。
   - 用 `touch` 該檔案重新觸發轉換即可。
 - **換 MapLibre 版本後**：要刪掉 `node_modules/.vite` 再重啟開發伺服器，否則 Vite 會沿用舊版的預先打包檔。
+- **Service worker 只在正式版註冊**：
+  - `npm run dev` 不會有快取問題。
+  - 要測離線、快取，用 `npm run build` 再 `npm run preview`。
+  - 瀏覽器開發者工具的 Application → Service workers 可以勾「Update on reload」或「Offline」。
+  - 改了 `src/sw.ts` 或快取策略之後，要實際跑一次「部署更新」流程（第 11 節）。
+- **不要在首頁的 bundle 引入 MapLibre**：`maplibre-gl` 只能從 `src/map/WorldMap.tsx`（或它引入的模組）import，其他地方需要型別就用 `import type`。否則地圖程式會跑回首頁 chunk，第一個畫面在手機上會慢好幾秒。

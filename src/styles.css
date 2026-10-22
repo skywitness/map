@@ -55,6 +55,19 @@ button {
   white-space: nowrap;
 }
 
+/* 沒有網路時，標題旁的小標籤（資料與地圖來自這台裝置的快取） */
+.offline-badge {
+  flex: none;
+  margin-left: -12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--grid);
+  color: var(--ink-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .topics {
   display: flex;
   gap: 4px;
@@ -353,7 +366,8 @@ button {
   color: var(--accent-ink);
 }
 
-.map-hint {
+.map-hint,
+.map-status {
   position: absolute;
   top: 12px;
   left: 50%;
@@ -365,6 +379,13 @@ button {
   font-size: 12px;
   pointer-events: none;
   white-space: nowrap;
+}
+
+/* 第一次載入：底圖先出來，資料還在路上（蓋在地圖上面） */
+.map-status {
+  z-index: 3;
+  margin: 0;
+  opacity: 0.85;
 }
 
 .map-overlay {

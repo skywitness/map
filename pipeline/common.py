@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 import urllib.request
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,8 +56,63 @@ def indicator_file(
     values: dict[str, list[float | None]],
     **extra: object,
 ) -> dict:
-    """所有主題共用的指標檔格式：每個國家一個陣列，與 years 一一對應，缺值為 null。"""
-    return {"indicator": indicator, "unit": unit, "years": years, **extra, "values": values}
+    """所有主題共用的指標檔格式：每個國家一個陣列，與 years 一一對應，缺值為 null。
+
+    輸出前用 compact_indicator() 壓縮數值（前端 src/lib/data.ts 讀取時還原）。
+    """
+    return compact_indicator({"indicator": indicator, "unit": unit, "years": years, **extra, "values": values})
+
+
+# ── 指標檔的數值壓縮（DESIGN.md 第 3 節） ──────────────────────────
+# 每個序列存成 [十進位指數 e, 逐年差分的整數…]，值 = 累加 × 10^e。逐年變化通常很小，gzip 後檔案小很多。
+# 精度：序列的最大值保留 5 位有效數字，每個非 0 的值至少保留 4 位（畫面上最多顯示 4 位，例如「2,332 萬」），
+# 也不會比原本的小數位數更細。只有 6 位數以上的整數（例如人均 GDP 超過 10 萬）最後一位會變成 0。
+SERIES_DIGITS = 5
+MIN_DIGITS = 4
+
+
+def _decimals(v: float) -> int:
+    """這個數原本有幾位小數（最多 6 位）"""
+    if isinstance(v, int) or float(v).is_integer():
+        return 0
+    return min(-int(Decimal(repr(v)).as_tuple().exponent), 6)
+
+
+def series_exponent(series: list[float | None]) -> int:
+    nonzero = [abs(v) for v in series if v]
+    if not nonzero:
+        return 0
+    by_max = math.floor(math.log10(max(nonzero))) - (SERIES_DIGITS - 1)
+    by_min = math.floor(math.log10(min(nonzero))) - (MIN_DIGITS - 1)
+    finest = -max(_decimals(v) for v in series if v is not None)
+    return max(min(by_max, by_min), finest)
+
+
+def compact_series(series: list[float | None]) -> list[int | None]:
+    """[e, d1, d2, …]：d 是跟前一個非 null 值的差，null 原樣保留、不影響累加。"""
+    e = series_exponent(series)
+    out: list[int | None] = [e]
+    prev = 0
+    for v in series:
+        if v is None:
+            out.append(None)
+            continue
+        q = round(v * 10**-e) if e < 0 else round(v / 10**e)
+        out.append(q - prev)
+        prev = q
+    return out
+
+
+def compact_indicator(data: dict) -> dict:
+    """把指標檔的 values、aggregates 換成差分編碼；已經壓縮過的原樣回傳。"""
+    if data.get("encoding") == "delta":
+        return data
+    out = {k: v for k, v in data.items() if k not in ("values", "aggregates")}
+    out["encoding"] = "delta"
+    if "aggregates" in data:
+        out["aggregates"] = {k: compact_series(s) for k, s in data["aggregates"].items()}
+    out["values"] = {k: compact_series(s) for k, s in data["values"].items()}
+    return out
 
 
 def to_series(by_year: dict[int, float], years: list[int], digits: int | None = None) -> list[float | None]:

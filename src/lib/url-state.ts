@@ -14,7 +14,8 @@ export interface ViewState {
   box: Box | null;
 }
 
-function read(): ViewState {
+/** 目前網址的畫面狀態（App 啟動時也用它提早發出第一個畫面的資料請求） */
+export function read(): ViewState {
   const p = new URLSearchParams(window.location.search);
   const year = Number(p.get('year'));
   return {

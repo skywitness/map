@@ -4,8 +4,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="用世界地圖瀏覽各國人口、經濟、能源、產業與農業資料" />
+    <meta name="theme-color" content="#2a78d6" />
     <title>世界資料地圖</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232a78d6'/%3E%3Cpath d='M2 16h28M16 2c-5 4-5 24 0 28M16 2c5 4 5 24 0 28' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" />
+    <!--
+      載入速度（DESIGN.md 第 11 節）：第一個畫面要用的檔案在這裡就開始下載，不等首頁程式下載、跑起來。
+      底圖（OpenFreeMap）先建立連線；所有底圖樣式共用的圖磚索引 /planet 也先抓。
+    -->
+    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
+    <link rel="preload" as="fetch" crossorigin href="https://tiles.openfreemap.org/planet" />
+    <link rel="preload" as="fetch" crossorigin href="./data/geo/countries-110m.json" />
+    <link rel="preload" as="fetch" crossorigin href="./data/countries.json" />
+    <script>
+      (function () {
+        function preload(href) {
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'fetch';
+          link.crossOrigin = 'anonymous';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+        // 預設底圖「彩色地形」（src/map/basemaps.ts 的 terrain）的樣式；選了其他底圖的由程式自己下載
+        try {
+          var stored = localStorage.getItem('basemap');
+          if (!stored || stored === 'terrain') preload('https://tiles.openfreemap.org/styles/liberty');
+        } catch (e) {}
+        // 首頁預設是人口主題的總人口（src/topics/index.ts、population.ts）；其他主題由程式自己下載
+        var q = new URLSearchParams(location.search);
+        var topic = q.get('topic');
+        var ind = q.get('ind');
+        if ((!topic || topic === 'population') && (!ind || ind === 'total')) preload('./data/topics/population/total.json');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

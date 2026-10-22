@@ -1,9 +1,10 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import type { Topology } from 'topojson-specification';
 import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
-import { useJson, useJsonMany } from './lib/data';
-import { useUrlState } from './lib/url-state';
+import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
+import { useOnline } from './lib/useOnline';
+import { read as readUrlState, useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
   gridInBox,
@@ -11,10 +12,10 @@ import {
   type Box,
   type PopulationGrid,
 } from './map/boxEstimate';
-import { toCountryFeatures } from './map/geometry';
+import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
-import { WorldMap } from './map/WorldMap';
+import { loadBaseStyle } from './map/style';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
@@ -32,6 +33,39 @@ import { useTheme } from './theme/useTheme';
 // 側欄的 ECharts 佔了大部分 JS，點國家時才載入，地圖可以先出來
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
 
+// MapLibre（約 1 MB）放在自己的 chunk。首頁程式一跑起來就同時開始下載地圖程式和底圖樣式，
+// 資料 JSON 也在這時發出請求，不必等 MapLibre 下載、解析完
+const worldMapModule = import('./map/WorldMap');
+const WorldMap = lazy(() => worldMapModule.then((m) => ({ default: m.WorldMap })));
+loadBaseStyle(getBasemap(readStoredBasemap()).url).catch(() => {}); // 失敗時 WorldMap 會重抓並顯示錯誤
+
+/**
+ * 國界：先用 1:110m（gzip 後約 35 KB，解析也快）畫出第一個畫面，地圖畫出資料之後再換成
+ * 1:50m（約 230 KB，含新加坡、巴林等小國，放大後也比較精細）。再次造訪時兩個都在快取裡，
+ * 一樣先畫粗的：手機上解析 1:50m 要好幾百毫秒，放到第一個畫面之後。
+ */
+const GEO_COARSE = 'geo/countries-110m.json';
+const GEO_DETAILED = 'geo/countries-50m.json';
+
+// 第一個畫面要用的檔案，程式一載入就發出請求：不等 React 第一次 render，也不等 MapLibre 解析完。
+// 之後 useJson 拿到的是同一個請求（fetchJson 有快取）
+for (const path of ['countries.json', GEO_COARSE, initialIndicatorPath()]) {
+  if (path) fetchJson(path).catch(() => {});
+}
+
+function initialIndicatorPath(): string | null {
+  const state = readUrlState();
+  const topic = getTopic(state.topic);
+  if (topic.pure) return null;
+  const indicator =
+    topic.indicators.find((i) => i.id === state.indicator) ??
+    topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  const item = topic.dimension?.options.find((o) => o.id === state.item)?.id ?? null;
+  return indicatorPath(topic, indicator, item);
+}
+
+const NO_FEATURES: CountryFeature[] = [];
+
 /** 指標超過這個數量就改用下拉選單 */
 const MAX_SEGMENTS = 5;
 
@@ -42,6 +76,7 @@ interface Manifest {
 export function App() {
   const { tokens, toggle: toggleTheme } = useTheme();
   const [state, update] = useUrlState();
+  const online = useOnline();
 
   const topic = getTopic(state.topic);
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
@@ -54,7 +89,6 @@ export function App() {
     ? (topic.dimension.options.find((o) => o.id === state.item)?.id ?? topic.dimension.defaultOption)
     : null;
 
-  const geo = useJson<Topology>('geo/countries-50m.json');
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
   const { data, loading, error } = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
@@ -65,7 +99,21 @@ export function App() {
     storeBasemap(id);
   };
 
-  const features = useMemo(() => (geo.data ? toCountryFeatures(geo.data) : null), [geo.data]);
+  // 地圖第一次畫出資料之後才做的事（精細國界、預先下載），不跟第一個畫面搶頻寬與 CPU
+  const [mapShown, setMapShown] = useState(false);
+  const onMapShown = useCallback(() => setMapShown(true), []);
+  const features = useCountryFeatures(mapShown);
+  const firstPaint = Boolean(features && (data || pure));
+
+  // 閒置時預先下載同主題的其他指標，換指標、開側欄時不用等
+  const neighbours = useMemo(
+    () => (pure ? [] : topic.indicators.map((i) => indicatorPath(topic, i, item))),
+    [topic, item, pure],
+  );
+  const settled = mapShown || (view !== 'map' && Boolean(data));
+  useEffect(() => {
+    if (settled) return prefetchJson(neighbours);
+  }, [settled, neighbours]);
 
   const years = data?.years ?? [topic.defaultYear];
   const year = pickYear(years, state.year, topic.defaultYear);
@@ -132,6 +180,11 @@ export function App() {
     <div className="app">
       <header className="topbar">
         <h1 className="brand">世界資料地圖</h1>
+        {!online && (
+          <span className="offline-badge" role="status" title="沒有網路連線，顯示的是這台裝置上次存下的資料與地圖">
+            離線中
+          </span>
+        )}
         <nav className="topics" aria-label="主題">
           {TOPICS.map((t) => (
             <button
@@ -266,9 +319,11 @@ export function App() {
         <div className="stage-main">
           {error && <p className="error">資料載入失敗：{error.message}</p>}
           {view === 'map' ? (
-            features && (data || pure) ? (
+            // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
+            <Suspense fallback={<p className="loading">地圖載入中…</p>}>
+              {!firstPaint && !error && <p className="map-status">資料載入中…</p>}
               <WorldMap
-                countries={features}
+                countries={features ?? NO_FEATURES}
                 indicator={indicator}
                 legendTitle={indicatorTitle}
                 values={values}
@@ -280,7 +335,8 @@ export function App() {
                 ariaLabel={pure ? '世界地圖' : `世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
                 basemap={basemap}
                 fitOnSelect={pure}
-                dimmed={loading}
+                onFirstData={onMapShown}
+                dimmed={loading && data !== null}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
                 boxToolLabel={topic.boxEstimate && `框選範圍，估算${topic.boxEstimate.label}`}
@@ -305,9 +361,7 @@ export function App() {
                   )
                 }
               />
-            ) : (
-              <p className="loading">地圖載入中…</p>
-            )
+            </Suspense>
           ) : (
             <RankingTable
               indicator={indicator}
@@ -363,6 +417,14 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/** 國界的幾何（先粗後細，見上面 GEO_COARSE）。mapShown：地圖畫出第一個畫面之後才載入 1:50m，不跟它搶頻寬與 CPU */
+function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
+  const coarse = useJson<Topology>(GEO_COARSE);
+  const detailed = useJson<Topology>(mapShown || coarse.error ? GEO_DETAILED : null).data;
+  const topo = detailed ?? coarse.data;
+  return useMemo(() => (topo ? toCountryFeatures(topo) : null), [topo]);
 }
 
 /** 主題的疊加圖層（鐵路、機場），只在該主題載入 */

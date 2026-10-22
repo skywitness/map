@@ -25,6 +25,7 @@ STEPS = {
     "industry": "topics.industry",
     "ai": "topics.ai",
     "transport": "topics.transport",
+    "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 
 

@@ -16,7 +16,6 @@ import {
   type MapGeoJSONFeature,
   type MapMouseEvent,
   type MapTouchEvent,
-  type StyleSpecification,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
@@ -28,6 +27,7 @@ import type { CountryFeature } from './geometry';
 import { BubbleLegend, ChoroplethLegend } from './Legend';
 import { DEFAULT_LAYERS, LayerControls, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
+import { loadBaseStyle } from './style';
 import { useElementSize } from './useElementSize';
 
 interface WorldMapProps {
@@ -63,6 +63,8 @@ interface WorldMapProps {
   basemap: Basemap;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
+  /** 資料第一次畫到地圖上（不上色的指標：國界第一次畫上）時呼叫一次 */
+  onFirstData?: () => void;
 }
 
 const INITIAL_CENTER: [number, number] = [105, 22];
@@ -78,39 +80,6 @@ const EARTH_RADIUS_KM = 6371.0088;
 const NO_DATA = '#c9c7c0';
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
 const MIN_BOX_PX = 6;
-
-/** 有些地名寫成「肯亞;肯尼亞」「巴布亞新幾內亞 / 巴布亞紐幾內亞」，只取第一個 */
-function firstName(expr: ExpressionSpecification, separator: string): ExpressionSpecification {
-  return ['case', ['in', separator, expr], ['slice', expr, 0, ['index-of', separator, expr]], expr];
-}
-
-// 底圖地名改成繁體中文，沒有中文名稱的才用原文
-const ZH_HANT: ExpressionSpecification = ['to-string', ['get', 'name:zh-Hant']];
-const ZH_NAME: ExpressionSpecification = [
-  'case',
-  ['has', 'name:zh-Hant'],
-  firstName(firstName(firstName(ZH_HANT, ';'), ' / '), '/'),
-  ['coalesce', ['get', 'name:zh'], ['get', 'name']],
-];
-
-/** 下載底圖樣式，改成中文地名、地球儀投影、黑色太空背景 */
-async function loadBaseStyle(url: string): Promise<StyleSpecification> {
-  const style = (await fetch(url).then((r) => r.json())) as StyleSpecification;
-  for (const layer of style.layers) {
-    if (layer.type !== 'symbol') continue;
-    const field = layer.layout?.['text-field'];
-    if (field && JSON.stringify(field).includes('name')) layer.layout = { ...layer.layout, 'text-field': ZH_NAME };
-  }
-  style.projection = { type: 'globe' };
-  // 黑色太空背景，地球邊緣一圈淡藍色大氣層
-  style.sky = {
-    'sky-color': '#000000',
-    'horizon-color': '#3a6ea5',
-    'fog-color': '#3a6ea5',
-    'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.8, 5, 0.8, 7, 0],
-  };
-  return style;
-}
 
 /** 依縮放調整面量圖的不透明度：放大後讓底圖的道路、地形透出來 */
 function fillOpacity(on: number): ExpressionSpecification {
@@ -258,7 +227,7 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false } = props;
+  const { basemap, fitOnSelect = false, onFirstData } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   /** 目前地圖上實際載入的底圖（切換時比對用） */
@@ -368,12 +337,15 @@ export function WorldMap(props: WorldMapProps) {
         const m = map;
         // 開發時方便在瀏覽器主控台檢查地圖狀態
         if (import.meta.env.DEV) (window as unknown as { __map?: MaplibreMap }).__map = m;
-        m.on('load', () => {
+        // 樣式一解析完就加上資料圖層，不等 'load'（要等第一個畫面的底圖圖磚全部下載完，手機上要好幾秒）
+        m.once('style.load', () => {
           installDataLayers(m, initial.dark);
           loadedBasemapRef.current = initial.id;
+          setRevision((r) => r + 1);
+        });
+        m.once('load', () => {
           // 窄螢幕時版權標示預設是展開的，會蓋住地圖下緣；先收合成 ⓘ 按鈕
           m.getContainer().querySelector('.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
-          setRevision((r) => r + 1);
         });
         bindEvents(m);
       })
@@ -541,6 +513,31 @@ export function WorldMap(props: WorldMapProps) {
         : [];
     (map.getSource('bubbles') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
   }, [revision, values, radius, anchors, indicator.layer.kind]);
+
+  // 資料第一次畫到地圖上：通知 App（之後才載入精細國界、預先下載），並留下 performance mark「map-data」
+  // 給載入速度量測用（DESIGN.md 第 11 節）。不上色的指標（純地圖、路網）以國界畫上為準
+  const shownRef = useRef(false);
+  const onFirstDataRef = useRef(onFirstData);
+  onFirstDataRef.current = onFirstData;
+  useEffect(() => {
+    const map = mapRef.current;
+    const kind = indicator.layer.kind;
+    if (!ready || !map || !installedRef.current || shownRef.current) return;
+    if (countries.length === 0 || (values.size === 0 && kind !== 'none')) return;
+    const source = kind === 'bubble' ? 'bubbles' : 'countries';
+    const onRender = () => {
+      if (!map.isSourceLoaded(source)) return;
+      map.off('render', onRender);
+      shownRef.current = true;
+      performance.mark('map-data');
+      onFirstDataRef.current?.();
+    };
+    map.on('render', onRender);
+    map.triggerRepaint();
+    return () => {
+      map.off('render', onRender);
+    };
+  }, [revision, countries, values, indicator.layer.kind]);
 
   useEffect(() => {
     const map = mapRef.current;

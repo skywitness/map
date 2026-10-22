@@ -1,6 +1,7 @@
-"""國界：Natural Earth 1:50m（world-atlas 套件），把 id 從 ISO 數字代碼改成 ISO alpha-3。
+"""國界：Natural Earth 1:50m 與 1:110m（world-atlas 套件），把 id 從 ISO 數字代碼改成 ISO alpha-3。
 
 前端與所有主題資料都用 alpha-3 當 key，這樣地圖與資料只需要對一次。
+1:110m 只用在第一次造訪的第一個畫面（檔案小很多），之後換成 1:50m。
 """
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ import pycountry
 
 from common import OUT_DIR, download, write_json
 
-WORLD_ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json"
+WORLD_ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-{scale}.json"
 
 # world-atlas 裡沒有 ISO 數字代碼的區域。底線開頭代表非 ISO 代碼，不會有統計資料。
 NO_ID_OVERRIDES = {
@@ -62,7 +63,23 @@ def load_countries() -> dict[str, dict]:
 
 
 def build() -> None:
-    src = download(WORLD_ATLAS_URL, "world-atlas", "countries-50m.json")
+    for scale in ("50m", "110m"):
+        count = convert(scale)
+        print(f"  {scale}：共 {count} 個國家/區域")
+
+    # 國家對照表：涵蓋地圖上沒有形狀的國家（例如吐瓦魯），前端用 iso2 取繁中國名
+    # 英文名優先用通用名稱（Taiwan、South Korea），不用 ISO 正式名稱（Taiwan, Province of China）
+    reference = {
+        c.alpha_3: {"iso2": c.alpha_2, "name": getattr(c, "common_name", c.name)} for c in pycountry.countries
+    }
+    for name, (iso3, iso2) in NO_ID_OVERRIDES.items():
+        reference[iso3] = {"iso2": iso2, "name": name} if iso2 else {"name": name}
+    write_json(OUT_DIR / "countries.json", dict(sorted(reference.items())))
+
+
+def convert(scale: str) -> int:
+    """下載 world-atlas 的 countries-<scale>.json，id 換成 ISO alpha-3，寫到 geo/countries-<scale>.json。"""
+    src = download(WORLD_ATLAS_URL.format(scale=scale), "world-atlas", f"countries-{scale}.json")
     with open(src, encoding="utf-8") as f:
         topo = json.load(f)
 
@@ -91,17 +108,8 @@ def build() -> None:
     topo["objects"] = {
         "countries": {"type": "GeometryCollection", "geometries": list(merged.values())}
     }
-    write_json(OUT_DIR / "geo" / "countries-50m.json", topo)
-    print(f"  共 {len(merged)} 個國家/區域")
-
-    # 國家對照表：涵蓋地圖上沒有形狀的國家（例如吐瓦魯），前端用 iso2 取繁中國名
-    # 英文名優先用通用名稱（Taiwan、South Korea），不用 ISO 正式名稱（Taiwan, Province of China）
-    reference = {
-        c.alpha_3: {"iso2": c.alpha_2, "name": getattr(c, "common_name", c.name)} for c in pycountry.countries
-    }
-    for name, (iso3, iso2) in NO_ID_OVERRIDES.items():
-        reference[iso3] = {"iso2": iso2, "name": name} if iso2 else {"name": name}
-    write_json(OUT_DIR / "countries.json", dict(sorted(reference.items())))
+    write_json(OUT_DIR / "geo" / f"countries-{scale}.json", topo)
+    return len(merged)
 
 
 if __name__ == "__main__":
