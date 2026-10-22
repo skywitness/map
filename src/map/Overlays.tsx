@@ -1,6 +1,4 @@
-import { memo, useMemo } from 'react';
-import { geoPath, type GeoProjection } from 'd3-geo';
-import type { AirportsData, RailwaysData } from '../topics/types';
+import type { RailwaysData } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 
 export interface LayerVisibility {
@@ -28,56 +26,6 @@ export function decodeRailways(data: RailwaysData): GeoJSON.MultiLineString {
   });
   return { type: 'MultiLineString', coordinates };
 }
-
-interface OverlayLayersProps {
-  projection: GeoProjection;
-  railways: GeoJSON.MultiLineString | null;
-  airports: AirportsData | null;
-  layers: LayerVisibility;
-  tokens: Tokens;
-  hoveredAirport: number | null;
-}
-
-/**
- * 鐵路是一條很長的 path，機場是幾千個圓點。縮放時只改外層 <g> 的 transform，
- * 圓點大小用 CSS 變數 --k 抵銷縮放，所以這個元件不必在每次縮放時重畫。
- */
-export const OverlayLayers = memo(function OverlayLayers(props: OverlayLayersProps) {
-  const { projection, railways, airports, layers, tokens, hoveredAirport } = props;
-
-  const railPath = useMemo(
-    () => (railways ? (geoPath(projection)(railways) ?? '') : ''),
-    [projection, railways],
-  );
-
-  const points = useMemo(() => {
-    if (!airports) return [];
-    return airports.rows.flatMap((row, index) => {
-      const p = projection([row[0], row[1]]);
-      return p ? [{ index, x: p[0], y: p[1], large: row[2] === 1, iso3: row[6] }] : [];
-    });
-  }, [projection, airports]);
-
-  return (
-    <g className="overlays">
-      {layers.railways && railPath && <path d={railPath} className="rail-lines" stroke={tokens.ink} />}
-      {points.map((p) =>
-        (p.large ? layers.largeAirports : layers.mediumAirports) ? (
-          <circle
-            key={p.index}
-            data-airport={p.index}
-            data-iso3={p.iso3}
-            className={p.large ? 'airport airport-large' : 'airport airport-medium'}
-            cx={p.x}
-            cy={p.y}
-            fill={tokens.hues.orange}
-            stroke={p.index === hoveredAirport ? tokens.ink : tokens.surface}
-          />
-        ) : null,
-      )}
-    </g>
-  );
-});
 
 interface LayerControlsProps {
   layers: LayerVisibility;

@@ -6,7 +6,6 @@ import { useJson, useJsonMany } from './lib/data';
 import { useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
-  buildRawIndex,
   gridInBox,
   landAreaInBox,
   type Box,
@@ -387,7 +386,7 @@ function useBoxEstimate(
   const grid = useJson<PopulationGrid>(active && spec ? `topics/${topic.id}/${spec.grid}` : null).data;
 
   const landKm2 = useMemo(
-    () => (active && features && box ? landAreaInBox(buildRawIndex(features), box) : null),
+    () => (active && features && box ? landAreaInBox(features, box) : null),
     [active, features, box],
   );
   const gridIndex = useMemo(() => (grid ? buildGridIndex(grid) : null), [grid]);

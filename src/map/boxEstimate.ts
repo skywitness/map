@@ -1,92 +1,118 @@
 /**
  * 框選估算：加總框內的網格人口（GHS-POP，pipeline/topics/population_grid.py），
- * 再由呼叫端把每個國家的網格人數縮放到選定年份的總量。另外在 Equal Earth（等面積投影）
- * 的平面座標裡把國界裁切到框內，算出框內的陸地面積。
+ * 再由呼叫端把每個國家的網格人數縮放到選定年份的總量。另外把國界裁切到框內，算出框內的陸地面積。
  *
- * 框用「原始投影座標」表示（scale = 1、translate = 0），跟版面大小、縮放都無關，
- * 側欄開關造成地圖重新縮放時，框仍然對著同一塊地方。
+ * 框用經緯度範圍 [西, 南, 東, 北] 表示，跟地圖的縮放、旋轉、投影都無關。
+ * 西 > 東 代表框跨過 180° 經線（在地球儀上往太平洋拖時會發生），計算時拆成兩段。
  */
-import { geoEqualEarth, geoPath, geoStream } from 'd3-geo';
+import { geoEqualEarth } from 'd3-geo';
 import type { CountryFeature } from './geometry';
 
-/** [x0, y0, x1, y1]，原始投影座標，x0 < x1、y0 < y1 */
+/** [west, south, east, north]，經緯度 */
 export type Box = [number, number, number, number];
 
-interface RawCountry {
+const EARTH_RADIUS_KM = 6371.0088;
+const RAD = Math.PI / 180;
+
+/** 跨 180° 經線的框拆成兩段 */
+function parts([w, s, e, n]: Box): Box[] {
+  return w <= e ? [[w, s, e, n]] : [[w, s, 180, n], [-180, s, e, n]];
+}
+
+/* ── 陸地面積 ─────────────────────────── */
+
+interface CountryRings {
   iso3: string;
-  /** 每個 ring 是攤平的 [x0, y0, x1, y1, …] */
-  rings: number[][];
+  /** 每個 ring 攤平成 [lon0, lat0, lon1, lat1, …]；外環與內環分開 */
+  outer: number[][];
+  holes: number[][];
   bbox: Box;
-  /** 帶正負號的面積總和（外環與內環方向相反，相加就扣掉湖泊、飛地） */
-  signedArea: number;
 }
 
-export interface RawIndex {
-  countries: RawCountry[];
-  /** 每單位原始投影面積代表多少 km² */
-  km2PerUnit: number;
-}
+const ringCache = new WeakMap<CountryFeature[], CountryRings[]>();
 
-const EARTH_SURFACE_KM2 = 510_072_000;
-
-export const rawProjection = geoEqualEarth().scale(1).translate([0, 0]).precision(0);
-
-const indexCache = new WeakMap<CountryFeature[], RawIndex>();
-
-export function buildRawIndex(features: CountryFeature[]): RawIndex {
-  const cached = indexCache.get(features);
+function countryRings(features: CountryFeature[]): CountryRings[] {
+  const cached = ringCache.get(features);
   if (cached) return cached;
-
-  const countries = features.map(({ iso3, feature }) => {
-    const rings: number[][] = [];
-    let current: number[] | null = null;
-    geoStream(
-      feature,
-      rawProjection.stream({
-        point: (x, y) => current?.push(x, y),
-        lineStart: () => (current = []),
-        lineEnd: () => {
-          if (current && current.length >= 6) rings.push(current);
-          current = null;
-        },
-        polygonStart: () => {},
-        polygonEnd: () => {},
-        sphere: () => {},
-      }),
-    );
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const ring of rings) {
-      for (let i = 0; i < ring.length; i += 2) {
-        x0 = Math.min(x0, ring[i]);
-        x1 = Math.max(x1, ring[i]);
-        y0 = Math.min(y0, ring[i + 1]);
-        y1 = Math.max(y1, ring[i + 1]);
-      }
+  const out = features.map(({ iso3, feature }) => {
+    const polygons = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+    const outer: number[][] = [];
+    const holes: number[][] = [];
+    let w = 180, s = 90, e = -180, n = -90;
+    for (const polygon of polygons) {
+      polygon.forEach((ring, i) => {
+        const flat = ring.flatMap(([x, y]) => [x, y]);
+        (i === 0 ? outer : holes).push(flat);
+        for (const [x, y] of ring) {
+          w = Math.min(w, x);
+          e = Math.max(e, x);
+          s = Math.min(s, y);
+          n = Math.max(n, y);
+        }
+      });
     }
-    const signedArea = rings.reduce((sum, ring) => sum + ringArea(ring), 0);
-    return { iso3, rings, bbox: [x0, y0, x1, y1] as Box, signedArea };
+    return { iso3, outer, holes, bbox: [w, s, e, n] as Box };
   });
-
-  const sphereArea = geoPath(rawProjection).area({ type: 'Sphere' });
-  const index = { countries, km2PerUnit: EARTH_SURFACE_KM2 / sphereArea };
-  indexCache.set(features, index);
-  return index;
+  ringCache.set(features, out);
+  return out;
 }
 
-/** 框內陸地面積（km²）：每個國家的形狀用 Sutherland–Hodgman 裁切到框內再算面積 */
-export function landAreaInBox(index: RawIndex, box: Box): number {
-  let landUnits = 0;
-  for (const c of index.countries) {
-    const [bx0, by0, bx1, by1] = c.bbox;
-    if (bx1 < box[0] || bx0 > box[2] || by1 < box[1] || by0 > box[3] || c.signedArea === 0) continue;
-    const contained = bx0 >= box[0] && bx1 <= box[2] && by0 >= box[1] && by1 <= box[3];
-    const clipped = contained
-      ? c.signedArea
-      : c.rings.reduce((sum, ring) => sum + ringArea(clipRing(ring, box)), 0);
-    landUnits += Math.abs(clipped);
+/** 框內陸地面積（km²）：每個國家的形狀用 Sutherland–Hodgman 裁切到框內，再算球面面積 */
+export function landAreaInBox(features: CountryFeature[], box: Box): number {
+  let total = 0;
+  for (const part of parts(box)) {
+    for (const c of countryRings(features)) {
+      const [cw, cs, ce, cn] = c.bbox;
+      if (ce < part[0] || cw > part[2] || cn < part[1] || cs > part[3]) continue;
+      const area = (rings: number[][]) => rings.reduce((sum, r) => sum + sphericalArea(clipRing(r, part)), 0);
+      total += Math.max(0, area(c.outer) - area(c.holes));
+    }
   }
-  return landUnits * index.km2PerUnit;
+  return total;
 }
+
+/** 經緯度多邊形的球面面積（km²），常用的近似公式：Σ Δλ·(2 + sin φ₁ + sin φ₂) / 2 */
+function sphericalArea(ring: number[]): number {
+  const n = ring.length;
+  if (n < 6) return 0;
+  let sum = 0;
+  for (let i = 0; i < n; i += 2) {
+    const j = (i + 2) % n;
+    sum += (ring[j] - ring[i]) * RAD * (2 + Math.sin(ring[i + 1] * RAD) + Math.sin(ring[j + 1] * RAD));
+  }
+  return (Math.abs(sum) * EARTH_RADIUS_KM * EARTH_RADIUS_KM) / 2;
+}
+
+/** Sutherland–Hodgman：依序用矩形的四條邊裁切（凹多邊形也適用，面積仍正確） */
+function clipRing(ring: number[], [w, s, e, n]: Box): number[] {
+  let pts = ring;
+  pts = clipEdge(pts, 0, w, true);
+  pts = clipEdge(pts, 0, e, false);
+  pts = clipEdge(pts, 1, s, true);
+  pts = clipEdge(pts, 1, n, false);
+  return pts;
+}
+
+/** axis 0 = 經度、1 = 緯度；keepGreater 表示保留座標 ≥ limit 的一側 */
+function clipEdge(pts: number[], axis: 0 | 1, limit: number, keepGreater: boolean): number[] {
+  const n = pts.length;
+  if (n === 0) return pts;
+  const out: number[] = [];
+  const inside = (i: number) => (keepGreater ? pts[i + axis] >= limit : pts[i + axis] <= limit);
+  for (let i = 0; i < n; i += 2) {
+    const prev = (i - 2 + n) % n;
+    const currIn = inside(i);
+    const prevIn = inside(prev);
+    if (currIn !== prevIn) {
+      const t = (limit - pts[prev + axis]) / (pts[i + axis] - pts[prev + axis]);
+      out.push(pts[prev] + t * (pts[i] - pts[prev]), pts[prev + 1] + t * (pts[i + 1] - pts[prev + 1]));
+    }
+    if (currIn) out.push(pts[i], pts[i + 1]);
+  }
+  return out;
+}
+
+/* ── 網格人口 ─────────────────────────── */
 
 /** grid.json（pipeline/topics/population_grid.py）：每筆是「一個網格裡屬於某國的人數」 */
 export interface PopulationGrid {
@@ -116,10 +142,6 @@ export interface GridIndex {
   pop: Float64Array;
   /** 各國的網格總人數（索引同 countries），框內人數除以它就是「占該國人口的比例」 */
   totals: Float64Array;
-  /** 每一列網格上緣的原始投影 y（最後多一個是最後一列的下緣）；北邊 y 較小 */
-  rowY: Float64Array;
-  /** 每一列網格中心緯度上，經度 1° 對應的原始投影 x（Equal Earth 的 x 跟經度成正比） */
-  rowXPerDeg: Float64Array;
 }
 
 const gridCache = new WeakMap<PopulationGrid, GridIndex>();
@@ -144,14 +166,6 @@ export function buildGridIndex(grid: PopulationGrid): GridIndex {
   }
   start.push(n);
 
-  const rows = Math.round(180 / grid.cellSize);
-  const rowY = new Float64Array(rows + 1);
-  const rowXPerDeg = new Float64Array(rows);
-  for (let r = 0; r <= rows; r++) {
-    rowY[r] = rawProjection([0, 90 - r * grid.cellSize])![1];
-    if (r < rows) rowXPerDeg[r] = rawProjection([1, 90 - (r + 0.5) * grid.cellSize])![0];
-  }
-
   const index: GridIndex = {
     epoch: grid.epoch,
     countries: grid.countries,
@@ -162,8 +176,6 @@ export function buildGridIndex(grid: PopulationGrid): GridIndex {
     country: Int16Array.from(grid.country),
     pop: Float64Array.from(grid.pop),
     totals,
-    rowY,
-    rowXPerDeg,
   };
   gridCache.set(grid, index);
   return index;
@@ -177,35 +189,33 @@ export interface GridInBox {
 }
 
 /**
- * 加總框內的網格人數。框邊切過的網格依重疊面積比例計入（假設網格內平均分布），
- * 框拖動時數字才會連續變化，不會一格一格跳。網格在投影後近似成「中心緯度寬度」的長方形。
+ * 加總框內的網格人數。網格是經緯度對齊的，框邊切過的網格依重疊比例計入（假設網格內平均分布），
+ * 框拖動時數字才會連續變化，不會一格一格跳。
  */
-export function gridInBox(grid: GridIndex, [bx0, by0, bx1, by1]: Box): GridInBox {
+export function gridInBox(grid: GridIndex, box: Box): GridInBox {
   const byCountry = new Float64Array(grid.countries.length);
   let unassigned = 0;
-  const { cols, cellSize, rowY, rowXPerDeg } = grid;
-  const rows = rowXPerDeg.length;
-
-  // y 只跟緯度有關：先找出跟框重疊的列，再用二分搜尋找到這幾列的網格
-  let r0 = 0;
-  while (r0 < rows && rowY[r0 + 1] <= by0) r0++;
-  let r1 = r0;
-  while (r1 < rows && rowY[r1] < by1) r1++;
-  const end = lowerBound(grid.cells, r1 * cols);
-
-  for (let i = lowerBound(grid.cells, r0 * cols); i < end; i++) {
-    const row = Math.floor(grid.cells[i] / cols);
-    const col = grid.cells[i] - row * cols;
-    const fy = overlap(rowY[row], rowY[row + 1], by0, by1);
-    if (fy <= 0) continue;
-    const x0 = (col * cellSize - 180) * rowXPerDeg[row];
-    const fx = overlap(x0, x0 + cellSize * rowXPerDeg[row], bx0, bx1);
-    if (fx <= 0) continue;
-    const f = fx * fy;
-    for (let j = grid.start[i]; j < grid.start[i + 1]; j++) {
-      const c = grid.country[j];
-      if (c >= 0) byCountry[c] += grid.pop[j] * f;
-      else unassigned += grid.pop[j] * f;
+  const { cols, cellSize } = grid;
+  for (const [w, s, e, n] of parts(box)) {
+    // row 0 從北緯 90° 開始往南
+    const r0 = Math.max(0, Math.floor((90 - n) / cellSize));
+    const r1 = Math.ceil((90 - s) / cellSize);
+    const end = lowerBound(grid.cells, r1 * cols);
+    for (let i = lowerBound(grid.cells, r0 * cols); i < end; i++) {
+      const row = Math.floor(grid.cells[i] / cols);
+      const col = grid.cells[i] - row * cols;
+      const top = 90 - row * cellSize;
+      const fy = overlap(top - cellSize, top, s, n);
+      if (fy <= 0) continue;
+      const left = col * cellSize - 180;
+      const fx = overlap(left, left + cellSize, w, e);
+      if (fx <= 0) continue;
+      const f = fx * fy;
+      for (let j = grid.start[i]; j < grid.start[i + 1]; j++) {
+        const c = grid.country[j];
+        if (c >= 0) byCountry[c] += grid.pop[j] * f;
+        else unassigned += grid.pop[j] * f;
+      }
     }
   }
   return { byCountry, unassigned };
@@ -228,46 +238,34 @@ function lowerBound(sorted: Uint32Array, value: number): number {
   return lo;
 }
 
-function ringArea(ring: number[]): number {
-  const n = ring.length;
-  if (n < 6) return 0;
-  let sum = 0;
-  for (let i = 0; i < n; i += 2) {
-    const j = (i + 2) % n;
-    sum += ring[i] * ring[j + 1] - ring[j] * ring[i + 1];
-  }
-  return sum / 2;
+/* ── 框的建立與舊網址相容 ─────────────── */
+
+/** 兩個角落的經緯度 → 框；經度差超過 180° 時視為跨過 180° 經線 */
+export function boxFromCorners(a: [number, number], b: [number, number]): Box {
+  const [w, e] = a[0] <= b[0] ? [a[0], b[0]] : [b[0], a[0]];
+  const s = Math.max(-90, Math.min(a[1], b[1]));
+  const n = Math.min(90, Math.max(a[1], b[1]));
+  return e - w > 180 ? [e, s, w, n] : [w, s, e, n];
 }
 
-/** Sutherland–Hodgman：依序用矩形的四條邊裁切（凹多邊形也適用，面積仍正確） */
-function clipRing(ring: number[], [x0, y0, x1, y1]: Box): number[] {
-  let pts = ring;
-  pts = clipEdge(pts, 0, x0, true);
-  pts = clipEdge(pts, 0, x1, false);
-  pts = clipEdge(pts, 1, y0, true);
-  pts = clipEdge(pts, 1, y1, false);
-  return pts;
+/** 舊版網址的 box= 是 Equal Earth 原始投影座標（scale 1），換成經緯度 */
+export function boxFromLegacyRaw([x0, y0, x1, y1]: Box): Box | null {
+  const projection = geoEqualEarth().scale(1).translate([0, 0]);
+  const nw = projection.invert?.([x0, y0]);
+  const se = projection.invert?.([x1, y1]);
+  return nw && se ? boxFromCorners(nw, se) : null;
 }
 
-/** axis 0 = x、1 = y；keepGreater 表示保留座標 ≥ limit 的一側 */
-function clipEdge(pts: number[], axis: 0 | 1, limit: number, keepGreater: boolean): number[] {
-  const n = pts.length;
-  if (n === 0) return pts;
-  const out: number[] = [];
-  const inside = (i: number) => (keepGreater ? pts[i + axis] >= limit : pts[i + axis] <= limit);
-  for (let i = 0; i < n; i += 2) {
-    const prev = (i - 2 + n) % n;
-    const currIn = inside(i);
-    const prevIn = inside(prev);
-    if (currIn !== prevIn) {
-      const t = (limit - pts[prev + axis]) / (pts[i + axis] - pts[prev + axis]);
-      out.push(pts[prev] + t * (pts[i] - pts[prev]), pts[prev + 1] + t * (pts[i + 1] - pts[prev + 1]));
-    }
-    if (currIn) out.push(pts[i], pts[i + 1]);
-  }
-  return out;
-}
-
-export function normalizeBox(a: [number, number], b: [number, number]): Box {
-  return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])];
+/** 框的外框線（經緯度多邊形），邊上加點，地球儀上才會沿著經緯線彎曲 */
+export function boxPolygon([w, s, e, n]: Box): GeoJSON.Polygon {
+  const east = w <= e ? e : e + 360;
+  const steps = 24;
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= steps; i++) ring.push([w + ((east - w) * i) / steps, n]);
+  for (let i = 1; i <= steps; i++) ring.push([east, n - ((n - s) * i) / steps]);
+  for (let i = 1; i <= steps; i++) ring.push([east - ((east - w) * i) / steps, s]);
+  for (let i = 1; i < steps; i++) ring.push([w, s + ((n - s) * i) / steps]);
+  ring.push(ring[0]);
+  // 跨 180° 經線時經度會超過 180，MapLibre 可以直接畫，保持連續才不會繞地球一圈
+  return { type: 'Polygon', coordinates: [ring] };
 }

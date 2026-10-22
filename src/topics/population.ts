@@ -46,7 +46,7 @@ export const population: TopicDefinition = {
     {
       id: 'growth',
       label: '人口年增率',
-      description: '相較前一年的人口變化，含自然增加與移民。紅色為人口減少。',
+      description: '相較前一年的人口變化，含自然增加與移民。橘色為人口減少、綠色為增加。',
       unit: '%',
       file: 'growth.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-2, -1, -0.25, 0.25, 1, 2] } },

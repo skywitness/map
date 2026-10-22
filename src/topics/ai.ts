@@ -93,7 +93,7 @@ export const ai: TopicDefinition = {
       id: 'claude-index',
       label: 'Claude 人均使用指數',
       description:
-        'Claude 使用量占比 ÷ 工作年齡人口占比。1 表示用量跟人口比例相當；大於 1（藍色）表示人均用得比較多，小於 1（紅色）表示比較少。',
+        'Claude 使用量占比 ÷ 工作年齡人口占比。1 表示用量跟人口比例相當；大於 1（綠色）表示人均用得比較多，小於 1（橘色）表示比較少。',
       unit: '倍',
       file: 'claude-index.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [0.25, 0.5, 0.8, 1.25, 2, 4] } },

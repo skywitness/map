@@ -64,7 +64,7 @@ export const agriculture: TopicDefinition = {
     {
       id: 'self-sufficiency',
       label: '自給率',
-      description: '產量 ÷（產量＋進口－出口）。低於 100% 表示要靠進口（紅色），高於 100% 表示有餘可以出口（藍色）。',
+      description: '產量 ÷（產量＋進口－出口）。低於 100% 表示要靠進口（橘色），高於 100% 表示有餘可以出口（綠色）。',
       unit: '%',
       file: 'self-sufficiency/{item}.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [25, 50, 90, 110, 200, 400] } },
@@ -85,7 +85,7 @@ export const agriculture: TopicDefinition = {
     {
       id: 'trade-balance',
       label: '農產品貿易收支',
-      description: '農產品出口額減進口額（美元，不含水產品）。藍色為淨出口國，紅色為淨進口國。',
+      description: '農產品出口額減進口額（美元，不含水產品）。綠色為淨出口國，橘色為淨進口國。',
       unit: '美元',
       file: 'trade-balance.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-1e10, -1e9, -1e8, 1e8, 1e9, 1e10] } },

@@ -20,6 +20,15 @@ const BLUE = {
 // 與 BLUE 同階亮度、色相取自 #e34948
 const RED = { 200: '#f8aaa3', 400: '#e24a48', 600: '#911e22' } as const;
 
+// 地圖專用：底圖的海是藍色，資料若也用藍色（或偏藍的紫色），淺色的國家會跟海混在一起，
+// 所以循序色用橘色、發散色用橘 ↔ 青綠。都與 BLUE 同階亮度（OKLCH L 相同），
+// 色相分別取自類別色的橘 #eb6834 與綠松 #1baf7a。
+const ORANGE = {
+  100: '#fbd7ca', 200: '#f2b098', 300: '#e68764', 400: '#d95923',
+  500: '#b44005', 600: '#8a2e00', 700: '#611e00',
+} as const;
+const AQUA = { 200: '#9ad0b4', 400: '#039f6d', 600: '#046041' } as const;
+
 export interface Tokens {
   mode: ThemeMode;
   page: string;
@@ -116,3 +125,14 @@ export function applyTokens(tokens: Tokens): void {
     root.style.setProperty(cssVar, tokens[key as keyof Tokens] as string);
   }
 }
+
+/**
+ * 地圖上的資料色：底圖固定是明亮的彩色地圖（藍色的海），不跟著介面切深淺色。
+ * 循序色用橘色、發散色用橘 ↔ 青綠（ColorBrewer BrBG 的配法，色盲也分得開）、比例圓用紫色。
+ */
+export const MAP_TOKENS: Tokens = {
+  ...TOKENS.light,
+  sequential: [ORANGE[100], ORANGE[200], ORANGE[300], ORANGE[400], ORANGE[500], ORANGE[600], ORANGE[700]],
+  diverging: [ORANGE[600], ORANGE[400], ORANGE[200], '#f0efec', AQUA[200], AQUA[400], AQUA[600]],
+  accent: TOKENS.light.hues.violet,
+};

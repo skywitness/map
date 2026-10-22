@@ -55,7 +55,7 @@ export const income: TopicDefinition = {
     {
       id: 'gdp-growth',
       label: '經濟成長率',
-      description: '實質 GDP 相較前一年的變化（已扣除物價上漲）。紅色為經濟衰退。',
+      description: '實質 GDP 相較前一年的變化（已扣除物價上漲）。橘色為經濟衰退、綠色為成長。',
       unit: '%',
       file: 'gdp-growth.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-5, -2, -0.5, 0.5, 2, 5] } },

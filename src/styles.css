@@ -236,51 +236,38 @@ button {
   transition: opacity 0.15s;
 }
 
-.map.is-dimmed {
+.map.is-dimmed .map-canvas {
   opacity: 0.6;
 }
 
-.map svg {
-  display: block;
-  cursor: grab;
-  touch-action: none;
+/* MapLibre 的畫布；地球儀外面是黑色太空 */
+.map-canvas {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, #0b1220 0%, #04070d 55%, #000 100%);
 }
 
-.map svg:active {
-  cursor: grabbing;
+.map.is-fullscreen {
+  background: #000;
 }
 
-.sphere {
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+.map-error {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
-.countries path {
-  stroke-width: 0.6;
-  vector-effect: non-scaling-stroke;
-  cursor: pointer;
+.map-zoom .map-text-button {
+  font-size: 12px;
 }
 
-.tiny-marker,
-.bubble {
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-  cursor: pointer;
-}
-
-.bubble {
-  fill-opacity: 0.72;
-}
-
-.outline {
-  fill: none;
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.outline-selected {
-  stroke-width: 2.25;
+/* MapLibre 的版權標示放在右下角，避開左下角的圖例 */
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
+  font-size: 11px;
 }
 
 .map-zoom {
@@ -317,32 +304,7 @@ button {
   cursor: default;
 }
 
-/* ── 疊加圖層：鐵路與機場 ───────────── */
-.rail-lines {
-  fill: none;
-  stroke-width: 0.8;
-  stroke-opacity: 0.7;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.airport {
-  stroke-width: 0.75;
-  vector-effect: non-scaling-stroke;
-  cursor: pointer;
-}
-
-/* 圓點大小用 CSS 的 r 抵銷地圖縮放（--k 由 WorldMap 設定），縮放時不必重畫幾千個圓 */
-.airport-large {
-  r: calc(2.8px / var(--k, 1));
-}
-
-.airport-medium {
-  r: calc(1.8px / var(--k, 1));
-  fill-opacity: 0.85;
-}
-
+/* ── 圖層開關 ───────────────────────── */
 .map-legend > .legend {
   padding: 10px 12px;
   border-radius: var(--radius);
@@ -375,13 +337,6 @@ button {
 }
 
 /* ── 框選 ───────────────────────────── */
-.map.is-box-mode svg,
-.map.is-box-mode .countries path,
-.map.is-box-mode .bubble,
-.map.is-box-mode .tiny-marker {
-  cursor: crosshair;
-}
-
 .map-zoom .box-tool {
   display: grid;
   place-items: center;
@@ -390,13 +345,6 @@ button {
 .map-zoom .box-tool.is-active {
   background: var(--accent);
   color: var(--accent-ink);
-}
-
-.box-select {
-  fill-opacity: 0.1;
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
 }
 
 .map-hint {
@@ -1166,8 +1114,8 @@ button {
   .stage-main {
     order: 1;
     margin-top: 12px;
-    height: 62vw;
-    min-height: 260px;
+    height: 62vh;
+    min-height: 320px;
   }
 
   .time-slider {
