@@ -2,6 +2,7 @@ import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { climate } from './climate';
 import { digital } from './digital';
+import { education } from './education';
 import { electricity } from './electricity';
 import { health } from './health';
 import { income } from './income';
@@ -28,6 +29,7 @@ export const TOPICS: TopicDefinition[] = [
   military,
   digital,
   health,
+  education,
 ];
 
 export function getTopic(id: string | null): TopicDefinition {
