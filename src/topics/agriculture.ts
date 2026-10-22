@@ -1,8 +1,8 @@
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedLarge } from '../lib/format';
 import type { IndicatorDef, TopicDefinition } from './types';
 
-/** 地圖上可選的農產品（與 pipeline/topics/agriculture.py 的 PRODUCTS 對應） */
-const PRODUCTS = [
+/** 地圖上可選的農產品（與 pipeline/topics/agriculture.py 的 PRODUCTS 對應；貿易主題也共用） */
+export const PRODUCTS = [
   { id: 'rice', label: '稻米', group: '穀物' },
   { id: 'wheat', label: '小麥', group: '穀物' },
   { id: 'maize', label: '玉米', group: '穀物' },

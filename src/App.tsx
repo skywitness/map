@@ -3,6 +3,7 @@ import type { Topology } from 'topojson-specification';
 import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
 import { useJson, useJsonMany } from './lib/data';
+import { formatPercent } from './lib/format';
 import { useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
@@ -13,6 +14,7 @@ import {
 } from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
 import { BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { FLOW_TEXT, useFlowSelection } from './map/flows';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { WorldMap } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
@@ -84,6 +86,7 @@ export function App() {
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports } = useOverlays(topic);
+  const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   const searchOptions = useMemo(() => {
     // 純地圖頁沒有指標資料，改用地圖上有形狀的國家
@@ -116,6 +119,19 @@ export function App() {
 
   const renderTooltip = (iso3: string) => {
     if (pure) return <div className="tt-value">{zhName(iso3, countries)}</div>;
+    // 流向圖：滑到夥伴國上顯示雙邊金額與占比
+    const link = flows?.links.find((l) => l.iso3 === iso3);
+    if (flows && link) {
+      return (
+        <>
+          <div className="tt-value">{indicator.format(link.value)}</div>
+          <div className="tt-label">
+            {FLOW_TEXT[flows.direction].verb(zhName(flows.origin, countries), zhName(iso3, countries))} · 占{' '}
+            {formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0)} · {flows.year}
+          </div>
+        </>
+      );
+    }
     const v = values.get(iso3);
     return (
       <>
@@ -289,6 +305,7 @@ export function App() {
                 layers={layers}
                 onLayersChange={setLayers}
                 renderAirportTooltip={renderAirportTooltip}
+                flows={flows}
                 overlay={
                   boxResult && (
                     <BoxResult

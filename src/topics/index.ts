@@ -8,6 +8,7 @@ import { military } from './military';
 import { pureMap } from './map';
 import { population } from './population';
 import { sectors } from './sectors';
+import { trade } from './trade';
 import { transport } from './transport';
 import type { TopicDefinition } from './types';
 
@@ -20,6 +21,7 @@ export const TOPICS: TopicDefinition[] = [
   sectors,
   industry,
   agriculture,
+  trade,
   ai,
   transport,
   climate,

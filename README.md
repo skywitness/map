@@ -8,6 +8,7 @@
 - 產業結構
 - 工業
 - 農業
+- 貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）
 - AI
 - 交通
 - 氣候（二氧化碳排放）
@@ -45,11 +46,11 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`trade`、`military`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 1.2 GB（主要是 FAOSTAT 的貿易檔、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 12 分鐘。
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.4 GB（主要是 FAOSTAT 的貿易檔與雙邊貿易矩陣、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。
 
 ## 建置
 

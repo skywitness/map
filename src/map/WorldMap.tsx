@@ -24,8 +24,9 @@ import type { AirportsData, IndicatorDef } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
+import { FLOW_TEXT, flowColors, flowWidth, greatCircle, type FlowSelection } from './flows';
 import type { CountryFeature } from './geometry';
-import { BubbleLegend, ChoroplethLegend } from './Legend';
+import { BubbleLegend, ChoroplethLegend, FlowLegend } from './Legend';
 import { DEFAULT_LAYERS, LayerControls, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
 import { useElementSize } from './useElementSize';
@@ -63,6 +64,8 @@ interface WorldMapProps {
   basemap: Basemap;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
+  /** 流向圖（indicator.layer.kind 為 'flow'）：選取國家的主要夥伴，畫成大圓弧線 */
+  flows?: FlowSelection | null;
 }
 
 const INITIAL_CENTER: [number, number] = [105, 22];
@@ -112,15 +115,20 @@ async function loadBaseStyle(url: string): Promise<StyleSpecification> {
   return style;
 }
 
-/** 依縮放調整面量圖的不透明度：放大後讓底圖的道路、地形透出來 */
-function fillOpacity(on: number): ExpressionSpecification {
+/**
+ * 依縮放調整面量圖的不透明度：放大後讓底圖的道路、地形透出來。
+ * tint 是流向圖夥伴國的淡底色（feature-state 'tint'），不上色的指標也會用到。
+ */
+function fillOpacity(on: number, tint = 0): ExpressionSpecification {
   const state: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
-  return [
-    'interpolate', ['linear'], ['zoom'],
-    1, ['case', state, on, 0],
-    5, ['case', state, on * 0.8, 0],
-    9, ['case', state, on * 0.35, 0],
-  ];
+  const tinted: ExpressionSpecification = ['boolean', ['feature-state', 'tint'], false];
+  const at = (k: number): ExpressionSpecification => ['case', state, on * k, tinted, tint * k, 0];
+  return ['interpolate', ['linear'], ['zoom'], 1, at(1), 5, at(0.8), 9, at(0.35)];
+}
+
+/** 弧線沿線漸層（line-progress 0 是起點）：淺的一端是出口國，深的一端是進口國 */
+function flowGradient(colors: { start: string; end: string }): ExpressionSpecification {
+  return ['interpolate', ['linear'], ['line-progress'], 0, colors.start, 1, colors.end];
 }
 
 function dataLayers(dark: boolean): LayerSpecification[] {
@@ -128,12 +136,21 @@ function dataLayers(dark: boolean): LayerSpecification[] {
   const ink = dark ? '#ffffff' : t.ink;
   const hovered: ExpressionSpecification = ['boolean', ['feature-state', 'hover'], false];
   const tinyOn: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
+  const isOrigin: ExpressionSpecification = ['boolean', ['get', 'origin'], false];
   return [
     {
       id: 'data-fill',
       type: 'fill',
       source: 'countries',
-      paint: { 'fill-color': ['coalesce', ['feature-state', 'fill'], NO_DATA], 'fill-opacity': fillOpacity(0.82) },
+      paint: {
+        'fill-color': [
+          'case',
+          ['boolean', ['feature-state', 'tint'], false],
+          ['coalesce', ['feature-state', 'tintColor'], NO_DATA],
+          ['coalesce', ['feature-state', 'fill'], NO_DATA],
+        ],
+        'fill-opacity': fillOpacity(0.82, 0.6),
+      },
     },
     {
       // 面量圖開著時，國界改用跟上色同一份幾何畫，並隱藏底圖的國界，才不會出現兩條錯開的線
@@ -195,6 +212,40 @@ function dataLayers(dark: boolean): LayerSpecification[] {
         'circle-stroke-width': ['case', hovered, 1.6, 1],
       },
     },
+    // 流向圖：白色襯底讓弧線在任何底圖上都看得清楚；細線排在上面，才點得到小夥伴
+    {
+      id: 'flow-casing',
+      type: 'line',
+      source: 'flows',
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['-', 0, ['get', 'w']] },
+      paint: {
+        'line-color': dark ? '#0b0b0b' : '#ffffff',
+        'line-width': ['+', ['get', 'w'], 2],
+        'line-opacity': 0.55,
+      },
+    },
+    {
+      id: 'flow-lines',
+      type: 'line',
+      source: 'flows',
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['-', 0, ['get', 'w']] },
+      paint: {
+        'line-gradient': flowGradient(flowColors('export')),
+        'line-width': ['case', hovered, ['+', ['get', 'w'], 1.5], ['get', 'w']],
+        'line-opacity': ['case', hovered, 1, 0.88],
+      },
+    },
+    {
+      id: 'flow-ends',
+      type: 'circle',
+      source: 'flow-ends',
+      paint: {
+        'circle-radius': ['case', isOrigin, 5, hovered, 5, 3.5],
+        'circle-color': ['case', isOrigin, ink, ['to-color', ['get', 'color'], NO_DATA]],
+        'circle-stroke-color': dark ? '#0b0b0b' : '#ffffff',
+        'circle-stroke-width': 1.2,
+      },
+    },
     {
       id: 'airports-medium',
       type: 'circle',
@@ -251,14 +302,14 @@ function unwrapAntimeridian(geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): G
   };
 }
 /** hover 與點選時依序查詢的圖層（上面的優先） */
-const HOVER_LAYERS = ['airports-large', 'airports-medium', 'bubbles', 'data-tiny', 'data-fill'];
+const HOVER_LAYERS = ['flow-ends', 'flow-lines', 'airports-large', 'airports-medium', 'bubbles', 'data-tiny', 'data-fill'];
 
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false } = props;
+  const { basemap, fitOnSelect = false, flows = null } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   /** 目前地圖上實際載入的底圖（切換時比對用） */
@@ -332,9 +383,11 @@ export function WorldMap(props: WorldMapProps) {
 
   /** 加上資料用的 source 與圖層；建立地圖與切換底圖後都要做 */
   const installDataLayers = (m: MaplibreMap, dark: boolean) => {
-    for (const id of ['countries', 'tiny', 'bubbles']) {
+    for (const id of ['countries', 'tiny', 'bubbles', 'flow-ends']) {
       m.addSource(id, { type: 'geojson', data: EMPTY, promoteId: 'iso3' });
     }
+    // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
+    m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
     for (const id of ['railways', 'airports', 'box']) m.addSource(id, { type: 'geojson', data: EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
@@ -402,7 +455,7 @@ export function WorldMap(props: WorldMapProps) {
     const setHoverId = (iso3: string | null) => {
       const prev = hoverIdRef.current;
       if (prev === iso3) return;
-      for (const source of ['countries', 'bubbles']) {
+      for (const source of ['countries', 'bubbles', 'flows', 'flow-ends']) {
         if (prev) map.setFeatureState({ source, id: prev }, { hover: false });
         if (iso3) map.setFeatureState({ source, id: iso3 }, { hover: true });
       }
@@ -570,6 +623,48 @@ export function WorldMap(props: WorldMapProps) {
     show('airports-medium', Boolean(airports) && layers.mediumAirports);
   }, [revision, railways, airports, layers]);
 
+  /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
+  const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);
+  const flowData = useMemo(() => {
+    const lines: GeoJSON.Feature[] = [];
+    const ends: GeoJSON.Feature[] = [];
+    const origin = flows ? anchors.get(flows.origin) : undefined;
+    if (flows && origin) {
+      const color = flowColors(flows.direction).end;
+      ends.push({ type: 'Feature', properties: { iso3: flows.origin, origin: true }, geometry: { type: 'Point', coordinates: origin } });
+      for (const link of flows.links) {
+        const partner = anchors.get(link.iso3);
+        if (!partner || link.iso3 === flows.origin) continue; // 地圖上沒有形狀的夥伴（例如吐瓦魯）只列在側欄
+        // 弧線一律從出口國畫到進口國，漸層的淺色端才會是出口國
+        const [from, to] = flows.direction === 'export' ? [origin, partner] : [partner, origin];
+        lines.push({
+          type: 'Feature',
+          properties: { iso3: link.iso3, w: flowWidth(link.value, flowMax) },
+          geometry: { type: 'LineString', coordinates: greatCircle(from, to) },
+        });
+        ends.push({ type: 'Feature', properties: { iso3: link.iso3, color }, geometry: { type: 'Point', coordinates: partner } });
+      }
+    }
+    const collection = (features: GeoJSON.Feature[]): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features });
+    return { lines: collection(lines), ends: collection(ends) };
+  }, [flows, anchors, flowMax]);
+
+  // 夥伴國塗上淡底色；換國家、換方向時先清掉上一次的
+  const tintedRef = useRef<string[]>([]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    (map.getSource('flows') as GeoJSONSource).setData(flowData.lines);
+    (map.getSource('flow-ends') as GeoJSONSource).setData(flowData.ends);
+    for (const id of tintedRef.current) map.setFeatureState({ source: 'countries', id }, { tint: false });
+    const colors = flowColors(flows?.direction ?? 'export');
+    const tinted = (flows?.links ?? []).map((l) => l.iso3).filter((iso3) => iso3 !== flows?.origin);
+    for (const id of tinted) map.setFeatureState({ source: 'countries', id }, { tint: true, tintColor: colors.tint });
+    tintedRef.current = tinted;
+    // line-gradient 不能依 feature 變化，換方向時整個換掉
+    map.setPaintProperty('flow-lines', 'line-gradient', flowGradient(colors));
+  }, [revision, flowData, flows]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -653,6 +748,16 @@ export function WorldMap(props: WorldMapProps) {
   };
 
   const hasOverlays = Boolean(railways || airports);
+  // 流向圖還沒選國家時，提示使用者點一下；選了但那一年沒有資料也要說
+  const flowLayer = indicator.layer.kind === 'flow' ? indicator.layer : null;
+  const flowHint =
+    !flowLayer || boxMode
+      ? null
+      : !selected
+        ? `點選國家，查看它的${FLOW_TEXT[flowLayer.direction].partners}`
+        : flows?.origin === selected && flows.links.length === 0
+          ? `這個國家沒有 ${flows.year} 年的${FLOW_TEXT[flowLayer.direction].partners}資料`
+          : null;
 
   return (
     <div
@@ -717,6 +822,7 @@ export function WorldMap(props: WorldMapProps) {
       </div>
 
       {boxMode && <div className="map-hint">在地圖上拖曳畫出範圍（Esc 取消）</div>}
+      {flowHint && <div className="map-hint">{flowHint}</div>}
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
 
       <div className="map-legend">
@@ -733,6 +839,15 @@ export function WorldMap(props: WorldMapProps) {
           <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} />
         ) : indicator.layer.kind === 'bubble' ? (
           <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
+        ) : flowLayer && flows && flowMax > 0 ? (
+          <FlowLegend
+            title={legendTitle}
+            unit={indicator.unit}
+            direction={flows.direction}
+            max={flowMax}
+            formatTick={indicator.formatTick ?? indicator.format}
+            tokens={tokens}
+          />
         ) : null}
       </div>
 
