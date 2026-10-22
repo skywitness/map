@@ -501,6 +501,10 @@ pipeline/
   - 瀏覽器開發者工具的 Application → Service workers 可以勾「Update on reload」或「Offline」。
   - 改了 `src/sw.ts` 或快取策略之後，要實際跑一次「部署更新」流程（第 13 節）。
 - **不要在首頁的 bundle 引入 MapLibre**：`maplibre-gl` 只能從 `src/map/WorldMap.tsx`（或它引入的模組）import，其他地方需要型別就用 `import type`。否則地圖程式會跑回首頁 chunk，第一個畫面在手機上會慢好幾秒。
+- **MapLibre 的 CSS 例外，要留在首頁**（`main.tsx`，排在 `styles.css` 前面）：
+  - `styles.css` 有些規則要蓋過它，例如 `.map-canvas` 的絕對定位要蓋過 `.maplibregl-map { position: relative }`。
+  - 如果跟著地圖 chunk 晚載入，順序反過來，地圖容器變成 0 高度，整張地圖看不見。
+  - 這時 `map-data` mark 照樣會出現，所以改了載入方式後一定要截圖看。
 - **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。
 
 ## 11. 搜尋、快捷鍵與手機操作
@@ -599,15 +603,22 @@ pipeline/
 - 兩種環境：
   - 桌機：1366×900，不節流。
   - 手機：412×915、裝置像素比 2，網路 Fast 3G（延遲 562 ms、下載約 1.4 Mbps），CPU 降速 4 倍。
-- 兩種情況：
+- 三種情況：
   - 首次載入：全新的瀏覽器設定檔，沒有任何快取。
-  - 再次載入：同一個設定檔再開一次（改善後的版本這時已經由 service worker 接手）。
+  - 再次載入：同一個設定檔，上一頁關掉 8 秒後再開（改善後的版本這時已經由 service worker 接手）。
+  - 離線開啟（只有改善後）：頁面設成離線再開一次。
 - 量的東西：
   - **地圖出現資料**：`WorldMap` 第一次把資料畫上地圖時留下的 `performance.mark('map-data')`。改善前的版本也加上同一個 mark 再量。
-  - **LCP**：Largest Contentful Paint。地圖畫布不算 LCP 候選，所以 LCP 量到的是頁面上的文字。
-  - **傳輸量**：CDP 的 `Network.loadingFinished` 加總（含底圖圖磚），也追蹤 service worker 自己發出的請求。
-- 本機用一個模擬 GitHub Pages 的靜態伺服器：`/map/` 子路徑、gzip、`Cache-Control: max-age=600`、ETag。每輪交錯量改善前與改善後，取中位數。
-- 這台機器同時跑著其他工作，swiftshader 又是用 CPU 算圖，同一組設定前後兩次可以差到兩倍，所以每格都是多輪的中位數。
+  - **LCP**：Largest Contentful Paint。地圖畫布不算 LCP 候選，所以 LCP 量到的是頁面上的文字（多半是頁尾的資料來源）。
+  - **傳輸量**：頁面請求的 CDP `Network.loadingFinished` 加總（含底圖圖磚）。分成「到地圖出現資料為止」與「網路安靜 3 秒為止」兩個數字。
+- 工具在版本庫裡：
+  - `scripts/serve-pages.mjs`：模擬 GitHub Pages 的靜態伺服器（`/map/` 子路徑、gzip、`Cache-Control: max-age=600`、ETag）。
+  - `scripts/measure-load.mjs`（`npm run measure:load -- <網址>`）：量上面這些數字，最後印出中位數。
+- 改善前是 `186b9ab`（加上同一個 mark）的建置，改善後是這次的建置；每輪交錯量兩個版本，共 5 輪，取中位數。
+- 量測本身的陷阱（數字會亂跳，已寫進腳本的註解）：
+  - 這台機器同時跑著其他工作，SwiftShader 又用 CPU 繪圖，同一組設定前後兩次可以差到兩倍。
+  - 上一頁剛關掉就開下一頁，新頁面會被舊頁面的收尾拖慢幾十秒（兩個版本都會）。
+  - 用 CDP 接管 service worker 的 target（為了節流或計算它的流量）時，再次載入偶爾會卡住。
 
 ### 結果
 
@@ -617,9 +628,9 @@ pipeline/
 
 **第一個畫面的關鍵路徑**（原本是一條很長的瀑布流：首頁程式 1.35 MB → 國界與資料 → 底圖樣式 → 所有底圖圖磚 → 才畫資料）：
 
-1. **MapLibre 移到自己的 chunk**（`App.tsx` 的 `lazy(() => import('./map/WorldMap'))`）。首頁 chunk 從 381 KB 降到 96 KB（gzip）。
+1. **MapLibre 移到自己的 chunk**（`App.tsx` 的 `lazy(() => import('./map/WorldMap'))`）。首頁 chunk 從 381 KB 降到 124 KB（gzip，含之後加的英文版、搜尋、分享等功能）；地圖 chunk 293 KB。MapLibre 的 CSS 仍在首頁（見第 10 節）。
 2. **第一個畫面要用的檔案提早發出請求**：
-   - `index.html` 直接預載：地圖程式 chunk 與它的 CSS（`vite.config.ts` 的 `preloadMapChunk` 外掛插入 `modulepreload`）、1:110m 國界、國名表、預設主題的資料、預設底圖的樣式、圖磚索引 `/planet`，並先跟 `tiles.openfreemap.org` 建立連線。
+   - `index.html` 直接預載：地圖程式 chunk（`vite.config.ts` 的 `preloadMapChunk` 外掛插入 `modulepreload`）、1:110m 國界、國名表、預設主題的資料、預設底圖的樣式、圖磚索引 `/planet`，並先跟 `tiles.openfreemap.org` 建立連線。
    - `App.tsx` 在模組載入時就用 `fetchJson` 發出同樣的請求（網址指定別的主題時也適用），之後 `useJson` 拿到的是同一個 Promise。
    - 底圖樣式由 `src/map/style.ts` 下載與改寫，這個檔案不含 MapLibre，首頁一啟動就能先抓。
 3. **不等底圖圖磚**：資料圖層改在 `style.load`（樣式解析完）加上，不等 `load`（第一個畫面的圖磚全部下載完）。彩色地形的 Natural Earth 圖磚一張 200–300 KB，手機 3G 上光是圖磚就要幾十秒。
@@ -661,4 +672,16 @@ pipeline/
 
 ### 部署更新測試
 
-（測試中）
+用無頭 Chrome 在本機模擬兩次部署（v2 改了程式與一個資料檔），伺服器用 `no-cache`，強迫瀏覽器每次都向伺服器確認（最嚴格的情況）：
+
+| 步驟 | 結果 |
+|---|---|
+| 第一次開 v1 | service worker 接手 |
+| 部署 v2 後第一次開 | 先用快取裡的 v1（不等網路），背景裝好 v2 的 service worker |
+| v2 接手 | v1 的資料快取已刪除 |
+| 一直開著的 v1 頁面點國家 | 舊的側欄 chunk 在伺服器上已經 404 → 自動重新整理成 v2，網址狀態（`?country=JPN`）保留，側欄正常顯示 |
+| 再開一次 | v2；資料是 v2 的新檔，不是瀏覽器快取裡的舊檔 |
+
+伺服器用 GitHub Pages 的 `max-age=600` 時，開著的舊頁面在 10 分鐘內還能從瀏覽器快取拿到舊 chunk，不會重新整理，一樣正常。
+
+**看過一次就能離線開啟**：桌機與手機（Fast 3G、4× CPU）各只開一次、等下載結束後切成離線再開，地圖與資料都正常出現，標題旁顯示「離線中」，沒有失敗的請求。

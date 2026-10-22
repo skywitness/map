@@ -10,6 +10,7 @@
     "typecheck": "tsc",
     "check:i18n": "node scripts/check-i18n.mjs",
     "check:en": "node scripts/check-en-ui.mjs",
+    "measure:load": "node scripts/measure-load.mjs",
     "data": "node pipeline/npm-run.mjs"
   },
   "dependencies": {
