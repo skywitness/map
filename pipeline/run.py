@@ -25,6 +25,7 @@ STEPS = {
     "industry": "topics.industry",
     "ai": "topics.ai",
     "transport": "topics.transport",
+    "climate": "topics.climate",
 }
 
 

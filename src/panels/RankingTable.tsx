@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useLang, useT } from '../i18n';
 import { countryName, enName, type CountryTable } from '../lib/countries';
 import { formatPercent } from '../lib/format';
@@ -30,9 +30,15 @@ export function RankingTable(props: RankingTableProps) {
   const showBars = rows.length > 0 && rows[rows.length - 1][1] >= 0;
   const showShare = indicator.shareOfWorld && world != null && world > 0;
 
+  // 從搜尋選到的國家可能在表格很下面，捲過去
+  const tableRef = useRef<HTMLTableElement>(null);
+  useEffect(() => {
+    tableRef.current?.querySelector('tr.is-selected')?.scrollIntoView({ block: 'nearest' });
+  }, [selected]);
+
   return (
     <div className="ranking">
-      <table>
+      <table ref={tableRef}>
         <caption>{t.rankingCaption(year, title, rows.length)}</caption>
         <thead>
           <tr>

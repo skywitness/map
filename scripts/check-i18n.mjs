@@ -6,6 +6,7 @@
  * - 雙語物件 `{ zh: '總人口', en: 'Total population' }`、defineMessages({ zh: {...}, en: {...} })
  * - src/i18n/zh.ts（中文字典本身）
  * - 同一行有 `i18n-ignore` 註解（例如語言切換鈕上的「中文」）
+ * - 檔案開頭的註解寫了 `i18n-ignore-file`（例如搜尋用的中文別名表，不會顯示在介面上）
  * 中文出現在 JSX 文字、一般字串或模板字串裡都會被抓出來。
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -29,6 +30,7 @@ const isIdent = (c) => /[\w$]/.test(c ?? '');
 
 /** 回傳 [{ line, text }]：不在註解、不在 zh 值裡的中文 */
 export function scan(source) {
+  if (/^\s*\/\*\*?[\s\S]*?i18n-ignore-file[\s\S]*?\*\//.test(source)) return [];
   const found = new Map(); // line → snippet
   let line = 1;
   let i = 0;

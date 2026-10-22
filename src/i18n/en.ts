@@ -47,6 +47,10 @@ export const en: Messages = {
   publicDomain: ' (public domain)',
   generatedAt: (date) => ` · Data generated on ${date}`,
   disclaimer: 'Borders and names are shown for data presentation only and do not imply any political position.',
+  basemapCredit: (attribution) => `Basemap: ${attribution}`,
+  bordersCredit:
+    'Borders: Natural Earth (public domain). Borders and names are shown for data presentation only and do not imply any political position.',
+  shareTitle: (view) => `${view} | World Data Map`,
 
   singleSnapshot: 'This dataset is a single snapshot with no time series',
   play: 'Play',
@@ -73,9 +77,6 @@ export const en: Messages = {
   basemapFailed: 'The basemap failed to load. Check your connection and reload the page.',
   unitSuffix: (unit) => ` (${unit})`,
   layers: 'Layers',
-  railways: 'Railways',
-  largeAirports: 'Large airports',
-  mediumAirports: 'Medium airports (scheduled flights)',
 
   boxAria: (label) => `${label} in the selected area`,
   boxTitle: (label) => `Estimated ${label} in the area`,

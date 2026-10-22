@@ -7,7 +7,7 @@
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import {
   Map as MaplibreMap,
   type ExpressionSpecification,
@@ -22,12 +22,15 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
 import { useLang, useT, type Lang } from '../i18n';
 import type { AirportsData, Indicator } from '../topics/types';
-import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import { MAP_TOKENS, SPACE_GRADIENT, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
+import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
+import { focusBounds } from './focus';
 import type { CountryFeature } from './geometry';
-import { BubbleLegend, ChoroplethLegend } from './Legend';
-import { DEFAULT_LAYERS, LayerControls, type LayerVisibility } from './Overlays';
+import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
+import { BubbleLegend, bubbleLegendModel, ChoroplethLegend, choroplethLegendModel } from './Legend';
+import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
 import { useElementSize } from './useElementSize';
 
@@ -64,6 +67,14 @@ interface WorldMapProps {
   basemap: Basemap;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
+  /** key 改變時把地圖移到這個國家（從搜尋選國家時用） */
+  focus?: { iso3: string; key: number } | null;
+  ref?: Ref<WorldMapHandle>;
+}
+
+export interface WorldMapHandle {
+  /** 把目前的地圖畫面加上標題、圖例與來源，輸出成 PNG */
+  exportImage: (content: MapImageContent) => Promise<Blob>;
 }
 
 const INITIAL_CENTER: [number, number] = [105, 22];
@@ -236,6 +247,8 @@ function dataLayers(dark: boolean): LayerSpecification[] {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
+const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+
 /**
  * world-atlas 的國界是給 D3 的球面幾何用的，跨 180° 經線的國家（斐濟、俄羅斯遠東）座標會從 179.9 跳到 −179.9。
  * MapLibre 把座標當平面處理，會畫出一條橫越整個地圖的邊，所以把每個 ring 的經度展開成連續的（可以超過 ±180）。
@@ -271,7 +284,7 @@ export function WorldMap(props: WorldMapProps) {
   langRef.current = lang;
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false } = props;
+  const { basemap, fitOnSelect = false, focus = null, ref } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   /** 目前地圖上實際載入的底圖（切換時比對用） */
@@ -316,23 +329,8 @@ export function WorldMap(props: WorldMapProps) {
     [countries],
   );
   const anchors = useMemo(() => new Map(countries.map((c) => [c.iso3, c.anchor])), [countries]);
-  // 各國的經緯度範圍（用展開過 180° 經線的座標，俄羅斯、斐濟才不會變成橫跨全球）
-  const countryBounds = useMemo(() => {
-    const out = new Map<string, [[number, number], [number, number]]>();
-    for (const f of countryCollection.features) {
-      let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
-      for (const polygon of (f.geometry as GeoJSON.MultiPolygon).coordinates) {
-        for (const [x, y] of polygon[0]) {
-          w = Math.min(w, x);
-          e = Math.max(e, x);
-          s = Math.min(s, y);
-          n = Math.max(n, y);
-        }
-      }
-      out.set(f.properties!.iso3 as string, [[w, s], [e, n]]);
-    }
-    return out;
-  }, [countryCollection]);
+  // 把地圖移到某國時要框住的範圍（主要國土加附近的島，不含遠方屬地）
+  const countryBounds = useMemo(() => new Map(countries.map((c) => [c.iso3, focusBounds(c)])), [countries]);
   const tinyCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
       type: 'FeatureCollection',
@@ -389,6 +387,11 @@ export function WorldMap(props: WorldMapProps) {
           setRevision((r) => r + 1);
         });
         bindEvents(m);
+        // 用滑鼠點地圖時不把焦點留在地圖上，←/→ 才會繼續換年份；用 Tab 移進地圖時方向鍵、+/− 照常平移縮放
+        const canvas = m.getCanvas();
+        canvas.addEventListener('focus', () => {
+          if (!canvas.matches(':focus-visible')) canvas.blur();
+        });
       })
       .catch(() => !cancelled && setFailed(true));
     return () => {
@@ -634,6 +637,36 @@ export function WorldMap(props: WorldMapProps) {
     if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
   }, [revision, selected, anchors, globe, fitOnSelect, countryBounds]);
 
+  // 從搜尋選到國家：一定飛過去並框住整個國家，扣掉手機抽屜蓋住的部分
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !focus) return;
+    const bounds = countryBounds.get(focus.iso3);
+    if (!bounds) return;
+    const rect = map.getContainer().getBoundingClientRect();
+    let covered = 0;
+    for (const el of document.querySelectorAll('[data-occludes-map]')) {
+      covered = Math.max(covered, rect.bottom - el.getBoundingClientRect().top);
+    }
+    const pad = Math.min(48, rect.width / 8, rect.height / 8);
+    const bottom = Math.min(Math.max(pad, covered + pad / 2), rect.height * 0.6);
+    map.fitBounds(bounds, {
+      padding: { top: pad, left: pad, right: pad + 40, bottom }, // 右邊留給縮放按鈕
+      maxZoom: fitOnSelect ? 8 : 5,
+      duration: 1200,
+    });
+  }, [ready, focus]); // 只在有新的搜尋結果時移動，換底圖、換年份都不動
+
+  useHotkeys(
+    {
+      '+': () => mapRef.current?.zoomIn(),
+      '=': () => mapRef.current?.zoomIn(),
+      '-': () => mapRef.current?.zoomOut(),
+      _: () => mapRef.current?.zoomOut(),
+    },
+    ready,
+  );
+
   // 框選模式：拖曳用來畫框，不平移地圖
   useEffect(() => {
     const map = mapRef.current;
@@ -642,14 +675,16 @@ export function WorldMap(props: WorldMapProps) {
       map.dragPan.disable();
       map.touchZoomRotate.disable();
       map.getCanvas().style.cursor = 'crosshair';
+      // capture + preventDefault：Esc 只取消框選，不會順便取消選取的國家
       const onKey = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
+          e.preventDefault();
           dragRef.current = null;
           setBoxMode(false);
         }
       };
-      window.addEventListener('keydown', onKey);
-      return () => window.removeEventListener('keydown', onKey);
+      window.addEventListener('keydown', onKey, true);
+      return () => window.removeEventListener('keydown', onKey, true);
     }
     map.dragPan.enable();
     map.touchZoomRotate.enable();
@@ -676,12 +711,43 @@ export function WorldMap(props: WorldMapProps) {
 
   const hasOverlays = Boolean(railways || airports);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      exportImage: async (content) => {
+        const map = mapRef.current;
+        if (!map || !installedRef.current) throw new Error('The map has not finished loading');
+        // 圖例跟畫面上的一樣：數值圖例，加上目前開著的疊加圖層
+        const legend: ImageLegend | null = colorScale
+          ? { kind: 'choropleth', title: legendTitle, unit: indicator.unit, model: choroplethLegendModel(indicator, colorScale) }
+          : indicator.layer.kind === 'bubble'
+            ? { kind: 'bubble', title: legendTitle, unit: indicator.unit, model: bubbleLegendModel(indicator, radius) }
+            : null;
+        const layerKeys = onLayersChange
+          ? LAYER_KEYS.filter((k) => (k.source === 'railways' ? railways : airports) && layers[k.key]).map((key) => ({
+              key,
+              color: layerKeyColor(key, tokens),
+            }))
+          : [];
+        const { canvas, ratio } = await captureMap(map);
+        return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
+      },
+    }),
+    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens],
+  );
+
   return (
     <div
       ref={containerRef}
       className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}${fullscreen ? ' is-fullscreen' : ''}`}
     >
-      <div ref={mapNodeRef} className="map-canvas" role="img" aria-label={ariaLabel} />
+      <div
+        ref={mapNodeRef}
+        className="map-canvas"
+        style={{ background: SPACE_BACKGROUND }}
+        role="img"
+        aria-label={ariaLabel}
+      />
       {failed && <p className="error map-error">{t.basemapFailed}</p>}
 
       <div className="map-zoom" role="group" aria-label={t.mapControls}>
@@ -748,7 +814,7 @@ export function WorldMap(props: WorldMapProps) {
             onChange={onLayersChange}
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
-            tokens={MAP_TOKENS}
+            tokens={tokens}
           />
         )}
         {colorScale ? (

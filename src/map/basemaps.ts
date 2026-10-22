@@ -19,6 +19,9 @@ export const BASEMAPS: Basemap[] = [
 
 export const DEFAULT_BASEMAP = 'terrain';
 
+/** 底圖的版權標示：匯出圖片時要寫上（畫面上由 MapLibre 的版權控制項顯示） */
+export const BASEMAP_ATTRIBUTION = 'OpenFreeMap © OpenMapTiles © OpenStreetMap contributors';
+
 export function getBasemap(id: string | null): Basemap {
   return BASEMAPS.find((b) => b.id === id) ?? BASEMAPS[0];
 }

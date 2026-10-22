@@ -40,6 +40,10 @@ export function stackedAreaOption({ years, series, year, format, formatTick, tok
     data: [{ xAxis: String(year) }],
   };
 
+  // 跟折線圖一樣依年份跨度調整刻度間隔，排放來源從 1850 年起
+  const span = years[years.length - 1] - years[0];
+  const tickStep = span > 100 ? 50 : span > 50 ? 20 : span > 25 ? 10 : 5;
+
   return {
     animation: false,
     grid: { left: 4, right: 12, top: 8, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
@@ -72,7 +76,7 @@ export function stackedAreaOption({ years, series, year, format, formatTick, tok
       boundaryGap: false,
       axisLine: { lineStyle: { color: tokens.axis } },
       axisTick: { show: false },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, interval: (_i: number, v: string) => Number(v) % 5 === 0 },
+      axisLabel: { color: tokens.inkMuted, fontSize: 11, interval: (_i: number, v: string) => Number(v) % tickStep === 0 },
     },
     yAxis: {
       type: 'value',

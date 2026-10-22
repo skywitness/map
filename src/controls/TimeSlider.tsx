@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useT } from '../i18n';
+import { useHotkeys } from './hotkeys';
 
 interface TimeSliderProps {
   years: number[];
@@ -35,6 +36,16 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
     if (!playing && year >= last) onChange(first);
     setPlaying((p) => !p);
   };
+
+  /** 鍵盤 ←/→：跳到資料裡的上一個／下一個年份（年份不一定連續） */
+  const stepYear = (delta: number) => {
+    setPlaying(false);
+    const i = years.indexOf(yearRef.current);
+    const next = years[Math.min(years.length - 1, Math.max(0, i + delta))];
+    if (next !== undefined && next !== yearRef.current) onChange(next);
+  };
+
+  useHotkeys({ ArrowLeft: () => stepYear(-1), ArrowRight: () => stepYear(1), ' ': togglePlay }, first !== last);
 
   if (first === last) {
     return (

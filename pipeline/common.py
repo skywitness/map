@@ -61,6 +61,17 @@ def indicator_file(
     return {"indicator": indicator, "unit": unit, "years": years, **extra, "values": values}
 
 
+def year_span(series: dict[str, dict[int, float]], min_share: float = 0.3) -> list[int]:
+    """各國資料涵蓋的連續年份。頭尾國家數不到最多那一年 min_share 倍的年份不收，
+    否則最新一年常常只有少數國家先公布，地圖幾乎全灰。"""
+    counts: dict[int, int] = {}
+    for s in series.values():
+        for y in s:
+            counts[y] = counts.get(y, 0) + 1
+    enough = [y for y, n in counts.items() if n >= max(counts.values()) * min_share]
+    return list(range(min(enough), max(enough) + 1))
+
+
 def to_series(by_year: dict[int, float], years: list[int], digits: int | None = None) -> list[float | None]:
     """{year: value} → 對齊 years 的陣列，缺值為 None。"""
     out: list[float | None] = []

@@ -47,6 +47,10 @@ export const zh = {
   publicDomain: '（公有領域）',
   generatedAt: (date: string) => ` · 資料產生於 ${date}`,
   disclaimer: '國界與名稱僅為資料呈現，不代表任何政治立場。',
+  // 匯出圖片底下的來源標示、分享面板的標題
+  basemapCredit: (attribution: string) => `底圖：${attribution}`,
+  bordersCredit: '國界：Natural Earth（公有領域）。國界與名稱僅為資料呈現，不代表任何政治立場。',
+  shareTitle: (view: string) => `${view}｜世界資料地圖`,
 
   // 時間軸
   singleSnapshot: '這項資料只有單一時間點，沒有歷年變化',
@@ -75,9 +79,6 @@ export const zh = {
   basemapFailed: '底圖載入失敗，請檢查網路連線後重新整理。',
   unitSuffix: (unit: string) => `（${unit}）`,
   layers: '圖層',
-  railways: '鐵路',
-  largeAirports: '大型機場',
-  mediumAirports: '中型機場（有定期航班）',
 
   // 框選結果
   boxAria: (label: string) => `框選範圍內的${label}`,
