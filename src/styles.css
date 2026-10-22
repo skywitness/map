@@ -290,6 +290,12 @@ button {
   flex: none;
 }
 
+/* ── 分享選單 ───────────────────────── */
+.share {
+  position: relative;
+  flex: none;
+}
+
 .help-popover {
   position: absolute;
   top: calc(100% + 8px);
@@ -362,6 +368,86 @@ kbd {
   }
 }
 
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.share-button:hover,
+.share-button[aria-expanded='true'] {
+  border-color: var(--axis);
+}
+
+.share-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 200px;
+  max-width: calc(100vw - 2 * var(--gutter));
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+.share-item {
+  border: 0;
+  background: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.share-item:hover:not(:disabled),
+.share-item:focus-visible {
+  background: var(--grid);
+  outline: none;
+}
+
+.share-item:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+/* 「已複製」等狀態訊息，出現在按鈕下方幾秒 */
+.share-status {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 19;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.share-status:empty {
+  display: none;
+}
+
+.share-status.is-error {
+  background: #d03b3b;
+  color: #ffffff;
+}
+
 .indicator-desc {
   margin: 8px 0 0;
   color: var(--ink-secondary);
@@ -415,11 +501,10 @@ kbd {
   opacity: 0.6;
 }
 
-/* MapLibre 的畫布；地球儀外面是黑色太空 */
+/* MapLibre 的畫布；地球儀外面的黑色太空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設定 */
 .map-canvas {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, #0b1220 0%, #04070d 55%, #000 100%);
 }
 
 .map.is-fullscreen {
@@ -1332,6 +1417,11 @@ kbd {
 
   .search {
     width: 100%;
+  }
+
+  /* 換行時分享按鈕靠右，選單往左展開才不會超出畫面 */
+  .share {
+    margin-left: auto;
   }
 
   .time-year {

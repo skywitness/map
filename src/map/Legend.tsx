@@ -3,6 +3,21 @@ import { niceLegendValues } from '../lib/format';
 import type { IndicatorDef } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 
+/** 面量圖圖例的色塊與刻度（畫面上的圖例與匯出的圖片共用） */
+export interface ChoroplethLegendModel {
+  colors: string[];
+  labels: string[];
+  swatchWidth: number;
+}
+
+export function choroplethLegendModel(indicator: IndicatorDef, scale: ScaleThreshold<number, string>): ChoroplethLegendModel {
+  const tick = indicator.formatTick ?? indicator.format;
+  const labels = scale.domain().map(tick);
+  // 刻度標在色塊交界，色塊要比最長的刻度文字寬，相鄰刻度才不會重疊
+  const swatchWidth = Math.max(34, Math.max(...labels.map((l) => l.length)) * 6.5 + 8);
+  return { colors: scale.range(), labels, swatchWidth };
+}
+
 interface ChoroplethLegendProps {
   indicator: IndicatorDef;
   title: string;
@@ -10,12 +25,7 @@ interface ChoroplethLegendProps {
 }
 
 export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendProps) {
-  const colors = scale.range();
-  const thresholds = scale.domain();
-  const tick = indicator.formatTick ?? indicator.format;
-  const labels = thresholds.map(tick);
-  // 刻度標在色塊交界，色塊要比最長的刻度文字寬，相鄰刻度才不會重疊
-  const swatchWidth = Math.max(34, Math.max(...labels.map((l) => l.length)) * 6.5 + 8);
+  const { colors, labels, swatchWidth } = choroplethLegendModel(indicator, scale);
   return (
     <div className="legend">
       <div className="legend-title">
@@ -43,14 +53,17 @@ export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendPr
 
 const LABEL_GAP = 13;
 
-interface BubbleLegendProps {
-  indicator: IndicatorDef;
-  title: string;
-  radius: ScalePower<number, number>;
-  tokens: Tokens;
+/** 比例圓圖例的版面（px）：同心圓底部對齊，標籤在圓頂高度 */
+export interface BubbleLegendModel {
+  items: { label: string; r: number; labelY: number }[];
+  maxR: number;
+  baseline: number;
+  labelX: number;
+  width: number;
+  height: number;
 }
 
-export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
+export function bubbleLegendModel(indicator: IndicatorDef, radius: ScalePower<number, number>): BubbleLegendModel {
   const spec = indicator.layer.kind === 'bubble' ? indicator.layer.legendValues : [];
   const values = spec === 'auto' ? niceLegendValues(radius.domain()[1]) : spec;
   const tick = indicator.formatTick ?? indicator.format;
@@ -59,24 +72,35 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
   const baseline = top + maxR * 2;
   const labelX = maxR * 2 + 12;
 
-  // 同心圓底部對齊，標籤放在圓頂高度；小圓的圓頂很接近時往下推開，避免文字重疊
+  // 小圓的圓頂很接近時，標籤往下推開，避免文字重疊
   const items = [...values]
     .sort((a, b) => b - a)
-    .map((v) => ({ v, r: radius(v), labelY: baseline - radius(v) * 2 }));
+    .map((v) => ({ label: tick(v), r: radius(v), labelY: baseline - radius(v) * 2 }));
   for (let i = 1; i < items.length; i++) {
     items[i].labelY = Math.max(items[i].labelY, items[i - 1].labelY + LABEL_GAP);
   }
   const height = Math.max(baseline, items[items.length - 1]?.labelY ?? 0) + 7;
+  return { items, maxR, baseline, labelX, width: labelX + 52, height };
+}
 
+interface BubbleLegendProps {
+  indicator: IndicatorDef;
+  title: string;
+  radius: ScalePower<number, number>;
+  tokens: Tokens;
+}
+
+export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
+  const { items, maxR, baseline, labelX, width, height } = bubbleLegendModel(indicator, radius);
   return (
     <div className="legend">
       <div className="legend-title">
         {title}
         <span className="legend-unit">（{indicator.unit}）</span>
       </div>
-      <svg width={labelX + 52} height={height} aria-hidden="true">
-        {items.map(({ v, r, labelY }) => (
-          <g key={v}>
+      <svg width={width} height={height} aria-hidden="true">
+        {items.map(({ label, r, labelY }) => (
+          <g key={label}>
             <circle cx={maxR} cy={baseline - r} r={r} fill="none" stroke={tokens.inkMuted} />
             <polyline
               points={`${maxR},${baseline - r * 2} ${labelX - 10},${baseline - r * 2} ${labelX - 4},${labelY}`}
@@ -84,7 +108,7 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
               stroke={tokens.axis}
             />
             <text x={labelX} y={labelY} dy="0.35em" fill={tokens.inkSecondary} fontSize={11}>
-              {tick(v)}
+              {label}
             </text>
           </g>
         ))}

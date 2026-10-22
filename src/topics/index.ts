@@ -1,5 +1,6 @@
 import { agriculture } from './agriculture';
 import { ai } from './ai';
+import { climate } from './climate';
 import { electricity } from './electricity';
 import { income } from './income';
 import { industry } from './industry';
@@ -20,6 +21,7 @@ export const TOPICS: TopicDefinition[] = [
   agriculture,
   ai,
   transport,
+  climate,
 ];
 
 export function getTopic(id: string | null): TopicDefinition {

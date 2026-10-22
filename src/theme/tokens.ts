@@ -127,6 +127,16 @@ export function applyTokens(tokens: Tokens): void {
 }
 
 /**
+ * 地球儀外面的黑色太空：由畫面中心往外的放射漸層 [位置 0–1, 顏色]。
+ * WebGL 畫布在太空的部分是透明的，畫面上由 CSS 背景顯示，匯出圖片時在 canvas 上畫同一組顏色。
+ */
+export const SPACE_GRADIENT: [number, string][] = [
+  [0, '#0b1220'],
+  [0.55, '#04070d'],
+  [1, '#000000'],
+];
+
+/**
  * 地圖上的資料色：底圖固定是明亮的彩色地圖（藍色的海），不跟著介面切深淺色。
  * 循序色用橘色、發散色用橘 ↔ 青綠（ColorBrewer BrBG 的配法，色盲也分得開）、比例圓用紫色。
  */

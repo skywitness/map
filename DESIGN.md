@@ -28,7 +28,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft）
+原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -45,12 +45,12 @@ public/data/                              ← 靜態 JSON，會進版本控制
 src/
    ├─ topics/          每個主題一個設定檔（TopicDefinition）  ← 新增主題主要改這裡
    │   └─ panels/      主題自訂的側欄區塊（動態載入）
-   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx）：資料圖層、圖例、tooltip、框選、疊加圖層
+   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx）：資料圖層、圖例、tooltip、框選、疊加圖層、匯出圖片
    ├─ charts/          ECharts 包裝、折線／堆疊面積 option、長條清單
    ├─ panels/          國家側欄、排名表、框選結果
-   ├─ controls/        時間軸、國家搜尋、快捷鍵與說明（見第 11 節）
+   ├─ controls/        時間軸、分享選單、國家搜尋、快捷鍵與說明（見第 11 節）
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
-   └─ lib/             資料讀取、國名、國家搜尋比對、網址狀態、數字格式、介面文字（strings.ts）
+   └─ lib/             資料讀取、國名、國家搜尋比對、網址狀態、數字格式、CSV 與下載、介面文字（strings.ts）
 
 pipeline/
    ├─ run.py           入口：npm run data -- <步驟>
@@ -63,7 +63,17 @@ pipeline/
 
 **所有資料一律用 ISO 3166-1 alpha-3 對應**（`TWN`、`JPN`…）。各來源的代碼在 `pipeline/sources/countries.py` 統一轉換。
 
-畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `box=` 參數。
+畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數。
+
+**分享選單**（控制列右邊的「分享」，`src/controls/ShareMenu.tsx`）：
+- **下載地圖圖片（PNG）**：只有地圖檢視有。內容是目前的地圖畫面，上面加標題（主題 · 指標 · 年份）與指標說明，左下角是圖例（跟畫面上一樣，含開著的疊加圖層），下面是資料來源、底圖版權（OpenFreeMap © OpenMapTiles © OpenStreetMap contributors）、國界來源與這個畫面的網址。做法見第 10 節。
+- **下載 CSV**：目前的指標，可選「選定的年份」或「所有年份」，排名表檢視也有（`src/lib/csv.ts`）。
+  - 欄位：ISO3、國名、英文名、單位，接著每年一欄；推估年份的欄名加「（推估）」，有附註的指標最後多一欄「附註」，世界合計放在最後一列。
+  - 單一年份依數值由大到小排（跟排名表一樣），所有年份依國名排。
+  - 數值是原始數字（不加千分位、不換算成萬、億），試算表可以直接計算。
+  - 開頭有 UTF-8 BOM、換行用 CRLF，Excel 直接開啟中文不會變亂碼。
+- **複製連結**：複製網址，按鈕下方顯示「已複製連結」。手機（觸控為主的裝置）而且瀏覽器支援 `navigator.share` 時改成「分享連結…」，打開系統的分享面板；分享失敗時改用複製。
+- 純地圖頁沒有 CSV。選單可以用鍵盤操作：↑↓ 移動、Home/End、Esc 關閉並回到按鈕。
 
 ## 3. 資料格式
 
@@ -94,6 +104,8 @@ pipeline/
 1. **資料**：在 `pipeline/topics/` 新增 `<主題>.py`，實作 `build()`，資料來源寫在 `pipeline/sources/`，用 `common.indicator_file()` 輸出；然後在 `pipeline/run.py` 的 `STEPS` 註冊。
 2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後在 `src/topics/index.ts` 的 `TOPICS` 註冊。
 3. 執行 `npm run data -- <主題>` 產生資料，`npm run dev` 檢查。
+
+世界銀行等來源的最新一年常常只有少數國家先公布，地圖會幾乎全灰。用 `common.year_span()` 截掉頭尾涵蓋國家太少的年份，每個指標的時間軸範圍可以不同。
 
 `TopicDefinition` 的選填擴充點（`pure: true` 是純地圖頁：不載入統計資料，沒有指標、時間軸、資料側欄與排名表）：
 
@@ -133,7 +145,7 @@ pipeline/
     - 這些顏色都跟原本藍色色階同一階的 OKLCH 亮度，只換色相。
     - 地圖固定是明亮的彩色底圖，不跟著介面切深淺色。
   - 多系列圖表用 8 個類別色，排列順序用配色驗證工具檢查過色盲分辨度（發電結構的能源配色見 `ElectricityPanel.tsx`）。
-- **地圖背景**：地球儀外面是黑色太空，邊緣有一圈淡藍色大氣層。
+- **地圖背景**：地球儀外面是黑色太空（`tokens.ts` 的 `SPACE_GRADIENT`，畫面與匯出圖片共用），邊緣有一圈淡藍色大氣層。
 - **底圖切換**（`src/map/basemaps.ts`）：
   - 可選彩色地形、亮色街道、淺灰、深色、深藍五種，選擇記在瀏覽器的 localStorage。
   - 切換時用 `setStyle` 換樣式，再重新加上資料圖層。
@@ -184,6 +196,7 @@ pipeline/
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
+| 氣候 | 人均 CO₂ 排放、年排放量、累積排放量（1750 年起）、人均消費端排放、每單位 GDP 排放 | 排放來源（燃煤、天然氣、石油、水泥…）堆疊面積圖＋長條 | Our World in Data（Global Carbon Project） | 1850–2024；消費端 1990–2023；每單位 GDP 到 2022 |
 
 ## 8. 資料陷阱（重要）
 
@@ -238,6 +251,7 @@ pipeline/
     - World Bank、Ember、FAOSTAT、JRC GHS-POP 是 CC BY 4.0。
     - Harvard Atlas 是 CC0。
     - Epoch AI 是 CC BY。
+    - Our World in Data 整理的資料（碳排來自 Global Carbon Project）是 CC BY 4.0。
     - Anthropic Economic Index 是 CC BY。
     - Microsoft AI Diffusion 是 MIT。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
@@ -254,6 +268,11 @@ pipeline/
     - 索馬利蘭、北賽普勒斯、聖誕島與科科斯群島、諾福克島、奧蘭群島在地圖上有形狀，但 WPP 把人口算在索馬利亞、賽普勒斯、澳洲、芬蘭。
     - 吐瓦魯、托克勞、直布羅陀在 1:50m 沒有形狀，用矩形範圍指定。
     - GHS-POP 的 30 角秒 GeoTIFF 範圍不是整齊的 ±180°（左右各多約 1 格），超出的像素要繞回另一側。
+
+14. **碳排資料**（`pipeline/topics/climate.py`）：
+    - OWID 的科索沃沒有 ISO 代碼，用國名對應成 XKX；洲、所得組、國際航空與航運另外列，不收。
+    - 國際航空與航運的排放不屬於任何國家，所以各國加總小於世界合計。
+    - 每單位 GDP 的排放用 Maddison Project 的 GDP（2011 年國際元），只到 2022 年。
 
 ## 9. 之後可以做的
 
@@ -272,6 +291,13 @@ pipeline/
   - MapLibre 會等畫面更新（requestAnimationFrame）才處理樣式與繪製，分頁隱藏時會停住。
   - 自動化測試要用可見視窗，或用無頭 Chrome（puppeteer-core 搭配系統的 Chrome，加上 `--use-angle=swiftshader`）。
   - 開發模式下 `window.__map` 是地圖物件，方便在主控台檢查。
+- **匯出地圖圖片**（`src/map/exportImage.ts`）：
+  - WebGL 畫布沒有開 `preserveDrawingBuffer`：開了之後每一格都要多複製一次緩衝區，平常拖曳、縮放都會變慢。
+  - 所以只在匯出時呼叫 `triggerRepaint()`，在 `idle` 事件裡把畫面複製到 2D 畫布。MapLibre 的 `idle` 是在圖磚都載入完的那一格畫完後、同一個呼叫裡觸發的，這時緩衝區還沒被清掉。圖磚 10 秒內載不完就改用下一次 `render` 的畫面。
+  - 匯出時把像素比例暫時調到至少 2 倍（`setPixelRatio`），圖片在高解析度螢幕上看也清楚，複製完立刻還原。
+  - 太空的部分在 WebGL 畫布上是透明的（畫面上靠 CSS 背景），匯出時先畫同樣的放射漸層。
+  - 標題、圖例、來源都畫在 2D 畫布上；圖例的版面（`choroplethLegendModel`、`bubbleLegendModel`、`LAYER_KEYS`）跟畫面上的圖例共用，改圖例時兩邊會一起變。
+  - 驗證要實際產生圖片：用無頭 Chrome（同上）點「分享 → 下載地圖圖片」，用 CDP 的 `Browser.setDownloadBehavior` 指定下載資料夾，再打開檔案看。
 - **Vite 讀到寫到一半的檔案**：
   - 用腳本連續改同一個檔案時，Vite 偶爾會在檔案寫到一半時讀進來並快取住，瀏覽器出現「does not provide an export named …」。
   - 用 `touch` 該檔案重新觸發轉換即可。
