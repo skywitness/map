@@ -21,24 +21,35 @@ import {
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
-import type { AirportsData, IndicatorDef } from '../topics/types';
+import { useLang, useT } from '../i18n';
+import type { AirportsData, Indicator } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
+import { flowColors, flowText, flowWidth, greatCircle, type FlowSelection } from './flows';
 import { focusBounds } from './focus';
 import type { CountryFeature } from './geometry';
 import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
-import { BubbleLegend, bubbleLegendModel, ChoroplethLegend, choroplethLegendModel, ColumnLegend, columnLegendModel } from './Legend';
+import {
+  BubbleLegend,
+  bubbleLegendModel,
+  ChoroplethLegend,
+  choroplethLegendModel,
+  ColumnLegend,
+  columnLegendModel,
+  FlowLegend,
+  flowLegendModel,
+} from './Legend';
 import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
 import { noteMapRequest } from '../lib/serviceWorker';
-import { loadBaseStyle, type Projection } from './style';
+import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
 import { useElementSize } from './useElementSize';
 
 interface WorldMapProps {
   countries: CountryFeature[];
-  indicator: IndicatorDef;
+  indicator: Indicator;
   /** 圖例標題，例如「稻米產量」 */
   legendTitle: string;
   /** 目前年份的數值，只放有資料的國家 */
@@ -71,6 +82,8 @@ interface WorldMapProps {
   fitOnSelect?: boolean;
   /** 資料第一次畫到地圖上（不上色的指標：國界第一次畫上）時呼叫一次 */
   onFirstData?: () => void;
+  /** 流向圖（indicator.layer.kind 為 'flow'）：選取國家的主要夥伴，畫成大圓弧線 */
+  flows?: FlowSelection | null;
   /** 3D 立體地圖；有傳 onThreeDChange 才會出現 3D 按鈕 */
   threeD?: boolean;
   onThreeDChange?: (on: boolean) => void;
@@ -101,7 +114,6 @@ const MIN_BOX_PX = 6;
 /* ── 3D ─────────────────────────────── */
 /** 進入 3D 時的傾角（度） */
 const PITCH_3D = 50;
-const GLOBE_IN_3D_NOTE = '3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）';
 /**
  * 縮放 2 級時的最大高度（公尺）。面量圖最高一級的國家、比例圓最大值的柱子。
  * 平面地圖的 2 級約 20 km/px，所以柱子最高約 200 px、面量圖最高約 70 px。
@@ -160,16 +172,23 @@ function classHeight(thresholds: number[], v: number): number {
 }
 
 const DATA_FILL_OPACITY = 0.82;
+/** 流向圖夥伴國的淡底色 */
+const FLOW_TINT_OPACITY = 0.6;
 
-/** 依縮放調整面量圖的不透明度：放大後讓底圖的道路、地形透出來 */
-function fillOpacity(on: number): ExpressionSpecification {
+/**
+ * 依縮放調整面量圖的不透明度：放大後讓底圖的道路、地形透出來。
+ * tint 是流向圖夥伴國的淡底色（feature-state 'tint'），不上色的指標也會用到。
+ */
+function fillOpacity(on: number, tint = 0): ExpressionSpecification {
   const state: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
-  return [
-    'interpolate', ['linear'], ['zoom'],
-    1, ['case', state, on, 0],
-    5, ['case', state, on * 0.8, 0],
-    9, ['case', state, on * 0.35, 0],
-  ];
+  const tinted: ExpressionSpecification = ['boolean', ['feature-state', 'tint'], false];
+  const at = (k: number): ExpressionSpecification => ['case', state, on * k, tinted, tint * k, 0];
+  return ['interpolate', ['linear'], ['zoom'], 1, at(1), 5, at(0.8), 9, at(0.35)];
+}
+
+/** 弧線沿線漸層（line-progress 0 是起點）：淺的一端是出口國，深的一端是進口國 */
+function flowGradient(colors: { start: string; end: string }): ExpressionSpecification {
+  return ['interpolate', ['linear'], ['line-progress'], 0, colors.start, 1, colors.end];
 }
 
 function dataLayers(dark: boolean): LayerSpecification[] {
@@ -177,6 +196,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
   const ink = dark ? '#ffffff' : t.ink;
   const hovered: ExpressionSpecification = ['boolean', ['feature-state', 'hover'], false];
   const tinyOn: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
+  const isOrigin: ExpressionSpecification = ['boolean', ['get', 'origin'], false];
   const highlight3d = (color: ExpressionSpecification | string): ExpressionSpecification => [
     'case',
     ['boolean', ['feature-state', 'selected'], false],
@@ -197,8 +217,13 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       type: 'fill',
       source: 'countries',
       paint: {
-        'fill-color': ['coalesce', ['feature-state', 'fill'], NO_DATA],
-        'fill-opacity': fillOpacity(DATA_FILL_OPACITY),
+        'fill-color': [
+          'case',
+          ['boolean', ['feature-state', 'tint'], false],
+          ['coalesce', ['feature-state', 'tintColor'], NO_DATA],
+          ['coalesce', ['feature-state', 'fill'], NO_DATA],
+        ],
+        'fill-opacity': fillOpacity(DATA_FILL_OPACITY, FLOW_TINT_OPACITY),
       },
     },
     {
@@ -283,6 +308,40 @@ function dataLayers(dark: boolean): LayerSpecification[] {
         'fill-extrusion-opacity': 0.94,
       },
     },
+    // 流向圖：白色襯底讓弧線在任何底圖上都看得清楚；細線排在上面，才點得到小夥伴
+    {
+      id: 'flow-casing',
+      type: 'line',
+      source: 'flows',
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['-', 0, ['get', 'w']] },
+      paint: {
+        'line-color': dark ? '#0b0b0b' : '#ffffff',
+        'line-width': ['+', ['get', 'w'], 2],
+        'line-opacity': 0.55,
+      },
+    },
+    {
+      id: 'flow-lines',
+      type: 'line',
+      source: 'flows',
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['-', 0, ['get', 'w']] },
+      paint: {
+        'line-gradient': flowGradient(flowColors('export')),
+        'line-width': ['case', hovered, ['+', ['get', 'w'], 1.5], ['get', 'w']],
+        'line-opacity': ['case', hovered, 1, 0.88],
+      },
+    },
+    {
+      id: 'flow-ends',
+      type: 'circle',
+      source: 'flow-ends',
+      paint: {
+        'circle-radius': ['case', isOrigin, 5, hovered, 5, 3.5],
+        'circle-color': ['case', isOrigin, ink, ['to-color', ['get', 'color'], NO_DATA]],
+        'circle-stroke-color': dark ? '#0b0b0b' : '#ffffff',
+        'circle-stroke-width': 1.2,
+      },
+    },
     {
       id: 'airports-medium',
       type: 'circle',
@@ -342,6 +401,8 @@ function unwrapAntimeridian(geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): G
 }
 /** hover 與點選時依序查詢的圖層（上面的優先）；隱藏的圖層會跳過 */
 const HOVER_LAYERS = [
+  'flow-ends',
+  'flow-lines',
   'airports-large',
   'airports-medium',
   'extrude-columns',
@@ -352,15 +413,20 @@ const HOVER_LAYERS = [
   'data-fill',
 ];
 /** 這些 source 的 feature-state 要跟著 hover、選取更新 */
-const HOVER_SOURCES = ['countries', 'bubbles', 'columns', 'tiny-columns'];
+const HOVER_SOURCES = ['countries', 'bubbles', 'columns', 'tiny-columns', 'flows', 'flow-ends'];
 const SELECT_SOURCES = ['countries', 'columns', 'tiny-columns'];
 
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
-  const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
+  const t = useT();
+  const lang = useLang();
+  const langRef = useRef(lang);
+  langRef.current = lang;
+  const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false, threeD = false, onThreeDChange, focus = null, ref, onFirstData } = props;
+  const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
+    props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   const threeDRef = useRef(threeD);
@@ -438,9 +504,11 @@ export function WorldMap(props: WorldMapProps) {
 
   /** 加上資料用的 source 與圖層；建立地圖與切換底圖後都要做 */
   const installDataLayers = (m: MaplibreMap, dark: boolean) => {
-    for (const id of ['countries', 'tiny', 'bubbles', 'columns', 'tiny-columns']) {
+    for (const id of ['countries', 'tiny', 'bubbles', 'columns', 'tiny-columns', 'flow-ends']) {
       m.addSource(id, { type: 'geojson', data: EMPTY, promoteId: 'iso3' });
     }
+    // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
+    m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
     for (const id of ['railways', 'airports', 'box']) m.addSource(id, { type: 'geojson', data: EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
@@ -456,7 +524,7 @@ export function WorldMap(props: WorldMapProps) {
     let cancelled = false;
     let map: MaplibreMap | null = null;
     const initial = basemapRef.current;
-    loadBaseStyle(initial.url, projectionRef.current)
+    loadBaseStyle(initial.url, projectionRef.current, langRef.current)
       .then((style) => {
         if (cancelled || !mapNodeRef.current) return;
         map = new MaplibreMap({
@@ -596,7 +664,7 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!map || loadedBasemapRef.current === null || loadedBasemapRef.current === basemap.id) return;
     let cancelled = false;
-    loadBaseStyle(basemap.url, projectionRef.current).then((style) => {
+    loadBaseStyle(basemap.url, projectionRef.current, langRef.current).then((style) => {
       if (cancelled) return;
       installedRef.current = false;
       hoverIdRef.current = null;
@@ -613,6 +681,15 @@ export function WorldMap(props: WorldMapProps) {
       cancelled = true;
     };
   }, [basemap]);
+
+  // 切換語言：底圖地名換成另一種語言，不必重新載入樣式
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    for (const layer of map.getStyle().layers) {
+      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', LABELS[lang]);
+    }
+  }, [revision, lang]);
 
   // 面量圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
   useEffect(() => {
@@ -673,7 +750,7 @@ export function WorldMap(props: WorldMapProps) {
   }, [revision, values, radius, anchors, bubbleMax, indicator.layer.kind]);
 
   // 資料第一次畫到地圖上：通知 App（之後才載入精細國界、預先下載），並留下 performance mark「map-data」
-  // 給載入速度量測用（DESIGN.md 第 12 節）。不上色的指標（純地圖、路網）以國界畫上為準
+  // 給載入速度量測用（DESIGN.md 第 13 節）。不上色的指標（純地圖、路網）以國界畫上為準
   const shownRef = useRef(false);
   const onFirstDataRef = useRef(onFirstData);
   onFirstDataRef.current = onFirstData;
@@ -724,6 +801,48 @@ export function WorldMap(props: WorldMapProps) {
     show('airports-large', Boolean(airports) && layers.largeAirports);
     show('airports-medium', Boolean(airports) && layers.mediumAirports);
   }, [revision, railways, airports, layers]);
+
+  /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
+  const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);
+  const flowData = useMemo(() => {
+    const lines: GeoJSON.Feature[] = [];
+    const ends: GeoJSON.Feature[] = [];
+    const origin = flows ? anchors.get(flows.origin) : undefined;
+    if (flows && origin) {
+      const color = flowColors(flows.direction).end;
+      ends.push({ type: 'Feature', properties: { iso3: flows.origin, origin: true }, geometry: { type: 'Point', coordinates: origin } });
+      for (const link of flows.links) {
+        const partner = anchors.get(link.iso3);
+        if (!partner || link.iso3 === flows.origin) continue; // 地圖上沒有形狀的夥伴（例如吐瓦魯）只列在側欄
+        // 弧線一律從出口國畫到進口國，漸層的淺色端才會是出口國
+        const [from, to] = flows.direction === 'export' ? [origin, partner] : [partner, origin];
+        lines.push({
+          type: 'Feature',
+          properties: { iso3: link.iso3, w: flowWidth(link.value, flowMax) },
+          geometry: { type: 'LineString', coordinates: greatCircle(from, to) },
+        });
+        ends.push({ type: 'Feature', properties: { iso3: link.iso3, color }, geometry: { type: 'Point', coordinates: partner } });
+      }
+    }
+    const collection = (features: GeoJSON.Feature[]): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features });
+    return { lines: collection(lines), ends: collection(ends) };
+  }, [flows, anchors, flowMax]);
+
+  // 夥伴國塗上淡底色；換國家、換方向時先清掉上一次的
+  const tintedRef = useRef<string[]>([]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    (map.getSource('flows') as GeoJSONSource).setData(flowData.lines);
+    (map.getSource('flow-ends') as GeoJSONSource).setData(flowData.ends);
+    for (const id of tintedRef.current) map.setFeatureState({ source: 'countries', id }, { tint: false });
+    const colors = flowColors(flows?.direction ?? 'export');
+    const tinted = (flows?.links ?? []).map((l) => l.iso3).filter((iso3) => iso3 !== flows?.origin);
+    for (const id of tinted) map.setFeatureState({ source: 'countries', id }, { tint: true, tintColor: colors.tint });
+    tintedRef.current = tinted;
+    // line-gradient 不能依 feature 變化，換方向時整個換掉
+    map.setPaintProperty('flow-lines', 'line-gradient', flowGradient(colors));
+  }, [revision, flowData, flows]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -870,7 +989,7 @@ export function WorldMap(props: WorldMapProps) {
     show('data-highlight', !slabs);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
     // 更新 feature-state，MapLibre 會對常數呼叫 evaluate 而丟出 TypeError
-    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs ? 0 : DATA_FILL_OPACITY));
+    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
     // 平面時鐵路在比例圓下面；3D 時改畫在立體圖形上面，否則會被整片蓋住
     map.moveLayer('rail', threeD ? 'airports-medium' : 'data-tiny');
   }, [revision, threeD, indicator.layer.kind]);
@@ -920,20 +1039,32 @@ export function WorldMap(props: WorldMapProps) {
   };
 
   const hasOverlays = Boolean(railways || airports);
+  // 流向圖還沒選國家時，提示使用者點一下；選了但那一年沒有資料也要說
+  const flowLayer = indicator.layer.kind === 'flow' ? indicator.layer : null;
+  const flowHint =
+    !flowLayer || boxMode
+      ? null
+      : !selected
+        ? flowText(lang).pick(flowText(lang)[flowLayer.direction].partners)
+        : flows?.origin === selected && flows.links.length === 0
+          ? flowText(lang).noData(flows.year, flowText(lang)[flowLayer.direction].partners)
+          : null;
 
   useImperativeHandle(
     ref,
     () => ({
       exportImage: async (content) => {
         const map = mapRef.current;
-        if (!map || !installedRef.current) throw new Error('地圖還沒載入完成');
+        if (!map || !installedRef.current) throw new Error('The map has not finished loading');
         // 圖例跟畫面上的一樣：數值圖例（3D 時是階梯色塊或柱子），加上目前開著的疊加圖層
         const title = legendTitle;
         const unit = indicator.unit;
         const legend: ImageLegend | null = colorScale
           ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD }
           : indicator.layer.kind !== 'bubble'
-            ? null
+            ? flowLayer && flows && flowMax > 0
+              ? { kind: 'flow', title, unit, model: flowLegendModel(indicator, flows.direction, flowMax) }
+              : null
             : threeD
               ? { kind: 'column', title, unit, model: columnLegendModel(indicator, bubbleMax), color: MAP_TOKENS.accent }
               : { kind: 'bubble', title, unit, model: bubbleLegendModel(indicator, radius) };
@@ -947,7 +1078,7 @@ export function WorldMap(props: WorldMapProps) {
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
       },
     }),
-    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax],
+    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax],
   );
 
   return (
@@ -962,13 +1093,13 @@ export function WorldMap(props: WorldMapProps) {
         role="img"
         aria-label={ariaLabel}
       />
-      {failed && <p className="error map-error">底圖載入失敗，請檢查網路連線後重新整理。</p>}
+      {failed && <p className="error map-error">{t.basemapFailed}</p>}
 
-      <div className="map-zoom" role="group" aria-label="地圖控制">
-        <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label="放大" title="放大">
+      <div className="map-zoom" role="group" aria-label={t.mapControls}>
+        <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label={t.zoomIn} title={t.zoomIn}>
           +
         </button>
-        <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label="縮小" title="縮小">
+        <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label={t.zoomOut} title={t.zoomOut}>
           −
         </button>
         <button
@@ -980,8 +1111,8 @@ export function WorldMap(props: WorldMapProps) {
               duration: 800,
             })
           }
-          aria-label="回到全球"
-          title="回到全球"
+          aria-label={t.resetView}
+          title={t.resetView}
         >
           ⟲
         </button>
@@ -990,10 +1121,10 @@ export function WorldMap(props: WorldMapProps) {
           className="map-text-button"
           onClick={() => !threeD && setGlobe((g) => !g)}
           aria-disabled={threeD}
-          aria-label={projection === 'globe' ? '切換成平面地圖' : '切換成地球儀'}
-          title={threeD ? GLOBE_IN_3D_NOTE : projection === 'globe' ? '切換成平面地圖' : '切換成地球儀'}
+          aria-label={projection === 'globe' ? t.toFlat : t.toGlobe}
+          title={threeD ? t.globeIn3d : projection === 'globe' ? t.toFlat : t.toGlobe}
         >
-          {projection === 'globe' ? '平面' : '球'}
+          {projection === 'globe' ? t.flatShort : t.globeShort}
         </button>
         {onThreeDChange && (
           <button
@@ -1001,8 +1132,8 @@ export function WorldMap(props: WorldMapProps) {
             className={`map-text-button map-toggle${threeD ? ' is-active' : ''}`}
             onClick={toggleThreeD}
             aria-pressed={threeD}
-            aria-label="3D 立體地圖"
-            title={threeD ? '離開 3D，回到平面上色' : `3D 立體地圖：用高度呈現數值。${GLOBE_IN_3D_NOTE}`}
+            aria-label={t.threeD}
+            title={threeD ? t.threeDLeave : t.threeDEnter}
           >
             3D
           </button>
@@ -1012,8 +1143,8 @@ export function WorldMap(props: WorldMapProps) {
             type="button"
             className="map-compass"
             onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: PITCH_3D, duration: 600 })}
-            aria-label="朝北並回到預設傾角"
-            title="朝北並回到預設傾角（右鍵或 Ctrl＋拖曳可旋轉、傾斜）"
+            aria-label={t.compass}
+            title={t.compassTitle}
           >
             <svg ref={compassRef} viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <path d="M8 1.5 11 8H5Z" fill="#e24a48" />
@@ -1024,8 +1155,8 @@ export function WorldMap(props: WorldMapProps) {
         <button
           type="button"
           onClick={toggleFullscreen}
-          aria-label={fullscreen ? '離開全螢幕' : '全螢幕'}
-          title={fullscreen ? '離開全螢幕' : '全螢幕'}
+          aria-label={fullscreen ? t.exitFullscreen : t.fullscreen}
+          title={fullscreen ? t.exitFullscreen : t.fullscreen}
         >
           {fullscreen ? '⤡' : '⤢'}
         </button>
@@ -1037,7 +1168,7 @@ export function WorldMap(props: WorldMapProps) {
             aria-pressed={boxMode}
             aria-disabled={threeD}
             aria-label={boxToolLabel}
-            title={threeD ? '3D 模式不能框選（地圖可以旋轉、傾斜），請先關閉 3D' : boxMode ? '在地圖上拖曳畫框（Esc 取消）' : boxToolLabel}
+            title={threeD ? t.boxIn3d : boxMode ? t.boxToolActive : boxToolLabel}
           >
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <rect x="2.5" y="3.5" width="11" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.5 1.5" />
@@ -1046,11 +1177,12 @@ export function WorldMap(props: WorldMapProps) {
         )}
       </div>
 
-      {boxMode && <div className="map-hint">在地圖上拖曳畫出範圍（Esc 取消）</div>}
+      {boxMode && <div className="map-hint">{t.boxHint}</div>}
+      {flowHint && !threeDHint && <div className="map-hint">{flowHint}</div>}
       {threeDHint && (
         <div className="map-hint is-wrap">
-          {matchMedia('(pointer: coarse)').matches ? '雙指轉動可旋轉、雙指上下滑動可傾斜' : '右鍵或 Ctrl＋拖曳可旋轉、傾斜'}
-          {globe && <>；{GLOBE_IN_3D_NOTE}</>}
+          {matchMedia('(pointer: coarse)').matches ? t.threeDHintTouch : t.threeDHintMouse}
+          {globe && t.threeDHintGlobe}
         </div>
       )}
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
@@ -1073,6 +1205,8 @@ export function WorldMap(props: WorldMapProps) {
           ) : (
             <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
           )
+        ) : flowLayer && flows && flowMax > 0 ? (
+          <FlowLegend indicator={indicator} title={legendTitle} direction={flows.direction} max={flowMax} tokens={tokens} />
         ) : null}
       </div>
 

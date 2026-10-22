@@ -1,4 +1,5 @@
 import type { LineSeriesOption } from 'echarts/charts';
+import { messages } from '../i18n';
 import type { Tokens } from '../theme/tokens';
 import { escapeHtml, type ChartOption } from './EChart';
 
@@ -65,7 +66,8 @@ export function stackedAreaOption({ years, series, year, format, formatTick, tok
               `<strong>${escapeHtml(format(Number(p.value)))}</strong>` +
               `<span class="tt-name">${escapeHtml(p.seriesName ?? '')}</span></div>`,
           );
-        return `<div class="tt-head">${escapeHtml(y)} · 合計 ${escapeHtml(format(total))}</div>${rows.join('')}`;
+        const t = messages();
+        return `<div class="tt-head">${escapeHtml(y)} · ${t.chartTotal} ${escapeHtml(format(total))}</div>${rows.join('')}`;
       },
     },
     xAxis: {

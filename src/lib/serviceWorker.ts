@@ -1,5 +1,5 @@
 /**
- * Service worker 的註冊（src/sw.ts，快取策略見 DESIGN.md 第 12 節）。
+ * Service worker 的註冊（src/sw.ts，快取策略見 DESIGN.md 第 13 節）。
  *
  * 第一次造訪時，service worker 要等地圖畫出資料才註冊、裝好，在那之前（以及還在下載中）的資料、底圖
  * 不會經過它，也就不在快取裡。它接手後，把這些網址交給它補存（Workbox 的 CACHE_URLS 訊息），

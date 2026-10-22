@@ -21,6 +21,14 @@ TAIWAN_SPENDING_NOTE = (
     "（2024 年政府公布 6,068 億元、占 GDP 約 2.5%，是預算數，含特別預算與非營業特種基金）"
 )
 TAIWAN_ARMED_FORCES_NOTE = "世界銀行（IISS）的兵力資料不含台灣；國防部公布的是編制員額而非實際人數，口徑不同，所以沒有放"
+TAIWAN_SPENDING_NOTE_EN = (
+    "SIPRI's estimate follows its own definition and differs from the government's published defence budget "
+    "(NT$606.8 billion in 2024, about 2.5% of GDP, a budget figure including special budgets and non-business special funds)"
+)
+TAIWAN_ARMED_FORCES_NOTE_EN = (
+    "The World Bank (IISS) armed forces data does not include Taiwan; the Ministry of National Defense publishes authorised "
+    "strength rather than actual personnel, a different measure, so it is not shown"
+)
 
 
 def build() -> None:
@@ -47,6 +55,7 @@ def build() -> None:
             "spending", "美元", years, {c: to_series({y: v * 1e6 for y, v in s.items()}, years, 0) for c, s in usd.items()},
             aggregates={"WLD": to_series(world_usd, years, 0)},
             notes={"TWN": TAIWAN_SPENDING_NOTE},
+            notesEn={"TWN": TAIWAN_SPENDING_NOTE_EN},
         ),
     )
     write_json(
@@ -55,6 +64,7 @@ def build() -> None:
             "spending-gdp", "%", years, {c: to_series({y: v * 100 for y, v in s.items()}, years, 2) for c, s in share.items()},
             aggregates={"WLD": to_series(world_share, years, 2)},
             notes={"TWN": TAIWAN_SPENDING_NOTE},
+            notesEn={"TWN": TAIWAN_SPENDING_NOTE_EN},
         ),
     )
 
@@ -67,6 +77,7 @@ def build() -> None:
                 key, unit, span, {c: to_series(s, span, digits) for c, s in countries.items()},
                 aggregates={"WLD": to_series(world, span, digits)},
                 notes={"TWN": TAIWAN_ARMED_FORCES_NOTE},
+                notesEn={"TWN": TAIWAN_ARMED_FORCES_NOTE_EN},
             ),
         )
     write_json(

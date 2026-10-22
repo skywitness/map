@@ -1,5 +1,6 @@
 import type { LineSeriesOption } from 'echarts/charts';
-import type { IndicatorDef } from '../topics/types';
+import { messages } from '../i18n';
+import type { Indicator } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 import { escapeHtml, type ChartOption } from './EChart';
 
@@ -16,7 +17,7 @@ interface TimeSeriesInput {
   projectionFrom?: number;
   /** 目前選擇的年份，畫一條垂直參考線 */
   year: number;
-  indicator: IndicatorDef;
+  indicator: Indicator;
   tokens: Tokens;
 }
 
@@ -111,7 +112,7 @@ export function timeSeriesOption({ years, lines, projectionFrom, year, indicator
           ];
         });
         const projected = projectionFrom !== undefined && y >= projectionFrom;
-        return `<div class="tt-head">${y}${projected ? ' · 推估值' : ''}</div>${rows.join('')}`;
+        return `<div class="tt-head">${y}${projected ? ` · ${messages().projected}` : ''}</div>${rows.join('')}`;
       },
     },
     xAxis: {

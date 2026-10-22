@@ -103,6 +103,22 @@ button {
   opacity: 0.6;
 }
 
+/* 中文 / EN 切換 */
+.lang-switch {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--grid);
+  gap: 2px;
+}
+
+.lang-switch .segment {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
 .icon-button {
   width: 32px;
   height: 32px;
@@ -1527,6 +1543,22 @@ kbd {
   .topics {
     padding-right: 24px;
     mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+
+  /* 頂列放不下標題、語言切換與主題列：主題列換到第二行，整行都能捲動 */
+  .topbar {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    gap: 12px;
+  }
+
+  .topbar .topics {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .lang-switch {
+    margin-left: auto;
   }
 
   /* 抽屜收合時蓋住頁面底部，留出同樣的空間，頁尾、時間軸才捲得出來 */

@@ -5,11 +5,14 @@ import { useHotkeys } from './controls/hotkeys';
 import { ShareMenu } from './controls/ShareMenu';
 import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
-import { zhName, type CountryTable } from './lib/countries';
+import { LangSwitch } from './controls/LangSwitch';
+import { localize, tr, useLang, useT } from './i18n';
+import { countryName, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { indicatorCsv } from './lib/csv';
 import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
+import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { read as readUrlState, useUrlState } from './lib/url-state';
 import {
@@ -21,6 +24,7 @@ import {
 } from './map/boxEstimate';
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { flowText, useFlowSelection } from './map/flows';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { loadBaseStyle } from './map/style';
 import type { WorldMapHandle } from './map/WorldMap';
@@ -35,7 +39,7 @@ import {
   type AirportsData,
   type IndicatorData,
   type RailwaysData,
-  type TopicDefinition,
+  type Topic,
 } from './topics/types';
 import { useTheme } from './theme/useTheme';
 
@@ -64,7 +68,8 @@ for (const path of ['countries.json', GEO_COARSE, initialIndicatorPath()]) {
 
 function initialIndicatorPath(): string | null {
   const state = readUrlState();
-  const topic = getTopic(state.topic);
+  // 檔名跟語言無關，用哪個語言解析都一樣
+  const topic = localize(getTopic(state.topic), 'zh');
   if (topic.pure) return null;
   const indicator =
     topic.indicators.find((i) => i.id === state.indicator) ??
@@ -78,8 +83,6 @@ const NO_FEATURES: CountryFeature[] = [];
 /** 指標超過這個數量就改用下拉選單 */
 const MAX_SEGMENTS = 5;
 
-const DISCLAIMER = '國界與名稱僅為資料呈現，不代表任何政治立場。';
-
 interface Manifest {
   generatedAt: string;
 }
@@ -87,9 +90,12 @@ interface Manifest {
 export function App() {
   const { tokens, toggle: toggleTheme } = useTheme();
   const [state, update] = useUrlState();
+  const lang = useLang();
+  const t = useT();
   const online = useOnline();
 
-  const topic = getTopic(state.topic);
+  // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
+  const topic = localize(getTopic(state.topic), lang);
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
   const view = pure ? 'map' : state.view;
@@ -144,6 +150,7 @@ export function App() {
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports } = useOverlays(topic);
+  const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
   const searchIndex = useMemo(() => {
@@ -165,24 +172,24 @@ export function App() {
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
-  const indicatorTitle = itemLabel && usesDimension(indicator) ? `${itemLabel}${indicator.label}` : indicator.label;
+  const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
 
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
-  const viewTitle = pure
-    ? topic.title
-    : `${topic.title} · ${indicatorTitle} · ${year} 年${projected ? '（推估值）' : ''}`;
-  const fileBase = safeFilename(pure ? '世界地圖' : `世界資料地圖_${topic.shortTitle}_${indicatorTitle}`);
+  // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
+  const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : indicatorTitle;
+  const viewTitle = pure ? topic.title : `${topic.title} · ${flowTitle} · ${t.yearValue(year, projected)}`;
+  const fileBase = safeFilename(pure ? topic.title : `${t.brand}_${topic.shortTitle}_${indicatorTitle}`);
 
   const downloadImage = async () => {
-    if (!mapHandle.current) throw new Error('地圖還沒載入');
+    if (!mapHandle.current) throw new Error('The map has not loaded yet');
     // 純地圖頁的國界是底圖本身的，資料主題另外畫 Natural Earth 的國界
     const credits = pure
-      ? [`底圖：${BASEMAP_ATTRIBUTION}`, DISCLAIMER]
+      ? [t.basemapCredit(BASEMAP_ATTRIBUTION), t.disclaimer]
       : [
-          `資料來源：${topic.sources.map((s) => `${s.name}（${s.license}）`).join('、')}`,
-          `底圖：${BASEMAP_ATTRIBUTION}`,
-          `國界：Natural Earth（公有領域）。${DISCLAIMER}`,
+          `${t.sources}${topic.sources.map((s) => `${s.name}${t.sourceLicense(s.license)}`).join(t.listSeparator)}`,
+          t.basemapCredit(BASEMAP_ATTRIBUTION),
+          t.bordersCredit,
         ];
     credits.push(window.location.href);
     const blob = await mapHandle.current.exportImage({
@@ -211,21 +218,34 @@ export function App() {
           {iata && ` (${iata})`}
         </div>
         <div className="tt-label">
-          {[city, zhName(iso3, countries)].filter(Boolean).join(' · ')} · {type === 1 ? '大型機場' : '中型機場'}
+          {[city, countryName(iso3, countries)].filter(Boolean).join(' · ')} · {type === 1 ? t.largeAirport : t.mediumAirport}
         </div>
       </>
     );
   };
 
   const renderTooltip = (iso3: string) => {
-    if (pure) return <div className="tt-value">{zhName(iso3, countries)}</div>;
+    if (pure) return <div className="tt-value">{countryName(iso3, countries)}</div>;
+    // 流向圖：滑到夥伴國上顯示雙邊金額與占比
+    const link = flows?.links.find((l) => l.iso3 === iso3);
+    if (flows && link) {
+      return (
+        <>
+          <div className="tt-value">{indicator.format(link.value)}</div>
+          <div className="tt-label">
+            {flowText(lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))} ·{' '}
+            {t.flowShare(formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0))} · {flows.year}
+          </div>
+        </>
+      );
+    }
     const v = values.get(iso3);
     return (
       <>
-        <div className="tt-value">{v !== undefined ? indicator.format(v) : '無資料'}</div>
+        <div className="tt-value">{v !== undefined ? indicator.format(v) : t.noData}</div>
         <div className="tt-label">
-          {zhName(iso3, countries)} · {year}
-          {projected && ' 推估值'}
+          {countryName(iso3, countries)} · {year}
+          {projected && t.tooltipProjected}
         </div>
       </>
     );
@@ -234,32 +254,33 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <h1 className="brand">世界資料地圖</h1>
+        <h1 className="brand">{t.brand}</h1>
         {!online && (
-          <span className="offline-badge" role="status" title="沒有網路連線，顯示的是這台裝置上次存下的資料與地圖">
-            離線中
+          <span className="offline-badge" role="status" title={t.offlineHint}>
+            {t.offline}
           </span>
         )}
-        <nav className="topics" aria-label="主題">
-          {TOPICS.map((t) => (
+        <nav className="topics" aria-label={t.topicsNav}>
+          {TOPICS.map((def) => (
             <button
-              key={t.id}
+              key={def.id}
               type="button"
-              className={`topic${t.id === topic.id ? ' is-active' : ''}`}
-              aria-current={t.id === topic.id ? 'page' : undefined}
-              onClick={() => update({ topic: t.id, indicator: null, item: null })}
+              className={`topic${def.id === topic.id ? ' is-active' : ''}`}
+              aria-current={def.id === topic.id ? 'page' : undefined}
+              onClick={() => update({ topic: def.id, indicator: null, item: null })}
             >
-              {t.shortTitle}
+              {tr(def.shortTitle, lang)}
             </button>
           ))}
         </nav>
+        <LangSwitch />
         <ShortcutHelp />
         <button
           type="button"
           className="icon-button theme-toggle"
           onClick={toggleTheme}
-          aria-label={tokens.mode === 'dark' ? '切換為淺色' : '切換為深色'}
-          title={tokens.mode === 'dark' ? '切換為淺色' : '切換為深色'}
+          aria-label={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
+          title={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
         >
           {tokens.mode === 'dark' ? '☀' : '☾'}
         </button>
@@ -294,7 +315,7 @@ export function App() {
           )}
           {pure ? null : topic.indicators.length > MAX_SEGMENTS ? (
             <label className="select-field">
-              <span>指標</span>
+              <span>{t.indicator}</span>
               <select value={indicator.id} onChange={(e) => update({ indicator: e.target.value })}>
                 {topic.indicators.map((ind) => (
                   <option key={ind.id} value={ind.id}>
@@ -304,7 +325,7 @@ export function App() {
               </select>
             </label>
           ) : (
-            <div className="indicator-picker" role="radiogroup" aria-label="指標">
+            <div className="indicator-picker" role="radiogroup" aria-label={t.indicator}>
               {topic.indicators.map((ind) => (
                 <button
                   key={ind.id}
@@ -322,11 +343,11 @@ export function App() {
         </div>
         <div className="controls-right">
           <label className="select-field">
-            <span>底圖</span>
-            <select value={basemap.id} onChange={(e) => chooseBasemap(e.target.value)} aria-label="底圖配色">
+            <span>{t.basemap}</span>
+            <select value={basemap.id} onChange={(e) => chooseBasemap(e.target.value)} aria-label={t.basemapStyle}>
               {BASEMAPS.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.label}
+                  {tr(b.label, lang)}
                 </option>
               ))}
             </select>
@@ -344,7 +365,7 @@ export function App() {
             }
           />
           {!pure && (
-            <div className="view-toggle" role="radiogroup" aria-label="檢視方式">
+            <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
               {(['map', 'table'] as const).map((v) => (
                 <button
                   key={v}
@@ -354,13 +375,13 @@ export function App() {
                   className={`segment${view === v ? ' is-active' : ''}`}
                   onClick={() => update({ view: v })}
                 >
-                  {v === 'map' ? '地圖' : '排名表'}
+                  {v === 'map' ? t.viewMap : t.viewTable}
                 </button>
               ))}
             </div>
           )}
           <ShareMenu
-            shareTitle={`${viewTitle}｜世界資料地圖`}
+            shareTitle={t.shareTitle(viewTitle)}
             onDownloadImage={view === 'map' ? downloadImage : undefined}
             csv={
               data && !pure
@@ -374,11 +395,11 @@ export function App() {
 
       <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">
-          {error && <p className="error">資料載入失敗：{error.message}</p>}
+          {error && <p className="error">{t.loadFailed(error.message)}</p>}
           {view === 'map' ? (
             // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
-            <Suspense fallback={<p className="loading">地圖載入中…</p>}>
-              {!firstPaint && !error && <p className="map-status">資料載入中…</p>}
+            <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+              {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
               <WorldMap
                 ref={mapHandle}
                 countries={features ?? NO_FEATURES}
@@ -390,7 +411,7 @@ export function App() {
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={pure ? '世界地圖' : `世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
+                ariaLabel={pure ? t.worldMapAria : t.mapAria(year, indicatorTitle, projected)}
                 basemap={basemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
@@ -400,12 +421,13 @@ export function App() {
                 dimmed={loading && data !== null}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
-                boxToolLabel={topic.boxEstimate && `框選範圍，估算${topic.boxEstimate.label}`}
+                boxToolLabel={topic.boxEstimate && t.boxToolFor(topic.boxEstimate.label)}
                 railways={railways}
                 airports={airports}
                 layers={layers}
                 onLayersChange={setLayers}
                 renderAirportTooltip={renderAirportTooltip}
+                flows={flows}
                 overlay={
                   boxResult && (
                     <BoxResult
@@ -441,7 +463,7 @@ export function App() {
             <Suspense
               fallback={
                 <aside className="panel" aria-busy="true">
-                  <p className="empty">載入中…</p>
+                  <p className="empty">{t.loading}</p>
                 </aside>
               }
             >
@@ -465,24 +487,24 @@ export function App() {
       {!pure && <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />}
 
       <footer className="footer">
-        資料來源：
+        {t.sources}
         {topic.sources.map((s, i) => (
           <span key={s.url}>
-            {i > 0 && '、'}
+            {i > 0 && t.listSeparator}
             <a href={s.url} target="_blank" rel="noreferrer">
               {s.name}
             </a>
-            （{s.license}）
+            {t.sourceLicense(s.license)}
           </span>
         ))}
-        · 國界：
+        {t.borders}
         <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
           Natural Earth
         </a>
-        （公有領域）
-        {manifest && <> · 資料產生於 {manifest.generatedAt.slice(0, 10)}</>}
+        {t.publicDomain}
+        {manifest && t.generatedAt(manifest.generatedAt.slice(0, 10))}
         {topic.note && <span className="footer-note">{topic.note}</span>}
-        <span className="footer-note">國界與名稱僅為資料呈現，不代表任何政治立場。</span>
+        <span className="footer-note">{t.disclaimer}</span>
       </footer>
     </div>
   );
@@ -497,7 +519,7 @@ function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
 }
 
 /** 主題的疊加圖層（鐵路、機場），只在該主題載入 */
-function useOverlays(topic: TopicDefinition) {
+function useOverlays(topic: Topic) {
   const overlays = topic.overlays ?? [];
   const files = useMemo(() => overlays.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, overlays]);
   const loaded = useJsonMany<unknown>(files);
@@ -531,7 +553,7 @@ function groupOptions<T extends { group?: string }>(options: T[]): [string | und
  * 某國的框內估計 = 框內網格人數 ÷ 該國網格總人數 × 該國當年總量。
  */
 function useBoxEstimate(
-  topic: TopicDefinition,
+  topic: Topic,
   item: string | null,
   box: Box | null,
   features: ReturnType<typeof toCountryFeatures> | null,

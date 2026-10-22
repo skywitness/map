@@ -1,3 +1,4 @@
+import { tr, useLang, useT, type Text } from '../i18n';
 import type { RailwaysData } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 
@@ -31,16 +32,28 @@ export function decodeRailways(data: RailwaysData): GeoJSON.MultiLineString {
 export interface LayerKey {
   key: keyof LayerVisibility;
   source: 'railways' | 'airports';
-  label: string;
+  label: Text;
   /** 線（鐵路）或圓點（機場），size 是線寬或半徑（px） */
   shape: 'line' | 'dot';
   size: number;
 }
 
 export const LAYER_KEYS: LayerKey[] = [
-  { key: 'railways', source: 'railways', label: '鐵路', shape: 'line', size: 1.2 },
-  { key: 'largeAirports', source: 'airports', label: '大型機場', shape: 'dot', size: 4 },
-  { key: 'mediumAirports', source: 'airports', label: '中型機場（有定期航班）', shape: 'dot', size: 2.5 },
+  { key: 'railways', source: 'railways', label: { zh: '鐵路', en: 'Railways' }, shape: 'line', size: 1.2 },
+  {
+    key: 'largeAirports',
+    source: 'airports',
+    label: { zh: '大型機場', en: 'Large airports' },
+    shape: 'dot',
+    size: 4,
+  },
+  {
+    key: 'mediumAirports',
+    source: 'airports',
+    label: { zh: '中型機場（有定期航班）', en: 'Medium airports (scheduled flights)' },
+    shape: 'dot',
+    size: 2.5,
+  },
 ];
 
 /** 線用介面的文字色（圖例卡片跟著深淺色切換），機場點跟地圖上一樣用地圖色 */
@@ -58,11 +71,13 @@ interface LayerControlsProps {
 
 /** 圖層開關，同時當作圖例 */
 export function LayerControls({ layers, onChange, hasRailways, hasAirports, tokens }: LayerControlsProps) {
+  const t = useT();
+  const lang = useLang();
   const toggle = (key: keyof LayerVisibility) => onChange({ ...layers, [key]: !layers[key] });
   const keys = LAYER_KEYS.filter((k) => (k.source === 'railways' ? hasRailways : hasAirports));
   return (
     <fieldset className="legend map-layers">
-      <legend className="legend-title">圖層</legend>
+      <legend className="legend-title">{t.layers}</legend>
       {keys.map((k) => (
         <label key={k.key}>
           <input type="checkbox" checked={layers[k.key]} onChange={() => toggle(k.key)} />
@@ -73,7 +88,7 @@ export function LayerControls({ layers, onChange, hasRailways, hasAirports, toke
               <circle cx="9" cy="5" r={k.size} fill={layerKeyColor(k, tokens)} />
             )}
           </svg>
-          {k.label}
+          {tr(k.label, lang)}
         </label>
       ))}
     </fieldset>

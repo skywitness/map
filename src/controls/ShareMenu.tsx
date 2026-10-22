@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { copyText } from '../lib/download';
+import { useUI } from '../lib/strings';
 
 interface ShareMenuProps {
   /** 只有地圖檢視才有：把目前的地圖畫成 PNG 下載 */
@@ -24,6 +25,8 @@ const STATUS_MS = 2200;
  * 鍵盤操作依 WAI-ARIA 的 menu button 模式：↑↓ 移動、Home/End、Esc 關閉並回到按鈕。
  */
 export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) {
+  const UI = useUI();
+  const text = UI.share;
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ text: string; error?: boolean } | null>(null);
@@ -54,24 +57,24 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
         if ((e as Error).name === 'AbortError') return; // 使用者自己取消
       }
     }
-    if (await copyText(url)) flash('已複製連結');
-    else flash('無法複製，請直接複製網址列', true);
+    if (await copyText(url)) flash(text.copied);
+    else flash(text.copyFailed, true);
   };
 
   const items: MenuItem[] = [
     ...(onDownloadImage
       ? [
           {
-            label: '下載地圖圖片（PNG）',
+            label: text.image,
             disabled: busy,
             run: async () => {
               setBusy(true);
-              setStatus({ text: '圖片產生中…' });
+              setStatus({ text: text.imageBusy });
               try {
                 await onDownloadImage();
-                flash('已下載圖片');
+                flash(text.imageDone);
               } catch {
-                flash('圖片產生失敗，請稍後再試', true);
+                flash(text.imageFailed, true);
               } finally {
                 setBusy(false);
               }
@@ -82,22 +85,22 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
     ...(csv
       ? [
           {
-            label: `下載 CSV（${csv.year} 年）`,
+            label: text.csvYear(csv.year),
             run: () => {
               csv.onDownloadYear();
-              flash('已下載 CSV');
+              flash(text.csvDone);
             },
           },
           {
-            label: '下載 CSV（所有年份）',
+            label: text.csvAll,
             run: () => {
               csv.onDownloadAll();
-              flash('已下載 CSV');
+              flash(text.csvDone);
             },
           },
         ]
       : []),
-    { label: nativeShare ? '分享連結…' : '複製連結', run: shareLink },
+    { label: nativeShare ? text.shareLink : text.copyLink, run: shareLink },
   ];
   itemRefs.current.length = items.length;
 
@@ -169,10 +172,10 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
             strokeLinejoin="round"
           />
         </svg>
-        分享
+        {text.button}
       </button>
       {open && (
-        <div className="share-menu" id={menuId} role="menu" aria-label="分享" onKeyDown={onMenuKeyDown}>
+        <div className="share-menu" id={menuId} role="menu" aria-label={text.button} onKeyDown={onMenuKeyDown}>
           {items.map((item, i) => (
             <button
               key={item.label}

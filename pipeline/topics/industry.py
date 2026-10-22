@@ -10,6 +10,7 @@ from sources import atlas, dgbas, imf, worldbank
 
 FIRST_YEAR = 1963
 TAIWAN_NOTE = "台灣不在世界銀行資料庫中，改用行政院主計總處各業 GDP 依同樣分類換算"
+TAIWAN_NOTE_EN = "Taiwan is not in the World Bank database; derived from DGBAS GDP by industry using the same grouping"
 
 # 生產面五大類：輸出檔名 -> (World Bank 代碼, 台灣對應的主計總處行業代號)
 CATEGORIES = {
@@ -89,15 +90,17 @@ def build() -> None:
     last = max(y for s in mva.values() for y in s)
     years = list(range(FIRST_YEAR, last + 1))
     notes = {"TWN": TAIWAN_NOTE}
+    notes_en = {"TWN": TAIWAN_NOTE_EN}
     write_json(out / "mva.json", indicator_file(
         "mva", "美元", years, {a: to_series(s, years, 0) for a, s in mva.items() if s},
-        aggregates={"WLD": to_series(mva_world, years, 0)}, notes=notes))
+        aggregates={"WLD": to_series(mva_world, years, 0)}, notes=notes, notesEn=notes_en))
     write_json(out / "tech-share.json", indicator_file(
         "tech-share", "%", years, {a: to_series(s, years, 1) for a, s in tech.items() if s},
-        notes={"TWN": TAIWAN_NOTE + "（近似值）"}))
+        notes={"TWN": TAIWAN_NOTE + "（近似值）"}, notesEn={"TWN": TAIWAN_NOTE_EN + " (approximate)"}))
     for key, data in shares.items():
         write_json(out / f"share-{key}.json", indicator_file(
-            f"share-{key}", "%", years, {a: to_series(s, years, 1) for a, s in data.items() if s}, notes=notes))
+            f"share-{key}", "%", years, {a: to_series(s, years, 1) for a, s in data.items() if s}, notes=notes,
+            notesEn=notes_en))
 
     # 出口面
     exports = atlas.exports_by_chapter()

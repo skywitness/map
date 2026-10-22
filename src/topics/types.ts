@@ -1,9 +1,16 @@
 import type React from 'react';
+import type { Localized, Text } from '../i18n/lang';
 import type { Tokens } from '../theme/tokens';
+
+export type { Text };
 
 /**
  * 主題外掛的介面。新增主題 = 在 pipeline/topics/ 產生資料 + 在這裡寫一個 TopicDefinition。
  * 地圖引擎、圖例、時間軸、側欄、排名表都只依賴這份介面。
+ *
+ * 給人看的文字都是 Text（`{ zh: '總人口', en: 'Total population' }`，兩種語言相同時可以直接寫字串）。
+ * App 依目前語言把整個主題解析成 Topic（所有 Text 換成字串），元件只拿 Topic / Indicator。
+ * format / formatTick 在呼叫當下讀目前的語言：用 lib/format.ts 的函式，單位用 tr({ zh, en })。
  */
 
 /** 面量圖的分級方式。分級門檻固定寫死，所有年份共用，拖動時間軸時顏色才能互相比較。 */
@@ -20,14 +27,36 @@ export type LayerSpec =
   /** legendValues 為 'auto' 時依資料最大值自動挑（各農產品的量級差很多） */
   | { kind: 'bubble'; legendValues: number[] | 'auto' }
   /** 不依數值上色，只畫疊加圖層（例如鐵路與機場）；資料仍用於 tooltip 與排名 */
-  | { kind: 'none' };
+  | { kind: 'none' }
+  /**
+   * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
+   * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
+   * 指標檔本身放各國的總額，給 tooltip、排名表與側欄用。
+   */
+  | { kind: 'flow'; file: string; direction: FlowDirection };
+
+export type FlowDirection = 'export' | 'import';
+
+/**
+ * 流向檔：pipeline/topics/trade.py 輸出，一個商品、一年一個檔。
+ * 每個國家是 [總額, [[夥伴, 金額], …]]，夥伴依金額由大到小、只留前幾名；總額含所有夥伴。
+ */
+export interface FlowFile {
+  /** 商品（子項目）代碼 */
+  item: string;
+  year: number;
+  /** 金額的單位，目前固定是「千美元」 */
+  unit: string;
+  export: Record<string, [number, [string, number][]]>;
+  import: Record<string, [number, [string, number][]]>;
+}
 
 export interface IndicatorDef {
   id: string;
-  label: string;
+  label: Text;
   /** 一句話說明這個指標，顯示在指標選單下方 */
-  description: string;
-  unit: string;
+  description: Text;
+  unit: Text;
   /**
    * 資料檔，相對於 data/topics/<topicId>/。
    * 含 `{item}` 的指標會跟著子項目切換，例如 'production/{item}.json'。
@@ -45,15 +74,15 @@ export interface IndicatorDef {
 }
 
 export interface SourceDef {
-  name: string;
+  name: Text;
   url: string;
-  license: string;
+  license: Text;
 }
 
 /** 子項目選擇器：例如農業主題的「農產品」 */
 export interface DimensionDef {
-  label: string;
-  options: { id: string; label: string; group?: string }[];
+  label: Text;
+  options: { id: string; label: Text; group?: Text }[];
   defaultOption: string;
 }
 
@@ -78,7 +107,8 @@ export interface AirportsData {
 
 /** 主題自訂的側欄區塊，接在通用側欄下方 */
 export interface PanelExtraProps {
-  topic: TopicDefinition;
+  /** 已依目前語言解析過的主題 */
+  topic: Topic;
   iso3: string;
   year: number;
   /** 目前選的子項目（有 dimension 的主題才有） */
@@ -89,9 +119,9 @@ export interface PanelExtraProps {
 
 export interface TopicDefinition {
   id: string;
-  title: string;
+  title: Text;
   /** 主題選單上的短名稱 */
-  shortTitle: string;
+  shortTitle: Text;
   sources: SourceDef[];
   indicators: IndicatorDef[];
   defaultIndicator: string;
@@ -106,22 +136,44 @@ export interface TopicDefinition {
    * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，
    * 網格只決定國內的分布，各國水準縮放到 indicator 當年的值。grid 是主題資料夾裡的網格檔。
    */
-  boxEstimate?: { indicator: string; label: string; grid: string };
+  boxEstimate?: { indicator: string; label: Text; grid: string };
   /** 顯示在頁尾的資料說明 */
-  note?: string;
+  note?: Text;
   /** 疊加圖層（鐵路、機場），使用者可以在地圖上開關 */
   overlays?: OverlayDef[];
   /** 純地圖頁：不載入任何統計資料，不顯示指標、時間軸與資料側欄 */
   pure?: boolean;
 }
 
-export function indicatorPath(topic: TopicDefinition, indicator: IndicatorDef, item: string | null): string {
+/** 依目前語言解析過的主題與指標：所有 Text 都換成字串 */
+export type Topic = Localized<TopicDefinition>;
+export type Indicator = Localized<IndicatorDef>;
+
+export function indicatorPath(
+  topic: Pick<Topic, 'id' | 'dimension'>,
+  indicator: Pick<Indicator, 'file'>,
+  item: string | null,
+): string {
   const file = indicator.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '');
   return `topics/${topic.id}/${file}`;
 }
 
-export function usesDimension(indicator: IndicatorDef): boolean {
+export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');
+}
+
+/** 流向圖指標的流向檔路徑；不是流向圖時回傳 null */
+export function flowPath(
+  topic: Pick<Topic, 'id' | 'dimension'>,
+  indicator: Pick<Indicator, 'layer'>,
+  item: string | null,
+  year: number,
+): string | null {
+  if (indicator.layer.kind !== 'flow') return null;
+  const file = indicator.layer.file
+    .replace('{item}', item ?? topic.dimension?.defaultOption ?? '')
+    .replace('{year}', String(year));
+  return `topics/${topic.id}/${file}`;
 }
 
 /** pipeline 輸出的指標檔格式（見 pipeline/common.py indicator_file） */
@@ -137,4 +189,6 @@ export interface IndicatorData {
   values: Record<string, (number | null)[]>;
   /** 個別國家的資料附註，例如改用其他來源補上的國家 */
   notes?: Record<string, string>;
+  /** notes 的英文版 */
+  notesEn?: Record<string, string>;
 }

@@ -10,6 +10,7 @@ from sources import dgbas, worldbank
 
 FIRST_YEAR = 1960
 TAIWAN_NOTE = "台灣不在世界銀行資料庫中，改用行政院主計總處資料計算"
+TAIWAN_NOTE_EN = "Taiwan is not in the World Bank database; calculated from DGBAS data"
 
 # 輸出檔名 -> World Bank 代碼
 INDICATORS = {
@@ -63,6 +64,7 @@ def build() -> None:
                 key, "%", years, values,
                 aggregates={"WLD": to_series(world, years, 2)},
                 notes={"TWN": TAIWAN_NOTE},
+                notesEn={"TWN": TAIWAN_NOTE_EN},
             ),
         )
     write_json(

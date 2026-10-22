@@ -7,13 +7,14 @@
 | 層面 | 工具 | 為什麼 |
 |---|---|---|
 | 地圖繪製 | **MapLibre GL JS 5**（WebGL 向量地圖） | 可以一路放大到街道（zoom 18）；地球儀與平面可切換；資料圖層插在底圖文字下面，地名永遠看得到 |
-| 底圖 | **OpenFreeMap** 的 5 種樣式（免費、不需金鑰），使用者可切換 | 預設 Liberty：低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節；地名改用 `name:zh-Hant` |
+| 底圖 | **OpenFreeMap** 的 5 種樣式（免費、不需金鑰），使用者可切換 | 預設 Liberty：低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節；地名跟著介面語言，中文用 `name:zh-Hant`、英文用 `name:en` |
 | 投影 | **地球儀**（預設），可切換成平面（Web Mercator）；3D 模式固定用平面 | 地球儀沒有高緯度放大的問題；平面方便一次看全世界；3D 的原因見第 5 節 |
 | 國界 | **Natural Earth 1:50m**（world-atlas 套件） | 給資料上色、點選、框選用；1:110m 沒有新加坡、巴林等小國 |
 | 側欄圖表 | **ECharts 6**，按需引入 | 點國家時才載入（約 180 KB gzip），不拖慢首頁 |
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
 | 前端 | Vite + React + TypeScript | |
-| 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟直接從快取載入；看過一次就能離線開啟；可以安裝成 App（見第 12 節） |
+| 介面語言 | 繁體中文（預設）與英文，自己寫的小字典（`src/i18n/`），見第 12 節 | 字串不多，不需要 i18next 之類的套件；型別檢查保證兩種語言的鍵一致 |
+| 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟直接從快取載入；看過一次就能離線開啟；可以安裝成 App（見第 13 節） |
 | 資料處理 | Python（`pipeline/`），離線執行 | 前端只讀靜態 JSON，不需要後端 |
 | 部署 | GitHub Pages（GitHub Actions 自動建置） | `vite.config.ts` 已設 `base: './'` |
 
@@ -29,18 +30,19 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data…）
+原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
    ├─ geo/countries-50m.json              國界（TopoJSON，id 已換成 ISO alpha-3）
-   ├─ geo/countries-110m.json             粗略國界，只用來畫第一個畫面（見第 12 節）
+   ├─ geo/countries-110m.json             粗略國界，只用來畫第一個畫面（見第 13 節）
    ├─ countries.json                      ISO 對照表（alpha-3 → alpha-2、英文名）
    └─ topics/<主題>/
         ├─ <指標>.json                    每個指標一個檔，含所有年份
         ├─ <指標>/<子項目>.json           有子項目的指標（例如 production/rice.json）
         ├─ countries/<ISO3>.json          側欄額外區塊用的單一國家明細
         ├─ grid.json                      框選用的網格人口（只有人口主題）
+        ├─ flows/<子項目>/<年>.json       流向圖的雙邊資料（只有貿易主題，一個商品、一年一個檔）
         └─ manifest.json
    │
    ▼  fetch
@@ -53,9 +55,10 @@ src/
    ├─ panels/          國家側欄、排名表、框選結果
    ├─ controls/        時間軸、分享選單、國家搜尋、快捷鍵與說明（見第 11 節）
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
+   ├─ i18n/            介面語言：字典（zh.ts、en.ts）、useT()、語言狀態與 Text 解析（lang.ts），見第 12 節
    ├─ lib/             資料讀取（含指標檔還原）、國名、國家搜尋比對、網址狀態、數字格式、CSV 與下載、
-   │                   介面文字（strings.ts）、連線狀態
-   └─ sw.ts            service worker（快取策略見第 12 節）
+   │                   介面文字（strings.ts）、連線狀態、service worker 註冊
+   └─ sw.ts            service worker（快取策略見第 13 節）
 
 pipeline/
    ├─ run.py           入口：npm run data -- <步驟>
@@ -69,12 +72,13 @@ pipeline/
 
 **所有資料一律用 ISO 3166-1 alpha-3 對應**（`TWN`、`JPN`…）。各來源的代碼在 `pipeline/sources/countries.py` 統一轉換。
 
-畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數，3D 模式是 `3d=1`。
+畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數，3D 模式是 `3d=1`，英文版另有 `lang=en`。
 
 **分享選單**（控制列右邊的「分享」，`src/controls/ShareMenu.tsx`）：
 - **下載地圖圖片（PNG）**：只有地圖檢視有。內容是目前的地圖畫面，上面加標題（主題 · 指標 · 年份）與指標說明，左下角是圖例（跟畫面上一樣，含開著的疊加圖層），下面是資料來源、底圖版權（OpenFreeMap © OpenMapTiles © OpenStreetMap contributors）、國界來源與這個畫面的網址。做法見第 10 節。
 - **下載 CSV**：目前的指標，可選「選定的年份」或「所有年份」，排名表檢視也有（`src/lib/csv.ts`）。
   - 欄位：ISO3、國名、英文名、單位，接著每年一欄；推估年份的欄名加「（推估）」，有附註的指標最後多一欄「附註」，世界合計放在最後一列。
+  - 欄名跟著介面語言：英文版是 ISO3、Country、Unit、年份（推估年份加「(projection)」）、Note（用 `notesEn`），國名只有英文一欄。
   - 單一年份依數值由大到小排（跟排名表一樣），所有年份依國名排。
   - 數值是原始數字（不加千分位、不換算成萬、億），試算表可以直接計算。
   - 開頭有 UTF-8 BOM、換行用 CRLF，Excel 直接開啟中文不會變亂碼。
@@ -104,6 +108,7 @@ pipeline/
 - `projectionFrom`（選填）：從這一年開始是推估值，時間軸與折線圖會標示成虛線。
 - `aggregates`（選填）：世界合計，用來算「占全球比例」和畫對照線。
 - `notes`（選填）：個別國家的附註，例如改用其他來源補上，會顯示在側欄。
+- `notesEn`（選填）：`notes` 的英文版，英文介面用；沒有的話英文介面不顯示附註。
 
 **實際存檔時數值會壓縮**（`"encoding": "delta"`，`common.compact_indicator()`）：
 
@@ -143,6 +148,22 @@ pipeline/
 | `note` | 頁尾的資料說明 | |
 | `overlays` | 疊加在地圖上的點、線圖層（目前支援鐵路線與機場點），左下角可以開關 | 交通 |
 
+### 雙語文字（英文版介面）
+
+介面有繁體中文（預設）與英文，主題外掛裡所有給人看的文字都要寫兩種語言（做法的全貌見第 12 節）：
+
+- **文字欄位用 `Text`**：`title`、`shortTitle`、指標的 `label`、`description`、`unit`、資料來源的 `name`、`license`、`note`、子項目選項的 `label`、`group`、`boxEstimate.label` 都可以寫成 `{ zh: '總人口', en: 'Total population' }`。兩種語言寫法一樣的（`TWh`、`IMF, World Economic Outlook`、`CC BY 4.0`）直接寫字串。
+  - 選這個寫法而不是另外一張英文對照表，是為了讓每個主題自己一個檔就完整：新增或修改指標時，中英文就在同一行，不會漏改另一個檔。
+  - App 用 `localize(topic, lang)` 把整個主題解析成 `Topic`（所有 `Text` 換成字串，有快取），地圖、側欄、排名表與主題側欄拿到的都是解析好的字串，不必管語言。
+- **`format` / `formatTick` 在呼叫當下讀目前的語言**：
+  - 數字用 `lib/format.ts` 的函式（`formatLargeNumber`、`formatLargeTick`、`fixed`、`formatSignedPercent`…），中文自動用萬、億、兆，英文用 K、M、B、T。
+  - 單位用 `tr({ zh: '人', en: 'people' })`；美元、國際元用 `usd()`、`intlDollars()`（中文「1.43 兆 美元」、英文「$1.43T」）。
+  - 中英文語序不同時整句寫兩份：`format: (v) => tr({ zh: `鐵路 ${km(v)}`, en: `Railways: ${km(v)}` })`。
+- **主題側欄**（`panels/*.tsx`）：通用的字（載入中、無資料、「（2022 年無資料，顯示最近一年）」）用 `useT()` 的字典；側欄自己的字用 `defineMessages({ zh: {...}, en: {...} })` 寫在同一個檔，再用 `TEXT[useLang()]`。英文那份少一個鍵、參數不同都會編譯失敗。有 `useMemo` 的地方，依賴要加上 `lang`，換語言時才會重算。
+- **資料裡的名稱**：pipeline 產生的文字也要有英文。指標檔的附註寫 `notes`（中文）與 `notesEn`（英文）；品項名稱另外輸出英文檔（例如農業的 `items.en.json`，用 FAOSTAT 本身的英文名稱）。只在前端用到的少量名稱（例如主計總處的 25 個製造業細項）可以在側欄裡放 `{ zh, en }` 對照表。
+- **原文專有名詞**（OpenStreetMap 上的營運者名稱等）不翻譯，放在 `translate="no"` 的元素裡（`BarList` 的 `properNouns`）。
+- **寫完跑檢查**：`npm run check:i18n` 掃描原始碼裡英文介面會看到的中文；`npm run check:en` 用無頭 Chrome 逐一打開英文版的每個主題與指標，列出畫面上剩下的中文（見第 12 節）。
+
 圖層的 `legendValues: 'auto'` 會依資料最大值自動挑圖例數值，適合量級差很多的子項目。
 
 圖層的 `kind: 'none'` 表示國家不依數值上色，只畫疊加圖層（例如交通主題的「路網地圖」）；指標資料仍用在 tooltip 與排名表。
@@ -151,6 +172,18 @@ pipeline/
 - 鐵路在資料管線先用 Douglas–Peucker 簡化到約 1 公里，再量化與差分編碼（約 12.5 萬個頂點、壓縮後約 300 KB）。
 - 放大到 9 級以後，底圖本身有更精細的鐵路，簡化過的線會淡出。
 
+圖層的 `kind: 'flow'` 是**流向圖**（`src/map/flows.ts`），例如貿易主題的出口、進口：
+- 設定：`{ kind: 'flow', file: 'flows/{item}/{year}.json', direction: 'export' | 'import' }`。指標本身的 `file` 仍是各國總額（tooltip、排名表、側欄的數值卡片與折線圖用），`layer.file` 是雙邊資料。
+- 流向檔格式（`FlowFile`）：`{ item, year, unit: "千美元", export: { TWN: [總額, [["CHN", 金額], …]] }, import: {…} }`，夥伴由大到小、只留前 15 名，總額含所有夥伴。一個子項目、一年一個檔，選了國家才載入。
+- 地圖：國家不上色；選取國家後，從它到各夥伴畫大圓弧線（`greatCircle()`，每 2° 一點，經度展開成連續的，日本—美國、紐西蘭—智利跨 180° 經線也不會斷開或橫越整張地圖），夥伴國塗淡底色、在中心點畫小圓點。
+- 線寬與金額成正比，以這個國家最大的夥伴為 12 px、最細 1 px；圖例列出三種線寬對應的金額。
+- 弧線一律從出口國畫到進口國，沿線由淺到深漸層（`line-gradient`，GeoJSON source 要開 `lineMetrics`），所以淺的一端是出口國。
+- 沒選國家時地圖上方提示「點選國家，查看它的出口對象」；選了但那一年沒有資料也會提示。
+- 滑到夥伴國、弧線或圓點上，tooltip 顯示雙邊金額與占比；點夥伴會改成選取那個國家。
+- 側欄的「主要出口對象／進口來源」讀同一個流向檔（`useJson` 有快取，不會重複下載）。
+- 圖例的版面由 `flowLegendModel()` 算，畫面上的圖例跟分享選單下載的圖片共用。3D 模式下流向圖沒有立體圖形，只是把地圖傾斜，弧線仍畫在地面上。
+- 貿易做成獨立主題（`src/topics/trade.ts`），沒有併進農業：出口、進口兩個指標剛好就是指標按鈕的「出口／進口」切換，商品用子項目選單，不必另做控制項；農業已經有 6 個指標（下拉選單），流向圖「先點國家」的操作方式也跟其他指標不同；全部商品的貿易也不屬於農業。
+
 ## 5. 視覺化規則
 
 | 資料性質 | 圖層 | 例子 |
@@ -158,6 +191,7 @@ pipeline/
 | 總量（可加總） | **比例圓**，面積與數值成正比 | 人口數、發電量、GDP |
 | 比率、密度、人均 | **面量圖**，單一色相分級（最多 7 級） | 人口密度、人均 GDP |
 | 有正負的變化 | **面量圖**，橘↔青綠發散色，中間是中性灰 | 人口年增率、經濟成長率、自給率、農產品貿易收支 |
+| 國家之間的流量 | **流向圖**，大圓弧線，線寬與金額成正比；出口青綠、進口橘（跟貿易收支的「淨出口綠、淨進口橘」一致） | 貿易流向 |
 
 總量不畫成面量圖，否則俄羅斯、加拿大這類大國會因為面積大而顯得突出。
 
@@ -253,11 +287,15 @@ pipeline/
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
 | 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
+| 貿易 | 出口、進口流向圖（點選國家畫出前 15 大夥伴的弧線）；全部商品、農產品合計與農業主題的 22 種農產品 | 主要出口對象、主要進口來源（金額與占比） | CEPII BACI（全部商品）、FAOSTAT 詳細貿易矩陣（農產品） | 全部商品 2017–2024；農產品 2000–2023 |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
 | 軍事 | 軍費（美元，比例圓）、軍費占 GDP、兵力（比例圓）、兵力占勞動力 | — | SIPRI（2011–2025 年子集，非商業使用）、World Bank WDI（IISS） | 軍費 2011–2025；兵力 1985–2020 |
 | 氣候 | 人均 CO₂ 排放、年排放量、累積排放量（1750 年起）、人均消費端排放、每單位 GDP 排放 | 排放來源（燃煤、天然氣、石油、水泥…）堆疊面積圖＋長條 | Our World in Data（Global Carbon Project） | 1850–2024；消費端 1990–2023；每單位 GDP 到 2022 |
 | 數位 | 網路使用率、行動電話用戶（每百人）、固網寬頻用戶（每百人） | — | World Bank WDI（ITU）；台灣用數位發展部數位近用調查、NCC 電信統計 | 1990–2024 |
+| 健康 | 平均壽命、嬰兒死亡率、五歲以下死亡率、人均醫療支出、醫療支出占 GDP、每千人醫師數 | 男女平均壽命對照 | UN WPP 2024、World Bank WDI（WHO）；台灣醫療支出與醫師數用衛福部 | 壽命與死亡率 1950–2023；醫療支出 2000–2023；醫師 1960–2022 |
+| 教育 | 平均受教育年數、高等教育粗在學率、政府教育支出占 GDP、成人識字率 | — | UNDP 人類發展報告、World Bank WDI（UNESCO）；台灣用教育部、內政部 | 受教育年數 1990–2023；在學率 1971–2024；教育支出 1971–2023；識字率 1980–2024（每年只有幾十國） |
+| 觀光 | 國際旅客（比例圓）、觀光收入（比例圓）、觀光收入占出口、旅客與人口比 | — | World Bank WDI（UN Tourism）；台灣用交通部觀光署、中央銀行 | 1995–2020 |
 
 ## 8. 資料陷阱（重要）
 
@@ -306,14 +344,16 @@ pipeline/
     - 鐵路長度用地圖線段計算，每 20 個頂點判斷一次所在國家，跨國界的線會略有誤差。
     - 機場來自 OurAirports，只取大型機場與有定期航班的中型機場（不含 4 萬多座小型機場、直升機場與純軍用機場）。
     - 機場名稱是英文原名。
-11. **國名**：繁中名稱用瀏覽器內建的 `Intl.DisplayNames`；英文名用 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`）。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`。
+11. **國名**：介面上的繁中、英文名稱都用瀏覽器內建的 `Intl.DisplayNames`（英文有幾個改成常見寫法，見第 12 節）；`countries.json` 的英文名是 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`），用在搜尋與 CLDR 查不到的區域。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`，英文名用 FAOSTAT 本身的名稱（`items.en.json`）。
 12. **授權**：
     - WPP 是 CC BY 3.0 IGO。
     - World Bank、Ember、FAOSTAT、JRC GHS-POP 是 CC BY 4.0。
     - Harvard Atlas 是 CC0。
     - Epoch AI 是 CC BY。
     - Our World in Data 整理的資料（碳排來自 Global Carbon Project）是 CC BY 4.0。
+    - UNDP 人類發展報告是 CC BY 3.0 IGO。
     - **SIPRI 軍費資料不是開放授權**：只能非商業使用、註明出處，轉載少於整個資料集 10% 才算合理使用（見第 16 點）。
+    - CEPII BACI 是 Etalab 2.0（Licence Ouverte，與 CC BY 相容），需註明 CEPII。
     - Anthropic Economic Index 是 CC BY。
     - Microsoft AI Diffusion 是 MIT。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
@@ -322,7 +362,8 @@ pipeline/
     - 底圖：OpenFreeMap（免費、不需金鑰）、© OpenMapTiles、資料 © OpenStreetMap contributors（ODbL）。地圖右下角會自動標示。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
-    - 數位發展部、NCC 等部會的開放資料也適用政府資料開放授權條款。
+    - 數位發展部、NCC、衛福部、教育部、內政部、中央銀行、交通部觀光署的開放資料也適用政府資料開放授權條款。
+    - **UN Tourism 的資料庫禁止轉載**，觀光主題只用世界銀行以 CC BY 4.0 轉載的部分（見第 20 點）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -336,6 +377,26 @@ pipeline/
     - OWID 的科索沃沒有 ISO 代碼，用國名對應成 XKX；洲、所得組、國際航空與航運另外列，不收。
     - 國際航空與航運的排放不屬於任何國家，所以各國加總小於世界合計。
     - 每單位 GDP 的排放用 Maddison Project 的 GDP（2011 年國際元），只到 2022 年。
+
+15. **貿易流向**（`pipeline/topics/trade.py`）：
+    - **來源的選擇**：全部商品用 CEPII BACI，因為授權清楚（Etalab 2.0）、有台灣、可以一次下載整個檔，而且已經把進出口雙方的申報調和成一個數字。
+      - UN Comtrade 的免費 API 要申請金鑰、有次數與筆數限制，要抓全部國家的雙邊資料很麻煩。
+      - IMF IMTS（原 DOTS）也有雙邊總額，但進出口兩邊的申報各自列出，要自己調和。
+    - **台灣在 UN Comtrade 與 BACI 是「Other Asia, nes」（代碼 490，ISO 欄位是 `S19`）**，`pipeline/sources/baci.py` 明確改成 TWN。697「Europe EFTA, nes」等無法歸到國家的代碼只計入總額、不畫弧線。
+    - BACI 的台灣數字跟財政部統計的差異（抽查用）：
+      - 2023 年對中國大陸＋香港 1,510 億美元（財政部：占 4,324.8 億的 35.2%，約 1,522 億），對美國 757 億（財政部：占 17.6%，約 761 億），很接近。
+      - 出口總額 4,721 億，比財政部多約 9%，多出來的主要在新加坡（436 億）：BACI 會參考進口國依「原產地」的申報，經第三地轉運的貨會算回台灣。
+      - 2024 年對美國只有 938 億，財政部是 1,113.7 億；HS22 版也是 947 億，所以不是 HS 版本換算造成的，是 BACI 調和方法的結果。
+    - BACI 用 HS17 版（2017–2024 年，zip 約 800 MB）。每年約 1,100 萬列，用逗號直接切比 csv 模組快，8 年約 2 分鐘。
+    - **FAOSTAT 詳細貿易矩陣（TM）**：
+      - 解壓後 8.5 GB、約 4,700 萬列，只讀金額（element 5922、5622），先用位元組比對篩掉數量列再切欄位。仍要十幾分鐘。
+      - 是各國自己申報的數字，同一筆貿易的出口方與進口方常常不一樣。出口以出口國、進口以進口國的申報為準；某國當年完全沒申報才改用夥伴國的申報（鏡像）。台灣只有 2008 年沒有申報。
+      - 夥伴有「World」與各洲合計（代碼 ≥ 5000），以及「China」(351)，都要排除。
+      - 最近一年常常還沒收齊（2024 年只有 117 國申報，之前約 155 國），申報國不到高峰九成的年份不放。
+      - TM 的品項比 TCL 細，牛肉是帶骨＋去骨＋水牛肉、豬肉含培根火腿香腸與調製品、乳製品是所有 CPC 022／22 開頭的乳品（不含冰淇淋），都用金額加總。
+      - 「農產品合計」是全部 TM 品項的加總，要排除「稻穀（白米當量）」(30)，它是其他米品項的合計。
+      - 只收 2000 年以後（1986–1999 年申報的國家只有 70–90 國）。目前 24 個商品的流向檔共約 19 MB、600 個檔，gzip 後約 6 MB；一次只載入一個商品、一年（農產品合計約 90 KB，gzip 後約 30 KB）。
+      - 檢查用的數字：2022 年全球農產品出口 1.91 兆美元；台灣農產品出口 36 億、進口 165 億，跟農業主題用 TCL 算的貿易收支（−128 億）一致；台灣進口大豆 18.6 億，美國 11.5 億、巴西 6.3 億。
 
 16. **軍費資料（SIPRI）**（`pipeline/topics/military.py`、`pipeline/sources/sipri.py`）：
     - SIPRI 的使用條款（https://www.sipri.org/about/terms-and-conditions）：非商業使用、註明 SIPRI，轉載少於整個資料集 10% 才算合理使用，超過要申請授權。世界銀行轉載的軍費（`MS.MIL.XPND.*`）也標示適用 SIPRI 條款，不是 CC BY。
@@ -364,16 +425,53 @@ pipeline/
     - www.ncc.gov.tw 有 Cloudflare 驗證，只能從 api.ncc.gov.tw 下載。下載網址要帶 `filedisplay` 參數（任何檔名都可以），否則回傳「您的瀏覽器未送出Cookie」的網頁，HTTP 狀態一樣是 200。
     - TWNIC 的台灣網路報告網站對程式一律回 HTTP 426，下載不了，所以不用。
 
+18. **健康資料**（`pipeline/topics/health.py`）：
+    - 平均壽命、嬰兒與五歲以下死亡率用 WPP 2024（`pipeline/sources/wpp.py`），各國同一套方法，只取 2023 年以前的估計值。側欄另外畫男女平均壽命。
+    - **WPP 對台灣嬰幼兒死亡率的估計比官方低**：
+      - 2023 年 WPP 的嬰兒死亡率是 2.98‰、五歲以下 4.20‰。
+      - 內政部 112 年簡易生命表是 4.31‰、5.12‰。
+      - 平均壽命差得少（WPP 80.56 歲，內政部 80.23 歲）。
+      - 台灣側欄與頁尾都有附註；之後可以考慮台灣改用內政部的生命表。
+    - 醫療支出：台灣用衛福部國民醫療保健支出（NHE）統計的「經常性醫療保健支出」（CHE = NHE 扣掉資本形成），跟 WHO 的 current health expenditure 同一個概念（`pipeline/sources/mohw.py`）。
+      - 每年新版會修訂整個序列，下載網址的 dl 編號也會變，要到統計處網頁找新版。
+    - 醫師數：WHO 的定義不含傳統醫學，台灣用每萬人口執業西醫師數（不含中醫師、牙醫師）除以 10。
+      - 衛福部統計指標表 4-3 只有 2000、2005、2010 與 2015 年以後每年。
+      - 很多國家隔幾年才統計一次，所以頭尾年份要有最多那年一半以上的國家才收（`year_span(..., 0.5)`）。
+
+19. **教育資料**（`pipeline/topics/education.py`）：
+    - 平均受教育年數用 UNDP 人類發展報告（`pipeline/sources/undp.py`），其他三項用世界銀行轉載的 UNESCO 統計研究所資料。兩者都沒有台灣。
+    - 台灣（`pipeline/sources/moe.py`、`moi.py`）：
+      - 平均受教育年數：教育部「教育統計指標之國際比較」，跟 UNDP 同一個公式。每版只有最近 6 年，接三個版本（2010–2023）；舊版只有 .ods，直接用 zipfile 讀 content.xml。
+      - 高等教育粗在學率：教育部表 A2-5，18–22 歲（UNESCO 的定義），2008 學年度起。2021 年以前的版本用 18–21 歲、不含研究所，不能接起來。
+      - 學年度以開始的那一年標示（114 學年度 = 2025–26 = 2025），跟世界銀行的韓國、芬蘭對得上。
+      - 政府教育支出：教育部表 A3-1 的「政府經費」÷ GDP（預算數，不含公立學校自籌經費與私部門）；GDP 由總額 ÷ 總額占 GDP 比率反推。
+      - 識字率：內政部依戶籍登記的 15 歲以上「不識字率」，用 100 減去。
+      - 教育部表格的年份是國字（九七、一○○），表號每版可能會變。
+    - **識字率很稀疏**：多數高所得國家已經不統計，其他國家也常十幾年才調查一次，每年只有 30–60 國有資料。沒有把舊值往後補，所以地圖上大多是灰色。
+
+20. **觀光資料**（`pipeline/topics/tourism.py`）：
+    - **只到 2020 年**：世界銀行轉載的 UN Tourism 資料（CC BY 4.0）到 2020 年就停了。
+      - UN Tourism 自己的資料庫有到 2024 年（bulk download 的 zip），但使用條款只允許個人非商業使用，禁止轉載與製作衍生作品（https://www.untourism.int/copyright）。
+      - OWID 的觀光資料來自同一個來源，而且聲明第三方資料仍適用原始授權，不能拿來繞過。
+      - 要放 2021 年以後，得先向 UN Tourism 取得授權。
+    - 旅客人次的口徑各國不同：有的只算過夜旅客，有的含當日來回的旅客，WDI 沒有統一（例如法國是全部旅客，泰國只算過夜）。
+    - 觀光收入是國際收支的旅行收入加國際客運收入，跟 WDI 的定義相同。
+    - 台灣：
+      - 來臺旅客人次用交通部觀光署的資料（`pipeline/sources/taiwan_tourism.py`），UN Tourism 收錄的台灣數字也是這個。含華僑，不含持中華民國護照入境的人。
+      - 觀光收入與出口總額用中央銀行國際收支（`pipeline/sources/cbc.py`）。旅行收入跟觀光署公布的觀光外匯收入相同；觀光署自己的觀光收入開放資料只到 2020 年。
+    - 「旅客與人口比」用 WPP 年中人口自己算。
+
 ## 9. 之後可以做的
 
 - **地球儀上的 3D**：等 MapLibre 的 `queryRenderedFeatures` 支援地球儀上的立體圖形，就可以拿掉「3D 時改用平面」的限制（`WorldMap.tsx` 的 `projection`）。
 
 - **框選的國內分布跟著年份變**：GHS-POP 有 1975–2030 每 5 年一期，可以依時間軸挑最近的一期（每期 gzip 後約 1.6 MB），1950 年代與 2100 年仍只能用最接近的一期。
 - **地圖上的圓餅圖層**：在國家位置畫發電結構圓餅，在 `LayerSpec` 加 `kind: 'pie'`。
-- **農產品貿易流向**：用 FAOSTAT 雙邊貿易矩陣（TM）畫流向弧線。
+- **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。
+- **全部商品往前延伸**：BACI 的 HS92 版從 1995 年開始，但 zip 有 2.4 GB，讀完約要 6 分鐘。
 - **縮減資料量**：指標檔已經壓縮（第 3 節）。還可以做的：
   - 農業與工業的國家明細檔（`countries/<ISO3>.json`，共約 12 MB，點國家才載入）可以只保留近 30 年，或也改成差分編碼。
-  - 框選網格（7.5 MB，gzip 後 1.6 MB）可以改成整數、差分編碼。
+  - 貿易流向檔（`trade/flows/`）、框選網格（7.5 MB，gzip 後 1.6 MB）可以改成整數、差分編碼。
   - 鐵路（gzip 後約 300 KB）可以依縮放分成兩層，全球視角只載入主要幹線。
 
 ## 10. 開發注意事項
@@ -401,13 +499,13 @@ pipeline/
   - `npm run dev` 不會有快取問題。
   - 要測離線、快取，用 `npm run build` 再 `npm run preview`。
   - 瀏覽器開發者工具的 Application → Service workers 可以勾「Update on reload」或「Offline」。
-  - 改了 `src/sw.ts` 或快取策略之後，要實際跑一次「部署更新」流程（第 12 節）。
+  - 改了 `src/sw.ts` 或快取策略之後，要實際跑一次「部署更新」流程（第 13 節）。
 - **不要在首頁的 bundle 引入 MapLibre**：`maplibre-gl` 只能從 `src/map/WorldMap.tsx`（或它引入的模組）import，其他地方需要型別就用 `import type`。否則地圖程式會跑回首頁 chunk，第一個畫面在手機上會慢好幾秒。
 - **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。
 
 ## 11. 搜尋、快捷鍵與手機操作
 
-介面文字（搜尋、快捷鍵說明、抽屜）集中在 `src/lib/strings.ts`，之後翻譯成其他語言時只改那個檔。
+介面文字（搜尋、快捷鍵說明、抽屜、分享選單）集中在 `src/lib/strings.ts`，中英文寫在同一個檔（`defineMessages`），元件用 `useUI()` 取目前語言的那份。
 
 **國家搜尋**（`src/lib/countrySearch.ts`、`src/controls/CountrySearch.tsx`）：
 - 比對繁中名稱、英文名稱（`Intl.DisplayNames(['en'])` 與 `countries.json` 的名稱）、常用別名、ISO 代碼。
@@ -447,7 +545,53 @@ pipeline/
 - `index.html` 設了 `viewport-fit=cover`，所以頁面與抽屜都用 `env(safe-area-inset-*)` 讓開瀏海與底部的橫條。
 - 收合與全開的高度寫在 CSS（含安全區域），JS 讀抽屜算好的 `min-height`、`max-height` 來決定吸附位置，兩邊不必各寫一份數字。
 
-## 12. 載入速度與離線
+## 12. 英文版介面（i18n）
+
+右上角的「中文 / EN」切換語言，不必重新整理。沒有用 i18next 之類的套件：介面字串只有一百多個，自己寫的小字典加上 TypeScript 型別就夠了，也不會多一個依賴。
+
+**語言狀態**（`src/i18n/lang.ts`）：
+- 語言是 `'zh' | 'en'`，預設中文。記在網址的 `lang=en`（中文是預設，不寫）與 localStorage。
+- 打開網頁時：網址的 `lang` 優先，其次是 localStorage，都沒有就是中文。網址指定的語言也存成偏好，網址的參數被拿掉後重新整理才不會跳回另一種語言。
+- `setLang()` 改網址、存 localStorage、通知訂閱者；`useLang()` 用 `useSyncExternalStore` 訂閱，所以切換時整個畫面重畫、不重新載入。`lib/url-state.ts` 重寫網址時會保留 `lang`。
+- `<html lang>`（`zh-Hant-TW` / `en`）、分頁標題、`<meta name="description">` 跟著語言（`src/i18n/index.ts`）。
+
+**介面文字**：
+- 共用的字在 `src/i18n/zh.ts` 與 `en.ts`，元件裡 `const t = useT()`，例如 `t.noData`、`t.rank(3, 200)`。中文那份決定型別（`Messages`），英文少一個鍵或參數不同都會編譯失敗。
+- 搜尋、快捷鍵、手機抽屜、分享選單的字在 `src/lib/strings.ts`（`useUI()`）。
+- 主題與主題側欄的字寫在各自的檔裡（見第 4 節「雙語文字」）。
+- 不是元件、但會在畫面更新時重新執行的程式（ECharts 的 tooltip、匯出圖片、CSV）用 `messages()` 或 `getLang()` 讀目前的語言。
+- 英文的標題組合：子項目＋指標（「稻米產量」）在英文是「Rice production」（`itemIndicator`，指標名稱開頭轉小寫，GDP 這類縮寫不動）；年份「2023 年」在英文只寫「2023」。
+
+**數字格式**（`src/lib/format.ts`）：
+- 中文：2,333 萬、14.38 億、30.86 兆；圖例刻度 1,000萬、1億。
+- 英文：23.33M、1.44B、30.86T（一百萬以下寫完整數字，例如 980,000）；圖例刻度 1K、10M、1B。
+- 美元：中文「1.43 兆 美元」，英文「$1.43T」、負數「−$5.2B」；國際元：英文「Int$12,345」。
+- 千分位與小數點用 `Intl.NumberFormat`（`zh-TW` / `en-US`）。
+
+**國名**（`src/lib/countries.ts` 的 `countryName()`）：
+- 用 `Intl.DisplayNames` 取中文或英文名稱。英文的 CLDR 短名稱有些比較拗口，改成常見寫法（`Congo - Kinshasa` → DR Congo、`Hong Kong SAR China` → Hong Kong、`Myanmar (Burma)` → Myanmar、`&` → and）。
+- CLDR 沒有的區域（索馬利蘭、北賽普勒斯等沒有 ISO 代碼的）用自訂名稱；再查不到就用 `countries.json` 的英文名（例如 XKX 科索沃），最後才是 ISO 代碼。
+- 中文介面的排名表、側欄在國名旁附上英文名；英文介面改附 ISO 代碼，畫面上不出現中文。
+- 搜尋不管介面是哪種語言，中文名、英文名、別名都找得到（英文介面打「日本」也會找到 Japan）。
+
+**地圖上的地名**：
+- `WorldMap.tsx` 把底圖每個顯示地名的文字圖層換成 `LABELS[lang]`：中文用 `name:zh-Hant`（沒有的退回 `name:zh`、`name`），英文用 `name:en`（退回 `name_en`、`name`）。
+- 切換語言時直接 `setLayoutProperty` 改文字欄位，不必重新載入樣式；切換底圖時，新樣式下載後也套用目前的語言。
+
+**資料**：
+- 指標檔的 `notesEn`（`pipeline/topics/income.py`、`industry.py`、`sectors.py`），英文介面的側欄附註與 CSV 用它。
+- 農業的 `items.en.json`：FAOSTAT 的英文品項名稱（`pipeline/topics/agriculture.py`）。
+- CSV 的欄名跟著語言（英文版只有一欄英文國名）；匯出圖片的標題、圖例、來源也跟著語言。
+
+**檢查**：
+- `npm run check:i18n`（`scripts/check-i18n.mjs`）：掃描 `src/` 的原始碼，列出註解以外、不在 `zh:` 值裡的中文，包含 JSX 文字。`src/i18n/zh.ts`、行尾有 `i18n-ignore` 註解的行（例如語言切換鈕上的「中文」）、檔頭註解寫了 `i18n-ignore-file` 的檔（例如搜尋用的中文別名表）不算。
+- `npm run check:en`（`scripts/check-en-ui.mjs`）：用無頭 Chrome（puppeteer-core 搭配系統的 Chrome、`--use-angle=swiftshader`）打開英文版：
+  - 先檢查中文 → 英文 → 中文切換不重新整理，`<html lang>`、分頁標題、網址的 `lang`、底圖地名都跟著變。
+  - 再逐一點每個主題、每個指標（地圖、tooltip、排名表），換一次子項目，開三個國家的側欄（第一個用帶 `lang=en` 的網址直接打開，確認分享連結打開就是英文；其他的用搜尋框），框選估算、分享選單、快捷鍵說明。
+  - 收集畫面上的文字、`aria-label`、`title`、`placeholder`、選單選項，列出含中文的字串；`translate="no"` 與 `lang="zh…"` 的元素不算。
+  - puppeteer-core 不在 `package.json`：`npm i --no-save puppeteer-core`，或用 `PUPPETEER_CORE` 指向已經裝好的資料夾。全部跑完約 15–30 分鐘（SwiftShader 軟體繪製地球儀很慢）。
+
+## 13. 載入速度與離線
 
 ### 量測方法
 

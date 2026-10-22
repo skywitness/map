@@ -1,10 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { UI } from '../lib/strings';
+import { useUI } from '../lib/strings';
 import { useHotkeys } from './hotkeys';
 
 /** 頂列的「?」按鈕：列出鍵盤快捷鍵。按「?」也能開關；Esc 或點外面關閉。 */
 export function ShortcutHelp() {
   const id = useId();
+  const UI = useUI();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -42,7 +43,7 @@ export function ShortcutHelp() {
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         aria-label={UI.shortcuts.button}
-        title={`${UI.shortcuts.button}（?）`}
+        title={UI.shortcuts.buttonTitle}
         onClick={() => setOpen((o) => !o)}
       >
         ?

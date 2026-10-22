@@ -1,21 +1,32 @@
+import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent } from '../lib/format';
 import type { TopicDefinition } from './types';
 
+const PEOPLE = { zh: '人', en: 'people' };
+const PER_KM2 = { zh: '人/km²', en: 'people/km²' };
+const YEARS = { zh: '歲', en: 'years' };
+
 export const population: TopicDefinition = {
   id: 'population',
-  title: '各國人口',
-  shortTitle: '人口',
+  title: { zh: '各國人口', en: 'Population by country' },
+  shortTitle: { zh: '人口', en: 'Population' },
   defaultIndicator: 'total',
   defaultYear: 2023,
-  boxEstimate: { indicator: 'total', label: '人口', grid: 'grid.json' },
+  boxEstimate: { indicator: 'total', label: { zh: '人口', en: 'population' }, grid: 'grid.json' },
   sources: [
     {
-      name: 'United Nations, World Population Prospects 2024（中推估）',
+      name: {
+        zh: 'United Nations, World Population Prospects 2024（中推估）',
+        en: 'United Nations, World Population Prospects 2024 (medium variant)',
+      },
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
     {
-      name: 'European Commission JRC, GHS-POP R2023A（框選估算的網格人口）',
+      name: {
+        zh: 'European Commission JRC, GHS-POP R2023A（框選估算的網格人口）',
+        en: 'European Commission JRC, GHS-POP R2023A (population grid for area estimates)',
+      },
       url: 'https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php',
       license: 'CC BY 4.0',
     },
@@ -23,30 +34,36 @@ export const population: TopicDefinition = {
   indicators: [
     {
       id: 'total',
-      label: '總人口',
-      description: '每年 7 月 1 日的年中人口。圓的面積與人口數成正比。',
-      unit: '人',
+      label: { zh: '總人口', en: 'Total population' },
+      description: {
+        zh: '每年 7 月 1 日的年中人口。圓的面積與人口數成正比。',
+        en: 'Mid-year population on 1 July. Circle area is proportional to population.',
+      },
+      unit: PEOPLE,
       file: 'total.json',
       layer: { kind: 'bubble', legendValues: [1e7, 1e8, 1e9] },
-      format: (v) => `${formatLargeNumber(v)} 人`,
+      format: (v) => `${formatLargeNumber(v)} ${tr(PEOPLE)}`,
       formatTick: formatLargeTick,
       shareOfWorld: true,
     },
     {
       id: 'density',
-      label: '人口密度',
-      description: '每平方公里的人數。',
-      unit: '人/km²',
+      label: { zh: '人口密度', en: 'Population density' },
+      description: { zh: '每平方公里的人數。', en: 'People per square kilometre.' },
+      unit: PER_KM2,
       file: 'density.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 50, 100, 250, 500] } },
-      format: (v) => `${fixed(v, v < 100 ? 1 : 0)} 人/km²`,
+      format: (v) => `${fixed(v, v < 100 ? 1 : 0)} ${tr(PER_KM2)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },
     {
       id: 'growth',
-      label: '人口年增率',
-      description: '相較前一年的人口變化，含自然增加與移民。橘色為人口減少、綠色為增加。',
+      label: { zh: '人口年增率', en: 'Population growth' },
+      description: {
+        zh: '相較前一年的人口變化，含自然增加與移民。橘色為人口減少、綠色為增加。',
+        en: 'Change in population from the previous year, including natural increase and migration. Orange means shrinking, green means growing.',
+      },
       unit: '%',
       file: 'growth.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-2, -1, -0.25, 0.25, 1, 2] } },
@@ -56,12 +73,15 @@ export const population: TopicDefinition = {
     },
     {
       id: 'median-age',
-      label: '年齡中位數',
-      description: '一半人口比這個年齡年輕、一半比較年長，可以看出人口老化程度。',
-      unit: '歲',
+      label: { zh: '年齡中位數', en: 'Median age' },
+      description: {
+        zh: '一半人口比這個年齡年輕、一半比較年長，可以看出人口老化程度。',
+        en: 'Half the population is younger and half is older than this age, a measure of population ageing.',
+      },
+      unit: YEARS,
       file: 'median-age.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 25, 30, 35, 40, 45] } },
-      format: (v) => `${fixed(v, 1)} 歲`,
+      format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },

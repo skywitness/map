@@ -9,7 +9,7 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react';
-import { UI } from '../lib/strings';
+import { useUI } from '../lib/strings';
 
 /** 窄於這個寬度時，國家側欄改成從底部拉起的抽屜（與 styles.css 的 @media 一致） */
 const SHEET_QUERY = '(max-width: 768px)';
@@ -62,6 +62,7 @@ interface Drag {
  * 高度的 CSS（--sheet-peek、安全區域）在 styles.css；這裡讀算好的 min-height / max-height 當收合與全開的高度。
  */
 function BottomSheet({ children, onClose }: PanelSheetProps) {
+  const UI = useUI();
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
   const draggedRef = useRef(false);
@@ -172,7 +173,7 @@ function BottomSheet({ children, onClose }: PanelSheetProps) {
       <button
         type="button"
         className="sheet-handle"
-        aria-label={`${UI.sheet.handle}（${UI.sheet.states[state]}）`}
+        aria-label={UI.sheet.handle(state)}
         onClick={() => {
           if (draggedRef.current) draggedRef.current = false;
           else step(1);

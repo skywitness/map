@@ -2,20 +2,53 @@ import { useMemo } from 'react';
 import { EChart } from '../../charts/EChart';
 import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { timeSeriesOption } from '../../charts/timeSeries';
+import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJsonMany } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import type { Hue } from '../../theme/tokens';
 import type { IndicatorData, PanelExtraProps } from '../types';
 
-const SECTORS: { id: 'agriculture' | 'industry' | 'services'; label: string; hue: Hue }[] = [
-  { id: 'agriculture', label: '農業', hue: 'blue' },
-  { id: 'industry', label: '工業', hue: 'orange' },
-  { id: 'services', label: '服務業', hue: 'aqua' },
+const SECTORS: { id: 'agriculture' | 'industry' | 'services'; label: Text; hue: Hue }[] = [
+  { id: 'agriculture', label: { zh: '農業', en: 'Agriculture' }, hue: 'blue' },
+  { id: 'industry', label: { zh: '工業', en: 'Industry' }, hue: 'orange' },
+  { id: 'services', label: { zh: '服務業', en: 'Services' }, hue: 'aqua' },
 ];
+
+const TEXT = defineMessages({
+  zh: {
+    title: 'GDP 結構與就業結構',
+    gdp: (year: number) => `GDP（${year}）`,
+    employment: (year: number) => `就業（${year}）`,
+    taxes: '產品稅等',
+    sector: '產業',
+    shareGdp: '占 GDP',
+    shareEmployment: '占就業',
+    note: '同一產業「占 GDP」低於「占就業」，代表這個產業每位工作者創造的產值低於平均（例如多數國家的農業）。',
+    trend: '三業占 GDP 的變化',
+    trendAria: (country: string) => `${country}歷年三級產業占 GDP 比重`,
+    barAria: (label: string, parts: string[]) => `${label}：${parts.join('、')}`,
+  },
+  en: {
+    title: 'Structure of GDP and employment',
+    gdp: (year) => `GDP (${year})`,
+    employment: (year) => `Jobs (${year})`,
+    taxes: 'Taxes on products, etc.',
+    sector: 'Sector',
+    shareGdp: '% of GDP',
+    shareEmployment: '% of jobs',
+    note: "When a sector's share of GDP is lower than its share of jobs, each worker in it produces less than average (as with agriculture in most countries).",
+    trend: 'Sector shares of GDP over time',
+    trendAria: (country) => `Shares of the three sectors in the GDP of ${country} over time`,
+    barAria: (label, parts) => `${label}: ${parts.join(', ')}`,
+  },
+});
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
 
 export default function SectorsPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+  const lang = useLang();
+  const t = useT();
+  const text = TEXT[lang];
   const files = useMemo(
     () => SECTORS.flatMap((s) => [`topics/${topic.id}/${s.id}.json`, `topics/${topic.id}/employment-${s.id}.json`]),
     [topic.id],
@@ -33,7 +66,7 @@ export default function SectorsPanel({ topic, iso3, year, countryName, tokens }:
     };
     const indicator = topic.indicators.find((i) => i.id === 'services')!;
     const lines = SECTORS.map((s, i) => ({
-      name: s.label,
+      name: tr(s.label, lang),
       values: gdp[i]!.values[iso3] ?? [],
       color: tokens.hues[s.hue],
     }));
@@ -42,24 +75,26 @@ export default function SectorsPanel({ topic, iso3, year, countryName, tokens }:
       ? timeSeriesOption({ years: gdp[0]!.years, lines, year, indicator, tokens })
       : null;
     return { gdp: pick(gdp), employment: pick(employment), option };
-  }, [loaded, iso3, year, topic, tokens]);
+  }, [loaded, iso3, year, topic, tokens, lang]);
 
-  if (!view) return <p className="empty">載入中…</p>;
+  if (!view) return <p className="empty">{t.loading}</p>;
   if (!view.gdp && !view.employment && !view.option) return null;
 
   return (
     <section className="panel-section">
-      <h3>GDP 結構與就業結構</h3>
+      <h3>{text.title}</h3>
       <div className="stack-bars">
-        {view.gdp && <StackBar label={`GDP（${view.gdp.year}）`} values={view.gdp.values} tokens={tokens} remainderLabel="產品稅等" />}
-        {view.employment && <StackBar label={`就業（${view.employment.year}）`} values={view.employment.values} tokens={tokens} />}
+        {view.gdp && (
+          <StackBar label={text.gdp(view.gdp.year)} values={view.gdp.values} tokens={tokens} remainderLabel={text.taxes} />
+        )}
+        {view.employment && <StackBar label={text.employment(view.employment.year)} values={view.employment.values} tokens={tokens} />}
       </div>
       <table className="mini-table">
         <thead>
           <tr>
-            <th scope="col">產業</th>
-            <th scope="col" className="num">占 GDP</th>
-            <th scope="col" className="num">占就業</th>
+            <th scope="col">{text.sector}</th>
+            <th scope="col" className="num">{text.shareGdp}</th>
+            <th scope="col" className="num">{text.shareEmployment}</th>
           </tr>
         </thead>
         <tbody>
@@ -67,7 +102,7 @@ export default function SectorsPanel({ topic, iso3, year, countryName, tokens }:
             <tr key={s.id}>
               <th scope="row">
                 <span className="bar-key" style={{ background: tokens.hues[s.hue] }} />
-                {s.label}
+                {tr(s.label, lang)}
               </th>
               <td className="num">{view.gdp ? pct(view.gdp.values[i]) : '—'}</td>
               <td className="num">{view.employment ? pct(view.employment.values[i]) : '—'}</td>
@@ -75,13 +110,11 @@ export default function SectorsPanel({ topic, iso3, year, countryName, tokens }:
           ))}
         </tbody>
       </table>
-      <p className="note">
-        同一產業「占 GDP」低於「占就業」，代表這個產業每位工作者創造的產值低於平均（例如多數國家的農業）。
-      </p>
+      <p className="note">{text.note}</p>
       {view.option && (
         <>
-          <h4>三業占 GDP 的變化</h4>
-          <EChart option={view.option} height={200} ariaLabel={`${countryName}歷年三級產業占 GDP 比重`} />
+          <h4>{text.trend}</h4>
+          <EChart option={view.option} height={200} ariaLabel={text.trendAria(countryName)} />
         </>
       )}
     </section>
@@ -97,13 +130,18 @@ interface StackBarProps {
 }
 
 function StackBar({ label, values, tokens, remainderLabel }: StackBarProps) {
+  const lang = useLang();
   const total = values.reduce((a, b) => a + b, 0);
   const remainder = Math.max(0, 100 - total);
   const scale = Math.max(100, total);
   return (
     <div className="stack-bar-row">
       <span className="stack-bar-label">{label}</span>
-      <div className="stack-bar" role="img" aria-label={`${label}：${SECTORS.map((s, i) => `${s.label} ${pct(values[i])}`).join('、')}`}>
+      <div
+        className="stack-bar"
+        role="img"
+        aria-label={TEXT[lang].barAria(label, SECTORS.map((s, i) => `${tr(s.label, lang)} ${pct(values[i])}`))}
+      >
         {SECTORS.map((s, i) => (
           <span key={s.id} style={{ width: `${(values[i] / scale) * 100}%`, background: tokens.hues[s.hue] }} />
         ))}

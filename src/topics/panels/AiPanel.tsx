@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
 import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { defineMessages, tr, useLang, useT, type Lang, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, formatLargeTick } from '../../lib/format';
 import type { Tokens } from '../../theme/tokens';
@@ -17,61 +18,130 @@ interface AiFile {
   claude?: { period: string } & Record<string, number | string>;
 }
 
-const USE_CASES: Record<string, string> = {
-  use_case_work: '工作',
-  use_case_personal: '個人生活',
-  use_case_coursework: '課業',
+const USE_CASES: Record<string, Text> = {
+  use_case_work: { zh: '工作', en: 'Work' },
+  use_case_personal: { zh: '個人生活', en: 'Personal' },
+  use_case_coursework: { zh: '課業', en: 'Coursework' },
 };
 
-const ARTIFACTS: Record<string, string> = {
-  artifact_explanation_or_answer: '解釋與問答',
-  artifact_advice_or_recommendation: '建議',
-  artifact_analysis_or_summary: '分析與摘要',
-  artifact_code_fix_or_debug: '修正程式錯誤',
-  artifact_script_or_snippet: '程式片段',
-  artifact_app_or_website: '應用程式與網站',
-  artifact_document_or_report: '文件與報告',
-  artifact_email_or_message: '電子郵件與訊息',
-  artifact_creative_writing: '創意寫作',
-  artifact_translation: '翻譯',
-  artifact_educational_material: '教材',
-  artifact_academic_paper_or_thesis: '學術論文',
-  artifact_plan_or_strategy: '計畫與策略',
-  artifact_idea_or_brainstorm: '點子與腦力激盪',
-  artifact_data_or_spreadsheet: '資料與試算表',
-  artifact_math_or_calculation: '數學與計算',
-  artifact_chart_or_visualization: '圖表',
-  artifact_image_or_graphic: '圖像',
-  artifact_presentation_or_slides: '簡報',
-  artifact_marketing_or_social_content: '行銷與社群內容',
-  artifact_blog_or_article: '部落格與文章',
-  artifact_resume_or_job_application: '履歷與求職',
-  artifact_config_or_infra: '系統設定',
-  artifact_sql_or_database_query: '資料庫查詢',
-  artifact_ml_or_ai_system: '機器學習系統',
-  artifact_ui_or_design_mockup: '介面設計',
-  artifact_game_or_interactive: '遊戲與互動內容',
-  artifact_recipe_or_meal_plan: '食譜',
-  artifact_video_or_animation: '影片與動畫',
-  artifact_audio_or_music: '音訊與音樂',
-  artifact_other: '其他產出',
+const ARTIFACTS: Record<string, Text> = {
+  artifact_explanation_or_answer: { zh: '解釋與問答', en: 'Explanations and answers' },
+  artifact_advice_or_recommendation: { zh: '建議', en: 'Advice' },
+  artifact_analysis_or_summary: { zh: '分析與摘要', en: 'Analysis and summaries' },
+  artifact_code_fix_or_debug: { zh: '修正程式錯誤', en: 'Code fixes and debugging' },
+  artifact_script_or_snippet: { zh: '程式片段', en: 'Scripts and code snippets' },
+  artifact_app_or_website: { zh: '應用程式與網站', en: 'Apps and websites' },
+  artifact_document_or_report: { zh: '文件與報告', en: 'Documents and reports' },
+  artifact_email_or_message: { zh: '電子郵件與訊息', en: 'Emails and messages' },
+  artifact_creative_writing: { zh: '創意寫作', en: 'Creative writing' },
+  artifact_translation: { zh: '翻譯', en: 'Translation' },
+  artifact_educational_material: { zh: '教材', en: 'Educational material' },
+  artifact_academic_paper_or_thesis: { zh: '學術論文', en: 'Academic papers' },
+  artifact_plan_or_strategy: { zh: '計畫與策略', en: 'Plans and strategies' },
+  artifact_idea_or_brainstorm: { zh: '點子與腦力激盪', en: 'Ideas and brainstorming' },
+  artifact_data_or_spreadsheet: { zh: '資料與試算表', en: 'Data and spreadsheets' },
+  artifact_math_or_calculation: { zh: '數學與計算', en: 'Maths and calculations' },
+  artifact_chart_or_visualization: { zh: '圖表', en: 'Charts' },
+  artifact_image_or_graphic: { zh: '圖像', en: 'Images' },
+  artifact_presentation_or_slides: { zh: '簡報', en: 'Presentations' },
+  artifact_marketing_or_social_content: { zh: '行銷與社群內容', en: 'Marketing and social media' },
+  artifact_blog_or_article: { zh: '部落格與文章', en: 'Blog posts and articles' },
+  artifact_resume_or_job_application: { zh: '履歷與求職', en: 'CVs and job applications' },
+  artifact_config_or_infra: { zh: '系統設定', en: 'Configuration and infrastructure' },
+  artifact_sql_or_database_query: { zh: '資料庫查詢', en: 'Database queries' },
+  artifact_ml_or_ai_system: { zh: '機器學習系統', en: 'Machine learning systems' },
+  artifact_ui_or_design_mockup: { zh: '介面設計', en: 'UI design' },
+  artifact_game_or_interactive: { zh: '遊戲與互動內容', en: 'Games and interactive content' },
+  artifact_recipe_or_meal_plan: { zh: '食譜', en: 'Recipes' },
+  artifact_video_or_animation: { zh: '影片與動畫', en: 'Video and animation' },
+  artifact_audio_or_music: { zh: '音訊與音樂', en: 'Audio and music' },
+  artifact_other: { zh: '其他產出', en: 'Other outputs' },
 };
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const TEXT = defineMessages({
+  zh: {
+    noCountry: 'Epoch AI 與 Anthropic 的資料都沒有收錄這個國家。',
+    datacenters: '數據中心',
+    datacentersCount: (count: number, snapshot: string) => `OpenStreetMap 上標示了 ${count} 處（${snapshot}）`,
+    operators: '標示的營運者',
+    operatorsAria: (country: string) => `${country}數據中心營運者`,
+    sites: (n: number) => `${n} 處`,
+    unnamed: (n: number) => `另有 ${n} 處沒有標示營運者。`,
+    tokens: '每月 token 用量（OpenRouter）',
+    tokensLatest: (month: string, tokens: string, share: string) => `${month}：${tokens} tokens，占全球 ${share}%`,
+    tokensAria: (country: string) => `${country}每月 OpenRouter token 用量`,
+    tokensNote: '只代表透過 OpenRouter 平台呼叫 AI 模型的用量，依請求發出的地點計算。',
+    clusters: '已知 AI 運算叢集',
+    clustersNote: '目前運作中，依算力排序（Epoch AI 收錄）',
+    cluster: (name: string, owner: string, year: number) => `${name}（${owner}，${year}）`,
+    gpus: (n: string) => `${n} 張`,
+    clustersAria: (country: string) => `${country}的 AI 運算叢集`,
+    clustersUnit: '數值為相當於幾張 NVIDIA H100 GPU 的算力。',
+    models: '重要 AI 模型',
+    modelsCount: (n: number) => `共 ${n} 個，以下為最近發表的`,
+    organizations: (list: string[]) => list.join('、'),
+    claude: 'Claude 用在哪裡',
+    claudePeriod: (month: string) => `${month}對話抽樣（Anthropic Economic Index）`,
+    useCases: '用途',
+    useCasesAria: (country: string) => `${country}的 Claude 用途`,
+    artifacts: '最常見的產出',
+    artifactsAria: (country: string) => `${country}的 Claude 產出類型`,
+    /** '2026-07' → '2026 年 7 月' */
+    month: (year: string, month: number) => `${year} 年 ${month} 月`,
+    monthTick: (month: number) => `${month} 月`,
+  },
+  en: {
+    noCountry: 'Neither Epoch AI nor Anthropic covers this country.',
+    datacenters: 'Data centres',
+    datacentersCount: (count, snapshot) => `${count} ${count === 1 ? 'site' : 'sites'} mapped on OpenStreetMap (${snapshot})`,
+    operators: 'Operators mapped',
+    operatorsAria: (country) => `Data centre operators in ${country}`,
+    sites: (n) => `${n} ${n === 1 ? 'site' : 'sites'}`,
+    unnamed: (n) => `Another ${n} ${n === 1 ? 'site has' : 'sites have'} no operator mapped.`,
+    tokens: 'Monthly token usage (OpenRouter)',
+    tokensLatest: (month, tokens, share) => `${month}: ${tokens} tokens, ${share}% of the world`,
+    tokensAria: (country) => `Monthly OpenRouter token usage in ${country}`,
+    tokensNote: 'Covers only AI model calls made through the OpenRouter platform, counted by where requests come from.',
+    clusters: 'Known AI compute clusters',
+    clustersNote: 'Currently operating, sorted by compute (tracked by Epoch AI)',
+    cluster: (name, owner, year) => `${name} (${owner}, ${year})`,
+    gpus: (n) => `${n} GPUs`,
+    clustersAria: (country) => `AI compute clusters in ${country}`,
+    clustersUnit: 'Values are compute expressed as an equivalent number of NVIDIA H100 GPUs.',
+    models: 'Notable AI models',
+    modelsCount: (n) => `${n} in total; the most recent are listed below`,
+    organizations: (list) => list.join(', '),
+    claude: 'What Claude is used for',
+    claudePeriod: (month) => `Conversation sample from ${month} (Anthropic Economic Index)`,
+    useCases: 'Use cases',
+    useCasesAria: (country) => `Claude use cases in ${country}`,
+    artifacts: 'Most common outputs',
+    artifactsAria: (country) => `Types of Claude output in ${country}`,
+    month: (year, month) => `${MONTHS[month - 1]} ${year}`,
+    monthTick: (month) => MONTHS[month - 1],
+  },
+});
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
 
 export default function AiPanel({ topic, iso3, countryName, tokens }: PanelExtraProps) {
+  const lang = useLang();
+  const t = useT();
+  const text = TEXT[lang];
   const { data, error } = useJson<AiFile>(`topics/${topic.id}/countries/${iso3}.json`);
   const tokenOption = useMemo(
-    () => (data?.openrouter ? monthlyTokensOption(data.openrouter, countryName, tokens) : null),
-    [data, countryName, tokens],
+    () => (data?.openrouter ? monthlyTokensOption(data.openrouter, countryName, tokens, lang) : null),
+    [data, countryName, tokens, lang],
   );
-  if (error) return <p className="empty">Epoch AI 與 Anthropic 的資料都沒有收錄這個國家。</p>;
-  if (!data) return <p className="empty">載入中…</p>;
+  if (error) return <p className="empty">{text.noCountry}</p>;
+  if (!data) return <p className="empty">{t.loading}</p>;
 
   const claude = data.claude;
   const number = (key: string) => (typeof claude?.[key] === 'number' ? (claude[key] as number) : 0);
   const artifacts = Object.keys(ARTIFACTS)
-    .map((key) => ({ key, label: ARTIFACTS[key], value: number(key) }))
+    .map((key) => ({ key, label: tr(ARTIFACTS[key], lang), value: number(key) }))
     .filter((a) => a.value > 0)
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
@@ -80,72 +150,71 @@ export default function AiPanel({ topic, iso3, countryName, tokens }: PanelExtra
     <section className="panel-section">
       {data.datacenters && (
         <>
-          <h3>數據中心</h3>
-          <p className="panel-year-note">
-            OpenStreetMap 上標示了 {data.datacenters.count} 處（{data.datacenters.snapshot}）
-          </p>
+          <h3>{text.datacenters}</h3>
+          <p className="panel-year-note">{text.datacentersCount(data.datacenters.count, data.datacenters.snapshot)}</p>
           {data.datacenters.operators.length > 0 && (
             <>
-              <h4>標示的營運者</h4>
+              <h4>{text.operators}</h4>
+              {/* 營運者是 OpenStreetMap 上標示的原名（專有名詞），不翻譯 */}
               <BarList
                 items={data.datacenters.operators.map(([name, n]) => ({ key: name, label: name, value: n }))}
-                format={(v) => `${fixed(v, 0)} 處`}
-                ariaLabel={`${countryName}數據中心營運者`}
+                format={(v) => text.sites(Math.round(v))}
+                ariaLabel={text.operatorsAria(countryName)}
+                properNouns
               />
             </>
           )}
-          {data.datacenters.unnamed > 0 && (
-            <p className="note">另有 {data.datacenters.unnamed} 處沒有標示營運者。</p>
-          )}
+          {data.datacenters.unnamed > 0 && <p className="note">{text.unnamed(data.datacenters.unnamed)}</p>}
         </>
       )}
 
       {data.openrouter && tokenOption && (
         <>
-          <h3>每月 token 用量（OpenRouter）</h3>
+          <h3>{text.tokens}</h3>
           <p className="panel-year-note">
-            {formatMonth(data.openrouter.months[data.openrouter.months.length - 1])}：
-            {formatLargeNumber(data.openrouter.tokens[data.openrouter.tokens.length - 1])} tokens，占全球{' '}
-            {fixed(
-              (data.openrouter.tokens[data.openrouter.tokens.length - 1] /
-                data.openrouter.world[data.openrouter.world.length - 1]) *
-                100,
-              2,
+            {text.tokensLatest(
+              formatMonth(data.openrouter.months[data.openrouter.months.length - 1], lang),
+              formatLargeNumber(data.openrouter.tokens[data.openrouter.tokens.length - 1]),
+              fixed(
+                (data.openrouter.tokens[data.openrouter.tokens.length - 1] /
+                  data.openrouter.world[data.openrouter.world.length - 1]) *
+                  100,
+                2,
+              ),
             )}
-            %
           </p>
-          <EChart option={tokenOption} height={180} ariaLabel={`${countryName}每月 OpenRouter token 用量`} />
-          <p className="note">只代表透過 OpenRouter 平台呼叫 AI 模型的用量，依請求發出的地點計算。</p>
+          <EChart option={tokenOption} height={180} ariaLabel={text.tokensAria(countryName)} />
+          <p className="note">{text.tokensNote}</p>
         </>
       )}
 
       {data.clusters && (
         <>
-          <h3>已知 AI 運算叢集</h3>
-          <p className="panel-year-note">目前運作中，依算力排序（Epoch AI 收錄）</p>
+          <h3>{text.clusters}</h3>
+          <p className="panel-year-note">{text.clustersNote}</p>
           <BarList
             items={data.clusters.map((c) => ({
               key: c.name,
-              label: `${c.name}（${c.owner}，${c.year}）`,
+              label: text.cluster(c.name, c.owner, c.year),
               value: c.h100e,
             }))}
-            format={(v) => `${formatLargeNumber(v)} 張`}
-            ariaLabel={`${countryName}的 AI 運算叢集`}
+            format={(v) => text.gpus(formatLargeNumber(v))}
+            ariaLabel={text.clustersAria(countryName)}
           />
-          <p className="note">數值為相當於幾張 NVIDIA H100 GPU 的算力。</p>
+          <p className="note">{text.clustersUnit}</p>
         </>
       )}
 
       {data.models && (
         <>
-          <h3>重要 AI 模型</h3>
-          <p className="panel-year-note">共 {data.modelCount} 個，以下為最近發表的</p>
+          <h3>{text.models}</h3>
+          <p className="panel-year-note">{text.modelsCount(data.modelCount ?? data.models.length)}</p>
           <ul className="plain-list">
             {data.models.map((m) => (
               <li key={`${m.name}-${m.date}`}>
                 <span className="plain-title">{m.name}</span>
                 <span className="plain-meta">
-                  {m.organization.split(',').join('、')} · {m.date.slice(0, 4)} 年 {Number(m.date.slice(5, 7))} 月
+                  {text.organizations(m.organization.split(',').map((o) => o.trim()))} · {formatMonth(m.date, lang)}
                 </span>
               </li>
             ))}
@@ -155,21 +224,19 @@ export default function AiPanel({ topic, iso3, countryName, tokens }: PanelExtra
 
       {claude && (
         <>
-          <h3>Claude 用在哪裡</h3>
-          <p className="panel-year-note">
-            {claude.period.slice(0, 4)} 年 {Number(claude.period.slice(5, 7))} 月對話抽樣（Anthropic Economic Index）
-          </p>
-          <h4>用途</h4>
+          <h3>{text.claude}</h3>
+          <p className="panel-year-note">{text.claudePeriod(formatMonth(claude.period, lang))}</p>
+          <h4>{text.useCases}</h4>
           <BarList
-            items={Object.entries(USE_CASES).map(([key, label]) => ({ key, label, value: number(key) }))}
+            items={Object.entries(USE_CASES).map(([key, label]) => ({ key, label: tr(label, lang), value: number(key) }))}
             format={pct}
             max={100}
-            ariaLabel={`${countryName}的 Claude 用途`}
+            ariaLabel={text.useCasesAria(countryName)}
           />
           {artifacts.length > 0 && (
             <>
-              <h4>最常見的產出</h4>
-              <BarList items={artifacts} format={pct} ariaLabel={`${countryName}的 Claude 產出類型`} />
+              <h4>{text.artifacts}</h4>
+              <BarList items={artifacts} format={pct} ariaLabel={text.artifactsAria(countryName)} />
             </>
           )}
         </>
@@ -182,6 +249,7 @@ function monthlyTokensOption(
   series: NonNullable<AiFile['openrouter']>,
   countryName: string,
   tokens: Tokens,
+  lang: Lang,
 ): ChartOption {
   return {
     animation: false,
@@ -196,7 +264,7 @@ function monthlyTokensOption(
         const p = (Array.isArray(params) ? params : [params])[0];
         const month = String((p as { axisValue?: string }).axisValue ?? '');
         return (
-          `<div class="tt-head">${escapeHtml(formatMonth(month))}</div>` +
+          `<div class="tt-head">${escapeHtml(formatMonth(month, lang))}</div>` +
           `<div class="tt-row"><strong>${escapeHtml(formatLargeNumber(Number(p.value)))} tokens</strong>` +
           `<span class="tt-name">${escapeHtml(countryName)}</span></div>`
         );
@@ -213,7 +281,7 @@ function monthlyTokensOption(
         fontSize: 11,
         // 只標每年 1 月與 7 月
         interval: (_i: number, v: string) => v.endsWith('-01') || v.endsWith('-07'),
-        formatter: (v: string) => (v.endsWith('-01') ? v.slice(0, 4) : `${Number(v.slice(5))} 月`),
+        formatter: (v: string) => (v.endsWith('-01') ? v.slice(0, 4) : TEXT[lang].monthTick(Number(v.slice(5)))),
       },
     },
     yAxis: {
@@ -235,7 +303,7 @@ function monthlyTokensOption(
   };
 }
 
-/** '2026-07' → '2026 年 7 月' */
-function formatMonth(month: string): string {
-  return `${month.slice(0, 4)} 年 ${Number(month.slice(5, 7))} 月`;
+/** '2026-07'（或完整日期）→ 中文「2026 年 7 月」、英文「Jul 2026」 */
+function formatMonth(month: string, lang: Lang): string {
+  return TEXT[lang].month(month.slice(0, 4), Number(month.slice(5, 7)));
 }

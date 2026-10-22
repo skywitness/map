@@ -8,6 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "check:en": "node scripts/check-en-ui.mjs",
     "data": "node pipeline/npm-run.mjs"
   },
   "dependencies": {

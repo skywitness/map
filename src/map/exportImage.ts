@@ -6,6 +6,7 @@
  * MapLibre 的 'idle' 事件是在「圖磚都載入完」的那一格畫完後、同一個呼叫裡立刻觸發，這時緩衝區還在。
  */
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { messages, tr } from '../i18n';
 import { SPACE_GRADIENT, type Tokens } from '../theme/tokens';
 import {
   COLUMN_NOTE,
@@ -14,6 +15,7 @@ import {
   type BubbleLegendModel,
   type ChoroplethLegendModel,
   type ColumnLegendModel,
+  type FlowLegendModel,
 } from './Legend';
 import type { LayerKey } from './Overlays';
 
@@ -60,7 +62,9 @@ export type ImageLegend =
   | { kind: 'choropleth'; title: string; unit: string; model: ChoroplethLegendModel; stepped?: boolean }
   | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel }
   /** 3D 模式的柱子 */
-  | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string };
+  | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
+  /** 流向圖：線寬樣本與流向說明 */
+  | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel };
 
 /** 圖片上的文字，由呼叫端（知道主題、年份、來源的 App）提供 */
 export interface MapImageContent {
@@ -154,7 +158,7 @@ export function composeMapImage(map: HTMLCanvasElement, ratio: number, options: 
 
 export function canvasToPng(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('圖片編碼失敗'))), 'image/png'),
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('PNG encoding failed'))), 'image/png'),
   );
 }
 
@@ -217,14 +221,16 @@ const NO_DATA_ROW = 18;
 const NOTE_ROW = 18;
 
 function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: Tokens, font: string): Card {
-  const unit = `（${legend.unit}）`;
+  const t = messages();
+  const unit = t.unitSuffix(legend.unit);
   ctx.font = `600 12px ${font}`;
   const titleWidth = ctx.measureText(legend.title).width;
   ctx.font = `12px ${font}`;
   const titleTotal = titleWidth + ctx.measureText(unit).width;
   ctx.font = `11px ${font}`;
-  const noDataWidth = 22 + ctx.measureText('無資料').width;
-  const note = legend.kind === 'column' ? COLUMN_NOTE : legend.kind === 'choropleth' && legend.stepped ? STEPPED_NOTE : null;
+  const noDataWidth = 22 + ctx.measureText(t.noData).width;
+  const noteText = legend.kind === 'column' ? COLUMN_NOTE : legend.kind === 'choropleth' && legend.stepped ? STEPPED_NOTE : null;
+  const note = noteText && tr(noteText);
   const noteWidth = note ? ctx.measureText(note).width : 0;
 
   const drawTitle = () => {
@@ -244,7 +250,7 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
     hatchSwatch(ctx, 0, y + 2, 16, 10, tokens);
     ctx.font = `11px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;
-    ctx.fillText('無資料', 22, y + 7);
+    ctx.fillText(t.noData, 22, y + 7);
   };
 
   const top = LEGEND_TITLE + TITLE_GAP + (note ? NOTE_ROW : 0);
@@ -281,6 +287,42 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
         labels.forEach((label, i) => ctx.fillText(label, ((i + 1) / colors.length) * scaleWidth, top + swatchesHeight + 4 + 7));
         ctx.textAlign = 'left';
         drawNoData(top + scaleHeight);
+      },
+    };
+  }
+
+  if (legend.kind === 'flow') {
+    const { rows, colors, lineLength, height, key } = legend.model;
+    const labelWidth = Math.max(...rows.map((r) => ctx.measureText(r.label).width));
+    const keyWidth = 44 + ctx.measureText(key).width;
+    return {
+      width: Math.max(titleTotal, lineLength + 12 + labelWidth, keyWidth),
+      height: top + height + NO_DATA_ROW,
+      draw: () => {
+        drawTitle();
+        ctx.font = `11px ${font}`;
+        ctx.lineCap = 'round';
+        for (const { label, width, y } of rows) {
+          ctx.strokeStyle = colors.mid;
+          ctx.lineWidth = width;
+          ctx.beginPath();
+          ctx.moveTo(2, top + y);
+          ctx.lineTo(2 + lineLength, top + y);
+          ctx.stroke();
+          ctx.fillStyle = tokens.inkSecondary;
+          ctx.fillText(label, lineLength + 12, top + y);
+        }
+        ctx.lineCap = 'butt';
+        // 流向說明：跟畫面上一樣，淺 → 深的漸層樣本
+        const keyY = top + height + 4;
+        const gradient = ctx.createLinearGradient(2, 0, 38, 0);
+        gradient.addColorStop(0, colors.start);
+        gradient.addColorStop(1, colors.end);
+        ctx.fillStyle = gradient;
+        roundRect(ctx, 2, keyY + 5, 36, 4, 2);
+        ctx.fill();
+        ctx.fillStyle = tokens.inkSecondary;
+        ctx.fillText(key, 44, keyY + 7);
       },
     };
   }
@@ -346,16 +388,17 @@ const LAYER_GAP = 4;
 function layerCard(ctx: CanvasRenderingContext2D, options: ComposeOptions, font: string): Card {
   const { layerKeys, tokens } = options;
   ctx.font = `12px ${font}`;
-  const rowWidth = Math.max(...layerKeys.map(({ key }) => 24 + ctx.measureText(key.label).width));
+  const t = messages();
+  const rowWidth = Math.max(...layerKeys.map(({ key }) => 24 + ctx.measureText(tr(key.label)).width));
   ctx.font = `600 12px ${font}`;
-  const titleWidth = ctx.measureText('圖層').width;
+  const titleWidth = ctx.measureText(t.layers).width;
   return {
     width: Math.max(titleWidth, rowWidth),
     height: LEGEND_TITLE + layerKeys.length * (LAYER_ROW + LAYER_GAP),
     draw: () => {
       ctx.font = `600 12px ${font}`;
       ctx.fillStyle = tokens.ink;
-      ctx.fillText('圖層', 0, LEGEND_TITLE / 2);
+      ctx.fillText(t.layers, 0, LEGEND_TITLE / 2);
       ctx.font = `12px ${font}`;
       layerKeys.forEach(({ key, color }, i) => {
         const cy = LEGEND_TITLE + LAYER_GAP + i * (LAYER_ROW + LAYER_GAP) + LAYER_ROW / 2;
@@ -373,7 +416,7 @@ function layerCard(ctx: CanvasRenderingContext2D, options: ComposeOptions, font:
           ctx.fill();
         }
         ctx.fillStyle = tokens.ink;
-        ctx.fillText(key.label, 24, cy);
+        ctx.fillText(tr(key.label), 24, cy);
       });
     },
   };

@@ -14,6 +14,7 @@ INDICATORS = {
     "gdp-growth": ("NGDP_RPCH", 1, "NY.GDP.MKTP.KD.ZG", "%", 2),
 }
 WB_NOTE = "IMF 未涵蓋，改用世界銀行資料（沒有推估值）"
+WB_NOTE_EN = "Not covered by the IMF; World Bank data used instead (no projections)"
 
 
 def build() -> None:
@@ -32,10 +33,12 @@ def build() -> None:
 
         values = {iso3: scaled(s, imf_scale) for iso3, s in imf_data.items()}
         notes: dict[str, str] = {}
+        notes_en: dict[str, str] = {}
         for iso3, series in wb_data.items():
             if iso3 not in values:
                 values[iso3] = scaled(series, 1)
                 notes[iso3] = WB_NOTE
+                notes_en[iso3] = WB_NOTE_EN
                 filled.add(iso3)
         world = scaled(imf_world, imf_scale) if imf_world else scaled(wb_world, 1)
 
@@ -46,6 +49,7 @@ def build() -> None:
                 projectionFrom=projection_from,
                 aggregates={"WLD": world},
                 notes=notes,
+                notesEn=notes_en,
             ),
         )
 

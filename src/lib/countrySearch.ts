@@ -1,9 +1,11 @@
 /**
  * 國家搜尋：比對繁中名稱、英文名稱、常用別名與 ISO 代碼，支援部分比對與英文拼錯一兩個字母。
+ * 不管介面是哪種語言，兩種語言的名稱都能搜尋。
+ *
+ * i18n-ignore-file：這裡的中文是搜尋用的別名與簡繁對照，不會顯示在介面上。
  */
-import { zhName, type CountryTable } from './countries';
-
-const enNames = new Intl.DisplayNames(['en'], { type: 'region', fallback: 'none' });
+import { LOCALES, type Lang } from '../i18n/lang';
+import { enName, zhName, type CountryTable } from './countries';
 
 /**
  * 常用別名：中文俗稱、對岸譯名、英文縮寫與舊名。
@@ -162,13 +164,7 @@ export function buildSearchIndex(codes: Iterable<string>, table: CountryTable | 
   for (const iso3 of new Set(codes)) {
     const iso2 = table?.[iso3]?.iso2 ?? null;
     const zh = zhName(iso3, table);
-    let en = '';
-    try {
-      en = iso2 ? (enNames.of(iso2) ?? '') : '';
-    } catch {
-      en = '';
-    }
-    en ||= table?.[iso3]?.name ?? iso3;
+    const en = enName(iso3, table);
     const texts: [string, number][] = [
       [zh, 3],
       [en, 2],
@@ -248,7 +244,7 @@ export interface SearchHit {
   score: number;
 }
 
-export function searchCountries(index: SearchEntry[], query: string, limit = 8): SearchHit[] {
+export function searchCountries(index: SearchEntry[], query: string, lang: Lang = 'zh', limit = 8): SearchHit[] {
   const q = normalize(query).replace(/ /g, '');
   if (!q) return [];
   const isCode = /^[a-z]{2,3}$/.test(q);
@@ -260,7 +256,7 @@ export function searchCountries(index: SearchEntry[], query: string, limit = 8):
     for (const key of entry.keys) score = Math.max(score, scoreKey(q, key));
     if (score > 0) hits.push({ entry, score });
   }
-  hits.sort((a, b) => b.score - a.score || a.entry.zh.localeCompare(b.entry.zh, 'zh-Hant-TW'));
+  hits.sort((a, b) => b.score - a.score || a.entry[lang].localeCompare(b.entry[lang], LOCALES[lang]));
   // 已經有名稱相符的結果時，拼錯容忍找到的（「hong」→ Tonga、Hungary）只是雜訊
   const strong = hits.length > 0 && hits[0].score >= 500;
   return (strong ? hits.filter((h) => h.score >= 250) : hits).slice(0, limit);

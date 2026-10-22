@@ -1,7 +1,9 @@
 import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
-import type { IndicatorDef } from '../topics/types';
+import { tr, useLang, useT, type Text } from '../i18n';
+import type { FlowDirection, Indicator } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
+import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
 
 /** 面量圖圖例的色塊與刻度（畫面上的圖例與匯出的圖片共用） */
 export interface ChoroplethLegendModel {
@@ -10,7 +12,7 @@ export interface ChoroplethLegendModel {
   swatchWidth: number;
 }
 
-export function choroplethLegendModel(indicator: IndicatorDef, scale: ScaleThreshold<number, string>): ChoroplethLegendModel {
+export function choroplethLegendModel(indicator: Indicator, scale: ScaleThreshold<number, string>): ChoroplethLegendModel {
   const tick = indicator.formatTick ?? indicator.format;
   const labels = scale.domain().map(tick);
   // 刻度標在色塊交界，色塊要比最長的刻度文字寬，相鄰刻度才不會重疊
@@ -19,7 +21,7 @@ export function choroplethLegendModel(indicator: IndicatorDef, scale: ScaleThres
 }
 
 interface ChoroplethLegendProps {
-  indicator: IndicatorDef;
+  indicator: Indicator;
   title: string;
   scale: ScaleThreshold<number, string>;
   /** 3D：色塊畫成階梯，表示每一級的高度 */
@@ -27,20 +29,28 @@ interface ChoroplethLegendProps {
 }
 
 /** 3D 圖例的說明（畫面上的圖例與匯出的圖片共用） */
-export const STEPPED_NOTE = '高度：每升一級色階加高一階（同一級內依數值）';
-export const COLUMN_NOTE = '高度：與數值成正比（柱子粗細固定）';
+export const STEPPED_NOTE: Text = {
+  zh: '高度：每升一級色階加高一階（同一級內依數值）',
+  en: 'Height: one step up per colour class (by value within a class)',
+};
+export const COLUMN_NOTE: Text = {
+  zh: '高度：與數值成正比（柱子粗細固定）',
+  en: 'Height: proportional to the value (columns have a fixed width)',
+};
 /** 3D 階梯色塊的最大高度（px）；第 i 級（從 0 起）是 (i+1)/N 倍 */
 export const STEP_MAX_PX = 26;
 
 export function ChoroplethLegend({ indicator, title, scale, stepped = false }: ChoroplethLegendProps) {
+  const t = useT();
+  const lang = useLang();
   const { colors, labels, swatchWidth } = choroplethLegendModel(indicator, scale);
   return (
     <div className="legend">
       <div className="legend-title">
         {title}
-        <span className="legend-unit">（{indicator.unit}）</span>
+        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
       </div>
-      {stepped && <div className="legend-note">{STEPPED_NOTE}</div>}
+      {stepped && <div className="legend-note">{tr(STEPPED_NOTE, lang)}</div>}
       <div className={`legend-scale${stepped ? ' is-stepped' : ''}`} style={{ width: colors.length * swatchWidth }}>
         <div className="legend-swatches">
           {colors.map((c, i) => (
@@ -75,7 +85,7 @@ export interface BubbleLegendModel {
   height: number;
 }
 
-export function bubbleLegendModel(indicator: IndicatorDef, radius: ScalePower<number, number>): BubbleLegendModel {
+export function bubbleLegendModel(indicator: Indicator, radius: ScalePower<number, number>): BubbleLegendModel {
   const spec = indicator.layer.kind === 'bubble' ? indicator.layer.legendValues : [];
   const values = spec === 'auto' ? niceLegendValues(radius.domain()[1]) : spec;
   const tick = indicator.formatTick ?? indicator.format;
@@ -96,19 +106,20 @@ export function bubbleLegendModel(indicator: IndicatorDef, radius: ScalePower<nu
 }
 
 interface BubbleLegendProps {
-  indicator: IndicatorDef;
+  indicator: Indicator;
   title: string;
   radius: ScalePower<number, number>;
   tokens: Tokens;
 }
 
 export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
+  const t = useT();
   const { items, maxR, baseline, labelX, width, height } = bubbleLegendModel(indicator, radius);
   return (
     <div className="legend">
       <div className="legend-title">
         {title}
-        <span className="legend-unit">（{indicator.unit}）</span>
+        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
       </div>
       <svg width={width} height={height} aria-hidden="true">
         {items.map(({ label, r, labelY }) => (
@@ -147,7 +158,7 @@ export interface ColumnLegendModel {
   height: number;
 }
 
-export function columnLegendModel(indicator: IndicatorDef, max: number): ColumnLegendModel {
+export function columnLegendModel(indicator: Indicator, max: number): ColumnLegendModel {
   const values = scaleLinear().domain([0, max]).ticks(3).filter((v) => v > 0);
   const tick = indicator.formatTick ?? indicator.format;
   const labels = values.map(tick);
@@ -162,7 +173,7 @@ export function columnLegendModel(indicator: IndicatorDef, max: number): ColumnL
 }
 
 interface ColumnLegendProps {
-  indicator: IndicatorDef;
+  indicator: Indicator;
   title: string;
   /** 所有年份的最大值，地圖上最高的柱子 */
   max: number;
@@ -173,14 +184,16 @@ interface ColumnLegendProps {
 
 /** 3D 柱子的圖例：等距刻度的長條 */
 export function ColumnLegend({ indicator, title, max, color, tokens }: ColumnLegendProps) {
+  const t = useT();
+  const lang = useLang();
   const { bars, baseline, width, height } = columnLegendModel(indicator, max);
   return (
     <div className="legend">
       <div className="legend-title">
         {title}
-        <span className="legend-unit">（{indicator.unit}）</span>
+        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
       </div>
-      <div className="legend-note">{COLUMN_NOTE}</div>
+      <div className="legend-note">{tr(COLUMN_NOTE, lang)}</div>
       <svg width={width} height={height} aria-hidden="true">
         {bars.map(({ label, x, h }) => (
           <g key={label}>
@@ -197,11 +210,81 @@ export function ColumnLegend({ indicator, title, max, color, tokens }: ColumnLeg
   );
 }
 
+/** 流向圖圖例：幾條不同粗細的線對照金額（版面 px，畫面上的圖例與匯出的圖片共用） */
+export interface FlowLegendModel {
+  rows: { label: string; width: number; y: number }[];
+  colors: { start: string; mid: string; end: string };
+  /** 線段樣本的長度，標籤畫在 lineLength + 12 */
+  lineLength: number;
+  height: number;
+  /** 漸層樣本旁的說明 */
+  key: string;
+}
+
+export function flowLegendModel(indicator: Indicator, direction: FlowDirection, max: number): FlowLegendModel {
+  const tick = indicator.formatTick ?? indicator.format;
+  const rowHeight = FLOW_MAX_WIDTH + 4;
+  const rows = flowLegendValues(max).map((v, i) => ({
+    label: tick(v),
+    width: flowWidth(v, max),
+    y: i * rowHeight + rowHeight / 2,
+  }));
+  return { rows, colors: flowColors(direction), lineLength: 36, height: rows.length * rowHeight, key: flowText().legendKey };
+}
+
+interface FlowLegendProps {
+  indicator: Indicator;
+  title: string;
+  direction: FlowDirection;
+  /** 最大夥伴的金額（線寬以它為最粗） */
+  max: number;
+  tokens: Tokens;
+}
+
+/** 流向圖：幾條不同粗細的線對照金額，加上「淺 → 深」的流向說明 */
+export function FlowLegend({ indicator, title, direction, max, tokens }: FlowLegendProps) {
+  const t = useT();
+  const { rows, colors, lineLength, height, key } = flowLegendModel(indicator, direction, max);
+  const gradientId = `flow-legend-${direction}`;
+  return (
+    <div className="legend">
+      <div className="legend-title">
+        {title}
+        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
+      </div>
+      <svg width={lineLength + 84} height={height} aria-hidden="true">
+        {rows.map(({ label, width, y }) => (
+          <g key={label}>
+            <line x1={2} x2={2 + lineLength} y1={y} y2={y} stroke={colors.mid} strokeWidth={width} strokeLinecap="round" />
+            <text x={lineLength + 12} y={y} dy="0.35em" fill={tokens.inkSecondary} fontSize={11}>
+              {label}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <div className="legend-nodata">
+        <svg width={40} height={10} aria-hidden="true">
+          <defs>
+            <linearGradient id={gradientId}>
+              <stop offset="0" stopColor={colors.start} />
+              <stop offset="1" stopColor={colors.end} />
+            </linearGradient>
+          </defs>
+          {/* 漸層不能畫在水平線上（外框高度為 0，漸層不會顯示），改用矩形 */}
+          <rect x={2} y={3} width={36} height={4} rx={2} fill={`url(#${gradientId})`} />
+        </svg>
+        {key}
+      </div>
+    </div>
+  );
+}
+
 function NoDataKey() {
+  const t = useT();
   return (
     <div className="legend-nodata">
       <span className="swatch-nodata" />
-      無資料
+      {t.noData}
     </div>
   );
 }

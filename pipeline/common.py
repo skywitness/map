@@ -58,6 +58,7 @@ def indicator_file(
 ) -> dict:
     """所有主題共用的指標檔格式：每個國家一個陣列，與 years 一一對應，缺值為 null。
 
+    extra 常用的欄位：projectionFrom、aggregates、notes（中文附註）與 notesEn（英文附註，英文介面用）。
     輸出前用 compact_indicator() 壓縮數值（前端 src/lib/data.ts 讀取時還原）。
     """
     return compact_indicator({"indicator": indicator, "unit": unit, "years": years, **extra, "values": values})

@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useLang } from '../i18n';
 import { searchCountries, type SearchEntry } from '../lib/countrySearch';
-import { UI } from '../lib/strings';
+import { useUI } from '../lib/strings';
 import { useHotkeys } from './hotkeys';
 
 interface CountrySearchProps {
@@ -18,12 +19,14 @@ const TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
  */
 export function CountrySearch({ index, onSelect, valueOf }: CountrySearchProps) {
   const id = useId();
+  const UI = useUI();
+  const lang = useLang();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  const hits = useMemo(() => searchCountries(index, query), [index, query]);
+  const hits = useMemo(() => searchCountries(index, query, lang), [index, query, lang]);
   const expanded = open && query.trim() !== '';
   const optionId = (i: number) => `${id}-option-${i}`;
 
@@ -111,10 +114,9 @@ export function CountrySearch({ index, onSelect, valueOf }: CountrySearchProps) 
                     onMouseMove={() => i !== active && setActive(i)}
                     onClick={() => choose(entry.iso3)}
                   >
-                    <span className="result-name">{entry.zh}</span>
-                    <span className="result-meta">
-                      {entry.en} · {entry.iso3}
-                    </span>
+                    {/* 中文介面附上英文名；英文介面只附 ISO 代碼（中文名稱一樣能搜尋） */}
+                    <span className="result-name">{lang === 'en' ? entry.en : entry.zh}</span>
+                    <span className="result-meta">{lang === 'en' ? entry.iso3 : `${entry.en} · ${entry.iso3}`}</span>
                     {valueOf && (
                       <span className={`result-value${value == null ? ' is-empty' : ''}`}>
                         {value ?? UI.search.noData}
