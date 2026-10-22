@@ -36,7 +36,9 @@ button {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  padding: 0 var(--gutter);
+  /* index.html 設了 viewport-fit=cover，瀏海、圓角、橫向時的側邊都要讓開 */
+  padding: env(safe-area-inset-top) max(var(--gutter), env(safe-area-inset-right)) 0
+    max(var(--gutter), env(safe-area-inset-left));
 }
 
 /* ── 頂列 ───────────────────────────── */
@@ -182,15 +184,268 @@ button {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+/* ── 國家搜尋 ───────────────────────── */
+.search-box {
+  position: relative;
+}
+
 .search {
-  width: 160px;
-  height: 32px;
+  width: 180px;
+  height: 34px;
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 2 * var(--gutter)));
+  max-height: min(400px, 60vh);
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.search-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-results li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-results li.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.result-name {
+  font-weight: 600;
+}
+
+.result-meta {
+  grid-row: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.result-value {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.result-value.is-empty {
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+.search-empty {
+  margin: 0;
+  padding: 8px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 鍵盤快捷鍵說明 ─────────────────── */
+.help {
+  position: relative;
+  flex: none;
+}
+
+/* ── 分享選單 ───────────────────────── */
+.share {
+  position: relative;
+  flex: none;
+}
+
+.help-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 264px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.help-popover:focus {
+  outline: none;
+}
+
+.help-popover h2 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.help-popover dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.help-popover dl > div {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.help-popover dt {
+  display: flex;
+  gap: 4px;
+}
+
+.help-popover dd {
+  margin: 0;
+  color: var(--ink-secondary);
+}
+
+kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 6px;
+  border: 1px solid var(--axis);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--page);
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+}
+
+.help-note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+/* 手機、平板沒有實體鍵盤，不顯示快捷鍵說明 */
+@media (hover: none) and (pointer: coarse) {
+  .help {
+    display: none;
+  }
+}
+
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.share-button:hover,
+.share-button[aria-expanded='true'] {
+  border-color: var(--axis);
+}
+
+.share-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 200px;
+  max-width: calc(100vw - 2 * var(--gutter));
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+.share-item {
+  border: 0;
+  background: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-align: left;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.share-item:hover:not(:disabled),
+.share-item:focus-visible {
+  background: var(--grid);
+  outline: none;
+}
+
+.share-item:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+/* 「已複製」等狀態訊息，出現在按鈕下方幾秒 */
+.share-status {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 19;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.share-status:empty {
+  display: none;
+}
+
+.share-status.is-error {
+  background: #d03b3b;
+  color: #ffffff;
 }
 
 .indicator-desc {
@@ -246,11 +501,10 @@ button {
   opacity: 0.6;
 }
 
-/* MapLibre 的畫布；地球儀外面是黑色太空 */
+/* MapLibre 的畫布；地球儀外面的黑色太空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設定 */
 .map-canvas {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, #0b1220 0%, #04070d 55%, #000 100%);
 }
 
 .map.is-fullscreen {
@@ -1090,7 +1344,7 @@ button {
 
 /* ── 頁尾 ───────────────────────────── */
 .footer {
-  padding: 8px 0 12px;
+  padding: 8px 0 max(12px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--grid);
   font-size: 12px;
   color: var(--ink-muted);
@@ -1156,9 +1410,18 @@ button {
     flex-wrap: wrap;
   }
 
-  .search {
+  .search-box {
     flex: 1;
     min-width: 120px;
+  }
+
+  .search {
+    width: 100%;
+  }
+
+  /* 換行時分享按鈕靠右，選單往左展開才不會超出畫面 */
+  .share {
+    margin-left: auto;
   }
 
   .time-year {
@@ -1175,5 +1438,108 @@ button {
 
   .map-legend > .legend {
     padding: 6px 8px;
+  }
+}
+
+/* ── 手機：國家側欄改成底部抽屜（PanelSheet.tsx） ── */
+@media (max-width: 768px) {
+  :root {
+    /* 收合時露出把手、國名與第一排數值 */
+    --sheet-peek: 196px;
+  }
+
+  /* 字小於 16px 的輸入框，iOS 點下去會自動放大整頁 */
+  .select-field select,
+  .search {
+    font-size: 16px;
+  }
+
+  /* 主題列可以橫向捲動：右緣淡出，看得出後面還有 */
+  .topics {
+    padding-right: 24px;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+
+  /* 抽屜收合時蓋住頁面底部，留出同樣的空間，頁尾、時間軸才捲得出來 */
+  .app:has(.sheet) {
+    padding-bottom: calc(var(--sheet-peek) + env(safe-area-inset-bottom));
+  }
+
+  .sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    /* min-height、max-height 也是 JS 讀取的收合、全開高度 */
+    height: calc(var(--sheet-peek) + env(safe-area-inset-bottom));
+    min-height: calc(var(--sheet-peek) + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 56px - env(safe-area-inset-top));
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    border-radius: 16px 16px 0 0;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  /* 拖曳時可以拉到比收合更低（放開就關閉） */
+  .sheet.is-dragging {
+    min-height: 0;
+  }
+
+  .sheet-handle {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .sheet-handle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -4px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .sheet-grabber {
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--axis);
+  }
+
+  .sheet .panel {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding-top: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .sheet.is-peek .panel {
+    overflow: hidden;
+  }
+
+  /* 國名列也能拖 */
+  .sheet .panel-header {
+    touch-action: none;
+    cursor: grab;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .sheet:not(.is-dragging) {
+    transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
