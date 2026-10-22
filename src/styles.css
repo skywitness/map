@@ -103,6 +103,102 @@ button {
   opacity: 0.6;
 }
 
+/* 主題列放不下時可以橫向捲動：右緣淡出，看得出後面還有 */
+.topics.is-overflowing {
+  padding-right: 24px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+
+/* 主題分類按鈕（TopicNav.tsx）：目前主題所在的分類顯示「分類 · 主題」 */
+.topic-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topic-group[aria-expanded='true']:not(.is-active) {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.topic-current::before {
+  content: '·';
+  margin-right: 6px;
+  opacity: 0.6;
+}
+
+.topic-current {
+  font-weight: 600;
+}
+
+.topic-caret {
+  flex: none;
+  opacity: 0.7;
+  transition: transform 0.15s;
+}
+
+.topic-group[aria-expanded='true'] .topic-caret {
+  transform: rotate(180deg);
+}
+
+/* 分類的下拉選單：portal 到 body，fixed 定位，才不會被可以橫向捲動的主題列裁掉 */
+.topic-menu {
+  position: fixed;
+  z-index: 40;
+  display: grid;
+  min-width: 220px;
+  max-width: calc(100vw - 2 * var(--gutter));
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+.topic-item {
+  display: grid;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 8px 10px 8px 26px;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+
+.topic-item:hover,
+.topic-item:focus-visible {
+  background: var(--grid);
+  outline: none;
+}
+
+/* 目前的主題：左邊打勾 */
+.topic-item[aria-checked='true']::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 14px;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.topic-item-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.topic-item-summary {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  max-width: 320px;
+}
+
 /* 中文 / EN 切換 */
 .lang-switch {
   display: inline-flex;
@@ -1537,12 +1633,6 @@ kbd {
   .select-field select,
   .search {
     font-size: 16px;
-  }
-
-  /* 主題列可以橫向捲動：右緣淡出，看得出後面還有 */
-  .topics {
-    padding-right: 24px;
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
   }
 
   /* 頂列放不下標題、語言切換與主題列：主題列換到第二行，整行都能捲動 */

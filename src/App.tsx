@@ -5,6 +5,7 @@ import { useHotkeys } from './controls/hotkeys';
 import { ShareMenu } from './controls/ShareMenu';
 import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
+import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
 import { localize, tr, useLang, useT } from './i18n';
 import { countryName, type CountryTable } from './lib/countries';
@@ -32,7 +33,7 @@ import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
-import { getTopic, TOPICS } from './topics';
+import { getTopic } from './topics';
 import {
   indicatorPath,
   usesDimension,
@@ -260,19 +261,7 @@ export function App() {
             {t.offline}
           </span>
         )}
-        <nav className="topics" aria-label={t.topicsNav}>
-          {TOPICS.map((def) => (
-            <button
-              key={def.id}
-              type="button"
-              className={`topic${def.id === topic.id ? ' is-active' : ''}`}
-              aria-current={def.id === topic.id ? 'page' : undefined}
-              onClick={() => update({ topic: def.id, indicator: null, item: null })}
-            >
-              {tr(def.shortTitle, lang)}
-            </button>
-          ))}
-        </nav>
+        <TopicNav current={topic} onSelect={(id) => update({ topic: id, indicator: null, item: null })} />
         <LangSwitch />
         <ShortcutHelp />
         <button

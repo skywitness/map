@@ -156,10 +156,28 @@ async function main() {
     await settle(page);
 
     // ── 2. 每個主題、每個指標（地圖與排名表）、國家側欄 ──
-    const topicCount = await page.$$eval('.topics .topic', (els) => els.length);
-    for (let ti = 0; ti < topicCount; ti++) {
-      const buttons = await page.$$('.topics .topic');
-      await buttons[ti].click();
+    // 主題列：純地圖是一般按鈕，其他主題在分類的下拉選單裡（src/controls/TopicNav.tsx）
+    const entries = [];
+    const navButtons = await page.$$('.topics > button');
+    for (let bi = 0; bi < navButtons.length; bi++) {
+      const hasMenu = await navButtons[bi].evaluate((b) => b.getAttribute('aria-haspopup') === 'menu');
+      if (!hasMenu) {
+        entries.push({ bi });
+        continue;
+      }
+      await navButtons[bi].click();
+      await page.waitForSelector('.topic-menu');
+      await check(page, `主題選單 ${bi}`);
+      const count = await page.$$eval('.topic-menu [role="menuitemradio"]', (els) => els.length);
+      await page.keyboard.press('Escape');
+      for (let mi = 0; mi < count; mi++) entries.push({ bi, mi });
+    }
+    for (const entry of entries) {
+      await (await page.$$('.topics > button'))[entry.bi].click();
+      if (entry.mi !== undefined) {
+        await page.waitForSelector('.topic-menu');
+        await (await page.$$('.topic-menu [role="menuitemradio"]'))[entry.mi].click();
+      }
       await settle(page);
       const topic = await page.evaluate(() => new URLSearchParams(location.search).get('topic'));
       console.log(`主題 ${topic}`);
