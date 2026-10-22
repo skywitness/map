@@ -1,8 +1,12 @@
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from 'react';
 import type { Topology } from 'topojson-specification';
+import { CountrySearch } from './controls/CountrySearch';
+import { useHotkeys } from './controls/hotkeys';
 import { ShareMenu } from './controls/ShareMenu';
+import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
+import { buildSearchIndex } from './lib/countrySearch';
 import { indicatorCsv } from './lib/csv';
 import { useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
@@ -19,6 +23,7 @@ import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBase
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { WorldMap, type WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
+import { PanelSheet } from './panels/PanelSheet';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
 import { getTopic, TOPICS } from './topics';
@@ -91,13 +96,23 @@ export function App() {
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports } = useOverlays(topic);
 
-  const searchOptions = useMemo(() => {
-    // 純地圖頁沒有指標資料，改用地圖上有形狀的國家
-    const codes = pure ? (features ?? []).map((f) => f.iso3).filter((c) => !c.startsWith('_')) : Object.keys(data?.values ?? {});
-    return codes
-      .map((iso3) => ({ iso3, name: zhName(iso3, countries) }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant-TW'));
+  // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
+  const searchIndex = useMemo(() => {
+    const shapes = (features ?? []).map((f) => f.iso3).filter((c) => !c.startsWith('_'));
+    return buildSearchIndex([...shapes, ...(pure ? [] : Object.keys(data?.values ?? {}))], countries);
   }, [data, countries, pure, features]);
+  // 從搜尋選國家時，地圖一定飛過去（點地圖、點排名表則不必）
+  const [focusRequest, setFocusRequest] = useState<{ iso3: string; key: number } | null>(null);
+  const selectFromSearch = (iso3: string) => {
+    selectCountry(iso3);
+    setFocusRequest({ iso3, key: Date.now() });
+  };
+  useHotkeys({
+    Escape: () => {
+      if (state.country) selectCountry(null);
+      else if (state.box) setBox(null);
+    },
+  });
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
@@ -184,6 +199,7 @@ export function App() {
             </button>
           ))}
         </nav>
+        <ShortcutHelp />
         <button
           type="button"
           className="icon-button theme-toggle"
@@ -261,26 +277,18 @@ export function App() {
               ))}
             </select>
           </label>
-          <input
-            className="search"
-            type="search"
-            list="country-options"
-            placeholder="搜尋國家"
-            aria-label="搜尋國家"
-            onChange={(e) => {
-              const query = e.target.value.trim();
-              const match = searchOptions.find((o) => o.name === query || o.iso3 === query.toUpperCase());
-              if (match) {
-                selectCountry(match.iso3);
-                e.target.value = '';
-              }
-            }}
+          <CountrySearch
+            index={searchIndex}
+            onSelect={selectFromSearch}
+            valueOf={
+              pure
+                ? undefined
+                : (iso3) => {
+                    const v = values.get(iso3);
+                    return v !== undefined ? indicator.format(v) : null;
+                  }
+            }
           />
-          <datalist id="country-options">
-            {searchOptions.map((o) => (
-              <option key={o.iso3} value={o.name} />
-            ))}
-          </datalist>
           {!pure && (
             <div className="view-toggle" role="radiogroup" aria-label="檢視方式">
               {(['map', 'table'] as const).map((v) => (
@@ -331,6 +339,7 @@ export function App() {
                 fitOnSelect={pure}
                 threeD={state.threeD}
                 onThreeDChange={setThreeD}
+                focus={focusRequest}
                 dimmed={loading}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
@@ -373,20 +382,28 @@ export function App() {
           )}
         </div>
         {state.country && !pure && (
-          <Suspense fallback={<aside className="panel" aria-busy="true" />}>
-            <CountryPanel
-              topic={topic}
-              indicator={indicator}
-              item={item}
-              itemLabel={itemLabel ?? null}
-              iso3={state.country}
-              year={year}
-              countries={countries}
-              tokens={tokens}
-              onClose={() => selectCountry(null)}
-              onIndicatorChange={(id) => update({ indicator: id })}
-            />
-          </Suspense>
+          <PanelSheet onClose={() => selectCountry(null)}>
+            <Suspense
+              fallback={
+                <aside className="panel" aria-busy="true">
+                  <p className="empty">載入中…</p>
+                </aside>
+              }
+            >
+              <CountryPanel
+                topic={topic}
+                indicator={indicator}
+                item={item}
+                itemLabel={itemLabel ?? null}
+                iso3={state.country}
+                year={year}
+                countries={countries}
+                tokens={tokens}
+                onClose={() => selectCountry(null)}
+                onIndicatorChange={(id) => update({ indicator: id })}
+              />
+            </Suspense>
+          </PanelSheet>
         )}
       </main>
 

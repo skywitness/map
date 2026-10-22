@@ -48,9 +48,9 @@ src/
    ├─ map/             MapLibre 地圖引擎（WorldMap.tsx）：資料圖層、圖例、tooltip、框選、疊加圖層、匯出圖片
    ├─ charts/          ECharts 包裝、折線／堆疊面積 option、長條清單
    ├─ panels/          國家側欄、排名表、框選結果
-   ├─ controls/        時間軸、分享選單
+   ├─ controls/        時間軸、分享選單、國家搜尋、快捷鍵與說明（見第 11 節）
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
-   └─ lib/             資料讀取、國名、網址狀態、數字格式、CSV 與下載
+   └─ lib/             資料讀取、國名、國家搜尋比對、網址狀態、數字格式、CSV 與下載、介面文字（strings.ts）
 
 pipeline/
    ├─ run.py           入口：npm run data -- <步驟>
@@ -338,3 +338,45 @@ pipeline/
   - 用 `touch` 該檔案重新觸發轉換即可。
 - **換 MapLibre 版本後**：要刪掉 `node_modules/.vite` 再重啟開發伺服器，否則 Vite 會沿用舊版的預先打包檔。
 - **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。
+
+## 11. 搜尋、快捷鍵與手機操作
+
+介面文字（搜尋、快捷鍵說明、抽屜）集中在 `src/lib/strings.ts`，之後翻譯成其他語言時只改那個檔。
+
+**國家搜尋**（`src/lib/countrySearch.ts`、`src/controls/CountrySearch.tsx`）：
+- 比對繁中名稱、英文名稱（`Intl.DisplayNames(['en'])` 與 `countries.json` 的名稱）、常用別名、ISO 代碼。
+  - 別名寫在 `ALIASES`：南韓/韓國/Korea、美國/USA/America、英國/UK/England、中國/大陸/PRC、對岸譯名（意大利、新西蘭、沙特）、舊名（Swaziland、Burma）等。
+  - 輸入先正規化：小寫、去重音符號（Côte → cote）、全形轉半形、常見簡體字轉繁體（韩国 → 韓國）、「臺」統一成「台」。
+- 計分由高到低：ISO 代碼完全相符（只接受完全相符，「TW」不會比對到一堆國家）→ 名稱完全相符 → 開頭相符 → 英文單字開頭相符（「korea」→ South Korea）→ 中間片段 → 跳字（「沙阿」→ 沙烏地阿拉伯）→ 英文拼錯一兩個字母（「germny」→ Germany）。同一級裡名稱越短越前面，所以「美」的第一個是美國。
+- 已經有名稱相符的結果時，拼錯容忍找到的結果不列出，避免雜訊。
+- 結果列出目前指標的數值；純地圖頁沒有數值，只列名稱。
+- 選到國家後地圖一定飛過去框住整個國家（`WorldMap` 的 `focus`）；點地圖、點排名表則只在國家不在畫面上時才移動。
+  - 框住的範圍（`src/map/focus.ts`）是最大那塊陸地加上附近夠大的島，不含遠方屬地：法國不含法屬圭亞那，美國含阿拉斯加但不含阿留申群島西段與夏威夷。
+  - 手機上會扣掉底部抽屜蓋住的高度。
+- 是 WAI-ARIA combobox：↑↓ 選、Enter 確定、Esc 依序關清單／清空／離開；選字中（注音、拼音）的 Enter 不會被搶走。
+
+**鍵盤快捷鍵**（`src/controls/hotkeys.ts` 的 `useHotkeys`，各元件自己註冊）：
+
+| 鍵 | 動作 | 註冊在 |
+|---|---|---|
+| `/` | 跳到搜尋框 | `CountrySearch` |
+| `←` `→` | 上一年／下一年（照資料實際有的年份跳） | `TimeSlider` |
+| 空白鍵 | 播放／暫停歷年變化 | `TimeSlider` |
+| `+` `−` | 放大／縮小地圖 | `WorldMap` |
+| `Esc` | 取消選取國家（關閉側欄），沒有選取時清掉框選 | `App` |
+| `?` | 開關快捷鍵說明（頂列的「?」按鈕，觸控裝置不顯示） | `ShortcutHelp` |
+
+- 在文字框、下拉選單、拉桿裡不觸發；按鈕上的空白鍵照常是「按下按鈕」。
+- 搜尋框、說明視窗、框選模式自己處理 Esc 並 `preventDefault`，全域的 Esc 就不會順便取消選取。框選模式與說明視窗用 capture 階段監聽，才能比全域的先處理。
+- 用滑鼠點地圖時，地圖畫布會立刻放掉焦點，←/→ 才會繼續換年份；用 Tab 移進地圖時（`:focus-visible`），方向鍵與 +/− 交給 MapLibre 平移縮放。
+
+**手機的底部抽屜**（`src/panels/PanelSheet.tsx`，寬度 ≤ 768px）：
+- 國家側欄改成從底部拉起的抽屜，有三段高度：
+  - 收合：露出國名與第一排數值，高度是 `--sheet-peek`。
+  - 半開：畫面高度的一半。
+  - 全開：留出頂列。
+- 拖把手或國名列切換高度，放開時吸附到最近的一段；快速滑動會直接切到下一段。從收合再往下拖就關閉。點把手依序切換；把手聚焦時 ↑↓ 也能切換。
+- 抽屜以外的地方不擋，地圖照常能拖、能點；頁面底部留出收合高度的空白，頁尾和時間軸才捲得出來。
+- `prefers-reduced-motion` 時不播放高度動畫。
+- `index.html` 設了 `viewport-fit=cover`，所以頁面與抽屜都用 `env(safe-area-inset-*)` 讓開瀏海與底部的橫條。
+- 收合與全開的高度寫在 CSS（含安全區域），JS 讀抽屜算好的 `min-height`、`max-height` 來決定吸附位置，兩邊不必各寫一份數字。

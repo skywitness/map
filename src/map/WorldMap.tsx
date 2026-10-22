@@ -25,7 +25,9 @@ import { geoArea, geoDistance } from 'd3-geo';
 import type { AirportsData, IndicatorDef } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
+import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
+import { focusBounds } from './focus';
 import type { CountryFeature } from './geometry';
 import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
 import { BubbleLegend, bubbleLegendModel, ChoroplethLegend, choroplethLegendModel, ColumnLegend, columnLegendModel } from './Legend';
@@ -69,6 +71,8 @@ interface WorldMapProps {
   /** 3D 立體地圖；有傳 onThreeDChange 才會出現 3D 按鈕 */
   threeD?: boolean;
   onThreeDChange?: (on: boolean) => void;
+  /** key 改變時把地圖移到這個國家（從搜尋選國家時用） */
+  focus?: { iso3: string; key: number } | null;
   ref?: Ref<WorldMapHandle>;
 }
 
@@ -388,7 +392,7 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false, threeD = false, onThreeDChange, ref } = props;
+  const { basemap, fitOnSelect = false, threeD = false, onThreeDChange, focus = null, ref } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   const threeDRef = useRef(threeD);
@@ -442,23 +446,8 @@ export function WorldMap(props: WorldMapProps) {
     [countries],
   );
   const anchors = useMemo(() => new Map(countries.map((c) => [c.iso3, c.anchor])), [countries]);
-  // 各國的經緯度範圍（用展開過 180° 經線的座標，俄羅斯、斐濟才不會變成橫跨全球）
-  const countryBounds = useMemo(() => {
-    const out = new Map<string, [[number, number], [number, number]]>();
-    for (const f of countryCollection.features) {
-      let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
-      for (const polygon of (f.geometry as GeoJSON.MultiPolygon).coordinates) {
-        for (const [x, y] of polygon[0]) {
-          w = Math.min(w, x);
-          e = Math.max(e, x);
-          s = Math.min(s, y);
-          n = Math.max(n, y);
-        }
-      }
-      out.set(f.properties!.iso3 as string, [[w, s], [e, n]]);
-    }
-    return out;
-  }, [countryCollection]);
+  // 把地圖移到某國時要框住的範圍（主要國土加附近的島，不含遠方屬地）
+  const countryBounds = useMemo(() => new Map(countries.map((c) => [c.iso3, focusBounds(c)])), [countries]);
   const tinyCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
       type: 'FeatureCollection',
@@ -527,6 +516,11 @@ export function WorldMap(props: WorldMapProps) {
           setRevision((r) => r + 1);
         });
         bindEvents(m);
+        // 用滑鼠點地圖時不把焦點留在地圖上，←/→ 才會繼續換年份；用 Tab 移進地圖時方向鍵、+/− 照常平移縮放
+        const canvas = m.getCanvas();
+        canvas.addEventListener('focus', () => {
+          if (!canvas.matches(':focus-visible')) canvas.blur();
+        });
       })
       .catch(() => !cancelled && setFailed(true));
     return () => {
@@ -776,6 +770,37 @@ export function WorldMap(props: WorldMapProps) {
     // 投影不放進依賴：切換投影、進出 3D 時不要重跑，否則這裡的 easeTo 會打斷傾斜的動畫
   }, [revision, selected, anchors, fitOnSelect, countryBounds]);
 
+  // 從搜尋選到國家：一定飛過去並框住整個國家，扣掉手機抽屜蓋住的部分
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !focus) return;
+    const bounds = countryBounds.get(focus.iso3);
+    if (!bounds) return;
+    const rect = map.getContainer().getBoundingClientRect();
+    let covered = 0;
+    for (const el of document.querySelectorAll('[data-occludes-map]')) {
+      covered = Math.max(covered, rect.bottom - el.getBoundingClientRect().top);
+    }
+    const pad = Math.min(48, rect.width / 8, rect.height / 8);
+    const bottom = Math.min(Math.max(pad, covered + pad / 2), rect.height * 0.6);
+    map.fitBounds(bounds, {
+      padding: { top: pad, left: pad, right: pad + 40, bottom }, // 右邊留給縮放按鈕
+      maxZoom: fitOnSelect ? 8 : 5,
+      duration: 1200,
+      bearing: map.getBearing(), // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
+    });
+  }, [ready, focus]); // 只在有新的搜尋結果時移動，換底圖、換年份都不動
+
+  useHotkeys(
+    {
+      '+': () => mapRef.current?.zoomIn(),
+      '=': () => mapRef.current?.zoomIn(),
+      '-': () => mapRef.current?.zoomOut(),
+      _: () => mapRef.current?.zoomOut(),
+    },
+    ready,
+  );
+
   // 框選模式：拖曳用來畫框，不平移地圖。旋轉、傾斜只在 3D 模式開放
   useEffect(() => {
     const map = mapRef.current;
@@ -784,14 +809,16 @@ export function WorldMap(props: WorldMapProps) {
       map.dragPan.disable();
       map.touchZoomRotate.disable();
       map.getCanvas().style.cursor = 'crosshair';
+      // capture + preventDefault：Esc 只取消框選，不會順便取消選取的國家
       const onKey = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
+          e.preventDefault();
           dragRef.current = null;
           setBoxMode(false);
         }
       };
-      window.addEventListener('keydown', onKey);
-      return () => window.removeEventListener('keydown', onKey);
+      window.addEventListener('keydown', onKey, true);
+      return () => window.removeEventListener('keydown', onKey, true);
     }
     map.dragPan.enable();
     map.touchZoomRotate.enable();
