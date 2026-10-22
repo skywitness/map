@@ -62,7 +62,8 @@ async function settle(page) {
 
 /** 畫面上所有給人看的文字；translate="no" 與 lang="zh…" 的元素（專有名詞、語言切換鈕）略過 */
 function collectTexts() {
-  const skip = (el) => el.closest('[translate="no"], [lang^="zh"], script, style');
+  // 只看 body 裡標了 lang 的元素：中文介面的 <html lang="zh-Hant-TW"> 不算
+  const skip = (el) => el.closest('[translate="no"], body [lang^="zh"], script, style');
   const out = [];
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
