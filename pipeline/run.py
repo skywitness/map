@@ -30,6 +30,7 @@ STEPS = {
     "digital": "topics.digital",
     "health": "topics.health",
     "education": "topics.education",
+    "tourism": "topics.tourism",
 }
 
 

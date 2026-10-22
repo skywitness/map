@@ -11,6 +11,7 @@ import { military } from './military';
 import { pureMap } from './map';
 import { population } from './population';
 import { sectors } from './sectors';
+import { tourism } from './tourism';
 import { transport } from './transport';
 import type { TopicDefinition } from './types';
 
@@ -30,6 +31,7 @@ export const TOPICS: TopicDefinition[] = [
   digital,
   health,
   education,
+  tourism,
 ];
 
 export function getTopic(id: string | null): TopicDefinition {
