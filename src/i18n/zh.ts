@@ -9,6 +9,8 @@ export const zh = {
   pageDescription: '用世界地圖瀏覽各國人口、經濟、能源、產業與農業資料',
   brand: '世界資料地圖',
   topicsNav: '主題',
+  /** 主題選單裡每個主題下方的說明：列出前幾個指標 */
+  topicSummary: (indicators: string[], more: boolean) => `${indicators.join('、')}${more ? '等' : ''}`,
   language: '語言',
   switchToLight: '切換為淺色',
   switchToDark: '切換為深色',

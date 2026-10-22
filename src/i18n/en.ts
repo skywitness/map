@@ -12,6 +12,7 @@ export const en: Messages = {
   pageDescription: 'Explore population, economy, energy, industry and agriculture data for every country on a world map',
   brand: 'World Data Map',
   topicsNav: 'Topics',
+  topicSummary: (indicators, more) => `${indicators.join(', ')}${more ? '…' : ''}`,
   language: 'Language',
   switchToLight: 'Switch to light mode',
   switchToDark: 'Switch to dark mode',

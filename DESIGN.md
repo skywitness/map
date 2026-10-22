@@ -53,7 +53,7 @@ src/
    │                   底圖樣式的下載與改寫在 style.ts（不含 MapLibre，首頁一啟動就先抓）
    ├─ charts/          ECharts 包裝、折線／堆疊面積 option、長條清單
    ├─ panels/          國家側欄、排名表、框選結果
-   ├─ controls/        時間軸、分享選單、國家搜尋、快捷鍵與說明（見第 11 節）
+   ├─ controls/        主題分類選單、時間軸、分享選單、國家搜尋、快捷鍵與說明（見第 11 節）
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
    ├─ i18n/            介面語言：字典（zh.ts、en.ts）、useT()、語言狀態與 Text 解析（lang.ts），見第 12 節
    ├─ lib/             資料讀取（含指標檔還原）、國名、國家搜尋比對、網址狀態、數字格式、CSV 與下載、
@@ -133,7 +133,7 @@ pipeline/
 ## 4. 新增一個主題
 
 1. **資料**：在 `pipeline/topics/` 新增 `<主題>.py`，實作 `build()`，資料來源寫在 `pipeline/sources/`，用 `common.indicator_file()` 輸出；然後在 `pipeline/run.py` 的 `STEPS` 註冊。
-2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後在 `src/topics/index.ts` 的 `TOPICS` 註冊。
+2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後加進 `src/topics/index.ts` 的 `TOPIC_GROUPS` 裡最接近的一類（頂列的分類選單，見 §11）。
 3. 執行 `npm run data -- <主題>` 產生資料，`npm run dev` 檢查。
 
 世界銀行等來源的最新一年常常只有少數國家先公布，地圖會幾乎全灰。用 `common.year_span()` 截掉頭尾涵蓋國家太少的年份，每個指標的時間軸範圍可以不同。
@@ -507,9 +507,18 @@ pipeline/
   - 這時 `map-data` mark 照樣會出現，所以改了載入方式後一定要截圖看。
 - **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。
 
-## 11. 搜尋、快捷鍵與手機操作
+## 11. 主題選單、搜尋、快捷鍵與手機操作
 
 介面文字（搜尋、快捷鍵說明、抽屜、分享選單）集中在 `src/lib/strings.ts`，中英文寫在同一個檔（`defineMessages`），元件用 `useUI()` 取目前語言的那份。
+
+**主題分類選單**（`src/controls/TopicNav.tsx`，分類寫在 `src/topics/index.ts` 的 `TOPIC_GROUPS`）：
+- 主題多到 16 個以後，1280px 寬的筆電放不下一整排按鈕，最後幾個主題被擠到畫面外、又沒有捲動提示。改成「純地圖」一顆按鈕加五個分類：人口與社會、經濟、國際、能源與氣候、科技與交通。
+- 每個分類是一個下拉選單，列出主題名稱與前三個指標（讓人知道主題裡有什麼）。目前主題所在的分類會亮起，按鈕上顯示「分類 · 主題」。
+- 分類名稱要短：中文 1024px、英文 1280px 寬時整列都放得下。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
+- 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
+- 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
+- 選單開著時滑鼠移到另一個分類，直接換成那一類的選單（桌面程式選單列的習慣）；觸控不受影響。
+- `npm run check:en` 照這個結構逐一打開每個分類、點選每個主題。
 
 **國家搜尋**（`src/lib/countrySearch.ts`、`src/controls/CountrySearch.tsx`）：
 - 比對繁中名稱、英文名稱（`Intl.DisplayNames(['en'])` 與 `countries.json` 的名稱）、常用別名、ISO 代碼。
