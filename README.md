@@ -1,6 +1,6 @@
 # 世界資料地圖
 
-用世界地圖瀏覽各國資料。除了純地圖頁，目前有九個資料主題：
+用世界地圖瀏覽各國資料。除了純地圖頁，目前有以下資料主題：
 
 - 人口
 - 人均收入
@@ -11,6 +11,8 @@
 - AI
 - 交通
 - 氣候（二氧化碳排放）
+- 軍事（軍費、兵力）
+- 數位（網路、行動電話、固網寬頻）
 
 地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口。
 
@@ -59,7 +61,7 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 

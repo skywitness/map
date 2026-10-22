@@ -1,9 +1,11 @@
 import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { climate } from './climate';
+import { digital } from './digital';
 import { electricity } from './electricity';
 import { income } from './income';
 import { industry } from './industry';
+import { military } from './military';
 import { pureMap } from './map';
 import { population } from './population';
 import { sectors } from './sectors';
@@ -22,6 +24,8 @@ export const TOPICS: TopicDefinition[] = [
   ai,
   transport,
   climate,
+  military,
+  digital,
 ];
 
 export function getTopic(id: string | null): TopicDefinition {

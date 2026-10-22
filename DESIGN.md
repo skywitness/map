@@ -229,7 +229,9 @@ pipeline/
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
+| 軍事 | 軍費（美元，比例圓）、軍費占 GDP、兵力（比例圓）、兵力占勞動力 | — | SIPRI（2011–2025 年子集，非商業使用）、World Bank WDI（IISS） | 軍費 2011–2025；兵力 1985–2020 |
 | 氣候 | 人均 CO₂ 排放、年排放量、累積排放量（1750 年起）、人均消費端排放、每單位 GDP 排放 | 排放來源（燃煤、天然氣、石油、水泥…）堆疊面積圖＋長條 | Our World in Data（Global Carbon Project） | 1850–2024；消費端 1990–2023；每單位 GDP 到 2022 |
+| 數位 | 網路使用率、行動電話用戶（每百人）、固網寬頻用戶（每百人） | — | World Bank WDI（ITU）；台灣用數位發展部數位近用調查、NCC 電信統計 | 1990–2024 |
 
 ## 8. 資料陷阱（重要）
 
@@ -285,6 +287,7 @@ pipeline/
     - Harvard Atlas 是 CC0。
     - Epoch AI 是 CC BY。
     - Our World in Data 整理的資料（碳排來自 Global Carbon Project）是 CC BY 4.0。
+    - **SIPRI 軍費資料不是開放授權**：只能非商業使用、註明出處，轉載少於整個資料集 10% 才算合理使用（見第 16 點）。
     - Anthropic Economic Index 是 CC BY。
     - Microsoft AI Diffusion 是 MIT。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
@@ -293,6 +296,7 @@ pipeline/
     - 底圖：OpenFreeMap（免費、不需金鑰）、© OpenMapTiles、資料 © OpenStreetMap contributors（ODbL）。地圖右下角會自動標示。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
+    - 數位發展部、NCC 等部會的開放資料也適用政府資料開放授權條款。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -306,6 +310,33 @@ pipeline/
     - OWID 的科索沃沒有 ISO 代碼，用國名對應成 XKX；洲、所得組、國際航空與航運另外列，不收。
     - 國際航空與航運的排放不屬於任何國家，所以各國加總小於世界合計。
     - 每單位 GDP 的排放用 Maddison Project 的 GDP（2011 年國際元），只到 2022 年。
+
+16. **軍費資料（SIPRI）**（`pipeline/topics/military.py`、`pipeline/sources/sipri.py`）：
+    - SIPRI 的使用條款（https://www.sipri.org/about/terms-and-conditions）：非商業使用、註明 SIPRI，轉載少於整個資料集 10% 才算合理使用，超過要申請授權。世界銀行轉載的軍費（`MS.MIL.XPND.*`）也標示適用 SIPRI 條款，不是 CC BY。
+    - 使用者決定只放合理使用範圍內的子集：軍費（當年美元）與占 GDP 兩張表的 2011–2025 年，含台灣。
+    - **10% 的計算方式**：
+      - 分母是整個 Excel 檔（1949–2025 版 v1.2）扣掉封面與註腳後的數值格子：7 張國家表加區域合計，共 55,520 個。
+      - 分子是實際輸出的筆數：165 國的軍費 2,329 筆，加上 163 國的占 GDP 2,324 筆，共 4,653 筆，約 8.4%。
+      - `sipri.dataset_size()` 每次都重算；超過 10% 時資料管線會直接報錯。
+      - 2001–2025 年會超過 10%（約 14%），所以從 2011 年開始。
+    - 要放更多年份或指標（人均軍費、占政府支出等），要先向 SIPRI 申請授權。
+    - 頁尾依 SIPRI 的格式註明「Information from the Stockholm International Peace Research Institute (SIPRI)」與資料集的 DOI。
+    - 世界合計是有資料國家的加總（SIPRI 自己的世界合計含缺漏國家的估計值，而且只有固定價格）；占 GDP 的世界值是「軍費加總 ÷ GDP 加總」，GDP 由各國軍費 ÷ 占比反推。
+    - SIPRI 的台灣數字比政府公布的國防預算總額低：2024 年 SIPRI 是 152 億美元、占 GDP 1.91%，行政院公布的 113 年度國防預算是 6,068 億元、約 2.5%（預算數，含特別預算與非營業特種基金）。台灣側欄有附註。
+    - 兵力（現役加準軍事部隊）用世界銀行轉載的 IISS 資料，CC BY 4.0，只到 2020 年，沒有台灣；國防部公布的是編制員額，不是實際人數，口徑不同，所以沒有補。
+
+17. **台灣的數位資料**（`pipeline/topics/digital.py`）：
+    - ITU（世界銀行轉載）沒有台灣。
+    - 上網率用數位發展部「數位近用調查」（`pipeline/sources/moda.py`）：
+      - 對象是 12 歲以上的本國籍民眾，電話抽樣；2021 年沒有調查。
+      - ITU 本來就收各國自己的調查，不調整年齡範圍，所以直接用。
+      - 檔名寫 UTF8，實際是 Big5（cp950）。
+    - 行動電話與固網寬頻用 NCC 每年 12 月的用戶數，除以 WPP 年中人口（`pipeline/sources/ncc.py`）：
+      - 行動電話含純數據門號（ITU 不含，約差 2–3%）。
+      - 4G 用戶 2015 年 1 月才列入統計，2014 年（4G 開台後）少算約 400 萬，從缺。
+      - 固網寬頻只算有線（ADSL、光纖、纜線、專線），不含公眾無線區域網路（PWLAN），否則 2012–2015 年會多出近 200 萬。
+    - www.ncc.gov.tw 有 Cloudflare 驗證，只能從 api.ncc.gov.tw 下載。下載網址要帶 `filedisplay` 參數（任何檔名都可以），否則回傳「您的瀏覽器未送出Cookie」的網頁，HTTP 狀態一樣是 200。
+    - TWNIC 的台灣網路報告網站對程式一律回 HTTP 426，下載不了，所以不用。
 
 ## 9. 之後可以做的
 
