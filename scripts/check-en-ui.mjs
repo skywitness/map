@@ -19,7 +19,8 @@ import { createServer } from 'vite';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uf900-\ufaff\uff01-\uff60]/;
-const COUNTRIES = (process.env.CHECK_COUNTRIES ?? 'TWN,USA,JPN,CHN,DEU,KEN').split(',');
+// 第一個國家用帶 lang=en 的網址打開，其他的用搜尋框選（不重新載入，比較快）
+const COUNTRIES = (process.env.CHECK_COUNTRIES ?? 'TWN,USA,KEN').split(',');
 
 function loadPuppeteer() {
   const require = createRequire(import.meta.url);
@@ -84,7 +85,10 @@ const problems = new Map(); // 文字 → 第一次出現的位置
 async function check(page, where) {
   const texts = await page.evaluate(collectTexts);
   for (const text of texts) {
-    if (CJK.test(text) && !problems.has(text)) problems.set(text, where);
+    if (CJK.test(text) && !problems.has(text)) {
+      problems.set(text, where);
+      console.log(`  中文 [${where}] ${text.slice(0, 160)}`);
+    }
   }
 }
 
@@ -204,17 +208,25 @@ async function main() {
         }
       }
 
-      // 國家側欄：直接開帶 lang=en 的網址（同時驗證分享連結打開就是英文）
-      for (const iso3 of COUNTRIES) {
-        const url = new URL(page.url());
-        url.searchParams.set('country', iso3);
-        url.searchParams.set('lang', 'en');
-        await page.evaluate(() => localStorage.setItem('lang', 'zh')); // 偏好是中文，網址的 lang=en 要優先
-        await page.goto(url.href, { waitUntil: 'domcontentloaded' });
-        await page.waitForSelector('.brand');
+      // 國家側欄：第一個國家直接開帶 lang=en 的網址（同時驗證分享連結打開就是英文），其他用搜尋框
+      for (const [ci, iso3] of COUNTRIES.entries()) {
+        if (ci === 0) {
+          const url = new URL(page.url());
+          url.searchParams.set('country', iso3);
+          url.searchParams.set('lang', 'en');
+          await page.evaluate(() => localStorage.setItem('lang', 'zh')); // 偏好是中文，網址的 lang=en 要優先
+          await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+          await page.waitForSelector('.brand');
+          const brand = await page.$eval('.brand', (e) => e.textContent);
+          expect(brand === 'World Data Map', `lang=en 的網址沒有打開英文版：${url.search}`);
+        } else {
+          await page.click('.search', { count: 3 });
+          await page.type('.search', iso3);
+          await sleep(150);
+          await check(page, `${topic} 搜尋 ${iso3}`);
+          await page.keyboard.press('Enter');
+        }
         await settle(page);
-        const brand = await page.$eval('.brand', (e) => e.textContent);
-        expect(brand === 'World Data Map', `lang=en 的網址沒有打開英文版：${url.search}`);
         await check(page, `${topic} 側欄 ${iso3}`);
         // 側欄折線圖的 tooltip
         const chart = await page.$('.panel-chart [role="img"]');
@@ -243,6 +255,23 @@ async function main() {
     await page.click('.box-tool');
     await sleep(100);
     await check(page, 'population 框選模式');
+    await page.keyboard.press('Escape');
+
+    // ── 4. 分享選單、快捷鍵說明、用中文名稱搜尋 ──
+    await page.click('.share-button');
+    await sleep(150);
+    await check(page, '分享選單');
+    await page.keyboard.press('Escape');
+    await page.click('.help-button');
+    await sleep(150);
+    await check(page, '快捷鍵說明');
+    await page.keyboard.press('Escape');
+    await page.click('.search', { count: 3 });
+    await page.type('.search', '日本');
+    await sleep(200);
+    const first = await page.$eval('.search-results .result-name', (e) => e.textContent).catch(() => null);
+    expect(first === 'Japan', `英文介面用中文搜尋「日本」，第一個結果是 ${first}`);
+    await check(page, '搜尋「日本」');
   } finally {
     await browser.close();
     await server.close();

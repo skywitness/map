@@ -7,12 +7,13 @@
 | 層面 | 工具 | 為什麼 |
 |---|---|---|
 | 地圖繪製 | **MapLibre GL JS 5**（WebGL 向量地圖） | 可以一路放大到街道（zoom 18）；地球儀與平面可切換；資料圖層插在底圖文字下面，地名永遠看得到 |
-| 底圖 | **OpenFreeMap** 的 5 種樣式（免費、不需金鑰），使用者可切換 | 預設 Liberty：低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節；地名改用 `name:zh-Hant` |
+| 底圖 | **OpenFreeMap** 的 5 種樣式（免費、不需金鑰），使用者可切換 | 預設 Liberty：低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節；地名跟著介面語言，中文用 `name:zh-Hant`、英文用 `name:en` |
 | 投影 | **地球儀**（預設），可切換成平面（Web Mercator） | 地球儀沒有高緯度放大的問題；平面方便一次看全世界 |
 | 國界 | **Natural Earth 1:50m**（world-atlas 套件） | 給資料上色、點選、框選用；1:110m 沒有新加坡、巴林等小國 |
 | 側欄圖表 | **ECharts 6**，按需引入 | 點國家時才載入（約 180 KB gzip），不拖慢首頁 |
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
 | 前端 | Vite + React + TypeScript | |
+| 介面語言 | 繁體中文（預設）與英文，自己寫的小字典（`src/i18n/`），見第 12 節 | 字串不多，不需要 i18next 之類的套件；型別檢查保證兩種語言的鍵一致 |
 | 資料處理 | Python（`pipeline/`），離線執行 | 前端只讀靜態 JSON，不需要後端 |
 | 部署 | GitHub Pages（GitHub Actions 自動建置） | `vite.config.ts` 已設 `base: './'` |
 
@@ -50,6 +51,7 @@ src/
    ├─ panels/          國家側欄、排名表、框選結果
    ├─ controls/        時間軸、分享選單、國家搜尋、快捷鍵與說明（見第 11 節）
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
+   ├─ i18n/            介面語言：字典（zh.ts、en.ts）、useT()、語言狀態與 Text 解析（lang.ts），見第 12 節
    └─ lib/             資料讀取、國名、國家搜尋比對、網址狀態、數字格式、CSV 與下載、介面文字（strings.ts）
 
 pipeline/
@@ -63,12 +65,13 @@ pipeline/
 
 **所有資料一律用 ISO 3166-1 alpha-3 對應**（`TWN`、`JPN`…）。各來源的代碼在 `pipeline/sources/countries.py` 統一轉換。
 
-畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數。
+畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數，英文版另有 `lang=en`。
 
 **分享選單**（控制列右邊的「分享」，`src/controls/ShareMenu.tsx`）：
 - **下載地圖圖片（PNG）**：只有地圖檢視有。內容是目前的地圖畫面，上面加標題（主題 · 指標 · 年份）與指標說明，左下角是圖例（跟畫面上一樣，含開著的疊加圖層），下面是資料來源、底圖版權（OpenFreeMap © OpenMapTiles © OpenStreetMap contributors）、國界來源與這個畫面的網址。做法見第 10 節。
 - **下載 CSV**：目前的指標，可選「選定的年份」或「所有年份」，排名表檢視也有（`src/lib/csv.ts`）。
   - 欄位：ISO3、國名、英文名、單位，接著每年一欄；推估年份的欄名加「（推估）」，有附註的指標最後多一欄「附註」，世界合計放在最後一列。
+  - 欄名跟著介面語言：英文版是 ISO3、Country、Unit、年份（推估年份加「(projection)」）、Note（用 `notesEn`），國名只有英文一欄。
   - 單一年份依數值由大到小排（跟排名表一樣），所有年份依國名排。
   - 數值是原始數字（不加千分位、不換算成萬、億），試算表可以直接計算。
   - 開頭有 UTF-8 BOM、換行用 CRLF，Excel 直接開啟中文不會變亂碼。
@@ -98,6 +101,7 @@ pipeline/
 - `projectionFrom`（選填）：從這一年開始是推估值，時間軸與折線圖會標示成虛線。
 - `aggregates`（選填）：世界合計，用來算「占全球比例」和畫對照線。
 - `notes`（選填）：個別國家的附註，例如改用其他來源補上，會顯示在側欄。
+- `notesEn`（選填）：`notes` 的英文版，英文介面用；沒有的話英文介面不顯示附註。
 
 ## 4. 新增一個主題
 
@@ -116,6 +120,22 @@ pipeline/
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
 | `overlays` | 疊加在地圖上的點、線圖層（目前支援鐵路線與機場點），左下角可以開關 | 交通 |
+
+### 雙語文字（英文版介面）
+
+介面有繁體中文（預設）與英文，主題外掛裡所有給人看的文字都要寫兩種語言（做法的全貌見第 12 節）：
+
+- **文字欄位用 `Text`**：`title`、`shortTitle`、指標的 `label`、`description`、`unit`、資料來源的 `name`、`license`、`note`、子項目選項的 `label`、`group`、`boxEstimate.label` 都可以寫成 `{ zh: '總人口', en: 'Total population' }`。兩種語言寫法一樣的（`TWh`、`IMF, World Economic Outlook`、`CC BY 4.0`）直接寫字串。
+  - 選這個寫法而不是另外一張英文對照表，是為了讓每個主題自己一個檔就完整：新增或修改指標時，中英文就在同一行，不會漏改另一個檔。
+  - App 用 `localize(topic, lang)` 把整個主題解析成 `Topic`（所有 `Text` 換成字串，有快取），地圖、側欄、排名表與主題側欄拿到的都是解析好的字串，不必管語言。
+- **`format` / `formatTick` 在呼叫當下讀目前的語言**：
+  - 數字用 `lib/format.ts` 的函式（`formatLargeNumber`、`formatLargeTick`、`fixed`、`formatSignedPercent`…），中文自動用萬、億、兆，英文用 K、M、B、T。
+  - 單位用 `tr({ zh: '人', en: 'people' })`；美元、國際元用 `usd()`、`intlDollars()`（中文「1.43 兆 美元」、英文「$1.43T」）。
+  - 中英文語序不同時整句寫兩份：`format: (v) => tr({ zh: `鐵路 ${km(v)}`, en: `Railways: ${km(v)}` })`。
+- **主題側欄**（`panels/*.tsx`）：通用的字（載入中、無資料、「（2022 年無資料，顯示最近一年）」）用 `useT()` 的字典；側欄自己的字用 `defineMessages({ zh: {...}, en: {...} })` 寫在同一個檔，再用 `TEXT[useLang()]`。英文那份少一個鍵、參數不同都會編譯失敗。有 `useMemo` 的地方，依賴要加上 `lang`，換語言時才會重算。
+- **資料裡的名稱**：pipeline 產生的文字也要有英文。指標檔的附註寫 `notes`（中文）與 `notesEn`（英文）；品項名稱另外輸出英文檔（例如農業的 `items.en.json`，用 FAOSTAT 本身的英文名稱）。只在前端用到的少量名稱（例如主計總處的 25 個製造業細項）可以在側欄裡放 `{ zh, en }` 對照表。
+- **原文專有名詞**（OpenStreetMap 上的營運者名稱等）不翻譯，放在 `translate="no"` 的元素裡（`BarList` 的 `properNouns`）。
+- **寫完跑檢查**：`npm run check:i18n` 掃描原始碼裡英文介面會看到的中文；`npm run check:en` 用無頭 Chrome 逐一打開英文版的每個主題與指標，列出畫面上剩下的中文（見第 12 節）。
 
 圖層的 `legendValues: 'auto'` 會依資料最大值自動挑圖例數值，適合量級差很多的子項目。
 
@@ -245,7 +265,7 @@ pipeline/
     - 鐵路長度用地圖線段計算，每 20 個頂點判斷一次所在國家，跨國界的線會略有誤差。
     - 機場來自 OurAirports，只取大型機場與有定期航班的中型機場（不含 4 萬多座小型機場、直升機場與純軍用機場）。
     - 機場名稱是英文原名。
-11. **國名**：繁中名稱用瀏覽器內建的 `Intl.DisplayNames`；英文名用 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`）。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`。
+11. **國名**：介面上的繁中、英文名稱都用瀏覽器內建的 `Intl.DisplayNames`（英文有幾個改成常見寫法，見第 12 節）；`countries.json` 的英文名是 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`），用在搜尋與 CLDR 查不到的區域。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`，英文名用 FAOSTAT 本身的名稱（`items.en.json`）。
 12. **授權**：
     - WPP 是 CC BY 3.0 IGO。
     - World Bank、Ember、FAOSTAT、JRC GHS-POP 是 CC BY 4.0。
@@ -305,7 +325,7 @@ pipeline/
 
 ## 11. 搜尋、快捷鍵與手機操作
 
-介面文字（搜尋、快捷鍵說明、抽屜）集中在 `src/lib/strings.ts`，之後翻譯成其他語言時只改那個檔。
+介面文字（搜尋、快捷鍵說明、抽屜、分享選單）集中在 `src/lib/strings.ts`，中英文寫在同一個檔（`defineMessages`），元件用 `useUI()` 取目前語言的那份。
 
 **國家搜尋**（`src/lib/countrySearch.ts`、`src/controls/CountrySearch.tsx`）：
 - 比對繁中名稱、英文名稱（`Intl.DisplayNames(['en'])` 與 `countries.json` 的名稱）、常用別名、ISO 代碼。
@@ -344,3 +364,49 @@ pipeline/
 - `prefers-reduced-motion` 時不播放高度動畫。
 - `index.html` 設了 `viewport-fit=cover`，所以頁面與抽屜都用 `env(safe-area-inset-*)` 讓開瀏海與底部的橫條。
 - 收合與全開的高度寫在 CSS（含安全區域），JS 讀抽屜算好的 `min-height`、`max-height` 來決定吸附位置，兩邊不必各寫一份數字。
+
+## 12. 英文版介面（i18n）
+
+右上角的「中文 / EN」切換語言，不必重新整理。沒有用 i18next 之類的套件：介面字串只有一百多個，自己寫的小字典加上 TypeScript 型別就夠了，也不會多一個依賴。
+
+**語言狀態**（`src/i18n/lang.ts`）：
+- 語言是 `'zh' | 'en'`，預設中文。記在網址的 `lang=en`（中文是預設，不寫）與 localStorage。
+- 打開網頁時：網址的 `lang` 優先，其次是 localStorage，都沒有就是中文。網址指定的語言也存成偏好，網址的參數被拿掉後重新整理才不會跳回另一種語言。
+- `setLang()` 改網址、存 localStorage、通知訂閱者；`useLang()` 用 `useSyncExternalStore` 訂閱，所以切換時整個畫面重畫、不重新載入。`lib/url-state.ts` 重寫網址時會保留 `lang`。
+- `<html lang>`（`zh-Hant-TW` / `en`）、分頁標題、`<meta name="description">` 跟著語言（`src/i18n/index.ts`）。
+
+**介面文字**：
+- 共用的字在 `src/i18n/zh.ts` 與 `en.ts`，元件裡 `const t = useT()`，例如 `t.noData`、`t.rank(3, 200)`。中文那份決定型別（`Messages`），英文少一個鍵或參數不同都會編譯失敗。
+- 搜尋、快捷鍵、手機抽屜、分享選單的字在 `src/lib/strings.ts`（`useUI()`）。
+- 主題與主題側欄的字寫在各自的檔裡（見第 4 節「雙語文字」）。
+- 不是元件、但會在畫面更新時重新執行的程式（ECharts 的 tooltip、匯出圖片、CSV）用 `messages()` 或 `getLang()` 讀目前的語言。
+- 英文的標題組合：子項目＋指標（「稻米產量」）在英文是「Rice production」（`itemIndicator`，指標名稱開頭轉小寫，GDP 這類縮寫不動）；年份「2023 年」在英文只寫「2023」。
+
+**數字格式**（`src/lib/format.ts`）：
+- 中文：2,333 萬、14.38 億、30.86 兆；圖例刻度 1,000萬、1億。
+- 英文：23.33M、1.44B、30.86T（一百萬以下寫完整數字，例如 980,000）；圖例刻度 1K、10M、1B。
+- 美元：中文「1.43 兆 美元」，英文「$1.43T」、負數「−$5.2B」；國際元：英文「Int$12,345」。
+- 千分位與小數點用 `Intl.NumberFormat`（`zh-TW` / `en-US`）。
+
+**國名**（`src/lib/countries.ts` 的 `countryName()`）：
+- 用 `Intl.DisplayNames` 取中文或英文名稱。英文的 CLDR 短名稱有些比較拗口，改成常見寫法（`Congo - Kinshasa` → DR Congo、`Hong Kong SAR China` → Hong Kong、`Myanmar (Burma)` → Myanmar、`&` → and）。
+- CLDR 沒有的區域（索馬利蘭、北賽普勒斯等沒有 ISO 代碼的）用自訂名稱；再查不到就用 `countries.json` 的英文名（例如 XKX 科索沃），最後才是 ISO 代碼。
+- 中文介面的排名表、側欄在國名旁附上英文名；英文介面改附 ISO 代碼，畫面上不出現中文。
+- 搜尋不管介面是哪種語言，中文名、英文名、別名都找得到（英文介面打「日本」也會找到 Japan）。
+
+**地圖上的地名**：
+- `WorldMap.tsx` 把底圖每個顯示地名的文字圖層換成 `LABELS[lang]`：中文用 `name:zh-Hant`（沒有的退回 `name:zh`、`name`），英文用 `name:en`（退回 `name_en`、`name`）。
+- 切換語言時直接 `setLayoutProperty` 改文字欄位，不必重新載入樣式；切換底圖時，新樣式下載後也套用目前的語言。
+
+**資料**：
+- 指標檔的 `notesEn`（`pipeline/topics/income.py`、`industry.py`、`sectors.py`），英文介面的側欄附註與 CSV 用它。
+- 農業的 `items.en.json`：FAOSTAT 的英文品項名稱（`pipeline/topics/agriculture.py`）。
+- CSV 的欄名跟著語言（英文版只有一欄英文國名）；匯出圖片的標題、圖例、來源也跟著語言。
+
+**檢查**：
+- `npm run check:i18n`（`scripts/check-i18n.mjs`）：掃描 `src/` 的原始碼，列出註解以外、不在 `zh:` 值裡的中文，包含 JSX 文字。`src/i18n/zh.ts`、行尾有 `i18n-ignore` 註解的行（例如語言切換鈕上的「中文」）、檔頭註解寫了 `i18n-ignore-file` 的檔（例如搜尋用的中文別名表）不算。
+- `npm run check:en`（`scripts/check-en-ui.mjs`）：用無頭 Chrome（puppeteer-core 搭配系統的 Chrome、`--use-angle=swiftshader`）打開英文版：
+  - 先檢查中文 → 英文 → 中文切換不重新整理，`<html lang>`、分頁標題、網址的 `lang`、底圖地名都跟著變。
+  - 再逐一點每個主題、每個指標（地圖、tooltip、排名表），換一次子項目，開三個國家的側欄（第一個用帶 `lang=en` 的網址直接打開，確認分享連結打開就是英文；其他的用搜尋框），框選估算、分享選單、快捷鍵說明。
+  - 收集畫面上的文字、`aria-label`、`title`、`placeholder`、選單選項，列出含中文的字串；`translate="no"` 與 `lang="zh…"` 的元素不算。
+  - puppeteer-core 不在 `package.json`：`npm i --no-save puppeteer-core`，或用 `PUPPETEER_CORE` 指向已經裝好的資料夾。全部跑完約 15–30 分鐘（SwiftShader 軟體繪製地球儀很慢）。

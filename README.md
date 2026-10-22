@@ -16,6 +16,8 @@
 
 每個畫面右上角的「分享」可以下載地圖圖片（PNG，含標題、圖例與資料來源）、下載目前指標的 CSV（選定年份或所有年份，Excel 可直接開啟），或複製這個畫面的連結。
 
+右上角的「中文 / EN」切換介面語言，不必重新整理；英文版的網址帶 `lang=en`，分享出去打開就是英文。
+
 資料來源、架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
 
 ## 操作
@@ -28,6 +30,7 @@
   - `+` `−`：縮放地圖
   - `Esc`：取消選取
 - **手機**：國家資料從底部抽屜拉起，可以拖到收合、半開、全開三段，往下拖到底就關閉。
+- **語言**：「中文 / EN」切換，選擇記在瀏覽器裡；英文版的數字用 K、M、B、T（中文用萬、億、兆），國名與地圖上的地名也換成英文。
 
 網站：https://skywitness.github.io/map/
 
@@ -39,6 +42,21 @@ npm run dev
 ```
 
 `public/data/` 裡已經有產生好的資料，只改前端的話不需要跑資料管線。
+
+### 檢查英文版
+
+```bash
+npm run check:i18n
+```
+
+掃描 `src/` 的原始碼，列出英文介面會看到、卻還沒翻譯的中文（新增功能或主題後跑一次）。
+
+```bash
+npm i --no-save puppeteer-core
+npm run check:en
+```
+
+用無頭 Chrome 打開英文版，逐一切換每個主題、指標、排名表、國家側欄與框選，列出畫面上剩下的中文，也檢查中英切換與 `lang=en` 的網址。需要系統的 Chrome（或設定 `CHROME_PATH`）。
 
 ## 重新產生資料
 
@@ -77,3 +95,19 @@ npm run build
 
 推送到 `main` 後，GitHub Actions（`.github/workflows/deploy.yml`）會自動建置並發佈到 GitHub Pages，約 1–2 分鐘。
 資料檔已經在版本庫裡，所以更新資料的流程是：本機執行 `npm run data`，再把 `public/data/` 的變更提交、推送。
+
+## English
+
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, AI, transport and climate (CO₂ emissions), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+
+Live site: https://skywitness.github.io/map/?lang=en
+
+- **Map**: switch between globe and flat map, zoom down to street level, and choose from five basemaps. Click a country to open its panel with rankings, time series and topic details. Every map also has a **Ranking** table view.
+- **Search**: type a country name in English or Chinese, a common alias (UK, USA, Korea) or an ISO code (TW, TWN). Partial names and small typos work too.
+- **Keyboard shortcuts** (press `?`): `/` search, `←` `→` change year, Space play/pause, `+` `−` zoom, `Esc` clear the selection.
+- **Share**: download the current map as a PNG (with title, legend and sources), download the indicator as CSV, or copy a link. The whole view, including the language (`lang=en`), is stored in the URL.
+- **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
+
+Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
+
+Development: `npm install`, then `npm run dev`. Data is pre-built in `public/data/`; run `npm run data` to rebuild it (see the Chinese sections above). Design notes, including how to add a topic with bilingual text, are in [DESIGN.md](DESIGN.md) (in Chinese).
