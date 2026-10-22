@@ -22,6 +22,7 @@ STEPS = {
     "agriculture": "topics.agriculture",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
+    "ai": "topics.ai",
 }
 
 

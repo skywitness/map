@@ -835,6 +835,28 @@ button {
   border-radius: 2px;
 }
 
+.plain-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.plain-list li {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.plain-title {
+  font-weight: 600;
+}
+
+.plain-meta {
+  color: var(--ink-muted);
+}
+
 /* ── 排名表 ─────────────────────────── */
 .ranking {
   position: absolute;
@@ -1028,6 +1050,16 @@ button {
 
 .time-ticks span:last-child {
   transform: translateX(-100%);
+}
+
+.time-slider.is-single {
+  justify-content: space-between;
+  min-height: 52px;
+}
+
+.time-single-note {
+  font-size: 12px;
+  color: var(--ink-muted);
 }
 
 .time-year {

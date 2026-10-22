@@ -20,7 +20,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處）
+原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、OpenStreetMap、Epoch AI、Anthropic、Microsoft）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -47,7 +47,8 @@ pipeline/
    ├─ run.py           入口：npm run data -- <步驟>
    ├─ common.py        下載快取、輸出 JSON、指標檔格式
    ├─ build_geo.py     國界與 ISO 對照表
-   ├─ sources/         各資料來源的下載與解析（worldbank、imf、faostat、atlas、dgbas…）
+   ├─ geoindex.py      經緯度 → 國家（用上面的國界判斷）
+   ├─ sources/         各資料來源的下載與解析（worldbank、imf、faostat、atlas、dgbas、epoch、osm…）
    └─ topics/          每個主題一支組裝腳本
 ```
 
@@ -133,6 +134,7 @@ pipeline/
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
 | 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
+| AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；使用量 2025–2026 |
 
 ## 8. 資料陷阱（重要）
 
@@ -160,11 +162,26 @@ pipeline/
    - 吐瓦魯、托克勞、直布羅陀在 1:50m 圖資裡沒有形狀。
    - 法國海外省併在法國的形狀裡。
    - 這些國家在排名表和搜尋裡都還找得到。
-9. **國名**：繁中名稱用瀏覽器內建的 `Intl.DisplayNames`；英文名用 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`）。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`。
-10. **授權**：
+9. **AI 資料的限制**：
+   - **沒有任何 AI 公司按國家公布 token 用量。**
+     - 經濟合作暨發展組織（OECD.AI）網站上有 OpenRouter 依國家的 token 量，但只是網頁上的互動圖表，沒有下載檔，轉載授權也不明，所以沒有用。
+     - 現在用 Anthropic Economic Index（只代表 Claude 的網頁與 App）和 Microsoft AI Diffusion（依遙測資料推估）當替代指標。
+   - **數據中心**：
+     - 能轉載的只有 OpenStreetMap 的標示，各國完整度差很多，而且只有現在的快照。
+     - PeeringDB 的使用條款禁止公開轉載。
+     - IEA 只有美、中兩國的數據中心用電資料。
+     - 商業目錄（Data Center Map 等）不可轉載。
+   - **算力**：Epoch AI 只收錄公開可查的 AI 叢集，自己估計約占全球 10–20%，叢集算在所在國家，不是擁有者的國家。
+   - **Overpass API**：用一次全球查詢取回所有數據中心，國家在本地判斷，不必對公用伺服器發上百次查詢。
+10. **國名**：繁中名稱用瀏覽器內建的 `Intl.DisplayNames`；英文名用 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`）。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`。
+11. **授權**：
     - WPP 是 CC BY 3.0 IGO。
     - World Bank、Ember、FAOSTAT 是 CC BY 4.0。
     - Harvard Atlas 是 CC0。
+    - Epoch AI 是 CC BY。
+    - Anthropic Economic Index 是 CC BY。
+    - Microsoft AI Diffusion 是 MIT。
+    - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
     - 頁尾已標示各主題的來源。

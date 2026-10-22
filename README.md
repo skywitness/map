@@ -8,6 +8,7 @@
 - 產業結構
 - 工業
 - 農業
+- AI
 
 人口主題可以在地圖上框選範圍，估算框內人口。資料來源、架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
 
@@ -41,9 +42,9 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`income`、`sectors`、`agriculture`、`electricity`、`industry`。
+可用的步驟：`geo`、`population`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 450 MB（主要是 FAOSTAT 的貿易檔），世界銀行 API 比較慢，全部跑完約 10 分鐘。
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 700 MB（主要是 FAOSTAT 的貿易檔和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 10 分鐘。
 
 ## 建置
 
