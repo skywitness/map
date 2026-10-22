@@ -22,8 +22,13 @@ export const ai: TopicDefinition = {
       url: 'https://github.com/microsoft/ai-diffusion-report',
       license: 'MIT',
     },
+    {
+      name: 'OECD.AI（OpenRouter 資料）',
+      url: 'https://oecd.ai/en/data?selectedArea=ai-model-usage',
+      license: '未明示授權',
+    },
   ],
-  note: '沒有任何 AI 公司按國家公布 token 用量，「Claude 使用量」與「生成式 AI 使用率」是最接近的公開替代指標。算力只計入公開可查的 AI 運算叢集；數據中心數是 OpenStreetMap 上有標示的地點，各國完整度不一。',
+  note: 'token 用量只有 OpenRouter 這個 API 轉接平台的資料（OECD.AI 整理），不是各國的全部 AI 用量；AI 公司本身都沒有按國家公布 token 用量。算力只計入公開可查的 AI 運算叢集；數據中心數是 OpenStreetMap 上有標示的地點，各國完整度不一。',
   panelExtra: () => import('./panels/AiPanel'),
   indicators: [
     {
@@ -60,6 +65,18 @@ export const ai: TopicDefinition = {
       layer: { kind: 'bubble', legendValues: [1, 10, 50] },
       format: (v) => `${fixed(v, 0)} 個`,
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'openrouter-tokens',
+      label: 'token 用量（OpenRouter）',
+      description:
+        '透過 OpenRouter（串接各家 AI 模型的 API 平台）呼叫 AI 模型的 token 量，每年取每月平均，2026 年為 1–7 月。依請求發出的地點計算，新加坡、德國等伺服器集中的地方會偏高；只代表這個平台，不是全國總用量。',
+      unit: 'tokens/月',
+      file: 'openrouter-tokens.json',
+      layer: { kind: 'bubble', legendValues: 'auto' },
+      format: (v) => `${formatLargeNumber(v)} tokens/月`,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
     },
     {
       id: 'claude-share',

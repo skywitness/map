@@ -1,11 +1,16 @@
+import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
+import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
 import { useJson } from '../../lib/data';
-import { fixed, formatLargeNumber } from '../../lib/format';
+import { fixed, formatLargeNumber, formatLargeTick } from '../../lib/format';
+import type { Tokens } from '../../theme/tokens';
 import type { PanelExtraProps } from '../types';
 
 interface AiFile {
   datacenters?: { count: number; snapshot: string; operators: [string, number][]; unnamed: number };
   clusters?: { name: string; owner: string; h100e: number; year: number; sector: string }[];
+  /** OECD.AI 的 OpenRouter 資料：逐月 token 量 */
+  openrouter?: { months: string[]; tokens: number[]; world: number[] };
   models?: { name: string; organization: string; date: string }[];
   modelCount?: number;
   /** Anthropic Economic Index：用途與產出類型的比例（%） */
@@ -54,8 +59,12 @@ const ARTIFACTS: Record<string, string> = {
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
 
-export default function AiPanel({ topic, iso3, countryName }: PanelExtraProps) {
+export default function AiPanel({ topic, iso3, countryName, tokens }: PanelExtraProps) {
   const { data, error } = useJson<AiFile>(`topics/${topic.id}/countries/${iso3}.json`);
+  const tokenOption = useMemo(
+    () => (data?.openrouter ? monthlyTokensOption(data.openrouter, countryName, tokens) : null),
+    [data, countryName, tokens],
+  );
   if (error) return <p className="empty">Epoch AI 與 Anthropic 的資料都沒有收錄這個國家。</p>;
   if (!data) return <p className="empty">載入中…</p>;
 
@@ -88,6 +97,25 @@ export default function AiPanel({ topic, iso3, countryName }: PanelExtraProps) {
           {data.datacenters.unnamed > 0 && (
             <p className="note">另有 {data.datacenters.unnamed} 處沒有標示營運者。</p>
           )}
+        </>
+      )}
+
+      {data.openrouter && tokenOption && (
+        <>
+          <h3>每月 token 用量（OpenRouter）</h3>
+          <p className="panel-year-note">
+            {formatMonth(data.openrouter.months[data.openrouter.months.length - 1])}：
+            {formatLargeNumber(data.openrouter.tokens[data.openrouter.tokens.length - 1])} tokens，占全球{' '}
+            {fixed(
+              (data.openrouter.tokens[data.openrouter.tokens.length - 1] /
+                data.openrouter.world[data.openrouter.world.length - 1]) *
+                100,
+              2,
+            )}
+            %
+          </p>
+          <EChart option={tokenOption} height={180} ariaLabel={`${countryName}每月 OpenRouter token 用量`} />
+          <p className="note">只代表透過 OpenRouter 平台呼叫 AI 模型的用量，依請求發出的地點計算。</p>
         </>
       )}
 
@@ -148,4 +176,66 @@ export default function AiPanel({ topic, iso3, countryName }: PanelExtraProps) {
       )}
     </section>
   );
+}
+
+function monthlyTokensOption(
+  series: NonNullable<AiFile['openrouter']>,
+  countryName: string,
+  tokens: Tokens,
+): ChartOption {
+  return {
+    animation: false,
+    grid: { left: 4, right: 12, top: 8, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
+      backgroundColor: tokens.surface,
+      borderColor: tokens.border,
+      textStyle: { color: tokens.ink, fontSize: 12 },
+      formatter: (params) => {
+        const p = (Array.isArray(params) ? params : [params])[0];
+        const month = String((p as { axisValue?: string }).axisValue ?? '');
+        return (
+          `<div class="tt-head">${escapeHtml(formatMonth(month))}</div>` +
+          `<div class="tt-row"><strong>${escapeHtml(formatLargeNumber(Number(p.value)))} tokens</strong>` +
+          `<span class="tt-name">${escapeHtml(countryName)}</span></div>`
+        );
+      },
+    },
+    xAxis: {
+      type: 'category',
+      data: series.months,
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: tokens.axis } },
+      axisTick: { show: false },
+      axisLabel: {
+        color: tokens.inkMuted,
+        fontSize: 11,
+        // 只標每年 1 月與 7 月
+        interval: (_i: number, v: string) => v.endsWith('-01') || v.endsWith('-07'),
+        formatter: (v: string) => (v.endsWith('-01') ? v.slice(0, 4) : `${Number(v.slice(5))} 月`),
+      },
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
+      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => formatLargeTick(v) },
+    },
+    series: [
+      {
+        type: 'line',
+        name: countryName,
+        data: series.tokens,
+        showSymbol: false,
+        color: tokens.accent,
+        lineStyle: { width: 2, color: tokens.accent },
+        emphasis: { disabled: true },
+      },
+    ],
+  };
+}
+
+/** '2026-07' → '2026 年 7 月' */
+function formatMonth(month: string): string {
+  return `${month.slice(0, 4)} 年 ${Number(month.slice(5, 7))} 月`;
 }

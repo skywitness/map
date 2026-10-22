@@ -12,7 +12,7 @@ from datetime import date
 
 from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json
 from geoindex import country_at
-from sources import epoch, osm
+from sources import epoch, oecd_ai, osm
 from sources.countries import ISO3, from_name, to_iso3
 
 OUT = OUT_DIR / "topics" / "ai"
@@ -132,13 +132,55 @@ def diffusion() -> None:
     write_json(OUT / "ai-adoption.json", indicator_file("ai-adoption", "%", years, values))
 
 
+def openrouter() -> dict[str, dict]:
+    """透過 OpenRouter 呼叫 AI 模型的 token 量（OECD.AI）。地圖用每年的「每月平均」，側欄給逐月資料。
+
+    2026 年只有部分月份，用平均值才能跟完整的 2025 年比較；用量成長很快，年內後幾個月會拉高平均。
+    """
+    rows = oecd_ai.tokens_by_country_month()
+    months = sorted({r["month"] for r in rows})
+    monthly: dict[str, dict[int, float]] = defaultdict(dict)
+    for r in rows:
+        code = r["request_country"]
+        area = "WLD" if code == "ALL" else (to_iso3(code) or from_name(code))
+        if area and r["total_tokens"] is not None:
+            monthly[area][r["month"]] = monthly[area].get(r["month"], 0) + r["total_tokens"] * 1e6
+
+    years = sorted({m // 100 for m in months})
+    months_in = {y: [m for m in months if m // 100 == y] for y in years}
+
+    def yearly_average(series: dict[int, float]) -> list:
+        return [round(sum(series.get(m, 0) for m in months_in[y]) / len(months_in[y])) for y in years]
+
+    world = monthly.pop("WLD", {})
+    partial = {y: len(ms) for y, ms in months_in.items() if len(ms) < 12}
+    write_json(OUT / "openrouter-tokens.json", indicator_file(
+        "openrouter-tokens", "tokens/月", years,
+        {a: yearly_average(s) for a, s in monthly.items()},
+        aggregates={"WLD": yearly_average(world)},
+        period={str(y): f"{n} 個月平均" for y, n in partial.items()},
+    ))
+    print(f"  OpenRouter：{months[0]}–{months[-1]}，{len(monthly)} 個國家")
+    labels = [f"{m // 100}-{m % 100:02d}" for m in months]
+    return {
+        a: {"months": labels, "tokens": [round(s.get(m, 0)) for m in months], "world": [round(world.get(m, 0)) for m in months]}
+        for a, s in monthly.items()
+    }
+
+
 def country_details(
-    clusters: list[epoch.Cluster], all_models: list[epoch.Model], usage: dict, centers: dict[str, dict]
+    clusters: list[epoch.Cluster],
+    all_models: list[epoch.Model],
+    usage: dict,
+    centers: dict[str, dict],
+    tokens: dict[str, dict],
 ) -> None:
     latest = epoch.operational_at(clusters, date.today())
     details: dict[str, dict] = defaultdict(dict)
     for iso3, info in centers.items():
         details[iso3]["datacenters"] = info
+    for iso3, info in tokens.items():
+        details[iso3]["openrouter"] = info
     for iso3 in {c.country for c in latest}:
         top = sorted((c for c in latest if c.country == iso3), key=lambda c: -c.h100e)[:TOP_CLUSTERS]
         details[iso3]["clusters"] = [
@@ -170,11 +212,12 @@ def build() -> None:
     usage = claude_usage()
     diffusion()
     centers, osm_timestamp = datacenters()
-    country_details(clusters, all_models, usage, centers)
+    tokens = openrouter()
+    country_details(clusters, all_models, usage, centers, tokens)
     write_json(OUT / "manifest.json", {
         "topic": "ai",
         "generatedAt": now_iso(),
-        "source": "OpenStreetMap; Epoch AI; Anthropic Economic Index; Microsoft AI Economy Institute",
+        "source": "OpenStreetMap; Epoch AI; Anthropic Economic Index; Microsoft AI Economy Institute; OECD.AI (OpenRouter)",
         "osmTimestamp": osm_timestamp,
     })
 
