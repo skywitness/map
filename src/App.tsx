@@ -1,8 +1,11 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from 'react';
 import type { Topology } from 'topojson-specification';
+import { ShareMenu } from './controls/ShareMenu';
 import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
+import { indicatorCsv } from './lib/csv';
 import { useJson, useJsonMany } from './lib/data';
+import { downloadBlob, safeFilename } from './lib/download';
 import { useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
@@ -12,9 +15,9 @@ import {
   type PopulationGrid,
 } from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
-import { BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
-import { WorldMap } from './map/WorldMap';
+import { WorldMap, type WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
@@ -34,6 +37,8 @@ const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ d
 
 /** 指標超過這個數量就改用下拉選單 */
 const MAX_SEGMENTS = 5;
+
+const DISCLAIMER = '國界與名稱僅為資料呈現，不代表任何政治立場。';
 
 interface Manifest {
   generatedAt: string;
@@ -96,6 +101,39 @@ export function App() {
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? `${itemLabel}${indicator.label}` : indicator.label;
+
+  /* ── 分享：圖片、CSV、連結 ───────────── */
+  const mapHandle = useRef<WorldMapHandle>(null);
+  const viewTitle = pure
+    ? topic.title
+    : `${topic.title} · ${indicatorTitle} · ${year} 年${projected ? '（推估值）' : ''}`;
+  const fileBase = safeFilename(pure ? '世界地圖' : `世界資料地圖_${topic.shortTitle}_${indicatorTitle}`);
+
+  const downloadImage = async () => {
+    if (!mapHandle.current) throw new Error('地圖還沒載入');
+    // 純地圖頁的國界是底圖本身的，資料主題另外畫 Natural Earth 的國界
+    const credits = pure
+      ? [`底圖：${BASEMAP_ATTRIBUTION}`, DISCLAIMER]
+      : [
+          `資料來源：${topic.sources.map((s) => `${s.name}（${s.license}）`).join('、')}`,
+          `底圖：${BASEMAP_ATTRIBUTION}`,
+          `國界：Natural Earth（公有領域）。${DISCLAIMER}`,
+        ];
+    credits.push(window.location.href);
+    const blob = await mapHandle.current.exportImage({
+      title: viewTitle,
+      subtitle: pure ? undefined : indicator.description,
+      credits,
+    });
+    downloadBlob(blob, `${fileBase}${pure ? '' : `_${year}`}.png`);
+  };
+
+  const downloadCsv = (single: boolean) => {
+    if (!data) return;
+    const text = indicatorCsv(data, { unit: indicator.unit, countries, year: single ? year : undefined });
+    const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
+    downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}_${range}.csv`);
+  };
 
   const renderAirportTooltip = (index: number) => {
     const row = airports?.rows[index];
@@ -258,6 +296,15 @@ export function App() {
               ))}
             </div>
           )}
+          <ShareMenu
+            shareTitle={`${viewTitle}｜世界資料地圖`}
+            onDownloadImage={view === 'map' ? downloadImage : undefined}
+            csv={
+              data && !pure
+                ? { year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                : undefined
+            }
+          />
         </div>
       </div>
       <p className="indicator-desc">{indicator.description}</p>
@@ -268,6 +315,7 @@ export function App() {
           {view === 'map' ? (
             features && (data || pure) ? (
               <WorldMap
+                ref={mapHandle}
                 countries={features}
                 indicator={indicator}
                 legendTitle={indicatorTitle}

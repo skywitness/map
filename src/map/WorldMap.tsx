@@ -7,7 +7,7 @@
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import {
   Map as MaplibreMap,
   type ExpressionSpecification,
@@ -21,12 +21,13 @@ import {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
 import type { AirportsData, IndicatorDef } from '../topics/types';
-import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import { MAP_TOKENS, SPACE_GRADIENT, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
 import type { CountryFeature } from './geometry';
-import { BubbleLegend, ChoroplethLegend } from './Legend';
-import { DEFAULT_LAYERS, LayerControls, type LayerVisibility } from './Overlays';
+import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
+import { BubbleLegend, bubbleLegendModel, ChoroplethLegend, choroplethLegendModel } from './Legend';
+import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
 import { useElementSize } from './useElementSize';
 
@@ -63,6 +64,12 @@ interface WorldMapProps {
   basemap: Basemap;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
+  ref?: Ref<WorldMapHandle>;
+}
+
+export interface WorldMapHandle {
+  /** 把目前的地圖畫面加上標題、圖例與來源，輸出成 PNG */
+  exportImage: (content: MapImageContent) => Promise<Blob>;
 }
 
 const INITIAL_CENTER: [number, number] = [105, 22];
@@ -227,6 +234,8 @@ function dataLayers(dark: boolean): LayerSpecification[] {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
+const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+
 /**
  * world-atlas 的國界是給 D3 的球面幾何用的，跨 180° 經線的國家（斐濟、俄羅斯遠東）座標會從 179.9 跳到 −179.9。
  * MapLibre 把座標當平面處理，會畫出一條橫越整個地圖的邊，所以把每個 ring 的經度展開成連續的（可以超過 ±180）。
@@ -258,7 +267,7 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false } = props;
+  const { basemap, fitOnSelect = false, ref } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   /** 目前地圖上實際載入的底圖（切換時比對用） */
@@ -654,12 +663,43 @@ export function WorldMap(props: WorldMapProps) {
 
   const hasOverlays = Boolean(railways || airports);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      exportImage: async (content) => {
+        const map = mapRef.current;
+        if (!map || !installedRef.current) throw new Error('地圖還沒載入完成');
+        // 圖例跟畫面上的一樣：數值圖例，加上目前開著的疊加圖層
+        const legend: ImageLegend | null = colorScale
+          ? { kind: 'choropleth', title: legendTitle, unit: indicator.unit, model: choroplethLegendModel(indicator, colorScale) }
+          : indicator.layer.kind === 'bubble'
+            ? { kind: 'bubble', title: legendTitle, unit: indicator.unit, model: bubbleLegendModel(indicator, radius) }
+            : null;
+        const layerKeys = onLayersChange
+          ? LAYER_KEYS.filter((k) => (k.source === 'railways' ? railways : airports) && layers[k.key]).map((key) => ({
+              key,
+              color: layerKeyColor(key, tokens),
+            }))
+          : [];
+        const { canvas, ratio } = await captureMap(map);
+        return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
+      },
+    }),
+    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens],
+  );
+
   return (
     <div
       ref={containerRef}
       className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}${fullscreen ? ' is-fullscreen' : ''}`}
     >
-      <div ref={mapNodeRef} className="map-canvas" role="img" aria-label={ariaLabel} />
+      <div
+        ref={mapNodeRef}
+        className="map-canvas"
+        style={{ background: SPACE_BACKGROUND }}
+        role="img"
+        aria-label={ariaLabel}
+      />
       {failed && <p className="error map-error">底圖載入失敗，請檢查網路連線後重新整理。</p>}
 
       <div className="map-zoom" role="group" aria-label="地圖控制">
@@ -726,7 +766,7 @@ export function WorldMap(props: WorldMapProps) {
             onChange={onLayersChange}
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
-            tokens={MAP_TOKENS}
+            tokens={tokens}
           />
         )}
         {colorScale ? (

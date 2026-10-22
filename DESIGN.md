@@ -45,12 +45,12 @@ public/data/                              ← 靜態 JSON，會進版本控制
 src/
    ├─ topics/          每個主題一個設定檔（TopicDefinition）  ← 新增主題主要改這裡
    │   └─ panels/      主題自訂的側欄區塊（動態載入）
-   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx）：資料圖層、圖例、tooltip、框選、疊加圖層
+   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx）：資料圖層、圖例、tooltip、框選、疊加圖層、匯出圖片
    ├─ charts/          ECharts 包裝、折線／堆疊面積 option、長條清單
    ├─ panels/          國家側欄、排名表、框選結果
-   ├─ controls/        時間軸
+   ├─ controls/        時間軸、分享選單
    ├─ theme/           顏色 token（唯一來源）、深淺色切換
-   └─ lib/             資料讀取、國名、網址狀態、數字格式
+   └─ lib/             資料讀取、國名、網址狀態、數字格式、CSV 與下載
 
 pipeline/
    ├─ run.py           入口：npm run data -- <步驟>
@@ -63,7 +63,17 @@ pipeline/
 
 **所有資料一律用 ISO 3166-1 alpha-3 對應**（`TWN`、`JPN`…）。各來源的代碼在 `pipeline/sources/countries.py` 統一轉換。
 
-畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `box=` 參數。
+畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數。
+
+**分享選單**（控制列右邊的「分享」，`src/controls/ShareMenu.tsx`）：
+- **下載地圖圖片（PNG）**：只有地圖檢視有。內容是目前的地圖畫面，上面加標題（主題 · 指標 · 年份）與指標說明，左下角是圖例（跟畫面上一樣，含開著的疊加圖層），下面是資料來源、底圖版權（OpenFreeMap © OpenMapTiles © OpenStreetMap contributors）、國界來源與這個畫面的網址。做法見第 10 節。
+- **下載 CSV**：目前的指標，可選「選定的年份」或「所有年份」，排名表檢視也有（`src/lib/csv.ts`）。
+  - 欄位：ISO3、國名、英文名、單位，接著每年一欄；推估年份的欄名加「（推估）」，有附註的指標最後多一欄「附註」，世界合計放在最後一列。
+  - 單一年份依數值由大到小排（跟排名表一樣），所有年份依國名排。
+  - 數值是原始數字（不加千分位、不換算成萬、億），試算表可以直接計算。
+  - 開頭有 UTF-8 BOM、換行用 CRLF，Excel 直接開啟中文不會變亂碼。
+- **複製連結**：複製網址，按鈕下方顯示「已複製連結」。手機（觸控為主的裝置）而且瀏覽器支援 `navigator.share` 時改成「分享連結…」，打開系統的分享面板；分享失敗時改用複製。
+- 純地圖頁沒有 CSV。選單可以用鍵盤操作：↑↓ 移動、Home/End、Esc 關閉並回到按鈕。
 
 ## 3. 資料格式
 
@@ -133,7 +143,7 @@ pipeline/
     - 這些顏色都跟原本藍色色階同一階的 OKLCH 亮度，只換色相。
     - 地圖固定是明亮的彩色底圖，不跟著介面切深淺色。
   - 多系列圖表用 8 個類別色，排列順序用配色驗證工具檢查過色盲分辨度（發電結構的能源配色見 `ElectricityPanel.tsx`）。
-- **地圖背景**：地球儀外面是黑色太空，邊緣有一圈淡藍色大氣層。
+- **地圖背景**：地球儀外面是黑色太空（`tokens.ts` 的 `SPACE_GRADIENT`，畫面與匯出圖片共用），邊緣有一圈淡藍色大氣層。
 - **底圖切換**（`src/map/basemaps.ts`）：
   - 可選彩色地形、亮色街道、淺灰、深色、深藍五種，選擇記在瀏覽器的 localStorage。
   - 切換時用 `setStyle` 換樣式，再重新加上資料圖層。
@@ -272,6 +282,13 @@ pipeline/
   - MapLibre 會等畫面更新（requestAnimationFrame）才處理樣式與繪製，分頁隱藏時會停住。
   - 自動化測試要用可見視窗，或用無頭 Chrome（puppeteer-core 搭配系統的 Chrome，加上 `--use-angle=swiftshader`）。
   - 開發模式下 `window.__map` 是地圖物件，方便在主控台檢查。
+- **匯出地圖圖片**（`src/map/exportImage.ts`）：
+  - WebGL 畫布沒有開 `preserveDrawingBuffer`：開了之後每一格都要多複製一次緩衝區，平常拖曳、縮放都會變慢。
+  - 所以只在匯出時呼叫 `triggerRepaint()`，在 `idle` 事件裡把畫面複製到 2D 畫布。MapLibre 的 `idle` 是在圖磚都載入完的那一格畫完後、同一個呼叫裡觸發的，這時緩衝區還沒被清掉。圖磚 10 秒內載不完就改用下一次 `render` 的畫面。
+  - 匯出時把像素比例暫時調到至少 2 倍（`setPixelRatio`），圖片在高解析度螢幕上看也清楚，複製完立刻還原。
+  - 太空的部分在 WebGL 畫布上是透明的（畫面上靠 CSS 背景），匯出時先畫同樣的放射漸層。
+  - 標題、圖例、來源都畫在 2D 畫布上；圖例的版面（`choroplethLegendModel`、`bubbleLegendModel`、`LAYER_KEYS`）跟畫面上的圖例共用，改圖例時兩邊會一起變。
+  - 驗證要實際產生圖片：用無頭 Chrome（同上）點「分享 → 下載地圖圖片」，用 CDP 的 `Browser.setDownloadBehavior` 指定下載資料夾，再打開檔案看。
 - **Vite 讀到寫到一半的檔案**：
   - 用腳本連續改同一個檔案時，Vite 偶爾會在檔案寫到一半時讀進來並快取住，瀏覽器出現「does not provide an export named …」。
   - 用 `touch` 該檔案重新觸發轉換即可。
