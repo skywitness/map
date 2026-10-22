@@ -8,7 +8,7 @@
  * - 3D 模式（fill-extrusion）：面量圖把國家依色階分級拉高，比例圓改成高度與數值成正比的柱子
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import { bisectRight } from 'd3-array';
 import {
   Map as MaplibreMap,
@@ -23,12 +23,13 @@ import {
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
 import type { AirportsData, IndicatorDef } from '../topics/types';
-import { MAP_TOKENS, TOKENS, type Tokens } from '../theme/tokens';
+import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
 import type { CountryFeature } from './geometry';
-import { BubbleLegend, ChoroplethLegend, ColumnLegend } from './Legend';
-import { DEFAULT_LAYERS, LayerControls, type LayerVisibility } from './Overlays';
+import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
+import { BubbleLegend, bubbleLegendModel, ChoroplethLegend, choroplethLegendModel, ColumnLegend, columnLegendModel } from './Legend';
+import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
 import { useElementSize } from './useElementSize';
 
@@ -68,6 +69,12 @@ interface WorldMapProps {
   /** 3D 立體地圖；有傳 onThreeDChange 才會出現 3D 按鈕 */
   threeD?: boolean;
   onThreeDChange?: (on: boolean) => void;
+  ref?: Ref<WorldMapHandle>;
+}
+
+export interface WorldMapHandle {
+  /** 把目前的地圖畫面加上標題、圖例與來源，輸出成 PNG */
+  exportImage: (content: MapImageContent) => Promise<Blob>;
 }
 
 const INITIAL_CENTER: [number, number] = [105, 22];
@@ -336,6 +343,8 @@ function dataLayers(dark: boolean): LayerSpecification[] {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 
+const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+
 /**
  * world-atlas 的國界是給 D3 的球面幾何用的，跨 180° 經線的國家（斐濟、俄羅斯遠東）座標會從 179.9 跳到 −179.9。
  * MapLibre 把座標當平面處理，會畫出一條橫越整個地圖的邊，所以把每個 ring 的經度展開成連續的（可以超過 ±180）。
@@ -379,7 +388,7 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { basemap, fitOnSelect = false, threeD = false, onThreeDChange } = props;
+  const { basemap, fitOnSelect = false, threeD = false, onThreeDChange, ref } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   const threeDRef = useRef(threeD);
@@ -884,12 +893,47 @@ export function WorldMap(props: WorldMapProps) {
 
   const hasOverlays = Boolean(railways || airports);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      exportImage: async (content) => {
+        const map = mapRef.current;
+        if (!map || !installedRef.current) throw new Error('地圖還沒載入完成');
+        // 圖例跟畫面上的一樣：數值圖例（3D 時是階梯色塊或柱子），加上目前開著的疊加圖層
+        const title = legendTitle;
+        const unit = indicator.unit;
+        const legend: ImageLegend | null = colorScale
+          ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD }
+          : indicator.layer.kind !== 'bubble'
+            ? null
+            : threeD
+              ? { kind: 'column', title, unit, model: columnLegendModel(indicator, bubbleMax), color: MAP_TOKENS.accent }
+              : { kind: 'bubble', title, unit, model: bubbleLegendModel(indicator, radius) };
+        const layerKeys = onLayersChange
+          ? LAYER_KEYS.filter((k) => (k.source === 'railways' ? railways : airports) && layers[k.key]).map((key) => ({
+              key,
+              color: layerKeyColor(key, tokens),
+            }))
+          : [];
+        const { canvas, ratio } = await captureMap(map);
+        return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
+      },
+    }),
+    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax],
+  );
+
   return (
     <div
       ref={containerRef}
       className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}${fullscreen ? ' is-fullscreen' : ''}`}
     >
-      <div ref={mapNodeRef} className="map-canvas" role="img" aria-label={ariaLabel} />
+      <div
+        ref={mapNodeRef}
+        className="map-canvas"
+        style={{ background: SPACE_BACKGROUND }}
+        role="img"
+        aria-label={ariaLabel}
+      />
       {failed && <p className="error map-error">底圖載入失敗，請檢查網路連線後重新整理。</p>}
 
       <div className="map-zoom" role="group" aria-label="地圖控制">
@@ -990,7 +1034,7 @@ export function WorldMap(props: WorldMapProps) {
             onChange={onLayersChange}
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
-            tokens={MAP_TOKENS}
+            tokens={tokens}
           />
         )}
         {colorScale ? (

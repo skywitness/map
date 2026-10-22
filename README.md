@@ -1,6 +1,6 @@
 # 世界資料地圖
 
-用世界地圖瀏覽各國資料。除了純地圖頁，目前有八個資料主題：
+用世界地圖瀏覽各國資料。除了純地圖頁，目前有九個資料主題：
 
 - 人口
 - 人均收入
@@ -10,8 +10,13 @@
 - 農業
 - AI
 - 交通
+- 氣候（二氧化碳排放）
 
-地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口。資料來源、架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
+地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口。
+
+每個畫面右上角的「分享」可以下載地圖圖片（PNG，含標題、圖例與資料來源）、下載目前指標的 CSV（選定年份或所有年份，Excel 可直接開啟），或複製這個畫面的連結。
+
+資料來源、架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
 
 網站：https://skywitness.github.io/map/
 
@@ -43,7 +48,7 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 
