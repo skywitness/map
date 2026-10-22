@@ -111,6 +111,8 @@ export interface TopicDefinition {
   note?: string;
   /** 疊加圖層（鐵路、機場），使用者可以在地圖上開關 */
   overlays?: OverlayDef[];
+  /** 純地圖頁：不載入任何統計資料，不顯示指標、時間軸與資料側欄 */
+  pure?: boolean;
 }
 
 export function indicatorPath(topic: TopicDefinition, indicator: IndicatorDef, item: string | null): string {

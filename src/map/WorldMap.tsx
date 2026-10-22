@@ -2,7 +2,7 @@
  * 地圖引擎：MapLibre GL（WebGL 向量地圖），底圖用 OpenFreeMap 的 Liberty 樣式
  * （低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節），預設地球儀。
  *
- * 資料圖層都插在底圖的文字標籤下面，地名永遠看得到：
+ * 資料圖層插在底圖的道路、國界之上、文字標籤之下，地名永遠看得到：
  * - 面量圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
@@ -22,6 +22,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
 import type { AirportsData, IndicatorDef } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
 import type { CountryFeature } from './geometry';
 import { BubbleLegend, ChoroplethLegend } from './Legend';
@@ -58,9 +59,12 @@ interface WorldMapProps {
   layers?: LayerVisibility;
   onLayersChange?: (layers: LayerVisibility) => void;
   renderAirportTooltip?: (index: number) => ReactNode;
+  /** 底圖樣式（陸地、海洋的配色） */
+  basemap: Basemap;
+  /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
+  fitOnSelect?: boolean;
 }
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 const INITIAL_CENTER: [number, number] = [105, 22];
 
 /** 讓地球儀的直徑大約等於地圖高度（MapLibre 的地球半徑約為 512·2^z / 2π 的 0.85 倍） */
@@ -89,9 +93,9 @@ const ZH_NAME: ExpressionSpecification = [
   ['coalesce', ['get', 'name:zh'], ['get', 'name']],
 ];
 
-/** 下載 Liberty 樣式，改成中文地名、地球儀投影、黑色太空背景 */
-async function loadBaseStyle(): Promise<StyleSpecification> {
-  const style = (await fetch(STYLE_URL).then((r) => r.json())) as StyleSpecification;
+/** 下載底圖樣式，改成中文地名、地球儀投影、黑色太空背景 */
+async function loadBaseStyle(url: string): Promise<StyleSpecification> {
+  const style = (await fetch(url).then((r) => r.json())) as StyleSpecification;
   for (const layer of style.layers) {
     if (layer.type !== 'symbol') continue;
     const field = layer.layout?.['text-field'];
@@ -119,8 +123,9 @@ function fillOpacity(on: number): ExpressionSpecification {
   ];
 }
 
-function dataLayers(): LayerSpecification[] {
+function dataLayers(dark: boolean): LayerSpecification[] {
   const t = MAP_TOKENS;
+  const ink = dark ? '#ffffff' : t.ink;
   const hovered: ExpressionSpecification = ['boolean', ['feature-state', 'hover'], false];
   const tinyOn: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
   return [
@@ -131,11 +136,23 @@ function dataLayers(): LayerSpecification[] {
       paint: { 'fill-color': ['coalesce', ['feature-state', 'fill'], NO_DATA], 'fill-opacity': fillOpacity(0.82) },
     },
     {
+      // 面量圖開著時，國界改用跟上色同一份幾何畫，並隱藏底圖的國界，才不會出現兩條錯開的線
+      id: 'data-border',
+      type: 'line',
+      source: 'countries',
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': dark ? '#f0efec' : '#3d3d3a',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 6, 0.9, 10, 1.4],
+        'line-opacity': fillOpacity(0.55),
+      },
+    },
+    {
       id: 'data-highlight',
       type: 'line',
       source: 'countries',
       paint: {
-        'line-color': t.ink,
+        'line-color': ink,
         'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, hovered, 1.4, 0],
       },
     },
@@ -145,7 +162,7 @@ function dataLayers(): LayerSpecification[] {
       source: 'railways',
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
-        'line-color': '#4a4a46',
+        'line-color': dark ? '#d6d4cc' : '#4a4a46',
         'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 5, 1, 9, 1.6],
         // 放大到 9 級以後底圖本身就有更精細的鐵路，簡化過的線淡出
         'line-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.75, 10, 0],
@@ -174,7 +191,7 @@ function dataLayers(): LayerSpecification[] {
         'circle-radius': ['get', 'r'],
         'circle-color': t.accent,
         'circle-opacity': 0.72,
-        'circle-stroke-color': ['case', hovered, t.ink, '#ffffff'],
+        'circle-stroke-color': ['case', hovered, ink, '#ffffff'],
         'circle-stroke-width': ['case', hovered, 1.6, 1],
       },
     },
@@ -204,7 +221,7 @@ function dataLayers(): LayerSpecification[] {
       },
     },
     { id: 'box-fill', type: 'fill', source: 'box', paint: { 'fill-color': t.accent, 'fill-opacity': 0.12 } },
-    { id: 'box-line', type: 'line', source: 'box', paint: { 'line-color': t.ink, 'line-width': 1.5 } },
+    { id: 'box-line', type: 'line', source: 'box', paint: { 'line-color': ink, 'line-width': 1.5 } },
   ];
 }
 
@@ -241,12 +258,21 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
+  const { basemap, fitOnSelect = false } = props;
+  const basemapRef = useRef(basemap);
+  basemapRef.current = basemap;
+  /** 目前地圖上實際載入的底圖（切換時比對用） */
+  const loadedBasemapRef = useRef<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapNodeRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
   const size = useElementSize(containerRef);
-  const [ready, setReady] = useState(false);
+  // 每次加上資料圖層（建立地圖、切換底圖）就加一；資料相關的 effect 都依它重跑，把資料重新套上
+  const [revision, setRevision] = useState(0);
+  const ready = revision > 0;
+  /** 資料圖層目前是否在地圖上（切換底圖、等新樣式載入的期間是 false） */
+  const installedRef = useRef(false);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
   const [hover, setHover] = useState<{ iso3: string; x: number; y: number; airport?: number } | null>(null);
@@ -277,6 +303,23 @@ export function WorldMap(props: WorldMapProps) {
     [countries],
   );
   const anchors = useMemo(() => new Map(countries.map((c) => [c.iso3, c.anchor])), [countries]);
+  // 各國的經緯度範圍（用展開過 180° 經線的座標，俄羅斯、斐濟才不會變成橫跨全球）
+  const countryBounds = useMemo(() => {
+    const out = new Map<string, [[number, number], [number, number]]>();
+    for (const f of countryCollection.features) {
+      let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+      for (const polygon of (f.geometry as GeoJSON.MultiPolygon).coordinates) {
+        for (const [x, y] of polygon[0]) {
+          w = Math.min(w, x);
+          e = Math.max(e, x);
+          s = Math.min(s, y);
+          n = Math.max(n, y);
+        }
+      }
+      out.set(f.properties!.iso3 as string, [[w, s], [e, n]]);
+    }
+    return out;
+  }, [countryCollection]);
   const tinyCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
       type: 'FeatureCollection',
@@ -287,11 +330,27 @@ export function WorldMap(props: WorldMapProps) {
     [countries],
   );
 
+  /** 加上資料用的 source 與圖層；建立地圖與切換底圖後都要做 */
+  const installDataLayers = (m: MaplibreMap, dark: boolean) => {
+    for (const id of ['countries', 'tiny', 'bubbles']) {
+      m.addSource(id, { type: 'geojson', data: EMPTY, promoteId: 'iso3' });
+    }
+    for (const id of ['railways', 'airports', 'box']) m.addSource(id, { type: 'geojson', data: EMPTY });
+    // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
+    // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
+    const styleLayers = m.getStyle().layers;
+    const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
+    const beforeId = styleLayers[lastShape + 1]?.id;
+    for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
+    installedRef.current = true;
+  };
+
   /* ── 建立地圖（只做一次） ─────────────── */
   useEffect(() => {
     let cancelled = false;
     let map: MaplibreMap | null = null;
-    loadBaseStyle()
+    const initial = basemapRef.current;
+    loadBaseStyle(initial.url)
       .then((style) => {
         if (cancelled || !mapNodeRef.current) return;
         map = new MaplibreMap({
@@ -310,15 +369,11 @@ export function WorldMap(props: WorldMapProps) {
         // 開發時方便在瀏覽器主控台檢查地圖狀態
         if (import.meta.env.DEV) (window as unknown as { __map?: MaplibreMap }).__map = m;
         m.on('load', () => {
-          for (const id of ['countries', 'tiny', 'bubbles']) {
-            m.addSource(id, { type: 'geojson', data: EMPTY, promoteId: 'iso3' });
-          }
-          for (const id of ['railways', 'airports', 'box']) m.addSource(id, { type: 'geojson', data: EMPTY });
-          const firstLabel = m.getStyle().layers.find((l) => l.type === 'symbol')?.id;
-          for (const layer of dataLayers()) m.addLayer(layer, firstLabel);
+          installDataLayers(m, initial.dark);
+          loadedBasemapRef.current = initial.id;
           // 窄螢幕時版權標示預設是展開的，會蓋住地圖下緣；先收合成 ⓘ 按鈕
           m.getContainer().querySelector('.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
-          setReady(true);
+          setRevision((r) => r + 1);
         });
         bindEvents(m);
       })
@@ -415,18 +470,53 @@ export function WorldMap(props: WorldMapProps) {
     });
   }
 
+  /* ── 切換底圖：換樣式後重新加上資料圖層，revision 加一後下面的 effect 會把資料重新套上 ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || loadedBasemapRef.current === null || loadedBasemapRef.current === basemap.id) return;
+    let cancelled = false;
+    loadBaseStyle(basemap.url).then((style) => {
+      if (cancelled) return;
+      installedRef.current = false;
+      hoverIdRef.current = null;
+      selectedRef.current = null;
+      map.once('style.load', () => {
+        if (cancelled) return;
+        installDataLayers(map, basemap.dark);
+        loadedBasemapRef.current = basemap.id;
+        setRevision((r) => r + 1);
+      });
+      map.setStyle(style, { diff: false });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [basemap]);
+
+  // 面量圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const own = indicator.layer.kind === 'choropleth';
+    for (const layer of map.getStyle().layers) {
+      if ('source-layer' in layer && layer['source-layer'] === 'boundary' && BASEMAP_COUNTRY_BORDER.test(layer.id)) {
+        map.setLayoutProperty(layer.id, 'visibility', own ? 'none' : 'visible');
+      }
+    }
+  }, [revision, indicator.layer.kind]);
+
   /* ── 資料 → 地圖 ─────────────────────── */
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     (map.getSource('countries') as GeoJSONSource).setData(countryCollection);
     (map.getSource('tiny') as GeoJSONSource).setData(tinyCollection);
-  }, [ready, countryCollection, tinyCollection]);
+  }, [revision, countryCollection, tinyCollection]);
 
   // 面量圖顏色放在 feature-state，換年份時只改狀態，不重送幾何
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     const on = indicator.layer.kind === 'choropleth';
     for (const c of countries) {
       const v = values.get(c.iso3);
@@ -434,11 +524,11 @@ export function WorldMap(props: WorldMapProps) {
       map.setFeatureState({ source: 'countries', id: c.iso3 }, { fill, on });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && v !== undefined });
     }
-  }, [ready, countries, values, colorScale, indicator.layer.kind]);
+  }, [revision, countries, values, colorScale, indicator.layer.kind]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     const features: GeoJSON.Feature[] =
       indicator.layer.kind === 'bubble'
         ? [...values]
@@ -450,39 +540,39 @@ export function WorldMap(props: WorldMapProps) {
             }))
         : [];
     (map.getSource('bubbles') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
-  }, [ready, values, radius, anchors, indicator.layer.kind]);
+  }, [revision, values, radius, anchors, indicator.layer.kind]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     (map.getSource('railways') as GeoJSONSource).setData(
       railways ? { type: 'Feature', properties: {}, geometry: railways } : EMPTY,
     );
-  }, [ready, railways]);
+  }, [revision, railways]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     const features: GeoJSON.Feature[] = (airports?.rows ?? []).map((row, i) => ({
       type: 'Feature',
       properties: { i, type: row[2], iso3: row[6] },
       geometry: { type: 'Point', coordinates: [row[0], row[1]] },
     }));
     (map.getSource('airports') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
-  }, [ready, airports]);
+  }, [revision, airports]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     const show = (id: string, visible: boolean) => map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
     show('rail', Boolean(railways) && layers.railways);
     show('airports-large', Boolean(airports) && layers.largeAirports);
     show('airports-medium', Boolean(airports) && layers.mediumAirports);
-  }, [ready, railways, airports, layers]);
+  }, [revision, railways, airports, layers]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     (map.getSource('box') as GeoJSONSource).setData(
       box ? { type: 'Feature', properties: {}, geometry: boxPolygon(box) } : EMPTY,
     );
@@ -497,16 +587,21 @@ export function WorldMap(props: WorldMapProps) {
     return () => {
       map.off('moveend', place);
     };
-  }, [ready, box]);
+  }, [revision, box]);
 
   // 選取的國家加粗外框；不在畫面上時（例如從搜尋或排名表選）把地圖轉過去
   const selectedRef = useRef<string | null>(null);
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     if (selectedRef.current) map.setFeatureState({ source: 'countries', id: selectedRef.current }, { selected: false });
     if (selected) map.setFeatureState({ source: 'countries', id: selected }, { selected: true });
     selectedRef.current = selected;
+    if (fitOnSelect && selected) {
+      const bounds = countryBounds.get(selected);
+      if (bounds) map.fitBounds(bounds, { padding: 48, maxZoom: 8, duration: 900 });
+      return;
+    }
     const anchor = selected ? anchors.get(selected) : undefined;
     if (!anchor) return;
     const center = map.getCenter();
@@ -515,12 +610,12 @@ export function WorldMap(props: WorldMapProps) {
     const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
     const behindGlobe = globe && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
     if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
-  }, [ready, selected, anchors, globe]);
+  }, [revision, selected, anchors, globe, fitOnSelect, countryBounds]);
 
   // 框選模式：拖曳用來畫框，不平移地圖
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     if (boxMode) {
       map.dragPan.disable();
       map.touchZoomRotate.disable();
@@ -538,13 +633,13 @@ export function WorldMap(props: WorldMapProps) {
     map.touchZoomRotate.enable();
     map.touchZoomRotate.disableRotation();
     map.getCanvas().style.cursor = '';
-  }, [ready, boxMode]);
+  }, [revision, boxMode]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map) return;
+    if (!ready || !map || !installedRef.current) return;
     map.setProjection({ type: globe ? 'globe' : 'mercator' });
-  }, [ready, globe]);
+  }, [revision, globe]);
 
   useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement === containerRef.current);

@@ -12,6 +12,7 @@ import {
   type PopulationGrid,
 } from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
+import { BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { WorldMap } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
@@ -43,6 +44,9 @@ export function App() {
   const [state, update] = useUrlState();
 
   const topic = getTopic(state.topic);
+  // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
+  const pure = Boolean(topic.pure);
+  const view = pure ? 'map' : state.view;
   const indicator =
     topic.indicators.find((i) => i.id === state.indicator) ??
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
@@ -52,15 +56,24 @@ export function App() {
 
   const geo = useJson<Topology>('geo/countries-50m.json');
   const countries = useJson<CountryTable>('countries.json').data;
-  const manifest = useJson<Manifest>(`topics/${topic.id}/manifest.json`).data;
-  const { data, loading, error } = useJson<IndicatorData>(indicatorPath(topic, indicator, item));
+  const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
+  const { data, loading, error } = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
+  const [basemapId, setBasemapId] = useState(readStoredBasemap);
+  const basemap = getBasemap(basemapId);
+  const chooseBasemap = (id: string) => {
+    setBasemapId(id);
+    storeBasemap(id);
+  };
 
   const features = useMemo(() => (geo.data ? toCountryFeatures(geo.data) : null), [geo.data]);
 
   const years = data?.years ?? [topic.defaultYear];
   const year = pickYear(years, state.year, topic.defaultYear);
   const yearIndex = data ? data.years.indexOf(year) : -1;
-  const values = useMemo(() => (data ? valuesAt(data, yearIndex) : new Map<string, number>()), [data, yearIndex]);
+  const values = useMemo(
+    () => (data && !pure ? valuesAt(data, yearIndex) : new Map<string, number>()),
+    [data, yearIndex, pure],
+  );
   const bubbleMax = useMemo(() => (data ? maxAcrossYears(data) : 1), [data]);
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
@@ -72,15 +85,13 @@ export function App() {
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports } = useOverlays(topic);
 
-  const searchOptions = useMemo(
-    () =>
-      data
-        ? Object.keys(data.values)
-            .map((iso3) => ({ iso3, name: zhName(iso3, countries) }))
-            .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant-TW'))
-        : [],
-    [data, countries],
-  );
+  const searchOptions = useMemo(() => {
+    // 純地圖頁沒有指標資料，改用地圖上有形狀的國家
+    const codes = pure ? (features ?? []).map((f) => f.iso3).filter((c) => !c.startsWith('_')) : Object.keys(data?.values ?? {});
+    return codes
+      .map((iso3) => ({ iso3, name: zhName(iso3, countries) }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant-TW'));
+  }, [data, countries, pure, features]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
@@ -104,6 +115,7 @@ export function App() {
   };
 
   const renderTooltip = (iso3: string) => {
+    if (pure) return <div className="tt-value">{zhName(iso3, countries)}</div>;
     const v = values.get(iso3);
     return (
       <>
@@ -146,7 +158,8 @@ export function App() {
 
       <div className="controls">
         <div className="controls-left">
-          {topic.dimension && usesDimension(indicator) && (
+          {pure && <h2 className="page-title">{topic.title}</h2>}
+          {!pure && topic.dimension && usesDimension(indicator) && (
             <label className="select-field">
               <span>{topic.dimension.label}</span>
               <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
@@ -170,7 +183,7 @@ export function App() {
               </select>
             </label>
           )}
-          {topic.indicators.length > MAX_SEGMENTS ? (
+          {pure ? null : topic.indicators.length > MAX_SEGMENTS ? (
             <label className="select-field">
               <span>指標</span>
               <select value={indicator.id} onChange={(e) => update({ indicator: e.target.value })}>
@@ -199,6 +212,16 @@ export function App() {
           )}
         </div>
         <div className="controls-right">
+          <label className="select-field">
+            <span>底圖</span>
+            <select value={basemap.id} onChange={(e) => chooseBasemap(e.target.value)} aria-label="底圖配色">
+              {BASEMAPS.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <input
             className="search"
             type="search"
@@ -219,29 +242,31 @@ export function App() {
               <option key={o.iso3} value={o.name} />
             ))}
           </datalist>
-          <div className="view-toggle" role="radiogroup" aria-label="檢視方式">
-            {(['map', 'table'] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                role="radio"
-                aria-checked={state.view === v}
-                className={`segment${state.view === v ? ' is-active' : ''}`}
-                onClick={() => update({ view: v })}
-              >
-                {v === 'map' ? '地圖' : '排名表'}
-              </button>
-            ))}
-          </div>
+          {!pure && (
+            <div className="view-toggle" role="radiogroup" aria-label="檢視方式">
+              {(['map', 'table'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={view === v}
+                  className={`segment${view === v ? ' is-active' : ''}`}
+                  onClick={() => update({ view: v })}
+                >
+                  {v === 'map' ? '地圖' : '排名表'}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <p className="indicator-desc">{indicator.description}</p>
 
-      <main className={`stage${state.country ? ' has-panel' : ''}`}>
+      <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">
           {error && <p className="error">資料載入失敗：{error.message}</p>}
-          {state.view === 'map' ? (
-            features && data ? (
+          {view === 'map' ? (
+            features && (data || pure) ? (
               <WorldMap
                 countries={features}
                 indicator={indicator}
@@ -252,7 +277,9 @@ export function App() {
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={`世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
+                ariaLabel={pure ? '世界地圖' : `世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
+                basemap={basemap}
+                fitOnSelect={pure}
                 dimmed={loading}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
@@ -294,7 +321,7 @@ export function App() {
             />
           )}
         </div>
-        {state.country && (
+        {state.country && !pure && (
           <Suspense fallback={<aside className="panel" aria-busy="true" />}>
             <CountryPanel
               topic={topic}
@@ -312,7 +339,7 @@ export function App() {
         )}
       </main>
 
-      <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />
+      {!pure && <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />}
 
       <footer className="footer">
         資料來源：

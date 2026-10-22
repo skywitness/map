@@ -120,6 +120,12 @@ button {
   gap: 8px;
 }
 
+.page-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+
 .controls-left {
   display: flex;
   flex-wrap: wrap;
@@ -1147,10 +1153,12 @@ button {
 
   .controls-right {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .search {
     flex: 1;
+    min-width: 120px;
   }
 
   .time-year {
