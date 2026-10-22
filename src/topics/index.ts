@@ -2,6 +2,7 @@ import type { Text } from '../i18n';
 import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { climate } from './climate';
+import { diet } from './diet';
 import { digital } from './digital';
 import { education } from './education';
 import { electricity } from './electricity';
@@ -28,7 +29,7 @@ export interface TopicGroup {
  * 新增主題時加進最接近的一類。分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
-  { id: 'society', label: { zh: '人口與社會', en: 'People & society' }, topics: [population, health, education] },
+  { id: 'society', label: { zh: '人口與社會', en: 'People & society' }, topics: [population, health, education, diet] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, sectors, industry, agriculture] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, tourism, military] },
   { id: 'energy', label: { zh: '能源與氣候', en: 'Energy & climate' }, topics: [electricity, climate] },

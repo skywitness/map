@@ -120,6 +120,7 @@ export const en: Messages = {
   singleSnapshotPanel: 'This dataset is a single snapshot with no time series.',
   noCountryData: 'No data for this country.',
   dashedProjection: (year) => `Dashed line: projections from ${year} onward.`,
+  methodBreak: (year) => `Vertical dashed line: a new statistical method from ${year}; earlier years are not fully comparable.`,
   note: (note) => `Note: ${note}`,
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
 
