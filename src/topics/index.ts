@@ -2,13 +2,16 @@ import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { climate } from './climate';
 import { digital } from './digital';
+import { education } from './education';
 import { electricity } from './electricity';
+import { health } from './health';
 import { income } from './income';
 import { industry } from './industry';
 import { military } from './military';
 import { pureMap } from './map';
 import { population } from './population';
 import { sectors } from './sectors';
+import { tourism } from './tourism';
 import { trade } from './trade';
 import { transport } from './transport';
 import type { TopicDefinition } from './types';
@@ -28,6 +31,9 @@ export const TOPICS: TopicDefinition[] = [
   climate,
   military,
   digital,
+  health,
+  education,
+  tourism,
 ];
 
 export function getTopic(id: string | null): TopicDefinition {

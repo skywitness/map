@@ -14,6 +14,9 @@
 - 氣候（二氧化碳排放）
 - 軍事（軍費、兵力）
 - 數位（網路、行動電話、固網寬頻）
+- 健康（平均壽命、嬰幼兒死亡率、醫療支出、醫師數）
+- 教育（受教育年數、高等教育在學率、教育支出、識字率）
+- 觀光（國際旅客、觀光收入）
 
 地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口。
 
@@ -62,7 +65,7 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`trade`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`education`、`tourism`、`trade`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 
