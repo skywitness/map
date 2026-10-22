@@ -51,7 +51,7 @@ export function App() {
   const features = useMemo(() => (geo.data ? toCountryFeatures(geo.data) : null), [geo.data]);
 
   const years = data?.years ?? [topic.defaultYear];
-  const year = state.year && years.includes(state.year) ? state.year : topic.defaultYear;
+  const year = pickYear(years, state.year, topic.defaultYear);
   const yearIndex = data ? data.years.indexOf(year) : -1;
   const values = useMemo(() => (data ? valuesAt(data, yearIndex) : new Map<string, number>()), [data, yearIndex]);
   const bubbleMax = useMemo(() => (data ? maxAcrossYears(data) : 1), [data]);
@@ -305,6 +305,13 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/** 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年 */
+function pickYear(years: number[], wanted: number | null, fallback: number): number {
+  if (wanted && years.includes(wanted)) return wanted;
+  if (years.includes(fallback)) return fallback;
+  return years.reduce((best, y) => (Math.abs(y - fallback) < Math.abs(best - fallback) ? y : best), years[0]);
 }
 
 function groupOptions<T extends { group?: string }>(options: T[]): [string | undefined, T[]][] {

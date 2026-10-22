@@ -34,6 +34,15 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
     setPlaying((p) => !p);
   };
 
+  if (first === last) {
+    return (
+      <div className="time-slider is-single">
+        <span className="time-single-note">這項資料只有單一時間點，沒有歷年變化</span>
+        <output className="time-year">{year}</output>
+      </div>
+    );
+  }
+
   const projected = projectionFrom !== undefined && year >= projectionFrom;
   const projectionPct =
     projectionFrom !== undefined ? ((projectionFrom - first) / (last - first)) * 100 : 100;

@@ -18,7 +18,11 @@ interface RankingTableProps {
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
 export function RankingTable(props: RankingTableProps) {
   const { indicator, title, values, world, year, countries, selected, onSelect } = props;
-  const rows = useMemo(() => ranking(values), [values]);
+  // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0
+  const rows = useMemo(
+    () => ranking(values).filter(([, v]) => indicator.layer.kind !== 'bubble' || v > 0),
+    [values, indicator],
+  );
   const max = rows[0]?.[1] ?? 0;
   const showBars = rows.length > 0 && rows[rows.length - 1][1] >= 0;
   const showShare = indicator.shareOfWorld && world != null && world > 0;

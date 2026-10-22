@@ -27,3 +27,44 @@ def from_numeric(m49: str | int | None) -> str | None:
         return None
     country = pycountry.countries.get(numeric=str(int(str(m49).strip().lstrip("'"))).zfill(3))
     return country.alpha_3 if country else None
+
+
+# 各資料來源常見、但 pycountry 查不到或會查錯的英文國名
+NAME_ALIASES = {
+    "United States of America": "USA", "United States": "USA", "US": "USA",
+    "United Kingdom": "GBR", "UK": "GBR",
+    "South Korea": "KOR", "Korea": "KOR", "North Korea": "PRK",
+    "Russia": "RUS", "Taiwan": "TWN", "Hong Kong": "HKG", "Macau": "MAC", "Macao": "MAC",
+    "Vietnam": "VNM", "Iran": "IRN", "Syria": "SYR", "Laos": "LAO", "Brunei": "BRN",
+    "Turkey": "TUR", "Türkiye": "TUR", "Czech Republic": "CZE", "Czechia": "CZE",
+    "Congo (DRC)": "COD", "DR Congo": "COD", "Democratic Republic of the Congo": "COD", "Congo": "COG",
+    "Cote D'Ivoire": "CIV", "Côte d'Ivoire": "CIV", "Ivory Coast": "CIV",
+    "Bolivia": "BOL", "Venezuela": "VEN", "Tanzania": "TZA", "Moldova": "MDA",
+    "Palestine": "PSE", "Palestinian Territories": "PSE", "Kosovo": "XKX",
+    "Micronesia": "FSM", "Cape Verde": "CPV", "Cabo Verde": "CPV", "Eswatini": "SWZ", "Swaziland": "SWZ",
+    "UAE": "ARE", "Philippines (the)": "PHL", "Netherlands (the)": "NLD", "Bahamas": "BHS", "Gambia": "GMB",
+    "North Macedonia": "MKD", "Macedonia": "MKD", "Burma": "MMR", "Myanmar": "MMR", "Timor-Leste": "TLS",
+    "Saint Kitts and Nevis": "KNA", "Saint Lucia": "LCA", "Saint Vincent and the Grenadines": "VCT",
+    "Sao Tome and Principe": "STP", "Curacao": "CUW", "Curaçao": "CUW", "Reunion": "REU",
+}
+
+
+def from_name(name: str) -> str | None:
+    """英文國名 → ISO alpha-3；查不到回傳 None。模糊比對只在名稱夠長時使用，避免誤配。"""
+    name = name.strip()
+    if not name:
+        return None
+    if name in NAME_ALIASES:
+        return NAME_ALIASES[name]
+    try:
+        return pycountry.countries.lookup(name).alpha_3
+    except LookupError:
+        pass
+    if len(name) >= 6:
+        try:
+            matches = pycountry.countries.search_fuzzy(name)
+            if len(matches) == 1:
+                return matches[0].alpha_3
+        except LookupError:
+            pass
+    return None

@@ -50,17 +50,22 @@ export function CountryPanel(props: CountryPanelProps) {
 
   const stats = topic.indicators.map((ind, i) => {
     const data = allData[i];
-    if (!data) return { ind, value: null, rank: null, total: 0, share: null };
-    const yearIndex = data.years.indexOf(year);
+    if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
+    // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
+    const yearIndex = nearestYearIndex(data.years, year);
+    const shownYear = data.years[yearIndex];
     const values = valuesAt(data, yearIndex);
     const value = values.get(iso3) ?? null;
     const world = data.aggregates?.WLD?.[yearIndex] ?? null;
+    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義
+    const countZero = ind.layer.kind === 'bubble' && value === 0;
     return {
       ind,
       value,
-      rank: rankOf(values, iso3),
+      rank: countZero ? null : rankOf(values, iso3),
       total: values.size,
       share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
+      shownYear,
     };
   });
 
@@ -68,7 +73,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const option = useMemo(() => {
     if (!activeData) return null;
     const own = activeData.values[iso3];
-    if (!own) return null;
+    if (!own || activeData.years.length < 2) return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
     if (indicator.compareWorld && world) lines.push({ name: '世界', values: world, color: tokens.context });
@@ -104,7 +109,7 @@ export function CountryPanel(props: CountryPanelProps) {
       </p>
 
       <div className="stats">
-        {stats.map(({ ind, value, rank, total, share }) => (
+        {stats.map(({ ind, value, rank, total, share, shownYear }) => (
           <button
             type="button"
             key={ind.id}
@@ -117,6 +122,7 @@ export function CountryPanel(props: CountryPanelProps) {
             <span className="stat-meta">
               {rank != null && `第 ${rank} / ${total} 名`}
               {share != null && ` · 占全球 ${formatPercent(share, share < 1 ? 2 : 1)}`}
+              {shownYear !== null && shownYear !== year && value != null && `（${shownYear} 年）`}
             </span>
           </button>
         ))}
@@ -127,7 +133,13 @@ export function CountryPanel(props: CountryPanelProps) {
         {option ? (
           <EChart option={option} height={220} ariaLabel={`${name}歷年${label(indicator)}折線圖`} />
         ) : (
-          <p className="empty">{activeData ? '這個國家沒有這項資料。' : '載入中…'}</p>
+          <p className="empty">
+            {!activeData
+              ? '載入中…'
+              : activeData.years.length < 2
+                ? '這項資料只有單一時間點，沒有歷年變化。'
+                : '這個國家沒有這項資料。'}
+          </p>
         )}
         {projectionFrom !== undefined && option && <p className="note">虛線為 {projectionFrom} 年起的推估值。</p>}
         {note && <p className="note">附註：{note}</p>}
@@ -140,4 +152,14 @@ export function CountryPanel(props: CountryPanelProps) {
       )}
     </aside>
   );
+}
+
+function nearestYearIndex(years: number[], year: number): number {
+  const exact = years.indexOf(year);
+  if (exact >= 0) return exact;
+  let best = 0;
+  years.forEach((y, i) => {
+    if (Math.abs(y - year) < Math.abs(years[best] - year)) best = i;
+  });
+  return best;
 }
