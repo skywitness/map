@@ -73,16 +73,18 @@ export default function DietPanel({ topic, iso3, year, countryName, tokens }: Pa
     const items = data.groups
       .map((g) => ({ key: g, label: label(g), value: data.values[g][index] ?? 0, color: color(g) }))
       .filter((item) => item.value > 0);
+    // 只有舊版資料的國家畫不到 2010 年，就不畫接縫、也不加說明
+    const methodBreak = data.methodBreak !== undefined && years.includes(data.methodBreak) ? data.methodBreak : undefined;
     const option = stackedAreaOption({
       years,
       series,
       year,
-      methodBreak: data.methodBreak,
+      methodBreak,
       format: kcal,
       formatTick: (v) => fixed(v, 0),
       tokens,
     });
-    return { option, items, shownYear: index >= 0 ? years[index] : null, methodBreak: data.methodBreak };
+    return { option, items, shownYear: index >= 0 ? years[index] : null, methodBreak };
   }, [data, year, tokens, lang]);
 
   if (error) return <p className="empty">{text.noCountry}</p>;
@@ -96,7 +98,7 @@ export default function DietPanel({ topic, iso3, year, countryName, tokens }: Pa
     <section className="panel-section">
       <h3>{text.title}</h3>
       <EChart option={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
-      {view.methodBreak !== undefined && view.option && <p className="note">{t.methodBreak(view.methodBreak)}</p>}
+      {view.methodBreak !== undefined && <p className="note">{t.methodBreak(view.methodBreak)}</p>}
       {view.shownYear !== null && total > 0 && (
         <>
           <h4>

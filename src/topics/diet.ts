@@ -144,7 +144,7 @@ export const diet: TopicDefinition = {
         scale: sequential(FOODS[0].thresholds),
         itemScales: Object.fromEntries(FOODS.map((f) => [f.id, sequential(f.thresholds)])),
       },
-      format: (v) => `${fixed(v, v < 10 ? 1 : 0)} ${tr(KG)}`,
+      format: (v) => `${fixed(v, v < 100 ? 1 : 0)} ${tr(KG)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },
