@@ -15,6 +15,7 @@ import {
   type BubbleLegendModel,
   type ChoroplethLegendModel,
   type ColumnLegendModel,
+  type FlowLegendModel,
 } from './Legend';
 import type { LayerKey } from './Overlays';
 
@@ -61,7 +62,9 @@ export type ImageLegend =
   | { kind: 'choropleth'; title: string; unit: string; model: ChoroplethLegendModel; stepped?: boolean }
   | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel }
   /** 3D 模式的柱子 */
-  | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string };
+  | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
+  /** 流向圖：線寬樣本與流向說明 */
+  | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel };
 
 /** 圖片上的文字，由呼叫端（知道主題、年份、來源的 App）提供 */
 export interface MapImageContent {
@@ -284,6 +287,42 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
         labels.forEach((label, i) => ctx.fillText(label, ((i + 1) / colors.length) * scaleWidth, top + swatchesHeight + 4 + 7));
         ctx.textAlign = 'left';
         drawNoData(top + scaleHeight);
+      },
+    };
+  }
+
+  if (legend.kind === 'flow') {
+    const { rows, colors, lineLength, height, key } = legend.model;
+    const labelWidth = Math.max(...rows.map((r) => ctx.measureText(r.label).width));
+    const keyWidth = 44 + ctx.measureText(key).width;
+    return {
+      width: Math.max(titleTotal, lineLength + 12 + labelWidth, keyWidth),
+      height: top + height + NO_DATA_ROW,
+      draw: () => {
+        drawTitle();
+        ctx.font = `11px ${font}`;
+        ctx.lineCap = 'round';
+        for (const { label, width, y } of rows) {
+          ctx.strokeStyle = colors.mid;
+          ctx.lineWidth = width;
+          ctx.beginPath();
+          ctx.moveTo(2, top + y);
+          ctx.lineTo(2 + lineLength, top + y);
+          ctx.stroke();
+          ctx.fillStyle = tokens.inkSecondary;
+          ctx.fillText(label, lineLength + 12, top + y);
+        }
+        ctx.lineCap = 'butt';
+        // 流向說明：跟畫面上一樣，淺 → 深的漸層樣本
+        const keyY = top + height + 4;
+        const gradient = ctx.createLinearGradient(2, 0, 38, 0);
+        gradient.addColorStop(0, colors.start);
+        gradient.addColorStop(1, colors.end);
+        ctx.fillStyle = gradient;
+        roundRect(ctx, 2, keyY + 5, 36, 4, 2);
+        ctx.fill();
+        ctx.fillStyle = tokens.inkSecondary;
+        ctx.fillText(key, 44, keyY + 7);
       },
     };
   }

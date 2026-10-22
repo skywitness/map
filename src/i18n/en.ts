@@ -37,6 +37,8 @@ export const en: Messages = {
   worldMapAria: 'World map',
   mapAria: (year, title, projected) => `World map: ${title} by country, ${year}${projected ? ' (projection)' : ''}`,
   tooltipProjected: ' · projection',
+  flowTitle: (origin, title) => `${origin}: ${title}`,
+  flowShare: (share) => `${share} of total`,
   largeAirport: 'Large airport',
   mediumAirport: 'Medium airport',
 

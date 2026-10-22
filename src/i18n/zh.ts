@@ -37,6 +37,9 @@ export const zh = {
   mapAria: (year: number, title: string, projected: boolean) =>
     `世界地圖：${year} 年各國${title}${projected ? '（推估值）' : ''}`,
   tooltipProjected: ' 推估值',
+  /** 流向圖：「台灣的出口」、tooltip 的「占 12%」 */
+  flowTitle: (origin: string, title: string) => `${origin}的${title}`,
+  flowShare: (share: string) => `占 ${share}`,
   largeAirport: '大型機場',
   mediumAirport: '中型機場',
 

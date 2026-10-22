@@ -7,8 +7,8 @@ const CASH_CROPS = { zh: '油料與經濟作物', en: 'Oil and cash crops' };
 const PRODUCE = { zh: '蔬菜水果', en: 'Fruit and vegetables' };
 const LIVESTOCK = { zh: '畜產品', en: 'Livestock products' };
 
-/** 地圖上可選的農產品（與 pipeline/topics/agriculture.py 的 PRODUCTS 對應） */
-const PRODUCTS: { id: string; label: Text; group: Text }[] = [
+/** 地圖上可選的農產品（與 pipeline/topics/agriculture.py 的 PRODUCTS 對應；貿易主題也共用） */
+export const PRODUCTS: { id: string; label: Text; group: Text }[] = [
   { id: 'rice', label: { zh: '稻米', en: 'Rice' }, group: CEREALS },
   { id: 'wheat', label: { zh: '小麥', en: 'Wheat' }, group: CEREALS },
   { id: 'maize', label: { zh: '玉米', en: 'Maize' }, group: CEREALS },

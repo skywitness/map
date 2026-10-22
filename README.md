@@ -8,11 +8,15 @@
 - 產業結構
 - 工業
 - 農業
+- 貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）
 - AI
 - 交通
 - 氣候（二氧化碳排放）
 - 軍事（軍費、兵力）
 - 數位（網路、行動電話、固網寬頻）
+- 健康（平均壽命、嬰幼兒死亡率、醫療支出、醫師數）
+- 教育（受教育年數、高等教育在學率、教育支出、識字率）
+- 觀光（國際旅客、觀光收入）
 
 地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口。
 
@@ -79,11 +83,11 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`education`、`tourism`、`trade`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 1.2 GB（主要是 FAOSTAT 的貿易檔、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 12 分鐘。
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.4 GB（主要是 FAOSTAT 的貿易檔與雙邊貿易矩陣、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。
 
 ## 建置
 
@@ -100,7 +104,7 @@ npm run build
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, AI, transport and climate (CO₂ emissions), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education and tourism, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 

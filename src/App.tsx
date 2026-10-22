@@ -12,6 +12,7 @@ import { buildSearchIndex } from './lib/countrySearch';
 import { indicatorCsv } from './lib/csv';
 import { useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
+import { formatPercent } from './lib/format';
 import { useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
@@ -22,6 +23,7 @@ import {
 } from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { flowText, useFlowSelection } from './map/flows';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { WorldMap, type WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
@@ -98,6 +100,7 @@ export function App() {
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports } = useOverlays(topic);
+  const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
   const searchIndex = useMemo(() => {
@@ -123,7 +126,9 @@ export function App() {
 
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
-  const viewTitle = pure ? topic.title : `${topic.title} · ${indicatorTitle} · ${t.yearValue(year, projected)}`;
+  // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
+  const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : indicatorTitle;
+  const viewTitle = pure ? topic.title : `${topic.title} · ${flowTitle} · ${t.yearValue(year, projected)}`;
   const fileBase = safeFilename(pure ? topic.title : `${t.brand}_${topic.shortTitle}_${indicatorTitle}`);
 
   const downloadImage = async () => {
@@ -171,6 +176,19 @@ export function App() {
 
   const renderTooltip = (iso3: string) => {
     if (pure) return <div className="tt-value">{countryName(iso3, countries)}</div>;
+    // 流向圖：滑到夥伴國上顯示雙邊金額與占比
+    const link = flows?.links.find((l) => l.iso3 === iso3);
+    if (flows && link) {
+      return (
+        <>
+          <div className="tt-value">{indicator.format(link.value)}</div>
+          <div className="tt-label">
+            {flowText(lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))} ·{' '}
+            {t.flowShare(formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0))} · {flows.year}
+          </div>
+        </>
+      );
+    }
     const v = values.get(iso3);
     return (
       <>
@@ -351,6 +369,7 @@ export function App() {
                 layers={layers}
                 onLayersChange={setLayers}
                 renderAirportTooltip={renderAirportTooltip}
+                flows={flows}
                 overlay={
                   boxResult && (
                     <BoxResult
