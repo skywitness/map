@@ -1,0 +1,65 @@
+import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import type { TopicDefinition } from './types';
+
+export const military: TopicDefinition = {
+  id: 'military',
+  title: '各國軍費與兵力',
+  shortTitle: '軍事',
+  defaultIndicator: 'spending',
+  defaultYear: 2025,
+  sources: [
+    {
+      name: 'Information from the Stockholm International Peace Research Institute (SIPRI), Military Expenditure Database',
+      url: 'https://doi.org/10.55163/CQGC9685',
+      license: '依 SIPRI 條款非商業使用，只收錄 2011–2025 年',
+    },
+    { name: 'World Bank, World Development Indicators（IISS The Military Balance 兵力資料）', url: 'https://data.worldbank.org/', license: 'CC BY 4.0' },
+  ],
+  note: 'SIPRI 資料不是開放授權，依其使用條款只供非商業使用，且只轉載少於資料集 10% 的範圍（軍費與占 GDP 兩項、2011–2025 年）。軍費以當年匯率換算成美元，含國防部以外的軍事相關支出（例如軍人退休金、準軍事部隊）。兵力資料只到 2020 年，不含台灣。',
+  indicators: [
+    {
+      id: 'spending',
+      label: '軍費',
+      description: '一年的軍事支出，以當年匯率換算成美元。圓的面積與軍費成正比。',
+      unit: '美元',
+      file: 'spending.json',
+      layer: { kind: 'bubble', legendValues: [1e9, 1e10, 1e11] },
+      format: (v) => `${formatLargeNumber(v)} 美元`,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'spending-gdp',
+      label: '軍費占 GDP',
+      description: '軍事支出占國內生產毛額的比例，可以看出國防負擔的輕重。',
+      unit: '%',
+      file: 'spending-gdp.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 1.5, 2, 3, 4, 6] } },
+      format: (v) => `${fixed(v, 2)}%`,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+    },
+    {
+      id: 'armed-forces',
+      label: '兵力',
+      description: '現役軍人加上準軍事部隊（例如邊防、憲兵）的人數，不含後備軍人。圓的面積與人數成正比。到 2020 年。',
+      unit: '人',
+      file: 'armed-forces.json',
+      layer: { kind: 'bubble', legendValues: [1e4, 1e5, 1e6] },
+      format: (v) => `${formatLargeNumber(v)} 人`,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'armed-forces-labor',
+      label: '兵力占勞動力',
+      description: '軍人與準軍事人員占全國勞動力（有工作或在找工作的人）的比例。到 2020 年。',
+      unit: '%',
+      file: 'armed-forces-labor.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.25, 0.5, 1, 1.5, 2.5, 4] } },
+      format: (v) => `${fixed(v, 2)}%`,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+    },
+  ],
+};

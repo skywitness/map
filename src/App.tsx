@@ -1,8 +1,15 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Topology } from 'topojson-specification';
+import { CountrySearch } from './controls/CountrySearch';
+import { useHotkeys } from './controls/hotkeys';
+import { ShareMenu } from './controls/ShareMenu';
+import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
+import { buildSearchIndex } from './lib/countrySearch';
+import { indicatorCsv } from './lib/csv';
 import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
+import { downloadBlob, safeFilename } from './lib/download';
 import { useOnline } from './lib/useOnline';
 import { read as readUrlState, useUrlState } from './lib/url-state';
 import {
@@ -13,10 +20,12 @@ import {
   type PopulationGrid,
 } from './map/boxEstimate';
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
-import { BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { loadBaseStyle } from './map/style';
+import type { WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
+import { PanelSheet } from './panels/PanelSheet';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
 import { getTopic, TOPICS } from './topics';
@@ -68,6 +77,8 @@ const NO_FEATURES: CountryFeature[] = [];
 
 /** 指標超過這個數量就改用下拉選單 */
 const MAX_SEGMENTS = 5;
+
+const DISCLAIMER = '國界與名稱僅為資料呈現，不代表任何政治立場。';
 
 interface Manifest {
   generatedAt: string;
@@ -128,22 +139,66 @@ export function App() {
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
   const selectCountry = useCallback((iso3: string | null) => update({ country: iso3 }), [update]);
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
+  const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports } = useOverlays(topic);
 
-  const searchOptions = useMemo(() => {
-    // 純地圖頁沒有指標資料，改用地圖上有形狀的國家
-    const codes = pure ? (features ?? []).map((f) => f.iso3).filter((c) => !c.startsWith('_')) : Object.keys(data?.values ?? {});
-    return codes
-      .map((iso3) => ({ iso3, name: zhName(iso3, countries) }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant-TW'));
+  // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
+  const searchIndex = useMemo(() => {
+    const shapes = (features ?? []).map((f) => f.iso3).filter((c) => !c.startsWith('_'));
+    return buildSearchIndex([...shapes, ...(pure ? [] : Object.keys(data?.values ?? {}))], countries);
   }, [data, countries, pure, features]);
+  // 從搜尋選國家時，地圖一定飛過去（點地圖、點排名表則不必）
+  const [focusRequest, setFocusRequest] = useState<{ iso3: string; key: number } | null>(null);
+  const selectFromSearch = (iso3: string) => {
+    selectCountry(iso3);
+    setFocusRequest({ iso3, key: Date.now() });
+  };
+  useHotkeys({
+    Escape: () => {
+      if (state.country) selectCountry(null);
+      else if (state.box) setBox(null);
+    },
+  });
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? `${itemLabel}${indicator.label}` : indicator.label;
+
+  /* ── 分享：圖片、CSV、連結 ───────────── */
+  const mapHandle = useRef<WorldMapHandle>(null);
+  const viewTitle = pure
+    ? topic.title
+    : `${topic.title} · ${indicatorTitle} · ${year} 年${projected ? '（推估值）' : ''}`;
+  const fileBase = safeFilename(pure ? '世界地圖' : `世界資料地圖_${topic.shortTitle}_${indicatorTitle}`);
+
+  const downloadImage = async () => {
+    if (!mapHandle.current) throw new Error('地圖還沒載入');
+    // 純地圖頁的國界是底圖本身的，資料主題另外畫 Natural Earth 的國界
+    const credits = pure
+      ? [`底圖：${BASEMAP_ATTRIBUTION}`, DISCLAIMER]
+      : [
+          `資料來源：${topic.sources.map((s) => `${s.name}（${s.license}）`).join('、')}`,
+          `底圖：${BASEMAP_ATTRIBUTION}`,
+          `國界：Natural Earth（公有領域）。${DISCLAIMER}`,
+        ];
+    credits.push(window.location.href);
+    const blob = await mapHandle.current.exportImage({
+      title: viewTitle,
+      subtitle: pure ? undefined : indicator.description,
+      credits,
+    });
+    downloadBlob(blob, `${fileBase}${pure ? '' : `_${year}`}.png`);
+  };
+
+  const downloadCsv = (single: boolean) => {
+    if (!data) return;
+    const text = indicatorCsv(data, { unit: indicator.unit, countries, year: single ? year : undefined });
+    const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
+    downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}_${range}.csv`);
+  };
 
   const renderAirportTooltip = (index: number) => {
     const row = airports?.rows[index];
@@ -198,6 +253,7 @@ export function App() {
             </button>
           ))}
         </nav>
+        <ShortcutHelp />
         <button
           type="button"
           className="icon-button theme-toggle"
@@ -275,26 +331,18 @@ export function App() {
               ))}
             </select>
           </label>
-          <input
-            className="search"
-            type="search"
-            list="country-options"
-            placeholder="搜尋國家"
-            aria-label="搜尋國家"
-            onChange={(e) => {
-              const query = e.target.value.trim();
-              const match = searchOptions.find((o) => o.name === query || o.iso3 === query.toUpperCase());
-              if (match) {
-                selectCountry(match.iso3);
-                e.target.value = '';
-              }
-            }}
+          <CountrySearch
+            index={searchIndex}
+            onSelect={selectFromSearch}
+            valueOf={
+              pure
+                ? undefined
+                : (iso3) => {
+                    const v = values.get(iso3);
+                    return v !== undefined ? indicator.format(v) : null;
+                  }
+            }
           />
-          <datalist id="country-options">
-            {searchOptions.map((o) => (
-              <option key={o.iso3} value={o.name} />
-            ))}
-          </datalist>
           {!pure && (
             <div className="view-toggle" role="radiogroup" aria-label="檢視方式">
               {(['map', 'table'] as const).map((v) => (
@@ -311,6 +359,15 @@ export function App() {
               ))}
             </div>
           )}
+          <ShareMenu
+            shareTitle={`${viewTitle}｜世界資料地圖`}
+            onDownloadImage={view === 'map' ? downloadImage : undefined}
+            csv={
+              data && !pure
+                ? { year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                : undefined
+            }
+          />
         </div>
       </div>
       <p className="indicator-desc">{indicator.description}</p>
@@ -323,6 +380,7 @@ export function App() {
             <Suspense fallback={<p className="loading">地圖載入中…</p>}>
               {!firstPaint && !error && <p className="map-status">資料載入中…</p>}
               <WorldMap
+                ref={mapHandle}
                 countries={features ?? NO_FEATURES}
                 indicator={indicator}
                 legendTitle={indicatorTitle}
@@ -336,6 +394,9 @@ export function App() {
                 basemap={basemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
+                threeD={state.threeD}
+                onThreeDChange={setThreeD}
+                focus={focusRequest}
                 dimmed={loading && data !== null}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
@@ -376,20 +437,28 @@ export function App() {
           )}
         </div>
         {state.country && !pure && (
-          <Suspense fallback={<aside className="panel" aria-busy="true" />}>
-            <CountryPanel
-              topic={topic}
-              indicator={indicator}
-              item={item}
-              itemLabel={itemLabel ?? null}
-              iso3={state.country}
-              year={year}
-              countries={countries}
-              tokens={tokens}
-              onClose={() => selectCountry(null)}
-              onIndicatorChange={(id) => update({ indicator: id })}
-            />
-          </Suspense>
+          <PanelSheet onClose={() => selectCountry(null)}>
+            <Suspense
+              fallback={
+                <aside className="panel" aria-busy="true">
+                  <p className="empty">載入中…</p>
+                </aside>
+              }
+            >
+              <CountryPanel
+                topic={topic}
+                indicator={indicator}
+                item={item}
+                itemLabel={itemLabel ?? null}
+                iso3={state.country}
+                year={year}
+                countries={countries}
+                tokens={tokens}
+                onClose={() => selectCountry(null)}
+                onIndicatorChange={(id) => update({ indicator: id })}
+              />
+            </Suspense>
+          </PanelSheet>
         )}
       </main>
 

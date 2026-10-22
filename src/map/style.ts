@@ -18,14 +18,15 @@ const ZH_NAME: ExpressionSpecification = [
   ['coalesce', ['get', 'name:zh'], ['get', 'name']],
 ];
 
-/** 改成中文地名、地球儀投影、黑色太空背景 */
+export type Projection = 'globe' | 'mercator';
+
+/** 改成中文地名、黑色太空背景（投影在 loadBaseStyle 依使用者的選擇設定） */
 function patchStyle(style: StyleSpecification): StyleSpecification {
   for (const layer of style.layers) {
     if (layer.type !== 'symbol') continue;
     const field = layer.layout?.['text-field'];
     if (field && JSON.stringify(field).includes('name')) layer.layout = { ...layer.layout, 'text-field': ZH_NAME };
   }
-  style.projection = { type: 'globe' };
   // 黑色太空背景，地球邊緣一圈淡藍色大氣層
   style.sky = {
     'sky-color': '#000000',
@@ -39,7 +40,7 @@ function patchStyle(style: StyleSpecification): StyleSpecification {
 const cache = new Map<string, Promise<StyleSpecification>>();
 
 /** 下載底圖樣式；同一個網址只抓一次，每次拿到的是複本（MapLibre 可能會改動樣式物件） */
-export function loadBaseStyle(url: string): Promise<StyleSpecification> {
+export function loadBaseStyle(url: string, projection: Projection = 'globe'): Promise<StyleSpecification> {
   let promise = cache.get(url);
   if (!promise) {
     promise = fetch(url).then((res) => {
@@ -49,5 +50,5 @@ export function loadBaseStyle(url: string): Promise<StyleSpecification> {
     promise.catch(() => cache.delete(url)); // 失敗不快取，下次重試
     cache.set(url, promise);
   }
-  return promise.then((style) => structuredClone(style));
+  return promise.then((style) => ({ ...structuredClone(style), projection: { type: projection } }));
 }
