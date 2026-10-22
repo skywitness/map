@@ -80,6 +80,7 @@ export function App() {
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
   const selectCountry = useCallback((iso3: string | null) => update({ country: iso3 }), [update]);
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
+  const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
@@ -280,6 +281,8 @@ export function App() {
                 ariaLabel={pure ? '世界地圖' : `世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
                 basemap={basemap}
                 fitOnSelect={pure}
+                threeD={state.threeD}
+                onThreeDChange={setThreeD}
                 dimmed={loading}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
