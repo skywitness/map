@@ -12,6 +12,7 @@
 - 交通
 - 氣候（二氧化碳排放）
 - 軍事（軍費、兵力）
+- 數位（網路、行動電話、固網寬頻）
 
 地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。人口主題可以在地圖上框選範圍，估算框內人口。資料來源、架構與新增主題的方法見 [DESIGN.md](DESIGN.md)。
 
@@ -45,7 +46,7 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 
