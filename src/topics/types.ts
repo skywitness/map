@@ -18,7 +18,9 @@ export type LayerSpec =
   | { kind: 'choropleth'; scale: ScaleSpec }
   /** 比例圓：適合總量（人口數、發電量），圓面積與數值成正比 */
   /** legendValues 為 'auto' 時依資料最大值自動挑（各農產品的量級差很多） */
-  | { kind: 'bubble'; legendValues: number[] | 'auto' };
+  | { kind: 'bubble'; legendValues: number[] | 'auto' }
+  /** 不依數值上色，只畫疊加圖層（例如鐵路與機場）；資料仍用於 tooltip 與排名 */
+  | { kind: 'none' };
 
 export interface IndicatorDef {
   id: string;
@@ -55,6 +57,25 @@ export interface DimensionDef {
   defaultOption: string;
 }
 
+/** 疊加在地圖上的點、線圖層 */
+export interface OverlayDef {
+  id: 'railways' | 'airports';
+  /** 相對於 data/topics/<topicId>/ */
+  file: string;
+}
+
+/** 鐵路：每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度 */
+export interface RailwaysData {
+  quantum: number;
+  lines: number[][];
+}
+
+/** 機場：rows 的欄位順序見 fields（lon, lat, type, name, iata, city, iso3），type 1 為大型、2 為中型 */
+export interface AirportsData {
+  fields: string[];
+  rows: [number, number, number, string, string, string, string][];
+}
+
 /** 主題自訂的側欄區塊，接在通用側欄下方 */
 export interface PanelExtraProps {
   topic: TopicDefinition;
@@ -88,6 +109,8 @@ export interface TopicDefinition {
   boxEstimate?: { indicator: string; label: string; grid: string };
   /** 顯示在頁尾的資料說明 */
   note?: string;
+  /** 疊加圖層（鐵路、機場），使用者可以在地圖上開關 */
+  overlays?: OverlayDef[];
 }
 
 export function indicatorPath(topic: TopicDefinition, indicator: IndicatorDef, item: string | null): string {

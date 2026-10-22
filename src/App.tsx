@@ -1,8 +1,8 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { Topology } from 'topojson-specification';
 import { TimeSlider } from './controls/TimeSlider';
 import { zhName, type CountryTable } from './lib/countries';
-import { useJson } from './lib/data';
+import { useJson, useJsonMany } from './lib/data';
 import { useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
@@ -13,12 +13,20 @@ import {
   type PopulationGrid,
 } from './map/boxEstimate';
 import { toCountryFeatures } from './map/geometry';
+import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { WorldMap } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
 import { getTopic, TOPICS } from './topics';
-import { indicatorPath, usesDimension, type IndicatorData, type TopicDefinition } from './topics/types';
+import {
+  indicatorPath,
+  usesDimension,
+  type AirportsData,
+  type IndicatorData,
+  type RailwaysData,
+  type TopicDefinition,
+} from './topics/types';
 import { useTheme } from './theme/useTheme';
 
 // 側欄的 ECharts 佔了大部分 JS，點國家時才載入，地圖可以先出來
@@ -62,6 +70,8 @@ export function App() {
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
+  const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
+  const { railways, airports } = useOverlays(topic);
 
   const searchOptions = useMemo(
     () =>
@@ -76,6 +86,23 @@ export function App() {
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? `${itemLabel}${indicator.label}` : indicator.label;
+
+  const renderAirportTooltip = (index: number) => {
+    const row = airports?.rows[index];
+    if (!row) return null;
+    const [, , type, name, iata, city, iso3] = row;
+    return (
+      <>
+        <div className="tt-value">
+          {name}
+          {iata && ` (${iata})`}
+        </div>
+        <div className="tt-label">
+          {[city, zhName(iso3, countries)].filter(Boolean).join(' · ')} · {type === 1 ? '大型機場' : '中型機場'}
+        </div>
+      </>
+    );
+  };
 
   const renderTooltip = (iso3: string) => {
     const v = values.get(iso3);
@@ -231,6 +258,11 @@ export function App() {
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
                 boxToolLabel={topic.boxEstimate && `框選範圍，估算${topic.boxEstimate.label}`}
+                railways={railways}
+                airports={airports}
+                layers={layers}
+                onLayersChange={setLayers}
+                renderAirportTooltip={renderAirportTooltip}
                 overlay={
                   boxResult && (
                     <BoxResult
@@ -305,6 +337,19 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/** 主題的疊加圖層（鐵路、機場），只在該主題載入 */
+function useOverlays(topic: TopicDefinition) {
+  const overlays = topic.overlays ?? [];
+  const files = useMemo(() => overlays.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, overlays]);
+  const loaded = useJsonMany<unknown>(files);
+  const railIndex = overlays.findIndex((o) => o.id === 'railways');
+  const airportIndex = overlays.findIndex((o) => o.id === 'airports');
+  const railData = railIndex >= 0 ? (loaded[railIndex] as RailwaysData | null) : null;
+  const railways = useMemo(() => (railData ? decodeRailways(railData) : null), [railData]);
+  const airports = airportIndex >= 0 ? (loaded[airportIndex] as AirportsData | null) : null;
+  return { railways, airports };
 }
 
 /** 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年 */

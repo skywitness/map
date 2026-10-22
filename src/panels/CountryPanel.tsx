@@ -48,7 +48,8 @@ export function CountryPanel(props: CountryPanelProps) {
   const allData = useJsonMany<IndicatorData>(files);
   const name = zhName(iso3, countries);
 
-  const stats = topic.indicators.map((ind, i) => {
+  // 「只畫路網」這類不上色的指標不列成數值卡片
+  const stats = topic.indicators.flatMap((ind, i) => (ind.layer.kind === 'none' ? [] : [[ind, i] as const])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
@@ -128,22 +129,24 @@ export function CountryPanel(props: CountryPanelProps) {
         ))}
       </div>
 
-      <section className="panel-chart">
-        <h3>{label(indicator)}的變化</h3>
-        {option ? (
-          <EChart option={option} height={220} ariaLabel={`${name}歷年${label(indicator)}折線圖`} />
-        ) : (
-          <p className="empty">
-            {!activeData
-              ? '載入中…'
-              : activeData.years.length < 2
-                ? '這項資料只有單一時間點，沒有歷年變化。'
-                : '這個國家沒有這項資料。'}
-          </p>
-        )}
-        {projectionFrom !== undefined && option && <p className="note">虛線為 {projectionFrom} 年起的推估值。</p>}
-        {note && <p className="note">附註：{note}</p>}
-      </section>
+      {activeData?.years.length !== 1 && (
+        <section className="panel-chart">
+          <h3>{label(indicator)}的變化</h3>
+          {option ? (
+            <EChart option={option} height={220} ariaLabel={`${name}歷年${label(indicator)}折線圖`} />
+          ) : (
+            <p className="empty">
+              {!activeData
+                ? '載入中…'
+                : activeData.years.length < 2
+                  ? '這項資料只有單一時間點，沒有歷年變化。'
+                  : '這個國家沒有這項資料。'}
+            </p>
+          )}
+          {projectionFrom !== undefined && option && <p className="note">虛線為 {projectionFrom} 年起的推估值。</p>}
+          {note && <p className="note">附註：{note}</p>}
+        </section>
+      )}
 
       {Extra && (
         <Suspense fallback={<p className="empty">載入中…</p>}>

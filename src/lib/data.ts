@@ -52,7 +52,8 @@ export function useJsonMany<T>(paths: string[]): (T | null)[] {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all(key.split('|').map((p) => fetchJson<T>(p).catch(() => null))).then(
+    const list = key ? key.split('|') : [];
+    Promise.all(list.map((p) => fetchJson<T>(p).catch(() => null))).then(
       (data) => !cancelled && setState({ key, data }),
     );
     return () => {

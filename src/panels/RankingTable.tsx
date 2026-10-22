@@ -20,7 +20,7 @@ export function RankingTable(props: RankingTableProps) {
   const { indicator, title, values, world, year, countries, selected, onSelect } = props;
   // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0
   const rows = useMemo(
-    () => ranking(values).filter(([, v]) => indicator.layer.kind !== 'bubble' || v > 0),
+    () => ranking(values).filter(([, v]) => indicator.layer.kind === 'choropleth' || v > 0),
     [values, indicator],
   );
   const max = rows[0]?.[1] ?? 0;

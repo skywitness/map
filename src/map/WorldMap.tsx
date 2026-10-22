@@ -1,12 +1,13 @@
-import { memo, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
 import { geoEqualEarth, geoPath } from 'd3-geo';
 import { select } from 'd3-selection';
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
-import type { IndicatorDef } from '../topics/types';
+import type { AirportsData, IndicatorDef } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 import { normalizeBox, type Box } from './boxEstimate';
 import type { CountryFeature } from './geometry';
 import { BubbleLegend, ChoroplethLegend } from './Legend';
+import { DEFAULT_LAYERS, LayerControls, OverlayLayers, type LayerVisibility } from './Overlays';
 import { bubbleScale, choroplethScale } from './scales';
 import { useElementSize } from './useElementSize';
 
@@ -32,6 +33,12 @@ interface WorldMapProps {
   boxToolLabel?: string;
   /** 疊在地圖左上角的內容，例如框選結果 */
   overlay?: ReactNode;
+  /** 疊加圖層：鐵路（經緯度 MultiLineString）與機場 */
+  railways?: GeoJSON.MultiLineString | null;
+  airports?: AirportsData | null;
+  layers?: LayerVisibility;
+  onLayersChange?: (layers: LayerVisibility) => void;
+  renderAirportTooltip?: (index: number) => ReactNode;
 }
 
 interface Shape {
@@ -52,12 +59,14 @@ export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
   const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
+  const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
+  const hasOverlays = Boolean(railways || airports);
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const size = useElementSize(containerRef);
   const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity);
-  const [hover, setHover] = useState<{ iso3: string; x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<{ iso3: string; x: number; y: number; airport?: number } | null>(null);
   // 框選工具：按下工具鈕後，下一次拖曳畫框（不平移地圖）
   const [boxMode, setBoxMode] = useState(false);
   const boxModeRef = useRef(false);
@@ -83,6 +92,7 @@ export function WorldMap(props: WorldMapProps) {
       anchor: projection(c.anchor) ?? [0, 0],
     }));
     return {
+      projection,
       sphere: path({ type: 'Sphere' }) ?? '',
       shapes,
       byIso: new Map(shapes.map((s) => [s.iso3, s])),
@@ -126,11 +136,12 @@ export function WorldMap(props: WorldMapProps) {
   const fills = useMemo(() => {
     if (!geo) return [];
     return geo.shapes.map((s) => {
+      if (indicator.layer.kind === 'none') return tokens.land; // 只畫疊加圖層，國家不上色
       const v = values.get(s.iso3);
       if (v === undefined) return 'url(#no-data)';
       return colorScale ? colorScale(v) : tokens.land;
     });
-  }, [geo, values, colorScale, tokens]);
+  }, [geo, values, colorScale, tokens, indicator.layer.kind]);
 
   const bubbles = useMemo(() => {
     if (!geo || indicator.layer.kind !== 'bubble') return [];
@@ -183,7 +194,8 @@ export function WorldMap(props: WorldMapProps) {
     const iso3 = isoFromEvent(e);
     const rect = containerRef.current?.getBoundingClientRect();
     if (!iso3 || !rect) return setHover(null);
-    setHover({ iso3, x: e.clientX - rect.left, y: e.clientY - rect.top });
+    const airport = (e.target as Element).getAttribute?.('data-airport');
+    setHover({ iso3, x: e.clientX - rect.left, y: e.clientY - rect.top, airport: airport ? Number(airport) : undefined });
   };
 
   const onPointerUp = () => {
@@ -258,7 +270,7 @@ export function WorldMap(props: WorldMapProps) {
           </pattern>
         </defs>
         {geo && (
-          <g transform={transform.toString()}>
+          <g transform={transform.toString()} style={{ '--k': k } as CSSProperties}>
             <path d={geo.sphere} className="sphere" fill={tokens.surface} stroke={tokens.grid} />
             <CountryShapes shapes={geo.shapes} fills={fills} stroke={tokens.countryBorder} />
             {tinyMarkers.map(({ shape, index }) => (
@@ -285,6 +297,16 @@ export function WorldMap(props: WorldMapProps) {
                 stroke={b.iso3 === selected || b.iso3 === hover?.iso3 ? tokens.ink : tokens.surface}
               />
             ))}
+            {hasOverlays && (
+              <OverlayLayers
+                projection={geo.projection}
+                railways={railways}
+                airports={airports}
+                layers={layers}
+                tokens={tokens}
+                hoveredAirport={hover?.airport ?? null}
+              />
+            )}
             {selectedShape && <path d={selectedShape.d} className="outline outline-selected" stroke={tokens.ink} />}
             {hoverShape && hoverShape !== selectedShape && (
               <path d={hoverShape.d} className="outline" stroke={tokens.ink} />
@@ -324,16 +346,27 @@ export function WorldMap(props: WorldMapProps) {
       {overlay && <div className={`map-overlay${overlayOnRight ? ' is-right' : ''}`}>{overlay}</div>}
 
       <div className="map-legend">
+        {hasOverlays && onLayersChange && (
+          <LayerControls
+            layers={layers}
+            onChange={onLayersChange}
+            hasRailways={Boolean(railways)}
+            hasAirports={Boolean(airports)}
+            tokens={tokens}
+          />
+        )}
         {colorScale ? (
           <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} />
-        ) : (
+        ) : indicator.layer.kind === 'bubble' ? (
           <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
-        )}
+        ) : null}
       </div>
 
       {hover && size && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
-          {renderTooltip(hover.iso3)}
+          {hover.airport !== undefined && renderAirportTooltip
+            ? renderAirportTooltip(hover.airport)
+            : renderTooltip(hover.iso3)}
         </MapTooltip>
       )}
     </div>

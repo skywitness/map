@@ -317,6 +317,63 @@ button {
   cursor: default;
 }
 
+/* ── 疊加圖層：鐵路與機場 ───────────── */
+.rail-lines {
+  fill: none;
+  stroke-width: 0.8;
+  stroke-opacity: 0.7;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.airport {
+  stroke-width: 0.75;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+/* 圓點大小用 CSS 的 r 抵銷地圖縮放（--k 由 WorldMap 設定），縮放時不必重畫幾千個圓 */
+.airport-large {
+  r: calc(2.8px / var(--k, 1));
+}
+
+.airport-medium {
+  r: calc(1.8px / var(--k, 1));
+  fill-opacity: 0.85;
+}
+
+.map-legend > .legend {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+}
+
+.map-layers {
+  margin: 0;
+  pointer-events: auto;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.map-layers .legend-title {
+  padding: 0;
+}
+
+.map-layers label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.map-layers input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 /* ── 框選 ───────────────────────────── */
 .map.is-box-mode svg,
 .map.is-box-mode .countries path,
@@ -487,14 +544,15 @@ button {
 }
 
 /* ── 圖例 ───────────────────────────── */
+/* 圖例容器：圖層開關與數值圖例各一個方塊，由下往上疊 */
 .map-legend {
   position: absolute;
   left: 12px;
   bottom: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   pointer-events: none;
 }
 
@@ -857,6 +915,14 @@ button {
   color: var(--ink-muted);
 }
 
+.iata {
+  display: inline-block;
+  min-width: 3.2em;
+  margin-right: 6px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-secondary);
+}
+
 /* ── 排名表 ─────────────────────────── */
 .ranking {
   position: absolute;
@@ -1147,8 +1213,11 @@ button {
   .map-legend {
     left: 8px;
     bottom: 8px;
-    padding: 6px 8px;
     transform: scale(0.85);
     transform-origin: bottom left;
+  }
+
+  .map-legend > .legend {
+    padding: 6px 8px;
   }
 }

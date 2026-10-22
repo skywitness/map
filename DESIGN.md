@@ -95,8 +95,15 @@ pipeline/
 | `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入 | 發電結構、GDP 與就業結構、主要農產品 |
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
+| `overlays` | 疊加在地圖上的點、線圖層（目前支援鐵路線與機場點），左下角可以開關 | 交通 |
 
 圖層的 `legendValues: 'auto'` 會依資料最大值自動挑圖例數值，適合量級差很多的子項目。
+
+圖層的 `kind: 'none'` 表示國家不依數值上色，只畫疊加圖層（例如交通主題的「路網地圖」）；指標資料仍用在 tooltip 與排名表。
+
+疊加圖層的效能做法（`src/map/Overlays.tsx`）：
+- 鐵路是一條很長的 SVG path，在資料管線先用 Douglas–Peucker 簡化到約 1 公里，再量化與差分編碼（約 12.5 萬個頂點、壓縮後約 300 KB）。
+- 機場有幾千個圓點，半徑用 CSS 的 `r: calc(… / var(--k))` 抵銷縮放，縮放時不必重畫。
 
 ## 5. 視覺化規則
 
@@ -132,7 +139,7 @@ pipeline/
 **國家歸屬的處理**（`pipeline/topics/population_grid.py`）：
 - 1:50m 的海岸線比 1 km 網格粗，孟買、香港、里約這類沿海城市有不少像素落在所有國界外（約 1 億人）。這些像素往外找最近的國家，最多約 20 km。
 - 1:50m 沒有形狀、離岸更遠的小島（例如澎湖），歸給 0.6° 內最近的國家。再遠的（例如聖安德烈斯島）維持「地圖上沒有國界的小島」，全球約 86 萬人。
-- 地圖跟 WPP 劃分不同的地方，改成照 WPP 算，見第 8 節第 12 點。
+- 地圖跟 WPP 劃分不同的地方，改成照 WPP 算，見第 8 節第 13 點。
 
 ## 7. 主題現況
 
@@ -144,6 +151,7 @@ pipeline/
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
 | 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
+| 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
 
 ## 8. 資料陷阱（重要）
@@ -187,8 +195,14 @@ pipeline/
      - 商業目錄（Data Center Map 等）不可轉載。
    - **算力**：Epoch AI 只收錄公開可查的 AI 叢集，自己估計約占全球 10–20%，叢集算在所在國家，不是擁有者的國家。
    - **Overpass API**：用一次全球查詢取回所有數據中心，國家在本地判斷，不必對公用伺服器發上百次查詢。
-10. **國名**：繁中名稱用瀏覽器內建的 `Intl.DisplayNames`；英文名用 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`）。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`。
-11. **授權**：
+10. **交通資料的限制**：
+    - 鐵路取自 Natural Earth 1:10m，是製圖用的簡化資料，可能缺少支線，複線可能重複計算。
+    - 北美只收主要幹線，美國只算出約 9 萬公里，實際超過 20 萬公里。
+    - 鐵路長度用地圖線段計算，每 20 個頂點判斷一次所在國家，跨國界的線會略有誤差。
+    - 機場來自 OurAirports，只取大型機場與有定期航班的中型機場（不含 4 萬多座小型機場、直升機場與純軍用機場）。
+    - 機場名稱是英文原名。
+11. **國名**：繁中名稱用瀏覽器內建的 `Intl.DisplayNames`；英文名用 pycountry 的通用名稱（`Taiwan`，不是 `Taiwan, Province of China`）。FAOSTAT 的品項中文名在 `pipeline/topics/agriculture_names.py`。
+12. **授權**：
     - WPP 是 CC BY 3.0 IGO。
     - World Bank、Ember、FAOSTAT、JRC GHS-POP 是 CC BY 4.0。
     - Harvard Atlas 是 CC0。
@@ -197,10 +211,11 @@ pipeline/
     - Microsoft AI Diffusion 是 MIT。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
     - OECD.AI 的 OpenRouter 資料未明示授權。
+    - Natural Earth（國界、鐵路）與 OurAirports 是公有領域。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
     - 頁尾已標示各主題的來源。
-12. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
+13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
     - 地圖的法國形狀含海外省（留尼旺、馬約特、瓜地洛普、馬丁尼克、法屬圭亞那），荷蘭含波奈等三島，但 WPP 分開計算，要依多邊形拆出來。
     - 地圖把克里米亞畫在俄羅斯，WPP 算在烏克蘭；地圖的摩洛哥形狀含西撒哈拉（而且跟西撒哈拉的形狀重疊），WPP 分開算。網格一律照 WPP 歸屬，否則縮放比例會錯（例如西撒哈拉會放大 178 倍）。
