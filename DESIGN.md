@@ -134,7 +134,7 @@ pipeline/
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
 | 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
-| AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；使用量 2025–2026 |
+| AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
 
 ## 8. 資料陷阱（重要）
 
@@ -164,8 +164,12 @@ pipeline/
    - 這些國家在排名表和搜尋裡都還找得到。
 9. **AI 資料的限制**：
    - **沒有任何 AI 公司按國家公布 token 用量。**
-     - 經濟合作暨發展組織（OECD.AI）網站上有 OpenRouter 依國家的 token 量，但只是網頁上的互動圖表，沒有下載檔，轉載授權也不明，所以沒有用。
-     - 現在用 Anthropic Economic Index（只代表 Claude 的網頁與 App）和 Microsoft AI Diffusion（依遙測資料推估）當替代指標。
+     - 唯一按國家統計的 token 量，是經濟合作暨發展組織（OECD.AI）網站上的 OpenRouter 資料（`pipeline/sources/oecd_ai.py`）。
+       - 網站沒有下載檔，這裡呼叫網頁圖表本身用的 GraphQL API，格式可能會變。
+       - 轉載授權未明示（頁尾已標示）。使用者知道授權不明，決定採用。
+       - 只代表透過 OpenRouter 這個 API 轉接平台的用量，依請求發出的地點計算，伺服器集中的新加坡、德國會偏高。
+       - 原始資料是逐月的，地圖用每年的每月平均（2026 年只有 1–7 月），側欄畫逐月趨勢。
+     - 另外用 Anthropic Economic Index（只代表 Claude 的網頁與 App）和 Microsoft AI Diffusion（依遙測資料推估）當參考。
    - **數據中心**：
      - 能轉載的只有 OpenStreetMap 的標示，各國完整度差很多，而且只有現在的快照。
      - PeeringDB 的使用條款禁止公開轉載。
@@ -182,6 +186,7 @@ pipeline/
     - Anthropic Economic Index 是 CC BY。
     - Microsoft AI Diffusion 是 MIT。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
+    - OECD.AI 的 OpenRouter 資料未明示授權。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
     - 頁尾已標示各主題的來源。
