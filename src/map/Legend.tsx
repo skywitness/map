@@ -1,4 +1,4 @@
-import type { ScalePower, ScaleThreshold } from 'd3-scale';
+import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
 import type { FlowDirection, IndicatorDef } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
@@ -23,9 +23,17 @@ interface ChoroplethLegendProps {
   indicator: IndicatorDef;
   title: string;
   scale: ScaleThreshold<number, string>;
+  /** 3D：色塊畫成階梯，表示每一級的高度 */
+  stepped?: boolean;
 }
 
-export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendProps) {
+/** 3D 圖例的說明（畫面上的圖例與匯出的圖片共用） */
+export const STEPPED_NOTE = '高度：每升一級色階加高一階（同一級內依數值）';
+export const COLUMN_NOTE = '高度：與數值成正比（柱子粗細固定）';
+/** 3D 階梯色塊的最大高度（px）；第 i 級（從 0 起）是 (i+1)/N 倍 */
+export const STEP_MAX_PX = 26;
+
+export function ChoroplethLegend({ indicator, title, scale, stepped = false }: ChoroplethLegendProps) {
   const { colors, labels, swatchWidth } = choroplethLegendModel(indicator, scale);
   return (
     <div className="legend">
@@ -33,10 +41,14 @@ export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendPr
         {title}
         <span className="legend-unit">（{indicator.unit}）</span>
       </div>
-      <div className="legend-scale" style={{ width: colors.length * swatchWidth }}>
+      {stepped && <div className="legend-note">{STEPPED_NOTE}</div>}
+      <div className={`legend-scale${stepped ? ' is-stepped' : ''}`} style={{ width: colors.length * swatchWidth }}>
         <div className="legend-swatches">
-          {colors.map((c) => (
-            <span key={c} style={{ background: c }} />
+          {colors.map((c, i) => (
+            <span
+              key={c}
+              style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
+            />
           ))}
         </div>
         <div className="legend-ticks">
@@ -113,6 +125,73 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
             </text>
           </g>
         ))}
+      </svg>
+      <NoDataKey />
+    </div>
+  );
+}
+
+/** 3D 柱子圖例的最高長條（px） */
+const COLUMN_MAX_PX = 44;
+/** 最高長條上方留一行字 */
+const COLUMN_LABEL_ROW = 14;
+
+/**
+ * 3D 柱子圖例的版面（px）。柱高與數值成正比，所以用等距的刻度
+ * （比例圓的圖例是 1、10、100 倍的同心圓，放在線性的長條上，小的會看不到）
+ */
+export interface ColumnLegendModel {
+  bars: { label: string; x: number; h: number }[];
+  /** 長條的底部 */
+  baseline: number;
+  width: number;
+  height: number;
+}
+
+export function columnLegendModel(indicator: IndicatorDef, max: number): ColumnLegendModel {
+  const values = scaleLinear().domain([0, max]).ticks(3).filter((v) => v > 0);
+  const tick = indicator.formatTick ?? indicator.format;
+  const labels = values.map(tick);
+  const slot = Math.max(30, Math.max(...labels.map((l) => l.length)) * 6.5 + 10);
+  const baseline = COLUMN_LABEL_ROW + COLUMN_MAX_PX;
+  return {
+    bars: values.map((v, i) => ({ label: labels[i], x: slot * i + slot / 2, h: (v / max) * COLUMN_MAX_PX })),
+    baseline,
+    width: slot * values.length,
+    height: baseline + 1,
+  };
+}
+
+interface ColumnLegendProps {
+  indicator: IndicatorDef;
+  title: string;
+  /** 所有年份的最大值，地圖上最高的柱子 */
+  max: number;
+  /** 柱子的顏色（地圖資料色） */
+  color: string;
+  tokens: Tokens;
+}
+
+/** 3D 柱子的圖例：等距刻度的長條 */
+export function ColumnLegend({ indicator, title, max, color, tokens }: ColumnLegendProps) {
+  const { bars, baseline, width, height } = columnLegendModel(indicator, max);
+  return (
+    <div className="legend">
+      <div className="legend-title">
+        {title}
+        <span className="legend-unit">（{indicator.unit}）</span>
+      </div>
+      <div className="legend-note">{COLUMN_NOTE}</div>
+      <svg width={width} height={height} aria-hidden="true">
+        {bars.map(({ label, x, h }) => (
+          <g key={label}>
+            <rect x={x - 6} y={baseline - h} width={12} height={h} rx={1.5} fill={color} />
+            <text x={x} y={baseline - h - 4} textAnchor="middle" fill={tokens.inkSecondary} fontSize={11}>
+              {label}
+            </text>
+          </g>
+        ))}
+        <line x1={0} x2={width} y1={baseline + 0.5} y2={baseline + 0.5} stroke={tokens.axis} />
       </svg>
       <NoDataKey />
     </div>

@@ -92,6 +92,7 @@ export function App() {
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
   const selectCountry = useCallback((iso3: string | null) => update({ country: iso3 }), [update]);
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
+  const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
@@ -122,9 +123,11 @@ export function App() {
 
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
+  // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
+  const flowOrigin = flows ? `${zhName(flows.origin, countries)}的` : '';
   const viewTitle = pure
     ? topic.title
-    : `${topic.title} · ${indicatorTitle} · ${year} 年${projected ? '（推估值）' : ''}`;
+    : `${topic.title} · ${flowOrigin}${indicatorTitle} · ${year} 年${projected ? '（推估值）' : ''}`;
   const fileBase = safeFilename(pure ? '世界地圖' : `世界資料地圖_${topic.shortTitle}_${indicatorTitle}`);
 
   const downloadImage = async () => {
@@ -352,6 +355,8 @@ export function App() {
                 ariaLabel={pure ? '世界地圖' : `世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
                 basemap={basemap}
                 fitOnSelect={pure}
+                threeD={state.threeD}
+                onThreeDChange={setThreeD}
                 focus={focusRequest}
                 dimmed={loading}
                 box={topic.boxEstimate ? state.box : null}

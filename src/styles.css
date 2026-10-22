@@ -559,9 +559,25 @@ kbd {
   background: var(--grid);
 }
 
-.map-zoom button:disabled {
+.map-zoom button:disabled,
+.map-zoom button[aria-disabled='true'] {
   color: var(--ink-muted);
   cursor: default;
+}
+
+.map-zoom button[aria-disabled='true']:hover {
+  background: none;
+}
+
+/* ── 3D ─────────────────────────────── */
+.map-zoom .map-toggle.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.map-zoom .map-compass {
+  display: grid;
+  place-items: center;
 }
 
 /* ── 圖層開關 ───────────────────────── */
@@ -619,6 +635,18 @@ kbd {
   font-size: 12px;
   pointer-events: none;
   white-space: nowrap;
+}
+
+/* 較長的提示：窄螢幕時換行，不超出地圖（右邊留給控制按鈕） */
+.map-hint.is-wrap {
+  left: 12px;
+  right: 56px;
+  transform: none;
+  width: fit-content;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  white-space: normal;
+  text-align: center;
 }
 
 .map-overlay {
@@ -796,6 +824,26 @@ kbd {
 
 .legend-swatches span:last-child {
   border-radius: 0 2px 2px 0;
+}
+
+.legend-note {
+  margin: -2px 0 6px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+/* 3D：色塊畫成階梯，表示每一級的高度 */
+.legend-scale.is-stepped .legend-swatches {
+  height: 26px;
+  align-items: flex-end;
+}
+
+.legend-scale.is-stepped .legend-swatches span {
+  border-radius: 2px 2px 0 0;
+}
+
+.legend-scale.is-stepped .legend-ticks span {
+  top: 30px;
 }
 
 .legend-ticks span {

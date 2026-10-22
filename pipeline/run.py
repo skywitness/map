@@ -27,6 +27,7 @@ STEPS = {
     "transport": "topics.transport",
     "climate": "topics.climate",
     "military": "topics.military",
+    "digital": "topics.digital",
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
 }
 
