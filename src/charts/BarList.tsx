@@ -16,16 +16,18 @@ interface BarListProps {
   /** 長條比例尺的最大值，預設為清單中的最大值 */
   max?: number;
   ariaLabel: string;
+  /** 標籤是原文專有名詞（例如 OpenStreetMap 上的營運者名稱），標成 translate="no"，英文介面也不翻 */
+  properNouns?: boolean;
 }
 
 /** 橫向長條清單：比 treemap 好讀，數值與占比直接寫出來，不必 hover */
-export function BarList({ items, format, total, max, ariaLabel }: BarListProps) {
+export function BarList({ items, format, total, max, ariaLabel, properNouns }: BarListProps) {
   const scaleMax = max ?? Math.max(...items.map((i) => i.value), 0);
   return (
     <ul className="bar-list" aria-label={ariaLabel}>
       {items.map((item) => (
         <li key={item.key}>
-          <span className="bar-label">
+          <span className="bar-label" translate={properNouns ? 'no' : undefined}>
             {item.color && <span className="bar-key" style={{ background: item.color }} />}
             {item.label}
           </span>

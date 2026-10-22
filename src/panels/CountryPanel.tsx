@@ -1,23 +1,24 @@
 import { lazy, Suspense, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
 import { EChart } from '../charts/EChart';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
-import { enName, zhName, type CountryTable } from '../lib/countries';
+import { useLang, useT } from '../i18n';
+import { countryName, enName, type CountryTable } from '../lib/countries';
 import { useJsonMany } from '../lib/data';
 import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
   usesDimension,
+  type Indicator,
   type IndicatorData,
-  type IndicatorDef,
   type PanelExtraProps,
-  type TopicDefinition,
+  type Topic,
 } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 import { rankOf, valuesAt } from './stats';
 
 interface CountryPanelProps {
-  topic: TopicDefinition;
-  indicator: IndicatorDef;
+  topic: Topic;
+  indicator: Indicator;
   item: string | null;
   itemLabel: string | null;
   iso3: string;
@@ -30,7 +31,7 @@ interface CountryPanelProps {
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
 const extraCache = new Map<string, LazyExoticComponent<ComponentType<PanelExtraProps>>>();
-function panelExtraFor(topic: TopicDefinition) {
+function panelExtraFor(topic: Topic) {
   if (!topic.panelExtra) return null;
   let component = extraCache.get(topic.id);
   if (!component) {
@@ -43,10 +44,12 @@ function panelExtraFor(topic: TopicDefinition) {
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange } = props;
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
-  const label = (ind: IndicatorDef) => (itemLabel && usesDimension(ind) ? `${itemLabel}${ind.label}` : ind.label);
+  const t = useT();
+  const lang = useLang();
+  const label = (ind: Indicator) => (itemLabel && usesDimension(ind) ? t.itemIndicator(itemLabel, ind.label) : ind.label);
   const Extra = panelExtraFor(topic);
   const allData = useJsonMany<IndicatorData>(files);
-  const name = zhName(iso3, countries);
+  const name = countryName(iso3, countries);
 
   // 「只畫路網」這類不上色的指標不列成數值卡片
   const stats = topic.indicators.flatMap((ind, i) => (ind.layer.kind === 'none' ? [] : [[ind, i] as const])).map(([ind, i]) => {
@@ -77,7 +80,7 @@ export function CountryPanel(props: CountryPanelProps) {
     if (!own || activeData.years.length < 2) return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
-    if (indicator.compareWorld && world) lines.push({ name: '世界', values: world, color: tokens.context });
+    if (indicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
     return timeSeriesOption({
       years: activeData.years,
       lines,
@@ -86,27 +89,29 @@ export function CountryPanel(props: CountryPanelProps) {
       indicator,
       tokens,
     });
-  }, [activeData, iso3, name, indicator, year, tokens]);
+  }, [activeData, iso3, name, indicator, year, tokens, t]);
 
   const projectionFrom = activeData?.projectionFrom;
-  const note = activeData?.notes?.[iso3];
+  // 附註只有中文的話，英文介面不顯示
+  const note = lang === 'en' ? activeData?.notesEn?.[iso3] : activeData?.notes?.[iso3];
 
   return (
-    <aside className="panel" aria-label={`${name}的資料`}>
+    <aside className="panel" aria-label={t.panelAria(name)}>
       <header className="panel-header">
         <div>
           <h2>{name}</h2>
           <p className="panel-sub">
-            {enName(iso3, countries)} · {iso3}
+            {lang === 'en' ? iso3 : `${enName(iso3, countries)} · ${iso3}`}
           </p>
         </div>
-        <button type="button" className="icon-button" onClick={onClose} aria-label="關閉">
+        <button type="button" className="icon-button" onClick={onClose} aria-label={t.close}>
           ×
         </button>
       </header>
 
       <p className="panel-year">
-        {year} 年{projectionFrom !== undefined && year >= projectionFrom && <span className="year-tag is-projected">推估值</span>}
+        {t.year(year)}
+        {projectionFrom !== undefined && year >= projectionFrom && <span className="year-tag is-projected">{t.projected}</span>}
       </p>
 
       <div className="stats">
@@ -119,11 +124,11 @@ export function CountryPanel(props: CountryPanelProps) {
             aria-pressed={ind.id === indicator.id}
           >
             <span className="stat-label">{label(ind)}</span>
-            <span className="stat-value">{value != null ? ind.format(value) : '無資料'}</span>
+            <span className="stat-value">{value != null ? ind.format(value) : t.noData}</span>
             <span className="stat-meta">
-              {rank != null && `第 ${rank} / ${total} 名`}
-              {share != null && ` · 占全球 ${formatPercent(share, share < 1 ? 2 : 1)}`}
-              {shownYear !== null && shownYear !== year && value != null && `（${shownYear} 年）`}
+              {rank != null && t.rank(rank, total)}
+              {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
+              {shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
             </span>
           </button>
         ))}
@@ -131,25 +136,21 @@ export function CountryPanel(props: CountryPanelProps) {
 
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
-          <h3>{label(indicator)}的變化</h3>
+          <h3>{t.overTime(label(indicator))}</h3>
           {option ? (
-            <EChart option={option} height={220} ariaLabel={`${name}歷年${label(indicator)}折線圖`} />
+            <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />
           ) : (
             <p className="empty">
-              {!activeData
-                ? '載入中…'
-                : activeData.years.length < 2
-                  ? '這項資料只有單一時間點，沒有歷年變化。'
-                  : '這個國家沒有這項資料。'}
+              {!activeData ? t.loading : activeData.years.length < 2 ? t.singleSnapshotPanel : t.noCountryData}
             </p>
           )}
-          {projectionFrom !== undefined && option && <p className="note">虛線為 {projectionFrom} 年起的推估值。</p>}
-          {note && <p className="note">附註：{note}</p>}
+          {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
+          {note && <p className="note">{t.note(note)}</p>}
         </section>
       )}
 
       {Extra && (
-        <Suspense fallback={<p className="empty">載入中…</p>}>
+        <Suspense fallback={<p className="empty">{t.loading}</p>}>
           <Extra topic={topic} iso3={iso3} year={year} item={item} countryName={name} tokens={tokens} />
         </Suspense>
       )}

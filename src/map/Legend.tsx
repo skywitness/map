@@ -1,15 +1,17 @@
 import type { ScalePower, ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
-import type { IndicatorDef } from '../topics/types';
+import { useT } from '../i18n';
+import type { Indicator } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 
 interface ChoroplethLegendProps {
-  indicator: IndicatorDef;
+  indicator: Indicator;
   title: string;
   scale: ScaleThreshold<number, string>;
 }
 
 export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendProps) {
+  const t = useT();
   const colors = scale.range();
   const thresholds = scale.domain();
   const tick = indicator.formatTick ?? indicator.format;
@@ -20,7 +22,7 @@ export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendPr
     <div className="legend">
       <div className="legend-title">
         {title}
-        <span className="legend-unit">（{indicator.unit}）</span>
+        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
       </div>
       <div className="legend-scale" style={{ width: colors.length * swatchWidth }}>
         <div className="legend-swatches">
@@ -44,13 +46,14 @@ export function ChoroplethLegend({ indicator, title, scale }: ChoroplethLegendPr
 const LABEL_GAP = 13;
 
 interface BubbleLegendProps {
-  indicator: IndicatorDef;
+  indicator: Indicator;
   title: string;
   radius: ScalePower<number, number>;
   tokens: Tokens;
 }
 
 export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
+  const t = useT();
   const spec = indicator.layer.kind === 'bubble' ? indicator.layer.legendValues : [];
   const values = spec === 'auto' ? niceLegendValues(radius.domain()[1]) : spec;
   const tick = indicator.formatTick ?? indicator.format;
@@ -72,7 +75,7 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
     <div className="legend">
       <div className="legend-title">
         {title}
-        <span className="legend-unit">（{indicator.unit}）</span>
+        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
       </div>
       <svg width={labelX + 52} height={height} aria-hidden="true">
         {items.map(({ v, r, labelY }) => (
@@ -95,10 +98,11 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
 }
 
 function NoDataKey() {
+  const t = useT();
   return (
     <div className="legend-nodata">
       <span className="swatch-nodata" />
-      無資料
+      {t.noData}
     </div>
   );
 }

@@ -20,7 +20,8 @@ import {
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
-import type { AirportsData, IndicatorDef } from '../topics/types';
+import { useLang, useT, type Lang } from '../i18n';
+import type { AirportsData, Indicator } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
@@ -32,7 +33,7 @@ import { useElementSize } from './useElementSize';
 
 interface WorldMapProps {
   countries: CountryFeature[];
-  indicator: IndicatorDef;
+  indicator: Indicator;
   /** 圖例標題，例如「稻米產量」 */
   legendTitle: string;
   /** 目前年份的數值，只放有資料的國家 */
@@ -84,22 +85,30 @@ function firstName(expr: ExpressionSpecification, separator: string): Expression
   return ['case', ['in', separator, expr], ['slice', expr, 0, ['index-of', separator, expr]], expr];
 }
 
-// 底圖地名改成繁體中文，沒有中文名稱的才用原文
+// 底圖地名跟著介面語言：中文用繁體中文名稱，英文用英文名稱，都沒有的才用當地原文
 const ZH_HANT: ExpressionSpecification = ['to-string', ['get', 'name:zh-Hant']];
-const ZH_NAME: ExpressionSpecification = [
-  'case',
-  ['has', 'name:zh-Hant'],
-  firstName(firstName(firstName(ZH_HANT, ';'), ' / '), '/'),
-  ['coalesce', ['get', 'name:zh'], ['get', 'name']],
-];
+const LABELS: Record<Lang, ExpressionSpecification> = {
+  zh: [
+    'case',
+    ['has', 'name:zh-Hant'],
+    firstName(firstName(firstName(ZH_HANT, ';'), ' / '), '/'),
+    ['coalesce', ['get', 'name:zh'], ['get', 'name']],
+  ],
+  en: ['coalesce', ['get', 'name:en'], ['get', 'name_en'], ['get', 'name']],
+};
 
-/** 下載底圖樣式，改成中文地名、地球儀投影、黑色太空背景 */
-async function loadBaseStyle(url: string): Promise<StyleSpecification> {
+/** 底圖裡顯示地名的文字圖層（道路編號、門牌號碼不算） */
+function isNameLayer(layer: LayerSpecification): boolean {
+  if (layer.type !== 'symbol') return false;
+  const field = layer.layout?.['text-field'];
+  return Boolean(field && JSON.stringify(field).includes('name'));
+}
+
+/** 下載底圖樣式，改成目前語言的地名、地球儀投影、黑色太空背景 */
+async function loadBaseStyle(url: string, lang: Lang): Promise<StyleSpecification> {
   const style = (await fetch(url).then((r) => r.json())) as StyleSpecification;
   for (const layer of style.layers) {
-    if (layer.type !== 'symbol') continue;
-    const field = layer.layout?.['text-field'];
-    if (field && JSON.stringify(field).includes('name')) layer.layout = { ...layer.layout, 'text-field': ZH_NAME };
+    if (isNameLayer(layer) && layer.type === 'symbol') layer.layout = { ...layer.layout, 'text-field': LABELS[lang] };
   }
   style.projection = { type: 'globe' };
   // 黑色太空背景，地球邊緣一圈淡藍色大氣層
@@ -256,7 +265,11 @@ const HOVER_LAYERS = ['airports-large', 'airports-medium', 'bubbles', 'data-tiny
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
-  const { box, onBoxChange, boxToolLabel = '框選', overlay, legendTitle } = props;
+  const t = useT();
+  const lang = useLang();
+  const langRef = useRef(lang);
+  langRef.current = lang;
+  const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { basemap, fitOnSelect = false } = props;
   const basemapRef = useRef(basemap);
@@ -350,7 +363,7 @@ export function WorldMap(props: WorldMapProps) {
     let cancelled = false;
     let map: MaplibreMap | null = null;
     const initial = basemapRef.current;
-    loadBaseStyle(initial.url)
+    loadBaseStyle(initial.url, langRef.current)
       .then((style) => {
         if (cancelled || !mapNodeRef.current) return;
         map = new MaplibreMap({
@@ -475,7 +488,7 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!map || loadedBasemapRef.current === null || loadedBasemapRef.current === basemap.id) return;
     let cancelled = false;
-    loadBaseStyle(basemap.url).then((style) => {
+    loadBaseStyle(basemap.url, langRef.current).then((style) => {
       if (cancelled) return;
       installedRef.current = false;
       hoverIdRef.current = null;
@@ -492,6 +505,15 @@ export function WorldMap(props: WorldMapProps) {
       cancelled = true;
     };
   }, [basemap]);
+
+  // 切換語言：底圖地名換成另一種語言，不必重新載入樣式
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    for (const layer of map.getStyle().layers) {
+      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', LABELS[lang]);
+    }
+  }, [revision, lang]);
 
   // 面量圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
   useEffect(() => {
@@ -660,13 +682,13 @@ export function WorldMap(props: WorldMapProps) {
       className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}${fullscreen ? ' is-fullscreen' : ''}`}
     >
       <div ref={mapNodeRef} className="map-canvas" role="img" aria-label={ariaLabel} />
-      {failed && <p className="error map-error">底圖載入失敗，請檢查網路連線後重新整理。</p>}
+      {failed && <p className="error map-error">{t.basemapFailed}</p>}
 
-      <div className="map-zoom" role="group" aria-label="地圖控制">
-        <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label="放大" title="放大">
+      <div className="map-zoom" role="group" aria-label={t.mapControls}>
+        <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label={t.zoomIn} title={t.zoomIn}>
           +
         </button>
-        <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label="縮小" title="縮小">
+        <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label={t.zoomOut} title={t.zoomOut}>
           −
         </button>
         <button
@@ -678,8 +700,8 @@ export function WorldMap(props: WorldMapProps) {
               duration: 800,
             })
           }
-          aria-label="回到全球"
-          title="回到全球"
+          aria-label={t.resetView}
+          title={t.resetView}
         >
           ⟲
         </button>
@@ -687,16 +709,16 @@ export function WorldMap(props: WorldMapProps) {
           type="button"
           className="map-text-button"
           onClick={() => setGlobe((g) => !g)}
-          aria-label={globe ? '切換成平面地圖' : '切換成地球儀'}
-          title={globe ? '切換成平面地圖' : '切換成地球儀'}
+          aria-label={globe ? t.toFlat : t.toGlobe}
+          title={globe ? t.toFlat : t.toGlobe}
         >
-          {globe ? '平面' : '球'}
+          {globe ? t.flatShort : t.globeShort}
         </button>
         <button
           type="button"
           onClick={toggleFullscreen}
-          aria-label={fullscreen ? '離開全螢幕' : '全螢幕'}
-          title={fullscreen ? '離開全螢幕' : '全螢幕'}
+          aria-label={fullscreen ? t.exitFullscreen : t.fullscreen}
+          title={fullscreen ? t.exitFullscreen : t.fullscreen}
         >
           {fullscreen ? '⤡' : '⤢'}
         </button>
@@ -707,7 +729,7 @@ export function WorldMap(props: WorldMapProps) {
             onClick={() => setBoxMode((m) => !m)}
             aria-pressed={boxMode}
             aria-label={boxToolLabel}
-            title={boxMode ? '在地圖上拖曳畫框（Esc 取消）' : boxToolLabel}
+            title={boxMode ? t.boxToolActive : boxToolLabel}
           >
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <rect x="2.5" y="3.5" width="11" height="9" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.5 1.5" />
@@ -716,7 +738,7 @@ export function WorldMap(props: WorldMapProps) {
         )}
       </div>
 
-      {boxMode && <div className="map-hint">在地圖上拖曳畫出範圍（Esc 取消）</div>}
+      {boxMode && <div className="map-hint">{t.boxHint}</div>}
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
 
       <div className="map-legend">

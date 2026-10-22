@@ -54,7 +54,10 @@ def indicator_file(
     values: dict[str, list[float | None]],
     **extra: object,
 ) -> dict:
-    """所有主題共用的指標檔格式：每個國家一個陣列，與 years 一一對應，缺值為 null。"""
+    """所有主題共用的指標檔格式：每個國家一個陣列，與 years 一一對應，缺值為 null。
+
+    extra 常用的欄位：projectionFrom、aggregates、notes（中文附註）與 notesEn（英文附註，英文介面用）。
+    """
     return {"indicator": indicator, "unit": unit, "years": years, **extra, "values": values}
 
 

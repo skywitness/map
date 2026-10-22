@@ -172,6 +172,8 @@ def build() -> None:
     print(f"  {len(countries)} 個國家的側欄資料")
 
     write_json(out / "items.json", {str(i): ZH_NAMES.get(i, _clean(names[i])) for i in sorted(used_items)})
+    # 英文介面用 FAOSTAT 本身的英文品項名稱
+    write_json(out / "items.en.json", {str(i): _clean(names[i]) for i in sorted(used_items)})
     missing = sorted(i for i in used_items if i not in ZH_NAMES)
     if missing:
         print(f"  {len(missing)} 個品項沒有中文名稱，暫用英文：{', '.join(f'{i} {names[i]}' for i in missing[:40])}…")

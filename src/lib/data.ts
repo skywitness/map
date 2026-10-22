@@ -10,7 +10,8 @@ export function fetchJson<T>(path: string): Promise<T> {
   let promise = cache.get(path) as Promise<T> | undefined;
   if (!promise) {
     promise = fetch(dataUrl(path)).then((res) => {
-      if (!res.ok) throw new Error(`讀取 ${path} 失敗：HTTP ${res.status}`);
+      // 訊息不帶語言，畫面上的「資料載入失敗」由呼叫端依介面語言加上
+      if (!res.ok) throw new Error(`${path} (HTTP ${res.status})`);
       return res.json() as Promise<T>;
     });
     promise.catch(() => cache.delete(path)); // 失敗不快取，下次重試

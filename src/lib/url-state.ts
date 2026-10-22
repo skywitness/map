@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { langParam, URL_PARAM } from '../i18n/lang';
 import { boxFromLegacyRaw, type Box } from '../map/boxEstimate';
 
 /** 畫面狀態全部放在網址參數，任何畫面都能直接複製網址分享。 */
@@ -53,6 +54,9 @@ function write(state: ViewState): void {
   if (state.country) p.set('country', state.country);
   if (state.view !== 'map') p.set('view', state.view);
   if (state.box) p.set('bbox', state.box.map((v) => v.toFixed(3)).join(','));
+  // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
+  const lang = langParam();
+  if (lang) p.set(URL_PARAM, lang);
   const query = p.toString();
   const url = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
   window.history.replaceState(null, '', url);

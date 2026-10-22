@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useT } from '../i18n';
 
 interface TimeSliderProps {
   years: number[];
@@ -13,6 +14,7 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
   const first = years[0];
   const last = years[years.length - 1];
   const [playing, setPlaying] = useState(false);
+  const t = useT();
   const yearRef = useRef(year);
   yearRef.current = year;
 
@@ -37,7 +39,7 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
   if (first === last) {
     return (
       <div className="time-slider is-single">
-        <span className="time-single-note">這項資料只有單一時間點，沒有歷年變化</span>
+        <span className="time-single-note">{t.singleSnapshot}</span>
         <output className="time-year">{year}</output>
       </div>
     );
@@ -53,8 +55,8 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
         type="button"
         className="play"
         onClick={togglePlay}
-        aria-label={playing ? '暫停' : '播放'}
-        title={playing ? '暫停' : '播放歷年變化'}
+        aria-label={playing ? t.pause : t.play}
+        title={playing ? t.pause : t.playTitle}
       >
         {playing ? '❚❚' : '▶'}
       </button>
@@ -65,8 +67,8 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
           max={last}
           step={1}
           value={year}
-          aria-label="年份"
-          aria-valuetext={`${year} 年${projected ? '（推估值）' : ''}`}
+          aria-label={t.yearSlider}
+          aria-valuetext={t.yearValue(year, projected)}
           onChange={(e) => {
             setPlaying(false);
             onChange(Number(e.target.value));
@@ -77,7 +79,7 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
           <span style={{ left: '0%' }}>{first}</span>
           {projectionFrom !== undefined && (
             <span className="tick-projection" style={{ left: `${projectionPct}%` }}>
-              {projectionFrom} 起為推估
+              {t.projectionFrom(projectionFrom)}
             </span>
           )}
           <span style={{ left: '100%' }}>{last}</span>
@@ -86,7 +88,7 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
       <output className="time-year">
         {year}
         {projectionFrom !== undefined && (
-          <span className={`year-tag${projected ? ' is-projected' : ''}`}>{projected ? '推估值' : '估計值'}</span>
+          <span className={`year-tag${projected ? ' is-projected' : ''}`}>{projected ? t.projected : t.estimated}</span>
         )}
       </output>
     </div>

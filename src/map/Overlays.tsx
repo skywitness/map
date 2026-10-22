@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import type { RailwaysData } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 
@@ -37,17 +38,18 @@ interface LayerControlsProps {
 
 /** 圖層開關，同時當作圖例 */
 export function LayerControls({ layers, onChange, hasRailways, hasAirports, tokens }: LayerControlsProps) {
+  const t = useT();
   const toggle = (key: keyof LayerVisibility) => onChange({ ...layers, [key]: !layers[key] });
   return (
     <fieldset className="legend map-layers">
-      <legend className="legend-title">圖層</legend>
+      <legend className="legend-title">{t.layers}</legend>
       {hasRailways && (
         <label>
           <input type="checkbox" checked={layers.railways} onChange={() => toggle('railways')} />
           <svg width="18" height="10" aria-hidden="true">
             <line x1="1" y1="5" x2="17" y2="5" stroke={tokens.ink} strokeWidth="1.2" />
           </svg>
-          鐵路
+          {t.railways}
         </label>
       )}
       {hasAirports && (
@@ -57,14 +59,14 @@ export function LayerControls({ layers, onChange, hasRailways, hasAirports, toke
             <svg width="18" height="10" aria-hidden="true">
               <circle cx="9" cy="5" r="4" fill={tokens.hues.orange} />
             </svg>
-            大型機場
+            {t.largeAirports}
           </label>
           <label>
             <input type="checkbox" checked={layers.mediumAirports} onChange={() => toggle('mediumAirports')} />
             <svg width="18" height="10" aria-hidden="true">
               <circle cx="9" cy="5" r="2.5" fill={tokens.hues.orange} />
             </svg>
-            中型機場（有定期航班）
+            {t.mediumAirports}
           </label>
         </>
       )}

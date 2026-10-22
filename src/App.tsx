@@ -1,7 +1,9 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { Topology } from 'topojson-specification';
 import { TimeSlider } from './controls/TimeSlider';
-import { zhName, type CountryTable } from './lib/countries';
+import { LangSwitch } from './controls/LangSwitch';
+import { localize, LOCALES, tr, useLang, useT } from './i18n';
+import { countryName, type CountryTable } from './lib/countries';
 import { useJson, useJsonMany } from './lib/data';
 import { useUrlState } from './lib/url-state';
 import {
@@ -25,7 +27,7 @@ import {
   type AirportsData,
   type IndicatorData,
   type RailwaysData,
-  type TopicDefinition,
+  type Topic,
 } from './topics/types';
 import { useTheme } from './theme/useTheme';
 
@@ -42,8 +44,11 @@ interface Manifest {
 export function App() {
   const { tokens, toggle: toggleTheme } = useTheme();
   const [state, update] = useUrlState();
+  const lang = useLang();
+  const t = useT();
 
-  const topic = getTopic(state.topic);
+  // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
+  const topic = localize(getTopic(state.topic), lang);
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
   const view = pure ? 'map' : state.view;
@@ -89,13 +94,18 @@ export function App() {
     // 純地圖頁沒有指標資料，改用地圖上有形狀的國家
     const codes = pure ? (features ?? []).map((f) => f.iso3).filter((c) => !c.startsWith('_')) : Object.keys(data?.values ?? {});
     return codes
-      .map((iso3) => ({ iso3, name: zhName(iso3, countries) }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant-TW'));
-  }, [data, countries, pure, features]);
+      .map((iso3) => ({
+        iso3,
+        name: countryName(iso3, countries, lang),
+        // 另一種語言的名稱也能搜尋（英文介面打「日本」、中文介面打 Japan）
+        other: countryName(iso3, countries, lang === 'en' ? 'zh' : 'en'),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, LOCALES[lang]));
+  }, [data, countries, pure, features, lang]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
-  const indicatorTitle = itemLabel && usesDimension(indicator) ? `${itemLabel}${indicator.label}` : indicator.label;
+  const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
 
   const renderAirportTooltip = (index: number) => {
     const row = airports?.rows[index];
@@ -108,21 +118,21 @@ export function App() {
           {iata && ` (${iata})`}
         </div>
         <div className="tt-label">
-          {[city, zhName(iso3, countries)].filter(Boolean).join(' · ')} · {type === 1 ? '大型機場' : '中型機場'}
+          {[city, countryName(iso3, countries)].filter(Boolean).join(' · ')} · {type === 1 ? t.largeAirport : t.mediumAirport}
         </div>
       </>
     );
   };
 
   const renderTooltip = (iso3: string) => {
-    if (pure) return <div className="tt-value">{zhName(iso3, countries)}</div>;
+    if (pure) return <div className="tt-value">{countryName(iso3, countries)}</div>;
     const v = values.get(iso3);
     return (
       <>
-        <div className="tt-value">{v !== undefined ? indicator.format(v) : '無資料'}</div>
+        <div className="tt-value">{v !== undefined ? indicator.format(v) : t.noData}</div>
         <div className="tt-label">
-          {zhName(iso3, countries)} · {year}
-          {projected && ' 推估值'}
+          {countryName(iso3, countries)} · {year}
+          {projected && t.tooltipProjected}
         </div>
       </>
     );
@@ -131,26 +141,27 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <h1 className="brand">世界資料地圖</h1>
-        <nav className="topics" aria-label="主題">
-          {TOPICS.map((t) => (
+        <h1 className="brand">{t.brand}</h1>
+        <nav className="topics" aria-label={t.topicsNav}>
+          {TOPICS.map((def) => (
             <button
-              key={t.id}
+              key={def.id}
               type="button"
-              className={`topic${t.id === topic.id ? ' is-active' : ''}`}
-              aria-current={t.id === topic.id ? 'page' : undefined}
-              onClick={() => update({ topic: t.id, indicator: null, item: null })}
+              className={`topic${def.id === topic.id ? ' is-active' : ''}`}
+              aria-current={def.id === topic.id ? 'page' : undefined}
+              onClick={() => update({ topic: def.id, indicator: null, item: null })}
             >
-              {t.shortTitle}
+              {tr(def.shortTitle, lang)}
             </button>
           ))}
         </nav>
+        <LangSwitch />
         <button
           type="button"
           className="icon-button theme-toggle"
           onClick={toggleTheme}
-          aria-label={tokens.mode === 'dark' ? '切換為淺色' : '切換為深色'}
-          title={tokens.mode === 'dark' ? '切換為淺色' : '切換為深色'}
+          aria-label={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
+          title={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
         >
           {tokens.mode === 'dark' ? '☀' : '☾'}
         </button>
@@ -185,7 +196,7 @@ export function App() {
           )}
           {pure ? null : topic.indicators.length > MAX_SEGMENTS ? (
             <label className="select-field">
-              <span>指標</span>
+              <span>{t.indicator}</span>
               <select value={indicator.id} onChange={(e) => update({ indicator: e.target.value })}>
                 {topic.indicators.map((ind) => (
                   <option key={ind.id} value={ind.id}>
@@ -195,7 +206,7 @@ export function App() {
               </select>
             </label>
           ) : (
-            <div className="indicator-picker" role="radiogroup" aria-label="指標">
+            <div className="indicator-picker" role="radiogroup" aria-label={t.indicator}>
               {topic.indicators.map((ind) => (
                 <button
                   key={ind.id}
@@ -213,11 +224,11 @@ export function App() {
         </div>
         <div className="controls-right">
           <label className="select-field">
-            <span>底圖</span>
-            <select value={basemap.id} onChange={(e) => chooseBasemap(e.target.value)} aria-label="底圖配色">
+            <span>{t.basemap}</span>
+            <select value={basemap.id} onChange={(e) => chooseBasemap(e.target.value)} aria-label={t.basemapStyle}>
               {BASEMAPS.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.label}
+                  {tr(b.label, lang)}
                 </option>
               ))}
             </select>
@@ -226,11 +237,13 @@ export function App() {
             className="search"
             type="search"
             list="country-options"
-            placeholder="搜尋國家"
-            aria-label="搜尋國家"
+            placeholder={t.searchCountry}
+            aria-label={t.searchCountry}
             onChange={(e) => {
               const query = e.target.value.trim();
-              const match = searchOptions.find((o) => o.name === query || o.iso3 === query.toUpperCase());
+              const match = searchOptions.find(
+                (o) => o.name === query || o.other === query || o.iso3 === query.toUpperCase(),
+              );
               if (match) {
                 selectCountry(match.iso3);
                 e.target.value = '';
@@ -243,7 +256,7 @@ export function App() {
             ))}
           </datalist>
           {!pure && (
-            <div className="view-toggle" role="radiogroup" aria-label="檢視方式">
+            <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
               {(['map', 'table'] as const).map((v) => (
                 <button
                   key={v}
@@ -253,7 +266,7 @@ export function App() {
                   className={`segment${view === v ? ' is-active' : ''}`}
                   onClick={() => update({ view: v })}
                 >
-                  {v === 'map' ? '地圖' : '排名表'}
+                  {v === 'map' ? t.viewMap : t.viewTable}
                 </button>
               ))}
             </div>
@@ -264,7 +277,7 @@ export function App() {
 
       <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">
-          {error && <p className="error">資料載入失敗：{error.message}</p>}
+          {error && <p className="error">{t.loadFailed(error.message)}</p>}
           {view === 'map' ? (
             features && (data || pure) ? (
               <WorldMap
@@ -277,13 +290,13 @@ export function App() {
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={pure ? '世界地圖' : `世界地圖：${year} 年各國${indicatorTitle}${projected ? '（推估值）' : ''}`}
+                ariaLabel={pure ? t.worldMapAria : t.mapAria(year, indicatorTitle, projected)}
                 basemap={basemap}
                 fitOnSelect={pure}
                 dimmed={loading}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}
-                boxToolLabel={topic.boxEstimate && `框選範圍，估算${topic.boxEstimate.label}`}
+                boxToolLabel={topic.boxEstimate && t.boxToolFor(topic.boxEstimate.label)}
                 railways={railways}
                 airports={airports}
                 layers={layers}
@@ -306,7 +319,7 @@ export function App() {
                 }
               />
             ) : (
-              <p className="loading">地圖載入中…</p>
+              <p className="loading">{t.loadingMap}</p>
             )
           ) : (
             <RankingTable
@@ -342,31 +355,31 @@ export function App() {
       {!pure && <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />}
 
       <footer className="footer">
-        資料來源：
+        {t.sources}
         {topic.sources.map((s, i) => (
           <span key={s.url}>
-            {i > 0 && '、'}
+            {i > 0 && t.listSeparator}
             <a href={s.url} target="_blank" rel="noreferrer">
               {s.name}
             </a>
-            （{s.license}）
+            {t.sourceLicense(s.license)}
           </span>
         ))}
-        · 國界：
+        {t.borders}
         <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
           Natural Earth
         </a>
-        （公有領域）
-        {manifest && <> · 資料產生於 {manifest.generatedAt.slice(0, 10)}</>}
+        {t.publicDomain}
+        {manifest && t.generatedAt(manifest.generatedAt.slice(0, 10))}
         {topic.note && <span className="footer-note">{topic.note}</span>}
-        <span className="footer-note">國界與名稱僅為資料呈現，不代表任何政治立場。</span>
+        <span className="footer-note">{t.disclaimer}</span>
       </footer>
     </div>
   );
 }
 
 /** 主題的疊加圖層（鐵路、機場），只在該主題載入 */
-function useOverlays(topic: TopicDefinition) {
+function useOverlays(topic: Topic) {
   const overlays = topic.overlays ?? [];
   const files = useMemo(() => overlays.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, overlays]);
   const loaded = useJsonMany<unknown>(files);
@@ -400,7 +413,7 @@ function groupOptions<T extends { group?: string }>(options: T[]): [string | und
  * 某國的框內估計 = 框內網格人數 ÷ 該國網格總人數 × 該國當年總量。
  */
 function useBoxEstimate(
-  topic: TopicDefinition,
+  topic: Topic,
   item: string | null,
   box: Box | null,
   features: ReturnType<typeof toCountryFeatures> | null,
