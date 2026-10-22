@@ -28,6 +28,7 @@ STEPS = {
     "climate": "topics.climate",
     "military": "topics.military",
     "digital": "topics.digital",
+    "health": "topics.health",
 }
 
 
