@@ -28,7 +28,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft）
+原始資料（UN、IMF、World Bank、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -104,6 +104,8 @@ pipeline/
 1. **資料**：在 `pipeline/topics/` 新增 `<主題>.py`，實作 `build()`，資料來源寫在 `pipeline/sources/`，用 `common.indicator_file()` 輸出；然後在 `pipeline/run.py` 的 `STEPS` 註冊。
 2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後在 `src/topics/index.ts` 的 `TOPICS` 註冊。
 3. 執行 `npm run data -- <主題>` 產生資料，`npm run dev` 檢查。
+
+世界銀行等來源的最新一年常常只有少數國家先公布，地圖會幾乎全灰。用 `common.year_span()` 截掉頭尾涵蓋國家太少的年份，每個指標的時間軸範圍可以不同。
 
 `TopicDefinition` 的選填擴充點（`pure: true` 是純地圖頁：不載入統計資料，沒有指標、時間軸、資料側欄與排名表）：
 
@@ -194,6 +196,7 @@ pipeline/
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
+| 氣候 | 人均 CO₂ 排放、年排放量、累積排放量（1750 年起）、人均消費端排放、每單位 GDP 排放 | 排放來源（燃煤、天然氣、石油、水泥…）堆疊面積圖＋長條 | Our World in Data（Global Carbon Project） | 1850–2024；消費端 1990–2023；每單位 GDP 到 2022 |
 
 ## 8. 資料陷阱（重要）
 
@@ -248,6 +251,7 @@ pipeline/
     - World Bank、Ember、FAOSTAT、JRC GHS-POP 是 CC BY 4.0。
     - Harvard Atlas 是 CC0。
     - Epoch AI 是 CC BY。
+    - Our World in Data 整理的資料（碳排來自 Global Carbon Project）是 CC BY 4.0。
     - Anthropic Economic Index 是 CC BY。
     - Microsoft AI Diffusion 是 MIT。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
@@ -264,6 +268,11 @@ pipeline/
     - 索馬利蘭、北賽普勒斯、聖誕島與科科斯群島、諾福克島、奧蘭群島在地圖上有形狀，但 WPP 把人口算在索馬利亞、賽普勒斯、澳洲、芬蘭。
     - 吐瓦魯、托克勞、直布羅陀在 1:50m 沒有形狀，用矩形範圍指定。
     - GHS-POP 的 30 角秒 GeoTIFF 範圍不是整齊的 ±180°（左右各多約 1 格），超出的像素要繞回另一側。
+
+14. **碳排資料**（`pipeline/topics/climate.py`）：
+    - OWID 的科索沃沒有 ISO 代碼，用國名對應成 XKX；洲、所得組、國際航空與航運另外列，不收。
+    - 國際航空與航運的排放不屬於任何國家，所以各國加總小於世界合計。
+    - 每單位 GDP 的排放用 Maddison Project 的 GDP（2011 年國際元），只到 2022 年。
 
 ## 9. 之後可以做的
 
