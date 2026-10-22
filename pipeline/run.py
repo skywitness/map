@@ -27,6 +27,7 @@ STEPS = {
     "transport": "topics.transport",
     "climate": "topics.climate",
     "military": "topics.military",
+    "digital": "topics.digital",
 }
 
 
