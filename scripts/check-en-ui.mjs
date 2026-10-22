@@ -131,6 +131,9 @@ async function main() {
       }));
     const zh = await state();
     expect(zh.brand === '世界資料地圖' && zh.lang === 'zh-Hant-TW', `預設不是中文：${JSON.stringify(zh)}`);
+    // 檢查本身的對照組：中文介面一定收集得到中文，否則下面「沒有中文」的結果不可信
+    const zhTexts = await page.evaluate(collectTexts);
+    expect(zhTexts.filter((t) => CJK.test(t)).length > 20, '檢查本身有問題：中文介面也沒收集到中文');
     await page.evaluate(() => (window.__navigations = performance.getEntriesByType('navigation').length));
     await page.click('.lang-switch [lang="en"]');
     await settle(page);
