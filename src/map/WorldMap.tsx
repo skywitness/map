@@ -19,7 +19,6 @@ import {
   type MapMouseEvent,
   type MapTouchEvent,
 } from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { geoArea, geoDistance } from 'd3-geo';
 import { useLang, useT } from '../i18n';
 import type { AirportsData, Indicator } from '../topics/types';
