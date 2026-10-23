@@ -10,6 +10,7 @@ import { diplomacy } from './diplomacy';
 import { disease } from './disease';
 import { earthquakes } from './earthquakes';
 import { education } from './education';
+import { employment } from './employment';
 import { gender } from './gender';
 import { electricity } from './electricity';
 import { elevation } from './elevation';
@@ -52,7 +53,7 @@ export interface TopicGroup {
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing, religion, inequality, gender, nobel] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture, minerals] },
+  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, sectors, industry, agriculture, minerals] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, military, democracy, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, transport] },
