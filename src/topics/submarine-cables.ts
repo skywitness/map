@@ -83,7 +83,7 @@ const COUNTED = {
 /** 時間軸：今年以前是已啟用的電纜（實際數字，不標「估計值」），明年起加上規劃中的電纜 */
 const PLANNED_YEARS: IndicatorDef['projectionLabel'] = {
   tag: { zh: '含規劃中', en: 'Incl. planned' },
-  from: (year) => tr({ zh: `${year} 起含規劃中`, en: `Planned cables from ${year}` }),
+  from: (year) => tr({ zh: `${year} 起含規劃中`, en: `Planned from ${year}` }),
 };
 
 const indicators: IndicatorDef[] = [
