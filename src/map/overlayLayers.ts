@@ -2,6 +2,7 @@
  * 一般疊加圖層（主題 overlays 裡 kind 為 points、lines 的，例如地震、火山、板塊邊界、駐外館處）的 MapLibre 圖層。
  * 每個疊加圖層一個 GeoJSON source（`ov-<id>`）；圖層 id 也是 `ov-<id>`（虛線的線另外一層 `ov-<id>-dash`）。
  * 有 tooltip 的線另外兩層：看不見的寬線 `ov-<id>-hit` 給 hover 查詢（細線很難滑到），加粗的 `ov-<id>-hover` 標出滑到的那一條。
+ * casing 的線在最下面多一層細邊 `ov-<id>-casing`。有 vertexTypes 的線（颱風）依每個頂點的代碼切成好幾段，各段分別上色。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
@@ -22,6 +23,7 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
 /** 有 tooltip 的線：hover 查詢用的寬線、標出滑到的線 */
 const HIT_SUFFIX = '-hit';
 const HOVER_SUFFIX = '-hover';
+const CASING_SUFFIX = '-casing';
 /** 滑到線上時查詢的寬度（px），細線也滑得到 */
 const HIT_WIDTH = 9;
 /** 線的組別（紀錄相同的線是同一組，例如同一條電纜的各段）；沒有滑到任何線時的篩選值 */
@@ -149,14 +151,36 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
     'line-opacity': dark ? 0.9 : 0.8,
   };
   const isDashed: FilterSpecification = ['in', ['coalesce', ['get', 'type'], -1], ['literal', dashed]];
-  const layout = { 'line-join': 'round', 'line-cap': 'round' } as const;
+  // sortByType：代碼大的畫在上面（颱風強的那段疊在弱的上面）
+  const layout = {
+    'line-join': 'round' as const,
+    'line-cap': 'round' as const,
+    ...(def.sortByType ? { 'line-sort-key': ['coalesce', ['get', 'type'], 0] as ExpressionSpecification } : {}),
+  };
   const out: LineSublayer[] = [];
+  if (def.casing) {
+    out.push({
+      layer: {
+        id: id + CASING_SUFFIX,
+        type: 'line',
+        source: id,
+        layout,
+        paint: {
+          'line-color': dark ? '#ffffff' : MAP_TOKENS.ink,
+          'line-opacity': dark ? 0.4 : 0.28,
+          'line-width': zoomed(def.width + 1.4),
+        },
+      },
+      base: null,
+      timed: true,
+    });
+  }
   const solidBase = dashed.length ? (['!', isDashed] as FilterSpecification) : null;
   out.push({ layer: { id, type: 'line', source: id, layout, paint, ...(solidBase ? { filter: solidBase } : {}) }, base: solidBase, timed: true });
   // line-dasharray 不能依資料變化，虛線的類別另外一層
   if (dashed.length) {
     out.push({
-      layer: { id: `${id}-dash`, type: 'line', source: id, filter: isDashed, paint: { ...paint, 'line-dasharray': [2, 1.5] } },
+      layer: { id: `${id}-dash`, type: 'line', source: id, layout, filter: isDashed, paint: { ...paint, 'line-dasharray': [2, 1.5] } },
       base: isDashed,
       timed: true,
     });
@@ -208,29 +232,43 @@ function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>): GeoJSON.Fe
 
 function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.FeatureCollection {
   if (!o.lines) return EMPTY;
-  const { lines, types, records } = o.lines;
+  const { lines, types, records, vertexTypes } = o.lines;
   const { timeField } = o.def;
   // 紀錄完全相同的線是同一組（同一條電纜被切成好幾段），滑到其中一段時整組一起標出
   const groups = new Map<string, number>();
-  return {
-    type: 'FeatureCollection',
-    features: lines.map((coordinates, i) => {
-      const properties: Record<string, number | string> = { i };
-      if (types) properties.type = types[i];
-      const record = records?.[i];
-      if (record) {
-        const key = JSON.stringify(record);
-        let g = groups.get(key);
-        if (g === undefined) groups.set(key, (g = groups.size));
-        properties.g = g;
-        const t = timeField ? record[timeField] : null;
-        if (timeField && t !== null && t !== undefined) properties[timeField] = t;
-      } else {
-        properties.g = i;
-      }
-      return { type: 'Feature', properties, geometry: { type: 'LineString', coordinates } };
-    }),
-  };
+  const features: GeoJSON.Feature[] = [];
+  lines.forEach((coordinates, i) => {
+    const properties: Record<string, number | string> = { i };
+    if (types) properties.type = types[i];
+    const record = records?.[i];
+    if (record) {
+      const key = JSON.stringify(record);
+      let g = groups.get(key);
+      if (g === undefined) groups.set(key, (g = groups.size));
+      properties.g = g;
+      const t = timeField ? record[timeField] : null;
+      if (timeField && t !== null && t !== undefined) properties[timeField] = t;
+    } else {
+      properties.g = i;
+    }
+    const codes = vertexTypes?.[i];
+    if (!codes || codes.length !== coordinates.length) {
+      features.push({ type: 'Feature', properties, geometry: { type: 'LineString', coordinates } });
+      return;
+    }
+    // 依每個頂點的代碼切段：每段的代碼是起點的代碼，相鄰兩段共用交界的頂點
+    let start = 0;
+    for (let j = 1; j < coordinates.length; j++) {
+      if (j < coordinates.length - 1 && codes[j] === codes[start]) continue;
+      features.push({
+        type: 'Feature',
+        properties: { ...properties, type: codes[start] },
+        geometry: { type: 'LineString', coordinates: coordinates.slice(start, j + 1) },
+      });
+      start = j;
+    }
+  });
+  return { type: 'FeatureCollection', features };
 }
 
 /** 依時間軸篩選的點：只有那一年、累積到那一年，或那一年起的 n 年（指標的 overlayTime） */
@@ -285,7 +323,7 @@ export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: O
       sent.set(id, data);
     }
     const visibility = o.visible && data ? 'visible' : 'none';
-    for (const layerId of [id, `${id}-dash`, id + HIT_SUFFIX, id + HOVER_SUFFIX]) {
+    for (const layerId of [id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HOVER_SUFFIX]) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
   }

@@ -149,11 +149,15 @@ def points_file(
     return {"fields": fields, "scale": {f: scale[f] for f in fields if f in scale}, "delta": list(delta), "columns": columns}
 
 
+VERTEX_CODES = "0123456789abcdefghijklmnopqrstuvwxyz"
+
+
 def lines_file(
     lines: list[list[tuple[float, float]]],
     quantum: float = 0.01,
     types: list[int] | None = None,
     *,
+    vertex_types: list[list[int]] | None = None,
     records: list[dict[str, object]] | None = None,
     record_fields: list[str] | None = None,
     record_scale: dict[str, float] | None = None,
@@ -167,26 +171,38 @@ def lines_file(
     records（選填）：每條線一筆紀錄（例如海底電纜的名稱、啟用年份），用 points_file() 的格式存
     （record_fields、record_scale、record_delta 同它的參數）；量化後不到兩個點而被丟掉的線，紀錄也一起拿掉，
     第 i 條線一定對應第 i 筆。前端的 tooltip 與時間篩選（timeField）用它。
+
+    vertex_types（選填）：每條線每個頂點的分類代碼（0–35，例如颱風每個時間點的強度），存成一個字元一個頂點的字串；
+    前端依代碼把線切成好幾段上色。量化後重疊的頂點只留第一個，代碼也跟著拿掉。
     """
     encoded: list[list[int]] = []
     kept: list[int] = []
+    kept_vertex: list[str] = []
     kept_records: list[dict[str, object]] = []
     for i, line in enumerate(lines):
         q = [(round(x / quantum), round(y / quantum)) for x, y in line]
-        q = [p for j, p in enumerate(q) if j == 0 or p != q[j - 1]]
-        if len(q) < 2:
+        keep = [j for j in range(len(q)) if j == 0 or q[j] != q[j - 1]]
+        if len(keep) < 2:
             continue
+        q = [q[j] for j in keep]
         flat = [q[0][0], q[0][1]]
         for (x0, y0), (x1, y1) in zip(q, q[1:]):
             flat += [x1 - x0, y1 - y0]
         encoded.append(flat)
         if types is not None:
             kept.append(types[i])
+        if vertex_types is not None:
+            codes = vertex_types[i]
+            if len(codes) != len(line):
+                raise ValueError(f"第 {i} 條線有 {len(line)} 個頂點，vertex_types 卻有 {len(codes)} 個")
+            kept_vertex.append("".join(VERTEX_CODES[codes[j]] for j in keep))
         if records is not None:
             kept_records.append(records[i])
     out: dict[str, object] = {"quantum": quantum, "lines": encoded}
     if types is not None:
         out["types"] = kept
+    if vertex_types is not None:
+        out["vertexTypes"] = kept_vertex
     if records is not None:
         if not record_fields:
             raise ValueError("有 records 時要給 record_fields")

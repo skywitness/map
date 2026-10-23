@@ -645,7 +645,7 @@ function useOverlays(topic: Topic, indicator: Indicator, item: string | null, la
             o.kind !== undefined &&
             (!o.indicators || o.indicators.includes(indicator.id)) &&
             (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${topic.id}/${o.file}` }]
+              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${o.topic ?? topic.id}/${o.file}` }]
               : [],
           ),
     [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],

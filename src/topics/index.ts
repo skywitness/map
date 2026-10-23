@@ -35,7 +35,9 @@ import { organizations } from './organizations';
 import { passport } from './passport';
 import { pureMap } from './map';
 import { population } from './population';
+import { powerPlants } from './power-plants';
 import { religion } from './religion';
+import { renewables } from './renewables';
 import { reserves } from './reserves';
 import { roadSafety } from './road-safety';
 import { sectors } from './sectors';
@@ -52,7 +54,9 @@ import { unVotes } from './un-votes';
 import { wages } from './wages';
 import { wealth } from './wealth';
 import type { TopicDefinition } from './types';
+import { typhoons } from './typhoons';
 import { waterForest } from './water-forest';
+import { wildfires } from './wildfires';
 import { worldHeritage } from './world-heritage';
 
 export interface TopicGroup {
@@ -69,9 +73,9 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, health, disease, tobaccoAlcohol, education, diet, housing, religion, inequality, gender, crime, happiness, nobel] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, reserves, stockMarket, sectors, industry, agriculture, minerals] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
+  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, transport, roadSafety] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, worldHeritage, travel] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, typhoons, wildfires, worldHeritage, travel] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */
