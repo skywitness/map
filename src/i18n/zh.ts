@@ -130,6 +130,7 @@ export const zh = {
   singleSnapshotPanel: '這項資料只有單一時間點，沒有歷年變化。',
   noCountryData: '這個國家沒有這項資料。',
   dashedProjection: (year: number) => `虛線為 ${year} 年起的推估值。`,
+  methodBreak: (year: number) => `垂直虛線：${year} 年起改用新的統計方法，跟之前的年份不完全可比。`,
   note: (note: string) => `附註：${note}`,
   yearMissing: (year: number) => `（${year} 年無資料，顯示最近一年）`,
 

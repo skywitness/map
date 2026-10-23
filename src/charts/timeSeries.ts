@@ -15,6 +15,8 @@ interface TimeSeriesInput {
   lines: TimeSeriesLine[];
   /** 從這一年起畫虛線（推估值） */
   projectionFrom?: number;
+  /** 從這一年起換了統計方法：畫一條垂直虛線 */
+  methodBreak?: number;
   /** 目前選擇的年份，畫一條垂直參考線 */
   year: number;
   indicator: Indicator;
@@ -23,8 +25,24 @@ interface TimeSeriesInput {
   sparse?: boolean;
 }
 
+type MarkLineItem = NonNullable<NonNullable<LineSeriesOption['markLine']>['data']>[number];
+
+/** 統計方法改變的那一年：比目前年份的參考線淡、用虛線，側欄底下另有文字說明 */
+export function methodBreakLine(year: number, tokens: Tokens): MarkLineItem {
+  return { xAxis: String(year), lineStyle: { color: tokens.inkMuted, type: [4, 3], width: 1 } };
+}
+
 /** 歷年折線：估計值實線、推估值虛線，同一個國家用同一個 series 名稱，圖例與 tooltip 才會合併 */
-export function timeSeriesOption({ years, lines, projectionFrom, year, indicator, tokens, sparse }: TimeSeriesInput): ChartOption {
+export function timeSeriesOption({
+  years,
+  lines,
+  projectionFrom,
+  methodBreak,
+  year,
+  indicator,
+  tokens,
+  sparse,
+}: TimeSeriesInput): ChartOption {
   const categories = years.map(String);
   // 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年
   const span = years[years.length - 1] - years[0];
@@ -59,6 +77,9 @@ export function timeSeriesOption({ years, lines, projectionFrom, year, indicator
   const markLines: NonNullable<LineSeriesOption['markLine']>['data'] = [{ xAxis: String(year) }];
   if (indicator.layer.kind === 'choropleth' && indicator.layer.scale.type === 'diverging') {
     markLines.push({ yAxis: 0 });
+  }
+  if (methodBreak !== undefined && years.includes(methodBreak)) {
+    markLines.push(methodBreakLine(methodBreak, tokens));
   }
   series[0].markLine = {
     silent: true,

@@ -21,8 +21,11 @@ export type ScaleSpec =
   | { type: 'diverging'; thresholds: number[] };
 
 export type LayerSpec =
-  /** 面量圖：適合比率、密度、人均這類「已經除過」的數值 */
-  | { kind: 'choropleth'; scale: ScaleSpec }
+  /**
+   * 面量圖：適合比率、密度、人均這類「已經除過」的數值。
+   * itemScales 是各子項目自己的分級門檻（例如各類食物的人均供給量差好幾倍），沒列的子項目用 scale。
+   */
+  | { kind: 'choropleth'; scale: ScaleSpec; itemScales?: Record<string, ScaleSpec> }
   /** 比例圓：適合總量（人口數、發電量），圓面積與數值成正比 */
   /** legendValues 為 'auto' 時依資料最大值自動挑（各農產品的量級差很多） */
   | { kind: 'bubble'; legendValues: number[] | 'auto' }
@@ -162,6 +165,23 @@ export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');
 }
 
+const itemScaleCache = new WeakMap<Indicator, Map<string, Indicator>>();
+
+/**
+ * 面量圖有 itemScales 時，換成目前子項目的分級門檻。
+ * 同一個指標與子項目回傳同一個物件，地圖依 indicator 重算色階的 useMemo 才不會每次重畫。
+ */
+export function forItem(indicator: Indicator, item: string | null): Indicator {
+  const layer = indicator.layer;
+  const scale = layer.kind === 'choropleth' && item ? layer.itemScales?.[item] : undefined;
+  if (!scale || layer.kind !== 'choropleth') return indicator;
+  let byItem = itemScaleCache.get(indicator);
+  if (!byItem) itemScaleCache.set(indicator, (byItem = new Map()));
+  let resolved = byItem.get(item!);
+  if (!resolved) byItem.set(item!, (resolved = { ...indicator, layer: { ...layer, scale } }));
+  return resolved;
+}
+
 /** 流向圖指標的流向檔路徑；不是流向圖時回傳 null */
 export function flowPath(
   topic: Pick<Topic, 'id' | 'dimension'>,
@@ -183,6 +203,8 @@ export interface IndicatorData {
   years: number[];
   /** 從這一年開始是推估值（例如 UN WPP 的未來推估） */
   projectionFrom?: number;
+  /** 從這一年起換了統計方法，跟之前的年份不完全可比（例如 FAO 糧食平衡表 2010 年起的新方法）；折線圖畫一條垂直虛線 */
+  methodBreak?: number;
   /** 世界、區域等合計，key 例如 WLD */
   aggregates?: Record<string, (number | null)[]>;
   /** key 為 ISO alpha-3，陣列與 years 一一對應，缺值為 null */
