@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、World Happiness Report…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -405,6 +405,7 @@ pipeline/
 | 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
 | 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
 | 治安與司法 | 故意殺人率（全部、女性、男性被害人，三個用同一組門檻）、法治分數（WGI，0–100） | — | World Bank WDI（UNODC 國際殺人統計）、World Bank Worldwide Governance Indicators；台灣的故意殺人率用衛福部死因統計（他殺）÷ WPP 人口，附註對照警政署故意殺人統計；監禁人口率因授權沒有放 | 故意殺人率 1990–2025（女性、男性 1993 年起；台灣 2008 年起；各國顯示 5 年內最近一年）；法治分數 1996–2025（2002 年起每年） |
+| 幸福感 | 生活評價（Cantril 階梯 0–10 分，近三年平均） | 《世界幸福報告》公布的名次、95% 信賴區間、分數由六個因素解釋的拆解（2019 年起） | World Happiness Report 2026 的 Figure 2.1 資料（Gallup World Poll）；台灣本身就在報告裡 | 2011–2025（2013 年沒有；2025 年是 2023–2025 年的調查，WHR 2026 公布） |
 | 薪資與工時 | 平均月薪（美元、購買力平價）、法定最低工資（美元、購買力平價）、每週工時、每年工時 | — | 國際勞工組織 ILOSTAT、Penn World Table 11.0（墨西哥、哥倫比亞的每年工時用 OECD）；台灣用主計總處薪資及生產力統計與人力資源調查、勞動部基本工資／最低工資、中央銀行匯率，購買力平價用 PWT 與 IMF 的消費者物價推算 | 月薪 1993–2025、最低工資 1996–2024、每週工時 2000–2025（各國只顯示 3 或 5 年內最近一年的資料）；每年工時 1970–2023 |
 | 存款與財產 | 平均每人存款、存款占 GDP、每位成年人的平均財富與財富中位數（各有市場匯率與購買力平價兩版）、最富有 10%／1% 的財富占比、家庭儲蓄率（約 35 國）、國民儲蓄率 | 財富的平均與中位數（折線對照，附「平均是中位數的幾倍」） | IMF Financial Access Survey、IMF WEO（SDMX API）、World Inequality Database、OECD National Accounts at a Glance；台灣用中央銀行金融統計、主計總處國民所得統計，附註列出國富統計與家庭財富分配統計 | 存款 2004–2025；財富 1995–2024（2025 年價格）；家庭儲蓄率 1995–2024；國民儲蓄率 1980–2031（2026 起推估） |
 | 物價與財政 | 通膨率、物價水準（美國 = 100）、政府債務占 GDP、財政收支占 GDP、稅收占 GDP（含社會安全捐） | — | IMF WEO（含台灣；物價水準用 IMF 的 GDP（美元）÷ GDP（購買力平價）算出），IMF 未涵蓋的地區用 World Bank 補；稅收用 OECD 全球稅收統計，OECD 沒有的 57 國用 IMF 世界稅收資料庫（WoRLD）補；台灣稅收用財政部 | 通膨率、物價水準 1980–2031、政府債務 1991–2031、財政收支 1990–2031（2026 起推估）；稅收 1990–2024（台灣 2000 年起，最新一年還沒公布的國家顯示前一年） |
@@ -528,6 +529,7 @@ pipeline/
     - **World Prison Brief（ICPR）沒有用**：網站只寫「© World Prison Brief」，要求引用，沒有授權轉載資料（https://www.prisonstudies.org/about-us）。
     - 世界銀行 Worldwide Governance Indicators 是 CC BY 4.0（https://datacatalog.worldbank.org/search/dataset/0038026）。
     - 內政部警政署、法務部統計處的開放資料採政府資料開放授權條款第 1 版。
+    - **World Happiness Report 沒有正式的開放授權**：報告寫明「This publication may be reproduced using the following reference」（附引用格式），資料分享頁（https://worldhappiness.report/data-sharing/）寫「The data we present in Figure 2.1 are available to download for free」，沒有限制轉載的條款；Our World in Data 也依這個「Data sharing policy」轉載。所以照報告要求的格式引用、只用公開的 Figure 2.1 資料。更多的蓋洛普世界民調資料要訂閱，條款另計，沒有用（見第 44 點）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1163,6 +1165,13 @@ pipeline/
     - **監禁人口率沒有放**：涵蓋各國的只有 UNODC 資料入口的「監獄與受刑人」（data.unodc.org/datareport/prison-held 的 `data_cts_prisons_and_prisoners.xlsx`，2003 年起，有在監人數、每十萬人比率與未判決比例 SDG 16.3.2）與 World Prison Brief，兩個都不能轉載（見第 12 點）。聯合國 SDG 全球資料庫有未判決比例（`VC_PRS_UNSNT`），但沒有在監人數，網站也找不到資料授權，同樣沒有用。台灣的數字在法務部統計處常用統計表「矯正機關收容人數」（`WebList3_Report.aspx?menu=INF_COMMON_C&list_id=1216`，只列最近 4 年，網站的月報、年報、進階查詢都只有 2022 年起）：2025 年底總收容人數 63,314 人，法務部的監禁人口率（÷ 年底人口）271.7，只寫在主題說明裡。
     - **台灣的故意殺人**：警政署統計查詢網（ba.npa.gov.tw，跟內政部統計查詢網同一套系統）的「故意殺人」發生數與被害人都含未遂，沒有分既遂（2021 年致死約 122 件，發生數 212 件）。所以地圖用衛福部死因統計的加害（他殺，ICD-10 X85–Y09、Y87.1）死亡人數 ÷ WPP 年中人口，男女分開算（死因統計的 sex 1 是男、2 是女），2008 年起；警政署的數字寫在附註（2025 年發生 158 件、被害人 193 人，同年他殺死亡 139 人）。2024 年 9 月起警政署部分刑案改成「1 被害人 1 發生數」。
     - **法治分數**：WGI 2025 年改版後的 0–100 治理分數（`GOV_WGI_RL.SC`，估計值的線性轉換，以假想的最差與基準國家定錨，越高越好），World Bank API 的 source 3。台灣（「Taiwan, China」）、法屬圭亞那、馬丁尼克、留尼旺、安圭拉、庫克群島、紐埃、澤西在 API 裡的代碼欄是空的，依名稱對照（`wgi.NAMES`）。1996、1998、2000 年，2002 年起每年。是 30 多個調查與評估的看法綜合，不是犯罪統計；2025 年台灣 78.4、南韓 78.3、日本 84.0、美國 71.7、芬蘭 91.8（最高）。
+44. **幸福感**（`pipeline/topics/happiness.py`、`src/topics/panels/HappinessPanel.tsx`）：
+    - 只用 WHR 公開的「Data for Figure 2.1」（`WHR26_Data_Figure_2.1.xlsx`，一個檔有 2011–2025 年，每年一列：名次、近三年平均、95% 信賴區間、六個解釋因素與「反烏托邦＋殘差」）。蓋洛普的原始資料要訂閱，沒有用。
+    - **年份**：檔案的「Year」是三年的最後一年（2025 = 2023–2025 年的調查，《世界幸福報告 2026》公布），照用；側欄寫「《世界幸福報告 2026》排名」（年份 + 1）。2013 年沒有（沒有 2014 年版的報告）。因素拆解從 2019 年（報告 2020 年版）起才有。
+    - **國名**：台灣是「Taiwan Province of China」、香港「Hong Kong SAR of China」、「Lao PDR」、「Côte d’Ivoire」（彎引號）要自己對照；北賽普勒斯、索馬利蘭在 WHR 的排名裡、地圖上也有形狀（`_CYN`、`_SOL`），一起收，名次總數才跟報告一樣（2025 年 147 國）。Swaziland（2020 年以前）與 Eswatini 是同一國。
+    - **名次**：排名表與側欄的名次依分數算（同分同名次），報告用沒有四捨五入的分數排，檔案只給到小數 3 位，所以 2,200 多筆裡有 40 筆跟報告差 1（例如 2025 年阿聯 6.821 跟另一國同分，報告是第 21 名）。側欄另外列出報告公布的名次（`rank.json`）；分數顯示到小數 3 位，跟報告一樣。
+    - 只有一個地圖指標：名次是分數的排序，畫成地圖（顏色越深名次越差）跟分數的地圖重複又容易看反，所以放在側欄。分級 [4, 5, 5.5, 6, 6.5, 7]：2025 年中位數 5.94，台灣 6.714（第 26 名），芬蘭 7.764 最高、阿富汗 1.45 最低。
+    - 台灣比對：《世界幸福報告 2026》第 26 名 6.714、2025 年版第 27 名 6.669、2024 年版第 31 名 6.503，跟報告的排名表一致。
 
 ## 9. 之後可以做的
 
