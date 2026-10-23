@@ -19,7 +19,7 @@ const FOODS: { id: string; label: Text; group: Text; thresholds: number[] }[] = 
   { id: 'poultry', label: { zh: '禽肉', en: 'Poultry' }, group: MEAT_FISH, thresholds: [5, 10, 20, 30, 40, 50] },
   { id: 'fish', label: { zh: '魚類與海鮮', en: 'Fish and seafood' }, group: MEAT_FISH, thresholds: [5, 10, 15, 20, 30, 50] },
   { id: 'milk', label: { zh: '乳品（生乳當量）', en: 'Dairy (milk equivalent)' }, group: DAIRY_EGGS, thresholds: [25, 50, 100, 150, 200, 300] },
-  { id: 'eggs', label: { zh: '蛋', en: 'Eggs' }, group: DAIRY_EGGS, thresholds: [2, 4, 7, 10, 13, 16] },
+  { id: 'eggs', label: { zh: '蛋類', en: 'Eggs' }, group: DAIRY_EGGS, thresholds: [2, 4, 7, 10, 13, 16] },
   { id: 'cereals', label: { zh: '穀物（合計）', en: 'Cereals (total)' }, group: STAPLES, thresholds: [80, 100, 120, 140, 160, 180] },
   { id: 'rice', label: { zh: '稻米（白米當量）', en: 'Rice (milled equivalent)' }, group: STAPLES, thresholds: [5, 10, 25, 50, 75, 100] },
   { id: 'wheat', label: { zh: '小麥', en: 'Wheat' }, group: STAPLES, thresholds: [20, 40, 60, 80, 100, 130] },
@@ -69,7 +69,7 @@ export const diet: TopicDefinition = {
     },
     {
       name: { zh: '農業部《糧食供需年報》（台灣的對照數字）', en: 'Ministry of Agriculture (Taiwan), food balance sheet (for comparison)' },
-      url: 'https://www.moa.gov.tw/',
+      url: 'https://www.moa.gov.tw/ws.php?id=7256',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
   ],
