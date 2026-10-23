@@ -47,6 +47,12 @@ STEPS = {
     "fiscal": "topics.fiscal",
     "innovation": "topics.innovation",
     "wealth": "topics.wealth",
+    "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
+    # 暖化（近 10 年平均與 1951–1980 年的差）的網格圖磚（不進版本控制，部署時產生）
+    "temperature-grid-tiles": "topics.temperature_grid_tiles",
+    "air-quality": "topics.air_quality",
+    "water-forest": "topics.water_forest",
+    "ev": "topics.ev",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 
