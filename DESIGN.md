@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -43,7 +43,7 @@ public/data/                              ← 靜態 JSON，會進版本控制
         ├─ countries/<ISO3>.json          側欄額外區塊用的單一國家明細
         ├─ grid.json                      框選用的網格人口（只有人口主題）
         ├─ profiles.json                  各國的高度分布與最高、最低點（只有海拔主題）
-        ├─ flows/<子項目>/<年>.json       流向圖的雙邊資料（只有貿易主題，一個商品、一年一個檔）
+        ├─ flows/<子項目>/<年>.json       流向圖的雙邊資料（貿易、移民主題，一個子項目、一年一個檔）
         └─ manifest.json
 
 public/tiles/population-density/          ← 人口密度的 1 km 網格圖磚，不進版本控制，部署時才產生（第 14 節）
@@ -148,6 +148,8 @@ pipeline/
 2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後加進 `src/topics/index.ts` 的 `TOPIC_GROUPS` 裡最接近的一類（頂列的分類選單，見 §11）。
 3. 執行 `npm run data -- <主題>` 產生資料，`npm run dev` 檢查。
 
+年份不必連續（例如移民存量 1990、1995…2020、2024）：時間軸拖到中間沒有資料的年份時顯示最接近的一年，播放與 ←→ 都跳到下一個有資料的年份。
+
 世界銀行等來源的最新一年常常只有少數國家先公布，地圖會幾乎全灰。用 `common.year_span()` 截掉頭尾涵蓋國家太少的年份，每個指標的時間軸範圍可以不同。普查這類隔好幾年才一次的資料，改在指標檔加 `latestWithin`，用 `common.latest_year_span()` 決定範圍（第 3 節）。
 
 `TopicDefinition` 的選填擴充點（`pure: true` 是純地圖頁：不載入統計資料，沒有指標、時間軸、資料側欄與排名表）：
@@ -163,6 +165,7 @@ pipeline/
 | 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`{ dir }`，`tiles/` 底下的資料夾，見第 14 節），控制列多一個切換 | 人口密度的 1 km 網格 |
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔 |
+| 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
 
 ### 雙語文字（英文版介面）
 
@@ -228,6 +231,12 @@ pipeline/
 - 沒選國家時地圖上方提示「點選國家，查看它的出口對象」；選了但那一年沒有資料也會提示。
 - 滑到夥伴國、弧線或圓點上，tooltip 顯示雙邊金額與占比；點夥伴會改成選取那個國家。
 - 側欄的「主要出口對象／進口來源」讀同一個流向檔（`useJson` 有快取，不會重複下載）。
+- **其他主題也可以用**（移民與難民，2026-10-23 起）：
+  - 文字：`labels: { export: { partners, main, verb }, import: {…} }`、`pickPartners`、`legendKey` 換掉貿易的「出口對象／進口來源」「由出口國（淺）到進口國（深）」（`flowText(layer)`）；沒給就是貿易的。`verb(選取的國家, 夥伴)` 是 tooltip 的那一句，用 `tr()` 寫兩種語言。
+  - 單位：流向檔的 `scale` 是「檔案裡的數值 × scale = 指標的單位」，移民是 1（人）；舊的貿易檔沒有這個欄位，當成 1000（千美元）。
+  - `direction: 'larger'`：依選取國家兩個方向的總額，畫比較大的那一邊。難民用這個：收容的比外流的多（土耳其、德國）就畫難民來自哪裡，反過來（敘利亞、烏克蘭）畫逃往哪裡，不必多一個指標。`FlowSelection.direction` 是解析後的方向，顏色、圖例、tooltip 都照它。
+  - 移民的 export 是「從這國出去」（來源國 → 目的地），import 是「來到這國」；弧線一樣從起點畫到終點。
+- 國家側欄的數值卡片：跟前面的指標用同一個資料檔的不重複列（移民的「流向：移民來源」就是「移民人數」）。
 - 圖例的版面由 `flowLegendModel()` 算，畫面上的圖例跟分享選單下載的圖片共用。3D 模式下流向圖沒有立體圖形，只是把地圖傾斜，弧線仍畫在地面上。
 - 貿易做成獨立主題（`src/topics/trade.ts`），沒有併進農業：出口、進口兩個指標剛好就是指標按鈕的「出口／進口」切換，商品用子項目選單，不必另做控制項；農業已經有 6 個指標（下拉選單），流向圖「先點國家」的操作方式也跟其他指標不同；全部商品的貿易也不屬於農業。
 
@@ -240,7 +249,7 @@ pipeline/
 | 細到 1 km 的密度 | **網格點陣圖磚**，同一套橘色循序色、固定的對數分級；國界、hover、點選仍用國家 | 人口密度的「1 km 網格」（第 14 節） |
 | 有正負的變化 | **面量圖**，橘↔青綠發散色，中間是中性灰 | 人口年增率、經濟成長率、自給率、農產品貿易收支 |
 | 中點有意義的比例（一半以上／以下） | **面量圖**，發散色，中性那一級跨過中點 | 公寓住戶比例（50% 以上多數人住公寓、以下多數住透天） |
-| 國家之間的流量 | **流向圖**，大圓弧線，線寬與金額成正比；出口青綠、進口橘（跟貿易收支的「淨出口綠、淨進口橘」一致） | 貿易流向 |
+| 國家之間的流量 | **流向圖**，大圓弧線，線寬與金額（人數）成正比；出口（移出）青綠、進口（移入）橘（跟貿易收支的「淨出口綠、淨進口橘」一致） | 貿易流向、移民來源與去向、難民 |
 | 類別（沒有大小之分） | **類別圖**，每類一色，最多 8 類加「其他」；有強弱的類別用循序色，兩個方向的強弱用發散色 | 主要官方語言、官方地位、首要死因、政體分類（專制 ↔ 民主） |
 | 個別的事件、地點 | **疊加的點**，大小與顏色依欄位（例如規模、震源深度），可以跟著時間軸篩選；國家的統計另外做成指標 | 地震、火山、駐外館處 |
 
@@ -376,6 +385,10 @@ pipeline/
 | 語言 | 主要官方語言（類別圖）；30 種語言各自的使用人口比例、使用人數（比例圓）、官方地位（類別圖）；語言數（比例圓） | 會說的語言（比例與官方地位）、Glottolog 語言數與瀕危語言數 | Unicode CLDR 49、Glottolog 5.3；台灣用 109 年人口及住宅普查 | 單一快照（標示為 2026 年） |
 | 住宅 | 公寓住戶比例（44 國）、自有住宅率（47 國）、平均每戶人數（191 國）、居住擁擠率與住房負擔過重率（37 國，只有歐洲）、都市貧民窟人口比例（194 國） | 住宅類型組成（獨棟、雙併連棟、公寓、其他；台灣依建築樓層） | Eurostat EU-SILC、OECD 可負擔住宅資料庫、UN DESA 家戶規模資料庫、World Bank WDI（UN-Habitat）；台灣用內政部房屋稅籍、主計總處家庭收支調查 | 住宅類型 2004–2025、自有 2005–2025、每戶人數 1991–2025、擁擠與負擔 2004–2025、貧民窟 2000–2022（每兩年）；各國只顯示 3–10 年內最近一年的資料 |
 | 海拔 | 地形（分層設色＋陰影，3D 是立體地形）、平均海拔、最高點、最低點、海拔 500／1,000／2,000 公尺以上的土地占比、沿海低地（低於 5 公尺且跟海相連）占比、平均坡度 | 高度分布長條、最高點與最低點（名稱、位置） | USGS GMTED2010、Wikidata；台灣用內政部 100 公尺 DEM 交叉比對；地圖上的地形是 AWS Terrain Tiles | 不隨時間變化（DEM 主要是 2000 年的 SRTM），沒有時間軸 |
+| 移民與難民 | 移民占人口比例、移民人數、僑民人數（比例圓）、每千人收容的難民、難民人數（依來源國）；流向圖：移民來源、僑民去向、難民（點選國家畫前 15 名的弧線） | 主要移民來源、主要僑民去向、收容的難民來自、難民逃往（長條清單） | UN DESA International Migrant Stock 2024、UNHCR、UN WPP 2024（人口）；台灣用 DESA（依國籍），附註對照移民署外僑居留人數、僑委會海外臺灣僑民人數 | 移民 1990–2020 每 5 年加 2024 年；難民 1990–2025 每年 |
+| 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
+| 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
+| 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
 | 地震與火山 | 歷年地震（累積，預設）、當年的地震（兩個都不上色，畫規模 6 以上的地震點，依時間軸篩選）、每十年的地震次數（比例圓）、地震死亡人數（每十年，比例圓）、全新世火山數（比例圓）；疊加圖層：板塊邊界（聚合、張裂、轉形）、全新世火山（三角形）、規模 5–6 地震（預設關閉）、規模 6 以上地震（大小是規模、顏色是震源深度） | 最大的地震、死亡最多的地震、全新世火山清單（最近噴發的在前） | USGS ComCat、NOAA NCEI 全球重大地震資料庫、Smithsonian GVP Volcanoes of the World、PB2002 板塊邊界（fraxen/tectonicplates） | 地震 1900–2026（規模 5–6 從 1973 年）；每十年的指標 1900–2020 年代（2020 年代只到今年）；火山是 2026 年的快照 |
 | 民主與自由 | 政體分類（類別圖，封閉專制 → 自由民主的發散色）、選舉民主指數、自由民主指數、言論自由指數（V-Dem 的 0–1 指數，發散色，中間跨過 0.5） | 三項指數歷年對照、68% 可信區間 | V-Dem Country-Year 資料集 v16（CC BY-SA 4.0） | 1900–2025 |
 | 諾貝爾獎 | 累計得主人數（比例圓）、每千萬人得主數、當年得主人數（比例圓）；全部獎項與 6 個獎項（子項目） | 在這個國家出生的得主名單（中文名、英文原名、年份、獎項、出生地、得獎理由原文）、各獎項人數、在這裡成立的得獎組織 | Nobel Prize API 2.1（Nobel Prize Outreach）、Wikidata（中文名稱）、UN WPP 2024（人均的分母） | 1901–2026（經濟學獎 1969 起）；每千萬人 1950 起 |
@@ -451,13 +464,20 @@ pipeline/
     - Natural Earth（國界、鐵路）與 OurAirports 是公有領域。
     - USGS GMTED2010 是公有領域；Wikidata 是 CC0；地圖上的 AWS Terrain Tiles 依各資料來源標示（見第 5 節「地形圖層」）。
     - 底圖：OpenFreeMap（免費、不需金鑰）、© OpenMapTiles、資料 © OpenStreetMap contributors（ODbL）。地圖右下角會自動標示。
+    - UN DESA International Migrant Stock 2024 是 CC BY 3.0 IGO（寫在 Excel 檔裡）。
+    - UNHCR Refugee Population Statistics Database 是 CC BY 4.0，另加 UNHCR 的資料集條款（https://www.unhcr.org/terms-use-datasets）：要用資料庫名稱標示，分享資料時也要附上條款的網址（頁尾多列一項），不能暗示 UNHCR 背書。
+    - **Pew Research Center 的宗教組成只能發布摘錄**（見第 27 點）。
+    - World Inequality Database 是 CC BY 4.0。
+    - OECD 的性別薪資差距是 CC BY 4.0（2024 年 7 月起的預設）。
+    - ILO 模型估計的勞參率、IPU 的國會女性比例用世界銀行轉載的版本（CC BY 4.0）。
+    - 僑務委員會、移民署、中選會、性平處的資料適用政府資料開放授權條款。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
     - 數位發展部、NCC、衛福部、教育部、內政部、中央銀行、交通部觀光署、農業部的開放資料也適用政府資料開放授權條款。
     - **UN Tourism 的資料庫禁止轉載**，觀光主題只用世界銀行以 CC BY 4.0 轉載的部分（見第 20 點）。
-    - **V-Dem 是 CC BY-SA 4.0（相同方式分享）**：可以商業使用、改作，但改作的成果要用同樣的授權分享（https://www.v-dem.net/data/the-v-dem-dataset/ ，條文 https://creativecommons.org/licenses/by-sa/4.0/）。民主與自由主題的資料檔（`public/data/topics/democracy/`）是改作（取子集、改國家代碼、差分編碼、算世界平均），所以頁尾寫明依 CC BY-SA 4.0 分享，這個主題匯出的地圖圖片與 CSV 也一樣。相同方式分享只管改作的資料本身，不會擴及網站程式碼或其他主題的資料。vdemdata 套件的程式碼是 GPL-3，這裡只用它的資料；「external variables」（`e_` 開頭）來自其他機構、各有授權，沒有用（見第 26 點）。
+    - **V-Dem 是 CC BY-SA 4.0（相同方式分享）**：可以商業使用、改作，但改作的成果要用同樣的授權分享（https://www.v-dem.net/data/the-v-dem-dataset/ ，條文 https://creativecommons.org/licenses/by-sa/4.0/）。民主與自由主題的資料檔（`public/data/topics/democracy/`）是改作（取子集、改國家代碼、差分編碼、算世界平均），所以頁尾寫明依 CC BY-SA 4.0 分享，這個主題匯出的地圖圖片與 CSV 也一樣。相同方式分享只管改作的資料本身，不會擴及網站程式碼或其他主題的資料。vdemdata 套件的程式碼是 GPL-3，這裡只用它的資料；「external variables」（`e_` 開頭）來自其他機構、各有授權，沒有用（見第 30 點）。
     - USGS ComCat、NOAA NCEI 全球重大地震資料庫是美國政府資料，公有領域。
-    - Smithsonian GVP 的 Volcanoes of the World 是美國政府雇員的職務作品（不受著作權保護）；Smithsonian 網站條款限個人、教育與其他非商業用途、註明出處，商業用途或「publication」要事先書面同意。本站非商業、頁尾註明來源，所以採用；要商業使用或擔心「publication」的解釋，可以改用 NOAA 的火山位置資料庫（也是 GVP 的舊版資料，授權欄「未指定」，沒有確切噴發年份）。見第 27 點。
+    - Smithsonian GVP 的 Volcanoes of the World 是美國政府雇員的職務作品（不受著作權保護）；Smithsonian 網站條款限個人、教育與其他非商業用途、註明出處，商業用途或「publication」要事先書面同意。本站非商業、頁尾註明來源，所以採用；要商業使用或擔心「publication」的解釋，可以改用 NOAA 的火山位置資料庫（也是 GVP 的舊版資料，授權欄「未指定」，沒有確切噴發年份）。見第 31 點。
     - PB2002 板塊邊界（fraxen/tectonicplates）是 ODC-By 1.0，要註明 Hugo Ahlenius、Nordpil 與 Peter Bird。
     - Nobel Prize API（api.nobelprize.org）是 CC0（https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/）；條款另外要求不刻意竄改或誤導、不用 Nobel Prize Outreach 的名稱或商標暗示背書（主題名稱「諾貝爾獎」只是描述資料內容，沒有用標誌）。
     - 頁尾已標示各主題的來源。
@@ -711,7 +731,43 @@ pipeline/
       - 內政部 DEM 的清單是 data.gov.tw（資料集 7507）的 CSV，每個縣市一個 zip。檔名是中文，下載網址要 URL 編碼。圖幅含海面（高度 0），所以 h > 0 才算陸地；相鄰縣市的圖幅重疊，同一個坐標只算一次。
       - 平均海拔與 1,000 m 以上的占比附註在台灣的側欄。
 
-26. **民主與自由**（`pipeline/topics/democracy.py`、`pipeline/sources/vdem.py`）：
+26. **移民與難民**（`pipeline/topics/migration.py`、`sources/undesa_ims.py`、`unhcr.py`、`nia.py`、`ocac.py`）：
+    - **UN DESA 的「移民」是存量**：住在出生國以外的人，年中，1990–2020 每 5 年加上 2024 年，不是每年移入的人數。沒有出生地統計的國家改用國籍（外國人），資料類型以 C 開頭的國家（台灣、日本、韓國、波灣國家…）附註會說明，這些國家已經歸化的人不算移民。
+    - **台灣在 DESA 裡**（「China, Taiwan Province of China」，代碼 158），目的地與來源都有：2024 年移入 113.6 萬人（印尼、越南、中國大陸、菲律賓、泰國），依國籍統計，含大陸地區人民約 25 萬人（多是配偶）。所以地圖直接用 DESA，跟其他國家同一個定義與年份。
+      - 移民署的外僑居留人數（持外僑居留證、不含大陸與港澳）2025 年底 102.9 萬人，寫在附註對照（內政部統計查詢網 funid c0930102；`ym=8500` 起查才會給到最新一年）。
+      - 僑民（台灣出生、住在國外）DESA 2024 年是 83.3 萬人，美國約 40 萬最多；僑委會的「海外臺灣僑民」含在海外出生的後代，2025 年底 210.8 萬人（data.gov.tw 9732），定義不同，只放附註。
+    - DESA 的 Table 1 一列是 (目的地, 來源)，兩邊都可能是區域、所得組（代碼 ≥ 900），只收國家與全世界；來源不明的「Other South／North」只算進總數，不畫弧線。流向檔的總額用全世界那一列（含來源不明），所以前 15 名加起來不到 100%。
+    - **UNHCR**：用 refugees（職權下的難民）加 oip（其他需要國際保護的人，2018 年起，主要是在拉丁美洲的委內瑞拉人，2025 年約 720 萬）。沒有算尋求庇護者、境內流離失所者，也沒有 UNRWA 照顧的巴勒斯坦難民（約 600 萬人，在 UNHCR 的另一個端點）。
+      - API 的收容國要用 `coa_iso`：`coa` 是 UNHCR 自己的代碼（埃及是 ARE）。數值有時是字串（"0"、"-"）。
+      - 年份清單會先列出還沒有資料的未來年份（2026、2027），`latest_year()` 實際查一次，空的不留快取。
+      - 台灣不在 UNHCR 的統計裡（不是《難民公約》締約國，也還沒有難民法），附註會寫。
+    - 每千人收容的難民用 WPP 2024 的人口，2024 年以後是推估值。黎巴嫩 2024 年每千人 131 人最高。
+    - 移民的年份只有 8 個：時間軸拖到中間沒有資料的年份時用最接近的一年，播放時跳到下一個有資料的年份（`App.tsx` 的 `pickYear`、`TimeSlider`）。
+
+27. **宗教**（`pipeline/topics/religion.py`、`sources/pew.py`、`moi_religion.py`）：
+    - **Pew 的條款只允許發布摘錄**：使用條款第 13 條（資料集）允許修改與衍生，但轉載、發布「只限摘錄，不能全部或大部分發布」，並要附上「Pew Research Center bears no responsibility for the analyses or interpretations of the data presented here」（頁尾的附註有）。
+      - 七大類 × 201 國 × 2 年的比例就是整份資料，所以**沒有做「每種宗教的比例」子項目**，只放主要宗教（衍生的類別）、主要宗教的比例、無宗教信仰比例、Pew 自己的宗教多樣性指數（RDI）。
+      - 要加每種宗教的比例，得先取得 Pew 的書面同意。開放授權、涵蓋全球的替代來源目前沒有：World Religion Project（Maoz & Henderson）只到 2010 年、沒有明確授權；UN 人口普查的宗教表很多國家不問宗教（美國、中國、法國）。
+      - 下載檔在 Pew 的功能頁面上（`Religious-Composition-2010-2020-dataset.zip`），不必登入；資料集頁面的下載要帳號，沒有用。
+    - 台灣在 Pew 裡：其他宗教（民間信仰、道教）52%、無宗教 23%、佛教 19%、基督宗教 6%（2020 年），主要宗教是「其他宗教」，全世界只有台灣一國；多樣性指數 7.46，排第 3（新加坡、蘇利南之後）。
+    - 內政部宗教統計只有登記的寺廟（2025 年底 12,397 座，道教 9,824、佛教 2,277）與教會（2,855 座），民間信仰多半沒有登記入教，沒有各宗教的信徒比例，只放附註。統計查詢網 funid c0210101（寺廟，依宗教別要加 `codspc1`）、c0210201（教會）。
+    - Pew 的科索沃用 M49 的 412，`countries.from_numeric()` 已經改成 XKX；海峽群島（830）沒有 ISO 代碼，不收。
+
+28. **貧富差距**（`pipeline/topics/inequality.py`、`sources/wid.py`、`fies.py`）：
+    - 吉尼係數與極端貧窮是世界銀行 PIP 依各國家庭調查算的，有的量所得、有的量消費，年份零散，用 `latestWithin: 10`。國際貧窮線 2025 年 6 月起是每天 3 美元（2021 年購買力平價），代碼 `SI.POV.DDAY` 不變。
+    - **WID 的整包下載**（約 890 MB，解壓 6.9 GB，每國一個分號分隔的 CSV）：只抽需要的變數，存成 `.cache/wid/extract-<雜湊>.json`，約 40 秒。網站用到的所有 WID 變數列在 `wid.ALL`（貧富差距與存款財產兩個主題共用一份快取）。區域與次國家（`US-CA`、`XN-MER`）不收，`WO` 是全世界，`KS` 是科索沃。
+    - 所得份額用 `sptincj992`：稅前國民所得、20 歲以上、夫妻平分。WID 結合稅務資料，最高所得比家庭調查完整，所以台灣的最高 10% 份額（2024 年 48.2%）比用家庭收支調查算的印象高很多。
+    - 台灣的吉尼係數：家庭收支調查第 5 表（每戶可支配所得 ÷ 每戶人數，1981 年起），2025 年 0.272，跟 PIP 的「每人所得」比較接近。新聞常引用的是第 4 表以「戶」計算的 0.341、五等分位 6.17 倍，寫在附註。
+    - 台灣不在 PIP 裡，極端貧窮留空、附註說明。
+
+29. **性別平等**（`pipeline/topics/gender.py`、`sources/oecd.py`、`dgbas.py`）：
+    - **薪資差距用 OECD，不用 ILO**：ILOSTAT 的 `EAR_GGAP_OCU_RT_A` 有 124 國，但每國的來源、時薪或月薪不同，同一國前後年可以差好幾個百分點（法國 2023 年 10.9%、2024 年 5.4%），阿富汗 2020 年是 −125%，日本、德國又沒有。OECD 是全職受僱者的中位數，約 45 國，定義一致。各國最新一年不同（2022–2025），用 `latestWithin: 4`。
+    - 台灣的薪資差距：主計總處受僱員工薪資調查的男女每月總薪資與工時（nstatdb A046201010、A046401010），平均時薪差距 = 1 −（女總薪資 ÷ 女工時）÷（男總薪資 ÷ 男工時），2024 年 15.9%，跟勞動部同酬日的 15.8% 一致（差在時薪的四捨五入）。勞動部另外算過依中位數的差距（2023 年 12.3%），比較接近 OECD 的口徑，寫在附註。
+    - 女性勞參率：ILO 模型估計（`SL.TLF.CACT.FE.ZS`）；台灣用人力資源調查（nstatdb A040109010，`codspc0=0,3` 是合計、男、女），今年還沒結束的不收。
+    - 國會女性比例：IPU（`SG.GEN.PARL.ZS`）；台灣用中選會的歷屆立委當選人（第 7 屆起 113 席），每屆從選舉那年起算，2022–2023 年用性平處《性別圖像》的 42.9%（補選後）。第 4–6 屆（225 席）的女性人數沒有找到可靠的官方數字，所以從 2008 年開始。
+    - GII：UNDP 人類發展報告（`gii_年`）。台灣用性平處依同一公式算的值：2019 年 0.045、2021 年 0.036、2022 年 0.041、2023 年 0.040（173 國中第 13 名）。《性別圖像》的 PDF 字型沒有 Unicode 對照，數字是把頁面轉成圖片讀的（2020 年的值沒有找到）。
+
+30. **民主與自由**（`pipeline/topics/democracy.py`、`pipeline/sources/vdem.py`）：
     - **來源**：V-Dem（Varieties of Democracy）Country-Year 資料集 v16（2026 年 3 月），引用格式是 Coppedge, Michael, John Gerring, Carl Henrik Knutsen, Staffan I. Lindberg, Jan Teorell, David Altman, et al. 2026. "V-Dem Country-Year Dataset v16". Varieties of Democracy (V-Dem) Project. https://doi.org/10.23696/vdemds26（V-Dem 網站列了 38 位作者，頁尾用 et al.）。
     - **下載**：V-Dem 網站（https://www.v-dem.net/data/the-v-dem-dataset/）的下載頁要先填表單（電子郵件、性別），沒有固定的直接網址，不適合程式下載。改用 V-Dem Institute 自己在 GitHub 維護的 R 套件 vdemdata（https://github.com/vdeminstitute/vdemdata）：`data/vdem.RData` 就是完整的 Country-Year 資料集（套件說明寫明是「most recent full V-Dem data set plus external variables」），用版本標籤 `V16`（commit f4dd269，「v16 release」，2026-03-17）固定版本：https://raw.githubusercontent.com/vdeminstitute/vdemdata/V16/data/vdem.RData（34 MB）。
       - 套件的程式碼是 GPL-3，但我們只用資料，資料的授權照 V-Dem 網站的 CC BY-SA 4.0。
@@ -731,7 +787,7 @@ pipeline/
     - **世界值**：每年地圖上有資料的國家的簡單平均（每國一樣重，不依人口加權）。V-Dem 的民主報告兩種都用（「平均國家」與「平均每人」）；依人口加權要 1900 年起的人口，WPP 只有 1950 年起、V-Dem 自己的 `e_pop` 到 2019 年左右，接不起來，而且會被中國、印度主導，所以用簡單平均。國家數逐年增加（1900 年 118 國、2025 年 177 國），早期的平均只代表當時有評分的地區。2025 年：選舉民主 0.486、自由民主 0.374、言論自由 0.612。
     - **不確定性**：V-Dem 的指數是專家評分先經過 V-Dem 的測量模型（貝氏 IRT 模型）估計，再合成的估計值。側欄列出時間軸那一年的 68% 可信區間（台灣 2025 年選舉民主 0.80，區間 0.76–0.86），頁尾提醒分數接近的國家高低不一定有意義。區間檔 6 個，共約 390 KB、gzip 後約 96 KB，只有打開國家側欄時才下載。
 
-27. **地震與火山**（`pipeline/topics/earthquakes.py`、`pipeline/sources/usgs.py`、`ncei.py`、`gvp.py`、`plates.py`）：
+31. **地震與火山**（`pipeline/topics/earthquakes.py`、`pipeline/sources/usgs.py`、`ncei.py`、`gvp.py`、`plates.py`）：
     - **USGS ComCat**（FDSN event API，https://earthquake.usgs.gov/fdsnws/event/1/ ，公有領域）：
       - 一次查詢最多 20,000 筆，超過時直接回 HTTP 400，所以分段查：規模 6 以上每 25 年一段（1900 年起共 14,471 筆），規模 5–6 每 5 年一段（1973 年起共 82,056 筆）。含今年的那一段檔名寫 `now`，要更新用 `--refresh`。
       - 只取 `eventtype=earthquake`（排除核試爆等），用 CSV（比 GeoJSON 小很多）。
@@ -764,7 +820,7 @@ pipeline/
     - **顏色**（MAP_TOKENS，dataviz 驗證工具算的 OKLab ΔE×100，一般／紅色盲／綠色盲）：淺源 `hues.red` #e34948、中源 `hues.yellow` #eda100、深源 `categorical[6]` #7b3294，兩兩 ≥ 21/21/15；火山 `sequential[6]` #611e00（深褐三角形）跟三色 ≥ 22/24/21；跟海 #a0c8f0 都 ≥ 23。板塊邊界用 `inkSecondary`／`inkMuted` 的中性灰，不跟地震搶；深色底圖上換成淺灰（`overlayLayers.ts` 的 `ON_DARK`，跟鐵路一樣）。比例圓的紫 #6250d6 跟深源的紫只有 13/12/11，但形狀、大小完全不同；改成青綠的話跟淺源的紅在紅色盲下只剩 7，所以維持紫色。
     - 半徑：規模每大 1 級半徑約加倍（M5 1 px、M6 1.8、M7 3.6、M8 7、M9 12，縮放 2 時）。
 
-28. **諾貝爾獎**（`pipeline/topics/nobel.py`、`pipeline/sources/nobel.py`）：
+32. **諾貝爾獎**（`pipeline/topics/nobel.py`、`pipeline/sources/nobel.py`）：
     - **來源**：Nobel Prize API 2.1 的 `laureates`（個人與組織，每位有 Wikidata QID）與 `nobelPrizes`（每年每類一筆，只拿來核對兩邊的得主名單一致）。一次 `limit=2000` 就拿完，超過會報錯。每年 10 月公布新得主，要 `npm run data -- nobel --refresh`。
     - **依出生地，不是國籍**：用 `birth.place.countryNow`（出生地今天屬於哪一國），同一個人只算一國。所以出生在布雷斯勞（今波蘭弗羅茨瓦夫）的玻恩、哈伯算波蘭，波蘭 28 位、德國只有 86 位；出生在美國的丁肇中算美國，台灣只有李遠哲，中國 12 位裡有美國人布拉頓（廈門）、日本人根岸英一（長春）、達賴喇嘛（西藏）。台灣的附註寫出丁肇中、楊振寧、李政道、崔琦、高錕各算在哪裡（`TAIWAN_CHECK` 核對 API 的資料，對不上就報錯），資料本身沒有改。
     - **國名對 ISO**：API 的國名先查 `COUNTRY_NAMES`（`USA`、`the Netherlands`、`East Timor`、`Scotland`、`Northern Ireland`），再查 `sources/countries.py` 的 `NAME_ALIASES`、pycountry 的精確比對，對不上就報錯；不做模糊比對，否則「Northern Ireland」會配成愛爾蘭。
@@ -871,7 +927,7 @@ pipeline/
 |---|---|---|
 | `/` | 跳到搜尋框 | `CountrySearch` |
 | `←` `→` | 上一年／下一年（照資料實際有的年份跳） | `TimeSlider` |
-| 空白鍵 | 播放／暫停歷年變化 | `TimeSlider` |
+| 空白鍵 | 播放／暫停歷年變化（年份不連續時跳到下一個有資料的年份） | `TimeSlider` |
 | `+` `−` | 放大／縮小地圖 | `WorldMap` |
 | `Esc` | 取消選取國家（關閉側欄），沒有選取時清掉框選 | `App` |
 | `?` | 開關快捷鍵說明（頂列的「?」按鈕，觸控裝置不顯示） | `ShortcutHelp` |

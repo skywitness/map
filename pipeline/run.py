@@ -39,6 +39,10 @@ STEPS = {
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
+    "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
+    "religion": "topics.religion",
+    "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
+    "gender": "topics.gender",
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",

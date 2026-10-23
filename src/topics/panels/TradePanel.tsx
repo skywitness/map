@@ -45,7 +45,7 @@ export default function TradePanel({ topic, iso3, year, item, countryName }: Pan
     <section className="panel-section">
       {(['export', 'import'] as FlowDirection[]).map((direction) => {
         const flows = flowSelection(data, iso3, direction);
-        const title = flowText(lang)[direction].main;
+        const title = flowText(indicator?.layer, lang)[direction].main;
         if (flows.links.length === 0) {
           return (
             <div key={direction} className="panel-subsection">

@@ -35,16 +35,17 @@ export function latestAt(data: IndicatorData, yearIndex: number): { values: Map<
   return { values, years };
 }
 
-/** 由大到小排序，回傳 [iso3, value] */
-export function ranking(values: Map<string, number>): [string, number][] {
-  return [...values].sort((a, b) => b[1] - a[1]);
+/** 由大到小排序（ascending 時由小到大），回傳 [iso3, value] */
+export function ranking(values: Map<string, number>, ascending = false): [string, number][] {
+  return [...values].sort((a, b) => (ascending ? a[1] - b[1] : b[1] - a[1]));
 }
 
-export function rankOf(values: Map<string, number>, iso3: string): number | null {
+/** 名次：預設數值越大越前面；ascending（數值越小越好的指標）時數值越小越前面 */
+export function rankOf(values: Map<string, number>, iso3: string, ascending = false): number | null {
   const v = values.get(iso3);
   if (v === undefined) return null;
   let rank = 1;
-  for (const other of values.values()) if (other > v) rank++;
+  for (const other of values.values()) if (ascending ? other < v : other > v) rank++;
   return rank;
 }
 

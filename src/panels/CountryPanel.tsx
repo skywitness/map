@@ -52,9 +52,12 @@ export function CountryPanel(props: CountryPanelProps) {
   const allData = useJsonMany<IndicatorData>(files);
   const name = countryName(iso3, countries);
 
-  // 「只畫路網」「地形」這類不上色的指標不列成數值卡片（地形的數值跟平均海拔是同一份）
-  const card = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
-  const stats = topic.indicators.flatMap((ind, i) => (card(ind) ? [[ind, i] as const] : [])).map(([ind, i]) => {
+  // 「只畫路網」「地形」這類不上色的指標不列成數值卡片（地形的數值跟平均海拔是同一份）；
+  // 跟前面的指標用同一個資料檔的也不重複列（例如移民的「流向：移民來源」就是「移民人數」）
+  const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
+  const card = (ind: Indicator, i: number) =>
+    shown(ind) && !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
+  const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
@@ -69,7 +72,7 @@ export function CountryPanel(props: CountryPanelProps) {
     return {
       ind,
       value,
-      rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3),
+      rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3, ind.lowerIsBetter),
       total: values.size,
       share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
       shownYear,

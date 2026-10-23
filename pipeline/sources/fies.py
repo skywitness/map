@@ -1,4 +1,4 @@
-"""主計總處 家庭收支調查（政府資料開放授權條款）：台灣的自有住宅率與平均每戶人數。
+"""主計總處 家庭收支調查（政府資料開放授權條款）：台灣的自有住宅率、平均每戶人數與所得分配（吉尼係數）。
 
 - 每年的調查報告（https://www.stat.gov.tw/News.aspx?n=3908）附有歷年統計表，ods 讀 content.xml：
   - 第 24 表「家庭住宅狀況」：住宅權屬分配（自有、不住在一起的配偶父母或子女所有、租押、配住借用及其他）。
@@ -66,4 +66,23 @@ def household_size() -> dict[int, float]:
         numbers = _numbers(row)
         if len(numbers) >= 2 and numbers[1] is not None:
             out[year] = numbers[1]
+    return out
+
+
+def inequality() -> dict[int, dict[str, float]]:
+    """所得分配：{年: {gini_household, ratio_household, gini_per_capita, ratio_per_capita}}。
+
+    - 第 4 表：以「戶」為單位的五等分位倍數與吉尼係數（新聞常引用的 6 倍多、0.34），1964 年起（早期隔幾年一次）。
+    - 第 5 表：每戶可支配所得除以每戶人數（每人所得）的五等分位倍數與吉尼係數，1981 年起。
+      世界銀行 PIP 用每人所得（或消費），跟這個比較接近。
+    """
+    out: dict[int, dict[str, float]] = {}
+    for year, row in _year_rows(_table("Year04")).items():
+        numbers = _numbers(row)
+        if len(numbers) >= 7 and numbers[5] is not None and numbers[6] is not None:
+            out.setdefault(year, {}).update(ratio_household=numbers[5], gini_household=numbers[6])
+    for year, row in _year_rows(_table("Year05")).items():
+        numbers = _numbers(row)
+        if len(numbers) >= 2 and numbers[0] is not None and numbers[1] is not None:
+            out.setdefault(year, {}).update(ratio_per_capita=numbers[0], gini_per_capita=numbers[1])
     return out
