@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -448,6 +448,7 @@ pipeline/
 | 太陽能與風能潛力 | 太陽光電潛力（PVOUT，kWh/kWp/日，預設）、風能潛力（離地 100 公尺風功率密度的陸地平均，W/m²）、風最強的 10% 土地、近岸海域（離岸 50 km）的風能；太陽光電與風能潛力可以切到約 2 km 網格（風能含各國專屬經濟海域，台灣海峽整片在最高一級） | — | Global Solar Atlas 2.0（Solargis／世界銀行 ESMAP）、Global Wind Atlas 4.0（丹麥技術大學 DTU／世界銀行 ESMAP，Vortex）；台灣附註對照 GSA 網站摘要與經濟部能源署 | 不隨時間變化（太陽能是各地 1994–2019 年起到 2025 年的長期平均，風能是 2008–2017 年），沒有時間軸 |
 | 野火 | 燒毀面積占國土比例（預設）、燒毀面積（比例圓） | 燒毀的土地類型（堆疊面積圖＋當年長條）、每月燒毀面積（歷年平均與當年）、台灣：林保署森林火災對照表 | GWIS 全球野火資訊系統（歐盟 JRC、Copernicus）的 MODIS MCD64A1 各國逐月燒毀面積、GWIS Country Profile API（GADM 國土面積）；台灣附註用農業部林業及自然保育署林業保育統計年報 | 2002–2025（林保署對照 2007–2025） |
 | 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
+| 太空 | 在軌酬載（依擁有國，比例圓，預設）、每年入軌發射次數、累計入軌發射次數（依發射業者的國家，比例圓）；疊加圖層：發射場（大小是入軌發射次數，依第一次發射的年份出現） | 目前在軌酬載的主要擁有者（長條）、酬載不多的國家列出每一顆（台灣的福衛系列與立方衛星） | Jonathan McDowell 的 GCAT Release 1.8.8（CC BY 4.0） | 1957–2026（2026 年到 10 月 17 日） |
 
 ## 8. 資料陷阱（重要）
 
@@ -587,6 +588,7 @@ pipeline/
     - IANA 時區資料庫（tz database）是公有領域；PyPI 的 `tzdata` 套件（Apache 2.0）只是包裝，沒有轉載它的程式。
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
     - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
+    - GCAT（Jonathan McDowell）是 CC BY 4.0：網頁寫「GCAT is released under the Creative Commons CC-BY licence」（連到 CC BY 4.0）、「This data may be freely reproduced as long as you cite it」，引用格式「McDowell, Jonathan C., 2020. General Catalog of Artificial Space Objects, Release 1.8.8, https://planet4589.org/space/gcat」，頁尾照寫。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1730,6 +1732,16 @@ pipeline/
     - **中文名稱**：DataHub 的中文名稱是簡體（UNESCO 的官方中文），所以改用 Wikidata：P757（世界遺產編號）是純數字的項目對到 `id_no`（同一個編號有好幾個項目時取標了 P1435 = 世界遺產、QID 小的），名稱用 `sources/nobel.py` 的 `_pick_zh`（zh-tw、zh-hant、zh-hk，沒有時用伺服器轉成台灣用字的 zh-tw）。2026-10 有 942 處有中文名稱，331 處用英文；Wikidata 的 zh-tw 名稱偶爾是簡體（「不来梅市政厅」），`EXTRA_S2T` 補上實際出現的字。
     - **點**（`sites.json`，約 120 KB）：經緯度、登錄年份（差分）、`cls`（1 文化、2 自然、3 複合、4 瀕危，瀕危優先，決定顏色）、`type`、`danger`（列入瀕危的年份）、`iso3`（第一個締約國，滑過標出、點一下選取）、`more`（跨國遺產的其他締約國）、編號、英文名稱、中文名稱。2 處沒有座標（DataHub 沒有）。側欄讀同一個檔，依 `iso3` 與 `more` 列出這國的遺產，跟著時間軸與子項目篩選。
     - **顏色**：文化 `hues.yellow` #eda100、自然 `categorical[3]` #4d9221、複合 `categorical[6]` #7b3294、瀕危 `hues.red` #e34948，都有白框；比例圓是半透明的紫色 #6250d6，跟複合的紫只靠形狀與大小分開（點小、圓大）。
+
+63. **太空**（`pipeline/topics/space.py`、`pipeline/sources/gcat.py`、`src/topics/panels/SpacePanel.tsx`）：
+    - **來源**：Jonathan McDowell 的 GCAT（General Catalog of Artificial Space Objects，https://planet4589.org/space/gcat/ ，Release 1.8.8、2026-10-17 更新）的 TSV：`cat/satcat.tsv`（約 7 萬個編目物體、19 MB）、`launch/launch.tsv`（含次軌道的發射紀錄、14 MB）、`tables/orgs.tsv`（機構與國家）、`tables/sites.tsv`（發射場）。第一列是 `#` 開頭的欄名，第二列是「# Updated …」。要更新得加 `--refresh`。
+    - **在軌酬載**：`Type` 第一個字是 P 的是酬載（27,852 個：衛星、太空船、太空站艙段，含已經失效的；不含火箭殘骸 R、碎片 D、其他 C、Z）。某年年底「在軌道上」= `LDate` 在那年以前，而且 `DDate`（再入、離軌、回收、離開地球軌道或不再追蹤的日期）是空的或在那年以後；`Status` 是 N（不再追蹤）的算到 `DDate` 為止，比較保守。2026 年（到 10 月 17 日）18,825 顆：美國 13,203（大多是星鏈）、俄羅斯 1,674（含蘇聯）、中國 1,503、英國 743（OneWeb）。
+    - **國家**：酬載用 `State`（擁有者所屬的國家），發射用第一個發射業者（`Agency`，好幾個時用 / 分開）在 `orgs.tsv` 的 `StateCode`。GCAT 的國家代碼大多是 ISO alpha-2，不是的寫在 `gcat.STATE_ISO`（J 日本、F 法國、D 德國、UK 英國、UAE、BGN 保加利亞…）；省、州、自治區（CN-31、IN-KA、UAE DB）依 `Parent` 往上找。**蘇聯（SU）算在繼承國俄羅斯**（酬載 3,347 顆、入軌發射 2,392 次，俄羅斯的附註寫明），東德算德國、捷克斯洛伐克算捷克。國際組織（I-ESA 歐洲太空總署、I-INT Intelsat、I-EUM EUMETSAT、I-EUT Eutelsat、I-INM Inmarsat…，2026 年在軌 129 顆）不屬於任何國家，只算進世界合計，`manifest.json` 有數字。歐洲太空總署、ELDO 的發射（19 次）也只算進世界合計。
+    - **發射**：`LaunchCode` 第一個字是 O 的是入軌發射（OS 成功、OF 失敗，以及 OF40 這類部分成功的），1957 年起 7,196 次，2026 年到 10 月 17 日 244 次。依發射業者的國家，所以阿利安太空公司在法屬圭亞那庫魯、俄羅斯在哈薩克拜科努爾、Rocket Lab 在紐西蘭的發射分別算法國、俄羅斯、美國；發射場的點另外依位置算國家。沒有成功與否的分開指標。
+    - **發射場**（`sites.json`）：有入軌發射的 64 個發射場（`TYSC?` 只有 1 次、沒有經緯度，不畫），位置是 `sites.tsv` 的經緯度，國家用 `geoindex.country_at`（拜科努爾算哈薩克、庫魯算法國），大小是入軌發射次數，`timeField: 'first'` 依第一次入軌發射的年份出現。
+    - **台灣**：GCAT 的 `State` 是 TW 的酬載 49 顆，2026 年仍在軌道上 35 顆（第 16 名）。國家太空中心（TASA，2023 年以前是 NSPO；GCAT 的機構代碼 NSPO、NSPT、TASA）的福衛一號（1999，2023 年再入）、二號（2004）、三號（2006，6 顆）、五號（2017）、七號（2019，6 顆）、獵風者（2023，GCAT 記為 FORMOSAT-7R）、福衛八號 A（2025-11-28），其他是成功大學、中央大學、海洋大學、鴻海、Satoro、Tron Future Tech 等的立方衛星；福衛系列（一號到八號 A、獵風者）都在。福衛三號、七號是台美合作（COSMIC、COSMIC-2），GCAT 記在台灣名下，側欄有說明。台灣沒有入軌發射。
+    - **側欄**：`countries/<ISO3>.json`：GCAT 收錄的酬載總數、第一顆的年份、目前在軌酬載的主要擁有者（依機構名稱合併：NSPO 與 NSPT 都是國家太空計畫室）；酬載不超過 120 顆的國家列出每一顆（國際編號、名稱、計畫名稱、發射日期、再入或離軌日期、擁有者代碼，英文原文）。
+    - **顏色**：比例圓照慣例用紫色；發射場用 `hues.red`。美國的在軌酬載是第二名的 8 倍，比例圓的大小以美國為準，其他國家的圓偏小。
 
 ## 9. 之後可以做的
 
