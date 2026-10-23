@@ -8,7 +8,7 @@ import { TimeSlider } from './controls/TimeSlider';
 import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
 import { localize, LOCALES, tr, useLang, useT, type Lang } from './i18n';
-import { countryName, type CountryTable } from './lib/countries';
+import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { indicatorCsv } from './lib/csv';
 import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
@@ -116,6 +116,12 @@ export function App() {
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
   const topic = localize(getTopic(state.topic), lang);
+  // 主題自訂地點（奧運的歷史隊伍等）的名稱，排名表、tooltip、側欄的 countryName() 才查得到
+  registerPlaces(getTopic(state.topic).places);
+  const placeAnchors = useMemo<[string, [number, number]][]>(
+    () => (topic.places ?? []).map((p) => [p.id, [p.lon, p.lat]]),
+    [topic],
+  );
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
   const view = pure ? 'map' : state.view;
@@ -489,6 +495,7 @@ export function App() {
               <WorldMap
                 ref={mapHandle}
                 countries={features ?? NO_FEATURES}
+                places={placeAnchors}
                 indicator={indicator}
                 legendTitle={indicatorTitle}
                 values={values}

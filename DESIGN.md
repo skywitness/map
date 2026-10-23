@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -173,6 +173,7 @@ pipeline/
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔、太陽能與風能潛力（長期平均） |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
+| `places` | 地圖上沒有形狀、也不是 ISO 國家的資料單位（`PlaceDef`：`_` 開頭的 id、名稱、經緯度），跟沒有形狀的國家一樣畫小圓點與比例圓，排名表、tooltip、側欄用它的名稱 | 奧運的蘇聯、東西德、南斯拉夫等歷史隊伍 |
 | 指標的 `unranked` | 數值沒有好壞、名次沒有意義：排名表依數值排列但不寫名次（表名寫「依數值排列」），側欄的數值卡片也不寫名次 | 跟台灣的時差 |
 | `dimension.followsSelection` | 子項目就是國家（option 的 id 是 ISO alpha-3）：點地圖、排名表或搜尋選到國家時，子項目跟著換成那個國家（`App.tsx` 的 `selectCountry`），取消選取時留在原本的子項目；網址只有 `country`、沒有 `item` 時（例如從別的主題切過來）也用選到的國家（`resolveItem()`）。子項目選單各組依目前語言的國名排序 | 護照與簽證（點日本，地圖就畫日本護照到各國的簽證待遇） |
 | `dimension.selfLabel` | 子項目是國家時，那個國家在自己那份資料裡沒有值：tooltip 與側欄的數值卡片寫這句，不寫「無資料」（不必 `followsSelection`） | 護照與簽證的「本國護照」、聯合國投票「與各國的一致度」的「比較的對象」 |
@@ -449,6 +450,7 @@ pipeline/
 | 野火 | 燒毀面積占國土比例（預設）、燒毀面積（比例圓） | 燒毀的土地類型（堆疊面積圖＋當年長條）、每月燒毀面積（歷年平均與當年）、台灣：林保署森林火災對照表 | GWIS 全球野火資訊系統（歐盟 JRC、Copernicus）的 MODIS MCD64A1 各國逐月燒毀面積、GWIS Country Profile API（GADM 國土面積）；台灣附註用農業部林業及自然保育署林業保育統計年報 | 2002–2025（林保署對照 2007–2025） |
 | 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
 | 太空 | 在軌酬載（依擁有國，比例圓，預設）、每年入軌發射次數、累計入軌發射次數（依發射業者的國家，比例圓）；疊加圖層：發射場（大小是入軌發射次數，依第一次發射的年份出現） | 目前在軌酬載的主要擁有者（長條）、酬載不多的國家列出每一顆（台灣的福衛系列與立方衛星） | Jonathan McDowell 的 GCAT Release 1.8.8（CC BY 4.0） | 1957–2026（2026 年到 10 月 17 日） |
+| 奧運 | 歷屆獎牌數（累計，比例圓，預設）、歷屆金牌數（累計）、單屆獎牌數、單屆金牌數（比例圓）、每千萬人獎牌數（單屆，面量圖）；子項目：夏季、冬季；蘇聯、東西德、南斯拉夫等歷史隊伍是主題自訂的地點，畫在當時的首都附近 | 歷屆的金銀銅（表格）、得牌屆數與最多的一屆、相關的歷史隊伍或今天對應的國家 | 英文維基百科各屆的獎牌榜與 All-time Olympic Games medal table（CC BY-SA 4.0）、UN WPP 2024 | 夏季 1896–2024（30 屆）、冬季 1924–2026（25 屆）；每千萬人 1952 年起 |
 
 ## 8. 資料陷阱（重要）
 
@@ -589,6 +591,7 @@ pipeline/
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
     - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
     - GCAT（Jonathan McDowell）是 CC BY 4.0：網頁寫「GCAT is released under the Creative Commons CC-BY licence」（連到 CC BY 4.0）、「This data may be freely reproduced as long as you cite it」，引用格式「McDowell, Jonathan C., 2020. General Catalog of Artificial Space Objects, Release 1.8.8, https://planet4589.org/space/gcat」，頁尾照寫。
+    - 英文維基百科的奧運獎牌榜是 CC BY-SA 4.0：奧運主題的資料檔是改作（換代碼、合併、累計、算人均），依 CC BY-SA 4.0 分享，頁尾寫明。Olympedia（OlyMADMen）的網站沒有開放授權，沒有用。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1742,6 +1745,19 @@ pipeline/
     - **台灣**：GCAT 的 `State` 是 TW 的酬載 49 顆，2026 年仍在軌道上 35 顆（第 16 名）。國家太空中心（TASA，2023 年以前是 NSPO；GCAT 的機構代碼 NSPO、NSPT、TASA）的福衛一號（1999，2023 年再入）、二號（2004）、三號（2006，6 顆）、五號（2017）、七號（2019，6 顆）、獵風者（2023，GCAT 記為 FORMOSAT-7R）、福衛八號 A（2025-11-28），其他是成功大學、中央大學、海洋大學、鴻海、Satoro、Tron Future Tech 等的立方衛星；福衛系列（一號到八號 A、獵風者）都在。福衛三號、七號是台美合作（COSMIC、COSMIC-2），GCAT 記在台灣名下，側欄有說明。台灣沒有入軌發射。
     - **側欄**：`countries/<ISO3>.json`：GCAT 收錄的酬載總數、第一顆的年份、目前在軌酬載的主要擁有者（依機構名稱合併：NSPO 與 NSPT 都是國家太空計畫室）；酬載不超過 120 顆的國家列出每一顆（國際編號、名稱、計畫名稱、發射日期、再入或離軌日期、擁有者代碼，英文原文）。
     - **顏色**：比例圓照慣例用紫色；發射場用 `hues.red`。美國的在軌酬載是第二名的 8 倍，比例圓的大小以美國為準，其他國家的圓偏小。
+
+64. **奧運**（`pipeline/topics/olympics.py`、`pipeline/sources/wiki_olympics.py`、`src/topics/panels/OlympicsPanel.tsx`）：
+    - **來源**：英文維基百科各屆的獎牌榜「<年> Summer/Winter Olympics medal table」（夏季 30 屆、冬季 25 屆，含 2026 年米蘭—科爾蒂納），MediaWiki API 讀 wikitext，解析 `{{Medals table … | gold_USA = 40 | silver_USA = 44 | bronze_USA = 42}}` 模板（每一屆都用這個模板，代碼是當屆的代碼）；每一頁的版本號寫在 `manifest.json`，獎牌因禁藥重新分配時要 `--refresh`。Olympedia（OlyMADMen）沒有開放授權，沒有用。
+    - **核對**：各屆加起來跟「All-time Olympic Games medal table」的夏季、冬季總表（頁面上第一、第二個 `{{Medals table}}`）逐隊比，有出入時印出來，以各屆的頁面為準。2026-10 有 19 國差幾面（美國金牌 1,110 對 1,106、德國 222 對 214、瑞士 57 對 53…），集中在 1948 年以前就參賽的國家，可能跟 1912–1948 年的藝術競賽與早期奧運的歸屬有關（各屆頁面依國際奧會網站的獎牌榜），沒有逐一查證。阿拉伯聯合共和國（1960）總表算在埃及、各屆頁面分開，這裡也分開。台灣兩邊一致：夏季金 9、銀 11、銅 23。
+    - **代表隊照當屆的名義算，不併到繼承國**（跟國際奧會一樣）：
+      - `IOC_ISO` 是跟 ISO 不同的代碼（GER → DEU、NED → NLD、SUI → CHE、TPE → TWN…）；**BRN 在奧運是巴林**（ISO 的 BRN 是汶萊，奧運的汶萊是 BRU），不能直接拿 ISO 比對。舊代碼 CEY（錫蘭）、SIN、TRI 也換成今天的國家。
+      - 歷史隊伍與特殊代表團是主題自訂的地點（`TopicDefinition.places`，`_URS` 這種底線開頭的鍵）：蘇聯、獨立國協聯隊（明斯克，獨立國協的總部）、俄羅斯帝國（維基百科在 1908、1912 年寫 RUS，國際奧會是 RU1）、俄羅斯奧林匹克選手（2018 OAR）、俄羅斯奧會（2020–2022 ROC）、中立個人選手（2024–2026 AIN，含白俄羅斯選手）、東德、西德、德國聯隊、捷克斯洛伐克、波希米亞、南斯拉夫、南斯拉夫聯盟共和國與塞爾維亞與蒙特內哥羅（維基百科在 1996、2000 年寫 YUG）、獨立奧林匹克參賽者（1992）、澳大拉西亞、英屬西印度群島、阿拉伯聯合共和國、荷屬安地列斯。畫在當時的首都附近，同一個城市有好幾隊時稍微錯開（位置只是代表）。
+      - **ROC 有兩個意思**：1960、1968 年是中華民國（台灣，楊傳廣的十項運動銀牌、紀政的 80 公尺跨欄銅牌），2020、2022 年是俄羅斯奧會；`key()` 依年份分開。維基百科的總表把 1960、1968 年算在中華台北（TPE），這裡也算台灣。
+      - 混合隊（ZZX，1896–1904、1924 冬季）、難民奧運隊（EOR，2024 年銅牌）、獨立奧運選手（IOA，2016 年的科威特選手）沒有國家，只算進世界合計。
+      - 所以德國只有 1896–1936、1952 年與 1992 年起，俄羅斯只有 1996–2014 年，捷克、斯洛伐克 1996 年起，塞爾維亞 2008 年起；附註（`NOTES`）與側欄寫明相關的歷史隊伍。
+    - **數值**：單屆是那一屆的金牌數或獎牌總數；累計是第一屆到那一屆。WPP 有人口的國家沒有得牌是 0；歷史隊伍單屆只有參賽的那幾屆有值，累計從第一次得牌起一直留著（2024 年的累計地圖上蘇聯照樣有 1,010 面）。每千萬人 = 單屆獎牌數 ÷ 當年 WPP 年中人口 × 1,000 萬（1952 年起；2026 年冬季用 WPP 的推估人口），歷史隊伍沒有人口，不算；夏季門檻 > 0、1、3、10、30、100，冬季 > 0、0.5、2、5、15、40（`itemScales`）。2024 年格瑞那達 171、多米尼克 151、聖露西亞 111。
+    - **側欄**（`countries/<鍵>.json`）：夏季、冬季各屆的金銀銅（只有得牌的那幾屆），依時間軸篩選、新的在前，10 屆以外收起；寫出得牌屆數與最多的一屆，國家寫出相關的歷史隊伍，歷史隊伍寫出今天對應的國家（`RELATED`）。
+    - **自訂地點的引擎**（2026-10-23 加的，見第 4 節的表）：`TopicDefinition.places` 的點跟吐瓦魯這類沒有形狀的國家一樣畫小圓點與比例圓（`WorldMap` 的 `places`）；名稱用 `registerPlaces()` 登記到 `lib/countries.ts`，排名表、tooltip、側欄的 `countryName()` 都查得到；畫面上的代碼用 `displayCode()` 去掉底線（`_URS` 顯示 URS，剛好是國際奧會的代碼）。搜尋找不到自訂地點（不在 `countries.json`）。
 
 ## 9. 之後可以做的
 

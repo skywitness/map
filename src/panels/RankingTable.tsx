@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useLang, useT } from '../i18n';
-import { countryName, enName, type CountryTable } from '../lib/countries';
+import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatPercent } from '../lib/format';
 import { categoryScale } from '../map/categories';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -91,7 +91,7 @@ export function RankingTable(props: RankingTableProps) {
                 <button type="button" className="row-link" onClick={() => onSelect(iso3)}>
                   {countryName(iso3, countries)}
                   {/* 中文介面在國名旁附上英文名；英文介面附 ISO 代碼 */}
-                  <span className="row-en">{lang === 'en' ? iso3 : enName(iso3, countries)}</span>
+                  <span className="row-en">{lang === 'en' ? displayCode(iso3) : enName(iso3, countries)}</span>
                 </button>
               </td>
               <td className="num value-cell">

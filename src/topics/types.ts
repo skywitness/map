@@ -402,6 +402,20 @@ export interface TopicDefinition {
    * 例如台灣的外交主題裡台灣是觀點、中國大陸與香港由陸委會主管，寫「無資料」會誤導
    */
   noValue?: Record<string, Text>;
+  /**
+   * 地圖上沒有形狀、也不是 ISO 國家的資料單位（例如奧運的蘇聯、東德等歷史隊伍）：指標檔用 id（底線開頭，例如 `_URS`）當鍵，
+   * 地圖在 lon/lat 畫一個小圓點與比例圓（跟吐瓦魯這類沒有形狀的國家一樣），排名表、tooltip、側欄用 name 當名稱。
+   */
+  places?: PlaceDef[];
+}
+
+/** 主題自訂的地點（`TopicDefinition.places`） */
+export interface PlaceDef {
+  /** 指標檔裡的鍵，底線開頭，不跟 ISO 代碼衝突 */
+  id: string;
+  name: Text;
+  lon: number;
+  lat: number;
 }
 
 /** 每筆資料涵蓋的年數：overlayTime 是數字 n 的指標（每十年一筆），年份 1990 代表 1990–1999；其他指標是 undefined */

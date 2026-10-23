@@ -2,7 +2,7 @@ import { lazy, Suspense, useMemo, type ComponentType, type LazyExoticComponent }
 import { EChart } from '../charts/EChart';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
 import { useLang, useT } from '../i18n';
-import { countryName, enName, type CountryTable } from '../lib/countries';
+import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { useJsonMany } from '../lib/data';
 import { formatPercent } from '../lib/format';
 import {
@@ -119,7 +119,7 @@ export function CountryPanel(props: CountryPanelProps) {
         <div>
           <h2>{name}</h2>
           <p className="panel-sub">
-            {lang === 'en' ? iso3 : `${enName(iso3, countries)} · ${iso3}`}
+            {lang === 'en' ? displayCode(iso3) : `${enName(iso3, countries)} · ${displayCode(iso3)}`}
           </p>
         </div>
         <button type="button" className="icon-button" onClick={onClose} aria-label={t.close}>

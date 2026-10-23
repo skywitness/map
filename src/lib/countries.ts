@@ -58,6 +58,8 @@ function cldrName(iso2: string, lang: Lang): string {
  * 查不到時依序退回：自訂名稱 → CLDR → countries.json 的英文名（例如 XKX 科索沃）→ ISO 代碼。
  */
 export function countryName(iso3: string, table: CountryTable | null, lang: Lang = getLang()): string {
+  const place = PLACES.get(iso3);
+  if (place) return place[lang];
   const cache = caches[lang];
   const cached = cache.get(iso3);
   if (cached) return cached;
@@ -67,6 +69,22 @@ export function countryName(iso3: string, table: CountryTable | null, lang: Lang
   name ||= ref?.name ?? iso3;
   if (table) cache.set(iso3, name);
   return name;
+}
+
+/** 畫面上顯示的代碼：自訂代碼去掉開頭的底線（奧運的 _URS 顯示成 URS，剛好是國際奧會的代碼） */
+export function displayCode(iso3: string): string {
+  return iso3.replace(/^_/, '');
+}
+
+/** 主題自訂地點（TopicDefinition.places，例如奧運的歷史隊伍）的名稱：id → 兩種語言 */
+const PLACES = new Map<string, Record<Lang, string>>();
+
+/** 登記主題自訂地點的名稱，countryName() 查得到（重複登記沒有影響） */
+export function registerPlaces(places: { id: string; name: string | { zh: string; en: string } }[] | undefined): void {
+  for (const p of places ?? []) {
+    if (PLACES.has(p.id)) continue;
+    PLACES.set(p.id, typeof p.name === 'string' ? { zh: p.name, en: p.name } : { zh: p.name.zh, en: p.name.en });
+  }
 }
 
 /** 繁中名稱（不管目前的介面語言） */

@@ -105,6 +105,8 @@ interface WorldMapProps {
   year?: number;
   /** 滑到一般點圖層的點上時的 tooltip（overlay 的 id、資料的第幾筆） */
   renderPointTooltip?: (overlay: string, index: number) => ReactNode;
+  /** 主題自訂的地點（TopicDefinition.places）：跟沒有形狀的國家一樣畫小圓點與比例圓 */
+  places?: [string, [number, number]][];
   /** 底圖樣式（陸地、海洋的配色） */
   basemap: Basemap;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
@@ -436,6 +438,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
 const NO_OVERLAYS: OverlayLayer[] = [];
+const NO_PLACES: [string, [number, number]][] = [];
 
 const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
 
@@ -488,7 +491,7 @@ export function WorldMap(props: WorldMapProps) {
   langRef.current = lang;
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip } = props;
+  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
@@ -579,8 +582,8 @@ export function WorldMap(props: WorldMapProps) {
   );
   // 地圖上沒有形狀的國家（SHAPELESS）只有圓點；國界還沒載入時不加，第一個畫面不會只剩這幾個點
   const shapeless = useMemo(
-    () => (countries.length ? SHAPELESS.filter(([iso3]) => !countries.some((c) => c.iso3 === iso3)) : []),
-    [countries],
+    () => (countries.length ? [...SHAPELESS.filter(([iso3]) => !countries.some((c) => c.iso3 === iso3)), ...places] : []),
+    [countries, places],
   );
   const anchors = useMemo(
     () => new Map([...shapeless, ...countries.map((c) => [c.iso3, c.anchor] as [string, [number, number]])]),

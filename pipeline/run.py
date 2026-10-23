@@ -85,6 +85,7 @@ STEPS = {
     "travel": "topics.travel",  # IANA 時區（tzdata 套件）、Wikidata、維基百科
     "world-heritage": "topics.world_heritage",  # UNESCO DataHub、Wikidata 的中文名稱（約 30 次查詢）
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
+    "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 
