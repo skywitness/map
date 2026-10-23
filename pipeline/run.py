@@ -65,7 +65,17 @@ STEPS = {
     "renewables-grid-tiles": "topics.renewables_grid_tiles",
     # 第一次會下載 GWIS 的整包（約 12 MB），並向 GWIS API 查各國面積約 230 次（約 6 分鐘）
     "wildfires": "topics.wildfires",
+    "passport": "topics.passport",
+    "organizations": "topics.organizations",
+    "un-votes": "topics.un_votes",
+    "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
+    "fertility": "topics.fertility",
+    "crime": "topics.crime",
+    "tobacco-alcohol": "topics.tobacco_alcohol",
+    "happiness": "topics.happiness",
+    # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
+    "submarine-cables": "topics.submarine_cables",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 

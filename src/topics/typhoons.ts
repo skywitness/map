@@ -227,6 +227,7 @@ export const typhoons: TopicDefinition = {
       color: { title: { zh: '強度（薩菲爾－辛普森等級）', en: 'Intensity (Saffir–Simpson)' }, classes: TRACK_CLASSES },
       timeField: 'year',
       sortByType: true,
+      casing: true,
       tooltip: trackTooltip,
     },
   ],

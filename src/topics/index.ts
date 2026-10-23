@@ -3,6 +3,8 @@ import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { airQuality } from './air-quality';
 import { climate } from './climate';
+import { conflict } from './conflict';
+import { crime } from './crime';
 import { democracy } from './democracy';
 import { diet } from './diet';
 import { digital } from './digital';
@@ -14,7 +16,9 @@ import { gender } from './gender';
 import { electricity } from './electricity';
 import { elevation } from './elevation';
 import { ev } from './ev';
+import { fertility } from './fertility';
 import { fiscal } from './fiscal';
+import { happiness } from './happiness';
 import { health } from './health';
 import { housing } from './housing';
 import { income } from './income';
@@ -25,16 +29,21 @@ import { language } from './language';
 import { migration } from './migration';
 import { military } from './military';
 import { nobel } from './nobel';
+import { organizations } from './organizations';
+import { passport } from './passport';
 import { pureMap } from './map';
 import { population } from './population';
 import { powerPlants } from './power-plants';
 import { religion } from './religion';
 import { renewables } from './renewables';
 import { sectors } from './sectors';
+import { submarineCables } from './submarine-cables';
 import { temperature } from './temperature';
+import { tobaccoAlcohol } from './tobacco-alcohol';
 import { tourism } from './tourism';
 import { trade } from './trade';
 import { transport } from './transport';
+import { unVotes } from './un-votes';
 import { wages } from './wages';
 import { wealth } from './wealth';
 import type { TopicDefinition } from './types';
@@ -53,11 +62,11 @@ export interface TopicGroup {
  * 新增主題時加進最接近的一類。分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing, religion, inequality, gender, nobel] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, health, disease, tobaccoAlcohol, education, diet, housing, religion, inequality, gender, crime, happiness, nobel] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, military, democracy, diplomacy] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, ev] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, transport] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, submarineCables, transport] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, typhoons, wildfires] },
 ];
 

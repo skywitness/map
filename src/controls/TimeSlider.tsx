@@ -6,12 +6,14 @@ interface TimeSliderProps {
   years: number[];
   year: number;
   projectionFrom?: number;
+  /** 推估年份換一種稱呼（例如「規劃中」），之前的年份不標「估計值」（指標的 projectionLabel） */
+  projectionLabel?: { tag: string; from: (year: number) => string };
   onChange: (year: number) => void;
 }
 
 const PLAY_INTERVAL_MS = 120;
 
-export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSliderProps) {
+export function TimeSlider({ years, year, projectionFrom, projectionLabel, onChange }: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
   const [playing, setPlaying] = useState(false);
@@ -91,7 +93,7 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
           <span style={{ left: '0%' }}>{first}</span>
           {projectionFrom !== undefined && (
             <span className="tick-projection" style={{ left: `${projectionPct}%` }}>
-              {t.projectionFrom(projectionFrom)}
+              {projectionLabel ? projectionLabel.from(projectionFrom) : t.projectionFrom(projectionFrom)}
             </span>
           )}
           <span style={{ left: '100%' }}>{last}</span>
@@ -99,8 +101,10 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
       </div>
       <output className="time-year">
         {year}
-        {projectionFrom !== undefined && (
-          <span className={`year-tag${projected ? ' is-projected' : ''}`}>{projected ? t.projected : t.estimated}</span>
+        {projectionFrom !== undefined && (!projectionLabel || projected) && (
+          <span className={`year-tag${projected ? ' is-projected' : ''}`}>
+            {projected ? (projectionLabel?.tag ?? t.projected) : t.estimated}
+          </span>
         )}
       </output>
     </div>
