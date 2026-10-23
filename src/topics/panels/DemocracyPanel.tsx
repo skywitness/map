@@ -34,6 +34,9 @@ const TEXT = defineMessages({
 
 const index = (v: number) => fixed(v, 2);
 
+/** 圖例兩列時繪圖區的上緣（timeSeriesOption 一列是 32，每多一列約 20px） */
+const LEGEND_TWO_ROWS_TOP = 52;
+
 export default function DemocracyPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
@@ -63,8 +66,13 @@ export default function DemocracyPanel({ topic, iso3, year, countryName, tokens 
       indicator,
       tokens,
     });
-    // 固定 0–1，各國的圖才能互相比較
-    const option: ChartOption = { ...base, yAxis: { ...(base.yAxis as object), min: 0, max: 1 } };
+    // 固定 0–1，各國的圖才能互相比較。
+    // 英文的三個名稱在側欄（約 330px 寬）放不下一列，圖例換成兩列：繪圖區多讓出一列的高度，第二列才不會蓋住 1.0 的刻度
+    const option: ChartOption = {
+      ...base,
+      ...(lang === 'en' && { grid: { ...(base.grid as object), top: LEGEND_TWO_ROWS_TOP } }),
+      yAxis: { ...(base.yAxis as object), min: 0, max: 1 },
+    };
 
     // 可信區間：三項指數都有值的最近一年（不晚於時間軸的年份）
     let interval: string | null = null;

@@ -6,7 +6,8 @@ import type { CategoryDef, ScaleSpec, TopicDefinition } from './types';
 const index = (v: number) => fixed(v, 2);
 /** 圖例與折線圖刻度：0、0.2、0.35 */
 const indexTick = (v: number) => fixed(v, v === 0 ? 0 : Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 ? 1 : 2);
-const INDEX_UNIT = { zh: '指數（0–1）', en: 'index (0–1)' };
+/** 指標名稱已經有「指數」，單位只寫範圍：圖例標題是「選舉民主指數（0–1）」，不是「選舉民主指數（指數（0–1））」 */
+const INDEX_UNIT = '0–1';
 
 /**
  * 政體分類：V-Dem 的 Regimes of the World（v2x_regime），代碼就是 V-Dem 的 0–3（pipeline/topics/democracy.py 的 REGIME_NAMES）。
