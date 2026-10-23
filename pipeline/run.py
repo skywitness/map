@@ -59,6 +59,7 @@ STEPS = {
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
     "fertility": "topics.fertility",
     "crime": "topics.crime",
+    "tobacco-alcohol": "topics.tobacco_alcohol",
     "happiness": "topics.happiness",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
