@@ -65,3 +65,56 @@ def flagged(dataset: str, note: str) -> dict[str, list[int]]:
             if note in row.get("note_indicator", "").split("_") and (iso3 := to_iso3(row["ref_area"])):
                 out.setdefault(iso3, set()).add(int(row["time"]))
     return {iso3: sorted(years) for iso3, years in out.items()}
+
+
+def fetch_sexes(dataset: str, classif: str | None = None) -> dict[str, tuple[Series, dict[int, float]]]:
+    """跟 fetch() 一樣，但一次取男女合計與男、女：{'SEX_T' | 'SEX_M' | 'SEX_F': (各國, 世界)}。用同一個下載快取。"""
+    path = download(API.format(id=dataset), "ilostat", f"{dataset}.csv")
+    out: dict[str, tuple[Series, dict[int, float]]] = {sex: ({}, {}) for sex in ("SEX_T", "SEX_M", "SEX_F")}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames or "obs_value" not in reader.fieldnames:
+            path.unlink()
+            raise RuntimeError(f"ILOSTAT {dataset} 的內容不是預期的 CSV，API 可能改了")
+        for row in reader:
+            sex = row.get("sex", "SEX_T")
+            if sex not in out or (classif and row.get("classif1") != classif):
+                continue
+            if not row["obs_value"] or row.get("obs_status") == UNRELIABLE:
+                continue
+            countries, world = out[sex]
+            year, value = int(row["time"]), float(row["obs_value"])
+            if row["ref_area"] == WORLD:
+                world[year] = value
+            elif iso3 := to_iso3(row["ref_area"]):
+                countries.setdefault(iso3, {})[year] = value
+    return out
+
+
+def real_years(dataset: str, classif: str | None = None) -> dict[str, list[int]]:
+    """ILO 模型估計（ILOEST）裡，男女合計的值標為「實際值」（obs_status R，依各國申報的資料）的 {iso3: [年份]}。
+
+    其他年份是模型推算的（沒有申報、或還沒有那一年的資料）。用 fetch() 下載過的快取。
+    """
+    path = download(API.format(id=dataset), "ilostat", f"{dataset}.csv")
+    out: dict[str, set[int]] = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if row.get("sex", "SEX_T") != "SEX_T" or (classif and row.get("classif1") != classif):
+                continue
+            if row.get("obs_status") == "R" and (iso3 := to_iso3(row["ref_area"])):
+                out.setdefault(iso3, set()).add(int(row["time"]))
+    return {iso3: sorted(years) for iso3, years in out.items()}
+
+
+def flagged_source(dataset: str, note: str) -> dict[str, list[int]]:
+    """跟 flagged() 一樣，但看的是來源的附註 note_source（例如 'S4:31' 只涵蓋都市地區）。"""
+    path = download(API.format(id=dataset), "ilostat", f"{dataset}.csv")
+    out: dict[str, set[int]] = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if row.get("sex", "SEX_T") != "SEX_T" or not row["obs_value"]:
+                continue
+            if note in row.get("note_source", "").split("_") and (iso3 := to_iso3(row["ref_area"])):
+                out.setdefault(iso3, set()).add(int(row["time"]))
+    return {iso3: sorted(years) for iso3, years in out.items()}

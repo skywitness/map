@@ -128,6 +128,8 @@ export interface IndicatorDef {
   shareOfWorld?: boolean;
   /** 數值越小越好（例如性別不平等指數）：排名表、側欄的名次與單一年份的 CSV 由小排到大，第 1 名是最小的 */
   lowerIsBetter?: boolean;
+  /** 數值沒有好壞、名次沒有意義（例如跟台灣的時差）：排名表依數值排列但不寫名次，側欄也不寫名次 */
+  unranked?: boolean;
   /**
    * 地圖可以從國家平均改成網格（點陣圖磚，見 src/map/densityGrid.ts），控制列多一個切換。
    * 例如人口密度的 1 km 網格、暖化的 0.5° 網格。

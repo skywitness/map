@@ -53,6 +53,8 @@ export function RankingTable(props: RankingTableProps) {
       );
   }, [values, indicator, categories, countries, lang]);
   const ranks = useMemo(() => rowRanks(rows), [rows]);
+  // 沒有好壞之分的數值（例如跟台灣的時差）依數值排列，不寫名次
+  const showRank = !categories && !indicator.unranked;
   // 數值越小越好的指標由小排到大，最大值在最後一列
   const max = Math.max(0, ...rows.map(([, v]) => v));
   const showBars = !categories && rows.length > 0 && rows.every(([, v]) => v >= 0);
@@ -69,10 +71,10 @@ export function RankingTable(props: RankingTableProps) {
   return (
     <div className="ranking">
       <table ref={tableRef}>
-        <caption>{(categories ? t.categoryCaption : t.rankingCaption)(year, title, rows.length)}</caption>
+        <caption>{(categories ? t.categoryCaption : showRank ? t.rankingCaption : t.valueCaption)(year, title, rows.length)}</caption>
         <thead>
           <tr>
-            {!categories && <th scope="col" className="num">{t.rankCol}</th>}
+            {showRank && <th scope="col" className="num">{t.rankCol}</th>}
             <th scope="col">{t.countryCol}</th>
             <th scope="col" className="num">
               {title}
@@ -84,7 +86,7 @@ export function RankingTable(props: RankingTableProps) {
         <tbody>
           {rows.map(([iso3, value], i) => (
             <tr key={iso3} className={iso3 === selected ? 'is-selected' : undefined}>
-              {!categories && <td className="num">{ranks[i]}</td>}
+              {showRank && <td className="num">{ranks[i]}</td>}
               <td>
                 <button type="button" className="row-link" onClick={() => onSelect(iso3)}>
                   {countryName(iso3, countries)}

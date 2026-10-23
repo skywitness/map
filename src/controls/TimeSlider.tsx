@@ -62,6 +62,12 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, onCha
   const projected = projectionFrom !== undefined && year >= projectionFrom;
   const projectionPct =
     projectionFrom !== undefined ? ((projectionFrom - first) / (last - first)) * 100 : 100;
+  const projectionText =
+    projectionFrom === undefined
+      ? null
+      : projectionLabel
+        ? projectionLabel.from(projectionFrom)
+        : t.projectionFrom(projectionFrom);
 
   return (
     <div className="time-slider">
@@ -91,12 +97,13 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, onCha
         />
         <div className="time-ticks" aria-hidden="true">
           <span style={{ left: '0%' }}>{first}</span>
-          {projectionFrom !== undefined && (
+          {projectionFrom !== undefined && projectionFrom < last && (
             <span className="tick-projection" style={{ left: `${projectionPct}%` }}>
-              {projectionLabel ? projectionLabel.from(projectionFrom) : t.projectionFrom(projectionFrom)}
+              {projectionText}
             </span>
           )}
-          <span style={{ left: '100%' }}>{last}</span>
+          {/* 只有最後一年是推估時（例如就業主題的 2025 年），兩個標籤合成一個，免得疊在一起 */}
+          <span style={{ left: '100%' }}>{projectionFrom === last ? projectionText : last}</span>
         </div>
       </div>
       <output className="time-year">

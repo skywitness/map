@@ -59,3 +59,29 @@ def yearly_totals() -> Iterator[tuple[int, Pairs]]:
             for (i, j), v in by_code.items():
                 pairs[(codes.get(i), codes.get(j))] += v
             yield year, pairs
+
+
+def yearly_products(prefixes: tuple[str, ...]) -> Iterator[tuple[int, dict[str, Pairs]]]:
+    """逐年回傳 {HS 六位碼: {(出口國, 進口國): 千美元}}，只收代碼開頭是 prefixes 之一的商品（例如 '8542'、'903082'）。
+
+    跟 yearly_totals() 一樣一次讀完整個 zip（8 年約 2 分鐘）。每列直接切逗號再比對代碼：
+    實測比先用 `b',8542' in line` 篩選還快（每個前綴都要把整列掃一次）。
+    """
+    path = download(URL, "baci", FILENAME)
+    wanted = tuple(p.encode() for p in prefixes)
+    with zipfile.ZipFile(path) as z:
+        codes = _country_codes(z)
+        members = sorted(n for n in z.namelist() if re.match(rf"BACI_{HS}_Y\d{{4}}_", n))
+        for member in members:
+            year = int(re.search(r"_Y(\d{4})_", member).group(1))
+            by_code: dict[tuple[bytes, bytes, bytes], float] = defaultdict(float)
+            with z.open(member) as raw:
+                next(raw)
+                for line in raw:
+                    _, i, j, k, v, _ = line.split(b",")
+                    if k.startswith(wanted):
+                        by_code[(k, i, j)] += float(v)
+            products: dict[str, Pairs] = defaultdict(lambda: defaultdict(float))
+            for (k, i, j), v in by_code.items():
+                products[k.decode()][(codes.get(i), codes.get(j))] += v
+            yield year, products

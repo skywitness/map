@@ -150,6 +150,8 @@ export const zh = {
     spaced(`${year === null ? '' : `${year} 年`}各國${title}排名（${count} 個國家/地區）`),
   categoryCaption: (year: number | null, title: string, count: number) =>
     spaced(`${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依類別排列）`),
+  valueCaption: (year: number | null, title: string, count: number) =>
+    spaced(`${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依數值排列）`),
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',
