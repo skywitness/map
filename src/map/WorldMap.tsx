@@ -5,6 +5,7 @@
  * 資料圖層插在底圖的道路、國界之上、文字標籤之下，地名永遠看得到：
  * - 面量圖、類別圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
+ * - 一般的點、線疊加圖層（overlayLayers.ts：地震、火山、板塊邊界、駐外館處…），樣式寫在主題裡
  * - 3D 模式（fill-extrusion）：面量圖把國家依色階分級拉高，比例圓改成高度與數值成正比的柱子
  * - 地形（海拔主題，terrain.ts）：高程圖磚的分層設色與陰影，3D 時改成真的立體地形
  * - 1 km 網格（densityGrid.ts）：點陣圖磚取代國家的顏色，國界、hover、點選照舊用國家的形狀
@@ -49,7 +50,16 @@ import {
   flowLegendModel,
   ReliefLegend,
 } from './Legend';
-import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
+import {
+  DEFAULT_LAYERS,
+  exportLayerKeys,
+  LAYER_KEYS,
+  LayerControls,
+  layerKeyColor,
+  type LayerVisibility,
+  type OverlayLayer,
+} from './Overlays';
+import { applyTimeFilters, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
@@ -89,6 +99,12 @@ interface WorldMapProps {
   layers?: LayerVisibility;
   onLayersChange?: (layers: LayerVisibility) => void;
   renderAirportTooltip?: (index: number) => ReactNode;
+  /** 一般的點、線疊加圖層（主題 overlays 裡 kind 為 points、lines 的），順序就是畫的順序（後面的在上面） */
+  overlays?: OverlayLayer[];
+  /** 目前的年份：有年份欄位的疊加點依它與指標的 overlayTime 篩選 */
+  year?: number;
+  /** 滑到一般點圖層的點上時的 tooltip（overlay 的 id、資料的第幾筆） */
+  renderPointTooltip?: (overlay: string, index: number) => ReactNode;
   /** 底圖樣式（陸地、海洋的配色） */
   basemap: Basemap;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
@@ -125,6 +141,15 @@ function fitGlobeZoom(height: number): number {
 const MAX_ZOOM = 18;
 /** 面積小於這個值（km²）的國家在低縮放時另外畫一個點，才看得到也點得到 */
 const TINY_KM2 = 6000;
+/**
+ * 1:50m 國界沒有形狀的國家（DESIGN.md 第 8 節第 8 點），用首府的位置畫小國圓點，也當比例圓、弧線的位置；
+ * 否則吐瓦魯（台灣的邦交國）在地圖上完全看不到
+ */
+const SHAPELESS: [string, [number, number]][] = [
+  ['TUV', [179.19, -8.52]],
+  ['TKL', [-171.85, -9.2]],
+  ['GIB', [-5.35, 36.14]],
+];
 const EARTH_RADIUS_KM = 6371.0088;
 const NO_DATA = '#c9c7c0';
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
@@ -410,6 +435,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
 }
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+const NO_OVERLAYS: OverlayLayer[] = [];
 
 const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
 
@@ -462,6 +488,7 @@ export function WorldMap(props: WorldMapProps) {
   langRef.current = lang;
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
+  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
@@ -500,7 +527,16 @@ export function WorldMap(props: WorldMapProps) {
   projectionRef.current = projection;
   /** 剛進入 3D 時短暫顯示操作提示 */
   const [threeDHint, setThreeDHint] = useState(false);
-  const [hover, setHover] = useState<{ iso3: string; x: number; y: number; airport?: number } | null>(null);
+  const [hover, setHover] = useState<{
+    iso3: string | null;
+    x: number;
+    y: number;
+    airport?: number;
+    /** 一般點圖層的點：overlay 的 id 與資料的第幾筆 */
+    point?: { overlay: string; index: number };
+  } | null>(null);
+  /** 一般點圖層的 MapLibre 圖層 id（上面的在前），hover 與點選時比國家先查 */
+  const pointLayersRef = useRef<string[]>([]);
   const [boxMode, setBoxMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   // 框選結果卡片放在框的另一側，才不會蓋住框
@@ -539,17 +575,26 @@ export function WorldMap(props: WorldMapProps) {
     }),
     [countries],
   );
-  const anchors = useMemo(() => new Map(countries.map((c) => [c.iso3, c.anchor])), [countries]);
+  // 地圖上沒有形狀的國家（SHAPELESS）只有圓點；國界還沒載入時不加，第一個畫面不會只剩這幾個點
+  const shapeless = useMemo(
+    () => (countries.length ? SHAPELESS.filter(([iso3]) => !countries.some((c) => c.iso3 === iso3)) : []),
+    [countries],
+  );
+  const anchors = useMemo(
+    () => new Map([...shapeless, ...countries.map((c) => [c.iso3, c.anchor] as [string, [number, number]])]),
+    [countries, shapeless],
+  );
   // 把地圖移到某國時要框住的範圍（主要國土加附近的島，不含遠方屬地）
   const countryBounds = useMemo(() => new Map(countries.map((c) => [c.iso3, focusBounds(c)])), [countries]);
   const tinyCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
       type: 'FeatureCollection',
-      features: countries
-        .filter((c) => geoArea(c.feature) * EARTH_RADIUS_KM ** 2 < TINY_KM2)
-        .map((c) => ({ type: 'Feature', properties: { iso3: c.iso3 }, geometry: { type: 'Point', coordinates: c.anchor } })),
+      features: [
+        ...countries.filter((c) => geoArea(c.feature) * EARTH_RADIUS_KM ** 2 < TINY_KM2).map((c) => [c.iso3, c.anchor] as const),
+        ...shapeless,
+      ].map(([iso3, anchor]) => ({ type: 'Feature', properties: { iso3 }, geometry: { type: 'Point', coordinates: anchor } })),
     }),
-    [countries],
+    [countries, shapeless],
   );
   const tinyColumnCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
@@ -674,7 +719,7 @@ export function WorldMap(props: WorldMapProps) {
 
   function bindEvents(map: MaplibreMap) {
     const featureAt = (point: { x: number; y: number }): MapGeoJSONFeature | null => {
-      for (const id of HOVER_LAYERS) {
+      for (const id of [...pointLayersRef.current, ...HOVER_LAYERS]) {
         if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
         const [f] = map.queryRenderedFeatures([point.x, point.y], { layers: [id] });
         if (f) return f;
@@ -704,15 +749,21 @@ export function WorldMap(props: WorldMapProps) {
       if (latest.current.boxMode) return;
       const f = featureAt(e.point);
       const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
+      // 海上的地震沒有國家，照樣顯示 tooltip
+      const point =
+        f && f.layer.id.startsWith(OVERLAY_PREFIX)
+          ? { overlay: f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
+          : undefined;
       setHoverId(iso3);
-      map.getCanvas().style.cursor = iso3 ? 'pointer' : '';
+      map.getCanvas().style.cursor = iso3 || point ? 'pointer' : '';
       setHover(
-        iso3
+        iso3 || point
           ? {
               iso3,
               x: e.point.x,
               y: e.point.y,
               airport: f?.layer.id.startsWith('airports') ? Number(f.properties.i) : undefined,
+              point,
             }
           : null,
       );
@@ -826,7 +877,12 @@ export function WorldMap(props: WorldMapProps) {
       map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { fill, on, h });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && color !== null });
     }
-  }, [revision, countries, values, colorScale, categories, indicator.layer.kind]);
+    for (const [iso3] of shapeless) {
+      const v = values.get(iso3);
+      const color = v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { fill: color ?? NO_DATA, on: on && color !== null });
+    }
+  }, [revision, countries, shapeless, values, colorScale, categories, indicator.layer.kind]);
 
   // 類別圖：強調圖例上的某一類，其他國家淡化
   useEffect(() => {
@@ -838,7 +894,12 @@ export function WorldMap(props: WorldMapProps) {
       map.setFeatureState({ source: 'countries', id: c.iso3 }, { dim });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { dim });
     }
-  }, [revision, countries, values, categories, highlightCategory]);
+    for (const [iso3] of shapeless) {
+      const v = values.get(iso3);
+      const dim = categories !== null && highlightCategory !== null && (v === undefined || categories.index(v) !== highlightCategory);
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { dim });
+    }
+  }, [revision, countries, shapeless, values, categories, highlightCategory]);
 
   // 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
   // 換期時只換圖磚網址；換成另一個網格（圖磚大小、級數、來源不同）時整個重建；
@@ -987,6 +1048,23 @@ export function WorldMap(props: WorldMapProps) {
     show('airports-large', Boolean(airports) && layers.largeAirports);
     show('airports-medium', Boolean(airports) && layers.mediumAirports);
   }, [revision, railways, airports, layers]);
+
+  /* ── 一般的點、線疊加圖層（overlayLayers.ts） ── */
+  const overlaySentRef = useRef<{ revision: number; cache: OverlayDataCache }>({ revision: -1, cache: new Map() });
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    // 換底圖後新樣式沒有這些 source，資料要重送
+    if (overlaySentRef.current.revision !== revision) overlaySentRef.current = { revision, cache: new Map() };
+    pointLayersRef.current = syncOverlays(map, overlays, overlaySentRef.current.cache, basemap.dark);
+    applyTimeFilters(map, overlays, year, indicator.overlayTime);
+  }, [revision, overlays]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    applyTimeFilters(map, overlays, year, indicator.overlayTime);
+  }, [year, indicator.overlayTime]);
 
   /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
   const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);
@@ -1287,7 +1365,7 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [grid, lang, legendTitle, threeD]);
 
-  const hasOverlays = Boolean(railways || airports || terrain);
+  const hasOverlays = Boolean(railways || airports || terrain || overlays.length);
   const reliefLegend = useMemo(
     () => (terrain && indicator.layer.kind === 'terrain' ? reliefLegendModel(indicator.formatTick ?? indicator.format) : null),
     [terrain, indicator, lang],
@@ -1337,16 +1415,20 @@ export function WorldMap(props: WorldMapProps) {
             }
           : valueLegend;
         const layerKeys = onLayersChange
-          ? LAYER_KEYS.filter((k) => ({ railways, airports, terrain })[k.source] && layers[k.key]).map((key) => ({
-              key,
-              color: layerKeyColor(key, tokens),
-            }))
+          ? exportLayerKeys(
+              LAYER_KEYS.filter((k) => ({ railways, airports, terrain })[k.source] && layers[k.key]).map((key) => ({
+                key,
+                color: layerKeyColor(key, tokens),
+              })),
+              overlays,
+              tokens,
+            )
           : [];
         const { canvas, ratio } = await captureMap(map);
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
       },
     }),
-    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang],
+    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, overlays, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang],
   );
 
   return (
@@ -1464,6 +1546,7 @@ export function WorldMap(props: WorldMapProps) {
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
             hasTerrain={terrain}
+            overlays={overlays}
             tokens={tokens}
           />
         )}
@@ -1502,9 +1585,11 @@ export function WorldMap(props: WorldMapProps) {
 
       {hover && size && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
-          {hover.airport !== undefined && renderAirportTooltip
-            ? renderAirportTooltip(hover.airport)
-            : renderTooltip(hover.iso3)}
+          {hover.point && renderPointTooltip
+            ? renderPointTooltip(hover.point.overlay, hover.point.index)
+            : hover.airport !== undefined && renderAirportTooltip
+              ? renderAirportTooltip(hover.airport)
+              : hover.iso3 && renderTooltip(hover.iso3)}
         </MapTooltip>
       )}
     </div>

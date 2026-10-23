@@ -18,7 +18,7 @@ import {
   type ColumnLegendModel,
   type FlowLegendModel,
 } from './Legend';
-import { SHADE_KEY, type LayerKey } from './Overlays';
+import { SHADE_KEY, trianglePoints, type OverlayKey, type OverlaySwatch } from './Overlays';
 import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
 
 /** 匯出至少用 2 倍解析度，在高解析度螢幕上看也清楚；只在匯出的那一下調高，之後還原 */
@@ -93,8 +93,8 @@ export interface MapImageContent {
 
 export interface ComposeOptions extends MapImageContent {
   legend: ImageLegend | null;
-  /** 目前開著的疊加圖層（鐵路、機場） */
-  layerKeys: { key: LayerKey; color: string }[];
+  /** 目前開著的疊加圖層（鐵路、機場、地震…），含分級說明（exportLayerKeys()） */
+  layerKeys: { label: string; swatch: OverlaySwatch; details: OverlayKey['details'] }[];
   /** 介面配色：標題、頁尾、圖例卡片（跟畫面上的圖例一樣） */
   tokens: Tokens;
 }
@@ -161,7 +161,7 @@ export function composeMapImage(map: HTMLCanvasElement, ratio: number, options: 
   ctx.fillStyle = space;
   ctx.fillRect(0, headerHeight, width, mapHeight);
   ctx.drawImage(map, 0, headerHeight, width, mapHeight);
-  drawLegends(ctx, options, font, CARD.inset, headerHeight + mapHeight - CARD.inset, width - CARD.inset * 2);
+  drawLegends(ctx, options, font, CARD.inset, headerHeight + mapHeight - CARD.inset, width - CARD.inset * 2, mapHeight - CARD.inset * 2);
 
   y = headerHeight + mapHeight + 10;
   ctx.fillStyle = tokens.inkSecondary;
@@ -188,7 +188,11 @@ interface Card {
   draw: () => void;
 }
 
-/** 圖例卡片貼在地圖左下角，由下往上疊：數值圖例在最下面，圖層開關在上面（跟畫面上一樣） */
+/**
+ * 圖例卡片貼在地圖左下角，由下往上疊：數值圖例在最下面，圖層開關在上面（跟畫面上一樣）。
+ * 疊起來比地圖高（地震主題的圖層卡片加比例圓圖例）時改成並排，跟畫面上的圖例換欄一樣；
+ * 還是放不下（地圖很窄、很矮）就整組縮小。
+ */
 function drawLegends(
   ctx: CanvasRenderingContext2D,
   options: ComposeOptions,
@@ -196,24 +200,33 @@ function drawLegends(
   left: number,
   bottom: number,
   maxWidth: number,
+  maxHeight: number,
 ) {
   const cards: Card[] = [];
   if (options.layerKeys.length) cards.push(layerCard(ctx, options, font));
   if (options.legend) cards.push(valueCard(ctx, options.legend, options.tokens, font));
   if (!cards.length) return;
 
-  // 地圖很窄（手機）時整組縮小，不超出地圖
-  const widest = Math.max(...cards.map((c) => c.width + CARD.padX * 2));
-  const scale = Math.min(1, maxWidth / widest);
+  const size = (c: Card) => ({ w: c.width + CARD.padX * 2, h: c.height + CARD.padY * 2 });
+  const stacked = cards.reduce((h, c) => h + size(c).h, 0) + CARD.gap * (cards.length - 1);
+  const sideBySide = stacked > maxHeight && cards.length > 1;
+  const totalWidth = sideBySide
+    ? cards.reduce((w, c) => w + size(c).w, 0) + CARD.gap * (cards.length - 1)
+    : Math.max(...cards.map((c) => size(c).w));
+  const totalHeight = sideBySide ? Math.max(...cards.map((c) => size(c).h)) : stacked;
+  const scale = Math.min(1, maxWidth / totalWidth, maxHeight / totalHeight);
   ctx.save();
   ctx.translate(left, bottom);
   ctx.scale(scale, scale);
+  let x = 0;
   let y = 0;
-  for (const card of [...cards].reverse()) {
-    const w = card.width + CARD.padX * 2;
-    const h = card.height + CARD.padY * 2;
-    y -= h;
+  // 並排時圖層開關在左、數值圖例在右，都貼著地圖下緣
+  for (const card of sideBySide ? cards : [...cards].reverse()) {
+    const { w, h } = size(card);
+    if (sideBySide) y = -h;
+    else y -= h;
     ctx.save();
+    ctx.translate(x, 0);
     ctx.globalAlpha = 0.92;
     ctx.fillStyle = options.tokens.surface;
     roundRect(ctx, 0, y, w, h, CARD.radius);
@@ -226,7 +239,8 @@ function drawLegends(
     ctx.translate(CARD.padX, y + CARD.padY);
     card.draw();
     ctx.restore();
-    y -= CARD.gap;
+    if (sideBySide) x += w + CARD.gap;
+    else y -= CARD.gap;
   }
   ctx.restore();
 }
@@ -479,47 +493,129 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
 
 const LAYER_ROW = 16;
 const LAYER_GAP = 4;
+/** 分級說明（顏色分級、大小）往右縮排 */
+const DETAIL_INDENT = 12;
+const DETAIL_NOTE = 16;
+/** 大小圖例：圓點橫排，數值寫在圓點下面 */
+const SIZE_GAP = 10;
+const SIZE_LABEL = 14;
 
+/** 圖例符號，(x, cy) 是符號的左緣與垂直中心；回傳符號的寬度 */
+function drawSwatch(ctx: CanvasRenderingContext2D, swatch: OverlaySwatch, x: number, cy: number): number {
+  const { shape, size, color } = swatch;
+  if (shape === 'line' || shape === 'dash') {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+    ctx.setLineDash(shape === 'dash' ? [4, 2.5] : []);
+    ctx.beginPath();
+    ctx.moveTo(x + 1, cy);
+    ctx.lineTo(x + 17, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return 18;
+  }
+  if (shape === 'shade') {
+    const shade = ctx.createLinearGradient(x + 2, cy - 5, x + 16, cy + 5);
+    shade.addColorStop(0, SHADE_KEY[0]);
+    shade.addColorStop(1, SHADE_KEY[1]);
+    ctx.fillStyle = shade;
+    roundRect(ctx, x + 2, cy - 5, 14, 10, 2);
+    ctx.fill();
+    return 18;
+  }
+  const w = Math.max(18, 2 * size + 4);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  if (shape === 'dot') {
+    ctx.arc(x + w / 2, cy, size, 0, Math.PI * 2);
+  } else {
+    const [a, b, c] = trianglePoints(x + w / 2, cy, size).split(' ').map((p) => p.split(',').map(Number));
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
+    ctx.lineTo(c[0], c[1]);
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.stroke();
+  return w;
+}
+
+/** 圖層卡片：每個開著的圖層一列，一般疊加圖層下面再列出顏色分級與大小（跟畫面上的圖層開關一樣） */
 function layerCard(ctx: CanvasRenderingContext2D, options: ComposeOptions, font: string): Card {
   const { layerKeys, tokens } = options;
-  ctx.font = `12px ${font}`;
   const t = messages();
-  const rowWidth = Math.max(...layerKeys.map(({ key }) => 24 + ctx.measureText(tr(key.label)).width));
+  const rowWidth = (s: OverlaySwatch, label: string) => Math.max(18, 2 * s.size + 4) + 6 + ctx.measureText(label).width;
+  const sizeWidth = (d: OverlayKey['details'][number]) =>
+    d.rows.reduce((w, r) => w + Math.max(2 * r.size + 4, ctx.measureText(r.label).width) + SIZE_GAP, 0);
+  const sizeHeight = (d: OverlayKey['details'][number]) => Math.max(...d.rows.map((r) => 2 * r.size + 2)) + SIZE_LABEL;
+  const detailHeight = (d: OverlayKey['details'][number]) =>
+    (d.title ? DETAIL_NOTE : 0) + (d.layout === 'sizes' ? sizeHeight(d) + LAYER_GAP : d.rows.length * (LAYER_ROW + LAYER_GAP));
+
+  ctx.font = `12px ${font}`;
+  let width = 0;
+  let height = LEGEND_TITLE;
+  for (const k of layerKeys) {
+    width = Math.max(width, rowWidth(k.swatch, k.label));
+    height += LAYER_ROW + LAYER_GAP;
+    for (const d of k.details) {
+      ctx.font = `11px ${font}`;
+      if (d.title) width = Math.max(width, DETAIL_INDENT + ctx.measureText(d.title).width);
+      ctx.font = `12px ${font}`;
+      const w = d.layout === 'sizes' ? sizeWidth(d) : Math.max(...d.rows.map((r) => rowWidth(r, r.label)));
+      width = Math.max(width, DETAIL_INDENT + w);
+      height += detailHeight(d);
+    }
+  }
   ctx.font = `600 12px ${font}`;
-  const titleWidth = ctx.measureText(t.layers).width;
+  width = Math.max(width, ctx.measureText(t.layers).width);
   return {
-    width: Math.max(titleWidth, rowWidth),
-    height: LEGEND_TITLE + layerKeys.length * (LAYER_ROW + LAYER_GAP),
+    width,
+    height,
     draw: () => {
       ctx.font = `600 12px ${font}`;
       ctx.fillStyle = tokens.ink;
       ctx.fillText(t.layers, 0, LEGEND_TITLE / 2);
-      ctx.font = `12px ${font}`;
-      layerKeys.forEach(({ key, color }, i) => {
-        const cy = LEGEND_TITLE + LAYER_GAP + i * (LAYER_ROW + LAYER_GAP) + LAYER_ROW / 2;
-        if (key.shape === 'line') {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = key.size;
-          ctx.beginPath();
-          ctx.moveTo(1, cy);
-          ctx.lineTo(17, cy);
-          ctx.stroke();
-        } else if (key.shape === 'shade') {
-          const shade = ctx.createLinearGradient(2, cy - 5, 16, cy + 5);
-          shade.addColorStop(0, SHADE_KEY[0]);
-          shade.addColorStop(1, SHADE_KEY[1]);
-          ctx.fillStyle = shade;
-          roundRect(ctx, 2, cy - 5, 14, 10, 2);
-          ctx.fill();
-        } else {
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(9, cy, key.size, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      let y = LEGEND_TITLE + LAYER_GAP;
+      const row = (s: OverlaySwatch, label: string, x: number) => {
+        const cy = y + LAYER_ROW / 2;
+        const w = drawSwatch(ctx, s, x, cy);
+        ctx.font = `12px ${font}`;
         ctx.fillStyle = tokens.ink;
-        ctx.fillText(tr(key.label), 24, cy);
-      });
+        ctx.fillText(label, x + w + 6, cy);
+        y += LAYER_ROW + LAYER_GAP;
+      };
+      for (const k of layerKeys) {
+        row(k.swatch, k.label, 0);
+        for (const d of k.details) {
+          if (d.title) {
+            ctx.font = `11px ${font}`;
+            ctx.fillStyle = tokens.inkSecondary;
+            ctx.fillText(d.title, DETAIL_INDENT, y + DETAIL_NOTE / 2 - 2);
+            y += DETAIL_NOTE;
+          }
+          if (d.layout === 'rows') {
+            for (const r of d.rows) row(r, r.label, DETAIL_INDENT);
+            continue;
+          }
+          // 大小：圓點底部對齊，數值寫在下面
+          const tallest = Math.max(...d.rows.map((r) => 2 * r.size + 2));
+          let x = DETAIL_INDENT;
+          ctx.font = `11px ${font}`;
+          for (const r of d.rows) {
+            const w = Math.max(2 * r.size + 4, ctx.measureText(r.label).width);
+            drawSwatch(ctx, r, x + w / 2 - Math.max(18, 2 * r.size + 4) / 2, y + tallest - r.size - 1);
+            ctx.font = `11px ${font}`;
+            ctx.fillStyle = tokens.inkSecondary;
+            ctx.textAlign = 'center';
+            ctx.fillText(r.label, x + w / 2, y + tallest + SIZE_LABEL / 2);
+            ctx.textAlign = 'left';
+            x += w + SIZE_GAP;
+          }
+          y += tallest + SIZE_LABEL + LAYER_GAP;
+        }
+      }
     },
   };
 }

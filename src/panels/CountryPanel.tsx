@@ -8,6 +8,7 @@ import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
   usesDimension,
+  yearBin,
   type Indicator,
   type IndicatorData,
   type PanelExtraProps,
@@ -57,11 +58,13 @@ export function CountryPanel(props: CountryPanelProps) {
   const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
   const card = (ind: Indicator, i: number) =>
     shown(ind) && !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
+  // 主題寫明這個國家為什麼沒有值（例如台灣的外交裡的台灣）時，用它取代「無資料」
+  const noValue = topic.noValue?.[iso3];
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
-    const yearIndex = nearestYearIndex(data.years, year);
+    const yearIndex = nearestYearIndex(data.years, year, yearBin(ind));
     // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
     const { values, years: valueYears } = latestAt(data, yearIndex);
     const shownYear = valueYears.get(iso3) ?? data.years[yearIndex];
@@ -74,7 +77,8 @@ export function CountryPanel(props: CountryPanelProps) {
       value,
       rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3, ind.lowerIsBetter),
       total: values.size,
-      share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
+      // 0 的排名不顯示，占全球的 0% 也不顯示（否則卡片上只剩開頭的「 · 」）
+      share: ind.shareOfWorld && value && !countZero && world ? (value / world) * 100 : null,
       shownYear,
     };
   });
@@ -140,7 +144,7 @@ export function CountryPanel(props: CountryPanelProps) {
             aria-pressed={ind.id === indicator.id}
           >
             <span className="stat-label">{label(ind)}</span>
-            <span className="stat-value">{value != null ? ind.format(value) : t.noData}</span>
+            <span className="stat-value">{value != null ? ind.format(value) : (noValue ?? t.noData)}</span>
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
@@ -154,7 +158,9 @@ export function CountryPanel(props: CountryPanelProps) {
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
-          {indicator.layer.kind === 'categorical' && activeData ? (
+          {noValue ? (
+            <p className="empty">{noValue}</p>
+          ) : indicator.layer.kind === 'categorical' && activeData ? (
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
           ) : option ? (
             <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />
@@ -208,9 +214,14 @@ function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data
   );
 }
 
-function nearestYearIndex(years: number[], year: number): number {
+/** bin：每十年一筆的指標取包含這一年的那一筆（1999 → 1990 年代），不取最接近的 2000 */
+function nearestYearIndex(years: number[], year: number, bin?: number): number {
   const exact = years.indexOf(year);
   if (exact >= 0) return exact;
+  if (bin) {
+    const containing = years.findLastIndex((y) => y <= year && year < y + bin);
+    if (containing >= 0) return containing;
+  }
   let best = 0;
   years.forEach((y, i) => {
     if (Math.abs(y - year) < Math.abs(years[best] - year)) best = i;

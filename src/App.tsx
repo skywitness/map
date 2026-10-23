@@ -27,7 +27,16 @@ import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } fro
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
-import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
+import {
+  decodeLines,
+  decodePoints,
+  decodeRailways,
+  DEFAULT_LAYERS,
+  overlayVisible,
+  type DecodedLines,
+  type LayerVisibility,
+  type OverlayLayer,
+} from './map/Overlays';
 import { loadBaseStyle } from './map/style';
 import type { WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
@@ -39,8 +48,13 @@ import {
   forItem,
   indicatorPath,
   usesDimension,
+  yearBin,
   type AirportsData,
+  type Indicator,
   type IndicatorData,
+  type LinesData,
+  type PointRecord,
+  type PointsData,
   type RailwaysData,
   type Topic,
 } from './topics/types';
@@ -141,7 +155,7 @@ export function App() {
   }, [settled, neighbours]);
 
   const years = data?.years ?? [topic.defaultYear];
-  const year = pickYear(years, state.year, topic.defaultYear);
+  const year = pickYear(years, state.year, topic.defaultYear, yearBin(indicator));
   const yearIndex = data ? data.years.indexOf(year) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
   const { values, years: valueYears } = useMemo(
@@ -158,7 +172,7 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
-  const { railways, airports } = useOverlays(topic);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, layers, pure);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
@@ -258,6 +272,25 @@ export function App() {
     );
   };
 
+  // 一般點圖層（地震、火山、駐外館處…）的 tooltip 由主題設定決定內容
+  const renderPointTooltip = (overlayId: string, index: number) => {
+    const o = overlays.find((x) => x.def.id === overlayId);
+    const p = o?.kind === 'points' ? o.points?.[index] : undefined;
+    if (!o || o.kind !== 'points' || !p) return null;
+    const tip = o.def.tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
+    return (
+      <>
+        <div className="tt-value">{tip.title}</div>
+        {tip.detail && <div className="tt-label">{tip.detail}</div>}
+        {tip.properNoun && (
+          <div className="tt-label" translate="no">
+            {tip.properNoun}
+          </div>
+        )}
+      </>
+    );
+  };
+
   const renderTooltip = (iso3: string) => {
     if (pure) return <div className="tt-value">{countryName(iso3, countries)}</div>;
     // 流向圖：滑到夥伴國上顯示雙邊金額與占比
@@ -277,7 +310,7 @@ export function App() {
     const valueYear = valueYears.get(iso3);
     return (
       <>
-        <div className="tt-value">{v !== undefined ? indicator.format(v) : t.noData}</div>
+        <div className="tt-value">{v !== undefined ? indicator.format(v) : (topic.noValue?.[iso3] ?? t.noData)}</div>
         <div className="tt-label">
           {countryName(iso3, countries)}
           {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
@@ -471,6 +504,9 @@ export function App() {
                 layers={layers}
                 onLayersChange={setLayers}
                 renderAirportTooltip={renderAirportTooltip}
+                overlays={overlays}
+                year={year}
+                renderPointTooltip={renderPointTooltip}
                 flows={flows}
                 overlay={
                   boxResult && (
@@ -566,22 +602,88 @@ function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
   return useMemo(() => (topo ? toCountryFeatures(topo) : null), [topo]);
 }
 
-/** 主題的疊加圖層（鐵路、機場），只在該主題載入 */
-function useOverlays(topic: Topic) {
-  const overlays = topic.overlays ?? [];
-  const files = useMemo(() => overlays.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, overlays]);
+/**
+ * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
+ * 一般圖層只載入目前指標用得到、而且打開的；預設關閉的圖層第一次打開時才下載。
+ */
+const NO_OVERLAY_DEFS: NonNullable<Topic['overlays']> = [];
+
+function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility, pure: boolean) {
+  const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
+  const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
+  const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
   const loaded = useJsonMany<unknown>(files);
-  const railIndex = overlays.findIndex((o) => o.id === 'railways');
-  const airportIndex = overlays.findIndex((o) => o.id === 'airports');
+  const railIndex = legacy.findIndex((o) => o.id === 'railways');
+  const airportIndex = legacy.findIndex((o) => o.id === 'airports');
   const railData = railIndex >= 0 ? (loaded[railIndex] as RailwaysData | null) : null;
   const railways = useMemo(() => (railData ? decodeRailways(railData) : null), [railData]);
   const airports = airportIndex >= 0 ? (loaded[airportIndex] as AirportsData | null) : null;
-  return { railways, airports };
+
+  const generic = useMemo(
+    () =>
+      pure
+        ? []
+        : overlays.flatMap((o) =>
+            o.kind !== undefined && (!o.indicators || o.indicators.includes(indicator.id))
+              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${topic.id}/${o.file}` }]
+              : [],
+          ),
+    [overlays, topic.id, indicator.id, layers, pure],
+  );
+  const wanted = useMemo(() => generic.filter((g) => g.visible).map((g) => g.path), [generic]);
+  const raw = useJsonEach(wanted);
+  const result = useMemo<OverlayLayer[]>(
+    () =>
+      generic.map(({ def, visible, path }) => {
+        const data = raw.get(path) ?? null;
+        return def.kind === 'points'
+          ? { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null }
+          : { kind: 'lines', def, visible, lines: data ? decodedLines(data as LinesData) : null };
+      }),
+    [generic, raw],
+  );
+  return { railways, airports, overlays: result };
 }
 
-/** 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年 */
-function pickYear(years: number[], wanted: number | null, fallback: number): number {
+const decodedCache = new WeakMap<object, PointRecord[] | DecodedLines>();
+function decodedPoints(data: PointsData): PointRecord[] {
+  let out = decodedCache.get(data) as PointRecord[] | undefined;
+  if (!out) decodedCache.set(data, (out = decodePoints(data)));
+  return out;
+}
+function decodedLines(data: LinesData): DecodedLines {
+  let out = decodedCache.get(data) as DecodedLines | undefined;
+  if (!out) decodedCache.set(data, (out = decodeLines(data)));
+  return out;
+}
+
+/**
+ * 一次載入好幾個檔，已經載入的保留著：清單變了（打開另一個圖層）時，原本的資料不會先變回 null，地圖才不會閃一下。
+ * 失敗的檔案當成沒有資料。
+ */
+function useJsonEach(paths: string[]): Map<string, unknown> {
+  const [loaded, setLoaded] = useState<Map<string, unknown>>(() => new Map());
+  const key = paths.join('|');
+  useEffect(() => {
+    for (const path of key ? key.split('|') : []) {
+      if (loaded.has(path)) continue;
+      fetchJson<unknown>(path)
+        .then((data) => setLoaded((m) => (m.get(path) === data ? m : new Map(m).set(path, data))))
+        .catch(() => {});
+    }
+  }, [key]);
+  return loaded;
+}
+
+/**
+ * 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年。
+ * bin 是每筆資料涵蓋的年數（每十年一筆的指標：1990 = 1990–1999），這時取包含那一年的那一筆：
+ * 從「當年的地震」的 1999 年換到「每十年的地震次數」，留在 1990 年代，不會跳到 2000 年代。
+ */
+function pickYear(years: number[], wanted: number | null, fallback: number, bin?: number): number {
   if (wanted && years.includes(wanted)) return wanted;
+  const containing = bin ? years.findLast((y) => y <= (wanted ?? fallback) && (wanted ?? fallback) < y + bin) : undefined;
+  if (containing !== undefined) return containing;
   // 年份不連續（每 5 年一筆）時，拖到中間沒有資料的年份就用最接近的那一年（一樣近取較早的）
   if (wanted && wanted > years[0] && wanted < years[years.length - 1]) {
     return years.reduce((best, y) => (Math.abs(y - wanted) < Math.abs(best - wanted) ? y : best), years[0]);

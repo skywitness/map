@@ -733,6 +733,13 @@ kbd {
   padding: 0;
 }
 
+/* fieldset 的 legend 預設壓在外框線上，一半落在卡片外面的地圖上 */
+.map-layers > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
 .map-layers label {
   display: flex;
   align-items: center;
@@ -743,6 +750,50 @@ kbd {
 .map-layers input {
   margin: 0;
   accent-color: var(--accent);
+}
+
+/* 一般疊加圖層（地震、火山…）打開時，下面列出顏色分級與大小 */
+.map-layer-detail {
+  margin: 2px 0 2px 19px;
+}
+
+.map-layer-detail .legend-note {
+  margin: 0 0 2px;
+}
+
+.map-layer-rows {
+  display: grid;
+  gap: 2px;
+}
+
+.map-layer-rows > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-secondary);
+}
+
+.map-layer-detail.is-sizes .map-layer-rows {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.map-layer-toggle {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.map-layer-detail.is-sizes .map-layer-rows > span {
+  flex-direction: column;
+  gap: 1px;
+  font-size: 11px;
 }
 
 /* ── 框選 ───────────────────────────── */
@@ -878,13 +929,15 @@ kbd {
 .map-tooltip {
   position: absolute;
   pointer-events: none;
-  max-width: 240px;
+  /* 寬度依內容，太長（火山、地震的英文地名）才換行 */
+  width: max-content;
+  max-width: 260px;
   padding: 8px 10px;
   border-radius: 6px;
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .tt-value {
@@ -931,6 +984,12 @@ kbd {
   align-items: flex-start;
   gap: 8px;
   pointer-events: none;
+  /* 圖層開關加上數值圖例比地圖高時（地震主題），數值圖例換到右邊一欄，不超出地圖上緣 */
+  max-height: calc(100% - 24px);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-content: flex-start;
+  column-gap: 8px;
 }
 
 .legend-title {
