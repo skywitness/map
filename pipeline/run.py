@@ -63,6 +63,7 @@ STEPS = {
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
     "fertility": "topics.fertility",
     "crime": "topics.crime",
+    "tobacco-alcohol": "topics.tobacco_alcohol",
     "happiness": "topics.happiness",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
