@@ -39,8 +39,9 @@ export const zh = {
   /** 年份的寫法：2023 年 */
   year: (year: number) => `${year} 年`,
   worldMapAria: '世界地圖',
-  mapAria: (year: number, title: string, projected: boolean) =>
-    `世界地圖：${year} 年各國${title}${projected ? '（推估值）' : ''}`,
+  /** year 是 null：不隨時間變化的資料（例如海拔） */
+  mapAria: (year: number | null, title: string, projected: boolean) =>
+    `世界地圖：${year === null ? '' : `${year} 年`}各國${title}${projected ? '（推估值）' : ''}`,
   tooltipProjected: ' 推估值',
   /** 年份零散的指標用之前最近一年的值時，標出實際的資料年份 */
   dataYear: (year: number) => `${year} 年的資料`,
@@ -138,8 +139,10 @@ export const zh = {
   periodRange: (from: number, to: number) => (from === to ? `${from} 年` : `${from}–${to} 年`),
 
   // 排名表
-  rankingCaption: (year: number, title: string, count: number) => `${year} 年各國${title}排名（${count} 個國家/地區）`,
-  categoryCaption: (year: number, title: string, count: number) => `${year} 年各國${title}（${count} 個國家/地區，依類別排列）`,
+  rankingCaption: (year: number | null, title: string, count: number) =>
+    `${year === null ? '' : `${year} 年`}各國${title}排名（${count} 個國家/地區）`,
+  categoryCaption: (year: number | null, title: string, count: number) =>
+    `${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依類別排列）`,
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',

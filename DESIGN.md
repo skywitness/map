@@ -8,7 +8,7 @@
 |---|---|---|
 | 地圖繪製 | **MapLibre GL JS 5**（WebGL 向量地圖） | 可以一路放大到街道（zoom 18）；地球儀與平面可切換；資料圖層插在底圖文字下面，地名永遠看得到 |
 | 底圖 | **OpenFreeMap** 的 5 種樣式（免費、不需金鑰），使用者可切換 | 預設 Liberty：低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節；地名跟著介面語言，中文用 `name:zh-Hant`、英文用 `name:en` |
-| 投影 | **地球儀**（預設），可切換成平面（Web Mercator）；3D 模式固定用平面 | 地球儀沒有高緯度放大的問題；平面方便一次看全世界；3D 的原因見第 5 節 |
+| 投影 | **地球儀**（預設），可切換成平面（Web Mercator）；3D 模式固定用平面（海拔主題的立體地形除外） | 地球儀沒有高緯度放大的問題；平面方便一次看全世界；3D 的原因見第 5 節 |
 | 國界 | **Natural Earth 1:50m**（world-atlas 套件） | 給資料上色、點選、框選用；1:110m 沒有新加坡、巴林等小國 |
 | 側欄圖表 | **ECharts 6**，按需引入 | 點國家時才載入（約 180 KB gzip），不拖慢首頁 |
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、Unicode CLDR、Glottolog…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -42,6 +42,7 @@ public/data/                              ← 靜態 JSON，會進版本控制
         ├─ <指標>/<子項目>.json           有子項目的指標（例如 production/rice.json）
         ├─ countries/<ISO3>.json          側欄額外區塊用的單一國家明細
         ├─ grid.json                      框選用的網格人口（只有人口主題）
+        ├─ profiles.json                  各國的高度分布與最高、最低點（只有海拔主題）
         ├─ flows/<子項目>/<年>.json       流向圖的雙邊資料（只有貿易主題，一個商品、一年一個檔）
         └─ manifest.json
 
@@ -53,7 +54,8 @@ public/tiles/population-density/          ← 人口密度的 1 km 網格圖磚�
 src/
    ├─ topics/          每個主題一個設定檔（TopicDefinition）  ← 新增主題主要改這裡
    │   └─ panels/      主題自訂的側欄區塊（動態載入）
-   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx，自己一個 chunk）：資料圖層、圖例、tooltip、框選、疊加圖層、匯出圖片；
+   ├─ map/             MapLibre 地圖引擎（WorldMap.tsx，自己一個 chunk）：資料圖層、圖例、tooltip、框選、疊加圖層、匯出圖片、
+   │                   地形圖層（terrain.ts）；
    │                   底圖樣式的下載與改寫在 style.ts（不含 MapLibre，首頁一啟動就先抓）
    ├─ charts/          ECharts 包裝、折線／堆疊面積 option、長條清單
    ├─ panels/          國家側欄、排名表、框選結果
@@ -158,6 +160,8 @@ pipeline/
 | `note` | 頁尾的資料說明 | |
 | `overlays` | 疊加在地圖上的點、線圖層（目前支援鐵路線與機場點），左下角可以開關 | 交通 |
 | 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`{ dir }`，`tiles/` 底下的資料夾，見第 14 節），控制列多一個切換 | 人口密度的 1 km 網格 |
+| `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
+| `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔 |
 
 ### 雙語文字（英文版介面）
 
@@ -193,6 +197,8 @@ pipeline/
 - 側欄：數值卡片不顯示名次，也不畫折線圖；有多個年份時（例如首要死因）改列出歷年變化，連續相同類別的年份合併成一段（「2000–2003 年 心血管疾病、2004–2023 年 癌症」）。
 - 3D：類別沒有高低，不拉高，只傾斜地圖。
 - 代碼怎麼編由主題決定。語言主題的「主要官方語言」用語言代碼的 36 進位數（`en` → 527），pipeline 用 `int(code, 36)`、前端用 `v.toString(36)` 換算，不必兩邊各寫一份對照表；「官方地位」是 1–4。疾病主題的「首要死因」用 WHO GHE 的死因代碼（心血管疾病 1100、癌症 610…）。
+
+圖層的 `kind: 'terrain'` 是**地形圖**：國家不上色，畫高程圖磚的分層設色與陰影（主題要設 `terrain`）。指標資料（海拔主題是平均海拔）仍用在 tooltip 與排名表；側欄不列成數值卡片，因為跟「平均海拔」重複。
 
 疊加圖層是 MapLibre 的 GeoJSON 圖層：
 - 鐵路在資料管線先用 Douglas–Peucker 簡化到約 1 公里，再量化與差分編碼（約 12.5 萬個頂點、壓縮後約 300 KB）。
@@ -290,6 +296,24 @@ pipeline/
   - 無頭 Chrome 用純 CPU 繪圖（swiftshader，等於沒有顯示卡的最差情況）旋轉時：3D 面量圖全球 25 fps、歐洲 17 fps，柱子 17 fps，交通主題加上鐵路 10 fps。有 GPU 的筆電、手機會快很多。
   - 旋轉到新的方位、第一次出現的圖磚要在 worker 裡建立立體網格，那一下會頓一點。
 
+### 地形圖層（海拔主題）
+
+`TopicDefinition.terrain` 打開地形圖層（`src/map/terrain.ts`，WorldMap 的 `terrain` prop）。
+
+- **圖磚**：AWS Terrain Tiles（Mapzen 建立、AWS Open Data 託管）的 terrarium PNG，公開、不需金鑰、可以跨網域讀取（`Access-Control-Allow-Origin: *`），最大 15 級，一張約 50–150 KB。
+- **標示**：raster-dem source 帶 `attribution`，地圖右下角自動列出「Terrain Tiles (Mapzen, AWS Open Data: SRTM, GMTED2010, ETOPO1, EU-DEM, ArcticDEM, NED, …)」，連到 [joerd 的標示說明](https://github.com/tilezen/joerd/blob/master/docs/attribution.md)（各資料來源要求標示）。頁尾與匯出圖片的資料來源也有。
+- **分層設色**：MapLibre 5.6 起的 `color-relief` 圖層，−500 → 6,000 m 由綠、黃、褐到灰白。這是地形圖慣用的配色（好認出平原與山地），不是單一色相的循序色，所以圖例是連續色條、刻度等距（`reliefLegendModel()`，畫面與匯出圖片共用）。側欄的高度分布長條用同一組顏色（`reliefColor()`），高山的灰白色加一圈細框才看得到。
+- **海面不上色**：圖磚含海底地形，分層設色與陰影插在底圖的水域圖層下面，由海面、湖面蓋住；死海、裏海窪地這類低於海平面的陸地照樣上色。
+- **面量圖上的陰影**：陰影移到國家顏色上面（`hillshade-exaggeration` 0.4），看得出起伏。陰影也會蓋過海面（看得到海底地形），所以再疊一份底圖的水域（`relief-water`，複製底圖第一個 `source-layer: water` 的填色圖層）蓋回去。左下角「圖層」的「地形陰影」可以關掉（`LayerVisibility.hillshade`）。
+- **3D**：有 `terrain` 的主題按 3D 時改用 `map.setTerrain()`（另一個 raster-dem source `dem-3d`，MapLibre 建議跟陰影分開），不畫立體國家與柱子，國家的顏色貼在地形上。
+  - 垂直誇張倍率依縮放：`2^(5.5 − 0.55 × 縮放級數)`，限制在 1.5–30 倍。全球視角時山脈只有地球半徑的千分之一，要放大很多倍才看得出；放大到城市時接近實際比例。縮放結束（`zoomend`）時才換，因為 `setTerrain` 每次都重建地形。
+  - **地球儀上也可以**：MapLibre 5.24 的地球儀畫得出立體地形，`project`／`unproject` 與 `queryRenderedFeatures` 都考慮了地形（實測玉山座標反算誤差小於 0.01°，點得到台灣），所以地形的 3D 不必換成平面，「球／平面」按鈕照常可用。立體國家（fill-extrusion）在地球儀上查不到的限制不變。主控台會出現一次「calculateFogMatrix is not supported on globe projection」，不影響畫面。
+  - **切換底圖前先拿掉地形**：3D 地形開著時直接 `setStyle`，MapLibre 會拿舊樣式的地形去畫新樣式，丟出「Cannot read properties of undefined (reading 'shaderPreludeCode')」。新樣式載入後 `revision` 加一，地形的 effect 重新加上；新樣式還沒載入時縮放結束也不換倍率（`setTerrain` 會丟「Style is not done loading」）。
+- **下載量**：source 一直都在，但沒有看得見的圖層或地形用到時不會下載圖磚，其他主題不受影響（實測 0 張）。
+  - 地球儀全球視角（1280×800）要 31 張、約 2.5 MB。
+  - 地形圖或地形陰影開著時，把彩色地形底圖自己的 Natural Earth 陰影圖層隱藏（`baseRastersRef`，被分層設色或國家顏色加陰影蓋住，看不出差別），同一視角省下 31 張、約 3.2 MB，所以海拔主題的下載量跟其他主題差不多。關掉地形陰影的面量圖再顯示回來。
+- **快取**：service worker 的 `terrain-tiles`（cache first，200 張、30 天，見第 13 節）。
+
 ## 6. 框選估算
 
 人口主題可以在地圖上畫框，估算框內人口（`src/map/boxEstimate.ts`、`App.tsx` 的 `useBoxEstimate`）：
@@ -335,6 +359,7 @@ pipeline/
 | 飲食 | 熱量供給、蛋白質供給、脂肪供給、動物性食物占熱量、18 種食物的人均供給量（肉類、牛豬禽肉、水產、乳品、蛋、穀物、米、小麥、玉米、薯類、乾豆類、蔬菜、水果、糖、植物油、酒類）、營養不足人口比例 | 熱量從哪裡來（9 類食物的堆疊面積圖＋長條） | FAOSTAT 糧食平衡表（新版 FBS、舊版 FBSH）與糧食安全指標；台灣也是 FAOSTAT，側欄附上農業部《糧食供需年報》的數字對照 | 1961–2023（2010 年換方法）；營養不足 2001–2024（三年平均） |
 | 語言 | 主要官方語言（類別圖）；30 種語言各自的使用人口比例、使用人數（比例圓）、官方地位（類別圖）；語言數（比例圓） | 會說的語言（比例與官方地位）、Glottolog 語言數與瀕危語言數 | Unicode CLDR 49、Glottolog 5.3；台灣用 109 年人口及住宅普查 | 單一快照（標示為 2026 年） |
 | 住宅 | 公寓住戶比例（44 國）、自有住宅率（47 國）、平均每戶人數（191 國）、居住擁擠率與住房負擔過重率（37 國，只有歐洲）、都市貧民窟人口比例（194 國） | 住宅類型組成（獨棟、雙併連棟、公寓、其他；台灣依建築樓層） | Eurostat EU-SILC、OECD 可負擔住宅資料庫、UN DESA 家戶規模資料庫、World Bank WDI（UN-Habitat）；台灣用內政部房屋稅籍、主計總處家庭收支調查 | 住宅類型 2004–2025、自有 2005–2025、每戶人數 1991–2025、擁擠與負擔 2004–2025、貧民窟 2000–2022（每兩年）；各國只顯示 3–10 年內最近一年的資料 |
+| 海拔 | 地形（分層設色＋陰影，3D 是立體地形）、平均海拔、最高點、最低點、海拔 500／1,000／2,000 公尺以上的土地占比、沿海低地（低於 5 公尺且跟海相連）占比、平均坡度 | 高度分布長條、最高點與最低點（名稱、位置） | USGS GMTED2010、Wikidata；台灣用內政部 100 公尺 DEM 交叉比對；地圖上的地形是 AWS Terrain Tiles | 不隨時間變化（DEM 主要是 2000 年的 SRTM），沒有時間軸 |
 
 ## 8. 資料陷阱（重要）
 
@@ -405,6 +430,7 @@ pipeline/
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
     - OECD.AI 的 OpenRouter 資料未明示授權。
     - Natural Earth（國界、鐵路）與 OurAirports 是公有領域。
+    - USGS GMTED2010 是公有領域；Wikidata 是 CC0；地圖上的 AWS Terrain Tiles 依各資料來源標示（見第 5 節「地形圖層」）。
     - 底圖：OpenFreeMap（免費、不需金鑰）、© OpenMapTiles、資料 © OpenStreetMap contributors（ODbL）。地圖右下角會自動標示。
     - IMF 資料需註明來源。
     - 主計總處適用政府資料開放授權條款。
@@ -628,12 +654,46 @@ pipeline/
     - **年份零散**：每個指標各自設 `latestWithin`（住宅類型、自有、每戶人數 10 年，擁擠與負擔 3 年），見第 3 節。2024 年的地圖上，住宅類型 44 國裡有 8 國用的是之前的年份，每戶人數 146 國裡有 111 國。
     - Eurostat 的 TSV 數字後面可能有旗標（`b` 序列中斷、`u` 可信度低、`p` 初步值），照收；`EU27_2020`、`EA20` 這類合計、希臘 `EL`、英國 `UK`、科索沃 `XK` 在 `pipeline/sources/eurostat.py` 轉換。
 
+25. **海拔資料**（`pipeline/topics/elevation.py`、`pipeline/sources/gmted.py`、`wikidata.py`、`moi_dtm.py`）：
+    - **DEM 的選擇**：USGS GMTED2010（公有領域）是陸地的 DEM，湖泊是水面高度（裏海 −27 m、貝加爾湖 449 m）。NOAA ETOPO 2022 也是公有領域，但湖泊是湖底（貝加爾湖底約 −1,186 m），而 1:50m 國界把湖泊算在國土裡，會拉低俄羅斯等國的平均海拔與最低點。
+    - 用 30 角秒（赤道約 1 km）的三份：平均值（mn30，北緯 84° 到南緯 90°）、最大值（mx30）、最小值（mi30）。最大、最小值只到南緯 56°，格陵蘭沒有（值是 0），這些地方用平均值。三個 zip 共約 760 MB，是 ESRI 網格，rasterio（GDAL 的 AIG 驅動）可以直接讀；全部約 2 分鐘（機器忙時 5–10 分鐘）。
+    - **海洋是 0、不是 nodata**：三份都是 0 的格子當成海。
+    - **面積加權**：每格乘 cos(緯度)，高緯度的格子比較小。
+    - **國家範圍**跟人口主題的框選網格一樣（`population_grid.country_shapes()`）：法國海外省、荷蘭的加勒比海三島、克里米亞、西撒哈拉依聯合國的劃分拆開；陸地少於約 20 km² 的國家（梵蒂岡、摩納哥）不輸出，共 240 個國家/地區。
+    - **沿海低地**：低於 5 m、而且跟海相連。整張網格（北緯 84° 到南緯 56°，約 7 億格）把「低於 5 m 或是海」的格子做 4 連通的區塊標記（scipy 的 `ndimage.label`，標記陣列約 3 GB），含 2 萬格以上海的區塊才算（黑海只靠窄海峽相連也算到）。不跟海相連的窪地（裏海窪地、蓋塔拉窪地、吐魯番、死海）不算。荷蘭 54.6%、台灣 4.0%、孟加拉 4.4%。SRTM 量的是地表（含樹冠與建築），三角洲的植被、聚落會讓地面看起來比較高，實際的低地應該更多。
+    - **坡度**：平均值網格的中央差分（東西向依緯度換算成公尺）。緊鄰海的格子不算，否則海（0）跟海岸之間會算出假的陡坡。1 km 網格比實際平緩，只能各國互相比較。
+    - **最高點**：網格會把山頂平均掉（玉山在最大值網格是 3,930 m、平均值網格約 3,570 m），所以名稱與標高用 Wikidata 的各國最高點（P610）與最低點（P1589），SPARQL 一次查完。採用條件：
+      - 點附近（約 5 km）有這個國家的陸地，而且附近 DEM 的最大值至少是標高的 75%（庫克山 3,724 m 在 GMTED 只有 3,172 m；南緯 56° 以南只有平均值網格，文森峰放寬到 60%）。
+      - 全國的 DEM 最高格不能比它高 150 m 以上，除非那一格就在這座山（DEM 的尖峰雜訊：查亞峰 4,884 m，DEM 有 5,129 m）。
+      - 不採用時用 DEM 的最高格、不寫名稱。DEM 比 Wikidata 高的國家，附註寫出 Wikidata 的值：以色列 2,809 m（1:50m 的國界把黑門山頂劃進來，Wikidata 是梅隆山 1,208 m）、科威特 310 m（西南部有比 Mutla Ridge 140 m 高的無名高地）。
+      - 其他不採用的例子：荷蘭的錫納里山（在加勒比海的沙巴，已經拆出去）、澳洲的莫森峰（赫德島，1:50m 沒有形狀）、澳門的「1,706 m」（Wikidata 的錯值）。
+    - **最低點**：靠海的國家預設是海平面 0 m，內陸國用 DEM 的最低格（不寫名稱）。Wikidata 的點：
+      - 有標高的：點附近有這個國家的陸地（或點在海上、國家靠海），附近的 DEM 也夠低才採用。
+      - 高於海平面的不能比全國 DEM 的最低格高太多：河流的座標常在上游（不丹的 Drangme Chhu 座標處約 890 m，實際最低處約 100 m）。
+      - 低於海平面的大湖：裏海的座標在湖中央，改在 3° 範圍內找這個國家接近湖面高度的陸地（俄羅斯 −28 m）。
+      - 沒填標高的圩田、窪地（荷蘭的 Zuidplaspolder、哈薩克的卡拉吉耶窪地）用附近平均值網格的最低格。最小值網格在水邊常有幾十公尺的假低點，荷蘭會變成 −41 m。
+      - 敘利亞的加利利海（−214 m）找不到夠低的國內陸地，維持海平面。
+    - **中文名稱**依序用 zh-tw、zh-hant、zh-hk、zh。只有 zh 的多半是簡體（杜富尔峰），用 `wikidata.S2T` 轉成繁體；這張表只列了實際出現的 28 個字，Wikidata 的名稱有變時要補。
+    - **台灣交叉比對**：內政部 100 公尺數值高程模型（民國 94–95 年航測，台灣本島與澎湖，政府資料開放授權）：
+
+      | | 內政部 100 m DEM | GMTED2010 |
+      |---|---|---|
+      | 平均海拔 | 766 m | 785 m |
+      | 陸地面積 | 36,217 km² | 35,709 km² |
+      | 海拔 1,000 m 以上 | 31.7% | 32.6% |
+      | 最高格 | 3,933 m | 3,930 m |
+
+      - 玉山主峰的官方標高是 3,952 m；內政部國土測繪中心 2024 年 5 月實測 3,952.433 m。地圖與側欄用 3,952 m（Wikidata 的值）。
+      - 內政部 DEM 的清單是 data.gov.tw（資料集 7507）的 CSV，每個縣市一個 zip。檔名是中文，下載網址要 URL 編碼。圖幅含海面（高度 0），所以 h > 0 才算陸地；相鄰縣市的圖幅重疊，同一個坐標只算一次。
+      - 平均海拔與 1,000 m 以上的占比附註在台灣的側欄。
+
 ## 9. 之後可以做的
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。
 - **台灣 2000–2007 年的死因**：衛福部的死因資料集有 ICD-9 的部分，轉成 GHE 的分類後可以往前延伸。
 
-- **地球儀上的 3D**：等 MapLibre 的 `queryRenderedFeatures` 支援地球儀上的立體圖形，就可以拿掉「3D 時改用平面」的限制（`WorldMap.tsx` 的 `projection`）。
+- **地球儀上的 3D**：等 MapLibre 的 `queryRenderedFeatures` 支援地球儀上的立體圖形，就可以拿掉「3D 時改用平面」的限制（`WorldMap.tsx` 的 `flatIn3d`）。海拔主題的立體地形已經可以在地球儀上用。
+- **更精確的沿海低地**：GMTED2010 主要來自 SRTM（量到樹冠與建築），可以改用去除植被、建築的 DEM，但要先確認授權（例如 FABDEM 是 CC BY-NC-SA）。
 
 - **框選的國內分布跟著年份變**：GHS-POP 有 1975–2030 每 5 年一期，可以依時間軸挑最近的一期（每期 gzip 後約 1.6 MB），1950 年代與 2100 年仍只能用最接近的一期。1 km 網格已經下載全部 12 期（第 14 節），框選可以共用同一套下載。
 - **1 km 網格的格子數值**：tooltip 目前只顯示國家平均。要顯示游標下那一格的密度，可以讀圖磚像素的色號（只知道是哪一級），或另外輸出數值圖磚（例如 terrarium 那樣把數值編成 RGB）。
@@ -677,7 +737,8 @@ pipeline/
   - `styles.css` 有些規則要蓋過它，例如 `.map-canvas` 的絕對定位要蓋過 `.maplibregl-map { position: relative }`。
   - 如果跟著地圖 chunk 晚載入，順序反過來，地圖容器變成 0 高度，整張地圖看不見。
   - 這時 `map-data` mark 照樣會出現，所以改了載入方式後一定要截圖看。
-- **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。
+- **主控台的「Expected value to be of type number, but found null instead.」**：放大到 6 級左右就會出現，人口主題、純地圖頁也有，是底圖樣式本身的運算式，跟我們的圖層無關，不影響畫面。
+- **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。立體地形用 `__map.getTerrain()` 看倍率，用 `__map.project([經度, 緯度])` 換成畫面座標再查 `data-fill`，確認地形上點得到國家。
 
 ## 11. 主題選單、搜尋、快捷鍵與手機操作
 
@@ -880,6 +941,7 @@ pipeline/
 | 底圖圖磚（向量 `.pbf`、Natural Earth `.png`） | cache first（網址含版本，內容不變） | `basemap-tiles` | 300 張、30 天 |
 | 1 km 網格圖磚（`/tiles/**.png`，第 14 節） | cache first（網址含版本） | `grid-tiles` | 800 張（約 10 MB）、60 天 |
 | 1 km 網格的 `meta.json` | network first（5 秒逾時才用快取）：它決定圖磚的版本，部署後要馬上換新 | `grid-meta` | 10 |
+| 地形圖磚（AWS Terrain Tiles，只有海拔主題） | cache first（內容不變） | `terrain-tiles` | 200 張、30 天 |
 
 - **資料版本**：建置時把 `public/data` 全部內容算雜湊（`vite.config.ts` 的 `dataVersion()`，用 `define` 傳給 service worker）。資料有變，資料快取就換一個新名字，新版 service worker 啟用時刪掉舊的；只改程式不改資料時，資料快取照用。
 - **資料一律向伺服器確認**（`cache: 'no-cache'`，沒變只回 304）：GitHub Pages 的 `max-age=600` 會讓瀏覽器在部署後 10 分鐘內還拿舊檔，新的資料快取就會存到舊資料。

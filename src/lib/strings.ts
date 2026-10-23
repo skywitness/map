@@ -41,6 +41,8 @@ const UI_TEXT = defineMessages({
       imageDone: '已下載圖片',
       imageFailed: '圖片產生失敗，請稍後再試',
       csvYear: (year: number) => `下載 CSV（${year} 年）`,
+      /** 不隨時間變化的資料（海拔）只有一個年份，不分「這一年／所有年份」 */
+      csv: '下載 CSV',
       csvAll: '下載 CSV（所有年份）',
       csvDone: '已下載 CSV',
       shareLink: '分享連結…',
@@ -82,6 +84,7 @@ const UI_TEXT = defineMessages({
       imageDone: 'Image downloaded',
       imageFailed: 'Could not create the image. Please try again.',
       csvYear: (year) => `Download CSV (${year})`,
+      csv: 'Download CSV',
       csvAll: 'Download CSV (all years)',
       csvDone: 'CSV downloaded',
       shareLink: 'Share link…',

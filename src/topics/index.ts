@@ -7,6 +7,7 @@ import { digital } from './digital';
 import { disease } from './disease';
 import { education } from './education';
 import { electricity } from './electricity';
+import { elevation } from './elevation';
 import { health } from './health';
 import { housing } from './housing';
 import { income } from './income';
@@ -37,7 +38,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, tourism, military] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, transport] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */

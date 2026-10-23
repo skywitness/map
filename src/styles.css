@@ -990,6 +990,16 @@ kbd {
   white-space: nowrap;
 }
 
+/* 地形圖：分層設色的漸層；右邊留出最後一個刻度的半個字寬 */
+.legend-relief {
+  margin-right: 14px;
+}
+
+.legend-gradient {
+  height: 10px;
+  border-radius: 2px;
+}
+
 .legend-nodata {
   display: flex;
   align-items: center;
@@ -1204,6 +1214,28 @@ kbd {
 }
 
 /* ── 側欄：主題額外區塊 ─────────────── */
+/* 海拔：高度分布的長條用地圖的分層設色，高山的灰白色在淺色背景上要有一圈細框才看得到 */
+.elevation-bands .bar-fill,
+.elevation-bands .bar-key {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+}
+
+.elevation-points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.elevation-point {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
 .panel-section {
   margin-top: 24px;
   padding-top: 16px;

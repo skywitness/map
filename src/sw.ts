@@ -81,6 +81,19 @@ registerRoute(
   }),
 );
 
+// 海拔主題的地形圖磚（AWS Terrain Tiles，terrarium PNG）：內容不會變，直接用快取。一張約 50–150 KB，
+// 上限 200 張（約 20 MB）；只存使用者看過的，不主動下載
+registerRoute(
+  ({ url }) => url.origin === 'https://s3.amazonaws.com' && url.pathname.startsWith('/elevation-tiles-prod/'),
+  new CacheFirst({
+    cacheName: 'terrain-tiles',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 30 * DAY, purgeOnQuotaError: true }),
+    ],
+  }),
+);
+
 // 1 km 網格的圖磚（tiles/<資料夾>/<版本>/<年>/z/x/y.png，部署時產生）：網址含版本，內容不會變，直接用快取。
 // 512 px 的圖磚平均約 10 KB，上限 800 張約 8–10 MB；只存看過的，不預先下載
 registerRoute(

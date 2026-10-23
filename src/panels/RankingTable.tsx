@@ -16,7 +16,8 @@ interface RankingTableProps {
   /** 指標檔的 latestWithin，有的話在表格下方說明 */
   latestWithin?: number;
   world: number | null;
-  year: number;
+  /** null：不隨時間變化的資料（例如海拔），標題不寫年份 */
+  year: number | null;
   countries: CountryTable | null;
   selected: string | null;
   onSelect: (iso3: string) => void;

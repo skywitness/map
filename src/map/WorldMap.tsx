@@ -6,6 +6,7 @@
  * - 面量圖、類別圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * - 3D 模式（fill-extrusion）：面量圖把國家依色階分級拉高，比例圓改成高度與數值成正比的柱子
+ * - 地形（海拔主題，terrain.ts）：高程圖磚的分層設色與陰影，3D 時改成真的立體地形
  * - 1 km 網格（densityGrid.ts）：點陣圖磚取代國家的顏色，國界、hover、點選照舊用國家的形狀
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
@@ -24,7 +25,7 @@ import {
   type RasterTileSource,
 } from 'maplibre-gl';
 import { geoArea, geoDistance } from 'd3-geo';
-import { useLang, useT } from '../i18n';
+import { tr, useLang, useT } from '../i18n';
 import type { AirportsData, Indicator } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
@@ -46,12 +47,14 @@ import {
   columnLegendModel,
   FlowLegend,
   flowLegendModel,
+  ReliefLegend,
 } from './Legend';
 import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
 import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
 import { GRID_PROTOCOL, gridText, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
+import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 
 // 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
@@ -99,6 +102,8 @@ interface WorldMapProps {
   onThreeDChange?: (on: boolean) => void;
   /** key 改變時把地圖移到這個國家（從搜尋選國家時用） */
   focus?: { iso3: string; key: number } | null;
+  /** 地形圖層（主題的 terrain）：kind 為 'terrain' 的指標畫分層設色，面量圖上疊地形陰影，3D 改成立體地形 */
+  terrain?: boolean;
   /** 1 km 網格（指標有 grid、使用者切到網格時）：取代面量圖的國家顏色 */
   grid?: GridLayer | null;
   /** 切到網格但 meta.json 載入失敗：照常畫國家平均，上方提示 */
@@ -456,6 +461,7 @@ export function WorldMap(props: WorldMapProps) {
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
+  const terrain = Boolean(props.terrain);
   const { grid = null, gridFailed = false } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -473,11 +479,20 @@ export function WorldMap(props: WorldMapProps) {
   const ready = revision > 0;
   /** 資料圖層目前是否在地圖上（切換底圖、等新樣式載入的期間是 false） */
   const installedRef = useRef(false);
+  /** 分層設色、地形陰影插在這個圖層前面（底圖的水域，海面才會蓋住海底地形） */
+  const reliefBeforeRef = useRef<string | undefined>(undefined);
+  /**
+   * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
+   * 我們的地形陰影蓋住，隱藏起來就不必下載（全球視角約 3 MB）
+   */
+  const baseRastersRef = useRef<string[]>([]);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
   // MapLibre 5 在地球儀上查不到立體圖形（queryRenderedFeatures 對 fill-extrusion 用的是平面的矩陣），
-  // hover、點國家都會失效，所以 3D 時固定用平面地圖；離開 3D 再回到使用者選的投影
-  const projection: Projection = globe && !threeD ? 'globe' : 'mercator';
+  // hover、點國家都會失效，所以 3D 時固定用平面地圖；離開 3D 再回到使用者選的投影。
+  // 地形圖層的 3D 是立體地形、沒有立體圖形，地球儀上照樣點得到（5.24 實測），維持使用者選的投影
+  const flatIn3d = threeD && !terrain;
+  const projection: Projection = globe && !flatIn3d ? 'globe' : 'mercator';
   const projectionRef = useRef(projection);
   projectionRef.current = projection;
   /** 剛進入 3D 時短暫顯示操作提示 */
@@ -558,6 +573,40 @@ export function WorldMap(props: WorldMapProps) {
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
+    baseRastersRef.current = styleLayers
+      .filter((l) => l.type === 'raster' && l.layout?.visibility !== 'none')
+      .map((l) => l.id);
+    // 地形：分層設色與陰影插在底圖的水域下面（圖磚含海底地形，由海面蓋住）；3D 地形用另一個 source，
+    // MapLibre 建議跟陰影分開，畫質比較好。沒有圖層用到時不會下載圖磚
+    m.addSource('dem', demSource());
+    m.addSource('dem-3d', demSource());
+    const water = styleLayers.find((l) => 'source-layer' in l && l['source-layer'] === 'water')?.id ?? beforeId;
+    reliefBeforeRef.current = water;
+    m.addLayer(
+      {
+        id: 'relief-color',
+        type: 'color-relief',
+        source: 'dem',
+        layout: { visibility: 'none' },
+        paint: { 'color-relief-color': RELIEF_COLOR },
+      },
+      water,
+    );
+    m.addLayer(
+      {
+        id: 'relief-shade',
+        type: 'hillshade',
+        source: 'dem',
+        layout: { visibility: 'none' },
+        paint: { 'hillshade-shadow-color': '#3d3526', 'hillshade-highlight-color': '#ffffff', 'hillshade-accent-color': '#3d3526' },
+      },
+      water,
+    );
+    // 面量圖上的陰影疊在國家顏色上面，也會蓋過底圖的海面（看得到海底地形），所以再疊一份底圖的水域蓋回去
+    const waterFill = styleLayers.find((l) => l.type === 'fill' && l['source-layer'] === 'water');
+    if (waterFill?.type === 'fill') {
+      m.addLayer({ ...waterFill, id: 'relief-water', layout: { ...waterFill.layout, visibility: 'none' } }, beforeId);
+    }
     installedRef.current = true;
   };
 
@@ -717,6 +766,9 @@ export function WorldMap(props: WorldMapProps) {
         loadedBasemapRef.current = basemap.id;
         setRevision((r) => r + 1);
       });
+      // 3D 地形開著時直接換樣式，MapLibre 會拿舊樣式的地形去畫新樣式而出錯（shaderPreludeCode）；
+      // 先拿掉，新樣式載入後 revision 變了，地形的 effect 會重新加上
+      if (map.getTerrain()) map.setTerrain(null);
       map.setStyle(style, { diff: false });
     });
     return () => {
@@ -1100,12 +1152,14 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     const kind = indicator.layer.kind;
-    const slabs = threeD && kind === 'choropleth' && !gridOn;
+    // 有地形圖層的主題，3D 是真的立體地形（另一個 effect），國家的顏色貼在地形上，不另外拉高
+    const extrude = threeD && !terrain;
+    const slabs = extrude && kind === 'choropleth' && !gridOn;
     const show = (id: string, visible: boolean) => map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
     show('extrude-countries', slabs);
     show('extrude-tiny', slabs);
-    show('extrude-columns', threeD && kind === 'bubble');
-    show('bubbles', !threeD);
+    show('extrude-columns', extrude && kind === 'bubble');
+    show('bubbles', !extrude);
     show('data-tiny', !slabs && !gridOn);
     show('data-border', !slabs);
     show('data-highlight', !slabs);
@@ -1113,8 +1167,52 @@ export function WorldMap(props: WorldMapProps) {
     // 更新 feature-state，MapLibre 會對常數呼叫 evaluate 而丟出 TypeError
     map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs || gridOn ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
     // 平面時鐵路在比例圓下面；3D 時改畫在立體圖形上面，否則會被整片蓋住
-    map.moveLayer('rail', threeD ? 'airports-medium' : 'data-tiny');
-  }, [revision, threeD, indicator.layer.kind, gridOn]);
+    map.moveLayer('rail', extrude ? 'airports-medium' : 'data-tiny');
+  }, [revision, threeD, indicator.layer.kind, gridOn, terrain]);
+
+  // 地形圖層：地形圖（kind 'terrain'）畫分層設色，陰影疊在上面；面量圖只疊陰影，而且移到國家顏色上面，
+  // 看得出起伏。陰影可以在左下角關掉
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const reliefMap = terrain && indicator.layer.kind === 'terrain';
+    const shade = terrain && layers.hillshade;
+    map.setLayoutProperty('relief-color', 'visibility', reliefMap ? 'visible' : 'none');
+    map.setLayoutProperty('relief-shade', 'visibility', shade ? 'visible' : 'none');
+    for (const id of baseRastersRef.current) {
+      map.setLayoutProperty(id, 'visibility', reliefMap || shade ? 'none' : 'visible');
+    }
+    map.moveLayer('relief-shade', reliefMap ? reliefBeforeRef.current : 'data-border');
+    if (map.getLayer('relief-water')) {
+      map.setLayoutProperty('relief-water', 'visibility', shade && !reliefMap ? 'visible' : 'none');
+      map.moveLayer('relief-water', 'data-border');
+    }
+    map.setPaintProperty('relief-shade', 'hillshade-exaggeration', reliefMap ? 0.55 : 0.4);
+  }, [revision, terrain, indicator.layer.kind, layers.hillshade]);
+
+  // 3D 立體地形（有地形圖層的主題）。全球視角時要放大很多倍才看得出起伏，縮放結束時依縮放級數換倍率；
+  // 切換底圖後新樣式沒有地形，revision 變了會重新設定
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    if (!terrain || !threeD) {
+      if (map.getTerrain()) map.setTerrain(null);
+      return;
+    }
+    let level = terrainExaggeration(map.getZoom());
+    map.setTerrain({ source: 'dem-3d', exaggeration: level });
+    const onZoomEnd = () => {
+      const next = terrainExaggeration(map.getZoom());
+      // 切換底圖、新樣式還沒載入時不能設定地形（新樣式載入後這個 effect 會重跑）
+      if (next === level || !installedRef.current) return;
+      level = next;
+      map.setTerrain({ source: 'dem-3d', exaggeration: next });
+    };
+    map.on('zoomend', onZoomEnd);
+    return () => {
+      map.off('zoomend', onZoomEnd);
+    };
+  }, [revision, terrain, threeD]);
 
   // 回正按鈕上的指北針跟著地圖旋轉
   const compassRef = useRef<SVGSVGElement>(null);
@@ -1174,7 +1272,11 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [grid, lang, legendTitle, threeD]);
 
-  const hasOverlays = Boolean(railways || airports);
+  const hasOverlays = Boolean(railways || airports || terrain);
+  const reliefLegend = useMemo(
+    () => (terrain && indicator.layer.kind === 'terrain' ? reliefLegendModel(indicator.formatTick ?? indicator.format) : null),
+    [terrain, indicator, lang],
+  );
   // 流向圖還沒選國家時，提示使用者點一下；選了但那一年沒有資料也要說
   const flowLayer = indicator.layer.kind === 'flow' ? indicator.layer : null;
   const flowHint =
@@ -1196,9 +1298,11 @@ export function WorldMap(props: WorldMapProps) {
         const title = legendTitle;
         const unit = indicator.unit;
         const valueLegend: ImageLegend | null = colorScale
-          ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD }
-          : categories
-            ? { kind: 'categorical', title, model: categoricalLegendModel(categories, values) }
+          ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD && !terrain }
+          : reliefLegend
+            ? { kind: 'relief', title: tr(RELIEF_TITLE, lang), unit, model: reliefLegend }
+            : categories
+              ? { kind: 'categorical', title, model: categoricalLegendModel(categories, values) }
           : indicator.layer.kind !== 'bubble'
             ? flowLayer && flows && flowMax > 0
               ? { kind: 'flow', title, unit, model: flowLegendModel(indicator, flows.direction, flowMax) }
@@ -1218,7 +1322,7 @@ export function WorldMap(props: WorldMapProps) {
             }
           : valueLegend;
         const layerKeys = onLayersChange
-          ? LAYER_KEYS.filter((k) => (k.source === 'railways' ? railways : airports) && layers[k.key]).map((key) => ({
+          ? LAYER_KEYS.filter((k) => ({ railways, airports, terrain })[k.source] && layers[k.key]).map((key) => ({
               key,
               color: layerKeyColor(key, tokens),
             }))
@@ -1227,7 +1331,7 @@ export function WorldMap(props: WorldMapProps) {
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
       },
     }),
-    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend],
+    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang],
   );
 
   return (
@@ -1268,10 +1372,10 @@ export function WorldMap(props: WorldMapProps) {
         <button
           type="button"
           className="map-text-button"
-          onClick={() => !threeD && setGlobe((g) => !g)}
-          aria-disabled={threeD}
+          onClick={() => !flatIn3d && setGlobe((g) => !g)}
+          aria-disabled={flatIn3d}
           aria-label={projection === 'globe' ? t.toFlat : t.toGlobe}
-          title={threeD ? t.globeIn3d : projection === 'globe' ? t.toFlat : t.toGlobe}
+          title={flatIn3d ? t.globeIn3d : projection === 'globe' ? t.toFlat : t.toGlobe}
         >
           {projection === 'globe' ? t.flatShort : t.globeShort}
         </button>
@@ -1332,7 +1436,7 @@ export function WorldMap(props: WorldMapProps) {
       {threeDHint && (
         <div className="map-hint is-wrap">
           {matchMedia('(pointer: coarse)').matches ? t.threeDHintTouch : t.threeDHintMouse}
-          {globe && t.threeDHintGlobe}
+          {globe && !terrain && t.threeDHintGlobe}
         </div>
       )}
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
@@ -1344,6 +1448,7 @@ export function WorldMap(props: WorldMapProps) {
             onChange={onLayersChange}
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
+            hasTerrain={terrain}
             tokens={tokens}
           />
         )}
@@ -1356,7 +1461,9 @@ export function WorldMap(props: WorldMapProps) {
             emptyKey={gridLegend.emptyKey}
           />
         ) : colorScale ? (
-          <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} stepped={threeD} />
+          <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} stepped={threeD && !terrain} />
+        ) : reliefLegend ? (
+          <ReliefLegend title={tr(RELIEF_TITLE, lang)} unit={indicator.unit} model={reliefLegend} />
         ) : categories ? (
           <CategoricalLegend
             title={legendTitle}

@@ -39,7 +39,8 @@ export const en: Messages = {
   itemIndicator: (item, indicator) => `${item} ${lowerFirst(indicator)}`,
   year: (year) => String(year),
   worldMapAria: 'World map',
-  mapAria: (year, title, projected) => `World map: ${title} by country, ${year}${projected ? ' (projection)' : ''}`,
+  mapAria: (year, title, projected) =>
+    `World map: ${title} by country${year === null ? '' : `, ${year}`}${projected ? ' (projection)' : ''}`,
   tooltipProjected: ' · projection',
   dataYear: (year) => `${year} data`,
   latestWithinHint: (within) =>
@@ -130,8 +131,10 @@ export const en: Messages = {
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
   periodRange: (from, to) => (from === to ? String(from) : `${from}–${to}`),
 
-  rankingCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories)`,
-  categoryCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories, grouped by category)`,
+  rankingCaption: (year, title, count) =>
+    `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories)`,
+  categoryCaption: (year, title, count) =>
+    `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories, grouped by category)`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',

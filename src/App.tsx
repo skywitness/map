@@ -202,7 +202,11 @@ export function App() {
   const mapHandle = useRef<WorldMapHandle>(null);
   // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
-  const viewTitle = pure ? topic.title : `${topic.title} · ${flowTitle} · ${t.yearValue(year, projected)}`;
+  // 不隨時間變化的資料（海拔）：標題、檔名、tooltip、排名表都不寫年份，也沒有時間軸
+  const timeless = Boolean(topic.timeless);
+  const viewTitle = pure
+    ? topic.title
+    : `${topic.title} · ${flowTitle}${timeless ? '' : ` · ${t.yearValue(year, projected)}`}`;
   const fileBase = safeFilename(pure ? topic.title : `${t.brand}_${topic.shortTitle}_${indicatorTitle}`);
 
   const downloadImage = async () => {
@@ -221,7 +225,7 @@ export function App() {
       subtitle: pure ? undefined : grid ? G.subtitle : indicator.description,
       credits,
     });
-    downloadBlob(blob, `${fileBase}${pure ? '' : `_${year}`}.png`);
+    downloadBlob(blob, `${fileBase}${pure || timeless ? '' : `_${year}`}.png`);
   };
 
   const downloadCsv = (single: boolean) => {
@@ -233,7 +237,7 @@ export function App() {
       label: indicator.layer.kind === 'categorical' ? indicator.format : undefined,
     });
     const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
-    downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}_${range}.csv`);
+    downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}${timeless ? '' : `_${range}`}.csv`);
   };
 
   const renderAirportTooltip = (index: number) => {
@@ -274,7 +278,8 @@ export function App() {
       <>
         <div className="tt-value">{v !== undefined ? indicator.format(v) : t.noData}</div>
         <div className="tt-label">
-          {countryName(iso3, countries)} · {valueYear !== undefined ? t.dataYear(valueYear) : year}
+          {countryName(iso3, countries)}
+          {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
           {projected && t.tooltipProjected}
           {grid && ` · ${G.tooltip}`}
         </div>
@@ -420,7 +425,7 @@ export function App() {
             onDownloadImage={view === 'map' ? downloadImage : undefined}
             csv={
               data && !pure
-                ? { year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                ? { year: timeless ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
                 : undefined
             }
           />
@@ -446,12 +451,13 @@ export function App() {
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={pure ? t.worldMapAria : t.mapAria(year, mapTitle, projected)}
+                ariaLabel={pure ? t.worldMapAria : t.mapAria(timeless ? null : year, mapTitle, projected)}
                 basemap={basemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
                 threeD={state.threeD}
                 onThreeDChange={setThreeD}
+                terrain={topic.terrain}
                 focus={focusRequest}
                 grid={grid}
                 gridFailed={gridWanted && gridMeta.error !== null}
@@ -490,7 +496,7 @@ export function App() {
               valueYears={valueYears}
               latestWithin={data?.latestWithin}
               world={world}
-              year={year}
+              year={timeless ? null : year}
               countries={countries}
               selected={state.country}
               onSelect={selectCountry}
@@ -523,7 +529,9 @@ export function App() {
         )}
       </main>
 
-      {!pure && <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />}
+      {!pure && !timeless && (
+        <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />
+      )}
 
       <footer className="footer">
         {t.sources}
