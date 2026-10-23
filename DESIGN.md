@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -376,6 +376,7 @@ pipeline/
 |---|---|---|---|---|
 | 地圖（純地圖） | 不上色，只看底圖；點國家會放大到該國 | — | OpenFreeMap、OpenStreetMap | — |
 | 人口 | 總人口、密度（國家平均，或切到 1 km 網格）、年增率、年齡中位數；可框選估算 | — | UN WPP 2024；1 km 網格與框選用 JRC GHS-POP R2023A | 1950–2100（2024 起推估）；1 km 網格 1975–2030 每 5 年一期（2025 起推估）；框選的網格是 2020 年 |
+| 生育率與高齡化 | 總生育率（發散色，中性一級跨過替代水準 2.1）、65 歲以上人口比例、扶老比、出生數（比例圓） | 人口金字塔（男女五歲年齡組，比例尺固定為 1950–2100 年最大的一組，推估年份調淡） | UN WPP 2024（中推估）；台灣也用 WPP，附註對照內政部戶政司與國發會人口推估（2026 至 2075 年） | 1950–2100（2024 起推估） |
 | 人均收入 | 人均 GDP（名目、PPP）、GDP 總額、經濟成長率 | — | IMF WEO（含台灣），IMF 未涵蓋的 17 個地區用 World Bank 補 | 1980–2031（2026 起推估） |
 | 發電量 | 總發電量、人均用電、再生/低碳/燃煤/核能占比、碳排強度 | 發電結構堆疊面積圖＋各能源長條 | Ember | 2000–2025 |
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
@@ -521,6 +522,7 @@ pipeline/
     - PB2002 板塊邊界（fraxen/tectonicplates）是 ODC-By 1.0，要註明 Hugo Ahlenius、Nordpil 與 Peter Bird。
     - 外交部駐外館處通訊錄（data.gov.tw 6119）、領事事務局免簽證名單（data.gov.tw 30749）是政府資料開放授權條款第 1 版；領務局的國家清單是網站內容，網站的「政府網站資料開放宣告」採同一個條款。邦交國的建交、斷交日期是史實，表格自己整理，只拿維基百科（CC BY-SA 4.0）交叉比對（見第 41 點）；Wikidata 的 P530 起訖日期大多是空的，ICPSR 的外交承認資料集禁止再散布，都沒有用。
     - Nobel Prize API（api.nobelprize.org）是 CC0（https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/）；條款另外要求不刻意竄改或誤導、不用 Nobel Prize Outreach 的名稱或商標暗示背書（主題名稱「諾貝爾獎」只是描述資料內容，沒有用標誌）。
+    - 國家發展委員會的人口推估（data.gov.tw 6101「人口推計」）是政府資料開放授權條款第 1 版；生育率與高齡化主題只在台灣的附註引用幾個數字，沒有轉載資料檔。內政部戶政司的人口統計同樣適用政府資料開放授權條款。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1146,6 +1148,11 @@ pipeline/
       - 側欄的停留天數由說明的開頭（或「可停留」「停留不超過」「最多」這類寫法）抽出來，換成中英文；完整說明（去掉網址與「請參閱簽證及入境須知」）只在中文介面顯示，英文介面只有類別與天數。
       - 顏色用發散色（`diverging`）：從「需事先申請」（橘）經「落地簽證」（中性）到「免簽證」（青綠）。用循序色的話 5 類會用到最深的兩階橘色，免簽證與需要旅行授權的免簽證在地圖上分不出來。
     - **授權**：外交部駐外館處通訊錄與領務局免簽證名單都是政府資料開放授權條款第 1 版（data.gov.tw 的 license 欄位是 1）；領務局國家清單是網站內容，網站的「政府網站資料開放宣告」採同一個條款。Natural Earth 公有領域。邦交國日期見上面（史實，自己整理；比對用的維基百科是 CC BY-SA 4.0）。
+42. **生育率與高齡化**（`pipeline/topics/fertility.py`、`src/topics/panels/FertilityPanel.tsx`）：
+    - 總生育率、出生數用 WPP 的人口動態指標檔（跟人口主題同一個檔）；65 歲以上比例與扶老比用五歲年齡組人口（`WPP2024_PopulationByAge5GroupSex_Medium`，1950–2100）自己算，世界的值用 WPP 的世界列，不是各國加總。
+    - 人口金字塔每國一個檔（`countries/<ISO3>.json`，1950–2100 每年男女各 21 組），用指標檔同一種差分編碼，但整個國家共用一個指數，最大的一組保留 4 位有效數字（台灣是千人），237 國共 4.5 MB、gzip 後 1.4 MB，點國家才載入。共用的 `EChart` 只有折線圖，金字塔用 HTML 長條畫，不另外引入 ECharts 的長條圖。
+    - 台灣維持 WPP（跟人口主題一致）：2023 年以前跟內政部很接近（總生育率 0.87 對 0.865、65 歲以上 18.33% 對年底 18.35%，出生數少約 2%）。但 2024 年起 WPP 是推估，2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 推估 0.86、12.5 萬人。只把台灣這兩年換成內政部的數字，會跟 WPP 2026 年以後的推估接不起來，所以差異寫在附註。國發會 2026 年 8 月的人口推估（中推估 2075 年總生育率 0.8、65 歲以上 52.9%）比 WPP（2075 年 1.22、42.9%）悲觀很多，也寫在附註；國發會的網站（pop-proj.ndc.gov.tw）有 Cloudflare 驗證，這幾個數字取自國發會新聞稿的媒體轉述。
+    - 總生育率用發散色：門檻 [1, 1.5, 1.9, 2.3, 3.5, 5]，中性的一級（1.9–2.3）跨過替代水準 2.1，低於替代水準是橘色（跟人口年增率的「減少橘、增加綠」一致）。65 歲以上比例的門檻含 7%、14%、20%（高齡化、高齡、超高齡社會）。扶老比 [10, 15, 20, 30, 40, 60]，2023 年日本 50、台灣 26。
 
 ## 9. 之後可以做的
 
