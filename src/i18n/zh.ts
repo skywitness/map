@@ -101,6 +101,7 @@ export const zh = {
   threeDHintGlobe: '；3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
   unitSuffix: (unit: string) => `（${unit}）`,
   layers: '圖層',
+  categoryTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一類，再點一下取消）`,
 
   // 框選結果
   boxAria: (label: string) => `框選範圍內的${label}`,
@@ -136,6 +137,7 @@ export const zh = {
 
   // 排名表
   rankingCaption: (year: number, title: string, count: number) => `${year} 年各國${title}排名（${count} 個國家/地區）`,
+  categoryCaption: (year: number, title: string, count: number) => `${year} 年各國${title}（${count} 個國家/地區，依類別排列）`,
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',

@@ -97,6 +97,8 @@ export const en: Messages = {
   threeDHintGlobe: '. In 3D the map is flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
   unitSuffix: (unit) => ` (${unit})`,
   layers: 'Layers',
+  categoryTitle: (label, count) =>
+    `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'} (click to highlight only this category; click again to undo)`,
 
   boxAria: (label) => `${label} in the selected area`,
   boxTitle: (label) => `Estimated ${label} in the area`,
@@ -128,6 +130,7 @@ export const en: Messages = {
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
 
   rankingCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories)`,
+  categoryCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories, grouped by category)`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',

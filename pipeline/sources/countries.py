@@ -21,6 +21,16 @@ def to_iso3(code: str | None) -> str | None:
     return code if code in ISO3 else None
 
 
+def from_alpha2(code: str | None) -> str | None:
+    """ISO alpha-2 → alpha-3（XK → XKX 科索沃）；查不到回傳 None。"""
+    if not code:
+        return None
+    if code.strip().upper() == "XK":
+        return "XKX"
+    country = pycountry.countries.get(alpha_2=code.strip().upper())
+    return country.alpha_3 if country else None
+
+
 def from_numeric(m49: str | int | None) -> str | None:
     """UN M49 / ISO 數字代碼 → alpha-3（M49 的國家代碼與 ISO 數字代碼相同）。"""
     if m49 is None or str(m49).strip().lstrip("'") == "":

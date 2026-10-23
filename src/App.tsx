@@ -208,7 +208,12 @@ export function App() {
 
   const downloadCsv = (single: boolean) => {
     if (!data) return;
-    const text = indicatorCsv(data, { unit: indicator.unit, countries, year: single ? year : undefined });
+    const text = indicatorCsv(data, {
+      unit: indicator.unit,
+      countries,
+      year: single ? year : undefined,
+      label: indicator.layer.kind === 'categorical' ? indicator.format : undefined,
+    });
     const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
     downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}_${range}.csv`);
   };
