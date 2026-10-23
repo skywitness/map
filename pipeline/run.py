@@ -58,6 +58,7 @@ STEPS = {
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "passport": "topics.passport",
     "organizations": "topics.organizations",
+    "un-votes": "topics.un_votes",
     "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
