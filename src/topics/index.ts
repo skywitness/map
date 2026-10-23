@@ -2,9 +2,12 @@ import type { Text } from '../i18n';
 import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { climate } from './climate';
+import { democracy } from './democracy';
 import { diet } from './diet';
 import { digital } from './digital';
+import { diplomacy } from './diplomacy';
 import { disease } from './disease';
+import { earthquakes } from './earthquakes';
 import { education } from './education';
 import { electricity } from './electricity';
 import { elevation } from './elevation';
@@ -14,6 +17,7 @@ import { income } from './income';
 import { industry } from './industry';
 import { language } from './language';
 import { military } from './military';
+import { nobel } from './nobel';
 import { pureMap } from './map';
 import { population } from './population';
 import { sectors } from './sectors';
@@ -33,12 +37,12 @@ export interface TopicGroup {
  * 新增主題時加進最接近的一類。分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing, nobel] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, sectors, industry, agriculture] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, tourism, military] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, tourism, military, democracy, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, transport] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */

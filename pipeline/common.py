@@ -116,6 +116,64 @@ def compact_indicator(data: dict) -> dict:
     return out
 
 
+# ── 疊加圖層的點與線（前端 src/map/Overlays.tsx 的 decodePoints、decodeLines 還原） ──────────
+def points_file(
+    rows: list[dict[str, object]],
+    fields: list[str],
+    scale: dict[str, float],
+    delta: tuple[str, ...] | list[str] = (),
+) -> dict:
+    """一般點圖層的資料檔（src/topics/types.ts 的 PointsData），欄位分開存。
+
+    - scale 裡的欄位是數值：存 round(值 / scale) 的整數，例如經緯度 0.01（約 1 公里）、規模 0.1；
+      其他欄位原樣存（字串，或 None）。
+    - delta 裡的欄位存跟前一個非 None 值的差：rows 先依這個欄位排序（年份、經度），差分後的數字很小，gzip 壓得很好。
+    """
+    columns: list[list[object]] = []
+    for field in fields:
+        q = scale.get(field)
+        col: list[object] = []
+        prev = 0
+        for row in rows:
+            v = row.get(field)
+            if v is None or q is None:
+                col.append(v)
+                continue
+            n = round(float(v) / q)
+            if field in delta:
+                col.append(n - prev)
+                prev = n
+            else:
+                col.append(n)
+        columns.append(col)
+    return {"fields": fields, "scale": {f: scale[f] for f in fields if f in scale}, "delta": list(delta), "columns": columns}
+
+
+def lines_file(lines: list[list[tuple[float, float]]], quantum: float = 0.01, types: list[int] | None = None) -> dict:
+    """一般線圖層的資料檔（LinesData）：跟鐵路同一種差分編碼，每條線第一個點是量化後的絕對座標，之後是差分。
+
+    跨 180° 經線的線要先把經度展開成連續的（可以超過 ±180），否則 MapLibre 會畫出橫越整個地圖的線。
+    types 是每條線的分類代碼（例如板塊邊界的種類），跟 lines 一一對應。
+    """
+    encoded: list[list[int]] = []
+    kept: list[int] = []
+    for i, line in enumerate(lines):
+        q = [(round(x / quantum), round(y / quantum)) for x, y in line]
+        q = [p for j, p in enumerate(q) if j == 0 or p != q[j - 1]]
+        if len(q) < 2:
+            continue
+        flat = [q[0][0], q[0][1]]
+        for (x0, y0), (x1, y1) in zip(q, q[1:]):
+            flat += [x1 - x0, y1 - y0]
+        encoded.append(flat)
+        if types is not None:
+            kept.append(types[i])
+    out: dict[str, object] = {"quantum": quantum, "lines": encoded}
+    if types is not None:
+        out["types"] = kept
+    return out
+
+
 def year_span(series: dict[str, dict[int, float]], min_share: float = 0.3) -> list[int]:
     """各國資料涵蓋的連續年份。頭尾國家數不到最多那一年 min_share 倍的年份不收，
     否則最新一年常常只有少數國家先公布，地圖幾乎全灰。"""

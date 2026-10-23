@@ -9,6 +9,7 @@ export interface CategoricalLayer {
   categories: { value: number; label: string }[];
   other?: string;
   ordinal?: boolean;
+  diverging?: boolean;
 }
 
 /** 類別圖的一類：圖例的一列 */

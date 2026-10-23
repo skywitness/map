@@ -35,9 +35,11 @@ export type LayerSpec =
    * 類別圖：每個國家屬於一類（資料檔的數值是類別代碼），每一類一個顏色，圖例列出各類，沒有數值門檻。
    * 顏色不寫在主題裡：一般類別依序取 MAP_TOKENS.categorical；ordinal 為 true（類別有強弱之分，例如官方地位）
    * 時改用循序色，第一類最深。不在 categories 裡的代碼歸到 other（有給的話），否則當成無資料。
+   * diverging 為 true（兩個方向的強弱，例如專制 ↔ 民主）時改用發散色：categories 從一端排到另一端，
+   * 前一半是橘色、後一半是青綠，越靠兩端越深，奇數類的正中間是中性色。
    * tooltip、排名表、側欄照常用 format(代碼) 顯示類別名稱。
    */
-  | { kind: 'categorical'; categories: CategoryDef[]; other?: Text; ordinal?: boolean }
+  | { kind: 'categorical'; categories: CategoryDef[]; other?: Text; ordinal?: boolean; diverging?: boolean }
   /**
    * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
@@ -97,6 +99,11 @@ export interface IndicatorDef {
    * dir 是 tiles/ 底下的資料夾，由 pipeline 產生（不進版本控制，部署時才有）。
    */
   grid?: { dir: string };
+  /**
+   * 有 timeField 的疊加點（地震）要顯示哪些年份：'year' 只有時間軸那一年（預設），'cumulative' 從最早累積到那一年，
+   * 數字 n 是那一年起的 n 年（每十年一筆的指標：1990 → 1990–1999）
+   */
+  overlayTime?: 'year' | 'cumulative' | number;
 }
 
 export interface SourceDef {
@@ -112,11 +119,91 @@ export interface DimensionDef {
   defaultOption: string;
 }
 
-/** 疊加在地圖上的點、線圖層 */
-export interface OverlayDef {
-  id: 'railways' | 'airports';
-  /** 相對於 data/topics/<topicId>/ */
+/**
+ * 疊加在地圖上的點、線圖層，左下角的「圖層」可以開關：
+ * - 鐵路、機場（交通主題）有自己的資料格式與樣式
+ * - 一般的點（PointsOverlayDef，例如地震、火山、駐外館處）與線（LinesOverlayDef，例如板塊邊界），樣式寫在主題裡
+ */
+export type OverlayDef = { id: 'railways' | 'airports'; kind?: undefined; file: string } | PointsOverlayDef | LinesOverlayDef;
+
+/** 一般疊加圖層共用的欄位 */
+interface OverlayBase {
+  /** 主題內唯一：圖層開關、MapLibre 圖層 id（`ov-<id>`）用 */
+  id: string;
+  /** 資料檔，相對於 data/topics/<topicId>/ */
   file: string;
+  /** 圖層開關上的名稱 */
+  label: Text;
+  /** 預設關閉；關閉時不下載資料檔，第一次打開才下載 */
+  hidden?: boolean;
+  /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
+  indicators?: string[];
+}
+
+/** 依數值欄位分級的顏色：thresholds N 個 → classes N+1 個（由小到大），顏色取自 MAP_TOKENS */
+export interface ColorClasses {
+  field: string;
+  /** 圖例標題，例如「震源深度」 */
+  title: Text;
+  thresholds: number[];
+  classes: { color: string; label: Text }[];
+}
+
+/**
+ * 一般的點圖層（資料檔是 PointsData）。
+ * 每個點的欄位由 decodePoints() 還原成 PointRecord；有 iso3 欄位的點，點一下會選取那個國家。
+ */
+export interface PointsOverlayDef extends OverlayBase {
+  kind: 'points';
+  /** 圓點或三角形（火山）；預設圓點 */
+  shape?: 'circle' | 'triangle';
+  /** 半徑（px，縮放 2 的大小，放大時跟著變大）：固定值，或依數值欄位線性內插 [[值, 半徑], …] */
+  radius: number | { field: string; stops: [number, number][] };
+  /** 顏色：固定色，或依數值欄位分級 */
+  color: string | ColorClasses;
+  /** 依這個欄位由小到大畫，大的疊在上面（例如規模） */
+  sortField?: string;
+  /** 年份欄位：依時間軸篩選要顯示的點，篩選方式看指標的 overlayTime */
+  timeField?: string;
+  /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
+  sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
+  /**
+   * tooltip：title 是第一行（粗體），detail 是第二行。
+   * countryName 由 App 提供（目前語言的國名），原文專有名詞（地名、館處英文名）可以放在 properNoun，畫面上不翻譯。
+   */
+  tooltip: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
+}
+
+/** 一般的線圖層（資料檔是 LinesData），例如板塊邊界 */
+export interface LinesOverlayDef extends OverlayBase {
+  kind: 'lines';
+  /** 線寬（px，縮放 2 時） */
+  width: number;
+  /** 固定色，或依 LinesData.types 分類（value 對應 types 的代碼），dash 畫虛線 */
+  color: string | { title?: Text; classes: { value: number; color: string; label: Text; dash?: boolean }[] };
+}
+
+/** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */
+export type PointRecord = Record<string, number | string | null>;
+
+/**
+ * 一般點圖層的資料檔（pipeline/common.py 的 points_file()）：欄位分開存（columnar）。
+ * - 數值欄位存量化後的整數，乘上 scale[欄位] 還原；沒有 scale 的欄位是字串（或 null）
+ * - delta 列出的欄位存跟前一個非 null 值的差（依檔案順序累加），排序過的欄位（年份、經度）差分後很小
+ */
+export interface PointsData {
+  fields: string[];
+  scale: Record<string, number>;
+  delta: string[];
+  /** 跟 fields 一一對應，每一欄的長度都是點的數量 */
+  columns: (number | string | null)[][];
+}
+
+/** 一般線圖層的資料檔：跟鐵路同一種差分編碼，types（選填）是每條線的分類代碼 */
+export interface LinesData {
+  quantum: number;
+  lines: number[][];
+  types?: number[];
 }
 
 /** 鐵路：每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度 */
@@ -165,7 +252,7 @@ export interface TopicDefinition {
   boxEstimate?: { indicator: string; label: Text; grid: string };
   /** 顯示在頁尾的資料說明 */
   note?: Text;
-  /** 疊加圖層（鐵路、機場），使用者可以在地圖上開關 */
+  /** 疊加圖層（鐵路、機場、地震、火山、板塊邊界…），使用者可以在地圖上開關 */
   overlays?: OverlayDef[];
   /** 純地圖頁：不載入任何統計資料，不顯示指標、時間軸與資料側欄 */
   pure?: boolean;
