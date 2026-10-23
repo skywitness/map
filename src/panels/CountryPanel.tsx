@@ -57,6 +57,8 @@ export function CountryPanel(props: CountryPanelProps) {
   const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
   const card = (ind: Indicator, i: number) =>
     shown(ind) && !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
+  // 主題寫明這個國家為什麼沒有值（例如台灣的外交裡的台灣）時，用它取代「無資料」
+  const noValue = topic.noValue?.[iso3];
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
@@ -141,7 +143,7 @@ export function CountryPanel(props: CountryPanelProps) {
             aria-pressed={ind.id === indicator.id}
           >
             <span className="stat-label">{label(ind)}</span>
-            <span className="stat-value">{value != null ? ind.format(value) : t.noData}</span>
+            <span className="stat-value">{value != null ? ind.format(value) : (noValue ?? t.noData)}</span>
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
@@ -155,7 +157,9 @@ export function CountryPanel(props: CountryPanelProps) {
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
-          {indicator.layer.kind === 'categorical' && activeData ? (
+          {noValue ? (
+            <p className="empty">{noValue}</p>
+          ) : indicator.layer.kind === 'categorical' && activeData ? (
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
           ) : option ? (
             <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />

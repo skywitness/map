@@ -141,6 +141,15 @@ function fitGlobeZoom(height: number): number {
 const MAX_ZOOM = 18;
 /** 面積小於這個值（km²）的國家在低縮放時另外畫一個點，才看得到也點得到 */
 const TINY_KM2 = 6000;
+/**
+ * 1:50m 國界沒有形狀的國家（DESIGN.md 第 8 節第 8 點），用首府的位置畫小國圓點，也當比例圓、弧線的位置；
+ * 否則吐瓦魯（台灣的邦交國）在地圖上完全看不到
+ */
+const SHAPELESS: [string, [number, number]][] = [
+  ['TUV', [179.19, -8.52]],
+  ['TKL', [-171.85, -9.2]],
+  ['GIB', [-5.35, 36.14]],
+];
 const EARTH_RADIUS_KM = 6371.0088;
 const NO_DATA = '#c9c7c0';
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
@@ -563,17 +572,26 @@ export function WorldMap(props: WorldMapProps) {
     }),
     [countries],
   );
-  const anchors = useMemo(() => new Map(countries.map((c) => [c.iso3, c.anchor])), [countries]);
+  // 地圖上沒有形狀的國家（SHAPELESS）只有圓點；國界還沒載入時不加，第一個畫面不會只剩這幾個點
+  const shapeless = useMemo(
+    () => (countries.length ? SHAPELESS.filter(([iso3]) => !countries.some((c) => c.iso3 === iso3)) : []),
+    [countries],
+  );
+  const anchors = useMemo(
+    () => new Map([...shapeless, ...countries.map((c) => [c.iso3, c.anchor] as [string, [number, number]])]),
+    [countries, shapeless],
+  );
   // 把地圖移到某國時要框住的範圍（主要國土加附近的島，不含遠方屬地）
   const countryBounds = useMemo(() => new Map(countries.map((c) => [c.iso3, focusBounds(c)])), [countries]);
   const tinyCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
       type: 'FeatureCollection',
-      features: countries
-        .filter((c) => geoArea(c.feature) * EARTH_RADIUS_KM ** 2 < TINY_KM2)
-        .map((c) => ({ type: 'Feature', properties: { iso3: c.iso3 }, geometry: { type: 'Point', coordinates: c.anchor } })),
+      features: [
+        ...countries.filter((c) => geoArea(c.feature) * EARTH_RADIUS_KM ** 2 < TINY_KM2).map((c) => [c.iso3, c.anchor] as const),
+        ...shapeless,
+      ].map(([iso3, anchor]) => ({ type: 'Feature', properties: { iso3 }, geometry: { type: 'Point', coordinates: anchor } })),
     }),
-    [countries],
+    [countries, shapeless],
   );
   const tinyColumnCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
@@ -856,7 +874,12 @@ export function WorldMap(props: WorldMapProps) {
       map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { fill, on, h });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && color !== null });
     }
-  }, [revision, countries, values, colorScale, categories, indicator.layer.kind]);
+    for (const [iso3] of shapeless) {
+      const v = values.get(iso3);
+      const color = v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { fill: color ?? NO_DATA, on: on && color !== null });
+    }
+  }, [revision, countries, shapeless, values, colorScale, categories, indicator.layer.kind]);
 
   // 類別圖：強調圖例上的某一類，其他國家淡化
   useEffect(() => {
@@ -868,7 +891,12 @@ export function WorldMap(props: WorldMapProps) {
       map.setFeatureState({ source: 'countries', id: c.iso3 }, { dim });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { dim });
     }
-  }, [revision, countries, values, categories, highlightCategory]);
+    for (const [iso3] of shapeless) {
+      const v = values.get(iso3);
+      const dim = categories !== null && highlightCategory !== null && (v === undefined || categories.index(v) !== highlightCategory);
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { dim });
+    }
+  }, [revision, countries, shapeless, values, categories, highlightCategory]);
 
   // 1 km 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
   // 換期時只換圖磚網址；切換底圖後新樣式沒有這個圖層，revision 變了會重新加上

@@ -294,6 +294,11 @@ export interface TopicDefinition {
   terrain?: boolean;
   /** 資料不隨時間變化（例如海拔）：不顯示時間軸，tooltip、側欄、標題也不寫年份 */
   timeless?: boolean;
+  /**
+   * 某些國家沒有值的原因，取代 tooltip 與側欄的「無資料」（key 是 ISO alpha-3）：
+   * 例如台灣的外交主題裡台灣是觀點、中國大陸與香港由陸委會主管，寫「無資料」會誤導
+   */
+  noValue?: Record<string, Text>;
 }
 
 /** 依目前語言解析過的主題與指標：所有 Text 都換成字串 */

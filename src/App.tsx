@@ -309,7 +309,7 @@ export function App() {
     const valueYear = valueYears.get(iso3);
     return (
       <>
-        <div className="tt-value">{v !== undefined ? indicator.format(v) : t.noData}</div>
+        <div className="tt-value">{v !== undefined ? indicator.format(v) : (topic.noValue?.[iso3] ?? t.noData)}</div>
         <div className="tt-label">
           {countryName(iso3, countries)}
           {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
