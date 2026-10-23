@@ -9,6 +9,10 @@ interface RankingTableProps {
   indicator: Indicator;
   title: string;
   values: Map<string, number>;
+  /** 用之前最近一年的值的國家，實際的資料年份（年份零散的指標，見 stats.ts 的 latestAt） */
+  valueYears?: Map<string, number>;
+  /** 指標檔的 latestWithin，有的話在表格下方說明 */
+  latestWithin?: number;
   world: number | null;
   year: number;
   countries: CountryTable | null;
@@ -18,7 +22,7 @@ interface RankingTableProps {
 
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
 export function RankingTable(props: RankingTableProps) {
-  const { indicator, title, values, world, year, countries, selected, onSelect } = props;
+  const { indicator, title, values, valueYears, latestWithin, world, year, countries, selected, onSelect } = props;
   const t = useT();
   const lang = useLang();
   // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0
@@ -29,6 +33,8 @@ export function RankingTable(props: RankingTableProps) {
   const max = rows[0]?.[1] ?? 0;
   const showBars = rows.length > 0 && rows[rows.length - 1][1] >= 0;
   const showShare = indicator.shareOfWorld && world != null && world > 0;
+  // 年份零散的指標：資料年份另成一欄（寫在數值旁會擠短那一列的長條，跟其他列比不準）
+  const showYears = latestWithin !== undefined;
 
   // 從搜尋選到的國家可能在表格很下面，捲過去
   const tableRef = useRef<HTMLTableElement>(null);
@@ -48,6 +54,7 @@ export function RankingTable(props: RankingTableProps) {
               {title}
             </th>
             {showShare && <th scope="col" className="num">{t.shareCol}</th>}
+            {showYears && <th scope="col" className="num">{t.dataYearCol}</th>}
           </tr>
         </thead>
         <tbody>
@@ -72,10 +79,12 @@ export function RankingTable(props: RankingTableProps) {
                 </div>
               </td>
               {showShare && <td className="num">{formatPercent((value / world!) * 100, 2)}</td>}
+              {showYears && <td className="num value-year">{valueYears?.get(iso3) ?? ''}</td>}
             </tr>
           ))}
         </tbody>
       </table>
+      {latestWithin !== undefined && <p className="note">{t.latestWithinHint(latestWithin)}</p>}
     </div>
   );
 }

@@ -127,6 +127,18 @@ def year_span(series: dict[str, dict[int, float]], min_share: float = 0.3) -> li
     return list(range(min(enough), max(enough) + 1))
 
 
+def latest_year_span(series: dict[str, dict[int, float]], within: int, min_share: float = 0.3) -> list[int]:
+    """稀疏的指標（普查、隔幾年才調查一次）用：前端會用每個國家 within 年內最近一年的值（指標檔的 latestWithin），
+    所以依「within 年內有資料的國家數」決定涵蓋的年份，頭尾國家數不到最多那年 min_share 倍的年份不收。"""
+    observed = {y for s in series.values() for y in s}
+    counts = {
+        y: sum(1 for s in series.values() if any(y - within <= k <= y for k in s))
+        for y in range(min(observed), max(observed) + 1)
+    }
+    enough = [y for y, n in counts.items() if n >= max(counts.values()) * min_share]
+    return list(range(min(enough), max(enough) + 1))
+
+
 def to_series(by_year: dict[int, float], years: list[int], digits: int | None = None) -> list[float | None]:
     """{year: value} → 對齊 years 的陣列，缺值為 None。"""
     out: list[float | None] = []

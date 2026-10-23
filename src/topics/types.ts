@@ -191,4 +191,10 @@ export interface IndicatorData {
   notes?: Record<string, string>;
   /** notes 的英文版 */
   notesEn?: Record<string, string>;
+  /**
+   * 普查、調查年份零散的指標：某年沒有資料時，改用該國 latestWithin 年內最近一年的值，
+   * 地圖、tooltip、排名表、側欄都會標出實際的資料年份（見 panels/stats.ts 的 latestAt）。
+   * values 本身只放實際有的年份，歷年折線圖與「所有年份」的 CSV 不會出現補上的值。
+   */
+  latestWithin?: number;
 }

@@ -1385,6 +1385,10 @@ kbd {
   gap: 12px;
 }
 
+.ranking .value-year {
+  color: var(--ink-muted);
+}
+
 .value-track {
   flex: 1;
   height: 6px;

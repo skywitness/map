@@ -14,7 +14,7 @@ import {
   type Topic,
 } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
-import { rankOf, valuesAt } from './stats';
+import { latestAt, rankOf } from './stats';
 
 interface CountryPanelProps {
   topic: Topic;
@@ -57,8 +57,9 @@ export function CountryPanel(props: CountryPanelProps) {
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
     const yearIndex = nearestYearIndex(data.years, year);
-    const shownYear = data.years[yearIndex];
-    const values = valuesAt(data, yearIndex);
+    // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
+    const { values, years: valueYears } = latestAt(data, yearIndex);
+    const shownYear = valueYears.get(iso3) ?? data.years[yearIndex];
     const value = values.get(iso3) ?? null;
     const world = data.aggregates?.WLD?.[yearIndex] ?? null;
     // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義
@@ -88,6 +89,8 @@ export function CountryPanel(props: CountryPanelProps) {
       year,
       indicator,
       tokens,
+      // 普查、調查隔幾年一次：畫出每個資料點，點和點之間連起來
+      sparse: activeData.latestWithin !== undefined,
     });
   }, [activeData, iso3, name, indicator, year, tokens, t]);
 

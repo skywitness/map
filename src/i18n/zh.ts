@@ -42,6 +42,9 @@ export const zh = {
   mapAria: (year: number, title: string, projected: boolean) =>
     `世界地圖：${year} 年各國${title}${projected ? '（推估值）' : ''}`,
   tooltipProjected: ' 推估值',
+  /** 年份零散的指標用之前最近一年的值時，標出實際的資料年份 */
+  dataYear: (year: number) => `${year} 年的資料`,
+  latestWithinHint: (within: number) => `沒有當年資料的國家，顯示 ${within} 年內最近一年的值，並標出資料年份。`,
   /** 流向圖：「台灣的出口」、tooltip 的「占 12%」 */
   flowTitle: (origin: string, title: string) => `${origin}的${title}`,
   flowShare: (share: string) => `占 ${share}`,
@@ -135,6 +138,7 @@ export const zh = {
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',
+  dataYearCol: '資料年份',
 
   // 圖表
   chartTotal: '合計',

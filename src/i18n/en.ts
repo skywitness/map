@@ -41,6 +41,9 @@ export const en: Messages = {
   worldMapAria: 'World map',
   mapAria: (year, title, projected) => `World map: ${title} by country, ${year}${projected ? ' (projection)' : ''}`,
   tooltipProjected: ' · projection',
+  dataYear: (year) => `${year} data`,
+  latestWithinHint: (within) =>
+    `Countries without data for this year show their latest value from the previous ${within} years, with the data year.`,
   flowTitle: (origin, title) => `${origin}: ${title}`,
   flowShare: (share) => `${share} of total`,
   largeAirport: 'Large airport',
@@ -127,6 +130,7 @@ export const en: Messages = {
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',
+  dataYearCol: 'Data year',
 
   chartTotal: 'Total',
 };
