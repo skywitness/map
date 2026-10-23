@@ -61,12 +61,12 @@ export function CountryPanel(props: CountryPanelProps) {
     const values = valuesAt(data, yearIndex);
     const value = values.get(iso3) ?? null;
     const world = data.aggregates?.WLD?.[yearIndex] ?? null;
-    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義
+    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義；類別沒有大小，也不排名
     const countZero = ind.layer.kind === 'bubble' && value === 0;
     return {
       ind,
       value,
-      rank: countZero ? null : rankOf(values, iso3),
+      rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3),
       total: values.size,
       share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
       shownYear,
@@ -77,7 +77,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const option = useMemo(() => {
     if (!activeData) return null;
     const own = activeData.values[iso3];
-    if (!own || activeData.years.length < 2) return null;
+    if (!own || activeData.years.length < 2 || indicator.layer.kind === 'categorical') return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
     if (indicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
@@ -134,7 +134,8 @@ export function CountryPanel(props: CountryPanelProps) {
         ))}
       </div>
 
-      {activeData?.years.length !== 1 && (
+      {/* 類別的代碼畫成折線沒有意義；單一年份的資料也沒有變化可畫 */}
+      {activeData?.years.length !== 1 && indicator.layer.kind !== 'categorical' && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
           {option ? (

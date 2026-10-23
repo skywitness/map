@@ -29,6 +29,13 @@ export type LayerSpec =
   /** 不依數值上色，只畫疊加圖層（例如鐵路與機場）；資料仍用於 tooltip 與排名 */
   | { kind: 'none' }
   /**
+   * 類別圖：每個國家屬於一類（資料檔的數值是類別代碼），每一類一個顏色，圖例列出各類，沒有數值門檻。
+   * 顏色不寫在主題裡：一般類別依序取 MAP_TOKENS.categorical；ordinal 為 true（類別有強弱之分，例如官方地位）
+   * 時改用循序色，第一類最深。不在 categories 裡的代碼歸到 other（有給的話），否則當成無資料。
+   * tooltip、排名表、側欄照常用 format(代碼) 顯示類別名稱。
+   */
+  | { kind: 'categorical'; categories: CategoryDef[]; other?: Text; ordinal?: boolean }
+  /**
    * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
    * 指標檔本身放各國的總額，給 tooltip、排名表與側欄用。
@@ -36,6 +43,12 @@ export type LayerSpec =
   | { kind: 'flow'; file: string; direction: FlowDirection };
 
 export type FlowDirection = 'export' | 'import';
+
+export interface CategoryDef {
+  /** 資料檔裡的代碼 */
+  value: number;
+  label: Text;
+}
 
 /**
  * 流向檔：pipeline/topics/trade.py 輸出，一個商品、一年一個檔。
