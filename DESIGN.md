@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、UNESCO DataHub…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -435,6 +435,7 @@ pipeline/
 | 海底電纜 | 海底電纜地圖（預設，不上色，畫電纜路線與登陸點，依 RFS 年份累積；營運中洋紅實線、規劃中琥珀虛線）、登陸的電纜數（比例圓）、國際連線數（面量圖）、登陸點數（比例圓） | 在這國登陸的電纜（名稱、啟用年份、長度、登陸點、擁有者；營運中與規劃中分開列）、直接連到的國家（長條，依電纜數） | TeleGeography Submarine Cable Map（CC BY-NC-SA 3.0）；台灣用中央社報導的中華電信、數位發展部數字交叉比對 | 1989–2030（2027 起加上規劃中的電纜，是推估）；2026-10 的快照 |
 | 交通安全 | 道路交通死亡率（每 10 萬人，預設）、道路交通死亡人數（比例圓）、行人死亡占比、機車騎士死亡占比、每萬輛機動車死亡數 | 死者是哪一類道路使用者（機車、行人、自行車、汽車、其他；台灣另有不分車種的乘客） | WHO GHO（RS_198 估計死亡率；RS_246、RS_194）、WHO《Global status report on road safety 2023》各國指標、UN WPP 2024；台灣用交通部統計查詢網的 30 日內死亡人數與機動車輛登記數 | 死亡率與人數 2000–2023（台灣 2008 年起，附註寫到 2025 年）；占比 2016–2021、每萬輛 2016–2023（各國用 5 年內最近一次調查） |
 | 旅行實用 | 跟台灣的時差（標準時間，發散色：比台灣慢橘、快青綠，預設）、行車方向（類別圖）、插頭類型（類別圖，7 類）、電壓與頻率（類別圖，4 類） | 跟台灣比：時差與夏令時間、跨時區的範圍、行車方向、插頭能不能直接插、電壓要不要變壓器 | IANA 時區資料庫（tzdata 2026e）、Natural Earth 首都、Wikidata（行車方向）、英文維基百科「Mains electricity by country」（CC BY-SA 4.0） | 不隨時間變化（2026 年的快照） |
+| 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
 
 ## 8. 資料陷阱（重要）
 
@@ -573,6 +574,7 @@ pipeline/
     - 交通部統計查詢網：交通部的開放資料（data.gov.tw）採政府資料開放授權條款第 1 版；統計查詢網是交通部網站的一部分，適用交通部的「政府網站資料開放宣告」（無償、非專屬、註明出處即可利用），跟電動車主題用的交通部新聞稿一樣。
     - IANA 時區資料庫（tz database）是公有領域；PyPI 的 `tzdata` 套件（Apache 2.0）只是包裝，沒有轉載它的程式。
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
+    - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1648,6 +1650,16 @@ pipeline/
       - 國名用 `{{flag|…}}` 的名稱對 ISO（`MAINS_NAMES`、`NAME_ALIASES`、pycountry），對不上的印出來。表格沒有的：南蘇丹、馬紹爾群島、教廷、土克凱可、北馬利安納、瓦利斯和富圖那等，沒有值。
     - **側欄**（`details.json`）：跟台灣比的時差（標準時間與夏令時間）、跨時區的範圍、行車方向、插頭字母與能不能直接插（全部是 A、B：可以；有 A 或 B：可能可以、最好帶轉接頭；沒有：要轉接頭）、電壓與頻率（100–127 V：一般可以直接用；220–240 V：看標示，100–240 V 的充電器可以直接用，只有 110 V 的要變壓器；頻率不是 60 Hz 時提醒馬達、計時的電器）。點台灣時列出台灣自己的。這些是一般性的提醒，頁尾請使用者出發前再查官方資訊。
     - **顏色**：時差用發散色（比台灣慢橘、快青綠，同時區是中性灰）；行車方向、插頭、電壓是一般類別色（`MAP_TOKENS.categorical`）。
+
+58. **世界遺產**（`pipeline/topics/world_heritage.py`、`pipeline/sources/unesco_whc.py`、`src/topics/panels/WorldHeritagePanel.tsx`）：
+    - **來源**：UNESCO DataHub（data.unesco.org，Opendatasoft）的「World Heritage List」資料集 `whc001`，用匯出 API（`exports/json?select=…`）只取事實性的欄位：編號 `id_no`、英文名稱、登錄年份、類型（Cultural／Natural／Mixed）、是否瀕危與列入的年份（`danger_list` 是「Y 2023」這種寫法）、締約國的 ISO alpha-2（`iso_codes`，跨國遺產有好幾個）、座標。不取說明文字與照片（各有著作權）。整個資料集匯出約 12 MB，`select` 之後約 0.5 MB。2026-10 的版本有 1,273 處（文化 991、自然 240、複合 42、瀕危 58），含 2026 年世界遺產委員會新登錄的 25 處；沒有已經除名的遺產（德勒斯登易北河谷等）。
+    - **世界遺產中心的網站與 DataHub 都會擋程式常用的 User-Agent**（whc.unesco.org 回 403），`unesco_whc.py` 用一般瀏覽器的 User-Agent 自己下載。
+    - **國家**：跨國遺產照 UNESCO 的算法，每個締約國都算一次（義大利 62、中國 61、法國 56、德國 55、西班牙 50），所以各國加起來比世界的總數多；世界的值是不重複的遺產數。「耶路撒冷舊城及其城牆」（編號 148）由約旦提名，名錄上沒有締約國，只算進世界的總數，地圖上照樣有點。屬地的遺產算在所屬的國家（UNESCO 的寫法），屬地本身沒有值。
+    - **締約國**：世界遺產中心的締約國清單（https://whc.unesco.org/en/statesparties/ ，196 國）只拿 ISO alpha-2 代碼，沒有遺產的締約國是 0，不是締約國的是無資料；有遺產的國家都要在清單裡，不在就報錯。**台灣不是《世界遺產公約》的締約國**，不能提名，用主題的 `noValue` 寫原因；側欄寫文化部（前身文建會）2003、2009、2010 年遴選的「臺灣世界遺產潛力點」目前 18 處（中央社 2024-10-04 引述行政院長的說法），列出幾處例子，不列完整名單（文化資產局的開放資料集已下架）。
+    - **時間**：各國的遺產數依登錄年份累計（1978 年第一批 12 處起）；點也依登錄年份（`timeField: 'year'`、`overlayTime: 'cumulative'`）。瀕危名錄只有「目前在名錄上」與列入的年份，沒有移出的紀錄（例如曾經瀕危、後來移出的），所以瀕危只做目前的快照（年份只有 2026）。
+    - **中文名稱**：DataHub 的中文名稱是簡體（UNESCO 的官方中文），所以改用 Wikidata：P757（世界遺產編號）是純數字的項目對到 `id_no`（同一個編號有好幾個項目時取標了 P1435 = 世界遺產、QID 小的），名稱用 `sources/nobel.py` 的 `_pick_zh`（zh-tw、zh-hant、zh-hk，沒有時用伺服器轉成台灣用字的 zh-tw）。2026-10 有 942 處有中文名稱，331 處用英文；Wikidata 的 zh-tw 名稱偶爾是簡體（「不来梅市政厅」），`EXTRA_S2T` 補上實際出現的字。
+    - **點**（`sites.json`，約 120 KB）：經緯度、登錄年份（差分）、`cls`（1 文化、2 自然、3 複合、4 瀕危，瀕危優先，決定顏色）、`type`、`danger`（列入瀕危的年份）、`iso3`（第一個締約國，滑過標出、點一下選取）、`more`（跨國遺產的其他締約國）、編號、英文名稱、中文名稱。2 處沒有座標（DataHub 沒有）。側欄讀同一個檔，依 `iso3` 與 `more` 列出這國的遺產，跟著時間軸與子項目篩選。
+    - **顏色**：文化 `hues.yellow` #eda100、自然 `categorical[3]` #4d9221、複合 `categorical[6]` #7b3294、瀕危 `hues.red` #e34948，都有白框；比例圓是半透明的紫色 #6250d6，跟複合的紫只靠形狀與大小分開（點小、圓大）。
 
 ## 9. 之後可以做的
 

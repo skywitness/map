@@ -53,6 +53,7 @@ import { wages } from './wages';
 import { wealth } from './wealth';
 import type { TopicDefinition } from './types';
 import { waterForest } from './water-forest';
+import { worldHeritage } from './world-heritage';
 
 export interface TopicGroup {
   id: string;
@@ -70,7 +71,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, transport, roadSafety] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, travel] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, worldHeritage, travel] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */

@@ -74,6 +74,7 @@ STEPS = {
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
     "travel": "topics.travel",  # IANA 時區（tzdata 套件）、Wikidata、維基百科
+    "world-heritage": "topics.world_heritage",  # UNESCO DataHub、Wikidata 的中文名稱（約 30 次查詢）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 
