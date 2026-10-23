@@ -1,4 +1,13 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { tr, useLang, useT } from '../i18n';
 import { TOPIC_GROUPS, type TopicGroup } from '../topics';
@@ -12,10 +21,24 @@ interface TopicNavProps {
 
 /** 選單項目下方列出的指標數 */
 const SUMMARY_COUNT = 3;
+/** 一欄最多幾個主題，超過就分欄（最多 3 欄），選單才不會長過螢幕 */
+const ITEMS_PER_COLUMN = 7;
+const MAX_COLUMNS = 3;
 /** 選單與按鈕、畫面邊緣的距離 */
 const GAP = 6;
 
 type Focus = 'current' | 'first' | 'last' | 'none';
+
+/** 主題多的分類分成幾欄；由上往下排完一欄再排下一欄，↑↓ 的順序跟畫面一致 */
+function menuStyle(count: number, position: { left: number; top: number }): CSSProperties {
+  const columns = Math.min(MAX_COLUMNS, Math.ceil(count / ITEMS_PER_COLUMN));
+  return {
+    left: position.left,
+    top: position.top,
+    '--menu-columns': columns,
+    '--menu-rows': Math.ceil(count / columns),
+  } as CSSProperties;
+}
 
 /** 只捲動主題列本身（scrollIntoView 可能連整頁一起捲）；右邊留出淡出的寬度 */
 function reveal(nav: HTMLElement, button: HTMLElement): void {
@@ -231,7 +254,7 @@ export function TopicNav({ current, onSelect }: TopicNavProps) {
             id={menuId}
             role="menu"
             aria-label={tr(openGroup.label, lang)}
-            style={{ left: position.left, top: position.top }}
+            style={menuStyle(openGroup.topics.length, position)}
             onKeyDown={onMenuKeyDown}
           >
             {openGroup.topics.map((topic, i) => (
