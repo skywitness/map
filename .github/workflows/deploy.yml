@@ -53,6 +53,8 @@ jobs:
         if: steps.tiles.outputs.cache-hit != 'true'
         # JRC 的伺服器連不上時不擋部署：用上一版的圖磚（連上一版都沒有時，網站上的網格會顯示載入失敗）
         continue-on-error: true
+        # 下載卡住時不要拖住整個部署（正常約 15 分鐘）
+        timeout-minutes: 60
         env:
           GHSL_PRUNE: '1' # 讀完一期就刪掉下載的原始檔，磁碟才夠
         run: |
