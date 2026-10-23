@@ -1446,6 +1446,11 @@ kbd {
   color: var(--ink-muted);
 }
 
+/* 資料年份欄：標題可以換行，窄螢幕時少一點留白，表格才不會超出畫面 */
+.ranking th.year-col {
+  white-space: normal;
+}
+
 /* 類別圖：色塊跟類別名稱靠近一點 */
 .value-wrap:has(> .legend-swatch) {
   gap: 6px;
@@ -1642,6 +1647,17 @@ kbd {
   .ranking {
     position: static;
     max-height: 70vh;
+  }
+
+  /* 窄螢幕：欄名可以換行（英文的指標名稱常比數值寬很多），左右留白減半，表格才不會超出畫面 */
+  .ranking th.num {
+    white-space: normal;
+  }
+
+  .ranking th,
+  .ranking td {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .stage-main:has(.ranking) {

@@ -112,7 +112,7 @@ pipeline/
 - `notesEn`（選填）：`notes` 的英文版，英文介面用；沒有的話英文介面不顯示附註。
 - `latestWithin`（選填）：普查、調查年份零散的指標（例如住宅主題）。某年沒有資料的國家，改用它 `latestWithin` 年內最近一年的值：
   - 地圖、3D、排名表、側欄數值卡片、單一年份的 CSV 都用 `panels/stats.ts` 的 `latestAt()` 取值，所以結果一致。
-  - 實際的資料年份要標出來：tooltip 寫「2023 年的資料」，排名表多一欄「資料年份」（寫在數值旁會擠短那一列的長條），表格下方說明規則；側欄卡片寫（2023 年）；CSV 多一欄「資料年份」。
+  - 實際的資料年份要標出來：tooltip 寫「2023 年的資料」；有國家用之前的年份時，排名表多一欄「資料年份」（寫在數值旁會擠短那一列的長條），表格下方說明規則；側欄卡片寫（2023 年）；CSV 多一欄「資料年份」。
   - `values` 只放實際有的年份，補上的值不會出現在歷年折線圖與「所有年份」的 CSV。折線圖畫出每個資料點，缺值的年份直接連過去（`timeSeriesOption` 的 `sparse`）。
   - 年份範圍用 `common.latest_year_span()`：依「`latestWithin` 年內有資料的國家數」截頭尾，不是依當年實際有資料的國家數。
 
@@ -685,6 +685,8 @@ pipeline/
 - `prefers-reduced-motion` 時不播放高度動畫。
 - `index.html` 設了 `viewport-fit=cover`，所以頁面與抽屜都用 `env(safe-area-inset-*)` 讓開瀏海與底部的橫條。
 - 收合與全開的高度寫在 CSS（含安全區域），JS 讀抽屜算好的 `min-height`、`max-height` 來決定吸附位置，兩邊不必各寫一份數字。
+
+**窄螢幕的排名表**（900px 以下）：欄名可以換行、左右留白減半。英文的指標名稱常比數值寬很多（「Tertiary enrolment (gross)」、「Average household size」），欄名不換行時 375px 寬的手機會超出畫面。
 
 ## 12. 英文版介面（i18n）
 

@@ -49,8 +49,8 @@ export function RankingTable(props: RankingTableProps) {
   const max = rows[0]?.[1] ?? 0;
   const showBars = !categories && rows.length > 0 && rows[rows.length - 1][1] >= 0;
   const showShare = indicator.shareOfWorld && world != null && world > 0;
-  // 年份零散的指標：資料年份另成一欄（寫在數值旁會擠短那一列的長條，跟其他列比不準）
-  const showYears = latestWithin !== undefined;
+  // 年份零散的指標有國家用之前的年份時，資料年份另成一欄（寫在數值旁會擠短那一列的長條，跟其他列比不準）
+  const showYears = latestWithin !== undefined && (valueYears?.size ?? 0) > 0;
 
   // 從搜尋選到的國家可能在表格很下面，捲過去
   const tableRef = useRef<HTMLTableElement>(null);
@@ -70,7 +70,7 @@ export function RankingTable(props: RankingTableProps) {
               {title}
             </th>
             {showShare && <th scope="col" className="num">{t.shareCol}</th>}
-            {showYears && <th scope="col" className="num">{t.dataYearCol}</th>}
+            {showYears && <th scope="col" className="num year-col">{t.dataYearCol}</th>}
           </tr>
         </thead>
         <tbody>
@@ -96,12 +96,12 @@ export function RankingTable(props: RankingTableProps) {
                 </div>
               </td>
               {showShare && <td className="num">{formatPercent((value / world!) * 100, 2)}</td>}
-              {showYears && <td className="num value-year">{valueYears?.get(iso3) ?? ''}</td>}
+              {showYears && <td className="num year-col value-year">{valueYears?.get(iso3) ?? ''}</td>}
             </tr>
           ))}
         </tbody>
       </table>
-      {latestWithin !== undefined && <p className="note">{t.latestWithinHint(latestWithin)}</p>}
+      {showYears && <p className="note">{t.latestWithinHint(latestWithin)}</p>}
     </div>
   );
 }
