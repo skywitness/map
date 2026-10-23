@@ -2,11 +2,12 @@
 
 用世界地圖瀏覽各國資料。除了純地圖頁，目前有以下資料主題，在頂列依分類放在下拉選單裡：
 
-- **人口與社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出、醫師數）、教育（受教育年數、高等教育在學率、教育支出、識字率）
+- **社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出與自付比例、醫師、護理人員與病床數）、疾病（各國首要死因、慢性病過早死亡、癌症死亡率、糖尿病、肥胖、愛滋、結核病、瘧疾、死因結構）、教育（受教育年數、高等教育在學率、教育支出、識字率）、飲食（熱量、蛋白質、脂肪、動物性食物占熱量、各類食物的人均供給量、營養不足人口比例）
 - **經濟**：人均收入、產業結構、工業、農業
 - **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）
-- **能源與氣候**：發電量、氣候（二氧化碳排放）
+- **能源**：發電量、氣候（二氧化碳排放）
 - **科技與交通**：AI、數位（網路、行動電話、固網寬頻）、交通
+- **地理**：語言（各國的主要官方語言、30 種語言的使用比例、使用人數與官方地位、各國有幾種語言）
 
 地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口；「人口密度」可以從國家平均切到「1 km 網格」，看每個約 1 km 的格子住多少人（JRC GHS-POP，1975–2030 每 5 年一期，跟著時間軸換期）。
 
@@ -75,15 +76,15 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`population-density-tiles`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`education`、`tourism`、`trade`、`compact`。
+可用的步驟：`geo`、`population`、`population-grid`、`population-density-tiles`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`disease`、`diet`、`education`、`tourism`、`trade`、`language`、`compact`。
 
-`population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
+`population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。`disease` 第一次會向 WHO 的 API 一年一年查 2000–2023 年的死因資料，約 15 分鐘。
 
 `population-density-tiles` 產生人口密度的 1 km 網格圖磚（`public/tiles/`，約 585 MB、6 萬個檔）。圖磚不進版本控制，部署時由 GitHub Actions 產生；本機要看網格才需要跑，第一次會下載 12 期 GHS-POP（共 5.8 GB），約 25 分鐘。沒跑的話，切到「1 km 網格」會顯示載入失敗、改畫國家平均。做法與大小見 DESIGN.md 第 14 節。
 
 指標檔輸出時數值會壓縮（格式見 DESIGN.md 第 3 節）。`compact` 把還沒壓縮的舊指標檔一次轉換，不需要重新下載，重複執行沒有影響。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.4 GB（主要是 FAOSTAT 的貿易檔與雙邊貿易矩陣、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。`population-density-tiles` 另外要下載其他 11 期 GHS-POP（約 5.3 GB），再多約 25 分鐘。
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.5 GB（主要是 FAOSTAT 的貿易檔、雙邊貿易矩陣與糧食平衡表、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。`population-density-tiles` 另外要下載其他 11 期 GHS-POP（約 5.3 GB），再多約 25 分鐘。
 
 ## 建置
 
@@ -108,7 +109,7 @@ npm run preview
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education and tourism, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, disease and causes of death, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment) and languages, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 
@@ -119,6 +120,6 @@ Live site: https://skywitness.github.io/map/?lang=en
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
 - **1 km grid**: population density can switch from country averages to a grid of cells about 1 km across (JRC GHS-POP, every 5 years from 1975 to 2030, following the time slider). The grid tiles are not in the repository; the deploy workflow builds and caches them.
 
-Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
+Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, WHO (Global Health Estimates, Global Health Observatory), Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Unicode CLDR, Glottolog, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
 
 Development: `npm install`, then `npm run dev`. Data is pre-built in `public/data/`; run `npm run data` to rebuild it (see the Chinese sections above). Design notes, including how to add a topic with bilingual text, are in [DESIGN.md](DESIGN.md) (in Chinese).

@@ -81,7 +81,7 @@ button {
 .topic {
   border: 0;
   background: none;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
   color: var(--ink-secondary);
   cursor: pointer;
@@ -999,6 +999,85 @@ kbd {
   color: var(--ink-secondary);
 }
 
+/* 類別圖：每一類一列（色塊、名稱、國家數），超過 5 類排成兩欄（Legend.tsx 的 CategoricalLegend） */
+.legend-categories {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--rows, 5), auto);
+  column-gap: 14px;
+  pointer-events: auto;
+}
+
+.legend-categories:not(.is-two-columns) {
+  grid-auto-flow: row;
+  grid-template-rows: none;
+}
+
+.legend-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.legend-category.is-faded {
+  opacity: 0.4;
+}
+
+.legend-category[aria-pressed='true'] .legend-category-label {
+  font-weight: 600;
+}
+
+.legend-swatch {
+  flex: none;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  /* 淺色（黃、「其他」）在淺色卡片上也看得到邊 */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.legend-count {
+  margin-left: auto;
+  padding-left: 8px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 側欄：類別圖的歷年變化（CountryPanel 的 CategoryHistory） */
+.category-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.category-history li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-period {
+  min-width: 96px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 .swatch-nodata {
   width: 16px;
   height: 10px;
@@ -1392,6 +1471,11 @@ kbd {
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* 類別圖：色塊跟類別名稱靠近一點 */
+.value-wrap:has(> .legend-swatch) {
+  gap: 6px;
 }
 
 .value-track {

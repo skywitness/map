@@ -36,6 +36,7 @@ import { RankingTable } from './panels/RankingTable';
 import { maxAcrossYears, valuesAt } from './panels/stats';
 import { getTopic } from './topics';
 import {
+  forItem,
   indicatorPath,
   usesDimension,
   type AirportsData,
@@ -103,12 +104,15 @@ export function App() {
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
   const view = pure ? 'map' : state.view;
-  const indicator =
-    topic.indicators.find((i) => i.id === state.indicator) ??
-    topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
   const item = topic.dimension
     ? (topic.dimension.options.find((o) => o.id === state.item)?.id ?? topic.dimension.defaultOption)
     : null;
+  // 子項目有自己的分級門檻時（itemScales），換成那一組
+  const indicator = forItem(
+    topic.indicators.find((i) => i.id === state.indicator) ??
+      topic.indicators.find((i) => i.id === topic.defaultIndicator)!,
+    item,
+  );
 
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
@@ -221,7 +225,12 @@ export function App() {
 
   const downloadCsv = (single: boolean) => {
     if (!data) return;
-    const text = indicatorCsv(data, { unit: indicator.unit, countries, year: single ? year : undefined });
+    const text = indicatorCsv(data, {
+      unit: indicator.unit,
+      countries,
+      year: single ? year : undefined,
+      label: indicator.layer.kind === 'categorical' ? indicator.format : undefined,
+    });
     const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
     downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}_${range}.csv`);
   };

@@ -3,7 +3,7 @@
  * （低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節），預設地球儀。
  *
  * 資料圖層插在底圖的道路、國界之上、文字標籤之下，地名永遠看得到：
- * - 面量圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
+ * - 面量圖、類別圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * - 3D 模式（fill-extrusion）：面量圖把國家依色階分級拉高，比例圓改成高度與數值成正比的柱子
  * - 1 km 網格（densityGrid.ts）：點陣圖磚取代國家的顏色，國界、hover、點選照舊用國家的形狀
@@ -38,6 +38,8 @@ import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapIma
 import {
   BubbleLegend,
   bubbleLegendModel,
+  CategoricalLegend,
+  categoricalLegendModel,
   ChoroplethLegend,
   choroplethLegendModel,
   ColumnLegend,
@@ -46,6 +48,7 @@ import {
   flowLegendModel,
 } from './Legend';
 import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
+import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
 import { GRID_PROTOCOL, gridText, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
@@ -185,6 +188,8 @@ function classHeight(thresholds: number[], v: number): number {
 const DATA_FILL_OPACITY = 0.82;
 /** 流向圖夥伴國的淡底色 */
 const FLOW_TINT_OPACITY = 0.6;
+/** 類別圖強調某一類時，其他國家（feature-state 'dim'）的不透明度倍數 */
+const DIMMED = 0.18;
 /** 1 km 網格的 source 與圖層 id */
 const GRID_LAYER = 'density-grid';
 /** 網格放大後稍微透明，看得到底圖的街道與地形，對照格子在哪裡；縮小時顏色要跟圖例一樣 */
@@ -197,7 +202,15 @@ const GRID_OPACITY: ExpressionSpecification = ['interpolate', ['linear'], ['zoom
 function fillOpacity(on: number, tint = 0): ExpressionSpecification {
   const state: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
   const tinted: ExpressionSpecification = ['boolean', ['feature-state', 'tint'], false];
-  const at = (k: number): ExpressionSpecification => ['case', state, on * k, tinted, tint * k, 0];
+  const dimmed: ExpressionSpecification = ['boolean', ['feature-state', 'dim'], false];
+  const at = (k: number): ExpressionSpecification => [
+    'case',
+    state,
+    ['case', dimmed, on * k * DIMMED, on * k],
+    tinted,
+    tint * k,
+    0,
+  ];
   return ['interpolate', ['linear'], ['zoom'], 1, at(1), 5, at(0.8), 9, at(0.35)];
 }
 
@@ -211,6 +224,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
   const ink = dark ? '#ffffff' : t.ink;
   const hovered: ExpressionSpecification = ['boolean', ['feature-state', 'hover'], false];
   const tinyOn: ExpressionSpecification = ['boolean', ['feature-state', 'on'], false];
+  const tinyOpacity: ExpressionSpecification = ['case', tinyOn, ['case', ['boolean', ['feature-state', 'dim'], false], DIMMED, 1], 0];
   const isOrigin: ExpressionSpecification = ['boolean', ['get', 'origin'], false];
   const highlight3d = (color: ExpressionSpecification | string): ExpressionSpecification => [
     'case',
@@ -284,8 +298,8 @@ function dataLayers(dark: boolean): LayerSpecification[] {
         'circle-color': ['coalesce', ['feature-state', 'fill'], NO_DATA],
         'circle-stroke-color': t.inkMuted,
         'circle-stroke-width': 0.75,
-        'circle-opacity': ['case', tinyOn, 1, 0],
-        'circle-stroke-opacity': ['case', tinyOn, 1, 0],
+        'circle-opacity': tinyOpacity,
+        'circle-stroke-opacity': tinyOpacity,
       },
     },
     {
@@ -482,6 +496,18 @@ export function WorldMap(props: WorldMapProps) {
     () => (indicator.layer.kind === 'choropleth' ? choroplethScale(indicator.layer.scale, MAP_TOKENS) : null),
     [indicator],
   );
+  const categories = useMemo(
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
+    [indicator],
+  );
+  // 類別圖：圖例滑過（preview）或點選（pinned）的類別，地圖上其他國家淡化；換指標時清掉
+  const [previewCategory, setPreviewCategory] = useState<number | null>(null);
+  const [pinnedCategory, setPinnedCategory] = useState<number | null>(null);
+  useEffect(() => {
+    setPreviewCategory(null);
+    setPinnedCategory(null);
+  }, [categories]);
+  const highlightCategory = previewCategory ?? pinnedCategory;
   const radius = useMemo(() => bubbleScale(bubbleMax, size?.width ?? 1000), [bubbleMax, size]);
 
   const countryCollection = useMemo<GeoJSON.FeatureCollection>(
@@ -707,11 +733,11 @@ export function WorldMap(props: WorldMapProps) {
     }
   }, [revision, lang]);
 
-  // 面量圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
+  // 面量圖、類別圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const own = indicator.layer.kind === 'choropleth';
+    const own = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical';
     for (const layer of map.getStyle().layers) {
       if ('source-layer' in layer && layer['source-layer'] === 'boundary' && BASEMAP_COUNTRY_BORDER.test(layer.id)) {
         map.setLayoutProperty(layer.id, 'visibility', own ? 'none' : 'visible');
@@ -728,22 +754,36 @@ export function WorldMap(props: WorldMapProps) {
     (map.getSource('tiny-columns') as GeoJSONSource).setData(tinyColumnCollection);
   }, [revision, countryCollection, tinyCollection, tinyColumnCollection]);
 
-  // 面量圖顏色（與 3D 高度）放在 feature-state，換年份時只改狀態，不重送幾何
+  // 面量圖、類別圖的顏色（與面量圖的 3D 高度）放在 feature-state，換年份時只改狀態，不重送幾何
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const on = indicator.layer.kind === 'choropleth';
+    const on = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical';
     const thresholds = colorScale?.domain() ?? [];
     for (const c of countries) {
       const v = values.get(c.iso3);
-      const has = on && v !== undefined && colorScale !== null;
-      const fill = has ? colorScale(v) : NO_DATA;
-      const state = { fill, on, h: has ? classHeight(thresholds, v) : 0 };
-      map.setFeatureState({ source: 'countries', id: c.iso3 }, state);
-      map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, state);
-      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && v !== undefined });
+      // 類別圖裡不屬於任何一類（也沒有「其他」）的代碼當成無資料
+      const color = v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
+      const fill = on && color !== null ? color : NO_DATA;
+      // 類別沒有高低，3D 時不拉高（只傾斜地圖），高度只給面量圖
+      const h = on && v !== undefined && colorScale ? classHeight(thresholds, v) : 0;
+      map.setFeatureState({ source: 'countries', id: c.iso3 }, { fill, on, h });
+      map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { fill, on, h });
+      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && color !== null });
     }
-  }, [revision, countries, values, colorScale, indicator.layer.kind]);
+  }, [revision, countries, values, colorScale, categories, indicator.layer.kind]);
+
+  // 類別圖：強調圖例上的某一類，其他國家淡化
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    for (const c of countries) {
+      const v = values.get(c.iso3);
+      const dim = categories !== null && highlightCategory !== null && (v === undefined || categories.index(v) !== highlightCategory);
+      map.setFeatureState({ source: 'countries', id: c.iso3 }, { dim });
+      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { dim });
+    }
+  }, [revision, countries, values, categories, highlightCategory]);
 
   // 1 km 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
   // 換期時只換圖磚網址；切換底圖後新樣式沒有這個圖層，revision 變了會重新加上
@@ -1157,6 +1197,8 @@ export function WorldMap(props: WorldMapProps) {
         const unit = indicator.unit;
         const valueLegend: ImageLegend | null = colorScale
           ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD }
+          : categories
+            ? { kind: 'categorical', title, model: categoricalLegendModel(categories, values) }
           : indicator.layer.kind !== 'bubble'
             ? flowLayer && flows && flowMax > 0
               ? { kind: 'flow', title, unit, model: flowLegendModel(indicator, flows.direction, flowMax) }
@@ -1185,7 +1227,7 @@ export function WorldMap(props: WorldMapProps) {
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
       },
     }),
-    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend],
+    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend],
   );
 
   return (
@@ -1315,6 +1357,16 @@ export function WorldMap(props: WorldMapProps) {
           />
         ) : colorScale ? (
           <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} stepped={threeD} />
+        ) : categories ? (
+          <CategoricalLegend
+            title={legendTitle}
+            scale={categories}
+            values={values}
+            highlight={highlightCategory}
+            onPreview={setPreviewCategory}
+            pinned={pinnedCategory}
+            onPin={setPinnedCategory}
+          />
         ) : indicator.layer.kind === 'bubble' ? (
           threeD ? (
             <ColumnLegend indicator={indicator} title={legendTitle} max={bubbleMax} color={MAP_TOKENS.accent} tokens={tokens} />
