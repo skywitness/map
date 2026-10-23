@@ -2,12 +2,12 @@
 
 用世界地圖瀏覽各國資料。除了純地圖頁，目前有以下資料主題，在頂列依分類放在下拉選單裡：
 
-- **社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出與自付比例、醫師、護理人員與病床數）、疾病（各國首要死因、慢性病過早死亡、癌症死亡率、糖尿病、肥胖、愛滋、結核病、瘧疾、死因結構）、教育（受教育年數、高等教育在學率、教育支出、識字率）、飲食（熱量、蛋白質、脂肪、動物性食物占熱量、各類食物的人均供給量、營養不足人口比例）、住宅（公寓住戶比例、自有住宅率、平均每戶人數、居住擁擠率、住房負擔過重率、都市貧民窟人口比例；住宅類型、擁擠與負擔只有歐洲與部分 OECD 國家）、宗教（各國的主要宗教、最大宗教的比例、無宗教信仰比例、宗教多樣性）、貧富差距（吉尼係數、所得最高 10% 與最低 50% 的份額、極端貧窮）、性別平等（性別不平等指數、女性勞參率、女性國會議員比例、性別薪資差距）
+- **社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出與自付比例、醫師、護理人員與病床數）、疾病（各國首要死因、慢性病過早死亡、癌症死亡率、糖尿病、肥胖、愛滋、結核病、瘧疾、死因結構）、教育（受教育年數、高等教育在學率、教育支出、識字率）、飲食（熱量、蛋白質、脂肪、動物性食物占熱量、各類食物的人均供給量、營養不足人口比例）、住宅（公寓住戶比例、自有住宅率、平均每戶人數、居住擁擠率、住房負擔過重率、都市貧民窟人口比例；住宅類型、擁擠與負擔只有歐洲與部分 OECD 國家）、宗教（各國的主要宗教、最大宗教的比例、無宗教信仰比例、宗教多樣性）、貧富差距（吉尼係數、所得最高 10% 與最低 50% 的份額、極端貧窮）、性別平等（性別不平等指數、女性勞參率、女性國會議員比例、性別薪資差距）、諾貝爾獎（依出生地、以今天的國界計算的得主人數與每千萬人得主數，可分六個獎項；點國家列出得主名單，例如台灣的李遠哲）
 - **經濟**：人均收入、產業結構、工業、農業
-- **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、移民（移民與僑民人數、收容的難民；點選國家畫出移民來源、僑民去向與難民流向的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）
+- **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、移民（移民與僑民人數、收容的難民；點選國家畫出移民來源、僑民去向與難民流向的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）、民主與自由（V-Dem 的政體分類、選舉民主、自由民主與言論自由指數，1900 年起）、台灣的外交（從台灣看世界：歷年邦交國、駐外館處的位置、國人免簽與落地簽待遇）
 - **能源**：發電量、氣候（二氧化碳排放）
 - **科技與交通**：AI、數位（網路、行動電話、固網寬頻）、交通
-- **地理**：語言（各國的主要官方語言、30 種語言的使用比例、使用人數與官方地位、各國有幾種語言）、海拔（平均海拔、最高點與最低點、高地占比、沿海低地、坡度；地圖上是分層設色加地形陰影）
+- **地理**：語言（各國的主要官方語言、30 種語言的使用比例、使用人數與官方地位、各國有幾種語言）、海拔（平均海拔、最高點與最低點、高地占比、沿海低地、坡度；地圖上是分層設色加地形陰影）、地震與火山（1900 年起規模 6 以上的地震，大小是規模、顏色是震源深度，可以只看某一年或累積；全新世火山、板塊邊界；各國每十年的地震次數、死亡人數與火山數）
 
 地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜；海拔主題的 3D 是真的立體地形（地球儀上也可以）。人口主題可以在地圖上框選範圍，估算框內人口；「人口密度」可以從國家平均切到「1 km 網格」，看每個約 1 km 的格子住多少人（JRC GHS-POP，1975–2030 每 5 年一期，跟著時間軸換期）。
 
@@ -76,7 +76,7 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`population-density-tiles`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`disease`、`diet`、`education`、`tourism`、`housing`、`trade`、`language`、`elevation`、`migration`、`religion`、`inequality`、`gender`、`compact`。
+可用的步驟：`geo`、`population`、`population-grid`、`population-density-tiles`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`disease`、`diet`、`education`、`tourism`、`housing`、`trade`、`language`、`elevation`、`migration`、`religion`、`inequality`、`gender`、`earthquakes`、`democracy`、`taiwan-diplomacy`、`nobel`、`compact`。
 
 `population-grid` 是框選估算用的網格人口，`elevation` 是海拔主題（USGS GMTED2010 的 1 公里 DEM，第一次會下載約 760 MB），兩個都要先有 `geo` 的國界。`disease` 第一次會向 WHO 的 API 一年一年查 2000–2023 年的死因資料，約 15 分鐘。`migration` 第一次會向 UNHCR 的 API 一年一年查 1990 年以來的難民資料，約 2 分鐘。`inequality` 第一次會下載 World Inequality Database 的整包資料（約 890 MB）。
 
@@ -109,7 +109,7 @@ npm run preview
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, migration and refugees (with flow arcs), AI, transport, climate (CO₂ emissions), military, digital, health, disease and causes of death, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment), religion, income inequality, gender equality, languages, housing and elevation (mean elevation, highest and lowest points, highland share, low-lying coastal land and slope, with a shaded-relief map and real 3D terrain), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, migration and refugees (with flow arcs), AI, transport, climate (CO₂ emissions), military, digital, health, disease and causes of death, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment), religion, income inequality, gender equality, Nobel laureates by birthplace, democracy and freedom (V-Dem), Taiwan's foreign relations (allies over time, overseas missions, visa access for Taiwan passport holders), earthquakes and volcanoes (M6+ quakes since 1900 sized by magnitude and coloured by depth, Holocene volcanoes, plate boundaries), languages, housing and elevation (mean elevation, highest and lowest points, highland share, low-lying coastal land and slope, with a shaded-relief map and real 3D terrain), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 
@@ -120,6 +120,6 @@ Live site: https://skywitness.github.io/map/?lang=en
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
 - **1 km grid**: population density can switch from country averages to a grid of cells about 1 km across (JRC GHS-POP, every 5 years from 1975 to 2030, following the time slider). The grid tiles are not in the repository; the deploy workflow builds and caches them.
 
-Data sources include UN World Population Prospects, UN DESA International Migrant Stock, UNHCR, Pew Research Center (excerpts), the World Inequality Database, the World Bank Poverty and Inequality Platform, ILO, IPU, UNDP, IMF World Economic Outlook, World Bank, Eurostat, the OECD Affordable Housing Database, WHO (Global Health Estimates, Global Health Observatory), Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Unicode CLDR, Glottolog, USGS GMTED2010, Wikidata, Mapzen/AWS Terrain Tiles, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
+Data sources include UN World Population Prospects, UN DESA International Migrant Stock, UNHCR, Pew Research Center (excerpts), the World Inequality Database, the World Bank Poverty and Inequality Platform, ILO, IPU, UNDP, IMF World Economic Outlook, World Bank, Eurostat, the OECD Affordable Housing Database, WHO (Global Health Estimates, Global Health Observatory), Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Unicode CLDR, Glottolog, USGS GMTED2010, Wikidata, Mapzen/AWS Terrain Tiles, the USGS earthquake catalogue, the NOAA NCEI Significant Earthquake Database, the Smithsonian Global Volcanism Program, PB2002 plate boundaries, V-Dem (CC BY-SA 4.0), the Nobel Prize API, Taiwan's Ministry of Foreign Affairs and Bureau of Consular Affairs, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
 
 Development: `npm install`, then `npm run dev`. Data is pre-built in `public/data/`; run `npm run data` to rebuild it (see the Chinese sections above). Design notes, including how to add a topic with bilingual text, are in [DESIGN.md](DESIGN.md) (in Chinese).
