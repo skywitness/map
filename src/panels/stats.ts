@@ -49,6 +49,13 @@ export function rankOf(values: Map<string, number>, iso3: string, ascending = fa
   return rank;
 }
 
+/** ranking() 排好的各列的名次：同值同名次（1、2、2、4），跟側欄的 rankOf 一致 */
+export function rowRanks(rows: [string, number][]): number[] {
+  const ranks: number[] = [];
+  rows.forEach(([, v], i) => ranks.push(i > 0 && v === rows[i - 1][1] ? ranks[i - 1] : i + 1));
+  return ranks;
+}
+
 export function maxAcrossYears(data: IndicatorData): number {
   let max = 0;
   for (const series of Object.values(data.values)) {

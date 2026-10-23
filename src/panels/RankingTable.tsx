@@ -5,7 +5,7 @@ import { formatPercent } from '../lib/format';
 import { categoryScale } from '../map/categories';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { Indicator } from '../topics/types';
-import { ranking } from './stats';
+import { ranking, rowRanks } from './stats';
 
 interface RankingTableProps {
   indicator: Indicator;
@@ -49,6 +49,8 @@ export function RankingTable(props: RankingTableProps) {
           name(a).localeCompare(name(b), locale),
       );
   }, [values, indicator, categories, countries, lang]);
+  // 同值同名次（例如 77、77、79），跟側欄一致；不用列號
+  const ranks = useMemo(() => rowRanks(rows), [rows]);
   // 數值越小越好的指標由小排到大，最大值在最後一列
   const max = Math.max(0, ...rows.map(([, v]) => v));
   const showBars = !categories && rows.length > 0 && rows.every(([, v]) => v >= 0);
@@ -80,7 +82,7 @@ export function RankingTable(props: RankingTableProps) {
         <tbody>
           {rows.map(([iso3, value], i) => (
             <tr key={iso3} className={iso3 === selected ? 'is-selected' : undefined}>
-              {!categories && <td className="num">{i + 1}</td>}
+              {!categories && <td className="num">{ranks[i]}</td>}
               <td>
                 <button type="button" className="row-link" onClick={() => onSelect(iso3)}>
                   {countryName(iso3, countries)}

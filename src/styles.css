@@ -258,19 +258,26 @@ button {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .select-field {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
   font-size: 13px;
   color: var(--ink-secondary);
 }
 
+/* 寬度跟著選到的那一項（field-sizing），英文較長的指標名稱也能完整顯示；不支援的瀏覽器是最長那一項的寬度。
+   窄螢幕放不下時縮短（min-width: 0，連同 .select-field、.controls-left），不撐出水平捲動 */
 .select-field select {
+  field-sizing: content;
   height: 34px;
-  max-width: 260px;
+  min-width: 0;
+  max-width: 560px;
   padding: 0 28px 0 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);

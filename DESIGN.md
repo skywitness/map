@@ -271,6 +271,7 @@ pipeline/
 - **小國**：面積小於 6,000 km² 的國家（新加坡、加勒比海島國）在低縮放時另外畫一個可點擊的圓點。
 - **推估值**：時間軸、tooltip、側欄都會標示，折線圖用虛線。
 - **表格版**：每張地圖都有「排名表」檢視；側欄的組成資料用長條清單直接寫出數值與占比，不必靠 hover。
+  - 名次同值同名次（77、77、79，`stats.ts` 的 `rowRanks`），跟側欄的「第 N 名」（`rankOf`）一致；用列號的話，跟別國同值的國家在兩邊會差 1（例如台灣最富有 1% 的財富占比跟約旦同為 27.8%）。`lowerIsBetter` 的指標一樣，只是由小排到大。
 
 ### 3D 立體地圖
 
@@ -976,6 +977,11 @@ pipeline/
 - 收合與全開的高度寫在 CSS（含安全區域），JS 讀抽屜算好的 `min-height`、`max-height` 來決定吸附位置，兩邊不必各寫一份數字。
 
 **窄螢幕的排名表**（900px 以下）：欄名可以換行、左右留白減半。英文的指標名稱常比數值寬很多（「Tertiary enrolment (gross)」、「Average household size」），欄名不換行時 375px 寬的手機會超出畫面。
+
+**控制列的下拉選單**（指標超過 5 個時的指標選單、子項目選單、底圖）：
+- 寬度跟著選到的那一項（CSS `field-sizing: content`），最寬 560px；不支援的瀏覽器（目前是 Firefox）是最長那一項的寬度。原本固定最寬 260px，英文較長的名稱會被截掉（「Average monthly earnings (US$)」要 278px，「Government & compulsory insurance share」353px，最長的是工業的「Machinery, electronics and transport equipment, % of manufacturing」526px）。
+- 1280px 寬時，所有主題、所有指標的選單（中英文）都完整顯示，控制列仍是一行。
+- 窄螢幕放不下時選單縮短、文字被切掉，不撐出水平捲動：`.controls-left`、`.select-field`、`select` 都要 `min-width: 0`，少一層就會撐開。375px 寬時英文較長的名稱會被切掉，點開的選項清單是完整的。
 
 ## 12. 英文版介面（i18n）
 
