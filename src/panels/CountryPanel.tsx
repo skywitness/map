@@ -74,7 +74,8 @@ export function CountryPanel(props: CountryPanelProps) {
       value,
       rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3, ind.lowerIsBetter),
       total: values.size,
-      share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
+      // 0 的排名不顯示，占全球的 0% 也不顯示（否則卡片上只剩開頭的「 · 」）
+      share: ind.shareOfWorld && value && !countZero && world ? (value / world) * 100 : null,
       shownYear,
     };
   });

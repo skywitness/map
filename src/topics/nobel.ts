@@ -15,7 +15,8 @@ export const CATEGORIES: { id: Category; label: Text; short?: Text }[] = [
   // 不是諾貝爾遺囑設立的獎：瑞典中央銀行 1968 年設立、1969 年起頒發，由瑞典皇家科學院評選
   {
     id: 'economics',
-    label: { zh: '經濟學獎（瑞典央行紀念獎）', en: 'Economic Sciences (Riksbank Prize)' },
+    // 英文寫「Economic Sciences (Riksbank Prize)」會超過子項目選單的寬度（260px），被截成「(Riksbank」
+    label: { zh: '經濟學獎（瑞典央行紀念獎）', en: 'Economics (Riksbank Prize)' },
     short: { zh: '經濟學獎', en: 'Economic Sciences' },
   },
 ];
@@ -29,16 +30,35 @@ const ALL = { id: 'all', label: { zh: '全部獎項', en: 'All' } };
 export const laureates = (n: number) =>
   tr({ zh: `${fixed(n, 0)} 位`, en: `${fixed(n, 0)} ${Math.round(n) === 1 ? 'laureate' : 'laureates'}` });
 
+/**
+ * 人數的刻度只標整數：只有 1 位的國家（台灣），側欄折線圖的 y 軸是 0、0.2…1，
+ * 四捨五入後會變成「0、0、1、1、1」；小數的刻度留白（格線照畫）。
+ */
+const countTick = (v: number) => (Number.isInteger(v) ? fixed(v, 0) : '');
+
 /** 每千萬人：不到 1 的留兩位小數（中國 0.08、台灣 0.43），1 以上留一位 */
 const perTenMillion = (v: number) => (v === 0 ? '0' : fixed(v, v < 1 ? 2 : 1));
 
 /**
- * 每千萬人的分級：第一個門檻 0.01 把「沒有得主」（0）跟「有得主」分開（最少的印度、奈及利亞也有 0.04），
- * 圖例上寫成「> 0」。全部獎項最高是聖露西亞（2 位、18 萬人，約 111）、盧森堡、北歐與瑞士（20–30）；
- * 單一獎項的數字約小 5 倍，用另一組門檻。
+ * 每千萬人的分級：第一個門檻 ANY 把「沒有得主」（0）跟「有得主」分開，圖例上寫成「> 0」。
+ * 最小的非 0 值是單一獎項裡只有 1 位的中國、印度（14 億人，約 0.007），所以門檻是 0.001，不是 0.01
+ * （0.01 會讓它們跟沒有得主的國家同色）。全部獎項最高是聖露西亞（2 位、18 萬人，約 111）、
+ * 盧森堡、北歐與瑞士（20–30）；單一獎項的數字約小 5 倍，用另一組門檻。
  */
-const ALL_SCALE: ScaleSpec = { type: 'sequential', thresholds: [0.01, 1, 3, 5, 10, 20] };
-const CATEGORY_SCALE: ScaleSpec = { type: 'sequential', thresholds: [0.01, 0.5, 1, 2, 4, 8] };
+const ANY = 0.001;
+const ALL_SCALE: ScaleSpec = { type: 'sequential', thresholds: [ANY, 1, 3, 5, 10, 20] };
+const CATEGORY_SCALE: ScaleSpec = { type: 'sequential', thresholds: [ANY, 0.5, 1, 2, 4, 8] };
+
+/**
+ * 每千萬人的刻度：圖例的第一個門檻寫「> 0」；其他刻度（也是側欄折線圖的 y 軸：0.05、0.15、1.2…）
+ * 照實寫出需要的小數位數，不能一律四捨五入成一位或整數，否則會出現「1、1、1」這種重複的刻度。
+ */
+const perTenMillionTick = (v: number) => {
+  if (v === ANY) return '> 0';
+  const s = String(Number(v.toPrecision(4)));
+  const dot = s.indexOf('.');
+  return fixed(v, dot < 0 ? 0 : Math.min(s.length - dot - 1, 3));
+};
 
 export const nobel: TopicDefinition = {
   id: 'nobel',
@@ -86,9 +106,10 @@ export const nobel: TopicDefinition = {
       },
       unit: { zh: '位', en: 'laureates' },
       file: 'laureates/{item}.json',
-      layer: { kind: 'bubble', legendValues: [1, 5, 25] },
+      // 全部獎項最多是美國的 300 位，單一獎項最多約 85 位（醫學獎）
+      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
       format: laureates,
-      formatTick: (v) => fixed(v, 0),
+      formatTick: countTick,
       shareOfWorld: true,
     },
     {
@@ -106,7 +127,7 @@ export const nobel: TopicDefinition = {
         itemScales: Object.fromEntries(CATEGORIES.map((c) => [c.id, CATEGORY_SCALE])),
       },
       format: (v) => tr({ zh: `每千萬人 ${perTenMillion(v)} 位`, en: `${perTenMillion(v)} per 10M people` }),
-      formatTick: (v) => (v > 0 && v < 0.1 ? '> 0' : fixed(v, v < 1 ? 1 : 0)),
+      formatTick: perTenMillionTick,
       compareWorld: true,
     },
     {
@@ -120,7 +141,7 @@ export const nobel: TopicDefinition = {
       file: 'annual/{item}.json',
       layer: { kind: 'bubble', legendValues: [1, 2, 4] },
       format: laureates,
-      formatTick: (v) => fixed(v, 0),
+      formatTick: countTick,
     },
   ],
 };
