@@ -39,7 +39,8 @@ export const en: Messages = {
   itemIndicator: (item, indicator) => `${item} ${lowerFirst(indicator)}`,
   year: (year) => String(year),
   worldMapAria: 'World map',
-  mapAria: (year, title, projected) => `World map: ${title} by country, ${year}${projected ? ' (projection)' : ''}`,
+  mapAria: (year, title, projected) =>
+    `World map: ${title} by country${year === null ? '' : `, ${year}`}${projected ? ' (projection)' : ''}`,
   tooltipProjected: ' · projection',
   flowTitle: (origin, title) => `${origin}: ${title}`,
   flowShare: (share) => `${share} of total`,
@@ -123,7 +124,8 @@ export const en: Messages = {
   note: (note) => `Note: ${note}`,
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
 
-  rankingCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories)`,
+  rankingCaption: (year, title, count) =>
+    `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories)`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',

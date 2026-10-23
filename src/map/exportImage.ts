@@ -17,7 +17,8 @@ import {
   type ColumnLegendModel,
   type FlowLegendModel,
 } from './Legend';
-import type { LayerKey } from './Overlays';
+import { SHADE_KEY, type LayerKey } from './Overlays';
+import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
 
 /** 匯出至少用 2 倍解析度，在高解析度螢幕上看也清楚；只在匯出的那一下調高，之後還原 */
 const MIN_EXPORT_RATIO = 2;
@@ -64,7 +65,9 @@ export type ImageLegend =
   /** 3D 模式的柱子 */
   | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
   /** 流向圖：線寬樣本與流向說明 */
-  | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel };
+  | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel }
+  /** 地形圖：分層設色的漸層色條 */
+  | { kind: 'relief'; title: string; unit: string; model: ReliefLegendModel };
 
 /** 圖片上的文字，由呼叫端（知道主題、年份、來源的 App）提供 */
 export interface MapImageContent {
@@ -229,7 +232,14 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
   const titleTotal = titleWidth + ctx.measureText(unit).width;
   ctx.font = `11px ${font}`;
   const noDataWidth = 22 + ctx.measureText(t.noData).width;
-  const noteText = legend.kind === 'column' ? COLUMN_NOTE : legend.kind === 'choropleth' && legend.stepped ? STEPPED_NOTE : null;
+  const noteText =
+    legend.kind === 'column'
+      ? COLUMN_NOTE
+      : legend.kind === 'choropleth' && legend.stepped
+        ? STEPPED_NOTE
+        : legend.kind === 'relief'
+          ? RELIEF_NOTE
+          : null;
   const note = noteText && tr(noteText);
   const noteWidth = note ? ctx.measureText(note).width : 0;
 
@@ -287,6 +297,28 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
         labels.forEach((label, i) => ctx.fillText(label, ((i + 1) / colors.length) * scaleWidth, top + swatchesHeight + 4 + 7));
         ctx.textAlign = 'left';
         drawNoData(top + scaleHeight);
+      },
+    };
+  }
+
+  if (legend.kind === 'relief') {
+    // 跟畫面上的 .legend-relief 一樣：漸層色條，刻度等距、置中，右邊留出最後一個刻度的半個字寬；地形圖沒有「無資料」
+    const { stops, ticks, width } = legend.model;
+    return {
+      width: Math.max(titleTotal, noteWidth, width + 14),
+      height: top + 10 + 18,
+      draw: () => {
+        drawTitle();
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        for (const { at, color } of stops) gradient.addColorStop(at, color);
+        ctx.fillStyle = gradient;
+        roundRect(ctx, 0, top, width, 10, 2);
+        ctx.fill();
+        ctx.font = `11px ${font}`;
+        ctx.fillStyle = tokens.inkSecondary;
+        ctx.textAlign = 'center';
+        for (const { at, label } of ticks) ctx.fillText(label, at * width, top + 10 + 4 + 7);
+        ctx.textAlign = 'left';
       },
     };
   }
@@ -409,6 +441,13 @@ function layerCard(ctx: CanvasRenderingContext2D, options: ComposeOptions, font:
           ctx.moveTo(1, cy);
           ctx.lineTo(17, cy);
           ctx.stroke();
+        } else if (key.shape === 'shade') {
+          const shade = ctx.createLinearGradient(2, cy - 5, 16, cy + 5);
+          shade.addColorStop(0, SHADE_KEY[0]);
+          shade.addColorStop(1, SHADE_KEY[1]);
+          ctx.fillStyle = shade;
+          roundRect(ctx, 2, cy - 5, 14, 10, 2);
+          ctx.fill();
         } else {
           ctx.fillStyle = color;
           ctx.beginPath();

@@ -4,6 +4,7 @@ import { tr, useLang, useT, type Text } from '../i18n';
 import type { FlowDirection, Indicator } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
+import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
 
 /** 面量圖圖例的色塊與刻度（畫面上的圖例與匯出的圖片共用） */
 export interface ChoroplethLegendModel {
@@ -285,6 +286,38 @@ function NoDataKey() {
     <div className="legend-nodata">
       <span className="swatch-nodata" />
       {t.noData}
+    </div>
+  );
+}
+
+interface ReliefLegendProps {
+  title: string;
+  unit: string;
+  model: ReliefLegendModel;
+}
+
+/** 地形圖的圖例：分層設色的漸層色條（刻度等距，海拔間距不等） */
+export function ReliefLegend({ title, unit, model }: ReliefLegendProps) {
+  const t = useT();
+  const lang = useLang();
+  const gradient = `linear-gradient(to right, ${model.stops.map((s) => `${s.color} ${(s.at * 100).toFixed(1)}%`).join(', ')})`;
+  return (
+    <div className="legend">
+      <div className="legend-title">
+        {title}
+        <span className="legend-unit">{t.unitSuffix(unit)}</span>
+      </div>
+      <div className="legend-note">{tr(RELIEF_NOTE, lang)}</div>
+      <div className="legend-scale legend-relief" style={{ width: model.width }}>
+        <div className="legend-gradient" style={{ background: gradient }} />
+        <div className="legend-ticks">
+          {model.ticks.map(({ at, label }) => (
+            <span key={label} style={{ left: `${at * 100}%` }}>
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

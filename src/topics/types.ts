@@ -33,7 +33,12 @@ export type LayerSpec =
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
    * 指標檔本身放各國的總額，給 tooltip、排名表與側欄用。
    */
-  | { kind: 'flow'; file: string; direction: FlowDirection };
+  | { kind: 'flow'; file: string; direction: FlowDirection }
+  /**
+   * 地形圖：國家不上色，畫高程圖磚的分層設色與陰影（主題要設 terrain）；指標資料仍用於 tooltip 與排名。
+   * 見 src/map/terrain.ts。
+   */
+  | { kind: 'terrain' };
 
 export type FlowDirection = 'export' | 'import';
 
@@ -143,6 +148,13 @@ export interface TopicDefinition {
   overlays?: OverlayDef[];
   /** 純地圖頁：不載入任何統計資料，不顯示指標、時間軸與資料側欄 */
   pure?: boolean;
+  /**
+   * 地形圖層（AWS Terrain Tiles）：kind 為 'terrain' 的指標畫分層設色與陰影，面量圖上疊一層地形陰影
+   * （左下角可以開關），3D 模式改成真的立體地形（不畫立體國家與柱子）。
+   */
+  terrain?: boolean;
+  /** 資料不隨時間變化（例如海拔）：不顯示時間軸，tooltip、側欄、標題也不寫年份 */
+  timeless?: boolean;
 }
 
 /** 依目前語言解析過的主題與指標：所有 Text 都換成字串 */

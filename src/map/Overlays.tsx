@@ -6,10 +6,12 @@ export interface LayerVisibility {
   railways: boolean;
   largeAirports: boolean;
   mediumAirports: boolean;
+  /** 地形陰影（有地形圖層的主題才有） */
+  hillshade: boolean;
 }
 
 // 中型機場有兩千多座，世界全圖時會蓋住鐵路，預設關閉
-export const DEFAULT_LAYERS: LayerVisibility = { railways: true, largeAirports: true, mediumAirports: false };
+export const DEFAULT_LAYERS: LayerVisibility = { railways: true, largeAirports: true, mediumAirports: false, hillshade: true };
 
 /** 把差分編碼的鐵路還原成經緯度 MultiLineString */
 export function decodeRailways(data: RailwaysData): GeoJSON.MultiLineString {
@@ -31,10 +33,10 @@ export function decodeRailways(data: RailwaysData): GeoJSON.MultiLineString {
 /** 圖層的圖例：畫面上的開關與匯出的圖片共用 */
 export interface LayerKey {
   key: keyof LayerVisibility;
-  source: 'railways' | 'airports';
+  source: 'railways' | 'airports' | 'terrain';
   label: Text;
-  /** 線（鐵路）或圓點（機場），size 是線寬或半徑（px） */
-  shape: 'line' | 'dot';
+  /** 線（鐵路）、圓點（機場）或陰影色塊（地形陰影），size 是線寬或半徑（px） */
+  shape: 'line' | 'dot' | 'shade';
   size: number;
 }
 
@@ -54,7 +56,11 @@ export const LAYER_KEYS: LayerKey[] = [
     shape: 'dot',
     size: 2.5,
   },
+  { key: 'hillshade', source: 'terrain', label: { zh: '地形陰影', en: 'Hillshade' }, shape: 'shade', size: 5 },
 ];
+
+/** 陰影色塊：左上亮、右下暗（光源在西北方，跟地圖上的地形陰影一樣） */
+export const SHADE_KEY: [string, string] = ['#f4f1ea', '#6b6355'];
 
 /** 線用介面的文字色（圖例卡片跟著深淺色切換），機場點跟地圖上一樣用地圖色 */
 export function layerKeyColor(k: LayerKey, tokens: Tokens): string {
@@ -66,15 +72,17 @@ interface LayerControlsProps {
   onChange: (layers: LayerVisibility) => void;
   hasRailways: boolean;
   hasAirports: boolean;
+  hasTerrain?: boolean;
   tokens: Tokens;
 }
 
 /** 圖層開關，同時當作圖例 */
-export function LayerControls({ layers, onChange, hasRailways, hasAirports, tokens }: LayerControlsProps) {
+export function LayerControls({ layers, onChange, hasRailways, hasAirports, hasTerrain = false, tokens }: LayerControlsProps) {
   const t = useT();
   const lang = useLang();
   const toggle = (key: keyof LayerVisibility) => onChange({ ...layers, [key]: !layers[key] });
-  const keys = LAYER_KEYS.filter((k) => (k.source === 'railways' ? hasRailways : hasAirports));
+  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain };
+  const keys = LAYER_KEYS.filter((k) => has[k.source]);
   return (
     <fieldset className="legend map-layers">
       <legend className="legend-title">{t.layers}</legend>
@@ -84,6 +92,16 @@ export function LayerControls({ layers, onChange, hasRailways, hasAirports, toke
           <svg width="18" height="10" aria-hidden="true">
             {k.shape === 'line' ? (
               <line x1="1" y1="5" x2="17" y2="5" stroke={layerKeyColor(k, tokens)} strokeWidth={k.size} />
+            ) : k.shape === 'shade' ? (
+              <>
+                <defs>
+                  <linearGradient id="shade-key" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor={SHADE_KEY[0]} />
+                    <stop offset="1" stopColor={SHADE_KEY[1]} />
+                  </linearGradient>
+                </defs>
+                <rect x="2" y="0" width="14" height="10" rx="2" fill="url(#shade-key)" />
+              </>
             ) : (
               <circle cx="9" cy="5" r={k.size} fill={layerKeyColor(k, tokens)} />
             )}

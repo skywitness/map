@@ -51,8 +51,9 @@ export function CountryPanel(props: CountryPanelProps) {
   const allData = useJsonMany<IndicatorData>(files);
   const name = countryName(iso3, countries);
 
-  // 「只畫路網」這類不上色的指標不列成數值卡片
-  const stats = topic.indicators.flatMap((ind, i) => (ind.layer.kind === 'none' ? [] : [[ind, i] as const])).map(([ind, i]) => {
+  // 「只畫路網」「地形」這類不上色的指標不列成數值卡片（地形的數值跟平均海拔是同一份）
+  const card = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
+  const stats = topic.indicators.flatMap((ind, i) => (card(ind) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
@@ -109,10 +110,15 @@ export function CountryPanel(props: CountryPanelProps) {
         </button>
       </header>
 
-      <p className="panel-year">
-        {t.year(year)}
-        {projectionFrom !== undefined && year >= projectionFrom && <span className="year-tag is-projected">{t.projected}</span>}
-      </p>
+      {/* 不隨時間變化的資料（海拔）不寫年份 */}
+      {!topic.timeless && (
+        <p className="panel-year">
+          {t.year(year)}
+          {projectionFrom !== undefined && year >= projectionFrom && (
+            <span className="year-tag is-projected">{t.projected}</span>
+          )}
+        </p>
+      )}
 
       <div className="stats">
         {stats.map(({ ind, value, rank, total, share, shownYear }) => (
@@ -128,7 +134,7 @@ export function CountryPanel(props: CountryPanelProps) {
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
-              {shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
+              {!topic.timeless && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
             </span>
           </button>
         ))}
@@ -148,6 +154,8 @@ export function CountryPanel(props: CountryPanelProps) {
           {note && <p className="note">{t.note(note)}</p>}
         </section>
       )}
+      {/* 只有單一年份的資料沒有折線圖，附註直接接在數值卡片下面 */}
+      {activeData?.years.length === 1 && note && <p className="note">{t.note(note)}</p>}
 
       {Extra && (
         <Suspense fallback={<p className="empty">{t.loading}</p>}>

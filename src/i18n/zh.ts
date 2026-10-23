@@ -39,8 +39,9 @@ export const zh = {
   /** 年份的寫法：2023 年 */
   year: (year: number) => `${year} 年`,
   worldMapAria: '世界地圖',
-  mapAria: (year: number, title: string, projected: boolean) =>
-    `世界地圖：${year} 年各國${title}${projected ? '（推估值）' : ''}`,
+  /** year 是 null：不隨時間變化的資料（例如海拔） */
+  mapAria: (year: number | null, title: string, projected: boolean) =>
+    `世界地圖：${year === null ? '' : `${year} 年`}各國${title}${projected ? '（推估值）' : ''}`,
   tooltipProjected: ' 推估值',
   /** 流向圖：「台灣的出口」、tooltip 的「占 12%」 */
   flowTitle: (origin: string, title: string) => `${origin}的${title}`,
@@ -131,7 +132,8 @@ export const zh = {
   yearMissing: (year: number) => `（${year} 年無資料，顯示最近一年）`,
 
   // 排名表
-  rankingCaption: (year: number, title: string, count: number) => `${year} 年各國${title}排名（${count} 個國家/地區）`,
+  rankingCaption: (year: number | null, title: string, count: number) =>
+    `${year === null ? '' : `${year} 年`}各國${title}排名（${count} 個國家/地區）`,
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',
