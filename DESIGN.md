@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、交通部統計查詢網…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -426,6 +426,7 @@ pipeline/
 | 國際組織 | 成員身分（類別圖，每年 12 月 31 日的狀態：成員、申請或加入中、夥伴或觀察員、成員（暫停參與），其他是非成員；子項目是 16 個組織，分四類：區域組織（歐盟、東協、非洲聯盟、阿拉伯國家聯盟）、政治與安全（北約、上海合作組織、大英國協）、高峰會論壇（G7、G20、金磚國家）、經濟與貿易（WTO、OECD、APEC、CPTPP、RCEP、OPEC），預設歐盟）、參加幾個組織（面量圖，16 個裡是成員的有幾個） | 這一年在各組織的身分與歷程（加入、申請、夥伴、暫停的每一段與日期）、參加時用的名稱（中華台北、臺澎金馬個別關稅領域、中國香港…）與附註、不是成員的組織；選定組織的說明（「成員」指什麼、從哪一年算、前身）與官網連結 | 各組織官網的成員名單（史實自行整理，`pipeline/sources/igo_members.py`，2026-10-23 查閱），日期與英文維基百科的成員國條目交叉比對 | 各組織成立（或前身）的那一年到今年：阿拉伯國家聯盟 1945、北約 1949、大英國協 1949（倫敦宣言）、歐盟 1958（歐洲經濟共同體）、OPEC 1960、OECD 1961、非洲聯盟 1963（非洲團結組織）、東協 1967、G7 1975、APEC 1989、WTO 1995、G20 1999、上海合作組織 2001、金磚國家 2009、CPTPP 2018（簽署）、RCEP 2020（簽署）；參加幾個組織 1945–2026。今年是資料產生當天（2026-10-23）的狀態 |
 | 聯合國投票 | 與美國的一致度（預設）、與中國的一致度（1971 年起）、理想點（Bailey, Strezhnev & Voeten 的一維投票立場，發散色）、與各國的一致度（16 個比較對象：俄羅斯、英國、法國、德國、烏克蘭、日本、南韓、印度、印尼、澳洲、土耳其、伊朗、以色列、埃及、南非、巴西） | 與美國、中國的投票一致度（兩條折線，x 軸只畫這國有投票紀錄的年份）、理想點的 90% 可信區間與參加的表決次數 | Erik Voeten, United Nations General Assembly Ideal Points（Harvard Dataverse 第 39 版，CC0 1.0；方法 Bailey, Strezhnev & Voeten 2017；原始表決 UNGA-DM） | 一致度 1946–2024、理想點 1946–2025（1964 年沒有記名表決）；中國 1971 年起，台灣（中華民國）1946–1971 |
 | 海底電纜 | 海底電纜地圖（預設，不上色，畫電纜路線與登陸點，依 RFS 年份累積；營運中洋紅實線、規劃中琥珀虛線）、登陸的電纜數（比例圓）、國際連線數（面量圖）、登陸點數（比例圓） | 在這國登陸的電纜（名稱、啟用年份、長度、登陸點、擁有者；營運中與規劃中分開列）、直接連到的國家（長條，依電纜數） | TeleGeography Submarine Cable Map（CC BY-NC-SA 3.0）；台灣用中央社報導的中華電信、數位發展部數字交叉比對 | 1989–2030（2027 起加上規劃中的電纜，是推估）；2026-10 的快照 |
+| 交通安全 | 道路交通死亡率（每 10 萬人，預設）、道路交通死亡人數（比例圓）、行人死亡占比、機車騎士死亡占比、每萬輛機動車死亡數 | 死者是哪一類道路使用者（機車、行人、自行車、汽車、其他；台灣另有不分車種的乘客） | WHO GHO（RS_198 估計死亡率；RS_246、RS_194）、WHO《Global status report on road safety 2023》各國指標、UN WPP 2024；台灣用交通部統計查詢網的 30 日內死亡人數與機動車輛登記數 | 死亡率與人數 2000–2023（台灣 2008 年起，附註寫到 2025 年）；占比 2016–2021、每萬輛 2016–2023（各國用 5 年內最近一次調查） |
 
 ## 8. 資料陷阱（重要）
 
@@ -549,6 +550,8 @@ pipeline/
     - Erik Voeten 的聯合國大會投票資料（Harvard Dataverse，United Nations General Assembly Ideal Points 第 39 版）是 CC0 1.0（Dataverse 的 license 欄位），不要求標示；作者請使用者引用 Bailey, Strezhnev & Voeten (2017) 與 Fjelstul, Hug & Kilby (2025)（UNGA-DM），頁尾的來源有列（見第 48 點）。
     - **TeleGeography Submarine Cable Map 是 CC BY-NC-SA 3.0**（姓名標示—非商業性—相同方式分享）：TeleGeography 在 GitHub 的 `telegeography/www.submarinecablemap.com` 儲存庫（2022 年底刪除）README 的「How can I download the dataset?」連到的就是這裡用的 API 檔（`web/public/api/v3/cable/cable-geo.json` 等），「License」一節寫「Our map is made available under the following Creative Commons License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)」，LICENSE 檔也是這個授權的條文；2019 年起的 Wayback Machine 存檔都一樣（http://web.archive.org/web/20221110120103/https://github.com/telegeography/www.submarinecablemap.com 、LICENSE：http://web.archive.org/web/20220325100817/https://github.com/telegeography/www.submarinecablemap.com/blob/master/LICENSE ）。TeleGeography 現在的說明頁（https://www2.telegeography.com/cite-telegeography-map ）寫公開的地圖是 CC BY-SA 4.0、「underlying databases」只給付費訂戶，沒有提到 API。使用者原本以為是 CC BY-SA 3.0，但找到的官方依據都是 NC 版或只講地圖，所以照較嚴的 CC BY-NC-SA 3.0 使用與標示（本站非商業，跟 World Inequality Database 一樣）。海底電纜主題的資料檔（`public/data/topics/submarine-cables/`）是改作（換國家代碼、接線、量化、計算各國統計），頁尾寫明依 CC BY-NC-SA 3.0 分享，匯出的地圖圖片與 CSV 也一樣。要商業使用得另外向 TeleGeography 授權。
     - 中央社報導只拿來交叉比對台灣的電纜數（引用事實、註明出處，不轉載內容）。
+    - WHO 的道路安全資料：GHO 的 `RS_198`、`RS_246`、`RS_194` 是 CC BY 4.0（data.who.int 的條款，跟其他 GHO 指標一樣）。**《Global status report on road safety 2023》的各國指標檔是 CC BY-NC-SA 3.0 IGO**：檔案的 Notes 寫「Reference: Global status report on road safety 2023: country and territory profiles. Geneva: World Health Organization; 2023 Licence CC-BY-NC-SA 3.0 IGO」（WHO 出版品的授權）。本站非商業，照用（跟 World Inequality Database 一樣），用到它的資料檔（交通安全主題的行人、機車騎士占比，每萬輛機動車死亡數，側欄的組成）依 CC BY-NC-SA 3.0 IGO 分享，頁尾寫明；死亡率與死亡人數只用 GHO（CC BY 4.0）與 WPP。
+    - 交通部統計查詢網：交通部的開放資料（data.gov.tw）採政府資料開放授權條款第 1 版；統計查詢網是交通部網站的一部分，適用交通部的「政府網站資料開放宣告」（無償、非專屬、註明出處即可利用），跟電動車主題用的交通部新聞稿一樣。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1399,6 +1402,25 @@ pipeline/
       - 1999 年的 SEA-ME-WE 3 不在 TeleGeography 現在的清單裡（只有 SeaMeWe-4、5、6），FLAG Europe-Asia（FEA）也沒有；ADC 有收，但登陸點是中國、日本、菲律賓、新加坡、泰國、越南，沒有台灣。
       - 2026 年台灣：17 條電纜（第 20 名）、直接連到 13 國（第 98 名）、20 個登陸點；2030 年 21 條、14 國。附註（`notes`／`notesEn`）由 `_taiwan_check()` 依資料產生，`TAIWAN_EXPECTED`（中央社點名的電纜）在 TeleGeography 找不到、或 SEA-ME-WE 3 又出現時會印警告。
     - **顏色**（MAP_TOKENS，dataviz 驗證工具的 OKLab ΔE×100，一般／紅色盲／綠色盲）：營運中用洋紅 `categorical[7]` #e7298a，跟藍色的海 #a0c8f0 33/32/20、淺色陸地 39/42/30、深色底圖的水 44/28/39；規劃中用琥珀 `hues.yellow` #eda100 加虛線，跟海 24/24/23、深色底圖 55/50/56，跟洋紅 29/30/21。登陸點是深灰 `inkSecondary` 加白框（跟海 39/41/38；深色底圖上靠白框）。比例圓的紫 #6250d6 跟洋紅只有 27/13/23，但一個是半透明的大圓、一個是細線，分得開。五種底圖都看過。
+
+50. **交通安全**（`pipeline/topics/road_safety.py`、`pipeline/sources/who_road.py`、`motc.py`、`src/topics/panels/RoadSafetyPanel.tsx`）：
+    - **死亡率**：WHO GHO 的 `RS_198`（Estimated road traffic death rate per 100 000 population，兩性合計 `SEX_BTSX`），2026-10 的版本有 2000–2023 年、186 國，有世界值（`GLOBAL`）。是 WHO 的估計值（Global Health Estimates），用 30 天的定義（事故後 30 天內死亡），各國可以比較。
+    - **死亡人數**：WHO 的死亡人數 `RS_196` 只有 2021 年（GSRRS 2023 的估計），所以用 `RS_198` × WPP 2024 的年中人口；跟 `RS_196` 的 2021 年比，中位數差約 1.5%，阿根廷、葉門約差 15%（2026 年的估計改過），`_check_deaths()` 只看中位數。世界值是世界死亡率 × 世界人口（2023 年約 123 萬人）。
+    - **行人、機車騎士的死亡占比**：各國向 WHO 通報的死亡人數依道路使用者分（汽車等四輪、二三輪機動車、行人、自行車、其他五類），不是估計值。兩輪調查：
+      - GSRRS 2018（大多是 2016 年的資料）：GHO 的 `RS_246`，CC BY 4.0。
+      - GSRRS 2023（大多是 2021 年）：WHO 網站的指標檔 `gsrrs23-indicators-for-participating-countries-or-territories.xlsx`（第一列是欄位代碼 `CP_18a`–`CP_18e`，第二列是欄名），GHO 沒有。
+      - 五類沒填齊、或加起來不在 95–105% 的國家不用。地圖用 `latestWithin: 5`，時間軸 2016–2021，147 國。泰國通報的行人只有 2.1%、英屬維京群島的機車 100%（死亡人數很少）照原樣呈現。
+    - **每萬輛機動車死亡數**：死亡人數（上面的估計）÷ 各國通報的登記機動車輛數（含機車；2016 年用 GHO `RS_194`，2021 年用 GSRRS 2023 的 `CP_36a` 與 `CP_118` 年份）× 1 萬，車輛數的年份跟死亡人數差 2 年以內才算。**每千人不到 1 輛的通報值當成填錯**：菲律賓 2021 年填 13 輛、喬治亞 1 輛、賽普勒斯 941 輛，不用（建置時會印出來）。車輛很少的國家數字很高（幾內亞 2016 年超過 100）。門檻 0.5、1、2、5、10、30。
+    - **台灣**（WHO 沒有）：交通部統計查詢網（statis.motc.gov.tw）的表：
+      - 網頁用 `Statistics/Display.json?Seq=<表號>` 取資料（JSON，`date` 是「民國年-月-00」，年資料的月是 00；數字有千分位，「-」是 0），`sources/motc.py` 直接讀。**網站的防火牆會擋程式常用的 User-Agent**（連線被重設，`Python-urllib` 與 `curl` 都是），要用一般瀏覽器的；`common.download()` 的 User-Agent 不行，所以 `motc.py` 自己下載，回的不是 JSON 時不存快取。
+      - 表 127「道路交通事故(30日內)─按駕乘車種分」：30 日內死亡人數依死者的駕乘車種（大客車、大貨車、小客車、小貨車、特種車、機車、自行車、行人、乘客、其他、不明），2008 年起；各類加起來要等於「總計」，對不上會報錯。2022 年 3,064、2023 年 3,023、2024 年 2,950、2025 年 2,858 人，跟行政院人權指標（子指標 48「道路交通事故整體30日死亡人數」）一致。
+      - 「機車」只算騎士，乘客不分車種另外一類（2025 年 156 人），所以機車占比比 WHO 的定義（含乘客）略低；側欄台灣多列一類「乘客（不分車種）」。「自行車」含腳踏自行車、電動輔助自行車、微型電動二輪車。
+      - 死亡率 = 30 日內死亡人數 ÷ WPP 年中人口（跟其他國家同一個人口來源）：2023 年 13.0（世界 15.2、日本 2.7、美國 18.4）。WHO 的資料只到 2023 年，台灣 2024、2025 年的數字寫在附註。
+      - 機動車輛：表 100（到 2012 年 8 月）與 101（2012 年 9 月起）的年底登記數（汽車加機車，2025 年底約 2,340 萬輛，六成多是機車），每萬輛 1.2–1.3 人。
+      - **24 小時與 30 日**：警察機關的 A1 類事故是當場或 24 小時內死亡，早年常被引用的死亡人數是這個定義，比 30 日的少很多；交通部的 30 日內死亡統計從 2008 年開始，跟 WHO 與多數國家的定義相同，所以地圖上只用 30 日的數字（附註、頁尾都有寫）。
+      - 「行人地獄」寫在台灣的行人占比附註，只寫有出處的事實：2022 年 12 月 7 日 CNN 的旅遊專欄引用網友的說法（a living hell for pedestrians）之後這個說法廣泛流傳；交通部 2023 年 8 月 17 日向行政院報告「行人交通安全政策綱領」（2024–2027 年）；《道路交通安全基本法》2023 年 12 月 15 日公布、2024 年 1 月 1 日施行，以 2050 年道路交通事故零死亡為目標；行人 30 日內死亡 2022 年 394 人、2025 年 354 人。
+      - 交通部另有 data.gov.tw 172799「112年道路交通事故30日死亡清單」，一列一位死者，但「當事者區分」「受傷程度」是那起事故第一當事者的欄位（不是死者本身），不能拿來分道路使用者，沒有用。
+    - **顏色**：死亡率、占比、每萬輛都是橘色循序色（死亡率、每萬輛 `lowerIsBetter`，排名表由低排到高）；死亡人數是比例圓。側欄的組成用介面的 8 色（機車橘、行人紅、自行車綠、汽車藍、乘客紫、其他黃）。
 
 ## 9. 之後可以做的
 
