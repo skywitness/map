@@ -80,7 +80,7 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `population-grid` 是框選估算用的網格人口，`elevation` 是海拔主題（USGS GMTED2010 的 1 公里 DEM，第一次會下載約 760 MB），兩個都要先有 `geo` 的國界。`disease` 第一次會向 WHO 的 API 一年一年查 2000–2023 年的死因資料，約 15 分鐘。`migration` 第一次會向 UNHCR 的 API 一年一年查 1990 年以來的難民資料，約 2 分鐘。`inequality` 第一次會下載 World Inequality Database 的整包資料（約 890 MB），`wealth` 共用同一份。
 
-`population-density-tiles` 產生人口密度的 1 km 網格圖磚（`public/tiles/`，約 585 MB、6 萬個檔）。圖磚不進版本控制，部署時由 GitHub Actions 產生；本機要看網格才需要跑，第一次會下載 12 期 GHS-POP（共 5.8 GB），約 25 分鐘。沒跑的話，切到「1 km 網格」會顯示載入失敗、改畫國家平均。做法與大小見 DESIGN.md 第 14 節。
+`population-density-tiles` 產生人口密度的 1 km 網格圖磚（`public/tiles/`，約 585 MB、6 萬個檔）。圖磚不進版本控制，部署時由 GitHub Actions 產生；本機要看網格才需要跑，第一次會下載 12 期 GHS-POP（共 5.8 GB），約 25 分鐘。沒跑的話，切到「1 km 網格」會顯示載入失敗、改畫國家平均。開發伺服器不監看 `public/tiles/`（檔案太多會卡住），所以產生圖磚之後要重開 `npm run dev`。做法與大小見 DESIGN.md 第 14 節。
 
 `temperature` 是氣溫與降雨主題（CRU TS，第一次會下載月均溫與降雨約 385 MB）。`temperature-grid-tiles` 產生暖化的 0.5° 網格圖磚（`public/tiles/warming/`，約 20 MB、2.4 萬個檔），跟人口密度的網格一樣不進版本控制、部署時產生，本機約 3–5 分鐘。
 

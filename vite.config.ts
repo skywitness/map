@@ -95,6 +95,11 @@ export default defineConfig(({ command }) => ({
   },
   // 相對路徑，方便部署到 GitHub Pages 的子路徑
   base: './',
+  server: {
+    // 網格圖磚（public/tiles，人口 6 萬張、暖化 2.4 萬張）不監看：產生圖磚時每一張都會觸發一次檔案事件，
+    // 開發伺服器會整個停住不回應。代價是 Vite 只在啟動時列出 public/ 的檔案，重新產生圖磚後要重開開發伺服器
+    watch: { ignored: ['**/public/tiles/**'] },
+  },
   build: {
     // 地圖引擎 MapLibre 自己一個 chunk（約 1 MB，gzip 後約 310 KB），跟首頁程式、資料平行下載；
     // ECharts 單獨一個 chunk 約 540 KB，點國家時才載入

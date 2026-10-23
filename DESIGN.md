@@ -1048,6 +1048,10 @@ pipeline/
 - **Vite 讀到寫到一半的檔案**：
   - 用腳本連續改同一個檔案時，Vite 偶爾會在檔案寫到一半時讀進來並快取住，瀏覽器出現「does not provide an export named …」。
   - 用 `touch` 該檔案重新觸發轉換即可。
+- **開發伺服器不監看 `public/tiles`**（`vite.config.ts` 的 `server.watch.ignored`）：
+  - 網格圖磚有 8 萬多張（人口 6 萬、暖化 2.4 萬）。監看的話，產生圖磚時每一張都會觸發一次檔案事件（Vite 對每個事件跑外掛的 `watchChange`、查模組圖），2026-10-23 產生暖化圖磚時開發伺服器整個停住，連首頁都 60 秒沒有回應。
+  - **重新產生圖磚後要重開開發伺服器**：Vite 啟動時列出 `public/` 的所有檔案，只提供清單裡有的，之後靠監看的新增、刪除事件更新清單。圖磚網址含版本，重新產生（改了門檻、顏色或程式）會寫到新版本的資料夾，`meta.json` 卻是覆寫同一個檔，所以前端會去拿清單裡沒有的新圖磚：Vite 回的是首頁的 HTML（HTTP 200，實測），MapLibre 解不出圖片，網格整片空白。
+  - 建置、部署、`npm run preview` 都不經過監看，不受影響；`public/` 的檔案本來就不會觸發熱更新。
 - **換 MapLibre 版本後**：要刪掉 `node_modules/.vite` 再重啟開發伺服器，否則 Vite 會沿用舊版的預先打包檔。
 - **Service worker 只在正式版註冊**：
   - `npm run dev` 不會有快取問題。
