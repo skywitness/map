@@ -1,5 +1,6 @@
 # 推送到 main 時自動建置並發佈到 GitHub Pages
-# 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線
+# 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線；
+# 只有人口密度的 1 km 網格圖磚（約 600 MB、6 萬個檔，不進版本庫）在這裡產生，存在 actions/cache
 name: 部署到 GitHub Pages
 
 on:
@@ -27,6 +28,42 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # 人口密度的 1 km 網格圖磚（pipeline/topics/population_density_tiles.py）：產生的程式或地圖的橘色色階
+      # （tokens.ts 的 ORANGE）改了才重新產生，要下載 12 期 GHS-POP（共 5.8 GB），約 15 分鐘
+      - name: 網格圖磚的快取鍵
+        id: tiles-key
+        run: |
+          hash=$(cat pipeline/topics/population_density_tiles.py pipeline/sources/ghsl.py \
+            <(sed -n '/^const ORANGE = {/,/}/p' src/theme/tokens.ts) | sha256sum | cut -c1-16)
+          echo "key=density-tiles-$hash" >> "$GITHUB_OUTPUT"
+      - name: 還原網格圖磚
+        id: tiles
+        uses: actions/cache/restore@v6
+        with:
+          path: public/tiles
+          key: ${{ steps.tiles-key.outputs.key }}
+          # 沒有完全符合的就先拿上一版：重新產生失敗時照樣有圖磚可以部署
+          restore-keys: density-tiles-
+      - uses: actions/setup-python@v7
+        if: steps.tiles.outputs.cache-hit != 'true'
+        with:
+          python-version: '3.13'
+      - name: 產生網格圖磚
+        id: build-tiles
+        if: steps.tiles.outputs.cache-hit != 'true'
+        # JRC 的伺服器連不上時不擋部署：用上一版的圖磚（連上一版都沒有時，網站上的網格會顯示載入失敗）
+        continue-on-error: true
+        env:
+          GHSL_PRUNE: '1' # 讀完一期就刪掉下載的原始檔，磁碟才夠
+        run: |
+          pip install "numpy>=2" "rasterio>=1.4"
+          python pipeline/run.py population-density-tiles
+      - name: 存下網格圖磚
+        if: steps.tiles.outputs.cache-hit != 'true' && steps.build-tiles.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: public/tiles
+          key: ${{ steps.tiles-key.outputs.key }}
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

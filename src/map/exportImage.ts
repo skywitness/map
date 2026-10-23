@@ -58,8 +58,19 @@ export async function captureMap(map: MaplibreMap): Promise<{ canvas: HTMLCanvas
 }
 
 export type ImageLegend =
-  /** stepped：3D 模式，色塊畫成階梯並加上高度說明 */
-  | { kind: 'choropleth'; title: string; unit: string; model: ChoroplethLegendModel; stepped?: boolean }
+  /**
+   * stepped：3D 模式，色塊畫成階梯並加上高度說明。
+   * notes、emptyKey：標題下的說明與取代「無資料」的標示（1 km 網格，跟畫面上的 ChoroplethLegend 一樣）
+   */
+  | {
+      kind: 'choropleth';
+      title: string;
+      unit: string;
+      model: ChoroplethLegendModel;
+      stepped?: boolean;
+      notes?: string[];
+      emptyKey?: string;
+    }
   | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel }
   /** 3D 模式的柱子 */
   | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
@@ -228,10 +239,12 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
   ctx.font = `12px ${font}`;
   const titleTotal = titleWidth + ctx.measureText(unit).width;
   ctx.font = `11px ${font}`;
-  const noDataWidth = 22 + ctx.measureText(t.noData).width;
+  // 1 km 網格沒有「無資料」，改標示不上色的格子
+  const empty = legend.kind === 'choropleth' ? legend.emptyKey : undefined;
+  const noDataWidth = 22 + ctx.measureText(empty ?? t.noData).width;
   const noteText = legend.kind === 'column' ? COLUMN_NOTE : legend.kind === 'choropleth' && legend.stepped ? STEPPED_NOTE : null;
-  const note = noteText && tr(noteText);
-  const noteWidth = note ? ctx.measureText(note).width : 0;
+  const notes = [...(noteText ? [tr(noteText)] : []), ...(legend.kind === 'choropleth' ? (legend.notes ?? []) : [])];
+  const noteWidth = Math.max(0, ...notes.map((n) => ctx.measureText(n).width));
 
   const drawTitle = () => {
     ctx.font = `600 12px ${font}`;
@@ -240,20 +253,26 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
     ctx.font = `12px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;
     ctx.fillText(unit, titleWidth, LEGEND_TITLE / 2);
-    if (note) {
-      ctx.font = `11px ${font}`;
-      ctx.fillText(note, 0, LEGEND_TITLE + TITLE_GAP + 5);
-    }
+    ctx.font = `11px ${font}`;
+    notes.forEach((note, i) => ctx.fillText(note, 0, LEGEND_TITLE + TITLE_GAP + 5 + i * NOTE_ROW));
   };
   const drawNoData = (top: number) => {
     const y = top + 4;
-    hatchSwatch(ctx, 0, y + 2, 16, 10, tokens);
+    if (empty) {
+      // 跟 .swatch-empty 一樣：只有外框，透出底圖
+      ctx.strokeStyle = tokens.axis;
+      ctx.lineWidth = 1;
+      roundRect(ctx, 0.5, y + 2.5, 15, 9, 2);
+      ctx.stroke();
+    } else {
+      hatchSwatch(ctx, 0, y + 2, 16, 10, tokens);
+    }
     ctx.font = `11px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;
-    ctx.fillText(t.noData, 22, y + 7);
+    ctx.fillText(empty ?? t.noData, 22, y + 7);
   };
 
-  const top = LEGEND_TITLE + TITLE_GAP + (note ? NOTE_ROW : 0);
+  const top = LEGEND_TITLE + TITLE_GAP + notes.length * NOTE_ROW;
   if (legend.kind === 'choropleth') {
     const { colors, labels, swatchWidth } = legend.model;
     const stepped = Boolean(legend.stepped);

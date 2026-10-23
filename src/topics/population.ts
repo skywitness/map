@@ -24,8 +24,8 @@ export const population: TopicDefinition = {
     },
     {
       name: {
-        zh: 'European Commission JRC, GHS-POP R2023A（框選估算的網格人口）',
-        en: 'European Commission JRC, GHS-POP R2023A (population grid for area estimates)',
+        zh: 'European Commission JRC, GHS-POP R2023A（人口密度的 1 km 網格、框選估算）',
+        en: 'European Commission JRC, GHS-POP R2023A (1 km population density grid and area estimates)',
       },
       url: 'https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php',
       license: 'CC BY 4.0',
@@ -56,6 +56,7 @@ export const population: TopicDefinition = {
       format: (v) => `${fixed(v, v < 100 ? 1 : 0)} ${tr(PER_KM2)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+      grid: { dir: 'population-density' },
     },
     {
       id: 'growth',

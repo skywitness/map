@@ -6,18 +6,22 @@
  * - 面量圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * - 3D 模式（fill-extrusion）：面量圖把國家依色階分級拉高，比例圓改成高度與數值成正比的柱子
+ * - 1 km 網格（densityGrid.ts）：點陣圖磚取代國家的顏色，國界、hover、點選照舊用國家的形狀
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import { bisectRight } from 'd3-array';
 import {
+  addProtocol,
   Map as MaplibreMap,
   type ExpressionSpecification,
   type GeoJSONSource,
   type LayerSpecification,
   type MapGeoJSONFeature,
   type MapMouseEvent,
+  type MapSourceDataEvent,
   type MapTouchEvent,
+  type RasterTileSource,
 } from 'maplibre-gl';
 import { geoArea, geoDistance } from 'd3-geo';
 import { useLang, useT } from '../i18n';
@@ -42,9 +46,13 @@ import {
   flowLegendModel,
 } from './Legend';
 import { DEFAULT_LAYERS, LAYER_KEYS, LayerControls, layerKeyColor, type LayerVisibility } from './Overlays';
-import { bubbleScale, choroplethScale } from './scales';
+import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
+import { GRID_PROTOCOL, gridText, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
 import { useElementSize } from './useElementSize';
+
+// 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
+addProtocol(GRID_PROTOCOL, loadGridTile);
 
 interface WorldMapProps {
   countries: CountryFeature[];
@@ -88,6 +96,10 @@ interface WorldMapProps {
   onThreeDChange?: (on: boolean) => void;
   /** key 改變時把地圖移到這個國家（從搜尋選國家時用） */
   focus?: { iso3: string; key: number } | null;
+  /** 1 km 網格（指標有 grid、使用者切到網格時）：取代面量圖的國家顏色 */
+  grid?: GridLayer | null;
+  /** 切到網格但 meta.json 載入失敗：照常畫國家平均，上方提示 */
+  gridFailed?: boolean;
   ref?: Ref<WorldMapHandle>;
 }
 
@@ -173,6 +185,10 @@ function classHeight(thresholds: number[], v: number): number {
 const DATA_FILL_OPACITY = 0.82;
 /** 流向圖夥伴國的淡底色 */
 const FLOW_TINT_OPACITY = 0.6;
+/** 1 km 網格的 source 與圖層 id */
+const GRID_LAYER = 'density-grid';
+/** 網格放大後稍微透明，看得到底圖的街道與地形，對照格子在哪裡；縮小時顏色要跟圖例一樣 */
+const GRID_OPACITY: ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 4, 0.92, 9, 0.8, 13, 0.62];
 
 /**
  * 依縮放調整面量圖的不透明度：放大後讓底圖的道路、地形透出來。
@@ -426,6 +442,7 @@ export function WorldMap(props: WorldMapProps) {
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
+  const { grid = null, gridFailed = false } = props;
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   const threeDRef = useRef(threeD);
@@ -728,6 +745,69 @@ export function WorldMap(props: WorldMapProps) {
     }
   }, [revision, countries, values, colorScale, indicator.layer.kind]);
 
+  // 1 km 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
+  // 換期時只換圖磚網址；切換底圖後新樣式沒有這個圖層，revision 變了會重新加上
+  const gridUrl = grid ? gridTiles(grid) : null;
+  const gridMeta = grid?.meta ?? null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const source = map.getSource<RasterTileSource>(GRID_LAYER);
+    if (!gridUrl || !gridMeta) {
+      if (source) map.setLayoutProperty(GRID_LAYER, 'visibility', 'none');
+      return;
+    }
+    if (!source) {
+      map.addSource(GRID_LAYER, {
+        type: 'raster',
+        tiles: [gridUrl],
+        tileSize: gridMeta.tileSize,
+        maxzoom: gridMeta.maxzoom,
+        attribution: `<a href="${gridMeta.sourceUrl}" target="_blank" rel="noreferrer">GHS-POP</a> © European Commission JRC`,
+      });
+      map.addLayer(
+        {
+          id: GRID_LAYER,
+          type: 'raster',
+          source: GRID_LAYER,
+          paint: {
+            'raster-opacity': GRID_OPACITY,
+            // 放大超過圖磚的級數時格子維持方塊；線性內插會把相鄰兩級混成圖例上沒有的顏色
+            'raster-resampling': 'nearest',
+            'raster-fade-duration': 0,
+          },
+        },
+        'data-fill',
+      );
+    } else if (source.tiles[0] !== gridUrl) {
+      source.setTiles([gridUrl]);
+    }
+    map.setLayoutProperty(GRID_LAYER, 'visibility', 'visible');
+  }, [revision, gridUrl, gridMeta]);
+
+  // 網格第一次畫好：留下 performance mark「map-grid」給載入速度量測用（npm run measure:load -- <網址> --mark map-grid）
+  const gridShownRef = useRef(false);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !gridUrl || gridShownRef.current) return;
+    let tileLoaded = false;
+    const onData = (e: MapSourceDataEvent) => {
+      if (e.sourceId === GRID_LAYER && e.tile) tileLoaded = true;
+    };
+    const onRender = () => {
+      if (!tileLoaded || !map.getSource(GRID_LAYER) || !map.isSourceLoaded(GRID_LAYER)) return;
+      map.off('render', onRender);
+      gridShownRef.current = true;
+      performance.mark('map-grid');
+    };
+    map.on('sourcedata', onData);
+    map.on('render', onRender);
+    return () => {
+      map.off('sourcedata', onData);
+      map.off('render', onRender);
+    };
+  }, [revision, gridUrl]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -972,26 +1052,29 @@ export function WorldMap(props: WorldMapProps) {
   }, [threeD]);
 
   // 3D：依指標的圖層類型換成立體圖層。面量圖的平面上色、國界、選取外框改由立體圖形的顏色表現；
-  // data-fill 留著（透明）當點選的備援
+  // data-fill 留著（透明）當點選的備援。
+  // 1 km 網格：國家不上色（data-fill 透明，hover、點選照舊），國界照畫；3D 時網格維持平面、國家不拉高，
+  // 只是把地圖傾斜（點陣圖沒辦法依格子拉高，拉高國家平均又會跟網格的顏色對不起來）
+  const gridOn = Boolean(gridUrl);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     const kind = indicator.layer.kind;
-    const slabs = threeD && kind === 'choropleth';
+    const slabs = threeD && kind === 'choropleth' && !gridOn;
     const show = (id: string, visible: boolean) => map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
     show('extrude-countries', slabs);
     show('extrude-tiny', slabs);
     show('extrude-columns', threeD && kind === 'bubble');
     show('bubbles', !threeD);
-    show('data-tiny', !slabs);
+    show('data-tiny', !slabs && !gridOn);
     show('data-border', !slabs);
     show('data-highlight', !slabs);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
     // 更新 feature-state，MapLibre 會對常數呼叫 evaluate 而丟出 TypeError
-    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
+    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs || gridOn ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
     // 平面時鐵路在比例圓下面；3D 時改畫在立體圖形上面，否則會被整片蓋住
     map.moveLayer('rail', threeD ? 'airports-medium' : 'data-tiny');
-  }, [revision, threeD, indicator.layer.kind]);
+  }, [revision, threeD, indicator.layer.kind, gridOn]);
 
   // 回正按鈕上的指北針跟著地圖旋轉
   const compassRef = useRef<SVGSVGElement>(null);
@@ -1037,6 +1120,20 @@ export function WorldMap(props: WorldMapProps) {
     else void containerRef.current?.requestFullscreen?.();
   };
 
+  // 1 km 網格的圖例：顏色、門檻用 meta.json 的（跟圖磚裡畫的一樣），寫出是哪一期
+  const gridLegend = useMemo(() => {
+    if (!grid) return null;
+    const g = gridText(lang);
+    const { meta, epoch } = grid;
+    const projected = meta.projectionFrom !== undefined && epoch >= meta.projectionFrom;
+    return {
+      title: g.title(legendTitle),
+      scale: gridScale(meta),
+      notes: [g.note(epoch, projected), ...(threeD ? [g.flatIn3d] : [])],
+      emptyKey: g.empty(String(meta.minDensity)),
+    };
+  }, [grid, lang, legendTitle, threeD]);
+
   const hasOverlays = Boolean(railways || airports);
   // 流向圖還沒選國家時，提示使用者點一下；選了但那一年沒有資料也要說
   const flowLayer = indicator.layer.kind === 'flow' ? indicator.layer : null;
@@ -1058,7 +1155,7 @@ export function WorldMap(props: WorldMapProps) {
         // 圖例跟畫面上的一樣：數值圖例（3D 時是階梯色塊或柱子），加上目前開著的疊加圖層
         const title = legendTitle;
         const unit = indicator.unit;
-        const legend: ImageLegend | null = colorScale
+        const valueLegend: ImageLegend | null = colorScale
           ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD }
           : indicator.layer.kind !== 'bubble'
             ? flowLayer && flows && flowMax > 0
@@ -1067,6 +1164,17 @@ export function WorldMap(props: WorldMapProps) {
             : threeD
               ? { kind: 'column', title, unit, model: columnLegendModel(indicator, bubbleMax), color: MAP_TOKENS.accent }
               : { kind: 'bubble', title, unit, model: bubbleLegendModel(indicator, radius) };
+        // 1 km 網格：網格的分級、哪一期、不上色的格子
+        const legend: ImageLegend | null = gridLegend
+          ? {
+              kind: 'choropleth',
+              title: gridLegend.title,
+              unit,
+              model: choroplethLegendModel(indicator, gridLegend.scale),
+              notes: gridLegend.notes,
+              emptyKey: gridLegend.emptyKey,
+            }
+          : valueLegend;
         const layerKeys = onLayersChange
           ? LAYER_KEYS.filter((k) => (k.source === 'railways' ? railways : airports) && layers[k.key]).map((key) => ({
               key,
@@ -1077,7 +1185,7 @@ export function WorldMap(props: WorldMapProps) {
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
       },
     }),
-    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax],
+    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend],
   );
 
   return (
@@ -1178,6 +1286,7 @@ export function WorldMap(props: WorldMapProps) {
 
       {boxMode && <div className="map-hint">{t.boxHint}</div>}
       {flowHint && !threeDHint && <div className="map-hint">{flowHint}</div>}
+      {gridFailed && !boxMode && !threeDHint && <div className="map-hint">{gridText(lang).failed}</div>}
       {threeDHint && (
         <div className="map-hint is-wrap">
           {matchMedia('(pointer: coarse)').matches ? t.threeDHintTouch : t.threeDHintMouse}
@@ -1196,7 +1305,15 @@ export function WorldMap(props: WorldMapProps) {
             tokens={tokens}
           />
         )}
-        {colorScale ? (
+        {gridLegend ? (
+          <ChoroplethLegend
+            indicator={indicator}
+            title={gridLegend.title}
+            scale={gridLegend.scale}
+            notes={gridLegend.notes}
+            emptyKey={gridLegend.emptyKey}
+          />
+        ) : colorScale ? (
           <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} stepped={threeD} />
         ) : indicator.layer.kind === 'bubble' ? (
           threeD ? (

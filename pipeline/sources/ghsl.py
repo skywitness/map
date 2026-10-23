@@ -20,12 +20,24 @@ from rasterio.windows import transform as window_transform
 
 from common import download
 
-EPOCH = 2020  # R2023A 的 2025、2030 是推估；2020 是最接近實測的一期
-NAME = f"GHS_POP_E{EPOCH}_GLOBE_R2023A_4326_30ss_V1_0"
-URL = (
-    "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/"
-    f"GHS_POP_E{EPOCH}_GLOBE_R2023A_4326_30ss/V1-0/{NAME}.zip"
-)
+EPOCH = 2020  # 框選估算用的一期：R2023A 的 2025、2030 是推估；2020 是最接近實測的一期
+EPOCHS = list(range(1975, 2031, 5))  # R2023A 的全部各期（每期一個 zip，約 480 MB）
+PROJECTION_FROM = 2025  # 從這一期開始是推估
+
+
+def name(epoch: int = EPOCH) -> str:
+    return f"GHS_POP_E{epoch}_GLOBE_R2023A_4326_30ss_V1_0"
+
+
+def url(epoch: int = EPOCH) -> str:
+    return (
+        "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/"
+        f"GHS_POP_E{epoch}_GLOBE_R2023A_4326_30ss/V1-0/{name(epoch)}.zip"
+    )
+
+
+NAME = name()
+URL = url()
 CITATION = (
     "Schiavina, M., Freire, S., Carioli, A., MacManus, K. (2023): GHS-POP R2023A - "
     "GHS population grid multitemporal (1975-2030). European Commission, Joint Research Centre (JRC). "
@@ -58,13 +70,13 @@ class GridResult:
     raw_total: float  # 原始網格的全球總人數
 
 
-def raster_path() -> Path:
+def raster_path(epoch: int = EPOCH) -> Path:
     """下載 zip 並把 GeoTIFF 解壓到快取（zip 內是 deflate 壓縮，直接隨機讀取很慢）。"""
-    archive = download(URL, "ghsl", f"{NAME}.zip")
+    archive = download(url(epoch), "ghsl", f"{name(epoch)}.zip")
     tif = archive.with_suffix(".tif")
     if not tif.exists() or tif.stat().st_mtime < archive.stat().st_mtime:
         print(f"  解壓 {tif.name}")
-        with zipfile.ZipFile(archive) as z, z.open(f"{NAME}.tif") as src, open(tif, "wb") as dst:
+        with zipfile.ZipFile(archive) as z, z.open(f"{name(epoch)}.tif") as src, open(tif, "wb") as dst:
             while chunk := src.read(1 << 24):
                 dst.write(chunk)
     return tif
