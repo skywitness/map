@@ -92,7 +92,7 @@ def add_after(base: Series, extra: Series) -> set[str]:
 def oecd_notes(key: str, used: set[str], europe: Series, extra: dict[str, tuple[str, str]] | None = None) -> tuple[dict, dict]:
     zh, en = OECD_NOTE[key]
     notes, notes_en = {}, {}
-    for iso3 in used:
+    for iso3 in sorted(used):  # set 的順序每次執行都不同，排序後輸出的檔案才穩定
         add_zh, add_en = (extra or {}).get(iso3, ("", ""))
         if europe.get(iso3):
             since = max(europe[iso3]) + 1
@@ -106,7 +106,8 @@ def oecd_notes(key: str, used: set[str], europe: Series, extra: dict[str, tuple[
 
 def dwelling_types() -> tuple[dict[str, Series], set[str], Series, Series]:
     """{分類: {iso3: {year: %}}}、用到 OECD 的國家、台灣依樓層的組成 {分類: {year: %}}，以及 Eurostat 原本的公寓比例。"""
-    europe = {kind: eurostat.series("ilc_lvho01", rskpovth="TOTAL", building=code, deg_urb="TOTAL", unit="PC")
+    # 先放 Eurostat，再補上 OECD 的國家與年份
+    types = {kind: eurostat.series("ilc_lvho01", rskpovth="TOTAL", building=code, deg_urb="TOTAL", unit="PC")
               for kind, code in EU_DWELLING.items()}
     oecd = oecd_ahd.annex(DWELLING_FILE, "HM1.5.A1", set(DWELLING_TYPES))
     extra: dict[str, Series] = {kind: {} for kind in EU_DWELLING}
@@ -120,21 +121,21 @@ def dwelling_types() -> tuple[dict[str, Series], set[str], Series, Series]:
                     target = extra[kind].setdefault(iso3, {})
                     target[year] = target.get(year, 0) + v  # 「其他」與「未分類」相加
     used = set()
-    last_eu = {iso3: dict(s) for iso3, s in europe["flat"].items()}
+    last_eu = {iso3: dict(s) for iso3, s in types["flat"].items()}
     for kind in EU_DWELLING:
         # 都依公寓比例決定哪些年份用 OECD，各分類才會是同一個來源
         for iso3, values in extra[kind].items():
             last = max(last_eu[iso3]) if iso3 in last_eu else -1
             later = {y: v for y, v in values.items() if y > last}
             if later:
-                europe[kind].setdefault(iso3, {}).update(later)
+                types[kind].setdefault(iso3, {}).update(later)
                 used.add(iso3)
 
     floors = moi_realestate.dwellings_by_floors()
     taiwan = {kind: {y: sum(c[k] for k in keys) / c["total"] * 100 for y, c in floors.items()}
               for kind, keys in TAIWAN_FLOORS.items()}
-    europe["flat"]["TWN"] = {y: sum(c[k] for k in TAIWAN_FLAT_FLOORS) / c["total"] * 100 for y, c in floors.items()}
-    return europe, used, taiwan, last_eu
+    types["flat"]["TWN"] = {y: sum(c[k] for k in TAIWAN_FLAT_FLOORS) / c["total"] * 100 for y, c in floors.items()}
+    return types, used, taiwan, last_eu
 
 
 def build() -> None:
