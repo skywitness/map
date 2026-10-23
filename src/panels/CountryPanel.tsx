@@ -7,6 +7,7 @@ import { useJsonMany } from '../lib/data';
 import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
+  missingReason,
   usesDimension,
   yearBin,
   type Indicator,
@@ -58,8 +59,9 @@ export function CountryPanel(props: CountryPanelProps) {
   const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
   const card = (ind: Indicator, i: number) =>
     shown(ind) && !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
-  // 主題寫明這個國家為什麼沒有值（例如台灣的外交裡的台灣）時，用它取代「無資料」
-  const noValue = topic.noValue?.[iso3];
+  // 主題或指標寫明這個國家為什麼沒有值（台灣的外交裡的台灣、護照主題的本國護照、與美國的一致度裡的美國）時，
+  // 用它取代「無資料」
+  const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
@@ -105,6 +107,7 @@ export function CountryPanel(props: CountryPanelProps) {
     });
   }, [activeData, iso3, name, indicator, year, tokens, t]);
 
+  const activeReason = reason(indicator);
   const projectionFrom = activeData?.projectionFrom;
   const methodBreak = activeData?.methodBreak;
   // 附註只有中文的話，英文介面不顯示
@@ -144,7 +147,7 @@ export function CountryPanel(props: CountryPanelProps) {
             aria-pressed={ind.id === indicator.id}
           >
             <span className="stat-label">{label(ind)}</span>
-            <span className="stat-value">{value != null ? ind.format(value) : (noValue ?? t.noData)}</span>
+            <span className="stat-value">{value != null ? ind.format(value) : (reason(ind) ?? t.noData)}</span>
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
@@ -158,8 +161,9 @@ export function CountryPanel(props: CountryPanelProps) {
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
-          {noValue ? (
-            <p className="empty">{noValue}</p>
+          {/* 有原因、而且這個國家完全沒有值時才用原因取代圖表：台灣在聯合國投票只有 1946–1971 年有值，照樣畫圖 */}
+          {activeReason && !activeData?.values[iso3]?.some((v) => v != null) ? (
+            <p className="empty">{activeReason}</p>
           ) : indicator.layer.kind === 'categorical' && activeData ? (
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
           ) : option ? (
