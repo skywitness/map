@@ -40,7 +40,7 @@ STEPS = {
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
-    "democracy": "topics.democracy",
+    "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "nobel": "topics.nobel",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
