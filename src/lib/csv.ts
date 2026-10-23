@@ -21,12 +21,11 @@ export function indicatorCsv(
     countries: CountryTable | null;
     /** 只輸出這一年；不給就輸出所有年份 */
     year?: number;
-    /** 類別圖的數值是代碼，輸出成類別名稱 */
+    /** 類別圖：輸出類別名稱（indicator.format）而不是代碼 */
     label?: (value: number) => string;
   },
 ): string {
   const { unit, countries, year, label } = options;
-  const cell = (v: number | null | undefined) => (v != null && label ? label(v) : v);
   const lang = getLang();
   const h = HEADERS[lang];
   const columns = year === undefined ? data.years.map((_, i) => i) : [data.years.indexOf(year)].filter((i) => i >= 0);
@@ -47,7 +46,8 @@ export function indicatorCsv(
     // 單一年份：依數值由大到小，跟排名表一樣；沒有資料的國家排最後
     const i = columns[0];
     const v = (iso3: string) => data.values[iso3][i] ?? -Infinity;
-    codes = [...codes].sort((a, b) => v(b) - v(a));
+    // 類別沒有大小，維持依國名排
+    if (!label) codes = [...codes].sort((a, b) => v(b) - v(a));
   }
 
   const rows: (string | number | null | undefined)[][] = [
@@ -58,7 +58,10 @@ export function indicatorCsv(
       iso3,
       ...names(iso3),
       unit,
-      ...columns.map((i) => cell(data.values[iso3][i])),
+      ...columns.map((i) => {
+        const v = data.values[iso3][i];
+        return label && v != null ? label(v) : v;
+      }),
       ...(hasNotes ? [notes?.[iso3]] : []),
     ]);
   }

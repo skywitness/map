@@ -66,8 +66,8 @@ export type ImageLegend =
   | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
   /** 流向圖：線寬樣本與流向說明 */
   | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel }
-  /** 類別圖：每個類別一個色塊與國家數 */
-  | { kind: 'categorical'; title: string; unit: string; model: CategoricalLegendModel };
+  /** 類別圖：色塊、名稱、國家數；類別沒有單位 */
+  | { kind: 'categorical'; title: string; unit?: undefined; model: CategoricalLegendModel };
 
 /** 圖片上的文字，由呼叫端（知道主題、年份、來源的 App）提供 */
 export interface MapImageContent {
@@ -222,6 +222,9 @@ const TITLE_GAP = 6;
 const NO_DATA_ROW = 18;
 /** 3D 圖例標題下的高度說明（.legend-note） */
 const NOTE_ROW = 18;
+/** 類別圖例每一類的列高與兩欄之間的距離（跟 .legend-categories 一樣） */
+const CATEGORY_ROW = 18;
+const CATEGORY_GAP = 14;
 
 function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: Tokens, font: string): Card {
   const t = messages();
@@ -295,27 +298,39 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
   }
 
   if (legend.kind === 'categorical') {
-    const rowHeight = 16;
-    const rows = legend.model.items.map((item) => ({ ...item, countText: t.countryCount(item.count) }));
-    const labelWidth = Math.max(0, ...rows.map((r) => ctx.measureText(r.label).width));
-    const countWidth = Math.max(0, ...rows.map((r) => ctx.measureText(r.countText).width));
+    // 跟畫面上的 .legend-categories 一樣：每列一類（色塊、名稱、國家數），類別多時排成兩欄
+    const { items, columns } = legend.model;
+    const rows = Math.ceil(items.length / columns);
+    const countWidth = Math.max(...items.map((i) => ctx.measureText(String(i.count)).width));
+    const labelWidth = Math.max(...items.map((i) => ctx.measureText(i.label).width));
+    const cellWidth = 16 + 6 + labelWidth + 8 + countWidth;
+    const width = cellWidth * columns + CATEGORY_GAP * (columns - 1);
     return {
-      width: Math.max(titleTotal, 22 + labelWidth + 6 + countWidth, noDataWidth),
-      height: top + rows.length * rowHeight + NO_DATA_ROW,
+      width: Math.max(titleTotal, width, noDataWidth),
+      height: top + rows * CATEGORY_ROW + NO_DATA_ROW,
       draw: () => {
         drawTitle();
         ctx.font = `11px ${font}`;
-        rows.forEach(({ color, label, countText }, i) => {
-          const y = top + i * rowHeight;
+        items.forEach(({ label, color, count }, i) => {
+          // 由上往下先排滿第一欄
+          const x = Math.floor(i / rows) * (cellWidth + CATEGORY_GAP);
+          const y = top + (i % rows) * CATEGORY_ROW + CATEGORY_ROW / 2;
           ctx.fillStyle = color;
-          roundRect(ctx, 0, y + 2, 16, 10, 2);
+          roundRect(ctx, x, y - 5, 16, 10, 2);
           ctx.fill();
+          // 淺色（黃、「其他」）在淺色卡片上也看得到邊（跟 .legend-swatch 一樣）
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+          ctx.lineWidth = 1;
+          roundRect(ctx, x + 0.5, y - 4.5, 15, 9, 2);
+          ctx.stroke();
           ctx.fillStyle = tokens.ink;
-          ctx.fillText(label, 22, y + 7);
-          ctx.fillStyle = tokens.inkSecondary;
-          ctx.fillText(countText, 22 + ctx.measureText(label).width + 6, y + 7);
+          ctx.fillText(label, x + 22, y);
+          ctx.fillStyle = tokens.inkMuted;
+          ctx.textAlign = 'right';
+          ctx.fillText(String(count), x + cellWidth, y);
+          ctx.textAlign = 'left';
         });
-        drawNoData(top + rows.length * rowHeight);
+        drawNoData(top + rows * CATEGORY_ROW - 4);
       },
     };
   }

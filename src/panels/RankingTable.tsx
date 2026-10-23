@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLang, useT } from '../i18n';
 import { countryName, enName, type CountryTable } from '../lib/countries';
 import { formatPercent } from '../lib/format';
+import { categoryScale } from '../map/categories';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { Indicator } from '../topics/types';
 import { ranking } from './stats';
@@ -22,20 +23,24 @@ export function RankingTable(props: RankingTableProps) {
   const { indicator, title, values, world, year, countries, selected, onSelect } = props;
   const t = useT();
   const lang = useLang();
-  // 類別圖（例如首要死因）沒有名次，依類別分組、組內依國名排
-  const categories = indicator.layer.kind === 'categorical' ? indicator.layer.categories : null;
-  const hues = useMemo(() => new Map(categories?.map((c) => [c.value, MAP_TOKENS.hues[c.hue]])), [categories]);
+  // 類別圖沒有大小之分：依圖例的類別順序排，同一類（「其他」裡同一種）再依國名排，數值欄放色塊與類別名稱
+  const categories = useMemo(
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
+    [indicator],
+  );
   // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0
   const rows = useMemo(() => {
-    if (categories) {
-      const order = new Map(categories.map((c, i) => [c.value, i]));
-      const name = (iso3: string) => countryName(iso3, countries);
-      return [...values].sort(
+    if (!categories) return ranking(values).filter(([, v]) => indicator.layer.kind === 'choropleth' || v > 0);
+    const name = (iso3: string) => countryName(iso3, countries);
+    const locale = lang === 'en' ? 'en' : 'zh-Hant-TW';
+    return [...values]
+      .filter(([, v]) => categories.index(v) !== null)
+      .sort(
         ([a, va], [b, vb]) =>
-          (order.get(va) ?? Infinity) - (order.get(vb) ?? Infinity) || name(a).localeCompare(name(b), lang === 'en' ? 'en' : 'zh-Hant-TW'),
+          categories.index(va)! - categories.index(vb)! ||
+          indicator.format(va).localeCompare(indicator.format(vb), locale) ||
+          name(a).localeCompare(name(b), locale),
       );
-    }
-    return ranking(values).filter(([, v]) => indicator.layer.kind === 'choropleth' || v > 0);
   }, [values, indicator, categories, countries, lang]);
   const max = rows[0]?.[1] ?? 0;
   const showBars = !categories && rows.length > 0 && rows[rows.length - 1][1] >= 0;
@@ -74,12 +79,12 @@ export function RankingTable(props: RankingTableProps) {
               </td>
               <td className="num value-cell">
                 <div className="value-wrap">
-                  {categories && <span className="legend-swatch" style={{ background: hues.get(value) }} />}
                   {showBars && (
                     <span className="value-track" aria-hidden="true">
                       <span className="value-bar" style={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }} />
                     </span>
                   )}
+                  {categories && <span className="legend-swatch" style={{ background: categories.color(value)! }} />}
                   {indicator.format(value)}
                 </div>
               </td>

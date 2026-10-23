@@ -1,9 +1,11 @@
+import type { CSSProperties } from 'react';
 import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { FlowDirection, Indicator } from '../topics/types';
-import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import type { Tokens } from '../theme/tokens';
 import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
+import type { CategoryScale } from './categories';
 
 /** 面量圖圖例的色塊與刻度（畫面上的圖例與匯出的圖片共用） */
 export interface ChoroplethLegendModel {
@@ -68,48 +70,6 @@ export function ChoroplethLegend({ indicator, title, scale, stepped = false }: C
           ))}
         </div>
       </div>
-      <NoDataKey />
-    </div>
-  );
-}
-
-/** 類別圖圖例：只列出這一年有出現的類別，附上國家數（畫面上的圖例與匯出的圖片共用） */
-export interface CategoricalLegendModel {
-  items: { color: string; label: string; count: number }[];
-}
-
-export function categoricalLegendModel(indicator: Indicator, values: Map<string, number>): CategoricalLegendModel {
-  if (indicator.layer.kind !== 'categorical') return { items: [] };
-  const counts = new Map<number, number>();
-  for (const v of values.values()) counts.set(v, (counts.get(v) ?? 0) + 1);
-  return {
-    items: indicator.layer.categories
-      .filter((c) => counts.has(c.value))
-      .map((c) => ({ color: MAP_TOKENS.hues[c.hue], label: c.label, count: counts.get(c.value)! })),
-  };
-}
-
-interface CategoricalLegendProps {
-  indicator: Indicator;
-  title: string;
-  values: Map<string, number>;
-}
-
-export function CategoricalLegend({ indicator, title, values }: CategoricalLegendProps) {
-  const t = useT();
-  const { items } = categoricalLegendModel(indicator, values);
-  return (
-    <div className="legend">
-      <div className="legend-title">{title}</div>
-      <ul className="legend-categories">
-        {items.map(({ color, label, count }) => (
-          <li key={label}>
-            <span className="legend-swatch" style={{ background: color }} />
-            {label}
-            <span className="legend-count">{t.countryCount(count)}</span>
-          </li>
-        ))}
-      </ul>
       <NoDataKey />
     </div>
   );
@@ -317,6 +277,77 @@ export function FlowLegend({ indicator, title, direction, max, tokens }: FlowLeg
         </svg>
         {key}
       </div>
+    </div>
+  );
+}
+
+/** 類別圖圖例：每一類一列（色塊、名稱、國家數），類別多時排成兩欄（畫面上的圖例與匯出的圖片共用） */
+export interface CategoricalLegendModel {
+  items: { label: string; color: string; count: number }[];
+  columns: number;
+}
+
+/** 超過這麼多類就排成兩欄，圖例才不會太高（手機上會蓋住半張地圖） */
+const ONE_COLUMN_MAX = 5;
+
+export function categoricalLegendModel(scale: CategoryScale, values: Map<string, number>): CategoricalLegendModel {
+  const counts = scale.items.map(() => 0);
+  for (const v of values.values()) {
+    const i = scale.index(v);
+    if (i !== null) counts[i]++;
+  }
+  return {
+    items: scale.items.map((item, i) => ({ label: item.label, color: item.color, count: counts[i] })),
+    columns: scale.items.length > ONE_COLUMN_MAX ? 2 : 1,
+  };
+}
+
+interface CategoricalLegendProps {
+  title: string;
+  scale: CategoryScale;
+  values: Map<string, number>;
+  /** 目前強調的類別（地圖上其他類別淡化） */
+  highlight: number | null;
+  /** 滑過或聚焦時強調；離開時傳 null */
+  onPreview: (index: number | null) => void;
+  /** 點一下固定強調（觸控裝置沒有滑過），再點一下取消 */
+  pinned: number | null;
+  onPin: (index: number | null) => void;
+}
+
+/** 類別圖：色塊與名稱，沒有數值刻度。滑過、點選某一類時地圖上只突顯那一類的國家 */
+export function CategoricalLegend({ title, scale, values, highlight, onPreview, pinned, onPin }: CategoricalLegendProps) {
+  const t = useT();
+  const { items, columns } = categoricalLegendModel(scale, values);
+  return (
+    <div className="legend legend-categorical">
+      <div className="legend-title">{title}</div>
+      <ul
+        className={`legend-categories${columns > 1 ? ' is-two-columns' : ''}`}
+        style={{ '--rows': Math.ceil(items.length / columns) } as CSSProperties}
+        aria-label={title}
+      >
+        {items.map(({ label, color, count }, i) => (
+          <li key={label}>
+            <button
+              type="button"
+              className={`legend-category${highlight !== null && highlight !== i ? ' is-faded' : ''}`}
+              aria-pressed={pinned === i}
+              onMouseEnter={() => onPreview(i)}
+              onMouseLeave={() => onPreview(null)}
+              onFocus={() => onPreview(i)}
+              onBlur={() => onPreview(null)}
+              onClick={() => onPin(pinned === i ? null : i)}
+              title={t.categoryTitle(label, count)}
+            >
+              <span className="legend-swatch" style={{ background: color }} />
+              <span className="legend-category-label">{label}</span>
+              <span className="legend-count">{count}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <NoDataKey />
     </div>
   );
 }

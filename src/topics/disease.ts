@@ -10,16 +10,16 @@ const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Governmen
 
 /**
  * 首要死因的分類：WHO Global Health Estimates 第二層死因的代碼（pipeline/topics/disease.py 的 TOP_CAUSES）。
- * 2000–2023 年各國的首要死因只出現這 7 類；顏色避開藍色（底圖的海）。
+ * 2000–2023 年各國的首要死因只出現這 7 類。順序就是圖例的順序，顏色依序取 MAP_TOKENS.categorical。
  */
 const TOP_CAUSES: CategoryDef[] = [
-  { value: 1100, label: { zh: '心血管疾病', en: 'Cardiovascular diseases' }, hue: 'red' },
-  { value: 610, label: { zh: '癌症', en: 'Cancers' }, hue: 'violet' },
-  { value: 20, label: { zh: '感染與寄生蟲疾病', en: 'Infectious and parasitic diseases' }, hue: 'yellow' },
-  { value: 380, label: { zh: '呼吸道感染（含 COVID-19）', en: 'Respiratory infections (incl. COVID-19)' }, hue: 'aqua' },
-  { value: 1520, label: { zh: '事故傷害與天災', en: 'Unintentional injuries and disasters' }, hue: 'orange' },
-  { value: 1600, label: { zh: '戰爭、暴力與自殺', en: 'Conflict, violence and self-harm' }, hue: 'magenta' },
-  { value: 540, label: { zh: '營養不良', en: 'Nutritional deficiencies' }, hue: 'green' },
+  { value: 1100, label: { zh: '心血管疾病', en: 'Cardiovascular diseases' } },
+  { value: 610, label: { zh: '癌症', en: 'Cancers' } },
+  { value: 20, label: { zh: '感染與寄生蟲疾病', en: 'Infectious and parasitic diseases' } },
+  { value: 380, label: { zh: '呼吸道感染（含 COVID-19）', en: 'Respiratory infections (incl. COVID-19)' } },
+  { value: 1520, label: { zh: '事故傷害與天災', en: 'Unintentional injuries and disasters' } },
+  { value: 1600, label: { zh: '戰爭、暴力與自殺', en: 'Conflict, violence and self-harm' } },
+  { value: 540, label: { zh: '營養不良', en: 'Nutritional deficiencies' } },
 ];
 const causeLabel = new Map(TOP_CAUSES.map((c) => [c.value, c.label]));
 

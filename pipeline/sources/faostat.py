@@ -7,6 +7,7 @@
 - World（5000）回傳成 'WLD'。
 
 詳細貿易矩陣（TM，雙邊貿易）解壓後約 8.5 GB、約 4,700 萬列，用 matrix_rows() 讀。
+糧食安全指標（FS）的年份是「2000-2002」這種三年區間、數值可能是「<2.5」，用 suite_rows() 讀原始字串。
 """
 from __future__ import annotations
 
@@ -25,7 +26,12 @@ DATASETS = {
     "TCL": "Trade_CropsLivestock_E_All_Data_(Normalized).zip",
     "QV": "Value_of_Production_E_All_Data_(Normalized).zip",
     "TM": "Trade_DetailedTradeMatrix_E_All_Data_(Normalized).zip",
+    "FBS": "FoodBalanceSheets_E_All_Data_(Normalized).zip",  # 糧食平衡表，2010 年起的新方法
+    "FBSH": "FoodBalanceSheetsHistoric_E_All_Data_(Normalized).zip",  # 舊方法，1961–2013
+    "FS": "Food_Security_Data_E_All_Data_(Normalized).zip",  # 糧食安全指標（營養不足盛行率等）
 }
+# 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
+ENCODINGS = {"FBSH": "latin-1"}
 WORLD_AREA = 5000
 CHINA_AGGREGATE = 351
 
@@ -39,39 +45,68 @@ class Row(NamedTuple):
     value: float
 
 
-def rows(dataset: str, elements: set[int], items: set[int] | None = None) -> Iterator[Row]:
-    """逐列讀取，只回傳指定的 element（與 item），值為空的列略過。"""
+def _area(area_code: str, m49: str, cache: dict[str, str | None]) -> str | None:
+    """FAOSTAT 的地區 → ISO alpha-3；World 是 'WLD'，區域合計、「China」(351)、已解體的國家是 None。"""
+    code = int(area_code)
+    if code == WORLD_AREA:
+        return "WLD"
+    if code > WORLD_AREA or code == CHINA_AGGREGATE:
+        return None
+    if m49 not in cache:
+        cache[m49] = None if "." in m49 else from_numeric(m49)
+    return cache[m49]
+
+
+def _csv(dataset: str) -> Iterator[list[str]]:
+    """批次下載檔的主資料表，逐列回傳（第一列是欄名）。"""
     path = download(BASE + DATASETS[dataset], "faostat", DATASETS[dataset])
-    m49_cache: dict[str, str | None] = {}
     with zipfile.ZipFile(path) as z:
         member = next(n for n in z.namelist() if n.endswith("(Normalized).csv"))
         with z.open(member) as raw:
-            reader = csv.reader(io.TextIOWrapper(raw, encoding="utf-8", newline=""))
-            header = next(reader)
-            col = {name: i for i, name in enumerate(header)}
-            i_area, i_m49 = col["Area Code"], col["Area Code (M49)"]
-            i_item, i_name, i_elem = col["Item Code"], col["Item"], col["Element Code"]
-            i_year, i_value = col["Year"], col["Value"]
-            for r in reader:
-                element = int(r[i_elem])
-                if element not in elements or not r[i_value]:
-                    continue
-                item = int(r[i_item])
-                if items is not None and item not in items:
-                    continue
-                area_code = int(r[i_area])
-                if area_code == WORLD_AREA:
-                    area = "WLD"
-                elif area_code > WORLD_AREA or area_code == CHINA_AGGREGATE:
-                    continue
-                else:
-                    m49 = r[i_m49]
-                    if m49 not in m49_cache:
-                        m49_cache[m49] = None if "." in m49 else from_numeric(m49)
-                    area = m49_cache[m49]
-                    if area is None:
-                        continue  # 區域合計或已解體的國家（蘇聯、南斯拉夫等）
-                yield Row(area, item, r[i_name], element, int(r[i_year]), float(r[i_value]))
+            yield from csv.reader(io.TextIOWrapper(raw, encoding=ENCODINGS.get(dataset, "utf-8"), newline=""))
+
+
+def rows(dataset: str, elements: set[int], items: set[int] | None = None) -> Iterator[Row]:
+    """逐列讀取，只回傳指定的 element（與 item），值為空的列略過。"""
+    m49_cache: dict[str, str | None] = {}
+    reader = _csv(dataset)
+    col = {name: i for i, name in enumerate(next(reader))}
+    i_area, i_m49 = col["Area Code"], col["Area Code (M49)"]
+    i_item, i_name, i_elem = col["Item Code"], col["Item"], col["Element Code"]
+    i_year, i_value = col["Year"], col["Value"]
+    for r in reader:
+        element = int(r[i_elem])
+        if element not in elements or not r[i_value]:
+            continue
+        item = int(r[i_item])
+        if items is not None and item not in items:
+            continue
+        area = _area(r[i_area], r[i_m49], m49_cache)
+        if area is None:
+            continue  # 區域合計或已解體的國家（蘇聯、南斯拉夫等）
+        yield Row(area, item, r[i_name], element, int(r[i_year]), float(r[i_value]))
+
+
+class SuiteRow(NamedTuple):
+    area: str  # ISO alpha-3 或 'WLD'
+    item: str  # 糧食安全指標的品項代碼有字母（例如 210070F），所以是字串
+    year: str  # 單一年份「2023」或三年區間「2021-2023」
+    value: str  # 原始字串，可能是「<2.5」
+
+
+def suite_rows(dataset: str, items: set[str]) -> Iterator[SuiteRow]:
+    """糧食安全這類指標資料集：只回傳指定品項，年份與數值保留原始字串，值為空的列略過。"""
+    m49_cache: dict[str, str | None] = {}
+    reader = _csv(dataset)
+    col = {name: i for i, name in enumerate(next(reader))}
+    i_area, i_m49, i_item = col["Area Code"], col["Area Code (M49)"], col["Item Code"]
+    i_year, i_value = col["Year"], col["Value"]
+    for r in reader:
+        if r[i_item] not in items or not r[i_value]:
+            continue
+        area = _area(r[i_area], r[i_m49], m49_cache)
+        if area is not None:
+            yield SuiteRow(area, r[i_item], r[i_year], r[i_value])
 
 
 class MatrixRow(NamedTuple):

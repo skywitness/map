@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { Localized, Text } from '../i18n/lang';
-import type { Hue, Tokens } from '../theme/tokens';
+import type { Tokens } from '../theme/tokens';
 
 export type { Text };
 
@@ -21,34 +21,37 @@ export type ScaleSpec =
   | { type: 'diverging'; thresholds: number[] };
 
 export type LayerSpec =
-  /** 面量圖：適合比率、密度、人均這類「已經除過」的數值 */
-  | { kind: 'choropleth'; scale: ScaleSpec }
+  /**
+   * 面量圖：適合比率、密度、人均這類「已經除過」的數值。
+   * itemScales 是各子項目自己的分級門檻（例如各類食物的人均供給量差好幾倍），沒列的子項目用 scale。
+   */
+  | { kind: 'choropleth'; scale: ScaleSpec; itemScales?: Record<string, ScaleSpec> }
   /** 比例圓：適合總量（人口數、發電量），圓面積與數值成正比 */
   /** legendValues 為 'auto' 時依資料最大值自動挑（各農產品的量級差很多） */
   | { kind: 'bubble'; legendValues: number[] | 'auto' }
   /** 不依數值上色，只畫疊加圖層（例如鐵路與機場）；資料仍用於 tooltip 與排名 */
   | { kind: 'none' }
   /**
+   * 類別圖：每個國家屬於一類（資料檔的數值是類別代碼），每一類一個顏色，圖例列出各類，沒有數值門檻。
+   * 顏色不寫在主題裡：一般類別依序取 MAP_TOKENS.categorical；ordinal 為 true（類別有強弱之分，例如官方地位）
+   * 時改用循序色，第一類最深。不在 categories 裡的代碼歸到 other（有給的話），否則當成無資料。
+   * tooltip、排名表、側欄照常用 format(代碼) 顯示類別名稱。
+   */
+  | { kind: 'categorical'; categories: CategoryDef[]; other?: Text; ordinal?: boolean }
+  /**
    * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
    * 指標檔本身放各國的總額，給 tooltip、排名表與側欄用。
    */
-  | { kind: 'flow'; file: string; direction: FlowDirection }
-  /**
-   * 類別圖：每個國家塗上它所屬類別的顏色（例如首要死因）。資料檔的數值是類別代碼（CategoryDef.value），
-   * 沒有大小之分：側欄不排名、不畫折線圖，排名表依類別分組，3D 時不拉高。
-   */
-  | { kind: 'categorical'; categories: CategoryDef[] };
-
-export interface CategoryDef {
-  /** 資料檔裡的數值 */
-  value: number;
-  label: Text;
-  /** 地圖上的顏色（MAP_TOKENS 的類別色）；底圖的海是藍色，不要用 blue */
-  hue: Hue;
-}
+  | { kind: 'flow'; file: string; direction: FlowDirection };
 
 export type FlowDirection = 'export' | 'import';
+
+export interface CategoryDef {
+  /** 資料檔裡的代碼 */
+  value: number;
+  label: Text;
+}
 
 /**
  * 流向檔：pipeline/topics/trade.py 輸出，一個商品、一年一個檔。
@@ -175,6 +178,23 @@ export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');
 }
 
+const itemScaleCache = new WeakMap<Indicator, Map<string, Indicator>>();
+
+/**
+ * 面量圖有 itemScales 時，換成目前子項目的分級門檻。
+ * 同一個指標與子項目回傳同一個物件，地圖依 indicator 重算色階的 useMemo 才不會每次重畫。
+ */
+export function forItem(indicator: Indicator, item: string | null): Indicator {
+  const layer = indicator.layer;
+  const scale = layer.kind === 'choropleth' && item ? layer.itemScales?.[item] : undefined;
+  if (!scale || layer.kind !== 'choropleth') return indicator;
+  let byItem = itemScaleCache.get(indicator);
+  if (!byItem) itemScaleCache.set(indicator, (byItem = new Map()));
+  let resolved = byItem.get(item!);
+  if (!resolved) byItem.set(item!, (resolved = { ...indicator, layer: { ...layer, scale } }));
+  return resolved;
+}
+
 /** 流向圖指標的流向檔路徑；不是流向圖時回傳 null */
 export function flowPath(
   topic: Pick<Topic, 'id' | 'dimension'>,
@@ -196,6 +216,8 @@ export interface IndicatorData {
   years: number[];
   /** 從這一年開始是推估值（例如 UN WPP 的未來推估） */
   projectionFrom?: number;
+  /** 從這一年起換了統計方法，跟之前的年份不完全可比（例如 FAO 糧食平衡表 2010 年起的新方法）；折線圖畫一條垂直虛線 */
+  methodBreak?: number;
   /** 世界、區域等合計，key 例如 WLD */
   aggregates?: Record<string, (number | null)[]>;
   /** key 為 ISO alpha-3，陣列與 years 一一對應，缺值為 null */

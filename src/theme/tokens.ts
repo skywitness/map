@@ -136,13 +136,29 @@ export const SPACE_GRADIENT: [number, string][] = [
   [1, '#000000'],
 ];
 
+export interface MapTokens extends Tokens {
+  /** 類別圖（kind: 'categorical'）的顏色，依序取用，最多 8 類；超過的要併到「其他」 */
+  categorical: string[];
+  /** 類別圖的「其他」：淺的中性色，跟無資料的灰色分得開 */
+  categoricalOther: string;
+}
+
 /**
  * 地圖上的資料色：底圖固定是明亮的彩色地圖（藍色的海），不跟著介面切深淺色。
  * 循序色用橘色、發散色用橘 ↔ 青綠（ColorBrewer BrBG 的配法，色盲也分得開）、比例圓用紫色。
+ *
+ * 類別色：地圖上任兩類都可能相鄰，所以 8 色是「任兩色」都要分得開（不只相鄰的順序），
+ * 用配色驗證工具（OKLab ΔE×100，Machado 2009 色盲模擬）在候選色裡搜尋出來的：
+ * 紅色盲、綠色盲下任兩色 ΔE ≥ 10.4，一般視覺 ≥ 16.2（加上「其他」也一樣）；
+ * 跟藍色的海（#9ebdff、#a0c8f0、#b4cfe0）與無資料的灰色 ΔE ≥ 12。
+ * 為了讓 8 色兩兩分得開，亮度從深（#8a2e00）到淺（#f0e442）都有，不像圖表的類別色限制在同一亮度帶。
+ * 在深色介面的圖例上，最深的兩色對比約 2:1，所以圖例一定附文字。
  */
-export const MAP_TOKENS: Tokens = {
+export const MAP_TOKENS: MapTokens = {
   ...TOKENS.light,
   sequential: [ORANGE[100], ORANGE[200], ORANGE[300], ORANGE[400], ORANGE[500], ORANGE[600], ORANGE[700]],
   diverging: [ORANGE[600], ORANGE[400], ORANGE[200], '#f0efec', AQUA[200], AQUA[400], AQUA[600]],
   accent: TOKENS.light.hues.violet,
+  categorical: ['#4fc29f', '#9085e9', '#eda100', '#4d9221', '#f0e442', ORANGE[600], '#7b3294', '#e7298a'],
+  categoricalOther: '#ece8df',
 };

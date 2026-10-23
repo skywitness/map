@@ -13,6 +13,7 @@ import {
   type PanelExtraProps,
   type Topic,
 } from '../topics/types';
+import { categoryScale } from '../map/categories';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { rankOf, valuesAt } from './stats';
 
@@ -61,23 +62,24 @@ export function CountryPanel(props: CountryPanelProps) {
     const values = valuesAt(data, yearIndex);
     const value = values.get(iso3) ?? null;
     const world = data.aggregates?.WLD?.[yearIndex] ?? null;
-    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義；類別（例如首要死因）沒有大小
-    const unranked = (ind.layer.kind === 'bubble' && value === 0) || ind.layer.kind === 'categorical';
+    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義；類別沒有大小，也不排名
+    const countZero = ind.layer.kind === 'bubble' && value === 0;
     return {
       ind,
       value,
-      rank: unranked ? null : rankOf(values, iso3),
+      rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3),
       total: values.size,
       share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
       shownYear,
     };
   });
 
-  const activeData = allData[topic.indicators.indexOf(indicator)];
+  // 用 id 找：有子項目分級門檻的指標（forItem）是另一個物件
+  const activeData = allData[topic.indicators.findIndex((i) => i.id === indicator.id)];
   const option = useMemo(() => {
-    if (!activeData || indicator.layer.kind === 'categorical') return null;
+    if (!activeData) return null;
     const own = activeData.values[iso3];
-    if (!own || activeData.years.length < 2) return null;
+    if (!own || activeData.years.length < 2 || indicator.layer.kind === 'categorical') return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
     if (indicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
@@ -85,6 +87,7 @@ export function CountryPanel(props: CountryPanelProps) {
       years: activeData.years,
       lines,
       projectionFrom: activeData.projectionFrom,
+      methodBreak: activeData.methodBreak,
       year,
       indicator,
       tokens,
@@ -92,6 +95,7 @@ export function CountryPanel(props: CountryPanelProps) {
   }, [activeData, iso3, name, indicator, year, tokens, t]);
 
   const projectionFrom = activeData?.projectionFrom;
+  const methodBreak = activeData?.methodBreak;
   // 附註只有中文的話，英文介面不顯示
   const note = lang === 'en' ? activeData?.notesEn?.[iso3] : activeData?.notes?.[iso3];
 
@@ -134,6 +138,7 @@ export function CountryPanel(props: CountryPanelProps) {
         ))}
       </div>
 
+      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
@@ -147,6 +152,7 @@ export function CountryPanel(props: CountryPanelProps) {
             </p>
           )}
           {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
+          {methodBreak !== undefined && option && <p className="note">{t.methodBreak(methodBreak)}</p>}
           {note && <p className="note">{t.note(note)}</p>}
         </section>
       )}
@@ -160,11 +166,13 @@ export function CountryPanel(props: CountryPanelProps) {
   );
 }
 
-/** 類別圖的歷年變化：連續相同類別的年份合併成一段，例如「2000–2016 年 心血管疾病」 */
+/** 類別圖的歷年變化：連續相同類別的年份合併成一段，例如「2000–2003 年 心血管疾病」 */
 function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data: IndicatorData; iso3: string }) {
   const t = useT();
-  if (indicator.layer.kind !== 'categorical') return null;
-  const hues = new Map(indicator.layer.categories.map((c) => [c.value, MAP_TOKENS.hues[c.hue]]));
+  const scale = useMemo(
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
+    [indicator],
+  );
   const periods: { from: number; to: number; value: number }[] = [];
   (data.values[iso3] ?? []).forEach((v, i) => {
     if (v == null) return;
@@ -172,12 +180,12 @@ function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data
     if (last && last.value === v && last.to === data.years[i - 1]) last.to = data.years[i];
     else periods.push({ from: data.years[i], to: data.years[i], value: v });
   });
-  if (periods.length === 0) return <p className="empty">{t.noCountryData}</p>;
+  if (!scale || periods.length === 0) return <p className="empty">{t.noCountryData}</p>;
   return (
     <ul className="category-history">
       {periods.map((p) => (
         <li key={p.from}>
-          <span className="legend-swatch" style={{ background: hues.get(p.value) }} />
+          <span className="legend-swatch" style={{ background: scale.color(p.value) ?? undefined }} />
           <span className="category-period">{t.periodRange(p.from, p.to)}</span>
           {indicator.format(p.value)}
         </li>
