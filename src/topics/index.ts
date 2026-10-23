@@ -8,10 +8,12 @@ import { disease } from './disease';
 import { education } from './education';
 import { electricity } from './electricity';
 import { elevation } from './elevation';
+import { fiscal } from './fiscal';
 import { health } from './health';
 import { housing } from './housing';
 import { income } from './income';
 import { industry } from './industry';
+import { innovation } from './innovation';
 import { language } from './language';
 import { military } from './military';
 import { pureMap } from './map';
@@ -20,6 +22,8 @@ import { sectors } from './sectors';
 import { tourism } from './tourism';
 import { trade } from './trade';
 import { transport } from './transport';
+import { wages } from './wages';
+import { wealth } from './wealth';
 import type { TopicDefinition } from './types';
 
 export interface TopicGroup {
@@ -34,10 +38,10 @@ export interface TopicGroup {
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, sectors, industry, agriculture] },
+  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, tourism, military] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, transport] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, transport] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation] },
 ];
 

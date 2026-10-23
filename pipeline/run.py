@@ -39,6 +39,10 @@ STEPS = {
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
+    "wages": "topics.wages",
+    "fiscal": "topics.fiscal",
+    "innovation": "topics.innovation",
+    "wealth": "topics.wealth",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 

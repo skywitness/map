@@ -44,7 +44,9 @@ export const en: Messages = {
   tooltipProjected: ' · projection',
   dataYear: (year) => `${year} data`,
   latestWithinHint: (within) =>
-    `Countries without data for this year show their latest value from the previous ${within} years, with the data year.`,
+    within === 1
+      ? "Countries without data for this year show the previous year's value, with the data year."
+      : `Countries without data for this year show their latest value from the previous ${within} years, with the data year.`,
   flowTitle: (origin, title) => `${origin}: ${title}`,
   flowShare: (share) => `${share} of total`,
   largeAirport: 'Large airport',

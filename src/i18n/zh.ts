@@ -4,6 +4,10 @@
  */
 import { fixed } from '../lib/format';
 
+/** 指標名稱接在中文前後時，跟英文、數字之間空一格：「研發經費占 GDP 排名」「各國 GDP 總額」 */
+const spaced = (text: string) =>
+  text.replace(/([㐀-鿿])([A-Za-z0-9])/g, '$1 $2').replace(/([A-Za-z0-9%])([㐀-鿿])/g, '$1 $2');
+
 export const zh = {
   pageTitle: '世界資料地圖',
   pageDescription: '用世界地圖瀏覽各國人口、經濟、能源、產業與農業資料',
@@ -41,11 +45,14 @@ export const zh = {
   worldMapAria: '世界地圖',
   /** year 是 null：不隨時間變化的資料（例如海拔） */
   mapAria: (year: number | null, title: string, projected: boolean) =>
-    `世界地圖：${year === null ? '' : `${year} 年`}各國${title}${projected ? '（推估值）' : ''}`,
+    spaced(`世界地圖：${year === null ? '' : `${year} 年`}各國${title}${projected ? '（推估值）' : ''}`),
   tooltipProjected: ' 推估值',
   /** 年份零散的指標用之前最近一年的值時，標出實際的資料年份 */
   dataYear: (year: number) => `${year} 年的資料`,
-  latestWithinHint: (within: number) => `沒有當年資料的國家，顯示 ${within} 年內最近一年的值，並標出資料年份。`,
+  latestWithinHint: (within: number) =>
+    within === 1
+      ? '沒有當年資料的國家，顯示前一年的值，並標出資料年份。'
+      : `沒有當年資料的國家，顯示 ${within} 年內最近一年的值，並標出資料年份。`,
   /** 流向圖：「台灣的出口」、tooltip 的「占 12%」 */
   flowTitle: (origin: string, title: string) => `${origin}的${title}`,
   flowShare: (share: string) => `占 ${share}`,
@@ -127,8 +134,8 @@ export const zh = {
   rank: (rank: number, total: number) => `第 ${rank} / ${total} 名`,
   shareOfWorld: (share: string) => ` · 占全球 ${share}`,
   shownYear: (year: number) => `（${year} 年）`,
-  overTime: (label: string) => `${label}的變化`,
-  lineChartAria: (name: string, label: string) => `${name}歷年${label}折線圖`,
+  overTime: (label: string) => spaced(`${label}的變化`),
+  lineChartAria: (name: string, label: string) => spaced(`${name}歷年${label}折線圖`),
   singleSnapshotPanel: '這項資料只有單一時間點，沒有歷年變化。',
   noCountryData: '這個國家沒有這項資料。',
   dashedProjection: (year: number) => `虛線為 ${year} 年起的推估值。`,
@@ -140,9 +147,9 @@ export const zh = {
 
   // 排名表
   rankingCaption: (year: number | null, title: string, count: number) =>
-    `${year === null ? '' : `${year} 年`}各國${title}排名（${count} 個國家/地區）`,
+    spaced(`${year === null ? '' : `${year} 年`}各國${title}排名（${count} 個國家/地區）`),
   categoryCaption: (year: number | null, title: string, count: number) =>
-    `${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依類別排列）`,
+    spaced(`${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依類別排列）`),
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',
