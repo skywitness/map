@@ -95,3 +95,30 @@ def employment_by_sector() -> dict[int, dict[str, float]]:
                     "services": total - agriculture - industry,
                 }
     return out
+
+
+def _by_sex(funid: str, first_roc: int) -> dict[int, dict[str, float]]:
+    """「合計、男、女」三欄的表（工業及服務業）：{年: {'total', 'male', 'female'}}；今年還沒結束，不收。"""
+    header, data = _table(funid, first_roc, "0,1", "0,3")  # 第一個欄位（工業及服務業、勞參率），合計／男／女
+    this_year = date.today().year
+    out: dict[int, dict[str, float]] = {}
+    for year, row in data.items():
+        values = [_num(c) for c in row[1:4]]
+        if year < this_year and all(v is not None for v in values):
+            out[year] = dict(zip(("total", "male", "female"), values))  # type: ignore[arg-type]
+    return out
+
+
+def earnings_by_sex() -> dict[int, dict[str, float]]:
+    """工業及服務業受僱員工每人每月總薪資（元），依性別，1980 年代起（受僱員工薪資調查）。"""
+    return _by_sex("A046201010", 70)
+
+
+def hours_by_sex() -> dict[int, dict[str, float]]:
+    """工業及服務業受僱員工每人每月工時（小時），依性別。"""
+    return _by_sex("A046401010", 70)
+
+
+def labour_force_participation_by_sex() -> dict[int, dict[str, float]]:
+    """15 歲以上民間人口的勞動力參與率（%），依性別，1978 年起（人力資源調查）。"""
+    return _by_sex("A040109010", 67)

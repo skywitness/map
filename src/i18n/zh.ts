@@ -100,7 +100,7 @@ export const zh = {
   threeDHintTouch: '雙指轉動可旋轉、雙指上下滑動可傾斜',
   threeDHintMouse: '右鍵或 Ctrl＋拖曳可旋轉、傾斜',
   threeDHintGlobe: '；3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
-  unitSuffix: (unit: string) => `（${unit}）`,
+  unitSuffix: (unit: string) => (unit ? `（${unit}）` : ''),
   layers: '圖層',
   categoryTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一類，再點一下取消）`,
 

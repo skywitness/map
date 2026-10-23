@@ -42,8 +42,9 @@ export type LayerSpec =
    * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
    * 指標檔本身放各國的總額，給 tooltip、排名表與側欄用。
+   * 文字（出口對象、進口來源…）預設是貿易的，其他主題（例如移民）用 labels、pickPartners、legendKey 自己給。
    */
-  | { kind: 'flow'; file: string; direction: FlowDirection }
+  | FlowLayer
   /**
    * 地形圖：國家不上色，畫高程圖磚的分層設色與陰影（主題要設 terrain）；指標資料仍用於 tooltip 與排名。
    * 見 src/map/terrain.ts。
@@ -52,6 +53,32 @@ export type LayerSpec =
 
 export type FlowDirection = 'export' | 'import';
 
+export interface FlowLayer {
+  kind: 'flow';
+  file: string;
+  /**
+   * 'export'：選取的國家是起點（出口國、移民的來源國）；'import'：選取的國家是終點。
+   * 'larger'：依選取國家兩個方向的總額，畫比較大的那一邊（例如難民：收容國畫來源、來源國畫去向）。
+   */
+  direction: FlowDirection | 'larger';
+  /** 兩個方向各自的文字；沒給用貿易的「出口對象／進口來源」 */
+  labels?: Record<FlowDirection, FlowLabels>;
+  /** 還沒選國家時提示「點選國家，查看它的＿＿」；沒給用 direction 那個方向的 partners */
+  pickPartners?: Text;
+  /** 圖例上漸層樣本的說明；沒給用「由出口國（淺）到進口國（深）」 */
+  legendKey?: Text;
+}
+
+/** 流向圖一個方向的文字 */
+export interface FlowLabels {
+  /** 夥伴的稱呼，用在提示「點選國家，查看它的出口對象」與「沒有 2023 年的出口對象資料」 */
+  partners: Text;
+  /** 側欄、匯出圖片的標題：「主要出口對象」 */
+  main: Text;
+  /** tooltip：(選取的國家, 夥伴) →「台灣出口到日本」，用 tr() 寫兩種語言 */
+  verb: (origin: string, partner: string) => string;
+}
+
 export interface CategoryDef {
   /** 資料檔裡的代碼 */
   value: number;
@@ -59,15 +86,17 @@ export interface CategoryDef {
 }
 
 /**
- * 流向檔：pipeline/topics/trade.py 輸出，一個商品、一年一個檔。
+ * 流向檔：pipeline/topics/trade.py、migration.py 輸出，一個子項目、一年一個檔。
  * 每個國家是 [總額, [[夥伴, 金額], …]]，夥伴依金額由大到小、只留前幾名；總額含所有夥伴。
  */
 export interface FlowFile {
   /** 商品（子項目）代碼 */
   item: string;
   year: number;
-  /** 金額的單位，目前固定是「千美元」 */
+  /** 數值的單位，例如貿易的「千美元」、移民的「人」 */
   unit: string;
+  /** 檔案裡的數值乘上 scale 是指標的單位（貿易：千美元 → 美元）；沒寫是 1000，舊的貿易檔沒有這個欄位 */
+  scale?: number;
   export: Record<string, [number, [string, number][]]>;
   import: Record<string, [number, [string, number][]]>;
 }
@@ -92,6 +121,8 @@ export interface IndicatorDef {
   compareWorld?: boolean;
   /** 是否顯示「占全球比例」（只對可加總的總量有意義） */
   shareOfWorld?: boolean;
+  /** 數值越小越好（例如性別不平等指數）：排名表、側欄的名次與單一年份的 CSV 由小排到大，第 1 名是最小的 */
+  lowerIsBetter?: boolean;
   /**
    * 地圖可以從國家平均改成 1 km 網格（點陣圖磚，見 src/map/densityGrid.ts），控制列多一個切換。
    * dir 是 tiles/ 底下的資料夾，由 pipeline 產生（不進版本控制，部署時才有）。

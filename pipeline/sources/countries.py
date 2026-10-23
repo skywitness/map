@@ -35,7 +35,10 @@ def from_numeric(m49: str | int | None) -> str | None:
     """UN M49 / ISO 數字代碼 → alpha-3（M49 的國家代碼與 ISO 數字代碼相同）。"""
     if m49 is None or str(m49).strip().lstrip("'") == "":
         return None
-    country = pycountry.countries.get(numeric=str(int(str(m49).strip().lstrip("'"))).zfill(3))
+    code = str(int(str(m49).strip().lstrip("'"))).zfill(3)
+    if code == "412":  # 科索沃：不是 ISO 代碼，UN DESA、Pew 等用 412
+        return "XKX"
+    country = pycountry.countries.get(numeric=code)
     return country.alpha_3 if country else None
 
 

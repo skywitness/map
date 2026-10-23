@@ -248,7 +248,13 @@ export function flowLegendModel(indicator: Indicator, direction: FlowDirection, 
     width: flowWidth(v, max),
     y: i * rowHeight + rowHeight / 2,
   }));
-  return { rows, colors: flowColors(direction), lineLength: 36, height: rows.length * rowHeight, key: flowText().legendKey };
+  return {
+    rows,
+    colors: flowColors(direction),
+    lineLength: 36,
+    height: rows.length * rowHeight,
+    key: flowText(indicator.layer).legendKey,
+  };
 }
 
 interface FlowLegendProps {
