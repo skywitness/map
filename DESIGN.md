@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -404,6 +404,7 @@ pipeline/
 | 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
 | 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
 | 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
+| 治安與司法 | 故意殺人率（全部、女性、男性被害人，三個用同一組門檻）、法治分數（WGI，0–100） | — | World Bank WDI（UNODC 國際殺人統計）、World Bank Worldwide Governance Indicators；台灣的故意殺人率用衛福部死因統計（他殺）÷ WPP 人口，附註對照警政署故意殺人統計；監禁人口率因授權沒有放 | 故意殺人率 1990–2025（女性、男性 1993 年起；台灣 2008 年起；各國顯示 5 年內最近一年）；法治分數 1996–2025（2002 年起每年） |
 | 薪資與工時 | 平均月薪（美元、購買力平價）、法定最低工資（美元、購買力平價）、每週工時、每年工時 | — | 國際勞工組織 ILOSTAT、Penn World Table 11.0（墨西哥、哥倫比亞的每年工時用 OECD）；台灣用主計總處薪資及生產力統計與人力資源調查、勞動部基本工資／最低工資、中央銀行匯率，購買力平價用 PWT 與 IMF 的消費者物價推算 | 月薪 1993–2025、最低工資 1996–2024、每週工時 2000–2025（各國只顯示 3 或 5 年內最近一年的資料）；每年工時 1970–2023 |
 | 存款與財產 | 平均每人存款、存款占 GDP、每位成年人的平均財富與財富中位數（各有市場匯率與購買力平價兩版）、最富有 10%／1% 的財富占比、家庭儲蓄率（約 35 國）、國民儲蓄率 | 財富的平均與中位數（折線對照，附「平均是中位數的幾倍」） | IMF Financial Access Survey、IMF WEO（SDMX API）、World Inequality Database、OECD National Accounts at a Glance；台灣用中央銀行金融統計、主計總處國民所得統計，附註列出國富統計與家庭財富分配統計 | 存款 2004–2025；財富 1995–2024（2025 年價格）；家庭儲蓄率 1995–2024；國民儲蓄率 1980–2031（2026 起推估） |
 | 物價與財政 | 通膨率、物價水準（美國 = 100）、政府債務占 GDP、財政收支占 GDP、稅收占 GDP（含社會安全捐） | — | IMF WEO（含台灣；物價水準用 IMF 的 GDP（美元）÷ GDP（購買力平價）算出），IMF 未涵蓋的地區用 World Bank 補；稅收用 OECD 全球稅收統計，OECD 沒有的 57 國用 IMF 世界稅收資料庫（WoRLD）補；台灣稅收用財政部 | 通膨率、物價水準 1980–2031、政府債務 1991–2031、財政收支 1990–2031（2026 起推估）；稅收 1990–2024（台灣 2000 年起，最新一年還沒公布的國家顯示前一年） |
@@ -523,6 +524,10 @@ pipeline/
     - 外交部駐外館處通訊錄（data.gov.tw 6119）、領事事務局免簽證名單（data.gov.tw 30749）是政府資料開放授權條款第 1 版；領務局的國家清單是網站內容，網站的「政府網站資料開放宣告」採同一個條款。邦交國的建交、斷交日期是史實，表格自己整理，只拿維基百科（CC BY-SA 4.0）交叉比對（見第 41 點）；Wikidata 的 P530 起訖日期大多是空的，ICPSR 的外交承認資料集禁止再散布，都沒有用。
     - Nobel Prize API（api.nobelprize.org）是 CC0（https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/）；條款另外要求不刻意竄改或誤導、不用 Nobel Prize Outreach 的名稱或商標暗示背書（主題名稱「諾貝爾獎」只是描述資料內容，沒有用標誌）。
     - 國家發展委員會的人口推估（data.gov.tw 6101「人口推計」）是政府資料開放授權條款第 1 版；生育率與高齡化主題只在台灣的附註引用幾個數字，沒有轉載資料檔。內政部戶政司的人口統計同樣適用政府資料開放授權條款。
+    - **UNODC 資料入口（data.unodc.org）不准轉載**：頁尾的 Terms and Conditions 連到聯合國網站的一般條款（https://www.unodc.org/unodc/legal.html）：只限個人、非商業使用，「without any right to resell or redistribute them or to compile or create derivative works」。原本 dataunodc.un.org 的資料條款允許註明出處後轉載，但舊網址（含條款頁）現在都轉到新網站。故意殺人率用世界銀行以 CC BY 4.0 轉載的版本；監禁人口率、在監人數、未判決比例沒有開放授權的轉載版，沒有放（見第 43 點）。
+    - **World Prison Brief（ICPR）沒有用**：網站只寫「© World Prison Brief」，要求引用，沒有授權轉載資料（https://www.prisonstudies.org/about-us）。
+    - 世界銀行 Worldwide Governance Indicators 是 CC BY 4.0（https://datacatalog.worldbank.org/search/dataset/0038026）。
+    - 內政部警政署、法務部統計處的開放資料採政府資料開放授權條款第 1 版。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1153,6 +1158,11 @@ pipeline/
     - 人口金字塔每國一個檔（`countries/<ISO3>.json`，1950–2100 每年男女各 21 組），用指標檔同一種差分編碼，但整個國家共用一個指數，最大的一組保留 4 位有效數字（台灣是千人），237 國共 4.5 MB、gzip 後 1.4 MB，點國家才載入。共用的 `EChart` 只有折線圖，金字塔用 HTML 長條畫，不另外引入 ECharts 的長條圖。
     - 台灣維持 WPP（跟人口主題一致）：2023 年以前跟內政部很接近（總生育率 0.87 對 0.865、65 歲以上 18.33% 對年底 18.35%，出生數少約 2%）。但 2024 年起 WPP 是推估，2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 推估 0.86、12.5 萬人。只把台灣這兩年換成內政部的數字，會跟 WPP 2026 年以後的推估接不起來，所以差異寫在附註。國發會 2026 年 8 月的人口推估（中推估 2075 年總生育率 0.8、65 歲以上 52.9%）比 WPP（2075 年 1.22、42.9%）悲觀很多，也寫在附註；國發會的網站（pop-proj.ndc.gov.tw）有 Cloudflare 驗證，這幾個數字取自國發會新聞稿的媒體轉述。
     - 總生育率用發散色：門檻 [1, 1.5, 1.9, 2.3, 3.5, 5]，中性的一級（1.9–2.3）跨過替代水準 2.1，低於替代水準是橘色（跟人口年增率的「減少橘、增加綠」一致）。65 歲以上比例的門檻含 7%、14%、20%（高齡化、高齡、超高齡社會）。扶老比 [10, 15, 20, 30, 40, 60]，2023 年日本 50、台灣 26。
+43. **治安與司法**（`pipeline/topics/crime.py`、`pipeline/sources/wgi.py`、`npa.py`）：
+    - 故意殺人率用世界銀行轉載的 UNODC 資料（`VC.IHR.PSRC.P5`，女性、男性是 `.FE.P5`、`.MA.P5`，分母是同性別的人口），CC BY 4.0。UNODC 自己的資料入口多了最新一年與被害人數，但條款不准轉載（見第 12 點），所以沒有用。各國不是每年都有，指標檔加 `latestWithin: 5`；台灣有 2025 年的資料，所以時間軸到 2025。全部、女性、男性三個指標用同一組門檻 [0.5, 1, 2.5, 5, 10, 25]，才能互相比較（世界 2023 年：全部 5.2、女性 2.1、男性 8.3）。
+    - **監禁人口率沒有放**：涵蓋各國的只有 UNODC 資料入口的「監獄與受刑人」（data.unodc.org/datareport/prison-held 的 `data_cts_prisons_and_prisoners.xlsx`，2003 年起，有在監人數、每十萬人比率與未判決比例 SDG 16.3.2）與 World Prison Brief，兩個都不能轉載（見第 12 點）。聯合國 SDG 全球資料庫有未判決比例（`VC_PRS_UNSNT`），但沒有在監人數，網站也找不到資料授權，同樣沒有用。台灣的數字在法務部統計處常用統計表「矯正機關收容人數」（`WebList3_Report.aspx?menu=INF_COMMON_C&list_id=1216`，只列最近 4 年，網站的月報、年報、進階查詢都只有 2022 年起）：2025 年底總收容人數 63,314 人，法務部的監禁人口率（÷ 年底人口）271.7，只寫在主題說明裡。
+    - **台灣的故意殺人**：警政署統計查詢網（ba.npa.gov.tw，跟內政部統計查詢網同一套系統）的「故意殺人」發生數與被害人都含未遂，沒有分既遂（2021 年致死約 122 件，發生數 212 件）。所以地圖用衛福部死因統計的加害（他殺，ICD-10 X85–Y09、Y87.1）死亡人數 ÷ WPP 年中人口，男女分開算（死因統計的 sex 1 是男、2 是女），2008 年起；警政署的數字寫在附註（2025 年發生 158 件、被害人 193 人，同年他殺死亡 139 人）。2024 年 9 月起警政署部分刑案改成「1 被害人 1 發生數」。
+    - **法治分數**：WGI 2025 年改版後的 0–100 治理分數（`GOV_WGI_RL.SC`，估計值的線性轉換，以假想的最差與基準國家定錨，越高越好），World Bank API 的 source 3。台灣（「Taiwan, China」）、法屬圭亞那、馬丁尼克、留尼旺、安圭拉、庫克群島、紐埃、澤西在 API 裡的代碼欄是空的，依名稱對照（`wgi.NAMES`）。1996、1998、2000 年，2002 年起每年。是 30 多個調查與評估的看法綜合，不是犯罪統計；2025 年台灣 78.4、南韓 78.3、日本 84.0、美國 71.7、芬蘭 91.8（最高）。
 
 ## 9. 之後可以做的
 
@@ -1171,6 +1181,7 @@ pipeline/
 - **台灣的公共充電樁**：交通部只在新聞稿公布某個時點的數字，有官方的逐年（年底）統計後補上（第 37 點）。
 - **地震死亡人數分國**：目前整筆算在震央附近的國家（2004 年海嘯全算印尼）。NOAA 的海嘯資料庫有各國的死亡人數，可以另外接。NOAA 記錄 1935-07-16 新竹的地震 2,746 人死亡，疑似錯值，找到官方數字（例如《昭和十年臺灣震災誌》）可以加一張更正表。
 - **民主與自由的其他指數**：V-Dem 還有參與式、審議式、平等民主、公民自由、貪腐等指數，在 `democracy.py` 的 `INDICES` 與 `vdem.INDEX_COLUMNS` 各加一行即可。
+- **監禁人口率**：UNODC 資料入口恢復可以轉載的資料條款（或有開放授權的轉載版）後可以加，台灣用法務部的年底總收容人數（第 43 點）。
 - **台灣的外交**：館處用實際地址定位（目前是城市中心，要地址等級的開放 geocoder）；簽證待遇的歷史（領務局只有最新的 PDF，舊版要從網路封存找）；互設代表處的年份、館處的設立與裁撤（外交年鑑有逐年的館處名單，要從 PDF 整理）。
 - **諾貝爾獎依國籍或得獎時的機構**：API 有 `affiliations`，國籍要另外查 Wikidata 的 P27（雙重國籍要定規則）；也可以加女性得主、得獎年齡。
 - **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。

@@ -3,6 +3,7 @@ import { agriculture } from './agriculture';
 import { ai } from './ai';
 import { airQuality } from './air-quality';
 import { climate } from './climate';
+import { crime } from './crime';
 import { democracy } from './democracy';
 import { diet } from './diet';
 import { digital } from './digital';
@@ -50,7 +51,7 @@ export interface TopicGroup {
  * 新增主題時加進最接近的一類。分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, health, disease, education, diet, housing, religion, inequality, gender, nobel] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, health, disease, education, diet, housing, religion, inequality, gender, crime, nobel] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, military, democracy, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
