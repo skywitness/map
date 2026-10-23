@@ -128,6 +128,7 @@ export const en: Messages = {
   methodBreak: (year) => `Vertical dashed line: a new statistical method from ${year}; earlier years are not fully comparable.`,
   note: (note) => `Note: ${note}`,
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
+  periodRange: (from, to) => (from === to ? String(from) : `${from}–${to}`),
 
   rankingCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories)`,
   categoryCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories, grouped by category)`,

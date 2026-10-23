@@ -13,7 +13,8 @@ import {
   type PanelExtraProps,
   type Topic,
 } from '../topics/types';
-import type { Tokens } from '../theme/tokens';
+import { categoryScale } from '../map/categories';
+import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { latestAt, rankOf } from './stats';
 
 interface CountryPanelProps {
@@ -140,11 +141,13 @@ export function CountryPanel(props: CountryPanelProps) {
         ))}
       </div>
 
-      {/* 類別的代碼畫成折線沒有意義；單一年份的資料也沒有變化可畫 */}
-      {activeData?.years.length !== 1 && indicator.layer.kind !== 'categorical' && (
+      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
+      {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
-          {option ? (
+          {indicator.layer.kind === 'categorical' && activeData ? (
+            <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
+          ) : option ? (
             <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />
           ) : (
             <p className="empty">
@@ -163,6 +166,34 @@ export function CountryPanel(props: CountryPanelProps) {
         </Suspense>
       )}
     </aside>
+  );
+}
+
+/** 類別圖的歷年變化：連續相同類別的年份合併成一段，例如「2000–2003 年 心血管疾病」 */
+function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data: IndicatorData; iso3: string }) {
+  const t = useT();
+  const scale = useMemo(
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
+    [indicator],
+  );
+  const periods: { from: number; to: number; value: number }[] = [];
+  (data.values[iso3] ?? []).forEach((v, i) => {
+    if (v == null) return;
+    const last = periods[periods.length - 1];
+    if (last && last.value === v && last.to === data.years[i - 1]) last.to = data.years[i];
+    else periods.push({ from: data.years[i], to: data.years[i], value: v });
+  });
+  if (!scale || periods.length === 0) return <p className="empty">{t.noCountryData}</p>;
+  return (
+    <ul className="category-history">
+      {periods.map((p) => (
+        <li key={p.from}>
+          <span className="legend-swatch" style={{ background: scale.color(p.value) ?? undefined }} />
+          <span className="category-period">{t.periodRange(p.from, p.to)}</span>
+          {indicator.format(p.value)}
+        </li>
+      ))}
+    </ul>
   );
 }
 

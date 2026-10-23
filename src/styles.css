@@ -1055,6 +1055,28 @@ kbd {
   font-variant-numeric: tabular-nums;
 }
 
+/* 側欄：類別圖的歷年變化（CountryPanel 的 CategoryHistory） */
+.category-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.category-history li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-period {
+  min-width: 96px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 .swatch-nodata {
   width: 16px;
   height: 10px;

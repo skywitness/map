@@ -134,6 +134,8 @@ export const zh = {
   methodBreak: (year: number) => `垂直虛線：${year} 年起改用新的統計方法，跟之前的年份不完全可比。`,
   note: (note: string) => `附註：${note}`,
   yearMissing: (year: number) => `（${year} 年無資料，顯示最近一年）`,
+  /** 類別圖（例如首要死因）的歷年變化：「2000–2016 年」 */
+  periodRange: (from: number, to: number) => (from === to ? `${from} 年` : `${from}–${to} 年`),
 
   // 排名表
   rankingCaption: (year: number, title: string, count: number) => `${year} 年各國${title}排名（${count} 個國家/地區）`,
