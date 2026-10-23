@@ -1,5 +1,5 @@
 import { tr, type Text } from '../i18n/lang';
-import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ColorClasses, IndicatorDef, PointRecord, TopicDefinition } from './types';
 
@@ -12,7 +12,8 @@ import type { ColorClasses, IndicatorDef, PointRecord, TopicDefinition } from '.
 const n0 = (v: number) => fixed(v, 0);
 const QUAKES_UNIT = { zh: '次', en: 'earthquakes' };
 const quakes = (v: number) => tr({ zh: `${n0(v)} 次`, en: `${n0(v)} ${Math.round(v) === 1 ? 'earthquake' : 'earthquakes'}` });
-const deaths = (v: number) => tr({ zh: `${formatLargeNumber(v)} 人死亡`, en: `${formatLargeNumber(v)} ${Math.round(v) === 1 ? 'death' : 'deaths'}` });
+// 死亡人數寫完整的數字：formatLargeNumber 的中文萬取整數，5 萬 6,754 人會變成「6 萬」（最多 32 萬，寫得下）
+const deaths = (v: number) => tr({ zh: `${n0(v)} 人死亡`, en: `${n0(v)} ${Math.round(v) === 1 ? 'death' : 'deaths'}` });
 
 /** 地震的日期（UTC）：md 是月 × 100 + 日（pipeline 的 quake_rows）；NOAA 沒有日期的舊事件月或日是 0 */
 export function quakeDate(year: number, md: number | null): string {

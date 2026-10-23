@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { fixed, formatLargeNumber } from '../../lib/format';
+import { fixed } from '../../lib/format';
 import { decodePoints } from '../../map/Overlays';
 import { elevation, lastEruption, magnitude, quakeDate, volcanoType } from '../earthquakes';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';
@@ -26,7 +26,8 @@ const TEXT = defineMessages({
     deadliest: '死亡最多的地震',
     noDeaths: 'NOAA 的重大地震資料庫沒有這個國家的地震死亡紀錄。',
     depth: (km: number) => `深度 ${n0(km)} 公里`,
-    deaths: (n: number) => `${formatLargeNumber(n)} 人死亡`,
+    // 完整的數字：formatLargeNumber 的萬取整數，2010 年海地的 316,000 人會寫成「32 萬」
+    deaths: (n: number) => `${n0(n)} 人死亡`,
     volcanoes: (n: number) => `全新世火山（${n} 座）`,
     noVolcanoes: '沒有全新世火山。',
     more: (n: number) => `還有 ${n} 座，地圖上都看得到。`,
@@ -39,7 +40,7 @@ const TEXT = defineMessages({
     deadliest: 'Deadliest earthquakes',
     noDeaths: 'The NOAA Significant Earthquake Database records no earthquake deaths in this country.',
     depth: (km) => `Depth ${n0(km)} km`,
-    deaths: (n) => `${formatLargeNumber(n)} ${n === 1 ? 'death' : 'deaths'}`,
+    deaths: (n) => `${n0(n)} ${n === 1 ? 'death' : 'deaths'}`,
     volcanoes: (n) => `Holocene volcanoes (${n})`,
     noVolcanoes: 'No Holocene volcanoes.',
     more: (n) => `${n} more, all shown on the map.`,
