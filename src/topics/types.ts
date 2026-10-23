@@ -92,6 +92,11 @@ export interface IndicatorDef {
   compareWorld?: boolean;
   /** 是否顯示「占全球比例」（只對可加總的總量有意義） */
   shareOfWorld?: boolean;
+  /**
+   * 地圖可以從國家平均改成 1 km 網格（點陣圖磚，見 src/map/densityGrid.ts），控制列多一個切換。
+   * dir 是 tiles/ 底下的資料夾，由 pipeline 產生（不進版本控制，部署時才有）。
+   */
+  grid?: { dir: string };
 }
 
 export interface SourceDef {

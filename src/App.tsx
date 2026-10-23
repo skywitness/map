@@ -23,6 +23,7 @@ import {
   type Box,
   type PopulationGrid,
 } from './map/boxEstimate';
+import { fetchGridMeta, gridEpoch, gridText, useGridMeta, type GridLayer } from './map/densityGrid';
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
@@ -76,6 +77,8 @@ function initialIndicatorPath(): string | null {
   const indicator =
     topic.indicators.find((i) => i.id === state.indicator) ??
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  // 網址指定 1 km 網格時，圖磚的 meta.json 也一起提早請求
+  if (indicator.grid && state.grid && state.view === 'map') fetchGridMeta(indicator.grid.dir).catch(() => {});
   const item = topic.dimension?.options.find((o) => o.id === state.item)?.id ?? null;
   return indicatorPath(topic, indicator, item);
 }
@@ -180,10 +183,25 @@ export function App() {
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
 
+  // 1 km 網格（人口密度）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
+  const G = gridText(lang);
+  const gridSpec = pure ? undefined : indicator.grid;
+  const gridWanted = Boolean(gridSpec && state.grid && view === 'map');
+  const gridMeta = useGridMeta(gridWanted && gridSpec ? gridSpec.dir : null);
+  const grid = useMemo<GridLayer | null>(
+    () =>
+      gridSpec && gridWanted && gridMeta.data
+        ? { dir: gridSpec.dir, meta: gridMeta.data, epoch: gridEpoch(gridMeta.data.epochs, year) }
+        : null,
+    [gridSpec, gridWanted, gridMeta.data, year],
+  );
+  const mapTitle = grid ? G.title(indicatorTitle) : indicatorTitle;
+  const description = grid ? G.subtitle + G.hoverHint : indicator.description;
+
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
   // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
-  const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : indicatorTitle;
+  const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
   // 不隨時間變化的資料（海拔）：標題、檔名、tooltip、排名表都不寫年份，也沒有時間軸
   const timeless = Boolean(topic.timeless);
   const viewTitle = pure
@@ -204,7 +222,7 @@ export function App() {
     credits.push(window.location.href);
     const blob = await mapHandle.current.exportImage({
       title: viewTitle,
-      subtitle: pure ? undefined : indicator.description,
+      subtitle: pure ? undefined : grid ? G.subtitle : indicator.description,
       credits,
     });
     downloadBlob(blob, `${fileBase}${pure || timeless ? '' : `_${year}`}.png`);
@@ -263,6 +281,7 @@ export function App() {
           {countryName(iso3, countries)}
           {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
           {projected && t.tooltipProjected}
+          {grid && ` · ${G.tooltip}`}
         </div>
       </>
     );
@@ -277,7 +296,7 @@ export function App() {
             {t.offline}
           </span>
         )}
-        <TopicNav current={topic} onSelect={(id) => update({ topic: id, indicator: null, item: null })} />
+        <TopicNav current={topic} onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: false })} />
         <LangSwitch />
         <ShortcutHelp />
         <button
@@ -345,6 +364,22 @@ export function App() {
               ))}
             </div>
           )}
+          {gridSpec && view === 'map' && (
+            <div className="grid-toggle" role="radiogroup" aria-label={G.mode}>
+              {[false, true].map((on) => (
+                <button
+                  key={String(on)}
+                  type="button"
+                  role="radio"
+                  aria-checked={state.grid === on}
+                  className={`segment${state.grid === on ? ' is-active' : ''}`}
+                  onClick={() => update({ grid: on })}
+                >
+                  {on ? G.grid : G.countryAverage}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="controls-right">
           <label className="select-field">
@@ -396,7 +431,7 @@ export function App() {
           />
         </div>
       </div>
-      <p className="indicator-desc">{indicator.description}</p>
+      <p className="indicator-desc">{description}</p>
 
       <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">
@@ -416,7 +451,7 @@ export function App() {
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={pure ? t.worldMapAria : t.mapAria(timeless ? null : year, indicatorTitle, projected)}
+                ariaLabel={pure ? t.worldMapAria : t.mapAria(timeless ? null : year, mapTitle, projected)}
                 basemap={basemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
@@ -424,6 +459,8 @@ export function App() {
                 onThreeDChange={setThreeD}
                 terrain={topic.terrain}
                 focus={focusRequest}
+                grid={grid}
+                gridFailed={gridWanted && gridMeta.error !== null}
                 dimmed={loading && data !== null}
                 box={topic.boxEstimate ? state.box : null}
                 onBoxChange={topic.boxEstimate ? setBox : undefined}

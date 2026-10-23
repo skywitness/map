@@ -29,6 +29,10 @@ interface ChoroplethLegendProps {
   scale: ScaleThreshold<number, string>;
   /** 3D：色塊畫成階梯，表示每一級的高度 */
   stepped?: boolean;
+  /** 標題下的說明（1 km 網格：哪一期、3D 時不拉高） */
+  notes?: string[];
+  /** 取代「無資料」：沒有上色的部分是什麼（1 km 網格：人口太少的格子） */
+  emptyKey?: string;
 }
 
 /** 3D 圖例的說明（畫面上的圖例與匯出的圖片共用） */
@@ -43,7 +47,7 @@ export const COLUMN_NOTE: Text = {
 /** 3D 階梯色塊的最大高度（px）；第 i 級（從 0 起）是 (i+1)/N 倍 */
 export const STEP_MAX_PX = 26;
 
-export function ChoroplethLegend({ indicator, title, scale, stepped = false }: ChoroplethLegendProps) {
+export function ChoroplethLegend({ indicator, title, scale, stepped = false, notes = [], emptyKey }: ChoroplethLegendProps) {
   const t = useT();
   const lang = useLang();
   const { colors, labels, swatchWidth } = choroplethLegendModel(indicator, scale);
@@ -54,6 +58,11 @@ export function ChoroplethLegend({ indicator, title, scale, stepped = false }: C
         <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
       </div>
       {stepped && <div className="legend-note">{tr(STEPPED_NOTE, lang)}</div>}
+      {notes.map((note) => (
+        <div key={note} className="legend-note">
+          {note}
+        </div>
+      ))}
       <div className={`legend-scale${stepped ? ' is-stepped' : ''}`} style={{ width: colors.length * swatchWidth }}>
         <div className="legend-swatches">
           {colors.map((c, i) => (
@@ -71,7 +80,14 @@ export function ChoroplethLegend({ indicator, title, scale, stepped = false }: C
           ))}
         </div>
       </div>
-      <NoDataKey />
+      {emptyKey ? (
+        <div className="legend-nodata">
+          <span className="swatch-empty" />
+          {emptyKey}
+        </div>
+      ) : (
+        <NoDataKey />
+      )}
     </div>
   );
 }

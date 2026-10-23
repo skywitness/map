@@ -1,6 +1,7 @@
 import { scaleSqrt, scaleThreshold, type ScaleThreshold } from 'd3-scale';
 import type { ScaleSpec } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
+import type { GridMeta } from './densityGrid';
 
 /** 分級色：門檻固定，所有年份共用 */
 export function choroplethScale(spec: ScaleSpec, tokens: Tokens): ScaleThreshold<number, string> {
@@ -21,6 +22,11 @@ export function choroplethScale(spec: ScaleSpec, tokens: Tokens): ScaleThreshold
     );
   }
   return scaleThreshold<number, string>().domain(spec.thresholds).range(range);
+}
+
+/** 1 km 網格圖例的分級色：門檻與顏色用 meta.json 的，跟圖磚裡畫的一定一樣 */
+export function gridScale(meta: GridMeta): ScaleThreshold<number, string> {
+  return scaleThreshold<number, string>().domain(meta.thresholds).range(meta.colors);
 }
 
 /** 比例圓的最大半徑隨地圖寬度調整 */

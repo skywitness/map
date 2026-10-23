@@ -295,6 +295,17 @@ async function main() {
       await check(page, '3D 操作提示');
     }
 
+    // ── 4b. 人口密度的 1 km 網格：切換鈕、圖例（哪一期、不上色的格子）、tooltip、3D 時的說明 ──
+    for (const extra of ['', '&3d=1']) {
+      await page.goto(`${base}?topic=population&ind=density&grid=1&lang=en${extra}`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('.map-legend .legend');
+      await settle(page);
+      await check(page, `1 km 網格${extra && ' 3D'}`);
+    }
+    await page.mouse.move(700, 520);
+    await sleep(150);
+    await check(page, '1 km 網格 tooltip');
+
     // ── 5. 分享選單、快捷鍵說明、用中文名稱搜尋 ──
     await page.click('.share-button');
     await sleep(150);

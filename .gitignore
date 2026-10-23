@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# 人口密度的網格圖磚：npm run data -- population-density-tiles 產生，部署時在 GitHub Actions 產生
+public/tiles/
 pipeline/.venv/
 pipeline/.cache/
 __pycache__/

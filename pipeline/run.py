@@ -18,6 +18,8 @@ STEPS = {
     "geo": "build_geo",
     "population": "topics.population",
     "population-grid": "topics.population_grid",  # 要先有 geo 的國界；第一次會下載 460 MB
+    # 人口密度的 1 km 網格圖磚（不進版本控制，部署時產生）；第一次會下載 12 期、共 5.8 GB
+    "population-density-tiles": "topics.population_density_tiles",
     "income": "topics.income",
     "sectors": "topics.sectors",
     "agriculture": "topics.agriculture",

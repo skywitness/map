@@ -283,7 +283,8 @@ button {
 }
 
 .indicator-picker,
-.view-toggle {
+.view-toggle,
+.grid-toggle {
   display: inline-flex;
   padding: 3px;
   border-radius: var(--radius);
@@ -1092,6 +1093,14 @@ kbd {
   height: 10px;
   border-radius: 2px;
   background: repeating-linear-gradient(45deg, var(--axis) 0 1px, transparent 1px 4px), var(--grid);
+}
+
+/* 1 km 網格：不上色（透出底圖）的格子，只畫外框 */
+.swatch-empty {
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px var(--axis);
 }
 
 /* ── 側欄 ───────────────────────────── */

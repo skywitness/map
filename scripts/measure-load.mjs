@@ -7,7 +7,8 @@
  * 例：先 npm run build，再 node scripts/serve-pages.mjs（模擬 GitHub Pages），
  *     npm run measure:load -- http://localhost:4173/map/；或直接量正式網站 https://skywitness.github.io/map/
  *
- * - 地圖出現資料：WorldMap 第一次把資料畫上地圖時留下的 performance.mark('map-data')
+ * - 地圖出現資料：WorldMap 第一次把資料畫上地圖時留下的 performance.mark('map-data')；
+ *   --mark map-grid 改量人口密度的 1 km 網格第一次畫好（網址要帶 topic=population&ind=density&grid=1）
  * - 傳輸量：頁面的請求（CDP Network.loadingFinished 的 encodedDataLength 加總，含底圖圖磚）。
  *   service worker 背景的下載（預先快取、資料向伺服器確認）不算在內。
  * - --offline：再多一次「離線開啟」（只把頁面設成離線，service worker 從快取回應）
@@ -30,13 +31,16 @@ const opt = (name, def) => {
   return i >= 0 ? args[i + 1] : def;
 };
 if (!url) {
-  console.error('用法：npm run measure:load -- <網址> [--runs 3] [--profile desktop|mobile|both] [--offline] [--gap 8000]');
+  console.error('用法：npm run measure:load -- <網址> [--runs 3] [--profile desktop|mobile|both] [--offline] [--gap 8000] [--mark map-data]');
   process.exit(1);
 }
 const runs = Number(opt('runs', 3));
 const profileArg = opt('profile', 'both');
 const profiles = profileArg === 'both' ? ['desktop', 'mobile'] : [profileArg];
 const gap = Number(opt('gap', 8000));
+const mark = opt('mark', 'map-data');
+const markLabel = mark === 'map-data' ? '地圖出現資料' : mark;
+const baseLabel = (ms) => (mark === 'map-data' ? '' : `（地圖出現資料 ${ms} ms）`);
 const phases = ['first', 'repeat', ...(args.includes('--offline') ? ['offline'] : [])];
 
 function loadPuppeteer() {
@@ -100,7 +104,7 @@ async function measurePhase(context, profile, phase) {
   });
 
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 180000 });
-  await page.waitForFunction(() => performance.getEntriesByName('map-data').length > 0, { timeout: 180000, polling: 100 });
+  await page.waitForFunction((name) => performance.getEntriesByName(name).length > 0, { timeout: 180000, polling: 100 }, mark);
   const kbAtMap = Math.round(traffic.reduce((s, r) => s + r.bytes, 0) / 1024);
   // 等網路安靜 3 秒（底圖圖磚還會陸續下載）
   for (let last = -1, quiet = 0; quiet < 3000; ) {
@@ -108,11 +112,13 @@ async function measurePhase(context, profile, phase) {
     quiet = traffic.length === last ? quiet + 500 : 0;
     last = traffic.length;
   }
-  const m = await page.evaluate(() => ({
-    mapData: Math.round(performance.getEntriesByName('map-data')[0].startTime),
+  const m = await page.evaluate((name) => ({
+    mapData: Math.round(performance.getEntriesByName(name)[0].startTime),
+    // --mark 量別的 mark 時，也記下國界與資料第一次畫上的時間，對照用
+    base: Math.round(performance.getEntriesByName('map-data')[0]?.startTime ?? 0),
     lcp: Math.round(window.__lcp ?? 0),
     controlled: Boolean(navigator.serviceWorker?.controller),
-  }));
+  }), mark);
   if (phase === 'first') {
     // 有 service worker 的版本：等它接手（沒有的話幾秒後放棄），下一次才會從它的快取載入
     await page
@@ -142,7 +148,7 @@ for (const profileName of profiles) {
       const r = await measurePhase(context, PROFILES[profileName], phase);
       results.push({ profile: profileName, phase, ...r });
       console.log(
-        `${profileName} #${run + 1} ${phase}: 地圖出現資料 ${r.mapData} ms，LCP ${r.lcp} ms，` +
+        `${profileName} #${run + 1} ${phase}: ${markLabel} ${r.mapData} ms${baseLabel(r.base)}，LCP ${r.lcp} ms，` +
           `到出現資料 ${r.kbAtMap} KB，全部 ${r.kbTotal} KB（${r.requests} 個請求）`,
       );
     }
@@ -156,7 +162,8 @@ for (const profileName of profiles) {
   for (const phase of phases) {
     const rs = results.filter((r) => r.profile === profileName && r.phase === phase);
     console.log(
-      `${profileName} ${phase}: 地圖出現資料 ${median(rs.map((r) => r.mapData))} ms，LCP ${median(rs.map((r) => r.lcp))} ms，` +
+      `${profileName} ${phase}: ${markLabel} ${median(rs.map((r) => r.mapData))} ms${baseLabel(median(rs.map((r) => r.base)))}，` +
+        `LCP ${median(rs.map((r) => r.lcp))} ms，` +
         `到出現資料 ${median(rs.map((r) => r.kbAtMap))} KB，全部 ${median(rs.map((r) => r.kbTotal))} KB`,
     );
     if (phase === 'first') console.log(`  最大的請求：${rs[0].largest.join('、')}`);

@@ -7,6 +7,7 @@
  *   （建置時 public/data 內容的雜湊，見 vite.config.ts），部署了新資料就換一個新快取，舊的在啟用時刪掉。
  * - 底圖（OpenFreeMap）：樣式、字型、圖磚在執行時快取（只存使用者看過的，有數量與天數上限，
  *   不主動下載整個區域，符合 OpenFreeMap 的使用條款）。
+ * - 人口密度的 1 km 網格圖磚：看過的才快取，有數量上限。
  *
  * 新版部署後：新的 service worker 裝好就直接接手（skipWaiting + clientsClaim），
  * 這次開著的頁面繼續用舊版，下次開啟就是新版。舊頁面如果要載入已經不存在的舊 chunk，
@@ -17,7 +18,7 @@ import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: (string | { url: string; revision: string | null })[] };
 
@@ -30,8 +31,8 @@ clientsClaim();
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-// 直接開任何畫面（?topic=…&country=…）都用預先快取的 index.html；直接開資料檔的網址則照常回傳檔案
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/data\//] }));
+// 直接開任何畫面（?topic=…&country=…）都用預先快取的 index.html；直接開資料檔、圖磚的網址則照常回傳檔案
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/data\//, /\/tiles\//] }));
 
 registerRoute(
   ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/data/') && url.pathname.endsWith('.json'),
@@ -90,6 +91,29 @@ registerRoute(
       new CacheableResponsePlugin({ statuses: [200] }),
       new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 30 * DAY, purgeOnQuotaError: true }),
     ],
+  }),
+);
+
+// 1 km 網格的圖磚（tiles/<資料夾>/<版本>/<年>/z/x/y.png，部署時產生）：網址含版本，內容不會變，直接用快取。
+// 512 px 的圖磚平均約 10 KB，上限 800 張約 8–10 MB；只存看過的，不預先下載
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/tiles/') && url.pathname.endsWith('.png'),
+  new CacheFirst({
+    cacheName: 'grid-tiles',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({ maxEntries: 800, maxAgeSeconds: 60 * DAY, purgeOnQuotaError: true }),
+    ],
+  }),
+);
+
+// 網格的 meta.json 決定圖磚的版本，部署後要馬上拿到新的（舊版本的圖磚已經不在伺服器上）；離線時用快取
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/tiles/') && url.pathname.endsWith('/meta.json'),
+  new NetworkFirst({
+    cacheName: 'grid-meta',
+    networkTimeoutSeconds: 5,
+    plugins: [new CacheableResponsePlugin({ statuses: [200] }), new ExpirationPlugin({ maxEntries: 10 })],
   }),
 );
 
