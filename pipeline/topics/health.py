@@ -1,14 +1,15 @@
-"""健康主題：平均壽命、嬰兒與五歲以下死亡率、醫療支出、醫師數。
+"""健康主題：平均壽命、嬰兒與五歲以下死亡率、醫療支出與誰來付、醫師、護理人員與病床數。
 
 - 壽命與死亡率用 UN WPP 2024（各國同一套估計方法），只取 2023 年以前的估計值。
   台灣改用內政部的簡易生命表：WPP 對台灣的估計跟官方差不少，嬰幼兒死亡率差最多。
-- 醫療支出、醫師數用 World Bank WDI（WHO 全球醫療支出資料庫、全球衛生人力統計）；
-  WDI 沒有台灣，台灣用衛生福利部的國民醫療保健支出與醫事人員統計。
+- 醫療支出（含家庭自付、政府與健保的比重）、醫師、護理人員、病床數用 World Bank WDI
+  （WHO 全球醫療支出資料庫、全球衛生人力統計）；WDI 沒有台灣，台灣用衛生福利部的國民醫療保健支出、
+  衛生福利統計指標。人均自付的國際元由台灣的新臺幣金額除以 IMF 的購買力平價換算。
 """
 from __future__ import annotations
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
-from sources import moi, mohw, worldbank, wpp
+from sources import imf, moi, mohw, worldbank, wpp
 
 # 輸出檔名 -> (WPP 欄位, 單位, 小數位數)
 WPP_INDICATORS = {
@@ -56,9 +57,25 @@ def taiwan_notes(key: str, un_estimate: dict[int, float]) -> dict:
 WB_INDICATORS = {
     "health-spending-per-capita": ("SH.XPD.CHEX.PC.CD", "美元", 1, 0.3),
     "health-spending-gdp": ("SH.XPD.CHEX.GD.ZS", "%", 2, 0.3),
-    # 醫師數很多國家隔幾年才統計一次，最新一年只有少數國家
+    "oop-share": ("SH.XPD.OOPC.CH.ZS", "%", 2, 0.3),
+    "oop-per-capita": ("SH.XPD.OOPC.PP.CD", "國際元", 1, 0.3),
+    "government-share": ("SH.XPD.GHED.CH.ZS", "%", 2, 0.3),
+    # 醫事人力、病床很多國家隔幾年才統計一次，最新一年只有少數國家
     "physicians": ("SH.MED.PHYS.ZS", "人/千人", 2, 0.5),
+    "nurses": ("SH.MED.NUMW.P3", "人/千人", 2, 0.5),
+    "hospital-beds": ("SH.MED.BEDS.ZS", "床/千人", 2, 0.5),
 }
+
+
+def taiwan_oop_per_capita() -> dict[int, float]:
+    """平均每人經常性醫療保健支出（新臺幣）× 家庭自付比重 ÷ IMF 的購買力平價（新臺幣／國際元）。"""
+    table = mohw.nhe()
+    ppp = imf.fetch("PPPEX")[0]["TWN"]
+    return {
+        year: per_capita * table["oop-share"][year] / 100 / ppp[year]
+        for year, per_capita in table["che-per-capita-ntd"].items()
+        if year in table["oop-share"] and year in ppp
+    }
 
 
 def build() -> None:
@@ -90,6 +107,7 @@ def build() -> None:
         )
 
     taiwan = mohw.health_series()
+    taiwan["oop-per-capita"] = taiwan_oop_per_capita()
     for key, (code, unit, digits, min_share) in WB_INDICATORS.items():
         countries, world = worldbank.fetch(code, 1960)
         countries["TWN"] = taiwan[key]
@@ -105,5 +123,5 @@ def build() -> None:
         )
     write_json(
         out / "manifest.json",
-        {"topic": "health", "generatedAt": now_iso(), "source": "UN WPP 2024; 內政部; World Bank WDI (WHO); 衛生福利部"},
+        {"topic": "health", "generatedAt": now_iso(), "source": "UN WPP 2024; 內政部; World Bank WDI (WHO); 衛生福利部; IMF WEO"},
     )

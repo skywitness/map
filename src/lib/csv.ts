@@ -1,11 +1,12 @@
 import { getLang } from '../i18n/lang';
+import { latestAt } from '../panels/stats';
 import type { IndicatorData } from '../topics/types';
 import { enName, zhName, type CountryTable } from './countries';
 
 /** CSV 欄名：中文版有國名與英文名兩欄，英文版只有英文名 */
 const HEADERS = {
-  zh: { name: ['國名', '英文名'], unit: '單位', note: '附註', world: ['世界', 'World'], projected: '（推估）' },
-  en: { name: ['Country'], unit: 'Unit', note: 'Note', world: ['World'], projected: ' (projection)' },
+  zh: { name: ['國名', '英文名'], unit: '單位', note: '附註', world: ['世界', 'World'], projected: '（推估）', dataYear: '資料年份' },
+  en: { name: ['Country'], unit: 'Unit', note: 'Note', world: ['World'], projected: ' (projection)', dataYear: 'Data year' },
 };
 
 /**
@@ -13,12 +14,21 @@ const HEADERS = {
  * - 開頭加 UTF-8 BOM、換行用 CRLF，Excel 直接開啟時中文才不會變亂碼。
  * - 數值保留原始精度、不加千分位、不換算成「萬」「億」，試算表才能直接計算。
  * - 推估值的年份在欄名標示「（推估）」；世界合計放在最後一列。
+ * - 年份零散的指標（latestWithin）匯出單一年份時，跟地圖一樣用之前最近一年的值，另加一欄「資料年份」；
+ *   所有年份只輸出實際有的值。
  */
 export function indicatorCsv(
   data: IndicatorData,
-  options: { unit: string; countries: CountryTable | null; /** 只輸出這一年；不給就輸出所有年份 */ year?: number },
+  options: {
+    unit: string;
+    countries: CountryTable | null;
+    /** 只輸出這一年；不給就輸出所有年份 */
+    year?: number;
+    /** 類別圖：輸出類別名稱（indicator.format）而不是代碼 */
+    label?: (value: number) => string;
+  },
 ): string {
-  const { unit, countries, year } = options;
+  const { unit, countries, year, label } = options;
   const lang = getLang();
   const h = HEADERS[lang];
   const columns = year === undefined ? data.years.map((_, i) => i) : [data.years.indexOf(year)].filter((i) => i >= 0);
@@ -35,27 +45,42 @@ export function indicatorCsv(
   let codes = Object.keys(data.values).sort((a, b) =>
     sortName(a).localeCompare(sortName(b), lang === 'en' ? 'en' : 'zh-Hant-TW'),
   );
+  const latest = columns.length === 1 && data.latestWithin ? latestAt(data, columns[0]) : null;
+  const value = (iso3: string, i: number) => (latest ? latest.values.get(iso3) : data.values[iso3][i]);
   if (columns.length === 1) {
     // 單一年份：依數值由大到小，跟排名表一樣；沒有資料的國家排最後
     const i = columns[0];
-    const v = (iso3: string) => data.values[iso3][i] ?? -Infinity;
-    codes = [...codes].sort((a, b) => v(b) - v(a));
+    const v = (iso3: string) => value(iso3, i) ?? -Infinity;
+    // 類別沒有大小，維持依國名排
+    if (!label) codes = [...codes].sort((a, b) => v(b) - v(a));
   }
 
   const rows: (string | number | null | undefined)[][] = [
-    ['ISO3', ...h.name, h.unit, ...columns.map(yearHeader), ...(hasNotes ? [h.note] : [])],
+    [
+      'ISO3', ...h.name, h.unit, ...columns.map(yearHeader),
+      ...(latest ? [h.dataYear] : []), ...(hasNotes ? [h.note] : []),
+    ],
   ];
   for (const iso3 of codes) {
+    const v = value(iso3, columns[0]);
     rows.push([
       iso3,
       ...names(iso3),
       unit,
-      ...columns.map((i) => data.values[iso3][i]),
+      ...columns.map((i) => {
+        const x = value(iso3, i);
+        return label && x != null ? label(x) : x;
+      }),
+      ...(latest ? [v == null ? '' : (latest.years.get(iso3) ?? data.years[columns[0]])] : []),
       ...(hasNotes ? [notes?.[iso3]] : []),
     ]);
   }
   const world = data.aggregates?.WLD;
-  if (world) rows.push(['WLD', ...h.world, unit, ...columns.map((i) => world[i]), ...(hasNotes ? [''] : [])]);
+  if (world) {
+    rows.push([
+      'WLD', ...h.world, unit, ...columns.map((i) => world[i]), ...(latest ? [''] : []), ...(hasNotes ? [''] : []),
+    ]);
+  }
 
   return `﻿${rows.map((r) => r.map(csvField).join(',')).join('\r\n')}\r\n`;
 }

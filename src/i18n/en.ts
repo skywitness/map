@@ -42,6 +42,9 @@ export const en: Messages = {
   mapAria: (year, title, projected) =>
     `World map: ${title} by country${year === null ? '' : `, ${year}`}${projected ? ' (projection)' : ''}`,
   tooltipProjected: ' · projection',
+  dataYear: (year) => `${year} data`,
+  latestWithinHint: (within) =>
+    `Countries without data for this year show their latest value from the previous ${within} years, with the data year.`,
   flowTitle: (origin, title) => `${origin}: ${title}`,
   flowShare: (share) => `${share} of total`,
   largeAirport: 'Large airport',
@@ -95,6 +98,8 @@ export const en: Messages = {
   threeDHintGlobe: '. In 3D the map is flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
   unitSuffix: (unit) => ` (${unit})`,
   layers: 'Layers',
+  categoryTitle: (label, count) =>
+    `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'} (click to highlight only this category; click again to undo)`,
 
   boxAria: (label) => `${label} in the selected area`,
   boxTitle: (label) => `Estimated ${label} in the area`,
@@ -124,12 +129,16 @@ export const en: Messages = {
   methodBreak: (year) => `Vertical dashed line: a new statistical method from ${year}; earlier years are not fully comparable.`,
   note: (note) => `Note: ${note}`,
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
+  periodRange: (from, to) => (from === to ? String(from) : `${from}–${to}`),
 
   rankingCaption: (year, title, count) =>
     `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories)`,
+  categoryCaption: (year, title, count) =>
+    `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories, grouped by category)`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',
+  dataYearCol: 'Data year',
 
   chartTotal: 'Total',
 };

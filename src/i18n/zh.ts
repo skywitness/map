@@ -43,6 +43,9 @@ export const zh = {
   mapAria: (year: number | null, title: string, projected: boolean) =>
     `世界地圖：${year === null ? '' : `${year} 年`}各國${title}${projected ? '（推估值）' : ''}`,
   tooltipProjected: ' 推估值',
+  /** 年份零散的指標用之前最近一年的值時，標出實際的資料年份 */
+  dataYear: (year: number) => `${year} 年的資料`,
+  latestWithinHint: (within: number) => `沒有當年資料的國家，顯示 ${within} 年內最近一年的值，並標出資料年份。`,
   /** 流向圖：「台灣的出口」、tooltip 的「占 12%」 */
   flowTitle: (origin: string, title: string) => `${origin}的${title}`,
   flowShare: (share: string) => `占 ${share}`,
@@ -99,6 +102,7 @@ export const zh = {
   threeDHintGlobe: '；3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
   unitSuffix: (unit: string) => `（${unit}）`,
   layers: '圖層',
+  categoryTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一類，再點一下取消）`,
 
   // 框選結果
   boxAria: (label: string) => `框選範圍內的${label}`,
@@ -131,13 +135,18 @@ export const zh = {
   methodBreak: (year: number) => `垂直虛線：${year} 年起改用新的統計方法，跟之前的年份不完全可比。`,
   note: (note: string) => `附註：${note}`,
   yearMissing: (year: number) => `（${year} 年無資料，顯示最近一年）`,
+  /** 類別圖（例如首要死因）的歷年變化：「2000–2016 年」 */
+  periodRange: (from: number, to: number) => (from === to ? `${from} 年` : `${from}–${to} 年`),
 
   // 排名表
   rankingCaption: (year: number | null, title: string, count: number) =>
     `${year === null ? '' : `${year} 年`}各國${title}排名（${count} 個國家/地區）`,
+  categoryCaption: (year: number | null, title: string, count: number) =>
+    `${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依類別排列）`,
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',
+  dataYearCol: '資料年份',
 
   // 圖表
   chartTotal: '合計',

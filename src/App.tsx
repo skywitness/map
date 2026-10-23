@@ -32,7 +32,7 @@ import type { WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { RankingTable } from './panels/RankingTable';
-import { maxAcrossYears, valuesAt } from './panels/stats';
+import { latestAt, maxAcrossYears } from './panels/stats';
 import { getTopic } from './topics';
 import {
   forItem,
@@ -140,8 +140,9 @@ export function App() {
   const years = data?.years ?? [topic.defaultYear];
   const year = pickYear(years, state.year, topic.defaultYear);
   const yearIndex = data ? data.years.indexOf(year) : -1;
-  const values = useMemo(
-    () => (data && !pure ? valuesAt(data, yearIndex) : new Map<string, number>()),
+  // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
+  const { values, years: valueYears } = useMemo(
+    () => (data && !pure ? latestAt(data, yearIndex) : { values: new Map<string, number>(), years: new Map<string, number>() }),
     [data, yearIndex, pure],
   );
   const bubbleMax = useMemo(() => (data ? maxAcrossYears(data) : 1), [data]);
@@ -211,7 +212,12 @@ export function App() {
 
   const downloadCsv = (single: boolean) => {
     if (!data) return;
-    const text = indicatorCsv(data, { unit: indicator.unit, countries, year: single ? year : undefined });
+    const text = indicatorCsv(data, {
+      unit: indicator.unit,
+      countries,
+      year: single ? year : undefined,
+      label: indicator.layer.kind === 'categorical' ? indicator.format : undefined,
+    });
     const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
     downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}${timeless ? '' : `_${range}`}.csv`);
   };
@@ -249,12 +255,13 @@ export function App() {
       );
     }
     const v = values.get(iso3);
+    const valueYear = valueYears.get(iso3);
     return (
       <>
         <div className="tt-value">{v !== undefined ? indicator.format(v) : t.noData}</div>
         <div className="tt-label">
           {countryName(iso3, countries)}
-          {!timeless && ` · ${year}`}
+          {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
           {projected && t.tooltipProjected}
         </div>
       </>
@@ -449,6 +456,8 @@ export function App() {
               indicator={indicator}
               title={indicatorTitle}
               values={values}
+              valueYears={valueYears}
+              latestWithin={data?.latestWithin}
               world={world}
               year={timeless ? null : year}
               countries={countries}

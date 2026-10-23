@@ -13,8 +13,9 @@ import {
   type PanelExtraProps,
   type Topic,
 } from '../topics/types';
-import type { Tokens } from '../theme/tokens';
-import { rankOf, valuesAt } from './stats';
+import { categoryScale } from '../map/categories';
+import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import { latestAt, rankOf } from './stats';
 
 interface CountryPanelProps {
   topic: Topic;
@@ -58,16 +59,17 @@ export function CountryPanel(props: CountryPanelProps) {
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
     const yearIndex = nearestYearIndex(data.years, year);
-    const shownYear = data.years[yearIndex];
-    const values = valuesAt(data, yearIndex);
+    // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
+    const { values, years: valueYears } = latestAt(data, yearIndex);
+    const shownYear = valueYears.get(iso3) ?? data.years[yearIndex];
     const value = values.get(iso3) ?? null;
     const world = data.aggregates?.WLD?.[yearIndex] ?? null;
-    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義
+    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義；類別沒有大小，也不排名
     const countZero = ind.layer.kind === 'bubble' && value === 0;
     return {
       ind,
       value,
-      rank: countZero ? null : rankOf(values, iso3),
+      rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3),
       total: values.size,
       share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
       shownYear,
@@ -79,7 +81,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const option = useMemo(() => {
     if (!activeData) return null;
     const own = activeData.values[iso3];
-    if (!own || activeData.years.length < 2) return null;
+    if (!own || activeData.years.length < 2 || indicator.layer.kind === 'categorical') return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
     if (indicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
@@ -91,6 +93,8 @@ export function CountryPanel(props: CountryPanelProps) {
       year,
       indicator,
       tokens,
+      // 普查、調查隔幾年一次：畫出每個資料點，點和點之間連起來
+      sparse: activeData.latestWithin !== undefined,
     });
   }, [activeData, iso3, name, indicator, year, tokens, t]);
 
@@ -143,10 +147,13 @@ export function CountryPanel(props: CountryPanelProps) {
         ))}
       </div>
 
+      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
-          {option ? (
+          {indicator.layer.kind === 'categorical' && activeData ? (
+            <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
+          ) : option ? (
             <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />
           ) : (
             <p className="empty">
@@ -167,6 +174,34 @@ export function CountryPanel(props: CountryPanelProps) {
         </Suspense>
       )}
     </aside>
+  );
+}
+
+/** 類別圖的歷年變化：連續相同類別的年份合併成一段，例如「2000–2003 年 心血管疾病」 */
+function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data: IndicatorData; iso3: string }) {
+  const t = useT();
+  const scale = useMemo(
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
+    [indicator],
+  );
+  const periods: { from: number; to: number; value: number }[] = [];
+  (data.values[iso3] ?? []).forEach((v, i) => {
+    if (v == null) return;
+    const last = periods[periods.length - 1];
+    if (last && last.value === v && last.to === data.years[i - 1]) last.to = data.years[i];
+    else periods.push({ from: data.years[i], to: data.years[i], value: v });
+  });
+  if (!scale || periods.length === 0) return <p className="empty">{t.noCountryData}</p>;
+  return (
+    <ul className="category-history">
+      {periods.map((p) => (
+        <li key={p.from}>
+          <span className="legend-swatch" style={{ background: scale.color(p.value) ?? undefined }} />
+          <span className="category-period">{t.periodRange(p.from, p.to)}</span>
+          {indicator.format(p.value)}
+        </li>
+      ))}
+    </ul>
   );
 }
 

@@ -21,6 +21,8 @@ interface TimeSeriesInput {
   year: number;
   indicator: Indicator;
   tokens: Tokens;
+  /** 年份零散的資料（普查、隔幾年一次的調查）：畫出每個資料點，缺值的年份直接連過去 */
+  sparse?: boolean;
 }
 
 type MarkLineItem = NonNullable<NonNullable<LineSeriesOption['markLine']>['data']>[number];
@@ -39,6 +41,7 @@ export function timeSeriesOption({
   year,
   indicator,
   tokens,
+  sparse,
 }: TimeSeriesInput): ChartOption {
   const categories = years.map(String);
   // 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年
@@ -50,9 +53,10 @@ export function timeSeriesOption({
     const base: LineSeriesOption = {
       type: 'line',
       name: line.name,
-      showSymbol: false,
+      showSymbol: Boolean(sparse),
+      connectNulls: Boolean(sparse),
       symbol: 'circle',
-      symbolSize: 8,
+      symbolSize: sparse ? 5 : 8,
       color: line.color,
       lineStyle: { width: 2, color: line.color },
       emphasis: { disabled: true },
