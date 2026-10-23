@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -432,6 +432,7 @@ pipeline/
 | 國際組織 | 成員身分（類別圖，每年 12 月 31 日的狀態：成員、申請或加入中、夥伴或觀察員、成員（暫停參與），其他是非成員；子項目是 16 個組織，分四類：區域組織（歐盟、東協、非洲聯盟、阿拉伯國家聯盟）、政治與安全（北約、上海合作組織、大英國協）、高峰會論壇（G7、G20、金磚國家）、經濟與貿易（WTO、OECD、APEC、CPTPP、RCEP、OPEC），預設歐盟）、參加幾個組織（面量圖，16 個裡是成員的有幾個） | 這一年在各組織的身分與歷程（加入、申請、夥伴、暫停的每一段與日期）、參加時用的名稱（中華台北、臺澎金馬個別關稅領域、中國香港…）與附註、不是成員的組織；選定組織的說明（「成員」指什麼、從哪一年算、前身）與官網連結 | 各組織官網的成員名單（史實自行整理，`pipeline/sources/igo_members.py`，2026-10-23 查閱），日期與英文維基百科的成員國條目交叉比對 | 各組織成立（或前身）的那一年到今年：阿拉伯國家聯盟 1945、北約 1949、大英國協 1949（倫敦宣言）、歐盟 1958（歐洲經濟共同體）、OPEC 1960、OECD 1961、非洲聯盟 1963（非洲團結組織）、東協 1967、G7 1975、APEC 1989、WTO 1995、G20 1999、上海合作組織 2001、金磚國家 2009、CPTPP 2018（簽署）、RCEP 2020（簽署）；參加幾個組織 1945–2026。今年是資料產生當天（2026-10-23）的狀態 |
 | 聯合國投票 | 與美國的一致度（預設）、與中國的一致度（1971 年起）、理想點（Bailey, Strezhnev & Voeten 的一維投票立場，發散色）、與各國的一致度（16 個比較對象：俄羅斯、英國、法國、德國、烏克蘭、日本、南韓、印度、印尼、澳洲、土耳其、伊朗、以色列、埃及、南非、巴西） | 與美國、中國的投票一致度（兩條折線，x 軸只畫這國有投票紀錄的年份）、理想點的 90% 可信區間與參加的表決次數 | Erik Voeten, United Nations General Assembly Ideal Points（Harvard Dataverse 第 39 版，CC0 1.0；方法 Bailey, Strezhnev & Voeten 2017；原始表決 UNGA-DM） | 一致度 1946–2024、理想點 1946–2025（1964 年沒有記名表決）；中國 1971 年起，台灣（中華民國）1946–1971 |
 | 海底電纜 | 海底電纜地圖（預設，不上色，畫電纜路線與登陸點，依 RFS 年份累積；營運中洋紅實線、規劃中琥珀虛線）、登陸的電纜數（比例圓）、國際連線數（面量圖）、登陸點數（比例圓） | 在這國登陸的電纜（名稱、啟用年份、長度、登陸點、擁有者；營運中與規劃中分開列）、直接連到的國家（長條，依電纜數） | TeleGeography Submarine Cable Map（CC BY-NC-SA 3.0）；台灣用中央社報導的中華電信、數位發展部數字交叉比對 | 1989–2030（2027 起加上規劃中的電纜，是推估）；2026-10 的快照 |
+| 交通安全 | 道路交通死亡率（每 10 萬人，預設）、道路交通死亡人數（比例圓）、行人死亡占比、機車騎士死亡占比、每萬輛機動車死亡數 | 死者是哪一類道路使用者（機車、行人、自行車、汽車、其他；台灣另有不分車種的乘客） | WHO GHO（RS_198 估計死亡率；RS_246、RS_194）、WHO《Global status report on road safety 2023》各國指標、UN WPP 2024；台灣用交通部統計查詢網的 30 日內死亡人數與機動車輛登記數 | 死亡率與人數 2000–2023（台灣 2008 年起，附註寫到 2025 年）；占比 2016–2021、每萬輛 2016–2023（各國用 5 年內最近一次調查） |
 
 ## 8. 資料陷阱（重要）
 
@@ -444,10 +445,10 @@ pipeline/
    - 存款與財產：IMF Financial Access Survey 沒有台灣，存款改用中央銀行；WID 與 IMF WEO 本身有台灣。
    - 物價與財政：IMF WEO 本身有台灣；稅收改用財政部。
    - 研發與創新：UNESCO、WIPO 沒有台灣，改用國科會、智慧局。
-   - 就業與失業：ILO 的模型估計雖然有台灣，但近幾年是推算的，改用主計總處人力資源調查；非正式就業台灣沒有統計（第 53 點）。
-   - 外匯存底與外債：WDI、國際債務統計（IDS）、季度外債統計（QEDS）都沒有台灣，改用中央銀行（外匯存底加上黃金的市值、國際收支、國際投資部位；第 54 點）。
-   - 股市規模：世界銀行轉載的 WFE 資料沒有台灣（世界合計裡卻有），改用金管會證期局的上市＋上櫃（第 55 點）。
-   - 半導體：CEPII BACI 有台灣（代碼 490），但台灣沒有自己的申報，數字來自貿易夥伴，附註對照財政部（第 51 點）。關鍵礦產：USGS 的表上沒有台灣，台灣不是這些礦產的生產國（第 52 點）。
+   - 就業與失業：ILO 的模型估計雖然有台灣，但近幾年是推算的，改用主計總處人力資源調查；非正式就業台灣沒有統計（第 54 點）。
+   - 外匯存底與外債：WDI、國際債務統計（IDS）、季度外債統計（QEDS）都沒有台灣，改用中央銀行（外匯存底加上黃金的市值、國際收支、國際投資部位；第 55 點）。
+   - 股市規模：世界銀行轉載的 WFE 資料沒有台灣（世界合計裡卻有），改用金管會證期局的上市＋上櫃（第 56 點）。
+   - 半導體：CEPII BACI 有台灣（代碼 490），但台灣沒有自己的申報，數字來自貿易夥伴，附註對照財政部（第 52 點）。關鍵礦產：USGS 的表上沒有台灣，台灣不是這些礦產的生產國（第 53 點）。
 2. **FAOSTAT 的「China」(351) 是大陸、港、澳、台的合計**，要排除，否則會重複計算；台灣是 M49 158。
 3. **FAOSTAT 品項的單位要對齊**才能算自給率：
    - 稻米：產量是稻穀，貿易是白米當量，產量乘 0.667。
@@ -560,12 +561,14 @@ pipeline/
     - Erik Voeten 的聯合國大會投票資料（Harvard Dataverse，United Nations General Assembly Ideal Points 第 39 版）是 CC0 1.0（Dataverse 的 license 欄位），不要求標示；作者請使用者引用 Bailey, Strezhnev & Voeten (2017) 與 Fjelstul, Hug & Kilby (2025)（UNGA-DM），頁尾的來源有列（見第 48 點）。
     - **TeleGeography Submarine Cable Map 是 CC BY-NC-SA 3.0**（姓名標示—非商業性—相同方式分享）：TeleGeography 在 GitHub 的 `telegeography/www.submarinecablemap.com` 儲存庫（2022 年底刪除）README 的「How can I download the dataset?」連到的就是這裡用的 API 檔（`web/public/api/v3/cable/cable-geo.json` 等），「License」一節寫「Our map is made available under the following Creative Commons License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)」，LICENSE 檔也是這個授權的條文；2019 年起的 Wayback Machine 存檔都一樣（http://web.archive.org/web/20221110120103/https://github.com/telegeography/www.submarinecablemap.com 、LICENSE：http://web.archive.org/web/20220325100817/https://github.com/telegeography/www.submarinecablemap.com/blob/master/LICENSE ）。TeleGeography 現在的說明頁（https://www2.telegeography.com/cite-telegeography-map ）寫公開的地圖是 CC BY-SA 4.0、「underlying databases」只給付費訂戶，沒有提到 API。使用者原本以為是 CC BY-SA 3.0，但找到的官方依據都是 NC 版或只講地圖，所以照較嚴的 CC BY-NC-SA 3.0 使用與標示（本站非商業，跟 World Inequality Database 一樣）。海底電纜主題的資料檔（`public/data/topics/submarine-cables/`）是改作（換國家代碼、接線、量化、計算各國統計），頁尾寫明依 CC BY-NC-SA 3.0 分享，匯出的地圖圖片與 CSV 也一樣。要商業使用得另外向 TeleGeography 授權。
     - 中央社報導只拿來交叉比對台灣的電纜數（引用事實、註明出處，不轉載內容）。
-    - CEPII BACI（Etalab 2.0）也用在半導體主題（HS17 版的 8541、8542、8486 等）。財政部統計資料庫的進出口貿易統計（`web02.mof.gov.tw`，表 i8142、i9203）適用政府資料開放授權條款第 1 版（財政部網站的「政府網站資料開放宣告」）；半導體主題只在台灣的附註引用少量金額，頁尾列出來源。關務署的查詢系統要輸入驗證碼，沒有用。中國海關的 IC 進出口金額只在第 51 點對照（媒體引述），沒有放進網站。
-    - USGS Mineral Commodity Summaries（各章 PDF 與 ScienceBase 的資料發布）是美國公有領域（https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits ，請註明 USGS；2026 版資料發布的中繼資料標 CC0 1.0），見第 52 點。
-    - 就業與失業主題直接用 ILOSTAT 的 ILO 模型估計（ILOEST）與非正式就業比例（`EMP_NIFL_SEX_RT_A`），適用上面 ILOSTAT 的 CC BY 4.0（第 53 點）。
-    - World Bank/IMF 季度外債統計（QEDS）是 CC BY 4.0（資料目錄 0037740 的 License 欄「Creative Commons Attribution 4.0」）；WDI 轉載的國際債務統計（`DT.DOD.DECT.CD`）與 IMF 國際金融統計的外匯存底（`FI.RES.TOTL.CD`、`FI.RES.TOTL.MO`），序列中繼資料都標 `License_Type: CC BY-4.0`。IMF 的初級商品價格（PCPS，金價）跟 WEO 一樣依 IMF 的資料條款，註明來源即可轉載、改作。中央銀行的外匯存底（政府資料開放平臺 6025）是政府資料開放授權條款第 1 版；國際收支、國際投資部位與外債統計 PDF 是央行網站內容，央行的政府網站資料開放宣告採同一條款（第 54 點）。
-    - **WFE 自己的統計資料庫不准轉載**（https://www.world-exchanges.org/our-work/statistics ：「For reproduction, citation, distribution and transmission of any data please contact the Secretariat」，否則禁止）。世界銀行轉載的 WFE 股市資料（`CM.MKT.LCAP.CD`、`CM.MKT.LCAP.GD.ZS`、`CM.MKT.LDOM.NO`）在 WDI 的序列中繼資料（`/v2/sources/2/series/<代碼>/metadata`）標 `License_Type: CC BY-4.0`（對照：軍費 `MS.MIL.XPND.CD` 標的是「SIPRI terms and conditions」），所以跟 WIPO、UN Tourism 一樣，只用世界銀行以 CC BY 4.0 轉載的部分，來源名稱寫明 WFE（第 55 點）。
-    - **證交所、櫃買中心的網站資料沒有用**：兩邊的使用條款都禁止用程式下載、未經書面同意不得重製散布，只有授權給政府資料開放平臺的資料例外（https://www.twse.com.tw/zh/terms/use.html 、https://www.tpex.org.tw/zh-tw/gtsm_disclaimer.html）。台灣的股市數字改用金管會證期局的開放資料（data.gov.tw 103533）與證期局網站的「證券暨期貨市場重要指標」，都適用政府資料開放授權條款第 1 版（第 55 點）。
+    - CEPII BACI（Etalab 2.0）也用在半導體主題（HS17 版的 8541、8542、8486 等）。財政部統計資料庫的進出口貿易統計（`web02.mof.gov.tw`，表 i8142、i9203）適用政府資料開放授權條款第 1 版（財政部網站的「政府網站資料開放宣告」）；半導體主題只在台灣的附註引用少量金額，頁尾列出來源。關務署的查詢系統要輸入驗證碼，沒有用。中國海關的 IC 進出口金額只在第 52 點對照（媒體引述），沒有放進網站。
+    - USGS Mineral Commodity Summaries（各章 PDF 與 ScienceBase 的資料發布）是美國公有領域（https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits ，請註明 USGS；2026 版資料發布的中繼資料標 CC0 1.0），見第 53 點。
+    - 就業與失業主題直接用 ILOSTAT 的 ILO 模型估計（ILOEST）與非正式就業比例（`EMP_NIFL_SEX_RT_A`），適用上面 ILOSTAT 的 CC BY 4.0（第 54 點）。
+    - World Bank/IMF 季度外債統計（QEDS）是 CC BY 4.0（資料目錄 0037740 的 License 欄「Creative Commons Attribution 4.0」）；WDI 轉載的國際債務統計（`DT.DOD.DECT.CD`）與 IMF 國際金融統計的外匯存底（`FI.RES.TOTL.CD`、`FI.RES.TOTL.MO`），序列中繼資料都標 `License_Type: CC BY-4.0`。IMF 的初級商品價格（PCPS，金價）跟 WEO 一樣依 IMF 的資料條款，註明來源即可轉載、改作。中央銀行的外匯存底（政府資料開放平臺 6025）是政府資料開放授權條款第 1 版；國際收支、國際投資部位與外債統計 PDF 是央行網站內容，央行的政府網站資料開放宣告採同一條款（第 55 點）。
+    - **WFE 自己的統計資料庫不准轉載**（https://www.world-exchanges.org/our-work/statistics ：「For reproduction, citation, distribution and transmission of any data please contact the Secretariat」，否則禁止）。世界銀行轉載的 WFE 股市資料（`CM.MKT.LCAP.CD`、`CM.MKT.LCAP.GD.ZS`、`CM.MKT.LDOM.NO`）在 WDI 的序列中繼資料（`/v2/sources/2/series/<代碼>/metadata`）標 `License_Type: CC BY-4.0`（對照：軍費 `MS.MIL.XPND.CD` 標的是「SIPRI terms and conditions」），所以跟 WIPO、UN Tourism 一樣，只用世界銀行以 CC BY 4.0 轉載的部分，來源名稱寫明 WFE（第 56 點）。
+    - **證交所、櫃買中心的網站資料沒有用**：兩邊的使用條款都禁止用程式下載、未經書面同意不得重製散布，只有授權給政府資料開放平臺的資料例外（https://www.twse.com.tw/zh/terms/use.html 、https://www.tpex.org.tw/zh-tw/gtsm_disclaimer.html）。台灣的股市數字改用金管會證期局的開放資料（data.gov.tw 103533）與證期局網站的「證券暨期貨市場重要指標」，都適用政府資料開放授權條款第 1 版（第 56 點）。
+    - WHO 的道路安全資料：GHO 的 `RS_198`、`RS_246`、`RS_194` 是 CC BY 4.0（data.who.int 的條款，跟其他 GHO 指標一樣）。**《Global status report on road safety 2023》的各國指標檔是 CC BY-NC-SA 3.0 IGO**：檔案的 Notes 寫「Reference: Global status report on road safety 2023: country and territory profiles. Geneva: World Health Organization; 2023 Licence CC-BY-NC-SA 3.0 IGO」（WHO 出版品的授權）。本站非商業，照用（跟 World Inequality Database 一樣），用到它的資料檔（交通安全主題的行人、機車騎士占比，每萬輛機動車死亡數，側欄的組成）依 CC BY-NC-SA 3.0 IGO 分享，頁尾寫明；死亡率與死亡人數只用 GHO（CC BY 4.0）與 WPP。
+    - 交通部統計查詢網：交通部的開放資料（data.gov.tw）採政府資料開放授權條款第 1 版；統計查詢網是交通部網站的一部分，適用交通部的「政府網站資料開放宣告」（無償、非專屬、註明出處即可利用），跟電動車主題用的交通部新聞稿一樣。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1420,7 +1423,25 @@ pipeline/
     - 主要酒類與側欄的酒類組成用 `SA_0000001400`（有登記的人均消費量，依 ALCOHOLTYPE 分啤酒、葡萄酒、烈酒、其他），1961 年起。主要酒類是四類裡純酒精最多的一類，沒有資料的類別當成 0（「其他」比較常缺）；2024 年啤酒 85 國、烈酒 57、葡萄酒 21、其他 15（日本、南韓、許多非洲國家）。「其他」的英文、中文標籤都取短的（Other／其他酒類），說明寫在指標說明裡：類別圖的排名表在 375px 寬時數值欄會被長標籤擠出畫面。類別順序（烈酒、葡萄酒、啤酒、其他）是為了讓 `MAP_TOKENS.categorical` 的前四色剛好是薄荷綠、淡紫、琥珀、綠，葡萄酒偏紫、啤酒偏黃；側欄的長條用同一個 `categoryScale()` 取色。
     - **台灣的吸菸率**：國健署「國人吸菸行為調查」的 18 歲以上成人吸菸率。開放資料（data.gov.tw 14462，Big5 CSV）只到 107 年（2018），之後的年份取自國健署網站「國人吸菸行為調查結果」的圖 1（2026-01-07 更新，男性、女性、整體都標了數字），寫在 `hpa.KNOWN`，CSV 有的年份兩邊一致，程式每次核對。108 年起兩年一次（109、111、113 年），所以指標檔加 `latestWithin: 1`：2023、2025 年顯示前一年的調查並標出資料年份。93 年（2004）以前是其他調查，不收；WHO 的年份對得上的是 2005、2007、2010、2015、2020、2022、2024。國健署以台灣 2000 年的人口結構（含教育程度、居住地區）加權標準化，WHO 是 15 歲以上、WHO 標準人口，不完全可比，附註有寫。2024 年 12.8%（男性 21.5%、女性 4.2%）。
     - **台灣的飲酒量從缺**：財政部、國健署都沒有公布換算成純酒精的人均消費量。開放資料裡找得到的是財政部國庫署的蒸餾酒國產與進口數量（公斤，2020 年後沒更新），不是純酒精；FAOSTAT 的酒類供給量（飲食主題）是酒的重量，不是純酒精，只寫在附註（2023 年每人 38.4 公斤）。
-51. **半導體**（`pipeline/topics/semiconductors.py`、`pipeline/sources/baci.py`、`mof_trade.py`）：
+51. **交通安全**（`pipeline/topics/road_safety.py`、`pipeline/sources/who_road.py`、`motc.py`、`src/topics/panels/RoadSafetyPanel.tsx`）：
+    - **死亡率**：WHO GHO 的 `RS_198`（Estimated road traffic death rate per 100 000 population，兩性合計 `SEX_BTSX`），2026-10 的版本有 2000–2023 年、186 國，有世界值（`GLOBAL`）。是 WHO 的估計值（Global Health Estimates），用 30 天的定義（事故後 30 天內死亡），各國可以比較。
+    - **死亡人數**：WHO 的死亡人數 `RS_196` 只有 2021 年（GSRRS 2023 的估計），所以用 `RS_198` × WPP 2024 的年中人口；跟 `RS_196` 的 2021 年比，中位數差約 1.5%，阿根廷、葉門約差 15%（2026 年的估計改過），`_check_deaths()` 只看中位數。世界值是世界死亡率 × 世界人口（2023 年約 123 萬人）。
+    - **行人、機車騎士的死亡占比**：各國向 WHO 通報的死亡人數依道路使用者分（汽車等四輪、二三輪機動車、行人、自行車、其他五類），不是估計值。兩輪調查：
+      - GSRRS 2018（大多是 2016 年的資料）：GHO 的 `RS_246`，CC BY 4.0。
+      - GSRRS 2023（大多是 2021 年）：WHO 網站的指標檔 `gsrrs23-indicators-for-participating-countries-or-territories.xlsx`（第一列是欄位代碼 `CP_18a`–`CP_18e`，第二列是欄名），GHO 沒有。
+      - 五類沒填齊、或加起來不在 95–105% 的國家不用。地圖用 `latestWithin: 5`，時間軸 2016–2021，147 國。泰國通報的行人只有 2.1%、英屬維京群島的機車 100%（死亡人數很少）照原樣呈現。
+    - **每萬輛機動車死亡數**：死亡人數（上面的估計）÷ 各國通報的登記機動車輛數（含機車；2016 年用 GHO `RS_194`，2021 年用 GSRRS 2023 的 `CP_36a` 與 `CP_118` 年份）× 1 萬，車輛數的年份跟死亡人數差 2 年以內才算。**每千人不到 1 輛的通報值當成填錯**：菲律賓 2021 年填 13 輛、喬治亞 1 輛、賽普勒斯 941 輛，不用（建置時會印出來）。車輛很少的國家數字很高（幾內亞 2016 年超過 100）。門檻 0.5、1、2、5、10、30。
+    - **台灣**（WHO 沒有）：交通部統計查詢網（statis.motc.gov.tw）的表：
+      - 網頁用 `Statistics/Display.json?Seq=<表號>` 取資料（JSON，`date` 是「民國年-月-00」，年資料的月是 00；數字有千分位，「-」是 0），`sources/motc.py` 直接讀。**網站的防火牆會擋程式常用的 User-Agent**（連線被重設，`Python-urllib` 與 `curl` 都是），要用一般瀏覽器的；`common.download()` 的 User-Agent 不行，所以 `motc.py` 自己下載，回的不是 JSON 時不存快取。
+      - 表 127「道路交通事故(30日內)─按駕乘車種分」：30 日內死亡人數依死者的駕乘車種（大客車、大貨車、小客車、小貨車、特種車、機車、自行車、行人、乘客、其他、不明），2008 年起；各類加起來要等於「總計」，對不上會報錯。2022 年 3,064、2023 年 3,023、2024 年 2,950、2025 年 2,858 人，跟行政院人權指標（子指標 48「道路交通事故整體30日死亡人數」）一致。
+      - 「機車」只算騎士，乘客不分車種另外一類（2025 年 156 人），所以機車占比比 WHO 的定義（含乘客）略低；側欄台灣多列一類「乘客（不分車種）」。「自行車」含腳踏自行車、電動輔助自行車、微型電動二輪車。
+      - 死亡率 = 30 日內死亡人數 ÷ WPP 年中人口（跟其他國家同一個人口來源）：2023 年 13.0（世界 15.2、日本 2.7、美國 18.4）。WHO 的資料只到 2023 年，台灣 2024、2025 年的數字寫在附註。
+      - 機動車輛：表 100（到 2012 年 8 月）與 101（2012 年 9 月起）的年底登記數（汽車加機車，2025 年底約 2,340 萬輛，六成多是機車），每萬輛 1.2–1.3 人。
+      - **24 小時與 30 日**：警察機關的 A1 類事故是當場或 24 小時內死亡，早年常被引用的死亡人數是這個定義，比 30 日的少很多；交通部的 30 日內死亡統計從 2008 年開始，跟 WHO 與多數國家的定義相同，所以地圖上只用 30 日的數字（附註、頁尾都有寫）。
+      - 「行人地獄」寫在台灣的行人占比附註，只寫有出處的事實：2022 年 12 月 7 日 CNN 的旅遊專欄引用網友的說法（a living hell for pedestrians）之後這個說法廣泛流傳；交通部 2023 年 8 月 17 日向行政院報告「行人交通安全政策綱領」（2024–2027 年）；《道路交通安全基本法》2023 年 12 月 15 日公布、2024 年 1 月 1 日施行，以 2050 年道路交通事故零死亡為目標；行人 30 日內死亡 2022 年 394 人、2025 年 354 人。
+      - 交通部另有 data.gov.tw 172799「112年道路交通事故30日死亡清單」，一列一位死者，但「當事者區分」「受傷程度」是那起事故第一當事者的欄位（不是死者本身），不能拿來分道路使用者，沒有用。
+    - **顏色**：死亡率、占比、每萬輛都是橘色循序色（死亡率、每萬輛 `lowerIsBetter`，排名表由低排到高）；死亡人數是比例圓。側欄的組成用介面的 8 色（機車橘、行人紅、自行車綠、汽車藍、乘客紫、其他黃）。
+52. **半導體**（`pipeline/topics/semiconductors.py`、`pipeline/sources/baci.py`、`mof_trade.py`）：
     - **來源的選擇**：跟貿易主題一樣用 CEPII BACI（第 15 點）：授權清楚（Etalab 2.0）、HS 六位碼、已調和進出口雙方的申報、整包下載，台灣是代碼 490。
       - UN Comtrade 的 API 要金鑰、有次數限制，而且同樣沒有台灣（BACI 的台灣就是從 Comtrade 的夥伴申報來的）。
       - WSTS（銷售額）、SEMI（設備出貨）是會員或付費報告，只有區域合計，不能轉載。
@@ -1467,7 +1488,7 @@ pipeline/
       - 8486 只收「專用或主要用於」製造半導體、平面顯示器的機器；通用設備（真空幫浦、工業機器人、潔淨室、化學品供應系統）與材料（矽晶圓、光阻、特殊氣體）都不在裡面。量測檢查儀器只加了 HS 寫明「半導體」的 903082、903141。
       - 854140 在 HS 2017 分不開太陽能、LED 與光感測元件，整項另列。
     - **沒有用的**：UN Comtrade API、WSTS、SEMI（見上面）；關務署 GA30 查詢（驗證碼）；BACI HS22 版（2022 年起）；OEC（BACI 的轉製，沒有比較多的資料）。
-52. **關鍵礦產**（`pipeline/topics/minerals.py`、`pipeline/sources/usgs_mcs.py`）：
+53. **關鍵礦產**（`pipeline/topics/minerals.py`、`pipeline/sources/usgs_mcs.py`）：
     - **來源**：USGS 的 Mineral Commodity Summaries（MCS），每年 1–2 月出一版，每個礦種一章，第 2 頁的「World Mine Production and Reserves」表列出主要生產國前兩年的產量（後一年是估計值）、最新的蘊藏量、「Other countries」與「World total (rounded)」。合併 2020–2026 年版：產量 2018–2025 年，蘊藏量 2019–2025 年。
       - **每一年用最新一版有那一年的整張表**（2024 年用 2026 版的修正值，2023 年用 2025 版），同一年不混用兩版，「其他國家」與世界總計才對得起來。2025 年是 2026 版的初估，寫在指標說明、頁尾與側欄（「2025 年（初估）」）。
       - 沒有用 `projectionFrom`：那是給推估（未來預測）用的，時間軸會把之前所有年份標成「估計值」，「2025 起為推估」又跟時間軸結尾的「2025」疊在一起。
@@ -1512,7 +1533,7 @@ pipeline/
       - Minerals Yearbook：年份較長，但每章格式不同、產品分得很細（錳礦依品位分十幾列、鎳分礦場與各種中間產品），而且晚 MCS 一到兩年才出。USGS 為 2025 年關鍵礦產清單整理的 Minerals Yearbook 資料（ScienceBase 項目 6899fa60…）也只有 2018–2023 年。
       - 資料發布的 CSV：只用來比對（見上）。
     - **授權**：USGS 編製的資料與出版品是美國公有領域（https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits ，請註明出處）；2026 版資料發布的中繼資料寫明 CC0 1.0。
-53. **就業與失業**（`pipeline/topics/employment.py`、`pipeline/sources/dgbas_labour.py`）：
+54. **就業與失業**（`pipeline/topics/employment.py`、`pipeline/sources/dgbas_labour.py`）：
     - **失業率、青年失業率、勞參率用 ILO 模型估計**（ILOEST，2025 年 11 月版；`UNE_2EAP_SEX_AGE_RT_A` 的 `AGE_YTHADULT_YGE15`、`AGE_YTHADULT_Y15-24`，`EAP_2WAP_SEX_AGE_RT_A`），下載方式同第 30 點（rplumber API）。2026 年 10 月時 TOC 的 last.update 是 2025-12-02，ILO 每年 11 月左右出新版，要 `--refresh` 才會重新下載。
       - 有申報勞動力調查的國家與年份用各國的數字（`obs_status` 是 `R`「Real value」），其他由模型補，所以 189 國每年都有值（中國、北韓、中非、厄利垂亞等 8 個國家或地區從來沒有 `R`）。各國申報的調查值（`UNE_DEAP_SEX_AGE_RT_A`）定義、年份不一，沒有用。
       - **推估**：模型估計的資料到 2027 年，但 `R` 最晚只到 2024 年（2024 年 64 國、2023 年 97 國），2025 年一國都沒有，是 2025 年 11 月時的推估。`projectionFrom` 取「最後一年有 `R` 的下一年」（現在是 2025），資料只收到那一年；2026–2027 年是預測，台灣也沒有官方的預測值，不收。勞參率的資料集沒有 `R` 的註記，用同一個 `projectionFrom`。
@@ -1537,7 +1558,7 @@ pipeline/
     - **授權**：ILOSTAT（含 ILO 模型估計）是 CC BY 4.0（第 12 點）。主計總處的政府網站資料開放宣告採政府資料開放授權條款第 1 版（https://www.stat.gov.tw/cp.aspx?n=3164）。
     - **沒有用的**：ILO 的非正式就業模型估計（只有區域）、ICLS 第 19 屆定義的非正式就業（國家少）、各國申報的失業率調查值（定義與年份不一）；世界銀行的 `SL.UEM.TOTL.ZS` 等也是轉載同一份 ILO 模型估計，直接用 ILOSTAT 比較新。
     - **時間軸的推估標籤**：`projectionFrom` 剛好是最後一年（2025）時，時間軸上「2025 起為推估」跟結尾的「2025」原本疊在一起；`TimeSlider` 改成這種情況只在結尾寫一個「2025 起為推估」。
-54. **外匯存底與外債**（`pipeline/topics/reserves.py`、`pipeline/sources/worldbank_qeds.py`、`cbc_reserves.py`、`imf_pcps.py`）：
+55. **外匯存底與外債**（`pipeline/topics/reserves.py`、`pipeline/sources/worldbank_qeds.py`、`cbc_reserves.py`、`imf_pcps.py`）：
     - **外匯存底用 WDI 的 `FI.RES.TOTL.CD`**（IMF 國際金融統計的總準備：外匯、黃金、SDR、在 IMF 的準備部位）。黃金以年底的倫敦市價計：美國、德國的黃金價值 ÷ 持有量，2024 年都是每盎司約 2,610 美元、2025 年約 4,370 美元。
       - 2025 年已經有 132 國。香港 2024 年起、俄羅斯 2025 年沒有資料，指標檔加 `latestWithin: 1`，2024 年的地圖上香港顯示 2023 年的 4,256 億美元（第 9）。
       - 世界合計：各國（`latestWithin` 內）加總，有資料國家的 GDP 占世界 90% 以上的年份才算（1980 年起）。2024 年 15.92 兆美元。
@@ -1568,7 +1589,7 @@ pipeline/
         - GDP 用主計總處的名目 GDP（`A018103010`）÷ 央行的年平均匯率（`BP01Y01`）：2024 年 8,016 億美元、2025 年 9,214 億，IMF 的 `NGDPD`（也是主計總處的數字）差不到 0.1%。
       - **經常帳**：IMF 的台灣數字就是央行國際收支：2024 年 1,145.5 億美元、14.3%；2025 年 1,843.9 億、20.0%（第 6，IMF 也是 20.0%）。2015–2021 年 IMF 比央行 ÷ 主計總處低 0.1–0.4 個百分點（例如 2018 年 11.6% 對 12.0%），2022 年起相同；照用 IMF，附註對照最新一年。
     - **沒有用的**：IDS 的占 GNI 比率（分母跟 QEDS 國家不同）；世界銀行 World 的進口月數（加權方式不同）；央行的準備資產（黃金以帳面成本計）與「外債」統計（範圍較窄），都只放在附註。
-55. **股市規模**（`pipeline/topics/stock_market.py`、`pipeline/sources/sfb.py`、`cbc_fx.py` 的 `ntd_per_usd_year_end()`）：
+56. **股市規模**（`pipeline/topics/stock_market.py`、`pipeline/sources/sfb.py`、`cbc_fx.py` 的 `ntd_per_usd_year_end()`）：
     - **各國用世界銀行轉載的 WFE 資料**：`CM.MKT.LCAP.GD.ZS`（市值占 GDP）、`CM.MKT.LCAP.CD`（市值，當年美元）、`CM.MKT.LDOM.NO`（上市的本國公司家數）。
       - 年底值，美元用年底匯率換算；不含投資基金與只持有其他上市公司股份的控股公司。原本是 S&P 的資料（2013 年停刊），2015 年 12 月起整條序列換成 WFE 的。
       - 一國有多個交易所時，世界銀行的國家值是各交易所的合計（台灣在 WFE 是證交所、櫃買中心兩個會員）。

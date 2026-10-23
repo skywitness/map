@@ -37,6 +37,7 @@ import { pureMap } from './map';
 import { population } from './population';
 import { religion } from './religion';
 import { reserves } from './reserves';
+import { roadSafety } from './road-safety';
 import { sectors } from './sectors';
 import { semiconductors } from './semiconductors';
 import { stockMarket } from './stock-market';
@@ -67,7 +68,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, reserves, stockMarket, sectors, industry, agriculture, minerals] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, transport] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, transport, roadSafety] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes] },
 ];
 
