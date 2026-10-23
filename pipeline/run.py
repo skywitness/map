@@ -68,6 +68,11 @@ STEPS = {
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
     "road-safety": "topics.road_safety",  # WHO（GHO、GSRRS 2023）與交通部統計查詢網
+    "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
+    "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
+    "employment": "topics.employment",
+    "reserves": "topics.reserves",
+    "stock-market": "topics.stock_market",
     "travel": "topics.travel",  # IANA 時區（tzdata 套件）、Wikidata、維基百科
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
