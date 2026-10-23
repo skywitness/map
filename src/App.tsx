@@ -213,7 +213,7 @@ export function App() {
     if (!data) return;
     const text = indicatorCsv(data, { unit: indicator.unit, countries, year: single ? year : undefined });
     const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
-    downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}_${range}.csv`);
+    downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}${timeless ? '' : `_${range}`}.csv`);
   };
 
   const renderAirportTooltip = (index: number) => {
@@ -383,7 +383,7 @@ export function App() {
             onDownloadImage={view === 'map' ? downloadImage : undefined}
             csv={
               data && !pure
-                ? { year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                ? { year: timeless ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
                 : undefined
             }
           />

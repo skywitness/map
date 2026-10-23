@@ -8,12 +8,10 @@ import type { ExpressionSpecification, RasterDEMSourceSpecification } from 'mapl
 import type { Text } from '../i18n/lang';
 
 const TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
-/** 圖磚的資料來源要標示（https://github.com/tilezen/joerd/blob/master/docs/attribution.md） */
-export const TERRAIN_ATTRIBUTION =
+/** 圖磚的資料來源要標示（https://github.com/tilezen/joerd/blob/master/docs/attribution.md）；匯出圖片的頁尾由主題的資料來源列出 */
+const TERRAIN_ATTRIBUTION =
   '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noreferrer">Terrain Tiles</a>' +
   ' (Mapzen, AWS Open Data: SRTM, GMTED2010, ETOPO1, EU-DEM, ArcticDEM, NED, …)';
-/** 匯出圖片的頁尾用的純文字版 */
-export const TERRAIN_CREDIT = 'Terrain Tiles (Mapzen, AWS Open Data: SRTM, GMTED2010, ETOPO1, EU-DEM, ArcticDEM, NED and others)';
 
 export function demSource(): RasterDEMSourceSpecification {
   return { type: 'raster-dem', tiles: [TILES], tileSize: 256, maxzoom: 15, encoding: 'terrarium', attribution: TERRAIN_ATTRIBUTION };
@@ -24,7 +22,7 @@ export function demSource(): RasterDEMSourceSpecification {
  * 圖磚含海底地形，海面由底圖的水域圖層蓋住（分層設色插在水域圖層下面），所以負值只會出現在
  * 死海、裏海窪地這類低於海平面的陸地。
  */
-export const RELIEF_STOPS: [number, string][] = [
+const RELIEF_STOPS: [number, string][] = [
   [-500, '#4f8a5e'],
   [0, '#86b77b'],
   [200, '#b9d392'],

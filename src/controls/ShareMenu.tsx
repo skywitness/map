@@ -6,7 +6,8 @@ interface ShareMenuProps {
   /** 只有地圖檢視才有：把目前的地圖畫成 PNG 下載 */
   onDownloadImage?: () => Promise<void>;
   /** 有指標資料才有：目前指標的 CSV（選定年份或所有年份） */
-  csv?: { year: number; onDownloadYear: () => void; onDownloadAll: () => void };
+  /** year 是 null：不隨時間變化的資料（海拔），只有一個「下載 CSV」 */
+  csv?: { year: number | null; onDownloadYear: () => void; onDownloadAll: () => void };
   /** 手機分享面板上的標題 */
   shareTitle: string;
 }
@@ -61,6 +62,21 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
     else flash(text.copyFailed, true);
   };
 
+  const downloadCsv = (all: boolean) => {
+    if (all) csv?.onDownloadAll();
+    else csv?.onDownloadYear();
+    flash(text.csvDone);
+  };
+  // 不隨時間變化的資料（year 是 null）只有一個年份，不分「這一年／所有年份」
+  const csvItems: MenuItem[] = !csv
+    ? []
+    : csv.year === null
+      ? [{ label: text.csv, run: () => downloadCsv(false) }]
+      : [
+          { label: text.csvYear(csv.year), run: () => downloadCsv(false) },
+          { label: text.csvAll, run: () => downloadCsv(true) },
+        ];
+
   const items: MenuItem[] = [
     ...(onDownloadImage
       ? [
@@ -82,24 +98,7 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
           },
         ]
       : []),
-    ...(csv
-      ? [
-          {
-            label: text.csvYear(csv.year),
-            run: () => {
-              csv.onDownloadYear();
-              flash(text.csvDone);
-            },
-          },
-          {
-            label: text.csvAll,
-            run: () => {
-              csv.onDownloadAll();
-              flash(text.csvDone);
-            },
-          },
-        ]
-      : []),
+    ...csvItems,
     { label: nativeShare ? text.shareLink : text.copyLink, run: shareLink },
   ];
   itemRefs.current.length = items.length;

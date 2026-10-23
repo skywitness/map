@@ -450,6 +450,11 @@ export function WorldMap(props: WorldMapProps) {
   const installedRef = useRef(false);
   /** 分層設色、地形陰影插在這個圖層前面（底圖的水域，海面才會蓋住海底地形） */
   const reliefBeforeRef = useRef<string | undefined>(undefined);
+  /**
+   * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
+   * 我們的地形陰影蓋住，隱藏起來就不必下載（全球視角約 3 MB）
+   */
+  const baseRastersRef = useRef<string[]>([]);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
   // MapLibre 5 在地球儀上查不到立體圖形（queryRenderedFeatures 對 fill-extrusion 用的是平面的矩陣），
@@ -525,6 +530,9 @@ export function WorldMap(props: WorldMapProps) {
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
+    baseRastersRef.current = styleLayers
+      .filter((l) => l.type === 'raster' && l.layout?.visibility !== 'none')
+      .map((l) => l.id);
     // 地形：分層設色與陰影插在底圖的水域下面（圖磚含海底地形，由海面蓋住）；3D 地形用另一個 source，
     // MapLibre 建議跟陰影分開，畫質比較好。沒有圖層用到時不會下載圖磚
     m.addSource('dem', demSource());
@@ -1048,6 +1056,9 @@ export function WorldMap(props: WorldMapProps) {
     const shade = terrain && layers.hillshade;
     map.setLayoutProperty('relief-color', 'visibility', reliefMap ? 'visible' : 'none');
     map.setLayoutProperty('relief-shade', 'visibility', shade ? 'visible' : 'none');
+    for (const id of baseRastersRef.current) {
+      map.setLayoutProperty(id, 'visibility', reliefMap || shade ? 'none' : 'visible');
+    }
     map.moveLayer('relief-shade', reliefMap ? reliefBeforeRef.current : 'data-border');
     if (map.getLayer('relief-water')) {
       map.setLayoutProperty('relief-water', 'visibility', shade && !reliefMap ? 'visible' : 'none');

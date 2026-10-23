@@ -7,8 +7,9 @@
 - **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）
 - **能源與氣候**：發電量、氣候（二氧化碳排放）
 - **科技與交通**：AI、數位（網路、行動電話、固網寬頻）、交通
+- **地理與文化**：海拔（平均海拔、最高點與最低點、高地占比、沿海低地、坡度；地圖上是分層設色加地形陰影）
 
-地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜。人口主題可以在地圖上框選範圍，估算框內人口。
+地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜；海拔主題的 3D 是真的立體地形（地球儀上也可以）。人口主題可以在地圖上框選範圍，估算框內人口。
 
 每個畫面右上角的「分享」可以下載地圖圖片（PNG，含標題、圖例與資料來源）、下載目前指標的 CSV（選定年份或所有年份，Excel 可直接開啟），或複製這個畫面的連結。
 
@@ -21,7 +22,7 @@
 - **搜尋國家**：中文、英文、常用別名（南韓、韓國、Korea；美國、USA；英國、UK；中國、大陸）或 ISO 代碼（TW、TWN）都找得到，打一部分或拼錯一兩個字母也可以。結果會列出目前的數值，選了之後地圖會飛到那個國家。
 - **鍵盤快捷鍵**（按 `?` 或右上角的「?」看說明）：
   - `/`：搜尋
-  - `←` `→`：換年份
+  - `←` `→`：換年份（海拔這類不隨時間變化的資料沒有時間軸）
   - 空白鍵：播放／暫停
   - `+` `−`：縮放地圖
   - `Esc`：取消選取
@@ -75,13 +76,13 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`diet`、`education`、`tourism`、`trade`、`compact`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`diet`、`education`、`tourism`、`trade`、`elevation`、`compact`。
 
-`population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
+`population-grid` 是框選估算用的網格人口，`elevation` 是海拔主題（USGS GMTED2010 的 1 公里 DEM，第一次會下載約 760 MB），兩個都要先有 `geo` 的國界。
 
 指標檔輸出時數值會壓縮（格式見 DESIGN.md 第 3 節）。`compact` 把還沒壓縮的舊指標檔一次轉換，不需要重新下載，重複執行沒有影響。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.5 GB（主要是 FAOSTAT 的貿易檔、雙邊貿易矩陣與糧食平衡表、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 3.3 GB（主要是 FAOSTAT 的貿易檔、雙邊貿易矩陣與糧食平衡表、CEPII BACI、GMTED2010 的 DEM、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。
 
 ## 建置
 
@@ -104,16 +105,16 @@ npm run preview
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education, tourism and diet (calories, protein, fat, food supply by food group, undernourishment), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment) and elevation (mean elevation, highest and lowest points, highland share, low-lying coastal land and slope, with a shaded-relief map and real 3D terrain), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 
-- **Map**: switch between globe and flat map, zoom down to street level, and choose from five basemaps. Click a country to open its panel with rankings, time series and topic details. Every map also has a **Ranking** table view.
+- **Map**: switch between globe and flat map, zoom down to street level, and choose from five basemaps. **3D** turns values into heights (or real terrain on the elevation topic). Click a country to open its panel with rankings, time series and topic details. Every map also has a **Ranking** table view.
 - **Search**: type a country name in English or Chinese, a common alias (UK, USA, Korea) or an ISO code (TW, TWN). Partial names and small typos work too.
 - **Keyboard shortcuts** (press `?`): `/` search, `←` `→` change year, Space play/pause, `+` `−` zoom, `Esc` clear the selection.
 - **Share**: download the current map as a PNG (with title, legend and sources), download the indicator as CSV, or copy a link. The whole view, including the language (`lang=en`), is stored in the URL.
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
 
-Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
+Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, USGS GMTED2010, Wikidata, Mapzen/AWS Terrain Tiles, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
 
 Development: `npm install`, then `npm run dev`. Data is pre-built in `public/data/`; run `npm run data` to rebuild it (see the Chinese sections above). Design notes, including how to add a topic with bilingual text, are in [DESIGN.md](DESIGN.md) (in Chinese).

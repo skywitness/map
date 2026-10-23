@@ -314,7 +314,7 @@ def name_extremes(stats: Stats, codes: list[str], shapes, overrides, mn, mx, mi)
             if present and local >= ratio * p.elevation:
                 # DEM 的最高格比 Wikidata 列的最高點高：可能是簡化國界把鄰國的山頂劃進來（以色列的黑門山），
                 # 也可能真的有更高的無名高地（科威特西南部），兩種都寫附註
-                name = {"zh": p.zh or p.en, "en": p.en or p.zh}
+                name = {"zh": p.zh or f" {p.en}", "en": p.en or p.zh}  # 沒有中文名時，英文名前面空一格
                 notes[iso3] = (
                     f"這裡是 DEM 網格在這個範圍（地圖的國界）內的最高格，靠近國界時可能是簡化國界的誤差；"
                     f"Wikidata 列的最高點是{name['zh']}（{p.elevation:,.0f} 公尺）。",

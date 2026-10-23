@@ -103,6 +103,26 @@ button {
   opacity: 0.6;
 }
 
+/* 筆電寬度：分類有 6 個以後，英文在 1280px 要縮小字級與間距才放得下一整列（最長的是「People & society · Population」「Energy & climate · Electricity」） */
+@media (max-width: 1440px) {
+  .topbar {
+    gap: 12px;
+  }
+
+  .topics {
+    gap: 2px;
+  }
+
+  .topic {
+    padding: 6px 8px;
+    font-size: 15px;
+  }
+
+  .topic-group {
+    gap: 4px;
+  }
+}
+
 /* 主題列放不下時可以橫向捲動：右緣淡出，看得出後面還有 */
 .topics.is-overflowing {
   padding-right: 24px;
