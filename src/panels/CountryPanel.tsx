@@ -74,7 +74,8 @@ export function CountryPanel(props: CountryPanelProps) {
     };
   });
 
-  const activeData = allData[topic.indicators.indexOf(indicator)];
+  // 用 id 找：有子項目分級門檻的指標（forItem）是另一個物件
+  const activeData = allData[topic.indicators.findIndex((i) => i.id === indicator.id)];
   const option = useMemo(() => {
     if (!activeData) return null;
     const own = activeData.values[iso3];
@@ -86,6 +87,7 @@ export function CountryPanel(props: CountryPanelProps) {
       years: activeData.years,
       lines,
       projectionFrom: activeData.projectionFrom,
+      methodBreak: activeData.methodBreak,
       year,
       indicator,
       tokens,
@@ -93,6 +95,7 @@ export function CountryPanel(props: CountryPanelProps) {
   }, [activeData, iso3, name, indicator, year, tokens, t]);
 
   const projectionFrom = activeData?.projectionFrom;
+  const methodBreak = activeData?.methodBreak;
   // 附註只有中文的話，英文介面不顯示
   const note = lang === 'en' ? activeData?.notesEn?.[iso3] : activeData?.notes?.[iso3];
 
@@ -151,6 +154,7 @@ export function CountryPanel(props: CountryPanelProps) {
             </p>
           )}
           {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
+          {methodBreak !== undefined && option && <p className="note">{t.methodBreak(methodBreak)}</p>}
           {note && <p className="note">{t.note(note)}</p>}
         </section>
       )}

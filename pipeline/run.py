@@ -29,6 +29,7 @@ STEPS = {
     "military": "topics.military",
     "digital": "topics.digital",
     "health": "topics.health",
+    "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
     "tourism": "topics.tourism",
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
