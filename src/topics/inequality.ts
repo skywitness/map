@@ -15,7 +15,7 @@ export const inequality: TopicDefinition = {
       url: 'https://pip.worldbank.org/',
       license: 'CC BY 4.0',
     },
-    { name: 'World Inequality Database (WID.world)', url: 'https://wid.world/', license: 'CC BY 4.0' },
+    { name: 'World Inequality Database (WID.world)', url: 'https://wid.world/', license: 'CC BY-NC-SA 4.0' },
     {
       name: { zh: '行政院主計總處，家庭收支調查', en: 'DGBAS (Taiwan), Survey of Family Income and Expenditure' },
       url: 'https://www.stat.gov.tw/News.aspx?n=3908',
