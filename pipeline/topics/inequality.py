@@ -2,7 +2,7 @@
 
 - 吉尼係數、極端貧窮：World Bank Poverty and Inequality Platform（WDI 轉載，CC BY 4.0），依各國的家庭調查，
   年份零散，前端用 10 年內最近一年的值（latestWithin）。沒有台灣。
-- 所得份額：World Inequality Database（CC BY 4.0），稅前國民所得、20 歲以上成人（夫妻平分），含台灣。
+- 所得份額：World Inequality Database（CC BY-NC-SA 4.0：非商業、相同方式分享），稅前國民所得、20 歲以上成人（夫妻平分），含台灣。
 - 台灣的吉尼係數：主計總處家庭收支調查第 5 表，每人可支配所得（每戶所得 ÷ 每戶人數），跟 PIP 的每人所得比較接近；
   附註寫出新聞常引用的「以戶計算」的吉尼係數與五等分位倍數。
 """

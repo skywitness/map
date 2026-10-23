@@ -1,0 +1,1 @@
+{"years":[2018,2019,2020,2021,2022,2023,2024,2025],"values":{"sales-bev":[3,null,null,85,7300,32000,69000,180000],"sales-phev":[null,null,null,null,19,64,84,77],"stock-bev":[3,3,3,88,7400,39000,110000,280000],"stock-phev":[null,null,null,null,19,83,170,240],"chargers-slow":[null,null,null,null,1200,4500,8500,21000],"chargers-fast":[null,null,null,null,100,1200,3900,11000]}}

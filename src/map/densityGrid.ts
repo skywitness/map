@@ -1,6 +1,7 @@
 /**
- * 1 km 網格圖層（人口主題「人口密度」切到「1 km 網格」）：pipeline/topics/population_density_tiles.py 產生的
- * Web Mercator 點陣圖磚，JRC GHS-POP R2023A，1975–2030 每 5 年一期，依固定的對數分級上色。
+ * 網格圖層：指標有 grid 時，地圖可以從國家平均切到 pipeline 產生的 Web Mercator 點陣圖磚，依固定的分級上色。
+ * - 人口密度的 1 km 網格（pipeline/topics/population_density_tiles.py）：JRC GHS-POP R2023A，1975–2030 每 5 年一期。
+ * - 暖化的 0.5° 網格（pipeline/topics/temperature_grid_tiles.py）：CRU TS，每年一期。
  *
  * - 圖磚不進版本控制，部署時才產生（.github/workflows/deploy.yml），放在 tiles/<資料夾>/<版本>/<年>/z/x/y.png。
  *   同一個資料夾的 meta.json 列出版本、有哪幾期、分級門檻與顏色、哪些圖磚有內容。
@@ -9,7 +10,8 @@
  * - 這個檔不 import MapLibre：WorldMap.tsx 用 addProtocol 註冊 loadGridTile。
  */
 import { useEffect, useState } from 'react';
-import { defineMessages, getLang, type Lang } from '../i18n';
+import { defineMessages, getLang, type Lang, type Localized } from '../i18n';
+import type { GridSpec } from '../topics/types';
 
 /** pipeline 輸出的 meta.json */
 export interface GridMeta {
@@ -19,15 +21,17 @@ export interface GridMeta {
   projectionFrom?: number;
   tileSize: number;
   maxzoom: number;
-  /** 分級門檻（人/km²），N 個門檻 → N+1 級，顏色由淺到深 */
+  /** 分級門檻（指標的單位，例如人/km²、°C），N 個門檻 → N+1 級，顏色依序對應 */
   thresholds: number[];
-  /** 每 km² 不到這麼多人的像素透明 */
-  minDensity: number;
+  /** 人口密度：每 km² 不到這麼多人的像素透明 */
+  minDensity?: number;
   colors: string[];
   /** 有內容的圖磚：每個縮放級數一串位元（第 y × 2^z + x 個位元，低位元在前），base64 */
   tiles: string[];
   source: string;
   sourceUrl: string;
+  /** 地圖右下角的來源標示（純文字，連到 sourceUrl）；沒有的是人口密度的 GHS-POP */
+  attribution?: string;
   citation: string;
   generatedAt: string;
 }
@@ -36,6 +40,8 @@ export interface GridMeta {
 export interface GridLayer {
   /** tiles/ 底下的資料夾 */
   dir: string;
+  /** 指標的網格設定（已依目前語言解析），圖例與標題的文字從這裡來 */
+  spec: Localized<GridSpec>;
   meta: GridMeta;
   /** 這一期（時間軸的年份對應到的那一期） */
   epoch: number;
@@ -128,13 +134,14 @@ export async function loadGridTile(
   return { data: await res.arrayBuffer() };
 }
 
+// 預設是人口密度 1 km 網格的文字；其他網格在指標的 grid 設定裡覆寫（gridLabels）
 const GRID_TEXT = defineMessages({
   zh: {
     /** 「國家平均 / 1 km 網格」切換 */
     mode: '呈現方式',
     countryAverage: '國家平均',
     grid: '1 km 網格',
-    title: (label: string) => `${label}（1 km 網格）`,
+    title: (label: string, grid: string) => `${label}（${grid}）`,
     /** 匯出圖片的副標題；畫面上的說明再加一句 hover 的提示 */
     subtitle: '每個約 1 km 見方的格子裡，每平方公里住多少人（JRC GHS-POP，每 5 年一期）。',
     hoverHint: '滑鼠移到國家上會顯示國家平均。',
@@ -143,23 +150,43 @@ const GRID_TEXT = defineMessages({
     flatIn3d: '3D 時網格不拉高，只傾斜地圖',
     empty: (min: string) => `每 km² 不到 ${min} 人（不上色）`,
     tooltip: '國家平均',
-    failed: '1 km 網格載入失敗，先顯示國家平均',
+    failed: (grid: string) => `${grid}載入失敗，先顯示國家平均`,
   },
   en: {
     mode: 'Display',
     countryAverage: 'Country average',
     grid: '1 km grid',
-    title: (label) => `${label} (1 km grid)`,
+    title: (label, grid) => `${label} (${grid})`,
     subtitle: 'People per km² in each cell of a grid about 1 km across (JRC GHS-POP, every 5 years).',
     hoverHint: ' Hover over a country to see its average.',
     note: (epoch, projected) => `${epoch} grid${projected ? ' (projection)' : ''} · averaged when zoomed out`,
     flatIn3d: 'In 3D the grid stays flat; only the map tilts',
     empty: (min) => `Under ${min} per km² (not coloured)`,
     tooltip: 'country average',
-    failed: 'The 1 km grid failed to load; showing country averages',
+    failed: (grid) => `The ${grid} failed to load; showing country averages`,
   },
 });
 
 export function gridText(lang: Lang = getLang()) {
   return GRID_TEXT[lang];
+}
+
+/** 這個網格的文字：指標的 grid 設定有寫的用它的，沒寫的用預設（人口密度的 1 km 網格） */
+export function gridLabels(spec: Localized<GridSpec>, lang: Lang = getLang()) {
+  const g = GRID_TEXT[lang];
+  const name = spec.label ?? g.grid;
+  return {
+    mode: g.mode,
+    countryAverage: g.countryAverage,
+    /** 切換鈕上的名稱 */
+    name,
+    title: (label: string) => g.title(label, name),
+    subtitle: spec.subtitle ?? g.subtitle,
+    hoverHint: g.hoverHint,
+    note: spec.epochNote ?? g.note,
+    flatIn3d: g.flatIn3d,
+    empty: (meta: GridMeta) => spec.empty ?? g.empty(String(meta.minDensity ?? '')),
+    tooltip: g.tooltip,
+    failed: g.failed(name),
+  };
 }

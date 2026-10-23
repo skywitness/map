@@ -17,8 +17,11 @@ export type { Text };
 export type ScaleSpec =
   /** 單一色相由淺到深，thresholds 為 N 個門檻 → N+1 級（最多 7 級） */
   | { type: 'sequential'; thresholds: number[] }
-  /** 兩色相 + 中性灰中點；thresholds 需對稱，中間那一級為中性色 */
-  | { type: 'diverging'; thresholds: number[] };
+  /**
+   * 兩色相 + 中性灰中點；thresholds 需對稱，中間那一級為中性色。
+   * 預設負值是橘、正值是青綠（人口減少橘、增加綠）；reverse 為 true 時反過來，正值是橘（例如暖化）
+   */
+  | { type: 'diverging'; thresholds: number[]; reverse?: boolean };
 
 export type LayerSpec =
   /**
@@ -126,15 +129,29 @@ export interface IndicatorDef {
   /** 數值越小越好（例如性別不平等指數）：排名表、側欄的名次與單一年份的 CSV 由小排到大，第 1 名是最小的 */
   lowerIsBetter?: boolean;
   /**
-   * 地圖可以從國家平均改成 1 km 網格（點陣圖磚，見 src/map/densityGrid.ts），控制列多一個切換。
-   * dir 是 tiles/ 底下的資料夾，由 pipeline 產生（不進版本控制，部署時才有）。
+   * 地圖可以從國家平均改成網格（點陣圖磚，見 src/map/densityGrid.ts），控制列多一個切換。
+   * 例如人口密度的 1 km 網格、暖化的 0.5° 網格。
    */
-  grid?: { dir: string };
+  grid?: GridSpec;
   /**
    * 有 timeField 的疊加點（地震）要顯示哪些年份：'year' 只有時間軸那一年（預設），'cumulative' 從最早累積到那一年，
    * 數字 n 是那一年起的 n 年（每十年一筆的指標：1990 → 1990–1999）
    */
   overlayTime?: 'year' | 'cumulative' | number;
+}
+
+/** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
+export interface GridSpec {
+  /** tiles/ 底下的資料夾，由 pipeline 產生（不進版本控制，部署時才有） */
+  dir: string;
+  /** 切換鈕與標題上的名稱，預設「1 km 網格」 */
+  label?: Text;
+  /** 網格模式的地圖說明（也是匯出圖片的副標題） */
+  subtitle?: Text;
+  /** 圖例上這一期的說明（預設「2020 年網格 · 縮小時為範圍內平均」）；在呼叫當下讀目前的語言，用 tr() */
+  epochNote?: (epoch: number, projected: boolean) => string;
+  /** 圖例上取代「無資料」的說明：沒有上色的格子是什麼（預設「每 km² 不到 0.1 人（不上色）」） */
+  empty?: Text;
 }
 
 export interface SourceDef {

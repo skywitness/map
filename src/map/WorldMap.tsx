@@ -63,7 +63,7 @@ import { applyTimeFilters, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache }
 import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
-import { GRID_PROTOCOL, gridText, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
+import { GRID_PROTOCOL, gridLabels, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 
@@ -220,8 +220,11 @@ const DATA_FILL_OPACITY = 0.82;
 const FLOW_TINT_OPACITY = 0.6;
 /** 類別圖強調某一類時，其他國家（feature-state 'dim'）的不透明度倍數 */
 const DIMMED = 0.18;
-/** 1 km 網格的 source 與圖層 id */
+/** 網格（人口密度、暖化）的 source 與圖層 id */
 const GRID_LAYER = 'density-grid';
+/** 來源標示是 HTML（MapLibre 的 attribution），meta.json 的文字要跳脫 */
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 /** 網格放大後稍微透明，看得到底圖的街道與地形，對照格子在哪裡；縮小時顏色要跟圖例一樣 */
 const GRID_OPACITY: ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 4, 0.92, 9, 0.8, 13, 0.62];
 
@@ -898,25 +901,37 @@ export function WorldMap(props: WorldMapProps) {
     }
   }, [revision, countries, shapeless, values, categories, highlightCategory]);
 
-  // 1 km 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
-  // 換期時只換圖磚網址；切換底圖後新樣式沒有這個圖層，revision 變了會重新加上
+  // 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
+  // 換期時只換圖磚網址；換成另一個網格（圖磚大小、級數、來源不同）時整個重建；
+  // 切換底圖後新樣式沒有這個圖層，revision 變了會重新加上
   const gridUrl = grid ? gridTiles(grid) : null;
   const gridMeta = grid?.meta ?? null;
+  const gridSourceKey = useRef('');
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const source = map.getSource<RasterTileSource>(GRID_LAYER);
+    let source = map.getSource<RasterTileSource>(GRID_LAYER);
     if (!gridUrl || !gridMeta) {
       if (source) map.setLayoutProperty(GRID_LAYER, 'visibility', 'none');
       return;
     }
+    const attribution = gridMeta.attribution
+      ? `<a href="${gridMeta.sourceUrl}" target="_blank" rel="noreferrer">${escapeHtml(gridMeta.attribution)}</a>`
+      : `<a href="${gridMeta.sourceUrl}" target="_blank" rel="noreferrer">GHS-POP</a> © European Commission JRC`;
+    const key = `${attribution}|${gridMeta.tileSize}|${gridMeta.maxzoom}`;
+    if (source && gridSourceKey.current !== key) {
+      map.removeLayer(GRID_LAYER);
+      map.removeSource(GRID_LAYER);
+      source = undefined;
+    }
     if (!source) {
+      gridSourceKey.current = key;
       map.addSource(GRID_LAYER, {
         type: 'raster',
         tiles: [gridUrl],
         tileSize: gridMeta.tileSize,
         maxzoom: gridMeta.maxzoom,
-        attribution: `<a href="${gridMeta.sourceUrl}" target="_blank" rel="noreferrer">GHS-POP</a> © European Commission JRC`,
+        attribution,
       });
       map.addLayer(
         {
@@ -1336,17 +1351,17 @@ export function WorldMap(props: WorldMapProps) {
     else void containerRef.current?.requestFullscreen?.();
   };
 
-  // 1 km 網格的圖例：顏色、門檻用 meta.json 的（跟圖磚裡畫的一樣），寫出是哪一期
+  // 網格的圖例：顏色、門檻用 meta.json 的（跟圖磚裡畫的一樣），寫出是哪一期
   const gridLegend = useMemo(() => {
     if (!grid) return null;
-    const g = gridText(lang);
+    const g = gridLabels(grid.spec, lang);
     const { meta, epoch } = grid;
     const projected = meta.projectionFrom !== undefined && epoch >= meta.projectionFrom;
     return {
       title: g.title(legendTitle),
       scale: gridScale(meta),
       notes: [g.note(epoch, projected), ...(threeD ? [g.flatIn3d] : [])],
-      emptyKey: g.empty(String(meta.minDensity)),
+      emptyKey: g.empty(meta),
     };
   }, [grid, lang, legendTitle, threeD]);
 
@@ -1388,7 +1403,7 @@ export function WorldMap(props: WorldMapProps) {
             : threeD
               ? { kind: 'column', title, unit, model: columnLegendModel(indicator, bubbleMax), color: MAP_TOKENS.accent }
               : { kind: 'bubble', title, unit, model: bubbleLegendModel(indicator, radius) };
-        // 1 km 網格：網格的分級、哪一期、不上色的格子
+        // 網格：網格的分級、哪一期、不上色的格子
         const legend: ImageLegend | null = gridLegend
           ? {
               kind: 'choropleth',
@@ -1514,7 +1529,7 @@ export function WorldMap(props: WorldMapProps) {
 
       {boxMode && <div className="map-hint">{t.boxHint}</div>}
       {flowHint && !threeDHint && <div className="map-hint">{flowHint}</div>}
-      {gridFailed && !boxMode && !threeDHint && <div className="map-hint">{gridText(lang).failed}</div>}
+      {gridFailed && !boxMode && !threeDHint && <div className="map-hint">{gridLabels(indicator.grid ?? { dir: '' }, lang).failed}</div>}
       {threeDHint && (
         <div className="map-hint is-wrap">
           {matchMedia('(pointer: coarse)').matches ? t.threeDHintTouch : t.threeDHintMouse}

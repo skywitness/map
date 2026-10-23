@@ -1,11 +1,11 @@
-"""World Inequality Database（WID.world，CC BY 4.0）：所得與財富分配，含台灣。
+"""World Inequality Database（WID.world，CC BY-NC-SA 4.0，見 DESIGN.md 第 8 節第 12 點）：所得與財富分配，含台灣。
 
 - 整包下載 https://wid.world/bulk_download/wid_all_data.zip（約 890 MB，解壓 6.9 GB），每個國家一個 CSV：
   `country;variable;percentile;year;value;age;pop;data_quality`，分號分隔。
 - 變數代碼：第一個字母是類型（s 份額、a 平均、x 匯率、i 指數），接著是概念（ptinc 稅前國民所得、hweal 家戶淨財富），
   最後是年齡（992 = 20 歲以上成人、999 = 全部）與人口單位（j = 夫妻平分、i = 個人）。
   例如 sptincj992 p90p100 = 所得最高 10% 的成人拿到的稅前所得份額。
-- 金額是「最新一年的固定價格」本國貨幣：基準年是物價指數 inyixx999i 等於 1 的那一年。
+- 金額是「最新一年的固定價格」本國貨幣：基準年是物價指數 inyixxi999 等於 1 的那一年。
   換成美元要除以基準年的市場匯率 xlcusx999i（或購買力平價 xlcusp999i）。
 - 讀一次全部國家約要幾分鐘，抽出來的變數另外存成 .cache/wid/extract-<雜湊>.json。
 """
@@ -62,7 +62,7 @@ def series(wanted: list[Key]) -> dict[Key, dict[str, dict[int, float]]]:
 
 
 def base_year(index: dict[str, dict[int, float]]) -> int:
-    """金額的基準年：多數國家物價指數（inyixx999i）等於 1 的那一年。"""
+    """金額的基準年：多數國家物價指數（inyixxi999）等於 1 的那一年。"""
     years: dict[int, int] = {}
     for s in index.values():
         for y, v in s.items():
@@ -85,5 +85,6 @@ ALL: list[Key] = [
     ("ahwealj992", "p50p51"),  # 第 50–51 百分位的平均，當作中位數
     ("xlcusxi999", "p0p100"),  # 市場匯率（本國貨幣／美元）
     ("xlcuspi999", "p0p100"),  # 購買力平價（本國貨幣／美元）
-    ("inyixx999i", "p0p100"),  # 物價指數，基準年 = 1
+    ("inyixxi999", "p0p100"),  # 物價指數，基準年 = 1（bulk 檔的代碼是 inyixxi999，不是文件寫法 inyixx999i）
+    ("npopuli992", "p0p100"),  # 20 歲以上人口：存款財產主題用來算市場匯率的世界平均
 ]

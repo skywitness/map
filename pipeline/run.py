@@ -43,6 +43,16 @@ STEPS = {
     "religion": "topics.religion",
     "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
     "gender": "topics.gender",
+    "wages": "topics.wages",
+    "fiscal": "topics.fiscal",
+    "innovation": "topics.innovation",
+    "wealth": "topics.wealth",
+    "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
+    # 暖化（近 10 年平均與 1951–1980 年的差）的網格圖磚（不進版本控制，部署時產生）
+    "temperature-grid-tiles": "topics.temperature_grid_tiles",
+    "air-quality": "topics.air_quality",
+    "water-forest": "topics.water_forest",
+    "ev": "topics.ev",
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",

@@ -1,6 +1,7 @@
 import type { Text } from '../i18n';
 import { agriculture } from './agriculture';
 import { ai } from './ai';
+import { airQuality } from './air-quality';
 import { climate } from './climate';
 import { democracy } from './democracy';
 import { diet } from './diet';
@@ -12,11 +13,14 @@ import { education } from './education';
 import { gender } from './gender';
 import { electricity } from './electricity';
 import { elevation } from './elevation';
+import { ev } from './ev';
+import { fiscal } from './fiscal';
 import { health } from './health';
 import { housing } from './housing';
 import { income } from './income';
 import { industry } from './industry';
 import { inequality } from './inequality';
+import { innovation } from './innovation';
 import { language } from './language';
 import { migration } from './migration';
 import { military } from './military';
@@ -25,10 +29,14 @@ import { pureMap } from './map';
 import { population } from './population';
 import { religion } from './religion';
 import { sectors } from './sectors';
+import { temperature } from './temperature';
 import { tourism } from './tourism';
 import { trade } from './trade';
 import { transport } from './transport';
+import { wages } from './wages';
+import { wealth } from './wealth';
 import type { TopicDefinition } from './types';
+import { waterForest } from './water-forest';
 
 export interface TopicGroup {
   id: string;
@@ -42,10 +50,10 @@ export interface TopicGroup {
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing, religion, inequality, gender, nobel] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, sectors, industry, agriculture] },
+  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, military, democracy, diplomacy] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, transport] },
+  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, transport] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes] },
 ];
 
