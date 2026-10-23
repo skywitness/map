@@ -144,6 +144,11 @@ export interface IndicatorDef {
    * 用這個換掉之後的稱呼（tag）與刻度上的說明（from，在呼叫當下讀目前的語言，用 tr()），之前的年份不加標籤。
    */
   projectionLabel?: { tag: Text; from: (year: number) => string };
+  /**
+   * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
+   * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
+   */
+  noValue?: Record<string, Text>;
 }
 
 /** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
@@ -171,6 +176,47 @@ export interface DimensionDef {
   label: Text;
   options: { id: string; label: Text; group?: Text }[];
   defaultOption: string;
+  /**
+   * 子項目就是國家（option id 是 ISO alpha-3，例如護照與簽證的「護照」）：點地圖、排名表或搜尋選到國家時，
+   * 子項目跟著換成那個國家，地圖改畫那國的資料（「日本護照到各國要不要簽證」）。
+   * 網址只有 country、沒有 item 時（例如從別的主題切過來）也用選到的國家。
+   */
+  followsSelection?: boolean;
+  /**
+   * 子項目是國家時，那個國家在自己那份資料裡沒有值（自己的護照不用簽證、跟自己的投票一致度）：
+   * tooltip 與側欄的數值卡片寫這句，不寫「無資料」。不必 followsSelection（聯合國投票的「比較對象」也用）
+   */
+  selfLabel?: Text;
+}
+
+/**
+ * 某個國家在這個指標沒有值的原因，取代 tooltip 與側欄的「無資料」；沒有特別原因時回傳 undefined。
+ * 依序：指標的 noValue（例如「與美國的一致度」裡的美國）→ 主題的 noValue → 子項目就是這個國家時的 selfLabel。
+ */
+export function missingReason(
+  topic: Pick<Topic, 'noValue' | 'dimension'>,
+  indicator: Pick<Indicator, 'noValue' | 'file'>,
+  item: string | null,
+  iso3: string,
+): string | undefined {
+  const self = item === iso3 && usesDimension(indicator) ? topic.dimension?.selfLabel : undefined;
+  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self;
+}
+
+/**
+ * 目前的子項目：網址指定的 → 跟著選取國家的子項目用選到的國家 → 預設。沒有子項目的主題是 null。
+ * App 與第一個畫面的預先下載共用，兩邊拿到同一個檔。
+ */
+export function resolveItem(
+  dimension: Pick<DimensionDef, 'options' | 'defaultOption' | 'followsSelection'> | undefined,
+  wanted: string | null,
+  selected: string | null,
+): string | null {
+  if (!dimension) return null;
+  const has = (id: string | null) => id !== null && dimension.options.some((o) => o.id === id);
+  if (has(wanted)) return wanted;
+  if (dimension.followsSelection && has(selected)) return selected;
+  return dimension.defaultOption;
 }
 
 /**
