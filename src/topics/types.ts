@@ -268,6 +268,8 @@ export interface TopicDefinition {
 /** 依目前語言解析過的主題與指標：所有 Text 都換成字串 */
 export type Topic = Localized<TopicDefinition>;
 export type Indicator = Localized<IndicatorDef>;
+export type PointsOverlay = Localized<PointsOverlayDef>;
+export type LinesOverlay = Localized<LinesOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,

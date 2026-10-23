@@ -27,7 +27,16 @@ import { fetchGridMeta, gridEpoch, gridText, useGridMeta, type GridLayer } from 
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
-import { decodeRailways, DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
+import {
+  decodeLines,
+  decodePoints,
+  decodeRailways,
+  DEFAULT_LAYERS,
+  overlayVisible,
+  type DecodedLines,
+  type LayerVisibility,
+  type OverlayLayer,
+} from './map/Overlays';
 import { loadBaseStyle } from './map/style';
 import type { WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
@@ -40,7 +49,11 @@ import {
   indicatorPath,
   usesDimension,
   type AirportsData,
+  type Indicator,
   type IndicatorData,
+  type LinesData,
+  type PointRecord,
+  type PointsData,
   type RailwaysData,
   type Topic,
 } from './topics/types';
@@ -158,7 +171,7 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
-  const { railways, airports } = useOverlays(topic);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, layers, pure);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
@@ -253,6 +266,25 @@ export function App() {
         <div className="tt-label">
           {[city, countryName(iso3, countries)].filter(Boolean).join(' · ')} · {type === 1 ? t.largeAirport : t.mediumAirport}
         </div>
+      </>
+    );
+  };
+
+  // 一般點圖層（地震、火山、駐外館處…）的 tooltip 由主題設定決定內容
+  const renderPointTooltip = (overlayId: string, index: number) => {
+    const o = overlays.find((x) => x.def.id === overlayId);
+    const p = o?.kind === 'points' ? o.points?.[index] : undefined;
+    if (!o || o.kind !== 'points' || !p) return null;
+    const tip = o.def.tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
+    return (
+      <>
+        <div className="tt-value">{tip.title}</div>
+        {tip.detail && <div className="tt-label">{tip.detail}</div>}
+        {tip.properNoun && (
+          <div className="tt-label" translate="no">
+            {tip.properNoun}
+          </div>
+        )}
       </>
     );
   };
@@ -470,6 +502,9 @@ export function App() {
                 layers={layers}
                 onLayersChange={setLayers}
                 renderAirportTooltip={renderAirportTooltip}
+                overlays={overlays}
+                year={year}
+                renderPointTooltip={renderPointTooltip}
                 flows={flows}
                 overlay={
                   boxResult && (
@@ -565,17 +600,77 @@ function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
   return useMemo(() => (topo ? toCountryFeatures(topo) : null), [topo]);
 }
 
-/** 主題的疊加圖層（鐵路、機場），只在該主題載入 */
-function useOverlays(topic: Topic) {
-  const overlays = topic.overlays ?? [];
-  const files = useMemo(() => overlays.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, overlays]);
+/**
+ * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
+ * 一般圖層只載入目前指標用得到、而且打開的；預設關閉的圖層第一次打開時才下載。
+ */
+const NO_OVERLAY_DEFS: NonNullable<Topic['overlays']> = [];
+
+function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility, pure: boolean) {
+  const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
+  const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
+  const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
   const loaded = useJsonMany<unknown>(files);
-  const railIndex = overlays.findIndex((o) => o.id === 'railways');
-  const airportIndex = overlays.findIndex((o) => o.id === 'airports');
+  const railIndex = legacy.findIndex((o) => o.id === 'railways');
+  const airportIndex = legacy.findIndex((o) => o.id === 'airports');
   const railData = railIndex >= 0 ? (loaded[railIndex] as RailwaysData | null) : null;
   const railways = useMemo(() => (railData ? decodeRailways(railData) : null), [railData]);
   const airports = airportIndex >= 0 ? (loaded[airportIndex] as AirportsData | null) : null;
-  return { railways, airports };
+
+  const generic = useMemo(
+    () =>
+      pure
+        ? []
+        : overlays.flatMap((o) =>
+            o.kind !== undefined && (!o.indicators || o.indicators.includes(indicator.id))
+              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${topic.id}/${o.file}` }]
+              : [],
+          ),
+    [overlays, topic.id, indicator.id, layers, pure],
+  );
+  const wanted = useMemo(() => generic.filter((g) => g.visible).map((g) => g.path), [generic]);
+  const raw = useJsonEach(wanted);
+  const result = useMemo<OverlayLayer[]>(
+    () =>
+      generic.map(({ def, visible, path }) => {
+        const data = raw.get(path) ?? null;
+        return def.kind === 'points'
+          ? { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null }
+          : { kind: 'lines', def, visible, lines: data ? decodedLines(data as LinesData) : null };
+      }),
+    [generic, raw],
+  );
+  return { railways, airports, overlays: result };
+}
+
+const decodedCache = new WeakMap<object, PointRecord[] | DecodedLines>();
+function decodedPoints(data: PointsData): PointRecord[] {
+  let out = decodedCache.get(data) as PointRecord[] | undefined;
+  if (!out) decodedCache.set(data, (out = decodePoints(data)));
+  return out;
+}
+function decodedLines(data: LinesData): DecodedLines {
+  let out = decodedCache.get(data) as DecodedLines | undefined;
+  if (!out) decodedCache.set(data, (out = decodeLines(data)));
+  return out;
+}
+
+/**
+ * 一次載入好幾個檔，已經載入的保留著：清單變了（打開另一個圖層）時，原本的資料不會先變回 null，地圖才不會閃一下。
+ * 失敗的檔案當成沒有資料。
+ */
+function useJsonEach(paths: string[]): Map<string, unknown> {
+  const [loaded, setLoaded] = useState<Map<string, unknown>>(() => new Map());
+  const key = paths.join('|');
+  useEffect(() => {
+    for (const path of key ? key.split('|') : []) {
+      if (loaded.has(path)) continue;
+      fetchJson<unknown>(path)
+        .then((data) => setLoaded((m) => (m.get(path) === data ? m : new Map(m).set(path, data))))
+        .catch(() => {});
+    }
+  }, [key]);
+  return loaded;
 }
 
 /** 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年 */
