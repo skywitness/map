@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -379,6 +379,7 @@ pipeline/
 |---|---|---|---|---|
 | 地圖（純地圖） | 不上色，只看底圖；點國家會放大到該國 | — | OpenFreeMap、OpenStreetMap | — |
 | 人口 | 總人口、密度（國家平均，或切到 1 km 網格）、年增率、年齡中位數；可框選估算 | — | UN WPP 2024；1 km 網格與框選用 JRC GHS-POP R2023A | 1950–2100（2024 起推估）；1 km 網格 1975–2030 每 5 年一期（2025 起推估）；框選的網格是 2020 年 |
+| 生育率與高齡化 | 總生育率（發散色，中性一級跨過替代水準 2.1）、65 歲以上人口比例、扶老比、出生數（比例圓） | 人口金字塔（男女五歲年齡組，比例尺固定為 1950–2100 年最大的一組，推估年份調淡） | UN WPP 2024（中推估）；台灣也用 WPP，附註對照內政部戶政司與國發會人口推估（2026 至 2075 年） | 1950–2100（2024 起推估） |
 | 人均收入 | 人均 GDP（名目、PPP）、GDP 總額、經濟成長率 | — | IMF WEO（含台灣），IMF 未涵蓋的 17 個地區用 World Bank 補 | 1980–2031（2026 起推估） |
 | 發電量 | 總發電量、人均用電、再生/低碳/燃煤/核能占比、碳排強度 | 發電結構堆疊面積圖＋各能源長條 | Ember | 2000–2025 |
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
@@ -406,6 +407,7 @@ pipeline/
 | 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
 | 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
 | 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
+| 治安與司法 | 故意殺人率（全部、女性、男性被害人，三個用同一組門檻）、法治分數（WGI，0–100） | — | World Bank WDI（UNODC 國際殺人統計）、World Bank Worldwide Governance Indicators；台灣的故意殺人率用衛福部死因統計（他殺）÷ WPP 人口，附註對照警政署故意殺人統計；監禁人口率因授權沒有放 | 故意殺人率 1990–2025（女性、男性 1993 年起；台灣 2008 年起；各國顯示 5 年內最近一年）；法治分數 1996–2025（2002 年起每年） |
 | 薪資與工時 | 平均月薪（美元、購買力平價）、法定最低工資（美元、購買力平價）、每週工時、每年工時 | — | 國際勞工組織 ILOSTAT、Penn World Table 11.0（墨西哥、哥倫比亞的每年工時用 OECD）；台灣用主計總處薪資及生產力統計與人力資源調查、勞動部基本工資／最低工資、中央銀行匯率，購買力平價用 PWT 與 IMF 的消費者物價推算 | 月薪 1993–2025、最低工資 1996–2024、每週工時 2000–2025（各國只顯示 3 或 5 年內最近一年的資料）；每年工時 1970–2023 |
 | 存款與財產 | 平均每人存款、存款占 GDP、每位成年人的平均財富與財富中位數（各有市場匯率與購買力平價兩版）、最富有 10%／1% 的財富占比、家庭儲蓄率（約 35 國）、國民儲蓄率 | 財富的平均與中位數（折線對照，附「平均是中位數的幾倍」） | IMF Financial Access Survey、IMF WEO（SDMX API）、World Inequality Database、OECD National Accounts at a Glance；台灣用中央銀行金融統計、主計總處國民所得統計，附註列出國富統計與家庭財富分配統計 | 存款 2004–2025；財富 1995–2024（2025 年價格）；家庭儲蓄率 1995–2024；國民儲蓄率 1980–2031（2026 起推估） |
 | 物價與財政 | 通膨率、物價水準（美國 = 100）、政府債務占 GDP、財政收支占 GDP、稅收占 GDP（含社會安全捐） | — | IMF WEO（含台灣；物價水準用 IMF 的 GDP（美元）÷ GDP（購買力平價）算出），IMF 未涵蓋的地區用 World Bank 補；稅收用 OECD 全球稅收統計，OECD 沒有的 57 國用 IMF 世界稅收資料庫（WoRLD）補；台灣稅收用財政部 | 通膨率、物價水準 1980–2031、政府債務 1991–2031、財政收支 1990–2031（2026 起推估）；稅收 1990–2024（台灣 2000 年起，最新一年還沒公布的國家顯示前一年） |
@@ -528,11 +530,16 @@ pipeline/
     - PB2002 板塊邊界（fraxen/tectonicplates）是 ODC-By 1.0，要註明 Hugo Ahlenius、Nordpil 與 Peter Bird。
     - 外交部駐外館處通訊錄（data.gov.tw 6119）、領事事務局免簽證名單（data.gov.tw 30749）是政府資料開放授權條款第 1 版；領務局的國家清單是網站內容，網站的「政府網站資料開放宣告」採同一個條款。邦交國的建交、斷交日期是史實，表格自己整理，只拿維基百科（CC BY-SA 4.0）交叉比對（見第 41 點）；Wikidata 的 P530 起訖日期大多是空的，ICPSR 的外交承認資料集禁止再散布，都沒有用。
     - Nobel Prize API（api.nobelprize.org）是 CC0（https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/）；條款另外要求不刻意竄改或誤導、不用 Nobel Prize Outreach 的名稱或商標暗示背書（主題名稱「諾貝爾獎」只是描述資料內容，沒有用標誌）。
-    - **Passport Index 資料集是 MIT**：imorte/passport-index-data 的 LICENSE（commit 9c59780，「MIT License, Copyright (c) 2019」，沒有寫名字）與 README（「Data scraped from passportindex.org … Licensed under MIT」）；前身 ilyankou/passport-index-dataset 的 LICENSE 是「MIT License, Copyright (c) 2019 Ilya Ilyankou」，README 的理由是 Passport Index 自稱「a free tool, built with publicly available information and with content contributed by fans and government agencies」。資料本身是 Arton Capital 的 passportindex.org 整理的（網站頁尾「© 2026 PASSPORTINDEX.ORG」）；網站的條款頁擋了程式，沒有讀到。簽證規定本身是各國政府公布的事實，本站非商業、頁尾同時註明 GitHub 資料集（MIT）與 passportindex.org，所以採用；要商業使用或擔心網站條款，可以改用各國政府公布的資料自己整理（台灣護照已經有領事事務局的名單）。Henley Passport Index 沒有開放授權的資料，沒有用。（見第 42 點）
-    - UCDP（GED Global 26.1、UCDP/PRIO Armed Conflict Dataset 26.1）是 CC BY 4.0：下載頁（https://ucdp.uu.se/downloads/ ，2026-10-23 查）寫「All datasets are free of charge and licensed under CC BY 4.0 — you are free to use and redistribute them provided you cite the relevant publications listed with each dataset.」，所以頁尾列出各資料集要求引用的文獻（Davies, Pettersson & Öberg 2026；Sundberg & Melander 2013；Gleditsch et al. 2002），`manifest.json` 也有完整的引用。見第 43 點。
+    - 國家發展委員會的人口推估（data.gov.tw 6101「人口推計」）是政府資料開放授權條款第 1 版；生育率與高齡化主題只在台灣的附註引用幾個數字，沒有轉載資料檔。內政部戶政司的人口統計同樣適用政府資料開放授權條款。
+    - **UNODC 資料入口（data.unodc.org）不准轉載**：頁尾的 Terms and Conditions 連到聯合國網站的一般條款（https://www.unodc.org/unodc/legal.html）：只限個人、非商業使用，「without any right to resell or redistribute them or to compile or create derivative works」。原本 dataunodc.un.org 的資料條款允許註明出處後轉載，但舊網址（含條款頁）現在都轉到新網站。故意殺人率用世界銀行以 CC BY 4.0 轉載的版本；監禁人口率、在監人數、未判決比例沒有開放授權的轉載版，沒有放（見第 43 點）。
+    - **World Prison Brief（ICPR）沒有用**：網站只寫「© World Prison Brief」，要求引用，沒有授權轉載資料（https://www.prisonstudies.org/about-us）。
+    - 世界銀行 Worldwide Governance Indicators 是 CC BY 4.0（https://datacatalog.worldbank.org/search/dataset/0038026）。
+    - 內政部警政署、法務部統計處的開放資料採政府資料開放授權條款第 1 版。
+    - **Passport Index 資料集是 MIT**：imorte/passport-index-data 的 LICENSE（commit 9c59780，「MIT License, Copyright (c) 2019」，沒有寫名字）與 README（「Data scraped from passportindex.org … Licensed under MIT」）；前身 ilyankou/passport-index-dataset 的 LICENSE 是「MIT License, Copyright (c) 2019 Ilya Ilyankou」，README 的理由是 Passport Index 自稱「a free tool, built with publicly available information and with content contributed by fans and government agencies」。資料本身是 Arton Capital 的 passportindex.org 整理的（網站頁尾「© 2026 PASSPORTINDEX.ORG」）；網站的條款頁擋了程式，沒有讀到。簽證規定本身是各國政府公布的事實，本站非商業、頁尾同時註明 GitHub 資料集（MIT）與 passportindex.org，所以採用；要商業使用或擔心網站條款，可以改用各國政府公布的資料自己整理（台灣護照已經有領事事務局的名單）。Henley Passport Index 沒有開放授權的資料，沒有用。（見第 44 點）
+    - UCDP（GED Global 26.1、UCDP/PRIO Armed Conflict Dataset 26.1）是 CC BY 4.0：下載頁（https://ucdp.uu.se/downloads/ ，2026-10-23 查）寫「All datasets are free of charge and licensed under CC BY 4.0 — you are free to use and redistribute them provided you cite the relevant publications listed with each dataset.」，所以頁尾列出各資料集要求引用的文獻（Davies, Pettersson & Öberg 2026；Sundberg & Melander 2013；Gleditsch et al. 2002），`manifest.json` 也有完整的引用。見第 45 點。
     - 國際組織的成員名單與加入、退出日期是史實，依各組織官網的成員名單自行整理成表（`pipeline/sources/igo_members.py`），不是轉載資料庫；頁尾的來源連到這個檔（列出每個官網的網址與查閱日期），授權標「史實自行整理」。交叉比對用的英文維基百科成員國條目是 CC BY-SA 4.0，只比對日期，沒有轉載文字，跟台灣的外交主題的邦交國表一樣在資料來源列出。
-    - 東協 2026 年 5 月的對外關係名單（PDF）、WTO、北約、APEC、非洲聯盟、大英國協、上合組織的網頁只用來確認成員與日期，沒有轉載。（見第 44 點）
-    - Erik Voeten 的聯合國大會投票資料（Harvard Dataverse，United Nations General Assembly Ideal Points 第 39 版）是 CC0 1.0（Dataverse 的 license 欄位），不要求標示；作者請使用者引用 Bailey, Strezhnev & Voeten (2017) 與 Fjelstul, Hug & Kilby (2025)（UNGA-DM），頁尾的來源有列（見第 45 點）。
+    - 東協 2026 年 5 月的對外關係名單（PDF）、WTO、北約、APEC、非洲聯盟、大英國協、上合組織的網頁只用來確認成員與日期，沒有轉載。（見第 46 點）
+    - Erik Voeten 的聯合國大會投票資料（Harvard Dataverse，United Nations General Assembly Ideal Points 第 39 版）是 CC0 1.0（Dataverse 的 license 欄位），不要求標示；作者請使用者引用 Bailey, Strezhnev & Voeten (2017) 與 Fjelstul, Hug & Kilby (2025)（UNGA-DM），頁尾的來源有列（見第 47 點）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1158,8 +1165,18 @@ pipeline/
       - 側欄的停留天數由說明的開頭（或「可停留」「停留不超過」「最多」這類寫法）抽出來，換成中英文；完整說明（去掉網址與「請參閱簽證及入境須知」）只在中文介面顯示，英文介面只有類別與天數。
       - 顏色用發散色（`diverging`）：從「需事先申請」（橘）經「落地簽證」（中性）到「免簽證」（青綠）。用循序色的話 5 類會用到最深的兩階橘色，免簽證與需要旅行授權的免簽證在地圖上分不出來。
     - **授權**：外交部駐外館處通訊錄與領務局免簽證名單都是政府資料開放授權條款第 1 版（data.gov.tw 的 license 欄位是 1）；領務局國家清單是網站內容，網站的「政府網站資料開放宣告」採同一個條款。Natural Earth 公有領域。邦交國日期見上面（史實，自己整理；比對用的維基百科是 CC BY-SA 4.0）。
+42. **生育率與高齡化**（`pipeline/topics/fertility.py`、`src/topics/panels/FertilityPanel.tsx`）：
+    - 總生育率、出生數用 WPP 的人口動態指標檔（跟人口主題同一個檔）；65 歲以上比例與扶老比用五歲年齡組人口（`WPP2024_PopulationByAge5GroupSex_Medium`，1950–2100）自己算，世界的值用 WPP 的世界列，不是各國加總。
+    - 人口金字塔每國一個檔（`countries/<ISO3>.json`，1950–2100 每年男女各 21 組），用指標檔同一種差分編碼，但整個國家共用一個指數，最大的一組保留 4 位有效數字（台灣是千人），237 國共 4.5 MB、gzip 後 1.4 MB，點國家才載入。共用的 `EChart` 只有折線圖，金字塔用 HTML 長條畫，不另外引入 ECharts 的長條圖。
+    - 台灣維持 WPP（跟人口主題一致）：2023 年以前跟內政部很接近（總生育率 0.87 對 0.865、65 歲以上 18.33% 對年底 18.35%，出生數少約 2%）。但 2024 年起 WPP 是推估，2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 推估 0.86、12.5 萬人。只把台灣這兩年換成內政部的數字，會跟 WPP 2026 年以後的推估接不起來，所以差異寫在附註。國發會 2026 年 8 月的人口推估（中推估 2075 年總生育率 0.8、65 歲以上 52.9%）比 WPP（2075 年 1.22、42.9%）悲觀很多，也寫在附註；國發會的網站（pop-proj.ndc.gov.tw）有 Cloudflare 驗證，這幾個數字取自國發會新聞稿的媒體轉述。
+    - 總生育率用發散色：門檻 [1, 1.5, 1.9, 2.3, 3.5, 5]，中性的一級（1.9–2.3）跨過替代水準 2.1，低於替代水準是橘色（跟人口年增率的「減少橘、增加綠」一致）。65 歲以上比例的門檻含 7%、14%、20%（高齡化、高齡、超高齡社會）。扶老比 [10, 15, 20, 30, 40, 60]，2023 年日本 50、台灣 26。
+43. **治安與司法**（`pipeline/topics/crime.py`、`pipeline/sources/wgi.py`、`npa.py`）：
+    - 故意殺人率用世界銀行轉載的 UNODC 資料（`VC.IHR.PSRC.P5`，女性、男性是 `.FE.P5`、`.MA.P5`，分母是同性別的人口），CC BY 4.0。UNODC 自己的資料入口多了最新一年與被害人數，但條款不准轉載（見第 12 點），所以沒有用。各國不是每年都有，指標檔加 `latestWithin: 5`；台灣有 2025 年的資料，所以時間軸到 2025。全部、女性、男性三個指標用同一組門檻 [0.5, 1, 2.5, 5, 10, 25]，才能互相比較（世界 2023 年：全部 5.2、女性 2.1、男性 8.3）。
+    - **監禁人口率沒有放**：涵蓋各國的只有 UNODC 資料入口的「監獄與受刑人」（data.unodc.org/datareport/prison-held 的 `data_cts_prisons_and_prisoners.xlsx`，2003 年起，有在監人數、每十萬人比率與未判決比例 SDG 16.3.2）與 World Prison Brief，兩個都不能轉載（見第 12 點）。聯合國 SDG 全球資料庫有未判決比例（`VC_PRS_UNSNT`），但沒有在監人數，網站也找不到資料授權，同樣沒有用。台灣的數字在法務部統計處常用統計表「矯正機關收容人數」（`WebList3_Report.aspx?menu=INF_COMMON_C&list_id=1216`，只列最近 4 年，網站的月報、年報、進階查詢都只有 2022 年起）：2025 年底總收容人數 63,314 人，法務部的監禁人口率（÷ 年底人口）271.7，只寫在主題說明裡。
+    - **台灣的故意殺人**：警政署統計查詢網（ba.npa.gov.tw，跟內政部統計查詢網同一套系統）的「故意殺人」發生數與被害人都含未遂，沒有分既遂（2021 年致死約 122 件，發生數 212 件）。所以地圖用衛福部死因統計的加害（他殺，ICD-10 X85–Y09、Y87.1）死亡人數 ÷ WPP 年中人口，男女分開算（死因統計的 sex 1 是男、2 是女），2008 年起；警政署的數字寫在附註（2025 年發生 158 件、被害人 193 人，同年他殺死亡 139 人）。2024 年 9 月起警政署部分刑案改成「1 被害人 1 發生數」。
+    - **法治分數**：WGI 2025 年改版後的 0–100 治理分數（`GOV_WGI_RL.SC`，估計值的線性轉換，以假想的最差與基準國家定錨，越高越好），World Bank API 的 source 3。台灣（「Taiwan, China」）、法屬圭亞那、馬丁尼克、留尼旺、安圭拉、庫克群島、紐埃、澤西在 API 裡的代碼欄是空的，依名稱對照（`wgi.NAMES`）。1996、1998、2000 年，2002 年起每年。是 30 多個調查與評估的看法綜合，不是犯罪統計；2025 年台灣 78.4、南韓 78.3、日本 84.0、美國 71.7、芬蘭 91.8（最高）。
 
-42. **護照與簽證**（`pipeline/topics/passport.py`、`pipeline/sources/passport_index.py`、`src/topics/passport.ts`、`src/topics/panels/PassportPanel.tsx`）：
+44. **護照與簽證**（`pipeline/topics/passport.py`、`pipeline/sources/passport_index.py`、`src/topics/passport.ts`、`src/topics/panels/PassportPanel.tsx`）：
     - **來源**：Passport Index（Arton Capital 的 passportindex.org）沒有提供下載，大家用的是 GitHub 上從網站整理出來的 CSV。
       - 原本的 ilyankou/passport-index-dataset（2019 年起，MIT）最後一版是 2025-01-12（commit `a46dbc8`），2026-02-18 封存，README 寫明 2026 年 2 月以後的資料改看 imorte/passport-index-data。
       - 所以用接手的 imorte/passport-index-data（MIT，README 寫「Last updated: 17 February 2026」），固定在 commit `9c59780dd0dbaefcbdfa0134d21cd99d0d547509`（2026-03-01），從 `https://raw.githubusercontent.com/imorte/passport-index-data/9c59780dd0dbaefcbdfa0134d21cd99d0d547509/passport-index-tidy-iso3.csv` 下載（685,681 位元組，`common.download` 快取成 `pipeline/.cache/passport-index/9c59780-passport-index-tidy-iso3.csv`）。這個 repo 之後沒有再更新（`history/` 是空的）。
@@ -1230,7 +1247,7 @@ pipeline/
     - **檢查用的數字**：全部 39,402 格（199 × 198）：免簽證 12,777、需旅行授權 1,099、落地簽證 5,440、電子簽證 7,965、需事先申請 12,067、不准入境 48、另用通行證 6。護照實力最高阿聯 169、南韓與新加坡 163、日本 162、西班牙 161，最低阿富汗 22、敘利亞 26、伊拉克與巴基斯坦 29；台灣 112（第 83 名）。
     - **驗證**（2026-10-23，無頭 Chrome）：中文、英文的地圖與圖例、滑到中國的 tooltip（「另用通行證（兩岸、港澳）」）、台灣側欄（附註、長條、目的地清單、跟領事事務局的比對表）、點日本後地圖與選單換成日本護照、選台灣時用選單換成日本護照（側欄先寫「持日本護照前往台灣：免簽證 · 90 天」）、格陵蘭（三張卡片都寫「Passport Index 沒有收這個地方」）、三個指標的排名表、375×812 手機；英文介面三個指標 × 三種畫面都沒有中文。
 
-43. **武裝衝突**（`pipeline/topics/conflict.py`、`pipeline/sources/ucdp.py`、`src/topics/conflict.ts`、`src/topics/panels/ConflictPanel.tsx`）：
+45. **武裝衝突**（`pipeline/topics/conflict.py`、`pipeline/sources/ucdp.py`、`src/topics/conflict.ts`、`src/topics/panels/ConflictPanel.tsx`）：
     - **來源**：烏普薩拉大學和平與衝突研究系的 UCDP（Uppsala Conflict Data Program）26.1 版（2026 年 6 月發布，涵蓋到 2025 年），下載頁 https://ucdp.uu.se/downloads/ 的 CSV 壓縮檔，直接從 zip 裡讀，不解壓：
       - UCDP Georeferenced Event Dataset（GED）Global 26.1（`ged/ged261-csv.zip`，39 MB，解壓後 274 MB、417,968 起事件，1989–2025）：每起事件有經緯度、當時的國家（Gleditsch–Ward 編號）、暴力類型（1 以國家為一方、2 非國家、3 單方面）、死亡人數的最佳估計（`best`）。
       - UCDP/PRIO Armed Conflict Dataset 26.1（`ucdpprio/ucdp-prio-acd-261-csv.zip`，46 KB，2,816 個衝突年、303 個衝突，1946–2025）：所在國（`gwno_loc`，可能好幾國）、強度（1 小型 25–999 人、2 戰爭 1,000 人以上）、衝突類型、爭議（領土／政府）。
@@ -1280,7 +1297,7 @@ pipeline/
     - **側欄**（`ConflictPanel.tsx`）：三類死亡人數的堆疊面積圖（讀三個死亡人數指標檔）、當年的長條；當年所在國是這裡的衝突（名稱、強度、類型、爭議、雙方，UCDP 英文原文放在 `translate="no"`）；1946 年起所在國是這裡的衝突清單（年份、戰爭的年份，前 6 個以外收在「顯示其餘」）。資料是 `conflicts.json`（每國每個衝突一列，66 KB）。
     - **大小**：`public/data/topics/conflict/` 共 1.5 MB（點 1.1 MB，其他指標檔各 35–56 KB）。資料管線約 25 秒（讀 274 MB 的 GED CSV）。
 
-44. **國際組織**（`pipeline/topics/organizations.py`、`pipeline/sources/igo_members.py`、`src/topics/organizations.ts`、`src/topics/panels/OrganizationsPanel.tsx`）：
+46. **國際組織**（`pipeline/topics/organizations.py`、`pipeline/sources/igo_members.py`、`src/topics/organizations.ts`、`src/topics/panels/OrganizationsPanel.tsx`）：
     - **沒有一份開放資料同時有這 16 個組織的成員與日期**，所以依各組織官網的成員名單整理成一張表（`igo_members.TABLES`，每個國家在每個組織的每一段：狀態、開始、結束、種類），網址寫在 `igo_members.SOURCES`，2026-10-23 查閱：
       - 有列日期、讀得到的：WTO 會員名單與加入進度表（https://www.wto.org/english/thewto_e/whatis_e/tif_e/org6_e.htm 、`acc_e/completeacc_e.htm`、`acc_e/status_e.htm`，加入進度表 2024-08 更新）、北約成員（https://www.nato.int/cps/en/natohq/topics_52044.htm ，2024-03 更新）與和平夥伴關係的簽署日期（`topics_82584.htm`）、夥伴（`topics_84336.htm`，2025-05 更新）、地中海對話（`topics_52927.htm`）、伊斯坦堡合作倡議（`topics_52956.htm`）、全球夥伴（`topics_49188.htm`）、白俄羅斯（`topics_49119.htm`）、APEC 成員與加入日期（https://apec.org/who-we-are/our-members ）、非洲聯盟成員國與加入日期（https://au.int/en/member_states/countryprofiles2 ）、大英國協 56 國（https://thecommonwealth.org/our-member-countries ，沒有日期）、上海合作組織成員、觀察員、對話夥伴（https://eng.sectsco.org/20170109/192193.html ）、歐盟成員與加入年份（https://european-union.europa.eu/principles-countries-history/eu-countries_en ）與候選國（https://enlargement.ec.europa.eu/enlargement-policy/candidate-countries-and-potential-candidates_en ）、東協 2026 年 5 月的對外關係名單（https://asean.org/wp-content/uploads/2026/05/ASEAN-External-Relations-Coordinatorship-as-of-May-2026.pdf ）、RCEP 的生效日期（新加坡 https://www.meti.gov.sg/trade-international-economic-relations/agreements/free-trade-agreements-fta/rcep/ ）、CPTPP 2026-06-26 部長聲明（https://www.gov.uk/government/publications/cptpp-joint-ministerial-statement-from-the-10th-commission-meeting-26-june-2026 ）、G7 研究組（http://www.g7.utoronto.ca/what_is_g8.html ，G7 沒有常設網站）。
       - **擋自動讀取或連不上的**：OECD（403）、東協網站本身（Sucuri 轉址）、OPEC（402）、G20（403）、金磚國家 2026 主席國網站（403）、紐西蘭外交貿易部的 CPTPP 加入頁（502）、阿拉伯國家聯盟（連不上）。這幾個依官方文件、主席國與政府新聞稿、媒體報導確認目前的名單，日期依英文維基百科的成員國條目與記憶交叉比對（例如 OECD 的 38 國與 8 個候選國依 2026 年部長會議文件 C/MIN(2026)2）。
@@ -1317,7 +1334,7 @@ pipeline/
     - **檢查用的數字**（2026-10-23，地圖上的成員數含暫停參與）：歐盟 27（申請 10）、北約 32（申請 3、夥伴 32）、東協 11（夥伴 22）、OECD 38（候選 8、主要夥伴 3）、G7 7、G20 19（另有歐盟、非洲聯盟；常任受邀國 1）、金磚國家 10（受邀 1、夥伴國 10）、CPTPP 12（申請 10）、RCEP 15（申請 4）、非洲聯盟 55（暫停 6）、OPEC 11（OPEC+ 夥伴 10）、大英國協 56（申請 1）、阿拉伯國家聯盟 22、上合組織 10（夥伴 17）、WTO 165 個地圖上的國家／地區加歐盟 = 166（申請 21，加上庫拉索 22；觀察員 1）、APEC 21。歷年：歐盟 1958 年 6、1973 年 9、1986 年 12、1995 年 15、2004 年 25、2013 年 28、2020 年 27；北約 1949 年 12、1982 年 16、1999 年 19、2004 年 26、2020 年 30、2024 年 32；OECD 1961 年 19（義大利 1962 年批准）；OPEC 2018 年 15 → 2026 年 11。`CHECK_COUNTS` 對不上時資料管線報錯；組織有新成員、退出或暫停時要同時改 `TABLES` 與 `CHECK_COUNTS`。
     - **授權**：見第 12 點。
 
-45. **聯合國投票**（`pipeline/topics/un_votes.py`、`pipeline/sources/unvotes.py`、`src/topics/un-votes.ts`、`src/topics/panels/UnVotesPanel.tsx`）：
+47. **聯合國投票**（`pipeline/topics/un_votes.py`、`pipeline/sources/unvotes.py`、`src/topics/un-votes.ts`、`src/topics/panels/UnVotesPanel.tsx`）：
     - **來源**：Erik Voeten 在 Harvard Dataverse 的資料集（doi:10.7910/DVN/LEJUQZ，舊的 handle 是 hdl:1902.1/12379）。原名「United Nations General Assembly Voting Data」，2025 年 7 月的第 35 版起改名「United Nations General Assembly Ideal Points」，改成依投票的日曆年估計（之前依大會屆次），也不再放逐筆表決：估計用的原始表決除了 2024、2025 年的最後表決（作者自己整理）以外，來自 UNGA-DM 資料庫（https://unvotes.unige.ch/ ）。用第 39 版（2026-07-30 發布）。作者要求的引用：Bailey, Michael A., Anton Strezhnev, and Erik Voeten. 2017. "Estimating Dynamic State Preferences from United Nations Voting Data." Journal of Conflict Resolution 61(2): 430–56；以及 Fjelstul, Joshua, Simon Hug, and Christopher Kilby. 2025. "Decision-making in the United Nations General Assembly: A comprehensive database of resolution-related decisions." The Review of International Organizations。頁尾的來源列了這兩篇。
     - **授權**：CC0 1.0（Dataverse API 的 `license` 欄位，https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId=doi:10.7910/DVN/LEJUQZ ，2026-10-23 查；第 30–39 版都是 CC0，沒有另外的使用條款）。
     - **檔案與下載**：`https://dataverse.harvard.edu/api/access/datafile/<file id>`（`common.download` 有設 User-Agent，Dataverse 會擋 Python 預設的），下載後比對 Dataverse 公布的 MD5，第一次約 23 MB、10 秒：
@@ -1363,6 +1380,7 @@ pipeline/
 - **台灣的公共充電樁**：交通部只在新聞稿公布某個時點的數字，有官方的逐年（年底）統計後補上（第 37 點）。
 - **地震死亡人數分國**：目前整筆算在震央附近的國家（2004 年海嘯全算印尼）。NOAA 的海嘯資料庫有各國的死亡人數，可以另外接。NOAA 記錄 1935-07-16 新竹的地震 2,746 人死亡，疑似錯值，找到官方數字（例如《昭和十年臺灣震災誌》）可以加一張更正表。
 - **民主與自由的其他指數**：V-Dem 還有參與式、審議式、平等民主、公民自由、貪腐等指數，在 `democracy.py` 的 `INDICES` 與 `vdem.INDEX_COLUMNS` 各加一行即可。
+- **監禁人口率**：UNODC 資料入口恢復可以轉載的資料條款（或有開放授權的轉載版）後可以加，台灣用法務部的年底總收容人數（第 43 點）。
 - **台灣的外交**：館處用實際地址定位（目前是城市中心，要地址等級的開放 geocoder）；簽證待遇的歷史（領務局只有最新的 PDF，舊版要從網路封存找）；互設代表處的年份、館處的設立與裁撤（外交年鑑有逐年的館處名單，要從 PDF 整理）。
 - **諾貝爾獎依國籍或得獎時的機構**：API 有 `affiliations`，國籍要另外查 Wikidata 的 P27（雙重國籍要定規則）；也可以加女性得主、得獎年齡。
 - **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。
@@ -1422,7 +1440,7 @@ pipeline/
   - 量法：無頭 Chrome 逐一切到每個主題（目前的分類會多顯示主題名稱），量 `.topics` 裡按鈕寬度加間距的總和。現在（36 個主題）英文 1280px 最寬 863px（可用 871px，選水資源與森林時；其次是薪資與工時 860px。「Savings & wealth」「Prices & budgets」會超出，所以短名稱用 Wealth、Prices & debt），中文 1024px 最寬 644px（可用 650px，也是選水資源與森林時；五個字的主題是 628px）。
   - 環境與能源加入氣溫與降雨、空氣品質、水資源與森林、電動車 4 個主題時（2026-10-23），考慮過把「能源」改成「能源與環境」（Energy & env.）：分類名稱英文多 51px、中文多 48px，選哪個主題都會超出（英文最寬 914px、選農業時也有 879px；中文最寬 692px，選經濟類五個字的主題時也有 676px），所以維持「能源 / Energy」。英文的主題名稱也取短的（Temperature、Air quality、Water & forests、EVs）。
   - 英文的主題短名稱最多約 11 個字元：「Earthquakes & volcanoes」超出 66px、「Taiwan's diplomacy」超出 19px，所以頂列寫 Earthquakes、Taiwan ties（完整的 `title` 不受限制）。
-  - 國際加入護照與簽證、武裝衝突、國際組織、聯合國投票（2026-10-23，40 個主題，國際有 10 個，選單分兩欄）：英文短名稱 Passports、Conflict、Int'l orgs、UN votes 都在 11 個字元內，選到它們時英文 1280px 最寬 816px、中文 628px（五個字，跟其他五個字的主題一樣），沒有超出。這四個主題的指標名稱也量過：1280px 寬時控制列都是一行，只有聯合國投票「與各國的一致度」的英文版多一個「Compared with」選單，換成兩行（民主與自由、台灣的外交的英文版原本就是兩行）。
+  - 國際加入護照與簽證、武裝衝突、國際組織、聯合國投票（2026-10-23，同一天社會也加了生育率與高齡化、治安與司法，共 42 個主題；國際有 10 個，選單分兩欄）：英文短名稱 Passports、Conflict、Int'l orgs、UN votes 都在 11 個字元內，選到它們時英文 1280px 最寬 816px、中文 628px（五個字，跟其他五個字的主題一樣），沒有超出。這四個主題的指標名稱也量過：1280px 寬時控制列都是一行，只有聯合國投票「與各國的一致度」的英文版多一個「Compared with」選單，換成兩行（民主與自由、台灣的外交的英文版原本就是兩行）。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
