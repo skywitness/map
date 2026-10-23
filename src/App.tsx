@@ -180,7 +180,7 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
-  const { railways, airports, overlays } = useOverlays(topic, indicator, layers, pure);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
@@ -280,12 +280,14 @@ export function App() {
     );
   };
 
-  // 一般點圖層（地震、火山、駐外館處…）的 tooltip 由主題設定決定內容
+  // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    const p = o?.kind === 'points' ? o.points?.[index] : undefined;
-    if (!o || o.kind !== 'points' || !p) return null;
-    const tip = o.def.tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
+    if (!o) return null;
+    const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
+    const tooltip = o.def.tooltip;
+    if (!p || !tooltip) return null;
+    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
     return (
       <>
         <div className="tt-value">{tip.title}</div>
@@ -577,7 +579,13 @@ export function App() {
       </main>
 
       {!pure && !timeless && (
-        <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />
+        <TimeSlider
+          years={years}
+          year={year}
+          projectionFrom={data?.projectionFrom}
+          projectionLabel={indicator.projectionLabel}
+          onChange={setYear}
+        />
       )}
 
       <footer className="footer">
@@ -618,7 +626,7 @@ function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
  */
 const NO_OVERLAY_DEFS: NonNullable<Topic['overlays']> = [];
 
-function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility, pure: boolean) {
+function useOverlays(topic: Topic, indicator: Indicator, item: string | null, layers: LayerVisibility, pure: boolean) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
   const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
@@ -634,11 +642,13 @@ function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility
       pure
         ? []
         : overlays.flatMap((o) =>
-            o.kind !== undefined && (!o.indicators || o.indicators.includes(indicator.id))
+            o.kind !== undefined &&
+            (!o.indicators || o.indicators.includes(indicator.id)) &&
+            (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
               ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${topic.id}/${o.file}` }]
               : [],
           ),
-    [overlays, topic.id, indicator.id, layers, pure],
+    [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],
   );
   const wanted = useMemo(() => generic.filter((g) => g.visible).map((g) => g.path), [generic]);
   const raw = useJsonEach(wanted);

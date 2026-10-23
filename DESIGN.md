@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -164,8 +164,9 @@ pipeline/
 | `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入 | 發電結構、GDP 與就業結構、主要農產品 |
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
-| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處） |
-| 指標的 `overlayTime` | 有年份欄位的疊加點怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年） |
+| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點） |
+| 指標的 `overlayTime` | 有年份欄位的疊加點（或線）怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年）；海底電纜（依啟用年份累積） |
+| 指標的 `projectionLabel` | 資料檔有 `projectionFrom` 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」；之前是實際數字、之後也不是推估時，換掉之後的稱呼（`tag`）與刻度上的說明（`from(年)`），之前的年份不加標籤 | 海底電纜（明年起「含規劃中」） |
 | 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換 | 人口密度的 1 km 網格、暖化的 0.5° 網格 |
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔 |
@@ -223,8 +224,11 @@ pipeline/
   - `shape: 'triangle'`：三角形圖示（火山）。每種顏色在 canvas 畫一張圖（白色外框直接畫在圖上），用 symbol 圖層；換底圖後圖示跟著樣式一起消失，重新加上。
   - `sortField`：大的畫在上面（`circle-sort-key`）。`timeField` 加上指標的 `overlayTime` 決定時間軸怎麼篩選（`setFilter`，不重送資料）。
   - `tooltip(p, { countryName })` 回傳標題與說明，原文地名放 `properNoun`（`translate="no"`）。點有 `iso3` 欄位時，滑過會同時標出那個國家，點一下選取它；海上的地震沒有國家，照樣有 tooltip。
-  - `indicators`：只在某些指標顯示。`hidden: true`：預設關閉，第一次打開才下載資料檔（App 的 `useJsonEach` 保留已載入的檔，打開另一個圖層時地圖不會閃一下）。
+  - `indicators`：只在某些指標顯示；`items`：只在某些子項目顯示（`dimension` 的選項 id）。`hidden: true`：預設關閉，第一次打開才下載資料檔（App 的 `useJsonEach` 保留已載入的檔，打開另一個圖層時地圖不會閃一下）。
   - 線可以依 `types` 分類上色，`dash: true` 的類別畫虛線（`line-dasharray` 不能依資料變化，另外一層 `ov-<id>-dash`）。
+  - **線的 tooltip 與時間篩選**（海底電纜，2026-10-23 起）：`LinesData.records` 是每條線一筆紀錄（跟點的 `PointsData` 同一種欄位分開存的格式，`common.lines_file()` 的 `records`、`record_fields`、`record_scale`、`record_delta`），前端 `decodeLines()` 還原。
+    - 線圖層有 `tooltip` 時可以滑過：另外一層看不見的寬線 `ov-<id>-hit`（9 px、`line-opacity: 0`；`queryRenderedFeatures` 依線寬判斷，跟不透明度無關）給 hover 查詢，細線也滑得到；點圖層優先。滑過時 `ov-<id>-hover` 把紀錄完全相同的線（同一條電纜被切成的好幾段，`g` 是組別）一起加粗。點一下不會取消選取：點選時略過線的查詢層，選到底下的國家。
+    - `timeField`（紀錄裡的欄位）跟點一樣依指標的 `overlayTime` 篩選；線本身有篩選（實線、虛線那兩層）時，時間篩選跟它合併（`['all', 本身, 時間]`），不能直接蓋掉，否則規劃中的電纜會失去虛線、或在啟用以前就出現。
 - **資料格式**：點用 `common.points_file()`（`PointsData`）：欄位分開存，數值量化成整數（經緯度 0.01°），排序過的欄位（年份、經度）存差分；前端 `decodePoints()` 還原。線用 `common.lines_file()`（`LinesData`），跟鐵路同一種差分編碼，跨 180° 經線的線要先把經度展開成連續的。
 - **圖層順序**：線插在機場前面、點插在框選範圍前面，都在 3D 立體圖形之上；`overlays` 裡後面的畫在上面。每個圖層一個 source（`ov-<id>`），換底圖後依 `revision` 重新加上、重送資料。
 - **圖例**：左下角「圖層」的每個疊加圖層一列（勾選框加符號），打開時下面列出顏色分級與大小（大小的圓點橫排、數值寫在下面）。匯出圖片的圖層卡片用同一份模型（`overlayKey()`、`exportLayerKeys()`）。
@@ -422,6 +426,7 @@ pipeline/
 | 武裝衝突 | 戰鬥死亡（以國家為一方的衝突，預設）、非國家衝突死亡、單方面暴力死亡、組織性暴力死亡（三類合計；以上四個是比例圓）、每十萬人死亡（組織性暴力）、以國家為一方的武裝衝突數（面量圖）、衝突強度（類別圖：戰爭／小型衝突／沒有）；疊加圖層：三類事件的點（同一年、同一國、約 10 公里內合計 25 人以上，依時間軸只畫那一年，大小是死亡人數，紅／琥珀／紫） | 三類死亡人數堆疊面積圖＋當年長條、當年所在國是這裡的衝突（UCDP 原文名稱、強度、類型、爭議、雙方）、1946 年起所在國是這裡的衝突清單 | UCDP Georeferenced Event Dataset（GED）Global 26.1、UCDP/PRIO Armed Conflict Dataset 26.1（CC BY 4.0）、UN WPP 2024（人口） | 死亡人數 1989–2025；衝突數與強度 1946–2025 |
 | 國際組織 | 成員身分（類別圖，每年 12 月 31 日的狀態：成員、申請或加入中、夥伴或觀察員、成員（暫停參與），其他是非成員；子項目是 16 個組織，分四類：區域組織（歐盟、東協、非洲聯盟、阿拉伯國家聯盟）、政治與安全（北約、上海合作組織、大英國協）、高峰會論壇（G7、G20、金磚國家）、經濟與貿易（WTO、OECD、APEC、CPTPP、RCEP、OPEC），預設歐盟）、參加幾個組織（面量圖，16 個裡是成員的有幾個） | 這一年在各組織的身分與歷程（加入、申請、夥伴、暫停的每一段與日期）、參加時用的名稱（中華台北、臺澎金馬個別關稅領域、中國香港…）與附註、不是成員的組織；選定組織的說明（「成員」指什麼、從哪一年算、前身）與官網連結 | 各組織官網的成員名單（史實自行整理，`pipeline/sources/igo_members.py`，2026-10-23 查閱），日期與英文維基百科的成員國條目交叉比對 | 各組織成立（或前身）的那一年到今年：阿拉伯國家聯盟 1945、北約 1949、大英國協 1949（倫敦宣言）、歐盟 1958（歐洲經濟共同體）、OPEC 1960、OECD 1961、非洲聯盟 1963（非洲團結組織）、東協 1967、G7 1975、APEC 1989、WTO 1995、G20 1999、上海合作組織 2001、金磚國家 2009、CPTPP 2018（簽署）、RCEP 2020（簽署）；參加幾個組織 1945–2026。今年是資料產生當天（2026-10-23）的狀態 |
 | 聯合國投票 | 與美國的一致度（預設）、與中國的一致度（1971 年起）、理想點（Bailey, Strezhnev & Voeten 的一維投票立場，發散色）、與各國的一致度（16 個比較對象：俄羅斯、英國、法國、德國、烏克蘭、日本、南韓、印度、印尼、澳洲、土耳其、伊朗、以色列、埃及、南非、巴西） | 與美國、中國的投票一致度（兩條折線，x 軸只畫這國有投票紀錄的年份）、理想點的 90% 可信區間與參加的表決次數 | Erik Voeten, United Nations General Assembly Ideal Points（Harvard Dataverse 第 39 版，CC0 1.0；方法 Bailey, Strezhnev & Voeten 2017；原始表決 UNGA-DM） | 一致度 1946–2024、理想點 1946–2025（1964 年沒有記名表決）；中國 1971 年起，台灣（中華民國）1946–1971 |
+| 海底電纜 | 海底電纜地圖（預設，不上色，畫電纜路線與登陸點，依 RFS 年份累積；營運中洋紅實線、規劃中琥珀虛線）、登陸的電纜數（比例圓）、國際連線數（面量圖）、登陸點數（比例圓） | 在這國登陸的電纜（名稱、啟用年份、長度、登陸點、擁有者；營運中與規劃中分開列）、直接連到的國家（長條，依電纜數） | TeleGeography Submarine Cable Map（CC BY-NC-SA 3.0）；台灣用中央社報導的中華電信、數位發展部數字交叉比對 | 1989–2030（2027 起加上規劃中的電纜，是推估）；2026-10 的快照 |
 
 ## 8. 資料陷阱（重要）
 
@@ -544,6 +549,8 @@ pipeline/
     - 國際組織的成員名單與加入、退出日期是史實，依各組織官網的成員名單自行整理成表（`pipeline/sources/igo_members.py`），不是轉載資料庫；頁尾的來源連到這個檔（列出每個官網的網址與查閱日期），授權標「史實自行整理」。交叉比對用的英文維基百科成員國條目是 CC BY-SA 4.0，只比對日期，沒有轉載文字，跟台灣的外交主題的邦交國表一樣在資料來源列出。
     - 東協 2026 年 5 月的對外關係名單（PDF）、WTO、北約、APEC、非洲聯盟、大英國協、上合組織的網頁只用來確認成員與日期，沒有轉載。（見第 47 點）
     - Erik Voeten 的聯合國大會投票資料（Harvard Dataverse，United Nations General Assembly Ideal Points 第 39 版）是 CC0 1.0（Dataverse 的 license 欄位），不要求標示；作者請使用者引用 Bailey, Strezhnev & Voeten (2017) 與 Fjelstul, Hug & Kilby (2025)（UNGA-DM），頁尾的來源有列（見第 48 點）。
+    - **TeleGeography Submarine Cable Map 是 CC BY-NC-SA 3.0**（姓名標示—非商業性—相同方式分享）：TeleGeography 在 GitHub 的 `telegeography/www.submarinecablemap.com` 儲存庫（2022 年底刪除）README 的「How can I download the dataset?」連到的就是這裡用的 API 檔（`web/public/api/v3/cable/cable-geo.json` 等），「License」一節寫「Our map is made available under the following Creative Commons License: Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)」，LICENSE 檔也是這個授權的條文；2019 年起的 Wayback Machine 存檔都一樣（http://web.archive.org/web/20221110120103/https://github.com/telegeography/www.submarinecablemap.com 、LICENSE：http://web.archive.org/web/20220325100817/https://github.com/telegeography/www.submarinecablemap.com/blob/master/LICENSE ）。TeleGeography 現在的說明頁（https://www2.telegeography.com/cite-telegeography-map ）寫公開的地圖是 CC BY-SA 4.0、「underlying databases」只給付費訂戶，沒有提到 API。使用者原本以為是 CC BY-SA 3.0，但找到的官方依據都是 NC 版或只講地圖，所以照較嚴的 CC BY-NC-SA 3.0 使用與標示（本站非商業，跟 World Inequality Database 一樣）。海底電纜主題的資料檔（`public/data/topics/submarine-cables/`）是改作（換國家代碼、接線、量化、計算各國統計），頁尾寫明依 CC BY-NC-SA 3.0 分享，匯出的地圖圖片與 CSV 也一樣。要商業使用得另外向 TeleGeography 授權。
+    - 中央社報導只拿來交叉比對台灣的電纜數（引用事實、註明出處，不轉載內容）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1372,7 +1379,27 @@ pipeline/
     - **配色**：一致度用循序色（30、40、50、60、70、80%），越深越常投相同的票，所有比較對象、所有年份共用同一組門檻。不用發散色：50% 不是立場的分界，而且「與美國」「與中國」兩張圖的深色是不同的國家，用青綠／橘色會讓人以為有好壞之分。理想點有正負，才用發散色。
     - **驗證**：美中一致度 1971 年 47.9%、1980 年 38.9%、1990 年 24.0%、2000 年 34.1%、2010 年 33.5%、2020 年 24.0%、2024 年 29.0%；美國與中華民國（台灣）1946 年 76.9%、1950 年 81.0%、1960 年 93.8%、1965 年 73.1%（116 國中第 36 名）、1970 年 67.5%；美蘇 1950 年 27.0%、1960 年 31.2%。2024 年與美國：以色列 92.1%、英國 78.8%、烏克蘭 73.9%、南韓 71.0%、日本 68.1%、印度 40.7%、俄羅斯 23.9%；與中國：北韓 88.1%、巴基斯坦 87.5%、俄羅斯 77.9%、印度 77.9%、日本 58.0%、英國 45.6%。2024 年 88 國與中國的一致度在 80% 以上，52 國與美國在 60% 以上；2024 年 190 國有一致度，2025 年 191 國有理想點。
     - **名稱與頁尾要短**：指標名稱原本是「與美國的投票一致度」「Voting agreement with the US」，四個並排時 1280px 寬的控制列中英文都換成兩行（中文 684px、英文 1,040px，可用約 660、615px），改成「與美國的一致度」「US agreement」、「理想點」「Ideal point」、「與各國的一致度」「Agreement by country」（英文標題是「Japan agreement by country」）。頁尾原本把 1964 年、憲章第 19 條、各國的接續都寫進去，英文版有 8 行，把地圖擠到 300px 高，縮成三句，細節留在這裡。
-49. **菸酒**（`pipeline/topics/tobacco_alcohol.py`、`pipeline/sources/hpa.py`、`src/topics/panels/TobaccoAlcoholPanel.tsx`）：
+49. **海底電纜**（`pipeline/topics/submarine_cables.py`、`pipeline/sources/telegeography.py`）：
+    - **來源與下載**：TeleGeography Submarine Cable Map（https://www.submarinecablemap.com/ ）網站本身用的 API v3，不需金鑰：`cable/cable-geo.json`（路線，GeoJSON MultiLineString）、`landing-point/landing-point-geo.json`（登陸點）、`cable/all.json`（清單），以及每條電纜的明細 `cable/<id>.json`（長度字串「45,000 km」、登陸點與國家英文名稱、擁有者與供應商（逗號分隔的字串）、RFS 字串與 `rfs_year`、`is_planned`）。2026-10 是 713 條電纜、1,928 個登陸點。明細要一條一條抓，每次請求間隔 0.4 秒、都有快取（`.cache/telegeography/cable/<id>.json`），第一次約 18 分鐘（共約 1.6 MB）；要更新得加 `--refresh`。
+    - **國家歸屬**：登陸點的國家照明細裡 TeleGeography 寫的英文國名（「Congo, Dem. Rep.」「Virgin Islands (U.S.)」「Bonaire, Sint Eustatius and Saba」），`COUNTRY_NAMES` 對照，對不上就報錯；同一個登陸點在不同電纜的國家不一致也報錯。屬地照自己的 ISO 代碼（關島 GUM、法屬玻里尼西亞 PYF、北馬利安納 MNP…），185 個國家／地區有電纜登陸。例外：聖誕島、科科斯群島在地圖上是同一個形狀「澳屬印度洋領地」（`_IOT`），算在 `_IOT` 才看得到。BES、GIB、GLP、GUF、MTQ、MYT、REU、TKL、TUV 在 1:50m 沒有自己的形狀（法國海外省併在法國、荷蘭加勒比區併在荷蘭的形狀裡），有值、排名表與搜尋找得到、登陸點照畫，但只有 GIB、TKL、TUV 有小國圓點；法國、荷蘭與這幾個地區的附註寫明法國、荷蘭的數字不含它們（`MERGED_IN`）。地圖上的國家（自訂代碼的 `_SIA` 等除外）沒有電纜的是 0，不是無資料，內陸國也是 0。
+    - **時間**：TeleGeography 只收營運中與規劃中的電纜，已經退役的（1988 年的 TAT-8、1999 年的 SEA-ME-WE 3 等）不在裡面，所以早年的數字偏少，代表的是「今天還在用的電纜是哪一年啟用的」（最早的是 1989 年）。每年年底累計：
+      - 今年（2026）是資料下載時已經啟用的電纜：營運中的依 `rfs_year` 算（沒有營運中但沒有年份的）。
+      - 規劃中的 105 條從明年起依預計年份算進去，`projectionFrom` 是明年（2027）。預計今年底前啟用、或預定年份已過還沒啟用的 5 條算在 2027 年；沒有預計年份的 6 條算在最後一年（2030）。
+      - 疊加圖層的線與登陸點用同一個年份（`year` 欄位、指標的 `overlayTime: 'cumulative'`），地圖跟數字一致；tooltip、側欄顯示的是 TeleGeography 原本的 RFS 年份。
+      - 時間軸 1989–2030。今年以前是實際的數字，不是估計，所以指標設了 `projectionLabel`：今年以前不標「估計值」，明年起標「含規劃中」（預設是「估計值／推估值」）。
+    - **計算**：
+      - 登陸的電纜數：有登陸點在這國的不同電纜（同一國好幾個登陸點只算一條），國內電纜也算。2026 年美國 90、英國 62、印尼 61、日本 43、新加坡 34。
+      - 國際連線數：同一條電纜登陸的其他國家兩兩都算「直接連到」。TeleGeography 沒有分段（哪一段連哪兩個登陸點）的資料，主幹與支線分不開，所以 2Africa、SeaMeWe-6 這種串起二、三十國的電纜讓法國（68）、葡萄牙、埃及、沙烏地的數字很高；美國最多（72）。面量圖門檻 1、5、10、20、30、45。
+      - 登陸點數：有電纜登陸的地點（登陸點最早那條電纜的年份起算）。加拿大最多（147，Connected Coast 沿卑詩省海岸有幾十個登陸點）。
+    - **路線**：同一條電纜是好幾段 MultiLineString（2026-10 共 1,949 段），在 180° 經線切開。每段先把經度展開成連續的，再把首尾相接、接點只有這兩段的接成一條線（分岔點不接），後面那段平移 360°，跨太平洋的電纜經度可以超過 ±180（FASTER 139°～236°），地球儀與平面上都不會橫越整張地圖（實際看過）。切開的兩段端點不一定完全一樣（TPU 是 179.9999° 與 −179.9768°），所以端點 0.05° 內就算同一點。結果 1,741 條線、14,242 個頂點，不必簡化；量化 0.01°、差分編碼，`cables-lines.json` 226 KB、gzip 後 58 KB。
+      - 每條線一筆屬性（`records`，跟點圖層同一種欄位分開存的格式）：名稱、地圖上的年份 `year`、RFS 年份 `rfs`、是否規劃中 `plan`、長度 `len`、前 4 個擁有者 `own` 與擁有者總數 `nown`（完整清單在側欄的國家檔）。電纜名稱不重複，同一條電纜的線用名稱就能認出來。
+      - 登陸點的名稱去掉結尾的國名（「Toucheng, Taiwan」→「Toucheng」），國名寫法不同的（「Kralendijk, Bonaire, Netherlands」）不動；位置未定（`is_tbd`）的 2 個照畫，tooltip 註明。
+    - **台灣**：TeleGeography 收了 14 條在台灣登陸、營運中的國際電纜：APCN-2、FLAG North Asia Loop/REACH North Asia Loop、EAC-C2C、TPE、CSCN（登陸點在金門古寧頭與慈湖，連到廈門）、TSE-1、APG、FASTER、NCP、PLCN、Topaz、Apricot、SJC2、TPU（2026，台東大武），跟中央社 2025-01-10〈海纜安全危機4／台灣成海纜樞紐 中華電信強化韌性備援多路齊發〉（https://www.cna.com.tw/news/aipl/202501100035.aspx ，數字來自中華電信與數位發展部）的「台灣聯外海纜約 14 條」相近，報導點名的 SJC2、Apricot、APCN2、FNAL/RNAL、EAC、C2C、CSCN、TSE-1、TPE、APG、FASTER、NCP 全部都有（EAC、C2C 在 TeleGeography 是同一條 EAC-C2C）。規劃中 4 條：ORCA（2027）、Candle（2028）、AUG East（2029，大武與屏東五結）、E2A（2029）。
+      - 國內電纜：TeleGeography 只有 3 個系統，臺澎金馬二號 TPKM2（2000）、臺澎金馬三號 TPKM3（2013）、臺馬四號（2026），串起本島與澎湖、金門、馬祖；同一篇報導說國內海纜有 10 條（台馬、台金、台澎、澎金各兩條），沒有逐條收錄。
+      - 1999 年的 SEA-ME-WE 3 不在 TeleGeography 現在的清單裡（只有 SeaMeWe-4、5、6），FLAG Europe-Asia（FEA）也沒有；ADC 有收，但登陸點是中國、日本、菲律賓、新加坡、泰國、越南，沒有台灣。
+      - 2026 年台灣：17 條電纜（第 20 名）、直接連到 13 國（第 98 名）、20 個登陸點；2030 年 21 條、14 國。附註（`notes`／`notesEn`）由 `_taiwan_check()` 依資料產生，`TAIWAN_EXPECTED`（中央社點名的電纜）在 TeleGeography 找不到、或 SEA-ME-WE 3 又出現時會印警告。
+    - **顏色**（MAP_TOKENS，dataviz 驗證工具的 OKLab ΔE×100，一般／紅色盲／綠色盲）：營運中用洋紅 `categorical[7]` #e7298a，跟藍色的海 #a0c8f0 33/32/20、淺色陸地 39/42/30、深色底圖的水 44/28/39；規劃中用琥珀 `hues.yellow` #eda100 加虛線，跟海 24/24/23、深色底圖 55/50/56，跟洋紅 29/30/21。登陸點是深灰 `inkSecondary` 加白框（跟海 39/41/38；深色底圖上靠白框）。比例圓的紫 #6250d6 跟洋紅只有 27/13/23，但一個是半透明的大圓、一個是細線，分得開。五種底圖都看過。
+50. **菸酒**（`pipeline/topics/tobacco_alcohol.py`、`pipeline/sources/hpa.py`、`src/topics/panels/TobaccoAlcoholPanel.tsx`）：
     - 吸菸率用 WHO GHO 的 `M_Est_smk_curr_std`（15 歲以上目前吸菸、年齡標準化；含紙菸、雪茄、菸斗等燃燒式菸品，不含嚼菸與電子煙），出自《WHO 全球菸草使用趨勢報告》的模型估計，只有 2000、2005、2007、2010、2015、2020、2022、2023、2024 年，2025、2030 年是推估（`projectionFrom: 2025`）。很多國家最近一次調查在幾年前，2023、2024 年也是模型外推（GHO 的 Comments 欄寫「This is a projection」），但 WHO 把它們當估計值發布，這裡照 WHO 的分法。GHO 沒有世界值，所以沒有對照線。全部、男性、女性三個指標用同一組門檻 [5, 10, 15, 20, 30, 40]，看得出東亞、非洲女性吸菸率很低。
     - 人均飲酒量用 `SA_0000001688`（15 歲以上每人每年的純酒精公升數，有登記的銷售量加上自釀、走私等沒有登記的量，扣掉觀光客喝的，SDG 3.5.2），2000–2024 年，有世界值（2024 年 4.86 公升）。
     - 主要酒類與側欄的酒類組成用 `SA_0000001400`（有登記的人均消費量，依 ALCOHOLTYPE 分啤酒、葡萄酒、烈酒、其他），1961 年起。主要酒類是四類裡純酒精最多的一類，沒有資料的類別當成 0（「其他」比較常缺）；2024 年啤酒 85 國、烈酒 57、葡萄酒 21、其他 15（日本、南韓、許多非洲國家）。「其他」的英文、中文標籤都取短的（Other／其他酒類），說明寫在指標說明裡：類別圖的排名表在 375px 寬時數值欄會被長標籤擠出畫面。類別順序（烈酒、葡萄酒、啤酒、其他）是為了讓 `MAP_TOKENS.categorical` 的前四色剛好是薄荷綠、淡紫、琥珀、綠，葡萄酒偏紫、啤酒偏黃；側欄的長條用同一個 `categoryScale()` 取色。
@@ -1396,7 +1423,7 @@ pipeline/
 - **台灣的公共充電樁**：交通部只在新聞稿公布某個時點的數字，有官方的逐年（年底）統計後補上（第 37 點）。
 - **地震死亡人數分國**：目前整筆算在震央附近的國家（2004 年海嘯全算印尼）。NOAA 的海嘯資料庫有各國的死亡人數，可以另外接。NOAA 記錄 1935-07-16 新竹的地震 2,746 人死亡，疑似錯值，找到官方數字（例如《昭和十年臺灣震災誌》）可以加一張更正表。
 - **民主與自由的其他指數**：V-Dem 還有參與式、審議式、平等民主、公民自由、貪腐等指數，在 `democracy.py` 的 `INDICES` 與 `vdem.INDEX_COLUMNS` 各加一行即可。
-- **台灣的人均飲酒量**：財政部的菸酒稅有些酒類依酒精度課稅，可以從課稅數量或稅收推算純酒精；啤酒、料理米酒依公升課稅，要假設酒精濃度，料理米酒多半拿來做菜，也要決定算不算（第 49 點）。
+- **台灣的人均飲酒量**：財政部的菸酒稅有些酒類依酒精度課稅，可以從課稅數量或稅收推算純酒精；啤酒、料理米酒依公升課稅，要假設酒精濃度，料理米酒多半拿來做菜，也要決定算不算（第 50 點）。
 - **監禁人口率**：UNODC 資料入口恢復可以轉載的資料條款（或有開放授權的轉載版）後可以加，台灣用法務部的年底總收容人數（第 43 點）。
 - **台灣的外交**：館處用實際地址定位（目前是城市中心，要地址等級的開放 geocoder）；簽證待遇的歷史（領務局只有最新的 PDF，舊版要從網路封存找）；互設代表處的年份、館處的設立與裁撤（外交年鑑有逐年的館處名單，要從 PDF 整理）。
 - **諾貝爾獎依國籍或得獎時的機構**：API 有 `affiliations`，國籍要另外查 Wikidata 的 P27（雙重國籍要定規則）；也可以加女性得主、得獎年齡。
