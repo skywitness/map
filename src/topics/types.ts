@@ -301,6 +301,11 @@ export interface TopicDefinition {
   noValue?: Record<string, Text>;
 }
 
+/** 每筆資料涵蓋的年數：overlayTime 是數字 n 的指標（每十年一筆），年份 1990 代表 1990–1999；其他指標是 undefined */
+export function yearBin(indicator: Pick<IndicatorDef, 'overlayTime'>): number | undefined {
+  return typeof indicator.overlayTime === 'number' ? indicator.overlayTime : undefined;
+}
+
 /** 依目前語言解析過的主題與指標：所有 Text 都換成字串 */
 export type Topic = Localized<TopicDefinition>;
 export type Indicator = Localized<IndicatorDef>;

@@ -8,6 +8,7 @@ import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
   usesDimension,
+  yearBin,
   type Indicator,
   type IndicatorData,
   type PanelExtraProps,
@@ -63,7 +64,7 @@ export function CountryPanel(props: CountryPanelProps) {
     const data = allData[i];
     if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
-    const yearIndex = nearestYearIndex(data.years, year);
+    const yearIndex = nearestYearIndex(data.years, year, yearBin(ind));
     // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
     const { values, years: valueYears } = latestAt(data, yearIndex);
     const shownYear = valueYears.get(iso3) ?? data.years[yearIndex];
@@ -213,9 +214,14 @@ function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data
   );
 }
 
-function nearestYearIndex(years: number[], year: number): number {
+/** bin：每十年一筆的指標取包含這一年的那一筆（1999 → 1990 年代），不取最接近的 2000 */
+function nearestYearIndex(years: number[], year: number, bin?: number): number {
   const exact = years.indexOf(year);
   if (exact >= 0) return exact;
+  if (bin) {
+    const containing = years.findLastIndex((y) => y <= year && year < y + bin);
+    if (containing >= 0) return containing;
+  }
   let best = 0;
   years.forEach((y, i) => {
     if (Math.abs(y - year) < Math.abs(years[best] - year)) best = i;

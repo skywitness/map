@@ -69,7 +69,9 @@ function quakeTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => stri
   return {
     title: `${mag === null ? '' : `${magnitude(mag)} · `}${date} UTC`,
     detail: parts.join(' · '),
-    properNoun: typeof p.place === 'string' ? p.place : undefined,
+    // USGS 的地名只剩國名時（「Taiwan」）跟上一行的國名重複，不再寫一次
+    properNoun:
+      typeof p.place === 'string' && !(typeof p.iso3 === 'string' && p.place === ctx.countryName(p.iso3)) ? p.place : undefined,
   };
 }
 

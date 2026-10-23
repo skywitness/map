@@ -161,7 +161,7 @@ export function composeMapImage(map: HTMLCanvasElement, ratio: number, options: 
   ctx.fillStyle = space;
   ctx.fillRect(0, headerHeight, width, mapHeight);
   ctx.drawImage(map, 0, headerHeight, width, mapHeight);
-  drawLegends(ctx, options, font, CARD.inset, headerHeight + mapHeight - CARD.inset, width - CARD.inset * 2);
+  drawLegends(ctx, options, font, CARD.inset, headerHeight + mapHeight - CARD.inset, width - CARD.inset * 2, mapHeight - CARD.inset * 2);
 
   y = headerHeight + mapHeight + 10;
   ctx.fillStyle = tokens.inkSecondary;
@@ -188,7 +188,11 @@ interface Card {
   draw: () => void;
 }
 
-/** 圖例卡片貼在地圖左下角，由下往上疊：數值圖例在最下面，圖層開關在上面（跟畫面上一樣） */
+/**
+ * 圖例卡片貼在地圖左下角，由下往上疊：數值圖例在最下面，圖層開關在上面（跟畫面上一樣）。
+ * 疊起來比地圖高（地震主題的圖層卡片加比例圓圖例）時改成並排，跟畫面上的圖例換欄一樣；
+ * 還是放不下（地圖很窄、很矮）就整組縮小。
+ */
 function drawLegends(
   ctx: CanvasRenderingContext2D,
   options: ComposeOptions,
@@ -196,24 +200,33 @@ function drawLegends(
   left: number,
   bottom: number,
   maxWidth: number,
+  maxHeight: number,
 ) {
   const cards: Card[] = [];
   if (options.layerKeys.length) cards.push(layerCard(ctx, options, font));
   if (options.legend) cards.push(valueCard(ctx, options.legend, options.tokens, font));
   if (!cards.length) return;
 
-  // 地圖很窄（手機）時整組縮小，不超出地圖
-  const widest = Math.max(...cards.map((c) => c.width + CARD.padX * 2));
-  const scale = Math.min(1, maxWidth / widest);
+  const size = (c: Card) => ({ w: c.width + CARD.padX * 2, h: c.height + CARD.padY * 2 });
+  const stacked = cards.reduce((h, c) => h + size(c).h, 0) + CARD.gap * (cards.length - 1);
+  const sideBySide = stacked > maxHeight && cards.length > 1;
+  const totalWidth = sideBySide
+    ? cards.reduce((w, c) => w + size(c).w, 0) + CARD.gap * (cards.length - 1)
+    : Math.max(...cards.map((c) => size(c).w));
+  const totalHeight = sideBySide ? Math.max(...cards.map((c) => size(c).h)) : stacked;
+  const scale = Math.min(1, maxWidth / totalWidth, maxHeight / totalHeight);
   ctx.save();
   ctx.translate(left, bottom);
   ctx.scale(scale, scale);
+  let x = 0;
   let y = 0;
-  for (const card of [...cards].reverse()) {
-    const w = card.width + CARD.padX * 2;
-    const h = card.height + CARD.padY * 2;
-    y -= h;
+  // 並排時圖層開關在左、數值圖例在右，都貼著地圖下緣
+  for (const card of sideBySide ? cards : [...cards].reverse()) {
+    const { w, h } = size(card);
+    if (sideBySide) y = -h;
+    else y -= h;
     ctx.save();
+    ctx.translate(x, 0);
     ctx.globalAlpha = 0.92;
     ctx.fillStyle = options.tokens.surface;
     roundRect(ctx, 0, y, w, h, CARD.radius);
@@ -226,7 +239,8 @@ function drawLegends(
     ctx.translate(CARD.padX, y + CARD.padY);
     card.draw();
     ctx.restore();
-    y -= CARD.gap;
+    if (sideBySide) x += w + CARD.gap;
+    else y -= CARD.gap;
   }
   ctx.restore();
 }

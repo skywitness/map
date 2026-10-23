@@ -48,6 +48,7 @@ import {
   forItem,
   indicatorPath,
   usesDimension,
+  yearBin,
   type AirportsData,
   type Indicator,
   type IndicatorData,
@@ -154,7 +155,7 @@ export function App() {
   }, [settled, neighbours]);
 
   const years = data?.years ?? [topic.defaultYear];
-  const year = pickYear(years, state.year, topic.defaultYear);
+  const year = pickYear(years, state.year, topic.defaultYear, yearBin(indicator));
   const yearIndex = data ? data.years.indexOf(year) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
   const { values, years: valueYears } = useMemo(
@@ -674,9 +675,15 @@ function useJsonEach(paths: string[]): Map<string, unknown> {
   return loaded;
 }
 
-/** 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年 */
-function pickYear(years: number[], wanted: number | null, fallback: number): number {
+/**
+ * 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年。
+ * bin 是每筆資料涵蓋的年數（每十年一筆的指標：1990 = 1990–1999），這時取包含那一年的那一筆：
+ * 從「當年的地震」的 1999 年換到「每十年的地震次數」，留在 1990 年代，不會跳到 2000 年代。
+ */
+function pickYear(years: number[], wanted: number | null, fallback: number, bin?: number): number {
   if (wanted && years.includes(wanted)) return wanted;
+  const containing = bin ? years.findLast((y) => y <= (wanted ?? fallback) && (wanted ?? fallback) < y + bin) : undefined;
+  if (containing !== undefined) return containing;
   // 年份不連續（每 5 年一筆）時，拖到中間沒有資料的年份就用最接近的那一年（一樣近取較早的）
   if (wanted && wanted > years[0] && wanted < years[years.length - 1]) {
     return years.reduce((best, y) => (Math.abs(y - wanted) < Math.abs(best - wanted) ? y : best), years[0]);

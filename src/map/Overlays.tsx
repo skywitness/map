@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { LinesData, LinesOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
@@ -266,6 +267,11 @@ interface LayerControlsProps {
   tokens: Tokens;
 }
 
+const SHOW_DETAILS: Text = { zh: '顯示圖例', en: 'Show key' };
+const HIDE_DETAILS: Text = { zh: '收起圖例', en: 'Hide key' };
+/** 手機上圖層開關下面的分級說明（震源深度、規模、邊界類型）預設收起，否則蓋住一半的地圖 */
+const NARROW = '(max-width: 768px)';
+
 /** 圖層開關，同時當作圖例 */
 export function LayerControls({
   layers,
@@ -283,6 +289,8 @@ export function LayerControls({
   const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens);
+  const [showDetails, setShowDetails] = useState(() => !(typeof matchMedia === 'function' && matchMedia(NARROW).matches));
+  const hasDetails = overlays.some((o) => o.visible && extraKeys.get(o)!.details.length > 0);
   return (
     <fieldset className="legend map-layers">
       <legend className="legend-title">{t.layers}</legend>
@@ -303,6 +311,7 @@ export function LayerControls({
               {key.label}
             </label>
             {o.visible &&
+              showDetails &&
               key.details.map((d) => (
                 <div key={d.title ?? d.rows[0]?.label} className={`map-layer-detail${d.layout === 'sizes' ? ' is-sizes' : ''}`}>
                   {d.title && <div className="legend-note">{d.title}</div>}
@@ -319,6 +328,11 @@ export function LayerControls({
           </div>
         );
       })}
+      {hasDetails && (
+        <button type="button" className="map-layer-toggle" aria-expanded={showDetails} onClick={() => setShowDetails((v) => !v)}>
+          {tr(showDetails ? HIDE_DETAILS : SHOW_DETAILS, lang)}
+        </button>
+      )}
     </fieldset>
   );
 }
