@@ -158,7 +158,8 @@ pipeline/
 | `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入 | 發電結構、GDP 與就業結構、主要農產品 |
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
-| `overlays` | 疊加在地圖上的點、線圖層（目前支援鐵路線與機場點），左下角可以開關 | 交通 |
+| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處） |
+| 指標的 `overlayTime` | 有年份欄位的疊加點怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年） |
 | 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`{ dir }`，`tiles/` 底下的資料夾，見第 14 節），控制列多一個切換 | 人口密度的 1 km 網格 |
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔 |
@@ -191,6 +192,7 @@ pipeline/
 - 顏色不寫在主題裡（`src/map/categories.ts` 的 `categoryScale()`；這個檔不依賴 d3，排名表在首頁 chunk 裡也用到它）：
   - 一般類別依序取 `MAP_TOKENS.categorical`（8 色，不循環；超過 8 類要併到「其他」），「其他」是 `MAP_TOKENS.categoricalOther`（淺的中性色，跟無資料的灰色分得開）。配色怎麼選的見第 5 節。
   - `ordinal: true`（類別有強弱，例如官方 > 事實上官方 > 部分地區官方 > 沒有官方地位）改用循序色，第一類最深。
+  - `diverging: true`（兩個方向的強弱，例如封閉專制 ↔ 自由民主）改用發散色：類別從一端排到另一端，前一半取橘色、後一半取青綠，越靠兩端越深，奇數類的正中間是中性灰（`divergingColors()`）。一邊最多 3 類。
 - `format(代碼)` 回傳類別名稱，tooltip、排名表、側欄的數值卡片、搜尋結果都用它。
 - 圖例（`CategoricalLegend`）列出每一類的色塊、名稱與國家數，超過 5 類排成兩欄。滑過或聚焦某一類時，其他國家淡化（feature-state `dim`）；點一下固定（觸控裝置沒有滑過），再點一下取消。匯出圖片的圖例同一個版面（`categoricalLegendModel()`）。
 - 排名表：類別沒有名次，改依圖例的類別順序排列（同一類再依名稱、國名），數值欄是色塊加類別名稱；CSV 輸出類別名稱而不是代碼，依國名排。
@@ -203,6 +205,19 @@ pipeline/
 疊加圖層是 MapLibre 的 GeoJSON 圖層：
 - 鐵路在資料管線先用 Douglas–Peucker 簡化到約 1 公里，再量化與差分編碼（約 12.5 萬個頂點、壓縮後約 300 KB）。
 - 放大到 9 級以後，底圖本身有更精細的鐵路，簡化過的線會淡出。
+
+**一般的點、線疊加圖層**（`PointsOverlayDef`、`LinesOverlayDef`，地圖上的畫法在 `src/map/overlayLayers.ts`，圖例在 `src/map/Overlays.tsx`）：
+- 主題在 `overlays` 寫 `{ kind: 'points', id, file, label, radius, color, … }` 或 `{ kind: 'lines', … }`，地圖引擎不必為新的點資料加程式。鐵路、機場維持原本的寫法。
+  - `radius`：固定半徑，或依數值欄位在 `stops` 之間線性內插（地震依規模）；是縮放 2 時的大小，放大時跟著變大，但比地圖放大得慢。
+  - `color`：固定色，或依數值欄位分級（`ColorClasses`：門檻、每一級的顏色與名稱，例如震源深度）。顏色取自 `MAP_TOKENS`。
+  - `shape: 'triangle'`：三角形圖示（火山）。每種顏色在 canvas 畫一張圖（白色外框直接畫在圖上），用 symbol 圖層；換底圖後圖示跟著樣式一起消失，重新加上。
+  - `sortField`：大的畫在上面（`circle-sort-key`）。`timeField` 加上指標的 `overlayTime` 決定時間軸怎麼篩選（`setFilter`，不重送資料）。
+  - `tooltip(p, { countryName })` 回傳標題與說明，原文地名放 `properNoun`（`translate="no"`）。點有 `iso3` 欄位時，滑過會同時標出那個國家，點一下選取它；海上的地震沒有國家，照樣有 tooltip。
+  - `indicators`：只在某些指標顯示。`hidden: true`：預設關閉，第一次打開才下載資料檔（App 的 `useJsonEach` 保留已載入的檔，打開另一個圖層時地圖不會閃一下）。
+  - 線可以依 `types` 分類上色，`dash: true` 的類別畫虛線（`line-dasharray` 不能依資料變化，另外一層 `ov-<id>-dash`）。
+- **資料格式**：點用 `common.points_file()`（`PointsData`）：欄位分開存，數值量化成整數（經緯度 0.01°），排序過的欄位（年份、經度）存差分；前端 `decodePoints()` 還原。線用 `common.lines_file()`（`LinesData`），跟鐵路同一種差分編碼，跨 180° 經線的線要先把經度展開成連續的。
+- **圖層順序**：線插在機場前面、點插在框選範圍前面，都在 3D 立體圖形之上；`overlays` 裡後面的畫在上面。每個圖層一個 source（`ov-<id>`），換底圖後依 `revision` 重新加上、重送資料。
+- **圖例**：左下角「圖層」的每個疊加圖層一列（勾選框加符號），打開時下面列出顏色分級與大小（大小的圓點橫排、數值寫在下面）。匯出圖片的圖層卡片用同一份模型（`overlayKey()`、`exportLayerKeys()`）。
 
 圖層的 `kind: 'flow'` 是**流向圖**（`src/map/flows.ts`），例如貿易主題的出口、進口：
 - 設定：`{ kind: 'flow', file: 'flows/{item}/{year}.json', direction: 'export' | 'import' }`。指標本身的 `file` 仍是各國總額（tooltip、排名表、側欄的數值卡片與折線圖用），`layer.file` 是雙邊資料。
