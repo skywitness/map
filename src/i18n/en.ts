@@ -122,8 +122,12 @@ export const en: Messages = {
   dashedProjection: (year) => `Dashed line: projections from ${year} onward.`,
   note: (note) => `Note: ${note}`,
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
+  periodRange: (from, to) => (from === to ? String(from) : `${from}–${to}`),
+  countryCount: (count) => `${count} ${count === 1 ? 'country' : 'countries'}`,
 
   rankingCaption: (year, title, count) => `${title} by country, ${year} (${count} countries and territories)`,
+  categoryCaption: (year, title, count) =>
+    `${title} by country, ${year} (${count} countries and territories, grouped by category)`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',

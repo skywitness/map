@@ -13,6 +13,7 @@ import {
   STEP_MAX_PX,
   STEPPED_NOTE,
   type BubbleLegendModel,
+  type CategoricalLegendModel,
   type ChoroplethLegendModel,
   type ColumnLegendModel,
   type FlowLegendModel,
@@ -64,7 +65,9 @@ export type ImageLegend =
   /** 3D 模式的柱子 */
   | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
   /** 流向圖：線寬樣本與流向說明 */
-  | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel };
+  | { kind: 'flow'; title: string; unit: string; model: FlowLegendModel }
+  /** 類別圖：每個類別一個色塊與國家數 */
+  | { kind: 'categorical'; title: string; unit: string; model: CategoricalLegendModel };
 
 /** 圖片上的文字，由呼叫端（知道主題、年份、來源的 App）提供 */
 export interface MapImageContent {
@@ -222,7 +225,7 @@ const NOTE_ROW = 18;
 
 function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: Tokens, font: string): Card {
   const t = messages();
-  const unit = t.unitSuffix(legend.unit);
+  const unit = legend.unit ? t.unitSuffix(legend.unit) : '';
   ctx.font = `600 12px ${font}`;
   const titleWidth = ctx.measureText(legend.title).width;
   ctx.font = `12px ${font}`;
@@ -287,6 +290,32 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
         labels.forEach((label, i) => ctx.fillText(label, ((i + 1) / colors.length) * scaleWidth, top + swatchesHeight + 4 + 7));
         ctx.textAlign = 'left';
         drawNoData(top + scaleHeight);
+      },
+    };
+  }
+
+  if (legend.kind === 'categorical') {
+    const rowHeight = 16;
+    const rows = legend.model.items.map((item) => ({ ...item, countText: t.countryCount(item.count) }));
+    const labelWidth = Math.max(0, ...rows.map((r) => ctx.measureText(r.label).width));
+    const countWidth = Math.max(0, ...rows.map((r) => ctx.measureText(r.countText).width));
+    return {
+      width: Math.max(titleTotal, 22 + labelWidth + 6 + countWidth, noDataWidth),
+      height: top + rows.length * rowHeight + NO_DATA_ROW,
+      draw: () => {
+        drawTitle();
+        ctx.font = `11px ${font}`;
+        rows.forEach(({ color, label, countText }, i) => {
+          const y = top + i * rowHeight;
+          ctx.fillStyle = color;
+          roundRect(ctx, 0, y + 2, 16, 10, 2);
+          ctx.fill();
+          ctx.fillStyle = tokens.ink;
+          ctx.fillText(label, 22, y + 7);
+          ctx.fillStyle = tokens.inkSecondary;
+          ctx.fillText(countText, 22 + ctx.measureText(label).width + 6, y + 7);
+        });
+        drawNoData(top + rows.length * rowHeight);
       },
     };
   }

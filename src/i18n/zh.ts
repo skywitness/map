@@ -129,9 +129,15 @@ export const zh = {
   dashedProjection: (year: number) => `虛線為 ${year} 年起的推估值。`,
   note: (note: string) => `附註：${note}`,
   yearMissing: (year: number) => `（${year} 年無資料，顯示最近一年）`,
+  /** 類別圖（例如首要死因）的歷年變化：「2000–2016 年：心血管疾病」 */
+  periodRange: (from: number, to: number) => (from === to ? `${from} 年` : `${from}–${to} 年`),
+  /** 類別圖圖例的國家數 */
+  countryCount: (count: number) => `${count} 國`,
 
   // 排名表
   rankingCaption: (year: number, title: string, count: number) => `${year} 年各國${title}排名（${count} 個國家/地區）`,
+  categoryCaption: (year: number, title: string, count: number) =>
+    `${year} 年各國${title}（${count} 個國家/地區，依類別分組）`,
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',

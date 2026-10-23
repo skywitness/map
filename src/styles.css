@@ -1005,6 +1005,47 @@ kbd {
   background: repeating-linear-gradient(45deg, var(--axis) 0 1px, transparent 1px 4px), var(--grid);
 }
 
+/* 類別圖（例如首要死因）：色塊＋類別名稱，圖例另附國家數，側欄列出歷年的變化 */
+.legend-categories,
+.category-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 3px;
+  font-size: 11px;
+}
+
+.legend-categories li,
+.category-history li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  flex: none;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-count {
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.category-history {
+  gap: 4px;
+  font-size: 13px;
+}
+
+.category-period {
+  min-width: 96px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── 側欄 ───────────────────────────── */
 .panel {
   min-height: 0;

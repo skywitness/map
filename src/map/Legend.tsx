@@ -2,7 +2,7 @@ import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { FlowDirection, Indicator } from '../topics/types';
-import type { Tokens } from '../theme/tokens';
+import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
 
 /** 面量圖圖例的色塊與刻度（畫面上的圖例與匯出的圖片共用） */
@@ -68,6 +68,48 @@ export function ChoroplethLegend({ indicator, title, scale, stepped = false }: C
           ))}
         </div>
       </div>
+      <NoDataKey />
+    </div>
+  );
+}
+
+/** 類別圖圖例：只列出這一年有出現的類別，附上國家數（畫面上的圖例與匯出的圖片共用） */
+export interface CategoricalLegendModel {
+  items: { color: string; label: string; count: number }[];
+}
+
+export function categoricalLegendModel(indicator: Indicator, values: Map<string, number>): CategoricalLegendModel {
+  if (indicator.layer.kind !== 'categorical') return { items: [] };
+  const counts = new Map<number, number>();
+  for (const v of values.values()) counts.set(v, (counts.get(v) ?? 0) + 1);
+  return {
+    items: indicator.layer.categories
+      .filter((c) => counts.has(c.value))
+      .map((c) => ({ color: MAP_TOKENS.hues[c.hue], label: c.label, count: counts.get(c.value)! })),
+  };
+}
+
+interface CategoricalLegendProps {
+  indicator: Indicator;
+  title: string;
+  values: Map<string, number>;
+}
+
+export function CategoricalLegend({ indicator, title, values }: CategoricalLegendProps) {
+  const t = useT();
+  const { items } = categoricalLegendModel(indicator, values);
+  return (
+    <div className="legend">
+      <div className="legend-title">{title}</div>
+      <ul className="legend-categories">
+        {items.map(({ color, label, count }) => (
+          <li key={label}>
+            <span className="legend-swatch" style={{ background: color }} />
+            {label}
+            <span className="legend-count">{t.countryCount(count)}</span>
+          </li>
+        ))}
+      </ul>
       <NoDataKey />
     </div>
   );

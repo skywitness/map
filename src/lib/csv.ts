@@ -16,9 +16,17 @@ const HEADERS = {
  */
 export function indicatorCsv(
   data: IndicatorData,
-  options: { unit: string; countries: CountryTable | null; /** 只輸出這一年；不給就輸出所有年份 */ year?: number },
+  options: {
+    unit: string;
+    countries: CountryTable | null;
+    /** 只輸出這一年；不給就輸出所有年份 */
+    year?: number;
+    /** 類別圖的數值是代碼，輸出成類別名稱 */
+    label?: (value: number) => string;
+  },
 ): string {
-  const { unit, countries, year } = options;
+  const { unit, countries, year, label } = options;
+  const cell = (v: number | null | undefined) => (v != null && label ? label(v) : v);
   const lang = getLang();
   const h = HEADERS[lang];
   const columns = year === undefined ? data.years.map((_, i) => i) : [data.years.indexOf(year)].filter((i) => i >= 0);
@@ -50,7 +58,7 @@ export function indicatorCsv(
       iso3,
       ...names(iso3),
       unit,
-      ...columns.map((i) => data.values[iso3][i]),
+      ...columns.map((i) => cell(data.values[iso3][i])),
       ...(hasNotes ? [notes?.[iso3]] : []),
     ]);
   }

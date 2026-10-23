@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { Localized, Text } from '../i18n/lang';
-import type { Tokens } from '../theme/tokens';
+import type { Hue, Tokens } from '../theme/tokens';
 
 export type { Text };
 
@@ -33,7 +33,20 @@ export type LayerSpec =
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
    * 指標檔本身放各國的總額，給 tooltip、排名表與側欄用。
    */
-  | { kind: 'flow'; file: string; direction: FlowDirection };
+  | { kind: 'flow'; file: string; direction: FlowDirection }
+  /**
+   * 類別圖：每個國家塗上它所屬類別的顏色（例如首要死因）。資料檔的數值是類別代碼（CategoryDef.value），
+   * 沒有大小之分：側欄不排名、不畫折線圖，排名表依類別分組，3D 時不拉高。
+   */
+  | { kind: 'categorical'; categories: CategoryDef[] };
+
+export interface CategoryDef {
+  /** 資料檔裡的數值 */
+  value: number;
+  label: Text;
+  /** 地圖上的顏色（MAP_TOKENS 的類別色）；底圖的海是藍色，不要用 blue */
+  hue: Hue;
+}
 
 export type FlowDirection = 'export' | 'import';
 

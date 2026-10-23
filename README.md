@@ -2,7 +2,7 @@
 
 用世界地圖瀏覽各國資料。除了純地圖頁，目前有以下資料主題，在頂列依分類放在下拉選單裡：
 
-- **人口與社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出、醫師數）、教育（受教育年數、高等教育在學率、教育支出、識字率）
+- **人口與社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出與自付比例、醫師、護理人員與病床數）、疾病（各國首要死因、慢性病過早死亡、癌症死亡率、糖尿病、肥胖、愛滋、結核病、瘧疾、死因結構）、教育（受教育年數、高等教育在學率、教育支出、識字率）
 - **經濟**：人均收入、產業結構、工業、農業
 - **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）
 - **能源與氣候**：發電量、氣候（二氧化碳排放）
@@ -75,9 +75,9 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`education`、`tourism`、`trade`、`compact`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`disease`、`education`、`tourism`、`trade`、`compact`。
 
-`population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
+`population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。`disease` 第一次會向 WHO 的 API 一年一年查 2000–2023 年的死因資料，約 15 分鐘。
 
 指標檔輸出時數值會壓縮（格式見 DESIGN.md 第 3 節）。`compact` 把還沒壓縮的舊指標檔一次轉換，不需要重新下載，重複執行沒有影響。
 
@@ -104,7 +104,7 @@ npm run preview
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education and tourism, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, disease and causes of death, education and tourism, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 
@@ -114,6 +114,6 @@ Live site: https://skywitness.github.io/map/?lang=en
 - **Share**: download the current map as a PNG (with title, legend and sources), download the indicator as CSV, or copy a link. The whole view, including the language (`lang=en`), is stored in the URL.
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
 
-Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
+Data sources include UN World Population Prospects, IMF World Economic Outlook, World Bank, WHO (Global Health Estimates, Global Health Observatory), Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
 
 Development: `npm install`, then `npm run dev`. Data is pre-built in `public/data/`; run `npm run data` to rebuild it (see the Chinese sections above). Design notes, including how to add a topic with bilingual text, are in [DESIGN.md](DESIGN.md) (in Chinese).

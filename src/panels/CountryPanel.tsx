@@ -13,7 +13,7 @@ import {
   type PanelExtraProps,
   type Topic,
 } from '../topics/types';
-import type { Tokens } from '../theme/tokens';
+import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { rankOf, valuesAt } from './stats';
 
 interface CountryPanelProps {
@@ -61,12 +61,12 @@ export function CountryPanel(props: CountryPanelProps) {
     const values = valuesAt(data, yearIndex);
     const value = values.get(iso3) ?? null;
     const world = data.aggregates?.WLD?.[yearIndex] ?? null;
-    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義
-    const countZero = ind.layer.kind === 'bubble' && value === 0;
+    // 計數類指標（例如模型數）大多數國家是 0，0 的排名沒有意義；類別（例如首要死因）沒有大小
+    const unranked = (ind.layer.kind === 'bubble' && value === 0) || ind.layer.kind === 'categorical';
     return {
       ind,
       value,
-      rank: countZero ? null : rankOf(values, iso3),
+      rank: unranked ? null : rankOf(values, iso3),
       total: values.size,
       share: ind.shareOfWorld && value != null && world ? (value / world) * 100 : null,
       shownYear,
@@ -75,7 +75,7 @@ export function CountryPanel(props: CountryPanelProps) {
 
   const activeData = allData[topic.indicators.indexOf(indicator)];
   const option = useMemo(() => {
-    if (!activeData) return null;
+    if (!activeData || indicator.layer.kind === 'categorical') return null;
     const own = activeData.values[iso3];
     if (!own || activeData.years.length < 2) return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
@@ -137,7 +137,9 @@ export function CountryPanel(props: CountryPanelProps) {
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
           <h3>{t.overTime(label(indicator))}</h3>
-          {option ? (
+          {indicator.layer.kind === 'categorical' && activeData ? (
+            <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
+          ) : option ? (
             <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />
           ) : (
             <p className="empty">
@@ -155,6 +157,32 @@ export function CountryPanel(props: CountryPanelProps) {
         </Suspense>
       )}
     </aside>
+  );
+}
+
+/** 類別圖的歷年變化：連續相同類別的年份合併成一段，例如「2000–2016 年 心血管疾病」 */
+function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data: IndicatorData; iso3: string }) {
+  const t = useT();
+  if (indicator.layer.kind !== 'categorical') return null;
+  const hues = new Map(indicator.layer.categories.map((c) => [c.value, MAP_TOKENS.hues[c.hue]]));
+  const periods: { from: number; to: number; value: number }[] = [];
+  (data.values[iso3] ?? []).forEach((v, i) => {
+    if (v == null) return;
+    const last = periods[periods.length - 1];
+    if (last && last.value === v && last.to === data.years[i - 1]) last.to = data.years[i];
+    else periods.push({ from: data.years[i], to: data.years[i], value: v });
+  });
+  if (periods.length === 0) return <p className="empty">{t.noCountryData}</p>;
+  return (
+    <ul className="category-history">
+      {periods.map((p) => (
+        <li key={p.from}>
+          <span className="legend-swatch" style={{ background: hues.get(p.value) }} />
+          <span className="category-period">{t.periodRange(p.from, p.to)}</span>
+          {indicator.format(p.value)}
+        </li>
+      ))}
+    </ul>
   );
 }
 

@@ -3,7 +3,7 @@
  * （低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節），預設地球儀。
  *
  * 資料圖層插在底圖的道路、國界之上、文字標籤之下，地名永遠看得到：
- * - 面量圖：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
+ * - 面量圖（含類別圖）：國界多邊形，顏色放在 feature-state，換年份時不必重送幾何
  * - 比例圓、小國圓點、鐵路、機場、框選範圍
  * - 3D 模式（fill-extrusion）：面量圖把國家依色階分級拉高，比例圓改成高度與數值成正比的柱子
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
@@ -34,6 +34,8 @@ import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapIma
 import {
   BubbleLegend,
   bubbleLegendModel,
+  CategoricalLegend,
+  categoricalLegendModel,
   ChoroplethLegend,
   choroplethLegendModel,
   ColumnLegend,
@@ -465,6 +467,14 @@ export function WorldMap(props: WorldMapProps) {
     () => (indicator.layer.kind === 'choropleth' ? choroplethScale(indicator.layer.scale, MAP_TOKENS) : null),
     [indicator],
   );
+  // 類別圖（例如首要死因）：每個類別一個固定的顏色
+  const categoryColors = useMemo(
+    () =>
+      indicator.layer.kind === 'categorical'
+        ? new Map(indicator.layer.categories.map((c) => [c.value, MAP_TOKENS.hues[c.hue]]))
+        : null,
+    [indicator],
+  );
   const radius = useMemo(() => bubbleScale(bubbleMax, size?.width ?? 1000), [bubbleMax, size]);
 
   const countryCollection = useMemo<GeoJSON.FeatureCollection>(
@@ -694,7 +704,7 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const own = indicator.layer.kind === 'choropleth';
+    const own = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical';
     for (const layer of map.getStyle().layers) {
       if ('source-layer' in layer && layer['source-layer'] === 'boundary' && BASEMAP_COUNTRY_BORDER.test(layer.id)) {
         map.setLayoutProperty(layer.id, 'visibility', own ? 'none' : 'visible');
@@ -715,18 +725,20 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const on = indicator.layer.kind === 'choropleth';
+    const on = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical';
     const thresholds = colorScale?.domain() ?? [];
     for (const c of countries) {
       const v = values.get(c.iso3);
-      const has = on && v !== undefined && colorScale !== null;
-      const fill = has ? colorScale(v) : NO_DATA;
-      const state = { fill, on, h: has ? classHeight(thresholds, v) : 0 };
+      const color = v === undefined ? undefined : colorScale ? colorScale(v) : categoryColors?.get(v);
+      const has = on && color !== undefined;
+      const fill = has ? color : NO_DATA;
+      // 類別沒有大小之分，3D 時不拉高
+      const state = { fill, on, h: has && colorScale ? classHeight(thresholds, v!) : 0 };
       map.setFeatureState({ source: 'countries', id: c.iso3 }, state);
       map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, state);
-      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && v !== undefined });
+      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: has });
     }
-  }, [revision, countries, values, colorScale, indicator.layer.kind]);
+  }, [revision, countries, values, colorScale, categoryColors, indicator.layer.kind]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1060,6 +1072,8 @@ export function WorldMap(props: WorldMapProps) {
         const unit = indicator.unit;
         const legend: ImageLegend | null = colorScale
           ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD }
+          : categoryColors
+            ? { kind: 'categorical', title, unit, model: categoricalLegendModel(indicator, values) }
           : indicator.layer.kind !== 'bubble'
             ? flowLayer && flows && flowMax > 0
               ? { kind: 'flow', title, unit, model: flowLegendModel(indicator, flows.direction, flowMax) }
@@ -1077,7 +1091,7 @@ export function WorldMap(props: WorldMapProps) {
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
       },
     }),
-    [colorScale, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax],
+    [colorScale, categoryColors, values, radius, indicator, legendTitle, onLayersChange, railways, airports, layers, tokens, threeD, bubbleMax, flowLayer, flows, flowMax],
   );
 
   return (
@@ -1198,6 +1212,8 @@ export function WorldMap(props: WorldMapProps) {
         )}
         {colorScale ? (
           <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} stepped={threeD} />
+        ) : categoryColors ? (
+          <CategoricalLegend indicator={indicator} title={legendTitle} values={values} />
         ) : indicator.layer.kind === 'bubble' ? (
           threeD ? (
             <ColumnLegend indicator={indicator} title={legendTitle} max={bubbleMax} color={MAP_TOKENS.accent} tokens={tokens} />
