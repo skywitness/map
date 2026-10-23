@@ -1024,6 +1024,9 @@ pipeline/
   - 副標題不含 hover 的提示。
 - **地球儀與平面**：都能用，MapLibre 的點陣圖層兩種投影都支援。
 - **排名表**：網格只影響地圖；切換鈕只在地圖檢視出現。
+- **離線**：圖磚在頁面上 `fetch`，第一次造訪時還沒有 service worker。它接手後由 `src/lib/serviceWorker.ts` 補存（跟資料 JSON 同一套）。
+  - 實測：開一次就有 `grid-meta` 1 個、`grid-tiles` 9 張。
+  - 切成離線再開，網格照常出現，沒有失敗的圖磚請求。
 - **本機開發**：沒跑 `npm run data -- population-density-tiles` 時沒有 `public/tiles/`。切到網格會出現「1 km 網格載入失敗」，地圖照常畫國家平均。
 
 ### 效能

@@ -4,7 +4,7 @@
  * 第一次造訪時，service worker 要等地圖畫出資料才註冊、裝好，在那之前（以及還在下載中）的資料、底圖
  * 不會經過它，也就不在快取裡。它接手後，把這些網址交給它補存（Workbox 的 CACHE_URLS 訊息），
  * 看過一次就能離線開啟。
- * - 頁面自己下載的（資料 JSON、底圖樣式）：Resource Timing 的 workerStart 為 0 表示沒經過 service worker。
+ * - 頁面自己下載的（資料 JSON、底圖樣式、1 km 網格圖磚）：Resource Timing 的 workerStart 為 0 表示沒經過 service worker。
  * - MapLibre 的 worker 下載的（向量圖磚）：頁面的 Resource Timing 看不到，而且這些 worker 在 service worker
  *   接手前就建立了，整個頁面期間都不會經過它，所以由 WorldMap 的 transformRequest 呼叫 noteMapRequest 記下來。
  */
@@ -20,7 +20,9 @@ let flushTimer = 0;
 function shouldCache(url: string): boolean {
   try {
     const u = new URL(url, window.location.href);
-    return (u.origin === window.location.origin && u.pathname.includes('/data/')) || u.hostname === 'tiles.openfreemap.org';
+    // 自己的資料 JSON 與 1 km 網格圖磚（densityGrid.ts 在頁面上 fetch）、OpenFreeMap 的底圖
+    const own = u.origin === window.location.origin && (u.pathname.includes('/data/') || u.pathname.includes('/tiles/'));
+    return own || u.hostname === 'tiles.openfreemap.org';
   } catch {
     return false;
   }
