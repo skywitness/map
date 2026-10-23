@@ -174,7 +174,7 @@ pipeline/
 圖層的 `kind: 'categorical'` 是**類別圖**（每個國家屬於一類，沒有大小之分），例如語言主題的「主要官方語言」與「官方地位」：
 - 設定：`{ kind: 'categorical', categories: [{ value: 1, label: { zh, en } }, …], other?: Text, ordinal?: boolean }`。
 - 資料檔照舊用 `indicator_file()` 輸出數值，每個國家的值是**類別代碼**（整數）。代碼不在 `categories` 裡的歸到 `other`（有設定的話），否則當成無資料。
-- 顏色不寫在主題裡（`src/map/scales.ts` 的 `categoryScale()`）：
+- 顏色不寫在主題裡（`src/map/categories.ts` 的 `categoryScale()`；這個檔不依賴 d3，排名表在首頁 chunk 裡也用到它）：
   - 一般類別依序取 `MAP_TOKENS.categorical`（8 色，不循環；超過 8 類要併到「其他」），「其他」是 `MAP_TOKENS.categoricalOther`（淺的中性色，跟無資料的灰色分得開）。配色怎麼選的見第 5 節。
   - `ordinal: true`（類別有強弱，例如官方 > 事實上官方 > 部分地區官方 > 沒有官方地位）改用循序色，第一類最深。
 - `format(代碼)` 回傳類別名稱，tooltip、排名表、側欄的數值卡片、搜尋結果都用它。
