@@ -5,6 +5,7 @@
  */
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import type { IndicatorDef, LinesOverlay, PointsOverlay } from '../topics/types';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { OverlayLayer } from './Overlays';
 
 export const OVERLAY_PREFIX = 'ov-';
@@ -109,13 +110,21 @@ function pointLayer(def: PointsOverlay): LayerSpecification {
   };
 }
 
+/** 深色底圖上，中性的深灰線（板塊邊界）換成淺灰，跟鐵路一樣 */
+const ON_DARK: Record<string, string> = {
+  [MAP_TOKENS.ink]: '#f0efec',
+  [MAP_TOKENS.inkSecondary]: '#d6d4cc',
+  [MAP_TOKENS.inkMuted]: '#a8a69e',
+};
+
 function lineLayers(def: LinesOverlay, dark: boolean): LayerSpecification[] {
   const id = OVERLAY_PREFIX + def.id;
   const classes = typeof def.color === 'string' ? [] : def.color.classes;
+  const tone = (c: string) => (dark ? (ON_DARK[c] ?? c) : c);
   const color: ExpressionSpecification | string =
     typeof def.color === 'string'
-      ? def.color
-      : (['match', ['coalesce', ['get', 'type'], -1], ...classes.flatMap((c) => [c.value, c.color]), classes[0].color] as unknown as ExpressionSpecification);
+      ? tone(def.color)
+      : (['match', ['coalesce', ['get', 'type'], -1], ...classes.flatMap((c) => [c.value, tone(c.color)]), tone(classes[0].color)] as unknown as ExpressionSpecification);
   const dashed = classes.filter((c) => c.dash).map((c) => c.value);
   const paint = {
     'line-color': color,

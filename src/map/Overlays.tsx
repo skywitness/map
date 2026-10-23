@@ -121,14 +121,21 @@ export interface OverlayKey {
 /** 線、點的外框與中性色：大小圖例不代表顏色，用中性的深灰 */
 const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
 
-export function overlayKey(o: OverlayLayer): OverlayKey {
+/**
+ * 一般疊加圖層的圖例。tokens 是介面的配色：圖例卡片跟著深淺色切換，中性的深灰線（板塊邊界）
+ * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
+ */
+export function overlayKey(o: OverlayLayer, tokens?: Tokens): OverlayKey {
   if (o.kind === 'lines') {
     const { def } = o;
     const classes = typeof def.color === 'string' ? null : def.color.classes;
+    const neutral: Record<string, string> = tokens
+      ? { [MAP_TOKENS.ink]: tokens.ink, [MAP_TOKENS.inkSecondary]: tokens.inkSecondary, [MAP_TOKENS.inkMuted]: tokens.inkMuted }
+      : {};
     const lineSwatch = (color: string, dash?: boolean): OverlaySwatch => ({
       shape: dash ? 'dash' : 'line',
       size: Math.max(1.5, def.width),
-      color,
+      color: neutral[color] ?? color,
     });
     return {
       swatch: lineSwatch(classes ? classes[0].color : (def.color as string)),
@@ -212,14 +219,39 @@ export function layerKeyColor(k: LayerKey, tokens: Tokens): string {
   return k.shape === 'line' ? tokens.ink : MAP_TOKENS.hues.orange;
 }
 
+/**
+ * 開著的一般疊加圖層的圖例；同一組分級說明（例如規模 5–6 與 6 以上共用的震源深度）只列在第一個圖層下面。
+ * 畫面上的圖層開關與匯出的圖片共用。
+ */
+export function overlayKeys(overlays: OverlayLayer[], tokens?: Tokens): Map<OverlayLayer, OverlayKey> {
+  const seen = new Set<string>();
+  const out = new Map<OverlayLayer, OverlayKey>();
+  for (const o of overlays) {
+    const key = overlayKey(o, tokens);
+    if (o.visible) {
+      key.details = key.details.filter((d) => {
+        const signature = JSON.stringify(d);
+        if (seen.has(signature)) return false;
+        seen.add(signature);
+        return true;
+      });
+    }
+    out.set(o, key);
+  }
+  return out;
+}
+
 /** 匯出圖片的圖層圖例：鐵路、機場等固定的圖層，加上打開的一般疊加圖層（含分級說明） */
 export function exportLayerKeys(
   fixed: { key: LayerKey; color: string }[],
   overlays: OverlayLayer[],
+  tokens: Tokens,
 ): { label: string; swatch: OverlaySwatch; details: OverlayKey['details'] }[] {
+  const visible = overlays.filter((o) => o.visible);
+  const keys = overlayKeys(visible, tokens);
   return [
     ...fixed.map(({ key, color }) => ({ label: tr(key.label), swatch: { shape: key.shape, size: key.size, color }, details: [] })),
-    ...overlays.filter((o) => o.visible).map(overlayKey),
+    ...visible.map((o) => keys.get(o)!),
   ];
 }
 
@@ -250,6 +282,7 @@ export function LayerControls({
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
   const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
+  const extraKeys = overlayKeys(overlays, tokens);
   return (
     <fieldset className="legend map-layers">
       <legend className="legend-title">{t.layers}</legend>
@@ -261,7 +294,7 @@ export function LayerControls({
         </label>
       ))}
       {overlays.map((o) => {
-        const key = overlayKey(o);
+        const key = extraKeys.get(o)!;
         return (
           <div key={o.def.id} className="map-layer">
             <label>

@@ -1378,6 +1378,7 @@ export function WorldMap(props: WorldMapProps) {
                 color: layerKeyColor(key, tokens),
               })),
               overlays,
+              tokens,
             )
           : [];
         const { canvas, ratio } = await captureMap(map);
