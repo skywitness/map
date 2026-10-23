@@ -56,7 +56,17 @@ STEPS = {
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
+    "passport": "topics.passport",
+    "organizations": "topics.organizations",
+    "un-votes": "topics.un_votes",
+    "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
+    "fertility": "topics.fertility",
+    "crime": "topics.crime",
+    "tobacco-alcohol": "topics.tobacco_alcohol",
+    "happiness": "topics.happiness",
+    # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
+    "submarine-cables": "topics.submarine_cables",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     "employment": "topics.employment",

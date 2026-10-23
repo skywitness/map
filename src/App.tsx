@@ -7,7 +7,7 @@ import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
 import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
-import { localize, tr, useLang, useT } from './i18n';
+import { localize, LOCALES, tr, useLang, useT, type Lang } from './i18n';
 import { countryName, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { indicatorCsv } from './lib/csv';
@@ -47,6 +47,8 @@ import { getTopic } from './topics';
 import {
   forItem,
   indicatorPath,
+  missingReason,
+  resolveItem,
   usesDimension,
   yearBin,
   type AirportsData,
@@ -93,8 +95,7 @@ function initialIndicatorPath(): string | null {
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
   // 網址指定網格時，圖磚的 meta.json 也一起提早請求
   if (indicator.grid && state.grid && state.view === 'map') fetchGridMeta(indicator.grid.dir).catch(() => {});
-  const item = topic.dimension?.options.find((o) => o.id === state.item)?.id ?? null;
-  return indicatorPath(topic, indicator, item);
+  return indicatorPath(topic, indicator, resolveItem(topic.dimension, state.item, state.country));
 }
 
 const NO_FEATURES: CountryFeature[] = [];
@@ -118,9 +119,7 @@ export function App() {
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
   const view = pure ? 'map' : state.view;
-  const item = topic.dimension
-    ? (topic.dimension.options.find((o) => o.id === state.item)?.id ?? topic.dimension.defaultOption)
-    : null;
+  const item = resolveItem(topic.dimension, state.item, state.country);
   // 子項目有自己的分級門檻時（itemScales），換成那一組
   const indicator = forItem(
     topic.indicators.find((i) => i.id === state.indicator) ??
@@ -166,13 +165,22 @@ export function App() {
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
-  const selectCountry = useCallback((iso3: string | null) => update({ country: iso3 }), [update]);
+  // 子項目是國家的主題（護照）：選到國家時子項目跟著換；取消選取時留在原本的子項目，地圖不會跳回預設
+  const follows = topic.dimension?.followsSelection ? topic.dimension : undefined;
+  const selectCountry = useCallback(
+    (iso3: string | null) => {
+      if (!follows) return update({ country: iso3 });
+      const next = iso3 && follows.options.some((o) => o.id === iso3) ? iso3 : item;
+      update({ country: iso3, item: next });
+    },
+    [update, follows, item],
+  );
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
   const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
-  const { railways, airports, overlays } = useOverlays(topic, indicator, layers, pure);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
@@ -272,12 +280,14 @@ export function App() {
     );
   };
 
-  // 一般點圖層（地震、火山、駐外館處…）的 tooltip 由主題設定決定內容
+  // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    const p = o?.kind === 'points' ? o.points?.[index] : undefined;
-    if (!o || o.kind !== 'points' || !p) return null;
-    const tip = o.def.tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
+    if (!o) return null;
+    const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
+    const tooltip = o.def.tooltip;
+    if (!p || !tooltip) return null;
+    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
     return (
       <>
         <div className="tt-value">{tip.title}</div>
@@ -310,7 +320,9 @@ export function App() {
     const valueYear = valueYears.get(iso3);
     return (
       <>
-        <div className="tt-value">{v !== undefined ? indicator.format(v) : (topic.noValue?.[iso3] ?? t.noData)}</div>
+        <div className="tt-value">
+          {v !== undefined ? indicator.format(v) : (missingReason(topic, indicator, item, iso3) ?? t.noData)}
+        </div>
         <div className="tt-label">
           {countryName(iso3, countries)}
           {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
@@ -351,7 +363,7 @@ export function App() {
             <label className="select-field">
               <span>{topic.dimension.label}</span>
               <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
-                {groupOptions(topic.dimension.options).map(([group, options]) =>
+                {groupOptions(topic.dimension.options, topic.dimension.followsSelection ? lang : null).map(([group, options]) =>
                   group ? (
                     <optgroup key={group} label={group}>
                       {options.map((o) => (
@@ -567,7 +579,13 @@ export function App() {
       </main>
 
       {!pure && !timeless && (
-        <TimeSlider years={years} year={year} projectionFrom={data?.projectionFrom} onChange={setYear} />
+        <TimeSlider
+          years={years}
+          year={year}
+          projectionFrom={data?.projectionFrom}
+          projectionLabel={indicator.projectionLabel}
+          onChange={setYear}
+        />
       )}
 
       <footer className="footer">
@@ -608,7 +626,7 @@ function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
  */
 const NO_OVERLAY_DEFS: NonNullable<Topic['overlays']> = [];
 
-function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility, pure: boolean) {
+function useOverlays(topic: Topic, indicator: Indicator, item: string | null, layers: LayerVisibility, pure: boolean) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
   const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
@@ -624,11 +642,13 @@ function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility
       pure
         ? []
         : overlays.flatMap((o) =>
-            o.kind !== undefined && (!o.indicators || o.indicators.includes(indicator.id))
+            o.kind !== undefined &&
+            (!o.indicators || o.indicators.includes(indicator.id)) &&
+            (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
               ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${topic.id}/${o.file}` }]
               : [],
           ),
-    [overlays, topic.id, indicator.id, layers, pure],
+    [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],
   );
   const wanted = useMemo(() => generic.filter((g) => g.visible).map((g) => g.path), [generic]);
   const raw = useJsonEach(wanted);
@@ -692,12 +712,21 @@ function pickYear(years: number[], wanted: number | null, fallback: number, bin?
   return years.reduce((best, y) => (Math.abs(y - fallback) < Math.abs(best - fallback) ? y : best), years[0]);
 }
 
-function groupOptions<T extends { group?: string }>(options: T[]): [string | undefined, T[]][] {
+/**
+ * 子項目選單依 group 分組，組的順序照第一次出現的順序。
+ * sortIn 是語言時，各組裡依目前語言的名稱排序：子項目是國家的選單（護照）中文依筆畫、英文依字母，
+ * 其他子項目（農產品…）照主題寫的順序。
+ */
+function groupOptions<T extends { group?: string; label: string }>(options: T[], sortIn: Lang | null): [string | undefined, T[]][] {
   const groups = new Map<string | undefined, T[]>();
   for (const o of options) {
     const list = groups.get(o.group) ?? [];
     list.push(o);
     groups.set(o.group, list);
+  }
+  if (sortIn) {
+    const collator = new Intl.Collator(LOCALES[sortIn]);
+    for (const list of groups.values()) list.sort((a, b) => collator.compare(a.label, b.label));
   }
   return [...groups];
 }

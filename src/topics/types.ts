@@ -138,6 +138,17 @@ export interface IndicatorDef {
    * 數字 n 是那一年起的 n 年（每十年一筆的指標：1990 → 1990–1999）
    */
   overlayTime?: 'year' | 'cumulative' | number;
+  /**
+   * 資料檔有 projectionFrom 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」。
+   * 之後的年份不是推估、之前的也不是估計時（例如海底電纜：之前是已啟用的電纜，之後是規劃中的），
+   * 用這個換掉之後的稱呼（tag）與刻度上的說明（from，在呼叫當下讀目前的語言，用 tr()），之前的年份不加標籤。
+   */
+  projectionLabel?: { tag: Text; from: (year: number) => string };
+  /**
+   * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
+   * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
+   */
+  noValue?: Record<string, Text>;
 }
 
 /** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
@@ -165,6 +176,47 @@ export interface DimensionDef {
   label: Text;
   options: { id: string; label: Text; group?: Text }[];
   defaultOption: string;
+  /**
+   * 子項目就是國家（option id 是 ISO alpha-3，例如護照與簽證的「護照」）：點地圖、排名表或搜尋選到國家時，
+   * 子項目跟著換成那個國家，地圖改畫那國的資料（「日本護照到各國要不要簽證」）。
+   * 網址只有 country、沒有 item 時（例如從別的主題切過來）也用選到的國家。
+   */
+  followsSelection?: boolean;
+  /**
+   * 子項目是國家時，那個國家在自己那份資料裡沒有值（自己的護照不用簽證、跟自己的投票一致度）：
+   * tooltip 與側欄的數值卡片寫這句，不寫「無資料」。不必 followsSelection（聯合國投票的「比較對象」也用）
+   */
+  selfLabel?: Text;
+}
+
+/**
+ * 某個國家在這個指標沒有值的原因，取代 tooltip 與側欄的「無資料」；沒有特別原因時回傳 undefined。
+ * 依序：指標的 noValue（例如「與美國的一致度」裡的美國）→ 主題的 noValue → 子項目就是這個國家時的 selfLabel。
+ */
+export function missingReason(
+  topic: Pick<Topic, 'noValue' | 'dimension'>,
+  indicator: Pick<Indicator, 'noValue' | 'file'>,
+  item: string | null,
+  iso3: string,
+): string | undefined {
+  const self = item === iso3 && usesDimension(indicator) ? topic.dimension?.selfLabel : undefined;
+  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self;
+}
+
+/**
+ * 目前的子項目：網址指定的 → 跟著選取國家的子項目用選到的國家 → 預設。沒有子項目的主題是 null。
+ * App 與第一個畫面的預先下載共用，兩邊拿到同一個檔。
+ */
+export function resolveItem(
+  dimension: Pick<DimensionDef, 'options' | 'defaultOption' | 'followsSelection'> | undefined,
+  wanted: string | null,
+  selected: string | null,
+): string | null {
+  if (!dimension) return null;
+  const has = (id: string | null) => id !== null && dimension.options.some((o) => o.id === id);
+  if (has(wanted)) return wanted;
+  if (dimension.followsSelection && has(selected)) return selected;
+  return dimension.defaultOption;
 }
 
 /**
@@ -186,6 +238,8 @@ interface OverlayBase {
   hidden?: boolean;
   /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
   indicators?: string[];
+  /** 只在這些子項目顯示（dimension 的選項 id，例如奧運的夏季、冬季）；沒寫就是所有子項目 */
+  items?: string[];
 }
 
 /** 依數值欄位分級的顏色：thresholds N 個 → classes N+1 個（由小到大），顏色取自 MAP_TOKENS */
@@ -222,13 +276,23 @@ export interface PointsOverlayDef extends OverlayBase {
   tooltip: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
 }
 
-/** 一般的線圖層（資料檔是 LinesData），例如板塊邊界 */
+/** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、海底電纜 */
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
   /** 線寬（px，縮放 2 時） */
   width: number;
   /** 固定色，或依 LinesData.types 分類（value 對應 types 的代碼），dash 畫虛線 */
   color: string | { title?: Text; classes: { value: number; color: string; label: Text; dash?: boolean }[] };
+  /**
+   * 年份欄位（LinesData.records 裡的欄位）：依時間軸篩選要顯示的線，篩選方式看指標的 overlayTime（跟點圖層一樣）。
+   * 例如海底電纜的啟用年份。
+   */
+  timeField?: string;
+  /**
+   * 滑到線上時的 tooltip（要有 LinesData.records）：p 是那條線的紀錄。有 tooltip 的線可以 hover，
+   * 滑過時整條線（紀錄完全相同的所有段，例如同一條電纜的各段）加粗標出。
+   */
+  tooltip?: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
 }
 
 /** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */
@@ -247,11 +311,16 @@ export interface PointsData {
   columns: (number | string | null)[][];
 }
 
-/** 一般線圖層的資料檔：跟鐵路同一種差分編碼，types（選填）是每條線的分類代碼 */
+/**
+ * 一般線圖層的資料檔（pipeline/common.py 的 lines_file()）：跟鐵路同一種差分編碼。
+ * - types（選填）：每條線的分類代碼
+ * - records（選填）：每條線一筆紀錄（欄位分開存，格式同 PointsData），第 i 條線對應第 i 筆；tooltip 與時間篩選用
+ */
 export interface LinesData {
   quantum: number;
   lines: number[][];
   types?: number[];
+  records?: PointsData;
 }
 
 /** 鐵路：每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度 */

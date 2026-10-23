@@ -146,6 +146,11 @@ button {
   position: fixed;
   z-index: 40;
   display: grid;
+  /* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄 */
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--menu-rows, 1), auto);
+  grid-template-columns: repeat(var(--menu-columns, 1), minmax(220px, 300px));
+  column-gap: 4px;
   min-width: 220px;
   max-width: calc(100vw - 2 * var(--gutter));
   max-height: calc(100dvh - 80px);
@@ -155,6 +160,15 @@ button {
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+/* 手機上螢幕窄，維持一欄、捲動 */
+@media (max-width: 768px) {
+  .topic-menu {
+    grid-auto-flow: row;
+    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .topic-item {
