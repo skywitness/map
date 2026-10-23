@@ -1341,6 +1341,27 @@ kbd {
   margin-top: 20px;
 }
 
+/* 旅行實用的側欄：時間、行車方向、插頭、電壓，每項一個小標題加幾行說明 */
+.travel-facts {
+  margin: 0;
+}
+
+.travel-facts > div + div {
+  margin-top: 12px;
+}
+
+.travel-facts dt {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.travel-facts dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
 .panel-year-note,
 .panel-figure {
   margin: 0 0 8px;

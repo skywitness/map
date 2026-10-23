@@ -77,7 +77,7 @@ export function CountryPanel(props: CountryPanelProps) {
     return {
       ind,
       value,
-      rank: countZero || ind.layer.kind === 'categorical' ? null : rankOf(values, iso3, ind.lowerIsBetter),
+      rank: countZero || ind.layer.kind === 'categorical' || ind.unranked ? null : rankOf(values, iso3, ind.lowerIsBetter),
       total: values.size,
       // 0 的排名不顯示，占全球的 0% 也不顯示（否則卡片上只剩開頭的「 · 」）
       share: ind.shareOfWorld && value && !countZero && world ? (value / world) * 100 : null,

@@ -137,6 +137,8 @@ export const en: Messages = {
     `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories)`,
   categoryCaption: (year, title, count) =>
     `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories, grouped by category)`,
+  valueCaption: (year, title, count) =>
+    `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories, sorted by value)`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',

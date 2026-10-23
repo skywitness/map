@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、交通部統計查詢網…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、交通部統計查詢網、IANA tz…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -171,6 +171,7 @@ pipeline/
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔 |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
+| 指標的 `unranked` | 數值沒有好壞、名次沒有意義：排名表依數值排列但不寫名次（表名寫「依數值排列」），側欄的數值卡片也不寫名次 | 跟台灣的時差 |
 | `dimension.followsSelection` | 子項目就是國家（option 的 id 是 ISO alpha-3）：點地圖、排名表或搜尋選到國家時，子項目跟著換成那個國家（`App.tsx` 的 `selectCountry`），取消選取時留在原本的子項目；網址只有 `country`、沒有 `item` 時（例如從別的主題切過來）也用選到的國家（`resolveItem()`）。子項目選單各組依目前語言的國名排序 | 護照與簽證（點日本，地圖就畫日本護照到各國的簽證待遇） |
 | `dimension.selfLabel` | 子項目是國家時，那個國家在自己那份資料裡沒有值：tooltip 與側欄的數值卡片寫這句，不寫「無資料」（不必 `followsSelection`） | 護照與簽證的「本國護照」、聯合國投票「與各國的一致度」的「比較的對象」 |
 | `noValue`、指標的 `noValue` | 某些國家沒有值的原因（key 是 ISO alpha-3），取代 tooltip 與側欄的「無資料」。`missingReason()` 依序取指標的、主題的、`selfLabel`。這個國家在這個指標完全沒有值時，側欄的歷年圖表也換成這句；有部分年份的照常畫 | 台灣的外交裡的台灣（觀點）；聯合國投票的台灣（1971 年起不是會員國，1946–1971 年照常畫）；「與美國的一致度」裡的美國 |
@@ -428,6 +429,7 @@ pipeline/
 | 聯合國投票 | 與美國的一致度（預設）、與中國的一致度（1971 年起）、理想點（Bailey, Strezhnev & Voeten 的一維投票立場，發散色）、與各國的一致度（16 個比較對象：俄羅斯、英國、法國、德國、烏克蘭、日本、南韓、印度、印尼、澳洲、土耳其、伊朗、以色列、埃及、南非、巴西） | 與美國、中國的投票一致度（兩條折線，x 軸只畫這國有投票紀錄的年份）、理想點的 90% 可信區間與參加的表決次數 | Erik Voeten, United Nations General Assembly Ideal Points（Harvard Dataverse 第 39 版，CC0 1.0；方法 Bailey, Strezhnev & Voeten 2017；原始表決 UNGA-DM） | 一致度 1946–2024、理想點 1946–2025（1964 年沒有記名表決）；中國 1971 年起，台灣（中華民國）1946–1971 |
 | 海底電纜 | 海底電纜地圖（預設，不上色，畫電纜路線與登陸點，依 RFS 年份累積；營運中洋紅實線、規劃中琥珀虛線）、登陸的電纜數（比例圓）、國際連線數（面量圖）、登陸點數（比例圓） | 在這國登陸的電纜（名稱、啟用年份、長度、登陸點、擁有者；營運中與規劃中分開列）、直接連到的國家（長條，依電纜數） | TeleGeography Submarine Cable Map（CC BY-NC-SA 3.0）；台灣用中央社報導的中華電信、數位發展部數字交叉比對 | 1989–2030（2027 起加上規劃中的電纜，是推估）；2026-10 的快照 |
 | 交通安全 | 道路交通死亡率（每 10 萬人，預設）、道路交通死亡人數（比例圓）、行人死亡占比、機車騎士死亡占比、每萬輛機動車死亡數 | 死者是哪一類道路使用者（機車、行人、自行車、汽車、其他；台灣另有不分車種的乘客） | WHO GHO（RS_198 估計死亡率；RS_246、RS_194）、WHO《Global status report on road safety 2023》各國指標、UN WPP 2024；台灣用交通部統計查詢網的 30 日內死亡人數與機動車輛登記數 | 死亡率與人數 2000–2023（台灣 2008 年起，附註寫到 2025 年）；占比 2016–2021、每萬輛 2016–2023（各國用 5 年內最近一次調查） |
+| 旅行實用 | 跟台灣的時差（標準時間，發散色：比台灣慢橘、快青綠，預設）、行車方向（類別圖）、插頭類型（類別圖，7 類）、電壓與頻率（類別圖，4 類） | 跟台灣比：時差與夏令時間、跨時區的範圍、行車方向、插頭能不能直接插、電壓要不要變壓器 | IANA 時區資料庫（tzdata 2026e）、Natural Earth 首都、Wikidata（行車方向）、英文維基百科「Mains electricity by country」（CC BY-SA 4.0） | 不隨時間變化（2026 年的快照） |
 
 ## 8. 資料陷阱（重要）
 
@@ -554,6 +556,8 @@ pipeline/
     - 中央社報導只拿來交叉比對台灣的電纜數（引用事實、註明出處，不轉載內容）。
     - WHO 的道路安全資料：GHO 的 `RS_198`、`RS_246`、`RS_194` 是 CC BY 4.0（data.who.int 的條款，跟其他 GHO 指標一樣）。**《Global status report on road safety 2023》的各國指標檔是 CC BY-NC-SA 3.0 IGO**：檔案的 Notes 寫「Reference: Global status report on road safety 2023: country and territory profiles. Geneva: World Health Organization; 2023 Licence CC-BY-NC-SA 3.0 IGO」（WHO 出版品的授權）。本站非商業，照用（跟 World Inequality Database 一樣），用到它的資料檔（交通安全主題的行人、機車騎士占比，每萬輛機動車死亡數，側欄的組成）依 CC BY-NC-SA 3.0 IGO 分享，頁尾寫明；死亡率與死亡人數只用 GHO（CC BY 4.0）與 WPP。
     - 交通部統計查詢網：交通部的開放資料（data.gov.tw）採政府資料開放授權條款第 1 版；統計查詢網是交通部網站的一部分，適用交通部的「政府網站資料開放宣告」（無償、非專屬、註明出處即可利用），跟電動車主題用的交通部新聞稿一樣。
+    - IANA 時區資料庫（tz database）是公有領域；PyPI 的 `tzdata` 套件（Apache 2.0）只是包裝，沒有轉載它的程式。
+    - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1427,6 +1431,20 @@ pipeline/
       - 「行人地獄」寫在台灣的行人占比附註，只寫有出處的事實：2022 年 12 月 7 日 CNN 的旅遊專欄引用網友的說法（a living hell for pedestrians）之後這個說法廣泛流傳；交通部 2023 年 8 月 17 日向行政院報告「行人交通安全政策綱領」（2024–2027 年）；《道路交通安全基本法》2023 年 12 月 15 日公布、2024 年 1 月 1 日施行，以 2050 年道路交通事故零死亡為目標；行人 30 日內死亡 2022 年 394 人、2025 年 354 人。
       - 交通部另有 data.gov.tw 172799「112年道路交通事故30日死亡清單」，一列一位死者，但「當事者區分」「受傷程度」是那起事故第一當事者的欄位（不是死者本身），不能拿來分道路使用者，沒有用。
     - **顏色**：死亡率、占比、每萬輛都是橘色循序色（死亡率、每萬輛 `lowerIsBetter`，排名表由低排到高）；死亡人數是比例圓。側欄的組成用介面的 8 色（機車橘、行人紅、自行車綠、汽車藍、乘客紫、其他黃）。
+
+52. **旅行實用**（`pipeline/topics/travel.py`、`pipeline/sources/iana_tz.py`、`wiki_mains.py`、`wikidata_driving.py`、`src/topics/panels/TravelPanel.tsx`）：
+    - **時差用 IANA 時區資料庫，不用 Natural Earth 的時區圖**：Natural Earth 1:10m time zones（5.1.2 版，公有領域）停在 2012 年前後，莫斯科是 UTC+4（2014 年起是 +3）、哈薩克大部分是 +6（2024 年起全國 +5）、薩摩亞還有夏令時間（2021 年取消），多邊形的 `tz_name1st` 也只是那個時區的第一個城市（UTC−5 那塊是 America/New_York，哥倫比亞、秘魯會被算成有夏令時間）。所以改用 IANA tz（公有領域）：Python 的 `zoneinfo` 加上 PyPI 的 `tzdata` 套件（Windows 沒有系統的時區檔，`requirements.txt` 加了 `tzdata`），版本寫在 `manifest.json`（2026e）。
+      - 每個國家用首都的時區：Natural Earth populated places 的 Admin-0 capital 有 `TIMEZONE`（IANA 名稱），同一國好幾個首都取正式首都裡人口最多的；首都的時區不在那國的 `zone.tab` 清單裡時，用 `zone.tab` 離首都最近的。俄羅斯的莫斯科沒有 `TIMEZONE`、科索沃（Natural Earth 是 KOS）、索馬利蘭、北賽普勒斯、澳屬印度洋領地直接指定（`TZ_OVERRIDES`）；沒有首都的屬地用 `zone.tab` 的第一個時區。
+      - 標準時間與夏令時間：一月與七月 15 日的 UTC 偏移，小的是標準時間（南北半球都適用；愛爾蘭法律上的「冬季負夏令時間」照一般認知算，摩洛哥只有齋戒月改回 UTC+0，算成沒有夏令時間）。跨時區的國家（美、俄、加、澳、巴西、印尼、墨西哥…），附註與側欄寫出全國的範圍。
+      - 地圖的值是標準時間跟台灣（UTC+8）差幾小時，面量圖用發散色、6 個不對稱的門檻 −10.5、−4.5、−0.5、+0.5、+2.5、+4.5：美洲；歐洲與非洲；中東、南亞、中亞與部分東南亞；跟台灣同時區；日韓與澳洲東部；紐西蘭等；薩摩亞、東加、吉里巴斯（比台灣快 5–6 小時）。類別圖最多 8 類、時差有三十幾種值，所以不用類別圖。tooltip 寫「UTC+9 · 比台灣快 1 小時」。
+      - 時差沒有好壞，指標設 `unranked`（2026-10-23 加的欄位）：排名表依數值排列、不寫名次，側欄也不寫名次。
+    - **行車方向**：Wikidata 的 P1622（Q14565199 靠右、Q11920728 靠左），CC0。有結束時間（P582）的舊方向寫進附註（瑞典 1967 年、薩摩亞 2009 年改…）；沒有結束時間的有兩個時取優先等級的。科索沃（靠右）、北賽普勒斯（靠左）Wikidata 沒有（沒有 ISO 代碼），直接指定。常被問到的 24 國跟英文維基百科「Left- and right-hand traffic」核對過，資料管線每次檢查，Wikidata 改了會報錯。238 國／地區：靠左 75、靠右 163。
+    - **插頭、電壓與頻率**：英文維基百科「Mains electricity by country」的表格（固定在 2026-10-19 的版本 1380969207，`wiki_mains.py`），一列一國：插頭字母（A–O）、國家標準、電壓（「230/400 V」取斜線前的單相電壓，好幾種的依序列出）、頻率。這個表原本的主要來源 IEC World Plugs 在 2026 年 9 月下架（條目的 References 一節有寫），所以用維基百科（CC BY-SA 4.0）；Wikidata 的 P2853（插頭）、P2884（電壓）有，但插頭用的是標準名稱（NEMA 1-15、Schuko…），沒有頻率，比較零散，沒有用。
+      - 插頭分 7 類（依序判斷）：只有 A、B；A 或 B 加上其他；只有 C、E、F；有 G；有 I；有 D 或 M；其他（C 加上 H、J、K、L、N 這類國內規格）。2026-10：33、26、77、44、18、9、16 國／地區。
+      - 電壓用表格列出的第一個（一般家用插座）：台灣的列是「110/220 V、220/380 V」（大型電器另有 220 V），巴西「127/220 V、220/380 V」（各地不同）都算 100–127 V，側欄列出全部的電壓。分 4 類：100–127 V 與 60 Hz（34）、100–127 V 與 50 或 50／60 Hz（5，日本東 50 西 60）、220–240 V 與 60 Hz（9，韓國、菲律賓、沙烏地…）、220–240 V 與 50 Hz（175）。
+      - 國名用 `{{flag|…}}` 的名稱對 ISO（`MAINS_NAMES`、`NAME_ALIASES`、pycountry），對不上的印出來。表格沒有的：南蘇丹、馬紹爾群島、教廷、土克凱可、北馬利安納、瓦利斯和富圖那等，沒有值。
+    - **側欄**（`details.json`）：跟台灣比的時差（標準時間與夏令時間）、跨時區的範圍、行車方向、插頭字母與能不能直接插（全部是 A、B：可以；有 A 或 B：可能可以、最好帶轉接頭；沒有：要轉接頭）、電壓與頻率（100–127 V：一般可以直接用；220–240 V：看標示，100–240 V 的充電器可以直接用，只有 110 V 的要變壓器；頻率不是 60 Hz 時提醒馬達、計時的電器）。點台灣時列出台灣自己的。這些是一般性的提醒，頁尾請使用者出發前再查官方資訊。
+    - **顏色**：時差用發散色（比台灣慢橘、快青綠，同時區是中性灰）；行車方向、插頭、電壓是一般類別色（`MAP_TOKENS.categorical`）。
 
 ## 9. 之後可以做的
 

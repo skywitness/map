@@ -41,6 +41,7 @@ import { temperature } from './temperature';
 import { tobaccoAlcohol } from './tobacco-alcohol';
 import { tourism } from './tourism';
 import { trade } from './trade';
+import { travel } from './travel';
 import { transport } from './transport';
 import { unVotes } from './un-votes';
 import { wages } from './wages';
@@ -64,7 +65,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, submarineCables, transport, roadSafety] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, travel] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */
