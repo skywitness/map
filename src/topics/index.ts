@@ -26,6 +26,7 @@ import { language } from './language';
 import { migration } from './migration';
 import { military } from './military';
 import { nobel } from './nobel';
+import { organizations } from './organizations';
 import { passport } from './passport';
 import { pureMap } from './map';
 import { population } from './population';
@@ -53,7 +54,7 @@ export interface TopicGroup {
 export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing, religion, inequality, gender, nobel] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, diplomacy] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, transport] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes] },
