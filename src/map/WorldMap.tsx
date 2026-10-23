@@ -59,7 +59,7 @@ import {
   type LayerVisibility,
   type OverlayLayer,
 } from './Overlays';
-import { applyTimeFilters, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { applyTimeFilters, highlightLine, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
@@ -718,8 +718,8 @@ export function WorldMap(props: WorldMapProps) {
   const suppressClickRef = useRef(false);
 
   function bindEvents(map: MaplibreMap) {
-    const featureAt = (point: { x: number; y: number }): MapGeoJSONFeature | null => {
-      for (const id of [...pointLayersRef.current, ...HOVER_LAYERS]) {
+    const featureAt = (point: { x: number; y: number }, countriesOnly = false): MapGeoJSONFeature | null => {
+      for (const id of countriesOnly ? HOVER_LAYERS : [...pointLayersRef.current, ...HOVER_LAYERS]) {
         if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
         const [f] = map.queryRenderedFeatures([point.x, point.y], { layers: [id] });
         if (f) return f;
@@ -749,10 +749,10 @@ export function WorldMap(props: WorldMapProps) {
       if (latest.current.boxMode) return;
       const f = featureAt(e.point);
       const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
-      // 海上的地震沒有國家，照樣顯示 tooltip
+      // 海上的地震沒有國家，照樣顯示 tooltip；線圖層查的是透明的粗線（`ov-<id>-hit`），疊加圖層的 id 從 source 取
       const point =
         f && f.layer.id.startsWith(OVERLAY_PREFIX)
-          ? { overlay: f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
+          ? { overlay: String(f.source).slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
           : undefined;
       setHoverId(iso3);
       map.getCanvas().style.cursor = iso3 || point ? 'pointer' : '';
@@ -800,7 +800,11 @@ export function WorldMap(props: WorldMapProps) {
         suppressClickRef.current = false;
         return;
       }
-      latest.current.onSelect((featureAt(e.point)?.properties?.iso3 as string | undefined) ?? null);
+      // 疊加圖層的點有國家就選那一國；沒有國家的（海上的地震、颱風路徑）改選底下的國家，
+      // 否則颱風路徑經過的國家（台灣）點不到
+      const f = featureAt(e.point);
+      const iso3 = (f?.properties?.iso3 as string | undefined) ?? (featureAt(e.point, true)?.properties?.iso3 as string | undefined);
+      latest.current.onSelect(iso3 ?? null);
     });
   }
 
@@ -1065,6 +1069,14 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !map || !installedRef.current) return;
     applyTimeFilters(map, overlays, year, indicator.overlayTime);
   }, [year, indicator.overlayTime]);
+
+  // 滑過有 tooltip 的線（颱風路徑）時標出整條線
+  const hoverLine = hover?.point ?? null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    highlightLine(map, overlays, hoverLine);
+  }, [revision, overlays, hoverLine?.overlay, hoverLine?.index]);
 
   /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
   const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);

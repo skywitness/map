@@ -27,10 +27,15 @@ export function decodeRailways(data: RailwaysData): GeoJSON.MultiLineString {
   return { type: 'MultiLineString', coordinates: decodeLines(data).lines };
 }
 
-/** 一般線圖層還原後的資料：經緯度的線，types 是每條線的分類代碼 */
+/**
+ * 一般線圖層還原後的資料：經緯度的線，types 是每條線的分類代碼；
+ * vertexTypes 是每條線每個頂點的代碼（颱風每個時間點的強度），records 是每條線一筆的紀錄（tooltip、時間篩選）
+ */
 export interface DecodedLines {
   lines: [number, number][][];
   types: number[] | null;
+  vertexTypes: number[][] | null;
+  records: PointRecord[] | null;
 }
 
 /** 每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度（鐵路與一般線圖層同一種格式） */
@@ -47,7 +52,15 @@ export function decodeLines(data: LinesData | RailwaysData): DecodedLines {
     }
     return line;
   });
-  return { lines, types: 'types' in data && data.types ? data.types : null };
+  // 鐵路（RailwaysData）沒有這些欄位
+  const extra = data as LinesData;
+  return {
+    lines,
+    types: extra?.types ?? null,
+    // 一個字元一個頂點，36 進位（pipeline 的 VERTEX_CODES）
+    vertexTypes: extra?.vertexTypes ? extra.vertexTypes.map((s) => Array.from(s, (c) => parseInt(c, 36))) : null,
+    records: extra?.records ? decodePoints(extra.records) : null,
+  };
 }
 
 /** 一般點圖層的資料檔（pipeline 的 common.points_file()）還原成一個點一筆的紀錄 */

@@ -178,8 +178,10 @@ export type OverlayDef = { id: 'railways' | 'airports'; kind?: undefined; file: 
 interface OverlayBase {
   /** 主題內唯一：圖層開關、MapLibre 圖層 id（`ov-<id>`）用 */
   id: string;
-  /** 資料檔，相對於 data/topics/<topicId>/ */
+  /** 資料檔，相對於 data/topics/<topicId>/（有 topic 時是那個主題的資料夾） */
   file: string;
+  /** 資料檔屬於另一個主題（例如發電量主題借用發電廠地圖的電廠點）；沒寫就是這個主題 */
+  topic?: string;
   /** 圖層開關上的名稱 */
   label: Text;
   /** 預設關閉；關閉時不下載資料檔，第一次打開才下載 */
@@ -222,13 +224,29 @@ export interface PointsOverlayDef extends OverlayBase {
   tooltip: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
 }
 
-/** 一般的線圖層（資料檔是 LinesData），例如板塊邊界 */
+/** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、颱風路徑 */
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
   /** 線寬（px，縮放 2 時） */
   width: number;
-  /** 固定色，或依 LinesData.types 分類（value 對應 types 的代碼），dash 畫虛線 */
+  /**
+   * 固定色，或依分類代碼上色（value 對應代碼），dash 畫虛線。
+   * 代碼是 LinesData.types（一條線一個），或 LinesData.vertexTypes（每個頂點一個，例如颱風每個時間點的強度）：
+   * 有 vertexTypes 時一條線依代碼切成好幾段，每段的顏色是那段起點的代碼。
+   */
   color: string | { title?: Text; classes: { value: number; color: string; label: Text; dash?: boolean }[] };
+  /**
+   * 年份欄位（LinesData.records 裡的欄位）：依時間軸篩選要顯示的線，篩選方式看指標的 overlayTime（跟點圖層一樣）。
+   * 例如颱風的 season。
+   */
+  timeField?: string;
+  /** 代碼大的畫在上面（例如颱風路徑強的那段疊在弱的上面） */
+  sortByType?: boolean;
+  /**
+   * 滑到線上時的 tooltip（要有 LinesData.records）：p 是那條線的紀錄。有 tooltip 的線可以 hover，
+   * 滑過時整條線（同一筆紀錄的所有段）加粗標出。
+   */
+  tooltip?: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
 }
 
 /** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */
@@ -247,11 +265,18 @@ export interface PointsData {
   columns: (number | string | null)[][];
 }
 
-/** 一般線圖層的資料檔：跟鐵路同一種差分編碼，types（選填）是每條線的分類代碼 */
+/**
+ * 一般線圖層的資料檔（pipeline/common.py 的 lines_file()）：跟鐵路同一種差分編碼。
+ * - types（選填）：每條線的分類代碼
+ * - vertexTypes（選填）：每條線每個頂點的分類代碼，一個字元一個頂點（36 進位的 0–9、a–z），長度等於那條線的頂點數
+ * - records（選填）：每條線一筆紀錄（欄位分開存，格式同 PointsData），第 i 條線對應第 i 筆；tooltip 與時間篩選用
+ */
 export interface LinesData {
   quantum: number;
   lines: number[][];
   types?: number[];
+  vertexTypes?: string[];
+  records?: PointsData;
 }
 
 /** 鐵路：每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度 */

@@ -272,12 +272,14 @@ export function App() {
     );
   };
 
-  // 一般點圖層（地震、火山、駐外館處…）的 tooltip 由主題設定決定內容
+  // 一般點圖層（地震、火山、駐外館處…）與有紀錄的線圖層（颱風路徑）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    const p = o?.kind === 'points' ? o.points?.[index] : undefined;
-    if (!o || o.kind !== 'points' || !p) return null;
-    const tip = o.def.tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
+    if (!o) return null;
+    const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
+    const tooltip = o.def.tooltip;
+    if (!p || !tooltip) return null;
+    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
     return (
       <>
         <div className="tt-value">{tip.title}</div>
@@ -625,7 +627,7 @@ function useOverlays(topic: Topic, indicator: Indicator, layers: LayerVisibility
         ? []
         : overlays.flatMap((o) =>
             o.kind !== undefined && (!o.indicators || o.indicators.includes(indicator.id))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${topic.id}/${o.file}` }]
+              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${o.topic ?? topic.id}/${o.file}` }]
               : [],
           ),
     [overlays, topic.id, indicator.id, layers, pure],
