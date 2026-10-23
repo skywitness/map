@@ -30,8 +30,9 @@ interface CountryDetails {
 
 const TEXT = defineMessages({
   zh: {
-    taiwan: '台灣是這個主題的觀點：地圖呈現的是從台灣看出去的外交關係與簽證待遇。',
-    mainland: '中國大陸與香港由大陸委員會主管（兩岸關係、台胞證、網上預辦入境登記），不在外交部與領事事務局的資料裡。',
+    // 數值卡片已經寫了主題的 noValue（「由陸委會主管」），這裡補充前往的方式
+    mainland: '前往中國大陸要用台胞證（臺灣居民來往大陸通行證）；兩岸事務不在外交部與領事事務局的資料裡。',
+    hongKong: '前往香港要先網上預辦入境登記；港澳事務由陸委會主管，不在外交部的館處資料裡。',
     relations: '與中華民國（台灣）的邦交',
     allyAt: (year: number) => `${year} 年：邦交國`,
     formerAt: (year: number) => `${year} 年：沒有邦交（曾經是邦交國）`,
@@ -49,9 +50,10 @@ const TEXT = defineMessages({
     updated: (date: string) => `免簽證名單更新日期：${date}。各國規定時常變動，出發前請以各國公告為準。`,
   },
   en: {
-    taiwan: "Taiwan is this topic's point of view: the map shows foreign relations and visa access as seen from Taiwan.",
     mainland:
-      'Mainland China and Hong Kong fall under the Mainland Affairs Council (cross-strait relations, travel permits, pre-arrival registration) and are not in the Ministry of Foreign Affairs or Bureau of Consular Affairs data.',
+      'Travel to mainland China uses the Taiwan Compatriot Permit; cross-strait matters are outside the Ministry of Foreign Affairs and Bureau of Consular Affairs data.',
+    hongKong:
+      'Travel to Hong Kong requires online pre-arrival registration; Hong Kong and Macau affairs fall under the Mainland Affairs Council, not the overseas missions data.',
     relations: 'Diplomatic relations with the Republic of China (Taiwan)',
     allyAt: (year) => `${year}: diplomatic ally`,
     formerAt: (year) => `${year}: no diplomatic relations (former ally)`,
@@ -81,8 +83,10 @@ export default function DiplomacyPanel({ topic, iso3, year }: PanelExtraProps) {
   const { data, error } = useJson<DetailsFile>(`topics/${topic.id}/details.json`);
   const visaLabel = useMemo(() => new Map(VISA.map((c) => [c.value, tr(c.label, lang)])), [lang]);
 
-  if (iso3 === 'TWN') return <p className="empty">{text.taiwan}</p>;
-  if (iso3 === 'CHN' || iso3 === 'HKG') return <p className="empty">{text.mainland}</p>;
+  // 台灣：數值卡片與圖表已經寫「台灣是這個主題的觀點」（主題的 noValue），不必再重複
+  if (iso3 === 'TWN') return null;
+  if (iso3 === 'CHN') return <p className="note">{text.mainland}</p>;
+  if (iso3 === 'HKG') return <p className="note">{text.hongKong}</p>;
   if (error) return <p className="empty">{t.noData}</p>;
   if (!data) return <p className="empty">{t.loading}</p>;
 

@@ -81,7 +81,7 @@ function missionTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
 const missions = (v: number) =>
   tr({ zh: `${fixed(v, 0)} 個館處`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'mission' : 'missions'}` });
 
-const GOV_LICENSE: Text = { zh: '政府資料開放授權條款－第 1 版', en: 'Open Government Data License, version 1.0 (Taiwan)' };
+const GOV_LICENSE: Text = { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License 1.0' };
 
 export const diplomacy: TopicDefinition = {
   id: 'taiwan-diplomacy',
@@ -92,44 +92,45 @@ export const diplomacy: TopicDefinition = {
   defaultYear: 2026,
   sources: [
     {
-      name: { zh: '外交部，駐外館處通訊錄（data.gov.tw 6119）', en: 'Ministry of Foreign Affairs (Taiwan), overseas missions directory (data.gov.tw 6119)' },
+      name: { zh: '外交部駐外館處通訊錄（data.gov.tw 6119）', en: 'MOFA overseas missions (data.gov.tw 6119)' },
       url: 'https://data.gov.tw/dataset/6119',
       license: GOV_LICENSE,
     },
     {
-      name: {
-        zh: '外交部領事事務局，中華民國國民可以免簽證、落地簽證及電子簽證前往之國家與地區（data.gov.tw 30749）',
-        en: 'Bureau of Consular Affairs (Taiwan), visa-free, visa-on-arrival and e-visa destinations for ROC nationals (data.gov.tw 30749)',
-      },
+      name: { zh: '領事事務局免簽證名單（data.gov.tw 30749）', en: 'BOCA visa list (data.gov.tw 30749)' },
       url: 'https://data.gov.tw/dataset/30749',
       license: GOV_LICENSE,
     },
     {
-      name: {
-        zh: '外交部領事事務局，各國暨各地區旅遊及消費者保護資訊（國家清單與兼轄館處）',
-        en: 'Bureau of Consular Affairs (Taiwan), country travel information (country list and covering missions)',
-      },
+      name: { zh: '領事事務局各國資訊（兼轄館處）', en: 'BOCA country pages' },
       url: 'https://www.boca.gov.tw/sp-foof-countrylp-03-1.html',
       license: GOV_LICENSE,
     },
     {
       name: {
-        zh: '邦交國的建交、斷交日期：依外交部公告整理，與維基百科「中華民國外交關係年表」交叉比對',
-        en: 'Dates of establishing and severing relations: compiled from MOFA announcements, cross-checked against Wikipedia (Chinese) "Chronology of ROC foreign relations"',
+        zh: '邦交國年表（外交部公告；與維基百科「中華民國外交關係年表」交叉比對）',
+        en: 'Allies chronology (MOFA announcements; cross-checked with Wikipedia)',
       },
       // 「中華民國外交關係年表」（zh-tw 是繁體版的網址）
       url: 'https://zh.wikipedia.org/zh-tw/%E4%B8%AD%E5%8D%8E%E6%B0%91%E5%9B%BD%E5%A4%96%E4%BA%A4%E5%85%B3%E7%B3%BB%E5%B9%B4%E8%A1%A8',
-      license: { zh: '日期是史實，表格自行整理；比對的維基百科條目為 CC BY-SA 4.0', en: 'dates are historical facts compiled by hand; the Wikipedia article checked against is CC BY-SA 4.0' },
+      license: { zh: '史實自行整理；維基百科為 CC BY-SA 4.0', en: 'facts compiled by hand; Wikipedia is CC BY-SA 4.0' },
     },
     {
-      name: { zh: 'Natural Earth（1:10m 城市點，館處位置）', en: 'Natural Earth (1:10m populated places, mission locations)' },
+      name: { zh: 'Natural Earth 城市點（館處位置）', en: 'Natural Earth populated places' },
       url: 'https://www.naturalearthdata.com/',
       license: { zh: '公有領域', en: 'public domain' },
     },
   ],
+  // 頁尾要短：英文版在 1280×800 太長會把地圖擠扁（細節寫在指標說明、側欄與 DESIGN.md）
   note: {
-    zh: '從台灣看世界：台灣本身是觀點，地圖上不上色；中國大陸與香港由大陸委員會主管（兩岸關係、台胞證、網上預辦入境登記），不在外交部與領事事務局的資料裡，也不上色。邦交國是每年年底的狀態，起點是 1949 年底政府遷臺時仍有邦交的 47 國；越南共和國（南越，1955–1975）今天沒有對應的國家，只有領事關係的馬來西亞（1964–1974）與拉脫維亞（1992–1994）不算，所以 1955–1974 年比常見的數字少 1–2 國（1969 年常說的 70 國，這裡是 68 國）；同一年建交又斷交的（例如 1999 年巴布亞紐幾內亞）不會出現在當年的地圖上。駐外館處的位置是所在城市的中心（Natural Earth），不是實際地址；無邦交國家的主要館處算「代表處」（不論名稱是代表處、經濟文化辦事處或中心），其他城市的算「辦事處」。簽證待遇依領事事務局最新的名單，同一國有好幾種方式時取最方便的一種；各國規定時常變動，出發前請以各國公告為準。',
-    en: "Taiwan's view of the world: Taiwan itself is the point of view and is not coloured. Mainland China and Hong Kong fall under the Mainland Affairs Council (cross-strait travel permits and pre-arrival registration), are not in the Ministry of Foreign Affairs or Bureau of Consular Affairs data, and are not coloured either. Allies are counted at the end of each year, starting from the 47 countries that still recognised the ROC when its government moved to Taiwan at the end of 1949. The Republic of Vietnam (South Vietnam, 1955–1975) has no present-day counterpart, and Malaysia (1964–1974) and Latvia (1992–1994), which had consular relations only, are not counted, so 1955–1974 show one or two fewer allies than the usual figures (68 rather than the often-quoted 70 for 1969). Relations that began and ended within the same year (Papua New Guinea in 1999, for example) do not appear on that year's map. Mission locations are city centres (Natural Earth), not street addresses; in countries without diplomatic relations the main mission counts as a representative office whatever its name, and offices in other cities count as branch offices. Visa access follows the latest Bureau of Consular Affairs list, using the most convenient option where a country offers several; rules change often, so check the destination's own announcements before travelling.",
+    zh: '從台灣看世界：台灣本身是觀點，不上色；中國大陸、香港由陸委會主管，也不上色。邦交國是每年年底的狀態，起點是 1949 年底仍有邦交的 47 國；今天沒有對應國家的南越、只有領事關係的馬來西亞與拉脫維亞不算，所以 1969 年是 68 國，不是常說的 70 國。館處的位置是所在城市的中心。各國簽證規定時常變動，出發前請以各國公告為準。',
+    en: "Seen from Taiwan, which is not coloured; mainland China and Hong Kong fall under the Mainland Affairs Council and are not coloured either. Allies are year-end status, starting from the 47 countries that still recognised the ROC at the end of 1949; South Vietnam (no present-day counterpart) and consular-only ties (Malaysia, Latvia) are excluded, so 1969 shows 68 allies rather than the often-quoted 70. Missions are placed at city centres. Visa rules change often; check the destination's announcements before travelling.",
+  },
+  // 這幾個地方沒有值不是「無資料」：tooltip、側欄的數值卡片與圖表改寫原因
+  noValue: {
+    TWN: { zh: '台灣是這個主題的觀點', en: 'Taiwan is the point of view' },
+    CHN: { zh: '由陸委會主管', en: 'Under the Mainland Affairs Council' },
+    HKG: { zh: '由陸委會主管', en: 'Under the Mainland Affairs Council' },
   },
   panelExtra: () => import('./panels/DiplomacyPanel'),
   overlays: [

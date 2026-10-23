@@ -85,17 +85,21 @@ STAY_PATTERNS = [
     rf"可停留(?:至多|最多)?\s*(\d+)\s*{UNIT}",
     rf"停留(?:期限|時間)?(?:最多|至多|不超過|不得逾|最長)?(?:為)?\s*(\d+)\s*{UNIT}",
     rf"(?:最多|至多|最長期限|最長)\s*(\d+)\s*{UNIT}",
-    rf"^\D{{0,6}}?(\d+)\s*{UNIT}",  # 「落地簽證 30 天…」
+    rf"^\D{{0,6}}?(\d+)\s*{UNIT}(?!以上|內|期間)",  # 「落地簽證 30 天…」，不是「持憑 6 個月以上效期的護照」
 ]
 
 
 def _stay(text: str) -> tuple[str, str] | None:
     """說明裡的可停留天數，中文與英文：「90 天」「最多 90 天」「45/90 天」「30–90 天」「1 個月」"""
     text = re.sub(r"\s+", " ", text)
-    m = re.match(rf"^(最多|至多|最長期限)?\s*(\d+)\s*(?:([/／至－-])\s*(\d+))?\s*{UNIT}(?!內|期間)", text)
+    # 開頭的天數：「90 天」「最多 90 天」「45/90 天」「30 至 90 天」「21 日或 120 日」
+    m = re.match(rf"^(最多|至多|最長期限)?\s*(\d+)\s*(?:天|日)?\s*(?:([/／至－-]|或)\s*(\d+))?\s*{UNIT}(?!內|期間)", text)
+    alternative = None
     if m:
         up_to = bool(m.group(1))
-        n = m.group(2) + (f"–{m.group(4)}" if m.group(3) in ("至", "－", "-") else f"/{m.group(4)}" if m.group(4) else "")
+        sep = m.group(3)
+        n = m.group(2) + (f"–{m.group(4)}" if sep in ("至", "－", "-") else f"/{m.group(4)}" if sep and sep != "或" else "")
+        alternative = m.group(4) if sep == "或" else None
         unit = m.group(5)
     else:
         for pattern in STAY_PATTERNS:
@@ -104,31 +108,59 @@ def _stay(text: str) -> tuple[str, str] | None:
                 break
         else:
             return None
-    plural = n != "1"
+    plural = n != "1" or alternative is not None
     zh_unit = "個月" if unit == "個月" else "天"
     en_unit = ("months" if plural else "month") if unit == "個月" else ("days" if plural else "day")
-    return (f"{'最多 ' if up_to else ''}{n} {zh_unit}", f"{'up to ' if up_to else ''}{n} {en_unit}")
+    zh_n, en_n = (f"{n} 或 {alternative}", f"{n} or {alternative}") if alternative else (n, n)
+    return (f"{'最多 ' if up_to else ''}{zh_n} {zh_unit}", f"{'up to ' if up_to else ''}{en_n} {en_unit}")
 
 
-BOILERPLATE = re.compile(
-    r"(其他|相關|申請)?(資訊|事項)?(詳情|詳請|相關資訊)?請(參閱|閱|參考)\s*「(簽證及入境須知|入境及簽證須知)」"
-    r"(，?及[^。]*)?[。，]?|詳情請參閱[^。]*網站[^。]*。?|（有注意事項，?）"
-)
-# 網址（PDF 換行時中間會多出空白，例如「https://www.gov.uk/guida nce/apply-…」）
-URL = re.compile(r"[（(]?\s*(?:(?:申請)?(?:網址|網頁)|官網)?\s*[:：]?\s*(?:https?://|www\.)[A-Za-z0-9./:?=&%#~+_-]+(?:\s[A-Za-z0-9./:?=&%#~+_-]*[./-][A-Za-z0-9./:?=&%#~+_-]*)*\s*[）)]?")
+# 網址（PDF 換行時中間會多出空白，例如「https://www.gov.uk/guida nce/apply-…」）與前面的「網址：」「申請網頁：」
+URL = r"(?:https?://|www\.)[A-Za-z0-9./:?=&%#~+_-]+(?:\s[A-Za-z0-9./:?=&%#~+_-]*[./-][A-Za-z0-9./:?=&%#~+_-]*)*"
+URL_LABEL = r"(?:(?:申請)?(?:網址|網頁)(?:為)?|官網)?\s*[:：]?\s*"
+# 叫人去看「簽證及入境須知」或某個網站的句子（從上一個逗號、句號或括號開始）
+REFERRAL = r"(?:請參閱|請參考|請閱)"
+SEE_ALSO = [
+    rf"[（(][^（）()]*(?:{REFERRAL}|詳請|詳情)[^（）()]*[）)]",  # 整個括號都是參考資訊：「（詳請及其他事項，請參考…官網）」
+    rf"[^。，；（(]*{REFERRAL}\s*「(?:簽證及入境須知|入境及簽證須知)」[^。；）)]*",
+    rf"[^。，；（(]*{REFERRAL}[^。；（(]*網站[^。；）)]*",
+]
+
+
+def _balance(text: str) -> str:
+    """去掉沒有對應的右括號、補上沒有對應的左括號（全形、半形混用的「(…）」算一對）"""
+    out: list[str] = []
+    open_: list[str] = []
+    for ch in text:
+        if ch in ("）", ")"):
+            if open_:
+                open_.pop()
+            else:
+                continue
+        elif ch in ("（", "("):
+            open_.append(ch)
+        out.append(ch)
+    closing = {"（": "）", "(": ")"}
+    return "".join(out) + "".join(closing[c] for c in reversed(open_))
 
 
 def _note(text: str) -> str:
-    """說明文字（只在中文介面顯示）：去掉網址與「請參閱簽證及入境須知」，申根區的「左列國家」改成申根區；只有天數的不留"""
+    """說明文字（只在中文介面顯示）：去掉網址與「請參閱簽證及入境須知」這類參考句，申根區的「左列國家」改成申根區；只有天數的不留"""
     text = re.sub(rf"(?<=[{CJK}]) (?=[{CJK}])", "", text)
     if "左列國家" in text:
         return "申根區國家的停留日數合併計算，每 180 天期間內總計最多停留 90 天。"
-    text = URL.sub("", text)
-    text = BOILERPLATE.sub("", text)
+    text = re.sub(rf"[（(]\s*{URL_LABEL}{URL}\s*[）)]", "", text)  # 整個括號是網址
+    text = re.sub(rf"(?<=[至於到])\s*{URL}", "網站", text)  # 「須事先至 https://… 線上填報」→「須事先至網站線上填報」
+    text = re.sub(rf"{URL_LABEL}{URL}", "", text)
+    for pattern in SEE_ALSO:
+        text = re.sub(pattern, "", text)
     text = re.sub(r"\s*([，。、；：）」])\s*", r"\1", text)
     text = re.sub(r"([（「])\s+", r"\1", text)
-    text = re.sub(r"\s+", " ", text).replace("，）", "）").replace("（）", "").replace("（有注意事項）", "").strip(" ，。、；")
-    if re.fullmatch(rf"(最多|至多|最長期限)?\s*\d+(\s*[/／至－-]\s*\d+)?\s*{UNIT}", text):
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"[，、；：]+(?=[。）)]|$)", "", text)  # 拿掉參考句後留下的逗號
+    text = re.sub(rf"(?<=[{CJK}]) (?=[{CJK}])", "", text)  # 拿掉網址後留下的空白（「網站 查詢」）
+    text = _balance(text).replace("（）", "").replace("()", "").strip(" ，。、；：")
+    if re.fullmatch(rf"(最多|至多|最長期限|最長)?\s*\d+\s*(天|日)?(\s*([/／至－-]|或)\s*\d+)?\s*{UNIT}", text):
         return ""
     return f"{text}。" if text and not text.endswith(("）", ")", "。")) else text
 
@@ -170,16 +202,20 @@ def build() -> None:
             places.add(located[id(m)])
         for iso3 in places:
             presence[iso3] = min(presence.get(iso3, kind), kind)
-        count[m.iso3] = count.get(m.iso3, 0) + 1
+            count[iso3] = count.get(iso3, 0) + 1
     for iso3, info in countries.items():
         if iso3 not in presence and info.covered_by:
             presence[iso3] = COVERED
     for iso3 in EXCLUDED:
         presence.pop(iso3, None)
+    # 由其他館處兼轄的國家是 0 個（不是無資料），跟側欄的「沒有館處，由…兼轄」一致；
+    # 駐關島辦事處算在美國（駐在國），也算在關島（地圖上關島是「有辦事處」）
+    for iso3 in presence:
+        count.setdefault(iso3, 0)
     write_json(OUT / "missions-presence.json", indicator_file("missions-presence", "類別", [year], {k: [v] for k, v in presence.items()}))
     write_json(OUT / "mission-count.json", indicator_file("mission-count", "個", [year], {k: [v] for k, v in count.items()}))
     by_type = {t: sum(m.type == t for m in missions) for t in range(1, 6)}
-    print(f"  駐外館處 {len(missions)} 個，{len(count)} 個國家（大使館 {by_type[1]}、總領事館 {by_type[2]}、"
+    print(f"  駐外館處 {len(missions)} 個，{sum(v > 0 for v in count.values())} 個國家／地區（大使館 {by_type[1]}、總領事館 {by_type[2]}、"
           f"代表處 {by_type[3]}、辦事處 {by_type[4]}、國際組織 {by_type[5]}）；由其他館處兼轄 {sum(v == COVERED for v in presence.values())} 國")
 
     # 地圖上的點：依經度排序、差分；同一個城市有兩個館處（日內瓦）時，後面的稍微往東錯開，滑鼠才分得開
