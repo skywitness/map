@@ -27,7 +27,9 @@ import { military } from './military';
 import { nobel } from './nobel';
 import { pureMap } from './map';
 import { population } from './population';
+import { powerPlants } from './power-plants';
 import { religion } from './religion';
+import { renewables } from './renewables';
 import { sectors } from './sectors';
 import { temperature } from './temperature';
 import { tourism } from './tourism';
@@ -36,7 +38,9 @@ import { transport } from './transport';
 import { wages } from './wages';
 import { wealth } from './wealth';
 import type { TopicDefinition } from './types';
+import { typhoons } from './typhoons';
 import { waterForest } from './water-forest';
+import { wildfires } from './wildfires';
 
 export interface TopicGroup {
   id: string;
@@ -52,9 +56,9 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, health, disease, education, diet, housing, religion, inequality, gender, nobel] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, wealth, fiscal, sectors, industry, agriculture] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, military, democracy, diplomacy] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, climate, temperature, airQuality, waterForest, ev] },
+  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, digital, innovation, transport] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, typhoons, wildfires] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */

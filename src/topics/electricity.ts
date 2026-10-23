@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { OPERATING_PLANTS, powerPlants } from './power-plants';
 import type { IndicatorDef, Text, TopicDefinition } from './types';
 
 const twh = (v: number) => `${fixed(v, v < 10 ? 2 : v < 1000 ? 1 : 0)} TWh`;
@@ -27,9 +28,15 @@ export const electricity: TopicDefinition = {
   shortTitle: { zh: '發電量', en: 'Electricity' },
   defaultIndicator: 'generation',
   defaultYear: 2024,
-  sources: [{ name: 'Ember, Yearly Electricity Data', url: 'https://ember-energy.org/data/yearly-electricity-data/', license: 'CC BY 4.0' }],
+  sources: [
+    { name: 'Ember, Yearly Electricity Data', url: 'https://ember-energy.org/data/yearly-electricity-data/', license: 'CC BY 4.0' },
+    // 預設關閉的電廠圖層（發電廠地圖主題的資料）
+    powerPlants.sources[0],
+  ],
   note: { zh: '1 TWh（太瓦時）＝ 10 億度電。', en: '1 TWh (terawatt-hour) = 1 billion kWh.' },
   panelExtra: () => import('./panels/ElectricityPanel'),
+  // 運轉中的電廠點借用發電廠地圖主題的資料檔（OverlayBase.topic），預設關閉、第一次打開才下載
+  overlays: [{ ...OPERATING_PLANTS, topic: 'power-plants', hidden: true }],
   indicators: [
     {
       id: 'generation',

@@ -56,6 +56,15 @@ STEPS = {
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
+    # 要先有 geo 的國界；第一次會下載 IBTrACS v04r01（333 MB，NCEI 單一連線很慢，見 DESIGN.md 第 8 節）
+    "typhoons": "topics.typhoons",
+    "power-plants": "topics.power_plants",  # 第一次會下載 GEM 公開地圖的資料檔（約 62 MB）
+    # 要先有 geo 的國界；第一次會下載 Global Solar Atlas 的 PVOUT（345 MB）與 Global Wind Atlas 的 0.02° 縮小版（182 MB）
+    "renewables": "topics.renewables",
+    # 太陽能、風能潛力的約 2 km 網格圖磚（不進版本控制，部署時產生）；下載同上，約 3 分鐘
+    "renewables-grid-tiles": "topics.renewables_grid_tiles",
+    # 第一次會下載 GWIS 的整包（約 12 MB），並向 GWIS API 查各國面積約 230 次（約 6 分鐘）
+    "wildfires": "topics.wildfires",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

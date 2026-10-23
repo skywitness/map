@@ -1,7 +1,7 @@
 # 推送到 main 時自動建置並發佈到 GitHub Pages
 # 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線；
-# 只有網格圖磚（不進版本庫）在這裡產生，存在 actions/cache：人口密度的 1 km 網格（約 600 MB、6 萬個檔）
-# 與暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）
+# 只有網格圖磚（不進版本庫）在這裡產生，存在 actions/cache：人口密度的 1 km 網格（約 600 MB、6 萬個檔）、
+# 暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）與太陽能、風能的約 2 km 網格（約 9 MB、1,150 個檔）
 name: 部署到 GitHub Pages
 
 on:
@@ -105,6 +105,50 @@ jobs:
         with:
           path: public/tiles/warming
           key: ${{ steps.warming-key.outputs.key }}
+      # 太陽能與風能潛力的約 2 km 網格圖磚（pipeline/topics/renewables_grid_tiles.py，放在
+      # public/tiles/renewables-solar、renewables-wind）：產生的程式、兩份資料的讀取、分級門檻（renewables.ts 的
+      # SOLAR_THRESHOLDS、WIND_THRESHOLDS）或地圖的橘色色階（tokens.ts 的 ORANGE）改了才重新產生。
+      # 要下載 Global Solar Atlas 的 PVOUT（345 MB）與 Global Wind Atlas 檔案裡 0.02° 的縮小版（182 MB，HTTP Range），約 3 分鐘。
+      # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連這兩個一起存
+      - name: 太陽能與風能網格圖磚的快取鍵
+        id: renewables-key
+        run: |
+          hash=$(cat pipeline/topics/renewables_grid_tiles.py pipeline/sources/gsa.py pipeline/sources/gwa.py \
+            pipeline/topics/population_density_tiles.py \
+            <(sed -n '/^const ORANGE = {/,/}/p' src/theme/tokens.ts) \
+            <(grep -E '^const (SOLAR|WIND)_THRESHOLDS' src/topics/renewables.ts) | sha256sum | cut -c1-16)
+          echo "key=renewables-tiles-$hash" >> "$GITHUB_OUTPUT"
+      - name: 還原太陽能與風能網格圖磚
+        id: renewables
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            public/tiles/renewables-solar
+            public/tiles/renewables-wind
+          key: ${{ steps.renewables-key.outputs.key }}
+          restore-keys: renewables-tiles-
+      - uses: actions/setup-python@v7
+        if: steps.renewables.outputs.cache-hit != 'true'
+        with:
+          python-version: '3.13'
+      - name: 產生太陽能與風能網格圖磚
+        id: build-renewables
+        if: steps.renewables.outputs.cache-hit != 'true'
+        # Global Solar Atlas 或 DTU 的伺服器連不上時不擋部署：用上一版的圖磚（連上一版都沒有時，網站上的網格會顯示載入失敗）
+        continue-on-error: true
+        timeout-minutes: 30
+        # numpy 做重新取樣；rasterio 讀 GeoTIFF（含 GDAL 的 /vsisparse/）並重用人口圖磚程式的 PNG 編碼
+        run: |
+          pip install "numpy>=2" "rasterio>=1.4"
+          python pipeline/run.py renewables-grid-tiles
+      - name: 存下太陽能與風能網格圖磚
+        if: steps.renewables.outputs.cache-hit != 'true' && steps.build-renewables.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            public/tiles/renewables-solar
+            public/tiles/renewables-wind
+          key: ${{ steps.renewables-key.outputs.key }}
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
