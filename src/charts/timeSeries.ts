@@ -32,17 +32,25 @@ export function methodBreakLine(year: number, tokens: Tokens): MarkLineItem {
   return { xAxis: String(year), lineStyle: { color: tokens.inkMuted, type: [4, 3], width: 1 } };
 }
 
+/**
+ * 年份不連續（每 5 年一筆、FRA 的 1990、2000、2010、2015…）：補成連續的年份、缺的填 null 再連起來，
+ * x 軸是類別軸，這樣間隔才跟實際的年數成比例（10 年的間隔不會畫得跟 5 年一樣寬）
+ */
+function consecutiveYears({ years, lines, sparse }: TimeSeriesInput): Pick<TimeSeriesInput, 'years' | 'lines' | 'sparse'> {
+  if (years.every((y, i) => i === 0 || y - years[i - 1] === 1)) return { years, lines, sparse };
+  const full = Array.from({ length: years[years.length - 1] - years[0] + 1 }, (_, i) => years[0] + i);
+  const index = new Map(years.map((y, i) => [y, i]));
+  return {
+    years: full,
+    lines: lines.map((l) => ({ ...l, values: full.map((y) => (index.has(y) ? l.values[index.get(y)!] : null)) })),
+    sparse: true,
+  };
+}
+
 /** 歷年折線：估計值實線、推估值虛線，同一個國家用同一個 series 名稱，圖例與 tooltip 才會合併 */
-export function timeSeriesOption({
-  years,
-  lines,
-  projectionFrom,
-  methodBreak,
-  year,
-  indicator,
-  tokens,
-  sparse,
-}: TimeSeriesInput): ChartOption {
+export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
+  const { projectionFrom, methodBreak, year, indicator, tokens } = input;
+  const { years, lines, sparse } = consecutiveYears(input);
   const categories = years.map(String);
   // 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年
   const span = years[years.length - 1] - years[0];

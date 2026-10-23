@@ -33,13 +33,16 @@ export function RankingTable(props: RankingTableProps) {
     () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
     [indicator],
   );
-  // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0
+  // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0。
+  // 同分的國家依國名排、名次相同（例如超過 WHO 指引值的人口比例有一百多國是 100%）
   const rows = useMemo(() => {
-    if (!categories) {
-      return ranking(values, indicator.lowerIsBetter).filter(([, v]) => indicator.layer.kind === 'choropleth' || v > 0);
-    }
     const name = (iso3: string) => countryName(iso3, countries);
     const locale = lang === 'en' ? 'en' : 'zh-Hant-TW';
+    if (!categories) {
+      return ranking(values, indicator.lowerIsBetter, (a, b) => name(a).localeCompare(name(b), locale)).filter(
+        ([, v]) => indicator.layer.kind === 'choropleth' || v > 0,
+      );
+    }
     return [...values]
       .filter(([, v]) => categories.index(v) !== null)
       .sort(
@@ -49,7 +52,6 @@ export function RankingTable(props: RankingTableProps) {
           name(a).localeCompare(name(b), locale),
       );
   }, [values, indicator, categories, countries, lang]);
-  // 同值同名次（例如 77、77、79），跟側欄一致；不用列號
   const ranks = useMemo(() => rowRanks(rows), [rows]);
   // 數值越小越好的指標由小排到大，最大值在最後一列
   const max = Math.max(0, ...rows.map(([, v]) => v));

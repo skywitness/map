@@ -5,11 +5,11 @@
 - **社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出與自付比例、醫師、護理人員與病床數）、疾病（各國首要死因、慢性病過早死亡、癌症死亡率、糖尿病、肥胖、愛滋、結核病、瘧疾、死因結構）、教育（受教育年數、高等教育在學率、教育支出、識字率）、飲食（熱量、蛋白質、脂肪、動物性食物占熱量、各類食物的人均供給量、營養不足人口比例）、住宅（公寓住戶比例、自有住宅率、平均每戶人數、居住擁擠率、住房負擔過重率、都市貧民窟人口比例；住宅類型、擁擠與負擔只有歐洲與部分 OECD 國家）、宗教（各國的主要宗教、最大宗教的比例、無宗教信仰比例、宗教多樣性）、貧富差距（吉尼係數、所得最高 10% 與最低 50% 的份額、極端貧窮）、性別平等（性別不平等指數、女性勞參率、女性國會議員比例、性別薪資差距）
 - **經濟**：人均收入、薪資與工時（平均月薪與最低工資的美元與購買力平價、每週工時、每年工時）、存款與財產（平均每人存款、存款占 GDP、每位成年人的平均財富與財富中位數、最富有 10% 與 1% 的財富占比、家庭儲蓄率、國民儲蓄率）、物價與財政（通膨率、物價水準、政府債務、財政收支、稅收占 GDP）、產業結構、工業、農業
 - **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、移民（移民與僑民人數、收容的難民；點選國家畫出移民來源、僑民去向與難民流向的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）
-- **能源**：發電量、氣候（二氧化碳排放）
+- **能源**：發電量、氣候（二氧化碳排放）、氣溫與降雨（年平均氣溫、年降雨量、暖化；暖化可以切到 0.5° 網格，側欄有每月氣候圖）、空氣品質（PM2.5 年平均濃度、超過 WHO 指引值的人口比例、空氣污染死亡率）、水資源與森林（人均可再生水資源、水資源壓力、安全管理的飲用水、森林覆蓋率、森林面積變化）、電動車（新車電動車占比、保有量、公共充電樁、車樁比）
 - **科技與交通**：AI、數位（網路、行動電話、固網寬頻）、研發與創新（研發經費占 GDP、研發經費總額、研究人員、專利申請）、交通
 - **地理**：語言（各國的主要官方語言、30 種語言的使用比例、使用人數與官方地位、各國有幾種語言）、海拔（平均海拔、最高點與最低點、高地占比、沿海低地、坡度；地圖上是分層設色加地形陰影）
 
-地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜；海拔主題的 3D 是真的立體地形（地球儀上也可以）。人口主題可以在地圖上框選範圍，估算框內人口；「人口密度」可以從國家平均切到「1 km 網格」，看每個約 1 km 的格子住多少人（JRC GHS-POP，1975–2030 每 5 年一期，跟著時間軸換期）。
+地圖可以切換地球儀與平面、一路放大到街道，並有五種底圖配色可選。按「3D」可以把數值畫成高度：比率類指標把國家依色階分級拉高，總量類指標畫成高度與數值成正比的柱子，可以旋轉、傾斜；海拔主題的 3D 是真的立體地形（地球儀上也可以）。人口主題可以在地圖上框選範圍，估算框內人口；「人口密度」可以從國家平均切到「1 km 網格」，看每個約 1 km 的格子住多少人（JRC GHS-POP，1975–2030 每 5 年一期，跟著時間軸換期）；氣溫與降雨主題的「暖化」也可以切到「0.5° 網格」，看國內各地比 1951–1980 年熱了多少（CRU TS，每年一期）。
 
 每個畫面右上角的「分享」可以下載地圖圖片（PNG，含標題、圖例與資料來源）、下載目前指標的 CSV（選定年份或所有年份，Excel 可直接開啟），或複製這個畫面的連結。
 
@@ -76,11 +76,13 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`population-density-tiles`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`disease`、`diet`、`education`、`tourism`、`housing`、`trade`、`language`、`elevation`、`migration`、`religion`、`inequality`、`gender`、`wages`、`fiscal`、`innovation`、`wealth`、`compact`。
+可用的步驟：`geo`、`population`、`population-grid`、`population-density-tiles`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`disease`、`diet`、`education`、`tourism`、`housing`、`trade`、`language`、`elevation`、`migration`、`religion`、`inequality`、`gender`、`wages`、`fiscal`、`innovation`、`wealth`、`temperature`、`temperature-grid-tiles`、`air-quality`、`water-forest`、`ev`、`compact`。
 
 `population-grid` 是框選估算用的網格人口，`elevation` 是海拔主題（USGS GMTED2010 的 1 公里 DEM，第一次會下載約 760 MB），兩個都要先有 `geo` 的國界。`disease` 第一次會向 WHO 的 API 一年一年查 2000–2023 年的死因資料，約 15 分鐘。`migration` 第一次會向 UNHCR 的 API 一年一年查 1990 年以來的難民資料，約 2 分鐘。`inequality` 第一次會下載 World Inequality Database 的整包資料（約 890 MB），`wealth` 共用同一份。
 
 `population-density-tiles` 產生人口密度的 1 km 網格圖磚（`public/tiles/`，約 585 MB、6 萬個檔）。圖磚不進版本控制，部署時由 GitHub Actions 產生；本機要看網格才需要跑，第一次會下載 12 期 GHS-POP（共 5.8 GB），約 25 分鐘。沒跑的話，切到「1 km 網格」會顯示載入失敗、改畫國家平均。做法與大小見 DESIGN.md 第 14 節。
+
+`temperature` 是氣溫與降雨主題（CRU TS，第一次會下載月均溫與降雨約 385 MB）。`temperature-grid-tiles` 產生暖化的 0.5° 網格圖磚（`public/tiles/warming/`，約 20 MB、2.4 萬個檔），跟人口密度的網格一樣不進版本控制、部署時產生，本機約 3–5 分鐘。
 
 指標檔輸出時數值會壓縮（格式見 DESIGN.md 第 3 節）。`compact` 把還沒壓縮的舊指標檔一次轉換，不需要重新下載，重複執行沒有影響。
 
@@ -105,11 +107,11 @@ npm run preview
 推送到 `main` 後，GitHub Actions（`.github/workflows/deploy.yml`）會自動建置並發佈到 GitHub Pages，約 1–2 分鐘。
 資料檔已經在版本庫裡，所以更新資料的流程是：本機執行 `npm run data`，再把 `public/data/` 的變更提交、推送。
 
-例外是人口密度的 1 km 網格圖磚：部署流程自己產生，存在 GitHub Actions 的快取裡。產生的程式或地圖的橘色色階改了（或快取超過 7 天沒用到被清掉）才重新產生，那一次部署約多 15 分鐘；JRC 的伺服器連不上時照樣部署，用上一版的圖磚。
+例外是人口密度的 1 km 網格圖磚：部署流程自己產生，存在 GitHub Actions 的快取裡。產生的程式或地圖的橘色色階改了（或快取超過 7 天沒用到被清掉）才重新產生，那一次部署約多 15 分鐘；JRC 的伺服器連不上時照樣部署，用上一版的圖磚。暖化的 0.5° 網格圖磚也一樣（另一個快取，產生約 5 分鐘，CRU 的伺服器連不上時用上一版）。
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, wages and working hours, savings and wealth (deposits, mean and median wealth, top wealth shares, saving rates), prices and public finances (inflation, price levels, government debt, budget balance, tax revenue), electricity, economic structure, industry, agriculture, trade flows, migration and refugees (with flow arcs), AI, R&D and patents, transport, climate (CO₂ emissions), military, digital, health, disease and causes of death, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment), religion, income inequality, gender equality, languages, housing and elevation (mean elevation, highest and lowest points, highland share, low-lying coastal land and slope, with a shaded-relief map and real 3D terrain), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, wages and working hours, savings and wealth (deposits, mean and median wealth, top wealth shares, saving rates), prices and public finances (inflation, price levels, government debt, budget balance, tax revenue), electricity, economic structure, industry, agriculture, trade flows, migration and refugees (with flow arcs), AI, R&D and patents, transport, climate (CO₂ emissions), military, digital, health, disease and causes of death, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment), religion, income inequality, gender equality, temperature and rainfall (mean temperature, precipitation and warming since 1951–1980, with a monthly climate chart and a 0.5° warming grid), air quality (PM2.5 exposure and deaths from air pollution), water and forests (renewable water per person, water stress, safe drinking water, forest cover and change), electric cars (EV sales share, stock and public chargers), languages, housing and elevation (mean elevation, highest and lowest points, highland share, low-lying coastal land and slope, with a shaded-relief map and real 3D terrain), plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 
@@ -118,8 +120,8 @@ Live site: https://skywitness.github.io/map/?lang=en
 - **Keyboard shortcuts** (press `?`): `/` search, `←` `→` change year, Space play/pause, `+` `−` zoom, `Esc` clear the selection.
 - **Share**: download the current map as a PNG (with title, legend and sources), download the indicator as CSV, or copy a link. The whole view, including the language (`lang=en`), is stored in the URL.
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
-- **1 km grid**: population density can switch from country averages to a grid of cells about 1 km across (JRC GHS-POP, every 5 years from 1975 to 2030, following the time slider). The grid tiles are not in the repository; the deploy workflow builds and caches them.
+- **1 km grid**: population density can switch from country averages to a grid of cells about 1 km across (JRC GHS-POP, every 5 years from 1975 to 2030, following the time slider). Warming (on the temperature topic) can likewise switch to a 0.5° grid (CRU TS, one map per year). The grid tiles are not in the repository; the deploy workflow builds and caches them.
 
-Data sources include UN World Population Prospects, UN DESA International Migrant Stock, UNHCR, Pew Research Center (excerpts), the World Inequality Database, the World Bank Poverty and Inequality Platform, ILO (ILOSTAT), IPU, UNDP, IMF (World Economic Outlook, Financial Access Survey, World Revenue Longitudinal Data), the Penn World Table, OECD (Global Revenue Statistics, national accounts), World Bank, Eurostat, the OECD Affordable Housing Database, WHO (Global Health Estimates, Global Health Observatory), Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, Central Bank, Ministry of Finance, Ministry of Labor, National Science and Technology Council and Intellectual Property Office, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Unicode CLDR, Glottolog, USGS GMTED2010, Wikidata, Mapzen/AWS Terrain Tiles, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
+Data sources include UN World Population Prospects, UN DESA International Migrant Stock, UNHCR, Pew Research Center (excerpts), the World Inequality Database, the World Bank Poverty and Inequality Platform, ILO (ILOSTAT), IPU, UNDP, IMF (World Economic Outlook, Financial Access Survey, World Revenue Longitudinal Data), the Penn World Table, OECD (Global Revenue Statistics, national accounts), World Bank, Eurostat, the OECD Affordable Housing Database, WHO (Global Health Estimates, Global Health Observatory), Ember, FAOSTAT, the Harvard Atlas of Economic Complexity, Taiwan's DGBAS, Central Bank, Ministry of Finance, Ministry of Labor, National Science and Technology Council and Intellectual Property Office, JRC GHS-POP, Epoch AI, the Anthropic Economic Index, Microsoft AI Diffusion, OECD.AI, Our World in Data, Unicode CLDR, Glottolog, USGS GMTED2010, Wikidata, Mapzen/AWS Terrain Tiles, CRU TS (Climatic Research Unit, University of East Anglia), the WashU Atmospheric Composition Analysis Group (SatPM2.5), FAO AQUASTAT, the FAO Global Forest Resources Assessment 2025, the WHO/UNICEF JMP (via the World Bank), the IEA Global EV Data Explorer, Taiwan's Central Weather Administration, Ministry of Environment, Water Resources Agency, Forestry and Nature Conservation Agency and Highway Bureau, Natural Earth, OurAirports and OpenStreetMap; each topic lists its sources and licences in the footer.
 
 Development: `npm install`, then `npm run dev`. Data is pre-built in `public/data/`; run `npm run data` to rebuild it (see the Chinese sections above). Design notes, including how to add a topic with bilingual text, are in [DESIGN.md](DESIGN.md) (in Chinese).

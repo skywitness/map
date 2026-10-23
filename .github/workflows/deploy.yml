@@ -1,6 +1,7 @@
 # 推送到 main 時自動建置並發佈到 GitHub Pages
 # 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線；
-# 只有人口密度的 1 km 網格圖磚（約 600 MB、6 萬個檔，不進版本庫）在這裡產生，存在 actions/cache
+# 只有網格圖磚（不進版本庫）在這裡產生，存在 actions/cache：人口密度的 1 km 網格（約 600 MB、6 萬個檔）
+# 與暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）
 name: 部署到 GitHub Pages
 
 on:
@@ -66,6 +67,44 @@ jobs:
         with:
           path: public/tiles
           key: ${{ steps.tiles-key.outputs.key }}
+      # 暖化的 0.5° 網格圖磚（pipeline/topics/temperature_grid_tiles.py，放在 public/tiles/warming）：
+      # 產生的程式、CRU TS 的讀取、分級門檻（temperature.ts 的 WARMING_THRESHOLDS）或地圖的發散色（tokens.ts 的
+      # ORANGE、AQUA）改了才重新產生，要下載 CRU TS 的月均溫（約 165 MB），約 5 分鐘。
+      # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連暖化的一起存
+      - name: 暖化網格圖磚的快取鍵
+        id: warming-key
+        run: |
+          hash=$(cat pipeline/topics/temperature_grid_tiles.py pipeline/sources/cru.py pipeline/topics/population_density_tiles.py \
+            <(sed -n '/^const ORANGE = {/,/}/p;/^const AQUA = /p;/^  diverging: \[ORANGE/p' src/theme/tokens.ts) \
+            <(grep '^const WARMING_THRESHOLDS' src/topics/temperature.ts) | sha256sum | cut -c1-16)
+          echo "key=warming-tiles-$hash" >> "$GITHUB_OUTPUT"
+      - name: 還原暖化網格圖磚
+        id: warming
+        uses: actions/cache/restore@v6
+        with:
+          path: public/tiles/warming
+          key: ${{ steps.warming-key.outputs.key }}
+          restore-keys: warming-tiles-
+      - uses: actions/setup-python@v7
+        if: steps.warming.outputs.cache-hit != 'true'
+        with:
+          python-version: '3.13'
+      - name: 產生暖化網格圖磚
+        id: build-warming
+        if: steps.warming.outputs.cache-hit != 'true'
+        # CRU 的伺服器連不上時不擋部署：用上一版的圖磚（連上一版都沒有時，網站上的網格會顯示載入失敗）
+        continue-on-error: true
+        timeout-minutes: 30
+        # 圖磚程式只用 numpy（CRU TS 讀 ASCII 版）；rasterio 是因為重用了人口圖磚程式的 PNG 編碼
+        run: |
+          pip install "numpy>=2" "rasterio>=1.4"
+          python pipeline/run.py temperature-grid-tiles
+      - name: 存下暖化網格圖磚
+        if: steps.warming.outputs.cache-hit != 'true' && steps.build-warming.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: public/tiles/warming
+          key: ${{ steps.warming-key.outputs.key }}
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

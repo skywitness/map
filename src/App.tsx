@@ -23,7 +23,7 @@ import {
   type Box,
   type PopulationGrid,
 } from './map/boxEstimate';
-import { fetchGridMeta, gridEpoch, gridText, useGridMeta, type GridLayer } from './map/densityGrid';
+import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
@@ -77,7 +77,7 @@ function initialIndicatorPath(): string | null {
   const indicator =
     topic.indicators.find((i) => i.id === state.indicator) ??
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
-  // 網址指定 1 km 網格時，圖磚的 meta.json 也一起提早請求
+  // 網址指定網格時，圖磚的 meta.json 也一起提早請求
   if (indicator.grid && state.grid && state.view === 'map') fetchGridMeta(indicator.grid.dir).catch(() => {});
   const item = topic.dimension?.options.find((o) => o.id === state.item)?.id ?? null;
   return indicatorPath(topic, indicator, item);
@@ -183,15 +183,15 @@ export function App() {
   const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
 
-  // 1 km 網格（人口密度）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
-  const G = gridText(lang);
+  // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
   const gridSpec = pure ? undefined : indicator.grid;
+  const G = gridLabels(gridSpec ?? { dir: '' }, lang);
   const gridWanted = Boolean(gridSpec && state.grid && view === 'map');
   const gridMeta = useGridMeta(gridWanted && gridSpec ? gridSpec.dir : null);
   const grid = useMemo<GridLayer | null>(
     () =>
       gridSpec && gridWanted && gridMeta.data
-        ? { dir: gridSpec.dir, meta: gridMeta.data, epoch: gridEpoch(gridMeta.data.epochs, year) }
+        ? { dir: gridSpec.dir, spec: gridSpec, meta: gridMeta.data, epoch: gridEpoch(gridMeta.data.epochs, year) }
         : null,
     [gridSpec, gridWanted, gridMeta.data, year],
   );
@@ -376,7 +376,7 @@ export function App() {
                   className={`segment${state.grid === on ? ' is-active' : ''}`}
                   onClick={() => update({ grid: on })}
                 >
-                  {on ? G.grid : G.countryAverage}
+                  {on ? G.name : G.countryAverage}
                 </button>
               ))}
             </div>

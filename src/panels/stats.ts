@@ -35,9 +35,20 @@ export function latestAt(data: IndicatorData, yearIndex: number): { values: Map<
   return { values, years };
 }
 
-/** 由大到小排序（ascending 時由小到大），回傳 [iso3, value] */
-export function ranking(values: Map<string, number>, ascending = false): [string, number][] {
-  return [...values].sort((a, b) => (ascending ? a[1] - b[1] : b[1] - a[1]));
+/** 由大到小排序（ascending 時由小到大），回傳 [iso3, value]；同分的依 tieBreak（例如國名）排 */
+export function ranking(
+  values: Map<string, number>,
+  ascending = false,
+  tieBreak?: (a: string, b: string) => number,
+): [string, number][] {
+  return [...values].sort((a, b) => (ascending ? a[1] - b[1] : b[1] - a[1]) || (tieBreak?.(a[0], b[0]) ?? 0));
+}
+
+/** 排好序的列的名次：同分同名次（1、2、2、4），跟側欄的 rankOf 一致 */
+export function rowRanks(rows: [string, number][]): number[] {
+  const ranks: number[] = [];
+  rows.forEach(([, v], i) => ranks.push(i > 0 && v === rows[i - 1][1] ? ranks[i - 1] : i + 1));
+  return ranks;
 }
 
 /** 名次：預設數值越大越前面；ascending（數值越小越好的指標）時數值越小越前面 */
@@ -47,13 +58,6 @@ export function rankOf(values: Map<string, number>, iso3: string, ascending = fa
   let rank = 1;
   for (const other of values.values()) if (ascending ? other < v : other > v) rank++;
   return rank;
-}
-
-/** ranking() 排好的各列的名次：同值同名次（1、2、2、4），跟側欄的 rankOf 一致 */
-export function rowRanks(rows: [string, number][]): number[] {
-  const ranks: number[] = [];
-  rows.forEach(([, v], i) => ranks.push(i > 0 && v === rows[i - 1][1] ? ranks[i - 1] : i + 1));
-  return ranks;
 }
 
 export function maxAcrossYears(data: IndicatorData): number {

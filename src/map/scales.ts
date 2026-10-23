@@ -12,7 +12,7 @@ export function choroplethScale(spec: ScaleSpec, tokens: Tokens): ScaleThreshold
       // 主題設定寫錯時給開發者看的訊息，不會出現在介面上，所以不翻譯
       throw new Error(`發散色需要 ${tokens.diverging.length - 1} 個對稱門檻，目前是 ${spec.thresholds.length} 個`); // i18n-ignore
     }
-    range = tokens.diverging;
+    range = spec.reverse ? [...tokens.diverging].reverse() : tokens.diverging;
   } else {
     const ramp = tokens.sequential;
     if (classes > ramp.length) throw new Error(`循序色最多 ${ramp.length} 級`); // i18n-ignore
