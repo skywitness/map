@@ -2,6 +2,7 @@ import type { LineSeriesOption } from 'echarts/charts';
 import { messages } from '../i18n';
 import type { Tokens } from '../theme/tokens';
 import { escapeHtml, type ChartOption } from './EChart';
+import { methodBreakLine } from './timeSeries';
 
 export interface StackedSeries {
   name: string;
@@ -13,13 +14,23 @@ interface StackedAreaInput {
   years: number[];
   series: StackedSeries[];
   year: number;
+  /** 從這一年起換了統計方法：畫一條垂直虛線 */
+  methodBreak?: number;
   format: (value: number) => string;
   formatTick: (value: number) => string;
   tokens: Tokens;
 }
 
 /** 堆疊面積圖（例如各能源發電量）。系列之間用 1px 背景色線分隔，tooltip 列出每一層與合計。 */
-export function stackedAreaOption({ years, series, year, format, formatTick, tokens }: StackedAreaInput): ChartOption {
+export function stackedAreaOption({
+  years,
+  series,
+  year,
+  methodBreak,
+  format,
+  formatTick,
+  tokens,
+}: StackedAreaInput): ChartOption {
   const lines: LineSeriesOption[] = series.map((s, i) => ({
     type: 'line',
     name: s.name,
@@ -37,7 +48,10 @@ export function stackedAreaOption({ years, series, year, format, formatTick, tok
     symbol: 'none',
     label: { show: false },
     lineStyle: { color: tokens.ink, type: 'solid', width: 1 },
-    data: [{ xAxis: String(year) }],
+    data: [
+      { xAxis: String(year) },
+      ...(methodBreak !== undefined && years.includes(methodBreak) ? [methodBreakLine(methodBreak, tokens)] : []),
+    ],
   };
 
   // 跟折線圖一樣依年份跨度調整刻度間隔，排放來源從 1850 年起

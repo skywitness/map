@@ -2,7 +2,7 @@
 
 用世界地圖瀏覽各國資料。除了純地圖頁，目前有以下資料主題，在頂列依分類放在下拉選單裡：
 
-- **社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出、醫師數）、教育（受教育年數、高等教育在學率、教育支出、識字率）
+- **社會**：人口、健康（平均壽命、嬰幼兒死亡率、醫療支出、醫師數）、教育（受教育年數、高等教育在學率、教育支出、識字率）、飲食（熱量、蛋白質、脂肪、動物性食物占熱量、各類食物的人均供給量、營養不足人口比例）
 - **經濟**：人均收入、產業結構、工業、農業
 - **國際**：貿易（國際貿易流向：點選國家，畫出它跟主要貿易夥伴之間的弧線）、觀光（國際旅客、觀光收入）、軍事（軍費、兵力）
 - **能源**：發電量、氣候（二氧化碳排放）
@@ -76,13 +76,13 @@ npm run data -- population     # 只跑人口
 npm run data -- --refresh      # 忽略快取，重新下載原始資料
 ```
 
-可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`education`、`tourism`、`trade`、`language`、`compact`。
+可用的步驟：`geo`、`population`、`population-grid`、`income`、`sectors`、`agriculture`、`electricity`、`industry`、`ai`、`transport`、`climate`、`military`、`digital`、`health`、`diet`、`education`、`tourism`、`trade`、`language`、`compact`。
 
 `population-grid` 是框選估算用的網格人口，要先有 `geo` 的國界。
 
 指標檔輸出時數值會壓縮（格式見 DESIGN.md 第 3 節）。`compact` 把還沒壓縮的舊指標檔一次轉換，不需要重新下載，重複執行沒有影響。
 
-下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.4 GB（主要是 FAOSTAT 的貿易檔與雙邊貿易矩陣、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。
+下載的原始檔會快取在 `pipeline/.cache/`，這個資料夾不進版本控制。第一次跑全部大約要下載 2.5 GB（主要是 FAOSTAT 的貿易檔、雙邊貿易矩陣與糧食平衡表、CEPII BACI、GHS-POP 的網格人口和 Anthropic Economic Index），世界銀行 API 比較慢，全部跑完約 30 分鐘，其中 `trade` 要讀 8.5 GB 的 FAOSTAT 雙邊貿易矩陣，約占一半。
 
 ## 建置
 
@@ -105,7 +105,7 @@ npm run preview
 
 ## English
 
-World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education, tourism and languages, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
+World Data Map shows country data on an interactive world map: population, income, electricity, economic structure, industry, agriculture, trade flows, AI, transport, climate (CO₂ emissions), military, digital, health, education, tourism, diet (calories, protein, fat, food supply by food group, undernourishment) and languages, plus a plain map page. Switch the interface between Chinese and English with the **中文 / EN** button at the top right; the English version uses K/M/B/T for large numbers, English country and place names, and English labels on the map.
 
 Live site: https://skywitness.github.io/map/?lang=en
 
