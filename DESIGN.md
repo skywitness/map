@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -241,7 +241,8 @@ pipeline/
 | 有正負的變化 | **面量圖**，橘↔青綠發散色，中間是中性灰 | 人口年增率、經濟成長率、自給率、農產品貿易收支 |
 | 中點有意義的比例（一半以上／以下） | **面量圖**，發散色，中性那一級跨過中點 | 公寓住戶比例（50% 以上多數人住公寓、以下多數住透天） |
 | 國家之間的流量 | **流向圖**，大圓弧線，線寬與金額成正比；出口青綠、進口橘（跟貿易收支的「淨出口綠、淨進口橘」一致） | 貿易流向 |
-| 類別（沒有大小之分） | **類別圖**，每類一色，最多 8 類加「其他」；有強弱的類別用循序色 | 主要官方語言、官方地位、首要死因 |
+| 類別（沒有大小之分） | **類別圖**，每類一色，最多 8 類加「其他」；有強弱的類別用循序色，兩個方向的強弱用發散色 | 主要官方語言、官方地位、首要死因、政體分類（專制 ↔ 民主） |
+| 個別的事件、地點 | **疊加的點**，大小與顏色依欄位（例如規模、震源深度），可以跟著時間軸篩選；國家的統計另外做成指標 | 地震、火山、駐外館處 |
 
 總量不畫成面量圖，否則俄羅斯、加拿大這類大國會因為面積大而顯得突出。
 
@@ -375,6 +376,9 @@ pipeline/
 | 語言 | 主要官方語言（類別圖）；30 種語言各自的使用人口比例、使用人數（比例圓）、官方地位（類別圖）；語言數（比例圓） | 會說的語言（比例與官方地位）、Glottolog 語言數與瀕危語言數 | Unicode CLDR 49、Glottolog 5.3；台灣用 109 年人口及住宅普查 | 單一快照（標示為 2026 年） |
 | 住宅 | 公寓住戶比例（44 國）、自有住宅率（47 國）、平均每戶人數（191 國）、居住擁擠率與住房負擔過重率（37 國，只有歐洲）、都市貧民窟人口比例（194 國） | 住宅類型組成（獨棟、雙併連棟、公寓、其他；台灣依建築樓層） | Eurostat EU-SILC、OECD 可負擔住宅資料庫、UN DESA 家戶規模資料庫、World Bank WDI（UN-Habitat）；台灣用內政部房屋稅籍、主計總處家庭收支調查 | 住宅類型 2004–2025、自有 2005–2025、每戶人數 1991–2025、擁擠與負擔 2004–2025、貧民窟 2000–2022（每兩年）；各國只顯示 3–10 年內最近一年的資料 |
 | 海拔 | 地形（分層設色＋陰影，3D 是立體地形）、平均海拔、最高點、最低點、海拔 500／1,000／2,000 公尺以上的土地占比、沿海低地（低於 5 公尺且跟海相連）占比、平均坡度 | 高度分布長條、最高點與最低點（名稱、位置） | USGS GMTED2010、Wikidata；台灣用內政部 100 公尺 DEM 交叉比對；地圖上的地形是 AWS Terrain Tiles | 不隨時間變化（DEM 主要是 2000 年的 SRTM），沒有時間軸 |
+| 地震與火山 | 歷年地震（累積，預設）、當年的地震（兩個都不上色，畫規模 6 以上的地震點，依時間軸篩選）、每十年的地震次數（比例圓）、地震死亡人數（每十年，比例圓）、全新世火山數（比例圓）；疊加圖層：板塊邊界（聚合、張裂、轉形）、全新世火山（三角形）、規模 5–6 地震（預設關閉）、規模 6 以上地震（大小是規模、顏色是震源深度） | 最大的地震、死亡最多的地震、全新世火山清單（最近噴發的在前） | USGS ComCat、NOAA NCEI 全球重大地震資料庫、Smithsonian GVP Volcanoes of the World、PB2002 板塊邊界（fraxen/tectonicplates） | 地震 1900–2026（規模 5–6 從 1973 年）；每十年的指標 1900–2020 年代（2020 年代只到今年）；火山是 2026 年的快照 |
+| 民主與自由 | 政體分類（類別圖，封閉專制 → 自由民主的發散色）、選舉民主指數、自由民主指數、言論自由指數（V-Dem 的 0–1 指數，發散色，中間跨過 0.5） | 三項指數歷年對照、68% 可信區間 | V-Dem Country-Year 資料集 v16（CC BY-SA 4.0） | 1900–2025 |
+| 諾貝爾獎 | 累計得主人數（比例圓）、每千萬人得主數、當年得主人數（比例圓）；全部獎項與 6 個獎項（子項目） | 在這個國家出生的得主名單（中文名、英文原名、年份、獎項、出生地、得獎理由原文）、各獎項人數、在這裡成立的得獎組織 | Nobel Prize API 2.1（Nobel Prize Outreach）、Wikidata（中文名稱）、UN WPP 2024（人均的分母） | 1901–2026（經濟學獎 1969 起）；每千萬人 1950 起 |
 
 ## 8. 資料陷阱（重要）
 
@@ -451,6 +455,11 @@ pipeline/
     - 主計總處適用政府資料開放授權條款。
     - 數位發展部、NCC、衛福部、教育部、內政部、中央銀行、交通部觀光署、農業部的開放資料也適用政府資料開放授權條款。
     - **UN Tourism 的資料庫禁止轉載**，觀光主題只用世界銀行以 CC BY 4.0 轉載的部分（見第 20 點）。
+    - **V-Dem 是 CC BY-SA 4.0（相同方式分享）**：可以商業使用、改作，但改作的成果要用同樣的授權分享（https://www.v-dem.net/data/the-v-dem-dataset/ ，條文 https://creativecommons.org/licenses/by-sa/4.0/）。民主與自由主題的資料檔（`public/data/topics/democracy/`）是改作（取子集、改國家代碼、差分編碼、算世界平均），所以頁尾寫明依 CC BY-SA 4.0 分享，這個主題匯出的地圖圖片與 CSV 也一樣。相同方式分享只管改作的資料本身，不會擴及網站程式碼或其他主題的資料。vdemdata 套件的程式碼是 GPL-3，這裡只用它的資料；「external variables」（`e_` 開頭）來自其他機構、各有授權，沒有用（見第 26 點）。
+    - USGS ComCat、NOAA NCEI 全球重大地震資料庫是美國政府資料，公有領域。
+    - Smithsonian GVP 的 Volcanoes of the World 是美國政府雇員的職務作品（不受著作權保護）；Smithsonian 網站條款限個人、教育與其他非商業用途、註明出處，商業用途或「publication」要事先書面同意。本站非商業、頁尾註明來源，所以採用；要商業使用或擔心「publication」的解釋，可以改用 NOAA 的火山位置資料庫（也是 GVP 的舊版資料，授權欄「未指定」，沒有確切噴發年份）。見第 27 點。
+    - PB2002 板塊邊界（fraxen/tectonicplates）是 ODC-By 1.0，要註明 Hugo Ahlenius、Nordpil 與 Peter Bird。
+    - Nobel Prize API（api.nobelprize.org）是 CC0（https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/）；條款另外要求不刻意竄改或誤導、不用 Nobel Prize Outreach 的名稱或商標暗示背書（主題名稱「諾貝爾獎」只是描述資料內容，沒有用標誌）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -702,6 +711,76 @@ pipeline/
       - 內政部 DEM 的清單是 data.gov.tw（資料集 7507）的 CSV，每個縣市一個 zip。檔名是中文，下載網址要 URL 編碼。圖幅含海面（高度 0），所以 h > 0 才算陸地；相鄰縣市的圖幅重疊，同一個坐標只算一次。
       - 平均海拔與 1,000 m 以上的占比附註在台灣的側欄。
 
+26. **民主與自由**（`pipeline/topics/democracy.py`、`pipeline/sources/vdem.py`）：
+    - **來源**：V-Dem（Varieties of Democracy）Country-Year 資料集 v16（2026 年 3 月），引用格式是 Coppedge, Michael, John Gerring, Carl Henrik Knutsen, Staffan I. Lindberg, Jan Teorell, David Altman, et al. 2026. "V-Dem Country-Year Dataset v16". Varieties of Democracy (V-Dem) Project. https://doi.org/10.23696/vdemds26（V-Dem 網站列了 38 位作者，頁尾用 et al.）。
+    - **下載**：V-Dem 網站（https://www.v-dem.net/data/the-v-dem-dataset/）的下載頁要先填表單（電子郵件、性別），沒有固定的直接網址，不適合程式下載。改用 V-Dem Institute 自己在 GitHub 維護的 R 套件 vdemdata（https://github.com/vdeminstitute/vdemdata）：`data/vdem.RData` 就是完整的 Country-Year 資料集（套件說明寫明是「most recent full V-Dem data set plus external variables」），用版本標籤 `V16`（commit f4dd269，「v16 release」，2026-03-17）固定版本：https://raw.githubusercontent.com/vdeminstitute/vdemdata/V16/data/vdem.RData（34 MB）。
+      - 套件的程式碼是 GPL-3，但我們只用資料，資料的授權照 V-Dem 網站的 CC BY-SA 4.0。
+      - RData 是 R 的序列化格式（gzip、XDR 大端序），解壓後約 1 GB、4,618 欄 × 28,092 列。資料框的欄名寫在所有欄位之後，所以讀兩次：第一次只取欄名，第二次只留要的欄位，數值向量直接跳過，記憶體很小。
+      - 新版（v17）出來時：改 `vdem.py` 的 `VERSION`、`URL` 的標籤；多了新的政體代碼時資料管線會報錯，要在 `democracy.py` 的 `RENAME` 或 `DROPPED` 決定怎麼處理。
+    - **指標**：選舉民主指數 `v2x_polyarchy`、自由民主指數 `v2x_libdem`、言論自由與多元資訊指數 `v2x_freexp_altinf`（都是 0–1，顯示到小數兩位）、政體分類 `v2x_regime`（Regimes of the World，代碼照 V-Dem 的 0 封閉專制、1 選舉專制、2 選舉民主、3 自由民主）。另外輸出三項指數的 `_codelow`、`_codehigh`（68% 最高後驗密度區間），只給側欄用。只放 1900 年以後（V-Dem 從 1789 年開始，但 1900 年以前大多是今天地圖上沒有的政體）。
+      - 三項指數用同一組發散色門檻（0.2、0.35、0.45、0.55、0.65、0.8），中性灰那一級跨過 0.5（政體分類裡選舉民主的門檻之一，另外要選舉自由公正、多黨）：橘色偏專制、青綠偏民主，跟政體分類同一個讀法，切換指標時台灣一直是青綠。原本用循序色（越深越民主），跟政體分類的「深橘 = 封閉專制」正好相反，所以改掉。言論自由的分布偏高，民主國家大多落在最深的一級。
+      - 政體分類的類別順序是封閉專制 → 自由民主（`diverging: true`）：專制在橘色那側、民主在青綠那側，越靠兩端越深。理由：「專制暖色、民主冷色」是政體地圖常見的讀法，順序也跟 V-Dem 代碼、面量圖圖例一樣由低到高。
+    - **國家代碼**：V-Dem 的 `country_text_id` 大多就是 ISO alpha-3（科索沃也是 XKX），一個代碼是一個政體的連續序列。這裡照 V-Dem 自己的接續方式對到今天的國界，不依領土另外拼接：
+      - 德國 1949–1990 年是西德（V-Dem 把聯邦德國當成德國的延續；1945–1948 年盟軍占領沒有評分），俄羅斯 1918–1990 年是蘇聯，塞爾維亞 1918–2005 年是南斯拉夫、塞爾維亞與蒙特內哥羅，捷克 1918–1992 年是捷克斯洛伐克，越南 1945–1975 年是北越，葉門 1918–1989 年是北葉門。其他蘇聯加盟共和國、南斯拉夫各國、斯洛伐克在獨立前是灰色（沒有評分），不把蘇聯、南斯拉夫的分數塗到它們身上。
+      - 不收（地圖上沒有形狀）：東德（DDR）、南越（VDR）、南葉門（YMD）、尚吉巴（ZZB，1964 年起是坦尚尼亞的半自治區，V-Dem 跟坦尚尼亞分開評分）、加薩走廊（PSG）、英國託管巴勒斯坦（PSB，1918–1948），以及 1900 年以前就消失的德意志、義大利各邦。相關國家（德國、越南、葉門、坦尚尼亞）的附註有寫。
+      - 巴勒斯坦（PSE）是 V-Dem 的「Palestine/West Bank」（約旦河西岸）；地圖的巴勒斯坦形狀含加薩，附註寫出加薩最近一年的值（2025 年選舉民主指數 0.13、封閉專制；西岸是 0.21、選舉專制）。
+      - 索馬利蘭（SML）對到地圖自己的形狀 `_SOL`（第一個輸出 `_SOL` 數值的主題）：1900–1959 年英屬索馬利蘭、1991 年起自行宣布獨立的索馬利蘭共和國，1960–1990 年併在索馬利亞裡、沒有另外評分（灰色）。索馬利亞 1991 年起也不含索馬利蘭。
+      - 殖民地與被占領的時期也有評分（日本統治下的台灣、英屬印度、各非洲殖民地），是當時統治者的分數；頁尾有寫。
+      - 結果：2025 年 177 國（V-Dem 179 個政體扣掉加薩、尚吉巴，索馬利蘭換成 `_SOL`）；1900 年 118 國、1950 年 150 國。
+    - **台灣**：V-Dem 的 TWN 1900–1944 年是「Taiwan under Japanese occupation」，1945–1948 年是「Republic of China [headquartered in the mainland]」（V-Dem 把在大陸的國民政府也記在 TWN，同時 CHN 1928–1948 年也是中華民國），1949 年起是「Republic of China [headquartered in Taiwan]」。附註有寫。
+    - **世界值**：每年地圖上有資料的國家的簡單平均（每國一樣重，不依人口加權）。V-Dem 的民主報告兩種都用（「平均國家」與「平均每人」）；依人口加權要 1900 年起的人口，WPP 只有 1950 年起、V-Dem 自己的 `e_pop` 到 2019 年左右，接不起來，而且會被中國、印度主導，所以用簡單平均。國家數逐年增加（1900 年 118 國、2025 年 177 國），早期的平均只代表當時有評分的地區。2025 年：選舉民主 0.486、自由民主 0.374、言論自由 0.612。
+    - **不確定性**：V-Dem 的指數是專家評分先經過 V-Dem 的測量模型（貝氏 IRT 模型）估計，再合成的估計值。側欄列出時間軸那一年的 68% 可信區間（台灣 2025 年選舉民主 0.80，區間 0.76–0.86），頁尾提醒分數接近的國家高低不一定有意義。區間檔 6 個，共約 390 KB、gzip 後約 96 KB，只有打開國家側欄時才下載。
+
+27. **地震與火山**（`pipeline/topics/earthquakes.py`、`pipeline/sources/usgs.py`、`ncei.py`、`gvp.py`、`plates.py`）：
+    - **USGS ComCat**（FDSN event API，https://earthquake.usgs.gov/fdsnws/event/1/ ，公有領域）：
+      - 一次查詢最多 20,000 筆，超過時直接回 HTTP 400，所以分段查：規模 6 以上每 25 年一段（1900 年起共 14,471 筆），規模 5–6 每 5 年一段（1973 年起共 82,056 筆）。含今年的那一段檔名寫 `now`，要更新用 `--refresh`。
+      - 只取 `eventtype=earthquake`（排除核試爆等），用 CSV（比 GeoJSON 小很多）。
+      - 1970 年代以前來自重新定位的 ISC-GEM 目錄，規模約 5.5 以上才完整；規模 5–6 從 1973 年（PDE 全球目錄）開始。
+      - **地名有「?」**：USGS 自己的地名資料把 Latin-1 以外的字母存成「?」（「5 km SSE of ?iso, Japan」是大磯 Ōiso），JSON 格式也一樣、救不回來。約 2% 的規模 6 以上地震是這樣，`usgs.clean_place()` 只留逗號後面的區域或國名（「Japan」）。
+      - 日期是 UTC：集集地震是 1999-09-20 17:47 UTC（台灣時間 9 月 21 日 01:47），tooltip 寫「1999-09-20 UTC」，頁尾提醒台灣時間要加 8 小時。
+    - **國家歸屬（50 公里規則）**：`OffshoreIndex` 用 `population_grid.country_shapes()`（跟人口框選、海拔主題同一份 1:50m 國界，法國海外省等依聯合國拆開；`_SIA` 錫亞琴冰川不算國家）。國界內直接算（numpy 射線法），海上的找 50 公里內最近的國界線段（1° 網格分區、局部等距投影），換日線兩側的線段各補一份平移 360° 的。規模 6 以上的地震約一半（7,301 筆）不屬於任何國家（深海、洋脊、離岸較遠的隱沒帶）。
+      - 例外一：離岸超過 50 公里、但 NOAA 記錄有人死亡的地震，算在 NOAA 寫的國家（2011 年東北地方太平洋近海地震的震央離 1:50m 的海岸 70 多公里）。
+      - 例外二：火山在 50 公里內找不到國界的（1:50m 沒有形狀的小島：伊豆、小笠原、克馬德克、南三明治群島）用 GVP 的國名；GVP 把屬地寫成本國（南三明治群島寫 United Kingdom、北馬里亞納寫 United States），所以 300 公里內最近的國家是那一國的屬地時改用屬地（`TERRITORIES`），再遠的遠洋小島逐一指定（`VOLCANO_TERRITORY`：阿姆斯特丹島 ATF、特里斯坦達庫尼亞 SHN、揚馬延 SJM、布威島 BVT…）。東加北部的火山離薩摩亞比較近，但不是薩摩亞的屬地，照 GVP 算東加。海底的「Undersea Features」16 座不算任何國家。
+    - **NOAA NCEI 全球重大地震資料庫**（https://www.ngdc.noaa.gov/hazel/ ，doi:10.7289/V5TD9V7K，公有領域）：
+      - 用 hazel 網站本身的 REST API（`/hazel/hazard-service/api/v1/earthquakes`），一頁最多 200 筆（`itemsPerPage` 再大回 HTTP 400），1900 年起 4,094 筆、21 頁。
+      - 收錄條件是「重大」（有人死亡、約 100 萬美元以上損失、規模 7.5 以上、震度 X 以上或引發海嘯），所以有很多規模 5–6 的致災地震，規模 6 以上但沒有災情的大多不在裡面。
+      - 死亡人數用 `deathsTotal`（含海嘯、山崩、火災），沒有才用 `deaths`；只有數量級（`deathsAmountOrder`）的不算。1,672 筆有死亡人數。
+      - **跟 USGS 配對**（`join_deaths()`，一對一）：時間 5 分鐘內、距離 300 公里內、規模差 1.2 以內；只有日期的舊事件用前後 1 天、150 公里內；時刻差 1 分鐘內、規模差 0.3 以內的不管距離也算（**NOAA 把 2026-08-10 哥倫比亞 M7.4 的經度記成東經 76°**，正負號寫反）。3,109 筆對到 USGS，有死亡人數的 1,373 筆（其他多半是 1973 年以前規模 6 以下、USGS 沒有收的）。對不到的大災難：1902 年阿塞拜疆舍馬哈、1920 年墨西哥哈拉帕（NOAA 的時刻是當地時間、規模 7.8 跟 USGS 的 6.3 差很多）。
+      - 國家的死亡人數用 NOAA 所有事件：對到 USGS 的用地圖上那個點的國家，其他用 NOAA 的座標，再不行用 NOAA 的國名（`NOAA_COUNTRY`）。**整筆算在震央附近的國家**：2004 年印度洋海嘯在斯里蘭卡、印度、泰國的死者都算在印尼（NOAA 的地震資料庫沒有分國的死亡人數，分國的在海嘯資料庫）。
+    - **台灣的對照**：
+      - 1999 集集地震：USGS M7.7、深度 33 公里（固定深度）、「21 km S of Puli, Taiwan」，歸 TWN；NOAA 死亡 2,297 人，官方統計 2,415 人死亡、29 人失蹤（行政院 921 震災重建會）。
+      - 2024 花蓮地震：USGS M7.4、深度 40 公里、2024-04-02 23:58 UTC，歸 TWN；NOAA 死亡 18 人，跟官方的 18 人相同。
+      - **NOAA 把 1935-07-16（UTC）新竹州的地震記為 2,746 人死亡**，這是同年 4 月新竹－台中地震（3,276 人）的餘震，中研院台史所的資料說 290 人、也有 44 人的說法，2,746 很可能是錯值。找不到能引用的官方數字，所以照原樣呈現，在台灣的附註（`deaths-decade.json` 的 `notes`／`notesEn`，由 `taiwan_note()` 依資料產生）說明，台灣 1930 年代的死亡人數因此是 6,039 人。USGS 沒有這次地震（規模 6 以下）。
+      - 台灣 1900 年起規模 6 以上 186 次（第 13 名），全新世火山 2 座（龜山島、大屯火山群）。
+    - **火山：Smithsonian GVP Volcanoes of the World**（全新世火山 1,214 座）：
+      - **授權的判斷**：GVP 使用條款（https://volcano.si.edu/gvp_termsofuse.cfm ，網站有機器人驗證，用 Wayback Machine 2026-01 的存檔讀到全文）寫明 Volcanoes of the World 資料庫是「a product of employees of the United States」，屬於 Smithsonian 條款「Intellectual Property Rights in Content」的第 (2) 類：美國政府雇員的職務作品，從來不受著作權保護。Smithsonian 網站條款（https://www.si.edu/termsofuse ）另外只允許個人、教育與其他非商業用途，要註明作者與出處並連回網站，商業用途或「publication」要事先書面同意。沒有禁止非商業的轉載，資料本身也沒有著作權，所以直接用 GVP（本站非商業、頁尾註明「Global Volcanism Program, Smithsonian Institution」）。授權欄寫「美國政府職務作品（無著作權）；Smithsonian 條款：非商業使用、註明出處」。
+      - 公有領域的替代來源 NOAA NCEI Global Volcano Locations Database（doi:10.7289/V5JW8BSH）其實也是 GVP 的資料（舊版，最近一次噴發只有年代代碼 D1–D7），data.gov 上的授權欄位寫「未指定」，並沒有比較乾淨，所以沒有用。如果要嚴格避開 Smithsonian 的非商業條款，可以改用它，代價是沒有確切的噴發年份。
+      - volcano.si.edu 對程式一律回「Request verification」頁面，下載用 GVP 的 GeoServer WFS（`webservices.volcano.si.edu/geoserver/GVP-VOTW/ows`，`GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes`，用 `propertyName` 只取需要的欄位，不含地質說明與照片連結，照片的著作權各自不同）。
+      - 引用格式（GVP 的 Database Information 頁）：Global Volcanism Program, 2025. [Database] Volcanoes of the World (v. 5.3.4; 30 Dec 2025). Distributed by Smithsonian Institution, compiled by Venzke, E. https://doi.org/10.5479/si.GVP.VOTW5-2025.5.3 。WFS 是即時的資料（Langila 的最近噴發已經是 2026 年），之後若有新版 DOI 要更新 `gvp.py` 的說明。
+      - 火山類型（`Primary_Volcano_Type`）去掉單複數標記（`Stratovolcano(es)` → `Stratovolcano`），中文名稱在 `earthquakes.ts` 的 `VOLCANO_TYPES`；最近一次噴發的年份負數是西元前，366 座年代不明。
+    - **板塊邊界：PB2002**（Bird 2003, doi:10.1029/2001GC000252；Hugo Ahlenius／Nordpil 整理的 https://github.com/fraxen/tectonicplates ，**ODC-By 1.0**，README 要求註明 Hugo Ahlenius、Nordpil 與 Peter Bird；固定在 commit 339b0c5）：
+      - 用 `PB2002_steps`（5,824 段，每段有 `STEPCLASS`）而不是 `PB2002_boundaries`（只有 subduction 與空白）：SUB、OCB、CCB 算聚合，OSR、CRB 算張裂，OTF、CTF 算轉形斷層。同一條邊界上相連、同一類的段接成一條線，只取每段的起點與終點（中間的點是沿大圓內插的），1,579 條、7,403 個頂點。
+      - 經度展開成連續的（跨 180° 的線可以超過 ±180），東加—克馬德克海溝在地球儀上不會斷開或橫越整張地圖（實際看過）。
+    - **顏色**（MAP_TOKENS，dataviz 驗證工具算的 OKLab ΔE×100，一般／紅色盲／綠色盲）：淺源 `hues.red` #e34948、中源 `hues.yellow` #eda100、深源 `categorical[6]` #7b3294，兩兩 ≥ 21/21/15；火山 `sequential[6]` #611e00（深褐三角形）跟三色 ≥ 22/24/21；跟海 #a0c8f0 都 ≥ 23。板塊邊界用 `inkSecondary`／`inkMuted` 的中性灰，不跟地震搶；深色底圖上換成淺灰（`overlayLayers.ts` 的 `ON_DARK`，跟鐵路一樣）。比例圓的紫 #6250d6 跟深源的紫只有 13/12/11，但形狀、大小完全不同；改成青綠的話跟淺源的紅在紅色盲下只剩 7，所以維持紫色。
+    - 半徑：規模每大 1 級半徑約加倍（M5 1 px、M6 1.8、M7 3.6、M8 7、M9 12，縮放 2 時）。
+
+28. **諾貝爾獎**（`pipeline/topics/nobel.py`、`pipeline/sources/nobel.py`）：
+    - **來源**：Nobel Prize API 2.1 的 `laureates`（個人與組織，每位有 Wikidata QID）與 `nobelPrizes`（每年每類一筆，只拿來核對兩邊的得主名單一致）。一次 `limit=2000` 就拿完，超過會報錯。每年 10 月公布新得主，要 `npm run data -- nobel --refresh`。
+    - **依出生地，不是國籍**：用 `birth.place.countryNow`（出生地今天屬於哪一國），同一個人只算一國。所以出生在布雷斯勞（今波蘭弗羅茨瓦夫）的玻恩、哈伯算波蘭，波蘭 28 位、德國只有 86 位；出生在美國的丁肇中算美國，台灣只有李遠哲，中國 12 位裡有美國人布拉頓（廈門）、日本人根岸英一（長春）、達賴喇嘛（西藏）。台灣的附註寫出丁肇中、楊振寧、李政道、崔琦、高錕各算在哪裡（`TAIWAN_CHECK` 核對 API 的資料，對不上就報錯），資料本身沒有改。
+    - **國名對 ISO**：API 的國名先查 `COUNTRY_NAMES`（`USA`、`the Netherlands`、`East Timor`、`Scotland`、`Northern Ireland`），再查 `sources/countries.py` 的 `NAME_ALIASES`、pycountry 的精確比對，對不上就報錯；不做模糊比對，否則「Northern Ireland」會配成愛爾蘭。
+    - **領地**：API 自己寫成「Faroe Islands (Denmark)」「Guadeloupe, France」，芬森、聖瓊·佩斯算丹麥、法國（地圖上瓜地洛普本來就併在法國的形狀裡）；丹麥、法國、法羅群島、瓜地洛普的附註都有寫。
+    - **API 沒有出生地的 3 位**（古納、詹姆斯·羅賓森、馬丁尼斯，都是 2021 年以後的得主）：用 Wikidata 的出生地（P19）所在國家（P17）的 P298，一次 SPARQL 查完（尚吉巴市 → 坦尚尼亞、切姆斯福德 → 英國、洛杉磯 → 美國），附註會寫。還是查不到的只算進世界合計。
+    - **計數規則**：
+      - 組織（28 個，紅十字國際委員會 3 次、聯合國難民署 2 次）沒有出生地，不算進各國，也不算進世界合計；側欄另外列出成立地點（API 的 `founded.place.countryNow`，國家對話四方集團是 `foundedCountryNow`）在這國的組織，歐盟、禁止化學武器組織、世界糧食計劃署沒有地點，不列。
+      - 一位得主在一個子項目只算一次，從第一次得獎那年起累計。「全部獎項」裡居禮夫人、鮑林、巴丁、桑格、夏普萊斯都只算一人；分獎項時居禮夫人在物理、化學各算一次，所以 6 個獎項加起來（1,002）比「全部獎項」（1,000）多 2。這 5 人的國家有附註。
+      - 拒絕領獎的沙特（1964）、黎德壽（1973）與被迫放棄的巴斯特納克（1958）照算，諾貝爾基金會也列為得主。
+      - 當年得主人數：這一年得獎、在這國出生的人數（單年最多 8 人）。
+      - 沒有得主的國家（WPP 有人口的 237 國都列）是 0，不是無資料：比例圓沒有圓，面量圖是最淺的一級（門檻 0.01，圖例寫「> 0」）。
+    - **每千萬人**：累計人數 ÷ 當年的 WPP 年中人口 × 1,000 萬。WPP 從 1950 年開始，所以這個指標從 1950 年（經濟學獎 1969 年）開始，不拿 1950 年的人口去除更早的年份；2024–2026 年的人口是 WPP 的中推估（累計人數本身不是推估，所以沒有設 `projectionFrom`）。人口少的國家一兩位就很高：聖露西亞（劉易斯、沃克特，18 萬人）約 111、盧森堡 29。全部獎項的門檻 0.01、1、3、5、10、20，單一獎項約小 5 倍，用 `itemScales` 的 0.01、0.5、1、2、4、8。
+    - **經濟學獎**是「瑞典中央銀行紀念諾貝爾經濟科學獎」，1968 年設立、1969 年起頒發，不是諾貝爾遺囑設立的獎；子項目寫成「經濟學獎（瑞典央行紀念獎）」，年份從 1969 年開始（換到這個子項目時，1969 年以前的年份會跳到預設的 2026 年）。
+    - **中文名稱**（Wikidata，CC0）：`wbgetentities` 每 50 個 QID 一批（快取檔名是那批 QID 的雜湊），依序用 zh-tw、zh-hant、zh-hk；都沒有時用 `languagefallback` 的 zh-tw，那是 MediaWiki 在伺服器端從 zh／zh-cn 轉成的台灣用字與譯名。zh-tw、zh-hant 欄位偶爾被填了簡體（2026-10 有 15 個，例如「约翰·巴丁」），所以每個名稱都再用 `sources/nobel.py` 的 S2T（`wikidata.S2T` 加上實際出現的簡體字）轉一次；坂、梶這類日文漢字 Big5 沒有，但不是簡體，不轉（建置時會印出來）。沒有中文名稱的（勒·克萊喬）顯示英文原名。由簡體轉來的名稱是大陸譯名換成繁體字，不一定是台灣慣用的譯名。
+    - **側欄的名單**：`countries/<ISO3>.json` 一個獎一列（`[id, 中文名, 英文名, 年份, 獎項, 得獎理由, 出生地]`），依子項目與時間軸的年份篩選，前 10 筆以外收在「顯示其餘」。出生地照 API 的寫法（「Breslau, Germany (now Wroclaw, Poland)」），得獎理由是英文原文（`lang="en"`）；英文名與地名標 `translate="no"`。`countries/index.json` 列出有檔的國家，沒有的直接顯示「沒有在這裡出生的得主」，不會發出 404 的請求。
+
 ## 9. 之後可以做的
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。
@@ -714,6 +793,9 @@ pipeline/
 - **1 km 網格的格子數值**：tooltip 目前只顯示國家平均。要顯示游標下那一格的密度，可以讀圖磚像素的色號（只知道是哪一級），或另外輸出數值圖磚（例如 terrarium 那樣把數值編成 RGB）。
 - **換期時淡入**：播放時間軸時每 5 年換一次圖磚，新圖磚到之前舊的留在畫面上，但沒有漸變。
 - **地圖上的圓餅圖層**：在國家位置畫發電結構圓餅，在 `LayerSpec` 加 `kind: 'pie'`。
+- **地震死亡人數分國**：目前整筆算在震央附近的國家（2004 年海嘯全算印尼）。NOAA 的海嘯資料庫有各國的死亡人數，可以另外接。NOAA 記錄 1935-07-16 新竹的地震 2,746 人死亡，疑似錯值，找到官方數字（例如《昭和十年臺灣震災誌》）可以加一張更正表。
+- **民主與自由的其他指數**：V-Dem 還有參與式、審議式、平等民主、公民自由、貪腐等指數，在 `democracy.py` 的 `INDICES` 與 `vdem.INDEX_COLUMNS` 各加一行即可。
+- **諾貝爾獎依國籍或得獎時的機構**：API 有 `affiliations`，國籍要另外查 Wikidata 的 P27（雙重國籍要定規則）；也可以加女性得主、得獎年齡。
 - **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。
 - **全部商品往前延伸**：BACI 的 HS92 版從 1995 年開始，但 zip 有 2.4 GB，讀完約要 6 分鐘。
 - **縮減資料量**：指標檔已經壓縮（第 3 節）。還可以做的：
