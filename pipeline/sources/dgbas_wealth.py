@@ -1,10 +1,12 @@
 """行政院主計總處 總體統計資料庫（政府資料開放授權條款）：存款財產主題用到的台灣資料。
 
+- A018703010「家庭及民間非營利機構之收支」（國民所得統計，1996 年起）：可支配所得與儲蓄（當期價格，百萬元）。
+  所得從「按市價計算之國民所得」分配下來，已扣除固定資本消耗，所以儲蓄是「淨」儲蓄；儲蓄 ÷ 可支配所得
+  就是跟 OECD 家庭淨儲蓄率（B8NS1M，含家庭與非營利團體）同一個定義，只差 OECD 另外加上的退休金權益變動調整（D8）。
+  同一組數字也在《國民所得統計摘要》第 17 表「家庭所得、家庭可支配所得及消費傾向」與第 9 表的「儲蓄淨額」。
 - A020001010「家庭收支重要指標」：家庭收支調查的儲蓄率（%）= 儲蓄 ÷ 可支配所得，儲蓄 = 可支配所得 − 消費支出。
-  是調查資料，也沒有扣掉固定資本消耗（折舊），跟 OECD 國民帳的家庭「淨」儲蓄率口徑不同，通常高好幾個百分點。
-  國民所得統計只有全國的儲蓄（A018201010），沒有家庭部門的可支配所得與儲蓄，所以只能用調查的。
-- A018201010「國民所得、儲蓄與投資」：國內生產毛額與國民儲蓄毛額（當期價格，百萬元），拿來算存款占 GDP，
-  也用來跟 IMF 的國民儲蓄率對照。
+  是抽樣調查，所得與消費的涵蓋範圍跟國民帳不同（例如不含非營利團體），通常比國民帳高好幾個百分點，只放在附註對照。
+- A018201010「國民所得、儲蓄與投資」：國內生產毛額與國民儲蓄毛額（當期價格，百萬元），拿來跟 IMF 的國民儲蓄率對照。
 - API 參數見 `sources/dgbas.py`。快取檔名加上 `-wealth`，不跟其他主題用同一張表、不同欄位範圍的快取撞名。
 """
 from __future__ import annotations
@@ -28,6 +30,20 @@ def _table(funid: str, first_roc: int, fld: str, cod: str) -> tuple[list[str], d
         raise RuntimeError(f"{funid} 沒有資料列，API 格式可能變了")
     header = rows[is_data.index(True) - 1]
     return header, {int(r[0][:-1]) + ROC_OFFSET: r for r, ok in zip(rows, is_data) if ok}
+
+
+def household_net_saving_rate() -> dict[int, float]:
+    """國民所得統計的家庭（含民間非營利機構）淨儲蓄率：儲蓄 ÷ 可支配所得 × 100，1996 年起。"""
+    header, data = _table("A018703010", 85, "0,12", "0,1")
+    saving, income = "11.儲蓄 (11=5-10)", "12.可支配所得 (12=5-7-8-9)"
+    if saving not in header or income not in header:
+        raise RuntimeError(f"A018703010 的欄位變了：{header}")
+    out = {}
+    for year, row in data.items():
+        s, d = _num(row[header.index(saving)]), _num(row[header.index(income)])
+        if s is not None and d:
+            out[year] = s / d * 100
+    return out
 
 
 def household_saving_rate() -> dict[int, float]:

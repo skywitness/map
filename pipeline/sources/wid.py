@@ -1,4 +1,4 @@
-"""World Inequality Database（WID.world，CC BY 4.0）：所得與財富分配，含台灣。
+"""World Inequality Database（WID.world，CC BY-NC-SA 4.0，見 DESIGN.md 第 8 節第 12 點）：所得與財富分配，含台灣。
 
 - 整包下載 https://wid.world/bulk_download/wid_all_data.zip（約 890 MB，解壓 6.9 GB），每個國家一個 CSV：
   `country;variable;percentile;year;value;age;pop;data_quality`，分號分隔。

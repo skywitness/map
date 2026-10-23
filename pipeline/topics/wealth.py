@@ -7,7 +7,9 @@
 - 財富：World Inequality Database（`sources/wid.py`），20 歲以上、夫妻平分的個人淨財富（房地產、金融資產
   減負債）。WID 的金額是基準年（2025）不變價格的本國貨幣，除以基準年的市場匯率或購買力平價，就是
   「2025 年價格」的美元或國際元。多數國家沒有財富分布的直接資料，是 WID 用模型推估的。
-- 家庭儲蓄率：OECD 國民帳的家庭淨儲蓄率（約 35 國）；台灣只有家庭收支調查的儲蓄率，口徑不同（附註）。
+- 家庭儲蓄率：OECD 國民帳的家庭淨儲蓄率（約 35 國）；台灣用主計總處國民所得統計「家庭及民間非營利機構之收支」
+  算出同一個定義的淨儲蓄率（`sources/dgbas_wealth.py`）。家庭收支調查的儲蓄率口徑不同、高好幾個百分點，
+  放進地圖會讓台灣變成第一名，所以只列在附註。
 - 國民儲蓄率：IMF WEO 的國民儲蓄毛額占 GDP（含台灣與推估值），DataMapper 沒有這個指標，改查 SDMX API。
 """
 from __future__ import annotations
@@ -23,7 +25,7 @@ NATIONAL_WEALTH = {  # 《國富統計》113 年底家庭部門淨值（土地�
     "year": 2024,
     "household-net-worth": 183.7e12,
 }
-WEALTH_DISTRIBUTION = {  # 《家庭財富分配統計》110 年底（以家庭收支調查樣本結合資產負債資料推估），2024-05-03 發布
+WEALTH_DISTRIBUTION = {  # 《家庭財富分配統計》110 年底（家庭收支調查樣本串接資產、負債的行政資料推估），2024-05-03 發布
     "year": 2021,
     "mean-per-household": 1638e4,
     "median-per-household": 894e4,
@@ -64,6 +66,14 @@ def build_deposits() -> dict[str, float]:
         iso3: "Commercial banks only: the IMF has no data on deposits at credit unions, savings banks and other deposit takers here"
         for iso3 in notes
     }
+    notes["IRL"] = (
+        "只算商業銀行與信用合作社：IMF 的「其他收受存款機構」在愛爾蘭主要是賣給外國投資人的貨幣市場基金，"
+        "金額超過 GDP，不是愛爾蘭家庭與企業的存款"
+    )
+    notes_en["IRL"] = (
+        "Commercial banks and credit unions only: in Ireland the IMF's \"other deposit takers\" are mainly money "
+        "market funds sold to foreign investors, worth more than GDP, not deposits of Irish households and businesses"
+    )
     y = max(yr for yr in private if yr in gdp)
     twn = (
         f"中央銀行金融統計：貨幣機構（銀行、信用合作社、農漁會信用部、中華郵政）的企業及個人存款加郵政儲金，"
@@ -145,13 +155,15 @@ def build_wealth() -> int:
     )
     wd = WEALTH_DISTRIBUTION
     median_note = (
-        f"主計總處《家庭財富分配統計》（{wd['year']} 年底，以家庭收支調查樣本推估）：每戶淨值中位數 "
+        f"主計總處《家庭財富分配統計》（{wd['year']} 年底，以家庭收支調查樣本串接資產、負債的行政資料推估）："
+        "每戶淨值中位數 "
         f"{wd['median-per-household'] / 1e4:,.0f} 萬元、平均 {wd['mean-per-household'] / 1e4:,.0f} 萬元，"
         "是每「戶」不是每位成年人，不能直接比。WID 沒有台灣的財富分布資料，中位數是推估的"
     )
     median_note_en = (
-        f"DGBAS Household Wealth Distribution Statistics (end of {wd['year']}, estimated from the Family Income and "
-        f"Expenditure Survey sample): median net worth NT${wd['median-per-household'] / 1e6:.2f} million and mean "
+        f"DGBAS Household Wealth Distribution Statistics (end of {wd['year']}, estimated by linking the Family Income "
+        "and Expenditure Survey sample with administrative data on assets and debts): median net worth "
+        f"NT${wd['median-per-household'] / 1e6:.2f} million and mean "
         f"NT${wd['mean-per-household'] / 1e6:.2f} million per household, not per adult, so not directly comparable. "
         "WID has no direct data on Taiwan's wealth distribution, so its median is modelled"
     )
@@ -185,24 +197,33 @@ def build_wealth() -> int:
 # ── 儲蓄 ──────────────────────────────────────────────────────────────
 
 
+# 葉門的國民儲蓄率 IMF 估計超過 GDP（2024 年 127%），排名表第一名，附註說明
+YEMEN_NOTE = "IMF 的估計；葉門內戰後官方統計很少，國民帳的數字誤差很大"
+YEMEN_NOTE_EN = "IMF estimate; Yemen has published few official statistics since the civil war, so the figure is very uncertain"
+
+
 def build_saving() -> None:
     household = oecd_saving.household_net_saving_rate()
-    fies = dgbas_wealth.household_saving_rate()
-    household["TWN"] = fies
+    national_accounts = dgbas_wealth.household_net_saving_rate()
+    survey = dgbas_wealth.household_saving_rate()
+    household["TWN"] = national_accounts
     years = year_span(household, 0.5)  # 最新一年常常只有十幾國先公布
-    y = max(fies)
+    y = max(yr for yr in national_accounts if yr in years)
     _write(
         "household-saving", "%", years, household, 1,
         notes={"TWN": (
-            "主計總處家庭收支調查的儲蓄率：儲蓄 ÷ 可支配所得，儲蓄 = 可支配所得 − 消費支出。是抽樣調查，"
-            "也沒有扣掉房屋等的折舊，跟其他國家的國民帳「淨」儲蓄率口徑不同，會偏高好幾個百分點；"
-            f"{y} 年 {fies[y]:.1f}%。國民所得統計沒有家庭部門的儲蓄"
+            "主計總處國民所得統計：家庭及民間非營利機構的儲蓄 ÷ 可支配所得，已扣除折舊，跟 OECD 的家庭淨儲蓄率"
+            f"同一個定義（OECD 另外加上退休金權益變動的調整，台灣沒有）；{y} 年 {national_accounts[y]:.1f}%。"
+            f"常聽到的家庭收支調查儲蓄率（{y} 年 {survey[y]:.1f}%）是抽樣調查，所得與消費的涵蓋範圍跟國民帳不同，"
+            "不能跟其他國家比，所以地圖沒有用"
         )},
         notesEn={"TWN": (
-            "DGBAS Family Income and Expenditure Survey saving rate: saving ÷ disposable income, where saving is "
-            "disposable income minus consumption. It is a sample survey and does not deduct depreciation of homes and "
-            "other assets, unlike the national-accounts net saving rates of other countries, so it runs several "
-            f"points higher; {fies[y]:.1f}% in {y}. Taiwan's national accounts do not publish household-sector saving"
+            "DGBAS national accounts: saving of households and private non-profit institutions divided by their "
+            "disposable income, net of depreciation, the same definition as the OECD household net saving rate (the "
+            f"OECD also adjusts for changes in pension entitlements; Taiwan's figure does not): {national_accounts[y]:.1f}% "
+            f"in {y}. The often-quoted saving rate from DGBAS's Family Income and Expenditure Survey ({survey[y]:.1f}% in "
+            f"{y}) comes from a sample survey with a different coverage of income and spending, so it is not comparable "
+            "with other countries and is not mapped"
         )},
     )
 
@@ -214,11 +235,11 @@ def build_saving() -> None:
     _write(
         "gross-savings", "%", years, gross, 1,
         projectionFrom=projection_from, aggregates={"WLD": world},
-        notes={"TWN": (
+        notes={"YEM": YEMEN_NOTE, "TWN": (
             f"主計總處國民所得統計：{y} 年國民儲蓄毛額占 GDP {na['gross-saving'][y] / na['gdp'][y] * 100:.1f}%"
             f"（主計總處公布的「儲蓄率」是占國民所得毛額 GNI：{na['saving-rate-gni'][y]:.1f}%）"
         )},
-        notesEn={"TWN": (
+        notesEn={"YEM": YEMEN_NOTE_EN, "TWN": (
             f"DGBAS national accounts: gross national saving was {na['gross-saving'][y] / na['gdp'][y] * 100:.1f}% "
             f"of GDP in {y} (the saving rate DGBAS publishes is relative to GNI: {na['saving-rate-gni'][y]:.1f}%)"
         )},

@@ -5,6 +5,8 @@ import type { TopicDefinition } from './types';
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 const USD_MONTH = { zh: '美元/月', en: 'US$/month' };
 const INTL_MONTH = { zh: '國際元/月', en: 'Int$/month' };
+// 最低工資有幾國不到 10 美元（蘇丹 0.8、盧安達 2.2），整數會變成「1 美元」，小於 10 的留一位小數
+const money = (v: number) => fixed(v, v < 10 ? 1 : 0);
 const hours = (v: number, digits: number) => tr({ zh: `${fixed(v, digits)} 小時`, en: `${fixed(v, digits)} hours` });
 
 export const wages: TopicDefinition = {
@@ -28,6 +30,14 @@ export const wages: TopicDefinition = {
         en: 'Penn World Table 11.0 (annual hours; Feenstra, Inklaar & Timmer, 2015, American Economic Review)',
       },
       url: 'https://www.rug.nl/ggdc/productivity/pwt/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'OECD, 每年實際工時（墨西哥、哥倫比亞）',
+        en: 'OECD, average annual hours actually worked (Mexico and Colombia)',
+      },
+      url: 'https://www.oecd.org/en/data/indicators/hours-worked.html',
       license: 'CC BY 4.0',
     },
     {
@@ -65,14 +75,15 @@ export const wages: TopicDefinition = {
       '平均月薪、最低工資與每週工時是國際勞工組織彙整的各國統計，調查方式與涵蓋範圍不同，只適合比較大致的高低；' +
       '很多國家隔幾年才公布一次，地圖用每個國家幾年內最近一年的資料，滑到國家上可以看到資料年份。' +
       '台灣不是國際勞工組織會員，月薪與每週工時改用主計總處、最低工資改用勞動部的數字，國際元用民間消費的購買力平價換算（跟國際勞工組織同一個概念），細節見台灣側欄的附註。' +
-      '每年工時是 Penn World Table 的估計，本身有台灣。',
+      '每年工時是 Penn World Table 的估計，本身有台灣；墨西哥、哥倫比亞跟 OECD 的數字差太多，改用 OECD。',
     en:
       'Earnings, minimum wages and weekly hours are national statistics compiled by the International Labour Organization; ' +
       'survey methods and coverage differ, so compare broad levels only. Many countries publish only every few years, ' +
       "so the map shows each country's latest data within a few years; hover over a country to see the data year. " +
       'Taiwan is not an ILO member: its earnings and weekly hours come from DGBAS and its minimum wage from the Ministry of Labor, ' +
       'with international dollars based on the household consumption PPP (the same concept the ILO uses); see the notes in ' +
-      "Taiwan's panel. Annual hours are Penn World Table estimates, which cover Taiwan.",
+      "Taiwan's panel. Annual hours are Penn World Table estimates, which cover Taiwan; for Mexico and Colombia, " +
+      'where they differ too much from the OECD figures, the OECD data are used.',
   },
   indicators: [
     {
@@ -105,13 +116,13 @@ export const wages: TopicDefinition = {
       id: 'minimum-wage-usd',
       label: { zh: '最低工資（美元）', en: 'Minimum wage (US$)' },
       description: {
-        zh: '法律規定的每月最低工資（稅前），以當年匯率換算成美元。只有行業別或地區別最低工資的國家，取最有代表性的一種；北歐、義大利、奧地利、新加坡等由勞資協商決定工資、沒有法定最低工資的國家是灰色。',
-        en: "The statutory gross monthly minimum wage, converted to US dollars at the year's exchange rate. Where minimum wages are set by sector or region, the most representative rate is used. Countries without a statutory minimum, where pay is set by collective bargaining (the Nordic countries, Italy, Austria, Singapore and others), are grey.",
+        zh: '法律規定的每月最低工資（稅前），以當年匯率換算成美元。只有行業別或地區別最低工資的國家，取最有代表性的一種；瑞典、丹麥、挪威、芬蘭、義大利、奧地利、新加坡等由勞資協商決定工資、沒有法定最低工資的國家是灰色。',
+        en: "The statutory gross monthly minimum wage, converted to US dollars at the year's exchange rate. Where minimum wages are set by sector or region, the most representative rate is used. Countries without a statutory minimum, where pay is set by collective bargaining (Sweden, Denmark, Norway, Finland, Italy, Austria, Singapore and others), are grey.",
       },
       unit: USD_MONTH,
       file: 'minimum-wage-usd.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 100, 200, 400, 800, 1600] } },
-      format: (v) => usd(fixed(v, 0)),
+      format: (v) => usd(money(v)),
       formatTick: formatLargeTick,
     },
     {
@@ -124,7 +135,7 @@ export const wages: TopicDefinition = {
       unit: INTL_MONTH,
       file: 'minimum-wage-ppp.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [150, 300, 500, 800, 1200, 2000] } },
-      format: (v) => intlDollars(fixed(v, 0)),
+      format: (v) => intlDollars(money(v)),
       formatTick: formatLargeTick,
     },
     {
@@ -145,8 +156,8 @@ export const wages: TopicDefinition = {
       id: 'annual-hours',
       label: { zh: '每年工時', en: 'Annual hours worked' },
       description: {
-        zh: '就業者平均一年工作的總時數（已扣掉休假與國定假日），含部分工時與自營作業者。是 Penn World Table 依各國統計整理的估計。',
-        en: 'Average total hours worked in a year per employed person (net of holidays and leave), including part-time workers and the self-employed. Penn World Table estimates based on national statistics.',
+        zh: '就業者平均一年工作的總時數（已扣掉休假與國定假日），含部分工時與自營作業者。是 Penn World Table 依各國統計整理的估計（墨西哥、哥倫比亞改用 OECD 的數字）。',
+        en: 'Average total hours worked in a year per employed person (net of holidays and leave), including part-time workers and the self-employed. Penn World Table estimates based on national statistics (OECD figures for Mexico and Colombia).',
       },
       unit: { zh: '小時/年', en: 'hours/year' },
       file: 'annual-hours.json',

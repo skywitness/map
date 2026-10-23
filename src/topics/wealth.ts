@@ -71,16 +71,16 @@ export const wealth: TopicDefinition = {
     },
     {
       name: {
-        zh: '行政院主計總處 家庭收支調查、國民所得統計、國富統計',
-        en: 'DGBAS (Taiwan), Family Income and Expenditure Survey, national accounts and national wealth statistics',
+        zh: '行政院主計總處 國民所得統計、國富統計、家庭財富分配統計、家庭收支調查',
+        en: 'DGBAS (Taiwan), national accounts, national wealth, household wealth distribution and household survey statistics',
       },
       url: 'https://www.stat.gov.tw/',
       license: OPEN_DATA_TW,
     },
   ],
   note: {
-    zh: '存款是 IMF 金融服務可及性調查的商業銀行、信用合作社與其他收受存款機構合計，含企業的存款，用當年匯率換算；有些國家只有商業銀行的資料（側欄附註）。財富來自 World Inequality Database（WID）：多數國家沒有財富分布的調查或稅務資料（2010 年只有約 30 國有），中位數與占比是 WID 用模型推估的，最近幾年也是往後推的估計；金額用 2025 年的匯率、物價或購買力平價換算。WID 資料的授權是 CC BY-NC-SA 4.0，只能非商業使用。台灣的存款用中央銀行金融統計，家庭儲蓄率用主計總處家庭收支調查（口徑跟其他國家的國民帳不同，見附註）；主計總處國富統計與家庭財富分配統計的數字列在台灣的附註。',
-    en: "Deposits are the IMF Financial Access Survey totals for commercial banks, credit unions and other deposit takers, including business deposits, at current exchange rates; some countries report commercial banks only (see the country notes). Wealth comes from the World Inequality Database (WID): most countries have no survey or tax data on the wealth distribution (only about 30 did in 2010), so WID models the medians and shares, and the latest years are extrapolations; amounts use 2025 exchange rates, prices or purchasing power parities. WID data are licensed CC BY-NC-SA 4.0, for non-commercial use only. Taiwan's deposits come from the central bank and its household saving rate from DGBAS's household survey, a different definition from other countries' national accounts (see the notes); DGBAS's national wealth and household wealth distribution figures are listed in Taiwan's notes.",
+    zh: '存款是 IMF 金融服務可及性調查中，家庭與企業在商業銀行、信用合作社與其他收受存款機構（IMF 的定義也含貨幣市場基金）的存款合計，用當年匯率換算；有些國家只有商業銀行的資料（見側欄附註）。財富來自 World Inequality Database（WID）：多數國家沒有財富分布的調查或稅務資料（2010 年只有約 30 國有），中位數與占比是 WID 用模型推估的，最近幾年也是往後推的估計；金額用 2025 年的匯率、物價或購買力平價換算。WID 的數字採 CC BY-NC-SA 4.0 授權（非商業使用、相同方式分享）。台灣的存款用中央銀行金融統計，家庭儲蓄率用主計總處國民所得統計；主計總處國富統計、家庭財富分配統計與家庭收支調查的數字列在台灣的附註。',
+    en: "Deposits are the IMF Financial Access Survey totals of household and business deposits at commercial banks, credit unions and other deposit takers (which by the IMF's definition include money market funds), at current exchange rates; some countries report commercial banks only (see the country notes). Wealth comes from the World Inequality Database (WID): most countries have no survey or tax data on the wealth distribution (only about 30 did in 2010), so WID models the medians and shares, and the latest years are extrapolations; amounts use 2025 exchange rates, prices or purchasing power parities. WID-derived figures are under CC BY-NC-SA 4.0 (non-commercial, share-alike). Taiwan's deposits come from the central bank and its household saving rate from DGBAS's national accounts; figures from DGBAS's national wealth, household wealth distribution and household income surveys are listed in Taiwan's notes.",
   },
   panelExtra: () => import('./panels/WealthPanel'),
   indicators: [
@@ -197,8 +197,8 @@ export const wealth: TopicDefinition = {
       id: 'household-saving',
       label: { zh: '家庭儲蓄率', en: 'Household saving rate' },
       description: {
-        zh: '家庭可支配所得（稅後收入加上政府給的補助）中沒有花掉、存下來的比例，扣掉了房屋等的折舊（淨儲蓄）。負數表示花得比賺得多，要動用存款或借錢。只有約 35 國，以 OECD 國家為主；台灣是家庭收支調查的儲蓄率，算法不同，會偏高。',
-        en: "The share of households' disposable income (income after taxes plus government benefits) that is saved rather than spent, net of depreciation of homes and other assets. A negative rate means households spend more than they earn, drawing on savings or borrowing. Available for about 35 countries, mostly OECD members; Taiwan's figure comes from a household survey with a different definition and runs higher.",
+        zh: '家庭可支配所得（稅後收入加上政府給的補助）中沒有花掉、存下來的比例，扣掉了房屋等的折舊（淨儲蓄）。負數表示花得比賺得多，要動用存款或借錢。只有約 35 國，以 OECD 國家為主；台灣用主計總處國民所得統計的同一個算法。',
+        en: "The share of households' disposable income (income after taxes plus government benefits) that is saved rather than spent, net of depreciation of homes and other assets. A negative rate means households spend more than they earn, drawing on savings or borrowing. Available for about 35 countries, mostly OECD members; Taiwan's figure is calculated the same way from DGBAS's national accounts.",
       },
       unit: '%',
       file: 'household-saving.json',

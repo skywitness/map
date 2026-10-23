@@ -5,7 +5,10 @@
   EAR_4MTH_SEX_CUR_NB_A 已經停用，改成 EAR_EMTA_SEX_CUR_NB_A）。
 - 沒帶 User-Agent 時伺服器回 HTTP 200 但內容是空的，`common.download()` 已經自帶 User-Agent。
 - 欄位：ref_area（ISO alpha-3；X01 是世界、X02… 是各區域與所得組）、source、sex（SEX_T 是男女合計）、
-  classif1（例如貨幣 CUR_TYPE_LCU／USD／PPP）、time、obs_value、obs_status（B 序列中斷、U 可信度低）。
+  classif1（例如貨幣 CUR_TYPE_LCU／USD／PPP）、time、obs_value、obs_status（B 序列中斷、U 不可靠）、
+  note_indicator（附註代碼，例如 T8:127 平均數、T8:128 中位數）。
+  代碼的意思：https://rplumber.ilo.org/metadata/dic/?var=note_indicator&lang=en&format=.csv（var 也可以是 note_source、source）。
+- ILOSTAT 標為不可靠（U）的值不收（例如馬爾他 2021 年的月薪一下子比前一年高 53%）。
 - 年資料每個國家、每年只有一個來源（ILOSTAT 已經挑好主要序列）。
 - 授權：2023 年 5 月 3 日起 ILO 的資料庫與資料集是 CC BY 4.0（https://www.ilo.org/rights-and-permissions）。
 - 台灣不是 ILO 會員，ILOSTAT 沒有台灣。
@@ -19,6 +22,7 @@ from sources.countries import to_iso3
 
 API = "https://rplumber.ilo.org/data/indicator/?id={id}&format=.csv&type=code"
 WORLD = "X01"
+UNRELIABLE = "U"
 
 Series = dict[str, dict[int, float]]
 
@@ -40,7 +44,7 @@ def fetch(dataset: str, classif: str | None = None) -> tuple[Series, dict[int, f
         for row in reader:
             if row.get("sex", "SEX_T") != "SEX_T" or (classif and row.get("classif1") != classif):
                 continue
-            if not row["obs_value"]:
+            if not row["obs_value"] or row.get("obs_status") == UNRELIABLE:
                 continue
             year, value = int(row["time"]), float(row["obs_value"])
             if row["ref_area"] == WORLD:
@@ -48,3 +52,16 @@ def fetch(dataset: str, classif: str | None = None) -> tuple[Series, dict[int, f
             elif iso3 := to_iso3(row["ref_area"]):  # X02… 區域合計、已解散的 ANT 會被略過
                 countries.setdefault(iso3, {})[year] = value
     return countries, world
+
+
+def flagged(dataset: str, note: str) -> dict[str, list[int]]:
+    """男女合計的值裡，note_indicator 含某個附註代碼的 {iso3: [年份]}（例如 'T8:128' 中位數）。用 fetch() 下載過的快取。"""
+    path = download(API.format(id=dataset), "ilostat", f"{dataset}.csv")
+    out: dict[str, set[int]] = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if row.get("sex", "SEX_T") != "SEX_T" or not row["obs_value"]:
+                continue
+            if note in row.get("note_indicator", "").split("_") and (iso3 := to_iso3(row["ref_area"])):
+                out.setdefault(iso3, set()).add(int(row["time"]))
+    return {iso3: sorted(years) for iso3, years in out.items()}
