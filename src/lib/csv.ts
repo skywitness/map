@@ -26,9 +26,11 @@ export function indicatorCsv(
     year?: number;
     /** 類別圖：輸出類別名稱（indicator.format）而不是代碼 */
     label?: (value: number) => string;
+    /** 數值越小越好的指標：單一年份由小排到大（跟排名表一樣） */
+    ascending?: boolean;
   },
 ): string {
-  const { unit, countries, year, label } = options;
+  const { unit, countries, year, label, ascending } = options;
   const lang = getLang();
   const h = HEADERS[lang];
   const columns = year === undefined ? data.years.map((_, i) => i) : [data.years.indexOf(year)].filter((i) => i >= 0);
@@ -50,9 +52,9 @@ export function indicatorCsv(
   if (columns.length === 1) {
     // 單一年份：依數值由大到小，跟排名表一樣；沒有資料的國家排最後
     const i = columns[0];
-    const v = (iso3: string) => value(iso3, i) ?? -Infinity;
+    const v = (iso3: string) => value(iso3, i) ?? (ascending ? Infinity : -Infinity);
     // 類別沒有大小，維持依國名排
-    if (!label) codes = [...codes].sort((a, b) => v(b) - v(a));
+    if (!label) codes = [...codes].sort((a, b) => (ascending ? v(a) - v(b) : v(b) - v(a)));
   }
 
   const rows: (string | number | null | undefined)[][] = [

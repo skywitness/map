@@ -235,6 +235,7 @@ export function App() {
       countries,
       year: single ? year : undefined,
       label: indicator.layer.kind === 'categorical' ? indicator.format : undefined,
+      ascending: indicator.lowerIsBetter,
     });
     const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
     downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}${timeless ? '' : `_${range}`}.csv`);
@@ -266,7 +267,7 @@ export function App() {
         <>
           <div className="tt-value">{indicator.format(link.value)}</div>
           <div className="tt-label">
-            {flowText(lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))} ·{' '}
+            {flowText(indicator.layer, lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))} ·{' '}
             {t.flowShare(formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0))} · {flows.year}
           </div>
         </>
@@ -581,6 +582,10 @@ function useOverlays(topic: Topic) {
 /** 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年 */
 function pickYear(years: number[], wanted: number | null, fallback: number): number {
   if (wanted && years.includes(wanted)) return wanted;
+  // 年份不連續（每 5 年一筆）時，拖到中間沒有資料的年份就用最接近的那一年（一樣近取較早的）
+  if (wanted && wanted > years[0] && wanted < years[years.length - 1]) {
+    return years.reduce((best, y) => (Math.abs(y - wanted) < Math.abs(best - wanted) ? y : best), years[0]);
+  }
   if (years.includes(fallback)) return fallback;
   return years.reduce((best, y) => (Math.abs(y - fallback) < Math.abs(best - fallback) ? y : best), years[0]);
 }

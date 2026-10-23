@@ -4,13 +4,21 @@
  */
 import { useMemo } from 'react';
 import { geoDistance, geoInterpolate } from 'd3-geo';
-import { defineMessages, getLang, type Lang } from '../i18n';
+import { defineMessages, getLang, type Lang, type Localized } from '../i18n';
 import { useJson } from '../lib/data';
 import { MAP_TOKENS } from '../theme/tokens';
-import { flowPath, type FlowDirection, type FlowFile, type Indicator, type Topic } from '../topics/types';
+import {
+  flowPath,
+  type FlowDirection,
+  type FlowFile,
+  type FlowLayer,
+  type Indicator,
+  type LayerSpec,
+  type Topic,
+} from '../topics/types';
 
-/** 流向檔的金額單位是千美元 */
-const UNIT_SCALE = 1000;
+/** 流向檔沒寫 scale 時（舊的貿易檔）：金額單位是千美元 */
+const DEFAULT_SCALE = 1000;
 
 export interface FlowLink {
   /** 夥伴國 */
@@ -33,15 +41,22 @@ export interface FlowSelection {
   links: FlowLink[];
 }
 
-export function flowSelection(file: FlowFile, origin: string, direction: FlowDirection): FlowSelection {
-  const entry = file[direction][origin];
-  const [total, partners] = entry ?? [0, []];
+/** direction 為 'larger' 時，取選取國家總額比較大的那個方向（一樣大或都沒有時用 'import'） */
+export function flowSelection(file: FlowFile, origin: string, direction: FlowLayer['direction']): FlowSelection {
+  const resolved: FlowDirection =
+    direction !== 'larger'
+      ? direction
+      : (file.export[origin]?.[0] ?? 0) > (file.import[origin]?.[0] ?? 0)
+        ? 'export'
+        : 'import';
+  const [total, partners] = file[resolved][origin] ?? [0, []];
+  const scale = file.scale ?? DEFAULT_SCALE;
   return {
     origin,
-    direction,
+    direction: resolved,
     year: file.year,
-    total: total * UNIT_SCALE,
-    links: partners.map(([iso3, v]) => ({ iso3, value: v * UNIT_SCALE, share: total > 0 ? v / total : 0 })),
+    total: total * scale,
+    links: partners.map(([iso3, v]) => ({ iso3, value: v * scale, share: total > 0 ? v / total : 0 })),
   };
 }
 
@@ -138,7 +153,20 @@ const FLOW_TEXT = defineMessages({
   },
 });
 
-/** 流向圖的文字（出口對象、進口來源…），預設用目前的介面語言 */
-export function flowText(lang: Lang = getLang()) {
-  return FLOW_TEXT[lang];
+/**
+ * 流向圖的文字（出口對象、進口來源…），預設用目前的介面語言。
+ * 指標的流向圖層有自己的 labels、pickPartners、legendKey 時用它的（例如移民的「移民來源／僑民去向」），沒有的用貿易的。
+ */
+export function flowText(layer?: Localized<LayerSpec> | null, lang: Lang = getLang()) {
+  const base = FLOW_TEXT[lang];
+  const own = layer?.kind === 'flow' ? layer : null;
+  const labels = { export: own?.labels?.export ?? base.export, import: own?.labels?.import ?? base.import };
+  const fixed = own && own.direction !== 'larger' ? own.direction : 'export';
+  return {
+    ...base,
+    ...labels,
+    legendKey: own?.legendKey ?? base.legendKey,
+    /** 還沒選國家時提示裡的夥伴稱呼 */
+    pickPartners: own?.pickPartners ?? labels[fixed].partners,
+  };
 }

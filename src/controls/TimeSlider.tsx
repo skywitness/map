@@ -22,15 +22,16 @@ export function TimeSlider({ years, year, projectionFrom, onChange }: TimeSlider
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(() => {
-      const next = yearRef.current + 1;
-      if (next > last) {
+      // 年份不一定連續（例如移民存量每 5 年一筆），播放時跳到資料裡的下一個年份
+      const next = years.find((y) => y > yearRef.current);
+      if (next === undefined) {
         setPlaying(false);
         return;
       }
       onChange(next);
     }, PLAY_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [playing, last, onChange]);
+  }, [playing, years, onChange]);
 
   const togglePlay = () => {
     if (!playing && year >= last) onChange(first);

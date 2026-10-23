@@ -35,7 +35,9 @@ export function RankingTable(props: RankingTableProps) {
   );
   // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0
   const rows = useMemo(() => {
-    if (!categories) return ranking(values).filter(([, v]) => indicator.layer.kind === 'choropleth' || v > 0);
+    if (!categories) {
+      return ranking(values, indicator.lowerIsBetter).filter(([, v]) => indicator.layer.kind === 'choropleth' || v > 0);
+    }
     const name = (iso3: string) => countryName(iso3, countries);
     const locale = lang === 'en' ? 'en' : 'zh-Hant-TW';
     return [...values]
@@ -47,8 +49,9 @@ export function RankingTable(props: RankingTableProps) {
           name(a).localeCompare(name(b), locale),
       );
   }, [values, indicator, categories, countries, lang]);
-  const max = rows[0]?.[1] ?? 0;
-  const showBars = !categories && rows.length > 0 && rows[rows.length - 1][1] >= 0;
+  // 數值越小越好的指標由小排到大，最大值在最後一列
+  const max = Math.max(0, ...rows.map(([, v]) => v));
+  const showBars = !categories && rows.length > 0 && rows.every(([, v]) => v >= 0);
   const showShare = indicator.shareOfWorld && world != null && world > 0;
   // 年份零散的指標有國家用之前的年份時，資料年份另成一欄（寫在數值旁會擠短那一列的長條，跟其他列比不準）
   const showYears = latestWithin !== undefined && (valueYears?.size ?? 0) > 0;

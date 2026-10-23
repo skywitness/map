@@ -98,7 +98,7 @@ export const en: Messages = {
   threeDHintTouch: 'Twist two fingers to rotate; slide two fingers up or down to tilt',
   threeDHintMouse: 'Right-drag or Ctrl+drag to rotate and tilt',
   threeDHintGlobe: '. In 3D the map is flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
-  unitSuffix: (unit) => ` (${unit})`,
+  unitSuffix: (unit) => (unit ? ` (${unit})` : ''),
   layers: 'Layers',
   categoryTitle: (label, count) =>
     `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'} (click to highlight only this category; click again to undo)`,

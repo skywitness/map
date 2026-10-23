@@ -1283,9 +1283,9 @@ export function WorldMap(props: WorldMapProps) {
     !flowLayer || boxMode
       ? null
       : !selected
-        ? flowText(lang).pick(flowText(lang)[flowLayer.direction].partners)
+        ? flowText(flowLayer, lang).pick(flowText(flowLayer, lang).pickPartners)
         : flows?.origin === selected && flows.links.length === 0
-          ? flowText(lang).noData(flows.year, flowText(lang)[flowLayer.direction].partners)
+          ? flowText(flowLayer, lang).noData(flows.year, flowText(flowLayer, lang)[flows.direction].partners)
           : null;
 
   useImperativeHandle(
