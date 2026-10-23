@@ -119,7 +119,7 @@ export const olympics: TopicDefinition = {
   indicators: [
     {
       id: 'medals-total',
-      label: { zh: '歷屆獎牌數（累計）', en: 'Medals (all-time)' },
+      label: { zh: '累計獎牌', en: 'All-time medals' },
       description: {
         zh: '第一屆到這一屆累計的金、銀、銅牌總數。圓的面積與獎牌數成正比；蘇聯、東西德等歷史隊伍畫在當時的首都附近。',
         en: 'Gold, silver and bronze medals won from the first Games up to the selected Games. Circle area is proportional to medals; historical teams such as the Soviet Union and East and West Germany are drawn near their capitals at the time.',
@@ -133,7 +133,7 @@ export const olympics: TopicDefinition = {
     },
     {
       id: 'gold-total',
-      label: { zh: '歷屆金牌數（累計）', en: 'Gold medals (all-time)' },
+      label: { zh: '累計金牌', en: 'All-time gold' },
       description: {
         zh: '第一屆到這一屆累計的金牌數。',
         en: 'Gold medals won from the first Games up to the selected Games.',
@@ -147,7 +147,7 @@ export const olympics: TopicDefinition = {
     },
     {
       id: 'medals',
-      label: { zh: '單屆獎牌數', en: 'Medals at the Games' },
+      label: { zh: '單屆獎牌', en: 'Medals' },
       description: {
         zh: '這一屆奧運得到的金、銀、銅牌總數。拖動時間軸一屆一屆看。',
         en: 'Gold, silver and bronze medals won at the selected Games. Drag the time slider to step through the Games.',
@@ -161,7 +161,7 @@ export const olympics: TopicDefinition = {
     },
     {
       id: 'gold',
-      label: { zh: '單屆金牌數', en: 'Gold medals at the Games' },
+      label: { zh: '單屆金牌', en: 'Gold' },
       description: {
         zh: '這一屆奧運得到的金牌數。',
         en: 'Gold medals won at the selected Games.',
@@ -175,7 +175,7 @@ export const olympics: TopicDefinition = {
     },
     {
       id: 'per-capita',
-      label: { zh: '每千萬人獎牌數（單屆）', en: 'Medals per 10 million people' },
+      label: { zh: '每千萬人獎牌', en: 'Medals per 10M' },
       description: {
         zh: '這一屆的獎牌數 ÷ 當年人口 × 1,000 萬（聯合國 WPP，1952 年起）。人口少的國家一面就很高，例如 2024 年的格瑞那達、多米尼克、聖露西亞。歷史隊伍沒有人口，不算。',
         en: 'Medals at the selected Games ÷ population that year × 10 million (UN WPP, from 1952). Small countries score very high with a single medal, such as Grenada, Dominica and Saint Lucia in 2024. Historical teams have no population and are not included.',
