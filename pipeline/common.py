@@ -149,14 +149,28 @@ def points_file(
     return {"fields": fields, "scale": {f: scale[f] for f in fields if f in scale}, "delta": list(delta), "columns": columns}
 
 
-def lines_file(lines: list[list[tuple[float, float]]], quantum: float = 0.01, types: list[int] | None = None) -> dict:
+def lines_file(
+    lines: list[list[tuple[float, float]]],
+    quantum: float = 0.01,
+    types: list[int] | None = None,
+    *,
+    records: list[dict[str, object]] | None = None,
+    record_fields: list[str] | None = None,
+    record_scale: dict[str, float] | None = None,
+    record_delta: tuple[str, ...] | list[str] = (),
+) -> dict:
     """一般線圖層的資料檔（LinesData）：跟鐵路同一種差分編碼，每條線第一個點是量化後的絕對座標，之後是差分。
 
     跨 180° 經線的線要先把經度展開成連續的（可以超過 ±180），否則 MapLibre 會畫出橫越整個地圖的線。
     types 是每條線的分類代碼（例如板塊邊界的種類），跟 lines 一一對應。
+
+    records（選填）：每條線一筆紀錄（例如海底電纜的名稱、啟用年份），用 points_file() 的格式存
+    （record_fields、record_scale、record_delta 同它的參數）；量化後不到兩個點而被丟掉的線，紀錄也一起拿掉，
+    第 i 條線一定對應第 i 筆。前端的 tooltip 與時間篩選（timeField）用它。
     """
     encoded: list[list[int]] = []
     kept: list[int] = []
+    kept_records: list[dict[str, object]] = []
     for i, line in enumerate(lines):
         q = [(round(x / quantum), round(y / quantum)) for x, y in line]
         q = [p for j, p in enumerate(q) if j == 0 or p != q[j - 1]]
@@ -168,9 +182,15 @@ def lines_file(lines: list[list[tuple[float, float]]], quantum: float = 0.01, ty
         encoded.append(flat)
         if types is not None:
             kept.append(types[i])
+        if records is not None:
+            kept_records.append(records[i])
     out: dict[str, object] = {"quantum": quantum, "lines": encoded}
     if types is not None:
         out["types"] = kept
+    if records is not None:
+        if not record_fields:
+            raise ValueError("有 records 時要給 record_fields")
+        out["records"] = points_file(kept_records, record_fields, record_scale or {}, record_delta)
     return out
 
 

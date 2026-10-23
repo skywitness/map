@@ -1,6 +1,7 @@
 /**
  * 一般疊加圖層（主題 overlays 裡 kind 為 points、lines 的，例如地震、火山、板塊邊界、駐外館處）的 MapLibre 圖層。
  * 每個疊加圖層一個 GeoJSON source（`ov-<id>`）；圖層 id 也是 `ov-<id>`（虛線的線另外一層 `ov-<id>-dash`）。
+ * 有 tooltip 的線另外兩層：看不見的寬線 `ov-<id>-hit` 給 hover 查詢（細線很難滑到），加粗的 `ov-<id>-hover` 標出滑到的那一條。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
@@ -17,6 +18,14 @@ const TRIANGLE_R = 7;
 const ICON_RATIO = 2;
 
 const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] };
+
+/** 有 tooltip 的線：hover 查詢用的寬線、標出滑到的線 */
+const HIT_SUFFIX = '-hit';
+const HOVER_SUFFIX = '-hover';
+/** 滑到線上時查詢的寬度（px），細線也滑得到 */
+const HIT_WIDTH = 9;
+/** 線的組別（紀錄相同的線是同一組，例如同一條電纜的各段）；沒有滑到任何線時的篩選值 */
+const NO_GROUP = -1;
 
 /** 半徑是縮放 2 時的大小，放大時跟著變大（但比地圖放大得慢，密集的地方才不會糊成一片） */
 function zoomed(r: ExpressionSpecification | number): ExpressionSpecification {
@@ -117,7 +126,15 @@ const ON_DARK: Record<string, string> = {
   [MAP_TOKENS.inkMuted]: '#a8a69e',
 };
 
-function lineLayers(def: LinesOverlay, dark: boolean): LayerSpecification[] {
+/** 一個線圖層的 MapLibre 圖層，base 是它本身的篩選（實線／虛線的分類、hover 的組別），時間篩選要跟它合併 */
+interface LineSublayer {
+  layer: LayerSpecification;
+  base: FilterSpecification | null;
+  /** 依時間軸篩選（hover 那層只畫滑到的線，不必） */
+  timed: boolean;
+}
+
+function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
   const id = OVERLAY_PREFIX + def.id;
   const classes = typeof def.color === 'string' ? [] : def.color.classes;
   const tone = (c: string) => (dark ? (ON_DARK[c] ?? c) : c);
@@ -132,17 +149,40 @@ function lineLayers(def: LinesOverlay, dark: boolean): LayerSpecification[] {
     'line-opacity': dark ? 0.9 : 0.8,
   };
   const isDashed: FilterSpecification = ['in', ['coalesce', ['get', 'type'], -1], ['literal', dashed]];
-  const solid: LayerSpecification = {
-    id,
-    type: 'line',
-    source: id,
-    layout: { 'line-join': 'round', 'line-cap': 'round' },
-    paint,
-    ...(dashed.length ? { filter: ['!', isDashed] as FilterSpecification } : {}),
-  };
-  if (!dashed.length) return [solid];
+  const layout = { 'line-join': 'round', 'line-cap': 'round' } as const;
+  const out: LineSublayer[] = [];
+  const solidBase = dashed.length ? (['!', isDashed] as FilterSpecification) : null;
+  out.push({ layer: { id, type: 'line', source: id, layout, paint, ...(solidBase ? { filter: solidBase } : {}) }, base: solidBase, timed: true });
   // line-dasharray 不能依資料變化，虛線的類別另外一層
-  return [solid, { id: `${id}-dash`, type: 'line', source: id, filter: isDashed, paint: { ...paint, 'line-dasharray': [2, 1.5] } }];
+  if (dashed.length) {
+    out.push({
+      layer: { id: `${id}-dash`, type: 'line', source: id, filter: isDashed, paint: { ...paint, 'line-dasharray': [2, 1.5] } },
+      base: isDashed,
+      timed: true,
+    });
+  }
+  if (def.tooltip) {
+    // 看不見的寬線：queryRenderedFeatures 依線寬判斷有沒有滑到，跟不透明度無關
+    out.push({
+      layer: { id: id + HIT_SUFFIX, type: 'line', source: id, layout, paint: { 'line-width': HIT_WIDTH, 'line-opacity': 0 } },
+      base: null,
+      timed: true,
+    });
+    const hoverBase: FilterSpecification = ['==', ['get', 'g'], NO_GROUP];
+    out.push({
+      layer: {
+        id: id + HOVER_SUFFIX,
+        type: 'line',
+        source: id,
+        layout,
+        filter: hoverBase,
+        paint: { 'line-color': color, 'line-width': zoomed(Math.max(2.4, def.width * 2.4)), 'line-opacity': 1 },
+      },
+      base: hoverBase,
+      timed: false,
+    });
+  }
+  return out;
 }
 
 /** 點的 GeoJSON：只帶畫圖、篩選、hover 要用的欄位（i 是紀錄的索引，tooltip 用） */
@@ -168,19 +208,33 @@ function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>): GeoJSON.Fe
 
 function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.FeatureCollection {
   if (!o.lines) return EMPTY;
-  const { lines, types } = o.lines;
+  const { lines, types, records } = o.lines;
+  const { timeField } = o.def;
+  // 紀錄完全相同的線是同一組（同一條電纜被切成好幾段），滑到其中一段時整組一起標出
+  const groups = new Map<string, number>();
   return {
     type: 'FeatureCollection',
-    features: lines.map((coordinates, i) => ({
-      type: 'Feature',
-      properties: types ? { type: types[i] } : {},
-      geometry: { type: 'LineString', coordinates },
-    })),
+    features: lines.map((coordinates, i) => {
+      const properties: Record<string, number | string> = { i };
+      if (types) properties.type = types[i];
+      const record = records?.[i];
+      if (record) {
+        const key = JSON.stringify(record);
+        let g = groups.get(key);
+        if (g === undefined) groups.set(key, (g = groups.size));
+        properties.g = g;
+        const t = timeField ? record[timeField] : null;
+        if (timeField && t !== null && t !== undefined) properties[timeField] = t;
+      } else {
+        properties.g = i;
+      }
+      return { type: 'Feature', properties, geometry: { type: 'LineString', coordinates } };
+    }),
   };
 }
 
 /** 依時間軸篩選的點：只有那一年、累積到那一年，或那一年起的 n 年（指標的 overlayTime） */
-export function timeFilter(def: PointsOverlay, year: number, mode: IndicatorDef['overlayTime']): FilterSpecification | null {
+export function timeFilter(def: { timeField?: string }, year: number, mode: IndicatorDef['overlayTime']): FilterSpecification | null {
   if (!def.timeField) return null;
   const t: ExpressionSpecification = ['get', def.timeField];
   const has: FilterSpecification = ['has', def.timeField];
@@ -194,7 +248,7 @@ export type OverlayDataCache = Map<string, unknown>;
 
 /**
  * 讓地圖上的疊加圖層跟 overlays 一致：加上缺的 source 與圖層、拿掉不要的、資料變了才重送、依開關顯示或隱藏。
- * 回傳點圖層的 id（上面的在前），hover 與點選時依序查詢。
+ * 回傳 hover 與點選時依序查詢的圖層 id：點圖層（上面的在前），再來是有 tooltip 的線的查詢層。
  */
 export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: OverlayDataCache, dark: boolean): string[] {
   const wanted = new Set(overlays.map((o) => OVERLAY_PREFIX + o.def.id));
@@ -222,7 +276,7 @@ export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: O
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
         map.addLayer(pointLayer(o.def), before(POINTS_BEFORE));
       } else {
-        for (const layer of lineLayers(o.def, dark)) map.addLayer(layer, before(LINES_BEFORE));
+        for (const { layer } of lineLayers(o.def, dark)) map.addLayer(layer, before(LINES_BEFORE));
       }
     }
     const data = o.kind === 'points' ? o.points : o.lines;
@@ -231,21 +285,54 @@ export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: O
       sent.set(id, data);
     }
     const visibility = o.visible && data ? 'visible' : 'none';
-    for (const layerId of [id, `${id}-dash`]) {
+    for (const layerId of [id, `${id}-dash`, id + HIT_SUFFIX, id + HOVER_SUFFIX]) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
   }
-  return overlays
-    .filter((o) => o.kind === 'points')
-    .map((o) => OVERLAY_PREFIX + o.def.id)
-    .reverse();
+  const visibleIds = (kind: OverlayLayer['kind'], suffix = '') =>
+    overlays
+      .filter((o) => o.kind === kind && (kind === 'points' || o.def.tooltip))
+      .map((o) => OVERLAY_PREFIX + o.def.id + suffix)
+      .reverse();
+  return [...visibleIds('points'), ...visibleIds('lines', HIT_SUFFIX)];
 }
 
-/** 換年份或指標時更新點的篩選 */
+/** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併 */
 export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], year: number, mode: IndicatorDef['overlayTime']) {
   for (const o of overlays) {
-    if (o.kind !== 'points' || !o.def.timeField) continue;
+    if (!o.def.timeField) continue;
     const id = OVERLAY_PREFIX + o.def.id;
-    if (map.getLayer(id)) map.setFilter(id, timeFilter(o.def, year, mode));
+    const time = timeFilter(o.def, year, mode);
+    if (o.kind === 'points') {
+      if (map.getLayer(id)) map.setFilter(id, time);
+      continue;
+    }
+    for (const { layer, base, timed } of lineLayers(o.def, false)) {
+      if (!timed || !map.getLayer(layer.id)) continue;
+      map.setFilter(layer.id, base && time ? (['all', base, time] as FilterSpecification) : (base ?? time));
+    }
+  }
+}
+
+/** 滑到線圖層的查詢層時，回傳那個疊加圖層的 id；不是線的查詢層回傳 null */
+export function lineOverlayAt(layerId: string): string | null {
+  return layerId.startsWith(OVERLAY_PREFIX) && layerId.endsWith(HIT_SUFFIX)
+    ? layerId.slice(OVERLAY_PREFIX.length, -HIT_SUFFIX.length)
+    : null;
+}
+
+/** 標出滑到的線（同一組的各段一起加粗）；overlay 是 null 時取消。prev 是上一次標出的，換線時先取消它 */
+export function highlightLine(
+  map: MaplibreMap,
+  prev: { overlay: string; group: number } | null,
+  next: { overlay: string; group: number } | null,
+) {
+  if (prev && (!next || prev.overlay !== next.overlay)) {
+    const id = OVERLAY_PREFIX + prev.overlay + HOVER_SUFFIX;
+    if (map.getLayer(id)) map.setFilter(id, ['==', ['get', 'g'], NO_GROUP]);
+  }
+  if (next && (prev?.overlay !== next.overlay || prev.group !== next.group)) {
+    const id = OVERLAY_PREFIX + next.overlay + HOVER_SUFFIX;
+    if (map.getLayer(id)) map.setFilter(id, ['==', ['get', 'g'], next.group]);
   }
 }

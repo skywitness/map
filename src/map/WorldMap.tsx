@@ -59,7 +59,7 @@ import {
   type LayerVisibility,
   type OverlayLayer,
 } from './Overlays';
-import { applyTimeFilters, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { applyTimeFilters, highlightLine, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
@@ -532,11 +532,13 @@ export function WorldMap(props: WorldMapProps) {
     x: number;
     y: number;
     airport?: number;
-    /** 一般點圖層的點：overlay 的 id 與資料的第幾筆 */
+    /** 一般點圖層的點（或有 tooltip 的線）：overlay 的 id 與資料的第幾筆 */
     point?: { overlay: string; index: number };
   } | null>(null);
-  /** 一般點圖層的 MapLibre 圖層 id（上面的在前），hover 與點選時比國家先查 */
+  /** 一般點圖層與有 tooltip 的線的 MapLibre 圖層 id（上面的在前），hover 與點選時比國家先查 */
   const pointLayersRef = useRef<string[]>([]);
+  /** 目前加粗標出的線（有 tooltip 的線圖層） */
+  const lineHoverRef = useRef<{ overlay: string; group: number } | null>(null);
   const [boxMode, setBoxMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   // 框選結果卡片放在框的另一側，才不會蓋住框
@@ -718,8 +720,10 @@ export function WorldMap(props: WorldMapProps) {
   const suppressClickRef = useRef(false);
 
   function bindEvents(map: MaplibreMap) {
-    const featureAt = (point: { x: number; y: number }): MapGeoJSONFeature | null => {
+    // lines 為 false 時略過線的查詢層：點一下電纜經過的陸地要選到國家，不是取消選取
+    const featureAt = (point: { x: number; y: number }, lines = true): MapGeoJSONFeature | null => {
       for (const id of [...pointLayersRef.current, ...HOVER_LAYERS]) {
+        if (!lines && lineOverlayAt(id)) continue;
         if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
         const [f] = map.queryRenderedFeatures([point.x, point.y], { layers: [id] });
         if (f) return f;
@@ -749,11 +753,15 @@ export function WorldMap(props: WorldMapProps) {
       if (latest.current.boxMode) return;
       const f = featureAt(e.point);
       const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
-      // 海上的地震沒有國家，照樣顯示 tooltip
+      // 海上的地震沒有國家，照樣顯示 tooltip；線（海底電纜）也是
+      const line = f ? lineOverlayAt(f.layer.id) : null;
       const point =
         f && f.layer.id.startsWith(OVERLAY_PREFIX)
-          ? { overlay: f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
+          ? { overlay: line ?? f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
           : undefined;
+      const lineHover = line && f ? { overlay: line, group: Number(f.properties.g) } : null;
+      highlightLine(map, lineHoverRef.current, lineHover);
+      lineHoverRef.current = lineHover;
       setHoverId(iso3);
       map.getCanvas().style.cursor = iso3 || point ? 'pointer' : '';
       setHover(
@@ -794,13 +802,15 @@ export function WorldMap(props: WorldMapProps) {
     map.on('mouseout', () => {
       setHoverId(null);
       setHover(null);
+      highlightLine(map, lineHoverRef.current, null);
+      lineHoverRef.current = null;
     });
     map.on('click', (e) => {
       if (suppressClickRef.current || latest.current.boxMode) {
         suppressClickRef.current = false;
         return;
       }
-      latest.current.onSelect((featureAt(e.point)?.properties?.iso3 as string | undefined) ?? null);
+      latest.current.onSelect((featureAt(e.point, false)?.properties?.iso3 as string | undefined) ?? null);
     });
   }
 
@@ -813,6 +823,7 @@ export function WorldMap(props: WorldMapProps) {
       if (cancelled) return;
       installedRef.current = false;
       hoverIdRef.current = null;
+      lineHoverRef.current = null;
       selectedRef.current = null;
       map.once('style.load', () => {
         if (cancelled) return;
