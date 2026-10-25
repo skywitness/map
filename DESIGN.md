@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -400,6 +400,7 @@ pipeline/
 | 地圖（純地圖） | 不上色，只看底圖；點國家會放大到該國 | — | OpenFreeMap、OpenStreetMap | — |
 | 人口 | 總人口、密度（國家平均，或切到 1 km 網格）、年增率、年齡中位數；可框選估算 | — | UN WPP 2024；1 km 網格與框選用 JRC GHS-POP R2023A | 1950–2100（2024 起推估）；1 km 網格 1975–2030 每 5 年一期（2025 起推估）；框選的網格是 2020 年 |
 | 生育率與高齡化 | 總生育率（發散色，中性一級跨過替代水準 2.1）、65 歲以上人口比例、扶老比、出生數（比例圓） | 人口金字塔（男女五歲年齡組，比例尺固定為 1950–2100 年最大的一組，推估年份調淡） | UN WPP 2024（中推估）；台灣也用 WPP，附註對照內政部戶政司與國發會人口推估（2026 至 2075 年） | 1950–2100（2024 起推估） |
+| 婚姻與家庭 | 女性初婚年齡（預設）、男性初婚年齡、15 歲以上有偶比例、30–34 歲未婚比例、粗結婚率、粗離婚率、非婚生子女比例、單人家戶比例、同性伴侶的法律地位（類別圖：同性婚姻／民事結合等其他全國性的承認／沒有全國性的法律承認，每年年底的狀態） | 男女初婚年齡的變化、粗結婚率與粗離婚率的變化（各一張折線圖）；台灣另外列近 8 年的結婚、離婚對數與其中的同性伴侶 | UN World Marriage Data 2019、UNdata（Demographic Yearbook 的結婚、離婚對數）、Eurostat、OECD Family Database、聯合國家戶規模資料庫、WPP 2024；台灣用內政部戶政司、內政部統計查詢網與主計總處家庭收支調查；同性伴侶依英文維基百科自行整理（CC BY-SA 4.0） | 1970–2025（聯合國的普查、調查多半到 2010 年代，地圖用 10 年內最近一年；粗率與非婚生 5 年內）；同性伴侶 1989–2026 |
 | 城市 | 城市地圖（預設，不上色，畫約 1.1 萬個城市的點：面積與人口成正比，每 5 年一期跟著時間軸換，還不是城市的年份不畫，縮小時只畫大城市）、都市化率（住在城市與城鎮、半密集區的比例）、住在城市的比例、最大城市占全國人口、百萬人口城市數（比例圓）、最大城市的人口（比例圓） | 這個國家最大的城市（人口、每 km² 人數、比 10 年前；前 10 個，其餘收起來，最多 60 個）；台灣：UCDB 的城市跟涵蓋它的縣市戶籍人口對照 | JRC GHSL：GHS-UCDB R2024A（Urban Centre Database 2025，城市與多時期的範圍、人口、面積）、GHS-COUNTRY-STATS R2024A（各國依城鄉程度的人口），都是 CC BY 4.0；Wikidata（城市的中文名稱，CC0）；台灣對照內政部戶政司的村里人口 | 1975–2030 每 5 年一期（2025、2030 是推估） |
 | 人均收入 | 人均 GDP（名目、PPP）、GDP 總額、經濟成長率 | — | IMF WEO（含台灣），IMF 未涵蓋的 17 個地區用 World Bank 補 | 1980–2031（2026 起推估） |
 | 發電量 | 總發電量、人均用電、再生/低碳/燃煤/核能占比、碳排強度 | 發電結構堆疊面積圖＋各能源長條 | Ember | 2000–2025 |
@@ -624,6 +625,11 @@ pipeline/
     - **OECD《PISA 2025 Results (Volume I)》是 CC BY 4.0**（2026-09-08 出版，doi:10.1787/73451bc5-en）：版權頁寫「© OECD 2026, Attribution 4.0 International (CC BY 4.0)」，StatLink 的 Excel 是書的一部分（檔案的「About this file」寫「PISA 2025 Results (Volume I) - © OECD 2026」）。這本書的授權另外要求：改作要引用原著並加上「This is an adaptation of an original work by the OECD. The opinions expressed and arguments employed in this adaptation should not be reported as representing the official views of the OECD or of its Member countries.」；翻譯要寫明改了什麼，並聲明跟原文有出入時以原文為準；不得使用 OECD 的標誌或暗示 OECD 背書；爭議依常設仲裁法院規則在巴黎仲裁。學生能力主題的頁尾照寫（中文介面也附英文原句），資料檔是改作（換成地圖的代碼、算出變化），一樣依 CC BY 4.0 分享（第 68 點）。
     - **2024 年 7 月以前出版的 PISA 報告沒有用**（PISA 2022 以前的各冊與它們的 StatLink）：OECD 的開放政策頁（https://www.oecd.org/en/about/oecd-open-by-default-policy.html ，2026-10-26 查）寫那些內容依當時的使用條款，「generally available for commercial and non-commercial purposes on terms similar to CC BY 4.0」，類似但不是 CC BY 4.0。照較嚴的解讀，只參加過之前幾次 PISA 的國家（俄羅斯、上海、列支敦斯登…）沒有收。PISA 的學生層級資料庫（Public Use File）也沒有用：要自己用加權與可能值算，檔案大，2025 年的報告已經有所有參加 2025 年的國家的歷次結果。
     - 臺灣 PISA 國家研究中心（國立臺灣師範大學）的記者會簡報（pr.ntnu.edu.tw）沒有寫授權條款，只引用臺灣歷屆的名次與參加國數（事實），並拿它的分數跟 OECD 的表比對。
+    - **UN DESA 的 World Marriage Data 2019 是 CC BY 3.0 IGO**（Excel 的 INFORMATION NOTE 寫「Copyright © 2019 by United Nations, made available under a Creative Commons license CC BY 3.0 IGO」）。
+    - **UNdata 的資料可以轉載**：使用條款（https://data.un.org/Host.aspx?Content=UNdataUse ，2026-10-26 查）寫資料與中繼資料「may be copied freely, duplicated and further distributed provided that UNdata is cited as the reference」。婚姻與家庭主題的結婚、離婚對數來自 UNdata 的 Demographic Statistics Database（Demographic Yearbook 的資料）。unstats.un.org 上同一份 Demographic Yearbook 的表格（PDF、xls）適用聯合國網站的一般條款（只限個人、非商業使用，不得轉載），所以不用那裡的數字，只抄下表 23、25 標示「登記完整」的國家清單當篩選條件（第 69 點）。
+    - OECD Family Database 的 SF3.1（結婚與離婚，2025-05-28 更新）、SF2.4（非婚生子女，2025-10-16 更新）是 2024 年 7 月以後更新的檔，適用 OECD 的預設授權 CC BY 4.0（跟可負擔住宅資料庫一樣）。Excel 裡沒有寫授權文字。
+    - **英文維基百科的同性婚姻相關條目是 CC BY-SA 4.0**：婚姻與家庭主題的同性伴侶法律地位是依這些條目整理的表（`pipeline/sources/same_sex_unions.py`，檔頭列出每一篇的 revid），法律與判決本身是事實，但照較保守的做法，把資料檔（`same-sex.json`）當成改作，依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。
+    - 內政部戶政司的「人口統計資料」歷年統計表、內政部統計查詢網適用內政部的「政府網站資料開放宣告」（政府資料開放授權條款第 1 版）；主計總處家庭收支調查同上。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1857,6 +1863,43 @@ pipeline/
     - **側欄**：三個科目各一張歷次分數的小圖，跟 OECD 23 國平均比（國家研究中心也用這個平均；38 國的 OECD 平均只有幾次有值，畫不成線），下面是每一次的分數與名次表；台灣另外列國家研究中心公布的名次與參加國數（`taiwan.json`）。
     - **大小**：18 個指標檔加 `taiwan.json`、`manifest.json`，共約 200 KB（gzip 後約 30 KB）。
 
+69. **婚姻與家庭**（`pipeline/topics/marriage.py`、`pipeline/sources/undesa_wmd.py`、`undata_dyb.py`、`oecd_family.py`、`ris_marriage.py`、`same_sex_unions.py`、`src/topics/marriage.ts`、`src/topics/panels/MarriagePanel.tsx`）：
+    - **初婚年齡**：每個國家只用一個來源（最新一年最晚的那個，同一年依 Eurostat、OECD、聯合國的順序，`pick_latest()`），歷年折線才不會因為換來源而跳動：
+      - Eurostat demo_nind 的 FAGEMAR1、MAGEMAR1（依結婚登記的初婚者平均年齡）。
+      - OECD Family Database SF3.1（各國官方，到 2021 年）：墨西哥含再婚，不收；美國、澳洲、紐西蘭是中位數，照收但附註寫明（聯合國的 SMAM 美國只到 2010 年，不收的話美國就是灰色）。
+      - 其他國家用聯合國 World Marriage Data 2019 的 SMAM（單身平均結婚年齡，依普查或調查的各年齡未婚比例用 Hajnal 的方法推算）。同一國同一年常有好幾筆（同一次 DHS 的 STATcompiler 與家戶檔各算一次、同一年的普查與調查），依普查 → 依登記的估計 → 調查、再依資料來源的順序取一筆（`undesa_wmd._rank()`），年份用資料蒐集開始的那一年。
+      - 兩種算法的數字相近：日本 2015 年的 SMAM 女性 29.2 歲，依登記的平均是 29.4 歲。
+      - WMD 多半只到 2010 年代，地圖用 10 年內最近一年（`latestWithin`），2024 年女性有 135 國、男性 121 國有值，2019 年有 196、186 國。
+    - **15 歲以上有偶比例、30–34 歲未婚比例**：WMD 的 CURRENTLY MARRIED、EVER_MARRIED 是男女分開的各年齡組比例，用 WPP 2024 那一年的年齡別人口加權成男女合計（`weighted_share()`）。有偶比例要從 15 歲起連續的五歲組一路到開放組（只有 15–49 歲的 DHS 不收），齊全的那一筆才用，否則換同一年的下一筆。部分國家的「有偶」含同居（WMD 的 Including_consensual_unions 欄是空的，沒辦法逐國標出），頁尾寫明。
+      - 用 30–34 歲而不是 15 歲以上的未婚比例：15 歲以上的未婚比例主要反映年齡結構（年輕人多的國家高），看不出晚婚、不婚。有偶比例同樣受年齡結構影響，指標說明寫了。
+    - **粗結婚率、粗離婚率**：
+      - Eurostat 的 GNUPRT、GDIVRT；OECD SF3.1 只用各國官方來源的 11 個非歐洲國家（澳洲、加拿大、智利、哥倫比亞、哥斯大黎加、以色列、日本、韓國、墨西哥、紐西蘭、美國；其他國家 OECD 也是轉載 Eurostat 或 Demographic Yearbook）。澳洲、紐西蘭的粗離婚率 2018 年起改成每千名 16 歲以上人口，不收。
+      - 其他國家用 UNdata 的對數除以 WPP 2024 的年中人口（2024、2025 年用推估的人口）。Demographic Yearbook 用各國自己的年中人口，所以跟它公布的粗率略有差距（塞席爾 2023 年 DYB 13.7、這裡 12.8）。
+      - **UNdata 的下載**（`undata_dyb.py`）：2026 年 10 月 UNdata 改版，`Handlers/DownloadHandler.ashx` 與換頁用的 `DataHandler.ashx` 都回新網站的首頁（HTTP 200 或 404 的 HTML），只剩 `Data.aspx` 在伺服器端產生第一頁的 50 筆。依國家（`countryCode`）與全國（`areaCode:0`）篩選，一國一頁，紀錄依年份由新到舊，所以拿得到最近的 50 筆（同一年有依發生、依登記兩筆的國家約 25 年）；國家清單取自網頁的篩選選項。同一年優先用依發生日期，再取資料來源年份最新的。第一次約 220 頁（每頁間隔 0.3 秒），之後用快取。
+      - **只收登記完整的國家**：UNdata 的「Reliability」欄只有 Final figure、Provisional figure、Other estimate，沒有登記完整度；Demographic Yearbook 只替「Code」欄標 C（登記涵蓋 90% 以上）的國家算粗率。所以只收 DYB 2023 年版表 23、25 標 C 的國家（`undata_dyb.COMPLETE`，結婚 117 個、離婚 96 個；表本身不轉載，見第 12 點）。標 U 的（巴西、印尼、菲律賓、泰國、玻利維亞、厄瓜多…）、沒有資訊的（南非、沙烏地阿拉伯、孟加拉…）與 2023 年版沒有列的（例如赤道幾內亞，2023 年只登記了 243 對，每千人 0.13 對）都不收。
+      - **附註**：UNdata 每一列後面的附註文字在連結的 `title`。寫明只涵蓋部分地區或人口的列不收（`PARTIAL`）：英國的結婚 2016 年以後「只有英格蘭與威爾斯」（所以英國的粗結婚率只到 2016 年）、美國的離婚「不含加州、喬治亞……」（美國改用 OECD，CDC 依有通報的州算的離婚率）、秘魯「只有利馬」、東加「只有東加塔布島」、蓋亞那「只有基督教婚禮」、蘇利南「只有民事離婚」等。含觀光結婚的非居民（`VISITORS`）的照收，附註寫明（庫克群島 2024 年每千人 32.8 對、塞席爾 12.8 對）。
+      - 中國的 UNdata 只到 2012 年、也不在 DYB 2023 的表裡，印度沒有結婚登記統計，法國的離婚在 Eurostat 只到 2016 年（2017 年起協議離婚不必經過法院）、也不在 DYB 2023 的離婚表裡，都是灰色。2024 年結婚率有 116 國、離婚率 99 國有值（5 年內）。
+    - **非婚生子女比例**：Eurostat 的 NMARPCT，歐洲以外的 OECD 國家用 SF2.4（日本、韓國、澳洲、紐西蘭是「父母沒有登記結婚」的出生，其他是出生時母親沒有結婚）。以色列 2016 年以前只算猶太女性，只收 2017 年起。共約 59 國。
+    - **單人家戶比例**：Eurostat 勞動力調查的 lfst_hhnhtych（一個成人、沒有小孩的家戶 ÷ 所有家戶，2006 年起），更早的年份與其他國家用聯合國家戶規模資料庫的「1 member」（它的歐洲部分本來就來自勞動力調查，接得起來，附註寫出從哪一年起是 Eurostat）。是家戶的比例，不是人口的比例。
+    - **台灣**（`ris_marriage.py`、`fies.one_person_share()`）：
+      - 戶政司「人口統計資料」的頁面是 iframe（`/info-popudata/app/awFastDownload/toMain_panel`），每個表的下載是對 `…/view` 送表單（`type=ods`、`m4c=` 表的代碼，例如結婚年齡是 y4s5），要帶首頁的 cookie 與 CSRF token（`<meta name="_csrf">`），否則回 403。表只有一個版本，每年更新。
+      - 第一欄有儲存格註解的列（「user62年以前資料係參考62年年刊…民國62年」），讀出來的文字會把註解接在前面，所以用結尾的「民國…年」比對。
+      - 初婚者的平均年齡（按發生日期）：2024 年男 33.1、女 31.1 歲，2025 年男 33.4、女 31.4 歲。官方表 1993–1997 年女性的平均（27.1–28.2 歲）比同年的中位數高 1.4–1.6 歲、1998 年又掉回 26.0 歲，原因不明，照官方的數字畫。
+      - 粗結婚率 2024 年 5.26‰（123,061 對，其中同性 3,205 對）、2025 年 4.47‰（104,376 對，同性 3,305 對）；粗離婚率 2024 年 2.28‰（53,469 對，同性 926 對）、2025 年 2.23‰（52,101 對）。跟新聞引用的內政部數字一樣。
+      - 15 歲以上有偶比例（戶籍，2019 年起含相同性別的配偶）2024 年 49.3%、2025 年 49.0%；30–34 歲未婚比例（統計查詢網 c0110301，男女合計）2024 年 60.7%、2025 年 62.1%；非婚生子女比例（按登記，不含無依兒童）2024 年 3.9%、2025 年 4.5%。
+      - 單人家戶比例用主計總處家庭收支調查第 28 表「家庭戶數按戶內人口規模別之分配」的「1人」（2024 年 15.6%、2025 年 17.3%）。戶籍的「單獨生活戶」包含很多只是把戶籍分開的人，比例高很多，不用。
+      - 側欄另外列近 8 年的結婚、離婚對數與其中的同性伴侶（`taiwan.json`）。
+    - **同性伴侶的法律地位**（`same_sex_unions.py`，依英文維基百科自行整理，CC BY-SA 4.0）：
+      - 三類，有強弱之分，用循序色（`ordinal`）：同性婚姻；民事結合等其他全國性的承認（Civil union 條目「List of jurisdictions recognizing same-sex unions」裡的全國性制度，加上承認在國外締結婚姻的以色列、美屬薩摩亞、荷屬聖馬丁與 2026 年起只承認其他歐盟國家婚姻的波蘭）；沒有全國性的法律承認（只有部分州、縣市有伴侶登記的日本與 2019 年以前的台灣，以及美國、墨西哥、巴西、加拿大、澳洲在全國開放以前的年份都算這一類，附註寫出最早開放的地區）。
+      - 是每年年底的狀態，1989（丹麥的伴侶登記）–2026 年。台灣 2019 年 5 月 24 日起可以結婚，所以 2019 年起是第一類。2026 年有 39 個國家（含尼泊爾）可以同性結婚，加上屬地共 72 個地圖單位；17 個有其他全國性的承認。每個國家的附註寫出依據的法律或判決與生效日。
+      - **尼泊爾**：最高法院 2026-06-18 的終審判決（Pinky Gurung 案）要求政府全面承認同性婚姻（2023 年 11 月起已依臨時命令另冊登記），民法還沒修改。維基百科的「Same-sex marriage in Nepal」與年表算 2026 年起合法，但同一篇總覽的「38 個國家」還沒算進去；照專門的條目與判決歸到同性婚姻，附註寫明民法還沒修改。
+      - 哥斯大黎加：Civil union 條目寫「1995 年 unión de hecho」，那是異性的事實婚姻，同性伴侶要到 2020 年才能結婚，所以之前算第三類。葡萄牙 2001 年的事實婚姻、哥倫比亞 2009 年的事實婚姻結合、巴西 2011 年的穩定結合不是登記制度，但照 Civil union 條目算第二類。
+      - 百慕達：2017 年 5 月法院判決開放、2018 年 6 月起改為同居伴侶、同年 11 月上訴法院恢復、2022 年 3 月英國樞密院司法委員會推翻，年底的狀態是 2017–2021 年第一類、2022 年起第二類。
+      - 屬地：法國的海外省與海外領地、美國的屬地（美屬薩摩亞除外）、澳洲的屬地、斯瓦巴、奧蘭跟所屬國家的婚姻法（`FOLLOWS`）；伴侶制度不跟隨，有的各自寫（PACS 1999 年起適用海外省，新喀里多尼亞、瓦利斯和富圖納 2009 年起）。格陵蘭、法羅群島、荷蘭的加勒比海屬地、阿魯巴、古拉索與英國的海外領地各自寫生效日；英屬維京群島、安圭拉、蒙哲臘、土克凱可、庫克群島、紐埃算第三類。無人島（南極、法屬南方領地、布威島等）不收。
+      - 香港沒有民事結合或婚姻（法院判決給予部分權利，終審法院 2023 年 9 月要求政府建立伴侶制度），日本只有地方的伴侶宣誓或證明制度，都算第三類，附註寫明。
+    - **沒有名次**：這些指標沒有好壞（結婚率高、初婚年齡低都不代表比較好），一律 `unranked`，排名表只依數值排列。
+    - **大小**：9 個指標檔加 `taiwan.json`、`manifest.json`，共約 430 KB（gzip 後約 55 KB）。初婚年齡、有偶比例的檔比較大，是因為 1970–2025 年每個國家都有一整排，大部分是 null。
+
 ## 9. 之後可以做的
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。
@@ -1888,6 +1931,7 @@ pipeline/
 - **房價與居住負擔**（第 66 點）：BIS 詳細的住宅價格（WS_DPP）還有阿聯、阿根廷、沙烏地阿拉伯，可以再補（要挑序列、確認各國來源）；OECD 與 BIS 差很多的國家（中國、加拿大、俄羅斯）可以查兩邊的原始序列再決定用哪一個；台灣的房租可以加內政部實價登錄的租賃資料（「租金統計資訊」），跟消費者物價的房租對照；有開放授權、口徑一致的跨國「房價是幾年所得」時，可以加一個水準的指標。
 - **城市**（第 67 點）：整套換成 GHS-WUP R2025（配合 WPP 2024、推估到 2100 年，跟聯合國《世界都市化展望 2025》同一份），城市的 ID 不相容，點與國家統計要一起換；放大後畫城市的範圍（MTUC 的多時期多邊形 76 MB，要簡化、分期切圖磚，先確認 1 GB 的上限）；點的顏色依成長率分級（`epochs.values` 多算一個欄位就好）；台灣 4 個沒有中文名稱的城市（Dazhuang、Gonghuakeng、Ô-á-liâu / Kezihliao、Xinying District）可以在 Wikidata 補上人口或別名後重跑。
 - **學生能力（PISA）**（第 68 點）：向 OECD 確認 2024 年 7 月以前的 PISA 報告可以照 CC BY 4.0 轉載後，用 PISA 2022、2018、2015、2012 各冊附錄的趨勢表補上沒有參加 2025 年的國家（俄羅斯、上海、列支敦斯登、巴拿馬、牙買加…），早年的名次才會跟官方一樣；「比上一次」可以依表裡的標準誤只標出顯著的變化；PISA 2025 之後幾冊（社經地位、學習環境）與新的「數位時代的學習」（運算式問題解決，台灣 551 分第 5）可以再加指標。
+- **婚姻與家庭**（第 69 點）：初婚年齡、有偶比例在聯合國 World Marriage Data 2019 以後沒有更新；有新版（或各國統計局的開放資料，例如德國 Destatis、新加坡 SingStat）時可以補到 2020 年代。中國的結婚登記（民政部）沒有開放授權的轉載版，目前是灰色。粗結婚率可以用各國自己的年中人口（Demographic Yearbook 的做法）代替 WPP。同性伴侶的法律地位有國家修法時要改 `same_sex_unions.py`（例如波蘭、日本、立陶宛的立法）。
 - **野火的火點密度網格**：NASA FIRMS 的每年火點彙整成 0.25° 網格、每年一期，照暖化網格的做法部署時產生（要先確認每年的國家檔不需 MAP_KEY，並量下載量與部署時間）。
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
@@ -1956,6 +2000,7 @@ pipeline/
   - 經濟加入房價與居住負擔（2026-10-26，經濟 12 個主題，選單分欄）：短名稱「房價」、House prices（12 個字元），選到它時英文 1280px 寬 817px（可用 871px），中文 1024px 556px（可用 650px）。控制列是 5 個指標按鈕：中文 1280px 一行；英文原本是 Real prices, 10y、Real prices, 5y、Real rents, 5y，指標 629px 加右邊 616px 換成兩行，改成 Real price 10y、Real price 5y、Real rent 5y（596px）就是一行。中文 1024px 時控制列是兩行，跟股市規模、存款與財產、治安與司法一樣（那個寬度右邊的底圖、搜尋、地圖／排名表、分享本來就放不下）。
   - 社會加入城市（2026-10-26，社會 16 個主題，選單分欄）：短名稱「城市」、Cities，選到它時英文 1280px 寬 760px（可用 871px），中文 1024px 556px（可用 650px）。控制列是指標下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行（左邊的下拉選單 34px 高、右邊的按鈕 36px，用元素的 top 數列數時會差 1px，實際是一行）。
   - 社會加入學生能力（PISA）（2026-10-26，社會 17 個主題，選單分欄）：短名稱「學生能力」、PISA，選到它時英文 1280px 寬 753px（可用 871px），中文 1024px 588px（可用 650px）。控制列是科目與指標兩個下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行；英文的指標名稱取短的（Change since last cycle、Change since 2012、Gender gap）。
+  - 社會加入婚姻與家庭（2026-10-26，社會 18 個主題，選單分欄）：短名稱「婚姻與家庭」、Marriage，選到它時英文 1280px 寬 788px（可用 871px），中文 1024px 604px（可用 650px，五個字）。控制列是指標下拉選單（9 個指標），中文 1024、1280px 與英文 1280px 都是一行。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。

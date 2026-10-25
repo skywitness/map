@@ -40,6 +40,23 @@ def demographic(columns: list[str], last_year: int = LAST_ESTIMATE) -> dict[str,
     return out
 
 
+def population_by_age_sex(first_year: int, last_year: int = LAST_ESTIMATE) -> dict[str, dict[int, dict[str, dict[int, float]]]]:
+    """所有國家的年中人口按性別與五歲年齡組：{iso3: {年: {'male'/'female': {年齡組起點: 人數}}}}，100 歲以上的起點是 100。"""
+    path = download(AGE5_URL, "wpp", "WPP2024_PopulationByAge5GroupSex_Medium.csv.gz")
+    out: dict[str, dict[int, dict[str, dict[int, float]]]] = {}
+    with gzip.open(path, "rt", encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if row["LocTypeID"] != COUNTRY or not row["ISO3_code"] or row["Variant"] != "Medium":
+                continue
+            year = int(row["Time"])
+            if first_year <= year <= last_year:
+                by_sex = out.setdefault(row["ISO3_code"], {}).setdefault(year, {"male": {}, "female": {}})
+                start = int(row["AgeGrpStart"])
+                by_sex["male"][start] = float(row["PopMale"]) * 1000  # 千人
+                by_sex["female"][start] = float(row["PopFemale"]) * 1000
+    return out
+
+
 def population_by_age(iso3: str, first_year: int, last_year: int = LAST_ESTIMATE) -> dict[int, dict[str, float]]:
     """某國年中人口按五歲年齡組：{年: {'30-34': 人數}}（檔案約 30 MB，第一次會下載）。"""
     path = download(AGE5_URL, "wpp", "WPP2024_PopulationByAge5GroupSex_Medium.csv.gz")

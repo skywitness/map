@@ -1,8 +1,9 @@
-"""主計總處 家庭收支調查（政府資料開放授權條款）：台灣的自有住宅率、平均每戶人數與所得分配（吉尼係數）。
+"""主計總處 家庭收支調查（政府資料開放授權條款）：台灣的自有住宅率、平均每戶人數、單人家戶比例與所得分配（吉尼係數）。
 
 - 每年的調查報告（https://www.stat.gov.tw/News.aspx?n=3908）附有歷年統計表，ods 讀 content.xml：
   - 第 24 表「家庭住宅狀況」：住宅權屬分配（自有、不住在一起的配偶父母或子女所有、租押、配住借用及其他）。
   - 第 26 表「年中戶數與平均每戶人數、就業人數」。
+  - 第 28 表「家庭戶數按戶內人口規模別之分配」（1 人、2 人……的戶數比例）。
 - 下載網址裡的編號每一版都不同（114 年版是 11530/236588），新版要到上面的網頁找。
 - 第一欄是民國年（「114年」），第二欄是西元年。
 - 自有住宅率 99 年（2010）改了定義：
@@ -65,6 +66,16 @@ def household_size() -> dict[int, float]:
     for year, row in _year_rows(_table("Year26")).items():
         numbers = _numbers(row)
         if len(numbers) >= 2 and numbers[1] is not None:
+            out[year] = numbers[1]
+    return out
+
+
+def one_person_share() -> dict[int, float]:
+    """單人家戶占所有家庭戶的比例（%）：第 28 表「家庭戶數按戶內人口規模別之分配」的「1人」，1970 年起（早期隔幾年一次）。"""
+    out = {}
+    for year, row in _year_rows(_table("Year28")).items():
+        numbers = _numbers(row)
+        if len(numbers) >= 2 and numbers[0] == 100.0 and numbers[1] is not None:
             out[year] = numbers[1]
     return out
 
