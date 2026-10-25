@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -435,6 +435,7 @@ pipeline/
 | 物價與財政 | 通膨率、物價水準（美國 = 100）、政府債務占 GDP、財政收支占 GDP、稅收占 GDP（含社會安全捐） | — | IMF WEO（含台灣；物價水準用 IMF 的 GDP（美元）÷ GDP（購買力平價）算出），IMF 未涵蓋的地區用 World Bank 補；稅收用 OECD 全球稅收統計，OECD 沒有的 57 國用 IMF 世界稅收資料庫（WoRLD）補；台灣稅收用財政部 | 通膨率、物價水準 1980–2031、政府債務 1991–2031、財政收支 1990–2031（2026 起推估）；稅收 1990–2024（台灣 2000 年起，最新一年還沒公布的國家顯示前一年） |
 | 外匯存底與外債 | 外匯存底（含黃金，比例圓，預設）、外匯存底可支應進口月數、外債占 GDP、經常帳占 GDP（發散色） | — | World Bank WDI（IMF 國際金融統計、國際債務統計 IDS）、World Bank/IMF 季度外債統計（QEDS）、IMF WEO（經常帳、名目 GDP）、IMF 初級商品價格（金價）；台灣用中央銀行的外匯存底、國際收支與國際投資部位統計，主計總處 GDP | 外匯存底 1960–2025、進口月數 1976–2025（最新一年還沒公布的國家顯示前一年）；外債 2003–2025；經常帳 1980–2031（2026 年起推估）；台灣的外匯存底與進口月數 2003 年起 |
 | 股市規模 | 上市公司市值占 GDP（預設）、上市公司市值（美元，比例圓）、上市公司家數（本國公司，比例圓） | — | World Bank WDI（世界交易所聯合會 WFE）；台灣用金管會證期局（上市＋上櫃）、中央銀行年底匯率、主計總處 GDP | 市值與占 GDP 1982–2025、家數 1980–2025（台灣 1998 年起；預設 2024 年，2025 年印度的數字有誤沒收） |
+| 房價與居住負擔 | 實質房價 10 年（預設）、實質房價 5 年的漲跌（59 個經濟體）、房價所得比、房價租金比（2015 年 = 100 的指數，41、43 個）、實質房租 5 年的漲跌（43 個）；漲跌與指數都用發散色反過來（漲、高於 100 是橘色）。只能比變化，不能比房價水準 | 實質房價與實質房租（2015 年 = 100）跟 OECD 平均、BIS 各經濟體平均的折線；房價所得比、房價租金比跟 2015 年與跟長期平均比（OECD 約 25 國）；台灣：全國與六都的房價所得比（倍）、房貸負擔率、住宅價格指數 5 年漲跌，全國與臺北市 2002 年起的房價所得比 | OECD Analytical house price indicators（CC BY 4.0）；OECD 沒有的 11 個經濟體用 BIS 住宅價格統計；台灣用內政部不動產資訊平台的住宅價格指數、房價所得比、貸款負擔率與主計總處的消費者物價 | 實質房價 5 年 1975–2025、10 年 1980–2025，房價所得比 1978–2025、房價租金比與實質房租 1970／1975–2025（各國顯示 2 年內最近一年）；台灣的實質房價、房價租金比、實質房租 2013 年起（漲跌 2018、2023 年起），房價所得比的倍數 2002 年第 1 季–2026 年第 1 季 |
 | 研發與創新 | 研發經費占 GDP、研發經費總額（購買力平價，比例圓）、每百萬人研究人員（全時約當數）、每百萬人專利申請（本國居民）、專利申請件數（比例圓） | — | World Bank WDI（UNESCO 統計研究所、WIPO）、IMF WEO（購買力平價 GDP）；台灣用國科會全國科技動態調查、主計總處 GDP、智慧局專利統計、WPP 人口 | 研發經費與研究人員 1996–2024（台灣 1999 年起）；專利 1980–2024（台灣 2007 年起）；研發各國顯示 5 年內、專利 3 年內最近一年的資料 |
 | 地震與火山 | 歷年地震（累積，預設）、當年的地震（兩個都不上色，畫規模 6 以上的地震點，依時間軸篩選）、每十年的地震次數（比例圓）、地震死亡人數（每十年，比例圓）、全新世火山數（比例圓）；疊加圖層：板塊邊界（聚合、張裂、轉形）、全新世火山（三角形）、規模 5–6 地震（預設關閉）、規模 6 以上地震（大小是規模、顏色是震源深度） | 最大的地震、死亡最多的地震、全新世火山清單（最近噴發的在前） | USGS ComCat、NOAA NCEI 全球重大地震資料庫、Smithsonian GVP Volcanoes of the World、PB2002 板塊邊界（fraxen/tectonicplates） | 地震 1900–2026（規模 5–6 從 1973 年）；每十年的指標 1900–2020 年代（2020 年代只到今年）；火山是 2026 年的快照 |
 | 民主與自由 | 政體分類（類別圖，封閉專制 → 自由民主的發散色）、選舉民主指數、自由民主指數、言論自由指數（V-Dem 的 0–1 指數，發散色，中間跨過 0.5） | 三項指數歷年對照、68% 可信區間 | V-Dem Country-Year 資料集 v16（CC BY-SA 4.0） | 1900–2025 |
@@ -608,6 +609,11 @@ pipeline/
     - **EOG 的 VIIRS 夜間燈光（Annual VNL V2）是 CC BY 4.0**：EOG 的授權文件（https://eogdata.mines.edu/files/EOG_products_CC_License.pdf ，2026-10 查）寫明 DMSP、VIIRS 夜間燈光（VNL）等以 CC BY 4.0 公開；用它做的衍生產品（含圖表）要寫「This product was made utilizing … data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.」，篇幅不夠時寫「Source: EOG, Colorado School of Mines.」，報告要引用文件附錄的論文（這裡引用 Elvidge et al. 2021）。主題的 `note` 開頭照抄那段聲明（中英文介面都是英文原文），地圖右下角與匯出圖片寫短的標示。文件另外寫「大幅面的圖要放 EOG 的標誌」，網頁地圖與分享的小圖不是大幅面印刷品，沒有放（照篇幅不夠時的規定寫短標示）。EOG 自己的下載站要註冊登入，**沒有用**；改用 Tomislav Hengl（OpenGeoHub）在 Zenodo 的轉存（doi:10.5281/zenodo.17294744，record 的授權欄是 CC BY 4.0，不必登入），2013–2024 年是 EOG 原本的 average_masked（檔案的 TIFFTAG_DOCUMENTNAME 寫著 EOG 的原始檔名），同一個 record 的 2000–2011 年外插值沒有用。頁尾同時列 EOG 與 Zenodo。
     - Natural Earth 1:10m 第一級行政區（夜間燈光側欄的地區名稱與範圍）是公有領域。
     - 英文維基百科的奧運獎牌榜是 CC BY-SA 4.0：奧運主題的資料檔是改作（換代碼、合併、累計、算人均），依 CC BY-SA 4.0 分享，頁尾寫明。Olympedia（OlyMADMen）的網站沒有開放授權，沒有用。
+    - OECD 的 Analytical house price indicators（OECD.ECO.MPD,DSD_AN_HOUSE_PRICES@DF_HOUSE_PRICES）是 CC BY 4.0（2024 年 7 月起的預設，跟其他 OECD 資料一樣）。
+    - **國際清算銀行（BIS）的住宅價格統計不是 CC 授權，但條款允許轉載**：BIS Data Portal 的「Terms of permitted use of BIS statistics」（https://data.bis.org/help/legal ，2026-10-26 查）寫「The use of the statistics is unrestricted, provided that」：轉載要註明 BIS 是來源；翻譯成其他語言時要說明不是 BIS 的官方翻譯；不能暗示 BIS 背書；用在商業產品時不能因此多收費；BIS 不保證正確。住宅價格的來源說明（https://www.bis.org/statistics/pp_sources.pdf ，2026-07-31 版）另外寫「Series may be downloaded, reproduced and disseminated as long as the appropriate national source is quoted」，所以 BIS 補上的 11 個經濟體在附註寫出各國的原始來源（央行、統計機關），頁尾的來源寫 BIS、頁尾的說明寫「中文不是 BIS 的官方翻譯」。API 的條款另外禁止修改、散布 API 本身（不是資料），這裡只下載資料。只補 OECD 沒有的經濟體，OECD 有的國家一律用 OECD（CC BY 4.0）。
+    - 房價主題用到的內政部不動產資訊平台「價格指標」（住宅價格指數、房價所得比、貸款負擔率）跟住宅主題一樣比照政府資料開放授權條款標示：平台本身沒有寫授權條款；內政部全球資訊網的「政府網站資料開放宣告」（https://www.moi.gov.tw/cp.aspx?n=10954 ，2026-10-26 查）是無償、非專屬、可再授權、註明出處即可利用。同一頁的國泰房地產指數、房價趨勢分數是國泰建設與政治大學的民間指數，沒有用；信義房價指數也是民間的，沒有用。
+    - 主計總處的「消費者物價基本分類暨項目群指數」（政府資料開放平臺 9158）是政府資料開放授權條款第 1 版。
+    - **跨國的「房價是幾年所得」沒有開放資料**：Demographia International Housing Affordability 是報告（Chapman University 與 Frontier Centre for Public Policy 出版），沒有找到開放授權的資料檔；Numbeo 的使用條款（https://www.numbeo.com/common/terms_of_use.jsp ，2026-10-26 查）寫「You may not use, copy, reproduce, distribute … or create derivative works」（除非另有授權或書面同意），也禁止用程式抓取。兩個都沒有用，地圖只用指數的變化（第 66 點）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1801,6 +1807,21 @@ pipeline/
     - **側欄的地區**：Natural Earth 1:10m 的第一級行政區（4,596 個，公有領域，中文名用 `name_zht`）也畫在同一個 30 角秒網格上，2017、2024 年各算一次每個（地區, 國家）的燈光；地區歸給 2024 年燈光最多的那個國家，只算那國國界內的部分（Natural Earth 的行政區界線跟 1:50m 國界不完全重合；法國的海外大區在地圖上是另外的國家），每國列前 8 個，只有一個地區的國家不列。台灣 2024 年：高雄市 0.229 MW/sr（12%）、台中市 0.221（12%）、臺南市 0.195、彰化縣 0.170、桃園市 0.158、新北市 0.137、屏東縣 0.094、雲林縣 0.084；臺北市面積小（272 km²），總量不在前 8。名稱照 Natural Earth（「台中市」與「臺南市」的寫法不一）。原本做「最亮的城市」（燈光格子歸給 30 km 內最近的 Natural Earth 城市點），但都會區被相鄰的城市點切成好幾塊，台北市排第 8、台中與台南因為腹地大排前面，不直覺，改成行政區。
     - **台灣**：平均亮度 3.44 nW/cm²/sr（第 17/244 名，2013 年 2.85）、有燈光的土地 40.6%（第 29 名，2013 年 35.6%）。合理性：台灣本島西部平原（東經 120.75° 以西）67% 有燈光、平均 6.9；中央山脈（東經 120.85°–121.35°、北緯 22.6°–24.4°）只有 22%、平均 0.61；海拔主題的資料是 47.7% 的國土在 500 公尺以上、32.6% 在 1,000 公尺以上，跟「平地大多有燈光、山區大多沒有」對得上。附註寫在平均亮度與有燈光的土地。
     - **漁船**：average_masked 把會移動的光源大多當成短暫的光遮掉，網格上只有固定的大漁場看得到（阿根廷外海專屬經濟海域邊緣的魷釣船隊很明顯）；台灣附近海上只剩零星幾個亮點，黃海、泰國灣的漁船也大多不見了。油氣田的燃燒塔與平台（波斯灣、尼日河三角洲）都在。EOG 的未遮罩版（average）與漁船偵測（VBD）都要登入，沒有用。
+66. **房價與居住負擔**（`pipeline/topics/house_prices.py`、`pipeline/sources/bis_rpp.py`、`dgbas_cpi.py`、`moi_realestate.py` 的 `price_indicator()`、`src/topics/house-prices.ts`、`src/topics/panels/HousePricesPanel.tsx`）：
+    - **下載**：OECD 用 `sources/oecd.py` 一次下載整個資料流（含標籤的 CSV，約 17 MB），取年資料的 RHP、HPI、RPI、HPI_YDH、HPI_RPI、HPI_YDH_AVG、HPI_RPI_AVG；BIS 用 SDMX API 下載 WS_SPP 的實質指數（`Q..R.628`，約 0.3 MB），四季都有才算年平均，基期從 2010 年換成 2015 年；內政部「價格指標」頁面（E2010）的查詢 API `E2010Data`（GET，回傳 JSON）；主計總處的消費者物價從政府資料開放平臺 9158 的 API 找 XML 的下載網址（約 27 MB，2013 年 1 月起的月資料）。pip.moi.gov.tw 會擋一般瀏覽器的 User-Agent（回「Request Rejected」），pipeline 的 User-Agent 可以；它的 API 有時要等幾十秒才回應。第一次共下載約 45 MB，之後用快取約 10 秒。
+    - **只能比變化**：OECD 的房價所得比（HPI_YDH）是名目房價指數 ÷ 每人名目可支配所得，房價租金比（HPI_RPI）是名目房價指數 ÷ 房租指數，都是 2015 年 = 100 的指數，不是「幾年的所得」；各國的房價指數本身也不同（成交價或估價、新成屋或全部住宅、全國或大都市）。所以地圖只放變化：實質房價 5 年、10 年的漲跌，實質房租 5 年的漲跌，以及 2015 年 = 100 的兩個比。OECD 另外有跟各國自己的長期平均比的版本（HPI_YDH_AVG、HPI_RPI_AVG，長期平均 = 100），只有約 25 國，放在側欄。跨國的倍數沒有開放資料（第 12 點）。
+    - **實質**：OECD 的實質房價用民間消費平減指數；實質房租 = RPI ÷（HPI ÷ RHP），用 OECD 自己的名目、實質房價反推平減指數，跟實質房價同一個平減方式。BIS 用消費者物價平減，台灣用主計總處的消費者物價總指數。
+    - **BIS 補的經濟體**：賽普勒斯、香港、摩洛哥、北馬其頓、馬爾他、馬來西亞、秘魯、菲律賓、新加坡、塞爾維亞、泰國，只補實質房價；OECD 有的 47 國一律用 OECD。BIS 的 WS_SPP（2026-10）有 57 個經濟體加 4 個合計，詳細的 WS_DPP 多了阿聯、阿根廷、沙烏地阿拉伯，**兩個都沒有台灣**。
+    - **OECD 與 BIS 差很多的國家**：同一國兩邊選的原始序列或平減指數不同。2020–2025 年的實質房價：中國 OECD +6%、BIS −18%；加拿大 +8%、−9%；俄羅斯 +81%、+34%；土耳其 +68%、+92%；2015–2025 年美國 +54%、+38%。差超過 10 個百分點的國家（5 年 4 國、10 年 8 國），附註寫出 BIS 的數字，地圖仍用 OECD。
+    - **台灣**（OECD、BIS 都沒有）：
+      - 實質房價：內政部的住宅價格指數（地政司，原營建署編製；105 年 = 100，實價登錄、屋齡 0.5–60 年的住宅，2012 年第 3 季起）年平均 ÷ 消費者物價總指數。2025 年比 2015 年高 26.8%（OECD 平均 32.7%，58 國第 32），5 年 +23.9%（第 11，OECD 平均 12.7%）。
+      - 房價所得比：內政部的倍數（中位數住宅價格 ÷ 中位數家戶年可支配所得）年平均，只用 2013 年起（2012 年第 2 季以前的房價是聯徵中心的擔保品估價，接不起來），換成 2015 年 = 100：2015 年 8.54 倍、2025 年 9.79 倍，所以是 114.6（OECD 平均 114.1，38 國第 15）。OECD 的分母是每人所得、房價是指數，內政部是中位數家戶所得、中位數成交價（成交的組成會變），附註寫明。
+      - 房價租金比：住宅價格指數 ÷ 消費者物價的「195 住宅租金」（不用「1.房租」類，那一類還含學校住宿費），128.0（OECD 平均 130.9）；實質房租 5 年 −1.7%（OECD 平均 +0.2%）。消費者物價的房租調查的是既有租約，漲得慢（2015–2025 年名目只漲 14.8%），附註寫明。
+      - 倍數放在側欄：2026 年第 1 季全國 9.47 倍、臺北市 14.72 倍、新北市 12.63 倍、臺中市 11.35 倍，房貸負擔率全國 41.46%、臺北市 64.41%（跟內政部的新聞稿一致）。側欄依時間軸的年份取那年（或之前）最後一季，2025 年是第 4 季（全國 9.32 倍）。另外列六都的住宅價格指數跟 5 年前同一季比（名目）：2020–2025 年臺北市 +21%、桃園市 +43%。
+    - **顏色**：漲跌用發散色反過來（漲是橘色、跌是青綠，跟暖化一樣：房價漲對要買房的人是壞消息），門檻 5 年 ±5、15、30%，10 年 ±10、25、50%，實質房租 ±2、5、10%；房價所得比與房價租金比用同一組 70、85、95、105、115、130（以 100 為中點），兩張圖可以對照。2025 年房價租金比有 18 國在最高一級（房價比房租多漲 30% 以上），照實呈現。
+    - **latestWithin 2**：美國、澳洲的房租 2025 年還沒有，沙烏地阿拉伯的房價只到 2023 年，顯示 2 年內最近一年並標出資料年份。
+    - **側欄的圖**：y 軸不從 0 開始（`scale: true`），指數在 100 上下才看得出起伏；國家自己的折線從它第一個有值的年份畫起。主側欄的通用折線圖在發散色時畫一條 0 的參考線，所以房價所得比、房價租金比那兩張的 y 軸從 0 開始（通用的程式，沒有改）。
+    - **跟住宅主題的分工**：住房負擔過重率（Eurostat `ilc_lvho07a`）已經在住宅主題，這裡不重複，頁尾寫明。
 
 ## 9. 之後可以做的
 
@@ -1830,6 +1851,7 @@ pipeline/
 - **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。
 - **全部商品往前延伸**：BACI 的 HS92 版從 1995 年開始，但 zip 有 2.4 GB，讀完約要 6 分鐘。
 - **夜間燈光**：每年一期的網格（12 期約多 200 MB，要先確認 GitHub Pages 的 1 GB 上限）；漁船要用 EOG 的未遮罩年平均或 VIIRS Boat Detection（都要登入，找到不必登入的轉存再加）；2016 → 2017 年的斷層找到原因（或 EOG 重新處理的版本）後可以拿掉 `methodBreak`；側欄加城市層級（要有開放授權的都會區範圍，例如 GHSL 的 Urban Centre Database，CC BY 4.0）。
+- **房價與居住負擔**（第 66 點）：BIS 詳細的住宅價格（WS_DPP）還有阿聯、阿根廷、沙烏地阿拉伯，可以再補（要挑序列、確認各國來源）；OECD 與 BIS 差很多的國家（中國、加拿大、俄羅斯）可以查兩邊的原始序列再決定用哪一個；台灣的房租可以加內政部實價登錄的租賃資料（「租金統計資訊」），跟消費者物價的房租對照；有開放授權、口徑一致的跨國「房價是幾年所得」時，可以加一個水準的指標。
 - **野火的火點密度網格**：NASA FIRMS 的每年火點彙整成 0.25° 網格、每年一期，照暖化網格的做法部署時產生（要先確認每年的國家檔不需 MAP_KEY，並量下載量與部署時間）。
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
@@ -1895,6 +1917,7 @@ pipeline/
   - 能源加入發電廠地圖、太陽能與風能潛力，地理加入颱風與颶風、野火（2026-10-23，能源 8 個；地理連同同一天加入的旅行實用共 6 個）：英文短名稱 Power plants、Solar & wind 是 12 個字元，但比 Water & forests 短，選到它們時英文 1280px 最寬 841px、Cyclones 與 Wildfires 810px；中文 1024px「太陽能與風能」644px（六個字，跟水資源與森林一樣）、颱風與颶風 628px、發電廠 596px、野火 580px，都沒有超出（可用 871px、650px）。
   - 科技與交通加入海底電纜、太空、交通安全，地理加入世界遺產、旅行實用，社會加入奧運（2026-10-23；科技與交通 8 個、地理 7 個，社會 15 個，科技與交通、社會分欄）：英文短名稱 Cables、Space、Road safety、Heritage、Travel、Olympics，選到它們時英文 1280px 最寬 832px（Road safety，可用 871px），中文 1024px 最寬 612px（四個字的主題，可用 650px），都放得下。
   - 地理加入夜間燈光（2026-10-26，地理 8 個主題，選單分欄）：英文短名稱 Night lights（12 個字元），選到它時英文 1280px 寬 833px（可用 871px），中文 1024px「夜間燈光」612px（可用 650px），控制列在兩種寬度都是一行（指標 6 個，用下拉選單）。
+  - 經濟加入房價與居住負擔（2026-10-26，經濟 12 個主題，選單分欄）：短名稱「房價」、House prices（12 個字元），選到它時英文 1280px 寬 817px（可用 871px），中文 1024px 556px（可用 650px）。控制列是 5 個指標按鈕：中文 1280px 一行；英文原本是 Real prices, 10y、Real prices, 5y、Real rents, 5y，指標 629px 加右邊 616px 換成兩行，改成 Real price 10y、Real price 5y、Real rent 5y（596px）就是一行。中文 1024px 時控制列是兩行，跟股市規模、存款與財產、治安與司法一樣（那個寬度右邊的底圖、搜尋、地圖／排名表、分享本來就放不下）。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。

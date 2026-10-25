@@ -21,6 +21,7 @@ import { fertility } from './fertility';
 import { fiscal } from './fiscal';
 import { happiness } from './happiness';
 import { health } from './health';
+import { housePrices } from './house-prices';
 import { housing } from './housing';
 import { income } from './income';
 import { industry } from './industry';
@@ -74,7 +75,7 @@ export interface TopicGroup {
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, health, disease, tobaccoAlcohol, education, diet, housing, religion, inequality, gender, crime, happiness, nobel, olympics] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, reserves, stockMarket, sectors, industry, agriculture, minerals] },
+  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, reserves, stockMarket, housePrices, sectors, industry, agriculture, minerals] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, space, transport, roadSafety] },
