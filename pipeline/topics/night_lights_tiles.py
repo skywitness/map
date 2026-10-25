@@ -98,6 +98,9 @@ def build() -> None:
     occupied: set[tuple[int, int, int]] = set()
     written: dict[int, set[tuple[int, int, int]]] = {}
     sizes: dict[int, int] = {}
+    # 先在主行程一個一個下載（每個檔已經是 24 條連線），4 個行程同時下載會對 Zenodo 發太多請求
+    for epoch in EPOCHS:
+        vnl.raster_path(epoch)
     with ProcessPoolExecutor(max_workers=min(JOBS, len(EPOCHS))) as pool:
         for epoch, tiles, size in pool.map(render_epoch, EPOCHS, repeat(tmp / ver), repeat(colors), repeat(common.REFRESH)):
             written[epoch], sizes[epoch] = tiles, size

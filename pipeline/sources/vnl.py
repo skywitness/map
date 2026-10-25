@@ -21,7 +21,7 @@
 - 授權：EOG 的 VNL 是 CC BY 4.0（https://eogdata.mines.edu/files/EOG_products_CC_License.pdf ），衍生的圖表要寫
   NOTICE；Zenodo 的轉存版也是 CC BY 4.0。
 
-Zenodo 每條連線只有約 25 KB/s（2026-10 在台灣實測），所以檔案切成 CHUNK 一段、THREADS 條連線平行下載，
+Zenodo 的速度時好時壞：2026-10-25 晚上在台灣每條連線只有約 25 KB/s、約 2.5 分鐘就被切斷，隔天同一個檔 15 秒就下載完，所以檔案切成 CHUNK 一段、THREADS 條連線平行下載，
 下載完用 Zenodo API 給的 MD5 檢查。
 """
 from __future__ import annotations
@@ -30,6 +30,7 @@ import hashlib
 import json
 import shutil
 import time
+import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -51,6 +52,7 @@ LAT_RANGE = (-62.0, 75.0)  # 有資料的範圍：檔案只到南緯 62°，北�
 CHUNK = 4 << 20
 THREADS = 24
 RETRIES = 5
+MAX_WAITS = 20  # HTTP 429 最多等幾次
 
 # EOG 的授權文件要求衍生產品（含圖表）寫上這段，篇幅不夠時改寫 CREDIT
 NOTICE = (
@@ -90,7 +92,7 @@ def _fetch(url: str, start: int, end: int, target: Path) -> None:
         return
     tmp = target.with_suffix(".part")
     tmp.unlink(missing_ok=True)
-    failures = 0
+    failures = waits = 0
     while True:
         got = tmp.stat().st_size if tmp.exists() else 0
         if got == end - start:
@@ -105,6 +107,18 @@ def _fetch(url: str, start: int, end: int, target: Path) -> None:
                     raise OSError(f"HTTP {resp.status}，伺服器不支援 Range")
                 while chunk := resp.read(1 << 16):
                     f.write(chunk)
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and waits < MAX_WAITS:
+                # 請求太多（Zenodo 的速率限制）：照 Retry-After 等一下再接著下載，不算失敗
+                waits += 1
+                after = e.headers.get("Retry-After") or ""
+                time.sleep(min(int(after), 300) if after.isdigit() else 30)
+                continue
+            failures += 1
+            if failures >= RETRIES:
+                raise
+            print(f"  {target.name} 下載失敗（HTTP {e.code}），重試", flush=True)
+            time.sleep(5 * failures)
         except OSError as e:
             got = tmp.stat().st_size if tmp.exists() else 0
             if got == before:  # 完全沒有進度才算失敗
