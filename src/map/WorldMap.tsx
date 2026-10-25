@@ -1119,15 +1119,10 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !map || !installedRef.current) return;
     // 換底圖後新樣式沒有這些 source，資料要重送
     if (overlaySentRef.current.revision !== revision) overlaySentRef.current = { revision, cache: new Map() };
-    pointLayersRef.current = syncOverlays(map, overlays, overlaySentRef.current.cache, basemap.dark);
+    // 換年份時也要同步：有 epochs 的點圖層（城市每 5 年一期的人口）換到另一期要重送資料，其他圖層不會重送
+    pointLayersRef.current = syncOverlays(map, overlays, overlaySentRef.current.cache, basemap.dark, year);
     applyTimeFilters(map, overlays, year, indicator.overlayTime);
-  }, [revision, overlays]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!ready || !map || !installedRef.current) return;
-    applyTimeFilters(map, overlays, year, indicator.overlayTime);
-  }, [year, indicator.overlayTime]);
+  }, [revision, overlays, year, indicator.overlayTime]);
 
   /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
   const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);

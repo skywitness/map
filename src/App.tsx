@@ -297,7 +297,7 @@ export function App() {
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;
-    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries) });
+    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries), year });
     return (
       <>
         <div className="tt-value">{tip.title}</div>

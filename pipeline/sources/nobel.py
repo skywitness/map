@@ -65,12 +65,13 @@ def _digest(qids: list[str]) -> str:
     return hashlib.sha1(",".join(qids).encode()).hexdigest()[:12]
 
 
-def zh_labels(qids: list[str]) -> dict[str, tuple[str | None, str | None]]:
+def zh_labels(qids: list[str], prefix: str = "nobel") -> dict[str, tuple[str | None, str | None]]:
     """{QID: (中文名稱或 None, 來源語言)}。
 
     依序用 Wikidata 本身的 zh-tw、zh-hant、zh-hk 名稱；都沒有時用 languagefallback 的 zh-tw，
     那是伺服器從 zh／zh-hans／zh-cn 等轉換過來的繁體（來源語言記成 zh→tw 之類）。再沒有就是 None（介面上用英文名）。
     依 QID 排序後每 50 個一批，快取檔名是這批 QID 的雜湊，新增得主時只會重抓有變的那幾批。
+    prefix 是快取檔名的開頭（城市主題用 cities）。
     """
     ids = sorted(set(qids), key=lambda q: int(q[1:]))
     out: dict[str, tuple[str | None, str | None]] = {}
@@ -84,7 +85,7 @@ def zh_labels(qids: list[str]) -> dict[str, tuple[str | None, str | None]]:
             "languagefallback": "1",
             "format": "json",
         }
-        path = download(f"{WIKIDATA_API}?{urllib.parse.urlencode(params)}", "wikidata", f"nobel-labels-{_digest(batch)}.json")
+        path = download(f"{WIKIDATA_API}?{urllib.parse.urlencode(params)}", "wikidata", f"{prefix}-labels-{_digest(batch)}.json")
         with open(path, encoding="utf-8") as f:
             entities = json.load(f)["entities"]
         for qid in batch:

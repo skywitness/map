@@ -71,6 +71,9 @@ STEPS = {
     "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
     "fertility": "topics.fertility",
+    # GHSL Urban Centre Database 2025 與各國城鄉人口（約 43 MB）、Wikidata 的地點（兩次查詢約 1 分鐘）與中文名稱
+    # （約 130 次查詢）、內政部戶政司的縣市人口；之後用快取約 30 秒
+    "cities": "topics.cities",
     "crime": "topics.crime",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "happiness": "topics.happiness",

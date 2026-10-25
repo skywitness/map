@@ -283,13 +283,39 @@ export interface PointsOverlayDef extends OverlayBase {
   sortField?: string;
   /** 年份欄位：依時間軸篩選要顯示的點，篩選方式看指標的 overlayTime */
   timeField?: string;
+  /**
+   * 跟著時間軸變的數值（例如城市每 5 年一期的人口與面積）：years 是資料的各期，時間軸的年份換成不晚於它的最近一期
+   * （比第一期早時用第一期，`overlayEpoch()`），values(紀錄, 期) 算出這一期的欄位（例如 { pop: 那一期的人口 }），
+   * radius、color、sortField、minValue 可以用這些欄位；值是 null 的欄位不放（例如還不是城市的期沒有人口，minValue 會把它篩掉）。
+   * 換到另一期時才重算、重送資料。
+   */
+  epochs?: { years: number[]; values: (p: PointRecord, epoch: number) => Record<string, number | null> };
+  /**
+   * 依縮放篩選：縮小時只畫數值大的點（例如世界全圖只畫 100 萬人以上的城市），stops 是 [縮放級數, 最小值]，
+   * 由小到大，第一個的級數是 0。用 MapLibre 的 filter（['zoom'] 在 filter 裡是圖磚的整數級數），跟時間篩選合併；
+   * 沒有這個欄位的點不畫。
+   */
+  minValue?: { field: string; stops: [number, number][] };
   /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
    * tooltip：title 是第一行（粗體），detail 是第二行。
    * countryName 由 App 提供（目前語言的國名），原文專有名詞（地名、館處英文名）可以放在 properNoun，畫面上不翻譯。
+   * year 是時間軸的年份（有 epochs 的圖層用 overlayEpoch() 換成那一期）。
    */
-  tooltip: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
+  tooltip: (
+    p: PointRecord,
+    ctx: { countryName: (iso3: string) => string; year: number },
+  ) => { title: string; detail?: string; properNoun?: string };
+}
+
+/** 有 epochs 的點圖層：時間軸的年份對到哪一期（不晚於這一年的最近一期；比第一期早時用第一期）；沒有 epochs 是 null */
+export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number): number | null {
+  const years = def.epochs?.years;
+  if (!years?.length) return null;
+  let epoch = years[0];
+  for (const y of years) if (y <= year) epoch = y;
+  return epoch;
 }
 
 /** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、海底電纜 */
@@ -319,7 +345,10 @@ export interface LinesOverlayDef extends OverlayBase {
    * 滑到線上時的 tooltip（要有 LinesData.records）：p 是那條線的紀錄。有 tooltip 的線可以 hover，
    * 滑過時整條線（紀錄完全相同的所有段，例如同一條電纜的各段）加粗標出。
    */
-  tooltip?: (p: PointRecord, ctx: { countryName: (iso3: string) => string }) => { title: string; detail?: string; properNoun?: string };
+  tooltip?: (
+    p: PointRecord,
+    ctx: { countryName: (iso3: string) => string; year: number },
+  ) => { title: string; detail?: string; properNoun?: string };
 }
 
 /** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */

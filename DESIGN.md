@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -168,7 +168,7 @@ pipeline/
 | `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入 | 發電結構、GDP 與就業結構、主要農產品 |
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
-| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層） |
+| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層）；城市（每 5 年一期的人口跟著時間軸換、縮小時只畫大城市） |
 | 指標的 `overlayTime` | 有年份欄位的疊加點（或線）怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年）；海底電纜（依啟用年份累積）；颱風（當年／每十年） |
 | 指標的 `projectionLabel` | 資料檔有 `projectionFrom` 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」；之前是實際數字、之後也不是推估時，換掉之後的稱呼（`tag`）與刻度上的說明（`from(年)`），之前的年份不加標籤 | 海底電纜（明年起「含規劃中」） |
 | 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底） |
@@ -202,7 +202,7 @@ pipeline/
 
 面量圖的 `itemScales` 是**各子項目自己的分級門檻**（`{ kind: 'choropleth', scale, itemScales: { eggs: {...}, milk: {...} } }`），沒列的子項目用 `scale`。例如飲食主題的人均供給量：蛋最多 25 公斤、乳品超過 500 公斤，用同一組門檻會有一邊整片同色。門檻仍是寫死的、所有年份共用。App 用 `forItem(indicator, item)`（`src/topics/types.ts`）換成目前子項目的那一組，同一組合回傳同一個物件，地圖、圖例、匯出圖片拿到的都是換好的指標。
 
-圖層的 `kind: 'none'` 表示國家不依數值上色，只畫疊加圖層（例如交通主題的「路網地圖」）；指標資料仍用在 tooltip 與排名表。
+圖層的 `kind: 'none'` 表示國家不依數值上色，只畫疊加圖層（例如交通主題的「路網地圖」）；指標資料仍用在 tooltip 與排名表。國家側欄不把它列成數值卡片；它跟某張數值卡片用同一個資料檔時（城市的「城市地圖」與「住在城市的比例」、發電廠地圖與總裝置容量），側欄的折線圖用那張卡片的名稱與格式（「住在城市的比例的變化」，不是「城市地圖的變化」，`CountryPanel.tsx` 的 `chartIndicator`）。
 
 圖層的 `kind: 'categorical'` 是**類別圖**（每個國家屬於一類，沒有大小之分），例如語言主題的「主要官方語言」與「官方地位」：
 - 設定：`{ kind: 'categorical', categories: [{ value: 1, label: { zh, en } }, …], other?: Text, ordinal?: boolean }`。
@@ -241,6 +241,9 @@ pipeline/
     - 為什麼不用 `line-gradient`：它只能依線的長度比例漸層，不能依資料；每段一個 feature 才能依強度上色、用 `dash` 畫非熱帶的階段。
     - `sortByType: true`：`line-sort-key` 依代碼，強的那段疊在弱的上面（同一個圖層裡排序；虛線那層另外排）。
     - `casing: true`：線下面墊一層細邊 `ov-<id>-casing`（淺色底圖深色 0.28、深色底圖白色 0.4，比線寬 1.4 px）。颱風最淺的兩級（熱帶性低氣壓、熱帶風暴）在藍色的海上、最深的兩級在深色底圖上都不容易看清楚，墊了邊才分得出來。
+  - **跟著時間軸變的數值**（城市，2026-10-26 起）：`epochs: { years, values(紀錄, 期) }`。點的數值每一期一個（城市 1975–2030 每 5 年的人口），時間軸的年份換成不晚於它的最近一期（`overlayEpoch()`），`values` 算出那一期的欄位（`{ pop }`）放進 GeoJSON，`radius`、`color`、`sortField`、`minValue` 用這些欄位。值是 null 的欄位不放（那一期還不是城市，`minValue` 的 `has` 篩掉，點就不畫）。換到另一期時才重算、重送資料（`syncOverlays` 的快取記下資料與那一期；WorldMap 換年份時也呼叫它，沒有 epochs 的圖層不會重送）。tooltip 的第二個參數多了 `year`（時間軸的年份）。
+    - 為什麼不在 GeoJSON 放所有年份、用運算式挑欄位：`circle-radius`、`circle-sort-key`、filter 都要依年份改寫，改了一樣會讓 worker 重新切圖磚，程式卻多很多；重送資料只在換到另一期時發生（12 期）。
+  - **依縮放篩選**（城市，2026-10-26 起）：`minValue: { field, stops: [[縮放級數, 最小值], …] }`，MapLibre 的 filter `['>=', ['get', field], ['step', ['zoom'], …]]`，跟時間篩選合併（`pointFilter()`）。filter 裡的 `['zoom']` 是圖磚的整數級數（GeoJSON 在 worker 依圖磚切），所以門檻在整數級數換。城市：圖磚 0–1 級（世界全圖）200 萬人以上、2 級 100 萬、3 級 30 萬、4 級 10 萬、5 級起全部；1280×800 的地球儀（縮放約 1.7）約畫 70 個、台灣（6.6 級）全部 21 個。
   - **借用別的主題的資料檔**：`topic: 'power-plants'` 時資料檔從 `topics/power-plants/` 讀（`App.tsx` 的 `useOverlays`）。發電量主題用它加一個預設關閉的「運轉中的電廠」圖層（`{ ...OPERATING_PLANTS, topic: 'power-plants', hidden: true }`），第一次打開才下載，跟發電廠地圖主題共用同一個檔與快取。
 - **資料格式**：點用 `common.points_file()`（`PointsData`）：欄位分開存，數值量化成整數（經緯度 0.01°），排序過的欄位（年份、經度）存差分；前端 `decodePoints()` 還原。線用 `common.lines_file()`（`LinesData`），跟鐵路同一種差分編碼，跨 180° 經線的線要先把經度展開成連續的。
 - **圖層順序**：線插在機場前面、點插在框選範圍前面，都在 3D 立體圖形之上；`overlays` 裡後面的畫在上面。每個圖層一個 source（`ov-<id>`），換底圖後依 `revision` 重新加上、重送資料。
@@ -397,6 +400,7 @@ pipeline/
 | 地圖（純地圖） | 不上色，只看底圖；點國家會放大到該國 | — | OpenFreeMap、OpenStreetMap | — |
 | 人口 | 總人口、密度（國家平均，或切到 1 km 網格）、年增率、年齡中位數；可框選估算 | — | UN WPP 2024；1 km 網格與框選用 JRC GHS-POP R2023A | 1950–2100（2024 起推估）；1 km 網格 1975–2030 每 5 年一期（2025 起推估）；框選的網格是 2020 年 |
 | 生育率與高齡化 | 總生育率（發散色，中性一級跨過替代水準 2.1）、65 歲以上人口比例、扶老比、出生數（比例圓） | 人口金字塔（男女五歲年齡組，比例尺固定為 1950–2100 年最大的一組，推估年份調淡） | UN WPP 2024（中推估）；台灣也用 WPP，附註對照內政部戶政司與國發會人口推估（2026 至 2075 年） | 1950–2100（2024 起推估） |
+| 城市 | 城市地圖（預設，不上色，畫約 1.1 萬個城市的點：面積與人口成正比，每 5 年一期跟著時間軸換，還不是城市的年份不畫，縮小時只畫大城市）、都市化率（住在城市與城鎮、半密集區的比例）、住在城市的比例、最大城市占全國人口、百萬人口城市數（比例圓）、最大城市的人口（比例圓） | 這個國家最大的城市（人口、每 km² 人數、比 10 年前；前 10 個，其餘收起來，最多 60 個）；台灣：UCDB 的城市跟涵蓋它的縣市戶籍人口對照 | JRC GHSL：GHS-UCDB R2024A（Urban Centre Database 2025，城市與多時期的範圍、人口、面積）、GHS-COUNTRY-STATS R2024A（各國依城鄉程度的人口），都是 CC BY 4.0；Wikidata（城市的中文名稱，CC0）；台灣對照內政部戶政司的村里人口 | 1975–2030 每 5 年一期（2025、2030 是推估） |
 | 人均收入 | 人均 GDP（名目、PPP）、GDP 總額、經濟成長率 | — | IMF WEO（含台灣），IMF 未涵蓋的 17 個地區用 World Bank 補 | 1980–2031（2026 起推估） |
 | 發電量 | 總發電量、人均用電、再生/低碳/燃煤/核能占比、碳排強度 | 發電結構堆疊面積圖＋各能源長條 | Ember | 2000–2025 |
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
@@ -614,6 +618,8 @@ pipeline/
     - 房價主題用到的內政部不動產資訊平台「價格指標」（住宅價格指數、房價所得比、貸款負擔率）跟住宅主題一樣比照政府資料開放授權條款標示：平台本身沒有寫授權條款；內政部全球資訊網的「政府網站資料開放宣告」（https://www.moi.gov.tw/cp.aspx?n=10954 ，2026-10-26 查）是無償、非專屬、可再授權、註明出處即可利用。同一頁的國泰房地產指數、房價趨勢分數是國泰建設與政治大學的民間指數，沒有用；信義房價指數也是民間的，沒有用。
     - 主計總處的「消費者物價基本分類暨項目群指數」（政府資料開放平臺 9158）是政府資料開放授權條款第 1 版。
     - **跨國的「房價是幾年所得」沒有開放資料**：Demographia International Housing Affordability 是報告（Chapman University 與 Frontier Centre for Public Policy 出版），沒有找到開放授權的資料檔；Numbeo 的使用條款（https://www.numbeo.com/common/terms_of_use.jsp ，2026-10-26 查）寫「You may not use, copy, reproduce, distribute … or create derivative works」（除非另有授權或書面同意），也禁止用程式抓取。兩個都沒有用，地圖只用指數的變化（第 66 點）。
+    - **GHSL 的 Urban Centre Database 2025（GHS-UCDB R2024A）與國家統計（GHS-COUNTRY-STATS R2024A）是 CC BY 4.0**：JRC 下載站每個資料夾的 copyright.txt 寫「Any copyright and/or sui generis right on the dataset is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) licence」（© European Union，依執委會 2011/833/EU 決定，2026-10-26 查），要註明來源、說明改作，頁尾照寫。UCDB 的城市名稱是 JRC 自動從 GISCO、OpenStreetMap 與 WUP 2018 取的（UCDB 的欄位說明），整個資料庫仍以 CC BY 4.0 發布；這裡只用名稱字串，底圖的標示已有 © OpenStreetMap contributors。
+    - 內政部戶政司的開放資料 API（ODRP019「村里戶數、人口數」）採政府資料開放授權條款第 1 版；城市主題只拿來對照台灣的縣市人口。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1822,6 +1828,18 @@ pipeline/
     - **latestWithin 2**：美國、澳洲的房租 2025 年還沒有，沙烏地阿拉伯的房價只到 2023 年，顯示 2 年內最近一年並標出資料年份。
     - **側欄的圖**：y 軸不從 0 開始（`scale: true`），指數在 100 上下才看得出起伏；國家自己的折線從它第一個有值的年份畫起。主側欄的通用折線圖在發散色時畫一條 0 的參考線，所以房價所得比、房價租金比那兩張的 y 軸從 0 開始（通用的程式，沒有改）。
     - **跟住宅主題的分工**：住房負擔過重率（Eurostat `ilc_lvho07a`）已經在住宅主題，這裡不重複，頁尾寫明。
+67. **城市**（`pipeline/topics/cities.py`、`pipeline/sources/ghsl_ucdb.py`、`wikidata_places.py`、`ris.py`、`src/topics/cities.ts`、`src/topics/panels/CitiesPanel.tsx`）：
+    - **定義**：城市是 GHSL 的 urban centre，也就是「城鄉程度」（Degree of Urbanisation，聯合國統計委員會 2020 年採用的國際比較定義）的第一層：每 km² 1,500 人以上的 1 km 格子四鄰相連、合計 5 萬人以上，邊界再平滑、補 15 km² 以下的洞。是連續的市區，不是行政區，也不是通勤圈。都市化率 = 城市加上城鎮與半密集區（urban cluster：每 km² 300 人以上、八鄰相連、合計 5,000 人以上）的人口比例。2025 年世界：住在城市 45.2%、都市化率 80.5%（1975 年 32.1%、69.4%）。各國官方的都市化率定義都不同，所以不用。
+    - **來源與版本**：UCDB R2024A V1.2（2026-05）的一般屬性（GENERAL_CHARACTERISTICS 主題，6.6 MB）與多時期城市（MTUC，35 MB），加上 GHS-COUNTRY-STATS R2024A（1.5 MB）。UCDB 的 GHSL 主題（GH_POP_TOT_1975…，77 MB）沒有用：那是用 2025 年的範圍回推每一期，1975 年的「城市人口」會含當時還是農村的地方。MTUC 每一期用那一期的範圍（還不是城市的期沒有值），跟國家統計的城市人口一致：2025 年各國城市的加總完全相同（台灣 18,781,891 人）；1975 年 MTUC 的合計比國家統計少 5%，是 2025 年以前就消失的城市不在清單裡。
+    - **GHS-WUP R2025 沒有用**：JRC 2025 年 12 月另外發布給聯合國《世界都市化展望 2025》用的 GHS-WUP（配合 WPP 2024、推估到 2100 年，也有各國城鄉人口與多時期城市），但它的說明文件寫明跟 GHS P2023、UCDB R2024A 是「incompatible data streams」，城市的 ID 也對不起來。點用 UCDB，國家統計也用同一系列（P2023），最大城市占全國人口才是同一份網格算的。要推估到 2100 年可以整套換成 WUP R2025（見第 9 節）。
+    - **檔案的坑**：MTUC 的 CSV 是 cp1252，非拉丁字母的名稱變成「?」，數字有千分位；名稱改用一般屬性的 CSV（UTF-8；GeoPackage 裡的 GC_UCN_LIS 有些是 UTF-8 被當成 Latin-1 的亂碼）。MTUC 另外有 264 個國家欄是 #N/A、不在 UCDB 2025 的實體（例如摩洛哥的 Tan-Tan），不用。中心點是一般屬性 GeoPackage 的 `UC_centroids` 表（人口加權，Mollweide），用 rasterio（PROJ）換成經緯度；GeoPackage 是 SQLite，標準函式庫就讀得到。
+    - **合併的城市**：MTUC 把後來合併的實體算成同一個 ID（many-to-one），所以 1990 年的「Guangzhou」是後來併成一片的那些實體的合計，點固定畫在 2025 年的中心點。珠江三角洲在 1990 年代連成一片：582 萬（1990）→ 1,284 萬（1995）→ 2,777 萬（2000）→ 4,299 萬人（2025，6,454 km²），範圍含深圳、佛山、東莞、江門、中山；香港、「Zhuhai [Macau]」（珠海與澳門）是另外的城市。各國「最大城市的人口」在合併那一年會跳一階（中國 1995 → 2000 年），指標說明與頁尾都寫明。
+    - **國家**：UCDB 的國家是 GADM 的國名（México 有重音、國家統計沒有，去掉重音再對）。GADM 的中國含香港、澳門，國家統計也是，所以港澳沒有國家的值（`noValue`）；點則依地圖的國界標成 HKG、MAC（`geoindex.country_at`），滑過標出香港、點一下選取香港，側欄列出香港的城市。科索沃 XKO → XKX、北賽普勒斯 ZNC → _CYN；亞克羅提利與德凱利亞、裏海、克利珀頓島、西沙、南沙不輸出。
+    - **中文名稱**（Wikidata）：一次查出人口 3 萬以上、有座標的 5.4 萬個項目的英文／mul 名稱與英文別名（很多項目 2025 年起英文名稱只放在 mul，例如坦帕 Q49255），找中心點在城市範圍附近（15 km 加上等面積圓半徑的 1.5 倍）、名稱正規化後跟 UCDB 主要名稱相同的；優先正式名稱、不是行政區的、比較近的，距離相同時人口少的（州、省的座標常常就是首府）。只靠別名對到的行政區不用；東亞以外，中文名稱以省、州、縣、郡、區結尾的也不用（赤瓦瓦州、安特衛普省、西寧省），改試下一個候選。zh 名稱是原文（「Quixadá」）的不用，簡體字依 `nobel.S2T` 加上幾個實際出現的字轉成繁體。結果：5,597 個城市有中文名稱，30 萬人以上 1,557/1,905 個（82%）、100 萬人以上 494/524 個；沒對到的用英文（印度的 Hajipur、Kalyan-Dombivli、華盛頓…），不自己翻譯。
+    - **台灣**：21 個城市，有 17 個有中文名稱；Dazhuang（沙鹿、梧棲一帶）、Gonghuakeng（林口、龜山一帶）、Ô-á-liâu / Kezihliao（岡山、梓官一帶）、Xinying District（新營）是 UCDB 依 OpenStreetMap 的村里或區名取的，Wikidata 對不到，照英文。2025 年住在城市 78.3%（第 7/241）、都市化率 94.5%（第 14）；百萬人口以上 4 個（臺北、臺中、高雄、臺南；臺南 2030 年推估 100 萬以下）。最大的「Taipei」是臺北、新北、桃園、基隆連成一片（972 km²），968.7 萬人，最大城市占全國 40.4%（第 26/191），比四市的戶籍人口合計 919.9 萬（內政部 2025 年底）還多 5%：GHS-POP 配合 WPP 2022，台灣 2025 年是 2,397 萬人，比戶籍的 2,330 萬多 2.9%，加上分配到格子的誤差。臺中 231.8 萬（臺中市戶籍 286.8 萬）、高雄 229.5 萬（高雄市 271.9 萬）、臺南 101.1 萬（臺南市 185.2 萬）、新竹 71.3 萬（新竹市＋新竹縣 105.3 萬）、彰化 43.8 萬（彰化縣 121.0 萬）。原本以為臺中與彰化、臺南與高雄也會連成一片，實際上 UCDB 是分開的城市。側欄的對照表與附註都寫出這些數字（`taiwan.json`）。
+    - **大小**：`cities.json` 1.52 MB（gzip 後 468 KB）：11,422 個點 × 12 期的人口（百人）與面積（km²），每一期存跟前一期的差（gzip 後少 14%，`cities.ts` 的 `cityValue()` 一路加回來）；名稱占最多（gzip 後英文 62 KB、中文 38 KB、範圍內的其他地名 23 KB）。指標檔 5 個共約 70 KB。城市地圖一打開就下載，側欄讀同一個檔（`useJson` 有快取）。
+    - **點**：半徑約 3.5 × √(人口 ÷ 100 萬) px（縮放 2 時），分段線性內插，5 萬人放大到 1.1 px；顏色是比例圓的紫色（`MAP_TOKENS.accent`），不分類。資料依 2025 年人口由大到小排，小城市畫在大城市上面。縮小時只畫大城市（第 4 節「依縮放篩選」）。點只畫在城市地圖（面量圖、比例圓上再疊上萬個點會看不清楚）。tooltip：名稱、國家、那一期的人口、面積與每 km² 人數、比 10 年前（1980 年跟 1975 年比；之後才成為城市的寫「2020 年起成為城市」），中文名稱下面寫英文名稱與範圍內的其他地名（最多 4 個）。
+    - **分級**：都市化率 40、55、70、80、90、95%；住在城市 10、20、35、50、65、80%；最大城市占全國 5、10、20、30、45、60%（2025 年中位數 18%，巴林 90%、科威特 84%、新加坡 84% 最高）。
 
 ## 9. 之後可以做的
 
@@ -1852,6 +1870,7 @@ pipeline/
 - **全部商品往前延伸**：BACI 的 HS92 版從 1995 年開始，但 zip 有 2.4 GB，讀完約要 6 分鐘。
 - **夜間燈光**：每年一期的網格（12 期約多 200 MB，要先確認 GitHub Pages 的 1 GB 上限）；漁船要用 EOG 的未遮罩年平均或 VIIRS Boat Detection（都要登入，找到不必登入的轉存再加）；2016 → 2017 年的斷層找到原因（或 EOG 重新處理的版本）後可以拿掉 `methodBreak`；側欄加城市層級（要有開放授權的都會區範圍，例如 GHSL 的 Urban Centre Database，CC BY 4.0）。
 - **房價與居住負擔**（第 66 點）：BIS 詳細的住宅價格（WS_DPP）還有阿聯、阿根廷、沙烏地阿拉伯，可以再補（要挑序列、確認各國來源）；OECD 與 BIS 差很多的國家（中國、加拿大、俄羅斯）可以查兩邊的原始序列再決定用哪一個；台灣的房租可以加內政部實價登錄的租賃資料（「租金統計資訊」），跟消費者物價的房租對照；有開放授權、口徑一致的跨國「房價是幾年所得」時，可以加一個水準的指標。
+- **城市**（第 67 點）：整套換成 GHS-WUP R2025（配合 WPP 2024、推估到 2100 年，跟聯合國《世界都市化展望 2025》同一份），城市的 ID 不相容，點與國家統計要一起換；放大後畫城市的範圍（MTUC 的多時期多邊形 76 MB，要簡化、分期切圖磚，先確認 1 GB 的上限）；點的顏色依成長率分級（`epochs.values` 多算一個欄位就好）；台灣 4 個沒有中文名稱的城市（Dazhuang、Gonghuakeng、Ô-á-liâu / Kezihliao、Xinying District）可以在 Wikidata 補上人口或別名後重跑。
 - **野火的火點密度網格**：NASA FIRMS 的每年火點彙整成 0.25° 網格、每年一期，照暖化網格的做法部署時產生（要先確認每年的國家檔不需 MAP_KEY，並量下載量與部署時間）。
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
@@ -1918,6 +1937,7 @@ pipeline/
   - 科技與交通加入海底電纜、太空、交通安全，地理加入世界遺產、旅行實用，社會加入奧運（2026-10-23；科技與交通 8 個、地理 7 個，社會 15 個，科技與交通、社會分欄）：英文短名稱 Cables、Space、Road safety、Heritage、Travel、Olympics，選到它們時英文 1280px 最寬 832px（Road safety，可用 871px），中文 1024px 最寬 612px（四個字的主題，可用 650px），都放得下。
   - 地理加入夜間燈光（2026-10-26，地理 8 個主題，選單分欄）：英文短名稱 Night lights（12 個字元），選到它時英文 1280px 寬 833px（可用 871px），中文 1024px「夜間燈光」612px（可用 650px），控制列在兩種寬度都是一行（指標 6 個，用下拉選單）。
   - 經濟加入房價與居住負擔（2026-10-26，經濟 12 個主題，選單分欄）：短名稱「房價」、House prices（12 個字元），選到它時英文 1280px 寬 817px（可用 871px），中文 1024px 556px（可用 650px）。控制列是 5 個指標按鈕：中文 1280px 一行；英文原本是 Real prices, 10y、Real prices, 5y、Real rents, 5y，指標 629px 加右邊 616px 換成兩行，改成 Real price 10y、Real price 5y、Real rent 5y（596px）就是一行。中文 1024px 時控制列是兩行，跟股市規模、存款與財產、治安與司法一樣（那個寬度右邊的底圖、搜尋、地圖／排名表、分享本來就放不下）。
+  - 社會加入城市（2026-10-26，社會 16 個主題，選單分欄）：短名稱「城市」、Cities，選到它時英文 1280px 寬 760px（可用 871px），中文 1024px 556px（可用 650px）。控制列是指標下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行（左邊的下拉選單 34px 高、右邊的按鈕 36px，用元素的 top 數列數時會差 1px，實際是一行）。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。

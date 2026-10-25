@@ -87,25 +87,31 @@ export function CountryPanel(props: CountryPanelProps) {
 
   // 用 id 找：有子項目分級門檻的指標（forItem）是另一個物件
   const activeData = allData[topic.indicators.findIndex((i) => i.id === indicator.id)];
+  // 不上色的指標（城市地圖、發電廠地圖）跟某張數值卡片用同一個資料檔時，折線圖用那張卡片的名稱與格式
+  // （「住在城市的比例的變化」，不是「城市地圖的變化」）
+  const chartIndicator = shown(indicator)
+    ? indicator
+    : (topic.indicators.find((o) => shown(o) && o.file === indicator.file) ?? indicator);
+  const chartLabel = label(chartIndicator);
   const option = useMemo(() => {
     if (!activeData) return null;
     const own = activeData.values[iso3];
-    if (!own || activeData.years.length < 2 || indicator.layer.kind === 'categorical') return null;
+    if (!own || activeData.years.length < 2 || chartIndicator.layer.kind === 'categorical') return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
-    if (indicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
+    if (chartIndicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
     return timeSeriesOption({
       years: activeData.years,
       lines,
       projectionFrom: activeData.projectionFrom,
       methodBreak: activeData.methodBreak,
       year,
-      indicator,
+      indicator: chartIndicator,
       tokens,
       // 普查、調查隔幾年一次：畫出每個資料點，點和點之間連起來
       sparse: activeData.latestWithin !== undefined,
     });
-  }, [activeData, iso3, name, indicator, year, tokens, t]);
+  }, [activeData, iso3, name, chartIndicator, year, tokens, t]);
 
   const activeReason = reason(indicator);
   const projectionFrom = activeData?.projectionFrom;
@@ -160,14 +166,14 @@ export function CountryPanel(props: CountryPanelProps) {
       {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
       {activeData?.years.length !== 1 && (
         <section className="panel-chart">
-          <h3>{t.overTime(label(indicator))}</h3>
+          <h3>{t.overTime(chartLabel)}</h3>
           {/* 有原因、而且這個國家完全沒有值時才用原因取代圖表：台灣在聯合國投票只有 1946–1971 年有值，照樣畫圖 */}
           {activeReason && !activeData?.values[iso3]?.some((v) => v != null) ? (
             <p className="empty">{activeReason}</p>
           ) : indicator.layer.kind === 'categorical' && activeData ? (
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
           ) : option ? (
-            <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, label(indicator))} />
+            <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, chartLabel)} />
           ) : (
             <p className="empty">
               {!activeData ? t.loading : activeData.years.length < 2 ? t.singleSnapshotPanel : t.noCountryData}

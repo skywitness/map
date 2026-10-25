@@ -6,7 +6,7 @@
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
-import type { IndicatorDef, LinesOverlay, PointsOverlay } from '../topics/types';
+import { overlayEpoch, type IndicatorDef, type LinesOverlay, type PointsOverlay } from '../topics/types';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { OverlayLayer } from './Overlays';
 
@@ -209,8 +209,11 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
   return out;
 }
 
-/** 點的 GeoJSON：只帶畫圖、篩選、hover 要用的欄位（i 是紀錄的索引，tooltip 用） */
-function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>): GeoJSON.FeatureCollection {
+/**
+ * 點的 GeoJSON：只帶畫圖、篩選、hover 要用的欄位（i 是紀錄的索引，tooltip 用）。
+ * 有 epochs 的圖層再加上那一期算出的欄位（例如城市那一期的人口）。
+ */
+function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>, epoch: number | null): GeoJSON.FeatureCollection {
   const { def, points } = o;
   if (!points) return EMPTY;
   const fields = new Set<string>(['iso3']);
@@ -225,6 +228,12 @@ function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>): GeoJSON.Fe
     const properties: Record<string, number | string> = { i };
     // 缺值不放進 properties，篩選時用 has 排除
     for (const f of fields) if (p[f] !== null && p[f] !== undefined) properties[f] = p[f] as number | string;
+    if (def.epochs && epoch !== null) {
+      for (const [f, v] of Object.entries(def.epochs.values(p, epoch))) {
+        if (v === null) delete properties[f];
+        else properties[f] = v;
+      }
+    }
     features.push({ type: 'Feature', properties, geometry: { type: 'Point', coordinates: [lon, lat] } });
   });
   return { type: 'FeatureCollection', features };
@@ -281,14 +290,38 @@ export function timeFilter(def: { timeField?: string }, year: number, mode: Indi
   return ['all', has, ['==', t, year]];
 }
 
-/** 每個疊加圖層上次送到地圖上的資料（同一份就不必再送一次）；換底圖後要清掉 */
-export type OverlayDataCache = Map<string, unknown>;
+/**
+ * 依縮放篩選的點（PointsOverlayDef.minValue）：數值要大於等於這一級的門檻。filter 裡的 ['zoom'] 是圖磚的整數級數，
+ * 所以門檻在整數級數換；沒有這個欄位的點（例如那一期還不是城市）不畫。
+ */
+function valueFilter(def: Pick<PointsOverlay, 'minValue'>): FilterSpecification | null {
+  if (!def.minValue) return null;
+  const { field, stops } = def.minValue;
+  const threshold = ['step', ['zoom'], stops[0][1], ...stops.slice(1).flat()] as unknown as ExpressionSpecification;
+  return ['all', ['has', field], ['>=', ['get', field], threshold]];
+}
+
+/** 點圖層的篩選：時間篩選與依縮放的篩選合併 */
+function pointFilter(def: PointsOverlay, year: number, mode: IndicatorDef['overlayTime']): FilterSpecification | null {
+  const parts = [timeFilter(def, year, mode), valueFilter(def)].filter((f): f is FilterSpecification => f !== null);
+  return parts.length === 0 ? null : parts.length === 1 ? parts[0] : (['all', ...parts] as FilterSpecification);
+}
+
+/** 每個疊加圖層上次送到地圖上的資料與那一期（同一份就不必再送一次）；換底圖後要清掉 */
+export type OverlayDataCache = Map<string, { data: unknown; epoch: number | null }>;
 
 /**
  * 讓地圖上的疊加圖層跟 overlays 一致：加上缺的 source 與圖層、拿掉不要的、資料變了才重送、依開關顯示或隱藏。
+ * 有 epochs 的點圖層（城市的人口）換到另一期時也重送。
  * 回傳 hover 與點選時依序查詢的圖層 id：點圖層（上面的在前），再來是有 tooltip 的線的查詢層。
  */
-export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: OverlayDataCache, dark: boolean): string[] {
+export function syncOverlays(
+  map: MaplibreMap,
+  overlays: OverlayLayer[],
+  sent: OverlayDataCache,
+  dark: boolean,
+  year: number,
+): string[] {
   const wanted = new Set(overlays.map((o) => OVERLAY_PREFIX + o.def.id));
   // 換主題後不要的疊加圖層
   for (const layer of map.getStyle().layers) {
@@ -318,9 +351,11 @@ export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: O
       }
     }
     const data = o.kind === 'points' ? o.points : o.lines;
-    if (data && sent.get(id) !== data) {
-      (map.getSource(id) as GeoJSONSource).setData(o.kind === 'points' ? pointFeatures(o) : lineFeatures(o));
-      sent.set(id, data);
+    const epoch = o.kind === 'points' ? overlayEpoch(o.def, year) : null;
+    const prev = sent.get(id);
+    if (data && (prev?.data !== data || prev.epoch !== epoch)) {
+      (map.getSource(id) as GeoJSONSource).setData(o.kind === 'points' ? pointFeatures(o, epoch) : lineFeatures(o));
+      sent.set(id, { data, epoch });
     }
     const visibility = o.visible && data ? 'visible' : 'none';
     for (const layerId of [id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HOVER_SUFFIX]) {
@@ -335,16 +370,17 @@ export function syncOverlays(map: MaplibreMap, overlays: OverlayLayer[], sent: O
   return [...visibleIds('points'), ...visibleIds('lines', HIT_SUFFIX)];
 }
 
-/** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併 */
+/** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併 */
 export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], year: number, mode: IndicatorDef['overlayTime']) {
   for (const o of overlays) {
-    if (!o.def.timeField) continue;
     const id = OVERLAY_PREFIX + o.def.id;
-    const time = timeFilter(o.def, year, mode);
     if (o.kind === 'points') {
-      if (map.getLayer(id)) map.setFilter(id, time);
+      if (!o.def.timeField && !o.def.minValue) continue;
+      if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));
       continue;
     }
+    if (!o.def.timeField) continue;
+    const time = timeFilter(o.def, year, mode);
     for (const { layer, base, timed } of lineLayers(o.def, false)) {
       if (!timed || !map.getLayer(layer.id)) continue;
       map.setFilter(layer.id, base && time ? (['all', base, time] as FilterSpecification) : (base ?? time));
