@@ -37,6 +37,7 @@ import { nobel } from './nobel';
 import { olympics } from './olympics';
 import { organizations } from './organizations';
 import { passport } from './passport';
+import { pisa } from './pisa';
 import { pureMap } from './map';
 import { population } from './population';
 import { powerPlants } from './power-plants';
@@ -75,7 +76,7 @@ export interface TopicGroup {
  * 新增主題時加進最接近的一類。分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUPS: TopicGroup[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, cities, health, disease, tobaccoAlcohol, education, diet, housing, religion, inequality, gender, crime, happiness, nobel, olympics] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, cities, health, disease, tobaccoAlcohol, education, pisa, diet, housing, religion, inequality, gender, crime, happiness, nobel, olympics] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, reserves, stockMarket, housePrices, sectors, industry, agriculture, minerals] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, ev] },

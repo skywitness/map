@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -175,11 +175,11 @@ pipeline/
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔、太陽能與風能潛力（長期平均） |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
-| `places` | 地圖上沒有形狀、也不是 ISO 國家的資料單位（`PlaceDef`：`_` 開頭的 id、名稱、經緯度），跟沒有形狀的國家一樣畫小圓點與比例圓，排名表、tooltip、側欄用它的名稱 | 奧運的蘇聯、東西德、南斯拉夫等歷史隊伍 |
+| `places` | 地圖上沒有形狀、也不是 ISO 國家的資料單位（`PlaceDef`：`_` 開頭的 id、名稱、經緯度），跟沒有形狀的國家一樣畫小圓點與比例圓，排名表、tooltip、側欄用它的名稱 | 奧運的蘇聯、東西德、南斯拉夫等歷史隊伍；學生能力（PISA）只有部分地區參加的北京上海江蘇浙江、烏克蘭的部分地區、庫德斯坦地區、杜尚別 |
 | 指標的 `unranked` | 數值沒有好壞、名次沒有意義：排名表依數值排列但不寫名次（表名寫「依數值排列」），側欄的數值卡片也不寫名次 | 跟台灣的時差 |
 | `dimension.followsSelection` | 子項目就是國家（option 的 id 是 ISO alpha-3）：點地圖、排名表或搜尋選到國家時，子項目跟著換成那個國家（`App.tsx` 的 `selectCountry`），取消選取時留在原本的子項目；網址只有 `country`、沒有 `item` 時（例如從別的主題切過來）也用選到的國家（`resolveItem()`）。子項目選單各組依目前語言的國名排序 | 護照與簽證（點日本，地圖就畫日本護照到各國的簽證待遇） |
 | `dimension.selfLabel` | 子項目是國家時，那個國家在自己那份資料裡沒有值：tooltip 與側欄的數值卡片寫這句，不寫「無資料」（不必 `followsSelection`） | 護照與簽證的「本國護照」、聯合國投票「與各國的一致度」的「比較的對象」 |
-| `noValue`、指標的 `noValue` | 某些國家沒有值的原因（key 是 ISO alpha-3），取代 tooltip 與側欄的「無資料」。`missingReason()` 依序取指標的、主題的、`selfLabel`、`coverage`。這個國家在這個指標完全沒有值時，側欄的歷年圖表也換成這句；有部分年份的照常畫 | 台灣的外交裡的台灣（觀點）；聯合國投票的台灣（1971 年起不是會員國，1946–1971 年照常畫）；「與美國的一致度」裡的美國 |
+| `noValue`、指標的 `noValue` | 某些國家沒有值的原因（key 是 ISO alpha-3），取代 tooltip 與側欄的「無資料」。`missingReason()` 依序取指標的、主題的、`selfLabel`、`coverage`。這個國家在這個指標完全沒有值時，側欄的歷年圖表也換成這句；有部分年份的照常畫 | 台灣的外交裡的台灣（觀點）；聯合國投票的台灣（1971 年起不是會員國，1946–1971 年照常畫）；「與美國的一致度」裡的美國；學生能力（PISA）的中國、烏克蘭、伊拉克、塔吉克（只有部分地區參加，畫成點） |
 | 指標的 `coverage` | 刻意只收部分國家的指標：`{ countries, reason }`，`countries`（ISO alpha-3）以外的國家沒有值時一律寫 `reason`（`noValue` 要逐一列出國家，這裡只列有收的）；`countries` 裡的國家某一年沒有值時照常寫「無資料」 | 監禁人口率：44 國以外寫「沒有開放授權的資料」（第 8 節第 43 點） |
 
 ### 雙語文字（英文版介面）
@@ -422,6 +422,7 @@ pipeline/
 | 疾病 | 首要死因（類別圖）、慢性病過早死亡率（30–70 歲）、癌症死亡率（年齡標準化）、糖尿病盛行率、成人肥胖率、愛滋感染率、結核病發生率、瘧疾發生率、慢性病／傳染病／傷害死亡占比 | 死因結構（三大類占比與世界對照） | WHO Global Health Estimates 2023、WHO GHO（NCD-RisC）、World Bank WDI（UNAIDS、WHO）；台灣用衛福部死因統計（ICD-10）與衛生福利統計指標、WPP 年齡別人口 | 死因與過早死亡 2000–2023（台灣 2008 年起）；糖尿病 1990–2022；肥胖 1980–2024；愛滋 1990–2024；結核病、瘧疾 2000–2024 |
 | 菸酒 | 吸菸率（全部、男性、女性，三個用同一組門檻）、人均飲酒量（純酒精）、主要酒類（類別圖：烈酒、葡萄酒、啤酒、其他） | 各類酒有登記的人均消費量（長條，顏色跟地圖上的類別一樣） | WHO GHO（菸草使用趨勢估計、全球酒精與健康資訊系統 GISAH）；台灣的吸菸率用國健署國人吸菸行為調查，飲酒量從缺 | 吸菸率 2000、2005、2007、2010、2015、2020、2022–2024 年，2025、2030 年是推估；飲酒量 2000–2024；主要酒類 1961–2024 |
 | 教育 | 平均受教育年數、高等教育粗在學率、政府教育支出占 GDP、成人識字率 | — | UNDP 人類發展報告、World Bank WDI（UNESCO）；台灣用教育部、內政部 | 受教育年數 1990–2023；在學率 1971–2024；教育支出 1971–2023；識字率 1980–2024（每年只有幾十國） |
+| 學生能力（PISA） | 平均分數（預設數學）、低成就比例（未達第 2 級）、高成就比例（第 5 級以上）、比上一次、跟 2012 年比（兩個都是發散色）、男女差距（男生 − 女生，發散色）；子項目是數學、閱讀、科學；只有部分地區參加的（北京上海江蘇浙江、烏克蘭的部分地區、伊拉克的庫德斯坦地區、塔吉克的杜尚別）畫成點 | 三個科目的歷次分數跟 OECD 23 國平均（各一張小圖）、每一次的分數與名次；台灣另外列臺灣 PISA 國家研究中心公布的名次 | OECD《PISA 2025 Results (Volume I)》附錄 B1 的表（CC BY 4.0）；台灣的分數與名次對照臺灣 PISA 國家研究中心（臺師大）的記者會簡報 | 數學 2003、閱讀 2000、科學 2006 年起的每一次 PISA 到 2025 年；男女差距 2015 年起；只收參加 2025 年的 91 個國家與經濟體 |
 | 觀光 | 國際旅客（比例圓）、觀光收入（比例圓）、觀光收入占出口、旅客與人口比 | — | World Bank WDI（UN Tourism）；台灣用交通部觀光署、中央銀行 | 1995–2020 |
 | 飲食 | 熱量供給、蛋白質供給、脂肪供給、動物性食物占熱量、18 種食物的人均供給量（肉類、牛豬禽肉、水產、乳品、蛋、穀物、米、小麥、玉米、薯類、乾豆類、蔬菜、水果、糖、植物油、酒類）、營養不足人口比例 | 熱量從哪裡來（9 類食物的堆疊面積圖＋長條） | FAOSTAT 糧食平衡表（新版 FBS、舊版 FBSH）與糧食安全指標；台灣也是 FAOSTAT，側欄附上農業部《糧食供需年報》的數字對照 | 1961–2023（2010 年換方法）；營養不足 2001–2024（三年平均） |
 | 語言 | 主要官方語言（類別圖）；30 種語言各自的使用人口比例、使用人數（比例圓）、官方地位（類別圖）；語言數（比例圓） | 會說的語言（比例與官方地位）、Glottolog 語言數與瀕危語言數 | Unicode CLDR 49、Glottolog 5.3；台灣用 109 年人口及住宅普查 | 單一快照（標示為 2026 年） |
@@ -620,6 +621,9 @@ pipeline/
     - **跨國的「房價是幾年所得」沒有開放資料**：Demographia International Housing Affordability 是報告（Chapman University 與 Frontier Centre for Public Policy 出版），沒有找到開放授權的資料檔；Numbeo 的使用條款（https://www.numbeo.com/common/terms_of_use.jsp ，2026-10-26 查）寫「You may not use, copy, reproduce, distribute … or create derivative works」（除非另有授權或書面同意），也禁止用程式抓取。兩個都沒有用，地圖只用指數的變化（第 66 點）。
     - **GHSL 的 Urban Centre Database 2025（GHS-UCDB R2024A）與國家統計（GHS-COUNTRY-STATS R2024A）是 CC BY 4.0**：JRC 下載站每個資料夾的 copyright.txt 寫「Any copyright and/or sui generis right on the dataset is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) licence」（© European Union，依執委會 2011/833/EU 決定，2026-10-26 查），要註明來源、說明改作，頁尾照寫。UCDB 的城市名稱是 JRC 自動從 GISCO、OpenStreetMap 與 WUP 2018 取的（UCDB 的欄位說明），整個資料庫仍以 CC BY 4.0 發布；這裡只用名稱字串，底圖的標示已有 © OpenStreetMap contributors。
     - 內政部戶政司的開放資料 API（ODRP019「村里戶數、人口數」）採政府資料開放授權條款第 1 版；城市主題只拿來對照台灣的縣市人口。
+    - **OECD《PISA 2025 Results (Volume I)》是 CC BY 4.0**（2026-09-08 出版，doi:10.1787/73451bc5-en）：版權頁寫「© OECD 2026, Attribution 4.0 International (CC BY 4.0)」，StatLink 的 Excel 是書的一部分（檔案的「About this file」寫「PISA 2025 Results (Volume I) - © OECD 2026」）。這本書的授權另外要求：改作要引用原著並加上「This is an adaptation of an original work by the OECD. The opinions expressed and arguments employed in this adaptation should not be reported as representing the official views of the OECD or of its Member countries.」；翻譯要寫明改了什麼，並聲明跟原文有出入時以原文為準；不得使用 OECD 的標誌或暗示 OECD 背書；爭議依常設仲裁法院規則在巴黎仲裁。學生能力主題的頁尾照寫（中文介面也附英文原句），資料檔是改作（換成地圖的代碼、算出變化），一樣依 CC BY 4.0 分享（第 68 點）。
+    - **2024 年 7 月以前出版的 PISA 報告沒有用**（PISA 2022 以前的各冊與它們的 StatLink）：OECD 的開放政策頁（https://www.oecd.org/en/about/oecd-open-by-default-policy.html ，2026-10-26 查）寫那些內容依當時的使用條款，「generally available for commercial and non-commercial purposes on terms similar to CC BY 4.0」，類似但不是 CC BY 4.0。照較嚴的解讀，只參加過之前幾次 PISA 的國家（俄羅斯、上海、列支敦斯登…）沒有收。PISA 的學生層級資料庫（Public Use File）也沒有用：要自己用加權與可能值算，檔案大，2025 年的報告已經有所有參加 2025 年的國家的歷次結果。
+    - 臺灣 PISA 國家研究中心（國立臺灣師範大學）的記者會簡報（pr.ntnu.edu.tw）沒有寫授權條款，只引用臺灣歷屆的名次與參加國數（事實），並拿它的分數跟 OECD 的表比對。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1840,6 +1844,18 @@ pipeline/
     - **大小**：`cities.json` 1.47 MB（gzip 後 468 KB；整個主題的資料夾 1.54 MB）：11,422 個點 × 12 期的人口（百人）與面積（km²），每一期存跟前一期的差（gzip 後少 14%，`cities.ts` 的 `cityValue()` 一路加回來）；名稱占最多（gzip 後英文 62 KB、中文 38 KB、範圍內的其他地名 23 KB）。指標檔 5 個共約 70 KB。城市地圖一打開就下載，側欄讀同一個檔（`useJson` 有快取）。
     - **點**：半徑約 3.5 × √(人口 ÷ 100 萬) px（縮放 2 時），分段線性內插，5 萬人放大到 1.1 px；顏色是比例圓的紫色（`MAP_TOKENS.accent`），不分類。資料依 2025 年人口由大到小排，小城市畫在大城市上面。縮小時只畫大城市（第 4 節「依縮放篩選」）。點只畫在城市地圖（面量圖、比例圓上再疊上萬個點會看不清楚）。tooltip：名稱、國家、那一期的人口、面積與每 km² 人數、比 10 年前（1980 年跟 1975 年比；之後才成為城市的寫「2020 年起成為城市」），中文名稱下面寫英文名稱與範圍內的其他地名（最多 4 個）。
     - **分級**：都市化率 40、55、70、80、90、95%；住在城市 10、20、35、50、65、80%；最大城市占全國 5、10、20、30、45、60%（2025 年中位數 18%，巴林 90%、科威特 84%、新加坡 84% 最高）。
+68. **學生能力（PISA）**（`pipeline/topics/pisa.py`、`pipeline/sources/oecd_pisa.py`、`src/topics/pisa.ts`、`src/topics/panels/PisaPanel.tsx`）：
+    - **來源**：OECD《PISA 2025 Results (Volume I): Future-Ready Students》（2026-09-08）附錄 B1 的表，StatLink 的 Excel：https://stat.link/mrq53f （表 I.B1.2a.*，平均分數與各級比例，1.5 MB）與 https://stat.link/68stqn （表 I.B1.2c.*，男女，1.3 MB）。oecd.org 的網頁（含 Education GPS）擋程式（Cloudflare 的「Just a moment...」，HTTP 403），但 stat.link 轉到 `stat.link/files/…` 的 Excel 與 `oecd.org/content/dam` 的 PDF 都直接下載得到。OECD Data Explorer（SDMX）的資料流清單沒有 PISA（2026-10 查），世界銀行 EdStats 沒有台灣，所以用報告的表。
+    - **用到的表**：I.B1.2a.36–38（科學 2006、閱讀 2000、數學 2003 年起每一次的平均分數，與「2025 年減某一年」的差）、I.B1.2a.33–35（同樣年份未達第 2 級、第 5 級以上的比例）、I.B1.2c.25、28、31（2015 年起的男女差距，男生 − 女生）。表裡的「OECD average-23」（PISA 2000 起每一次都參加的 23 個 OECD 國家）放在 aggregates 的 `OECD23`，「OECD average」（38 國，只有某幾次有值）放在 `OECD`。pipeline 檢查 OECD 公布的「2025 年減某一年」跟平均分數相減一致。表裡的國名在 `oecd_pisa.NAMES` 對到代碼，出現不認得的國名就報錯。
+    - **年份**：只收 OECD 認為可以前後比較的那幾次（數學 2003、閱讀 2000、科學 2006 年起）。PISA 2000+（2001、2002 年施測）、PISA 2009+（2010 年）、PISA for Development（2017 年，記在 2018）照 OECD 的表記在原本那一次，附註寫明。OECD 2025 年的趨勢表刻意空著的（奧地利 2009、美國 2006 年的閱讀、阿根廷、哈薩克、馬來西亞 2015、西班牙 2018、盧森堡 2022）也空著，附註寫明。
+    - **只收參加 2025 年的 91 個**：表只列 2025 年的參加者與它們之前的成績。只參加過之前幾次的（俄羅斯、白俄羅斯、列支敦斯登、突尼西亞、千里達及托巴哥、阿爾及利亞、巴拿馬、牙買加、波士尼亞與赫塞哥維納、2009 與 2012 年的上海、2015 年的北京上海江蘇廣東、2018 與 2022 年的巴庫、2018 年全國的烏克蘭…）只在 2024 年 7 月以前出版的報告裡，不是 CC BY 4.0（第 12 點），沒有用。所以早年的名次會比官方的前面：台灣數學 2009、2012 年在這裡是第 4、3（官方第 5、4，少了上海），閱讀 2006、2009 年第 15、21（官方 16、23），科學 2009、2012 年第 11、10（官方 12、13，2012 年還少了列支敦斯登與越南）；2015 年以後都一樣。側欄另外列臺灣 PISA 國家研究中心公布的名次。
+    - **只有部分地區參加的**：北京上海江蘇浙江（B-S-J-Z，2018、2025 年）、烏克蘭的部分地區（27 個裡 2022 年 18 個、2025 年 17 個）、伊拉克的庫德斯坦地區（只有公立學校）、塔吉克的首都杜尚別，是主題自訂的地點（`_QCI`、`_QUA`、`_QKI`、`_QTJ`，用 PISA 自己的代碼），畫成點：B-S-J-Z 在四個省市的中間（江蘇北部）、其他在基輔、艾比爾、杜尚別。中國、烏克蘭、伊拉克、塔吉克用 `noValue` 寫原因，不塗整個國家。香港、澳門在地圖上有自己的形狀，照常上色；賽普勒斯是政府實際管轄的地區（地圖上的 CYP，北賽普勒斯是另外一塊）。名次照 OECD 的表把這些地點一起排：台灣 2025 年數學第 4 是排在 B-S-J-Z、新加坡、澳門之後，跟官方一樣。
+    - **OECD 標註的限制**（PISA 2025 的 Reader's Guide）：阿爾巴尼亞只有限度地報告、不比較趨勢，所以兩個變化指標不收阿爾巴尼亞（OECD 的表在分隔線下仍列了差值）；烏茲別克 2025 年的數學與閱讀作答資料不一致，只公布科學（科學 2022 → 2025 年 +83 分是 OECD 的數字）；越南 2025 年改用電腦測驗，跟之前的紙本不比較，只有 2025 年；美國、加拿大、荷蘭、紐西蘭、挪威沒有達到抽樣標準（星號），附註寫出 OECD 估計的偏差；黎巴嫩、巴勒斯坦 2025 年不含受衝突影響最大的地區。
+    - **指標**：平均分數、低成就比例（未達第 2 級，`lowerIsBetter`）、高成就比例（第 5 級以上）、比上一次（跟上一次 PISA 比，上一次沒有參加的不算）、跟 2012 年比、男女差距（`unranked`）。三個科目是子項目（檔名 `<指標>/<科目>.json`），三個科目用同一組門檻：平均分數 390、420、450、480、510、540；低成就 10、20、30、45、60、75%；高成就 1、3、6、10、20、30%；比上一次 ±5、10、20 分；跟 2012 年比 ±10、25、40 分；男女差距 ±5、20、40 分（青綠是男生高、橘色是女生高）。比上一次 ±5 分以內大多不顯著，指標說明有寫；表裡有標準誤，但只有跟 2025 年比的差，沒有做顯著性標示。
+    - **位數**：平均分數、變化、男女差距存兩位小數，比例存一位，畫面上跟 OECD 一樣顯示整數的分數、一位小數的比例。比例原本也存兩位，台灣 2025 年數學高成就 31.849% 存成 31.85、顯示成 31.9%（官方 31.8%），兩次四捨五入，所以比例改存一位。
+    - **台灣**：PISA 的名稱是 Chinese Taipei，對到 TWN。2006–2025 年三個科目的分數跟臺灣 PISA 國家研究中心（臺師大）2026-09-08 記者會簡報的數字四捨五入後完全一樣（pipeline 逐一檢查，2025 年的低、高成就比例也是）：數學 549、543、560、542、531、547、546，閱讀 496、495、523、497、503、515、508，科學 532、520、523、532、516、537、540。2025 年數學第 4（2022 年 547 分第 3）、閱讀第 3、科學第 4（91 個國家與經濟體），跟官方一樣。2025 年低成就／高成就：數學 14.5%／31.8%、閱讀 17.9%／13.4%、科學 12.9%／20.1%；男女差距（男生 − 女生）數學 +1、閱讀 −39、科學 −11 分。比上一次：數學 −1（第 16/75）、閱讀 −7、科學 +2 分；跟 2012 年比：數學 −14、閱讀 −15、科學 +16 分。
+    - **側欄**：三個科目各一張歷次分數的小圖，跟 OECD 23 國平均比（國家研究中心也用這個平均；38 國的 OECD 平均只有幾次有值，畫不成線），下面是每一次的分數與名次表；台灣另外列國家研究中心公布的名次與參加國數（`taiwan.json`）。
+    - **大小**：18 個指標檔加 `taiwan.json`、`manifest.json`，共約 200 KB（gzip 後約 30 KB）。
 
 ## 9. 之後可以做的
 
@@ -1871,6 +1887,7 @@ pipeline/
 - **夜間燈光**：每年一期的網格（12 期約多 200 MB，要先確認 GitHub Pages 的 1 GB 上限）；漁船要用 EOG 的未遮罩年平均或 VIIRS Boat Detection（都要登入，找到不必登入的轉存再加）；2016 → 2017 年的斷層找到原因（或 EOG 重新處理的版本）後可以拿掉 `methodBreak`；側欄加城市層級（要有開放授權的都會區範圍，例如 GHSL 的 Urban Centre Database，CC BY 4.0）。
 - **房價與居住負擔**（第 66 點）：BIS 詳細的住宅價格（WS_DPP）還有阿聯、阿根廷、沙烏地阿拉伯，可以再補（要挑序列、確認各國來源）；OECD 與 BIS 差很多的國家（中國、加拿大、俄羅斯）可以查兩邊的原始序列再決定用哪一個；台灣的房租可以加內政部實價登錄的租賃資料（「租金統計資訊」），跟消費者物價的房租對照；有開放授權、口徑一致的跨國「房價是幾年所得」時，可以加一個水準的指標。
 - **城市**（第 67 點）：整套換成 GHS-WUP R2025（配合 WPP 2024、推估到 2100 年，跟聯合國《世界都市化展望 2025》同一份），城市的 ID 不相容，點與國家統計要一起換；放大後畫城市的範圍（MTUC 的多時期多邊形 76 MB，要簡化、分期切圖磚，先確認 1 GB 的上限）；點的顏色依成長率分級（`epochs.values` 多算一個欄位就好）；台灣 4 個沒有中文名稱的城市（Dazhuang、Gonghuakeng、Ô-á-liâu / Kezihliao、Xinying District）可以在 Wikidata 補上人口或別名後重跑。
+- **學生能力（PISA）**（第 68 點）：向 OECD 確認 2024 年 7 月以前的 PISA 報告可以照 CC BY 4.0 轉載後，用 PISA 2022、2018、2015、2012 各冊附錄的趨勢表補上沒有參加 2025 年的國家（俄羅斯、上海、列支敦斯登、巴拿馬、牙買加…），早年的名次才會跟官方一樣；「比上一次」可以依表裡的標準誤只標出顯著的變化；PISA 2025 之後幾冊（社經地位、學習環境）與新的「數位時代的學習」（運算式問題解決，台灣 551 分第 5）可以再加指標。
 - **野火的火點密度網格**：NASA FIRMS 的每年火點彙整成 0.25° 網格、每年一期，照暖化網格的做法部署時產生（要先確認每年的國家檔不需 MAP_KEY，並量下載量與部署時間）。
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
@@ -1938,6 +1955,7 @@ pipeline/
   - 地理加入夜間燈光（2026-10-26，地理 8 個主題，選單分欄）：英文短名稱 Night lights（12 個字元），選到它時英文 1280px 寬 833px（可用 871px），中文 1024px「夜間燈光」612px（可用 650px），控制列在兩種寬度都是一行（指標 6 個，用下拉選單）。
   - 經濟加入房價與居住負擔（2026-10-26，經濟 12 個主題，選單分欄）：短名稱「房價」、House prices（12 個字元），選到它時英文 1280px 寬 817px（可用 871px），中文 1024px 556px（可用 650px）。控制列是 5 個指標按鈕：中文 1280px 一行；英文原本是 Real prices, 10y、Real prices, 5y、Real rents, 5y，指標 629px 加右邊 616px 換成兩行，改成 Real price 10y、Real price 5y、Real rent 5y（596px）就是一行。中文 1024px 時控制列是兩行，跟股市規模、存款與財產、治安與司法一樣（那個寬度右邊的底圖、搜尋、地圖／排名表、分享本來就放不下）。
   - 社會加入城市（2026-10-26，社會 16 個主題，選單分欄）：短名稱「城市」、Cities，選到它時英文 1280px 寬 760px（可用 871px），中文 1024px 556px（可用 650px）。控制列是指標下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行（左邊的下拉選單 34px 高、右邊的按鈕 36px，用元素的 top 數列數時會差 1px，實際是一行）。
+  - 社會加入學生能力（PISA）（2026-10-26，社會 17 個主題，選單分欄）：短名稱「學生能力」、PISA，選到它時英文 1280px 寬 753px（可用 871px），中文 1024px 588px（可用 650px）。控制列是科目與指標兩個下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行；英文的指標名稱取短的（Change since last cycle、Change since 2012、Gender gap）。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
