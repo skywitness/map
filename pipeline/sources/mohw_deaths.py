@@ -110,7 +110,8 @@ class TaiwanDeaths:
     four_ncds_by_age: dict[str, float]
 
 
-def deaths() -> dict[int, TaiwanDeaths]:
+def _rows():
+    """死因統計 2008 年起每一列：(年, 性別, ICD-10 碼, 合計, 各年齡組…)"""
     path = download(URL, "mohw", "deaths-icd10.zip")
     with zipfile.ZipFile(path) as z:
         name = next(n for n in z.namelist() if n.endswith(".xlsx"))
@@ -119,6 +120,20 @@ def deaths() -> dict[int, TaiwanDeaths]:
     header = next(rows)
     if header[:4] != ("year", "sex", "ICD", "sum_age_groups") or len(header) != 4 + len(AGE_COLUMNS):
         raise RuntimeError(f"死因統計的欄位變了：{header}")
+    return rows
+
+
+def deaths_by_code(prefix: str) -> dict[int, float]:
+    """ICD-10 碼以 prefix 開頭的每年死亡數（男女合計），例如 'U07' 是 COVID-19"""
+    out: dict[int, float] = {}
+    for row in _rows():
+        if str(row[2]).strip().replace(".", "").startswith(prefix):
+            out[int(row[0])] = out.get(int(row[0]), 0) + float(row[3] or 0)
+    return out
+
+
+def deaths() -> dict[int, TaiwanDeaths]:
+    rows = _rows()
     out: dict[int, TaiwanDeaths] = {}
     for row in rows:
         year, code, n = int(row[0]), str(row[2]).strip(), float(row[3] or 0)
