@@ -153,7 +153,7 @@ jobs:
       # 夜間燈光的約 500 m 網格圖磚（pipeline/topics/night_lights_tiles.py，放在 public/tiles/night-lights）：
       # 產生的程式、VNL 的讀取（sources/vnl.py）、人口圖磚程式（重用它的重新取樣與 PNG 編碼）、分級門檻
       # （night-lights.ts 的 LIGHT_THRESHOLDS）或顏色（tokens.ts 的 NIGHT）改了才重新產生。
-      # 要從 Zenodo 下載 4 年的 VIIRS 夜間燈光（共約 270 MB，每條連線很慢，分段平行下載），4 期同時算，每期約 2 分鐘。
+      # 要從 Zenodo 下載 4 年的 VIIRS 夜間燈光（共約 270 MB，慢的時候每條連線只有約 25 KB/s，分段平行下載），4 期同時算；第一次部署整個步驟約 3.5 分鐘。
       # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連這個一起存
       - name: 夜間燈光網格圖磚的快取鍵
         id: lights-key

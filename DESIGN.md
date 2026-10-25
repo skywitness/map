@@ -2334,4 +2334,4 @@ pipeline/
 - **部署**（`.github/workflows/deploy.yml`）：
   - 一個快取（`public/tiles/night-lights`），排在人口圖磚存進快取之後。
   - 快取鍵含圖磚程式、`vnl.py`、`population_density_tiles.py`、`tokens.ts` 的 `NIGHT`、`night-lights.ts` 的 `LIGHT_THRESHOLDS`。
-  - 沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`，從 Zenodo 下載 4 年（約 270 MB；主行程一個檔一個檔下載，每個檔 24 條連線，HTTP 429 照 Retry-After 等，再交給 4 個行程算），`VNL_PRUNE=1` 算完一期就刪掉；45 分鐘逾時、`continue-on-error`，Zenodo 連不上時照樣部署，用上一版的圖磚（連上一版都沒有時，網站上切到網格會顯示「約 500 m 網格載入失敗，先顯示國家平均」）。
+  - 沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`，從 Zenodo 下載 4 年（約 270 MB；主行程一個檔一個檔下載，每個檔 24 條連線，HTTP 429 照 Retry-After 等，再交給 4 個行程算），`VNL_PRUNE=1` 算完一期就刪掉；第一次部署（2026-10-25）GitHub Actions 上每個檔 5–6 秒就下載完，整個步驟 3 分 20 秒、整個部署約 5.5 分鐘；45 分鐘逾時、`continue-on-error`，Zenodo 連不上時照樣部署，用上一版的圖磚（連上一版都沒有時，網站上切到網格會顯示「約 500 m 網格載入失敗，先顯示國家平均」）。
