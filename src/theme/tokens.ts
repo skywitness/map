@@ -29,6 +29,14 @@ const ORANGE = {
 } as const;
 const AQUA = { 200: '#9ad0b4', 400: '#039f6d', 600: '#046041' } as const;
 
+// 夜間燈光的網格（pipeline/topics/night_lights_tiles.py 直接讀這一段）：第一個是夜色（沒有燈光的地方，
+// 前端鋪在網格底下），之後 6 級燈光由暗到亮，深褐 → 橘 → 黃 → 近白（像鈉燈與 LED 的光）。
+// OKLCH 亮度 0.19、0.40、0.51、0.62、0.73、0.85、0.96 等距遞增，色相 42°→100° 只在橘黃之間；
+// 跟夜色的對比 1.9、3.1、4.9、7.5、11.6、16.6:1，越亮越突出，所以底圖是彩色地形或深色都一樣讀。
+const NIGHT = {
+  0: '#0d1228', 1: '#6f351d', 2: '#9d4c14', 3: '#c46d14', 4: '#e49324', 5: '#f4c761', 6: '#fcf4be',
+} as const;
+
 export interface Tokens {
   mode: ThemeMode;
   page: string;
@@ -141,6 +149,8 @@ export interface MapTokens extends Tokens {
   categorical: string[];
   /** 類別圖的「其他」：淺的中性色，跟無資料的灰色分得開 */
   categoricalOther: string;
+  /** 夜間燈光網格：第一個是夜色（網格底下的底色），之後由暗到亮；顏色由 pipeline 寫進圖磚與 meta.json */
+  night: string[];
 }
 
 /**
@@ -161,4 +171,5 @@ export const MAP_TOKENS: MapTokens = {
   accent: TOKENS.light.hues.violet,
   categorical: ['#4fc29f', '#9085e9', '#eda100', '#4d9221', '#f0e442', ORANGE[600], '#7b3294', '#e7298a'],
   categoricalOther: '#ece8df',
+  night: Object.values(NIGHT),
 };

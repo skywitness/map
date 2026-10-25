@@ -224,6 +224,18 @@ const FLOW_TINT_OPACITY = 0.6;
 const DIMMED = 0.18;
 /** 網格（人口密度、暖化）的 source 與圖層 id */
 const GRID_LAYER = 'density-grid';
+/** 網格的夜色底（夜間燈光，meta.json 的 backdrop）：插在網格圖層底下 */
+const GRID_BACKDROP = 'grid-backdrop';
+
+/** 夜色底的範圍：南北兩條緯線之間的帶子，切成東西兩半（地球儀上一個多邊形從 −180° 繞到 180° 會出問題） */
+function backdropBand(south: number, north: number): GeoJSON.FeatureCollection {
+  const half = (w: number, e: number): GeoJSON.Feature => ({
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'Polygon', coordinates: [[[w, south], [e, south], [e, north], [w, north], [w, south]]] },
+  });
+  return { type: 'FeatureCollection', features: [half(-180, 0), half(0, 180)] };
+}
 /** 來源標示是 HTML（MapLibre 的 attribution），meta.json 的文字要跳脫 */
 const escapeHtml = (text: string) =>
   text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -966,6 +978,43 @@ export function WorldMap(props: WorldMapProps) {
     }
     map.setLayoutProperty(GRID_LAYER, 'visibility', 'visible');
   }, [revision, gridUrl, gridMeta]);
+
+  // 夜色底：網格有 backdrop 時（夜間燈光），在資料範圍鋪一層第一級的顏色，彩色地形底圖上也是夜景；
+  // 不透明度跟網格一樣（圖例的色塊才對得上），放大後一起變淡，看得到底圖的街道
+  const backdrop = gridUrl && gridMeta?.backdrop ? { ...gridMeta.backdrop, color: gridMeta.colors[0] } : null;
+  const backdropKey = backdrop ? `${backdrop.south}|${backdrop.north}|${backdrop.color}` : '';
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const layer = map.getLayer(GRID_BACKDROP);
+    if (!backdrop) {
+      if (layer) map.setLayoutProperty(GRID_BACKDROP, 'visibility', 'none');
+      return;
+    }
+    const data = backdropBand(backdrop.south, backdrop.north);
+    const source = map.getSource<GeoJSONSource>(GRID_BACKDROP);
+    if (source) source.setData(data);
+    else map.addSource(GRID_BACKDROP, { type: 'geojson', data });
+    if (!layer) {
+      map.addLayer(
+        { id: GRID_BACKDROP, type: 'fill', source: GRID_BACKDROP, paint: { 'fill-color': backdrop.color, 'fill-opacity': GRID_OPACITY } },
+        GRID_LAYER,
+      );
+    } else {
+      map.setPaintProperty(GRID_BACKDROP, 'fill-color', backdrop.color);
+    }
+    map.setLayoutProperty(GRID_BACKDROP, 'visibility', 'visible');
+    // 依賴寫 backdropKey（backdrop 的內容），每次 render 新建的物件不會觸發重跑
+  }, [revision, backdropKey]);
+
+  // 國界與選取外框的顏色：深色底圖或夜色底上用淺色，其他用深色（跟 dataLayers 一樣）
+  const nightLook = basemap.dark || backdrop !== null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    map.setPaintProperty('data-border', 'line-color', nightLook ? '#f0efec' : '#3d3d3a');
+    map.setPaintProperty('data-highlight', 'line-color', nightLook ? '#ffffff' : MAP_TOKENS.ink);
+  }, [revision, nightLook]);
 
   // 網格第一次畫好：留下 performance mark「map-grid」給載入速度量測用（npm run measure:load -- <網址> --mark map-grid）
   const gridShownRef = useRef(false);

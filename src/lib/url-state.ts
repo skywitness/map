@@ -15,8 +15,11 @@ export interface ViewState {
   box: Box | null;
   /** 3D 立體地圖（3d=1） */
   threeD: boolean;
-  /** 地圖改用 1 km 網格（grid=1），只對有網格的指標（人口密度）有作用 */
-  grid: boolean;
+  /**
+   * 地圖改用網格（grid=1）或國家平均（grid=0），只對有網格的指標有作用；null 是沒指定，用指標的預設
+   * （GridSpec.defaultOn，例如夜間燈光預設是網格，人口密度預設是國家平均）
+   */
+  grid: boolean | null;
 }
 
 /** 目前網址的畫面狀態（App 啟動時也用它提早發出第一個畫面的資料請求） */
@@ -33,7 +36,7 @@ export function read(): ViewState {
     // bbox= 是經緯度；舊版網址的 box= 是 Equal Earth 投影座標，換算過來
     box: parseBox(p.get('bbox')) ?? legacyBox(p.get('box')),
     threeD: p.get('3d') === '1',
-    grid: p.get('grid') === '1',
+    grid: p.get('grid') === '1' ? true : p.get('grid') === '0' ? false : null,
   };
 }
 
@@ -62,7 +65,7 @@ function write(state: ViewState): void {
   if (state.view !== 'map') p.set('view', state.view);
   if (state.box) p.set('bbox', state.box.map((v) => v.toFixed(3)).join(','));
   if (state.threeD) p.set('3d', '1');
-  if (state.grid) p.set('grid', '1');
+  if (state.grid !== null) p.set('grid', state.grid ? '1' : '0');
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);

@@ -94,7 +94,9 @@ function initialIndicatorPath(): string | null {
     topic.indicators.find((i) => i.id === state.indicator) ??
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
   // 網址指定網格時，圖磚的 meta.json 也一起提早請求
-  if (indicator.grid && state.grid && state.view === 'map') fetchGridMeta(indicator.grid.dir).catch(() => {});
+  if (indicator.grid && (state.grid ?? indicator.grid.defaultOn) && state.view === 'map') {
+    fetchGridMeta(indicator.grid.dir).catch(() => {});
+  }
   return indicatorPath(topic, indicator, resolveItem(topic.dimension, state.item, state.country));
 }
 
@@ -214,7 +216,9 @@ export function App() {
   // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
   const gridSpec = pure ? undefined : indicator.grid;
   const G = gridLabels(gridSpec ?? { dir: '' }, lang);
-  const gridWanted = Boolean(gridSpec && state.grid && view === 'map');
+  // 網址沒指定時用指標的預設（夜間燈光預設是網格）
+  const gridOn = state.grid ?? Boolean(gridSpec?.defaultOn);
+  const gridWanted = Boolean(gridSpec && gridOn && view === 'map');
   const gridMeta = useGridMeta(gridWanted && gridSpec ? gridSpec.dir : null);
   const grid = useMemo<GridLayer | null>(
     () =>
@@ -348,7 +352,7 @@ export function App() {
             {t.offline}
           </span>
         )}
-        <TopicNav current={topic} onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: false })} />
+        <TopicNav current={topic} onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null })} />
         <LangSwitch />
         <ShortcutHelp />
         <button
@@ -423,8 +427,8 @@ export function App() {
                   key={String(on)}
                   type="button"
                   role="radio"
-                  aria-checked={state.grid === on}
-                  className={`segment${state.grid === on ? ' is-active' : ''}`}
+                  aria-checked={gridOn === on}
+                  className={`segment${gridOn === on ? ' is-active' : ''}`}
                   onClick={() => update({ grid: on })}
                 >
                   {on ? G.name : G.countryAverage}

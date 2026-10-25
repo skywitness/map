@@ -1,7 +1,8 @@
 # 推送到 main 時自動建置並發佈到 GitHub Pages
 # 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線；
 # 只有網格圖磚（不進版本庫）在這裡產生，存在 actions/cache：人口密度的 1 km 網格（約 600 MB、6 萬個檔）、
-# 暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）與太陽能、風能的約 2 km 網格（約 9 MB、1,150 個檔）
+# 暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）、太陽能與風能的約 2 km 網格（約 9 MB、1,150 個檔）與
+# 夜間燈光的約 500 m 網格（約 106 MB、2.1 萬個檔）
 name: 部署到 GitHub Pages
 
 on:
@@ -149,6 +150,44 @@ jobs:
             public/tiles/renewables-solar
             public/tiles/renewables-wind
           key: ${{ steps.renewables-key.outputs.key }}
+      # 夜間燈光的約 500 m 網格圖磚（pipeline/topics/night_lights_tiles.py，放在 public/tiles/night-lights）：
+      # 產生的程式、VNL 的讀取（sources/vnl.py）、人口圖磚程式（重用它的重新取樣與 PNG 編碼）、分級門檻
+      # （night-lights.ts 的 LIGHT_THRESHOLDS）或顏色（tokens.ts 的 NIGHT）改了才重新產生。
+      # 要從 Zenodo 下載 4 年的 VIIRS 夜間燈光（共約 270 MB，每條連線很慢，分段平行下載），4 期同時算，每期約 2 分鐘。
+      # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連這個一起存
+      - name: 夜間燈光網格圖磚的快取鍵
+        id: lights-key
+        run: |
+          hash=$(cat pipeline/topics/night_lights_tiles.py pipeline/sources/vnl.py pipeline/topics/population_density_tiles.py             <(sed -n '/^const NIGHT = {/,/}/p' src/theme/tokens.ts)             <(grep '^export const LIGHT_THRESHOLDS' src/topics/night-lights.ts) | sha256sum | cut -c1-16)
+          echo "key=night-lights-tiles-$hash" >> "$GITHUB_OUTPUT"
+      - name: 還原夜間燈光網格圖磚
+        id: lights
+        uses: actions/cache/restore@v6
+        with:
+          path: public/tiles/night-lights
+          key: ${{ steps.lights-key.outputs.key }}
+          restore-keys: night-lights-tiles-
+      - uses: actions/setup-python@v7
+        if: steps.lights.outputs.cache-hit != 'true'
+        with:
+          python-version: '3.13'
+      - name: 產生夜間燈光網格圖磚
+        id: build-lights
+        if: steps.lights.outputs.cache-hit != 'true'
+        # Zenodo 連不上或太慢時不擋部署：用上一版的圖磚（連上一版都沒有時，網站上的網格會顯示載入失敗）
+        continue-on-error: true
+        timeout-minutes: 45
+        env:
+          VNL_PRUNE: '1' # 算完一期就刪掉下載的 GeoTIFF
+        run: |
+          pip install "numpy>=2" "rasterio>=1.4"
+          python pipeline/run.py night-lights-tiles
+      - name: 存下夜間燈光網格圖磚
+        if: steps.lights.outputs.cache-hit != 'true' && steps.build-lights.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: public/tiles/night-lights
+          key: ${{ steps.lights-key.outputs.key }}
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

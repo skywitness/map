@@ -2,6 +2,8 @@
  * 網格圖層：指標有 grid 時，地圖可以從國家平均切到 pipeline 產生的 Web Mercator 點陣圖磚，依固定的分級上色。
  * - 人口密度的 1 km 網格（pipeline/topics/population_density_tiles.py）：JRC GHS-POP R2023A，1975–2030 每 5 年一期。
  * - 暖化的 0.5° 網格（pipeline/topics/temperature_grid_tiles.py）：CRU TS，每年一期。
+ * - 太陽能、風能的約 2 km 網格（pipeline/topics/renewables_grid_tiles.py）：長期平均，只有一期。
+ * - 夜間燈光的約 500 m 網格（pipeline/topics/night_lights_tiles.py）：EOG VNL V2，幾年一期，有夜色底（backdrop）。
  *
  * - 圖磚不進版本控制，部署時才產生（.github/workflows/deploy.yml），放在 tiles/<資料夾>/<版本>/<年>/z/x/y.png。
  *   同一個資料夾的 meta.json 列出版本、有哪幾期、分級門檻與顏色、哪些圖磚有內容。
@@ -25,6 +27,11 @@ export interface GridMeta {
   thresholds: number[];
   /** 人口密度：每 km² 不到這麼多人的像素透明 */
   minDensity?: number;
+  /**
+   * 夜色底（夜間燈光）：圖磚裡第一級是透明的，地圖在這個緯度範圍（資料範圍）鋪一層 colors[0]，
+   * 所以任何底圖上都是夜景；範圍外（沒有資料）透出底圖
+   */
+  backdrop?: { south: number; north: number };
   colors: string[];
   /** 有內容的圖磚：每個縮放級數一串位元（第 y × 2^z + x 個位元，低位元在前），base64 */
   tiles: string[];

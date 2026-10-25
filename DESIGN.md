@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -54,6 +54,8 @@ public/tiles/warming/                     ← 暖化的 0.5° 網格圖磚，同
    └─ <版本>/<年>/<z>/<x>/<y>.png          116 期 × 206 張，共約 20 MB
 public/tiles/renewables-solar/、renewables-wind/ ← 太陽能、風能潛力的約 2 km 網格圖磚，同樣部署時才產生（第 14 節）
    └─ <版本>/<期>/<z>/<x>/<y>.png          各一期：428 張 2.3 MB、718 張 6.8 MB
+public/tiles/night-lights/                ← 夜間燈光的約 500 m 網格圖磚，同樣部署時才產生（第 14 節）
+   └─ <版本>/<年>/<z>/<x>/<y>.png          4 期 × 5,197 張，共 106 MB
    │
    ▼  fetch
 src/
@@ -169,7 +171,7 @@ pipeline/
 | `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層） |
 | 指標的 `overlayTime` | 有年份欄位的疊加點（或線）怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年）；海底電纜（依啟用年份累積）；颱風（當年／每十年） |
 | 指標的 `projectionLabel` | 資料檔有 `projectionFrom` 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」；之前是實際數字、之後也不是推估時，換掉之後的稱呼（`tag`）與刻度上的說明（`from(年)`），之前的年份不加標籤 | 海底電纜（明年起「含規劃中」） |
-| 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換 | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格 |
+| 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底） |
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔、太陽能與風能潛力（長期平均） |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
@@ -450,6 +452,7 @@ pipeline/
 | 太陽能與風能潛力 | 太陽光電潛力（PVOUT，kWh/kWp/日，預設）、風能潛力（離地 100 公尺風功率密度的陸地平均，W/m²）、風最強的 10% 土地、近岸海域（離岸 50 km）的風能；太陽光電與風能潛力可以切到約 2 km 網格（風能含各國專屬經濟海域，台灣海峽整片在最高一級） | — | Global Solar Atlas 2.0（Solargis／世界銀行 ESMAP）、Global Wind Atlas 4.0（丹麥技術大學 DTU／世界銀行 ESMAP，Vortex）；台灣附註對照 GSA 網站摘要與經濟部能源署 | 不隨時間變化（太陽能是各地 1994–2019 年起到 2025 年的長期平均，風能是 2008–2017 年），沒有時間軸 |
 | 野火 | 燒毀面積占國土比例（預設）、燒毀面積（比例圓） | 燒毀的土地類型（堆疊面積圖＋當年長條）、每月燒毀面積（歷年平均與當年）、台灣：林保署森林火災對照表 | GWIS 全球野火資訊系統（歐盟 JRC、Copernicus）的 MODIS MCD64A1 各國逐月燒毀面積、GWIS Country Profile API（GADM 國土面積）；台灣附註用農業部林業及自然保育署林業保育統計年報 | 2002–2025（林保署對照 2007–2025） |
 | 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
+| 夜間燈光 | 平均亮度（預設，nW/cm²/sr；一打開就是約 500 m 網格，網格底下鋪夜色）、燈光總量（比例圓，MW/sr）、人均燈光、有燈光的土地比例、住在沒有燈光地方的人口比例（電力普及的粗略指標）、燈光比 2017 年（發散色） | 燈光總量的變化（跟世界比）、燈光最多的地區（Natural Earth 第一級行政區的燈光總量、占全國、比 2017 年） | EOG Annual VNL V2 average_masked（科羅拉多礦業學院，CC BY 4.0；檔案取自 Hengl 在 Zenodo 的轉存，不必登入）、JRC GHS-POP R2023A、UN WPP 2024、Natural Earth | 2013–2024（2017 年起處理方式不同，methodBreak）；變化 2018–2024；網格 2013、2017、2020、2024 四期 |
 | 太空 | 在軌酬載（依擁有國，比例圓，預設）、每年入軌發射次數、累計入軌發射次數（依發射業者的國家，比例圓）；疊加圖層：發射場（大小是入軌發射次數，依第一次發射的年份出現） | 目前在軌酬載的主要擁有者（長條）、酬載不多的國家列出每一顆（台灣的福衛系列與立方衛星） | Jonathan McDowell 的 GCAT Release 1.8.8（CC BY 4.0） | 1957–2026（2026 年到 10 月 17 日） |
 | 奧運 | 累計獎牌（比例圓，預設）、累計金牌、單屆獎牌、單屆金牌（比例圓）、每千萬人獎牌（單屆，面量圖；指標名稱取短的，中文 1280px 寬時控制列才是一行）；子項目：夏季、冬季；蘇聯、東西德、南斯拉夫等歷史隊伍是主題自訂的地點，畫在當時的首都附近 | 歷屆的金銀銅（表格）、得牌屆數與最多的一屆、相關的歷史隊伍或今天對應的國家 | 英文維基百科各屆的獎牌榜與 All-time Olympic Games medal table（CC BY-SA 4.0）、UN WPP 2024 | 夏季 1896–2024（30 屆）、冬季 1924–2026（25 屆）；每千萬人 1952 年起 |
 
@@ -602,6 +605,8 @@ pipeline/
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
     - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**使用者 2026-10-25 確認：照 DataHub 標示的 CC BY-SA 4.0 繼續用（只取事實性的欄位）**，不改成 Wikidata。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
     - GCAT（Jonathan McDowell）是 CC BY 4.0：網頁寫「GCAT is released under the Creative Commons CC-BY licence」（連到 CC BY 4.0）、「This data may be freely reproduced as long as you cite it」，引用格式「McDowell, Jonathan C., 2020. General Catalog of Artificial Space Objects, Release 1.8.8, https://planet4589.org/space/gcat」，頁尾照寫。
+    - **EOG 的 VIIRS 夜間燈光（Annual VNL V2）是 CC BY 4.0**：EOG 的授權文件（https://eogdata.mines.edu/files/EOG_products_CC_License.pdf ，2026-10 查）寫明 DMSP、VIIRS 夜間燈光（VNL）等以 CC BY 4.0 公開；用它做的衍生產品（含圖表）要寫「This product was made utilizing … data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.」，篇幅不夠時寫「Source: EOG, Colorado School of Mines.」，報告要引用文件附錄的論文（這裡引用 Elvidge et al. 2021）。主題的 `note` 開頭照抄那段聲明（中英文介面都是英文原文），地圖右下角與匯出圖片寫短的標示。文件另外寫「大幅面的圖要放 EOG 的標誌」，網頁地圖與分享的小圖不是大幅面印刷品，沒有放（照篇幅不夠時的規定寫短標示）。EOG 自己的下載站要註冊登入，**沒有用**；改用 Tomislav Hengl（OpenGeoHub）在 Zenodo 的轉存（doi:10.5281/zenodo.17294744，record 的授權欄是 CC BY 4.0，不必登入），2013–2024 年是 EOG 原本的 average_masked（檔案的 TIFFTAG_DOCUMENTNAME 寫著 EOG 的原始檔名），同一個 record 的 2000–2011 年外插值沒有用。頁尾同時列 EOG 與 Zenodo。
+    - Natural Earth 1:10m 第一級行政區（夜間燈光側欄的地區名稱與範圍）是公有領域。
     - 英文維基百科的奧運獎牌榜是 CC BY-SA 4.0：奧運主題的資料檔是改作（換代碼、合併、累計、算人均），依 CC BY-SA 4.0 分享，頁尾寫明。Olympedia（OlyMADMen）的網站沒有開放授權，沒有用。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
@@ -1783,6 +1788,20 @@ pipeline/
     - **側欄**（`countries/<鍵>.json`）：夏季、冬季各屆的金銀銅（只有得牌的那幾屆），依時間軸篩選、新的在前，10 屆以外收起；寫出得牌屆數與最多的一屆，國家寫出相關的歷史隊伍，歷史隊伍寫出今天對應的國家（`RELATED`）。
     - **自訂地點的引擎**（2026-10-23 加的，見第 4 節的表）：`TopicDefinition.places` 的點跟吐瓦魯這類沒有形狀的國家一樣畫小圓點與比例圓（`WorldMap` 的 `places`）；名稱用 `registerPlaces()` 登記到 `lib/countries.ts`，排名表、tooltip、側欄的 `countryName()` 都查得到；畫面上的代碼用 `displayCode()` 去掉底線（`_URS` 顯示 URS，剛好是國際奧會的代碼）。搜尋找不到自訂地點（不在 `countries.json`）。
 
+65. **夜間燈光**（`pipeline/topics/night_lights.py`、`night_lights_tiles.py`、`pipeline/sources/vnl.py`、`src/topics/night-lights.ts`、`src/topics/panels/NightLightsPanel.tsx`）：
+    - **來源只能用不必登入的**：EOG（eogdata.mines.edu）、NASA Earthdata/LAADS 的 Black Marble（VNP46A4）、Google Earth Engine 都要帳號，不用。找過的其他來源：NASA Earth Observatory 的 Black Marble 2012、2016 是給人看的 8 位元灰階影像（不是輻射亮度），只能當底圖；AWS 上的 Light Every Night（世界銀行，MIT）是每晚的原始軌道資料，要自己合成，太大；Li et al. 的 DMSP/VIIRS 調和資料（figshare，CC BY 4.0）是 DMSP 的 0–63 尺度、城市會飽和、光暈大。**採用 Hengl 在 Zenodo 的轉存**（CC BY 4.0）：2012–2024 年是 EOG 的 Annual VNL V2 average_masked 原檔，換成 COG。
+    - **Zenodo 很慢**：從台灣每條連線約 25 KB/s，而且大約 2.5 分鐘就切斷（不報錯，只是提早結束）。`vnl.raster_path()` 把檔案切成 4 MB 一段、24 條連線平行下載，斷了從已收到的位置接著下載（HTTP Range），最後用 Zenodo API 的 MD5 檢查；一個 60–85 MB 的檔約 2.5–3 分鐘，12 個檔兩個同時下載約 20 分鐘。
+    - **數值換算兩段不同**（`vnl.factor()`）：Zenodo 說明只寫「0–200 換成 0–2000」。實際上 2013–2021 年（EOG 的 V2.1）存的是 nW/cm²/sr × 10（int16，GDAL scale 標 1），2022–2024 年（V2.2）存的就是 nW/cm²/sr（scale 標 10），也就是「整數 × scale ÷ 10」。用 AWS Light Every Night 的每晚原始輻射亮度（rade9）驗證：2016-01-04 晴朗的一晚台北盆地平均 26.4 nW/cm²/sr，這裡換算後 2016 年 27.4、2024 年 27.3；照 Zenodo 說明的 ÷ 10 換算只有 2.7。兩段都只到整數（2013–2021 年的值都是 10 的倍數），比 1 暗的都是 0，所以「有燈光」定為 ≥ 1 nW/cm²/sr。2013–2021 年 × 10 後碰到 int16 上限，燃燒塔最亮的像素被截在 3,276.7，2022 年起沒有截（巴斯拉最亮的像素 31,998）；各年一律截在 3,276.7（`vnl.CLIP`），燃燒塔多的國家的燈光總量才不會在 2022 年跳一階。
+    - **2016 → 2017 年有斷層**：世界有燈光的土地從 5.11% 跳到 6.75%（德國 31.7% → 43.6%、日本 19.7% → 23.7%），燈光總量 +11%（之前每年 ±1%），1–1.5 nW/cm²/sr 的暗格子比例也跳上去，看起來是 EOG 的背景遮罩或處理方式不同（原因沒查到；VNL V2 的遮罩門檻依多年的資料與無雲次數決定）。2021 → 2022 年換 V2.2 反而是連續的（5 個指標都沒有跳）。處理：每個指標檔都標 `methodBreak: 2017`（側欄折線圖畫虛線），「燈光比 2017 年」與側欄地區的變化都從 2017 年算起，網格的四期之一放在 2017 年（2017 年以後的年份不會拿到 2016 年以前的網格）。2013–2016 年照樣列出，不刪。
+    - **國家的範圍**：在 GHS-POP 的 30 角秒網格上畫國家編號（`ghsl.country_codes()`，跟人口的框選網格一樣），有人口卻在 1:50m 海岸線外的格子用 `ghsl.fill_gaps()` 歸給最近的國家；VNL 的 2 × 2 格對到一個 GHS-POP 格（欄剛好對齊：VNL 第 k 欄是 GHS 第 k//2 + 1 欄；列差 0.2 格，依格子中心歸）。海上的燈光不算進任何國家，世界合計也只加各國。北緯 75° 以北沒有資料（格陵蘭有資料的國土不到一半，不輸出；斯瓦巴、北極群島多的國家附註）。統計一次讀 12 年 × 256 列 GHS 格（512 列 VNL），6 個行程約 7 分鐘；結果存在 `.cache/vnl/stats-<版本>.pkl`，只改輸出時不必重算（改了統計的程式要把 `STATS_VERSION` 加一或 `--refresh`）。
+    - **住在沒有燈光的地方**：GHS-POP 2015、2020、2025 三期的格子人口（年份之間線性內插，2013–2014 用 2015，2025 是推估），4 個 VNL 格子都是 0 的人口 ÷ 全國人口（分子分母都用 GHS-POP；人均燈光的分母才用 WPP）。2024 年世界 16.0%（約 13 億人），遠多於國際機構估計的沒有電的人口：有電但燈太少、太暗、太分散的村莊衛星看不到，所以只是粗略指標，指標說明與頁尾都寫明會高估。南蘇丹 80%、馬達加斯加 78%、奈及利亞 48%；台灣 0.05%（2013 年 0.15%）。
+    - **燈光總量的單位**：亮度 × 面積，1 nW/cm²/sr 在 1 km² 上是 1e-9 W/cm²/sr × 1e10 cm² = 10 W/sr（向上的輻射強度，DNB 0.5–0.9 µm 波段），輸出 MW/sr。2024 年世界 537 MW/sr，美國 91、中國 57、俄羅斯 40、印度 36；台灣 1.86（第 48 名，占全球 0.35%）。人均燈光 W/sr/人：卡達 0.86、沙烏地 0.57、利比亞 0.54（燃燒塔），美國 0.26、台灣 0.080（第 110 名）、世界 0.066。
+    - **變化**：燈光總量比 2017 年，基準年燈光不到 0.005 MW/sr 的國家（小島國，零點幾的燈光多一點點就是幾百 %）不算，199 國。2017–2024 年世界 +27%；甘比亞 +278%、索馬利亞 +245%、盧安達 +231%（非洲的電力普及）；黎巴嫩 −50%（經濟危機）、海地 −49%、烏克蘭 −32%（戰爭）、萬那杜 −91%（安布里姆島的熔岩湖 2018 年 12 月噴發後消失，之前衛星把熔岩湖的光也當成燈光，附註說明）。DNB 對藍光不敏感，路燈換成白光 LED 的國家（歐洲、日本）量到的燈光會變少，頁尾寫明。
+    - **分級**：平均亮度 0.1、0.3、1、3、10、30 nW/cm²/sr（國家平均與網格共用，網格才看得出城市核心；國家有 82 國在最低一級）；人均 0.01、0.02、0.05、0.1、0.2、0.5 W/sr/人；有燈光的土地 1、3、10、20、40、60%；沒有燈光的人口 1、5、10、25、50、75%（`lowerIsBetter`）；變化 −50、−20、−5、5、20、50%（2024 年 7 級各 1/10/19/21/38/45/65 國）。燈光總量的比例圓圖例 1、10、50 MW/sr。
+    - **側欄的地區**：Natural Earth 1:10m 的第一級行政區（4,596 個，公有領域，中文名用 `name_zht`）也畫在同一個 30 角秒網格上，2017、2024 年各算一次每個（地區, 國家）的燈光；地區歸給 2024 年燈光最多的那個國家，只算那國國界內的部分（Natural Earth 的行政區界線跟 1:50m 國界不完全重合；法國的海外大區在地圖上是另外的國家），每國列前 8 個，只有一個地區的國家不列。台灣 2024 年：高雄市 0.229 MW/sr（12%）、台中市 0.221（12%）、臺南市 0.195、彰化縣 0.170、桃園市 0.158、新北市 0.137、屏東縣 0.094、雲林縣 0.084；臺北市面積小（272 km²），總量不在前 8。名稱照 Natural Earth（「台中市」與「臺南市」的寫法不一）。原本做「最亮的城市」（燈光格子歸給 30 km 內最近的 Natural Earth 城市點），但都會區被相鄰的城市點切成好幾塊，台北市排第 8、台中與台南因為腹地大排前面，不直覺，改成行政區。
+    - **台灣**：平均亮度 3.44 nW/cm²/sr（第 17/244 名，2013 年 2.85）、有燈光的土地 40.6%（第 29 名，2013 年 35.6%）。合理性：台灣本島西部平原（東經 120.75° 以西）67% 有燈光、平均 6.9；中央山脈（東經 120.85°–121.35°、北緯 22.6°–24.4°）只有 22%、平均 0.61；海拔主題的資料是 47.7% 的國土在 500 公尺以上、32.6% 在 1,000 公尺以上，跟「平地大多有燈光、山區大多沒有」對得上。附註寫在平均亮度與有燈光的土地。
+    - **漁船**：average_masked 把會移動的光源大多當成短暫的光遮掉，網格上只有固定的大漁場看得到（阿根廷外海專屬經濟海域邊緣的魷釣船隊很明顯）；台灣附近海上只剩零星幾個亮點，黃海、泰國灣的漁船也大多不見了。油氣田的燃燒塔與平台（波斯灣、尼日河三角洲）都在。EOG 的未遮罩版（average）與漁船偵測（VBD）都要登入，沒有用。
+
 ## 9. 之後可以做的
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。
@@ -1810,6 +1829,7 @@ pipeline/
 - **諾貝爾獎依國籍或得獎時的機構**：API 有 `affiliations`，國籍要另外查 Wikidata 的 P27（雙重國籍要定規則）；也可以加女性得主、得獎年齡。
 - **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。
 - **全部商品往前延伸**：BACI 的 HS92 版從 1995 年開始，但 zip 有 2.4 GB，讀完約要 6 分鐘。
+- **夜間燈光**：每年一期的網格（12 期約多 200 MB，要先確認 GitHub Pages 的 1 GB 上限）；漁船要用 EOG 的未遮罩年平均或 VIIRS Boat Detection（都要登入，找到不必登入的轉存再加）；2016 → 2017 年的斷層找到原因（或 EOG 重新處理的版本）後可以拿掉 `methodBreak`；側欄加城市層級（要有開放授權的都會區範圍，例如 GHSL 的 Urban Centre Database，CC BY 4.0）。
 - **野火的火點密度網格**：NASA FIRMS 的每年火點彙整成 0.25° 網格、每年一期，照暖化網格的做法部署時產生（要先確認每年的國家檔不需 MAP_KEY，並量下載量與部署時間）。
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
@@ -1874,6 +1894,7 @@ pipeline/
   - 經濟加入就業與失業、外匯存底與外債、股市規模、關鍵礦產，科技與交通加入半導體（2026-10-23；經濟有 11 個主題，選單分欄）：英文短名稱 Jobs、FX reserves、Stocks、Minerals、Chips，選到它們時英文 1280px 最寬 829px（FX reserves）；中文最寬 628px（五個字）。「外匯存底與外債」七個字會超出，所以中文短名稱是「外匯與外債」（完整的 `title` 不變）。
   - 能源加入發電廠地圖、太陽能與風能潛力，地理加入颱風與颶風、野火（2026-10-23，能源 8 個；地理連同同一天加入的旅行實用共 6 個）：英文短名稱 Power plants、Solar & wind 是 12 個字元，但比 Water & forests 短，選到它們時英文 1280px 最寬 841px、Cyclones 與 Wildfires 810px；中文 1024px「太陽能與風能」644px（六個字，跟水資源與森林一樣）、颱風與颶風 628px、發電廠 596px、野火 580px，都沒有超出（可用 871px、650px）。
   - 科技與交通加入海底電纜、太空、交通安全，地理加入世界遺產、旅行實用，社會加入奧運（2026-10-23；科技與交通 8 個、地理 7 個，社會 15 個，科技與交通、社會分欄）：英文短名稱 Cables、Space、Road safety、Heritage、Travel、Olympics，選到它們時英文 1280px 最寬 832px（Road safety，可用 871px），中文 1024px 最寬 612px（四個字的主題，可用 650px），都放得下。
+  - 地理加入夜間燈光（2026-10-26，地理 8 個主題，選單分欄）：英文短名稱 Night lights（12 個字元），選到它時英文 1280px 寬 833px（可用 871px），中文 1024px「夜間燈光」612px（可用 650px），控制列在兩種寬度都是一行（指標 6 個，用下拉選單）。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
@@ -2107,9 +2128,9 @@ pipeline/
 
 **看過一次就能離線開啟**：桌機與手機（Fast 3G、4× CPU）各只開一次、等下載結束後切成離線再開，地圖與資料都正常出現，標題旁顯示「離線中」，沒有失敗的請求。
 
-## 14. 網格圖層：人口密度的 1 km 網格、暖化的 0.5° 網格、太陽能與風能的約 2 km 網格
+## 14. 網格圖層：人口密度的 1 km 網格、暖化的 0.5° 網格、太陽能與風能的約 2 km 網格、夜間燈光的約 500 m 網格
 
-網格的前端（`src/map/densityGrid.ts`）是通用的：指標設了 `grid`（`GridSpec`），控制列就多一個「國家平均 / 網格」切換，圖磚、`meta.json` 的格式、不請求空圖磚、service worker 的快取都一樣。下面先寫人口密度的 1 km 網格，最後兩小節是氣溫與降雨主題的暖化 0.5° 網格、太陽能與風能潛力主題的約 2 km 網格。
+網格的前端（`src/map/densityGrid.ts`）是通用的：指標設了 `grid`（`GridSpec`），控制列就多一個「國家平均 / 網格」切換，圖磚、`meta.json` 的格式、不請求空圖磚、service worker 的快取都一樣。下面先寫人口密度的 1 km 網格，最後三小節是氣溫與降雨主題的暖化 0.5° 網格、太陽能與風能潛力主題的約 2 km 網格、夜間燈光主題的約 500 m 網格。
 
 
 人口主題選「人口密度」時，控制列多一個「國家平均 / 1 km 網格」切換（網址 `grid=1`）。網格模式把每個約 1 km 見方的格子依每 km² 人數上色：台灣的西部走廊與中央山脈、尼羅河谷與兩旁的沙漠一眼就分得出來，國家平均做不到。
@@ -2296,3 +2317,21 @@ pipeline/
   - 一個快取（`public/tiles/renewables-solar` 與 `renewables-wind` 兩個路徑），排在人口圖磚存進快取之後。
   - 快取鍵含圖磚程式、`gsa.py`、`gwa.py`、`population_density_tiles.py`、`tokens.ts` 的 ORANGE、`renewables.ts` 的兩行門檻。
   - 沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`（rasterio 讀 GeoTIFF、含 GDAL 的 `/vsisparse/`），下載 345 MB＋182 MB，GitHub Actions 上約 3 分鐘，`pipeline/.cache/gsa` 會長到約 1.4 GB；30 分鐘逾時、`continue-on-error`，伺服器連不上時照樣部署，用上一版的圖磚（連上一版都沒有時，切到網格會顯示載入失敗、改畫國家平均）。
+
+### 夜間燈光的約 500 m 網格
+
+- 「夜間燈光」主題的「平均亮度」有網格（`grid: { dir: 'night-lights', …, defaultOn: true }`），切換鈕是「約 500 m 網格」，**一打開主題就是網格**（`GridSpec.defaultOn`，見第 4 節的表；網址沒有 `grid` 參數時用指標的預設，切回國家平均時寫 `grid=0`，其他網格的行為不變）。`pipeline/topics/night_lights_tiles.py` 用 EOG 的 Annual VNL V2 average_masked（15 角秒，`sources/vnl.py`），**只做 2013、2017、2020、2024 四期**（2017 年起跟之前不完全可比，第 8 節第 65 點，所以有一期從 2017 年開始），前端照樣挑時間軸那一年以前最近的一期。
+- **重新取樣**：不修改人口密度那一支，繼承它的 `Level`、只換 `classify`：把「每格亮度 × 面積」當成人數餵進去，「人數 ÷ 面積」就是面積加權的平均亮度；逐 512 列讀 COG（圖塊 512 × 512），所有級數一起算。z7 一個像素 19.8 角秒，比原始格子（15 角秒）略粗，所以 z7 也是平均；縮小時是範圍內的平均（沒有燈光的格子算 0），全球視角城市還在，鄉間的路燈、零星的漁船會淡掉，放大才出來。北緯 75° 以北的 nodata 當成 0。
+- **分級與顏色**：7 級，門檻 0.1、0.3、1、3、10、30 nW/cm²/sr（對數間距，國家平均與網格共用，`night-lights.ts` 的 `LIGHT_THRESHOLDS`，產生時檢查）。顏色是 `tokens.ts` 的 `NIGHT`（pipeline 直接讀這一段）：第一個是夜色 #0d1228，之後 6 級由暗到亮是深褐 #6f351d → 橘 → 黃 → 近白 #fcf4be（OKLCH 亮度 0.19 到 0.96 等距，色相只在 42°–100° 的橘黃之間；跟夜色的對比 1.9–16.6:1）。轉存檔只到整數 nW/cm²/sr，原始格子不是 0 就是 1 以上（第 4 級起），第 2、3 級只在幾個格子平均起來時出現（縮小後暗的一片光暈、燈光區的邊緣）。
+- **夜色底（`meta.json` 的 `backdrop`）**：燈光的配色是「越亮越亮」，畫在預設的彩色地形底圖（淺綠、淺褐、藍色的海）上，第 2–4 級的深褐、橘跟地形色混在一起，最亮的近白反而看不見。所以：
+  - 圖磚裡第一級（平均不到 0.1，也就是沒有燈光）是透明的，前端在資料範圍（南緯 62° 到北緯 75°，`vnl.LAT_RANGE`）鋪一層同色的 GeoJSON 填色（`grid-backdrop`，插在網格圖層底下，切成東西兩半，地球儀上才不會繞錯），不透明度跟網格一樣（縮放 4 以下 0.92，放大後變淡，看得到底圖的街道），圖例的第一格就是夜色。任何底圖上都是一張夜景，深色、深藍底圖上幾乎看不出這層。
+  - 不在圖磚裡畫夜色：海洋、沙漠的圖磚會全部變成「有內容」（z7 從 3,400 張變成上萬張），也會多一堆請求。
+  - **不自動換成深色底圖**：底圖是使用者的設定（記在 localStorage），換主題就偷偷換掉（再換回來）很突兀，也要多下載一次樣式；夜色底只在網格模式出現，切回國家平均、換主題就沒了，底圖選單也照常可以換。
+  - 夜色底開著時，國界（`data-border`）與選取外框（`data-highlight`）改用深色底圖的淺色（`nightLook`），彩色地形的地名本來就有白色光暈，在夜色上看得清楚。
+  - 資料範圍外（北緯 75° 以北、南緯 62° 以南）沒有夜色，透出底圖，圖例的「沒有上色」寫「北緯 75° 以北、南緯 62° 以南（沒有資料）」。
+- **大小與時間**：每期 4,627–5,068 張、23–31 MB；4 期共 5,197 個圖磚位置、約 2.1 萬個檔（含補的透明圖磚）、106 MB（z7 每期約 3,100–3,400 張、14–19 MB）。燈光逐年變多，2024 年那一期最大。這台 Windows 4 期同時跑約 2.5 分鐘（資料已在快取時）。加上人口的 585 MB 等，網站約 790 MB，還在 GitHub Pages 1 GB 的上限內；每年一期（12 期）會再多約 200 MB，所以只做四期。
+- `meta.json` 跟暖化的一樣，有 `attribution`（`Source: EOG, Colorado School of Mines (Annual VNL V2), CC BY 4.0`，EOG 授權文件對篇幅小的圖要求的標示）與 `citation`（EOG 要求的完整聲明與引用），另有 `backdrop`。
+- **部署**（`.github/workflows/deploy.yml`）：
+  - 一個快取（`public/tiles/night-lights`），排在人口圖磚存進快取之後。
+  - 快取鍵含圖磚程式、`vnl.py`、`population_density_tiles.py`、`tokens.ts` 的 `NIGHT`、`night-lights.ts` 的 `LIGHT_THRESHOLDS`。
+  - 沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`，從 Zenodo 下載 4 年（約 270 MB），`VNL_PRUNE=1` 算完一期就刪掉；45 分鐘逾時、`continue-on-error`，Zenodo 連不上時照樣部署，用上一版的圖磚（連上一版都沒有時，網站上切到網格會顯示「約 500 m 網格載入失敗，先顯示國家平均」）。

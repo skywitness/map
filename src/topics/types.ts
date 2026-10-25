@@ -170,6 +170,11 @@ export interface GridSpec {
   epochNote?: (epoch: number, projected: boolean) => string;
   /** 圖例上取代「無資料」的說明：沒有上色的格子是什麼（預設「每 km² 不到 0.1 人（不上色）」） */
   empty?: Text;
+  /**
+   * 預設就顯示網格（網址沒有 grid 參數時；從主題選單換到這個主題時也是）。網格是主角的指標用，
+   * 例如夜間燈光；使用者切回國家平均時網址寫 grid=0
+   */
+  defaultOn?: boolean;
 }
 
 export interface SourceDef {
