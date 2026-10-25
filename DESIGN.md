@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -177,7 +177,8 @@ pipeline/
 | 指標的 `unranked` | 數值沒有好壞、名次沒有意義：排名表依數值排列但不寫名次（表名寫「依數值排列」），側欄的數值卡片也不寫名次 | 跟台灣的時差 |
 | `dimension.followsSelection` | 子項目就是國家（option 的 id 是 ISO alpha-3）：點地圖、排名表或搜尋選到國家時，子項目跟著換成那個國家（`App.tsx` 的 `selectCountry`），取消選取時留在原本的子項目；網址只有 `country`、沒有 `item` 時（例如從別的主題切過來）也用選到的國家（`resolveItem()`）。子項目選單各組依目前語言的國名排序 | 護照與簽證（點日本，地圖就畫日本護照到各國的簽證待遇） |
 | `dimension.selfLabel` | 子項目是國家時，那個國家在自己那份資料裡沒有值：tooltip 與側欄的數值卡片寫這句，不寫「無資料」（不必 `followsSelection`） | 護照與簽證的「本國護照」、聯合國投票「與各國的一致度」的「比較的對象」 |
-| `noValue`、指標的 `noValue` | 某些國家沒有值的原因（key 是 ISO alpha-3），取代 tooltip 與側欄的「無資料」。`missingReason()` 依序取指標的、主題的、`selfLabel`。這個國家在這個指標完全沒有值時，側欄的歷年圖表也換成這句；有部分年份的照常畫 | 台灣的外交裡的台灣（觀點）；聯合國投票的台灣（1971 年起不是會員國，1946–1971 年照常畫）；「與美國的一致度」裡的美國 |
+| `noValue`、指標的 `noValue` | 某些國家沒有值的原因（key 是 ISO alpha-3），取代 tooltip 與側欄的「無資料」。`missingReason()` 依序取指標的、主題的、`selfLabel`、`coverage`。這個國家在這個指標完全沒有值時，側欄的歷年圖表也換成這句；有部分年份的照常畫 | 台灣的外交裡的台灣（觀點）；聯合國投票的台灣（1971 年起不是會員國，1946–1971 年照常畫）；「與美國的一致度」裡的美國 |
+| 指標的 `coverage` | 刻意只收部分國家的指標：`{ countries, reason }`，`countries`（ISO alpha-3）以外的國家沒有值時一律寫 `reason`（`noValue` 要逐一列出國家，這裡只列有收的）；`countries` 裡的國家某一年沒有值時照常寫「無資料」 | 監禁人口率：44 國以外寫「沒有開放授權的資料」（第 8 節第 43 點） |
 
 ### 雙語文字（英文版介面）
 
@@ -424,7 +425,7 @@ pipeline/
 | 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
 | 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
 | 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
-| 治安與司法 | 故意殺人率（全部、女性、男性被害人，三個用同一組門檻）、法治分數（WGI，0–100） | — | World Bank WDI（UNODC 國際殺人統計）、World Bank Worldwide Governance Indicators；台灣的故意殺人率用衛福部死因統計（他殺）÷ WPP 人口，附註對照警政署故意殺人統計；監禁人口率因授權沒有放 | 故意殺人率 1990–2025（女性、男性 1993 年起；台灣 2008 年起；各國顯示 5 年內最近一年）；法治分數 1996–2025（2002 年起每年） |
+| 治安與司法 | 故意殺人率（全部、女性、男性被害人，三個用同一組門檻）、監禁人口率（只收有開放授權資料的 44 國，其他國家寫「沒有開放授權的資料」）、法治分數（WGI，0–100） | — | World Bank WDI（UNODC 國際殺人統計）、World Bank Worldwide Governance Indicators；台灣的故意殺人率用衛福部死因統計（他殺）÷ WPP 人口，附註對照警政署故意殺人統計；監禁人口率用 Eurostat 監獄統計（歐洲 39 國）、法務部法務統計年報（台灣）、BJS（美國）、加拿大統計局、ABS（澳洲）、日本法務省犯罪白書，都 ÷ WPP 人口 | 故意殺人率 1990–2025（女性、男性 1993 年起；台灣 2008 年起；各國顯示 5 年內最近一年）；監禁人口率 1993–2025（台灣 2015 年起、澳洲 2016 年起、英國到 2017 年；各國顯示 3 年內最近一年）；法治分數 1996–2025（2002 年起每年） |
 | 幸福感 | 生活評價（Cantril 階梯 0–10 分，近三年平均） | 《世界幸福報告》公布的名次、95% 信賴區間、分數由六個因素解釋的拆解（2019 年起） | World Happiness Report 2026 的 Figure 2.1 資料（Gallup World Poll）；台灣本身就在報告裡 | 2011–2025（2013 年沒有；2025 年是 2023–2025 年的調查，WHR 2026 公布） |
 | 薪資與工時 | 平均月薪（美元、購買力平價）、法定最低工資（美元、購買力平價）、每週工時、每年工時 | — | 國際勞工組織 ILOSTAT、Penn World Table 11.0（墨西哥、哥倫比亞的每年工時用 OECD）；台灣用主計總處薪資及生產力統計與人力資源調查、勞動部基本工資／最低工資、中央銀行匯率，購買力平價用 PWT 與 IMF 的消費者物價推算 | 月薪 1993–2025、最低工資 1996–2024、每週工時 2000–2025（各國只顯示 3 或 5 年內最近一年的資料）；每年工時 1970–2023 |
 | 就業與失業 | 失業率（預設）、青年失業率（15–24 歲）、非正式就業比例、勞動力參與率 | 男女對照（四個指標的女性與男性數值表、男女失業率折線） | 國際勞工組織 ILOSTAT（ILO 模型估計 2025 年 11 月版；非正式就業用 ILOSTAT 依各國勞動力調查調和的序列）；台灣用主計總處人力資源調查，非正式就業從缺（附註對照人力運用調查的非典型就業） | 失業率、青年失業率 1991–2025，勞參率 1990–2025（2025 年是推估）；非正式就業 2007–2025（各國 5 年內最近一年） |
@@ -561,15 +562,25 @@ pipeline/
     - 交通部公路局統計查詢網適用政府資料開放授權條款（公路局在政府資料開放平臺的統計資料集，例如 data.gov.tw 30202「新車領牌數」，說明欄指向這個查詢網）；交通部網站的新聞稿適用交通部「政府資料開放宣告」（無償、非專屬、註明出處即可利用）。
     - **V-Dem 是 CC BY-SA 4.0（相同方式分享）**：可以商業使用、改作，但改作的成果要用同樣的授權分享（https://www.v-dem.net/data/the-v-dem-dataset/ ，條文 https://creativecommons.org/licenses/by-sa/4.0/）。民主與自由主題的資料檔（`public/data/topics/democracy/`）是改作（取子集、改國家代碼、差分編碼、算世界平均），所以頁尾寫明依 CC BY-SA 4.0 分享，這個主題匯出的地圖圖片與 CSV 也一樣。相同方式分享只管改作的資料本身，不會擴及網站程式碼或其他主題的資料。vdemdata 套件的程式碼是 GPL-3，這裡只用它的資料；「external variables」（`e_` 開頭）來自其他機構、各有授權，沒有用（見第 38 點）。
     - USGS ComCat、NOAA NCEI 全球重大地震資料庫是美國政府資料，公有領域。
-    - Smithsonian GVP 的 Volcanoes of the World 是美國政府雇員的職務作品（不受著作權保護）；Smithsonian 網站條款限個人、教育與其他非商業用途、註明出處，商業用途或「publication」要事先書面同意。本站非商業、頁尾註明來源，所以採用；要商業使用或擔心「publication」的解釋，可以改用 NOAA 的火山位置資料庫（也是 GVP 的舊版資料，授權欄「未指定」，沒有確切噴發年份）。見第 39 點。
+    - Smithsonian GVP 的 Volcanoes of the World 是美國政府雇員的職務作品（不受著作權保護）；Smithsonian 網站條款限個人、教育與其他非商業用途、註明出處，商業用途或「publication」要事先書面同意。本站非商業、頁尾註明來源，所以採用；要商業使用或擔心「publication」的解釋，可以改用 NOAA 的火山位置資料庫（也是 GVP 的舊版資料，授權欄「未指定」，沒有確切噴發年份）。見第 39 點。**使用者 2026-10-25 確認：GVP 的火山資料照現在的方式繼續用（非商業、註明出處）**，不換成 NOAA。
     - PB2002 板塊邊界（fraxen/tectonicplates）是 ODC-By 1.0，要註明 Hugo Ahlenius、Nordpil 與 Peter Bird。
     - 外交部駐外館處通訊錄（data.gov.tw 6119）、領事事務局免簽證名單（data.gov.tw 30749）是政府資料開放授權條款第 1 版；領務局的國家清單是網站內容，網站的「政府網站資料開放宣告」採同一個條款。邦交國的建交、斷交日期是史實，表格自己整理，只拿維基百科（CC BY-SA 4.0）交叉比對（見第 41 點）；Wikidata 的 P530 起訖日期大多是空的，ICPSR 的外交承認資料集禁止再散布，都沒有用。
     - Nobel Prize API（api.nobelprize.org）是 CC0（https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/）；條款另外要求不刻意竄改或誤導、不用 Nobel Prize Outreach 的名稱或商標暗示背書（主題名稱「諾貝爾獎」只是描述資料內容，沒有用標誌）。
     - 國家發展委員會的人口推估（data.gov.tw 6101「人口推計」）是政府資料開放授權條款第 1 版；生育率與高齡化主題只在台灣的附註引用幾個數字，沒有轉載資料檔。內政部戶政司的人口統計同樣適用政府資料開放授權條款。
-    - **UNODC 資料入口（data.unodc.org）不准轉載**：頁尾的 Terms and Conditions 連到聯合國網站的一般條款（https://www.unodc.org/unodc/legal.html）：只限個人、非商業使用，「without any right to resell or redistribute them or to compile or create derivative works」。原本 dataunodc.un.org 的資料條款允許註明出處後轉載，但舊網址（含條款頁）現在都轉到新網站。故意殺人率用世界銀行以 CC BY 4.0 轉載的版本；監禁人口率、在監人數、未判決比例沒有開放授權的轉載版，沒有放（見第 43 點）。
+    - **UNODC 資料入口（data.unodc.org）不准轉載**：頁尾的 Terms and Conditions 連到聯合國網站的一般條款（https://www.unodc.org/unodc/legal.html）：只限個人、非商業使用，「without any right to resell or redistribute them or to compile or create derivative works」。原本 dataunodc.un.org 的資料條款允許註明出處後轉載，但舊網址（含條款頁）現在都轉到新網站。故意殺人率用世界銀行以 CC BY 4.0 轉載的版本；監禁人口率、在監人數、未判決比例沒有開放授權的轉載版，所以監禁人口率改用各國、各區域自己的開放資料，只收有開放授權資料的國家（下面幾項，見第 43 點）。
     - **World Prison Brief（ICPR）沒有用**：網站只寫「© World Prison Brief」，要求引用，沒有授權轉載資料（https://www.prisonstudies.org/about-us）。
     - 世界銀行 Worldwide Governance Indicators 是 CC BY 4.0（https://datacatalog.worldbank.org/search/dataset/0038026）。
-    - 內政部警政署、法務部統計處的開放資料採政府資料開放授權條款第 1 版。
+    - 內政部警政署、法務部統計處的開放資料採政府資料開放授權條款第 1 版。法務部網站（含法務統計資訊網 rjsd.moj.gov.tw 的年報）的「資料開放宣告」：網站上的資料與素材採政府資料開放授權條款第 1 版（https://www.moj.gov.tw/2807/2817/33911/ ，2026-10-25 查）。
+    - **監禁人口率用到的各國來源**（2026-10-25 查）：
+      - Eurostat 監獄統計（crim_pris_cap、crim_pris_pop）：CC BY 4.0（同上面的 Eurostat）。資料是 Eurostat 與 UNODC 共同收集的，但 Eurostat 發布的資料集適用 Eurostat 的條款，不是 UNODC 資料入口的條款。
+      - 美國司法統計局（BJS）《Correctional Populations in the United States》：聯邦政府機關的職務作品，公有領域（17 U.S.C. § 105），頁尾仍註明來源。
+      - 加拿大統計局表 35-10-0154-01、35-10-0155-01：Statistics Canada Open Licence（https://www.statcan.gc.ca/en/terms-conditions/open-licence），可以重製、改作、商業使用；要註明「Adapted from Statistics Canada, Table …」，不得暗示加拿大統計局背書，頁尾照寫。
+      - 澳洲統計局（ABS）《Prisoners in Australia, 2025》：CC BY 4.0（© Commonwealth of Australia）。
+      - 日本法務省《令和 7 年版 犯罪白書》的 Excel：法務省網站的內容「権利表記の記載がない限り」適用公共データ利用規約（第 1.0 版，PDL1.0，https://www.moj.go.jp/hisho06_00280.html），跟 CC BY 4.0 相容；要寫出處，編輯、加工過的要另外寫明，所以頁尾寫「加工後使用」。
+    - **監禁人口率沒有用的來源**：
+      - 紐西蘭矯正部（Corrections）的季度監獄統計：網站的著作權頁寫 CC BY-NC-ND 3.0 NZ（禁止改作），不是開放授權；Stats NZ（CC BY 4.0）只有收監、羈押的人次（throughput），沒有在監人數，Aotearoa Data Explorer 的 API 也要申請金鑰。
+      - 南韓法務部：e-나라지표「교정시설 수용현황（1일 평균 수용 인원）」有 1996 年起的資料，但頁面沒有공공누리（KOGL，韓國的公共著作授權）標示；《교정통계연보》只寫轉載要註明出處，沒有開放授權；KOSIS 的 API 要申請金鑰。
+      - 英國 2018 年以後：Eurostat 只到 2017 年。英格蘭與威爾斯（司法部 MoJ）、蘇格蘭（蘇格蘭政府）、北愛爾蘭（司法部）各自發布，都是 OGL v3，可以用；但要三個來源分別解析，參考日也不同（英格蘭與威爾斯是每月月底的人數，蘇格蘭、北愛爾蘭主要是年度的平均每日人數），這次沒有做（見第 9 節）。
     - **World Happiness Report 沒有正式的開放授權**：報告寫明「This publication may be reproduced using the following reference」（附引用格式），資料分享頁（https://worldhappiness.report/data-sharing/）寫「The data we present in Figure 2.1 are available to download for free」，沒有限制轉載的條款；Our World in Data 也依這個「Data sharing policy」轉載。所以照報告要求的格式引用、只用公開的 Figure 2.1 資料。更多的蓋洛普世界民調資料要訂閱，條款另計，沒有用（見第 44 點）。
     - 國民健康署的「18歲以上人口目前吸菸率-依性別分」（data.gov.tw 14462）採政府資料開放授權條款第 1 版；國健署網站的「政府網站資料開放宣告」相同（菸酒主題用網站上圖 1 的數字補 2018 年以後的年份）。
     - **Passport Index 資料集是 MIT**：imorte/passport-index-data 的 LICENSE（commit 9c59780，「MIT License, Copyright (c) 2019」，沒有寫名字）與 README（「Data scraped from passportindex.org … Licensed under MIT」）；前身 ilyankou/passport-index-dataset 的 LICENSE 是「MIT License, Copyright (c) 2019 Ilya Ilyankou」，README 的理由是 Passport Index 自稱「a free tool, built with publicly available information and with content contributed by fans and government agencies」。資料本身是 Arton Capital 的 passportindex.org 整理的（網站頁尾「© 2026 PASSPORTINDEX.ORG」）；網站的條款頁擋了程式，沒有讀到。簽證規定本身是各國政府公布的事實，本站非商業、頁尾同時註明 GitHub 資料集（MIT）與 passportindex.org，所以採用；要商業使用或擔心網站條款，可以改用各國政府公布的資料自己整理（台灣護照已經有領事事務局的名單）。Henley Passport Index 沒有開放授權的資料，沒有用。（見第 45 點）
@@ -589,7 +600,7 @@ pipeline/
     - 交通部統計查詢網：交通部的開放資料（data.gov.tw）採政府資料開放授權條款第 1 版；統計查詢網是交通部網站的一部分，適用交通部的「政府網站資料開放宣告」（無償、非專屬、註明出處即可利用），跟電動車主題用的交通部新聞稿一樣。
     - IANA 時區資料庫（tz database）是公有領域；PyPI 的 `tzdata` 套件（Apache 2.0）只是包裝，沒有轉載它的程式。
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
-    - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
+    - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**使用者 2026-10-25 確認：照 DataHub 標示的 CC BY-SA 4.0 繼續用（只取事實性的欄位）**，不改成 Wikidata。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
     - GCAT（Jonathan McDowell）是 CC BY 4.0：網頁寫「GCAT is released under the Creative Commons CC-BY licence」（連到 CC BY 4.0）、「This data may be freely reproduced as long as you cite it」，引用格式「McDowell, Jonathan C., 2020. General Catalog of Artificial Space Objects, Release 1.8.8, https://planet4589.org/space/gcat」，頁尾照寫。
     - 英文維基百科的奧運獎牌榜是 CC BY-SA 4.0：奧運主題的資料檔是改作（換代碼、合併、累計、算人均），依 CC BY-SA 4.0 分享，頁尾寫明。Olympedia（OlyMADMen）的網站沒有開放授權，沒有用。
     - 頁尾已標示各主題的來源。
@@ -1222,9 +1233,22 @@ pipeline/
     - 人口金字塔每國一個檔（`countries/<ISO3>.json`，1950–2100 每年男女各 21 組），用指標檔同一種差分編碼，但整個國家共用一個指數，最大的一組保留 4 位有效數字（台灣是千人），237 國共 4.5 MB、gzip 後 1.4 MB，點國家才載入。共用的 `EChart` 只有折線圖，金字塔用 HTML 長條畫，不另外引入 ECharts 的長條圖。
     - 台灣維持 WPP（跟人口主題一致）：2023 年以前跟內政部很接近（總生育率 0.87 對 0.865、65 歲以上 18.33% 對年底 18.35%，出生數少約 2%）。但 2024 年起 WPP 是推估，2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 推估 0.86、12.5 萬人。只把台灣這兩年換成內政部的數字，會跟 WPP 2026 年以後的推估接不起來，所以差異寫在附註。國發會 2026 年 8 月的人口推估（中推估 2075 年總生育率 0.8、65 歲以上 52.9%）比 WPP（2075 年 1.22、42.9%）悲觀很多，也寫在附註；國發會的網站（pop-proj.ndc.gov.tw）有 Cloudflare 驗證，這幾個數字取自國發會新聞稿的媒體轉述。
     - 總生育率用發散色：門檻 [1, 1.5, 1.9, 2.3, 3.5, 5]，中性的一級（1.9–2.3）跨過替代水準 2.1，低於替代水準是橘色（跟人口年增率的「減少橘、增加綠」一致）。65 歲以上比例的門檻含 7%、14%、20%（高齡化、高齡、超高齡社會）。扶老比 [10, 15, 20, 30, 40, 60]，2023 年日本 50、台灣 26。
-43. **治安與司法**（`pipeline/topics/crime.py`、`pipeline/sources/wgi.py`、`npa.py`）：
+43. **治安與司法**（`pipeline/topics/crime.py`、`pipeline/sources/wgi.py`、`npa.py`；監禁人口率是 `eurostat.py`、`moj.py`、`bjs.py`、`statcan.py`、`abs_prisoners.py`、`moj_jp.py`）：
     - 故意殺人率用世界銀行轉載的 UNODC 資料（`VC.IHR.PSRC.P5`，女性、男性是 `.FE.P5`、`.MA.P5`，分母是同性別的人口），CC BY 4.0。UNODC 自己的資料入口多了最新一年與被害人數，但條款不准轉載（見第 12 點），所以沒有用。各國不是每年都有，指標檔加 `latestWithin: 5`；台灣有 2025 年的資料，所以時間軸到 2025。全部、女性、男性三個指標用同一組門檻 [0.5, 1, 2.5, 5, 10, 25]，才能互相比較（世界 2023 年：全部 5.2、女性 2.1、男性 8.3）。
-    - **監禁人口率沒有放**：涵蓋各國的只有 UNODC 資料入口的「監獄與受刑人」（data.unodc.org/datareport/prison-held 的 `data_cts_prisons_and_prisoners.xlsx`，2003 年起，有在監人數、每十萬人比率與未判決比例 SDG 16.3.2）與 World Prison Brief，兩個都不能轉載（見第 12 點）。聯合國 SDG 全球資料庫有未判決比例（`VC_PRS_UNSNT`），但沒有在監人數，網站也找不到資料授權，同樣沒有用。台灣的數字在法務部統計處常用統計表「矯正機關收容人數」（`WebList3_Report.aspx?menu=INF_COMMON_C&list_id=1216`，只列最近 4 年，網站的月報、年報、進階查詢都只有 2022 年起）：2025 年底總收容人數 63,314 人，法務部的監禁人口率（÷ 年底人口）271.7，只寫在主題說明裡。
+    - **監禁人口率只收有開放授權資料的國家**：涵蓋各國的只有 UNODC 資料入口的「監獄與受刑人」（data.unodc.org/datareport/prison-held 的 `data_cts_prisons_and_prisoners.xlsx`，2003 年起，有在監人數、每十萬人比率與未判決比例 SDG 16.3.2）與 World Prison Brief，兩個都不能轉載（見第 12 點）。聯合國 SDG 全球資料庫有未判決比例（`VC_PRS_UNSNT`），但沒有在監人數，網站也找不到資料授權，同樣沒有用。
+      - **使用者的決定（2026-10-25，「1C」）**：把監禁人口率加回來，但只用有開放授權的各國、各區域來源，沒有這種資料的國家維持灰色。所以地圖只有 44 國（歐洲 39 國、台灣、美國、加拿大、澳洲、日本），是刻意的；頁尾的說明寫明原因。
+      - **沒有資料的國家寫原因**：指標的 `coverage`（第 4 節的表）：`src/topics/crime.ts` 的 `PRISON_COVERAGE` 以外的國家，tooltip 與側欄寫「沒有開放授權的資料」，不寫「無資料」；有收的國家某一年沒有值照常寫「無資料」（例如英國 2021 年以後）。`crime.py` 會比對 `PRISON_COVERAGE` 跟算出來的國家，不一致就報錯並印出正確的清單，加新的來源時兩邊一起改。
+      - **分母**：人數一律 ÷ WPP 的年中人口（`TPopulation1July`），跟其他主題同一個分母，所以跟各國自己公布的比率不完全一樣（波蘭 2024 年 181.2，Eurostat 用自己的人口算是 190.7；土耳其 438.6 對 449.4）。兩個例外：法國的監獄人數含海外省，分母加上 WPP 分開算的瓜地洛普、馬丁尼克、留尼旺、法屬圭亞那、馬約特（117.3，Eurostat 117.5）；賽普勒斯的監獄只在政府控制地區，WPP 的人口含北賽普勒斯（÷ WPP 只有 71），改用 Eurostat 公布的每十萬人比率（`P_HTHAB`，2008 年起）。
+      - **各國的定義**（都含審前羈押；差異寫在各國的附註）：
+        - 歐洲 39 國：Eurostat `crim_pris_cap` 的「Actual number of persons held in prison」（2008 年起），1993–2007 年接舊的 `crim_pris_pop`（兩者是不同的資料集，不完全可比，附註寫明）。某一天在監獄、矯正機構裡的人，不含移民拘留；參考日一般是 12 月 31 日，丹麥 9 月 1 日、德國 11 月 30 日或 3 月 31 日、斯洛維尼亞 1 月 31 日、瑞典 10 月 1 日、挪威 1 月 1 日、瑞士隔年 1 月 31 日（`crim_sims` 中繼資料）。英國是英格蘭與威爾斯（`UKC-L`）、蘇格蘭（`UKM`）、北愛爾蘭（`UKN`）三個加起來（`eurostat.series()` 的 `extra_geos`），三個都有的年份才算，只到 2017 年。
+        - 台灣：法務部《法務統計年報》表 4-1 的「矯正機關總收容人數」（年底），含監獄收容人、看守所的被告及被管收人、少年矯正學校、少年觀護所、觀察勒戒與強制戒治；跟法務部、行政院人權指標的「每十萬人中收容於矯正機關之人數」同一個分子。網站只有 113、114 年版的年報，合起來是 2015–2025 年（ODS 檔，用 zipfile 讀，不必另裝套件）；常用統計表的同一張表（`list_id=1216`）只列最近 4 年。
+        - 美國：BJS《Correctional Populations in the United States》表 1 的「Incarcerated」總數：州立與聯邦監獄（12 月 31 日）加上地方看守所（6 月最後一個平日，大多是候審的被告），扣掉重複計算；不含少年矯正機構、移民拘留（ICE）、軍方監獄、海外屬地。2023 年版有 2013–2023 年、2022 年版補 2012 年、2016 年版補 2000、2006–2011 年（欄位順序不同，在監合計都是每列第 5 個數字）。2023 年 1,852,900 人，539.5。
+        - 加拿大：省與地方監獄的「Total actual-in count」（已判決、羈押候審、其他暫時拘留）加上聯邦監獄的「Actual-in count」，都是會計年度的平均每日人數，2023/2024 年度記在 2023 年；只算成年人。省與地方的合計是「有報的轄區」的合計，有轄區沒報的年度（2013/2014 亞伯達、2021/2022 與 2022/2023 紐芬蘭與拉布拉多等）不收。
+        - 澳洲：ABS 每年 6 月 30 日的成人監獄人數（含未判決），2016–2025 年；ABS 公布的是每十萬名成年人（2025 年 216.4），這裡 ÷ 總人口是 174.2。
+        - 日本：犯罪白書 2-4-2-1 圖的 Excel（1946 年起，資料來自矯正統計年報）：12 月 31 日刑事施設（刑務所、少年刑務所、拘置所）的收容人員，含被告人、被疑者、死刑確定者、労役場留置者；不含少年院、少年鑑別所與入管的收容設施。2024 年底 40,544 人，32.8。
+      - **台灣的抽查**：法務部 2025 年底總收容人數 63,314 人（法務統計年報表 4-1、常用統計表、行政院人權指標 ODS 一致）；法務部的監禁人口率 271.7（÷ 年底戶籍人口 2,330 萬），這裡 ÷ WPP 2025 年中人口 2,311 萬是 273.9。原本只寫在主題說明的數字移到資料裡，說明改成寫涵蓋範圍。
+      - **門檻**：[50, 75, 100, 150, 250, 400]：日本、冰島 30 多；北歐、德國、荷蘭、瑞士 55–75；西歐、加拿大 95–125；東歐、澳洲 150–190；台灣 274；土耳其 439、美國 540 在最高一級。指標檔加 `latestWithin: 3`（各國大多每年都有，偶爾缺一兩年；美國、加拿大最新到 2023 年）。排名由高到低（不是 `lowerIsBetter`），沒有世界合計（只收部分國家）。
+      - **英文的指標名稱取短的**：加了第五個指標後，原本的 Homicide rate、Female homicide rate、Male homicide rate 加上 Imprisonment rate、Rule of law 在 1280px 寬時英文的控制列換成兩行（指標 772px，右邊的底圖、搜尋、地圖／排名表、分享 616px，控制列 1,248px），改成 Homicide、Female victims、Male victims、Prison rate、Rule of law（575px）；中文五個都是五個字（518px），不用改。說明文字（description）仍寫完整的「per 100,000 women」等。
     - **台灣的故意殺人**：警政署統計查詢網（ba.npa.gov.tw，跟內政部統計查詢網同一套系統）的「故意殺人」發生數與被害人都含未遂，沒有分既遂（2021 年致死約 122 件，發生數 212 件）。所以地圖用衛福部死因統計的加害（他殺，ICD-10 X85–Y09、Y87.1）死亡人數 ÷ WPP 年中人口，男女分開算（死因統計的 sex 1 是男、2 是女），2008 年起；警政署的數字寫在附註（2025 年發生 158 件、被害人 193 人，同年他殺死亡 139 人）。2024 年 9 月起警政署部分刑案改成「1 被害人 1 發生數」。
     - **法治分數**：WGI 2025 年改版後的 0–100 治理分數（`GOV_WGI_RL.SC`，估計值的線性轉換，以假想的最差與基準國家定錨，越高越好），World Bank API 的 source 3。台灣（「Taiwan, China」）、法屬圭亞那、馬丁尼克、留尼旺、安圭拉、庫克群島、紐埃、澤西在 API 裡的代碼欄是空的，依名稱對照（`wgi.NAMES`）。1996、1998、2000 年，2002 年起每年。是 30 多個調查與評估的看法綜合，不是犯罪統計；2025 年台灣 78.4、南韓 78.3、日本 84.0、美國 71.7、芬蘭 91.8（最高）。
 44. **幸福感**（`pipeline/topics/happiness.py`、`src/topics/panels/HappinessPanel.tsx`）：
@@ -1777,7 +1801,11 @@ pipeline/
 - **地震死亡人數分國**：目前整筆算在震央附近的國家（2004 年海嘯全算印尼）。NOAA 的海嘯資料庫有各國的死亡人數，可以另外接。NOAA 記錄 1935-07-16 新竹的地震 2,746 人死亡，疑似錯值，找到官方數字（例如《昭和十年臺灣震災誌》）可以加一張更正表。
 - **民主與自由的其他指數**：V-Dem 還有參與式、審議式、平等民主、公民自由、貪腐等指數，在 `democracy.py` 的 `INDICES` 與 `vdem.INDEX_COLUMNS` 各加一行即可。
 - **台灣的人均飲酒量**：財政部的菸酒稅有些酒類依酒精度課稅，可以從課稅數量或稅收推算純酒精；啤酒、料理米酒依公升課稅，要假設酒精濃度，料理米酒多半拿來做菜，也要決定算不算（第 50 點）。
-- **監禁人口率**：UNODC 資料入口恢復可以轉載的資料條款（或有開放授權的轉載版）後可以加，台灣用法務部的年底總收容人數（第 43 點）。
+- **監禁人口率的涵蓋範圍**（2026-10-25 起只收有開放授權資料的 44 國，第 43 點）：
+  - 英國 2018 年以後：英格蘭與威爾斯（MoJ 的 Offender management statistics quarterly，gov.uk 的 content API 列得出附件）、蘇格蘭（蘇格蘭政府的 Scottish Prison Population Statistics）、北愛爾蘭（司法部的 Northern Ireland Prison Population），都是 OGL v3；要三個加起來，參考日不同要寫明。
+  - 其他有開放授權資料的國家再加：在 `crime.py` 的 `_prison()` 加一個來源，`PRISON_COVERAGE` 跟著改（`crime.py` 會檢查）。紐西蘭（Corrections 是 CC BY-NC-ND）、南韓（沒有開放授權標示）目前不能用（第 12 點）。
+  - UNODC 資料入口恢復可以轉載的資料條款（或有開放授權的轉載版）後，可以改成全球的資料，各國的來源留著對照。
+  - 台灣 2014 年以前：法務統計資訊網只有 113、114 年版的年報；更早的年報（網路封存或圖書館）的表 4-1 可以往前接。
 - **台灣的外交**：館處用實際地址定位（目前是城市中心，要地址等級的開放 geocoder）；簽證待遇的歷史（領務局只有最新的 PDF，舊版要從網路封存找）；互設代表處的年份、館處的設立與裁撤（外交年鑑有逐年的館處名單，要從 PDF 整理）。
 - **諾貝爾獎依國籍或得獎時的機構**：API 有 `affiliations`，國籍要另外查 Wikidata 的 P27（雙重國籍要定規則）；也可以加女性得主、得獎年齡。
 - **貿易流向的固定比例尺**：目前線寬以選取國家最大的夥伴為準，方便看單一國家的結構；如果要跨國比較，可以改用同一商品、同一年所有雙邊流量的最大值。

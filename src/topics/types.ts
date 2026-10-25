@@ -151,6 +151,11 @@ export interface IndicatorDef {
    * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
    */
   noValue?: Record<string, Text>;
+  /**
+   * 只收部分國家的指標（例如監禁人口率只收有開放授權資料的國家）：countries（ISO alpha-3）以外的國家
+   * 一律寫 reason，取代「無資料」（排在 noValue 之後）；countries 裡的國家某一年沒有值時照常寫「無資料」
+   */
+  coverage?: { countries: readonly string[]; reason: Text };
 }
 
 /** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
@@ -193,16 +198,18 @@ export interface DimensionDef {
 
 /**
  * 某個國家在這個指標沒有值的原因，取代 tooltip 與側欄的「無資料」；沒有特別原因時回傳 undefined。
- * 依序：指標的 noValue（例如「與美國的一致度」裡的美國）→ 主題的 noValue → 子項目就是這個國家時的 selfLabel。
+ * 依序：指標的 noValue（例如「與美國的一致度」裡的美國）→ 主題的 noValue → 子項目就是這個國家時的 selfLabel
+ * → 不在指標 coverage 裡的國家（例如監禁人口率的「沒有開放授權的資料」）。
  */
 export function missingReason(
   topic: Pick<Topic, 'noValue' | 'dimension'>,
-  indicator: Pick<Indicator, 'noValue' | 'file'>,
+  indicator: Pick<Indicator, 'noValue' | 'file' | 'coverage'>,
   item: string | null,
   iso3: string,
 ): string | undefined {
   const self = item === iso3 && usesDimension(indicator) ? topic.dimension?.selfLabel : undefined;
-  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self;
+  const outside = indicator.coverage && !indicator.coverage.countries.includes(iso3) ? indicator.coverage.reason : undefined;
+  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? outside;
 }
 
 /**
