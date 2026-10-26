@@ -1510,9 +1510,10 @@ kbd {
   font-weight: 650;
 }
 
-/* 海洋與漁業的側欄：台灣漁業署的數字表；溫室氣體的側欄：跟環境部清冊的對照表。數字欄之間留空 */
+/* 海洋與漁業的側欄：台灣漁業署的數字表；溫室氣體的側欄：跟環境部清冊的對照表；開發者與開源的側欄：跟全世界的對照表。數字欄之間留空 */
 .ocean-tw .num,
-.climate-inventory .num {
+.climate-inventory .num,
+.dev-table .num {
   padding-left: 6px;
 }
 

@@ -350,7 +350,8 @@ export function App() {
           <div className="tt-value">{indicator.format(link.value)}</div>
           <div className="tt-label">
             {flowText(indicator.layer, lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))} ·{' '}
-            {t.flowShare(formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0))} · {flows.year}
+            {t.flowShare(formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0))} ·{' '}
+            {indicator.timeAxis?.year(flows.year) ?? flows.year}
           </div>
         </>
       );

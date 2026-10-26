@@ -113,6 +113,8 @@ STEPS = {
     "internet-speed": "topics.internet_speed",
     # 網路速度的約 5 km 網格圖磚（不進版本控制，部署時產生）：最新一季的固網與行動各一組，只讀需要的欄位（約 180 MB）
     "internet-speed-tiles": "topics.internet_speed_tiles",
+    # GitHub Innovation Graph 的 7 個 CSV 與 2 個補充資料（raw.githubusercontent.com，約 8 MB，不經 API）、WPP 的人口
+    "developers": "topics.developers",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     "employment": "topics.employment",

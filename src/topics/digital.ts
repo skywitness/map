@@ -52,8 +52,8 @@ export const digital: TopicDefinition = {
     },
   ],
   note: {
-    zh: '台灣不在 ITU 的資料庫中，改用數位發展部的調查與 NCC 的用戶數，定義與 ITU 大致相同，細節見台灣側欄的附註。固網與行動網路的速度見「網路速度」主題。',
-    en: "Taiwan is not in the ITU database, so the Ministry of Digital Affairs survey and NCC subscription counts are used instead; their definitions are broadly the same as the ITU's. See the note in Taiwan's panel for details. For fixed and mobile connection speeds, see the Internet speed topic.",
+    zh: '台灣不在 ITU 的資料庫中，改用數位發展部的調查與 NCC 的用戶數，定義與 ITU 大致相同，細節見台灣側欄的附註。固網與行動網路的速度見「網路速度」主題，GitHub 上的開發者見「開發者與開源」主題。',
+    en: "Taiwan is not in the ITU database, so the Ministry of Digital Affairs survey and NCC subscription counts are used instead; their definitions are broadly the same as the ITU's. See the note in Taiwan's panel for details. For fixed and mobile connection speeds, see the Internet speed topic; for developers on GitHub, the Developers topic.",
   },
   indicators: [
     {

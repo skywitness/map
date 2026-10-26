@@ -61,8 +61,8 @@ export const innovation: TopicDefinition = {
     },
   ],
   note: {
-    zh: '研發經費與研究人員來自 UNESCO 統計研究所，專利來自世界智慧財產權組織（WIPO），都是世界銀行轉載的版本（WIPO 國際局不對轉換後的資料負責）。台灣不在這些資料庫中，改用國科會「全國科技動態調查」與智慧局的本國人發明專利申請件數，細節見台灣側欄的附註。很多國家隔幾年才做一次研發調查。世界值是有資料國家的合計，研發經費占 GDP 依購買力平價的 GDP 加權。',
-    en: "R&D spending and researchers come from the UNESCO Institute for Statistics and patents from the World Intellectual Property Organization (WIPO), both as republished by the World Bank (the International Bureau of WIPO assumes no responsibility for the transformed data). Taiwan is not in these databases, so the National Science and Technology Council's national R&D survey and the Intellectual Property Office's invention patent applications by Taiwanese applicants are used instead; see the notes in Taiwan's panel. Many countries survey R&D only every few years. World figures are totals for the countries with data, with R&D as a share of GDP weighted by GDP at purchasing power parity.",
+    zh: '研發經費與研究人員來自 UNESCO 統計研究所，專利來自世界智慧財產權組織（WIPO），都是世界銀行轉載的版本（WIPO 國際局不對轉換後的資料負責）。台灣不在這些資料庫中，改用國科會「全國科技動態調查」與智慧局的本國人發明專利申請件數，細節見台灣側欄的附註。很多國家隔幾年才做一次研發調查。世界值是有資料國家的合計，研發經費占 GDP 依購買力平價的 GDP 加權。GitHub 上的開發者與開源活動見「開發者與開源」主題。',
+    en: "R&D spending and researchers come from the UNESCO Institute for Statistics and patents from the World Intellectual Property Organization (WIPO), both as republished by the World Bank (the International Bureau of WIPO assumes no responsibility for the transformed data). Taiwan is not in these databases, so the National Science and Technology Council's national R&D survey and the Intellectual Property Office's invention patent applications by Taiwanese applicants are used instead; see the notes in Taiwan's panel. Many countries survey R&D only every few years. World figures are totals for the countries with data, with R&D as a share of GDP weighted by GDP at purchasing power parity. For developers and open-source activity on GitHub, see the Developers topic.",
   },
   indicators: [
     {
