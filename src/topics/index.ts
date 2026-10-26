@@ -50,6 +50,7 @@ import { plastic } from './plastic';
 import { pureMap } from './map';
 import { population } from './population';
 import { powerPlants } from './power-plants';
+import { publications } from './publications';
 import { religion } from './religion';
 import { renewables } from './renewables';
 import { reserves } from './reserves';
@@ -92,7 +93,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, taxes, reserves, stockMarket, housePrices, sectors, industry, agriculture, minerals, chainStores] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, aid, tourism, passport, military, conflict, democracy, governance, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, plastic, ev] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, internetSpeed, developers, innovation, submarineCables, space, transport, shipping, roadSafety] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, internetSpeed, developers, innovation, publications, submarineCables, space, transport, shipping, roadSafety] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, oceans, earthquakes, typhoons, wildfires, nightLights, worldHeritage, travel] },
 ];
 

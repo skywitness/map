@@ -115,6 +115,8 @@ STEPS = {
     "internet-speed-tiles": "topics.internet_speed_tiles",
     # GitHub Innovation Graph 的 7 個 CSV 與 2 個補充資料（raw.githubusercontent.com，約 8 MB，不經 API）、WPP 的人口
     "developers": "topics.developers",
+    # OpenAlex API 的 group_by（約 300 次查詢，沒有金鑰時一天約 1,000 次的匿名額度，第一次約 3 分鐘）、WPP 的人口
+    "publications": "topics.publications",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     "employment": "topics.employment",
