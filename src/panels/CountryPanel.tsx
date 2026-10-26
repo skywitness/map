@@ -8,6 +8,7 @@ import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
   missingReason,
+  sameTimeAxis,
   usesDimension,
   yearBin,
   type Indicator,
@@ -57,8 +58,11 @@ export function CountryPanel(props: CountryPanelProps) {
   // 「只畫路網」「地形」這類不上色的指標不列成數值卡片（地形的數值跟平均海拔是同一份）；
   // 跟前面的指標用同一個資料檔的也不重複列（例如移民的「流向：移民來源」就是「移民人數」）
   const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
+  // 年份的意思跟目前的指標不同的（平均身高的出生年 vs 19 歲那年，指標的 timeAxis）也不列，同一個年份在那裡是另一批人
   const card = (ind: Indicator, i: number) =>
-    shown(ind) && !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
+    shown(ind) &&
+    sameTimeAxis(ind, indicator) &&
+    !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
   // 主題或指標寫明這個國家為什麼沒有值（台灣的外交裡的台灣、護照主題的本國護照、與美國的一致度裡的美國）時，
   // 用它取代「無資料」
   const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
@@ -100,7 +104,7 @@ export function CountryPanel(props: CountryPanelProps) {
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
     const world = activeData.aggregates?.WLD;
     if (chartIndicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
-    return timeSeriesOption({
+    const chart = timeSeriesOption({
       years: activeData.years,
       lines,
       projectionFrom: activeData.projectionFrom,
@@ -111,6 +115,8 @@ export function CountryPanel(props: CountryPanelProps) {
       // 普查、調查隔幾年一次：畫出每個資料點，點和點之間連起來
       sparse: activeData.latestWithin !== undefined,
     });
+    // y 軸不從 0 開始（指標的 chartZoom，例如身高）
+    return chartIndicator.chartZoom ? { ...chart, yAxis: { ...(chart.yAxis as object), scale: true } } : chart;
   }, [activeData, iso3, name, chartIndicator, year, tokens, t]);
 
   const activeReason = reason(indicator);
@@ -136,7 +142,7 @@ export function CountryPanel(props: CountryPanelProps) {
       {/* 不隨時間變化的資料（海拔）不寫年份 */}
       {!topic.timeless && (
         <p className="panel-year">
-          {t.year(year)}
+          {indicator.timeAxis?.year(year) ?? t.year(year)}
           {projectionFrom !== undefined && year >= projectionFrom && (
             <span className="year-tag is-projected">{t.projected}</span>
           )}
@@ -189,7 +195,7 @@ export function CountryPanel(props: CountryPanelProps) {
 
       {Extra && (
         <Suspense fallback={<p className="empty">{t.loading}</p>}>
-          <Extra topic={topic} iso3={iso3} year={year} item={item} countryName={name} tokens={tokens} />
+          <Extra topic={topic} indicator={indicator} iso3={iso3} year={year} item={item} countryName={name} tokens={tokens} />
         </Suspense>
       )}
     </aside>

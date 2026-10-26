@@ -49,6 +49,7 @@ import {
   indicatorPath,
   missingReason,
   resolveItem,
+  sameTimeAxis,
   usesDimension,
   yearBin,
   type AirportsData,
@@ -161,8 +162,10 @@ export function App() {
     if (settled) return prefetchJson(neighbours);
   }, [settled, neighbours]);
 
-  const years = data?.years ?? [topic.defaultYear];
-  const year = pickYear(years, state.year, topic.defaultYear, yearBin(indicator));
+  // 指標可以有自己的預設年份（平均身高：出生年的指標預設 1996、19 歲的身高預設 2019）
+  const defaultYear = indicator.defaultYear ?? topic.defaultYear;
+  const years = data?.years ?? [defaultYear];
+  const year = pickYear(years, state.year, defaultYear, yearBin(indicator));
   const yearIndex = data ? data.years.indexOf(year) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
   const { values, years: valueYears } = useMemo(
@@ -173,6 +176,12 @@ export function App() {
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
+  // 換到年份意思不同的指標（出生年 ↔ 量測的年份，指標的 timeAxis）時，年份回到那個指標的預設，
+  // 不沿用原本的數字（1996 年出生 ≠ 1996 年量的 19 歲）
+  const chooseIndicator = (id: string) => {
+    const next = topic.indicators.find((i) => i.id === id);
+    update(next && !sameTimeAxis(next, indicator) ? { indicator: id, year: null } : { indicator: id });
+  };
   // 子項目是國家的主題（護照）：選到國家時子項目跟著換；取消選取時留在原本的子項目，地圖不會跳回預設
   const follows = topic.dimension?.followsSelection ? topic.dimension : undefined;
   const selectCountry = useCallback(
@@ -236,9 +245,11 @@ export function App() {
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
   // 不隨時間變化的資料（海拔）：標題、檔名、tooltip、排名表都不寫年份，也沒有時間軸
   const timeless = Boolean(topic.timeless);
+  // 指標的 timeAxis 改寫了年份的意思（「1996 年出生」）：標題、tooltip、排名表用它
+  const yearText = indicator.timeAxis?.year(year);
   const viewTitle = pure
     ? topic.title
-    : `${topic.title} · ${flowTitle}${timeless ? '' : ` · ${t.yearValue(year, projected)}`}`;
+    : `${topic.title} · ${flowTitle}${timeless ? '' : ` · ${yearText ?? t.yearValue(year, projected)}`}`;
   const fileBase = safeFilename(pure ? topic.title : `${t.brand}_${topic.shortTitle}_${indicatorTitle}`);
 
   const downloadImage = async () => {
@@ -335,7 +346,7 @@ export function App() {
         </div>
         <div className="tt-label">
           {countryName(iso3, countries)}
-          {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : year}`}
+          {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : (yearText ?? year)}`}
           {projected && t.tooltipProjected}
           {grid && ` · ${G.tooltip}`}
         </div>
@@ -396,7 +407,7 @@ export function App() {
           {pure ? null : topic.indicators.length > MAX_SEGMENTS ? (
             <label className="select-field">
               <span>{t.indicator}</span>
-              <select value={indicator.id} onChange={(e) => update({ indicator: e.target.value })}>
+              <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
                 {topic.indicators.map((ind) => (
                   <option key={ind.id} value={ind.id}>
                     {ind.label}
@@ -413,7 +424,7 @@ export function App() {
                   role="radio"
                   aria-checked={ind.id === indicator.id}
                   className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
-                  onClick={() => update({ indicator: ind.id })}
+                  onClick={() => chooseIndicator(ind.id)}
                 >
                   {ind.label}
                 </button>
@@ -508,7 +519,13 @@ export function App() {
                 selected={state.country}
                 onSelect={selectCountry}
                 renderTooltip={renderTooltip}
-                ariaLabel={pure ? t.worldMapAria : t.mapAria(timeless ? null : year, mapTitle, projected)}
+                ariaLabel={
+                  pure
+                    ? t.worldMapAria
+                    : yearText
+                      ? t.mapAria(null, t.withYear(mapTitle, yearText), projected)
+                      : t.mapAria(timeless ? null : year, mapTitle, projected)
+                }
                 basemap={basemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
@@ -557,6 +574,7 @@ export function App() {
               latestWithin={data?.latestWithin}
               world={world}
               year={timeless ? null : year}
+              yearText={timeless ? undefined : yearText}
               countries={countries}
               selected={state.country}
               onSelect={selectCountry}
@@ -582,7 +600,7 @@ export function App() {
                 countries={countries}
                 tokens={tokens}
                 onClose={() => selectCountry(null)}
-                onIndicatorChange={(id) => update({ indicator: id })}
+                onIndicatorChange={chooseIndicator}
               />
             </Suspense>
           </PanelSheet>
@@ -595,6 +613,7 @@ export function App() {
           year={year}
           projectionFrom={data?.projectionFrom}
           projectionLabel={indicator.projectionLabel}
+          axis={indicator.timeAxis}
           onChange={setYear}
         />
       )}

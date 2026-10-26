@@ -8,12 +8,14 @@ interface TimeSliderProps {
   projectionFrom?: number;
   /** 推估年份換一種稱呼（例如「規劃中」），之前的年份不標「估計值」（指標的 projectionLabel） */
   projectionLabel?: { tag: string; from: (year: number) => string };
+  /** 年份不是「那一年的資料」時（指標的 timeAxis，例如平均身高的「出生年」）：寫在年份上面，也是拉桿的名稱 */
+  axis?: { label: string; year: (year: number) => string };
   onChange: (year: number) => void;
 }
 
 const PLAY_INTERVAL_MS = 120;
 
-export function TimeSlider({ years, year, projectionFrom, projectionLabel, onChange }: TimeSliderProps) {
+export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis, onChange }: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
   const [playing, setPlaying] = useState(false);
@@ -54,7 +56,10 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, onCha
     return (
       <div className="time-slider is-single">
         <span className="time-single-note">{t.singleSnapshot}</span>
-        <output className="time-year">{year}</output>
+        <output className="time-year">
+          {axis && <span className="time-axis">{axis.label}</span>}
+          {year}
+        </output>
       </div>
     );
   }
@@ -87,8 +92,8 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, onCha
           max={last}
           step={1}
           value={year}
-          aria-label={t.yearSlider}
-          aria-valuetext={t.yearValue(year, projected)}
+          aria-label={axis?.label ?? t.yearSlider}
+          aria-valuetext={axis ? axis.year(year) : t.yearValue(year, projected)}
           onChange={(e) => {
             setPlaying(false);
             onChange(Number(e.target.value));
@@ -107,6 +112,7 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, onCha
         </div>
       </div>
       <output className="time-year">
+        {axis && <span className="time-axis">{axis.label}</span>}
         {year}
         {projectionFrom !== undefined && (!projectionLabel || projected) && (
           <span className={`year-tag${projected ? ' is-projected' : ''}`}>

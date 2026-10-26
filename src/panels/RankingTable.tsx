@@ -18,6 +18,8 @@ interface RankingTableProps {
   world: number | null;
   /** null：不隨時間變化的資料（例如海拔），標題不寫年份 */
   year: number | null;
+  /** 指標的 timeAxis 改寫的年份（「1996 年出生」）：標題寫成「男性平均身高（1996 年出生）」，不寫「1996 年」 */
+  yearText?: string;
   countries: CountryTable | null;
   selected: string | null;
   onSelect: (iso3: string) => void;
@@ -25,7 +27,7 @@ interface RankingTableProps {
 
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
 export function RankingTable(props: RankingTableProps) {
-  const { indicator, title, values, valueYears, latestWithin, world, year, countries, selected, onSelect } = props;
+  const { indicator, title, values, valueYears, latestWithin, world, year, yearText, countries, selected, onSelect } = props;
   const t = useT();
   const lang = useLang();
   // 類別圖沒有大小之分：依圖例的類別順序排，同一類（「其他」裡同一種）再依國名排，數值欄放色塊與類別名稱
@@ -71,7 +73,13 @@ export function RankingTable(props: RankingTableProps) {
   return (
     <div className="ranking">
       <table ref={tableRef}>
-        <caption>{(categories ? t.categoryCaption : showRank ? t.rankingCaption : t.valueCaption)(year, title, rows.length)}</caption>
+        <caption>
+          {(categories ? t.categoryCaption : showRank ? t.rankingCaption : t.valueCaption)(
+            yearText ? null : year,
+            yearText ? t.withYear(title, yearText) : title,
+            rows.length,
+          )}
+        </caption>
         <thead>
           <tr>
             {showRank && <th scope="col" className="num">{t.rankCol}</th>}

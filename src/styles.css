@@ -1758,6 +1758,15 @@ kbd {
   font-weight: 650;
 }
 
+/* 年份不是「那一年的資料」時（指標的 timeAxis，例如「出生年」），寫在年份上面 */
+.time-axis {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink-muted);
+}
+
 /* ── 頁尾 ───────────────────────────── */
 .footer {
   padding: 8px 0 max(12px, env(safe-area-inset-bottom));

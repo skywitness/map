@@ -124,6 +124,8 @@ export interface IndicatorDef {
   formatTick?: (value: number) => string;
   /** 側欄折線圖是否加上「世界」作為對照線（總量類指標不適合） */
   compareWorld?: boolean;
+  /** 側欄折線圖的 y 軸不從 0 開始（例如身高都在 140–185 公分，從 0 畫起整條線是平的） */
+  chartZoom?: boolean;
   /** 是否顯示「占全球比例」（只對可加總的總量有意義） */
   shareOfWorld?: boolean;
   /** 數值越小越好（例如性別不平等指數）：排名表、側欄的名次與單一年份的 CSV 由小排到大，第 1 名是最小的 */
@@ -146,6 +148,15 @@ export interface IndicatorDef {
    * 用這個換掉之後的稱呼（tag）與刻度上的說明（from，在呼叫當下讀目前的語言，用 tr()），之前的年份不加標籤。
    */
   projectionLabel?: { tag: Text; from: (year: number) => string };
+  /**
+   * 時間軸的年份不是「那一年的資料」時（例如平均身高的出生年：1996 = 1996 年出生的人在 18 歲時的身高）：
+   * label 寫在時間軸的年份上面（「出生年」），year(年) 取代 tooltip、側欄、排名表、匯出圖片標題裡的年份
+   * （「1996 年出生」，在呼叫當下讀目前的語言，用 tr()）。同一個主題裡 label 不同的指標年份的意思不同：
+   * 側欄只列 label 相同的數值卡片，從選單換到 label 不同的指標時年份回到預設（見 sameTimeAxis()）。
+   */
+  timeAxis?: { label: Text; year: (year: number) => string };
+  /** 這個指標的預設年份（網址沒指定年份時），沒寫用主題的 defaultYear */
+  defaultYear?: number;
   /**
    * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
    * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
@@ -397,6 +408,8 @@ export interface AirportsData {
 export interface PanelExtraProps {
   /** 已依目前語言解析過的主題 */
   topic: Topic;
+  /** 目前的指標（年份的意思可能跟著指標變，見 IndicatorDef.timeAxis） */
+  indicator: Indicator;
   iso3: string;
   year: number;
   /** 目前選的子項目（有 dimension 的主題才有） */
@@ -457,6 +470,11 @@ export interface PlaceDef {
   name: Text;
   lon: number;
   lat: number;
+}
+
+/** 兩個指標的時間軸是不是同一種年份（timeAxis 的 label 一樣，或都沒有 timeAxis） */
+export function sameTimeAxis(a: Pick<Indicator, 'timeAxis'>, b: Pick<Indicator, 'timeAxis'>): boolean {
+  return (a.timeAxis?.label ?? null) === (b.timeAxis?.label ?? null);
 }
 
 /** 每筆資料涵蓋的年數：overlayTime 是數字 n 的指標（每十年一筆），年份 1990 代表 1990–1999；其他指標是 undefined */

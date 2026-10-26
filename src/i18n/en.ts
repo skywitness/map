@@ -38,6 +38,7 @@ export const en: Messages = {
 
   itemIndicator: (item, indicator) => `${item} ${lowerFirst(indicator)}`,
   year: (year) => String(year),
+  withYear: (title, when) => `${title} (${when})`,
   worldMapAria: 'World map',
   mapAria: (year, title, projected) =>
     `World map: ${title} by country${year === null ? '' : `, ${year}`}${projected ? ' (projection)' : ''}`,

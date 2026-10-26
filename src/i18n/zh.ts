@@ -42,6 +42,8 @@ export const zh = {
   itemIndicator: (item: string, indicator: string) => `${item}${indicator}`,
   /** 年份的寫法：2023 年 */
   year: (year: number) => `${year} 年`,
+  /** 指標的 timeAxis 改寫了年份（「1996 年出生」）時，接在標題後面：「男性平均身高（1996 年出生）」 */
+  withYear: (title: string, when: string) => spaced(`${title}（${when}）`),
   worldMapAria: '世界地圖',
   /** year 是 null：不隨時間變化的資料（例如海拔） */
   mapAria: (year: number | null, title: string, projected: boolean) =>
