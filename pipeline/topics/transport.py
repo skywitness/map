@@ -13,7 +13,7 @@ from datetime import date
 import pycountry
 
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
-from geoindex import _countries, country_at
+from geoindex import country_at, land_polygons
 from sources.countries import ISO3
 
 RAILROADS_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_railroads.geojson"
@@ -63,7 +63,7 @@ def _haversine_km(a: list[float], b: list[float]) -> float:
 
 
 def _land_area_km2() -> dict[str, float]:
-    """由國界多邊形計算面積（球面近似），用來算鐵路密度。"""
+    """由國界多邊形計算面積（球面近似），用來算鐵路密度。跨過 ±180° 的國家（俄羅斯、斐濟）用展開成連續經度的多邊形。"""
     def ring_area(ring: list[tuple[float, float]]) -> float:
         total = 0.0
         for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1]):
@@ -71,7 +71,7 @@ def _land_area_km2() -> dict[str, float]:
         return abs(total) * EARTH_RADIUS_KM**2 / 2
 
     areas = {}
-    for iso3, _bbox, polygons in _countries():
+    for iso3, polygons in land_polygons():
         areas[iso3] = sum(ring_area(p[0]) - sum(ring_area(h) for h in p[1:]) for p in polygons)
     return areas
 
