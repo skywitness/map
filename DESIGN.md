@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ）、FAO FishStat、漁業署、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -186,6 +186,7 @@ pipeline/
 | 指標的 `timeAxis` | 年份不是「那一年的資料」時：`{ label, year(年) }`。`label` 寫在時間軸的年份上面（`.time-axis`），也是拉桿的名稱；`year()` 取代 tooltip、側欄標題、排名表標題（「男性平均身高（1996 年出生）排名」，`t.withYear()`）、匯出圖片標題裡的年份。同一個主題裡 `label` 不同的指標年份的意思不同（`sameTimeAxis()`）：側欄只列 `label` 相同的數值卡片，從選單換到 `label` 不同的指標時網址的 `year` 拿掉、回到那個指標的預設年份 | 平均身高：成人的「出生年」（1996 年出生 = 2014 年 18 歲時的身高）、19 歲的「年份」（量測的年份） |
 | 指標的 `defaultYear` | 指標自己的預設年份（網址沒指定年份時），沒寫用主題的 `defaultYear` | 平均身高的 19 歲身高預設 2019（成人預設出生年 1996） |
 | 指標的 `chartZoom` | 側欄折線圖的 y 軸不從 0 開始 | 平均身高（都在 140–185 公分，從 0 畫起整條線是平的） |
+| `indicatorAliases` | 舊網址的指標 id → 現在的指標與子項目（`{ 舊 id: { indicator, item? } }`）：指標改名或併進子項目後，舊的分享連結照樣打開同一份資料，網址也換成新的寫法（`types.ts` 的 `resolveAlias()`，App 與第一個畫面的預先下載共用；沒有對到的 id 原樣回傳同一個物件，App 依這個判斷要不要改寫網址） | 溫室氣體排放：原本只有二氧化碳的 `co2-per-capita`、`co2`，現在是「人均排放」「年排放量」選二氧化碳（資料檔還是 `co2-per-capita.json`、`co2.json`，`{item}-per-capita.json`、`{item}.json`） |
 | 指標的 `coverage` | 刻意只收部分國家的指標：`{ countries, reason }`，`countries`（ISO alpha-3）以外的國家沒有值時一律寫 `reason`（`noValue` 要逐一列出國家，這裡只列有收的）；`countries` 裡的國家某一年沒有值時照常寫「無資料」 | 監禁人口率：44 國以外寫「沒有開放授權的資料」（第 8 節第 43 點） |
 
 ### 雙語文字（英文版介面）
@@ -425,7 +426,7 @@ pipeline/
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
 | 半導體 | 出口占全球比例（預設）、進口占全球比例、出口與進口流向圖（點選國家畫前 15 大夥伴）；5 種商品：積體電路（預設）、分離式半導體、晶片合計、半導體設備、另列的光電元件（太陽能電池、LED） | 主要出口對象、主要進口來源（金額與占比，重用貿易主題的 `TradePanel`） | CEPII BACI（HS 2017 版）；台灣的附註對照財政部統計資料庫的進出口貿易統計 | 2017–2024 |
 | 軍事 | 軍費（美元，比例圓）、軍費占 GDP、兵力（比例圓）、兵力占勞動力 | — | SIPRI（2011–2025 年子集，非商業使用）、World Bank WDI（IISS） | 軍費 2011–2025；兵力 1985–2020 |
-| 氣候 | 人均 CO₂ 排放、年排放量、累積排放量（1750 年起）、人均消費端排放、每單位 GDP 排放 | 排放來源（燃煤、天然氣、石油、水泥…）堆疊面積圖＋長條 | Our World in Data（Global Carbon Project） | 1850–2024；消費端 1990–2023；每單位 GDP 到 2022 |
+| 溫室氣體排放（氣候） | 人均排放（預設）、年排放量（比例圓），兩者都有「氣體」子項目：全部溫室氣體（預設）、二氧化碳、甲烷、氧化亞氮、含氟氣體；累積二氧化碳（1750 年起）、人均消費端二氧化碳、每單位 GDP 的二氧化碳、土地利用變化的二氧化碳（人均，發散色，負值是淨吸收） | 各種溫室氣體的堆疊面積圖＋長條；排放來源（依選的氣體：全部溫室氣體是燃煤、天然氣、石油的二氧化碳加上工業製程、化石燃料開採、農業、廢棄物等部門；二氧化碳依燃料；甲烷、氧化亞氮依部門；含氟氣體依種類）；燃料燃燒的二氧化碳用在哪裡（CEDS 的比例：發電、工業、運輸、住商…）；台灣跟環境部國家溫室氣體排放清冊比較（歷年折線、各氣體對照表、森林等吸收） | 二氧化碳：Global Carbon Project（Our World in Data 轉載，CC BY 4.0）；甲烷、氧化亞氮、含氟氣體：EDGAR 2026（JRC，CC BY 4.0）；用途：CEDS v_2025_03_18（PNNL，CC BY 4.0）；人口：UN WPP 2024；台灣：環境部《2026 年中華民國國家溫室氣體排放清冊報告》（政府資料開放授權條款） | 二氧化碳 1850–2024；甲烷、氧化亞氮 1970–2025；含氟氣體與全部溫室氣體 1990–2024；消費端 1990–2023；每單位 GDP 到 2022；土地利用變化 1850–2024 |
 | 氣溫與降雨 | 年平均氣溫（預設）、年降雨量、暖化（近 10 年平均比 1951–1980 年高多少；可以從國家平均切到 0.5° 網格） | 每月氣溫與降雨（1991–2020 年平均與選定年份：氣溫折線、降雨長條，加每月數字表） | CRU TS v4.10（東英吉利大學 CRU、NCAS），各國的值依地圖國界自己用面積加權算；台灣用中央氣象署交叉比對 | 1901–2025；暖化 1910–2025；0.5° 網格 1910–2025 每年一期 |
 | 空氣品質 | PM2.5 年平均濃度（人口加權，預設）、超過 WHO 指引值（5 μg/m³）的人口比例、戶外空氣污染死亡率、戶外與室內空氣污染死亡率（SDG 3.9.1；兩個死亡率都是年齡標準化） | — | WHO GHO（SDG 11.6.2、SDG 3.9.1）、WashU ACAG SatPM2.5 V6.GL.02；台灣用環境部 PM2.5 手動監測站 | PM2.5 2010–2023（台灣 2015 年起）；超過指引值的比例 1998–2023；死亡率只有 2021 年 |
 | 水資源與森林 | 人均可再生淡水資源（預設）、水資源壓力（SDG 6.4.2）、安全管理的飲用水（SDG 6.1.1）、森林覆蓋率、森林面積年變化率（發散色） | — | FAO AQUASTAT（總可再生水資源）÷ UN WPP 2024 人口、World Bank WDI（AQUASTAT 的水資源壓力、WHO/UNICEF JMP）、FAO 全球森林資源評估 FRA 2025；台灣用經濟部水利署、農業部林業及自然保育署 | 人均水資源 1961–2023；水資源壓力 1987–2022（台灣從缺）；飲用水 2000–2024；森林只有 FRA 的報告年 1990、2000、2010、2015、2020、2025（年變化率標在後一年，2000–2025；台灣是 1990、2010 年的調查，之後顯示 2010 年的值） |
@@ -680,6 +681,10 @@ pipeline/
     - **漁業署網站不是政府資料開放授權條款**：漁業署的「網站資料開放宣告」（https://www.fa.gov.tw/information.php ，2026-10-26 查）寫網站內容受著作權法保護，以漁業署名義發表的著作「在合理範圍內，得重製、公開播送或公開傳輸，利用時，並請註明出處」。政府資料開放平臺上漁業署的生產量資料集（data.moa.gov.tw 的 G76 等）只有舊年份。所以《漁業統計年報》的數字只在台灣的附註與側欄引用（統計數字是事實，註明出處、連到年報），地圖上的值一律用 FAO，不混用（第 77 點）。
     - **海洋保護區沒有做**：世界銀行 WDI 的 `ER.MRN.PTMR.ZS`（海洋保護區占領海的比例）序列中繼資料標 `License_Type: CC BY-4.0`，但同一份中繼資料的 Othernotes 寫「Restricted use: Please contact the Protected Planet for third-party use of these data.」，來源 WDPA（UNEP-WCMC）本身的條款也限制轉載資料；授權不清楚，**沒有用**，WDPA 的保護區多邊形也沒有用。WDI 本來也沒有台灣，台灣官方的海洋保護區比例（漁業署、海洋委員會）是占領海與內水的比例，跟 WDI 的分母不同，不能放在同一張圖上。
     - Global Fishing Watch（漁船 AIS 的捕撈活動）要申請 API 金鑰才能下載，**沒有用**。
+    - **EDGAR 2026（EDGAR_2026_GHG，歐盟執委會 JRC）的甲烷、氧化亞氮、含氟氣體是 CC BY 4.0，二氧化碳不是**：資料頁（https://edgar.jrc.ec.europa.eu/dataset_ghg2026 ，2026-10-26 查）與每個 Excel 的「Citations and references」寫「Unless otherwise noted, all material owned by the European Union is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) licence」，但「IEA-EDGAR CO2 (v5) data are based on data from IEA (2025) Greenhouse Gas Emissions from Energy … licensed under CC BY-NC-ND 4.0」：化石燃料燃燒的二氧化碳（EDGAR 部門別的發電、運輸、住商、工業燃燒都在這裡）以 IEA 的資料為基礎，**禁止改作**（人均、加總部門都是改作），所以 IEA-EDGAR CO₂ 與含有它的溫室氣體合計（EDGAR_AR5_GHG）都**沒有用**，只用甲烷（EDGAR_CH4）、氧化亞氮（EDGAR_N2O）與換算成 CO₂ 當量的含氟氣體（EDGAR_AR5g_F-gases），二氧化碳改用 Global Carbon Project（第 14 點）。合計檔只在本機讀過，用來反推 EDGAR 的 GWP 換算，沒有輸出任何數字。
+    - **CEDS v_2025_03_18（Community Emissions Data System，美國太平洋西北國家實驗室 PNNL）是 CC BY 4.0**：Zenodo 紀錄（https://doi.org/10.5281/zenodo.15059443）的 license 是 `cc-by-4.0`。側欄只用它的燃料燃燒二氧化碳在各用途的比例（第 14 點）。
+    - **Climate Watch（CAIT）沒有用**：它的能源部門二氧化碳來自 IEA（要另外引用 IEA 的 CO₂ Emissions from Fuel Combustion），各轉載處標的授權不一致（CC BY 4.0、CC BY-NC 4.0 都有），只收 UNFCCC 的 194 國與歐盟，沒有台灣。Our World in Data 的溫室氣體欄位（Jones et al. 的甲烷、氧化亞氮）沒有含氟氣體，也沒有部門，所以甲烷、氧化亞氮用 EDGAR。
+    - 環境部氣候變遷署的「國家溫室氣體排放清冊報告」（政府資料開放平臺 16024，GHG_P_02）是政府資料開放授權條款第 1 版；清冊報告（cca.gov.tw）裡的部門別數字（甲烷的廢水、掩埋）只在附註引用。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -689,10 +694,19 @@ pipeline/
     - 吐瓦魯、托克勞、直布羅陀在 1:50m 沒有形狀，用矩形範圍指定。
     - GHS-POP 的 30 角秒 GeoTIFF 範圍不是整齊的 ±180°（左右各多約 1 格），超出的像素要繞回另一側。
 
-14. **碳排資料**（`pipeline/topics/climate.py`）：
+14. **碳排與溫室氣體資料**（`pipeline/topics/climate.py`、`pipeline/sources/edgar.py`、`ceds.py`、`moenv.py` 的 `ghg_inventory()`、`src/topics/panels/ClimatePanel.tsx`）：
     - OWID 的科索沃沒有 ISO 代碼，用國名對應成 XKX；洲、所得組、國際航空與航運另外列，不收。
-    - 國際航空與航運的排放不屬於任何國家，所以各國加總小於世界合計。
+    - 國際航空與航運的排放不屬於任何國家，所以各國加總小於世界合計（EDGAR 的 AIR、SEA 也只算進世界合計）。
     - 每單位 GDP 的排放用 Maddison Project 的 GDP（2011 年國際元），只到 2022 年。
+    - **二氧化碳只有一套數字**：「人均排放」「年排放量」選二氧化碳、累積、消費端、每單位 GDP、側欄的燃料別都是 Global Carbon Project（GCP）。EDGAR 的二氧化碳授權禁止改作（第 12 點），本來就不能用，也剛好避免同一個主題出現兩套不一致的二氧化碳。原本的 `co2-per-capita`、`co2` 兩個指標併進「氣體」子項目（舊網址用 `indicatorAliases` 轉過去，資料檔名不變）。
+    - **全部溫室氣體 = GCP 的二氧化碳 + EDGAR 的甲烷、氧化亞氮、含氟氣體**，1990–2024 年：含氟氣體 1990 年起才有，2025 年的欄位是空的；GCP 到 2024 年。EDGAR 沒有估計含氟氣體的國家（衣索比亞、坦尚尼亞、尼泊爾等約 70 個，多半是小島與低所得國家，EDGAR 自己的合計也沒有）在合計裡當成 0，選含氟氣體時是無資料。
+    - **CO₂ 當量**：IPCC AR5 的 GWP-100，跟 EDGAR 自己的合計一樣：化石來源的甲烷 30（化石燃料開採 1.B、工業 2、化石燃料火災 5.B、燃料燃燒 1.A 標 fossil 的）、生物來源 28（畜牧、稻田、廢棄物、燃燒生質），氧化亞氮 265；含氟氣體用 EDGAR 已經換算好的 AR5 檔。用 EDGAR_AR5_GHG 各部門的值反推驗證過（只有甲烷的部門剛好 28 倍、化石燃料開採剛好 30 倍、只有氧化亞氮的剛好 265 倍）。環境部清冊的甲烷一律用 28。
+    - **EDGAR 併在一起計算的國家**：南蘇丹在蘇丹、巴勒斯坦在以色列、列支敦斯登在瑞士、摩納哥在法國、安道爾在西班牙、聖馬利諾與梵蒂岡在義大利，塞爾維亞與蒙特內哥羅（含科索沃）是一筆 SCG（這裡算在塞爾維亞）。這些「主國」的人均用合計的人口（WPP），全部溫室氣體也把成員的 GCP 二氧化碳加進來，附註寫明；被併進去的國家選二氧化碳以外的氣體時寫「EDGAR 把它併在…計算」（`noValue`）。荷屬安地列斯（ANT）只算進世界合計。
+    - **人均**：二氧化碳沿用 OWID 的人均（跟原本一樣），其他氣體與全部溫室氣體用 UN WPP 2024 的年中人口（2024、2025 年是推估）。
+    - **土地利用變化**：GCP 的 `land_use_change_co2_per_capita`（簿記模型的平均，1850–2024），發散色、正值（排放）橘、負值（淨吸收）青綠。沒有台灣；台灣的附註與 tooltip 寫環境部清冊的 LULUCF 淨吸收，並說明兩者算法不同（清冊算受管理森林的吸收，GCP 主要算砍伐與再生長），沒有放進地圖。
+    - **側欄的排放來源**：EDGAR 的部門依 IPCC 2006 代碼分組（`edgar.CH4_SECTORS`、`N2O_SECTORS`，沒見過的代碼直接報錯）。全部溫室氣體的「排放來源」是 GCP 的燃煤、天然氣、石油二氧化碳，加上「工業製程與產品使用」（水泥等二氧化碳＋EDGAR 2.x＋含氟氣體）、「化石燃料開採」（燃除＋逸散）、農業、廢棄物、其他（燃燒的甲烷與氧化亞氮、間接排放）。**沒有發電、運輸、住商的部門別總量**：EDGAR 的部門別二氧化碳是 IEA-EDGAR CO₂（禁止改作）；改在另一段用 CEDS 的燃料燃燒二氧化碳各用途的**比例**（發電與供熱、煉油等能源業、工業、運輸、住宅與商業、農林漁業與其他，到 2023 年）。CEDS 的總量比 GCP 高（台灣 2023 年 2.95 億公噸，GCP 與清冊都是 2.67 億），所以只列比例；台灣的比例跟清冊相近（能源業 70%、製造業 11–12%、運輸 14–15%、住商與其他 4%）。
+    - 側欄檔（`countries/<ISO3>.json`）：`co2`（GCP 依燃料）、`edgar`（「氣體:部門」，1970–2025）、`uses`（CEDS，1970–2023）、`inventory`（只有台灣）、`members`；每組是 `{ from, values }`，百萬公噸、4 位有效數字，不到 1 千公噸的序列不放。230 國共 2.8 MB（gzip 後 0.8 MB），原本只有燃料別時 1.3 MB。
+    - **台灣的對照**（環境部《2026 年中華民國國家溫室氣體排放清冊報告》，開放資料 GHG_P_02，1990–2024，跟報告表 ES2.1 逐年核對過）：2024 年清冊總排放 2.73 億公噸 CO₂e（不含 LULUCF），森林等吸收 2,176 萬公噸，淨排放 2.51 億公噸；這裡 2.86 億公噸，多 4.8%。二氧化碳 GCP 2.62 億、清冊 2.62 億（+0.3%）；**甲烷 EDGAR 1,546 萬、清冊 435 萬（3.6 倍）**，主要差在廢水（EDGAR 639 萬、清冊 87 萬）與垃圾掩埋等固體廢棄物（EDGAR 437 萬、清冊 56 萬；台灣的垃圾大多焚化，清冊的掩埋甲烷從 1998 年的 1,096 萬公噸降到 2024 年的 54 萬）；氧化亞氮 EDGAR 490 萬、清冊 339 萬（+44%，EDGAR 多算了氮沉降的間接排放與廢水）；含氟氣體 EDGAR 365 萬、清冊 392 萬（−7%；EDGAR 的台灣 1990–1994 年是 0）。pipeline 每次都印出對照；清冊每年 6、7 月出新版，整個序列會換成新版的數字，附註裡廢水與掩埋的部門別數字（`INVENTORY_CH4_2024`）要手動更新。台灣 2024 年：全部溫室氣體 12.3 公噸/人（205 國第 25）、總量第 31；二氧化碳 11.3 公噸/人（第 20）。
 
 15. **貿易流向**（`pipeline/topics/trade.py`）：
     - **來源的選擇**：全部商品用 CEPII BACI，因為授權清楚（Etalab 2.0）、有台灣、可以一次下載整個檔，而且已經把進出口雙方的申報調和成一個數字。

@@ -104,8 +104,8 @@ export const electricity: TopicDefinition = {
       id: 'carbon-intensity',
       label: { zh: '發電碳排強度', en: 'Carbon intensity of electricity' },
       description: {
-        zh: '每發一度電排放的二氧化碳（公克）。燃煤越多越高，再生能源與核能越多越低。',
-        en: 'Grams of CO₂ emitted per kWh generated. More coal means higher; more renewables and nuclear means lower.',
+        zh: '每發一度電排放的二氧化碳（公克）。燃煤越多越高，再生能源與核能越多越低。各國所有部門的排放見「各國溫室氣體排放」主題。',
+        en: 'Grams of CO₂ emitted per kWh generated. More coal means higher; more renewables and nuclear means lower. For emissions from all sectors, see Greenhouse gas emissions by country.',
       },
       unit: { zh: 'gCO₂/度', en: 'gCO₂/kWh' },
       file: 'carbon-intensity.json',

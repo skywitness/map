@@ -48,6 +48,7 @@ import {
   forItem,
   indicatorPath,
   missingReason,
+  resolveAlias,
   resolveItem,
   sameTimeAxis,
   usesDimension,
@@ -87,7 +88,9 @@ for (const path of ['countries.json', GEO_COARSE, initialIndicatorPath()]) {
 }
 
 function initialIndicatorPath(): string | null {
-  const state = readUrlState();
+  const url = readUrlState();
+  // 舊網址的指標 id（indicatorAliases）先換成現在的指標與子項目
+  const state = resolveAlias(getTopic(url.topic), url);
   // 檔名跟語言無關，用哪個語言解析都一樣
   const topic = localize(getTopic(state.topic), 'zh');
   if (topic.pure) return null;
@@ -112,7 +115,12 @@ interface Manifest {
 
 export function App() {
   const { tokens, toggle: toggleTheme } = useTheme();
-  const [state, update] = useUrlState();
+  const [urlState, update] = useUrlState();
+  // 舊網址的指標 id（例如氣候主題的 co2-per-capita）換成現在的指標與子項目，網址也改寫成新的
+  const state = resolveAlias(getTopic(urlState.topic), urlState);
+  useEffect(() => {
+    if (state !== urlState) update({ indicator: state.indicator, item: state.item });
+  }, [state, urlState, update]);
   const lang = useLang();
   const t = useT();
   const online = useOnline();

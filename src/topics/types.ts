@@ -453,6 +453,12 @@ export interface TopicDefinition {
   defaultYear: number;
   dimension?: DimensionDef;
   /**
+   * 舊網址的指標 id → 現在的指標（與子項目）：指標改名或併進子項目後，舊的分享連結照樣打開同一份資料，
+   * 網址也換成新的寫法（resolveAlias()）。例如氣候主題原本只有二氧化碳的 co2-per-capita，
+   * 現在是「人均排放」選二氧化碳（{ indicator: 'ghg-per-capita', item: 'co2' }）
+   */
+  indicatorAliases?: Record<string, { indicator: string; item?: string }>;
+  /**
    * 側欄的額外區塊。用動態 import，ECharts 等大型依賴才不會進到首頁的 bundle：
    * `panelExtra: () => import('./electricity-panel')`
    */
@@ -485,6 +491,18 @@ export interface TopicDefinition {
    * 地圖在 lon/lat 畫一個小圓點與比例圓（跟吐瓦魯這類沒有形狀的國家一樣），排名表、tooltip、側欄用 name 當名稱。
    */
   places?: PlaceDef[];
+}
+
+/**
+ * 網址的指標是舊的 id（`TopicDefinition.indicatorAliases`）時，換成現在的指標與子項目；不是的話原樣回傳同一個物件
+ * （App 依「是不是同一個物件」決定要不要改寫網址）
+ */
+export function resolveAlias<T extends { indicator: string | null; item: string | null }>(
+  topic: Pick<TopicDefinition, 'indicatorAliases'>,
+  state: T,
+): T {
+  const alias = state.indicator ? topic.indicatorAliases?.[state.indicator] : undefined;
+  return alias ? { ...state, indicator: alias.indicator, item: alias.item ?? state.item } : state;
 }
 
 /** 主題自訂的地點（`TopicDefinition.places`） */

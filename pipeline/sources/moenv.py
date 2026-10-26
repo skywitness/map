@@ -1,4 +1,4 @@
-"""環境部（https://data.moenv.gov.tw，政府資料開放授權條款）：台灣的 PM2.5 年平均。
+"""環境部（https://data.moenv.gov.tw，政府資料開放授權條款）：台灣的 PM2.5 年平均、國家溫室氣體排放清冊（ghg_inventory()）。
 
 - 資料集「全國細懸浮微粒手動監測資料」（AQX_P_10）：各手動監測站每 3 天一次的 24 小時採樣，
   2012 年 12 月起，每個月一個資源（resource）。環境部公布的全國 PM2.5 年平均就是用手動監測（標準方法）。
@@ -68,3 +68,57 @@ def manual_pm25_samples() -> dict[int, dict[str, list[float]]]:
     if not out:
         raise RuntimeError(f"{MANUAL_PM25} 讀不到資料，API 的格式可能變了")
     return out
+
+
+# ── 國家溫室氣體排放清冊（氣候主題的台灣對照） ────────────────────────
+GHG_INVENTORY = "GHG_P_02"
+GHG_INVENTORY_REPORT = "https://www.cca.gov.tw/information-service/publications/national-ghg-inventory-report/34874.html"
+# 開放資料的欄位 → 這裡的鍵（千公噸 CO₂ 當量；吸收量是負數）
+GHG_FIELDS = {
+    "co2_value": "co2",
+    "ch4_value": "ch4",
+    "n2o_value": "n2o",
+    "hfcs_value": "hfc",
+    "pfcs_value": "pfc",
+    "sf6_value": "sf6",
+    "nf3_value": "nf3",
+    "total_ghg_emission_value": "total",
+    "co2_absorption_value": "lulucf",
+    "net_ghg_emission_value": "net",
+}
+
+
+def ghg_inventory() -> dict[int, dict[str, float]]:
+    """環境部氣候變遷署「國家溫室氣體排放清冊報告」開放資料（GHG_P_02，政府資料開放授權條款）：
+    {年: {co2、ch4、n2o、hfc、pfc、sf6、nf3、total（不含 LULUCF）、lulucf（二氧化碳吸收量，負數）、net: 千公噸 CO₂e}}。
+
+    每年 6、7 月隨新版清冊報告更新，整個序列都換成新版的數字（2026 年 7 月是《2026 年中華民國國家溫室氣體排放清冊報告》，
+    1990–2024 年，跟報告的表 ES2.1 逐年核對過一致）；ImportDate 是那一年第一次匯入的日期，不是資料的版本。
+    溫室氣體用 IPCC AR5 的 GWP-100（甲烷 28、氧化亞氮 265）。NE（未估計）當成 0。
+    """
+    view = common.download(VIEW.format(name=GHG_INVENTORY), "moenv", f"{GHG_INVENTORY}.json")
+    resources = json.loads(view.read_text(encoding="utf-8"))["payload"]["resources"]
+    target = common.CACHE_DIR / "moenv" / GHG_INVENTORY / "records.json"
+    if not target.exists() or common.REFRESH:
+        print(f"  下載 {SEARCH}（{GHG_INVENTORY}）")
+        request = urllib.request.Request(
+            SEARCH,
+            data=json.dumps({"resource_id": resources[0]["rid"], "limit": 1000, "offset": 0}).encode(),
+            headers={"Content-Type": "application/json", "User-Agent": common.USER_AGENT},
+        )
+        with urllib.request.urlopen(request, timeout=120) as resp:
+            payload = json.load(resp)
+        if not payload.get("success"):
+            raise RuntimeError(f"環境部開放資料平台回傳錯誤：{payload}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(payload["payload"]["records"], ensure_ascii=False), encoding="utf-8")
+    out: dict[int, dict[str, float]] = {}
+    for row in json.loads(target.read_text(encoding="utf-8")):
+        values = {}
+        for field, key in GHG_FIELDS.items():
+            text = row[field].replace(",", "").strip()
+            values[key] = 0.0 if text in ("NE", "NO", "") else float(text)
+        out[int(row["year"])] = values
+    if not out or min(out) != 1990:
+        raise RuntimeError(f"{GHG_INVENTORY} 的年份不對，API 的格式可能變了")
+    return dict(sorted(out.items()))
