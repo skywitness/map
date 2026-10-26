@@ -1,5 +1,5 @@
-import type { MouseEvent, ReactNode } from 'react';
-import { defineMessages, getLang, tr, URL_PARAM, useLang, useT, type Lang, type Text } from '../../i18n';
+import type { ReactNode } from 'react';
+import { defineMessages, tr, useLang, useT, type Lang, type Text } from '../../i18n';
 import { countryName, type CountryTable } from '../../lib/countries';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber } from '../../lib/format';
@@ -7,6 +7,7 @@ import { REGIMES } from '../democracy';
 import { ALLY } from '../diplomacy';
 import { languageName } from '../language';
 import { ORGS } from '../organizations';
+import { metres } from '../skyscrapers';
 import {
   CAPITAL_NOTES,
   CAPITAL_ROLES,
@@ -18,6 +19,7 @@ import {
 } from '../profiles';
 import { DRIVING, TAIWAN_OFFSET, utcText, versusTaiwan } from '../travel';
 import type { IndicatorData, PanelExtraProps } from '../types';
+import { TopicLink } from './TopicLink';
 
 /** 名稱：[中文或 null, 英文或 null]（pipeline/topics/profiles.py 的 name()） */
 type Name = [string | null, string | null];
@@ -66,6 +68,8 @@ interface Profile {
     ally?: number;
     high?: [string | null, string | null, number];
     city?: [string | null, string | null, number];
+    /** 摩天大樓主題：Wikidata 收錄的最高的大樓 [中文, 英文, 高度 m, 完工年] */
+    tower?: [string | null, string | null, number, number];
   };
 }
 
@@ -109,6 +113,7 @@ const TEXT = defineMessages({
     regime: (name: string, year: number) => `V-Dem 政體分類（${year} 年）：${name}`,
     city: (name: string, pop: string) => `最大城市：${name}（約 ${pop}人）`,
     high: (name: string, m: string) => `最高點：${name}${m}`,
+    tower: (name: string, m: string, year: number) => `最高的大樓：${name}（${m}，${year} 年完工）`,
     orgs: (n: number, total: number) => `參加 ${total} 個國際組織裡的 ${n} 個`,
     ally: (status: string) => `跟中華民國：${status}`,
     dataDate: (date: string) => `資料取自 Wikidata，${date}。`,
@@ -149,6 +154,7 @@ const TEXT = defineMessages({
     regime: (name: string, year: number) => `V-Dem regime type (${year}): ${name}`,
     city: (name: string, pop: string) => `Largest city: ${name} (about ${pop})`,
     high: (name: string, m: string) => `Highest point: ${name}${m}`,
+    tower: (name: string, m: string, year: number) => `Tallest building: ${name} (${m}, completed ${year})`,
     orgs: (n: number, total: number) => `Member of ${n} of the ${total} organisations covered`,
     ally: (status: string) => `Relations with the Republic of China (Taiwan): ${status}`,
     dataDate: (date: string) => `Data from Wikidata, ${date}. `,
@@ -168,6 +174,7 @@ const TOPIC_LINKS: Record<string, { topic: string; ind?: string; label: Text }> 
   democracy: { topic: 'democracy', ind: 'regime', label: { zh: '民主與自由', en: 'Democracy' } },
   cities: { topic: 'cities', label: { zh: '城市', en: 'Cities' } },
   elevation: { topic: 'elevation', ind: 'highest', label: { zh: '海拔', en: 'Elevation' } },
+  skyscrapers: { topic: 'skyscrapers', ind: 'tallest', label: { zh: '摩天大樓', en: 'Skyscrapers' } },
   organizations: { topic: 'organizations', ind: 'count', label: { zh: '國際組織', en: "Int'l orgs" } },
   diplomacy: { topic: 'taiwan-diplomacy', ind: 'allies', label: { zh: '台灣的外交', en: 'Taiwan ties' } },
 };
@@ -199,28 +206,13 @@ function dateText(value: string, lang: Lang): string {
   return d ? `${d} ${month} ${y}` : `${month} ${y}`;
 }
 
-/** 其他主題的連結：在網頁裡換主題（url-state 聽 popstate），按住 Ctrl、Cmd 等開新分頁時照一般連結 */
-function topicHref(topic: string, ind: string | undefined, iso3: string): string {
-  const p = new URLSearchParams({ topic });
-  if (ind) p.set('ind', ind);
-  p.set('country', iso3);
-  if (getLang() === 'en') p.set(URL_PARAM, 'en');
-  return `?${p}`;
-}
-
-function TopicLink({ id, iso3 }: { id: keyof typeof TOPIC_LINKS; iso3: string }) {
+/** 其他主題的連結（panels/TopicLink.tsx：在網頁裡換主題，按住 Ctrl、Cmd 等開新分頁時照一般連結） */
+function OtherTopic({ id, iso3 }: { id: keyof typeof TOPIC_LINKS; iso3: string }) {
   const link = TOPIC_LINKS[id];
-  const href = topicHref(link.topic, link.ind, iso3);
-  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    window.history.pushState(null, '', href);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
   return (
-    <a className="profile-link" href={href} onClick={onClick}>
-      {tr(link.label)} →
-    </a>
+    <TopicLink topic={link.topic} ind={link.ind} iso3={iso3}>
+      {tr(link.label)}
+    </TopicLink>
   );
 }
 
@@ -391,6 +383,10 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
     const n = pick([x.high[0], x.high[1]], lang);
     more.push([text.high(n ? `${n.text} ` : '', `${fixed(x.high[2], 0)} m`), 'elevation']);
   }
+  if (x.tower) {
+    const n = pick([x.tower[0], x.tower[1]], lang);
+    if (n) more.push([text.tower(n.text, metres(x.tower[2]), x.tower[3]), 'skyscrapers']);
+  }
   if (x.orgs !== undefined) more.push([text.orgs(x.orgs, ORGS.length), 'organizations']);
   if (iso3 !== 'TWN' && (x.ally === 1 || x.ally === 2)) {
     more.push([text.ally(tr(ALLY.find((a) => a.value === x.ally)?.label ?? '', lang)), 'diplomacy']);
@@ -414,7 +410,7 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
           <ul className="profile-more">
             {more.map(([line, link]) => (
               <li key={link}>
-                {line} <TopicLink id={link} iso3={iso3} />
+                {line} <OtherTopic id={link} iso3={iso3} />
               </li>
             ))}
           </ul>

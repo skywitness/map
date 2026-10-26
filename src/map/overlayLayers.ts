@@ -222,6 +222,7 @@ function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>, epoch: numb
   if (typeof def.radius !== 'number') fields.add(def.radius.field);
   if (typeof def.color !== 'string') fields.add(def.color.field);
   if (def.timeField) fields.add(def.timeField);
+  if (def.endField) fields.add(def.endField);
   if (def.sortField) fields.add(def.sortField);
   const features: GeoJSON.Feature[] = [];
   points.forEach((p, i) => {
@@ -283,11 +284,20 @@ function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.Feat
 }
 
 /** 依時間軸篩選的點：只有那一年、累積到那一年，或那一年起的 n 年（指標的 overlayTime） */
-export function timeFilter(def: { timeField?: string }, year: number, mode: IndicatorDef['overlayTime']): FilterSpecification | null {
+export function timeFilter(
+  def: { timeField?: string; endField?: string },
+  year: number,
+  mode: IndicatorDef['overlayTime'],
+): FilterSpecification | null {
   if (!def.timeField) return null;
   const t: ExpressionSpecification = ['get', def.timeField];
   const has: FilterSpecification = ['has', def.timeField];
-  if (mode === 'cumulative') return ['all', has, ['<=', t, year]];
+  if (mode === 'cumulative') {
+    if (!def.endField) return ['all', has, ['<=', t, year]];
+    // 有結束年份的（例如拆除的大樓）那一年起不畫
+    const end: ExpressionSpecification = ['get', def.endField];
+    return ['all', has, ['<=', t, year], ['any', ['!', ['has', def.endField]], ['>', end, year]]];
+  }
   if (typeof mode === 'number') return ['all', has, ['>=', t, year], ['<', t, year + mode]];
   return ['all', has, ['==', t, year]];
 }

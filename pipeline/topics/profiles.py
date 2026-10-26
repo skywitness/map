@@ -1003,6 +1003,22 @@ def cross_topics(units: list[str]) -> tuple[dict[str, dict], int]:
     for u, (pop, zh, en) in best.items():
         if u in units:
             out[u]["city"] = [zh, en, round(pop, -3)]
+    # 摩天大樓的最高的大樓（Wikidata 收錄的、現在還在的；完工年 y 存差分）
+    path = DATA / "skyscrapers" / "buildings.json"
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            towers = json.load(f)
+        col = {name: towers["columns"][i] for i, name in enumerate(towers["fields"])}
+        year, tallest = 0, {}
+        for i, iso in enumerate(col["iso3"]):
+            year += col["y"][i]
+            h = col["h"][i] * towers["scale"]["h"]
+            if col["d"][i] is None and iso in units and (iso not in tallest or h > tallest[iso][2]):
+                tallest[iso] = [col["zh"][i], col["name"][i], round(h, 1), year]
+        for u, t in tallest.items():
+            out[u]["tower"] = t
+    else:
+        print(f"  找不到 {path.relative_to(OUT_DIR)}，側欄不列「最高的大樓」")
     print(f"  其他主題：V-Dem 政體 {regime_year} 年、國際組織 {orgs['years'][-1]} 年")
     return out, regime_year
 

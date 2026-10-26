@@ -126,6 +126,8 @@ export interface IndicatorDef {
   compareWorld?: boolean;
   /** 側欄折線圖的 y 軸不從 0 開始（例如身高都在 140–185 公分，從 0 畫起整條線是平的） */
   chartZoom?: boolean;
+  /** 數值是整數（例如大樓的棟數）：側欄折線圖的 y 軸只用整數刻度，只有 1、2 棟時才不會寫成 0、1、1、2、2 */
+  integer?: boolean;
   /** 是否顯示「占全球比例」（只對可加總的總量有意義） */
   shareOfWorld?: boolean;
   /** 數值越小越好（例如性別不平等指數）：排名表、側欄的名次與單一年份的 CSV 由小排到大，第 1 名是最小的 */
@@ -309,6 +311,11 @@ export interface PointsOverlayDef extends OverlayBase {
   sortField?: string;
   /** 年份欄位：依時間軸篩選要顯示的點，篩選方式看指標的 overlayTime */
   timeField?: string;
+  /**
+   * 結束年份欄位（例如大樓拆除、毀損的年份）：overlayTime 是 'cumulative' 時，這一年（含）以後不畫；
+   * 沒有這個欄位的點一直畫。跟 timeField 一起用
+   */
+  endField?: string;
   /**
    * 跟著時間軸變的數值（例如城市每 5 年一期的人口與面積）：years 是資料的各期，時間軸的年份換成不晚於它的最近一期
    * （比第一期早時用第一期，`overlayEpoch()`），values(紀錄, 期) 算出這一期的欄位（例如 { pop: 那一期的人口 }），

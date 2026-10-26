@@ -164,6 +164,7 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
     },
     yAxis: {
       type: 'value',
+      ...(indicator.integer && { minInterval: 1 }),
       splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
       axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => tick(v) },
     },
