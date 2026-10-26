@@ -179,6 +179,8 @@ export interface GridSpec {
   subtitle?: Text;
   /** 圖例上這一期的說明（預設「2020 年網格 · 縮小時為範圍內平均」）；在呼叫當下讀目前的語言，用 tr() */
   epochNote?: (epoch: number, projected: boolean) => string;
+  /** 網格圖例的單位，沒寫用指標的（航運密度：指標的資料檔是貨櫃吞吐量（TEU），網格是 AIS 船位） */
+  unit?: Text;
   /** 圖例上取代「無資料」的說明：沒有上色的格子是什麼（預設「每 km² 不到 0.1 人（不上色）」） */
   empty?: Text;
   /**
@@ -186,6 +188,11 @@ export interface GridSpec {
    * 例如夜間燈光；使用者切回國家平均時網址寫 grid=0
    */
   defaultOn?: boolean;
+  /**
+   * 只有網格、沒有國家平均可以切換（例如航運密度：海上的船位沒有「國家平均」）：一律畫網格，控制列沒有切換鈕，
+   * tooltip 不寫「國家平均」。指標本身通常是 kind: 'none'，資料檔只給 tooltip 與排名表用
+   */
+  only?: boolean;
 }
 
 export interface SourceDef {
@@ -321,11 +328,12 @@ export interface PointsOverlayDef extends OverlayBase {
    * tooltip：title 是第一行（粗體），detail 是第二行。
    * countryName 由 App 提供（目前語言的國名），原文專有名詞（地名、館處英文名）可以放在 properNoun，畫面上不翻譯。
    * year 是時間軸的年份（有 epochs 的圖層用 overlayEpoch() 換成那一期）；item 是目前的子項目（例如店家的品牌）。
+   * extra 是 detail 下面另外幾行（例如港口的班輪航運連結指數、貨櫃吞吐量），一個字串一行。
    */
   tooltip: (
     p: PointRecord,
     ctx: { countryName: (iso3: string) => string; year: number; item: string | null },
-  ) => { title: string; detail?: string; properNoun?: string };
+  ) => PointTooltip;
 }
 
 /** 有 epochs 的點圖層：時間軸的年份對到哪一期（不晚於這一年的最近一期；比第一期早時用第一期）；沒有 epochs 是 null */
@@ -367,7 +375,15 @@ export interface LinesOverlayDef extends OverlayBase {
   tooltip?: (
     p: PointRecord,
     ctx: { countryName: (iso3: string) => string; year: number; item: string | null },
-  ) => { title: string; detail?: string; properNoun?: string };
+  ) => PointTooltip;
+}
+
+/** 點（或線）的 tooltip：title 粗體、detail 第二行、extra 另外幾行、properNoun 是不翻譯的原文名稱（最後一行） */
+export interface PointTooltip {
+  title: string;
+  detail?: string;
+  extra?: string[];
+  properNoun?: string;
 }
 
 /** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */

@@ -1,8 +1,8 @@
 # 推送到 main 時自動建置並發佈到 GitHub Pages
 # 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線；
 # 只有網格圖磚（不進版本庫）在這裡產生，存在 actions/cache：人口密度的 1 km 網格（約 600 MB、6 萬個檔）、
-# 暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）、太陽能與風能的約 2 km 網格（約 9 MB、1,150 個檔）與
-# 夜間燈光的約 500 m 網格（約 106 MB、2.1 萬個檔）
+# 暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）、太陽能與風能的約 2 km 網格（約 9 MB、1,150 個檔）、
+# 夜間燈光的約 500 m 網格（約 106 MB、2.1 萬個檔）與航運密度的約 5 km 網格（約 4.4 MB、234 個檔）
 name: 部署到 GitHub Pages
 
 on:
@@ -188,6 +188,42 @@ jobs:
         with:
           path: public/tiles/night-lights
           key: ${{ steps.lights-key.outputs.key }}
+      # 航運密度的約 5 km 網格圖磚（pipeline/topics/shipping_density_tiles.py，放在 public/tiles/ship-density）：
+      # 產生的程式、資料的讀取（sources/ship_density.py）、人口圖磚程式（重用它的 PNG 編碼）、分級門檻
+      # （shipping.ts 的 TRAFFIC_THRESHOLDS、TRAFFIC_MIN）或地圖的橘色色階（tokens.ts 的 ORANGE）改了才重新產生。
+      # 要從世界銀行下載 Global Shipping Traffic Density（535 MB 的 zip），用 GDAL 的 /vsizip/ 依序讀 9.8 GB 的原始網格，約 10 分鐘。
+      # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連這個一起存
+      - name: 航運密度網格圖磚的快取鍵
+        id: ships-key
+        run: |
+          hash=$(cat pipeline/topics/shipping_density_tiles.py pipeline/sources/ship_density.py pipeline/topics/population_density_tiles.py             <(sed -n '/^const ORANGE = {/,/}/p' src/theme/tokens.ts)             <(grep -E '^(export )?const TRAFFIC_(THRESHOLDS|MIN)' src/topics/shipping.ts) | sha256sum | cut -c1-16)
+          echo "key=ship-density-tiles-$hash" >> "$GITHUB_OUTPUT"
+      - name: 還原航運密度網格圖磚
+        id: ships
+        uses: actions/cache/restore@v6
+        with:
+          path: public/tiles/ship-density
+          key: ${{ steps.ships-key.outputs.key }}
+          restore-keys: ship-density-tiles-
+      - uses: actions/setup-python@v7
+        if: steps.ships.outputs.cache-hit != 'true'
+        with:
+          python-version: '3.13'
+      - name: 產生航運密度網格圖磚
+        id: build-ships
+        if: steps.ships.outputs.cache-hit != 'true'
+        # 世界銀行的伺服器連不上時不擋部署：用上一版的圖磚（連上一版都沒有時，網站上的網格會顯示載入失敗）
+        continue-on-error: true
+        timeout-minutes: 40
+        run: |
+          pip install "numpy>=2" "rasterio>=1.4"
+          python pipeline/run.py shipping-density-tiles
+      - name: 存下航運密度網格圖磚
+        if: steps.ships.outputs.cache-hit != 'true' && steps.build-ships.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: public/tiles/ship-density
+          key: ${{ steps.ships-key.outputs.key }}
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

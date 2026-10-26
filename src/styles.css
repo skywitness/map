@@ -1510,11 +1510,13 @@ kbd {
   font-weight: 650;
 }
 
-.chain-sources {
+.chain-sources,
+.source-list {
   padding-left: 18px;
 }
 
-.chain-sources li + li {
+.chain-sources li + li,
+.source-list li + li {
   margin-top: 4px;
 }
 

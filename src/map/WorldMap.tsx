@@ -1428,11 +1428,13 @@ export function WorldMap(props: WorldMapProps) {
     const projected = meta.projectionFrom !== undefined && epoch >= meta.projectionFrom;
     return {
       title: g.title(legendTitle),
+      // 網格有自己的單位時（航運密度），圖例用它，不用指標的
+      indicator: grid.spec.unit ? { ...indicator, unit: grid.spec.unit } : indicator,
       scale: gridScale(meta),
       notes: [g.note(epoch, projected), ...(threeD ? [g.flatIn3d] : [])],
       emptyKey: g.empty(meta),
     };
-  }, [grid, lang, legendTitle, threeD]);
+  }, [grid, lang, legendTitle, threeD, indicator]);
 
   const hasOverlays = Boolean(railways || airports || terrain || overlays.length);
   const reliefLegend = useMemo(
@@ -1477,8 +1479,8 @@ export function WorldMap(props: WorldMapProps) {
           ? {
               kind: 'choropleth',
               title: gridLegend.title,
-              unit,
-              model: choroplethLegendModel(indicator, gridLegend.scale),
+              unit: gridLegend.indicator.unit,
+              model: choroplethLegendModel(gridLegend.indicator, gridLegend.scale),
               notes: gridLegend.notes,
               emptyKey: gridLegend.emptyKey,
             }
@@ -1621,7 +1623,7 @@ export function WorldMap(props: WorldMapProps) {
         )}
         {gridLegend ? (
           <ChoroplethLegend
-            indicator={indicator}
+            indicator={gridLegend.indicator}
             title={gridLegend.title}
             scale={gridLegend.scale}
             notes={gridLegend.notes}

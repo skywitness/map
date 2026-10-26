@@ -23,8 +23,8 @@ export const transport: TopicDefinition = {
     { name: 'OurAirports', url: 'https://ourairports.com/data/', license: { zh: '公有領域', en: 'public domain' } },
   ],
   note: {
-    zh: '鐵路取自 Natural Earth 1:10m 地圖資料並經簡化，可能缺少支線；北美只收主要幹線，美國、加拿大的鐵路長度明顯偏低。機場只含大型機場與有定期航班的中型機場。',
-    en: 'Railways come from simplified Natural Earth 1:10m map data and may miss branch lines; North America includes main lines only, so rail lengths for the US and Canada are clearly too low. Airports include only large airports and medium airports with scheduled flights.',
+    zh: '鐵路取自 Natural Earth 1:10m 地圖資料並經簡化，可能缺少支線；北美只收主要幹線，美國、加拿大的鐵路長度明顯偏低。機場只含大型機場與有定期航班的中型機場。港口與海運見「航運與港口」主題。',
+    en: 'Railways come from simplified Natural Earth 1:10m map data and may miss branch lines; North America includes main lines only, so rail lengths for the US and Canada are clearly too low. Airports include only large airports and medium airports with scheduled flights. For ports and sea transport, see the Shipping and ports topic.',
   },
   overlays: [
     { id: 'railways', file: 'railways.json' },

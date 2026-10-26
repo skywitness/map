@@ -95,7 +95,7 @@ function initialIndicatorPath(): string | null {
     topic.indicators.find((i) => i.id === state.indicator) ??
     topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
   // 網址指定網格時，圖磚的 meta.json 也一起提早請求
-  if (indicator.grid && (state.grid ?? indicator.grid.defaultOn) && state.view === 'map') {
+  if (indicator.grid && (indicator.grid.only || (state.grid ?? indicator.grid.defaultOn)) && state.view === 'map') {
     fetchGridMeta(indicator.grid.dir).catch(() => {});
   }
   return indicatorPath(topic, indicator, resolveItem(topic.dimension, state.item, state.country));
@@ -225,8 +225,9 @@ export function App() {
   // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
   const gridSpec = pure ? undefined : indicator.grid;
   const G = gridLabels(gridSpec ?? { dir: '' }, lang);
-  // 網址沒指定時用指標的預設（夜間燈光預設是網格）
-  const gridOn = state.grid ?? Boolean(gridSpec?.defaultOn);
+  // 網址沒指定時用指標的預設（夜間燈光預設是網格）；只有網格的（航運密度）一律是網格
+  const gridOnly = Boolean(gridSpec?.only);
+  const gridOn = gridOnly || (state.grid ?? Boolean(gridSpec?.defaultOn));
   const gridWanted = Boolean(gridSpec && gridOn && view === 'map');
   const gridMeta = useGridMeta(gridWanted && gridSpec ? gridSpec.dir : null);
   const grid = useMemo<GridLayer | null>(
@@ -237,7 +238,7 @@ export function App() {
     [gridSpec, gridWanted, gridMeta.data, year],
   );
   const mapTitle = grid ? G.title(indicatorTitle) : indicatorTitle;
-  const description = grid ? G.subtitle + G.hoverHint : indicator.description;
+  const description = grid ? (gridOnly ? G.subtitle : G.subtitle + G.hoverHint) : indicator.description;
 
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
@@ -313,6 +314,11 @@ export function App() {
       <>
         <div className="tt-value">{tip.title}</div>
         {tip.detail && <div className="tt-label">{tip.detail}</div>}
+        {tip.extra?.map((line) => (
+          <div key={line} className="tt-label">
+            {line}
+          </div>
+        ))}
         {tip.properNoun && (
           <div className="tt-label" translate="no">
             {tip.properNoun}
@@ -349,7 +355,7 @@ export function App() {
           {countryName(iso3, countries)}
           {!timeless && ` · ${valueYear !== undefined ? t.dataYear(valueYear) : (yearText ?? year)}`}
           {projected && t.tooltipProjected}
-          {grid && ` · ${G.tooltip}`}
+          {grid && !gridOnly && ` · ${G.tooltip}`}
         </div>
         {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
       </>
@@ -433,7 +439,7 @@ export function App() {
               ))}
             </div>
           )}
-          {gridSpec && view === 'map' && (
+          {gridSpec && !gridOnly && view === 'map' && (
             <div className="grid-toggle" role="radiogroup" aria-label={G.mode}>
               {[false, true].map((on) => (
                 <button

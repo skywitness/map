@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -56,6 +56,8 @@ public/tiles/renewables-solar/、renewables-wind/ ← 太陽能、風能潛力�
    └─ <版本>/<期>/<z>/<x>/<y>.png          各一期：428 張 2.3 MB、718 張 6.8 MB
 public/tiles/night-lights/                ← 夜間燈光的約 500 m 網格圖磚，同樣部署時才產生（第 14 節）
    └─ <版本>/<年>/<z>/<x>/<y>.png          4 期 × 5,197 張，共 106 MB
+public/tiles/ship-density/                ← 航運密度的約 5 km 網格圖磚，同樣部署時才產生（第 14 節）
+   └─ <版本>/2021/<z>/<x>/<y>.png          一期，234 張、4.4 MB
    │
    ▼  fetch
 src/
@@ -172,7 +174,7 @@ pipeline/
 | `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層）；城市（每 5 年一期的人口跟著時間軸換、縮小時只畫大城市） |
 | 指標的 `overlayTime` | 有年份欄位的疊加點（或線）怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年）；海底電纜（依啟用年份累積）；颱風（當年／每十年） |
 | 指標的 `projectionLabel` | 資料檔有 `projectionFrom` 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」；之前是實際數字、之後也不是推估時，換掉之後的稱呼（`tag`）與刻度上的說明（`from(年)`），之前的年份不加標籤 | 海底電纜（明年起「含規劃中」） |
-| 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底） |
+| 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底）。`only: true`（2026-10-26 起）是只有網格、沒有國家平均可以切換：一律畫網格，控制列沒有切換鈕，tooltip 不寫「國家平均」，指標本身是 `kind: 'none'`、資料檔只給 tooltip 與排名表；`unit` 是網格圖例的單位（沒寫用指標的） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底）、航運密度的約 5 km 網格（`only`，tooltip 是貨櫃吞吐量） |
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔、太陽能與風能潛力（長期平均） |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
@@ -234,7 +236,7 @@ pipeline/
   - `color`：固定色，或依數值欄位分級（`ColorClasses`：門檻、每一級的顏色與名稱，例如震源深度）。顏色取自 `MAP_TOKENS`。
   - `shape: 'triangle'`：三角形圖示（火山）。每種顏色在 canvas 畫一張圖（白色外框直接畫在圖上），用 symbol 圖層；換底圖後圖示跟著樣式一起消失，重新加上。
   - `sortField`：大的畫在上面（`circle-sort-key`）。`timeField` 加上指標的 `overlayTime` 決定時間軸怎麼篩選（`setFilter`，不重送資料）。
-  - `tooltip(p, { countryName })` 回傳標題與說明，原文地名放 `properNoun`（`translate="no"`）。點有 `iso3` 欄位時，滑過會同時標出那個國家，點一下選取它；海上的地震沒有國家，照樣有 tooltip。
+  - `tooltip(p, { countryName })` 回傳標題與說明，原文地名放 `properNoun`（`translate="no"`）；`extra` 是說明下面另外幾行（2026-10-26 起，航運與港口的港口寫班輪航運連結指數與公布的吞吐量）。點有 `iso3` 欄位時，滑過會同時標出那個國家，點一下選取它；海上的地震沒有國家，照樣有 tooltip。
   - `indicators`：只在某些指標顯示；`items`：只在某些子項目顯示（`dimension` 的選項 id）。`hidden: true`：預設關閉，第一次打開才下載資料檔（App 的 `useJsonEach` 保留已載入的檔，打開另一個圖層時地圖不會閃一下）。
   - **跟著子項目換資料檔**（便利商店與連鎖品牌，2026-10-26 起）：`file` 含 `{item}` 時換成目前的子項目（`App.tsx` 的 `overlayPath()`），例如 `points/{item}.json`：一個品牌一個店家檔，只下載選到的品牌；換品牌時是同一個圖層（同一個 `ov-<id>`）換資料，開關狀態不變，新的檔載入前先隱藏。tooltip 的第二個參數多了 `item`（目前的子項目），店家的 tooltip 用它寫品牌名稱。
   - **放大才畫**：`minZoom` 是 MapLibre 圖層的 `minzoom`（所有點一樣，不必像 `minValue` 每個點多一個欄位）。便利商店上萬個點在世界全圖會糊成一片、蓋住面量圖，5 級（大約一個國家的大小）以上才畫。
@@ -419,6 +421,7 @@ pipeline/
 | 便利商店與連鎖品牌 | 品牌（子項目：7-Eleven、全家、Lawson、所有便利商店、麥當勞、星巴克、肯德基、Subway、IKEA、Costco）的每百萬人店數（預設 7-Eleven，各品牌自己的門檻）與店數（比例圓）；放大到 5 級以上畫出選定品牌的每一家店（一個品牌一個檔，選到才下載） | 各品牌在 OSM 上的店數、每百萬人、公司公布的店數與涵蓋率，公司店數的出處；所有便利商店的數量與標示最多的品牌 | OpenStreetMap（Overpass API，ODbL；這個主題的資料檔是衍生資料庫，同樣 ODbL）；人口用 UN WPP 2024 的 2026 年；公司公布的店數（年報、10-K、法說會簡報、官網，`pipeline/sources/chain_official.py`）只寫在附註、tooltip 與側欄 | 2026-10-26 的快照（沒有歷年資料） |
 | 貿易 | 出口、進口流向圖（點選國家畫出前 15 大夥伴的弧線）；全部商品、農產品合計與農業主題的 22 種農產品 | 主要出口對象、主要進口來源（金額與占比） | CEPII BACI（全部商品）、FAOSTAT 詳細貿易矩陣（農產品） | 全部商品 2017–2024；農產品 2000–2023 |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
+| 航運與港口 | 貨櫃吞吐量（TEU，比例圓，預設）、航運連結指數（UNCTAD 的 LSCI，每年各季的平均）、商船隊（船旗國，載重噸，比例圓）、商船隊（船東國，實質船東所在國，比例圓）、造船量（總噸，比例圓）、航運密度（不上色，約 5 km 網格，只有網格）；疊加圖層：World Port Index 的 3,806 個港口（大小是港口大小、顏色是港口類型，縮小時只畫中、大型港口；滑過看港口班輪航運連結指數 PLSCI 與 30 個主要港口自己公布的 2025 年吞吐量） | 主要港口（大小、PLSCI、公布的吞吐量與出處）、台灣各港的貨櫃裝卸量（2001 年起，堆疊面積）、船旗國的船隊組成（5 種船、堆疊面積＋長條）、這國船東的船掛哪國的旗、掛這國旗的船的船東在哪裡 | UNCTAD Data Hub（CC BY 3.0 IGO）、NGA World Port Index（公有領域）、World Bank/IMF Global Shipping Traffic Density（CC BY 4.0）、各港口公布的吞吐量（引用事實）、臺灣港務公司（政府資料開放平臺 8368） | 貨櫃 2010–2024；LSCI 2006–2026（2026 年第 1–3 季）；船旗 1980–2026；船東 2014–2026；造船 2014–2025；PLSCI 2026 年第 3 季；航運密度 2015 年 1 月–2021 年 2 月 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
 | 半導體 | 出口占全球比例（預設）、進口占全球比例、出口與進口流向圖（點選國家畫前 15 大夥伴）；5 種商品：積體電路（預設）、分離式半導體、晶片合計、半導體設備、另列的光電元件（太陽能電池、LED） | 主要出口對象、主要進口來源（金額與占比，重用貿易主題的 `TradePanel`） | CEPII BACI（HS 2017 版）；台灣的附註對照財政部統計資料庫的進出口貿易統計 | 2017–2024 |
 | 軍事 | 軍費（美元，比例圓）、軍費占 GDP、兵力（比例圓）、兵力占勞動力 | — | SIPRI（2011–2025 年子集，非商業使用）、World Bank WDI（IISS） | 軍費 2011–2025；兵力 1985–2020 |
@@ -664,6 +667,13 @@ pipeline/
     - 世界銀行 WDI 的個人匯款（`BX.TRF.PWKR.CD.DT`、`BX.TRF.PWKR.DT.GD.ZS`、`BM.TRF.PWKR.CD.DT`）的序列中繼資料標 `License_Type: CC BY-4.0`（來源寫「IMF balance of payments data」與「Staff estimates, World Bank」）。
     - **雙邊的僑匯矩陣沒有用**：KNOMAD／世界銀行的 Bilateral Remittance Matrix 2021（KNOMAD 網站 2022 年 12 月的 xlsx）沒有寫資料的授權，資料頁只連到世界銀行一般的「Rights and Permissions」，不在世界銀行 Data Catalog（Terms of Use for Datasets 的 CC BY 4.0 只適用 Data Catalog 裡的資料集）；KNOMAD 2024 年解散，knomad.org/data/remittances 現在轉到世界銀行的簡介頁，檔案只剩 Wayback Machine 的存檔。Center for Global Development 2026 年 10 月照同一個方法做的 2024 年矩陣（https://www.cgdev.org/publication/geography-remittances-updated-global-bilateral-remittances-matrix ）適用 CGD 的「Rights and Permissions」：CC BY-NC 4.0（非商業），而且要事先通知 CGD 的出版部門，不是可以直接轉載的開放授權。兩者都是用移民存量與所得推估的模型（不是實際的匯款紀錄）。所以僑匯沒有畫弧線（第 74 點）。
     - 中央銀行統計資料庫的國際收支（BPP2Y01）是政府資料開放授權條款（第 55 點）。
+    - **UNCTAD Data Hub（UNCTADstat）是 CC BY 3.0 IGO**：About 與 FAQ 頁（https://unctadstat.unctad.org/EN/About.html 、FAQ.html，2026-10-26 查）寫「All materials provided on this website are copyrighted under the Creative Commons Attribution 3.0 IGO license」，資料與中繼資料「may be copied freely, duplicated and further distributed provided that United Nations Trade and Development Data Hub is cited as the source」，也寫明不必註冊。航運與港口主題的貨櫃吞吐量、班輪航運連結指數（國家與港口）、商船隊（船旗國、實質船東）、造船都用 Data Hub 的整包下載（bulk download，不必登入），頁尾與 `note` 照要求寫「United Nations Trade and Development Data Hub」。這些是 UNCTAD 用商業資料算出的彙總數字（船隊來自 Clarksons Research、LSCI 來自 MDS Transmodal、港口靠港來自 MarineTraffic），各資料集的中繼資料（`/api/reportMetadata/…`）沒有另外的限制，Data Hub 把它們跟其他資料一樣以 CC BY 3.0 IGO 公開；這裡只用公開的彙總數字，沒有用任何底層的商業資料（跟 WGI 只用彙總指標一樣，見上面）。（第 76 點）
+    - 世界銀行 WDI 的貨櫃吞吐量（`IS.SHP.GOOD.TU`）與班輪航運連結指數（`IS.SHP.GCNW.XQ`）的序列中繼資料都標 `License_Type: CC BY-4.0`、來源寫 UNCTAD；**沒有用**：WDI 沒有台灣，LSCI 是舊版（2004 年最大值 = 100，只到 2021 年），直接用 UNCTAD 的原始版本（同樣是開放授權、含台灣）。
+    - NGA 的 World Port Index（Pub. 150，`UpdatedPub150.csv`）是美國聯邦政府的職務作品，公有領域（17 U.S.C. § 105；WPI 的版權頁寫「No copyright claimed under Title 17 U.S.C.」），頁尾照樣註明來源。
+    - 世界銀行的 Global Shipping Traffic Density（資料目錄 0037580）是 CC BY 4.0（資料目錄頁的 License 欄「Creative Commons Attribution 4.0」，2026-10-26 查）；資料是 IMF 的 World Seaborne Trade Monitoring System 分析的 AIS 船位，頁尾、地圖右下角與 `meta.json` 的 `citation` 寫出世界銀行與 IMF。
+    - 主要貨櫃港的年吞吐量是各港自己公布的數字（港務局、港口公司、政府統計：新加坡 MPA、鹿特丹港務局、香港政府統計處、中國交通運輸部、馬來西亞交通部、釜山港灣公社…，`pipeline/sources/port_teu.py` 每一筆有網址與日期），一港一個數字，是引用的事實，不是轉載資料庫。**Lloyd's List 的 Top 100 港口、Alphaliner、Statista 這類有版權的排名都沒有用**，也沒有照它們的名單或排序選港口（只拿來找官方數字在哪裡），網站上也不替這些港口排名。
+    - 臺灣港務公司的「臺灣地區國際商港貨櫃裝卸量」（政府資料開放平臺 8368，https://www.twport.com.tw/fapi/opendata?id=13878 ）是政府資料開放授權條款第 1 版（資料集頁面的授權欄，2026-10-26 查）。
+    - 泰國交通部開放資料平臺（datagov.mot.go.th）的林查班港月資料只到 2025 年 11 月，自己加總不是官方公布的年數字，**沒有用**；胡志明市／蓋梅只有全國的估計，蒙德拉港是私人公司經營，都沒有收。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -2075,6 +2085,31 @@ pipeline/
     - **人口不到 10 萬的地方**（38 個，`MIN_POPULATION`）不算每百萬人店數：一兩家店就是每百萬人幾十家（聖馬丁 4 家 Subway 是 90 家），梵蒂岡旁邊的一家肯德基落在 1:50m 的梵蒂岡國界裡就變成每百萬人近 2,000 家。地圖上留灰色，tooltip 與側欄寫原因（指標的 `noValue`，前端 `SMALL_POPULATION` 的清單跟 pipeline 算的比對，對不上時報錯）；店數照常有。
     - **大小**：9 個品牌的店家位置 1.47 MB（gzip 後 611 KB，選到的品牌才下載），20 個指標檔 96 KB（gzip 後 33 KB），228 個國家明細 66 KB（gzip 後 50 KB），共 1.6 MB（gzip 後 696 KB）；沒有網格圖磚。
     - **沒有歷年資料**：OSM 只有現在的快照（要歷年得讀歷史的 planet 檔，太大），時間軸只有 2026 年一個點。
+76. **航運與港口**（`pipeline/topics/shipping.py`、`shipping_density_tiles.py`、`pipeline/sources/unctadstat.py`、`wpi.py`、`port_teu.py`、`tipc.py`、`ship_density.py`、`src/topics/shipping.ts`、`src/topics/panels/ShippingPanel.tsx`）：
+    - **來源的選擇**（授權見第 12 點）：各國的數字都用 UNCTAD Data Hub（CC BY 3.0 IGO，含台灣），不用世界銀行 WDI 轉載的版本（沒有台灣、LSCI 是舊版）。港口的位置、大小與類型用 NGA 的 World Port Index（公有領域）。港口層級的吞吐量沒有開放授權的全球資料，只收 30 個主要貨櫃港自己公布的數字；Lloyd's List、Alphaliner 的排名不能用。
+    - **UNCTAD 的整包下載**（`unctadstat.py`）：`https://unctadstat-api.unctad.org/bulkdownload/<報表>/<報表的檔名>` 回傳 7z 壓縮的 CSV（新的 Data Hub 的資料檢視是 Angular 單頁程式，OData API 要申請金鑰，整包下載不必），用 `py7zr` 解開（`pipeline/requirements.txt` 新增；py7zr 1.x 沒有 `readall()`，解到 `.cache/unctadstat/<檔名>/`）。經濟體是 M49 代碼，4 碼的是區域與組別；已經不存在的（捷克斯洛伐克、東西德、蘇聯、南斯拉夫、2011 年以前的蘇丹、荷屬安地列斯…，`HISTORICAL`）不收，其他對不到 ISO 的會報錯。「China, Taiwan Province of」（158）就是台灣，UNCTAD 的中國不含香港、澳門、台灣（附註寫明）。
+    - **指標**：
+      - 貨櫃吞吐量（`US.ContPortThroughput`）：2010–2024 年，134 個經濟體。UNCTAD 標「Estimated」的年份寫在附註。轉運櫃在中轉港算兩次，新加坡、馬來西亞這類轉運港特別大（說明寫明）。
+      - 班輪航運連結指數（`US.LSCI`）：每季一筆（2023 年第 1 季各國平均 = 100，2024 年 3 月起整條序列改用這個基準），地圖用每年各季的平均；最新一年 2026 只有第 1–3 季（指標檔的 `partialYear`，說明寫明），只有最新一年可以不到 4 季，其他年份缺季時報錯。門檻 10、25、50、100、200、400（中位數約 50，前 10% 約 280，中國 1,300 多）。
+      - 商船隊（船旗國，`US.MerchantFleet`）：100 總噸以上的商船，載重噸，1980–2026 年（每年 1 月 1 日）。UNCTAD 標「Break」的（英國 1995、美國 2002 與 2011、法國 2011）寫在附註。側欄的船種：油輪、散裝船、雜貨船、貨櫃船、其他。
+      - 商船隊（船東國，`US.FleetBeneficialOwners`）：1,000 總噸以上，實質船東（負責營運的公司）所在國，2014–2026 年，取「Total all flags」那一列。「World n.e.s.」（國籍不明）不收。這個資料表的船旗只分出 28 個主要船旗加「本國旗」「外國旗」，側欄的其他船旗 = 外國旗 − 列出的外國船旗。
+      - 造船（`US.ShipBuilding`）：當年交船的總噸，2014–2025 年，全部是 0 的國家不收。中國、南韓、日本占九成以上（2025 年 94%）。
+      - **沒有做的**：港口靠港次數與在港時間（`US.PortCalls`、`US.PortCallsArrivals`，MarineTraffic 的 AIS）只有 2018–2023 年、約 70 個國家，**沒有台灣**，所以沒有放；海運貿易量（`US.SeaborneTrade`）只有區域合計。
+    - **港口的點**（`ports.json`，`points_file()`）：World Port Index 的 3,807 筆（冰島的 Seydisfjordur 列了兩次，留資料多的那筆，共 3,806 個；奈及利亞的 Escravos 與 Lekki 編號一樣但位置不同，兩筆都留）。欄位：經緯度（0.001°）、WPI 原文名稱、中英文名稱（30 個主要港口與台灣的港口）、國家、大小（1 很小 → 4 大，0 不明）、類型代碼（依類別排在一起：海岸天然、海岸人工（防波堤、潮閘、避風港）、河港與運河湖泊、開放錨地、不明，前端依代碼範圍上色）、有沒有貨櫃碼頭、PLSCI 與名次、公布的吞吐量。半徑依大小；`minValue` 讓世界全圖只畫中、大型港口（550 個），3 級加小港口，5 級以上全部。285 KB（gzip 後 49 KB）。
+      - NGA 的 CDN 對同一個網址大約一半回 503（2026-10-26，curl 與 Python 都一樣），`wpi.py` 等 5、10、15… 秒再試。WPI 的國名對不到 ISO 代碼時報錯（`COUNTRY_ALIASES`）。
+      - **港口班輪航運連結指數**（`US.PLSCI`，最新一季 2026 年第 3 季，940 個貨櫃港）：依 UN/LOCODE 對到 WPI 的 710 個；WPI 有些大港用舊代碼或沒有代碼（上海 CNSGH、寧波 CNNBO、青島 CN QIN、新加坡分成幾個港區），18 個寫在對照表（`PLSCI_TO_WPI`，新加坡畫在吉寶港區、南沙畫在廣州）；其他依港名在同一個國家裡比對（去掉 Gang、Ko、Port 這類字），只有唯一一個候選時才算，59 個（逐一看過，例如 Shantou → Shan T Ou、Makassar → Ujung Pandang）。共 783 個；對不到的前幾名是倫敦門戶港、巴拿馬的曼薩尼約、多明尼加的 Caucedo、巴西的 Itapoa、印度的 Vizhinjam（WPI 沒有這些港）。好幾個 PLSCI 港口對到同一點時留指數高的。名次是 940 個港口裡的名次。
+      - **主要港口的吞吐量**（`port_teu.py`）：28 個港口 2025 年、傑貝阿里 2024 年（DP World 2025 年只公布集團合計），共 30 個（含台灣四港）；中國大陸的用交通運輸部的全國港口統計（萬 TEU）。官方只公布到萬 TEU、0.01 百萬 TEU 的標「rounded」，側欄寫「官方只公布到這個精度」。全港包含好幾個港區的（深圳、寧波舟山、廣州含南沙、安特衛普–布魯日、紐約–新澤西）寫口徑。找不到官方數字的（林查班、蓋梅、蒙德拉）沒有收（第 12 點）。逐一抽查過新加坡 MPA、香港政府統計處、可倫坡港的頁面。
+    - **台灣**：
+      - UNCTAD 的台灣跟臺灣港務公司開放資料（`tipc.py`，政府資料開放平臺 8368，Big5 的 CSV，2001 年起逐月）的國際商港合計一致，2010–2024 年每年相差不到 0.02%（2024 年 13,933,246 對 13,933,254 TEU），`shipping.py` 比對，差 0.1% 以上報錯。地圖用 UNCTAD（2024 年 1,393 萬 TEU，108 個國家的第 13）；2025 年臺灣港務公司公布 13,546,118 TEU，寫在附註與側欄（UNCTAD 還沒有這一年）。
+      - 2025 年各港：高雄 8,885,855、基隆 1,603,563、臺中 1,590,768、臺北 1,463,658 TEU（高雄占 66%），`port_teu.py` 的數字跟開放資料逐月加總比對。側欄畫 2001–2025 年各港的堆疊面積（花蓮、蘇澳、安平併成「其他」）。
+      - PLSCI（2026 年第 3 季）：高雄 828（940 個港口的第 13）、基隆 313、臺中 270、臺北 257。WPI 的英文名稱是舊拼音（Kao-Hsiung、Chi-Lung、Tai-Chung Kang、Tan-Shui＝臺北港），點與側欄用中文名稱（英文介面用 Kaohsiung、Keelung、Taichung、Taipei），原文放在 tooltip 最後一行。
+      - 航運連結指數 2025 年 332（179 國的第 14），2026 年第 1–3 季平均 323（第 15）。
+      - 商船隊：掛台灣旗 588 萬載重噸（2026 年，197 國的第 45，貨櫃船 46%、散裝船 43%）；台灣船東 6,618 萬載重噸（182 國的第 8，占全球 2.6%），91% 掛外國旗：新加坡 2,159 萬（33%）、巴拿馬 1,842 萬（28%）、賴比瑞亞 1,186 萬（18%），本國旗 573 萬（8.7%）。
+      - 造船：UNCTAD 的台灣 2014 年 57 萬總噸，2024 年 3.7 萬、2025 年只有 326 總噸（照 UNCTAD 的數字畫）。
+    - **航運密度的網格**（第 14 節）：世界銀行／IMF 的 Global Shipping Traffic Density（CC BY 4.0），只有網格、沒有國家平均（`GridSpec.only`，指標是 `kind: 'none'`，tooltip 與排名表用貨櫃吞吐量，跟交通主題的「路網地圖」用鐵路長度一樣）。時間軸照貨櫃吞吐量的年份，網格只有一期（2015 年 1 月–2021 年 2 月）。
+    - **側欄**（`ShippingPanel.tsx`）：主要港口（依公布的吞吐量、PLSCI、大小排，前 8 個；港口檔跟地圖的圖層同一個檔），吞吐量的出處；台灣各港的貨櫃裝卸量；船旗國的船隊組成（從這個國家第一年有資料的年份畫起）；這國船東的船掛哪國的旗（前 8 名、占 0.5% 以上的，其他併成「其他船旗」）；掛這國旗的船的船東在哪裡（只有 UNCTAD 列出的 28 個船旗國）。
+    - **跟其他主題**：國際貿易流向、各國交通的說明指到這個主題，這個主題也指回去；海底電纜是通訊，不重複。
+    - **大小**：指標檔 5 個（93 KB，gzip 後 39 KB）、港口 285 KB（gzip 後 49 KB）、214 個國家明細 323 KB（gzip 後 127 KB），共 0.70 MB（gzip 後 216 KB）；網格圖磚 234 張、4.4 MB（部署時產生）。合計約 5.1 MB。
 
 ## 9. 之後可以做的
 
@@ -2113,6 +2148,7 @@ pipeline/
 - **野火的火點密度網格**：NASA FIRMS 的每年火點彙整成 0.25° 網格、每年一期，照暖化網格的做法部署時產生（要先確認每年的國家檔不需 MAP_KEY，並量下載量與部署時間）。
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
+- **航運與港口**（第 76 點）：UNCTAD 的港口靠港與在港時間有台灣、更多國家時加成指標；PLSCI 對不到 World Port Index 的港口（倫敦門戶港、巴拿馬的曼薩尼約、多明尼加的 Caucedo、巴西的 Itapoa、印度的 Vizhinjam…）可以用 UNECE 的 UN/LOCODE 座標補點（先確認授權）；林查班、蓋梅等港有官方的年吞吐量時加進 `port_teu.py`，每年 1–3 月各港公布新的一年後更新；航運密度若 GitHub Pages 的空間夠，可以多做 z5（約多 9 MB），或拆成商船、漁船、客輪（世界銀行同一個資料集有分船種的檔）。
 - **縮減資料量**：指標檔已經壓縮（第 3 節）。還可以做的：
   - 農業與工業的國家明細檔（`countries/<ISO3>.json`，共約 12 MB，點國家才載入）可以只保留近 30 年，或也改成差分編碼。
   - 貿易流向檔（`trade/flows/`）、框選網格（7.5 MB，gzip 後 1.6 MB）可以改成整數、差分編碼。
@@ -2415,7 +2451,7 @@ pipeline/
 
 **看過一次就能離線開啟**：桌機與手機（Fast 3G、4× CPU）各只開一次、等下載結束後切成離線再開，地圖與資料都正常出現，標題旁顯示「離線中」，沒有失敗的請求。
 
-## 14. 網格圖層：人口密度的 1 km 網格、暖化的 0.5° 網格、太陽能與風能的約 2 km 網格、夜間燈光的約 500 m 網格
+## 14. 網格圖層：人口密度的 1 km 網格、暖化的 0.5° 網格、太陽能與風能的約 2 km 網格、夜間燈光的約 500 m 網格、航運密度的約 5 km 網格
 
 網格的前端（`src/map/densityGrid.ts`）是通用的：指標設了 `grid`（`GridSpec`），控制列就多一個「國家平均 / 網格」切換，圖磚、`meta.json` 的格式、不請求空圖磚、service worker 的快取都一樣。下面先寫人口密度的 1 km 網格，最後三小節是氣溫與降雨主題的暖化 0.5° 網格、太陽能與風能潛力主題的約 2 km 網格、夜間燈光主題的約 500 m 網格。
 
@@ -2622,3 +2658,14 @@ pipeline/
   - 一個快取（`public/tiles/night-lights`），排在人口圖磚存進快取之後。
   - 快取鍵含圖磚程式、`vnl.py`、`population_density_tiles.py`、`tokens.ts` 的 `NIGHT`、`night-lights.ts` 的 `LIGHT_THRESHOLDS`。
   - 沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`，從 Zenodo 下載 4 年（約 270 MB；主行程一個檔一個檔下載，每個檔 24 條連線，HTTP 429 照 Retry-After 等，再交給 4 個行程算），`VNL_PRUNE=1` 算完一期就刪掉；第一次部署（2026-10-25）GitHub Actions 上每個檔 5–6 秒就下載完，整個步驟 3 分 20 秒、整個部署約 5.5 分鐘；45 分鐘逾時、`continue-on-error`，Zenodo 連不上時照樣部署，用上一版的圖磚（連上一版都沒有時，網站上切到網格會顯示「約 500 m 網格載入失敗，先顯示國家平均」）。
+
+### 航運密度的約 5 km 網格
+
+- 「航運與港口」主題的「航運密度」（`grid: { dir: 'ship-density', only: true, defaultOn: true, … }`）：**只有網格**，沒有國家平均可以切換（`GridSpec.only`，2026-10-26 新增，見第 4 節的表）；指標是 `kind: 'none'`，tooltip 與排名表用貨櫃吞吐量。圖例的單位用 `GridSpec.unit`（「平均 AIS 船位」），不是指標的 TEU。
+- **資料**（`pipeline/sources/ship_density.py`）：世界銀行資料目錄 0037580 的「所有船種」（`shipdensity_global.zip`，535 MB，CC BY 4.0），IMF 分析 2015 年 1 月–2021 年 2 月每小時的 AIS 船位，0.005°（約 500 m）的 int32 GeoTIFF，72,006 × 33,998 格（北緯 85° 到南緯 85°），解壓後 9.8 GB。
+  - 不解壓：GDAL 的 `/vsizip/` 依序讀（每次 512 列，GeoTIFF 是 128 × 128 的區塊），每 4 × 4 格平均成 0.02°（含 0 的格子，nodata 不算），存成 `.cache/ship-density/global_mean_4.npz`（612 MB），這台 Windows 約 7 分鐘。
+  - zip 裡附的縮小版（`.tif.ovr`）是**取樣**（大洋中間單獨一格就是千萬），不是平均，不能用。
+  - 數值的分布很怪：有船的 500 m 格子多半是 1–100，主要航道卻是千萬以上（英吉利海峽約 3,000 萬），中間很少，看起來不像單純的「每小時一個船位」。所以只當成相對的強度：對數分級，說明寫「只能看相對的多寡」，圖例寫成 10 的次方。
+- **圖磚**（`pipeline/topics/shipping_density_tiles.py`）：Web Mercator、512 px、z0–z4（z4 一個像素在赤道約 0.044°、約 5 km，所以叫「約 5 km 網格」，再放大由 MapLibre 拉大）。重新取樣照太陽能與風能（cos(緯度) 加權平均、像素比格子小時取最近的格子），差別是門檻用在 log10 之後：平均不到 3×10⁴ 的透明（大洋上零星的船位、陸地），其餘 7 級，門檻 10⁵、3×10⁵、10⁶、3×10⁶、10⁷、3×10⁷（`TRAFFIC_MIN`、`TRAFFIC_THRESHOLDS`，跟 `shipping.ts` 一樣，產生時檢查）。一開始用 10³ 起、10⁷ 封頂，東亞的海、英吉利海峽整片都是最深的兩級，看不出航道；調高後台灣海峽的主航道、英吉利海峽的分道航行都分得出來，河運（萊茵河、長江、伏爾加河）也看得到。顏色是地圖的橘色循序色（`tokens.ts` 的 ORANGE），跟藍色的海對比清楚。
+- **大小**：234 張、4.4 MB（z4 171 張、3.2 MB）。z5 會多約 9 MB，只做到 z4（這個主題的預算約 6 MB）。
+- **部署**（`.github/workflows/deploy.yml`）：一個快取（`public/tiles/ship-density`），排在夜間燈光之後；快取鍵含圖磚程式、`ship_density.py`、`population_density_tiles.py`、`tokens.ts` 的 ORANGE、`shipping.ts` 的兩行門檻。沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`，從世界銀行下載 535 MB 再讀 9.8 GB，40 分鐘逾時、`continue-on-error`，連不上時用上一版的圖磚（連上一版都沒有時顯示「約 5 km 網格載入失敗」，`only` 的網格沒有國家平均可以退回）。

@@ -158,6 +158,7 @@ const GRID_TEXT = defineMessages({
     empty: (min: string) => `每 km² 不到 ${min} 人（不上色）`,
     tooltip: '國家平均',
     failed: (grid: string) => `${grid}載入失敗，先顯示國家平均`,
+    failedOnly: (grid: string) => `${grid}載入失敗`,
   },
   en: {
     mode: 'Display',
@@ -171,6 +172,7 @@ const GRID_TEXT = defineMessages({
     empty: (min) => `Under ${min} per km² (not coloured)`,
     tooltip: 'country average',
     failed: (grid) => `The ${grid} failed to load; showing country averages`,
+    failedOnly: (grid) => `The ${grid} failed to load`,
   },
 });
 
@@ -194,6 +196,6 @@ export function gridLabels(spec: Localized<GridSpec>, lang: Lang = getLang()) {
     flatIn3d: g.flatIn3d,
     empty: (meta: GridMeta) => spec.empty ?? g.empty(String(meta.minDensity ?? '')),
     tooltip: g.tooltip,
-    failed: g.failed(name),
+    failed: spec.only ? g.failedOnly(name) : g.failed(name),
   };
 }
