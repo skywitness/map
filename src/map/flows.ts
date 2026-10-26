@@ -76,7 +76,9 @@ export function useFlowSelection(
   const layer = indicator.layer;
   return useMemo(() => {
     if (!data || !selected || layer.kind !== 'flow') return null;
-    if (item !== null && data.item !== item) return null;
+    // 流向檔跟著子項目換（貿易的商品）時，換商品後舊的檔不能用；流向檔不分子項目的（塑膠污染的子項目是排放形式，
+    // 只用在排放的指標）不比對
+    if (item !== null && layer.file.includes('{item}') && data.item !== item) return null;
     return flowSelection(data, selected, layer.direction);
   }, [data, selected, layer, item]);
 }

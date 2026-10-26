@@ -3,7 +3,9 @@
 https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37
 - 授權：Etalab 2.0（Licence Ouverte，與 CC BY 相容），需註明 CEPII。
 - 數值是千美元，以 FOB 計（進口申報的 CIF 已扣掉估計的運費與保險）。
-- 用 HS17 版（2017–2024 年，zip 約 800 MB）；HS92 版從 1995 年開始，但有 2.4 GB。
+- 數量是公噸（q 欄，CEPII 依單位價格補過；仍有少數空白，塑膠廢料 HS 3915 空白的占金額 0.1% 以下，1995 年 1.2%）。
+- 貿易、半導體主題用 HS17 版（2017–2024 年，zip 約 800 MB）；塑膠污染主題的塑膠廢料用 HS92 版（1995–2024 年，2.4 GB，
+  `yearly_product_flows(…, hs="HS92")`），才看得到 2018 年中國禁止進口以前的變化。
 - 國家代碼大致是 ISO 數字代碼，對照表附在 zip 裡：
   - 490「Other Asia, nes」就是台灣（UN Comtrade 的慣例），明確改成 TWN。
   - 697「Europe EFTA, nes」這類無法歸到單一國家的代碼回傳 None，只計入總額。
@@ -27,6 +29,11 @@ URL = f"https://www.cepii.fr/DATA_DOWNLOAD/baci/data/{FILENAME}"
 TAIWAN = "490"
 
 Pairs = dict[tuple[str | None, str | None], float]
+
+
+def _archive(hs: str):
+    filename = f"BACI_{hs}_{VERSION}.zip"
+    return download(f"https://www.cepii.fr/DATA_DOWNLOAD/baci/data/{filename}", "baci", filename)
 
 
 def _country_codes(z: zipfile.ZipFile) -> dict[bytes, str | None]:
@@ -85,3 +92,38 @@ def yearly_products(prefixes: tuple[str, ...]) -> Iterator[tuple[int, dict[str, 
             for (k, i, j), v in by_code.items():
                 products[k.decode()][(codes.get(i), codes.get(j))] += v
             yield year, products
+
+
+def yearly_product_flows(prefixes: tuple[str, ...], hs: str = HS) -> Iterator[tuple[int, dict[tuple[str | None, str | None], list[float]]]]:
+    """逐年回傳 {(出口國, 進口國): [千美元, 公噸, 沒有數量的千美元]}，代碼開頭是 prefixes 之一的商品加總。
+
+    數量空白的列只算進金額（第三個數記下它們的金額，用來看缺多少）。hs 是 BACI 的版本（'HS92' 從 1995 年起）。
+    """
+    path = _archive(hs)
+    wanted = tuple(p.encode() for p in prefixes)
+    with zipfile.ZipFile(path) as z:
+        codes = _country_codes(z)
+        members = sorted(n for n in z.namelist() if re.match(rf"BACI_{hs}_Y\d{{4}}_", n))
+        for member in members:
+            year = int(re.search(r"_Y(\d{4})_", member).group(1))
+            by_code: dict[tuple[bytes, bytes], list[float]] = defaultdict(lambda: [0.0, 0.0, 0.0])
+            with z.open(member) as raw:
+                next(raw)
+                for line in raw:
+                    _, i, j, k, v, q = line.split(b",")
+                    if not k.startswith(wanted):
+                        continue
+                    cell = by_code[(i, j)]
+                    cell[0] += float(v)
+                    q = q.strip()
+                    if q and q != b"NA":
+                        cell[1] += float(q)
+                    else:
+                        cell[2] += float(v)
+            pairs: dict[tuple[str | None, str | None], list[float]] = defaultdict(lambda: [0.0, 0.0, 0.0])
+            for (i, j), (v, q, missing) in by_code.items():
+                cell = pairs[(codes.get(i), codes.get(j))]
+                cell[0] += v
+                cell[1] += q
+                cell[2] += missing
+            yield year, pairs

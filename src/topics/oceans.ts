@@ -262,8 +262,8 @@ export const oceans: TopicDefinition = {
   ],
   // 頁尾要短：英文版太長會把地圖擠扁（細節寫在指標說明、附註、側欄與 DESIGN.md）
   note: {
-    zh: 'Marine Regions 對任何國家、領土的法律地位與界線不表示意見；這裡照它的分類呈現重疊主張與共同管理區（未解決的界線畫虛線），不代表本站的立場。界線簡化到約 500 公尺。漁業只算水生動物（不含海藻），活體重量；FAO 的「Taiwan Province of China」照其他主題寫台灣。每人吃多少水產見「各國飲食」主題，港口與船隊見「航運與港口」主題。',
-    en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports.',
+    zh: 'Marine Regions 對任何國家、領土的法律地位與界線不表示意見；這裡照它的分類呈現重疊主張與共同管理區（未解決的界線畫虛線），不代表本站的立場。界線簡化到約 500 公尺。漁業只算水生動物（不含海藻），活體重量；FAO 的「Taiwan Province of China」照其他主題寫台灣。每人吃多少水產見「各國飲食」主題，港口與船隊見「航運與港口」主題，河川帶進海洋的塑膠見「塑膠污染」主題。',
+    en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports; for plastic carried to the sea by rivers see Plastic pollution.',
   },
   panelExtra: () => import('./panels/OceansPanel'),
   overlays: [EEZ_LINES],

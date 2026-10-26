@@ -59,12 +59,12 @@ export const trade: TopicDefinition = {
       '全部商品為 CEPII BACI（2017–2024 年），已調和進出口雙方的申報，以離岸價（FOB）計；台灣在 UN Comtrade 與 BACI 列為「Other Asia, nes」。' +
       '農產品為 FAOSTAT 詳細貿易矩陣（2000 年起），出口以出口國、進口以進口國的申報為準，該年沒有申報的國家改用貿易夥伴的申報。' +
       '每個國家只列前 15 大夥伴，占比以對所有夥伴的總額計算。' +
-      '貿易靠的港口、貨櫃量與商船隊見「航運與港口」主題。',
+      '貿易靠的港口、貨櫃量與商船隊見「航運與港口」主題，塑膠廢料的流向見「塑膠污染」主題。',
     en:
       'All goods: CEPII BACI (2017–2024), which reconciles exporter and importer reports, valued FOB; Taiwan appears in UN Comtrade and BACI as "Other Asia, nes". ' +
       "Agricultural products: FAOSTAT detailed trade matrix (from 2000), using the exporter's reports for exports and the importer's for imports; when a country did not report for a year, its partners' reports are used. " +
       'Only the top 15 partners of each country are listed; shares are of the total with all partners. ' +
-      'For the ports, container volumes and merchant fleets that carry trade, see the Shipping and ports topic.',
+      'For the ports, container volumes and merchant fleets that carry trade, see the Shipping and ports topic; for plastic waste flows, see Plastic pollution.',
   },
   dimension: { label: { zh: '商品', en: 'Product' }, options: ITEMS, defaultOption: 'all' },
   panelExtra: () => import('./panels/TradePanel'),
