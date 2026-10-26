@@ -7,6 +7,7 @@ import pycountry
 ALIASES = {
     "UVK": "XKX",  # IMF：科索沃
     "KOS": "XKX",
+    "XKV": "XKX",  # OECD DAC：科索沃
     "WBG": "PSE",  # IMF：約旦河西岸與加薩
 }
 

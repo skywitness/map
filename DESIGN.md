@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -270,7 +270,8 @@ pipeline/
   - 單位：流向檔的 `scale` 是「檔案裡的數值 × scale = 指標的單位」，移民是 1（人）；舊的貿易檔沒有這個欄位，當成 1000（千美元）。
   - `direction: 'larger'`：依選取國家兩個方向的總額，畫比較大的那一邊。難民用這個：收容的比外流的多（土耳其、德國）就畫難民來自哪裡，反過來（敘利亞、烏克蘭）畫逃往哪裡，不必多一個指標。`FlowSelection.direction` 是解析後的方向，顏色、圖例、tooltip 都照它。
   - 移民的 export 是「從這國出去」（來源國 → 目的地），import 是「來到這國」；弧線一樣從起點畫到終點。
-- 國家側欄的數值卡片：跟前面的指標用同一個資料檔的不重複列（移民的「流向：移民來源」就是「移民人數」）。
+  - **國際援助與僑匯**（2026-10-26 起）：export 是援助國給哪些國家、import 是受援國從哪些國家收到援助，同一個流向檔（`flows/<年>.json`）、兩個指標各取一個方向。流向檔多了兩個鍵，前端的流向圖不讀、側欄（`AidPanel.tsx`）讀：`unspecified`（援助國沒有分到特定國家的金額）與 `multilateral`（受援國從多邊機構收到的援助，`[合計, [[機構代碼, 金額], …]]`，機構名稱在 `agencies.json`）。多邊機構在地圖上沒有位置，所以只畫國家之間的弧線（第 8 節第 74 點）。
+- 國家側欄的數值卡片：跟前面的指標用同一個資料檔的不重複列（移民的「流向：移民來源」就是「移民人數」）；折線圖也用那張卡片的名稱與格式（「移民人數的變化」，不是「流向：移民來源的變化」，2026-10-26 起，`CountryPanel.tsx` 的 `chartIndicator`）。
 - 圖例的版面由 `flowLegendModel()` 算，畫面上的圖例跟分享選單下載的圖片共用。3D 模式下流向圖沒有立體圖形，只是把地圖傾斜，弧線仍畫在地面上。
 - 貿易做成獨立主題（`src/topics/trade.ts`），沒有併進農業：出口、進口兩個指標剛好就是指標按鈕的「出口／進口」切換，商品用子項目選單，不必另做控制項；農業已經有 6 個指標（下拉選單），流向圖「先點國家」的操作方式也跟其他指標不同；全部商品的貿易也不屬於農業。
 
@@ -435,6 +436,7 @@ pipeline/
 | 住宅 | 公寓住戶比例（44 國）、自有住宅率（47 國）、平均每戶人數（191 國）、居住擁擠率與住房負擔過重率（37 國，只有歐洲）、都市貧民窟人口比例（194 國） | 住宅類型組成（獨棟、雙併連棟、公寓、其他；台灣依建築樓層） | Eurostat EU-SILC、OECD 可負擔住宅資料庫、UN DESA 家戶規模資料庫、World Bank WDI（UN-Habitat）；台灣用內政部房屋稅籍、主計總處家庭收支調查 | 住宅類型 2004–2025、自有 2005–2025、每戶人數 1991–2025、擁擠與負擔 2004–2025、貧民窟 2000–2022（每兩年）；各國只顯示 3–10 年內最近一年的資料 |
 | 海拔 | 地形（分層設色＋陰影，3D 是立體地形）、平均海拔、最高點、最低點、海拔 500／1,000／2,000 公尺以上的土地占比、沿海低地（低於 5 公尺且跟海相連）占比、平均坡度 | 高度分布長條、最高點與最低點（名稱、位置） | USGS GMTED2010、Wikidata；台灣用內政部 100 公尺 DEM 交叉比對；地圖上的地形是 AWS Terrain Tiles | 不隨時間變化（DEM 主要是 2000 年的 SRTM），沒有時間軸 |
 | 移民與難民 | 移民占人口比例、移民人數、僑民人數（比例圓）、每千人收容的難民、難民人數（依來源國）；流向圖：移民來源、僑民去向、難民（點選國家畫前 15 名的弧線） | 主要移民來源、主要僑民去向、收容的難民來自、難民逃往（長條清單） | UN DESA International Migrant Stock 2024、UNHCR、UN WPP 2024（人口）；台灣用 DESA（依國籍），附註對照移民署外僑居留人數、僑委會海外臺灣僑民人數 | 移民 1990–2020 每 5 年加 2024 年；難民 1990–2025 每年 |
+| 國際援助與僑匯 | ODA 占 GNI（援助國，預設；0.7% 以上是最深的兩級）、援助金額（援助國，比例圓）、流向：援助對象（點選援助國畫前 15 個受援國）、收到的援助（比例圓）、收到的援助占 GNI、每人收到的援助、流向：援助來源（點選受援國畫前 15 個援助國）、僑匯收入（比例圓）、僑匯收入占 GDP、僑匯支出（比例圓） | 援助國：主要援助對象與沒有分到特定國家的金額、雙邊與多邊的組成（給聯合國、歐盟、世界銀行、區域開發銀行等的核心捐款，在捐助國境內的難民支出）、ODA 占 GNI 跟 DAC 合計與 0.7% 目標比；受援國：主要援助來源（國家與多邊機構合在一起排）、收到的援助與僑匯收入的變化；其他國家：僑匯收入與支出的變化；台灣另列僑匯的組成（個人移轉、薪資的收入與支出） | OECD DAC 的 DAC1、DAC2A（OECD 的資料條款，可轉載、改作，要註明出處）；世界銀行 WDI 的個人匯款（CC BY 4.0）；台灣的僑匯用中央銀行國際收支、GDP 用主計總處 | ODA 1960–2025（2025 是初步數字，2018 年起是贈與等值）；受援國與流向 1960–2024；僑匯 1976–2025 |
 | 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
 | 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
 | 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
@@ -484,6 +486,7 @@ pipeline/
    - 研發與創新：UNESCO、WIPO 沒有台灣，改用國科會、智慧局。
    - 就業與失業：ILO 的模型估計雖然有台灣，但近幾年是推算的，改用主計總處人力資源調查；非正式就業台灣沒有統計（第 54 點）。
    - 外匯存底與外債：WDI、國際債務統計（IDS）、季度外債統計（QEDS）都沒有台灣，改用中央銀行（外匯存底加上黃金的市值、國際收支、國際投資部位；第 55 點）。
+   - 國際援助與僑匯：OECD DAC 本身有台灣（「Chinese Taipei」，台灣向 OECD 申報援助）；WDI 的僑匯沒有台灣，改用中央銀行國際收支的個人移轉加薪資（第 74 點）。
    - 股市規模：世界銀行轉載的 WFE 資料沒有台灣（世界合計裡卻有），改用金管會證期局的上市＋上櫃（第 56 點）。
    - 半導體：CEPII BACI 有台灣（代碼 490），但台灣沒有自己的申報，數字來自貿易夥伴，附註對照財政部（第 52 點）。關鍵礦產：USGS 的表上沒有台灣，台灣不是這些礦產的生產國（第 53 點）。
 2. **FAOSTAT 的「China」(351) 是大陸、港、澳、台的合計**，要排除，否則會重複計算；台灣是 M49 158。
@@ -650,6 +653,10 @@ pipeline/
     - **OECD 的稅率資料是 CC BY 4.0**：Corporate Tax Statistics、Tax Database（表 I.7）、Taxing Wages 是 OECD Data Explorer 的資料（2024 年 7 月起的預設授權）；《Consumption Tax Trends 2024》（2024 年 11 月）與《Tax Policy Reforms 2025》《Tax Policy Reforms 2026》的版權頁寫「Attribution 4.0 International (CC BY 4.0)」。OECD Tax Database 2024 年 6 月版的 VAT 表（Excel）是 2024 年 7 月以前的，沒有用，只拿來比對抄錄（見第 72 點）。
     - **Tax Foundation 是 CC BY-NC 4.0（非商業）**，PwC、KPMG、EY 的稅務摘要是商業內容，英文維基百科的稅率表多半引用 PwC、也有過時的數字：稅率主題都沒有用，OECD 以外的國家留灰色（見第 72 點）。
     - 財政部財政資訊中心（綜合所得稅申報核定統計專冊）、賦稅署（公告與附表）、臺北國稅局（適用稅率）網站的「政府網站資料開放宣告」都採政府資料開放授權條款第 1 版（2026-10-26 查）；所得稅法、加值型及非加值型營業稅法的條文與機關的公告不受著作權保護（著作權法第 9 條）。
+    - **OECD 的資料不是 CC BY 4.0，是 OECD 自己的資料條款，效果相同**：OECD 的 Terms and Conditions（https://www.oecd.org/en/about/terms-conditions.html ，2026-10-17 的 Wayback Machine 存檔；OECD 網站本身擋程式）第 1 節寫 2024 年 7 月 1 日起出版的「書面內容」多半是 CC BY 4.0；資料另有第 3 節「Data」：「you can extract from, download, copy, adapt, print, distribute, share and embed Data for any purpose, even for commercial use」，要依「OECD (year), (dataset name), (data source) DOI or URL (accessed on (date))」註明出處，再授權時也要附上同樣的註明要求；中繼資料寫明有第三方權利的資料例外。DAC1、DAC2A 的資料流說明沒有另外的限制。所以國際援助與僑匯主題的授權標「OECD 資料條款（可轉載、改作，需註明出處）」，頁尾的說明照格式寫「OECD (2026), DAC1、DAC2A, OECD Data Explorer（2026-10-26 查閱）」。**其他主題的 OECD Data Explorer 資料（物價與財政的稅收、性別平等的薪資差距、房價、稅率、存款與財產的家庭儲蓄率等）標的是「CC BY 4.0」**，嚴格說是這份資料條款，可以轉載、改作、要註明出處的效果一樣；這次沒有改其他主題，要不要統一標示請使用者決定（PISA 2025 的報告與《Consumption Tax Trends 2024》這類書面內容確實是 CC BY 4.0）。
+    - 世界銀行 WDI 的個人匯款（`BX.TRF.PWKR.CD.DT`、`BX.TRF.PWKR.DT.GD.ZS`、`BM.TRF.PWKR.CD.DT`）的序列中繼資料標 `License_Type: CC BY-4.0`（來源寫「IMF balance of payments data」與「Staff estimates, World Bank」）。
+    - **雙邊的僑匯矩陣沒有用**：KNOMAD／世界銀行的 Bilateral Remittance Matrix 2021（KNOMAD 網站 2022 年 12 月的 xlsx）沒有寫資料的授權，資料頁只連到世界銀行一般的「Rights and Permissions」，不在世界銀行 Data Catalog（Terms of Use for Datasets 的 CC BY 4.0 只適用 Data Catalog 裡的資料集）；KNOMAD 2024 年解散，knomad.org/data/remittances 現在轉到世界銀行的簡介頁，檔案只剩 Wayback Machine 的存檔。Center for Global Development 2026 年 10 月照同一個方法做的 2024 年矩陣（https://www.cgdev.org/publication/geography-remittances-updated-global-bilateral-remittances-matrix ）適用 CGD 的「Rights and Permissions」：CC BY-NC 4.0（非商業），而且要事先通知 CGD 的出版部門，不是可以直接轉載的開放授權。兩者都是用移民存量與所得推估的模型（不是實際的匯款紀錄）。所以僑匯沒有畫弧線（第 74 點）。
+    - 中央銀行統計資料庫的國際收支（BPP2Y01）是政府資料開放授權條款（第 55 點）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -913,6 +920,7 @@ pipeline/
       - 台灣不在 UNHCR 的統計裡（不是《難民公約》締約國，也還沒有難民法），附註會寫。
     - 每千人收容的難民用 WPP 2024 的人口，2024 年以後是推估值。黎巴嫩 2024 年每千人 131 人最高。
     - 移民的年份只有 8 個：時間軸拖到中間沒有資料的年份時用最接近的一年，播放時跳到下一個有資料的年份（`App.tsx` 的 `pickYear`、`TimeSlider`）。
+    - 僑匯（移民、移工匯回母國的錢）在國際援助與僑匯主題（第 74 點），兩邊頁尾的說明互相指到對方；雙邊的僑匯沒有開放授權的資料，那邊沒有弧線，指到這裡的僑民去向。
 
 27. **宗教**（`pipeline/topics/religion.py`、`sources/pew.py`、`moi_religion.py`）：
     - **Pew 的條款只允許發布摘錄**：使用條款第 13 條（資料集）允許修改與衍生，但轉載、發布「只限摘錄，不能全部或大部分發布」，並要附上「Pew Research Center bears no responsibility for the analyses or interpretations of the data presented here」（頁尾的附註有）。
@@ -1999,6 +2007,38 @@ pipeline/
     - **用語**：WGI 的 Usage Advisory 說明它是看法的綜合、不是世界銀行對各國政府的官方評等，指標說明的結尾寫「是看法的綜合，不是官方評等」。中文名稱取短的（發聲與課責、政治穩定、政府效能、法規品質、法治、貪腐控制），「政治穩定」的全名（政治穩定與沒有暴力、恐怖主義）寫在說明裡。6 個指標用下拉選單，中文 1024、1280px 與英文 1280px 都是一行。
     - **大小**：6 個指標檔與 manifest 共 123 KB（gzip 後 47 KB）、215 個側欄明細 637 KB（gzip 後 212 KB），共約 760 KB；沒有網格圖磚。
 
+
+74. **國際援助與僑匯**（`pipeline/topics/aid.py`、`pipeline/sources/oecd_dac.py`、`src/topics/aid.ts`、`src/topics/panels/AidPanel.tsx`）：
+    - **來源的選擇**：政府開發援助（ODA）用 OECD DAC 的統計，OECD Data Explorer 的 SDMX API（版本留空 = 最新版）：DAC1（各援助國的總額、占 GNI 與組成）與 DAC2A（援助國 × 受援國的撥付，含多邊機構）。都用不含標籤的 CSV（`format=csvfile`），3 個檔共約 75 MB，約 20 秒。授權見第 12 點（OECD 的資料條款，效果跟 CC BY 4.0 相同）。
+      - CRS（逐筆的計畫）每年有幾十萬筆，DAC2A 已經是依援助國、受援國彙總的撥付，流向圖用 DAC2A 就夠了，沒有用 CRS。
+      - WDI 也轉載 DAC 的受援國數字（`DT.ODA.ODAT.CD` 等），但直接用 DAC2A，受援國的總額、占 GNI、人均跟流向是同一個來源。
+    - **援助國的口徑**：OECD 公布的 ODA 在 2017 年以前是淨撥付（DAC1 的 MEASURE 1010、FLOW_TYPE 1140），2018 年起是「贈與等值」（11010、1160；貸款只算贈與的成分），兩段照 OECD 的做法接起來，指標檔的 `methodBreak` 是 2018，側欄的折線圖畫垂直虛線。占 GNI 一樣（MEASURE 2 → 11002）。
+      - 2025 年是 2026 年 4 月公布的初步數字（DAC1 有、DAC2A 還沒有）：美國 2025 年 290 億美元，比 2024 年的 655 億少一半以上，德國 291 億變成第一。**沒有用 `projectionFrom`**：前端會把那一年寫成「推估值」，初步數字不是推估，所以寫在指標說明與頁尾。
+      - 世界合計（`WLD`，算「占全球」）是 DAC 國家加上向 OECD 申報的其他國家（`DAC` + `WXDAC`），不含歐盟機構（它的錢來自會員國，會員國的 ODA 已經算過）；沒有向 OECD 申報的國家（中國大陸、印度、巴西、俄羅斯…）不在裡面。占 GNI 的對照是 `aggregates.DAC`（DAC 國家合計的比例），側欄畫成「DAC 合計」，不叫「世界」。
+      - 門檻 [0.1, 0.2, 0.3, 0.5, 0.7, 1]：聯合國 1970 年決議的 0.7% 是一個門檻，最深的兩級就是達標的國家（2024 年挪威 1.02%、盧森堡 1.00%、瑞典 0.79%、丹麥 0.72%）。
+    - **受援國**：DAC2A 的 ALLD（Official donors：雙邊加多邊，不含民間基金會）給的淨撥付（206）、占受援國 GNI（286）、人均（296）。淨撥付扣掉償還的本金，會是負的（中國大陸 2011–2024 年、越南 2024 年…），比例圓不畫、排名表排在最後，附註寫出負的年份。
+      - 太平洋島國人口少，每人收到的援助特別多：馬紹爾群島 2024 年每人 18,690 美元、占 GNI 214%：7.1 億美元裡 6.5 億來自美國（2023 年美國只有 0.8 億），是 OECD 的數字。
+    - **流向**（`flows/<年>.json`，1960–2024 年各一個檔，跟貿易、移民同一種格式）：
+      - export：援助國（國家）→ 受援國（國家）的淨撥付，前 15 名，只收正的；總額是援助國給 DPGC（Developing countries，含沒有分到特定國家的「unspecified」）的雙邊 ODA。`unspecified` 是總額減掉給所有國家的合計：區域或全球的計畫、在捐助國境內的難民支出、行政費用等，美國 2024 年 40%、德國 58%。
+      - import：受援國從各國收到的援助，前 15 名；總額是 ALLD（含多邊），所以國家加起來不到 100%。`multilateral` 另外放多邊機構的前 10 名與多邊合計（ALLM）。
+      - 數值存成千美元的整數（`scale: 1000`）。
+    - **多邊機構怎麼呈現**：機構沒有國家的形狀，畫到總部所在國（華盛頓、布魯塞爾）會被看成那個國家給的，所以**弧線只畫國家之間的雙邊援助**，多邊機構只在側欄：
+      - 受援國的「主要援助來源」把國家（藍色）與多邊機構（紫色）合在一起排，例如衣索比亞 2024 年收到 78.1 億美元，國際開發協會（世界銀行）30.0 億、美國 14.0 億、國際貨幣基金 13.6 億；烏克蘭 356 億裡 190 億來自歐盟機構。
+      - 援助國的「雙邊與多邊」列出給國際組織的核心捐款（DAC1 的 2101–2108：聯合國機構、歐盟機構、國際開發協會、世界銀行其他機構、區域開發銀行、其他）與在捐助國境內的難民支出（1820，雙邊的一部分）。最新一年的初步數字還沒有細分，差額列成「多邊（沒有細分）」。
+      - 機構的代碼與中文名稱在 `aid.py` 的 `AGENCIES`（同一個機構只取一層：歐盟機構、國際貨幣基金、非洲、亞洲、美洲開發銀行用整個集團，世界銀行、聯合國、其他區域開發銀行與其他多邊組織用個別機構），輸出成 `agencies.json`。DAC2A 新增沒有中文名稱的機構時，pipeline 會印出代碼。
+      - 1970 年代有少數年份各機構加起來比多邊合計（ALLM）多（例如 1977 年肯亞 45.5 對 39.5 百萬美元：「Other Multilaterals」9OTH999 沒有算進 9OTH0），是 OECD 原始資料的不一致；1990 年起都對得上。側欄的合計用 ALLM。
+      - 歐盟機構也是援助者（DAC1 有它的總額），但不是國家，不在地圖與排名表。
+    - **台灣**：
+      - 援助國：台灣不是 DAC 會員，但向 OECD 申報援助，DAC1、DAC2A 都有（「Chinese Taipei」，定義跟 DAC 會員相同；OECD 的 Development Co-operation Profiles 也有台灣的一章）。ODA 1988–1998、2004–2025 年，占 GNI 2005–2025 年。2024 年 4.03 億美元、占 GNI 0.05%（48 國第 45）；2025 年初步數字 4.46 億、0.05%。
+      - 台灣申報的雙邊援助大多沒有分到國家：2024 年給開發中國家的雙邊援助 3.92 億美元，92%（3.63 億）沒有分到特定國家；分到的以帛琉 483 萬、貝里斯 407 萬、瓜地馬拉 378 萬、巴拉圭 329 萬美元最多。2004–2022 年幾乎都沒有國別，流向圖只有 1988–1998、2023–2024 年畫得出比較多條弧線。DAC1 只有台灣的總額，沒有多邊的細項，所以側欄不列「雙邊與多邊」。
+      - 外交部、國合會的網站沒有找到開放授權、逐年的 ODA 統計表；OECD 的就是台灣自己申報、跟其他國家同一個定義的數字，所以直接用 OECD，沒有另外轉載外交部的數字。
+      - 受援國：1960–1996 年在 OECD 的資料裡，1960 年收到 1.03 億美元，1960–1965 年幾乎全部是美國的援助（美援 1965 年結束）；1997 年起沒有資料，數值卡片寫「1997 年起沒有資料」（指標的 `noValue`）。
+      - 僑匯：WDI 沒有台灣，用中央銀行國際收支（BPP2Y01）的「二次所得－其他部門－個人移轉」加「初次所得－薪資」（WDI 的 personal remittances 就是這兩項），收入 1984 年起、支出 1991 年起（之前個人移轉的支出是「-」）。2025 年收入 56.6 億美元（個人移轉 43.2 億、薪資 13.4 億）、支出 133.2 億（個人移轉 126.2 億、薪資 7.0 億），大多是在台移工匯回母國的錢；占 GDP 0.61%（GDP 用主計總處的名目 GDP ÷ 央行年平均匯率，`reserves.py` 的 `taiwan_gdp_usd()`）。2024 年收入 57.0 億（164 國第 36）、占 GDP 0.71%（163 國第 116）、支出 111.7 億（167 國第 18）。WDI 的世界合計沒有加上台灣。
+    - **僑匯**：WDI 的個人匯款（世界銀行依 IMF 國際收支統計的估計，1976 年起有三成以上國家），只計正式管道。有些高所得國家的「收入」多半是跨境通勤者的薪資（法國 2024 年 407 億美元、世界第 3；德國、比利時也是），說明裡寫明。世界的收入（8,704 億）跟支出（6,248 億）對不起來，是各國申報的落差。
+    - **雙邊的僑匯流向沒有做**：沒有開放授權的資料（第 12 點）；考慮過照 KNOMAD 的方法（Ratha & Shaw 2007：依移民存量與兩邊的所得分配各國的收入總額）自己推估，但那是模型、不是資料，沒有做。說明裡指到移民主題的「僑民去向」（僑匯大致跟著移民走）。
+    - **跟其他主題**：移民與難民的頁尾指到這裡的僑匯，這裡指到它的僑民去向（第 26 點）。
+    - **涵蓋**：援助國 50 個（DAC 會員國與向 OECD 申報的其他國家；2024 年 49 個有金額、48 個有占 GNI），其他國家寫「沒有向 OECD 申報援助」（指標的 `coverage`）。受援國 179 個（1960 年以來在 DAC2A 裡有收到 ODA 的），2024 年 141 個（占 GNI 122 個），其他寫「不在 OECD 的受援國名單上」。僑匯 2024 年收入 164 國、占 GDP 163 國、支出 167 國（都含台灣）。
+    - **大小**：8 個指標檔、agencies 與 manifest 共 376 KB（gzip 後 139 KB），65 個流向檔 2.9 MB（gzip 後 839 KB；一年約 45 KB、gzip 後 13 KB，選了國家才載入那一年），50 個援助國明細 172 KB（gzip 後 52 KB），共約 3.5 MB（gzip 後 1.0 MB）；沒有網格圖磚。
 
 ## 9. 之後可以做的
 

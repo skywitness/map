@@ -92,10 +92,11 @@ export function CountryPanel(props: CountryPanelProps) {
   // 用 id 找：有子項目分級門檻的指標（forItem）是另一個物件
   const activeData = allData[topic.indicators.findIndex((i) => i.id === indicator.id)];
   // 不上色的指標（城市地圖、發電廠地圖）跟某張數值卡片用同一個資料檔時，折線圖用那張卡片的名稱與格式
-  // （「住在城市的比例的變化」，不是「城市地圖的變化」）
-  const chartIndicator = shown(indicator)
-    ? indicator
-    : (topic.indicators.find((o) => shown(o) && o.file === indicator.file) ?? indicator);
+  // （「住在城市的比例的變化」，不是「城市地圖的變化」）；流向圖也一樣（「移民人數的變化」，不是「流向：移民來源的變化」）
+  const chartIndicator =
+    shown(indicator) && indicator.layer.kind !== 'flow'
+      ? indicator
+      : (topic.indicators.find((o) => shown(o) && o.layer.kind !== 'flow' && o.file === indicator.file) ?? indicator);
   const chartLabel = label(chartIndicator);
   const option = useMemo(() => {
     if (!activeData) return null;

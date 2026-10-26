@@ -88,11 +88,11 @@ export const migration: TopicDefinition = {
     zh:
       '移民指住在出生國以外的人（沒有出生地統計的國家改用國籍，例如台灣、日本、韓國），1990–2020 年每 5 年一筆，加上 2024 年，都是年中的存量，不是當年移入的人數。' +
       '難民是 UNHCR 統計的難民加上「其他需要國際保護的人」（2018 年起，主要是在拉丁美洲的委內瑞拉人），年底的存量；不含 UNRWA 照顧的巴勒斯坦難民（約 600 萬人），也不含尋求庇護者與境內流離失所者。' +
-      '流向圖每個國家只列前 15 名。台灣不在 UNHCR 的統計裡。',
+      '流向圖每個國家只列前 15 名。台灣不在 UNHCR 的統計裡。移民與移工匯回母國的錢（僑匯）見「國際援助與僑匯」主題。',
     en:
       'Migrants are people living outside their country of birth (or, where birthplace data are missing, foreign citizens, as in Taiwan, Japan and South Korea), every five years from 1990 to 2020 plus 2024; these are mid-year stocks, not annual arrivals. ' +
       "Refugees are UNHCR's refugees plus other people in need of international protection (from 2018, mostly Venezuelans in Latin America), at year end; Palestine refugees under UNRWA (about 6 million), asylum seekers and internally displaced people are not included. " +
-      'Flow maps list each country’s top 15 partners. Taiwan is not in UNHCR’s statistics.',
+      'Flow maps list each country’s top 15 partners. Taiwan is not in UNHCR’s statistics. For the money migrants send home (remittances), see the Aid topic.',
   },
   panelExtra: () => import('./panels/MigrationPanel'),
   indicators: [

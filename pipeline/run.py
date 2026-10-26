@@ -46,6 +46,9 @@ STEPS = {
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
+    # OECD DAC 的 DAC1 與 DAC2A（約 75 MB 的 CSV，一兩分鐘）、世界銀行的僑匯、中央銀行的國際收支；
+    # 台灣的 GDP 用 reserves 主題的主計總處與央行匯率
+    "aid": "topics.aid",
     "religion": "topics.religion",
     "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
     "gender": "topics.gender",
