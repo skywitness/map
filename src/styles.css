@@ -1497,6 +1497,154 @@ kbd {
   font-variant-numeric: tabular-nums;
 }
 
+/* 政府治理的側欄：六個面向的分數（點）、90% 信賴區間（色帶）與世界中位數（短線），0–100 的軸 */
+.gov-dims {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.gov-dim {
+  padding: 6px 0 5px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.gov-dim-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gov-dim-head strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.gov-muted,
+.gov-median-text {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.gov-median-text {
+  font-size: 11px;
+  text-align: right;
+}
+
+.gov-track {
+  position: relative;
+  height: 14px;
+  margin: 4px 5px 0;
+}
+
+.gov-track-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 2px;
+  background: var(--grid);
+}
+
+.gov-ci {
+  position: absolute;
+  top: 3px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.gov-median {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 14px;
+  transform: translateX(-50%);
+}
+
+.gov-dot {
+  position: absolute;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface);
+  box-sizing: border-box;
+  transform: translateX(-50%);
+}
+
+/* 點圖底下的 0、50、100 刻度，左右留白跟 .gov-track 一樣 */
+.gov-scale {
+  position: relative;
+  height: 14px;
+  margin: 2px 5px 0;
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+.gov-scale span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.gov-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 8px 0 10px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.gov-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gov-key-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.gov-key-line {
+  width: 14px;
+  height: 2px;
+}
+
+.gov-key-band {
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.gov-key-tick {
+  width: 2px;
+  height: 12px;
+}
+
+.gov-key-dash {
+  width: 14px;
+  border-top: 2px dashed;
+}
+
+.gov-table {
+  margin-top: 4px;
+}
+
+.gov-multiples {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2px 12px;
+}
+
+.gov-multiples h5 {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .tt-key-box {
   width: 10px;
   height: 10px;

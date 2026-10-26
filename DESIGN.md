@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -451,6 +451,7 @@ pipeline/
 | 研發與創新 | 研發經費占 GDP、研發經費總額（購買力平價，比例圓）、每百萬人研究人員（全時約當數）、每百萬人專利申請（本國居民）、專利申請件數（比例圓） | — | World Bank WDI（UNESCO 統計研究所、WIPO）、IMF WEO（購買力平價 GDP）；台灣用國科會全國科技動態調查、主計總處 GDP、智慧局專利統計、WPP 人口 | 研發經費與研究人員 1996–2024（台灣 1999 年起）；專利 1980–2024（台灣 2007 年起）；研發各國顯示 5 年內、專利 3 年內最近一年的資料 |
 | 地震與火山 | 歷年地震（累積，預設）、當年的地震（兩個都不上色，畫規模 6 以上的地震點，依時間軸篩選）、每十年的地震次數（比例圓）、地震死亡人數（每十年，比例圓）、全新世火山數（比例圓）；疊加圖層：板塊邊界（聚合、張裂、轉形）、全新世火山（三角形）、規模 5–6 地震（預設關閉）、規模 6 以上地震（大小是規模、顏色是震源深度） | 最大的地震、死亡最多的地震、全新世火山清單（最近噴發的在前） | USGS ComCat、NOAA NCEI 全球重大地震資料庫、Smithsonian GVP Volcanoes of the World、PB2002 板塊邊界（fraxen/tectonicplates） | 地震 1900–2026（規模 5–6 從 1973 年）；每十年的指標 1900–2020 年代（2020 年代只到今年）；火山是 2026 年的快照 |
 | 民主與自由 | 政體分類（類別圖，封閉專制 → 自由民主的發散色）、選舉民主指數、自由民主指數、言論自由指數（V-Dem 的 0–1 指數，發散色，中間跨過 0.5） | 三項指數歷年對照、68% 可信區間 | V-Dem Country-Year 資料集 v16（CC BY-SA 4.0） | 1900–2025 |
+| 政府治理 | 發聲與課責、政治穩定、政府效能（預設）、法規品質、法治、貪腐控制（WGI 2025 年改版後的 0–100 治理分數；六個面向同一組門檻，也跟治安與司法的法治分數一樣） | 六個面向（選定那一年的分數、90% 信賴區間與世界中位數的點圖，估計值 ± 標準誤與資料來源數的表）、歷年變化（六張小圖：分數、信賴區間色帶、世界中位數） | World Bank Worldwide Governance Indicators 2026 年版（World Bank API 的 source 3，CC BY 4.0）；台灣本身就在 WGI 裡 | 1996、1998、2000 年，2002–2025 年每年 |
 | 諾貝爾獎 | 累計得主人數（比例圓）、每千萬人得主數、當年得主人數（比例圓）；全部獎項與 6 個獎項（子項目） | 在這個國家出生的得主名單（中文名、英文原名、年份、獎項、出生地、得獎理由原文）、各獎項人數、在這裡成立的得獎組織 | Nobel Prize API 2.1（Nobel Prize Outreach）、Wikidata（中文名稱）、UN WPP 2024（人均的分母） | 1901–2026（經濟學獎 1969 起）；每千萬人 1950 起 |
 | 台灣的外交 | 邦交國（1950–2026 每年年底，類別圖：邦交國／曾經是邦交國／沒有邦交）、駐外館處（類別圖＋館處點，依類型上色）、駐外館處數（比例圓）、國人簽證待遇（發散色類別圖：需事先申請、電子簽證、落地簽證、免簽證需旅行授權、免簽證） | 與中華民國的邦交期間、當地館處（或兼轄館處）、簽證待遇與停留天數（中文介面附領務局說明）、領務局「簽證及入境須知」連結 | 外交部駐外館處通訊錄（data.gov.tw 6119）、領事事務局免簽證名單（data.gov.tw 30749）與國家清單、Natural Earth 城市點；邦交國的日期依外交部公告整理，與維基百科「中華民國外交關係年表」交叉比對 | 邦交國 1950–2026；館處與簽證是 2026 年的快照（簽證名單 2026-10-22 版） |
 | 護照與簽證 | 護照的簽證待遇（類別圖，發散色：不准入境、需事先申請簽證、電子簽證 ↔ 落地簽證、免簽證（需旅行授權）、免簽證；兩岸與港澳是「另用通行證」；子項目是 199 本護照，點地圖、排名表或搜尋選到國家就換成那國的護照，預設台灣）、護照實力（免簽證、落地簽證、旅行授權可以去的目的地數）、開放程度（有幾本護照可以這樣入境這國） | 這本護照各類的目的地數（長條與占比）與目的地清單（附免簽證天數，10 個以後收起來）；選單換成別的護照時，先寫那本護照到這國的待遇；台灣另外跟領事事務局的名單逐國比對（一致與不同的目的地表） | Passport Index（Arton Capital，passportindex.org）的資料集 imorte/passport-index-data（MIT，整理自 passportindex.org；前身 ilyankou/passport-index-dataset 已封存）；台灣的比對用領事事務局免簽證名單（data.gov.tw 30749，台灣的外交主題的資料） | 單一快照（2026-02-17 的資料，標示為 2026 年） |
@@ -587,6 +588,8 @@ pipeline/
     - **UNODC 資料入口（data.unodc.org）不准轉載**：頁尾的 Terms and Conditions 連到聯合國網站的一般條款（https://www.unodc.org/unodc/legal.html）：只限個人、非商業使用，「without any right to resell or redistribute them or to compile or create derivative works」。原本 dataunodc.un.org 的資料條款允許註明出處後轉載，但舊網址（含條款頁）現在都轉到新網站。故意殺人率用世界銀行以 CC BY 4.0 轉載的版本；監禁人口率、在監人數、未判決比例沒有開放授權的轉載版，所以監禁人口率改用各國、各區域自己的開放資料，只收有開放授權資料的國家（下面幾項，見第 43 點）。
     - **World Prison Brief（ICPR）沒有用**：網站只寫「© World Prison Brief」，要求引用，沒有授權轉載資料（https://www.prisonstudies.org/about-us）。
     - 世界銀行 Worldwide Governance Indicators 是 CC BY 4.0（https://datacatalog.worldbank.org/search/dataset/0038026）。
+    - WGI 的整包 Excel（`wgidataset_with_sourcedata-2026.xlsx`）除了彙總的指標，還有各資料來源換算後的值（「EIU mean」等 35 欄）。WGI 的 Usage Advisory（https://www.worldbank.org/en/publication/worldwide-governance-indicators/usage-advisory ，2026-10-26 查）寫 EIU、Gallup World Poll、PRS Group、S&P Global、世界經濟論壇五個來源的換算值只能用在自己的分析、研究或教學，不得轉載。政府治理主題只用彙總的估計值、分數、標準誤、信賴區間與來源數（API 的序列中繼資料標 `License_Type: CC BY-4.0`），沒有用各來源的欄位（第 73 點）。
+    - **國際透明組織（Transparency International）的清廉印象指數（CPI）沒有用**：transparency.org 的頁尾寫「Except where otherwise noted, this work is licensed under CC BY-ND 4.0」（CPI 2025 的頁面，2026-10-26 查），不得改作；地圖上色、換算、合併成資料檔都算改作，所以貪腐用 WGI 的貪腐控制（第 73 點）。
     - 內政部警政署、法務部統計處的開放資料採政府資料開放授權條款第 1 版。法務部網站（含法務統計資訊網 rjsd.moj.gov.tw 的年報）的「資料開放宣告」：網站上的資料與素材採政府資料開放授權條款第 1 版（https://www.moj.gov.tw/2807/2817/33911/ ，2026-10-25 查）。
     - **監禁人口率用到的各國來源**（2026-10-25 查）：
       - Eurostat 監獄統計（crim_pris_cap、crim_pris_pop）：CC BY 4.0（同上面的 Eurostat）。資料是 Eurostat 與 UNODC 共同收集的，但 Eurostat 發布的資料集適用 Eurostat 的條款，不是 UNODC 資料入口的條款。
@@ -1294,7 +1297,7 @@ pipeline/
       - **門檻**：[50, 75, 100, 150, 250, 400]：日本、冰島 30 多；北歐、德國、荷蘭、瑞士 55–75；西歐、加拿大 95–125；東歐、澳洲 150–190；台灣 274；土耳其 439、美國 540 在最高一級。指標檔加 `latestWithin: 3`（各國大多每年都有，偶爾缺一兩年；美國、加拿大最新到 2023 年）。排名由高到低（不是 `lowerIsBetter`），沒有世界合計（只收部分國家）。
       - **英文的指標名稱取短的**：加了第五個指標後，原本的 Homicide rate、Female homicide rate、Male homicide rate 加上 Imprisonment rate、Rule of law 在 1280px 寬時英文的控制列換成兩行（指標 772px，右邊的底圖、搜尋、地圖／排名表、分享 616px，控制列 1,248px），改成 Homicide、Female victims、Male victims、Prison rate、Rule of law（575px）；中文五個都是五個字（518px），不用改。說明文字（description）仍寫完整的「per 100,000 women」等。
     - **台灣的故意殺人**：警政署統計查詢網（ba.npa.gov.tw，跟內政部統計查詢網同一套系統）的「故意殺人」發生數與被害人都含未遂，沒有分既遂（2021 年致死約 122 件，發生數 212 件）。所以地圖用衛福部死因統計的加害（他殺，ICD-10 X85–Y09、Y87.1）死亡人數 ÷ WPP 年中人口，男女分開算（死因統計的 sex 1 是男、2 是女），2008 年起；警政署的數字寫在附註（2025 年發生 158 件、被害人 193 人，同年他殺死亡 139 人）。2024 年 9 月起警政署部分刑案改成「1 被害人 1 發生數」。
-    - **法治分數**：WGI 2025 年改版後的 0–100 治理分數（`GOV_WGI_RL.SC`，估計值的線性轉換，以假想的最差與基準國家定錨，越高越好），World Bank API 的 source 3。台灣（「Taiwan, China」）、法屬圭亞那、馬丁尼克、留尼旺、安圭拉、庫克群島、紐埃、澤西在 API 裡的代碼欄是空的，依名稱對照（`wgi.NAMES`）。1996、1998、2000 年，2002 年起每年。是 30 多個調查與評估的看法綜合，不是犯罪統計；2025 年台灣 78.4、南韓 78.3、日本 84.0、美國 71.7、芬蘭 91.8（最高）。
+    - **法治分數**：WGI 2025 年改版後的 0–100 治理分數（`GOV_WGI_RL.SC`，估計值的線性轉換，以假想的最差與基準國家定錨，越高越好），World Bank API 的 source 3。台灣（「Taiwan, China」）、法屬圭亞那、馬丁尼克、留尼旺、安圭拉、庫克群島、紐埃、澤西在 API 裡的代碼欄是空的，依名稱對照（`wgi.NAMES`）。1996、1998、2000 年，2002 年起每年。是 30 多個調查與評估的看法綜合，不是犯罪統計；2025 年台灣 78.4、南韓 78.3、日本 84.0、美國 71.7、芬蘭 91.8（最高）。政府治理主題用同一份資料（WGI 的六個面向，第 73 點），兩邊的說明互相指到對方。
 44. **幸福感**（`pipeline/topics/happiness.py`、`src/topics/panels/HappinessPanel.tsx`）：
     - 只用 WHR 公開的「Data for Figure 2.1」（`WHR26_Data_Figure_2.1.xlsx`，一個檔有 2011–2025 年，每年一列：名次、近三年平均、95% 信賴區間、六個解釋因素與「反烏托邦＋殘差」）。蓋洛普的原始資料要訂閱，沒有用。
     - **年份**：檔案的「Year」是三年的最後一年（2025 = 2023–2025 年的調查，《世界幸福報告 2026》公布），照用；側欄寫「《世界幸福報告 2026》排名」（年份 + 1）。2013 年沒有（沒有 2014 年版的報告）。因素拆解從 2019 年（報告 2020 年版）起才有。
@@ -1977,6 +1980,24 @@ pipeline/
     - **指標名稱**：五個指標是按鈕列（`MAX_SEGMENTS` 是 5），名稱取短的（營所稅、所得稅最高稅率、最高稅率起徵點、營業稅（VAT）、勞動稅負；英文 Corporate tax、Top income tax、Top rate threshold、VAT、Tax wedge），中文、英文 1280px 寬時控制列都是一行；全名寫在指標說明裡。
     - **側欄**（`TaxesPanel.tsx`）：選定那一年各項稅率跟 OECD 平均（起徵點是中位數）的表、營所稅、最高所得稅率、VAT、勞動稅負各一張歷年折線（虛線是 OECD 平均；VAT 只有部分年份，畫出每個點）；台灣另外列那一年度的綜合所得稅級距、起徵點的換算（淨額 + 免稅額 + 扣除額 = 薪資收入 ÷ 平均年薪）與稅率的變化（`taiwan.json`）。
     - **大小**：5 個指標檔加 `taiwan.json`、`manifest.json` 共約 50 KB，沒有網格圖磚。
+73. **政府治理**（`pipeline/topics/governance.py`、`pipeline/sources/wgi.py`、`src/topics/governance.ts`、`src/topics/panels/GovernancePanel.tsx`）：
+    - **資料**：WGI 2026 年版（2026-09-25 更新，1996–2025 年），World Bank API 的 source 3，跟治安與司法的法治分數用同一個 `wgi.fetch()`。每個面向 6 個序列：0–100 的分數 `.SC`、90% 信賴區間 `.SC_LB`、`.SC_UB`、估計值 `.EST`、估計值的標準誤 `.SE`、資料來源數 `.SR`（36 次查詢、共約 52 MB）。WGI 網站的整包 Excel（`wgidataset_with_sourcedata-2026.xlsx`）跟 API 逐筆比對，六個面向的這幾欄全部一樣（差異只有 1e-14 的浮點誤差）；Excel 多了已經不存在的荷屬安地列斯，`wgi.py` 本來就不收。
+    - **地圖用分數，不是百分位排名**：原本要地圖預設用百分位排名（0–100）。WGI 2025 年改版（Methodology Revision）後只發布兩種結果：估計值（標準常態的單位，約 −2.5 到 2.5）與 0–100 的治理分數（以假想的「每個來源都最好」「每個來源都最差」的國家定錨的線性轉換：100 ×（估計值 − 最差）÷（最好 − 最差），各面向、各年份分別定錨），**不再有百分位排名**；World Bank API 裡的 `RL.PER.RNK` 等序列移到「WDI Database Archives」（source 57），是改版前的方法。自己依估計值排出來的百分位不是官方的數字，所以照保守的做法，地圖用官方的分數（跟治安與司法的法治分數一樣），名次寫在側欄的數值卡片（「第 19 / 213 名」），沒有自己算百分位。**要改成百分位請使用者決定**：在 pipeline 依當年各經濟體的估計值排序就能算（舊版的定義是 0 最低、100 最高），說明要寫明是自己算的。
+    - **分數是絕對的**：跟百分位不同，各年的分布不固定（政府效能的世界中位數 1996 年 45.9、2025 年 54.5），時間軸看得出整體的變化，固定門檻也有意義。
+    - **門檻**：六個面向共用 [35, 45, 55, 65, 75, 85]（橘色循序色），跟治安與司法的法治分數一樣。2025 年各面向的中位數：發聲與課責 57.7、政治穩定 68.6、政府效能 54.5、法規品質 54.2、法治 57.9、貪腐控制 44.9；最低 5.8（南蘇丹的貪腐控制）、最高 95.2（新加坡的政府效能）。各面向分開設門檻可以把七級用滿，但同一個顏色在不同面向的意思就不同，所以共用。
+    - **法治**：數值跟 `topics/crime/rule-of-law.json` 完全一樣（同一個序列、同樣取一位小數），兩個主題各一份檔（指標檔只能讀自己主題的資料夾，一份約 20 KB），這裡的多了世界中位數。治安與司法主題照舊保留它，兩邊的說明互相指到對方。
+    - **跟民主與自由的關係**：V-Dem 是 WGI 的 35 個來源之一（Excel 的「VDM mean」），主要進發聲與課責；WGI 另外綜合了 Freedom House、Gallup World Poll、EIU、各區域的民調等，兩者相關但不能換算，頁尾的說明寫明。民主與自由主題的說明也加了一句指到這裡。
+    - **世界中位數**：當年有資料的經濟體的中位數（每個經濟體一樣重，不依人口加權），放在指標檔的 `aggregates.MEDIAN`。沒有用 `WLD`：前端把 `WLD` 叫「世界」（側欄折線圖的對照線、CSV 的最後一列），通常是合計或平均；中位數只在主題側欄用，寫明「世界中位數」。
+    - **側欄的明細**：每個經濟體一個 `countries/<ISO3>.json`（215 個檔，共 637 KB，一個約 3 KB、gzip 後約 1 KB），鍵是「面向.欄位」（`voice.lb`、`voice.est`…），用指標檔同一種差分編碼（`compact_indicator()`），`fetchJson()` 會還原。信賴區間不能用分數 ± 1.645 × 標準誤算：分數接近 0 時 WGI 把區間截在 0、另一端也不對稱（例如阿富汗 1996 年的政府效能 3.4，區間 0–18.9），所以直接存 WGI 的上下限。
+    - **側欄**（`GovernancePanel.tsx`）：
+      - 「六個面向」：選定那一年（沒有資料就往前找最近一年）每個面向一列，0–100 的軸上畫分數（點）、90% 信賴區間（色帶）與世界中位數（短線），下面一張表是估計值 ± 標準誤與資料來源數。點圖用 HTML（百分比的 `position: absolute`），字跟軸都是一般的文字，不用 ECharts。
+      - 「歷年變化」：六張小圖（兩欄，375px 的手機上也是兩欄），國家的分數、信賴區間色帶、世界中位數（虛線），y 軸固定 0–100，各國、各面向可以直接比。x 軸是數值軸（年份），1996、1998、2000 年的兩年間隔畫得比一年寬；WGI 有的年份裡這個國家沒有值的放 null，線在那裡斷開（法屬玻里尼西亞、新喀里多尼亞只有 5–7 年）；信賴區間用兩條堆疊的線（下限不填色、上限減下限填色），數值軸上 ECharts 依資料的順序堆疊，兩條的年份一樣就對得上。
+      - 色帶的不透明度：淺色 0.22、深色 0.42（深色背景上 0.22 幾乎看不見）。
+      - 考慮過雷達圖：六個面向沒有先後，雷達圖的面積會因為哪兩個面向相鄰而不同，信賴區間也不好畫，所以用同一把尺的點圖加小圖。
+    - **台灣**（WGI 本身就有，「Taiwan, China」依名稱對照，第 43 點）：2025 年發聲與課責 76.9（71.9–81.9）、政治穩定 83.1（76.4–89.8）、政府效能 83.3（75.8–90.7）、法規品質 76.1（70.1–82.0）、法治 78.4（73.5–83.3）、貪腐控制 71.9（65.9–77.9）；估計值 +1.05、+1.00、+1.51、+1.20、+1.20、+1.18，資料來源 8–13 個；名次 37/208、46/215、19/213、23/213、31/215、29/215。跟 WGI 網站的 Excel 一致。1996 年起六個面向都在世界中位數之上；政府效能從 1996 年的 72.0 升到 2020 年的 85.1。
+    - **涵蓋**：215 個經濟體（1996 年依面向 184–201 個）；2025 年政治穩定、法治、貪腐控制 215 個，政府效能、法規品質 213 個，發聲與課責 208 個（安圭拉、美屬薩摩亞、百慕達、關島、馬丁尼克、留尼旺、美屬維京群島沒有）。沒有資料的是灰色。
+    - **用語**：WGI 的 Usage Advisory 說明它是看法的綜合、不是世界銀行對各國政府的官方評等，指標說明的結尾寫「是看法的綜合，不是官方評等」。中文名稱取短的（發聲與課責、政治穩定、政府效能、法規品質、法治、貪腐控制），「政治穩定」的全名（政治穩定與沒有暴力、恐怖主義）寫在說明裡。6 個指標用下拉選單，中文 1024、1280px 與英文 1280px 都是一行。
+    - **大小**：6 個指標檔與 manifest 共 123 KB（gzip 後 47 KB）、215 個側欄明細 637 KB（gzip 後 212 KB），共約 760 KB；沒有網格圖磚。
 
 
 ## 9. 之後可以做的
@@ -2084,6 +2105,7 @@ pipeline/
   - 社會加入婚姻與家庭（2026-10-26，社會 18 個主題，選單分欄）：短名稱「婚姻與家庭」、Marriage，選到它時英文 1280px 寬 788px（可用 871px），中文 1024px 604px（可用 650px，五個字）。控制列是指標下拉選單（9 個指標），中文 1024、1280px 與英文 1280px 都是一行。
   - 社會加入疫苗與防疫（2026-10-26，社會 19 個主題，選單分欄）：短名稱「疫苗與防疫」、Vaccines，選到它時英文 1280px 寬 784px（可用 871px），中文 1024px 604px（可用 650px，五個字）。控制列是指標下拉選單（8 個指標），中文 1024、1280px 與英文 1280px 都是一行；英文的指標名稱取短的（COVID-19 confirmed deaths、COVID-19 primary series、Excess deaths (estimate)）。確診死亡與超額死亡的指標說明在 1280px 是兩行。
   - 社會加入平均身高（2026-10-26，社會 20 個主題，選單分欄）：短名稱「平均身高」、Height，選到它時英文 1280px 寬 770px（可用 871px），中文 1024px 588px（可用 650px）。控制列是指標下拉選單（7 個指標），中文 1024、1280px 與英文 1280px 都是一行（英文最長的「Change since 1896, women」也是）。時間軸的年份上面多一行小字「出生年」（19 歲的指標是「年份」），時間軸那一列沒有變高。
+  - 國際加入政府治理（2026-10-26，國際 11 個主題，選單分兩欄）：短名稱「政府治理」、Governance（10 個字元），選到它時英文 1280px 寬 834px（可用 871px），中文 1024px 612px（可用 650px）。控制列是指標下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行；英文最長的「Government effectiveness」「Voice and accountability」也是。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。

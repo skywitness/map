@@ -15,6 +15,7 @@ import { earthquakes } from './earthquakes';
 import { education } from './education';
 import { employment } from './employment';
 import { gender } from './gender';
+import { governance } from './governance';
 import { electricity } from './electricity';
 import { elevation } from './elevation';
 import { ev } from './ev';
@@ -82,7 +83,7 @@ export interface TopicGroup {
 export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, marriage, cities, health, disease, vaccination, height, tobaccoAlcohol, education, pisa, diet, housing, religion, inequality, gender, crime, happiness, nobel, olympics] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, taxes, reserves, stockMarket, housePrices, sectors, industry, agriculture, minerals] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, organizations, unVotes, diplomacy] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, tourism, passport, military, conflict, democracy, governance, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, space, transport, roadSafety] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, earthquakes, typhoons, wildfires, nightLights, worldHeritage, travel] },

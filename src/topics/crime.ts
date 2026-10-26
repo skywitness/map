@@ -167,8 +167,8 @@ export const crime: TopicDefinition = {
       id: 'rule-of-law',
       label: { zh: '法治分數', en: 'Rule of law' },
       description: {
-        zh: '世界銀行全球治理指標（WGI）的「法治」：綜合 30 多個調查與評估，大家對警察、法院、契約與財產權的信任，以及犯罪與暴力的風險。0–100 分，越高越好；是看法的綜合，不是犯罪統計。',
-        en: "The World Bank Worldwide Governance Indicators' rule of law: a composite of more than 30 surveys and expert assessments of confidence in the police, the courts, contract enforcement and property rights, and the likelihood of crime and violence. Scored 0–100, higher is better; it measures perceptions, not crime statistics.",
+        zh: '世界銀行全球治理指標（WGI）的「法治」：綜合 30 多個調查與評估，大家對警察、法院、契約與財產權的信任，以及犯罪與暴力的風險。0–100 分，越高越好；是看法的綜合，不是犯罪統計。WGI 的六個面向都在「政府治理」主題。',
+        en: "The World Bank Worldwide Governance Indicators' rule of law: a composite of more than 30 surveys and expert assessments of confidence in the police, the courts, contract enforcement and property rights, and the likelihood of crime and violence. Scored 0–100, higher is better; it measures perceptions, not crime statistics. All six WGI dimensions are in the Governance topic.",
       },
       unit: { zh: '分', en: 'score' },
       file: 'rule-of-law.json',
