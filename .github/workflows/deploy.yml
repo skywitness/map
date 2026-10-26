@@ -191,7 +191,8 @@ jobs:
       # 航運密度的約 5 km 網格圖磚（pipeline/topics/shipping_density_tiles.py，放在 public/tiles/ship-density）：
       # 產生的程式、資料的讀取（sources/ship_density.py）、人口圖磚程式（重用它的 PNG 編碼）、分級門檻
       # （shipping.ts 的 TRAFFIC_THRESHOLDS、TRAFFIC_MIN）或地圖的橘色色階（tokens.ts 的 ORANGE）改了才重新產生。
-      # 要從世界銀行下載 Global Shipping Traffic Density（535 MB 的 zip），用 GDAL 的 /vsizip/ 依序讀 9.8 GB 的原始網格，約 10 分鐘。
+      # 要從世界銀行下載 Global Shipping Traffic Density（535 MB 的 zip），解壓成 9.8 GB 的 GeoTIFF（讀完就刪）再平均。
+      # 第一次部署用 GDAL 的 /vsizip/ 直接讀，這一步花了 36 分鐘，改成先解壓（本機從 7 分鐘變 1.5 分鐘）。
       # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連這個一起存
       - name: 航運密度網格圖磚的快取鍵
         id: ships-key

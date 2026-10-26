@@ -2663,7 +2663,8 @@ pipeline/
 
 - 「航運與港口」主題的「航運密度」（`grid: { dir: 'ship-density', only: true, defaultOn: true, … }`）：**只有網格**，沒有國家平均可以切換（`GridSpec.only`，2026-10-26 新增，見第 4 節的表）；指標是 `kind: 'none'`，tooltip 與排名表用貨櫃吞吐量。圖例的單位用 `GridSpec.unit`（「平均 AIS 船位」），不是指標的 TEU。
 - **資料**（`pipeline/sources/ship_density.py`）：世界銀行資料目錄 0037580 的「所有船種」（`shipdensity_global.zip`，535 MB，CC BY 4.0），IMF 分析 2015 年 1 月–2021 年 2 月每小時的 AIS 船位，0.005°（約 500 m）的 int32 GeoTIFF，72,006 × 33,998 格（北緯 85° 到南緯 85°），解壓後 9.8 GB。
-  - 不解壓：GDAL 的 `/vsizip/` 依序讀（每次 512 列，GeoTIFF 是 128 × 128 的區塊），每 4 × 4 格平均成 0.02°（含 0 的格子，nodata 不算），存成 `.cache/ship-density/global_mean_4.npz`（612 MB），這台 Windows 約 7 分鐘。
+  - 先用 Python 的 zipfile 把 GeoTIFF 依序解壓到快取資料夾（9.8 GB，讀完就刪，留 zip），再每次讀 512 列（GeoTIFF 是 128 × 128 的區塊），每 4 × 4 格平均成 0.02°（含 0 的格子，nodata 不算），存成 `.cache/ship-density/global_mean_4.npz`（612 MB）。這台 Windows 解壓 44 秒、全部 97 秒。
+  - 一開始不解壓，用 GDAL 的 `/vsizip/` 直接讀：這台 Windows 要 7 分鐘，第一次部署（2026-10-26）GitHub Actions 上讀了 34 分鐘（整個步驟 36 分鐘，逾時是 40 分鐘），GDAL 在壓縮串流裡定位很慢。改成先解壓之後結果完全一樣（逐格比對），本機快 4 倍。
   - zip 裡附的縮小版（`.tif.ovr`）是**取樣**（大洋中間單獨一格就是千萬），不是平均，不能用。
   - 數值的分布很怪：有船的 500 m 格子多半是 1–100，主要航道卻是千萬以上（英吉利海峽約 3,000 萬），中間很少，看起來不像單純的「每小時一個船位」。所以只當成相對的強度：對數分級，說明寫「只能看相對的多寡」，圖例寫成 10 的次方。
 - **圖磚**（`pipeline/topics/shipping_density_tiles.py`）：Web Mercator、512 px、z0–z4（z4 一個像素在赤道約 0.044°、約 5 km，所以叫「約 5 km 網格」，再放大由 MapLibre 拉大）。重新取樣照太陽能與風能（cos(緯度) 加權平均、像素比格子小時取最近的格子），差別是門檻用在 log10 之後：平均不到 3×10⁴ 的透明（大洋上零星的船位、陸地），其餘 7 級，門檻 10⁵、3×10⁵、10⁶、3×10⁶、10⁷、3×10⁷（`TRAFFIC_MIN`、`TRAFFIC_THRESHOLDS`，跟 `shipping.ts` 一樣，產生時檢查）。一開始用 10³ 起、10⁷ 封頂，東亞的海、英吉利海峽整片都是最深的兩級，看不出航道；調高後台灣海峽的主航道、英吉利海峽的分道航行都分得出來，河運（萊茵河、長江、伏爾加河）也看得到。顏色是地圖的橘色循序色（`tokens.ts` 的 ORANGE），跟藍色的海對比清楚。

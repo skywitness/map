@@ -6,13 +6,16 @@
   「所有船種」那一層（shipdensity_global.zip，535 MB；裡面的 GeoTIFF 解壓後 9.8 GB，72,006 × 33,998 格，北緯 85° 到南緯 85°）。
 - 數值的分布很怪：有船經過的格子多半是 10 到 100 以下，主要航道上卻是千萬以上（英吉利海峽約 3,000 萬），中間很少，
   所以只當成相對的強度（取對數分級），不寫成「每小時幾艘船」這類絕對的意思。
-- 讀法：不解壓到磁碟，用 GDAL 的 /vsizip/ 依序讀原始解析度（內附的縮小版 .ovr 是取樣、不是平均，不能用），
-  每 4 × 4 格平均成 0.02°（約 2 km，含 0 的格子，所以是「每個 500 m 格子的平均 AIS 位置數」），存成 .npy 快取。
+- 讀法：GeoTIFF 先解壓到磁碟（extract()，讀完就刪），讀原始解析度（內附的縮小版 .ovr 是取樣、不是平均，不能用），
+  每 4 × 4 格平均成 0.02°（約 2 km，含 0 的格子，所以是「每個 500 m 格子的平均 AIS 位置數」），存成 .npz 快取。
 """
 from __future__ import annotations
 
 import os
+import shutil
 import time
+import zipfile
+from pathlib import Path
 
 import numpy as np
 from affine import Affine
@@ -42,7 +45,9 @@ def load() -> tuple[np.ndarray, Affine]:
             return z["values"], Affine(*z["transform"][:6])
     zip_path = download(URL, "ship-density", "shipdensity_global.zip")
     started = time.perf_counter()
-    with rasterio.Env(GDAL_CACHEMAX=1024), rasterio.open(f"/vsizip/{zip_path.as_posix()}/shipdensity_global.tif") as ds:
+    tif = extract(zip_path)
+    extracted = time.perf_counter() - started
+    with rasterio.Env(GDAL_CACHEMAX=1024), rasterio.open(tif) as ds:
         if ds.nodata != NODATA or ds.dtypes[0] != "int32":
             raise ValueError(f"航運密度的 GeoTIFF 格式跟預期不同：{ds.profile}")
         rows, cols = (ds.height // FACTOR) * FACTOR, (ds.width // FACTOR) * FACTOR
@@ -61,7 +66,22 @@ def load() -> tuple[np.ndarray, Affine]:
             if os.environ.get("SHIP_DENSITY_VERBOSE") and r0 % (strip * 16) == 0:
                 print(f"    第 {r0:,} 列（{time.perf_counter() - started:.0f} 秒）")
         t = ds.transform * Affine.scale(FACTOR)
+    tif.unlink()  # 解壓的 9.8 GB 用完就刪，留 zip
     cache.parent.mkdir(parents=True, exist_ok=True)
     np.savez(cache, values=out, transform=np.array(tuple(t)))
-    print(f"  航運密度：讀原始網格並平均成 0.02° 共 {time.perf_counter() - started:.0f} 秒")
+    print(f"  航運密度：解壓 {extracted:.0f} 秒，讀原始網格並平均成 0.02° 共 {time.perf_counter() - started:.0f} 秒")
     return out, t
+
+
+def extract(zip_path: Path) -> Path:
+    """把 GeoTIFF 解壓到快取資料夾（9.8 GB）。
+
+    不用 GDAL 的 /vsizip/ 直接讀：它在壓縮串流裡定位很慢，2026-10-26 第一次部署時 GitHub Actions 上讀了 34 分鐘
+    （這台 Windows 7 分鐘），差點超過 40 分鐘的逾時。先用 zipfile 依序解壓到磁碟，GDAL 再讀一般的檔案。
+    """
+    target = zip_path.with_name("shipdensity_global.tif")
+    tmp = target.with_suffix(".tif.part")
+    with zipfile.ZipFile(zip_path) as z, z.open("shipdensity_global.tif") as src, open(tmp, "wb") as dst:
+        shutil.copyfileobj(src, dst, 1 << 24)
+    tmp.replace(target)
+    return target
