@@ -38,8 +38,8 @@ interface Profile {
   /** 政府首長；same 是由元首兼任（總統制） */
   hog?: Head | { same: number };
   gov?: number;
-  /** [ISO 4217, 中文, 英文] */
-  cur?: [string, string | null, string | null][];
+  /** [ISO 4217（索馬利蘭先令這種沒有代碼的是 null）, 中文, 英文] */
+  cur?: [string | null, string | null, string | null][];
   tel?: string[];
   tld?: string[];
   /** [alpha-2, alpha-3, 數字代碼] */
@@ -73,6 +73,8 @@ interface ProfilesFile {
   /** Wikidata 的查詢日期 */
   date: string;
   popYear: number;
+  /** V-Dem 政體分類（x.regime）的年份 */
+  regimeYear: number;
   countries: Record<string, Profile>;
 }
 
@@ -317,7 +319,11 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
     rows.push([text.government, <>{label}{hint && <span className="profile-sub">{hint}</span>}</>]);
   }
   if (p.cur?.length) {
-    rows.push([text.currency, text.list(p.cur.map(([code, zh, en]) => `${pick([zh, en], lang)?.text ?? code}${text.paren(code)}`))]);
+    const currency = ([code, zh, en]: [string | null, string | null, string | null]) => {
+      const n = pick([zh, en], lang)?.text;
+      return code ? `${n ?? code}${text.paren(code)}` : (n ?? '');
+    };
+    rows.push([text.currency, text.list(p.cur.map(currency))]);
   }
   // 10 萬人以下寫完整的數字（格陵蘭 55,629 人，不寫「6 萬」）
   if (p.pop) rows.push([text.population(data.popYear), p.pop < 1e5 ? fixed(p.pop, 0) : formatLargeNumber(p.pop)]);
@@ -375,7 +381,7 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   }
   if (x.regime !== undefined) {
     const r = REGIMES.find((c) => c.value === x.regime);
-    if (r) more.push([text.regime(tr(r.label, lang), 2025), 'democracy']);
+    if (r) more.push([text.regime(tr(r.label, lang), data.regimeYear), 'democracy']);
   }
   if (x.city) {
     const n = pick([x.city[0], x.city[1]], lang);

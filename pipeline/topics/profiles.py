@@ -662,7 +662,7 @@ def build() -> None:
             land[r.area] = (r.year, r.value * 10)  # 千公頃 → km²
 
     # ── 其他主題的一句話 ──
-    cross = cross_topics(units)
+    cross, regime_year = cross_topics(units)
 
     # ── 每個國家的小檔案 ──
     profiles: dict[str, dict] = {}
@@ -672,6 +672,7 @@ def build() -> None:
     capital_points: list[dict] = []
     currency_users: dict[str, set[str]] = defaultdict(set)
     currencies: dict[str, list[str]] = {}
+    uncoded: dict[str, list[str]] = {}  # 沒有 ISO 4217 代碼的貨幣項目
     for u in units:
         if u in NO_PROFILE:
             continue
@@ -680,14 +681,20 @@ def build() -> None:
             codes = CURRENCY_OVERRIDES[u][0]
         else:
             sts = list(s.get("P38", {}).values())
-            preferred = [x for x in sts if x.rank == "PreferredRank"]
             codes = []
-            for x in preferred + sts:
-                for c in currency_codes.get(x.value, []):
-                    if re.fullmatch(r"[A-Z]{3}", c) and c not in HISTORIC_CODES and c not in codes:
-                        codes.append(c)
-                if preferred and x is preferred[-1]:
+            # 有偏好值就只用偏好值；沒有 ISO 4217 代碼的（法羅群島克朗、比特幣）與舊代碼不算。
+            # 偏好值都沒有代碼時（曼島的偏好值是曼島鎊）再看全部的陳述
+            preferred = [x for x in sts if x.rank == "PreferredRank"]
+            for group in (preferred, sts):
+                for x in group:
+                    for c in currency_codes.get(x.value, []):
+                        if re.fullmatch(r"[A-Z]{3}", c) and c not in HISTORIC_CODES and c not in codes:
+                            codes.append(c)
+                if codes:
                     break
+            if not codes and sts:
+                # 完全沒有 ISO 4217 代碼的貨幣（索馬利蘭先令）：只寫名稱，算自己的貨幣
+                uncoded[u] = [x.value for x in preferred or sts]
         currencies[u] = codes
         for c in codes:
             currency_users[c].add(u)
@@ -788,6 +795,13 @@ def build() -> None:
             names_en = ", ".join(f"{(name(currency_item.get(c)) or [c, c])[1] or c} ({c})" for c in codes)
             currency_hints[u] = names_zh
             currency_hints_en[u] = names_en
+        elif u in uncoded:
+            named = [n for n in (name(q) for q in uncoded[u]) if n]
+            if named:
+                p["cur"] = [[None, *n] for n in named]
+                currency_values[u] = [OWN]
+                currency_hints[u] = "、".join(n[0] or n[1] for n in named)
+                currency_hints_en[u] = ", ".join(n[1] or n[0] for n in named)
         # 區號、網域、ISO 代碼、國歌、成立時間
         tel = CALLING_OVERRIDES.get(u) or sorted({x.value for x in s.get("P474", {}).values()})
         if tel:
@@ -836,7 +850,7 @@ def build() -> None:
             p["x"] = cross[u]
         profiles[u] = p
 
-    check_taiwan(profiles, heads, labels)
+    check_taiwan(profiles, heads, stmts_of("TWN"))
 
     # ── 指標檔 ──
     meta = {"generatedAt": now_iso(), "wikidata": today}
@@ -865,7 +879,7 @@ def build() -> None:
     write_json(OUT / "neighbours.json", indicator_file("neighbours", "個", [YEAR], {u: [len(v)] for u, v in nb.items()},
                                                        hints=nb_hints, hintsEn=nb_hints_en))
     write_json(OUT / "landlocked.json", indicator_file("landlocked", "類別", [YEAR], {u: [v] for u, v in landlocked.items()}))
-    write_json(OUT / "profiles.json", {"date": today, "popYear": YEAR, "countries": profiles})
+    write_json(OUT / "profiles.json", {"date": today, "popYear": YEAR, "regimeYear": regime_year, "countries": profiles})
     capital_points.sort(key=lambda r: (r["lon"], r["lat"]))
     for r in capital_points:
         r["role"] = r["role"] or None
@@ -907,14 +921,14 @@ def _calling(code: str) -> str:
     return code
 
 
-def check_taiwan(profiles: dict, heads: dict, labels: dict) -> None:
+def check_taiwan(profiles: dict, heads: dict, stmts: dict) -> None:
     """台灣的小檔案跟預期的核對；對不上就印出來（不蓋掉 Wikidata 的值）"""
     p = profiles["TWN"]
     h = heads["TWN"]
     problems = []
-    cap_q = [q for q in (TAIWAN_EXPECT["capital"],)]
-    if not p.get("cap") or p["cap"][0]["n"][1] != "Taipei":
-        problems.append(f"首都：{p.get('cap')}（預期臺北 {cap_q[0]}）")
+    capitals = [s.value for s in stmts.get("P36", {}).values()]
+    if capitals != [TAIWAN_EXPECT["capital"]]:
+        problems.append(f"首都：{capitals}（預期臺北 {TAIWAN_EXPECT['capital']}）")
     for key in ("hos", "hog"):
         want_name, want_start = TAIWAN_EXPECT[key]
         got = p.get(key, {}).get("p", [])
@@ -935,8 +949,8 @@ def check_taiwan(profiles: dict, heads: dict, labels: dict) -> None:
 
 # ── 其他主題的一句話 ────────────────────────────
 
-def cross_topics(units: list[str]) -> dict[str, dict]:
-    """讀其他主題已經產生的資料檔，取每個國家最新的值（側欄的「其他主題」）"""
+def cross_topics(units: list[str]) -> tuple[dict[str, dict], int]:
+    """讀其他主題已經產生的資料檔，取每個國家最新的值（側欄的「其他主題」）；另外回傳 V-Dem 政體分類的年份"""
     out: dict[str, dict] = defaultdict(dict)
 
     def each(path, key, transform=lambda v: v, year=None):
@@ -990,7 +1004,7 @@ def cross_topics(units: list[str]) -> dict[str, dict]:
         if u in units:
             out[u]["city"] = [zh, en, round(pop, -3)]
     print(f"  其他主題：V-Dem 政體 {regime_year} 年、國際組織 {orgs['years'][-1]} 年")
-    return out
+    return out, regime_year
 
 
 def _base36(n: int) -> str:
