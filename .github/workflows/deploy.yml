@@ -2,7 +2,8 @@
 # 資料（public/data）已經在版本庫裡，這裡不跑 Python 資料管線；
 # 只有網格圖磚（不進版本庫）在這裡產生，存在 actions/cache：人口密度的 1 km 網格（約 600 MB、6 萬個檔）、
 # 暖化的 0.5° 網格（約 20 MB、2.4 萬個檔）、太陽能與風能的約 2 km 網格（約 9 MB、1,150 個檔）、
-# 夜間燈光的約 500 m 網格（約 106 MB、2.1 萬個檔）與航運密度的約 5 km 網格（約 4.4 MB、234 個檔）
+# 夜間燈光的約 500 m 網格（約 106 MB、2.1 萬個檔）、航運密度的約 5 km 網格（約 4.4 MB、234 個檔）
+# 與網路速度的約 2 km 網格（固網、行動各一組，約 3.1 MB、805 個檔）
 name: 部署到 GitHub Pages
 
 on:
@@ -225,6 +226,50 @@ jobs:
         with:
           path: public/tiles/ship-density
           key: ${{ steps.ships-key.outputs.key }}
+      # 網路速度的約 2 km 網格圖磚（pipeline/topics/internet_speed_tiles.py，放在 public/tiles/internet-speed-fixed、
+      # internet-speed-mobile）：產生的程式、Ookla 的讀取（sources/ookla.py）、加權中位數（topics/internet_speed.py）、
+      # 人口圖磚程式（重用它的 PNG 編碼與橘色色階）、分級門檻（internet-speed.ts 的 FIXED_DOWNLOAD、MOBILE_DOWNLOAD）
+      # 或地圖的橘色色階（tokens.ts 的 ORANGE）改了才重新產生。
+      # 用 pyarrow 從 Ookla 公開的 S3 bucket（不必帳號）只讀最新一季固網與行動的 6 個欄位（約 180 MB），約 1 分鐘。
+      # 排在人口圖磚存進快取之後，人口的快取（整個 public/tiles）才不會連這個一起存
+      - name: 網路速度網格圖磚的快取鍵
+        id: speed-key
+        run: |
+          hash=$(cat pipeline/topics/internet_speed_tiles.py pipeline/topics/internet_speed.py pipeline/sources/ookla.py \
+            pipeline/topics/population_density_tiles.py \
+            <(sed -n '/^const ORANGE = {/,/}/p' src/theme/tokens.ts) \
+            <(grep -E '^export const (FIXED|MOBILE)_DOWNLOAD' src/topics/internet-speed.ts) | sha256sum | cut -c1-16)
+          echo "key=internet-speed-tiles-$hash" >> "$GITHUB_OUTPUT"
+      - name: 還原網路速度網格圖磚
+        id: speed
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            public/tiles/internet-speed-fixed
+            public/tiles/internet-speed-mobile
+          key: ${{ steps.speed-key.outputs.key }}
+          restore-keys: internet-speed-tiles-
+      - uses: actions/setup-python@v7
+        if: steps.speed.outputs.cache-hit != 'true'
+        with:
+          python-version: '3.13'
+      - name: 產生網路速度網格圖磚
+        id: build-speed
+        if: steps.speed.outputs.cache-hit != 'true'
+        # Ookla 的 bucket 連不上時不擋部署：用上一版的圖磚（連上一版都沒有時，切到網格會顯示「約 2 km 網格載入失敗」）
+        continue-on-error: true
+        timeout-minutes: 20
+        run: |
+          pip install "numpy>=2" "rasterio>=1.4" "pyarrow>=18"
+          python pipeline/run.py internet-speed-tiles
+      - name: 存下網路速度網格圖磚
+        if: steps.speed.outputs.cache-hit != 'true' && steps.build-speed.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            public/tiles/internet-speed-fixed
+            public/tiles/internet-speed-mobile
+          key: ${{ steps.speed-key.outputs.key }}
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

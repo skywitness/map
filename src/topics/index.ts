@@ -32,6 +32,7 @@ import { income } from './income';
 import { industry } from './industry';
 import { inequality } from './inequality';
 import { innovation } from './innovation';
+import { internetSpeed } from './internet-speed';
 import { language } from './language';
 import { marriage } from './marriage';
 import { migration } from './migration';
@@ -90,7 +91,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, taxes, reserves, stockMarket, housePrices, sectors, industry, agriculture, minerals, chainStores] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, aid, tourism, passport, military, conflict, democracy, governance, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, plastic, ev] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, innovation, submarineCables, space, transport, shipping, roadSafety] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, internetSpeed, innovation, submarineCables, space, transport, shipping, roadSafety] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [language, elevation, oceans, earthquakes, typhoons, wildfires, nightLights, worldHeritage, travel] },
 ];
 

@@ -184,6 +184,11 @@ export interface GridSpec {
   /** 圖例上取代「無資料」的說明：沒有上色的格子是什麼（預設「每 km² 不到 0.1 人（不上色）」） */
   empty?: Text;
   /**
+   * 國家的值不是平均時，換掉切換鈕上的「國家平均」、tooltip 的「國家平均」與說明裡的 hover 提示
+   * （網路速度：國家的值是中位數）
+   */
+  countryValue?: { label: Text; tooltip: Text; hoverHint: Text };
+  /**
    * 預設就顯示網格（網址沒有 grid 參數時；從主題選單換到這個主題時也是）。網格是主角的指標用，
    * 例如夜間燈光；使用者切回國家平均時網址寫 grid=0
    */
@@ -546,17 +551,24 @@ export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
 const itemScaleCache = new WeakMap<Indicator, Map<string, Indicator>>();
 
 /**
- * 面量圖有 itemScales 時，換成目前子項目的分級門檻。
+ * 面量圖有 itemScales 時，換成目前子項目的分級門檻；網格的 dir 含 `{item}` 時換成目前子項目的資料夾
+ * （網路速度的固網、行動各一組圖磚：`internet-speed-{item}`）。
  * 同一個指標與子項目回傳同一個物件，地圖依 indicator 重算色階的 useMemo 才不會每次重畫。
  */
 export function forItem(indicator: Indicator, item: string | null): Indicator {
   const layer = indicator.layer;
   const scale = layer.kind === 'choropleth' && item ? layer.itemScales?.[item] : undefined;
-  if (!scale || layer.kind !== 'choropleth') return indicator;
+  const grid = indicator.grid?.dir.includes('{item}') ? indicator.grid : undefined;
+  if (!item || (!scale && !grid)) return indicator;
   let byItem = itemScaleCache.get(indicator);
   if (!byItem) itemScaleCache.set(indicator, (byItem = new Map()));
-  let resolved = byItem.get(item!);
-  if (!resolved) byItem.set(item!, (resolved = { ...indicator, layer: { ...layer, scale } }));
+  let resolved = byItem.get(item);
+  if (!resolved) {
+    resolved = { ...indicator };
+    if (scale && layer.kind === 'choropleth') resolved.layer = { ...layer, scale };
+    if (grid) resolved.grid = { ...grid, dir: grid.dir.replace('{item}', item) };
+    byItem.set(item, resolved);
+  }
   return resolved;
 }
 

@@ -1516,6 +1516,20 @@ kbd {
   padding-left: 6px;
 }
 
+/* 網路速度的側欄：數字欄之間留空；每一項下面「全世界」那一列縮排、調淡 */
+.speed-table .num {
+  padding-left: 6px;
+}
+
+.speed-table tr.is-world th,
+.speed-table tr.is-world td {
+  color: var(--ink-muted);
+}
+
+.speed-table tr.is-world th {
+  padding-left: 1em;
+}
+
 .chain-sources,
 .source-list {
   padding-left: 18px;

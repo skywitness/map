@@ -186,16 +186,16 @@ export function gridLabels(spec: Localized<GridSpec>, lang: Lang = getLang()) {
   const name = spec.label ?? g.grid;
   return {
     mode: g.mode,
-    countryAverage: g.countryAverage,
+    countryAverage: spec.countryValue?.label ?? g.countryAverage,
     /** 切換鈕上的名稱 */
     name,
     title: (label: string) => g.title(label, name),
     subtitle: spec.subtitle ?? g.subtitle,
-    hoverHint: g.hoverHint,
+    hoverHint: spec.countryValue?.hoverHint ?? g.hoverHint,
     note: spec.epochNote ?? g.note,
     flatIn3d: g.flatIn3d,
     empty: (meta: GridMeta) => spec.empty ?? g.empty(String(meta.minDensity ?? '')),
-    tooltip: g.tooltip,
+    tooltip: spec.countryValue?.tooltip ?? g.tooltip,
     failed: spec.only ? g.failedOnly(name) : g.failed(name),
   };
 }

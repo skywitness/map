@@ -5,3 +5,4 @@ scipy>=1.14
 openpyxl>=3.1
 tzdata>=2025.2
 py7zr>=0.22
+pyarrow>=18

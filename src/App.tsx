@@ -94,14 +94,18 @@ function initialIndicatorPath(): string | null {
   // 檔名跟語言無關，用哪個語言解析都一樣
   const topic = localize(getTopic(state.topic), 'zh');
   if (topic.pure) return null;
-  const indicator =
+  const item = resolveItem(topic.dimension, state.item, state.country);
+  // 網格的資料夾可能跟著子項目換（forItem），跟 App 裡用同一個解析
+  const indicator = forItem(
     topic.indicators.find((i) => i.id === state.indicator) ??
-    topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+      topic.indicators.find((i) => i.id === topic.defaultIndicator)!,
+    item,
+  );
   // 網址指定網格時，圖磚的 meta.json 也一起提早請求
   if (indicator.grid && (indicator.grid.only || (state.grid ?? indicator.grid.defaultOn)) && state.view === 'map') {
     fetchGridMeta(indicator.grid.dir).catch(() => {});
   }
-  return indicatorPath(topic, indicator, resolveItem(topic.dimension, state.item, state.country));
+  return indicatorPath(topic, indicator, item);
 }
 
 const NO_FEATURES: CountryFeature[] = [];

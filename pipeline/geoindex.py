@@ -42,10 +42,40 @@ def _countries() -> list[tuple[str, tuple[float, float, float, float], list[list
     out = []
     for geom in topo["objects"]["countries"]["geometries"]:
         polygons = [geom["arcs"]] if geom["type"] == "Polygon" else geom["arcs"]
-        rings = [[ring(r) for r in polygon] for polygon in polygons]
+        rings = []
+        for polygon in polygons:
+            rings.extend(_wrapped([ring(r) for r in polygon]))
         xs = [p[0] for poly in rings for r in poly for p in r]
         ys = [p[1] for poly in rings for r in poly for p in r]
         out.append((geom["id"], (min(xs), min(ys), max(xs), max(ys)), rings))
+    return out
+
+
+def _unwrap(ring: Ring) -> Ring:
+    """跨過 ±180° 的環改成連續的經度；繞極的環（南極洲）展開後頭尾接不起來，維持原樣（同 population_grid.unwrap）"""
+    out = [ring[0]]
+    for x, y in ring[1:]:
+        x += 360 * round((out[-1][0] - x) / 360)
+        out.append((x, y))
+    return out if abs(out[-1][0] - out[0][0]) < 1e-9 else ring
+
+
+def _wrapped(polygon: list[Ring]) -> list[list[Ring]]:
+    """跨過 ±180° 的多邊形：展開成連續經度，超出 ±180° 的部分再補一份平移 360° 的。
+
+    不展開的話，從 179.9° 跳到 −180° 的邊會橫跨整個地圖，射線法在那幾個緯度把整條帶子都判成在環裡：
+    俄羅斯本土的環在北緯約 65°–69°（楚科奇）有這樣的邊，原本挪威的博德、芬蘭的羅瓦涅米、瑞典的呂勒奧
+    這些排在俄羅斯後面、或落在自己國界外的點都被判成俄羅斯（2026-10-27 網路速度主題發現的）。
+    """
+    unwrapped = [_unwrap(r) for r in polygon]
+    if unwrapped == polygon:
+        return [polygon]
+    out = [unwrapped]
+    xs = [x for r in unwrapped for x, _y in r]
+    if max(xs) > 180:
+        out.append([[(x - 360, y) for x, y in r] for r in unwrapped])
+    if min(xs) < -180:
+        out.append([[(x + 360, y) for x, y in r] for r in unwrapped])
     return out
 
 

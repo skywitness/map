@@ -8,6 +8,8 @@ export interface TimeSeriesLine {
   name: string;
   values: (number | null)[];
   color: string;
+  /** 整條畫虛線（例如對照用的世界值）；沒有推估年份的圖才用 */
+  dashed?: boolean;
 }
 
 interface TimeSeriesInput {
@@ -66,7 +68,7 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
       symbol: 'circle',
       symbolSize: sparse ? 5 : 8,
       color: line.color,
-      lineStyle: { width: 2, color: line.color },
+      lineStyle: { width: 2, color: line.color, ...(line.dashed && { type: 'dashed' as const }) },
       emphasis: { disabled: true },
       z: lines.length - lineIndex,
     };
@@ -113,7 +115,8 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
         ? {
             top: 0,
             left: 0,
-            data: lines.map((l) => l.name),
+            // 虛線的系列在圖例上也畫成兩段
+            data: lines.map((l) => (l.dashed ? { name: l.name, icon: 'path://M0,0H5V2H0ZM7,0H12V2H7Z' } : l.name)),
             icon: 'path://M0,0H12V2H0Z',
             itemWidth: 12,
             itemHeight: 2,

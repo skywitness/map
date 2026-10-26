@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、Speedtest by Ookla（AWS Open Data）、數位發展部的 5G 量測、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -58,6 +58,8 @@ public/tiles/night-lights/                ← 夜間燈光的約 500 m 網格圖
    └─ <版本>/<年>/<z>/<x>/<y>.png          4 期 × 5,197 張，共 106 MB
 public/tiles/ship-density/                ← 航運密度的約 5 km 網格圖磚，同樣部署時才產生（第 14 節）
    └─ <版本>/2021/<z>/<x>/<y>.png          一期，234 張、4.4 MB
+public/tiles/internet-speed-fixed/、internet-speed-mobile/ ← 網路速度的約 2 km 網格圖磚，同樣部署時才產生（第 14 節）
+   └─ <版本>/2026/<z>/<x>/<y>.png          各一期：425 張 1.9 MB、380 張 1.2 MB
    │
    ▼  fetch
 src/
@@ -174,7 +176,7 @@ pipeline/
 | `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層）；城市（每 5 年一期的人口跟著時間軸換、縮小時只畫大城市）；海洋與漁業（專屬經濟海域的界線，依 Marine Regions 的界線性質分 5 類、未解決的畫虛線，滑過看兩邊與性質） |
 | 指標的 `overlayTime` | 有年份欄位的疊加點（或線）怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年）；海底電纜（依啟用年份累積）；颱風（當年／每十年） |
 | 指標的 `projectionLabel` | 資料檔有 `projectionFrom` 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」；之前是實際數字、之後也不是推估時，換掉之後的稱呼（`tag`）與刻度上的說明（`from(年)`），之前的年份不加標籤 | 海底電纜（明年起「含規劃中」） |
-| 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底）。`only: true`（2026-10-26 起）是只有網格、沒有國家平均可以切換：一律畫網格，控制列沒有切換鈕，tooltip 不寫「國家平均」，指標本身是 `kind: 'none'`、資料檔只給 tooltip 與排名表；`unit` 是網格圖例的單位（沒寫用指標的） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底）、航運密度的約 5 km 網格（`only`，tooltip 是貨櫃吞吐量） |
+| 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底）。`only: true`（2026-10-26 起）是只有網格、沒有國家平均可以切換：一律畫網格，控制列沒有切換鈕，tooltip 不寫「國家平均」，指標本身是 `kind: 'none'`、資料檔只給 tooltip 與排名表；`unit` 是網格圖例的單位（沒寫用指標的）。`dir` 可以含 `{item}`（2026-10-27 起）：跟著子項目換資料夾，`forItem()` 跟 `itemScales` 一起解析，App 與第一個畫面的預先下載共用。`countryValue`（2026-10-27 起）換掉切換鈕與 tooltip 的「國家平均」（國家的值是中位數時） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底）、航運密度的約 5 km 網格（`only`，tooltip 是貨櫃吞吐量）、網路速度的約 2 km 網格（`internet-speed-{item}`，固網、行動各一組；「國家中位數」） |
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔、太陽能與風能潛力（長期平均） |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
@@ -434,6 +436,7 @@ pipeline/
 | 塑膠污染 | 人均排放（預設）、年排放量（比例圓），兩者都有「排放形式」子項目：全部塑膠、塑膠碎片、露天焚燒的塑膠；人均塑膠垃圾、沒有垃圾收集的人口、河川流入海洋的塑膠（比例圓，加上河口的點）、塑膠廢料出口、進口（流向圖，公噸） | 排放的來源（未收集的垃圾、棄置場、亂丟、回收分選、收集與運輸）與 90% 區間、塑膠垃圾產生量與收集服務；排放最多的河口；塑膠廢料這一年的主要對象與 1995 年起的歷年堆疊面積；台灣另有環境部的一般廢棄物去處（2011–2025）、回收率、回收的塑膠，與財政部 HS 3915 進出口值對照 BACI | Cottom 等人（2024）SPOT 模型（Dryad，CC0 1.0）、Meijer 等人（2021）的河口（figshare，CC BY 4.0）、CEPII BACI HS92 版的 HS 3915（Etalab 2.0）；台灣的官方統計用環境部、財政部（只在附註與側欄） | 排放與收集 2020；河川 2015；貿易 1995–2024 |
 | 電動車 | 電動車新車占比（預設）、電動車保有量（比例圓）、電動車保有量占比、公共充電樁（比例圓）、車樁比（每個公共充電樁對應的電動輕型車） | 純電與插電式混合（新車銷售堆疊面積圖、當年新車與年底保有量的組成）、公共充電樁的速度（慢充／快充／超快充與快充占比） | IEA Global EV Data Explorer（Global EV Outlook 2026）；台灣用交通部公路局統計查詢網的小客車領牌與登記數 | 2010–2025（充電樁、車樁比 2012–2025；台灣 2012 年起，充電樁與車樁比從缺） |
 | 數位 | 網路使用率、行動電話用戶（每百人）、固網寬頻用戶（每百人） | — | World Bank WDI（ITU）；台灣用數位發展部數位近用調查、NCC 電信統計 | 1990–2024 |
+| 網路速度 | 下載速度（預設，可以切到約 2 km 網格）、上傳速度、延遲（`lowerIsBetter`）；子項目「網路」：固網（預設）、行動網路。都是各圖塊平均依測試次數加權的中位數，時間軸的年份是那一年的第 3 季（`timeAxis`） | 固網與行動網路的下載速度歷年變化（虛線是全世界）、選定那一季的下載（中位數與平均）、上傳、延遲、測試次數、有人測的圖塊數，每一項跟全世界對照；台灣另列 NCC 的 4G、數位發展部的 5G 定點量測跟 Ookla 行動網路的對照 | Speedtest® by Ookla® Global Fixed and Mobile Network Performance Maps（AWS Open Data，CC BY-NC-SA 4.0；這個主題的資料檔與網格圖磚是改作，同樣以 CC BY-NC-SA 4.0 提供）；台灣的對照用 NCC 新聞稿（引用數字）、數位發展部「行動通訊速率量測」（政府資料開放平臺 161791，CC0） | 2019–2026 年，每年第 3 季（7–9 月）；網格是 2026 年第 3 季；官方量測 2020–2023 |
 | 健康 | 平均壽命、嬰兒死亡率、五歲以下死亡率、人均醫療支出、醫療支出占 GDP、自付醫療費占比、人均自付醫療費（國際元）、政府與健保支出占比、每千人醫師數（醫病比）、每千人護理人員、每千人病床數 | 男女平均壽命對照 | UN WPP 2024、World Bank WDI（WHO）；台灣壽命與死亡率用內政部簡易生命表，醫療支出、醫事人力與病床用衛福部，人均自付的購買力平價用 IMF | 壽命與死亡率 1950–2023（台灣 1992 年起，男女 1970 年起）；醫療支出 2000–2023；醫師、病床 1960–2022；護理人員 2000–2022 |
 | 疾病 | 首要死因（類別圖）、慢性病過早死亡率（30–70 歲）、癌症死亡率（年齡標準化）、糖尿病盛行率、成人肥胖率、愛滋感染率、結核病發生率、瘧疾發生率、慢性病／傳染病／傷害死亡占比 | 死因結構（三大類占比與世界對照） | WHO Global Health Estimates 2023、WHO GHO（NCD-RisC）、World Bank WDI（UNAIDS、WHO）；台灣用衛福部死因統計（ICD-10）與衛生福利統計指標、WPP 年齡別人口 | 死因與過早死亡 2000–2023（台灣 2008 年起）；糖尿病 1990–2022；肥胖 1980–2024；愛滋 1990–2024；結核病、瘧疾 2000–2024 |
 | 疫苗與防疫 | DTP3 接種率（預設）、麻疹疫苗第一劑、麻疹疫苗第二劑、HPV 疫苗（女孩第一劑）、零劑兒童（沒有打過任何一劑 DTP，比例圓）、COVID-19 確診死亡（累計，每 10 萬人）、完成 COVID-19 基礎劑的人口比例、超額死亡（累計，每 10 萬人，估計；跟確診死亡同一組門檻） | 兒童常規疫苗的接種率（四種疫苗一張折線圖）、COVID-19 的累計確診死亡與超額死亡（每月）、至少一劑與完成基礎劑（每月）；台灣另外列衛福部死因統計的 COVID-19 死亡與疾管署通報的確診死亡 | WHO/UNICEF WUENIC 2025 年版（WHO GHO，1980–1999 年用世界銀行轉載）、WHO 的 HPV 估計、UN WPP 2024（零劑兒童的存活嬰兒）、Our World in Data 的 COVID-19 資料（WHO COVID-19 dashboard 的死亡、OWID 整理的接種）、JHU CSSE、The Economist 的超額死亡模型（MIT）；台灣用疾管署「預防接種統計」的完成率、衛福部死因統計 | DTP3、麻疹第一劑 1980–2025（台灣 2015 年起），麻疹第二劑 2000–2025，HPV 2010–2025，零劑兒童 2000–2025；確診死亡 2020–2025（每年年底），完成基礎劑 2021–2023，超額死亡 2020–2023（側欄到 2024 年 6 月） |
@@ -691,6 +694,13 @@ pipeline/
     - **Meijer et al. (2021) 的河口資料是 CC BY 4.0**：figshare 的「Supplementary data for 'More than 1000 rivers…'」（https://doi.org/10.6084/m9.figshare.14515590.v1 ，figshare API 的 license 是 CC BY 4.0，2026-10-26 查）。論文（Science Advances 7, eaaz5803）是 CC BY-NC 4.0（Europe PMC 的 license 欄），**論文附錄的國家表沒有轉載**：國家合計是依河口位置自己加總的，只拿 Our World in Data 轉載的 7 個國家比對（第 78 點）。
     - 塑膠廢料的貿易用 CEPII BACI 的 HS92 版（Etalab 2.0，同上）。
     - 環境部開放資料平台的「一般廢棄物清理情況資料」（STAT_P_45）、「執行機關資源回收量」（STAT_P_132，政府資料開放平臺 89046）、「公告應回收廢物品及容器回收量」（STAT_P_133，89047）在政府資料開放平臺的授權欄都是政府資料開放授權條款第 1 版（2026-10-26 查）；財政部貿易統計同上（第 52 點）。
+    - **Speedtest by Ookla 的 Open Data（Global Fixed and Mobile Network Performance Maps）是 CC BY-NC-SA 4.0**（姓名標示—非商業性—相同方式分享）：官方版本庫 https://github.com/teamookla/ookla-open-data 的 README「License」一節（2026-10-27 查，最後一次修改 2026-04-16）連到 CC BY-NC-SA 4.0；檔案在 AWS Open Data 的公開 S3 bucket（`s3://ookla-open-data`），不必帳號、不必金鑰。本站非商業，照用（跟 World Inequality Database、TeleGeography 一樣）。
+      - **標示照 README 的「Suggested Attribution」一字不改填空**（含商標聲明）：「Speedtest® by Ookla® Global Fixed and Mobile Network Performance Maps was accessed on 27 October 2026 from AWS. Based on World Data Map’s analysis of Speedtest® by Ookla® Global Fixed and Mobile Network Performance Maps for Q3 2019 – Q3 2026. Ookla trademarks used under license and reprinted with permission.」寫在網路速度主題的 `note` 開頭（中英文介面都是英文原文，跟 EOG 的聲明一樣）、`manifest.json` 的 `attribution` 與網格的 `meta.json` 的 `citation`；地圖右下角（網格模式）是短的「Speedtest® by Ookla® Global Fixed and Mobile Network Performance Maps (CC BY-NC-SA 4.0)」。沒有用 Speedtest 的標誌。
+      - **相同方式分享**：這個主題的資料檔（`public/data/topics/internet-speed/`：各國的中位數、平均、測試次數、側欄明細）與網格圖磚（`public/tiles/internet-speed-*`）是改作（依位置歸國、加權中位數、四分樹往上併），一樣以 CC BY-NC-SA 4.0 提供：頁尾的說明、`manifest.json` 的 `license`、圖磚的 `meta.json` 都寫明；這個主題匯出的地圖圖片與 CSV 也一樣。相同方式分享只管這些改作的資料，不會擴及網站程式碼或其他主題的資料（跟 V-Dem、TeleGeography 的處理一樣）。
+      - README 寫 Ookla 會為了 GDPR 等個資請求重新彙整舊資料，不同時間下載的測試次數可能略有差異；2026-04-16 的變更紀錄寫「supported regions have been updated」，依適用的法律與內部政策，有些地區之後不再提供（第 79 點）。
+    - 數位發展部的「行動通訊速率量測」（政府資料開放平臺 161791，111、112 年的 5G 定點量測，各業者各縣市的下載、上傳速率）在資料集的授權欄是「公眾領域貢獻宣告（CC0）」（2026-10-27 查）；網路速度主題只在台灣的附註與側欄用它的 22 縣市平均。
+    - 國家通訊傳播委員會的 4G 上網速率量測只有新聞稿（110 年度的結果，111/04/27 發布）的全國平均，是引用的數字（事實），註明出處；NCC 網站有 Cloudflare 驗證，程式讀不到，從 Wayback Machine 的存檔讀（頁尾有「政府網站資料開放宣告」的連結）。NCC 在政府資料開放平臺上的行動上網速率資料集（8258、8259、8260）是 2013 年前後的舊資料，標「已移撥數位部，不再更新」，沒有用。
+    - **網路速度主題沒有用的來源**：Cloudflare Radar 的 API 要申請 API token；M-Lab（NDT）的資料本身是 CC0，但各國彙總要用 BigQuery（要 Google 帳號），公開的原始檔是逐筆的測試紀錄，量很大；Speedtest Global Index（speedtest.net 的各國排名頁）、Opensignal 的報告都不是開放授權的資料。依使用者的規則（不建帳號、不申請金鑰），都沒有用。
     - **塑膠污染主題沒有用的來源**：OECD Global Plastics Outlook 的資料（OECD 的資料條款，效果同 CC BY 4.0）只有 ENV-Linkages 模型的 15 個區域（美國、加拿大、中國、印度以外都是區域），不能畫各國地圖；EA Earth Action 的「Plastic Overshoot Day」與 Plasteax 平台找不到資料的授權條款；Meijer 論文附錄的國家表是 CC BY-NC（可用但不需要，見上）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
@@ -2174,6 +2184,26 @@ pipeline/
       - 環境部（另一種量測，只在附註與側欄）：一般廢棄物清理情況（STAT_P_45，縣市加總，2011–2025 年）的一般垃圾、資源回收、廚餘回收；一般廢棄物回收率 =（資源回收＋廚餘）÷ 產生量，跟 STAT_P_46 各縣市的回收率同一個算法（臺北市 2025 年 72.05% 核對過）。全國 2024 年 61.5%、2025 年 62.6%。**2018 年起納入事業員工生活產生的垃圾**（臺中市主計處的統計分析：配合廢棄物清理法修訂的定義），產生量從 785 萬跳到 983 萬公噸，側欄的圖在 2018 年畫虛線（`methodBreak`）。執行機關回收的塑膠及橡膠製品（STAT_P_132 的年資料，2021–2025 年，2025 年 81.0 萬公噸）、公告應回收的塑膠容器（STAT_P_133，2025 年 21.1 萬公噸），兩者有重疊，不能相加。月資料只從 2021 年起，開放資料沒有更早的塑膠回收量。
     - **跟其他主題**：海洋與漁業、國際貿易流向的頁尾指到這裡，這裡也指回去。
     - **大小**：指標檔 11 個（103 KB，gzip 後 44 KB）、流向檔 30 個 1,091 KB（gzip 後 356 KB）、河口的點 367 KB（gzip 後 111 KB）、247 個國家明細 411 KB（gzip 後 191 KB），共 1.93 MB（gzip 後 0.69 MB）；沒有網格。
+79. **網路速度**（`pipeline/topics/internet_speed.py`、`internet_speed_tiles.py`、`pipeline/sources/ookla.py`、`tw_mobile_speed.py`、`pipeline/geoindex.py`、`src/topics/internet-speed.ts`、`src/topics/panels/InternetSpeedPanel.tsx`）：
+    - **做成獨立的主題**（科技與交通），沒有併進「數位」：數位已經有 3 個指標按鈕，加上速度的 3 個指標與「固網／行動」的子項目選單，控制列一定換行；速度的年份（每年第 3 季）、時間範圍（2019 年起）、來源與授權（CC BY-NC-SA）也跟數位的 ITU 資料不同。兩個主題的頁尾互相指引。
+    - **資料**（授權見第 12 點）：Ookla 的 parquet 每季固網、行動各一個（2019 年第 1 季到 2026 年第 3 季都有；README 寫最新是 2026 年第 1 季，但 bucket 裡已經有第 2、3 季，2026-10-09 上傳）。每一列是一個 z16 的 Web Mercator 圖塊（赤道約 610 m），有平均下載、上傳速度（kbps）、平均延遲（ms）、測試次數與裝置數；只收有 GPS 等級定位的測試。「固網」是手機、電腦經由 Wi-Fi 或有線網路測的，「行動」是經由行動網路。
+      - **讀法**：`pyarrow` 的 `S3FileSystem(anonymous=True)` 只讀 quadkey、下載、上傳、延遲、測試次數、裝置數 6 欄（WKT 的 `tile` 欄占檔案約六成，不讀），每季每種約 55–120 MB、10–30 秒；quadkey 直接從 Arrow 的字串緩衝區換成 z16 的 x、y，存成 `.cache/ookla/*.npz`。`pipeline/requirements.txt` 加了 `pyarrow`。
+      - **每年只取第 3 季（7–9 月）**，2019–2026 年共 8 季：下載量適中（使用者要求一年一季），同一個季節年年可比，最新的 2026 年第 3 季也在裡面，不必在最後一年混一個別的季節。時間軸用指標的 `timeAxis`：年份上面寫「每年第 3 季」，tooltip、側欄、排名表寫「2026 年第 3 季」。
+    - **歸國**：約 2,000 萬個不重複的圖塊，圖塊中心用 `geoindex.countries_at()`（地圖的 1:50m 國界，海邊找 0.3° 內最近的頂點），結果快取在 `.cache/ookla/tile-countries.npz`（第一次約 10 分鐘，之後只算新出現的圖塊）。再照人口網格（`population_grid` 的 `PARTS`、`OVERRIDES`）把法國海外省、波奈、克里米亞（算烏克蘭）、西撒哈拉、直布羅陀、吐瓦魯、托克勞依聯合國的劃分拆開；台灣的離島在 1:50m 沒有形狀、離本島超過 0.3°，澎湖、蘭嶼、綠島、東沙歸不到國家，馬祖會歸到最近的福建沿岸（中國），所以澎湖、馬祖（南竿北竿、莒光、東引）、烏坵、蘭嶼、綠島、東沙用矩形範圍改歸台灣（`TAIWAN_ISLANDS`，只框住島本身，離黃岐半島、平潭、湄洲島都有距離）；金門在國界裡。沒有國家的圖塊占測試的 0.05–0.1%，只算進全世界。
+      - **修了 `geoindex` 的換日線問題**（2026-10-27）：俄羅斯本土的環在楚科奇有從 179.9° 跳到 −180° 的邊，射線法在北緯約 65°–69° 把整條帶子判成在環裡，挪威的博德、芬蘭的羅瓦涅米、瑞典的呂勒奧這些點都被判成俄羅斯（Ookla 2026 年拿掉俄羅斯後，「俄羅斯」還剩 3.8 萬次測試，大多在北歐，才發現）。現在跨過 ±180° 的環先展開成連續經度，超出的部分再補一份平移 360° 的（跟 `population_grid.unwrap()` 同一個做法），28 個測試點（北歐、楚科奇、阿拉斯加、阿留申、斐濟、吉里巴斯、南極、台灣）都對。**用 `geoindex` 的其他主題（AI 的數據中心、便利商店與連鎖品牌、城市、太空的發射場、交通的機場、台灣的外交的館處、塑膠污染的河口）還是舊的結果**，北緯 65°–69° 一帶的點可能被算成俄羅斯，下次重跑時會更正（第 9 節）。
+    - **彙總方法**：
+      - 地圖上的值（下載、上傳、延遲）是**依測試次數加權的圖塊平均的中位數**：把每次測試都當成它所在圖塊的平均值，再取所有測試的中位數（`weighted_medians()`，排序後累積權重到一半的那個值）。圖塊裡的差異看不到，所以跟逐次測試的中位數不完全一樣：圖塊平均會被同一個圖塊裡很快的線路拉高，在 10 Gbps 方案多的地方（新加坡固網 702 Mbps）比 Ookla 自己公布的中位數高。選中位數而不是平均，是因為平均被少數很快的線路拉得更高（2026 年第 3 季全世界的行動網路：中位數 103 Mbps、平均 143 Mbps）。
+      - **平均**（側欄）：依測試次數加權的平均，等於所有測試的平均（圖塊平均 × 測試次數 = 圖塊裡的總和），是精確值。
+      - **全世界**：所有圖塊（含沒有國家的）一起算的中位數，不是各國中位數的中位數；側欄與折線圖的對照線用它（`aggregates.WLD`）。
+      - **樣本**：一季不到 1,000 次測試（`MIN_TESTS`，前端說明也寫這個數，pipeline 會檢查兩邊一樣）不給速度；不到 1 萬次的季在 tooltip 註明「數值較不穩定」（`hints`）；一個圖塊就占三成以上測試（`MAX_TILE_SHARE`）也不給值，可能是業者或少數人在同一個地方一直測：2026 年第 3 季賴比瑞亞的行動網路 1,758 次測試有 42% 在同一個圖塊，中位數 339 Mbps（會排在卡達、科威特、阿聯之後）。2026 年第 3 季有速度的：固網 211 個國家與地區、行動 165 個（測試次數照列在側欄）。測試是使用者自己發起的，偏向城市、網路慢或剛換網路的時候，不是隨機抽樣，說明與頁尾都寫明。
+      - **測試次數不做成指標**：原本有第 4 個指標「測試次數」（比例圓），指標按鈕變 4 個時，上傳、延遲的控制列在英文 1280px、中文 1024px 都會換行，所以只放在側欄。
+    - **Ookla 2026 年拿掉的地區**：README 2026-04-16 的變更紀錄寫「supported regions have been updated」。比對每一季的測試次數，俄羅斯 2025 年第 4 季起（固網從第 3 季的 210 萬次掉到 12 萬次，2026 年每季一千多次）、古巴、伊朗、敘利亞 2026 年第 1 季起（伊朗固網從 31 萬次掉到 612 次）、白俄羅斯第 2 季起幾乎沒有測試（只剩國界附近零星的圖塊），克里米亞 2026 年第 3 季是 0。這幾國之後的季不給值，tooltip 寫「Ookla 2026 年第 1 季起沒有這裡的資料」、附註寫原因（`REMOVED`）。`check_removed()` 檢查：這些國家之後的季又有大量測試、或其他國家的測試一季少了九成以上（前一季 2 萬次以上）就報錯，要人工確認。
+    - **分級**（固定門檻，所有年份共用；全世界的中位數 2019 → 2026 年固網 49 → 218 Mbps、行動 20 → 103 Mbps，早年多半在淺色）：下載固網 10、25、50、100、200、300 Mbps，行動 10、25、50、100、150、250（`itemScales`；網格也用這兩組，pipeline 檢查）；上傳固網 5、10、25、50、100、200，行動 5、10、15、20、25、35；延遲固網 5、10、15、25、50、100 毫秒，行動 20、25、30、40、60、100（`lowerIsBetter`，名次由小排到大）。
+    - **台灣**（2026 年第 3 季）：固網下載 264.6 Mbps（211 國第 50；全世界 217.6）、上傳 174.9（第 43）、延遲 6 毫秒（第 26），149.6 萬次測試、2.39 萬個圖塊；行動下載 148.2 Mbps（165 國第 36；全世界 103.2）、上傳 26.8（第 30）、延遲 19 毫秒（第 7），36.1 萬次測試。2019 年固網 58.7、行動 42.9 Mbps。行動網路的測試從 2019 年的 109 萬次逐年減少到 36 萬次。
+      - **官方量測的對照**（只在附註與側欄）：NCC 委託電信技術中心的 4G 定點量測，2020 年全國平均下載 119 Mbps、2021 年 122.53 Mbps（上傳 24.92，第 50 分位 118.58／24.89；7,851 個戶外量測點）；數位發展部 2022、2023 年的 5G 定點量測沒有全國平均，這裡把 22 縣市簡單平均：2023 年中華電信 589／104、遠傳 465／88、台灣大哥大 310／62、台灣之星 95／23 Mbps（下載／上傳）。數位部 113 年度預算書寫「全國 22 縣市量測平均上網速率為 410Mbps」，對不上任何一種簡單平均（可能依量測點加權），不用。同年 Ookla 的行動網路中位數：2020 年 66.3、2021 年 86.9、2022 年 113.3、2023 年 118.7 Mbps。官方量測是專業人員在村里辦公室、車站等戶外固定地點，用指定的測試手機對每家業者各量一輪（每家業者等量），Ookla 是使用者自己的手機、4G 與 5G 混在一起、室內外都有、依使用者在哪裡測加權，所以官方的數字比較高，不能直接相比。固網近年沒有官方量測可以對照。
+    - **側欄**：固網與行動網路下載速度的歷年折線（虛線是全世界；`TimeSeriesLine.dashed` 是這次加的）、選定那一季的下載（中位數與平均）、上傳、延遲、測試次數、有人測的圖塊數，每一項下面一列是全世界；台灣另列官方量測的對照表。
+    - **網格**：下載速度可以切到約 2 km 網格（第 14 節）。切換鈕與 tooltip 寫「國家中位數」（`GridSpec.countryValue`），不是「國家平均」。下載速度的控制列多了切換鈕，在英文 1280px、中文 1024px 寬時是兩行（跟人口密度一樣）；上傳、延遲是一行（第 11 節）。
+    - **大小**：指標檔 6 個（約 250 KB）、244 個國家明細 164 KB、世界 1 KB，共 0.42 MB（gzip 後 0.13 MB）；網格圖磚 3.3 MB（不進版本庫，部署時產生），合計約 3.7 MB。
 
 ## 9. 之後可以做的
 
@@ -2188,6 +2218,11 @@ pipeline/
 - **換期時淡入**：播放時間軸時每 5 年換一次圖磚，新圖磚到之前舊的留在畫面上，但沒有漸變。
 - **地圖上的圓餅圖層**：在國家位置畫發電結構圓餅，在 `LayerSpec` 加 `kind: 'pie'`。
 - **暖化的推估**：World Bank CCKP 的 CMIP6 多模式中位數沒有台灣，很多海外領地也沒有，推估年份的地圖會缺一塊，所以沒放（第 34 點）。可以自己從 CMIP6 的網格算各國的值，換算到 1951–1980 年的基準後接在暖化後面（`projectionFrom`）。
+- **重跑用 `geoindex` 的主題**：2026-10-27 修了換日線的問題（第 8 節第 79 點），之前產生的 AI（數據中心）、便利商店與連鎖品牌、城市、太空、交通、台灣的外交、塑膠污染（河口）的資料還是舊的結果，北緯 65°–69° 一帶（挪威北部、瑞典北部、芬蘭北部）的點可能被算成俄羅斯。重跑那些步驟就會更正（便利商店要向 Overpass 重新查詢，很久；其他幾分鐘）。
+- **網路速度**：
+  - 網格每年一期：現在只有 2026 年第 3 季，每期固網、行動合計約 3.3 MB，8 期約 26 MB。
+  - Ookla 每季更新（通常季末後幾天到幾週）：明年第 3 季出來後，`internet_speed.py` 的 `YEARS` 加 2027、`internet_speed_tiles.py` 的 `PERIOD` 改成 (2027, 3)。`REMOVED` 的國家如果又出現，`check_removed()` 會報錯。
+  - 台灣的官方量測：數位發展部 2024 年以後的 5G 量測結果還沒上傳到政府資料開放平臺，有了再加進 `tw_mobile_speed.py`。
 - **PM2.5 網格**：WashU ACAG V6.GL.02.04 的 0.1° 年平均（CC BY 4.0，每年約 5 MB，Box 共用連結不必登入）可以照暖化網格的做法切圖磚；但國家的顏色是 WHO 的模型，兩者對不起來（台灣 2023 年 ACAG 21.3、WHO 沒有、測站 13.8 μg/m³），要做的話國家平均可能也要換成 ACAG（第 35 點）。
 - **台灣的公共充電樁**：交通部只在新聞稿公布某個時點的數字，有官方的逐年（年底）統計後補上（第 37 點）。
 - **地震死亡人數分國**：目前整筆算在震央附近的國家（2004 年海嘯全算印尼）。NOAA 的海嘯資料庫有各國的死亡人數，可以另外接。NOAA 記錄 1935-07-16 新竹的地震 2,746 人死亡，疑似錯值，找到官方數字（例如《昭和十年臺灣震災誌》）可以加一張更正表。
@@ -2283,6 +2318,7 @@ pipeline/
   - 社會加入疫苗與防疫（2026-10-26，社會 19 個主題，選單分欄）：短名稱「疫苗與防疫」、Vaccines，選到它時英文 1280px 寬 784px（可用 871px），中文 1024px 604px（可用 650px，五個字）。控制列是指標下拉選單（8 個指標），中文 1024、1280px 與英文 1280px 都是一行；英文的指標名稱取短的（COVID-19 confirmed deaths、COVID-19 primary series、Excess deaths (estimate)）。確診死亡與超額死亡的指標說明在 1280px 是兩行。
   - 社會加入平均身高（2026-10-26，社會 20 個主題，選單分欄）：短名稱「平均身高」、Height，選到它時英文 1280px 寬 770px（可用 871px），中文 1024px 588px（可用 650px）。控制列是指標下拉選單（7 個指標），中文 1024、1280px 與英文 1280px 都是一行（英文最長的「Change since 1896, women」也是）。時間軸的年份上面多一行小字「出生年」（19 歲的指標是「年份」），時間軸那一列沒有變高。
   - 國際加入政府治理（2026-10-26，國際 11 個主題，選單分兩欄）：短名稱「政府治理」、Governance（10 個字元），選到它時英文 1280px 寬 834px（可用 871px），中文 1024px 612px（可用 650px）。控制列是指標下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行；英文最長的「Government effectiveness」「Voice and accountability」也是。
+  - 科技與交通加入網路速度（2026-10-27，科技與交通 10 個主題，選單分欄）：短名稱「網速」、Net speed，選到它時英文 1280px 寬 797px（可用 871px），中文 1024px 556px（可用 650px）。控制列是「網路」子項目選單加 3 個指標按鈕：上傳、延遲在中文 1024px（左邊 374–402px，加右邊 569px）與英文 1280px（左邊 551–570px，加右邊 616px）都是一行；下載速度多一個「國家中位數／約 2 km 網格」切換鈕，在中文 1024px（左邊 597px）、英文 1280px（845px）是兩行（跟人口密度一樣），中文 1280px 是一行。原本還有第 4 個指標「測試次數」，上傳、延遲在英文 1280px（683px）、中文 1024px（466px）也會換行，所以測試次數只放在側欄；英文的子項目原本是 Fixed broadband（選單 234px，上傳的控制列只剩 2px），改成 Fixed-line（187px）。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
@@ -2516,7 +2552,7 @@ pipeline/
 
 **看過一次就能離線開啟**：桌機與手機（Fast 3G、4× CPU）各只開一次、等下載結束後切成離線再開，地圖與資料都正常出現，標題旁顯示「離線中」，沒有失敗的請求。
 
-## 14. 網格圖層：人口密度的 1 km 網格、暖化的 0.5° 網格、太陽能與風能的約 2 km 網格、夜間燈光的約 500 m 網格、航運密度的約 5 km 網格
+## 14. 網格圖層：人口密度的 1 km 網格、暖化的 0.5° 網格、太陽能與風能的約 2 km 網格、夜間燈光的約 500 m 網格、航運密度的約 5 km 網格、網路速度的約 2 km 網格
 
 網格的前端（`src/map/densityGrid.ts`）是通用的：指標設了 `grid`（`GridSpec`），控制列就多一個「國家平均 / 網格」切換，圖磚、`meta.json` 的格式、不請求空圖磚、service worker 的快取都一樣。下面先寫人口密度的 1 km 網格，最後三小節是氣溫與降雨主題的暖化 0.5° 網格、太陽能與風能潛力主題的約 2 km 網格、夜間燈光主題的約 500 m 網格。
 
@@ -2735,3 +2771,13 @@ pipeline/
 - **圖磚**（`pipeline/topics/shipping_density_tiles.py`）：Web Mercator、512 px、z0–z4（z4 一個像素在赤道約 0.044°、約 5 km，所以叫「約 5 km 網格」，再放大由 MapLibre 拉大）。重新取樣照太陽能與風能（cos(緯度) 加權平均、像素比格子小時取最近的格子），差別是門檻用在 log10 之後：平均不到 3×10⁴ 的透明（大洋上零星的船位、陸地），其餘 7 級，門檻 10⁵、3×10⁵、10⁶、3×10⁶、10⁷、3×10⁷（`TRAFFIC_MIN`、`TRAFFIC_THRESHOLDS`，跟 `shipping.ts` 一樣，產生時檢查）。一開始用 10³ 起、10⁷ 封頂，東亞的海、英吉利海峽整片都是最深的兩級，看不出航道；調高後台灣海峽的主航道、英吉利海峽的分道航行都分得出來，河運（萊茵河、長江、伏爾加河）也看得到。顏色是地圖的橘色循序色（`tokens.ts` 的 ORANGE），跟藍色的海對比清楚。
 - **大小**：234 張、4.4 MB（z4 171 張、3.2 MB）。z5 會多約 9 MB，只做到 z4（這個主題的預算約 6 MB）。
 - **部署**（`.github/workflows/deploy.yml`）：一個快取（`public/tiles/ship-density`），排在夜間燈光之後；快取鍵含圖磚程式、`ship_density.py`、`population_density_tiles.py`、`tokens.ts` 的 ORANGE、`shipping.ts` 的兩行門檻。沒有命中時 `pip install "numpy>=2" "rasterio>=1.4"`，從世界銀行下載 535 MB、解壓成 9.8 GB 再讀（GitHub Actions 上整個步驟 85 秒，其中解壓 23 秒；第一次部署用 `/vsizip/` 時是 36 分鐘），40 分鐘逾時、`continue-on-error`，連不上時用上一版的圖磚（連上一版都沒有時顯示「約 5 km 網格載入失敗」，`only` 的網格沒有國家平均可以退回）。
+
+### 網路速度的約 2 km 網格
+
+- 「網路速度」主題的「下載速度」（`grid: { dir: 'internet-speed-{item}', … }`）：切換鈕是「國家中位數／約 2 km 網格」（`GridSpec.countryValue`），**固網、行動各一組圖磚**，跟著子項目換資料夾（`dir` 的 `{item}`，`forItem()` 解析，第 4 節的表）。只有一期（Ookla 最新的 2026 年第 3 季），時間軸換年份也顯示這一期，圖例寫「每個年份都顯示這一季」。
+- **不必重新取樣**（`pipeline/topics/internet_speed_tiles.py`）：Ookla 的圖塊本身就是 z16 的 Web Mercator 圖塊，512 px 圖磚在縮放 z 的一個像素剛好是 z+9 級的一個圖塊，所以每個像素就是把 x、y 右移 16−(z+9) 位的那一群 Ookla 圖塊。z5 的像素 = z14 的圖塊 = 4 × 4 個 Ookla 圖塊（赤道約 2.4 km，台灣約 2.2 km，歐洲約 1.6 km，所以叫「約 2 km 網格」），再放大由 MapLibre 拉大 z5 的圖磚。
+- **像素的值**跟各國的值同一個算法：像素裡各 Ookla 圖塊的平均下載速度依測試次數加權的中位數（`internet_speed.weighted_medians()`）；縮小時一個像素涵蓋更多圖塊，就是那一帶所有測試的中位數。測試不到 5 次（`MIN_TESTS`）的像素透明：一兩次測試很不穩定，留白也看得出哪裡沒人測（鄉間、山區、Ookla 2026 年拿掉的俄羅斯、白俄羅斯等，第 8 節第 79 點）。
+- 7 級，門檻跟國家的面量圖一樣（固網 10、25、50、100、200、300 Mbps，行動 10、25、50、100、150、250；`internet-speed.ts` 的 `FIXED_DOWNLOAD`、`MOBILE_DOWNLOAD`，產生時檢查），顏色是 `tokens.ts` 的 ORANGE（用人口密度那一支的 `ramp()`、`png()`、`occupancy()`）。
+- **大小**：固網 425 張、1.90 MB，行動 380 張、1.22 MB（z5 各 275、242 張，1.05、0.61 MB），共 3.1 MB。只做到 z4 是 1.5 MB、像素約 5 km，台灣的西部平原與山區、城市與鄉間比較糊；z5 在這個主題約 5 MB 的預算內。
+- `meta.json` 跟其他網格一樣，`attribution` 是 Ookla 的短標示（地圖右下角），`citation` 是 README 要求的完整標示，`license` 寫 CC BY-NC-SA 4.0（圖磚是改作，同樣以這個授權提供）。
+- **部署**（`.github/workflows/deploy.yml`）：一個快取（`public/tiles/internet-speed-fixed` 與 `internet-speed-mobile` 兩個路徑），排在航運密度之後；快取鍵含圖磚程式、`internet_speed.py`（加權中位數）、`sources/ookla.py`、`population_density_tiles.py`、`tokens.ts` 的 ORANGE、`internet-speed.ts` 的兩行門檻。沒有命中時 `pip install "numpy>=2" "rasterio>=1.4" "pyarrow>=18"`，用 pyarrow 從 Ookla 公開的 S3 bucket 只讀最新一季固網與行動的 6 個欄位（約 180 MB），這台 Windows 下載加產生不到 1 分鐘（資料已在快取時約 20 秒）；20 分鐘逾時、`continue-on-error`，連不上時用上一版的圖磚（連上一版都沒有時顯示「約 2 km 網格載入失敗，先顯示國家平均」）。

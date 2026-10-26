@@ -108,6 +108,11 @@ STEPS = {
     # Cottom et al. 的 SPOT 輸出（OWID 快照的 Dryad 檔，4 MB）、Meijer et al. 的河口（figshare，0.7 MB）、
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
+    # 要先有 geo 的國界；Ookla Open Data 每年第 3 季的固網與行動各一個 parquet（2019–2026 年，pyarrow 只讀需要的欄位，
+    # 共約 1.4 GB、3 分鐘），約 2,000 萬個圖塊第一次歸國要十幾分鐘（之後用快取）；數位發展部的 5G 量測（CC0，幾 KB）
+    "internet-speed": "topics.internet_speed",
+    # 網路速度的約 5 km 網格圖磚（不進版本控制，部署時產生）：最新一季的固網與行動各一組，只讀需要的欄位（約 180 MB）
+    "internet-speed-tiles": "topics.internet_speed_tiles",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     "employment": "topics.employment",
