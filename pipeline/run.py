@@ -133,6 +133,9 @@ STEPS = {
     "night-lights": "topics.night_lights",
     # 夜間燈光的約 500 m 網格圖磚（不進版本控制，部署時產生）；4 期，每期約 31 MB、5 千張
     "night-lights-tiles": "topics.night_lights_tiles",
+    # Wikidata 的 6 個 SPARQL 查詢（每個 2–5 秒）與約 40 批名稱（wbgetentities）、FAOSTAT 土地利用（陸地面積）；
+    # 要先有 geo 的國界，也讀人口、旅行實用、語言、民主與自由、城市、海拔、國際組織、台灣的外交已經產生的資料檔
+    "profiles": "topics.profiles",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 

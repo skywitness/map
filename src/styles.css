@@ -1369,6 +1369,83 @@ kbd {
   color: var(--ink-secondary);
 }
 
+/* 國家小檔案（ProfilesPanel）：上面是屬地、爭議地區的說明（之後國旗放在左邊），下面是兩欄的欄位表 */
+.profile-hero {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+}
+
+.profile-hero-text {
+  min-width: 0;
+}
+
+.profile-status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.profile-status + .profile-status {
+  margin-top: 4px;
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-facts > div {
+  display: contents;
+}
+
+.profile-facts dt {
+  color: var(--ink-muted);
+}
+
+.profile-facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-person {
+  display: block;
+}
+
+.profile-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.profile-muted {
+  color: var(--ink-muted);
+}
+
+.profile-more {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-more li + li {
+  margin-top: 4px;
+}
+
+.profile-link {
+  white-space: nowrap;
+}
+
 .panel-year-note,
 .panel-figure {
   margin: 0 0 8px;

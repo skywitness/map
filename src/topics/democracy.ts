@@ -15,7 +15,7 @@ const INDEX_UNIT = '0–1';
  * 選這個方向是因為「專制暖色、民主冷色」是政體地圖常見的讀法（中國深橘、台灣深青綠），
  * 圖例也照 V-Dem 代碼由小到大、跟面量圖的圖例一樣由低到高。
  */
-const REGIMES: CategoryDef[] = [
+export const REGIMES: CategoryDef[] = [
   { value: 0, label: { zh: '封閉專制', en: 'Closed autocracy' } },
   { value: 1, label: { zh: '選舉專制', en: 'Electoral autocracy' } },
   { value: 2, label: { zh: '選舉民主', en: 'Electoral democracy' } },
