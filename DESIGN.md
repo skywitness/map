@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -444,6 +444,7 @@ pipeline/
 | 就業與失業 | 失業率（預設）、青年失業率（15–24 歲）、非正式就業比例、勞動力參與率 | 男女對照（四個指標的女性與男性數值表、男女失業率折線） | 國際勞工組織 ILOSTAT（ILO 模型估計 2025 年 11 月版；非正式就業用 ILOSTAT 依各國勞動力調查調和的序列）；台灣用主計總處人力資源調查，非正式就業從缺（附註對照人力運用調查的非典型就業） | 失業率、青年失業率 1991–2025，勞參率 1990–2025（2025 年是推估）；非正式就業 2007–2025（各國 5 年內最近一年） |
 | 存款與財產 | 平均每人存款、存款占 GDP、每位成年人的平均財富與財富中位數（各有市場匯率與購買力平價兩版）、最富有 10%／1% 的財富占比、家庭儲蓄率（約 35 國）、國民儲蓄率 | 財富的平均與中位數（折線對照，附「平均是中位數的幾倍」） | IMF Financial Access Survey、IMF WEO（SDMX API）、World Inequality Database、OECD National Accounts at a Glance；台灣用中央銀行金融統計、主計總處國民所得統計，附註列出國富統計與家庭財富分配統計 | 存款 2004–2025；財富 1995–2024（2025 年價格）；家庭儲蓄率 1995–2024；國民儲蓄率 1980–2031（2026 起推估） |
 | 物價與財政 | 通膨率、物價水準（美國 = 100）、政府債務占 GDP、財政收支占 GDP、稅收占 GDP（含社會安全捐） | — | IMF WEO（含台灣；物價水準用 IMF 的 GDP（美元）÷ GDP（購買力平價）算出），IMF 未涵蓋的地區用 World Bank 補；稅收用 OECD 全球稅收統計，OECD 沒有的 57 國用 IMF 世界稅收資料庫（WoRLD）補；台灣稅收用財政部 | 通膨率、物價水準 1980–2031、政府債務 1991–2031、財政收支 1990–2031（2026 起推估）；稅收 1990–2024（台灣 2000 年起，最新一年還沒公布的國家顯示前一年） |
+| 稅率 | 營所稅（公司稅，中央加地方的法定稅率，預設）、所得稅最高稅率（含地方稅）、最高稅率起徵點（平均薪資的幾倍，不排名）、營業稅（VAT／GST 標準稅率，1 月 1 日）、勞動稅負（單身、平均薪資的 tax wedge） | 各項稅率跟 OECD 平均（起徵點是中位數）的表、營所稅、最高所得稅率、VAT、勞動稅負的歷年折線；台灣另外列那一年度的綜合所得稅級距、起徵點的換算與稅率的變化 | OECD Corporate Tax Statistics、OECD Tax Database 表 I.7、OECD Taxing Wages、OECD《Consumption Tax Trends 2024》附錄表 2.A.1、《Tax Policy Reforms 2025／2026》（都是 CC BY 4.0）；台灣用所得稅法、加值型及非加值型營業稅法、財政部財政資訊中心的綜合所得稅申報核定統計專冊、賦稅署公告、臺北國稅局與主計總處的平均薪資 | 公司稅 2000–2026（146 個轄區加台灣）；所得稅最高稅率、起徵點、勞動稅負 2000–2025（OECD 38 國，前兩個加台灣）；VAT 2005、2008、2011、2014、2017、2020–2026（OECD 37 國加台灣，美國沒有 VAT）；OECD 以外的國家沒有開放資料，留灰色 |
 | 外匯存底與外債 | 外匯存底（含黃金，比例圓，預設）、外匯存底可支應進口月數、外債占 GDP、經常帳占 GDP（發散色） | — | World Bank WDI（IMF 國際金融統計、國際債務統計 IDS）、World Bank/IMF 季度外債統計（QEDS）、IMF WEO（經常帳、名目 GDP）、IMF 初級商品價格（金價）；台灣用中央銀行的外匯存底、國際收支與國際投資部位統計，主計總處 GDP | 外匯存底 1960–2025、進口月數 1976–2025（最新一年還沒公布的國家顯示前一年）；外債 2003–2025；經常帳 1980–2031（2026 年起推估）；台灣的外匯存底與進口月數 2003 年起 |
 | 股市規模 | 上市公司市值占 GDP（預設）、上市公司市值（美元，比例圓）、上市公司家數（本國公司，比例圓） | — | World Bank WDI（世界交易所聯合會 WFE）；台灣用金管會證期局（上市＋上櫃）、中央銀行年底匯率、主計總處 GDP | 市值與占 GDP 1982–2025、家數 1980–2025（台灣 1998 年起；預設 2024 年，2025 年印度的數字有誤沒收） |
 | 房價與居住負擔 | 實質房價 10 年（預設）、實質房價 5 年的漲跌（59 個經濟體）、房價所得比、房價租金比（2015 年 = 100 的指數，41、43 個）、實質房租 5 年的漲跌（43 個）；漲跌與指數都用發散色反過來（漲、高於 100 是橘色）。只能比變化，不能比房價水準 | 實質房價與實質房租（2015 年 = 100）跟 OECD 平均、BIS 各經濟體平均的折線；房價所得比、房價租金比跟 2015 年與跟長期平均比（OECD 約 25 國）；台灣：全國與六都的房價所得比（倍）、房貸負擔率、住宅價格指數 5 年漲跌，全國與臺北市 2002 年起的房價所得比 | OECD Analytical house price indicators（CC BY 4.0）；OECD 沒有的 11 個經濟體用 BIS 住宅價格統計；台灣用內政部不動產資訊平台的住宅價格指數、房價所得比、貸款負擔率與主計總處的消費者物價 | 實質房價 5 年 1975–2025、10 年 1980–2025，房價所得比 1978–2025、房價租金比與實質房租 1970／1975–2025（各國顯示 2 年內最近一年）；台灣的實質房價、房價租金比、實質房租 2013 年起（漲跌 2018、2023 年起），房價所得比的倍數 2002 年第 1 季–2026 年第 1 季 |
@@ -478,6 +479,7 @@ pipeline/
    - 薪資與工時：ILOSTAT 也沒有台灣（台灣不是 ILO 會員），改用主計總處、勞動部；Penn World Table 本身有台灣。
    - 存款與財產：IMF Financial Access Survey 沒有台灣，存款改用中央銀行；WID 與 IMF WEO 本身有台灣。
    - 物價與財政：IMF WEO 本身有台灣；稅收改用財政部。
+   - 稅率：OECD 的公司稅、個人所得稅、VAT 資料都沒有台灣，改用所得稅法、營業稅法與財政部的公告、統計專冊（第 72 點）。
    - 研發與創新：UNESCO、WIPO 沒有台灣，改用國科會、智慧局。
    - 就業與失業：ILO 的模型估計雖然有台灣，但近幾年是推算的，改用主計總處人力資源調查；非正式就業台灣沒有統計（第 54 點）。
    - 外匯存底與外債：WDI、國際債務統計（IDS）、季度外債統計（QEDS）都沒有台灣，改用中央銀行（外匯存底加上黃金的市值、國際收支、國際投資部位；第 55 點）。
@@ -642,6 +644,9 @@ pipeline/
     - 衛福部的 HPV 疫苗新聞稿（國健署，衛福部網站）適用衛福部的政府網站資料開放宣告；國健署網站的新聞稿頁尾寫「版權所有 請勿任意轉載作商業用途」，所以只引用衛福部新聞稿裡的數字（事實），沒有轉載文字。
     - **NCD-RisC 的身高估計沒有明示資料授權**（2026-10-26 查）：兩篇論文是 CC BY 4.0（eLife 2016;5:e13410 的 API 寫「CC-BY-4.0」；Lancet 2020;396:1511–24 的 PMC7658740 寫「This is an Open Access article under the CC BY 4.0 license」），論文說各國估計放在 ncdrisc.org 供下載；eLife 的附檔只有資料來源清單與模型驗證，沒有估計值，所以估計只能從網站拿。網站的下載頁、典藏頁（archives.html）與下載檔本身都沒有寫授權，頁尾只有網站一般的「© Copyright 2026 NCD Risk Factor Collaboration. All Rights Reserved.」；網站的「Data Downloads」主頁現在轉到 Microsoft Forms 的使用者登記表，但身高的頁面與典藏頁仍然直接連到 CSV。Our World in Data 轉載同一份成人身高（`nonRedistributable: false`），沒有另外寫 NCD-RisC 的授權。找不到 CC 授權的轉存，所以照「論文 CC BY 4.0，資料檔未另外標示授權」標示、引用兩篇論文，只用來做非商業的呈現（見第 71 點）；**要不要繼續用請使用者決定**（疾病主題的肥胖、糖尿病當初就因為這樣改用 WHO GHO 轉載的版本，身高沒有 WHO 的轉載）。
     - 國健署全球資訊網的「政府網站資料開放宣告」（https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=92&pid=5141 ，2023-01-16 更新）：網站上刊載的所有資料與素材採政府資料開放授權條款第 1 版，註明出處即可利用；同一個網站的頁尾另有「© 版權所有 請勿任意轉載作商業用途」。平均身高主題只引用國民營養健康狀況變遷調查成果報告表上的平均身高（事實），沒有轉載報告。
+    - **OECD 的稅率資料是 CC BY 4.0**：Corporate Tax Statistics、Tax Database（表 I.7）、Taxing Wages 是 OECD Data Explorer 的資料（2024 年 7 月起的預設授權）；《Consumption Tax Trends 2024》（2024 年 11 月）與《Tax Policy Reforms 2025》《Tax Policy Reforms 2026》的版權頁寫「Attribution 4.0 International (CC BY 4.0)」。OECD Tax Database 2024 年 6 月版的 VAT 表（Excel）是 2024 年 7 月以前的，沒有用，只拿來比對抄錄（見第 72 點）。
+    - **Tax Foundation 是 CC BY-NC 4.0（非商業）**，PwC、KPMG、EY 的稅務摘要是商業內容，英文維基百科的稅率表多半引用 PwC、也有過時的數字：稅率主題都沒有用，OECD 以外的國家留灰色（見第 72 點）。
+    - 財政部財政資訊中心（綜合所得稅申報核定統計專冊）、賦稅署（公告與附表）、臺北國稅局（適用稅率）網站的「政府網站資料開放宣告」都採政府資料開放授權條款第 1 版（2026-10-26 查）；所得稅法、加值型及非加值型營業稅法的條文與機關的公告不受著作權保護（著作權法第 9 條）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -1942,6 +1947,36 @@ pipeline/
     - **沒有值的**：南蘇丹、科索沃（NCD-RisC 沒有單獨估計，`noValue`），以及 NCD-RisC 沒有收的屬地與小國（澳門、列支敦斯登、摩納哥、聖馬利諾、梵蒂岡、關島等 52 個地圖單位）。
     - **側欄**（`HeightPanel.tsx`）：男女的平均身高依出生年一張、19 歲一張（男藍女橘，虛線是世界平均，圖例也畫成虛線），上面寫選定那一年的值與 95% 不確定區間、男女差距、比 1896 年長高多少、世界平均；時間軸是 19 歲的年份時，成人那張寫 1996 年出生，反過來也一樣。不確定區間在 `countries/<ISO3>.json`（點國家才載入，差分編碼，成人與 19 歲的序列長度不同，各自對齊 `cohorts`、`years` 的起訖年）。通用側欄的折線圖與這兩張圖的 y 軸都不從 0 開始（`chartZoom`）。
     - **大小**：7 個指標檔加 `taiwan.json`、`manifest.json` 共 269 KB，`countries/` 200 個檔共 276 KB（每個約 1.4 KB），整個主題 0.55 MB，沒有網格圖磚。
+
+72. **稅率**（`pipeline/topics/taxes.py`、`pipeline/sources/oecd_tax.py`、`tw_tax_law.py`、`src/topics/taxes.ts`、`src/topics/panels/TaxesPanel.tsx`）：
+    - **只放法定稅率**：實際收到多少稅（稅收占 GDP）已經在「物價與財政」主題（第 32 點），這裡不重複；頁尾的說明寫明兩者的關係。
+    - **來源的選擇**（先看授權）：
+      - 公司稅用 **OECD Corporate Tax Statistics**（SDMX `OECD.CTP.TPS,DSD_TAX_CIT@DF_CIT`，`MEASURE=CIT_C`、`TARGETING=ST`、`SECTOR=S13`：中央加地方的法定稅率），146 個轄區、2000–2026 年。**沒有台灣**，也沒有俄羅斯、伊朗等沒有參加的國家（`coverage` 寫「OECD 的資料沒有收」）。2026 年土耳其、以色列、哥倫比亞還沒有值，所以 2026 年沒有 OECD 平均。
+      - 個人所得稅最高稅率與起徵點用 **OECD Tax Database 表 I.7**（SDMX `DSD_TAX_PIT@DF_PIT_TOP_EARN_THRESH`，`TS_PIT` 是各級政府合計的最高稅率、`TS_PIT_TH` 的 `FCTR_WG_A_SAL_A` 是起徵點等於平均薪資的幾倍），OECD 38 國、2000–2025 年。起徵點以薪資總額計，已經加回各國標準的免稅額與扣除額：英國 2024 年 2.378 × 平均年薪 52,615 英鎊 = 125,140 英鎊（就是 45% 一級的起點），德國 4.637 × 63,528 歐元 ≈ 29.5 萬歐元（應稅所得 277,826 歐元加上扣除額）。
+      - 勞動稅負用 **OECD Taxing Wages**（SDMX `DSD_TAX_WAGES_COMP@DF_TW_COMP`，`AV_TW`、`PT_COS_LB`、單身沒有小孩 `S_C0`、平均薪資 `AW100`），OECD 38 國、2000–2025 年；OECD 平均用 OECD 公布的 `OECD_REP`，pipeline 檢查跟自己算的 38 國平均差不到 0.1 個百分點。
+      - 加值型營業稅：OECD 的 SDMX 沒有 VAT 的資料流（2026-10 查全部的 dataflow），OECD Tax Database 的 VAT 表（`vat-gst-rates-ctt-trends.xlsx`，2024 年 6 月版）是 2024 年 7 月以前的，照第 12 點不用。改用 **《Consumption Tax Trends 2024》附錄表 2.A.1**（2024 年 11 月出版，CC BY 4.0）：OECD 會員國 2005、2008、2011、2014、2017、2020–2024 年 1 月 1 日的標準稅率。PDF 程式讀不了（`pdfreader.py` 不支援這份 PDF 的格式），表抄在 `oecd_tax.VAT_CTT_2024`；抄的時候用 pypdf 讀文字、程式轉成表，再跟上面那個 Excel 重疊的年份逐一比對，只有盧森堡、土耳其 2023 年不同（Excel 的 2023 年是 9 月 1 日的稅率：盧森堡 2023 年全年暫時降為 16%、土耳其 7 月調為 20%）。美國沒有全國性的 VAT，`noValue` 寫原因；哥斯大黎加 2019 年才有 VAT，OECD 平均的分母 2020 年起才算它。算出來的 OECD 平均跟書上的一樣（2005 年 17.8%、2024 年 19.3%）。
+      - VAT 的 2025、2026 年：書只到 2024 年。OECD《Tax Policy Reforms 2025》《Tax Policy Reforms 2026》（CC BY 4.0，涵蓋全部 OECD 會員國）寫了這兩年的標準稅率調整：芬蘭 2024 年 9 月 24% → 25.5%、以色列 2025 年 1 月 17% → 18%、斯洛伐克 2025 年 1 月 20% → 23%、愛沙尼亞 2026 年 1 月 22% → 24%（2025 年版寫原本預定 2025 年 7 月，2026 年版寫 2026 年 1 月）；表 3.10 的標準稅率欄另外只列了瑞士、盧森堡（2024 年 1 月的調整，書上的 2024 年已經有）與不是會員國的印尼、新加坡、羅馬尼亞，其他會員國沒有調整，所以 2025、2026 年 = 2024 年加上這幾個調整（`oecd_tax.VAT_CHANGES`），各國附註寫出來。oecd.org 的網頁擋程式（HTTP 403），兩本的 PDF 讀的是第三方網站轉存的檔，只拿來確認這幾個事實。
+    - **OECD 以外的國家留灰色**（個人所得稅、起徵點、VAT、勞動稅負，`coverage` 寫「OECD 以外沒有開放資料」）：
+      - PwC、KPMG、EY 的稅務摘要是商業內容，沒有用。
+      - **Tax Foundation 是 CC BY-NC 4.0**：網站的 Copyright Notice（https://taxfoundation.org/copyright-notice/ ，2026-10-26 查）寫「licensed under a Creative Commons Attribution NonCommercial 4.0 International License」，只能非商業使用；它的各國公司稅率也是整理自 OECD 與會計師事務所的摘要，沒有用。
+      - 英文維基百科「Value-added tax」「Tax rates around the world」的表是 CC BY-SA 4.0，但大部分列沒有出處、有出處的多半引用 PwC 的摘要，也有過時的數字（例如巴哈馬寫 12%），照較保守的做法沒有用。
+      - 歐盟執委會的 Taxation Trends 資料（可以補保加利亞、克羅埃西亞、賽普勒斯、馬爾他、羅馬尼亞 5 個非 OECD 的歐盟國家）下載頁只有稅收的 Excel（NTL、country profiles），沒有法定稅率的表，沒有補。
+      - 世界銀行、IMF 的開放資料是稅收（IMF 的 WoRLD 已經用在「物價與財政」），沒有逐國的法定稅率表。
+    - **OECD 的表裡兩個不可能的值當成缺值**（`oecd_tax.top_income_tax()`）：拉脫維亞 2025 年的最高稅率與起徵點都是 0（拉脫維亞是累進稅率）、法國 2013 年的最高稅率是 122.8%（前後兩年都是 54.5% 左右）；附註寫明。
+    - **OECD 平均**：38 個會員國的簡單平均（OECD 公布的也是簡單平均），當年有值的會員國不到 95% 就不算（`MIN_MEMBERS`）；拉脫維亞 2025 年、法國 2013 年少一國照算。起徵點的倍數差很多（哥倫比亞 51.5 倍、匈牙利單一稅率 0），平均被少數國家拉高（2025 年平均 6.6、中位數 3.0），改用中位數（`aggregates.OECD_MEDIAN`）。
+    - **台灣**（都不在 OECD 的資料裡，`tw_tax_law.py`）：
+      - 營利事業所得稅：所得稅法第 5 條的歷次條文（全國法規資料庫的歷史條文，`LawOldVer.aspx?pcode=G0340003&lnndate=…`）：2009 年 5 月修正前 25%；2009-05-27 修正為 20%、自 99 年度施行，但 2010-06-15 再修正為 17%、同樣自 99 年度施行，所以 2010 年起是 17%；2018-02-07 修正為 20%、自 107 年度施行。台灣沒有地方的營所稅，中央就是合計；未分配盈餘加徵（2018 年起 5%、之前 10%）不算在法定稅率裡，附註寫明。
+      - 綜合所得稅的級距：1999–2009 年（88–98 年度）用財政部財政資訊中心《綜合所得稅申報核定統計專冊》各年度說明頁的稅率表（88–96 年度 370／990／1,980／3,720 千元，97–98 年度 410／1,090／2,180／4,090 千元，都是 6%、13%、21%、30%、40%）；2010–2021 年用同一份專冊的表 6-2（依稅率級距分列，萬元：99–101 年度 50／113／226／423、102–105 年度 52／117／235／440（104 年度起加 1,000 萬元以上 45%）、106 年度 54／121／242／453／1,031、107–110 年度 54／121／242／453），105 年度起跟臺北國稅局「適用稅率」頁的速算公式對照過；2022–2026 年用賦稅署每年度的公告附表（111–112 年度 56／126／252／472、113–114 年度 59／133／266／498、115 年度 61／138／277／519 萬元）。法律條文寫的是基準金額（例如 2009 年修正的 409 萬元），實際適用的是財政部依物價調整後公告的，所以用專冊與公告的數字。
+      - 最高稅率：40%；2015–2017 年綜合所得淨額超過 1,000 萬元（2017 年 1,031 萬元）的部分 45%（2014-06-04 修正、自 104 年度施行，2018 年取消）。OECD 的 PIT 到 2025 年，台灣也放 2000–2025 年。
+      - 起徵點的倍數：最高一級的起點（綜合所得淨額）加上本人免稅額、單身的標準扣除額、薪資所得特別扣除額（`tw_tax_law.gross_threshold()`，單身、只有薪資，跟 OECD 的定義一樣以薪資總額計），除以主計總處工業及服務業受僱員工的每人每月總薪資 × 12（`dgbas_wages.monthly_earnings()`，含部分工時；OECD 的平均薪資只算全時，所以台灣的平均略低、倍數略高）。2025 年：4,980,000 + 97,000 + 131,000 + 218,000 = 5,426,000 元 ÷ 760,596 元 = 7.1 倍（日本 7.7、美國 8.7、OECD 中位數 3.0）；2015–2017 年 45% 一級約 17.5 倍。
+      - 免稅額、標準扣除額、薪資所得特別扣除額：1999–2009 年用專冊的說明頁；標準扣除額 2010–2023 年也寫在專冊的說明頁（76／79／90／120／124 千元）；薪資所得特別扣除額 2015 年 12.8 萬、2018 年 20 萬是所得稅法第 17 條的條文金額；2018–2021 年的免稅額 8.8 萬是 111 年度公告寫的「由 8.8 萬元提高至 9.2 萬元」；2022–2026 年是公告附表。**2010–2017 年的免稅額、2010–2014 年的薪資所得特別扣除額沒有找到官方的逐年數字**（賦稅署與財政部網站的新聞稿只留 111 年度起，專冊的說明頁 99 年度起不再寫這兩項），沿用 2009 年的 8.2 萬、10.4 萬（`ASSUMED`）；實際可能因物價調整多幾千元，倍數只差不到 0.1%，側欄寫明。
+      - 加值型營業稅：加值型及非加值型營業稅法第 10 條（5–10%，由行政院定之），1986 年 4 月實施起一直是 5%。
+      - 勞動稅負：OECD 沒有算台灣。自己用勞保、健保、勞退的費率算，口徑不一定跟 OECD 一樣（例如勞退新制是提撥到個人帳戶，OECD 對這類強制提撥另外歸成 non-tax compulsory payments，不一定算在 tax wedge），留灰色，`noValue` 寫原因。
+    - **分級門檻**（橘色循序色，所有年份共用）：公司稅 5、10、15、20、25、30%（0% 的避稅天堂、9% 的匈牙利與阿聯、12.5% 的愛爾蘭、17% 的新加坡、20% 的台灣、25% 的中國與英國、30% 以上的德國、法國、巴西各在不同級）；最高所得稅率 20、30、40、45、50、55%；起徵點 1.5、2、3、5、10、20 倍（`unranked`，數值沒有好壞）；VAT 8、12、16、20、22、25%；勞動稅負 15、25、30、35、40、45%。
+    - **位數**：稅率存三位小數（存兩位時日本 55.945% 變成 55.95%，顯示時四捨五入成 56%，OECD 的表是 55.9%），畫面上整數不留小數（20%）、其他留一位（25.6%）。
+    - **指標名稱**：五個指標是按鈕列（`MAX_SEGMENTS` 是 5），名稱取短的（營所稅、所得稅最高稅率、最高稅率起徵點、營業稅（VAT）、勞動稅負；英文 Corporate tax、Top income tax、Top rate threshold、VAT、Tax wedge），中文、英文 1280px 寬時控制列都是一行；全名寫在指標說明裡。
+    - **側欄**（`TaxesPanel.tsx`）：選定那一年各項稅率跟 OECD 平均（起徵點是中位數）的表、營所稅、最高所得稅率、VAT、勞動稅負各一張歷年折線（虛線是 OECD 平均；VAT 只有部分年份，畫出每個點）；台灣另外列那一年度的綜合所得稅級距、起徵點的換算（淨額 + 免稅額 + 扣除額 = 薪資收入 ÷ 平均年薪）與稅率的變化（`taiwan.json`）。
+    - **大小**：5 個指標檔加 `taiwan.json`、`manifest.json` 共約 50 KB，沒有網格圖磚。
 
 
 ## 9. 之後可以做的

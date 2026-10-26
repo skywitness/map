@@ -51,6 +51,8 @@ STEPS = {
     "gender": "topics.gender",
     "wages": "topics.wages",
     "fiscal": "topics.fiscal",
+    # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
+    "taxes": "topics.taxes",
     "innovation": "topics.innovation",
     "wealth": "topics.wealth",
     "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
