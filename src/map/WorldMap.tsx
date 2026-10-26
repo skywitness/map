@@ -825,7 +825,18 @@ export function WorldMap(props: WorldMapProps) {
         suppressClickRef.current = false;
         return;
       }
-      latest.current.onSelect((featureAt(e.point, false)?.properties?.iso3 as string | undefined) ?? null);
+      const f = featureAt(e.point, false);
+      let iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
+      // 點圖層的點沒有國家欄位時（便利商店與連鎖品牌的店家），選取點底下的國家，不要取消選取
+      if (!iso3 && f?.layer.id.startsWith(OVERLAY_PREFIX)) {
+        for (const id of HOVER_LAYERS) {
+          if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
+          const [c] = map.queryRenderedFeatures([e.point.x, e.point.y], { layers: [id] });
+          iso3 = (c?.properties?.iso3 as string | undefined) ?? null;
+          if (iso3) break;
+        }
+      }
+      latest.current.onSelect(iso3);
     });
   }
 

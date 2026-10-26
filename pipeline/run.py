@@ -56,6 +56,9 @@ STEPS = {
     "fiscal": "topics.fiscal",
     # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
     "taxes": "topics.taxes",
+    # 要先有 geo 的國界；第一次會向 Overpass 發 27 個查詢（9 個品牌、6 種店型的名稱比對、便利商店 12 個經度帶，
+    # 約 72 MB，公用伺服器忙的時候要兩三個小時）
+    "chain-stores": "topics.chain_stores",
     "innovation": "topics.innovation",
     "wealth": "topics.wealth",
     "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格

@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -123,6 +123,7 @@ pipeline/
 - `aggregates`（選填）：世界合計，用來算「占全球比例」和畫對照線。
 - `notes`（選填）：個別國家的附註，例如改用其他來源補上，會顯示在側欄。
 - `notesEn`（選填）：`notes` 的英文版，英文介面用；沒有的話英文介面不顯示附註。
+- `hints`、`hintsEn`（選填，2026-10-26 起）：tooltip 第三行的短註（細線隔開，`.tt-hint`），滑過地圖就該看到、不必點開側欄的一句話。便利商店與連鎖品牌用它寫 OpenStreetMap 的涵蓋率（「公司公布 7,334 家，OSM 涵蓋率 85%」，低於一半時寫「明顯偏低」）；完整的說明仍放 `notes`。網格模式不顯示。
 - `latestWithin`（選填）：普查、調查年份零散的指標（例如住宅主題）。某年沒有資料的國家，改用它 `latestWithin` 年內最近一年的值：
   - 地圖、3D、排名表、側欄數值卡片、單一年份的 CSV 都用 `panels/stats.ts` 的 `latestAt()` 取值，所以結果一致。
   - 實際的資料年份要標出來：tooltip 寫「2023 年的資料」；有國家用之前的年份時，排名表多一欄「資料年份」（寫在數值旁會擠短那一列的長條），表格下方說明規則；側欄卡片寫（2023 年）；CSV 多一欄「資料年份」。
@@ -235,6 +236,9 @@ pipeline/
   - `sortField`：大的畫在上面（`circle-sort-key`）。`timeField` 加上指標的 `overlayTime` 決定時間軸怎麼篩選（`setFilter`，不重送資料）。
   - `tooltip(p, { countryName })` 回傳標題與說明，原文地名放 `properNoun`（`translate="no"`）。點有 `iso3` 欄位時，滑過會同時標出那個國家，點一下選取它；海上的地震沒有國家，照樣有 tooltip。
   - `indicators`：只在某些指標顯示；`items`：只在某些子項目顯示（`dimension` 的選項 id）。`hidden: true`：預設關閉，第一次打開才下載資料檔（App 的 `useJsonEach` 保留已載入的檔，打開另一個圖層時地圖不會閃一下）。
+  - **跟著子項目換資料檔**（便利商店與連鎖品牌，2026-10-26 起）：`file` 含 `{item}` 時換成目前的子項目（`App.tsx` 的 `overlayPath()`），例如 `points/{item}.json`：一個品牌一個店家檔，只下載選到的品牌；換品牌時是同一個圖層（同一個 `ov-<id>`）換資料，開關狀態不變，新的檔載入前先隱藏。tooltip 的第二個參數多了 `item`（目前的子項目），店家的 tooltip 用它寫品牌名稱。
+  - **放大才畫**：`minZoom` 是 MapLibre 圖層的 `minzoom`（所有點一樣，不必像 `minValue` 每個點多一個欄位）。便利商店上萬個點在世界全圖會糊成一片、蓋住面量圖，5 級（大約一個國家的大小）以上才畫。
+  - **點沒有國家欄位時**：滑過照樣顯示點的 tooltip；點一下選取點底下的國家（`WorldMap.tsx` 的 click 依 `HOVER_LAYERS` 再查一次），不會取消選取。店家很密的地方（臺北、東京）放大後幾乎點哪裡都是店，原本會一直取消選取。店家不存國家欄位，省下每個點 6 個位元組。
   - 線可以依 `types` 分類上色，`dash: true` 的類別畫虛線（`line-dasharray` 不能依資料變化，另外一層 `ov-<id>-dash`）。
   - **線的 tooltip 與時間篩選**（海底電纜，2026-10-23 起）：`LinesData.records` 是每條線一筆紀錄（跟點的 `PointsData` 同一種欄位分開存的格式，`common.lines_file()` 的 `records`、`record_fields`、`record_scale`、`record_delta`），前端 `decodeLines()` 還原。
     - 線圖層有 `tooltip` 時可以滑過：另外一層看不見的寬線 `ov-<id>-hit`（9 px、`line-opacity: 0`；`queryRenderedFeatures` 依線寬判斷，跟不透明度無關）給 hover 查詢，細線也滑得到；點圖層優先。滑過時 `ov-<id>-hover` 把紀錄完全相同的線（同一條電纜被切成的好幾段，`g` 是組別）一起加粗。點一下不會取消選取：點選時略過線的查詢層，選到底下的國家。
@@ -412,6 +416,7 @@ pipeline/
 | 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
 | 關鍵礦產 | 17 種礦產（稀土、鋰、鈷、鎳、天然石墨、錳、鎵、鍺、錫、鎢、釩、鈮、銻、鉑、鈀、銅、鋁土礦，子項目）的產量（比例圓，預設稀土）、占全球產量、蘊藏量（比例圓）、占全球蘊藏量 | 主要生產的礦產（全球前 5 名而且占 1% 以上，或占 5% 以上，附名次與占比） | USGS Mineral Commodity Summaries 2020–2026 年版（各章 PDF 的世界產量與蘊藏量表） | 產量 2018–2025（2025 年是初估；鍺只到 2020）；蘊藏量 2019–2025；台灣不是生產國（noValue） |
+| 便利商店與連鎖品牌 | 品牌（子項目：7-Eleven、全家、Lawson、所有便利商店、麥當勞、星巴克、肯德基、Subway、IKEA、Costco）的每百萬人店數（預設 7-Eleven，各品牌自己的門檻）與店數（比例圓）；放大到 5 級以上畫出選定品牌的每一家店（一個品牌一個檔，選到才下載） | 各品牌在 OSM 上的店數、每百萬人、公司公布的店數與涵蓋率，公司店數的出處；所有便利商店的數量與標示最多的品牌 | OpenStreetMap（Overpass API，ODbL；這個主題的資料檔是衍生資料庫，同樣 ODbL）；人口用 UN WPP 2024 的 2026 年；公司公布的店數（年報、10-K、法說會簡報、官網，`pipeline/sources/chain_official.py`）只寫在附註、tooltip 與側欄 | 2026-10-26 的快照（沒有歷年資料） |
 | 貿易 | 出口、進口流向圖（點選國家畫出前 15 大夥伴的弧線）；全部商品、農產品合計與農業主題的 22 種農產品 | 主要出口對象、主要進口來源（金額與占比） | CEPII BACI（全部商品）、FAOSTAT 詳細貿易矩陣（農產品） | 全部商品 2017–2024；農產品 2000–2023 |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、機場數、大型機場數 | 鐵路長度、機場清單（IATA 代碼） | Natural Earth 1:10m 鐵路、OurAirports | 目前的快照 |
 | AI | 數據中心數、AI 算力（H100 等效）、重要 AI 模型數、token 用量（OpenRouter）、Claude 使用量占比與人均指數、生成式 AI 使用率 | 數據中心營運者、逐月 token 用量、已知 AI 叢集、近期重要模型、Claude 用途 | OpenStreetMap、Epoch AI、OECD.AI（OpenRouter）、Anthropic Economic Index、Microsoft AI Diffusion | 數據中心為 2026 年快照；算力 2015–2025；模型 2010–2025；token 2025–2026（每月平均）；使用量 2025–2026 |
@@ -549,6 +554,8 @@ pipeline/
     - Microsoft AI Diffusion 是 MIT。
     - Unicode CLDR 是 Unicode License v3（類似 MIT，需保留版權聲明）；Glottolog 是 CC BY 4.0。
     - OpenStreetMap 是 ODbL，需標示「© OpenStreetMap contributors」。
+      - 便利商店與連鎖品牌主題的資料檔（各國店數、每百萬人店數、店家位置、側欄明細）是從 OSM 算出來的衍生資料庫（Derived Database），照 ODbL 第 4.4 條同樣以 ODbL 提供：頁尾的來源寫「OpenStreetMap contributors（ODbL）」連到 https://www.openstreetmap.org/copyright，`manifest.json` 的 `license` 寫 ODbL 1.0，主題說明寫明「這個主題的資料檔是 OpenStreetMap 的衍生資料庫，以 ODbL 提供」。地圖本身（畫出來的圖）是 Produced Work，右下角已有 © OpenStreetMap contributors（第 75 點）。
+      - 那個主題的公司公布店數（年報、10-K、法說會簡報、官網）是引用的事實：一國一個數字加日期與出處，寫在附註、tooltip 與側欄，不是轉載誰的資料庫；沒有用 AllThePlaces（爬各公司官網的店家位置）這類從公司網站複製的資料集。
     - OECD.AI 的 OpenRouter 資料未明示授權。
     - Natural Earth（國界、鐵路）與 OurAirports 是公有領域。
     - USGS GMTED2010 是公有領域；Wikidata 是 CC0；地圖上的 AWS Terrain Tiles 依各資料來源標示（見第 5 節「地形圖層」）。
@@ -2039,6 +2046,35 @@ pipeline/
     - **跟其他主題**：移民與難民的頁尾指到這裡的僑匯，這裡指到它的僑民去向（第 26 點）。
     - **涵蓋**：援助國 50 個（DAC 會員國與向 OECD 申報的其他國家；2024 年 49 個有金額、48 個有占 GNI），其他國家寫「沒有向 OECD 申報援助」（指標的 `coverage`）。受援國 179 個（1960 年以來在 DAC2A 裡有收到 ODA 的），2024 年 141 個（占 GNI 122 個），其他寫「不在 OECD 的受援國名單上」。僑匯 2024 年收入 164 國、占 GDP 163 國、支出 167 國（都含台灣）。
     - **大小**：8 個指標檔、agencies 與 manifest 共 376 KB（gzip 後 139 KB），65 個流向檔 2.9 MB（gzip 後 839 KB；一年約 45 KB、gzip 後 13 KB，選了國家才載入那一年），50 個援助國明細 172 KB（gzip 後 52 KB），共約 3.5 MB（gzip 後 1.0 MB）；沒有網格圖磚。
+75. **便利商店與連鎖品牌**（`pipeline/topics/chain_stores.py`、`pipeline/sources/osm.py`、`pipeline/sources/chain_official.py`、`src/topics/chain-stores.ts`、`src/topics/panels/ChainStoresPanel.tsx`）：
+    - **來源的選擇**：各國的連鎖店數沒有開放授權、逐國的官方統計；能轉載的店家位置只有 OpenStreetMap（ODbL）。AllThePlaces（爬各公司官網的店家位置，輸出 CC0）是從公司網站複製的資料，沒有用；PwC 這類商業整理也沒有。公司自己公布的店數只拿來比對涵蓋率（第 12 點）。
+    - **品牌怎麼認**（`classify()`）：
+      - `brand:wikidata`（name-suggestion-index 的標法）。每個 QID 都用 Wikidata API 查過標籤：7-Eleven Q259340；FamilyMart Q11247682（品牌）、Q1191685（日本的公司，見下面）、famima!! Q115868189 與台灣全家 Q10891564；Lawson Q1557223 加子品牌 Natural Lawson Q11323850、Lawson Store 100 Q11350960、Lawson+3F Q24866804、Lawson+Poplar Q116957010、Lawson+toks Q115868119、泰國的 Lawson 108 Q125869566；McDonald's Q38076 與 NSI 給烏克蘭的 Q4043856；Starbucks Q37158 與 Starbucks Reserve Q71150001；KFC Q524757；Subway Q244457；IKEA Q54078；Costco Q715583。McCafé（Q3114287）是另一個品牌，不算麥當勞。
+      - 沒有 `brand:wikidata` 的店：`name` 或 `brand` 以品牌名稱開頭（不分大小寫，列了中、日、韓、泰文的寫法），而且店型對才算。全家的「全家」後面不能接「福」（大陸有叫「全家福」的小店）。韓國的「훼미리마트」2012 年改名 CU，沒有列。
+      - 名稱比對有同名的獨立小店：「Family Mart」在美國、加拿大、迦納、比利時，「Lawson's」在美國（俄亥俄州的舊連鎖），「Costco Storez」在賴索托、「Costco Supermarket」在烏干達。所以全家、Lawson、Costco 依名稱認的店只算品牌有開店的國家（`name_countries`），有 `brand:wikidata` 的照算；IKEA 依名稱比對的 45 家多半是同名的家具行（智利的「Ikean」、伊拉克的「IKEA WOOD」），IKEA 只認 `brand:wikidata`。依名稱認的共 1.3 萬家（7-Eleven 5,754、全家 2,115、Lawson 2,111、麥當勞 784、肯德基 719、星巴克 703、Subway 373、Costco 22），日本、南韓、泰國最多。
+      - 日本有 5,769 家全家標的是公司的 QID（Q1191685，株式会社ファミリーマート，Wikidata 的說明是「Japanese retail chain company」），name-suggestion-index 沒有列；確定是 FamilyMart 的店，加進 QID（日本的涵蓋率從 46% 變 77%）。其他品牌也查過用了別的 QID、名稱又是這個品牌的物件，都只有個位數。
+      - 店型：便利商店品牌是 `shop=convenience`；只標成加油站（`amenity=fuel`）的 7-Eleven 在 150 公尺內沒有同品牌的便利商店時才算一家（美國很多 7-Eleven 加油站只標了加油站）；麥當勞、肯德基、Subway 是 `amenity=fast_food` 或 `restaurant`；星巴克是 `amenity=cafe`；IKEA 是 `shop=furniture`，名稱有規劃訂購點、取貨點、快閃店、設計工作室的不算（各國語言的寫法都列了）；Costco 是 `shop=wholesale`（或 supermarket、department_store），加油站、藥局、輪胎中心、美食區、眼鏡行不算。品牌對、店型不對的（7-Eleven 的停車場、IKEA 的餐廳、只有建築物外框沒有店型的）都不算。
+      - 同一家店標了兩次（建築物外框一個、店的點一個）：同一個品牌 25 公尺內的點當成一家，留點的位置；IKEA、Costco 的賣場有幾百公尺長，用 400 公尺。
+    - **已經退出的國家**（`EXITED`）：麥當勞（2022）、星巴克（2022）、肯德基（2023）退出俄羅斯，IKEA（2022）退出俄羅斯與白俄羅斯，OSM 上還留著的舊標示不算，數值是 0，附註與 tooltip 寫出原因與沒算的點數。改名後的接手品牌（Rostic's、Ростикс、Вкусно — и точка；俄羅斯還有 10 家名稱是 SubJoy、Sabway 卻標了 Subway 的品牌標籤）有些還帶著原本的 `brand:wikidata`，不論在哪一國都不算。Subway 在俄羅斯還有加盟店（公司沒有宣布退出），照算。沒算的舊標示：麥當勞 43、肯德基 194、IKEA 2 個。
+    - **國家**：店家的經緯度用 Natural Earth 1:50m 的國界判斷（`geoindex.countries_at()`，跟 `country_at()` 規則相同的 numpy 批次版，隨機 3,600 個點逐一比對結果完全一樣；約 100 萬個點逐點判斷要十幾分鐘，批次幾十秒）。香港、澳門是自己的形狀，不算中國大陸。
+    - **人口**：WPP 2024 的 2026 年中推估（台灣也用 WPP，跟人口主題一樣），每百萬人店數 = OSM 店數 ÷ 人口 × 100 萬。世界合計是所有 OSM 店數 ÷ 世界人口。
+    - **Overpass 的用法**（`osm.py`）：27 個查詢（每個品牌的 QID 一個、名稱比對 6 種店型各一個、`shop=convenience` 12 個 30° 經度帶），一次一個、查完停 5 秒，CSV 輸出只要 9 個欄位（共約 72 MB），最後加 `out count` 檢查筆數（CSV 沒有錯誤訊息的欄位，查到一半逾時只會少資料）。
+      - CSV 的值裡的換行不會跳脫（有些店名標了兩行），一筆會斷成兩行：不是 node／way／relation 開頭的行接回上一行（`_csv_lines()`），筆數才對得上 `out count`。第一次沒處理，56,934 筆的經度帶被當成不完整重查了一次。
+      - 2026-10-26 overpass-api.de 一直回「at capacity」的 502，每個查詢排隊 1–10 分鐘，失敗時等 30、60、120…秒再試，每第三次改試 private.coffee（明文允許自動化使用，但那天它的閘道 2–3 分鐘就逾時，一次也沒成功），全部跑完約 2.5 小時。結果存在 `.cache/osm/`，之後重跑不會再查（約 1 分鐘，主要是 95 萬個點判斷國家）；`--refresh` 才會重新查。
+    - **涵蓋率**：OSM 是志願者畫的地圖，不是官方店數。`chain_official.py` 列了 41 筆公司公布的店數（台灣 7 筆、日本 7 筆、美國 7 筆、其他國家 20 筆；2026-10-26 查，能找到公司自己的文件就用文件，台灣的星巴克、麥當勞、肯德基與中國的麥當勞只找到報紙引述公司宣布的數字，出處寫那家報紙），涵蓋率 = OSM 店數 ÷ 公司店數：
+      - 台灣：7-Eleven 5,904／7,334（81%）、全家 3,602／4,504（80%）、麥當勞 401／430（93%）、星巴克 461／600 以上（77%）、肯德基 176／200（88%）、IKEA 9／8（113%，含小型店）、Costco 14／14（100%）。
+      - 日本：7-Eleven 17,138／21,956（78%）、全家 12,615／16,466（77%）、Lawson 11,301／14,697（77%）、麥當勞 2,445／3,047（80%）、星巴克 1,446／2,116（68%）、肯德基 812／約 1,335（61%）、Costco 33／37（89%）。全家原本只有 46%：日本有 5,769 家標的是公司的 QID（Q1191685），加進來才到 77%。
+      - 美國：麥當勞 13,597／13,706（99%）、肯德基 3,222／3,482（93%）、Subway 12,693／18,773（68%）、星巴克 11,306／16,933（67%，授權店在超市、書店、機場裡面，OSM 比較少標）、7-Eleven（美國＋加拿大）7,266／12,712（57%）、Costco（含波多黎各）641／647（99%）、IKEA 65／52（125%：規劃訂購點、取貨點在 OSM 上很多也只寫「IKEA」，分不出來）。
+      - 明顯偏低的：中國大陸的 Lawson 495／6,977（7%）、肯德基 2,697／13,789（20%）、星巴克 1,996／7,991（25%）、麥當勞 2,249／7,100 以上（32%）；南韓的 7-Eleven 3,451／11,040（31%）、星巴克 985／2,077（47%）；泰國的 7-Eleven 5,672／15,945（36%）。菲律賓 7-Eleven 3,100／4,491（69%）、加拿大星巴克 1,242／1,447（86%）。
+      - Costco 的倉儲賣場幾乎都標了：14 個國家 80–105%（南韓 80%、日本 89%，其他 99–105%）。
+      - 低於 50% 時 tooltip 寫「OSM 只標了公司公布店數的 x%，明顯偏低」（指標檔的 `hints`，第 3 節），側欄也另外提醒；地圖照樣畫 OSM 的數字，不隱藏、不換成公司的數字，因為只有少數國家有公司數字，混在一起反而不能比。
+      - 公司只公布合計的（7-Eleven, Inc. 的美國＋加拿大、Costco 的美國含波多黎各），OSM 也加總同樣的國家，表格的數字加 *。
+    - **台灣**：7-Eleven 每百萬人 257 家（OSM 5,904 家）、全家 157 家（3,602 家）都是 199 個國家與地區的第 1，第 2 都是日本（140、103 家）；用公司公布的店數算是每百萬人 319、196 家（人口用 WPP 的 2026 年 2,301 萬人）。門檻讓台灣自己一級（7-Eleven 200 以上、全家 150 以上）。其他：星巴克 20 家（第 8）、麥當勞 17 家（第 21）、肯德基 7.6 家、Subway 4.4 家、Costco 0.61 家（第 5）、IKEA 9 家。所有便利商店 13,314 家（每百萬人 579 家，第 27；小雜貨店也標成便利商店的國家排在前面，例如白俄羅斯、喬治亞、摩爾多瓦），標示最多的是 7-Eleven、全家、萊爾富 1,725、蝦皮店到店 537、OK超商 523。官方的店數都只寫在附註、tooltip 與側欄。
+    - **所有便利商店**：子項目多一個「所有便利商店」（OSM 上所有 `shop=convenience`，不分品牌，含獨立的小店與加油站附設的），用同樣的兩個指標；本來做成第三個指標，控制列在 1280px 的英文版會折成兩行，所以改成子項目。全球 84.5 萬家（3 個便利商店品牌合併重複時拿掉的點不算），沒有店家位置的點（檔案太大）。分級門檻 25、50、100、200、400、800，台灣、日本在 400–800 那一級。各國對便利商店的標法差很多（小雜貨店有些國家標成便利商店、有些標 `shop=supermarket` 或 `general`），只能當參考。側欄列出標示最多的 8 個品牌（7-Eleven、全家、Lawson 依這裡的認法合併，其他照 `brand` 標籤）與沒有標品牌的家數。
+    - **店家位置**（`points/<品牌>.json`）：只有經緯度兩個欄位，量化到 0.0001°（約 11 公尺），依 Hilbert 曲線排序後經緯度都存差分（相鄰的店多半在附近，差很小），7-Eleven 約 4.8 萬家 359 KB（gzip 後 143 KB，每家約 7.6 個位元組）。一般點圖層的 `file` 含 `{item}`，選到的品牌才下載（第 4 節）；放大到 5 級以上才畫（`minZoom`）。沒有存國家欄位（每個點會多 6 個位元組），點一下選取點底下的國家。
+    - **人口不到 10 萬的地方**（38 個，`MIN_POPULATION`）不算每百萬人店數：一兩家店就是每百萬人幾十家（聖馬丁 4 家 Subway 是 90 家），梵蒂岡旁邊的一家肯德基落在 1:50m 的梵蒂岡國界裡就變成每百萬人近 2,000 家。地圖上留灰色，tooltip 與側欄寫原因（指標的 `noValue`，前端 `SMALL_POPULATION` 的清單跟 pipeline 算的比對，對不上時報錯）；店數照常有。
+    - **大小**：9 個品牌的店家位置 1.47 MB（gzip 後 611 KB，選到的品牌才下載），20 個指標檔 96 KB（gzip 後 33 KB），228 個國家明細 66 KB（gzip 後 50 KB），共 1.6 MB（gzip 後 696 KB）；沒有網格圖磚。
+    - **沒有歷年資料**：OSM 只有現在的快照（要歷年得讀歷史的 planet 檔，太大），時間軸只有 2026 年一個點。
 
 ## 9. 之後可以做的
 

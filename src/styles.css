@@ -965,6 +965,13 @@ kbd {
   font-size: 12px;
 }
 
+/* 指標檔的 hints：滑過就該看到的短註（例如 OpenStreetMap 的涵蓋率很低） */
+.tt-hint {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
 /* ECharts tooltip 內的結構（formatter 產生） */
 .tt-head {
   color: var(--ink-secondary);
@@ -1495,6 +1502,24 @@ kbd {
 .mini-table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* 便利商店與連鎖品牌的側欄：目前地圖上的品牌那一列 */
+.mini-table tr.is-current th,
+.mini-table tr.is-current td {
+  font-weight: 650;
+}
+
+.chain-sources {
+  padding-left: 18px;
+}
+
+.chain-sources li + li {
+  margin-top: 4px;
+}
+
+.chain-poor {
+  color: var(--ink);
 }
 
 /* 政府治理的側欄：六個面向的分數（點）、90% 信賴區間（色帶）與世界中位數（短線），0–100 的軸 */

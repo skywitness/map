@@ -77,3 +77,83 @@ def country_at(lon: float, lat: float) -> str | None:
                 if d2 < best_d2:
                     best, best_d2 = iso3, d2
     return best
+
+
+# 一次判斷很多點（便利商店與連鎖品牌主題約 100 萬個店家）：規則跟 country_at() 完全一樣，改用 numpy 一次算一批點，
+# 逐點呼叫 country_at() 要一個多小時，這裡幾十秒。
+_CHUNK_CELLS = 4_000_000  # 一批「點數 × 邊數」的上限，控制記憶體
+
+
+@lru_cache(maxsize=1)
+def _ring_arrays() -> list[list[tuple[tuple[float, float, float, float], list[object]]]]:
+    """每個國家每個多邊形：(外環的範圍, [外環, 洞…])，環是 numpy 的 (x, y) 陣列。"""
+    import numpy as np
+
+    out = []
+    for _iso3, _bbox, polygons in _countries():
+        country = []
+        for polygon in polygons:
+            rings = [np.asarray(r, dtype=float) for r in polygon]
+            outer = rings[0]
+            country.append(((outer[:, 0].min(), outer[:, 1].min(), outer[:, 0].max(), outer[:, 1].max()), rings))
+        out.append(country)
+    return out
+
+
+def _inside_many(x, y, ring):
+    """_inside() 的向量版：x、y 是一批點，回傳每個點在不在環裡（射線法，邊的配對跟 _inside() 一樣）"""
+    import numpy as np
+
+    xi, yi = ring[:, 0], ring[:, 1]
+    xj, yj = np.roll(xi, 1), np.roll(yi, 1)
+    out = np.zeros(len(x), dtype=bool)
+    step = max(1, _CHUNK_CELLS // len(ring))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        for s in range(0, len(x), step):
+            px, py = x[s : s + step, None], y[s : s + step, None]
+            crosses = ((yi > py) != (yj > py)) & (px < (xj - xi) * (py - yi) / (yj - yi) + xi)
+            out[s : s + step] = (crosses.sum(axis=1) % 2) == 1
+    return out
+
+
+def countries_at(lons: list[float], lats: list[float]) -> list[str | None]:
+    """country_at() 的批次版，結果相同：依國家順序，第一個包含這個點的國家；都不在國界內時取 0.3° 內最近的國界頂點。"""
+    import numpy as np
+
+    x, y = np.asarray(lons, dtype=float), np.asarray(lats, dtype=float)
+    found = np.full(len(x), -1)
+    r = NEAREST_MAX_DEGREES
+    countries = _countries()
+    for ci, ((_iso3, (x0, y0, x1, y1), _polygons), polygons) in enumerate(zip(countries, _ring_arrays())):
+        idx = np.nonzero((found < 0) & (x >= x0 - r) & (x <= x1 + r) & (y >= y0 - r) & (y <= y1 + r))[0]
+        if not len(idx):
+            continue
+        inside = np.zeros(len(idx), dtype=bool)
+        for (px0, py0, px1, py1), rings in polygons:
+            sub = np.nonzero(~inside & (x[idx] >= px0) & (x[idx] <= px1) & (y[idx] >= py0) & (y[idx] <= py1))[0]
+            if not len(sub):
+                continue
+            j = idx[sub]
+            hit = _inside_many(x[j], y[j], rings[0])
+            for hole in rings[1:]:
+                hit &= ~_inside_many(x[j], y[j], hole)
+            inside[sub] = hit
+        found[idx[inside]] = ci
+
+    rest = np.nonzero(found < 0)[0]
+    best = np.full(len(rest), r * r)
+    for ci, ((_iso3, (x0, y0, x1, y1), _polygons), polygons) in enumerate(zip(countries, _ring_arrays())):
+        sub = np.nonzero((x[rest] >= x0 - r) & (x[rest] <= x1 + r) & (y[rest] >= y0 - r) & (y[rest] <= y1 + r))[0]
+        if not len(sub):
+            continue
+        j = rest[sub]
+        for _bbox, rings in polygons:
+            v = rings[0]
+            step = max(1, _CHUNK_CELLS // len(v))
+            for s in range(0, len(j), step):
+                k = sub[s : s + step]
+                d2 = ((v[None, :, 0] - x[j[s : s + step], None]) ** 2 + (v[None, :, 1] - y[j[s : s + step], None]) ** 2).min(axis=1)
+                closer = d2 < best[k]
+                best[k[closer]] = d2[closer]
+                found[rest[k[closer]]] = ci
+    return [countries[c][0] if c >= 0 else None for c in found]

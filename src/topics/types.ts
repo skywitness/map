@@ -255,7 +255,10 @@ export type OverlayDef = { id: 'railways' | 'airports'; kind?: undefined; file: 
 interface OverlayBase {
   /** 主題內唯一：圖層開關、MapLibre 圖層 id（`ov-<id>`）用 */
   id: string;
-  /** 資料檔，相對於 data/topics/<topicId>/（有 topic 時是那個主題的資料夾） */
+  /**
+   * 資料檔，相對於 data/topics/<topicId>/（有 topic 時是那個主題的資料夾）。
+   * 含 `{item}` 時換成目前的子項目（例如便利商店與連鎖品牌的 'points/{item}.json'：一個品牌一個檔，只下載選到的品牌）
+   */
   file: string;
   /** 資料檔屬於另一個主題（例如發電量主題借用發電廠地圖的電廠點）；沒寫就是這個主題 */
   topic?: string;
@@ -307,16 +310,21 @@ export interface PointsOverlayDef extends OverlayBase {
    * 沒有這個欄位的點不畫。
    */
   minValue?: { field: string; stops: [number, number][] };
+  /**
+   * 放大到這個縮放級數才畫（MapLibre 圖層的 minzoom），例如上萬家便利商店縮小時會糊成一片、蓋住面量圖。
+   * 跟 minValue 不同，所有點都一樣，不必每個點多一個欄位
+   */
+  minZoom?: number;
   /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
    * tooltip：title 是第一行（粗體），detail 是第二行。
    * countryName 由 App 提供（目前語言的國名），原文專有名詞（地名、館處英文名）可以放在 properNoun，畫面上不翻譯。
-   * year 是時間軸的年份（有 epochs 的圖層用 overlayEpoch() 換成那一期）。
+   * year 是時間軸的年份（有 epochs 的圖層用 overlayEpoch() 換成那一期）；item 是目前的子項目（例如店家的品牌）。
    */
   tooltip: (
     p: PointRecord,
-    ctx: { countryName: (iso3: string) => string; year: number },
+    ctx: { countryName: (iso3: string) => string; year: number; item: string | null },
   ) => { title: string; detail?: string; properNoun?: string };
 }
 
@@ -358,7 +366,7 @@ export interface LinesOverlayDef extends OverlayBase {
    */
   tooltip?: (
     p: PointRecord,
-    ctx: { countryName: (iso3: string) => string; year: number },
+    ctx: { countryName: (iso3: string) => string; year: number; item: string | null },
   ) => { title: string; detail?: string; properNoun?: string };
 }
 
@@ -549,6 +557,13 @@ export interface IndicatorData {
   notes?: Record<string, string>;
   /** notes 的英文版 */
   notesEn?: Record<string, string>;
+  /**
+   * tooltip 第三行的短註（key 為 ISO alpha-3），例如「OSM 只標了官方店數的 3%」：完整的說明放 notes（側欄），
+   * 這裡只放滑過地圖時就該看到的一句
+   */
+  hints?: Record<string, string>;
+  /** hints 的英文版 */
+  hintsEn?: Record<string, string>;
   /**
    * 普查、調查年份零散的指標：某年沒有資料時，改用該國 latestWithin 年內最近一年的值，
    * 地圖、tooltip、排名表、側欄都會標出實際的資料年份（見 panels/stats.ts 的 latestAt）。

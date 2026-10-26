@@ -94,6 +94,7 @@ function pointLayer(def: PointsOverlay): LayerSpecification {
       id,
       type: 'symbol',
       source: id,
+      ...(def.minZoom ? { minzoom: def.minZoom } : {}),
       layout: {
         'icon-image': typeof def.color === 'string' ? icons[0] : stepExpression(def.color.field, def.color.thresholds, icons),
         'icon-size': zoomed(['/', r, TRIANGLE_R]),
@@ -108,6 +109,7 @@ function pointLayer(def: PointsOverlay): LayerSpecification {
     id,
     type: 'circle',
     source: id,
+    ...(def.minZoom ? { minzoom: def.minZoom } : {}),
     layout: sortKey ? { 'circle-sort-key': sortKey } : {},
     paint: {
       'circle-radius': zoomed(r),

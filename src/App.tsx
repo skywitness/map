@@ -308,7 +308,7 @@ export function App() {
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;
-    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries), year });
+    const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries), year, item });
     return (
       <>
         <div className="tt-value">{tip.title}</div>
@@ -339,6 +339,7 @@ export function App() {
     }
     const v = values.get(iso3);
     const valueYear = valueYears.get(iso3);
+    const hint = (lang === 'en' ? data?.hintsEn : data?.hints)?.[iso3];
     return (
       <>
         <div className="tt-value">
@@ -350,6 +351,7 @@ export function App() {
           {projected && t.tooltipProjected}
           {grid && ` · ${G.tooltip}`}
         </div>
+        {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
       </>
     );
   };
@@ -675,7 +677,7 @@ function useOverlays(topic: Topic, indicator: Indicator, item: string | null, la
             o.kind !== undefined &&
             (!o.indicators || o.indicators.includes(indicator.id)) &&
             (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: `topics/${o.topic ?? topic.id}/${o.file}` }]
+              ? [{ def: o, visible: overlayVisible(layers, o), path: overlayPath(topic, o, item) }]
               : [],
           ),
     [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],
@@ -693,6 +695,15 @@ function useOverlays(topic: Topic, indicator: Indicator, item: string | null, la
     [generic, raw],
   );
   return { railways, airports, overlays: result };
+}
+
+/**
+ * 疊加圖層的資料檔路徑。file 含 `{item}` 時換成目前的子項目（便利商店與連鎖品牌：一個品牌一個店家檔，
+ * 只下載選到的品牌；換品牌時同一個圖層換資料，開關狀態不變）
+ */
+function overlayPath(topic: Topic, o: { file: string; topic?: string }, item: string | null): string {
+  const file = o.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '');
+  return `topics/${o.topic ?? topic.id}/${file}`;
 }
 
 const decodedCache = new WeakMap<object, PointRecord[] | DecodedLines>();
