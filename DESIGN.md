@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ）、FAO FishStat、漁業署、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -44,7 +44,7 @@ public/data/                              ← 靜態 JSON，會進版本控制
         ├─ grid.json                      框選用的網格人口（只有人口主題）
         ├─ profiles.json                  各國的高度分布與最高、最低點（只有海拔主題）
         ├─ flows/<子項目>/<年>.json       流向圖的雙邊資料（貿易、移民主題，一個子項目、一年一個檔）
-        ├─ <疊加圖層>.json                 一般的點、線疊加圖層（地震、火山、板塊邊界、駐外館處、颱風路徑、發電廠；common.points_file()、lines_file()）
+        ├─ <疊加圖層>.json                 一般的點、線疊加圖層（地震、火山、板塊邊界、駐外館處、颱風路徑、發電廠、專屬經濟海域的界線；common.points_file()、lines_file()）
         └─ manifest.json
 
 public/tiles/population-density/          ← 人口密度的 1 km 網格圖磚，不進版本控制，部署時才產生（第 14 節）
@@ -171,7 +171,7 @@ pipeline/
 | `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入；props 有目前的指標 `indicator`（年份的意思可能跟著指標的 `timeAxis` 變） | 發電結構、GDP 與就業結構、主要農產品 |
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
-| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層）；城市（每 5 年一期的人口跟著時間軸換、縮小時只畫大城市） |
+| `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層）；城市（每 5 年一期的人口跟著時間軸換、縮小時只畫大城市）；海洋與漁業（專屬經濟海域的界線，依 Marine Regions 的界線性質分 5 類、未解決的畫虛線，滑過看兩邊與性質） |
 | 指標的 `overlayTime` | 有年份欄位的疊加點（或線）怎麼跟時間軸：`'year'` 只有那一年（預設）、`'cumulative'` 累積到那一年、數字 n 是那一年起的 n 年 | 地震（當年／累積／每十年）；海底電纜（依啟用年份累積）；颱風（當年／每十年） |
 | 指標的 `projectionLabel` | 資料檔有 `projectionFrom` 時，時間軸預設把之前的年份標「估計值」、之後標「推估值」；之前是實際數字、之後也不是推估時，換掉之後的稱呼（`tag`）與刻度上的說明（`from(年)`），之前的年份不加標籤 | 海底電纜（明年起「含規劃中」） |
 | 指標的 `grid` | 地圖可以從國家平均切到點陣網格（`GridSpec`：`dir` 是 `tiles/` 底下的資料夾；切換鈕名稱 `label`、網格模式的說明 `subtitle`、圖例上每一期的說明 `epochNote(期, 是否推估)`、不上色的格子 `empty` 都可以覆寫，沒寫的用人口密度的文字，見第 14 節），控制列多一個切換。`defaultOn: true` 時預設就是網格（網址沒有 `grid` 參數、從主題選單換過來時；切回國家平均寫 `grid=0`）。`meta.json` 有 `backdrop` 時，網格底下在資料範圍鋪一層第一級的顏色（夜色底）。`only: true`（2026-10-26 起）是只有網格、沒有國家平均可以切換：一律畫網格，控制列沒有切換鈕，tooltip 不寫「國家平均」，指標本身是 `kind: 'none'`、資料檔只給 tooltip 與排名表；`unit` 是網格圖例的單位（沒寫用指標的） | 人口密度的 1 km 網格、暖化的 0.5° 網格、太陽光電與風能潛力的約 2 km 網格、夜間燈光的約 500 m 網格（預設打開、有夜色底）、航運密度的約 5 km 網格（`only`，tooltip 是貨櫃吞吐量） |
@@ -443,6 +443,7 @@ pipeline/
 | 語言 | 主要官方語言（類別圖）；30 種語言各自的使用人口比例、使用人數（比例圓）、官方地位（類別圖）；語言數（比例圓） | 會說的語言（比例與官方地位）、Glottolog 語言數與瀕危語言數 | Unicode CLDR 49、Glottolog 5.3；台灣用 109 年人口及住宅普查 | 單一快照（標示為 2026 年） |
 | 住宅 | 公寓住戶比例（44 國）、自有住宅率（47 國）、平均每戶人數（191 國）、居住擁擠率與住房負擔過重率（37 國，只有歐洲）、都市貧民窟人口比例（194 國） | 住宅類型組成（獨棟、雙併連棟、公寓、其他；台灣依建築樓層） | Eurostat EU-SILC、OECD 可負擔住宅資料庫、UN DESA 家戶規模資料庫、World Bank WDI（UN-Habitat）；台灣用內政部房屋稅籍、主計總處家庭收支調查 | 住宅類型 2004–2025、自有 2005–2025、每戶人數 1991–2025、擁擠與負擔 2004–2025、貧民窟 2000–2022（每兩年）；各國只顯示 3–10 年內最近一年的資料 |
 | 海拔 | 地形（分層設色＋陰影，3D 是立體地形）、平均海拔、最高點、最低點、海拔 500／1,000／2,000 公尺以上的土地占比、沿海低地（低於 5 公尺且跟海相連）占比、平均坡度 | 高度分布長條、最高點與最低點（名稱、位置） | USGS GMTED2010、Wikidata；台灣用內政部 100 公尺 DEM 交叉比對；地圖上的地形是 AWS Terrain Tiles | 不隨時間變化（DEM 主要是 2000 年的 SRTM），沒有時間軸 |
+| 海洋與漁業 | 專屬經濟海域面積（比例圓，預設；海外領地各自計算，內陸國是 0）、海域是陸地的幾倍（面量圖）、捕撈漁業產量、養殖漁業產量（比例圓）、養殖占漁業產量（發散色，中性一級跨過 50%）、人均漁業產量；疊加圖層：專屬經濟海域的界線（Marine Regions 的界線性質：200 浬外緣、條約或判決、等距中線、共同管理區、未解決的畫虛線，滑過看兩邊與性質） | 捕撈與養殖的變化（堆疊面積）、主要的水產種類（FAO 的 ISSCAAP 物種組，捕撈與養殖各一個長條清單）、在哪些 FAO 漁區捕撈、專屬經濟海域的組成（夏威夷、阿拉斯加這類的部分）、依主權國欄位的合計與海外領地、跟其他國家重疊主張或共同管理的海域；台灣另列漁業署《漁業統計年報》各漁業種類的產量跟 FAO 對照 | Marine Regions Maritime Boundaries Geodatabase 第 12 版（VLIZ，CC BY 4.0）、FAO FishStat 全球捕撈與養殖產量（CC BY 4.0）、FAOSTAT 土地利用（陸地面積）、UN WPP 2024（人口）；台灣的對照數字用漁業署《漁業統計年報》 | 專屬經濟海域是第 12 版（2023）的單一快照；捕撈與養殖 1950–2024（漁業署的對照到 2025） |
 | 移民與難民 | 移民占人口比例、移民人數、僑民人數（比例圓）、每千人收容的難民、難民人數（依來源國）；流向圖：移民來源、僑民去向、難民（點選國家畫前 15 名的弧線） | 主要移民來源、主要僑民去向、收容的難民來自、難民逃往（長條清單） | UN DESA International Migrant Stock 2024、UNHCR、UN WPP 2024（人口）；台灣用 DESA（依國籍），附註對照移民署外僑居留人數、僑委會海外臺灣僑民人數 | 移民 1990–2020 每 5 年加 2024 年；難民 1990–2025 每年 |
 | 國際援助與僑匯 | ODA 占 GNI（援助國，預設；0.7% 以上是最深的兩級）、援助金額（援助國，比例圓）、流向：援助對象（點選援助國畫前 15 個受援國）、收到的援助（比例圓）、收到的援助占 GNI、每人收到的援助、流向：援助來源（點選受援國畫前 15 個援助國）、僑匯收入（比例圓）、僑匯收入占 GDP、僑匯支出（比例圓） | 援助國：主要援助對象與沒有分到特定國家的金額、雙邊與多邊的組成（給聯合國、歐盟、世界銀行、區域開發銀行等的核心捐款，在捐助國境內的難民支出）、ODA 占 GNI 跟 DAC 合計與 0.7% 目標比；受援國：主要援助來源（國家與多邊機構合在一起排）、收到的援助與僑匯收入的變化；其他國家：僑匯收入與支出的變化；台灣另列僑匯的組成（個人移轉、薪資的收入與支出） | OECD DAC 的 DAC1、DAC2A（OECD 的資料條款，可轉載、改作，要註明出處）；世界銀行 WDI 的個人匯款（CC BY 4.0）；台灣的僑匯用中央銀行國際收支、GDP 用主計總處 | ODA 1960–2025（2025 是初步數字，2018 年起是贈與等值）；受援國與流向 1960–2024；僑匯 1976–2025 |
 | 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
@@ -674,6 +675,11 @@ pipeline/
     - 主要貨櫃港的年吞吐量是各港自己公布的數字（港務局、港口公司、政府統計：新加坡 MPA、鹿特丹港務局、香港政府統計處、中國交通運輸部、馬來西亞交通部、釜山港灣公社…，`pipeline/sources/port_teu.py` 每一筆有網址與日期），一港一個數字，是引用的事實，不是轉載資料庫。**Lloyd's List 的 Top 100 港口、Alphaliner、Statista 這類有版權的排名都沒有用**，也沒有照它們的名單或排序選港口（只拿來找官方數字在哪裡），網站上也不替這些港口排名。
     - 臺灣港務公司的「臺灣地區國際商港貨櫃裝卸量」（政府資料開放平臺 8368，https://www.twport.com.tw/fapi/opendata?id=13878 ）是政府資料開放授權條款第 1 版（資料集頁面的授權欄，2026-10-26 查）。
     - 泰國交通部開放資料平臺（datagov.mot.go.th）的林查班港月資料只到 2025 年 11 月，自己加總不是官方公布的年數字，**沒有用**；胡志明市／蓋梅只有全國的估計，蒙德拉港是私人公司經營，都沒有收。
+    - **Marine Regions（VLIZ）的 Maritime Boundaries Geodatabase 第 12 版是 CC BY 4.0**：https://www.marineregions.org/disclaimer.php （2026-10-26 查）寫「Marine Regions’ products have been licensed under CC-BY since Maritime Boundaries version 11 (2019)」，連到 CC BY 4.0。同一頁另有使用條款：只供科學、教育、研究用途，不能當法律、經濟（資源開發）或航行的依據；VLIZ 對任何國家、領土的法律地位與界線不表示意見；「We kindly request our users not to make our products available for download elsewhere」；最後明文「If any of the abovementioned provisions divert from or contradict the provisions of the CC-license in any way, the CC-license provisions prevail」。所以照 CC BY 4.0 使用：頁尾與 `manifest.json` 照它的引用格式寫「Flanders Marine Institute (2023). Maritime Boundaries Geodatabase: Maritime Boundaries and Exclusive Economic Zones (200NM), version 12 … https://doi.org/10.14284/632」，主題說明照抄「不表示意見」的意思。網站上只放簡化過的界線（約 500 m）與各國面積，不轉載原始檔，也沒有另外提供下載；「請不要在別處提供下載」是請求，這樣也照顧到了。網站的下載頁要填姓名、電子郵件、用途，**沒有填**：改用 VLIZ 公開的 WFS（geo.vliz.be 的 GeoServer，同一份第 12 版，不必登入）。
+    - **FAO FishStat（全球捕撈與養殖產量）是 CC BY 4.0，不是 CC BY-NC-SA 3.0 IGO**：使用者原本以為是 CC BY-NC-SA 3.0 IGO（那是 FAO 出版品，例如 SOFIA 報告的授權），但整包下載（GlobalProduction_2026.1.0.zip）裡的 ReadMe.txt 與 FIproduction_E.html 寫明 FAO 統計資料庫的資料「are licensed under the Creative Commons Attribution-4.0 International licence (CC BY 4.0)」，另加 FAO Statistical Database Terms of Use（https://www.fao.org/contact-us/terms/db-terms-of-use/en ：不得用來推銷商業產品、不得暗示 FAO 背書，引用要照「FAO. [年]. [資料庫：資料集]. [Accessed on 日期]. [網址] Licence: CC-BY-4.0」的格式）。頁尾的來源名稱就是這個引用格式（「FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）」）。FAOSTAT 的土地利用（陸地面積）同樣是 CC BY 4.0。
+    - **漁業署網站不是政府資料開放授權條款**：漁業署的「網站資料開放宣告」（https://www.fa.gov.tw/information.php ，2026-10-26 查）寫網站內容受著作權法保護，以漁業署名義發表的著作「在合理範圍內，得重製、公開播送或公開傳輸，利用時，並請註明出處」。政府資料開放平臺上漁業署的生產量資料集（data.moa.gov.tw 的 G76 等）只有舊年份。所以《漁業統計年報》的數字只在台灣的附註與側欄引用（統計數字是事實，註明出處、連到年報），地圖上的值一律用 FAO，不混用（第 77 點）。
+    - **海洋保護區沒有做**：世界銀行 WDI 的 `ER.MRN.PTMR.ZS`（海洋保護區占領海的比例）序列中繼資料標 `License_Type: CC BY-4.0`，但同一份中繼資料的 Othernotes 寫「Restricted use: Please contact the Protected Planet for third-party use of these data.」，來源 WDPA（UNEP-WCMC）本身的條款也限制轉載資料；授權不清楚，**沒有用**，WDPA 的保護區多邊形也沒有用。WDI 本來也沒有台灣，台灣官方的海洋保護區比例（漁業署、海洋委員會）是占領海與內水的比例，跟 WDI 的分母不同，不能放在同一張圖上。
+    - Global Fishing Watch（漁船 AIS 的捕撈活動）要申請 API 金鑰才能下載，**沒有用**。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -2111,6 +2117,26 @@ pipeline/
     - **跟其他主題**：國際貿易流向、各國交通的說明指到這個主題，這個主題也指回去；海底電纜是通訊，不重複。
     - **大小**：指標檔 5 個（93 KB，gzip 後 39 KB）、港口 285 KB（gzip 後 49 KB）、214 個國家明細 323 KB（gzip 後 127 KB），共 0.70 MB（gzip 後 216 KB）；網格圖磚 234 張、4.4 MB（部署時產生）。合計約 5.1 MB。
 
+77. **海洋與漁業**（`pipeline/topics/oceans.py`、`pipeline/sources/marine_regions.py`、`fishstat.py`、`fa_tw.py`、`faostat.py` 的 RL、`src/topics/oceans.ts`、`src/topics/panels/OceansPanel.tsx`）：
+    - **來源**（授權見第 12 點）：專屬經濟海域用 Marine Regions 第 12 版（VLIZ，CC BY 4.0）的 WFS：`MarineRegions:eez` 的屬性（285 個多邊形：200 浬 229、重疊主張 35、共同管理區 21；`area_km2` 是 Marine Regions 算的面積，含內水、群島水域與領海）、`MarineRegions:eez_boundaries` 的界線（2,349 條，25 MB 的 GeoJSON，約 2 分鐘）、`MarineRegions:eez_land` 只用來判斷內陸國（41 個，加上 Marine Regions 沒有的科索沃）。漁業用 FAO FishStat 的 Global production（2026 年 3 月版，1950–2024 年，CC BY 4.0），陸地面積用 FAOSTAT 的土地利用（不含內陸水域），人口用 WPP 2024。
+    - **重疊主張與共同管理區照 Marine Regions 的分類呈現，不下判斷**：
+      - 面積算給哪裡（`_territory_iso()`）：200 浬的多邊形算給屬地的 ISO（沒有屬地代碼的夏威夷、阿拉斯加、亞速群島、加拉巴哥群島、查哥斯群島…算給主權國欄位的國家）。重疊主張裡，Marine Regions 兩個屬地欄位都是同一個地方的（台灣、福克蘭群島、南喬治亞與南三明治群島、西撒哈拉、馬約特、烏克蘭、威克島，共 304 萬 km²），是「這個地方的海域，主權有不同主張」，照屬地欄位算給那個地方，附註與 tooltip 寫「Marine Regions 標為重疊主張（各方）」。其他重疊主張與所有共同管理區（49 處、161 萬 km²：南海的西沙與南沙群島一帶、南千島群島、釣魚臺列嶼／尖閣諸島、獨島／竹島、加拿大與美國之間…）不算進任何一方，側欄列出各方。
+      - **台灣**：Marine Regions 把台灣周邊的海域整片標為「Overlapping claim Taiwan: Taiwan / China」（屬地欄位兩個都是台灣，主權欄位是台灣、中國），照上面的規則算在台灣：355,433 km²（201 個有專屬經濟海域的地方第 74 名），是陸地（FAOSTAT 35,410 km²）的 10.0 倍。釣魚臺列嶼／尖閣諸島周邊 73,794 km²（台灣、日本、中國）與南海那一塊 338,839 km² 都不算。地圖上照其他主題寫「台灣」。
+      - **南海**：Marine Regions 的「Overlapping claim: South China Sea」（338,839 km²，西沙、南沙群島一帶）只列出中國一方，沒有逐一列出其他聲索方；這裡不寫「各方」，名稱是「南海（西沙、南沙群島一帶）的重疊主張區」，中國的側欄列出它並註明「這一塊只列出中國，沒有逐一列出其他聲索方」，不算進中國的面積。越南、菲律賓等國的 200 浬多邊形也不含這一塊。
+      - 地名並列各方的稱呼（「釣魚臺列嶼／尖閣諸島」「Senkaku / Diaoyu / Tiaoyutai Islands」「獨島／竹島」「南千島群島／北方四島」「福克蘭群島（馬維納斯群島）」），寫在 `oceans.py` 的 `SPECIAL_PLACES`。
+      - 查哥斯群島：第 12 版把它的海域列為「Mauritian Exclusive Economic Zone (Chagos Archipelago)」，照列在模里西斯（附註寫明），英屬印度洋領地（IOT）的專屬經濟海域寫原因、不寫「無資料」。直布羅陀（重疊主張，英國、西班牙）、南極洲、布威島（第 12 版沒有），以及 Marine Regions 沒有另外劃出海域的香港、澳門、奧蘭群島也寫原因（指標的 `noValue`）。裏海：Marine Regions 有哈薩克、亞塞拜然、土庫曼的裏海海域，照算。
+      - **主權國的合計**：依 Marine Regions 的主權國欄位（`sovereign1`）加總，只在附註與側欄（地圖上海外領地各自一個國家）：美國 1,214 萬 km²、法國 960 萬、澳洲 899 萬、俄羅斯 773 萬、紐西蘭 671 萬（含庫克群島、紐埃、托克勞，Marine Regions 的主權國欄位寫紐西蘭）、印尼 602 萬、英國 587 萬。
+    - **界線**（`eez-lines.json`）：基線（直線基線、群島基線、正常基線）是沿海岸的線，不畫；其他依 `line_type` 分 5 類：200 浬外緣（含 12 浬，深灰）、條約或判決或沒有爭議的單方主張（紫）、等距中線（Marine Regions 在沒有條約的地方算的，琥珀）、共同管理區的界線（綠）、未解決（陸地主權或海域劃界有爭議，洋紅虛線）。連接線（把兩段界線接起來的短線，平均 7 km）用同一對海域其他界線的分類。每條線的紀錄有細分的性質、長度與兩邊的海域（ISO、部分的名稱、重疊主張或共同管理區的地名與各方），tooltip 寫「台灣 — 日本 · 等距中線」「台灣 — 中國 · 未解決的等距中線：島嶼或領土的主權有爭議」。Douglas–Peucker 簡化到 0.005°、量化 0.005°：1,389 段、16,373 個頂點，190 KB（gzip 後 53 KB）。Marine Regions 的線已經在 ±180° 切開，斐濟、吐瓦魯、吉里巴斯在地球儀與平面上都不會畫出橫越全圖的線（截圖驗證）。英國與法羅群島之間那條線的 `mrgid_eez1` 寫成 84350（多邊形是 8435），`BOUNDARY_FIXES` 改正。
+    - **漁業**：只算水生動物（物種表的 Yearbook_Group「Aquatic animals」：魚、甲殼類、軟體動物等；不含藻類、水生哺乳類、鱷魚、珍珠、珊瑚、海綿，FAO 年鑑與 SOFIA 的口徑），活體重量（貝類含殼）。捕撈算在漁船的船旗國（台灣的遠洋漁船在三大洋捕的都算台灣），海洋與內陸都算。FAO 的「China」只有大陸，香港、澳門、台灣（158，「Taiwan Province of China」）各自一國；桑吉巴併進坦尚尼亞；已經不存在的國家與「Other NEI」只算進世界合計（`fishstat.HISTORICAL`，對不到的代碼會報錯）。FAO 只列有產量的物種，所以一國某一年有捕撈或養殖的任何一筆，另一種沒列的算 0。2024 年世界捕撈 9,192 萬公噸、養殖 1 億 266 萬公噸（52.8%；2021 年養殖追上捕撈），中國的養殖占全世界 56%。養殖占比只算一年產量 100 公噸以上的國家；人均是捕撈加養殖除以 WPP 人口。
+    - **台灣**：FAO 2024 年捕撈 773,463 公噸（第 24 名）、養殖 361,309 公噸（第 19）、養殖占比 31.8%、人均 48.9 公斤（第 36）。漁業署《漁業統計年報》（114 年版的「歷年漁業生產量值」，1959–2025 年）：
+      - 捕撈（遠洋＋近海＋沿岸＋內陸漁撈）跟 FAO 幾乎一樣：2024 年 773,635 對 773,463 公噸（相差 0.02%），1959 年起每年相差 6% 以內（多半 3% 以內，1997 年 +5.8% 最多），`taiwan_check()` 超過 6% 就報錯。2024 年遠洋漁業 599,839 公噸，占捕撈的 78%；FAO 的漁區：西北太平洋 36%、中西太平洋 34%、西南大西洋（阿根廷外海的魷魚）17%、西印度洋 6%。
+      - 養殖差很多（FAO 多 36–129%）：幾乎都是牡蠣，FAO 一律用活體重量（含殼），2024 年 112,673 公噸；漁業署 113 年年報的英文摘要是 16,153 公噸（虱目魚、吳郭魚等其他品項兩邊幾乎一樣）。2024 年漁業署的養殖是 264,992 公噸，養殖占比用漁業署的數字算是 25.5%，寫在附註。
+      - 2025 年漁業署公布 892,197 公噸（捕撈 634,744、養殖 257,454），FAO 還沒有這一年，寫在附註與側欄。
+      - 主要的水產種類（FAO 2024）：捕撈是鮪、鰹與旗魚 48%、其他表層魚類（鯖、秋刀魚）22%、魷魚等 17%；養殖是牡蠣 31%、其他洄游魚類（虱目魚等）21%、吳郭魚 16%、蛤類 13%。
+    - **側欄**（`countries/<ISO3>.json`，237 國）：捕撈與養殖的堆疊面積（讀兩個指標檔）、主要的水產種類（ISSCAAP 物種組前 8 名加其他，中文名稱在 `OceansPanel.tsx` 的 `GROUPS`）、FAO 漁區（前 8 名，`AREAS`）、專屬經濟海域的組成、主權國的合計與海外領地（前 8 個）、照屬地算給別處的重疊主張（例如中國的側欄寫台灣、阿根廷的寫福克蘭群島）、跟其他國家重疊主張或共同管理的海域；台灣另列漁業署 2022–2025 年各漁業種類的產量跟 FAO 對照。
+    - **跟其他主題**：「各國飲食」的水產供給量是每人吃多少，這裡是生產，兩邊的說明互相指引；「航運與港口」的說明也指到這裡。
+    - **大小**：6 個指標檔 298 KB（gzip 後 92 KB）、界線 190 KB（gzip 後 53 KB）、237 個國家明細 125 KB（gzip 後 75 KB），共 0.61 MB（gzip 後 221 KB）；沒有網格圖磚。
+
 ## 9. 之後可以做的
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。
@@ -2149,6 +2175,7 @@ pipeline/
 - **發電廠的狀態用不同樣式**：四個狀態的圖層顏色相同，同時打開時只能靠 tooltip 分辨；點圖層可以加外框樣式（例如興建中空心、已退役灰色），要改共用的點圖層引擎。
 - **颱風的中央氣象署強度**：路徑目前一律用美國機構的 1 分鐘平均風速；可以加一個子項目改用 IBTrACS 裡日本氣象廳（RSMC 東京）的 10 分鐘平均，跟中央氣象署的分級比較接近（只有西北太平洋）。
 - **航運與港口**（第 76 點）：UNCTAD 的港口靠港與在港時間有台灣、更多國家時加成指標；PLSCI 對不到 World Port Index 的港口（倫敦門戶港、巴拿馬的曼薩尼約、多明尼加的 Caucedo、巴西的 Itapoa、印度的 Vizhinjam…）可以用 UNECE 的 UN/LOCODE 座標補點（先確認授權）；林查班、蓋梅等港有官方的年吞吐量時加進 `port_teu.py`，每年 1–3 月各港公布新的一年後更新；航運密度若 GitHub Pages 的空間夠，可以多做 z5（約多 9 MB），或拆成商船、漁船、客輪（世界銀行同一個資料集有分船種的檔）。
+- **海洋與漁業**（第 77 點）：海洋保護區的比例等授權清楚（WDPA 或 Protected Planet 明示可以轉載）再加；專屬經濟海域可以改成填色的疊加圖層（重疊主張區斜線、滑過海面就知道是哪一國的海域），要在共用的疊加圖層引擎加一種面的圖層；FAO 每年 3 月出新版（2027 年 3 月會有 2025 年），改 `fishstat.URL` 的版本號；漁業署每年年中出新的年報，改 `fa_tw.URL`；物種層級的中文名稱（FAO 的物種表只有簡體中文，要另外對照）。
 - **縮減資料量**：指標檔已經壓縮（第 3 節）。還可以做的：
   - 農業與工業的國家明細檔（`countries/<ISO3>.json`，共約 12 MB，點國家才載入）可以只保留近 30 年，或也改成差分編碼。
   - 貿易流向檔（`trade/flows/`）、框選網格（7.5 MB，gzip 後 1.6 MB）可以改成整數、差分編碼。

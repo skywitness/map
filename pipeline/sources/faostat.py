@@ -29,6 +29,7 @@ DATASETS = {
     "FBS": "FoodBalanceSheets_E_All_Data_(Normalized).zip",  # 糧食平衡表，2010 年起的新方法
     "FBSH": "FoodBalanceSheetsHistoric_E_All_Data_(Normalized).zip",  # 舊方法，1961–2013
     "FS": "Food_Security_Data_E_All_Data_(Normalized).zip",  # 糧食安全指標（營養不足盛行率等）
+    "RL": "Inputs_LandUse_E_All_Data_(Normalized).zip",  # 土地利用（陸地面積，海洋與漁業主題的「海域是陸地的幾倍」）
 }
 # 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
 ENCODINGS = {"FBSH": "latin-1"}

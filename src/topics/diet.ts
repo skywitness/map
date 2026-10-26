@@ -74,8 +74,8 @@ export const diet: TopicDefinition = {
     },
   ],
   note: {
-    zh: '糧食平衡表算的是「供給」：國內生產加進口、減出口與飼料、種子、加工、損耗等用途後，平均每人可以吃到的量，比實際吃下去的多（不含家戶與餐廳的浪費）。FAO 在 2010 年改用新方法，2009 年以前是舊版，個別國家與食物在 2010 年可能跳一下（側欄的垂直虛線）。新版沒有日本等少數國家。台灣的資料是 FAO 的，側欄附上農業部糧食供需年報的數字對照。',
-    en: "Food balance sheets measure supply: domestic production plus imports, minus exports and non-food uses such as feed, seed, processing and losses, averaged per person. This is more than people actually eat, as household and restaurant waste is not subtracted. FAO switched to a new method in 2010; earlier years come from the old series, so some countries and foods jump in 2010 (the vertical dashed line in the side panel). A few countries, including Japan, are missing from the new series. Taiwan's figures are FAO's; the side panel adds the Ministry of Agriculture's own food balance sheet for comparison.",
+    zh: '糧食平衡表算的是「供給」：國內生產加進口、減出口與飼料、種子、加工、損耗等用途後，平均每人可以吃到的量，比實際吃下去的多（不含家戶與餐廳的浪費）。FAO 在 2010 年改用新方法，2009 年以前是舊版，個別國家與食物在 2010 年可能跳一下（側欄的垂直虛線）。新版沒有日本等少數國家。台灣的資料是 FAO 的，側欄附上農業部糧食供需年報的數字對照。各國捕撈與養殖的水產見「海洋與漁業」主題。',
+    en: "Food balance sheets measure supply: domestic production plus imports, minus exports and non-food uses such as feed, seed, processing and losses, averaged per person. This is more than people actually eat, as household and restaurant waste is not subtracted. FAO switched to a new method in 2010; earlier years come from the old series, so some countries and foods jump in 2010 (the vertical dashed line in the side panel). A few countries, including Japan, are missing from the new series. Taiwan's figures are FAO's; the side panel adds the Ministry of Agriculture's own food balance sheet for comparison. For fish caught and farmed by country see Oceans and fisheries.",
   },
   dimension: {
     label: { zh: '食物', en: 'Food' },

@@ -1510,6 +1510,11 @@ kbd {
   font-weight: 650;
 }
 
+/* 海洋與漁業的側欄：台灣漁業署的數字表，數字欄之間留空 */
+.ocean-tw .num {
+  padding-left: 6px;
+}
+
 .chain-sources,
 .source-list {
   padding-left: 18px;
