@@ -15,7 +15,8 @@ Ring = list[tuple[float, float]]
 
 
 @lru_cache(maxsize=1)
-def _countries() -> list[tuple[str, tuple[float, float, float, float], list[list[Ring]]]]:
+def _polygons() -> list[tuple[str, list[list[Ring]]]]:
+    """國界檔的每個國家：多邊形的清單，每個多邊形是 [外環, 洞…]（原始的經度，跨過 ±180° 的環會跳 360°）"""
     path = OUT_DIR / "geo" / "countries-50m.json"
     if not path.exists():
         raise RuntimeError("找不到國界檔，請先執行 geo 步驟")
@@ -42,13 +43,31 @@ def _countries() -> list[tuple[str, tuple[float, float, float, float], list[list
     out = []
     for geom in topo["objects"]["countries"]["geometries"]:
         polygons = [geom["arcs"]] if geom["type"] == "Polygon" else geom["arcs"]
+        out.append((geom["id"], [[ring(r) for r in polygon] for polygon in polygons]))
+    return out
+
+
+@lru_cache(maxsize=1)
+def _countries() -> list[tuple[str, tuple[float, float, float, float], list[list[Ring]]]]:
+    """判斷位置用：(國家, 範圍, 多邊形)，跨過 ±180° 的多邊形含 _wrapped() 補的平移 360° 的副本"""
+    out = []
+    for iso3, polygons in _polygons():
         rings = []
         for polygon in polygons:
-            rings.extend(_wrapped([ring(r) for r in polygon]))
+            rings.extend(_wrapped(polygon))
         xs = [p[0] for poly in rings for r in poly for p in r]
         ys = [p[1] for poly in rings for r in poly for p in r]
-        out.append((geom["id"], (min(xs), min(ys), max(xs), max(ys)), rings))
+        out.append((iso3, (min(xs), min(ys), max(xs), max(ys)), rings))
     return out
+
+
+def land_polygons() -> list[tuple[str, list[list[Ring]]]]:
+    """算面積用：每個國家的多邊形，跨過 ±180° 的展開成連續經度，不含 _wrapped() 補的平移 360° 的副本。
+
+    _countries() 的副本會重複計算（俄羅斯本土的環整個多一份，面積變成兩倍）；換日線修好以前，跳 360° 的邊
+    則讓俄羅斯少算約 600 萬 km²、斐濟多算約 14 萬 km²（交通主題的鐵路密度用這個面積）。
+    """
+    return [(iso3, [_wrapped(polygon)[0] for polygon in polygons]) for iso3, polygons in _polygons()]
 
 
 def _unwrap(ring: Ring) -> Ring:
@@ -65,7 +84,8 @@ def _wrapped(polygon: list[Ring]) -> list[list[Ring]]:
 
     不展開的話，從 179.9° 跳到 −180° 的邊會橫跨整個地圖，射線法在那幾個緯度把整條帶子都判成在環裡：
     俄羅斯本土的環在北緯約 65°–69°（楚科奇）有這樣的邊，原本挪威的博德、芬蘭的羅瓦涅米、瑞典的呂勒奧
-    這些排在俄羅斯後面、或落在自己國界外的點都被判成俄羅斯（2026-10-27 網路速度主題發現的）。
+    這些排在俄羅斯後面、或落在自己國界外的點都被判成俄羅斯（2026-10-27 網路速度主題發現的）；斐濟跨過 ±180° 的
+    多邊形也一樣，南緯約 16.5° 的玻利維亞拉巴斯、馬達加斯加、波拉波拉島的點被判成斐濟（DESIGN.md 第 8 節第 79 點）。
     """
     unwrapped = [_unwrap(r) for r in polygon]
     if unwrapped == polygon:
