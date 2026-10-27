@@ -18,7 +18,8 @@ import {
   type Topic,
 } from '../topics/types';
 import { categoryScale } from '../map/categories';
-import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import type { Tokens } from '../theme/tokens';
+import { useMapTokens } from '../map/palettes';
 import { latestAt, rankOf } from './stats';
 
 interface CountryPanelProps {
@@ -211,9 +212,11 @@ export function CountryPanel(props: CountryPanelProps) {
 /** 類別圖的歷年變化：連續相同類別的年份合併成一段，例如「2000–2003 年 心血管疾病」 */
 function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data: IndicatorData; iso3: string }) {
   const t = useT();
+  // 有強弱的類別用使用者選的配色（palettes.ts），跟地圖一致
+  const mapTokens = useMapTokens();
   const scale = useMemo(
-    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
-    [indicator],
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, mapTokens) : null),
+    [indicator, mapTokens],
   );
   const periods: { from: number; to: number; value: number }[] = [];
   (data.values[iso3] ?? []).forEach((v, i) => {

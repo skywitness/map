@@ -145,12 +145,8 @@ button {
 .topic-menu {
   position: fixed;
   z-index: 40;
-  display: grid;
-  /* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄 */
-  grid-auto-flow: column;
-  grid-template-rows: repeat(var(--menu-rows, 1), auto);
-  grid-template-columns: repeat(var(--menu-columns, 1), minmax(220px, 300px));
-  column-gap: 4px;
+  display: flex;
+  flex-direction: column;
   min-width: 220px;
   max-width: calc(100vw - 2 * var(--gutter));
   max-height: calc(100dvh - 80px);
@@ -162,9 +158,18 @@ button {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
 }
 
+/* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄 */
+.topic-menu-items {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--menu-rows, 1), auto);
+  grid-template-columns: repeat(var(--menu-columns, 1), minmax(220px, 300px));
+  column-gap: 4px;
+}
+
 /* 手機上螢幕窄，維持一欄、捲動 */
 @media (max-width: 768px) {
-  .topic-menu {
+  .topic-menu-items {
     grid-auto-flow: row;
     grid-template-rows: none;
     grid-template-columns: minmax(0, 1fr);
@@ -203,14 +208,239 @@ button {
 }
 
 .topic-item-title {
+  grid-column: 2;
   font-size: 14px;
   font-weight: 600;
 }
 
 .topic-item-summary {
+  grid-column: 2;
   font-size: 12px;
   color: var(--ink-secondary);
   max-width: 320px;
+}
+
+/* 主題的縮圖（public/thumbs，scripts/topic-thumbs.mjs）：左邊一小張平面世界地圖 */
+.topic-item {
+  grid-template-columns: 64px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+}
+
+.topic-item-thumb {
+  grid-row: 1 / span 2;
+  width: 64px;
+  height: 37px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #9ebdff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* 分類選單最下面的「看全部主題」 */
+.topic-menu-all {
+  flex: none;
+  margin-top: 4px;
+  padding: 9px 10px;
+  border: 0;
+  border-top: 1px solid var(--grid);
+  border-radius: 0 0 6px 6px;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.topic-menu-all:hover,
+.topic-menu-all:focus-visible {
+  background: var(--grid);
+  outline: none;
+}
+
+/* ── 主題總覽（TopicsOverview.tsx，<dialog>）─────────── */
+.overview {
+  width: min(1120px, calc(100vw - 32px));
+  max-width: none;
+  height: min(880px, calc(100dvh - 32px));
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--page);
+  color: var(--ink);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+}
+
+.overview::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.overview-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.overview-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.overview-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* 跟國家搜尋框一樣的外觀，但不用 .search（測試腳本用 .search 找國家搜尋框） */
+.overview-header .overview-filter {
+  flex: 1;
+  min-width: 0;
+  max-width: 360px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.overview-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 20px 20px;
+}
+
+.overview-body h3 {
+  margin: 16px 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.overview-card {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 0 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.overview-card:hover,
+.overview-card:focus-visible {
+  border-color: var(--axis);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  outline: none;
+}
+
+.overview-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.overview-card:active {
+  transform: translateY(1px);
+}
+
+.overview-card.is-current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.overview-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 480 / 280;
+  object-fit: cover;
+  background: #9ebdff;
+}
+
+.overview-card-title {
+  padding: 4px 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.overview-card-summary {
+  padding: 0 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-secondary);
+}
+
+.overview-credit {
+  margin: 20px 0 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 768px) {
+  .overview {
+    width: 100vw;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .overview-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  }
+
+  .overview-header .overview-filter {
+    order: 1;
+    flex-basis: 100%;
+    max-width: none;
+    margin-left: 0;
+    font-size: 16px; /* 小於 16px 的輸入框，iOS 點下去會放大整頁 */
+  }
+
+  .overview-header .icon-button {
+    margin-left: auto;
+  }
+
+  .overview-body {
+    padding: 4px 16px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview-card {
+    transition: none;
+  }
 }
 
 /* 中文 / EN 切換 */
@@ -336,8 +566,9 @@ button {
   position: relative;
 }
 
+/* 也搜尋主題，提示文字「搜尋國家或主題（/）」「Countries or topics (/)」要放得下 */
 .search {
-  width: 180px;
+  width: 210px;
   height: 34px;
   padding: 0 10px;
   border: 1px solid var(--border);
@@ -410,6 +641,30 @@ button {
 .result-value.is-empty {
   font-weight: 400;
   color: var(--ink-muted);
+}
+
+/* 國家、主題兩組結果的組名（CountrySearch.tsx） */
+.search-results li.result-heading {
+  display: block;
+  padding: 8px 8px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.search-results li.result-heading:first-child {
+  padding-top: 2px;
+}
+
+/* 主題結果右邊的「主題／指標／項目」標籤 */
+.result-kind {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--grid);
+  color: var(--ink-secondary);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .search-empty {
@@ -893,6 +1148,7 @@ kbd {
 
 /* ── 圖層開關 ───────────────────────── */
 .map-legend > .legend {
+  position: relative;
   padding: 10px 12px;
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
@@ -1175,6 +1431,99 @@ kbd {
   justify-content: flex-end;
   align-content: flex-start;
   column-gap: 8px;
+}
+
+/* 面量圖圖例：標題右邊放「配色」按鈕（PaletteMenu.tsx）；選單從圖例卡片往上展開（.map-legend > .legend 是 relative） */
+.legend-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.palette-button {
+  flex: none;
+  margin: -3px -4px 0 0;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.palette-button:hover,
+.palette-button[aria-expanded='true'] {
+  background: var(--grid);
+}
+
+.palette-list {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  display: grid;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 48px));
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  pointer-events: auto;
+}
+
+.palette-item {
+  display: grid;
+  gap: 4px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.palette-item:hover,
+.palette-item:focus-visible {
+  background: var(--grid);
+  outline: none;
+}
+
+.palette-item[aria-checked='true'] {
+  font-weight: 600;
+}
+
+.palette-item[aria-checked='true'] .palette-ramp {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.palette-ramp {
+  display: flex;
+  width: 168px;
+  height: 10px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.palette-ramp span {
+  flex: 1;
+}
+
+.palette-note {
+  margin: 4px 8px 4px;
+  max-width: 240px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-muted);
 }
 
 .legend-title {

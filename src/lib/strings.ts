@@ -12,6 +12,15 @@ const UI_TEXT = defineMessages({
       /** 觸控裝置（沒有快捷鍵）的提示文字，手機上搜尋框只有約 130px 寬 */
       touchPlaceholder: '搜尋國家',
       noResults: '找不到符合的國家',
+      /** 搜尋框也搜尋主題時（不是純地圖頁） */
+      labelWithTopics: '搜尋國家或主題',
+      placeholderWithTopics: '搜尋國家或主題（/）',
+      touchPlaceholderWithTopics: '搜尋國家或主題',
+      noResultsWithTopics: '找不到符合的國家或主題',
+      /** 結果清單的組名與主題結果右邊的標籤 */
+      countries: '國家',
+      topics: '主題',
+      kinds: { topic: '主題', indicator: '指標', item: '項目' },
       noData: '無資料',
       /** 螢幕閱讀器朗讀的結果數量 */
       resultCount: (n: number) => (n ? `${n} 個結果，用上下鍵選擇` : '找不到符合的國家'),
@@ -59,6 +68,13 @@ const UI_TEXT = defineMessages({
       placeholder: 'Search countries (/)',
       touchPlaceholder: 'Find a country',
       noResults: 'No matching countries',
+      labelWithTopics: 'Search countries or topics',
+      placeholderWithTopics: 'Countries or topics (/)',
+      touchPlaceholderWithTopics: 'Country or topic',
+      noResultsWithTopics: 'No matching countries or topics',
+      countries: 'Countries',
+      topics: 'Topics',
+      kinds: { topic: 'Topic', indicator: 'Indicator', item: 'Item' },
       noData: 'No data',
       resultCount: (n) => (n ? `${n} ${n === 1 ? 'result' : 'results'}; use the up and down arrows to choose` : 'No matching countries'),
     },

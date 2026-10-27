@@ -4,7 +4,7 @@ import { defineMessages, tr, useLang, useT, type Lang } from '../../i18n';
 import { countryName, type CountryTable } from '../../lib/countries';
 import { useJson } from '../../lib/data';
 import { categoryScale } from '../../map/categories';
-import { MAP_TOKENS } from '../../theme/tokens';
+import { useMapTokens } from '../../map/palettes';
 import { DATA_DATE, EASY, PASSPORT_VISA, PERMIT } from '../passport';
 import { VISA } from '../diplomacy';
 import type { IndicatorData, PanelExtraProps } from '../types';
@@ -93,10 +93,11 @@ export default function PassportPanel({ topic, iso3, item, countryName: name }: 
   const boca = useJson<IndicatorData>(twn ? 'topics/taiwan-diplomacy/visa.json' : null);
   const bocaManifest = useJson<{ visaListUpdated?: string }>(twn ? 'topics/taiwan-diplomacy/manifest.json' : null);
 
+  const mapTokens = useMapTokens();
   const scale = useMemo(() => {
     const layer = topic.indicators.find((i) => i.id === 'visa')?.layer;
-    return layer?.kind === 'categorical' ? categoryScale(layer, MAP_TOKENS) : null;
-  }, [topic]);
+    return layer?.kind === 'categorical' ? categoryScale(layer, mapTokens) : null;
+  }, [topic, mapTokens]);
   const swatch = (code: number) => (
     <span
       className="legend-swatch"

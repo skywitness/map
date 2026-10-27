@@ -128,7 +128,7 @@ export function normalize(text: string): string {
     .trim();
 }
 
-interface SearchKey {
+export interface SearchKey {
   /** 去掉空白的版本，用來比對 */
   compact: string;
   /** 每個英文單字在 compact 裡的起點，「korea」才能比對到「south korea」 */
@@ -146,7 +146,7 @@ export interface SearchEntry {
   keys: SearchKey[];
 }
 
-function makeKey(text: string, weight: number): SearchKey | null {
+export function makeKey(text: string, weight: number): SearchKey | null {
   const words = normalize(text).split(' ').filter(Boolean);
   if (!words.length) return null;
   const starts: number[] = [];
@@ -214,7 +214,7 @@ function subsequenceSpan(q: string, s: string): number {
   return pos - first + 1;
 }
 
-function scoreKey(q: string, key: SearchKey): number {
+export function scoreKey(q: string, key: SearchKey): number {
   const { compact, starts, latin } = key;
   const tiebreak = key.weight - compact.length / 100; // 同一級裡，名稱越短越前面
   if (compact === q) return 900 + tiebreak;

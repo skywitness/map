@@ -3,7 +3,7 @@ import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { countryName, type CountryTable } from '../../lib/countries';
 import { useJson } from '../../lib/data';
 import { categoryScale } from '../../map/categories';
-import { MAP_TOKENS } from '../../theme/tokens';
+import { useMapTokens } from '../../map/palettes';
 import { KINDS, ORGS, STATUS } from '../organizations';
 import type { PanelExtraProps } from '../types';
 
@@ -101,10 +101,11 @@ export default function OrganizationsPanel({ topic, iso3, year, item }: PanelExt
   const { data, error } = useJson<DetailsFile>(`topics/${topic.id}/details.json`);
   const countries = useJson<CountryTable>('countries.json').data;
 
+  const mapTokens = useMapTokens();
   const scale = useMemo(() => {
     const layer = topic.indicators.find((i) => i.id === 'membership')?.layer;
-    return layer?.kind === 'categorical' ? categoryScale(layer, MAP_TOKENS) : null;
-  }, [topic]);
+    return layer?.kind === 'categorical' ? categoryScale(layer, mapTokens) : null;
+  }, [topic, mapTokens]);
   const statusLabel = useMemo(() => new Map(STATUS.map((c) => [c.value, tr(c.label, lang)])), [lang]);
 
   if (error) return <p className="empty">{t.noData}</p>;

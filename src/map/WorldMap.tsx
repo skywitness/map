@@ -68,6 +68,7 @@ import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 import { BasemapMenu } from './BasemapMenu';
+import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 
 // 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
@@ -604,13 +605,15 @@ export function WorldMap(props: WorldMapProps) {
   const latest = useRef({ onSelect, onBoxChange, boxMode });
   latest.current = { onSelect, onBoxChange, boxMode };
 
+  // 分級色、正負色用使用者選的配色（圖例的「配色」，palettes.ts）
+  const mapTokens = useMapTokens();
   const colorScale = useMemo(
-    () => (indicator.layer.kind === 'choropleth' ? choroplethScale(indicator.layer.scale, MAP_TOKENS) : null),
-    [indicator],
+    () => (indicator.layer.kind === 'choropleth' ? choroplethScale(indicator.layer.scale, mapTokens) : null),
+    [indicator, mapTokens],
   );
   const categories = useMemo(
-    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
-    [indicator],
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, mapTokens) : null),
+    [indicator, mapTokens],
   );
   // 類別圖：圖例滑過（preview）或點選（pinned）的類別，地圖上其他國家淡化；換指標時清掉
   const [previewCategory, setPreviewCategory] = useState<number | null>(null);
@@ -1813,7 +1816,13 @@ export function WorldMap(props: WorldMapProps) {
             emptyKey={gridLegend.emptyKey}
           />
         ) : colorScale ? (
-          <ChoroplethLegend indicator={indicator} title={legendTitle} scale={colorScale} stepped={threeD && !terrain} />
+          <ChoroplethLegend
+            indicator={indicator}
+            title={legendTitle}
+            scale={colorScale}
+            stepped={threeD && !terrain}
+            paletteKind={indicator.layer.kind === 'choropleth' ? indicator.layer.scale.type : undefined}
+          />
         ) : reliefLegend ? (
           <ReliefLegend title={tr(RELIEF_TITLE, lang)} unit={indicator.unit} model={reliefLegend} />
         ) : categories ? (
@@ -1825,6 +1834,15 @@ export function WorldMap(props: WorldMapProps) {
             onPreview={setPreviewCategory}
             pinned={pinnedCategory}
             onPin={setPinnedCategory}
+            paletteKind={
+              indicator.layer.kind === 'categorical'
+                ? indicator.layer.diverging
+                  ? 'diverging'
+                  : indicator.layer.ordinal
+                    ? 'sequential'
+                    : undefined
+                : undefined
+            }
           />
         ) : indicator.layer.kind === 'bubble' ? (
           threeD ? (

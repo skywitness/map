@@ -10,13 +10,17 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { tr, useLang, useT } from '../i18n';
+import type { TopicTarget } from '../lib/topicSearch';
 import { TOPIC_GROUPS, type TopicGroup } from '../topics';
 import { pureMap } from '../topics/map';
 import type { TopicDefinition } from '../topics/types';
+import { TopicsOverview } from './TopicsOverview';
 
 interface TopicNavProps {
   current: TopicDefinition;
   onSelect: (topicId: string) => void;
+  /** 主題總覽裡選到指標或子項目時（篩選「鋰」）直接開那個指標 */
+  onSelectTarget: (target: TopicTarget) => void;
 }
 
 /** 選單項目下方列出的指標數 */
@@ -56,7 +60,7 @@ function reveal(nav: HTMLElement, button: HTMLElement): void {
  * 主題列在手機上可以橫向捲動（overflow 會裁掉往下長的選單），所以選單用 portal 放到 body、
  * 以 fixed 定位對齊按鈕。
  */
-export function TopicNav({ current, onSelect }: TopicNavProps) {
+export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
   const t = useT();
   const lang = useLang();
   const [open, setOpen] = useState<string | null>(null);
@@ -69,6 +73,7 @@ export function TopicNav({ current, onSelect }: TopicNavProps) {
   const menuId = useId();
 
   const [overflowing, setOverflowing] = useState(false);
+  const [overview, setOverview] = useState(false);
 
   const openGroup = TOPIC_GROUPS.find((g) => g.id === open) ?? null;
   // current 是 localize() 過的副本，要用 id 比對
@@ -206,7 +211,13 @@ export function TopicNav({ current, onSelect }: TopicNavProps) {
       topic.indicators.length > SUMMARY_COUNT,
     );
 
-  itemRefs.current.length = openGroup?.topics.length ?? 0;
+  // 每個分類選單的最後一項是「看全部主題」，也在 itemRefs 裡（↑↓ 移得到）
+  itemRefs.current.length = (openGroup?.topics.length ?? 0) + 1;
+
+  const openOverview = () => {
+    setOpen(null);
+    setOverview(true);
+  };
 
   return (
     <nav className={`topics${overflowing ? ' is-overflowing' : ''}`} aria-label={t.topicsNav} ref={navRef}>
@@ -257,26 +268,61 @@ export function TopicNav({ current, onSelect }: TopicNavProps) {
             style={menuStyle(openGroup.topics.length, position)}
             onKeyDown={onMenuKeyDown}
           >
-            {openGroup.topics.map((topic, i) => (
-              <button
-                key={topic.id}
-                ref={(el) => {
-                  itemRefs.current[i] = el;
-                }}
-                type="button"
-                role="menuitemradio"
-                aria-checked={topic.id === current.id}
-                tabIndex={-1}
-                className="topic-item"
-                onClick={() => select(topic)}
-              >
-                <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
-                <span className="topic-item-summary">{summary(topic)}</span>
-              </button>
-            ))}
+            {/* 主題排成網格（分欄），「看全部主題」在網格下面另起一行 */}
+            <div className="topic-menu-items" role="none">
+              {openGroup.topics.map((topic, i) => (
+                <button
+                  key={topic.id}
+                  ref={(el) => {
+                    itemRefs.current[i] = el;
+                  }}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={topic.id === current.id}
+                  tabIndex={-1}
+                  className="topic-item"
+                  onClick={() => select(topic)}
+                >
+                  {/* 縮圖：scripts/topic-thumbs.mjs 產生的平面世界地圖 */}
+                  <img
+                    className="topic-item-thumb"
+                    src={`thumbs/${topic.id}.webp`}
+                    alt=""
+                    width={64}
+                    height={37}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
+                  <span className="topic-item-summary">{summary(topic)}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              ref={(el) => {
+                itemRefs.current[openGroup.topics.length] = el;
+              }}
+              type="button"
+              role="menuitem"
+              tabIndex={-1}
+              className="topic-menu-all"
+              onClick={openOverview}
+            >
+              {t.allTopicsMenu}
+              <span aria-hidden="true"> →</span>
+            </button>
           </div>,
           document.body,
         )}
+      <TopicsOverview
+        open={overview}
+        current={current}
+        onClose={() => setOverview(false)}
+        onSelect={(target) => {
+          setOverview(false);
+          if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
+        }}
+      />
     </nav>
   );
 }

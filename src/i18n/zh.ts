@@ -15,6 +15,18 @@ export const zh = {
   topicsNav: '主題',
   /** 主題選單裡每個主題下方的說明：列出前幾個指標 */
   topicSummary: (indicators: string[], more: boolean) => `${indicators.join('、')}${more ? '等' : ''}`,
+  /** 主題總覽（TopicsOverview.tsx）：每個分類選單最下面的連結與對話框 */
+  allTopics: '全部主題',
+  /** 圖例的「配色」按鈕（PaletteMenu.tsx） */
+  palette: '配色',
+  paletteTitle: '換地圖的配色',
+  paletteNote: '選擇記在這個瀏覽器。人口密度、夜間燈光等網格圖層的顏色不會換。',
+  allTopicsMenu: '看全部主題',
+  overviewFilter: '篩選主題、指標或項目',
+  overviewMatch: (label: string) => `符合：${label}`,
+  overviewNoMatch: '沒有符合的主題',
+  overviewCredit:
+    '縮圖是各主題預設指標的世界地圖（資料出處見各主題的頁尾）；底圖 © OpenStreetMap contributors · OpenMapTiles · OpenFreeMap，國界 Natural Earth。',
   language: '語言',
   switchToLight: '切換為淺色',
   switchToDark: '切換為深色',

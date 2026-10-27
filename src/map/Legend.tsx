@@ -6,6 +6,7 @@ import type { FlowDirection, Indicator } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
 import type { CategoryScale } from './categories';
+import { PaletteMenu } from './PaletteMenu';
 import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
 
 /** 面量圖圖例的色塊與刻度（畫面上的圖例與匯出的圖片共用） */
@@ -33,6 +34,8 @@ interface ChoroplethLegendProps {
   notes?: string[];
   /** 取代「無資料」：沒有上色的部分是什麼（1 km 網格：人口太少的格子） */
   emptyKey?: string;
+  /** 標題旁放「配色」按鈕（PaletteMenu），列出這一種的選項；網格的顏色畫在圖磚裡，不傳 */
+  paletteKind?: 'sequential' | 'diverging';
 }
 
 /** 3D 圖例的說明（畫面上的圖例與匯出的圖片共用） */
@@ -47,15 +50,18 @@ export const COLUMN_NOTE: Text = {
 /** 3D 階梯色塊的最大高度（px）；第 i 級（從 0 起）是 (i+1)/N 倍 */
 export const STEP_MAX_PX = 26;
 
-export function ChoroplethLegend({ indicator, title, scale, stepped = false, notes = [], emptyKey }: ChoroplethLegendProps) {
+export function ChoroplethLegend({ indicator, title, scale, stepped = false, notes = [], emptyKey, paletteKind }: ChoroplethLegendProps) {
   const t = useT();
   const lang = useLang();
   const { colors, labels, swatchWidth } = choroplethLegendModel(indicator, scale);
   return (
     <div className="legend">
-      <div className="legend-title">
-        {title}
-        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
+      <div className="legend-head">
+        <div className="legend-title">
+          {title}
+          <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
+        </div>
+        {paletteKind && <PaletteMenu kind={paletteKind} />}
       </div>
       {stepped && <div className="legend-note">{tr(STEPPED_NOTE, lang)}</div>}
       {notes.map((note) => (
@@ -336,15 +342,20 @@ interface CategoricalLegendProps {
   /** 點一下固定強調（觸控裝置沒有滑過），再點一下取消 */
   pinned: number | null;
   onPin: (index: number | null) => void;
+  /** 有強弱的類別（ordinal、diverging）用分級色、正負色，標題旁放「配色」按鈕 */
+  paletteKind?: 'sequential' | 'diverging';
 }
 
 /** 類別圖：色塊與名稱，沒有數值刻度。滑過、點選某一類時地圖上只突顯那一類的國家 */
-export function CategoricalLegend({ title, scale, values, highlight, onPreview, pinned, onPin }: CategoricalLegendProps) {
+export function CategoricalLegend({ title, scale, values, highlight, onPreview, pinned, onPin, paletteKind }: CategoricalLegendProps) {
   const t = useT();
   const { items, columns } = categoricalLegendModel(scale, values);
   return (
     <div className="legend legend-categorical">
-      <div className="legend-title">{title}</div>
+      <div className="legend-head">
+        <div className="legend-title">{title}</div>
+        {paletteKind && <PaletteMenu kind={paletteKind} />}
+      </div>
       <ul
         className={`legend-categories${columns > 1 ? ' is-two-columns' : ''}`}
         style={{ '--rows': Math.ceil(items.length / columns) } as CSSProperties}

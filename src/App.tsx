@@ -11,12 +11,14 @@ import { LangSwitch } from './controls/LangSwitch';
 import { localize, LOCALES, useLang, useT, type Lang } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
+import type { TopicTarget } from './lib/topicSearch';
 import { indicatorCsv } from './lib/csv';
 import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
+import { recolourText, usePalette } from './map/palettes';
 import { read as readUrlState, useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
@@ -231,6 +233,9 @@ export function App() {
     selectCountry(iso3);
     setFocusRequest({ iso3, key: Date.now() });
   };
+  // 搜尋框裡選到主題、指標或子項目（「房價」「鋰」）：換過去，選取的國家留著
+  const selectTopic = (target: TopicTarget) =>
+    update({ topic: target.topic, indicator: target.indicator, item: target.item, grid: null });
   useHotkeys({
     Escape: () => {
       if (state.country) selectCountry(null);
@@ -258,7 +263,12 @@ export function App() {
     [gridSpec, gridWanted, gridMeta.data, year],
   );
   const mapTitle = grid ? G.title(indicatorTitle) : indicatorTitle;
-  const description = grid ? (gridOnly ? G.subtitle : G.subtitle + G.hoverHint) : indicator.description;
+  // 正負變化的說明寫了顏色（「橘色為衰退、綠色為成長」），使用者換了發散色就跟著換（palettes.ts）
+  const palette = usePalette();
+  const layer = indicator.layer;
+  const diverging = (layer.kind === 'choropleth' && layer.scale.type === 'diverging') || (layer.kind === 'categorical' && layer.diverging);
+  const indicatorText = diverging ? recolourText(indicator.description, lang, palette.diverging) : indicator.description;
+  const description = grid ? (gridOnly ? G.subtitle : G.subtitle + G.hoverHint) : indicatorText;
 
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
@@ -286,7 +296,7 @@ export function App() {
     credits.push(window.location.href);
     const blob = await mapHandle.current.exportImage({
       title: viewTitle,
-      subtitle: pure ? undefined : grid ? G.subtitle : indicator.description,
+      subtitle: pure ? undefined : grid ? G.subtitle : indicatorText,
       credits,
     });
     downloadBlob(blob, `${fileBase}${pure || timeless ? '' : `_${year}`}.png`);
@@ -392,7 +402,11 @@ export function App() {
             {t.offline}
           </span>
         )}
-        <TopicNav current={topic} onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null })} />
+        <TopicNav
+          current={topic}
+          onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null })}
+          onSelectTarget={selectTopic}
+        />
         <LangSwitch />
         <ShortcutHelp />
         <button
@@ -481,6 +495,7 @@ export function App() {
           <CountrySearch
             index={searchIndex}
             onSelect={selectFromSearch}
+            onSelectTopic={selectTopic}
             valueOf={
               pure
                 ? undefined

@@ -3,7 +3,7 @@ import { useLang, useT } from '../i18n';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatPercent } from '../lib/format';
 import { categoryScale } from '../map/categories';
-import { MAP_TOKENS } from '../theme/tokens';
+import { useMapTokens } from '../map/palettes';
 import type { Indicator } from '../topics/types';
 import { ranking, rowRanks } from './stats';
 
@@ -33,9 +33,10 @@ export function RankingTable(props: RankingTableProps) {
   const t = useT();
   const lang = useLang();
   // 類別圖沒有大小之分：依圖例的類別順序排，同一類（「其他」裡同一種）再依國名排，數值欄放色塊與類別名稱
+  const mapTokens = useMapTokens();
   const categories = useMemo(
-    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, MAP_TOKENS) : null),
-    [indicator],
+    () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, mapTokens) : null),
+    [indicator, mapTokens],
   );
   // 總量類指標排除 0（例如沒有已知 AI 叢集的國家），表格才不會一長串 0。
   // 同分的國家依國名排、名次相同（例如超過 WHO 指引值的人口比例有一百多國是 100%）

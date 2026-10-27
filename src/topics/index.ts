@@ -103,6 +103,9 @@ export const TOPIC_GROUPS: TopicGroup[] = [
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */
 export const TOPICS: TopicDefinition[] = [pureMap, ...TOPIC_GROUPS.flatMap((g) => g.topics)];
 
+// 開發模式下給 scripts/topic-thumbs.mjs 用（主題總覽的縮圖）：所有主題的 id
+if (import.meta.env?.DEV) (window as unknown as { __topics?: string[] }).__topics = TOPICS.map((t) => t.id);
+
 export function getTopic(id: string | null): TopicDefinition {
   // 沒指定主題時開人口，不是排在第一個的純地圖
   return TOPICS.find((t) => t.id === id) ?? population;
