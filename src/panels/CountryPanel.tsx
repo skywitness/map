@@ -1,5 +1,6 @@
 import { lazy, Suspense, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
 import { EChart } from '../charts/EChart';
+import { SectionSkeleton, Skeleton } from './Skeleton';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
 import { useLang, useT } from '../i18n';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
@@ -74,7 +75,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
-    if (!data) return { ind, value: null, rank: null, total: 0, share: null, shownYear: null };
+    if (!data) return { ind, loaded: false, value: null, rank: null, total: 0, share: null, shownYear: null };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
     const yearIndex = nearestYearIndex(data.years, year, yearBin(ind));
     // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
@@ -86,6 +87,7 @@ export function CountryPanel(props: CountryPanelProps) {
     const countZero = ind.layer.kind === 'bubble' && value === 0;
     return {
       ind,
+      loaded: true,
       value,
       rank: countZero || ind.layer.kind === 'categorical' || ind.unranked ? null : rankOf(values, iso3, ind.lowerIsBetter),
       total: values.size,
@@ -157,7 +159,7 @@ export function CountryPanel(props: CountryPanelProps) {
       )}
 
       <div className="stats">
-        {stats.map(({ ind, value, rank, total, share, shownYear }) => (
+        {stats.map(({ ind, loaded, value, rank, total, share, shownYear }) => (
           <button
             type="button"
             key={ind.id}
@@ -166,7 +168,10 @@ export function CountryPanel(props: CountryPanelProps) {
             aria-pressed={ind.id === indicator.id}
           >
             <span className="stat-label">{label(ind)}</span>
-            <span className="stat-value">{value != null ? ind.format(value) : (reason(ind) ?? t.noData)}</span>
+            {/* 資料還沒到時不要先寫「無資料」，畫一塊灰色 */}
+            <span className="stat-value">
+              {!loaded ? <Skeleton width="60%" height={20} /> : value != null ? ind.format(value) : (reason(ind) ?? t.noData)}
+            </span>
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
@@ -187,10 +192,13 @@ export function CountryPanel(props: CountryPanelProps) {
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
           ) : option ? (
             <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, chartLabel)} />
+          ) : !activeData ? (
+            <div aria-busy="true">
+              <span className="visually-hidden">{t.loading}</span>
+              <Skeleton height={220} />
+            </div>
           ) : (
-            <p className="empty">
-              {!activeData ? t.loading : activeData.years.length < 2 ? t.singleSnapshotPanel : t.noCountryData}
-            </p>
+            <p className="empty">{activeData.years.length < 2 ? t.singleSnapshotPanel : t.noCountryData}</p>
           )}
           {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
           {methodBreak !== undefined && option && <p className="note">{t.methodBreak(methodBreak)}</p>}
@@ -201,7 +209,7 @@ export function CountryPanel(props: CountryPanelProps) {
       {activeData?.years.length === 1 && note && <p className="note">{t.note(note)}</p>}
 
       {Extra && (
-        <Suspense fallback={<p className="empty">{t.loading}</p>}>
+        <Suspense fallback={<SectionSkeleton />}>
           <Extra topic={topic} indicator={indicator} iso3={iso3} year={year} item={item} countryName={name} tokens={tokens} />
         </Suspense>
       )}

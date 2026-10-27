@@ -29,6 +29,10 @@ interface TimeSeriesInput {
 
 type MarkLineItem = NonNullable<NonNullable<LineSeriesOption['markLine']>['data']>[number];
 
+/** 線的尾端寫名稱：最多幾條線（再多會擠成一團，只留圖例），名稱最寬幾 px（長的國名截掉） */
+const MAX_END_LABELS = 4;
+const END_LABEL_WIDTH = 56;
+
 /** 統計方法改變的那一年：比目前年份的參考線淡、用虛線，側欄底下另有文字說明 */
 export function methodBreakLine(year: number, tokens: Tokens): MarkLineItem {
   return { xAxis: String(year), lineStyle: { color: tokens.inkMuted, type: [4, 3], width: 1 } };
@@ -59,6 +63,19 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
   const tickStep = span > 100 ? 50 : span > 50 ? 20 : span > 25 ? 10 : 5;
   const tick = indicator.formatTick ?? indicator.format;
 
+  // 2–4 條線時，除了上面的圖例，線的尾端也寫名稱（dataviz：少數幾條線要直接標名稱，不必來回對圖例）。
+  // 名稱用文字色、不用線的顏色；尾端靠太近時往上下推開（labelLayout 的 moveOverlap）
+  const endLabels = lines.length >= 2 && lines.length <= MAX_END_LABELS;
+  const endLabel = (name: string): LineSeriesOption['endLabel'] => ({
+    show: true,
+    formatter: name,
+    color: tokens.inkSecondary,
+    fontSize: 11,
+    distance: 4,
+    width: END_LABEL_WIDTH,
+    overflow: 'truncate',
+  });
+
   const series: LineSeriesOption[] = lines.flatMap((line, lineIndex) => {
     const base: LineSeriesOption = {
       type: 'line',
@@ -72,12 +89,14 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
       emphasis: { disabled: true },
       z: lines.length - lineIndex,
     };
-    if (projectionFrom === undefined) return [{ ...base, data: line.values }];
+    const labelled = endLabels ? { endLabel: endLabel(line.name), labelLayout: { moveOverlap: 'shiftY' as const } } : {};
+    if (projectionFrom === undefined) return [{ ...base, ...labelled, data: line.values }];
     return [
       { ...base, data: line.values.map((v, i) => (years[i] < projectionFrom ? v : null)) },
       {
         ...base,
-        // 從推估前一年開始，讓實線與虛線接起來
+        // 從推估前一年開始，讓實線與虛線接起來；尾端的名稱寫在虛線（最後一年）那一段
+        ...labelled,
         data: line.values.map((v, i) => (years[i] >= projectionFrom - 1 ? v : null)),
         lineStyle: { ...base.lineStyle, type: 'dashed' },
       },
@@ -103,7 +122,8 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
     animation: false,
     grid: {
       left: 4,
-      right: 12,
+      // 尾端的名稱放在圖的右邊
+      right: endLabels ? END_LABEL_WIDTH + 8 : 12,
       top: lines.length > 1 ? 32 : 12,
       bottom: 4,
       // ECharts 6 取代 containLabel 的寫法：座標軸標籤留在 grid 範圍內

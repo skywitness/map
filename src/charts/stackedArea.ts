@@ -21,7 +21,7 @@ interface StackedAreaInput {
   tokens: Tokens;
 }
 
-/** 堆疊面積圖（例如各能源發電量）。系列之間用 1px 背景色線分隔，tooltip 列出每一層與合計。 */
+/** 堆疊面積圖（例如各能源發電量）。系列之間用 2px 背景色線分隔（dataviz 的 2px 間隔），tooltip 列出每一層與合計。 */
 export function stackedAreaOption({
   years,
   series,
@@ -38,7 +38,7 @@ export function stackedAreaOption({
     data: s.values.map((v) => v ?? 0),
     showSymbol: false,
     color: s.color,
-    lineStyle: { width: 1, color: tokens.surface },
+    lineStyle: { width: 2, color: tokens.surface },
     areaStyle: { color: s.color, opacity: 1 },
     emphasis: { disabled: true },
     z: series.length - i,

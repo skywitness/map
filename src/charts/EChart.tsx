@@ -11,10 +11,11 @@ import {
   type MarkLineComponentOption,
   type TooltipComponentOption,
 } from 'echarts/components';
+import { LabelLayout } from 'echarts/features';
 import { SVGRenderer } from 'echarts/renderers';
 
-// 按需引入，新主題要用 treemap、sankey 等圖表時在這裡加
-echarts.use([LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, SVGRenderer]);
+// 按需引入，新主題要用 treemap、sankey 等圖表時在這裡加。LabelLayout：折線尾端的名稱靠太近時推開（timeSeries.ts）
+echarts.use([LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, LabelLayout, SVGRenderer]);
 
 export type ChartOption = echarts.ComposeOption<
   LineSeriesOption | GridComponentOption | LegendComponentOption | MarkLineComponentOption | TooltipComponentOption

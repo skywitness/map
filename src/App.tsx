@@ -45,6 +45,7 @@ import { loadBaseStyle } from './map/style';
 import type { WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
+import { PanelSkeleton } from './panels/Skeleton';
 import { RankingTable } from './panels/RankingTable';
 import { latestAt, maxAcrossYears } from './panels/stats';
 import { getTopic } from './topics';
@@ -623,7 +624,7 @@ export function App() {
             <Suspense
               fallback={
                 <aside className="panel" aria-busy="true">
-                  <p className="empty">{t.loading}</p>
+                  <PanelSkeleton />
                 </aside>
               }
             >
