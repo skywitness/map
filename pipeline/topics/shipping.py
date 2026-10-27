@@ -295,10 +295,29 @@ def shipbuilding() -> None:
     series, world, _ = by_economy(rows, "Gross Tonnage")
     years = sorted({y for s in series.values() for y in s})
     values = {iso3: to_series(s, years, 0) for iso3, s in series.items() if any(s.values())}
+    last = years[-1]
+    # 台灣近年的造船量很低（2022 年 496、2025 年 326 總噸），2026-10-27 查過不是抄錯：UNCTAD 只算 100 總噸以上的商船，
+    # 不含軍艦與公務船；台船 2022 年起因商船訂單不足虧損（2025-02-25 法說會），這幾年主要在造潛艦、海巡艦與公務船
+    tw = series[TAIWAN]
+    peak = max(tw, key=lambda y: tw[y])
+    recent = [y for y in years if y >= 2022 and y in tw]
+    notes = {TAIWAN: (
+        "UNCTAD 的造船量只算 100 總噸以上的海運商船，不含軍艦、公務船、漁船與遊艇。"
+        f"台灣 {peak} 年 {tw[peak]:,.0f} 總噸，" + "、".join(f"{y} 年 {tw[y]:,.0f}" for y in recent) + " 總噸："
+        "最大的台灣國際造船 2022 年起因商船訂單不足而虧損，這幾年主要在造潛艦、海巡艦與公務船（不算商船），商船交得少。照 UNCTAD 的數字畫。"
+    )}
+    notes_en = {TAIWAN: (
+        "UNCTAD’s shipbuilding figures cover only seagoing merchant ships of 100 GT and above, excluding naval, government and fishing vessels and yachts. "
+        f"Taiwan delivered {tw[peak]:,.0f} GT in {peak}, then " + ", ".join(f"{tw[y]:,.0f} in {y}" for y in recent) + ". "
+        "CSBC, its largest shipyard, has made losses since 2022 for lack of merchant orders and has mostly been building submarines, "
+        "coast guard and other government ships, which are not merchant ships. Plotted as published by UNCTAD."
+    )}
+    hints = {TAIWAN: "只算商船；台船這幾年多在造潛艦、海巡艦與公務船"}
+    hints_en = {TAIWAN: "Merchant ships only; CSBC has mostly been building submarines and government ships"}
     write_json(OUT / "shipbuilding.json", indicator_file(
         "shipbuilding", "總噸", years, values, aggregates={"WLD": to_series(world, years, 0)},
+        notes=notes, notesEn=notes_en, hints=hints, hintsEn=hints_en,
     ))
-    last = years[-1]
     top = sorted(series, key=lambda k: -series[k].get(last, 0))[:5]
     print(f"  造船 {years[0]}–{last}：{len(values)} 國；{last} 年前 5 名 {top}；台灣 {series[TAIWAN].get(last, 0):,.0f} 總噸")
 

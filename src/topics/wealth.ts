@@ -5,6 +5,7 @@ const pct = (v: number) => `${v < 0 ? '−' : ''}${fixed(Math.abs(v), 1)}%`;
 const pctTick = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(v)}%`;
 const USD = { zh: '美元', en: 'US$' };
 const INTL = { zh: '國際元', en: 'Int$' };
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 const IMF_LICENSE = { zh: '註明出處即可使用', en: 'free to use with attribution' };
 
@@ -62,7 +63,7 @@ export const wealth: TopicDefinition = {
     {
       name: { zh: 'OECD, National Accounts at a Glance（家庭儲蓄率）', en: 'OECD, National Accounts at a Glance (household saving)' },
       url: 'https://www.oecd.org/en/data/indicators/household-savings.html',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: { zh: '中央銀行 金融統計', en: 'Central Bank of the Republic of China (Taiwan), financial statistics' },

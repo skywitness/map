@@ -5,6 +5,7 @@ import type { TopicDefinition } from './types';
 const pct = (v: number) => `${fixed(v, 1)}%`;
 const pctTick = (v: number) => `${v}%`;
 const PEOPLE = { zh: '人', en: 'people' };
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 export const housing: TopicDefinition = {
@@ -28,7 +29,7 @@ export const housing: TopicDefinition = {
         en: 'OECD Affordable Housing Database (HM1.5 dwelling types, HM1.3 housing tenures)',
       },
       url: 'https://oe.cd/ahd',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: 'United Nations, Database on Household Size and Composition 2022',
