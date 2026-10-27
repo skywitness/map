@@ -14,8 +14,8 @@ Wikidata 的收錄跟 CTBUH 的總數比，200 m 以上約兩成（中國約一�
 - 高度（_height()）：見 HEIGHT_RULE 的說明；pipeline 印出跟樓層數對不上的、超過 830 m 的、單位是英尺的，逐一看過。
 - 重複：一個建築群（P527 有部分在清單裡）只算它的各棟；同一個位置、同一個高度的兩個項目只算一個（DUPLICATES）。
   雙塔（P31 是 twin towers，沒有各自的項目）算 2 棟（CTBUH 也分開算），點只有一個。
-- 國家：依座標用網站自己的國界判斷（geoindex，香港、澳門、台灣各自一國），沒有座標的用 P17；香港與深圳之間依 P131 的鏈
-  （1:50m 的香港邊界偏北，見 _countries()）。
+- 國家：依座標用網站自己的國界判斷（geoindex 的 Natural Earth 1:10m，香港、澳門、台灣各自一國），沒有座標的用 P17；
+  香港與深圳之間依 P131 的鏈（見 _countries()），國界河上的個別建築寫在 COUNTRY_FIXES。
 - 城市：P131（所在行政區）往上最多 4 層，取最高的一個城市（Q515 的子類別，不含市轄區；台灣的直轄市另外算），
   CITY_OVERRIDES 改成一般說的城市；鏈上沒有城市（直接寫州、省）的用城市主題的 GHSL 城市。
 
@@ -189,7 +189,9 @@ EXTRA_CITY_CLASSES = {"Q2225003"}
 # 個別建築的城市：{建築: (城市 QID, 理由)}（P131 直接寫省的）
 BUILDING_CITY: dict[str, tuple[str, str]] = {}
 # 個別建築的國家：{建築: (ISO3, 理由)}
-COUNTRY_FIXES: dict[str, tuple[str, str]] = {}
+COUNTRY_FIXES: dict[str, tuple[str, str]] = {
+    "Q9306302": ("USA", "底特律的文藝復興中心 Tower 300，座標在底特律河的美國岸邊；1:10m 的美加國界在這裡偏北，判成加拿大"),
+}
 # 每一棟的判斷結果（狀態、高度與年份的依據、城市的鏈），逐一檢查用，不輸出
 CACHE_DEBUG = CACHE_DIR / "wikidata" / "skyscrapers-debug.json"
 
@@ -432,9 +434,11 @@ WIKI_ISO = {"XKS": "XKX"}  # Wikidata 的 P298 → 地圖的代碼
 
 
 def _countries(rows: list[dict], log: list[str]) -> None:
-    """r['iso3']：依座標（網站自己的國界）；沒有座標的用 P17（Wikidata 的 P298）。
-    1:50m 的香港邊界比實際偏北，深圳福田、羅湖的大樓（平安金融中心、京基 100、信興廣場）會落在香港裡，
-    所以香港、澳門與中國之間依 P131 的鏈（有沒有經過香港、澳門）決定。其他跟 P17 不同的印出來。"""
+    """r['iso3']：依座標（geoindex 的 1:10m 國界）；沒有座標的用 P17（Wikidata 的 P298）。
+    香港、澳門與中國之間依 P131 的鏈（有沒有經過香港、澳門）決定：地圖的 1:50m 香港邊界比實際偏北，深圳福田、羅湖的
+    大樓（平安金融中心、京基 100、信興廣場）原本落在香港裡；geoindex 改用 1:10m（2026-10-27）以後這 8 棟的座標
+    已經在中國，這條規則目前沒有改到任何一棟，留著當保險（1:10m 的香港邊界在沙頭角一帶仍偏北幾百公尺）。
+    其他跟 P17 不同的印出來，逐一看過的寫在 COUNTRY_FIXES。"""
     lons = [r["coord"][0] for r in rows if r["coord"]]
     lats = [r["coord"][1] for r in rows if r["coord"]]
     found = iter(geoindex.countries_at(lons, lats))
@@ -448,7 +452,8 @@ def _countries(rows: list[dict], log: list[str]) -> None:
         if r["qid"] in COUNTRY_FIXES:
             iso = COUNTRY_FIXES[r["qid"]][0]
         if geo and iso != geo:
-            log.append(f"國家：{r['qid']} {r['en']} 的座標在 {geo}，依 P131 改成 {iso}")
+            why = "COUNTRY_FIXES" if r["qid"] in COUNTRY_FIXES else "P131"
+            log.append(f"國家：{r['qid']} {r['en']} 的座標在 {geo}，依 {why} 改成 {iso}")
         elif p17 and iso not in p17 and not (iso in ("HKG", "MAC", "TWN") and "CHN" in p17):
             log.append(f"國家：{r['qid']} {r['en']} 的座標在 {iso}，P17 是 {p17}")
         r["iso3"] = iso

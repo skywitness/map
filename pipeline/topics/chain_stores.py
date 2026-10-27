@@ -4,7 +4,7 @@
   而且是這個品牌的店型」時才算（例如 amenity=fast_food、名稱「麥當勞 …」），名稱比對只用不會認錯的寫法。
 - 同一家店常常標了兩次（建築物外框一個、店的點一個；加油站一個、裡面的便利商店一個）：同一個品牌 25 公尺內的點當成同一家，
   便利商店品牌只標成加油站（amenity=fuel）的，150 公尺內沒有同品牌的便利商店才算一家。
-- 國家在本地用國界判斷（geoindex.countries_at），不必對 Overpass 發上百次查詢。
+- 國家在本地用國界判斷（geoindex.countries_at，Natural Earth 1:10m），不必對 Overpass 發上百次查詢。
 - OSM 不是官方店數：各國標得完不完整差很多，跟公司公布的店數（sources/chain_official.py）比出涵蓋率，寫在附註、tooltip 與側欄。
 - 這裡輸出的資料檔都是 OpenStreetMap 的衍生資料庫，以 ODbL 提供（DESIGN.md 第 8 節第 12 點）。
 """
@@ -29,7 +29,8 @@ POOR_COVERAGE = 0.5  # 涵蓋率低於一半時，tooltip 與側欄另外提醒�
 TOP_CONVENIENCE_BRANDS = 8  # 側欄列出的便利商店品牌數
 ALL_CONVENIENCE = "convenience"  # 子項目「所有便利商店」（前端 chain-stores.ts 的 ALL_CONVENIENCE）
 # 人口不到 10 萬的地方不算每百萬人的店數：一兩家店就是每百萬人幾十家（聖馬丁 4 家 Subway 是 90 家），
-# 梵蒂岡旁邊的一家肯德基落在 1:50m 的梵蒂岡國界裡就變成每百萬人近 2,000 家。店數照常有。
+# 梵蒂岡旁邊的一家肯德基落在 1:50m 的梵蒂岡國界裡就變成每百萬人近 2,000 家（geoindex 改用 1:10m 以後已經不在梵蒂岡）。
+# 店數照常有。
 # 前端 chain-stores.ts 的 SMALL_POPULATION 是同一份清單（給 noValue 寫原因），build() 會比對兩邊
 MIN_POPULATION = 100_000
 TS_FILE = OUT_DIR.parent.parent / "src" / "topics" / "chain-stores.ts"

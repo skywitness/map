@@ -2,10 +2,10 @@
 
 - 資料：`sources/ookla.py`（AWS Open Data 上的 Ookla Open Data，CC BY-NC-SA 4.0），每年只取第 3 季（7–9 月），
   2019–2026 年共 8 季：同一個季節年年可比，最新的 2026 年第 3 季也在裡面（不必另外混一季別的季節）。
-- 歸國：圖塊中心用 `geoindex.countries_at()`（地圖本身的 1:50m 國界），再照人口主題的網格（`population_grid`）
-  把法國海外省、波奈、克里米亞、西撒哈拉、直布羅陀、吐瓦魯、托克勞依聯合國的劃分拆開；1:50m 沒有形狀、
-  離本島超過 0.3° 的台灣離島（澎湖、馬祖、蘭嶼、綠島、東沙、烏坵）用矩形範圍補回台灣（`TAIWAN_ISLANDS`）。
-  約 2,000 萬個不重複的圖塊，第一次約 10 分鐘，結果存在 `.cache/ookla/tile-countries-v<ASSIGN_VERSION>.npz`，
+- 歸國：圖塊中心用 `geoindex.countries_at()`（Natural Earth 1:10m 的國界；1:10m 也沒有形狀的台灣離島，馬祖、
+  烏坵、東沙等，geoindex 用矩形範圍補回台灣，`geoindex.ISLANDS`），再照人口主題的網格（`population_grid`）
+  把法國海外省、波奈、克里米亞、西撒哈拉、直布羅陀、吐瓦魯、托克勞依聯合國的劃分拆開。
+  約 2,200 萬個不重複的圖塊，第一次約 20 秒（1:50m 時約 10 分鐘），結果存在 `.cache/ookla/tile-countries-v<ASSIGN_VERSION>.npz`，
   之後只算新出現的圖塊（geoindex 或這裡的歸國規則改了，要把 ASSIGN_VERSION 加一）。
 - 彙總（各國、世界）：
   - 中位數（地圖上的值）：每個圖塊的平均值依測試次數加權的中位數，也就是把每一次測試都當成它所在圖塊的平均值，
@@ -27,22 +27,9 @@ from sources import ookla
 
 YEARS = list(range(2019, 2027))
 QUARTER = 3
-# 圖塊歸國的快取版本：2 是 geoindex 修好換日線之後（2026-10-27，見 geoindex._wrapped）
-ASSIGN_VERSION = 2
-
-# 1:50m 沒有形狀、離台灣本島或金門的國界超過 0.3° 的台灣離島：(經度起, 緯度起, 經度迄, 緯度迄)。
-# geoindex 會把它們歸到「沒有國家」，馬祖則是最近的國界頂點在福建沿岸（中國），一律改歸台灣。
-# 範圍都只框住島本身，跟大陸沿岸（黃岐半島約 119.9°E、26.3°N，平潭約 25.7°N 以南，湄洲島約 119.1°E）保持距離。
-TAIWAN_ISLANDS = {
-    "澎湖": (119.25, 23.15, 119.75, 23.85),
-    "馬祖（南竿、北竿）": (119.88, 26.12, 120.05, 26.27),
-    "馬祖（莒光）": (119.90, 25.93, 120.00, 26.00),
-    "馬祖（東引）": (120.45, 26.33, 120.53, 26.40),
-    "烏坵": (119.43, 24.96, 119.48, 25.00),
-    "蘭嶼": (121.47, 21.98, 121.63, 22.10),
-    "綠島": (121.45, 22.62, 121.53, 22.70),
-    "東沙": (116.65, 20.65, 116.80, 20.75),
-}
+# 圖塊歸國的快取版本：2 是 geoindex 修好換日線之後（2026-10-27，見 geoindex._wrapped），
+# 3 是 geoindex 改用 1:10m 國界之後（2026-10-27，台灣離島的矩形範圍也移到 geoindex.ISLANDS）
+ASSIGN_VERSION = 3
 
 
 def tile_ids(t: dict[str, np.ndarray]) -> np.ndarray:
@@ -74,8 +61,6 @@ def _assign(ids: np.ndarray) -> np.ndarray:
             out[(out == source) & box(area)] = target
     for source, target, area in OVERRIDES:
         out[(out == (source or "")) & box(area)] = target
-    for area in TAIWAN_ISLANDS.values():
-        out[box(area)] = "TWN"
     return out
 
 
@@ -267,7 +252,7 @@ def build() -> None:
             "attribution": ookla.citation(f"Q{QUARTER} {YEARS[0]} – Q{QUARTER} {YEARS[-1]} (third quarter of each year)"),
             "method": "Country and world values: tests-weighted median of zoom-16 tile averages (download, upload, "
             "latency) and tests-weighted mean of download; tiles assigned to countries by their centre point "
-            f"(Natural Earth 1:50m). Quarters with fewer than {MIN_TESTS} tests have no speed values.",
+            f"(Natural Earth 1:10m). Quarters with fewer than {MIN_TESTS} tests have no speed values.",
         },
     )
 

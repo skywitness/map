@@ -23,6 +23,22 @@ NO_ID_OVERRIDES = {
 }
 
 
+def unit_id(name: str, numeric: str | None) -> tuple[str, str | None]:
+    """world-atlas 的一個單位（名稱、ISO 數字代碼）→ 網站的 (iso3, iso2)；geoindex 的 1:10m 國界也用這一套。"""
+    if numeric is None:
+        return NO_ID_OVERRIDES[name]
+    country = pycountry.countries.get(numeric=numeric)
+    return country.alpha_3, country.alpha_2
+
+
+def world_atlas_units(scale: str = "50m") -> dict[str, str | None]:
+    """world-atlas 的 countries-<scale>.json（下載快取）：{名稱: ISO 數字代碼或 None}"""
+    src = download(WORLD_ATLAS_URL.format(scale=scale), "world-atlas", f"countries-{scale}.json")
+    with open(src, encoding="utf-8") as f:
+        topo = json.load(f)
+    return {g["properties"]["name"]: g.get("id") for g in topo["objects"]["countries"]["geometries"]}
+
+
 def as_multipolygon_arcs(geom: dict) -> list:
     if geom["type"] == "Polygon":
         return [geom["arcs"]]
@@ -86,12 +102,7 @@ def convert(scale: str) -> int:
     merged: dict[str, dict] = {}
     for geom in topo["objects"]["countries"]["geometries"]:
         name = geom["properties"]["name"]
-        numeric = geom.get("id")
-        if numeric is None:
-            iso3, iso2 = NO_ID_OVERRIDES[name]
-        else:
-            country = pycountry.countries.get(numeric=numeric)
-            iso3, iso2 = country.alpha_3, country.alpha_2
+        iso3, iso2 = unit_id(name, geom.get("id"))
 
         if iso3 in merged:
             # 同一個 ISO 代碼出現兩次（例如澳洲與阿什莫爾-卡蒂埃群島），合併成一個 MultiPolygon

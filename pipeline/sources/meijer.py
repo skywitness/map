@@ -9,7 +9,7 @@ https://doi.org/10.1126/sciadv.aaz5803
   中間情境（mid-point）的 GIS 點檔（shapefile，WGS84），一個欄位 dots_exten（公噸／年），沒有河名與國家。
 - 論文：2015 年的排放（輸入的管理不當塑膠垃圾是 Lebreton & Andrady 2019 估計的 2015 年），全世界約 100 萬公噸
   （範圍 80 萬–270 萬）；只算年排放 0.1 公噸以上的河口（論文寫 31,904 個，figshare 的檔是 31,819 個）。
-- 國家：依河口的位置用 Natural Earth 1:50m 國界判斷（geoindex.countries_at，海邊的點找 0.3° 內最近的國界），
+- 國家：依河口的位置用 Natural Earth 1:10m 國界判斷（geoindex.countries_at，海邊的點找 0.3° 內最近的國界），
   論文附錄的國家表是 CC BY-NC，沒有用；pipeline 拿 Our World in Data 轉載的幾個大國比對過（plastic.py）。
 """
 from __future__ import annotations
