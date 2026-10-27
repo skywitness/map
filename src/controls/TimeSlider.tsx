@@ -52,7 +52,8 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis,
 
   useHotkeys({ ArrowLeft: () => stepYear(-1), ArrowRight: () => stepYear(1), ' ': togglePlay }, first !== last);
 
-  // 「2026 起為推估」離頭尾太近時（手機上拉桿短），跟頭尾的年份疊在一起：藏起被蓋到的那個年份
+  // 「2026 起為推估」離頭尾太近時（手機上拉桿短）：標籤本身往內移，不超出拉桿（會蓋到右邊的年份），
+  // 跟頭尾的年份疊在一起時藏起被蓋到的那個年份
   const ticksRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const ticks = ticksRef.current;
@@ -60,7 +61,14 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis,
     if (!ticks || !middle) return;
     const ends = [ticks.firstElementChild, ticks.lastElementChild] as HTMLElement[];
     const check = () => {
-      const m = middle.getBoundingClientRect();
+      middle.style.translate = '';
+      const box = ticks.getBoundingClientRect();
+      let m = middle.getBoundingClientRect();
+      const shift = m.right > box.right ? box.right - m.right : m.left < box.left ? box.left - m.left : 0;
+      if (shift) {
+        middle.style.translate = `${shift}px`;
+        m = middle.getBoundingClientRect();
+      }
       for (const end of ends) {
         end.style.visibility = 'visible';
         const r = end.getBoundingClientRect();
