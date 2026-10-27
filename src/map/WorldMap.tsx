@@ -205,6 +205,45 @@ const MIN_BOX_PX = 6;
 /* ── 3D ─────────────────────────────── */
 /** 進入 3D 時的傾角（度） */
 const PITCH_3D = 50;
+
+/**
+ * 地球儀縮小時，底圖的地名只留離畫面中心 LIMB_DEGREES 以內的：靠近地球邊緣的地方被壓扁，
+ * 中東、歐洲的國名擠成一團（沙烏地阿拉伯疊在阿拉伯聯合大公國上），還會超出地球畫到太空上。
+ * 放大到 LIMB_MAX_ZOOM 以後看不到地球的邊緣，不篩選。
+ */
+const LIMB_DEGREES = 60;
+const LIMB_MAX_ZOOM = 3.5;
+/** 中心移動不到這麼多度就不重新篩選：每次篩選底圖的圖磚都要重新解析一次 */
+const LIMB_MIN_SHIFT = 4;
+
+/** 以 [經度, 緯度] 為中心、角半徑 degrees 的球冠，寫成經緯度的多邊形（給 MapLibre 的 within 用） */
+function sphericalCap([lng0, lat0]: [number, number], degrees: number): GeoJSON.MultiPolygon {
+  const rad = Math.PI / 180;
+  const d = degrees * rad;
+  const φ1 = lat0 * rad;
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= 96; i++) {
+    const bearing = (i / 96) * 2 * Math.PI;
+    const φ2 = Math.asin(Math.sin(φ1) * Math.cos(d) + Math.cos(φ1) * Math.sin(d) * Math.cos(bearing));
+    const λ2 = lng0 * rad + Math.atan2(Math.sin(bearing) * Math.sin(d) * Math.cos(φ1), Math.cos(d) - Math.sin(φ1) * Math.sin(φ2));
+    let lng = λ2 / rad;
+    // 經度展開成連續的（跨過 180° 經線時不跳回 -180°）
+    if (ring.length) {
+      const prev = ring[ring.length - 1][0];
+      while (lng - prev > 180) lng -= 360;
+      while (lng - prev < -180) lng += 360;
+    }
+    // within 用麥卡托座標算，極點是無限遠，緯度夾在 ±85°
+    ring.push([lng, Math.max(-85, Math.min(85, φ2 / rad))]);
+  }
+  // 包含極點時繞一圈經度差了 360°：沿著 85° 緯線接回起點，把極點那一側封起來
+  if (Math.abs(ring[ring.length - 1][0] - ring[0][0]) > 180) {
+    const pole = lat0 > 0 ? 85 : -85;
+    ring.push([ring[ring.length - 1][0], pole], [ring[0][0], pole], ring[0]);
+  }
+  // 往東、往西各複製一份，跨過 180° 經線的部分也涵蓋得到
+  return { type: 'MultiPolygon', coordinates: [-360, 0, 360].map((k) => [ring.map(([x, y]) => [x + k, y])]) };
+}
 /**
  * 縮放 2 級時的最大高度（公尺）。面量圖最高一級的國家、比例圓最大值的柱子。
  * 平面地圖的 2 級約 20 km/px，所以柱子最高約 200 px、面量圖最高約 70 px。
@@ -616,6 +655,9 @@ export function WorldMap(props: WorldMapProps) {
   const size = useElementSize(containerRef);
   // 每次加上資料圖層（建立地圖、切換底圖）就加一；資料相關的 effect 都依它重跑，把資料重新套上
   const [revision, setRevision] = useState(0);
+  // 最新的 revision：effect 的 cleanup 用來分辨是換了底圖還是其他依賴變了
+  const revisionRef = useRef(revision);
+  revisionRef.current = revision;
   const ready = revision > 0;
   /** 資料圖層目前是否在地圖上（切換底圖、等新樣式載入的期間是 false） */
   const installedRef = useRef(false);
@@ -862,6 +904,7 @@ export function WorldMap(props: WorldMapProps) {
     return () => {
       cancelled = true;
       clearTimeout(seaTimerRef.current);
+      installedRef.current = false;
       map?.remove();
       mapRef.current = null;
     };
@@ -1282,6 +1325,43 @@ export function WorldMap(props: WorldMapProps) {
     map.setPaintProperty('selected-mark', 'circle-stroke-color', nightLook ? '#ffffff' : MAP_TOKENS.ink);
     map.setPaintProperty('selected-mark-halo', 'circle-stroke-color', nightLook ? '#0b0b0b' : '#ffffff');
   }, [revision, nightLook]);
+
+  // 地球儀縮小時，底圖的地名只留離畫面中心 LIMB_DEGREES 以內的（見 sphericalCap）；移動結束時更新
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    // 換底圖後是新的樣式：記下地名圖層原本的篩選條件
+    const labels = map
+      .getStyle()
+      .layers.filter(
+        (l): l is Extract<LayerSpecification, { type: 'symbol' }> =>
+          l.type === 'symbol' && ['place', 'water_name'].includes((l as { 'source-layer'?: string })['source-layer'] ?? ''),
+      )
+      .map((l) => ({ id: l.id, filter: l.filter }));
+    let applied: [number, number] | null = null;
+    const restore = () => {
+      if (!applied) return;
+      for (const l of labels) if (map.getLayer(l.id)) map.setFilter(l.id, l.filter ?? null);
+      applied = null;
+    };
+    const update = () => {
+      if (projection !== 'globe' || map.getZoom() >= LIMB_MAX_ZOOM) return restore();
+      const c = map.getCenter();
+      const center: [number, number] = [c.lng, c.lat];
+      if (applied && geoDistance(applied, center) < LIMB_MIN_SHIFT * (Math.PI / 180)) return;
+      const within: ExpressionSpecification = ['within', sphericalCap(center, LIMB_DEGREES)];
+      for (const l of labels) map.setFilter(l.id, l.filter ? ['all', l.filter as ExpressionSpecification, within] : within);
+      applied = center;
+    };
+    update();
+    map.on('moveend', update);
+    return () => {
+      map.off('moveend', update);
+      // 換了底圖（revision 變了）是新的樣式，本來就沒有篩選；只有切換平面、地球儀時要還原。
+      // 元件卸載時地圖可能已經 remove()，那時不必還原
+      if (revisionRef.current === revision && installedRef.current) restore();
+    };
+  }, [revision, projection]);
 
   // 網格第一次畫好：留下 performance mark「map-grid」給載入速度量測用（npm run measure:load -- <網址> --mark map-grid）
   const gridShownRef = useRef(false);

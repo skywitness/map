@@ -202,6 +202,7 @@ export function App() {
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
+  const [playing, setPlaying] = useState(false);
   // 換到年份意思不同的指標（出生年 ↔ 量測的年份，指標的 timeAxis）時，年份回到那個指標的預設，
   // 不沿用原本的數字（1996 年出生 ≠ 1996 年量的 19 歲）
   const chooseIndicator = (id: string) => {
@@ -559,6 +560,14 @@ export function App() {
       <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">
           {error && <p className="error">{t.loadFailed(error.message)}</p>}
+          {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
+          {view === 'map' && !pure && !timeless && (
+            // 有框選結果時它在左上角（或右上角），年份改放中間
+            <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}`} aria-hidden="true">
+              {yearText ?? year}
+              {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
+            </div>
+          )}
           {view === 'map' ? (
             // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
             <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
@@ -676,6 +685,7 @@ export function App() {
           projectionLabel={indicator.projectionLabel}
           axis={indicator.timeAxis}
           onChange={setYear}
+          onPlayingChange={setPlaying}
         />
       )}
 
