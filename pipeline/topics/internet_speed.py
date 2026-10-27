@@ -28,8 +28,9 @@ from sources import ookla
 YEARS = list(range(2019, 2027))
 QUARTER = 3
 # 圖塊歸國的快取版本：2 是 geoindex 修好換日線之後（2026-10-27，見 geoindex._wrapped），
-# 3 是 geoindex 改用 1:10m 國界之後（2026-10-27，台灣離島的矩形範圍也移到 geoindex.ISLANDS）
-ASSIGN_VERSION = 3
+# 3 是 geoindex 改用 1:10m 國界之後（2026-10-27，台灣離島的矩形範圍也移到 geoindex.ISLANDS），
+# 4 是加了 geoindex.BORDER_FIXES（1:10m 已知錯的國界）之後
+ASSIGN_VERSION = 4
 
 
 def tile_ids(t: dict[str, np.ndarray]) -> np.ndarray:

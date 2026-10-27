@@ -4,7 +4,8 @@
   1:50m 對小地方太粗：香港的形狀只有 23 個頂點，北邊比實際的深圳河偏北 2–3 km，深圳福田、羅湖的店家、大樓、口岸
   都被判成香港（DESIGN.md 第 8 節第 85 點）。1:10m 用 4.1.0 版，跟地圖的 world-atlas 2.0.2（Natural Earth 4.1.0 的
   1:50m）同一版，國家的劃分一樣（克里米亞、西撒哈拉、東耶路撒冷的畫法相同；5.1.2 版把東耶路撒冷畫進以色列），
-  只是邊界細很多（香港 399 個頂點）。1:10m 的國界在國界河上仍有幾百公尺的誤差（德里納河、楚河、噴赤河、沙頭角）。
+  只是邊界細很多（香港 399 個頂點）。1:10m 的國界在國界河上仍有幾百公尺的誤差（楚河、噴赤河、普蘇河、沙頭角），
+  4.1.0 版的波赫東界更整段偏掉，已知的地方用矩形範圍修正（`BORDER_FIXES`）。
 - 國家代碼：名稱跟 1:50m 一樣的單位用 build_geo.unit_id()（world-atlas 的 ISO 數字代碼 → alpha-3，沒有代碼的查
   NO_ID_OVERRIDES），只有 1:10m 才有的單位逐一指定（`TEN_M_ONLY`，沒列到的會報錯）；1:10m 也沒有形狀的台灣離島用
   矩形範圍（`ISLANDS`）。
@@ -70,6 +71,62 @@ ISLANDS: dict[str, tuple[str, tuple[float, float, float, float]]] = {
     "蘭嶼": ("TWN", (121.47, 21.98, 121.63, 22.10)),
     "綠島": ("TWN", (121.45, 22.62, 121.53, 22.70)),
     "東沙": ("TWN", (116.65, 20.65, 116.80, 20.75)),
+}
+
+# 1:10m（4.1.0 版）國界已知錯的地方：{名稱: ([範圍…], 規則, 理由與證據)}，範圍是 (經度起, 緯度起, 經度迄, 緯度迄)。
+# 規則是國家代碼時，範圍裡的點一律歸那一國；「50m:代碼」時，範圍裡 1:50m（地圖畫的國界）算在那一國的點歸那一國，
+# 其他的點照 1:10m。範圍只框住判錯的地方，逐點、逐圖塊檢查過（DESIGN.md 第 8 節第 85 點）；店名、地名是獨立於國界的證據。
+Box = tuple[float, float, float, float]
+BORDER_FIXES: dict[str, tuple[list[Box], str, str]] = {
+    "波赫東部": (
+        # 三個範圍拼起來，留出德里納河東岸塞爾維亞的柳博維亞（44.19°N、19.37°E，1:50m 也畫進波赫；店名 Аман 是塞爾維亞的連鎖）
+        [(18.20, 42.55, 19.60, 44.15), (18.20, 44.15, 19.36, 44.24), (18.20, 44.24, 19.60, 44.92)], "50m:BIH",
+        "4.1.0 版 1:10m 的波赫東界、南界整段偏進波赫（約 5,000 km²：塞姆貝里亞、茲沃爾尼克、魯多、恰伊尼切畫成塞爾維亞、"
+        "蒙特內哥羅、克羅埃西亞）；5.1.2 版修正了，修正後的界線跟 1:50m 一致（範圍裡 1:50m 算波赫的 0.01° 格點 97.7% 跟 "
+        "5.1.2 相同）；店名是波士尼亞的拉丁字母與塞族共和國的西里爾字母（Novo Rudo、s.t.r. Tojić、Trgovina mješovite robe），"
+        "茲沃爾尼克北邊的 nestro 是塞族共和國的加油站連鎖",
+    ),
+    "托克馬克": (
+        [(75.255, 42.838, 75.325, 42.853)], "50m:KGZ",
+        "吉爾吉斯的托克馬克（Natural Earth 城市點 42.83°N、75.28°E）在楚河南岸，1:10m 的國界偏南把市區畫進哈薩克；"
+        "店名有吉爾吉斯文（Жыргал、Эне-Сай、Ала-Тоо、Нуржаз）；北邊 1:50m 也算哈薩克的店（Аружан、Триада）照舊",
+    ),
+    "肯布倫": (
+        [(75.118, 42.871, 75.168, 42.877)], "50m:KGZ",
+        "楚河南岸吉爾吉斯的肯布倫村（店名「Каныкей с. Кен-булун」寫明在 Кен-Булун 村），1:10m 畫成哈薩克",
+    ),
+    "噴赤河：魯山以西 A": (
+        [(71.380, 37.908, 71.388, 37.916)], "TJK",
+        "噴赤河沿岸塔吉克一側的店（店名是塔吉克的西里爾字母 Магазин、Омехта），1:10m 畫成阿富汗",
+    ),
+    "噴赤河：魯山以西 B": (
+        [(71.426, 37.924, 71.439, 37.930)], "TJK",
+        "同上（Фирдавс、Магазин）",
+    ),
+    "噴赤河：蘭加爾": (
+        [(72.670, 37.048, 72.678, 37.055)], "TJK",
+        "瓦罕谷塔吉克一側的蘭加爾村（店名 Беҳруз 是塔吉克的西里爾字母），1:10m、1:50m 都有畫成阿富汗的",
+    ),
+    "韋肖洛耶": (
+        [(39.980, 43.384, 40.0045, 43.4075)], "RUS",
+        "索契市阿德勒區的韋肖洛耶在普蘇河西岸（俄羅斯），1:10m 把它畫進阿布哈茲（喬治亞）；店是俄羅斯的連鎖"
+        "（Магнит、克拉斯諾達爾邊疆區的「Агрокомплекс Выселковский」）；範圍只到這些店的東邊（40.0045°E）與北邊（43.4075°N），"
+        "河邊靠近口岸、沒有店名的幾家照 1:10m",
+    ),
+    "班吉市中心": (
+        [(18.570, 4.358, 18.600, 4.372)], "CAF",
+        "中非首都班吉的市中心（Natural Earth 城市點 4.37°N、18.56°E，中央市場 Marché Central）在烏班吉河北岸，"
+        "1:10m 把河岸一帶畫成剛果民主共和國；對岸的宗戈在 4.33°N",
+    ),
+    "哈尼伊埃雷齊": (
+        [(21.290, 42.142, 21.312, 42.158)], "XKX",
+        "科索沃的哈尼伊埃雷齊（OSM 的數據中心寫 addr:country=XK、addr:city=Hani i Elezit），1:10m 的國界偏北、畫成北馬其頓",
+    ),
+    "沙頭角北邊": (
+        [(114.220, 22.550, 114.290, 22.575)], "CHN",
+        "深圳鹽田區的沙頭角在香港沙頭角（中英街）的北邊，1:10m 的香港往北、往東多畫了約 1 km；範圍的南界 22.550°N "
+        "在香港那一側的店（22.546°N 的 7-Eleven）北邊，範圍裡的店名都是簡體字（美宜佳、麦当劳），美宜佳是廣東的連鎖、香港沒有",
+    ),
 }
 
 Ring = list[tuple[float, float]]
@@ -389,9 +446,49 @@ def _index() -> _Index:
     return _Index()
 
 
+@lru_cache(maxsize=None)
+def _fifty_m_rings(iso3: str) -> list[tuple[object, list[object]]]:
+    """地圖的 1:50m 裡這個國家的多邊形：[(外環, [洞…])]，numpy 的 (x, y) 陣列（BORDER_FIXES 的「50m:」規則用）"""
+    import numpy as np
+
+    for code, polygons in land_polygons():
+        if code == iso3:
+            return [(np.asarray(p[0], dtype=float), [np.asarray(h, dtype=float) for h in p[1:]]) for p in polygons]
+    raise ValueError(f"1:50m 沒有 {iso3}")
+
+
+def _inside_ring(x, y, ring):
+    """射線法（規則同 _Index._exact），x、y 是一批點"""
+    import numpy as np
+
+    xi, yi = ring[:, 0], ring[:, 1]
+    xj, yj = np.roll(xi, 1), np.roll(yi, 1)
+    out = np.zeros(len(x), dtype=bool)
+    step = max(1, _CHUNK_CELLS // len(ring))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        for s in range(0, len(x), step):
+            px, py = x[s : s + step, None], y[s : s + step, None]
+            cross = ((yi > py) != (yj > py)) & (px < (xj - xi) * (py - yi) / (yj - yi) + xi)
+            out[s : s + step] = (cross.sum(axis=1) % 2) == 1
+    return out
+
+
+def _in_fifty_m(iso3: str, x, y):
+    """這些點在不在地圖的 1:50m 裡的這個國家"""
+    import numpy as np
+
+    out = np.zeros(len(x), dtype=bool)
+    for outer, holes in _fifty_m_rings(iso3):
+        hit = _inside_ring(x, y, outer)
+        for hole in holes:
+            hit &= ~_inside_ring(x, y, hole)
+        out |= hit
+    return out
+
+
 def countries_at(lons, lats) -> list[str | None]:
     """一批點各自的國家：第一個包含這個點的國家（依 1:10m 的順序）；都不在國界內時取 0.3° 內最近的國界頂點，再沒有是 None。
-    ISLANDS 範圍裡的點照 ISLANDS。"""
+    ISLANDS、BORDER_FIXES 範圍裡的點照它們的規則。"""
     import numpy as np
 
     x, y = np.asarray(lons, dtype=float), np.asarray(lats, dtype=float)
@@ -401,6 +498,19 @@ def countries_at(lons, lats) -> list[str | None]:
     out = np.array([index.codes[c] if c >= 0 else None for c in index.lookup(x, y)], dtype=object)
     for iso3, (x0, y0, x1, y1) in ISLANDS.values():
         out[(x >= x0) & (x <= x1) & (y >= y0) & (y <= y1)] = iso3
+    for boxes, rule, _why in BORDER_FIXES.values():
+        inside = np.zeros(len(x), dtype=bool)
+        for x0, y0, x1, y1 in boxes:
+            inside |= (x >= x0) & (x <= x1) & (y >= y0) & (y <= y1)
+        hit = np.nonzero(inside)[0]
+        if not len(hit):
+            continue
+        if rule.startswith("50m:"):
+            iso3 = rule[4:]
+            hit = hit[_in_fifty_m(iso3, x[hit], y[hit])]
+        else:
+            iso3 = rule
+        out[hit] = iso3
     return out.tolist()
 
 
