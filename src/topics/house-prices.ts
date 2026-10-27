@@ -1,6 +1,7 @@
 import { fixed, formatSignedPercent } from '../lib/format';
 import type { ScaleSpec, TopicDefinition } from './types';
 
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 const INDEX_UNIT = { zh: '2015 年 = 100', en: '2015 = 100' };
 
@@ -22,7 +23,7 @@ export const housePrices: TopicDefinition = {
     {
       name: 'OECD, Analytical house price indicators',
       url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AN_HOUSE_PRICES%40DF_HOUSE_PRICES&df[ag]=OECD.ECO.MPD',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: {

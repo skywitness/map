@@ -2,6 +2,7 @@ import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const GOV = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 export const gender: TopicDefinition = {
@@ -19,7 +20,7 @@ export const gender: TopicDefinition = {
     {
       name: { zh: 'OECD, 性別薪資差距', en: 'OECD, Gender wage gap' },
       url: 'https://www.oecd.org/en/data/indicators/gender-wage-gap.html',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: { zh: 'UNDP, 人類發展報告（性別不平等指數）', en: 'UNDP, Human Development Report (Gender Inequality Index)' },

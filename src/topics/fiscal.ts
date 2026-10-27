@@ -6,6 +6,7 @@ const percentTick = (v: number) => `${v}%`;
 /** 通膨率：負值用真正的減號；惡性通膨（委內瑞拉 2018 年 65,374%）不留小數 */
 const inflation = (v: number) => `${v < 0 ? '−' : ''}${fixed(Math.abs(v), Math.abs(v) >= 100 ? 0 : 1)}%`;
 const IMF_LICENSE = { zh: '註明來源即可使用', en: 'free to use with attribution' };
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 export const fiscal: TopicDefinition = {
@@ -23,7 +24,7 @@ export const fiscal: TopicDefinition = {
     {
       name: { zh: 'OECD, Global Revenue Statistics Database（稅收）', en: 'OECD, Global Revenue Statistics Database (tax revenue)' },
       url: 'https://www.oecd.org/en/data/dashboards/global-revenue-statistics.html',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: {

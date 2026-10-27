@@ -2,6 +2,7 @@ import { tr } from '../i18n';
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
 
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 /** 稅率：整數不留小數（20%），其他留一位（25.6%、12.5%） */
@@ -41,7 +42,7 @@ export const taxes: TopicDefinition = {
     {
       name: { zh: 'OECD, Corporate Tax Statistics（法定公司稅率）', en: 'OECD, Corporate Tax Statistics (statutory corporate tax rates)' },
       url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_CIT%40DF_CIT&df[ag]=OECD.CTP.TPS',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: {
@@ -49,12 +50,12 @@ export const taxes: TopicDefinition = {
         en: 'OECD Tax Database, Table I.7 (top statutory personal income tax rate and threshold)',
       },
       url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_PIT%40DF_PIT_TOP_EARN_THRESH&df[ag]=OECD.CTP.TPS',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: { zh: 'OECD, Taxing Wages（勞動稅負）', en: 'OECD, Taxing Wages (tax wedge)' },
       url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_WAGES_COMP%40DF_TW_COMP&df[ag]=OECD.CTP.TPS',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: {

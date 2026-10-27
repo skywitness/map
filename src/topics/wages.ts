@@ -2,6 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
 import type { TopicDefinition } from './types';
 
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 const USD_MONTH = { zh: '美元/月', en: 'US$/month' };
 const INTL_MONTH = { zh: '國際元/月', en: 'Int$/month' };
@@ -38,7 +39,7 @@ export const wages: TopicDefinition = {
         en: 'OECD, average annual hours actually worked (Mexico and Colombia)',
       },
       url: 'https://www.oecd.org/en/data/indicators/hours-worked.html',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: {

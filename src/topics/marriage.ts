@@ -2,6 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { CategoryDef, TopicDefinition } from './types';
 
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -53,7 +54,7 @@ export const marriage: TopicDefinition = {
         en: 'OECD Family Database (SF2.4 births outside marriage, SF3.1 marriage and divorce rates)',
       },
       url: 'https://www.oecd.org/en/data/datasets/oecd-family-database.html',
-      license: 'CC BY 4.0',
+      license: OECD_TERMS,
     },
     {
       name: 'United Nations, Database on Household Size and Composition 2022',
