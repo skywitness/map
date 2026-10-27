@@ -98,8 +98,12 @@ export default defineConfig(({ command }) => ({
   server: {
     // 網格圖磚（public/tiles，人口 6 萬張、暖化 2.4 萬張）不監看：產生圖磚時每一張都會觸發一次檔案事件，
     // 開發伺服器會整個停住不回應。代價是 Vite 只在啟動時列出 public/ 的檔案，重新產生圖磚後要重開開發伺服器
-    watch: { ignored: ['**/public/tiles/**'] },
+    // .claude/worktrees 是平行開發用的整份副本（幾十個，各有 public/data 與連到 node_modules 的 junction），
+    // 監看、掃描進去會讓主目錄的開發伺服器第一頁 30 秒還載入不完
+    watch: { ignored: ['**/public/tiles/**', '**/.claude/**'] },
   },
+  // 相依套件預先打包只從首頁找入口；預設的 **/*.html 會掃到 .claude/worktrees 裡每一份的 index.html
+  optimizeDeps: { entries: ['index.html'] },
   build: {
     // 地圖引擎 MapLibre 自己一個 chunk（約 1 MB，gzip 後約 310 KB），跟首頁程式、資料平行下載；
     // ECharts 單獨一個 chunk 約 540 KB，點國家時才載入
