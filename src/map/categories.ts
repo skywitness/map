@@ -74,3 +74,34 @@ export function categoryScale(layer: CategoricalLayer, tokens: MapTokens): Categ
     },
   };
 }
+
+/**
+ * 面量圖每一級的顏色（門檻 n 個 → n+1 級）。choroplethScale（scales.ts，d3 的 scaleThreshold）與排名表的長條共用；
+ * 放在這裡是因為排名表在首頁的 chunk 裡，不能 import scales.ts。
+ */
+export function choroplethColors(
+  spec: { type: 'sequential' | 'diverging'; thresholds: number[]; reverse?: boolean },
+  tokens: Pick<MapTokens, 'sequential' | 'diverging'>,
+): string[] {
+  const classes = spec.thresholds.length + 1;
+  if (spec.type === 'diverging') {
+    if (classes !== tokens.diverging.length) {
+      // 主題設定寫錯時給開發者看的訊息，不會出現在介面上，所以不翻譯
+      throw new Error(`發散色需要 ${tokens.diverging.length - 1} 個對稱門檻，目前是 ${spec.thresholds.length} 個`); // i18n-ignore
+    }
+    return spec.reverse ? [...tokens.diverging].reverse() : tokens.diverging;
+  }
+  const ramp = tokens.sequential;
+  if (classes > ramp.length) throw new Error(`循序色最多 ${ramp.length} 級`); // i18n-ignore
+  // 級數少於 7 時，從色階中平均取樣，頭尾保留
+  return Array.from({ length: classes }, (_, i) =>
+    ramp[classes === 1 ? ramp.length - 1 : Math.round((i * (ramp.length - 1)) / (classes - 1))],
+  );
+}
+
+/** 數值在第幾級：跟 d3 的 scaleThreshold 一樣（bisectRight，剛好等於門檻的算上面那一級） */
+export function classIndex(thresholds: number[], value: number): number {
+  let i = 0;
+  while (i < thresholds.length && value >= thresholds[i]) i++;
+  return i;
+}

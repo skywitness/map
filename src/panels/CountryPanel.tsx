@@ -19,7 +19,9 @@ import {
   type Topic,
 } from '../topics/types';
 import { categoryScale } from '../map/categories';
-import type { Tokens } from '../theme/tokens';
+import { CloseIcon } from '../map/MapIcons';
+import { HUE_ORDER, type Tokens } from '../theme/tokens';
+import { ComparePicker } from './ComparePicker';
 import { useMapTokens } from '../map/palettes';
 import { latestAt, rankOf } from './stats';
 
@@ -34,6 +36,9 @@ interface CountryPanelProps {
   tokens: Tokens;
   onClose: () => void;
   onIndicatorChange: (id: string) => void;
+  /** 一起比較的國家（網址的 cmp），折線圖與數值卡片都列出 */
+  compare: string[];
+  onCompareChange: (compare: string[]) => void;
 }
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
@@ -49,7 +54,10 @@ function panelExtraFor(topic: Topic) {
 }
 
 export function CountryPanel(props: CountryPanelProps) {
-  const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange } = props;
+  const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare, onCompareChange } =
+    props;
+  // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
+  const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
   const t = useT();
   const lang = useLang();
@@ -75,7 +83,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
-    if (!data) return { ind, loaded: false, value: null, rank: null, total: 0, share: null, shownYear: null };
+    if (!data) return { ind, loaded: false, value: null, rank: null, total: 0, share: null, shownYear: null, others: [] };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
     const yearIndex = nearestYearIndex(data.years, year, yearBin(ind));
     // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
@@ -94,6 +102,7 @@ export function CountryPanel(props: CountryPanelProps) {
       // 0 的排名不顯示，占全球的 0% 也不顯示（否則卡片上只剩開頭的「 · 」）
       share: ind.shareOfWorld && value && !countZero && world ? (value / world) * 100 : null,
       shownYear,
+      others: compare.map((c) => values.get(c) ?? null),
     };
   });
 
@@ -111,6 +120,10 @@ export function CountryPanel(props: CountryPanelProps) {
     const own = activeData.values[iso3];
     if (!own || activeData.years.length < 2 || chartIndicator.layer.kind === 'categorical') return null;
     const lines: TimeSeriesLine[] = [{ name, values: own, color: tokens.accent }];
+    compare.forEach((c, i) => {
+      const series = activeData.values[c];
+      if (series?.some((v) => v != null)) lines.push({ name: countryName(c, countries), values: series, color: compareColors[i] });
+    });
     const world = activeData.aggregates?.WLD;
     if (chartIndicator.compareWorld && world) lines.push({ name: t.world, values: world, color: tokens.context });
     const chart = timeSeriesOption({
@@ -126,9 +139,18 @@ export function CountryPanel(props: CountryPanelProps) {
     });
     // y 軸不從 0 開始（指標的 chartZoom，例如身高）
     return chartIndicator.chartZoom ? { ...chart, yAxis: { ...(chart.yAxis as object), scale: true } } : chart;
-  }, [activeData, iso3, name, chartIndicator, year, tokens, t]);
+    // compareColors 由 tokens 算出，不必另外列
+  }, [activeData, iso3, name, chartIndicator, year, tokens, t, compare, countries]);
 
   const activeReason = reason(indicator);
+  // 可以加進比較的國家：目前指標有資料的（還沒載入時先用全部國家）
+  const compareCandidates = useMemo(
+    () =>
+      activeData
+        ? Object.entries(activeData.values).flatMap(([c, series]) => (series.some((v) => v != null) ? [c] : []))
+        : Object.keys(countries ?? {}),
+    [activeData, countries],
+  );
   const projectionFrom = activeData?.projectionFrom;
   const methodBreak = activeData?.methodBreak;
   // 附註只有中文的話，英文介面不顯示
@@ -144,7 +166,7 @@ export function CountryPanel(props: CountryPanelProps) {
           </p>
         </div>
         <button type="button" className="icon-button" onClick={onClose} aria-label={t.close}>
-          ×
+          <CloseIcon />
         </button>
       </header>
 
@@ -159,7 +181,7 @@ export function CountryPanel(props: CountryPanelProps) {
       )}
 
       <div className="stats">
-        {stats.map(({ ind, loaded, value, rank, total, share, shownYear }) => (
+        {stats.map(({ ind, loaded, value, rank, total, share, shownYear, others }) => (
           <button
             type="button"
             key={ind.id}
@@ -177,9 +199,30 @@ export function CountryPanel(props: CountryPanelProps) {
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
               {!topic.timeless && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
             </span>
+            {loaded && others.length > 0 && (
+              <span className="stat-compare">
+                {others.map((v, i) => (
+                  <span key={compare[i]} className="stat-compare-row">
+                    <span className="compare-dot" style={{ background: compareColors[i] }} aria-hidden="true" />
+                    <span className="stat-compare-name">{countryName(compare[i], countries)}</span>
+                    <span className="stat-compare-value">{v != null ? ind.format(v) : '—'}</span>
+                  </span>
+                ))}
+              </span>
+            )}
           </button>
         ))}
       </div>
+
+      {/* 再加幾個國家一起比：折線圖多畫它們的線、數值卡片多列它們的值；只有一年的資料也可以比數值 */}
+      <ComparePicker
+        iso3={iso3}
+        compare={compare}
+        colors={compareColors}
+        candidates={compareCandidates}
+        countries={countries}
+        onChange={onCompareChange}
+      />
 
       {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
       {activeData?.years.length !== 1 && (

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 /**
  * 地圖右上角按鈕的圖示：同一套 18 px、1.6 px 線條、圓角端點，跟框選、指北針的 SVG 一致。
- * 文字說明在按鈕的 aria-label 與 title（滑過時顯示）。
+ * 文字說明在按鈕的 aria-label 與 title（滑過時顯示）。頂列的深淺色切換、側欄與對話框的關閉也用這一套。
  */
 const STROKE = {
   fill: 'none',
@@ -12,9 +12,9 @@ const STROKE = {
   strokeLinejoin: 'round',
 } as const;
 
-function Icon({ children }: { children: ReactNode }) {
+function Icon({ children, size = 18 }: { children: ReactNode; size?: number }) {
   return (
-    <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true" {...STROKE}>
+    <svg viewBox="0 0 18 18" width={size} height={size} aria-hidden="true" {...STROKE}>
       {children}
     </svg>
   );
@@ -73,5 +73,35 @@ export const LayersIcon = () => (
   <Icon>
     <path d="m9 2.5 6.5 3.5L9 9.5 2.5 6Z" />
     <path d="m2.5 9.25 6.5 3.5 6.5-3.5M2.5 12.5 9 16l6.5-3.5" />
+  </Icon>
+);
+
+/** 更多（手機上收起 3D、全螢幕、框選的選單） */
+export const MoreIcon = () => (
+  <Icon>
+    <circle cx="4" cy="9" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none" />
+    <circle cx="14" cy="9" r="1.3" fill="currentColor" stroke="none" />
+  </Icon>
+);
+
+/** 換成淺色介面 */
+export const SunIcon = () => (
+  <Icon>
+    <circle cx="9" cy="9" r="3.2" />
+    <path d="M9 1.8v1.7M9 14.5v1.7M1.8 9h1.7M14.5 9h1.7M3.9 3.9l1.2 1.2M12.9 12.9l1.2 1.2M3.9 14.1l1.2-1.2M12.9 5.1l1.2-1.2" />
+  </Icon>
+);
+
+/** 換成深色介面 */
+export const MoonIcon = () => (
+  <Icon>
+    <path d="M15 11.2A6.5 6.5 0 0 1 6.8 3a6.5 6.5 0 1 0 8.2 8.2Z" />
+  </Icon>
+);
+
+export const CloseIcon = ({ size = 18 }: { size?: number }) => (
+  <Icon size={size}>
+    <path d="m4.5 4.5 9 9M13.5 4.5l-9 9" />
   </Icon>
 );

@@ -13,6 +13,11 @@ function readStoredPreference(): ThemeMode | null {
   }
 }
 
+/** 啟動時的深淺色（App 在第一次 render 之前就要選底圖、提早下載樣式） */
+export function initialThemeMode(): ThemeMode {
+  return readStoredPreference() ?? (media.matches ? 'dark' : 'light');
+}
+
 /** 預設跟隨作業系統；使用者手動切換後記在 localStorage。 */
 export function useTheme(): { tokens: Tokens; toggle: () => void } {
   const [preference, setPreference] = useState<ThemeMode | null>(readStoredPreference);

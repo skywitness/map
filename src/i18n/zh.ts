@@ -106,6 +106,7 @@ export const zh = {
   toFlat: '切換成平面地圖',
   toGlobe: '切換成地球儀',
   fullscreen: '全螢幕',
+  moreMapTools: '更多地圖功能',
   exitFullscreen: '離開全螢幕',
   boxTool: '框選',
   boxToolFor: (label: string) => `框選範圍，估算${label}`,
@@ -126,6 +127,12 @@ export const zh = {
   unitSuffix: (unit: string) => (unit ? `（${unit}）` : ''),
   layers: '圖層',
   categoryTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一類，再點一下取消）`,
+  // 面量圖的分級（圖例的色塊可以滑過、點選）
+  binBelow: (x: string) => `低於 ${x}`,
+  binAbove: (x: string) => `${x} 以上`,
+  binRange: (from: string, to: string) => `${from}–${to}`,
+  binTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一級，再點一下取消）`,
+  binStatus: (label: string, count: number) => `${label}：${count} 個國家/地區`,
 
   // 框選結果
   boxAria: (label: string) => `框選範圍內的${label}`,
@@ -148,6 +155,13 @@ export const zh = {
   // 國家側欄
   panelAria: (name: string) => `${name}的資料`,
   rank: (rank: number, total: number) => `第 ${rank} / ${total} 名`,
+  // 側欄的「比較」（ComparePicker.tsx）
+  compareLabel: '比較',
+  compareAdd: '＋ 加入比較',
+  compareAddAria: '加入比較的國家',
+  comparePlaceholder: '輸入國名',
+  compareRemove: (name: string) => `不再比較${name}`,
+  compareNoResults: '找不到有資料的國家',
   shareOfWorld: (share: string) => ` · 占全球 ${share}`,
   shownYear: (year: number) => `（${year} 年）`,
   overTime: (label: string) => spaced(`${label}的變化`),
@@ -168,6 +182,12 @@ export const zh = {
     spaced(`${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依類別排列）`),
   valueCaption: (year: number | null, title: string, count: number) =>
     spaced(`${year === null ? '' : `${year} 年`}各國${title}（${count} 個國家/地區，依數值排列）`),
+  regionFilter: '只看某一洲',
+  regionAll: '全部',
+  regions: { AS: '亞洲', EU: '歐洲', AF: '非洲', NA: '北美洲', SA: '南美洲', OC: '大洋洲' },
+  regionNorthAmericaNote: '含中美洲與加勒比海',
+  regionShown: (region: string, count: number, ranked: boolean) =>
+    `${region} ${count} 個國家/地區${ranked ? '，名次是全球的名次' : ''}`,
   rankCol: '名次',
   countryCol: '國家/地區',
   shareCol: '占全球',

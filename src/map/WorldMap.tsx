@@ -68,6 +68,8 @@ import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 import { BasemapMenu } from './BasemapMenu';
+import { MoreMenu, type MoreMenuItem } from './MoreMenu';
+import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 
@@ -153,6 +155,11 @@ function fitGlobeZoom(height: number): number {
 const MAX_ZOOM = 18;
 /** 面積小於這個值（km²）的國家在低縮放時另外畫一個點，才看得到也點得到 */
 const TINY_KM2 = 6000;
+/**
+ * 選取的國家比這小時多畫一個圓圈標記：全球視角下台灣（3.6 萬 km²）只有十來個像素，外框幾乎看不到。
+ * 南韓（10 萬）、葡萄牙、匈牙利也算；放大到 5 級以後國家本身夠大，圓圈淡出
+ */
+const SELECTED_MARK_KM2 = 120_000;
 /**
  * 1:50m 國界沒有形狀的國家（DESIGN.md 第 8 節第 8 點），用首府的位置畫小國圓點，也當比例圓、弧線的位置；
  * 否則吐瓦魯（台灣的邦交國）在地圖上完全看不到
@@ -256,6 +263,12 @@ function classHeight(thresholds: number[], v: number): number {
 }
 
 const DATA_FILL_OPACITY = 0.82;
+/**
+ * 深色底圖（深色、深藍）上 0.82 會透出深色的陸地，顏色比圖例暗一截；深色介面預設用深藍底圖之後
+ * 改成幾乎不透明，跟圖例對得起來
+ */
+const DATA_FILL_OPACITY_DARK = 0.94;
+const dataFillOpacity = (dark: boolean) => (dark ? DATA_FILL_OPACITY_DARK : DATA_FILL_OPACITY);
 /** 流向圖夥伴國的淡底色 */
 const FLOW_TINT_OPACITY = 0.6;
 /** 類別圖強調某一類時，其他國家（feature-state 'dim'）的不透明度倍數 */
@@ -346,7 +359,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
           ['coalesce', ['feature-state', 'tintColor'], NO_DATA],
           ['coalesce', ['feature-state', 'fill'], NO_DATA],
         ],
-        'fill-opacity': fillOpacity(DATA_FILL_OPACITY, FLOW_TINT_OPACITY),
+        'fill-opacity': fillOpacity(dataFillOpacity(dark), FLOW_TINT_OPACITY),
       },
     },
     {
@@ -359,6 +372,19 @@ function dataLayers(dark: boolean): LayerSpecification[] {
         'line-color': dark ? '#f0efec' : '#3d3d3a',
         'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 6, 0.9, 10, 1.4],
         'line-opacity': fillOpacity(0.55),
+      },
+    },
+    {
+      // 選取的國家外框底下墊一圈淺色光暈，在深色的填色上也看得出外框
+      id: 'data-halo',
+      type: 'line',
+      source: 'countries',
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': dark ? '#0b0b0b' : '#ffffff',
+        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 6.5, 0],
+        'line-opacity': 0.9,
+        'line-blur': 1,
       },
     },
     {
@@ -423,6 +449,33 @@ function dataLayers(dark: boolean): LayerSpecification[] {
         'circle-opacity': 0.72,
         'circle-stroke-color': ['case', hovered, ink, '#ffffff'],
         'circle-stroke-width': ['case', hovered, 1.6, 1],
+      },
+    },
+    // 選取的小國家（SELECTED_MARK_KM2）：一個圓圈，白色襯底加深色線，放大後淡出
+    {
+      id: 'selected-mark-halo',
+      type: 'circle',
+      source: 'selected-mark',
+      maxzoom: 5.5,
+      paint: {
+        'circle-radius': 11,
+        'circle-opacity': 0,
+        'circle-stroke-color': dark ? '#0b0b0b' : '#ffffff',
+        'circle-stroke-width': 5,
+        'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.9, 5.5, 0],
+      },
+    },
+    {
+      id: 'selected-mark',
+      type: 'circle',
+      source: 'selected-mark',
+      maxzoom: 5.5,
+      paint: {
+        'circle-radius': 11,
+        'circle-opacity': 0,
+        'circle-stroke-color': ink,
+        'circle-stroke-width': 2,
+        'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 4, 1, 5.5, 0],
       },
     },
     // 3D 圖層在疊加圖層（鐵路、機場、框選範圍）之下：疊加圖層畫在立體圖形上面，才不會被整片蓋掉
@@ -598,6 +651,10 @@ export function WorldMap(props: WorldMapProps) {
   const lineHoverRef = useRef<{ overlay: string; group: number } | null>(null);
   const [boxMode, setBoxMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  // iPhone 的 Safari 不能讓一般元素全螢幕（只有影片可以），不放全螢幕鈕
+  const canFullscreen = typeof document !== 'undefined' && document.fullscreenEnabled;
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const coarse = useMediaQuery('(pointer: coarse)');
   // 框選結果卡片放在框的另一側，才不會蓋住框
   const [overlayOnLeft, setOverlayOnLeft] = useState(false);
 
@@ -615,13 +672,13 @@ export function WorldMap(props: WorldMapProps) {
     () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, mapTokens) : null),
     [indicator, mapTokens],
   );
-  // 類別圖：圖例滑過（preview）或點選（pinned）的類別，地圖上其他國家淡化；換指標時清掉
+  // 類別圖的類別、面量圖的分級：圖例滑過（preview）或點選（pinned）的那一類（一級），地圖上其他國家淡化；換指標時清掉
   const [previewCategory, setPreviewCategory] = useState<number | null>(null);
   const [pinnedCategory, setPinnedCategory] = useState<number | null>(null);
   useEffect(() => {
     setPreviewCategory(null);
     setPinnedCategory(null);
-  }, [categories]);
+  }, [categories, colorScale]);
   const highlightCategory = previewCategory ?? pinnedCategory;
   const radius = useMemo(() => bubbleScale(bubbleMax, size?.width ?? 1000), [bubbleMax, size]);
 
@@ -643,6 +700,15 @@ export function WorldMap(props: WorldMapProps) {
   );
   const anchors = useMemo(
     () => new Map([...shapeless, ...countries.map((c) => [c.iso3, c.anchor] as [string, [number, number]])]),
+    [countries, shapeless],
+  );
+  // 選了要多畫圓圈標記的小國家（含地圖上沒有形狀、只有圓點的）
+  const markedCountries = useMemo(
+    () =>
+      new Set([
+        ...countries.filter((c) => geoArea(c.feature) * EARTH_RADIUS_KM ** 2 < SELECTED_MARK_KM2).map((c) => c.iso3),
+        ...shapeless.map(([iso3]) => iso3),
+      ]),
     [countries, shapeless],
   );
   // 把地圖移到某國時要框住的範圍（主要國土加附近的島，不含遠方屬地）
@@ -679,7 +745,7 @@ export function WorldMap(props: WorldMapProps) {
     }
     // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
     m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
-    for (const id of ['railways', 'airports', 'box']) m.addSource(id, { type: 'geojson', data: EMPTY });
+    for (const id of ['railways', 'airports', 'box', 'selected-mark']) m.addSource(id, { type: 'geojson', data: EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
     const styleLayers = m.getStyle().layers;
@@ -1049,22 +1115,23 @@ export function WorldMap(props: WorldMapProps) {
     return () => cancelAnimationFrame(fillFrameRef.current);
   }, [revision, countries, shapeless, values, colorScale, categories, indicator.layer.kind, flagsOn]);
 
-  // 類別圖：強調圖例上的某一類，其他國家淡化
+  // 強調圖例上的某一類（類別圖）或某一級（面量圖，d3 的 scaleThreshold 也是用 bisectRight 分級），其他國家淡化
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
+    const thresholds = colorScale?.domain();
+    const classOf = (v: number) => (categories ? categories.index(v) : thresholds ? bisectRight(thresholds, v) : null);
+    const dimOf = (v: number | undefined) =>
+      highlightCategory !== null && (categories !== null || colorScale !== null) && (v === undefined || classOf(v) !== highlightCategory);
     for (const c of countries) {
-      const v = values.get(c.iso3);
-      const dim = categories !== null && highlightCategory !== null && (v === undefined || categories.index(v) !== highlightCategory);
+      const dim = dimOf(values.get(c.iso3));
       map.setFeatureState({ source: 'countries', id: c.iso3 }, { dim });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { dim });
     }
     for (const [iso3] of shapeless) {
-      const v = values.get(iso3);
-      const dim = categories !== null && highlightCategory !== null && (v === undefined || categories.index(v) !== highlightCategory);
-      map.setFeatureState({ source: 'tiny', id: iso3 }, { dim });
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { dim: dimOf(values.get(iso3)) });
     }
-  }, [revision, countries, shapeless, values, categories, highlightCategory]);
+  }, [revision, countries, shapeless, values, categories, colorScale, highlightCategory]);
 
   // 網格：點陣圖磚插在國家的顏色（data-fill，網格模式時透明）下面，國界與選取外框畫在網格上面。
   // 換期時只換圖磚網址；換成另一個網格（圖磚大小、級數、來源不同）時整個重建；
@@ -1211,6 +1278,9 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !map || !installedRef.current) return;
     map.setPaintProperty('data-border', 'line-color', nightLook ? '#f0efec' : '#3d3d3a');
     map.setPaintProperty('data-highlight', 'line-color', nightLook ? '#ffffff' : MAP_TOKENS.ink);
+    map.setPaintProperty('data-halo', 'line-color', nightLook ? '#0b0b0b' : '#ffffff');
+    map.setPaintProperty('selected-mark', 'circle-stroke-color', nightLook ? '#ffffff' : MAP_TOKENS.ink);
+    map.setPaintProperty('selected-mark-halo', 'circle-stroke-color', nightLook ? '#0b0b0b' : '#ffffff');
   }, [revision, nightLook]);
 
   // 網格第一次畫好：留下 performance mark「map-grid」給載入速度量測用（npm run measure:load -- <網址> --mark map-grid）
@@ -1392,6 +1462,10 @@ export function WorldMap(props: WorldMapProps) {
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
     selectedRef.current = selected;
+    const mark = selected && markedCountries.has(selected) ? anchors.get(selected) : undefined;
+    (map.getSource('selected-mark') as GeoJSONSource).setData(
+      mark ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: mark } } : EMPTY,
+    );
     if (fitOnSelect && selected) {
       const bounds = countryBounds.get(selected);
       // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
@@ -1407,7 +1481,7 @@ export function WorldMap(props: WorldMapProps) {
     const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
     if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
     // 投影不放進依賴：切換投影、進出 3D 時不要重跑，否則這裡的 easeTo 會打斷傾斜的動畫
-  }, [revision, selected, anchors, fitOnSelect, countryBounds]);
+  }, [revision, selected, anchors, fitOnSelect, countryBounds, markedCountries]);
 
   // 從搜尋選到國家：一定飛過去並框住整個國家，扣掉手機抽屜蓋住的部分
   useEffect(() => {
@@ -1511,12 +1585,17 @@ export function WorldMap(props: WorldMapProps) {
     show('data-tiny', !slabs && !gridOn && !flagsOn);
     show('data-border', !slabs);
     show('data-highlight', !slabs);
+    show('data-halo', !slabs);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
     // 更新 feature-state，MapLibre 會對常數呼叫 evaluate 而丟出 TypeError
-    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs || gridOn || flagsOn ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
+    map.setPaintProperty(
+      'data-fill',
+      'fill-opacity',
+      fillOpacity(slabs || gridOn || flagsOn ? 0 : dataFillOpacity(basemap.dark), FLOW_TINT_OPACITY),
+    );
     // 平面時鐵路在比例圓下面；3D 時改畫在立體圖形上面，否則會被整片蓋住
     map.moveLayer('rail', extrude ? 'airports-medium' : 'data-tiny');
-  }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn]);
+  }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn, basemap.dark]);
 
   // 地形圖層：地形圖（kind 'terrain'）畫分層設色，陰影疊在上面；面量圖只疊陰影，而且移到國家顏色上面，
   // 看得出起伏。陰影可以在左下角關掉
@@ -1605,6 +1684,17 @@ export function WorldMap(props: WorldMapProps) {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void containerRef.current?.requestFullscreen?.();
   };
+
+  // 手機上 3D、全螢幕、框選收進「更多」（MoreMenu.tsx），按鈕列剩回到全球、平面／地球儀、底圖、更多。
+  // 只有一項時照樣放在按鈕列，不必多點一下
+  const moreItems: MoreMenuItem[] = [
+    ...(onThreeDChange ? [{ id: '3d', label: t.threeD, checked: threeD, onSelect: toggleThreeD }] : []),
+    ...(canFullscreen ? [{ id: 'fullscreen', label: fullscreen ? t.exitFullscreen : t.fullscreen, onSelect: toggleFullscreen }] : []),
+    ...(onBoxChange
+      ? [{ id: 'box', label: boxToolLabel, checked: boxMode, disabled: threeD, note: t.boxIn3d, onSelect: () => setBoxMode((m) => !m) }]
+      : []),
+  ];
+  const collapseMore = narrow && moreItems.length > 1;
 
   // 網格的圖例：顏色、門檻用 meta.json 的（跟圖磚裡畫的一樣），寫出是哪一期
   const gridLegend = useMemo(() => {
@@ -1703,12 +1793,17 @@ export function WorldMap(props: WorldMapProps) {
       {failed && <p className="error map-error">{t.basemapFailed}</p>}
 
       <div className="map-zoom" role="group" aria-label={t.mapControls}>
-        <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label={t.zoomIn} title={t.zoomIn}>
-          <PlusIcon />
-        </button>
-        <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label={t.zoomOut} title={t.zoomOut}>
-          <MinusIcon />
-        </button>
+        {/* 觸控裝置用兩指縮放，不放放大、縮小鈕（鍵盤的 +/− 照樣可以用） */}
+        {!coarse && (
+          <>
+            <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label={t.zoomIn} title={t.zoomIn}>
+              <PlusIcon />
+            </button>
+            <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label={t.zoomOut} title={t.zoomOut}>
+              <MinusIcon />
+            </button>
+          </>
+        )}
         <button
           type="button"
           onClick={() =>
@@ -1732,7 +1827,7 @@ export function WorldMap(props: WorldMapProps) {
         >
           {projection === 'globe' ? <FlatIcon /> : <GlobeIcon />}
         </button>
-        {onThreeDChange && (
+        {!collapseMore && onThreeDChange && (
           <button
             type="button"
             className={`map-text-button map-toggle${threeD ? ' is-active' : ''}`}
@@ -1758,16 +1853,19 @@ export function WorldMap(props: WorldMapProps) {
             </svg>
           </button>
         )}
-        <button
-          type="button"
-          onClick={toggleFullscreen}
-          aria-label={fullscreen ? t.exitFullscreen : t.fullscreen}
-          title={fullscreen ? t.exitFullscreen : t.fullscreen}
-        >
-          {fullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
-        </button>
+        {!collapseMore && canFullscreen && (
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label={fullscreen ? t.exitFullscreen : t.fullscreen}
+            title={fullscreen ? t.exitFullscreen : t.fullscreen}
+          >
+            {fullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
+          </button>
+        )}
         {onBasemapChange && <BasemapMenu basemap={basemap} onChange={onBasemapChange} />}
-        {onBoxChange && (
+        {collapseMore && <MoreMenu items={moreItems} />}
+        {!collapseMore && onBoxChange && (
           <button
             type="button"
             className={`box-tool${boxMode ? ' is-active' : ''}`}
@@ -1822,6 +1920,12 @@ export function WorldMap(props: WorldMapProps) {
             scale={colorScale}
             stepped={threeD && !terrain}
             paletteKind={indicator.layer.kind === 'choropleth' ? indicator.layer.scale.type : undefined}
+            // 3D 的立體圖形沒有淡化，不能點選分級
+            classes={
+              threeD
+                ? undefined
+                : { values, highlight: highlightCategory, onPreview: setPreviewCategory, pinned: pinnedCategory, onPin: setPinnedCategory }
+            }
           />
         ) : reliefLegend ? (
           <ReliefLegend title={tr(RELIEF_TITLE, lang)} unit={indicator.unit} model={reliefLegend} />

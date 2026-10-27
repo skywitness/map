@@ -92,6 +92,7 @@ export const en: Messages = {
   toFlat: 'Switch to flat map',
   toGlobe: 'Switch to globe',
   fullscreen: 'Full screen',
+  moreMapTools: 'More map tools',
   exitFullscreen: 'Exit full screen',
   boxTool: 'Select an area',
   boxToolFor: (label) => `Select an area to estimate its ${label}`,
@@ -113,6 +114,12 @@ export const en: Messages = {
   layers: 'Layers',
   categoryTitle: (label, count) =>
     `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'} (click to highlight only this category; click again to undo)`,
+  binBelow: (x) => `Below ${x}`,
+  binAbove: (x) => `${x} and above`,
+  binRange: (from, to) => `${from}–${to}`,
+  binTitle: (label, count) =>
+    `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'} (click to highlight only this class; click again to undo)`,
+  binStatus: (label, count) => `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'}`,
 
   boxAria: (label) => `${label} in the selected area`,
   boxTitle: (label) => `Estimated ${label} in the area`,
@@ -132,6 +139,12 @@ export const en: Messages = {
 
   panelAria: (name) => `Data for ${name}`,
   rank: (rank, total) => `Rank ${rank} of ${total}`,
+  compareLabel: 'Compare',
+  compareAdd: '+ Add',
+  compareAddAria: 'Add a country to compare',
+  comparePlaceholder: 'Type a country',
+  compareRemove: (name) => `Stop comparing ${name}`,
+  compareNoResults: 'No country with data matches',
   shareOfWorld: (share) => ` · ${share} of world`,
   shownYear: (year) => ` (${year})`,
   overTime: (label) => `${label} over time`,
@@ -150,6 +163,12 @@ export const en: Messages = {
     `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories, grouped by category)`,
   valueCaption: (year, title, count) =>
     `${title} by country${year === null ? '' : `, ${year}`} (${count} countries and territories, sorted by value)`,
+  regionFilter: 'Show one continent',
+  regionAll: 'All',
+  regions: { AS: 'Asia', EU: 'Europe', AF: 'Africa', NA: 'North America', SA: 'South America', OC: 'Oceania' },
+  regionNorthAmericaNote: 'Includes Central America and the Caribbean',
+  regionShown: (region, count, ranked) =>
+    `${count} ${count === 1 ? 'country or territory' : 'countries and territories'} in ${region}${ranked ? '; ranks are global' : ''}`,
   rankCol: 'Rank',
   countryCol: 'Country/territory',
   shareCol: 'Share of world',

@@ -1,4 +1,5 @@
-import type { CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
+import { bisectRight } from 'd3-array';
 import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
 import { tr, useLang, useT, type Text } from '../i18n';
@@ -24,6 +25,18 @@ export function choroplethLegendModel(indicator: Indicator, scale: ScaleThreshol
   return { colors: scale.range(), labels, swatchWidth };
 }
 
+/** 面量圖圖例的色塊可以滑過、點選某一級（跟類別圖的圖例一樣），地圖上其他國家淡化 */
+export interface ClassHighlight {
+  values: Map<string, number>;
+  highlight: number | null;
+  onPreview: (index: number | null) => void;
+  pinned: number | null;
+  onPin: (index: number | null) => void;
+}
+
+/** 分級上方的小直方圖最高的那一條（px） */
+const HIST_PX = 14;
+
 interface ChoroplethLegendProps {
   indicator: Indicator;
   title: string;
@@ -36,6 +49,8 @@ interface ChoroplethLegendProps {
   emptyKey?: string;
   /** 標題旁放「配色」按鈕（PaletteMenu），列出這一種的選項；網格的顏色畫在圖磚裡，不傳 */
   paletteKind?: 'sequential' | 'diverging';
+  /** 有傳才能滑過、點選分級，色塊上方畫每一級的國家數（小直方圖）；網格、3D 不傳 */
+  classes?: ClassHighlight;
 }
 
 /** 3D 圖例的說明（畫面上的圖例與匯出的圖片共用） */
@@ -50,10 +65,23 @@ export const COLUMN_NOTE: Text = {
 /** 3D 階梯色塊的最大高度（px）；第 i 級（從 0 起）是 (i+1)/N 倍 */
 export const STEP_MAX_PX = 26;
 
-export function ChoroplethLegend({ indicator, title, scale, stepped = false, notes = [], emptyKey, paletteKind }: ChoroplethLegendProps) {
+export function ChoroplethLegend(props: ChoroplethLegendProps) {
+  const { indicator, title, scale, stepped = false, notes = [], emptyKey, paletteKind, classes } = props;
   const t = useT();
   const lang = useLang();
   const { colors, labels, swatchWidth } = choroplethLegendModel(indicator, scale);
+  const classValues = classes?.values;
+  const counts = useMemo(() => {
+    if (!classValues) return null;
+    const thresholds = scale.domain();
+    const out = scale.range().map(() => 0);
+    for (const v of classValues.values()) out[bisectRight(thresholds, v)]++;
+    return out;
+  }, [classValues, scale]);
+  const maxCount = Math.max(1, ...(counts ?? []));
+  const binLabel = (i: number) =>
+    i === 0 ? t.binBelow(labels[0]) : i === labels.length ? t.binAbove(labels[i - 1]) : t.binRange(labels[i - 1], labels[i]);
+  const highlight = classes?.highlight ?? null;
   return (
     <div className="legend">
       <div className="legend-head">
@@ -69,14 +97,46 @@ export function ChoroplethLegend({ indicator, title, scale, stepped = false, not
           {note}
         </div>
       ))}
-      <div className={`legend-scale${stepped ? ' is-stepped' : ''}`} style={{ width: colors.length * swatchWidth }}>
+      <div
+        className={`legend-scale${stepped ? ' is-stepped' : ''}${counts ? ' has-hist' : ''}`}
+        style={{ width: colors.length * swatchWidth }}
+      >
+        {counts && (
+          // 每一級有幾個國家：細長條，看得出分布偏哪一邊；確切的數字在色塊的說明與下面那一行
+          <div className="legend-hist" aria-hidden="true">
+            {counts.map((n, i) => (
+              <span
+                key={i}
+                className={highlight === i ? 'is-on' : undefined}
+                style={{ height: n ? Math.max(2, (n / maxCount) * HIST_PX) : 0 }}
+              />
+            ))}
+          </div>
+        )}
         <div className="legend-swatches">
-          {colors.map((c, i) => (
-            <span
-              key={c}
-              style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
-            />
-          ))}
+          {colors.map((c, i) =>
+            classes && counts ? (
+              <button
+                key={c}
+                type="button"
+                className={`legend-bin${highlight !== null && highlight !== i ? ' is-faded' : ''}`}
+                style={{ background: c }}
+                aria-pressed={classes.pinned === i}
+                aria-label={t.binTitle(binLabel(i), counts[i])}
+                title={t.binTitle(binLabel(i), counts[i])}
+                onMouseEnter={() => classes.onPreview(i)}
+                onMouseLeave={() => classes.onPreview(null)}
+                onFocus={() => classes.onPreview(i)}
+                onBlur={() => classes.onPreview(null)}
+                onClick={() => classes.onPin(classes.pinned === i ? null : i)}
+              />
+            ) : (
+              <span
+                key={c}
+                style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
+              />
+            ),
+          )}
         </div>
         <div className="legend-ticks">
           {labels.map((label, i) => (
@@ -86,6 +146,7 @@ export function ChoroplethLegend({ indicator, title, scale, stepped = false, not
           ))}
         </div>
       </div>
+      {counts && highlight !== null && <div className="legend-note legend-bin-status">{t.binStatus(binLabel(highlight), counts[highlight])}</div>}
       {emptyKey ? (
         <div className="legend-nodata">
           <span className="swatch-empty" />

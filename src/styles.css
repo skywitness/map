@@ -460,8 +460,11 @@ button {
 }
 
 .icon-button {
+  display: inline-grid;
+  place-items: center;
   width: 32px;
   height: 32px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
@@ -998,7 +1001,8 @@ kbd {
 }
 
 .map-zoom > button,
-.basemap-menu > button {
+.basemap-menu > button,
+.more-menu > button {
   display: grid;
   place-items: center;
   width: 32px;
@@ -1028,12 +1032,15 @@ kbd {
 
 .map-zoom > button:hover:not(:disabled),
 .basemap-menu > button:hover,
-.basemap-menu > button[aria-expanded='true'] {
+.basemap-menu > button[aria-expanded='true'],
+.more-menu > button:hover,
+.more-menu > button[aria-expanded='true'] {
   background: var(--grid);
 }
 
 .map-zoom > button:active:not(:disabled),
-.basemap-menu > button:active {
+.basemap-menu > button:active,
+.more-menu > button:active {
   background: var(--axis);
 }
 
@@ -1052,12 +1059,13 @@ kbd {
   background: none;
 }
 
-/* ── 底圖選單（BasemapMenu.tsx）：從按鈕列往左展開 ── */
-.basemap-menu {
+/* ── 底圖選單（BasemapMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
+.basemap-menu,
+.more-menu {
   position: relative;
 }
 
-.basemap-list {
+.map-menu-list {
   position: absolute;
   top: -5px;
   right: calc(100% + 8px);
@@ -1078,7 +1086,7 @@ kbd {
   color: var(--ink-secondary);
 }
 
-.basemap-item {
+.map-menu-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1092,14 +1100,54 @@ kbd {
   cursor: pointer;
 }
 
-.basemap-item:hover,
-.basemap-item:focus-visible {
+.map-menu-item:hover,
+.map-menu-item:focus-visible {
   background: var(--grid);
   outline: none;
 }
 
 .basemap-item[aria-checked='true'] {
   font-weight: 600;
+}
+
+/* 「更多」：開關類的項目左邊留一格打勾；3D 時不能框選，原因寫在下面 */
+.more-check {
+  flex: none;
+  width: 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.more-item[aria-disabled='true'] {
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.more-item[aria-disabled='true']:hover {
+  background: none;
+}
+
+.more-note {
+  display: block;
+  max-width: 200px;
+  font-size: 11px;
+  white-space: normal;
+}
+
+/* 3D 或框選開著時，「更多」按鈕右上角一個小點，收起來也看得出來 */
+.more-menu > button.has-active {
+  position: relative;
+}
+
+.more-menu > button.has-active::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 /* 每種底圖的陸地與海的顏色（跟 OpenFreeMap 的樣式一樣），選中的那一個外框加粗 */
@@ -1385,6 +1433,51 @@ kbd {
   font-size: 12px;
 }
 
+/* tooltip 的名次（跟側欄的數值卡片一樣）與歷年小折線（Sparkline.tsx） */
+.tt-rank {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-spark {
+  margin-top: 6px;
+}
+
+.tt-spark svg {
+  display: block;
+  overflow: visible;
+}
+
+.tt-spark-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.tt-spark-line.is-projected {
+  stroke-dasharray: 3 2.5;
+}
+
+.tt-spark-dot {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+.tt-spark-years {
+  display: flex;
+  justify-content: space-between;
+  width: 132px;
+  font-size: 10px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* 指標檔的 hints：滑過就該看到的短註（例如 OpenStreetMap 的涵蓋率很低） */
 .tt-hint {
   margin-top: 4px;
@@ -1547,17 +1640,80 @@ kbd {
   gap: 2px;
 }
 
-.legend-swatches span {
+.legend-swatches > * {
   flex: 1;
   height: 10px;
 }
 
-.legend-swatches span:first-child {
+.legend-swatches > :first-child {
   border-radius: 2px 0 0 2px;
 }
 
-.legend-swatches span:last-child {
+.legend-swatches > :last-child {
   border-radius: 0 2px 2px 0;
+}
+
+/* 面量圖的分級可以滑過、點選（Legend.tsx 的 ClassHighlight）：色塊是按鈕，上下各多 6px 好點 */
+.legend-bin {
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: opacity 0.15s;
+}
+
+.legend-bin::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+.legend-bin.is-faded {
+  opacity: 0.3;
+}
+
+.legend-bin[aria-pressed='true'] {
+  box-shadow: 0 0 0 1.5px var(--ink);
+  z-index: 1;
+}
+
+.legend-bin:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  z-index: 1;
+}
+
+/* 每一級的國家數：色塊上方的細長條，底部對齊 */
+.legend-hist {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  margin-bottom: 2px;
+}
+
+.legend-hist span {
+  flex: 1;
+  margin: 0 6px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 1px 1px 0 0;
+}
+
+.legend-hist span.is-on {
+  background: var(--ink-secondary);
+}
+
+/* 有直方圖時刻度往下移（直方圖 14px 加間隔 2px） */
+.legend-scale.has-hist .legend-ticks span {
+  top: 30px;
+}
+
+.legend-bin-status {
+  margin: 0 0 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 .legend-note {
@@ -1836,6 +1992,156 @@ kbd {
   font-size: 11px;
   color: var(--ink-muted);
   min-height: 1.4em;
+}
+
+/* 數值卡片裡比較的國家（CountryPanel 的 stat-compare）：色點、國名、數值，一國一行 */
+.stat-compare {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--grid);
+  font-size: 11px;
+}
+
+.stat-compare-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.stat-compare-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-secondary);
+}
+
+.stat-compare-value {
+  margin-left: auto;
+  padding-left: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.compare-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* 側欄的「比較」（ComparePicker.tsx）：已加的國家是小標籤，最多 3 個 */
+.compare {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.compare-label {
+  color: var(--ink-secondary);
+}
+
+.compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.compare-remove {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.compare-remove:hover {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.compare-add {
+  padding: 3px 10px;
+  border: 1px dashed var(--axis);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.compare-add:hover {
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+
+.compare-search {
+  position: relative;
+}
+
+.compare-search input {
+  width: 150px;
+  padding: 4px 10px;
+  border: 1px solid var(--axis);
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.compare-search input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.compare-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  min-width: 180px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.compare-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compare-results li {
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.compare-results li.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.compare-empty {
+  display: block;
+  padding: 5px 8px;
+  color: var(--ink-muted);
 }
 
 .panel-chart {
@@ -2485,6 +2791,35 @@ kbd {
   color: var(--ink-secondary);
 }
 
+/* 洲別篩選（RankingTable.tsx）：接在標題後面，放不下時換到下一行 */
+.region-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.region-filter .segment {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.region-filter .segment.is-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--page);
+  box-shadow: none;
+}
+
+.region-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
 .ranking th {
   position: sticky;
   top: 0;
@@ -2555,7 +2890,7 @@ kbd {
 
 .value-track {
   flex: 1;
-  height: 6px;
+  height: 8px;
 }
 
 .value-bar {
@@ -2564,6 +2899,8 @@ kbd {
   min-width: 2px;
   border-radius: 0 3px 3px 0;
   background: var(--accent);
+  /* 長條用地圖的顏色（RankingTable.tsx），最淺的幾級在淺色卡片上要看得到邊 */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 /* ── 時間軸 ─────────────────────────── */
@@ -2777,6 +3114,11 @@ kbd {
   /* 窄螢幕：欄名可以換行（英文的指標名稱常比數值寬很多），左右留白減半，表格才不會超出畫面 */
   .ranking th.num {
     white-space: normal;
+  }
+
+  /* 「名次」只有兩個字，換行會變成上下各一個字 */
+  .ranking th.rank-col {
+    white-space: nowrap;
   }
 
   .ranking th,

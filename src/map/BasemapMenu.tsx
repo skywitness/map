@@ -69,7 +69,7 @@ export function BasemapMenu({ basemap, onChange }: BasemapMenuProps) {
         <LayersIcon />
       </button>
       {open && (
-        <div className="basemap-list" id={menuId} role="menu" aria-label={t.basemapStyle} onKeyDown={onMenuKeyDown}>
+        <div className="map-menu-list" id={menuId} role="menu" aria-label={t.basemapStyle} onKeyDown={onMenuKeyDown}>
           <div className="basemap-list-title" aria-hidden="true">
             {t.basemapStyle}
           </div>
@@ -83,7 +83,7 @@ export function BasemapMenu({ basemap, onChange }: BasemapMenuProps) {
               role="menuitemradio"
               aria-checked={b.id === basemap.id}
               tabIndex={-1}
-              className="basemap-item"
+              className="map-menu-item basemap-item"
               onClick={() => {
                 close(true);
                 if (b.id !== basemap.id) onChange(b.id);

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { tr, useLang, useT } from '../i18n';
 import { matchTopics, type TopicHit, type TopicTarget } from '../lib/topicSearch';
+import { CloseIcon } from '../map/MapIcons';
 import { TOPIC_GROUPS } from '../topics';
 import { pureMap } from '../topics/map';
 import type { TopicDefinition } from '../topics/types';
@@ -102,7 +103,7 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
             onChange={(e) => setQuery(e.target.value)}
           />
           <button type="button" className="icon-button" onClick={onClose} aria-label={t.close} title={t.close}>
-            ×
+            <CloseIcon />
           </button>
         </header>
         <div className="overview-body">

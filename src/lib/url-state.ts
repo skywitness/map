@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { langParam, URL_PARAM } from '../i18n/lang';
 import { boxFromLegacyRaw, type Box } from '../map/boxEstimate';
 
@@ -20,7 +20,11 @@ export interface ViewState {
    * （GridSpec.defaultOn，例如夜間燈光預設是網格，人口密度預設是國家平均）
    */
   grid: boolean | null;
+  /** 側欄折線圖與數值卡片一起比較的國家（cmp=JPN,KOR，最多 COMPARE_MAX 個） */
+  compare: string[];
 }
+
+export const COMPARE_MAX = 3;
 
 /** 目前網址的畫面狀態（App 啟動時也用它提早發出第一個畫面的資料請求） */
 export function read(): ViewState {
@@ -37,6 +41,7 @@ export function read(): ViewState {
     box: parseBox(p.get('bbox')) ?? legacyBox(p.get('box')),
     threeD: p.get('3d') === '1',
     grid: p.get('grid') === '1' ? true : p.get('grid') === '0' ? false : null,
+    compare: [...new Set((p.get('cmp') ?? '').split(',').filter((c) => /^_?[A-Z]{3}$/.test(c)))].slice(0, COMPARE_MAX),
   };
 }
 
@@ -55,7 +60,13 @@ function legacyBox(text: string | null): Box | null {
   return b && b[0] < b[2] && b[1] < b[3] ? boxFromLegacyRaw(b) : null;
 }
 
-function write(state: ViewState): void {
+/**
+ * 這些變了才在瀏覽紀錄留一筆，瀏覽器的「上一頁」回得到前一個主題、指標、國家（原本一律改寫目前這一筆，
+ * 上一頁會直接離開網站）。年份、框選、3D、網格只改寫目前這一筆：拖時間軸、播放不會塞滿紀錄。
+ */
+const HISTORY_KEYS = ['topic', 'indicator', 'item', 'country', 'view'] as const;
+
+function write(state: ViewState, push: boolean): void {
   const p = new URLSearchParams();
   if (state.topic) p.set('topic', state.topic);
   if (state.indicator) p.set('ind', state.indicator);
@@ -66,25 +77,45 @@ function write(state: ViewState): void {
   if (state.box) p.set('bbox', state.box.map((v) => v.toFixed(3)).join(','));
   if (state.threeD) p.set('3d', '1');
   if (state.grid !== null) p.set('grid', state.grid ? '1' : '0');
+  if (state.compare.length) p.set('cmp', state.compare.join(','));
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);
   const query = p.toString();
   const url = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
-  window.history.replaceState(null, '', url);
+  if (push) window.history.pushState(null, '', url);
+  else window.history.replaceState(null, '', url);
 }
 
-export function useUrlState(): [ViewState, (patch: Partial<ViewState>) => void] {
+export type UpdateUrlState = (patch: Partial<ViewState>, options?: { replace?: boolean }) => void;
+
+export function useUrlState(): [ViewState, UpdateUrlState] {
   const [state, setState] = useState<ViewState>(read);
+  // 上一筆寫進網址的狀態（第一次是 null：打開頁面時只改寫，不多一筆）
+  const written = useRef<ViewState | null>(null);
+  // 這次的變動只改寫目前這一筆：上一頁、下一頁讀回來的狀態，還有程式自己補正的（舊網址的指標 id）
+  const replaceNext = useRef(false);
 
   useEffect(() => {
-    const onPop = () => setState(read());
+    const onPop = () => {
+      replaceNext.current = true;
+      setState(read());
+    };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  useEffect(() => write(state), [state]);
+  useEffect(() => {
+    const before = written.current;
+    written.current = state;
+    const push = before !== null && !replaceNext.current && HISTORY_KEYS.some((k) => before[k] !== state[k]);
+    replaceNext.current = false;
+    write(state, push);
+  }, [state]);
 
-  const update = useCallback((patch: Partial<ViewState>) => setState((s) => ({ ...s, ...patch })), []);
+  const update = useCallback<UpdateUrlState>((patch, options) => {
+    if (options?.replace) replaceNext.current = true;
+    setState((s) => ({ ...s, ...patch }));
+  }, []);
   return [state, update];
 }

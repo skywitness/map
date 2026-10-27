@@ -2,26 +2,11 @@ import { scaleSqrt, scaleThreshold, type ScaleThreshold } from 'd3-scale';
 import type { ScaleSpec } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
 import type { GridMeta } from './densityGrid';
+import { choroplethColors } from './categories';
 
 /** 分級色：門檻固定，所有年份共用 */
 export function choroplethScale(spec: ScaleSpec, tokens: Tokens): ScaleThreshold<number, string> {
-  const classes = spec.thresholds.length + 1;
-  let range: string[];
-  if (spec.type === 'diverging') {
-    if (classes !== tokens.diverging.length) {
-      // 主題設定寫錯時給開發者看的訊息，不會出現在介面上，所以不翻譯
-      throw new Error(`發散色需要 ${tokens.diverging.length - 1} 個對稱門檻，目前是 ${spec.thresholds.length} 個`); // i18n-ignore
-    }
-    range = spec.reverse ? [...tokens.diverging].reverse() : tokens.diverging;
-  } else {
-    const ramp = tokens.sequential;
-    if (classes > ramp.length) throw new Error(`循序色最多 ${ramp.length} 級`); // i18n-ignore
-    // 級數少於 7 時，從色階中平均取樣，頭尾保留
-    range = Array.from({ length: classes }, (_, i) =>
-      ramp[classes === 1 ? ramp.length - 1 : Math.round((i * (ramp.length - 1)) / (classes - 1))],
-    );
-  }
-  return scaleThreshold<number, string>().domain(spec.thresholds).range(range);
+  return scaleThreshold<number, string>().domain(spec.thresholds).range(choroplethColors(spec, tokens));
 }
 
 /** 1 km 網格圖例的分級色：門檻與顏色用 meta.json 的，跟圖磚裡畫的一定一樣 */

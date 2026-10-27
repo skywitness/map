@@ -29,7 +29,7 @@ import {
 } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
-import { BASEMAP_ATTRIBUTION, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import {
   decodeLines,
@@ -42,12 +42,14 @@ import {
   type OverlayLayer,
 } from './map/Overlays';
 import { loadBaseStyle } from './map/style';
+import { MoonIcon, SunIcon } from './map/MapIcons';
 import type { WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
 import { RankingTable } from './panels/RankingTable';
-import { latestAt, maxAcrossYears } from './panels/stats';
+import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
+import { Sparkline } from './map/Sparkline';
 import { getTopic } from './topics';
 import {
   dimensionOf,
@@ -68,7 +70,7 @@ import {
   type RailwaysData,
   type Topic,
 } from './topics/types';
-import { useTheme } from './theme/useTheme';
+import { initialThemeMode, useTheme } from './theme/useTheme';
 import { flagAspect, flagUrl, type FlagsFile } from './topics/flagImages';
 import type { FlagSpec } from './map/flagTiles';
 
@@ -79,7 +81,8 @@ const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ d
 // 資料 JSON 也在這時發出請求，不必等 MapLibre 下載、解析完
 const worldMapModule = import('./map/WorldMap');
 const WorldMap = lazy(() => worldMapModule.then((m) => ({ default: m.WorldMap })));
-loadBaseStyle(getBasemap(readStoredBasemap()).url).catch(() => {}); // 失敗時 WorldMap 會重抓並顯示錯誤
+// 失敗時 WorldMap 會重抓並顯示錯誤
+loadBaseStyle(getBasemap(readStoredBasemap() ?? defaultBasemap(initialThemeMode() === 'dark')).url).catch(() => {});
 
 /**
  * 國界：先用 1:110m（gzip 後約 35 KB，解析也快）畫出第一個畫面，地圖畫出資料之後再換成
@@ -129,7 +132,7 @@ export function App() {
   // 舊網址的指標 id（例如氣候主題的 co2-per-capita）換成現在的指標與子項目，網址也改寫成新的
   const state = resolveAlias(getTopic(urlState.topic), urlState);
   useEffect(() => {
-    if (state !== urlState) update({ indicator: state.indicator, item: state.item });
+    if (state !== urlState) update({ indicator: state.indicator, item: state.item }, { replace: true });
   }, [state, urlState, update]);
   const lang = useLang();
   const t = useT();
@@ -161,8 +164,9 @@ export function App() {
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
   const { data, loading, error } = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
+  // 沒自己選過底圖時跟著介面深淺色換（深色用深藍）；選過的照舊，切換深淺色也不變
   const [basemapId, setBasemapId] = useState(readStoredBasemap);
-  const basemap = getBasemap(basemapId);
+  const basemap = getBasemap(basemapId ?? defaultBasemap(tokens.mode === 'dark'));
   const chooseBasemap = (id: string) => {
     setBasemapId(id);
     storeBasemap(id);
@@ -206,13 +210,16 @@ export function App() {
   };
   // 子項目是國家的主題（護照）：選到國家時子項目跟著換；取消選取時留在原本的子項目，地圖不會跳回預設
   const follows = dimension?.followsSelection ? dimension : undefined;
+  // 取消選取時比較的國家一起清掉；選到正在比較的國家時，把它從比較裡拿掉
+  const compare = state.compare;
   const selectCountry = useCallback(
     (iso3: string | null) => {
-      if (!follows) return update({ country: iso3 });
+      const nextCompare = iso3 ? compare.filter((c) => c !== iso3) : [];
+      if (!follows) return update({ country: iso3, compare: nextCompare });
       const next = iso3 && follows.options.some((o) => o.id === iso3) ? iso3 : item;
-      update({ country: iso3, item: next });
+      update({ country: iso3, item: next, compare: nextCompare });
     },
-    [update, follows, item],
+    [update, follows, item, compare],
   );
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
   const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
@@ -359,6 +366,15 @@ export function App() {
     );
   };
 
+  // tooltip 的名次：跟側欄的數值卡片一樣（同分同名次、總數是有資料的國家數；類別、不排名的指標、計數類的 0 不排）
+  const rankable = !pure && (indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'bubble') && !indicator.unranked;
+  const ranks = useMemo(() => {
+    if (!rankable) return null;
+    const rows = ranking(values, indicator.lowerIsBetter);
+    const order = rowRanks(rows);
+    return new Map(rows.map(([iso3], i) => [iso3, order[i]]));
+  }, [rankable, values, indicator.lowerIsBetter]);
+
   const renderTooltip = (iso3: string) => {
     if (pure) return <div className="tt-value">{countryName(iso3, countries)}</div>;
     // 流向圖：滑到夥伴國上顯示雙邊金額與占比
@@ -378,10 +394,14 @@ export function App() {
     const v = values.get(iso3);
     const valueYear = valueYears.get(iso3);
     const hint = (lang === 'en' ? data?.hintsEn : data?.hints)?.[iso3];
+    const rank = v !== undefined && !(indicator.layer.kind === 'bubble' && v === 0) ? ranks?.get(iso3) : undefined;
+    // 歷年小折線：面量圖、比例圓，有好幾年的資料時（網格的 tooltip 是國家平均，也畫）
+    const series = rankable && !timeless && data && data.years.length >= 3 ? data.values[iso3] : undefined;
     return (
       <>
         <div className="tt-value">
           {v !== undefined ? indicator.format(v) : (missingReason(topic, indicator, item, iso3) ?? t.noData)}
+          {rank !== undefined && <span className="tt-rank">{t.rank(rank, values.size)}</span>}
         </div>
         <div className="tt-label">
           {countryName(iso3, countries)}
@@ -389,6 +409,7 @@ export function App() {
           {projected && t.tooltipProjected}
           {grid && !gridOnly && ` · ${G.tooltip}`}
         </div>
+        {series && <Sparkline years={data!.years} series={series} year={valueYear ?? year} projectionFrom={data!.projectionFrom} />}
         {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
       </>
     );
@@ -417,7 +438,7 @@ export function App() {
           aria-label={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
           title={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
         >
-          {tokens.mode === 'dark' ? '☀' : '☾'}
+          {tokens.mode === 'dark' ? <SunIcon /> : <MoonIcon />}
         </button>
       </header>
 
@@ -639,6 +660,8 @@ export function App() {
                 tokens={tokens}
                 onClose={() => selectCountry(null)}
                 onIndicatorChange={chooseIndicator}
+                compare={compare}
+                onCompareChange={(list) => update({ compare: list })}
               />
             </Suspense>
           </PanelSheet>

@@ -73,6 +73,8 @@ try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1100, height: 1180 });
   await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'dark' }]);
+  // 深色介面沒選過底圖時是深藍；卡片上的地球用彩色地形
+  await page.evaluateOnNewDocument(() => localStorage.setItem('basemap', 'terrain'));
   await page.goto(`${base}?topic=income`, { waitUntil: 'networkidle2', timeout: 120_000 });
   await new Promise((r) => setTimeout(r, 6000));
   await page.addStyleTag({ content: '.map-zoom, .map-legend, .maplibregl-ctrl, .map-status { display: none !important; }' });

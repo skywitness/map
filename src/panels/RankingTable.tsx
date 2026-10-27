@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLang, useT } from '../i18n';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatPercent } from '../lib/format';
-import { categoryScale } from '../map/categories';
+import { categoryScale, choroplethColors, classIndex } from '../map/categories';
+import { useJson } from '../lib/data';
+import { MAP_TOKENS } from '../theme/tokens';
 import { useMapTokens } from '../map/palettes';
 import type { Indicator } from '../topics/types';
 import { ranking, rowRanks } from './stats';
@@ -27,6 +29,9 @@ interface RankingTableProps {
   icon?: (props: { iso3: string }) => ReactNode;
 }
 
+type Region = 'AS' | 'EU' | 'AF' | 'NA' | 'SA' | 'OC';
+const REGIONS: Region[] = ['AS', 'EU', 'AF', 'NA', 'SA', 'OC'];
+
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
 export function RankingTable(props: RankingTableProps) {
   const { indicator, title, values, valueYears, latestWithin, world, year, yearText, countries, selected, onSelect, icon: Icon } = props;
@@ -34,6 +39,9 @@ export function RankingTable(props: RankingTableProps) {
   const lang = useLang();
   // 類別圖沒有大小之分：依圖例的類別順序排，同一類（「其他」裡同一種）再依國名排，數值欄放色塊與類別名稱
   const mapTokens = useMapTokens();
+  // 洲別篩選（regions.json：Natural Earth 的洲，北美洲含中美洲與加勒比海）。名次照全球的寫
+  const regions = useJson<Record<string, Region>>('regions.json').data;
+  const [region, setRegion] = useState<Region | null>(null);
   const categories = useMemo(
     () => (indicator.layer.kind === 'categorical' ? categoryScale(indicator.layer, mapTokens) : null),
     [indicator, mapTokens],
@@ -58,10 +66,22 @@ export function RankingTable(props: RankingTableProps) {
       );
   }, [values, indicator, categories, countries, lang]);
   const ranks = useMemo(() => rowRanks(rows), [rows]);
+  const shown = useMemo(
+    () => rows.flatMap((row, i) => (!region || regions?.[row[0]] === region ? [{ row, rank: ranks[i] }] : [])),
+    [rows, ranks, region, regions],
+  );
+  // 長條用地圖上的顏色：面量圖是那一級的顏色、比例圓是地圖上的紫色（原本一律藍色，跟地圖對不起來）
+  const barColor = useMemo(() => {
+    const layer = indicator.layer;
+    if (layer.kind === 'bubble') return () => MAP_TOKENS.accent;
+    if (layer.kind !== 'choropleth') return () => undefined;
+    const colors = choroplethColors(layer.scale, mapTokens);
+    return (v: number) => colors[classIndex(layer.scale.thresholds, v)];
+  }, [indicator, mapTokens]);
   // 沒有好壞之分的數值（例如跟台灣的時差）依數值排列，不寫名次
   const showRank = !categories && !indicator.unranked;
-  // 數值越小越好的指標由小排到大，最大值在最後一列
-  const max = Math.max(0, ...rows.map(([, v]) => v));
+  // 數值越小越好的指標由小排到大，最大值在最後一列；篩選洲別時以那一洲的最大值為準
+  const max = Math.max(0, ...shown.map(({ row: [, v] }) => v));
   // 數值是年份這類長短沒有意義的（指標的 rankingBars: false）不畫長條
   const showBars = !categories && indicator.rankingBars !== false && rows.length > 0 && rows.every(([, v]) => v >= 0);
   const showShare = indicator.shareOfWorld && world != null && world > 0;
@@ -83,10 +103,28 @@ export function RankingTable(props: RankingTableProps) {
             yearText ? t.withYear(title, yearText) : title,
             rows.length,
           )}
+          {regions && (
+            <span className="region-filter" role="radiogroup" aria-label={t.regionFilter}>
+              {[null, ...REGIONS].map((r) => (
+                <button
+                  key={r ?? 'all'}
+                  type="button"
+                  role="radio"
+                  aria-checked={region === r}
+                  className={`segment${region === r ? ' is-active' : ''}`}
+                  title={r === 'NA' ? t.regionNorthAmericaNote : undefined}
+                  onClick={() => setRegion(r)}
+                >
+                  {r ? t.regions[r] : t.regionAll}
+                </button>
+              ))}
+            </span>
+          )}
+          {region && <span className="region-note">{t.regionShown(t.regions[region], shown.length, showRank)}</span>}
         </caption>
         <thead>
           <tr>
-            {showRank && <th scope="col" className="num">{t.rankCol}</th>}
+            {showRank && <th scope="col" className="num rank-col">{t.rankCol}</th>}
             <th scope="col">{t.countryCol}</th>
             <th scope="col" className="num">
               {title}
@@ -96,9 +134,9 @@ export function RankingTable(props: RankingTableProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map(([iso3, value], i) => (
+          {shown.map(({ row: [iso3, value], rank }) => (
             <tr key={iso3} className={iso3 === selected ? 'is-selected' : undefined}>
-              {showRank && <td className="num">{ranks[i]}</td>}
+              {showRank && <td className="num">{rank}</td>}
               <td>
                 <button type="button" className="row-link" onClick={() => onSelect(iso3)}>
                   {Icon && <Icon iso3={iso3} />}
@@ -111,7 +149,10 @@ export function RankingTable(props: RankingTableProps) {
                 <div className="value-wrap">
                   {showBars && (
                     <span className="value-track" aria-hidden="true">
-                      <span className="value-bar" style={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }} />
+                      <span
+                        className="value-bar"
+                        style={{ width: `${max > 0 ? (value / max) * 100 : 0}%`, background: barColor(value) }}
+                      />
                     </span>
                   )}
                   {categories && <span className="legend-swatch" style={{ background: categories.color(value)! }} />}

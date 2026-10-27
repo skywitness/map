@@ -78,6 +78,43 @@ def load_countries() -> dict[str, dict]:
     }
 
 
+# 排名表的洲別篩選（regions.json）：Natural Earth 1:10m（4.1.0，公有領域，geoindex 判斷位置用的同一份）的 CONTINENT
+CONTINENTS = {
+    "Africa": "AF",
+    "Asia": "AS",
+    "Europe": "EU",
+    "North America": "NA",  # 含中美洲與加勒比海
+    "South America": "SA",
+    "Oceania": "OC",
+    "Antarctica": "AN",
+}
+# Natural Earth 寫「Seven seas (open ocean)」的島，與 1:10m 沒有自己單位的地方（併在法國、挪威、澳洲…裡），
+# 照聯合國 M49 的地理分區（只當地理事實參考，沒有用它的檔案）
+REGION_FIXES = {
+    "MDV": "AS", "MUS": "AF", "SYC": "AF", "SHN": "AF", "IOT": "AF", "ATF": "AF", "HMD": "OC", "SGS": "SA",
+    "BES": "NA", "GLP": "NA", "MTQ": "NA", "GUF": "SA", "MYT": "AF", "REU": "AF", "SJM": "EU",
+    "CCK": "OC", "CXR": "OC", "TKL": "OC", "UMI": "OC", "BVT": "SA",
+}
+
+
+def build_regions() -> None:
+    from geoindex import _ten_m_features, ten_m_units
+
+    regions: dict[str, str] = {}
+    for feature, (_name, iso3) in zip(_ten_m_features(), ten_m_units()):
+        code = CONTINENTS.get(feature["properties"]["CONTINENT"])
+        if iso3 and code:
+            if regions.get(iso3, code) != code:
+                raise ValueError(f"{iso3} 的 1:10m 單位分在不同的洲")
+            regions[iso3] = code
+    regions.update(REGION_FIXES)
+    with open(OUT_DIR / "countries.json", encoding="utf-8") as f:
+        missing = [iso3 for iso3 in json.load(f) if not iso3.startswith("_") and iso3 not in regions]
+    if missing:
+        raise ValueError(f"這些國家沒有洲別，加到 REGION_FIXES：{missing}")
+    write_json(OUT_DIR / "regions.json", dict(sorted(regions.items())))
+
+
 def build() -> None:
     for scale in ("50m", "110m"):
         count = convert(scale)
@@ -91,6 +128,7 @@ def build() -> None:
     for name, (iso3, iso2) in NO_ID_OVERRIDES.items():
         reference[iso3] = {"iso2": iso2, "name": name} if iso2 else {"name": name}
     write_json(OUT_DIR / "countries.json", dict(sorted(reference.items())))
+    build_regions()
 
 
 def convert(scale: str) -> int:

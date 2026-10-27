@@ -1,6 +1,7 @@
 import { useT, type Messages } from '../i18n';
 import { countryName, type CountryTable } from '../lib/countries';
 import { fixed, formatLargeNumber, formatPercent } from '../lib/format';
+import { CloseIcon } from '../map/MapIcons';
 
 export interface BoxContribution {
   /** null 代表地圖上沒有國界的小島（1:50m 圖資沒有形狀） */
@@ -37,7 +38,7 @@ export function BoxResult({ label, unit, year, total, landKm2, contributions, gr
       <header>
         <span className="box-result-title">{t.boxTitle(label)}</span>
         <button type="button" className="icon-button small" onClick={onClear} aria-label={t.boxClear}>
-          ×
+          <CloseIcon size={14} />
         </button>
       </header>
       {total === null ? (
