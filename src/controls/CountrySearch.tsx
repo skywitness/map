@@ -82,7 +82,7 @@ export function CountrySearch({ index, onSelect, valueOf }: CountrySearchProps) 
         aria-expanded={expanded}
         aria-controls={expanded && hits.length ? `${id}-list` : undefined}
         aria-activedescendant={expanded && hits[active] ? optionId(active) : undefined}
-        placeholder={TOUCH ? UI.search.label : UI.search.placeholder}
+        placeholder={TOUCH ? UI.search.touchPlaceholder : UI.search.placeholder}
         autoComplete="off"
         spellCheck={false}
         enterKeyHint="search"

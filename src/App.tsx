@@ -1,14 +1,14 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Topology } from 'topojson-specification';
 import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
-import { IndicatorDesc } from './controls/IndicatorDesc';
+import { ClampedText } from './controls/ClampedText';
 import { ShareMenu } from './controls/ShareMenu';
 import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
 import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
-import { localize, LOCALES, tr, useLang, useT, type Lang } from './i18n';
+import { localize, LOCALES, useLang, useT, type Lang } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { indicatorCsv } from './lib/csv';
@@ -16,6 +16,7 @@ import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
+import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { read as readUrlState, useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
@@ -26,7 +27,7 @@ import {
 } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { toCountryFeatures, type CountryFeature } from './map/geometry';
-import { BASEMAP_ATTRIBUTION, BASEMAPS, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
+import { BASEMAP_ATTRIBUTION, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import {
   decodeLines,
@@ -130,6 +131,10 @@ export function App() {
   const lang = useLang();
   const t = useT();
   const online = useOnline();
+  // 手機：三個以上的指標改用下拉選單（按鈕會換成兩三行，把地圖往下擠）
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const appRef = useRef<HTMLDivElement>(null);
+  useFitMap(appRef);
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
   const topic = localize(getTopic(state.topic), lang);
@@ -379,7 +384,7 @@ export function App() {
   };
 
   return (
-    <div className="app">
+    <div className="app" ref={appRef}>
       <header className="topbar">
         <h1 className="brand">{t.brand}</h1>
         {!online && (
@@ -428,7 +433,7 @@ export function App() {
               </select>
             </label>
           )}
-          {pure ? null : topic.indicators.length > MAX_SEGMENTS ? (
+          {pure ? null : topic.indicators.length > MAX_SEGMENTS || (narrow && topic.indicators.length > 2) ? (
             <label className="select-field">
               <span>{t.indicator}</span>
               <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
@@ -473,16 +478,6 @@ export function App() {
           )}
         </div>
         <div className="controls-right">
-          <label className="select-field">
-            <span>{t.basemap}</span>
-            <select value={basemap.id} onChange={(e) => chooseBasemap(e.target.value)} aria-label={t.basemapStyle}>
-              {BASEMAPS.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {tr(b.label, lang)}
-                </option>
-              ))}
-            </select>
-          </label>
           <CountrySearch
             index={searchIndex}
             onSelect={selectFromSearch}
@@ -522,7 +517,7 @@ export function App() {
           />
         </div>
       </div>
-      <IndicatorDesc key={description} text={description} />
+      <ClampedText key={description} text={description} className="indicator-desc" />
 
       <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">
@@ -551,6 +546,7 @@ export function App() {
                       : t.mapAria(timeless ? null : year, mapTitle, projected)
                 }
                 basemap={basemap}
+                onBasemapChange={chooseBasemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
                 threeD={state.threeD}
@@ -645,27 +641,55 @@ export function App() {
       )}
 
       <footer className="footer">
-        {t.sources}
-        {topic.sources.map((s, i) => (
-          <span key={s.url}>
-            {i > 0 && t.listSeparator}
-            <a href={s.url} target="_blank" rel="noreferrer">
-              {s.name}
-            </a>
-            {t.sourceLicense(s.license)}
-          </span>
-        ))}
-        {t.borders}
-        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
-          Natural Earth
-        </a>
-        {t.publicDomain}
-        {manifest && t.generatedAt(manifest.generatedAt.slice(0, 10))}
-        {topic.note && <span className="footer-note">{topic.note}</span>}
-        <span className="footer-note">{t.disclaimer}</span>
+        <p className="footer-sources">
+          {t.sources}
+          {topic.sources.map((s, i) => (
+            <span key={s.url}>
+              {i > 0 && t.listSeparator}
+              <a href={s.url} target="_blank" rel="noreferrer">
+                {s.name}
+              </a>
+              {t.sourceLicense(s.license)}
+            </span>
+          ))}
+          {t.borders}
+          <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
+            Natural Earth
+          </a>
+          {t.publicDomain}
+          {manifest && t.generatedAt(manifest.generatedAt.slice(0, 10))}
+        </p>
+        {/* 主題的說明常常有好幾行：先露兩行，授權要求的聲明（夜間燈光的 EOG、學生能力的 OECD）寫在開頭 */}
+        {topic.note && <ClampedText key={topic.note} text={topic.note} className="footer-note" />}
+        <p className="footer-disclaimer">{t.disclaimer}</p>
       </footer>
     </div>
   );
+}
+
+/**
+ * 窄螢幕整頁捲動（styles.css 的 @media (max-width: 900px)）：地圖的高度讓時間軸也留在第一個畫面裡。
+ * 地圖上面的頂列、控制列、說明的高度會變（換行、展開說明），所以量出地圖的位置與時間軸的高度，
+ * 寫進 CSS 變數 --map-top、--time-h（地圖的高度在 CSS 裡用 100svh 算，捲動時網址列縮放不會讓地圖跳動）
+ */
+function useFitMap(appRef: RefObject<HTMLDivElement | null>) {
+  useLayoutEffect(() => {
+    const app = appRef.current;
+    if (!app) return;
+    const measure = () => {
+      const map = app.querySelector('.stage-main');
+      if (!map) return;
+      const top = map.getBoundingClientRect().top + window.scrollY;
+      const time = app.querySelector<HTMLElement>('.time-slider')?.offsetHeight ?? 0;
+      app.style.setProperty('--map-top', `${Math.round(top)}px`);
+      app.style.setProperty('--time-h', `${time}px`);
+    };
+    measure();
+    // .app 的高度變了（上面的東西換行、展開，或時間軸出現、消失）就重新量；地圖跟著調整後高度不變，不會一直觸發
+    const observer = new ResizeObserver(measure);
+    observer.observe(app);
+    return () => observer.disconnect();
+  }, [appRef]);
 }
 
 /** 國界的幾何（先粗後細，見上面 GEO_COARSE）。mapShown：地圖畫出第一個畫面之後才載入 1:50m，不跟它搶頻寬與 CPU */

@@ -595,31 +595,49 @@ kbd {
   color: #ffffff;
 }
 
-.indicator-desc-row {
+/* 只露兩行的文字（ClampedText.tsx）：被截掉時右邊有「更多／收起」 */
+.clamped-row {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  margin: 8px 0 0;
 }
 
-.indicator-desc {
+.clamped-row > p {
   flex: 1;
   min-width: 0;
   margin: 0;
-  color: var(--ink-secondary);
-  font-size: 13px;
 }
 
-/* 「更多／收起」：只在手機上、說明超過兩行時出現（IndicatorDesc） */
-.indicator-desc-toggle {
+.clamped-toggle {
   flex: none;
   padding: 0;
   border: 0;
   background: none;
   color: var(--accent);
   font: inherit;
-  font-size: 13px;
   cursor: pointer;
+}
+
+.clamped-toggle:hover {
+  text-decoration: underline;
+}
+
+.indicator-desc-row {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+.indicator-desc {
+  color: var(--ink-secondary);
+}
+
+/* 指標說明只有手機截成兩行；頁尾的主題說明都截 */
+.footer-note:not(.is-expanded) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -699,8 +717,10 @@ kbd {
   background: var(--surface);
 }
 
+/* 3D 是文字，跟圖示一樣粗細 */
 .map-zoom .map-text-button {
   font-size: 12px;
+  font-weight: 600;
 }
 
 /* MapLibre 的版權標示放在右下角，避開左下角的圖例 */
@@ -708,6 +728,8 @@ kbd {
   font-size: 11px;
 }
 
+/* 右上角的按鈕列：圖示在 MapIcons.tsx。底圖選單要從按鈕列往左展開，所以不能 overflow: hidden，
+   圓角改由第一顆、最後一顆按鈕自己切 */
 .map-zoom {
   position: absolute;
   top: 12px;
@@ -717,24 +739,52 @@ kbd {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
-  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-.map-zoom button {
+.map-zoom > button,
+.basemap-menu > button {
+  display: grid;
+  place-items: center;
   width: 32px;
   height: 32px;
+  padding: 0;
   border: 0;
   background: none;
+  color: var(--ink);
   cursor: pointer;
   font-size: 16px;
+  transition: background-color 0.15s;
 }
 
-.map-zoom button + button {
+.map-zoom > :first-child,
+.map-zoom > :first-child > button {
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+}
+
+.map-zoom > :last-child,
+.map-zoom > :last-child > button {
+  border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+}
+
+.map-zoom > * + * {
   border-top: 1px solid var(--grid);
 }
 
-.map-zoom button:hover:not(:disabled) {
+.map-zoom > button:hover:not(:disabled),
+.basemap-menu > button:hover,
+.basemap-menu > button[aria-expanded='true'] {
   background: var(--grid);
+}
+
+.map-zoom > button:active:not(:disabled),
+.basemap-menu > button:active {
+  background: var(--axis);
+}
+
+.map-zoom button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .map-zoom button:disabled,
@@ -745,6 +795,89 @@ kbd {
 
 .map-zoom button[aria-disabled='true']:hover {
   background: none;
+}
+
+/* ── 底圖選單（BasemapMenu.tsx）：從按鈕列往左展開 ── */
+.basemap-menu {
+  position: relative;
+}
+
+.basemap-list {
+  position: absolute;
+  top: -5px;
+  right: calc(100% + 8px);
+  z-index: 5;
+  display: grid;
+  min-width: 150px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+.basemap-list-title {
+  padding: 4px 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.basemap-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.basemap-item:hover,
+.basemap-item:focus-visible {
+  background: var(--grid);
+  outline: none;
+}
+
+.basemap-item[aria-checked='true'] {
+  font-weight: 600;
+}
+
+/* 每種底圖的陸地與海的顏色（跟 OpenFreeMap 的樣式一樣），選中的那一個外框加粗 */
+.basemap-swatch {
+  flex: none;
+  width: 22px;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.basemap-item[aria-checked='true'] .basemap-swatch {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.basemap-swatch.is-terrain {
+  background: linear-gradient(135deg, #d9d0b5 50%, #9ebdff 50%);
+}
+
+.basemap-swatch.is-bright {
+  background: linear-gradient(135deg, #f8f4f0 50%, #aecfe2 50%);
+}
+
+.basemap-swatch.is-positron {
+  background: linear-gradient(135deg, #f2f3f0 50%, #c2c8ca 50%);
+}
+
+.basemap-swatch.is-dark {
+  background: linear-gradient(135deg, #0c0c0c 50%, #1b1b1d 50%);
+}
+
+.basemap-swatch.is-fiord {
+  background: linear-gradient(135deg, #45516e 50%, #38435c 50%);
 }
 
 /* ── 3D ─────────────────────────────── */
@@ -2178,21 +2311,39 @@ kbd {
   color: var(--ink-muted);
 }
 
-/* ── 頁尾 ───────────────────────────── */
+/* ── 頁尾：來源一段、主題說明（先露兩行）、免責聲明 ── */
 .footer {
+  display: grid;
+  gap: 4px;
   padding: 8px 0 max(12px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--grid);
   font-size: 12px;
+  line-height: 1.55;
   color: var(--ink-muted);
+}
+
+.footer p {
+  margin: 0;
 }
 
 .footer a {
   color: var(--ink-secondary);
+  text-decoration-color: var(--axis);
+  text-underline-offset: 2px;
 }
 
-.footer-note {
-  display: block;
-  margin-top: 2px;
+.footer a:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
+.footer-sources {
+  color: var(--ink-secondary);
+}
+
+/* 說明太長時讀起來吃力：一行最多約 90 個中文字 */
+.footer-note-row {
+  max-width: 1100px;
 }
 
 /* ── 窄螢幕：側欄移到地圖下方，整頁捲動 ── */
@@ -2207,11 +2358,12 @@ kbd {
     display: contents;
   }
 
+  /* 地圖填滿第一個畫面剩下的高度，時間軸也看得到、不必先往下捲（App.tsx 的 useFitMap 量出 --map-top、--time-h）；
+     小於 320px 時寧可讓時間軸落到畫面外 */
   .stage-main {
     order: 1;
     margin-top: 12px;
-    height: 62vh;
-    min-height: 320px;
+    height: max(320px, calc(100svh - var(--map-top, 40svh) - var(--time-h, 0px) - 8px));
   }
 
   .time-slider {
@@ -2299,6 +2451,32 @@ kbd {
   .select-field select,
   .search {
     font-size: 16px;
+  }
+
+  /* 分享只留圖示，搜尋框才夠寬（跟「地圖／排名表」排在同一行） */
+  .share-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .share-button {
+    width: 36px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* 英文的「Search countries」在 375px 寬才放得下 */
+  .search {
+    padding: 0 8px;
+  }
+
+  .view-toggle .segment {
+    padding: 5px 10px;
   }
 
   /* 頂列放不下標題、語言切換與主題列：主題列換到第二行，整行都能捲動 */

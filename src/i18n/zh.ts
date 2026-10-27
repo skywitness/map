@@ -20,13 +20,14 @@ export const zh = {
   switchToDark: '切換為深色',
 
   indicator: '指標',
-  basemap: '底圖',
   basemapStyle: '底圖配色',
+  /** 地圖右上角「底圖」按鈕的說明，寫出目前的底圖 */
+  basemapCurrent: (name: string) => `底圖配色：${name}`,
   searchCountry: '搜尋國家',
   viewMode: '檢視方式',
   viewMap: '地圖',
   viewTable: '排名表',
-  /** 手機上指標說明只露兩行，展開、收起的按鈕 */
+  /** 只露兩行的說明（手機上的指標說明、頁尾的主題說明）展開、收起的按鈕 */
   descMore: '更多',
   descLess: '收起',
   loadFailed: (message: string) => `資料載入失敗：${message}`,
@@ -92,8 +93,6 @@ export const zh = {
   resetView: '回到全球',
   toFlat: '切換成平面地圖',
   toGlobe: '切換成地球儀',
-  flatShort: '平面',
-  globeShort: '球',
   fullscreen: '全螢幕',
   exitFullscreen: '離開全螢幕',
   boxTool: '框選',

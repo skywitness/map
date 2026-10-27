@@ -18,8 +18,8 @@ export const en: Messages = {
   switchToDark: 'Switch to dark mode',
 
   indicator: 'Indicator',
-  basemap: 'Basemap',
   basemapStyle: 'Basemap style',
+  basemapCurrent: (name) => `Basemap style: ${name}`,
   searchCountry: 'Search countries',
   viewMode: 'View',
   viewMap: 'Map',
@@ -81,8 +81,6 @@ export const en: Messages = {
   resetView: 'Back to the whole world',
   toFlat: 'Switch to flat map',
   toGlobe: 'Switch to globe',
-  flatShort: 'Flat',
-  globeShort: 'Globe',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',
   boxTool: 'Select an area',

@@ -9,6 +9,8 @@ const UI_TEXT = defineMessages({
     search: {
       label: '搜尋國家',
       placeholder: '搜尋國家（/）',
+      /** 觸控裝置（沒有快捷鍵）的提示文字，手機上搜尋框只有約 130px 寬 */
+      touchPlaceholder: '搜尋國家',
       noResults: '找不到符合的國家',
       noData: '無資料',
       /** 螢幕閱讀器朗讀的結果數量 */
@@ -55,6 +57,7 @@ const UI_TEXT = defineMessages({
     search: {
       label: 'Search countries',
       placeholder: 'Search countries (/)',
+      touchPlaceholder: 'Find a country',
       noResults: 'No matching countries',
       noData: 'No data',
       resultCount: (n) => (n ? `${n} ${n === 1 ? 'result' : 'results'}; use the up and down arrows to choose` : 'No matching countries'),

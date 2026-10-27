@@ -2,10 +2,12 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useT } from '../i18n';
 
 /**
- * 選單下面的指標說明。手機上只露兩行（英文的說明常常四、五行，會把地圖往下擠），
- * 真的被截掉時才出現「更多」；換指標時由呼叫端用 key 重設成收起
+ * 只露前兩行的文字，真的被截掉時右邊才出現「更多」，點了展開。哪裡截、截幾行由 CSS 決定（className）：
+ * - 選單下面的指標說明（indicator-desc）：只有手機截，英文的說明常常四、五行，會把地圖往下擠
+ * - 頁尾的主題說明（footer-note）：都截，有的主題寫了十幾行
+ * 換指標、換主題時由呼叫端用 key 重設成收起。
  */
-export function IndicatorDesc({ text }: { text: string }) {
+export function ClampedText({ text, className }: { text: string; className: string }) {
   const t = useT();
   const ref = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -23,12 +25,12 @@ export function IndicatorDesc({ text }: { text: string }) {
   }, [text, expanded]);
 
   return (
-    <div className="indicator-desc-row">
-      <p ref={ref} className={`indicator-desc${expanded ? ' is-expanded' : ''}`}>
+    <div className={`clamped-row ${className}-row`}>
+      <p ref={ref} className={`${className}${expanded ? ' is-expanded' : ''}`}>
         {text}
       </p>
       {(clamped || expanded) && (
-        <button type="button" className="indicator-desc-toggle" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+        <button type="button" className="clamped-toggle" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
           {expanded ? t.descLess : t.descMore}
         </button>
       )}

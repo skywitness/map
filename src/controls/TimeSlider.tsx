@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { useT } from '../i18n';
 import { useHotkeys } from './hotkeys';
 
@@ -52,6 +52,27 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis,
 
   useHotkeys({ ArrowLeft: () => stepYear(-1), ArrowRight: () => stepYear(1), ' ': togglePlay }, first !== last);
 
+  // 「2026 起為推估」離頭尾太近時（手機上拉桿短），跟頭尾的年份疊在一起：藏起被蓋到的那個年份
+  const ticksRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const ticks = ticksRef.current;
+    const middle = ticks?.querySelector<HTMLElement>('.tick-projection');
+    if (!ticks || !middle) return;
+    const ends = [ticks.firstElementChild, ticks.lastElementChild] as HTMLElement[];
+    const check = () => {
+      const m = middle.getBoundingClientRect();
+      for (const end of ends) {
+        end.style.visibility = 'visible';
+        const r = end.getBoundingClientRect();
+        if (r.right + 6 > m.left && r.left - 6 < m.right) end.style.visibility = 'hidden';
+      }
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(ticks);
+    return () => observer.disconnect();
+  }, [first, last, projectionFrom, projectionLabel, t]);
+
   if (first === last) {
     return (
       <div className="time-slider is-single">
@@ -100,7 +121,7 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis,
           }}
           style={{ '--projection-pct': `${projectionPct}%` } as CSSProperties}
         />
-        <div className="time-ticks" aria-hidden="true">
+        <div className="time-ticks" aria-hidden="true" ref={ticksRef}>
           <span style={{ left: '0%' }}>{first}</span>
           {projectionFrom !== undefined && projectionFrom < last && (
             <span className="tick-projection" style={{ left: `${projectionPct}%` }}>

@@ -93,18 +93,20 @@ export const pisa: TopicDefinition = {
       license: { zh: '只引用臺灣的名次（事實）', en: "Taiwan's ranks only (facts)" },
     },
   ],
+  // OECD 授權要求的改作聲明放在最前面：頁尾的說明只先露兩行（ClampedText）
   note: {
     zh:
+      'This is an adaptation of an original work by the OECD：本站的改作（換成地圖的代碼、算出變化、翻譯）不代表 OECD 或其會員國的官方觀點，中文跟原文有出入時以 OECD 的英文原文為準。' +
       '只收參加 PISA 2025 的 91 個國家與經濟體（含它們之前每一次的成績）；俄羅斯、2009 與 2012 年的上海、列支敦斯登等沒有參加 2025 年的，' +
       '只在 2024 年 7 月以前出版、不是 CC BY 4.0 的報告裡，沒有收。只有部分地區參加的（北京上海江蘇浙江、烏克蘭的部分地區、' +
-      '伊拉克的庫德斯坦地區、塔吉克的杜尚別）畫成點，不塗整個國家；臺灣在 PISA 的名稱是「Chinese Taipei」。' +
-      'This is an adaptation of an original work by the OECD：本站的改作（換成地圖的代碼、算出變化、翻譯）不代表 OECD 或其會員國的官方觀點，中文跟原文有出入時以 OECD 的英文原文為準。',
+      '伊拉克的庫德斯坦地區、塔吉克的杜尚別）畫成點，不塗整個國家；臺灣在 PISA 的名稱是「Chinese Taipei」。',
     en:
+      'This is an adaptation of an original work by the OECD. The opinions expressed and arguments employed in this adaptation ' +
+      'should not be reported as representing the official views of the OECD or of its Member countries. ' +
       'Only the 91 countries and economies in PISA 2025 are included, with their results from earlier cycles; participants that did not take part in 2025 ' +
       '(Russia, Shanghai in 2009 and 2012, Liechtenstein and others) appear only in reports published before July 2024, which are not CC BY 4.0, and are left out. ' +
       'Participants covering only part of a country (Beijing-Shanghai-Jiangsu-Zhejiang, Ukrainian regions, the Kurdistan Region of Iraq, Dushanbe) are shown as dots rather than colouring the whole country; ' +
-      'Taiwan takes part as “Chinese Taipei”. This is an adaptation of an original work by the OECD. The opinions expressed and arguments employed in this adaptation ' +
-      'should not be reported as representing the official views of the OECD or of its Member countries.',
+      'Taiwan takes part as “Chinese Taipei”.',
   },
   panelExtra: () => import('./panels/PisaPanel'),
   indicators: [

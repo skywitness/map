@@ -1,18 +1,6 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type KeyboardEvent,
-  type PointerEvent,
-  type ReactNode,
-} from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { useUI } from '../lib/strings';
-
-/** 窄於這個寬度時，國家側欄改成從底部拉起的抽屜（與 styles.css 的 @media 一致） */
-const SHEET_QUERY = '(max-width: 768px)';
+import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 
 type SheetState = 'peek' | 'half' | 'full';
 const STATES: SheetState[] = ['peek', 'half', 'full'];
@@ -21,18 +9,6 @@ const FLICK_SPEED = 0.4;
 /** 從收合再往下拖超過這個距離（px）就關閉 */
 const DISMISS_PX = 56;
 
-function useMediaQuery(query: string): boolean {
-  const subscribe = useCallback(
-    (onChange: () => void) => {
-      const list = window.matchMedia(query);
-      list.addEventListener('change', onChange);
-      return () => list.removeEventListener('change', onChange);
-    },
-    [query],
-  );
-  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches);
-}
-
 interface PanelSheetProps {
   children: ReactNode;
   onClose: () => void;
@@ -40,7 +16,7 @@ interface PanelSheetProps {
 
 /** 寬螢幕：側欄照原樣放在地圖右邊。窄螢幕：包成底部抽屜。 */
 export function PanelSheet({ children, onClose }: PanelSheetProps) {
-  const narrow = useMediaQuery(SHEET_QUERY);
+  const narrow = useMediaQuery(NARROW_QUERY);
   return narrow ? <BottomSheet onClose={onClose}>{children}</BottomSheet> : <>{children}</>;
 }
 

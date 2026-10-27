@@ -2497,6 +2497,7 @@ pipeline/
   - 如果跟著地圖 chunk 晚載入，順序反過來，地圖容器變成 0 高度，整張地圖看不見。
   - 這時 `map-data` mark 照樣會出現，所以改了載入方式後一定要截圖看。
 - **主控台的「Expected value to be of type number, but found null instead.」**：放大到 6 級左右就會出現，人口主題、純地圖頁也有，是底圖樣式本身的運算式，跟我們的圖層無關，不影響畫面。
+- **分享預覽圖**（`index.html` 的 Open Graph 標籤與 `public/og-image.jpg`，2026-10-27 加）：LINE、Facebook、X 的爬蟲不跑 JavaScript，GitHub Pages 每個網址（`?topic=…`）都回傳同一份 HTML，所以全站只能有一張預覽圖，沒辦法每個主題一張。圖是 1200×630：左邊網站名稱與六個分類，右邊一顆以人均 GDP 上色的地球，下方寫底圖與國界的出處（OpenStreetMap 的授權要求地圖圖片寫出處）。主題數、分類改了之後用 `node scripts/og-image.mjs [網址]` 重新產生（無頭 Chrome，跟 `check:en` 一樣要 puppeteer-core；卡片的中文用系統字型，在 Windows 上產生）。網址要寫完整的 `https://skywitness.github.io/map/…`，相對路徑爬蟲不認。
 - **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。立體地形用 `__map.getTerrain()` 看倍率，用 `__map.project([經度, 緯度])` 換成畫面座標再查 `data-fill`，確認地形上點得到國家。
 
 ## 11. 主題選單、搜尋、快捷鍵與手機操作
@@ -2574,7 +2575,19 @@ pipeline/
 
 **窄螢幕的排名表**（900px 以下）：欄名可以換行、左右留白減半。英文的指標名稱常比數值寬很多（「Tertiary enrolment (gross)」、「Average household size」），欄名不換行時 375px 寬的手機會超出畫面。
 
-**控制列的下拉選單**（指標超過 5 個時的指標選單、子項目選單、底圖）：
+**手機版面**（2026-10-27 改，375×812 時地圖從 307px 往上移到約 240px，時間軸從畫面外移進第一個畫面）：
+- 三個以上的指標改用下拉選單（`App.tsx` 的 `narrow`，`src/lib/useMediaQuery.ts`）：按鈕在手機上會換成兩三行。兩個指標照樣是按鈕。
+- 底圖從控制列移到地圖右上角的按鈕列（見下面），控制列第二行只剩搜尋、地圖／排名表與分享；分享只留圖示（文字是按鈕的名稱，視覺上隱藏）。觸控裝置的搜尋提示文字取短的（「搜尋國家」「Find a country」），英文的「Search countries」在約 130px 寬的搜尋框放不下。
+- 地圖的高度填滿第一個畫面剩下的空間，時間軸不必往下捲就看得到：`App.tsx` 的 `useFitMap` 量出地圖的位置（`--map-top`）與時間軸的高度（`--time-h`），CSS 用 `100svh` 減掉（最小 320px）。上面的東西換行、展開說明時 `.app` 的高度會變，ResizeObserver 重新量；地圖跟著縮短後 `.app` 的高度不變，不會一直觸發。用 `svh` 不用量 `innerHeight`，捲動時網址列縮放不會讓地圖跳動。選了國家時抽屜蓋住地圖下方與時間軸，維持原樣（抽屜收合高度 196px，縮短地圖會在點國家時整個跳一下）。
+- 指標說明在手機上只露兩行，被截掉時右邊有「更多」（`ClampedText.tsx`）。
+- 時間軸的「2026 起為推估」離頭尾太近時（手機上拉桿短），藏起被蓋到的頭尾年份（`TimeSlider.tsx` 量文字的位置）。
+
+**地圖右上角的按鈕列**（`WorldMap.tsx`，圖示在 `src/map/MapIcons.tsx`，2026-10-27 改）：放大、縮小、回到全球、平面／地球儀、3D（文字）、全螢幕、底圖、框選。原本是文字與符號（「＋」「⟲」「平面」「⤢」），「平面」在 32px 寬的按鈕裡擠成直排；改成同一套 18px、1.6px 線條的圖示，說明寫在 `aria-label` 與 `title`。
+- **底圖選單**（`src/map/BasemapMenu.tsx`）：原本是控制列上的下拉選單，手機上多占一整行。點開往左展開五種底圖，每種畫出陸地與海的顏色（OpenFreeMap 樣式的 `background` 與 `water` 的顏色）。鍵盤照 WAI-ARIA 的 menu button。按鈕列不能 `overflow: hidden`（選單會被裁掉），圓角由第一顆、最後一顆按鈕自己切。
+
+**頁尾**（2026-10-27 改）：來源一段（名稱與授權一直看得到）、主題說明（`ClampedText`，先露兩行，「更多」展開）、免責聲明。有的主題說明十幾行，原本整段攤開。授權要求寫出的聲明放在說明的開頭：夜間燈光的 EOG 聲明本來就在開頭，學生能力的 OECD 改作聲明（「This is an adaptation of an original work by the OECD…」）從結尾移到開頭；新主題的說明要照這個規則寫。
+
+**控制列的下拉選單**（指標超過 5 個時的指標選單、子項目選單；手機上三個以上的指標）：
 - 寬度跟著選到的那一項（CSS `field-sizing: content`），最寬 560px；不支援的瀏覽器（目前是 Firefox）是最長那一項的寬度。原本固定最寬 260px，英文較長的名稱會被截掉（「Average monthly earnings (US$)」要 278px，「Government & compulsory insurance share」353px，最長的是工業的「Machinery, electronics and transport equipment, % of manufacturing」526px）。
 - 1280px 寬時，所有主題、所有指標的選單（中英文）都完整顯示，控制列仍是一行。
 - 窄螢幕放不下時選單縮短、文字被切掉，不撐出水平捲動：`.controls-left`、`.select-field`、`select` 都要 `min-width: 0`，少一層就會撐開。375px 寬時英文較長的名稱會被切掉，點開的選項清單是完整的。
@@ -2626,6 +2639,11 @@ pipeline/
   - puppeteer-core 不在 `package.json`：`npm i --no-save puppeteer-core`，或用 `PUPPETEER_CORE` 指向已經裝好的資料夾。全部跑完約 15–30 分鐘（SwiftShader 軟體繪製地球儀很慢）。
 
 ## 13. 載入速度與離線
+
+### 第一個畫面的觀感（2026-10-27 加）
+
+- **底圖圖磚還沒到時地球是海的顏色**：MapLibre 在圖磚到之前用樣式的 `background` 圖層（陸地的顏色，彩色地形是米白 `#f8f4f0`）畫整顆地球，慢的網路上開頁先看到一顆白球。`WorldMap.tsx` 的 `installDataLayers` 在樣式載入時把 `background` 換成同一個樣式的海的顏色，第一次 `idle`（圖磚到齊）再換回來（樣式預設 300 ms 過渡）；分頁在背景時不畫也就不會 `idle`，最多 10 秒也換回來，陸地不會一直是海的顏色。驗證：無頭 Chrome 把 `tiles.openfreemap.org` 的圖磚延後 6 秒，第 4 秒的截圖是藍色的海上畫著各國的顏色，9.5 秒換回米白。彩色地形在低縮放時是 Natural Earth 的點陣圖（不透明度 0.6）疊在 background 上，換回來時海的顏色會淡一點，是原本的樣子。
+- **換年份、換指標時國家的顏色漸變 280 ms**（`FILL_FADE_MS`）：顏色放在 feature-state，MapLibre 不會替 feature-state 的改變做過渡，所以每一格自己算中間色（`mixColor`）。漸變到一半又換年份，從畫面上的中間色接著變。直接換、不漸變的情況：換底圖（feature-state 全清掉）、第一次畫、系統設定減少動態效果，以及跟上一次改變相隔不到 280 ms（播放時一年 120 ms、拖時間軸），否則顏色會落後拉桿一兩年。所以漸變只出現在點一下換年份、按 ←/→、換指標時。比例圓的大小沒有漸變。
 
 ### 量測方法
 

@@ -171,7 +171,8 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
             strokeLinejoin="round"
           />
         </svg>
-        {text.button}
+        {/* 手機上只留圖示（styles.css），文字仍是按鈕的名稱 */}
+        <span className="share-label">{text.button}</span>
       </button>
       {open && (
         <div className="share-menu" id={menuId} role="menu" aria-label={text.button} onKeyDown={onMenuKeyDown}>

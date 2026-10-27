@@ -67,6 +67,8 @@ import { GRID_PROTOCOL, gridLabels, gridTiles, loadGridTile, type GridLayer } fr
 import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
+import { BasemapMenu } from './BasemapMenu';
+import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 
 // 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
 addProtocol(GRID_PROTOCOL, loadGridTile);
@@ -112,6 +114,8 @@ interface WorldMapProps {
   places?: [string, [number, number]][];
   /** 底圖樣式（陸地、海洋的配色） */
   basemap: Basemap;
+  /** 有傳才在右上角的按鈕列放「底圖」選單 */
+  onBasemapChange?: (id: string) => void;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
   /** 資料第一次畫到地圖上（不上色的指標：國界第一次畫上）時呼叫一次 */
@@ -159,6 +163,34 @@ const SHAPELESS: [string, [number, number]][] = [
 ];
 const EARTH_RADIUS_KM = 6371.0088;
 const NO_DATA = MAP_TOKENS.noData;
+/**
+ * 換年份、換指標時國家顏色的漸變時間（毫秒）。播放（一年 120 ms）、拖時間軸時變得比這快，
+ * 這時不漸變，直接換，顏色才不會落後拉桿一兩年
+ */
+const FILL_FADE_MS = 280;
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+/** 載入時暫時把陸地畫成海的顏色，最多這麼久（見 installDataLayers） */
+const SEA_PLACEHOLDER_MAX_MS = 10_000;
+
+/** '#rrggbb' 或 'rgb(r, g, b)' → [r, g, b] */
+function parseColor(c: string): [number, number, number] | null {
+  const hex = /^#([0-9a-f]{6})$/i.exec(c);
+  if (hex) {
+    const n = parseInt(hex[1], 16);
+    return [n >> 16, (n >> 8) & 255, n & 255];
+  }
+  const rgb = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(c);
+  return rgb ? [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])] : null;
+}
+
+/** 兩個顏色之間 k（0–1）的位置；看不懂的顏色格式就直接跳過去 */
+function mixColor(from: string, to: string, k: number): string {
+  const a = parseColor(from);
+  const b = parseColor(to);
+  if (!a || !b) return k < 0.5 ? from : to;
+  const [r, g, bl] = a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  return `rgb(${r}, ${g}, ${bl})`;
+}
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
 const MIN_BOX_PX = 6;
 
@@ -515,7 +547,7 @@ export function WorldMap(props: WorldMapProps) {
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
-  const { grid = null, gridFailed = false, flags = null } = props;
+  const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -633,6 +665,10 @@ export function WorldMap(props: WorldMapProps) {
     [tinyCollection],
   );
 
+  /** 每次載入樣式加一；載入時暫時換成海的顏色，用它認出是哪一次（見 installDataLayers） */
+  const seaTokenRef = useRef(0);
+  const seaTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
   /** 加上資料用的 source 與圖層；建立地圖與切換底圖後都要做 */
   const installDataLayers = (m: MaplibreMap, dark: boolean) => {
     for (const id of ['countries', 'tiny', 'bubbles', 'columns', 'tiny-columns', 'flow-ends']) {
@@ -680,6 +716,28 @@ export function WorldMap(props: WorldMapProps) {
     const waterFill = styleLayers.find((l) => l.type === 'fill' && l['source-layer'] === 'water');
     if (waterFill?.type === 'fill') {
       m.addLayer({ ...waterFill, id: 'relief-water', layout: { ...waterFill.layout, visibility: 'none' } }, beforeId);
+    }
+    // 底圖圖磚還沒到時，MapLibre 用 background 圖層（陸地的顏色，彩色地形是米白）畫整顆地球：開頁時是一顆白球。
+    // 先把它換成海的顏色，圖磚第一次全部到齊（idle）再換回來（樣式的 300 ms 過渡）。
+    // 分頁在背景時不會畫、也就不會 idle，最多 10 秒也換回來，陸地不會一直是海的顏色
+    const background = styleLayers.find((l) => l.type === 'background');
+    const sea = waterFill?.type === 'fill' ? waterFill.paint?.['fill-color'] : undefined;
+    if (background && typeof sea === 'string') {
+      const land = m.getPaintProperty(background.id, 'background-color');
+      const token = ++seaTokenRef.current;
+      m.setPaintProperty(background.id, 'background-color', sea);
+      const restore = () => {
+        clearTimeout(seaTimerRef.current);
+        m.off('idle', restore);
+        // 圖磚到齊前又換了底圖：新的樣式自己會換回來，不要把舊樣式的陸地顏色套上去
+        if (seaTokenRef.current === token && m.getLayer(background.id)) {
+          m.setPaintProperty(background.id, 'background-color', land);
+        }
+      };
+      // 地圖拿掉時（換到排名表）由建立地圖的 effect 清掉，不然 10 秒後會對已經拿掉的地圖動手
+      clearTimeout(seaTimerRef.current);
+      seaTimerRef.current = setTimeout(restore, SEA_PLACEHOLDER_MAX_MS);
+      m.once('idle', restore);
     }
     installedRef.current = true;
   };
@@ -734,6 +792,7 @@ export function WorldMap(props: WorldMapProps) {
       .catch(() => !cancelled && setFailed(true));
     return () => {
       cancelled = true;
+      clearTimeout(seaTimerRef.current);
       map?.remove();
       mapRef.current = null;
     };
@@ -906,29 +965,85 @@ export function WorldMap(props: WorldMapProps) {
     (map.getSource('tiny-columns') as GeoJSONSource).setData(tinyColumnCollection);
   }, [revision, countryCollection, tinyCollection, tinyColumnCollection]);
 
-  // 面量圖、類別圖的顏色（與面量圖的 3D 高度）放在 feature-state，換年份時只改狀態，不重送幾何
+  // 面量圖、類別圖的顏色（與面量圖的 3D 高度）放在 feature-state，換年份時只改狀態，不重送幾何。
+  // 顏色換年份、換指標時漸變（FILL_FADE_MS）：feature-state 的改變 MapLibre 不會自己做過渡，所以逐格算中間色
+  const fillShownRef = useRef(new Map<string, string>());
+  const fillFrameRef = useRef(0);
+  const fillRevisionRef = useRef(-1);
+  /** 上一次顏色改變的時間（performance.now()） */
+  const fillChangedRef = useRef(-Infinity);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     // 國旗地圖：國家本身不上色（data-fill 透明，見 3D 的 effect），on 讓國界照常畫在國旗上
     const on = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical' || flagsOn;
     const thresholds = colorScale?.domain() ?? [];
+    const colorOf = (v: number | undefined) =>
+      // 類別圖裡不屬於任何一類（也沒有「其他」）的代碼當成無資料
+      v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
+    /** iso3 → 要畫的顏色；shapeless 的國家只有 tiny 的圓點 */
+    const target = new Map<string, string>();
     for (const c of countries) {
       const v = values.get(c.iso3);
-      // 類別圖裡不屬於任何一類（也沒有「其他」）的代碼當成無資料
-      const color = v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
-      const fill = on && color !== null ? color : NO_DATA;
+      const color = colorOf(v);
       // 類別沒有高低，3D 時不拉高（只傾斜地圖），高度只給面量圖
       const h = on && v !== undefined && colorScale ? classHeight(thresholds, v) : 0;
-      map.setFeatureState({ source: 'countries', id: c.iso3 }, { fill, on, h });
-      map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { fill, on, h });
-      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { fill, on: on && color !== null });
+      map.setFeatureState({ source: 'countries', id: c.iso3 }, { on, h });
+      map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { on, h });
+      map.setFeatureState({ source: 'tiny', id: c.iso3 }, { on: on && color !== null });
+      target.set(c.iso3, on && color !== null ? color : NO_DATA);
     }
+    const shapelessIds = new Set<string>();
     for (const [iso3] of shapeless) {
-      const v = values.get(iso3);
-      const color = v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
-      map.setFeatureState({ source: 'tiny', id: iso3 }, { fill: color ?? NO_DATA, on: on && color !== null });
+      const color = colorOf(values.get(iso3));
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { on: on && color !== null });
+      target.set(iso3, color ?? NO_DATA);
+      shapelessIds.add(iso3);
     }
+    const paint = (iso3: string, fill: string) => {
+      if (!shapelessIds.has(iso3)) {
+        map.setFeatureState({ source: 'countries', id: iso3 }, { fill });
+        map.setFeatureState({ source: 'tiny-columns', id: iso3 }, { fill });
+      }
+      map.setFeatureState({ source: 'tiny', id: iso3 }, { fill });
+    };
+
+    const shown = fillShownRef.current;
+    const now = performance.now();
+    // 換底圖後 feature-state 都清掉了，第一次畫、連續變化（播放、拖時間軸）、使用者要求減少動態效果時直接換
+    const fade =
+      revision === fillRevisionRef.current &&
+      shown.size > 0 &&
+      now - fillChangedRef.current >= FILL_FADE_MS &&
+      !matchMedia(REDUCED_MOTION).matches;
+    fillRevisionRef.current = revision;
+    fillChangedRef.current = now;
+    if (!fade) {
+      for (const [iso3, fill] of target) {
+        paint(iso3, fill);
+        shown.set(iso3, fill);
+      }
+      return;
+    }
+    const changes = [...target].flatMap(([iso3, to]) => {
+      const from = shown.get(iso3) ?? to;
+      return from === to ? [] : [{ iso3, from, to }];
+    });
+    if (!changes.length) return;
+    const start = performance.now();
+    const step = (now: number) => {
+      const k = Math.min(1, (now - start) / FILL_FADE_MS);
+      const eased = 1 - (1 - k) ** 3;
+      for (const { iso3, from, to } of changes) {
+        const fill = k === 1 ? to : mixColor(from, to, eased);
+        paint(iso3, fill);
+        shown.set(iso3, fill);
+      }
+      if (k < 1) fillFrameRef.current = requestAnimationFrame(step);
+    };
+    fillFrameRef.current = requestAnimationFrame(step);
+    // 漸變到一半又換年份：從畫面上現在的中間色接著變（shown 已經記下）
+    return () => cancelAnimationFrame(fillFrameRef.current);
   }, [revision, countries, shapeless, values, colorScale, categories, indicator.layer.kind, flagsOn]);
 
   // 類別圖：強調圖例上的某一類，其他國家淡化
@@ -1586,10 +1701,10 @@ export function WorldMap(props: WorldMapProps) {
 
       <div className="map-zoom" role="group" aria-label={t.mapControls}>
         <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label={t.zoomIn} title={t.zoomIn}>
-          +
+          <PlusIcon />
         </button>
         <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label={t.zoomOut} title={t.zoomOut}>
-          −
+          <MinusIcon />
         </button>
         <button
           type="button"
@@ -1603,17 +1718,16 @@ export function WorldMap(props: WorldMapProps) {
           aria-label={t.resetView}
           title={t.resetView}
         >
-          ⟲
+          <ResetIcon />
         </button>
         <button
           type="button"
-          className="map-text-button"
           onClick={() => !flatIn3d && setGlobe((g) => !g)}
           aria-disabled={flatIn3d}
           aria-label={projection === 'globe' ? t.toFlat : t.toGlobe}
           title={flatIn3d ? t.globeIn3d : projection === 'globe' ? t.toFlat : t.toGlobe}
         >
-          {projection === 'globe' ? t.flatShort : t.globeShort}
+          {projection === 'globe' ? <FlatIcon /> : <GlobeIcon />}
         </button>
         {onThreeDChange && (
           <button
@@ -1647,8 +1761,9 @@ export function WorldMap(props: WorldMapProps) {
           aria-label={fullscreen ? t.exitFullscreen : t.fullscreen}
           title={fullscreen ? t.exitFullscreen : t.fullscreen}
         >
-          {fullscreen ? '⤡' : '⤢'}
+          {fullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
         </button>
+        {onBasemapChange && <BasemapMenu basemap={basemap} onChange={onBasemapChange} />}
         {onBoxChange && (
           <button
             type="button"
