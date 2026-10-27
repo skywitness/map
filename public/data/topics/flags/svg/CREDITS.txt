@@ -1,0 +1,933 @@
+國旗圖檔的來源與授權 / Sources and licences of the flag images
+
+這個資料夾的 SVG 取自 Wikimedia Commons，經 svgo 最佳化（數值的小數位數、去掉編輯器的資料），畫出來跟原檔相同。
+每個檔的授權依 Commons 檔案頁的授權模板（API 的 extmetadata），取得日期：2026-10-27。
+標 insignia 的是國徽、國旗這類國家象徵：它們的使用可能受各國法律限制（例如不得用於商標或有損尊嚴的用途），跟著作權無關。
+
+The SVG files in this folder come from Wikimedia Commons, optimised with svgo (numeric precision, editor metadata) so that they
+render identically to the originals. Licences follow each Commons file page (API extmetadata), retrieved 2026-10-27.
+Files marked 'insignia' are national symbols whose use may be restricted by national laws, independently of copyright.
+
+ABW-7c3926a5.svg  (ABW)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Aruba.svg
+  Public domain — insignia
+  Author: Original: Whitney Smith Vector: Wester
+AFG-f4cda5ab.svg  (AFG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Taliban.svg
+  Public domain — insignia
+  Author: Original: Taliban Vector: Lexicon
+AGO-fb5767e8.svg  (AGO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Angola.svg
+  Public domain — insignia
+  Author: Original: Henrique de Carvalho Santos Vector: SKopp
+AIA-c1107393.svg  (AIA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Anguilla.svg
+  Public domain
+  Author: This work created by the United Kingdom Government is in the public domain . This is because it is one of the following : It is a photograph taken prior to 1 June 1957; or It was published prior to 1976; or It is an artistic work other than a photograph or engraving (e.g. a painting) which was creat
+ALA-0dbd3080.svg  (ALA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_%C3%85land.svg
+  Public domain
+  Author: created by Zscout370
+ALB-90dad899.svg  (ALB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Albania.svg
+  Public domain — insignia
+  Author: Sadik Kaceli
+AND-f005a7a4.svg  (AND)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Andorra.svg
+  Public domain — insignia
+  Author: Original: Napoleon III Vector: HansenBCN
+ARE-c5e54922.svg  (ARE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_United_Arab_Emirates.svg
+  Public domain — insignia
+  Author: Abdulla Mohammed Al Maainah
+ARG-3427ea38.svg  (ARG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Argentina.svg
+  Public domain — insignia
+  Author: Manuel Belgrano
+ARM-e306a41f.svg  (ARM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Armenia.svg
+  Public domain — insignia
+  Author: Original: Stepan Malkhasyants Vector: SKopp
+ASM-c4f0d48c.svg  (ASM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_American_Samoa.svg
+  Public domain — insignia
+  Author: by Tobias Jakobs
+ATF-2bfd1bea.svg  (ATF)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_French_Southern_and_Antarctic_Lands.svg
+  Public domain — insignia
+  Author: Académie de Grenoble
+ATG-fe5e6803.svg  (ATG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Antigua_and_Barbuda.svg
+  Public domain — insignia
+  Author: Original: Sir Reginald Samuel Vector: David Benbennick
+AUS-bcc8e146.svg  (AUS HMD _IOT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Australia_(converted).svg
+  Public domain — insignia
+  Author: Unknown (Vector graphics image by Ian Fieggen ) (only minor code changes by uploader.)
+AUT-2ab5aad0.svg  (AUT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Austria.svg
+  Public domain — insignia
+  Author: Bundesministerium für Landesverteidigung
+AZE-44fd232e.svg  (AZE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Azerbaijan.svg
+  Public domain — insignia
+  Author: SKopp and others
+BDI-c00455d1.svg  (BDI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Burundi.svg
+  Public domain — insignia
+  Author: See File history below for details.
+BEL-e72c4a39.svg  (BEL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Belgium.svg
+  Public domain — insignia
+  Author: Dbenbenn and others
+BEN-1f76ffc9.svg  (BEN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Benin.svg
+  Public domain — insignia
+  Author: Drawn by User:SKopp , rewritten by User:Gabbe
+BFA-d6f54d29.svg  (BFA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Burkina_Faso.svg
+  Public domain — insignia
+  Author: Drawn by SKopp , rewritten by Gabbe and Андрей Перцев
+BGD-89157584.svg  (BGD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bangladesh.svg
+  Public domain — insignia
+  Author: See File history below for details.
+BGR-d89fe6ee.svg  (BGR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bulgaria.svg
+  Public domain — insignia
+  Author: SKopp
+BHR-639765f3.svg  (BHR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bahrain.svg
+  Public domain — insignia
+  Author: Source: Drawn by SKopp , rewritten by Zscout370
+BHS-849eb63f.svg  (BHS)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Bahamas.svg
+  Public domain — insignia
+  Author: Government of Bahamas
+BIH-c7531834.svg  (BIH)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bosnia_and_Herzegovina.svg
+  Public domain — insignia
+  Author: Mladen Kolobarić
+BLR-9d7b9642.svg  (BLR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Belarus.svg
+  Public domain — insignia
+  Author: See File history below for details.
+BLZ-647eddfd.svg  (BLZ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Belize.svg
+  Public domain — insignia
+  Author: Caleb Moore
+BMU-21c52636.svg  (BMU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bermuda.svg
+  Public domain — insignia
+  Author: Version 1: Made by Caleb Moore from the Open Clip Art website and uploaded by Nightstallion Version 2: Made by Nameneko from version 1 of File:Flag of Bermuda.svg and version 2 of File:Coat of arms of Bermuda.svg by Cronholm144 .
+BOL-e55d4211.svg  (BOL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bolivia.svg
+  Public domain — insignia
+  Author: See file history' below for details.
+BRA-ff1d3770.svg  (BRA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Brazil.svg
+  Public domain — insignia
+  Author: Raimundo Teixeira Mendes
+BRB-c6068503.svg  (BRB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Barbados.svg
+  Public domain — insignia
+  Author: User:Denelson83
+BRN-7440260a.svg  (BRN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Brunei.svg
+  Public domain — insignia
+  Author: Nightstallion
+BTN-578199be.svg  (BTN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Bhutan.svg
+  Public domain — insignia
+  Author: See File history below for details.
+BWA-c6f49b2a.svg  (BWA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Botswana.svg
+  Public domain — insignia
+  Author: SKopp , Gabbe , Madden
+CAF-1ee57b8a.svg  (CAF)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Central_African_Republic.svg
+  Public domain — insignia
+  Author: Barthélemy Boganda
+CAN-412b6a80.svg  (CAN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Canada_(Pantone).svg
+  Public domain — insignia
+  Author: Original: George F. G. Stanley Modified by: The original uploader was Illegitimate Barrister at Wikimedia Commons . The current SVG encoding is a rewrite performed by MapGrid .
+CHE-9164ac1b.svg  (CHE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Switzerland.svg
+  Public domain — insignia
+  Author: Original: Unknown Vector: User:Marc Mongenet Credits: User:-xfi- User:Zscout370
+CHL-65ddcc8d.svg  (CHL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Chile.svg
+  Public domain — insignia
+  Author: See file history below for details.
+CHN-71278d71.svg  (CHN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_People%27s_Republic_of_China.svg
+  Public domain — insignia
+  Author: Zeng Liansong
+CIV-5749fd90.svg  (CIV)
+  https://commons.wikimedia.org/wiki/File:Flag_of_C%C3%B4te_d%27Ivoire.svg
+  Public domain — insignia
+  Author: See File history below for details.
+CMR-ae581f8b.svg  (CMR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Cameroon.svg
+  Public domain — insignia
+  Author: (of code) -xfi-
+COD-95cdacbe.svg  (COD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Democratic_Republic_of_the_Congo.svg
+  Public domain — insignia
+  Author: Nightstallion
+COG-13786eb1.svg  (COG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Republic_of_the_Congo.svg
+  Public domain — insignia
+  Author: See File history below for details.
+COK-47ca4e11.svg  (COK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Cook_Islands.svg
+  Public domain — insignia
+COL-4bcb5559.svg  (COL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Colombia.svg
+  Public domain — insignia
+  Author: See File history below for details.
+COM-953146f2.svg  (COM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Comoros.svg
+  Public domain — insignia
+  Author: Original : Comoros ; Vector : see file history
+CPV-bcbdde95.svg  (CPV)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Cape_Verde_(10-17).svg
+  Public domain — insignia
+  Author: Original: Pedro Gregório Vector: SKopp
+CRI-edea4962.svg  (CRI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Costa_Rica.svg
+  Public domain — insignia
+  Author: See File history below for details.
+CUB-f4b82840.svg  (CUB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Cuba.svg
+  Public domain — insignia
+  Author: Miguel Teurbe Tolón and Narciso López
+CUW-70a93029.svg  (CUW)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Cura%C3%A7ao.svg
+  Public domain — insignia
+  Author: Original: Unknown Vector: David Benbennick
+CYM-66965818.svg  (CYM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Cayman_Islands.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+CYP-8cb6cabf.svg  (CYP)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Cyprus.svg
+  Public domain — insignia
+  Author: İsmet Güney , SVG by User:Vzb83~commonswiki
+CZE-7132fb7b.svg  (CZE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Czech_Republic.svg
+  Public domain
+  Author: Jaroslav Kursa
+DEU-c4f4b40c.svg  (DEU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Germany.svg
+  Public domain — insignia
+  Author: User:SKopp , User:Madden , and other users
+DJI-6dae9283.svg  (DJI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Djibouti.svg
+  Public domain
+  Author: Unknown author Unknown author
+DMA-b9fc8ac5.svg  (DMA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Dominica.svg
+  Public domain — insignia
+  Author: Alwin Bully
+DNK-325653a9.svg  (DNK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Denmark.svg
+  Public domain — insignia
+  Author: Madden and others
+DOM-13bd9858.svg  (DOM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Dominican_Republic.svg
+  Public domain — insignia
+  Author: Juan Pablo Duarte
+DZA-485636a4.svg  (DZA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Algeria.svg
+  Public domain — insignia
+  Author: Original: National Liberation Front of Algeria Vector: SKopp
+ECU-6fdfaa9c.svg  (ECU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Ecuador.svg
+  Public domain — insignia
+  Author: President of the Republic of Ecuador, first uploaded by Denelson83 as Flag of Ecuador.svg, modifications by Husunqu, Zscout370
+EGY-9b00dc0a.svg  (EGY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Egypt.svg
+  Public domain — insignia
+  Author: See File history below for details.
+ERI-7a179f82.svg  (ERI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Eritrea.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+ESH-b85fc61e.svg  (ESH)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Sahrawi_Arab_Democratic_Republic.svg
+  Public domain — insignia
+  Author: El Uali Mustafá Sayed from Polisario Front
+ESP-b373c6a0.svg  (ESP)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Spain.svg
+  Public domain — insignia
+  Author: RelShot 263 , Echando una mano ; earlier version was Pedro A. Gracia Fajardo, escudo de Manual de Imagen Institucional de la Administración General del Estado
+EST-55b785b9.svg  (EST)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Estonia.svg
+  Public domain — insignia
+  Author: Original: Unknown author Vector: SKopp , PeepP and ‍others
+ETH-8ae71519.svg  (ETH)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Ethiopia.svg
+  Public domain — insignia
+  Author: Drawn by User:SKopp
+FIN-e26bcd4b.svg  (FIN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Finland.svg
+  Public domain — insignia
+  Author: Unknown
+FJI-25868e7a.svg  (FJI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Fiji.svg
+  Public domain — insignia
+  Author: Tessa Mackenzie
+FLK-33a80b42.svg  (FLK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Falkland_Islands.svg
+  Public domain — insignia
+  Author: Original: Government of the United Kingdom Vector: Nightstallion and Echando una mano
+FRA-c6f0addd.svg  (BLM FRA MAF NCL SPM WLF)
+  https://commons.wikimedia.org/wiki/File:Flag_of_France.svg
+  Public domain — insignia
+  Author: Original: Unknown Vector: SKopp
+FRO-25ebdbf4.svg  (FRO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Faroe_Islands.svg
+  Public domain — insignia
+  Author: It was made by User:IceKarma (Jeffrey Connell), who released it to the public domain.
+FSM-f50cad6f.svg  (FSM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Federated_States_of_Micronesia.svg
+  Public domain — insignia
+GAB-c2f2a45f.svg  (GAB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Gabon.svg
+  Public domain — insignia
+  Author: Léon Augé and Pierre Claver Eyeghe
+GBR-627693d9.svg  (GBR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_United_Kingdom_(3-5).svg
+  Public domain — insignia
+  Author: Original: Acts of Union 1800 Vector: Yaddah
+GEO-88248ccc.svg  (GEO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Georgia.svg
+  Public domain — insignia
+  Author: Last update by MapGrid SKopp
+GGY-9cdce7aa.svg  (GGY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Guernsey.svg
+  CC0 1.0
+  Author: User:Nightstallion
+GHA-75b234d3.svg  (GHA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Ghana.svg
+  Public domain — insignia
+  Author: Theodosia Okoh
+GIB-c902166c.svg  (GIB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Gibraltar.svg
+  Public domain — insignia
+  Author: Created on behalf of Isabella I of Castile in 1502; this version uploaded by Denelson83 ( talk · contribs )
+GIN-f875245f.svg  (GIN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Guinea.svg
+  Public domain — insignia
+GMB-687b5e54.svg  (GMB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_The_Gambia.svg
+  Public domain — insignia
+  Author: Vzb83 i The source code of the previous SVG was invalid due to 39 errors.
+GNB-8ef1fba2.svg  (GNB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Guinea-Bissau.svg
+  Public domain — insignia
+GNQ-42927502.svg  (GNQ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Equatorial_Guinea.svg
+  Public domain — insignia
+  Author: See File history below for details.
+GRC-14504a9c.svg  (GRC)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Greece.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+GRD-29f8e252.svg  (GRD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Grenada.svg
+  Public domain — insignia
+  Author: See file history below for details.
+GRL-4fc1dd83.svg  (GRL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Greenland.svg
+  Public domain — insignia
+  Author: Jeffrey Connell ( IceKarma )
+GTM-8e4aae50.svg  (GTM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Guatemala.svg
+  Public domain — insignia
+  Author: K21edgo
+GUM-ee0ba37b.svg  (GUM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Guam.svg
+  Public domain — insignia
+  Author: Xrmap
+GUY-060c6c0c.svg  (GUY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Guyana.svg
+  Public domain — insignia
+  Author: Whitney Smith
+HKG-91b6879e.svg  (HKG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Hong_Kong.svg
+  Public domain — insignia
+  Author: Designed by Tao Ho SVG code of 24 November 2005 version copied from Open Clip Art SVG code of 20 August 2011 version by Alkari SVG code of 6 September 2021 version by Mike Rohsopht
+HND-b7b7bc9e.svg  (HND)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Honduras_(1949%E2%80%932022,_2026%E2%80%93present).svg
+  Public domain — insignia
+  Author: Kes47
+HRV-c4676d86.svg  (HRV)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Croatia.svg
+  Public domain — insignia
+  Author: Nightstallion, Elephantus, Neoneo13, Denelson83, Rainman, R-41, Minestrone, Lupo, Zscout370, Ma Ga (based on Decision of the Parliament )
+HTI-c33442ab.svg  (HTI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Haiti.svg
+  Public domain — insignia
+  Author: (colours and size changes of the now deleted versions) Madden , Vzb83 , Denelson83 , Chanheigeorge , Zscout370 and Nightstallion Coat of arms : Lokal_Profil and Myriam Thyes
+HUN-ec028b51.svg  (HUN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Hungary.svg
+  Public domain — insignia
+  Author: SKopp
+IDN-7dbee4b3.svg  (IDN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Indonesia.svg
+  Public domain — insignia
+  Author: Jayakatwang
+IMN-60e3a30b.svg  (IMN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Isle_of_Man.svg
+  CC0 1.0 — insignia
+  Author: Edited by Reisio , Alkari , e.a.
+IND-62ac66a2.svg  (IND)
+  https://commons.wikimedia.org/wiki/File:Flag_of_India.svg
+  Public domain — insignia
+  Author: Government of India
+IOT-04c79d1a.svg  (IOT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_British_Indian_Ocean_Territory_2025.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+IRL-ad5aeb1c.svg  (IRL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Ireland.svg
+  Public domain — insignia
+  Author: Éire
+IRN-2d87725a.svg  (IRN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Iran.svg
+  Public domain — insignia
+  Author: SVG file: SiBr 4 Designer: Hamid Nadimi Construction: ISIRI
+IRQ-613bb3b2.svg  (IRQ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Iraq.svg
+  Public domain — insignia
+  Author: See File history below for details.
+ISL-de92cdad.svg  (ISL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Iceland.svg
+  Public domain — insignia
+  Author: Original: Matthías Þórðarson Vector: Árni Dagur and Magasjukur2
+ISR-41bf7eb0.svg  (ISR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Israel.svg
+  Public domain — insignia
+  Author: Israel Belkind and Fanny Abramovitch (original) “The Provisional Council of State Proclamation of the Flag of the State of Israel” of 25 Tishrei 5709 (28 October 1948) provides the official specification for the design of the Israeli flag. The color of the Magen David and the stripes of the Israeli 
+ITA-07b372ea.svg  (ITA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Italy.svg
+  Public domain — insignia
+  Author: See below.
+JAM-9f571b5e.svg  (JAM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Jamaica.svg
+  Public domain — insignia
+  Author: The SVG code is valid . This vector image was created with Inkscape by SKopp , and then manually edited by Zscout370 , Madden and others.
+JEY-6d2078d9.svg  (JEY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Jersey.svg
+  Public domain
+JOR-83d5e2bc.svg  (JOR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Jordan.svg
+  Public domain — insignia
+  Author: Unknown
+JPN-0359542a.svg  (JPN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Japan.svg
+  Public domain — insignia
+  Author: Various
+KAZ-53ffcb59.svg  (KAZ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Kazakhstan.svg
+  Public domain — insignia
+  Author: Shaken Niyazbekop
+KEN-25a93f59.svg  (KEN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Kenya.svg
+  Public domain — insignia
+  Author: User:Pumbaa80
+KGZ-41c2d1e7.svg  (KGZ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Kyrgyzstan.svg
+  Public domain — insignia
+  Author: Shakiev N.T., Primov U.B.
+KHM-d5dbcd24.svg  (KHM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Cambodia.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+KIR-748ebe4f.svg  (KIR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Kiribati.svg
+  Public domain — insignia
+  Author: User:Hanzlan
+KNA-73fa3bdf.svg  (KNA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Saint_Kitts_and_Nevis.svg
+  Public domain — insignia
+  Author: Edrice Lewis
+KOR-8e6090d0.svg  (KOR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_South_Korea.svg
+  Public domain — insignia
+  Author: Original: Government of the Republic of Korea Vector: Great Brightstar and others
+KWT-3258fdf0.svg  (KWT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Kuwait.svg
+  Public domain — insignia
+LAO-061f034a.svg  (LAO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Laos.svg
+  Public domain — insignia
+  Author: SKopp
+LBN-184e8e4e.svg  (LBN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Lebanon.svg
+  Public domain — insignia
+  Author: Henri Pharaon
+LBR-91dd5b76.svg  (LBR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Liberia.svg
+  Public domain — insignia
+  Author: Government of Liberia
+LBY-24c730e2.svg  (LBY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Libya.svg
+  Public domain — insignia
+  Author: Various The SVG code is valid . This vector image was created with a text editor .
+LCA-d767db5d.svg  (LCA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Saint_Lucia.svg
+  Public domain — insignia
+  Author: Dunstan St Omer
+LIE-4515c70d.svg  (LIE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Liechtenstein.svg
+  Public domain — insignia
+  Author: Mnmazur and others
+LKA-363725c5.svg  (LKA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Sri_Lanka.svg
+  Public domain — insignia
+  Author: Original: Sri Lanka Vectorization: Zscout370, Mike Rohsopht
+LSO-9f0b5cec.svg  (LSO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Lesotho.svg
+  Public domain — insignia
+  Author: See File history below for details.
+LTU-b862c1ef.svg  (LTU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Lithuania.svg
+  Public domain — insignia
+  Author: Original: Jonas Basanavičius, Tadas Daugirdas and Antanas Žmuidzinavičius Vector: SKopp The SVG code is valid . This flag was created with a text editor . Previous version had been created with Inkscape (1930 bytes) f now 14.15% of previous size Please do not replace the simplified code of this file
+LUX-02e079a1.svg  (LUX)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Luxembourg.svg
+  Public domain — insignia
+  Author: Drawn by User:SKopp
+LVA-bbc3e444.svg  (LVA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Latvia.svg
+  Public domain — insignia
+  Author: Original: Ansis Cīrulis Vector: SKopp
+MAC-f460477b.svg  (MAC)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Macau.svg
+  Public domain — insignia
+  Author: see File history
+MAR-9fe8f591.svg  (MAR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Morocco.svg
+  Public domain — insignia
+  Author: Denelson83 , Zscout370
+MCO-528f0514.svg  (MCO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Monaco.svg
+  Public domain — insignia
+  Author: Drawn by User:SKopp
+MDA-61ba313c.svg  (MDA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Moldova.svg
+  Public domain — insignia
+  Author: Gheorghe Vrabie
+MDG-fddf25dd.svg  (MDG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Madagascar.svg
+  Public domain — insignia
+MDV-0ae83442.svg  (MDV)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Maldives.svg
+  Public domain — insignia
+  Author: See File history , below, for details.
+MEX-88a34155.svg  (MEX)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Mexico.svg
+  Public domain — insignia
+  Author: Omar Alejandro Covarrubias Neri , 9 April 2006. Based on the 1968 arms by Francisco Eppens Helguera and Juan Manuel Gabino Villascán.
+MHL-8024be4d.svg  (MHL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Marshall_Islands.svg
+  Public domain — insignia
+  Author: No machine-readable author provided. SKopp assumed (based on copyright claims).
+MKD-be5a3608.svg  (MKD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_North_Macedonia.svg
+  Public domain — insignia
+  Author: User:SKopp , redrawn by User:Gabbe
+MLI-39d036c5.svg  (MLI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Mali.svg
+  Public domain — insignia
+  Author: SKopp
+MLT-641f12bb.svg  (MLT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Malta.svg
+  Public domain — insignia
+  Author: See File history below for details.
+MMR-82b9bee9.svg  (MMR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Myanmar.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+MNE-fdbb1572.svg  (MNE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Montenegro.svg
+  Public domain — insignia
+  Author: B1mbo , Froztbyte , Great Brightstar
+MNG-7b0215df.svg  (MNG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Mongolia.svg
+  Public domain — insignia
+  Author: See File history below for details.
+MNP-59035eae.svg  (MNP)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Northern_Mariana_Islands.svg
+  Public domain — insignia
+MOZ-d2a543e7.svg  (MOZ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Mozambique.svg
+  Public domain — insignia
+  Author: FRELIMO
+MRT-0485e070.svg  (MRT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Mauritania.svg
+  Public domain — insignia
+  Author: See File history below for details.
+MSR-588bf3af.svg  (MSR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Montserrat.svg
+  Public domain
+MUS-a0ce9f12.svg  (MUS)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Mauritius.svg
+  Public domain — insignia
+  Author: Zscout370
+MWI-d520398b.svg  (MWI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Malawi.svg
+  Public domain — insignia
+  Author: Original: Unknown author Vector: Achim1999
+MYS-bb0514ae.svg  (MYS)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Malaysia.svg
+  Public domain — insignia
+  Author: MapGrid (old version SKopp , Zscout370 and Ranking Update )
+NAM-f814d6e8.svg  (NAM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Namibia.svg
+  Public domain — insignia
+  Author: SVG by Vzb83~commonswiki et al.
+NER-5085d611.svg  (NER)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Niger.svg
+  Public domain — insignia
+  Author: Made by: Philippe Verdy User:verdy_p , see also fr:Utilisateur:verdy_p .
+NFK-9c0a1ad4.svg  (NFK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Norfolk_Island.svg
+  CC0 1.0 — insignia
+NGA-d64b2034.svg  (NGA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Nigeria.svg
+  Public domain — insignia
+  Author: Jon Harald Søby .
+NIC-002d5ec8.svg  (NIC)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Nicaragua.svg
+  Public domain — insignia
+  Author: C records
+NIU-6d4aa942.svg  (NIU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Niue.svg
+  Public domain — insignia
+  Author: SKopp
+NLD-8be866bc.svg  (NLD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Netherlands.svg
+  Public domain — insignia
+  Author: Zscout370
+NOR-ceac1183.svg  (NOR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Norway.svg
+  Public domain — insignia
+  Author: Original: Fredrik Meltzer Vector: Gutten på Hemsen
+NPL-df1ad8d5.svg  (NPL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Nepal.svg
+  Public domain — insignia
+  Author: Drawn by Pumbaa80 , Achim1999
+NRU-6fca48ae.svg  (NRU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Nauru.svg
+  Public domain — insignia
+  Author: User:Skimel
+NZL-70737586.svg  (NZL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_New_Zealand.svg
+  Public domain — insignia
+  Author: Original: Albert Hastings Markham Vector: Zscout370 , Hugh Jass , s. File history
+OMN-c2ce5d06.svg  (OMN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Oman.svg
+  Open Government Licence – Oman 1.0 — Open Government Licence – Oman 1.0 — insignia
+  Author: See File history below for details.
+PAK-3da9c14c.svg  (PAK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Pakistan.svg
+  Public domain — insignia
+  Author: User:Zscout370
+PAN-ff4722fb.svg  (PAN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Panama.svg
+  Public domain — insignia
+  Author: Zscout370 et al.
+PCN-42fdc151.svg  (PCN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Pitcairn_Islands.svg
+  Public domain — insignia
+  Author: User:Dbenbenn
+PER-f1056d67.svg  (PER)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Peru.svg
+  Public domain — insignia
+  Author: David Benbennick
+PHL-5cdbc4e6.svg  (PHL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Philippines.svg
+  Public domain — insignia
+  Author: See File history below for details.
+PLW-8f94d345.svg  (PLW)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Palau.svg
+  Public domain
+  Author: Original: John Blau Skebong Vector: Nightstallion
+PNG-4f77d067.svg  (PNG)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Papua_New_Guinea.svg
+  Public domain — insignia
+  Author: User:Nightstallion
+POL-b16f04d0.svg  (POL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Poland.svg
+  Public domain — insignia
+  Author: See below.
+PRI-f8647311.svg  (PRI)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Puerto_Rico.svg
+  Public domain — insignia
+  Author: Original: Unknown Vector: Cerejota
+PRK-6836c169.svg  (PRK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_North_Korea.svg
+  Public domain — insignia
+  Author: Original: Unknown author Vector: Zscout370
+PRT-d1239e51.svg  (PRT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Portugal_(official).svg
+  Public domain — insignia
+  Author: Original: Columbano Bordalo Pinheiro Vector: Vítor Luís Rodrigues, António Martins-Tuválkin
+PRY-985f4d7f.svg  (PRY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Paraguay.svg
+  Public domain — insignia
+  Author: Republica del Paraguay
+PSE-eb6d9029.svg  (PSE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Palestine.svg
+  Public domain — insignia
+  Author: Orionist , previous versions by Makaristos , Mysid , etc.
+PYF-7e9771ef.svg  (PYF)
+  https://commons.wikimedia.org/wiki/File:Flag_of_French_Polynesia.svg
+  CC0 1.0 — insignia
+  Author: Nightstallion
+QAT-f42de11c.svg  (QAT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Qatar.svg
+  Public domain — insignia
+  Author: See File history below for details.
+ROU-edb3e907.svg  (ROU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Romania.svg
+  Public domain — insignia
+  Author: AdiJapan
+RUS-9b8fd252.svg  (RUS)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Russia.svg
+  Public domain — insignia
+  Author: Peter the Great
+RWA-288047bb.svg  (RWA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Rwanda.svg
+  Public domain — insignia
+  Author: Original: Unknown Vector: Zscout370
+SAU-d3c1241d.svg  (SAU)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Saudi_Arabia.svg
+  Public domain — insignia
+  Author: The Shura Council
+SDN-ad16d019.svg  (SDN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Sudan.svg
+  Public domain — insignia
+  Author: See File history below for details.
+SEN-619e2ac9.svg  (SEN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Senegal.svg
+  Public domain — insignia
+  Author: Original upload by Nightstallion
+SGP-ff9c500f.svg  (SGP)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Singapore.svg
+  Public domain — insignia
+  Author: Original: Government of Singapore Vector: Zscout370
+SGS-631214eb.svg  (SGS)
+  https://commons.wikimedia.org/wiki/File:Flag_of_South_Georgia_and_the_South_Sandwich_Islands.svg
+  CC0 1.0
+SHN-4505883f.svg  (SHN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Saint_Helena.svg
+  Public domain — insignia
+  Author: Patricia Fidi
+SLB-2f4d17c0.svg  (SLB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Solomon_Islands.svg
+  Public domain — insignia
+  Author: User:SKopp
+SLE-6bb13808.svg  (SLE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Sierra_Leone.svg
+  Public domain — insignia
+  Author: Zscout370
+SLV-8e669e14.svg  (SLV)
+  https://commons.wikimedia.org/wiki/File:Flag_of_El_Salvador.svg
+  Public domain — insignia
+  Author: See File history below for details.
+SMR-033275d9.svg  (SMR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_San_Marino.svg
+  Public domain — insignia
+  Author: Zscout370
+SOM-b64751e8.svg  (SOM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Somalia.svg
+  Public domain — insignia
+  Author: see upload history
+SRB-db121538.svg  (SRB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Serbia.svg
+  Public domain — insignia
+  Author: See File history below for details.
+SSD-3ddec631.svg  (SSD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_South_Sudan.svg
+  Public domain — insignia
+  Author: Achim1999
+STP-eaf6adf4.svg  (STP)
+  https://commons.wikimedia.org/wiki/File:Flag_of_S%C3%A3o_Tom%C3%A9_and_Pr%C3%ADncipe.svg
+  Public domain — insignia
+  Author: See File history below for details.
+SUR-37e3900f.svg  (SUR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Suriname.svg
+  Public domain
+  Author: See File history below for details.
+SVK-869e7dd2.svg  (SVK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Slovakia.svg
+  Public domain — insignia
+  Author: Original: Ladislav Čisárik and Ladislav Vrtel Vector: SKopp
+SVN-b2041086.svg  (SVN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Slovenia.svg
+  Public domain — insignia
+  Author: Original: Marko Pogačnik Vector: Achim1999
+SWE-def5cfd1.svg  (SWE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Sweden.svg
+  Public domain — insignia
+  Author: Jon Harald Søby and others.
+SWZ-703b461e.svg  (SWZ)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Eswatini.svg
+  Public domain — insignia
+  Author: Sobhuza II
+SXM-ec5b8aa9.svg  (SXM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Sint_Maarten.svg
+  Public domain — insignia
+  Author: User:Shervinafshar , based on work of User:Washiucho . Earlier non-PD versions by User:SiBr4 , User:Fry1989 , and User:Andrwsc .
+SYC-8e90a81c.svg  (SYC)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Seychelles.svg
+  Public domain — insignia
+  Author: User:Vxb83
+SYR-439c3b09.svg  (SYR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Syria_(2025-).svg
+  Public domain — insignia
+  Author: Modification by AnonMoos of PD image File:Flag of Syria (1930–1958, 1961–1963).svg (previous non-vector versions were by Coup de crayon 2011)
+TCA-aede3b23.svg  (TCA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Turks_and_Caicos_Islands.svg
+  Public domain
+  Author: Unknown author Unknown author
+TCD-f53cda53.svg  (TCD)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Chad.svg
+  Public domain — insignia
+  Author: SKopp & others (see upload log)
+TGO-14dbe851.svg  (TGO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Togo.svg
+  Public domain — insignia
+  Author: See File history below for details.
+THA-be81fc67.svg  (THA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Thailand.svg
+  Public domain — insignia
+  Author: Zscout370
+TJK-26cffdee.svg  (TJK)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Tajikistan.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+TKL-614b8d9d.svg  (TKL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Tokelau.svg
+  Public domain — insignia
+  Author: Original: Unknown Vector: Andrwsc
+TKM-ab88c121.svg  (TKM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Turkmenistan.svg
+  Public domain
+TLS-b4fad844.svg  (TLS)
+  https://commons.wikimedia.org/wiki/File:Flag_of_East_Timor.svg
+  Public domain — insignia
+  Author: See File history , below, for details.
+TON-11aade10.svg  (TON)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Tonga.svg
+  Public domain — insignia
+  Author: Uelingatoni Ngu Tupoumalohi
+TTO-f9a711dc.svg  (TTO)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Trinidad_and_Tobago.svg
+  Public domain — insignia
+  Author: See File history , below, for details .
+TUN-1d82267a.svg  (TUN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Tunisia.svg
+  Public domain — insignia
+  Author: Various Wikimedia Commons' contributors
+TUR-7d65c83c.svg  (TUR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Turkey.svg
+  Public domain — insignia
+  Author: David Benbennick (original author)
+TUV-c8e7750a.svg  (TUV)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Tuvalu.svg
+  Public domain — insignia
+  Author: Unknown author Unknown author
+TWN-4883a9f2.svg  (TWN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Republic_of_China.svg
+  Public domain — insignia
+  Author: Sun Yat-sen
+TZA-df02e52e.svg  (TZA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Tanzania.svg
+  Public domain — insignia
+UGA-6c7f6156.svg  (UGA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Uganda.svg
+  Public domain — insignia
+  Author: tobias
+UKR-9c27df9d.svg  (UKR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Ukraine.svg
+  Public domain — insignia
+  Author: Government of Ukraine
+URY-9d717d5e.svg  (URY)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Uruguay.svg
+  Public domain — insignia
+  Author: See File history below for details.
+USA-6e9422ff.svg  (USA)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_United_States_(DDD-F-416E_specifications).svg
+  Public domain — insignia
+  Author: Vector file created by Dbenbenn , Zscout370 , Jacobolus , Indolences , and Technion .
+UZB-76ed3e6f.svg  (UZB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Uzbekistan.svg
+  Public domain — insignia
+  Author: Farhod Yoʻldoshev
+VAT-d6520571.svg  (VAT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Vatican_City_(2023%E2%80%93present).svg
+  Public domain
+  Author: Goran_tek-en
+VCT-351b99e5.svg  (VCT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Saint_Vincent_and_the_Grenadines.svg
+  Public domain — insignia
+  Author: No machine-readable author provided. SKopp assumed (based on copyright claims).
+VEN-0da84569.svg  (VEN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Venezuela.svg
+  Public domain — insignia
+  Author: Various, see File history below for details.
+VGB-b15b6e0f.svg  (VGB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_British_Virgin_Islands.svg
+  Public domain — insignia
+  Author: No machine-readable author provided. Dbenbenn assumed (based on copyright claims).
+VIR-35c90152.svg  (VIR)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_United_States_Virgin_Islands.svg
+  Public domain — insignia
+  Author: Percival Wilson Sparks . sparksfamilyassn.org . Retrieved on 2026-05-26 .
+VNM-4ebc3375.svg  (VNM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Vietnam.svg
+  Public domain — insignia
+  Author: See File history below for details.
+VUT-ed561c08.svg  (VUT)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Vanuatu.svg
+  Public domain — insignia
+  Author: Kalontas Mahlon
+WSM-b54b175f.svg  (WSM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Samoa.svg
+  Public domain
+  Author: Original: Malietoa Tanumafili II and Tupua Tamasese Meaʻole Vector: See the file history below for details.
+XKX-6b99f691.svg  (XKX)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Kosovo.svg
+  Public domain — insignia
+  Author: Cradel (current version), earlier version by Ningyou
+YEM-71e5a98c.svg  (YEM)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Yemen.svg
+  Public domain — insignia
+  Author: Nightstallion et al., see File history below for details.
+ZAF-f737136c.svg  (ZAF)
+  https://commons.wikimedia.org/wiki/File:Flag_of_South_Africa.svg
+  Public domain — insignia
+  Author: Flag design by Frederick Brownell , image by Wikimedia Commons users
+ZMB-8850806a.svg  (ZMB)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Zambia.svg
+  Public domain — insignia
+  Author: Gabriel Ellison
+ZWE-5c4305bf.svg  (ZWE)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Zimbabwe.svg
+  Public domain — insignia
+  Author: See File history below for details.
+_CYN-5d616e3e.svg  (_CYN)
+  https://commons.wikimedia.org/wiki/File:Flag_of_the_Turkish_Republic_of_Northern_Cyprus.svg
+  Public domain — insignia
+  Author: See File History , below for details.
+_SOL-8f9d4eb0.svg  (_SOL)
+  https://commons.wikimedia.org/wiki/File:Flag_of_Somaliland.svg
+  Public domain — insignia
+  Author: Government of Somaliland

@@ -41,3 +41,27 @@ function mainlandCentroid(f: CountryGeometry): [number, number] {
   }
   return geoCentroid(largest ?? f);
 }
+
+/**
+ * world-atlas 的國界是給 D3 的球面幾何用的，跨 180° 經線的國家（斐濟、俄羅斯遠東）座標會從 179.9 跳到 −179.9。
+ * MapLibre 把座標當平面處理，會畫出一條橫越整個地圖的邊，所以把每個 ring 的經度展開成連續的（可以超過 ±180）。
+ */
+export function unwrapAntimeridian(geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): GeoJSON.MultiPolygon {
+  const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+  return {
+    type: 'MultiPolygon',
+    coordinates: polygons.map((polygon) =>
+      polygon.map((ring) => {
+        let offset = 0;
+        return ring.map(([lon, lat], i) => {
+          if (i > 0) {
+            const prev = ring[i - 1][0];
+            if (lon - prev > 180) offset -= 360;
+            else if (prev - lon > 180) offset += 360;
+          }
+          return [lon + offset, lat];
+        });
+      }),
+    ),
+  };
+}

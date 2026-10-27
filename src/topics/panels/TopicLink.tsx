@@ -13,16 +13,17 @@ export function topicHref(topic: string, ind: string | undefined, iso3: string):
   return `?${p}`;
 }
 
+/** 連結的 onClick：一般的點一下在網頁裡換主題；按住修飾鍵或中鍵時不攔，照一般連結開新分頁 */
+export function openTopic(e: MouseEvent<HTMLAnchorElement>, topic: string, iso3: string, ind?: string): void {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  window.history.pushState(null, '', topicHref(topic, ind, iso3));
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
 export function TopicLink({ topic, ind, iso3, children }: { topic: string; ind?: string; iso3: string; children: ReactNode }) {
-  const href = topicHref(topic, ind, iso3);
-  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    window.history.pushState(null, '', href);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
   return (
-    <a className="profile-link" href={href} onClick={onClick}>
+    <a className="profile-link" href={topicHref(topic, ind, iso3)} onClick={(e) => openTopic(e, topic, iso3, ind)}>
       {children} →
     </a>
   );

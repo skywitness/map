@@ -7,6 +7,7 @@ import { REGIMES } from '../democracy';
 import { ALLY } from '../diplomacy';
 import { languageName } from '../language';
 import { ORGS } from '../organizations';
+import { FlagImage, useFlags } from '../flagImages';
 import { metres } from '../skyscrapers';
 import {
   CAPITAL_NOTES,
@@ -19,7 +20,7 @@ import {
 } from '../profiles';
 import { DRIVING, TAIWAN_OFFSET, utcText, versusTaiwan } from '../travel';
 import type { IndicatorData, PanelExtraProps } from '../types';
-import { TopicLink } from './TopicLink';
+import { openTopic, TopicLink, topicHref } from './TopicLink';
 
 /** 名稱：[中文或 null, 英文或 null]（pipeline/topics/profiles.py 的 name()） */
 type Name = [string | null, string | null];
@@ -120,6 +121,7 @@ const TEXT = defineMessages({
     dataNote:
       '元首與政府首長會隨選舉、政變改變，以各國官方公布為準。成立時間是 Wikidata 的「成立時間」（P571），只在 Wikidata 列了一個值時才寫；各國的定義不一（可能是獨立、建國，或現行國號、政體開始的時間）。人口是聯合國 WPP 2024 的推估，陸地面積是 FAOSTAT。',
     noData: '沒有資料。',
+    flagAlt: (name: string) => `${name}的旗`,
     paren: (s: string) => `（${s}）`,
     list: (items: string[]) => items.join('、'),
     count: (n: number, names: string) => `${n} 個：${names}`,
@@ -161,6 +163,7 @@ const TEXT = defineMessages({
     dataNote:
       'Heads of state and government change with elections and coups; check official sources. Inception is Wikidata’s “inception” (P571), shown only when Wikidata lists a single value; its meaning varies by country (independence, foundation, or the start of the current name or regime). Population is the UN WPP 2024 projection; land area is from FAOSTAT.',
     noData: 'No data.',
+    flagAlt: (name: string) => `Flag of ${name}`,
     paren: (s: string) => ` (${s})`,
     list: (items: string[]) => items.join(', '),
     count: (n: number, names: string) => `${n}: ${names}`,
@@ -233,8 +236,7 @@ function HeadLine({ head, lang }: { head: Head; lang: Lang }) {
 }
 
 /**
- * 小檔案最上面：屬地的主權國、爭議地區的說明。國旗（主題 21「國旗」）之後加在這裡：
- * `flag` 傳一張 <img className="profile-flag">，排在說明的左邊（.profile-hero 已經是左右兩欄的 flex）。
+ * 小檔案最上面：國旗（國旗主題的 flags.json，連到國旗主題）在左邊，屬地的主權國、爭議地區的說明在右邊
  */
 function ProfileHero({ status, flag }: { status: ReactNode[]; flag?: ReactNode }) {
   if (!status.length && !flag) return null;
@@ -260,9 +262,16 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const countries = useJson<CountryTable>('countries.json').data;
   const government = useJson<IndicatorData>(`topics/${topic.id}/government.json`).data;
   const neighbours = useJson<IndicatorData>(`topics/${topic.id}/neighbours.json`).data;
+  const flagEntry = useFlags()?.units[iso3];
   if (!data) return <p className="empty">{t.loading}</p>;
   const p: Profile | undefined = data.countries[iso3];
   const name = (code: string) => countryName(code, countries, lang);
+  // 國旗連到國旗主題（同一個國家），點了看完整的國旗、顏色與圖案
+  const flag = flagEntry && (
+    <a className="profile-flag-link" href={topicHref('flags', undefined, iso3)} onClick={(e) => openTopic(e, 'flags', iso3)}>
+      <FlagImage entry={flagEntry} alt={text.flagAlt(name(iso3))} height={44} className="profile-flag" />
+    </a>
+  );
 
   const status: ReactNode[] = [];
   if (p?.rel && p.sov) {
@@ -275,7 +284,7 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
     return (
       <section className="panel-section">
         <h3>{text.title}</h3>
-        <ProfileHero status={status} />
+        <ProfileHero status={status} flag={flag} />
         {!status.length && <p className="empty">{text.noData}</p>}
       </section>
     );
@@ -395,7 +404,7 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   return (
     <section className="panel-section">
       <h3>{text.title}</h3>
-      <ProfileHero status={status} />
+      <ProfileHero status={status} flag={flag} />
       <dl className="profile-facts">
         {rows.map(([label, value]) => (
           <div key={label}>

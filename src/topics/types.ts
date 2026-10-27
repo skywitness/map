@@ -54,7 +54,12 @@ export type LayerSpec =
    * 地形圖：國家不上色，畫高程圖磚的分層設色與陰影（主題要設 terrain）；指標資料仍用於 tooltip 與排名。
    * 見 src/map/terrain.ts。
    */
-  | { kind: 'terrain' };
+  | { kind: 'terrain' }
+  /**
+   * 國旗地圖：每個國家塗上自己的國旗（src/map/flagTiles.ts 在瀏覽器裡畫點陣圖磚，小國畫成小國旗）。
+   * file 是國旗檔（FlagsFile，相對於 data/topics/<topicId>/）；指標檔本身照常給 tooltip 與排名表用。
+   */
+  | { kind: 'flags'; file: string };
 
 export type FlowDirection = 'export' | 'import';
 
@@ -88,6 +93,11 @@ export interface CategoryDef {
   /** 資料檔裡的代碼 */
   value: number;
   label: Text;
+  /**
+   * 這一類自己的顏色：類別本身就是顏色時用（國旗的主要顏色：紅色那一類畫紅色），其他類別圖不要用，
+   * 一般的類別色要跟底圖、彼此分得開（見 categories.ts）
+   */
+  color?: string;
 }
 
 /**
@@ -134,6 +144,13 @@ export interface IndicatorDef {
   lowerIsBetter?: boolean;
   /** 數值沒有好壞、名次沒有意義（例如跟台灣的時差）：排名表依數值排列但不寫名次，側欄也不寫名次 */
   unranked?: boolean;
+  /** 排名表不畫長條：數值是年份這類，長短沒有意義（國旗的採用年份） */
+  rankingBars?: false;
+  /**
+   * 這個指標自己的子項目選擇器，取代主題的 dimension（同一個主題裡不同指標的子項目不同：國旗的「顏色」與「圖案」）。
+   * 網址的子項目不在這份清單裡時用它的 defaultOption（itemFor()），換回原本的指標時網址的子項目還在
+   */
+  dimension?: DimensionDef;
   /**
    * 地圖可以從國家平均改成網格（點陣圖磚，見 src/map/densityGrid.ts），控制列多一個切換。
    * 例如人口密度的 1 km 網格、暖化的 0.5° 網格。
@@ -499,6 +516,10 @@ export interface TopicDefinition {
    */
   noValue?: Record<string, Text>;
   /**
+   * 排名表國名前面的小圖示（國旗主題的小國旗）。元件自己載入需要的資料；放在首頁的 bundle，要小
+   */
+  rowIcon?: (props: { iso3: string }) => React.ReactNode;
+  /**
    * 地圖上沒有形狀、也不是 ISO 國家的資料單位（例如奧運的蘇聯、東德等歷史隊伍）：指標檔用 id（底線開頭，例如 `_URS`）當鍵，
    * 地圖在 lon/lat 畫一個小圓點與比例圓（跟吐瓦魯這類沒有形狀的國家一樣），排名表、tooltip、側欄用 name 當名稱。
    */
@@ -544,15 +565,45 @@ export type LinesOverlay = Localized<LinesOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,
-  indicator: Pick<Indicator, 'file'>,
+  indicator: Pick<Indicator, 'file' | 'dimension'>,
   item: string | null,
 ): string {
-  const file = indicator.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '');
+  const file = indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? '');
   return `topics/${topic.id}/${file}`;
 }
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');
+}
+
+/** 指標用的子項目選擇器：指標自己的 dimension 優先，沒有就是主題的 */
+export function dimensionOf<D>(topic: { dimension?: D }, indicator: { dimension?: D }): D | undefined {
+  return indicator.dimension ?? topic.dimension;
+}
+
+/**
+ * 這個指標實際用的子項目：目前的子項目在它的選項裡就用它，否則用它的預設（指標有自己的 dimension 時，
+ * 換到另一個指標，網址留著的是上一個指標的子項目）。不用子項目的指標原樣回傳
+ */
+export function itemFor(
+  topic: Pick<Topic, 'dimension'>,
+  indicator: Pick<Indicator, 'file' | 'dimension'>,
+  item: string | null,
+): string | null {
+  const dimension = dimensionOf(topic, indicator);
+  if (!dimension || !usesDimension(indicator)) return item;
+  return item !== null && dimension.options.some((o) => o.id === item) ? item : dimension.defaultOption;
+}
+
+/** 子項目的名稱（側欄的數值卡片標題「紅色占國旗的面積」）；不用子項目的指標是 undefined */
+export function itemLabelOf(
+  topic: Pick<Topic, 'dimension'>,
+  indicator: Pick<Indicator, 'file' | 'dimension'>,
+  item: string | null,
+): string | undefined {
+  if (!usesDimension(indicator)) return undefined;
+  const id = itemFor(topic, indicator, item);
+  return dimensionOf(topic, indicator)?.options.find((o) => o.id === id)?.label;
 }
 
 const itemScaleCache = new WeakMap<Indicator, Map<string, Indicator>>();

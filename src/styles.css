@@ -1369,7 +1369,7 @@ kbd {
   color: var(--ink-secondary);
 }
 
-/* 國家小檔案（ProfilesPanel）：上面是屬地、爭議地區的說明（之後國旗放在左邊），下面是兩欄的欄位表 */
+/* 國家小檔案（ProfilesPanel）：上面是國旗（左）與屬地、爭議地區的說明（右），下面是兩欄的欄位表 */
 .profile-hero {
   display: flex;
   gap: 12px;
@@ -1444,6 +1444,113 @@ kbd {
 
 .profile-link {
   white-space: nowrap;
+}
+
+/* 國旗（flagImages.tsx）：國旗主題的側欄、國家小檔案最上面、排名表的小國旗。細邊讓白色的部分看得出邊；
+   用 drop-shadow 不用 box-shadow，尼泊爾不是長方形的旗才會沿著旗的形狀描邊 */
+.flag-image {
+  display: block;
+  height: auto;
+  filter: drop-shadow(0 0 0.6px rgba(0, 0, 0, 0.55));
+}
+
+.profile-flag-link {
+  flex: none;
+  max-width: 45%;
+}
+
+.profile-flag {
+  max-width: 100%;
+}
+
+.flag-icon {
+  display: inline-block;
+  width: auto;
+  height: 12px;
+  max-width: 26px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  filter: drop-shadow(0 0 0.6px rgba(0, 0, 0, 0.55));
+}
+
+.flag-icon.is-empty {
+  width: 18px;
+  filter: none;
+}
+
+.flag-figure {
+  margin: 0 0 10px;
+}
+
+.flag-figure figcaption {
+  margin-top: 8px;
+}
+
+.flag-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.flag-panel .profile-status {
+  margin-bottom: 6px;
+}
+
+.flag-facts {
+  margin-top: 10px;
+}
+
+.flag-colour-bar {
+  position: relative;
+  display: flex;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* 外框畫在色塊上面（inset 的 box-shadow 會被色塊蓋住），白色那段在淺色、深色底上都看得出邊 */
+.flag-colour-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.5);
+  pointer-events: none;
+}
+
+.flag-colour-bar span {
+  flex-basis: 0;
+  min-width: 1px;
+}
+
+.flag-colour-list,
+.flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.flag-colour-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.flag-chips {
+  gap: 4px;
+  margin: 0;
+}
+
+.flag-chips li {
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  line-height: 1.6;
 }
 
 .panel-year-note,

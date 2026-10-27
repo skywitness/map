@@ -140,6 +140,10 @@ STEPS = {
     # （第一次約 1 分鐘，之後用快取不到 1 秒）；要先有 geo 的國界，也讀城市主題的 cities.json（P131 找不到城市時用）。
     # 跑完要重跑 profiles（小檔案的「最高的大樓」讀這裡的 buildings.json）
     "skyscrapers": "topics.skyscrapers",
+    # Wikidata 的 2 個 SPARQL 查詢、Commons API 的檔案資訊（約 5 批）與約 230 個國旗 SVG（共約 3.8 MB，第一次約 2 分鐘，
+    # 之後約 1 分鐘）；要先有 geo 的國界，SVG 用 node 的 svgo（devDependency，要先 npm install）最佳化。
+    # 國家小檔案的國旗是前端直接讀這裡的 flags.json，不必重跑 profiles
+    "flags": "topics.flags",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 

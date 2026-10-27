@@ -7,6 +7,7 @@ import { useJsonMany } from '../lib/data';
 import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
+  itemLabelOf,
   missingReason,
   sameTimeAxis,
   usesDimension,
@@ -50,14 +51,18 @@ export function CountryPanel(props: CountryPanelProps) {
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
   const t = useT();
   const lang = useLang();
-  const label = (ind: Indicator) => (itemLabel && usesDimension(ind) ? t.itemIndicator(itemLabel, ind.label) : ind.label);
+  // 子項目的名稱依各指標自己的選項（指標有自己的 dimension 時，目前的子項目不一定是它的，itemLabelOf 換成它的預設）
+  const label = (ind: Indicator) => {
+    const own = ind.dimension ? itemLabelOf(topic, ind, item) : itemLabel;
+    return own && usesDimension(ind) ? t.itemIndicator(own, ind.label) : ind.label;
+  };
   const Extra = panelExtraFor(topic);
   const allData = useJsonMany<IndicatorData>(files);
   const name = countryName(iso3, countries);
 
   // 「只畫路網」「地形」這類不上色的指標不列成數值卡片（地形的數值跟平均海拔是同一份）；
   // 跟前面的指標用同一個資料檔的也不重複列（例如移民的「流向：移民來源」就是「移民人數」）
-  const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain';
+  const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain' && ind.layer.kind !== 'flags';
   // 年份的意思跟目前的指標不同的（平均身高的出生年 vs 19 歲那年，指標的 timeAxis）也不列，同一個年份在那裡是另一批人
   const card = (ind: Indicator, i: number) =>
     shown(ind) &&

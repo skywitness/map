@@ -107,6 +107,19 @@ registerRoute(
   }),
 );
 
+// 國旗主題的國旗圖檔（data/topics/flags/svg/<地區>-<雜湊>.svg）：檔名含內容的雜湊，內容不會變，直接用快取。
+// 約 230 個、共約 2 MB，另外一個快取（不跟資料 JSON 的 400 個上限搶位置）；只存看過的
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/data/topics/flags/svg/') && url.pathname.endsWith('.svg'),
+  new CacheFirst({
+    cacheName: 'flag-images',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({ maxEntries: 300, maxAgeSeconds: 120 * DAY, purgeOnQuotaError: true }),
+    ],
+  }),
+);
+
 // 網格的 meta.json 決定圖磚的版本，部署後要馬上拿到新的（舊版本的圖磚已經不在伺服器上）；離線時用快取
 registerRoute(
   ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/tiles/') && url.pathname.endsWith('/meta.json'),

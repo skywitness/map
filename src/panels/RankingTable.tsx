@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useLang, useT } from '../i18n';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatPercent } from '../lib/format';
@@ -23,11 +23,13 @@ interface RankingTableProps {
   countries: CountryTable | null;
   selected: string | null;
   onSelect: (iso3: string) => void;
+  /** 國名前面的小圖示（主題的 rowIcon，例如國旗主題的小國旗） */
+  icon?: (props: { iso3: string }) => ReactNode;
 }
 
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
 export function RankingTable(props: RankingTableProps) {
-  const { indicator, title, values, valueYears, latestWithin, world, year, yearText, countries, selected, onSelect } = props;
+  const { indicator, title, values, valueYears, latestWithin, world, year, yearText, countries, selected, onSelect, icon: Icon } = props;
   const t = useT();
   const lang = useLang();
   // 類別圖沒有大小之分：依圖例的類別順序排，同一類（「其他」裡同一種）再依國名排，數值欄放色塊與類別名稱
@@ -59,7 +61,8 @@ export function RankingTable(props: RankingTableProps) {
   const showRank = !categories && !indicator.unranked;
   // 數值越小越好的指標由小排到大，最大值在最後一列
   const max = Math.max(0, ...rows.map(([, v]) => v));
-  const showBars = !categories && rows.length > 0 && rows.every(([, v]) => v >= 0);
+  // 數值是年份這類長短沒有意義的（指標的 rankingBars: false）不畫長條
+  const showBars = !categories && indicator.rankingBars !== false && rows.length > 0 && rows.every(([, v]) => v >= 0);
   const showShare = indicator.shareOfWorld && world != null && world > 0;
   // 年份零散的指標有國家用之前的年份時，資料年份另成一欄（寫在數值旁會擠短那一列的長條，跟其他列比不準）
   const showYears = latestWithin !== undefined && (valueYears?.size ?? 0) > 0;
@@ -97,6 +100,7 @@ export function RankingTable(props: RankingTableProps) {
               {showRank && <td className="num">{ranks[i]}</td>}
               <td>
                 <button type="button" className="row-link" onClick={() => onSelect(iso3)}>
+                  {Icon && <Icon iso3={iso3} />}
                   {countryName(iso3, countries)}
                   {/* 中文介面在國名旁附上英文名；英文介面附 ISO 代碼 */}
                   <span className="row-en">{lang === 'en' ? displayCode(iso3) : enName(iso3, countries)}</span>

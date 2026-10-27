@@ -6,3 +6,7 @@ openpyxl>=3.1
 tzdata>=2025.2
 py7zr>=0.22
 pyarrow>=18
+# 國旗主題：SVG 點陣化（resvg）、讀 PNG、svgo 的備援最佳化
+resvg-py>=0.5
+Pillow>=11
+scour>=0.38

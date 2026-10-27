@@ -35,7 +35,7 @@ import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
 import { flowColors, flowText, flowWidth, greatCircle, type FlowSelection } from './flows';
 import { focusBounds } from './focus';
-import type { CountryFeature } from './geometry';
+import { unwrapAntimeridian, type CountryFeature } from './geometry';
 import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
 import {
   BubbleLegend,
@@ -64,11 +64,14 @@ import { categoryScale } from './categories';
 import { bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
 import { GRID_PROTOCOL, gridLabels, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
+import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 
 // 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
 addProtocol(GRID_PROTOCOL, loadGridTile);
+// 國旗地圖的圖磚在瀏覽器裡畫（flagTiles.ts）
+addProtocol(FLAG_PROTOCOL, loadFlagTile);
 
 interface WorldMapProps {
   countries: CountryFeature[];
@@ -126,6 +129,8 @@ interface WorldMapProps {
   grid?: GridLayer | null;
   /** 切到網格但 meta.json 載入失敗：照常畫國家平均，上方提示 */
   gridFailed?: boolean;
+  /** 國旗地圖（indicator.layer.kind 為 'flags'）：每個國家的國旗；載入前是 null */
+  flags?: Map<string, FlagSpec> | null;
   ref?: Ref<WorldMapHandle>;
 }
 
@@ -226,6 +231,15 @@ const DIMMED = 0.18;
 const GRID_LAYER = 'density-grid';
 /** 網格的夜色底（夜間燈光，meta.json 的 backdrop）：插在網格圖層底下 */
 const GRID_BACKDROP = 'grid-backdrop';
+/** 國旗地圖的點陣圖層（flagTiles.ts 畫的圖磚）與小國的小國旗 */
+const FLAG_LAYER = 'flag-raster';
+const FLAG_TINY = 'flag-tiny';
+/** 國旗放大後稍微透明，看得到底圖的道路與地名 */
+const FLAG_OPACITY: ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 3, 0.96, 7, 0.78, 10, 0.45];
+const FLAG_LEGEND_NOTE = {
+  zh: '國旗依國土的形狀縮放、裁切，小國畫成小國旗；點國家看完整的國旗',
+  en: 'Flags are scaled and cropped to fit each country; small countries get a small flag. Click a country for the full flag',
+};
 
 /** 夜色底的範圍：南北兩條緯線之間的帶子，切成東西兩半（地球儀上一個多邊形從 −180° 繞到 180° 會出問題） */
 function backdropBand(south: number, north: number): GeoJSON.FeatureCollection {
@@ -350,6 +364,22 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       },
     },
     {
+      // 國旗地圖：小國（跟小國圓點同一批）畫成小國旗；圖示在 flags 的 effect 裡加（addImage）
+      id: FLAG_TINY,
+      type: 'symbol',
+      source: 'tiny',
+      maxzoom: 5,
+      filter: ['in', ['get', 'iso3'], ['literal', []]],
+      layout: {
+        visibility: 'none',
+        'icon-image': ['concat', 'flag-', ['get', 'iso3']],
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.85, 4, 1.15],
+      },
+      paint: { 'icon-opacity': ['case', ['boolean', ['feature-state', 'dim'], false], DIMMED, 1] },
+    },
+    {
       id: 'bubbles',
       type: 'circle',
       source: 'bubbles',
@@ -454,29 +484,6 @@ const NO_PLACES: [string, [number, number]][] = [];
 
 const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
 
-/**
- * world-atlas 的國界是給 D3 的球面幾何用的，跨 180° 經線的國家（斐濟、俄羅斯遠東）座標會從 179.9 跳到 −179.9。
- * MapLibre 把座標當平面處理，會畫出一條橫越整個地圖的邊，所以把每個 ring 的經度展開成連續的（可以超過 ±180）。
- */
-function unwrapAntimeridian(geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): GeoJSON.MultiPolygon {
-  const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
-  return {
-    type: 'MultiPolygon',
-    coordinates: polygons.map((polygon) =>
-      polygon.map((ring) => {
-        let offset = 0;
-        return ring.map(([lon, lat], i) => {
-          if (i > 0) {
-            const prev = ring[i - 1][0];
-            if (lon - prev > 180) offset -= 360;
-            else if (prev - lon > 180) offset += 360;
-          }
-          return [lon + offset, lat];
-        });
-      }),
-    ),
-  };
-}
 /** hover 與點選時依序查詢的圖層（上面的優先）；隱藏的圖層會跳過 */
 const HOVER_LAYERS = [
   'flow-ends',
@@ -487,6 +494,7 @@ const HOVER_LAYERS = [
   'extrude-tiny',
   'extrude-countries',
   'bubbles',
+  FLAG_TINY,
   'data-tiny',
   'data-fill',
 ];
@@ -507,7 +515,8 @@ export function WorldMap(props: WorldMapProps) {
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
-  const { grid = null, gridFailed = false } = props;
+  const { grid = null, gridFailed = false, flags = null } = props;
+  const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
   const threeDRef = useRef(threeD);
@@ -880,13 +889,13 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const own = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical';
+    const own = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical' || flagsOn;
     for (const layer of map.getStyle().layers) {
       if ('source-layer' in layer && layer['source-layer'] === 'boundary' && BASEMAP_COUNTRY_BORDER.test(layer.id)) {
         map.setLayoutProperty(layer.id, 'visibility', own ? 'none' : 'visible');
       }
     }
-  }, [revision, indicator.layer.kind]);
+  }, [revision, indicator.layer.kind, flagsOn]);
 
   /* ── 資料 → 地圖 ─────────────────────── */
   useEffect(() => {
@@ -901,7 +910,8 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const on = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical';
+    // 國旗地圖：國家本身不上色（data-fill 透明，見 3D 的 effect），on 讓國界照常畫在國旗上
+    const on = indicator.layer.kind === 'choropleth' || indicator.layer.kind === 'categorical' || flagsOn;
     const thresholds = colorScale?.domain() ?? [];
     for (const c of countries) {
       const v = values.get(c.iso3);
@@ -919,7 +929,7 @@ export function WorldMap(props: WorldMapProps) {
       const color = v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
       map.setFeatureState({ source: 'tiny', id: iso3 }, { fill: color ?? NO_DATA, on: on && color !== null });
     }
-  }, [revision, countries, shapeless, values, colorScale, categories, indicator.layer.kind]);
+  }, [revision, countries, shapeless, values, colorScale, categories, indicator.layer.kind, flagsOn]);
 
   // 類別圖：強調圖例上的某一類，其他國家淡化
   useEffect(() => {
@@ -1017,6 +1027,64 @@ export function WorldMap(props: WorldMapProps) {
     map.setLayoutProperty(GRID_BACKDROP, 'visibility', 'visible');
     // 依賴寫 backdropKey（backdrop 的內容），每次 render 新建的物件不會觸發重跑
   }, [revision, backdropKey]);
+
+  // 國旗地圖：國界或國旗換了就重算每面旗畫在哪裡（flagTiles.ts），版本號換了圖磚的網址也跟著換。
+  // 點陣圖層插在 data-fill（透明，只給 hover、點選用）下面，國界與選取外框畫在國旗上面
+  const flagVersion = useMemo(() => (flags && countries.length ? setFlagLayout(countries, flags) : 0), [flags, countries]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const source = map.getSource<RasterTileSource>(FLAG_LAYER);
+    if (!flagsOn || !flagVersion) {
+      if (map.getLayer(FLAG_LAYER)) map.setLayoutProperty(FLAG_LAYER, 'visibility', 'none');
+      return;
+    }
+    const url = flagTileUrl(flagVersion);
+    if (!source) {
+      map.addSource(FLAG_LAYER, {
+        type: 'raster',
+        tiles: [url],
+        tileSize: 256,
+        // 再放大就把 9 級的圖磚放大來用：國旗放大後本來就變淡，不必每一級重畫
+        maxzoom: 9,
+        attribution: '<a href="https://commons.wikimedia.org/" target="_blank" rel="noreferrer">Wikimedia Commons</a>',
+      });
+      map.addLayer(
+        { id: FLAG_LAYER, type: 'raster', source: FLAG_LAYER, paint: { 'raster-opacity': FLAG_OPACITY, 'raster-fade-duration': 120 } },
+        'data-fill',
+      );
+    } else if (source.tiles[0] !== url) {
+      source.setTiles([url]);
+    }
+    map.setLayoutProperty(FLAG_LAYER, 'visibility', 'visible');
+  }, [revision, flagsOn, flagVersion]);
+
+  // 小國的小國旗：圖示畫好才加進篩選（還沒有圖示的不畫，MapLibre 才不會警告找不到圖）。
+  // 換底圖後新樣式沒有這些圖示，revision 變了會重新加上
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    map.setLayoutProperty(FLAG_TINY, 'visibility', flagsOn && flags ? 'visible' : 'none');
+    if (!flagsOn || !flags) return;
+    let cancelled = false;
+    const ratio = Math.min(2, Math.max(1, Math.round(window.devicePixelRatio || 1)));
+    const wanted = tinyCollection.features.map((f) => String(f.properties?.iso3)).filter((iso3) => flags.has(iso3));
+    const added = wanted.map(async (iso3) => {
+      const id = `flag-${iso3}`;
+      if (!map.hasImage(id)) {
+        const image = await flagIcon(flags.get(iso3)!, ratio);
+        if (!map.hasImage(id)) map.addImage(id, image, { pixelRatio: ratio });
+      }
+      return iso3;
+    });
+    Promise.all(added.map((p) => p.catch(() => null))).then((done) => {
+      if (cancelled || !map.getLayer(FLAG_TINY)) return;
+      map.setFilter(FLAG_TINY, ['in', ['get', 'iso3'], ['literal', done.filter((x): x is string => x !== null)]]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [revision, flagsOn, flags, tinyCollection]);
 
   // 國界與選取外框的顏色：深色底圖或夜色底上用淺色，其他用深色（跟 dataLayers 一樣）
   const nightLook = basemap.dark || backdrop !== null;
@@ -1322,15 +1390,15 @@ export function WorldMap(props: WorldMapProps) {
     show('extrude-tiny', slabs);
     show('extrude-columns', extrude && kind === 'bubble');
     show('bubbles', !extrude);
-    show('data-tiny', !slabs && !gridOn);
+    show('data-tiny', !slabs && !gridOn && !flagsOn);
     show('data-border', !slabs);
     show('data-highlight', !slabs);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
     // 更新 feature-state，MapLibre 會對常數呼叫 evaluate 而丟出 TypeError
-    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs || gridOn ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
+    map.setPaintProperty('data-fill', 'fill-opacity', fillOpacity(slabs || gridOn || flagsOn ? 0 : DATA_FILL_OPACITY, FLOW_TINT_OPACITY));
     // 平面時鐵路在比例圓下面；3D 時改畫在立體圖形上面，否則會被整片蓋住
     map.moveLayer('rail', extrude ? 'airports-medium' : 'data-tiny');
-  }, [revision, threeD, indicator.layer.kind, gridOn, terrain]);
+  }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn]);
 
   // 地形圖層：地形圖（kind 'terrain'）畫分層設色，陰影疊在上面；面量圖只疊陰影，而且移到國家顏色上面，
   // 看得出起伏。陰影可以在左下角關掉
@@ -1651,6 +1719,11 @@ export function WorldMap(props: WorldMapProps) {
           )
         ) : flowLayer && flows && flowMax > 0 ? (
           <FlowLegend indicator={indicator} title={legendTitle} direction={flows.direction} max={flowMax} tokens={tokens} />
+        ) : flagsOn ? (
+          <div className="legend legend-flags">
+            <div className="legend-title">{legendTitle}</div>
+            <div className="legend-note">{tr(FLAG_LEGEND_NOTE, lang)}</div>
+          </div>
         ) : null}
       </div>
 

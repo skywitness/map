@@ -45,6 +45,7 @@ import { RankingTable } from './panels/RankingTable';
 import { latestAt, maxAcrossYears } from './panels/stats';
 import { getTopic } from './topics';
 import {
+  dimensionOf,
   forItem,
   indicatorPath,
   missingReason,
@@ -63,6 +64,8 @@ import {
   type Topic,
 } from './topics/types';
 import { useTheme } from './theme/useTheme';
+import { flagAspect, flagUrl, type FlagsFile } from './topics/flagImages';
+import type { FlagSpec } from './map/flagTiles';
 
 // 側欄的 ECharts 佔了大部分 JS，點國家時才載入，地圖可以先出來
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
@@ -94,13 +97,11 @@ function initialIndicatorPath(): string | null {
   // 檔名跟語言無關，用哪個語言解析都一樣
   const topic = localize(getTopic(state.topic), 'zh');
   if (topic.pure) return null;
-  const item = resolveItem(topic.dimension, state.item, state.country);
-  // 網格的資料夾可能跟著子項目換（forItem），跟 App 裡用同一個解析
-  const indicator = forItem(
-    topic.indicators.find((i) => i.id === state.indicator) ??
-      topic.indicators.find((i) => i.id === topic.defaultIndicator)!,
-    item,
-  );
+  const chosen =
+    topic.indicators.find((i) => i.id === state.indicator) ?? topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  // 指標可以有自己的子項目（dimensionOf）；網格的資料夾可能跟著子項目換（forItem），跟 App 裡用同一個解析
+  const item = resolveItem(dimensionOf(topic, chosen), state.item, state.country);
+  const indicator = forItem(chosen, item);
   // 網址指定網格時，圖磚的 meta.json 也一起提早請求
   if (indicator.grid && (indicator.grid.only || (state.grid ?? indicator.grid.defaultOn)) && state.view === 'map') {
     fetchGridMeta(indicator.grid.dir).catch(() => {});
@@ -140,13 +141,13 @@ export function App() {
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
   const view = pure ? 'map' : state.view;
-  const item = resolveItem(topic.dimension, state.item, state.country);
+  const chosenIndicator =
+    topic.indicators.find((i) => i.id === state.indicator) ?? topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  // 子項目的選擇器：指標自己有的話用指標的（國旗的「顏色」與「圖案」），否則用主題的
+  const dimension = dimensionOf(topic, chosenIndicator);
+  const item = resolveItem(dimension, state.item, state.country);
   // 子項目有自己的分級門檻時（itemScales），換成那一組
-  const indicator = forItem(
-    topic.indicators.find((i) => i.id === state.indicator) ??
-      topic.indicators.find((i) => i.id === topic.defaultIndicator)!,
-    item,
-  );
+  const indicator = forItem(chosenIndicator, item);
 
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
@@ -195,7 +196,7 @@ export function App() {
     update(next && !sameTimeAxis(next, indicator) ? { indicator: id, year: null } : { indicator: id });
   };
   // 子項目是國家的主題（護照）：選到國家時子項目跟著換；取消選取時留在原本的子項目，地圖不會跳回預設
-  const follows = topic.dimension?.followsSelection ? topic.dimension : undefined;
+  const follows = dimension?.followsSelection ? dimension : undefined;
   const selectCountry = useCallback(
     (iso3: string | null) => {
       if (!follows) return update({ country: iso3 });
@@ -211,6 +212,7 @@ export function App() {
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
   const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
+  const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
   // 搜尋範圍：地圖上有形狀的國家，加上有資料但地圖上沒有形狀的（吐瓦魯、直布羅陀）
   const searchIndex = useMemo(() => {
@@ -231,7 +233,7 @@ export function App() {
   });
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
-  const itemLabel = topic.dimension?.options.find((o) => o.id === item)?.label;
+  const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
 
   // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
@@ -401,11 +403,11 @@ export function App() {
       <div className="controls">
         <div className="controls-left">
           {pure && <h2 className="page-title">{topic.title}</h2>}
-          {!pure && topic.dimension && usesDimension(indicator) && (
+          {!pure && dimension && usesDimension(indicator) && (
             <label className="select-field">
-              <span>{topic.dimension.label}</span>
+              <span>{dimension.label}</span>
               <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
-                {groupOptions(topic.dimension.options, topic.dimension.followsSelection ? lang : null).map(([group, options]) =>
+                {groupOptions(dimension.options, dimension.followsSelection ? lang : null).map(([group, options]) =>
                   group ? (
                     <optgroup key={group} label={group}>
                       {options.map((o) => (
@@ -569,6 +571,7 @@ export function App() {
                 year={year}
                 renderPointTooltip={renderPointTooltip}
                 flows={flows}
+                flags={flagSpecs}
                 overlay={
                   boxResult && (
                     <BoxResult
@@ -599,6 +602,7 @@ export function App() {
               countries={countries}
               selected={state.country}
               onSelect={selectCountry}
+              icon={topic.rowIcon}
             />
           )}
         </div>
@@ -789,6 +793,27 @@ function groupOptions<T extends { group?: string; label: string }>(options: T[],
     for (const list of groups.values()) list.sort((a, b) => collator.compare(a.label, b.label));
   }
   return [...groups];
+}
+
+/**
+ * 國旗地圖（kind 'flags'）的國旗：地圖上要用到時才載入國旗檔，換成 flagTiles.ts 用的格式（完整網址、寬 ÷ 高、重點）
+ */
+function useFlagSpecs(topic: Topic, indicator: Indicator, active: boolean): Map<string, FlagSpec> | null {
+  const layer = indicator.layer;
+  const path = active && layer.kind === 'flags' ? `topics/${topic.id}/${layer.file}` : null;
+  const { data } = useJson<FlagsFile>(path);
+  return useMemo(
+    () =>
+      data
+        ? new Map(
+            Object.entries(data.units).map(([iso3, e]) => [
+              iso3,
+              { url: new URL(flagUrl(e), window.location.href).href, aspect: flagAspect(e), fx: e.fx ?? 0.5, fy: e.fy ?? 0.5 },
+            ]),
+          )
+        : null,
+    [data],
+  );
 }
 
 /**
