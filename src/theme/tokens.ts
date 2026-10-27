@@ -149,6 +149,8 @@ export interface MapTokens extends Tokens {
   categorical: string[];
   /** 類別圖的「其他」：淺的中性色，跟無資料的灰色分得開 */
   categoricalOther: string;
+  /** 沒有資料的國家；圖例的「無資料」色塊用同一個顏色（深色介面也一樣，因為底圖不切深淺色） */
+  noData: string;
   /** 夜間燈光網格：第一個是夜色（網格底下的底色），之後由暗到亮；顏色由 pipeline 寫進圖磚與 meta.json */
   night: string[];
 }
@@ -171,5 +173,6 @@ export const MAP_TOKENS: MapTokens = {
   accent: TOKENS.light.hues.violet,
   categorical: ['#4fc29f', '#9085e9', '#eda100', '#4d9221', '#f0e442', ORANGE[600], '#7b3294', '#e7298a'],
   categoricalOther: '#ece8df',
+  noData: '#c9c7c0',
   night: Object.values(NIGHT),
 };

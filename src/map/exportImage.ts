@@ -7,7 +7,7 @@
  */
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { messages, tr } from '../i18n';
-import { SPACE_GRADIENT, type Tokens } from '../theme/tokens';
+import { MAP_TOKENS, SPACE_GRADIENT, type Tokens } from '../theme/tokens';
 import {
   COLUMN_NOTE,
   STEP_MAX_PX,
@@ -295,7 +295,9 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
       roundRect(ctx, 0.5, y + 2.5, 15, 9, 2);
       ctx.stroke();
     } else {
-      hatchSwatch(ctx, 0, y + 2, 16, 10, tokens);
+      roundRect(ctx, 0, y + 2, 16, 10, 2);
+      ctx.fillStyle = MAP_TOKENS.noData;
+      ctx.fill();
     }
     ctx.font = `11px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;
@@ -618,24 +620,6 @@ function layerCard(ctx: CanvasRenderingContext2D, options: ComposeOptions, font:
       }
     },
   };
-}
-
-/** 「無資料」的斜線色塊（跟 .swatch-nodata 一樣） */
-function hatchSwatch(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, tokens: Tokens) {
-  ctx.save();
-  roundRect(ctx, x, y, w, h, 2);
-  ctx.fillStyle = tokens.grid;
-  ctx.fill();
-  ctx.clip();
-  ctx.strokeStyle = tokens.axis;
-  ctx.lineWidth = 1;
-  for (let i = -h; i < w; i += 4) {
-    ctx.beginPath();
-    ctx.moveTo(x + i, y + h);
-    ctx.lineTo(x + i + h, y);
-    ctx.stroke();
-  }
-  ctx.restore();
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number | number[]) {

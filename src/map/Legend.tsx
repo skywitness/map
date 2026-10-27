@@ -3,7 +3,7 @@ import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { FlowDirection, Indicator } from '../topics/types';
-import type { Tokens } from '../theme/tokens';
+import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
 import type { CategoryScale } from './categories';
 import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
@@ -379,7 +379,7 @@ function NoDataKey() {
   const t = useT();
   return (
     <div className="legend-nodata">
-      <span className="swatch-nodata" />
+      <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
       {t.noData}
     </div>
   );

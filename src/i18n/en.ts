@@ -24,6 +24,8 @@ export const en: Messages = {
   viewMode: 'View',
   viewMap: 'Map',
   viewTable: 'Ranking',
+  descMore: 'More',
+  descLess: 'Less',
   loadFailed: (message) => `Failed to load data: ${message}`,
   loadingMap: 'Loading map…',
   loadingData: 'Loading data…',

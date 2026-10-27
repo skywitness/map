@@ -61,7 +61,7 @@ import {
 } from './Overlays';
 import { applyTimeFilters, highlightLine, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { categoryScale } from './categories';
-import { bubbleScale, choroplethScale, gridScale } from './scales';
+import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
 import { GRID_PROTOCOL, gridLabels, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
 import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type FlagSpec } from './flagTiles';
@@ -158,7 +158,7 @@ const SHAPELESS: [string, [number, number]][] = [
   ['GIB', [-5.35, 36.14]],
 ];
 const EARTH_RADIUS_KM = 6371.0088;
-const NO_DATA = '#c9c7c0';
+const NO_DATA = MAP_TOKENS.noData;
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
 const MIN_BOX_PX = 6;
 
@@ -1125,7 +1125,7 @@ export function WorldMap(props: WorldMapProps) {
       indicator.layer.kind === 'bubble' ? [...values].filter(([iso3, v]) => v > 0 && anchors.has(iso3)) : [];
     const features: GeoJSON.Feature[] = entries.map(([iso3, v]) => ({
       type: 'Feature',
-      properties: { iso3, r: radius(v) },
+      properties: { iso3, r: Math.max(BUBBLE_MIN_RADIUS, radius(v)) },
       geometry: { type: 'Point', coordinates: anchors.get(iso3)! },
     }));
     (map.getSource('bubbles') as GeoJSONSource).setData({ type: 'FeatureCollection', features });

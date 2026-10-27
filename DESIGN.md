@@ -276,6 +276,7 @@ pipeline/
 - **圖例**：左下角「圖層」的每個疊加圖層一列（勾選框加符號），打開時下面列出顏色分級與大小（大小的圓點橫排、數值寫在下面）。匯出圖片的圖層卡片用同一份模型（`overlayKey()`、`exportLayerKeys()`）。
   - 同一組分級說明（規模 5–6 與 6 以上共用的震源深度）只列在第一個圖層下面。
   - 手機（768px 以下）上分級說明預設收起，只留圖層開關與「顯示圖例」：地震主題全部展開時圖層卡片占地圖一半的高度。
+  - 選單下面的指標說明（`IndicatorDesc.tsx`）在手機上也只露兩行，真的被截掉時右邊才有「更多／收起」，換指標時收回去：英文的說明常常五、六行，學生能力的平均分數在 375px 寬是 100 px 高，收起來 33 px（2026-10-27 加）。
   - 圖層卡片加上數值圖例比地圖高時（地震主題的每十年次數、死亡人數），`.map-legend` 換欄，數值圖例排到右邊；匯出圖片也一樣改成並排（`drawLegends()`），還放不下才整組縮小。
 - **每十年一筆的指標**：`overlayTime` 是數字 n 時，指標的年份代表 n 年的區間（1990 = 1990–1999）。時間軸、側欄的數值卡片取「包含這一年」的那一筆（`yearBin()`）：從「當年的地震」的 1999 年換到「每十年的地震次數」會留在 1990 年代，不會跳到最接近的 2000。
 
@@ -303,7 +304,7 @@ pipeline/
 
 | 資料性質 | 圖層 | 例子 |
 |---|---|---|
-| 總量（可加總） | **比例圓**，面積與數值成正比 | 人口數、發電量、GDP |
+| 總量（可加總） | **比例圓**，面積與數值成正比；地圖上的圓至少 3 px（`scales.ts` 的 `BUBBLE_MIN_RADIUS`），圖例照原本的比例畫 | 人口數、發電量、GDP |
 | 比率、密度、人均 | **面量圖**，單一色相分級（最多 7 級） | 人口密度、人均 GDP |
 | 細到 1 km 的密度 | **網格點陣圖磚**，同一套橘色循序色、固定的對數分級；國界、hover、點選仍用國家 | 人口密度的「1 km 網格」（第 14 節） |
 | 有正負的變化 | **面量圖**，橘↔青綠發散色，中間是中性灰 | 人口年增率、經濟成長率、自給率、農產品貿易收支 |
@@ -345,7 +346,8 @@ pipeline/
   - 所以面量圖開著時隱藏底圖的國界，改畫跟上色同一份幾何的國界（`data-border`）。
   - 比例圓、路網等不上色的指標則用底圖的國界。
 - **放大後**：面量圖的不透明度隨縮放降低，讓底圖的道路、地形透出來。
-- **「無資料」跟「0」要分開**：面量圖上無資料的國家畫成灰色，圖例也有標示。
+- **比例圓的最小尺寸**（2026-10-27 加）：照比例，台灣 1 位諾貝爾獎得主跟美國幾百位放在一起時半徑不到 1 px，看不到也點不到。地圖上的圓至少 3 px（`BUBBLE_MIN_RADIUS`），只放大最小的那幾個（手機上最大圓 14 px，約最大值的 5% 以下；桌機約 1% 以下），圖例的圓照原本的比例畫。
+- **「無資料」跟「0」要分開**：面量圖上無資料的國家畫成灰色（`MAP_TOKENS.noData`），圖例與匯出圖片的「無資料」色塊用同一個顏色。底圖不跟著介面切深淺色，所以深色介面也一樣；原本色塊是介面的格線色加斜線，深色介面下是深灰，跟地圖上的淺灰對不起來（2026-10-27 改）。
 - **小國**：面積小於 6,000 km² 的國家（新加坡、加勒比海島國）在低縮放時另外畫一個可點擊的圓點。
 - **推估值**：時間軸、tooltip、側欄都會標示，折線圖用虛線。
 - **表格版**：每張地圖都有「排名表」檢視（同分的國家名次相同、依國名排，跟側欄的名次一致；例如超過 WHO 空氣品質指引值的人口比例有一百多國是 100%，都是第 1 名）；側欄的組成資料用長條清單直接寫出數值與占比，不必靠 hover。
@@ -664,7 +666,7 @@ pipeline/
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
     - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**使用者 2026-10-25 確認：照 DataHub 標示的 CC BY-SA 4.0 繼續用（只取事實性的欄位）**，不改成 Wikidata。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
     - GCAT（Jonathan McDowell）是 CC BY 4.0：網頁寫「GCAT is released under the Creative Commons CC-BY licence」（連到 CC BY 4.0）、「This data may be freely reproduced as long as you cite it」，引用格式「McDowell, Jonathan C., 2020. General Catalog of Artificial Space Objects, Release 1.8.8, https://planet4589.org/space/gcat」，頁尾照寫。
-    - **EOG 的 VIIRS 夜間燈光（Annual VNL V2）是 CC BY 4.0**：EOG 的授權文件（https://eogdata.mines.edu/files/EOG_products_CC_License.pdf ，2026-10 查）寫明 DMSP、VIIRS 夜間燈光（VNL）等以 CC BY 4.0 公開；用它做的衍生產品（含圖表）要寫「This product was made utilizing … data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.」，篇幅不夠時寫「Source: EOG, Colorado School of Mines.」，報告要引用文件附錄的論文（這裡引用 Elvidge et al. 2021）。主題的 `note` 開頭照抄那段聲明（中英文介面都是英文原文），地圖右下角與匯出圖片寫短的標示。文件另外寫「大幅面的圖要放 EOG 的標誌」，網頁地圖與分享的小圖不是大幅面印刷品，沒有放（照篇幅不夠時的規定寫短標示）。EOG 自己的下載站要註冊登入，**沒有用**；改用 Tomislav Hengl（OpenGeoHub）在 Zenodo 的轉存（doi:10.5281/zenodo.17294744，record 的授權欄是 CC BY 4.0，不必登入），2013–2024 年是 EOG 原本的 average_masked（檔案的 TIFFTAG_DOCUMENTNAME 寫著 EOG 的原始檔名），同一個 record 的 2000–2011 年外插值沒有用。頁尾同時列 EOG 與 Zenodo。
+    - **EOG 的 VIIRS 夜間燈光（Annual VNL V2）是 CC BY 4.0**：EOG 的授權文件（https://eogdata.mines.edu/files/EOG_products_CC_License.pdf ，2026-10 查）寫明 DMSP、VIIRS 夜間燈光（VNL）等以 CC BY 4.0 公開；用它做的衍生產品（含圖表）要寫「This product was made utilizing … data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.」，篇幅不夠時寫「Source: EOG, Colorado School of Mines.」，報告要引用文件附錄的論文（這裡引用 Elvidge et al. 2021）。主題的 `note` 開頭照抄那段聲明（中英文介面都是英文原文），地圖右下角與匯出圖片寫短的標示。文件另外寫「大幅面的圖要放 EOG 的標誌」，網頁地圖與分享的小圖不是大幅面印刷品，沒有放（照篇幅不夠時的規定寫短標示；2026-10-27 確認不放）。EOG 自己的下載站要註冊登入，**沒有用**；改用 Tomislav Hengl（OpenGeoHub）在 Zenodo 的轉存（doi:10.5281/zenodo.17294744，record 的授權欄是 CC BY 4.0，不必登入），2013–2024 年是 EOG 原本的 average_masked（檔案的 TIFFTAG_DOCUMENTNAME 寫著 EOG 的原始檔名），同一個 record 的 2000–2011 年外插值沒有用。頁尾同時列 EOG 與 Zenodo。
     - Natural Earth 1:10m 第一級行政區（夜間燈光側欄的地區名稱與範圍）是公有領域。
     - Natural Earth 1:10m 的國界（admin-0，4.1.0 版；`geoindex` 判斷點在哪一國，第 85 點）是公有領域，只在 pipeline 用，不重新發布。
     - 英文維基百科的奧運獎牌榜是 CC BY-SA 4.0：奧運主題的資料檔是改作（換代碼、合併、累計、算人均），依 CC BY-SA 4.0 分享，頁尾寫明。Olympedia（OlyMADMen）的網站沒有開放授權，沒有用。
@@ -676,7 +678,7 @@ pipeline/
     - **GHSL 的 Urban Centre Database 2025（GHS-UCDB R2024A）與國家統計（GHS-COUNTRY-STATS R2024A）是 CC BY 4.0**：JRC 下載站每個資料夾的 copyright.txt 寫「Any copyright and/or sui generis right on the dataset is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) licence」（© European Union，依執委會 2011/833/EU 決定，2026-10-26 查），要註明來源、說明改作，頁尾照寫。UCDB 的城市名稱是 JRC 自動從 GISCO、OpenStreetMap 與 WUP 2018 取的（UCDB 的欄位說明），整個資料庫仍以 CC BY 4.0 發布；這裡只用名稱字串，底圖的標示已有 © OpenStreetMap contributors。
     - 內政部戶政司的開放資料 API（ODRP019「村里戶數、人口數」）採政府資料開放授權條款第 1 版；城市主題只拿來對照台灣的縣市人口。
     - **OECD《PISA 2025 Results (Volume I)》是 CC BY 4.0**（2026-09-08 出版，doi:10.1787/73451bc5-en）：版權頁寫「© OECD 2026, Attribution 4.0 International (CC BY 4.0)」，StatLink 的 Excel 是書的一部分（檔案的「About this file」寫「PISA 2025 Results (Volume I) - © OECD 2026」）。這本書的授權另外要求：改作要引用原著並加上「This is an adaptation of an original work by the OECD. The opinions expressed and arguments employed in this adaptation should not be reported as representing the official views of the OECD or of its Member countries.」；翻譯要寫明改了什麼，並聲明跟原文有出入時以原文為準；不得使用 OECD 的標誌或暗示 OECD 背書；爭議依常設仲裁法院規則在巴黎仲裁。學生能力主題的頁尾照寫（中文介面也附英文原句），資料檔是改作（換成地圖的代碼、算出變化），一樣依 CC BY 4.0 分享（第 68 點）。
-    - **2024 年 7 月以前出版的 PISA 報告沒有用**（PISA 2022 以前的各冊與它們的 StatLink）：OECD 的開放政策頁（https://www.oecd.org/en/about/oecd-open-by-default-policy.html ，2026-10-26 查）寫那些內容依當時的使用條款，「generally available for commercial and non-commercial purposes on terms similar to CC BY 4.0」，類似但不是 CC BY 4.0。照較嚴的解讀，只參加過之前幾次 PISA 的國家（俄羅斯、上海、列支敦斯登…）沒有收。PISA 的學生層級資料庫（Public Use File）也沒有用：要自己用加權與可能值算，檔案大，2025 年的報告已經有所有參加 2025 年的國家的歷次結果。
+    - **2024 年 7 月以前出版的 PISA 報告沒有用**（PISA 2022 以前的各冊與它們的 StatLink）：OECD 的開放政策頁（https://www.oecd.org/en/about/oecd-open-by-default-policy.html ，2026-10-26 查）寫那些內容依當時的使用條款，「generally available for commercial and non-commercial purposes on terms similar to CC BY 4.0」，類似但不是 CC BY 4.0。照較嚴的解讀，只參加過之前幾次 PISA 的國家（俄羅斯、上海、列支敦斯登…）沒有收（2026-10-27 確認維持，不把「類似 CC BY 4.0」當成 CC BY 4.0）。PISA 的學生層級資料庫（Public Use File）也沒有用：要自己用加權與可能值算，檔案大，2025 年的報告已經有所有參加 2025 年的國家的歷次結果。
     - 臺灣 PISA 國家研究中心（國立臺灣師範大學）的記者會簡報（pr.ntnu.edu.tw）沒有寫授權條款，只引用臺灣歷屆的名次與參加國數（事實），並拿它的分數跟 OECD 的表比對。
     - **UN DESA 的 World Marriage Data 2019 是 CC BY 3.0 IGO**（Excel 的 INFORMATION NOTE 寫「Copyright © 2019 by United Nations, made available under a Creative Commons license CC BY 3.0 IGO」）。
     - **UNdata 的資料可以轉載**：使用條款（https://data.un.org/Host.aspx?Content=UNdataUse ，2026-10-26 查）寫資料與中繼資料「may be copied freely, duplicated and further distributed provided that UNdata is cited as the reference」。婚姻與家庭主題的結婚、離婚對數來自 UNdata 的 Demographic Statistics Database（Demographic Yearbook 的資料）。unstats.un.org 上同一份 Demographic Yearbook 的表格（PDF、xls）適用聯合國網站的一般條款（只限個人、非商業使用，不得轉載），所以不用那裡的數字，只抄下表 23、25 標示「登記完整」的國家清單當篩選條件（第 69 點）。
@@ -2013,7 +2015,7 @@ pipeline/
     - **同性伴侶的法律地位**（`same_sex_unions.py`，依英文維基百科自行整理，CC BY-SA 4.0）：
       - 三類，有強弱之分，用循序色（`ordinal`）：同性婚姻；民事結合等其他全國性的承認（Civil union 條目「List of jurisdictions recognizing same-sex unions」裡的全國性制度，加上承認在國外締結婚姻的以色列、美屬薩摩亞、荷屬聖馬丁與 2026 年起只承認其他歐盟國家婚姻的波蘭）；沒有全國性的法律承認（只有部分州、縣市有伴侶登記的日本與 2019 年以前的台灣，以及美國、墨西哥、巴西、加拿大、澳洲在全國開放以前的年份都算這一類，附註寫出最早開放的地區）。
       - 是每年年底的狀態，1989（丹麥的伴侶登記）–2026 年。台灣 2019 年 5 月 24 日起可以結婚，所以 2019 年起是第一類。2026 年有 39 個國家（含尼泊爾）可以同性結婚，加上屬地共 72 個地圖單位；17 個有其他全國性的承認。每個國家的附註寫出依據的法律或判決與生效日。
-      - **尼泊爾**：最高法院 2026-06-18 的終審判決（Pinky Gurung 案）要求政府全面承認同性婚姻（2023 年 11 月起已依臨時命令另冊登記），民法還沒修改。維基百科的「Same-sex marriage in Nepal」與年表算 2026 年起合法，但同一篇總覽的「38 個國家」還沒算進去；照專門的條目與判決歸到同性婚姻，附註寫明民法還沒修改。
+      - **尼泊爾**：最高法院 2026-06-18 的終審判決（Pinky Gurung 案）要求政府全面承認同性婚姻（2023 年 11 月起已依臨時命令另冊登記），民法還沒修改。維基百科的「Same-sex marriage in Nepal」與年表算 2026 年起合法，但同一篇總覽的「38 個國家」還沒算進去；照專門的條目與判決歸到同性婚姻，附註寫明民法還沒修改。2026-10-27 確認維持這個分類（沒有改成「其他全國性的承認」或「沒有全國性的法律承認」）。
       - 哥斯大黎加：Civil union 條目寫「1995 年 unión de hecho」，那是異性的事實婚姻，同性伴侶要到 2020 年才能結婚，所以之前算第三類。葡萄牙 2001 年的事實婚姻、哥倫比亞 2009 年的事實婚姻結合、巴西 2011 年的穩定結合不是登記制度，但照 Civil union 條目算第二類。
       - 百慕達：2017 年 5 月法院判決開放、2018 年 6 月起改為同居伴侶、同年 11 月上訴法院恢復、2022 年 3 月英國樞密院司法委員會推翻，年底的狀態是 2017–2021 年第一類、2022 年起第二類。
       - 屬地：法國的海外省與海外領地、美國的屬地（美屬薩摩亞除外）、澳洲的屬地、斯瓦巴、奧蘭跟所屬國家的婚姻法（`FOLLOWS`）；伴侶制度不跟隨，有的各自寫（PACS 1999 年起適用海外省，新喀里多尼亞、瓦利斯和富圖納 2009 年起）。格陵蘭、法羅群島、荷蘭的加勒比海屬地、阿魯巴、古拉索與英國的海外領地各自寫生效日；英屬維京群島、安圭拉、蒙哲臘、土克凱可、庫克群島、紐埃算第三類。無人島（南極、法屬南方領地、布威島等）不收。

@@ -26,6 +26,9 @@ export const zh = {
   viewMode: '檢視方式',
   viewMap: '地圖',
   viewTable: '排名表',
+  /** 手機上指標說明只露兩行，展開、收起的按鈕 */
+  descMore: '更多',
+  descLess: '收起',
   loadFailed: (message: string) => `資料載入失敗：${message}`,
   loadingMap: '地圖載入中…',
   loadingData: '資料載入中…',

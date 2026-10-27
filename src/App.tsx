@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { Topology } from 'topojson-specification';
 import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
+import { IndicatorDesc } from './controls/IndicatorDesc';
 import { ShareMenu } from './controls/ShareMenu';
 import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
@@ -521,7 +522,7 @@ export function App() {
           />
         </div>
       </div>
-      <p className="indicator-desc">{description}</p>
+      <IndicatorDesc key={description} text={description} />
 
       <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
         <div className="stage-main">

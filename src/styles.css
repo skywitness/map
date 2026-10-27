@@ -595,10 +595,41 @@ kbd {
   color: #ffffff;
 }
 
-.indicator-desc {
+.indicator-desc-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
   margin: 8px 0 0;
+}
+
+.indicator-desc {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
   color: var(--ink-secondary);
   font-size: 13px;
+}
+
+/* 「更多／收起」：只在手機上、說明超過兩行時出現（IndicatorDesc） */
+.indicator-desc-toggle {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .indicator-desc:not(.is-expanded) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
 }
 
 /* ── 主畫面：地圖 + 側欄 ─────────────── */
@@ -1175,11 +1206,11 @@ kbd {
   font-variant-numeric: tabular-nums;
 }
 
+/* 顏色在 Legend.tsx 用 MAP_TOKENS.noData，跟地圖上沒有資料的國家一樣 */
 .swatch-nodata {
   width: 16px;
   height: 10px;
   border-radius: 2px;
-  background: repeating-linear-gradient(45deg, var(--axis) 0 1px, transparent 1px 4px), var(--grid);
 }
 
 /* 1 km 網格：不上色（透出底圖）的格子，只畫外框 */
