@@ -233,10 +233,10 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       : {};
     // 依欄位變粗的線，開關與顏色分級的符號用中間那一級的線寬
     const typical = typeof def.width === 'number' ? def.width : def.width.stops[Math.floor(def.width.stops.length / 2)][1];
-    // 有面的分類（area）時其他分類是普通的線（地球的另一邊的海岸線、國界），沒有時有 fill 的圖層畫成帶子（日食的路徑）
-    const hasAreas = typeof def.color !== 'string' && def.color.classes.some((c) => c.area);
+    // 有 fill、每個環都畫外框的圖層畫成帶子（日食的路徑）；fill 只給部分分類外框時（地球的另一邊），線的分類是普通的線
+    const banded = Boolean(def.fill) && def.fill?.outline === undefined;
     const lineSwatch = (color: string, dash?: boolean): OverlaySwatch => ({
-      shape: def.fill && !hasAreas ? 'band' : dash ? 'dash' : 'line',
+      shape: banded ? 'band' : dash ? 'dash' : 'line',
       size: Math.max(1.5, typical),
       color: neutral[color] ?? color,
     });
