@@ -1791,8 +1791,16 @@ kbd {
   top: 30px;
 }
 
+/* 滑過的那一級有幾個國家：固定一行高，也不撐寬圖例（比圖例寬的以「…」截掉，完整的在色塊的說明），
+   文字出現、消失時色塊不會移動（Legend.tsx） */
 .legend-bin-status {
+  height: 15px;
   margin: 0 0 2px;
+  line-height: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  contain: inline-size;
   font-variant-numeric: tabular-nums;
 }
 

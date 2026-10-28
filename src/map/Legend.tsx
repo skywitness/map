@@ -146,7 +146,11 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
           ))}
         </div>
       </div>
-      {counts && highlight !== null && <div className="legend-note legend-bin-status">{t.binStatus(binLabel(highlight), counts[highlight])}</div>}
+      {counts && (
+        // 沒有強調時也留著這一行（空的）：圖例貼著地圖下緣，文字出現時圖例變高會把色塊往上推，
+        // 游標滑出色塊、文字消失、色塊掉回來，一直閃
+        <div className="legend-note legend-bin-status">{highlight !== null && t.binStatus(binLabel(highlight), counts[highlight])}</div>
+      )}
       {emptyKey ? (
         <div className="legend-nodata">
           <span className="swatch-empty" />
