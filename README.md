@@ -55,13 +55,13 @@ npm i --no-save puppeteer-core
 npm run check:en
 ```
 
-用無頭 Chrome 打開英文版，逐一切換每個主題、指標、排名表、國家側欄與框選，列出畫面上剩下的中文，也檢查中英切換與 `lang=en` 的網址。需要系統的 Chrome（或設定 `CHROME_PATH`）。全部跑完要 15–30 分鐘，只改了一個主題時只細看那個主題：
+用無頭 Chrome 打開英文版，細看指定的主題（每個指標、排名表、國家側欄），列出畫面上剩下的中文，也檢查中英切換與 `lang=en` 的網址。需要系統的 Chrome（或設定 `CHROME_PATH`）。一律指定主題：
 
 ```bash
 CHECK_TOPICS=antipodes npm run check:en
 ```
 
-其他主題照樣依序點過（換主題時的錯誤抓得到），只是不逐一換指標、開側欄。什麼時候跑完整的見 DESIGN.md 第 12 節。
+其他主題照樣依序點過（換主題時的錯誤抓得到），只是不逐一換指標、開側欄。沒有指定時不跑；每個主題都細看的完整檢查（15 分鐘到 1 小時以上）只在特別要求時跑：`CHECK_ALL=1 npm run check:en`（DESIGN.md 第 12 節）。
 
 ## 重新產生資料
 

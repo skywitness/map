@@ -6,9 +6,10 @@
  * 另外檢查：中文 ↔ 英文切換不必重新整理、<html lang> 與分頁標題跟著變、底圖地名換成英文、
  * 帶 lang=en 的網址直接打開就是英文。
  *
- * 只細看改到的主題：CHECK_TOPICS=antipodes,rivers npm run check:en（主題的 id，逗號分開）。其他主題照樣依序點過、
+ * 要指定細看哪些主題：CHECK_TOPICS=antipodes,rivers npm run check:en（主題的 id，逗號分開）。其他主題照樣依序點過、
  * 檢查主題本身的畫面（換主題時的錯誤照樣抓得到），只是不逐一換指標、看排名表、開側欄；人口主題的框選、3D、
- * 1 km 網格也只在 CHECK_TOPICS 含 population 時檢查。什麼時候跑完整的，見 DESIGN.md 第 12 節。
+ * 1 km 網格也只在 CHECK_TOPICS 含 population 時檢查。沒有指定時不跑：完整的（每個主題都細看，1 小時上下）
+ * 只在使用者特別要求時跑，CHECK_ALL=1 npm run check:en（使用者 2026-10-28 決定，DESIGN.md 第 12 節）。
  *
  * 需要 puppeteer-core（不在 package.json，免得每個人都要裝）與系統的 Chrome：
  *   npm i --no-save puppeteer-core     或 PUPPETEER_CORE=<含 node_modules/puppeteer-core 的資料夾>
@@ -25,8 +26,9 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uf900-\ufaff\uff01-\uff60]/;
 // 第一個國家用帶 lang=en 的網址打開，其他的用搜尋框選（不重新載入，比較快）
 const COUNTRIES = (process.env.CHECK_COUNTRIES ?? 'TWN,USA,KEN').split(',');
-// 只細看這幾個主題（沒設定是全部）
+// 只細看這幾個主題；CHECK_ALL=1 時全部
 const ONLY = (process.env.CHECK_TOPICS ?? '').split(',').filter(Boolean);
+const ALL = process.env.CHECK_ALL === '1';
 const detailed = (topic) => !ONLY.length || ONLY.includes(topic);
 
 function loadPuppeteer() {
@@ -106,6 +108,13 @@ function expect(ok, message) {
 }
 
 async function main() {
+  if (!ONLY.length && !ALL) {
+    console.error(
+      '請用 CHECK_TOPICS 指定要細看的主題（例如 CHECK_TOPICS=antipodes npm run check:en）。\n' +
+        '完整的（每個主題都細看）只在使用者特別要求時跑：CHECK_ALL=1 npm run check:en（DESIGN.md 第 12 節）。',
+    );
+    process.exit(2);
+  }
   const puppeteer = loadPuppeteer();
   const server = await createServer({ root: ROOT, logLevel: 'error', server: { port: 5390 } });
   await server.listen();
