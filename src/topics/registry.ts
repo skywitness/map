@@ -14,12 +14,12 @@ export interface TopicGroupSpec {
  * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics'] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores'] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'tourism', 'passport', 'military', 'conflict', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy'] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'shipping', 'road-safety'] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'daylight', 'eclipses', 'antipodes', 'earthquakes', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'daylight', 'eclipses', 'antipodes', 'magnetic', 'earthquakes', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
 ];
 
 /**
@@ -34,6 +34,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   disease: () => import('./disease'),
   vaccination: () => import('./vaccination'),
   height: () => import('./height'),
+  'blood-types': () => import('./blood-types'),
   'tobacco-alcohol': () => import('./tobacco-alcohol'),
   education: () => import('./education'),
   pisa: () => import('./pisa'),
@@ -64,6 +65,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   trade: () => import('./trade'),
   migration: () => import('./migration'),
   aid: () => import('./aid'),
+  'china-lending': () => import('./china-lending'),
   tourism: () => import('./tourism'),
   passport: () => import('./passport'),
   military: () => import('./military'),
@@ -103,6 +105,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   daylight: () => import('./daylight'),
   eclipses: () => import('./eclipses'),
   antipodes: () => import('./antipodes'),
+  magnetic: () => import('./magnetic'),
   earthquakes: () => import('./earthquakes'),
   typhoons: () => import('./typhoons'),
   wildfires: () => import('./wildfires'),

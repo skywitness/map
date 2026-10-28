@@ -7,6 +7,9 @@
 - 行車方向：Wikidata 的 P1622（CC0），改過方向的國家附註寫出年份。
 - 插頭、電壓、頻率：英文維基百科「Mains electricity by country」的表格（CC BY-SA 4.0，`sources/wiki_mains.py`），
   地圖上歸成幾類；側欄列出全部的插頭字母、電壓與頻率。衍生的資料檔依 CC BY-SA 4.0 分享。
+- 生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法）：Unicode CLDR 49
+  （`sources/cldr.py`，Unicode License v3）。依地區給的直接讀 supplementalData.xml；日期寫法與小數點依語言，
+  用人口比例最高的官方語言（DESIGN.md 第 8 節第 94 點）。
 """
 from __future__ import annotations
 
@@ -16,7 +19,7 @@ import math
 import pycountry
 
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
-from sources import iana_tz, wiki_mains, wikidata_driving
+from sources import cldr, iana_tz, wiki_mains, wikidata_driving
 from sources.countries import NAME_ALIASES
 
 OUT = OUT_DIR / "topics" / "travel"
@@ -60,6 +63,25 @@ MAINS_NAMES = {
     "US Virgin Islands": "VIR", "Christmas Island": "_IOT",
     "Pitcairn Islands": "PCN", "Cocos (Keeling) Islands": "CCK", "Sahrawi Arab Democratic Republic": "ESH",
 }
+
+
+# ── 生活格式（CLDR）的類別代碼，跟 src/topics/travel.ts 一致 ──
+WEEK_START = {"mon": 1, "sun": 2, "sat": 3, "fri": 4}
+# 週末：(開始, 結束) → 代碼
+WEEKEND = {("sat", "sun"): 1, ("fri", "sat"): 2, ("thu", "fri"): 3, ("fri", "fri"): 4, ("sun", "sun"): 5}
+CLOCK_12, CLOCK_24 = 1, 2
+DATE_YMD, DATE_DMY, DATE_MDY = 1, 2, 3
+DECIMAL = {".": 1, ",": 2, "٫": 3}
+MEASURE = {"metric": 1, "US": 2, "UK": 3}
+PAPER = {"A4": 1, "US-Letter": 2}
+CAL_GREGORIAN, CAL_TAIWAN, CAL_LUNAR, CAL_JAPANESE, CAL_BUDDHIST, CAL_ISLAMIC, CAL_PERSIAN, CAL_OTHER = range(1, 9)
+
+# 地圖上沒有 ISO 代碼的區域，用哪一個 CLDR 地區的值（北賽普勒斯、錫亞琴冰川沒有對應的，不畫）
+CLDR_REGION = {"_SOL": "SO", "_IOT": "CX"}
+# 日期寫法的例子：日大於 12，看得出日、月的順序；月是個位數，看得出有沒有補 0
+EXAMPLE_DATE = (2026, 3, 28)
+EXAMPLE_NUMBER = "1234567.89"
+DIGITS = {"arab": "٠١٢٣٤٥٦٧٨٩", "arabext": "۰۱۲۳۴۵۶۷۸۹"}
 
 
 def _mains_iso3(name: str) -> str | None:
@@ -126,6 +148,230 @@ def _offset_text(h: float) -> str:
     sign = "+" if h >= 0 else "−"
     hours, minutes = int(abs(h)), round((abs(h) % 1) * 60)
     return f"UTC{sign}{hours}" + (f":{minutes:02d}" if minutes else "")
+
+
+def _date_parts(pattern: str) -> list[tuple[str, str]]:
+    """短日期格式拆成 [(欄位字母或 "", 字串)]：單引號裡的是原文（保加利亞語的 'г'.），其餘連續的同一個字母是一個欄位。"""
+    out, i = [], 0
+    while i < len(pattern):
+        ch = pattern[i]
+        if ch == "'":
+            j = pattern.index("'", i + 1)
+            out.append(("", pattern[i + 1 : j] or "'"))
+            i = j + 1
+        elif ch.isalpha():
+            j = i
+            while j < len(pattern) and pattern[j] == ch:
+                j += 1
+            out.append((ch, pattern[i:j]))
+            i = j
+        else:
+            out.append(("", ch))
+            i += 1
+    return out
+
+
+def date_order(pattern: str) -> int:
+    """依 y、M、d 第一次出現的順序歸類：年月日、日月年、月日年（DESIGN.md 第 8 節第 94 點）。"""
+    order = "".join(k for k, _ in _date_parts(pattern) if k in "yMd")
+    return {"yMd": DATE_YMD, "dMy": DATE_DMY, "Mdy": DATE_MDY}[order]
+
+
+def _native(text: str, numbers: str) -> str:
+    digits = DIGITS.get(numbers)
+    return text.translate(str.maketrans("0123456789", digits)) if digits else text
+
+
+def date_example(pattern: str, numbers: str = "latn") -> str:
+    y, m, d = EXAMPLE_DATE
+    fields = {"y": lambda n: str(y)[-2:] if n == 2 else str(y), "M": lambda n: f"{m:0{n}d}", "d": lambda n: f"{d:0{n}d}"}
+    out = []
+    for k, text in _date_parts(pattern):
+        if k in fields:
+            out.append(fields[k](len(text)))
+        elif k:
+            raise ValueError(f"短日期格式有沒處理的欄位 {text}：{pattern}")
+        else:
+            out.append(text)
+    return _native("".join(out), numbers)
+
+
+def number_example(pattern: str, decimal: str, group: str, numbers: str = "latn") -> str:
+    """1234567.89 照那個語言的千分位分組（印度的 #,##,##0 是 12,34,567）與符號寫出來。"""
+    integer = pattern.split(";")[0].split(".")[0]
+    groups = integer.split(",")
+    primary = len(groups[-1]) if len(groups) > 1 else 0
+    secondary = len(groups[-2]) if len(groups) > 2 else primary
+    whole, frac = EXAMPLE_NUMBER.split(".")
+    parts = []
+    if primary:
+        parts.insert(0, whole[-primary:])
+        whole = whole[:-primary]
+        while whole:
+            parts.insert(0, whole[-secondary:])
+            whole = whole[:-secondary]
+    else:
+        parts = [whole]
+    return _native(group.join(parts) + decimal + frac, numbers)
+
+
+def calendar_group(ordering: list[str]) -> int:
+    """依 CLDR 的排列（常用的在前）：第一個不是西曆的就是主要曆法（伊朗是波斯曆、泰國是佛曆），
+    否則依第二個（以色列的希伯來曆排在伊斯蘭曆前面、埃及的科普特曆也是，都算「其他傳統曆法」）。"""
+    if "roc" in ordering:
+        return CAL_TAIWAN
+    if ordering[0] == "persian":
+        return CAL_PERSIAN
+    if ordering[0] == "buddhist":
+        return CAL_BUDDHIST
+    if len(ordering) == 1:
+        return CAL_GREGORIAN
+    second = ordering[1]
+    if second.startswith("islamic"):
+        return CAL_ISLAMIC
+    if second in ("chinese", "dangi"):
+        return CAL_LUNAR
+    if second == "japanese":
+        return CAL_JAPANESE
+    return CAL_OTHER
+
+
+# 曆法的名稱（伊斯蘭曆的幾種算法合併成一個名稱）
+CALENDAR_NAMES = {
+    "gregorian": ("西曆", "Gregorian"),
+    "roc": ("民國紀年", "Minguo (ROC)"),
+    "chinese": ("農曆", "Chinese lunisolar"),
+    "dangi": ("韓國農曆（檀紀）", "Korean lunisolar (Dangi)"),
+    "japanese": ("日本年號", "Japanese era"),
+    "buddhist": ("佛曆", "Buddhist"),
+    "islamic": ("伊斯蘭曆", "Islamic (Hijri)"),
+    "islamic-umalqura": ("伊斯蘭曆（烏姆庫拉曆）", "Islamic (Umm al-Qura)"),
+    "persian": ("波斯曆（太陽曆）", "Persian (Solar Hijri)"),
+    "coptic": ("科普特曆", "Coptic"),
+    "ethiopic": ("衣索比亞曆", "Ethiopian"),
+    "hebrew": ("希伯來曆", "Hebrew"),
+    "indian": ("印度國定曆", "Indian national"),
+}
+
+
+def _calendar_names(ordering: list[str]) -> tuple[list[str], list[str]]:
+    """依常用的程度列出曆法名稱；伊斯蘭曆的好幾種算法（civil、tbla、rgsa）只列一次，烏姆庫拉曆優先。"""
+    zh, en = [], []
+    for c in ordering:
+        key = c if c in CALENDAR_NAMES else ("islamic" if c.startswith("islamic") else c)
+        if key == "islamic" and any(n.startswith("伊斯蘭曆") for n in zh):
+            continue
+        z, e = CALENDAR_NAMES[key]
+        if z not in zh:
+            zh.append(z)
+            en.append(e)
+    return zh, en
+
+
+def _formats(map_ids: set[str], countries: dict) -> tuple[dict[str, dict], dict]:
+    """生活格式：{ISO3: 側欄用的明細}，與各指標的 (values, notes, notesEn, hints, hintsEn)。"""
+    week, measure, hours, calendars = cldr.week_data(), cldr.measurement_data(), cldr.time_data(), cldr.calendar_preference()
+    languages = cldr.territories()
+    lang_names = cldr.names()
+
+    def lang_name(code: str) -> tuple[str, str]:
+        for c in (code, code.split("_")[0]):
+            if c in lang_names and lang_names[c][0]:
+                return lang_names[c][0], lang_names[c][1]
+        raise KeyError(f"CLDR 沒有語言名稱：{code}")
+
+    # 「語言_地區」的 12／24 小時制（gu_IN、fr_CA…）：跟地區本身不同的寫進附註
+    lang_hours: dict[str, list[tuple[str, str]]] = {}
+    for code, (pref, _) in hours.items():
+        if "_" in code:
+            lang, region = code.rsplit("_", 1)
+            lang_hours.setdefault(region, []).append((lang, pref))
+
+    names = ["week-start", "weekend", "clock", "date-format", "decimal", "measurement", "paper", "calendar"]
+    out = {n: ({}, {}, {}, {}, {}) for n in names}  # values, notes, notesEn, hints, hintsEn
+    details: dict[str, dict] = {}
+    official = {"official", "de_facto_official"}
+    for iso3 in sorted(map_ids | {"TUV", "TKL", "GIB"}):
+        region = CLDR_REGION.get(iso3) or countries.get(iso3, {}).get("iso2")
+        if not region:
+            continue
+        get = lambda table, key=None: (table.get(region) or table["001"]) if key is None else (table.get(region, {}).get(key) or table["001"][key])  # noqa: E731
+        d: dict = {}
+
+        first, ws, we = get(week, "first"), get(week, "weekendStart"), get(week, "weekendEnd")
+        out["week-start"][0][iso3] = [WEEK_START[first]]
+        out["weekend"][0][iso3] = [WEEKEND[(ws, we)]]
+        d["week"] = [first, ws, we]
+
+        pref = get(hours)[0]
+        out["clock"][0][iso3] = [CLOCK_12 if pref == "h" else CLOCK_24]
+        d["clock"] = pref
+        diffs = [(lang, p) for lang, p in lang_hours.get(region, []) if p != pref]
+        if diffs:
+            zh = "、".join(f"{lang_name(lang)[0]}的使用者偏好 {'12' if p == 'h' else '24'} 小時制" for lang, p in diffs)
+            en = "; ".join(f"{lang_name(lang)[1]} speakers prefer the {'12' if p == 'h' else '24'}-hour clock" for lang, p in diffs)
+            out["clock"][1][iso3] = f"CLDR 另外記錄：{zh}。"
+            out["clock"][2][iso3] = f"CLDR also records: {en}."
+
+        m = measure.get(region, {})
+        system = m.get("system", "metric")
+        out["measurement"][0][iso3] = [MEASURE[system]]
+        temp = m.get("temperature")
+        d["measure"] = [system, temp]
+        if temp and temp != system:
+            zh_t = "攝氏" if temp == "metric" else "華氏"
+            en_t = "Celsius" if temp == "metric" else "Fahrenheit"
+            out["measurement"][1][iso3] = f"溫度用{zh_t}。"
+            out["measurement"][2][iso3] = f"Temperatures are in {en_t}."
+            out["measurement"][3][iso3] = f"溫度用{zh_t}"
+            out["measurement"][4][iso3] = f"Temperatures in {en_t}"
+        paper = m.get("paper", "A4")
+        out["paper"][0][iso3] = [PAPER[paper]]
+        d["paper"] = paper
+
+        cal = get(calendars)
+        out["calendar"][0][iso3] = [calendar_group(cal)]
+        d["calendar"] = cal
+        cz, ce = _calendar_names(cal)
+        if len(cz) > 1:
+            out["calendar"][3][iso3] = "、".join(cz)
+            out["calendar"][4][iso3] = ", ".join(ce)
+
+        # 依語言給的：人口比例最高的官方語言；CLDR 收錄得太少（沒有這個語言檔、短日期格式只有 root 的預設值）的，
+        # 依序改用人口比例次高的官方語言（DESIGN.md 第 8 節第 94 點）
+        info = languages.get(iso3) or languages.get({"_SOL": "SOM", "_IOT": "CXR"}.get(iso3, ""))
+        if info:
+            ranked = sorted(info["languages"], key=lambda l: -l[1])
+            candidates = [l for l in ranked if l[2] in official] or ranked
+            skipped = []
+            for lang, _, _ in candidates:
+                f = cldr.locale_formats(f"{lang}_{region}")
+                if f and f["ownDate"]:
+                    break
+                skipped.append(lang)
+            else:
+                f = None
+            if f:
+                zh_lang, en_lang = lang_name(lang)
+                date_ex = date_example(f["date"], f["numbers"])
+                num_ex = number_example(f["pattern"], f["decimal"], f["group"], f["numbers"])
+                out["date-format"][0][iso3] = [date_order(f["date"])]
+                out["decimal"][0][iso3] = [DECIMAL[f["decimal"]]]
+                d["date"] = [f["date"], date_ex]
+                d["number"] = [f["decimal"], f["group"], num_ex]
+                d["lang"] = [zh_lang, en_lang]
+                out["date-format"][3][iso3] = f"依{zh_lang}：{date_ex}（{EXAMPLE_DATE[0]} 年 {EXAMPLE_DATE[1]} 月 {EXAMPLE_DATE[2]} 日）"
+                out["date-format"][4][iso3] = f"Based on {en_lang}: {date_ex} (28 March 2026)"
+                out["decimal"][3][iso3] = f"依{zh_lang}：{num_ex}"
+                out["decimal"][4][iso3] = f"Based on {en_lang}: {num_ex}"
+                if skipped:
+                    sz = "、".join(lang_name(c)[0] for c in skipped)
+                    se = ", ".join(lang_name(c)[1] for c in skipped)
+                    for key in ("date-format", "decimal"):
+                        out[key][1][iso3] = f"CLDR 沒有{sz}的日期寫法，改用人口比例次高的官方語言{zh_lang}。"
+                        out[key][2][iso3] = f"CLDR has no date format for {se}, so {en_lang}, the next most widely spoken official language, is used."
+        details[iso3] = d
+    return details, out
 
 
 def build() -> None:
@@ -233,22 +479,40 @@ def build() -> None:
     write_json(OUT / "plugs.json", indicator_file("plugs", "", [YEAR], plugs))
     write_json(OUT / "power.json", indicator_file("power", "", [YEAR], power))
 
+    # ── 生活格式（CLDR） ──
+    formats, fmt_files = _formats(map_ids, countries)
+    for name, (values, f_notes, f_notes_en, hints, hints_en) in fmt_files.items():
+        extra = {k: v for k, v in (("notes", f_notes), ("notesEn", f_notes_en), ("hints", hints), ("hintsEn", hints_en)) if v}
+        write_json(OUT / f"{name}.json", indicator_file(name, "", [YEAR], values, **extra))
+
     # ── 側欄用的明細 ──
     for iso3, t in tz.items():
         details.setdefault(iso3, {})["tz"] = [t["std"], t["dst"], t["min"], t["max"], t["zone"]]
     for iso3, d in driving.items():
         if iso3 in details:
             details[iso3]["drive"] = d.side
+    for iso3, d in formats.items():
+        details.setdefault(iso3, {})["fmt"] = d
     capital_names = {k: v[0] for k, v in capitals.items()}
     for iso3 in details:
         if iso3 in capital_names:
             details[iso3]["capital"] = capital_names[iso3]
     write_json(OUT / "details.json", details)
-    write_json(OUT / "manifest.json", {"generatedAt": now_iso(), "tzdata": iana_tz.VERSION, "mainsRevision": wiki_mains.REVISION})
+    write_json(OUT / "manifest.json", {"generatedAt": now_iso(), "tzdata": iana_tz.VERSION, "mainsRevision": wiki_mains.REVISION, "cldr": cldr.VERSION})
 
     tw = details["TWN"]
     print(f"  台灣：{tw}；時區 {len(tz)} 國、行車方向 {len(drive_values)}、插頭 {len(plugs)}、電壓 {len(power)}（tzdata {iana_tz.VERSION}）")
-    for label, values in (("插頭", plugs), ("電壓", power), ("行車", drive_values)):
+    print(f"  台灣的生活格式：{formats['TWN']}")
+    checks = {"TWN": ("sun", "h", "y/M/d", ".", "metric", "A4"), "USA": ("sun", "h", "M/d/yy", ".", "US", "US-Letter"),
+              "GBR": ("mon", "H", "dd/MM/y", ".", "UK", "A4"), "DEU": ("mon", "H", "dd.MM.yy", ",", "metric", "A4"),
+              "JPN": ("sun", "H", "y/MM/dd", ".", "metric", "A4"), "LBR": ("mon", "h", "dd/MM/y", ".", "US", "A4")}
+    for iso3, want in checks.items():
+        f = formats[iso3]
+        got = (f["week"][0], f["clock"], f["date"][0], f["number"][0], f["measure"][0], f["paper"])
+        if got != want:
+            raise RuntimeError(f"CLDR 的生活格式跟預期不同：{iso3} {got} ≠ {want}")
+    fmt_values = {name: v[0] for name, v in fmt_files.items()}
+    for label, values in (("插頭", plugs), ("電壓", power), ("行車", drive_values), *fmt_values.items()):
         counts: dict[float, int] = {}
         for v in values.values():
             counts[v[0]] = counts.get(v[0], 0) + 1
