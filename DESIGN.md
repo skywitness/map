@@ -552,6 +552,7 @@ pipeline/
 | 疾病 | 首要死因（類別圖）、慢性病過早死亡率（30–70 歲）、癌症死亡率（年齡標準化）、糖尿病盛行率、成人肥胖率、愛滋感染率、結核病發生率、瘧疾發生率、慢性病／傳染病／傷害死亡占比 | 死因結構（三大類占比與世界對照） | WHO Global Health Estimates 2023、WHO GHO（NCD-RisC）、World Bank WDI（UNAIDS、WHO）；台灣用衛福部死因統計（ICD-10）與衛生福利統計指標、WPP 年齡別人口 | 死因與過早死亡 2000–2023（台灣 2008 年起）；糖尿病 1990–2022；肥胖 1980–2024；愛滋 1990–2024；結核病、瘧疾 2000–2024 |
 | 疫苗與防疫 | DTP3 接種率（預設）、麻疹疫苗第一劑、麻疹疫苗第二劑、HPV 疫苗（女孩第一劑）、零劑兒童（沒有打過任何一劑 DTP，比例圓）、COVID-19 確診死亡（累計，每 10 萬人）、完成 COVID-19 基礎劑的人口比例、超額死亡（累計，每 10 萬人，估計；跟確診死亡同一組門檻） | 兒童常規疫苗的接種率（四種疫苗一張折線圖）、COVID-19 的累計確診死亡與超額死亡（每月）、至少一劑與完成基礎劑（每月）；台灣另外列衛福部死因統計的 COVID-19 死亡與疾管署通報的確診死亡 | WHO/UNICEF WUENIC 2025 年版（WHO GHO，1980–1999 年用世界銀行轉載）、WHO 的 HPV 估計、UN WPP 2024（零劑兒童的存活嬰兒）、Our World in Data 的 COVID-19 資料（WHO COVID-19 dashboard 的死亡、OWID 整理的接種）、JHU CSSE、The Economist 的超額死亡模型（MIT）；台灣用疾管署「預防接種統計」的完成率、衛福部死因統計 | DTP3、麻疹第一劑 1980–2025（台灣 2015 年起），麻疹第二劑 2000–2025，HPV 2010–2025，零劑兒童 2000–2025；確診死亡 2020–2025（每年年底），完成基礎劑 2021–2023，超額死亡 2020–2023（側欄到 2024 年 6 月） |
 | 平均身高 | 男性平均身高（預設）、女性平均身高（男女各一組門檻，男性的高 12 公分）、男性與女性比 1896 年長高（發散色，±2 公分以內是中性）、男女身高差距（依出生年，1896–1996 年出生的人在 18 歲時）；19 歲男性身高、19 歲女性身高（1985–2019 年，依量測的年份）。時間軸的年份上面寫「出生年」或「年份」 | 男女的平均身高：依出生年與 19 歲兩張折線圖（虛線是世界平均）、選定那一年的 95% 不確定區間；台灣另外列國健署國民營養健康狀況變遷調查各年齡組的實測與 NCD-RisC 對照 | NCD-RisC《A century of trends in adult human height》（eLife 2016）、《Height and body-mass index trajectories of school-aged children and adolescents》（Lancet 2020）；世界平均用 UN WPP 2024 的 15–19 歲人口加權；台灣也在 NCD-RisC 裡，對照國健署 2013–2016、2017–2020 年的成果報告 | 出生年 1896–1996；19 歲 1985–2019 |
+| 血型分布 | 最多的血型（類別圖，預設：O、A、B 型；AB 型沒有一國是最多的）、O、A、B、AB 型的比例（Rh 陽性加陰性）、Rh 陰性的比例 | 8 種血型的長條、這一國的數字在維基百科引用的出處（連結），沒有出處的寫「維基百科沒有註明出處」 | 英文維基百科「Blood type distribution by country」第一個表（revid 1378379911，CC BY-SA 4.0，資料檔依同樣的授權分享） | 不分年份（各國資料的年代不同，timeless） |
 | 菸酒 | 吸菸率（全部、男性、女性，三個用同一組門檻）、人均飲酒量（純酒精）、主要酒類（類別圖：烈酒、葡萄酒、啤酒、其他） | 各類酒有登記的人均消費量（長條，顏色跟地圖上的類別一樣） | WHO GHO（菸草使用趨勢估計、全球酒精與健康資訊系統 GISAH）；台灣的吸菸率用國健署國人吸菸行為調查，飲酒量從缺 | 吸菸率 2000、2005、2007、2010、2015、2020、2022–2024 年，2025、2030 年是推估；飲酒量 2000–2024；主要酒類 1961–2024 |
 | 教育 | 平均受教育年數、高等教育粗在學率、政府教育支出占 GDP、成人識字率 | — | UNDP 人類發展報告、World Bank WDI（UNESCO）；台灣用教育部、內政部 | 受教育年數 1990–2023；在學率 1971–2024；教育支出 1971–2023；識字率 1980–2024（每年只有幾十國） |
 | 學生能力（PISA） | 平均分數（預設數學）、低成就比例（未達第 2 級）、高成就比例（第 5 級以上）、比上一次、跟 2012 年比（兩個都是發散色）、男女差距（男生 − 女生，發散色）；子項目是數學、閱讀、科學；只有部分地區參加的（北京上海江蘇浙江、烏克蘭的部分地區、伊拉克的庫德斯坦地區、塔吉克的杜尚別）畫成點 | 三個科目的歷次分數跟 OECD 23 國平均（各一張小圖）、每一次的分數與名次；台灣另外列臺灣 PISA 國家研究中心公布的名次 | OECD《PISA 2025 Results (Volume I)》附錄 B1 的表（CC BY 4.0）；台灣的分數與名次對照臺灣 PISA 國家研究中心（臺師大）的記者會簡報 | 數學 2003、閱讀 2000、科學 2006 年起的每一次 PISA 到 2025 年；男女差距 2015 年起；只收參加 2025 年的 91 個國家與經濟體 |
@@ -773,6 +774,7 @@ pipeline/
     - IANA 時區資料庫（tz database）是公有領域；PyPI 的 `tzdata` 套件（Apache 2.0）只是包裝，沒有轉載它的程式。
     - **NOAA Solar Calculator 的公式**（晝夜與季節，第 87 點）：計算器是 NOAA Global Monitoring Laboratory（美國政府）的著作，公式出自 Jean Meeus《Astronomical Algorithms》；公式本身不受著作權保護，`src/lib/solar.ts` 是照公式自己寫的，沒有複製 NOAA 的程式。頁尾、DESIGN.md 寫出處。NOAA 網站 2025 年起註明計算器「不再維護」，公式本身不變。
     - 英文維基百科「Mains electricity by country」是 CC BY-SA 4.0：旅行實用主題的插頭、電壓資料檔（`plugs.json`、`power.json`、`details.json`）是改作（換國家代碼、歸類），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本。行車方向用 Wikidata（CC0），只拿維基百科「Left- and right-hand traffic」核對。
+    - 英文維基百科「Blood type distribution by country」是 CC BY-SA 4.0（血型分布主題，第 100 點）：資料檔（`public/data/topics/blood-types/`）是改作（換國家代碼、加總成 ABO 與 Rh 陰性、整理出處），依 CC BY-SA 4.0 分享，頁尾寫明並連到固定的版本，資料夾裡另放 `LICENSE.txt`。各國的數字原本出自各國捐血中心、論文等，維基百科只是彙整；這裡只取比例（事實）與出處的標題、網址，沒有轉載出處的內文。台灣血液基金會網站的版權聲明禁止重製、轉載、引用（**不能用**），data.gov.tw 沒有血型的資料集，2026-10-28 也沒找到開放授權的台灣研究，所以台灣用維基百科表上那一列（沒有出處，照標示）。
     - **UNESCO DataHub 的「World Heritage List」（whc001）標示 CC BY-SA 4.0**（資料集的 license 欄位、publisher 與 attributions 都是 UNESCO，2026-10 查）。但同一個資料集的說明連到世界遺產中心網站的 syndication 條款（https://whc.unesco.org/en/syndication ）：網站的 XML/RSS/KML/XLS 轉載要事先書面授權、不得修改內容。兩者矛盾；這裡用的是 DataHub 明示 CC BY-SA 4.0 的資料集，沒有用世界遺產中心網站的 XML／XLS，只取事實性的欄位，世界遺產主題的資料檔、匯出的圖片與 CSV 依 CC BY-SA 4.0 分享，頁尾寫明。**使用者 2026-10-25 確認：照 DataHub 標示的 CC BY-SA 4.0 繼續用（只取事實性的欄位）**，不改成 Wikidata。**如果要更保守**，可以改用 Wikidata（CC0）的 P757 項目，但 2026-10 有 87 個編號對不到、87 個編號有重複的項目，要人工整理。世界遺產中心的締約國清單只用「是不是締約國」這個事實（ISO 代碼），沒有轉載網頁內容。
     - GCAT（Jonathan McDowell）是 CC BY 4.0：網頁寫「GCAT is released under the Creative Commons CC-BY licence」（連到 CC BY 4.0）、「This data may be freely reproduced as long as you cite it」，引用格式「McDowell, Jonathan C., 2020. General Catalog of Artificial Space Objects, Release 1.8.8, https://planet4589.org/space/gcat」，頁尾照寫。
     - **EOG 的 VIIRS 夜間燈光（Annual VNL V2）是 CC BY 4.0**：EOG 的授權文件（https://eogdata.mines.edu/files/EOG_products_CC_License.pdf ，2026-10 查）寫明 DMSP、VIIRS 夜間燈光（VNL）等以 CC BY 4.0 公開；用它做的衍生產品（含圖表）要寫「This product was made utilizing … data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.」，篇幅不夠時寫「Source: EOG, Colorado School of Mines.」，報告要引用文件附錄的論文（這裡引用 Elvidge et al. 2021）。主題的 `note` 開頭照抄那段聲明（中英文介面都是英文原文），地圖右下角與匯出圖片寫短的標示。文件另外寫「大幅面的圖要放 EOG 的標誌」，網頁地圖與分享的小圖不是大幅面印刷品，沒有放（照篇幅不夠時的規定寫短標示；2026-10-27 確認不放）。EOG 自己的下載站要註冊登入，**沒有用**；改用 Tomislav Hengl（OpenGeoHub）在 Zenodo 的轉存（doi:10.5281/zenodo.17294744，record 的授權欄是 CC BY 4.0，不必登入），2013–2024 年是 EOG 原本的 average_masked（檔案的 TIFFTAG_DOCUMENTNAME 寫著 EOG 的原始檔名），同一個 record 的 2000–2011 年外插值沒有用。頁尾同時列 EOG 與 Zenodo。
@@ -2607,6 +2609,16 @@ pipeline/
     - **大小**：`flipped.json` 1,189 KB（gzip 後 384 KB，5,992 條線、19.4 萬個頂點；對蹠地圖一打開就下載，兩個面量圖的海岸線也是同一個檔）、`panel.json` 71 KB（21 KB）、`seas.json` 60 KB（18 KB）、兩個指標檔各 3 KB，共 6 個檔 1,327 KB（gzip 後 425 KB）。簡化前（不簡化 arc、每個國家各存一份面與外框）是 1.82 MB、32 萬個頂點。
     - **限制**：MapLibre 的地球儀用麥卡托的圖磚，北緯 85.05° 以北沒有圖磚，翻過來的南極洲蓋到北極海時，極點附近一圈畫不出來（滑過照樣寫「地球另一邊：南極洲」）。使用者自己在地圖上放成對的標記（這裡與它的對蹠點）沒有做，只有首都的那一對與跟著游標的小圈。
 
+100. **血型分布**（`pipeline/topics/blood_types.py`、`pipeline/sources/wiki_blood_types.py`、`src/topics/blood-types.ts`、`src/topics/panels/BloodTypesPanel.tsx`，2026-10-28）：
+    - **資料**：英文維基百科「Blood type distribution by country」第一個表，版本寫死（revid 1378379911，2026-10-04），用 `action=raw` 讀 wikitext。126 國，欄位是人口（不用）、O+、A+、B+、AB+、O−、A−、B−、AB−。第二個表（各民族的 ABO，出處 bloodbook.com）不用。表裡的國名用 pycountry 對 ISO 代碼，DRC、Bosnia、Ivory Coast、Macao 寫在 `NAMES`。
+    - **出處**：只有 73 國那一列附了出處（`<ref>`，有名字的 `<ref name=… />` 依全文的定義還原）；製作手冊寫 75 國，逐列重數是 73 國（列尾、數值格裡沒有另外的 ref）。側欄寫第一個出處的標題與連結（cite 模板的 title、url，沒有 url 的用 doi、pmc、pmid 組網址），維基百科標了 {{Failed verification}} 的（阿根廷、蒙古）另外寫「未能核實」。沒有出處的 53 國（包括台灣）照常畫，tooltip 的短註（`hints`）與側欄標「維基百科沒有註明出處」（使用者 2026-10-28 決定）。
+    - **指標**：最多的血型（類別圖，預設，使用者 2026-10-28 決定）、O、A、B、AB 型的比例（各型的 Rh 陽性加陰性）、Rh 陰性的比例（四型的陰性合計）。最多的血型：O 型 87 國、A 型 37 國（歐洲大部分、土耳其、日本、韓國、北韓等）、B 型 2 國（巴基斯坦、孟加拉；印度 O 34.6% 比 B 34.1% 略多）；AB 型沒有一國是最多的，類別只列三類（AB 型放在「其他」）。兩型一樣多的話 pipeline 會報錯，要另外決定。
+    - **不是數字的格子**：埃及只有 ABO（Rh 那四格是 n/a，O+、A+、B+、AB+ 那四格加起來 99.99%，其實是 ABO 的合計），四型照畫、Rh 陰性沒有值、側欄不畫 8 種的長條；阿曼的 AB− 是 n/a、紐西蘭的 AB− 寫「<1.0%」，當成沒有值，那一型與 Rh 陰性只加有數字的血型，附註寫明。
+    - **加起來不是 100%**：四捨五入或原始資料不完整，玻利維亞 91%、利比亞 92%、沙烏地阿拉伯 93%、英國 96%，澳洲、尼泊爾、巴布亞紐幾內亞 102%；不重新分配（照表上的數字），側欄寫出合計。
+    - **台灣**：O 44.18%（O+ 43.9、O− 0.28）、A 25.91%、B 23.91%、AB 6.01%，Rh 陰性 0.31%。表上沒有出處；台灣血液基金會的網站禁止轉載（第 12 點），所以只用維基百科這一列，pipeline 檢查這一列沒有變。
+    - **說明**：各國的數字來源不同（捐血人、醫院、研究樣本，1970 年代到 2020 年代），國與國之間只能大略比較，主題說明有寫。不分年份（`timeless`，指標檔的年份是 2026）。
+    - **大小**：6 個指標檔各約 16 KB（附註與短註每個檔都有一份）、`types.json` 18 KB，共約 115 KB。
+
 ## 9. 之後可以做的
 
 **使用者已排定、正在製作的主題**（2026-10-28 排定，同一天開 8 個 cloud session 同時製作；資料、授權、做法與使用者的決定都在私人 repo skywitness/map-plan 的 `PRODUCTION.md`（製作手冊）；做完一個就從這裡移到第 7 節）：
@@ -2620,7 +2632,6 @@ pipeline/
 - **咖啡、茶與可可**：擴充「飲食」（FAOSTAT 糧食平衡表）。
 - **1800 年起的長期資料**：擴充「人口」「人均收入」「健康」（Gapminder）。
 - **月食**：併進「日食路徑」，主題改名「日食與月食」（NASA 五千年月食目錄）。
-- **血型分布**：新主題，社會類（英文維基）。
 - **北磁極的漂移與磁偏角**：新主題，地理類（NOAA NCEI 磁極位置、WMM2025）。
 
 **使用者打算做、時間由使用者決定的新主題**（2026-10-28 記下；使用者說要做之前不要動手；資料與授權 2026-10-28 查證過，詳細在製作手冊第十四節）：
