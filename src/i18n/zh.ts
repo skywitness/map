@@ -198,6 +198,7 @@ export const zh = {
   noCountryData: '這個國家沒有這項資料。',
   dashedProjection: (year: number) => `虛線為 ${year} 年起的推估值。`,
   methodBreak: (year: number) => `垂直虛線：${year} 年起改用新的統計方法，跟之前的年份不完全可比。`,
+  estimatesBefore: (year: number) => `垂直虛線：${year} 年以前多半是估計或內插值。`,
   note: (note: string) => `附註：${note}`,
   yearMissing: (year: number) => `（${year} 年無資料，顯示最近一年）`,
   /** 類別圖（例如首要死因）的歷年變化：「2000–2016 年」 */
