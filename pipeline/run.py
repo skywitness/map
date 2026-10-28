@@ -50,6 +50,8 @@ STEPS = {
     # OECD DAC 的 DAC1 與 DAC2A（約 75 MB 的 CSV，一兩分鐘）、世界銀行的僑匯、中央銀行的國際收支；
     # 台灣的 GDP 用 reserves 主題的主計總處與央行匯率
     "aid": "topics.aid",
+    # AidData GCDF 3.0 的 zip（28.6 MB，xlsx 讀一次約 15 秒，之後用 .pkl 快取）；也讀人均收入的 GDP、人口主題的總人口
+    "china-lending": "topics.china_lending",
     "religion": "topics.religion",
     "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
     "gender": "topics.gender",
@@ -150,6 +152,9 @@ STEPS = {
     # Global Oceans and Seas（WFS，共約 460 MB，伺服器要先產生好幾分鐘）、Natural Earth 的河流中心線（約 20 MB）與
     # 約 80 批 Wikidata 的中文名稱；第一次約 15 分鐘（海域畫成網格約 10 分鐘），之後用快取約 40 秒
     "rivers": "topics.rivers",
+    # 水壩與水庫（併進河流主題，輸出到 topics/rivers/）：Global Dam Watch v1.0（figshare，70 MB）、水利署的水庫基本資料
+    # 與 Wikidata 的台灣水庫座標；要先有 geo 的國界，不必先跑 rivers；第一次約 1 分鐘，之後約 20 秒
+    "dams": "topics.dams",
     # 不下載新的東西：讀國家小檔案的首都（要先跑 profiles）、Natural Earth populated places（旅行實用的快取）與 tzdata 套件，
     # 不到 1 秒；白天長度等指標在瀏覽器裡算（src/lib/solar.ts）
     "daylight": "topics.daylight",

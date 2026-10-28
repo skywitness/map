@@ -126,6 +126,7 @@ export const aid: TopicDefinition = {
       '台灣不是 DAC 會員，但向 OECD 申報援助（OECD 列為 Chinese Taipei），定義相同；台灣申報的雙邊援助大多沒有分到特定國家。' +
       '僑匯是個人匯款：個人之間的移轉加上在國外短期工作的薪資（IMF 國際收支手冊第 6 版），只計正式管道。有些高所得國家的收入多半是跨境通勤者的薪資（例如法國、德國、比利時）。台灣用中央銀行的國際收支統計，同一個定義。' +
       '雙邊的僑匯流向沒有開放授權的資料，沒有畫弧線；僑匯大致跟著移民走，可以參考「移民與難民」主題的僑民去向。' +
+      '中國沒有向 OECD 申報，它的對外援助與貸款見「中國的海外貸款」主題（AidData，承諾金額，跟這裡的撥付不能直接比）。' +
       '依 OECD 的資料條款註明：OECD (2026), DAC1、DAC2A, OECD Data Explorer（2026-10-26 查閱）。',
     en:
       'Official development assistance (ODA) is grants and concessional loans from governments and multilateral institutions to developing countries to promote economic development and welfare. Donor ODA is net disbursements until 2017 and, from 2018, the DAC’s grant-equivalent measure (loans count only for their grant element), so the two periods are not fully comparable; 2025 figures are the OECD’s preliminary data of April 2026. ' +
@@ -133,6 +134,7 @@ export const aid: TopicDefinition = {
       'Taiwan is not a DAC member but reports its aid to the OECD (as Chinese Taipei) under the same definitions; most of the bilateral aid it reports is not allocated to specific countries. ' +
       'Remittances are personal remittances: personal transfers plus compensation of short-term workers abroad (IMF Balance of Payments Manual, 6th edition), through formal channels only. In some high-income countries, receipts are mostly the wages of cross-border commuters (France, Germany and Belgium, for example). Taiwan uses the central bank’s balance of payments, with the same definition. ' +
       'No openly licensed data on bilateral remittance flows exist, so there are no remittance arcs; remittances broadly follow migration, so see where emigrants live in the Migration topic. ' +
+      'China does not report to the OECD; for its aid and lending, see the Chinese development finance topic (AidData commitments, not directly comparable with the disbursements here). ' +
       'Attribution under the OECD terms: OECD (2026), DAC1 and DAC2A, OECD Data Explorer (accessed on 2026-10-26).',
   },
   panelExtra: () => import('./panels/AidPanel'),
