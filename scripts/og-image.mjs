@@ -42,7 +42,7 @@ const CARD = (globe) => `<!doctype html><html><head><meta charset="utf-8"><style
   body { width: 1200px; height: 630px; overflow: hidden; position: relative; color: #f0efec;
     font-family: 'Microsoft JhengHei', 'Noto Sans TC', 'Segoe UI', sans-serif;
     /* 跟地圖的太空一樣（src/theme/tokens.ts 的 SPACE_GRADIENT） */
-    background: radial-gradient(circle at 74% 50%, #0b1220 0, #04070d 55%, #000 100%); }
+    background: radial-gradient(circle at 74% 50%, #1d3157 0, #0c1830 45%, #050a14 100%); }
   .globe { position: absolute; right: -150px; top: 50%; width: 760px; transform: translateY(-50%);
     -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 62%, transparent 72%); }
   .text { position: absolute; left: 72px; top: 160px; width: 620px; }

@@ -135,13 +135,14 @@ export function applyTokens(tokens: Tokens): void {
 }
 
 /**
- * 地球儀外面的黑色太空：由畫面中心往外的放射漸層 [位置 0–1, 顏色]。
- * WebGL 畫布在太空的部分是透明的，畫面上由 CSS 背景顯示，匯出圖片時在 canvas 上畫同一組顏色。
+ * 地球儀外面的深藍夜空：由畫面中心往外的放射漸層 [位置 0–1, 顏色]（2026-10-28 從黑色改成深藍，使用者從三個版本選的）。
+ * WebGL 畫布在太空的部分是透明的，畫面上由 CSS 背景顯示，匯出圖片時在 canvas 上畫同一組顏色；
+ * 地球邊緣的大氣層顏色在 style.ts 的 sky，分享預覽圖（scripts/og-image.mjs）也用同一組。
  */
 export const SPACE_GRADIENT: [number, string][] = [
-  [0, '#0b1220'],
-  [0.55, '#04070d'],
-  [1, '#000000'],
+  [0, '#1d3157'],
+  [0.45, '#0c1830'],
+  [1, '#050a14'],
 ];
 
 export interface MapTokens extends Tokens {

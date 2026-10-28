@@ -34,7 +34,7 @@ export type Projection = 'globe' | 'mercator';
 const cache = new Map<string, Promise<StyleSpecification>>();
 
 /**
- * 下載底圖樣式，改成目前語言的地名、指定的投影、黑色太空背景。
+ * 下載底圖樣式，改成目前語言的地名、指定的投影、深藍夜空的大氣層。
  * 同一個網址只下載一次（App 啟動時先抓），每次呼叫都在複本上改寫（MapLibre 可能會改動樣式物件）。
  */
 export function loadBaseStyle(url: string, projection: Projection = 'globe', lang: Lang = 'zh'): Promise<StyleSpecification> {
@@ -53,12 +53,12 @@ export function loadBaseStyle(url: string, projection: Projection = 'globe', lan
       if (isNameLayer(layer) && layer.type === 'symbol') layer.layout = { ...layer.layout, 'text-field': LABELS[lang] };
     }
     style.projection = { type: projection };
-    // 黑色太空背景，地球邊緣一圈淡藍色大氣層
+    // 深藍夜空（背景本身是 CSS 的漸層，tokens.ts 的 SPACE_GRADIENT），地球邊緣一圈淡藍色大氣層
     style.sky = {
-      'sky-color': '#000000',
-      'horizon-color': '#3a6ea5',
-      'fog-color': '#3a6ea5',
-      'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.8, 5, 0.8, 7, 0],
+      'sky-color': '#0c1830',
+      'horizon-color': '#6fa3e0',
+      'fog-color': '#6fa3e0',
+      'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 5, 1, 7, 0],
     };
     return style;
   });

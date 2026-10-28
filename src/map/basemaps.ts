@@ -20,7 +20,7 @@ export const BASEMAPS: Basemap[] = [
 export const DEFAULT_BASEMAP = 'terrain';
 /**
  * 深色介面、使用者沒自己選過底圖時用深藍：亮藍的彩色地形在深色頁面上是最刺眼的一塊。
- * 不用純黑的「深色」：海跟地球外面的黑色太空分不開，地名的灰字在橘色上也讀不到（2026-10-28 截圖比較）
+ * 不用純黑的「深色」：海跟地球外面的太空分不開，地名的灰字在橘色上也讀不到（2026-10-28 截圖比較）
  */
 export const DEFAULT_DARK_BASEMAP = 'fiord';
 

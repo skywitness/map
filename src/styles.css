@@ -955,7 +955,7 @@ kbd {
   opacity: 0.6;
 }
 
-/* MapLibre 的畫布；地球儀外面的黑色太空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設定 */
+/* MapLibre 的畫布；地球儀外面的深藍夜空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設定 */
 .map-canvas {
   position: absolute;
   inset: 0;
