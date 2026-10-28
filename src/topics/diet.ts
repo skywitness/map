@@ -7,6 +7,7 @@ const DAIRY_EGGS = { zh: '乳品與蛋', en: 'Dairy and eggs' };
 const STAPLES = { zh: '穀物、薯類與豆類', en: 'Cereals, roots and pulses' };
 const PRODUCE = { zh: '蔬菜水果', en: 'Fruit and vegetables' };
 const OTHER = { zh: '糖、油與酒', en: 'Sugar, oils and alcohol' };
+const STIMULANTS = { zh: '咖啡、茶與可可', en: 'Coffee, tea and cocoa' };
 
 /**
  * 地圖上可選的食物（與 pipeline/topics/diet.py 的 FOODS 對應）。
@@ -31,6 +32,10 @@ const FOODS: { id: string; label: Text; group: Text; thresholds: number[] }[] = 
   { id: 'sugar', label: { zh: '糖與甜味劑', en: 'Sugar and sweeteners' }, group: OTHER, thresholds: [10, 20, 30, 40, 50, 60] },
   { id: 'vegetable-oils', label: { zh: '植物油', en: 'Vegetable oils' }, group: OTHER, thresholds: [5, 8, 11, 14, 17, 20] },
   { id: 'alcohol', label: { zh: '酒類', en: 'Alcoholic beverages' }, group: OTHER, thresholds: [5, 15, 30, 50, 75, 100] },
+  // 咖啡只有 2010 年起（新舊版接不起來）；三種都把明顯不合理的年份拿掉（資料檔的 noValue，DESIGN.md 第 8 節第 97 點）
+  { id: 'coffee', label: { zh: '咖啡（生豆）', en: 'Coffee (green beans)' }, group: STIMULANTS, thresholds: [0.5, 1, 2, 4, 6, 9] },
+  { id: 'tea', label: { zh: '茶（含瑪黛茶）', en: 'Tea (incl. mate)' }, group: STIMULANTS, thresholds: [0.1, 0.25, 0.5, 1, 2, 4] },
+  { id: 'cocoa', label: { zh: '可可（可可豆）', en: 'Cocoa (beans)' }, group: STIMULANTS, thresholds: [0.25, 0.5, 1, 2, 3, 4] },
 ];
 
 const KCAL = { zh: '大卡/人/日', en: 'kcal/person/day' };
@@ -74,8 +79,8 @@ export const diet: TopicDefinition = {
     },
   ],
   note: {
-    zh: '糧食平衡表算的是「供給」：國內生產加進口、減出口與飼料、種子、加工、損耗等用途後，平均每人可以吃到的量，比實際吃下去的多（不含家戶與餐廳的浪費）。FAO 在 2010 年改用新方法，2009 年以前是舊版，個別國家與食物在 2010 年可能跳一下（側欄的垂直虛線）。新版沒有日本等少數國家。台灣的資料是 FAO 的，側欄附上農業部糧食供需年報的數字對照。各國捕撈與養殖的水產見「海洋與漁業」主題。',
-    en: "Food balance sheets measure supply: domestic production plus imports, minus exports and non-food uses such as feed, seed, processing and losses, averaged per person. This is more than people actually eat, as household and restaurant waste is not subtracted. FAO switched to a new method in 2010; earlier years come from the old series, so some countries and foods jump in 2010 (the vertical dashed line in the side panel). A few countries, including Japan, are missing from the new series. Taiwan's figures are FAO's; the side panel adds the Ministry of Agriculture's own food balance sheet for comparison. For fish caught and farmed by country see Oceans and fisheries.",
+    zh: '糧食平衡表算的是「供給」：國內生產加進口、減出口與飼料、種子、加工、損耗等用途後，平均每人可以吃到的量，比實際吃下去的多（不含家戶與餐廳的浪費）。FAO 在 2010 年改用新方法，2009 年以前是舊版，個別國家與食物在 2010 年可能跳一下（側欄的垂直虛線）。新版沒有日本等少數國家。咖啡、茶、可可的供給量在轉口地（香港、澳門、盧森堡）與產地（斯里蘭卡、肯亞的茶，象牙海岸的可可）常常遠超過實際喝的量，咖啡 16.5、茶 10、可可 6.5 公斤以上的年份標「數字不可靠」，不畫、不排名；FAOSTAT 2020 年起產茶國的茶大增，也是這個原因。台灣的資料是 FAO 的，側欄附上農業部糧食供需年報的數字對照。各國捕撈與養殖的水產見「海洋與漁業」主題。',
+    en: "Food balance sheets measure supply: domestic production plus imports, minus exports and non-food uses such as feed, seed, processing and losses, averaged per person. This is more than people actually eat, as household and restaurant waste is not subtracted. FAO switched to a new method in 2010; earlier years come from the old series, so some countries and foods jump in 2010 (the vertical dashed line in the side panel). A few countries, including Japan, are missing from the new series. Supply of coffee, tea and cocoa in re-export hubs (Hong Kong, Macao, Luxembourg) and producing countries (tea in Sri Lanka and Kenya, cocoa in Côte d'Ivoire) often far exceeds what people drink; years above 16.5 kg of coffee, 10 kg of tea or 6.5 kg of cocoa per person are marked as unreliable and are not shown or ranked, which also covers the jump in tea for tea-growing countries from 2020. Taiwan's figures are FAO's; the side panel adds the Ministry of Agriculture's own food balance sheet for comparison. For fish caught and farmed by country see Oceans and fisheries.",
   },
   dimension: {
     label: { zh: '食物', en: 'Food' },
@@ -134,8 +139,8 @@ export const diet: TopicDefinition = {
       id: 'supply',
       label: { zh: '人均供給量', en: 'Supply per person' },
       description: {
-        zh: '平均每人每年可以吃到的量（公斤）。肉類是屠體重量（含骨），乳品換算成生乳。2010 年 FAO 改方法，乳品、蔬菜、植物油等在部分國家前後差很多。',
-        en: 'Quantity available per person per year (kg). Meat is carcass weight (bone-in) and dairy is converted to milk equivalent. FAO changed its method in 2010, and dairy, vegetables, vegetable oils and some other foods jump noticeably in some countries.',
+        zh: '平均每人每年可以吃到的量（公斤）。肉類是屠體重量（含骨），乳品換算成生乳；咖啡、茶、可可是生豆、乾茶葉、可可豆的重量，不是杯數，茶含瑪黛茶（阿根廷、巴拉圭、烏拉圭特別高）。2010 年 FAO 改方法，乳品、蔬菜、植物油等在部分國家前後差很多；咖啡兩版差太多，只畫 2010 年起。咖啡、茶、可可在轉口地與產地常算出不可能的數字，那些年份標「數字不可靠」、不畫也不排名。',
+        en: 'Quantity available per person per year (kg). Meat is carcass weight (bone-in) and dairy is converted to milk equivalent; coffee, tea and cocoa are the weight of green beans, dry tea leaves and cocoa beans, not cups, and tea includes mate (hence the high figures for Argentina, Paraguay and Uruguay). FAO changed its method in 2010, and dairy, vegetables, vegetable oils and some other foods jump noticeably in some countries; coffee differs too much between the two methods, so it starts in 2010. For coffee, tea and cocoa, re-export hubs and producing countries often get impossible figures; those years are marked as unreliable and are not shown or ranked.',
       },
       unit: KG,
       file: 'supply/{item}.json',
@@ -144,8 +149,9 @@ export const diet: TopicDefinition = {
         scale: sequential(FOODS[0].thresholds),
         itemScales: Object.fromEntries(FOODS.map((f) => [f.id, sequential(f.thresholds)])),
       },
-      format: (v) => `${fixed(v, v < 100 ? 1 : 0)} ${tr(KG)}`,
-      formatTick: (v) => fixed(v, 0),
+      // 咖啡、茶、可可的資料到小數第二位（台灣的茶 1.43、可可 0.67），有第二位才寫；其他食物只到第一位，照舊
+      format: (v) => `${fixed(v, v < 10 && Math.round(v * 100) % 10 !== 0 ? 2 : v < 100 ? 1 : 0)} ${tr(KG)}`,
+      formatTick: (v) => fixed(v, Number.isInteger(v) ? 0 : Number.isInteger(v * 10) ? 1 : 2),
       compareWorld: true,
     },
     {
