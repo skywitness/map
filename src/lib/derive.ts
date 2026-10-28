@@ -15,9 +15,18 @@ function keyOf(per: NonNullable<Indicator['derive']>['per'], at: ClockAt): strin
   return `y${Math.floor(at.day / 10000)}`;
 }
 
+/** 看起來是指標檔（有 years 與 values）：換主題時 useJson 還拿著上一個主題的檔，可能是時刻主題的材料 */
+function isIndicatorData(source: unknown): source is IndicatorData {
+  return Boolean(source && typeof source === 'object' && Array.isArray((source as IndicatorData).years) && (source as IndicatorData).values);
+}
+
+/**
+ * source 要是這個指標自己的資料檔：useJson 載入新檔的期間還拿著上一個檔（換主題時是別的主題的檔），
+ * App 在載入中傳 null 給 derive 的指標；一般指標拿到的不是指標檔（上一個是時刻主題的材料）時也當成還沒載入
+ */
 export function derivedData(indicator: Pick<Indicator, 'id' | 'derive'>, source: unknown, at: ClockAt | null): IndicatorData | null {
   const derive = indicator.derive;
-  if (!derive) return (source as IndicatorData | null) ?? null;
+  if (!derive) return isIndicatorData(source) ? source : null;
   if (!source || !at || typeof source !== 'object') return null;
   let byKey = cache.get(source);
   if (!byKey) cache.set(source, (byKey = new Map()));

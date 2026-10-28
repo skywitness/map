@@ -111,7 +111,7 @@ function clockGap(v: number): string {
 function perCapital(source: unknown, at: ClockAt, unit: string, value: (p: Place) => number | null): IndicatorData {
   const file = source as CapitalsFile;
   const values: Record<string, (number | null)[]> = {};
-  for (const iso3 of Object.keys(file.capitals)) {
+  for (const iso3 of Object.keys(file.capitals ?? {})) {
     const v = value(capitalOf(file, iso3)!);
     if (v !== null && Number.isFinite(v)) values[iso3] = [v];
   }

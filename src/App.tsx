@@ -179,7 +179,9 @@ export function App() {
   const shownTime = playTime ?? state.time ?? now;
   const at = useMemo<ClockAt | null>(() => (clock ? clockAt(shownTime) : null), [clock, shownTime]);
   // 在瀏覽器裡算的指標（IndicatorDef.derive）：材料是資料檔，依這一刻算出各國的值；其他指標原樣
-  const data = useMemo(() => derivedData(indicator, source.data, at), [indicator, source.data, at]);
+  // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔
+  const sourceData = indicator.derive && source.loading ? null : source.data;
+  const data = useMemo(() => derivedData(indicator, sourceData, at), [indicator, sourceData, at]);
   // 沒自己選過底圖時跟著介面深淺色換（深色用深藍）；選過的照舊，切換深淺色也不變
   const [basemapId, setBasemapId] = useState(readStoredBasemap);
   const basemap = getBasemap(basemapId ?? defaultBasemap(tokens.mode === 'dark'));
@@ -458,7 +460,7 @@ export function App() {
         {series && <Sparkline years={data!.years} series={series} year={valueYear ?? year} projectionFrom={data!.projectionFrom} />}
         {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
         {/* 主題自己加的幾行（晝夜與季節：以首都計算的日出、日落），滑過時才算 */}
-        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: source.data }).map((line, i) => (
+        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: sourceData }).map((line, i) => (
           <div key={i} className={`tt-label tt-hint${i > 0 ? ' is-next' : ''}`}>
             {line}
           </div>
