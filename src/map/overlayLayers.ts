@@ -190,7 +190,7 @@ function lineZoomed(def: Pick<LinesOverlay, 'widthZoom'>, w: ExpressionSpecifica
 }
 
 /** 底圖地名圖層用的字型（沿線文字要用底圖有的字型，否則下載不到字形） */
-function labelFont(map: MaplibreMap): DataDrivenPropertyValueSpecification<string[]> {
+export function labelFont(map: MaplibreMap): DataDrivenPropertyValueSpecification<string[]> {
   const layer = map.getStyle().layers.find((l) => isNameLayer(l) && l.type === 'symbol' && l.layout?.['text-font']);
   return (layer?.type === 'symbol' && layer.layout?.['text-font']) || DEFAULT_FONT;
 }
@@ -223,8 +223,20 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
   if (def.fill) {
     // 封閉的環畫成半透明的面（在所有線的下面）；外框由下面的線圖層畫
     const opacity = dark ? (def.fill.darkOpacity ?? def.fill.opacity) : def.fill.opacity;
+    // 依分類的不透明度（地球的另一邊：陸地對陸地比對面是海的深）；滑過、標出的那一組是兩倍、最多 0.6
+    const byType = Object.entries(def.fill.typeOpacity ?? {}).map(([code, [light, darkValue]]) => [Number(code), dark ? darkValue : light] as const);
+    const fillOpacity = (k: (o: number) => number): ExpressionSpecification | number =>
+      byType.length
+        ? (['match', ['coalesce', ['get', 'type'], -1], ...byType.flatMap(([code, o]) => [code, k(o)]), k(opacity)] as unknown as ExpressionSpecification)
+        : k(opacity);
     out.push({
-      layer: { id: id + FILL_SUFFIX, type: 'fill', source: id, filter: IS_POLYGON, paint: { 'fill-color': color, 'fill-opacity': opacity, 'fill-antialias': false } },
+      layer: {
+        id: id + FILL_SUFFIX,
+        type: 'fill',
+        source: id,
+        filter: IS_POLYGON,
+        paint: { 'fill-color': color, 'fill-opacity': fillOpacity((o) => o), 'fill-antialias': false },
+      },
       base: IS_POLYGON,
       timed: true,
     });
@@ -236,7 +248,7 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
           type: 'fill',
           source: id,
           filter: hoverFill,
-          paint: { 'fill-color': color, 'fill-opacity': Math.min(0.6, opacity * 2), 'fill-antialias': false },
+          paint: { 'fill-color': color, 'fill-opacity': fillOpacity((o) => Math.min(0.6, o * 2)), 'fill-antialias': false },
         },
         base: hoverFill,
         timed: false,
@@ -406,6 +418,7 @@ function lineFeatures(o: Extract<DataOverlay, { kind: 'lines' }>): GeoJSON.Featu
   // 紀錄完全相同的線是同一組（同一條電纜被切成好幾段），滑到其中一段時整組一起標出；有 groupField 時依那個欄位
   const groups = new Map<string, number>();
   const features: GeoJSON.Feature[] = [];
+  let lastPolygon: GeoJSON.Polygon | null = null;
   lines.forEach((coordinates, i) => {
     const properties: Record<string, number | string> = { i };
     if (types) properties.type = types[i];
@@ -432,8 +445,17 @@ function lineFeatures(o: Extract<DataOverlay, { kind: 'lines' }>): GeoJSON.Featu
     if (fill && record && record[fill.field] === fill.value) {
       const [first, last] = [coordinates[0], coordinates[coordinates.length - 1]];
       const ring = first && (first[0] !== last[0] || first[1] !== last[1]) ? [...coordinates, first] : coordinates;
-      features.push({ type: 'Feature', properties, geometry: { type: 'Polygon', coordinates: [ring] } });
-      for (const part of clipLatitude(ring)) features.push({ type: 'Feature', properties, geometry: { type: 'LineString', coordinates: part } });
+      // 洞（holeField）接在前一個外環的多邊形後面
+      if (fill.holeField && record[fill.holeField] === 1 && lastPolygon) {
+        lastPolygon.coordinates.push(ring);
+      } else {
+        lastPolygon = { type: 'Polygon', coordinates: [ring] };
+        features.push({ type: 'Feature', properties, geometry: lastPolygon });
+      }
+      const outline = fill.outline === undefined || (fill.outline !== false && fill.outline.includes(types?.[i] ?? -1));
+      if (outline) {
+        for (const part of clipLatitude(ring)) features.push({ type: 'Feature', properties, geometry: { type: 'LineString', coordinates: part } });
+      }
       return;
     }
     const codes = vertexTypes?.[i];

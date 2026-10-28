@@ -2437,6 +2437,62 @@ kbd {
   text-decoration: underline;
 }
 
+/* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */
+.antipode-summary {
+  margin: 2px 0 4px;
+  font-size: 13px;
+}
+
+.antipode-coords {
+  margin: 0 0 4px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.antipode-targets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.antipode-targets li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.antipode-targets strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.antipode-target-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antipode-go {
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.antipode-go:hover,
+.antipode-go:focus-visible {
+  background: var(--grid);
+}
+
 .panel-section {
   margin-top: 24px;
   padding-top: 16px;

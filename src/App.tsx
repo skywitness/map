@@ -31,7 +31,7 @@ import {
   type PopulationGrid,
 } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
-import { toCountryFeatures, type CountryFeature } from './map/geometry';
+import { countryLocator, toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import {
@@ -70,6 +70,7 @@ import {
   type Indicator,
   type IndicatorData,
   type LinesData,
+  type MapMark,
   type PointRecord,
   type PointsData,
   type RailwaysData,
@@ -250,16 +251,29 @@ export function App() {
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
   const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure, wantsView ? mapView : null);
-  // 主題側欄要在地圖上標出的一組線（滑到某條河）、要移過去的範圍
-  const [lineHighlight, setLineHighlight] = useState<{ overlay: string; group: number } | null>(null);
+  // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
+  // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；
+  // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
+  const panelKey = `${topic.id}:${state.country ?? ''}`;
+  const [lineHighlight, setLineHighlight] = useState<{ key: string; overlay: string; group: number } | null>(null);
   const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
   const highlightLine = useCallback(
-    (overlay: string, group: number | null) => setLineHighlight(group === null ? null : { overlay, group }),
-    [],
+    (overlay: string, group: number | null) => setLineHighlight(group === null ? null : { key: panelKey, overlay, group }),
+    [panelKey],
   );
+  const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
   const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
-  // 換國家、換主題時側欄標出的線一起取消（側欄關掉時滑鼠不一定移開過）
-  useEffect(() => setLineHighlight(null), [state.country, topic.id]);
+  const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
+  const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
+  const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
+  // 滑到地圖上任何一點時主題給的資訊（地球的另一邊：游標的對蹠點在哪一國或哪一片海）
+  const topicPointer = topic.pointer;
+  const pointer = useMemo(() => {
+    if (!topicPointer || !features) return undefined;
+    const countryAt = countryLocator(features);
+    return (lngLat: [number, number], iso3: string | null) =>
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries) });
+  }, [topicPointer, features, countries]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -460,7 +474,7 @@ export function App() {
         {series && <Sparkline years={data!.years} series={series} year={valueYear ?? year} projectionFrom={data!.projectionFrom} />}
         {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
         {/* 主題自己加的幾行（晝夜與季節：以首都計算的日出、日落），滑過時才算 */}
-        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: sourceData }).map((line, i) => (
+        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: sourceData, countryName: (c) => countryName(c, countries) }).map((line, i) => (
           <div key={i} className={`tt-label tt-hint${i > 0 ? ' is-next' : ''}`}>
             {line}
           </div>
@@ -670,8 +684,10 @@ export function App() {
                 flows={flows}
                 flags={flagSpecs}
                 onViewChange={wantsView ? setMapView : undefined}
-                lineHighlight={lineHighlight}
+                lineHighlight={shownHighlight}
                 focusBox={focusBox}
+                pointer={pure ? undefined : pointer}
+                marks={shownMarks}
                 overlay={
                   boxResult && (
                     <BoxResult
@@ -731,6 +747,7 @@ export function App() {
                 highlightLine={highlightLine}
                 focusBox={moveToBox}
                 selectYear={timeless || at ? undefined : setYear}
+                setMarks={setMarks}
                 at={at}
               />
             </Suspense>

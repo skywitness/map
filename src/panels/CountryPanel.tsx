@@ -46,6 +46,7 @@ interface CountryPanelProps {
   highlightLine?: PanelExtraProps['highlightLine'];
   focusBox?: PanelExtraProps['focusBox'];
   selectYear?: PanelExtraProps['selectYear'];
+  setMarks?: PanelExtraProps['setMarks'];
   /** 時刻主題目前的這一刻：在瀏覽器裡算的指標（derive）依它算，標題寫這一刻，主題側欄也拿到它 */
   at?: ClockAt | null;
 }
@@ -64,7 +65,7 @@ function panelExtraFor(topic: Topic) {
 
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
-  const { onCompareChange, highlightLine, focusBox, selectYear, at = null } = props;
+  const { onCompareChange, highlightLine, focusBox, selectYear, setMarks, at = null } = props;
   // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
   const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
@@ -286,6 +287,7 @@ export function CountryPanel(props: CountryPanelProps) {
             highlightLine={highlightLine}
             focusBox={focusBox}
             selectYear={selectYear}
+            setMarks={setMarks}
             at={at ?? undefined}
           />
         </Suspense>

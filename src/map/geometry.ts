@@ -65,3 +65,58 @@ export function unwrapAntimeridian(geometry: GeoJSON.Polygon | GeoJSON.MultiPoly
     ),
   };
 }
+
+interface LocatorPolygon {
+  iso3: string;
+  /** 經度展開成連續的環（unwrapAntimeridian），可能超出 ±180° */
+  rings: number[][][];
+  box: [number, number, number, number];
+}
+
+const locators = new WeakMap<CountryFeature[], (lon: number, lat: number) => string | null>();
+
+/**
+ * 任一經緯度在哪一國（地圖的 1:50m 國界，2026-10-28 起，地球的另一邊查游標的對蹠點）：不必畫在畫面上，
+ * 地球儀背面的點也查得到。環先展開成連續的經度，點的經度再試 ±360°；先比範圍再用射線法（奇偶規則，洞自然扣掉）。
+ * 同一份國界回傳同一個函式。南極洲不在地圖的國家裡（HIDDEN），查不到
+ */
+export function countryLocator(countries: CountryFeature[]): (lon: number, lat: number) => string | null {
+  const cached = locators.get(countries);
+  if (cached) return cached;
+  const polygons: LocatorPolygon[] = [];
+  for (const c of countries) {
+    for (const rings of unwrapAntimeridian(c.feature.geometry).coordinates) {
+      let [w, s, e, n] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const [x, y] of rings[0]) {
+        w = Math.min(w, x);
+        e = Math.max(e, x);
+        s = Math.min(s, y);
+        n = Math.max(n, y);
+      }
+      polygons.push({ iso3: c.iso3, rings, box: [w, s, e, n] });
+    }
+  }
+  const inside = (rings: number[][][], x: number, y: number) => {
+    let odd = false;
+    for (const ring of rings) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i];
+        const [xj, yj] = ring[j];
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) odd = !odd;
+      }
+    }
+    return odd;
+  };
+  const locate = (lon: number, lat: number) => {
+    for (const p of polygons) {
+      const [w, s, e, n] = p.box;
+      if (lat < s || lat > n) continue;
+      for (const x of [lon, lon - 360, lon + 360]) {
+        if (x >= w && x <= e && inside(p.rings, x, lat)) return p.iso3;
+      }
+    }
+    return null;
+  };
+  locators.set(countries, locate);
+  return locate;
+}

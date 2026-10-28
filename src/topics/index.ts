@@ -3,6 +3,7 @@ import { agriculture } from './agriculture';
 import { aid } from './aid';
 import { ai } from './ai';
 import { airQuality } from './air-quality';
+import { antipodes } from './antipodes';
 import { chainStores } from './chain-stores';
 import { cities } from './cities';
 import { climate } from './climate';
@@ -100,7 +101,7 @@ export const TOPIC_GROUPS: TopicGroup[] = [
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, aid, tourism, passport, military, conflict, democracy, governance, organizations, unVotes, diplomacy] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, plastic, ev] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, internetSpeed, developers, innovation, publications, submarineCables, space, transport, shipping, roadSafety] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [profiles, flags, language, elevation, rivers, oceans, daylight, eclipses, earthquakes, typhoons, wildfires, nightLights, worldHeritage, skyscrapers, travel] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [profiles, flags, language, elevation, rivers, oceans, daylight, eclipses, antipodes, earthquakes, typhoons, wildfires, nightLights, worldHeritage, skyscrapers, travel] },
 ];
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */

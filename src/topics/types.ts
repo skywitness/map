@@ -468,7 +468,24 @@ export interface LinesOverlayDef extends OverlayBase {
    * 外框照樣由線的圖層畫（MapLibre 的線圖層畫多邊形的外框）。滑過或側欄標出這一組時，那一組的面加深（`ov-<id>-hover-fill`）。
    * 面本身不給 hover 查詢：路徑裡面還是滑得到國家（線的查詢層照舊）
    */
-  fill?: { field: string; value: number; opacity: number; darkOpacity?: number };
+  fill?: {
+    field: string;
+    value: number;
+    opacity: number;
+    darkOpacity?: number;
+    /**
+     * 洞（2026-10-28 起，地球的另一邊）：紀錄的這個欄位是 1 的環是前一個外環的洞（翻過去的陸地裡挖掉的湖、
+     * 陸地對陸地的那幾塊）。沒寫時每個環各自是一個面
+     */
+    holeField?: string;
+    /**
+     * 哪些環另外做成外框的線（2026-10-28 起）：false 都不做、代碼的清單只做這幾類；沒寫是全部（日食的路徑環）。
+     * 地球的另一邊的面是陸地切出來的，外框是另外的海岸線，只有側欄標出一國時的那一類要外框
+     */
+    outline?: false | number[];
+    /** 依分類代碼的不透明度 { 代碼: [淺色底圖, 深色底圖] }，沒列的用 opacity、darkOpacity（2026-10-28 起） */
+    typeOpacity?: Record<number, [number, number]>;
+  };
   /** 線的不透明度，取代預設的淺色底圖 0.8、深色底圖 0.9（日食其他年份的中心線畫得很淡，2026-10-28 起） */
   opacity?: number;
   /**
@@ -489,7 +506,11 @@ export interface LinesOverlayDef extends OverlayBase {
          * dark：深色底圖上改用的顏色（同一個色相比較亮的那一階，例如河流的紫 → 淡紫）。沒寫的照原色，
          * 中性的深灰自動換成淺灰
          */
-        classes: { value: number; color: string; dark?: string; label: Text; dash?: boolean }[];
+        /**
+         * area：這一類是面（有 fill 的圖層），圖例畫成半透明的色塊（不是帶子），墊在它在地圖上疊著的底色上：
+         * 'land' 陸地、'sea' 海（2026-10-28 起，地球的另一邊）
+         */
+        classes: { value: number; color: string; dark?: string; label: Text; dash?: boolean; area?: 'land' | 'sea' }[];
       };
   /**
    * 年份欄位（LinesData.records 裡的欄位）：依時間軸篩選要顯示的線，篩選方式看指標的 overlayTime（跟點圖層一樣）。
@@ -606,6 +627,34 @@ export interface PanelExtraProps {
   selectYear?: (year: number) => void;
   /** 時刻主題（TopicDefinition.clock）目前選的這一刻 */
   at?: ClockAt;
+  /**
+   * 在地圖上放幾個標記（2026-10-28 起，地球的另一邊：首都與它的對蹠點）；null 時拿掉。
+   * 換國家、換主題時 App 會拿掉，側欄不必自己清
+   */
+  setMarks?: (marks: MapMark[] | null) => void;
+}
+
+/**
+ * 側欄放在地圖上的標記（PanelExtraProps.setMarks）：圓點加名稱。link 是另一個標記的索引：點一下這個標記，
+ * 地圖移到那一個（首都 ↔ 它的對蹠點，在地球儀上通常在背面）
+ */
+export interface MapMark {
+  lon: number;
+  lat: number;
+  label: string;
+  /** 'here' 實心、'there' 空心（對蹠點） */
+  kind: 'here' | 'there';
+  link?: number;
+}
+
+/**
+ * 滑到地圖上任一點時主題另外給的資訊（TopicDefinition.pointer）：title 是游標不在國家上（海上）時 tooltip 的第一行，
+ * lines 是接在後面的幾行（在國家上時接在國家的 tooltip 下面），mark 是地圖上跟著游標動的小記號（對蹠點）
+ */
+export interface PointerInfo {
+  title?: string;
+  lines: string[];
+  mark?: [number, number] | null;
 }
 
 export interface TopicDefinition {
@@ -658,7 +707,20 @@ export interface TopicDefinition {
    * 例如晝夜與季節的「以首都台北計算：日出 05:05、日落 18:46」。at 是時刻主題目前的這一刻，其他主題是 null；
    * source 是目前指標的資料檔（在瀏覽器裡算的指標是算的材料，例如各國首都的經緯度）
    */
-  tooltipLines?: (iso3: string, ctx: { indicator: string; at: ClockAt | null; item: string | null; source: unknown }) => string[];
+  tooltipLines?: (
+    iso3: string,
+    /** countryName：目前語言的國名（2026-10-28 起，地球的另一邊寫對蹠點落在哪些國家） */
+    ctx: { indicator: string; at: ClockAt | null; item: string | null; source: unknown; countryName: (iso3: string) => string },
+  ) => string[];
+  /**
+   * 滑到地圖上任何一點（含海上）時的資訊（2026-10-28 起，地球的另一邊：游標的對蹠點在哪一國或哪一片海）。
+   * lngLat 是游標的經緯度、iso3 是游標底下的國家（海上是 null）；countryAt 查任一經緯度在哪一國
+   * （地圖的 1:50m 國界，不在畫面上的地方也查得到）。回傳 null 時照舊（海上沒有 tooltip）
+   */
+  pointer?: (
+    lngLat: [number, number],
+    ctx: { iso3: string | null; countryAt: (lon: number, lat: number) => string | null; countryName: (iso3: string) => string },
+  ) => PointerInfo | null;
   /**
    * 某些國家沒有值的原因，取代 tooltip 與側欄的「無資料」（key 是 ISO alpha-3）：
    * 例如台灣的外交主題裡台灣是觀點、中國大陸與香港由陸委會主管，寫「無資料」會誤導

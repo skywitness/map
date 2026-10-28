@@ -16,6 +16,7 @@ import { bisectRight } from 'd3-array';
 import {
   addProtocol,
   Map as MaplibreMap,
+  type DataDrivenPropertyValueSpecification,
   type ExpressionSpecification,
   type GeoJSONSource,
   type LayerSpecification,
@@ -27,7 +28,7 @@ import {
 } from 'maplibre-gl';
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
-import type { AirportsData, Indicator } from '../topics/types';
+import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
@@ -59,7 +60,7 @@ import {
   type LayerVisibility,
   type OverlayLayer,
 } from './Overlays';
-import { applyTimeFilters, highlightLine, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { applyTimeFilters, highlightLine, labelFont, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
@@ -150,6 +151,13 @@ interface WorldMapProps {
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
   focusBox?: { box: [number, number, number, number]; key: number } | null;
+  /**
+   * 滑到地圖上任何一點（含海上）時的資訊（主題的 pointer，2026-10-28 起，地球的另一邊）：在國家上時幾行接在國家的
+   * tooltip 下面，海上時自己是一個 tooltip（title 加幾行）；mark 是跟著游標動的小記號（游標的對蹠點）
+   */
+  pointer?: (lngLat: [number, number], iso3: string | null) => PointerInfo | null;
+  /** 主題側欄放的標記（首都與它的對蹠點）：圓點加名稱，點一下移到 link 那一個（不會改變選取的國家） */
+  marks?: MapMark[] | null;
   ref?: Ref<WorldMapHandle>;
 }
 
@@ -626,6 +634,63 @@ const NO_PLACES: [string, [number, number]][] = [];
 
 const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
 
+/** 側欄放的標記（PanelExtraProps.setMarks）與游標的對蹠點（主題的 pointer 的 mark） */
+const MARKS_SOURCE = 'map-marks';
+const MARK_LAYER = 'map-marks';
+const MARK_LABEL_LAYER = 'map-marks-label';
+const POINTER_SOURCE = 'pointer-mark';
+/** 標記的顏色：紫（深色底圖淡紫），跟側欄標出的那一國同色（MAP_TOKENS.categorical 的 [6]、[1]） */
+const MARK_COLOR = { light: MAP_TOKENS.categorical[6], dark: MAP_TOKENS.categorical[1] };
+
+function markLayers(dark: boolean, font: DataDrivenPropertyValueSpecification<string[]>): LayerSpecification[] {
+  const color = dark ? MARK_COLOR.dark : MARK_COLOR.light;
+  const ink = dark ? '#ffffff' : MAP_TOKENS.ink;
+  const paper = dark ? '#0b0b0b' : '#ffffff';
+  const there: ExpressionSpecification = ['==', ['get', 'kind'], 'there'];
+  return [
+    // 游標的對蹠點：空心的圈（白色襯底），在地球儀上通常在背面，平面地圖上看得到
+    {
+      id: 'pointer-mark-halo',
+      type: 'circle',
+      source: POINTER_SOURCE,
+      paint: { 'circle-radius': 7, 'circle-opacity': 0, 'circle-stroke-color': paper, 'circle-stroke-width': 4.5, 'circle-stroke-opacity': 0.85 },
+    },
+    {
+      id: 'pointer-mark',
+      type: 'circle',
+      source: POINTER_SOURCE,
+      paint: { 'circle-radius': 7, 'circle-opacity': 0, 'circle-stroke-color': ink, 'circle-stroke-width': 2 },
+    },
+    // 側欄的標記：這裡實心、對蹠點空心（白底加色框），旁邊寫名稱
+    {
+      id: MARK_LAYER,
+      type: 'circle',
+      source: MARKS_SOURCE,
+      paint: {
+        'circle-radius': 7,
+        'circle-color': ['case', there, paper, color],
+        'circle-stroke-color': ['case', there, color, paper],
+        'circle-stroke-width': ['case', there, 3, 2],
+      },
+    },
+    {
+      id: MARK_LABEL_LAYER,
+      type: 'symbol',
+      source: MARKS_SOURCE,
+      layout: {
+        'text-field': ['get', 'label'],
+        'text-font': font,
+        'text-size': 12.5,
+        'text-anchor': 'top',
+        'text-offset': [0, 0.9],
+        'text-max-width': 12,
+        'text-allow-overlap': true,
+      },
+      paint: { 'text-color': ink, 'text-halo-color': paper, 'text-halo-width': 1.6 },
+    },
+  ];
+}
+
 /** hover 與點選時依序查詢的圖層（上面的優先）；隱藏的圖層會跳過 */
 const HOVER_LAYERS = [
   'flow-ends',
@@ -658,7 +723,7 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const terrain = Boolean(props.terrain);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -704,6 +769,10 @@ export function WorldMap(props: WorldMapProps) {
     airport?: number;
     /** 一般點圖層的點（或有 tooltip 的線）：overlay 的 id 與資料的第幾筆 */
     point?: { overlay: string; index: number };
+    /** 主題有 pointer 時游標的經緯度（-180–180） */
+    lngLat?: [number, number];
+    /** 滑到側欄放的標記（marks 的第幾個） */
+    mark?: number;
   } | null>(null);
   /** 一般點圖層與有 tooltip 的線的 MapLibre 圖層 id（上面的在前），hover 與點選時比國家先查 */
   const pointLayersRef = useRef<string[]>([]);
@@ -728,8 +797,8 @@ export function WorldMap(props: WorldMapProps) {
   const [overlayOnLeft, setOverlayOnLeft] = useState(false);
 
   // 地圖事件在建立時綁定一次，最新的 props 放在 ref 裡讀
-  const latest = useRef({ onSelect, onBoxChange, boxMode });
-  latest.current = { onSelect, onBoxChange, boxMode };
+  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks });
+  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks };
 
   // 分級色、正負色用使用者選的配色（圖例的「配色」，palettes.ts）
   const mapTokens = useMapTokens();
@@ -821,6 +890,9 @@ export function WorldMap(props: WorldMapProps) {
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
+    // 側欄的標記、游標的對蹠點：畫在最上面（連底圖的地名也蓋過，「台北的對蹠點」才不會被當地的地名壓住）
+    for (const id of [MARKS_SOURCE, POINTER_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
+    for (const layer of markLayers(dark, labelFont(m))) m.addLayer(layer);
     baseRastersRef.current = styleLayers
       .filter((l) => l.type === 'raster' && l.layout?.visibility !== 'none')
       .map((l) => l.id);
@@ -979,7 +1051,8 @@ export function WorldMap(props: WorldMapProps) {
         return;
       }
       if (latest.current.boxMode) return;
-      const f = featureAt(e.point);
+      const mark = markAt(e.point);
+      const f = mark === null ? featureAt(e.point) : null;
       const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
       // 海上的地震沒有國家，照樣顯示 tooltip；線（海底電纜）也是
       const line = f ? lineOverlayAt(f.layer.id) : null;
@@ -991,18 +1064,25 @@ export function WorldMap(props: WorldMapProps) {
       highlightLine(map, lineHoverRef.current, lineHover);
       lineHoverRef.current = lineHover;
       setHoverId(iso3);
-      map.getCanvas().style.cursor = iso3 || point ? 'pointer' : '';
+      map.getCanvas().style.cursor = iso3 || point || mark !== null ? 'pointer' : '';
+      const airport = f?.layer.id.startsWith('airports') ? Number(f.properties.i) : undefined;
+      // 主題有 pointer（地球的另一邊）：海上也有 tooltip；滑到點、機場、標記時照舊
+      const anywhere = latest.current.pointer && !point && airport === undefined && mark === null;
+      const { lng, lat } = e.lngLat.wrap();
       setHover(
-        iso3 || point
-          ? {
-              iso3,
-              x: e.point.x,
-              y: e.point.y,
-              airport: f?.layer.id.startsWith('airports') ? Number(f.properties.i) : undefined,
-              point,
-            }
-          : null,
+        mark !== null
+          ? { iso3: null, x: e.point.x, y: e.point.y, mark }
+          : iso3 || point || anywhere
+            ? { iso3, x: e.point.x, y: e.point.y, airport, point, lngLat: anywhere ? [lng, lat] : undefined }
+            : null,
       );
+    };
+
+    /** 游標底下的側欄標記（marks 的索引） */
+    const markAt = (point: { x: number; y: number }): number | null => {
+      if (!map.getLayer(MARK_LAYER)) return null;
+      const [hit] = map.queryRenderedFeatures([point.x, point.y], { layers: [MARK_LAYER, MARK_LABEL_LAYER] });
+      return hit ? Number(hit.properties.i) : null;
     };
 
     const onDown = (e: MapMouseEvent | MapTouchEvent) => {
@@ -1036,6 +1116,15 @@ export function WorldMap(props: WorldMapProps) {
     map.on('click', (e) => {
       if (suppressClickRef.current || latest.current.boxMode) {
         suppressClickRef.current = false;
+        return;
+      }
+      // 點側欄放的標記：移到它連到的那一個（首都 ↔ 對蹠點），選取的國家不變
+      const mark = markAt(e.point);
+      if (mark !== null) {
+        const marksNow = latest.current.marks;
+        const link = marksNow?.[mark]?.link;
+        const target = link !== undefined ? marksNow?.[link] : undefined;
+        if (target) map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
         return;
       }
       const f = featureAt(e.point, false);
@@ -1358,6 +1447,37 @@ export function WorldMap(props: WorldMapProps) {
     map.setPaintProperty('selected-mark', 'circle-stroke-color', nightLook ? '#ffffff' : MAP_TOKENS.ink);
     map.setPaintProperty('selected-mark-halo', 'circle-stroke-color', nightLook ? '#0b0b0b' : '#ffffff');
   }, [revision, nightLook]);
+
+  // 側欄放的標記（首都與它的對蹠點）
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    (map.getSource(MARKS_SOURCE) as GeoJSONSource).setData(
+      marks?.length
+        ? {
+            type: 'FeatureCollection',
+            features: marks.map((m, i) => ({
+              type: 'Feature',
+              properties: { i, label: m.label, kind: m.kind },
+              geometry: { type: 'Point', coordinates: [m.lon, m.lat] },
+            })),
+          }
+        : EMPTY,
+    );
+  }, [revision, marks]);
+
+  // 滑到地圖上任何一點時主題給的資訊（地球的另一邊：游標的對蹠點），跟著游標動的小記號
+  const pointerInfo = hover?.lngLat && pointer ? pointer(hover.lngLat, hover.iso3) : null;
+  const pointerMark = pointerInfo?.mark ?? null;
+  const pointerMarkKey = pointerMark ? pointerMark.join(',') : '';
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    (map.getSource(POINTER_SOURCE) as GeoJSONSource | undefined)?.setData(
+      pointerMark ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: pointerMark } } : EMPTY,
+    );
+    // pointerMark 每次都是新的陣列，依內容（pointerMarkKey）更新就好
+  }, [revision, pointerMarkKey]);
 
   // 地球儀縮小時，底圖的地名只留離畫面中心 LIMB_DEGREES 以內的（見 sphericalCap）；移動結束時更新
   useEffect(() => {
@@ -2140,16 +2260,50 @@ export function WorldMap(props: WorldMapProps) {
         ) : null}
       </div>
 
-      {hover && size && (
+      {hover && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
-          {hover.point && renderPointTooltip
-            ? renderPointTooltip(hover.point.overlay, hover.point.index)
-            : hover.airport !== undefined && renderAirportTooltip
-              ? renderAirportTooltip(hover.airport)
-              : hover.iso3 && renderTooltip(hover.iso3)}
+          {hover.mark !== undefined && marks?.[hover.mark] ? (
+            <MarkTooltip marks={marks} index={hover.mark} />
+          ) : hover.point && renderPointTooltip ? (
+            renderPointTooltip(hover.point.overlay, hover.point.index)
+          ) : hover.airport !== undefined && renderAirportTooltip ? (
+            renderAirportTooltip(hover.airport)
+          ) : (
+            <>
+              {hover.iso3 && renderTooltip(hover.iso3)}
+              {pointerInfo && <PointerLines info={pointerInfo} standalone={!hover.iso3} />}
+            </>
+          )}
         </MapTooltip>
       )}
     </div>
+  );
+}
+
+/** 主題的 pointer 給的幾行：海上（standalone）時 title 是第一行，在國家上時接在國家的 tooltip 下面 */
+function PointerLines({ info, standalone }: { info: PointerInfo; standalone: boolean }) {
+  return (
+    <>
+      {standalone && info.title && <div className="tt-value">{info.title}</div>}
+      {info.lines.map((line, i) => (
+        <div key={i} className={`tt-label${standalone && i === 0 ? '' : ' tt-hint'}${!standalone && i > 0 ? ' is-next' : ''}`}>
+          {line}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** 側欄的標記：名稱，有連到另一個標記時寫「按一下移到…」 */
+function MarkTooltip({ marks, index }: { marks: MapMark[]; index: number }) {
+  const t = useT();
+  const mark = marks[index];
+  const target = mark.link !== undefined ? marks[mark.link] : undefined;
+  return (
+    <>
+      <div className="tt-value">{mark.label}</div>
+      {target && <div className="tt-label">{t.markLink(target.label)}</div>}
+    </>
   );
 }
 
