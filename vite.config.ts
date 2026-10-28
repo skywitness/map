@@ -68,6 +68,33 @@ function preloadTopicChunk(): Plugin {
   };
 }
 
+/**
+ * 第一個畫面要用的 JS、CSS：首頁程式、地圖程式與它們直接 import 的 chunk。service worker 安裝時只預先快取這些，
+ * 其他（各主題、側欄、圖表）在預先快取清單裡標成 LAZY_REVISION，由 sw.ts 另外處理（網路不受限時照樣在背景全部下載）
+ */
+const coreAssets = new Set<string>();
+const LAZY_REVISION = 'lazy';
+function collectCoreAssets(): Plugin {
+  return {
+    name: 'collect-core-assets',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      coreAssets.clear();
+      const chunks = new Map(Object.values(bundle).flatMap((c) => (c.type === 'chunk' ? [[c.fileName, c] as const] : [])));
+      const visit = (fileName: string) => {
+        const chunk = chunks.get(fileName);
+        if (!chunk || coreAssets.has(fileName)) return;
+        coreAssets.add(fileName);
+        for (const css of chunk.viteMetadata?.importedCss ?? []) coreAssets.add(css);
+        for (const dep of chunk.imports) visit(dep);
+      };
+      for (const chunk of chunks.values()) {
+        if (chunk.isEntry || /[\\/]src[\\/]map[\\/]WorldMap\.tsx$/.test(chunk.facadeModuleId ?? '')) visit(chunk.fileName);
+      }
+    },
+  };
+}
+
 /** public/data 全部內容的雜湊：service worker 的資料快取用它命名，資料一更新就換新快取 */
 function dataVersion(dir = 'public/data'): string {
   const hash = createHash('sha256');
@@ -87,6 +114,7 @@ export default defineConfig(({ command }) => ({
     react(),
     preloadMapChunk(),
     preloadTopicChunk(),
+    collectCoreAssets(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',
@@ -102,6 +130,15 @@ export default defineConfig(({ command }) => ({
           'icons/icon.svg',
           'icons/apple-touch-icon-180.png',
           'data/countries.json',
+        ],
+        // 第一個畫面用不到的 JS、CSS 標成 LAZY_REVISION（collectCoreAssets），sw.ts 不在安裝時一定下載
+        manifestTransforms: [
+          (entries) => ({
+            manifest: entries.map((e) =>
+              coreAssets.size && /^assets\/.+\.(js|css)$/.test(e.url) && !coreAssets.has(e.url) ? { ...e, revision: LAZY_REVISION } : e,
+            ),
+            warnings: coreAssets.size ? [] : ['collect-core-assets：沒有找到首頁程式，全部當成要預先快取'],
+          }),
         ],
       },
       manifest: {

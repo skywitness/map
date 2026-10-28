@@ -2,7 +2,9 @@
 /**
  * Service worker（vite-plugin-pwa 的 injectManifest 模式，用 Workbox 模組組裝）。
  *
- * - App shell（index.html、JS、CSS、圖示）預先快取：第二次開啟不必等網路，離線也能開。
+ * - App shell（index.html、第一個畫面要用的 JS 與 CSS、圖示）安裝時預先快取：第二次開啟不必等網路，離線也能開。
+ * - 其他 JS、CSS（各主題、側欄、圖表，建置時標成 LAZY，見 vite.config.ts 的 collectCoreAssets）：網路不受限時
+ *   安裝時也全部下載（離線也能換主題、開側欄）；開了省流量模式或 2G 網路時只存用到的（約省 1 MB）。
  * - 資料 JSON：stale-while-revalidate，先給快取、背景更新。快取名稱含資料版本
  *   （建置時 public/data 內容的雜湊，見 vite.config.ts），部署了新資料就換一個新快取，舊的在啟用時刪掉。
  * - 底圖（OpenFreeMap）：樣式、字型、圖磚在執行時快取（只存使用者看過的，有數量與天數上限，
@@ -23,13 +25,43 @@ import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategi
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: (string | { url: string; revision: string | null })[] };
 
 const DATA_CACHE = `data-${__DATA_VERSION__}`;
+/** vite.config.ts 的 LAZY_REVISION */
+const LAZY = 'lazy';
+const APP_LAZY_CACHE = 'app-lazy';
 const BASEMAP = 'https://tiles.openfreemap.org';
 const DAY = 24 * 60 * 60;
 
 self.skipWaiting();
 clientsClaim();
 cleanupOutdatedCaches();
-precacheAndRoute(self.__WB_MANIFEST);
+// Workbox 建置時把清單填進 self.__WB_MANIFEST（原始碼裡只能出現一次）
+const MANIFEST = self.__WB_MANIFEST;
+const isLazy = (e: string | { url: string; revision?: string | null }) => typeof e !== 'string' && e.revision === LAZY;
+precacheAndRoute(MANIFEST.filter((e) => !isLazy(e)));
+
+// 第一個畫面用不到的 JS、CSS：網址含內容的雜湊，內容不會變，用到的才存（CacheFirst）；
+// 網路不受限時安裝時就全部下載。新版啟用時刪掉不在這一版清單裡的
+const lazyUrls = new Set(
+  MANIFEST.filter(isLazy).map((e) => new URL(typeof e === 'string' ? e : e.url, self.registration.scope).href),
+);
+registerRoute(({ url }) => lazyUrls.has(url.href), new CacheFirst({ cacheName: APP_LAZY_CACHE }));
+
+/** 開了省流量模式或 2G 網路（只有 Chromium 的 worker 有 navigator.connection；其他瀏覽器照常全部下載） */
+function constrained(): boolean {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  return Boolean(connection?.saveData) || /(^|-)2g$/.test(connection?.effectiveType ?? '');
+}
+
+self.addEventListener('install', (event) => {
+  if (constrained()) return;
+  event.waitUntil(
+    caches.open(APP_LAZY_CACHE).then(async (cache) => {
+      for (const url of lazyUrls) {
+        if (!(await cache.match(url))) await cache.add(url).catch(() => {});
+      }
+    }),
+  );
+});
 
 // 直接開任何畫面（?topic=…&country=…）都用預先快取的 index.html；直接開資料檔、圖磚的網址則照常回傳檔案
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/data\//, /\/tiles\//] }));
@@ -130,11 +162,16 @@ registerRoute(
   }),
 );
 
-// 舊版資料的快取在新版啟用時刪掉
+// 舊版資料的快取、舊版的 chunk 在新版啟用時刪掉
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('data-') && k !== DATA_CACHE).map((k) => caches.delete(k)))),
+    Promise.all([
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.filter((k) => k.startsWith('data-') && k !== DATA_CACHE).map((k) => caches.delete(k)))),
+      caches.open(APP_LAZY_CACHE).then(async (cache) => {
+        for (const request of await cache.keys()) if (!lazyUrls.has(request.url)) await cache.delete(request);
+      }),
+    ]),
   );
 });

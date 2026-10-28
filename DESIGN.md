@@ -2942,7 +2942,8 @@ pipeline/
 
 | 內容 | 策略 | 快取名稱 | 上限 |
 |---|---|---|---|
-| App shell：`index.html`、所有 JS/CSS（含 ECharts）、圖示、manifest、國名表 | 預先快取（安裝時下載，25 個檔、約 2 MB，gzip 後約 650 KB；檔名有雜湊的會用瀏覽器快取裡已經下載的，第一次造訪實際多下載約 220 KB，主要是 ECharts） | `workbox-precache-v2-…` | 每次建置的清單 |
+| App shell：`index.html`、第一個畫面要用的 JS/CSS（首頁程式、地圖程式與它們直接 import 的 chunk）、圖示、manifest、國名表 | 預先快取（安裝時下載，14 個檔、gzip 後約 510 KB，多半是第一個畫面已經下載的；檔名有雜湊的會用瀏覽器快取裡的） | `workbox-precache-v2-…` | 每次建置的清單 |
+| 其他 JS/CSS（各主題、側欄、ECharts，建置時標成 `lazy`，`vite.config.ts` 的 `collectCoreAssets`） | cache first（檔名有雜湊）；網路不受限時安裝時就全部下載（約 150 個檔、gzip 後約 660 KB，離線也能換主題、開側欄），開了省流量模式或 2G 網路時（`navigator.connection`，只有 Chromium 有）只存用到的（2026-10-28 加） | `app-lazy` | 這一版的清單（新版啟用時刪掉舊的） |
 | 資料 JSON（`/data/**`） | stale-while-revalidate：先給快取、背景向伺服器確認 | `data-<資料版本>` | 400 個檔 |
 | 底圖樣式、`/planet`、圖示集 | stale-while-revalidate | `basemap-style` | 40 |
 | 底圖字型 | cache first | `basemap-fonts` | 60 個、60 天 |
