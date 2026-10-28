@@ -179,23 +179,24 @@ export function CountryPanel(props: CountryPanelProps) {
           <h2>{name}</h2>
           <p className="panel-sub">
             {lang === 'en' ? displayCode(iso3) : `${enName(iso3, countries)} · ${displayCode(iso3)}`}
+            {/* 年份寫在同一行（原本自己一行）：桌機 900px 高時，第一張折線圖不必捲動就看得到整張。
+                不隨時間變化的資料（海拔）不寫年份 */}
+            {!topic.timeless && (
+              <span className="panel-year">
+                {' · '}
+                {/* 時刻主題寫那一刻（「6月21日 14:05」） */}
+                {at ? formatMoment(at.time) : (indicator.timeAxis?.year(year) ?? t.year(year))}
+                {projectionFrom !== undefined && year >= projectionFrom && (
+                  <span className="year-tag is-projected">{t.projected}</span>
+                )}
+              </span>
+            )}
           </p>
         </div>
         <button type="button" className="icon-button" onClick={onClose} aria-label={t.close}>
           <CloseIcon />
         </button>
       </header>
-
-      {/* 不隨時間變化的資料（海拔）不寫年份 */}
-      {!topic.timeless && (
-        <p className="panel-year">
-          {/* 時刻主題寫那一刻（「6月21日 14:05」） */}
-          {at ? formatMoment(at.time) : (indicator.timeAxis?.year(year) ?? t.year(year))}
-          {projectionFrom !== undefined && year >= projectionFrom && (
-            <span className="year-tag is-projected">{t.projected}</span>
-          )}
-        </p>
-      )}
 
       <div className="stats">
         {stats.map(({ ind, loaded, value, rank, total, share, shownYear, others }) => (

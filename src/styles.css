@@ -2054,10 +2054,9 @@ kbd {
   font-size: 13px;
 }
 
+/* 年份接在英文名與代碼後面（同一行），不另佔一行 */
 .panel-year {
-  margin: 12px 0 8px;
-  color: var(--ink-secondary);
-  font-size: 13px;
+  white-space: nowrap;
 }
 
 .year-tag {
@@ -2081,14 +2080,15 @@ kbd {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  margin-top: 12px;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  padding: 10px;
+  gap: 1px;
+  padding: 8px 10px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: none;
@@ -3791,8 +3791,8 @@ kbd {
 /* ── 手機：國家側欄改成底部抽屜（PanelSheet.tsx） ── */
 @media (max-width: 768px) {
   :root {
-    /* 收合時露出把手、國名與第一排數值 */
-    --sheet-peek: 196px;
+    /* 收合時露出把手、國名與第一排數值（年份 2026-10-28 移到英文名那一行，從 196px 降到 180px） */
+    --sheet-peek: 180px;
   }
 
   /* 字小於 16px 的輸入框，iOS 點下去會自動放大整頁 */
