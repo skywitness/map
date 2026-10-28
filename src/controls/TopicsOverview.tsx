@@ -2,13 +2,12 @@ import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { tr, useLang, useT } from '../i18n';
 import { matchTopics, type TopicHit, type TopicTarget } from '../lib/topicSearch';
 import { CloseIcon } from '../map/MapIcons';
-import { TOPIC_GROUPS } from '../topics';
+import { prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '../topics';
 import { pureMap } from '../topics/map';
-import type { TopicDefinition } from '../topics/types';
 
 interface TopicsOverviewProps {
   open: boolean;
-  current: TopicDefinition;
+  current: { id: string };
   onSelect: (target: TopicTarget) => void;
   onClose: () => void;
 }
@@ -45,13 +44,13 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
     return new Map<string, TopicHit>(matchTopics(query).map((hit) => [hit.entry.target.topic, hit]));
   }, [query]);
 
-  const summary = (topic: TopicDefinition) =>
+  const summary = (topic: TopicSummary) =>
     t.topicSummary(
       topic.indicators.slice(0, SUMMARY_COUNT).map((ind) => tr(ind.label, lang)),
       topic.indicators.length > SUMMARY_COUNT,
     );
 
-  const card = (topic: TopicDefinition) => {
+  const card = (topic: TopicSummary) => {
     const hit = matches?.get(topic.id);
     if (matches && !hit) return null;
     const target = hit?.entry.target ?? { topic: topic.id, indicator: null, item: null };
@@ -62,6 +61,8 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
           type="button"
           className={`overview-card${isCurrent ? ' is-current' : ''}`}
           aria-current={isCurrent ? 'page' : undefined}
+          onPointerEnter={() => prefetchTopic(topic.id)}
+          onFocus={() => prefetchTopic(topic.id)}
           onClick={() => onSelect(target)}
         >
           <img src={`thumbs/${topic.id}.webp`} alt="" width={240} height={140} loading="lazy" decoding="async" />

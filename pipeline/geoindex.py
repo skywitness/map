@@ -428,14 +428,14 @@ class _Index:
                 out[p] = np.where(m < r2, tie, -1)
         return out
 
-    def lookup(self, x, y):
+    def lookup(self, x, y, nearest: bool = True):
         import numpy as np
 
         found = self.cell[self._row(y), self._col(x)].astype(np.int64)
         edge = np.nonzero(found == -2)[0]
         if len(edge):
             found[edge] = self._exact(x[edge], y[edge])
-        rest = np.nonzero(found < 0)[0]
+        rest = np.nonzero(found < 0)[0] if nearest else []
         if len(rest):
             found[rest] = self._nearest(x[rest], y[rest])
         return found
@@ -486,16 +486,19 @@ def _in_fifty_m(iso3: str, x, y):
     return out
 
 
-def countries_at(lons, lats) -> list[str | None]:
+def countries_at(lons, lats, nearest: bool = True) -> list[str | None]:
     """一批點各自的國家：第一個包含這個點的國家（依 1:10m 的順序）；都不在國界內時取 0.3° 內最近的國界頂點，再沒有是 None。
-    ISLANDS、BORDER_FIXES 範圍裡的點照它們的規則。"""
+    ISLANDS、BORDER_FIXES 範圍裡的點照它們的規則。
+
+    nearest=False：只算在國界內的點（陸地），海上的點一律是 None，不找最近的國界（日食路徑算「經過哪些國家的陸地」用；
+    ISLANDS 的範圍照樣歸台灣）。"""
     import numpy as np
 
     x, y = np.asarray(lons, dtype=float), np.asarray(lats, dtype=float)
     if not len(x):
         return []
     index = _index()
-    out = np.array([index.codes[c] if c >= 0 else None for c in index.lookup(x, y)], dtype=object)
+    out = np.array([index.codes[c] if c >= 0 else None for c in index.lookup(x, y, nearest)], dtype=object)
     for iso3, (x0, y0, x1, y1) in ISLANDS.values():
         out[(x >= x0) & (x <= x1) & (y >= y0) & (y <= y1)] = iso3
     for boxes, rule, _why in BORDER_FIXES.values():

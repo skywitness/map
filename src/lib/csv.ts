@@ -28,14 +28,17 @@ export function indicatorCsv(
     label?: (value: number) => string;
     /** 數值越小越好的指標：單一年份由小排到大（跟排名表一樣） */
     ascending?: boolean;
+    /** 年份那一欄的欄名（時刻主題：「2026-06-21」，年份是 YYYYMMDD 的整數）；不給就寫年份 */
+    yearLabel?: (year: number) => string;
   },
 ): string {
-  const { unit, countries, year, label, ascending } = options;
+  const { unit, countries, year, label, ascending, yearLabel } = options;
   const lang = getLang();
   const h = HEADERS[lang];
   const columns = year === undefined ? data.years.map((_, i) => i) : [data.years.indexOf(year)].filter((i) => i >= 0);
   const yearHeader = (i: number) => {
     const y = data.years[i];
+    if (yearLabel) return yearLabel(y);
     return data.projectionFrom !== undefined && y >= data.projectionFrom ? `${y}${h.projected}` : String(y);
   };
   const notes = lang === 'en' ? data.notesEn : data.notes;

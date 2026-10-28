@@ -20,6 +20,14 @@ function Icon({ children, size = 18 }: { children: ReactNode; size?: number }) {
   );
 }
 
+/** 搜尋：放大鏡（手機上收起來的搜尋框，CountrySearch 的 compact） */
+export const SearchIcon = () => (
+  <Icon>
+    <circle cx="8" cy="8" r="5" />
+    <path d="M11.8 11.8 15.5 15.5" />
+  </Icon>
+);
+
 export const PlusIcon = () => (
   <Icon>
     <path d="M9 4v10M4 9h10" />
@@ -53,6 +61,15 @@ export const GlobeIcon = () => (
   <Icon>
     <circle cx="9" cy="9" r="6.5" />
     <path d="M2.5 9h13M9 2.5c-2.2 2.4-2.2 10.6 0 13M9 2.5c2.2 2.4 2.2 10.6 0 13" />
+  </Icon>
+);
+
+/** 轉到某一洲（RegionMenu）：地球加一個繞著轉的箭頭 */
+export const GlobeTurnIcon = () => (
+  <Icon>
+    <circle cx="9" cy="9" r="5" />
+    <path d="M4 9h10M9 4c-1.6 1.7-1.6 8.3 0 10" />
+    <path d="M14.8 4.6A7.5 7.5 0 0 0 3 4.2M3 4.2V1.8M3 4.2h2.4" />
   </Icon>
 );
 

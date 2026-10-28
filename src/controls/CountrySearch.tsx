@@ -3,6 +3,7 @@ import { tr, useLang } from '../i18n';
 import { searchCountries, type SearchEntry } from '../lib/countrySearch';
 import { useUI } from '../lib/strings';
 import { searchTopics, type TopicTarget } from '../lib/topicSearch';
+import { SearchIcon } from '../map/MapIcons';
 import { useHotkeys } from './hotkeys';
 
 interface CountrySearchProps {
@@ -12,6 +13,11 @@ interface CountrySearchProps {
   onSelectTopic?: (target: TopicTarget) => void;
   /** 結果旁顯示的目前數值；純地圖頁沒有數值，不傳 */
   valueOf?: (iso3: string) => string | null;
+  /**
+   * 手機：平常只是一顆放大鏡按鈕，點了才展開成蓋住整行控制列的輸入框（離開時沒有輸入就收起來），
+   * 指標、地圖／排名表、分享才排得進同一行，地圖往上移
+   */
+  compact?: boolean;
 }
 
 /** 手機、平板沒有實體鍵盤，提示文字不必寫快捷鍵 */
@@ -25,7 +31,7 @@ type Option =
  * 國家與主題搜尋（WAI-ARIA combobox）：打字即時列出結果，↑↓ 選擇、Enter 確定、Esc 關閉，按「/」從任何地方跳到這裡。
  * 國家、主題分兩組，比對分數高的那一組排前面（打「日本」國家在前，打「房價」主題在前）。
  */
-export function CountrySearch({ index, onSelect, onSelectTopic, valueOf }: CountrySearchProps) {
+export function CountrySearch({ index, onSelect, onSelectTopic, valueOf, compact = false }: CountrySearchProps) {
   const id = useId();
   const UI = useUI();
   const lang = useLang();
@@ -34,6 +40,9 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf }: Count
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // compact 時輸入框是否展開
+  const [unfolded, setUnfolded] = useState(false);
+  const folded = compact && !unfolded;
   const groups = useMemo(() => {
     const countries = searchCountries(index, query, lang);
     const topics = onSelectTopic ? searchTopics(query) : [];
@@ -56,7 +65,7 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf }: Count
   const expanded = open && query.trim() !== '';
   const optionId = (i: number) => `${id}-option-${i}`;
 
-  useHotkeys({ '/': () => inputRef.current?.focus() });
+  useHotkeys({ '/': () => (folded ? setUnfolded(true) : inputRef.current?.focus()) });
 
   useEffect(() => {
     listRef.current?.querySelector(`#${CSS.escape(optionId(active))}`)?.scrollIntoView({ block: 'nearest' });
@@ -67,6 +76,7 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf }: Count
     else onSelectTopic?.(option.target);
     setQuery('');
     setOpen(false);
+    setUnfolded(false);
     // 交還焦點：手機收起鍵盤，桌機可以接著用方向鍵換年份
     inputRef.current?.blur();
   };
@@ -107,10 +117,20 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf }: Count
       : UI.search.placeholder;
   let i = -1;
 
+  if (folded) {
+    return (
+      <button type="button" className="icon-button search-unfold" aria-label={label} title={label} onClick={() => setUnfolded(true)}>
+        <SearchIcon />
+      </button>
+    );
+  }
+
   return (
-    <div className="search-box">
+    <div className={`search-box${compact ? ' is-overlay' : ''}`}>
       <input
         ref={inputRef}
+        // compact：點了放大鏡才出現，直接讓鍵盤跳出來
+        autoFocus={compact}
         className="search"
         type="search"
         role="combobox"
@@ -131,7 +151,11 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf }: Count
         }}
         onKeyDown={onKeyDown}
         onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onBlur={() => {
+          setOpen(false);
+          // 打到一半的字留著，再點放大鏡時還在
+          setUnfolded(false);
+        }}
       />
       {expanded && (
         <div className="search-results">

@@ -3,18 +3,26 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ErrorBoundary } from './ErrorBoundary';
 import { registerServiceWorker } from './lib/serviceWorker';
+import { read as readUrlState } from './lib/url-state';
+import { loadTopic } from './topics';
 // MapLibre 的 CSS 放在首頁、排在 styles.css 前面：styles.css 有些規則要蓋過它（例如 .map-canvas 的定位）。
 // 如果跟著地圖程式的 chunk 晚載入，它會反過來蓋掉 styles.css，地圖容器變成 0 高度
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-);
+// 網址的主題（人口以外的各自一個 chunk，index.html 已經先預載）下載完才畫第一個畫面；
+// 失敗的話照樣畫，App 改開預設的主題
+loadTopic(readUrlState().topic)
+  .catch(() => {})
+  .finally(() =>
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </StrictMode>,
+    ),
+  );
 
 // Service worker：離線也能開、再次開啟直接從快取載入
 registerServiceWorker();

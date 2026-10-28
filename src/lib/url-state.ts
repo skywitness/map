@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { langParam, URL_PARAM } from '../i18n/lang';
 import { boxFromLegacyRaw, type Box } from '../map/boxEstimate';
+import { formatTimeParam, parseTimeParam } from './clock';
 import { setHistoryUrl } from './history';
 
 /** 畫面狀態全部放在網址參數，任何畫面都能直接複製網址分享。 */
@@ -23,6 +24,11 @@ export interface ViewState {
   grid: boolean | null;
   /** 側欄折線圖與數值卡片一起比較的國家（cmp=JPN,KOR，最多 COMPARE_MAX 個） */
   compare: string[];
+  /**
+   * 時刻主題（晝夜與季節）選的那一刻（UTC 毫秒，網址 time=2026-06-21T0400Z）；null 是「現在」，每分鐘更新、不寫網址。
+   * 播放時的每一格不寫網址，停下來才寫（App.tsx）
+   */
+  time: number | null;
 }
 
 export const COMPARE_MAX = 3;
@@ -43,6 +49,7 @@ export function read(): ViewState {
     threeD: p.get('3d') === '1',
     grid: p.get('grid') === '1' ? true : p.get('grid') === '0' ? false : null,
     compare: [...new Set((p.get('cmp') ?? '').split(',').filter((c) => /^_?[A-Z]{3}$/.test(c)))].slice(0, COMPARE_MAX),
+    time: parseTimeParam(p.get('time')),
   };
 }
 
@@ -63,7 +70,7 @@ function legacyBox(text: string | null): Box | null {
 
 /**
  * 這些變了才在瀏覽紀錄留一筆，瀏覽器的「上一頁」回得到前一個主題、指標、國家（原本一律改寫目前這一筆，
- * 上一頁會直接離開網站）。年份、框選、3D、網格只改寫目前這一筆：拖時間軸、播放不會塞滿紀錄。
+ * 上一頁會直接離開網站）。年份、時刻、框選、3D、網格只改寫目前這一筆：拖時間軸、播放不會塞滿紀錄。
  */
 const HISTORY_KEYS = ['topic', 'indicator', 'item', 'country', 'view'] as const;
 
@@ -95,6 +102,7 @@ function buildUrl(state: ViewState): string {
   if (state.threeD) p.set('3d', '1');
   if (state.grid !== null) p.set('grid', state.grid ? '1' : '0');
   if (state.compare.length) p.set('cmp', state.compare.join(','));
+  if (state.time !== null) p.set('time', formatTimeParam(state.time));
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);

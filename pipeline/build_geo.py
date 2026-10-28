@@ -12,6 +12,8 @@ import pycountry
 from common import OUT_DIR, download, write_json
 
 WORLD_ATLAS_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-{scale}.json"
+# 世界視角的湖泊（公有領域）：國界不挖掉湖（五大湖、維多利亞湖算在國家裡），縮放 4.5 以下陸地用國界畫，湖要另外蓋上去
+LAKES_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v4.1.0/geojson/ne_110m_lakes.geojson"
 
 # world-atlas 裡沒有 ISO 數字代碼的區域。底線開頭代表非 ISO 代碼，不會有統計資料。
 NO_ID_OVERRIDES = {
@@ -129,6 +131,28 @@ def build() -> None:
         reference[iso3] = {"iso2": iso2, "name": name} if iso2 else {"name": name}
     write_json(OUT_DIR / "countries.json", dict(sorted(reference.items())))
     build_regions()
+    build_lakes()
+
+
+def build_lakes() -> None:
+    """Natural Earth 1:110m 的湖泊 → geo/lakes-110m.json（世界視角的底圖，WorldMap 的 base-lakes 圖層）。
+
+    座標取到小數 2 位（約 1 km），只留幾何：縮放 4.5 以上改用底圖圖磚的水域。
+    """
+    src = download(LAKES_URL, "natural-earth", "ne_110m_lakes-4.1.0.geojson")
+    with open(src, encoding="utf-8") as f:
+        lakes = json.load(f)
+
+    def rounded(coords):
+        if isinstance(coords[0], (int, float)):
+            return [round(coords[0], 2), round(coords[1], 2)]
+        return [rounded(c) for c in coords]
+
+    features = [
+        {"type": "Feature", "properties": {}, "geometry": {"type": f["geometry"]["type"], "coordinates": rounded(f["geometry"]["coordinates"])}}
+        for f in lakes["features"]
+    ]
+    write_json(OUT_DIR / "geo" / "lakes-110m.json", {"type": "FeatureCollection", "features": features})
 
 
 def convert(scale: str) -> int:

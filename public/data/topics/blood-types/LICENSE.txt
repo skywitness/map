@@ -1,0 +1,11 @@
+血型分布的資料檔 / Blood type data files
+
+這個資料夾的 JSON 是從英文維基百科「Blood type distribution by country」（版本 1378379911，https://en.wikipedia.org/w/index.php?oldid=1378379911 ）
+第一個表整理出來的，依原條目的授權 CC BY-SA 4.0（https://creativecommons.org/licenses/by-sa/4.0/ ）分享。
+The JSON files in this folder are derived from the first table of the English Wikipedia article
+“Blood type distribution by country” (revision 1378379911, https://en.wikipedia.org/w/index.php?oldid=1378379911 ) and are shared under the same licence,
+CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
+
+各國的數字出處見 types.json 的 ref（維基百科該列引用的資料）；沒有 ref 的國家，維基百科沒有註明出處。
+Per-country sources are in the ref field of types.json (the reference cited on that row of the article);
+countries without a ref have no source cited on Wikipedia.

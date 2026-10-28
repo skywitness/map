@@ -19,6 +19,8 @@ interface TimeSeriesInput {
   projectionFrom?: number;
   /** 從這一年起換了統計方法：畫一條垂直虛線 */
   methodBreak?: number;
+  /** 這一年以前多半是估計值：在這一年畫一條垂直虛線，tooltip 的年份後面寫「估計值」 */
+  estimatesBefore?: number;
   /** 目前選擇的年份，畫一條垂直參考線 */
   year: number;
   indicator: Indicator;
@@ -55,7 +57,7 @@ function consecutiveYears({ years, lines, sparse }: TimeSeriesInput): Pick<TimeS
 
 /** 歷年折線：估計值實線、推估值虛線，同一個國家用同一個 series 名稱，圖例與 tooltip 才會合併 */
 export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
-  const { projectionFrom, methodBreak, year, indicator, tokens } = input;
+  const { projectionFrom, methodBreak, estimatesBefore, year, indicator, tokens } = input;
   const { years, lines, sparse } = consecutiveYears(input);
   const categories = years.map(String);
   // 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年
@@ -110,6 +112,10 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
   if (methodBreak !== undefined && years.includes(methodBreak)) {
     markLines.push(methodBreakLine(methodBreak, tokens));
   }
+  // 估計值的分界也畫成淡的垂直虛線（側欄底下另有文字說明）
+  if (estimatesBefore !== undefined && estimatesBefore > years[0] && years.includes(estimatesBefore)) {
+    markLines.push(methodBreakLine(estimatesBefore, tokens));
+  }
   series[0].markLine = {
     silent: true,
     symbol: 'none',
@@ -162,12 +168,14 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
           seen.add(name);
           return [
             `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-              `<strong>${escapeHtml(indicator.format(value))}</strong>` +
+              `<strong>${escapeHtml(indicator.format(value, y))}</strong>` +
               `<span class="tt-name">${escapeHtml(name)}</span></div>`,
           ];
         });
         const projected = projectionFrom !== undefined && y >= projectionFrom;
-        return `<div class="tt-head">${y}${projected ? ` · ${messages().projected}` : ''}</div>${rows.join('')}`;
+        const estimated = estimatesBefore !== undefined && y < estimatesBefore;
+        const tag = projected ? messages().projected : estimated ? messages().estimated : null;
+        return `<div class="tt-head">${y}${tag ? ` · ${tag}` : ''}</div>${rows.join('')}`;
       },
     },
     xAxis: {

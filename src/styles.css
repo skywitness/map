@@ -923,12 +923,13 @@ kbd {
   overflow: hidden;
 }
 
+/* 手機：說明只留一行（點「更多」展開），地圖才往上移 */
 @media (max-width: 768px) {
   .indicator-desc:not(.is-expanded) {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     overflow: hidden;
   }
 }
@@ -1027,6 +1028,7 @@ kbd {
 
 .map-zoom > button,
 .basemap-menu > button,
+.region-menu > button,
 .more-menu > button {
   display: grid;
   place-items: center;
@@ -1058,6 +1060,8 @@ kbd {
 .map-zoom > button:hover:not(:disabled),
 .basemap-menu > button:hover,
 .basemap-menu > button[aria-expanded='true'],
+.region-menu > button:hover,
+.region-menu > button[aria-expanded='true'],
 .more-menu > button:hover,
 .more-menu > button[aria-expanded='true'] {
   background: var(--grid);
@@ -1065,6 +1069,7 @@ kbd {
 
 .map-zoom > button:active:not(:disabled),
 .basemap-menu > button:active,
+.region-menu > button:active,
 .more-menu > button:active {
   background: var(--axis);
 }
@@ -1084,8 +1089,9 @@ kbd {
   background: none;
 }
 
-/* ── 底圖選單（BasemapMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
+/* ── 底圖選單（BasemapMenu.tsx）、轉到某一洲（RegionMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
 .basemap-menu,
+.region-menu,
 .more-menu {
   position: relative;
 }
@@ -1606,6 +1612,64 @@ kbd {
   column-gap: 8px;
 }
 
+/* 數值最高、最低的國家（Extremes.tsx，寬螢幕）：圖例上面，最高、最低各一欄，點了選取並飛過去 */
+.extremes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, auto);
+  column-gap: 16px;
+  pointer-events: auto;
+}
+
+.extremes-title {
+  margin-bottom: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.extremes ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.extremes button {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 1px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.extremes button:hover .extremes-name,
+.extremes button:focus-visible .extremes-name {
+  text-decoration: underline;
+}
+
+.extremes button.is-selected {
+  font-weight: 600;
+}
+
+.extremes-name {
+  max-width: 7.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extremes-value {
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* 面量圖圖例：標題右邊放「配色」按鈕（PaletteMenu.tsx）；選單從圖例卡片往上展開（.map-legend > .legend 是 relative） */
 .legend-head {
   display: flex;
@@ -1766,33 +1830,16 @@ kbd {
   z-index: 1;
 }
 
-/* 每一級的國家數：色塊上方的細長條，底部對齊 */
-.legend-hist {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 14px;
-  margin-bottom: 2px;
-}
-
-.legend-hist span {
-  flex: 1;
-  margin: 0 6px;
-  background: color-mix(in srgb, var(--ink) 22%, transparent);
-  border-radius: 1px 1px 0 0;
-}
-
-.legend-hist span.is-on {
-  background: var(--ink-secondary);
-}
-
-/* 有直方圖時刻度往下移（直方圖 14px 加間隔 2px） */
-.legend-scale.has-hist .legend-ticks span {
-  top: 30px;
-}
-
+/* 滑過的那一級有幾個國家：固定一行高，也不撐寬圖例（比圖例寬的以「…」截掉，完整的在色塊的說明），
+   文字出現、消失時色塊不會移動（Legend.tsx） */
 .legend-bin-status {
+  height: 15px;
   margin: 0 0 2px;
+  line-height: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  contain: inline-size;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1834,6 +1881,30 @@ kbd {
 .legend-gradient {
   height: 10px;
   border-radius: 2px;
+}
+
+/* 「無資料」放在色階左邊（Legend.tsx，名稱短的時候）：灰色色塊跟色階同高，字跟刻度同一行；3D 的階梯色階對齊底部 */
+.legend-scale-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.legend-nodata-inline {
+  display: grid;
+  justify-items: center;
+  row-gap: 3px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.legend-nodata-inline .swatch-nodata {
+  width: 22px;
+}
+
+.legend-scale-row.is-stepped .legend-nodata-inline {
+  padding-top: 16px;
 }
 
 .legend-nodata {
@@ -2007,10 +2078,9 @@ kbd {
   font-size: 13px;
 }
 
+/* 年份接在英文名與代碼後面（同一行），不另佔一行 */
 .panel-year {
-  margin: 12px 0 8px;
-  color: var(--ink-secondary);
-  font-size: 13px;
+  white-space: nowrap;
 }
 
 .year-tag {
@@ -2034,14 +2104,15 @@ kbd {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  margin-top: 12px;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  padding: 10px;
+  gap: 1px;
+  padding: 8px 10px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: none;
@@ -2330,6 +2401,159 @@ kbd {
 .river-system .stat-meta {
   grid-column: 2;
   min-height: 0;
+}
+
+/* 日食路徑的側欄（EclipsesPanel.tsx）：上一次、下一次日全食，經過這裡的每一次日食（點一下換年份、標出路徑） */
+.eclipse-summary {
+  margin: 4px 0 8px;
+  font-size: 13px;
+}
+
+.eclipse-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+
+.eclipse-facts dt {
+  color: var(--ink-secondary);
+}
+
+.eclipse-facts dd {
+  margin: 0;
+}
+
+.eclipse-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eclipse-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--grid);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eclipse-row:hover,
+.eclipse-row:focus-visible,
+.eclipse-row.is-picked {
+  background: var(--grid);
+}
+
+.eclipse-row.is-picked .eclipse-date {
+  font-weight: 600;
+}
+
+.eclipse-row.is-past .eclipse-date,
+.eclipse-row.is-past .eclipse-kind {
+  color: var(--ink-secondary);
+}
+
+.eclipse-kind {
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.eclipse-row .stat-meta {
+  grid-column: 2 / 4;
+  min-height: 0;
+}
+
+.eclipse-row .year-tag {
+  margin-left: 0;
+}
+
+.eclipse-row .stat-meta > * + * {
+  margin-left: 6px;
+}
+
+.eclipse-row .year-tag.is-shown {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--ink);
+}
+
+.eclipse-more {
+  margin: 6px 0 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.eclipse-more:hover {
+  text-decoration: underline;
+}
+
+/* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */
+.antipode-summary {
+  margin: 2px 0 4px;
+  font-size: 13px;
+}
+
+.antipode-coords {
+  margin: 0 0 4px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.antipode-targets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.antipode-targets li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.antipode-targets strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.antipode-target-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antipode-go {
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.antipode-go:hover,
+.antipode-go:focus-visible {
+  background: var(--grid);
 }
 
 .panel-section {
@@ -3017,6 +3241,36 @@ kbd {
   width: 45%;
 }
 
+/* 寬螢幕：國名欄只佔國名的寬度，長條緊接在國名後面（原本數值欄固定 45%，國名與長條之間空一大段） */
+@media (min-width: 769px) {
+  .ranking .name-col {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  /* 表格自動排版會把多的寬度依內容寬度分給各欄（國名長，分到最多）：數值欄要 100%，多的寬度都給長條 */
+  .value-cell {
+    width: 100%;
+  }
+
+  .value-track {
+    min-width: 120px;
+  }
+}
+
+/* 比 10 年前（RankingTable.tsx）：箭頭不分好壞（很多指標沒有好壞之分），用中性的文字色 */
+.ranking .change {
+  color: var(--ink-secondary);
+}
+
+.ranking .change.is-flat {
+  color: var(--ink-muted);
+}
+
+.ranking th.change-col {
+  white-space: nowrap;
+}
+
 .value-wrap {
   display: flex;
   align-items: center;
@@ -3081,6 +3335,10 @@ kbd {
 
 .time-track input[type='range'] {
   /* 整條 28px 高都能點、能拖；視覺上的軌道只有 4px，畫在 runnable-track 上 */
+  /* 推估的年份（--projection-pct 之後）畫成虛線，跟側欄折線圖的推估一樣（原本只是淺一點的灰，看不太出來） */
+  --projection-track:
+    linear-gradient(to right, var(--axis) 0 var(--projection-pct), transparent var(--projection-pct)),
+    repeating-linear-gradient(to right, var(--axis) 0 5px, transparent 5px 9px);
   display: block;
   width: 100%;
   height: 28px;
@@ -3101,21 +3359,13 @@ kbd {
 .time-track input[type='range']::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    var(--axis) 0 var(--projection-pct),
-    var(--grid) var(--projection-pct) 100%
-  );
+  background: var(--projection-track);
 }
 
 .time-track input[type='range']::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    var(--axis) 0 var(--projection-pct),
-    var(--grid) var(--projection-pct) 100%
-  );
+  background: var(--projection-track);
 }
 
 .time-track input[type='range']::-webkit-slider-thumb {
@@ -3185,6 +3435,205 @@ kbd {
   font-weight: 500;
   line-height: 1.2;
   color: var(--ink-muted);
+}
+
+/* ── 時刻的控制（時刻主題：晝夜與季節，MomentControl.tsx）：一行放得下播放、一天／一年、拉桿、日期時間、現在 ── */
+.moment-control {
+  gap: 10px;
+}
+
+.moment-mode {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--grid);
+  gap: 2px;
+}
+
+.moment-mode .segment {
+  padding: 4px 9px;
+  font-size: 13px;
+}
+
+.moment-ticks .moment-season {
+  transform: translateX(-50%);
+}
+
+/* 手機用的一天／一年切換鈕與短日期：寬螢幕不顯示 */
+.moment-mode-chip,
+.moment-day-short {
+  display: none;
+}
+
+.moment-mode-chip {
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--grid);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 春分、夏至…都不在頭尾，刻度一律置中（蓋過 .time-ticks 頭尾靠邊的規則） */
+.moment-ticks span.moment-season:first-child,
+.moment-ticks span.moment-season:last-child {
+  transform: translateX(-50%);
+}
+
+/* 日期與時間：點一下開瀏覽器的日期選擇器（透明的 input 蓋在上面） */
+.moment-when {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 6px;
+  align-items: baseline;
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.moment-when:hover,
+.moment-when:focus-within {
+  background: var(--grid);
+}
+
+.moment-when:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.moment-day {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.moment-clock {
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.moment-zone {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.moment-date {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+
+.moment-now {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 跟著現在走時：按下的樣子，前面一個小綠點 */
+.moment-now.is-active {
+  border-color: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.moment-now.is-active::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #2e9e58;
+  vertical-align: 1px;
+}
+
+/* 播放時地圖上的日期時間（時刻主題）比年份長，字小一點 */
+.map-year.is-moment {
+  font-size: 34px;
+}
+
+/* tooltip 裡主題自己加的第二行起，不再畫分隔線 */
+.tt-hint.is-next {
+  margin-top: 2px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* 晝夜與季節的側欄：選定那一天、四個節氣 */
+.daylight-today {
+  margin: 12px 0 0;
+}
+
+.daylight-today dt {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.daylight-today dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.daylight-seasons,
+.daylight-polar {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.daylight-seasons {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: baseline;
+}
+
+/* 每一列的三欄（名稱、日期、白天長度）對齊成同一張表；「一年中白天最長」寫在白天長度下面 */
+.daylight-seasons li {
+  display: contents;
+}
+
+.daylight-seasons .stat-meta {
+  grid-column: 3;
+  margin-top: -2px;
+}
+
+.daylight-season-name {
+  color: var(--ink-secondary);
+}
+
+.daylight-polar li {
+  padding: 3px 0;
 }
 
 /* ── 頁尾：來源一段、主題說明（先露兩行）、免責聲明 ── */
@@ -3309,6 +3758,44 @@ kbd {
     font-size: 18px;
   }
 
+  /* 時刻的控制在手機上：時區、刻度的字收起來，拉桿才放得下（375px 寬一行） */
+  .moment-control {
+    gap: 6px;
+  }
+
+  .moment-mode .segment {
+    padding: 4px 7px;
+  }
+
+  .moment-when {
+    padding: 2px 4px;
+    column-gap: 4px;
+  }
+
+  .moment-zone {
+    display: none;
+  }
+
+  .moment-day {
+    font-size: 13px;
+  }
+
+  .moment-clock {
+    font-size: 16px;
+  }
+
+  .moment-now {
+    padding: 0 9px;
+  }
+
+  .moment-ticks span.moment-season {
+    font-size: 10px;
+  }
+
+  .map-year.is-moment {
+    font-size: 24px;
+  }
+
   .map-legend {
     left: 8px;
     bottom: 8px;
@@ -3324,8 +3811,8 @@ kbd {
 /* ── 手機：國家側欄改成底部抽屜（PanelSheet.tsx） ── */
 @media (max-width: 768px) {
   :root {
-    /* 收合時露出把手、國名與第一排數值 */
-    --sheet-peek: 196px;
+    /* 收合時露出把手、國名與第一排數值（年份 2026-10-28 移到英文名那一行，從 196px 降到 180px） */
+    --sheet-peek: 180px;
   }
 
   /* 字小於 16px 的輸入框，iOS 點下去會自動放大整頁 */
@@ -3354,6 +3841,55 @@ kbd {
   /* 英文的「Search countries」在 375px 寬才放得下 */
   .search {
     padding: 0 8px;
+  }
+
+  /* 控制列排得下就一行：指標、放大鏡、地圖／排名表、分享。搜尋框收成放大鏡，點了才展開、蓋住整行
+     （CountrySearch 的 compact）；原本搜尋框自己佔一行，地圖要從 255px 才開始。
+     排不下（指標名稱長、農產品＋指標兩個選單）時右邊那組換到下一行靠右，選單不會被截短 */
+  .controls {
+    position: relative;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  /* 蓋過 900px 以下原本兩行版面的「整行寬、分享靠右」 */
+  .controls-right {
+    flex: none;
+    width: auto;
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .controls-right .share {
+    margin-left: 0;
+  }
+
+  /* 「指標」兩個字：下拉選單上就是指標名稱 */
+  .select-field.is-indicator > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .search-unfold {
+    width: 36px;
+    height: 34px;
+    border-radius: var(--radius);
+  }
+
+  .search-box.is-overlay {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    z-index: 25;
+  }
+
+  .search-box.is-overlay .search {
+    width: 100%;
   }
 
   .view-toggle .segment {
@@ -3457,5 +3993,27 @@ kbd {
 @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
   .sheet:not(.is-dragging) {
     transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+/* 時刻的控制在 520px 以下（375px 的手機）：一天／一年換成一顆切換鈕、日期寫成 6/21、刻度不寫字，拉桿才放得下 */
+@media (max-width: 520px) {
+  .moment-mode,
+  .moment-day,
+  .moment-ticks {
+    display: none;
+  }
+
+  .moment-mode-chip {
+    display: inline-flex;
+  }
+
+  .moment-day-short {
+    display: inline;
+  }
+
+  .moment-control .time-track {
+    min-width: 80px;
+    padding-bottom: 0;
   }
 }

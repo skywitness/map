@@ -34,9 +34,6 @@ export interface ClassHighlight {
   onPin: (index: number | null) => void;
 }
 
-/** 分級上方的小直方圖最高的那一條（px） */
-const HIST_PX = 14;
-
 interface ChoroplethLegendProps {
   indicator: Indicator;
   title: string;
@@ -49,7 +46,7 @@ interface ChoroplethLegendProps {
   emptyKey?: string;
   /** 標題旁放「配色」按鈕（PaletteMenu），列出這一種的選項；網格的顏色畫在圖磚裡，不傳 */
   paletteKind?: 'sequential' | 'diverging';
-  /** 有傳才能滑過、點選分級，色塊上方畫每一級的國家數（小直方圖）；網格、3D 不傳 */
+  /** 有傳才能滑過、點選分級（色塊的說明與下面那一行寫那一級的國家數）；網格、3D 不傳 */
   classes?: ClassHighlight;
 }
 
@@ -78,10 +75,13 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
     for (const v of classValues.values()) out[bisectRight(thresholds, v)]++;
     return out;
   }, [classValues, scale]);
-  const maxCount = Math.max(1, ...(counts ?? []));
   const binLabel = (i: number) =>
     i === 0 ? t.binBelow(labels[0]) : i === labels.length ? t.binAbove(labels[i - 1]) : t.binRange(labels[i - 1], labels[i]);
   const highlight = classes?.highlight ?? null;
+  // 「無資料」短的時候放在色階左邊（灰色色塊，字跟刻度同一行），圖例少一行；
+  // 長的（「到 2100 年都沒有日全食經過」）與網格的說明照舊另起一行
+  const noDataLabel = indicator.missing ?? t.noData;
+  const inlineNoData = !emptyKey && noDataLabel.length <= (lang === 'en' ? 9 : 4);
   return (
     <div className="legend">
       <div className="legend-head">
@@ -97,63 +97,63 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
           {note}
         </div>
       ))}
-      <div
-        className={`legend-scale${stepped ? ' is-stepped' : ''}${counts ? ' has-hist' : ''}`}
-        style={{ width: colors.length * swatchWidth }}
-      >
-        {counts && (
-          // 每一級有幾個國家：細長條，看得出分布偏哪一邊；確切的數字在色塊的說明與下面那一行
-          <div className="legend-hist" aria-hidden="true">
-            {counts.map((n, i) => (
-              <span
-                key={i}
-                className={highlight === i ? 'is-on' : undefined}
-                style={{ height: n ? Math.max(2, (n / maxCount) * HIST_PX) : 0 }}
-              />
-            ))}
+      <div className={`legend-scale-row${stepped ? ' is-stepped' : ''}`}>
+        {inlineNoData && (
+          <div className="legend-nodata-inline">
+            <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
+            {noDataLabel}
           </div>
         )}
-        <div className="legend-swatches">
-          {colors.map((c, i) =>
-            classes && counts ? (
-              <button
-                key={c}
-                type="button"
-                className={`legend-bin${highlight !== null && highlight !== i ? ' is-faded' : ''}`}
-                style={{ background: c }}
-                aria-pressed={classes.pinned === i}
-                aria-label={t.binTitle(binLabel(i), counts[i])}
-                title={t.binTitle(binLabel(i), counts[i])}
-                onMouseEnter={() => classes.onPreview(i)}
-                onMouseLeave={() => classes.onPreview(null)}
-                onFocus={() => classes.onPreview(i)}
-                onBlur={() => classes.onPreview(null)}
-                onClick={() => classes.onPin(classes.pinned === i ? null : i)}
-              />
-            ) : (
-              <span
-                key={c}
-                style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
-              />
-            ),
-          )}
-        </div>
-        <div className="legend-ticks">
-          {labels.map((label, i) => (
-            <span key={label} style={{ left: `${((i + 1) / colors.length) * 100}%` }}>
-              {label}
-            </span>
-          ))}
+        <div
+          className={`legend-scale${stepped ? ' is-stepped' : ''}`}
+          style={{ width: colors.length * swatchWidth }}
+        >
+          <div className="legend-swatches">
+            {colors.map((c, i) =>
+              classes && counts ? (
+                <button
+                  key={c}
+                  type="button"
+                  className={`legend-bin${highlight !== null && highlight !== i ? ' is-faded' : ''}`}
+                  style={{ background: c }}
+                  aria-pressed={classes.pinned === i}
+                  aria-label={t.binTitle(binLabel(i), counts[i])}
+                  title={t.binTitle(binLabel(i), counts[i])}
+                  onMouseEnter={() => classes.onPreview(i)}
+                  onMouseLeave={() => classes.onPreview(null)}
+                  onFocus={() => classes.onPreview(i)}
+                  onBlur={() => classes.onPreview(null)}
+                  onClick={() => classes.onPin(classes.pinned === i ? null : i)}
+                />
+              ) : (
+                <span
+                  key={c}
+                  style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
+                />
+              ),
+            )}
+          </div>
+          <div className="legend-ticks">
+            {labels.map((label, i) => (
+              <span key={label} style={{ left: `${((i + 1) / colors.length) * 100}%` }}>
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
-      {counts && highlight !== null && <div className="legend-note legend-bin-status">{t.binStatus(binLabel(highlight), counts[highlight])}</div>}
+      {counts && (
+        // 沒有強調時也留著這一行（空的）：圖例貼著地圖下緣，文字出現時圖例變高會把色塊往上推，
+        // 游標滑出色塊、文字消失、色塊掉回來，一直閃
+        <div className="legend-note legend-bin-status">{highlight !== null && t.binStatus(binLabel(highlight), counts[highlight])}</div>
+      )}
       {emptyKey ? (
         <div className="legend-nodata">
           <span className="swatch-empty" />
           {emptyKey}
         </div>
       ) : (
-        <NoDataKey />
+        !inlineNoData && <NoDataKey label={indicator.missing} />
       )}
     </div>
   );
@@ -447,12 +447,13 @@ export function CategoricalLegend({ title, scale, values, highlight, onPreview, 
   );
 }
 
-function NoDataKey() {
+/** 灰色的「無資料」；指標的 missing（值是 null 有固定意思，例如「到 2100 年都沒有」）取代那幾個字 */
+function NoDataKey({ label }: { label?: string }) {
   const t = useT();
   return (
     <div className="legend-nodata">
       <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
-      {t.noData}
+      {label ?? t.noData}
     </div>
   );
 }

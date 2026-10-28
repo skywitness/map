@@ -4,7 +4,9 @@ import { SectionSkeleton, Skeleton } from './Skeleton';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
 import { useLang, useT } from '../i18n';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
+import { formatMoment } from '../lib/clock';
 import { useJsonMany } from '../lib/data';
+import { derivedData } from '../lib/derive';
 import { formatPercent } from '../lib/format';
 import {
   indicatorPath,
@@ -13,6 +15,7 @@ import {
   sameTimeAxis,
   usesDimension,
   yearBin,
+  type ClockAt,
   type Indicator,
   type IndicatorData,
   type PanelExtraProps,
@@ -42,6 +45,10 @@ interface CountryPanelProps {
   /** 主題側欄要在地圖上標出線、移動地圖時用（PanelExtraProps 的同名欄位） */
   highlightLine?: PanelExtraProps['highlightLine'];
   focusBox?: PanelExtraProps['focusBox'];
+  selectYear?: PanelExtraProps['selectYear'];
+  setMarks?: PanelExtraProps['setMarks'];
+  /** 時刻主題目前的這一刻：在瀏覽器裡算的指標（derive）依它算，標題寫這一刻，主題側欄也拿到它 */
+  at?: ClockAt | null;
 }
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
@@ -58,7 +65,7 @@ function panelExtraFor(topic: Topic) {
 
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
-  const { onCompareChange, highlightLine, focusBox } = props;
+  const { onCompareChange, highlightLine, focusBox, selectYear, setMarks, at = null } = props;
   // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
   const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
@@ -70,17 +77,23 @@ export function CountryPanel(props: CountryPanelProps) {
     return own && usesDimension(ind) ? t.itemIndicator(own, ind.label) : ind.label;
   };
   const Extra = panelExtraFor(topic);
-  const allData = useJsonMany<IndicatorData>(files);
+  const loadedData = useJsonMany<IndicatorData>(files);
+  // 在瀏覽器裡算的指標（時刻主題）：跟地圖用同一份快取（derivedData），同一刻拿到同一個物件
+  const allData = useMemo(
+    () => loadedData.map((d, i) => derivedData(topic.indicators[i], d, at)),
+    [loadedData, topic, at],
+  );
   const name = countryName(iso3, countries);
 
   // 「只畫路網」「地形」這類不上色的指標不列成數值卡片（地形的數值跟平均海拔是同一份）；
-  // 跟前面的指標用同一個資料檔的也不重複列（例如移民的「流向：移民來源」就是「移民人數」）
+  // 跟前面的指標用同一個資料檔的也不重複列（例如移民的「流向：移民來源」就是「移民人數」）；
+  // 在瀏覽器裡算的指標（derive）共用同一份材料，各自是不同的值，照常列
   const shown = (ind: Indicator) => ind.layer.kind !== 'none' && ind.layer.kind !== 'terrain' && ind.layer.kind !== 'flags';
   // 年份的意思跟目前的指標不同的（平均身高的出生年 vs 19 歲那年，指標的 timeAxis）也不列，同一個年份在那裡是另一批人
   const card = (ind: Indicator, i: number) =>
     shown(ind) &&
     sameTimeAxis(ind, indicator) &&
-    !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file);
+    !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file && !ind.derive);
   // 主題或指標寫明這個國家為什麼沒有值（台灣的外交裡的台灣、護照主題的本國護照、與美國的一致度裡的美國）時，
   // 用它取代「無資料」
   const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
@@ -134,6 +147,7 @@ export function CountryPanel(props: CountryPanelProps) {
       lines,
       projectionFrom: activeData.projectionFrom,
       methodBreak: activeData.methodBreak,
+      estimatesBefore: activeData.estimatesBefore,
       year,
       indicator: chartIndicator,
       tokens,
@@ -166,22 +180,24 @@ export function CountryPanel(props: CountryPanelProps) {
           <h2>{name}</h2>
           <p className="panel-sub">
             {lang === 'en' ? displayCode(iso3) : `${enName(iso3, countries)} · ${displayCode(iso3)}`}
+            {/* 年份寫在同一行（原本自己一行）：桌機 900px 高時，第一張折線圖不必捲動就看得到整張。
+                不隨時間變化的資料（海拔）不寫年份 */}
+            {!topic.timeless && (
+              <span className="panel-year">
+                {' · '}
+                {/* 時刻主題寫那一刻（「6月21日 14:05」） */}
+                {at ? formatMoment(at.time) : (indicator.timeAxis?.year(year) ?? t.year(year))}
+                {projectionFrom !== undefined && year >= projectionFrom && (
+                  <span className="year-tag is-projected">{t.projected}</span>
+                )}
+              </span>
+            )}
           </p>
         </div>
         <button type="button" className="icon-button" onClick={onClose} aria-label={t.close}>
           <CloseIcon />
         </button>
       </header>
-
-      {/* 不隨時間變化的資料（海拔）不寫年份 */}
-      {!topic.timeless && (
-        <p className="panel-year">
-          {indicator.timeAxis?.year(year) ?? t.year(year)}
-          {projectionFrom !== undefined && year >= projectionFrom && (
-            <span className="year-tag is-projected">{t.projected}</span>
-          )}
-        </p>
-      )}
 
       <div className="stats">
         {stats.map(({ ind, loaded, value, rank, total, share, shownYear, others }) => (
@@ -195,12 +211,18 @@ export function CountryPanel(props: CountryPanelProps) {
             <span className="stat-label">{label(ind)}</span>
             {/* 資料還沒到時不要先寫「無資料」，畫一塊灰色 */}
             <span className="stat-value">
-              {!loaded ? <Skeleton width="60%" height={20} /> : value != null ? ind.format(value) : (reason(ind) ?? t.noData)}
+              {!loaded ? (
+                <Skeleton width="60%" height={20} />
+              ) : value != null ? (
+                ind.format(value, shownYear ?? year)
+              ) : (
+                (reason(ind) ?? t.noData)
+              )}
             </span>
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
-              {!topic.timeless && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
+              {!topic.timeless && !at && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
             </span>
             {loaded && others.length > 0 && (
               <span className="stat-compare">
@@ -208,7 +230,7 @@ export function CountryPanel(props: CountryPanelProps) {
                   <span key={compare[i]} className="stat-compare-row">
                     <span className="compare-dot" style={{ background: compareColors[i] }} aria-hidden="true" />
                     <span className="stat-compare-name">{countryName(compare[i], countries)}</span>
-                    <span className="stat-compare-value">{v != null ? ind.format(v) : '—'}</span>
+                    <span className="stat-compare-value">{v != null ? ind.format(v, year) : '—'}</span>
                   </span>
                 ))}
               </span>
@@ -227,8 +249,8 @@ export function CountryPanel(props: CountryPanelProps) {
         onChange={onCompareChange}
       />
 
-      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
-      {activeData?.years.length !== 1 && (
+      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫；指標的 panelChart: false 不畫 */}
+      {activeData?.years.length !== 1 && indicator.panelChart !== false && (
         <section className="panel-chart">
           <h3>{t.overTime(chartLabel)}</h3>
           {/* 有原因、而且這個國家完全沒有值時才用原因取代圖表：台灣在聯合國投票只有 1946–1971 年有值，照樣畫圖 */}
@@ -248,11 +270,14 @@ export function CountryPanel(props: CountryPanelProps) {
           )}
           {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
           {methodBreak !== undefined && option && <p className="note">{t.methodBreak(methodBreak)}</p>}
+          {activeData?.estimatesBefore !== undefined && option && (
+            <p className="note">{t.estimatesBefore(activeData.estimatesBefore)}</p>
+          )}
           {note && <p className="note">{t.note(note)}</p>}
         </section>
       )}
       {/* 只有單一年份的資料沒有折線圖，附註直接接在數值卡片下面 */}
-      {activeData?.years.length === 1 && note && <p className="note">{t.note(note)}</p>}
+      {(activeData?.years.length === 1 || indicator.panelChart === false) && note && <p className="note">{t.note(note)}</p>}
 
       {Extra && (
         <Suspense fallback={<SectionSkeleton />}>
@@ -266,6 +291,9 @@ export function CountryPanel(props: CountryPanelProps) {
             tokens={tokens}
             highlightLine={highlightLine}
             focusBox={focusBox}
+            selectYear={selectYear}
+            setMarks={setMarks}
+            at={at ?? undefined}
           />
         </Suspense>
       )}

@@ -16,6 +16,7 @@ import { bisectRight } from 'd3-array';
 import {
   addProtocol,
   Map as MaplibreMap,
+  type DataDrivenPropertyValueSpecification,
   type ExpressionSpecification,
   type GeoJSONSource,
   type LayerSpecification,
@@ -27,9 +28,11 @@ import {
 } from 'maplibre-gl';
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
-import type { AirportsData, Indicator } from '../topics/types';
-import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
+import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
+import { MAP_TOKENS, SPACE_GRADIENT, SPACE_GRADIENT_LIGHT, TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
+import { fetchJson } from '../lib/data';
+import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
@@ -59,15 +62,18 @@ import {
   type LayerVisibility,
   type OverlayLayer,
 } from './Overlays';
-import { applyTimeFilters, highlightLine, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { applyTimeFilters, highlightLine, labelFont, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
-import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
+import { isNameLayer, LAND_UNTIL, labelField, loadBaseStyle, WORLD_SUFFIX, WORLD_TILES_UNTIL, worldColors, type Projection } from './style';
 import { GRID_PROTOCOL, gridLabels, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
 import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 import { BasemapMenu } from './BasemapMenu';
+import { Extremes } from './Extremes';
+import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
 import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
@@ -80,6 +86,10 @@ addProtocol(FLAG_PROTOCOL, loadFlagTile);
 
 interface WorldMapProps {
   countries: CountryFeature[];
+  /** 國家對照表（countries.json）：底圖的國名改用網站自己的名稱（style.ts 的 labelField） */
+  countryTable?: CountryTable | null;
+  /** 有傳才在寬螢幕的圖例上面列出數值最高、最低的國家（Extremes），點了選取並飛過去 */
+  onPickCountry?: (iso3: string) => void;
   indicator: Indicator;
   /** 圖例標題，例如「稻米產量」 */
   legendTitle: string;
@@ -111,6 +121,8 @@ interface WorldMapProps {
   overlays?: OverlayLayer[];
   /** 目前的年份：有年份欄位的疊加點依它與指標的 overlayTime 篩選 */
   year?: number;
+  /** 時刻主題的這一刻（UTC 毫秒）：晝夜圖層（kind 'night'）依它畫夜半邊與太陽直射點；其他主題是 null */
+  time?: number | null;
   /** 滑到一般點圖層的點上時的 tooltip（overlay 的 id、資料的第幾筆） */
   renderPointTooltip?: (overlay: string, index: number) => ReactNode;
   /** 主題自訂的地點（TopicDefinition.places）：跟沒有形狀的國家一樣畫小圓點與比例圓 */
@@ -147,6 +159,13 @@ interface WorldMapProps {
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
   focusBox?: { box: [number, number, number, number]; key: number } | null;
+  /**
+   * 滑到地圖上任何一點（含海上）時的資訊（主題的 pointer，2026-10-28 起，地球的另一邊）：在國家上時幾行接在國家的
+   * tooltip 下面，海上時自己是一個 tooltip（title 加幾行）；mark 是跟著游標動的小記號（游標的對蹠點）
+   */
+  pointer?: (lngLat: [number, number], iso3: string | null) => PointerInfo | null;
+  /** 主題側欄放的標記（首都與它的對蹠點）：圓點加名稱，點一下移到 link 那一個（不會改變選取的國家） */
+  marks?: MapMark[] | null;
   ref?: Ref<WorldMapHandle>;
 }
 
@@ -174,6 +193,17 @@ const TINY_KM2 = 6000;
  * 南韓（10 萬）、葡萄牙、匈牙利也算；放大到 5 級以後國家本身夠大，圓圈淡出
  */
 const SELECTED_MARK_KM2 = 120_000;
+
+/**
+ * 選取小國家的圓圈半徑（px）：圈住國名。底圖的國名差不多在同一個位置，原本固定 11px 的圓圈壓在字上
+ * （「台灣」約 26px 寬）。中日文的字約 13px、拉丁字母約 7px 寬，最少 11、最多 22px（英文的長國名不讓圓圈太大，
+ * 小國在全球視角多半沒有國名，太大的圓圈會壓到旁邊國家的國名）
+ */
+function markRadius(name: string): number {
+  let width = 0;
+  for (const ch of name) width += /[\u3000-\u9fff\uff00-\uffef]/.test(ch) ? 13 : 7;
+  return Math.max(11, Math.min(22, width / 2 + 6));
+}
 /**
  * 1:50m 國界沒有形狀的國家（DESIGN.md 第 8 節第 8 點），用首府的位置畫小國圓點，也當比例圓、弧線的位置；
  * 否則吐瓦魯（台灣的邦交國）在地圖上完全看不到
@@ -213,6 +243,10 @@ function mixColor(from: string, to: string, k: number): string {
   const [r, g, bl] = a.map((v, i) => Math.round(v + (b[i] - v) * k));
   return `rgb(${r}, ${g}, ${bl})`;
 }
+/** 地圖至少這麼寬才列出數值最高、最低的國家（Extremes）：地球儀兩旁才有空位 */
+const EXTREMES_MIN_WIDTH = 1000;
+/** 世界視角蓋住地形陰影海面的水域（installDataLayers） */
+const RELIEF_WATER_WORLD = 'relief-water' + WORLD_SUFFIX;
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
 const MIN_BOX_PX = 6;
 
@@ -511,7 +545,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       source: 'selected-mark',
       maxzoom: 5.5,
       paint: {
-        'circle-radius': 11,
+        'circle-radius': ['get', 'r'],
         'circle-opacity': 0,
         'circle-stroke-color': dark ? '#0b0b0b' : '#ffffff',
         'circle-stroke-width': 5,
@@ -524,7 +558,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       source: 'selected-mark',
       maxzoom: 5.5,
       paint: {
-        'circle-radius': 11,
+        'circle-radius': ['get', 'r'],
         'circle-opacity': 0,
         'circle-stroke-color': ink,
         'circle-stroke-width': 2,
@@ -621,7 +655,75 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
 const NO_OVERLAYS: OverlayLayer[] = [];
 const NO_PLACES: [string, [number, number]][] = [];
 
-const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+const spaceBackground = (stops: [number, string][]) =>
+  `radial-gradient(circle at 50% 50%, ${stops.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+const SPACE_BACKGROUND = spaceBackground(SPACE_GRADIENT);
+const SPACE_BACKGROUND_LIGHT = spaceBackground(SPACE_GRADIENT_LIGHT);
+/** 3D 傾斜時地平線以上的天空：深藍夜空（style.ts 的 sky），淺色介面時跟著 SPACE_GRADIENT_LIGHT */
+const LIGHT_SKY = { 'sky-color': '#dfe6ef', 'fog-color': '#dfe6ef' };
+const DARK_SKY = { 'sky-color': '#0c1830', 'fog-color': '#6fa3e0' };
+/**
+ * 彩色地形上有資料圖層的主題，海改成低彩度的藍（原本 #9ebdff 比資料的顏色還搶眼）；純地圖、地形圖維持原本的海。
+ * OKLab 色差（×100）跟無資料的灰 10.2、類別圖的淡紫 12.9、最淺的分級色 18.1，紅綠色盲模擬下都 ≥ 9
+ */
+const CALM_SEA = '#98b1d6';
+
+/** 側欄放的標記（PanelExtraProps.setMarks）與游標的對蹠點（主題的 pointer 的 mark） */
+const MARKS_SOURCE = 'map-marks';
+const MARK_LAYER = 'map-marks';
+const MARK_LABEL_LAYER = 'map-marks-label';
+const POINTER_SOURCE = 'pointer-mark';
+/** 標記的顏色：紫（深色底圖淡紫），跟側欄標出的那一國同色（MAP_TOKENS.categorical 的 [6]、[1]） */
+const MARK_COLOR = { light: MAP_TOKENS.categorical[6], dark: MAP_TOKENS.categorical[1] };
+
+function markLayers(dark: boolean, font: DataDrivenPropertyValueSpecification<string[]>): LayerSpecification[] {
+  const color = dark ? MARK_COLOR.dark : MARK_COLOR.light;
+  const ink = dark ? '#ffffff' : MAP_TOKENS.ink;
+  const paper = dark ? '#0b0b0b' : '#ffffff';
+  const there: ExpressionSpecification = ['==', ['get', 'kind'], 'there'];
+  return [
+    // 游標的對蹠點：空心的圈（白色襯底），在地球儀上通常在背面，平面地圖上看得到
+    {
+      id: 'pointer-mark-halo',
+      type: 'circle',
+      source: POINTER_SOURCE,
+      paint: { 'circle-radius': 7, 'circle-opacity': 0, 'circle-stroke-color': paper, 'circle-stroke-width': 4.5, 'circle-stroke-opacity': 0.85 },
+    },
+    {
+      id: 'pointer-mark',
+      type: 'circle',
+      source: POINTER_SOURCE,
+      paint: { 'circle-radius': 7, 'circle-opacity': 0, 'circle-stroke-color': ink, 'circle-stroke-width': 2 },
+    },
+    // 側欄的標記：這裡實心、對蹠點空心（白底加色框），旁邊寫名稱
+    {
+      id: MARK_LAYER,
+      type: 'circle',
+      source: MARKS_SOURCE,
+      paint: {
+        'circle-radius': 7,
+        'circle-color': ['case', there, paper, color],
+        'circle-stroke-color': ['case', there, color, paper],
+        'circle-stroke-width': ['case', there, 3, 2],
+      },
+    },
+    {
+      id: MARK_LABEL_LAYER,
+      type: 'symbol',
+      source: MARKS_SOURCE,
+      layout: {
+        'text-field': ['get', 'label'],
+        'text-font': font,
+        'text-size': 12.5,
+        'text-anchor': 'top',
+        'text-offset': [0, 0.9],
+        'text-max-width': 12,
+        'text-allow-overlap': true,
+      },
+      paint: { 'text-color': ink, 'text-halo-color': paper, 'text-halo-width': 1.6 },
+    },
+  ];
+}
 
 /** hover 與點選時依序查詢的圖層（上面的優先）；隱藏的圖層會跳過 */
 const HOVER_LAYERS = [
@@ -644,18 +746,19 @@ const SELECT_SOURCES = ['countries', 'columns', 'tiny-columns'];
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
+  const countryTable = props.countryTable ?? null;
   const t = useT();
   const lang = useLang();
   const langRef = useRef(lang);
   langRef.current = lang;
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES } = props;
+  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES, time = null } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -679,10 +782,10 @@ export function WorldMap(props: WorldMapProps) {
   /** 分層設色、地形陰影插在這個圖層前面（底圖的水域，海面才會蓋住海底地形） */
   const reliefBeforeRef = useRef<string | undefined>(undefined);
   /**
-   * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
+   * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）與原本的縮放範圍：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
    * 我們的地形陰影蓋住，隱藏起來就不必下載（全球視角約 3 MB）
    */
-  const baseRastersRef = useRef<string[]>([]);
+  const baseRastersRef = useRef<{ id: string; minzoom: number; maxzoom: number }[]>([]);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
   // MapLibre 5 在地球儀上查不到立體圖形（queryRenderedFeatures 對 fill-extrusion 用的是平面的矩陣），
@@ -701,6 +804,10 @@ export function WorldMap(props: WorldMapProps) {
     airport?: number;
     /** 一般點圖層的點（或有 tooltip 的線）：overlay 的 id 與資料的第幾筆 */
     point?: { overlay: string; index: number };
+    /** 主題有 pointer 時游標的經緯度（-180–180） */
+    lngLat?: [number, number];
+    /** 滑到側欄放的標記（marks 的第幾個） */
+    mark?: number;
   } | null>(null);
   /** 一般點圖層與有 tooltip 的線的 MapLibre 圖層 id（上面的在前），hover 與點選時比國家先查 */
   const pointLayersRef = useRef<string[]>([]);
@@ -725,8 +832,8 @@ export function WorldMap(props: WorldMapProps) {
   const [overlayOnLeft, setOverlayOnLeft] = useState(false);
 
   // 地圖事件在建立時綁定一次，最新的 props 放在 ref 裡讀
-  const latest = useRef({ onSelect, onBoxChange, boxMode });
-  latest.current = { onSelect, onBoxChange, boxMode };
+  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks });
+  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks };
 
   // 分級色、正負色用使用者選的配色（圖例的「配色」，palettes.ts）
   const mapTokens = useMapTokens();
@@ -800,6 +907,23 @@ export function WorldMap(props: WorldMapProps) {
     [tinyCollection],
   );
 
+  /** 換過海的顏色（CALM_SEA）後的背景色；載入時暫時換成海的顏色、之後換回來時用它（installDataLayers） */
+  const backgroundPaintRef = useRef<unknown>(null);
+  /** 世界視角的湖泊（geo/lakes-110m.json，約 3 KB）；切換底圖時新樣式直接用 */
+  const lakesRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchJson<GeoJSON.FeatureCollection>('geo/lakes-110m.json', 'low')
+      .then((lakes) => {
+        lakesRef.current = lakes;
+        if (!cancelled && installedRef.current) (mapRef.current?.getSource('lakes') as GeoJSONSource | undefined)?.setData(lakes);
+      })
+      .catch(() => {}); // 沒有湖泊只是五大湖等畫成陸地，不影響其他
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   /** 每次載入樣式加一；載入時暫時換成海的顏色，用它認出是哪一次（見 installDataLayers） */
   const seaTokenRef = useRef(0);
   const seaTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -812,15 +936,29 @@ export function WorldMap(props: WorldMapProps) {
     // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
     m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
     for (const id of ['railways', 'airports', 'box', 'selected-mark']) m.addSource(id, { type: 'geojson', data: EMPTY });
+    m.addSource('lakes', { type: 'geojson', data: lakesRef.current ?? EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
     const styleLayers = m.getStyle().layers;
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
+    // 世界視角（style.ts 的 splitWorldZoom）：底色是海，陸地用我們的國界、湖泊用 Natural Earth 1:110m 畫，
+    // 插在背景色後面（彩色地形的陰影點陣圖蓋在上面）；放大到 LAND_UNTIL 以上換回底圖圖磚的陸地與水域
+    const world = worldColors(m.getStyle());
+    if (world) {
+      const afterBackground = styleLayers[styleLayers.findIndex((l) => l.type === 'background') + 1]?.id;
+      // 不反鋸齒：相鄰的國家各自反鋸齒，交界會透出一條海的顏色
+      const land = { 'fill-color': world.land, 'fill-antialias': false };
+      m.addLayer({ id: 'base-land', type: 'fill', source: 'countries', maxzoom: LAND_UNTIL, paint: land }, afterBackground);
+      m.addLayer({ id: 'base-lakes', type: 'fill', source: 'lakes', maxzoom: LAND_UNTIL, paint: { 'fill-color': world.sea } }, afterBackground);
+    }
+    // 側欄的標記、游標的對蹠點：畫在最上面（連底圖的地名也蓋過，「台北的對蹠點」才不會被當地的地名壓住）
+    for (const id of [MARKS_SOURCE, POINTER_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
+    for (const layer of markLayers(dark, labelFont(m))) m.addLayer(layer);
     baseRastersRef.current = styleLayers
       .filter((l) => l.type === 'raster' && l.layout?.visibility !== 'none')
-      .map((l) => l.id);
+      .map((l) => ({ id: l.id, minzoom: l.minzoom ?? 0, maxzoom: l.maxzoom ?? 24 }));
     // 地形：分層設色與陰影插在底圖的水域下面（圖磚含海底地形，由海面蓋住）；3D 地形用另一個 source，
     // MapLibre 建議跟陰影分開，畫質比較好。沒有圖層用到時不會下載圖磚
     m.addSource('dem', demSource());
@@ -851,6 +989,20 @@ export function WorldMap(props: WorldMapProps) {
     const waterFill = styleLayers.find((l) => l.type === 'fill' && l['source-layer'] === 'water');
     if (waterFill?.type === 'fill') {
       m.addLayer({ ...waterFill, id: 'relief-water', layout: { ...waterFill.layout, visibility: 'none' } }, beforeId);
+      // 世界視角沒有畫底圖的水域（陸地用國界畫），陰影的海面改用 0–1 級圖磚的水域蓋（海岸線粗一點沒關係）
+      if (world) {
+        m.addLayer(
+          {
+            ...waterFill,
+            id: RELIEF_WATER_WORLD,
+            source: waterFill.source + WORLD_SUFFIX,
+            minzoom: 0,
+            maxzoom: WORLD_TILES_UNTIL,
+            layout: { ...waterFill.layout, visibility: 'none' },
+          },
+          beforeId,
+        );
+      }
     }
     // 底圖圖磚還沒到時，MapLibre 用 background 圖層（陸地的顏色，彩色地形是米白）畫整顆地球：開頁時是一顆白球。
     // 先把它換成海的顏色，圖磚第一次全部到齊（idle）再換回來（樣式的 300 ms 過渡）。
@@ -866,7 +1018,8 @@ export function WorldMap(props: WorldMapProps) {
         m.off('idle', restore);
         // 圖磚到齊前又換了底圖：新的樣式自己會換回來，不要把舊樣式的陸地顏色套上去
         if (seaTokenRef.current === token && m.getLayer(background.id)) {
-          m.setPaintProperty(background.id, 'background-color', land);
+          // 海的顏色換過（CALM_SEA）就用換過的
+          m.setPaintProperty(background.id, 'background-color', backgroundPaintRef.current ?? land);
         }
       };
       // 地圖拿掉時（換到排名表）由建立地圖的 effect 清掉，不然 10 秒後會對已經拿掉的地圖動手
@@ -976,7 +1129,8 @@ export function WorldMap(props: WorldMapProps) {
         return;
       }
       if (latest.current.boxMode) return;
-      const f = featureAt(e.point);
+      const mark = markAt(e.point);
+      const f = mark === null ? featureAt(e.point) : null;
       const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
       // 海上的地震沒有國家，照樣顯示 tooltip；線（海底電纜）也是
       const line = f ? lineOverlayAt(f.layer.id) : null;
@@ -988,18 +1142,28 @@ export function WorldMap(props: WorldMapProps) {
       highlightLine(map, lineHoverRef.current, lineHover);
       lineHoverRef.current = lineHover;
       setHoverId(iso3);
-      map.getCanvas().style.cursor = iso3 || point ? 'pointer' : '';
+      map.getCanvas().style.cursor = iso3 || point || mark !== null ? 'pointer' : '';
+      const airport = f?.layer.id.startsWith('airports') ? Number(f.properties.i) : undefined;
+      // 主題有 pointer（地球的另一邊）：海上也有 tooltip；滑到點、機場、標記時照舊。
+      // 地球儀外面（太空）MapLibre 也會給一個經緯度（地球邊緣上的點），投影回畫面跟游標差很遠，那裡不算
+      const back = map.project(e.lngLat);
+      const onEarth = Math.hypot(back.x - e.point.x, back.y - e.point.y) < 4;
+      const anywhere = latest.current.pointer && onEarth && !point && airport === undefined && mark === null;
+      const { lng, lat } = e.lngLat.wrap();
       setHover(
-        iso3 || point
-          ? {
-              iso3,
-              x: e.point.x,
-              y: e.point.y,
-              airport: f?.layer.id.startsWith('airports') ? Number(f.properties.i) : undefined,
-              point,
-            }
-          : null,
+        mark !== null
+          ? { iso3: null, x: e.point.x, y: e.point.y, mark }
+          : iso3 || point || anywhere
+            ? { iso3, x: e.point.x, y: e.point.y, airport, point, lngLat: anywhere ? [lng, lat] : undefined }
+            : null,
       );
+    };
+
+    /** 游標底下的側欄標記（marks 的索引） */
+    const markAt = (point: { x: number; y: number }): number | null => {
+      if (!map.getLayer(MARK_LAYER)) return null;
+      const [hit] = map.queryRenderedFeatures([point.x, point.y], { layers: [MARK_LAYER, MARK_LABEL_LAYER] });
+      return hit ? Number(hit.properties.i) : null;
     };
 
     const onDown = (e: MapMouseEvent | MapTouchEvent) => {
@@ -1033,6 +1197,15 @@ export function WorldMap(props: WorldMapProps) {
     map.on('click', (e) => {
       if (suppressClickRef.current || latest.current.boxMode) {
         suppressClickRef.current = false;
+        return;
+      }
+      // 點側欄放的標記：移到它連到的那一個（首都 ↔ 對蹠點），選取的國家不變
+      const mark = markAt(e.point);
+      if (mark !== null) {
+        const marksNow = latest.current.marks;
+        const link = marksNow?.[mark]?.link;
+        const target = link !== undefined ? marksNow?.[link] : undefined;
+        if (target) map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
         return;
       }
       const f = featureAt(e.point, false);
@@ -1077,14 +1250,28 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [basemap]);
 
+  // 底圖的國名用網站自己的名稱（iso2 → 名稱，style.ts 的 labelField）
+  const countryLabels = useMemo(() => {
+    if (!countryTable) return [];
+    const seen = new Set<string>();
+    const out: [string, string][] = [];
+    for (const [iso3, ref] of Object.entries(countryTable)) {
+      if (!ref.iso2 || seen.has(ref.iso2)) continue;
+      seen.add(ref.iso2);
+      out.push([ref.iso2, countryName(iso3, countryTable, lang)]);
+    }
+    return out;
+  }, [countryTable, lang]);
+
   // 切換語言：底圖地名換成另一種語言，不必重新載入樣式
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
+    const field = labelField(lang, countryLabels);
     for (const layer of map.getStyle().layers) {
-      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', LABELS[lang]);
+      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', field);
     }
-  }, [revision, lang]);
+  }, [revision, lang, countryLabels]);
 
   // 面量圖、類別圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
   useEffect(() => {
@@ -1344,6 +1531,33 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [revision, flagsOn, flags, tinyCollection]);
 
+  // 海的顏色：彩色地形上有資料圖層的主題用 CALM_SEA（水域、湖泊、世界視角的背景、蓋住地形陰影的水域）
+  const calmSea = basemap.id === 'terrain' && indicator.layer.kind !== 'none' && indicator.layer.kind !== 'terrain';
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const style = map.getStyle();
+    const world = worldColors(style);
+    if (!world) return;
+    const sea = calmSea ? CALM_SEA : world.sea;
+    for (const l of style.layers) {
+      const water = l.type === 'fill' && ((l as { 'source-layer'?: string })['source-layer'] === 'water' || l.id === 'base-lakes');
+      if (water) map.setPaintProperty(l.id, 'fill-color', sea);
+    }
+    const background = style.layers.find((l) => l.type === 'background');
+    if (background) {
+      backgroundPaintRef.current = ['step', ['zoom'], sea, LAND_UNTIL, world.land];
+      map.setPaintProperty(background.id, 'background-color', backgroundPaintRef.current);
+    }
+  }, [revision, calmSea]);
+
+  // 3D 傾斜時的天空跟著介面深淺色（地球儀外面是 CSS 的背景）
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    map.setSky({ ...map.getSky(), ...(tokens.mode === 'light' ? LIGHT_SKY : DARK_SKY) });
+  }, [revision, tokens.mode]);
+
   // 國界與選取外框的顏色：深色底圖或夜色底上用淺色，其他用深色（跟 dataLayers 一樣）
   const nightLook = basemap.dark || backdrop !== null;
   useEffect(() => {
@@ -1355,6 +1569,37 @@ export function WorldMap(props: WorldMapProps) {
     map.setPaintProperty('selected-mark', 'circle-stroke-color', nightLook ? '#ffffff' : MAP_TOKENS.ink);
     map.setPaintProperty('selected-mark-halo', 'circle-stroke-color', nightLook ? '#0b0b0b' : '#ffffff');
   }, [revision, nightLook]);
+
+  // 側欄放的標記（首都與它的對蹠點）
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    (map.getSource(MARKS_SOURCE) as GeoJSONSource).setData(
+      marks?.length
+        ? {
+            type: 'FeatureCollection',
+            features: marks.map((m, i) => ({
+              type: 'Feature',
+              properties: { i, label: m.label, kind: m.kind },
+              geometry: { type: 'Point', coordinates: [m.lon, m.lat] },
+            })),
+          }
+        : EMPTY,
+    );
+  }, [revision, marks]);
+
+  // 滑到地圖上任何一點時主題給的資訊（地球的另一邊：游標的對蹠點），跟著游標動的小記號
+  const pointerInfo = hover?.lngLat && pointer ? pointer(hover.lngLat, hover.iso3) : null;
+  const pointerMark = pointerInfo?.mark ?? null;
+  const pointerMarkKey = pointerMark ? pointerMark.join(',') : '';
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    (map.getSource(POINTER_SOURCE) as GeoJSONSource | undefined)?.setData(
+      pointerMark ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: pointerMark } } : EMPTY,
+    );
+    // pointerMark 每次都是新的陣列，依內容（pointerMarkKey）更新就好
+  }, [revision, pointerMarkKey]);
 
   // 地球儀縮小時，底圖的地名只留離畫面中心 LIMB_DEGREES 以內的（見 sphericalCap）；移動結束時更新
   useEffect(() => {
@@ -1505,6 +1750,14 @@ export function WorldMap(props: WorldMapProps) {
     lineHoverRef.current = shown;
   }, [revision, overlays, year, indicator.overlayTime]);
 
+  /* ── 晝夜（時刻主題，nightLayer.ts）：換時刻只換太陽的方向與直射點，換底圖後重新加上 ── */
+  const night = overlays.find((o) => o.kind === 'night');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
+  }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
+
   /* ── 主題側欄要標出的一組線（例如滑到某條河）：跟滑鼠滑過共用同一層 ── */
   useEffect(() => {
     const map = mapRef.current;
@@ -1618,10 +1871,6 @@ export function WorldMap(props: WorldMapProps) {
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
     selectedRef.current = selected;
-    const mark = selected && markedCountries.has(selected) ? anchors.get(selected) : undefined;
-    (map.getSource('selected-mark') as GeoJSONSource).setData(
-      mark ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: mark } } : EMPTY,
-    );
     if (fitOnSelect && selected) {
       const bounds = countryBounds.get(selected);
       // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
@@ -1638,6 +1887,17 @@ export function WorldMap(props: WorldMapProps) {
     if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
     // 投影不放進依賴：切換投影、進出 3D 時不要重跑，否則這裡的 easeTo 會打斷傾斜的動畫
   }, [revision, selected, anchors, fitOnSelect, countryBounds, markedCountries]);
+
+  // 選取的小國家畫一個圓圈，大小圈住國名（markRadius）；換語言時國名的長度不同，所以另一個 effect
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const mark = selected && markedCountries.has(selected) ? anchors.get(selected) : undefined;
+    const r = selected ? markRadius(countryName(selected, countryTable, lang)) : 0;
+    (map.getSource('selected-mark') as GeoJSONSource).setData(
+      mark ? { type: 'Feature', properties: { r }, geometry: { type: 'Point', coordinates: mark } } : EMPTY,
+    );
+  }, [revision, selected, anchors, markedCountries, countryTable, lang]);
 
   // 從搜尋選到國家：一定飛過去並框住整個國家，扣掉手機抽屜蓋住的部分
   useEffect(() => {
@@ -1753,6 +2013,19 @@ export function WorldMap(props: WorldMapProps) {
     map.moveLayer('rail', extrude ? 'airports-medium' : 'data-tiny');
   }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn, basemap.dark]);
 
+  // 面量圖、類別圖、國旗把陸地整片蓋住（不透明度 0.82–0.94），世界視角看不到底圖的陰影點陣圖：
+  // 縮放 WORLD_TILES_UNTIL 以下不畫，圖磚就不必下載（彩色地形約 3.2 MB）；放大後填色變淡，地形才透得出來。
+  // 網格（填色是透明的）、3D 的立體圖形（填色也是透明的）照常畫
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const kind = indicator.layer.kind;
+    const covered = flagsOn || ((kind === 'choropleth' || kind === 'categorical') && !gridOn && !(threeD && !terrain));
+    for (const { id, minzoom, maxzoom } of baseRastersRef.current) {
+      if (map.getLayer(id)) map.setLayerZoomRange(id, covered ? Math.max(minzoom, WORLD_TILES_UNTIL) : minzoom, maxzoom);
+    }
+  }, [revision, indicator.layer.kind, flagsOn, gridOn, threeD, terrain]);
+
   // 地形圖層：地形圖（kind 'terrain'）畫分層設色，陰影疊在上面；面量圖只疊陰影，而且移到國家顏色上面，
   // 看得出起伏。陰影可以在左下角關掉
   useEffect(() => {
@@ -1762,13 +2035,14 @@ export function WorldMap(props: WorldMapProps) {
     const shade = terrain && layers.hillshade;
     map.setLayoutProperty('relief-color', 'visibility', reliefMap ? 'visible' : 'none');
     map.setLayoutProperty('relief-shade', 'visibility', shade ? 'visible' : 'none');
-    for (const id of baseRastersRef.current) {
+    for (const { id } of baseRastersRef.current) {
       map.setLayoutProperty(id, 'visibility', reliefMap || shade ? 'none' : 'visible');
     }
     map.moveLayer('relief-shade', reliefMap ? reliefBeforeRef.current : 'data-border');
-    if (map.getLayer('relief-water')) {
-      map.setLayoutProperty('relief-water', 'visibility', shade && !reliefMap ? 'visible' : 'none');
-      map.moveLayer('relief-water', 'data-border');
+    for (const id of ['relief-water', RELIEF_WATER_WORLD]) {
+      if (!map.getLayer(id)) continue;
+      map.setLayoutProperty(id, 'visibility', shade && !reliefMap ? 'visible' : 'none');
+      map.moveLayer(id, 'data-border');
     }
     map.setPaintProperty('relief-shade', 'hillshade-exaggeration', reliefMap ? 0.55 : 0.4);
   }, [revision, terrain, indicator.layer.kind, layers.hillshade]);
@@ -1852,6 +2126,18 @@ export function WorldMap(props: WorldMapProps) {
   ];
   const collapseMore = narrow && moreItems.length > 1;
 
+  // 寬螢幕的地圖兩旁有空位（地球儀只佔中間）：圖例上面列出數值最高、最低的國家
+  const kind = indicator.layer.kind;
+  const showExtremes =
+    Boolean(props.onPickCountry) &&
+    !narrow &&
+    (size?.width ?? 0) >= EXTREMES_MIN_WIDTH &&
+    (kind === 'choropleth' || kind === 'bubble') &&
+    !indicator.unranked &&
+    indicator.rankingBars !== false &&
+    !gridOn &&
+    values.size >= 10;
+
   // 網格的圖例：顏色、門檻用 meta.json 的（跟圖磚裡畫的一樣），寫出是哪一期
   const gridLegend = useMemo(() => {
     if (!grid) return null;
@@ -1894,7 +2180,14 @@ export function WorldMap(props: WorldMapProps) {
         const title = legendTitle;
         const unit = indicator.unit;
         const valueLegend: ImageLegend | null = colorScale
-          ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD && !terrain }
+          ? {
+              kind: 'choropleth',
+              title,
+              unit,
+              model: choroplethLegendModel(indicator, colorScale),
+              stepped: threeD && !terrain,
+              noDataKey: indicator.missing,
+            }
           : reliefLegend
             ? { kind: 'relief', title: tr(RELIEF_TITLE, lang), unit, model: reliefLegend }
             : categories
@@ -1943,7 +2236,7 @@ export function WorldMap(props: WorldMapProps) {
       <div
         ref={mapNodeRef}
         className="map-canvas"
-        style={{ background: SPACE_BACKGROUND }}
+        style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
         role="img"
         aria-label={ariaLabel}
       />
@@ -1975,6 +2268,11 @@ export function WorldMap(props: WorldMapProps) {
         >
           <ResetIcon />
         </button>
+        <RegionMenu
+          onGo={(center) =>
+            mapRef.current?.easeTo({ center, zoom: fitGlobeZoom(mapRef.current.getContainer().clientHeight), duration: 1000 })
+          }
+        />
         <button
           type="button"
           onClick={() => !flatIn3d && setGlobe((g) => !g)}
@@ -2051,6 +2349,16 @@ export function WorldMap(props: WorldMapProps) {
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
 
       <div className="map-legend">
+        {showExtremes && (
+          <Extremes
+            indicator={indicator}
+            values={values}
+            year={year}
+            countryTable={countryTable}
+            selected={selected}
+            onPick={props.onPickCountry!}
+          />
+        )}
         {hasOverlays && onLayersChange && (
           <LayerControls
             layers={layers}
@@ -2122,16 +2430,50 @@ export function WorldMap(props: WorldMapProps) {
         ) : null}
       </div>
 
-      {hover && size && (
+      {hover && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
-          {hover.point && renderPointTooltip
-            ? renderPointTooltip(hover.point.overlay, hover.point.index)
-            : hover.airport !== undefined && renderAirportTooltip
-              ? renderAirportTooltip(hover.airport)
-              : hover.iso3 && renderTooltip(hover.iso3)}
+          {hover.mark !== undefined && marks?.[hover.mark] ? (
+            <MarkTooltip marks={marks} index={hover.mark} />
+          ) : hover.point && renderPointTooltip ? (
+            renderPointTooltip(hover.point.overlay, hover.point.index)
+          ) : hover.airport !== undefined && renderAirportTooltip ? (
+            renderAirportTooltip(hover.airport)
+          ) : (
+            <>
+              {hover.iso3 && renderTooltip(hover.iso3)}
+              {pointerInfo && <PointerLines info={pointerInfo} standalone={!hover.iso3} />}
+            </>
+          )}
         </MapTooltip>
       )}
     </div>
+  );
+}
+
+/** 主題的 pointer 給的幾行：海上（standalone）時 title 是第一行，在國家上時接在國家的 tooltip 下面 */
+function PointerLines({ info, standalone }: { info: PointerInfo; standalone: boolean }) {
+  return (
+    <>
+      {standalone && info.title && <div className="tt-value">{info.title}</div>}
+      {info.lines.map((line, i) => (
+        <div key={i} className={`tt-label${standalone && i === 0 ? '' : ' tt-hint'}${!standalone && i > 0 ? ' is-next' : ''}`}>
+          {line}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** 側欄的標記：名稱，有連到另一個標記時寫「按一下移到…」 */
+function MarkTooltip({ marks, index }: { marks: MapMark[]; index: number }) {
+  const t = useT();
+  const mark = marks[index];
+  const target = mark.link !== undefined ? marks[mark.link] : undefined;
+  return (
+    <>
+      <div className="tt-value">{mark.label}</div>
+      {target && <div className="tt-label">{t.markLink(target.label)}</div>}
+    </>
   );
 }
 

@@ -128,8 +128,12 @@ export interface IndicatorDef {
    */
   file: string;
   layer: LayerSpec;
-  /** tooltip、側欄、排名表用的完整格式 */
-  format: (value: number) => string;
+  /**
+   * tooltip、側欄、排名表用的完整格式。year 是這個值的年份（時間軸的年份、側欄折線圖上那一點的年份），
+   * 值的意思跟年份有關的指標用：日食路徑的「下一次日全食」存的是還要幾年，format 用 year 寫出哪一年（2026-10-28 起）。
+   * 呼叫的地方知道年份就傳；不知道時（圖例刻度以外的少數地方）不傳，format 要能只靠值寫出來
+   */
+  format: (value: number, year?: number) => string;
   /** 圖例刻度用的精簡格式，預設同 format */
   formatTick?: (value: number) => string;
   /** 側欄折線圖是否加上「世界」作為對照線（總量類指標不適合） */
@@ -146,6 +150,11 @@ export interface IndicatorDef {
   unranked?: boolean;
   /** 排名表不畫長條：數值是年份這類，長短沒有意義（國旗的採用年份） */
   rankingBars?: false;
+  /**
+   * 側欄不畫這個指標的歷年圖（2026-10-28 起）：值是代碼、只給 tooltip 與排名表用的不上色指標（日食路徑那一年經過的類型），
+   * 畫成折線沒有意義，主題自己的側欄區塊已經列出每一年
+   */
+  panelChart?: false;
   /**
    * 這個指標自己的子項目選擇器，取代主題的 dimension（同一個主題裡不同指標的子項目不同：國旗的「顏色」與「圖案」）。
    * 網址的子項目不在這份清單裡時用它的 defaultOption（itemFor()），換回原本的指標時網址的子項目還在
@@ -186,6 +195,28 @@ export interface IndicatorDef {
    * 一律寫 reason，取代「無資料」（排在 noValue 之後）；countries 裡的國家某一年沒有值時照常寫「無資料」
    */
   coverage?: { countries: readonly string[]; reason: Text };
+  /**
+   * 這個指標的值是 null 時一律寫這句，取代 tooltip、側欄的「無資料」與圖例灰色那一格的「無資料」（排在 noValue、coverage 之後）。
+   * 值是算出來的、每個國家都有算，null 有固定意思的指標用：日食路徑的「下一次日全食」null 是「到 2100 年都沒有」
+   */
+  missing?: Text;
+  /**
+   * 數值在瀏覽器裡算（時刻主題，TopicDefinition.clock）：file 是算的材料（例如各國首都的經緯度與時區），
+   * values(材料, 時刻) 回傳指標檔的格式（IndicatorData，years 只有一個：at.day）。per 是數值跟著什麼變：
+   * 'minute' 每一刻都不同（此刻的太陽高度：標題寫到分鐘）、'day' 只跟日期有關（白天長度：標題寫日期）、
+   * 'fixed' 不隨時刻變（一年中白天最長與最短的差：標題不寫日期，跟 timeless 一樣）。
+   * App 與側欄經過 lib/derive.ts 的 derivedData()，同一個指標、同一個時刻回傳同一個物件（有快取）。
+   */
+  derive?: { per: 'minute' | 'day' | 'fixed'; values: (source: unknown, at: ClockAt) => IndicatorData };
+}
+
+/**
+ * 時刻主題的「現在選的這一刻」：time 是 UTC 毫秒，day 是那一刻在使用者的時區是哪一天（YYYYMMDD 的整數，
+ * 例如 20260621）。時刻主題的 year 一律是 day（指標檔的 years、側欄、排名表拿到的年份）。
+ */
+export interface ClockAt {
+  time: number;
+  day: number;
 }
 
 /** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
@@ -246,17 +277,17 @@ export interface DimensionDef {
 /**
  * 某個國家在這個指標沒有值的原因，取代 tooltip 與側欄的「無資料」；沒有特別原因時回傳 undefined。
  * 依序：指標的 noValue（例如「與美國的一致度」裡的美國）→ 主題的 noValue → 子項目就是這個國家時的 selfLabel
- * → 不在指標 coverage 裡的國家（例如監禁人口率的「沒有開放授權的資料」）。
+ * → 不在指標 coverage 裡的國家（例如監禁人口率的「沒有開放授權的資料」）→ 指標的 missing（例如「到 2100 年都沒有日全食」）。
  */
 export function missingReason(
   topic: Pick<Topic, 'noValue' | 'dimension'>,
-  indicator: Pick<Indicator, 'noValue' | 'file' | 'coverage'>,
+  indicator: Pick<Indicator, 'noValue' | 'file' | 'coverage' | 'missing'>,
   item: string | null,
   iso3: string,
 ): string | undefined {
   const self = item === iso3 && usesDimension(indicator) ? topic.dimension?.selfLabel : undefined;
   const outside = indicator.coverage && !indicator.coverage.countries.includes(iso3) ? indicator.coverage.reason : undefined;
-  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? outside;
+  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? outside ?? indicator.missing;
 }
 
 /**
@@ -280,7 +311,28 @@ export function resolveItem(
  * - 鐵路、機場（交通主題）有自己的資料格式與樣式
  * - 一般的點（PointsOverlayDef，例如地震、火山、駐外館處）與線（LinesOverlayDef，例如板塊邊界），樣式寫在主題裡
  */
-export type OverlayDef = { id: 'railways' | 'airports'; kind?: undefined; file: string } | PointsOverlayDef | LinesOverlayDef;
+export type OverlayDef =
+  | { id: 'railways' | 'airports'; kind?: undefined; file: string }
+  | PointsOverlayDef
+  | LinesOverlayDef
+  | NightOverlayDef;
+
+/**
+ * 晝夜（時刻主題）：依目前的時刻畫出地球的夜半邊與晨昏蒙影（民用、航海、天文曙暮光一層一層變暗），
+ * 加上太陽直射點。不讀資料檔，位置用 lib/solar.ts 算；地圖上是 WebGL 的自訂圖層（src/map/nightLayer.ts），
+ * 地球儀的兩極、180° 經線都是同一張網格，沒有接縫。
+ */
+export interface NightOverlayDef {
+  kind: 'night';
+  id: string;
+  label: Text;
+  /** 太陽直射點在圖例上的名稱 */
+  sunLabel: Text;
+  hidden?: boolean;
+  /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
+  indicators?: string[];
+  items?: string[];
+}
 
 /** 一般疊加圖層共用的欄位 */
 interface OverlayBase {
@@ -411,6 +463,37 @@ export interface LinesOverlayDef extends OverlayBase {
   /** 圖層開關下面的線寬圖例（width 依欄位變化時），values 是 width.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
+   * 封閉的環畫成半透明的面（2026-10-28 起，日食路徑的本影帶）：紀錄的 field 欄位是 value 的線是封閉的環（第一點等於最後一點），
+   * 另外畫一層面 `ov-<id>-fill`（在線的下面，顏色跟線一樣依分類，不透明度 opacity、深色底圖 darkOpacity），
+   * 外框照樣由線的圖層畫（MapLibre 的線圖層畫多邊形的外框）。滑過或側欄標出這一組時，那一組的面加深（`ov-<id>-hover-fill`）。
+   * 面本身不給 hover 查詢：路徑裡面還是滑得到國家（線的查詢層照舊）
+   */
+  fill?: {
+    field: string;
+    value: number;
+    opacity: number;
+    darkOpacity?: number;
+    /**
+     * 洞（2026-10-28 起，地球的另一邊）：紀錄的這個欄位是 1 的環是前一個外環的洞（翻過去的陸地裡挖掉的湖、
+     * 陸地對陸地的那幾塊）。沒寫時每個環各自是一個面
+     */
+    holeField?: string;
+    /**
+     * 哪些環另外做成外框的線（2026-10-28 起）：false 都不做、代碼的清單只做這幾類；沒寫是全部（日食的路徑環）。
+     * 地球的另一邊的面是陸地切出來的，外框是另外的海岸線，只有側欄標出一國時的那一類要外框
+     */
+    outline?: false | number[];
+    /** 依分類代碼的不透明度 { 代碼: [淺色底圖, 深色底圖] }，沒列的用 opacity、darkOpacity（2026-10-28 起） */
+    typeOpacity?: Record<number, [number, number]>;
+  };
+  /** 線的不透明度，取代預設的淺色底圖 0.8、深色底圖 0.9（日食其他年份的中心線畫得很淡，2026-10-28 起） */
+  opacity?: number;
+  /**
+   * 只畫這些分類代碼的線（color.classes 的 value），圖例也只列這幾類（2026-10-28 起）：同一個資料檔給不同指標用，
+   * 例如日全食次數只畫日全食與混合食的中心線
+   */
+  onlyTypes?: number[];
+  /**
    * 固定色，或依分類代碼上色（value 對應代碼），dash 畫虛線。
    * 代碼是 LinesData.types（一條線一個），或 LinesData.vertexTypes（每個頂點一個，例如颱風每個時間點的強度）：
    * 有 vertexTypes 時一條線依代碼切成好幾段，每段的顏色是那段起點的代碼。
@@ -423,7 +506,11 @@ export interface LinesOverlayDef extends OverlayBase {
          * dark：深色底圖上改用的顏色（同一個色相比較亮的那一階，例如河流的紫 → 淡紫）。沒寫的照原色，
          * 中性的深灰自動換成淺灰
          */
-        classes: { value: number; color: string; dark?: string; label: Text; dash?: boolean }[];
+        /**
+         * area：這一類是面（有 fill 的圖層），圖例畫成半透明的色塊（不是帶子），墊在它在地圖上疊著的底色上：
+         * 'land' 陸地、'sea' 海（2026-10-28 起，地球的另一邊）
+         */
+        classes: { value: number; color: string; dark?: string; label: Text; dash?: boolean; area?: 'land' | 'sea' }[];
       };
   /**
    * 年份欄位（LinesData.records 裡的欄位）：依時間軸篩選要顯示的線，篩選方式看指標的 overlayTime（跟點圖層一樣）。
@@ -437,6 +524,11 @@ export interface LinesOverlayDef extends OverlayBase {
    * 都不容易看清楚，墊了邊才分得出來。
    */
   casing?: boolean;
+  /**
+   * 沿著線寫的文字（例如「北回歸線」）：回傳那條線要寫的字（空字串不寫），每隔一段距離重複一次，
+   * 放大到哪裡都看得到。顏色跟線一樣、加一圈底圖色的光暈；字型用底圖的地名字型
+   */
+  lineLabel?: (p: PointRecord) => string;
   /**
    * 滑到線上時的 tooltip（要有 LinesData.records）：p 是那條線的紀錄。有 tooltip 的線可以 hover，
    * 滑過時整條線（紀錄完全相同的所有段，例如同一條電纜的各段）加粗標出。
@@ -531,6 +623,38 @@ export interface PanelExtraProps {
   highlightLine?: (overlay: string, group: number | null) => void;
   /** 把地圖移到這個範圍 [西, 南, 東, 北]（經緯度） */
   focusBox?: (box: [number, number, number, number]) => void;
+  /** 把時間軸換到這一年（側欄點某一次日食：換到那一年、標出路徑、移過去，2026-10-28 起） */
+  selectYear?: (year: number) => void;
+  /** 時刻主題（TopicDefinition.clock）目前選的這一刻 */
+  at?: ClockAt;
+  /**
+   * 在地圖上放幾個標記（2026-10-28 起，地球的另一邊：首都與它的對蹠點）；null 時拿掉。
+   * 換國家、換主題時 App 會拿掉，側欄不必自己清
+   */
+  setMarks?: (marks: MapMark[] | null) => void;
+}
+
+/**
+ * 側欄放在地圖上的標記（PanelExtraProps.setMarks）：圓點加名稱。link 是另一個標記的索引：點一下這個標記，
+ * 地圖移到那一個（首都 ↔ 它的對蹠點，在地球儀上通常在背面）
+ */
+export interface MapMark {
+  lon: number;
+  lat: number;
+  label: string;
+  /** 'here' 實心、'there' 空心（對蹠點） */
+  kind: 'here' | 'there';
+  link?: number;
+}
+
+/**
+ * 滑到地圖上任一點時主題另外給的資訊（TopicDefinition.pointer）：title 是游標不在國家上（海上）時 tooltip 的第一行，
+ * lines 是接在後面的幾行（在國家上時接在國家的 tooltip 下面），mark 是地圖上跟著游標動的小記號（對蹠點）
+ */
+export interface PointerInfo {
+  title?: string;
+  lines: string[];
+  mark?: [number, number] | null;
 }
 
 export interface TopicDefinition {
@@ -572,6 +696,31 @@ export interface TopicDefinition {
   terrain?: boolean;
   /** 資料不隨時間變化（例如海拔）：不顯示時間軸，tooltip、側欄、標題也不寫年份 */
   timeless?: boolean;
+  /**
+   * 時刻主題（晝夜與季節）：時間不是年份，是某一刻（日期加時間）。控制列下面換成時刻的控制
+   * （controls/MomentControl.tsx：日期、一天裡的時間、「現在」、播放一天或一年），網址是 time=2026-06-21T0400Z，
+   * 沒有 time 時是現在（每分鐘更新）。指標的值用 derive 在瀏覽器裡算，year 是那一刻的日期（ClockAt.day）
+   */
+  clock?: boolean;
+  /**
+   * tooltip 在數值與國名下面另外加的幾行（一個字串一行，跟 hints 一樣是 .tt-hint）：滑過時才算，
+   * 例如晝夜與季節的「以首都台北計算：日出 05:05、日落 18:46」。at 是時刻主題目前的這一刻，其他主題是 null；
+   * source 是目前指標的資料檔（在瀏覽器裡算的指標是算的材料，例如各國首都的經緯度）
+   */
+  tooltipLines?: (
+    iso3: string,
+    /** countryName：目前語言的國名（2026-10-28 起，地球的另一邊寫對蹠點落在哪些國家） */
+    ctx: { indicator: string; at: ClockAt | null; item: string | null; source: unknown; countryName: (iso3: string) => string },
+  ) => string[];
+  /**
+   * 滑到地圖上任何一點（含海上）時的資訊（2026-10-28 起，地球的另一邊：游標的對蹠點在哪一國或哪一片海）。
+   * lngLat 是游標的經緯度、iso3 是游標底下的國家（海上是 null）；countryAt 查任一經緯度在哪一國
+   * （地圖的 1:50m 國界，不在畫面上的地方也查得到）。回傳 null 時照舊（海上沒有 tooltip）
+   */
+  pointer?: (
+    lngLat: [number, number],
+    ctx: { iso3: string | null; countryAt: (lon: number, lat: number) => string | null; countryName: (iso3: string) => string },
+  ) => PointerInfo | null;
   /**
    * 某些國家沒有值的原因，取代 tooltip 與側欄的「無資料」（key 是 ISO alpha-3）：
    * 例如台灣的外交主題裡台灣是觀點、中國大陸與香港由陸委會主管，寫「無資料」會誤導
@@ -624,6 +773,7 @@ export type Topic = Localized<TopicDefinition>;
 export type Indicator = Localized<IndicatorDef>;
 export type PointsOverlay = Localized<PointsOverlayDef>;
 export type LinesOverlay = Localized<LinesOverlayDef>;
+export type NightOverlay = Localized<NightOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,
@@ -715,6 +865,11 @@ export interface IndicatorData {
   projectionFrom?: number;
   /** 從這一年起換了統計方法，跟之前的年份不完全可比（例如 FAO 糧食平衡表 2010 年起的新方法）；折線圖畫一條垂直虛線 */
   methodBreak?: number;
+  /**
+   * 這一年以前的值多半是估計或內插（例如 Gapminder 1800 年起的長期資料，1950 年以前）：
+   * 時間軸在這之前的年份標「估計值」，側欄折線圖在這一年畫一條垂直虛線
+   */
+  estimatesBefore?: number;
   /** 世界、區域等合計，key 例如 WLD */
   aggregates?: Record<string, (number | null)[]>;
   /** key 為 ISO alpha-3，陣列與 years 一一對應，缺值為 null */

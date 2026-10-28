@@ -72,6 +72,8 @@ export type ImageLegend =
       stepped?: boolean;
       notes?: string[];
       emptyKey?: string;
+      /** 灰色那一格的說明，取代「無資料」（指標的 missing） */
+      noDataKey?: string;
     }
   | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel }
   /** 3D 模式的柱子 */
@@ -264,7 +266,8 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
   ctx.font = `11px ${font}`;
   // 1 km 網格沒有「無資料」，改標示不上色的格子
   const empty = legend.kind === 'choropleth' ? legend.emptyKey : undefined;
-  const noDataWidth = 22 + ctx.measureText(empty ?? t.noData).width;
+  const noDataText = (legend.kind === 'choropleth' ? legend.noDataKey : undefined) ?? t.noData;
+  const noDataWidth = 22 + ctx.measureText(empty ?? noDataText).width;
   const noteText =
     legend.kind === 'column'
       ? COLUMN_NOTE
@@ -301,7 +304,7 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
     }
     ctx.font = `11px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;
-    ctx.fillText(empty ?? t.noData, 22, y + 7);
+    ctx.fillText(empty ?? noDataText, 22, y + 7);
   };
 
   const top = LEGEND_TITLE + TITLE_GAP + notes.length * NOTE_ROW;
@@ -514,6 +517,38 @@ function drawSwatch(ctx: CanvasRenderingContext2D, swatch: OverlaySwatch, x: num
     ctx.lineTo(x + 17, cy);
     ctx.stroke();
     ctx.setLineDash([]);
+    return 18;
+  }
+  if (shape === 'band') {
+    // 半透明的帶子、兩側的邊、中間的線（跟畫面上的圖例一樣）
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.3;
+    ctx.fillRect(x + 1, cy - 4, 16, 8);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color;
+    for (const [dy, w] of [
+      [-4, 1],
+      [4, 1],
+      [0, Math.min(size, 2)],
+    ]) {
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(x + 1, cy + dy);
+      ctx.lineTo(x + 17, cy + dy);
+      ctx.stroke();
+    }
+    return 18;
+  }
+  if (shape === 'fill') {
+    // 晝夜的色塊：淺色底加上夜色（跟畫面上的圖例一樣）
+    ctx.fillStyle = swatch.base ?? '#ece6d6';
+    roundRect(ctx, x + 2, cy - 5, 14, 10, 2);
+    ctx.fill();
+    ctx.globalAlpha = swatch.opacity ?? 1;
+    ctx.fillStyle = color;
+    roundRect(ctx, x + 2, cy - 5, 14, 10, 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
     return 18;
   }
   if (shape === 'shade') {
