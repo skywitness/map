@@ -923,12 +923,13 @@ kbd {
   overflow: hidden;
 }
 
+/* 手機：說明只留一行（點「更多」展開），地圖才往上移 */
 @media (max-width: 768px) {
   .indicator-desc:not(.is-expanded) {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     overflow: hidden;
   }
 }
@@ -3671,6 +3672,55 @@ kbd {
   /* 英文的「Search countries」在 375px 寬才放得下 */
   .search {
     padding: 0 8px;
+  }
+
+  /* 控制列排得下就一行：指標、放大鏡、地圖／排名表、分享。搜尋框收成放大鏡，點了才展開、蓋住整行
+     （CountrySearch 的 compact）；原本搜尋框自己佔一行，地圖要從 255px 才開始。
+     排不下（指標名稱長、農產品＋指標兩個選單）時右邊那組換到下一行靠右，選單不會被截短 */
+  .controls {
+    position: relative;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  /* 蓋過 900px 以下原本兩行版面的「整行寬、分享靠右」 */
+  .controls-right {
+    flex: none;
+    width: auto;
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .controls-right .share {
+    margin-left: 0;
+  }
+
+  /* 「指標」兩個字：下拉選單上就是指標名稱 */
+  .select-field.is-indicator > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .search-unfold {
+    width: 36px;
+    height: 34px;
+    border-radius: var(--radius);
+  }
+
+  .search-box.is-overlay {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    z-index: 25;
+  }
+
+  .search-box.is-overlay .search {
+    width: 100%;
   }
 
   .view-toggle .segment {

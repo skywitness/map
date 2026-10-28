@@ -558,7 +558,7 @@ export function App() {
             </label>
           )}
           {pure ? null : topic.indicators.length > MAX_SEGMENTS || (narrow && topic.indicators.length > 2) ? (
-            <label className="select-field">
+            <label className="select-field is-indicator">
               <span>{t.indicator}</span>
               <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
                 {topic.indicators.map((ind) => (
@@ -603,6 +603,7 @@ export function App() {
         </div>
         <div className="controls-right">
           <CountrySearch
+            compact={narrow}
             index={searchIndex}
             onSelect={selectFromSearch}
             onSelectTopic={selectTopic}

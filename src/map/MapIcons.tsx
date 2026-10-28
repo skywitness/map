@@ -20,6 +20,14 @@ function Icon({ children, size = 18 }: { children: ReactNode; size?: number }) {
   );
 }
 
+/** 搜尋：放大鏡（手機上收起來的搜尋框，CountrySearch 的 compact） */
+export const SearchIcon = () => (
+  <Icon>
+    <circle cx="8" cy="8" r="5" />
+    <path d="M11.8 11.8 15.5 15.5" />
+  </Icon>
+);
+
 export const PlusIcon = () => (
   <Icon>
     <path d="M9 4v10M4 9h10" />
