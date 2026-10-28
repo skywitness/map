@@ -53,7 +53,10 @@ try {
   }
 
   const lines = [
-    '// 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改',
+    '/**',
+    ' * 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改。',
+    ' * i18n-ignore-file：內容是主題定義裡的雙語文字（{ zh, en }），check:i18n 已經檢查過原本的檔',
+    ' */',
     "import type { TopicCatalog } from './catalog';",
     '',
     'export const CATALOG: TopicCatalog = {',

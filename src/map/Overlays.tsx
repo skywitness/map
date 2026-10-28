@@ -37,6 +37,8 @@ export interface DecodedLines {
   types: number[] | null;
   records: PointRecord[] | null;
   vertexTypes: number[][] | null;
+  /** concatLines() 接起來的原本那幾份（主檔、分區）：地圖上主檔與分區畫在不同的 source，換分區時主檔不必重送 */
+  parts?: DecodedLines[];
 }
 
 /** 每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度（鐵路與一般線圖層同一種格式） */
@@ -83,6 +85,7 @@ export function concatLines(parts: DecodedLines[]): DecodedLines {
     types: all((p) => p.types, 0),
     records: all<PointRecord>((p) => p.records, {}),
     vertexTypes: all<number[]>((p) => p.vertexTypes, []),
+    parts,
   };
 }
 
@@ -181,8 +184,10 @@ const NIGHT_ROWS: { label: Text }[] = [
   { label: { zh: '夜晚（18° 以下）', en: 'Night (more than 18°)' } },
 ];
 const NIGHT_TITLE: Text = { zh: '晝夜與晨昏', en: 'Day, twilight and night' };
-/** 夜色色塊底下墊的顏色：彩色地形的陸地、深藍底圖的陸地 */
+/** 夜色色塊（與面的分類）底下墊的顏色：彩色地形的陸地、深藍底圖的陸地 */
 const NIGHT_BASE = { light: '#ece6d6', dark: '#33435a' };
+/** 疊在海上的面的色塊底下墊的顏色：彩色地形、深藍底圖的海 */
+const SEA_BASE = { light: '#9ebdff', dark: '#38435c' };
 
 /** 一般疊加圖層的圖例：開關那一列的符號，加上打開時下面的分級說明（顏色分級、大小） */
 export interface OverlayKey {
@@ -228,19 +233,30 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       : {};
     // 依欄位變粗的線，開關與顏色分級的符號用中間那一級的線寬
     const typical = typeof def.width === 'number' ? def.width : def.width.stops[Math.floor(def.width.stops.length / 2)][1];
+    // 有 fill、每個環都畫外框的圖層畫成帶子（日食的路徑）；fill 只給部分分類外框時（地球的另一邊），線的分類是普通的線
+    const banded = Boolean(def.fill) && def.fill?.outline === undefined;
     const lineSwatch = (color: string, dash?: boolean): OverlaySwatch => ({
-      shape: def.fill ? 'band' : dash ? 'dash' : 'line',
+      shape: banded ? 'band' : dash ? 'dash' : 'line',
       size: Math.max(1.5, typical),
       color: neutral[color] ?? color,
     });
     // 深色底圖上有另一個顏色的分類（河流的紫 → 淡紫），圖例跟地圖畫的一樣
     const classColor = (c: { color: string; dark?: string }) => (darkMap && c.dark ? c.dark : c.color);
+    // 面的分類（地球的另一邊翻過去的陸地）：半透明的色塊，墊在像地圖陸地的底色上，不透明度跟地圖一樣
+    const areaSwatch = (c: { value: number; color: string; dark?: string; area?: 'land' | 'sea' }): OverlaySwatch => {
+      const [light, dark] = def.fill?.typeOpacity?.[c.value] ?? [def.fill?.opacity ?? 0.3, def.fill?.darkOpacity ?? def.fill?.opacity ?? 0.3];
+      const base = c.area === 'sea' ? SEA_BASE : NIGHT_BASE;
+      // 中性的深灰在深色底圖上換成淺色（跟地圖上的 ON_DARK 一樣）；色塊墊著地圖的底色，不跟著介面換
+      const color = darkMap && !c.dark && c.color === MAP_TOKENS.ink ? '#f0efec' : classColor(c);
+      return { shape: 'fill', size: 5, color, opacity: darkMap ? dark : light, base: darkMap ? base.dark : base.light };
+    };
+    const swatchOf = (c: (NonNullable<typeof classes>)[number]) => (c.area ? areaSwatch(c) : lineSwatch(classColor(c), c.dash));
     const details: OverlayKey['details'] = [];
     if (classes && typeof def.color !== 'string') {
       details.push({
         title: def.color.title,
         layout: 'rows',
-        rows: classes.map((c) => ({ ...lineSwatch(classColor(c), c.dash), label: c.label })),
+        rows: classes.map((c) => ({ ...swatchOf(c), label: c.label })),
       });
     }
     if (def.sizeLegend) {
@@ -253,7 +269,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       });
     }
     return {
-      swatch: lineSwatch(classes ? classColor(classes[0]) : (def.color as string)),
+      swatch: classes ? (classes[0].area ? areaSwatch(classes[0]) : lineSwatch(classColor(classes[0]))) : lineSwatch(def.color as string),
       label: def.label,
       details,
     };

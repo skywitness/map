@@ -130,6 +130,8 @@ export const zh = {
   moreMapTools: '更多地圖功能',
   exitFullscreen: '離開全螢幕',
   boxTool: '框選',
+  // 主題側欄放在地圖上的標記（首都與它的對蹠點）：點一下移到另一個
+  markLink: (to: string) => `按一下移到${to}`,
   boxToolFor: (label: string) => `框選範圍，估算${label}`,
   boxToolActive: '在地圖上拖曳畫框（Esc 取消）',
   boxHint: '在地圖上拖曳畫出範圍（Esc 取消）',

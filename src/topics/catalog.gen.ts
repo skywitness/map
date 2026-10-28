@@ -1,4 +1,7 @@
-// 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改
+/**
+ * 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改。
+ * i18n-ignore-file：內容是主題定義裡的雙語文字（{ zh, en }），check:i18n 已經檢查過原本的檔
+ */
 import type { TopicCatalog } from './catalog';
 
 export const CATALOG: TopicCatalog = {
@@ -79,6 +82,7 @@ export const CATALOG: TopicCatalog = {
     "oceans": {"id":"oceans","title":{"zh":"海洋與漁業","en":"Oceans and fisheries"},"shortTitle":{"zh":"海洋與漁業","en":"Fisheries"},"indicators":[{"id":"eez","label":{"zh":"專屬經濟海域面積","en":"EEZ area"}},{"id":"eez-land","label":{"zh":"海域是陸地的幾倍","en":"EEZ to land area"}},{"id":"capture","label":{"zh":"捕撈漁業產量","en":"Capture fisheries"}},{"id":"aquaculture","label":{"zh":"養殖漁業產量","en":"Aquaculture"}},{"id":"aqua-share","label":{"zh":"養殖占漁業產量","en":"Aquaculture share"}},{"id":"per-capita","label":{"zh":"人均漁業產量","en":"Fish output per person"}}]},
     "daylight": {"id":"daylight","title":{"zh":"晝夜與季節","en":"Day, night and the seasons"},"shortTitle":{"zh":"晝夜與季節","en":"Day & night"},"indicators":[{"id":"map","label":{"zh":"晝夜地圖","en":"Day & night"}},{"id":"day-length","label":{"zh":"白天長度","en":"Day length"}},{"id":"range","label":{"zh":"晝長年較差","en":"Yearly range"}},{"id":"noon","label":{"zh":"正午太陽高度","en":"Noon sun"}},{"id":"clock","label":{"zh":"時鐘與太陽","en":"Clock vs sun"}}]},
     "eclipses": {"id":"eclipses","title":{"zh":"日食路徑","en":"Solar eclipse paths"},"shortTitle":{"zh":"日食路徑","en":"Eclipses"},"indicators":[{"id":"paths","label":{"zh":"日食路徑","en":"Eclipse paths"}},{"id":"total-count","label":{"zh":"日全食次數","en":"Total eclipses"}},{"id":"annular-count","label":{"zh":"日環食次數","en":"Annular eclipses"}},{"id":"next-total","label":{"zh":"下一次日全食","en":"Next total eclipse"}}]},
+    "antipodes": {"id":"antipodes","title":{"zh":"地球的另一邊（對蹠點）","en":"The other side of the Earth (antipodes)"},"shortTitle":{"zh":"地球的另一邊","en":"Antipodes"},"indicators":[{"id":"map","label":{"zh":"對蹠地圖","en":"Antipode map"}},{"id":"land","label":{"zh":"陸地對陸地的比例","en":"Land opposite land"}},{"id":"capital","label":{"zh":"首都的對蹠點離陸地","en":"Capital antipode to land"}}]},
     "earthquakes": {"id":"earthquakes","title":{"zh":"地震與火山","en":"Earthquakes and volcanoes"},"shortTitle":{"zh":"地震與火山","en":"Earthquakes"},"indicators":[{"id":"quakes-cumulative","label":{"zh":"歷年地震（累積）","en":"Earthquakes (cumulative)"}},{"id":"quakes","label":{"zh":"當年的地震","en":"Earthquakes by year"}},{"id":"quakes-decade","label":{"zh":"每十年的地震次數","en":"Earthquakes per decade"}},{"id":"deaths","label":{"zh":"地震死亡人數","en":"Earthquake deaths"}},{"id":"volcanoes","label":{"zh":"全新世火山數","en":"Holocene volcanoes"}}]},
     "typhoons": {"id":"typhoons","title":{"zh":"颱風與颶風","en":"Typhoons and hurricanes"},"shortTitle":{"zh":"颱風與颶風","en":"Cyclones"},"indicators":[{"id":"storms-year","label":{"zh":"當年的颱風","en":"Storms by year"}},{"id":"storms-decade","label":{"zh":"每十年的颱風次數","en":"Storms per decade"}},{"id":"strongest-decade","label":{"zh":"最強的颱風（每十年）","en":"Strongest storm per decade"}}]},
     "wildfires": {"id":"wildfires","title":{"zh":"各國野火燒毀面積","en":"Wildfire burned area by country"},"shortTitle":{"zh":"野火","en":"Wildfires"},"indicators":[{"id":"burned-share","label":{"zh":"燒毀面積占國土比例","en":"Burned area, % of country area"}},{"id":"burned-area","label":{"zh":"燒毀面積","en":"Burned area"}}]},

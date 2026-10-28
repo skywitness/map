@@ -10,3 +10,5 @@ pyarrow>=18
 resvg-py>=0.5
 Pillow>=11
 scour>=0.38
+# 地球的另一邊：國界翻到對蹠點、跟陸地相交
+shapely>=2.0

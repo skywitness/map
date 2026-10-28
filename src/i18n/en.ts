@@ -115,6 +115,7 @@ export const en: Messages = {
   moreMapTools: 'More map tools',
   exitFullscreen: 'Exit full screen',
   boxTool: 'Select an area',
+  markLink: (to) => `Click to go to ${to}`,
   boxToolFor: (label) => `Select an area to estimate its ${label}`,
   boxToolActive: 'Drag on the map to draw a box (Esc to cancel)',
   boxHint: 'Drag on the map to draw an area (Esc to cancel)',
