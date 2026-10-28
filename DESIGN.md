@@ -602,6 +602,7 @@ pipeline/
 | 太陽能與風能潛力 | 太陽光電潛力（PVOUT，kWh/kWp/日，預設）、風能潛力（離地 100 公尺風功率密度的陸地平均，W/m²）、風最強的 10% 土地、近岸海域（離岸 50 km）的風能；太陽光電與風能潛力可以切到約 2 km 網格（風能含各國專屬經濟海域，台灣海峽整片在最高一級） | — | Global Solar Atlas 2.0（Solargis／世界銀行 ESMAP）、Global Wind Atlas 4.0（丹麥技術大學 DTU／世界銀行 ESMAP，Vortex）；台灣附註對照 GSA 網站摘要與經濟部能源署 | 不隨時間變化（太陽能是各地 1994–2019 年起到 2025 年的長期平均，風能是 2008–2017 年），沒有時間軸 |
 | 日食路徑 | 日食路徑（預設，不上色：時間軸那一年的日全食、日環食、混合食，路徑是半透明的帶子加外框與中心線，依類型上色；滑過看日期、食甚時中心線上的持續時間與位置、路徑寬度、沙羅週期；國家的值是那一年有沒有路徑經過，排名表列出經過的國家；另有預設關閉的「1900–2100 年所有的中心線」）、日全食次數、日環食次數（比例圓，1900 年累計到時間軸那一年，預設 2100 年；地圖上是到那一年為止的中心線）、下一次日全食（面量圖：從那一年起還要幾年，tooltip 寫哪一年；到 2100 年都沒有的是灰色） | 1900–2100 年經過這國陸地的每一次日全食、日環食、混合食（日期、類型、這國境內最長的持續時間，下一次標出來，多的時候先列下一次附近的 12 次），上一次與下一次日全食；點一下時間軸換到那一年、標出路徑、地圖移過去 | NASA 日食網站（Fred Espenak）：五千年日食目錄（Espenak & Meeus, NASA TP-2006-214141）與每一次日食的貝塞爾根數（路徑表那一組 SEbeselm 有的用它，其餘用五千年日食典的 SEdata），路徑自己算；公有領域，要寫「Eclipse Predictions by Fred Espenak, NASA's GSFC」 | 1900–2100（未來的日食是預報；年份是食甚的 UTC 年份） |
 | 地球的另一邊 | 對蹠地圖（預設，不上色：每個國家的陸地翻到地球的另一邊，半透明的影子是對面是海的部分、琥珀色是陸地對陸地，加上翻過來的海岸線與國界；滑到地圖上任何一點，海上也可以，看它的對蹠點在哪一國或哪一片海與經緯度，平面地圖上畫一個小圈）、陸地對陸地的比例（面量圖）、首都的對蹠點離陸地（面量圖，km，不排名；0 是在陸地上）；兩個面量圖只疊翻過來的海岸線 | 國土的對蹠點落在哪些國家與海（100% 長條加清單，前 10 名）、「移到地球另一邊」；首都的對蹠點（在哪一國或哪一片海、離最近的陸地與國界多遠、最近的城鎮）、「移到對蹠點」；一打開就在地圖上標出這一國翻過去的形狀，放首都與它的對蹠點兩個標記（點一下移到另一個） | Natural Earth 1:50m 國界（地圖本身的，翻過去的形狀）與 1:10m 國界、populated places（公有領域）；Marine Regions 的 IHO Sea Areas v3 與 Global Oceans and Seas v1（CC BY 4.0，海的名稱與所屬大洋）；國家小檔案的 Wikidata 首都（CC0） | 不隨時間變化，沒有時間軸 |
+| 北磁極的漂移與磁偏角 | 磁極的軌跡（預設，不上色：北、南磁極 1590–2025 年每年一點，依年份上色，跟著時間軸累積）、首都的磁偏角（2025 年，發散色：西偏青綠、東偏橘）、首都離北磁極（每年的大圓距離）；疊加圖層：等偏角線（沿線寫度數）、指南針不可靠的範圍（WMM 的 blackout zone）；滑到任一點看那裡的磁偏角 | — | NOAA NCEI 磁極位置（NP.xy、SP.xy）、World Magnetic Model 2025（NOAA NCEI 與英國 BGS，公有領域）、Wikidata 首都 | 磁極 1590–2025；磁偏角只有 2025 年 |
 | 野火 | 燒毀面積占國土比例（預設）、燒毀面積（比例圓） | 燒毀的土地類型（堆疊面積圖＋當年長條）、每月燒毀面積（歷年平均與當年）、台灣：林保署森林火災對照表 | GWIS 全球野火資訊系統（歐盟 JRC、Copernicus）的 MODIS MCD64A1 各國逐月燒毀面積、GWIS Country Profile API（GADM 國土面積）；台灣附註用農業部林業及自然保育署林業保育統計年報 | 2002–2025（林保署對照 2007–2025） |
 | 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
 | 摩天大樓 | 300 m 以上的大樓數（比例圓，預設；150、200 m 以上的 Wikidata 收錄太少，不做國家的指標）、最高建築的高度（面量圖）；疊加圖層：Wikidata 收錄的 150 m 以上的大樓每一棟一個點（大小與顏色是高度，縮小時只畫 300 m、200 m 以上的，拆除的那一年起不畫） | 跟 CTBUH 比的涵蓋率、這一年各高度的棟數（長條）、最高的大樓（前 10 棟，其餘收起來）、這個國家與全世界歷年 150、200、300 m 以上的棟數（折線）、沒有完工年份所以不算的大樓、連到城市主題；台灣寫台北 101、85 大樓的現況 | Wikidata（CC0）；CTBUH Skyscraper Center 的 2025 年底總數只引用來對照；城市名稱補用城市主題的 GHSL UCDB | 1930–2026（每一年還在的） |
@@ -697,6 +698,7 @@ pipeline/
       - 貝塞爾根數頁（SEdata、SEbeselm）與路徑表的頁尾：「Permission is freely granted to reproduce this data when accompanied by an acknowledgment: "Eclipse Predictions by Fred Espenak, NASA's GSFC"」；五千年日食目錄的說明頁（SEcatkey.html）寫「"Eclipse Predictions by Fred Espenak and Jean Meeus (NASA's GSFC)"」。
       - 頁尾的來源與主題說明的第一句照寫「Eclipse Predictions by Fred Espenak, NASA’s GSFC」（另寫五千年日食目錄是 Espenak & Meeus），`manifest.json` 的 `credit` 也是。路徑是用他們的根數自己算的，NASA 沒有審查過這裡的計算（說明有寫跟 NASA 路徑表的差距）。
       - **沒有用的**：Xavier Jubier 的 KMZ／Google Maps 路徑（授權不明）；EclipseWise.com（Espenak 自己的網站，同樣准許轉載、要寫「Eclipse Predictions by Fred Espenak, www.EclipseWise.com」，但地圖與圖不能改；NASA 網站已經有需要的根數，又是公有領域，所以用 NASA 的）。
+    - **NOAA NCEI 的磁極位置與 World Magnetic Model 2025 可以自由使用**（北磁極的漂移與磁偏角主題，第 101 點；2026-10-28 讀過）：WMM 的頁面寫「The WMM source code is in the public domain and not licensed or under copyright. The information and software may be used freely by the public」，NCEI 地磁頁寫「The information and software may be used freely by the public」；WMM 是 NOAA NCEI 與英國 BGS 共同製作，照 NCEI 的建議引用「NOAA NCEI Geomagnetic Modeling Team; British Geological Survey. 2024: World Magnetic Model 2025」（doi 10.25921/aqfd-sd83），寫在頁尾的來源與 `manifest.json`。**IGRF-14 沒有用**：NCEI 的 IGRF 頁寫的「public domain … may be used freely」是在 Geomag 7.0 軟體的授權底下，係數本身的授權沒寫（待確認），所以第一版不做歷史的磁偏角。
     - **HydroRIVERS v1.0 適用 HydroSHEDS 第 1 版的授權協議**（河流與流域主題，第 86 點；2026-10-28 讀過全文）：
       - 協議全文在 HydroSHEDS Technical Documentation v1.4 的附錄 A（https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf ），HydroRIVERS 的技術文件第 4.1 節寫明「covered by the same License Agreement as the HydroSHEDS database」，官方產品頁寫「freely available for scientific, educational and commercial use」。網站的 Terms of Use（https://www.hydrosheds.org/terms-of-use ）只管網站上的文字與圖片（不能改作、不能散布），資料各依產品自己的授權。
       - 第 2.1.1 條准許為了跟衍生作品（Derivative Works）整合而使用、重製、展示；第 2.1.2 條准許把資料「incorporated into any Derivative Works」散布給使用者，條件是使用者的條款「at least as protective of the Licensed Materials as the terms of this License」，而且「In no event shall Licensee license or distribute the Licensed Materials as a stand-alone product」；第 2.1.3 條不准反編譯、還原，要防止未經授權的複製與散布；第 2.2 條與附錄 B 要求一段固定的版權聲明（「must be displayed with, attached to or embodied in (in a reasonably prominent manner) the documentation or metadata」）；第 8.1 條不能用 WWF 的名稱、商標、標誌。
@@ -2666,6 +2668,20 @@ pipeline/
     - **說明**：各國的數字來源不同（捐血人、醫院、研究樣本，1970 年代到 2020 年代），國與國之間只能大略比較，主題說明有寫。不分年份（`timeless`，指標檔的年份是 2026）。
     - **大小**：6 個指標檔各約 16 KB（附註與短註每個檔都有一份）、`types.json` 18 KB，共約 115 KB。
 
+101. **北磁極的漂移與磁偏角**（`pipeline/topics/magnetic.py`、`pipeline/sources/wmm.py`、`src/topics/magnetic.ts`、`src/lib/wmm.ts`，2026-10-28）：
+    - **磁極的位置**：NOAA NCEI 的 `NP.xy`、`SP.xy`（https://www.ngdc.noaa.gov/geomag/data/poles/ ，各 436 筆：經度 0–360°E、緯度、年份，1590–2025 年每年一筆），經度換成 −180–180。NCEI 的頁面（Wandering of the Geomagnetic Poles）把它列為「IGRF Pole Locations (1590–2025)」：是模型算出的磁傾角 90° 的點（1890 年以前 gufm1、之後 IGRF），不是觀測；檔案的修改日期是 2020-04-23，所以 2020 年以後是當時模型的預測。主題說明寫明，也寫磁極（dip pole）跟地磁北極（偶極軸）不同。
+      - 北磁極：1590 年 73.9°N、111.8°W（加拿大北極群島），1831 年模型是 70.4°N、98.1°W（Ross 實測 70.1°N、96.8°W），2017–2018 年越過 180° 經線，2025 年 85.8°N、138.1°E。移動速度：1590–1690 年平均每年 1 km、1900–1990 年約 10 km、2000–2010 年 54 km、2020–2025 年 40 km。南磁極 2025 年 63.9°S、135.1°E（南極洲外海），一直每年 4–10 km。
+      - NCEI 用 WMM2025 算的 2025 年北磁極是 85.762°N、139.298°E，跟 `NP.xy` 的 2025 年（85.778°N、138.057°E）差約 10 km；等偏角線是 WMM2025 畫的，所以會收斂到 WMM 的那一點，地圖上看不出差別。
+    - **WMM2025**（`pipeline/sources/wmm.py`）：係數用壓縮檔的直連（官網的連結會先轉到問卷頁）。算法照技術報告第 1.2 節，Legendre 函數的導數用不會在極點除以零的遞迴；壓縮檔裡官方的 100 筆測試值（不同年份、高度）全部對上（D、I 0.01° 以內、X、Y、Z 0.1 nT 以內），每次產生資料時都比對一次，不符就報錯。前端 `src/lib/wmm.ts` 是同一套算法，用同樣的測試值比過（esbuild 轉成 JS 後用 node 跑，最大差 0.005°，就是測試值本身四捨五入到 0.01°）。年份一律用 2025.0（WMM2025 的基準時刻）、海平面，跟磁極軌跡的最後一年一致；WMM 只適用 2025–2030 年，不能回推歷史。
+    - **等偏角線**（`isogonic.json`）：0.5° 網格（緯度 ±89.5°、經度 −180–180 含兩端，359 × 721 點）算磁偏角，contourpy（`requirements.txt` 加上）畫等值線：±30° 以內每 5°、到 ±60° 每 10°，再加 ±90°、±120°。不畫的地方：水平分量 H < 2,000 nT 的格子（WMM 的 blackout zone）、|D| > 135° 的格子（磁偏角在 ±180° 跳躍，跨過跳躍的格子會在每一個等值都畫出假的線）。shapely 簡化到 0.05°、短於 2° 的碎片不畫，62 條、2,117 個頂點。顏色：西偏青綠、東偏橘（跟首都的磁偏角同一組發散色），20° 以上深一階，0°（指南針指向真北）深灰；`lineLabel` 沿線寫「西 10°」「東 5°」。
+    - **指南針不可靠的範圍**（`blackout.json`）：H < 2,000 nT 的填色等值線（contourpy 碰到網格邊緣會沿邊緣封起來），畫成灰色半透明的面（線圖層的 `fill`，`holeField` 處理洞），3 個環（北磁極一帶跨 180° 經線分成兩塊、南磁極一塊）。
+    - **指標**：磁極的軌跡（預設，不上色；北、南磁極的點依年份上色，`overlayTime: 'cumulative'` 拖時間軸看軌跡長出來）、首都的磁偏角（2025 年，面量圖，發散色，門檻 ±2、±10、±20°；只有一年，時間軸不顯示）、首都離北磁極（1590–2025 年每年首都到北磁極的大圓距離，面量圖；也是「磁極的軌跡」tooltip 與排名表的值，側欄的折線圖畫它）。兩個面量圖都 `unranked`（偏東偏西、離磁極遠近沒有好壞）。
+      - 「首都離北磁極」是製作手冊沒有列的指標：「磁極的軌跡」不上色時國家也要有一個隨年份變的值給 tooltip 與側欄，距離最直接。歐洲、亞洲的首都這 30 年越來越近，北美洲的越來越遠：台北 1590 年 8,351 km、2025 年 6,774 km；渥太華 1900 年 3,000 km、2025 年約 5,350 km。
+      - 首都用晝夜與季節主題的 `capitals.json`（國家小檔案的 Wikidata 首都），240 個；水平分量小於 6,000 nT（WMM 的 caution zone）的首都附註寫明，2026-10 沒有。台北 −5.0°（偏西 5°），渥太華 −12.7°。
+    - **滑到地圖上任一點**（主題的 `pointer`）：在瀏覽器用 `wmm.json`（2 KB，第一次滑過才下載）算那裡 2025 年的磁偏角，H < 2,000 nT 寫「磁極附近，指南針不可靠」、< 6,000 nT 寫「接近磁極，指南針容易受干擾」；海上的第一行是經緯度。
+    - **沒有做的**：歷史的磁偏角（IGRF-14，1900–2025 每 5 年；係數本身的授權沒寫，製作手冊列為待確認，使用者 2026-10-28 決定第一版不做）；觀測到的磁極位置（NCEI 互動地圖上的黃色方塊，沒有開放的資料檔）；地磁北極（偶極軸）。
+    - **大小**：`distance.json` 295 KB（gzip 後 55 KB，240 國 × 436 年）、`declination.json` 19 KB、`isogonic.json` 18 KB、`north.json`、`south.json` 各 7 KB、`wmm.json` 2 KB、`blackout.json` 1 KB，共約 350 KB（gzip 後約 74 KB）。
+
 ## 9. 之後可以做的
 
 **使用者已排定、正在製作的主題**（2026-10-28 排定，同一天開 8 個 cloud session 同時製作；資料、授權、做法與使用者的決定都在私人 repo skywitness/map-plan 的 `PRODUCTION.md`（製作手冊）；做完一個就從這裡移到第 7 節）：
@@ -2676,7 +2692,6 @@ pipeline/
 - **地鐵與高鐵的興建史**：擴充「交通」（地鐵站依開通年份累積出現、各國第一條高鐵的開通年份；Wikidata）。
 - **咖啡、茶與可可**：擴充「飲食」（FAOSTAT 糧食平衡表）。
 - **月食**：併進「日食路徑」，主題改名「日食與月食」（NASA 五千年月食目錄）。
-- **北磁極的漂移與磁偏角**：新主題，地理類（NOAA NCEI 磁極位置、WMM2025）。
 
 **使用者打算做、時間由使用者決定的新主題**（2026-10-28 記下；使用者說要做之前不要動手；資料與授權 2026-10-28 查證過，詳細在製作手冊第十四節）：
 - **風與季風**：全球的風畫成流動的細線（粒子動畫），時間軸換成 1–12 月，看東北季風、西南季風、信風、西風帶怎麼隨季節換方向，可以跟颱風主題對照。

@@ -19,7 +19,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'tourism', 'passport', 'military', 'conflict', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'shipping', 'road-safety'] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'daylight', 'eclipses', 'antipodes', 'earthquakes', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'daylight', 'eclipses', 'antipodes', 'magnetic', 'earthquakes', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
 ];
 
 /**
@@ -104,6 +104,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   daylight: () => import('./daylight'),
   eclipses: () => import('./eclipses'),
   antipodes: () => import('./antipodes'),
+  magnetic: () => import('./magnetic'),
   earthquakes: () => import('./earthquakes'),
   typhoons: () => import('./typhoons'),
   wildfires: () => import('./wildfires'),
