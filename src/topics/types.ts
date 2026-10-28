@@ -377,14 +377,54 @@ export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number
 /** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、海底電纜 */
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
-  /** 線寬（px，縮放 2 時） */
-  width: number;
+  /**
+   * 線寬（px，縮放 2 時）：固定值，或依紀錄的數值欄位在 stops [[值, 線寬], …] 之間線性內插
+   * （例如河流依平均流量，stops 依對數間隔取，看起來就是依流量的對數變粗）
+   */
+  width: number | { field: string; stops: [number, number][] };
+  /**
+   * 線寬隨縮放的倍數 [[縮放, 倍數], …]（線性內插），取代預設的 zoomed()（縮放 0 是 0.7 倍、6 是 1.6 倍、10 是 2.4 倍）。
+   * 河流放大到一個國家的大小時要比預設粗，才不會跟底圖的道路混在一起
+   */
+  widthZoom?: [number, number][];
+  /**
+   * 滑過時一起標出的組別：紀錄的這個欄位相同的線是同一組（例如同一個河流系統的幹流與所有支流）。
+   * 沒寫時紀錄完全相同的線是同一組（同一條電纜被切成的好幾段）
+   */
+  groupField?: string;
+  /**
+   * 依縮放篩選（跟點圖層的 minValue 一樣）：紀錄的 field 要大於等於這一級的門檻，stops 是 [縮放級數, 最小值]，
+   * 由小到大，第一個的級數是 0。例如縮小時只畫大河、放大後小河才出現
+   */
+  minValue?: { field: string; stops: [number, number][] };
+  /** 放大到這個範圍時淡出 [開始, 完全不見]（例如底圖本身有更精細的河道時） */
+  fadeOut?: [number, number];
+  /**
+   * 滑過時標出的那一組線下面墊一圈光暈（淺色底圖深色、深色底圖白色），一整個河流系統跟旁邊同色的線才分得開
+   */
+  hoverHalo?: boolean;
+  /**
+   * 放大才下載的細節：資料檔的 detail 列出分區的檔案與範圍，地圖放大到 minZoom 以上時，下載跟畫面重疊的分區，
+   * 併進同一個圖層（同一組 tooltip、組別與篩選）。已經下載的分區留著，移回去不必再下載
+   */
+  detail?: { minZoom: number };
+  /** 圖層開關下面的線寬圖例（width 依欄位變化時），values 是 width.field 的值 */
+  sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
    * 固定色，或依分類代碼上色（value 對應代碼），dash 畫虛線。
    * 代碼是 LinesData.types（一條線一個），或 LinesData.vertexTypes（每個頂點一個，例如颱風每個時間點的強度）：
    * 有 vertexTypes 時一條線依代碼切成好幾段，每段的顏色是那段起點的代碼。
    */
-  color: string | { title?: Text; classes: { value: number; color: string; label: Text; dash?: boolean }[] };
+  color:
+    | string
+    | {
+        title?: Text;
+        /**
+         * dark：深色底圖上改用的顏色（同一個色相比較亮的那一階，例如河流的紫 → 淡紫）。沒寫的照原色，
+         * 中性的深灰自動換成淺灰
+         */
+        classes: { value: number; color: string; dark?: string; label: Text; dash?: boolean }[];
+      };
   /**
    * 年份欄位（LinesData.records 裡的欄位）：依時間軸篩選要顯示的線，篩選方式看指標的 overlayTime（跟點圖層一樣）。
    * 例如海底電纜的啟用年份、颱風生成的年份。
@@ -429,6 +469,11 @@ export interface PointsData {
   delta: string[];
   /** 跟 fields 一一對應，每一欄的長度都是點的數量 */
   columns: (number | string | null)[][];
+  /**
+   * 字串表（選填）：strings 裡列出的欄位存的是這個表的索引（0 是沒有值），重複很多次的名稱只存一次
+   * （例如河流的名稱：同一條河切成好幾段）
+   */
+  strings?: { fields: string[]; table: string[] };
 }
 
 /**
@@ -443,6 +488,16 @@ export interface LinesData {
   types?: number[];
   vertexTypes?: string[];
   records?: PointsData;
+  /**
+   * 放大才下載的分區（LinesOverlayDef.detail）：file 是分區檔的路徑（相對於這個主題的資料夾，含 `{tile}`），
+   * tiles 是每個分區的 [id, 西, 南, 東, 北]（分區裡所有線的實際範圍，可能超出 ±180°）
+   */
+  detail?: { file: string; tiles: [string, number, number, number, number][] };
+  /**
+   * 很多條線共用的資料只存一次（例如同一個河流系統的名稱、流入的海、長度）：records 裡 field 欄位的值跟線的紀錄
+   * 同一個欄位相同的那一筆，decodeLines() 把它的欄位併進每條線的紀錄（每個檔只放自己用到的）
+   */
+  groups?: { field: string; records: PointsData };
 }
 
 /** 鐵路：每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度 */
@@ -469,6 +524,13 @@ export interface PanelExtraProps {
   item: string | null;
   countryName: string;
   tokens: Tokens;
+  /**
+   * 在地圖上標出線圖層的一組線（跟滑過一樣，例如側欄滑到某條河時標出整個河流系統）；group 是 null 時取消。
+   * overlay 是疊加圖層的 id，group 是 groupField 的值
+   */
+  highlightLine?: (overlay: string, group: number | null) => void;
+  /** 把地圖移到這個範圍 [西, 南, 東, 北]（經緯度） */
+  focusBox?: (box: [number, number, number, number]) => void;
 }
 
 export interface TopicDefinition {

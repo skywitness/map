@@ -1,0 +1,20 @@
+River data in this folder (rivers.json, detail/*.json, panel.json and the indicator files) are derived from
+HydroRIVERS v1.0 and are provided only as part of World Data Map (https://skywitness.github.io/map/?topic=rivers).
+
+Required attribution (HydroSHEDS v1 License Agreement, Exhibit B):
+This product World Data Map (Rivers and drainage basins) incorporates data from the HydroSHEDS version 1 database which is © World Wildlife Fund, Inc. (2006-2022) and has been used herein under license. WWF has not evaluated the data as altered and incorporated within World Data Map (Rivers and drainage basins), and therefore gives no warranty regarding its accuracy, completeness, currency or suitability for any particular purpose. Portions of the HydroSHEDS v1 database incorporate data which are the intellectual property rights of © USGS (2006-2008), NASA (2000-2005), ESRI (1992-1998), CIAT (2004-2006), UNEP-WCMC (1993), WWF (2004), Commonwealth of Australia (2007), and Her Royal Majesty and the British Crown and are used under license. The HydroSHEDS v1 database and more information are available at https://www.hydrosheds.org.
+
+Scientific citation: Lehner, B., Grill G. (2013): Global river hydrography and network routing: baseline data and new approaches to study the world's large river systems. Hydrological Processes, 27(15): 2171–2186.
+
+Terms for users of these derived files: they are provided "as is", without warranty of any kind; they may be used with
+this map but may not be extracted and redistributed, licensed or sold as a stand-alone dataset, and may not be
+decompiled or reverse engineered back into the HydroSHEDS data. For the original data and its licence see
+https://www.hydrosheds.org/. Use of the World Wildlife Fund name or logos is not permitted.
+
+Ocean classification: Marine Regions (Flanders Marine Institute) IHO Sea Areas v3 (https://doi.org/10.14284/323) and
+Global Oceans and Seas v1 (https://doi.org/10.14284/542), CC BY 4.0. River names: Natural Earth (public domain) and
+Wikidata (CC0); Taiwan's rivers from the Water Resources Agency's list of central rivers.
+
+本資料夾的河流資料（rivers.json、detail/*.json、panel.json 與各指標檔）是 HydroRIVERS v1.0 的衍生資料，只作為
+世界資料地圖的一部分提供，不保證正確；可以搭配本地圖使用，但不得抽出來當成獨立的資料集再散布、授權或販售，也不得
+還原成 HydroSHEDS 的原始資料。原始資料與授權條款見 https://www.hydrosheds.org/ 。

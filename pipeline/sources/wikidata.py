@@ -34,8 +34,8 @@ SELECT ?iso ?kind ?pt ?elev ?unit ?rank ?coord ?lang ?label WHERE {
 ZH_ORDER = ("zh-tw", "zh-hant", "zh-hk", "zh")
 # 只有 zh（簡體）名稱的山、湖、河裡實際出現的簡體字（2026-10 抓的名稱）；Wikidata 的名稱有變時要補
 S2T = str.maketrans(
-    "亚伦内别区吕奥宁尔库杰渊湾盐纳罗苏莱萨诺谊贝赖达钦马鲁龙",
-    "亞倫內別區呂奧寧爾庫傑淵灣鹽納羅蘇萊薩諾誼貝賴達欽馬魯龍",
+    "亚伦内别区吕奥宁尔库杰渊湾盐纳罗苏莱萨诺谊贝赖达钦马鲁龙聂贡缅",
+    "亞倫內別區呂奧寧爾庫傑淵灣鹽納羅蘇萊薩諾誼貝賴達欽馬魯龍聶貢緬",
 )
 EN_ORDER = ("en", "mul")
 RANK_ORDER = {"PreferredRank": 0, "NormalRank": 1, "DeprecatedRank": 9}

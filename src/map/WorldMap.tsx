@@ -138,7 +138,21 @@ interface WorldMapProps {
   gridFailed?: boolean;
   /** 國旗地圖（indicator.layer.kind 為 'flags'）：每個國家的國旗；載入前是 null */
   flags?: Map<string, FlagSpec> | null;
+  /**
+   * 地圖停下來（moveend）時回報縮放與畫面範圍 [西, 南, 東, 北]；線圖層的 detail 依它下載放大後的分區。
+   * 有傳才監聽
+   */
+  onViewChange?: (view: MapView) => void;
+  /** 地圖外面（主題的側欄）要標出的一組線，跟滑過時一樣；null 時取消 */
+  lineHighlight?: { overlay: string; group: number } | null;
+  /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
+  focusBox?: { box: [number, number, number, number]; key: number } | null;
   ref?: Ref<WorldMapHandle>;
+}
+
+export interface MapView {
+  zoom: number;
+  bounds: [number, number, number, number];
 }
 
 export interface WorldMapHandle {
@@ -641,6 +655,7 @@ export function WorldMap(props: WorldMapProps) {
     props;
   const terrain = Boolean(props.terrain);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -689,8 +704,17 @@ export function WorldMap(props: WorldMapProps) {
   } | null>(null);
   /** 一般點圖層與有 tooltip 的線的 MapLibre 圖層 id（上面的在前），hover 與點選時比國家先查 */
   const pointLayersRef = useRef<string[]>([]);
-  /** 目前加粗標出的線（有 tooltip 的線圖層） */
+  /** 目前加粗標出的線（有 tooltip 的線圖層）：滑鼠滑到的，沒有時是側欄要標出的（lineHighlightRef） */
   const lineHoverRef = useRef<{ overlay: string; group: number } | null>(null);
+  /** 主題側欄要標出的一組線（lineHighlight prop），滑鼠移開線之後回到它 */
+  const lineHighlightRef = useRef<{ overlay: string; group: number } | null>(null);
+  /** 線寬依欄位變化的線圖層：圖層 id → 欄位（滑過時取最寬的那條） */
+  const lineWidthFieldsRef = useRef(new Map<string, string>());
+  lineWidthFieldsRef.current = new Map(
+    overlays.flatMap((o): [string, string][] =>
+      o.kind === 'lines' && typeof o.def.width !== 'number' ? [[o.def.id, o.def.width.field]] : [],
+    ),
+  );
   const [boxMode, setBoxMode] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   // iPhone 的 Safari 不能讓一般元素全螢幕（只有影片可以），不放全螢幕鈕
@@ -920,8 +944,14 @@ export function WorldMap(props: WorldMapProps) {
       for (const id of [...pointLayersRef.current, ...HOVER_LAYERS]) {
         if (!lines && lineOverlayAt(id)) continue;
         if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
-        const [f] = map.queryRenderedFeatures([point.x, point.y], { layers: [id] });
-        if (f) return f;
+        const found = map.queryRenderedFeatures([point.x, point.y], { layers: [id] });
+        // 線寬依欄位變化的線（河流）：游標附近好幾條時取最寬的那條（大河），不是剛好排在前面的小支流
+        const line = lineOverlayAt(id);
+        const field = line ? lineWidthFieldsRef.current.get(line) : undefined;
+        if (field && found.length > 1) {
+          return found.reduce((a, b) => (Number(b.properties?.[field] ?? 0) > Number(a.properties?.[field] ?? 0) ? b : a));
+        }
+        if (found[0]) return found[0];
       }
       return null;
     };
@@ -954,7 +984,7 @@ export function WorldMap(props: WorldMapProps) {
         f && f.layer.id.startsWith(OVERLAY_PREFIX)
           ? { overlay: line ?? f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
           : undefined;
-      const lineHover = line && f ? { overlay: line, group: Number(f.properties.g) } : null;
+      const lineHover = line && f ? { overlay: line, group: Number(f.properties.g) } : lineHighlightRef.current;
       highlightLine(map, lineHoverRef.current, lineHover);
       lineHoverRef.current = lineHover;
       setHoverId(iso3);
@@ -997,8 +1027,8 @@ export function WorldMap(props: WorldMapProps) {
     map.on('mouseout', () => {
       setHoverId(null);
       setHover(null);
-      highlightLine(map, lineHoverRef.current, null);
-      lineHoverRef.current = null;
+      highlightLine(map, lineHoverRef.current, lineHighlightRef.current);
+      lineHoverRef.current = lineHighlightRef.current;
     });
     map.on('click', (e) => {
       if (suppressClickRef.current || latest.current.boxMode) {
@@ -1469,7 +1499,53 @@ export function WorldMap(props: WorldMapProps) {
     // 換年份時也要同步：有 epochs 的點圖層（城市每 5 年一期的人口）換到另一期要重送資料，其他圖層不會重送
     pointLayersRef.current = syncOverlays(map, overlays, overlaySentRef.current.cache, basemap.dark, year);
     applyTimeFilters(map, overlays, year, indicator.overlayTime);
+    // 換底圖後新的圖層一開始沒有標出任何線：重新標出目前要標的那一組
+    const shown = lineHoverRef.current ?? lineHighlightRef.current;
+    if (shown) highlightLine(map, null, shown);
+    lineHoverRef.current = shown;
   }, [revision, overlays, year, indicator.overlayTime]);
+
+  /* ── 主題側欄要標出的一組線（例如滑到某條河）：跟滑鼠滑過共用同一層 ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    lineHighlightRef.current = lineHighlight;
+    if (!ready || !map || !installedRef.current) return;
+    highlightLine(map, lineHoverRef.current, lineHighlight);
+    lineHoverRef.current = lineHighlight;
+  }, [revision, lineHighlight]);
+
+  /* ── 主題側欄點某條河：把地圖移到它的範圍 ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !focusBox) return;
+    const [w, s, e, n] = focusBox.box;
+    map.fitBounds(
+      [
+        [w, s],
+        [e, n],
+      ],
+      { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() },
+    );
+    // 只依 key：同一個範圍再點一次也要移過去
+  }, [focusBox?.key]);
+
+  /* ── 回報縮放與畫面範圍（線圖層的 detail 依它下載分區） ── */
+  const onViewChangeRef = useRef(onViewChange);
+  onViewChangeRef.current = onViewChange;
+  const wantsView = Boolean(onViewChange);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !wantsView) return;
+    const report = () => {
+      const b = map.getBounds();
+      onViewChangeRef.current?.({ zoom: map.getZoom(), bounds: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] });
+    };
+    report();
+    map.on('moveend', report);
+    return () => {
+      map.off('moveend', report);
+    };
+  }, [ready, wantsView]);
 
   /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
   const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);
@@ -1849,6 +1925,7 @@ export function WorldMap(props: WorldMapProps) {
               })),
               overlays,
               tokens,
+              basemapRef.current.dark,
             )
           : [];
         const { canvas, ratio } = await captureMap(map);
@@ -1983,6 +2060,7 @@ export function WorldMap(props: WorldMapProps) {
             hasTerrain={terrain}
             overlays={overlays}
             tokens={tokens}
+            darkMap={basemap.dark}
           />
         )}
         {gridLegend ? (

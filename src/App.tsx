@@ -32,6 +32,7 @@ import { toCountryFeatures, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import {
+  concatLines,
   decodeLines,
   decodePoints,
   decodeRailways,
@@ -43,7 +44,7 @@ import {
 } from './map/Overlays';
 import { loadBaseStyle } from './map/style';
 import { MoonIcon, SunIcon } from './map/MapIcons';
-import type { WorldMapHandle } from './map/WorldMap';
+import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { BoxResult, type BoxContribution } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
@@ -227,7 +228,20 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
-  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure);
+  // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
+  const [mapView, setMapView] = useState<MapView | null>(null);
+  const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure, wantsView ? mapView : null);
+  // 主題側欄要在地圖上標出的一組線（滑到某條河）、要移過去的範圍
+  const [lineHighlight, setLineHighlight] = useState<{ overlay: string; group: number } | null>(null);
+  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
+  const highlightLine = useCallback(
+    (overlay: string, group: number | null) => setLineHighlight(group === null ? null : { overlay, group }),
+    [],
+  );
+  const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
+  // 換國家、換主題時側欄標出的線一起取消（側欄關掉時滑鼠不一定移開過）
+  useEffect(() => setLineHighlight(null), [state.country, topic.id]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -615,6 +629,9 @@ export function App() {
                 renderPointTooltip={renderPointTooltip}
                 flows={flows}
                 flags={flagSpecs}
+                onViewChange={wantsView ? setMapView : undefined}
+                lineHighlight={lineHighlight}
+                focusBox={focusBox}
                 overlay={
                   boxResult && (
                     <BoxResult
@@ -671,6 +688,8 @@ export function App() {
                 onIndicatorChange={chooseIndicator}
                 compare={compare}
                 onCompareChange={(list) => update({ compare: list })}
+                highlightLine={highlightLine}
+                focusBox={moveToBox}
               />
             </Suspense>
           </PanelSheet>
@@ -755,7 +774,14 @@ function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
  */
 const NO_OVERLAY_DEFS: NonNullable<Topic['overlays']> = [];
 
-function useOverlays(topic: Topic, indicator: Indicator, item: string | null, layers: LayerVisibility, pure: boolean) {
+function useOverlays(
+  topic: Topic,
+  indicator: Indicator,
+  item: string | null,
+  layers: LayerVisibility,
+  pure: boolean,
+  view: MapView | null,
+) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
   const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
@@ -781,17 +807,58 @@ function useOverlays(topic: Topic, indicator: Indicator, item: string | null, la
   );
   const wanted = useMemo(() => generic.filter((g) => g.visible).map((g) => g.path), [generic]);
   const raw = useJsonEach(wanted);
+  // 線圖層放大後的分區（LinesOverlayDef.detail）：放大到 minZoom 以上時下載跟畫面重疊的分區，下載過的留著
+  const tilePaths = useMemo(
+    () =>
+      generic.flatMap(({ def, visible, path }) => {
+        const minZoom = def.kind === 'lines' && visible ? def.detail?.minZoom : undefined;
+        const index = minZoom === undefined ? undefined : (raw.get(path) as LinesData | undefined)?.detail;
+        if (!index || !view || view.zoom < minZoom!) return [];
+        return index.tiles.filter((tile) => tileInView(tile, view.bounds)).map(([id]) => detailPath(path, index.file, id));
+      }),
+    [generic, raw, view],
+  );
+  const tiles = useJsonEach(tilePaths);
   const result = useMemo<OverlayLayer[]>(
     () =>
       generic.map(({ def, visible, path }) => {
         const data = raw.get(path) ?? null;
-        return def.kind === 'points'
-          ? { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null }
-          : { kind: 'lines', def, visible, lines: data ? decodedLines(data as LinesData) : null };
+        if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
+        const index = (data as LinesData | null)?.detail;
+        const loaded = index
+          ? index.tiles.flatMap(([id]) => {
+              const tile = tiles.get(detailPath(path, index.file, id));
+              return tile ? [tile as LinesData] : [];
+            })
+          : [];
+        return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
       }),
-    [generic, raw],
+    [generic, raw, tiles],
   );
   return { railways, airports, overlays: result };
+}
+
+/** 分區檔的路徑：跟主檔同一個資料夾，file 裡的 `{tile}` 換成分區的 id */
+function detailPath(mainPath: string, file: string, id: string): string {
+  return `${mainPath.slice(0, mainPath.lastIndexOf('/') + 1)}${file.replace('{tile}', id)}`;
+}
+
+/** 分區的範圍跟畫面重疊（外擴 2°，先載入旁邊的；經度可能超出 ±180°，左右平移 360° 再比一次） */
+function tileInView([, w, s, e, n]: [string, number, number, number, number], [vw, vs, ve, vn]: MapView['bounds']): boolean {
+  const pad = 2;
+  if (n < vs - pad || s > vn + pad) return false;
+  return [-360, 0, 360].some((shift) => w + shift <= ve + pad && e + shift >= vw - pad);
+}
+
+/** 線圖層的主檔加上已經下載的分區；同一組檔回傳同一個物件，地圖才不會重送資料 */
+const mergedCache = new WeakMap<LinesData, { parts: LinesData[]; lines: DecodedLines }>();
+function mergedLines(main: LinesData, parts: LinesData[]): DecodedLines {
+  if (!parts.length) return decodedLines(main);
+  const hit = mergedCache.get(main);
+  if (hit && hit.parts.length === parts.length && hit.parts.every((p, i) => p === parts[i])) return hit.lines;
+  const lines = concatLines([decodedLines(main), ...parts.map(decodedLines)]);
+  mergedCache.set(main, { parts, lines });
+  return lines;
 }
 
 /**

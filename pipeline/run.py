@@ -144,6 +144,10 @@ STEPS = {
     # 之後約 1 分鐘）；要先有 geo 的國界，SVG 用 node 的 svgo（devDependency，要先 npm install）最佳化。
     # 國家小檔案的國旗是前端直接讀這裡的 flags.json，不必重跑 profiles
     "flags": "topics.flags",
+    # 要先有 geo 的國界；第一次會下載 HydroRIVERS v1.0 的全球 shapefile（544 MB，解壓 2.2 GB）、Marine Regions 的 IHO 海域與
+    # Global Oceans and Seas（WFS，共約 460 MB，伺服器要先產生好幾分鐘）、Natural Earth 的河流中心線（約 20 MB）與
+    # 約 80 批 Wikidata 的中文名稱；第一次約 15 分鐘（海域畫成網格約 10 分鐘），之後用快取約 40 秒
+    "rivers": "topics.rivers",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 

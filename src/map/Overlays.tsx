@@ -52,13 +52,36 @@ export function decodeLines(data: LinesData | RailwaysData): DecodedLines {
     }
     return line;
   });
+  let records = 'records' in data && data.records ? decodePoints(data.records) : null;
+  // 共用的資料（同一個河流系統的名稱、流入的海…）併進每條線的紀錄
+  if (records && 'groups' in data && data.groups) {
+    const { field, records: shared } = data.groups;
+    const groups = new Map(decodePoints(shared).map((g) => [g[field], g]));
+    records = records.map((r) => {
+      const g = groups.get(r[field]);
+      return g ? { ...g, ...r } : r;
+    });
+  }
   return {
     lines,
     types: 'types' in data && data.types ? data.types : null,
-    records: 'records' in data && data.records ? decodePoints(data.records) : null,
+    records,
     // 一個字元一個頂點，36 進位（pipeline 的 VERTEX_CODES）
     vertexTypes:
       'vertexTypes' in data && data.vertexTypes ? data.vertexTypes.map((s) => Array.from(s, (c) => parseInt(c, 36))) : null,
+  };
+}
+
+/** 好幾份還原後的線接成一份（線圖層的主檔加上放大後下載的分區）；紀錄、分類沒有的那份補 null */
+export function concatLines(parts: DecodedLines[]): DecodedLines {
+  if (parts.length === 1) return parts[0];
+  const all = <T,>(pick: (p: DecodedLines) => T[] | null, fill: T) =>
+    parts.some((p) => pick(p)) ? parts.flatMap((p) => pick(p) ?? p.lines.map(() => fill)) : null;
+  return {
+    lines: parts.flatMap((p) => p.lines),
+    types: all((p) => p.types, 0),
+    records: all<PointRecord>((p) => p.records, {}),
+    vertexTypes: all<number[]>((p) => p.vertexTypes, []),
   };
 }
 
@@ -66,10 +89,20 @@ export function decodeLines(data: LinesData | RailwaysData): DecodedLines {
 export function decodePoints(data: PointsData): PointRecord[] {
   const n = data.columns[0]?.length ?? 0;
   const records: PointRecord[] = Array.from({ length: n }, () => ({}));
+  const table = data.strings?.table;
+  const stringFields = new Set(data.strings?.fields ?? []);
   data.fields.forEach((field, f) => {
     const column = data.columns[f];
     const scale = data.scale[field];
     const delta = data.delta.includes(field);
+    // 字串表的欄位：存的是索引，0 是沒有值
+    if (table && stringFields.has(field)) {
+      for (let i = 0; i < n; i++) {
+        const v = column[i];
+        records[i][field] = typeof v === 'number' && v > 0 ? (table[v] ?? null) : null;
+      }
+      return;
+    }
     let acc = 0;
     for (let i = 0; i < n; i++) {
       const v = column[i];
@@ -102,8 +135,13 @@ export function overlayVisible(layers: LayerVisibility, def: { id: string; hidde
 
 /** 點圖層的半徑（px，縮放 2 時）：固定值，或依欄位在 stops 之間線性內插 */
 export function pointRadius(def: PointsOverlay, value: number | null): number {
-  if (typeof def.radius === 'number') return def.radius;
-  const stops = def.radius.stops;
+  return interpolateStops(def.radius, value);
+}
+
+/** 固定值，或依欄位在 stops [[值, 大小], …] 之間線性內插（點的半徑、線寬） */
+export function interpolateStops(size: number | { stops: [number, number][] }, value: number | null): number {
+  if (typeof size === 'number') return size;
+  const stops = size.stops;
   if (value === null) return stops[0][1];
   if (value <= stops[0][0]) return stops[0][1];
   for (let i = 1; i < stops.length; i++) {
@@ -138,31 +176,43 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
  * 一般疊加圖層的圖例。tokens 是介面的配色：圖例卡片跟著深淺色切換，中性的深灰線（板塊邊界）
  * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
  */
-export function overlayKey(o: OverlayLayer, tokens?: Tokens): OverlayKey {
+export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
   if (o.kind === 'lines') {
     const { def } = o;
     const classes = typeof def.color === 'string' ? null : def.color.classes;
     const neutral: Record<string, string> = tokens
       ? { [MAP_TOKENS.ink]: tokens.ink, [MAP_TOKENS.inkSecondary]: tokens.inkSecondary, [MAP_TOKENS.inkMuted]: tokens.inkMuted }
       : {};
+    // 依欄位變粗的線，開關與顏色分級的符號用中間那一級的線寬
+    const typical = typeof def.width === 'number' ? def.width : def.width.stops[Math.floor(def.width.stops.length / 2)][1];
     const lineSwatch = (color: string, dash?: boolean): OverlaySwatch => ({
       shape: dash ? 'dash' : 'line',
-      size: Math.max(1.5, def.width),
+      size: Math.max(1.5, typical),
       color: neutral[color] ?? color,
     });
+    // 深色底圖上有另一個顏色的分類（河流的紫 → 淡紫），圖例跟地圖畫的一樣
+    const classColor = (c: { color: string; dark?: string }) => (darkMap && c.dark ? c.dark : c.color);
+    const details: OverlayKey['details'] = [];
+    if (classes && typeof def.color !== 'string') {
+      details.push({
+        title: def.color.title,
+        layout: 'rows',
+        rows: classes.map((c) => ({ ...lineSwatch(classColor(c), c.dash), label: c.label })),
+      });
+    }
+    if (def.sizeLegend) {
+      const { title, values, format } = def.sizeLegend;
+      const ink = tokens?.inkSecondary ?? SIZE_KEY_COLOR;
+      details.push({
+        title,
+        layout: 'rows',
+        rows: values.map((v) => ({ shape: 'line', size: interpolateStops(def.width, v), color: ink, label: format(v) })),
+      });
+    }
     return {
-      swatch: lineSwatch(classes ? classes[0].color : (def.color as string)),
+      swatch: lineSwatch(classes ? classColor(classes[0]) : (def.color as string)),
       label: def.label,
-      details:
-        classes && typeof def.color !== 'string'
-          ? [
-              {
-                title: def.color.title,
-                layout: 'rows',
-                rows: classes.map((c) => ({ ...lineSwatch(c.color, c.dash), label: c.label })),
-              },
-            ]
-          : [],
+      details,
     };
   }
   const { def } = o;
@@ -236,11 +286,11 @@ export function layerKeyColor(k: LayerKey, tokens: Tokens): string {
  * 開著的一般疊加圖層的圖例；同一組分級說明（例如規模 5–6 與 6 以上共用的震源深度）只列在第一個圖層下面。
  * 畫面上的圖層開關與匯出的圖片共用。
  */
-export function overlayKeys(overlays: OverlayLayer[], tokens?: Tokens): Map<OverlayLayer, OverlayKey> {
+export function overlayKeys(overlays: OverlayLayer[], tokens?: Tokens, darkMap = false): Map<OverlayLayer, OverlayKey> {
   const seen = new Set<string>();
   const out = new Map<OverlayLayer, OverlayKey>();
   for (const o of overlays) {
-    const key = overlayKey(o, tokens);
+    const key = overlayKey(o, tokens, darkMap);
     if (o.visible) {
       key.details = key.details.filter((d) => {
         const signature = JSON.stringify(d);
@@ -259,9 +309,10 @@ export function exportLayerKeys(
   fixed: { key: LayerKey; color: string }[],
   overlays: OverlayLayer[],
   tokens: Tokens,
+  darkMap = false,
 ): { label: string; swatch: OverlaySwatch; details: OverlayKey['details'] }[] {
   const visible = overlays.filter((o) => o.visible);
-  const keys = overlayKeys(visible, tokens);
+  const keys = overlayKeys(visible, tokens, darkMap);
   return [
     ...fixed.map(({ key, color }) => ({ label: tr(key.label), swatch: { shape: key.shape, size: key.size, color }, details: [] })),
     ...visible.map((o) => keys.get(o)!),
@@ -277,6 +328,8 @@ interface LayerControlsProps {
   /** 主題的一般疊加圖層（地震、火山、板塊邊界…） */
   overlays?: OverlayLayer[];
   tokens: Tokens;
+  /** 底圖是深色的（分類有深色底圖用的顏色時，圖例跟地圖一樣） */
+  darkMap?: boolean;
 }
 
 const SHOW_DETAILS: Text = { zh: '顯示圖例', en: 'Show key' };
@@ -293,6 +346,7 @@ export function LayerControls({
   hasTerrain = false,
   overlays = [],
   tokens,
+  darkMap = false,
 }: LayerControlsProps) {
   const t = useT();
   const lang = useLang();
@@ -300,7 +354,7 @@ export function LayerControls({
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
   const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
-  const extraKeys = overlayKeys(overlays, tokens);
+  const extraKeys = overlayKeys(overlays, tokens, darkMap);
   const [showDetails, setShowDetails] = useState(() => !(typeof matchMedia === 'function' && matchMedia(NARROW).matches));
   const hasDetails = overlays.some((o) => o.visible && extraKeys.get(o)!.details.length > 0);
   return (

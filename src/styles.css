@@ -2262,6 +2262,76 @@ kbd {
   border: 1px solid var(--border);
 }
 
+/* 河流與流域的側欄（RiversPanel.tsx）：國土流向各大洋的 100% 長條、國內最大的河流系統 */
+.river-share {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  margin: 8px 0 6px;
+}
+
+.river-share span {
+  height: 100%;
+  min-width: 2px;
+}
+
+.river-share span:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.river-share span:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.river-share-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.river-systems {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.river-system {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  width: 100%;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--grid);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.river-system:hover,
+.river-system:focus-visible {
+  background: var(--grid);
+}
+
+.river-system .bar-key {
+  margin-top: 4px;
+}
+
+.river-system-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.river-system .stat-meta {
+  grid-column: 2;
+  min-height: 0;
+}
+
 .panel-section {
   margin-top: 24px;
   padding-top: 16px;

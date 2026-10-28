@@ -39,6 +39,9 @@ interface CountryPanelProps {
   /** 一起比較的國家（網址的 cmp），折線圖與數值卡片都列出 */
   compare: string[];
   onCompareChange: (compare: string[]) => void;
+  /** 主題側欄要在地圖上標出線、移動地圖時用（PanelExtraProps 的同名欄位） */
+  highlightLine?: PanelExtraProps['highlightLine'];
+  focusBox?: PanelExtraProps['focusBox'];
 }
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
@@ -54,8 +57,8 @@ function panelExtraFor(topic: Topic) {
 }
 
 export function CountryPanel(props: CountryPanelProps) {
-  const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare, onCompareChange } =
-    props;
+  const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
+  const { onCompareChange, highlightLine, focusBox } = props;
   // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
   const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
@@ -253,7 +256,17 @@ export function CountryPanel(props: CountryPanelProps) {
 
       {Extra && (
         <Suspense fallback={<SectionSkeleton />}>
-          <Extra topic={topic} indicator={indicator} iso3={iso3} year={year} item={item} countryName={name} tokens={tokens} />
+          <Extra
+            topic={topic}
+            indicator={indicator}
+            iso3={iso3}
+            year={year}
+            item={item}
+            countryName={name}
+            tokens={tokens}
+            highlightLine={highlightLine}
+            focusBox={focusBox}
+          />
         </Suspense>
       )}
     </aside>

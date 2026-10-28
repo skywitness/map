@@ -122,13 +122,17 @@ def points_file(
     fields: list[str],
     scale: dict[str, float],
     delta: tuple[str, ...] | list[str] = (),
+    strings: tuple[str, ...] | list[str] = (),
 ) -> dict:
     """一般點圖層的資料檔（src/topics/types.ts 的 PointsData），欄位分開存。
 
     - scale 裡的欄位是數值：存 round(值 / scale) 的整數，例如經緯度 0.01（約 1 公里）、規模 0.1；
       其他欄位原樣存（字串，或 None）。
     - delta 裡的欄位存跟前一個非 None 值的差：rows 先依這個欄位排序（年份、經度），差分後的數字很小，gzip 壓得很好。
+    - strings 裡的欄位是重複很多次的字串（例如河流名稱）：存成字串表（輸出的 strings.table）的索引，0 是沒有值。
     """
+    table: list[str] = [""]
+    index: dict[str, int] = {}
     columns: list[list[object]] = []
     for field in fields:
         q = scale.get(field)
@@ -136,6 +140,15 @@ def points_file(
         prev = 0
         for row in rows:
             v = row.get(field)
+            if field in strings:
+                if v is None or v == "":
+                    col.append(0)
+                else:
+                    if v not in index:
+                        index[v] = len(table)
+                        table.append(str(v))
+                    col.append(index[v])
+                continue
             if v is None or q is None:
                 col.append(v)
                 continue
@@ -146,7 +159,12 @@ def points_file(
             else:
                 col.append(n)
         columns.append(col)
-    return {"fields": fields, "scale": {f: scale[f] for f in fields if f in scale}, "delta": list(delta), "columns": columns}
+    out: dict[str, object] = {
+        "fields": fields, "scale": {f: scale[f] for f in fields if f in scale}, "delta": list(delta), "columns": columns,
+    }
+    if strings:
+        out["strings"] = {"fields": [f for f in fields if f in strings], "table": table}
+    return out
 
 
 VERTEX_CODES = "0123456789abcdefghijklmnopqrstuvwxyz"
@@ -162,6 +180,8 @@ def lines_file(
     record_fields: list[str] | None = None,
     record_scale: dict[str, float] | None = None,
     record_delta: tuple[str, ...] | list[str] = (),
+    record_strings: tuple[str, ...] | list[str] = (),
+    groups: tuple[str, dict] | None = None,
 ) -> dict:
     """一般線圖層的資料檔（LinesData）：跟鐵路同一種差分編碼，每條線第一個點是量化後的絕對座標，之後是差分。
 
@@ -174,6 +194,10 @@ def lines_file(
 
     vertex_types（選填）：每條線每個頂點的分類代碼（0–35，例如颱風每個時間點的強度），存成一個字元一個頂點的字串；
     前端依代碼把線切成好幾段上色。量化後重疊的頂點只留第一個，代碼也跟著拿掉。
+
+    record_strings：紀錄裡重複很多次的字串欄位，存成字串表（points_file() 的 strings）。
+    groups（選填）：(欄位, points_file() 的輸出)，很多條線共用的資料（例如同一個河流系統的名稱、流入的海、長度）只存一次：
+    groups 的每一筆也有這個欄位，前端還原時把欄位值相同的那一筆併進每條線的紀錄。
     """
     encoded: list[list[int]] = []
     kept: list[int] = []
@@ -206,7 +230,9 @@ def lines_file(
     if records is not None:
         if not record_fields:
             raise ValueError("有 records 時要給 record_fields")
-        out["records"] = points_file(kept_records, record_fields, record_scale or {}, record_delta)
+        out["records"] = points_file(kept_records, record_fields, record_scale or {}, record_delta, record_strings)
+    if groups is not None:
+        out["groups"] = {"field": groups[0], "records": groups[1]}
     return out
 
 

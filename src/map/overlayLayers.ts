@@ -3,6 +3,8 @@
  * 每個疊加圖層一個 GeoJSON source（`ov-<id>`）；圖層 id 也是 `ov-<id>`（虛線的線另外一層 `ov-<id>-dash`）。
  * 有 tooltip 的線另外兩層：看不見的寬線 `ov-<id>-hit` 給 hover 查詢（細線很難滑到），加粗的 `ov-<id>-hover` 標出滑到的那一條。
  * casing 的線在最下面多一層細邊 `ov-<id>-casing`。有 vertexTypes 的線（颱風）依每個頂點的代碼切成好幾段，各段分別上色。
+ * 線寬可以依紀錄的欄位變化（河流依流量），hoverHalo 的線滑過時多一層光暈 `ov-<id>-hover-halo`，
+ * minValue 依縮放篩選（縮小時只畫大河），fadeOut 放大後淡出。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
@@ -138,19 +140,49 @@ interface LineSublayer {
   timed: boolean;
 }
 
+/** 線寬的運算式（縮放 2 時的 px）：固定值，或依欄位在 stops 之間線性內插 */
+function lineWidth(def: Pick<LinesOverlay, 'width'>): ExpressionSpecification | number {
+  if (typeof def.width === 'number') return def.width;
+  const { field, stops } = def.width;
+  return ['interpolate', ['linear'], ['coalesce', ['get', field], stops[0][0]], ...stops.flat()] as ExpressionSpecification;
+}
+
+/** 滑過時標出的線寬：固定線寬的照舊（至少 2.4 px），依欄位變粗的線是原本的 1.25 倍再加 0.6 px（整個水系一起標出，不必再粗） */
+function hoverWidth(def: Pick<LinesOverlay, 'width'>): ExpressionSpecification | number {
+  return typeof def.width === 'number' ? Math.max(2.4, def.width * 2.4) : ['+', ['*', lineWidth(def), 1.25], 0.6];
+}
+
+/** 不透明度：fadeOut 時放大到那個範圍淡出 */
+function lineOpacity(def: Pick<LinesOverlay, 'fadeOut'>, opacity: number): ExpressionSpecification | number {
+  if (!def.fadeOut) return opacity;
+  const [z0, z1] = def.fadeOut;
+  return ['interpolate', ['linear'], ['zoom'], z0, opacity, z1, 0];
+}
+
+const HALO_SUFFIX = '-hover-halo';
+
+/** 線寬隨縮放變化：有 widthZoom 時依它的倍數（[縮放, 倍數]），沒有用跟點一樣的 zoomed() */
+function lineZoomed(def: Pick<LinesOverlay, 'widthZoom'>, w: ExpressionSpecification | number): ExpressionSpecification {
+  if (!def.widthZoom) return zoomed(w);
+  return ['interpolate', ['linear'], ['zoom'], ...def.widthZoom.flatMap(([z, k]) => [z, ['*', k, w]])] as ExpressionSpecification;
+}
+
 function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
   const id = OVERLAY_PREFIX + def.id;
   const classes = typeof def.color === 'string' ? [] : def.color.classes;
   const tone = (c: string) => (dark ? (ON_DARK[c] ?? c) : c);
+  // 分類可以寫深色底圖用的顏色（同色相比較亮的一階）
+  const classColor = (c: (typeof classes)[number]) => (dark && c.dark ? c.dark : tone(c.color));
   const color: ExpressionSpecification | string =
     typeof def.color === 'string'
       ? tone(def.color)
-      : (['match', ['coalesce', ['get', 'type'], -1], ...classes.flatMap((c) => [c.value, tone(c.color)]), tone(classes[0].color)] as unknown as ExpressionSpecification);
+      : (['match', ['coalesce', ['get', 'type'], -1], ...classes.flatMap((c) => [c.value, classColor(c)]), classColor(classes[0])] as unknown as ExpressionSpecification);
   const dashed = classes.filter((c) => c.dash).map((c) => c.value);
+  const width = lineWidth(def);
   const paint = {
     'line-color': color,
-    'line-width': zoomed(def.width),
-    'line-opacity': dark ? 0.9 : 0.8,
+    'line-width': lineZoomed(def, width),
+    'line-opacity': lineOpacity(def, dark ? 0.9 : 0.8),
   };
   const isDashed: FilterSpecification = ['in', ['coalesce', ['get', 'type'], -1], ['literal', dashed]];
   // sortByType：代碼大的畫在上面（颱風強的那段疊在弱的上面）
@@ -169,8 +201,8 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
         layout,
         paint: {
           'line-color': dark ? '#ffffff' : MAP_TOKENS.ink,
-          'line-opacity': dark ? 0.4 : 0.28,
-          'line-width': zoomed(def.width + 1.4),
+          'line-opacity': lineOpacity(def, dark ? 0.4 : 0.28),
+          'line-width': lineZoomed(def, typeof width === 'number' ? width + 1.4 : ['+', width, 1.4]),
         },
       },
       base: null,
@@ -195,6 +227,27 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
       timed: true,
     });
     const hoverBase: FilterSpecification = ['==', ['get', 'g'], NO_GROUP];
+    const hover = hoverWidth(def);
+    if (def.hoverHalo) {
+      // 光暈：一整個河流系統跟旁邊同色的線分得開
+      out.push({
+        layer: {
+          id: id + HALO_SUFFIX,
+          type: 'line',
+          source: id,
+          layout,
+          filter: hoverBase,
+          paint: {
+            'line-color': dark ? '#ffffff' : MAP_TOKENS.ink,
+            'line-width': lineZoomed(def, typeof hover === 'number' ? hover + 2.5 : ['+', hover, 2.5]),
+            'line-opacity': dark ? 0.45 : 0.35,
+            'line-blur': 1,
+          },
+        },
+        base: hoverBase,
+        timed: false,
+      });
+    }
     out.push({
       layer: {
         id: id + HOVER_SUFFIX,
@@ -202,7 +255,7 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
         source: id,
         layout,
         filter: hoverBase,
-        paint: { 'line-color': color, 'line-width': zoomed(Math.max(2.4, def.width * 2.4)), 'line-opacity': 1 },
+        paint: { 'line-color': color, 'line-width': lineZoomed(def, hover), 'line-opacity': 1 },
       },
       base: hoverBase,
       timed: false,
@@ -245,8 +298,12 @@ function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>, epoch: numb
 function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.FeatureCollection {
   if (!o.lines) return EMPTY;
   const { lines, types, records, vertexTypes } = o.lines;
-  const { timeField } = o.def;
-  // 紀錄完全相同的線是同一組（同一條電纜被切成好幾段），滑到其中一段時整組一起標出
+  const { timeField, groupField } = o.def;
+  // 畫圖、篩選要用的紀錄欄位（時間、線寬、依縮放的篩選）
+  const fields = [timeField, typeof o.def.width === 'number' ? undefined : o.def.width.field, o.def.minValue?.field].filter(
+    (f): f is string => Boolean(f),
+  );
+  // 紀錄完全相同的線是同一組（同一條電纜被切成好幾段），滑到其中一段時整組一起標出；有 groupField 時依那個欄位
   const groups = new Map<string, number>();
   const features: GeoJSON.Feature[] = [];
   lines.forEach((coordinates, i) => {
@@ -254,12 +311,14 @@ function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.Feat
     if (types) properties.type = types[i];
     const record = records?.[i];
     if (record) {
-      const key = JSON.stringify(record);
+      const key = groupField ? String(record[groupField]) : JSON.stringify(record);
       let g = groups.get(key);
-      if (g === undefined) groups.set(key, (g = groups.size));
+      if (g === undefined) groups.set(key, (g = groupField && typeof record[groupField] === 'number' ? (record[groupField] as number) : groups.size));
       properties.g = g;
-      const t = timeField ? record[timeField] : null;
-      if (timeField && t !== null && t !== undefined) properties[timeField] = t;
+      for (const f of fields) {
+        const v = record[f];
+        if (v !== null && v !== undefined) properties[f] = v;
+      }
     } else {
       properties.g = i;
     }
@@ -306,18 +365,29 @@ export function timeFilter(
  * 依縮放篩選的點（PointsOverlayDef.minValue）：數值要大於等於這一級的門檻。filter 裡的 ['zoom'] 是圖磚的整數級數，
  * 所以門檻在整數級數換；沒有這個欄位的點（例如那一期還不是城市）不畫。
  */
-function valueFilter(def: Pick<PointsOverlay, 'minValue'>): FilterSpecification | null {
+function valueFilter(def: { minValue?: { field: string; stops: [number, number][] } }): FilterSpecification | null {
   if (!def.minValue) return null;
   const { field, stops } = def.minValue;
   const threshold = ['step', ['zoom'], stops[0][1], ...stops.slice(1).flat()] as unknown as ExpressionSpecification;
   return ['all', ['has', field], ['>=', ['get', field], threshold]];
 }
 
-/** 點圖層的篩選：時間篩選與依縮放的篩選合併 */
-function pointFilter(def: PointsOverlay, year: number, mode: IndicatorDef['overlayTime']): FilterSpecification | null {
-  const parts = [timeFilter(def, year, mode), valueFilter(def)].filter((f): f is FilterSpecification => f !== null);
-  return parts.length === 0 ? null : parts.length === 1 ? parts[0] : (['all', ...parts] as FilterSpecification);
+/** 點、線圖層的篩選：時間篩選與依縮放的篩選合併 */
+function pointFilter(
+  def: Pick<PointsOverlay, 'timeField' | 'endField' | 'minValue'>,
+  year: number,
+  mode: IndicatorDef['overlayTime'],
+): FilterSpecification | null {
+  return allOf([timeFilter(def, year, mode), valueFilter(def)]);
 }
+
+function allOf(parts: (FilterSpecification | null)[]): FilterSpecification | null {
+  const used = parts.filter((f): f is FilterSpecification => f !== null);
+  return used.length === 0 ? null : used.length === 1 ? used[0] : (['all', ...used] as FilterSpecification);
+}
+
+/** 線圖層目前依縮放的篩選（滑過時標出的那一組也要套用，放大前看不到的支流不會跟著亮起來） */
+const lineValueFilters = new Map<string, FilterSpecification | null>();
 
 /** 每個疊加圖層上次送到地圖上的資料與那一期（同一份就不必再送一次）；換底圖後要清掉 */
 export type OverlayDataCache = Map<string, { data: unknown; epoch: number | null }>;
@@ -370,7 +440,7 @@ export function syncOverlays(
       sent.set(id, { data, epoch });
     }
     const visibility = o.visible && data ? 'visible' : 'none';
-    for (const layerId of [id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HOVER_SUFFIX]) {
+    for (const layerId of [id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HALO_SUFFIX, id + HOVER_SUFFIX]) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
   }
@@ -391,11 +461,14 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], yea
       if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));
       continue;
     }
-    if (!o.def.timeField) continue;
-    const time = timeFilter(o.def, year, mode);
+    if (!o.def.timeField && !o.def.minValue) continue;
+    // 時間篩選與依縮放的篩選要跟它本身的篩選（實線／虛線）合併；滑過時標出的那層只合併依縮放的篩選（highlightLine）
+    const value = valueFilter(o.def);
+    lineValueFilters.set(o.def.id, value);
+    const extra = allOf([timeFilter(o.def, year, mode), value]);
     for (const { layer, base, timed } of lineLayers(o.def, false)) {
       if (!timed || !map.getLayer(layer.id)) continue;
-      map.setFilter(layer.id, base && time ? (['all', base, time] as FilterSpecification) : (base ?? time));
+      map.setFilter(layer.id, allOf([base, extra]));
     }
   }
 }
@@ -413,12 +486,13 @@ export function highlightLine(
   prev: { overlay: string; group: number } | null,
   next: { overlay: string; group: number } | null,
 ) {
-  if (prev && (!next || prev.overlay !== next.overlay)) {
-    const id = OVERLAY_PREFIX + prev.overlay + HOVER_SUFFIX;
-    if (map.getLayer(id)) map.setFilter(id, ['==', ['get', 'g'], NO_GROUP]);
-  }
-  if (next && (prev?.overlay !== next.overlay || prev.group !== next.group)) {
-    const id = OVERLAY_PREFIX + next.overlay + HOVER_SUFFIX;
-    if (map.getLayer(id)) map.setFilter(id, ['==', ['get', 'g'], next.group]);
-  }
+  const set = (overlay: string, group: number) => {
+    const filter = allOf([['==', ['get', 'g'], group], group === NO_GROUP ? null : (lineValueFilters.get(overlay) ?? null)]);
+    for (const suffix of [HALO_SUFFIX, HOVER_SUFFIX]) {
+      const id = OVERLAY_PREFIX + overlay + suffix;
+      if (map.getLayer(id)) map.setFilter(id, filter);
+    }
+  };
+  if (prev && (!next || prev.overlay !== next.overlay)) set(prev.overlay, NO_GROUP);
+  if (next && (prev?.overlay !== next.overlay || prev.group !== next.group)) set(next.overlay, next.group);
 }
