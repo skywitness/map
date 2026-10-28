@@ -7,7 +7,7 @@ import type { MapTokens } from '../theme/tokens';
 /** 類別圖（kind: 'categorical'，已解析成目前語言）的設定 */
 export interface CategoricalLayer {
   /** color：這一類自己的顏色（類別本身就是顏色時，例如國旗的主要顏色），有寫的優先 */
-  categories: { value: number; label: string; color?: string }[];
+  categories: { value: number; label: string; color?: string; max?: number }[];
   other?: string;
   ordinal?: boolean;
   diverging?: boolean;
@@ -53,8 +53,15 @@ export function categoryScale(layer: CategoricalLayer, tokens: MapTokens): Categ
   if (layer.diverging) {
     colors = divergingColors(n, tokens.diverging);
   } else if (layer.ordinal) {
+    // 有自己顏色的類別（例如法定年齡的「禁止」「沒有規定」）不占色階
     const ramp = tokens.sequential;
-    colors = layer.categories.map((_, i) => ramp[n === 1 ? ramp.length - 1 : Math.round(((n - 1 - i) * (ramp.length - 1)) / (n - 1))]);
+    const m = layer.categories.filter((c) => !c.color).length;
+    let k = 0;
+    colors = layer.categories.map((c) => {
+      if (c.color) return c.color;
+      const i = k++;
+      return ramp[m === 1 ? ramp.length - 1 : Math.round(((m - 1 - i) * (ramp.length - 1)) / (m - 1))];
+    });
   } else if (layer.categories.every((c) => c.color)) {
     colors = [];
   } else {
@@ -64,7 +71,10 @@ export function categoryScale(layer: CategoricalLayer, tokens: MapTokens): Categ
   const items: CategoryItem[] = layer.categories.map((c, i) => ({ label: c.label, color: c.color ?? colors[i] }));
   if (layer.other) items.push({ label: layer.other, color: tokens.categoricalOther, other: true });
   const byValue = new Map(layer.categories.map((c, i) => [c.value, i]));
-  const index = (value: number) => byValue.get(value) ?? (layer.other ? n : null);
+  // 有 max 的類別涵蓋 value–max 的代碼
+  const ranges = layer.categories.flatMap((c, i) => (c.max === undefined ? [] : [{ min: c.value, max: c.max, i }]));
+  const index = (value: number) =>
+    byValue.get(value) ?? ranges.find((r) => value >= r.min && value <= r.max)?.i ?? (layer.other ? n : null);
   return {
     items,
     index,
