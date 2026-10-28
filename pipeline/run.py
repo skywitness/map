@@ -160,6 +160,8 @@ STEPS = {
     # （河流主題的同一份快取，畫成網格約 5 分鐘）與 Natural Earth 的 populated places（旅行實用的同一份）；
     # 之後約 30 秒（全球每 3 km 一點的取樣網格約 5,700 萬點，判斷國家與海約 15 秒）
     "antipodes": "topics.antipodes",
+    # 要先有晝夜與季節的首都（daylight）
+    "magnetic": "topics.magnetic",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
