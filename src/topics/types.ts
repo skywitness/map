@@ -865,6 +865,11 @@ export interface IndicatorData {
   projectionFrom?: number;
   /** 從這一年起換了統計方法，跟之前的年份不完全可比（例如 FAO 糧食平衡表 2010 年起的新方法）；折線圖畫一條垂直虛線 */
   methodBreak?: number;
+  /**
+   * 這一年以前的值多半是估計或內插（例如 Gapminder 1800 年起的長期資料，1950 年以前）：
+   * 時間軸在這之前的年份標「估計值」，側欄折線圖在這一年畫一條垂直虛線
+   */
+  estimatesBefore?: number;
   /** 世界、區域等合計，key 例如 WLD */
   aggregates?: Record<string, (number | null)[]>;
   /** key 為 ISO alpha-3，陣列與 years 一一對應，缺值為 null */

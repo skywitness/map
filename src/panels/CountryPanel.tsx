@@ -147,6 +147,7 @@ export function CountryPanel(props: CountryPanelProps) {
       lines,
       projectionFrom: activeData.projectionFrom,
       methodBreak: activeData.methodBreak,
+      estimatesBefore: activeData.estimatesBefore,
       year,
       indicator: chartIndicator,
       tokens,
@@ -269,6 +270,9 @@ export function CountryPanel(props: CountryPanelProps) {
           )}
           {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
           {methodBreak !== undefined && option && <p className="note">{t.methodBreak(methodBreak)}</p>}
+          {activeData?.estimatesBefore !== undefined && option && (
+            <p className="note">{t.estimatesBefore(activeData.estimatesBefore)}</p>
+          )}
           {note && <p className="note">{t.note(note)}</p>}
         </section>
       )}

@@ -1,4 +1,5 @@
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent, intlDollars, usd } from '../lib/format';
+import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 import type { TopicDefinition } from './types';
 
 export const income: TopicDefinition = {
@@ -14,6 +15,7 @@ export const income: TopicDefinition = {
       license: { zh: '註明來源即可使用', en: 'free to use with attribution' },
     },
     { name: 'World Bank, World Development Indicators', url: 'https://data.worldbank.org/', license: 'CC BY 4.0' },
+    LONG_RUN_SOURCE,
   ],
   note: {
     zh: '2026 年起為 IMF 推估值。古巴、格陵蘭等 IMF 未涵蓋的地區改用世界銀行資料。',
@@ -75,6 +77,21 @@ export const income: TopicDefinition = {
       format: (v) => formatSignedPercent(v, 1),
       formatTick: (v) => formatSignedPercent(v, v % 1 === 0 ? 0 : 1),
       compareWorld: true,
+    },
+    {
+      id: 'gdp-per-capita-1800',
+      label: { zh: '人均 GDP（1800 年起）', en: 'GDP per capita (since 1800)' },
+      description: {
+        zh: `1800–2024 年的人均 GDP，購買力平價、2021 年的國際元（已扣除物價上漲），單位跟上面 IMF 的指標不同，不能直接比。1990 年起跟世界銀行相同，之前主要用 Maddison Project 回推。${LONG_RUN_CAVEAT.zh}`,
+        en: `GDP per capita 1800–2024 at purchasing power parity in constant 2021 international dollars (adjusted for inflation), so not directly comparable with the IMF indicators above. World Bank figures from 1990, mostly Maddison Project reconstructions before that. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: { zh: '2021 年國際元', en: '2021 international $' },
+      file: 'gdp-per-capita-1800.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1000, 2500, 5000, 10000, 25000, 50000] } },
+      format: (v) => intlDollars(fixed(v, 0)),
+      formatTick: formatLargeTick,
+      compareWorld: true,
+      defaultYear: 2024,
     },
   ],
 };

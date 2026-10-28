@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent } from '../lib/format';
+import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 import type { TopicDefinition } from './types';
 
 const PEOPLE = { zh: '人', en: 'people' };
@@ -30,6 +31,7 @@ export const population: TopicDefinition = {
       url: 'https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php',
       license: 'CC BY 4.0',
     },
+    LONG_RUN_SOURCE,
   ],
   indicators: [
     {
@@ -85,6 +87,20 @@ export const population: TopicDefinition = {
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'total-1800',
+      label: { zh: '總人口（1800 年起）', en: 'Total population (since 1800)' },
+      description: {
+        zh: `1800–2023 年的人口，1950 年起跟聯合國的 WPP 相同、之前用歷史研究回推。${LONG_RUN_CAVEAT.zh}`,
+        en: `Population 1800–2023: UN WPP figures from 1950, historical reconstructions before that. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: PEOPLE,
+      file: 'total-1800.json',
+      layer: { kind: 'bubble', legendValues: [1e7, 1e8, 1e9] },
+      format: (v) => `${formatLargeNumber(v)} ${tr(PEOPLE)}`,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
     },
   ],
 };

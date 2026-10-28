@@ -8,6 +8,8 @@ interface TimeSliderProps {
   projectionFrom?: number;
   /** 推估年份換一種稱呼（例如「規劃中」），之前的年份不標「估計值」（指標的 projectionLabel） */
   projectionLabel?: { tag: string; from: (year: number) => string };
+  /** 這一年以前多半是估計值（資料檔的 estimatesBefore）：沒有推估年份時，之前的年份標「估計值」 */
+  estimatesBefore?: number;
   /** 年份不是「那一年的資料」時（指標的 timeAxis，例如平均身高的「出生年」）：寫在年份上面，也是拉桿的名稱 */
   axis?: { label: string; year: (year: number) => string };
   onChange: (year: number) => void;
@@ -17,7 +19,7 @@ interface TimeSliderProps {
 
 const PLAY_INTERVAL_MS = 120;
 
-export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis, onChange, onPlayingChange }: TimeSliderProps) {
+export function TimeSlider({ years, year, projectionFrom, projectionLabel, estimatesBefore, axis, onChange, onPlayingChange }: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
   const [playing, setPlaying] = useState(false);
@@ -151,6 +153,9 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, axis,
           <span className={`year-tag${projected ? ' is-projected' : ''}`}>
             {projected ? (projectionLabel?.tag ?? t.projected) : t.estimated}
           </span>
+        )}
+        {projectionFrom === undefined && estimatesBefore !== undefined && year < estimatesBefore && (
+          <span className="year-tag">{t.estimated}</span>
         )}
       </output>
     </div>
