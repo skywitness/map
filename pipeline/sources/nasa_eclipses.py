@@ -240,3 +240,65 @@ def path_table(ymd: int, kind: str) -> list[tuple[str, tuple[float, float] | Non
                 coords.append(None)
         out.append((m0.group(1), coords[0], coords[1], coords[2]))
     return out
+
+
+# ── 月食 ───────────────────────────────────────────────────
+
+# 五千年月食目錄（Espenak & Meeus, NASA TP-2009-214172、214173）：每 100 年一頁（LEcat5/LE1901-2000.html），
+# 每次月食一列：編號、日期、食甚的 TD、ΔT、朔望月、沙羅週期、類型（T 全食、P 偏食、N 半影食；後面的字元見目錄的說明頁）、
+# QSE、gamma、半影食分、本影食分、半影／偏食／全食的持續時間（分鐘，沒有的寫 -）、食甚時月亮在天頂的緯度與經度（整數度）。
+# 跟日食同一個網站、同樣的授權（每一頁寫「Permission is freely granted … "Eclipse Predictions by Fred Espenak and
+# Jean Meeus (NASA's GSFC)"」）
+LUNAR_PAGES = ["LE1801-1900", "LE1901-2000", "LE2001-2100"]
+
+
+@dataclass
+class LunarRow:
+    number: int
+    year: int
+    month: int
+    day: int
+    td: str
+    delta_t: float
+    saros: int
+    type: str  # 例如 "T"、"T+"、"P"、"Nb"
+    gamma: float
+    pen_mag: float
+    um_mag: float
+    pen_min: float
+    par_min: float | None  # 偏食（本影）階段，U1–U4
+    tot_min: float | None  # 全食，U2–U3
+    lat: float  # 食甚時月亮在天頂的位置
+    lon: float
+
+    @property
+    def ymd(self) -> int:
+        return self.year * 10000 + self.month * 100 + self.day
+
+    @property
+    def kind(self) -> str:
+        """T、P、N"""
+        return self.type[0]
+
+
+def _minutes(token: str) -> float | None:
+    return None if token == "-" else float(token)
+
+
+def lunar_catalog() -> list[LunarRow]:
+    """1801–2100 年的月食目錄（三頁），依日期排列；含半影月食（用的人自己篩）"""
+    rows: list[LunarRow] = []
+    for page in LUNAR_PAGES:
+        path = download(f"{BASE}LEcat5/{page}.html", "nasa-eclipse", f"{page}.html")
+        for line in _text(path).splitlines():
+            t = line.split()
+            if len(t) != 18 or not re.fullmatch(r"\d{5}", t[0]) or t[2] not in MONTHS:
+                continue
+            rows.append(LunarRow(
+                number=int(t[0]), year=int(t[1]), month=MONTHS[t[2]], day=int(t[3]), td=t[4],
+                delta_t=float(t[5]), saros=int(t[7]), type=t[8], gamma=float(t[10]),
+                pen_mag=float(t[11]), um_mag=float(t[12]), pen_min=float(t[13]),
+                par_min=_minutes(t[14]), tot_min=_minutes(t[15]), lat=_angle(t[16]), lon=_angle(t[17]),
+            ))
+    rows.sort(key=lambda r: r.ymd)
+    return rows
