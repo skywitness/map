@@ -6,6 +6,10 @@
  * 另外檢查：中文 ↔ 英文切換不必重新整理、<html lang> 與分頁標題跟著變、底圖地名換成英文、
  * 帶 lang=en 的網址直接打開就是英文。
  *
+ * 只細看改到的主題：CHECK_TOPICS=antipodes,rivers npm run check:en（主題的 id，逗號分開）。其他主題照樣依序點過、
+ * 檢查主題本身的畫面（換主題時的錯誤照樣抓得到），只是不逐一換指標、看排名表、開側欄；人口主題的框選、3D、
+ * 1 km 網格也只在 CHECK_TOPICS 含 population 時檢查。什麼時候跑完整的，見 DESIGN.md 第 12 節。
+ *
  * 需要 puppeteer-core（不在 package.json，免得每個人都要裝）與系統的 Chrome：
  *   npm i --no-save puppeteer-core     或 PUPPETEER_CORE=<含 node_modules/puppeteer-core 的資料夾>
  *   CHROME_PATH=<chrome 執行檔>         （預設找 Windows / macOS / Linux 的常見位置）
@@ -21,6 +25,9 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CJK = /[\u3000-\u303f\u3400-\u9fff\uf900-\ufaff\uff01-\uff60]/;
 // 第一個國家用帶 lang=en 的網址打開，其他的用搜尋框選（不重新載入，比較快）
 const COUNTRIES = (process.env.CHECK_COUNTRIES ?? 'TWN,USA,KEN').split(',');
+// 只細看這幾個主題（沒設定是全部）
+const ONLY = (process.env.CHECK_TOPICS ?? '').split(',').filter(Boolean);
+const detailed = (topic) => !ONLY.length || ONLY.includes(topic);
 
 function loadPuppeteer() {
   const require = createRequire(import.meta.url);
@@ -182,6 +189,7 @@ async function main() {
       const topic = await page.evaluate(() => new URLSearchParams(location.search).get('topic'));
       console.log(`主題 ${topic}`);
       await check(page, `${topic}`);
+      if (!detailed(topic)) continue;
 
       const indicatorSelect = await page.$('.controls-left .select-field:last-child select');
       const segments = await page.$$('.indicator-picker .segment');
@@ -269,42 +277,44 @@ async function main() {
     }
 
     // ── 3. 框選估算（人口） ──
-    await page.goto(`${base}?topic=population&lang=en&bbox=119.000,21.000,123.000,26.000`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('.box-result');
-    await page.waitForFunction(() => /people/.test(document.querySelector('.box-result')?.textContent ?? ''), { timeout: 60000 }).catch(() => {});
-    await settle(page);
-    await check(page, 'population 框選');
-    await page.click('.box-tool');
-    await sleep(100);
-    await check(page, 'population 框選模式');
-    await page.keyboard.press('Escape');
+    if (detailed('population')) {
+      await page.goto(`${base}?topic=population&lang=en&bbox=119.000,21.000,123.000,26.000`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('.box-result');
+      await page.waitForFunction(() => /people/.test(document.querySelector('.box-result')?.textContent ?? ''), { timeout: 60000 }).catch(() => {});
+      await settle(page);
+      await check(page, 'population 框選');
+      await page.click('.box-tool');
+      await sleep(100);
+      await check(page, 'population 框選模式');
+      await page.keyboard.press('Escape');
 
-    // ── 4. 3D：面量圖的階梯圖例、總量的柱子圖例與操作提示 ──
-    for (const ind of ['density', 'total']) {
-      await page.goto(`${base}?topic=population&ind=${ind}&lang=en&3d=1`, { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('.map-legend .legend');
-      await settle(page);
-      await check(page, `3D ${ind}`);
-    }
-    const threeD = await page.$('.map-toggle');
-    if (threeD) {
-      await threeD.click(); // 關掉
-      await settle(page);
-      await (await page.$('.map-toggle'))?.click(); // 再打開，出現操作提示
-      await sleep(300);
-      await check(page, '3D 操作提示');
-    }
+      // ── 4. 3D：面量圖的階梯圖例、總量的柱子圖例與操作提示 ──
+      for (const ind of ['density', 'total']) {
+        await page.goto(`${base}?topic=population&ind=${ind}&lang=en&3d=1`, { waitUntil: 'domcontentloaded' });
+        await page.waitForSelector('.map-legend .legend');
+        await settle(page);
+        await check(page, `3D ${ind}`);
+      }
+      const threeD = await page.$('.map-toggle');
+      if (threeD) {
+        await threeD.click(); // 關掉
+        await settle(page);
+        await (await page.$('.map-toggle'))?.click(); // 再打開，出現操作提示
+        await sleep(300);
+        await check(page, '3D 操作提示');
+      }
 
-    // ── 4b. 人口密度的 1 km 網格：切換鈕、圖例（哪一期、不上色的格子）、tooltip、3D 時的說明 ──
-    for (const extra of ['', '&3d=1']) {
-      await page.goto(`${base}?topic=population&ind=density&grid=1&lang=en${extra}`, { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('.map-legend .legend');
-      await settle(page);
-      await check(page, `1 km 網格${extra && ' 3D'}`);
+      // ── 4b. 人口密度的 1 km 網格：切換鈕、圖例（哪一期、不上色的格子）、tooltip、3D 時的說明 ──
+      for (const extra of ['', '&3d=1']) {
+        await page.goto(`${base}?topic=population&ind=density&grid=1&lang=en${extra}`, { waitUntil: 'domcontentloaded' });
+        await page.waitForSelector('.map-legend .legend');
+        await settle(page);
+        await check(page, `1 km 網格${extra && ' 3D'}`);
+      }
+      await page.mouse.move(700, 520);
+      await sleep(150);
+      await check(page, '1 km 網格 tooltip');
     }
-    await page.mouse.move(700, 520);
-    await sleep(150);
-    await check(page, '1 km 網格 tooltip');
 
     // ── 5. 分享選單、快捷鍵說明、用中文名稱搜尋 ──
     await page.click('.share-button');

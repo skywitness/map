@@ -221,7 +221,7 @@ pipeline/
 - **主題側欄**（`panels/*.tsx`）：通用的字（載入中、無資料、「（2022 年無資料，顯示最近一年）」）用 `useT()` 的字典；側欄自己的字用 `defineMessages({ zh: {...}, en: {...} })` 寫在同一個檔，再用 `TEXT[useLang()]`。英文那份少一個鍵、參數不同都會編譯失敗。有 `useMemo` 的地方，依賴要加上 `lang`，換語言時才會重算。
 - **資料裡的名稱**：pipeline 產生的文字也要有英文。指標檔的附註寫 `notes`（中文）與 `notesEn`（英文）；品項名稱另外輸出英文檔（例如農業的 `items.en.json`，用 FAOSTAT 本身的英文名稱）。只在前端用到的少量名稱（例如主計總處的 25 個製造業細項）可以在側欄裡放 `{ zh, en }` 對照表。
 - **原文專有名詞**（OpenStreetMap 上的營運者名稱等）不翻譯，放在 `translate="no"` 的元素裡（`BarList` 的 `properNouns`）。
-- **寫完跑檢查**：`npm run check:i18n` 掃描原始碼裡英文介面會看到的中文；`npm run check:en` 用無頭 Chrome 逐一打開英文版的每個主題與指標，列出畫面上剩下的中文（見第 12 節）。
+- **寫完跑檢查**：`npm run check:i18n` 掃描原始碼裡英文介面會看到的中文（每次都跑，幾秒）；`npm run check:en` 用無頭 Chrome 逐一打開英文版的每個主題與指標，列出畫面上剩下的中文。新增或修改一個主題時只細看那個主題（`CHECK_TOPICS=<主題 id> npm run check:en`），完整的只在改了共用的介面時跑（第 12 節「什麼時候跑」）。
 
 圖層的 `legendValues: 'auto'` 會依資料最大值自動挑圖例數值，適合量級差很多的子項目。
 
@@ -2875,7 +2875,12 @@ pipeline/
   - 先檢查中文 → 英文 → 中文切換不重新整理，`<html lang>`、分頁標題、網址的 `lang`、底圖地名都跟著變。
   - 再逐一點每個主題、每個指標（地圖、tooltip、排名表），換一次子項目，開三個國家的側欄（第一個用帶 `lang=en` 的網址直接打開，確認分享連結打開就是英文；其他的用搜尋框），框選估算、分享選單、快捷鍵說明。
   - 收集畫面上的文字、`aria-label`、`title`、`placeholder`、選單選項，列出含中文的字串；`translate="no"` 與 `lang="zh…"` 的元素不算。
-  - puppeteer-core 不在 `package.json`：`npm i --no-save puppeteer-core`，或用 `PUPPETEER_CORE` 指向已經裝好的資料夾。全部跑完約 15–30 分鐘（SwiftShader 軟體繪製地球儀很慢）。
+  - puppeteer-core 不在 `package.json`：`npm i --no-save puppeteer-core`，或用 `PUPPETEER_CORE` 指向已經裝好的資料夾。全部跑完約 15–30 分鐘（SwiftShader 軟體繪製地球儀很慢；4 核心的雲端環境 1 小時以上）。
+  - `CHECK_TOPICS=antipodes,rivers`（主題的 id）：只細看這幾個主題（每個指標、排名表、三個國家的側欄）；其他主題照樣依序點過、檢查主題本身的畫面，換主題時的錯誤照樣抓得到；人口的框選、3D、1 km 網格只在含 `population` 時檢查；分享選單、快捷鍵說明、中英切換一律檢查。
+- **什麼時候跑 check:en**（2026-10-28，使用者要求減少執行）：到這天為止 212 個提交裡，`check:en` 只抓到過 1 個問題，而且不是漏翻：從海洋與漁業切到晝夜與季節時整個畫面變成錯誤畫面（第 8 節第 87 點），是依序點過每個主題才發現的；漏翻的中文 0 次（`check:i18n` 先抓掉了）；另外 2 次是腳本或開發伺服器本身的問題。所以：
+  - 每次改完都跑 `npm run check:i18n`（幾秒）。
+  - 新增或修改一個主題：`CHECK_TOPICS=<主題 id> npm run check:en`（其他主題只點過；4 核心的雲端環境 `CHECK_TOPICS=antipodes` 約 8 分鐘，完整的要 1 小時以上）。
+  - 跑完整的：改了好幾個主題共用的介面（`src/App.tsx`、`src/panels/`、`src/controls/`、`src/map/` 的圖例與 tooltip、`src/i18n/`、`src/lib/strings.ts`、`scripts/check-en-ui.mjs`）、或大改版之前。
 
 ## 13. 載入速度與離線
 
