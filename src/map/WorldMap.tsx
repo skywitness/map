@@ -72,6 +72,8 @@ import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
 import { BasemapMenu } from './BasemapMenu';
+import { Extremes } from './Extremes';
+import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
 import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
@@ -86,6 +88,8 @@ interface WorldMapProps {
   countries: CountryFeature[];
   /** 國家對照表（countries.json）：底圖的國名改用網站自己的名稱（style.ts 的 labelField） */
   countryTable?: CountryTable | null;
+  /** 有傳才在寬螢幕的圖例上面列出數值最高、最低的國家（Extremes），點了選取並飛過去 */
+  onPickCountry?: (iso3: string) => void;
   indicator: Indicator;
   /** 圖例標題，例如「稻米產量」 */
   legendTitle: string;
@@ -228,6 +232,8 @@ function mixColor(from: string, to: string, k: number): string {
   const [r, g, bl] = a.map((v, i) => Math.round(v + (b[i] - v) * k));
   return `rgb(${r}, ${g}, ${bl})`;
 }
+/** 地圖至少這麼寬才列出數值最高、最低的國家（Extremes）：地球儀兩旁才有空位 */
+const EXTREMES_MIN_WIDTH = 1000;
 /** 世界視角蓋住地形陰影海面的水域（installDataLayers） */
 const RELIEF_WATER_WORLD = 'relief-water' + WORLD_SUFFIX;
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
@@ -2061,6 +2067,18 @@ export function WorldMap(props: WorldMapProps) {
   ];
   const collapseMore = narrow && moreItems.length > 1;
 
+  // 寬螢幕的地圖兩旁有空位（地球儀只佔中間）：圖例上面列出數值最高、最低的國家
+  const kind = indicator.layer.kind;
+  const showExtremes =
+    Boolean(props.onPickCountry) &&
+    !narrow &&
+    (size?.width ?? 0) >= EXTREMES_MIN_WIDTH &&
+    (kind === 'choropleth' || kind === 'bubble') &&
+    !indicator.unranked &&
+    indicator.rankingBars !== false &&
+    !gridOn &&
+    values.size >= 10;
+
   // 網格的圖例：顏色、門檻用 meta.json 的（跟圖磚裡畫的一樣），寫出是哪一期
   const gridLegend = useMemo(() => {
     if (!grid) return null;
@@ -2191,6 +2209,11 @@ export function WorldMap(props: WorldMapProps) {
         >
           <ResetIcon />
         </button>
+        <RegionMenu
+          onGo={(center) =>
+            mapRef.current?.easeTo({ center, zoom: fitGlobeZoom(mapRef.current.getContainer().clientHeight), duration: 1000 })
+          }
+        />
         <button
           type="button"
           onClick={() => !flatIn3d && setGlobe((g) => !g)}
@@ -2267,6 +2290,16 @@ export function WorldMap(props: WorldMapProps) {
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
 
       <div className="map-legend">
+        {showExtremes && (
+          <Extremes
+            indicator={indicator}
+            values={values}
+            year={year}
+            countryTable={countryTable}
+            selected={selected}
+            onPick={props.onPickCountry!}
+          />
+        )}
         {hasOverlays && onLayersChange && (
           <LayerControls
             layers={layers}

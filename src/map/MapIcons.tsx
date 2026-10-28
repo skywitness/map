@@ -64,6 +64,15 @@ export const GlobeIcon = () => (
   </Icon>
 );
 
+/** 轉到某一洲（RegionMenu）：地球加一個繞著轉的箭頭 */
+export const GlobeTurnIcon = () => (
+  <Icon>
+    <circle cx="9" cy="9" r="5" />
+    <path d="M4 9h10M9 4c-1.6 1.7-1.6 8.3 0 10" />
+    <path d="M14.8 4.6A7.5 7.5 0 0 0 3 4.2M3 4.2V1.8M3 4.2h2.4" />
+  </Icon>
+);
+
 export const FullscreenIcon = () => (
   <Icon>
     <path d="M3 7V3h4M11 3h4v4M15 11v4h-4M7 15H3v-4" />

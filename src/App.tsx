@@ -687,6 +687,7 @@ export function App() {
                 ref={mapHandle}
                 countries={features ?? NO_FEATURES}
                 countryTable={countries}
+                onPickCountry={pure ? undefined : selectFromSearch}
                 places={placeAnchors}
                 indicator={indicator}
                 legendTitle={indicatorTitle}

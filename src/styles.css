@@ -1028,6 +1028,7 @@ kbd {
 
 .map-zoom > button,
 .basemap-menu > button,
+.region-menu > button,
 .more-menu > button {
   display: grid;
   place-items: center;
@@ -1059,6 +1060,8 @@ kbd {
 .map-zoom > button:hover:not(:disabled),
 .basemap-menu > button:hover,
 .basemap-menu > button[aria-expanded='true'],
+.region-menu > button:hover,
+.region-menu > button[aria-expanded='true'],
 .more-menu > button:hover,
 .more-menu > button[aria-expanded='true'] {
   background: var(--grid);
@@ -1066,6 +1069,7 @@ kbd {
 
 .map-zoom > button:active:not(:disabled),
 .basemap-menu > button:active,
+.region-menu > button:active,
 .more-menu > button:active {
   background: var(--axis);
 }
@@ -1085,8 +1089,9 @@ kbd {
   background: none;
 }
 
-/* ── 底圖選單（BasemapMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
+/* ── 底圖選單（BasemapMenu.tsx）、轉到某一洲（RegionMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
 .basemap-menu,
+.region-menu,
 .more-menu {
   position: relative;
 }
@@ -1605,6 +1610,64 @@ kbd {
   justify-content: flex-end;
   align-content: flex-start;
   column-gap: 8px;
+}
+
+/* 數值最高、最低的國家（Extremes.tsx，寬螢幕）：圖例上面，最高、最低各一欄，點了選取並飛過去 */
+.extremes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, auto);
+  column-gap: 16px;
+  pointer-events: auto;
+}
+
+.extremes-title {
+  margin-bottom: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.extremes ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.extremes button {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 1px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.extremes button:hover .extremes-name,
+.extremes button:focus-visible .extremes-name {
+  text-decoration: underline;
+}
+
+.extremes button.is-selected {
+  font-weight: 600;
+}
+
+.extremes-name {
+  max-width: 7.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extremes-value {
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* 面量圖圖例：標題右邊放「配色」按鈕（PaletteMenu.tsx）；選單從圖例卡片往上展開（.map-legend > .legend 是 relative） */
