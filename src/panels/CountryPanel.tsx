@@ -42,6 +42,7 @@ interface CountryPanelProps {
   /** 主題側欄要在地圖上標出線、移動地圖時用（PanelExtraProps 的同名欄位） */
   highlightLine?: PanelExtraProps['highlightLine'];
   focusBox?: PanelExtraProps['focusBox'];
+  selectYear?: PanelExtraProps['selectYear'];
 }
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
@@ -58,7 +59,7 @@ function panelExtraFor(topic: Topic) {
 
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
-  const { onCompareChange, highlightLine, focusBox } = props;
+  const { onCompareChange, highlightLine, focusBox, selectYear } = props;
   // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
   const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
@@ -195,7 +196,13 @@ export function CountryPanel(props: CountryPanelProps) {
             <span className="stat-label">{label(ind)}</span>
             {/* 資料還沒到時不要先寫「無資料」，畫一塊灰色 */}
             <span className="stat-value">
-              {!loaded ? <Skeleton width="60%" height={20} /> : value != null ? ind.format(value) : (reason(ind) ?? t.noData)}
+              {!loaded ? (
+                <Skeleton width="60%" height={20} />
+              ) : value != null ? (
+                ind.format(value, shownYear ?? year)
+              ) : (
+                (reason(ind) ?? t.noData)
+              )}
             </span>
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
@@ -208,7 +215,7 @@ export function CountryPanel(props: CountryPanelProps) {
                   <span key={compare[i]} className="stat-compare-row">
                     <span className="compare-dot" style={{ background: compareColors[i] }} aria-hidden="true" />
                     <span className="stat-compare-name">{countryName(compare[i], countries)}</span>
-                    <span className="stat-compare-value">{v != null ? ind.format(v) : '—'}</span>
+                    <span className="stat-compare-value">{v != null ? ind.format(v, year) : '—'}</span>
                   </span>
                 ))}
               </span>
@@ -227,8 +234,8 @@ export function CountryPanel(props: CountryPanelProps) {
         onChange={onCompareChange}
       />
 
-      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫 */}
-      {activeData?.years.length !== 1 && (
+      {/* 類別的代碼畫成折線沒有意義，改列出歷年變化；單一年份的資料也沒有變化可畫；指標的 panelChart: false 不畫 */}
+      {activeData?.years.length !== 1 && indicator.panelChart !== false && (
         <section className="panel-chart">
           <h3>{t.overTime(chartLabel)}</h3>
           {/* 有原因、而且這個國家完全沒有值時才用原因取代圖表：台灣在聯合國投票只有 1946–1971 年有值，照樣畫圖 */}
@@ -252,7 +259,7 @@ export function CountryPanel(props: CountryPanelProps) {
         </section>
       )}
       {/* 只有單一年份的資料沒有折線圖，附註直接接在數值卡片下面 */}
-      {activeData?.years.length === 1 && note && <p className="note">{t.note(note)}</p>}
+      {(activeData?.years.length === 1 || indicator.panelChart === false) && note && <p className="note">{t.note(note)}</p>}
 
       {Extra && (
         <Suspense fallback={<SectionSkeleton />}>
@@ -266,6 +273,7 @@ export function CountryPanel(props: CountryPanelProps) {
             tokens={tokens}
             highlightLine={highlightLine}
             focusBox={focusBox}
+            selectYear={selectYear}
           />
         </Suspense>
       )}

@@ -156,7 +156,7 @@ export function RankingTable(props: RankingTableProps) {
                     </span>
                   )}
                   {categories && <span className="legend-swatch" style={{ background: categories.color(value)! }} />}
-                  {indicator.format(value)}
+                  {indicator.format(value, valueYears?.get(iso3) ?? year ?? undefined)}
                 </div>
               </td>
               {showShare && <td className="num">{formatPercent((value / world!) * 100, 2)}</td>}

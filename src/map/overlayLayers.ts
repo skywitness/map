@@ -5,6 +5,7 @@
  * casing 的線在最下面多一層細邊 `ov-<id>-casing`。有 vertexTypes 的線（颱風）依每個頂點的代碼切成好幾段，各段分別上色。
  * 線寬可以依紀錄的欄位變化（河流依流量），hoverHalo 的線滑過時多一層光暈 `ov-<id>-hover-halo`，
  * minValue 依縮放篩選（縮小時只畫大河），fadeOut 放大後淡出。
+ * fill 的線（日食的路徑環）是多邊形：最下面多一層半透明的面 `ov-<id>-fill`，滑過的那一組加深 `ov-<id>-hover-fill`。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
@@ -26,6 +27,11 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
 const HIT_SUFFIX = '-hit';
 const HOVER_SUFFIX = '-hover';
 const CASING_SUFFIX = '-casing';
+/** 封閉的環畫成的面（LinesOverlayDef.fill）與滑過時加深的那一組 */
+const FILL_SUFFIX = '-fill';
+const HOVER_FILL_SUFFIX = '-hover-fill';
+const IS_POLYGON: FilterSpecification = ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]];
+const NOT_POLYGON: FilterSpecification = ['!', IS_POLYGON];
 /** 滑到線上時查詢的寬度（px），細線也滑得到 */
 const HIT_WIDTH = 9;
 /** 線的組別（紀錄相同的線是同一組，例如同一條電纜的各段）；沒有滑到任何線時的篩選值 */
@@ -182,7 +188,7 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
   const paint = {
     'line-color': color,
     'line-width': lineZoomed(def, width),
-    'line-opacity': lineOpacity(def, dark ? 0.9 : 0.8),
+    'line-opacity': lineOpacity(def, def.opacity ?? (dark ? 0.9 : 0.8)),
   };
   const isDashed: FilterSpecification = ['in', ['coalesce', ['get', 'type'], -1], ['literal', dashed]];
   // sortByType：代碼大的畫在上面（颱風強的那段疊在弱的上面）
@@ -192,6 +198,29 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
     ...(def.sortByType ? { 'line-sort-key': ['coalesce', ['get', 'type'], 0] as ExpressionSpecification } : {}),
   };
   const out: LineSublayer[] = [];
+  if (def.fill) {
+    // 封閉的環畫成半透明的面（在所有線的下面）；外框由下面的線圖層畫
+    const opacity = dark ? (def.fill.darkOpacity ?? def.fill.opacity) : def.fill.opacity;
+    out.push({
+      layer: { id: id + FILL_SUFFIX, type: 'fill', source: id, filter: IS_POLYGON, paint: { 'fill-color': color, 'fill-opacity': opacity, 'fill-antialias': false } },
+      base: IS_POLYGON,
+      timed: true,
+    });
+    if (def.tooltip || def.groupField) {
+      const hoverFill = allOf([IS_POLYGON, ['==', ['get', 'g'], NO_GROUP]])!;
+      out.push({
+        layer: {
+          id: id + HOVER_FILL_SUFFIX,
+          type: 'fill',
+          source: id,
+          filter: hoverFill,
+          paint: { 'fill-color': color, 'fill-opacity': Math.min(0.6, opacity * 2), 'fill-antialias': false },
+        },
+        base: hoverFill,
+        timed: false,
+      });
+    }
+  }
   if (def.casing) {
     out.push({
       layer: {
@@ -219,13 +248,16 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
       timed: true,
     });
   }
-  if (def.tooltip) {
+  // 沒有 tooltip 但有 groupField 的線（日食次數指標的累積中心線）：滑不到，但側欄可以標出一組（highlightLine），所以也要標示的那幾層
+  if (def.tooltip || def.groupField) {
     // 看不見的寬線：queryRenderedFeatures 依線寬判斷有沒有滑到，跟不透明度無關
-    out.push({
-      layer: { id: id + HIT_SUFFIX, type: 'line', source: id, layout, paint: { 'line-width': HIT_WIDTH, 'line-opacity': 0 } },
-      base: null,
-      timed: true,
-    });
+    if (def.tooltip) {
+      out.push({
+        layer: { id: id + HIT_SUFFIX, type: 'line', source: id, layout, paint: { 'line-width': HIT_WIDTH, 'line-opacity': 0 } },
+        base: null,
+        timed: true,
+      });
+    }
     const hoverBase: FilterSpecification = ['==', ['get', 'g'], NO_GROUP];
     const hover = hoverWidth(def);
     if (def.hoverHalo) {
@@ -260,6 +292,23 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
       base: hoverBase,
       timed: false,
     });
+  }
+  // 有面的圖層：線的那幾層只畫線（環的外框另外做成 LineString，見 lineFeatures()），不畫多邊形的外框
+  if (def.fill) {
+    for (const sub of out) {
+      if (sub.layer.type !== 'line') continue;
+      sub.base = allOf([sub.base, NOT_POLYGON]);
+      (sub.layer as { filter?: FilterSpecification }).filter = sub.base!;
+    }
+  }
+  // onlyTypes：只畫這幾類（滑過、側欄標出的那幾層不限，標的是使用者指定的那一組）
+  if (def.onlyTypes) {
+    const only: FilterSpecification = ['in', ['coalesce', ['get', 'type'], -1], ['literal', def.onlyTypes]];
+    for (const sub of out) {
+      if (!sub.timed) continue;
+      sub.base = allOf([sub.base, only]);
+      (sub.layer as { filter?: FilterSpecification }).filter = sub.base!;
+    }
   }
   return out;
 }
@@ -322,6 +371,17 @@ function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.Feat
     } else {
       properties.g = i;
     }
+    // 封閉的環（LinesOverlayDef.fill）：多邊形給面那一層；外框另外做成 LineString 給線的圖層，
+    // 只畫地圖畫得到的緯度（±85.05° 以內）：超出的部分 MapLibre 會壓到 85° 的緯線上，在極區畫出一整圈
+    // （環繞極點的路徑補上的 ±90° 那段、從極點附近經過的界線）
+    const fill = o.def.fill;
+    if (fill && record && record[fill.field] === fill.value) {
+      const [first, last] = [coordinates[0], coordinates[coordinates.length - 1]];
+      const ring = first && (first[0] !== last[0] || first[1] !== last[1]) ? [...coordinates, first] : coordinates;
+      features.push({ type: 'Feature', properties, geometry: { type: 'Polygon', coordinates: [ring] } });
+      for (const part of clipLatitude(ring)) features.push({ type: 'Feature', properties, geometry: { type: 'LineString', coordinates: part } });
+      return;
+    }
     const codes = vertexTypes?.[i];
     if (!codes || codes.length !== coordinates.length) {
       features.push({ type: 'Feature', properties, geometry: { type: 'LineString', coordinates } });
@@ -340,6 +400,34 @@ function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.Feat
     }
   });
   return { type: 'FeatureCollection', features };
+}
+
+/** 麥卡托（與地球儀的圖磚）畫得到的最高緯度 */
+const MAX_LAT = 85.0511;
+
+/** 把線切成在 ±MAX_LAT 以內的幾段，跨過界線的地方內插出端點 */
+function clipLatitude(line: [number, number][]): [number, number][][] {
+  const parts: [number, number][][] = [];
+  let run: [number, number][] = [];
+  const inside = (p: [number, number]) => Math.abs(p[1]) <= MAX_LAT;
+  const cross = (a: [number, number], b: [number, number]): [number, number] => {
+    const lat = Math.sign(Math.abs(a[1]) > MAX_LAT ? a[1] : b[1]) * MAX_LAT;
+    const t = (lat - a[1]) / (b[1] - a[1]);
+    return [a[0] + t * (b[0] - a[0]), lat];
+  };
+  line.forEach((p, k) => {
+    const prev = line[k - 1];
+    if (inside(p)) {
+      if (prev && !inside(prev)) run.push(cross(prev, p));
+      run.push(p);
+    } else if (prev && inside(prev)) {
+      run.push(cross(prev, p));
+      if (run.length >= 2) parts.push(run);
+      run = [];
+    }
+  });
+  if (run.length >= 2) parts.push(run);
+  return parts;
 }
 
 /** 依時間軸篩選的點：只有那一年、累積到那一年，或那一年起的 n 年（指標的 overlayTime） */
@@ -368,7 +456,9 @@ export function timeFilter(
 function valueFilter(def: { minValue?: { field: string; stops: [number, number][] } }): FilterSpecification | null {
   if (!def.minValue) return null;
   const { field, stops } = def.minValue;
-  const threshold = ['step', ['zoom'], stops[0][1], ...stops.slice(1).flat()] as unknown as ExpressionSpecification;
+  // 只有一個門檻時是固定的篩選（step 至少要一個分段）：日食的「只留中心線」
+  const threshold =
+    stops.length === 1 ? stops[0][1] : (['step', ['zoom'], stops[0][1], ...stops.slice(1).flat()] as unknown as ExpressionSpecification);
   return ['all', ['has', field], ['>=', ['get', field], threshold]];
 }
 
@@ -440,7 +530,7 @@ export function syncOverlays(
       sent.set(id, { data, epoch });
     }
     const visibility = o.visible && data ? 'visible' : 'none';
-    for (const layerId of [id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HALO_SUFFIX, id + HOVER_SUFFIX]) {
+    for (const layerId of [id + FILL_SUFFIX, id + HOVER_FILL_SUFFIX, id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HALO_SUFFIX, id + HOVER_SUFFIX]) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
   }
@@ -488,9 +578,10 @@ export function highlightLine(
 ) {
   const set = (overlay: string, group: number) => {
     const filter = allOf([['==', ['get', 'g'], group], group === NO_GROUP ? null : (lineValueFilters.get(overlay) ?? null)]);
-    for (const suffix of [HALO_SUFFIX, HOVER_SUFFIX]) {
+    for (const suffix of [HALO_SUFFIX, HOVER_SUFFIX, HOVER_FILL_SUFFIX]) {
       const id = OVERLAY_PREFIX + overlay + suffix;
-      if (map.getLayer(id)) map.setFilter(id, filter);
+      // 面那一層只畫多邊形（fill 圖層遇到線會把線當成多邊形），線的那兩層只畫線（環的外框是另外的 LineString）
+      if (map.getLayer(id)) map.setFilter(id, allOf([suffix === HOVER_FILL_SUFFIX ? IS_POLYGON : NOT_POLYGON, filter]));
     }
   };
   if (prev && (!next || prev.overlay !== next.overlay)) set(prev.overlay, NO_GROUP);

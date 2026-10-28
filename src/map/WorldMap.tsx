@@ -1894,7 +1894,14 @@ export function WorldMap(props: WorldMapProps) {
         const title = legendTitle;
         const unit = indicator.unit;
         const valueLegend: ImageLegend | null = colorScale
-          ? { kind: 'choropleth', title, unit, model: choroplethLegendModel(indicator, colorScale), stepped: threeD && !terrain }
+          ? {
+              kind: 'choropleth',
+              title,
+              unit,
+              model: choroplethLegendModel(indicator, colorScale),
+              stepped: threeD && !terrain,
+              noDataKey: indicator.missing,
+            }
           : reliefLegend
             ? { kind: 'relief', title: tr(RELIEF_TITLE, lang), unit, model: reliefLegend }
             : categories

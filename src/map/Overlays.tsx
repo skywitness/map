@@ -156,7 +156,8 @@ export function interpolateStops(size: number | { stops: [number, number][] }, v
 
 /** 圖例上的一個符號 */
 export interface OverlaySwatch {
-  shape: 'line' | 'dash' | 'dot' | 'triangle' | 'shade';
+  /** band：半透明的帶子加上兩側的邊與中間的線（有 fill 的線圖層，例如日食的路徑） */
+  shape: 'line' | 'dash' | 'dot' | 'triangle' | 'shade' | 'band';
   /** 線寬或半徑（px） */
   size: number;
   color: string;
@@ -179,14 +180,16 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
 export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
   if (o.kind === 'lines') {
     const { def } = o;
-    const classes = typeof def.color === 'string' ? null : def.color.classes;
+    // onlyTypes：圖例也只列畫出來的那幾類
+    const classes =
+      typeof def.color === 'string' ? null : def.color.classes.filter((c) => !def.onlyTypes || def.onlyTypes.includes(c.value));
     const neutral: Record<string, string> = tokens
       ? { [MAP_TOKENS.ink]: tokens.ink, [MAP_TOKENS.inkSecondary]: tokens.inkSecondary, [MAP_TOKENS.inkMuted]: tokens.inkMuted }
       : {};
     // 依欄位變粗的線，開關與顏色分級的符號用中間那一級的線寬
     const typical = typeof def.width === 'number' ? def.width : def.width.stops[Math.floor(def.width.stops.length / 2)][1];
     const lineSwatch = (color: string, dash?: boolean): OverlaySwatch => ({
-      shape: dash ? 'dash' : 'line',
+      shape: def.fill ? 'band' : dash ? 'dash' : 'line',
       size: Math.max(1.5, typical),
       color: neutral[color] ?? color,
     });
@@ -417,6 +420,17 @@ function Swatch({ swatch }: { swatch: OverlaySwatch }) {
         ) : (
           <polygon points={trianglePoints(w / 2, h / 2, r)} fill={color} stroke="#ffffff" strokeWidth={0.8} />
         )}
+      </svg>
+    );
+  }
+  if (shape === 'band') {
+    // 半透明的帶子、兩側的邊、中間的線（跟地圖上的路徑一樣）
+    return (
+      <svg width="18" height="10" aria-hidden="true">
+        <rect x="1" y="1" width="16" height="8" fill={color} fillOpacity={0.3} />
+        <line x1="1" y1="1" x2="17" y2="1" stroke={color} strokeWidth={1} />
+        <line x1="1" y1="9" x2="17" y2="9" stroke={color} strokeWidth={1} />
+        <line x1="1" y1="5" x2="17" y2="5" stroke={color} strokeWidth={Math.min(size, 2)} />
       </svg>
     );
   }

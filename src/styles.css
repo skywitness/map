@@ -2332,6 +2332,103 @@ kbd {
   min-height: 0;
 }
 
+/* 日食路徑的側欄（EclipsesPanel.tsx）：上一次、下一次日全食，經過這裡的每一次日食（點一下換年份、標出路徑） */
+.eclipse-summary {
+  margin: 4px 0 8px;
+  font-size: 13px;
+}
+
+.eclipse-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+
+.eclipse-facts dt {
+  color: var(--ink-secondary);
+}
+
+.eclipse-facts dd {
+  margin: 0;
+}
+
+.eclipse-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eclipse-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--grid);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eclipse-row:hover,
+.eclipse-row:focus-visible,
+.eclipse-row.is-picked {
+  background: var(--grid);
+}
+
+.eclipse-row.is-picked .eclipse-date {
+  font-weight: 600;
+}
+
+.eclipse-row.is-past .eclipse-date,
+.eclipse-row.is-past .eclipse-kind {
+  color: var(--ink-secondary);
+}
+
+.eclipse-kind {
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.eclipse-row .stat-meta {
+  grid-column: 2 / 4;
+  min-height: 0;
+}
+
+.eclipse-row .year-tag {
+  margin-left: 0;
+}
+
+.eclipse-row .stat-meta > * + * {
+  margin-left: 6px;
+}
+
+.eclipse-row .year-tag.is-shown {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--ink);
+}
+
+.eclipse-more {
+  margin: 6px 0 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.eclipse-more:hover {
+  text-decoration: underline;
+}
+
 .panel-section {
   margin-top: 24px;
   padding-top: 16px;

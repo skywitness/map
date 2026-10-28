@@ -128,8 +128,12 @@ export interface IndicatorDef {
    */
   file: string;
   layer: LayerSpec;
-  /** tooltip、側欄、排名表用的完整格式 */
-  format: (value: number) => string;
+  /**
+   * tooltip、側欄、排名表用的完整格式。year 是這個值的年份（時間軸的年份、側欄折線圖上那一點的年份），
+   * 值的意思跟年份有關的指標用：日食路徑的「下一次日全食」存的是還要幾年，format 用 year 寫出哪一年（2026-10-28 起）。
+   * 呼叫的地方知道年份就傳；不知道時（圖例刻度以外的少數地方）不傳，format 要能只靠值寫出來
+   */
+  format: (value: number, year?: number) => string;
   /** 圖例刻度用的精簡格式，預設同 format */
   formatTick?: (value: number) => string;
   /** 側欄折線圖是否加上「世界」作為對照線（總量類指標不適合） */
@@ -146,6 +150,11 @@ export interface IndicatorDef {
   unranked?: boolean;
   /** 排名表不畫長條：數值是年份這類，長短沒有意義（國旗的採用年份） */
   rankingBars?: false;
+  /**
+   * 側欄不畫這個指標的歷年圖（2026-10-28 起）：值是代碼、只給 tooltip 與排名表用的不上色指標（日食路徑那一年經過的類型），
+   * 畫成折線沒有意義，主題自己的側欄區塊已經列出每一年
+   */
+  panelChart?: false;
   /**
    * 這個指標自己的子項目選擇器，取代主題的 dimension（同一個主題裡不同指標的子項目不同：國旗的「顏色」與「圖案」）。
    * 網址的子項目不在這份清單裡時用它的 defaultOption（itemFor()），換回原本的指標時網址的子項目還在
@@ -186,6 +195,11 @@ export interface IndicatorDef {
    * 一律寫 reason，取代「無資料」（排在 noValue 之後）；countries 裡的國家某一年沒有值時照常寫「無資料」
    */
   coverage?: { countries: readonly string[]; reason: Text };
+  /**
+   * 這個指標的值是 null 時一律寫這句，取代 tooltip、側欄的「無資料」與圖例灰色那一格的「無資料」（排在 noValue、coverage 之後）。
+   * 值是算出來的、每個國家都有算，null 有固定意思的指標用：日食路徑的「下一次日全食」null 是「到 2100 年都沒有」
+   */
+  missing?: Text;
 }
 
 /** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
@@ -246,17 +260,17 @@ export interface DimensionDef {
 /**
  * 某個國家在這個指標沒有值的原因，取代 tooltip 與側欄的「無資料」；沒有特別原因時回傳 undefined。
  * 依序：指標的 noValue（例如「與美國的一致度」裡的美國）→ 主題的 noValue → 子項目就是這個國家時的 selfLabel
- * → 不在指標 coverage 裡的國家（例如監禁人口率的「沒有開放授權的資料」）。
+ * → 不在指標 coverage 裡的國家（例如監禁人口率的「沒有開放授權的資料」）→ 指標的 missing（例如「到 2100 年都沒有日全食」）。
  */
 export function missingReason(
   topic: Pick<Topic, 'noValue' | 'dimension'>,
-  indicator: Pick<Indicator, 'noValue' | 'file' | 'coverage'>,
+  indicator: Pick<Indicator, 'noValue' | 'file' | 'coverage' | 'missing'>,
   item: string | null,
   iso3: string,
 ): string | undefined {
   const self = item === iso3 && usesDimension(indicator) ? topic.dimension?.selfLabel : undefined;
   const outside = indicator.coverage && !indicator.coverage.countries.includes(iso3) ? indicator.coverage.reason : undefined;
-  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? outside;
+  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? outside ?? indicator.missing;
 }
 
 /**
@@ -411,6 +425,20 @@ export interface LinesOverlayDef extends OverlayBase {
   /** 圖層開關下面的線寬圖例（width 依欄位變化時），values 是 width.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
+   * 封閉的環畫成半透明的面（2026-10-28 起，日食路徑的本影帶）：紀錄的 field 欄位是 value 的線是封閉的環（第一點等於最後一點），
+   * 另外畫一層面 `ov-<id>-fill`（在線的下面，顏色跟線一樣依分類，不透明度 opacity、深色底圖 darkOpacity），
+   * 外框照樣由線的圖層畫（MapLibre 的線圖層畫多邊形的外框）。滑過或側欄標出這一組時，那一組的面加深（`ov-<id>-hover-fill`）。
+   * 面本身不給 hover 查詢：路徑裡面還是滑得到國家（線的查詢層照舊）
+   */
+  fill?: { field: string; value: number; opacity: number; darkOpacity?: number };
+  /** 線的不透明度，取代預設的淺色底圖 0.8、深色底圖 0.9（日食其他年份的中心線畫得很淡，2026-10-28 起） */
+  opacity?: number;
+  /**
+   * 只畫這些分類代碼的線（color.classes 的 value），圖例也只列這幾類（2026-10-28 起）：同一個資料檔給不同指標用，
+   * 例如日全食次數只畫日全食與混合食的中心線
+   */
+  onlyTypes?: number[];
+  /**
    * 固定色，或依分類代碼上色（value 對應代碼），dash 畫虛線。
    * 代碼是 LinesData.types（一條線一個），或 LinesData.vertexTypes（每個頂點一個，例如颱風每個時間點的強度）：
    * 有 vertexTypes 時一條線依代碼切成好幾段，每段的顏色是那段起點的代碼。
@@ -531,6 +559,8 @@ export interface PanelExtraProps {
   highlightLine?: (overlay: string, group: number | null) => void;
   /** 把地圖移到這個範圍 [西, 南, 東, 北]（經緯度） */
   focusBox?: (box: [number, number, number, number]) => void;
+  /** 把時間軸換到這一年（側欄點某一次日食：換到那一年、標出路徑、移過去，2026-10-28 起） */
+  selectYear?: (year: number) => void;
 }
 
 export interface TopicDefinition {

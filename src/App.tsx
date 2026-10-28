@@ -415,7 +415,7 @@ export function App() {
     return (
       <>
         <div className="tt-value">
-          {v !== undefined ? indicator.format(v) : (missingReason(topic, indicator, item, iso3) ?? t.noData)}
+          {v !== undefined ? indicator.format(v, valueYear ?? year) : (missingReason(topic, indicator, item, iso3) ?? t.noData)}
           {rank !== undefined && <span className="tt-rank">{t.rank(rank, values.size)}</span>}
         </div>
         <div className="tt-label">
@@ -538,7 +538,7 @@ export function App() {
                 ? undefined
                 : (iso3) => {
                     const v = values.get(iso3);
-                    return v !== undefined ? indicator.format(v) : null;
+                    return v !== undefined ? indicator.format(v, valueYears.get(iso3) ?? year) : null;
                   }
             }
           />
@@ -690,6 +690,7 @@ export function App() {
                 onCompareChange={(list) => update({ compare: list })}
                 highlightLine={highlightLine}
                 focusBox={moveToBox}
+                selectYear={timeless ? undefined : setYear}
               />
             </Suspense>
           </PanelSheet>

@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Wikimedia Commons（國旗的 SVG）、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ，專屬經濟海域與 IHO 海域）、WWF HydroSHEDS（HydroRIVERS）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、Speedtest by Ookla（AWS Open Data）、數位發展部的 5G 量測、GitHub Innovation Graph、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Wikimedia Commons（國旗的 SVG）、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ，專屬經濟海域與 IHO 海域）、WWF HydroSHEDS（HydroRIVERS）、NASA 日食網站（Fred Espenak 的五千年日食目錄與貝塞爾根數）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、Speedtest by Ookla（AWS Open Data）、數位發展部的 5G 量測、GitHub Innovation Graph、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -46,7 +46,7 @@ public/data/                              ← 靜態 JSON，會進版本控制
         ├─ profiles.json                  各國的高度分布與最高、最低點（海拔主題）；國家小檔案主題的小檔案（同名、不同內容）
         ├─ flags.json、svg/<地區>-<雜湊>.svg  國旗主題的國旗檔與國旗圖檔（檔名含內容的雜湊，svg/CREDITS.txt 是每個檔的出處與授權）
         ├─ flows/<子項目>/<年>.json       流向圖的雙邊資料（貿易、移民主題，一個子項目、一年一個檔）
-        ├─ <疊加圖層>.json                 一般的點、線疊加圖層（地震、火山、板塊邊界、駐外館處、颱風路徑、發電廠、專屬經濟海域的界線；common.points_file()、lines_file()）
+        ├─ <疊加圖層>.json                 一般的點、線疊加圖層（地震、火山、板塊邊界、駐外館處、颱風路徑、發電廠、專屬經濟海域的界線、日食路徑；common.points_file()、lines_file()）
         ├─ detail/<分區>.json             線疊加圖層放大後才依畫面下載的分區（河流的小河，10° 一格）
         └─ manifest.json
 
@@ -174,7 +174,7 @@ pipeline/
 | 欄位 | 用途 | 例子 |
 |---|---|---|
 | `dimension` | 子項目選擇器；指標的 `file` 含 `{item}` 時才會出現 | 農業的農產品、工業的出口產業 |
-| `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入；props 有目前的指標 `indicator`（年份的意思可能跟著指標的 `timeAxis` 變）；`highlightLine(圖層, 組別)` 在地圖上標出線圖層的一組線、`focusBox(範圍)` 移動地圖（2026-10-28 起） | 發電結構、GDP 與就業結構、主要農產品；河流與流域（滑到河名標出整個水系，點一下移過去） |
+| `panelExtra` | 側欄額外區塊，用 `() => import(...)` 動態載入；props 有目前的指標 `indicator`（年份的意思可能跟著指標的 `timeAxis` 變）；`highlightLine(圖層, 組別)` 在地圖上標出線圖層的一組線、`focusBox(範圍)` 移動地圖（2026-10-28 起）；`selectYear(年)` 把時間軸換到那一年（2026-10-28 起，`timeless` 的主題沒有） | 發電結構、GDP 與就業結構、主要農產品；河流與流域（滑到河名標出整個水系，點一下移過去）；日食路徑（點一次日食：換到那一年、標出路徑、移過去） |
 | `boxEstimate` | 地圖框選，加總框內的網格人口估算總量（要有網格檔，見第 6 節） | 人口 |
 | `note` | 頁尾的資料說明 | |
 | `overlays` | 疊加在地圖上的點、線圖層，左下角可以開關：鐵路、機場有自己的格式；一般的點（`kind: 'points'`）與線（`kind: 'lines'`）的大小、顏色、tooltip 寫在主題裡 | 交通；地震與火山（地震、火山、板塊邊界）；台灣的外交（駐外館處）；海底電纜（電纜路線與登陸點）；颱風與颶風（依強度分段上色的路徑）；發電廠地圖（依狀態分成四個圖層）；城市（每 5 年一期的人口跟著時間軸換、縮小時只畫大城市）；海洋與漁業（專屬經濟海域的界線，依 Marine Regions 的界線性質分 5 類、未解決的畫虛線，滑過看兩邊與性質）；河流與流域（HydroRIVERS 的河道依流進的大洋上色、線寬依流量，滑過標出整個水系，放大後依畫面下載分區） |
@@ -198,6 +198,9 @@ pipeline/
 | 指標的 `dimension` | 指標自己的子項目選擇器，取代主題的 `dimension`（2026-10-27 起）：同一個主題裡不同指標的子項目不同時用。網址的子項目不在這個指標的選項裡時用它的 `defaultOption`（`types.ts` 的 `itemFor()`；`indicatorPath()`、側欄的數值卡片、預先下載都經過它），網址留著原本的子項目，換回原本的指標時還在。側欄卡片的標題用各指標自己的子項目名稱（`itemLabelOf()`） | 國旗的「顏色」（紅、白、藍…）與「圖案」（星星、新月、太陽…） |
 | 指標的 `rankingBars: false` | 排名表不畫長條：數值是年份這類，長短沒有意義 | 國旗的採用年份 |
 | `rowIcon` | 排名表國名前面的小圖示，`(props: { iso3 }) => ReactNode`（函式型別，`localize()` 會原樣保留；寫成 `ComponentType` 會被 `Localized` 拆壞型別）。元件自己載入需要的資料，放在首頁的 bundle，要小 | 國旗主題的小國旗（`flagImages.tsx` 的 `FlagIcon`） |
+| 指標的 `format(值, 年)` | 第二個參數是這個值的年份（2026-10-28 起）：tooltip、搜尋結果、側欄的數值卡片與比較、排名表、側欄折線圖的 tooltip 都傳（tooltip 與排名表用實際的資料年份，`latestWithin` 補上的是那一年）。值的意思跟年份有關的指標才用，其他指標的 format 照舊只看值 | 日食路徑的「下一次日全食」：值是還要幾年（顏色依它分級，所有年份共用門檻），format 寫成「2035 年（8 年後）」 |
+| 指標的 `panelChart: false` | 側欄不畫這個指標的歷年圖（2026-10-28 起；附註照樣顯示）：值是代碼、只給 tooltip 與排名表用的不上色指標，畫成折線沒有意義 | 日食路徑的「日食路徑」（那一年經過的類型；主題的側欄區塊列出每一次） |
+| 指標的 `missing` | 值是 null 時一律寫這句，取代 tooltip、側欄與圖例灰色那一格（含匯出圖片）的「無資料」（`missingReason()` 排在 `noValue`、`coverage` 之後，2026-10-28 起）。值是算出來的、每個國家都算過，null 有固定意思時用 | 日食路徑的「下一次日全食」：「到 2100 年都沒有日全食經過」 |
 
 ### 雙語文字（英文版介面）
 
@@ -279,6 +282,15 @@ pipeline/
     - 分類的 `dark`：深色底圖上改用的顏色（同色相亮一階，河流的紫 → 淡紫）；圖層開關的圖例與匯出圖片的圖例跟著底圖換（`overlayKey()` 的 `darkMap`）。
     - `detail: { minZoom }`：資料檔的 `detail` 列出分區檔（`detail/{tile}.json`）與每一區的實際範圍 `[id, 西, 南, 東, 北]`。WorldMap 在 `moveend` 回報縮放與畫面範圍（`onViewChange`，只有有 detail 的主題才監聽，App 的 `mapView`），縮放到 minZoom 以上時 App 下載跟畫面重疊（外擴 2°、經度左右平移 360° 再比一次）的分區，跟主檔接成同一份資料（`Overlays.tsx` 的 `concatLines()`，tooltip 的索引是接起來以後的順序），同一個圖層、同一組篩選與 tooltip。下載過的分區留著（`useJsonEach` 的快取），移回去不再下載；每多一區就重送一次資料（worker 重新切圖磚）。
     - 紀錄的字串表（`PointsData.strings`，`common.points_file()` 的 `strings`）：重複很多次的字串欄位（河名）存成表的索引，0 是沒有值。`LinesData.groups`（`common.lines_file()` 的 `groups`）：很多條線共用的資料（水系的名稱、流進的大洋與海、集水面積、長度）每個檔只存一次，`decodeLines()` 依欄位值把那一筆併進每條線的紀錄。
+  - **日食：封閉的環畫成面、線的不透明度**（日食路徑，2026-10-28 起；沒有用這些欄位的線圖層照舊，河流、颱風、海底電纜、專屬經濟海域的畫面與滑過的標示截圖看過）：
+    - `fill: { field, value, opacity, darkOpacity? }`：紀錄的 `field` 是 `value` 的線是封閉的環（日食的路徑環：北界、終點、南界、起點），`lineFeatures()` 把它做成 Polygon。多一層半透明的面 `ov-<id>-fill`（在這個圖層所有的線下面，顏色跟線一樣依分類、深色底圖用 `dark`，`fill-antialias` 關掉），外框由前端從同一個環另外做成 LineString 給線的圖層（界線與終點一起畫，資料檔不必另外存北界、南界的線，少一半），只留地圖畫得到的緯度（±85.05° 以內，`clipLatitude()`）：超出的部分 MapLibre 會壓到 85° 的緯線上，從極點附近經過的路徑（2021-06-10、2094-01-16）原本在極區畫出一整圈。滑過或側欄標出那一組時，另一層 `ov-<id>-hover-fill` 把那一組的面加深（不透明度兩倍、最多 0.6）。
+    - 面那兩層的篩選只取多邊形（`geometry-type` 是 Polygon、MultiPolygon；MapLibre 的面圖層遇到 LineString 會把線當成多邊形三角化），線的那幾層反過來只取線（不畫多邊形本身的外框，否則極區那段又畫出來）。`highlightLine()` 換組別時也合併這兩個條件。
+    - 面本身不給 hover 查詢：路徑裡面還是滑得到國家（滑到路徑的外框、中心線才是路徑的 tooltip，查詢層的 9 px 在全球視角下幾乎蓋滿帶子）。
+    - 圖例的符號是帶子（`OverlaySwatch.shape: 'band'`：半透明的長方形、上下兩條邊、中間一條線），畫面與匯出的圖片一樣。
+    - `opacity`：線的不透明度，取代預設的 0.8／0.9（日食的「1900–2100 年所有的中心線」0.35）。
+    - `onlyTypes`：只畫這幾個分類代碼的線，圖例也只列這幾類（日全食次數只畫日全食與混合食的中心線）；滑過、側欄標出的那幾層不限。
+    - 同一個資料檔可以給好幾個圖層用（`useJsonEach` 依網址快取，只下載一次）：日食的那一年的路徑、所有的中心線、次數指標的累積中心線都讀 `paths.json`，後兩個用 `minValue: { field: 'r', stops: [[0, 1]] }`（所有縮放都只留 r ≥ 1 的中心線）當成固定的篩選，不必新的欄位（`valueFilter()` 只有一個門檻時不用 `step`，MapLibre 的 `step` 至少要一段，原本會報「Expected at least 4 arguments」）。
+    - 沒有 tooltip 但有 `groupField` 的線也建立標示的那幾層（不建查詢層，滑不到）：側欄還是能用 `highlightLine` 標出一組（日食次數指標的累積中心線）。
   - **跟著時間軸變的數值**（城市，2026-10-26 起）：`epochs: { years, values(紀錄, 期) }`。點的數值每一期一個（城市 1975–2030 每 5 年的人口），時間軸的年份換成不晚於它的最近一期（`overlayEpoch()`），`values` 算出那一期的欄位（`{ pop }`）放進 GeoJSON，`radius`、`color`、`sortField`、`minValue` 用這些欄位。值是 null 的欄位不放（那一期還不是城市，`minValue` 的 `has` 篩掉，點就不畫）。換到另一期時才重算、重送資料（`syncOverlays` 的快取記下資料與那一期；WorldMap 換年份時也呼叫它，沒有 epochs 的圖層不會重送）。tooltip 的第二個參數多了 `year`（時間軸的年份）。
     - 為什麼不在 GeoJSON 放所有年份、用運算式挑欄位：`circle-radius`、`circle-sort-key`、filter 都要依年份改寫，改了一樣會讓 worker 重新切圖磚，程式卻多很多；重送資料只在換到另一期時發生（12 期）。
   - **依縮放篩選**（城市，2026-10-26 起）：`minValue: { field, stops: [[縮放級數, 最小值], …] }`，MapLibre 的 filter `['>=', ['get', field], ['step', ['zoom'], …]]`，跟時間篩選合併（`pointFilter()`）。filter 裡的 `['zoom']` 是圖磚的整數級數（GeoJSON 在 worker 依圖磚切），所以門檻在整數級數換。城市：圖磚 0–1 級（世界全圖）200 萬人以上、2 級 100 萬、3 級 30 萬、4 級 10 萬、5 級起全部；1280×800 的地球儀（縮放約 1.7）約畫 70 個、台灣（6.6 級）全部 21 個。
@@ -350,6 +362,8 @@ pipeline/
     - 內流區是中性色的虛線：淺色底圖近黑 `ink`、深色底圖近白（`ON_DARK`）。中灰（`inkMuted`）在綠色盲下跟洋紅只差 0.8、深灰跟鏽紅一般視覺 13.1，都不過；虛線本身就是第二種編碼，一看就跟流進海的不同，也比實線安靜。
     - dataviz 驗證工具（任兩色、OKLab ΔE×100、Machado 2009）：淺色那組加近黑，一般視覺最小 20.3、紅綠色盲 10.4（洋紅—綠），跟彩色地形的五種地面色、海 ≥ 22.7；深色那組加近白，20.8、10.7，跟深藍底圖的陸地與水 ≥ 25。對比低於 3:1 的（淺色底圖上的洋紅 2.0、綠 1.9，深色底圖上的洋紅 1.9）有圖例文字與 tooltip。
     - 國家的「主要流向」類別圖用淺色那組（填色有面積，深色介面一樣），內流區用類別圖的「其他」色，跟河流的顏色對得起來；側欄的流向長條也是。
+  - **日食路徑的顏色**（`src/topics/eclipses.ts` 的 `KIND_COLORS`，2026-10-28）：路徑是半透明的帶子（淺色底圖 0.24、深色 0.32）加外框與中心線，畫在海、彩色地形與深藍底圖上，跟河流一樣兩種底圖各一組、同一類同一個色相，直接取河流驗證過的那兩組裡的三色：日全食紫 `#7b3294`（categorical[6]）→ 深色底圖淡紫 `#9085e9`（[1]），日環食鏽紅 `#8a2e00`（[5]）→ 琥珀 `#eda100`（[2]），混合食洋紅 `#e7298a`（[7]，兩種底圖都是）。全食用最深的紫（本影是暗的）、環食用橘色系（「火環」）。線墊一層細邊（`casing`），滑過時多一圈光暈（`hoverHalo`）。側欄的色塊用淺色那組（跟河流一樣）。
+    - dataviz 驗證工具（三色任兩色，2026-10-28）：淺色那組在海（`#a0c8f0`）與淺綠的陸地（用 `#d6e3b4` 近似）上一般視覺最小 ΔE 20.3（紫—鏽紅）、色盲 11.1（洋紅—紫，紅色盲），洋紅在海上對比 2.36:1（有圖例與 tooltip，帶子本身也有外框）；深色那組在深藍底圖上 23.1、14.8，對比都 ≥ 3:1，琥珀的亮度 0.764 超出圖表類別色的亮度帶（跟河流一樣是地圖上的線與面，接受）。
   - **使用者可以換分級色與正負色**（`src/map/palettes.ts`、`PaletteMenu.tsx`，2026-10-27 加）：面量圖與有強弱的類別圖（ordinal、diverging）的圖例標題旁有「配色」按鈕，分級（循序）三組：橘（預設）、紫、綠；正負變化（發散）三組：橘 ↔ 青綠（預設）、紫 ↔ 綠、橘 ↔ 紫。選擇記在這個瀏覽器（localStorage 的 `map-palette`），不放進網址（收到連結的人看到自己選的）。用到分級色、發散色的地方都從 `useMapTokens()` 拿：面量圖、有強弱的類別圖（民主與自由、武裝衝突、護照與簽證、婚姻與家庭…）、圖例、匯出的圖片、側欄與排名表的類別色塊。不換的：類別圖的 8 色、流向圖（出口青綠、進口橘）、地震與颱風等疊加圖層、網格圖層（顏色畫在圖磚裡；網格的圖例沒有「配色」按鈕）。
     - 新的配色照預設橘色每一階的 OKLCH 亮度與彩度、只換色相（紫 320°、綠 150°，彩度乘 0.85 才都在 sRGB 裡），dataviz 驗證工具的 `--ordinal` 檢查亮度單調、相鄰差 ≥ 0.06、單一色相都通過（淺端對背景的對比 1.2:1 不到 2:1，預設的橘也一樣；地圖有圖例與排名表）。
     - 用 OKLab 色差（×100，Machado 2009 色盲模擬）比過：跟海、無資料的灰色，一般視覺紫、綠跟預設的橘差不多（7–8）；紅綠色盲下紫的淺階像亮色街道底圖的淺藍海（2.3）、綠的淺階像無資料的灰（2.7），預設的橘是 5–6，所以預設維持橘色。發散色兩臂同一階之間在色盲下：預設的橘 ↔ 青綠 4.5、紫 ↔ 綠 7.4、橘 ↔ 紫 10.2，所以選單上寫「橘 ↔ 紫（色弱最好分辨）」。
@@ -546,6 +560,7 @@ pipeline/
 | 颱風與颶風 | 當年的颱風（預設，不上色，畫那一年生成的颱風路徑，依每個時間點的強度分段上色）、每十年的颱風次數（比例圓）、最強的颱風（每十年，循序類別圖：熱帶性低氣壓 → 5 級）；疊加圖層：颱風路徑（薩菲爾－辛普森等級的 7 級橘色循序色，非熱帶階段灰色虛線、強度不明灰色實線，滑過看名稱、巔峰強度、氣壓與日期） | 最強的颱風、最近的颱風（各 10 個：經過時的風速與等級、最近距離、日期、巔峰強度；西北太平洋的颱風附中央氣象署的中文名） | NOAA NCEI IBTrACS v04r01（只用美國機構的 USA_WIND、USA_SSHS）；中文名稱與台灣的侵台對照用中央氣象署颱風資料庫 | 1950–2026（依颱風生成的年份，UTC；2025–2026 是即時資料）；北印度洋、南半球相關的 43 國 1980 年起；每十年的指標 1950–2020 年代（2020 年代只到今年） |
 | 發電廠地圖 | 發電廠地圖（預設，20 MW 以上的電廠點：顏色是能源、面積是裝置容量；運轉中預設打開，興建中、規劃中、已退役與封存三個圖層預設關閉）、總裝置容量（比例圓）、各能源裝置容量（比例圓，子項目是 8 種能源加再生能源、化石燃料合計）、占總容量比例（面量圖，各能源各自的門檻）、興建中與規劃中的容量（比例圓）；發電量主題也可以打開運轉中的電廠圖層 | 各能源的運轉中、興建中、規劃中容量（長條）、最大的 10 座運轉中電廠（含主要業主） | Global Energy Monitor Global Integrated Power Tracker（2026 年 9 月版，CC BY 4.0）；台灣附註對照經濟部能源署發電裝置容量 | 2026 年的快照（GEM 2026 年 9 月的狀態） |
 | 太陽能與風能潛力 | 太陽光電潛力（PVOUT，kWh/kWp/日，預設）、風能潛力（離地 100 公尺風功率密度的陸地平均，W/m²）、風最強的 10% 土地、近岸海域（離岸 50 km）的風能；太陽光電與風能潛力可以切到約 2 km 網格（風能含各國專屬經濟海域，台灣海峽整片在最高一級） | — | Global Solar Atlas 2.0（Solargis／世界銀行 ESMAP）、Global Wind Atlas 4.0（丹麥技術大學 DTU／世界銀行 ESMAP，Vortex）；台灣附註對照 GSA 網站摘要與經濟部能源署 | 不隨時間變化（太陽能是各地 1994–2019 年起到 2025 年的長期平均，風能是 2008–2017 年），沒有時間軸 |
+| 日食路徑 | 日食路徑（預設，不上色：時間軸那一年的日全食、日環食、混合食，路徑是半透明的帶子加外框與中心線，依類型上色；滑過看日期、食甚時中心線上的持續時間與位置、路徑寬度、沙羅週期；國家的值是那一年有沒有路徑經過，排名表列出經過的國家；另有預設關閉的「1900–2100 年所有的中心線」）、日全食次數、日環食次數（比例圓，1900 年累計到時間軸那一年，預設 2100 年；地圖上是到那一年為止的中心線）、下一次日全食（面量圖：從那一年起還要幾年，tooltip 寫哪一年；到 2100 年都沒有的是灰色） | 1900–2100 年經過這國陸地的每一次日全食、日環食、混合食（日期、類型、這國境內最長的持續時間，下一次標出來，多的時候先列下一次附近的 12 次），上一次與下一次日全食；點一下時間軸換到那一年、標出路徑、地圖移過去 | NASA 日食網站（Fred Espenak）：五千年日食目錄（Espenak & Meeus, NASA TP-2006-214141）與每一次日食的貝塞爾根數（路徑表那一組 SEbeselm 有的用它，其餘用五千年日食典的 SEdata），路徑自己算；公有領域，要寫「Eclipse Predictions by Fred Espenak, NASA's GSFC」 | 1900–2100（未來的日食是預報；年份是食甚的 UTC 年份） |
 | 野火 | 燒毀面積占國土比例（預設）、燒毀面積（比例圓） | 燒毀的土地類型（堆疊面積圖＋當年長條）、每月燒毀面積（歷年平均與當年）、台灣：林保署森林火災對照表 | GWIS 全球野火資訊系統（歐盟 JRC、Copernicus）的 MODIS MCD64A1 各國逐月燒毀面積、GWIS Country Profile API（GADM 國土面積）；台灣附註用農業部林業及自然保育署林業保育統計年報 | 2002–2025（林保署對照 2007–2025） |
 | 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
 | 摩天大樓 | 300 m 以上的大樓數（比例圓，預設；150、200 m 以上的 Wikidata 收錄太少，不做國家的指標）、最高建築的高度（面量圖）；疊加圖層：Wikidata 收錄的 150 m 以上的大樓每一棟一個點（大小與顏色是高度，縮小時只畫 300 m、200 m 以上的，拆除的那一年起不畫） | 跟 CTBUH 比的涵蓋率、這一年各高度的棟數（長條）、最高的大樓（前 10 棟，其餘收起來）、這個國家與全世界歷年 150、200、300 m 以上的棟數（折線）、沒有完工年份所以不算的大樓、連到城市主題；台灣寫台北 101、85 大樓的現況 | Wikidata（CC0）；CTBUH Skyscraper Center 的 2025 年底總數只引用來對照；城市名稱補用城市主題的 GHSL UCDB | 1930–2026（每一年還在的） |
@@ -636,6 +651,11 @@ pipeline/
       - 那個主題的公司公布店數（年報、10-K、法說會簡報、官網）是引用的事實：一國一個數字加日期與出處，寫在附註、tooltip 與側欄，不是轉載誰的資料庫；沒有用 AllThePlaces（爬各公司官網的店家位置）這類從公司網站複製的資料集。
     - OECD.AI 的 OpenRouter 資料未明示授權。
     - Natural Earth（國界、鐵路、河流中心線）與 OurAirports 是公有領域。
+    - **NASA 日食網站（eclipse.gsfc.nasa.gov，Fred Espenak）的預報是公有領域，要求標示**（日食路徑主題，第 88 點；2026-10-28 讀過）：
+      - NASA Copyright Information（https://eclipse.gsfc.nasa.gov/SEpubs/copyright.html）：「NASA material is not protected by copyright unless noted. If not copyrighted, NASA material may be reproduced and distributed without further permission from NASA.」，並請標示「Eclipse map/figure/table/predictions courtesy of Fred Espenak, NASA/Goddard Space Flight Center, from eclipse.gsfc.nasa.gov.」
+      - 貝塞爾根數頁（SEdata、SEbeselm）與路徑表的頁尾：「Permission is freely granted to reproduce this data when accompanied by an acknowledgment: "Eclipse Predictions by Fred Espenak, NASA's GSFC"」；五千年日食目錄的說明頁（SEcatkey.html）寫「"Eclipse Predictions by Fred Espenak and Jean Meeus (NASA's GSFC)"」。
+      - 頁尾的來源與主題說明的第一句照寫「Eclipse Predictions by Fred Espenak, NASA’s GSFC」（另寫五千年日食目錄是 Espenak & Meeus），`manifest.json` 的 `credit` 也是。路徑是用他們的根數自己算的，NASA 沒有審查過這裡的計算（說明有寫跟 NASA 路徑表的差距）。
+      - **沒有用的**：Xavier Jubier 的 KMZ／Google Maps 路徑（授權不明）；EclipseWise.com（Espenak 自己的網站，同樣准許轉載、要寫「Eclipse Predictions by Fred Espenak, www.EclipseWise.com」，但地圖與圖不能改；NASA 網站已經有需要的根數，又是公有領域，所以用 NASA 的）。
     - **HydroRIVERS v1.0 適用 HydroSHEDS 第 1 版的授權協議**（河流與流域主題，第 86 點；2026-10-28 讀過全文）：
       - 協議全文在 HydroSHEDS Technical Documentation v1.4 的附錄 A（https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf ），HydroRIVERS 的技術文件第 4.1 節寫明「covered by the same License Agreement as the HydroSHEDS database」，官方產品頁寫「freely available for scientific, educational and commercial use」。網站的 Terms of Use（https://www.hydrosheds.org/terms-of-use ）只管網站上的文字與圖片（不能改作、不能散布），資料各依產品自己的授權。
       - 第 2.1.1 條准許為了跟衍生作品（Derivative Works）整合而使用、重製、展示；第 2.1.2 條准許把資料「incorporated into any Derivative Works」散布給使用者，條件是使用者的條款「at least as protective of the Licensed Materials as the terms of this License」，而且「In no event shall Licensee license or distribute the Licensed Materials as a stand-alone product」；第 2.1.3 條不准反編譯、還原，要防止未經授權的複製與散布；第 2.2 條與附錄 B 要求一段固定的版權聲明（「must be displayed with, attached to or embodied in (in a reasonably prominent manner) the documentation or metadata」）；第 8.1 條不能用 WWF 的名稱、商標、標誌。
@@ -2478,6 +2498,34 @@ pipeline/
     - **台灣**：太平洋 100%：西岸 19 條主要河川「流入太平洋・台灣海峽」，東岸的秀姑巒溪、卑南溪、花蓮溪、蘭陽溪、立霧溪、和平溪、南澳溪、太麻里溪「流入太平洋・菲律賓海」。國內最大的水系：濁水溪（3,268 km²，河口平均流量 179 m³/s，最長 154 km）、高屏溪（3,250 km²，151 m³/s，160 km）、淡水河（2,699 km²，135 m³/s，134 km）、烏溪、秀姑巒溪、卑南溪、花蓮溪、曾文溪。放大到 7 級時分區 `30_11`（10 KB，118 條線）載入，台灣的主要河川大部分的河段都畫得出來（流量 8 m³/s 以上；曾文溪 135 km 的幹流畫出約 110 km）。
     - **大小與效能**：283 個檔 6.67 MB（gzip 後 2.20 MB）：主檔 `rivers.json` 1.54 MB（gzip 後 0.53 MB，地球儀一打開就下載）、分區 272 個共 4.77 MB（gzip 後 1.59 MB，最大的一個 116 KB，放大到 4 級以上才依畫面下載，台灣一帶只要 1 個）、`panel.json` 203 KB（gzip 後 50 KB，點國家才下載）、6 個指標檔共 134 KB。無頭 Chrome（swiftshader，1280×800）：轉動地球儀 8 fps（人口主題 9 fps、海底電纜 7.7 fps，同一台電腦同時量），台灣 7 級 74 fps；JS heap 世界全圖 108 MB、放大到台灣並載入分區後 148 MB。開發模式第一個畫面約 5–6 秒（含底圖），沒有錯誤。
     - **跟其他主題**：「海拔」主題的地形、「水資源與森林」的人均水資源、「塑膠污染」的河口，頁尾沒有互相指引（這個主題的頁尾要放授權聲明，已經很長）。
+88. **日食路徑**（`pipeline/topics/eclipses.py`、`pipeline/sources/nasa_eclipses.py`、`src/topics/eclipses.ts`、`src/topics/panels/EclipsesPanel.tsx`，2026-10-28）：
+    - **資料**（授權見第 12 點）：NASA 五千年日食目錄（Espenak & Meeus 2006）1801–2100 年的三頁，1900–2100 年有 454 次日食，其中日全食 140、日環食 146、混合食 13 次（偏食 155 次沒有路徑，不畫）。這 299 次裡 8 次是非中心食（影軸沒有打到地球，只有影子的邊緣掠過極區：1928-05-19、1950-03-18、1957-04-30、1957-10-23、1967-11-02、2014-04-29、2043-04-09、2043-10-03），2 次是只有一條界線的中心食（2003-05-31、2044-02-28）。
+    - **根數**：每一次日食一頁貝塞爾根數。NASA 有兩組：五千年日食典（`SEsearch/SEdata.php`，VSOP87/ELP2000-82，ΔT 是 2006 年的外推，例如 2024 年 74.0 秒）每一次都有；路徑表那一組（`SEbeselm/`，VSOP87/ELP2000-85，ΔT 較新，2024 年 70.6 秒、2020 年 69.4 秒）只有部分日食有（1900–2100 年 152 次，其餘 147 次 404，記在 `.cache/nasa-eclipse/sebeselm/*.missing` 不再問）。有路徑表那一組的用它（跟 NASA 公布的路徑一致，近年的 ΔT 也比較準：2020 年台灣的日環食，五千年日食典的 ΔT 多 2.4 秒，經度差約 1 km），其餘用五千年日食典的。SEdata 頁的第 3 列夾著 PHP 的警告（`Undefined variable $_5MCSE_besselian_d3`），解析時先拿掉。
+    - **算法**（`eclipses.py` 的檔頭）：基本面座標、WGS 84 橢球，每 2 秒一條垂直於影子相對地面運動方向的橫切線（太陽高度低、ζ < 0.3 的地方最多細分 15 倍），線上落在本影裡的範圍兩端用二分法找（40 次），兩端連起來就是北界、南界，c = 0 是中心線；不必另外解界線的迭代，只有一條界線的、非中心食的地平線那一側也一起包含。
+      - 中心線上的持續時間 = 2|L2|/n（n 是影子相對觀測者的速度）；食甚（影軸離地心最近）的持續時間跟 NASA 目錄比，見下面「跟 NASA 目錄比」。
+      - **路徑寬度寫 NASA 目錄的**（食甚時）：自己算的（橫切線兩端在地面上的距離，取垂直於地面路徑的分量）中位數跟目錄一樣，但太陽很低（11–19°）的寬路徑差到 9%（1932-03-07 南極外海的日環食 1,184 對 1,083 km：影子很斜時「垂直於路徑」的取法不同），所以 tooltip 用目錄的數字。只有一條界線的 2003-05-31、2044-02-28 另一邊是地平線，目錄沒有寬度，tooltip 也不寫。
+      - **tooltip 寫食甚，不寫最長持續時間**：全食的食甚與最長持續時間只差 1 秒以內（2024-04-08：食甚 4 分 28.1 秒、最長 4 分 28.2 秒，位置差約 95 km），但環食最長的地方常在日出、日落的兩端（2020-06-21：食甚 38 秒在印度北部，中心線上最長的 82 秒在剛果共和國的日出處），寫最長會跟一般引用的數字不同。食甚的位置在陸地寫國名（`geoindex`，找 0.3° 內最近的國家），在海上寫 IHO 海域的名稱（河流主題的海域網格與 `SEAS` 的中文名，大洋本身另外寫北太平洋、南大西洋…）。
+      - **線**：北界、南界各自用 Douglas–Peucker 簡化到 0.6 km（球面上的弦距離），接成一個封閉的環（北界、終點、南界倒過來、起點），量化 0.005°；一次日食一個環（`r` = 0）加一條中心線（`r` = 1）。經度沿著環展開成連續的（101 次的路徑跨過 180° 經線），整條平移到第一點在 ±180° 內。**環繞極點的路徑**（2021-06-10 這類從北極上方經過的）展開後經度回不到起點（差 ±360°），在最靠近極點的頂點切開、補上沿 ±90° 緯線的兩點，MapLibre 才畫得出來（麥卡托與地球儀都只畫到約 ±85°）。中心線只留 ±85.05° 以內的部分（超出的會被 MapLibre 壓到 85° 的緯線上，畫出一圈），環的外框由前端同樣裁掉（第 4 節）。
+      - **環不能自己交叉**（MapLibre 三角化交叉的多邊形會畫出碎片）：第一版 299 個環有 16 個交叉。一種是很窄的混合食（1930-04-28 全程只有 1 km 寬、1986-10-03、1987-03-29、2005-04-08），北界、南界各自簡化 0.6 km 就交叉了：寬度不到 3 km（`NARROW_KM`）的地方每約 5 km 固定留一點，各段之間再簡化（1930-04-28 的環 1,435 點）。另一種是路徑起點、終點的小「8 字形」（地平線那一側的端點往回折，例如 2023-10-14 在巴西外海的終點）：量化後找出交叉的兩段，把中間的點倒過來（2-opt，`untangle()`）。現在都沒有交叉（逐一檢查過）。
+      - 每一次日食的共用資料（日期、類型、沙羅週期、食甚的持續時間與位置、國家或海、寬度、是不是非中心食）放在 `groups`（第 4 節），線的紀錄只有日食編號、年份、角色。
+    - **跟 NASA 目錄比**（`report_checks()`）：289 次中心食，食甚時中心線上的持續時間跟目錄差中位數 0.3 秒、最大 0.7 秒（目錄寫到秒）。
+    - **跟 NASA 的路徑表比**（`verify()`，每 2 分鐘一列，座標到 0.1′，約 0.2 km；北界、南界、中心線到我們畫的線的距離，與同一時刻中心線位置的距離）：
+      - 同一組根數（路徑表那一組）：2024-04-08 日全食北界中位數 0.05 km、最大 0.13 km，南界 0.04／0.11 km，中心線 0.04／0.12 km；2027-08-02 日全食 0.05／0.12、0.05／0.12、0.04／0.14 km；2020-06-21 日環食 0.04／0.13、0.04／0.11、0.04／0.12 km；2023-04-20 混合食 0.03／0.10、0.04／0.12、0.04／0.11 km；2013-11-03 混合食 0.05／0.12、0.05／0.11、0.04／0.11 km。同一時刻的中心線位置中位數 0.07–0.08 km（最大 0.15–1.16 km，在日出、日落處，地面上的影子一秒走好幾公里）。誤差都在路徑表的位數以內，算法沒問題。
+      - 五千年日食典的根數：界線與中心線 0.19–0.56 km（中位數），最大 0.9 km（2027 年）；同一時刻的位置差 1.5–4.3 km（ΔT 差 1–4 秒，影子沿著路徑前後移動）。這一組只用在沒有路徑表的日食。
+      - **NASA 混合食的路徑表在全食的那一段把北界、南界標反了**（環食的那一段沒有；2023-04-20 表上 03:00 的「北界」在南緯 32.87°、「南界」在 32.63°，看起來是照環食的正負號決定哪一邊叫北界），比對時全食段對調；我們的北界一律是運動方向的左邊（向東走時是北邊）。
+    - **經過哪些國家**：每條橫切線上每約 2 km（0.0003 地球半徑，太陽低的地方加密到 4 倍）取一點，一次日食 8 萬–80 萬點，先併到 0.01° 的格子再判斷國家（`geoindex.countries_at(…, nearest=False)`：Natural Earth 1:10m，只算陸地，不找海上最近的國家；`ISLANDS` 的台灣離島照樣算），有一點落在那一國就算經過。每一點的 L2 < 0 是全食、> 0 是環食，所以混合食在全食的那一段算日全食、環食的那一段算日環食；每一點的持續時間 ≈ 2√(L2² − c²)/n（直線運動的近似，誤差幾秒），取那一國最長的，寫在側欄。小於約 2 km 的島可能漏掉。
+    - **指標**（1900–2100 每年一筆，1:10m 有形狀的 242 個國家／地區都有值，其中 227 個有路徑經過）：
+      - 「日食路徑」（預設，不上色）：那一年經過的類型（1 日環食、2 日全食、3 都有），排名表只列經過的國家（`unranked`、不畫長條），國家的 tooltip 寫「日全食經過」。
+      - 「日全食次數」「日環食次數」：1900 年累計到那一年（比例圓：次數跟國土大小有關，跟颱風的次數一樣不用面量圖），`timeAxis` 寫「1900–2100 年」，預設年份 2100；地圖上是到那一年為止的中心線（`history-total` 只畫日全食與混合食、`history-annular` 只畫日環食與混合食，`onlyTypes`；不給 tooltip，國家才滑得到）。
+      - 「下一次日全食」：**從時間軸那一年（含）起**，下一次日全食還要幾年（0 是那一年就有）；顏色依還要幾年分級（1、5、10、20、40、70 年，所有年份共用），`format(值, 年)` 寫出哪一年（第 4 節），到 2100 年都沒有的是 null，寫「到 2100 年都沒有日全食經過」（指標的 `missing`）。選「那一年起」而不是「今天以後」：時間軸才有意義（拖到 1930 年看當時的人要等多久），預設的 2027 年又剛好等於今天以後的下一次（2026-08-12 以後到年底沒有日全食）。側欄的「下一次」則從今天算起。不排名（`unranked`），排名表由近到遠排（`lowerIsBetter`）。
+    - **其他年份的路徑**：1900–2100 年約 300 次的中心線疊在一起是一張很密的網，蓋過那一年的路徑，所以只做成預設關閉的圖層「1900–2100 年所有的中心線（淡）」（不透明度 0.35、不給 tooltip）；次數的兩個指標則畫累積到那一年的中心線，說明次數從哪裡來。
+    - **側欄**（`panel.json`）：經過這國陸地的每一次日食（日期、類型、這國境內最長的持續時間；多於 12 次的先列下一次附近的 12 次，「顯示全部」展開），上一次與下一次日全食（從今天算）。點一列：時間軸換到那一年（`selectYear`）、標出那一次的路徑（`highlightLine`，次數指標時標累積的中心線那一層）、地圖移到路徑的範圍（`focusBox`）；標出的路徑留著，時間軸換到別的年份才取消。
+    - **台灣**：日全食 3 次、日環食 5 次。
+      - 上一次日全食 1941-09-21：路徑經過台灣北端（基隆、金山一帶，最長約 2 分 11 秒）與馬祖（東引約 3 分 20 秒，側欄寫的「這裡最長」是馬祖）。下一次 2070-04-11：只掠過恆春半島南端（約 1 分 37 秒）與蘭嶼（約 3 分 21 秒）。再下一次 2089-10-04 只經過馬祖（東引約 1 分 33 秒）。
+      - 日環食：1955-12-14（澎湖與嘉南一帶約 7 分 36 秒）、1958-04-19（北部約 7 分 3 秒）、2012-05-20（北部與馬祖，最長約 4 分 34 秒在馬祖）、2020-06-21（中心線從嘉義沿海的東石、布袋一帶到台東成功一帶，台灣境內約 1 分 0–1 秒，路徑寬約 47 km，跟 NASA 路徑表 08:14–08:16 UT 那兩列的 47、48 km 與 59.8、60.9 秒一致）、2074-01-27（只經過馬祖）。
+      - 馬祖、東引這幾個 1:10m 沒有形狀的離島用 `geoindex.ISLANDS` 的矩形範圍判斷（範圍只框住島本身，但裡面的海也算），所以 2089 年那一次是路徑的邊緣掠過東引、南竿北竿的範圍。
+    - **抽查**（上一次／下一次日全食，到 2100 年的次數）：日本 2009-07-22／2035-09-02（全食 8、環食 13）；中國 2009-07-22／2034-03-20（17、20）；美國 2024-04-08／2033-03-30（28、23）；西班牙 2026-08-12／2027-08-02（7、6）；埃及 2006-03-29／2027-08-02（7、5）；智利、阿根廷 2020-12-14／2048-12-05（14、18；12、18）；澳洲 2023-04-20（混合食的全食段）／2028-07-22（16、18）。都跟 NASA 的路徑圖對得起來。
+    - **大小**：7 個檔 1.46 MB（gzip 後 349 KB）：`paths.json` 933 KB（gzip 後 319 KB，606 條線、11.5 萬個頂點，第一個畫面就下載）、四個指標檔各 100–190 KB（gzip 後 3–5 KB）、`panel.json` 38 KB（gzip 後 14 KB，點國家才下載）。pipeline 第一次約 10 分鐘（約 600 頁，每頁間隔 0.3 秒），之後用快取約 5 分鐘（299 次日食加上驗證）。
 
 ## 9. 之後可以做的
 
@@ -2618,6 +2666,7 @@ pipeline/
   - 科技與交通加入學術論文（2026-10-27，科技與交通 12 個主題，選單分欄）：短名稱「學術論文」、Papers，選到它時英文 1280px 寬 794px（可用 871px），中文 1024px 612px（可用 650px）。控制列是「領域」子項目選單加指標下拉選單（6 個指標），中文 1024、1280px 與英文 1280px 都是一行（英文最長的「International co-authorship」與子項目「Physical sciences」也是）。
   - 地理加入國家小檔案（2026-10-27，地理 10 個主題，選單分欄，排在第一個）：短名稱「國家小檔案」、Country facts（13 個字元，比 Night lights 長 1 個字元），選到它時英文 1280px 寬 845px（可用 871px），中文 1024px 628px（可用 650px，五個字）。控制列是 4 個指標按鈕（政體形式、貨幣、陸地鄰國數、內陸國），中文 1024、1280px 與英文 1280px 都是一行。
   - 地理加入國旗（2026-10-27，地理 12 個主題，選單分欄，排在國家小檔案後面）：短名稱「國旗」、Flags，選到它時英文 1280px 寬 782px（可用 871px），中文 1024px 580px（可用 650px）。控制列是指標下拉選單（7 個指標），「占國旗面積」「圖案」多一個子項目選單（「顏色」「圖案」，指標自己的 `dimension`），中文 1024、1280px 與英文 1280px 都是一行。
+  - 地理加入日食路徑（2026-10-28，排在颱風與颶風後面）：短名稱「日食路徑」、Eclipses，選到它時英文 1280px 寬 806px（可用 871px），中文 1024px 616px（可用 650px）。控制列是 4 個指標按鈕（日食路徑、日全食次數、日環食次數、下一次日全食），中文 1024、1280px 與英文 1280px 都是一行。
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - **縮圖與「看全部主題」**（2026-10-27 加）：選單的每個主題左邊有一張縮圖（`public/thumbs/<主題>.webp`），最下面一項是「看全部主題」（`menuitem`，↑↓ 也移得到；`check:en` 只點 `menuitemradio`，不受影響）。
 - **主題總覽**（`src/controls/TopicsOverview.tsx`）：用 `<dialog>` 的 `showModal()`（焦點留在對話框裡、Esc 關閉、後面的頁面不能點，瀏覽器內建），依分類列出所有主題的卡片（縮圖、主題名稱、前三個指標），目前的主題框起來；手機上全螢幕、兩欄。上面的篩選框用主題搜尋（見下面），比對到指標或子項目時卡片寫「符合：鋰」，點了直接開那個指標與子項目。觸控裝置打開時不自動聚焦篩選框（鍵盤跳出來會蓋住半個畫面）。頁尾寫縮圖的出處。

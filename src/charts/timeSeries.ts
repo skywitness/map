@@ -162,7 +162,7 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
           seen.add(name);
           return [
             `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-              `<strong>${escapeHtml(indicator.format(value))}</strong>` +
+              `<strong>${escapeHtml(indicator.format(value, y))}</strong>` +
               `<span class="tt-name">${escapeHtml(name)}</span></div>`,
           ];
         });

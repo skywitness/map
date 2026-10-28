@@ -153,7 +153,7 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
           {emptyKey}
         </div>
       ) : (
-        <NoDataKey />
+        <NoDataKey label={indicator.missing} />
       )}
     </div>
   );
@@ -447,12 +447,13 @@ export function CategoricalLegend({ title, scale, values, highlight, onPreview, 
   );
 }
 
-function NoDataKey() {
+/** 灰色的「無資料」；指標的 missing（值是 null 有固定意思，例如「到 2100 年都沒有」）取代那幾個字 */
+function NoDataKey({ label }: { label?: string }) {
   const t = useT();
   return (
     <div className="legend-nodata">
       <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
-      {t.noData}
+      {label ?? t.noData}
     </div>
   );
 }
