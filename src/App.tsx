@@ -922,23 +922,25 @@ function useOverlays(
     [generic, raw, view],
   );
   const tiles = useJsonEach(tilePaths);
-  const result = useMemo<OverlayLayer[]>(
-    () =>
-      generic.map(({ def, visible, path }) => {
-        if (def.kind === 'night') return { kind: 'night', def, visible };
-        const data = raw.get(path) ?? null;
-        if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
-        const index = (data as LinesData | null)?.detail;
-        const loaded = index
-          ? index.tiles.flatMap(([id]) => {
-              const tile = tiles.get(detailPath(path, index.file, id));
-              return tile ? [tile as LinesData] : [];
-            })
-          : [];
-        return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
-      }),
-    [generic, raw, tiles],
-  );
+  const result = useMemo<OverlayLayer[]>(() => {
+    // 地圖上只畫跟畫面重疊的分區（下載過的檔留著，移回來時不必再下載）：看過的分區全部畫上去的話，
+    // 每多一個分區 MapLibre 就要把越來越多的線重切一次圖磚
+    const inView = new Set(tilePaths);
+    return generic.map(({ def, visible, path }) => {
+      if (def.kind === 'night') return { kind: 'night', def, visible };
+      const data = raw.get(path) ?? null;
+      if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
+      const index = (data as LinesData | null)?.detail;
+      const loaded = index
+        ? index.tiles.flatMap(([id]) => {
+            const tilePath = detailPath(path, index.file, id);
+            const tile = inView.has(tilePath) ? tiles.get(tilePath) : undefined;
+            return tile ? [tile as LinesData] : [];
+          })
+        : [];
+      return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
+    });
+  }, [generic, raw, tiles, tilePaths]);
   return { railways, airports, overlays: result };
 }
 

@@ -34,9 +34,6 @@ export interface ClassHighlight {
   onPin: (index: number | null) => void;
 }
 
-/** 分級上方的小直方圖最高的那一條（px） */
-const HIST_PX = 14;
-
 interface ChoroplethLegendProps {
   indicator: Indicator;
   title: string;
@@ -49,7 +46,7 @@ interface ChoroplethLegendProps {
   emptyKey?: string;
   /** 標題旁放「配色」按鈕（PaletteMenu），列出這一種的選項；網格的顏色畫在圖磚裡，不傳 */
   paletteKind?: 'sequential' | 'diverging';
-  /** 有傳才能滑過、點選分級，色塊上方畫每一級的國家數（小直方圖）；網格、3D 不傳 */
+  /** 有傳才能滑過、點選分級（色塊的說明與下面那一行寫那一級的國家數）；網格、3D 不傳 */
   classes?: ClassHighlight;
 }
 
@@ -78,7 +75,6 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
     for (const v of classValues.values()) out[bisectRight(thresholds, v)]++;
     return out;
   }, [classValues, scale]);
-  const maxCount = Math.max(1, ...(counts ?? []));
   const binLabel = (i: number) =>
     i === 0 ? t.binBelow(labels[0]) : i === labels.length ? t.binAbove(labels[i - 1]) : t.binRange(labels[i - 1], labels[i]);
   const highlight = classes?.highlight ?? null;
@@ -98,21 +94,9 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
         </div>
       ))}
       <div
-        className={`legend-scale${stepped ? ' is-stepped' : ''}${counts ? ' has-hist' : ''}`}
+        className={`legend-scale${stepped ? ' is-stepped' : ''}`}
         style={{ width: colors.length * swatchWidth }}
       >
-        {counts && (
-          // 每一級有幾個國家：細長條，看得出分布偏哪一邊；確切的數字在色塊的說明與下面那一行
-          <div className="legend-hist" aria-hidden="true">
-            {counts.map((n, i) => (
-              <span
-                key={i}
-                className={highlight === i ? 'is-on' : undefined}
-                style={{ height: n ? Math.max(2, (n / maxCount) * HIST_PX) : 0 }}
-              />
-            ))}
-          </div>
-        )}
         <div className="legend-swatches">
           {colors.map((c, i) =>
             classes && counts ? (

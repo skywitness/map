@@ -37,6 +37,8 @@ export interface DecodedLines {
   types: number[] | null;
   records: PointRecord[] | null;
   vertexTypes: number[][] | null;
+  /** concatLines() 接起來的原本那幾份（主檔、分區）：地圖上主檔與分區畫在不同的 source，換分區時主檔不必重送 */
+  parts?: DecodedLines[];
 }
 
 /** 每條線第一個點是量化後的絕對座標，之後是差分；乘上 quantum 得到經緯度（鐵路與一般線圖層同一種格式） */
@@ -83,6 +85,7 @@ export function concatLines(parts: DecodedLines[]): DecodedLines {
     types: all((p) => p.types, 0),
     records: all<PointRecord>((p) => p.records, {}),
     vertexTypes: all<number[]>((p) => p.vertexTypes, []),
+    parts,
   };
 }
 
