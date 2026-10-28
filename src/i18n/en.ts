@@ -194,6 +194,10 @@ export const en: Messages = {
   countryCol: 'Country/territory',
   shareCol: 'Share of world',
   dataYearCol: 'Data year',
+  changeCol: (year) => `vs ${year}`,
+  changePoints: (x) => `${x} pts`,
+  increase: 'up',
+  decrease: 'down',
 
   chartTotal: 'Total',
 };

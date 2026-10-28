@@ -3154,6 +3154,36 @@ kbd {
   width: 45%;
 }
 
+/* 寬螢幕：國名欄只佔國名的寬度，長條緊接在國名後面（原本數值欄固定 45%，國名與長條之間空一大段） */
+@media (min-width: 769px) {
+  .ranking .name-col {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  /* 表格自動排版會把多的寬度依內容寬度分給各欄（國名長，分到最多）：數值欄要 100%，多的寬度都給長條 */
+  .value-cell {
+    width: 100%;
+  }
+
+  .value-track {
+    min-width: 120px;
+  }
+}
+
+/* 比 10 年前（RankingTable.tsx）：箭頭不分好壞（很多指標沒有好壞之分），用中性的文字色 */
+.ranking .change {
+  color: var(--ink-secondary);
+}
+
+.ranking .change.is-flat {
+  color: var(--ink-muted);
+}
+
+.ranking th.change-col {
+  white-space: nowrap;
+}
+
 .value-wrap {
   display: flex;
   align-items: center;

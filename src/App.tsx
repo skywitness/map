@@ -131,6 +131,9 @@ function initialIndicatorPath(definition: TopicDefinition): string | null {
 
 const NO_FEATURES: CountryFeature[] = [];
 
+/** 排名表跟幾年前比 */
+const CHANGE_YEARS = 10;
+
 /** 指標超過這個數量就改用下拉選單 */
 const MAX_SEGMENTS = 5;
 
@@ -252,6 +255,12 @@ export function App() {
     () => (data && !pure ? latestAt(data, yearIndex) : { values: new Map<string, number>(), years: new Map<string, number>() }),
     [data, yearIndex, pure],
   );
+  // 排名表的「比 10 年前」：那一年也有資料時才有（時刻主題、不隨時間變化的資料沒有）
+  const previous = useMemo(() => {
+    if (!data || pure || at || yearIndex < 0) return null;
+    const index = data.years.indexOf(year - CHANGE_YEARS);
+    return index < 0 ? null : { year: year - CHANGE_YEARS, values: latestAt(data, index).values };
+  }, [data, pure, at, yearIndex, year]);
   const bubbleMax = useMemo(() => (data ? maxAcrossYears(data) : 1), [data]);
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
@@ -749,6 +758,7 @@ export function App() {
               valueYears={valueYears}
               latestWithin={data?.latestWithin}
               world={world}
+              previous={timeless ? null : previous}
               year={timeless ? null : year}
               yearText={timeless ? undefined : yearText}
               countries={countries}

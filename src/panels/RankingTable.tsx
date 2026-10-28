@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useLang, useT } from '../i18n';
+import { tr, useLang, useT } from '../i18n';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
-import { formatPercent } from '../lib/format';
+import { fixed, formatPercent } from '../lib/format';
 import { categoryScale, choroplethColors, classIndex } from '../map/categories';
 import { useJson } from '../lib/data';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -18,6 +18,8 @@ interface RankingTableProps {
   /** 指標檔的 latestWithin，有的話在表格下方說明 */
   latestWithin?: number;
   world: number | null;
+  /** 10 年前的數值（App 的 CHANGE_YEARS），有的話多一欄「比 2013 年」 */
+  previous?: { year: number; values: Map<string, number> } | null;
   /** null：不隨時間變化的資料（例如海拔），標題不寫年份 */
   year: number | null;
   /** 指標的 timeAxis 改寫的年份（「1996 年出生」）：標題寫成「男性平均身高（1996 年出生）」，不寫「1996 年」 */
@@ -34,7 +36,8 @@ const REGIONS: Region[] = ['AS', 'EU', 'AF', 'NA', 'SA', 'OC'];
 
 /** 地圖的表格版：每個數值都能不靠 hover 讀到，也能用鍵盤操作 */
 export function RankingTable(props: RankingTableProps) {
-  const { indicator, title, values, valueYears, latestWithin, world, year, yearText, countries, selected, onSelect, icon: Icon } = props;
+  const { indicator, title, values, valueYears, latestWithin, world, previous, year, yearText, countries, selected, onSelect, icon: Icon } =
+    props;
   const t = useT();
   const lang = useLang();
   // 類別圖沒有大小之分：依圖例的類別順序排，同一類（「其他」裡同一種）再依國名排，數值欄放色塊與類別名稱
@@ -87,6 +90,32 @@ export function RankingTable(props: RankingTableProps) {
   const showShare = indicator.shareOfWorld && world != null && world > 0;
   // 年份零散的指標有國家用之前的年份時，資料年份另成一欄（寫在數值旁會擠短那一列的長條，跟其他列比不準）
   const showYears = latestWithin !== undefined && (valueYears?.size ?? 0) > 0;
+  // 比 10 年前：總量（比例圓）寫增減的百分比，比率寫差多少（單位是 % 的寫「個百分點」，不會跟百分比混淆）；
+  // 數值是年份的（rankingBars: false）、沒有名次的、類別不寫
+  const kind = indicator.layer.kind;
+  const showChange =
+    Boolean(previous?.values.size) && showRank && indicator.rankingBars !== false && (kind === 'choropleth' || kind === 'bubble');
+  const percentUnit = tr(indicator.unit, lang).includes('%');
+  const change = (iso3: string, value: number): ReactNode => {
+    const before = previous?.values.get(iso3);
+    if (before === undefined) return null;
+    const diff = kind === 'bubble' ? (before > 0 ? ((value - before) / before) * 100 : null) : value - before;
+    if (diff === null) return null;
+    const size = Math.abs(diff);
+    const text =
+      kind === 'bubble'
+        ? formatPercent(size, size < 10 ? 1 : 0)
+        : percentUnit
+          ? t.changePoints(fixed(size, 1))
+          : indicator.format(size, year ?? undefined);
+    if (Number(text.replace(/[^\d.]/g, '')) === 0) return <span className="change is-flat">0</span>;
+    return (
+      <span className="change">
+        <span aria-hidden="true">{diff > 0 ? '▲' : '▼'}</span>
+        <span className="visually-hidden">{diff > 0 ? t.increase : t.decrease}</span> {text}
+      </span>
+    );
+  };
 
   // 從搜尋選到的國家可能在表格很下面，捲過去
   const tableRef = useRef<HTMLTableElement>(null);
@@ -125,11 +154,14 @@ export function RankingTable(props: RankingTableProps) {
         <thead>
           <tr>
             {showRank && <th scope="col" className="num rank-col">{t.rankCol}</th>}
-            <th scope="col">{t.countryCol}</th>
+            <th scope="col" className="name-col">
+              {t.countryCol}
+            </th>
             <th scope="col" className="num">
               {title}
             </th>
             {showShare && <th scope="col" className="num">{t.shareCol}</th>}
+            {showChange && <th scope="col" className="num change-col">{t.changeCol(previous!.year)}</th>}
             {showYears && <th scope="col" className="num year-col">{t.dataYearCol}</th>}
           </tr>
         </thead>
@@ -137,7 +169,7 @@ export function RankingTable(props: RankingTableProps) {
           {shown.map(({ row: [iso3, value], rank }) => (
             <tr key={iso3} className={iso3 === selected ? 'is-selected' : undefined}>
               {showRank && <td className="num">{rank}</td>}
-              <td>
+              <td className="name-col">
                 <button type="button" className="row-link" onClick={() => onSelect(iso3)}>
                   {Icon && <Icon iso3={iso3} />}
                   {countryName(iso3, countries)}
@@ -160,6 +192,7 @@ export function RankingTable(props: RankingTableProps) {
                 </div>
               </td>
               {showShare && <td className="num">{formatPercent((value / world!) * 100, 2)}</td>}
+              {showChange && <td className="num change-col">{change(iso3, value)}</td>}
               {showYears && <td className="num year-col value-year">{valueYears?.get(iso3) ?? ''}</td>}
             </tr>
           ))}

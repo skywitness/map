@@ -215,6 +215,10 @@ export const zh = {
   countryCol: '國家/地區',
   shareCol: '占全球',
   dataYearCol: '資料年份',
+  changeCol: (year: number) => `比 ${year} 年`,
+  changePoints: (x: string) => `${x} 個百分點`,
+  increase: '增加',
+  decrease: '減少',
 
   // 圖表
   chartTotal: '合計',
