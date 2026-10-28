@@ -1066,8 +1066,11 @@ export function WorldMap(props: WorldMapProps) {
       setHoverId(iso3);
       map.getCanvas().style.cursor = iso3 || point || mark !== null ? 'pointer' : '';
       const airport = f?.layer.id.startsWith('airports') ? Number(f.properties.i) : undefined;
-      // 主題有 pointer（地球的另一邊）：海上也有 tooltip；滑到點、機場、標記時照舊
-      const anywhere = latest.current.pointer && !point && airport === undefined && mark === null;
+      // 主題有 pointer（地球的另一邊）：海上也有 tooltip；滑到點、機場、標記時照舊。
+      // 地球儀外面（太空）MapLibre 也會給一個經緯度（地球邊緣上的點），投影回畫面跟游標差很遠，那裡不算
+      const back = map.project(e.lngLat);
+      const onEarth = Math.hypot(back.x - e.point.x, back.y - e.point.y) < 4;
+      const anywhere = latest.current.pointer && onEarth && !point && airport === undefined && mark === null;
       const { lng, lat } = e.lngLat.wrap();
       setHover(
         mark !== null
