@@ -14,7 +14,7 @@ export interface TopicGroupSpec {
  * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'inequality', 'gender', 'crime', 'happiness', 'nobel', 'olympics'] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'tourism', 'passport', 'military', 'conflict', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ev'] },
@@ -43,6 +43,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   inequality: () => import('./inequality'),
   gender: () => import('./gender'),
   crime: () => import('./crime'),
+  laws: () => import('./laws'),
   happiness: () => import('./happiness'),
   nobel: () => import('./nobel'),
   olympics: () => import('./olympics'),
