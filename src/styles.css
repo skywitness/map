@@ -3335,6 +3335,10 @@ kbd {
 
 .time-track input[type='range'] {
   /* 整條 28px 高都能點、能拖；視覺上的軌道只有 4px，畫在 runnable-track 上 */
+  /* 推估的年份（--projection-pct 之後）畫成虛線，跟側欄折線圖的推估一樣（原本只是淺一點的灰，看不太出來） */
+  --projection-track:
+    linear-gradient(to right, var(--axis) 0 var(--projection-pct), transparent var(--projection-pct)),
+    repeating-linear-gradient(to right, var(--axis) 0 5px, transparent 5px 9px);
   display: block;
   width: 100%;
   height: 28px;
@@ -3355,21 +3359,13 @@ kbd {
 .time-track input[type='range']::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    var(--axis) 0 var(--projection-pct),
-    var(--grid) var(--projection-pct) 100%
-  );
+  background: var(--projection-track);
 }
 
 .time-track input[type='range']::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    var(--axis) 0 var(--projection-pct),
-    var(--grid) var(--projection-pct) 100%
-  );
+  background: var(--projection-track);
 }
 
 .time-track input[type='range']::-webkit-slider-thumb {

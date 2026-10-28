@@ -193,6 +193,17 @@ const TINY_KM2 = 6000;
  * 南韓（10 萬）、葡萄牙、匈牙利也算；放大到 5 級以後國家本身夠大，圓圈淡出
  */
 const SELECTED_MARK_KM2 = 120_000;
+
+/**
+ * 選取小國家的圓圈半徑（px）：圈住國名。底圖的國名差不多在同一個位置，原本固定 11px 的圓圈壓在字上
+ * （「台灣」約 26px 寬）。中日文的字約 13px、拉丁字母約 7px 寬，最少 11、最多 22px（英文的長國名不讓圓圈太大，
+ * 小國在全球視角多半沒有國名，太大的圓圈會壓到旁邊國家的國名）
+ */
+function markRadius(name: string): number {
+  let width = 0;
+  for (const ch of name) width += /[\u3000-\u9fff\uff00-\uffef]/.test(ch) ? 13 : 7;
+  return Math.max(11, Math.min(22, width / 2 + 6));
+}
 /**
  * 1:50m 國界沒有形狀的國家（DESIGN.md 第 8 節第 8 點），用首府的位置畫小國圓點，也當比例圓、弧線的位置；
  * 否則吐瓦魯（台灣的邦交國）在地圖上完全看不到
@@ -534,7 +545,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       source: 'selected-mark',
       maxzoom: 5.5,
       paint: {
-        'circle-radius': 11,
+        'circle-radius': ['get', 'r'],
         'circle-opacity': 0,
         'circle-stroke-color': dark ? '#0b0b0b' : '#ffffff',
         'circle-stroke-width': 5,
@@ -547,7 +558,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       source: 'selected-mark',
       maxzoom: 5.5,
       paint: {
-        'circle-radius': 11,
+        'circle-radius': ['get', 'r'],
         'circle-opacity': 0,
         'circle-stroke-color': ink,
         'circle-stroke-width': 2,
@@ -1860,10 +1871,6 @@ export function WorldMap(props: WorldMapProps) {
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
     selectedRef.current = selected;
-    const mark = selected && markedCountries.has(selected) ? anchors.get(selected) : undefined;
-    (map.getSource('selected-mark') as GeoJSONSource).setData(
-      mark ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: mark } } : EMPTY,
-    );
     if (fitOnSelect && selected) {
       const bounds = countryBounds.get(selected);
       // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
@@ -1880,6 +1887,17 @@ export function WorldMap(props: WorldMapProps) {
     if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
     // 投影不放進依賴：切換投影、進出 3D 時不要重跑，否則這裡的 easeTo 會打斷傾斜的動畫
   }, [revision, selected, anchors, fitOnSelect, countryBounds, markedCountries]);
+
+  // 選取的小國家畫一個圓圈，大小圈住國名（markRadius）；換語言時國名的長度不同，所以另一個 effect
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const mark = selected && markedCountries.has(selected) ? anchors.get(selected) : undefined;
+    const r = selected ? markRadius(countryName(selected, countryTable, lang)) : 0;
+    (map.getSource('selected-mark') as GeoJSONSource).setData(
+      mark ? { type: 'Feature', properties: { r }, geometry: { type: 'Point', coordinates: mark } } : EMPTY,
+    );
+  }, [revision, selected, anchors, markedCountries, countryTable, lang]);
 
   // 從搜尋選到國家：一定飛過去並框住整個國家，扣掉手機抽屜蓋住的部分
   useEffect(() => {
