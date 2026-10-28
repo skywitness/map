@@ -819,6 +819,7 @@ export function App() {
             year={year}
             projectionFrom={data?.projectionFrom}
             projectionLabel={indicator.projectionLabel}
+            estimatesBefore={data?.estimatesBefore}
             axis={indicator.timeAxis}
             onChange={setYear}
             onPlayingChange={setPlaying}

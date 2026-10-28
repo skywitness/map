@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
+import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 import type { TopicDefinition } from './types';
 
 const perThousand = (v: number) => `${fixed(v, v < 10 ? 1 : 0)}‰`;
@@ -46,6 +47,7 @@ export const health: TopicDefinition = {
       url: 'https://www.imf.org/external/datamapper/',
       license: { zh: '註明出處', en: 'Attribution' },
     },
+    LONG_RUN_SOURCE,
   ],
   note: {
     zh: '平均壽命與嬰幼兒死亡率是聯合國用同一套方法估計的，可能跟各國官方統計不同。台灣改用內政部的簡易生命表（1992 年起），聯合國對台灣嬰幼兒死亡率的估計低了不少，例如 2023 年的嬰兒死亡率聯合國估 3.0‰，內政部是 4.3‰。醫療支出、醫師、護理人員與病床數的台灣資料來自衛生福利部；台灣的家庭自付含營養保健食品與民俗療法，範圍比多數國家寬。',
@@ -202,6 +204,20 @@ export const health: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 3, 4, 6, 8] } },
       format: (v) => tr({ zh: `${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 1,000` }),
       formatTick: perThousandTick,
+      compareWorld: true,
+    },
+    {
+      id: 'life-expectancy-1800',
+      label: { zh: '平均壽命（1800 年起）', en: 'Life expectancy (since 1800)' },
+      description: {
+        zh: `1800–2023 年出生時的平均餘命。1950 年起主要是 IHME 全球疾病負擔研究的估計，跟上面聯合國 WPP 的指標略有不同。戰爭、饑荒、疫情的年份會突然下降。${LONG_RUN_CAVEAT.zh}`,
+        en: `Life expectancy at birth 1800–2023. From 1950 mostly IHME Global Burden of Disease estimates, which differ slightly from the UN WPP indicator above. Wars, famines and epidemics show as sudden drops. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: YEARS,
+      file: 'life-expectancy-1800.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70, 80] } },
+      format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
+      formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },
   ],
