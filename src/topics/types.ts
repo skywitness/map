@@ -200,6 +200,23 @@ export interface IndicatorDef {
    * 值是算出來的、每個國家都有算，null 有固定意思的指標用：日食路徑的「下一次日全食」null 是「到 2100 年都沒有」
    */
   missing?: Text;
+  /**
+   * 數值在瀏覽器裡算（時刻主題，TopicDefinition.clock）：file 是算的材料（例如各國首都的經緯度與時區），
+   * values(材料, 時刻) 回傳指標檔的格式（IndicatorData，years 只有一個：at.day）。per 是數值跟著什麼變：
+   * 'minute' 每一刻都不同（此刻的太陽高度：標題寫到分鐘）、'day' 只跟日期有關（白天長度：標題寫日期）、
+   * 'fixed' 不隨時刻變（一年中白天最長與最短的差：標題不寫日期，跟 timeless 一樣）。
+   * App 與側欄經過 lib/derive.ts 的 derivedData()，同一個指標、同一個時刻回傳同一個物件（有快取）。
+   */
+  derive?: { per: 'minute' | 'day' | 'fixed'; values: (source: unknown, at: ClockAt) => IndicatorData };
+}
+
+/**
+ * 時刻主題的「現在選的這一刻」：time 是 UTC 毫秒，day 是那一刻在使用者的時區是哪一天（YYYYMMDD 的整數，
+ * 例如 20260621）。時刻主題的 year 一律是 day（指標檔的 years、側欄、排名表拿到的年份）。
+ */
+export interface ClockAt {
+  time: number;
+  day: number;
 }
 
 /** 指標的網格圖層。文字沒寫的用人口密度 1 km 網格的預設（src/map/densityGrid.ts 的 GRID_TEXT） */
@@ -294,7 +311,28 @@ export function resolveItem(
  * - 鐵路、機場（交通主題）有自己的資料格式與樣式
  * - 一般的點（PointsOverlayDef，例如地震、火山、駐外館處）與線（LinesOverlayDef，例如板塊邊界），樣式寫在主題裡
  */
-export type OverlayDef = { id: 'railways' | 'airports'; kind?: undefined; file: string } | PointsOverlayDef | LinesOverlayDef;
+export type OverlayDef =
+  | { id: 'railways' | 'airports'; kind?: undefined; file: string }
+  | PointsOverlayDef
+  | LinesOverlayDef
+  | NightOverlayDef;
+
+/**
+ * 晝夜（時刻主題）：依目前的時刻畫出地球的夜半邊與晨昏蒙影（民用、航海、天文曙暮光一層一層變暗），
+ * 加上太陽直射點。不讀資料檔，位置用 lib/solar.ts 算；地圖上是 WebGL 的自訂圖層（src/map/nightLayer.ts），
+ * 地球儀的兩極、180° 經線都是同一張網格，沒有接縫。
+ */
+export interface NightOverlayDef {
+  kind: 'night';
+  id: string;
+  label: Text;
+  /** 太陽直射點在圖例上的名稱 */
+  sunLabel: Text;
+  hidden?: boolean;
+  /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
+  indicators?: string[];
+  items?: string[];
+}
 
 /** 一般疊加圖層共用的欄位 */
 interface OverlayBase {
@@ -466,6 +504,11 @@ export interface LinesOverlayDef extends OverlayBase {
    */
   casing?: boolean;
   /**
+   * 沿著線寫的文字（例如「北回歸線」）：回傳那條線要寫的字（空字串不寫），每隔一段距離重複一次，
+   * 放大到哪裡都看得到。顏色跟線一樣、加一圈底圖色的光暈；字型用底圖的地名字型
+   */
+  lineLabel?: (p: PointRecord) => string;
+  /**
    * 滑到線上時的 tooltip（要有 LinesData.records）：p 是那條線的紀錄。有 tooltip 的線可以 hover，
    * 滑過時整條線（紀錄完全相同的所有段，例如同一條電纜的各段）加粗標出。
    */
@@ -561,6 +604,8 @@ export interface PanelExtraProps {
   focusBox?: (box: [number, number, number, number]) => void;
   /** 把時間軸換到這一年（側欄點某一次日食：換到那一年、標出路徑、移過去，2026-10-28 起） */
   selectYear?: (year: number) => void;
+  /** 時刻主題（TopicDefinition.clock）目前選的這一刻 */
+  at?: ClockAt;
 }
 
 export interface TopicDefinition {
@@ -602,6 +647,18 @@ export interface TopicDefinition {
   terrain?: boolean;
   /** 資料不隨時間變化（例如海拔）：不顯示時間軸，tooltip、側欄、標題也不寫年份 */
   timeless?: boolean;
+  /**
+   * 時刻主題（晝夜與季節）：時間不是年份，是某一刻（日期加時間）。控制列下面換成時刻的控制
+   * （controls/MomentControl.tsx：日期、一天裡的時間、「現在」、播放一天或一年），網址是 time=2026-06-21T0400Z，
+   * 沒有 time 時是現在（每分鐘更新）。指標的值用 derive 在瀏覽器裡算，year 是那一刻的日期（ClockAt.day）
+   */
+  clock?: boolean;
+  /**
+   * tooltip 在數值與國名下面另外加的幾行（一個字串一行，跟 hints 一樣是 .tt-hint）：滑過時才算，
+   * 例如晝夜與季節的「以首都台北計算：日出 05:05、日落 18:46」。at 是時刻主題目前的這一刻，其他主題是 null；
+   * source 是目前指標的資料檔（在瀏覽器裡算的指標是算的材料，例如各國首都的經緯度）
+   */
+  tooltipLines?: (iso3: string, ctx: { indicator: string; at: ClockAt | null; item: string | null; source: unknown }) => string[];
   /**
    * 某些國家沒有值的原因，取代 tooltip 與側欄的「無資料」（key 是 ISO alpha-3）：
    * 例如台灣的外交主題裡台灣是觀點、中國大陸與香港由陸委會主管，寫「無資料」會誤導
@@ -654,6 +711,7 @@ export type Topic = Localized<TopicDefinition>;
 export type Indicator = Localized<IndicatorDef>;
 export type PointsOverlay = Localized<PointsOverlayDef>;
 export type LinesOverlay = Localized<LinesOverlayDef>;
+export type NightOverlay = Localized<NightOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,

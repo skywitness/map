@@ -60,6 +60,7 @@ import {
   type OverlayLayer,
 } from './Overlays';
 import { applyTimeFilters, highlightLine, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
@@ -111,6 +112,8 @@ interface WorldMapProps {
   overlays?: OverlayLayer[];
   /** 目前的年份：有年份欄位的疊加點依它與指標的 overlayTime 篩選 */
   year?: number;
+  /** 時刻主題的這一刻（UTC 毫秒）：晝夜圖層（kind 'night'）依它畫夜半邊與太陽直射點；其他主題是 null */
+  time?: number | null;
   /** 滑到一般點圖層的點上時的 tooltip（overlay 的 id、資料的第幾筆） */
   renderPointTooltip?: (overlay: string, index: number) => ReactNode;
   /** 主題自訂的地點（TopicDefinition.places）：跟沒有形狀的國家一樣畫小圓點與比例圓 */
@@ -650,7 +653,7 @@ export function WorldMap(props: WorldMapProps) {
   langRef.current = lang;
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
-  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES } = props;
+  const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES, time = null } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
@@ -1504,6 +1507,14 @@ export function WorldMap(props: WorldMapProps) {
     if (shown) highlightLine(map, null, shown);
     lineHoverRef.current = shown;
   }, [revision, overlays, year, indicator.overlayTime]);
+
+  /* ── 晝夜（時刻主題，nightLayer.ts）：換時刻只換太陽的方向與直射點，換底圖後重新加上 ── */
+  const night = overlays.find((o) => o.kind === 'night');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
+  }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
 
   /* ── 主題側欄要標出的一組線（例如滑到某條河）：跟滑鼠滑過共用同一層 ── */
   useEffect(() => {

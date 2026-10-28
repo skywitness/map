@@ -539,6 +539,18 @@ function drawSwatch(ctx: CanvasRenderingContext2D, swatch: OverlaySwatch, x: num
     }
     return 18;
   }
+  if (shape === 'fill') {
+    // 晝夜的色塊：淺色底加上夜色（跟畫面上的圖例一樣）
+    ctx.fillStyle = swatch.base ?? '#ece6d6';
+    roundRect(ctx, x + 2, cy - 5, 14, 10, 2);
+    ctx.fill();
+    ctx.globalAlpha = swatch.opacity ?? 1;
+    ctx.fillStyle = color;
+    roundRect(ctx, x + 2, cy - 5, 14, 10, 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    return 18;
+  }
   if (shape === 'shade') {
     const shade = ctx.createLinearGradient(x + 2, cy - 5, x + 16, cy + 5);
     shade.addColorStop(0, SHADE_KEY[0]);

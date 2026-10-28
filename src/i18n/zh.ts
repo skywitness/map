@@ -100,6 +100,25 @@ export const zh = {
   yearValue: (year: number, projected: boolean) => `${year} 年${projected ? '（推估值）' : ''}`,
   projectionFrom: (year: number) => `${year} 起為推估`,
 
+  // 時刻的控制（時刻主題：晝夜與季節，MomentControl.tsx）
+  playDay: '播放一天（晝夜界線跟著時間移動）',
+  playYear: '播放一年（四季的變化）',
+  momentMode: '拉桿與播放的範圍',
+  modeDay: '一天',
+  modeYear: '一年',
+  modeDayTitle: '拉桿是這一天的時間',
+  modeYearTitle: '拉桿是一年裡的日期（時間不變）',
+  timeOfDay: '時間',
+  dayOfYear: '日期',
+  hourTick: (h: number) => `${h} 時`,
+  marchEquinox: '春分',
+  juneSolstice: '夏至',
+  septemberEquinox: '秋分',
+  decemberSolstice: '冬至',
+  pickDate: '選擇日期',
+  now: '現在',
+  nowTitle: '回到現在（每分鐘更新）',
+
   // 地圖控制
   mapControls: '地圖控制',
   zoomIn: '放大',

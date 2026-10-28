@@ -8,11 +8,14 @@ import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
 import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
+import { MomentControl } from './controls/MomentControl';
 import { localize, LOCALES, useLang, useT, type Lang } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import type { TopicTarget } from './lib/topicSearch';
+import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMoment, formatTimeParam } from './lib/clock';
 import { indicatorCsv } from './lib/csv';
+import { derivedData } from './lib/derive';
 import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
@@ -63,6 +66,7 @@ import {
   usesDimension,
   yearBin,
   type AirportsData,
+  type ClockAt,
   type Indicator,
   type IndicatorData,
   type LinesData,
@@ -164,7 +168,20 @@ export function App() {
 
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
-  const { data, loading, error } = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
+  const source = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
+  const { loading, error } = source;
+
+  // 時刻主題（晝夜與季節）：這一刻是網址的 time、播放中的那一格，或現在（每分鐘更新）
+  const clock = Boolean(topic.clock) && !pure;
+  const now = useNow(clock && state.time === null);
+  const [playTime, setPlayTime] = useState<number | null>(null);
+  useEffect(() => setPlayTime(null), [topic.id]);
+  const shownTime = playTime ?? state.time ?? now;
+  const at = useMemo<ClockAt | null>(() => (clock ? clockAt(shownTime) : null), [clock, shownTime]);
+  // 在瀏覽器裡算的指標（IndicatorDef.derive）：材料是資料檔，依這一刻算出各國的值；其他指標原樣
+  // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔
+  const sourceData = indicator.derive && source.loading ? null : source.data;
+  const data = useMemo(() => derivedData(indicator, sourceData, at), [indicator, sourceData, at]);
   // 沒自己選過底圖時跟著介面深淺色換（深色用深藍）；選過的照舊，切換深淺色也不變
   const [basemapId, setBasemapId] = useState(readStoredBasemap);
   const basemap = getBasemap(basemapId ?? defaultBasemap(tokens.mode === 'dark'));
@@ -192,8 +209,9 @@ export function App() {
   // 指標可以有自己的預設年份（平均身高：出生年的指標預設 1996、19 歲的身高預設 2019）
   const defaultYear = indicator.defaultYear ?? topic.defaultYear;
   const years = data?.years ?? [defaultYear];
-  const year = pickYear(years, state.year, defaultYear, yearBin(indicator));
-  const yearIndex = data ? data.years.indexOf(year) : -1;
+  // 時刻主題的「年份」是那一刻的日期（YYYYMMDD），算出來的資料只有這一筆
+  const year = at ? at.day : pickYear(years, state.year, defaultYear, yearBin(indicator));
+  const yearIndex = data ? (at ? 0 : data.years.indexOf(year)) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
   const { values, years: valueYears } = useMemo(
     () => (data && !pure ? latestAt(data, yearIndex) : { values: new Map<string, number>(), years: new Map<string, number>() }),
@@ -258,7 +276,14 @@ export function App() {
   };
   // 搜尋框裡選到主題、指標或子項目（「房價」「鋰」）：換過去，選取的國家留著
   const selectTopic = (target: TopicTarget) =>
-    update({ topic: target.topic, indicator: target.indicator, item: target.item, grid: null });
+    update({
+      topic: target.topic,
+      indicator: target.indicator,
+      item: target.item,
+      grid: null,
+      // 時刻主題選的那一刻只留在同一個主題
+      ...(target.topic !== topic.id ? { time: null } : {}),
+    });
   useHotkeys({
     Escape: () => {
       if (state.country) selectCountry(null);
@@ -297,10 +322,16 @@ export function App() {
   const mapHandle = useRef<WorldMapHandle>(null);
   // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
-  // 不隨時間變化的資料（海拔）：標題、檔名、tooltip、排名表都不寫年份，也沒有時間軸
-  const timeless = Boolean(topic.timeless);
-  // 指標的 timeAxis 改寫了年份的意思（「1996 年出生」）：標題、tooltip、排名表用它
-  const yearText = indicator.timeAxis?.year(year);
+  // 不隨時間變化的資料（海拔），或時刻主題裡不隨時刻變的指標（晝長年較差）：標題、檔名、tooltip、排名表都不寫年份
+  const per = at ? indicator.derive?.per : undefined;
+  const timeless = Boolean(topic.timeless) || per === 'fixed';
+  // 指標的 timeAxis 改寫了年份的意思（「1996 年出生」）：標題、tooltip、排名表用它；
+  // 時刻主題寫那一刻（「6月21日 14:05」），只跟日期有關的指標只寫日期
+  const yearText =
+    at && per !== 'fixed' ? (per === 'minute' ? formatMoment(at.time) : formatDay(at.day)) : indicator.timeAxis?.year(year);
+  // 檔名、CSV 欄名裡的時間：時刻主題寫 2026-06-21（跟著時刻變的指標加上時間），其他是年份
+  const whenLabel = at ? `${dateInputValue(at.time)}${per === 'minute' ? ` ${formatClock(at.time)}` : ''}` : String(year);
+  const fileWhen = at ? (per === 'minute' ? formatTimeParam(at.time) : dateInputValue(at.time)) : String(year);
   const viewTitle = pure
     ? topic.title
     : `${topic.title} · ${flowTitle}${timeless ? '' : ` · ${yearText ?? t.yearValue(year, projected)}`}`;
@@ -322,7 +353,7 @@ export function App() {
       subtitle: pure ? undefined : grid ? G.subtitle : indicatorText,
       credits,
     });
-    downloadBlob(blob, `${fileBase}${pure || timeless ? '' : `_${year}`}.png`);
+    downloadBlob(blob, `${fileBase}${pure || timeless ? '' : `_${fileWhen}`}.png`);
   };
 
   const downloadCsv = (single: boolean) => {
@@ -333,8 +364,10 @@ export function App() {
       year: single ? year : undefined,
       label: indicator.layer.kind === 'categorical' ? indicator.format : undefined,
       ascending: indicator.lowerIsBetter,
+      // 時刻主題的欄名寫日期（或日期加時間），不寫 YYYYMMDD 的整數
+      yearLabel: at ? () => whenLabel : undefined,
     });
-    const range = single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
+    const range = at ? fileWhen : single ? year : `${data.years[0]}-${data.years[data.years.length - 1]}`;
     downloadBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), `${fileBase}${timeless ? '' : `_${range}`}.csv`);
   };
 
@@ -358,7 +391,7 @@ export function App() {
   // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    if (!o) return null;
+    if (!o || o.kind === 'night') return null;
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;
@@ -426,6 +459,12 @@ export function App() {
         </div>
         {series && <Sparkline years={data!.years} series={series} year={valueYear ?? year} projectionFrom={data!.projectionFrom} />}
         {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
+        {/* 主題自己加的幾行（晝夜與季節：以首都計算的日出、日落），滑過時才算 */}
+        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: sourceData }).map((line, i) => (
+          <div key={i} className={`tt-label tt-hint${i > 0 ? ' is-next' : ''}`}>
+            {line}
+          </div>
+        ))}
       </>
     );
   };
@@ -441,7 +480,7 @@ export function App() {
         )}
         <TopicNav
           current={topic}
-          onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null })}
+          onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null, time: null })}
           onSelectTarget={selectTopic}
         />
         <LangSwitch />
@@ -563,7 +602,7 @@ export function App() {
             onDownloadImage={view === 'map' ? downloadImage : undefined}
             csv={
               data && !pure
-                ? { year: timeless ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                ? { year: timeless || at ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
                 : undefined
             }
           />
@@ -575,10 +614,10 @@ export function App() {
         <div className="stage-main">
           {error && <p className="error">{t.loadFailed(error.message)}</p>}
           {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
-          {view === 'map' && !pure && !timeless && (
-            // 有框選結果時它在左上角（或右上角），年份改放中間
-            <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}`} aria-hidden="true">
-              {yearText ?? year}
+          {view === 'map' && !pure && (!timeless || at) && (
+            // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
+            <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
+              {at ? formatMoment(at.time) : (yearText ?? year)}
               {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
             </div>
           )}
@@ -626,6 +665,7 @@ export function App() {
                 renderAirportTooltip={renderAirportTooltip}
                 overlays={overlays}
                 year={year}
+                time={at?.time ?? null}
                 renderPointTooltip={renderPointTooltip}
                 flows={flows}
                 flags={flagSpecs}
@@ -690,23 +730,36 @@ export function App() {
                 onCompareChange={(list) => update({ compare: list })}
                 highlightLine={highlightLine}
                 focusBox={moveToBox}
-                selectYear={timeless ? undefined : setYear}
+                selectYear={timeless || at ? undefined : setYear}
+                at={at}
               />
             </Suspense>
           </PanelSheet>
         )}
       </main>
 
-      {!pure && !timeless && (
-        <TimeSlider
-          years={years}
-          year={year}
-          projectionFrom={data?.projectionFrom}
-          projectionLabel={indicator.projectionLabel}
-          axis={indicator.timeAxis}
-          onChange={setYear}
+      {clock ? (
+        <MomentControl
+          time={shownTime}
+          live={state.time === null}
+          onChange={(ms) => update({ time: floorMinute(ms) })}
+          onPreview={setPlayTime}
+          onLive={() => update({ time: null })}
           onPlayingChange={setPlaying}
         />
+      ) : (
+        !pure &&
+        !timeless && (
+          <TimeSlider
+            years={years}
+            year={year}
+            projectionFrom={data?.projectionFrom}
+            projectionLabel={indicator.projectionLabel}
+            axis={indicator.timeAxis}
+            onChange={setYear}
+            onPlayingChange={setPlaying}
+          />
+        )
       )}
 
       <footer className="footer">
@@ -734,6 +787,37 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/**
+ * 現在（捨去到分鐘）：active 時每到整分鐘更新一次（時刻主題沒有指定時間時，晝夜界線跟著現在走）。
+ * 分頁在背景時不計時，回到分頁馬上更新。不寫網址
+ */
+function useNow(active: boolean): number {
+  const [now, setNow] = useState(() => floorMinute(Date.now()));
+  useEffect(() => {
+    if (!active) return;
+    let timer: number | undefined;
+    const tick = () => {
+      setNow(floorMinute(Date.now()));
+      window.clearTimeout(timer);
+      // 下一個整分鐘（多等 50 ms，確定已經過了）
+      timer = window.setTimeout(tick, 60_000 - (Date.now() % 60_000) + 50);
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        window.clearTimeout(timer);
+        timer = undefined;
+      } else tick();
+    };
+    if (!document.hidden) tick();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [active]);
+  return now;
 }
 
 /**
@@ -801,12 +885,13 @@ function useOverlays(
             o.kind !== undefined &&
             (!o.indicators || o.indicators.includes(indicator.id)) &&
             (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: overlayPath(topic, o, item) }]
+              ? [{ def: o, visible: overlayVisible(layers, o), path: o.kind === 'night' ? '' : overlayPath(topic, o, item) }]
               : [],
           ),
     [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],
   );
-  const wanted = useMemo(() => generic.filter((g) => g.visible).map((g) => g.path), [generic]);
+  // 晝夜（kind 'night'）沒有資料檔，依時刻畫
+  const wanted = useMemo(() => generic.filter((g) => g.visible && g.path).map((g) => g.path), [generic]);
   const raw = useJsonEach(wanted);
   // 線圖層放大後的分區（LinesOverlayDef.detail）：放大到 minZoom 以上時下載跟畫面重疊的分區，下載過的留著
   const tilePaths = useMemo(
@@ -823,6 +908,7 @@ function useOverlays(
   const result = useMemo<OverlayLayer[]>(
     () =>
       generic.map(({ def, visible, path }) => {
+        if (def.kind === 'night') return { kind: 'night', def, visible };
         const data = raw.get(path) ?? null;
         if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
         const index = (data as LinesData | null)?.detail;

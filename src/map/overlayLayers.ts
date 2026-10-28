@@ -4,14 +4,27 @@
  * 有 tooltip 的線另外兩層：看不見的寬線 `ov-<id>-hit` 給 hover 查詢（細線很難滑到），加粗的 `ov-<id>-hover` 標出滑到的那一條。
  * casing 的線在最下面多一層細邊 `ov-<id>-casing`。有 vertexTypes 的線（颱風）依每個頂點的代碼切成好幾段，各段分別上色。
  * 線寬可以依紀錄的欄位變化（河流依流量），hoverHalo 的線滑過時多一層光暈 `ov-<id>-hover-halo`，
- * minValue 依縮放篩選（縮小時只畫大河），fadeOut 放大後淡出。
+ * minValue 依縮放篩選（縮小時只畫大河），fadeOut 放大後淡出。lineLabel 的線另外一層沿線的文字 `ov-<id>-label`（北回歸線）。
  * fill 的線（日食的路徑環）是多邊形：最下面多一層半透明的面 `ov-<id>-fill`，滑過的那一組加深 `ov-<id>-hover-fill`。
+ * 晝夜（kind 'night'）不在這裡，見 nightLayer.ts。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
-import type { ExpressionSpecification, FilterSpecification, GeoJSONSource, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
+import type {
+  DataDrivenPropertyValueSpecification,
+  ExpressionSpecification,
+  FilterSpecification,
+  GeoJSONSource,
+  LayerSpecification,
+  Map as MaplibreMap,
+} from 'maplibre-gl';
 import { overlayEpoch, type IndicatorDef, type LinesOverlay, type PointsOverlay } from '../topics/types';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { OverlayLayer } from './Overlays';
+import { isNameLayer } from './style';
+
+/** 點、線疊加圖層（晝夜是另外的自訂圖層，nightLayer.ts） */
+type DataOverlay = Exclude<OverlayLayer, { kind: 'night' }>;
+const isData = (o: OverlayLayer): o is DataOverlay => o.kind !== 'night';
 
 export const OVERLAY_PREFIX = 'ov-';
 /** 點圖層插在框選範圍之前（疊在機場、比例圓、立體圖形上面），線圖層插在機場之前（在點的下面） */
@@ -32,6 +45,9 @@ const FILL_SUFFIX = '-fill';
 const HOVER_FILL_SUFFIX = '-hover-fill';
 const IS_POLYGON: FilterSpecification = ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]];
 const NOT_POLYGON: FilterSpecification = ['!', IS_POLYGON];
+const LABEL_SUFFIX = '-label';
+/** 沿線文字的字型：底圖地名的字型（每個底圖的字型名稱不同）；找不到時用 OpenFreeMap 的 Noto Sans */
+const DEFAULT_FONT = ['Noto Sans Regular'];
 /** 滑到線上時查詢的寬度（px），細線也滑得到 */
 const HIT_WIDTH = 9;
 /** 線的組別（紀錄相同的線是同一組，例如同一條電纜的各段）；沒有滑到任何線時的篩選值 */
@@ -173,7 +189,13 @@ function lineZoomed(def: Pick<LinesOverlay, 'widthZoom'>, w: ExpressionSpecifica
   return ['interpolate', ['linear'], ['zoom'], ...def.widthZoom.flatMap(([z, k]) => [z, ['*', k, w]])] as ExpressionSpecification;
 }
 
-function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
+/** 底圖地名圖層用的字型（沿線文字要用底圖有的字型，否則下載不到字形） */
+function labelFont(map: MaplibreMap): DataDrivenPropertyValueSpecification<string[]> {
+  const layer = map.getStyle().layers.find((l) => isNameLayer(l) && l.type === 'symbol' && l.layout?.['text-font']);
+  return (layer?.type === 'symbol' && layer.layout?.['text-font']) || DEFAULT_FONT;
+}
+
+function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyValueSpecification<string[]> = DEFAULT_FONT): LineSublayer[] {
   const id = OVERLAY_PREFIX + def.id;
   const classes = typeof def.color === 'string' ? [] : def.color.classes;
   const tone = (c: string) => (dark ? (ON_DARK[c] ?? c) : c);
@@ -248,6 +270,35 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
       timed: true,
     });
   }
+  if (def.lineLabel) {
+    // 沿著線寫的文字（北回歸線）：每隔一段重複一次，放大到哪裡都看得到；線的顏色加一圈底圖色的光暈
+    out.push({
+      layer: {
+        id: id + LABEL_SUFFIX,
+        type: 'symbol',
+        source: id,
+        filter: ['has', '_label'],
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 260,
+          'text-field': ['get', '_label'],
+          'text-font': font,
+          'text-size': 11.5,
+          'text-letter-spacing': 0.04,
+          'text-max-angle': 25,
+          'text-offset': [0, -0.75],
+        },
+        paint: {
+          'text-color': color,
+          'text-halo-color': dark ? '#0b0b0b' : '#ffffff',
+          'text-halo-width': 1.4,
+          'text-opacity': lineOpacity(def, 1),
+        },
+      },
+      base: null,
+      timed: true,
+    });
+  }
   // 沒有 tooltip 但有 groupField 的線（日食次數指標的累積中心線）：滑不到，但側欄可以標出一組（highlightLine），所以也要標示的那幾層
   if (def.tooltip || def.groupField) {
     // 看不見的寬線：queryRenderedFeatures 依線寬判斷有沒有滑到，跟不透明度無關
@@ -317,7 +368,7 @@ function lineLayers(def: LinesOverlay, dark: boolean): LineSublayer[] {
  * 點的 GeoJSON：只帶畫圖、篩選、hover 要用的欄位（i 是紀錄的索引，tooltip 用）。
  * 有 epochs 的圖層再加上那一期算出的欄位（例如城市那一期的人口）。
  */
-function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>, epoch: number | null): GeoJSON.FeatureCollection {
+function pointFeatures(o: Extract<DataOverlay, { kind: 'points' }>, epoch: number | null): GeoJSON.FeatureCollection {
   const { def, points } = o;
   if (!points) return EMPTY;
   const fields = new Set<string>(['iso3']);
@@ -344,7 +395,7 @@ function pointFeatures(o: Extract<OverlayLayer, { kind: 'points' }>, epoch: numb
   return { type: 'FeatureCollection', features };
 }
 
-function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.FeatureCollection {
+function lineFeatures(o: Extract<DataOverlay, { kind: 'lines' }>): GeoJSON.FeatureCollection {
   if (!o.lines) return EMPTY;
   const { lines, types, records, vertexTypes } = o.lines;
   const { timeField, groupField } = o.def;
@@ -359,6 +410,9 @@ function lineFeatures(o: Extract<OverlayLayer, { kind: 'lines' }>): GeoJSON.Feat
     const properties: Record<string, number | string> = { i };
     if (types) properties.type = types[i];
     const record = records?.[i];
+    // 沿線的文字（目前的語言；換語言時 syncOverlays 會重送）
+    const label = record && o.def.lineLabel ? o.def.lineLabel(record) : '';
+    if (label) properties._label = label;
     if (record) {
       const key = groupField ? String(record[groupField]) : JSON.stringify(record);
       let g = groups.get(key);
@@ -480,7 +534,7 @@ function allOf(parts: (FilterSpecification | null)[]): FilterSpecification | nul
 const lineValueFilters = new Map<string, FilterSpecification | null>();
 
 /** 每個疊加圖層上次送到地圖上的資料與那一期（同一份就不必再送一次）；換底圖後要清掉 */
-export type OverlayDataCache = Map<string, { data: unknown; epoch: number | null }>;
+export type OverlayDataCache = Map<string, { data: unknown; epoch: number | null; def: unknown }>;
 
 /**
  * 讓地圖上的疊加圖層跟 overlays 一致：加上缺的 source 與圖層、拿掉不要的、資料變了才重送、依開關顯示或隱藏。
@@ -494,7 +548,9 @@ export function syncOverlays(
   dark: boolean,
   year: number,
 ): string[] {
+  overlays = overlays.filter(isData);
   const wanted = new Set(overlays.map((o) => OVERLAY_PREFIX + o.def.id));
+  const font = labelFont(map);
   // 換主題後不要的疊加圖層
   for (const layer of map.getStyle().layers) {
     if (!layer.id.startsWith(OVERLAY_PREFIX)) continue;
@@ -508,7 +564,7 @@ export function syncOverlays(
     }
   }
   const before = (id: string) => (map.getLayer(id) ? id : undefined);
-  for (const o of overlays) {
+  for (const o of overlays as DataOverlay[]) {
     const id = OVERLAY_PREFIX + o.def.id;
     if (!map.getSource(id)) {
       map.addSource(id, { type: 'geojson', data: EMPTY });
@@ -519,23 +575,25 @@ export function syncOverlays(
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
         map.addLayer(pointLayer(o.def), before(POINTS_BEFORE));
       } else {
-        for (const { layer } of lineLayers(o.def, dark)) map.addLayer(layer, before(LINES_BEFORE));
+        for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, before(LINES_BEFORE));
       }
     }
     const data = o.kind === 'points' ? o.points : o.lines;
     const epoch = o.kind === 'points' ? overlayEpoch(o.def, year) : null;
     const prev = sent.get(id);
-    if (data && (prev?.data !== data || prev.epoch !== epoch)) {
+    // 有沿線文字的線換語言時（設定是另一個物件）也要重送，文字才會換
+    const relabel = o.kind === 'lines' && Boolean(o.def.lineLabel) && prev?.def !== o.def;
+    if (data && (prev?.data !== data || prev.epoch !== epoch || relabel)) {
       (map.getSource(id) as GeoJSONSource).setData(o.kind === 'points' ? pointFeatures(o, epoch) : lineFeatures(o));
-      sent.set(id, { data, epoch });
+      sent.set(id, { data, epoch, def: o.def });
     }
     const visibility = o.visible && data ? 'visible' : 'none';
-    for (const layerId of [id + FILL_SUFFIX, id + HOVER_FILL_SUFFIX, id + CASING_SUFFIX, id, `${id}-dash`, id + HIT_SUFFIX, id + HALO_SUFFIX, id + HOVER_SUFFIX]) {
+    for (const layerId of [id + FILL_SUFFIX, id + HOVER_FILL_SUFFIX, id + CASING_SUFFIX, id, `${id}-dash`, id + LABEL_SUFFIX, id + HIT_SUFFIX, id + HALO_SUFFIX, id + HOVER_SUFFIX]) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
   }
-  const visibleIds = (kind: OverlayLayer['kind'], suffix = '') =>
-    overlays
+  const visibleIds = (kind: DataOverlay['kind'], suffix = '') =>
+    (overlays as DataOverlay[])
       .filter((o) => o.kind === kind && (kind === 'points' || o.def.tooltip))
       .map((o) => OVERLAY_PREFIX + o.def.id + suffix)
       .reverse();
@@ -544,7 +602,7 @@ export function syncOverlays(
 
 /** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併 */
 export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], year: number, mode: IndicatorDef['overlayTime']) {
-  for (const o of overlays) {
+  for (const o of overlays.filter(isData)) {
     const id = OVERLAY_PREFIX + o.def.id;
     if (o.kind === 'points') {
       if (!o.def.timeField && !o.def.minValue) continue;
