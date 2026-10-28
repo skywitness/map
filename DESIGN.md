@@ -30,7 +30,7 @@
 ## 2. 架構
 
 ```
-原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Wikimedia Commons（國旗的 SVG）、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA Solar Calculator 的公式（晝夜與季節）、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、Natural Earth populated places、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ，專屬經濟海域與 IHO 海域）、WWF HydroSHEDS（HydroRIVERS）、NASA 日食網站（Fred Espenak 的五千年日食目錄與貝塞爾根數）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、Speedtest by Ookla（AWS Open Data）、數位發展部的 5G 量測、GitHub Innovation Graph、維基百科…）
+原始資料（UN、IMF、World Bank、Eurostat、OECD、Ember、FAOSTAT、Harvard Atlas、主計總處、JRC GHSL、OpenStreetMap（含連鎖品牌與便利商店）、各連鎖品牌公布的店數、Epoch AI、Anthropic、Microsoft、Our World in Data、CEPII BACI、USGS GMTED2010、Wikidata、Wikimedia Commons（國旗的 SVG）、Unicode CLDR、Glottolog、UNHCR、Pew、WID、ILO、Penn World Table、CRU TS、WHO、WashU ACAG、FAO AQUASTAT／FRA、IEA、環境部、水利署、林保署、公路局、、USGS 地震目錄、NOAA NCEI、Smithsonian GVP、V-Dem、Nobel Prize API、外交部、領事事務局、國發會、警政署、法務部、BJS（美國司法統計局）、加拿大統計局、澳洲統計局（ABS）、日本法務省、國健署、World Happiness Report、Passport Index、UCDP、Erik Voeten（聯合國大會投票）、各國際組織官網、TeleGeography、USGS Mineral Commodity Summaries、World Bank/IMF QEDS、WFE（世界銀行轉載）、金管會證期局、財政部貿易統計、交通部統計查詢網、IANA tz、NOAA Solar Calculator 的公式（晝夜與季節）、NOAA IBTrACS、中央氣象署颱風資料庫、Global Energy Monitor、能源署、Global Solar Atlas、Global Wind Atlas、GWIS、UNESCO DataHub、GCAT、EOG VIIRS 夜間燈光（Zenodo 轉存）、Natural Earth 第一級行政區、Natural Earth populated places、BIS 住宅價格、內政部不動產資訊平台、GHSL Urban Centre Database、內政部戶政司、OECD PISA、臺灣 PISA 國家研究中心、UN World Marriage Data、UNdata（Demographic Yearbook）、OECD Family Database、WHO/UNICEF WUENIC、Our World in Data 的 COVID-19 資料、JHU CSSE、The Economist 超額死亡模型、疾管署、NCD-RisC（身高）、OECD Corporate Tax Statistics、OECD Tax Database、OECD Taxing Wages、OECD Consumption Tax Trends、財政部財政資訊中心、賦稅署、World Bank WGI、OECD DAC（DAC1、DAC2A）、AidData（中國的海外貸款）、UNCTAD Data Hub、NGA World Port Index、World Bank/IMF Global Shipping Traffic Density、各港口公布的貨櫃吞吐量、臺灣港務公司、Marine Regions（VLIZ，專屬經濟海域與 IHO 海域）、WWF HydroSHEDS（HydroRIVERS）、NASA 日食網站（Fred Espenak 的五千年日食目錄與貝塞爾根數）、FAO FishStat、漁業署、EDGAR（JRC）、CEDS（PNNL）、Speedtest by Ookla（AWS Open Data）、數位發展部的 5G 量測、GitHub Innovation Graph、維基百科…）
    │  pipeline/run.py  下載到 pipeline/.cache/，清理、對齊 ISO 代碼
    ▼
 public/data/                              ← 靜態 JSON，會進版本控制
@@ -565,6 +565,7 @@ pipeline/
 | 海洋與漁業 | 專屬經濟海域面積（比例圓，預設；海外領地各自計算，內陸國是 0）、海域是陸地的幾倍（面量圖）、捕撈漁業產量、養殖漁業產量（比例圓）、養殖占漁業產量（發散色，中性一級跨過 50%）、人均漁業產量；疊加圖層：專屬經濟海域的界線（Marine Regions 的界線性質：200 浬外緣、條約或判決、等距中線、共同管理區、未解決的畫虛線，滑過看兩邊與性質） | 捕撈與養殖的變化（堆疊面積）、主要的水產種類（FAO 的 ISSCAAP 物種組，捕撈與養殖各一個長條清單）、在哪些 FAO 漁區捕撈、專屬經濟海域的組成（夏威夷、阿拉斯加這類的部分）、依主權國欄位的合計與海外領地、跟其他國家重疊主張或共同管理的海域；台灣另列漁業署《漁業統計年報》各漁業種類的產量跟 FAO 對照 | Marine Regions Maritime Boundaries Geodatabase 第 12 版（VLIZ，CC BY 4.0）、FAO FishStat 全球捕撈與養殖產量（CC BY 4.0）、FAOSTAT 土地利用（陸地面積）、UN WPP 2024（人口）；台灣的對照數字用漁業署《漁業統計年報》 | 專屬經濟海域是第 12 版（2023）的單一快照；捕撈與養殖 1950–2024（漁業署的對照到 2025） |
 | 移民與難民 | 移民占人口比例、移民人數、僑民人數（比例圓）、每千人收容的難民、難民人數（依來源國）；流向圖：移民來源、僑民去向、難民（點選國家畫前 15 名的弧線） | 主要移民來源、主要僑民去向、收容的難民來自、難民逃往（長條清單） | UN DESA International Migrant Stock 2024、UNHCR、UN WPP 2024（人口）；台灣用 DESA（依國籍），附註對照移民署外僑居留人數、僑委會海外臺灣僑民人數 | 移民 1990–2020 每 5 年加 2024 年；難民 1990–2025 每年 |
 | 國際援助與僑匯 | ODA 占 GNI（援助國，預設；0.7% 以上是最深的兩級）、援助金額（援助國，比例圓）、流向：援助對象（點選援助國畫前 15 個受援國）、收到的援助（比例圓）、收到的援助占 GNI、每人收到的援助、流向：援助來源（點選受援國畫前 15 個援助國）、僑匯收入（比例圓）、僑匯收入占 GDP、僑匯支出（比例圓） | 援助國：主要援助對象與沒有分到特定國家的金額、雙邊與多邊的組成（給聯合國、歐盟、世界銀行、區域開發銀行等的核心捐款，在捐助國境內的難民支出）、ODA 占 GNI 跟 DAC 合計與 0.7% 目標比；受援國：主要援助來源（國家與多邊機構合在一起排）、收到的援助與僑匯收入的變化；其他國家：僑匯收入與支出的變化；台灣另列僑匯的組成（個人移轉、薪資的收入與支出） | OECD DAC 的 DAC1、DAC2A（OECD 的資料條款，可轉載、改作，要註明出處）；世界銀行 WDI 的個人匯款（CC BY 4.0）；台灣的僑匯用中央銀行國際收支、GDP 用主計總處 | ODA 1960–2025（2025 是初步數字，2018 年起是贈與等值）；受援國與流向 1960–2024；僑匯 1976–2025 |
+| 中國的海外貸款 | 累計承諾金額（比例圓，預設，2000 年到時間軸那一年，預設 2021）、當年承諾金額（比例圓）、累計承諾金額占 GDP、每人累計承諾金額；子項目：全部、貸款、贈款 | 用途（OECD 部門，跟著子項目與時間軸）、歷年的貸款／贈款／債務重整／類型不明（堆疊）、金額最大的 10 個項目（AidData 的英文原文名稱、年份、金額、部門、狀態）、連到「國際援助與僑匯」 | AidData Global Chinese Development Finance Dataset 3.0（ODC-By 1.0）；GDP 用人均收入主題、人口用人口主題 | 2000–2021（承諾年份） |
 | 宗教 | 主要宗教（類別圖，7 類）、主要宗教的人口比例、無宗教信仰比例、宗教多樣性指數（Pew RDI） | — | Pew Research Center Religious Composition 2010–2020（只發布摘錄，見第 8 節第 27 點）；台灣附註用內政部宗教統計 | 2010、2020 |
 | 貧富差距 | 吉尼係數、所得最高 10% 的份額、所得最低 50% 的份額、極端貧窮人口比例（每天 3 美元） | — | World Bank PIP（WDI）、World Inequality Database；台灣吉尼係數用主計總處家庭收支調查 | 吉尼係數與貧窮 1987–2025（各國 10 年內最近一次調查）；所得份額 1980–2024 |
 | 性別平等 | 性別不平等指數（GII）、女性勞動參與率、女性國會議員比例、性別薪資差距（OECD 約 45 國） | — | UNDP 人類發展報告、World Bank WDI（ILO、IPU）、OECD；台灣用主計總處（人力資源調查、薪資調查）、中選會、性平處 | GII 1990–2023；勞參率 1990–2025；國會 1997–2025；薪資差距 2002–2025（4 年內最近一年） |
@@ -620,6 +621,7 @@ pipeline/
    - 就業與失業：ILO 的模型估計雖然有台灣，但近幾年是推算的，改用主計總處人力資源調查；非正式就業台灣沒有統計（第 54 點）。
    - 外匯存底與外債：WDI、國際債務統計（IDS）、季度外債統計（QEDS）都沒有台灣，改用中央銀行（外匯存底加上黃金的市值、國際收支、國際投資部位；第 55 點）。
    - 國際援助與僑匯：OECD DAC 本身有台灣（「Chinese Taipei」，台灣向 OECD 申報援助）；WDI 的僑匯沒有台灣，改用中央銀行國際收支的個人移轉加薪資（第 74 點）。
+   - 中國的海外貸款：台灣不是中國官方開發融資的對象（AidData 0 筆），寫 `noValue`「不是中國官方開發融資的對象」，中國寫「出資國」（第 91 點）。
    - 股市規模：世界銀行轉載的 WFE 資料沒有台灣（世界合計裡卻有），改用金管會證期局的上市＋上櫃（第 56 點）。
    - 半導體：CEPII BACI 有台灣（代碼 490），但台灣沒有自己的申報，數字來自貿易夥伴，附註對照財政部（第 52 點）。關鍵礦產：USGS 的表上沒有台灣，台灣不是這些礦產的生產國（第 53 點）。
 2. **FAOSTAT 的「China」(351) 是大陸、港、澳、台的合計**，要排除，否則會重複計算；台灣是 M49 158。
@@ -700,6 +702,10 @@ pipeline/
       - 引用：Lehner, B., Grill G. (2013): Global river hydrography and network routing: baseline data and new approaches to study the world's large river systems. Hydrological Processes, 27(15): 2171–2186。
     - Marine Regions 的 IHO Sea Areas 第 3 版（https://doi.org/10.14284/323 ）、Global Oceans and Seas 第 1 版（https://doi.org/10.14284/542 ）是 CC BY 4.0（跟專屬經濟海域同一個網站的條款），河流與流域主題只用來判斷河口流進哪一片海，不輸出海域的形狀。
     - **地球的另一邊**（第 89 點，2026-10-28）：國界與城鎮是 Natural Earth（公有領域）；海的名稱與所屬大洋用上面那兩份 Marine Regions（CC BY 4.0），這個主題輸出一份 0.25° 的海域網格（`public/data/topics/antipodes/seas.json`，每一格是哪一片海，陸地的格子填最近的海），是 IHO 海域的改作，CC BY 4.0 准許改作後再散布，頁尾的來源寫 Marine Regions、版本與 DOI；首都是國家小檔案的 Wikidata 首都（CC0）。台北的對蹠點另外用 OpenStreetMap 的 Nominatim 反查核對過（資料 ODbL），只用來核對、沒有轉載，照 Nominatim 的使用政策只查了兩次、User-Agent 寫專案網址。
+    - **AidData 的 Global Chinese Development Finance Dataset 3.0 是 ODC-By 1.0**（中國的海外貸款，第 91 點；2026-10-28 讀過 xlsx 的 License 與 Contents 工作表）：
+      - License 工作表：「The original dataset produced by AidData is licensed using the Open Data Commons Attribution License (ODC-By).」「Any use of the dataset and its content must include appropriate attribution to AidData.」以及「you must make clear to others the license of the database and keep intact any notices on the original database」。
+      - 照做：頁尾的來源寫「AidData, Global Chinese Development Finance Dataset, Version 3.0」、授權寫 ODC-By 1.0、連到 AidData 的資料集頁；主題說明的最後一句照 Contents 工作表的非學術引用格式寫「AidData. 2023. Global Chinese Development Finance Dataset, Version 3.0. Retrieved from https://www.aiddata.org/data/aiddatas-global-chinese-development-finance-dataset-version-3-0」，`manifest.json` 的 `source` 也寫授權。
+      - 下載的 zip 不必填表、不必登入（docs.aiddata.org）。**沒有用的**：Boston University Global Development Policy Center 的中國貸款資料庫沒寫授權（待確認）；AidData 另外的空間資料（Geospatial GCDF 3.0，項目的點、線、面）這次沒有用。
     - USGS GMTED2010 是公有領域；Wikidata 是 CC0；地圖上的 AWS Terrain Tiles 依各資料來源標示（見第 5 節「地形圖層」）。
     - 底圖：OpenFreeMap（免費、不需金鑰）、© OpenMapTiles、資料 © OpenStreetMap contributors（ODbL）。地圖右下角會自動標示。
     - UN DESA International Migrant Stock 2024 是 CC BY 3.0 IGO（寫在 Excel 檔裡）。
@@ -2607,11 +2613,23 @@ pipeline/
     - **大小**：`flipped.json` 1,189 KB（gzip 後 384 KB，5,992 條線、19.4 萬個頂點；對蹠地圖一打開就下載，兩個面量圖的海岸線也是同一個檔）、`panel.json` 71 KB（21 KB）、`seas.json` 60 KB（18 KB）、兩個指標檔各 3 KB，共 6 個檔 1,327 KB（gzip 後 425 KB）。簡化前（不簡化 arc、每個國家各存一份面與外框）是 1.82 MB、32 萬個頂點。
     - **限制**：MapLibre 的地球儀用麥卡托的圖磚，北緯 85.05° 以北沒有圖磚，翻過來的南極洲蓋到北極海時，極點附近一圈畫不出來（滑過照樣寫「地球另一邊：南極洲」）。使用者自己在地圖上放成對的標記（這裡與它的對蹠點）沒有做，只有首都的那一對與跟著游標的小圈。
 
+91. **中國的海外貸款**（`pipeline/topics/china_lending.py`、`pipeline/sources/aiddata.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`，2026-10-28）：
+    - **來源**：AidData（William & Mary）的 Global Chinese Development Finance Dataset 3.0（2023-11-07 發布）的 zip（28.6 MB），裡面的 xlsx 的 `GCDF_3.0` 工作表（20,985 筆、128 欄），openpyxl 的 read_only 模式讀一次約 15 秒，只留用到的 12 欄存成 `.pkl` 快取。`__MACOSX/` 與 `.DS_Store` 略過。
+    - **只加總 `Recommended For Aggregates` = Yes 的 17,957 筆**：AidData 建議的做法，排除取消、暫停、只有承諾意向（Pipeline: Pledge）的與傘狀協議（底下的項目已經各自列出，加回去會重複算）。
+    - **金額用 `Adjusted Amount`**：扣掉人民銀行換匯與紓困貸款的短期展期（rollover），17,957 筆合計 1.3423 兆美元（2021 年固定美元），跟 AidData Guide 工作表寫的「$1.34 trillion」一致；沒扣的 `Amount (Constant USD 2021)` 是 1.5054 兆。
+      - **是承諾，不是撥款或債務**：指標名稱與說明都寫「承諾金額」。2000–2021 年累計最多的：俄羅斯 1,693 億、委內瑞拉 1,129 億、巴基斯坦 703 億、安哥拉 651 億、哈薩克 641 億美元（跟製作手冊查的一致）。
+      - 占 GDP 的比例**分子分母都用當期美元**：`Adjusted Amount (Nominal USD)` 的累計 ÷ 那一年的 GDP（人均收入主題的 `gdp.json`，IMF WEO＋世界銀行）。固定 2021 年美元除以早年的當期 GDP 會偏高；製作手冊只寫「占 GDP」，這是做的時候的選擇。每人金額用固定美元 ÷ 那一年的人口（人口主題的 `total.json`，UN WPP 2024）。沒有 GDP 的庫克群島、紐埃、北韓、英屬維京群島只有前兩個指標與每人金額。
+      - **馬紹爾群島占 GDP 1,631%**（2021 年，全部）：大多是 ICBC、國開行租賃等給在馬紹爾群島登記的航運公司的買船貸款與售後租回（液化天然氣船；權宜船籍），不是給那個國家的錢。資料照原樣，各指標檔的 `notes` 寫明，占 GDP 的說明也提到。
+    - **子項目**：`Flow Type Simplified` 的 Loan、Grant 分成「貸款」「贈款」；「全部」另外含債務重整（Debt Rescheduling）與類型不明（Vague）。用 ODA 類／OOF 類（`Flow Class`）分是另一個選項，使用者選了照類型分。
+    - **涵蓋範圍**：AidData 有系統地搜尋過的 165 個國家與地區（CountryList 工作表的英文名稱，pycountry 對不到的 5 個寫在 `NAME_ALIASES`），其中 18 個沒有找到項目，值是 0（不是無資料）；範圍外的國家用 `coverage` 寫「不在 AidData 的範圍裡（只收中低所得國家）」，不寫成 0。台灣、中國用主題的 `noValue`。區域性、跨國的項目（加總的 214 筆）沒有受援國，只算在世界合計（`WLD`，算「占全球」）。
+    - **沒有畫流向弧線**：只有一個出資國，弧線都從中國出發（使用者 2026-10-28 決定不畫）。頁尾的說明跟「國際援助與僑匯」互相指到對方，側欄最後連到那個主題。
+    - **側欄**（`countries/<ISO3>.json`，146 國，金額以百萬美元存）：用途依 OECD 三位碼部門（24 類，中英文名稱在側欄的 `SECTOR_NAMES`），全部／貸款／贈款各存一份歷年金額，累計的指標加到時間軸那一年、當年的指標只看那一年；歷年的類型用 `stackedAreaOption`（`EChart.tsx` 只註冊了折線圖，沒有為了這張圖加長條圖）；金額最大的 10 個項目（各子項目一份）寫 AidData 的英文原文名稱（`translate="no"`，超過 200 字截斷）、年份、金額、部門、類型與狀態。沒有項目的國家（累計是 0 的 18 國、範圍外的國家）不下載明細檔。
+    - **大小**：12 個指標檔共約 190 KB、146 個國家明細共約 0.95 MB（一次只下載一個，2–20 KB），合計約 1.2 MB。
+
 ## 9. 之後可以做的
 
 **使用者已排定、正在製作的主題**（2026-10-28 排定，同一天開 8 個 cloud session 同時製作；資料、授權、做法與使用者的決定都在私人 repo skywitness/map-plan 的 `PRODUCTION.md`（製作手冊）；做完一個就從這裡移到第 7 節）：
 - **石油、天然氣與煤**：新主題，能源類；EIA、GEM、CEPII BACI、CIA World Factbook、能源署。
-- **中國的海外貸款**：新主題，國際類；AidData GCDF 3.0。
 - **法律與制度（先做死刑）**：新主題，社會類；英文維基與各國法令自己整理，1950 年起。
 - **法定年齡**：併進「法律與制度」（投票、飲酒、結婚、駕照、刑事責任）。
 - **生活格式與習慣**：擴充「旅行實用」（一週從星期幾開始、週末、12/24 小時制、日期寫法、小數點、度量衡、紙張、曆法；CLDR 49）。
