@@ -179,6 +179,7 @@ export const en: Messages = {
   noCountryData: 'No data for this country.',
   dashedProjection: (year) => `Dashed line: projections from ${year} onward.`,
   methodBreak: (year) => `Vertical dashed line: a new statistical method from ${year}; earlier years are not fully comparable.`,
+  estimatesBefore: (year) => `Vertical dashed line: values before ${year} are mostly estimates or interpolations.`,
   note: (note) => `Note: ${note}`,
   yearMissing: (year) => ` (no data for ${year}; showing the latest year)`,
   periodRange: (from, to) => (from === to ? String(from) : `${from}–${to}`),
