@@ -628,6 +628,7 @@ export function App() {
               <WorldMap
                 ref={mapHandle}
                 countries={features ?? NO_FEATURES}
+                countryTable={countries}
                 places={placeAnchors}
                 indicator={indicator}
                 legendTitle={indicatorTitle}

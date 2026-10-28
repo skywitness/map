@@ -30,6 +30,8 @@ import { tr, useLang, useT } from '../i18n';
 import type { AirportsData, Indicator } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
+import { fetchJson } from '../lib/data';
+import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxFromCorners, boxPolygon, type Box } from './boxEstimate';
@@ -63,7 +65,7 @@ import { applyTimeFilters, highlightLine, lineOverlayAt, OVERLAY_PREFIX, syncOve
 import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
-import { isNameLayer, LABELS, loadBaseStyle, type Projection } from './style';
+import { isNameLayer, LAND_UNTIL, labelField, loadBaseStyle, WORLD_SUFFIX, WORLD_TILES_UNTIL, worldColors, type Projection } from './style';
 import { GRID_PROTOCOL, gridLabels, gridTiles, loadGridTile, type GridLayer } from './densityGrid';
 import { FLAG_PROTOCOL, flagIcon, flagTileUrl, loadFlagTile, setFlagLayout, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
@@ -81,6 +83,8 @@ addProtocol(FLAG_PROTOCOL, loadFlagTile);
 
 interface WorldMapProps {
   countries: CountryFeature[];
+  /** 國家對照表（countries.json）：底圖的國名改用網站自己的名稱（style.ts 的 labelField） */
+  countryTable?: CountryTable | null;
   indicator: Indicator;
   /** 圖例標題，例如「稻米產量」 */
   legendTitle: string;
@@ -216,6 +220,8 @@ function mixColor(from: string, to: string, k: number): string {
   const [r, g, bl] = a.map((v, i) => Math.round(v + (b[i] - v) * k));
   return `rgb(${r}, ${g}, ${bl})`;
 }
+/** 世界視角蓋住地形陰影海面的水域（installDataLayers） */
+const RELIEF_WATER_WORLD = 'relief-water' + WORLD_SUFFIX;
 /** 拖曳距離小於這個值（px）視為點一下，不建立框 */
 const MIN_BOX_PX = 6;
 
@@ -647,6 +653,7 @@ const SELECT_SOURCES = ['countries', 'columns', 'tiny-columns'];
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
+  const countryTable = props.countryTable ?? null;
   const t = useT();
   const lang = useLang();
   const langRef = useRef(lang);
@@ -682,10 +689,10 @@ export function WorldMap(props: WorldMapProps) {
   /** 分層設色、地形陰影插在這個圖層前面（底圖的水域，海面才會蓋住海底地形） */
   const reliefBeforeRef = useRef<string | undefined>(undefined);
   /**
-   * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
+   * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）與原本的縮放範圍：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
    * 我們的地形陰影蓋住，隱藏起來就不必下載（全球視角約 3 MB）
    */
-  const baseRastersRef = useRef<string[]>([]);
+  const baseRastersRef = useRef<{ id: string; minzoom: number; maxzoom: number }[]>([]);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
   // MapLibre 5 在地球儀上查不到立體圖形（queryRenderedFeatures 對 fill-extrusion 用的是平面的矩陣），
@@ -803,6 +810,21 @@ export function WorldMap(props: WorldMapProps) {
     [tinyCollection],
   );
 
+  /** 世界視角的湖泊（geo/lakes-110m.json，約 3 KB）；切換底圖時新樣式直接用 */
+  const lakesRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchJson<GeoJSON.FeatureCollection>('geo/lakes-110m.json', 'low')
+      .then((lakes) => {
+        lakesRef.current = lakes;
+        if (!cancelled && installedRef.current) (mapRef.current?.getSource('lakes') as GeoJSONSource | undefined)?.setData(lakes);
+      })
+      .catch(() => {}); // 沒有湖泊只是五大湖等畫成陸地，不影響其他
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   /** 每次載入樣式加一；載入時暫時換成海的顏色，用它認出是哪一次（見 installDataLayers） */
   const seaTokenRef = useRef(0);
   const seaTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -815,15 +837,26 @@ export function WorldMap(props: WorldMapProps) {
     // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
     m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
     for (const id of ['railways', 'airports', 'box', 'selected-mark']) m.addSource(id, { type: 'geojson', data: EMPTY });
+    m.addSource('lakes', { type: 'geojson', data: lakesRef.current ?? EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
     const styleLayers = m.getStyle().layers;
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
+    // 世界視角（style.ts 的 splitWorldZoom）：底色是海，陸地用我們的國界、湖泊用 Natural Earth 1:110m 畫，
+    // 插在背景色後面（彩色地形的陰影點陣圖蓋在上面）；放大到 LAND_UNTIL 以上換回底圖圖磚的陸地與水域
+    const world = worldColors(m.getStyle());
+    if (world) {
+      const afterBackground = styleLayers[styleLayers.findIndex((l) => l.type === 'background') + 1]?.id;
+      // 不反鋸齒：相鄰的國家各自反鋸齒，交界會透出一條海的顏色
+      const land = { 'fill-color': world.land, 'fill-antialias': false };
+      m.addLayer({ id: 'base-land', type: 'fill', source: 'countries', maxzoom: LAND_UNTIL, paint: land }, afterBackground);
+      m.addLayer({ id: 'base-lakes', type: 'fill', source: 'lakes', maxzoom: LAND_UNTIL, paint: { 'fill-color': world.sea } }, afterBackground);
+    }
     baseRastersRef.current = styleLayers
       .filter((l) => l.type === 'raster' && l.layout?.visibility !== 'none')
-      .map((l) => l.id);
+      .map((l) => ({ id: l.id, minzoom: l.minzoom ?? 0, maxzoom: l.maxzoom ?? 24 }));
     // 地形：分層設色與陰影插在底圖的水域下面（圖磚含海底地形，由海面蓋住）；3D 地形用另一個 source，
     // MapLibre 建議跟陰影分開，畫質比較好。沒有圖層用到時不會下載圖磚
     m.addSource('dem', demSource());
@@ -854,6 +887,20 @@ export function WorldMap(props: WorldMapProps) {
     const waterFill = styleLayers.find((l) => l.type === 'fill' && l['source-layer'] === 'water');
     if (waterFill?.type === 'fill') {
       m.addLayer({ ...waterFill, id: 'relief-water', layout: { ...waterFill.layout, visibility: 'none' } }, beforeId);
+      // 世界視角沒有畫底圖的水域（陸地用國界畫），陰影的海面改用 0–1 級圖磚的水域蓋（海岸線粗一點沒關係）
+      if (world) {
+        m.addLayer(
+          {
+            ...waterFill,
+            id: RELIEF_WATER_WORLD,
+            source: waterFill.source + WORLD_SUFFIX,
+            minzoom: 0,
+            maxzoom: WORLD_TILES_UNTIL,
+            layout: { ...waterFill.layout, visibility: 'none' },
+          },
+          beforeId,
+        );
+      }
     }
     // 底圖圖磚還沒到時，MapLibre 用 background 圖層（陸地的顏色，彩色地形是米白）畫整顆地球：開頁時是一顆白球。
     // 先把它換成海的顏色，圖磚第一次全部到齊（idle）再換回來（樣式的 300 ms 過渡）。
@@ -1080,14 +1127,28 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [basemap]);
 
+  // 底圖的國名用網站自己的名稱（iso2 → 名稱，style.ts 的 labelField）
+  const countryLabels = useMemo(() => {
+    if (!countryTable) return [];
+    const seen = new Set<string>();
+    const out: [string, string][] = [];
+    for (const [iso3, ref] of Object.entries(countryTable)) {
+      if (!ref.iso2 || seen.has(ref.iso2)) continue;
+      seen.add(ref.iso2);
+      out.push([ref.iso2, countryName(iso3, countryTable, lang)]);
+    }
+    return out;
+  }, [countryTable, lang]);
+
   // 切換語言：底圖地名換成另一種語言，不必重新載入樣式
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
+    const field = labelField(lang, countryLabels);
     for (const layer of map.getStyle().layers) {
-      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', LABELS[lang]);
+      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', field);
     }
-  }, [revision, lang]);
+  }, [revision, lang, countryLabels]);
 
   // 面量圖、類別圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
   useEffect(() => {
@@ -1764,6 +1825,19 @@ export function WorldMap(props: WorldMapProps) {
     map.moveLayer('rail', extrude ? 'airports-medium' : 'data-tiny');
   }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn, basemap.dark]);
 
+  // 面量圖、類別圖、國旗把陸地整片蓋住（不透明度 0.82–0.94），世界視角看不到底圖的陰影點陣圖：
+  // 縮放 WORLD_TILES_UNTIL 以下不畫，圖磚就不必下載（彩色地形約 3.2 MB）；放大後填色變淡，地形才透得出來。
+  // 網格（填色是透明的）、3D 的立體圖形（填色也是透明的）照常畫
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const kind = indicator.layer.kind;
+    const covered = flagsOn || ((kind === 'choropleth' || kind === 'categorical') && !gridOn && !(threeD && !terrain));
+    for (const { id, minzoom, maxzoom } of baseRastersRef.current) {
+      if (map.getLayer(id)) map.setLayerZoomRange(id, covered ? Math.max(minzoom, WORLD_TILES_UNTIL) : minzoom, maxzoom);
+    }
+  }, [revision, indicator.layer.kind, flagsOn, gridOn, threeD, terrain]);
+
   // 地形圖層：地形圖（kind 'terrain'）畫分層設色，陰影疊在上面；面量圖只疊陰影，而且移到國家顏色上面，
   // 看得出起伏。陰影可以在左下角關掉
   useEffect(() => {
@@ -1773,13 +1847,14 @@ export function WorldMap(props: WorldMapProps) {
     const shade = terrain && layers.hillshade;
     map.setLayoutProperty('relief-color', 'visibility', reliefMap ? 'visible' : 'none');
     map.setLayoutProperty('relief-shade', 'visibility', shade ? 'visible' : 'none');
-    for (const id of baseRastersRef.current) {
+    for (const { id } of baseRastersRef.current) {
       map.setLayoutProperty(id, 'visibility', reliefMap || shade ? 'none' : 'visible');
     }
     map.moveLayer('relief-shade', reliefMap ? reliefBeforeRef.current : 'data-border');
-    if (map.getLayer('relief-water')) {
-      map.setLayoutProperty('relief-water', 'visibility', shade && !reliefMap ? 'visible' : 'none');
-      map.moveLayer('relief-water', 'data-border');
+    for (const id of ['relief-water', RELIEF_WATER_WORLD]) {
+      if (!map.getLayer(id)) continue;
+      map.setLayoutProperty(id, 'visibility', shade && !reliefMap ? 'visible' : 'none');
+      map.moveLayer(id, 'data-border');
     }
     map.setPaintProperty('relief-shade', 'hillshade-exaggeration', reliefMap ? 0.55 : 0.4);
   }, [revision, terrain, indicator.layer.kind, layers.hillshade]);

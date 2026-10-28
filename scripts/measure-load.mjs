@@ -9,7 +9,9 @@
  *
  * - 地圖出現資料：WorldMap 第一次把資料畫上地圖時留下的 performance.mark('map-data')；
  *   --mark map-grid 改量人口密度的 1 km 網格第一次畫好（網址要帶 topic=population&ind=density&grid=1）
- * - 傳輸量：頁面的請求（CDP Network.loadingFinished 的 encodedDataLength 加總，含底圖圖磚）。
+ * - 傳輸量：頁面與它的 web worker 的請求（CDP Network.loadingFinished 的 encodedDataLength 加總，含底圖圖磚）。
+ *   MapLibre 在 worker 裡下載向量圖磚，頁面的 CDP session 看不到，要另外接上每個 worker 的 session
+ *   （2026-10-28 以前漏算，第 13 節的「首次約 4 MB」其實約 8.9 MB）；網路節流也要在 worker 上各設一次。
  *   service worker 背景的下載（預先快取、資料向伺服器確認）不算在內。
  * - --offline：再多一次「離線開啟」（只把頁面設成離線，service worker 從快取回應）
  *
@@ -86,16 +88,34 @@ async function measurePhase(context, profile, phase) {
   const page = await context.newPage();
   await page.setViewport(profile.viewport);
   const session = await page.createCDPSession();
-  await session.send('Network.enable');
   const traffic = [];
-  const urls = new Map();
-  session.on('Network.responseReceived', (e) => urls.set(e.requestId, { url: e.response.url, sw: e.response.fromServiceWorker }));
-  session.on('Network.loadingFinished', (e) => traffic.push({ ...(urls.get(e.requestId) ?? {}), bytes: e.encodedDataLength }));
-  if (phase === 'offline') {
-    await session.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
-  } else if (profile.network) {
-    await page.emulateNetworkConditions(profile.network);
-  }
+  const conditions =
+    phase === 'offline'
+      ? { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 }
+      : profile.network && {
+          offline: false,
+          latency: profile.network.latency,
+          downloadThroughput: profile.network.download,
+          uploadThroughput: profile.network.upload,
+        };
+  // 頁面與每個 web worker 各有自己的 session（requestId 只在同一個 session 裡不重複）
+  // 還沒下載完的請求：節流的手機上一張 600 KB 的圖磚要好幾秒，「3 秒沒有請求完成」不代表網路安靜了
+  const inFlight = new Set();
+  const watch = async (s) => {
+    const urls = new Map();
+    const key = (e) => `${s.id()}:${e.requestId}`;
+    s.on('Network.requestWillBeSent', (e) => inFlight.add(key(e)));
+    s.on('Network.loadingFailed', (e) => inFlight.delete(key(e)));
+    s.on('Network.responseReceived', (e) => urls.set(e.requestId, { url: e.response.url, sw: e.response.fromServiceWorker }));
+    s.on('Network.loadingFinished', (e) => {
+      inFlight.delete(key(e));
+      traffic.push({ ...(urls.get(e.requestId) ?? {}), bytes: e.encodedDataLength });
+    });
+    await s.send('Network.enable');
+    if (conditions) await s.send('Network.emulateNetworkConditions', conditions);
+  };
+  page.on('workercreated', (worker) => watch(worker.client).catch(() => {}));
+  await watch(session);
   if (profile.cpu > 1) await session.send('Emulation.setCPUThrottlingRate', { rate: profile.cpu });
   await page.evaluateOnNewDocument(() => {
     new PerformanceObserver((list) => {
@@ -106,10 +126,10 @@ async function measurePhase(context, profile, phase) {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 180000 });
   await page.waitForFunction((name) => performance.getEntriesByName(name).length > 0, { timeout: 180000, polling: 100 }, mark);
   const kbAtMap = Math.round(traffic.reduce((s, r) => s + r.bytes, 0) / 1024);
-  // 等網路安靜 3 秒（底圖圖磚還會陸續下載）
-  for (let last = -1, quiet = 0; quiet < 3000; ) {
+  // 等網路安靜 3 秒（底圖圖磚還會陸續下載）：沒有下載中的請求、也沒有新完成的；最多等 3 分鐘
+  for (let last = -1, quiet = 0, waited = 0; quiet < 3000 && waited < 180000; waited += 500) {
     await sleep(500);
-    quiet = traffic.length === last ? quiet + 500 : 0;
+    quiet = traffic.length === last && inFlight.size === 0 ? quiet + 500 : 0;
     last = traffic.length;
   }
   const m = await page.evaluate((name) => ({
@@ -138,7 +158,8 @@ async function measurePhase(context, profile, phase) {
 const browser = await puppeteer.launch({
   executablePath: chromePath(),
   headless: 'new',
-  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-first-run'],
+  // 用 root 跑（容器裡）時 Chrome 不開沙箱就不肯啟動
+  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-first-run', ...(process.getuid?.() === 0 ? ['--no-sandbox'] : [])],
 });
 const results = [];
 for (const profileName of profiles) {

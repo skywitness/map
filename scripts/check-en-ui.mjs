@@ -106,7 +106,14 @@ async function main() {
   const browser = await puppeteer.launch({
     executablePath: chromePath(),
     headless: true,
-    args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--window-size=1400,950', '--lang=en-US'],
+    // 用 root 跑（容器裡）時 Chrome 不開沙箱就不肯啟動
+    args: [
+      '--use-angle=swiftshader',
+      '--enable-unsafe-swiftshader',
+      '--window-size=1400,950',
+      '--lang=en-US',
+      ...(process.getuid?.() === 0 ? ['--no-sandbox'] : []),
+    ],
     defaultViewport: { width: 1400, height: 950 },
   });
   try {
