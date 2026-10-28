@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { langParam, URL_PARAM } from '../i18n/lang';
 import { boxFromLegacyRaw, type Box } from '../map/boxEstimate';
+import { setHistoryUrl } from './history';
 
 /** 畫面狀態全部放在網址參數，任何畫面都能直接複製網址分享。 */
 export interface ViewState {
@@ -66,7 +67,23 @@ function legacyBox(text: string | null): Box | null {
  */
 const HISTORY_KEYS = ['topic', 'indicator', 'item', 'country', 'view'] as const;
 
-function write(state: ViewState, push: boolean): void {
+/**
+ * 只改寫目前這一筆的變動（拖時間軸、播放）最多每 REPLACE_INTERVAL_MS 寫一次網址，停下來時寫最後的狀態。
+ * Safari 規定 10 秒內最多改 100 次網址（見 history.ts），原本每換一年就寫一次，手機上左右拖幾次時間軸
+ * 就超過，丟出的錯誤讓整個畫面不見、只剩背景色。寫入失敗時過 RETRY_MS 再補寫。
+ */
+const REPLACE_INTERVAL_MS = 300;
+const RETRY_MS = 2000;
+
+/** 最新的畫面狀態，包含還沒寫進網址的（被節流的那一段） */
+let latest: ViewState | null = null;
+
+/** 目前畫面的網址：分享連結、匯出圖片要用這個，不要讀 window.location（可能還差最後一次改寫） */
+export function currentHref(): string {
+  return latest ? new URL(buildUrl(latest), window.location.href).href : window.location.href;
+}
+
+function buildUrl(state: ViewState): string {
   const p = new URLSearchParams();
   if (state.topic) p.set('topic', state.topic);
   if (state.indicator) p.set('ind', state.indicator);
@@ -82,9 +99,7 @@ function write(state: ViewState, push: boolean): void {
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);
   const query = p.toString();
-  const url = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
-  if (push) window.history.pushState(null, '', url);
-  else window.history.replaceState(null, '', url);
+  return `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
 }
 
 export type UpdateUrlState = (patch: Partial<ViewState>, options?: { replace?: boolean }) => void;
@@ -95,14 +110,23 @@ export function useUrlState(): [ViewState, UpdateUrlState] {
   const written = useRef<ViewState | null>(null);
   // 這次的變動只改寫目前這一筆：上一頁、下一頁讀回來的狀態，還有程式自己補正的（舊網址的指標 id）
   const replaceNext = useRef(false);
+  // 等著寫進網址的計時器（節流或失敗重試），與上一次寫入的時間
+  const timer = useRef<number | undefined>(undefined);
+  const lastWrite = useRef(-Infinity);
 
   useEffect(() => {
     const onPop = () => {
+      // 還沒寫的改寫是離開的那一筆的，不能寫到上一頁回來的這一筆
+      window.clearTimeout(timer.current);
+      timer.current = undefined;
       replaceNext.current = true;
       setState(read());
     };
     window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      window.clearTimeout(timer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -110,7 +134,23 @@ export function useUrlState(): [ViewState, UpdateUrlState] {
     written.current = state;
     const push = before !== null && !replaceNext.current && HISTORY_KEYS.some((k) => before[k] !== state[k]);
     replaceNext.current = false;
-    write(state, push);
+    latest = state;
+    // 寫入的是當下最新的狀態：等待中又改了好幾次也只寫最後一次
+    const flush = (asPush: boolean) => {
+      window.clearTimeout(timer.current);
+      timer.current = undefined;
+      lastWrite.current = performance.now();
+      if (latest && !setHistoryUrl(buildUrl(latest), asPush)) timer.current = window.setTimeout(() => flush(false), RETRY_MS);
+    };
+    if (push) {
+      // 目前這一筆還有沒寫的改寫（例如剛拖完年份就換主題）：先補寫，上一頁回來才是離開時的年份
+      if (timer.current !== undefined && before) setHistoryUrl(buildUrl(before), false);
+      flush(true);
+    } else if (timer.current === undefined) {
+      const wait = lastWrite.current + REPLACE_INTERVAL_MS - performance.now();
+      if (wait <= 0) flush(false);
+      else timer.current = window.setTimeout(() => flush(false), wait);
+    }
   }, [state]);
 
   const update = useCallback<UpdateUrlState>((patch, options) => {

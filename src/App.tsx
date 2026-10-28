@@ -19,7 +19,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { read as readUrlState, useUrlState } from './lib/url-state';
+import { currentHref, read as readUrlState, useUrlState } from './lib/url-state';
 import {
   buildGridIndex,
   gridInBox,
@@ -302,7 +302,7 @@ export function App() {
           t.basemapCredit(BASEMAP_ATTRIBUTION),
           t.bordersCredit,
         ];
-    credits.push(window.location.href);
+    credits.push(currentHref());
     const blob = await mapHandle.current.exportImage({
       title: viewTitle,
       subtitle: pure ? undefined : grid ? G.subtitle : indicatorText,

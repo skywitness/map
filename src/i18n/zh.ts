@@ -11,6 +11,8 @@ const spaced = (text: string) =>
 export const zh = {
   pageTitle: '世界資料地圖',
   pageDescription: '用世界地圖瀏覽各國人口、經濟、能源、產業與農業資料',
+  crashMessage: '網頁出了問題，畫面沒辦法繼續顯示。',
+  crashReload: '重新整理',
   brand: '世界資料地圖',
   topicsNav: '主題',
   /** 主題選單裡每個主題下方的說明：列出前幾個指標 */

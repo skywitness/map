@@ -10,6 +10,8 @@ function lowerFirst(text: string): string {
 export const en: Messages = {
   pageTitle: 'World Data Map',
   pageDescription: 'Explore population, economy, energy, industry and agriculture data for every country on a world map',
+  crashMessage: 'Something went wrong and the page stopped working.',
+  crashReload: 'Reload',
   brand: 'World Data Map',
   topicsNav: 'Topics',
   topicSummary: (indicators, more) => `${indicators.join(', ')}${more ? '…' : ''}`,

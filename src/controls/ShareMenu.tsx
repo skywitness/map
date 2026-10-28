@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { copyText } from '../lib/download';
 import { useUI } from '../lib/strings';
+import { currentHref } from '../lib/url-state';
 
 interface ShareMenuProps {
   /** 只有地圖檢視才有：把目前的地圖畫成 PNG 下載 */
@@ -49,7 +50,7 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
   }, [status, busy]);
 
   const shareLink = async () => {
-    const url = window.location.href;
+    const url = currentHref();
     if (nativeShare) {
       try {
         await navigator.share({ title: shareTitle, url });

@@ -32,6 +32,31 @@ button {
   color: inherit;
 }
 
+/* 程式出錯時的畫面（ErrorBoundary.tsx） */
+.crash {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  min-height: 100dvh;
+  padding: var(--gutter);
+  text-align: center;
+  color: var(--ink-secondary);
+}
+
+.crash p {
+  margin: 0;
+}
+
+.crash button {
+  padding: 8px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
 .app {
   display: flex;
   flex-direction: column;

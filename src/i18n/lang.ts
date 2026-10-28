@@ -3,6 +3,7 @@
  * 語言記在網址（lang=en，中文是預設所以不寫）與 localStorage；切換時不必重新整理，
  * 用 useLang() 的元件會重新繪製，格式化函式（lib/format.ts）也是在呼叫當下讀目前的語言。
  */
+import { setHistoryUrl } from '../lib/history';
 
 export type Lang = 'zh' | 'en';
 
@@ -71,7 +72,7 @@ export function setLang(lang: Lang): void {
   if (lang === DEFAULT_LANG) p.delete(URL_PARAM);
   else p.set(URL_PARAM, lang);
   const query = p.toString();
-  window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+  setHistoryUrl(`${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`, false);
   listeners.forEach((listener) => listener());
 }
 

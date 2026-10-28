@@ -1,5 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { getLang, URL_PARAM } from '../../i18n';
+import { setHistoryUrl } from '../../lib/history';
 
 /**
  * 連到別的主題（同一個國家）：在網頁裡換主題（url-state 聽 popstate），上一頁回到原本的主題；
@@ -17,7 +18,12 @@ export function topicHref(topic: string, ind: string | undefined, iso3: string):
 export function openTopic(e: MouseEvent<HTMLAnchorElement>, topic: string, iso3: string, ind?: string): void {
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   e.preventDefault();
-  window.history.pushState(null, '', topicHref(topic, ind, iso3));
+  const href = topicHref(topic, ind, iso3);
+  // 改網址失敗（Safari 的次數限制，見 history.ts）時照一般連結整頁換過去
+  if (!setHistoryUrl(href, true)) {
+    window.location.assign(href);
+    return;
+  }
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
