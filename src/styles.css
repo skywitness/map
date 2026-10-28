@@ -1766,31 +1766,6 @@ kbd {
   z-index: 1;
 }
 
-/* 每一級的國家數：色塊上方的細長條，底部對齊 */
-.legend-hist {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 14px;
-  margin-bottom: 2px;
-}
-
-.legend-hist span {
-  flex: 1;
-  margin: 0 6px;
-  background: color-mix(in srgb, var(--ink) 22%, transparent);
-  border-radius: 1px 1px 0 0;
-}
-
-.legend-hist span.is-on {
-  background: var(--ink-secondary);
-}
-
-/* 有直方圖時刻度往下移（直方圖 14px 加間隔 2px） */
-.legend-scale.has-hist .legend-ticks span {
-  top: 30px;
-}
-
 /* 滑過的那一級有幾個國家：固定一行高，也不撐寬圖例（比圖例寬的以「…」截掉，完整的在色塊的說明），
    文字出現、消失時色塊不會移動（Legend.tsx） */
 .legend-bin-status {
