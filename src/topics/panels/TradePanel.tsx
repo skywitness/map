@@ -40,7 +40,8 @@ export default function TradePanel({ topic, iso3, year, item, countryName }: Pan
   if (error) return <p className="empty">{text.noYear}</p>;
   if (!data || data.year !== year || (item !== null && data.item !== item)) return <p className="empty">{t.loading}</p>;
 
-  const format = (v: number) => usd(formatLargeNumber(v));
+  // 流向圖指標自己的格式（貿易、半導體是美元，石油、天然氣與煤是公噸）
+  const format = (v: number) => (indicator ? indicator.format(v) : usd(formatLargeNumber(v)));
   return (
     <section className="panel-section">
       {(['export', 'import'] as FlowDirection[]).map((direction) => {

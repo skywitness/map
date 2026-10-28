@@ -9,7 +9,9 @@ import { useJsonMany } from '../lib/data';
 import { derivedData } from '../lib/derive';
 import { formatPercent } from '../lib/format';
 import {
+  forItem,
   indicatorPath,
+  itemFor,
   itemLabelOf,
   missingReason,
   sameTimeAxis,
@@ -97,7 +99,9 @@ export function CountryPanel(props: CountryPanelProps) {
   // 主題或指標寫明這個國家為什麼沒有值（台灣的外交裡的台灣、護照主題的本國護照、與美國的一致度裡的美國）時，
   // 用它取代「無資料」
   const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
-  const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[ind, i] as const] : [])).map(([ind, i]) => {
+  // 各子項目自己的單位與格式（itemFormats）、分級門檻：卡片與折線圖用目前子項目解析過的指標（forItem）
+  const resolved = (ind: Indicator) => forItem(ind, itemFor(topic, ind, item));
+  const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[resolved(ind), i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
     if (!data) return { ind, loaded: false, value: null, rank: null, total: 0, share: null, shownYear: null, others: [] };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
@@ -129,7 +133,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const chartIndicator =
     shown(indicator) && indicator.layer.kind !== 'flow'
       ? indicator
-      : (topic.indicators.find((o) => shown(o) && o.layer.kind !== 'flow' && o.file === indicator.file) ?? indicator);
+      : resolved(topic.indicators.find((o) => shown(o) && o.layer.kind !== 'flow' && o.file === indicator.file) ?? indicator);
   const chartLabel = label(chartIndicator);
   const option = useMemo(() => {
     if (!activeData) return null;

@@ -112,6 +112,7 @@ STEPS = {
     # Cottom et al. 的 SPOT 輸出（OWID 快照的 Dryad 檔，4 MB）、Meijer et al. 的河口（figshare，0.7 MB）、
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
+    "fossil-fuels": "topics.fossil_fuels",  # 第一次會下載 EIA（24 MB）、BACI HS92（2.4 GB，跟塑膠污染共用）、GEM 四個 tracker（約 430 MB）
     # 要先有 geo 的國界；Ookla Open Data 每年第 3 季的固網與行動各一個 parquet（2019–2026 年，pyarrow 只讀需要的欄位，
     # 共約 1.4 GB、3 分鐘），約 2,000 萬個圖塊第一次歸國要十幾分鐘（之後用快取）；數位發展部的 5G 量測（CC0，幾 KB）
     "internet-speed": "topics.internet_speed",

@@ -64,6 +64,7 @@ export const en: Messages = {
       : `Countries without data for this year show their latest value from the previous ${within} years, with the data year.`,
   flowTitle: (origin, title) => `${origin}: ${title}`,
   flowShare: (share) => `${share} of total`,
+  flowEstimated: 'quantity estimated',
   largeAirport: 'Large airport',
   mediumAirport: 'Medium airport',
 

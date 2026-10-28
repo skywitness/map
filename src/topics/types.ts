@@ -112,8 +112,9 @@ export interface FlowFile {
   unit: string;
   /** 檔案裡的數值乘上 scale 是指標的單位（貿易：千美元 → 美元）；沒寫是 1000，舊的貿易檔沒有這個欄位 */
   scale?: number;
-  export: Record<string, [number, [string, number][]]>;
-  import: Record<string, [number, [string, number][]]>;
+  /** 夥伴的第三個值是 1 時，這筆數量是估算的（石油、天然氣與煤：原始數量的單價明顯不對，改用金額 ÷ 中位數單價） */
+  export: Record<string, [number, ([string, number] | [string, number, 1])[]]>;
+  import: Record<string, [number, ([string, number] | [string, number, 1])[]]>;
 }
 
 export interface IndicatorDef {
@@ -200,6 +201,12 @@ export interface IndicatorDef {
    * 值是算出來的、每個國家都有算，null 有固定意思的指標用：日食路徑的「下一次日全食」null 是「到 2100 年都沒有」
    */
   missing?: Text;
+  /**
+   * 各子項目自己的單位與格式（2026-10-28 起）：同一個指標在不同子項目的單位不同時用（石油、天然氣與煤的產量：
+   * 石油千桶/日、天然氣十億立方公尺、煤百萬公噸）。forItem() 依目前的子項目換掉 unit、format、formatTick，
+   * 沒列的子項目用指標本身的；側欄的數值卡片與折線圖也經過 forItem()
+   */
+  itemFormats?: Record<string, ItemFormat>;
   /**
    * 數值在瀏覽器裡算（時刻主題，TopicDefinition.clock）：file 是算的材料（例如各國首都的經緯度與時區），
    * values(材料, 時刻) 回傳指標檔的格式（IndicatorData，years 只有一個：at.day）。per 是數值跟著什麼變：
@@ -820,6 +827,13 @@ export function itemLabelOf(
 
 const itemScaleCache = new WeakMap<Indicator, Map<string, Indicator>>();
 
+/** 指標在某個子項目的單位與格式（IndicatorDef.itemFormats） */
+export interface ItemFormat {
+  unit: Text;
+  format: (value: number, year?: number) => string;
+  formatTick?: (value: number) => string;
+}
+
 /**
  * 面量圖有 itemScales 時，換成目前子項目的分級門檻；網格的 dir 含 `{item}` 時換成目前子項目的資料夾
  * （網路速度的固網、行動各一組圖磚：`internet-speed-{item}`）。
@@ -829,7 +843,8 @@ export function forItem(indicator: Indicator, item: string | null): Indicator {
   const layer = indicator.layer;
   const scale = layer.kind === 'choropleth' && item ? layer.itemScales?.[item] : undefined;
   const grid = indicator.grid?.dir.includes('{item}') ? indicator.grid : undefined;
-  if (!item || (!scale && !grid)) return indicator;
+  const fmt = item ? indicator.itemFormats?.[item] : undefined;
+  if (!item || (!scale && !grid && !fmt)) return indicator;
   let byItem = itemScaleCache.get(indicator);
   if (!byItem) itemScaleCache.set(indicator, (byItem = new Map()));
   let resolved = byItem.get(item);
@@ -837,6 +852,7 @@ export function forItem(indicator: Indicator, item: string | null): Indicator {
     resolved = { ...indicator };
     if (scale && layer.kind === 'choropleth') resolved.layer = { ...layer, scale };
     if (grid) resolved.grid = { ...grid, dir: grid.dir.replace('{item}', item) };
+    if (fmt) Object.assign(resolved, { unit: fmt.unit, format: fmt.format, formatTick: fmt.formatTick ?? fmt.format });
     byItem.set(item, resolved);
   }
   return resolved;

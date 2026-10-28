@@ -127,3 +127,36 @@ def yearly_product_flows(prefixes: tuple[str, ...], hs: str = HS) -> Iterator[tu
                 cell[1] += q
                 cell[2] += missing
             yield year, pairs
+
+
+def yearly_hs6_rows(
+    codes: tuple[str, ...], hs: str = HS, extra: dict[str, str] | None = None,
+) -> Iterator[tuple[int, list[tuple[str, str | None, str | None, float, float | None]]]]:
+    """逐年回傳每一筆雙邊流量 [(HS 六位碼, 出口國, 進口國, 千美元, 公噸或 None)]，不加總，
+    給要依六位碼各自的單價清理數量的主題用（石油、天然氣與煤）。codes 是六位碼或前綴。
+
+    extra 是 BACI 的 country_iso3 欄 → 地圖代碼，補上 to_iso3() 對不到的代碼（例如 1999 年以前的南部非洲關稅同盟 ZA1）。
+    """
+    path = _archive(hs)
+    wanted = tuple(c.encode() for c in codes)
+    with zipfile.ZipFile(path) as z:
+        iso = _country_codes(z)
+        if extra:
+            member = next(n for n in z.namelist() if n.startswith("country_codes"))
+            with z.open(member) as raw:
+                for row in csv.DictReader(io.TextIOWrapper(raw, encoding="utf-8")):
+                    if row["country_iso3"] in extra:
+                        iso[row["country_code"].encode()] = extra[row["country_iso3"]]
+        members = sorted(n for n in z.namelist() if re.match(rf"BACI_{hs}_Y\d{{4}}_", n))
+        for member in members:
+            year = int(re.search(r"_Y(\d{4})_", member).group(1))
+            rows = []
+            with z.open(member) as raw:
+                next(raw)
+                for line in raw:
+                    _, i, j, k, v, q = line.split(b",")
+                    if not k.startswith(wanted):
+                        continue
+                    q = q.strip()
+                    rows.append((k.decode(), iso.get(i), iso.get(j), float(v), float(q) if q and q != b"NA" else None))
+            yield year, rows

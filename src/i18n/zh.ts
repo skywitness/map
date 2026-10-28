@@ -76,6 +76,8 @@ export const zh = {
   /** 流向圖：「台灣的出口」、tooltip 的「占 12%」 */
   flowTitle: (origin: string, title: string) => `${origin}的${title}`,
   flowShare: (share: string) => `占 ${share}`,
+  /** 流向檔標了估算的夥伴（數量依單價估算，石油、天然氣與煤） */
+  flowEstimated: '數量是估算的',
   largeAirport: '大型機場',
   mediumAirport: '中型機場',
 

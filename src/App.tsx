@@ -492,6 +492,7 @@ export function App() {
             {flowText(indicator.layer, lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))} ·{' '}
             {t.flowShare(formatPercent(link.share * 100, link.share < 0.1 ? 1 : 0))} ·{' '}
             {indicator.timeAxis?.year(flows.year) ?? flows.year}
+            {link.estimated && ` · ${t.flowEstimated}`}
           </div>
         </>
       );

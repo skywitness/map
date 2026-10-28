@@ -27,6 +27,8 @@ export interface FlowLink {
   value: number;
   /** 占該國對所有夥伴總額的比例（0–1） */
   share: number;
+  /** 數量是估算的（流向檔標了估算） */
+  estimated?: boolean;
 }
 
 /** 一個國家某年的出口對象或進口來源 */
@@ -56,7 +58,12 @@ export function flowSelection(file: FlowFile, origin: string, direction: FlowLay
     direction: resolved,
     year: file.year,
     total: total * scale,
-    links: partners.map(([iso3, v]) => ({ iso3, value: v * scale, share: total > 0 ? v / total : 0 })),
+    links: partners.map(([iso3, v, est]) => ({
+      iso3,
+      value: v * scale,
+      share: total > 0 ? v / total : 0,
+      ...(est ? { estimated: true } : {}),
+    })),
   };
 }
 
