@@ -145,6 +145,16 @@ export const SPACE_GRADIENT: [number, string][] = [
   [1, '#050a14'],
 ];
 
+/**
+ * 淺色介面時地球儀外面改成很淡的灰藍（2026-10-28）：深藍夜空在淺色頁面上是一大塊深色框，跟介面不協調。
+ * 深色介面、匯出圖片、分享預覽圖照用上面的深藍夜空
+ */
+export const SPACE_GRADIENT_LIGHT: [number, string][] = [
+  [0, '#f2f5f9'],
+  [0.55, '#e3e9f1'],
+  [1, '#d3dce8'],
+];
+
 export interface MapTokens extends Tokens {
   /** 類別圖（kind: 'categorical'）的顏色，依序取用，最多 8 類；超過的要併到「其他」 */
   categorical: string[];

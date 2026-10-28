@@ -29,7 +29,7 @@ import {
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
-import { MAP_TOKENS, SPACE_GRADIENT, TOKENS, type Tokens } from '../theme/tokens';
+import { MAP_TOKENS, SPACE_GRADIENT, SPACE_GRADIENT_LIGHT, TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
 import { fetchJson } from '../lib/data';
 import { countryName, type CountryTable } from '../lib/countries';
@@ -644,7 +644,18 @@ const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: 
 const NO_OVERLAYS: OverlayLayer[] = [];
 const NO_PLACES: [string, [number, number]][] = [];
 
-const SPACE_BACKGROUND = `radial-gradient(circle at 50% 50%, ${SPACE_GRADIENT.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+const spaceBackground = (stops: [number, string][]) =>
+  `radial-gradient(circle at 50% 50%, ${stops.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+const SPACE_BACKGROUND = spaceBackground(SPACE_GRADIENT);
+const SPACE_BACKGROUND_LIGHT = spaceBackground(SPACE_GRADIENT_LIGHT);
+/** 3D 傾斜時地平線以上的天空：深藍夜空（style.ts 的 sky），淺色介面時跟著 SPACE_GRADIENT_LIGHT */
+const LIGHT_SKY = { 'sky-color': '#dfe6ef', 'fog-color': '#dfe6ef' };
+const DARK_SKY = { 'sky-color': '#0c1830', 'fog-color': '#6fa3e0' };
+/**
+ * 彩色地形上有資料圖層的主題，海改成低彩度的藍（原本 #9ebdff 比資料的顏色還搶眼）；純地圖、地形圖維持原本的海。
+ * OKLab 色差（×100）跟無資料的灰 10.2、類別圖的淡紫 12.9、最淺的分級色 18.1，紅綠色盲模擬下都 ≥ 9
+ */
+const CALM_SEA = '#98b1d6';
 
 /** 側欄放的標記（PanelExtraProps.setMarks）與游標的對蹠點（主題的 pointer 的 mark） */
 const MARKS_SOURCE = 'map-marks';
@@ -885,6 +896,8 @@ export function WorldMap(props: WorldMapProps) {
     [tinyCollection],
   );
 
+  /** 換過海的顏色（CALM_SEA）後的背景色；載入時暫時換成海的顏色、之後換回來時用它（installDataLayers） */
+  const backgroundPaintRef = useRef<unknown>(null);
   /** 世界視角的湖泊（geo/lakes-110m.json，約 3 KB）；切換底圖時新樣式直接用 */
   const lakesRef = useRef<GeoJSON.FeatureCollection | null>(null);
   useEffect(() => {
@@ -994,7 +1007,8 @@ export function WorldMap(props: WorldMapProps) {
         m.off('idle', restore);
         // 圖磚到齊前又換了底圖：新的樣式自己會換回來，不要把舊樣式的陸地顏色套上去
         if (seaTokenRef.current === token && m.getLayer(background.id)) {
-          m.setPaintProperty(background.id, 'background-color', land);
+          // 海的顏色換過（CALM_SEA）就用換過的
+          m.setPaintProperty(background.id, 'background-color', backgroundPaintRef.current ?? land);
         }
       };
       // 地圖拿掉時（換到排名表）由建立地圖的 effect 清掉，不然 10 秒後會對已經拿掉的地圖動手
@@ -1505,6 +1519,33 @@ export function WorldMap(props: WorldMapProps) {
       cancelled = true;
     };
   }, [revision, flagsOn, flags, tinyCollection]);
+
+  // 海的顏色：彩色地形上有資料圖層的主題用 CALM_SEA（水域、湖泊、世界視角的背景、蓋住地形陰影的水域）
+  const calmSea = basemap.id === 'terrain' && indicator.layer.kind !== 'none' && indicator.layer.kind !== 'terrain';
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const style = map.getStyle();
+    const world = worldColors(style);
+    if (!world) return;
+    const sea = calmSea ? CALM_SEA : world.sea;
+    for (const l of style.layers) {
+      const water = l.type === 'fill' && ((l as { 'source-layer'?: string })['source-layer'] === 'water' || l.id === 'base-lakes');
+      if (water) map.setPaintProperty(l.id, 'fill-color', sea);
+    }
+    const background = style.layers.find((l) => l.type === 'background');
+    if (background) {
+      backgroundPaintRef.current = ['step', ['zoom'], sea, LAND_UNTIL, world.land];
+      map.setPaintProperty(background.id, 'background-color', backgroundPaintRef.current);
+    }
+  }, [revision, calmSea]);
+
+  // 3D 傾斜時的天空跟著介面深淺色（地球儀外面是 CSS 的背景）
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    map.setSky({ ...map.getSky(), ...(tokens.mode === 'light' ? LIGHT_SKY : DARK_SKY) });
+  }, [revision, tokens.mode]);
 
   // 國界與選取外框的顏色：深色底圖或夜色底上用淺色，其他用深色（跟 dataLayers 一樣）
   const nightLook = basemap.dark || backdrop !== null;
@@ -2177,7 +2218,7 @@ export function WorldMap(props: WorldMapProps) {
       <div
         ref={mapNodeRef}
         className="map-canvas"
-        style={{ background: SPACE_BACKGROUND }}
+        style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
         role="img"
         aria-label={ariaLabel}
       />
