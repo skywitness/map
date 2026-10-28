@@ -3187,6 +3187,205 @@ kbd {
   color: var(--ink-muted);
 }
 
+/* ── 時刻的控制（時刻主題：晝夜與季節，MomentControl.tsx）：一行放得下播放、一天／一年、拉桿、日期時間、現在 ── */
+.moment-control {
+  gap: 10px;
+}
+
+.moment-mode {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--grid);
+  gap: 2px;
+}
+
+.moment-mode .segment {
+  padding: 4px 9px;
+  font-size: 13px;
+}
+
+.moment-ticks .moment-season {
+  transform: translateX(-50%);
+}
+
+/* 手機用的一天／一年切換鈕與短日期：寬螢幕不顯示 */
+.moment-mode-chip,
+.moment-day-short {
+  display: none;
+}
+
+.moment-mode-chip {
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--grid);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 春分、夏至…都不在頭尾，刻度一律置中（蓋過 .time-ticks 頭尾靠邊的規則） */
+.moment-ticks span.moment-season:first-child,
+.moment-ticks span.moment-season:last-child {
+  transform: translateX(-50%);
+}
+
+/* 日期與時間：點一下開瀏覽器的日期選擇器（透明的 input 蓋在上面） */
+.moment-when {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 6px;
+  align-items: baseline;
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.moment-when:hover,
+.moment-when:focus-within {
+  background: var(--grid);
+}
+
+.moment-when:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.moment-day {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.moment-clock {
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.moment-zone {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.moment-date {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+
+.moment-now {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 跟著現在走時：按下的樣子，前面一個小綠點 */
+.moment-now.is-active {
+  border-color: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.moment-now.is-active::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #2e9e58;
+  vertical-align: 1px;
+}
+
+/* 播放時地圖上的日期時間（時刻主題）比年份長，字小一點 */
+.map-year.is-moment {
+  font-size: 34px;
+}
+
+/* tooltip 裡主題自己加的第二行起，不再畫分隔線 */
+.tt-hint.is-next {
+  margin-top: 2px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* 晝夜與季節的側欄：選定那一天、四個節氣 */
+.daylight-today {
+  margin: 12px 0 0;
+}
+
+.daylight-today dt {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.daylight-today dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.daylight-seasons,
+.daylight-polar {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.daylight-seasons {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: baseline;
+}
+
+/* 每一列的三欄（名稱、日期、白天長度）對齊成同一張表；「一年中白天最長」寫在白天長度下面 */
+.daylight-seasons li {
+  display: contents;
+}
+
+.daylight-seasons .stat-meta {
+  grid-column: 3;
+  margin-top: -2px;
+}
+
+.daylight-season-name {
+  color: var(--ink-secondary);
+}
+
+.daylight-polar li {
+  padding: 3px 0;
+}
+
 /* ── 頁尾：來源一段、主題說明（先露兩行）、免責聲明 ── */
 .footer {
   display: grid;
@@ -3307,6 +3506,44 @@ kbd {
   .time-year {
     min-width: 0;
     font-size: 18px;
+  }
+
+  /* 時刻的控制在手機上：時區、刻度的字收起來，拉桿才放得下（375px 寬一行） */
+  .moment-control {
+    gap: 6px;
+  }
+
+  .moment-mode .segment {
+    padding: 4px 7px;
+  }
+
+  .moment-when {
+    padding: 2px 4px;
+    column-gap: 4px;
+  }
+
+  .moment-zone {
+    display: none;
+  }
+
+  .moment-day {
+    font-size: 13px;
+  }
+
+  .moment-clock {
+    font-size: 16px;
+  }
+
+  .moment-now {
+    padding: 0 9px;
+  }
+
+  .moment-ticks span.moment-season {
+    font-size: 10px;
+  }
+
+  .map-year.is-moment {
+    font-size: 24px;
   }
 
   .map-legend {
@@ -3457,5 +3694,27 @@ kbd {
 @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
   .sheet:not(.is-dragging) {
     transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+/* 時刻的控制在 520px 以下（375px 的手機）：一天／一年換成一顆切換鈕、日期寫成 6/21、刻度不寫字，拉桿才放得下 */
+@media (max-width: 520px) {
+  .moment-mode,
+  .moment-day,
+  .moment-ticks {
+    display: none;
+  }
+
+  .moment-mode-chip {
+    display: inline-flex;
+  }
+
+  .moment-day-short {
+    display: inline;
+  }
+
+  .moment-control .time-track {
+    min-width: 80px;
+    padding-bottom: 0;
   }
 }

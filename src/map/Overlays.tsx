@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
-import type { LinesData, LinesOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
+import type { LinesData, LinesOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
+import { NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 
 export interface LayerVisibility {
@@ -127,7 +128,9 @@ function roundTo(value: number, scale: number): number {
 /** 一般疊加圖層目前的狀態：解析過的設定、有沒有打開、資料（還沒下載或關著沒下載時是 null） */
 export type OverlayLayer =
   | { kind: 'points'; def: PointsOverlay; visible: boolean; points: PointRecord[] | null }
-  | { kind: 'lines'; def: LinesOverlay; visible: boolean; lines: DecodedLines | null };
+  | { kind: 'lines'; def: LinesOverlay; visible: boolean; lines: DecodedLines | null }
+  /** 晝夜（時刻主題）：沒有資料檔，依時刻畫（nightLayer.ts） */
+  | { kind: 'night'; def: NightOverlay; visible: boolean };
 
 export function overlayVisible(layers: LayerVisibility, def: { id: string; hidden?: boolean }): boolean {
   return layers.extra[def.id] ?? !def.hidden;
@@ -156,11 +159,27 @@ export function interpolateStops(size: number | { stops: [number, number][] }, v
 
 /** 圖例上的一個符號 */
 export interface OverlaySwatch {
-  shape: 'line' | 'dash' | 'dot' | 'triangle' | 'shade';
+  /** fill：一塊半透明的色塊（晝夜的夜色，opacity 是它的不透明度；0 是只有外框的白天） */
+  shape: 'line' | 'dash' | 'dot' | 'triangle' | 'shade' | 'fill';
   /** 線寬或半徑（px） */
   size: number;
   color: string;
+  opacity?: number;
+  /** fill 的色塊底下墊的顏色（像地圖的陸地：淺色底圖米白、深色底圖深藍灰） */
+  base?: string;
 }
+
+/** 晝夜圖層的圖例：白天、三種曙暮光、夜晚的色塊（太陽在地平線下幾度），加上太陽直射點 */
+const NIGHT_ROWS: { label: Text }[] = [
+  { label: { zh: '白天', en: 'Day' } },
+  { label: { zh: '民用曙暮光（太陽在地平線下 0.8°–6°）', en: 'Civil twilight (sun 0.8°–6° below the horizon)' } },
+  { label: { zh: '航海曙暮光（6°–12°）', en: 'Nautical twilight (6°–12°)' } },
+  { label: { zh: '天文曙暮光（12°–18°）', en: 'Astronomical twilight (12°–18°)' } },
+  { label: { zh: '夜晚（18° 以下）', en: 'Night (more than 18°)' } },
+];
+const NIGHT_TITLE: Text = { zh: '晝夜與晨昏', en: 'Day, twilight and night' };
+/** 夜色色塊底下墊的顏色：彩色地形的陸地、深藍底圖的陸地 */
+const NIGHT_BASE = { light: '#ece6d6', dark: '#33435a' };
 
 /** 一般疊加圖層的圖例：開關那一列的符號，加上打開時下面的分級說明（顏色分級、大小） */
 export interface OverlayKey {
@@ -177,6 +196,25 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
  * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
  */
 export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
+  if (o.kind === 'night') {
+    const color = (darkMap ? NIGHT_LOOK.dark : NIGHT_LOOK.light).color;
+    const alphas = [0, ...nightAlphas(darkMap)];
+    const base = darkMap ? NIGHT_BASE.dark : NIGHT_BASE.light;
+    return {
+      swatch: { shape: 'fill', size: 5, color, opacity: alphas[4], base },
+      label: o.def.label,
+      details: [
+        {
+          title: tr(NIGHT_TITLE),
+          layout: 'rows',
+          rows: [
+            ...NIGHT_ROWS.map((r, i) => ({ shape: 'fill' as const, size: 5, color, opacity: alphas[i], base, label: tr(r.label) })),
+            { shape: 'dot' as const, size: 4.5, color: SUN_COLOR, label: o.def.sunLabel },
+          ],
+        },
+      ],
+    };
+  }
   if (o.kind === 'lines') {
     const { def } = o;
     const classes = typeof def.color === 'string' ? null : def.color.classes;
@@ -417,6 +455,15 @@ function Swatch({ swatch }: { swatch: OverlaySwatch }) {
         ) : (
           <polygon points={trianglePoints(w / 2, h / 2, r)} fill={color} stroke="#ffffff" strokeWidth={0.8} />
         )}
+      </svg>
+    );
+  }
+  if (shape === 'fill') {
+    // 夜色的色塊：畫在跟地圖一樣的淺色（或深色）底上，透明度跟地圖一樣；白天只有外框
+    return (
+      <svg width="18" height="10" aria-hidden="true">
+        <rect x="2" y="0.5" width="14" height="9" rx="2" fill={swatch.base ?? '#ece6d6'} stroke="var(--grid)" strokeWidth="1" />
+        <rect x="2" y="0.5" width="14" height="9" rx="2" fill={color} fillOpacity={swatch.opacity ?? 1} />
       </svg>
     );
   }
