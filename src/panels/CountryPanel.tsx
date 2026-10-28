@@ -98,7 +98,8 @@ export function CountryPanel(props: CountryPanelProps) {
     !topic.indicators.slice(0, i).some((other) => shown(other) && other.file === ind.file && !ind.derive);
   // 主題或指標寫明這個國家為什麼沒有值（台灣的外交裡的台灣、護照主題的本國護照、與美國的一致度裡的美國）時，
   // 用它取代「無資料」
-  const reason = (ind: Indicator) => missingReason(topic, ind, item, iso3);
+  const reason = (ind: Indicator) =>
+    missingReason(topic, ind, item, iso3, allData[topic.indicators.findIndex((i) => i.id === ind.id)], lang);
   // 各子項目自己的單位與格式（itemFormats）、分級門檻：卡片與折線圖用目前子項目解析過的指標（forItem）
   const resolved = (ind: Indicator) => forItem(ind, itemFor(topic, ind, item));
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[resolved(ind), i] as const] : [])).map(([ind, i]) => {

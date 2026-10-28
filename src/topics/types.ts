@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { Localized, Text } from '../i18n/lang';
+import type { Lang, Localized, Text } from '../i18n/lang';
 import type { Tokens } from '../theme/tokens';
 
 export type { Text };
@@ -95,9 +95,12 @@ export interface CategoryDef {
   label: Text;
   /**
    * 這一類自己的顏色：類別本身就是顏色時用（國旗的主要顏色：紅色那一類畫紅色），其他類別圖不要用，
-   * 一般的類別色要跟底圖、彼此分得開（見 categories.ts）
+   * 一般的類別色要跟底圖、彼此分得開（見 categories.ts）。例外是 ordinal 類別圖裡不在強弱順序上的類別
+   * （法定年齡的「禁止」「沒有規定」用灰色），有自己顏色的類別不占循序色階
    */
   color?: string;
+  /** 代碼 value 到 max（含）都算這一類（2026-10-28 起）：例如「7–9 歲」一類，資料檔照樣寫實際的歲數 */
+  max?: number;
 }
 
 /**
@@ -291,10 +294,14 @@ export function missingReason(
   indicator: Pick<Indicator, 'noValue' | 'file' | 'coverage' | 'missing'>,
   item: string | null,
   iso3: string,
+  data?: Pick<IndicatorData, 'noValue' | 'noValueEn'> | null,
+  lang?: Lang,
 ): string | undefined {
   const self = item === iso3 && usesDimension(indicator) ? topic.dimension?.selfLabel : undefined;
   const outside = indicator.coverage && !indicator.coverage.countries.includes(iso3) ? indicator.coverage.reason : undefined;
-  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? outside ?? indicator.missing;
+  // 資料檔寫的原因（pipeline 依資料決定，例如飲食的咖啡、茶、可可的「數字不可靠」）
+  const fromData = (lang === 'en' ? data?.noValueEn : data?.noValue)?.[iso3];
+  return indicator.noValue?.[iso3] ?? topic.noValue?.[iso3] ?? self ?? fromData ?? outside ?? indicator.missing;
 }
 
 /**
@@ -901,6 +908,13 @@ export interface IndicatorData {
   hints?: Record<string, string>;
   /** hints 的英文版 */
   hintsEn?: Record<string, string>;
+  /**
+   * 沒有值的原因（key 為 ISO alpha-3），取代 tooltip 與側欄的「無資料」（missingReason()，排在指標、主題的 noValue 後面）。
+   * 原因依資料而定、主題裡寫不出來時用：飲食的咖啡、茶、可可拿掉明顯不合理的年份，寫「數字不可靠」（2026-10-28 起）
+   */
+  noValue?: Record<string, string>;
+  /** noValue 的英文版 */
+  noValueEn?: Record<string, string>;
   /**
    * 普查、調查年份零散的指標：某年沒有資料時，改用該國 latestWithin 年內最近一年的值，
    * 地圖、tooltip、排名表、側欄都會標出實際的資料年份（見 panels/stats.ts 的 latestAt）。

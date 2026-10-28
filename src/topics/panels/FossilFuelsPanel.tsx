@@ -71,7 +71,7 @@ const TEXT = defineMessages({
     consumption: '消費量',
     selfSufficiency: '自給率',
     trade: '進口／出口',
-    fuelsNote: '石油：千桶/日；天然氣：十億立方公尺；煤：百萬公噸（EIA）。自給率是產量 ÷ 消費量，石油的產量含天然氣液。',
+    fuelsNote: '石油：千桶/日；天然氣：十億立方公尺；煤：百萬公噸（EIA）。石油的產量是原油；自給率是產量 ÷ 消費量，石油的分子另外含天然氣液與其他液體。',
     mixTitle: '初級能源結構',
     mixAria: (country: string) => `${country}歷年各種初級能源消費的堆疊面積圖`,
     mixYear: (year: number) => `${year} 年初級能源消費`,
@@ -112,7 +112,7 @@ const TEXT = defineMessages({
     selfSufficiency: 'Self-sufficiency',
     trade: 'Imports / exports',
     fuelsNote:
-      'Oil: thousand barrels per day; gas: billion cubic metres; coal: million tonnes (EIA). Self-sufficiency is production divided by consumption; oil production includes natural gas liquids.',
+      'Oil: thousand barrels per day; gas: billion cubic metres; coal: million tonnes (EIA). Oil production is crude oil; self-sufficiency is production divided by consumption, and for oil the numerator also includes natural gas liquids and other liquids.',
     mixTitle: 'Primary energy mix',
     mixAria: (country) => `Stacked area chart of primary energy consumption by source in ${country} over time`,
     mixYear: (year) => `Primary energy consumption, ${year}`,
@@ -184,7 +184,8 @@ export default function FossilFuelsPanel(props: PanelExtraProps) {
   const { data: detail } = useJson<FossilDetail>(`topics/${topic.id}/countries/${iso3}.json`);
   const countries = useJson<CountryTable>('countries.json').data;
   const files = useMemo(
-    () => FUELS.flatMap((f) => [`topics/${topic.id}/production/${f}.json`, `topics/${topic.id}/consumption/${f}.json`]),
+    () =>
+      FUELS.flatMap((f) => ['production', 'consumption', 'self-sufficiency'].map((k) => `topics/${topic.id}/${k}/${f}.json`)),
     [topic.id],
   );
   const volumes = useJsonMany<IndicatorData>(files);
@@ -206,12 +207,14 @@ export default function FossilFuelsPanel(props: PanelExtraProps) {
   }, [detail, year, tokens, lang]);
 
   const fuelRows = FUELS.map((fuel, i) => {
-    const prod = valueAt(volumes[i * 2], iso3, year);
-    const cons = valueAt(volumes[i * 2 + 1], iso3, year);
+    const prod = valueAt(volumes[i * 3], iso3, year);
+    const cons = valueAt(volumes[i * 3 + 1], iso3, year);
+    // 自給率用指標檔（石油的分子含天然氣液與其他液體，不是表上的原油產量）
+    const ratio = valueAt(volumes[i * 3 + 2], iso3, year);
     const trade = detail?.eiaTrade;
     const imp = fuel === 'oil' ? null : seriesAt(trade?.years, trade?.[`${fuel}-import`], year);
     const exp = fuel === 'oil' ? null : seriesAt(trade?.years, trade?.[`${fuel}-export`], year);
-    return { fuel, prod, cons, ratio: prod != null && cons ? (prod / cons) * 100 : null, imp, exp };
+    return { fuel, prod, cons, ratio, imp, exp };
   });
   const hasFuels = fuelRows.some((r) => r.prod != null || r.cons != null);
 

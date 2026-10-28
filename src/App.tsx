@@ -506,7 +506,7 @@ export function App() {
     return (
       <>
         <div className="tt-value">
-          {v !== undefined ? indicator.format(v, valueYear ?? year) : (missingReason(topic, indicator, item, iso3) ?? t.noData)}
+          {v !== undefined ? indicator.format(v, valueYear ?? year) : (missingReason(topic, indicator, item, iso3, data, lang) ?? t.noData)}
           {rank !== undefined && <span className="tt-rank">{t.rank(rank, values.size)}</span>}
         </div>
         <div className="tt-label">

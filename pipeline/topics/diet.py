@@ -9,6 +9,9 @@
   另外在附註附上農業部《糧食供需年報》同一年的數字對照。
 - 「China」(351) 是大陸＋港＋澳＋台的合計，faostat.rows() 已經排除，中國用「China, mainland」。
 - 營養不足盛行率（糧食安全指標）是三年平均，標在中間那一年；FAO 對低於 2.5% 的只公布「<2.5」，記成 0。
+- 咖啡、茶、可可（2026-10-28 加）：咖啡新舊版在 2010 年差太多（各國差距中位數 46%），不接舊版，只有 2010 年起；
+  供給量是「生產＋進口－出口－庫存變化」算出來的，轉口地與產地常算出不可能的數字，超過 UNRELIABLE 門檻的年份拿掉，
+  資料檔的 noValue 寫「數字不可靠」（DESIGN.md 第 8 節第 97 點）。
 """
 from __future__ import annotations
 
@@ -29,6 +32,7 @@ class Food(NamedTuple):
     id: str
     item: int  # 糧食平衡表的品項代碼（新舊版相同，稻米例外）
     historic: int | None = None  # 舊版代碼不同時
+    new_only: bool = False  # 不接舊版，只有 NEW_FROM 年起（咖啡）
 
 
 # 地圖上可選的食物（人均供給量），與 src/topics/diet.ts 的 FOODS 對應
@@ -51,7 +55,14 @@ FOODS = [
     Food("sugar", 2909),  # 糖與甜味劑（含蜂蜜）
     Food("vegetable-oils", 2914),
     Food("alcohol", 2924),  # 酒類，以飲料重量計
+    Food("coffee", 2630, new_only=True),  # 咖啡與製品，以生豆計
+    Food("tea", 2635),  # 茶（含瑪黛茶），以乾茶葉計
+    Food("cocoa", 2633),  # 可可豆與製品，以可可豆計
 ]
+
+# 每人每年超過這個量（公斤）的年份「數字不可靠」，不畫（使用者 2026-10-28 選的門檻，DESIGN.md 第 8 節第 97 點）。
+# 實際喝得最多的國家：咖啡芬蘭約 12 公斤、茶土耳其約 3–4 公斤、瑪黛茶烏拉圭約 9 公斤；可可瑞士等約 5 公斤
+UNRELIABLE = {"coffee": 16.5, "tea": 10.0, "cocoa": 6.5}
 
 # 側欄的熱量來源：糧食平衡表的大類合併成 8 類，堆疊由下而上（動物性在下面）。
 # 「其他」= 總熱量 − 這 8 類：豆類、堅果、油料作物、酒類、咖啡茶等刺激品、香料與其他
@@ -116,12 +127,15 @@ def build() -> None:
 
     print("  讀取糧食平衡表（新版 2010 年起、舊版 1961–2013）…")
     wanted = GROUP_ITEMS | {ANIMAL} | {f.item for f in FOODS} | {f.historic for f in FOODS if f.historic}
+    NEW_ONLY = {f.item for f in FOODS if f.new_only}  # noqa: N806
     # (element, item, area) -> {year: value}；舊版只取 2009 年以前，新版 2010 年起
     data: dict[tuple[int, int, str], dict[int, float]] = defaultdict(dict)
     covered: dict[str, set[str]] = {"FBSH": set(), "FBS": set()}
     for dataset in ("FBSH", "FBS"):
         for r in faostat.rows(dataset, {KCAL, PROTEIN, FAT, KG}, wanted):
             if (dataset == "FBS") != (r.year >= NEW_FROM):
+                continue
+            if dataset == "FBSH" and r.item in NEW_ONLY:
                 continue
             item = RICE_NEW if r.item == RICE_OLD else r.item
             value = r.value
@@ -149,10 +163,36 @@ def build() -> None:
     def fbs_file(
         key: str, unit: str, series: dict[str, dict[int, float]], digits: int,
         moa: tuple[str, str] | None, fao_unit: tuple[str, str],
+        file_years: list[int] | None = None, unreliable: float | None = None,
     ) -> dict:
+        span = file_years or years
         world = series.get("WLD", {})
-        notes = {a: OLD_ONLY_NOTE[0] for a in old_only if a in series}
-        notes_en = {a: OLD_ONLY_NOTE[1] for a in old_only if a in series}
+        new_only = file_years is not None and file_years[0] >= NEW_FROM
+        notes = {} if new_only else {a: OLD_ONLY_NOTE[0] for a in old_only if a in series}
+        notes_en = {} if new_only else {a: OLD_ONLY_NOTE[1] for a in old_only if a in series}
+        extra: dict = {} if new_only else {"methodBreak": NEW_FROM}
+        if unreliable is not None:
+            series, flagged = _drop_unreliable(series, unreliable)
+            no_value, no_value_en = {}, {}
+            for a, dropped in flagged.items():
+                peak = max(dropped.values())
+                span_en = _year_ranges(sorted(dropped))
+                span_zh = span_en.replace(", ", "、") + " 年"
+                no_value[a] = f"數字不可靠（{span_zh}）"
+                no_value_en[a] = f"Unreliable figure ({span_en})"
+                notes[a] = (
+                    f"FAOSTAT 算出的供給量明顯不合理（{span_zh}，最高每人每年 {peak:,.1f} 公斤，超過 {unreliable:g} 公斤），不畫、不排名："
+                    "供給量是生產加進口、減出口與庫存變化算出來的，轉口多的地方與產地的數字會遠超過實際喝的量。"
+                    + (f"{notes[a]}" if a in notes else "")
+                )
+                notes_en[a] = (
+                    f"FAOSTAT's supply figure is implausible ({span_en}, up to {peak:,.1f} kg per person a year, above {unreliable:g} kg), "
+                    "so it is not shown or ranked: supply is production plus imports minus exports and stock changes, which "
+                    "far exceeds actual consumption in re-export hubs and producing countries."
+                    + (f" {notes_en[a]}" if a in notes_en else "")
+                )
+            extra["noValue"], extra["noValueEn"] = no_value, no_value_en
+            print(f"  {key}：數字不可靠 {len(flagged)} 國：" + "；".join(f"{a} {_year_ranges(sorted(d))}" for a, d in sorted(flagged.items())))
         if moa and "TWN" in series:
             fao = series["TWN"].get(MOA_YEAR)
             fao_text = f"{fao:,.{digits}f}" if fao is not None else None
@@ -163,10 +203,10 @@ def build() -> None:
                 f"; FAO: {fao_text}{fao_unit[1]}" if fao_text else ""
             )
         return indicator_file(
-            key, unit, years,
-            {a: to_series(s, years, digits) for a, s in series.items() if a != "WLD"},
-            aggregates={"WLD": to_series(world, years, digits)},
-            methodBreak=NEW_FROM,
+            key, unit, span,
+            {a: to_series(s, span, digits) for a, s in series.items() if a != "WLD"},
+            aggregates={"WLD": to_series(world, span, digits)},
+            **extra,
             notes=notes,
             notesEn=notes_en,
         )
@@ -190,7 +230,11 @@ def build() -> None:
             note = (f"{kg} 公斤" + (f"（{zh}）" if zh else ""), f"{kg} kg" + (f" ({en})" if en else ""))
         write_json(
             out / "supply" / f"{food.id}.json",
-            fbs_file(f"supply/{food.id}", "公斤/人/年", by_area(KG, food.item), 1, note, KG_UNIT),
+            fbs_file(
+                f"supply/{food.id}", "公斤/人/年", by_area(KG, food.item), 2 if food.id in UNRELIABLE else 1, note, KG_UNIT,
+                file_years=[y for y in years if y >= NEW_FROM] if food.new_only else None,
+                unreliable=UNRELIABLE.get(food.id),
+            ),
         )
 
     # 側欄：各國每年各類食物提供的熱量
@@ -257,6 +301,29 @@ BELOW_NOTE = (
     "標成「< 2.5%」的年份，FAO 只公布低於 2.5%，檔案裡記成 0",
     "Years shown as “< 2.5%” are reported by FAO only as below 2.5% and stored as 0",
 )
+
+
+def _year_ranges(years: list[int]) -> str:
+    """[2010, 2011, 2012, 2019] → "2010–2012, 2019"（連續的年份寫成一段）"""
+    parts, start = [], years[0]
+    for prev, y in zip(years, years[1:] + [None]):
+        if y is None or y != prev + 1:
+            parts.append(str(start) if start == prev else f"{start}–{prev}")
+            start = y
+    return ", ".join(parts)
+
+
+def _drop_unreliable(
+    series: dict[str, dict[int, float]], limit: float
+) -> tuple[dict[str, dict[int, float]], dict[str, dict[int, float]]]:
+    """拿掉超過 limit 的年份：(剩下的, {國家: {年: 拿掉的值}})。世界合計不動。"""
+    kept, flagged = {}, {}
+    for a, s in series.items():
+        bad = {y: v for y, v in s.items() if v > limit} if a != "WLD" else {}
+        kept[a] = {y: v for y, v in s.items() if y not in bad}
+        if bad:
+            flagged[a] = bad
+    return kept, flagged
 
 
 def _sum(values) -> float | None:
