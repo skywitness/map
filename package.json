@@ -4,8 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node scripts/topic-catalog.mjs && vite",
+    "catalog": "node scripts/topic-catalog.mjs",
+    "build": "node scripts/topic-catalog.mjs && tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc",
     "check:i18n": "node scripts/check-i18n.mjs",

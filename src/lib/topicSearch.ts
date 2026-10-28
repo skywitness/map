@@ -4,7 +4,7 @@
  * 子項目就是國家的（護照的「護照」、聯合國投票的「比較對象」）不收，國家本身已經有國家搜尋。
  */
 import { TOPIC_GROUPS, TOPICS } from '../topics';
-import { dimensionOf, usesDimension, type TopicDefinition } from '../topics/types';
+import { CATALOG } from '../topics/catalog.gen';
 import type { Text } from '../i18n/lang';
 import { makeKey, normalize, scoreKey, type SearchKey } from './countrySearch';
 
@@ -32,10 +32,12 @@ function keysOf(text: Text, weight: number): SearchKey[] {
   return keys.filter((k): k is SearchKey => k !== null);
 }
 
+/** 主題、指標的名稱在主題目錄的 TopicSummary 裡，子項目在 CATALOG.items（topics/catalog.ts 的 searchItems） */
 function buildTopicIndex(): TopicEntry[] {
   const out: TopicEntry[] = [];
   const groupOf = new Map(TOPIC_GROUPS.flatMap((g) => g.topics.map((t) => [t.id, g.label] as const)));
-  const seen = new Set<string>();
+  const items = new Map<string, typeof CATALOG.items>();
+  for (const item of CATALOG.items) items.set(item.topic, [...(items.get(item.topic) ?? []), item]);
   for (const topic of TOPICS) {
     const groupLabel = groupOf.get(topic.id) ?? topic.shortTitle;
     const base = { topicTitle: topic.title, groupLabel };
@@ -54,33 +56,18 @@ function buildTopicIndex(): TopicEntry[] {
         label: ind.label,
         keys: keysOf(ind.label, 2),
       });
-      const dim = dimensionOf(topic, ind);
-      if (!dim || dim.followsSelection || !usesDimension(ind)) continue;
-      for (const option of dim.options) {
-        // 子項目是國家（聯合國投票的「比較對象」）：交給國家搜尋，打「日本」不必多一筆主題結果
-        if (/^_?[A-Z]{3}$/.test(option.id)) continue;
-        // 同一個子項目通常好幾個指標都有，只收第一個（主題預設的指標排前面的話就是它）
-        const key = `${topic.id}/${option.id}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push({
-          ...base,
-          target: { topic: topic.id, indicator: preferredIndicator(topic, option.id) ?? ind.id, item: option.id },
-          kind: 'item',
-          label: option.label,
-          keys: keysOf(option.label, 1),
-        });
-      }
+    }
+    for (const item of items.get(topic.id) ?? []) {
+      out.push({
+        ...base,
+        target: { topic: topic.id, indicator: item.indicator, item: item.item },
+        kind: 'item',
+        label: item.label,
+        keys: keysOf(item.label, 1),
+      });
     }
   }
   return out;
-}
-
-/** 選到子項目時開哪個指標：主題的預設指標有這個子項目就用它 */
-function preferredIndicator(topic: TopicDefinition, option: string): string | undefined {
-  const def = topic.indicators.find((i) => i.id === topic.defaultIndicator);
-  const dim = def && dimensionOf(topic, def);
-  return def && usesDimension(def) && dim?.options.some((o) => o.id === option) ? def.id : undefined;
 }
 
 let index: TopicEntry[] | null = null;

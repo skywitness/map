@@ -35,6 +35,39 @@ function preloadMapChunk(): Plugin {
   };
 }
 
+/**
+ * 網址指定的主題（人口以外的主題各自一個 chunk，src/topics/registry.ts）也跟首頁程式同時下載：
+ * 首頁 HTML 加一小段程式，依網址的 topic 插入那個 chunk 的 modulepreload，不必等首頁程式跑起來才發出請求
+ */
+function preloadTopicChunk(): Plugin {
+  return {
+    name: 'preload-topic-chunk',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        // registry.ts 的 TOPIC_MODULES：主題 id → 檔名（多半一樣，台灣外交的檔名是 diplomacy）
+        const registry = readFileSync('src/topics/registry.ts', 'utf8');
+        const ids = new Map([...registry.matchAll(/^\s*'?([\w-]+)'?: \(\) => import\('\.\/([\w-]+)'\)/gm)].map((m) => [m[2], m[1]]));
+        const chunks: Record<string, string> = {};
+        for (const c of Object.values(ctx.bundle ?? {})) {
+          const file = c.type === 'chunk' ? /[\\/]src[\\/]topics[\\/]([\w-]+)\.ts$/.exec(c.facadeModuleId ?? '')?.[1] : undefined;
+          const id = file && ids.get(file);
+          if (id && c.type === 'chunk') chunks[id] = `./${c.fileName}`;
+        }
+        if (Object.keys(chunks).length !== ids.size) {
+          this.warn(`preload-topic-chunk：${ids.size} 個主題只找到 ${Object.keys(chunks).length} 個 chunk`);
+        }
+        const script =
+          `(function(){var c=${JSON.stringify(chunks)};var t=new URLSearchParams(location.search).get('topic');` +
+          `if(!t||!c[t])return;var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';` +
+          `l.href=c[t];document.head.appendChild(l)})()`;
+        return [{ tag: 'script', children: script, injectTo: 'head' }];
+      },
+    },
+  };
+}
+
 /** public/data 全部內容的雜湊：service worker 的資料快取用它命名，資料一更新就換新快取 */
 function dataVersion(dir = 'public/data'): string {
   const hash = createHash('sha256');
@@ -53,6 +86,7 @@ export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     preloadMapChunk(),
+    preloadTopicChunk(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',

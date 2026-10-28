@@ -11,13 +11,12 @@ import {
 import { createPortal } from 'react-dom';
 import { tr, useLang, useT } from '../i18n';
 import type { TopicTarget } from '../lib/topicSearch';
-import { TOPIC_GROUPS, type TopicGroup } from '../topics';
+import { prefetchTopic, TOPIC_GROUPS, type TopicGroup, type TopicSummary } from '../topics';
 import { pureMap } from '../topics/map';
-import type { TopicDefinition } from '../topics/types';
 import { TopicsOverview } from './TopicsOverview';
 
 interface TopicNavProps {
-  current: TopicDefinition;
+  current: Pick<TopicSummary, 'id' | 'shortTitle'>;
   onSelect: (topicId: string) => void;
   /** 主題總覽裡選到指標或子項目時（篩選「鋰」）直接開那個指標 */
   onSelectTarget: (target: TopicTarget) => void;
@@ -200,12 +199,12 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
     } else if (e.key === 'Tab') close(false);
   };
 
-  const select = (topic: TopicDefinition) => {
+  const select = (topic: TopicSummary) => {
     close(true);
     if (topic.id !== current.id) onSelect(topic.id);
   };
 
-  const summary = (topic: TopicDefinition) =>
+  const summary = (topic: TopicSummary) =>
     t.topicSummary(
       topic.indicators.slice(0, SUMMARY_COUNT).map((ind) => tr(ind.label, lang)),
       topic.indicators.length > SUMMARY_COUNT,
@@ -281,6 +280,9 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
                   aria-checked={topic.id === current.id}
                   tabIndex={-1}
                   className="topic-item"
+                  // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
+                  onPointerEnter={() => prefetchTopic(topic.id)}
+                  onFocus={() => prefetchTopic(topic.id)}
                   onClick={() => select(topic)}
                 >
                   {/* 縮圖：scripts/topic-thumbs.mjs 產生的平面世界地圖 */}

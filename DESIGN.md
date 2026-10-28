@@ -161,7 +161,10 @@ pipeline/
 ## 4. 新增一個主題
 
 1. **資料**：在 `pipeline/topics/` 新增 `<主題>.py`，實作 `build()`，資料來源寫在 `pipeline/sources/`，用 `common.indicator_file()` 輸出；然後在 `pipeline/run.py` 的 `STEPS` 註冊。
-2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後加進 `src/topics/index.ts` 的 `TOPIC_GROUPS` 裡最接近的一類（頂列的分類選單，見 §11）。
+2. **設定**：在 `src/topics/` 新增 `<主題>.ts`，匯出一個 `TopicDefinition`（指標、圖層類型、分級門檻、格式化函式、資料來源），然後在 `src/topics/registry.ts` 的 `TOPIC_GROUP_SPECS` 裡最接近的一類加上主題的 id（頂列的分類選單，見 §11），`TOPIC_MODULES` 加一行 `<id>: () => import('./<主題>')`，再跑 `npm run catalog` 更新主題目錄（`npm run dev`、`npm run build` 也會先跑）。
+   - **每個主題的定義各自一個 chunk**（2026-10-28 改）：原本 `index.ts` 直接 import 全部主題，所有主題的說明、附註、資料來源（約 220 KB，gzip 後）都在首頁的程式裡，畫面上卻一次只用一個。現在首頁只有人口（預設主題）與純地圖，其他主題換過去才下載（一個 2–15 KB）。
+   - 頂列選單、主題總覽、主題搜尋只要名稱：`scripts/topic-catalog.mjs` 用 Vite 的 SSR 載入每個主題，產生 `src/topics/catalog.gen.ts`（主題名稱、指標名稱、搜尋用的子項目，gzip 後約 18 KB，`catalog.ts` 的 `summarize`、`searchItems`）。這個檔要跟著主題定義提交（`npm run catalog -- --check` 只比對）。
+   - `App.tsx` 的 `useTopicReady`：網址換到還沒下載的主題時（選單、搜尋、上一頁），先照舊顯示目前的主題，下載完才換過去；選單、主題總覽滑到某個主題時就先下載（`prefetchTopic`）。第一個畫面在 `main.tsx` 等網址的主題下載完才畫；`vite.config.ts` 的 `preloadTopicChunk` 在首頁 HTML 加一小段程式，依網址的 `topic` 預載那個 chunk，跟首頁程式同時下載。
 3. 執行 `npm run data -- <主題>` 產生資料，`npm run dev` 檢查。
 4. **縮圖**：開著開發伺服器跑 `node scripts/topic-thumbs.mjs http://localhost:5173/ <主題 id>`，產生主題選單與主題總覽用的 `public/thumbs/<主題>.webp`（§11）。沒有縮圖時選單與總覽是一塊海的藍色。
 
@@ -2676,7 +2679,7 @@ pipeline/
 
 介面文字（搜尋、快捷鍵說明、抽屜、分享選單）集中在 `src/lib/strings.ts`，中英文寫在同一個檔（`defineMessages`），元件用 `useUI()` 取目前語言的那份。
 
-**主題分類選單**（`src/controls/TopicNav.tsx`，分類寫在 `src/topics/index.ts` 的 `TOPIC_GROUPS`）：
+**主題分類選單**（`src/controls/TopicNav.tsx`，分類寫在 `src/topics/registry.ts` 的 `TOPIC_GROUP_SPECS`）：
 - 主題多到 16 個以後，1280px 寬的筆電放不下一整排按鈕，最後幾個主題被擠到畫面外、又沒有捲動提示。改成「純地圖」一顆按鈕加分類：社會、經濟、國際、能源、科技與交通、地理（英文 People、Economy、Global、Energy、Tech & transport、Geography）。
 - 每個分類是一個下拉選單，列出主題名稱與前三個指標（讓人知道主題裡有什麼）。一類超過 7 個主題就分欄（最多 3 欄，`TopicNav.tsx` 的 `menuStyle`），由上往下排完一欄再排下一欄，↑↓ 的順序跟畫面一致；手機上維持一欄、捲動。目前主題所在的分類會亮起，按鈕上顯示「分類 · 主題」。
 - 分類名稱要短：中文 1024px、英文 1280px 寬時整列都放得下。

@@ -1,115 +1,68 @@
 import type { Text } from '../i18n';
-import { agriculture } from './agriculture';
-import { aid } from './aid';
-import { ai } from './ai';
-import { airQuality } from './air-quality';
-import { chainStores } from './chain-stores';
-import { cities } from './cities';
-import { climate } from './climate';
-import { conflict } from './conflict';
-import { daylight } from './daylight';
-import { crime } from './crime';
-import { democracy } from './democracy';
-import { developers } from './developers';
-import { diet } from './diet';
-import { digital } from './digital';
-import { diplomacy } from './diplomacy';
-import { disease } from './disease';
-import { earthquakes } from './earthquakes';
-import { eclipses } from './eclipses';
-import { education } from './education';
-import { employment } from './employment';
-import { gender } from './gender';
-import { governance } from './governance';
-import { electricity } from './electricity';
-import { elevation } from './elevation';
-import { ev } from './ev';
-import { fertility } from './fertility';
-import { fiscal } from './fiscal';
-import { flags } from './flags';
-import { happiness } from './happiness';
-import { health } from './health';
-import { height } from './height';
-import { housePrices } from './house-prices';
-import { housing } from './housing';
-import { income } from './income';
-import { industry } from './industry';
-import { inequality } from './inequality';
-import { innovation } from './innovation';
-import { internetSpeed } from './internet-speed';
-import { language } from './language';
-import { marriage } from './marriage';
-import { migration } from './migration';
-import { minerals } from './minerals';
-import { military } from './military';
-import { nightLights } from './night-lights';
-import { nobel } from './nobel';
-import { oceans } from './oceans';
-import { olympics } from './olympics';
-import { organizations } from './organizations';
-import { passport } from './passport';
-import { pisa } from './pisa';
-import { plastic } from './plastic';
+import type { TopicSummary } from './catalog';
+import { CATALOG } from './catalog.gen';
 import { pureMap } from './map';
 import { population } from './population';
-import { powerPlants } from './power-plants';
-import { profiles } from './profiles';
-import { publications } from './publications';
-import { religion } from './religion';
-import { renewables } from './renewables';
-import { reserves } from './reserves';
-import { rivers } from './rivers';
-import { roadSafety } from './road-safety';
-import { sectors } from './sectors';
-import { shipping } from './shipping';
-import { skyscrapers } from './skyscrapers';
-import { semiconductors } from './semiconductors';
-import { stockMarket } from './stock-market';
-import { space } from './space';
-import { submarineCables } from './submarine-cables';
-import { temperature } from './temperature';
-import { taxes } from './taxes';
-import { tobaccoAlcohol } from './tobacco-alcohol';
-import { tourism } from './tourism';
-import { trade } from './trade';
-import { travel } from './travel';
-import { transport } from './transport';
-import { unVotes } from './un-votes';
-import { vaccination } from './vaccination';
-import { wages } from './wages';
-import { wealth } from './wealth';
+import { TOPIC_GROUP_SPECS, TOPIC_MODULES, topicOf } from './registry';
 import type { TopicDefinition } from './types';
-import { typhoons } from './typhoons';
-import { waterForest } from './water-forest';
-import { wildfires } from './wildfires';
-import { worldHeritage } from './world-heritage';
+
+export type { TopicSummary } from './catalog';
 
 export interface TopicGroup {
   id: string;
   label: Text;
-  topics: TopicDefinition[];
+  topics: TopicSummary[];
 }
 
-/**
- * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。
- * 新增主題時加進最接近的一類。分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
- */
-export const TOPIC_GROUPS: TopicGroup[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: [population, fertility, marriage, cities, health, disease, vaccination, height, tobaccoAlcohol, education, pisa, diet, housing, religion, inequality, gender, crime, happiness, nobel, olympics] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: [income, wages, employment, wealth, fiscal, taxes, reserves, stockMarket, housePrices, sectors, industry, agriculture, minerals, chainStores] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: [trade, migration, aid, tourism, passport, military, conflict, democracy, governance, organizations, unVotes, diplomacy] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: [electricity, powerPlants, renewables, climate, temperature, airQuality, waterForest, plastic, ev] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: [ai, semiconductors, digital, internetSpeed, developers, innovation, publications, submarineCables, space, transport, shipping, roadSafety] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: [profiles, flags, language, elevation, rivers, oceans, daylight, eclipses, earthquakes, typhoons, wildfires, nightLights, worldHeritage, skyscrapers, travel] },
-];
+/** 頂列的主題分類（registry.ts），主題只有名稱與指標名稱（主題目錄 catalog.gen.ts） */
+export const TOPIC_GROUPS: TopicGroup[] = TOPIC_GROUP_SPECS.map((g) => ({
+  id: g.id,
+  label: g.label,
+  topics: g.topics.map((id) => CATALOG.topics[id]),
+}));
 
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */
-export const TOPICS: TopicDefinition[] = [pureMap, ...TOPIC_GROUPS.flatMap((g) => g.topics)];
+export const TOPICS: TopicSummary[] = [CATALOG.topics[pureMap.id], ...TOPIC_GROUPS.flatMap((g) => g.topics)];
 
 // 開發模式下給 scripts/topic-thumbs.mjs 用（主題總覽的縮圖）：所有主題的 id
 if (import.meta.env?.DEV) (window as unknown as { __topics?: string[] }).__topics = TOPICS.map((t) => t.id);
 
-export function getTopic(id: string | null): TopicDefinition {
-  // 沒指定主題時開人口，不是排在第一個的純地圖
-  return TOPICS.find((t) => t.id === id) ?? population;
+/** 網址的主題；沒指定（或不存在）時開人口，不是排在第一個的純地圖 */
+export function topicIdOf(id: string | null): string {
+  return id && CATALOG.topics[id] ? id : population.id;
+}
+
+/** 已經下載的主題定義。人口（預設主題）與純地圖放在首頁的程式裡，其他主題各自一個 chunk（registry.ts） */
+const loaded = new Map<string, TopicDefinition>([
+  [pureMap.id, pureMap],
+  [population.id, population],
+]);
+const loading = new Map<string, Promise<TopicDefinition>>();
+
+/** 主題的定義；還沒下載時是 null（先 loadTopic） */
+export function loadedTopic(id: string | null): TopicDefinition | null {
+  return loaded.get(topicIdOf(id)) ?? null;
+}
+
+/** 下載主題的定義（一個主題約 3–15 KB，gzip 後）；同一個主題只下載一次，失敗的下次重試 */
+export function loadTopic(id: string | null): Promise<TopicDefinition> {
+  const key = topicIdOf(id);
+  const done = loaded.get(key);
+  if (done) return Promise.resolve(done);
+  let promise = loading.get(key);
+  if (!promise) {
+    promise = TOPIC_MODULES[key]().then((module) => {
+      const topic = topicOf(module, key);
+      loaded.set(key, topic);
+      return topic;
+    });
+    promise.catch(() => loading.delete(key));
+    loading.set(key, promise);
+  }
+  return promise;
+}
+
+/** 預先下載（滑到選單上的主題時），換過去就不必等 */
+export function prefetchTopic(id: string): void {
+  loadTopic(id).catch(() => {});
 }

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type RefObject } from 'react';
 import type { Topology } from 'topojson-specification';
 import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
@@ -22,7 +22,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, useUrlState } from './lib/url-state';
+import { currentHref, read as readUrlState, useUrlState, type ViewState } from './lib/url-state';
 import {
   buildGridIndex,
   gridInBox,
@@ -54,7 +54,7 @@ import { PanelSkeleton } from './panels/Skeleton';
 import { RankingTable } from './panels/RankingTable';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
 import { Sparkline } from './map/Sparkline';
-import { getTopic } from './topics';
+import { loadedTopic, loadTopic } from './topics';
 import {
   dimensionOf,
   forItem,
@@ -74,6 +74,7 @@ import {
   type PointsData,
   type RailwaysData,
   type Topic,
+  type TopicDefinition,
 } from './topics/types';
 import { initialThemeMode, useTheme } from './theme/useTheme';
 import { flagAspect, flagUrl, type FlagsFile } from './topics/flagImages';
@@ -99,16 +100,21 @@ const GEO_DETAILED = 'geo/countries-50m.json';
 
 // 第一個畫面要用的檔案，程式一載入就發出請求：不等 React 第一次 render，也不等 MapLibre 解析完。
 // 之後 useJson 拿到的是同一個請求（fetchJson 有快取）
-for (const path of ['countries.json', GEO_COARSE, initialIndicatorPath()]) {
-  if (path) fetchJson(path).catch(() => {});
-}
+for (const path of ['countries.json', GEO_COARSE]) fetchJson(path).catch(() => {});
+// 指標檔要等主題的定義（人口以外的主題各自一個 chunk，index.html 已經先預載）才知道是哪一個
+loadTopic(readUrlState().topic)
+  .then((definition) => {
+    const path = initialIndicatorPath(definition);
+    if (path) fetchJson(path).catch(() => {});
+  })
+  .catch(() => {});
 
-function initialIndicatorPath(): string | null {
+function initialIndicatorPath(definition: TopicDefinition): string | null {
   const url = readUrlState();
   // 舊網址的指標 id（indicatorAliases）先換成現在的指標與子項目
-  const state = resolveAlias(getTopic(url.topic), url);
+  const state = resolveAlias(definition, url);
   // 檔名跟語言無關，用哪個語言解析都一樣
-  const topic = localize(getTopic(state.topic), 'zh');
+  const topic = localize(definition, 'zh');
   if (topic.pure) return null;
   const chosen =
     topic.indicators.find((i) => i.id === state.indicator) ?? topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
@@ -131,14 +137,42 @@ interface Manifest {
   generatedAt: string;
 }
 
+/**
+ * 網址換到還沒下載定義的主題時（選單、搜尋、上一頁），先照舊顯示目前的主題，定義下載完再換過去
+ * （一個主題 3–15 KB；選單滑過就預先下載）。第一個畫面在 main.tsx 等網址的主題下載完才畫
+ */
+function useTopicReady(live: ViewState): ViewState {
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  const ready = loadedTopic(live.topic) !== null;
+  const shown = useRef(live);
+  if (ready) shown.current = live;
+  useEffect(() => {
+    if (ready) return;
+    let cancelled = false;
+    // 下載失敗（離線又沒有快取）時留在目前的主題
+    loadTopic(live.topic).then(
+      () => !cancelled && rerender(),
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, live.topic]);
+  return shown.current;
+}
+
 export function App() {
   const { tokens, toggle: toggleTheme } = useTheme();
-  const [urlState, update] = useUrlState();
+  const [liveUrlState, update] = useUrlState();
+  const urlState = useTopicReady(liveUrlState);
+  // 第一個畫面時網址的主題下載失敗（main.tsx 不擋）就開預設的主題
+  const definition = loadedTopic(urlState.topic) ?? loadedTopic(null)!;
   // 舊網址的指標 id（例如氣候主題的 co2-per-capita）換成現在的指標與子項目，網址也改寫成新的
-  const state = resolveAlias(getTopic(urlState.topic), urlState);
+  const state = resolveAlias(definition, urlState);
   useEffect(() => {
-    if (state !== urlState) update({ indicator: state.indicator, item: state.item }, { replace: true });
-  }, [state, urlState, update]);
+    // 正在下載別的主題時（urlState 是舊的）不改網址
+    if (state !== urlState && urlState === liveUrlState) update({ indicator: state.indicator, item: state.item }, { replace: true });
+  }, [state, urlState, liveUrlState, update]);
   const lang = useLang();
   const t = useT();
   const online = useOnline();
@@ -148,9 +182,9 @@ export function App() {
   useFitMap(appRef);
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
-  const topic = localize(getTopic(state.topic), lang);
+  const topic = localize(definition, lang);
   // 主題自訂地點（奧運的歷史隊伍等）的名稱，排名表、tooltip、側欄的 countryName() 才查得到
-  registerPlaces(getTopic(state.topic).places);
+  registerPlaces(definition.places);
   const placeAnchors = useMemo<[string, [number, number]][]>(
     () => (topic.places ?? []).map((p) => [p.id, [p.lon, p.lat]]),
     [topic],
