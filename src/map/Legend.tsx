@@ -78,6 +78,10 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
   const binLabel = (i: number) =>
     i === 0 ? t.binBelow(labels[0]) : i === labels.length ? t.binAbove(labels[i - 1]) : t.binRange(labels[i - 1], labels[i]);
   const highlight = classes?.highlight ?? null;
+  // 「無資料」短的時候放在色階左邊（灰色色塊，字跟刻度同一行），圖例少一行；
+  // 長的（「到 2100 年都沒有日全食經過」）與網格的說明照舊另起一行
+  const noDataLabel = indicator.missing ?? t.noData;
+  const inlineNoData = !emptyKey && noDataLabel.length <= (lang === 'en' ? 9 : 4);
   return (
     <div className="legend">
       <div className="legend-head">
@@ -93,41 +97,49 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
           {note}
         </div>
       ))}
-      <div
-        className={`legend-scale${stepped ? ' is-stepped' : ''}`}
-        style={{ width: colors.length * swatchWidth }}
-      >
-        <div className="legend-swatches">
-          {colors.map((c, i) =>
-            classes && counts ? (
-              <button
-                key={c}
-                type="button"
-                className={`legend-bin${highlight !== null && highlight !== i ? ' is-faded' : ''}`}
-                style={{ background: c }}
-                aria-pressed={classes.pinned === i}
-                aria-label={t.binTitle(binLabel(i), counts[i])}
-                title={t.binTitle(binLabel(i), counts[i])}
-                onMouseEnter={() => classes.onPreview(i)}
-                onMouseLeave={() => classes.onPreview(null)}
-                onFocus={() => classes.onPreview(i)}
-                onBlur={() => classes.onPreview(null)}
-                onClick={() => classes.onPin(classes.pinned === i ? null : i)}
-              />
-            ) : (
-              <span
-                key={c}
-                style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
-              />
-            ),
-          )}
-        </div>
-        <div className="legend-ticks">
-          {labels.map((label, i) => (
-            <span key={label} style={{ left: `${((i + 1) / colors.length) * 100}%` }}>
-              {label}
-            </span>
-          ))}
+      <div className={`legend-scale-row${stepped ? ' is-stepped' : ''}`}>
+        {inlineNoData && (
+          <div className="legend-nodata-inline">
+            <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
+            {noDataLabel}
+          </div>
+        )}
+        <div
+          className={`legend-scale${stepped ? ' is-stepped' : ''}`}
+          style={{ width: colors.length * swatchWidth }}
+        >
+          <div className="legend-swatches">
+            {colors.map((c, i) =>
+              classes && counts ? (
+                <button
+                  key={c}
+                  type="button"
+                  className={`legend-bin${highlight !== null && highlight !== i ? ' is-faded' : ''}`}
+                  style={{ background: c }}
+                  aria-pressed={classes.pinned === i}
+                  aria-label={t.binTitle(binLabel(i), counts[i])}
+                  title={t.binTitle(binLabel(i), counts[i])}
+                  onMouseEnter={() => classes.onPreview(i)}
+                  onMouseLeave={() => classes.onPreview(null)}
+                  onFocus={() => classes.onPreview(i)}
+                  onBlur={() => classes.onPreview(null)}
+                  onClick={() => classes.onPin(classes.pinned === i ? null : i)}
+                />
+              ) : (
+                <span
+                  key={c}
+                  style={{ background: c, height: stepped ? ((i + 1) / colors.length) * STEP_MAX_PX : undefined }}
+                />
+              ),
+            )}
+          </div>
+          <div className="legend-ticks">
+            {labels.map((label, i) => (
+              <span key={label} style={{ left: `${((i + 1) / colors.length) * 100}%` }}>
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
       {counts && (
@@ -141,7 +153,7 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
           {emptyKey}
         </div>
       ) : (
-        <NoDataKey label={indicator.missing} />
+        !inlineNoData && <NoDataKey label={indicator.missing} />
       )}
     </div>
   );

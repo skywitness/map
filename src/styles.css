@@ -1883,6 +1883,30 @@ kbd {
   border-radius: 2px;
 }
 
+/* 「無資料」放在色階左邊（Legend.tsx，名稱短的時候）：灰色色塊跟色階同高，字跟刻度同一行；3D 的階梯色階對齊底部 */
+.legend-scale-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.legend-nodata-inline {
+  display: grid;
+  justify-items: center;
+  row-gap: 3px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.legend-nodata-inline .swatch-nodata {
+  width: 22px;
+}
+
+.legend-scale-row.is-stepped .legend-nodata-inline {
+  padding-top: 16px;
+}
+
 .legend-nodata {
   display: flex;
   align-items: center;
