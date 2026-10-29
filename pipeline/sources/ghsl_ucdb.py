@@ -153,27 +153,29 @@ def urban_centres() -> list[UrbanCentre]:
 class CountryStats:
     names: dict[str, str]  # GADM 國名 → GADM ISO
     pop: dict[str, dict[int, tuple[float, float, float]]]  # ISO → 期 → (城市, 城鎮與半密集區, 鄉村)
+    built: dict[str, dict[int, float]]  # ISO → 期 → 建物面積（km²，屋頂覆蓋的面積，城鄉加總；工作表 BU_S_km2_L1）
 
 
 def country_stats() -> CountryStats:
     with zipfile.ZipFile(_zip(STATS)) as z:
         wb = openpyxl.load_workbook(io.BytesIO(z.read(STATS_XLSX)), read_only=True, data_only=True)
-    rows = list(wb["POP_L1"].iter_rows(values_only=True))
-    header = [str(h) for h in rows[0]]
-    years = [int(h) for h in header[4:]]
-    if years != EPOCHS:
-        raise RuntimeError(f"GHS-COUNTRY-STATS 的年份不是 1975–2030 每 5 年：{years}")
     names: dict[str, str] = {}
-    parts: dict[str, dict[str, list[float]]] = {}
-    for r in rows[1:]:
-        if not r[1]:
-            continue
-        iso, name, cls = str(r[1]), str(r[2]), str(r[3])
-        names[name] = iso
-        parts.setdefault(iso, {})[cls] = [float(v or 0) for v in r[4:]]
-    pop = {
-        iso: {y: (p["UC"][i], p["UCL"][i], p["RUR"][i]) for i, y in enumerate(EPOCHS)}
-        for iso, p in parts.items()
-        if {"UC", "UCL", "RUR"} <= p.keys()
-    }
-    return CountryStats(names=names, pop=pop)
+
+    def sheet(title: str) -> dict[str, dict[str, list[float]]]:
+        """工作表 → ISO → 城鄉類別（UC、UCL、RUR）→ 各期的值"""
+        rows = list(wb[title].iter_rows(values_only=True))
+        years = [int(str(h)) for h in rows[0][4:]]
+        if years != EPOCHS:
+            raise RuntimeError(f"GHS-COUNTRY-STATS 的 {title} 年份不是 1975–2030 每 5 年：{years}")
+        parts: dict[str, dict[str, list[float]]] = {}
+        for r in rows[1:]:
+            if not r[1]:
+                continue
+            iso, name, cls = str(r[1]), str(r[2]), str(r[3])
+            names[name] = iso
+            parts.setdefault(iso, {})[cls] = [float(v or 0) for v in r[4:]]
+        return {iso: p for iso, p in parts.items() if {"UC", "UCL", "RUR"} <= p.keys()}
+
+    pop = {iso: {y: (p["UC"][i], p["UCL"][i], p["RUR"][i]) for i, y in enumerate(EPOCHS)} for iso, p in sheet("POP_L1").items()}
+    built = {iso: {y: p["UC"][i] + p["UCL"][i] + p["RUR"][i] for i, y in enumerate(EPOCHS)} for iso, p in sheet("BU_S_km2_L1").items()}
+    return CountryStats(names=names, pop=pop, built=built)
