@@ -1,5 +1,5 @@
 import { getLang, tr } from '../i18n/lang';
-import { dataUrl, fetchJson } from '../lib/data';
+import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import { decodePoints } from '../map/Overlays';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -112,7 +112,7 @@ let loading = false;
 function topOf(iso3: string, month: number): PointRecord | undefined {
   if (!top && !loading) {
     loading = true;
-    fetchJson<PointsData>(dataUrl('topics/reads/top.json')).then(
+    fetchJson<PointsData>('topics/reads/top.json').then(
       (data) => {
         top = new Map(decodePoints(data).map((p) => [`${p.c}:${p.m}`, p]));
       },
