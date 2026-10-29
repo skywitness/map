@@ -200,6 +200,8 @@ STEPS = {
     "mountains": "topics.mountains",
     # 出生的季節：UNdata 表 55 的逐月出生數（一國一頁，第一次約 156 頁）、內政部按登記的月份；約 1 分鐘
     "birth-season": "topics.birth_season",
+    # 健康平均餘命（健康主題）：WHO 的 HALE 與平均壽命（data.who.int 的整檔 CSV，GHO API 壞了），台灣手抄衛福部的數字；幾秒
+    "hale": "topics.hale",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
