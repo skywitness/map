@@ -108,6 +108,8 @@ export function useOverlays(
       const yearly = def.file.includes('{year}');
       const data = raw.get(path) ?? (yearly ? (lastYearly.get(key) ?? null) : null);
       if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
+      // 即時資料的點（PointsOverlayDef.fromLive，此刻世界的新聞熱點）：每份即時資料算一次
+      if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live) };
       if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
       const index = (data as LinesData | null)?.detail;
       const loaded = index
@@ -126,6 +128,7 @@ export function useOverlays(
 /** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
   if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === undefined) return '';
+  if (o.kind === 'points' && o.fromLive) return '';
   if (o.kind === 'classGrid' || o.kind === 'wind') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
   return overlayPath(topic, o, item, year);
 }
@@ -162,6 +165,17 @@ const lastYearly = new Map<string, unknown>();
 
 /** 每個風的圖層最近讀到的風場（useOverlays）：換月份時新的到之前照畫 */
 const lastWind = new Map<string, WindField>();
+
+/** 即時資料的點：依即時資料（重讀一次就是新的物件）與圖層 id 快取 */
+const livePointsCache = new WeakMap<object, Map<string, PointRecord[] | null>>();
+
+function livePoints(def: { id: string; fromLive?: (live: unknown) => PointRecord[] | null }, live: unknown): PointRecord[] | null {
+  if (!def.fromLive || !live || typeof live !== 'object') return null;
+  let byId = livePointsCache.get(live);
+  if (!byId) livePointsCache.set(live, (byId = new Map()));
+  if (!byId.has(def.id)) byId.set(def.id, def.fromLive(live));
+  return byId.get(def.id)!;
+}
 
 const liveGridCache = new WeakMap<object, Map<string, Float32Array | null>>();
 /** 即時網格的值：同一份即時資料、同一個圖層只算一次（6.5 萬個格點） */

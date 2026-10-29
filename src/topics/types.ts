@@ -509,6 +509,11 @@ export interface ColorClasses {
  */
 export interface PointsOverlayDef extends OverlayBase {
   kind: 'points';
+  /**
+   * 點來自主題的即時資料（2026-10-29 起，此刻世界的新聞熱點）：不讀資料檔（file 寫 ''），
+   * 每次讀到新的即時資料就用它算出點；還沒讀到時回傳 null
+   */
+  fromLive?: (live: unknown) => PointRecord[] | null;
   /** 圓點或三角形（火山）；預設圓點 */
   shape?: 'circle' | 'triangle';
   /** 半徑（px，縮放 2 的大小，放大時跟著變大）：固定值，或依數值欄位線性內插 [[值, 半徑], …] */
@@ -786,6 +791,8 @@ export interface PanelExtraProps {
   selectYear?: (year: number) => void;
   /** 時刻主題（TopicDefinition.clock）目前選的這一刻 */
   at?: ClockAt;
+  /** 主題的即時資料（TopicDefinition.live，2026-10-29 起）；還沒讀到是 null，其他主題是 undefined */
+  live?: unknown;
   /**
    * 在地圖上放幾個標記（2026-10-28 起，地球的另一邊：首都與它的對蹠點）；null 時拿掉。
    * 換國家、換主題時 App 會拿掉，側欄不必自己清
@@ -871,7 +878,16 @@ export interface TopicDefinition {
    * 資料交給在瀏覽器裡算的指標（derive 的第三個參數）與即時的網格圖層（LiveGridOverlayDef）；
    * time 是資料的時刻（UTC 毫秒），當成時刻主題的「這一刻」：標題寫到分鐘、晝夜圖層依它畫。沒有時間軸，也不能選別的時刻
    */
-  live?: { url: string; minutes: number; time: (data: unknown) => number | null };
+  live?: {
+    url: string;
+    minutes: number;
+    time: (data: unknown) => number | null;
+    /**
+     * 自己讀（2026-10-29 起，此刻世界的新聞熱點：先讀 lastupdate.txt 找到最新的檔，再讀 zip、解壓、解析）；
+     * 沒寫是 fetch(url) 的 JSON。讀不到要丟出錯誤，跟 fetch 失敗一樣處理（留著上一份，下一輪再試）
+     */
+    load?: (url: string) => Promise<unknown>;
+  };
   /**
    * tooltip 在數值與國名下面另外加的幾行（一個字串一行，跟 hints 一樣是 .tt-hint）：滑過時才算，
    * 例如晝夜與季節的「以首都台北計算：日出 05:05、日落 18:46」。at 是時刻主題目前的這一刻，其他主題是 null；

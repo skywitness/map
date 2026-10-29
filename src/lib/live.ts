@@ -13,9 +13,10 @@ export interface LiveState {
 
 const NONE: LiveState = { data: null, error: null };
 
-export function useLive(def: { url: string; minutes: number } | undefined): LiveState {
+export function useLive(def: { url: string; minutes: number; load?: (url: string) => Promise<unknown> } | undefined): LiveState {
   const url = def?.url ?? null;
   const minutes = def?.minutes ?? 0;
+  const loader = def?.load;
   const [state, setState] = useState<{ url: string | null; live: LiveState }>({ url: null, live: NONE });
 
   useEffect(() => {
@@ -26,11 +27,14 @@ export function useLive(def: { url: string; minutes: number } | undefined): Live
     const load = () => {
       window.clearTimeout(timer);
       last = Date.now();
-      fetch(url, { cache: 'no-cache' })
-        .then((res) => {
-          if (!res.ok) throw new Error(`${url} (HTTP ${res.status})`);
-          return res.json() as Promise<unknown>;
-        })
+      // 主題自己讀的（LiveDef.load，例如先讀索引再讀 zip）；其他的直接讀 JSON
+      (loader
+        ? loader(url)
+        : fetch(url, { cache: 'no-cache' }).then((res) => {
+            if (!res.ok) throw new Error(`${url} (HTTP ${res.status})`);
+            return res.json() as Promise<unknown>;
+          })
+      )
         .then(
           (data) => !cancelled && setState({ url, live: { data, error: null } }),
           (error: Error) => !cancelled && setState((s) => ({ url, live: { data: s.url === url ? s.live.data : null, error } })),
@@ -50,7 +54,7 @@ export function useLive(def: { url: string; minutes: number } | undefined): Live
       window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [url, minutes]);
+  }, [url, minutes, loader]);
 
   return state.url === url ? state.live : NONE;
 }

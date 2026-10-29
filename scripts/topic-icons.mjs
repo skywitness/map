@@ -92,6 +92,7 @@ const TOPIC_ICONS = {
   passport: 'stamp',
   military: 'shield',
   conflict: 'swords',
+  news: 'newspaper',
   empires: 'crown',
   democracy: 'vote',
   governance: 'landmark',

@@ -306,6 +306,7 @@ export function CountryPanel(props: CountryPanelProps) {
             selectYear={selectYear}
             setMarks={setMarks}
             at={at ?? undefined}
+            live={live}
           />
         </Suspense>
       )}
