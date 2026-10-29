@@ -233,6 +233,8 @@ STEPS = {
     "overseas-bases": "topics.overseas_bases",
     # 此刻世界的新聞熱點：只輸出 FIPS 10-4 → ISO 的對照表（GeoNames）；事件由瀏覽器直接讀 GDELT；不到 1 秒
     "news": "topics.news",
+    # 長途步道：OSM 的國際級、國家級步道（本機執行 map-plan 的 scripts/osm_hiking_routes.py 下載，放進 .cache/osm/）＋觀光署的國家步道；約 1 分鐘
+    "trails": "topics.trails",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
     "ewaste": "topics.ewaste",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
