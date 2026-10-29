@@ -218,11 +218,17 @@ STEPS = {
     # 國家公園：Wikidata 的國家公園點、WDI 的陸域保護區占國土；幾秒（Wikidata 第一次查要等查詢服務）
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒
-    "foods": "topics.foods",
-    "cloud-regions": "topics.cloud_regions",
-    "oldest-companies": "topics.oldest_companies",
-    "airlines": "topics.airlines",
     "cable-cars": "topics.cable_cars",
+    # 各國的特色食物：Wikidata 的起司、麵包、甜點（依原產國）；幾秒（第一次查要等查詢服務）
+    "foods": "topics.foods",
+    # 節慶：Wikidata 的節慶（依月份與種類）＋文化資產局登錄的台灣民俗；幾秒（第一次查 Wikidata 約 5 分鐘）
+    "festivals": "topics.festivals",
+    # 雲端機房的區域：AWS、Google Cloud、Azure 的區域（手工整理的事實表 sources/cloud_regions.py）；不到 1 秒
+    "cloud-regions": "topics.cloud_regions",
+    # 最古老的公司：英文維基「List of oldest companies」（固定版本）＋ Wikidata 的座標；幾秒
+    "oldest-companies": "topics.oldest_companies",
+    # 各國的航空公司：Wikidata 的客運航空公司（依總部所在國，含已停業的）；幾秒
+    "airlines": "topics.airlines",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
     "ewaste": "topics.ewaste",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
