@@ -11,11 +11,20 @@
   算出同一個定義的淨儲蓄率（`sources/dgbas_wealth.py`）。家庭收支調查的儲蓄率口徑不同、高好幾個百分點，
   放進地圖會讓台灣變成第一名，所以只列在附註。
 - 國民儲蓄率：IMF WEO 的國民儲蓄毛額占 GDP（含台灣與推估值），DataMapper 沒有這個指標，改查 SDMX API。
+- 家庭負債占 GDP（2026-10-29 擴充，製作手冊第五批 48，使用者決定只用 BIS 加台灣央行；build_household_debt() 可以單獨跑）：
+  BIS 的 total credit statistics（WS_TC，家庭與非營利團體從所有部門借的信用，市值、經斷層調整，占 GDP），季資料取每年第 4 季，
+  約 43 個經濟體。台灣用中央銀行「金融健全參考指標－家庭部門」的家庭借款／GDP（data.gov.tw 23853，2002 年起）。
+  IMF Global Debt Database 有商業使用與大量下載的限制，沒有用。
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
+import csv
+import io
+import urllib.parse
+
+from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json, year_span
 from sources import cbc_finance, dgbas, dgbas_wealth, imf, imf_fas, imf_weo_sdmx, oecd_saving, wid
+from sources.countries import from_alpha2
 
 OUT = OUT_DIR / "topics" / "wealth"
 WID_FIRST_YEAR = 1995  # WID 全球財富估計（Bajard et al.）從 1995 年開始，之前的是用長期序列往回推的
@@ -251,6 +260,7 @@ def build() -> None:
     deposits = build_deposits()
     base = build_wealth()
     build_saving()
+    build_household_debt()
     write_json(
         OUT / "manifest.json",
         {
@@ -261,3 +271,36 @@ def build() -> None:
             "taiwanDepositsPerPerson": deposits["TWN"],
         },
     )
+
+
+# ── 家庭負債 ──────────────────────────────────────────────────────────
+BIS_HOUSEHOLD_CREDIT = "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_TC/2.0/Q..H.A.M.770.A?format=csv"
+CBC_HOUSEHOLDS = ("https://www.cbc.gov.tw/public/data/opendata/financialstability/"
+                  + urllib.parse.quote("FSI-家庭部門.csv"))
+
+
+def build_household_debt() -> None:
+    path = download(BIS_HOUSEHOLD_CREDIT, "bis", "ws_tc_households.csv")
+    countries: dict[str, dict[int, float]] = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if not row["OBS_VALUE"] or not row["TIME_PERIOD"].endswith("-Q4"):
+                continue
+            if iso3 := from_alpha2(row["BORROWERS_CTY"]):  # 4T、5A、XM 這類合計會被略過
+                countries.setdefault(iso3, {})[int(row["TIME_PERIOD"][:4])] = float(row["OBS_VALUE"])
+    text = download(CBC_HOUSEHOLDS, "cbc", "fsi-households.csv").read_bytes().decode("utf-8-sig")
+    taiwan = {int(r["民國年"]) + 1911: float(r["家庭借款/GDP(比率)"]) for r in csv.DictReader(io.StringIO(text))
+              if r["家庭借款/GDP(比率)"].strip() not in ("", "-")}
+    countries["TWN"] = taiwan
+    years = year_span(countries)
+    last_tw = max(taiwan)
+    _write("household-debt", "%", years, countries, 1,
+           notes={"TWN": f"台灣不在 BIS 的資料裡，用中央銀行「金融健全參考指標」的家庭借款占 GDP（{last_tw} 年 {taiwan[last_tw]:.1f}%）；"
+                         "BIS 是家庭與非營利團體從所有部門借的信用，台灣的是家庭部門向金融機構等的借款，口徑接近但不完全相同。"},
+           notesEn={"TWN": f"Taiwan is not in the BIS data; household borrowing as a share of GDP from the central bank's financial "
+                           f"soundness indicators is used ({taiwan[last_tw]:.1f}% in {last_tw}). BIS measures credit to households and "
+                           "non-profit institutions from all sectors, a close but not identical definition."})
+    last = years[-1]
+    ranked = sorted((v[last], c) for c, v in countries.items() if last in v)
+    print(f"  家庭負債 {last} 年：最高 {ranked[-5:]}，最低 {ranked[:3]}")
+

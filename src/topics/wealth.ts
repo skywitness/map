@@ -71,6 +71,16 @@ export const wealth: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
+      name: { zh: 'BIS, total credit statistics（家庭負債）', en: 'BIS, total credit statistics (household debt)' },
+      url: 'https://data.bis.org/topics/TOTAL_CREDIT',
+      license: { zh: 'BIS 統計使用條款（可自由使用，需註明出處）', en: 'BIS terms of use for statistics (free use with attribution)' },
+    },
+    {
+      name: { zh: '中央銀行 金融健全參考指標（台灣的家庭負債）', en: 'Central Bank of the Republic of China (Taiwan), financial soundness indicators (household debt)' },
+      url: 'https://data.gov.tw/dataset/23853',
+      license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+    },
+    {
       name: {
         zh: '行政院主計總處 國民所得統計、國富統計、家庭財富分配統計、家庭收支調查',
         en: 'DGBAS (Taiwan), national accounts, national wealth, household wealth distribution and household survey statistics',
@@ -220,6 +230,19 @@ export const wealth: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
       compareWorld: true,
+    },
+    {
+      id: 'household-debt',
+      label: { zh: '家庭負債占 GDP', en: 'Household debt' },
+      description: {
+        zh: '家庭（含非營利團體）的借款占 GDP 的比例，每年年底（BIS，約 43 個經濟體）。房貸多的國家高：瑞士 123%、澳洲 114%、加拿大 100%、荷蘭 94%，南韓、台灣約 90%，阿根廷 6%、土耳其 10% 最低。台灣用中央銀行的家庭借款占 GDP，2025 年 88%。',
+        en: 'Borrowing by households (and non-profit institutions) as a share of GDP at the end of each year (BIS, about 43 economies). It is highest where mortgages are large: Switzerland 123%, Australia 114%, Canada 100%, the Netherlands 94%, South Korea and Taiwan about 90%; Argentina (6%) and Türkiye (10%) are lowest. Taiwan uses household borrowing as a share of GDP from its central bank: 88% in 2025.',
+      },
+      unit: { zh: '% GDP', en: '% of GDP' },
+      file: 'household-debt.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 40, 60, 80, 100, 120] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
     },
   ],
 };
