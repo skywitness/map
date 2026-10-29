@@ -7,13 +7,18 @@
   台灣用財政部的賦稅負擔率（含社會安全捐，依 OECD 稅收分類）。OECD 有幾國前面的年份沒有社會安全捐
   （中國 2019 年起才有，那一年跳高約 5 個百分點），附註會寫。
 - IMF 的台灣債務與收支就是財政部的數字（公共債務法、各級政府歲入歲出的口徑），範圍跟其他國家不同，附註會寫。
+- 2026-10-29 擴充（製作手冊第五批 47，使用者決定放這個主題；build_food_share() 可以單獨跑）：食物與非酒精飲料占個人實際
+  消費的比例，世界銀行國際比較計畫 ICP 2021（API 來源 90，品項 1101000，分類 AICZS；2017、2021 兩期，CC BY 4.0，有台灣）。
+  USDA ERS 的每年資料底層是商業資料庫（Oxford Economics、Euromonitor），沒有用。
 """
 from __future__ import annotations
 
+import json
 import statistics
 
-from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
+from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
 from sources import dgbas, imf, imf_revenue, mof, oecd_revenue, worldbank
+from sources.countries import to_iso3
 
 FIRST_YEAR = 1980
 TAX_LATEST_WITHIN = 1
@@ -281,6 +286,7 @@ def build() -> None:
     _weo(out, "fiscal-balance", "GGXCNL_NGDP", None, projection_from, {"TWN": balance_zh}, {"TWN": balance_en})
     _price_level(out, projection_from)
     tax_filled = _tax_revenue(out)
+    build_food_share()
 
     write_json(
         out / "manifest.json",
@@ -296,3 +302,31 @@ def build() -> None:
         },
     )
     print(f"  WEO {release}")
+
+
+ICP_FOOD = ("https://api.worldbank.org/v2/sources/90/country/all/series/1101000/classification/AICZS/time/all"
+            "?format=json&per_page=5000")
+
+
+def build_food_share() -> None:
+    """食物與非酒精飲料占個人實際消費的比例（%），ICP 2017、2021"""
+    out = OUT_DIR / "topics" / "fiscal"
+    with open(download(ICP_FOOD, "worldbank", "icp-food-share.json"), encoding="utf-8") as f:
+        data = json.load(f)
+    if data.get("pages", 1) > 1:
+        raise RuntimeError("ICP 的食物支出超過一頁，需要分頁下載")
+    series: dict[str, dict[int, float]] = {}
+    for row in data["source"]["data"]:
+        if row["value"] is None:
+            continue
+        var = {v["concept"]: v["id"] for v in row["variable"]}
+        if iso3 := to_iso3(var["Country"]):
+            series.setdefault(iso3, {})[int(var["Time"][2:])] = float(row["value"])
+    years = sorted({y for v in series.values() for y in v})
+    write_json(out / "food-share.json", indicator_file(
+        "food-share", "%", years, {c: to_series(v, years, 1) for c, v in series.items()},
+    ))
+    last = years[-1]
+    ranked = sorted((round(v[last], 1), c) for c, v in series.items() if last in v)
+    print(f"  食物支出占消費 {years}：{len(ranked)} 國，最高 {ranked[-4:]}，最低 {ranked[:3]}，台灣 {series.get('TWN', {}).get(last)}")
+

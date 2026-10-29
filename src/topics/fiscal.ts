@@ -36,6 +36,11 @@ export const fiscal: TopicDefinition = {
     },
     { name: 'World Bank, World Development Indicators', url: 'https://data.worldbank.org/', license: 'CC BY 4.0' },
     {
+      name: { zh: 'World Bank, International Comparison Program 2021（食物支出占消費）', en: 'World Bank, International Comparison Program 2021 (food share of consumption)' },
+      url: 'https://datacatalog.worldbank.org/search/dataset/0066092/international-comparison-program-2021',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '財政部 財政統計資料庫', en: 'Ministry of Finance (Taiwan), fiscal statistics database' },
       url: 'https://web02.mof.gov.tw/njswww/WebMain.aspx?sys=100&funid=defjspf2',
       license: OPEN_DATA_TW,
@@ -122,6 +127,19 @@ export const fiscal: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 25, 30, 35] } },
       format: percent,
       formatTick: percentTick,
+    },
+    {
+      id: 'food-share',
+      label: { zh: '收入有多少花在吃', en: 'Share spent on food' },
+      description: {
+        zh: '食物與非酒精飲料占個人實際消費的比例（世界銀行國際比較計畫，2017、2021 兩期）。越窮的國家越高：南蘇丹 84%、安哥拉 66%、尼泊爾 59%，奈及利亞 44%、印度 29%、中國 16%，日本 13%、台灣 12%、南韓 10%，美國 6% 最低。分母含政府提供的醫療、教育，比只算家庭支出的比例低。',
+        en: 'Food and non-alcoholic beverages as a share of individual actual consumption (World Bank International Comparison Program, 2017 and 2021). The poorer the country, the higher the share: South Sudan 84%, Angola 66%, Nepal 59%, Nigeria 44%, India 29%, China 16%, Japan 13%, Taiwan 12%, South Korea 10%, and the US lowest at 6%. The denominator includes health and education provided by the government, so shares are lower than those based on household spending alone.',
+      },
+      unit: '%',
+      file: 'food-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 30, 40, 50] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
     },
   ],
 };
