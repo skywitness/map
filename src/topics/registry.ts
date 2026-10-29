@@ -19,7 +19,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'shipping', 'logbooks', 'road-safety'] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'daylight', 'eclipses', 'antipodes', 'magnetic', 'aurora', 'earthquakes', 'plates', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'wind', 'daylight', 'eclipses', 'antipodes', 'magnetic', 'aurora', 'earthquakes', 'plates', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
 ];
 
 /**
@@ -114,6 +114,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   reads: () => import('./reads'),
   empires: () => import('./empires'),
   plates: () => import('./plates'),
+  wind: () => import('./wind'),
   earthquakes: () => import('./earthquakes'),
   typhoons: () => import('./typhoons'),
   wildfires: () => import('./wildfires'),

@@ -2603,6 +2603,64 @@ kbd {
   font-weight: 650;
 }
 
+/* 風與季風的側欄（WindPanel.tsx）：12 個月的風向（箭頭指向風吹去的方向）、穩定度與風速 */
+.wind-summary {
+  margin: 2px 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wind-table {
+  width: 100%;
+  margin-bottom: 8px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.wind-table th,
+.wind-table td {
+  padding: 3px 4px;
+  font-weight: inherit;
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.wind-table thead th {
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.wind-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wind-table tr.is-current {
+  font-weight: 650;
+}
+
+.wind-table th .eclipse-more {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.wind-arrow {
+  display: inline-block;
+  width: 1.1em;
+  margin-right: 3px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.wind-steady {
+  margin-left: 6px;
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 /* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */
 .antipode-summary {
   margin: 2px 0 4px;

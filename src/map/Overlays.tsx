@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { ClassGrid } from './classGridLayer';
-import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
+import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData, WindOverlay } from '../topics/types';
+import type { WindField } from './windLayer';
 import { NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 
@@ -138,7 +139,9 @@ export type OverlayLayer =
   /** 即時網格（此刻的極光）：值由主題的即時資料算（liveGridLayer.ts）；還沒讀到是 null */
   | { kind: 'liveGrid'; def: LiveGridOverlay; visible: boolean; values: Float32Array | null }
   /** 類別網格（氣候分區）：依年份與子項目的 PNG（classGridLayer.ts）；還沒讀到是 null */
-  | { kind: 'classGrid'; def: ClassGridOverlay; visible: boolean; grid: ClassGrid | null };
+  | { kind: 'classGrid'; def: ClassGridOverlay; visible: boolean; grid: ClassGrid | null }
+  /** 風的粒子（風與季風）：依月份的風場（windLayer.ts）；還沒讀到是 null */
+  | { kind: 'wind'; def: WindOverlay; visible: boolean; field: WindField | null };
 
 export function overlayVisible(layers: LayerVisibility, def: { id: string; hidden?: boolean }): boolean {
   return layers.extra[def.id] ?? !def.hidden;
@@ -212,6 +215,15 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
  * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
  */
 export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
+  if (o.kind === 'wind') {
+    // 粒子是一個顏色的小點：符號是一串由淡到濃的點，說明寫在下面
+    const color = darkMap ? o.def.color.dark : o.def.color.light;
+    return {
+      swatch: { shape: 'dot', size: 3, color },
+      label: o.def.label,
+      details: [{ layout: 'rows', rows: [{ shape: 'dot', size: 3, color, label: o.def.legend }] }],
+    };
+  }
   if (o.kind === 'classGrid') {
     // 依分組（A 熱帶…）一組一列小色塊，色塊墊在像地圖陸地的底色上、跟地圖一樣的不透明度
     const base = darkMap ? NIGHT_BASE.dark : NIGHT_BASE.light;

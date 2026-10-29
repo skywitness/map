@@ -344,7 +344,8 @@ export type OverlayDef =
   | LinesOverlayDef
   | NightOverlayDef
   | LiveGridOverlayDef
-  | ClassGridOverlayDef;
+  | ClassGridOverlayDef
+  | WindOverlayDef;
 
 /**
  * 晝夜（時刻主題）：依目前的時刻畫出地球的夜半邊與晨昏蒙影（民用、航海、天文曙暮光一層一層變暗），
@@ -406,6 +407,25 @@ export interface ClassGridOverlayDef {
   groups: Text[];
   /** 不透明度，預設 0.85 */
   opacity?: number;
+  hidden?: boolean;
+  indicators?: string[];
+  items?: string[];
+}
+
+/**
+ * 風的粒子動畫（2026-10-29 起，風與季風）：資料檔是 pipeline 內插到經緯度網格的風場（u、v，`map/windLayer.ts` 的
+ * WindFieldFile），地圖上是 WebGL 的自訂圖層（src/map/windLayer.ts）：幾千個粒子順著風移動、留下漸淡的尾巴。
+ */
+export interface WindOverlayDef {
+  kind: 'wind';
+  id: string;
+  label: Text;
+  /** 資料檔（相對於這個主題的資料夾），依時間軸的年份與子項目 */
+  file: (year: number, item: string | null) => string;
+  /** 粒子的顏色：淺色、深色底圖 */
+  color: { light: string; dark: string };
+  /** 圖例裡的說明（例如「粒子順著風移動，越快走得越快」） */
+  legend: Text;
   hidden?: boolean;
   indicators?: string[];
   items?: string[];
@@ -895,6 +915,7 @@ export type LinesOverlay = Localized<LinesOverlayDef>;
 export type NightOverlay = Localized<NightOverlayDef>;
 export type LiveGridOverlay = Localized<LiveGridOverlayDef>;
 export type ClassGridOverlay = Localized<ClassGridOverlayDef>;
+export type WindOverlay = Localized<WindOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,

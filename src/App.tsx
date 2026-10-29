@@ -18,6 +18,7 @@ import { indicatorCsv } from './lib/csv';
 import { derivedData } from './lib/derive';
 import { useLive } from './lib/live';
 import { loadClassGrid, type ClassGrid } from './map/classGridLayer';
+import { decodeWindField, type WindField, type WindFieldFile } from './map/windLayer';
 import { dataUrl, fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
@@ -462,7 +463,7 @@ export function App() {
   // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    if (!o || o.kind === 'night' || o.kind === 'liveGrid' || o.kind === 'classGrid') return null;
+    if (!o || o.kind === 'night' || o.kind === 'liveGrid' || o.kind === 'classGrid' || o.kind === 'wind') return null;
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;
@@ -946,7 +947,7 @@ function useOverlays(
   topic: Topic,
   indicator: Indicator,
   item: string | null,
-  /** 時間軸的年份：類別網格（kind 'classGrid'）的資料檔依它換 */
+  /** 時間軸的年份：類別網格（kind 'classGrid'）、風（kind 'wind'）的資料檔依它換 */
   year: number,
   layers: LayerVisibility,
   pure: boolean,
@@ -1013,6 +1014,13 @@ function useOverlays(
         const grid = grids.get(path) ?? grids.get(path.slice(0, path.lastIndexOf('/') + 1)) ?? null;
         return { kind: 'classGrid', def, visible, grid };
       }
+      if (def.kind === 'wind') {
+        // 換月份時新的風場還沒讀到前照畫舊的（粒子不重來）
+        const fieldFile = raw.get(path);
+        const field = fieldFile ? decodeWindField(fieldFile as WindFieldFile) : (lastWind.get(def.id) ?? null);
+        if (field) lastWind.set(def.id, field);
+        return { kind: 'wind', def, visible, field };
+      }
       // 檔名依年份換的（file 裡有 {year}，板塊漂移）：新的還沒讀到前照畫上一個年份的，播放時不閃
       const key = `${topic.id}:${def.id}`;
       const yearly = def.file.includes('{year}');
@@ -1033,10 +1041,10 @@ function useOverlays(
   return { railways, airports, overlays: result };
 }
 
-/** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格依年份與子項目 */
+/** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
   if (o.kind === 'night' || o.kind === 'liveGrid' || o.kind === undefined) return '';
-  if (o.kind === 'classGrid') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
+  if (o.kind === 'classGrid' || o.kind === 'wind') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
   return overlayPath(topic, o, item, year);
 }
 
@@ -1069,6 +1077,9 @@ function useClassGrids(paths: string[]): Map<string, ClassGrid> {
 
 /** 檔名依年份換的疊加圖層最近讀到的資料（主題:圖層 → 資料）：換年份時新的到之前照畫 */
 const lastYearly = new Map<string, unknown>();
+
+/** 每個風的圖層最近讀到的風場（useOverlays）：換月份時新的到之前照畫 */
+const lastWind = new Map<string, WindField>();
 
 const liveGridCache = new WeakMap<object, Map<string, Float32Array | null>>();
 /** 即時網格的值：同一份即時資料、同一個圖層只算一次（6.5 萬個格點） */

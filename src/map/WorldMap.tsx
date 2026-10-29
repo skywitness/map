@@ -65,6 +65,7 @@ import {
 import { applyTimeFilters, highlightLine, labelFont, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
+import { syncWind } from './windLayer';
 import { CLASS_GRID_OPACITY } from './Overlays';
 import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
@@ -1827,6 +1828,18 @@ export function WorldMap(props: WorldMapProps) {
       only: null,
     });
   }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors]);
+
+  /* ── 風的粒子（風與季風，windLayer.ts）：換月份只換風場；換底圖後重新加上（類別網格之後，畫在風速的底色上面） ── */
+  const wind = overlays.find((o) => o.kind === 'wind');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const def = wind?.def;
+    syncWind(map, def?.id ?? null, Boolean(wind?.visible), wind?.field ?? null, {
+      color: def ? (basemap.dark ? def.color.dark : def.color.light) : '#000000',
+      opacity: 0.7,
+    });
+  }, [revision, wind?.def, wind?.visible, wind?.field, basemap.dark]);
 
   /* ── 主題側欄要標出的一組線（例如滑到某條河）：跟滑鼠滑過共用同一層 ── */
   useEffect(() => {

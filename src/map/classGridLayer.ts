@@ -9,6 +9,7 @@
  * 平面地圖只到 ±85.05°（Web Mercator 的邊界）。切換底圖後新樣式沒有這個圖層，WorldMap 依 revision 重新加上。
  */
 import type { CustomLayerInterface, CustomRenderMethodInput, Map as MaplibreMap } from 'maplibre-gl';
+import { WIND_LAYER_PREFIX } from './windLayer';
 
 /** 插在國界、選取外框之前：國界、外框、疊加圖層與地名畫在上面 */
 const BEFORE = 'data-border';
@@ -334,7 +335,9 @@ export function syncClassGrid(map: MaplibreMap, id: string | null, visible: bool
     layer = new ClassGridLayer(layerId);
     layer.setGrid(grid);
     layer.setLook(look);
-    map.addLayer(layer, map.getLayer(BEFORE) ? BEFORE : undefined);
+    // 風的粒子（windLayer.ts）畫在類別網格上面：已經有的話插在它前面
+    const wind = map.getStyle().layers.find((l) => l.id.startsWith(WIND_LAYER_PREFIX))?.id;
+    map.addLayer(layer, wind ?? (map.getLayer(BEFORE) ? BEFORE : undefined));
     layers.set(map, layer);
   } else {
     layer.setGrid(grid);

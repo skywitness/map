@@ -10,7 +10,7 @@
  * fill 的線（日食的路徑環）是多邊形：最下面多一層半透明的面 `ov-<id>-fill`，滑過的那一組加深 `ov-<id>-hover-fill`。
  * 放大後下載的分區（detail）畫在另一個 source `ov-<id>~d`（圖層 `ov-<id>~d`、`ov-<id>~d-hit`…，在主檔的線下面）：
  * 移動地圖換分區時只重送分區，主檔不必重新切圖磚（河流原本每移動一次就要把三萬多段重送一次，畫面停 0.2 秒以上）。
- * 晝夜（kind 'night'）、即時網格（kind 'liveGrid'）、類別網格（kind 'classGrid'）不在這裡，見 nightLayer.ts、liveGridLayer.ts、classGridLayer.ts。
+ * 晝夜（kind 'night'）、即時網格（kind 'liveGrid'）、類別網格（kind 'classGrid'）、風（kind 'wind'）不在這裡，見 nightLayer.ts、liveGridLayer.ts、classGridLayer.ts、windLayer.ts。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type {
@@ -27,8 +27,9 @@ import type { DecodedLines, OverlayLayer } from './Overlays';
 import { isNameLayer } from './style';
 
 /** 點、線疊加圖層（晝夜是另外的自訂圖層，nightLayer.ts） */
-type DataOverlay = Exclude<OverlayLayer, { kind: 'night' } | { kind: 'liveGrid' } | { kind: 'classGrid' }>;
-const isData = (o: OverlayLayer): o is DataOverlay => o.kind !== 'night' && o.kind !== 'liveGrid' && o.kind !== 'classGrid';
+type DataOverlay = Exclude<OverlayLayer, { kind: 'night' } | { kind: 'liveGrid' } | { kind: 'classGrid' } | { kind: 'wind' }>;
+const isData = (o: OverlayLayer): o is DataOverlay =>
+  o.kind !== 'night' && o.kind !== 'liveGrid' && o.kind !== 'classGrid' && o.kind !== 'wind';
 
 export const OVERLAY_PREFIX = 'ov-';
 /** 點圖層插在框選範圍之前（疊在機場、比例圓、立體圖形上面），線圖層插在機場之前（在點的下面） */

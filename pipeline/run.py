@@ -189,6 +189,9 @@ STEPS = {
     # 板塊漂移：Merdith 等 2021 的板塊模型（Zenodo），用 pyGPlates（只在建置時用）把今天的國界帶回 0–250 百萬年前，
     # 加上那時的板塊邊界；約 1 分鐘
     "plates": "topics.plates",
+    # 風與季風：NOAA PSL 的 NCEP/NCAR 再分析，離地 10 m 的風 1991–2020 年每月的長期平均（THREDDS，3 個約 1 MB 的 netCDF）；
+    # 風場內插成 2° 給粒子動畫、風速分級的 1° PNG、各國國土的平均；約 20 秒
+    "wind": "topics.wind",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
