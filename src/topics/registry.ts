@@ -15,7 +15,7 @@ export interface TopicGroupSpec {
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'foods', 'housing', 'religion', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics', 'reads'] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores'] },
+  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'oldest-companies'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ewaste', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'airlines', 'cable-cars', 'shipping', 'logbooks', 'road-safety'] },
@@ -112,6 +112,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'antarctic-stations': () => import('./antarctic-stations'),
   'national-parks': () => import('./national-parks'),
   foods: () => import('./foods'),
+  'oldest-companies': () => import('./oldest-companies'),
   airlines: () => import('./airlines'),
   'cable-cars': () => import('./cable-cars'),
   ewaste: () => import('./ewaste'),
