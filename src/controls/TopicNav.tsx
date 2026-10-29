@@ -13,6 +13,7 @@ import { tr, useLang, useT } from '../i18n';
 import type { TopicTarget } from '../lib/topicSearch';
 import { prefetchTopic, TOPIC_GROUPS, type TopicGroup, type TopicSummary } from '../topics';
 import { pureMap } from '../topics/map';
+import { categoryStyle, Glyph, GroupGlyph, loadTopicIcons, useTopicIcons } from './TopicIcon';
 import { TopicsOverview } from './TopicsOverview';
 
 interface TopicNavProps {
@@ -73,6 +74,19 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
 
   const [overflowing, setOverflowing] = useState(false);
   const [overview, setOverview] = useState(false);
+  const icons = useTopicIcons(open !== null);
+
+  // 主題的圖示（另一個 chunk）：頁面安靜下來之後先下載，打開選單時就有；滑到、移到主題列上也開始下載
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const idle = window.requestIdleCallback ?? ((run: () => void) => setTimeout(run, 0));
+      idle(() => loadTopicIcons().catch(() => {}));
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
+  const warmIcons = () => {
+    loadTopicIcons().catch(() => {});
+  };
 
   const openGroup = TOPIC_GROUPS.find((g) => g.id === open) ?? null;
   // current 是 localize() 過的副本，要用 id 比對
@@ -219,13 +233,21 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
   };
 
   return (
-    <nav className={`topics${overflowing ? ' is-overflowing' : ''}`} aria-label={t.topicsNav} ref={navRef}>
+    <nav
+      className={`topics${overflowing ? ' is-overflowing' : ''}`}
+      aria-label={t.topicsNav}
+      ref={navRef}
+      onPointerEnter={warmIcons}
+      onFocus={warmIcons}
+    >
       <button
         type="button"
-        className={`topic${isPure ? ' is-active' : ''}`}
+        className={`topic topic-group${isPure ? ' is-active' : ''}`}
+        style={categoryStyle(null)}
         aria-current={isPure ? 'page' : undefined}
         onClick={() => onSelect(pureMap.id)}
       >
+        <GroupGlyph group="map" size={15} className="topic-group-icon" />
         {tr(pureMap.shortTitle, lang)}
       </button>
       {TOPIC_GROUPS.map((group) => {
@@ -240,6 +262,7 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
             }}
             type="button"
             className={`topic topic-group${active ? ' is-active' : ''}`}
+            style={categoryStyle(group.id)}
             aria-haspopup="menu"
             aria-expanded={expanded}
             aria-controls={expanded ? menuId : undefined}
@@ -247,6 +270,7 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
             onKeyDown={onButtonKeyDown(group)}
             onPointerEnter={onButtonPointerEnter(group)}
           >
+            <GroupGlyph group={group.id} size={15} className="topic-group-icon" />
             <span className="topic-group-label">{tr(group.label, lang)}</span>
             {active && <span className="topic-current">{tr(current.shortTitle, lang)}</span>}
             <svg className="topic-caret" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
@@ -264,7 +288,7 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
             id={menuId}
             role="menu"
             aria-label={tr(openGroup.label, lang)}
-            style={menuStyle(openGroup.topics.length, position)}
+            style={{ ...menuStyle(openGroup.topics.length, position), ...categoryStyle(openGroup.id) }}
             onKeyDown={onMenuKeyDown}
           >
             {/* 主題排成網格（分欄），「看全部主題」在網格下面另起一行 */}
@@ -285,16 +309,10 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
                   onFocus={() => prefetchTopic(topic.id)}
                   onClick={() => select(topic)}
                 >
-                  {/* 縮圖：scripts/topic-thumbs.mjs 產生的平面世界地圖 */}
-                  <img
-                    className="topic-item-thumb"
-                    src={`thumbs/${topic.id}.webp`}
-                    alt=""
-                    width={64}
-                    height={37}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
+                  <span className="topic-tile" aria-hidden="true">
+                    <Glyph d={icons?.[topic.id]} size={18} />
+                  </span>
                   <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
                   <span className="topic-item-summary">{summary(topic)}</span>
                 </button>

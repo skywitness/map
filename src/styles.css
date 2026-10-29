@@ -10,6 +10,19 @@
   --border: rgba(11, 11, 11, 0.1);
   --accent: #2a78d6;
   --accent-ink: #ffffff;
+  /* 主題分類的代表色（tokens.ts 的 CATEGORY_COLORS） */
+  --cat-society: #bc1f4f;
+  --cat-economy: #b17000;
+  --cat-global: #006fd8;
+  --cat-energy: #008a22;
+  --cat-tech: #6130b1;
+  --cat-geo: #088f77;
+  --cat-solid-society: #bc1f4f;
+  --cat-solid-economy: #b17000;
+  --cat-solid-global: #006fd8;
+  --cat-solid-energy: #008a22;
+  --cat-solid-tech: #6130b1;
+  --cat-solid-geo: #088f77;
   --radius: 8px;
   --gutter: 16px;
   font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
@@ -122,6 +135,11 @@ button {
   color: var(--page);
 }
 
+/* 滑過目前的分類：上面的 :hover 會把底色換成淺灰，文字（頁面底色）就看不見了 */
+.topic.is-active:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 82%, var(--page));
+}
+
 .topic:disabled {
   color: var(--ink-muted);
   cursor: default;
@@ -144,6 +162,16 @@ button {
 .topic-group[aria-expanded='true']:not(.is-active) {
   background: var(--grid);
   color: var(--ink);
+}
+
+/* 分類的圖示用分類代表色（TopicIcon.tsx 的 categoryStyle）；目前的分類是深色底，圖示跟文字同色 */
+.topic-group-icon {
+  flex: none;
+  color: var(--cat);
+}
+
+.topic.is-active .topic-group-icon {
+  color: inherit;
 }
 
 .topic-current::before {
@@ -245,21 +273,26 @@ button {
   max-width: 320px;
 }
 
-/* 主題的縮圖（public/thumbs，scripts/topic-thumbs.mjs）：左邊一小張平面世界地圖 */
+/* 主題的圖示（TopicIcon.tsx）：分類代表色的線條、同色的淡底 */
 .topic-item {
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   column-gap: 10px;
   align-items: center;
 }
 
-.topic-item-thumb {
+.topic-tile {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--cat) 13%, var(--surface));
+  color: var(--cat);
+}
+
+.topic-item .topic-tile {
   grid-row: 1 / span 2;
-  width: 64px;
-  height: 37px;
-  border-radius: 4px;
-  object-fit: cover;
-  background: #9ebdff;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 /* 分類選單最下面的「看全部主題」 */
@@ -347,10 +380,19 @@ button {
 }
 
 .overview-body h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 16px 0 10px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink-secondary);
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.overview-body h3 .topic-tile {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
 }
 
 .overview-grid {
@@ -398,6 +440,11 @@ button {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+.overview-thumb {
+  position: relative;
+  display: block;
+}
+
 .overview-card img {
   display: block;
   width: 100%;
@@ -405,6 +452,21 @@ button {
   aspect-ratio: 480 / 280;
   object-fit: cover;
   background: #9ebdff;
+}
+
+/* 縮圖左上角的主題圖示：分類代表色的圓底、白色線條，外圈一圈卡片底色跟地圖分開 */
+.overview-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cat-solid);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 .overview-card-title {

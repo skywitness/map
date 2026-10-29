@@ -126,11 +126,29 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
   accentInk: '--accent-ink',
 };
 
+/**
+ * 主題分類的代表色（2026-10-29）：頂列的分類圖示、主題選單的圖示、主題總覽的標題與縮圖角標。
+ * key 是 registry.ts 的分類 id。顏色只標示分類，一定跟分類名稱、圖示一起出現（不單靠顏色），文字照用 ink。
+ * 依意義指定：社會玫瑰紅、經濟琥珀、國際藍、能源綠、科技紫、地理青綠。
+ * 用配色驗證工具（OKLab ΔE×100、Machado 2009 色盲模擬）檢查頂列上相鄰的兩類：
+ * 淺色 紅綠色盲 ΔE ≥ 10.8、一般視覺 ≥ 18.5；深色 ≥ 9.0、≥ 18.3；跟頁面背景的對比都 ≥ 3:1（圖示是非文字元素）。
+ * 不相鄰的國際藍與科技紫在綠色盲下接近，靠亮度（淺色 L 0.55 對 0.45）與圖示區分。
+ */
+export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
+  light: { society: '#bc1f4f', economy: '#b17000', global: '#006fd8', energy: '#008a22', tech: '#6130b1', geo: '#088f77' },
+  dark: { society: '#ee5377', economy: '#c78600', global: '#3e95fe', energy: '#2aaf3d', tech: '#8e57d8', geo: '#04a19b' },
+};
+
 export function applyTokens(tokens: Tokens): void {
   const root = document.documentElement;
   root.style.colorScheme = tokens.mode;
   for (const [key, cssVar] of Object.entries(CSS_VARS)) {
     root.style.setProperty(cssVar, tokens[key as keyof Tokens] as string);
+  }
+  // --cat-<分類>：圖示的線條；--cat-solid-<分類>：白色圖示的底色（縮圖角標），深淺色都用淺色那組（白色對比 ≥ 4:1）
+  for (const [id, color] of Object.entries(CATEGORY_COLORS[tokens.mode])) {
+    root.style.setProperty(`--cat-${id}`, color);
+    root.style.setProperty(`--cat-solid-${id}`, CATEGORY_COLORS.light[id]);
   }
 }
 
