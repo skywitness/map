@@ -1309,6 +1309,21 @@ kbd {
   font-size: 11px;
 }
 
+/* 類別網格（氣候分區）的圖例：一組一列小色塊加短名稱（Af、Cfa…），滑過看全名 */
+.map-layer-detail.is-chips .map-layer-rows {
+  grid-template-columns: repeat(4, max-content);
+  gap: 2px 8px;
+}
+
+.map-layer-detail.is-chips .map-layer-rows > span {
+  gap: 3px;
+  font-size: 11px;
+}
+
+.map-layer-detail.is-chips .map-layer-rows svg {
+  width: 14px;
+}
+
 /* ── 框選 ───────────────────────────── */
 .map-zoom .box-tool {
   display: grid;
@@ -2511,6 +2526,28 @@ kbd {
 
 .logbook-years .eclipse-more {
   margin: 0;
+}
+
+/* 氣候分區的側欄（KoppenPanel.tsx）：類型清單下面的增減、各時期氣候帶的堆疊長條與圖例 */
+.koppen-change {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.stack-bar-row.is-current {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.koppen-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0 0 6px;
+  color: var(--ink-secondary);
+  font-size: 12px;
 }
 
 /* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */

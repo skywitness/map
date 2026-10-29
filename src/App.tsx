@@ -17,7 +17,8 @@ import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMom
 import { indicatorCsv } from './lib/csv';
 import { derivedData } from './lib/derive';
 import { useLive } from './lib/live';
-import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
+import { loadClassGrid, type ClassGrid } from './map/classGridLayer';
+import { dataUrl, fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
@@ -305,7 +306,7 @@ export function App() {
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
-  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure, wantsView ? mapView : null, liveData);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData);
   // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
   // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
@@ -460,7 +461,7 @@ export function App() {
   // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    if (!o || o.kind === 'night' || o.kind === 'liveGrid') return null;
+    if (!o || o.kind === 'night' || o.kind === 'liveGrid' || o.kind === 'classGrid') return null;
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;
@@ -943,6 +944,8 @@ function useOverlays(
   topic: Topic,
   indicator: Indicator,
   item: string | null,
+  /** 時間軸的年份：類別網格（kind 'classGrid'）的資料檔依它換 */
+  year: number,
   layers: LayerVisibility,
   pure: boolean,
   view: MapView | null,
@@ -969,13 +972,21 @@ function useOverlays(
             o.kind !== undefined &&
             (!o.indicators || o.indicators.includes(indicator.id)) &&
             (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: o.kind === 'night' || o.kind === 'liveGrid' ? '' : overlayPath(topic, o, item) }]
+              ? [{ def: o, visible: overlayVisible(layers, o), path: genericPath(topic, o, item, year) }]
               : [],
           ),
-    [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],
+    [overlays, topic.id, topic.dimension, indicator.id, item, year, layers, pure],
   );
-  // 晝夜（kind 'night'）沒有資料檔，依時刻畫；即時網格（kind 'liveGrid'）由即時資料算
-  const wanted = useMemo(() => generic.filter((g) => g.visible && g.path).map((g) => g.path), [generic]);
+  // 晝夜（kind 'night'）沒有資料檔，依時刻畫；即時網格（kind 'liveGrid'）由即時資料算；類別網格（kind 'classGrid'）是 PNG
+  const wanted = useMemo(
+    () => generic.filter((g) => g.visible && g.path && g.def.kind !== 'classGrid').map((g) => g.path),
+    [generic],
+  );
+  const gridPaths = useMemo(
+    () => generic.filter((g) => g.visible && g.def.kind === 'classGrid').map((g) => g.path),
+    [generic],
+  );
+  const grids = useClassGrids(gridPaths);
   const raw = useJsonEach(wanted);
   // 線圖層放大後的分區（LinesOverlayDef.detail）：放大到 minZoom 以上時下載跟畫面重疊的分區，下載過的留著
   const tilePaths = useMemo(
@@ -996,6 +1007,10 @@ function useOverlays(
     return generic.map(({ def, visible, path }) => {
       if (def.kind === 'night') return { kind: 'night', def, visible };
       if (def.kind === 'liveGrid') return { kind: 'liveGrid', def, visible, values: liveGridValues(def, live) };
+      if (def.kind === 'classGrid') {
+        const grid = grids.get(path) ?? grids.get(path.slice(0, path.lastIndexOf('/') + 1)) ?? null;
+        return { kind: 'classGrid', def, visible, grid };
+      }
       const data = raw.get(path) ?? null;
       if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
       const index = (data as LinesData | null)?.detail;
@@ -1008,8 +1023,42 @@ function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, live]);
+  }, [generic, raw, tiles, tilePaths, live, grids]);
   return { railways, airports, overlays: result };
+}
+
+/** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格依年份與子項目 */
+function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
+  if (o.kind === 'night' || o.kind === 'liveGrid' || o.kind === undefined) return '';
+  if (o.kind === 'classGrid') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
+  return overlayPath(topic, o, item);
+}
+
+/**
+ * 類別網格的資料（loadClassGrid，同一個網址只讀一次）：依路徑記下，另外用圖層 id 記下最近讀到的一張，
+ * 換時期時新的還沒讀到前先畫舊的（畫面不閃）
+ */
+function useClassGrids(paths: string[]): Map<string, ClassGrid> {
+  const [grids, setGrids] = useState<Map<string, ClassGrid>>(() => new Map());
+  const key = paths.join('|');
+  useEffect(() => {
+    let cancelled = false;
+    for (const path of key ? key.split('|') : []) {
+      loadClassGrid(dataUrl(path)).then(
+        (grid) => {
+          if (cancelled) return;
+          // 圖層 id 取不到，用資料夾（topics/<主題>/<資料夾>/）當「最近一張」的鍵；只留現在要的，舊的放掉
+          const folder = path.slice(0, path.lastIndexOf('/') + 1);
+          setGrids((m) => (m.get(path) === grid ? m : new Map([[path, grid], [folder, grid]])));
+        },
+        () => {},
+      );
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [key]);
+  return grids;
 }
 
 const liveGridCache = new WeakMap<object, Map<string, Float32Array | null>>();

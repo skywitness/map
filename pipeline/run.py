@@ -175,6 +175,8 @@ STEPS = {
     "aurora": "topics.aurora",
     # 大航海時代的航海日誌：CLIWOC 2.1（第一次下載 29 MB）；約 1 分鐘
     "logbooks": "topics.logbooks",
+    # 氣候分區（柯本）：Beck 2023 的 0.1° 網格（第一次下載 130 MB）；約 1 分鐘
+    "koppen": "topics.koppen",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

@@ -335,7 +335,8 @@ export type OverlayDef =
   | PointsOverlayDef
   | LinesOverlayDef
   | NightOverlayDef
-  | LiveGridOverlayDef;
+  | LiveGridOverlayDef
+  | ClassGridOverlayDef;
 
 /**
  * 晝夜（時刻主題）：依目前的時刻畫出地球的夜半邊與晨昏蒙影（民用、航海、天文曙暮光一層一層變暗），
@@ -374,6 +375,29 @@ export interface LiveGridOverlayDef {
   opacity: [number, number][];
   /** 圖例：標題與幾格（值與名稱） */
   legend: { title: Text; rows: { value: number; label: Text }[] };
+  hidden?: boolean;
+  indicators?: string[];
+  items?: string[];
+}
+
+/**
+ * 類別網格（2026-10-29 起，氣候分區）：經緯度對齊的全球網格，每格一個類別代碼（例如柯本的 30 種氣候類型），依代碼上色。
+ * 資料檔是 pipeline 寫的 8 位元灰階 PNG（不濾波；像素值是代碼，0 不畫；第一列是北緯 90°、第一行是西經 180°），
+ * 瀏覽器裡解開（src/map/classGridLayer.ts 的 loadClassGrid），地圖上是 WebGL 的自訂圖層，用資料的原始解析度取樣
+ * （最近鄰，格子維持方塊；兩極、180° 經線沒有接縫）。圖例是分組的小色塊（短名稱，滑過看全名）
+ */
+export interface ClassGridOverlayDef {
+  kind: 'classGrid';
+  id: string;
+  label: Text;
+  /** 資料檔（相對於這個主題的資料夾），依時間軸的年份與子項目 */
+  file: (year: number, item: string | null) => string;
+  /** 代碼、顏色、圖例上的短名稱（例如 Cfa）與全名；group 是 groups 的索引 */
+  classes: { value: number; color: string; short: string; label: Text; group: number }[];
+  /** 圖例的分組標題（例如 A 熱帶） */
+  groups: Text[];
+  /** 不透明度，預設 0.85 */
+  opacity?: number;
   hidden?: boolean;
   indicators?: string[];
   items?: string[];
@@ -826,6 +850,7 @@ export type PointsOverlay = Localized<PointsOverlayDef>;
 export type LinesOverlay = Localized<LinesOverlayDef>;
 export type NightOverlay = Localized<NightOverlayDef>;
 export type LiveGridOverlay = Localized<LiveGridOverlayDef>;
+export type ClassGridOverlay = Localized<ClassGridOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,

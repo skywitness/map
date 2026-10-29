@@ -64,6 +64,8 @@ import {
 } from './Overlays';
 import { applyTimeFilters, highlightLine, labelFont, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
+import { syncClassGrid } from './classGridLayer';
+import { CLASS_GRID_OPACITY } from './Overlays';
 import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
@@ -1770,6 +1772,23 @@ export function WorldMap(props: WorldMapProps) {
       opacity: def?.opacity ?? [[0, 0]],
     });
   }, [revision, liveGrid?.def, liveGrid?.visible, liveGrid?.values, basemap.dark, night?.visible]);
+
+  /* ── 類別網格（氣候分區，classGridLayer.ts）：換時期只換代碼的貼圖；換底圖後重新加上 ── */
+  const classGrid = overlays.find((o) => o.kind === 'classGrid');
+  const classColors = useMemo(
+    () => new Map((classGrid?.def.classes ?? []).map((c) => [c.value, c.color] as [number, string])),
+    [classGrid?.def],
+  );
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const def = classGrid?.def;
+    syncClassGrid(map, def?.id ?? null, Boolean(classGrid?.visible), classGrid?.grid ?? null, {
+      colors: classColors,
+      opacity: def?.opacity ?? CLASS_GRID_OPACITY,
+      only: null,
+    });
+  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors]);
 
   /* ── 主題側欄要標出的一組線（例如滑到某條河）：跟滑鼠滑過共用同一層 ── */
   useEffect(() => {

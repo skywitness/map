@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
-import type { LinesData, LinesOverlay, LiveGridOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
+import type { ClassGrid } from './classGridLayer';
+import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
 import { NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 
@@ -135,7 +136,9 @@ export type OverlayLayer =
   /** 晝夜（時刻主題）：沒有資料檔，依時刻畫（nightLayer.ts） */
   | { kind: 'night'; def: NightOverlay; visible: boolean }
   /** 即時網格（此刻的極光）：值由主題的即時資料算（liveGridLayer.ts）；還沒讀到是 null */
-  | { kind: 'liveGrid'; def: LiveGridOverlay; visible: boolean; values: Float32Array | null };
+  | { kind: 'liveGrid'; def: LiveGridOverlay; visible: boolean; values: Float32Array | null }
+  /** 類別網格（氣候分區）：依年份與子項目的 PNG（classGridLayer.ts）；還沒讀到是 null */
+  | { kind: 'classGrid'; def: ClassGridOverlay; visible: boolean; grid: ClassGrid | null };
 
 export function overlayVisible(layers: LayerVisibility, def: { id: string; hidden?: boolean }): boolean {
   return layers.extra[def.id] ?? !def.hidden;
@@ -188,6 +191,8 @@ const NIGHT_ROWS: { label: Text }[] = [
 const NIGHT_TITLE: Text = { zh: '晝夜與晨昏', en: 'Day, twilight and night' };
 /** 夜色色塊（與面的分類）底下墊的顏色：彩色地形的陸地、深藍底圖的陸地 */
 const NIGHT_BASE = { light: '#ece6d6', dark: '#33435a' };
+/** 類別網格預設的不透明度（ClassGridOverlayDef.opacity） */
+export const CLASS_GRID_OPACITY = 0.85;
 /** 疊在海上的面的色塊底下墊的顏色：彩色地形、深藍底圖的海 */
 const SEA_BASE = { light: '#9ebdff', dark: '#38435c' };
 
@@ -195,7 +200,8 @@ const SEA_BASE = { light: '#9ebdff', dark: '#38435c' };
 export interface OverlayKey {
   swatch: OverlaySwatch;
   label: string;
-  details: { title?: string; layout: 'rows' | 'sizes'; rows: (OverlaySwatch & { label: string })[] }[];
+  /** chips：一格一格的小色塊加短名稱（類別網格的 30 類），hint 是滑過時的全名 */
+  details: { title?: string; layout: 'rows' | 'sizes' | 'chips'; rows: (OverlaySwatch & { label: string; hint?: string })[] }[];
 }
 
 /** 線、點的外框與中性色：大小圖例不代表顏色，用中性的深灰 */
@@ -206,6 +212,20 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
  * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
  */
 export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
+  if (o.kind === 'classGrid') {
+    // 依分組（A 熱帶…）一組一列小色塊，色塊墊在像地圖陸地的底色上、跟地圖一樣的不透明度
+    const base = darkMap ? NIGHT_BASE.dark : NIGHT_BASE.light;
+    const opacity = o.def.opacity ?? CLASS_GRID_OPACITY;
+    const details: OverlayKey['details'] = o.def.groups.map((title, g) => ({
+      title,
+      layout: 'chips',
+      rows: o.def.classes
+        .filter((c) => c.group === g)
+        .map((c) => ({ shape: 'fill' as const, size: 5, color: c.color, opacity, base, label: c.short, hint: `${c.short} ${c.label}` })),
+    }));
+    const first = o.def.classes[0];
+    return { swatch: { shape: 'fill', size: 5, color: first?.color ?? '#888888', opacity, base }, label: o.def.label, details };
+  }
   if (o.kind === 'liveGrid') {
     // 一個顏色、依數值調不透明度：每一格是那個值的不透明度，墊在像地圖陸地的底色上
     const color = darkMap ? o.def.color.dark : o.def.color.light;
@@ -452,11 +472,14 @@ export function LayerControls({
             {o.visible &&
               showDetails &&
               key.details.map((d) => (
-                <div key={d.title ?? d.rows[0]?.label} className={`map-layer-detail${d.layout === 'sizes' ? ' is-sizes' : ''}`}>
+                <div
+                  key={d.title ?? d.rows[0]?.label}
+                  className={`map-layer-detail${d.layout === 'sizes' ? ' is-sizes' : d.layout === 'chips' ? ' is-chips' : ''}`}
+                >
                   {d.title && <div className="legend-note">{d.title}</div>}
                   <div className="map-layer-rows">
                     {d.rows.map((r) => (
-                      <span key={r.label}>
+                      <span key={r.label} title={r.hint}>
                         <Swatch swatch={r} />
                         {r.label}
                       </span>
