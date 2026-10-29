@@ -118,6 +118,95 @@ const PORTS: PointsOverlayDef = {
   },
 };
 
+const count = (v: number) => (getLang() === 'zh' ? formatLargeNumber(v) : fixed(v, 0));
+
+/** IMF PortWatch 的 28 個航運咽喉（pipeline/topics/waterways.py）：大小是最近一整年通過的貨船數 */
+const CHOKEPOINTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'chokepoints',
+  file: 'chokepoints.json',
+  label: { zh: '航運咽喉（IMF PortWatch，一年通過的貨船）', en: 'Shipping chokepoints (IMF PortWatch, cargo ships a year)' },
+  radius: { field: 'n', stops: [[1000, 4], [10000, 6.5], [30000, 9.5], [90000, 14]] },
+  color: MAP_TOKENS.categorical[4],
+  sortField: 'n',
+  sizeLegend: {
+    title: { zh: '一年通過的貨船（艘次）', en: 'Cargo ship transits a year' },
+    values: [5000, 30000, 90000],
+    format: (v) => count(v),
+  },
+  tooltip: (p) => {
+    const lang = getLang();
+    const title = String((lang === 'zh' ? p.zh : p.en) ?? p.en);
+    const extra: string[] = [];
+    if (typeof p.n === 'number') {
+      extra.push(
+        tr({
+          zh: `${p.yr} 年通過 ${count(p.n)} 艘次貨船（每天約 ${fixed(p.n / 365, 0)} 艘）`,
+          en: `${fixed(p.n, 0)} cargo ship transits in ${p.yr} (about ${fixed(p.n / 365, 0)} a day)`,
+        }),
+      );
+      const types: [string, { zh: string; en: string }][] = [
+        ['t', { zh: '油輪', en: 'tankers' }],
+        ['c', { zh: '貨櫃船', en: 'container ships' }],
+        ['b', { zh: '乾散貨船', en: 'dry bulk carriers' }],
+        ['g', { zh: '雜貨船', en: 'general cargo ships' }],
+        ['r', { zh: '滾裝船', en: 'ro-ro ships' }],
+      ];
+      extra.push(
+        types
+          .filter(([k]) => typeof p[k] === 'number' && (p[k] as number) > 0)
+          .map(([k, label]) => tr({ zh: `${label.zh} ${count(p[k] as number)}`, en: `${fixed(p[k] as number, 0)} ${label.en}` }))
+          .join(tr({ zh: '、', en: ', ' })),
+      );
+    }
+    if (typeof p.n0 === 'number') {
+      extra.push(tr({ zh: `${p.y0} 年 ${count(p.n0)} 艘次`, en: `${fixed(p.n0, 0)} in ${p.y0}` }));
+    }
+    return {
+      title,
+      detail: tr({ zh: '航運咽喉（IMF PortWatch）', en: 'Shipping chokepoint (IMF PortWatch)' }),
+      extra,
+      properNoun: lang === 'zh' ? String(p.en) : undefined,
+    };
+  },
+};
+
+/** Wikidata 有英文維基條目的運河與海峽（pipeline/topics/waterways.py）：世界全圖只畫條目多的，放大才全部畫 */
+const WATERWAYS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'waterways',
+  file: 'waterways.json',
+  label: { zh: '運河與海峽（Wikidata）', en: 'Canals and straits (Wikidata)' },
+  radius: { field: 'sl', stops: [[0, 2], [20, 2.8], [60, 3.8], [150, 5]] },
+  color: {
+    field: 'k',
+    title: { zh: '種類', en: 'Type' },
+    thresholds: [1.5],
+    classes: [
+      { color: MAP_TOKENS.categorical[1], label: { zh: '運河', en: 'Canal' } },
+      { color: MAP_TOKENS.categorical[6], label: { zh: '海峽', en: 'Strait' } },
+    ],
+  },
+  sortField: 'sl',
+  // 世界全圖只畫維基百科條目 30 個語言以上的，放大到 3 級 10 個以上，5 級以上全部
+  minValue: { field: 'sl', stops: [[0, 30], [3, 10], [5, 0]] },
+  tooltip: (p, { countryName }) => {
+    const lang = getLang();
+    const title = String((lang === 'zh' ? p.zh : null) ?? p.en);
+    const kind = p.k === 1 ? tr({ zh: '運河', en: 'Canal' }) : tr({ zh: '海峽', en: 'Strait' });
+    const facts: string[] = [];
+    if (typeof p.y === 'number') facts.push(tr({ zh: `${p.y} 年啟用`, en: `opened ${p.y}` }));
+    if (typeof p.l === 'number') facts.push(tr({ zh: `長 ${p.l >= 1000 ? `${fixed(p.l / 1000, 1)} 公里` : `${p.l} 公尺`}`, en: `length ${p.l >= 1000 ? `${fixed(p.l / 1000, 1)} km` : `${p.l} m`}` }));
+    if (typeof p.w === 'number') facts.push(tr({ zh: `寬 ${p.w >= 1000 ? `${fixed(p.w / 1000, 1)} 公里` : `${p.w} 公尺`}`, en: `width ${p.w >= 1000 ? `${fixed(p.w / 1000, 1)} km` : `${p.w} m`}` }));
+    return {
+      title,
+      detail: [kind, typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      extra: facts.length ? [facts.join(' · ')] : [],
+      properNoun: lang === 'zh' && title !== p.en ? String(p.en) : undefined,
+    };
+  },
+};
+
 /**
  * 航運密度網格的分級（每個約 500 m 格子的平均 AIS 船位數，對數）：平均不到 TRAFFIC_MIN 的不上色。
  * 跟 pipeline/topics/shipping_density_tiles.py 一樣（產生圖磚時會檢查；部署的快取鍵也含這兩行）
@@ -177,13 +266,19 @@ export const shipping: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/8368',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
+    {
+      name: { zh: 'IMF PortWatch（航運咽喉與每天的通過數）', en: 'IMF PortWatch (shipping chokepoints and daily transits)' },
+      url: 'https://portwatch.imf.org/',
+      license: { zh: 'IMF 條款（註明來源）', en: 'IMF terms (with attribution)' },
+    },
+    { name: { zh: 'Wikidata（運河與海峽）', en: 'Wikidata (canals and straits)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
   ],
   note: {
-    zh: `資料來源：United Nations Trade and Development Data Hub（UNCTADstat）。${UNCTAD_NOTE.zh}港口的點是美國國家地理空間情報局（NGA）的 World Port Index，大小與類型照它的分類；點上的港口班輪航運連結指數（PLSCI）也來自 UNCTAD（依 UN/LOCODE 與港名對到 World Port Index，900 多個貨櫃港對到約 780 個）。主要貨櫃港的 2025 年吞吐量是各港自己公布的數字（港務局、港口公司或政府統計，引用事實並註明出處），沒有用 Lloyd's List、Alphaliner 等有版權的排名。各國之間的貿易流向見「國際貿易流向」主題，鐵路與機場見「各國交通」主題，專屬經濟海域與漁業見「海洋與漁業」主題。`,
-    en: `Source: United Nations Trade and Development Data Hub (UNCTADstat). ${UNCTAD_NOTE.en} Port points are the US National Geospatial-Intelligence Agency’s World Port Index, with its size and type classes; the port liner shipping connectivity index (PLSCI) on the points is also UNCTAD’s (matched to the World Port Index by UN/LOCODE and name: about 780 of 900-odd container ports). The 2025 throughput of major container ports is each port’s own published figure (port authority, port company or government statistics, cited as facts); no proprietary rankings such as Lloyd’s List or Alphaliner are used. For trade flows between countries see the International trade flows topic; for railways and airports, Transport by country; for exclusive economic zones and fisheries, Oceans and fisheries.`,
+    zh: `資料來源：United Nations Trade and Development Data Hub（UNCTADstat）。${UNCTAD_NOTE.zh}港口的點是美國國家地理空間情報局（NGA）的 World Port Index，大小與類型照它的分類；點上的港口班輪航運連結指數（PLSCI）也來自 UNCTAD（依 UN/LOCODE 與港名對到 World Port Index，900 多個貨櫃港對到約 780 個）。主要貨櫃港的 2025 年吞吐量是各港自己公布的數字（港務局、港口公司或政府統計，引用事實並註明出處），沒有用 Lloyd's List、Alphaliner 等有版權的排名。航運咽喉是 IMF PortWatch 的 28 個運河與海峽，用 AIS 船位推算每天通過的貨船（貨櫃船、乾散貨船、雜貨船、滾裝船、油輪；同一艘船 48 小時內不重複算、沒有依船的大小加權），這裡加總成一整年：2025 年台灣海峽 8.7 萬艘次最多，其次麻六甲海峽、朝鮮海峽；蘇伊士運河從 2023 年的 2.7 萬掉到 1.4 萬（紅海危機後改繞好望角，好望角從 1.8 萬增加到 3.3 萬）。運河與海峽的點是 Wikidata 直接標成運河、海峽、有英文維基百科條目的（世界全圖只畫條目多的，放大才全部畫）；Wikidata 只有一個點，運河畫不出整條線，標成運河的也有不少是灌溉渠。各國之間的貿易流向見「國際貿易流向」主題，鐵路與機場見「各國交通」主題，專屬經濟海域與漁業見「海洋與漁業」主題。`,
+    en: `Source: United Nations Trade and Development Data Hub (UNCTADstat). ${UNCTAD_NOTE.en} Port points are the US National Geospatial-Intelligence Agency’s World Port Index, with its size and type classes; the port liner shipping connectivity index (PLSCI) on the points is also UNCTAD’s (matched to the World Port Index by UN/LOCODE and name: about 780 of 900-odd container ports). The 2025 throughput of major container ports is each port’s own published figure (port authority, port company or government statistics, cited as facts); no proprietary rankings such as Lloyd’s List or Alphaliner are used. Shipping chokepoints are IMF PortWatch’s 28 canals and straits, with daily cargo ship transits (container ships, dry bulk carriers, general cargo ships, ro-ro ships and tankers) estimated from AIS positions (a ship is not counted twice within 48 hours, and transits are not weighted by ship size), summed here over a full year: in 2025 the Taiwan Strait led with 87,000, followed by the Strait of Malacca and the Korea Strait; the Suez Canal fell from 27,000 in 2023 to 14,000 (ships rerouted round the Cape of Good Hope after the Red Sea crisis, which rose from 18,000 to 33,000). Canal and strait dots are Wikidata items classed directly as canals or straits that have an English Wikipedia article (the world view shows only those with many articles; zoom in for all); Wikidata has a single point for each, so canals cannot be drawn as lines, and some items classed as canals are irrigation channels. For trade flows between countries see the International trade flows topic; for railways and airports, Transport by country; for exclusive economic zones and fisheries, Oceans and fisheries.`,
   },
   panelExtra: () => import('./panels/ShippingPanel'),
-  overlays: [PORTS],
+  overlays: [PORTS, WATERWAYS, CHOKEPOINTS],
   indicators: [
     {
       id: 'container',

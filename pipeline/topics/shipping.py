@@ -32,6 +32,7 @@ from collections import defaultdict
 from common import OUT_DIR, compact_indicator, indicator_file, now_iso, points_file, to_series, write_json
 from sources import port_teu, tipc, unctadstat, wpi
 from sources.countries import from_alpha2
+from topics import waterways
 
 OUT = OUT_DIR / "topics" / "shipping"
 TAIWAN = "TWN"
@@ -80,6 +81,7 @@ def build() -> None:
     shipbuilding()
     ports = port_points(tw_ports)
     details(fleet, owners, ports, tw_ports)
+    waterways.build()
     write_json(
         OUT / "manifest.json",
         {
@@ -92,6 +94,8 @@ def build() -> None:
                 "National Geospatial-Intelligence Agency, World Port Index (Pub. 150), UpdatedPub150.csv (public domain).",
                 "Port authorities' own 2025 container throughput (pipeline/sources/port_teu.py).",
                 "臺灣港務股份有限公司，臺灣地區國際商港貨櫃裝卸量（政府資料開放平臺 8368，政府資料開放授權條款第 1 版）。",
+                "IMF PortWatch, Chokepoints and Daily_Chokepoints_Data (IMF terms, https://www.imf.org/external/terms.htm).",
+                "Wikidata: canals and straits with English Wikipedia articles (CC0).",
             ],
             "license": "CC BY 3.0 IGO (UNCTAD data); public domain (World Port Index)",
             "containerYears": container,
