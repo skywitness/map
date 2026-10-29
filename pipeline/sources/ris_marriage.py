@@ -136,6 +136,15 @@ def married_share() -> dict[int, float]:
     return out
 
 
+def births() -> dict[int, float]:
+    """出生數（按登記，人；同一張 y2s2 的總計欄）"""
+    out = {}
+    for year, row in _year_rows("births").items():
+        if (total := _num(row[2])) is not None:
+            out[year] = total
+    return out
+
+
 def births_outside_marriage() -> dict[int, float]:
     """非婚生子女占出生數的比例（%，按登記）。欄位：民國年、西元年、總計、婚生（人數、%）、非婚生（人數、%）、無依兒童。"""
     out = {}

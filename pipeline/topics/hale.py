@@ -45,8 +45,9 @@ TW_NOTE_EN = (
 )
 TW_HINT = "衛福部，算法跟 WHO 不同"
 TW_HINT_EN = "Ministry of Health and Welfare; method differs from WHO"
-TW_TOTAL = "衛福部只公布男女分開的健康平均餘命，沒有兩性合計（見女性、男性）"
-TW_TOTAL_EN = "Taiwan’s ministry publishes healthy life expectancy for men and women only (see Women and Men)"
+# 側欄的卡片放得下的長度（長的會把卡片撐得很大）；原因寫在指標的說明裡
+TW_TOTAL = "只有男女分開的（見女性、男性）"
+TW_TOTAL_EN = "Men and women only (see Women, Men)"
 
 
 def read(kind: str) -> dict[str, dict[str, dict[int, float]]]:

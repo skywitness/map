@@ -43,8 +43,8 @@ export const health: TopicDefinition = {
     },
     {
       name: {
-        zh: 'World Bank, World Development Indicators（WHO 醫療支出與醫事人力資料）',
-        en: 'World Bank, World Development Indicators (WHO health spending and workforce data)',
+        zh: 'World Bank, World Development Indicators（WHO 醫療支出與醫事人力資料、孕產婦死亡率的 MMEIG 估計）',
+        en: 'World Bank, World Development Indicators (WHO health spending and workforce data, MMEIG maternal mortality estimates)',
       },
       url: 'https://data.worldbank.org/',
       license: 'CC BY 4.0',
@@ -52,6 +52,11 @@ export const health: TopicDefinition = {
     {
       name: { zh: '衛生福利部統計處', en: 'Ministry of Health and Welfare (Taiwan), Department of Statistics' },
       url: 'https://dep.mohw.gov.tw/dos/',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: { zh: '內政部戶政司，出生數（台灣的孕產婦死亡率）', en: 'Department of Household Registration, MOI (Taiwan), births (maternal mortality)' },
+      url: 'https://www.ris.gov.tw/app/portal/346',
       license: OPEN_DATA_TW,
     },
     {
@@ -142,6 +147,20 @@ export const health: TopicDefinition = {
       file: 'under5-mortality.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 25, 50, 100, 150] } },
       format: perThousand,
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'maternal-mortality',
+      label: { zh: '孕產婦死亡率', en: 'Maternal mortality ratio' },
+      description: {
+        zh: '每 10 萬個活產，有幾位母親在懷孕期間或產後 42 天內因懷孕相關的原因死亡（不含意外），WHO 等機構的模型估計。2023 年奈及利亞 993、查德 748 最高，挪威、白俄羅斯 1 最低，日本 3、南韓 4、中國 16、美國 17；世界 197。台灣依同樣的定義用衛福部死因統計自己算，2023 年約 9。',
+        en: 'Deaths of mothers from pregnancy-related causes during pregnancy or within 42 days after (excluding accidents) per 100,000 live births, modelled estimates by WHO and partner agencies. In 2023 Nigeria (993) and Chad (748) were highest and Norway and Belarus lowest at 1; Japan 3, South Korea 4, China 16, the US 17; 197 worldwide. Taiwan is computed with the same definition from its death statistics: about 9 in 2023.',
+      },
+      unit: { zh: '每十萬活產', en: 'per 100,000 live births' },
+      file: 'maternal-mortality.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 50, 100, 200, 500] } },
+      format: (v) => tr({ zh: `每十萬活產 ${fixed(v, v < 10 ? 1 : 0)}`, en: `${fixed(v, v < 10 ? 1 : 0)} per 100,000` }),
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },

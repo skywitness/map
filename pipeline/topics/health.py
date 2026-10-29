@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
-from sources import imf, moi, mohw, worldbank, wpp
+from sources import imf, moi, mohw, mohw_deaths, ris_marriage, worldbank, wpp
 
 # 輸出檔名 -> (WPP 欄位, 單位, 小數位數)
 WPP_INDICATORS = {
@@ -121,7 +121,54 @@ def build() -> None:
                 notesEn={"TWN": mohw.NOTES_EN[key]},
             ),
         )
+    build_maternal()
     write_json(
         out / "manifest.json",
         {"topic": "health", "generatedAt": now_iso(), "source": "UN WPP 2024; 內政部; World Bank WDI (WHO); 衛生福利部; IMF WEO"},
     )
+
+
+# ── 孕產婦死亡率（2026-10-29 擴充，製作手冊第五批 45） ───────────────────────
+# 各國：WHO 等機構的 MMEIG 模型估計（WDI 的 SH.STA.MMRT，CC BY 4.0）。台灣不在裡面，依 WHO 的定義（懷孕期間或產後 42 天內、
+# 排除意外）用衛福部死因統計自己算：ICD-10 的 O00–O99 去掉 O96（產後 42 天到 1 年的晚期孕產死亡）、O97（後遺症），
+# 加上 A34（產科破傷風），除以戶政司的出生數（按登記）。
+MATERNAL_EXCLUDE = ("O96", "O97")
+
+
+def taiwan_maternal_deaths() -> dict[int, float]:
+    out: dict[int, float] = {}
+    for row in mohw_deaths._rows():
+        code = str(row[2]).strip()
+        if (code.startswith("O") and not code.startswith(MATERNAL_EXCLUDE)) or code.startswith("A34"):
+            out[int(row[0])] = out.get(int(row[0]), 0) + float(row[3] or 0)
+    return out
+
+
+def build_maternal() -> None:
+    out = OUT_DIR / "topics" / "health"
+    countries, world = worldbank.fetch("SH.STA.MMRT", 1985)
+    deaths, births = taiwan_maternal_deaths(), ris_marriage.births()
+    taiwan = {y: deaths[y] / births[y] * 1e5 for y in births if y >= 2008 and y in deaths}
+    years = year_span(countries)
+    extra_years = [y for y in sorted(taiwan) if y > years[-1]]
+    later = "、".join(f"{y} 年 {taiwan[y]:.1f}（{deaths.get(y, 0):.0f} 人）" for y in extra_years)
+    later_en = ", ".join(f"{taiwan[y]:.1f} in {y} ({deaths.get(y, 0):.0f} deaths)" for y in extra_years)
+    countries["TWN"] = taiwan
+    last = years[-1]
+    write_json(out / "maternal-mortality.json", indicator_file(
+        "maternal-mortality", "每十萬活產", years, {c: to_series(v, years, 1) for c, v in countries.items() if v},
+        aggregates={"WLD": to_series(world, years, 0)},
+        notes={"TWN": "台灣不在 WHO 的估計裡，依 WHO 的定義（懷孕期間或產後 42 天內、排除意外）用衛福部死因統計自己算："
+                      "ICD-10 的 O00–O99 去掉 O96、O97，加上 A34，除以戶政司的出生數（按登記），2008 年起。"
+                      f"{last} 年 {taiwan[last]:.1f}（{deaths.get(last, 0):.0f} 人）" + (f"；{later}" if later else "") +
+                      "。WHO 的是模型估計，會補報告不全的部分，兩者不完全可比。"},
+        notesEn={"TWN": "Taiwan is not in the WHO estimates; computed with WHO's definition (deaths during pregnancy or within 42 days, "
+                        "excluding accidental causes) from the Ministry of Health and Welfare's death statistics: ICD-10 O00–O99 "
+                        "except O96 and O97, plus A34, divided by registered births, from 2008. "
+                        f"{taiwan[last]:.1f} in {last} ({deaths.get(last, 0):.0f} deaths)" + (f"; {later_en}" if later_en else "") +
+                        ". WHO's figures are modelled estimates that adjust for under-reporting, so the two are not fully comparable."},
+    ))
+    ranked = sorted((v.get(last), c) for c, v in countries.items() if v.get(last) is not None)
+    print(f"  孕產婦死亡率 {years[0]}–{last}：{len(ranked)} 國，最高 {ranked[-4:]}，最低 {ranked[:4]}，世界 {world.get(last)}")
+    print(f"  台灣：{ {y: (round(v, 1), deaths.get(y)) for y, v in sorted(taiwan.items())} }")
+
