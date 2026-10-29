@@ -144,6 +144,7 @@ const TOPIC_ICONS = {
   wildfires: 'flame',
   'night-lights': 'moon-star',
   'world-heritage': 'castle',
+  'national-parks': 'tree-pine',
   skyscrapers: 'building',
   attractions: 'ferris-wheel',
   travel: 'plane',
