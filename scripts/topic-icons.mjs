@@ -119,6 +119,7 @@ const TOPIC_ICONS = {
   innovation: 'lightbulb',
   publications: 'file-text',
   'submarine-cables': 'cable',
+  'cloud-regions': 'cloud-cog',
   space: 'rocket',
   transport: 'train-front',
   airlines: 'plane-takeoff',

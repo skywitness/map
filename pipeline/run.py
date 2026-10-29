@@ -218,6 +218,7 @@ STEPS = {
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒
     "foods": "topics.foods",
+    "cloud-regions": "topics.cloud_regions",
     "oldest-companies": "topics.oldest_companies",
     "airlines": "topics.airlines",
     "cable-cars": "topics.cable_cars",
