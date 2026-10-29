@@ -786,6 +786,11 @@ export interface TopicDefinition {
    * （左下角可以開關），3D 模式改成真的立體地形（不畫立體國家與柱子）。
    */
   terrain?: boolean;
+  /**
+   * 只留海的底圖（2026-10-29 起，板塊漂移）：今天的陸地、地名、國界與國家的 hover、點選都拿掉，整個地球是海的顏色，
+   * 只畫主題的疊加圖層。國家要用搜尋選；滑過的資訊由 pointer 給（游標下是哪一國過去的位置）
+   */
+  bareMap?: boolean;
   /** 資料不隨時間變化（例如海拔）：不顯示時間軸，tooltip、側欄、標題也不寫年份 */
   timeless?: boolean;
   /**
@@ -831,6 +836,8 @@ export interface TopicDefinition {
       countryName: (iso3: string) => string;
       /** 目前的指標 id（2026-10-29 起：冰河與海平面只在海平面的指標寫游標下那一格） */
       indicator: string;
+      /** 時間軸的年份（2026-10-29 起，板塊漂移：游標下是哪一國過去的位置，依那個時間點的檔判斷） */
+      year: number;
     },
   ) => PointerInfo | null;
   /**

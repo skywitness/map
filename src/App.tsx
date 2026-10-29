@@ -329,8 +329,8 @@ export function App() {
     if (!topicPointer || !features) return undefined;
     const countryAt = countryLocator(features);
     return (lngLat: [number, number], iso3: string | null) =>
-      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId });
-  }, [topicPointer, features, countries, indicatorId]);
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year });
+  }, [topicPointer, features, countries, indicatorId, year]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -726,6 +726,7 @@ export function App() {
                 threeD={state.threeD}
                 onThreeDChange={setThreeD}
                 terrain={topic.terrain}
+                bareMap={topic.bareMap}
                 focus={focusRequest}
                 grid={grid}
                 gridFailed={gridWanted && gridMeta.error !== null}
@@ -1012,7 +1013,11 @@ function useOverlays(
         const grid = grids.get(path) ?? grids.get(path.slice(0, path.lastIndexOf('/') + 1)) ?? null;
         return { kind: 'classGrid', def, visible, grid };
       }
-      const data = raw.get(path) ?? null;
+      // 檔名依年份換的（file 裡有 {year}，板塊漂移）：新的還沒讀到前照畫上一個年份的，播放時不閃
+      const key = `${topic.id}:${def.id}`;
+      const yearly = def.file.includes('{year}');
+      const data = raw.get(path) ?? (yearly ? (lastYearly.get(key) ?? null) : null);
+      if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
       if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
       const index = (data as LinesData | null)?.detail;
       const loaded = index
@@ -1032,7 +1037,7 @@ function useOverlays(
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
   if (o.kind === 'night' || o.kind === 'liveGrid' || o.kind === undefined) return '';
   if (o.kind === 'classGrid') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
-  return overlayPath(topic, o, item);
+  return overlayPath(topic, o, item, year);
 }
 
 /**
@@ -1061,6 +1066,9 @@ function useClassGrids(paths: string[]): Map<string, ClassGrid> {
   }, [key]);
   return grids;
 }
+
+/** 檔名依年份換的疊加圖層最近讀到的資料（主題:圖層 → 資料）：換年份時新的到之前照畫 */
+const lastYearly = new Map<string, unknown>();
 
 const liveGridCache = new WeakMap<object, Map<string, Float32Array | null>>();
 /** 即時網格的值：同一份即時資料、同一個圖層只算一次（6.5 萬個格點） */
@@ -1099,8 +1107,8 @@ function mergedLines(main: LinesData, parts: LinesData[]): DecodedLines {
  * 疊加圖層的資料檔路徑。file 含 `{item}` 時換成目前的子項目（便利商店與連鎖品牌：一個品牌一個店家檔，
  * 只下載選到的品牌；換品牌時同一個圖層換資料，開關狀態不變）
  */
-function overlayPath(topic: Topic, o: { file: string; topic?: string }, item: string | null): string {
-  const file = o.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '');
+function overlayPath(topic: Topic, o: { file: string; topic?: string }, item: string | null, year: number): string {
+  const file = o.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '').replace('{year}', String(year));
   return `topics/${o.topic ?? topic.id}/${file}`;
 }
 

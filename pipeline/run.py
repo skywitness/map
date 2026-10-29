@@ -186,6 +186,9 @@ STEPS = {
     # 帝國與疆界：Cliopatria（Zenodo 299 MB）取樣 119 個年份的政體範圍、台灣依史實修正，加上 COLDAT 的殖民年份；
     # 政體的中文名稱跟各國在讀什麼共用 Wikidata 的快取（labels.json）；約 2 分鐘
     "empires": "topics.empires",
+    # 板塊漂移：Merdith 等 2021 的板塊模型（Zenodo），用 pyGPlates（只在建置時用）把今天的國界帶回 0–250 百萬年前，
+    # 加上那時的板塊邊界；約 1 分鐘
+    "plates": "topics.plates",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

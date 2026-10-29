@@ -147,6 +147,8 @@ interface WorldMapProps {
   focus?: { iso3: string; key: number } | null;
   /** 地形圖層（主題的 terrain）：kind 為 'terrain' 的指標畫分層設色，面量圖上疊地形陰影，3D 改成立體地形 */
   terrain?: boolean;
+  /** 只留海的底圖（主題的 bareMap，板塊漂移）：今天的陸地、地名、國界與國家的 hover、點選都拿掉 */
+  bareMap?: boolean;
   /** 1 km 網格（指標有 grid、使用者切到網格時）：取代面量圖的國家顏色 */
   grid?: GridLayer | null;
   /** 切到網格但 meta.json 載入失敗：照常畫國家平均，上方提示 */
@@ -728,6 +730,9 @@ function markLayers(dark: boolean, font: DataDrivenPropertyValueSpecification<st
   ];
 }
 
+/** 只留海的底圖（bareMap）蓋住今天陸地的那一層 */
+const BARE_SEA = 'bare-sea';
+
 /** hover 與點選時依序查詢的圖層（上面的優先）；隱藏的圖層會跳過 */
 const HOVER_LAYERS = [
   'flow-ends',
@@ -760,6 +765,7 @@ export function WorldMap(props: WorldMapProps) {
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
+  const bare = Boolean(props.bareMap);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
   const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null } = props;
   const flagsOn = indicator.layer.kind === 'flags';
@@ -1554,6 +1560,38 @@ export function WorldMap(props: WorldMapProps) {
     }
   }, [revision, calmSea]);
 
+  // 只留海的底圖（bareMap，板塊漂移）：在國家的顏色（data-fill）下面加一層海的顏色的背景，蓋住底圖的陸地、
+  // 國界、道路與世界視角的陸地；底圖的文字（向量圖磚的 symbol 圖層）隱藏，記下原本的 visibility，離開時還原
+  // （換底圖後是新的樣式，記錄作廢）。國界、國家的 hover 在 3D 那個 effect 拿掉
+  const bareHiddenRef = useRef<{ revision: number; layers: Map<string, unknown> }>({ revision: -1, layers: new Map() });
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const style = map.getStyle();
+    const hidden = bareHiddenRef.current;
+    if (hidden.revision !== revision) bareHiddenRef.current = { revision, layers: new Map() };
+    const record = bareHiddenRef.current.layers;
+    const has = Boolean(map.getLayer(BARE_SEA));
+    if (bare && !has) {
+      const sea = worldColors(style)?.sea ?? CALM_SEA;
+      map.addLayer({ id: BARE_SEA, type: 'background', paint: { 'background-color': sea } }, 'data-fill');
+    } else if (!bare && has) {
+      map.removeLayer(BARE_SEA);
+    }
+    if (bare) {
+      for (const l of style.layers) {
+        if (l.type !== 'symbol' || !('source' in l) || map.getSource(l.source)?.type !== 'vector') continue;
+        if (!record.has(l.id)) record.set(l.id, map.getLayoutProperty(l.id, 'visibility'));
+        map.setLayoutProperty(l.id, 'visibility', 'none');
+      }
+    } else {
+      for (const [id, visibility] of record) {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visibility === 'none' ? 'none' : 'visible');
+      }
+      record.clear();
+    }
+  }, [revision, bare]);
+
   // 3D 傾斜時的天空跟著介面深淺色（地球儀外面是 CSS 的背景）
   useEffect(() => {
     const map = mapRef.current;
@@ -1903,6 +1941,8 @@ export function WorldMap(props: WorldMapProps) {
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
     selectedRef.current = selected;
+    // 只留海的底圖（板塊漂移）：國家今天的位置在地圖上沒有意義，不移過去
+    if (bare) return;
     if (fitOnSelect && selected) {
       const bounds = countryBounds.get(selected);
       // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
@@ -1918,23 +1958,23 @@ export function WorldMap(props: WorldMapProps) {
     const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
     if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
     // 投影不放進依賴：切換投影、進出 3D 時不要重跑，否則這裡的 easeTo 會打斷傾斜的動畫
-  }, [revision, selected, anchors, fitOnSelect, countryBounds, markedCountries]);
+  }, [revision, selected, anchors, fitOnSelect, countryBounds, markedCountries, bare]);
 
   // 選取的小國家畫一個圓圈，大小圈住國名（markRadius）；換語言時國名的長度不同，所以另一個 effect
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const mark = selected && markedCountries.has(selected) ? anchors.get(selected) : undefined;
+    const mark = selected && !bare && markedCountries.has(selected) ? anchors.get(selected) : undefined;
     const r = selected ? markRadius(countryName(selected, countryTable, lang)) : 0;
     (map.getSource('selected-mark') as GeoJSONSource).setData(
       mark ? { type: 'Feature', properties: { r }, geometry: { type: 'Point', coordinates: mark } } : EMPTY,
     );
-  }, [revision, selected, anchors, markedCountries, countryTable, lang]);
+  }, [revision, selected, anchors, markedCountries, countryTable, lang, bare]);
 
   // 從搜尋選到國家：一定飛過去並框住整個國家，扣掉手機抽屜蓋住的部分
   useEffect(() => {
     const map = mapRef.current;
-    if (!ready || !map || !focus) return;
+    if (!ready || !map || !focus || bare) return;
     const bounds = countryBounds.get(focus.iso3);
     if (!bounds) return;
     const rect = map.getContainer().getBoundingClientRect();
@@ -2030,10 +2070,12 @@ export function WorldMap(props: WorldMapProps) {
     show('extrude-tiny', slabs);
     show('extrude-columns', extrude && kind === 'bubble');
     show('bubbles', !extrude);
-    show('data-tiny', !slabs && !gridOn && !flagsOn);
-    show('data-border', !slabs);
-    show('data-highlight', !slabs);
-    show('data-halo', !slabs);
+    show('data-tiny', !slabs && !gridOn && !flagsOn && !bare);
+    show('data-border', !slabs && !bare);
+    show('data-highlight', !slabs && !bare);
+    show('data-halo', !slabs && !bare);
+    // 只留海的底圖（bareMap）：國家不能 hover、點選（隱藏的圖層 featureAt 會跳過）
+    show('data-fill', !bare);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
     // 更新 feature-state，MapLibre 會對常數呼叫 evaluate 而丟出 TypeError
     map.setPaintProperty(
@@ -2043,7 +2085,7 @@ export function WorldMap(props: WorldMapProps) {
     );
     // 平面時鐵路在比例圓下面；3D 時改畫在立體圖形上面，否則會被整片蓋住
     map.moveLayer('rail', extrude ? 'airports-medium' : 'data-tiny');
-  }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn, basemap.dark]);
+  }, [revision, threeD, indicator.layer.kind, gridOn, terrain, flagsOn, basemap.dark, bare]);
 
   // 面量圖、類別圖、國旗把陸地整片蓋住（不透明度 0.82–0.94），世界視角看不到底圖的陰影點陣圖：
   // 縮放 WORLD_TILES_UNTIL 以下不畫，圖磚就不必下載（彩色地形約 3.2 MB）；放大後填色變淡，地形才透得出來。
