@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
 
 const MEAT_FISH = { zh: '肉類與水產', en: 'Meat and seafood' };
 const DAIRY_EGGS = { zh: '乳品與蛋', en: 'Dairy and eggs' };
@@ -42,6 +42,23 @@ const KCAL = { zh: '大卡/人/日', en: 'kcal/person/day' };
 const GRAMS = { zh: '公克/人/日', en: 'g/person/day' };
 const KG = { zh: '公斤/人/年', en: 'kg/person/year' };
 const sequential = (thresholds: number[]): ScaleSpec => ({ type: 'sequential', thresholds });
+
+/**
+ * 主食（pipeline/topics/diet.py 的 STAPLES，代碼 1–5）：熱量最多的那一類是「主要主食」。
+ * 側欄的 staples 依這個順序（rice、wheat…）。其他穀物是小米、高粱、大麥等，薯類是樹薯、馬鈴薯、番薯、山藥等（指標說明寫）
+ */
+export const STAPLE_KINDS: (CategoryDef & { id: string })[] = [
+  { id: 'rice', value: 1, label: { zh: '米', en: 'Rice' } },
+  { id: 'wheat', value: 2, label: { zh: '小麥', en: 'Wheat' } },
+  { id: 'maize', value: 3, label: { zh: '玉米', en: 'Maize' } },
+  { id: 'other-cereals', value: 4, label: { zh: '其他穀物', en: 'Other cereals' } },
+  { id: 'roots', value: 5, label: { zh: '薯類', en: 'Starchy roots' } },
+];
+
+const stapleLabel = (v: number) => {
+  const kind = STAPLE_KINDS.find((k) => k.value === v);
+  return kind ? tr(kind.label) : '';
+};
 
 function grams(id: string, label: Text, description: Text, thresholds: number[]): IndicatorDef {
   return {
@@ -131,6 +148,32 @@ export const diet: TopicDefinition = {
       unit: '%',
       file: 'animal-share.json',
       layer: { kind: 'choropleth', scale: sequential([5, 10, 15, 20, 25, 30]) },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+    },
+    {
+      id: 'staple',
+      label: { zh: '主要主食', en: 'Main staple' },
+      description: {
+        zh: '熱量最多的主食是哪一種：米、小麥、玉米、其他穀物（小米、高粱、大麥等）或薯類（樹薯、馬鈴薯、番薯、山藥等）。依每人每日從各種主食得到的熱量比較；播放時間軸看各國的主食怎麼換。',
+        en: 'Which staple supplies the most calories: rice, wheat, maize, other cereals (millet, sorghum, barley and so on) or starchy roots (cassava, potatoes, sweet potatoes, yams and so on), compared by calories per person per day. Play the timeline to see staples change.',
+      },
+      unit: '',
+      file: 'staple.json',
+      layer: { kind: 'categorical', categories: STAPLE_KINDS.map(({ value, label }) => ({ value, label })) },
+      format: stapleLabel,
+    },
+    {
+      id: 'staple-share',
+      label: { zh: '主要主食占熱量', en: 'Calories from the main staple' },
+      description: {
+        zh: '熱量最多的那種主食占總熱量的比例：越高越依賴單一主食（2023 年剛果民主共和國的薯類 67%、孟加拉的米 64%，台灣的米 13%）。點國家看 5 類主食各提供多少熱量。',
+        en: 'Share of all calories supplied by the main staple: the higher it is, the more a diet relies on one staple (in 2023, starchy roots supplied 67% in DR Congo and rice 64% in Bangladesh; rice supplied 13% in Taiwan). Click a country for the calories from each of the five staples.',
+      },
+      unit: '%',
+      file: 'staple-share.json',
+      layer: { kind: 'choropleth', scale: sequential([10, 20, 30, 40, 50, 60]) },
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,
       compareWorld: true,

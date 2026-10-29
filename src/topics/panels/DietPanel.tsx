@@ -5,7 +5,8 @@ import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedAr
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import type { Hue } from '../../theme/tokens';
+import { MAP_TOKENS, type Hue } from '../../theme/tokens';
+import { STAPLE_KINDS } from '../diet';
 import type { PanelExtraProps } from '../types';
 
 /** pipeline/topics/diet.py 輸出的各國熱量來源（每人每日大卡） */
@@ -14,6 +15,8 @@ interface CaloriesFile {
   methodBreak?: number;
   groups: string[];
   values: Record<string, (number | null)[]>;
+  /** 5 類主食每人每日的熱量（2026-10-29 加，順序同 STAPLE_KINDS） */
+  staples?: Record<string, (number | null)[]>;
 }
 
 // 堆疊由下而上：動物性在下面（前三層加起來接近動物性食物占的熱量），植物性在上，「其他」最上面。
@@ -38,6 +41,8 @@ const TEXT = defineMessages({
     byGroup: (year: number) => `${year} 年各類食物提供的熱量`,
     listAria: (country: string, year: number) => `${country}${year} 年的熱量來源`,
     other: '「其他」包含乾豆類、堅果、油料作物、酒類、咖啡茶與香料等。',
+    staples: (year: number) => `${year} 年各種主食提供的熱量`,
+    staplesAria: (country: string, year: number) => `${country}${year} 年各種主食提供的熱量`,
   },
   en: {
     noCountry: 'No calorie data by food group for this country.',
@@ -46,6 +51,8 @@ const TEXT = defineMessages({
     byGroup: (year) => `Calories by food group, ${year}`,
     listAria: (country, year) => `Sources of calories in ${country}, ${year}`,
     other: '“Other” covers pulses, nuts, oil crops, alcoholic beverages, coffee, tea, spices and more.',
+    staples: (year) => `Calories from each staple, ${year}`,
+    staplesAria: (country, year) => `Calories from each staple in ${country}, ${year}`,
   },
 });
 
@@ -84,7 +91,24 @@ export default function DietPanel({ topic, iso3, year, countryName, tokens }: Pa
       formatTick: (v) => fixed(v, 0),
       tokens,
     });
-    return { option, items, shownYear: index >= 0 ? years[index] : null, methodBreak };
+    // 主食：選定那一年 5 類的熱量，顏色跟地圖的「主要主食」一樣（主要主食歷年怎麼換，類別圖的側欄本來就會列）
+    let staples: { key: string; label: string; value: number; color: string }[] = [];
+    let stapleYear: number | null = null;
+    if (data.staples) {
+      const st = data.staples;
+      const kcalAt = (i: number) => STAPLE_KINDS.map((k) => st[k.id]?.[i] ?? null);
+      const sIndex = latestIndexAtOrBefore(data.years, year, (i) => kcalAt(i).some((v) => (v ?? 0) > 0));
+      if (sIndex >= 0) {
+        stapleYear = data.years[sIndex];
+        staples = STAPLE_KINDS.map((k, n) => ({
+          key: k.id,
+          label: tr(k.label, lang),
+          value: kcalAt(sIndex)[n] ?? 0,
+          color: MAP_TOKENS.categorical[n],
+        })).filter((item) => item.value > 0);
+      }
+    }
+    return { option, items, shownYear: index >= 0 ? years[index] : null, methodBreak, staples, stapleYear };
   }, [data, year, tokens, lang]);
 
   if (error) return <p className="empty">{text.noCountry}</p>;
@@ -107,6 +131,20 @@ export default function DietPanel({ topic, iso3, year, countryName, tokens }: Pa
           </h4>
           <BarList items={sorted} format={kcal} total={total} ariaLabel={text.listAria(countryName, view.shownYear)} />
           <p className="note">{text.other}</p>
+        </>
+      )}
+      {view.stapleYear !== null && view.staples.length > 0 && (
+        <>
+          <h4>
+            {text.staples(view.stapleYear)}
+            {view.stapleYear !== year && <span className="muted">{t.yearMissing(year)}</span>}
+          </h4>
+          <BarList
+            items={[...view.staples].sort((a, b) => b.value - a.value)}
+            format={kcal}
+            total={view.staples.reduce((sum, i) => sum + i.value, 0)}
+            ariaLabel={text.staplesAria(countryName, view.stapleYear)}
+          />
         </>
       )}
     </section>

@@ -9,6 +9,10 @@
   另外在附註附上農業部《糧食供需年報》同一年的數字對照。
 - 「China」(351) 是大陸＋港＋澳＋台的合計，faostat.rows() 已經排除，中國用「China, mainland」。
 - 營養不足盛行率（糧食安全指標）是三年平均，標在中間那一年；FAO 對低於 2.5% 的只公布「<2.5」，記成 0。
+- 主食（2026-10-29 加，使用者決定：分 5 類、依熱量、1961 年起）：米、小麥、玉米、其他穀物（穀物合計減掉前三種：
+  大麥、小米、高粱、燕麥、黑麥等）、薯類（樹薯、馬鈴薯、番薯、山藥等）每人每日的熱量，熱量最多的是「主要主食」
+  （staple.json，類別代碼見 STAPLES），它占總熱量的比例另一個指標（staple-share.json）；各國側欄的檔多一組 staples。
+  熱量不必像重量那樣把新版的稻穀換成白米。
 - 咖啡、茶、可可（2026-10-28 加）：咖啡新舊版在 2010 年差太多（各國差距中位數 46%），不接舊版，只有 2010 年起；
   供給量是「生產＋進口－出口－庫存變化」算出來的，轉口地與產地常算出不可能的數字，超過 UNRELIABLE 門檻的年份拿掉，
   資料檔的 noValue 寫「數字不可靠」（DESIGN.md 第 8 節第 97 點）。
@@ -78,6 +82,10 @@ GROUPS = [
 ]
 GROUP_ITEMS = {GRAND_TOTAL} | {code for _, codes in GROUPS for code in codes}
 
+# 主食（熱量）：類別代碼 1–5，src/topics/diet.ts 的 STAPLES 要一致。其他穀物 = 穀物合計 − 米 − 小麥 − 玉米
+STAPLES = [("rice", RICE_NEW), ("wheat", 2511), ("maize", 2514), ("other-cereals", None), ("roots", 2907)]
+WHEAT, MAIZE = 2511, 2514
+
 # 農業部《112 年糧食供需年報》（2023 年）。開放資料平台上的糧食平衡表只到 2015 年，數字照年報抄錄：
 # https://eng.moa.gov.tw/upload/files/eng_web_structure/2505782/BB_B01_112.pdf
 MOA_YEAR = 2023
@@ -126,7 +134,7 @@ def build() -> None:
     out = OUT_DIR / "topics" / "diet"
 
     print("  讀取糧食平衡表（新版 2010 年起、舊版 1961–2013）…")
-    wanted = GROUP_ITEMS | {ANIMAL} | {f.item for f in FOODS} | {f.historic for f in FOODS if f.historic}
+    wanted = GROUP_ITEMS | {ANIMAL} | {f.item for f in FOODS} | {f.historic for f in FOODS if f.historic} | {WHEAT, MAIZE}
     NEW_ONLY = {f.item for f in FOODS if f.new_only}  # noqa: N806
     # (element, item, area) -> {year: value}；舊版只取 2009 年以前，新版 2010 年起
     data: dict[tuple[int, int, str], dict[int, float]] = defaultdict(dict)
@@ -237,6 +245,37 @@ def build() -> None:
             ),
         )
 
+    # 主食：每國每年 5 類主食的熱量，最多的是主要主食
+    staple_kcal: dict[str, dict[int, list[float]]] = defaultdict(dict)
+    for area in energy:
+        cereals = data.get((KCAL, CEREALS, area), {})
+        parts = {code: data.get((KCAL, code, area), {}) for _, code in STAPLES if code}
+        for y in years:
+            if y not in cereals and not any(y in p for p in parts.values()):
+                continue
+            rice, wheat, maize, roots = (parts[c].get(y, 0.0) for c in (RICE_NEW, WHEAT, MAIZE, 2907))
+            other = max(0.0, cereals.get(y, 0.0) - rice - wheat - maize)
+            staple_kcal[area][y] = [rice, wheat, maize, other, roots]
+    main_staple = {
+        area: {y: float(1 + max(range(5), key=lambda k: v[k])) for y, v in s.items() if sum(v) > 0}
+        for area, s in staple_kcal.items()
+    }
+    staple_share = {
+        area: {y: max(v) / energy[area][y] * 100 for y, v in s.items() if sum(v) > 0 and energy[area].get(y)}
+        for area, s in staple_kcal.items()
+    }
+    write_json(out / "staple.json", fbs_file("staple", "", main_staple, 0, None, ("", "")))
+    write_json(out / "staple-share.json", fbs_file("staple-share", "%", staple_share, 1, None, ("%", "%")))
+    tw = staple_kcal.get("TWN", {})
+    for y in (1961, 1980, 2000, 2010, years[-1]):
+        if y in tw:
+            print(f"    台灣 {y}：米 {tw[y][0]:.0f}、小麥 {tw[y][1]:.0f}、玉米 {tw[y][2]:.0f}、其他穀物 {tw[y][3]:.0f}、薯類 {tw[y][4]:.0f} 大卡")
+    latest = {a: s[max(s)] for a, s in main_staple.items() if a != "WLD" and s}
+    counts = defaultdict(int)
+    for v in latest.values():
+        counts[STAPLES[int(v) - 1][0]] += 1
+    print(f"  主要主食（各國最新一年）：{dict(counts)}")
+
     # 側欄：各國每年各類食物提供的熱量
     countries = 0
     for area, total in energy.items():
@@ -250,9 +289,16 @@ def build() -> None:
             None if total.get(y) is None else max(0, round(total[y] - sum(values[g][i] or 0 for g, _ in GROUPS)))
             for i, y in enumerate(years)
         ]
+        staples = {
+            sid: [None if y not in staple_kcal.get(area, {}) else round(staple_kcal[area][y][k]) for y in years]
+            for k, (sid, _) in enumerate(STAPLES)
+        }
         write_json(
             out / "countries" / f"{area}.json",
-            {"years": years, "methodBreak": NEW_FROM, "groups": [g for g, _ in GROUPS] + ["other"], "values": values},
+            {
+                "years": years, "methodBreak": NEW_FROM, "groups": [g for g, _ in GROUPS] + ["other"], "values": values,
+                "staples": staples,
+            },
             quiet=True,
         )
         countries += 1
