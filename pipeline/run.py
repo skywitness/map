@@ -198,6 +198,8 @@ STEPS = {
     # 山脈（海拔主題）：GMBA Mountain Inventory v2 的 291 個主要山系（EarthEnv，約 32 MB 的 zip），範圍、名稱、
     # 各國國土在山區的比例（0.025° 網格）；要先跑 geo 步驟；約 2 分鐘
     "mountains": "topics.mountains",
+    # 出生的季節：UNdata 表 55 的逐月出生數（一國一頁，第一次約 156 頁）、內政部按登記的月份；約 1 分鐘
+    "birth-season": "topics.birth_season",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
