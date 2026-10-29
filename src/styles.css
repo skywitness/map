@@ -2490,7 +2490,8 @@ kbd {
   padding: 2px 0;
   border: 0;
   background: none;
-  color: var(--accent-ink);
+  /* --accent-ink 是藍底上的白字；淺色的側欄上用 --accent（2026-10-29 改，原本看不見） */
+  color: var(--accent);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -2498,6 +2499,18 @@ kbd {
 
 .eclipse-more:hover {
   text-decoration: underline;
+}
+
+/* 航海日誌的側欄（LogbooksPanel.tsx）：清單用日食的列（.eclipse-row），下面是上一次、下一次有船經過的年份 */
+.logbook-years {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 2px 0 0;
+}
+
+.logbook-years .eclipse-more {
+  margin: 0;
 }
 
 /* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */
