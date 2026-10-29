@@ -3,15 +3,18 @@ import type { Topology } from 'topojson-specification';
 import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
 import { ClampedText } from './controls/ClampedText';
+import { CommandPalette, type PaletteAction } from './controls/CommandPalette';
 import { ShareMenu } from './controls/ShareMenu';
 import { ShortcutHelp } from './controls/ShortcutHelp';
 import { TimeSlider } from './controls/TimeSlider';
 import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
 import { MomentControl } from './controls/MomentControl';
-import { localize, LOCALES, useLang, useT, type Lang } from './i18n';
+import { localize, LOCALES, setLang, useLang, useT, type Lang } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
+import { rememberTopic } from './lib/recentTopics';
+import { useUI } from './lib/strings';
 import type { TopicTarget } from './lib/topicSearch';
 import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMoment, formatTimeParam } from './lib/clock';
 import { indicatorCsv } from './lib/csv';
@@ -366,6 +369,23 @@ export function App() {
     },
   });
 
+  // 最近看過的主題（主題總覽、指令面板列出）
+  useEffect(() => rememberTopic(topic.id), [topic.id]);
+  // 主題總覽（TopicNav 裡的對話框）：指令面板的「看全部主題」也會打開
+  const [overviewOpen, setOverviewOpen] = useState(false);
+  // 指令面板（Ctrl+K）的指令，依目前的狀態列出
+  const UI = useUI();
+  const paletteActions = useMemo<PaletteAction[]>(() => {
+    const A = UI.palette.actions;
+    return [
+      { id: 'overview', label: A.overview, run: () => setOverviewOpen(true) },
+      ...(pure ? [] : [{ id: 'view', label: view === 'map' ? A.table : A.map, run: () => update({ view: view === 'map' ? 'table' : 'map' }) }]),
+      { id: 'theme', label: tokens.mode === 'dark' ? t.switchToLight : t.switchToDark, run: toggleTheme },
+      { id: 'lang', label: lang === 'zh' ? A.english : A.chinese, run: () => setLang(lang === 'zh' ? 'en' : 'zh') },
+      ...(state.country && !pure ? [{ id: 'clear', label: A.clear, run: () => selectCountry(null) }] : []),
+    ];
+  }, [UI, pure, view, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry]);
+
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
@@ -558,6 +578,15 @@ export function App() {
           current={topic}
           onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null, time: null })}
           onSelectTarget={selectTopic}
+          overviewOpen={overviewOpen}
+          onOverviewChange={setOverviewOpen}
+        />
+        <CommandPalette
+          index={searchIndex}
+          currentTopic={topic.id}
+          onSelectCountry={selectFromSearch}
+          onSelectTopic={selectTopic}
+          actions={paletteActions}
         />
         <LangSwitch />
         <ShortcutHelp />

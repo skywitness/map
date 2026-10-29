@@ -33,12 +33,30 @@ const UI_TEXT = defineMessages({
       note: '在輸入框打字時不會觸發。',
       items: [
         { keys: ['/'], label: '搜尋國家' },
+        { keys: ['Ctrl', 'K'], label: '指令面板：找主題、國家或指令（Mac 用 ⌘K）' },
         { keys: ['←', '→'], label: '上一年／下一年' },
         { keys: ['Space'], label: '播放／暫停歷年變化' },
         { keys: ['+', '−'], label: '放大／縮小地圖' },
         { keys: ['Esc'], label: '取消選取、關閉側欄' },
         { keys: ['?'], label: '顯示這份說明' },
       ],
+    },
+    /** 指令面板（CommandPalette.tsx，Ctrl+K） */
+    palette: {
+      title: '指令面板',
+      placeholder: '找主題、指標、國家或指令…',
+      recent: '最近看過',
+      commands: '指令',
+      noResults: '找不到符合的主題、國家或指令',
+      hint: '↑↓ 選擇　Enter 開啟　Esc 關閉',
+      actions: {
+        overview: '看全部主題',
+        map: '切換到地圖',
+        table: '切換到排名表',
+        english: '切換到英文（English）',
+        chinese: '切換到中文',
+        clear: '取消選取國家',
+      },
     },
     sheet: {
       /** 抽屜三段高度的名稱，給螢幕閱讀器用 */
@@ -86,12 +104,30 @@ const UI_TEXT = defineMessages({
       note: 'Shortcuts are ignored while you are typing in a text box.',
       items: [
         { keys: ['/'], label: 'Search countries' },
+        { keys: ['Ctrl', 'K'], label: 'Command palette: topics, countries, commands (⌘K on a Mac)' },
         { keys: ['←', '→'], label: 'Previous / next year' },
         { keys: ['Space'], label: 'Play / pause the years' },
         { keys: ['+', '−'], label: 'Zoom the map in / out' },
         { keys: ['Esc'], label: 'Clear the selection, close the panel' },
         { keys: ['?'], label: 'Show this help' },
       ],
+    },
+    palette: {
+      title: 'Command palette',
+      placeholder: 'Find a topic, indicator, country or command…',
+      recent: 'Recently viewed',
+      commands: 'Commands',
+      noResults: 'No matching topics, countries or commands',
+      hint: '↑↓ to choose · Enter to open · Esc to close',
+      actions: {
+        overview: 'Show all topics',
+        map: 'Switch to the map',
+        table: 'Switch to the ranking table',
+        english: 'Switch to English',
+        // 語言名稱用該語言自己寫，看不懂英文的人也找得到
+        chinese: 'Switch to Chinese (中文)', // i18n-ignore
+        clear: 'Clear the selected country',
+      },
     },
     sheet: {
       handle: (state) => `Resize panel (${{ peek: 'collapsed', half: 'half open', full: 'fully open' }[state]})`,

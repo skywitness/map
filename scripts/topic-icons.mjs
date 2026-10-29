@@ -3,7 +3,7 @@
  * 主題與分類的圖示：從 Lucide（lucide-static，ISC 授權）挑選，每個圖示的線條轉成一條 SVG path，產生
  *
  *   src/topics/icons.gen.ts        每個主題的圖示（主題選單、主題總覽才用，TopicIcon.tsx 動態載入）
- *   src/topics/groupIcons.gen.ts   頂列分類按鈕與純地圖的圖示（首頁就要，很小）
+ *   src/topics/groupIcons.gen.ts   頂列分類按鈕、純地圖與指令面板的圖示（首頁就要，很小）
  *
  *   npm run icons              改了下面的對照表之後重新產生
  *   npm run icons -- --check   只檢查（CI）：每個主題都有圖示、產生的檔是最新的
@@ -27,6 +27,12 @@ const GROUP_ICONS = {
   energy: 'leaf',
   tech: 'monitor-smartphone',
   geo: 'mountain-snow',
+};
+
+/** 介面用的圖示：指令面板（CommandPalette.tsx）的國家與指令 */
+const UI_ICONS = {
+  country: 'map-pin',
+  command: 'command',
 };
 
 const TOPIC_ICONS = {
@@ -222,7 +228,11 @@ for (const g of groups) if (!GROUP_ICONS[g.id]) problems.push(`分類 ${g.id} �
 for (const id of topics) if (!TOPIC_ICONS[id]) problems.push(`主題 ${id} 沒有圖示（TOPIC_ICONS）`);
 for (const id of Object.keys(TOPIC_ICONS)) if (!topics.includes(id)) problems.push(`TOPIC_ICONS 的 ${id} 不在 registry.ts 的分類裡`);
 const used = new Map();
-for (const [owner, name] of [...Object.entries(GROUP_ICONS).map(([k, v]) => [`分類 ${k}`, v]), ...Object.entries(TOPIC_ICONS)]) {
+for (const [owner, name] of [
+  ...Object.entries(GROUP_ICONS).map(([k, v]) => [`分類 ${k}`, v]),
+  ...Object.entries(UI_ICONS).map(([k, v]) => [`介面 ${k}`, v]),
+  ...Object.entries(TOPIC_ICONS),
+]) {
   if (used.has(name)) problems.push(`「${name}」同時給了 ${used.get(name)} 與 ${owner}`);
   used.set(name, owner);
 }
@@ -240,9 +250,12 @@ const topicSource =
   HEADER('每個主題的圖示（主題選單、主題總覽）') +
   `export const TOPIC_ICONS: Record<string, string> = ${record(topics.map((id) => [id, TOPIC_ICONS[id], icon(TOPIC_ICONS[id], id)]))};\n`;
 const groupSource =
-  HEADER('頂列分類按鈕與純地圖的圖示') +
+  HEADER('頂列分類按鈕、純地圖與介面（指令面板）的圖示') +
   `export const GROUP_ICONS: Record<string, string> = ${record(
     Object.entries(GROUP_ICONS).map(([id, name]) => [id, name, icon(name, `分類 ${id}`)]),
+  )};\n\n` +
+  `export const UI_ICONS: Record<'country' | 'command', string> = ${record(
+    Object.entries(UI_ICONS).map(([id, name]) => [id, name, icon(name, `介面 ${id}`)]),
   )};\n`;
 
 if (problems.length) {

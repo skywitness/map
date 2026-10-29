@@ -21,6 +21,9 @@ interface TopicNavProps {
   onSelect: (topicId: string) => void;
   /** 主題總覽裡選到指標或子項目時（篩選「鋰」）直接開那個指標 */
   onSelectTarget: (target: TopicTarget) => void;
+  /** 主題總覽開著沒（App.tsx 管，指令面板的「看全部主題」也會打開） */
+  overviewOpen: boolean;
+  onOverviewChange: (open: boolean) => void;
 }
 
 /** 選單項目下方列出的指標數 */
@@ -60,7 +63,7 @@ function reveal(nav: HTMLElement, button: HTMLElement): void {
  * 主題列在手機上可以橫向捲動（overflow 會裁掉往下長的選單），所以選單用 portal 放到 body、
  * 以 fixed 定位對齊按鈕。
  */
-export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
+export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOverviewChange }: TopicNavProps) {
   const t = useT();
   const lang = useLang();
   const [open, setOpen] = useState<string | null>(null);
@@ -73,7 +76,6 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
   const menuId = useId();
 
   const [overflowing, setOverflowing] = useState(false);
-  const [overview, setOverview] = useState(false);
   const icons = useTopicIcons(open !== null);
 
   // 主題的圖示（另一個 chunk）：頁面安靜下來之後先下載，打開選單時就有；滑到、移到主題列上也開始下載
@@ -229,7 +231,7 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
 
   const openOverview = () => {
     setOpen(null);
-    setOverview(true);
+    onOverviewChange(true);
   };
 
   return (
@@ -335,11 +337,11 @@ export function TopicNav({ current, onSelect, onSelectTarget }: TopicNavProps) {
           document.body,
         )}
       <TopicsOverview
-        open={overview}
+        open={overviewOpen}
         current={current}
-        onClose={() => setOverview(false)}
+        onClose={() => onOverviewChange(false)}
         onSelect={(target) => {
-          setOverview(false);
+          onOverviewChange(false);
           if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
         }}
       />

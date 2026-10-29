@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { tr, useLang, useT } from '../i18n';
+import { readRecentTopics } from '../lib/recentTopics';
 import { matchTopics, type TopicHit, type TopicTarget } from '../lib/topicSearch';
 import { CloseIcon } from '../map/MapIcons';
 import { groupOfTopic, prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '../topics';
+import { CATALOG } from '../topics/catalog.gen';
 import { pureMap } from '../topics/map';
 import { categoryStyle, Glyph, GroupGlyph, topicGlyph, useTopicIcons } from './TopicIcon';
 
@@ -15,6 +17,8 @@ interface TopicsOverviewProps {
 
 /** 卡片下方列出的指標數（跟主題選單一樣） */
 const SUMMARY_COUNT = 3;
+/** 「最近看過」最多列幾個 */
+const RECENT_COUNT = 8;
 /** 觸控裝置打開時不自動聚焦篩選框，免得鍵盤一跳出來蓋住半個畫面 */
 const TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
@@ -30,6 +34,11 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
   const filterRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const icons = useTopicIcons(open);
+  // 最近看過的主題（不含目前的），打開時讀一次
+  const recent = useMemo(
+    () => (open ? readRecentTopics().filter((id) => id !== current.id).slice(0, RECENT_COUNT) : []),
+    [open, current.id],
+  );
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -127,6 +136,30 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
           </button>
         </header>
         <div className="overview-body">
+          {/* 最近看過（lib/recentTopics.ts）：篩選時不列 */}
+          {!matches && recent.length > 0 && (
+            <section aria-labelledby="overview-recent">
+              <h3 id="overview-recent">{t.overviewRecent}</h3>
+              <ul className="overview-recent">
+                {recent.map((id) => (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      style={categoryStyle(groupOfTopic(id))}
+                      onPointerEnter={() => prefetchTopic(id)}
+                      onFocus={() => prefetchTopic(id)}
+                      onClick={() => onSelect({ topic: id, indicator: null, item: null })}
+                    >
+                      <span className="topic-tile" aria-hidden="true">
+                        <Glyph d={topicGlyph(icons, id)} size={16} />
+                      </span>
+                      {tr(CATALOG.topics[id].shortTitle, lang)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {sections.length ? (
             sections.map((s) => (
               <section key={s.id} aria-labelledby={`overview-${s.id}`}>

@@ -23,6 +23,7 @@ export const en: Messages = {
   overviewFilter: 'Filter topics, indicators or items',
   overviewMatch: (label) => `Matches: ${label}`,
   overviewNoMatch: 'No matching topics',
+  overviewRecent: 'Recently viewed',
   overviewCredit:
     "Thumbnails show each topic's default indicator on a world map (sources are listed in each topic's footer). Basemap © OpenStreetMap contributors · OpenMapTiles · OpenFreeMap; borders Natural Earth. Topic icons Lucide (ISC licence).",
   language: 'Language',
