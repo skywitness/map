@@ -564,7 +564,7 @@ pipeline/
 | 發電量 | 總發電量、人均用電、再生/低碳/燃煤/核能占比、碳排強度 | 發電結構堆疊面積圖＋各能源長條 | Ember | 2000–2025 |
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
 | 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
-| 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支 | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV） | 1961–2024 |
+| 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支；有機農地的比例、有機農地面積（比例圓） | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV；有機農地用土地利用 RL） | 1961–2024（有機農地 2004–2024） |
 | 關鍵礦產 | 17 種礦產（稀土、鋰、鈷、鎳、天然石墨、錳、鎵、鍺、錫、鎢、釩、鈮、銻、鉑、鈀、銅、鋁土礦，子項目）的產量（比例圓，預設稀土）、占全球產量、蘊藏量（比例圓）、占全球蘊藏量 | 主要生產的礦產（全球前 5 名而且占 1% 以上，或占 5% 以上，附名次與占比） | USGS Mineral Commodity Summaries 2020–2026 年版（各章 PDF 的世界產量與蘊藏量表） | 產量 2018–2025（2025 年是初估；鍺只到 2020）；蘊藏量 2019–2025；台灣不是生產國（noValue） |
 | 便利商店與連鎖品牌 | 品牌（子項目：7-Eleven、全家、Lawson、所有便利商店、麥當勞、星巴克、肯德基、Subway、IKEA、Costco）的每百萬人店數（預設 7-Eleven，各品牌自己的門檻）與店數（比例圓）；放大到 5 級以上畫出選定品牌的每一家店（一個品牌一個檔，選到才下載） | 各品牌在 OSM 上的店數、每百萬人、公司公布的店數與涵蓋率，公司店數的出處；所有便利商店的數量與標示最多的品牌 | OpenStreetMap（Overpass API，ODbL；這個主題的資料檔是衍生資料庫，同樣 ODbL）；人口用 UN WPP 2024 的 2026 年；公司公布的店數（年報、10-K、法說會簡報、官網，`pipeline/sources/chain_official.py`）只寫在附註、tooltip 與側欄 | 2026-10-26 的快照（沒有歷年資料） |
 | 貿易 | 出口、進口流向圖（點選國家畫出前 15 大夥伴的弧線）；全部商品、農產品合計與農業主題的 22 種農產品、二手衣（舊衣 HS 6309，BACI HS92，1995 年起） | 主要出口對象、主要進口來源（金額與占比） | CEPII BACI（全部商品）、FAOSTAT 詳細貿易矩陣（農產品） | 全部商品 2017–2024；農產品 2000–2023 |
@@ -961,6 +961,7 @@ pipeline/
     - **外籍勞工占勞動力**（移民與難民主題的擴充，第 129 點，2026-10-29）：ILOSTAT 的 EAP_TEAP_SEX_AGE_CBR_NB_A（CC BY 4.0，ILOSTAT 已記）。台灣：勞動部「產業及社福外籍勞工人數－按國籍及縣市分」（data.gov.tw 41881）與主計總處人力資源調查（nstatdb A040107010），都是政府資料開放授權條款第 1 版；`apiservice.mol.gov.tw` 的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`。
     - **收入有多少花在吃**（物價與財政主題的擴充，第 130 點，2026-10-29）：世界銀行國際比較計畫 ICP 2021（Data Catalog「License: Creative Commons Attribution 4.0」，API 來源 90，不用金鑰）。**USDA ERS 的國際食物支出表沒有用**：底層是 Oxford Economics、Euromonitor 的商業資料庫，USDA 的網站政策頁從 cloud 被 Akamai 擋下（403），授權沒辦法確認。
     - **家庭負債**（存款與財產主題的擴充，第 131 點，2026-10-29）：BIS total credit statistics（WS_TC，BIS 條款已記，用 SDMX API 只查家庭、占 GDP 那幾條序列，1.2 MB，不必下載整包 74 MB）。台灣是中央銀行「金融健全參考指標－家庭部門」（data.gov.tw 23853，政府資料開放授權條款第 1 版）；`www.cbc.gov.tw` 的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`。**IMF Global Debt Database 沒有用**：條款要求商業使用另外申請、禁止自動大量下載（使用者決定只用 BIS）。
+    - **有機農業**（農業主題的擴充，第 135 點，2026-10-29）：FAOSTAT 土地利用（RL）的有機農地（品項 6671，含轉型期）。有機面積是 FAO 用 FiBL 的全球調查補的，而 FiBL 自己網站的資料寫「provided for internal use only」「Larger data extracts (more than 100 datasets) may not be re-disseminated without written permission of FiBL」，FAO 資料庫條款又寫第三方資料可能另有限制、「these conditions are included in the dataset metadata or webpage」。使用者決定先確認、確認不了就不做。用 FAOSTAT 網站（一般瀏覽器開 https://www.fao.org/faostat/en/#data/RL/metadata ，網站自己帶授權標頭讀中繼資料 API）讀到 RL 的中繼資料：Release policy 寫「As per FAO Policy on Open Data Licensing for FAO Statistical Databases, this work is made available under the Creative Commons Attribution-4.0 International license (CC BY 4.0 …)」，Data compilation 寫「Data collected and disseminated by the Research Institute of Organic Agriculture (FiBL) are used to complement information on FAOSTAT items “Area certified organic” and “Area in conversion to certified organic”」，沒有列第三方的限制，所以照 CC BY 4.0 用 FAOSTAT 的數字（不直接用 FiBL 的資料）；頁尾與附註寫明 FAO 用 FiBL 的調查補齊。
     - **航空旅客量**（交通主題的擴充，第 134 點，2026-10-29）：世界銀行 WDI IS.AIR.PSGR（序列中繼資料 License_Type「CC BY-4.0」，來源 ICAO）與 UN WPP 2024（已記）。台灣附註用交通部民用航空局「民航運輸各機場營運量－按國際、兩岸及國內航線分」（data.gov.tw 33238，政府資料開放授權條款第 1 版）；`www.caa.gov.tw` 的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`。
     - **Global E-waste Monitor 2024 是 CC BY-NC-SA 3.0 IGO**（電子垃圾，新主題，第 133 點，2026-10-29）：報告版權頁「This work is available under the Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 IGO licence」，ewastemonitor.info 的 Copyright 頁相同。使用者決定照用（非商業可以接受）：這個主題的資料檔的 `license` 與 `manifest.json` 寫 CC BY-NC-SA 3.0 IGO，頁尾的來源寫明資料檔同樣授權。報告 PDF 從 ewastemonitor.info 直接下載，不用帳號。
     - 頁尾已標示各主題的來源。
@@ -3108,6 +3109,12 @@ pipeline/
     - **口徑**：算在航空公司的註冊國，不是機場所在的國家或乘客的國籍：愛爾蘭每人 37 次（瑞安航空）、匈牙利 5.7 次（威茲航空），卡達、阿聯、新加坡這類轉機樞紐也高。這些寫在主題附註與指標說明裡，沒有另外調整。
     - **台灣**：WDI 沒有台灣。民航局的檔（索引 CSV 指向每月更新的最新檔，副檔名 .csv、內容是 ODS，用 `sources/moe._sheet_rows` 讀）表 5 有 1952 年起各機場的旅客（2016 年以前每五年一列），只取全年的：2025 年 6,889 萬人次（國際 5,231 萬、兩岸 580 萬、國內 1,056 萬），2019 年 7,216 萬。機場旅客是入境、出境與過境，國內線在起降兩端各算一次，跟國籍航空公司的載客不同，所以只寫在台灣的附註（指標檔的 `notes`），兩個指標的 `noValue` 寫「沒有（見附註）」。
     - **圖層**：鐵路圖層加上 `indicators`，航空旅客的兩個指標不畫鐵路與機場。
+135. **有機農業**（農業主題的擴充，2026-10-29，製作手冊第五批 53；`pipeline/topics/agriculture.py` 的 `build_organic`、`src/topics/agriculture.ts`）：
+    - **使用者決定**：先確認 FAOSTAT 有機面積（來自 FiBL）的授權，確認不了就不做。確認的經過見第 8 節第 12 點：RL 的中繼資料寫整個資料集 CC BY 4.0，沒有第三方限制。
+    - **資料**：FAOSTAT 土地利用（RL，批次檔 2.9 MB，網站已在用）的品項 6671「Agriculture area under organic agric.」（含轉型期，比 6672「certified organic」多），元素 5110 面積（千公頃，乘 1,000 成公頃）與 7208 占農地的比例（%），2004–2024 年，176 國。世界的值用 FAOSTAT 自己的 World（2024 年 9,910 萬公頃、2.11%）。
+    - **指標**：有機農地的比例（面量圖，預設 2024 年）、有機農地面積（比例圓）。兩個都不分農產品，選農產品的下拉選單不影響。
+    - **陷阱**：澳洲 5,302 萬公頃占全球一半以上，多是內陸的粗放牧場，所以比例排在前面。薩摩亞 86% 明顯偏高（手冊也標「可疑」），照 FAOSTAT 的值畫，說明裡寫可能是有機面積與農地面積的口徑不同。
+    - **結果**：比例最高列支敦斯登 30.4%、奧地利 27.1%、希臘 22.7%、愛沙尼亞 22.6%；台灣 2.03 萬公頃、2.61%（2010 年 3,000 公頃）。
 
 ## 9. 之後可以做的
 

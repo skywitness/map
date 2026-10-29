@@ -2,6 +2,10 @@
 
 地圖上可選 20 多種農產品，看產量、出口量、進口量與自給率；
 側欄另外列出每個國家各年的主要農產品（依產值）與主要進出口品項（依金額）。
+
+有機農業（build_organic，2026-10-29）：FAOSTAT 土地利用（RL）的「Agriculture area under organic agric.」（6671，含轉型期）
+的面積與占農地的比例。有機面積是 FAO 用 FiBL 的調查補的；使用者 2026-10-29 決定先確認授權、確認不了就不做：
+RL 的中繼資料（Release policy）寫整個資料集是 CC BY 4.0，沒有列第三方的限制（DESIGN.md 第 8 節第 12 點）。
 """
 from __future__ import annotations
 
@@ -58,6 +62,29 @@ TRADE_TOTAL = 1882  # Crops and livestock products
 AGGREGATE_ITEM_FROM = 1700  # 1700 以上是合計類品項（穀物合計、乳製品當量等）
 MERCHANDISE_TOTAL = 10  # 「全部商品貿易總額」，不是農產品
 TOP_N = 10
+# 土地利用（RL）：有機農地（含轉型期）的面積（千公頃）與占農地的比例（%）
+ORGANIC_ITEM = 6671
+ORGANIC_AREA, ORGANIC_SHARE = 5110, 7208
+
+
+def build_organic() -> None:
+    """有機農地的面積（公頃）與占農地的比例，2004 年起。"""
+    out = OUT_DIR / "topics" / "agriculture"
+    series: dict[int, dict[str, dict[int, float]]] = {ORGANIC_AREA: defaultdict(dict), ORGANIC_SHARE: defaultdict(dict)}
+    for r in faostat.rows("RL", {ORGANIC_AREA, ORGANIC_SHARE}, {ORGANIC_ITEM}):
+        series[r.element][r.area][r.year] = r.value * 1000 if r.element == ORGANIC_AREA else r.value
+    years = list(range(min(y for s in series[ORGANIC_AREA].values() for y in s),
+                       max(y for s in series[ORGANIC_AREA].values() for y in s) + 1))
+    for key, element, unit, digits in (("organic-area", ORGANIC_AREA, "公頃", 0), ("organic-share", ORGANIC_SHARE, "%", 2)):
+        data = series[element]
+        world = data.pop("WLD", {})
+        write_json(out / f"{key}.json", indicator_file(
+            key, unit, years, {a: to_series(s, years, digits) for a, s in data.items()},
+            aggregates={"WLD": to_series(world, years, digits)}, license="CC BY 4.0"))
+    last = years[-1]
+    share = sorted(((s[last], a) for a, s in series[ORGANIC_SHARE].items() if last in s), reverse=True)
+    area = series[ORGANIC_AREA]
+    print(f"  有機農地 {len(area)} 國，{years[0]}–{last}；占農地最高 {share[:6]}；台灣 {area.get('TWN', {}).get(last)} 公頃")
 
 
 def build() -> None:
@@ -178,12 +205,13 @@ def build() -> None:
     if missing:
         print(f"  {len(missing)} 個品項沒有中文名稱，暫用英文：{', '.join(f'{i} {names[i]}' for i in missing[:40])}…")
 
+    build_organic()
     write_json(
         out / "manifest.json",
         {
             "topic": "agriculture",
             "generatedAt": now_iso(),
-            "source": "FAOSTAT (QCL, TCL, QV)",
+            "source": "FAOSTAT (QCL, TCL, QV, RL)",
             "products": [{"id": p.id, "label": p.label, "group": p.group} for p in PRODUCTS],
         },
     )

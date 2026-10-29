@@ -58,8 +58,12 @@ export const agriculture: TopicDefinition = {
   defaultYear: 2022,
   sources: [{ name: 'FAO, FAOSTAT', url: 'https://www.fao.org/faostat/', license: 'CC BY 4.0' }],
   note: {
-    zh: '稻米產量為稻穀重量，貿易與自給率以白米當量計算。農業總產值為 2014–2016 年固定價格的國際元。',
-    en: 'Rice production is paddy weight; trade and self-sufficiency use milled-rice equivalent. Gross agricultural production value is in constant 2014–2016 international dollars.',
+    zh:
+      '稻米產量為稻穀重量，貿易與自給率以白米當量計算。農業總產值為 2014–2016 年固定價格的國際元。' +
+      '有機農地是 FAOSTAT 土地利用資料的「有機農業的農地」，含正在轉型、還沒取得認證的；FAO 用瑞士有機農業研究所（FiBL）每年的全球調查補齊，2004 年起。放牧地也算，澳洲的有機農地多半是內陸的粗放牧場。',
+    en:
+      'Rice production is paddy weight; trade and self-sufficiency use milled-rice equivalent. Gross agricultural production value is in constant 2014–2016 international dollars. ' +
+      'Organic farmland is FAOSTAT’s “agricultural area under organic agriculture” from its land use data, including land in conversion that is not yet certified; FAO fills it in with the annual global survey of the Research Institute of Organic Agriculture (FiBL), from 2004. Grazing land counts too, and most of Australia’s organic farmland is extensive outback pasture.',
   },
   dimension: {
     label: { zh: '農產品', en: 'Product' },
@@ -122,6 +126,35 @@ export const agriculture: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-1e10, -1e9, -1e8, 1e8, 1e9, 1e10] } },
       format: (v) => usd(formatSignedLarge(v)),
       formatTick: (v) => (v > 0 ? `+${formatLargeTick(v)}` : formatLargeTick(v)),
+    },
+    {
+      id: 'organic-share',
+      label: { zh: '有機農地的比例', en: 'Share of farmland that is organic' },
+      description: {
+        zh: '有機（含轉型期）的農地占全部農地的比例。2024 年列支敦斯登 30%、奧地利 27%、希臘與愛沙尼亞 23%、烏拉圭與葡萄牙 21%、義大利 19%；台灣 2.6%、韓國 2.4%、中國 0.9%、美國 0.8%、日本 0.5%；全世界 2.1%。薩摩亞的 86% 偏高，可能是有機面積與農地面積的統計口徑不同。',
+        en: 'Organic farmland (including land in conversion) as a share of all agricultural land. In 2024: Liechtenstein 30%, Austria 27%, Greece and Estonia 23%, Uruguay and Portugal 21%, Italy 19%; Taiwan 2.6%, South Korea 2.4%, China 0.9%, the US 0.8%, Japan 0.5%; 2.1% worldwide. Samoa’s 86% looks too high, probably because its organic and agricultural areas are measured differently.',
+      },
+      unit: '%',
+      file: 'organic-share.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 5, 10, 20] } },
+      format: (v) => `${fixed(v, v < 1 ? 2 : 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'organic-area',
+      label: { zh: '有機農地面積', en: 'Organic farmland' },
+      description: {
+        zh: '有機（含轉型期）的農地面積，圓的面積與它成正比。2024 年全世界 9,910 萬公頃，澳洲 5,302 萬公頃就占一半以上（多半是粗放的牧場），其次印度 397 萬、阿根廷 374 萬、中國 359 萬、烏拉圭 325 萬、美國 321 萬公頃；台灣 2.03 萬公頃，2010 年只有 3,000 公頃。',
+        en: 'Area of organic farmland (including land in conversion); circle area is proportional to it. In 2024 the world had 99.1 million hectares, more than half of it in Australia (53.0 million, mostly extensive pasture), followed by India (4.0 million), Argentina (3.7 million), China (3.6 million), Uruguay (3.3 million) and the US (3.2 million); Taiwan had 20,300 hectares, up from 3,000 in 2010.',
+      },
+      unit: { zh: '公頃', en: 'ha' },
+      file: 'organic-area.json',
+      defaultYear: 2024,
+      layer: { kind: 'bubble', legendValues: [1e4, 1e5, 1e6] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v)} 公頃`, en: `${formatLargeNumber(v)} ha` }),
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
     },
   ],
 };
