@@ -1,6 +1,9 @@
-import { defineMessages, useLang, useT } from '../../i18n';
+import { BarList } from '../../charts/BarList';
+import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
+import { MAP_TOKENS } from '../../theme/tokens';
+import { GAUGES, gaugeText } from '../transport';
 import type { PanelExtraProps } from '../types';
 
 interface TransportFile {
@@ -11,6 +14,12 @@ interface TransportFile {
   /** 高鐵路線：[英文, 中文, 通車年份]，依年份排 */
   hsr?: [string, string | null, number][];
 }
+
+/**
+ * pipeline/topics/rail_gauge.py 的 gauge-detail.json：每國 [來源, 資料年份, [[軌距 mm, 公里（維基百科可能沒有）], …],
+ * [[軌距 mm, 軌距 mm, 公里] 雙軌距…], 維基百科條目]。來源 factbook-2022 是世界概況 2022-12-29 的版本
+ */
+type GaugeRow = ['factbook' | 'factbook-2022' | 'wikipedia', number | null, [number, number | null][], [number, number, number][], string | null];
 
 const TEXT = defineMessages({
   zh: {
@@ -35,6 +44,15 @@ const TEXT = defineMessages({
     noHsr: 'Wikidata 沒有這個國家通車的高速鐵路線。',
     hsrLine: (year: number) => `${year} 年通車`,
     metroNote: '地鐵站數、路網與高鐵取自 Wikidata，收錄各國不一；名稱沒有中文時用原文。',
+    gauge: '軌距',
+    noGauge: '世界概況與英文維基百科都沒有這個國家的軌距。',
+    gaugeAria: (country: string) => `${country}各種軌距的鐵路長度`,
+    gaugeOnly: '資料只寫了軌距，沒有各種軌距的長度。',
+    dual: (a: string, b: string, km: string) => `另有 ${km} 公里是雙軌距（${a} 與 ${b} mm 的車都能走），不算進比例。`,
+    factbook: (year: number | null) => `資料：CIA 世界概況${year ? `（${year} 年）` : ''}。`,
+    factbook2022: (year: number | null) =>
+      `資料：CIA 世界概況 2022 年 12 月的版本${year ? `（${year} 年）` : ''}；之後的版本只列鐵路總長，沒有分軌距。`,
+    wikipedia: '資料：英文維基百科條目',
   },
   en: {
     noCountry: 'The map data has no railways or airports for this country.',
@@ -57,14 +75,94 @@ const TEXT = defineMessages({
     noHsr: 'Wikidata has no high-speed line in service in this country.',
     hsrLine: (year) => `Opened ${year}`,
     metroNote: 'Metro stations, systems and high-speed lines come from Wikidata, whose coverage varies by country.',
+    gauge: 'Track gauge',
+    noGauge: 'Neither the World Factbook nor English Wikipedia gives a track gauge for this country.',
+    gaugeAria: (country) => `Rail length by track gauge in ${country}`,
+    gaugeOnly: 'The source gives the gauge but not the length of each gauge.',
+    dual: (a, b, km) => `Another ${km} km is dual gauge (usable by ${a} mm and ${b} mm trains) and is not counted in the shares.`,
+    factbook: (year) => `Source: CIA World Factbook${year ? ` (${year})` : ''}.`,
+    factbook2022: (year) =>
+      `Source: CIA World Factbook, December 2022 edition${year ? ` (${year} data)` : ''}; later editions give only the total length, not the gauges.`,
+    wikipedia: 'Source: English Wikipedia article',
   },
 });
 
-/** 地鐵站數、第一條高鐵這兩個逐年的指標才列地鐵與高鐵；其他指標照舊列鐵路與機場 */
+/** 地鐵站數、第一條高鐵這兩個逐年的指標才列地鐵與高鐵；軌距的兩個指標列各種軌距；其他指標照舊列鐵路與機場 */
 const METRO_INDICATORS = new Set(['metro-stations', 'hsr-first']);
+const GAUGE_INDICATORS = new Set(['gauge', 'standard-share']);
 
 export default function TransportPanel(props: PanelExtraProps) {
-  return METRO_INDICATORS.has(props.indicator.id) ? <MetroSection {...props} /> : <RailAirports {...props} />;
+  if (METRO_INDICATORS.has(props.indicator.id)) return <MetroSection {...props} />;
+  if (GAUGE_INDICATORS.has(props.indicator.id)) return <GaugeSection {...props} />;
+  return <RailAirports {...props} />;
+}
+
+/** 某個軌距屬於哪一類：名稱與地圖的顏色（不在分類裡的是「其他軌距」的顏色） */
+function gaugeKind(mm: number) {
+  const index = GAUGES.findIndex((g) => g.mm.includes(mm));
+  return index < 0
+    ? { label: gaugeText(null, mm), color: MAP_TOKENS.categoricalOther }
+    : { label: gaugeText(GAUGES[index].name, mm), color: MAP_TOKENS.categorical[index] };
+}
+
+function GaugeSection({ topic, iso3, countryName }: PanelExtraProps) {
+  const lang = useLang();
+  const text = TEXT[lang];
+  const t = useT();
+  const { data, error } = useJson<{ countries: Record<string, GaugeRow> }>(`topics/${topic.id}/gauge-detail.json`);
+  if (!data && !error) return <p className="empty">{t.loading}</p>;
+  const row = data?.countries[iso3];
+  if (!row) return <p className="empty">{text.noGauge}</p>;
+  const [src, year, gauges, dual, title] = row;
+  const lengths = gauges.every(([, km]) => km !== null);
+  const items = gauges.map(([mm, km]) => ({ key: String(mm), value: km ?? 0, ...gaugeKind(mm) }));
+  const km = (v: number) => `${fixed(v, 0)} ${tr({ zh: '公里', en: 'km' })}`;
+  return (
+    <section className="panel-section">
+      <h3>{text.gauge}</h3>
+      {lengths ? (
+        <BarList
+          items={items.map((i) => ({ ...i, label: tr(i.label, lang) }))}
+          format={km}
+          total={items.reduce((sum, i) => sum + i.value, 0)}
+          ariaLabel={text.gaugeAria(countryName)}
+        />
+      ) : (
+        <>
+          <ul className="plain-list">
+            {items.map((i) => (
+              <li key={i.key}>
+                <span className="plain-title">
+                  <span className="bar-key" style={{ background: i.color }} />
+                  {tr(i.label, lang)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="note">{text.gaugeOnly}</p>
+        </>
+      )}
+      {dual.map(([a, b, length]) => (
+        <p key={`${a}-${b}`} className="note">
+          {text.dual(fixed(a, 0), fixed(b, 0), fixed(length, 0))}
+        </p>
+      ))}
+      <p className="note">
+        {src === 'wikipedia' ? (
+          <>
+            {text.wikipedia}{' '}
+            <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent((title ?? '').replace(/ /g, '_'))}`} target="_blank" rel="noreferrer" translate="no" lang="en">
+              {title}
+            </a>
+          </>
+        ) : src === 'factbook-2022' ? (
+          text.factbook2022(year)
+        ) : (
+          text.factbook(year)
+        )}
+      </p>
+    </section>
+  );
 }
 
 function MetroSection({ topic, iso3 }: PanelExtraProps) {
