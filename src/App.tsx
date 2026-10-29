@@ -324,12 +324,13 @@ export function App() {
   const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
   // 滑到地圖上任何一點時主題給的資訊（地球的另一邊：游標的對蹠點在哪一國或哪一片海）
   const topicPointer = topic.pointer;
+  const indicatorId = indicator.id;
   const pointer = useMemo(() => {
     if (!topicPointer || !features) return undefined;
     const countryAt = countryLocator(features);
     return (lngLat: [number, number], iso3: string | null) =>
-      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries) });
-  }, [topicPointer, features, countries]);
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId });
+  }, [topicPointer, features, countries, indicatorId]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 

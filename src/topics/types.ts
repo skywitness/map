@@ -794,7 +794,13 @@ export interface TopicDefinition {
    */
   pointer?: (
     lngLat: [number, number],
-    ctx: { iso3: string | null; countryAt: (lon: number, lat: number) => string | null; countryName: (iso3: string) => string },
+    ctx: {
+      iso3: string | null;
+      countryAt: (lon: number, lat: number) => string | null;
+      countryName: (iso3: string) => string;
+      /** 目前的指標 id（2026-10-29 起：冰河與海平面只在海平面的指標寫游標下那一格） */
+      indicator: string;
+    },
   ) => PointerInfo | null;
   /**
    * 某些國家沒有值的原因，取代 tooltip 與側欄的「無資料」（key 是 ISO alpha-3）：
