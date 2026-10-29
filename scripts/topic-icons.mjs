@@ -119,6 +119,7 @@ const TOPIC_ICONS = {
   'submarine-cables': 'cable',
   space: 'rocket',
   transport: 'train-front',
+  airlines: 'plane-takeoff',
   'cable-cars': 'cable-car',
   shipping: 'anchor',
   logbooks: 'sailboat',
