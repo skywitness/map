@@ -1,6 +1,6 @@
 /**
  * 這個檔由 scripts/topic-icons.mjs 產生（npm run icons），不要手動修改。
- * 頂列分類按鈕與純地圖的圖示：Lucide 圖示（https://lucide.dev，ISC 授權，Copyright (c) Lucide Icons and Contributors），
+ * 頂列分類按鈕、純地圖與介面（指令面板）的圖示：Lucide 圖示（https://lucide.dev，ISC 授權，Copyright (c) Lucide Icons and Contributors），
  * 線條合成一條 path，24×24、stroke-width 2、圓角端點（TopicIcon.tsx）。
  */
 export const GROUP_ICONS: Record<string, string> = {
@@ -11,4 +11,9 @@ export const GROUP_ICONS: Record<string, string> = {
   "energy": "M11 20a10 10 0 0010-10 25.9 25.9 0 00-1.04-7.281 1 1 0 00-1.755-.325C15.833 5.5 13 5.5 9.8 6.1A7 7 0 0011 20M2 21a5 5 0 012.911-4.544C7.613 15.212 8.351 15.24 11 13", // leaf
   "tech": "M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8M10 19v-3.96 3.15M7 19h5M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2z", // monitor-smartphone
   "geo": "M0 0m8 3 4 8 5-5 5 15H2L8 3zM4.14 15.08c2.62-1.57 5.24-1.43 7.86.42 2.74 1.94 5.49 2 8.23.19", // mountain-snow
+};
+
+export const UI_ICONS: Record<'country' | 'command', string> = {
+  "country": "M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", // map-pin
+  "command": "M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3", // command
 };
