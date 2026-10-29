@@ -204,6 +204,8 @@ STEPS = {
     "hale": "topics.hale",
     # 學制與開學月份（教育主題）：UIS 的開學月份（CC BY-SA 4.0）、世界銀行的義務教育年數與入學年齡，台灣依法規；幾秒
     "school-calendar": "topics.school_calendar",
+    # 生物圈保護區（世界遺產主題）：Wikidata 的項目去重後畫點（要先跑 world-heritage，用它的最新年份）；幾秒
+    "biosphere": "topics.biosphere",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

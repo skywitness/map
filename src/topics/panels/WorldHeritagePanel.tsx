@@ -21,6 +21,11 @@ const TEXT = defineMessages({
     shared: (others: string) => `跨國：與${others}`,
     more: (n: number) => `顯示其餘 ${n} 處`,
     note: '名稱是 Wikidata 的中文名稱，沒有的寫 UNESCO 的英文名稱；年份是登錄年份。',
+    bioTitle: (country: string) => `${country}的生物圈保護區`,
+    bioSummary: (n: number) => `Wikidata 收錄、有座標的 ${n} 處。`,
+    bioNone: 'Wikidata 沒有這個國家有座標的生物圈保護區。',
+    bioNote: '名稱是 Wikidata 的中文名稱，沒有的寫英文名稱；Wikidata 的生物圈保護區不完整，也有已除名沒標的。',
+    bioTaiwan: '台灣不是 UNESCO 的會員，不能參加人與生物圈計畫，沒有生物圈保護區。',
     taiwanTitle: '台灣與世界遺產',
     taiwan:
       '台灣不是《世界遺產公約》的締約國，不能提名世界遺產，所以沒有世界遺產。文化部（前身為文建會）在 2003、2009、2010 年遴選出「臺灣世界遺產潛力點」，目前 18 處，例如太魯閣國家公園、玉山國家公園、大屯火山群、蘭嶼聚落與自然景觀、澎湖石滬群、水金九礦業遺址、樂生療養院，依世界遺產的標準保存、研究與推廣。',
@@ -33,13 +38,76 @@ const TEXT = defineMessages({
     shared: (others) => `shared with ${others}`,
     more: (n) => `Show ${n} more`,
     note: 'Names are the UNESCO English names; years are years of inscription.',
+    bioTitle: (country) => `Biosphere reserves in ${country}`,
+    bioSummary: (n) => `${n} ${n === 1 ? 'reserve' : 'reserves'} with coordinates in Wikidata.`,
+    bioNone: 'Wikidata has no biosphere reserves with coordinates in this country.',
+    bioNote: 'Names come from Wikidata; its biosphere reserves are incomplete and include some withdrawn ones.',
+    bioTaiwan: 'Taiwan is not a UNESCO member, so it cannot take part in the Man and the Biosphere Programme and has no biosphere reserves.',
     taiwanTitle: 'Taiwan and World Heritage',
     taiwan:
       'Taiwan is not a State Party to the World Heritage Convention, so it cannot nominate sites and has none on the list. In 2003, 2009 and 2010 the Ministry of Culture (then the Council for Cultural Affairs) selected “Potential World Heritage Sites in Taiwan”, now 18, such as Taroko and Yushan National Parks, the Tatun Volcano Group, Lanyu settlements and landscape, the Penghu stone fish weirs, the Shuijinjiu mining sites and the Losheng Sanatorium, to be conserved, studied and promoted to World Heritage standards.',
   },
 });
 
-export default function WorldHeritagePanel({ topic, iso3, year, item, countryName }: PanelExtraProps) {
+export default function WorldHeritagePanel(props: PanelExtraProps) {
+  return props.indicator.id === 'biosphere' ? <BiosphereSection {...props} /> : <SitesSection {...props} />;
+}
+
+/** 生物圈保護區（pipeline/topics/biosphere.py 的 biosphere-points.json）：這一國的保護區，依名稱排 */
+function BiosphereSection({ topic, iso3, countryName }: PanelExtraProps) {
+  const lang = useLang();
+  const t = useT();
+  const text = TEXT[lang];
+  const { data, error } = useJson<PointsData>(iso3 === 'TWN' ? null : `topics/${topic.id}/biosphere-points.json`);
+  const reserves = useMemo(() => {
+    if (!data) return null;
+    const name = (p: PointRecord) => (lang === 'zh' && typeof p.zh === 'string' ? p.zh : String(p.name ?? ''));
+    return decodePoints(data)
+      .filter((p) => [p.iso3, ...(typeof p.more === 'string' ? p.more.split(',') : [])].includes(iso3))
+      .map((p) => ({ key: String(p.q), shown: name(p), original: String(p.name ?? '') }))
+      .sort((a, b) => a.shown.localeCompare(b.shown, lang === 'zh' ? 'zh-Hant' : 'en'));
+  }, [data, iso3, lang]);
+  if (iso3 === 'TWN') return <p className="note">{text.bioTaiwan}</p>;
+  if (error) return <p className="empty">{t.loadFailed(error.message)}</p>;
+  if (!reserves) return <p className="empty">{t.loading}</p>;
+  const row = (r: (typeof reserves)[number]) => (
+    <li key={r.key}>
+      <span className="plain-title" translate={r.shown === r.original ? 'no' : undefined}>
+        {r.shown}
+        {r.shown !== r.original && (
+          <>
+            {' '}
+            <span className="muted" translate="no" lang="en">
+              {r.original}
+            </span>
+          </>
+        )}
+      </span>
+    </li>
+  );
+  return (
+    <section className="panel-section">
+      <h3>{text.bioTitle(countryName)}</h3>
+      {reserves.length === 0 ? (
+        <p className="empty">{text.bioNone}</p>
+      ) : (
+        <>
+          <p className="panel-year-note">{text.bioSummary(reserves.length)}</p>
+          <ul className="plain-list">{reserves.slice(0, SHOWN).map(row)}</ul>
+          {reserves.length > SHOWN && (
+            <details>
+              <summary className="note">{text.more(reserves.length - SHOWN)}</summary>
+              <ul className="plain-list">{reserves.slice(SHOWN).map(row)}</ul>
+            </details>
+          )}
+        </>
+      )}
+      <p className="note">{text.bioNote}</p>
+    </section>
+  );
+}
+
+function SitesSection({ topic, iso3, year, item, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
