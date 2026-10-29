@@ -20,6 +20,8 @@ const ITEMS = [
   { id: 'all', label: { zh: '全部商品', en: 'All goods' }, group: TOTALS },
   { id: 'agri', label: { zh: '農產品合計', en: 'All agricultural products' }, group: TOTALS },
   ...PRODUCTS.map((p) => ({ ...p, label: LABEL_OVERRIDES[p.id] ?? p.label })),
+  // 二手衣（2026-10-29 擴充）：CEPII BACI HS92 的 HS 6309，1995 年起
+  { id: 'used-clothing', label: { zh: '二手衣（舊衣，HS 6309）', en: 'Used clothing (HS 6309)' }, group: { zh: '其他商品', en: 'Other goods' } },
 ];
 
 function flow(direction: FlowDirection, label: Text, description: Text): IndicatorDef {
@@ -59,11 +61,13 @@ export const trade: TopicDefinition = {
       '全部商品為 CEPII BACI（2017–2024 年），已調和進出口雙方的申報，以離岸價（FOB）計；台灣在 UN Comtrade 與 BACI 列為「Other Asia, nes」。' +
       '農產品為 FAOSTAT 詳細貿易矩陣（2000 年起），出口以出口國、進口以進口國的申報為準，該年沒有申報的國家改用貿易夥伴的申報。' +
       '每個國家只列前 15 大夥伴，占比以對所有夥伴的總額計算。' +
+      '二手衣是 BACI HS92 版的舊衣（HS 6309，1995 年起，以金額計，不含碎布 6310）：2024 年全球約 47 億美元，美國、中國、英國、德國、韓國出口最多；阿聯、巴基斯坦這類是分類與轉口中心，衣服最後去哪裡要再看它們的出口。' +
       '貿易靠的港口、貨櫃量與商船隊見「航運與港口」主題，塑膠廢料的流向見「塑膠污染」主題。',
     en:
       'All goods: CEPII BACI (2017–2024), which reconciles exporter and importer reports, valued FOB; Taiwan appears in UN Comtrade and BACI as "Other Asia, nes". ' +
       "Agricultural products: FAOSTAT detailed trade matrix (from 2000), using the exporter's reports for exports and the importer's for imports; when a country did not report for a year, its partners' reports are used. " +
       'Only the top 15 partners of each country are listed; shares are of the total with all partners. ' +
+      'Used clothing is HS 6309 worn clothing from the HS92 version of BACI (from 1995, by value, excluding rags under 6310): about US$4.7 billion in 2024, with the US, China, the UK, Germany and South Korea exporting the most; the UAE and Pakistan are sorting and re-export hubs, so follow their exports to see where the clothes end up. ' +
       'For the ports, container volumes and merchant fleets that carry trade, see the Shipping and ports topic; for plastic waste flows, see Plastic pollution.',
   },
   dimension: { label: { zh: '商品', en: 'Product' }, options: ITEMS, defaultOption: 'all' },

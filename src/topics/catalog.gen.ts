@@ -239,6 +239,7 @@ export const CATALOG: TopicCatalog = {
     {"topic":"trade","indicator":"export","item":"chicken","label":{"zh":"雞肉","en":"Chicken"}},
     {"topic":"trade","indicator":"export","item":"milk","label":{"zh":"乳製品","en":"Dairy products"}},
     {"topic":"trade","indicator":"export","item":"eggs","label":{"zh":"雞蛋","en":"Eggs"}},
+    {"topic":"trade","indicator":"export","item":"used-clothing","label":{"zh":"二手衣（舊衣，HS 6309）","en":"Used clothing (HS 6309)"}},
     {"topic":"china-lending","indicator":"cumulative","item":"all","label":{"zh":"全部","en":"All"}},
     {"topic":"china-lending","indicator":"cumulative","item":"loan","label":{"zh":"貸款","en":"Loans"}},
     {"topic":"china-lending","indicator":"cumulative","item":"grant","label":{"zh":"贈款","en":"Grants"}},

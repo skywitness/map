@@ -2,6 +2,7 @@
 
 - 全部商品：CEPII BACI（2017–2024）。BACI 已經把進出口兩邊的申報調和成一個數字，
   A 出口到 B 就等於 B 從 A 進口。
+- 舊衣（HS 6309，2026-10-29 擴充）：CEPII BACI 的 HS92 版（1995–2024），build_used_clothing()。
 - 農產品：FAOSTAT 詳細貿易矩陣（TM），品項跟農業主題相同，另外加上所有農產品的合計。
   TM 是各國自己申報的數字，同一筆貿易的出口方與進口方申報常常不一樣：
   - 出口以出口國的申報為準、進口以進口國的申報為準。
@@ -43,6 +44,7 @@ def build() -> None:
     print("  讀取 BACI（約 800 MB，需要一兩分鐘）…")
     items: list[dict] = [{"id": "all", "label": "全部商品", "source": "BACI"}]
     _write_item(out, "all", {year: _from_pairs(pairs) for year, pairs in baci.yearly_totals()})
+    items.append(build_used_clothing())
 
     print("  讀取 FAOSTAT 詳細貿易矩陣（解壓後 8.5 GB，需要十幾分鐘）…")
     groups = _matrix_groups()
@@ -86,6 +88,28 @@ def build() -> None:
         out / "manifest.json",
         {"topic": "trade", "generatedAt": now_iso(), "source": "CEPII BACI, FAOSTAT (TM)", "items": items},
     )
+
+
+# 二手衣（2026-10-29 擴充，製作手冊第五批 49，使用者決定：只做舊衣 HS 6309、線寬用金額，碎布 6310 不做）：
+# BACI HS92 版，1995 年起（全部商品用的 HS17 版只從 2017 年起）
+USED_CLOTHING = ("6309",)
+
+
+def build_used_clothing() -> dict:
+    """舊衣的流向與出口、進口總額（可以單獨跑，不必重讀 FAOSTAT）"""
+    out = OUT_DIR / "topics" / "trade"
+    print("  讀取 BACI HS92（約 2.4 GB，HS 6309，幾分鐘）…")
+    by_year = {year: _from_pairs({pair: cell[0] for pair, cell in pairs.items()})
+               for year, pairs in baci.yearly_product_flows(USED_CLOTHING, hs="HS92")}
+    _write_item(out, "used-clothing", by_year)
+    last = max(by_year)
+    exports = {c: sum(p.values()) for c, p in by_year[last]["export"].items()}
+    imports = {c: sum(p.values()) for c, p in by_year[last]["import"].items()}
+    world = sum(exports.values())
+    top = lambda d: [(c, round(v / world * 100, 1)) for c, v in sorted(d.items(), key=lambda kv: -kv[1])[:6]]  # noqa: E731
+    print(f"  舊衣 {last} 年：全球 {world / 1e5:.1f} 億美元，出口 {top(exports)}，進口 {top(imports)}，"
+          f"台灣出口 {exports.get('TWN', 0) / 10:,.0f} 萬美元")
+    return {"id": "used-clothing", "label": "舊衣（HS 6309）", "source": "BACI HS92"}
 
 
 def _matrix_groups() -> dict[str, set[int]]:
