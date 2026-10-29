@@ -7,7 +7,8 @@
  * casing 的線在最下面多一層細邊 `ov-<id>-casing`。有 vertexTypes 的線（颱風）依每個頂點的代碼切成好幾段，各段分別上色。
  * 線寬可以依紀錄的欄位變化（河流依流量），hoverHalo 的線滑過時多一層光暈 `ov-<id>-hover-halo`，
  * minValue 依縮放篩選（縮小時只畫大河），fadeOut 放大後淡出。lineLabel 的線另外一層沿線的文字 `ov-<id>-label`（北回歸線）。
- * fill 的線（日食的路徑環）是多邊形：最下面多一層半透明的面 `ov-<id>-fill`，滑過的那一組加深 `ov-<id>-hover-fill`。
+ * fill 的線（日食的路徑環）是多邊形：最下面多一層半透明的面 `ov-<id>-fill`，滑過的那一組加深 `ov-<id>-hover-fill`；
+ * fill.hover 的面（山脈）本身也是查詢層。
  * 放大後下載的分區（detail）畫在另一個 source `ov-<id>~d`（圖層 `ov-<id>~d`、`ov-<id>~d-hit`…，在主檔的線下面）：
  * 移動地圖換分區時只重送分區，主檔不必重新切圖磚（河流原本每移動一次就要把三萬多段重送一次，畫面停 0.2 秒以上）。
  * 晝夜（kind 'night'）、即時網格（kind 'liveGrid'）、類別網格（kind 'classGrid'）、風（kind 'wind'）不在這裡，見 nightLayer.ts、liveGridLayer.ts、classGridLayer.ts、windLayer.ts。
@@ -755,7 +756,13 @@ export function syncOverlays(
     const id = OVERLAY_PREFIX + o.def.id;
     return [id + HIT_SUFFIX, ...(o.def.detail ? [id + DETAIL_SUFFIX + HIT_SUFFIX] : [])];
   });
-  return [...pointIds, ...lineIds];
+  // 面也給查詢的（fill.hover）排在所有線的後面：游標在外框附近時先選到線
+  const fillIds = reversed.flatMap((o) => {
+    if (o.kind !== 'lines' || !o.def.tooltip || !o.def.fill?.hover) return [];
+    const id = OVERLAY_PREFIX + o.def.id;
+    return [id + FILL_SUFFIX, ...(o.def.detail ? [id + DETAIL_SUFFIX + FILL_SUFFIX] : [])];
+  });
+  return [...pointIds, ...lineIds, ...fillIds];
 }
 
 /** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併 */
@@ -780,10 +787,16 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], yea
   }
 }
 
-/** 滑到線圖層的查詢層（主檔或分區的）時，回傳那個疊加圖層的 id；不是線的查詢層回傳 null */
+/** 滑到線圖層的查詢層（主檔或分區的線，或 fill.hover 的面）時，回傳那個疊加圖層的 id；不是線的查詢層回傳 null */
 export function lineOverlayAt(layerId: string): string | null {
-  if (!layerId.startsWith(OVERLAY_PREFIX) || !layerId.endsWith(HIT_SUFFIX)) return null;
-  const name = layerId.slice(OVERLAY_PREFIX.length, -HIT_SUFFIX.length);
+  if (!layerId.startsWith(OVERLAY_PREFIX)) return null;
+  const suffix = layerId.endsWith(HIT_SUFFIX)
+    ? HIT_SUFFIX
+    : layerId.endsWith(FILL_SUFFIX) && !layerId.endsWith(HOVER_FILL_SUFFIX)
+      ? FILL_SUFFIX
+      : null;
+  if (!suffix) return null;
+  const name = layerId.slice(OVERLAY_PREFIX.length, -suffix.length);
   return name.endsWith(DETAIL_SUFFIX) ? name.slice(0, -DETAIL_SUFFIX.length) : name;
 }
 

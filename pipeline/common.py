@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 import sys
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -20,6 +21,21 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
+# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網，2026-10-29）：Python 3.13 預設的 VERIFY_X509_STRICT 會拒絕，
+# 這幾個主機只拿掉這一項嚴格檢查，憑證鏈與主機名稱照樣驗證（curl、瀏覽器都接受這張憑證）
+RELAXED_X509_HOSTS = {"statis.moi.gov.tw"}
+
+
+def _ssl_context(url: str):
+    import ssl
+
+    if urllib.parse.urlsplit(url).hostname not in RELAXED_X509_HOSTS:
+        return None
+    ctx = ssl.create_default_context()
+    ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
+    return ctx
+
+
 def download(url: str, source: str, filename: str) -> Path:
     """下載檔案到 .cache/<source>/<filename>；已存在就直接用快取。"""
     target = CACHE_DIR / source / filename
@@ -30,7 +46,7 @@ def download(url: str, source: str, filename: str) -> Path:
     tmp = target.with_suffix(target.suffix + ".part")
     # 有些網站（Harvard Dataverse）會擋 Python 預設的 User-Agent
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request) as resp, open(tmp, "wb") as f:
+    with urllib.request.urlopen(request, context=_ssl_context(url)) as resp, open(tmp, "wb") as f:
         while chunk := resp.read(1 << 20):
             f.write(chunk)
     tmp.replace(target)
