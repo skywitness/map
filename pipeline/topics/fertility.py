@@ -7,6 +7,11 @@
   數值用指標檔同一種差分編碼（前端 fetchJson() 會還原），但整個國家共用一個十進位指數：最大的一組保留 4 位有效數字
   （台灣是千人），畫成長條看不出差別，檔案小很多。
 - 1950–2023 是估計值，2024 起是推估值（projectionFrom）。
+- 2026-10-29 擴充（製作手冊第五批 37，使用者決定）：
+  - 母親的平均生育年齡：人口動態指標檔的 MAC（所有胎次的平均，不是第一胎）。
+  - 扶幼比（0–14 歲 ÷ 15–64 歲 × 100）、總撫養比（扶幼加扶老）：五歲年齡組人口自己算。
+  - 人口金字塔的形狀（類別）：0–14 歲占總人口 30% 以上是年輕型、65 歲以上 20% 以上是高齡型、其他是壯年型
+    （門檻是自訂的，沒有國際通用的定義；兩個都符合的情況 WPP 裡沒有）。
 
 台灣：WPP 本身有台灣（跟人口主題一樣直接用 WPP），沒有改用內政部的數字：
 - 2023 年以前跟內政部很接近（總生育率 0.87 對 0.865），差異主要是 WPP 用年中人口、內政部用年底戶籍人口。
@@ -78,7 +83,7 @@ NOTES: dict[str, tuple[str, str]] = {
 def _demographic() -> tuple[dict[str, dict[str, list]], dict[str, list]]:
     """總生育率、出生數：{指標: {iso3: 序列}}、{指標: 世界序列}"""
     path = download(wpp.URL, "wpp", "WPP2024_Demographic_Indicators_Medium.csv.gz")
-    series: dict[str, dict[str, list]] = {"tfr": {}, "births": {}}
+    series: dict[str, dict[str, list]] = {"tfr": {}, "births": {}, "mac": {}}
     world: dict[str, list] = {k: [None] * len(YEARS) for k in series}
     with gzip.open(path, "rt", encoding="utf-8-sig", newline="") as f:
         for row in csv.DictReader(f):
@@ -91,6 +96,7 @@ def _demographic() -> tuple[dict[str, dict[str, list]], dict[str, list]]:
             values = {
                 "tfr": round(float(row["TFR"]), 2) if row["TFR"] else None,
                 "births": round(float(row["Births"]) * 1000) if row["Births"] else None,  # 原始單位是千人
+                "mac": round(float(row["MAC"]), 1) if row["MAC"] else None,
             }
             for key, value in values.items():
                 if row["LocTypeID"] == WORLD:
@@ -122,16 +128,29 @@ def _by_age() -> dict[str, dict[int, dict[str, list[float]]]]:
     return out
 
 
-def _ageing(groups: dict[str, list[float]]) -> tuple[float | None, float | None]:
-    """(65 歲以上占總人口 %, 扶老比：65 歲以上 ÷ 15–64 歲 × 100)"""
+# 人口金字塔的形狀（使用者 2026-10-29 決定的門檻）：1 年輕型、2 壯年型、3 高齡型
+YOUNG_SHARE, AGED_SHARE = 30, 20
+YOUNG, MIDDLE, AGED = 1, 2, 3
+
+
+def _ageing(groups: dict[str, list[float]]) -> dict[str, float | None]:
+    """65 歲以上占總人口 %、扶老比、扶幼比、總撫養比（每百位 15–64 歲）、金字塔的形狀"""
     total = [m + f for m, f in zip(groups["m"], groups["f"])]
     old = sum(total[13:])  # 65 歲起（第 14 組）
     working = sum(total[3:13])  # 15–64 歲
+    young = sum(total[:3])  # 0–14 歲
     everyone = sum(total)
-    return (
-        round(old / everyone * 100, 2) if everyone else None,
-        round(old / working * 100, 1) if working else None,
-    )
+    if not everyone or not working:
+        return {"aged-65": None, "old-age-dependency": None, "youth-dependency": None, "dependency": None, "pyramid-shape": None}
+    old_share, young_share = old / everyone * 100, young / everyone * 100
+    shape = AGED if old_share >= AGED_SHARE else YOUNG if young_share >= YOUNG_SHARE else MIDDLE
+    return {
+        "aged-65": round(old_share, 2),
+        "old-age-dependency": round(old / working * 100, 1),
+        "youth-dependency": round(young / working * 100, 1),
+        "dependency": round((young + old) / working * 100, 1),
+        "pyramid-shape": shape,
+    }
 
 
 def _pyramid(by_year: dict[int, dict[str, list[float]]]) -> dict:
@@ -168,31 +187,44 @@ def build() -> None:
     series, world = _demographic()
 
     by_age = _by_age()
-    series["aged-65"], series["old-age-dependency"] = {}, {}
-    world["aged-65"], world["old-age-dependency"] = [None] * len(YEARS), [None] * len(YEARS)
+    age_keys = ["aged-65", "old-age-dependency", "youth-dependency", "dependency", "pyramid-shape"]
+    for key in age_keys:
+        series[key], world[key] = {}, [None] * len(YEARS)
     for area, by_year in by_age.items():
-        share = [None] * len(YEARS)
-        ratio = [None] * len(YEARS)
+        rows = {key: [None] * len(YEARS) for key in age_keys}
         for year, groups in by_year.items():
-            share[year - FIRST_YEAR], ratio[year - FIRST_YEAR] = _ageing(groups)
-        if area == "WLD":
-            world["aged-65"], world["old-age-dependency"] = share, ratio
-        else:
-            series["aged-65"][area], series["old-age-dependency"][area] = share, ratio
+            for key, value in _ageing(groups).items():
+                rows[key][year - FIRST_YEAR] = value
+        for key in age_keys:
+            if area == "WLD":
+                world[key] = rows[key]
+            else:
+                series[key][area] = rows[key]
 
-    units = {"tfr": "人/婦女", "births": "人", "aged-65": "%", "old-age-dependency": "每百位 15–64 歲"}
+    units = {
+        "tfr": "人/婦女", "births": "人", "aged-65": "%", "old-age-dependency": "每百位 15–64 歲", "mac": "歲",
+        "youth-dependency": "每百位 15–64 歲", "dependency": "每百位 15–64 歲", "pyramid-shape": "",
+    }
     for key, unit in units.items():
-        zh, en = NOTES[key]
+        extra: dict = {}
+        if key in NOTES:
+            zh, en = NOTES[key]
+            extra = {"notes": {"TWN": zh}, "notesEn": {"TWN": en}}
         write_json(
             out / f"{key}.json",
             indicator_file(
                 key, unit, YEARS, series[key],
                 projectionFrom=PROJECTION_FROM,
                 aggregates={"WLD": world[key]},
-                notes={"TWN": zh},
-                notesEn={"TWN": en},
+                **extra,
             ),
         )
+    shapes = {code: sum(1 for v in series["pyramid-shape"].values() if v[2023 - FIRST_YEAR] == code) for code in (YOUNG, MIDDLE, AGED)}
+    print(f"  2023 年金字塔的形狀：年輕型 {shapes[YOUNG]}、壯年型 {shapes[MIDDLE]}、高齡型 {shapes[AGED]}")
+    for key in ("mac", "dependency", "youth-dependency"):
+        ranked = sorted(((v[2023 - FIRST_YEAR], k) for k, v in series[key].items() if v[2023 - FIRST_YEAR] is not None), reverse=True)
+        twn = series[key].get("TWN", [None] * len(YEARS))[2023 - FIRST_YEAR]
+        print(f"  {key} 2023：最高 {ranked[:4]}，最低 {ranked[-3:]}，台灣 {twn}，世界 {world[key][2023 - FIRST_YEAR]}")
 
     sizes = []
     for area, by_year in sorted(by_age.items()):

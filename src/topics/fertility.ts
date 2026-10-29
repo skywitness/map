@@ -5,6 +5,14 @@ import type { TopicDefinition } from './types';
 const PER_WOMAN = { zh: '每位婦女生育數', en: 'births per woman' };
 const BIRTHS = { zh: '人', en: 'births' };
 const PER_100_WORKING = { zh: '65 歲以上／每百位 15–64 歲', en: 'aged 65+ per 100 aged 15–64' };
+const YOUNG_PER_100 = { zh: '0–14 歲／每百位 15–64 歲', en: 'aged 0–14 per 100 aged 15–64' };
+const DEPENDENTS_PER_100 = { zh: '0–14 歲加 65 歲以上／每百位 15–64 歲', en: 'aged 0–14 and 65+ per 100 aged 15–64' };
+/** 人口金字塔的形狀（pipeline/topics/fertility.py 的 YOUNG、MIDDLE、AGED；門檻使用者 2026-10-29 決定） */
+const SHAPES = [
+  { value: 1, label: { zh: '年輕型（0–14 歲 30% 以上）', en: 'Young (30%+ aged 0–14)' } },
+  { value: 2, label: { zh: '壯年型', en: 'Middle' } },
+  { value: 3, label: { zh: '高齡型（65 歲以上 20% 以上）', en: 'Aged (20%+ aged 65+)' } },
+];
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
 export const fertility: TopicDefinition = {
@@ -80,6 +88,64 @@ export const fertility: TopicDefinition = {
       unit: PER_100_WORKING,
       file: 'old-age-dependency.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 30, 40, 60] } },
+      format: (v) => fixed(v, 1),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'pyramid-shape',
+      label: { zh: '人口金字塔的形狀', en: 'Population pyramid shape' },
+      description: {
+        zh: '依兒童與老人的比例把人口金字塔分成三型：0–14 歲占總人口 30% 以上是底寬的「年輕型」，65 歲以上占 20% 以上是上寬下窄的「高齡型」，其他是「壯年型」。門檻是這個網站自訂的，沒有國際通用的定義。點國家看完整的人口金字塔；拖動時間軸看各國從年輕型走向高齡型。',
+        en: 'Population pyramids grouped by the share of children and older people: “young” (a wide base) where 30% or more are aged 0–14, “aged” (top-heavy) where 20% or more are 65 and over, and “middle” otherwise. The thresholds are this site’s own; there is no international definition. Select a country for its full pyramid, and drag the timeline to watch countries move from young to aged.',
+      },
+      unit: '',
+      file: 'pyramid-shape.json',
+      layer: { kind: 'categorical', categories: SHAPES },
+      format: (v) => tr(SHAPES.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'mac',
+      label: { zh: '母親的平均生育年齡', en: 'Mean age of childbearing' },
+      description: {
+        zh: '母親生小孩時的平均年齡，所有胎次一起平均（不是第一胎）。生得多的國家第三、四胎生到很晚，平均反而高（尼日約 29 歲，跟美國差不多），所以不能直接讀成「晚生」；要比晚婚晚生，看「婚姻與家庭」的女性初婚年齡。',
+        en: 'The average age of mothers at childbirth, across all births (not just the first). Where women have many children, later births raise the average (about 29 in Niger, close to the US), so a high value does not simply mean late motherhood; for that, compare the age at first marriage for women in the Marriage and family topic.',
+      },
+      unit: { zh: '歲', en: 'years' },
+      file: 'mac.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [27, 28, 29, 30, 31, 32] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 歲`, en: `${fixed(v, 1)} years` }),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'dependency',
+      label: { zh: '總撫養比', en: 'Total dependency ratio' },
+      description: {
+        zh: '每 100 位 15–64 歲的人，對應幾位 0–14 歲的兒童加 65 歲以上的老人。年輕的國家（兒童多）與高齡的國家（老人多）都高，中間低，不是越高越糟：台灣 2023 年 43，推估 2050 年將近 90。梵蒂岡、摩納哥的人口結構特殊。',
+        en: 'Children aged 0–14 plus people aged 65 and over per 100 people aged 15–64. It is high both in young countries (many children) and in aged ones (many older people) and low in between, so higher is not simply worse: Taiwan was at 43 in 2023 and is projected near 90 by 2050. Vatican City and Monaco have unusual populations.',
+      },
+      unit: DEPENDENTS_PER_100,
+      file: 'dependency.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 50, 60, 70, 80, 90] } },
+      format: (v) => fixed(v, 1),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+      unranked: true,
+    },
+    {
+      id: 'youth-dependency',
+      label: { zh: '扶幼比', en: 'Youth dependency ratio' },
+      description: {
+        zh: '每 100 位 15–64 歲的人，對應幾位 0–14 歲的兒童。加上扶老比就是總撫養比。',
+        en: 'Children aged 0–14 per 100 people aged 15–64. Added to the old-age dependency ratio, it gives the total dependency ratio.',
+      },
+      unit: YOUNG_PER_100,
+      file: 'youth-dependency.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 30, 40, 60, 80, 90] } },
       format: (v) => fixed(v, 1),
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
