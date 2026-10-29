@@ -217,6 +217,7 @@ STEPS = {
     # 國家公園：Wikidata 的國家公園點、WDI 的陸域保護區占國土；幾秒（Wikidata 第一次查要等查詢服務）
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒
+    "foods": "topics.foods",
     "airlines": "topics.airlines",
     "cable-cars": "topics.cable_cars",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
