@@ -200,7 +200,7 @@ pipeline/
 | `dimension.followsSelection` | 子項目就是國家（option 的 id 是 ISO alpha-3）：點地圖、排名表或搜尋選到國家時，子項目跟著換成那個國家（`App.tsx` 的 `selectCountry`），取消選取時留在原本的子項目；網址只有 `country`、沒有 `item` 時（例如從別的主題切過來）也用選到的國家（`resolveItem()`）。子項目選單各組依目前語言的國名排序 | 護照與簽證（點日本，地圖就畫日本護照到各國的簽證待遇） |
 | `dimension.selfLabel` | 子項目是國家時，那個國家在自己那份資料裡沒有值：tooltip 與側欄的數值卡片寫這句，不寫「無資料」（不必 `followsSelection`） | 護照與簽證的「本國護照」、聯合國投票「與各國的一致度」的「比較的對象」 |
 | `noValue`、指標的 `noValue` | 某些國家沒有值的原因（key 是 ISO alpha-3），取代 tooltip 與側欄的「無資料」。`missingReason()` 依序取指標的、主題的、`selfLabel`、`coverage`。這個國家在這個指標完全沒有值時，側欄的歷年圖表也換成這句；有部分年份的照常畫 | 台灣的外交裡的台灣（觀點）；聯合國投票的台灣（1971 年起不是會員國，1946–1971 年照常畫）；「與美國的一致度」裡的美國；學生能力（PISA）的中國、烏克蘭、伊拉克、塔吉克（只有部分地區參加，畫成點） |
-| 指標的 `timeAxis` | 年份不是「那一年的資料」時：`{ label, year(年), tick?(年) }`。`tick`（2026-10-29 起）是時間軸刻度與目前的值的寫法（年份欄位存月份編號時寫「2026/9」、西元前寫「前 3400」），沒寫是數字本身。`label` 寫在時間軸的年份上面（`.time-axis`），也是拉桿的名稱；`year()` 取代 tooltip、側欄標題、排名表標題（「男性平均身高（1996 年出生）排名」，`t.withYear()`）、匯出圖片標題裡的年份。同一個主題裡 `label` 不同的指標年份的意思不同（`sameTimeAxis()`）：側欄只列 `label` 相同的數值卡片，從選單換到 `label` 不同的指標時網址的 `year` 拿掉、回到那個指標的預設年份 | 平均身高：成人的「出生年」（1996 年出生 = 2014 年 18 歲時的身高）、19 歲的「年份」（量測的年份） |
+| 指標的 `timeAxis` | 年份不是「那一年的資料」時：`{ label, year(年), tick?(年) }`。`tick`（2026-10-29 起）是時間軸刻度與目前的值的寫法（年份欄位存月份編號時寫「2026/9」、西元前寫「前 3400」），沒寫是數字本身。年份可以是負的（西元前）或 0：網址的 `year` 收任何整數（2026-10-29 起，`url-state.ts`；以前只收正數，`year=-200` 會被丟掉），`pickYear` 也不把 0 當成沒有。`label` 寫在時間軸的年份上面（`.time-axis`），也是拉桿的名稱；`year()` 取代 tooltip、側欄標題、排名表標題（「男性平均身高（1996 年出生）排名」，`t.withYear()`）、匯出圖片標題裡的年份。同一個主題裡 `label` 不同的指標年份的意思不同（`sameTimeAxis()`）：側欄只列 `label` 相同的數值卡片，從選單換到 `label` 不同的指標時網址的 `year` 拿掉、回到那個指標的預設年份 | 平均身高：成人的「出生年」（1996 年出生 = 2014 年 18 歲時的身高）、19 歲的「年份」（量測的年份） |
 | 指標的 `defaultYear` | 指標自己的預設年份（網址沒指定年份時），沒寫用主題的 `defaultYear` | 平均身高的 19 歲身高預設 2019（成人預設出生年 1996） |
 | 指標的 `chartZoom` | 側欄折線圖的 y 軸不從 0 開始 | 平均身高（都在 140–185 公分，從 0 畫起整條線是平的） |
 | 指標的 `integer` | 數值是整數：側欄折線圖的 y 軸只用整數刻度（ECharts 的 `minInterval: 1`），只有 1、2 棟時才不會寫成 0、1、1、2、2 | 摩天大樓的 300 m 以上的大樓數（2026-10-27 起） |
@@ -275,7 +275,7 @@ pipeline/
   - `color`：固定色，或依數值欄位分級（`ColorClasses`：門檻、每一級的顏色與名稱，例如震源深度）。顏色取自 `MAP_TOKENS`。
   - `shape: 'triangle'`：三角形圖示（火山）。每種顏色在 canvas 畫一張圖（白色外框直接畫在圖上），用 symbol 圖層；換底圖後圖示跟著樣式一起消失，重新加上。
   - `sortField`：大的畫在上面（`circle-sort-key`）。`timeField` 加上指標的 `overlayTime` 決定時間軸怎麼篩選（`setFilter`，不重送資料）。
-  - `endField`（2026-10-27 起，摩天大樓）：結束的年份（拆除、毀損）。`overlayTime: 'cumulative'` 時，篩選多一個條件「沒有這個欄位，或比時間軸的年份晚」，所以舊世界貿易中心畫到 2000 年、2001 年起不見；不必像城市那樣用 `epochs` 每一年重送資料。
+  - `endField`（2026-10-27 起，摩天大樓；2026-10-29 起線也可以用，帝國與疆界：那個範圍最後一年的下一年）：結束的年份（拆除、毀損）。`overlayTime: 'cumulative'` 時，篩選多一個條件「沒有這個欄位，或比時間軸的年份晚」，所以舊世界貿易中心畫到 2000 年、2001 年起不見；不必像城市那樣用 `epochs` 每一年重送資料。
   - `tooltip(p, { countryName })` 回傳標題與說明，原文地名放 `properNoun`（`translate="no"`）；`extra` 是說明下面另外幾行（2026-10-26 起，航運與港口的港口寫班輪航運連結指數與公布的吞吐量）。點有 `iso3` 欄位時，滑過會同時標出那個國家，點一下選取它；海上的地震沒有國家，照樣有 tooltip。
   - `indicators`：只在某些指標顯示；`items`：只在某些子項目顯示（`dimension` 的選項 id）。`hidden: true`：預設關閉，第一次打開才下載資料檔（App 的 `useJsonEach` 保留已載入的檔，打開另一個圖層時地圖不會閃一下）。
   - **跟著子項目換資料檔**（便利商店與連鎖品牌，2026-10-26 起）：`file` 含 `{item}` 時換成目前的子項目（`App.tsx` 的 `overlayPath()`），例如 `points/{item}.json`：一個品牌一個店家檔，只下載選到的品牌；換品牌時是同一個圖層（同一個 `ov-<id>`）換資料，開關狀態不變，新的檔載入前先隱藏。tooltip 的第二個參數多了 `item`（目前的子項目），店家的 tooltip 用它寫品牌名稱。
@@ -309,6 +309,7 @@ pipeline/
     - 圖例的符號是帶子（`OverlaySwatch.shape: 'band'`：半透明的長方形、上下兩條邊、中間一條線），畫面與匯出的圖片一樣。
     - `opacity`：線的不透明度，取代預設的 0.8／0.9（日食的「1900–2100 年所有的中心線」0.35）。
     - `onlyTypes`：只畫這幾個分類代碼的線，圖例也只列這幾類（日全食次數只畫日全食與混合食的中心線）；滑過、側欄標出的那幾層不限。
+    - `keyClasses: false`（2026-10-29 起，帝國與疆界）：圖例不列顏色的分類（顏色只是讓相鄰的面分得開，沒有意義），開關那一列的符號照常用第一類的顏色。
     - 同一個資料檔可以給好幾個圖層用（`useJsonEach` 依網址快取，只下載一次）：日食的那一年的路徑、所有的中心線、次數指標的累積中心線都讀 `paths.json`，後兩個用 `minValue: { field: 'r', stops: [[0, 1]] }`（所有縮放都只留 r ≥ 1 的中心線）當成固定的篩選，不必新的欄位（`valueFilter()` 只有一個門檻時不用 `step`，MapLibre 的 `step` 至少要一段，原本會報「Expected at least 4 arguments」）。
     - 沒有 tooltip 但有 `groupField` 的線也建立標示的那幾層（不建查詢層，滑不到）：側欄還是能用 `highlightLine` 標出一組（日食次數指標的累積中心線）。
   - **地球的另一邊：面的洞、依分類的不透明度、只給部分分類外框**（2026-10-28 起；沒有用這些欄位的線圖層照舊，日食路徑、河流、海底電纜、颱風的畫面與標示截圖看過）：
@@ -627,6 +628,7 @@ pipeline/
 | 太空 | 在軌酬載（依擁有國，比例圓，預設）、每年入軌發射次數、累計入軌發射次數（依發射業者的國家，比例圓）；疊加圖層：發射場（大小是入軌發射次數，依第一次發射的年份出現） | 目前在軌酬載的主要擁有者（長條）、酬載不多的國家列出每一顆（台灣的福衛系列與立方衛星） | Jonathan McDowell 的 GCAT Release 1.8.8（CC BY 4.0） | 1957–2026（2026 年到 10 月 17 日） |
 | 奧運 | 累計獎牌（比例圓，預設）、累計金牌、單屆獎牌、單屆金牌（比例圓）、每千萬人獎牌（單屆，面量圖；指標名稱取短的，中文 1280px 寬時控制列才是一行）；子項目：夏季、冬季；蘇聯、東西德、南斯拉夫等歷史隊伍是主題自訂的地點，畫在當時的首都附近 | 歷屆的金銀銅（表格）、得牌屆數與最多的一屆、相關的歷史隊伍或今天對應的國家 | 英文維基百科各屆的獎牌榜與 All-time Olympic Games medal table（CC BY-SA 4.0）、UN WPP 2024 | 夏季 1896–2024（30 屆）、冬季 1924–2026（25 屆）；每千萬人 1952 年起 |
 | 各國在讀什麼 | 讀最多的條目（預設，不上色：那個月每個國家讀最多的維基百科條目，各語言的維基百科合在一起排，名稱寫在地圖上〔點圖層的 `pointLabel`〕；國家的值是第一名的瀏覽次數，給 tooltip）、讀英文維基百科的比例（面量圖）；時間軸是月份 | 那個月的前 10 名（原文標題、中文或英文名稱、哪一種語言的維基百科、瀏覽次數），第一名在最近 24 個月的變化（每個月的第一名，點一下換到那個月） | Wikimedia 基金會的差分隱私每日瀏覽量（country_project_page，CC0）、Wikidata 的中文與英文名稱（CC0）、Natural Earth 1:50m 國界（標籤的位置） | 最近 24 個完整的月份（2024 年 10 月到 2026 年 9 月） |
+| 帝國與疆界 | 各時期的疆域（預設，不上色：那一年世界各政體的範圍，Cliopatria，依帝國上色〔10 種顏色只是讓相鄰的分得開，圖例不列，`keyClasses: false`〕、政體名稱寫在地圖上，滑過看名稱與這個範圍的年份；國家的 tooltip 寫今天的國土那時屬於誰）、殖民帝國（類別圖：COLDAT 8 個歐洲殖民國，用平均的起訖年份；只補了台灣：荷蘭、西班牙、日本） | 今天的國土歷代屬於誰（取樣年份連續相同的合成一段，占國土 3% 以上，點一段換到那一年）、殖民時期（各殖民國的平均與最寬的起訖年份、只有部分地區、自己補的） | Cliopatria v0.2.1（Seshat，Zenodo，CC BY 4.0）、COLDAT（Becker，Harvard Dataverse，CC0）、Wikidata 的中文名稱（CC0）、Natural Earth 1:10m／1:50m（台灣的範圍、今天的國土） | 西元前 3400 年到 2024 年：西元前每 100 年、1800 年以前每 50 年、之後每 5 年（加 1625、1640、1670 年）；殖民 1462–2024 年每年 |
 
 ## 8. 資料陷阱（重要）
 
@@ -723,6 +725,7 @@ pipeline/
     - **Beck 等人 2023 的柯本－蓋格分類圖是 CC BY 4.0**（氣候分區，第 104 點；2026-10-29 讀過）：figshare 的 API（articles/21789074）`license` 是 CC BY 4.0，第 2 版 2026-01-14 發布；說明頁請使用者引用 Beck et al. (2023), Scientific Data 10, 724。下載不必登入（koppen_geiger_tif.zip，130 MB）。作者網站 gloh2o.org 的連結寫 CC BY-NC，以資料實際發布的 figshare 為準（規劃手冊的授權查證同一個結論）。頁尾的來源寫論文與 figshare，附註寫我們用 0.1° 版本與怎麼算國家的面積。30 類的顏色照它的 legend.txt（Beck 的配色）。
     - **冰河、海冰與海平面的三份資料**（第 105 點；2026-10-29 讀過）：WGMS AMCE（wgms-amce-2026-02-10.zip）照 WGMS 的 data policy 等同 CC BY 4.0，引用寫資料集（doi:10.5904/wgms-amce-2026-02-10）與 Dussaillant 等 2025；NSIDC 海冰指數 G02135 第 4 版是 NOAA@NSIDC 的產品（美國政府著作），不必登入，照 NSIDC 的要求引用；NOAA STAR 的海平面網格（slr_map_ref.nc）檔頭要求「Altimetry data are provided by NOAA Laboratory for Satellite Altimetry」，頁尾的來源照寫這句，檔頭也寫它是實驗性產品（附註寫明）。規劃手冊的授權查證（2026-10-28）同一個結論；RGI 冰河輪廓要 Earthdata 登入、PSMSL 潮位站授權待確認，都沒有用。
     - **Wikimedia 的差分隱私瀏覽量與 Wikidata 都是 CC0**（各國在讀什麼，第 106 點；2026-10-29 讀過）：country_project_page 的說明頁（analytics.wikimedia.org/published/datasets/country_project_page/00_README.html）指向 Wikimedia 的資料授權頁（dumps.wikimedia.org/legal.html），那裡寫「All Analytics datasets are available under the Creative Commons Zero (CC0)」；下載不必登入。條目名稱用 Wikidata 的標籤與維基百科的條目名稱（CC0，名稱是事實，不是條目內文）；不轉載條目的內容。頁尾的來源寫兩者。使用者決定熱門條目照原樣列出、不過濾成人或聳動的內容（附註寫明）。
+    - **Cliopatria 是 CC BY 4.0，COLDAT 是 CC0**（帝國與疆界，第 107 點；2026-10-29 讀過）：Cliopatria 的 GitHub（Seshat-Global-History-Databank/cliopatria）LICENSE.md 寫 Creative Commons Attribution 4.0 International，Zenodo 的 v0.2.1（records/23128623，2026-10-03，doi:10.5281/zenodo.23128623）`license` 也是 cc-by-4.0；README 請引用 Bennett 等 2025（Scientific Data，doi:10.1038/s41597-025-04516-9）。頁尾的來源寫資料集與論文，附註寫我們怎麼取樣、簡化、修正台灣（改作要標明，改過的範圍 tooltip 也寫）。COLDAT（Becker，Harvard Dataverse doi:10.7910/DVN/T9SDEW）是 CC0 1.0（規劃手冊第十四節的查證）。下載都不必登入。historical-basemaps 是 GPL-3.0，沒有用。
     - **NASA 五千年月食目錄（LEcat5）同一個網站、同樣的條件**（日食與月食主題的月食，第 99 點；2026-10-28 讀過）：每一頁的 Acknowledgments 寫「Permission is freely granted to reproduce this data when accompanied by an acknowledgment: "Eclipse Predictions by Fred Espenak and Jean Meeus (NASA's GSFC)"」，NASA 的資料不受著作權保護（上面的 Copyright Information）。頁尾的來源與主題說明照寫這句，`manifest.json` 的 `lunarSource` 也是。
     - **HydroRIVERS v1.0 適用 HydroSHEDS 第 1 版的授權協議**（河流與流域主題，第 86 點；2026-10-28 讀過全文）：
       - 協議全文在 HydroSHEDS Technical Documentation v1.4 的附錄 A（https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf ），HydroRIVERS 的技術文件第 4.1 節寫明「covered by the same License Agreement as the HydroSHEDS database」，官方產品頁寫「freely available for scientific, educational and commercial use」。網站的 Terms of Use（https://www.hydrosheds.org/terms-of-use ）只管網站上的文字與圖片（不能改作、不能散布），資料各依產品自己的授權。
@@ -2888,15 +2891,22 @@ pipeline/
     - **看起來像自動程式的流量**：同一個條目同時在很多小國排第一（2026 年 9 月 Abby Borden 18 國、Lizzie Borden 13 國、european election 2014 11 國、XXX 9 國），Wikimedia 已經濾掉大部分自動程式，這些看起來是沒濾掉的；使用者決定照原樣，附註寫明。
     - **資料量**：`countries/<ISO3>.json` 存這國上榜過的條目表（原文、語言、中文、英文）加每月的 [索引, 瀏覽次數]（同一個條目常連續幾個月上榜，比每列都寫名稱小約 22%），共 2.6 MB，點國家才下載；`top.json` 387 KB。整個主題 3.07 MB。
 
+107. **帝國與疆界**（`pipeline/topics/empires.py`、`src/topics/empires.ts`、`src/topics/panels/EmpiresPanel.tsx`，2026-10-29）：
+    - **資料**：Cliopatria v0.2.1（Zenodo 的 zip 299 MB，裡面的 cliopatria.geojson 約 1.4 萬列：名稱、FromYear、ToYear、Wikidata、Type、Components、MemberOf）。只畫 Type 是 POLITY、名稱沒有括號的列（括號的是好幾個政體合起來的帝國，成員各自另有一列，畫了會重疊）；顏色依所屬的帝國（MemberOf，沒有就是自己）分，大英帝國的各部分同色；10 種顏色依相鄰關係分配（相鄰同色只剩 2 對），不用藍色（底圖的海是藍的，第一版荷蘭的台灣是藍色，看起來像海）。
+    - **取樣**：全部 508 個年份的範圍有 370 萬個頂點，只取西元前每 100 年、西元 1–1800 年每 50 年、1800 年起每 5 年，加上 2024 年與台灣的 1625、1640、1670 年（共 119 個年份），用到 4,957 列；簡化到 0.2°、量化 0.1°，`polities.json` 2.1 MB（每個環一筆紀錄只存列號與是不是洞，列的資料放在 `groups`）。時間軸只停在這些年份（`polities-years.json`）；線圖層的 `timeField`、`endField`（範圍的起訖，`endField` 是最後一年的下一年）讓每一列在它的年份裡才畫（第 4 節，線圖層的 `endField` 是新加的）。名稱另外是一個點圖層（範圍裡最大那塊的 polylabel，`pointLabel`，依面積大小排優先）。
+    - **台灣**（使用者決定：逐一核對，Cliopatria 錯或缺的依史實修正，資料檔與附註標明，fx = 1，tooltip 寫「台灣的部分依史實修正」）：荷蘭從 1624 年起（Cliopatria 1626 年起，補 1624–1625 年）；西班牙在北台灣只到 1642 年（Cliopatria 到 1658 年）；1662–1682 年台灣的部分是東寧王國（Cliopatria 寫南明）；澎湖補進東寧、清、日本、中華民國；1950 年起金門屬於中華民國，1951 年起中華民國只留台灣、澎湖、金門。沒改的：清朝 1683 年起畫整個台灣（東部山區 1875 年後才設治）、中華民國 1946 年起（附註寫明）。側欄：荷蘭 1625–1650、西班牙 1640（約 13%）、東寧 1670、清 1700–1890、日本 1895–1945、中華民國 1950–2024（取樣年份）。
+    - **中文名稱**：Cliopatria 的 Wikidata 編號常常指錯：Republic of China 指到中華人民共和國（Q148）、Han Dynasty 指到印度的 Chauhan dynasty（第一版的中文寫成「兆漢人」）、兩韓都指到北韓、兩個越南都指到北越、Cuban Nationalists 指到卡斯楚、周代的「Han」（韓）指到土耳其的 Sarukhanids。所以只在 Wikidata 的英文名稱跟 Cliopatria 的名稱對得上時用它的中文（`same_name()`：去掉 dynasty、empire、kingdom 這類字後有相同的字，或前 5 個字母相同；幾個名稱共用一個編號時只給最像的那一個；標籤是歷史、列表、時期、事件的不用），加上 47 個自己寫的（`ZH_NAMES`：台灣相關〔東寧王國的 zh-tw 標籤是「明鄭時期」，改成「東寧王國（明鄭）」〕、常見的大政體、周代諸侯國）；1,383 個名稱裡 1,131 個有中文，其他寫英文。名稱用 Wikidata 的 SPARQL 查（跟各國在讀什麼共用快取）。
+    - **殖民帝國**：COLDAT 的 COLDAT_colonies.tab（26 KB），8 個殖民國各自的起訖年份用 mean 編碼（使用者決定），max 編碼的起訖給側欄（「最寬的說法」）。同一年有兩個殖民國時取比較晚開始的那個；只有部分地區的（partial）不搶先。比利時、德國、義大利併成一類（類別色最多 8 種）。只補台灣（使用者決定）：荷蘭 1624–1662、西班牙 1626–1642（北部，partial）、日本 1895–1945，資料檔寫明是自己補的；其他被日本、美國、俄羅斯、鄂圖曼統治的地方不收（附註寫明）。`colonizer.json` 1462–2024 年每年。
+    - **國家**：今天的國家（1:50m）在每個取樣年份被哪些政體涵蓋（占國土 3% 以上），連續相同的合成一段（`countries.json`，給側欄與 tooltip 的「今天的國土那時屬於」）。各時期的疆域不上色（`kind: 'none'`）。
+    - **時間軸的西元前**：時間軸的年份是負的，`timeAxis` 的 `tick` 寫「前 3400」，tooltip 與標題寫「西元前 200 年」；網址的 `year` 以前只收正數，改成收任何整數（第 4 節）。
+    - **限制**：Cliopatria 的邊界平滑過、跟今天的海岸線對不齊，只是一種畫法，年份與邊界常有爭議；取樣的年份之間的變化看不到（荷蘭在台灣 1624–1662 年，時間軸上只看得到 1625、1640、1650 年）；殖民只收 8 個歐洲殖民國。資料共 2.8 MB。
+
 ## 9. 之後可以做的
 
 **使用者打算做、時間由使用者決定的新主題**（2026-10-28 記下；使用者說要做之前不要動手；資料與授權 2026-10-28 查證過，詳細在製作手冊第十四節）：
 - **風與季風**：全球的風畫成流動的細線（粒子動畫），時間軸換成 1–12 月，看東北季風、西南季風、信風、西風帶怎麼隨季節換方向，可以跟颱風主題對照。
   - 資料：NOAA PSL 的 NCEP/NCAR 再分析月平均風場（美國政府資料，不必登入）。資料集說明寫「Usage Restrictions: None」，要致謝「NCEP Reanalysis data provided by the NOAA PSL, Boulder, Colorado, USA」；2026-03-17 起停止更新，1991–2020 的氣候平均不受影響。ERA5 要登入 Copernicus 帳號，不能用。
   - 要寫一個 WebGL 的粒子圖層（MapLibre 的 custom layer），地球儀與手機的效能要先測。
-- **帝國與疆界的變遷**：時間軸往前拉到西元前，看各時期的國家範圍。
-  - 資料：Cliopatria（Seshat，西元前 3400 年到 2024 年的政體範圍），CC BY 4.0（GitHub 的 LICENSE.md、Zenodo v0.2.1）。
-  - 時間軸要能顯示西元前；台灣在各時期屬於誰，要逐一核對資料怎麼畫。
 - **板塊漂移**：把今天的國界帶回過去（例如 2 億年前的盤古大陸），時間軸的單位是百萬年。
   - 資料：EarthByte 的板塊重建模型，CC BY 4.0；建置時用 pyGPlates／gplately（GPL-2.0）在本機算。GPlates Web Service 的條款只寫「All rights reserved」，不要從瀏覽器呼叫。
 - **運動賽事**：先做足球。
@@ -2904,7 +2914,6 @@ pipeline/
   - 用 1872 年以來的國際賽結果自己算 Elo 評分，播放各國的消長。
   - 資料：martj42 整理的國際足球賽結果（CC0）；世界盃名次用 jfjelstul/worldcup（CC BY-SA 4.0）；eloratings.net 沒有授權，不轉載數值，照它公開的公式自己算 Elo。其他運動要另外找有開放授權的資料。
 - **人類足跡的擴張**：HYDE 3.5（CC BY 4.0）的人口、農地、牧地網格，西元前 1 萬年起；下載站有防機器人驗證，要使用者用瀏覽器下載。
-- **殖民帝國的興衰**：COLDAT（CC0），1462–1984 年各國被哪個歐洲國家殖民；台灣要依史實自己補。
 
 - **石油、天然氣與煤**（第 90 點）：原油、天然氣的蘊藏量只有 Factbook 的 2021 年估計，有開放授權的歷年來源時再加（OPEC 年度統計公報的條款讀不到）；EIA 的天然氣、煤進出口可以做成指標（目前只在側欄）；流向檔可以改成依縮放或只存前 10 名來縮小（目前整個主題約 5.8 MB，超過「盡量小於 3 MB」；都是用到才下載，使用者 2026-10-28 決定先照現在）；台灣的 LNG 接收站可以對照中油、台電、台塑的官方中文名稱。
 - **國旗**（第 84 點）：長寬比跟 Wikidata 不同的 6 面（貝里斯、柬埔寨、維德角、敘利亞、萬那杜、法羅群島）照 Commons 的圖檔，找到各國的法令後可以逐一確認；國旗改了（新的國旗法、政權更替）要 `--refresh` 重跑，`YEAR_FIXES` 也要跟著看；地圖上的國旗在世界全圖要下載約 200 個 SVG（gzip 後約 260 KB），可以改成一張預先畫好的小國旗拼圖（sprite），放大後才載入 SVG；顏色組成可以加「顏色數」的指標；新喀里多尼亞的兩面旗、阿森松與特里斯坦達庫尼亞的旗可以在側欄另外列出。
@@ -2917,6 +2926,7 @@ pipeline/
 - **氣候分區（柯本）**（第 104 點）：圖例或側欄滑到一種類型時只亮那一類（`classGridLayer.ts` 的 `look.only` 已經有，還沒接到圖例）；可以加 1 公里的版本（放大才下載的分區）；其他排放情境（SSP1-2.6、SSP3-7.0）可以加進子項目；可以跟氣溫與降雨主題的暖化網格並排比較。
 - **冰河、海冰與海平面**（第 105 點）：WGMS 的 0.5° 冰河網格（global_grid.nc4）可以畫成每年的質量變化網格；海冰可以加每個月的邊緣（不只最少的那個月）與 3 月的最大範圍；海平面可以加 PSMSL 潮位站（授權確認後，台灣只有基隆、高雄且停在 1990 年代）；台灣可以對照中央氣象署或內政部的潮位站與地層下陷資料。
 - **各國在讀什麼**（第 106 點）：每個月初跑一次 `npm run data -- reads` 加上新的月份（只下載還沒有的日子，舊的月份從快取讀；`MONTHS` 決定留幾個月）；可以加「每週」的時間軸（同一份每日資料）；多國同時居首的條目可以標出「疑似自動程式流量」（例如同一個月在 5 國以上排第一的英文條目），要先跟使用者確認規則；條目可以連到原文的維基百科頁面（側欄）；地圖上不寫的阿拉伯、天城文字可以等 MapLibre 支援複雜文字排版後再寫。
+- **帝國與疆界**（第 107 點）：可以加更密的取樣（1800 年以前每 10 年，資料量約多 4 倍，要改成依時期分檔）；沒有中文名稱的 252 個政體可以逐一補（`ZH_NAMES`），也可以回報 Cliopatria 指錯的 Wikidata 編號；這個主題的底圖可以拿掉今天的國名（跟歷史的政體名稱混在一起）；殖民可以加日本、美國、俄羅斯、鄂圖曼的殖民地（要另找有授權的資料）；可以疊上人類足跡的擴張（HYDE）。
 - **摩天大樓的 150、200 m 以上的國家指標**：Wikidata 的收錄（200 m 以上約 21%、中國約 9%）明顯改善後才做（`--refresh` 重跑會印出涵蓋率）；沒有完工年份的 189 個項目補上年份也能多算一些。OpenStreetMap 的 `height` 雜訊太多、沒有完工年份（第 83 點），要用得先有可靠的清理方法。
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。

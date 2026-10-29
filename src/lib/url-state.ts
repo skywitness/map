@@ -36,11 +36,13 @@ export const COMPARE_MAX = 3;
 /** 目前網址的畫面狀態（App 啟動時也用它提早發出第一個畫面的資料請求） */
 export function read(): ViewState {
   const p = new URLSearchParams(window.location.search);
-  const year = Number(p.get('year'));
+  // 年份可以是負的（西元前、百萬年前）或 0（板塊漂移的「今天」）；沒寫或寫錯是 null
+  const rawYear = p.get('year')?.trim();
+  const year = rawYear ? Number(rawYear) : NaN;
   return {
     topic: p.get('topic'),
     indicator: p.get('ind'),
-    year: Number.isFinite(year) && year > 0 ? year : null,
+    year: Number.isInteger(year) ? year : null,
     country: p.get('country'),
     view: p.get('view') === 'table' ? 'table' : 'map',
     item: p.get('item'),
@@ -95,7 +97,7 @@ function buildUrl(state: ViewState): string {
   if (state.topic) p.set('topic', state.topic);
   if (state.indicator) p.set('ind', state.indicator);
   if (state.item) p.set('item', state.item);
-  if (state.year) p.set('year', String(state.year));
+  if (state.year !== null) p.set('year', String(state.year));
   if (state.country) p.set('country', state.country);
   if (state.view !== 'map') p.set('view', state.view);
   if (state.box) p.set('bbox', state.box.map((v) => v.toFixed(3)).join(','));

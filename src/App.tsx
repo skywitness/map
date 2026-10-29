@@ -1140,11 +1140,11 @@ function useJsonEach(paths: string[]): Map<string, unknown> {
  * 從「當年的地震」的 1999 年換到「每十年的地震次數」，留在 1990 年代，不會跳到 2000 年代。
  */
 function pickYear(years: number[], wanted: number | null, fallback: number, bin?: number): number {
-  if (wanted && years.includes(wanted)) return wanted;
+  if (wanted !== null && years.includes(wanted)) return wanted;
   const containing = bin ? years.findLast((y) => y <= (wanted ?? fallback) && (wanted ?? fallback) < y + bin) : undefined;
   if (containing !== undefined) return containing;
   // 年份不連續（每 5 年一筆）時，拖到中間沒有資料的年份就用最接近的那一年（一樣近取較早的）
-  if (wanted && wanted > years[0] && wanted < years[years.length - 1]) {
+  if (wanted !== null && wanted > years[0] && wanted < years[years.length - 1]) {
     return years.reduce((best, y) => (Math.abs(y - wanted) < Math.abs(best - wanted) ? y : best), years[0]);
   }
   if (years.includes(fallback)) return fallback;

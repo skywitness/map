@@ -475,8 +475,8 @@ function partFeatures(def: LinesOverlay, part: DecodedLines, offset: number): Ge
   if (hit && hit.key === key && hit.offset === offset) return hit.features;
   const { lines, types, records, vertexTypes } = part;
   const { timeField, groupField } = def;
-  // 畫圖、篩選要用的紀錄欄位（時間、線寬、依縮放的篩選）
-  const fields = [timeField, typeof def.width === 'number' ? undefined : def.width.field, def.minValue?.field].filter(
+  // 畫圖、篩選要用的紀錄欄位（時間、結束年份、線寬、依縮放的篩選）
+  const fields = [timeField, def.endField, typeof def.width === 'number' ? undefined : def.width.field, def.minValue?.field].filter(
     (f): f is string => Boolean(f),
   );
   const groups = new Map<string, number>();

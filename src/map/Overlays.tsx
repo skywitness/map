@@ -286,7 +286,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
     };
     const swatchOf = (c: (NonNullable<typeof classes>)[number]) => (c.area ? areaSwatch(c) : lineSwatch(classColor(c), c.dash));
     const details: OverlayKey['details'] = [];
-    if (classes && typeof def.color !== 'string') {
+    if (classes && typeof def.color !== 'string' && def.keyClasses !== false) {
       details.push({
         title: def.color.title,
         layout: 'rows',

@@ -599,6 +599,16 @@ export interface LinesOverlayDef extends OverlayBase {
    * 例如海底電纜的啟用年份、颱風生成的年份。
    */
   timeField?: string;
+  /**
+   * 結束年份欄位（2026-10-29 起，帝國與疆界：那個範圍的最後一年的下一年）：跟點圖層的 endField 一樣，
+   * overlayTime 是 'cumulative' 時這一年（含）以後不畫；沒有這個欄位的線一直畫
+   */
+  endField?: string;
+  /**
+   * false：圖例不列顏色的分類（2026-10-29 起，帝國與疆界：10 種顏色只是讓相鄰的政體分得開，沒有意義）；
+   * 開關那一列的符號照常用第一類的顏色
+   */
+  keyClasses?: false;
   /** 代碼大的畫在上面（例如颱風路徑強的那段疊在弱的上面） */
   sortByType?: boolean;
   /**
