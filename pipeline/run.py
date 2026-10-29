@@ -212,6 +212,8 @@ STEPS = {
     "pandas": "topics.pandas",
     # 景點地圖：Wikidata 的博物館、動物園與水族館、樂園與雲霄飛車（第一次查約 40 分鐘，之後用快取）＋文化部的博物館
     "attractions": "topics.attractions",
+    # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒
+    "antarctic-stations": "topics.antarctic_stations",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

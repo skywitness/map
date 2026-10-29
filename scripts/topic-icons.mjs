@@ -127,6 +127,7 @@ const TOPIC_ICONS = {
   oceans: 'fish',
   koppen: 'cloud-sun-rain',
   ice: 'snowflake',
+  'antarctic-stations': 'tent',
   wind: 'wind',
   daylight: 'sun-moon',
   eclipses: 'eclipse',
