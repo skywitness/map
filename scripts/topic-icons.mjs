@@ -106,6 +106,7 @@ const TOPIC_ICONS = {
   'air-quality': 'haze',
   'water-forest': 'trees',
   plastic: 'recycle',
+  ewaste: 'monitor-x',
   ev: 'plug-zap',
   // 科技與交通
   ai: 'brain-circuit',
