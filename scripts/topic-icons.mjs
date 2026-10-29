@@ -33,6 +33,7 @@ const TOPIC_ICONS = {
   // 社會
   population: 'users',
   fertility: 'baby',
+  'birth-season': 'cake',
   marriage: 'heart-handshake',
   cities: 'building-2',
   health: 'heart-pulse',
