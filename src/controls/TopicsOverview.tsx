@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { tr, useLang, useT } from '../i18n';
 import { matchTopics, type TopicHit, type TopicTarget } from '../lib/topicSearch';
 import { CloseIcon } from '../map/MapIcons';
-import { prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '../topics';
+import { groupOfTopic, prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '../topics';
 import { pureMap } from '../topics/map';
+import { categoryStyle, Glyph, GroupGlyph, topicGlyph, useTopicIcons } from './TopicIcon';
 
 interface TopicsOverviewProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
   const dialogRef = useRef<HTMLDialogElement>(null);
   const filterRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
+  const icons = useTopicIcons(open);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -60,12 +62,29 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
         <button
           type="button"
           className={`overview-card${isCurrent ? ' is-current' : ''}`}
+          style={categoryStyle(groupOfTopic(topic.id))}
           aria-current={isCurrent ? 'page' : undefined}
           onPointerEnter={() => prefetchTopic(topic.id)}
           onFocus={() => prefetchTopic(topic.id)}
           onClick={() => onSelect(target)}
         >
-          <img src={`thumbs/${topic.id}.webp`} alt="" width={240} height={140} loading="lazy" decoding="async" />
+          <span className="overview-thumb">
+            {/* 一般解析度的螢幕用 240×140 的小縮圖（public/thumbs/s，每張約 4 KB），高解析度用 480×280 */}
+            <img
+              src={`thumbs/${topic.id}.webp`}
+              srcSet={`thumbs/s/${topic.id}.webp 240w, thumbs/${topic.id}.webp 480w`}
+              sizes="(max-width: 768px) 46vw, 220px"
+              alt=""
+              width={240}
+              height={140}
+              loading="lazy"
+              decoding="async"
+            />
+            {/* 縮圖幾乎都是同一個顏色的世界地圖，左上角放主題的圖示（分類代表色）才認得出來 */}
+            <span className="overview-badge" aria-hidden="true">
+              <Glyph d={topicGlyph(icons, topic.id)} size={15} />
+            </span>
+          </span>
           <span className="overview-card-title">{tr(topic.title, lang)}</span>
           <span className="overview-card-summary">
             {hit && hit.entry.kind !== 'topic' ? t.overviewMatch(tr(hit.entry.label, lang)) : summary(topic)}
@@ -76,8 +95,8 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
   };
 
   const sections = [
-    { id: 'map', label: tr(pureMap.shortTitle, lang), topics: [pureMap] },
-    ...TOPIC_GROUPS.map((g) => ({ id: g.id, label: tr(g.label, lang), topics: g.topics })),
+    { id: 'map', group: null, label: tr(pureMap.shortTitle, lang), topics: [pureMap] },
+    ...TOPIC_GROUPS.map((g) => ({ id: g.id, group: g.id, label: tr(g.label, lang), topics: g.topics })),
   ]
     .map((s) => ({ ...s, cards: s.topics.map(card).filter(Boolean) }))
     .filter((s) => s.cards.length);
@@ -111,7 +130,12 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
           {sections.length ? (
             sections.map((s) => (
               <section key={s.id} aria-labelledby={`overview-${s.id}`}>
-                <h3 id={`overview-${s.id}`}>{s.label}</h3>
+                <h3 id={`overview-${s.id}`} style={categoryStyle(s.group)}>
+                  <span className="topic-tile" aria-hidden="true">
+                    <GroupGlyph group={s.id} size={16} />
+                  </span>
+                  {s.label}
+                </h3>
                 <ul className="overview-grid">{s.cards}</ul>
               </section>
             ))

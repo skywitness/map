@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * 主題總覽（src/controls/TopicsOverview.tsx）與主題選單的縮圖：每個主題的預設指標畫成一張平面世界地圖，
- * 藏起地名、按鈕、圖例與版權標示（版權寫在總覽的頁尾），縮成 480×280 的 WebP 存到 public/thumbs/<主題>.webp。
+ * 藏起地名、按鈕、圖例與版權標示（版權寫在總覽的頁尾），縮成 480×280 的 WebP 存到 public/thumbs/<主題>.webp，
+ * 另外存一張 240×140 的到 public/thumbs/s/（總覽在一般解析度的螢幕上用，srcset）。
  *
  *   npm run dev            （另一個終端機；用開發模式的 window.__map、window.__topics）
  *   node scripts/topic-thumbs.mjs [開發伺服器網址，預設 http://localhost:5173/] [主題 id …，預設全部]
@@ -17,6 +18,8 @@ const [base = 'http://localhost:5173/', ...only] = process.argv.slice(2);
 const OUT_DIR = fileURLToPath(new URL('../public/thumbs/', import.meta.url));
 const WIDTH = 480;
 const HEIGHT = 280;
+/** 小縮圖（public/thumbs/s/）是一半大小 */
+const SMALL = 0.5;
 
 function loadPuppeteer() {
   const require = createRequire(import.meta.url);
@@ -46,7 +49,7 @@ const ISOLATE = `
   .map-zoom, .map-legend, .maplibregl-ctrl, .map-status, .map-hint, .map-overlay, .sheet, .panel { display: none !important; }
 `;
 
-mkdirSync(OUT_DIR, { recursive: true });
+mkdirSync(`${OUT_DIR}s/`, { recursive: true });
 const browser = await loadPuppeteer().launch({
   executablePath: chromePath(),
   headless: true,
@@ -94,26 +97,31 @@ try {
     );
     await new Promise((r) => setTimeout(r, 800));
     const png = await (await page.$('.stage-main')).screenshot({ type: 'png' });
-    // 縮小成一半：在瀏覽器的 canvas 裡畫，輸出 WebP
-    const webp = await page.evaluate(
-      async (src, w, h) => {
+    // 縮小成一半與四分之一：在瀏覽器的 canvas 裡畫，輸出 WebP
+    const [webp, small] = await page.evaluate(
+      async (src, sizes) => {
         const img = new Image();
         img.src = src;
         await img.decode();
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, w, h);
-        return canvas.toDataURL('image/webp', 0.78);
+        return sizes.map(([w, h, quality]) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, w, h);
+          return canvas.toDataURL('image/webp', quality);
+        });
       },
       `data:image/png;base64,${Buffer.from(png).toString('base64')}`,
-      WIDTH,
-      HEIGHT,
+      [
+        [WIDTH, HEIGHT, 0.78],
+        [WIDTH * SMALL, HEIGHT * SMALL, 0.8],
+      ],
     );
     const bytes = Buffer.from(webp.split(',')[1], 'base64');
     writeFileSync(`${OUT_DIR}${id}.webp`, bytes);
+    writeFileSync(`${OUT_DIR}s/${id}.webp`, Buffer.from(small.split(',')[1], 'base64'));
     console.log(`${id}\t${Math.round(bytes.length / 1024)} KB\t${((Date.now() - started) / 1000).toFixed(1)} s`);
   }
 } finally {

@@ -21,6 +21,13 @@ export const TOPIC_GROUPS: TopicGroup[] = TOPIC_GROUP_SPECS.map((g) => ({
   topics: g.topics.map((id) => CATALOG.topics[id]),
 }));
 
+const GROUP_OF = new Map(TOPIC_GROUPS.flatMap((g) => g.topics.map((t) => [t.id, g.id] as const)));
+
+/** 主題所在的分類 id（分類代表色、圖示）；純地圖不屬於任何分類，是 null */
+export function groupOfTopic(id: string): string | null {
+  return GROUP_OF.get(id) ?? null;
+}
+
 /** 純地圖頁不屬於任何分類，在頂列最前面單獨一顆按鈕 */
 export const TOPICS: TopicSummary[] = [CATALOG.topics[pureMap.id], ...TOPIC_GROUPS.flatMap((g) => g.topics)];
 
