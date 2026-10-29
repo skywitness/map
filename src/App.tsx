@@ -16,6 +16,7 @@ import type { TopicTarget } from './lib/topicSearch';
 import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMoment, formatTimeParam } from './lib/clock';
 import { indicatorCsv } from './lib/csv';
 import { derivedData } from './lib/derive';
+import { useLive } from './lib/live';
 import { fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
@@ -207,7 +208,7 @@ export function App() {
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
   const source = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
-  const { loading, error } = source;
+  const { loading } = source;
 
   // 時刻主題（晝夜與季節）：這一刻是網址的 time、播放中的那一格，或現在（每分鐘更新）
   const clock = Boolean(topic.clock) && !pure;
@@ -215,11 +216,22 @@ export function App() {
   const [playTime, setPlayTime] = useState<number | null>(null);
   useEffect(() => setPlayTime(null), [topic.id]);
   const shownTime = playTime ?? state.time ?? now;
-  const at = useMemo<ClockAt | null>(() => (clock ? clockAt(shownTime) : null), [clock, shownTime]);
+  // 即時資料（TopicDefinition.live，此刻的極光）：瀏覽器直接讀外部網址，定時重讀；資料的時刻當成「這一刻」
+  const liveDef = pure ? undefined : topic.live;
+  const live = useLive(liveDef);
+  const liveTime = liveDef && live.data ? liveDef.time(live.data) : null;
+  const at = useMemo<ClockAt | null>(
+    () => (clock ? clockAt(shownTime) : liveTime !== null ? clockAt(liveTime) : null),
+    [clock, shownTime, liveTime],
+  );
   // 在瀏覽器裡算的指標（IndicatorDef.derive）：材料是資料檔，依這一刻算出各國的值；其他指標原樣
   // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔
   const sourceData = indicator.derive && source.loading ? null : source.data;
-  const data = useMemo(() => derivedData(indicator, sourceData, at), [indicator, sourceData, at]);
+  // 即時主題的指標要等即時資料（null 是還沒讀到）
+  const liveData = liveDef ? live.data : undefined;
+  // 即時資料讀不到、手上也沒有上一份時才算載入失敗（有上一份就照舊畫，下一輪再試）
+  const error = source.error ?? (liveDef && !live.data ? live.error : null);
+  const data = useMemo(() => derivedData(indicator, sourceData, at, liveData), [indicator, sourceData, at, liveData]);
   // 沒自己選過底圖時跟著介面深淺色換（深色用深藍）；選過的照舊，切換深淺色也不變
   const [basemapId, setBasemapId] = useState(readStoredBasemap);
   const basemap = getBasemap(basemapId ?? defaultBasemap(tokens.mode === 'dark'));
@@ -293,7 +305,7 @@ export function App() {
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
-  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure, wantsView ? mapView : null);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, layers, pure, wantsView ? mapView : null, liveData);
   // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
   // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
@@ -448,7 +460,7 @@ export function App() {
   // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    if (!o || o.kind === 'night') return null;
+    if (!o || o.kind === 'night' || o.kind === 'liveGrid') return null;
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;
@@ -797,6 +809,7 @@ export function App() {
                 selectYear={timeless || at ? undefined : setYear}
                 setMarks={setMarks}
                 at={at}
+                live={liveData}
               />
             </Suspense>
           </PanelSheet>
@@ -814,7 +827,8 @@ export function App() {
         />
       ) : (
         !pure &&
-        !timeless && (
+        !timeless &&
+        !liveDef && (
           <TimeSlider
             years={years}
             year={year}
@@ -932,6 +946,8 @@ function useOverlays(
   layers: LayerVisibility,
   pure: boolean,
   view: MapView | null,
+  /** 主題的即時資料（TopicDefinition.live）：即時網格（kind 'liveGrid'）由它算 */
+  live: unknown,
 ) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
@@ -953,12 +969,12 @@ function useOverlays(
             o.kind !== undefined &&
             (!o.indicators || o.indicators.includes(indicator.id)) &&
             (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: o.kind === 'night' ? '' : overlayPath(topic, o, item) }]
+              ? [{ def: o, visible: overlayVisible(layers, o), path: o.kind === 'night' || o.kind === 'liveGrid' ? '' : overlayPath(topic, o, item) }]
               : [],
           ),
     [overlays, topic.id, topic.dimension, indicator.id, item, layers, pure],
   );
-  // 晝夜（kind 'night'）沒有資料檔，依時刻畫
+  // 晝夜（kind 'night'）沒有資料檔，依時刻畫；即時網格（kind 'liveGrid'）由即時資料算
   const wanted = useMemo(() => generic.filter((g) => g.visible && g.path).map((g) => g.path), [generic]);
   const raw = useJsonEach(wanted);
   // 線圖層放大後的分區（LinesOverlayDef.detail）：放大到 minZoom 以上時下載跟畫面重疊的分區，下載過的留著
@@ -979,6 +995,7 @@ function useOverlays(
     const inView = new Set(tilePaths);
     return generic.map(({ def, visible, path }) => {
       if (def.kind === 'night') return { kind: 'night', def, visible };
+      if (def.kind === 'liveGrid') return { kind: 'liveGrid', def, visible, values: liveGridValues(def, live) };
       const data = raw.get(path) ?? null;
       if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
       const index = (data as LinesData | null)?.detail;
@@ -991,8 +1008,18 @@ function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths]);
+  }, [generic, raw, tiles, tilePaths, live]);
   return { railways, airports, overlays: result };
+}
+
+const liveGridCache = new WeakMap<object, Map<string, Float32Array | null>>();
+/** 即時網格的值：同一份即時資料、同一個圖層只算一次（6.5 萬個格點） */
+function liveGridValues(def: { id: string; values: (live: unknown) => Float32Array | null }, live: unknown): Float32Array | null {
+  if (!live || typeof live !== 'object') return null;
+  let byId = liveGridCache.get(live);
+  if (!byId) liveGridCache.set(live, (byId = new Map()));
+  if (!byId.has(def.id)) byId.set(def.id, def.values(live));
+  return byId.get(def.id) ?? null;
 }
 
 /** 分區檔的路徑：跟主檔同一個資料夾，file 裡的 `{tile}` 換成分區的 id */

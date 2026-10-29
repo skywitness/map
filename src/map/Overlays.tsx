@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
-import type { LinesData, LinesOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
+import type { LinesData, LinesOverlay, LiveGridOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData } from '../topics/types';
 import { NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 
@@ -133,7 +133,9 @@ export type OverlayLayer =
   | { kind: 'points'; def: PointsOverlay; visible: boolean; points: PointRecord[] | null }
   | { kind: 'lines'; def: LinesOverlay; visible: boolean; lines: DecodedLines | null }
   /** 晝夜（時刻主題）：沒有資料檔，依時刻畫（nightLayer.ts） */
-  | { kind: 'night'; def: NightOverlay; visible: boolean };
+  | { kind: 'night'; def: NightOverlay; visible: boolean }
+  /** 即時網格（此刻的極光）：值由主題的即時資料算（liveGridLayer.ts）；還沒讀到是 null */
+  | { kind: 'liveGrid'; def: LiveGridOverlay; visible: boolean; values: Float32Array | null };
 
 export function overlayVisible(layers: LayerVisibility, def: { id: string; hidden?: boolean }): boolean {
   return layers.extra[def.id] ?? !def.hidden;
@@ -204,6 +206,18 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
  * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
  */
 export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
+  if (o.kind === 'liveGrid') {
+    // 一個顏色、依數值調不透明度：每一格是那個值的不透明度，墊在像地圖陸地的底色上
+    const color = darkMap ? o.def.color.dark : o.def.color.light;
+    const base = darkMap ? NIGHT_BASE.dark : NIGHT_BASE.light;
+    const alpha = (v: number) => interpolateStops({ stops: o.def.opacity }, v);
+    const rows = o.def.legend.rows.map((r) => ({ shape: 'fill' as const, size: 5, color, opacity: alpha(r.value), base, label: r.label }));
+    return {
+      swatch: { shape: 'fill', size: 5, color, opacity: alpha(o.def.opacity[o.def.opacity.length - 1][0]), base },
+      label: o.def.label,
+      details: [{ title: o.def.legend.title, layout: 'rows', rows }],
+    };
+  }
   if (o.kind === 'night') {
     const color = (darkMap ? NIGHT_LOOK.dark : NIGHT_LOOK.light).color;
     const alphas = [0, ...nightAlphas(darkMap)];

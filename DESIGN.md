@@ -190,7 +190,8 @@ pipeline/
 | `terrain` | 地形圖層（AWS Terrain Tiles）：`kind: 'terrain'` 的指標畫分層設色與陰影，面量圖上疊地形陰影（左下角可以關），3D 改成立體地形（見第 5 節「地形圖層」） | 海拔 |
 | `timeless` | 資料不隨時間變化：沒有時間軸；tooltip、側欄、排名表、標題、圖片與 CSV 檔名都不寫年份，分享選單只有一個「下載 CSV」 | 海拔、太陽能與風能潛力（長期平均） |
 | `clock` | **時刻主題**（2026-10-28 起）：時間不是年份，是某一刻（UTC 毫秒）。控制列下面的時間軸換成 `controls/MomentControl.tsx`（播放、一天／一年、拉桿、日期與時間、「現在」，見第 11 節「時刻主題的網址與播放」），網址是 `time=2026-06-21T0400Z`，沒有 `time` 時跟著現在走（`App.tsx` 的 `useNow`，每到整分鐘更新、分頁在背景時不計時）。App 的 `year` 換成那一刻在使用者時區的日期（`ClockAt.day`，YYYYMMDD 的整數），指標的值用 `derive` 在瀏覽器裡算；標題、tooltip、排名表、側欄寫那一刻（`lib/clock.ts` 的 `formatMoment`、`formatDay`），播放時地圖左上角的大字也是。CSV 只有一個「下載 CSV」，欄名與檔名寫日期（`indicatorCsv` 的 `yearLabel`） | 晝夜與季節 |
-| 指標的 `derive` | 數值在瀏覽器裡算（時刻主題）：`file` 是算的材料（各國首都的經緯度與時區），`derive.values(材料, ClockAt)` 回傳指標檔的格式（`years` 只有一筆）。`per` 是值跟著什麼變：`'minute'`（此刻的太陽高度，標題寫到分鐘）、`'day'`（白天長度，標題寫日期）、`'fixed'`（晝長年較差，標題不寫日期，跟 `timeless` 一樣）。App 與國家側欄都經過 `lib/derive.ts` 的 `derivedData()`：同一個指標、同一份材料、同一個時刻回傳同一個物件（每個指標留最近 4 個時刻），地圖的顏色才不會每一格重算。側欄的數值卡片裡，用同一份材料的 `derive` 指標照常各列一張（一般指標同一個檔只列一張） | 晝夜與季節的白天長度、晝長年較差、正午太陽高度、時鐘與太陽 |
+| `live` | **即時資料**（2026-10-29 起）：`{ url, minutes, time }`，瀏覽器直接讀外部的網址（要允許跨網域讀取；`lib/live.ts` 的 `useLive`），每 `minutes` 分鐘重讀，分頁在背景時不讀、回到前景時已經過期就馬上讀。讀不到時有上一份就照舊畫、下一輪再試，沒有就跟資料檔載入失敗一樣顯示錯誤。資料交給 `derive` 的第三個參數與即時網格圖層（`kind: 'liveGrid'`）；`time(資料)` 是資料的時刻，當成時刻主題的「這一刻」（App 的 `at`：標題寫到分鐘、晝夜圖層依它畫），但不是 `clock`：沒有時間軸，也不能選別的時刻。國家側欄的數值卡片也拿到即時資料（`CountryPanel` 的 `live`） | 此刻的極光（NOAA SWPC 的 OVATION） |
+| 指標的 `derive` | 數值在瀏覽器裡算（時刻主題）：`file` 是算的材料（各國首都的經緯度與時區），`derive.values(材料, ClockAt)` 回傳指標檔的格式（`years` 只有一筆）。`per` 是值跟著什麼變：`'minute'`（此刻的太陽高度，標題寫到分鐘）、`'day'`（白天長度，標題寫日期）、`'fixed'`（晝長年較差，標題不寫日期，跟 `timeless` 一樣）。App 與國家側欄都經過 `lib/derive.ts` 的 `derivedData()`：同一個指標、同一份材料、同一個時刻回傳同一個物件（每個指標留最近 4 個時刻），地圖的顏色才不會每一格重算。側欄的數值卡片裡，用同一份材料的 `derive` 指標照常各列一張（一般指標同一個檔只列一張）。2026-10-29 起 `values` 的第三個參數是主題的即時資料（`live`；其他主題是 undefined），快取跟著即時資料的物件（重讀一次就重算），還沒讀到時 `derivedData` 回傳 null | 晝夜與季節的白天長度、晝長年較差、正午太陽高度、時鐘與太陽 |
 | `tooltipLines` | tooltip 在國名下面另外加幾行（`.tt-hint`，滑過時才算）：`(iso3, { indicator, at, item, source, countryName })`，`source` 是目前指標的資料檔（`derive` 的材料），`countryName` 是目前語言的國名（2026-10-28 起） | 晝夜與季節：「以首都台北計算：日出 05:05、日落 18:46（UTC+8）」「正午太陽高度 88.4°・此刻是白天」；地球的另一邊：「對蹠點落在：巴拉圭 89%、阿根廷 11%」 |
 | `pointer` | **滑到地圖上任何一點（含海上）**的資訊（2026-10-28 起）：`(經緯度, { iso3, countryAt, countryName })` 回傳 `PointerInfo`：`title` 是游標在海上時 tooltip 的第一行，`lines` 接在後面（在國家上時接在國家的 tooltip 下面），`mark` 是跟著游標動的小圈（`pointer-mark` 圖層，平面地圖上看得到，地球儀上通常在背面）。`countryAt` 是 `map/geometry.ts` 的 `countryLocator()`：用地圖的 1:50m 國界在瀏覽器裡判斷任一經緯度在哪一國，不必畫在畫面上（環展開成連續的經度、點試 ±360°，先比範圍再用射線法；南極洲不在地圖的國家裡）。有 pointer 的主題海上也有 tooltip，滑到點、機場、側欄的標記時照舊；地球儀外面（太空）MapLibre 也會給一個經緯度（地球邊緣上的點），投影回畫面跟游標差 4 px 以上的不算（正式站上看到才發現的） | 地球的另一邊：游標的對蹠點在哪一國或哪一片海與它的經緯度 |
 | 指標的 `lowerIsBetter` | 數值越小越好：排名表、側欄的名次、單一年份的 CSV 由小排到大，第 1 名是最小的（排名表的長條仍依數值長短） | 性別不平等指數（台灣 2023 年第 13 名，跟性平處公布的一致） |
@@ -321,6 +322,7 @@ pipeline/
     - 為什麼不在 GeoJSON 放所有年份、用運算式挑欄位：`circle-radius`、`circle-sort-key`、filter 都要依年份改寫，改了一樣會讓 worker 重新切圖磚，程式卻多很多；重送資料只在換到另一期時發生（12 期）。
   - **依縮放篩選**（城市，2026-10-26 起）：`minValue: { field, stops: [[縮放級數, 最小值], …] }`，MapLibre 的 filter `['>=', ['get', field], ['step', ['zoom'], …]]`，跟時間篩選合併（`pointFilter()`）。filter 裡的 `['zoom']` 是圖磚的整數級數（GeoJSON 在 worker 依圖磚切），所以門檻在整數級數換。城市：圖磚 0–1 級（世界全圖）200 萬人以上、2 級 100 萬、3 級 30 萬、4 級 10 萬、5 級起全部；1280×800 的地球儀（縮放約 1.7）約畫 70 個、台灣（6.6 級）全部 21 個。
   - **晝夜**（`kind: 'night'`，`NightOverlayDef`，2026-10-28 起，晝夜與季節）：沒有資料檔，依時刻主題的這一刻（WorldMap 的 `time`）畫地球的夜半邊、三層曙暮光與太陽直射點（`src/map/nightLayer.ts`，WebGL 的自訂圖層，見第 8 節第 87 點）。插在 `data-border` 之前：夜色蓋住底圖與國家的顏色，國界、選取外框、其他疊加圖層與地名畫在上面。換時刻只換太陽的方向（uniform）與直射點（一個點的 `setData`），不重送幾何。圖例（`overlayKey`）是五個半透明的色塊（白天、民用、航海、天文曙暮光、夜晚，`OverlaySwatch` 的 `shape: 'fill'`，墊在像地圖陸地的底色上）加太陽直射點，匯出的圖片也一樣；`syncOverlays`、`applyTimeFilters` 不處理它。
+  - **即時網格**（`kind: 'liveGrid'`，`LiveGridOverlayDef`，2026-10-29 起，此刻的極光）：沒有資料檔，`values(即時資料)` 回傳經度 −180–180°、緯度 −90–90° 每 1° 一點的值（181 × 361，依緯度、再依經度排），`src/map/liveGridLayer.ts` 用跟晝夜同一種 WebGL 自訂圖層畫（頂點的位置固定，資料更新時只換數值的 buffer；兩極、180° 經線沒有接縫），一個顏色（`color.light`、`color.dark`）、依 `opacity` 的折線（最多 4 點，第一點以下不畫）調不透明度，插在 `data-border` 之前（晝夜之後加，畫在夜色上面）。圖例是 `legend.rows` 的幾個色塊（墊在陸地的底色上）。同一份即時資料、同一個圖層只算一次（`App.tsx` 的 `liveGridValues`）；`syncOverlays`、`applyTimeFilters`、點與線的 tooltip 不處理它。
   - **沿線的文字**（`LinesOverlayDef.lineLabel`，2026-10-28 起）：`(紀錄) => 文字`，多一個 symbol 圖層 `ov-<id>-label`（`symbol-placement: 'line'`、每 260px 重複、字型用底圖地名的字型），放大到哪裡都看得到線的名稱（北回歸線穿過台灣，放大到台灣時也看得到）。文字跟著語言：設定換了（換語言）就重送資料。
   - **借用別的主題的資料檔**：`topic: 'power-plants'` 時資料檔從 `topics/power-plants/` 讀（`App.tsx` 的 `useOverlays`）。發電量主題用它加一個預設關閉的「運轉中的電廠」圖層（`{ ...OPERATING_PLANTS, topic: 'power-plants', hidden: true }`），第一次打開才下載，跟發電廠地圖主題共用同一個檔與快取。
 - **資料格式**：點用 `common.points_file()`（`PointsData`）：欄位分開存，數值量化成整數（經緯度 0.01°），排序過的欄位（年份、經度）存差分；前端 `decodePoints()` 還原。線用 `common.lines_file()`（`LinesData`），跟鐵路同一種差分編碼，跨 180° 經線的線要先把經度展開成連續的。
@@ -611,6 +613,7 @@ pipeline/
 | 日食與月食（原名日食路徑） | 日食路徑（預設，不上色：時間軸那一年的日全食、日環食、混合食，路徑是半透明的帶子加外框與中心線，依類型上色；滑過看日期、食甚時中心線上的持續時間與位置、路徑寬度、沙羅週期；國家的值是那一年有沒有路徑經過，排名表列出經過的國家；另有預設關閉的「1900–2100 年所有的中心線」）、日全食次數、日環食次數（比例圓，1900 年累計到時間軸那一年，預設 2100 年；地圖上是到那一年為止的中心線）、下一次日全食（面量圖：從那一年起還要幾年，tooltip 寫哪一年；到 2100 年都沒有的是灰色）；月食（2026-10-28 加）：那一年的月全食（不上色：月全食整個全食都看得到、看得到一部分與月偏食看得到的範圍，半透明的面；tooltip 是首都看不看得到）、月全食次數（首都，累計）、下一次月全食（首都，還要幾年） | 1900–2100 年經過這國陸地的每一次日全食、日環食、混合食（日期、類型、這國境內最長的持續時間，下一次標出來，多的時候先列下一次附近的 12 次），上一次與下一次日全食；點一下時間軸換到那一年、標出路徑、地圖移過去；月食的指標列首都看得到的每一次月食（類型、整個看得到或一部分、食甚的當地時間、全食或偏食多久） | NASA 日食網站（Fred Espenak）：五千年日食目錄（Espenak & Meeus, NASA TP-2006-214141）與每一次日食的貝塞爾根數（路徑表那一組 SEbeselm 有的用它，其餘用五千年日食典的 SEdata），路徑自己算；公有領域，要寫「Eclipse Predictions by Fred Espenak, NASA's GSFC」；NASA 五千年月食目錄（Espenak & Meeus，公有領域，要求標示）；首都用晝夜與季節的 capitals.json | 1900–2100（未來的日食是預報；年份是食甚的 UTC 年份） |
 | 地球的另一邊 | 對蹠地圖（預設，不上色：每個國家的陸地翻到地球的另一邊，半透明的影子是對面是海的部分、琥珀色是陸地對陸地，加上翻過來的海岸線與國界；滑到地圖上任何一點，海上也可以，看它的對蹠點在哪一國或哪一片海與經緯度，平面地圖上畫一個小圈）、陸地對陸地的比例（面量圖）、首都的對蹠點離陸地（面量圖，km，不排名；0 是在陸地上）；兩個面量圖只疊翻過來的海岸線 | 國土的對蹠點落在哪些國家與海（100% 長條加清單，前 10 名）、「移到地球另一邊」；首都的對蹠點（在哪一國或哪一片海、離最近的陸地與國界多遠、最近的城鎮）、「移到對蹠點」；一打開就在地圖上標出這一國翻過去的形狀，放首都與它的對蹠點兩個標記（點一下移到另一個） | Natural Earth 1:50m 國界（地圖本身的，翻過去的形狀）與 1:10m 國界、populated places（公有領域）；Marine Regions 的 IHO Sea Areas v3 與 Global Oceans and Seas v1（CC BY 4.0，海的名稱與所屬大洋）；國家小檔案的 Wikidata 首都（CC0） | 不隨時間變化，沒有時間軸 |
 | 北磁極的漂移與磁偏角 | 磁極的軌跡（預設，不上色：北、南磁極 1590–2025 年每年一點，依年份上色，跟著時間軸累積）、首都的磁偏角（2025 年，發散色：西偏青綠、東偏橘）、首都離北磁極（每年的大圓距離）；疊加圖層：等偏角線（沿線寫度數）、指南針不可靠的範圍（WMM 的 blackout zone）；滑到任一點看那裡的磁偏角 | — | NOAA NCEI 磁極位置（NP.xy、SP.xy）、World Magnetic Model 2025（NOAA NCEI 與英國 BGS，公有領域）、Wikidata 首都 | 磁極 1590–2025；磁偏角只有 2025 年 |
+| 此刻的極光 | 極光預報地圖（預設，不上色：NOAA 的 OVATION 預報看得到極光的機率，綠色越濃越高，加上此刻的晝夜；滑到任一點〔海上也可以〕看那裡的機率）、國土上空的機率（面量圖：國土碰到的 1° 格點中最高的）、首都上空的機率（面量圖） | 預報與觀測的時刻、國土上空最高的機率與位置（移過去）、首都上空的機率、NOAA 的 Kp 指數（最近一筆、過去 24 小時最高）；國土都在南、北緯 35° 以內的國家（台灣）寫明看不到 | NOAA SWPC 的 OVATION 極光預報與行星 K 指數（美國政府著作，瀏覽器即時讀）、Natural Earth 1:10m 國界、國家小檔案的 Wikidata 首都（CC0） | 只有現在（每 5 分鐘重讀），沒有時間軸 |
 | 野火 | 燒毀面積占國土比例（預設）、燒毀面積（比例圓） | 燒毀的土地類型（堆疊面積圖＋當年長條）、每月燒毀面積（歷年平均與當年）、台灣：林保署森林火災對照表 | GWIS 全球野火資訊系統（歐盟 JRC、Copernicus）的 MODIS MCD64A1 各國逐月燒毀面積、GWIS Country Profile API（GADM 國土面積）；台灣附註用農業部林業及自然保育署林業保育統計年報 | 2002–2025（林保署對照 2007–2025） |
 | 世界遺產 | 世界遺產數（比例圓，依登錄年份累計，預設；子項目：全部、文化、自然、複合）、瀕危世界遺產數（比例圓，目前的快照）；疊加圖層：每個遺產一個點（文化琥珀、自然綠、複合紫、瀕危紅） | 這個國家的世界遺產清單（中文名稱、英文原名、類型、登錄年份、瀕危、跨國）；台灣寫明不是締約國、文化部的 18 處「臺灣世界遺產潛力點」 | UNESCO DataHub World Heritage List（CC BY-SA 4.0）、世界遺產中心的締約國清單、Wikidata（中文名稱） | 1978–2026（瀕危只有 2026 年） |
 | 摩天大樓 | 300 m 以上的大樓數（比例圓，預設；150、200 m 以上的 Wikidata 收錄太少，不做國家的指標）、最高建築的高度（面量圖）；疊加圖層：Wikidata 收錄的 150 m 以上的大樓每一棟一個點（大小與顏色是高度，縮小時只畫 300 m、200 m 以上的，拆除的那一年起不畫） | 跟 CTBUH 比的涵蓋率、這一年各高度的棟數（長條）、最高的大樓（前 10 棟，其餘收起來）、這個國家與全世界歷年 150、200、300 m 以上的棟數（折線）、沒有完工年份所以不算的大樓、連到城市主題；台灣寫台北 101、85 大樓的現況 | Wikidata（CC0）；CTBUH Skyscraper Center 的 2025 年底總數只引用來對照；城市名稱補用城市主題的 GHSL UCDB | 1930–2026（每一年還在的） |
@@ -709,6 +712,7 @@ pipeline/
       - 頁尾的來源與主題說明的第一句照寫「Eclipse Predictions by Fred Espenak, NASA’s GSFC」（另寫五千年日食目錄是 Espenak & Meeus），`manifest.json` 的 `credit` 也是。路徑是用他們的根數自己算的，NASA 沒有審查過這裡的計算（說明有寫跟 NASA 路徑表的差距）。
       - **沒有用的**：Xavier Jubier 的 KMZ／Google Maps 路徑（授權不明）；EclipseWise.com（Espenak 自己的網站，同樣准許轉載、要寫「Eclipse Predictions by Fred Espenak, www.EclipseWise.com」，但地圖與圖不能改；NASA 網站已經有需要的根數，又是公有領域，所以用 NASA 的）。
     - **NOAA NCEI 的磁極位置與 World Magnetic Model 2025 可以自由使用**（北磁極的漂移與磁偏角主題，第 101 點；2026-10-28 讀過）：WMM 的頁面寫「The WMM source code is in the public domain and not licensed or under copyright. The information and software may be used freely by the public」，NCEI 地磁頁寫「The information and software may be used freely by the public」；WMM 是 NOAA NCEI 與英國 BGS 共同製作，照 NCEI 的建議引用「NOAA NCEI Geomagnetic Modeling Team; British Geological Survey. 2024: World Magnetic Model 2025」（doi 10.25921/aqfd-sd83），寫在頁尾的來源與 `manifest.json`。**IGRF-14 沒有用**：NCEI 的 IGRF 頁寫的「public domain … may be used freely」是在 Geomag 7.0 軟體的授權底下，係數本身的授權沒寫（待確認），所以第一版不做歷史的磁偏角。
+    - **NOAA SWPC 的 OVATION 極光預報與行星 K 指數**（此刻的極光，第 102 點；2026-10-29 讀過）：美國政府（NOAA 太空天氣預報中心）的著作，依 17 U.S.C. § 105 不受著作權保護；SWPC 網站找不到另外的使用條款或免責頁。由使用者的瀏覽器直接向 NOAA 讀取（回應有 `Access-Control-Allow-Origin: *`），網站不轉存；頁尾寫來源。
     - **NASA 五千年月食目錄（LEcat5）同一個網站、同樣的條件**（日食與月食主題的月食，第 99 點；2026-10-28 讀過）：每一頁的 Acknowledgments 寫「Permission is freely granted to reproduce this data when accompanied by an acknowledgment: "Eclipse Predictions by Fred Espenak and Jean Meeus (NASA's GSFC)"」，NASA 的資料不受著作權保護（上面的 Copyright Information）。頁尾的來源與主題說明照寫這句，`manifest.json` 的 `lunarSource` 也是。
     - **HydroRIVERS v1.0 適用 HydroSHEDS 第 1 版的授權協議**（河流與流域主題，第 86 點；2026-10-28 讀過全文）：
       - 協議全文在 HydroSHEDS Technical Documentation v1.4 的附錄 A（https://data.hydrosheds.org/file/technical-documentation/HydroSHEDS_TechDoc_v1_4.pdf ），HydroRIVERS 的技術文件第 4.1 節寫明「covered by the same License Agreement as the HydroSHEDS database」，官方產品頁寫「freely available for scientific, educational and commercial use」。網站的 Terms of Use（https://www.hydrosheds.org/terms-of-use ）只管網站上的文字與圖片（不能改作、不能散布），資料各依產品自己的授權。
@@ -2827,6 +2831,17 @@ pipeline/
     - **沒有做的**：歷史的磁偏角（IGRF-14，1900–2025 每 5 年；係數本身的授權沒寫，製作手冊列為待確認，使用者 2026-10-28 決定第一版不做）；觀測到的磁極位置（NCEI 互動地圖上的黃色方塊，沒有開放的資料檔）；地磁北極（偶極軸）。
     - **大小**：`distance.json` 295 KB（gzip 後 55 KB，240 國 × 436 年）、`declination.json` 19 KB、`isogonic.json` 18 KB、`north.json`、`south.json` 各 7 KB、`wmm.json` 2 KB、`blackout.json` 1 KB，共約 350 KB（gzip 後約 74 KB）。
 
+
+102. **此刻的極光**（`pipeline/topics/aurora.py`、`src/lib/live.ts`、`src/map/liveGridLayer.ts`、`src/topics/aurora.ts`、`src/topics/panels/AuroraPanel.tsx`，2026-10-29）：
+    - **即時資料，在瀏覽器裡讀**：其他主題都是部署時產生的靜態檔，這個主題的預報約每 5 分鐘更新，所以加了通用的 `TopicDefinition.live`（第 4 節）：瀏覽器直接讀 NOAA SWPC 的 `ovation_aurora_latest.json`（約 920 KB，回應允許跨網域讀取，CloudFront 的 `max-age=60`），每 5 分鐘重讀，分頁在背景時不讀。讀不到時有上一份就照舊畫，沒有就顯示載入失敗。這是網站唯一一個執行時依賴外部服務的主題。
+    - **格點**：OVATION 是經度 0–359°E、緯度 −90–90° 每 1° 一點（65,160 點），值是那一點上空看得到極光的機率（%）。2026-10-29 03:09 UTC 的觀測：最高 18%，非零的 18,915 點。
+    - **地圖**：即時網格（`LiveGridOverlayDef`，WebGL 自訂圖層，跟晝夜同一種做法，兩極與 180° 經線沒有接縫），一個顏色（淺色底圖 `#0f8a4a`、深色 `#4ee28a`），依機率調不透明度：3% 以下不畫、8% 0.45、20% 0.75、50% 以上 0.95（平常最高約 15–20%，低的一段就要看得清楚）。只在「極光預報地圖」畫：疊在面量圖上時綠色跟面量圖的顏色混在一起看不清楚。疊上此刻的晝夜（`kind: 'night'`，時刻是預報的時刻）：極光只在夜裡看得到。
+    - **國家的值**：pipeline 算各國的國土碰到哪些格點（格點周圍 1° × 1° 的格子裡取 5 × 5 點，有一點在 Natural Earth 1:10m 的國界內就算，`geoindex` 的 `nearest=False`；只算南、北緯 35° 以外：OVATION 在 35° 以內幾乎都是 0，2024 年 5 月的大磁暴也只到約 40°），`cells.json` 41 KB（gzip 5 KB），86 個國家與地區有格點；首都用晝夜與季節的 `capitals.json` 最近的格點。瀏覽器裡用 `derive`（第三個參數是即時資料）算國土上空最高、首都上空的機率；沒有格點的國家（台灣）值是 0，tooltip 與側欄寫「國土都在南、北緯 35° 以內，看不到極光」。
+    - **側欄**：預報與觀測的時刻、國土上空最高的機率與位置（「移到機率最高的地方」）、首都上空的機率、NOAA 的行星 K 指數（`noaa-planetary-k-index.json`，一樣在瀏覽器裡讀：最近一筆與過去 24 小時最高；0–3 平靜、4 活躍、5 以上依 NOAA 的 G1–G5）。
+    - **游標**：滑到任一點（海上也可以）看那裡上空的機率（`pointer`）。tooltip 與 `pointer` 拿不到即時資料，用 `aurora.ts` 記住的最近一次預報（App 每讀到一份新的都會經過 `derive`）。
+    - **國家側欄的數值卡片**：一開始兩張卡片都是「無資料」：`CountryPanel` 自己算每個指標（`derivedData`）時沒有即時資料。現在 App 把即時資料傳給側欄（`live`）。
+    - **限制**：只有「現在」（NOAA 不提供歷史，不能選別的時刻，沒有時間軸）；機率不考慮雲、光害與月光，也沒有畫「地平線上看得到」的界線（SWPC 的 view line 沒有 JSON）；平面地圖只到南北緯 85°；地球儀一開始對著台灣，極光在畫面的上緣，要轉到北極才看得清楚。
+    - **大小**：`cells.json` 41 KB；預報（約 920 KB）每次由瀏覽器向 NOAA 讀。
 ## 9. 之後可以做的
 
 **使用者打算做、時間由使用者決定的新主題**（2026-10-28 記下；使用者說要做之前不要動手；資料與授權 2026-10-28 查證過，詳細在製作手冊第十四節）：
@@ -2846,7 +2861,6 @@ pipeline/
 - **冰河、海冰與海平面**：NSIDC 的北極 9 月海冰邊緣（美國政府作品）、WGMS 的冰河質量變化（CC BY 4.0）、NOAA STAR 的衛星測高海平面趨勢網格。
 - **人類足跡的擴張**：HYDE 3.5（CC BY 4.0）的人口、農地、牧地網格，西元前 1 萬年起；下載站有防機器人驗證，要使用者用瀏覽器下載。
 - **大航海時代的航海日誌**：CLIWOC 2.1（CC BY 3.0），1750–1854 年船隻每天的位置與風。
-- **此刻的極光**：NOAA SWPC 的 OVATION 極光預報（美國政府作品），時刻主題，跟「晝夜與季節」共用架構。
 - **殖民帝國的興衰**：COLDAT（CC0），1462–1984 年各國被哪個歐洲國家殖民；台灣要依史實自己補。
 - **各國在讀什麼**：Wikimedia 的差分隱私每日瀏覽量（CC0），每個國家讀最多的維基百科條目。
 
@@ -2856,6 +2870,7 @@ pipeline/
 - **獨立或建國年份的地圖指標**：要有一致又中立的定義才做（第 82 點的 CShapes 2.0）。
 - **晝夜與季節**（第 87 點）：可以加月相與月出月落（Meeus 第 47–49 章）、選地圖上任一點（不只首都）看日出日落；夜半邊可以疊上夜間燈光主題的燈光圖磚（晚上的城市亮起來）；大國可以改用人口加權的「全國平均」白天長度。
 - **地球的另一邊**（第 89 點）：讓使用者自己在地圖上放成對的標記（這裡與它的對蹠點，記在網址裡，經過 `useUrlState`）；滑到國家時順便寫「這一國的哪個城鎮對著哪個城鎮」（populated places 兩兩配對）；北緯 85° 以北畫不出來的一圈可以用自訂的 WebGL 圖層補（跟晝夜的夜色一樣，`nightLayer.ts`）。
+- **此刻的極光**（第 102 點）：SWPC 另有 3 天的極光預報與「地平線上看得到」的界線（view line，現在只有圖片），有 JSON 時可以加；Kp 指數可以加一張過去 7 天的小圖；可以記住使用者上次看的地方，開這個主題時直接轉到北極。
 - **摩天大樓的 150、200 m 以上的國家指標**：Wikidata 的收錄（200 m 以上約 21%、中國約 9%）明顯改善後才做（`--refresh` 重跑會印出涵蓋率）；沒有完工年份的 189 個項目補上年份也能多算一些。OpenStreetMap 的 `height` 雜訊太多、沒有完工年份（第 83 點），要用得先有可靠的清理方法。
 
 - **癌症發生率**：取得 IARC 書面授權後可以加 GLOBOCAN（只有 2022 年）；台灣有國健署的癌症登記。
@@ -2980,7 +2995,7 @@ pipeline/
   - 新增分類或主題後再量一次。再窄就讓主題列橫向捲動，放不下時（`is-overflowing`）右緣淡出提示後面還有；手機上打開頁面或換主題時，目前的分類會自動捲進可見範圍。
 - **縮圖與「看全部主題」**（2026-10-27 加）：選單的每個主題左邊有一張縮圖（`public/thumbs/<主題>.webp`），最下面一項是「看全部主題」（`menuitem`，↑↓ 也移得到；`check:en` 只點 `menuitemradio`，不受影響）。
 - **主題總覽**（`src/controls/TopicsOverview.tsx`）：用 `<dialog>` 的 `showModal()`（焦點留在對話框裡、Esc 關閉、後面的頁面不能點，瀏覽器內建），依分類列出所有主題的卡片（縮圖、主題名稱、前三個指標），目前的主題框起來；手機上全螢幕、兩欄。上面的篩選框用主題搜尋（見下面），比對到指標或子項目時卡片寫「符合：鋰」，點了直接開那個指標與子項目。觸控裝置打開時不自動聚焦篩選框（鍵盤跳出來會蓋住半個畫面）。頁尾寫縮圖的出處。
-  - **縮圖**：`scripts/topic-thumbs.mjs` 用開發伺服器（`window.__topics`、`window.__map`，只在開發模式有）逐一打開每個主題的預設指標，換成平面地圖、藏起底圖的地名（`openmaptiles` 的 symbol 圖層；資料的符號照畫，國旗主題小國的國旗還在）、按鈕與圖例，世界放滿 960×560 再縮成 480×280 的 WebP（每張 10–20 KB，80 張約 1 MB），選單與總覽打開時才下載（`loading="lazy"`）。新增主題或主題的預設指標改了之後重跑（`node scripts/topic-thumbs.mjs http://localhost:5173/ <主題 id>` 只跑指定的主題）；一個主題約 10 秒，全部約 15 分鐘，很吃 CPU，不要跟 `check:en` 同時跑。
+  - **縮圖**：`scripts/topic-thumbs.mjs` 用開發伺服器（`window.__topics`、`window.__map`，只在開發模式有）逐一打開每個主題的預設指標，換成平面地圖、藏起底圖的地名（來源是 `openmaptiles` 開頭的 symbol 圖層：世界視角的底圖另有 `openmaptiles--world`，2026-10-29 以前只藏 `openmaptiles`，那之後重做的縮圖多了國名；資料的符號照畫，國旗主題小國的國旗還在）、按鈕與圖例，世界放滿 960×560 再縮成 480×280 的 WebP（每張 10–20 KB，80 張約 1 MB），選單與總覽打開時才下載（`loading="lazy"`）。新增主題或主題的預設指標改了之後重跑（`node scripts/topic-thumbs.mjs http://localhost:5173/ <主題 id>` 只跑指定的主題）；一個主題約 10 秒，全部約 15 分鐘，很吃 CPU，不要跟 `check:en` 同時跑。
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
 - 選單開著時滑鼠移到另一個分類，直接換成那一類的選單（桌面程式選單列的習慣）；觸控不受影響。

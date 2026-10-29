@@ -217,7 +217,11 @@ export interface IndicatorDef {
    * 'fixed' 不隨時刻變（一年中白天最長與最短的差：標題不寫日期，跟 timeless 一樣）。
    * App 與側欄經過 lib/derive.ts 的 derivedData()，同一個指標、同一個時刻回傳同一個物件（有快取）。
    */
-  derive?: { per: 'minute' | 'day' | 'fixed'; values: (source: unknown, at: ClockAt) => IndicatorData };
+  derive?: {
+    per: 'minute' | 'day' | 'fixed';
+    /** live：主題的即時資料（TopicDefinition.live，此刻的極光的 OVATION 預報）；其他主題是 undefined */
+    values: (source: unknown, at: ClockAt, live?: unknown) => IndicatorData;
+  };
 }
 
 /**
@@ -330,7 +334,8 @@ export type OverlayDef =
   | { id: 'railways' | 'airports'; kind?: undefined; file: string; indicators?: string[] }
   | PointsOverlayDef
   | LinesOverlayDef
-  | NightOverlayDef;
+  | NightOverlayDef
+  | LiveGridOverlayDef;
 
 /**
  * 晝夜（時刻主題）：依目前的時刻畫出地球的夜半邊與晨昏蒙影（民用、航海、天文曙暮光一層一層變暗），
@@ -345,6 +350,31 @@ export interface NightOverlayDef {
   sunLabel: Text;
   hidden?: boolean;
   /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
+  indicators?: string[];
+  items?: string[];
+}
+
+/**
+ * 即時的全球網格（2026-10-29 起，此刻的極光）：主題的即時資料（TopicDefinition.live）換算成經緯度每 1° 一點的網格，
+ * 地圖上是 WebGL 的自訂圖層（src/map/liveGridLayer.ts，跟晝夜圖層同一種做法：兩極、180° 經線沒有接縫），
+ * 一個顏色、依數值調不透明度（數值越大越不透明）。不讀資料檔。
+ */
+export interface LiveGridOverlayDef {
+  kind: 'liveGrid';
+  id: string;
+  label: Text;
+  /**
+   * 即時資料 → 網格的值：經度 −180–180°、緯度 −90–90° 每 1° 一點，依緯度、再依經度排列
+   * （第 r 列第 c 個是緯度 r − 90、經度 c − 180，共 181 × 361 個）；沒有資料時回傳 null
+   */
+  values: (live: unknown) => Float32Array | null;
+  /** 顏色：淺色、深色底圖 */
+  color: { light: string; dark: string };
+  /** 數值到不透明度：低於 stops[0][0] 不畫，之間線性內插 */
+  opacity: [number, number][];
+  /** 圖例：標題與幾格（值與名稱） */
+  legend: { title: Text; rows: { value: number; label: Text }[] };
+  hidden?: boolean;
   indicators?: string[];
   items?: string[];
 }
@@ -718,6 +748,12 @@ export interface TopicDefinition {
    */
   clock?: boolean;
   /**
+   * 即時資料（2026-10-29 起，此刻的極光）：瀏覽器直接讀外部的網址（要允許跨網域讀取），每 minutes 分鐘重讀一次。
+   * 資料交給在瀏覽器裡算的指標（derive 的第三個參數）與即時的網格圖層（LiveGridOverlayDef）；
+   * time 是資料的時刻（UTC 毫秒），當成時刻主題的「這一刻」：標題寫到分鐘、晝夜圖層依它畫。沒有時間軸，也不能選別的時刻
+   */
+  live?: { url: string; minutes: number; time: (data: unknown) => number | null };
+  /**
    * tooltip 在數值與國名下面另外加的幾行（一個字串一行，跟 hints 一樣是 .tt-hint）：滑過時才算，
    * 例如晝夜與季節的「以首都台北計算：日出 05:05、日落 18:46」。at 是時刻主題目前的這一刻，其他主題是 null；
    * source 是目前指標的資料檔（在瀏覽器裡算的指標是算的材料，例如各國首都的經緯度）
@@ -789,6 +825,7 @@ export type Indicator = Localized<IndicatorDef>;
 export type PointsOverlay = Localized<PointsOverlayDef>;
 export type LinesOverlay = Localized<LinesOverlayDef>;
 export type NightOverlay = Localized<NightOverlayDef>;
+export type LiveGridOverlay = Localized<LiveGridOverlayDef>;
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension'>,

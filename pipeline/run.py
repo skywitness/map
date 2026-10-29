@@ -171,6 +171,8 @@ STEPS = {
     "antipodes": "topics.antipodes",
     # 要先有晝夜與季節的首都（daylight）
     "magnetic": "topics.magnetic",
+    # 此刻的極光：OVATION 在瀏覽器裡即時讀，這裡只算各國碰到哪些格點（要先跑 daylight 的 capitals.json）；不到 10 秒
+    "aurora": "topics.aurora",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

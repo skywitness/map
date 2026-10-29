@@ -24,17 +24,24 @@ function isIndicatorData(source: unknown): source is IndicatorData {
  * source 要是這個指標自己的資料檔：useJson 載入新檔的期間還拿著上一個檔（換主題時是別的主題的檔），
  * App 在載入中傳 null 給 derive 的指標；一般指標拿到的不是指標檔（上一個是時刻主題的材料）時也當成還沒載入
  */
-export function derivedData(indicator: Pick<Indicator, 'id' | 'derive'>, source: unknown, at: ClockAt | null): IndicatorData | null {
+export function derivedData(
+  indicator: Pick<Indicator, 'id' | 'derive'>,
+  source: unknown,
+  at: ClockAt | null,
+  /** 主題的即時資料（TopicDefinition.live）：有的話快取跟著它（重讀一次就是新的物件，重算）；還沒讀到時是 null */
+  live?: unknown,
+): IndicatorData | null {
   const derive = indicator.derive;
   if (!derive) return isIndicatorData(source) ? source : null;
-  if (!source || !at || typeof source !== 'object') return null;
-  let byKey = cache.get(source);
-  if (!byKey) cache.set(source, (byKey = new Map()));
+  if (!source || !at || typeof source !== 'object' || live === null) return null;
+  const owner = live && typeof live === 'object' ? live : source;
+  let byKey = cache.get(owner);
+  if (!byKey) cache.set(owner, (byKey = new Map()));
   const key = `${indicator.id}|${keyOf(derive.per, at)}`;
   let data = byKey.get(key);
   if (!data) {
     // 算出來的只有一個時間點（years 是 [at.day]；'fixed' 的是第一次算的那天），App 與側欄取第 0 筆
-    data = derive.values(source, at);
+    data = derive.values(source, at, live);
     byKey.set(key, data);
     // 同一個指標只留最近 KEEP 個時刻
     const mine = [...byKey.keys()].filter((k) => k.startsWith(`${indicator.id}|`));

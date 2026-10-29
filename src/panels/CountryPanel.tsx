@@ -51,6 +51,8 @@ interface CountryPanelProps {
   setMarks?: PanelExtraProps['setMarks'];
   /** 時刻主題目前的這一刻：在瀏覽器裡算的指標（derive）依它算，標題寫這一刻，主題側欄也拿到它 */
   at?: ClockAt | null;
+  /** 主題的即時資料（TopicDefinition.live）：在瀏覽器裡算的指標要用；還沒讀到是 null，其他主題是 undefined */
+  live?: unknown;
 }
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
@@ -67,7 +69,7 @@ function panelExtraFor(topic: Topic) {
 
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
-  const { onCompareChange, highlightLine, focusBox, selectYear, setMarks, at = null } = props;
+  const { onCompareChange, highlightLine, focusBox, selectYear, setMarks, at = null, live } = props;
   // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
   const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
@@ -82,8 +84,8 @@ export function CountryPanel(props: CountryPanelProps) {
   const loadedData = useJsonMany<IndicatorData>(files);
   // 在瀏覽器裡算的指標（時刻主題）：跟地圖用同一份快取（derivedData），同一刻拿到同一個物件
   const allData = useMemo(
-    () => loadedData.map((d, i) => derivedData(topic.indicators[i], d, at)),
-    [loadedData, topic, at],
+    () => loadedData.map((d, i) => derivedData(topic.indicators[i], d, at, live)),
+    [loadedData, topic, at, live],
   );
   const name = countryName(iso3, countries);
 

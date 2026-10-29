@@ -63,6 +63,7 @@ import {
   type OverlayLayer,
 } from './Overlays';
 import { applyTimeFilters, highlightLine, labelFont, lineOverlayAt, OVERLAY_PREFIX, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { syncLiveGrid } from './liveGridLayer';
 import { syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
@@ -1757,6 +1758,18 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !map || !installedRef.current) return;
     syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
   }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
+
+  /* ── 即時網格（此刻的極光，liveGridLayer.ts）：資料重讀時只換數值；換底圖後重新加上（晝夜之後加，畫在夜色上面） ── */
+  const liveGrid = overlays.find((o) => o.kind === 'liveGrid');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const def = liveGrid?.def;
+    syncLiveGrid(map, def?.id ?? null, Boolean(liveGrid?.visible), liveGrid?.values ?? null, {
+      color: def ? (basemap.dark ? def.color.dark : def.color.light) : '#000000',
+      opacity: def?.opacity ?? [[0, 0]],
+    });
+  }, [revision, liveGrid?.def, liveGrid?.visible, liveGrid?.values, basemap.dark, night?.visible]);
 
   /* ── 主題側欄要標出的一組線（例如滑到某條河）：跟滑鼠滑過共用同一層 ── */
   useEffect(() => {

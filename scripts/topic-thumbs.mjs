@@ -74,8 +74,8 @@ try {
       const m = window.__map;
       m.resize();
       for (const layer of m.getStyle().layers) {
-        // 只藏底圖的地名（openmaptiles），資料的符號（國旗主題小國的國旗）照畫
-        if (layer.type === 'symbol' && layer.source === 'openmaptiles') m.setLayoutProperty(layer.id, 'visibility', 'none');
+        // 只藏底圖的地名（openmaptiles，世界視角的是 openmaptiles--world），資料的符號（國旗主題小國的國旗）照畫
+        if (layer.type === 'symbol' && layer.source?.startsWith('openmaptiles')) m.setLayoutProperty(layer.id, 'visibility', 'none');
       }
       m.jumpTo({ center: [12, 18], zoom: Math.log2(w / 512), bearing: 0, pitch: 0 });
     }, WIDTH * 2);
