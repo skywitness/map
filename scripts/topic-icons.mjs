@@ -130,6 +130,7 @@ const TOPIC_ICONS = {
   oceans: 'fish',
   koppen: 'cloud-sun-rain',
   ice: 'snowflake',
+  'antarctic-stations': 'tent',
   wind: 'wind',
   daylight: 'sun-moon',
   eclipses: 'eclipse',
@@ -144,6 +145,7 @@ const TOPIC_ICONS = {
   'night-lights': 'moon-star',
   'world-heritage': 'castle',
   skyscrapers: 'building',
+  attractions: 'ferris-wheel',
   travel: 'plane',
 };
 

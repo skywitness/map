@@ -21,9 +21,9 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網，2026-10-29）：Python 3.13 預設的 VERIFY_X509_STRICT 會拒絕，
-# 這幾個主機只拿掉這一項嚴格檢查，憑證鏈與主機名稱照樣驗證（curl、瀏覽器都接受這張憑證）
-RELAXED_X509_HOSTS = {"statis.moi.gov.tw"}
+# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部的開放資料，2026-10-29）：Python 3.13 預設的
+# VERIFY_X509_STRICT 會拒絕，這幾個主機只拿掉這一項嚴格檢查，憑證鏈與主機名稱照樣驗證（curl、瀏覽器都接受這張憑證）
+RELAXED_X509_HOSTS = {"statis.moi.gov.tw", "cloud.culture.tw"}
 
 
 def _ssl_context(url: str):
