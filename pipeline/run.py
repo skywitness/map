@@ -210,6 +210,8 @@ STEPS = {
     "taipei-view": "topics.taipei_view",
     # 熊貓外交：手工整理的表（sources/panda_diplomacy.py，英文維基固定版本），動物園的座標與中文名稱查 Wikidata；幾秒
     "pandas": "topics.pandas",
+    # 景點地圖：Wikidata 的博物館、動物園與水族館、樂園與雲霄飛車（第一次查約 40 分鐘，之後用快取）＋文化部的博物館
+    "attractions": "topics.attractions",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
