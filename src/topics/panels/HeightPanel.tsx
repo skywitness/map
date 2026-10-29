@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { LineSeriesOption } from 'echarts/charts';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
@@ -99,25 +99,16 @@ const TEXT = defineMessages({
 });
 
 /** 身高在 140–185 公分之間：y 軸不從 0 開始，起伏才看得出來 */
-function zoomY(option: ChartOption): ChartOption {
-  return { ...option, yAxis: { ...(option.yAxis as object), scale: true } } as ChartOption;
+function zoomY(option: ChartSpec): ChartSpec {
+  return { ...option, y: { ...option.y, zero: false } };
 }
 
-/** 世界平均畫虛線，圖例也畫成虛線（timeSeriesOption 只有實線） */
-const DASHED_ICON = 'path://M0,0H5V2H0Z M7,0H12V2H7Z';
-function dashWorld(option: ChartOption, worldNames: string[], countryNames: string[]): ChartOption {
-  const series = (option.series as LineSeriesOption[]).map((s) =>
-    worldNames.includes(String(s.name)) ? { ...s, lineStyle: { ...s.lineStyle, type: 'dashed' as const, width: 1.5 } } : s,
-  );
-  const legend = option.legend as object;
+/** 世界平均畫細一點的虛線（圖例也畫成虛線） */
+function dashWorld(option: ChartSpec, worldNames: string[]): ChartSpec {
   return {
     ...option,
-    series,
-    legend: {
-      ...legend,
-      data: [...countryNames.map((name) => ({ name })), ...worldNames.map((name) => ({ name, icon: DASHED_ICON }))],
-    },
-  } as ChartOption;
+    series: option.series.map((s) => (s.type === 'line' && worldNames.includes(s.name) ? { ...s, dashed: true, width: 1.5 } : s)),
+  };
 }
 
 function chart(
@@ -128,7 +119,7 @@ function chart(
   indicator: Indicator,
   tokens: Tokens,
   text: (typeof TEXT)['zh'],
-): ChartOption {
+): ChartSpec {
   const color: Record<Sex, string> = { men: tokens.hues.blue, women: tokens.hues.orange };
   const lines = [
     ...SEXES.map((s) => ({ name: text.sex[s], values: own[s], color: color[s] })),
@@ -137,7 +128,6 @@ function chart(
   return dashWorld(
     zoomY(timeSeriesOption({ years, lines, year, indicator, tokens })),
     SEXES.map((s) => text.world[s]),
-    SEXES.map((s) => text.sex[s]),
   );
 }
 
@@ -234,13 +224,13 @@ export default function HeightPanel({ topic, indicator, iso3, year, countryName,
       <h3>{text.title}</h3>
       <h4>{text.adultHead}</h4>
       <p className="note">{view.adultSummary}</p>
-      <EChart option={view.adultOption} height={210} ariaLabel={text.adultAria(countryName)} />
+      <Chart spec={view.adultOption} height={210} ariaLabel={text.adultAria(countryName)} />
       <p className="note">{text.worldNote}</p>
       {view.teenOption && (
         <>
           <h4>{text.teenHead}</h4>
           {view.teenSummary && <p className="note">{view.teenSummary}</p>}
-          <EChart option={view.teenOption} height={190} ariaLabel={text.teenAria(countryName)} />
+          <Chart spec={view.teenOption} height={190} ariaLabel={text.teenAria(countryName)} />
           <p className="note">{tr(TWO_ESTIMATES, lang)}</p>
         </>
       )}

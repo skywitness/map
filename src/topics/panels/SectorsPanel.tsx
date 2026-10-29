@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
@@ -114,7 +114,7 @@ export default function SectorsPanel({ topic, iso3, year, countryName, tokens }:
       {view.option && (
         <>
           <h4>{text.trend}</h4>
-          <EChart option={view.option} height={200} ariaLabel={text.trendAria(countryName)} />
+          <Chart spec={view.option} height={200} ariaLabel={text.trendAria(countryName)} />
         </>
       )}
     </section>

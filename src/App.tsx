@@ -6,6 +6,7 @@ import { ClampedText } from './controls/ClampedText';
 import { CommandPalette, type PaletteAction } from './controls/CommandPalette';
 import { ShareMenu } from './controls/ShareMenu';
 import { ShortcutHelp } from './controls/ShortcutHelp';
+import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
 import { TopicNav } from './controls/TopicNav';
 import { LangSwitch } from './controls/LangSwitch';
@@ -87,7 +88,7 @@ import { initialThemeMode, useTheme } from './theme/useTheme';
 import { flagAspect, flagUrl, type FlagsFile } from './topics/flagImages';
 import type { FlagSpec } from './map/flagTiles';
 
-// 側欄的 ECharts 佔了大部分 JS，點國家時才載入，地圖可以先出來
+// 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
 
 // MapLibre（約 1 MB）放在自己的 chunk。首頁程式一跑起來就同時開始下載地圖程式和底圖樣式，
@@ -229,8 +230,9 @@ export function App() {
     [clock, shownTime, liveTime],
   );
   // 在瀏覽器裡算的指標（IndicatorDef.derive）：材料是資料檔，依這一刻算出各國的值；其他指標原樣
-  // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔
-  const sourceData = indicator.derive && source.loading ? null : source.data;
+  // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔。
+  // 載入失敗時也不畫上一個檔（2026-10-29 以前離線換主題，地圖與最高、最低照畫上一個主題的數字、套上新指標的單位）
+  const sourceData = (indicator.derive && source.loading) || source.error ? null : source.data;
   // 即時主題的指標要等即時資料（null 是還沒讀到）
   const liveData = liveDef ? live.data : undefined;
   // 即時資料讀不到、手上也沒有上一份時才算載入失敗（有上一份就照舊畫，下一輪再試）
@@ -406,6 +408,12 @@ export function App() {
     [gridSpec, gridWanted, gridMeta.data, year],
   );
   const mapTitle = grid ? G.title(indicatorTitle) : indicatorTitle;
+  // 分頁標題跟著指標與選取的國家（2026-10-29），書籤、瀏覽紀錄、分頁列才分得出來：「總生育率 · 台灣 · 世界資料地圖」
+  const selectedName = state.country && !pure ? countryName(state.country, countries) : null;
+  const pageTitle = [pure ? topic.title : mapTitle, selectedName, t.pageTitle].filter(Boolean).join(' · ');
+  useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
   // 正負變化的說明寫了顏色（「橘色為衰退、綠色為成長」），使用者換了發散色就跟著換（palettes.ts）
   const palette = usePalette();
   const layer = indicator.layer;
@@ -601,283 +609,297 @@ export function App() {
         </button>
       </header>
 
-      <div className="controls">
-        <div className="controls-left">
-          {pure && <h2 className="page-title">{topic.title}</h2>}
-          {!pure && dimension && usesDimension(indicator) && (
-            <label className="select-field">
-              <span>{dimension.label}</span>
-              <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
-                {groupOptions(dimension.options, dimension.followsSelection ? lang : null).map(([group, options]) =>
-                  group ? (
-                    <optgroup key={group} label={group}>
-                      {options.map((o) => (
+      {/* 控制列、說明、地圖、時間軸都在 <main> 裡（axe 的 region：內容都要在某個 landmark 裡，2026-10-29）；
+          display: contents，版面照舊由 .app 排 */}
+      <main className="app-main">
+        <div className="controls">
+          <div className="controls-left">
+            {pure && <h2 className="page-title">{topic.title}</h2>}
+            {!pure && dimension && usesDimension(indicator) && (
+              <label className="select-field">
+                <span>{dimension.label}</span>
+                <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
+                  {groupOptions(dimension.options, dimension.followsSelection ? lang : null).map(([group, options]) =>
+                    group ? (
+                      <optgroup key={group} label={group}>
+                        {options.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      options.map((o) => (
                         <option key={o.id} value={o.id}>
                           {o.label}
                         </option>
-                      ))}
-                    </optgroup>
-                  ) : (
-                    options.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.label}
-                      </option>
-                    ))
-                  ),
-                )}
-              </select>
-            </label>
-          )}
-          {pure ? null : topic.indicators.length > MAX_SEGMENTS || (narrow && topic.indicators.length > 2) ? (
-            <label className="select-field is-indicator">
-              <span>{t.indicator}</span>
-              <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
+                      ))
+                    ),
+                  )}
+                </select>
+              </label>
+            )}
+            {pure ? null : topic.indicators.length > MAX_SEGMENTS || (narrow && topic.indicators.length > 2) ? (
+              <label className="select-field is-indicator">
+                <span>{t.indicator}</span>
+                <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
+                  {topic.indicators.map((ind) => (
+                    <option key={ind.id} value={ind.id}>
+                      {ind.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <div className="indicator-picker" role="radiogroup" aria-label={t.indicator}>
                 {topic.indicators.map((ind) => (
-                  <option key={ind.id} value={ind.id}>
+                  <button
+                    key={ind.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={ind.id === indicator.id}
+                    className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
+                    onClick={() => chooseIndicator(ind.id)}
+                  >
                     {ind.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
-            </label>
-          ) : (
-            <div className="indicator-picker" role="radiogroup" aria-label={t.indicator}>
-              {topic.indicators.map((ind) => (
-                <button
-                  key={ind.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={ind.id === indicator.id}
-                  className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
-                  onClick={() => chooseIndicator(ind.id)}
-                >
-                  {ind.label}
-                </button>
-              ))}
-            </div>
-          )}
-          {gridSpec && !gridOnly && view === 'map' && (
-            <div className="grid-toggle" role="radiogroup" aria-label={G.mode}>
-              {[false, true].map((on) => (
-                <button
-                  key={String(on)}
-                  type="button"
-                  role="radio"
-                  aria-checked={gridOn === on}
-                  className={`segment${gridOn === on ? ' is-active' : ''}`}
-                  onClick={() => update({ grid: on })}
-                >
-                  {on ? G.name : G.countryAverage}
-                </button>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+            {gridSpec && !gridOnly && view === 'map' && (
+              <div className="grid-toggle" role="radiogroup" aria-label={G.mode}>
+                {[false, true].map((on) => (
+                  <button
+                    key={String(on)}
+                    type="button"
+                    role="radio"
+                    aria-checked={gridOn === on}
+                    className={`segment${gridOn === on ? ' is-active' : ''}`}
+                    onClick={() => update({ grid: on })}
+                  >
+                    {on ? G.name : G.countryAverage}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="controls-right">
+            <CountrySearch
+              compact={narrow}
+              index={searchIndex}
+              onSelect={selectFromSearch}
+              onSelectTopic={selectTopic}
+              valueOf={
+                pure
+                  ? undefined
+                  : (iso3) => {
+                      const v = values.get(iso3);
+                      return v !== undefined ? indicator.format(v, valueYears.get(iso3) ?? year) : null;
+                    }
+              }
+            />
+            {!pure && (
+              <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
+                {(['map', 'table'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    role="radio"
+                    aria-checked={view === v}
+                    className={`segment${view === v ? ' is-active' : ''}`}
+                    onClick={() => update({ view: v })}
+                  >
+                    {v === 'map' ? t.viewMap : t.viewTable}
+                  </button>
+                ))}
+              </div>
+            )}
+            <ShareMenu
+              shareTitle={t.shareTitle(viewTitle)}
+              onDownloadImage={view === 'map' ? downloadImage : undefined}
+              csv={
+                data && !pure
+                  ? { year: timeless || at ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                  : undefined
+              }
+            />
+          </div>
         </div>
-        <div className="controls-right">
-          <CountrySearch
-            compact={narrow}
-            index={searchIndex}
-            onSelect={selectFromSearch}
-            onSelectTopic={selectTopic}
-            valueOf={
-              pure
-                ? undefined
-                : (iso3) => {
-                    const v = values.get(iso3);
-                    return v !== undefined ? indicator.format(v, valueYears.get(iso3) ?? year) : null;
-                  }
-            }
-          />
-          {!pure && (
-            <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
-              {(['map', 'table'] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="radio"
-                  aria-checked={view === v}
-                  className={`segment${view === v ? ' is-active' : ''}`}
-                  onClick={() => update({ view: v })}
-                >
-                  {v === 'map' ? t.viewMap : t.viewTable}
-                </button>
-              ))}
-            </div>
-          )}
-          <ShareMenu
-            shareTitle={t.shareTitle(viewTitle)}
-            onDownloadImage={view === 'map' ? downloadImage : undefined}
-            csv={
-              data && !pure
-                ? { year: timeless || at ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
-                : undefined
-            }
-          />
-        </div>
-      </div>
-      <ClampedText key={description} text={description} className="indicator-desc" />
+        <ClampedText key={description} text={description} className="indicator-desc" />
 
-      <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
-        <div className="stage-main">
-          {error && <p className="error">{t.loadFailed(error.message)}</p>}
-          {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
-          {view === 'map' && !pure && (!timeless || at) && (
-            // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
-            <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
-              {at ? formatMoment(at.time) : (yearText ?? year)}
-              {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
-            </div>
-          )}
-          {view === 'map' ? (
-            // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
-            <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
-              {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
-              <WorldMap
-                ref={mapHandle}
-                countries={features ?? NO_FEATURES}
-                countryTable={countries}
-                onPickCountry={pure ? undefined : selectFromSearch}
-                places={placeAnchors}
+        <div className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
+          <div className="stage-main">
+            {error && (
+              // 離線而這個主題還沒存到裝置（service worker 只快取看過的資料）跟一般的失敗分開說
+              <StatusCard
+                overlay
+                kind={online ? 'error' : 'offline'}
+                title={online ? t.dataFailedTitle : t.offlineNotSavedTitle}
+                detail={online ? t.loadFailed(error.message) : t.offlineNotSavedHint}
+                action={{ label: t.retry, onClick: () => location.reload() }}
+              />
+            )}
+            {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
+            {view === 'map' && !pure && (!timeless || at) && (
+              // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
+              <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
+                {at ? formatMoment(at.time) : (yearText ?? year)}
+                {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
+              </div>
+            )}
+            {view === 'map' ? (
+              // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
+              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+                {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
+                <WorldMap
+                  ref={mapHandle}
+                  countries={features ?? NO_FEATURES}
+                  countryTable={countries}
+                  onPickCountry={pure ? undefined : selectFromSearch}
+                  places={placeAnchors}
+                  indicator={indicator}
+                  legendTitle={indicatorTitle}
+                  values={values}
+                  bubbleMax={bubbleMax}
+                  tokens={tokens}
+                  selected={state.country}
+                  onSelect={selectCountry}
+                  renderTooltip={renderTooltip}
+                  ariaLabel={
+                    pure
+                      ? t.worldMapAria
+                      : yearText
+                        ? t.mapAria(null, t.withYear(mapTitle, yearText), projected)
+                        : t.mapAria(timeless ? null : year, mapTitle, projected)
+                  }
+                  basemap={basemap}
+                  onBasemapChange={chooseBasemap}
+                  fitOnSelect={pure}
+                  onFirstData={onMapShown}
+                  onDetailNeeded={wantDetail}
+                  threeD={state.threeD}
+                  onThreeDChange={setThreeD}
+                  terrain={topic.terrain}
+                  bareMap={topic.bareMap}
+                  focus={focusRequest}
+                  grid={grid}
+                  gridFailed={gridWanted && gridMeta.error !== null}
+                  dimmed={loading && data !== null}
+                  box={topic.boxEstimate ? state.box : null}
+                  onBoxChange={topic.boxEstimate ? setBox : undefined}
+                  boxToolLabel={topic.boxEstimate && t.boxToolFor(topic.boxEstimate.label)}
+                  railways={railways}
+                  airports={airports}
+                  layers={layers}
+                  onLayersChange={setLayers}
+                  renderAirportTooltip={renderAirportTooltip}
+                  overlays={overlays}
+                  year={year}
+                  time={at?.time ?? null}
+                  renderPointTooltip={renderPointTooltip}
+                  flows={flows}
+                  flags={flagSpecs}
+                  onViewChange={wantsView ? setMapView : undefined}
+                  lineHighlight={shownHighlight}
+                  focusBox={focusBox}
+                  pointer={pure ? undefined : pointer}
+                  marks={shownMarks}
+                  overlay={
+                    boxResult && (
+                      <BoxResult
+                        label={boxResult.label}
+                        unit={boxResult.unit}
+                        year={year}
+                        total={boxResult.total}
+                        landKm2={boxResult.landKm2}
+                        contributions={boxResult.contributions}
+                        grid={boxResult.grid}
+                        countries={countries}
+                        onClear={() => setBox(null)}
+                      />
+                    )
+                  }
+                />
+              </Suspense>
+            ) : (
+              <RankingTable
                 indicator={indicator}
-                legendTitle={indicatorTitle}
+                title={indicatorTitle}
                 values={values}
-                bubbleMax={bubbleMax}
-                tokens={tokens}
+                valueYears={valueYears}
+                latestWithin={data?.latestWithin}
+                world={world}
+                previous={timeless ? null : previous}
+                year={timeless ? null : year}
+                yearText={timeless ? undefined : yearText}
+                countries={countries}
                 selected={state.country}
                 onSelect={selectCountry}
-                renderTooltip={renderTooltip}
-                ariaLabel={
-                  pure
-                    ? t.worldMapAria
-                    : yearText
-                      ? t.mapAria(null, t.withYear(mapTitle, yearText), projected)
-                      : t.mapAria(timeless ? null : year, mapTitle, projected)
-                }
-                basemap={basemap}
-                onBasemapChange={chooseBasemap}
-                fitOnSelect={pure}
-                onFirstData={onMapShown}
-                onDetailNeeded={wantDetail}
-                threeD={state.threeD}
-                onThreeDChange={setThreeD}
-                terrain={topic.terrain}
-                bareMap={topic.bareMap}
-                focus={focusRequest}
-                grid={grid}
-                gridFailed={gridWanted && gridMeta.error !== null}
-                dimmed={loading && data !== null}
-                box={topic.boxEstimate ? state.box : null}
-                onBoxChange={topic.boxEstimate ? setBox : undefined}
-                boxToolLabel={topic.boxEstimate && t.boxToolFor(topic.boxEstimate.label)}
-                railways={railways}
-                airports={airports}
-                layers={layers}
-                onLayersChange={setLayers}
-                renderAirportTooltip={renderAirportTooltip}
-                overlays={overlays}
-                year={year}
-                time={at?.time ?? null}
-                renderPointTooltip={renderPointTooltip}
-                flows={flows}
-                flags={flagSpecs}
-                onViewChange={wantsView ? setMapView : undefined}
-                lineHighlight={shownHighlight}
-                focusBox={focusBox}
-                pointer={pure ? undefined : pointer}
-                marks={shownMarks}
-                overlay={
-                  boxResult && (
-                    <BoxResult
-                      label={boxResult.label}
-                      unit={boxResult.unit}
-                      year={year}
-                      total={boxResult.total}
-                      landKm2={boxResult.landKm2}
-                      contributions={boxResult.contributions}
-                      grid={boxResult.grid}
-                      countries={countries}
-                      onClear={() => setBox(null)}
-                    />
-                  )
-                }
+                icon={topic.rowIcon}
               />
-            </Suspense>
-          ) : (
-            <RankingTable
-              indicator={indicator}
-              title={indicatorTitle}
-              values={values}
-              valueYears={valueYears}
-              latestWithin={data?.latestWithin}
-              world={world}
-              previous={timeless ? null : previous}
-              year={timeless ? null : year}
-              yearText={timeless ? undefined : yearText}
-              countries={countries}
-              selected={state.country}
-              onSelect={selectCountry}
-              icon={topic.rowIcon}
-            />
+            )}
+          </div>
+          {state.country && !pure && (
+            <PanelSheet onClose={() => selectCountry(null)}>
+              <Suspense
+                fallback={
+                  <aside className="panel" aria-busy="true">
+                    <PanelSkeleton />
+                  </aside>
+                }
+              >
+                <CountryPanel
+                  topic={topic}
+                  indicator={indicator}
+                  item={item}
+                  itemLabel={itemLabel ?? null}
+                  iso3={state.country}
+                  year={year}
+                  countries={countries}
+                  tokens={tokens}
+                  onClose={() => selectCountry(null)}
+                  onIndicatorChange={chooseIndicator}
+                  compare={compare}
+                  onCompareChange={(list) => update({ compare: list })}
+                  highlightLine={highlightLine}
+                  focusBox={moveToBox}
+                  selectYear={timeless || at ? undefined : setYear}
+                  setMarks={setMarks}
+                  at={at}
+                  live={liveData}
+                />
+              </Suspense>
+            </PanelSheet>
           )}
         </div>
-        {state.country && !pure && (
-          <PanelSheet onClose={() => selectCountry(null)}>
-            <Suspense
-              fallback={
-                <aside className="panel" aria-busy="true">
-                  <PanelSkeleton />
-                </aside>
-              }
-            >
-              <CountryPanel
-                topic={topic}
-                indicator={indicator}
-                item={item}
-                itemLabel={itemLabel ?? null}
-                iso3={state.country}
-                year={year}
-                countries={countries}
-                tokens={tokens}
-                onClose={() => selectCountry(null)}
-                onIndicatorChange={chooseIndicator}
-                compare={compare}
-                onCompareChange={(list) => update({ compare: list })}
-                highlightLine={highlightLine}
-                focusBox={moveToBox}
-                selectYear={timeless || at ? undefined : setYear}
-                setMarks={setMarks}
-                at={at}
-                live={liveData}
-              />
-            </Suspense>
-          </PanelSheet>
-        )}
-      </main>
 
-      {clock ? (
-        <MomentControl
-          time={shownTime}
-          live={state.time === null}
-          onChange={(ms) => update({ time: floorMinute(ms) })}
-          onPreview={setPlayTime}
-          onLive={() => update({ time: null })}
-          onPlayingChange={setPlaying}
-        />
-      ) : (
-        !pure &&
-        !timeless &&
-        !liveDef && (
-          <TimeSlider
-            years={years}
-            year={year}
-            projectionFrom={data?.projectionFrom}
-            projectionLabel={indicator.projectionLabel}
-            estimatesBefore={data?.estimatesBefore}
-            axis={indicator.timeAxis}
-            onChange={setYear}
+        {clock ? (
+          <MomentControl
+            time={shownTime}
+            live={state.time === null}
+            onChange={(ms) => update({ time: floorMinute(ms) })}
+            onPreview={setPlayTime}
+            onLive={() => update({ time: null })}
             onPlayingChange={setPlaying}
           />
-        )
-      )}
+        ) : (
+          !pure &&
+          !timeless &&
+          !liveDef && (
+            <TimeSlider
+              years={years}
+              year={year}
+              projectionFrom={data?.projectionFrom}
+              projectionLabel={indicator.projectionLabel}
+              estimatesBefore={data?.estimatesBefore}
+              axis={indicator.timeAxis}
+              onChange={setYear}
+              onPlayingChange={setPlaying}
+            />
+          )
+        )}
+
+      </main>
 
       <footer className="footer">
         <p className="footer-sources">
@@ -1238,7 +1260,7 @@ function useFlagSpecs(topic: Topic, indicator: Indicator, active: boolean): Map<
         ? new Map(
             Object.entries(data.units).map(([iso3, e]) => [
               iso3,
-              { url: new URL(flagUrl(e), window.location.href).href, aspect: flagAspect(e), fx: e.fx ?? 0.5, fy: e.fy ?? 0.5 },
+              { url: new URL(flagUrl(e), document.baseURI).href, aspect: flagAspect(e), fx: e.fx ?? 0.5, fy: e.fy ?? 0.5 },
             ]),
           )
         : null,

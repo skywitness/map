@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption, type StackedSeries } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
@@ -317,7 +317,7 @@ export default function ShippingPanel({ topic, iso3, year, countryName, tokens }
       {taiwan && (
         <section className="panel-section">
           <h3>{text.twTitle}</h3>
-          <EChart option={taiwan.option} height={220} ariaLabel={text.twAria} />
+          <Chart spec={taiwan.option} height={220} ariaLabel={text.twAria} />
           <p className="note">{text.twNote(taiwan.year, text.teu(taiwan.total))}</p>
         </section>
       )}
@@ -325,7 +325,7 @@ export default function ShippingPanel({ topic, iso3, year, countryName, tokens }
       {fleet && (
         <section className="panel-section">
           <h3>{text.fleetTitle}</h3>
-          <EChart option={fleet.option} height={200} ariaLabel={text.fleetAria(countryName)} />
+          <Chart spec={fleet.option} height={200} ariaLabel={text.fleetAria(countryName)} />
           <p className="panel-year-note">{text.fleetYear(fleet.year)}</p>
           <BarList items={fleet.items} format={text.dwt} total={fleet.total} ariaLabel={text.fleetAria(countryName)} />
         </section>

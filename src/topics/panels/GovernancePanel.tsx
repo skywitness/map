@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { LineSeriesOption } from 'echarts/charts';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Lang, type Text } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
@@ -93,7 +93,7 @@ interface Row {
 interface Trend {
   id: string;
   label: string;
-  option: ChartOption;
+  option: ChartSpec;
 }
 
 /**
@@ -110,114 +110,40 @@ function trendOption(
   year: number,
   tokens: Tokens,
   names: { country: string; interval: string; median: string; range: (low: string, high: string) => string },
-): ChartOption {
-  const at = (i: number) => years[i];
+): ChartSpec {
   const idx = own.map((v, i) => (v == null ? -1 : i)).filter((i) => i >= 0);
   // 從這個國家第一筆畫到最後一筆；中間沒有資料的年份是 null，線在那裡斷開（不會把空白的年份連起來）
   const span = years.map((_y, i) => i).filter((i) => i >= idx[0] && i <= idx[idx.length - 1]);
-  const pairs = (series: (number | null)[]) =>
-    span.map((i) => [at(i), own[i] == null ? null : (series[i] ?? null)] as [number, number | null]);
-  const hasBand = (i: number) => own[i] != null && low[i] != null && high[i] != null;
-  const base: LineSeriesOption = {
-    type: 'line',
-    showSymbol: false,
-    symbol: 'none',
-    emphasis: { disabled: true },
-    silent: true,
-  };
-  const series: LineSeriesOption[] = [
-    {
-      ...base,
-      name: '_low',
-      stack: 'interval',
-      data: span.map((i) => [at(i), hasBand(i) ? low[i] : null]),
-      lineStyle: { opacity: 0 },
-    },
-    {
-      ...base,
-      name: names.interval,
-      stack: 'interval',
-      data: span.map((i) => [at(i), hasBand(i) ? high[i]! - low[i]! : null]),
-      lineStyle: { opacity: 0 },
-      areaStyle: { color: tokens.accent, opacity: bandOpacity(tokens) },
-    },
-    {
-      ...base,
-      name: names.median,
-      data: pairs(median),
-      lineStyle: { width: 1.5, color: tokens.context, type: [4, 3] },
-      color: tokens.context,
-    },
-    {
-      ...base,
-      name: names.country,
-      data: span.map((i) => [at(i), own[i]]),
-      lineStyle: { width: 2, color: tokens.accent },
-      color: tokens.accent,
-      markLine: {
-        silent: true,
-        symbol: 'none',
-        label: { show: false },
-        lineStyle: { color: tokens.inkMuted, type: 'solid', width: 1 },
-        data: [{ xAxis: year }],
-      },
-    },
-  ];
+  const xs = span.map((i) => years[i]);
+  const pick = (series: (number | null)[]) => span.map((i) => (own[i] == null ? null : (series[i] ?? null)));
   const first = years[idx[0]];
   const last = years[idx[idx.length - 1]];
-  const byYear = new Map(idx.map((i) => [at(i), i]));
+  // 只在 10 的倍數寫字（跨度短的國家改成每 5 年或 2 年：南蘇丹 2011 年起、法屬玻里尼西亞只有近幾年），頭尾不寫
+  const step = last - first > 15 ? 10 : last - first > 6 ? 5 : 2;
+  const ticks = xs.filter((y) => y % step === 0 && y !== first && y !== last);
+  const byYear = new Map(idx.map((i) => [years[i], i]));
   return {
-    animation: false,
-    grid: { left: 4, right: 8, top: 8, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params) => {
-        const list = Array.isArray(params) ? params : [params];
-        const value = (list[0] as { value?: [number, number] }).value;
-        const i = value ? byYear.get(value[0]) : undefined;
-        if (i === undefined || own[i] == null) return '';
-        const row = (color: string, text: string, name: string) =>
-          `<div class="tt-row"><span class="tt-key" style="background:${color}"></span>` +
-          `<strong>${escapeHtml(text)}</strong><span class="tt-name">${escapeHtml(name)}</span></div>`;
-        const interval = low[i] != null && high[i] != null ? names.range(score(low[i]!), score(high[i]!)) : '';
-        return (
-          `<div class="tt-head">${years[i]}</div>` +
-          row(tokens.accent, `${score(own[i]!)}${interval}`, names.country) +
-          (median[i] != null ? row(tokens.context, score(median[i]!), names.median) : '')
-        );
-      },
+    x: { type: 'value', min: first, max: last, ticks },
+    y: { format: (v) => String(v), min: 0, max: 100, ticks: [0, 50, 100] },
+    series: [
+      { type: 'band', name: names.interval, low: pick(low), high: pick(high), xs, color: tokens.accent, opacity: bandOpacity(tokens), legend: false },
+      { type: 'line', name: names.median, values: pick(median), xs, color: tokens.context, width: 1.5, dashed: true, legend: false },
+      { type: 'line', name: names.country, values: span.map((i) => own[i]), xs, color: tokens.accent, legend: false },
+    ],
+    refs: year >= first && year <= last ? [{ x: year }] : [],
+    tooltipXs: idx.map((i) => years[i]),
+    tooltip: (y) => {
+      const i = byYear.get(y);
+      if (i === undefined || own[i] == null) return null;
+      const interval = low[i] != null && high[i] != null ? names.range(score(low[i]!), score(high[i]!)) : '';
+      return {
+        head: String(years[i]),
+        rows: [
+          { color: tokens.accent, value: `${score(own[i]!)}${interval}`, name: names.country },
+          ...(median[i] != null ? [{ color: tokens.context, value: score(median[i]!), name: names.median }] : []),
+        ],
+      };
     },
-    xAxis: {
-      type: 'value',
-      min: first,
-      max: last,
-      // 每年一個刻度，只在 10 的倍數寫字（跨度短的國家改成每 5 年或 2 年：南蘇丹 2011 年起、法屬玻里尼西亞只有近幾年）
-      interval: 1,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      splitLine: { show: false },
-      axisLabel: {
-        color: tokens.inkMuted,
-        fontSize: 10,
-        showMinLabel: false,
-        showMaxLabel: false,
-        formatter: (v: number) => (v % (last - first > 15 ? 10 : last - first > 6 ? 5 : 2) === 0 ? String(v) : ''),
-      },
-    },
-    yAxis: {
-      type: 'value',
-      min: 0,
-      max: 100,
-      interval: 50,
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 10 },
-    },
-    series,
   };
 }
 
@@ -374,7 +300,7 @@ export default function GovernancePanel({ topic, iso3, year, countryName, tokens
             {view.trends.map((trend) => (
               <div key={trend.id}>
                 <h5>{trend.label}</h5>
-                <EChart option={trend.option} height={110} ariaLabel={text.chartAria(countryName, trend.label)} />
+                <Chart spec={trend.option} height={110} ariaLabel={text.chartAria(countryName, trend.label)} />
               </div>
             ))}
           </div>

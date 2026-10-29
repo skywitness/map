@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -139,7 +140,7 @@ export default function ChinaLendingPanel({ topic, indicator, iso3, year, item, 
     };
   }, [detail, current, year, annual, lang, text]);
 
-  const flowsOption = useMemo((): ChartOption | null => {
+  const flowsOption = useMemo((): ChartSpec | null => {
     if (!detail) return null;
     const colors: Record<FlowCode, string> = {
       loan: tokens.accent,
@@ -179,7 +180,7 @@ export default function ChinaLendingPanel({ topic, indicator, iso3, year, item, 
       {flowsOption && (
         <div className="panel-subsection">
           <h3>{text.flowsTitle}</h3>
-          <EChart option={flowsOption} height={180} ariaLabel={text.flowsAria(countryName)} />
+          <Chart spec={flowsOption} height={180} ariaLabel={text.flowsAria(countryName)} />
           <p className="note">{text.flowsNote}</p>
         </div>
       )}

@@ -29,10 +29,13 @@ const GROUP_ICONS = {
   geo: 'mountain-snow',
 };
 
-/** 介面用的圖示：指令面板（CommandPalette.tsx）的國家與指令 */
+/** 介面用的圖示：指令面板（CommandPalette.tsx）的國家與指令、狀態畫面（StatusCard.tsx）的離線、錯誤、沒有資料 */
 const UI_ICONS = {
   country: 'map-pin',
   command: 'command',
+  offline: 'cloud-off',
+  error: 'triangle-alert',
+  empty: 'chart-no-axes-column',
 };
 
 const TOPIC_ICONS = {
@@ -254,7 +257,7 @@ const groupSource =
   `export const GROUP_ICONS: Record<string, string> = ${record(
     Object.entries(GROUP_ICONS).map(([id, name]) => [id, name, icon(name, `分類 ${id}`)]),
   )};\n\n` +
-  `export const UI_ICONS: Record<'country' | 'command', string> = ${record(
+  `export const UI_ICONS: Record<${Object.keys(UI_ICONS).map((k) => `'${k}'`).join(' | ')}, string> = ${record(
     Object.entries(UI_ICONS).map(([id, name]) => [id, name, icon(name, `介面 ${id}`)]),
   )};\n`;
 

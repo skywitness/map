@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { dayKey, dayParts, daysInYear, formatDay, monthDayOfYear } from '../../lib/clock';
 import { useJson } from '../../lib/data';
@@ -127,92 +128,37 @@ function latText(text: (typeof TEXT)['zh'], lat: number, lon: number): [string, 
   return [lat >= 0 ? text.north(a) : text.south(a), lon >= 0 ? text.east(b) : text.west(b)];
 }
 
-function chartOption(p: Place, year: number, days: SunDay[], selected: number, tokens: Tokens, text: (typeof TEXT)['zh']): ChartOption {
+function chartOption(p: Place, year: number, days: SunDay[], selected: number, tokens: Tokens, text: (typeof TEXT)['zh']): ChartSpec {
   const hours = days.map((d) => Math.round((d.dayLength / 60) * 100) / 100);
-  const categories = days.map((_, i) => String(i + 1));
-  // 每個月 1 日的位置寫月份
+  // 每個月 1 日的位置寫月份（隔一個月寫一次）
   const monthStarts = new Set(Array.from({ length: 12 }, (_, m) => Math.round((Date.UTC(year, m, 1) - Date.UTC(year, 0, 1)) / 86_400_000)));
+  const monthOf = (i: number) => new Date(Date.UTC(year, 0, 1 + i)).getUTCMonth();
   const monthLabel = (i: number) => {
-    const m = new Date(Date.UTC(year, 0, 1 + i)).getUTCMonth();
+    const m = monthOf(i);
     return tr({ zh: `${m + 1}月`, en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m] });
   };
   const selectedIndex = Math.max(0, Math.min(days.length - 1, selected));
   return {
-    animation: false,
-    grid: { left: 4, right: 12, top: 18, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params) => {
-        const list = Array.isArray(params) ? params : [params];
-        const i = (list[0] as { dataIndex?: number }).dataIndex ?? 0;
-        const d = days[i];
-        return (
-          `<div class="tt-head">${escapeHtml(monthDayOfYear(year, i + 1))}</div>` +
-          `<div class="tt-row"><span class="tt-key" style="background:${tokens.accent}"></span><strong>${escapeHtml(duration(d.dayLength))}</strong></div>` +
-          `<div class="tt-row"><span class="tt-name">${escapeHtml(riseSetText(p, d))}</span></div>`
-        );
-      },
-    },
-    xAxis: {
+    x: {
       type: 'category',
-      data: categories,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: tokens.inkMuted,
-        fontSize: 11,
-        interval: (index: number) => monthStarts.has(index) && new Date(Date.UTC(year, 0, 1 + index)).getUTCMonth() % 2 === 0,
-        formatter: (_value: string, index: number) => monthLabel(index),
-      },
+      labels: days.map((_, i) => monthLabel(i)),
+      showLabel: (i) => monthStarts.has(i) && monthOf(i) % 2 === 0,
     },
-    yAxis: {
-      type: 'value',
-      min: 0,
-      max: 24,
-      interval: 6,
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => text.hours(v) },
-    },
-    series: [
-      {
-        type: 'line',
-        data: hours,
-        showSymbol: false,
-        symbol: 'circle',
-        symbolSize: 7,
-        color: tokens.accent,
-        lineStyle: { width: 2, color: tokens.accent },
-        areaStyle: { color: tokens.accent, opacity: 0.1 },
-        emphasis: { disabled: true },
-        markLine: {
-          silent: true,
-          symbol: 'none',
-          lineStyle: { color: tokens.inkMuted, type: 'solid', width: 1 },
-          data: [
-            // 選定的那一天
-            {
-              xAxis: String(selectedIndex + 1),
-              label: {
-                show: true,
-                position: 'end',
-                formatter: monthDayOfYear(year, selectedIndex + 1),
-                color: tokens.inkSecondary,
-                fontSize: 11,
-              },
-              lineStyle: { color: tokens.ink, width: 1.5 },
-            },
-            // 12 小時（春分、秋分時全世界都接近這個長度）
-            { yAxis: 12, label: { show: false }, lineStyle: { color: tokens.inkMuted, type: [4, 3], width: 1 } },
-          ],
-        },
-      },
+    y: { format: (v) => text.hours(v), min: 0, max: 24, ticks: [0, 6, 12, 18, 24] },
+    series: [{ type: 'line', name: '', values: hours, color: tokens.accent, fill: 0.1, legend: false }],
+    refs: [
+      // 選定的那一天，上緣寫日期
+      { x: selectedIndex, color: 'var(--ink)', width: 1.5, label: monthDayOfYear(year, selectedIndex + 1) },
+      // 12 小時（春分、秋分時全世界都接近這個長度）
+      { y: 12, dashed: true },
     ],
+    tooltip: (i) => ({
+      head: monthDayOfYear(year, i + 1),
+      rows: [
+        { color: tokens.accent, value: duration(days[i].dayLength), name: '' },
+        { color: 'transparent', value: '', name: riseSetText(p, days[i]) },
+      ],
+    }),
   };
 }
 
@@ -295,7 +241,7 @@ export default function DaylightPanel({ topic, iso3, at, tokens, countryName }: 
       </dl>
 
       <h3>{text.yearTitle(year)}</h3>
-      {option && <EChart option={option} height={200} ariaLabel={text.chartAria(countryName, year)} />}
+      {option && <Chart spec={option} height={200} ariaLabel={text.chartAria(countryName, year)} />}
 
       <h3>{text.seasonsTitle}</h3>
       <ul className="daylight-seasons">

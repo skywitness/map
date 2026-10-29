@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -209,11 +209,11 @@ export default function SkyscrapersPanel({ topic, iso3, year, countryName, token
       {view.history && (
         <>
           <h3>{text.history(countryName)}</h3>
-          <EChart option={view.history} height={200} ariaLabel={text.historyAria(countryName)} />
+          <Chart spec={view.history} height={200} ariaLabel={text.historyAria(countryName)} />
         </>
       )}
       <h3>{text.world}</h3>
-      <EChart option={view.world} height={200} ariaLabel={text.worldAria} />
+      <Chart spec={view.world} height={200} ariaLabel={text.worldAria} />
       <p className="note">{text.worldNote(view.world2025[0], view.world2025[1])}</p>
       {view.now.length > 0 && (
         <p className="note">

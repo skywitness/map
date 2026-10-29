@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { stackedAreaOption, type StackedSeries } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
@@ -289,7 +289,7 @@ export default function OceansPanel({ topic, iso3, year, countryName, tokens }: 
       {history && (
         <section className="panel-section">
           <h3>{text.historyTitle}</h3>
-          <EChart option={history} height={200} ariaLabel={text.historyAria(countryName)} />
+          <Chart spec={history} height={200} ariaLabel={text.historyAria(countryName)} />
           <p className="note">{text.historyNote}</p>
         </section>
       )}

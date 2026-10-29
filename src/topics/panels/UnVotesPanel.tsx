@@ -1,6 +1,6 @@
-import type { LineSeriesOption } from 'echarts/charts';
 import { useMemo } from 'react';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, type Text } from '../../i18n';
@@ -69,7 +69,7 @@ export default function UnVotesPanel({ topic, iso3, year, countryName, tokens }:
       l.id === iso3 ? text.self(tr(l.name, lang)) : text.none(tr(l.name, lang)),
     );
 
-    let option: ChartOption | null = null;
+    let option: ChartSpec | null = null;
     if (shown.length) {
       const indicator = topic.indicators.find((i) => i.id === 'agree-usa')!;
       // x 軸只畫這個國家有投票紀錄的年份（台灣只有 1946–1971，不必留一大段空白）
@@ -88,11 +88,9 @@ export default function UnVotesPanel({ topic, iso3, year, countryName, tokens }:
         indicator,
         tokens,
       });
-      // 時間軸的年份不在 x 軸上（台灣選 2024 年、理想點的 2025 年）時不畫垂直參考線：x 軸是類別軸，沒有那一年
-      const chartSeries = base.series as LineSeriesOption[];
-      if (year < years[first] || year > years[last]) chartSeries[0] = { ...chartSeries[0], markLine: undefined };
+      // 時間軸的年份不在 x 軸上（台灣選 2024 年、理想點的 2025 年）時 timeSeriesOption 不畫垂直參考線。
       // 固定 0–100%，各國的圖才能互相比較
-      option = { ...base, series: chartSeries, yAxis: { ...(base.yAxis as object), min: 0, max: 100 } };
+      option = { ...base, y: { ...base.y, min: 0, max: 100 } };
     }
 
     // 理想點與 90% 可信區間：時間軸那一年，沒有的話用之前最近一年（例如台灣是 1971 年）
@@ -117,7 +115,7 @@ export default function UnVotesPanel({ topic, iso3, year, countryName, tokens }:
   return (
     <section className="panel-section">
       <h3>{text.title(view.names)}</h3>
-      {view.option && <EChart option={view.option} height={200} ariaLabel={text.chartAria(countryName, view.names)} />}
+      {view.option && <Chart spec={view.option} height={200} ariaLabel={text.chartAria(countryName, view.names)} />}
       {view.missing.length > 0 && <p className="note">{view.missing.join(lang === 'en' ? ' ' : '')}</p>}
       {view.idealText && <p className="note">{view.idealText}</p>}
     </section>

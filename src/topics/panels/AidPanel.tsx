@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { timeSeriesOption, type TimeSeriesLine } from '../../charts/timeSeries';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
@@ -233,7 +234,7 @@ export default function AidPanel({ topic, iso3, year, countryName, tokens }: Pan
     return { year: detail.years[i], items, total: bilateral + multilateral };
   }, [detail, year, text, tokens]);
 
-  const gniOption = useMemo((): ChartOption | null => {
+  const gniOption = useMemo((): ChartSpec | null => {
     const own = odaGni?.values[iso3];
     if (!odaGni || !own?.some((v) => v != null)) return null;
     const start = own.findIndex((v) => v != null);
@@ -249,15 +250,10 @@ export default function AidPanel({ topic, iso3, year, countryName, tokens }: Pan
       tokens,
     });
     // 0.7% 目標：一條水平虛線，右端寫「0.7% 目標」
-    const series = option.series as { markLine?: { data?: unknown[] } }[];
-    series[0].markLine?.data?.push({
-      yAxis: TARGET,
-      lineStyle: { color: tokens.hues.green, type: [6, 4], width: 1.5 },
-      label: { show: true, position: 'insideEndTop', formatter: text.target, color: tokens.inkSecondary, fontSize: 11 },
-    });
-    // 大多數國家不到 0.7%：y 軸至少畫到 0.8%，目標線才看得到（ECharts 算座標軸範圍時不看 markLine）
+    const refs = [...(option.refs ?? []), { y: TARGET, dashed: true, color: tokens.hues.green, width: 1.5, label: text.target }];
+    // 大多數國家不到 0.7%：y 軸至少畫到 0.8%，目標線上面才留得出寫字的空間（y 軸的範圍本來就含參考線）
     const dataMax = Math.max(...own.slice(start).map((v) => v ?? 0), ...(odaGni.aggregates?.DAC ?? []).slice(start).map((v) => v ?? 0));
-    return dataMax < TARGET + 0.05 ? ({ ...option, yAxis: { ...(option.yAxis as object), max: 0.8 } } as ChartOption) : option;
+    return { ...option, refs, ...(dataMax < TARGET + 0.05 && { y: { ...option.y, max: 0.8 } }) };
   }, [odaGni, iso3, countryName, year, tokens, text, topic]);
 
   const recipient = useMemo(() => {
@@ -278,7 +274,7 @@ export default function AidPanel({ topic, iso3, year, countryName, tokens }: Pan
 
   // 受援國：收到的援助與僑匯收入；其他國家：僑匯的收入與支出
   const isRecipient = Boolean(received?.values[iso3]?.some((v) => v != null)) && iso3 !== TAIWAN;
-  const remitChart = useMemo((): ChartOption | null => {
+  const remitChart = useMemo((): ChartSpec | null => {
     const { years, lines } = isRecipient
       ? mergeYears([
           { data: received, key: iso3, name: text.received, color: tokens.accent },
@@ -344,7 +340,7 @@ export default function AidPanel({ topic, iso3, year, countryName, tokens }: Pan
       {gniOption && (
         <div className="panel-subsection">
           <h3>{text.gniTitle}</h3>
-          <EChart option={gniOption} height={180} ariaLabel={text.gniAria(countryName)} />
+          <Chart spec={gniOption} height={180} ariaLabel={text.gniAria(countryName)} />
           <p className="note">{t.methodBreak(odaGni!.methodBreak!)}</p>
         </div>
       )}
@@ -370,7 +366,7 @@ export default function AidPanel({ topic, iso3, year, countryName, tokens }: Pan
       {remitChart && (
         <div className="panel-subsection">
           <h3>{isRecipient ? text.aidRemitTitle : text.remitTitle}</h3>
-          <EChart option={remitChart} height={180} ariaLabel={(isRecipient ? text.aidRemitAria : text.remitAria)(countryName)} />
+          <Chart spec={remitChart} height={180} ariaLabel={(isRecipient ? text.aidRemitAria : text.remitAria)(countryName)} />
         </div>
       )}
       {taiwan && (

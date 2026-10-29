@@ -28,6 +28,7 @@ import {
 } from 'maplibre-gl';
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
+import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, SPACE_GRADIENT, SPACE_GRADIENT_LIGHT, TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
@@ -226,10 +227,19 @@ const SHAPELESS: [string, [number, number]][] = [
 const EARTH_RADIUS_KM = 6371.0088;
 const NO_DATA = MAP_TOKENS.noData;
 /**
- * 換年份、換指標時國家顏色的漸變時間（毫秒）。播放（一年 120 ms）、拖時間軸時變得比這快，
- * 這時不漸變，直接換，顏色才不會落後拉桿一兩年
+ * 換年份、換指標時國家顏色的漸變時間（毫秒）。播放（一年 120 ms）時用間隔的一部分（FILL_FADE_SHARE），
+ * 拖時間軸時間隔太短（FILL_FADE_MIN_MS），直接換，顏色才不會落後拉桿一兩年
  */
 const FILL_FADE_MS = 280;
+/** 播放、連續換年份時的漸變最多佔間隔的幾成（2026-10-29）：一年 120 ms 時漸變約 70 ms，不會落後；拖拉桿時間隔太短，直接換 */
+const FILL_FADE_SHARE = 0.6;
+/** 間隔短於這個（拖時間軸）就不漸變 */
+const FILL_FADE_MIN_MS = 60;
+/** 選取的國家外框底下光暈的寬度（px）；新選到時從更寬收到這個寬度（SELECT_PULSE_MS） */
+const HALO_WIDTH = 6.5;
+const SELECT_PULSE_MS = 450;
+/** 滑過的國家蓋一層白色（加亮）的不透明度 */
+const HOVER_LIGHTEN = 0.16;
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 /** 載入時暫時把陸地畫成海的顏色，最多這麼久（見 installDataLayers） */
 const SEA_PLACEHOLDER_MAX_MS = 10_000;
@@ -418,6 +428,11 @@ function fillOpacity(on: number, tint = 0): ExpressionSpecification {
   return ['interpolate', ['linear'], ['zoom'], 1, at(1), 5, at(0.8), 9, at(0.35)];
 }
 
+/** 選取的國家外框底下光暈的寬度（只有選取的國家有） */
+function haloWidth(width: number): ExpressionSpecification {
+  return ['case', ['boolean', ['feature-state', 'selected'], false], width, 0];
+}
+
 /** 弧線沿線漸層（line-progress 0 是起點）：淺的一端是出口國，深的一端是進口國 */
 function flowGradient(colors: { start: string; end: string }): ExpressionSpecification {
   return ['interpolate', ['linear'], ['line-progress'], 0, colors.start, 1, colors.end];
@@ -460,6 +475,16 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       },
     },
     {
+      // 滑過的國家微微加亮（2026-10-29）：外框之外再蓋一層淡白色，深色的填色上也看得出游標在哪一國
+      id: 'data-hover',
+      type: 'fill',
+      source: 'countries',
+      paint: {
+        'fill-color': '#ffffff',
+        'fill-opacity': ['case', ['all', hovered, ['!', ['boolean', ['feature-state', 'selected'], false]]], HOVER_LIGHTEN, 0],
+      },
+    },
+    {
       // 面量圖開著時，國界改用跟上色同一份幾何畫，並隱藏底圖的國界，才不會出現兩條錯開的線
       id: 'data-border',
       type: 'line',
@@ -479,7 +504,7 @@ function dataLayers(dark: boolean): LayerSpecification[] {
       layout: { 'line-join': 'round' },
       paint: {
         'line-color': dark ? '#0b0b0b' : '#ffffff',
-        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 6.5, 0],
+        'line-width': haloWidth(HALO_WIDTH),
         'line-opacity': 0.9,
         'line-blur': 1,
       },
@@ -1353,11 +1378,14 @@ export function WorldMap(props: WorldMapProps) {
 
     const shown = fillShownRef.current;
     const now = performance.now();
-    // 換底圖後 feature-state 都清掉了，第一次畫、連續變化（播放、拖時間軸）、使用者要求減少動態效果時直接換
+    // 漸變的時間：單獨一次變化（點時間軸、換指標）是 FILL_FADE_MS；播放時連續變化，只用間隔的 FILL_FADE_SHARE，
+    // 下一年來之前就變完，顏色不會落後（2026-10-29 以前播放時不漸變，一格一格跳）
+    const duration = Math.min(FILL_FADE_MS, (now - fillChangedRef.current) * FILL_FADE_SHARE);
+    // 換底圖後 feature-state 都清掉了，第一次畫、拖時間軸（間隔太短）、使用者要求減少動態效果時直接換
     const fade =
       revision === fillRevisionRef.current &&
       shown.size > 0 &&
-      now - fillChangedRef.current >= FILL_FADE_MS &&
+      duration >= FILL_FADE_MIN_MS * FILL_FADE_SHARE &&
       !matchMedia(REDUCED_MOTION).matches;
     fillRevisionRef.current = revision;
     fillChangedRef.current = now;
@@ -1375,7 +1403,7 @@ export function WorldMap(props: WorldMapProps) {
     if (!changes.length) return;
     const start = performance.now();
     const step = (now: number) => {
-      const k = Math.min(1, (now - start) / FILL_FADE_MS);
+      const k = Math.min(1, Math.max(0, (now - start) / duration));
       const eased = 1 - (1 - k) ** 3;
       for (const { iso3, from, to } of changes) {
         const fill = k === 1 ? to : mixColor(from, to, eased);
@@ -1874,6 +1902,12 @@ export function WorldMap(props: WorldMapProps) {
   onViewChangeRef.current = onViewChange;
 
   // 放大超過全球視角才要 1:50m 的國界：比預設的縮放大 0.5 級、或到 DETAIL_ZOOM（大螢幕的預設就接近 3 級）
+  // 地圖的說明寫在 MapLibre 的 canvas 上（它本身是 role="region"、可以用 Tab 移進去平移縮放）。
+  // 2026-10-29 以前寫在外框的 role="img" 上，但圖片裡不能有可聚焦的東西（axe 的 nested-interactive）
+  useEffect(() => {
+    if (ready) mapRef.current?.getCanvas().setAttribute('aria-label', ariaLabel);
+  }, [ready, ariaLabel]);
+
   const onDetailNeededRef = useRef(props.onDetailNeeded);
   onDetailNeededRef.current = props.onDetailNeeded;
   const wantsDetail = Boolean(props.onDetailNeeded);
@@ -1970,12 +2004,29 @@ export function WorldMap(props: WorldMapProps) {
 
   // 選取的國家加粗外框；不在畫面上時（例如從搜尋或排名表選）把地圖轉過去
   const selectedRef = useRef<string | null>(null);
+  const pulseFrameRef = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(pulseFrameRef.current), []);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     for (const source of SELECT_SOURCES) {
       if (selectedRef.current) map.setFeatureState({ source, id: selectedRef.current }, { selected: false });
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
+    }
+    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫
+    if (selected && selected !== selectedRef.current && map.getLayer('data-halo') && !matchMedia(REDUCED_MOTION).matches) {
+      cancelAnimationFrame(pulseFrameRef.current);
+      const start = performance.now();
+      const step = (now: number) => {
+        // requestAnimationFrame 的時間是這一格開始的時間，可能比 start（performance.now()）早一點：夾在 0 以上
+        const k = Math.min(1, Math.max(0, (now - start) / SELECT_PULSE_MS));
+        const eased = 1 - (1 - k) ** 3;
+        if (!map.getLayer('data-halo')) return;
+        map.setPaintProperty('data-halo', 'line-width', haloWidth(HALO_WIDTH + (1 - eased) * 16));
+        map.setPaintProperty('data-halo', 'line-opacity', 0.35 + 0.55 * eased);
+        if (k < 1) pulseFrameRef.current = requestAnimationFrame(step);
+      };
+      pulseFrameRef.current = requestAnimationFrame(step);
     }
     selectedRef.current = selected;
     // 只留海的底圖（板塊漂移）：國家今天的位置在地圖上沒有意義，不移過去
@@ -2111,6 +2162,7 @@ export function WorldMap(props: WorldMapProps) {
     show('data-border', !slabs && !bare);
     show('data-highlight', !slabs && !bare);
     show('data-halo', !slabs && !bare);
+    show('data-hover', !slabs && !bare);
     // 只留海的底圖（bareMap）：國家不能 hover、點選（隱藏的圖層 featureAt 會跳過）
     show('data-fill', !bare);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
@@ -2348,10 +2400,10 @@ export function WorldMap(props: WorldMapProps) {
         ref={mapNodeRef}
         className="map-canvas"
         style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
-        role="img"
-        aria-label={ariaLabel}
       />
-      {failed && <p className="error map-error">{t.basemapFailed}</p>}
+      {failed && (
+        <StatusCard overlay kind="error" title={t.basemapFailedTitle} detail={t.basemapFailed} action={{ label: t.reload, onClick: () => location.reload() }} />
+      )}
 
       <div className="map-zoom" role="group" aria-label={t.mapControls}>
         {/* 觸控裝置用兩指縮放，不放放大、縮小鈕（鍵盤的 +/− 照樣可以用） */}

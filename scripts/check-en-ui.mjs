@@ -163,7 +163,8 @@ async function main() {
     await settle(page);
     const en = await state();
     expect(en.brand === 'World Data Map', `切換後標題不是英文：${en.brand}`);
-    expect(en.lang === 'en' && en.title === 'World Data Map', `<html lang> 或分頁標題沒跟著變：${en.lang} / ${en.title}`);
+    // 分頁標題是「指標 · 國家 · 網站名」（App.tsx，2026-10-29 起）
+    expect(en.lang === 'en' && en.title.endsWith('World Data Map'), `<html lang> 或分頁標題沒跟著變：${en.lang} / ${en.title}`);
     expect(en.url.includes('lang=en'), `網址沒有 lang=en：${en.url}`);
     expect(en.labels?.length > 0 && en.labels.every((l) => l.includes('name:en')), '底圖地名沒有換成英文');
     await check(page, 'population（切換後）');

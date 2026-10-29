@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedArea';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
@@ -417,7 +417,7 @@ export default function ClimatePanel({ indicator, iso3, year, item, countryName,
       {view.gases && (
         <div className="panel-subsection">
           <h3>{text.gasTitle}</h3>
-          <EChart option={view.gases.option} height={200} ariaLabel={text.gasChartAria(countryName)} />
+          <Chart spec={view.gases.option} height={200} ariaLabel={text.gasChartAria(countryName)} />
           {view.gases.shownYear !== null && (
             <>
               <h4>
@@ -434,7 +434,7 @@ export default function ClimatePanel({ indicator, iso3, year, item, countryName,
       {view.sources && (
         <div className="panel-subsection">
           <h3>{sourceTitle}</h3>
-          <EChart option={view.sources.option} height={220} ariaLabel={text.sourceChartAria(countryName, gasName ? tr(gasName, lang) : '')} />
+          <Chart spec={view.sources.option} height={220} ariaLabel={text.sourceChartAria(countryName, gasName ? tr(gasName, lang) : '')} />
           {view.sources.shownYear !== null && (
             <>
               <h4>
@@ -461,7 +461,7 @@ export default function ClimatePanel({ indicator, iso3, year, item, countryName,
       {view.inventory && (
         <div className="panel-subsection">
           <h3>{text.invTitle}</h3>
-          <EChart option={view.inventory.option} height={200} ariaLabel={text.invChartAria} />
+          <Chart spec={view.inventory.option} height={200} ariaLabel={text.invChartAria} />
           <table className="mini-table climate-inventory" aria-label={text.invCaption(view.inventory.tableYear)}>
             <thead>
               <tr>

@@ -1,5 +1,6 @@
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { COVID, FINANCIAL_CRISIS } from './events';
 
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 // 失業率、勞參率跟主計總處公布的一樣留兩位小數（台灣 2024 年 3.38%）；非正式就業是調查的調和值，一位就好
@@ -54,6 +55,7 @@ export const employment: TopicDefinition = {
       },
       unit: '%',
       file: 'unemployment.json',
+      events: [FINANCIAL_CRISIS, COVID],
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [3, 5, 7.5, 10, 15, 20] } },
       format: pct2,
       formatTick: tick,
@@ -68,6 +70,7 @@ export const employment: TopicDefinition = {
       },
       unit: '%',
       file: 'youth-unemployment.json',
+      events: [FINANCIAL_CRISIS, COVID],
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 30, 40] } },
       format: pct2,
       formatTick: tick,

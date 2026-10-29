@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
@@ -64,8 +65,8 @@ const TEXT = defineMessages({
 });
 
 /** 初婚年齡在 17–38 歲之間：y 軸不從 0 開始，起伏才看得出來（結婚率、離婚率照常從 0 開始） */
-function zoomY(option: ChartOption): ChartOption {
-  return { ...option, yAxis: { ...(option.yAxis as object), scale: true } } as ChartOption;
+function zoomY(option: ChartSpec): ChartSpec {
+  return { ...option, y: { ...option.y, zero: false } };
 }
 
 export default function MarriagePanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
@@ -127,7 +128,7 @@ export default function MarriagePanel({ topic, iso3, year, countryName, tokens }
         <section key={c.id} className="panel-section">
           <h3>{c.id === 'age' ? text.ageTitle : text.rateTitle}</h3>
           {c.summary && <p className="note">{c.summary}</p>}
-          <EChart option={c.option} height={180} ariaLabel={(c.id === 'age' ? text.ageAria : text.rateAria)(countryName)} />
+          <Chart spec={c.option} height={180} ariaLabel={(c.id === 'age' ? text.ageAria : text.rateAria)(countryName)} />
         </section>
       ))}
       {taiwan && (

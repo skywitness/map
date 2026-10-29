@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
@@ -65,8 +66,8 @@ const TEXT = defineMessages({
 });
 
 /** 分數在 400–600 之間：y 軸不從 0 開始，起伏才看得出來 */
-function zoomY(option: ChartOption): ChartOption {
-  return { ...option, yAxis: { ...(option.yAxis as object), scale: true } } as ChartOption;
+function zoomY(option: ChartSpec): ChartSpec {
+  return { ...option, y: { ...option.y, zero: false } };
 }
 
 export default function PisaPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
@@ -141,7 +142,7 @@ export default function PisaPanel({ topic, iso3, year, countryName, tokens }: Pa
       {view.charts.map(({ domain, option }) => (
         <div key={domain}>
           <h4>{text.domain[domain]}</h4>
-          <EChart option={option} height={150} ariaLabel={text.chartAria(countryName, text.domain[domain])} />
+          <Chart spec={option} height={150} ariaLabel={text.chartAria(countryName, text.domain[domain])} />
         </div>
       ))}
       <table className="mini-table" aria-label={text.tableCaption(countryName)}>

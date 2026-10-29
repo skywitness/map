@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -78,7 +78,7 @@ export default function ElectricityPanel({ topic, iso3, year, countryName, token
   return (
     <section className="panel-section">
       <h3>{text.title}</h3>
-      <EChart option={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
+      <Chart spec={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
       {view.shownYear !== null && (
         <>
           <h4>

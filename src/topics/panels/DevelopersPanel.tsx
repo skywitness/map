@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
-import type { LineSeriesOption } from 'echarts/charts';
 import { BarList } from '../../charts/BarList';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, formatLargeTick, formatPercent } from '../../lib/format';
 import { flowSelection, flowText } from '../../map/flows';
-import type { Tokens } from '../../theme/tokens';
 import type { FlowDirection, FlowFile, PanelExtraProps } from '../types';
 
 /**
@@ -138,87 +137,23 @@ function quarterlyOption(
   selected: number,
   lines: { name: string; values: (number | null)[]; color: string }[],
   label: (y: number, q: number) => string,
-  tokens: Tokens,
-): ChartOption {
-  const categories = data.developers.map((_, i) => quarterAt(data.first, i));
-  const series: LineSeriesOption[] = lines.map((line, i) => ({
-    type: 'line',
-    name: line.name,
-    data: line.values,
-    showSymbol: false,
-    symbol: 'circle',
-    color: line.color,
-    lineStyle: { width: 2, color: line.color },
-    emphasis: { disabled: true },
-    z: lines.length - i,
-  }));
-  series[0].markLine = {
-    silent: true,
-    symbol: 'none',
-    label: { show: false },
-    lineStyle: { color: tokens.inkMuted, type: 'solid', width: 1 },
-    data: [{ xAxis: `${quarterAt(data.first, selected)[0]}-${quarterAt(data.first, selected)[1]}` }],
-  };
-  const option = {
-    animation: false,
-    grid: { left: 4, right: 12, top: 32, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    legend: {
-      top: 0,
-      left: 0,
-      icon: 'path://M0,0H12V2H0Z',
-      itemWidth: 12,
-      itemHeight: 2,
-      textStyle: { color: tokens.inkSecondary, fontSize: 12 },
-      selectedMode: false,
-    },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params: unknown) => {
-        const list = (Array.isArray(params) ? params : [params]) as {
-          dataIndex: number;
-          value: number | null;
-          color: string;
-          seriesName: string;
-        }[];
-        const [y, q] = categories[list[0].dataIndex];
-        const rows = list
-          .filter((p) => p.value != null)
-          .map(
-            (p) =>
-              `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-              `<strong>${escapeHtml(formatLargeNumber(p.value as number))}</strong>` +
-              `<span class="tt-name">${escapeHtml(p.seriesName)}</span></div>`,
-          );
-        return `<div class="tt-head">${escapeHtml(label(y, q))}</div>${rows.join('')}`;
-      },
-    },
-    xAxis: {
+): ChartSpec {
+  const quarters = data.developers.map((_, i) => quarterAt(data.first, i));
+  return {
+    x: {
       type: 'category',
-      data: categories.map(([y, q]) => `${y}-${q}`),
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: tokens.inkMuted,
-        fontSize: 11,
-        // 只在第 1 季寫年份，隔一年寫一次
-        interval: (index: number) => categories[index][1] === 1 && categories[index][0] % 2 === 0,
-        formatter: (value: string) => value.split('-')[0],
-      },
+      labels: quarters.map(([y]) => String(y)),
+      // 只在第 1 季寫年份，隔一年寫一次
+      showLabel: (i) => quarters[i][1] === 1 && quarters[i][0] % 2 === 0,
     },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => formatLargeTick(v) },
+    y: { format: formatLargeTick },
+    series: lines.map((line) => ({ type: 'line', name: line.name, values: line.values, color: line.color })),
+    refs: [{ x: selected }],
+    tooltip: (i) => {
+      const rows = lines.flatMap((l) => (l.values[i] == null ? [] : [{ color: l.color, value: formatLargeNumber(l.values[i]!), name: l.name }]));
+      return rows.length ? { head: label(...quarters[i]), rows } : null;
     },
-    series,
   };
-  return option as unknown as ChartOption;
 }
 
 export default function DevelopersPanel({ topic, iso3, year, countryName, tokens, indicator }: PanelExtraProps) {
@@ -247,7 +182,6 @@ export default function DevelopersPanel({ topic, iso3, year, countryName, tokens
         { name: text.pushSeries, values: data.pushes, color: tokens.hues.orange },
       ],
       text.quarter,
-      tokens,
     );
     return { y, index, option };
   }, [data, world, year, tokens, text]);
@@ -328,7 +262,7 @@ export default function DevelopersPanel({ topic, iso3, year, countryName, tokens
     <>
       <section className="panel-section">
         <h3>{text.chartTitle}</h3>
-        <EChart option={view.option} height={210} ariaLabel={text.chartAria(countryName)} />
+        <Chart spec={view.option} height={210} ariaLabel={text.chartAria(countryName)} />
         <p className="note">{text.chartNote}</p>
       </section>
       <section className="panel-section">

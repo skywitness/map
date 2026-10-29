@@ -122,7 +122,7 @@ export default defineConfig(({ command }) => ({
       // 自己在 main.tsx 註冊（地圖畫好、頁面載入完才註冊，不跟首次載入搶頻寬）
       injectRegister: false,
       injectManifest: {
-        // app shell：首頁、所有 JS/CSS（含點國家才用到的 ECharts）、圖示（manifest 裡的會自動加入）、國名對照表。
+        // app shell：首頁、所有 JS/CSS（含點國家才用到的側欄）、圖示（manifest 裡的會自動加入）、國名對照表。
         // 資料 JSON 不預先下載，看過的才快取
         globPatterns: [
           'index.html',
@@ -176,8 +176,8 @@ export default defineConfig(({ command }) => ({
   // 相依套件預先打包只從首頁找入口；預設的 **/*.html 會掃到 .claude/worktrees 裡每一份的 index.html
   optimizeDeps: { entries: ['index.html'] },
   build: {
-    // 地圖引擎 MapLibre 自己一個 chunk（約 1 MB，gzip 後約 310 KB），跟首頁程式、資料平行下載；
-    // ECharts 單獨一個 chunk 約 540 KB，點國家時才載入
+    // 地圖引擎 MapLibre 自己一個 chunk（約 1 MB，gzip 後約 310 KB），跟首頁程式、資料平行下載
+    // （2026-10-29 以前側欄的 ECharts 另外一個約 540 KB 的 chunk，換成自己畫的 SVG 圖表，charts/Chart.tsx）
     chunkSizeWarningLimit: 1500,
   },
 }));

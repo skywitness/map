@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -201,7 +201,7 @@ export default function InternetSpeedPanel({ topic, iso3, year, countryName, tok
     <>
       <section className="panel-section">
         <h3>{text.chartTitle}</h3>
-        <EChart option={view.option} height={210} ariaLabel={text.chartAria(countryName)} />
+        <Chart spec={view.option} height={210} ariaLabel={text.chartAria(countryName)} />
         <p className="note">{text.chartNote}</p>
       </section>
       <section className="panel-section">
