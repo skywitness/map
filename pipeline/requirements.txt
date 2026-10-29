@@ -14,3 +14,5 @@ scour>=0.38
 shapely>=2.0
 # 北磁極的漂移與磁偏角：等偏角線與指南針不可靠的範圍（等值線）
 contourpy>=1.3
+# 交通主題的地鐵站：Wikidata 的中文名稱轉成繁體
+opencc-python-reimplemented>=0.1.7

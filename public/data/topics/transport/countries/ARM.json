@@ -1,1 +1,1 @@
-{"railKm":723,"airports":[{"name":"Shirak International Airport","iata":"LWN","city":"Gyumri","large":true},{"name":"Zvartnots International Airport","iata":"EVN","city":"Yerevan","large":true}]}
+{"railKm":723,"airports":[{"name":"Shirak International Airport","iata":"LWN","city":"Gyumri","large":true},{"name":"Zvartnots International Airport","iata":"EVN","city":"Yerevan","large":true}],"metro":{"year":2026,"stations":10,"undated":0,"first":1981,"systems":[["Yerevan Metro","埃裡溫地鐵",1981,10]]}}

@@ -326,7 +326,8 @@ export function resolveItem(
  * - 一般的點（PointsOverlayDef，例如地震、火山、駐外館處）與線（LinesOverlayDef，例如板塊邊界），樣式寫在主題裡
  */
 export type OverlayDef =
-  | { id: 'railways' | 'airports'; kind?: undefined; file: string }
+  /** 鐵路、機場（交通主題）；indicators 同 OverlayBase：只在這些指標顯示 */
+  | { id: 'railways' | 'airports'; kind?: undefined; file: string; indicators?: string[] }
   | PointsOverlayDef
   | LinesOverlayDef
   | NightOverlayDef;

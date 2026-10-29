@@ -1,1 +1,1 @@
-{"railKm":28,"airports":[{"name":"Singapore Changi Airport","iata":"SIN","city":"Singapore","large":true},{"name":"Seletar Airport","iata":"XSP","city":"Seletar","large":false}]}
+{"railKm":28,"airports":[{"name":"Singapore Changi Airport","iata":"SIN","city":"Singapore","large":true},{"name":"Seletar Airport","iata":"XSP","city":"Seletar","large":false}],"metro":{"year":2026,"stations":155,"undated":1,"first":1987,"systems":[["Mass Rapid Transit","新加坡地鐵",1987,145],[null,null,1999,10]]}}

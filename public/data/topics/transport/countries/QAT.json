@@ -1,1 +1,1 @@
-{"railKm":0,"airports":[{"name":"Doha International Airport","iata":"DIA","city":"Doha","large":true},{"name":"Hamad International Airport","iata":"DOH","city":"Doha","large":true}]}
+{"railKm":0,"airports":[{"name":"Doha International Airport","iata":"DIA","city":"Doha","large":true},{"name":"Hamad International Airport","iata":"DOH","city":"Doha","large":true}],"metro":{"year":2026,"stations":37,"undated":0,"first":2019,"systems":[["Doha Metro","多哈地鐵",2019,37]]}}

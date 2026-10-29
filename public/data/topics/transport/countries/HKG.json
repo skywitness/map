@@ -1,1 +1,1 @@
-{"railKm":31,"airports":[{"name":"Hong Kong International Airport","iata":"HKG","city":"Hong Kong","large":true}]}
+{"railKm":31,"airports":[{"name":"Hong Kong International Airport","iata":"HKG","city":"Hong Kong","large":true}],"metro":{"year":2026,"stations":99,"undated":0,"first":1979,"systems":[["MTR","港鐵",1979,98],["Shenzhen Metro","深圳地鐵",2004,1]]}}

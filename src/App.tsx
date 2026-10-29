@@ -939,9 +939,11 @@ function useOverlays(
   const loaded = useJsonMany<unknown>(files);
   const railIndex = legacy.findIndex((o) => o.id === 'railways');
   const airportIndex = legacy.findIndex((o) => o.id === 'airports');
-  const railData = railIndex >= 0 ? (loaded[railIndex] as RailwaysData | null) : null;
+  // 鐵路、機場的 indicators：只在這些指標畫（交通主題的地鐵指標不畫機場）
+  const shown = (i: number) => i >= 0 && (!legacy[i].indicators || legacy[i].indicators!.includes(indicator.id));
+  const railData = shown(railIndex) ? (loaded[railIndex] as RailwaysData | null) : null;
   const railways = useMemo(() => (railData ? decodeRailways(railData) : null), [railData]);
-  const airports = airportIndex >= 0 ? (loaded[airportIndex] as AirportsData | null) : null;
+  const airports = shown(airportIndex) ? (loaded[airportIndex] as AirportsData | null) : null;
 
   const generic = useMemo(
     () =>

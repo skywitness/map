@@ -1,4 +1,4 @@
-"""交通主題：全球鐵路路線（Natural Earth）與機場位置（OurAirports），都是公有領域。
+"""交通主題：全球鐵路路線（Natural Earth）與機場位置（OurAirports），都是公有領域；地鐵站與高鐵見 topics/metro.py（Wikidata，CC0）。
 
 除了畫在地圖上的路線與機場，也依此計算各國的鐵路長度、鐵路密度與機場數。
 這些都是依地圖資料計算的近似值：Natural Earth 1:10m 鐵路有簡化、可能缺少支線。
@@ -15,6 +15,7 @@ import pycountry
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
 from geoindex import country_at, land_polygons
 from sources.countries import ISO3
+from topics import metro
 
 RAILROADS_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_railroads.geojson"
 AIRPORTS_URL = "https://davidmegginson.github.io/ourairports-data/airports.csv"
@@ -154,11 +155,13 @@ def build() -> None:
     year = date.today().year
     lengths = railways(year)
     by_country = airports(year)
-    for iso3 in set(lengths) | set(by_country):
+    rail = metro.build(sorted(a for a in ISO3 if not a.startswith("_")))
+    for iso3 in set(lengths) | set(by_country) | set(rail):
         ports = sorted(by_country.get(iso3, []), key=lambda r: (r[2], r[3]))
         write_json(OUT / "countries" / f"{iso3}.json", {
             "railKm": round(lengths.get(iso3, 0)),
             "airports": [{"name": r[3], "iata": r[4], "city": r[5], "large": r[2] == 1} for r in ports],
+            **rail.get(iso3, {}),
         }, quiet=True)
     write_json(OUT / "manifest.json", {
         "topic": "transport",
