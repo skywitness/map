@@ -6,6 +6,9 @@
 - 行人、機車騎士的死亡占比：各國向 WHO 通報的死亡人數依道路使用者分（Global Status Report on Road Safety
   2018 與 2023 兩輪調查，大多是 2016、2021 年的資料）；不是 WHO 的估計值，通報不完整的國家可能有偏差。
 - 每萬輛機動車死亡數：WHO 估計的死亡人數 ÷ 各國通報的登記機動車輛數 × 1 萬（兩輪調查各一次）。
+- 機車大國（build_motorcycles，2026-10-29，製作手冊第五批 58）：GSRRS 2023 的登記機車數（二、三輪機動車，CP_39，
+  2020 或 2021 年）÷ WPP 人口 × 1,000，與占登記機動車輛（CP_36a）的比例。機車數比車輛總數還多的（菲律賓、喬治亞、
+  賽普勒斯、查德、南蘇丹：單位填錯）兩個指標都不用；台灣用交通部表 101 的年底登記機車數（使用者 2026-10-29 決定）。
   車輛數的年份跟死亡人數差 2 年以內才算；每千人不到 1 輛的通報值當成填錯，不用。
 - **台灣**（WHO 沒有）：交通部統計查詢網的 30 日內死亡人數（2008 年起，`sources/motc.py`），跟 WHO 同樣是 30 天定義；
   人口用 WPP（跟其他國家一致），機動車輛是交通部的年底登記數。
@@ -54,6 +57,40 @@ def _taiwan() -> dict[str, dict[int, float]]:
         if abs(parts - total) > 0.5:
             raise RuntimeError(f"交通部 {y} 年各駕乘車種的死亡人數加起來 {parts}，不等於總計 {total}")
     return out
+
+
+def build_motorcycles() -> None:
+    """每千人機車數與機車占機動車輛的比例：各國 2020／2021 年（GSRRS 2023），台灣 2012 年起每年（交通部表 101）"""
+    pop = wpp.demographic(["TPopulation1July"], last_year=TWN_LAST)["TPopulation1July"]  # 千人
+    per_1000: dict[str, dict[int, float]] = {}
+    share: dict[str, dict[int, float]] = {}
+    dropped = []
+    for iso3, (year, moto, total) in who_road.gsrrs_2023_motorcycles().items():
+        people = pop.get(iso3, {}).get(year)
+        if moto > total or not people:
+            dropped.append(iso3)
+            continue
+        per_1000[iso3] = {year: round(moto / people, 1)}  # 人口是千人
+        share[iso3] = {year: round(moto / total * 100, 1)}
+    moto_tw = {y: v for y, v in motc.annual(motc.VEHICLES_FROM_2012, "機車", "車齡別總計").items() if y <= TWN_LAST}
+    total_tw = {y: v for y, v in motc.annual(motc.VEHICLES_FROM_2012, "總計", "車齡別總計").items() if y <= TWN_LAST}
+    per_1000["TWN"] = {y: round(v / pop["TWN"][y], 1) for y, v in moto_tw.items() if pop["TWN"].get(y)}
+    share["TWN"] = {y: round(v / total_tw[y] * 100, 1) for y, v in moto_tw.items() if total_tw.get(y)}
+    years = list(range(min(moto_tw), TWN_LAST + 1))
+    y = TWN_LAST
+    note = (f"台灣是交通部統計查詢網表 101 的年底登記機車數（{y} 年底 {moto_tw[y] / 1e4:,.0f} 萬輛，含重型、輕型機車）"
+            f" ÷ 聯合國的年中人口；占機動車輛的比例是機車 ÷ 全部登記的機動車輛（{total_tw[y] / 1e4:,.0f} 萬輛）。")
+    note_en = (f"Taiwan: motorcycles registered at year end in table 101 of the Ministry of Transportation and Communications "
+               f"statistics database ({moto_tw[y] / 1e6:.1f} million at the end of {y}, heavy and light motorcycles) divided by "
+               f"UN mid-year population; the share is motorcycles divided by all registered motor vehicles ({total_tw[y] / 1e6:.1f} million).")
+    for name, unit, data in (("motorcycles-per-1000", "輛/千人", per_1000), ("motorcycle-share", "%", share)):
+        write_json(OUT / f"{name}.json", indicator_file(
+            name, unit, years, {k: to_series(s, years) for k, s in sorted(data.items())},
+            latestWithin=SHARE_WITHIN, notes={"TWN": note}, notesEn={"TWN": note_en},
+        ))
+    top = sorted(((next(iter(s.values())), k) for k, s in per_1000.items() if k != "TWN"), reverse=True)
+    print(f"  機車：{len(per_1000) - 1} 國＋台灣；不用（機車多於車輛總數或沒有人口）：{dropped}")
+    print(f"  每千人最多 {top[:8]}；台灣 {y} 年 {per_1000['TWN'][y]}（占 {share['TWN'][y]}%）")
 
 
 def build() -> None:
@@ -212,6 +249,7 @@ def build() -> None:
             "countries": {k: {str(y): v for y, v in sorted(s.items())} for k, s in sorted(composition.items())},
         },
     )
+    build_motorcycles()
     write_json(OUT / "manifest.json", {"generatedAt": now_iso(), "whoLastYear": last})
 
     tw23 = tw_rate[2023]

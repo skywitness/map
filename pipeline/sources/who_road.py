@@ -7,7 +7,8 @@
   - 2021 年前後：Global Status Report on Road Safety 2023 的指標檔（GSRRS 2023，`CP_18a`–`CP_18e`），
     檔案的 Notes 寫明引用《Global status report on road safety 2023: country and territory profiles》，
     授權 CC BY-NC-SA 3.0 IGO（WHO 出版品的授權）。
-- 登記的機動車輛數：2016 年前後用 GHO 的 `RS_194`（CC BY 4.0），2021 年前後用 GSRRS 2023 的 `CP_36a`（CC BY-NC-SA 3.0 IGO）。
+- 登記的機動車輛數：2016 年前後用 GHO 的 `RS_194`（CC BY 4.0），2021 年前後用 GSRRS 2023 的 `CP_36a`（CC BY-NC-SA 3.0 IGO）；
+  其中的二、三輪機動車（機車，含三輪車）是 `CP_39`（gsrrs_2023_motorcycles()）。
 """
 from __future__ import annotations
 
@@ -109,4 +110,20 @@ def gsrrs_2023() -> dict[str, Survey]:
             vehicles if vehicles else None,
             int(vehicles_year) if vehicles_year else None,
         )
+    return out
+
+
+def gsrrs_2023_motorcycles() -> dict[str, tuple[int, float, float]]:
+    """GSRRS 2023 的登記機車數（CP_39「Powered 2- and 3-wheelers」）：{iso3: (年份, 機車數, 登記車輛總數)}，
+    三個都有值的國家才收（印度沒有填機車數）"""
+    path = download(GSRRS_URL, "who-road", "gsrrs23-indicators.xlsx")
+    wb = openpyxl.load_workbook(path, read_only=True)
+    rows = list(wb["Indicators"].iter_rows(values_only=True))
+    col = {str(c): i for i, c in enumerate(rows[0]) if c is not None}
+    out: dict[str, tuple[int, float, float]] = {}
+    for row in rows[2:]:
+        iso3 = to_iso3(str(row[col["CP_0"]] or ""))
+        moto, total, year = (_num(row[col[c]]) for c in ("CP_39", "CP_36a", "CP_118"))
+        if iso3 and moto is not None and total and year:
+            out[iso3] = (int(year), moto, total)
     return out

@@ -31,8 +31,8 @@ export const roadSafety: TopicDefinition = {
     },
     {
       name: {
-        zh: 'WHO《Global status report on road safety 2023》各國指標（2021 年的死亡組成與登記車輛數）',
-        en: 'WHO, Global status report on road safety 2023, country indicators (2021 deaths by road user and registered vehicles)',
+        zh: 'WHO《Global status report on road safety 2023》各國指標（2021 年的死亡組成、登記車輛數與機車數）',
+        en: 'WHO, Global status report on road safety 2023, country indicators (2021 deaths by road user, registered vehicles and motorcycles)',
       },
       url: 'https://www.who.int/teams/social-determinants-of-health/safety-and-mobility/global-status-report-on-road-safety-2023',
       license: GSRRS_LICENSE,
@@ -55,8 +55,8 @@ export const roadSafety: TopicDefinition = {
     },
   ],
   note: {
-    zh: '死亡率是 WHO 的估計值，用 30 天的定義（事故後 30 天內死亡），各國可以比較；死亡人數是 WHO 的死亡率乘上聯合國的人口。行人、機車騎士占比與登記車輛數是各國向 WHO 通報的資料（2016、2021 年前後兩輪調查），通報不完整的國家可能有偏差。台灣不在 WHO 的資料裡，用交通部的 30 日內死亡人數；警察機關常見的 A1 類事故只算 24 小時內死亡，數字少很多，不能拿來跟其他國家比。2021 年的死亡組成與登記車輛數取自《Global status report on road safety 2023》（WHO，CC BY-NC-SA 3.0 IGO），行人與機車騎士占比、每萬輛機動車死亡數的資料檔也依 CC BY-NC-SA 3.0 IGO 分享。',
-    en: 'Death rates are WHO estimates using the 30-day definition (death within 30 days of the crash), so countries can be compared; death counts are the WHO rate times the UN population. Pedestrian and motorcyclist shares and registered vehicles are figures countries reported to WHO (two survey rounds, around 2016 and 2021) and may be biased where reporting is incomplete. Taiwan is not in the WHO data and uses Ministry of Transportation and Communications deaths within 30 days; the police A1 figures often quoted count only deaths within 24 hours, which are much lower and not comparable. The 2021 road-user and vehicle data come from the WHO Global status report on road safety 2023 (CC BY-NC-SA 3.0 IGO), and the pedestrian, motorcyclist and per-vehicle data files are shared under CC BY-NC-SA 3.0 IGO as well.',
+    zh: '死亡率是 WHO 的估計值，用 30 天的定義（事故後 30 天內死亡），各國可以比較；死亡人數是 WHO 的死亡率乘上聯合國的人口。行人、機車騎士占比與登記車輛數是各國向 WHO 通報的資料（2016、2021 年前後兩輪調查），通報不完整的國家可能有偏差。台灣不在 WHO 的資料裡，用交通部的 30 日內死亡人數；警察機關常見的 A1 類事故只算 24 小時內死亡，數字少很多，不能拿來跟其他國家比。2021 年的死亡組成與登記車輛數取自《Global status report on road safety 2023》（WHO，CC BY-NC-SA 3.0 IGO），行人與機車騎士占比、每萬輛機動車死亡數、每千人機車數與機車比例的資料檔也依 CC BY-NC-SA 3.0 IGO 分享。',
+    en: 'Death rates are WHO estimates using the 30-day definition (death within 30 days of the crash), so countries can be compared; death counts are the WHO rate times the UN population. Pedestrian and motorcyclist shares and registered vehicles are figures countries reported to WHO (two survey rounds, around 2016 and 2021) and may be biased where reporting is incomplete. Taiwan is not in the WHO data and uses Ministry of Transportation and Communications deaths within 30 days; the police A1 figures often quoted count only deaths within 24 hours, which are much lower and not comparable. The 2021 road-user and vehicle data come from the WHO Global status report on road safety 2023 (CC BY-NC-SA 3.0 IGO), and the pedestrian, motorcyclist, per-vehicle and motorcycle data files are shared under CC BY-NC-SA 3.0 IGO as well.',
   },
   panelExtra: () => import('./panels/RoadSafetyPanel'),
   indicators: [
@@ -113,6 +113,32 @@ export const roadSafety: TopicDefinition = {
       file: 'motorcyclists.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 35, 50, 65] } },
       format: (v) => tr({ zh: `機車騎士占 ${pct(v)}`, en: `${pct(v)} motorcyclists` }),
+      formatTick: pctTick,
+    },
+    {
+      id: 'motorcycles-per-1000',
+      label: { zh: '每千人機車數', en: 'Motorcycles per 1,000 people' },
+      description: {
+        zh: '每 1,000 人有幾輛登記的機車（二、三輪機動車，含嘟嘟車這類三輪車），各國 2020 或 2021 年向 WHO 通報的數字 ÷ 聯合國的人口。越南 709、台灣 635（2025 年底，交通部）、印尼 439、泰國 305、斯里蘭卡 265；義大利 174、巴西 144、中國 56、德國 54、韓國 43、美國 25。日本、印度、馬來西亞沒有通報機車數。',
+        en: 'Registered motorcycles (powered two- and three-wheelers, including auto-rickshaws) per 1,000 people, from figures countries reported to WHO for 2020 or 2021, divided by UN population. Viet Nam 709, Taiwan 635 (end of 2025, Ministry of Transportation and Communications), Indonesia 439, Thailand 305, Sri Lanka 265; Italy 174, Brazil 144, China 56, Germany 54, South Korea 43, the US 25. Japan, India and Malaysia did not report motorcycles.',
+      },
+      unit: { zh: '輛/千人', en: 'per 1,000 people' },
+      file: 'motorcycles-per-1000.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 50, 100, 200, 400] } },
+      format: (v) => tr({ zh: `每千人 ${fixed(v, 0)} 輛`, en: `${fixed(v, 0)} per 1,000 people` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'motorcycle-share',
+      label: { zh: '機車占機動車輛的比例', en: 'Motorcycle share of vehicles' },
+      description: {
+        zh: '登記的機動車輛裡機車（二、三輪機動車）的比例。越南 93%、馬爾地夫 87%、印尼與緬甸 83%、巴基斯坦與尼泊爾 79%；台灣 63%；巴西 27%、中國 20%、義大利 19%、韓國 8%、美國 3%。菲律賓、喬治亞、賽普勒斯、查德、南蘇丹通報的機車比車輛總數還多（單位填錯），沒有畫。',
+        en: 'Motorcycles (powered two- and three-wheelers) as a share of registered motor vehicles. Viet Nam 93%, the Maldives 87%, Indonesia and Myanmar 83%, Pakistan and Nepal 79%; Taiwan 63%; Brazil 27%, China 20%, Italy 19%, South Korea 8%, the US 3%. The Philippines, Georgia, Cyprus, Chad and South Sudan reported more motorcycles than vehicles in total (a unit error) and are not shown.',
+      },
+      unit: '%',
+      file: 'motorcycle-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 60, 80] } },
+      format: (v) => tr({ zh: `機車占 ${pct(v)}`, en: `${pct(v)} motorcycles` }),
       formatTick: pctTick,
     },
     {
