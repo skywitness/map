@@ -41,6 +41,8 @@ export interface FlowSelection {
   total: number;
   /** 前幾大夥伴，由大到小 */
   links: FlowLink[];
+  /** 個別夥伴的說明（流向檔的 notes）：夥伴 → [中文, 英文] */
+  notes?: Record<string, [string, string]>;
 }
 
 /** direction 為 'larger' 時，取選取國家總額比較大的那個方向（一樣大或都沒有時用 'import'） */
@@ -53,6 +55,13 @@ export function flowSelection(file: FlowFile, origin: string, direction: FlowLay
         : 'import';
   const [total, partners] = file[resolved][origin] ?? [0, []];
   const scale = file.scale ?? DEFAULT_SCALE;
+  const notes: Record<string, [string, string]> = {};
+  if (file.notes) {
+    for (const [iso3] of partners) {
+      const note = file.notes[resolved === 'export' ? `${origin}>${iso3}` : `${iso3}>${origin}`];
+      if (note) notes[iso3] = note;
+    }
+  }
   return {
     origin,
     direction: resolved,
@@ -64,6 +73,7 @@ export function flowSelection(file: FlowFile, origin: string, direction: FlowLay
       share: total > 0 ? v / total : 0,
       ...(est ? { estimated: true } : {}),
     })),
+    ...(Object.keys(notes).length ? { notes } : {}),
   };
 }
 
@@ -115,6 +125,8 @@ export function greatCircle(from: [number, number], to: [number, number]): [numb
 
 export const FLOW_MIN_WIDTH = 1;
 export const FLOW_MAX_WIDTH = 12;
+/** 只有有沒有的流向圖（FlowLayer.presence）的線寬 */
+export const FLOW_PRESENCE_WIDTH = 2.5;
 
 /** 線寬與金額成正比（以這個國家最大的夥伴為最粗），太細的至少 1 px 才看得到 */
 export function flowWidth(value: number, max: number): number {

@@ -77,6 +77,11 @@ export interface FlowLayer {
   pickPartners?: Text;
   /** 圖例上漸層樣本的說明；沒給用「由出口國（淺）到進口國（深）」 */
   legendKey?: Text;
+  /**
+   * 只有有沒有、沒有數量（2026-10-29 起，海外軍事基地：派駐國→駐在國，流向檔的值都是 1）：線一樣粗（FLOW_PRESENCE_WIDTH），
+   * tooltip 只寫「美國在日本有軍事基地」、不寫數值與占比，圖例只畫一條線，說明是這段文字
+   */
+  presence?: Text;
 }
 
 /** 流向圖一個方向的文字 */
@@ -119,6 +124,8 @@ export interface FlowFile {
   /** 夥伴的第三個值是 1 時，這筆數量是估算的（石油、天然氣與煤：原始數量的單價明顯不對，改用金額 ÷ 中位數單價） */
   export: Record<string, [number, ([string, number] | [string, number, 1])[]]>;
   import: Record<string, [number, ([string, number] | [string, number, 1])[]]>;
+  /** 個別組合的說明「起點>終點」→ [中文, 英文]（2026-10-29 起，海外軍事基地的克里米亞、北賽普勒斯…），tooltip 與側欄寫出來 */
+  notes?: Record<string, [string, string]>;
 }
 
 /** 側欄折線圖上標的事件（events.ts） */

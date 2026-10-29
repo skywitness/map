@@ -5,7 +5,7 @@ import { niceLegendValues } from '../lib/format';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { FlowDirection, Indicator } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
-import { FLOW_MAX_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
+import { FLOW_MAX_WIDTH, FLOW_PRESENCE_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
 import type { CategoryScale } from './categories';
 import { PaletteMenu } from './PaletteMenu';
 import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
@@ -310,11 +310,15 @@ export interface FlowLegendModel {
 export function flowLegendModel(indicator: Indicator, direction: FlowDirection, max: number): FlowLegendModel {
   const tick = indicator.formatTick ?? indicator.format;
   const rowHeight = FLOW_MAX_WIDTH + 4;
-  const rows = flowLegendValues(max).map((v, i) => ({
-    label: tick(v),
-    width: flowWidth(v, max),
-    y: i * rowHeight + rowHeight / 2,
-  }));
+  const presence = indicator.layer.kind === 'flow' ? indicator.layer.presence : undefined;
+  // 只有有沒有的（海外軍事基地）：一條線，說明是 presence 的文字
+  const rows = presence
+    ? [{ label: tr(presence), width: FLOW_PRESENCE_WIDTH, y: rowHeight / 2 }]
+    : flowLegendValues(max).map((v, i) => ({
+        label: tick(v),
+        width: flowWidth(v, max),
+        y: i * rowHeight + rowHeight / 2,
+      }));
   return {
     rows,
     colors: flowColors(direction),
@@ -342,7 +346,7 @@ export function FlowLegend({ indicator, title, direction, max, tokens }: FlowLeg
     <div className="legend">
       <div className="legend-title">
         {title}
-        <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>
+        {!(indicator.layer.kind === 'flow' && indicator.layer.presence) && <span className="legend-unit">{t.unitSuffix(indicator.unit)}</span>}
       </div>
       <svg width={lineLength + 84} height={height} aria-hidden="true">
         {rows.map(({ label, width, y }) => (

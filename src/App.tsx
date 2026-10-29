@@ -480,6 +480,17 @@ export function App() {
     if (pure) return <div className="tt-value">{countryName(iso3, countries)}</div>;
     // 流向圖：滑到夥伴國上顯示雙邊金額與占比
     const link = flows?.links.find((l) => l.iso3 === iso3);
+    // 只有有沒有的流向圖（海外軍事基地）：只寫「美國在日本有軍事基地」
+    if (flows && link && indicator.layer.kind === 'flow' && indicator.layer.presence) {
+      return (
+        <>
+          <div className="tt-value">
+            {flowText(indicator.layer, lang)[flows.direction].verb(countryName(flows.origin, countries), countryName(iso3, countries))}
+          </div>
+          {flows.notes?.[iso3] && <div className="tt-hint">{flows.notes[iso3][lang === 'en' ? 1 : 0]}</div>}
+        </>
+      );
+    }
     if (flows && link) {
       return (
         <>

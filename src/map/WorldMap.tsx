@@ -31,7 +31,7 @@ import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxPolygon, type Box } from './boxEstimate';
-import { flowColors, flowText, flowWidth, greatCircle, type FlowSelection } from './flows';
+import { FLOW_PRESENCE_WIDTH, flowColors, flowText, flowWidth, greatCircle, type FlowSelection } from './flows';
 import { focusBounds } from './focus';
 import { unwrapAntimeridian, type CountryFeature } from './geometry';
 import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
@@ -1029,6 +1029,8 @@ export function WorldMap(props: WorldMapProps) {
 
   /* ── 流向圖：選取國家 ↔ 各夥伴的大圓弧線 ── */
   const flowMax = useMemo(() => (flows ? Math.max(0, ...flows.links.map((l) => l.value)) : 0), [flows]);
+  // 只有有沒有的流向圖（海外軍事基地）：線一樣粗
+  const presence = indicator.layer.kind === 'flow' && Boolean(indicator.layer.presence);
   const flowData = useMemo(() => {
     const lines: GeoJSON.Feature[] = [];
     const ends: GeoJSON.Feature[] = [];
@@ -1043,7 +1045,7 @@ export function WorldMap(props: WorldMapProps) {
         const [from, to] = flows.direction === 'export' ? [origin, partner] : [partner, origin];
         lines.push({
           type: 'Feature',
-          properties: { iso3: link.iso3, w: flowWidth(link.value, flowMax) },
+          properties: { iso3: link.iso3, w: presence ? FLOW_PRESENCE_WIDTH : flowWidth(link.value, flowMax) },
           geometry: { type: 'LineString', coordinates: greatCircle(from, to) },
         });
         ends.push({ type: 'Feature', properties: { iso3: link.iso3, color }, geometry: { type: 'Point', coordinates: partner } });
@@ -1051,7 +1053,7 @@ export function WorldMap(props: WorldMapProps) {
     }
     const collection = (features: GeoJSON.Feature[]): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features });
     return { lines: collection(lines), ends: collection(ends) };
-  }, [flows, anchors, flowMax]);
+  }, [flows, anchors, flowMax, presence]);
 
   // 夥伴國塗上淡底色；換國家、換方向時先清掉上一次的
   const tintedRef = useRef<string[]>([]);
@@ -1443,7 +1445,7 @@ export function WorldMap(props: WorldMapProps) {
               ? { kind: 'categorical', title, model: categoricalLegendModel(categories, values) }
           : indicator.layer.kind !== 'bubble'
             ? flowLayer && flows && flowMax > 0
-              ? { kind: 'flow', title, unit, model: flowLegendModel(indicator, flows.direction, flowMax) }
+              ? { kind: 'flow', title, unit: presence ? '' : unit, model: flowLegendModel(indicator, flows.direction, flowMax) }
               : null
             : threeD
               ? { kind: 'column', title, unit, model: columnLegendModel(indicator, bubbleMax), color: MAP_TOKENS.accent }
