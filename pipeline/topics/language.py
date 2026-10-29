@@ -4,15 +4,19 @@
   包含第二語言，所以一國的比例加總常超過 100%。CLDR 只列出有一定人數的語言，沒列出的國家當成無資料。
 - 語言數：Glottolog 收錄、分布在這個國家、還沒消失的語言（`sources/glottolog.py`）。
 - 台灣：比例改用 109 年人口及住宅普查（6 歲以上本國籍常住人口，主要或次要使用語言），見 TAIWAN_CENSUS。
+- 語系（build_families，2026-10-29，製作手冊第五批 62）：每種現存語言一個點（Glottolog 的座標，依最上層的語系上色），
+  國家的值是「依使用人口的主要語系」（使用者 2026-10-29 決定）：CLDR 各語言的使用比例（台灣用普查）依 Glottolog 的
+  語系加總，取最大的。CLDR 的比例含第二語言，非洲不少國家的英語、法語比例高，主要語系會變成印歐語系。
 
 CLDR 與 Glottolog 都是目前的快照，沒有歷年資料，指標檔只有一年（YEAR）。
 """
 from __future__ import annotations
 
+import csv
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 
-from common import OUT_DIR, indicator_file, now_iso, write_json
+from common import OUT_DIR, download, indicator_file, now_iso, points_file, write_json
 from sources import cldr, glottolog
 from sources.countries import from_alpha2
 
@@ -89,6 +93,93 @@ def _from_code36(value: int) -> str:
         value, r = divmod(value, 36)
         out = digits[r] + out
     return out
+
+
+# ── 語系 ──
+# 語系的代碼（1 起，順序跟前端 FAMILIES 一樣）：前 8 個在地圖上上色（依當主要語系的國家數），後面的是其他國家的主要語系
+# （上「其他語系」的顏色，tooltip 寫名稱）。語言的點只分前 8 個，其他語系與孤立語是 0
+FAMILIES = ["indo1319", "afro1255", "atla1278", "aust1307", "sino1245", "turk1311", "mand1469", "aust1305",
+            "kore1284", "taik1256", "kart1248", "eski1264", "ural1272", "japo1237", "mong1349", "nilo1247"]
+COLORED = 8
+# CLDR 的代碼在 Glottolog 對不到的（Glottolog 把塞爾維亞、克羅埃西亞、波士尼亞語合成一種，挪威語不分書面語…）
+ISO_FIX = {"sr": "hbs", "hr": "hbs", "bs": "hbs", "cnr": "hbs", "nb": "nor", "nn": "nor", "lv": "lav", "ak": "aka", "sa": "san"}
+
+
+def family_names() -> dict[str, str]:
+    """Glottolog 的語系（Level 是 family 的條目）：glottocode → 英文名稱"""
+    path = download(f"{glottolog.BASE}/languages.csv", "glottolog", f"{glottolog.VERSION}-languages.csv")
+    with open(path, encoding="utf-8") as f:
+        return {r["ID"]: r["Name"] for r in csv.DictReader(f) if r["Level"] == "family"}
+
+
+def build_families(territories: dict | None = None) -> None:
+    """依使用人口的主要語系（國家）與每種現存語言的點"""
+    territories = territories or cldr.territories()
+    to_iso639 = cldr.iso639_3()
+    names = cldr.names()
+    languages = glottolog.languages()
+    by_iso = {lang["iso"]: lang for lang in languages if lang["iso"]}
+    fam_name = family_names()
+
+    def family_of(lang: dict) -> str:
+        return lang["classification"][0] if lang["classification"] else lang["glottocode"]  # 孤立語自己一個語系
+
+    # 國家：各語言的比例依語系加總（台灣用普查的比例：國語、閩南語、客語是漢藏，原住民族語是南島）
+    main: dict[str, list] = {}
+    unknown = Counter()
+    for iso3, t in territories.items():
+        langs = [(code, pct) for code, pct, _ in t["languages"]]
+        if iso3 == "TWN":
+            langs = [(code, main_ + second) for code, (main_, second) in TAIWAN_CENSUS.items()]
+        by_family: dict[str, float] = defaultdict(float)
+        for code, pct in langs:
+            base = _base(code)
+            lang = by_iso.get(ISO_FIX.get(base) or to_iso639.get(base, base))
+            if base == "fox":  # 普查的「原住民族語」（CLDR 沒有這個代碼）
+                by_family["aust1307"] += pct
+            elif lang:
+                by_family[family_of(lang)] += pct
+            else:
+                unknown[base] += 1
+        if by_family:
+            top = max(by_family, key=by_family.get)
+            if top not in FAMILIES:
+                raise RuntimeError(f"{iso3} 的主要語系 {top}（{fam_name.get(top)}）不在 FAMILIES 裡，前後端都要加")
+            main[iso3] = [FAMILIES.index(top) + 1]
+    write_json(OUT / "family.json", indicator_file("family", "", [YEAR], main))
+
+    # 語言的點：現存的口語、手語、皮欽語、混合語，有座標的
+    iso_to_cldr = {}
+    for cldr_code, iso in to_iso639.items():
+        iso_to_cldr.setdefault(iso, cldr_code)
+    with open(download(f"{glottolog.BASE}/languages.csv", "glottolog", f"{glottolog.VERSION}-languages.csv"), encoding="utf-8") as f:
+        coords = {r["ID"]: (r["Longitude"], r["Latitude"]) for r in csv.DictReader(f) if r["Level"] == "language"}
+    rows = []
+    for lang in languages:
+        if lang["category"] not in glottolog.SPOKEN or lang["aes"] == "extinct":
+            continue
+        lon, lat = coords.get(lang["glottocode"], ("", ""))
+        if not lon or not lat:
+            continue
+        fam = family_of(lang)
+        zh = None
+        if lang["iso"]:
+            code = iso_to_cldr.get(lang["iso"], lang["iso"])
+            zh = _zh_name((names.get(code) or (None, None))[0])
+        rows.append({
+            "lon": round(float(lon), 3), "lat": round(float(lat), 3),
+            "f": FAMILIES.index(fam) + 1 if fam in FAMILIES[:COLORED] else 0,
+            "e": 1 if lang["aes"] in glottolog.ENDANGERED else 0,
+            "fam": fam_name.get(fam) if fam not in FAMILIES[:COLORED] else None,
+            "en": lang["name"], "zh": zh,
+        })
+    rows.sort(key=lambda r: (r["f"] == 0, r["f"]))  # 其他語系（灰色）先畫，壓在下面
+    write_json(OUT / "languages-points.json", points_file(
+        rows, ["lon", "lat", "f", "e", "fam", "en", "zh"], {"lon": 0.001, "lat": 0.001, "f": 1, "e": 1}, strings=("fam",)))
+    counts = Counter(fam_name.get(v, v) for v in (FAMILIES[r["f"] - 1] if r["f"] else "其他" for r in rows))
+    main_names = Counter(fam_name[FAMILIES[v[0] - 1]] for v in main.values())
+    print(f"  語系：主要語系 {main_names.most_common()}；對不到 Glottolog 的 {unknown.most_common(8)}")
+    print(f"  語言的點 {len(rows)} 個：{counts.most_common(10)}；台灣主要語系 {main.get('TWN')}")
 
 
 def build() -> None:
@@ -200,6 +291,7 @@ def build() -> None:
         names_out[code] = [zh, en]
     write_json(OUT / "languages.json", {"year": YEAR, "names": names_out, "countries": countries, **notes})
 
+    build_families(territories)
     write_json(OUT / "manifest.json", {
         "topic": "language",
         "generatedAt": now_iso(),

@@ -1,6 +1,7 @@
 import { getLang, tr, type Lang } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
-import type { CategoryDef, Text, TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { CategoryDef, ColorClasses, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
  * 語言代碼 ↔ 類別圖的數值：主要官方語言的指標檔存的是語言代碼的 36 進位數（en → 527），
@@ -104,6 +105,59 @@ const STATUS: CategoryDef[] = [
 ];
 const statusLabel = (v: number) => tr(STATUS.find((s) => s.value === v)?.label ?? '');
 
+/**
+ * 語系（pipeline/topics/language.py 的 FAMILIES，代碼 1 起）：前 8 個在地圖上上色，後面的是其他國家的主要語系
+ * （上「其他語系」的顏色）。語言的點只分前 8 個，其他語系與孤立語是 0（灰色）
+ */
+const FAMILIES: Text[] = [
+  { zh: '印歐語系', en: 'Indo-European' },
+  { zh: '亞非語系', en: 'Afro-Asiatic' },
+  { zh: '大西洋－剛果語系', en: 'Atlantic-Congo' },
+  { zh: '南島語系', en: 'Austronesian' },
+  { zh: '漢藏語系', en: 'Sino-Tibetan' },
+  { zh: '突厥語系', en: 'Turkic' },
+  { zh: '曼德語系', en: 'Mande' },
+  { zh: '南亞語系', en: 'Austroasiatic' },
+  { zh: '朝鮮語系', en: 'Koreanic' },
+  { zh: '壯侗語系', en: 'Tai-Kadai' },
+  { zh: '卡特維爾語系', en: 'Kartvelian' },
+  { zh: '愛斯基摩－阿留申語系', en: 'Eskimo-Aleut' },
+  { zh: '烏拉語系', en: 'Uralic' },
+  { zh: '日本語系', en: 'Japonic' },
+  { zh: '蒙古語系', en: 'Mongolic' },
+  { zh: '尼羅語系', en: 'Nilotic' },
+];
+const COLORED_FAMILIES = 8;
+const familyLabel = (v: number) => tr(FAMILIES[v - 1] ?? { zh: '其他語系', en: 'Other family' });
+const FAMILY_COLORS: ColorClasses = {
+  field: 'f',
+  title: { zh: '語系', en: 'Language family' },
+  thresholds: [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5],
+  classes: [
+    { color: MAP_TOKENS.context, label: { zh: '其他語系與孤立語', en: 'Other families and isolates' } },
+    ...FAMILIES.slice(0, COLORED_FAMILIES).map((label, i) => ({ color: MAP_TOKENS.categorical[i], label })),
+  ],
+};
+const LANGUAGE_POINTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'languages',
+  file: 'languages-points.json',
+  label: { zh: '每種語言（Glottolog，依語系上色）', en: 'Each language (Glottolog, by family)' },
+  radius: 1.8,
+  color: FAMILY_COLORS,
+  indicators: ['family', 'diversity'],
+  tooltip: (p) => {
+    const lang = getLang();
+    const title = String((lang === 'zh' ? p.zh : null) ?? p.en);
+    const family = typeof p.f === 'number' && p.f > 0 ? familyLabel(p.f) : typeof p.fam === 'string' ? p.fam : tr({ zh: '孤立語', en: 'Isolate' });
+    return {
+      title,
+      detail: [family, p.e === 1 ? tr({ zh: '瀕危', en: 'endangered' }) : null].filter(Boolean).join(' · '),
+      properNoun: title !== p.en ? String(p.en) : undefined,
+    };
+  },
+};
+
 export const language: TopicDefinition = {
   id: 'language',
   title: { zh: '各國語言', en: 'Languages by country' },
@@ -124,8 +178,8 @@ export const language: TopicDefinition = {
     },
   ],
   note: {
-    zh: 'CLDR 的比例是「會說這種語言的人口比例」，包含當第二語言使用的人，所以一國各語言的比例加總常超過 100%；各國數字由 CLDR 從普查與文獻彙整，年份不一，只有單一時間點。CLDR 沒有列出的國家畫成灰色（使用者很少或沒有資料）。台灣改用 109 年人口及住宅普查（6 歲以上本國籍常住人口，主要或次要使用語言）。語言數是 Glottolog 收錄、分布在該國而且還沒消失的語言（含手語），通常不含近代移民帶來的語言。',
-    en: "CLDR shares are the share of the population who speak the language, including as a second language, so a country's shares often add up to more than 100%. CLDR compiles them from censuses and other sources from different years, and there is only a single snapshot. Countries CLDR does not list are grey (few or no speakers, or no data). For Taiwan the 2020 Population and Housing Census is used instead (resident citizens aged 6 and over, main or second language). Language counts are the languages Glottolog records as spoken in the country and not extinct (sign languages included); they usually exclude languages brought by recent immigrants.",
+    zh: 'CLDR 的比例是「會說這種語言的人口比例」，包含當第二語言使用的人，所以一國各語言的比例加總常超過 100%；各國數字由 CLDR 從普查與文獻彙整，年份不一，只有單一時間點。CLDR 沒有列出的國家畫成灰色（使用者很少或沒有資料）。台灣改用 109 年人口及住宅普查（6 歲以上本國籍常住人口，主要或次要使用語言）。語言數是 Glottolog 收錄、分布在該國而且還沒消失的語言（含手語），通常不含近代移民帶來的語言。語系照 Glottolog 的譜系分類（最上層），孤立語自成一個語系；語言的點是 Glottolog 給的代表位置。',
+    en: "CLDR shares are the share of the population who speak the language, including as a second language, so a country's shares often add up to more than 100%. CLDR compiles them from censuses and other sources from different years, and there is only a single snapshot. Countries CLDR does not list are grey (few or no speakers, or no data). For Taiwan the 2020 Population and Housing Census is used instead (resident citizens aged 6 and over, main or second language). Language counts are the languages Glottolog records as spoken in the country and not extinct (sign languages included); they usually exclude languages brought by recent immigrants. Families follow Glottolog’s classification (top level), with isolates as families of their own; language dots are Glottolog’s representative locations.",
   },
   dimension: {
     label: { zh: '語言', en: 'Language' },
@@ -133,6 +187,7 @@ export const language: TopicDefinition = {
     defaultOption: 'en',
   },
   panelExtra: () => import('./panels/LanguagePanel'),
+  overlays: [LANGUAGE_POINTS],
   indicators: [
     {
       id: 'main',
@@ -184,6 +239,22 @@ export const language: TopicDefinition = {
       file: 'status/{item}.json',
       layer: { kind: 'categorical', categories: STATUS, ordinal: true },
       format: statusLabel,
+    },
+    {
+      id: 'family',
+      label: { zh: '主要語系', en: 'Main language family' },
+      description: {
+        zh: '依使用人口的主要語系：CLDR 各語言的使用比例（台灣用普查）依 Glottolog 的語系加總，取最多的。印歐語系最多（163 國），其次亞非（北非、西亞的阿拉伯語）、大西洋－剛果（撒哈拉以南的班圖語等）、南島（印尼、菲律賓、馬達加斯加、太平洋）；台灣是漢藏語系（國語、閩南語、客語）。比例含第二語言，非洲不少國家的英語、法語比例高，主要語系會變成印歐語系。點是 Glottolog 收錄、還沒消失的 6,900 多種語言，依語系上色，滑過看名稱。',
+        en: 'The main language family by number of speakers: CLDR language shares (Taiwan from its census) summed by Glottolog family, taking the largest. Indo-European leads (163 countries), followed by Afro-Asiatic (Arabic across North Africa and West Asia), Atlantic-Congo (Bantu and other languages south of the Sahara) and Austronesian (Indonesia, the Philippines, Madagascar and the Pacific); Taiwan is Sino-Tibetan (Mandarin, Taiwanese Hokkien and Hakka). Shares include second-language speakers, so in many African countries English or French tips the result to Indo-European. Dots are the 6,900-odd living languages in Glottolog, coloured by family; hover for names.',
+      },
+      unit: '',
+      file: 'family.json',
+      layer: {
+        kind: 'categorical',
+        categories: FAMILIES.slice(0, COLORED_FAMILIES).map((label, i) => ({ value: i + 1, label })),
+        other: { zh: '其他語系', en: 'Other families' },
+      },
+      format: familyLabel,
     },
     {
       id: 'diversity',
