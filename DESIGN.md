@@ -3029,6 +3029,7 @@ pipeline/
 
 ## 10. 開發注意事項
 
+- **GitHub Actions 的「檢查」**（`.github/workflows/check.yml`，2026-10-29 加）：每次推送（任何分支）與 PR 都跑 `check:i18n`、主題目錄比對（`npm run catalog -- --check`）、`npm run build`（含型別檢查）與冒煙測試（`npm run smoke`，`scripts/smoke-topics.mjs`：每個主題打開一次，有頁面錯誤或主控台錯誤就失敗，約 10–15 分鐘）。不擋部署，失敗時 commit 旁是紅色的叉。好幾個工作同時推到 main，合併時容易漏掉別人的主題（例如 `topics/registry.ts` 衝突）或改壞共用的程式，推之前本機也可以跑 `npm run build && npm run smoke`（`SMOKE_TOPICS=a,b` 只開幾個）。
 - **world-atlas 的國界是給 D3 球面幾何用的**：
   - 跨 180° 經線的國家（斐濟、俄羅斯遠東）座標會從 179.9 跳到 −179.9。
   - MapLibre 把座標當平面處理，會畫出橫越整個地圖的邊。

@@ -1,0 +1,37 @@
+# 每次推送（任何分支）與 PR 都檢查：介面文字有沒有漏翻、主題目錄有沒有跟主題定義對上、型別與建置、
+# 每個主題打開一次有沒有錯誤（冒煙測試，約 10–15 分鐘）。不擋部署（deploy.yml 照常跑），失敗時 commit 旁是紅色的叉。
+# 好幾個工作同時推到 main，合併時容易漏掉別人的主題或改壞共用的程式，這裡把關（DESIGN.md 第 10 節）
+name: 檢查
+
+on:
+  push:
+  pull_request:
+
+# 同一個分支有新的推送就取消還在跑的舊檢查
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: 介面文字（英文版看到的中文）
+        run: npm run check:i18n
+      - name: 主題目錄跟主題定義一致
+        run: npm run catalog -- --check
+      - name: 型別與建置
+        run: npm run build
+      - name: 每個主題打開一次（冒煙測試）
+        run: |
+          npm i --no-save puppeteer-core
+          npm run smoke
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
