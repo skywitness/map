@@ -230,6 +230,49 @@ const indicators: IndicatorDef[] = [
     format: people,
     formatTick: formatLargeTick,
   },
+  // 建物面積（2026-10-29 擴充，製作手冊第五批 38）：GHS-COUNTRY-STATS 的 BU_S_km2_L1，屋頂覆蓋的面積，不是建成區的範圍
+  {
+    id: 'built',
+    label: { zh: '建物面積', en: 'Built-up surface' },
+    description: {
+      zh: '全國建築物屋頂覆蓋的面積（km²，衛星影像判讀），不是市區的範圍，圓的面積與它成正比。全世界從 1975 年的約 17 萬 km² 變成 2020 年的 46 萬 km²；台灣從 495 km² 變成 1,316 km²，約占國土 3.5%。2025、2030 年是推估。',
+      en: 'The area covered by building roofs nationwide (km², from satellite imagery), not the extent of urban areas; circle area is proportional to it. Worldwide it grew from about 174,000 km² in 1975 to 465,000 km² in 2020; Taiwan’s grew from 495 to 1,316 km², about 3.5% of its land. 2025 and 2030 are projections.',
+    },
+    unit: { zh: 'km²', en: 'km²' },
+    file: 'built.json',
+    layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+    format: (v) => `${fixed(v, v < 100 ? 1 : 0)} km²`,
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+  },
+  {
+    id: 'built-per-capita',
+    label: { zh: '人均建物面積', en: 'Built-up surface per person' },
+    description: {
+      zh: '建物面積除以人口：每個人分到多少屋頂覆蓋的面積（m²），不是住宅的室內面積（多層樓只算一次，工廠、商場也算）。地廣人稀、獨棟住宅多的國家高（澳洲約 200 m²），人口密集或貧窮的國家低；台灣 2020 年約 55 m²。',
+      en: 'Built-up surface divided by population: the roof area per person (m²), not floor space (a multi-storey building counts once, and factories and shops are included). It is high in spacious countries of detached houses (about 200 m² in Australia) and low in crowded or poor ones; Taiwan had about 55 m² in 2020.',
+    },
+    unit: { zh: 'm²/人', en: 'm² per person' },
+    file: 'built-per-capita.json',
+    layer: { kind: 'choropleth', scale: seq([20, 40, 60, 80, 120, 160]) },
+    format: (v) => tr({ zh: `${fixed(v, 0)} m²`, en: `${fixed(v, 0)} m²` }),
+    formatTick: (v) => fixed(v, 0),
+    compareWorld: true,
+  },
+  {
+    id: 'built-growth',
+    label: { zh: '建物面積比 1975 年多幾倍', en: 'Built-up surface growth since 1975' },
+    description: {
+      zh: '這一年的建物面積是 1975 年的幾倍。全世界 2020 年是 2.7 倍；中國約 4.9 倍、孟加拉 5.9 倍、衣索比亞與肯亞 8 倍以上，美國 1.9 倍、日本 1.6 倍，台灣 2.7 倍。1975 年建物太少（不到 1 km²）的不算。',
+      en: 'Built-up surface in the selected year as a multiple of 1975. Worldwide it was 2.7 times in 2020; about 4.9 in China, 5.9 in Bangladesh and over 8 in Ethiopia and Kenya, against 1.9 in the US, 1.6 in Japan and 2.7 in Taiwan. Countries with under 1 km² built up in 1975 are not shown.',
+    },
+    unit: { zh: '倍', en: 'times' },
+    file: 'built-growth.json',
+    layer: { kind: 'choropleth', scale: seq([1.5, 2, 2.5, 3, 4, 6]) },
+    format: (v) => tr({ zh: `${fixed(v, 2)} 倍`, en: `×${fixed(v, 2)}` }),
+    formatTick: (v) => fixed(v, 1),
+    compareWorld: true,
+  },
 ];
 
 const NOT_SEPARATE = {
@@ -254,8 +297,8 @@ export const cities: TopicDefinition = {
     },
     {
       name: {
-        zh: 'European Commission JRC, GHS-COUNTRY-STATS R2024A（各國依城鄉程度的人口）',
-        en: 'European Commission JRC, GHS-COUNTRY-STATS R2024A (population by Degree of Urbanisation)',
+        zh: 'European Commission JRC, GHS-COUNTRY-STATS R2024A（各國依城鄉程度的人口、建物面積）',
+        en: 'European Commission JRC, GHS-COUNTRY-STATS R2024A (population by Degree of Urbanisation, built-up surface)',
       },
       url: 'https://human-settlement.emergency.copernicus.eu/download.php',
       license: 'CC BY 4.0',

@@ -320,6 +320,8 @@ def build() -> None:
         "largest", "人", years, largest,
         aggregates={"WLD": [round(max(all_pops[y])) for y in years]}, **extra, **notes(city_note, city_note_en)))
 
+    build_built(stats)
+
     big = [c for c in centres if c.pop[2025] >= 300_000]
     named_big = sum(1 for c in big if c.id in zh)
     write_json(OUT / "manifest.json", {
@@ -339,3 +341,46 @@ def build() -> None:
     print(f"  台灣：{len(twn)} 個城市，城市 {tw_uc / ghsl_total * 100:.1f}%、GHSL 總人口 {ghsl_total:,.0f}、內政部 {moi_total:,}")
     for r in taiwan_rows:
         print(f"    {r['zh'] or r['name']}：UCDB {r['pop']:,}（{r['area']:.0f} km²）／{'＋'.join(r['counties'])} {r['moi']:,}")
+
+
+def build_built(stats: ghsl_ucdb.CountryStats | None = None) -> None:
+    """建物面積的三個指標（2026-10-29 擴充，製作手冊第五批 38）：GHS-COUNTRY-STATS 的 BU_S_km2_L1，屋頂覆蓋的面積，
+    不是建成區的範圍。不用 Wikidata，可以單獨跑（`python -c "from topics import cities; cities.build_built()"`）"""
+    stats = stats or ghsl_ucdb.country_stats()
+    years = EPOCHS
+    extra = {"projectionFrom": ghsl_ucdb.PROJECTION_FROM}
+    built: dict[str, list[float | None]] = {}
+    built_cap: dict[str, list[float | None]] = {}
+    built_growth: dict[str, list[float | None]] = {}
+    world_built, world_pop = [0.0] * len(years), [0.0] * len(years)
+    for iso, by_year in sorted(stats.built.items()):
+        if iso in GADM_SKIP or iso not in stats.pop:
+            continue
+        key = GADM_TO_MAP.get(iso, iso)
+        km2 = [by_year[y] for y in years]
+        people = [sum(stats.pop[iso][y]) for y in years]
+        for i in range(len(years)):
+            world_built[i] += km2[i]
+            world_pop[i] += people[i]
+        if not any(km2):
+            continue
+        built[key] = [round(v, 1) for v in km2]
+        built_cap[key] = [round(b * 1e6 / p, 1) if p >= 1000 else None for b, p in zip(km2, people)]
+        built_growth[key] = [round(v / km2[0], 2) if km2[0] >= 1 else None for v in km2]
+    write_json(OUT / "built.json", indicator_file(
+        "built", "km²", years, built, aggregates={"WLD": [round(v) for v in world_built]}, **extra))
+    write_json(OUT / "built-per-capita.json", indicator_file(
+        "built-per-capita", "m²/人", years, built_cap,
+        aggregates={"WLD": [round(b * 1e6 / p, 1) for b, p in zip(world_built, world_pop)]}, **extra))
+    write_json(OUT / "built-growth.json", indicator_file(
+        "built-growth", "倍", years, built_growth,
+        aggregates={"WLD": [round(v / world_built[0], 2) for v in world_built]}, **extra))
+    i2020 = years.index(2020)
+    print(f"  建物面積：世界 1975 年 {world_built[0]:,.0f} km²、2020 年 {world_built[i2020]:,.0f} km²"
+          f"（{world_built[i2020] / world_built[0]:.2f} 倍）；台灣 {built['TWN'][0]} → {built['TWN'][i2020]} km²，"
+          f"人均 {built_cap['TWN'][i2020]} m²")
+    for name, series in (("倍數", built_growth), ("人均", built_cap)):
+        ranked = sorted((v[i2020], k) for k, v in series.items() if v[i2020] is not None)
+        print(f"  2020 年{name}：最高 {ranked[-5:][::-1]}，最低 {ranked[:3]}")
+
+
