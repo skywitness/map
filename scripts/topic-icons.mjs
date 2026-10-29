@@ -95,6 +95,7 @@ const TOPIC_ICONS = {
   organizations: 'handshake',
   'un-votes': 'hand',
   'taiwan-diplomacy': 'globe',
+  pandas: 'paw-print',
   // 能源
   electricity: 'zap',
   'power-plants': 'utility-pole',
@@ -133,6 +134,7 @@ const TOPIC_ICONS = {
   daylight: 'sun-moon',
   eclipses: 'eclipse',
   antipodes: 'arrow-up-down',
+  'taipei-view': 'compass',
   magnetic: 'magnet',
   aurora: 'sparkles',
   earthquakes: 'activity',

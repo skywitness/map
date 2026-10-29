@@ -4,7 +4,7 @@ import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { MONTHS } from '../birth-season';
+import { MONTHS } from '../months';
 import type { PanelExtraProps } from '../types';
 
 /** pipeline/topics/birth_season.py 的 months.json：每國有資料的年份、每年 1–12 月的每日平均出生數、是否依登記月份 */

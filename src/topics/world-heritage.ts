@@ -39,6 +39,19 @@ export function siteName(p: PointRecord): string {
   return getLang() === 'zh' && zh ? zh : String(p.name ?? '');
 }
 
+/** 生物圈保護區的點（pipeline/topics/biosphere.py）：名稱與所在國家 */
+function biosphereTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
+  const states = [p.iso3, ...(typeof p.more === 'string' ? p.more.split(',') : [])].filter((s): s is string => typeof s === 'string');
+  const zhName = getLang() === 'zh' && typeof p.zh === 'string';
+  const parts = [tr({ zh: '生物圈保護區', en: 'Biosphere reserve' })];
+  if (states.length) parts.push(states.map(ctx.countryName).join(tr({ zh: '、', en: ', ' })));
+  return {
+    title: zhName ? String(p.zh) : String(p.name ?? ''),
+    detail: parts.join(' · '),
+    properNoun: zhName ? String(p.name ?? '') : undefined,
+  };
+}
+
 function siteTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
   const states = [p.iso3, ...(typeof p.more === 'string' ? p.more.split(',') : [])].filter((s): s is string => typeof s === 'string');
   const parts = [
@@ -73,7 +86,7 @@ export const worldHeritage: TopicDefinition = {
       url: 'https://whc.unesco.org/en/statesparties/',
       license: { zh: '只用是否為締約國的事實', en: 'membership facts only' },
     },
-    { name: { zh: 'Wikidata（遺產的中文名稱）', en: 'Wikidata (Chinese names of sites)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    { name: { zh: 'Wikidata（遺產的中文名稱、生物圈保護區）', en: 'Wikidata (Chinese names of sites; biosphere reserves)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
   ],
   note: {
     zh: '世界遺產依 UNESCO 的名錄（含 2026 年世界遺產委員會新登錄的）。跨國遺產每個締約國都算一次，所以各國加起來比世界的總數多；「耶路撒冷舊城及其城牆」由約旦提名、名錄上沒有締約國，只算進世界的總數。瀕危世界遺產只有目前的名單。台灣不是《世界遺產公約》的締約國，不能提名，所以沒有世界遺產。中文名稱來自 Wikidata，沒有的用英文名稱。UNESCO DataHub 的世界遺產名錄是 CC BY-SA 4.0 授權，這個主題的衍生資料檔、匯出的地圖圖片與 CSV 也依 CC BY-SA 4.0 分享。',
@@ -104,6 +117,17 @@ export const worldHeritage: TopicDefinition = {
       sortField: 'cls',
       timeField: 'year',
       tooltip: siteTooltip,
+      indicators: ['sites', 'danger'],
+    },
+    {
+      kind: 'points',
+      id: 'biosphere',
+      file: 'biosphere-points.json',
+      label: { zh: '生物圈保護區', en: 'Biosphere reserves' },
+      radius: 2.6,
+      color: MAP_TOKENS.categorical[3],
+      tooltip: biosphereTooltip,
+      indicators: ['biosphere'],
     },
   ],
   indicators: [
@@ -136,6 +160,22 @@ export const worldHeritage: TopicDefinition = {
       format: sitesText,
       formatTick: (v) => fixed(v, 0),
       shareOfWorld: true,
+    },
+    {
+      id: 'biosphere',
+      label: { zh: '生物圈保護區', en: 'Biosphere reserves' },
+      description: {
+        zh: 'UNESCO「人與生物圈計畫」的生物圈保護區：核心區保護生態、外圍讓人居住與利用，試著兼顧兩者。點是 Wikidata 收錄、有座標的 679 處（UNESCO 公布 797 處，Wikidata 不完整，也有已除名沒標的），所以不算各國的處數。台灣不是 UNESCO 會員，沒有。',
+        en: 'Biosphere reserves of UNESCO’s Man and the Biosphere Programme, which pair a protected core with surrounding zones where people live and work. Dots show the 679 reserves with coordinates in Wikidata (UNESCO lists 797; Wikidata is incomplete and includes some withdrawn reserves), so countries are not counted. Taiwan, not a UNESCO member, has none.',
+      },
+      unit: '',
+      file: 'biosphere.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
     },
   ],
 };
