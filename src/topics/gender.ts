@@ -1,7 +1,12 @@
+import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
+const days = (v: number) => tr({ zh: `${fixed(v, 0)} 天`, en: `${fixed(v, 0)} ${v === 1 ? 'day' : 'days'}` });
+const DAYS = { zh: '天', en: 'days' };
+/** 產假、陪產假、育嬰假（2026-10-29 擴充）：側欄的 GenderPanel 只在這三個指標顯示 */
+export const LEAVE_INDICATORS = ['maternity-leave', 'paternity-leave', 'parental-leave'];
 const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const GOV = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
@@ -38,6 +43,16 @@ export const gender: TopicDefinition = {
       license: GOV,
     },
     {
+      name: { zh: 'World Bank, Women, Business and the Law（1971–2024 歷史面板、2026 年版）', en: 'World Bank, Women, Business and the Law (1971–2024 panel, 2026 edition)' },
+      url: 'https://wbl.worldbank.org/en/data/download-data',
+      license: { zh: 'CC BY 4.0（依 WDI 轉載 WBL 的序列中繼資料）', en: 'CC BY 4.0 (per the WDI metadata for WBL series)' },
+    },
+    {
+      name: { zh: 'OECD Family Database PF2.1（有薪假的全薪等值週數，側欄）', en: 'OECD Family Database PF2.1 (full-rate equivalent weeks, side panel)' },
+      url: 'https://www.oecd.org/en/data/datasets/oecd-family-database.html',
+      license: OECD_TERMS,
+    },
+    {
       name: { zh: 'UNESCO 統計研究所（UIS），女性研究人員比例', en: 'UNESCO Institute for Statistics (UIS), female researchers' },
       url: 'https://databrowser.uis.unesco.org/',
       license: { zh: 'CC BY-SA 4.0（這個指標的資料檔也用 CC BY-SA 4.0）', en: 'CC BY-SA 4.0 (this indicator’s data file is shared under CC BY-SA 4.0 too)' },
@@ -56,6 +71,7 @@ export const gender: TopicDefinition = {
       'The Gender Inequality Index (GII) combines reproductive health (maternal mortality, adolescent births), empowerment (seats in parliament, secondary education by sex) and the labour market (participation by sex). ' +
       "The pay gap is the difference between men's and women's earnings as a share of men's: the OECD uses median earnings of full-time employees and covers only about 45 countries; Taiwan's figure is the hourly-mean gap used by the Ministry of Labor, a different measure. Taiwan is not in the ILO, IPU, OECD, UNDP or UNESCO data, so four indicators and female researchers use Taiwan's official statistics; there is no comparable figure for STEM graduates, which is left blank.",
   },
+  panelExtra: () => import('./panels/GenderPanel'),
   indicators: [
     {
       id: 'gii',
@@ -144,6 +160,48 @@ export const gender: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 25, 30, 35, 40, 50] } },
       format: pct,
       formatTick: (v) => `${fixed(v, 0)}%`,
+    },
+    {
+      id: 'maternity-leave',
+      label: { zh: '有薪產假', en: 'Paid maternity leave' },
+      description: {
+        zh: '法律規定母親在生產前後可以請的有薪產假天數（世界銀行 Women, Business and the Law，報告年，法律是前一年 10 月 1 日的；只看最大商業城市的法律）。台灣 56 天、日本與德國 98 天、印度 182 天；美國 0 天（聯邦沒有有薪產假）。瑞典、挪威這類把產假併進育嬰假的國家是 0，要一起看育嬰假。',
+        en: 'Days of paid maternity leave the law gives mothers around childbirth (World Bank Women, Business and the Law; report years, with laws as of 1 October of the previous year, in the largest business city). Taiwan 56 days, Japan and Germany 98, India 182; the US 0 (no federal paid leave). Countries such as Sweden and Norway fold maternity leave into parental leave and show 0, so look at parental leave too.',
+      },
+      unit: DAYS,
+      file: 'maternity-leave.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 60, 90, 120, 180, 365] } },
+      format: days,
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+    },
+    {
+      id: 'paternity-leave',
+      label: { zh: '有薪陪產假', en: 'Paid paternity leave' },
+      description: {
+        zh: '法律規定父親在孩子出生時可以請的有薪陪產假天數（不含育嬰假）。2024 年有 75 國是 0 天；台灣 7 天、日本 28 天，西班牙 112 天、冰島 180 天。',
+        en: 'Days of paid paternity leave the law gives fathers around the birth (not counting parental leave). In 2024, 75 countries gave none; Taiwan 7 days, Japan 28, Spain 112 and Iceland 180.',
+      },
+      unit: DAYS,
+      file: 'paternity-leave.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 7, 14, 30, 60, 120] } },
+      format: days,
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+    },
+    {
+      id: 'parental-leave',
+      label: { zh: '有薪育嬰假（全家合計）', en: 'Paid parental leave (family total)' },
+      description: {
+        zh: '產假、陪產假以外，父母可以請的有薪育嬰假天數，母親的、父親的與兩人共用的加起來。2024 年有 135 國沒有有薪育嬰假；台灣父母各 180 天、合計 360 天，日本 674 天，美國 168 天（紐約州的有薪家庭照顧假）。點國家看母親、父親各自的天數與 OECD 換算成全薪的週數。',
+        en: 'Days of paid parental leave beyond maternity and paternity leave, adding the mother’s, the father’s and shared days. In 2024, 135 countries had none; Taiwan gives each parent 180 days (360 in total), Japan 674 and the US 168 (New York State paid family leave). Select a country for each parent’s days and the OECD full-rate equivalent.',
+      },
+      unit: DAYS,
+      file: 'parental-leave.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 90, 180, 365, 540, 730] } },
+      format: days,
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
     },
   ],
 };

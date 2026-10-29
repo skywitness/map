@@ -12,6 +12,11 @@
   - 女性研究人員比例（人數）：UNESCO UIS 公開 API 的 FRESP.THC（UIS 自己的資料庫是 CC BY-SA 4.0，這個資料檔也用 CC BY-SA 4.0）。
     台灣用國科會「全國各研發執行部門研發人力統計資料_人數」（data.gov.tw 7563，政府資料開放授權條款）的全國研究人員男女人數
     自己算，跟 UIS 一樣是人數（不是全時約當）。
+- 2026-10-29 擴充（製作手冊第五批 40，使用者決定；build_leave() 可以單獨跑）：產假、陪產假、育嬰假的有薪天數，
+  世界銀行 Women, Business and the Law（WBL）1971–2024 的歷史面板（同一套方法，WDI 轉載 WBL 的序列標 CC BY 4.0）。
+  年份是 WBL 的報告年（法律是前一年 10 月 1 日的）；只看最大商業城市的法律（美國是紐約、洛杉磯）。
+  WBL 2026 年版（新方法，母親、父親可請的有薪假合計，含育嬰假）的值與 OECD Family Database PF2.1 的全薪等值週數
+  （OECD 與歐盟 43 國，OECD 資料條款）放在側欄的附註（leave-detail.json）。台灣在 WBL 裡（Taiwan, China）。
 """
 from __future__ import annotations
 
@@ -21,6 +26,7 @@ import json
 
 from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
 from sources import dgbas, oecd, undp, worldbank
+from sources.countries import from_name, to_iso3
 
 TAIWAN = "TWN"
 PAY_GAP_WITHIN = 4  # OECD 各國最新一年不同（2022–2025），地圖用 4 年內最近一年
@@ -43,6 +49,10 @@ STEM_SKIP = {"SXM"}
 UIS_RESEARCHERS = "https://api.uis.unesco.org/api/public/data/indicators?indicator=FRESP.THC&start=1990&end=2025"
 NSTC_RD = "https://mas.nstc.gov.tw/OPENDATA/GetFile?format=csv&serialno=53&fileodr=0"
 SCIENCE_WITHIN = 5  # 隔幾年才有資料的國家多，地圖用 5 年內最近一年
+
+WBL_PANEL = "https://wbl.worldbank.org/content/dam/sites/wbl/documents/2024/WBL2024-1-0-Historical-Panel-Data.xlsx"
+WBL_2026 = "https://wbl.worldbank.org/content/dam/sites/wbl/documents/2026/2026-02-18-WBL26-6-Parenthood-Data.xlsx"
+OECD_LEAVE = "https://webfs.oecd.org/Els-com/Family_Database/PF2_1_Parental_leave_systems.xlsx"
 
 
 def build() -> None:
@@ -110,6 +120,7 @@ def build() -> None:
             key, unit, years, {c: to_series(s, years, digits) for c, s in series.items() if s}, **extra,
         ))
     build_science()
+    build_leave()
     write_json(out / "manifest.json", {
         "topic": "gender", "generatedAt": now_iso(),
         "source": "World Bank WDI (ILO, IPU); OECD; UNDP HDR; 主計總處; 中選會; 性平處",
@@ -159,4 +170,99 @@ def build_science() -> None:
         ranked = sorted((round(v, 1), c) for c, v in latest.items())
         print(f"  女性占{name}（2015 年後最新一年）：{len(latest)} 國，最低 {ranked[:3]}，最高 {ranked[-3:]}，"
               f"台灣 {round(latest.get(TAIWAN, 0), 1) or '無'}")
+
+
+def _number(v) -> float | None:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _wbl_panel() -> dict[str, dict[str, dict[int, float]]]:
+    """WBL 1971–2024 的 Parenthood 工作表：{指標: {iso3: {報告年: 天數}}}；育嬰假是共用加母親、父親各自的天數"""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(download(WBL_PANEL, "wbl", "WBL2024-1-0-Historical-Panel-Data.xlsx"), read_only=True, data_only=True)
+    rows = wb["Parenthood"].iter_rows(values_only=True)
+    header = [str(h) for h in next(rows)]
+    col = {name: header.index(name) for name in (
+        "ISO Code", "Report Year", "Length of paid maternity leave", "Length of paid paternity leave",
+        "Shared days", "Days for the mother", "Days for the father")}
+    out: dict[str, dict[str, dict[int, float]]] = {"maternity-leave": {}, "paternity-leave": {}, "parental-leave": {}, "parental-split": {}}
+    for r in rows:
+        iso = to_iso3(str(r[col["ISO Code"]] or ""))
+        if not iso or not r[col["Report Year"]]:
+            continue
+        year = int(r[col["Report Year"]])
+        maternity, paternity = _number(r[col["Length of paid maternity leave"]]), _number(r[col["Length of paid paternity leave"]])
+        shared, mother, father = (_number(r[col[k]]) or 0 for k in ("Shared days", "Days for the mother", "Days for the father"))
+        if maternity is not None:
+            out["maternity-leave"].setdefault(iso, {})[year] = maternity
+        if paternity is not None:
+            out["paternity-leave"].setdefault(iso, {})[year] = paternity
+        out["parental-leave"].setdefault(iso, {})[year] = shared + mother + father
+        if year == 2024:
+            out["parental-split"][iso] = {0: mother, 1: father, 2: shared}
+    return out
+
+
+def _wbl_2026() -> dict[str, tuple[float | None, float | None]]:
+    """WBL 2026 年版：iso3 → (母親可請的有薪假合計天數, 父親的)"""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(download(WBL_2026, "wbl", "2026-02-18-WBL26-6-Parenthood-Data.xlsx"), read_only=True, data_only=True)
+    rows = list(wb["6. Parenthood"].iter_rows(values_only=True))
+    codes = [str(c) for c in rows[1]]
+    i_mat, i_pat = codes.index("Par_Law_MatLeave_Total"), codes.index("Par_Law_PatLeave_Total")
+    out = {}
+    for r in rows[3:]:
+        iso = to_iso3(str(r[2] or ""))
+        if iso:
+            out[iso] = (_number(r[i_mat]), _number(r[i_pat]))
+    return out
+
+
+def _oecd_leave() -> dict[str, dict[str, float]]:
+    """OECD PF2.1（2025 年 4 月的制度）：iso3 → 母親、父親可請的有薪假週數與全薪等值週數"""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(download(OECD_LEAVE, "oecd", "PF2_1_Parental_leave_systems.xlsx"), read_only=True, data_only=True)
+    out: dict[str, dict[str, float]] = {}
+    for sheet, who in (("Table PF2.1.A", "mother"), ("Table PF2.1.B", "father")):
+        for r in wb[sheet].iter_rows(min_row=12, values_only=True):
+            name = str(r[0] or "").strip()
+            iso = from_name(name)
+            weeks, fre = _number(r[8]), _number(r[10])
+            if not iso or weeks is None:
+                continue
+            out.setdefault(iso, {})[f"{who}Weeks"] = round(weeks, 1)
+            out[iso][f"{who}Fre"] = round(fre or 0, 1)
+    return out
+
+
+def build_leave() -> None:
+    """產假、陪產假、育嬰假的天數（不用重跑其他指標）"""
+    out = OUT_DIR / "topics" / "gender"
+    panel = _wbl_panel()
+    latest = _wbl_2026()
+    years = list(range(1971, 2025))
+    for key in ("maternity-leave", "paternity-leave", "parental-leave"):
+        series = panel[key]
+        write_json(out / f"{key}.json", indicator_file(
+            key, "天", years, {c: to_series(v, years, 0) for c, v in series.items() if v},
+        ))
+        last = {c: v.get(2024) for c, v in series.items() if v.get(2024) is not None}
+        ranked = sorted((v, c) for c, v in last.items())
+        print(f"  {key} 2024：{len(last)} 國，0 天 {sum(1 for v in last.values() if v == 0)} 國，最多 {ranked[-4:]}，"
+              f"台灣 {last.get(TAIWAN)}、日本 {last.get('JPN')}、美國 {last.get('USA')}")
+    oecd_leave = _oecd_leave()
+    split = panel["parental-split"]
+    write_json(out / "leave-detail.json", {
+        "year": 2024, "parental": {c: [v[0], v[1], v[2]] for c, v in sorted(split.items()) if any(v.values())},
+        "oecd": dict(sorted(oecd_leave.items())), "oecdYear": 2025,
+        # WBL 2026 年版：[母親可請的有薪假合計, 父親的]（天，新方法、含育嬰假）
+        "wbl2026": {c: list(v) for c, v in sorted(latest.items()) if any(x is not None for x in v)},
+    })
+    print(f"  OECD PF2.1：{len(oecd_leave)} 國；WBL 2026 {len(latest)} 國；台灣 2026：{latest.get(TAIWAN)}")
 
