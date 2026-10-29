@@ -92,6 +92,7 @@ const TOPIC_ICONS = {
   organizations: 'handshake',
   'un-votes': 'hand',
   'taiwan-diplomacy': 'globe',
+  pandas: 'paw-print',
   // 能源
   electricity: 'zap',
   'power-plants': 'utility-pole',

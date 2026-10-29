@@ -16,7 +16,7 @@ export interface TopicGroupSpec {
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics', 'reads'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores'] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy'] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'shipping', 'logbooks', 'road-safety'] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'wind', 'daylight', 'eclipses', 'antipodes', 'taipei-view', 'magnetic', 'aurora', 'earthquakes', 'plates', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'skyscrapers', 'travel'] },
@@ -107,6 +107,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   daylight: () => import('./daylight'),
   eclipses: () => import('./eclipses'),
   antipodes: () => import('./antipodes'),
+  pandas: () => import('./pandas'),
   'taipei-view': () => import('./taipei-view'),
   magnetic: () => import('./magnetic'),
   aurora: () => import('./aurora'),
