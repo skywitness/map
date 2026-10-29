@@ -203,7 +203,10 @@ async function main() {
         await (await page.$$('.topic-menu [role="menuitemradio"]'))[entry.mi].click();
       }
       await settle(page);
-      const topic = await page.evaluate(() => new URLSearchParams(location.search).get('topic'));
+      // 主題在路徑 t/<主題>/（2026-10-29 起），舊的網址在 ?topic=
+      const topic = await page.evaluate(
+        () => location.pathname.match(/\/t\/([\w-]+)\/?$/)?.[1] ?? new URLSearchParams(location.search).get('topic'),
+      );
       console.log(`主題 ${topic}`);
       await check(page, `${topic}`);
       if (!detailed(topic)) continue;
