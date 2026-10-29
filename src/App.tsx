@@ -95,9 +95,8 @@ const WorldMap = lazy(() => worldMapModule.then((m) => ({ default: m.WorldMap })
 loadBaseStyle(getBasemap(readStoredBasemap() ?? defaultBasemap(initialThemeMode() === 'dark')).url).catch(() => {});
 
 /**
- * 國界：先用 1:110m（gzip 後約 35 KB，解析也快）畫出第一個畫面，地圖畫出資料之後再換成
- * 1:50m（約 230 KB，含新加坡、巴林等小國，放大後也比較精細）。再次造訪時兩個都在快取裡，
- * 一樣先畫粗的：手機上解析 1:50m 要好幾百毫秒，放到第一個畫面之後。
+ * 國界：全球視角用 1:110m（gzip 後約 45 KB，解析也快，補上了新加坡、巴林等 1:110m 原本沒有的小國），
+ * 放大超過全球視角才換成 1:50m（約 230 KB，放大後比較精細；2026-10-29 以前是地圖畫出資料之後一定載入）。
  */
 const GEO_COARSE = 'geo/countries-110m.json';
 const GEO_DETAILED = 'geo/countries-50m.json';
@@ -245,7 +244,11 @@ export function App() {
   // 地圖第一次畫出資料之後才做的事（精細國界、預先下載），不跟第一個畫面搶頻寬與 CPU
   const [mapShown, setMapShown] = useState(false);
   const onMapShown = useCallback(() => setMapShown(true), []);
-  const features = useCountryFeatures(mapShown);
+  // 1:50m 的國界放大才要（WorldMap 的 onDetailNeeded）；排名表、全球視角用 1:110m（已經含小國）就夠。
+  // 有 pointer 的主題（地球的另一邊等）要判斷游標在哪一國，海岸附近 1:110m 太粗，地圖畫出資料後就載入
+  const [detailWanted, setDetailWanted] = useState(false);
+  const wantDetail = useCallback(() => setDetailWanted(true), []);
+  const features = useCountryFeatures(detailWanted || (mapShown && Boolean(topic.pointer)));
   const firstPaint = Boolean(features && (data || pure));
 
   // 閒置時預先下載同主題的其他指標，換指標、開側欄時不用等
@@ -724,6 +727,7 @@ export function App() {
                 onBasemapChange={chooseBasemap}
                 fitOnSelect={pure}
                 onFirstData={onMapShown}
+                onDetailNeeded={wantDetail}
                 threeD={state.threeD}
                 onThreeDChange={setThreeD}
                 terrain={topic.terrain}
@@ -929,10 +933,13 @@ function useFitMap(appRef: RefObject<HTMLDivElement | null>) {
   }, [appRef]);
 }
 
-/** 國界的幾何（先粗後細，見上面 GEO_COARSE）。mapShown：地圖畫出第一個畫面之後才載入 1:50m，不跟它搶頻寬與 CPU */
-function useCountryFeatures(mapShown: boolean): CountryFeature[] | null {
+/**
+ * 國界的幾何（先粗後細，見上面 GEO_COARSE）：1:50m 放大超過全球視角才載入（detailWanted），全球視角的 1:110m
+ * 已經補上 1:110m 原本沒有的 63 個小國（build_geo.py 的 add_missing_to_coarse），不必每次都多下載 227 KB
+ */
+function useCountryFeatures(detailWanted: boolean): CountryFeature[] | null {
   const coarse = useJson<Topology>(GEO_COARSE);
-  const detailed = useJson<Topology>(mapShown || coarse.error ? GEO_DETAILED : null).data;
+  const detailed = useJson<Topology>(detailWanted || coarse.error ? GEO_DETAILED : null).data;
   const topo = detailed ?? coarse.data;
   return useMemo(() => (topo ? toCountryFeatures(topo) : null), [topo]);
 }

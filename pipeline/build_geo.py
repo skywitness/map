@@ -121,6 +121,7 @@ def build() -> None:
     for scale in ("50m", "110m"):
         count = convert(scale)
         print(f"  {scale}：共 {count} 個國家/區域")
+    print(f"  110m：補上 1:50m 才有的 {add_missing_to_coarse()} 個小國家與屬地")
 
     # 國家對照表：涵蓋地圖上沒有形狀的國家（例如吐瓦魯），前端用 iso2 取繁中國名
     # 英文名優先用通用名稱（Taiwan、South Korea），不用 ISO 正式名稱（Taiwan, Province of China）
@@ -153,6 +154,52 @@ def build_lakes() -> None:
         for f in lakes["features"]
     ]
     write_json(OUT_DIR / "geo" / "lakes-110m.json", {"type": "FeatureCollection", "features": features})
+
+
+def add_missing_to_coarse() -> int:
+    """1:110m 沒有的國家（新加坡、香港、巴林、馬爾地夫、加勒比海與太平洋的島等 63 個）從 1:50m 補進 1:110m。
+
+    全球視角只用 1:110m（放大或點國家才載入 1:50m，WorldMap 的 onDetailNeeded），小國在低縮放畫成圓點，
+    位置來自國界，1:110m 沒有的話整個不見。補進來的弧線換成 1:110m 的量化（約 400 m），只佔 1:50m 的 2% 左右的點。
+    """
+    with open(OUT_DIR / "geo" / "countries-110m.json", encoding="utf-8") as f:
+        coarse = json.load(f)
+    with open(OUT_DIR / "geo" / "countries-50m.json", encoding="utf-8") as f:
+        fine = json.load(f)
+    (fsx, fsy), (ftx, fty) = fine["transform"]["scale"], fine["transform"]["translate"]
+    (csx, csy), (ctx, cty) = coarse["transform"]["scale"], coarse["transform"]["translate"]
+
+    def requantize(arc: list) -> list:
+        # 1:50m 的差分編碼解成經緯度，再照 1:110m 的量化差分編碼
+        x = y = qx0 = qy0 = 0
+        out = []
+        for dx, dy in arc:
+            x += dx
+            y += dy
+            qx = round((x * fsx + ftx - ctx) / csx)
+            qy = round((y * fsy + fty - cty) / csy)
+            out.append([qx - qx0, qy - qy0])
+            qx0, qy0 = qx, qy
+        return out
+
+    remap: dict[int, int] = {}
+
+    def arc_index(i: int) -> int:
+        j = i if i >= 0 else ~i
+        if j not in remap:
+            remap[j] = len(coarse["arcs"])
+            coarse["arcs"].append(requantize(fine["arcs"][j]))
+        return remap[j] if i >= 0 else ~remap[j]
+
+    def walk(arcs):
+        return arc_index(arcs) if isinstance(arcs, int) else [walk(a) for a in arcs]
+
+    geometries = coarse["objects"]["countries"]["geometries"]
+    have = {g["id"] for g in geometries}
+    added = [g for g in fine["objects"]["countries"]["geometries"] if g["id"] not in have]
+    geometries.extend({**g, "arcs": walk(g["arcs"])} for g in added)
+    write_json(OUT_DIR / "geo" / "countries-110m.json", coarse)
+    return len(added)
 
 
 def convert(scale: str) -> int:
