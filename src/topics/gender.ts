@@ -13,7 +13,7 @@ export const gender: TopicDefinition = {
   defaultYear: 2023,
   sources: [
     {
-      name: { zh: 'World Bank, WDI（ILO 模型估計、IPU 國會女性比例）', en: 'World Bank, WDI (ILO modelled estimates, IPU)' },
+      name: { zh: 'World Bank, WDI（ILO 模型估計、IPU 國會女性比例、UNESCO 的 STEM 畢業生）', en: 'World Bank, WDI (ILO modelled estimates, IPU, UNESCO STEM graduates)' },
       url: 'https://data.worldbank.org/',
       license: 'CC BY 4.0',
     },
@@ -37,14 +37,24 @@ export const gender: TopicDefinition = {
       url: 'https://gec.ey.gov.tw/',
       license: GOV,
     },
+    {
+      name: { zh: 'UNESCO 統計研究所（UIS），女性研究人員比例', en: 'UNESCO Institute for Statistics (UIS), female researchers' },
+      url: 'https://databrowser.uis.unesco.org/',
+      license: { zh: 'CC BY-SA 4.0（這個指標的資料檔也用 CC BY-SA 4.0）', en: 'CC BY-SA 4.0 (this indicator’s data file is shared under CC BY-SA 4.0 too)' },
+    },
+    {
+      name: { zh: '國家科學及技術委員會，全國各研發執行部門研發人力統計（台灣的女性研究人員）', en: 'National Science and Technology Council (Taiwan), R&D personnel statistics' },
+      url: 'https://data.gov.tw/dataset/7563',
+      license: GOV,
+    },
   ],
   note: {
     zh:
       '性別不平等指數（GII）結合生育健康（孕產婦死亡率、青少女生育率）、賦權（國會議員、中等以上教育的男女比例）與勞動市場（男女勞參率）。' +
-      '薪資差距是男女薪資差距占男性薪資的比例：OECD 是全職受僱者的中位數，只有約 45 國；台灣是勞動部方法的平均時薪差距，口徑不同。台灣不在 ILO、IPU、OECD、UNDP 的資料裡，四個指標都改用台灣官方的統計。',
+      '薪資差距是男女薪資差距占男性薪資的比例：OECD 是全職受僱者的中位數，只有約 45 國；台灣是勞動部方法的平均時薪差距，口徑不同。台灣不在 ILO、IPU、OECD、UNDP、UNESCO 的資料裡，四個指標與女性研究人員改用台灣官方的統計；STEM 畢業生沒有可比的台灣資料，留白。',
     en:
       'The Gender Inequality Index (GII) combines reproductive health (maternal mortality, adolescent births), empowerment (seats in parliament, secondary education by sex) and the labour market (participation by sex). ' +
-      "The pay gap is the difference between men's and women's earnings as a share of men's: the OECD uses median earnings of full-time employees and covers only about 45 countries; Taiwan's figure is the hourly-mean gap used by the Ministry of Labor, a different measure. Taiwan is not in the ILO, IPU, OECD or UNDP data, so all four indicators use Taiwan's official statistics.",
+      "The pay gap is the difference between men's and women's earnings as a share of men's: the OECD uses median earnings of full-time employees and covers only about 45 countries; Taiwan's figure is the hourly-mean gap used by the Ministry of Labor, a different measure. Taiwan is not in the ILO, IPU, OECD, UNDP or UNESCO data, so four indicators and female researchers use Taiwan's official statistics; there is no comparable figure for STEM graduates, which is left blank.",
   },
   indicators: [
     {
@@ -100,6 +110,38 @@ export const gender: TopicDefinition = {
       unit: '%',
       file: 'pay-gap.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      format: pct,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+    },
+    {
+      id: 'stem-graduates',
+      label: { zh: 'STEM 畢業生的女性比例', en: 'Women among STEM graduates' },
+      description: {
+        zh: '大學與專科理、工、資訊、數學（STEM）領域的畢業生中女性的比例，各國 5 年內最近一年。南韓、德國不到三成，美國約 38%，北非、中東與中亞不少國家超過一半。台灣沒有可比的資料：教育部的畢業生統計有男女，但科系分類沒有對到國際的 ISCED-F，算不出同一口徑的 STEM。',
+        en: 'Share of women among tertiary graduates in science, technology, engineering and mathematics (STEM), the latest year within five years. It is under 30% in South Korea and Germany and about 38% in the US, while many countries in North Africa, the Middle East and Central Asia exceed half. There is no comparable figure for Taiwan: its graduate statistics by sex use a field classification not mapped to the international ISCED-F.',
+      },
+      unit: '%',
+      file: 'stem-graduates.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 25, 30, 35, 40, 50] } },
+      format: pct,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+      noValue: {
+        TWN: {
+          zh: '沒有可比的資料',
+          en: 'No comparable data',
+        },
+      },
+    },
+    {
+      id: 'women-researchers',
+      label: { zh: '女性研究人員比例', en: 'Women researchers' },
+      description: {
+        zh: '研究人員中女性的比例（人數，不是全時約當），各國 5 年內最近一年。日本約 18%、南韓 24%、德國 30%，中亞與高加索超過六成；美國、中國、印度沒有資料。台灣 2024 年 23.9%（國科會）。',
+        en: 'Share of women among researchers (headcount, not full-time equivalent), the latest year within five years. About 18% in Japan, 24% in South Korea and 30% in Germany, and over 60% in parts of Central Asia and the Caucasus; there are no data for the US, China or India. Taiwan: 23.9% in 2024 (National Science and Technology Council).',
+      },
+      unit: '%',
+      file: 'women-researchers.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 25, 30, 35, 40, 50] } },
       format: pct,
       formatTick: (v) => `${fixed(v, 0)}%`,
     },

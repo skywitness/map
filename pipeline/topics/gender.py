@@ -7,10 +7,19 @@
   時薪或月薪混在一起，同一國前後年可以差好幾個百分點，阿富汗還有 −125%，所以沒用。
   台灣用主計總處受僱員工薪資調查的平均時薪（總薪資 ÷ 工時）自己算，跟勞動部公布的同一個方法。
 - GII：UNDP 人類發展報告（CC BY 3.0 IGO）。台灣不在 UNDP 的報告裡，用性平處依同一公式計算的值。
+- 2026-10-29 擴充（製作手冊第五批 39，使用者決定；build_science() 可以單獨跑）：
+  - STEM 畢業生的女性比例：世界銀行轉載 UNESCO UIS 的 SE.TER.GRAD.FE.SI.ZS（CC BY 4.0）。台灣沒有可比的資料，留白（前端的 noValue）。
+  - 女性研究人員比例（人數）：UNESCO UIS 公開 API 的 FRESP.THC（UIS 自己的資料庫是 CC BY-SA 4.0，這個資料檔也用 CC BY-SA 4.0）。
+    台灣用國科會「全國各研發執行部門研發人力統計資料_人數」（data.gov.tw 7563，政府資料開放授權條款）的全國研究人員男女人數
+    自己算，跟 UIS 一樣是人數（不是全時約當）。
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
+import csv
+import io
+import json
+
+from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
 from sources import dgbas, oecd, undp, worldbank
 
 TAIWAN = "TWN"
@@ -27,6 +36,13 @@ LEGISLATORS = {
 }
 # 性平處依 UNDP 公式計算的我國 GII（《性別圖像》各年版）
 TAIWAN_GII = {2019: 0.045, 2021: 0.036, 2022: 0.041, 2023: 0.040}
+
+STEM = "SE.TER.GRAD.FE.SI.ZS"
+# 荷屬聖馬丁的 STEM 畢業生只有個位數，比例是 100%，不收
+STEM_SKIP = {"SXM"}
+UIS_RESEARCHERS = "https://api.uis.unesco.org/api/public/data/indicators?indicator=FRESP.THC&start=1990&end=2025"
+NSTC_RD = "https://mas.nstc.gov.tw/OPENDATA/GetFile?format=csv&serialno=53&fileodr=0"
+SCIENCE_WITHIN = 5  # 隔幾年才有資料的國家多，地圖用 5 年內最近一年
 
 
 def build() -> None:
@@ -93,7 +109,54 @@ def build() -> None:
         write_json(out / f"{key}.json", indicator_file(
             key, unit, years, {c: to_series(s, years, digits) for c, s in series.items() if s}, **extra,
         ))
+    build_science()
     write_json(out / "manifest.json", {
         "topic": "gender", "generatedAt": now_iso(),
         "source": "World Bank WDI (ILO, IPU); OECD; UNDP HDR; 主計總處; 中選會; 性平處",
     })
+
+
+def _nstc_researchers() -> dict[int, float]:
+    """國科會的全國研究人員：年 → 女性占的比例（%，人數）"""
+    path = download(NSTC_RD, "nstc", "rd-personnel-headcount.csv")
+    out: dict[int, float] = {}
+    for r in csv.DictReader(io.StringIO(path.read_bytes().decode("utf-8-sig"))):
+        if r["執行部門"] != "全國" or r["類別"] != "人數":
+            continue
+        total, women = (float(r[k].replace(",", "")) for k in ("全國研發人力-研究人員", "女性研究人員"))
+        out[int(r["年"])] = women / total * 100
+    return out
+
+
+def build_science() -> None:
+    """STEM 畢業生的女性比例、女性研究人員比例（不用重跑其他指標）"""
+    out = OUT_DIR / "topics" / "gender"
+    stem, _ = worldbank.fetch(STEM, 1998)
+    for iso in STEM_SKIP:
+        stem.pop(iso, None)
+    years = latest_year_span(stem, SCIENCE_WITHIN)
+    write_json(out / "stem-graduates.json", indicator_file(
+        "stem-graduates", "%", years, {c: to_series(v, years, 1) for c, v in stem.items() if v}, latestWithin=SCIENCE_WITHIN,
+    ))
+
+    path = download(UIS_RESEARCHERS, "uis", "FRESP.THC-1990-2025.json")
+    researchers: dict[str, dict[int, float]] = {}
+    for r in json.loads(path.read_text(encoding="utf-8"))["records"]:
+        if r["indicatorId"] == "FRESP.THC" and r["value"] is not None and len(r["geoUnit"]) == 3:
+            researchers.setdefault(r["geoUnit"], {})[int(r["year"])] = float(r["value"])
+    researchers[TAIWAN] = _nstc_researchers()
+    tw_last = max(researchers[TAIWAN])
+    years = latest_year_span(researchers, SCIENCE_WITHIN)
+    write_json(out / "women-researchers.json", indicator_file(
+        "women-researchers", "%", years, {c: to_series(v, years, 1) for c, v in researchers.items() if v},
+        latestWithin=SCIENCE_WITHIN, license="CC BY-SA 4.0",
+        notes={TAIWAN: f"台灣不在 UNESCO 的資料裡，改用國科會研發人力統計的全國研究人員人數自己算（{tw_last} 年 {researchers[TAIWAN][tw_last]:.1f}%）。"},
+        notesEn={TAIWAN: f"Taiwan is not in the UNESCO data; the share is computed from the National Science and Technology Council's "
+                         f"headcount of researchers ({researchers[TAIWAN][tw_last]:.1f}% in {tw_last})."},
+    ))
+    for name, series in (("STEM 畢業生", stem), ("研究人員", researchers)):
+        latest = {c: v[max(v)] for c, v in series.items() if v and max(v) >= 2015}
+        ranked = sorted((round(v, 1), c) for c, v in latest.items())
+        print(f"  女性占{name}（2015 年後最新一年）：{len(latest)} 國，最低 {ranked[:3]}，最高 {ranked[-3:]}，"
+              f"台灣 {round(latest.get(TAIWAN, 0), 1) or '無'}")
+
