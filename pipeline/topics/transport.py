@@ -2,6 +2,10 @@
 
 除了畫在地圖上的路線與機場，也依此計算各國的鐵路長度、鐵路密度與機場數。
 這些都是依地圖資料計算的近似值：Natural Earth 1:10m 鐵路有簡化、可能缺少支線。
+
+航空旅客量（build_air_passengers，2026-10-29）：世界銀行 WDI IS.AIR.PSGR（來源 ICAO，CC BY 4.0），各國註冊的航空公司
+一年載運的旅客（國內加國際，一趟轉機算兩次），與每人搭機次數（÷ WPP 人口）。使用者 2026-10-29 決定：兩個都做；
+WDI 沒有台灣，民航局的機場旅客數（sources/caa.py，口徑不同）放附註，地圖上留白。
 """
 from __future__ import annotations
 
@@ -12,8 +16,9 @@ from datetime import date
 
 import pycountry
 
-from common import OUT_DIR, download, indicator_file, now_iso, write_json
+from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json
 from geoindex import country_at, land_polygons
+from sources import caa, worldbank, wpp
 from sources.countries import ISO3
 from topics import metro
 
@@ -151,6 +156,52 @@ def airports(year: int) -> dict[str, list]:
     return by_country
 
 
+AIR_FIRST_YEAR = 1970
+AIR_LICENSE = "CC BY 4.0"
+
+
+def _air_taiwan_notes(airports: dict[int, dict[str, int]]) -> tuple[str, str]:
+    """台灣的附註：最近一整年與 2019 年（疫情前）民航局統計的機場旅客。"""
+    last = max(airports)
+    a, peak = airports[last], airports[2019]
+    m = lambda v: f"{v / 1e4:,.0f} 萬"  # noqa: E731
+    mn = lambda v: f"{v / 1e6:,.1f} million"  # noqa: E731
+    zh = (f"世界銀行（ICAO）沒有台灣。民航局統計的台灣各機場旅客（入境、出境與過境，國內線在起降兩端各算一次）{last} 年 "
+          f"{m(a['total'])}人次（國際 {m(a['international'])}、兩岸 {m(a['crossStrait'])}、國內 {m(a['domestic'])}），"
+          f"2019 年 {m(peak['total'])}人次；算的是機場的旅客，不是國籍航空公司的載客，跟地圖上的數字不能直接比。")
+    en = (f"The World Bank (ICAO) has no data for Taiwan. Taiwan’s Civil Aeronautics Administration counted {mn(a['total'])} "
+          f"passengers at Taiwan’s airports in {last} (arrivals, departures and transit; domestic passengers are counted at both ends): "
+          f"{mn(a['international'])} international, {mn(a['crossStrait'])} cross-strait and {mn(a['domestic'])} domestic, "
+          f"against {mn(peak['total'])} in 2019. These are airport passengers, not passengers carried by Taiwanese airlines, "
+          f"so they cannot be compared directly with the figures on the map.")
+    return zh, en
+
+
+def build_air_passengers() -> None:
+    """各國註冊的航空公司載運的旅客（人次）與每人搭機次數；台灣留白、附註寫民航局的機場旅客。"""
+    passengers, world = worldbank.fetch("IS.AIR.PSGR", AIR_FIRST_YEAR)
+    pop = wpp.demographic(["TPopulation1July"])["TPopulation1July"]  # 千人
+    last = max(max(s) for s in passengers.values())
+    years = list(range(AIR_FIRST_YEAR, last + 1))
+    per_person = {
+        iso3: {y: v / (pop[iso3][y] * 1000) for y, v in s.items() if pop.get(iso3, {}).get(y)}
+        for iso3, s in passengers.items()
+    }
+    zh, en = _air_taiwan_notes(caa.airport_passengers())
+    extra = {"license": AIR_LICENSE, "notes": {"TWN": zh}, "notesEn": {"TWN": en}}
+    write_json(OUT / "air-passengers.json", indicator_file(
+        "air-passengers", "人次", years, {a: to_series(s, years, 0) for a, s in passengers.items()},
+        aggregates={"WLD": to_series(world, years, 0)}, **extra))
+    world_pp = {y: v / (pop["WLD"][y] * 1000) for y, v in world.items() if pop["WLD"].get(y)}
+    write_json(OUT / "air-trips.json", indicator_file(
+        "air-trips", "次/人", years, {a: to_series(s, years, 3) for a, s in per_person.items() if s},
+        aggregates={"WLD": to_series(world_pp, years, 3)}, **extra))
+    latest = sorted(((s[last], a) for a, s in per_person.items() if last in s), reverse=True)
+    print(f"  航空旅客 {len(passengers)} 國，到 {last} 年；世界 {world[last] / 1e8:,.1f} 億人次（每人 {world_pp[last]:.2f} 次）")
+    print(f"  每人搭機最多 {[(a, round(v, 1)) for v, a in latest[:8]]}")
+    print(f"  台灣附註：{zh}")
+
+
 def build() -> None:
     year = date.today().year
     lengths = railways(year)
@@ -163,8 +214,9 @@ def build() -> None:
             "airports": [{"name": r[3], "iata": r[4], "city": r[5], "large": r[2] == 1} for r in ports],
             **rail.get(iso3, {}),
         }, quiet=True)
+    build_air_passengers()
     write_json(OUT / "manifest.json", {
         "topic": "transport",
         "generatedAt": now_iso(),
-        "source": "Natural Earth 1:10m railroads v5.1.2; OurAirports",
+        "source": "Natural Earth 1:10m railroads v5.1.2; OurAirports; World Bank WDI IS.AIR.PSGR (ICAO); 交通部民用航空局",
     })
