@@ -587,6 +587,11 @@ export interface LinesOverlayDef extends OverlayBase {
     outline?: false | number[];
     /** 依分類代碼的不透明度 { 代碼: [淺色底圖, 深色底圖] }，沒列的用 opacity、darkOpacity（2026-10-28 起） */
     typeOpacity?: Record<number, [number, number]>;
+    /**
+     * 面本身也給 hover 查詢（2026-10-29 起，山脈）：滑到面裡面就出現那一組的 tooltip、加深那一組，不必剛好滑到外框；
+     * 面底下的國家滑不到（點一下照樣選國家）。要有 tooltip
+     */
+    hover?: boolean;
   };
   /** 線的不透明度，取代預設的淺色底圖 0.8、深色底圖 0.9（日食其他年份的中心線畫得很淡，2026-10-28 起） */
   opacity?: number;

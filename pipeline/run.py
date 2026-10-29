@@ -195,6 +195,9 @@ STEPS = {
     # 鐵路軌距（交通主題）：CIA 世界概況的各軌距公里數（factbook.json 鏡像，最新版只有總長的國家用 2022-12-29 的版本），
     # 兩版都沒有的用英文維基百科；約 1 分鐘（第一次逐檔下載約 170 個小 JSON）
     "rail-gauge": "topics.rail_gauge",
+    # 山脈（海拔主題）：GMBA Mountain Inventory v2 的 291 個主要山系（EarthEnv，約 32 MB 的 zip），範圍、名稱、
+    # 各國國土在山區的比例（0.025° 網格）；要先跑 geo 步驟；約 2 分鐘
+    "mountains": "topics.mountains",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

@@ -22,6 +22,12 @@ interface Profile {
   low: Point;
 }
 
+/** pipeline/topics/mountains.py 的 mountain-ranges.json：山系 [英文, 中文]，每國面積最大的幾個 [山系的索引, 在這一國的面積 km²] */
+interface Ranges {
+  ranges: [string, string | null][];
+  countries: Record<string, [number, number][]>;
+}
+
 /** 有 zh、en 的是 Wikidata 的具名地點；沒有的是 DEM 網格的最高、最低格 */
 interface Point {
   e: number;
@@ -49,6 +55,11 @@ const TEXT = defineMessages({
     unnamedLow: '網格的最低格（未命名）',
     at: (lat: string, lon: string) => `位置 ${lat}、${lon}`,
     pointsNote: '名稱與標高來自 Wikidata；沒有名稱的是 GMTED2010 網格的值（網格會把山頂平均掉，比實際低）。',
+    ranges: '主要山脈',
+    rangesAria: (country: string) => `${country}境內面積最大的山系`,
+    km2: (v: number) => `${n0(v)} 平方公里`,
+    noRanges: '境內沒有 GMBA 的山區。',
+    rangesNote: 'GMBA 山脈名錄 v2 的主要山系在境內的面積；以島嶼命名的只算島上的山區。',
   },
   en: {
     profile: 'Elevation profile',
@@ -63,6 +74,11 @@ const TEXT = defineMessages({
     unnamedLow: 'Lowest grid cell (unnamed)',
     at: (lat, lon) => `At ${lat}, ${lon}`,
     pointsNote: 'Names and heights come from Wikidata; unnamed points are GMTED2010 grid values (grids smooth out summits, so they read low).',
+    ranges: 'Main mountain ranges',
+    rangesAria: (country) => `Largest mountain systems in ${country}`,
+    km2: (v) => `${n0(v)} km²`,
+    noRanges: 'No GMBA mountain areas in this country.',
+    rangesNote: 'Area within the country of the major systems in the GMBA Mountain Inventory v2; systems named after islands count only their mountainous parts.',
   },
 });
 
@@ -124,6 +140,29 @@ export default function ElevationPanel({ topic, iso3, countryName }: PanelExtraP
         {point(profile.low, 'low')}
       </div>
       <p className="note">{text.pointsNote}</p>
+      <MountainRanges topic={topic.id} iso3={iso3} countryName={countryName} />
     </section>
+  );
+}
+
+function MountainRanges({ topic, iso3, countryName }: { topic: string; iso3: string; countryName: string }) {
+  const lang = useLang();
+  const text = TEXT[lang];
+  const { data } = useJson<Ranges>(`topics/${topic}/mountain-ranges.json`);
+  if (!data) return null;
+  const items = (data.countries[iso3] ?? []).map(([i, area]) => {
+    const [en, zh] = data.ranges[i];
+    return { key: String(i), label: lang === 'zh' && zh ? zh : en, value: area };
+  });
+  return (
+    <>
+      <h3>{text.ranges}</h3>
+      {items.length > 0 ? (
+        <BarList items={items} format={text.km2} ariaLabel={text.rangesAria(countryName)} />
+      ) : (
+        <p className="empty">{text.noRanges}</p>
+      )}
+      <p className="note">{text.rangesNote}</p>
+    </>
   );
 }

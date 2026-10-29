@@ -1,6 +1,7 @@
-import { tr } from '../i18n/lang';
+import { getLang, tr } from '../i18n/lang';
 import { fixed, formatPercent } from '../lib/format';
-import type { IndicatorDef, TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
 
 const M = { zh: '公尺', en: 'm' };
 const PERCENT = '%';
@@ -26,6 +27,25 @@ function above(threshold: number): IndicatorDef {
   };
 }
 
+/** 山系的名稱（pipeline/topics/mountains.py：n 英文、z 中文）：中文介面用中文，英文介面用英文 */
+function rangeName(p: PointRecord): string {
+  return getLang() === 'zh' && typeof p.z === 'string' && p.z ? p.z : String(p.n ?? '');
+}
+
+function rangeTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
+  const countries = typeof p.c === 'string' && p.c ? p.c.split(',') : [];
+  const shown = countries.slice(0, 4).map((c) => ctx.countryName(c));
+  const more = countries.length - shown.length;
+  const where = more > 0 ? tr({ zh: `${shown.join('、')}等 ${countries.length} 國`, en: `${shown.join(', ')} and ${more} more` }) : shown.join(tr({ zh: '、', en: ', ' }));
+  const name = rangeName(p);
+  return {
+    title: name,
+    detail: typeof p.s === 'number' ? tr({ zh: `山區面積 ${fixed(p.s, 0)} 平方公里`, en: `Mountain area ${fixed(p.s, 0)} km²` }) : undefined,
+    extra: where ? [where] : undefined,
+    properNoun: getLang() === 'zh' && name !== p.n ? String(p.n ?? '') : undefined,
+  };
+}
+
 export const elevation: TopicDefinition = {
   id: 'elevation',
   title: { zh: '各國海拔與地形', en: 'Elevation and terrain by country' },
@@ -46,6 +66,11 @@ export const elevation: TopicDefinition = {
       license: 'CC0',
     },
     {
+      name: { zh: 'GMBA 山脈名錄 v2（291 個主要山系）', en: 'GMBA Mountain Inventory v2 (291 major mountain systems)' },
+      url: 'https://www.earthenv.org/mountains',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '內政部 100 公尺數值高程模型（台灣交叉比對）', en: 'Ministry of the Interior 100 m DEM (Taiwan cross-check)' },
       url: 'https://data.gov.tw/dataset/7507',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
@@ -60,6 +85,33 @@ export const elevation: TopicDefinition = {
     zh: '統計用 GMTED2010 的 1 公里網格（主要來自 2000 年的 SRTM 雷達測高，量的是地表，含樹冠與建築），每格依緯度換算成實際面積；國界是地圖用的 Natural Earth 1:50m 簡化國界，法國海外省等依聯合國的劃分分開計算。網格會把山頂平均掉，所以最高點優先用 Wikidata 的標高（DEM 對得上才採用）。沿海低地是海拔低於 5 公尺、而且跟海相連的陸地，裏海窪地這類內陸窪地不算。',
     en: 'Statistics use the 1 km GMTED2010 grid (mostly from the 2000 SRTM radar survey, which measures the surface including tree canopy and buildings), with each cell weighted by its true area; borders are the simplified Natural Earth 1:50m borders used on the map, with French overseas departments and similar areas split out as in UN statistics. Grids smooth out summits, so highest points use Wikidata heights where the DEM agrees. Low-lying coastal land is land below 5 m that is connected to the sea; inland depressions such as the Caspian Depression are excluded.',
   },
+  overlays: [
+    {
+      kind: 'lines',
+      id: 'mountains',
+      file: 'mountains.json',
+      label: { zh: '山脈（GMBA）', en: 'Mountain ranges (GMBA)' },
+      width: 0.6,
+      color: MAP_TOKENS.ink,
+      opacity: 0.45,
+      fill: { field: 'f', value: 1, opacity: 0.12, darkOpacity: 0.16, holeField: 'k', hover: true },
+      groupField: 'r',
+      tooltip: rangeTooltip,
+      indicators: ['terrain', 'mountain'],
+    },
+    {
+      kind: 'points',
+      id: 'mountain-names',
+      file: 'mountain-labels.json',
+      label: { zh: '山脈的名稱', en: 'Mountain range names' },
+      radius: 0,
+      color: MAP_TOKENS.ink,
+      sortField: 's',
+      pointLabel: rangeName,
+      tooltip: rangeTooltip,
+      indicators: ['terrain', 'mountain'],
+    },
+  ],
   panelExtra: () => import('./panels/ElevationPanel'),
   indicators: [
     {
@@ -73,6 +125,19 @@ export const elevation: TopicDefinition = {
       file: 'mean.json',
       layer: { kind: 'terrain' },
       format: (v) => tr({ zh: `平均海拔 ${metres(v)}`, en: `Mean elevation: ${metres(v)}` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'mountain',
+      label: { zh: '國土在山區的比例', en: 'Land in mountain areas' },
+      description: {
+        zh: '國土落在 GMBA 山區裡的比例。GMBA 依地形起伏（附近的高低差）劃出山區，不只看海拔：高原上平坦的地方不算，低海拔的陡峭丘陵也算。不丹 99%、尼泊爾 81%、瑞士 68%、台灣 64%、日本 54%，荷蘭是 0。灰色的範圍是 291 個主要山系，滑過看名稱；以島嶼、群島命名的只包括島上的山區。',
+        en: 'Share of the country’s land inside GMBA mountain areas. GMBA draws mountains by ruggedness (local differences in elevation), not altitude alone: flat plateaus are excluded and steep low hills are included. Bhutan 99%, Nepal 81%, Switzerland 68%, Taiwan 64%, Japan 54%; the Netherlands 0. The grey areas are 291 major mountain systems; hover for names. Systems named after islands or archipelagos cover only their mountainous parts.',
+      },
+      unit: PERCENT,
+      file: 'mountain.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 60, 80] } },
+      format: share,
       formatTick: (v) => fixed(v, 0),
     },
     {
