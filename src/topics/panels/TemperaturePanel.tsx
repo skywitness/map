@@ -1,20 +1,11 @@
 import { useMemo } from 'react';
-import * as echarts from 'echarts/core';
-import { BarChart, type BarSeriesOption, type LineSeriesOption } from 'echarts/charts';
-import type { GridComponentOption, LegendComponentOption, TooltipComponentOption } from 'echarts/components';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import type { Tokens } from '../../theme/tokens';
 import type { PanelExtraProps } from '../types';
 
-// 共用的 EChart 只註冊了折線圖；降雨的長條圖在這裡按需加上（echarts.use 是全域註冊，只會加一次）
-echarts.use([BarChart]);
-
-type MonthlyOption = echarts.ComposeOption<
-  BarSeriesOption | LineSeriesOption | GridComponentOption | LegendComponentOption | TooltipComponentOption
->;
 
 /** pipeline/topics/temperature.py 的 write_monthly() 輸出 */
 interface MonthlyFile {
@@ -111,7 +102,6 @@ export default function TemperaturePanel({ topic, iso3, year, countryName, token
       color: tokens.hues.orange,
       format: celsius,
       tick: (v) => `${v < 0 ? '−' : ''}${fixed(Math.abs(v), Number.isInteger(v) ? 0 : 1)}`,
-      tokens,
     });
     const rainOption = monthlyOption({
       months: text.months,
@@ -122,7 +112,6 @@ export default function TemperaturePanel({ topic, iso3, year, countryName, token
       color: tokens.hues.blue,
       format: mm,
       tick: (v) => fixed(v, 0),
-      tokens,
     });
     return {
       shownYear,
@@ -155,9 +144,9 @@ export default function TemperaturePanel({ topic, iso3, year, countryName, token
         {text.summary(view.yearLabel, celsius(view.yearAnnual.tmp), view.mm(view.yearAnnual.pre))}
       </p>
       <h4>{text.temperature}</h4>
-      <EChart option={view.tempOption} height={170} ariaLabel={text.tempAria(countryName, view.shownYear, a, b)} />
+      <Chart spec={view.tempOption} height={170} ariaLabel={text.tempAria(countryName, view.shownYear, a, b)} />
       <h4>{text.precipitation}</h4>
-      <EChart option={view.rainOption} height={170} ariaLabel={text.rainAria(countryName, view.shownYear, a, b)} />
+      <Chart spec={view.rainOption} height={170} ariaLabel={text.rainAria(countryName, view.shownYear, a, b)} />
       <table className="mini-table" aria-label={text.tableCaption(countryName)}>
         <thead>
           <tr>
@@ -202,105 +191,33 @@ interface MonthlyInput {
   color: string;
   format: (v: number) => string;
   tick: (v: number) => string;
-  tokens: Tokens;
 }
 
 /**
  * 一年 12 個月：氣候平均值（灰色）與選定年份（彩色）。氣溫、降雨分成兩張圖，各自一個 y 軸：
  * 不畫成雙 y 軸的氣候圖，兩個刻度疊在一起很難讀。
  */
-function monthlyOption({ months, kind, normal, year, names, color, format, tick, tokens }: MonthlyInput): ChartOption {
-  const series: (LineSeriesOption | BarSeriesOption)[] =
-    kind === 'line'
-      ? [
-          {
-            type: 'line',
-            name: names.normal.name,
-            data: normal,
-            color: names.normal.color,
-            lineStyle: { width: 2, type: [4, 3], color: names.normal.color },
-            showSymbol: false,
-            emphasis: { disabled: true },
-          },
-          {
-            type: 'line',
-            name: names.year.name,
-            data: year,
-            color,
-            lineStyle: { width: 2, color },
-            symbol: 'circle',
-            symbolSize: 6,
-            emphasis: { disabled: true },
-            z: 3,
-          },
-        ]
-      : [
-          {
-            type: 'bar',
-            name: names.normal.name,
-            data: normal,
-            color: names.normal.color,
-            itemStyle: { color: names.normal.color, borderRadius: [3, 3, 0, 0] },
-            barGap: '15%',
-            barCategoryGap: '30%',
-            emphasis: { disabled: true },
-          },
-          {
-            type: 'bar',
-            name: names.year.name,
-            data: year,
-            color,
-            itemStyle: { color, borderRadius: [3, 3, 0, 0] },
-            emphasis: { disabled: true },
-          },
-        ];
-
-  const option: MonthlyOption = {
-    animation: false,
-    grid: { left: 4, right: 8, top: 28, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    legend: {
-      top: 0,
-      left: 0,
-      textStyle: { color: tokens.inkSecondary, fontSize: 12 },
-      itemWidth: 14,
-      itemHeight: kind === 'line' ? 2 : 8,
-      selectedMode: false,
-    },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: kind === 'line' ? { type: 'line', lineStyle: { color: tokens.axis, width: 1 } } : { type: 'shadow' },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params) => {
-        const list = Array.isArray(params) ? params : [params];
-        const head = escapeHtml(String((list[0] as { axisValue?: string }).axisValue ?? ''));
-        const rows = list.map(
-          (p) =>
-            `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-            `<strong>${escapeHtml(format(p.value as number))}</strong>` +
-            `<span class="tt-name">${escapeHtml(p.seriesName ?? '')}</span></div>`,
-        );
-        return `<div class="tt-head">${head}</div>${rows.join('')}`;
-      },
-    },
-    xAxis: {
-      type: 'category',
-      data: months,
-      boundaryGap: kind === 'bar',
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, interval: 1 },
-    },
-    yAxis: {
-      type: 'value',
-      // 氣溫不必從 0 開始（熱帶國家整年 25–28 °C，從 0 開始就看不出季節變化）；長條圖一定從 0 開始
-      scale: kind === 'line',
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => tick(v) },
-    },
-    series,
+function monthlyOption({ months, kind, normal, year, names, color, format, tick }: MonthlyInput): ChartSpec {
+  return {
+    x: { type: 'category', labels: months, showLabel: (i) => i % 2 === 0 },
+    // 氣溫不必從 0 開始（熱帶國家整年 25–28 °C，從 0 開始就看不出季節變化）；長條圖一定從 0 開始
+    y: { format: tick, zero: kind === 'bar' },
+    series:
+      kind === 'line'
+        ? [
+            { type: 'line', name: names.normal.name, values: normal, color: names.normal.color, dashed: true },
+            { type: 'line', name: names.year.name, values: year, color, dots: true },
+          ]
+        : [
+            { type: 'bar', name: names.normal.name, values: normal, color: names.normal.color },
+            { type: 'bar', name: names.year.name, values: year, color },
+          ],
+    tooltip: (i) => ({
+      head: months[i],
+      rows: [
+        { color: names.normal.color, value: format(normal[i]), name: names.normal.name, box: kind === 'bar' },
+        ...(year[i] != null ? [{ color, value: format(year[i]), name: names.year.name, box: kind === 'bar' }] : []),
+      ],
+    }),
   };
-  return option as unknown as ChartOption;
 }

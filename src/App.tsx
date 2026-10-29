@@ -1,16 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type RefObject } from 'react';
-import type { Topology } from 'topojson-specification';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
 import { ClampedText } from './controls/ClampedText';
-import { CommandPalette, type PaletteAction } from './controls/CommandPalette';
+import type { PaletteAction } from './controls/CommandPalette';
 import { ShareMenu } from './controls/ShareMenu';
-import { ShortcutHelp } from './controls/ShortcutHelp';
+import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
-import { TopicNav } from './controls/TopicNav';
-import { LangSwitch } from './controls/LangSwitch';
 import { MomentControl } from './controls/MomentControl';
-import { localize, LOCALES, setLang, useLang, useT, type Lang } from './i18n';
+import { localize, setLang, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { rememberTopic } from './lib/recentTopics';
@@ -20,41 +17,22 @@ import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMom
 import { indicatorCsv } from './lib/csv';
 import { derivedData } from './lib/derive';
 import { useLive } from './lib/live';
-import { loadClassGrid, type ClassGrid } from './map/classGridLayer';
-import { decodeWindField, type WindField, type WindFieldFile } from './map/windLayer';
-import { dataUrl, fetchJson, prefetchJson, useJson, useJsonMany } from './lib/data';
+import { fetchJson, prefetchJson, useJson } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, useUrlState, type ViewState } from './lib/url-state';
-import {
-  buildGridIndex,
-  gridInBox,
-  landAreaInBox,
-  type Box,
-  type PopulationGrid,
-} from './map/boxEstimate';
+import { currentHref, read as readUrlState, useUrlState } from './lib/url-state';
+import type { Box } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
-import { countryLocator, toCountryFeatures, type CountryFeature } from './map/geometry';
+import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
-import {
-  concatLines,
-  decodeLines,
-  decodePoints,
-  decodeRailways,
-  DEFAULT_LAYERS,
-  overlayVisible,
-  type DecodedLines,
-  type LayerVisibility,
-  type OverlayLayer,
-} from './map/Overlays';
+import { DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
 import { loadBaseStyle } from './map/style';
-import { MoonIcon, SunIcon } from './map/MapIcons';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
-import { BoxResult, type BoxContribution } from './panels/BoxResult';
+import { BoxResult } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
 import { RankingTable } from './panels/RankingTable';
@@ -71,23 +49,27 @@ import {
   sameTimeAxis,
   usesDimension,
   yearBin,
-  type AirportsData,
   type ClockAt,
-  type Indicator,
   type IndicatorData,
-  type LinesData,
   type MapMark,
-  type PointRecord,
-  type PointsData,
-  type RailwaysData,
-  type Topic,
   type TopicDefinition,
 } from './topics/types';
 import { initialThemeMode, useTheme } from './theme/useTheme';
-import { flagAspect, flagUrl, type FlagsFile } from './topics/flagImages';
-import type { FlagSpec } from './map/flagTiles';
+import {
+  GEO_COARSE,
+  useBoxEstimate,
+  useCountryFeatures,
+  useFitMap,
+  useFlagSpecs,
+  useNow,
+  useTopicReady,
+} from './app/hooks';
+import { groupOptions, pickYear } from './app/options';
+import { useOverlays } from './app/overlays';
+import { TopBar } from './app/TopBar';
+import { Footer } from './app/Footer';
 
-// 側欄的 ECharts 佔了大部分 JS，點國家時才載入，地圖可以先出來
+// 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
 
 // MapLibre（約 1 MB）放在自己的 chunk。首頁程式一跑起來就同時開始下載地圖程式和底圖樣式，
@@ -96,13 +78,6 @@ const worldMapModule = import('./map/WorldMap');
 const WorldMap = lazy(() => worldMapModule.then((m) => ({ default: m.WorldMap })));
 // 失敗時 WorldMap 會重抓並顯示錯誤
 loadBaseStyle(getBasemap(readStoredBasemap() ?? defaultBasemap(initialThemeMode() === 'dark')).url).catch(() => {});
-
-/**
- * 國界：全球視角用 1:110m（gzip 後約 45 KB，解析也快，補上了新加坡、巴林等 1:110m 原本沒有的小國），
- * 放大超過全球視角才換成 1:50m（約 230 KB，放大後比較精細；2026-10-29 以前是地圖畫出資料之後一定載入）。
- */
-const GEO_COARSE = 'geo/countries-110m.json';
-const GEO_DETAILED = 'geo/countries-50m.json';
 
 // 第一個畫面要用的檔案，程式一載入就發出請求：不等 React 第一次 render，也不等 MapLibre 解析完。
 // 之後 useJson 拿到的是同一個請求（fetchJson 有快取）
@@ -144,30 +119,6 @@ const MAX_SEGMENTS = 5;
 
 interface Manifest {
   generatedAt: string;
-}
-
-/**
- * 網址換到還沒下載定義的主題時（選單、搜尋、上一頁），先照舊顯示目前的主題，定義下載完再換過去
- * （一個主題 3–15 KB；選單滑過就預先下載）。第一個畫面在 main.tsx 等網址的主題下載完才畫
- */
-function useTopicReady(live: ViewState): ViewState {
-  const [, rerender] = useReducer((n: number) => n + 1, 0);
-  const ready = loadedTopic(live.topic) !== null;
-  const shown = useRef(live);
-  if (ready) shown.current = live;
-  useEffect(() => {
-    if (ready) return;
-    let cancelled = false;
-    // 下載失敗（離線又沒有快取）時留在目前的主題
-    loadTopic(live.topic).then(
-      () => !cancelled && rerender(),
-      () => {},
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [ready, live.topic]);
-  return shown.current;
 }
 
 export function App() {
@@ -229,8 +180,9 @@ export function App() {
     [clock, shownTime, liveTime],
   );
   // 在瀏覽器裡算的指標（IndicatorDef.derive）：材料是資料檔，依這一刻算出各國的值；其他指標原樣
-  // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔
-  const sourceData = indicator.derive && source.loading ? null : source.data;
+  // 載入中 source.data 還是上一個檔（換主題時是別的主題的），在瀏覽器裡算的指標要等自己的檔。
+  // 載入失敗時也不畫上一個檔（2026-10-29 以前離線換主題，地圖與最高、最低照畫上一個主題的數字、套上新指標的單位）
+  const sourceData = (indicator.derive && source.loading) || source.error ? null : source.data;
   // 即時主題的指標要等即時資料（null 是還沒讀到）
   const liveData = liveDef ? live.data : undefined;
   // 即時資料讀不到、手上也沒有上一份時才算載入失敗（有上一份就照舊畫，下一輪再試）
@@ -406,6 +358,12 @@ export function App() {
     [gridSpec, gridWanted, gridMeta.data, year],
   );
   const mapTitle = grid ? G.title(indicatorTitle) : indicatorTitle;
+  // 分頁標題跟著指標與選取的國家（2026-10-29），書籤、瀏覽紀錄、分頁列才分得出來：「總生育率 · 台灣 · 世界資料地圖」
+  const selectedName = state.country && !pure ? countryName(state.country, countries) : null;
+  const pageTitle = [pure ? topic.title : mapTitle, selectedName, t.pageTitle].filter(Boolean).join(' · ');
+  useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
   // 正負變化的說明寫了顏色（「橘色為衰退、綠色為成長」），使用者換了發散色就跟著換（palettes.ts）
   const palette = usePalette();
   const layer = indicator.layer;
@@ -566,749 +524,315 @@ export function App() {
   };
 
   return (
-    <div className="app" ref={appRef}>
-      <header className="topbar">
-        <h1 className="brand">{t.brand}</h1>
-        {!online && (
-          <span className="offline-badge" role="status" title={t.offlineHint}>
-            {t.offline}
-          </span>
-        )}
-        <TopicNav
-          current={topic}
-          onSelect={(id) => update({ topic: id, indicator: null, item: null, grid: null, time: null })}
-          onSelectTarget={selectTopic}
-          overviewOpen={overviewOpen}
-          onOverviewChange={setOverviewOpen}
-        />
-        <CommandPalette
-          index={searchIndex}
-          currentTopic={topic.id}
-          onSelectCountry={selectFromSearch}
-          onSelectTopic={selectTopic}
-          actions={paletteActions}
-        />
-        <LangSwitch />
-        <ShortcutHelp />
-        <button
-          type="button"
-          className="icon-button theme-toggle"
-          onClick={toggleTheme}
-          aria-label={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
-          title={tokens.mode === 'dark' ? t.switchToLight : t.switchToDark}
-        >
-          {tokens.mode === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
-      </header>
+    <div className={`app${state.embed ? ' is-embed' : ''}`} ref={appRef}>
+      <TopBar
+        topic={topic}
+        embed={state.embed}
+        online={online}
+        onSelectTopic={(id) => update({ topic: id, indicator: null, item: null, grid: null, time: null })}
+        onSelectTarget={selectTopic}
+        overviewOpen={overviewOpen}
+        onOverviewChange={setOverviewOpen}
+        searchIndex={searchIndex}
+        onSelectCountry={selectFromSearch}
+        paletteActions={paletteActions}
+        themeMode={tokens.mode}
+        onToggleTheme={toggleTheme}
+      />
 
-      <div className="controls">
-        <div className="controls-left">
-          {pure && <h2 className="page-title">{topic.title}</h2>}
-          {!pure && dimension && usesDimension(indicator) && (
-            <label className="select-field">
-              <span>{dimension.label}</span>
-              <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
-                {groupOptions(dimension.options, dimension.followsSelection ? lang : null).map(([group, options]) =>
-                  group ? (
-                    <optgroup key={group} label={group}>
-                      {options.map((o) => (
+      {/* 控制列、說明、地圖、時間軸都在 <main> 裡（axe 的 region：內容都要在某個 landmark 裡，2026-10-29）；
+          display: contents，版面照舊由 .app 排 */}
+      <main className="app-main">
+        <div className="controls">
+          <div className="controls-left">
+            {pure && <h2 className="page-title">{topic.title}</h2>}
+            {!pure && dimension && usesDimension(indicator) && (
+              <label className="select-field">
+                <span>{dimension.label}</span>
+                <select value={item ?? ''} onChange={(e) => update({ item: e.target.value })}>
+                  {groupOptions(dimension.options, dimension.followsSelection ? lang : null).map(([group, options]) =>
+                    group ? (
+                      <optgroup key={group} label={group}>
+                        {options.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      options.map((o) => (
                         <option key={o.id} value={o.id}>
                           {o.label}
                         </option>
-                      ))}
-                    </optgroup>
-                  ) : (
-                    options.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.label}
-                      </option>
-                    ))
-                  ),
-                )}
-              </select>
-            </label>
-          )}
-          {pure ? null : topic.indicators.length > MAX_SEGMENTS || (narrow && topic.indicators.length > 2) ? (
-            <label className="select-field is-indicator">
-              <span>{t.indicator}</span>
-              <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
+                      ))
+                    ),
+                  )}
+                </select>
+              </label>
+            )}
+            {pure ? null : topic.indicators.length > MAX_SEGMENTS || (narrow && topic.indicators.length > 2) ? (
+              <label className="select-field is-indicator">
+                <span>{t.indicator}</span>
+                <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
+                  {topic.indicators.map((ind) => (
+                    <option key={ind.id} value={ind.id}>
+                      {ind.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <div className="indicator-picker" role="radiogroup" aria-label={t.indicator}>
                 {topic.indicators.map((ind) => (
-                  <option key={ind.id} value={ind.id}>
+                  <button
+                    key={ind.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={ind.id === indicator.id}
+                    className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
+                    onClick={() => chooseIndicator(ind.id)}
+                  >
                     {ind.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
-            </label>
-          ) : (
-            <div className="indicator-picker" role="radiogroup" aria-label={t.indicator}>
-              {topic.indicators.map((ind) => (
-                <button
-                  key={ind.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={ind.id === indicator.id}
-                  className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
-                  onClick={() => chooseIndicator(ind.id)}
-                >
-                  {ind.label}
-                </button>
-              ))}
-            </div>
-          )}
-          {gridSpec && !gridOnly && view === 'map' && (
-            <div className="grid-toggle" role="radiogroup" aria-label={G.mode}>
-              {[false, true].map((on) => (
-                <button
-                  key={String(on)}
-                  type="button"
-                  role="radio"
-                  aria-checked={gridOn === on}
-                  className={`segment${gridOn === on ? ' is-active' : ''}`}
-                  onClick={() => update({ grid: on })}
-                >
-                  {on ? G.name : G.countryAverage}
-                </button>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+            {gridSpec && !gridOnly && view === 'map' && (
+              <div className="grid-toggle" role="radiogroup" aria-label={G.mode}>
+                {[false, true].map((on) => (
+                  <button
+                    key={String(on)}
+                    type="button"
+                    role="radio"
+                    aria-checked={gridOn === on}
+                    className={`segment${gridOn === on ? ' is-active' : ''}`}
+                    onClick={() => update({ grid: on })}
+                  >
+                    {on ? G.name : G.countryAverage}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="controls-right">
+            <CountrySearch
+              compact={narrow}
+              index={searchIndex}
+              onSelect={selectFromSearch}
+              onSelectTopic={selectTopic}
+              valueOf={
+                pure
+                  ? undefined
+                  : (iso3) => {
+                      const v = values.get(iso3);
+                      return v !== undefined ? indicator.format(v, valueYears.get(iso3) ?? year) : null;
+                    }
+              }
+            />
+            {!pure && (
+              <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
+                {(['map', 'table'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    role="radio"
+                    aria-checked={view === v}
+                    className={`segment${view === v ? ' is-active' : ''}`}
+                    onClick={() => update({ view: v })}
+                  >
+                    {v === 'map' ? t.viewMap : t.viewTable}
+                  </button>
+                ))}
+              </div>
+            )}
+            <ShareMenu
+              shareTitle={t.shareTitle(viewTitle)}
+              onDownloadImage={view === 'map' ? downloadImage : undefined}
+              csv={
+                data && !pure
+                  ? { year: timeless || at ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
+                  : undefined
+              }
+            />
+          </div>
         </div>
-        <div className="controls-right">
-          <CountrySearch
-            compact={narrow}
-            index={searchIndex}
-            onSelect={selectFromSearch}
-            onSelectTopic={selectTopic}
-            valueOf={
-              pure
-                ? undefined
-                : (iso3) => {
-                    const v = values.get(iso3);
-                    return v !== undefined ? indicator.format(v, valueYears.get(iso3) ?? year) : null;
-                  }
-            }
-          />
-          {!pure && (
-            <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
-              {(['map', 'table'] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="radio"
-                  aria-checked={view === v}
-                  className={`segment${view === v ? ' is-active' : ''}`}
-                  onClick={() => update({ view: v })}
-                >
-                  {v === 'map' ? t.viewMap : t.viewTable}
-                </button>
-              ))}
-            </div>
-          )}
-          <ShareMenu
-            shareTitle={t.shareTitle(viewTitle)}
-            onDownloadImage={view === 'map' ? downloadImage : undefined}
-            csv={
-              data && !pure
-                ? { year: timeless || at ? null : year, onDownloadYear: () => downloadCsv(true), onDownloadAll: () => downloadCsv(false) }
-                : undefined
-            }
-          />
-        </div>
-      </div>
-      <ClampedText key={description} text={description} className="indicator-desc" />
+        <ClampedText key={description} text={description} className="indicator-desc" />
 
-      <main className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
-        <div className="stage-main">
-          {error && <p className="error">{t.loadFailed(error.message)}</p>}
-          {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
-          {view === 'map' && !pure && (!timeless || at) && (
-            // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
-            <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
-              {at ? formatMoment(at.time) : (yearText ?? year)}
-              {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
-            </div>
-          )}
-          {view === 'map' ? (
-            // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
-            <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
-              {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
-              <WorldMap
-                ref={mapHandle}
-                countries={features ?? NO_FEATURES}
-                countryTable={countries}
-                onPickCountry={pure ? undefined : selectFromSearch}
-                places={placeAnchors}
+        <div className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
+          <div className="stage-main">
+            {error && (
+              // 離線而這個主題還沒存到裝置（service worker 只快取看過的資料）跟一般的失敗分開說
+              <StatusCard
+                overlay
+                kind={online ? 'error' : 'offline'}
+                title={online ? t.dataFailedTitle : t.offlineNotSavedTitle}
+                detail={online ? t.loadFailed(error.message) : t.offlineNotSavedHint}
+                action={{ label: t.retry, onClick: () => location.reload() }}
+              />
+            )}
+            {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
+            {view === 'map' && !pure && (!timeless || at) && (
+              // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
+              <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
+                {at ? formatMoment(at.time) : (yearText ?? year)}
+                {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
+              </div>
+            )}
+            {view === 'map' ? (
+              // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
+              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+                {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
+                <WorldMap
+                  ref={mapHandle}
+                  countries={features ?? NO_FEATURES}
+                  countryTable={countries}
+                  onPickCountry={pure ? undefined : selectFromSearch}
+                  places={placeAnchors}
+                  indicator={indicator}
+                  legendTitle={indicatorTitle}
+                  values={values}
+                  bubbleMax={bubbleMax}
+                  tokens={tokens}
+                  selected={state.country}
+                  onSelect={selectCountry}
+                  renderTooltip={renderTooltip}
+                  ariaLabel={
+                    pure
+                      ? t.worldMapAria
+                      : yearText
+                        ? t.mapAria(null, t.withYear(mapTitle, yearText), projected)
+                        : t.mapAria(timeless ? null : year, mapTitle, projected)
+                  }
+                  basemap={basemap}
+                  onBasemapChange={chooseBasemap}
+                  fitOnSelect={pure}
+                  onFirstData={onMapShown}
+                  onDetailNeeded={wantDetail}
+                  threeD={state.threeD}
+                  onThreeDChange={setThreeD}
+                  terrain={topic.terrain}
+                  bareMap={topic.bareMap}
+                  focus={focusRequest}
+                  grid={grid}
+                  gridFailed={gridWanted && gridMeta.error !== null}
+                  dimmed={loading && data !== null}
+                  box={topic.boxEstimate ? state.box : null}
+                  onBoxChange={topic.boxEstimate ? setBox : undefined}
+                  boxToolLabel={topic.boxEstimate && t.boxToolFor(topic.boxEstimate.label)}
+                  railways={railways}
+                  airports={airports}
+                  layers={layers}
+                  onLayersChange={setLayers}
+                  renderAirportTooltip={renderAirportTooltip}
+                  overlays={overlays}
+                  year={year}
+                  time={at?.time ?? null}
+                  renderPointTooltip={renderPointTooltip}
+                  flows={flows}
+                  flags={flagSpecs}
+                  onViewChange={wantsView ? setMapView : undefined}
+                  lineHighlight={shownHighlight}
+                  focusBox={focusBox}
+                  pointer={pure ? undefined : pointer}
+                  marks={shownMarks}
+                  overlay={
+                    boxResult && (
+                      <BoxResult
+                        label={boxResult.label}
+                        unit={boxResult.unit}
+                        year={year}
+                        total={boxResult.total}
+                        landKm2={boxResult.landKm2}
+                        contributions={boxResult.contributions}
+                        grid={boxResult.grid}
+                        countries={countries}
+                        onClear={() => setBox(null)}
+                      />
+                    )
+                  }
+                />
+              </Suspense>
+            ) : (
+              <RankingTable
                 indicator={indicator}
-                legendTitle={indicatorTitle}
+                title={indicatorTitle}
                 values={values}
-                bubbleMax={bubbleMax}
-                tokens={tokens}
+                valueYears={valueYears}
+                latestWithin={data?.latestWithin}
+                world={world}
+                previous={timeless ? null : previous}
+                year={timeless ? null : year}
+                yearText={timeless ? undefined : yearText}
+                countries={countries}
                 selected={state.country}
                 onSelect={selectCountry}
-                renderTooltip={renderTooltip}
-                ariaLabel={
-                  pure
-                    ? t.worldMapAria
-                    : yearText
-                      ? t.mapAria(null, t.withYear(mapTitle, yearText), projected)
-                      : t.mapAria(timeless ? null : year, mapTitle, projected)
-                }
-                basemap={basemap}
-                onBasemapChange={chooseBasemap}
-                fitOnSelect={pure}
-                onFirstData={onMapShown}
-                onDetailNeeded={wantDetail}
-                threeD={state.threeD}
-                onThreeDChange={setThreeD}
-                terrain={topic.terrain}
-                bareMap={topic.bareMap}
-                focus={focusRequest}
-                grid={grid}
-                gridFailed={gridWanted && gridMeta.error !== null}
-                dimmed={loading && data !== null}
-                box={topic.boxEstimate ? state.box : null}
-                onBoxChange={topic.boxEstimate ? setBox : undefined}
-                boxToolLabel={topic.boxEstimate && t.boxToolFor(topic.boxEstimate.label)}
-                railways={railways}
-                airports={airports}
-                layers={layers}
-                onLayersChange={setLayers}
-                renderAirportTooltip={renderAirportTooltip}
-                overlays={overlays}
-                year={year}
-                time={at?.time ?? null}
-                renderPointTooltip={renderPointTooltip}
-                flows={flows}
-                flags={flagSpecs}
-                onViewChange={wantsView ? setMapView : undefined}
-                lineHighlight={shownHighlight}
-                focusBox={focusBox}
-                pointer={pure ? undefined : pointer}
-                marks={shownMarks}
-                overlay={
-                  boxResult && (
-                    <BoxResult
-                      label={boxResult.label}
-                      unit={boxResult.unit}
-                      year={year}
-                      total={boxResult.total}
-                      landKm2={boxResult.landKm2}
-                      contributions={boxResult.contributions}
-                      grid={boxResult.grid}
-                      countries={countries}
-                      onClear={() => setBox(null)}
-                    />
-                  )
-                }
+                icon={topic.rowIcon}
               />
-            </Suspense>
-          ) : (
-            <RankingTable
-              indicator={indicator}
-              title={indicatorTitle}
-              values={values}
-              valueYears={valueYears}
-              latestWithin={data?.latestWithin}
-              world={world}
-              previous={timeless ? null : previous}
-              year={timeless ? null : year}
-              yearText={timeless ? undefined : yearText}
-              countries={countries}
-              selected={state.country}
-              onSelect={selectCountry}
-              icon={topic.rowIcon}
-            />
+            )}
+          </div>
+          {state.country && !pure && (
+            <PanelSheet onClose={() => selectCountry(null)}>
+              <Suspense
+                fallback={
+                  <aside className="panel" aria-busy="true">
+                    <PanelSkeleton />
+                  </aside>
+                }
+              >
+                <CountryPanel
+                  topic={topic}
+                  indicator={indicator}
+                  item={item}
+                  itemLabel={itemLabel ?? null}
+                  iso3={state.country}
+                  year={year}
+                  countries={countries}
+                  tokens={tokens}
+                  onClose={() => selectCountry(null)}
+                  onIndicatorChange={chooseIndicator}
+                  compare={compare}
+                  onCompareChange={(list) => update({ compare: list })}
+                  highlightLine={highlightLine}
+                  focusBox={moveToBox}
+                  selectYear={timeless || at ? undefined : setYear}
+                  setMarks={setMarks}
+                  at={at}
+                  live={liveData}
+                />
+              </Suspense>
+            </PanelSheet>
           )}
         </div>
-        {state.country && !pure && (
-          <PanelSheet onClose={() => selectCountry(null)}>
-            <Suspense
-              fallback={
-                <aside className="panel" aria-busy="true">
-                  <PanelSkeleton />
-                </aside>
-              }
-            >
-              <CountryPanel
-                topic={topic}
-                indicator={indicator}
-                item={item}
-                itemLabel={itemLabel ?? null}
-                iso3={state.country}
-                year={year}
-                countries={countries}
-                tokens={tokens}
-                onClose={() => selectCountry(null)}
-                onIndicatorChange={chooseIndicator}
-                compare={compare}
-                onCompareChange={(list) => update({ compare: list })}
-                highlightLine={highlightLine}
-                focusBox={moveToBox}
-                selectYear={timeless || at ? undefined : setYear}
-                setMarks={setMarks}
-                at={at}
-                live={liveData}
-              />
-            </Suspense>
-          </PanelSheet>
-        )}
-      </main>
 
-      {clock ? (
-        <MomentControl
-          time={shownTime}
-          live={state.time === null}
-          onChange={(ms) => update({ time: floorMinute(ms) })}
-          onPreview={setPlayTime}
-          onLive={() => update({ time: null })}
-          onPlayingChange={setPlaying}
-        />
-      ) : (
-        !pure &&
-        !timeless &&
-        !liveDef && (
-          <TimeSlider
-            years={years}
-            year={year}
-            projectionFrom={data?.projectionFrom}
-            projectionLabel={indicator.projectionLabel}
-            estimatesBefore={data?.estimatesBefore}
-            axis={indicator.timeAxis}
-            onChange={setYear}
+        {clock ? (
+          <MomentControl
+            time={shownTime}
+            live={state.time === null}
+            onChange={(ms) => update({ time: floorMinute(ms) })}
+            onPreview={setPlayTime}
+            onLive={() => update({ time: null })}
             onPlayingChange={setPlaying}
           />
-        )
-      )}
+        ) : (
+          !pure &&
+          !timeless &&
+          !liveDef && (
+            <TimeSlider
+              years={years}
+              year={year}
+              projectionFrom={data?.projectionFrom}
+              projectionLabel={indicator.projectionLabel}
+              estimatesBefore={data?.estimatesBefore}
+              axis={indicator.timeAxis}
+              onChange={setYear}
+              onPlayingChange={setPlaying}
+            />
+          )
+        )}
 
-      <footer className="footer">
-        <p className="footer-sources">
-          {t.sources}
-          {topic.sources.map((s, i) => (
-            <span key={s.url}>
-              {i > 0 && t.listSeparator}
-              <a href={s.url} target="_blank" rel="noreferrer">
-                {s.name}
-              </a>
-              {t.sourceLicense(s.license)}
-            </span>
-          ))}
-          {t.borders}
-          <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
-            Natural Earth
-          </a>
-          {t.publicDomain}
-          {manifest && t.generatedAt(manifest.generatedAt.slice(0, 10))}
-        </p>
-        {/* 主題的說明常常有好幾行：先露兩行，授權要求的聲明（夜間燈光的 EOG、學生能力的 OECD）寫在開頭 */}
-        {topic.note && <ClampedText key={topic.note} text={topic.note} className="footer-note" />}
-        <p className="footer-disclaimer">{t.disclaimer}</p>
-      </footer>
+      </main>
+
+      <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} />
     </div>
   );
-}
-
-/**
- * 現在（捨去到分鐘）：active 時每到整分鐘更新一次（時刻主題沒有指定時間時，晝夜界線跟著現在走）。
- * 分頁在背景時不計時，回到分頁馬上更新。不寫網址
- */
-function useNow(active: boolean): number {
-  const [now, setNow] = useState(() => floorMinute(Date.now()));
-  useEffect(() => {
-    if (!active) return;
-    let timer: number | undefined;
-    const tick = () => {
-      setNow(floorMinute(Date.now()));
-      window.clearTimeout(timer);
-      // 下一個整分鐘（多等 50 ms，確定已經過了）
-      timer = window.setTimeout(tick, 60_000 - (Date.now() % 60_000) + 50);
-    };
-    const onVisibility = () => {
-      if (document.hidden) {
-        window.clearTimeout(timer);
-        timer = undefined;
-      } else tick();
-    };
-    if (!document.hidden) tick();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      window.clearTimeout(timer);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [active]);
-  return now;
-}
-
-/**
- * 窄螢幕整頁捲動（styles.css 的 @media (max-width: 900px)）：地圖的高度讓時間軸也留在第一個畫面裡。
- * 地圖上面的頂列、控制列、說明的高度會變（換行、展開說明），所以量出地圖的位置與時間軸的高度，
- * 寫進 CSS 變數 --map-top、--time-h（地圖的高度在 CSS 裡用 100svh 算，捲動時網址列縮放不會讓地圖跳動）
- */
-function useFitMap(appRef: RefObject<HTMLDivElement | null>) {
-  useLayoutEffect(() => {
-    const app = appRef.current;
-    if (!app) return;
-    const measure = () => {
-      const map = app.querySelector('.stage-main');
-      if (!map) return;
-      const top = map.getBoundingClientRect().top + window.scrollY;
-      const time = app.querySelector<HTMLElement>('.time-slider')?.offsetHeight ?? 0;
-      app.style.setProperty('--map-top', `${Math.round(top)}px`);
-      app.style.setProperty('--time-h', `${time}px`);
-    };
-    measure();
-    // .app 的高度變了（上面的東西換行、展開，或時間軸出現、消失）就重新量；地圖跟著調整後高度不變，不會一直觸發
-    const observer = new ResizeObserver(measure);
-    observer.observe(app);
-    return () => observer.disconnect();
-  }, [appRef]);
-}
-
-/**
- * 國界的幾何（先粗後細，見上面 GEO_COARSE）：1:50m 放大超過全球視角才載入（detailWanted），全球視角的 1:110m
- * 已經補上 1:110m 原本沒有的 63 個小國（build_geo.py 的 add_missing_to_coarse），不必每次都多下載 227 KB
- */
-function useCountryFeatures(detailWanted: boolean): CountryFeature[] | null {
-  const coarse = useJson<Topology>(GEO_COARSE);
-  const detailed = useJson<Topology>(detailWanted || coarse.error ? GEO_DETAILED : null).data;
-  const topo = detailed ?? coarse.data;
-  return useMemo(() => (topo ? toCountryFeatures(topo) : null), [topo]);
-}
-
-/**
- * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
- * 一般圖層只載入目前指標用得到、而且打開的；預設關閉的圖層第一次打開時才下載。
- */
-const NO_OVERLAY_DEFS: NonNullable<Topic['overlays']> = [];
-
-function useOverlays(
-  topic: Topic,
-  indicator: Indicator,
-  item: string | null,
-  /** 時間軸的年份：類別網格（kind 'classGrid'）、風（kind 'wind'）的資料檔依它換 */
-  year: number,
-  layers: LayerVisibility,
-  pure: boolean,
-  view: MapView | null,
-  /** 主題的即時資料（TopicDefinition.live）：即時網格（kind 'liveGrid'）由它算 */
-  live: unknown,
-) {
-  const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
-  const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
-  const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
-  const loaded = useJsonMany<unknown>(files);
-  const railIndex = legacy.findIndex((o) => o.id === 'railways');
-  const airportIndex = legacy.findIndex((o) => o.id === 'airports');
-  // 鐵路、機場的 indicators：只在這些指標畫（交通主題的地鐵指標不畫機場）
-  const shown = (i: number) => i >= 0 && (!legacy[i].indicators || legacy[i].indicators!.includes(indicator.id));
-  const railData = shown(railIndex) ? (loaded[railIndex] as RailwaysData | null) : null;
-  const railways = useMemo(() => (railData ? decodeRailways(railData) : null), [railData]);
-  const airports = shown(airportIndex) ? (loaded[airportIndex] as AirportsData | null) : null;
-
-  const generic = useMemo(
-    () =>
-      pure
-        ? []
-        : overlays.flatMap((o) =>
-            o.kind !== undefined &&
-            (!o.indicators || o.indicators.includes(indicator.id)) &&
-            (!o.items || o.items.includes(item ?? topic.dimension?.defaultOption ?? ''))
-              ? [{ def: o, visible: overlayVisible(layers, o), path: genericPath(topic, o, item, year) }]
-              : [],
-          ),
-    [overlays, topic.id, topic.dimension, indicator.id, item, year, layers, pure],
-  );
-  // 晝夜（kind 'night'）沒有資料檔，依時刻畫；即時網格（kind 'liveGrid'）由即時資料算；類別網格（kind 'classGrid'）是 PNG
-  const wanted = useMemo(
-    () => generic.filter((g) => g.visible && g.path && g.def.kind !== 'classGrid').map((g) => g.path),
-    [generic],
-  );
-  const gridPaths = useMemo(
-    () => generic.filter((g) => g.visible && g.def.kind === 'classGrid').map((g) => g.path),
-    [generic],
-  );
-  const grids = useClassGrids(gridPaths);
-  const raw = useJsonEach(wanted);
-  // 線圖層放大後的分區（LinesOverlayDef.detail）：放大到 minZoom 以上時下載跟畫面重疊的分區，下載過的留著
-  const tilePaths = useMemo(
-    () =>
-      generic.flatMap(({ def, visible, path }) => {
-        const minZoom = def.kind === 'lines' && visible ? def.detail?.minZoom : undefined;
-        const index = minZoom === undefined ? undefined : (raw.get(path) as LinesData | undefined)?.detail;
-        if (!index || !view || view.zoom < minZoom!) return [];
-        return index.tiles.filter((tile) => tileInView(tile, view.bounds)).map(([id]) => detailPath(path, index.file, id));
-      }),
-    [generic, raw, view],
-  );
-  const tiles = useJsonEach(tilePaths);
-  const result = useMemo<OverlayLayer[]>(() => {
-    // 地圖上只畫跟畫面重疊的分區（下載過的檔留著，移回來時不必再下載）：看過的分區全部畫上去的話，
-    // 每多一個分區 MapLibre 就要把越來越多的線重切一次圖磚
-    const inView = new Set(tilePaths);
-    return generic.map(({ def, visible, path }) => {
-      if (def.kind === 'night') return { kind: 'night', def, visible };
-      if (def.kind === 'liveGrid') return { kind: 'liveGrid', def, visible, values: liveGridValues(def, live) };
-      if (def.kind === 'classGrid') {
-        const grid = grids.get(path) ?? grids.get(path.slice(0, path.lastIndexOf('/') + 1)) ?? null;
-        return { kind: 'classGrid', def, visible, grid };
-      }
-      if (def.kind === 'wind') {
-        // 換月份時新的風場還沒讀到前照畫舊的（粒子不重來）
-        const fieldFile = raw.get(path);
-        const field = fieldFile ? decodeWindField(fieldFile as WindFieldFile) : (lastWind.get(def.id) ?? null);
-        if (field) lastWind.set(def.id, field);
-        return { kind: 'wind', def, visible, field };
-      }
-      // 檔名依年份換的（file 裡有 {year}，板塊漂移）：新的還沒讀到前照畫上一個年份的，播放時不閃
-      const key = `${topic.id}:${def.id}`;
-      const yearly = def.file.includes('{year}');
-      const data = raw.get(path) ?? (yearly ? (lastYearly.get(key) ?? null) : null);
-      if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
-      if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
-      const index = (data as LinesData | null)?.detail;
-      const loaded = index
-        ? index.tiles.flatMap(([id]) => {
-            const tilePath = detailPath(path, index.file, id);
-            const tile = inView.has(tilePath) ? tiles.get(tilePath) : undefined;
-            return tile ? [tile as LinesData] : [];
-          })
-        : [];
-      return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
-    });
-  }, [generic, raw, tiles, tilePaths, live, grids]);
-  return { railways, airports, overlays: result };
-}
-
-/** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */
-function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
-  if (o.kind === 'night' || o.kind === 'liveGrid' || o.kind === undefined) return '';
-  if (o.kind === 'classGrid' || o.kind === 'wind') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
-  return overlayPath(topic, o, item, year);
-}
-
-/**
- * 類別網格的資料（loadClassGrid，同一個網址只讀一次）：依路徑記下，另外用圖層 id 記下最近讀到的一張，
- * 換時期時新的還沒讀到前先畫舊的（畫面不閃）
- */
-function useClassGrids(paths: string[]): Map<string, ClassGrid> {
-  const [grids, setGrids] = useState<Map<string, ClassGrid>>(() => new Map());
-  const key = paths.join('|');
-  useEffect(() => {
-    let cancelled = false;
-    for (const path of key ? key.split('|') : []) {
-      loadClassGrid(dataUrl(path)).then(
-        (grid) => {
-          if (cancelled) return;
-          // 圖層 id 取不到，用資料夾（topics/<主題>/<資料夾>/）當「最近一張」的鍵；只留現在要的，舊的放掉
-          const folder = path.slice(0, path.lastIndexOf('/') + 1);
-          setGrids((m) => (m.get(path) === grid ? m : new Map([[path, grid], [folder, grid]])));
-        },
-        () => {},
-      );
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [key]);
-  return grids;
-}
-
-/** 檔名依年份換的疊加圖層最近讀到的資料（主題:圖層 → 資料）：換年份時新的到之前照畫 */
-const lastYearly = new Map<string, unknown>();
-
-/** 每個風的圖層最近讀到的風場（useOverlays）：換月份時新的到之前照畫 */
-const lastWind = new Map<string, WindField>();
-
-const liveGridCache = new WeakMap<object, Map<string, Float32Array | null>>();
-/** 即時網格的值：同一份即時資料、同一個圖層只算一次（6.5 萬個格點） */
-function liveGridValues(def: { id: string; values: (live: unknown) => Float32Array | null }, live: unknown): Float32Array | null {
-  if (!live || typeof live !== 'object') return null;
-  let byId = liveGridCache.get(live);
-  if (!byId) liveGridCache.set(live, (byId = new Map()));
-  if (!byId.has(def.id)) byId.set(def.id, def.values(live));
-  return byId.get(def.id) ?? null;
-}
-
-/** 分區檔的路徑：跟主檔同一個資料夾，file 裡的 `{tile}` 換成分區的 id */
-function detailPath(mainPath: string, file: string, id: string): string {
-  return `${mainPath.slice(0, mainPath.lastIndexOf('/') + 1)}${file.replace('{tile}', id)}`;
-}
-
-/** 分區的範圍跟畫面重疊（外擴 2°，先載入旁邊的；經度可能超出 ±180°，左右平移 360° 再比一次） */
-function tileInView([, w, s, e, n]: [string, number, number, number, number], [vw, vs, ve, vn]: MapView['bounds']): boolean {
-  const pad = 2;
-  if (n < vs - pad || s > vn + pad) return false;
-  return [-360, 0, 360].some((shift) => w + shift <= ve + pad && e + shift >= vw - pad);
-}
-
-/** 線圖層的主檔加上已經下載的分區；同一組檔回傳同一個物件，地圖才不會重送資料 */
-const mergedCache = new WeakMap<LinesData, { parts: LinesData[]; lines: DecodedLines }>();
-function mergedLines(main: LinesData, parts: LinesData[]): DecodedLines {
-  if (!parts.length) return decodedLines(main);
-  const hit = mergedCache.get(main);
-  if (hit && hit.parts.length === parts.length && hit.parts.every((p, i) => p === parts[i])) return hit.lines;
-  const lines = concatLines([decodedLines(main), ...parts.map(decodedLines)]);
-  mergedCache.set(main, { parts, lines });
-  return lines;
-}
-
-/**
- * 疊加圖層的資料檔路徑。file 含 `{item}` 時換成目前的子項目（便利商店與連鎖品牌：一個品牌一個店家檔，
- * 只下載選到的品牌；換品牌時同一個圖層換資料，開關狀態不變）
- */
-function overlayPath(topic: Topic, o: { file: string; topic?: string }, item: string | null, year: number): string {
-  const file = o.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '').replace('{year}', String(year));
-  return `topics/${o.topic ?? topic.id}/${file}`;
-}
-
-const decodedCache = new WeakMap<object, PointRecord[] | DecodedLines>();
-function decodedPoints(data: PointsData): PointRecord[] {
-  let out = decodedCache.get(data) as PointRecord[] | undefined;
-  if (!out) decodedCache.set(data, (out = decodePoints(data)));
-  return out;
-}
-function decodedLines(data: LinesData): DecodedLines {
-  let out = decodedCache.get(data) as DecodedLines | undefined;
-  if (!out) decodedCache.set(data, (out = decodeLines(data)));
-  return out;
-}
-
-/**
- * 一次載入好幾個檔，已經載入的保留著：清單變了（打開另一個圖層）時，原本的資料不會先變回 null，地圖才不會閃一下。
- * 失敗的檔案當成沒有資料。
- */
-function useJsonEach(paths: string[]): Map<string, unknown> {
-  const [loaded, setLoaded] = useState<Map<string, unknown>>(() => new Map());
-  const key = paths.join('|');
-  useEffect(() => {
-    for (const path of key ? key.split('|') : []) {
-      if (loaded.has(path)) continue;
-      fetchJson<unknown>(path)
-        .then((data) => setLoaded((m) => (m.get(path) === data ? m : new Map(m).set(path, data))))
-        .catch(() => {});
-    }
-  }, [key]);
-  return loaded;
-}
-
-/**
- * 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年。
- * bin 是每筆資料涵蓋的年數（每十年一筆的指標：1990 = 1990–1999），這時取包含那一年的那一筆：
- * 從「當年的地震」的 1999 年換到「每十年的地震次數」，留在 1990 年代，不會跳到 2000 年代。
- */
-function pickYear(years: number[], wanted: number | null, fallback: number, bin?: number): number {
-  if (wanted !== null && years.includes(wanted)) return wanted;
-  const containing = bin ? years.findLast((y) => y <= (wanted ?? fallback) && (wanted ?? fallback) < y + bin) : undefined;
-  if (containing !== undefined) return containing;
-  // 年份不連續（每 5 年一筆）時，拖到中間沒有資料的年份就用最接近的那一年（一樣近取較早的）
-  if (wanted !== null && wanted > years[0] && wanted < years[years.length - 1]) {
-    return years.reduce((best, y) => (Math.abs(y - wanted) < Math.abs(best - wanted) ? y : best), years[0]);
-  }
-  if (years.includes(fallback)) return fallback;
-  return years.reduce((best, y) => (Math.abs(y - fallback) < Math.abs(best - fallback) ? y : best), years[0]);
-}
-
-/**
- * 子項目選單依 group 分組，組的順序照第一次出現的順序。
- * sortIn 是語言時，各組裡依目前語言的名稱排序：子項目是國家的選單（護照）中文依筆畫、英文依字母，
- * 其他子項目（農產品…）照主題寫的順序。
- */
-function groupOptions<T extends { group?: string; label: string }>(options: T[], sortIn: Lang | null): [string | undefined, T[]][] {
-  const groups = new Map<string | undefined, T[]>();
-  for (const o of options) {
-    const list = groups.get(o.group) ?? [];
-    list.push(o);
-    groups.set(o.group, list);
-  }
-  if (sortIn) {
-    const collator = new Intl.Collator(LOCALES[sortIn]);
-    for (const list of groups.values()) list.sort((a, b) => collator.compare(a.label, b.label));
-  }
-  return [...groups];
-}
-
-/**
- * 國旗地圖（kind 'flags'）的國旗：地圖上要用到時才載入國旗檔，換成 flagTiles.ts 用的格式（完整網址、寬 ÷ 高、重點）
- */
-function useFlagSpecs(topic: Topic, indicator: Indicator, active: boolean): Map<string, FlagSpec> | null {
-  const layer = indicator.layer;
-  const path = active && layer.kind === 'flags' ? `topics/${topic.id}/${layer.file}` : null;
-  const { data } = useJson<FlagsFile>(path);
-  return useMemo(
-    () =>
-      data
-        ? new Map(
-            Object.entries(data.units).map(([iso3, e]) => [
-              iso3,
-              { url: new URL(flagUrl(e), window.location.href).href, aspect: flagAspect(e), fx: e.fx ?? 0.5, fy: e.fy ?? 0.5 },
-            ]),
-          )
-        : null,
-    [data],
-  );
-}
-
-/**
- * 框選估算：網格決定國內怎麼分布，選定年份的國家總量決定水準。
- * 某國的框內估計 = 框內網格人數 ÷ 該國網格總人數 × 該國當年總量。
- */
-function useBoxEstimate(
-  topic: Topic,
-  item: string | null,
-  box: Box | null,
-  features: ReturnType<typeof toCountryFeatures> | null,
-  year: number,
-) {
-  const spec = topic.boxEstimate;
-  const indicator = spec ? topic.indicators.find((i) => i.id === spec.indicator) : undefined;
-  const active = Boolean(spec && indicator && box && features);
-  const { data } = useJson<IndicatorData>(active && indicator ? indicatorPath(topic, indicator, item) : null);
-  const grid = useJson<PopulationGrid>(active && spec ? `topics/${topic.id}/${spec.grid}` : null).data;
-
-  const landKm2 = useMemo(
-    () => (active && features && box ? landAreaInBox(features, box) : null),
-    [active, features, box],
-  );
-  const gridIndex = useMemo(() => (grid ? buildGridIndex(grid) : null), [grid]);
-  const inBox = useMemo(
-    () => (active && gridIndex && box ? gridInBox(gridIndex, box) : null),
-    [active, gridIndex, box],
-  );
-
-  return useMemo(() => {
-    if (!spec || !indicator || landKm2 === null) return null;
-    const yearIndex = data ? data.years.indexOf(year) : -1;
-    let total: number | null = null;
-    const contributions: BoxContribution[] = [];
-    if (data && yearIndex >= 0 && gridIndex && inBox) {
-      // 沒有國家總量的區域（南極洲、地圖上沒有國界的小島）改用世界總量的變化來縮放
-      const world = data.aggregates?.WLD;
-      const worldNow = world?.[yearIndex];
-      const worldAtEpoch = world?.[data.years.indexOf(gridIndex.epoch)];
-      const worldScale = worldNow && worldAtEpoch ? worldNow / worldAtEpoch : 1;
-      total = 0;
-      for (let c = 0; c < gridIndex.countries.length; c++) {
-        const gridValue = inBox.byCountry[c];
-        if (gridValue <= 0) continue;
-        const iso3 = gridIndex.countries[c];
-        const share = gridValue / gridIndex.totals[c];
-        const level = data.values[iso3]?.[yearIndex];
-        const value = level != null ? share * level : gridValue * worldScale;
-        total += value;
-        if (value >= 0.5) contributions.push({ iso3, share, value }); // 框邊只擦到一點點的國家不列出
-      }
-      if (inBox.unassigned > 0) {
-        const value = inBox.unassigned * worldScale;
-        total += value;
-        if (value >= 0.5) contributions.push({ iso3: null, share: null, value });
-      }
-      contributions.sort((a, b) => b.value - a.value);
-    }
-    return {
-      label: spec.label,
-      unit: indicator.unit,
-      total,
-      landKm2,
-      contributions,
-      grid: gridIndex && { epoch: gridIndex.epoch, cellSize: gridIndex.cellSize },
-    };
-  }, [spec, indicator, landKm2, gridIndex, inBox, data, year]);
 }

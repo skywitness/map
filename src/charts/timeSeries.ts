@@ -1,8 +1,7 @@
-import type { LineSeriesOption } from 'echarts/charts';
 import { messages } from '../i18n';
 import type { Indicator } from '../topics/types';
 import type { Tokens } from '../theme/tokens';
-import { escapeHtml, type ChartOption } from './EChart';
+import type { ChartSpec, EventMark, LineSeries, RefLine } from './spec';
 
 export interface TimeSeriesLine {
   name: string;
@@ -27,17 +26,22 @@ interface TimeSeriesInput {
   tokens: Tokens;
   /** 年份零散的資料（普查、隔幾年一次的調查）：畫出每個資料點，缺值的年份直接連過去 */
   sparse?: boolean;
+  /** 事件標記（一胎化、COVID-19…），年份不在範圍內的不畫 */
+  events?: { year: number; label: string }[];
 }
 
-type MarkLineItem = NonNullable<NonNullable<LineSeriesOption['markLine']>['data']>[number];
-
-/** 線的尾端寫名稱：最多幾條線（再多會擠成一團，只留圖例），名稱最寬幾 px（長的國名截掉） */
+/** 線的尾端寫名稱：最多幾條線（再多會擠成一團，只留圖例） */
 const MAX_END_LABELS = 4;
-const END_LABEL_WIDTH = 56;
 
-/** 統計方法改變的那一年：比目前年份的參考線淡、用虛線，側欄底下另有文字說明 */
-export function methodBreakLine(year: number, tokens: Tokens): MarkLineItem {
-  return { xAxis: String(year), lineStyle: { color: tokens.inkMuted, type: [4, 3], width: 1 } };
+/** 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年 */
+export function yearTickStep(years: number[]): number {
+  const span = years[years.length - 1] - years[0];
+  return span > 100 ? 50 : span > 50 ? 20 : span > 25 ? 10 : 5;
+}
+
+/** 統計方法改變的那一年（索引）：比目前年份的參考線淡、用虛線，側欄底下另有文字說明 */
+export function methodBreakLine(index: number): RefLine {
+  return { x: index, dashed: true };
 }
 
 /**
@@ -55,147 +59,56 @@ function consecutiveYears({ years, lines, sparse }: TimeSeriesInput): Pick<TimeS
   };
 }
 
-/** 歷年折線：估計值實線、推估值虛線，同一個國家用同一個 series 名稱，圖例與 tooltip 才會合併 */
-export function timeSeriesOption(input: TimeSeriesInput): ChartOption {
-  const { projectionFrom, methodBreak, estimatesBefore, year, indicator, tokens } = input;
+/** 歷年折線：估計值實線、推估值虛線；2–4 條線時線尾寫名稱 */
+export function timeSeriesOption(input: TimeSeriesInput): ChartSpec {
+  // tokens 不用了（參考線、格線用 CSS 變數），參數留著，呼叫的地方不必改
+  const { projectionFrom, methodBreak, estimatesBefore, year, indicator } = input;
   const { years, lines, sparse } = consecutiveYears(input);
-  const categories = years.map(String);
-  // 依年份跨度決定刻度間隔：1950–2100 每 50 年、1960–2025 每 20 年、2000–2025 每 5 年
-  const span = years[years.length - 1] - years[0];
-  const tickStep = span > 100 ? 50 : span > 50 ? 20 : span > 25 ? 10 : 5;
+  const tickStep = yearTickStep(years);
   const tick = indicator.formatTick ?? indicator.format;
+  const indexOf = (y: number) => years.indexOf(y);
 
-  // 2–4 條線時，除了上面的圖例，線的尾端也寫名稱（dataviz：少數幾條線要直接標名稱，不必來回對圖例）。
-  // 名稱用文字色、不用線的顏色；尾端靠太近時往上下推開（labelLayout 的 moveOverlap）
-  const endLabels = lines.length >= 2 && lines.length <= MAX_END_LABELS;
-  const endLabel = (name: string): LineSeriesOption['endLabel'] => ({
-    show: true,
-    formatter: name,
-    color: tokens.inkSecondary,
-    fontSize: 11,
-    distance: 4,
-    width: END_LABEL_WIDTH,
-    overflow: 'truncate',
-  });
+  const series: LineSeries[] = lines.map((line) => ({
+    type: 'line',
+    name: line.name,
+    values: line.values,
+    color: line.color,
+    dashed: line.dashed,
+    dashFrom: projectionFrom !== undefined && indexOf(projectionFrom) > 0 ? indexOf(projectionFrom) : undefined,
+    dots: Boolean(sparse),
+    connectNulls: Boolean(sparse),
+  }));
 
-  const series: LineSeriesOption[] = lines.flatMap((line, lineIndex) => {
-    const base: LineSeriesOption = {
-      type: 'line',
-      name: line.name,
-      showSymbol: Boolean(sparse),
-      connectNulls: Boolean(sparse),
-      symbol: 'circle',
-      symbolSize: sparse ? 5 : 8,
-      color: line.color,
-      lineStyle: { width: 2, color: line.color, ...(line.dashed && { type: 'dashed' as const }) },
-      emphasis: { disabled: true },
-      z: lines.length - lineIndex,
-    };
-    const labelled = endLabels ? { endLabel: endLabel(line.name), labelLayout: { moveOverlap: 'shiftY' as const } } : {};
-    if (projectionFrom === undefined) return [{ ...base, ...labelled, data: line.values }];
-    return [
-      { ...base, data: line.values.map((v, i) => (years[i] < projectionFrom ? v : null)) },
-      {
-        ...base,
-        // 從推估前一年開始，讓實線與虛線接起來；尾端的名稱寫在虛線（最後一年）那一段
-        ...labelled,
-        data: line.values.map((v, i) => (years[i] >= projectionFrom - 1 ? v : null)),
-        lineStyle: { ...base.lineStyle, type: 'dashed' },
-      },
-    ];
-  });
-
-  const markLines: NonNullable<LineSeriesOption['markLine']>['data'] = [{ xAxis: String(year) }];
-  if (indicator.layer.kind === 'choropleth' && indicator.layer.scale.type === 'diverging') {
-    markLines.push({ yAxis: 0 });
-  }
-  if (methodBreak !== undefined && years.includes(methodBreak)) {
-    markLines.push(methodBreakLine(methodBreak, tokens));
-  }
+  const refs: RefLine[] = [];
+  if (indexOf(year) >= 0) refs.push({ x: indexOf(year) });
+  if (indicator.layer.kind === 'choropleth' && indicator.layer.scale.type === 'diverging') refs.push({ y: 0 });
+  if (methodBreak !== undefined && indexOf(methodBreak) >= 0) refs.push(methodBreakLine(indexOf(methodBreak)));
   // 估計值的分界也畫成淡的垂直虛線（側欄底下另有文字說明）
-  if (estimatesBefore !== undefined && estimatesBefore > years[0] && years.includes(estimatesBefore)) {
-    markLines.push(methodBreakLine(estimatesBefore, tokens));
+  if (estimatesBefore !== undefined && estimatesBefore > years[0] && indexOf(estimatesBefore) >= 0) {
+    refs.push(methodBreakLine(indexOf(estimatesBefore)));
   }
-  series[0].markLine = {
-    silent: true,
-    symbol: 'none',
-    label: { show: false },
-    lineStyle: { color: tokens.inkMuted, type: 'solid', width: 1 },
-    data: markLines,
-  };
+  const events: EventMark[] = (input.events ?? [])
+    .filter((e) => indexOf(e.year) >= 0)
+    .map((e) => ({ x: indexOf(e.year), label: e.label }));
 
   return {
-    animation: false,
-    grid: {
-      left: 4,
-      // 尾端的名稱放在圖的右邊
-      right: endLabels ? END_LABEL_WIDTH + 8 : 12,
-      top: lines.length > 1 ? 32 : 12,
-      bottom: 4,
-      // ECharts 6 取代 containLabel 的寫法：座標軸標籤留在 grid 範圍內
-      outerBoundsMode: 'same',
-      outerBoundsContain: 'axisLabel',
-    },
-    legend:
-      lines.length > 1
-        ? {
-            top: 0,
-            left: 0,
-            // 虛線的系列在圖例上也畫成兩段
-            data: lines.map((l) => (l.dashed ? { name: l.name, icon: 'path://M0,0H5V2H0ZM7,0H12V2H7Z' } : l.name)),
-            icon: 'path://M0,0H12V2H0Z',
-            itemWidth: 12,
-            itemHeight: 2,
-            textStyle: { color: tokens.inkSecondary, fontSize: 12 },
-            selectedMode: false,
-          }
-        : undefined,
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params) => {
-        const list = Array.isArray(params) ? params : [params];
-        const y = Number((list[0] as { axisValue?: string }).axisValue);
-        const seen = new Set<string>();
-        const rows = list.flatMap((p) => {
-          const value = p.value as number | null | undefined;
-          const name = p.seriesName ?? '';
-          if (value == null || seen.has(name)) return [];
-          seen.add(name);
-          return [
-            `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-              `<strong>${escapeHtml(indicator.format(value, y))}</strong>` +
-              `<span class="tt-name">${escapeHtml(name)}</span></div>`,
-          ];
-        });
-        const projected = projectionFrom !== undefined && y >= projectionFrom;
-        const estimated = estimatesBefore !== undefined && y < estimatesBefore;
-        const tag = projected ? messages().projected : estimated ? messages().estimated : null;
-        return `<div class="tt-head">${y}${tag ? ` · ${tag}` : ''}</div>${rows.join('')}`;
-      },
-    },
-    xAxis: {
-      type: 'category',
-      data: categories,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: tokens.inkMuted,
-        fontSize: 11,
-        interval: (_index: number, value: string) => Number(value) % tickStep === 0,
-      },
-    },
-    yAxis: {
-      type: 'value',
-      ...(indicator.integer && { minInterval: 1 }),
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => tick(v) },
-    },
+    x: { type: 'category', labels: years.map(String), showLabel: (i) => years[i] % tickStep === 0 },
+    y: { format: (v) => tick(v), integer: indicator.integer },
     series,
+    refs,
+    events,
+    endLabels: lines.length >= 2 && lines.length <= MAX_END_LABELS,
+    tooltip: (i) => {
+      const y = years[i];
+      const rows = lines.flatMap((line) => {
+        const value = line.values[i];
+        return value == null ? [] : [{ color: line.color, value: indicator.format(value, y), name: line.name }];
+      });
+      if (!rows.length) return null;
+      const projected = projectionFrom !== undefined && y >= projectionFrom;
+      const estimated = estimatesBefore !== undefined && y < estimatesBefore;
+      const tag = projected ? messages().projected : estimated ? messages().estimated : null;
+      return { head: `${y}${tag ? ` · ${tag}` : ''}`, rows };
+    },
   };
 }

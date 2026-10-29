@@ -7,7 +7,7 @@ export function Skeleton({ width = '100%', height, style }: { width?: number | s
 }
 
 /**
- * 國家側欄的程式（含 ECharts）還在下載時的樣子：國名、年份、四張數值卡片、一張折線圖。
+ * 國家側欄的程式還在下載時的樣子：國名、年份、四張數值卡片、一張折線圖。
  * 原本只寫「載入中…」，側欄打開時先是一行字，再整個跳出來
  */
 export function PanelSkeleton() {

@@ -63,7 +63,8 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 直接開任何畫面（?topic=…&country=…）都用預先快取的 index.html；直接開資料檔、圖磚的網址則照常回傳檔案
+// 直接開任何畫面（t/<主題>/?country=…）都用預先快取的 index.html（它自己會在 t/<主題>/ 底下放 <base>）；
+// 直接開資料檔、圖磚的網址則照常回傳檔案
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/data\//, /\/tiles\//] }));
 
 registerRoute(

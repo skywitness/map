@@ -29,9 +29,27 @@ export interface ViewState {
    * 播放時的每一格不寫網址，停下來才寫（App.tsx）
    */
   time: number | null;
+  /** 嵌入模式（embed=1，2026-10-29）：放在別的網頁的 iframe 裡，只留地圖、指標、時間軸與資料來源 */
+  embed: boolean;
 }
 
 export const COMPARE_MAX = 3;
+
+/**
+ * 每個主題自己的網址 t/<主題>/（2026-10-29 起，分享出去的預覽、搜尋引擎看得出是哪個主題；建置時每個主題有一份
+ * 自己的 index.html，vite.config.ts 的 topicPages）。舊的 ?topic= 照樣讀得懂，寫回網址時換成新的。
+ */
+const TOPIC_PATH = /\/t\/([\w-]+)\/?$/;
+
+/** 網站的根目錄（/map/）：在 t/<主題>/ 底下時去掉這一段 */
+export function siteRoot(): string {
+  return window.location.pathname.replace(TOPIC_PATH, '/').replace(/index\.html$/, '');
+}
+
+/** 主題的網址路徑（不含參數） */
+export function topicPath(topic: string | null): string {
+  return topic ? `${siteRoot()}t/${topic}/` : siteRoot();
+}
 
 /** 目前網址的畫面狀態（App 啟動時也用它提早發出第一個畫面的資料請求） */
 export function read(): ViewState {
@@ -40,7 +58,8 @@ export function read(): ViewState {
   const rawYear = p.get('year')?.trim();
   const year = rawYear ? Number(rawYear) : NaN;
   return {
-    topic: p.get('topic'),
+    // ?topic= 優先（主題之間的連結、舊的網址），再來是路徑
+    topic: p.get('topic') ?? window.location.pathname.match(TOPIC_PATH)?.[1] ?? null,
     indicator: p.get('ind'),
     year: Number.isInteger(year) ? year : null,
     country: p.get('country'),
@@ -52,6 +71,7 @@ export function read(): ViewState {
     grid: p.get('grid') === '1' ? true : p.get('grid') === '0' ? false : null,
     compare: [...new Set((p.get('cmp') ?? '').split(',').filter((c) => /^_?[A-Z]{3}$/.test(c)))].slice(0, COMPARE_MAX),
     time: parseTimeParam(p.get('time')),
+    embed: p.get('embed') === '1',
   };
 }
 
@@ -92,9 +112,16 @@ export function currentHref(): string {
   return latest ? new URL(buildUrl(latest), window.location.href).href : window.location.href;
 }
 
+/** 目前畫面的網址，加上或拿掉嵌入模式（分享選單的嵌入程式碼、嵌入模式裡「在世界資料地圖開啟」） */
+export function hrefWithEmbed(embed: boolean): string {
+  const url = new URL(currentHref());
+  if (embed) url.searchParams.set('embed', '1');
+  else url.searchParams.delete('embed');
+  return url.href;
+}
+
 function buildUrl(state: ViewState): string {
   const p = new URLSearchParams();
-  if (state.topic) p.set('topic', state.topic);
   if (state.indicator) p.set('ind', state.indicator);
   if (state.item) p.set('item', state.item);
   if (state.year !== null) p.set('year', String(state.year));
@@ -105,11 +132,12 @@ function buildUrl(state: ViewState): string {
   if (state.grid !== null) p.set('grid', state.grid ? '1' : '0');
   if (state.compare.length) p.set('cmp', state.compare.join(','));
   if (state.time !== null) p.set('time', formatTimeParam(state.time));
+  if (state.embed) p.set('embed', '1');
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);
   const query = p.toString();
-  return `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+  return `${topicPath(state.topic)}${query ? `?${query}` : ''}${window.location.hash}`;
 }
 
 export type UpdateUrlState = (patch: Partial<ViewState>, options?: { replace?: boolean }) => void;

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
@@ -260,7 +260,7 @@ export default function FossilFuelsPanel(props: PanelExtraProps) {
       {mix && (
         <section className="panel-section">
           <h3>{text.mixTitle}</h3>
-          <EChart option={mix.option} height={200} ariaLabel={text.mixAria(countryName)} />
+          <Chart spec={mix.option} height={200} ariaLabel={text.mixAria(countryName)} />
           {mix.shownYear !== null && (
             <>
               <h4>

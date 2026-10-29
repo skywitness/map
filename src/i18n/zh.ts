@@ -28,6 +28,8 @@ export const zh = {
   overviewMatch: (label: string) => `符合：${label}`,
   overviewNoMatch: '沒有符合的主題',
   overviewRecent: '最近看過',
+  /** 嵌入模式（?embed=1）上緣的連結 */
+  embedOpen: '在世界資料地圖開啟',
   overviewCredit:
     '縮圖是各主題預設指標的世界地圖（資料出處見各主題的頁尾）；底圖 © OpenStreetMap contributors · OpenMapTiles · OpenFreeMap，國界 Natural Earth。主題圖示 Lucide（ISC 授權）。',
   language: '語言',
@@ -46,6 +48,13 @@ export const zh = {
   descMore: '更多',
   descLess: '收起',
   loadFailed: (message: string) => `資料載入失敗：${message}`,
+  /** 狀態畫面（StatusCard.tsx） */
+  dataFailedTitle: '這個主題的資料沒有載入成功',
+  offlineNotSavedTitle: '目前離線，這個主題還沒存到這台裝置',
+  offlineNotSavedHint: '連上網路後就能看；看過的主題之後離線也能打開。',
+  retry: '重試',
+  reload: '重新整理',
+  basemapFailedTitle: '底圖沒有載入成功',
   loadingMap: '地圖載入中…',
   loadingData: '資料載入中…',
   loading: '載入中…',
@@ -143,7 +152,7 @@ export const zh = {
   boxToolFor: (label: string) => `框選範圍，估算${label}`,
   boxToolActive: '在地圖上拖曳畫框（Esc 取消）',
   boxHint: '在地圖上拖曳畫出範圍（Esc 取消）',
-  basemapFailed: '底圖載入失敗，請檢查網路連線後重新整理。',
+  basemapFailed: '請檢查網路連線後重新整理。',
   // 3D
   threeD: '3D 立體地圖',
   threeDEnter: '3D 立體地圖：用高度呈現數值。3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
@@ -188,7 +197,7 @@ export const zh = {
   rank: (rank: number, total: number) => `第 ${rank} / ${total} 名`,
   // 側欄的「比較」（ComparePicker.tsx）
   compareLabel: '比較',
-  compareAdd: '＋ 加入比較',
+  compareAdd: '加入比較',
   compareAddAria: '加入比較的國家',
   comparePlaceholder: '輸入國名',
   compareRemove: (name: string) => `不再比較${name}`,

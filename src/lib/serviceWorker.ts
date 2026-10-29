@@ -19,7 +19,7 @@ let flushTimer = 0;
 
 function shouldCache(url: string): boolean {
   try {
-    const u = new URL(url, window.location.href);
+    const u = new URL(url, document.baseURI);
     // 自己的資料 JSON 與 1 km 網格圖磚（densityGrid.ts 在頁面上 fetch）、OpenFreeMap 的底圖
     const own = u.origin === window.location.origin && (u.pathname.includes('/data/') || u.pathname.includes('/tiles/'));
     return own || u.hostname === 'tiles.openfreemap.org';

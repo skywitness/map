@@ -1,8 +1,9 @@
 import { lazy, Suspense, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
-import { EChart } from '../charts/EChart';
+import { Chart } from '../charts/Chart';
 import { SectionSkeleton, Skeleton } from './Skeleton';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
-import { useLang, useT } from '../i18n';
+import { tr, useLang, useT } from '../i18n';
+import { StatusCard } from '../controls/StatusCard';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatMoment } from '../lib/clock';
 import { useJsonMany } from '../lib/data';
@@ -160,11 +161,15 @@ export function CountryPanel(props: CountryPanelProps) {
       tokens,
       // 普查、調查隔幾年一次：畫出每個資料點，點和點之間連起來
       sparse: activeData.latestWithin !== undefined,
+      // 事件標記（COVID-19、一胎化…）：只跟某些國家有關的只標在那些國家
+      events: chartIndicator.events
+        ?.filter((e) => !e.countries || e.countries.includes(iso3))
+        .map((e) => ({ year: e.year, label: tr(e.label, lang) })),
     });
     // y 軸不從 0 開始（指標的 chartZoom，例如身高）
-    return chartIndicator.chartZoom ? { ...chart, yAxis: { ...(chart.yAxis as object), scale: true } } : chart;
+    return chartIndicator.chartZoom ? { ...chart, y: { ...chart.y, zero: false } } : chart;
     // compareColors 由 tokens 算出，不必另外列
-  }, [activeData, iso3, name, chartIndicator, year, tokens, t, compare, countries]);
+  }, [activeData, iso3, name, chartIndicator, year, tokens, t, compare, countries, lang]);
 
   const activeReason = reason(indicator);
   // 可以加進比較的國家：目前指標有資料的（還沒載入時先用全部國家）
@@ -262,18 +267,18 @@ export function CountryPanel(props: CountryPanelProps) {
           <h3>{t.overTime(chartLabel)}</h3>
           {/* 有原因、而且這個國家完全沒有值時才用原因取代圖表：台灣在聯合國投票只有 1946–1971 年有值，照樣畫圖 */}
           {activeReason && !activeData?.values[iso3]?.some((v) => v != null) ? (
-            <p className="empty">{activeReason}</p>
+            <StatusCard kind="empty" title={activeReason} />
           ) : indicator.layer.kind === 'categorical' && activeData ? (
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
           ) : option ? (
-            <EChart option={option} height={220} ariaLabel={t.lineChartAria(name, chartLabel)} />
+            <Chart spec={option} height={220} ariaLabel={t.lineChartAria(name, chartLabel)} />
           ) : !activeData ? (
             <div aria-busy="true">
               <span className="visually-hidden">{t.loading}</span>
               <Skeleton height={220} />
             </div>
           ) : (
-            <p className="empty">{activeData.years.length < 2 ? t.singleSnapshotPanel : t.noCountryData}</p>
+            <StatusCard kind="empty" title={activeData.years.length < 2 ? t.singleSnapshotPanel : t.noCountryData} />
           )}
           {projectionFrom !== undefined && option && <p className="note">{t.dashedProjection(projectionFrom)}</p>}
           {methodBreak !== undefined && option && <p className="note">{t.methodBreak(methodBreak)}</p>}

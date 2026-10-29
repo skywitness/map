@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, type Text } from '../../i18n';
@@ -65,7 +65,7 @@ export default function HealthPanel({ topic, iso3, year, countryName, tokens }: 
       {view.shownYear !== null && view.female !== null && view.male !== null && (
         <p className="note">{text.summary(view.shownYear, view.female, view.male)}</p>
       )}
-      <EChart option={view.option} height={200} ariaLabel={text.chartAria(countryName)} />
+      <Chart spec={view.option} height={200} ariaLabel={text.chartAria(countryName)} />
     </section>
   );
 }

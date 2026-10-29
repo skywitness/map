@@ -121,6 +121,14 @@ export interface FlowFile {
   import: Record<string, [number, ([string, number] | [string, number, 1])[]]>;
 }
 
+/** 側欄折線圖上標的事件（events.ts） */
+export interface ChartEvent {
+  year: number;
+  label: Text;
+  /** 只標在這些國家的圖上；沒寫是每個國家都標 */
+  countries?: string[];
+}
+
 export interface IndicatorDef {
   id: string;
   label: Text;
@@ -145,6 +153,8 @@ export interface IndicatorDef {
   compareWorld?: boolean;
   /** 側欄折線圖的 y 軸不從 0 開始（例如身高都在 140–185 公分，從 0 畫起整條線是平的） */
   chartZoom?: boolean;
+  /** 側欄折線圖上標的事件（COVID-19、金融海嘯、一胎化…，events.ts），年份不在圖上的不畫 */
+  events?: ChartEvent[];
   /** 數值是整數（例如大樓的棟數）：側欄折線圖的 y 軸只用整數刻度，只有 1、2 棟時才不會寫成 0、1、1、2、2 */
   integer?: boolean;
   /** 是否顯示「占全球比例」（只對可加總的總量有意義） */
@@ -792,7 +802,7 @@ export interface TopicDefinition {
    */
   indicatorAliases?: Record<string, { indicator: string; item?: string }>;
   /**
-   * 側欄的額外區塊。用動態 import，ECharts 等大型依賴才不會進到首頁的 bundle：
+   * 側欄的額外區塊。用動態 import，各主題側欄的程式才不會進到首頁的 bundle：
    * `panelExtra: () => import('./electricity-panel')`
    */
   panelExtra?: () => Promise<{ default: React.ComponentType<PanelExtraProps> }>;

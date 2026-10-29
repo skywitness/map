@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { copyText } from '../lib/download';
 import { useUI } from '../lib/strings';
-import { currentHref } from '../lib/url-state';
+import { currentHref, hrefWithEmbed } from '../lib/url-state';
 
 interface ShareMenuProps {
   /** 只有地圖檢視才有：把目前的地圖畫成 PNG 下載 */
@@ -63,6 +63,15 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
     else flash(text.copyFailed, true);
   };
 
+  // 嵌入別的網頁（部落格、新聞、教材）：目前畫面加 embed=1 的 iframe，高度 560 px、寬度跟著版面
+  const copyEmbed = async () => {
+    const code =
+      `<iframe src="${hrefWithEmbed(true)}" title="${shareTitle.replace(/"/g, '&quot;')}" ` +
+      'width="100%" height="560" style="border:0" loading="lazy" allowfullscreen></iframe>';
+    if (await copyText(code)) flash(text.embedCopied);
+    else flash(text.copyFailed, true);
+  };
+
   const downloadCsv = (all: boolean) => {
     if (all) csv?.onDownloadAll();
     else csv?.onDownloadYear();
@@ -101,6 +110,7 @@ export function ShareMenu({ onDownloadImage, csv, shareTitle }: ShareMenuProps) 
       : []),
     ...csvItems,
     { label: nativeShare ? text.shareLink : text.copyLink, run: shareLink },
+    { label: text.embed, run: copyEmbed },
   ];
   itemRefs.current.length = items.length;
 

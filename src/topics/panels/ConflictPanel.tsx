@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Lang } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
@@ -132,10 +132,7 @@ export default function ConflictPanel({ topic, iso3, year, countryName, tokens }
         })
       : null;
     // 時間軸在 1989 年以前（衝突數的指標從 1946 年開始）：不畫目前年份的直線，免得看起來像 1989 年
-    if (option && year < years[0]) {
-      const lines = option.series as { markLine?: unknown }[];
-      delete lines[lines.length - 1].markLine;
-    }
+    if (option && year < years[0]) option.refs = [];
     const index = year < years[0] ? -1 : latestIndexAtOrBefore(years, year, () => true);
     const items =
       index >= 0
@@ -169,7 +166,7 @@ export default function ConflictPanel({ topic, iso3, year, countryName, tokens }
       <h3>{text.deathsTitle}</h3>
       {deaths.any && deaths.option ? (
         <>
-          <EChart option={deaths.option} height={220} ariaLabel={text.chartAria(countryName)} />
+          <Chart spec={deaths.option} height={220} ariaLabel={text.chartAria(countryName)} />
           {deaths.shownYear !== null ? (
             <>
               <h4>{text.byType(deaths.shownYear)}</h4>

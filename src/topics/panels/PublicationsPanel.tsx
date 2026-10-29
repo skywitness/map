@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, useLang, useT, type Lang } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
@@ -200,8 +200,8 @@ export default function PublicationsPanel({ topic, iso3, year, countryName, toke
       indicator: oaIndicator,
       tokens,
     });
-    // 四條線的圖例在側欄的寬度會排成兩行，圖要往下留位置（timeSeriesOption 只留一行）
-    const shares = { ...sharesBase, grid: { ...(sharesBase.grid as object), top: 56 } } as typeof sharesBase;
+    // 四條線的圖例在側欄的寬度會排成兩行（Chart.tsx 的圖例自己換行）
+    const shares = sharesBase;
     return { y, index, history, shares, worldIntl, worldOa };
   }, [data, world, year, topic, tokens, text]);
 
@@ -262,7 +262,7 @@ export default function PublicationsPanel({ topic, iso3, year, countryName, toke
     <>
       <section className="panel-section">
         <h3>{text.historyTitle}</h3>
-        <EChart option={view.history} height={210} ariaLabel={text.historyAria(countryName)} />
+        <Chart spec={view.history} height={210} ariaLabel={text.historyAria(countryName)} />
         <p className="note">
           {lastCore && lastAll ? text.historyNote(formatPercent((lastCore / lastAll) * 100, 0)) : text.historyNoteNone}
         </p>
@@ -295,7 +295,7 @@ export default function PublicationsPanel({ topic, iso3, year, countryName, toke
       </section>
       <section className="panel-section">
         <h3>{text.sharesTitle}</h3>
-        <EChart option={view.shares} height={230} ariaLabel={text.sharesAria(countryName)} />
+        <Chart spec={view.shares} height={230} ariaLabel={text.sharesAria(countryName)} />
         <p className="note">{text.sharesNote}</p>
       </section>
       <section className="panel-section">

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { stackedAreaOption, type StackedSeries } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
@@ -244,7 +244,7 @@ function TradeSection({
       ) : (
         <p className="empty">{text.noYear(year)}</p>
       )}
-      {history && <EChart option={history} height={180} ariaLabel={text.historyAria(countryName, title)} />}
+      {history && <Chart spec={history} height={180} ariaLabel={text.historyAria(countryName, title)} />}
     </div>
   );
 }
@@ -368,7 +368,7 @@ export default function PlasticPanel({ topic, iso3, year, countryName, tokens }:
         <section className="panel-section">
           <h3>{text.twTitle}</h3>
           <h4>{text.wasteTitle}</h4>
-          {waste && <EChart option={waste} height={180} ariaLabel={text.wasteAria} />}
+          {waste && <Chart spec={waste} height={180} ariaLabel={text.wasteAria} />}
           <p className="note">{text.wasteNote(WASTE_BREAK)}</p>
           <h4>{text.rateTable}</h4>
           <table className="mini-table">

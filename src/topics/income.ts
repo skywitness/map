@@ -1,6 +1,7 @@
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent, intlDollars, usd } from '../lib/format';
 import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 import type { TopicDefinition } from './types';
+import { COVID, FINANCIAL_CRISIS } from './events';
 
 export const income: TopicDefinition = {
   id: 'income',
@@ -73,6 +74,7 @@ export const income: TopicDefinition = {
       },
       unit: '%',
       file: 'gdp-growth.json',
+      events: [FINANCIAL_CRISIS, COVID],
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-5, -2, -0.5, 0.5, 2, 5] } },
       format: (v) => formatSignedPercent(v, 1),
       formatTick: (v) => formatSignedPercent(v, v % 1 === 0 ? 0 : 1),

@@ -17,6 +17,8 @@ interface TopicsOverviewProps {
 
 /** 卡片下方列出的指標數（跟主題選單一樣） */
 const SUMMARY_COUNT = 3;
+/** 縮圖的位置（建置後是絕對路徑 /map/thumbs/，主題的網址 t/<主題>/ 底下也抓得到） */
+const THUMBS = `${import.meta.env.BASE_URL}thumbs/`;
 /** 「最近看過」最多列幾個 */
 const RECENT_COUNT = 8;
 /** 觸控裝置打開時不自動聚焦篩選框，免得鍵盤一跳出來蓋住半個畫面 */
@@ -80,8 +82,8 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
           <span className="overview-thumb">
             {/* 一般解析度的螢幕用 240×140 的小縮圖（public/thumbs/s，每張約 4 KB），高解析度用 480×280 */}
             <img
-              src={`thumbs/${topic.id}.webp`}
-              srcSet={`thumbs/s/${topic.id}.webp 240w, thumbs/${topic.id}.webp 480w`}
+              src={`${THUMBS}${topic.id}.webp`}
+              srcSet={`${THUMBS}s/${topic.id}.webp 240w, ${THUMBS}${topic.id}.webp 480w`}
               sizes="(max-width: 768px) 46vw, 220px"
               alt=""
               width={240}

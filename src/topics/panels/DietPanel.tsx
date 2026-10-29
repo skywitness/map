@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -121,7 +121,7 @@ export default function DietPanel({ topic, iso3, year, countryName, tokens }: Pa
   return (
     <section className="panel-section">
       <h3>{text.title}</h3>
-      <EChart option={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
+      <Chart spec={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
       {view.methodBreak !== undefined && <p className="note">{t.methodBreak(view.methodBreak)}</p>}
       {view.shownYear !== null && total > 0 && (
         <>

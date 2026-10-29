@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarList } from '../../charts/BarList';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { defineMessages, tr, useLang, useT, type Lang, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, formatLargeTick } from '../../lib/format';
@@ -183,7 +184,7 @@ export default function AiPanel({ topic, iso3, countryName, tokens }: PanelExtra
               ),
             )}
           </p>
-          <EChart option={tokenOption} height={180} ariaLabel={text.tokensAria(countryName)} />
+          <Chart spec={tokenOption} height={180} ariaLabel={text.tokensAria(countryName)} />
           <p className="note">{text.tokensNote}</p>
         </>
       )}
@@ -250,56 +251,24 @@ function monthlyTokensOption(
   countryName: string,
   tokens: Tokens,
   lang: Lang,
-): ChartOption {
+): ChartSpec {
+  const months = series.months;
   return {
-    animation: false,
-    grid: { left: 4, right: 12, top: 8, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      formatter: (params) => {
-        const p = (Array.isArray(params) ? params : [params])[0];
-        const month = String((p as { axisValue?: string }).axisValue ?? '');
-        return (
-          `<div class="tt-head">${escapeHtml(formatMonth(month, lang))}</div>` +
-          `<div class="tt-row"><strong>${escapeHtml(formatLargeNumber(Number(p.value)))} tokens</strong>` +
-          `<span class="tt-name">${escapeHtml(countryName)}</span></div>`
-        );
-      },
-    },
-    xAxis: {
+    x: {
       type: 'category',
-      data: series.months,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: tokens.inkMuted,
-        fontSize: 11,
-        // 只標每年 1 月與 7 月
-        interval: (_i: number, v: string) => v.endsWith('-01') || v.endsWith('-07'),
-        formatter: (v: string) => (v.endsWith('-01') ? v.slice(0, 4) : TEXT[lang].monthTick(Number(v.slice(5)))),
-      },
+      // 只標每年 1 月與 7 月
+      labels: months.map((v) => (v.endsWith('-01') ? v.slice(0, 4) : TEXT[lang].monthTick(Number(v.slice(5))))),
+      showLabel: (i) => months[i].endsWith('-01') || months[i].endsWith('-07'),
     },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => formatLargeTick(v) },
-    },
-    series: [
-      {
-        type: 'line',
-        name: countryName,
-        data: series.tokens,
-        showSymbol: false,
-        color: tokens.accent,
-        lineStyle: { width: 2, color: tokens.accent },
-        emphasis: { disabled: true },
-      },
-    ],
+    y: { format: formatLargeTick },
+    series: [{ type: 'line', name: countryName, values: series.tokens, color: tokens.accent }],
+    tooltip: (i) =>
+      series.tokens[i] == null
+        ? null
+        : {
+            head: formatMonth(months[i], lang),
+            rows: [{ color: tokens.accent, value: `${formatLargeNumber(Number(series.tokens[i]))} tokens`, name: countryName }],
+          },
   };
 }
 

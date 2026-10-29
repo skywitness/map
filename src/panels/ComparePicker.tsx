@@ -130,7 +130,9 @@ export function ComparePicker({ iso3, compare, colors, candidates, countries, on
             )}
           </span>
         ) : (
+          // 看得到的字要包含在名稱裡（axe 的 label-content-name-mismatch）：「＋」不唸，名稱是「加入比較的國家」
           <button type="button" className="compare-add" onClick={() => setAdding(true)} aria-label={t.compareAddAria}>
+            <span aria-hidden="true">+ </span>
             {t.compareAdd}
           </button>
         ))}

@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { timeSeriesOption } from '../../charts/timeSeries';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { HUE_ORDER, type Tokens } from '../../theme/tokens';
+import { HUE_ORDER } from '../../theme/tokens';
 import type { IndicatorData, PanelExtraProps } from '../types';
 
 /**
@@ -35,7 +36,7 @@ const EXCESS_LAST_YEAR = 2023;
 const n1 = (v: number) => fixed(v, 1);
 const pct = (v: number) => `${fixed(v, 1)}%`;
 const count = (v: number) => fixed(v, 0);
-/** 在呼叫當下讀目前的語言（ECharts 的 tooltip） */
+/** 在呼叫當下讀目前的語言（圖表的 tooltip） */
 const per100k = (v: number) => tr({ zh: `每 10 萬人 ${fixed(v, 1)} 人`, en: `${fixed(v, 1)} per 100,000` });
 
 const TEXT = defineMessages({
@@ -148,84 +149,20 @@ function monthlyOption(
   months: string[],
   lines: MonthlyLine[],
   format: (v: number) => string,
+  tick: (v: number) => string,
   year: number,
-  tokens: Tokens,
   monthLabel: (m: string) => string,
-): ChartOption {
-  const mark = months.includes(`${year}-12`) ? `${year}-12` : null;
+): ChartSpec {
+  const mark = months.indexOf(`${year}-12`);
   return {
-    animation: false,
-    grid: { left: 4, right: 12, top: 32, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    legend: {
-      top: 0,
-      left: 0,
-      data: lines.map((l) => l.name),
-      icon: 'path://M0,0H12V2H0Z',
-      itemWidth: 12,
-      itemHeight: 2,
-      textStyle: { color: tokens.inkSecondary, fontSize: 12 },
-      selectedMode: false,
+    x: { type: 'category', labels: months.map((m) => m.slice(0, 4)), showLabel: (i) => months[i].endsWith('-01') },
+    y: { format: tick },
+    series: lines.map((l) => ({ type: 'line', name: l.name, values: l.values, color: l.color, connectNulls: true })),
+    refs: mark >= 0 ? [{ x: mark }] : [],
+    tooltip: (i) => {
+      const rows = lines.flatMap((l) => (l.values[i] == null ? [] : [{ color: l.color, value: format(l.values[i]!), name: l.name }]));
+      return rows.length ? { head: monthLabel(months[i]), rows } : null;
     },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'line', lineStyle: { color: tokens.axis, width: 1 } },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params) => {
-        const list = Array.isArray(params) ? params : [params];
-        const m = String((list[0] as { axisValue?: string }).axisValue ?? '');
-        const rows = list.flatMap((p) => {
-          const value = p.value as number | null | undefined;
-          if (value == null) return [];
-          return [
-            `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-              `<strong>${escapeHtml(format(value))}</strong><span class="tt-name">${escapeHtml(p.seriesName ?? '')}</span></div>`,
-          ];
-        });
-        return `<div class="tt-head">${escapeHtml(monthLabel(m))}</div>${rows.join('')}`;
-      },
-    },
-    xAxis: {
-      type: 'category',
-      data: months,
-      boundaryGap: false,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: tokens.inkMuted,
-        fontSize: 11,
-        interval: (_i: number, value: string) => value.endsWith('-01'),
-        formatter: (value: string) => value.slice(0, 4),
-      },
-    },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11 },
-    },
-    series: lines.map((l, i) => ({
-      type: 'line',
-      name: l.name,
-      data: l.values,
-      showSymbol: false,
-      connectNulls: true,
-      color: l.color,
-      lineStyle: { width: 2, color: l.color },
-      emphasis: { disabled: true },
-      z: lines.length - i,
-      markLine:
-        i === 0 && mark
-          ? {
-              silent: true,
-              symbol: 'none',
-              label: { show: false },
-              lineStyle: { color: tokens.inkMuted, type: 'solid', width: 1 },
-              data: [{ xAxis: mark }],
-            }
-          : undefined,
-    })),
   };
 }
 
@@ -280,7 +217,7 @@ export default function VaccinationPanel({ topic, iso3, year, countryName, token
     const at = years.indexOf(Math.min(year, years[years.length - 1]));
     const parts = lines.flatMap((l) => (l.values[at] != null ? [`${l.name} ${indicator.format(l.values[at]!)}`] : []));
     return {
-      option: { ...option, yAxis: { ...(option.yAxis as object), max: 100 } } as ChartOption,
+      option: { ...option, y: { ...option.y, max: 100 } },
       summary: parts.length ? text.coverageSummary(years[at], parts) : '',
     };
   }, [coverage, iso3, year, topic, tokens, text]);
@@ -325,8 +262,8 @@ export default function VaccinationPanel({ topic, iso3, year, countryName, token
           )
         : '';
     return {
-      deaths: deathLines.length ? monthlyOption(months, deathLines, per100k, year, tokens, text.month) : null,
-      vacc: vaccLines.length ? monthlyOption(months, vaccLines, pct, year, tokens, text.month) : null,
+      deaths: deathLines.length ? monthlyOption(months, deathLines, per100k, (v) => fixed(v, 0), year, text.month) : null,
+      vacc: vaccLines.length ? monthlyOption(months, vaccLines, pct, (v) => `${fixed(v, 0)}%`, year, text.month) : null,
       deathsSummary,
       vaccSummary,
     };
@@ -351,7 +288,7 @@ export default function VaccinationPanel({ topic, iso3, year, countryName, token
         <section className="panel-section">
           <h3>{text.coverageTitle}</h3>
           {coverageChart.summary && <p className="note">{coverageChart.summary}</p>}
-          <EChart option={coverageChart.option} height={200} ariaLabel={text.coverageAria(countryName)} />
+          <Chart spec={coverageChart.option} height={200} ariaLabel={text.coverageAria(countryName)} />
           {iso3 === 'TWN' && <p className="note">{text.twCoverage}</p>}
         </section>
       )}
@@ -359,7 +296,7 @@ export default function VaccinationPanel({ topic, iso3, year, countryName, token
         <section className="panel-section">
           <h3>{text.deathsTitle}</h3>
           {covid.deathsSummary && <p className="note">{covid.deathsSummary}</p>}
-          <EChart option={covid.deaths} height={200} ariaLabel={text.deathsAria(countryName)} />
+          <Chart spec={covid.deaths} height={200} ariaLabel={text.deathsAria(countryName)} />
           <p className="note">{text.deathsNote}</p>
         </section>
       )}
@@ -367,7 +304,7 @@ export default function VaccinationPanel({ topic, iso3, year, countryName, token
         <section className="panel-section">
           <h3>{text.vaccTitle}</h3>
           {covid.vaccSummary && <p className="note">{covid.vaccSummary}</p>}
-          <EChart option={covid.vacc} height={180} ariaLabel={text.vaccAria(countryName)} />
+          <Chart spec={covid.vacc} height={180} ariaLabel={text.vaccAria(countryName)} />
         </section>
       )}
       {twRows && timeline?.ceccLast && (

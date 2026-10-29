@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EChart } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
 import { latestIndexAtOrBefore, stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Lang, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -194,7 +194,7 @@ export default function EvPanel({ topic, iso3, year, countryName, tokens }: Pane
       {(view.option || view.sales || view.stock) && (
         <section className="panel-section">
           <h3>{text.title}</h3>
-          {view.option && <EChart option={view.option} height={200} ariaLabel={text.chartAria(countryName)} />}
+          {view.option && <Chart spec={view.option} height={200} ariaLabel={text.chartAria(countryName)} />}
           {view.sales && (
             <>
               <h4>

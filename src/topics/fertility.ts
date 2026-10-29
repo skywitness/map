@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { CHINA_BIRTH_POLICY } from './events';
 
 const PER_WOMAN = { zh: '每位婦女生育數', en: 'births per woman' };
 const BIRTHS = { zh: '人', en: 'births' };
@@ -63,6 +64,7 @@ export const fertility: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 2)} 人`, en: `${fixed(v, 2)} per woman` }),
       formatTick: (v) => fixed(v, v % 1 === 0 ? 0 : 1),
       compareWorld: true,
+      events: CHINA_BIRTH_POLICY,
     },
     {
       id: 'aged-65',
@@ -160,6 +162,7 @@ export const fertility: TopicDefinition = {
       // 英文的單位不寫 births，否則圖例是「Births (births)」
       unit: { zh: '人', en: 'live births' },
       file: 'births.json',
+      events: CHINA_BIRTH_POLICY,
       layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7] },
       // 中文的 formatLargeNumber 把萬取整數（13 萬），一百萬以下直接寫完整數字
       format: (v) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber(v)} ${tr(BIRTHS)}`,

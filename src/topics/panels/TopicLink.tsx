@@ -1,17 +1,18 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { getLang, URL_PARAM } from '../../i18n';
 import { setHistoryUrl } from '../../lib/history';
+import { topicPath } from '../../lib/url-state';
 
 /**
  * 連到別的主題（同一個國家）：在網頁裡換主題（url-state 聽 popstate），上一頁回到原本的主題；
  * 按住 Ctrl、Cmd、Shift、Alt 或中鍵時照一般連結開新分頁。國家小檔案的「其他主題」、摩天大樓的城市都用它。
  */
 export function topicHref(topic: string, ind: string | undefined, iso3: string): string {
-  const p = new URLSearchParams({ topic });
+  const p = new URLSearchParams();
   if (ind) p.set('ind', ind);
   p.set('country', iso3);
   if (getLang() === 'en') p.set(URL_PARAM, 'en');
-  return `?${p}`;
+  return `${topicPath(topic)}?${p}`;
 }
 
 /** 連結的 onClick：一般的點一下在網頁裡換主題；按住修飾鍵或中鍵時不攔，照一般連結開新分頁 */

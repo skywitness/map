@@ -2,6 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
 import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 import type { DimensionDef, TopicDefinition } from './types';
+import { COVID, FLU_1918 } from './events';
 
 const perThousand = (v: number) => `${fixed(v, v < 10 ? 1 : 0)}‰`;
 const YEARS = { zh: '歲', en: 'years' };
@@ -82,6 +83,7 @@ export const health: TopicDefinition = {
       },
       unit: YEARS,
       file: 'life-expectancy.json',
+      events: [COVID],
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 60, 65, 70, 75, 80] } },
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
       formatTick: (v) => fixed(v, 0),
@@ -261,6 +263,7 @@ export const health: TopicDefinition = {
       },
       unit: YEARS,
       file: 'life-expectancy-1800.json',
+      events: [FLU_1918, COVID],
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70, 80] } },
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
       formatTick: (v) => fixed(v, 0),

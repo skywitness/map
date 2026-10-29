@@ -7,13 +7,14 @@
     <meta name="theme-color" content="#2a78d6" />
     <title>世界資料地圖</title>
     <!--
-      分享到 LINE、Facebook、X 等的預覽（Open Graph）：爬蟲不跑 JavaScript，GitHub Pages 每個網址回傳同一份 HTML，
-      所以全站只有一張預覽圖（public/og-image.jpg，做法見 DESIGN.md 第 10 節），網址要寫完整
+      分享到 LINE、Facebook、X 等的預覽（Open Graph）：爬蟲不跑 JavaScript，看的是這份 HTML。網站首頁用 public/og-image.jpg
+      （做法見 DESIGN.md 第 10 節），每個主題的網址 t/<主題>/ 由建置時的 topicPages 外掛換成那個主題的標題、說明與預覽圖（public/og/<主題>.jpg）。
+      網址要寫完整
     -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="世界資料地圖 World Data Map" />
     <meta property="og:title" content="世界資料地圖" />
-    <meta property="og:description" content="用地球儀瀏覽各國人口、經濟、國際、能源、科技與地理資料，近 80 個主題，可以拖時間軸看變化。" />
+    <meta property="og:description" content="用地球儀瀏覽各國人口、經濟、國際、能源、科技與地理資料，近百個主題，可以拖時間軸看變化。" />
     <meta property="og:url" content="https://skywitness.github.io/map/" />
     <meta property="og:image" content="https://skywitness.github.io/map/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
@@ -22,16 +23,16 @@
     <meta property="og:locale" content="zh_TW" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" />
+    <link rel="icon" href="%BASE_URL%icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="%BASE_URL%icons/apple-touch-icon-180.png" />
     <!--
       載入速度（DESIGN.md 第 13 節）：第一個畫面要用的檔案在這裡就開始下載，不等首頁程式下載、跑起來。
       底圖（OpenFreeMap）先建立連線；所有底圖樣式共用的圖磚索引 /planet 也先抓。
     -->
     <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
     <link rel="preload" as="fetch" crossorigin href="https://tiles.openfreemap.org/planet" />
-    <link rel="preload" as="fetch" crossorigin href="./data/geo/countries-110m.json" />
-    <link rel="preload" as="fetch" crossorigin href="./data/countries.json" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%data/geo/countries-110m.json" />
+    <link rel="preload" as="fetch" crossorigin href="%BASE_URL%data/countries.json" />
     <script>
       (function () {
         function preload(href) {
@@ -47,11 +48,12 @@
           var stored = localStorage.getItem('basemap');
           if (!stored || stored === 'terrain') preload('https://tiles.openfreemap.org/styles/liberty');
         } catch (e) {}
-        // 首頁預設是人口主題的總人口（src/topics/index.ts、population.ts）；其他主題由程式自己下載
+        // 首頁預設是人口主題的總人口（src/topics/index.ts、population.ts）；其他主題由程式自己下載。
+        // 主題在路徑（t/<主題>/），舊的網址在 ?topic=
         var q = new URLSearchParams(location.search);
-        var topic = q.get('topic');
+        var topic = (location.pathname.match(/\/t\/([\w-]+)\/?$/) || [])[1] || q.get('topic');
         var ind = q.get('ind');
-        if ((!topic || topic === 'population') && (!ind || ind === 'total')) preload('./data/topics/population/total.json');
+        if ((!topic || topic === 'population') && (!ind || ind === 'total')) preload('%BASE_URL%data/topics/population/total.json');
       })();
     </script>
   </head>

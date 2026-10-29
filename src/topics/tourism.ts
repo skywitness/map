@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { COVID } from './events';
 
 const ARRIVALS = { zh: '人次', en: 'arrivals' };
 const PER_PERSON = { zh: '人次/人', en: 'arrivals per resident' };
@@ -54,6 +55,7 @@ export const tourism: TopicDefinition = {
       },
       unit: ARRIVALS,
       file: 'arrivals.json',
+      events: [COVID],
       layer: { kind: 'bubble', legendValues: [1e6, 1e7, 1e8] },
       format: (v) => `${formatLargeNumber(v)} ${tr(ARRIVALS)}`,
       formatTick: formatLargeTick,
@@ -68,6 +70,7 @@ export const tourism: TopicDefinition = {
       },
       unit: { zh: '美元', en: 'US$' },
       file: 'receipts.json',
+      events: [COVID],
       layer: { kind: 'bubble', legendValues: [1e9, 1e10, 1e11] },
       format: (v) => usd(formatLargeNumber(v)),
       formatTick: formatLargeTick,

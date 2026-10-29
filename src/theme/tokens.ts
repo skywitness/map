@@ -1,5 +1,5 @@
 /**
- * 顏色唯一的來源。CSS 透過 applyTokens() 寫入的 CSS 變數取用，D3 與 ECharts 直接讀這個物件。
+ * 顏色唯一的來源。CSS 透過 applyTokens() 寫入的 CSS 變數取用，D3、地圖與側欄圖表直接讀這個物件。
  *
  * 規則：
  * - 循序（sequential）：單一藍色色相由淺到深；深色模式翻轉，數值低的接近背景。
@@ -54,6 +54,8 @@ export interface Tokens {
   /** 主色（類別第 1 色），比例圓、折線、按鈕 */
   accent: string;
   accentInk: string;
+  /** 主色當文字（連結、「更多」）：淺色模式的主色對背景只有 4.2:1，文字要 4.5:1 以上，深一點（2026-10-29） */
+  accentText: string;
   /** 對照用的灰色系列（例如「世界」） */
   context: string;
   /** 7 級循序色，由低到高 */
@@ -71,7 +73,8 @@ export const TOKENS: Record<ThemeMode, Tokens> = {
     surface: '#fcfcfb',
     ink: '#0b0b0b',
     inkSecondary: '#52514e',
-    inkMuted: '#898781',
+    // 2026-10-29 從 #898781 加深：時間軸刻度、附註等 11–12px 的字對背景只有 3.4:1（axe），現在 4.6:1
+    inkMuted: '#73716b',
     grid: '#e1e0d9',
     axis: '#c3c2b7',
     border: 'rgba(11,11,11,0.10)',
@@ -80,6 +83,7 @@ export const TOKENS: Record<ThemeMode, Tokens> = {
     countryBorder: '#fcfcfb',
     accent: '#2a78d6',
     accentInk: '#ffffff',
+    accentText: '#2470cc',
     context: '#898781',
     sequential: [BLUE[100], BLUE[200], BLUE[300], BLUE[400], BLUE[500], BLUE[600], BLUE[700]],
     diverging: [RED[600], RED[400], RED[200], '#f0efec', BLUE[200], BLUE[400], BLUE[600]],
@@ -103,6 +107,7 @@ export const TOKENS: Record<ThemeMode, Tokens> = {
     countryBorder: '#1a1a19',
     accent: '#3987e5',
     accentInk: '#ffffff',
+    accentText: '#3987e5',
     context: '#898781',
     sequential: [BLUE[700], BLUE[600], BLUE[500], BLUE[400], BLUE[300], BLUE[200], BLUE[100]],
     diverging: [RED[200], RED[400], RED[600], '#383835', BLUE[600], BLUE[400], BLUE[200]],
@@ -124,6 +129,7 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
   border: '--border',
   accent: '--accent',
   accentInk: '--accent-ink',
+  accentText: '--accent-text',
 };
 
 /**

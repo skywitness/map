@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-import * as echarts from 'echarts/core';
-import { BarChart, type BarSeriesOption } from 'echarts/charts';
-import type { GridComponentOption, LegendComponentOption, TooltipComponentOption } from 'echarts/components';
 import { BarList } from '../../charts/BarList';
-import { EChart, escapeHtml, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { stackedAreaOption } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
@@ -11,10 +9,6 @@ import { fixed, formatLargeTick } from '../../lib/format';
 import type { Hue, Tokens } from '../../theme/tokens';
 import type { PanelExtraProps } from '../types';
 
-// 共用的 EChart 只註冊了折線圖；每月燒毀面積的長條圖在這裡按需加上（echarts.use 是全域註冊，只會加一次）
-echarts.use([BarChart]);
-
-type MonthlyOption = echarts.ComposeOption<BarSeriesOption | GridComponentOption | LegendComponentOption | TooltipComponentOption>;
 
 type LandCover = 'forest' | 'savannas' | 'shrublands_grasslands' | 'croplands' | 'other';
 
@@ -174,7 +168,7 @@ export default function WildfiresPanel({ topic, iso3, year, countryName, tokens 
     <>
       <section className="panel-section">
         <h3>{text.title}</h3>
-        <EChart option={view.option} height={200} ariaLabel={text.chartAria(countryName)} />
+        <Chart spec={view.option} height={200} ariaLabel={text.chartAria(countryName)} />
         <h4>
           {text.byType(view.shownYear)}
           {view.shownYear !== year && <span className="muted">{t.yearMissing(year)}</span>}
@@ -188,8 +182,8 @@ export default function WildfiresPanel({ topic, iso3, year, countryName, tokens 
       </section>
       <section className="panel-section">
         <h3>{text.monthly}</h3>
-        <EChart
-          option={view.monthlyChart}
+        <Chart
+          spec={view.monthlyChart}
           height={170}
           ariaLabel={text.monthlyAria(countryName, view.shownYear, view.range[0], view.range[1])}
         />
@@ -239,71 +233,20 @@ interface MonthlyInput {
 }
 
 /** 一年 12 個月的長條圖：所有年份的平均（灰色）與選定年份（彩色），看得出火季在哪幾個月 */
-function monthlyOption({ months, average, year, names, color, format, tokens }: MonthlyInput): ChartOption {
-  const series: BarSeriesOption[] = [
-    {
-      type: 'bar',
-      name: names.average,
-      data: average,
-      color: tokens.context,
-      itemStyle: { color: tokens.context, borderRadius: [3, 3, 0, 0] },
-      barGap: '15%',
-      barCategoryGap: '30%',
-      emphasis: { disabled: true },
-    },
-    {
-      type: 'bar',
-      name: names.year,
-      data: year,
-      color,
-      itemStyle: { color, borderRadius: [3, 3, 0, 0] },
-      emphasis: { disabled: true },
-    },
-  ];
-  const option: MonthlyOption = {
-    animation: false,
-    grid: { left: 4, right: 8, top: 28, bottom: 4, outerBoundsMode: 'same', outerBoundsContain: 'axisLabel' },
-    legend: {
-      top: 0,
-      left: 0,
-      textStyle: { color: tokens.inkSecondary, fontSize: 12 },
-      itemWidth: 14,
-      itemHeight: 8,
-      selectedMode: false,
-    },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      backgroundColor: tokens.surface,
-      borderColor: tokens.border,
-      textStyle: { color: tokens.ink, fontSize: 12 },
-      extraCssText: 'box-shadow: 0 2px 8px rgba(0,0,0,0.12); border-radius: 6px;',
-      formatter: (params) => {
-        const list = Array.isArray(params) ? params : [params];
-        const head = escapeHtml(String((list[0] as { axisValue?: string }).axisValue ?? ''));
-        const rows = list.map(
-          (p) =>
-            `<div class="tt-row"><span class="tt-key" style="background:${p.color}"></span>` +
-            `<strong>${escapeHtml(format(p.value as number))}</strong>` +
-            `<span class="tt-name">${escapeHtml(p.seriesName ?? '')}</span></div>`,
-        );
-        return `<div class="tt-head">${head}</div>${rows.join('')}`;
-      },
-    },
-    xAxis: {
-      type: 'category',
-      data: months,
-      axisLine: { lineStyle: { color: tokens.axis } },
-      axisTick: { show: false },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, interval: 1 },
-    },
-    yAxis: {
-      type: 'value',
-      minInterval: 0.01,
-      splitLine: { lineStyle: { color: tokens.grid, width: 1 } },
-      axisLabel: { color: tokens.inkMuted, fontSize: 11, formatter: (v: number) => formatLargeTick(v) },
-    },
-    series,
+function monthlyOption({ months, average, year, names, color, format, tokens }: MonthlyInput): ChartSpec {
+  return {
+    x: { type: 'category', labels: months, showLabel: (i) => i % 2 === 0 },
+    y: { format: formatLargeTick },
+    series: [
+      { type: 'bar', name: names.average, values: average, color: tokens.context },
+      { type: 'bar', name: names.year, values: year, color },
+    ],
+    tooltip: (i) => ({
+      head: months[i],
+      rows: [
+        { color: tokens.context, value: format(average[i]), name: names.average, box: true },
+        { color, value: format(year[i]), name: names.year, box: true },
+      ],
+    }),
   };
-  return option as unknown as ChartOption;
 }

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { EChart, type ChartOption } from '../../charts/EChart';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
 import { timeSeriesOption, type TimeSeriesLine } from '../../charts/timeSeries';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson, useJsonMany } from '../../lib/data';
@@ -137,8 +138,8 @@ function trendOption(
 }
 
 /** 指數在 100 上下：y 軸不必從 0 開始，起伏才看得出來 */
-function zoomY(option: ChartOption): ChartOption {
-  return { ...option, yAxis: { ...(option.yAxis as object), scale: true } } as ChartOption;
+function zoomY(option: ChartSpec): ChartSpec {
+  return { ...option, y: { ...option.y, zero: false } };
 }
 
 export default function HousePricesPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
@@ -286,8 +287,8 @@ export default function HousePricesPanel({ topic, iso3, year, countryName, token
         <>
           <h3>{text.trendTitle}</h3>
           {view.summary && <p className="note">{view.summary}</p>}
-          {view.priceOption && <EChart option={view.priceOption} height={190} ariaLabel={text.priceChart(countryName)} />}
-          {view.rentOption && <EChart option={view.rentOption} height={170} ariaLabel={text.rentChart(countryName)} />}
+          {view.priceOption && <Chart spec={view.priceOption} height={190} ariaLabel={text.priceChart(countryName)} />}
+          {view.rentOption && <Chart spec={view.rentOption} height={170} ariaLabel={text.rentChart(countryName)} />}
         </>
       )}
       {view.rows.length > 0 && (
@@ -339,7 +340,7 @@ export default function HousePricesPanel({ topic, iso3, year, countryName, token
           </table>
           <p className="note">{text.twCompare}</p>
           <h4>{text.twChart}</h4>
-          <EChart option={tw.option} height={190} ariaLabel={text.twChart} />
+          <Chart spec={tw.option} height={190} ariaLabel={text.twChart} />
           <p className="note">{text.twNote(tw.low, tw.high)}</p>
         </>
       )}

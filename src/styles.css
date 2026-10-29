@@ -4,12 +4,13 @@
   --surface: #fcfcfb;
   --ink: #0b0b0b;
   --ink-secondary: #52514e;
-  --ink-muted: #898781;
+  --ink-muted: #73716b;
   --grid: #e1e0d9;
   --axis: #c3c2b7;
   --border: rgba(11, 11, 11, 0.1);
   --accent: #2a78d6;
   --accent-ink: #ffffff;
+  --accent-text: #2470cc;
   /* 主題分類的代表色（tokens.ts 的 CATEGORY_COLORS） */
   --cat-society: #bc1f4f;
   --cat-economy: #b17000;
@@ -304,7 +305,7 @@ button {
   border-top: 1px solid var(--grid);
   border-radius: 0 0 6px 6px;
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 13px;
   font-weight: 600;
   text-align: left;
@@ -738,6 +739,11 @@ button {
 }
 
 /* ── 控制列 ─────────────────────────── */
+/* App.tsx 的 <main>：只為了 landmark，不參與版面 */
+.app-main {
+  display: contents;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -1130,7 +1136,7 @@ kbd {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font: inherit;
   cursor: pointer;
 }
@@ -1204,6 +1210,103 @@ kbd {
   color: #d03b3b;
 }
 
+/* ── 狀態畫面（StatusCard.tsx）：載入失敗、離線、沒有資料 ─────────── */
+.status-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 8px 0;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--grid) 45%, transparent);
+  color: var(--ink-secondary);
+}
+
+/* 蓋在地圖中間：卡片底色、陰影，最寬 360px */
+.status-card.is-overlay {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(360px, calc(100% - 32px));
+  margin: 0;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+}
+
+.status-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--grid);
+  color: var(--ink-secondary);
+}
+
+.status-card.is-overlay .status-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.status-card.is-error .status-icon {
+  background: color-mix(in srgb, #d03b3b 14%, var(--surface));
+  color: #c23434;
+}
+
+.status-card.is-offline .status-icon {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent-text);
+}
+
+.status-text {
+  min-width: 0;
+}
+
+.status-title {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.status-card:not(.is-overlay) .status-title {
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+}
+
+.status-detail {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+  overflow-wrap: anywhere;
+}
+
+.status-action {
+  margin-top: 10px;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-action:hover,
+.status-action:focus-visible {
+  border-color: var(--axis);
+}
+
 /* ── 地圖 ───────────────────────────── */
 .map {
   position: absolute;
@@ -1223,16 +1326,6 @@ kbd {
 
 .map.is-fullscreen {
   background: #000;
-}
-
-.map-error {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  margin: 0;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  background: var(--surface);
 }
 
 /* 3D 是文字，跟圖示一樣粗細 */
@@ -1379,7 +1472,7 @@ kbd {
 .more-check {
   flex: none;
   width: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
 }
 
@@ -1531,7 +1624,7 @@ kbd {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -1820,7 +1913,7 @@ kbd {
   border-top: 1px solid var(--border);
 }
 
-/* ECharts tooltip 內的結構（formatter 產生） */
+/* 圖表 tooltip 內的結構（charts/Chart.tsx） */
 .tt-head {
   color: var(--ink-secondary);
   margin-bottom: 4px;
@@ -1840,6 +1933,146 @@ kbd {
 
 .tt-name {
   color: var(--ink-secondary);
+}
+
+/* ── 側欄圖表（src/charts/Chart.tsx，自己畫的 SVG）─────────── */
+.chart {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chart-legend-box {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.chart-plot {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.chart-plot svg {
+  display: block;
+  overflow: visible;
+  /* 觸控：左右拖看 tooltip，上下照常捲動側欄 */
+  touch-action: pan-y;
+}
+
+.chart-tick {
+  font-size: 11px;
+  fill: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+
+.chart-axis {
+  stroke: var(--axis);
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-dot {
+  stroke: var(--surface);
+  stroke-width: 1;
+}
+
+.chart-area-edge {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.chart-ref {
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+}
+
+.chart-ref.is-dashed {
+  stroke-dasharray: 4 3;
+}
+
+.chart-pointer {
+  stroke: var(--axis);
+  stroke-width: 1;
+}
+
+.chart-hover-band {
+  fill: var(--grid);
+  opacity: 0.6;
+}
+
+/* 事件標記（一胎化、COVID-19）：點線與上緣的短名稱，名稱外圈描一圈背景色，壓在線上也讀得到 */
+.chart-event {
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+}
+
+.chart-event-label {
+  font-size: 10px;
+  fill: var(--ink-secondary);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.chart-end-label {
+  font-size: 11px;
+  fill: var(--ink-secondary);
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 4px;
+  z-index: 2;
+  width: max-content;
+  /* 窄的小圖（治理的六個面向）裡不超出圖，名稱換到下一行 */
+  max-width: min(240px, 100%);
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.chart-tooltip .tt-row {
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 0;
 }
 
 /* ── 圖例 ───────────────────────────── */
@@ -1934,7 +2167,7 @@ kbd {
   border: 0;
   border-radius: 4px;
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font: inherit;
   font-size: 11px;
   font-weight: 600;
@@ -2090,6 +2323,13 @@ kbd {
   text-overflow: ellipsis;
   contain: inline-size;
   font-variant-numeric: tabular-nums;
+}
+
+/* 觸控裝置沒有「滑過」，點了色塊才有字：平常不留這一行空白（2026-10-29），圖例矮一行 */
+@media (hover: none) {
+  .legend-bin-status:empty {
+    display: none;
+  }
 }
 
 .legend-note {
@@ -2740,7 +2980,7 @@ kbd {
   border: 0;
   background: none;
   /* --accent-ink 是藍底上的白字；淺色的側欄上用 --accent（2026-10-29 改，原本看不見） */
-  color: var(--accent);
+  color: var(--accent-text);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -2883,7 +3123,7 @@ kbd {
   display: inline-block;
   width: 1.1em;
   margin-right: 3px;
-  color: var(--accent);
+  color: var(--accent-text);
   text-align: center;
 }
 
@@ -3632,6 +3872,14 @@ kbd {
   font-size: 12px;
 }
 
+/* 手機：中文介面的英文國名（「中非共和國 Central African Republic」）讓一列擠成好幾行，一個畫面只看得到約 9 國，
+   藏起來（2026-10-29）；英文介面附的是 ISO 代碼，很短，留著 */
+@media (max-width: 768px) {
+  html:lang(zh) .row-en {
+    display: none;
+  }
+}
+
 .value-cell {
   width: 45%;
 }
@@ -4059,6 +4307,55 @@ kbd {
 
 .footer-sources {
   color: var(--ink-secondary);
+}
+
+/* ── 嵌入模式（?embed=1，App.tsx）：別的網頁的 iframe 裡只留主題名稱、指標、地圖、時間軸與資料來源 ─────────── */
+.embed-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.embed-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.embed-open {
+  flex: none;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.embed-open:hover {
+  text-decoration: underline;
+}
+
+.is-embed .topbar,
+.is-embed .controls-right,
+.is-embed .indicator-desc-row,
+.is-embed .footer > :not(.footer-sources) {
+  display: none;
+}
+
+.is-embed .controls {
+  padding-top: 8px;
+}
+
+/* 資料來源只留一行，太長以「…」截掉（點「在世界資料地圖開啟」看完整的） */
+.is-embed .footer-sources {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 說明太長時讀起來吃力：一行最多約 90 個中文字 */

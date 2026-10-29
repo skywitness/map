@@ -77,6 +77,9 @@ const UI_TEXT = defineMessages({
       shareLink: '分享連結…',
       copyLink: '複製連結',
       copied: '已複製連結',
+      /** 嵌入別的網頁的程式碼（iframe，網址加 embed=1） */
+      embed: '複製嵌入程式碼',
+      embedCopied: '已複製嵌入程式碼（iframe）',
       copyFailed: '無法複製，請直接複製網址列',
     },
   },
@@ -145,6 +148,8 @@ const UI_TEXT = defineMessages({
       shareLink: 'Share link…',
       copyLink: 'Copy link',
       copied: 'Link copied',
+      embed: 'Copy embed code',
+      embedCopied: 'Embed code (iframe) copied',
       copyFailed: 'Could not copy. Please copy the address bar instead.',
     },
   },

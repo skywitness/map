@@ -57,8 +57,8 @@ export interface GridLayer {
 export const GRID_PROTOCOL = 'densitygrid';
 
 function tilesUrl(path: string): string {
-  // 建置後 BASE_URL 是相對路徑 './'，換成完整網址（以目前頁面為準）
-  return new URL(`${import.meta.env.BASE_URL}tiles/${path}`, window.location.href).href;
+  // MapLibre 的圖磚網址要完整網址（BASE_URL 開發時是 /、建置後是 /map/）
+  return new URL(`${import.meta.env.BASE_URL}tiles/${path}`, document.baseURI).href;
 }
 
 const metaCache = new Map<string, Promise<GridMeta>>();
