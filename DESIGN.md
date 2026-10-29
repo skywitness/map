@@ -171,6 +171,7 @@ pipeline/
 3. 執行 `npm run data -- <主題>` 產生資料，`npm run dev` 檢查。
 4. **圖示**：在 `scripts/topic-icons.mjs` 的 `TOPIC_ICONS` 加一行（Lucide 的圖示名稱，查 https://lucide.dev/icons/ ，不要跟其他主題、分類重複），跑 `npm run icons` 產生 `src/topics/icons.gen.ts`（主題選單、主題總覽的圖示，§11）。沒有圖示時 `npm run icons -- --check`（CI 的「檢查」也跑）會報錯。
 5. **縮圖**：開著開發伺服器跑 `node scripts/topic-thumbs.mjs http://localhost:5173/ <主題 id>`，產生主題總覽用的 `public/thumbs/<主題>.webp` 與 `public/thumbs/s/<主題>.webp`（§11）。沒有縮圖時總覽的卡片是一塊海的藍色。
+6. **分享預覽圖**：有縮圖之後跑 `OG_FONT_DIR=<@fontsource/noto-sans-tc 的資料夾> node scripts/og-topics.mjs <主題 id>`，產生 `public/og/<主題>.jpg`（主題網址 `t/<主題>/` 的 og:image，§13）。沒有的話用網站首頁的預覽圖。
 
 年份不必連續（例如移民存量 1990、1995…2020、2024）：時間軸拖到中間沒有資料的年份時顯示最接近的一年，播放與 ←→ 都跳到下一個有資料的年份。
 
@@ -3109,7 +3110,7 @@ pipeline/
   - 如果跟著地圖 chunk 晚載入，順序反過來，地圖容器變成 0 高度，整張地圖看不見。
   - 這時 `map-data` mark 照樣會出現，所以改了載入方式後一定要截圖看。
 - **主控台的「Expected value to be of type number, but found null instead.」**：放大到 6 級左右就會出現，人口主題、純地圖頁也有，是底圖樣式本身的運算式，跟我們的圖層無關，不影響畫面。
-- **分享預覽圖**（`index.html` 的 Open Graph 標籤與 `public/og-image.jpg`，2026-10-27 加）：LINE、Facebook、X 的爬蟲不跑 JavaScript，GitHub Pages 每個網址（`?topic=…`）都回傳同一份 HTML，所以全站只能有一張預覽圖，沒辦法每個主題一張。圖是 1200×630：左邊網站名稱與六個分類，右邊一顆以人均 GDP 上色的地球，下方寫底圖與國界的出處（OpenStreetMap 的授權要求地圖圖片寫出處）。主題數、分類改了之後用 `node scripts/og-image.mjs [網址]` 重新產生（無頭 Chrome，跟 `check:en` 一樣要 puppeteer-core；卡片的中文用系統字型，在 Windows 上產生）。網址要寫完整的 `https://skywitness.github.io/map/…`，相對路徑爬蟲不認。
+- **分享預覽圖**（`index.html` 的 Open Graph 標籤與 `public/og-image.jpg`，2026-10-27 加）：LINE、Facebook、X 的爬蟲不跑 JavaScript，2026-10-29 以前 GitHub Pages 每個網址（`?topic=…`）都回傳同一份 HTML，全站只有一張預覽圖；現在每個主題有自己的網址與預覽圖（第 13 節「每個主題的網址、預覽圖與嵌入」），這一張是網站首頁的。圖是 1200×630：左邊網站名稱與六個分類，右邊一顆以人均 GDP 上色的地球，下方寫底圖與國界的出處（OpenStreetMap 的授權要求地圖圖片寫出處）。主題數、分類改了之後用 `node scripts/og-image.mjs [網址]` 重新產生（無頭 Chrome，跟 `check:en` 一樣要 puppeteer-core；卡片的中文用系統字型，在 Windows 上產生）。網址要寫完整的 `https://skywitness.github.io/map/…`，相對路徑爬蟲不認。
 - **檢查 3D 時**：開發模式下用 `__map.queryRenderedFeatures(point, { layers: ['extrude-countries'] })` 確認點得到。地球儀上它會回傳空陣列（見第 5 節「3D 立體地圖」），換 MapLibre 版本時可以用這個方法確認限制是否還在。立體地形用 `__map.getTerrain()` 看倍率，用 `__map.project([經度, 緯度])` 換成畫面座標再查 `data-fill`，確認地形上點得到國家。
 
 ## 11. 主題選單、搜尋、快捷鍵與手機操作
@@ -3473,6 +3474,17 @@ pipeline/
 這個流程用無頭 Chrome 實際跑過（v1 → 部署 v2，開著的舊頁面點國家），見下方「部署更新測試」。
 
 **資料格式改了要注意**：舊頁面在新版接手後，拿到的資料是新的。指標檔的格式要保持舊程式也能讀，或像差分編碼這樣在前端加上還原、舊格式照樣能讀。
+
+### 每個主題的網址、預覽圖與嵌入（2026-10-29）
+
+分享到 LINE、Facebook 時原本都是同一張圖、同一個標題（描述還寫著「近 80 個主題」），搜尋引擎也只看得到首頁。
+
+- **網址改成路徑**：`/map/t/<主題>/?country=TWN&year=2023`（`url-state.ts` 的 `topicPath`、`siteRoot`）。舊的 `?topic=` 照樣讀得懂（優先於路徑，主題之間的連結 `TopicLink` 也改成新的寫法），寫回網址時換成新的。網站首頁 `/map/` 是預設的人口主題。
+- **每個主題一份 HTML**（`vite.config.ts` 的 `topicPages`）：建置時把首頁的 HTML 複製到 `t/<主題>/index.html`，換掉 `<title>`、`description`、`og:title`、`og:description`、`og:url`、`og:image`，加上 `canonical`；說明用主題名稱與前四個指標（「各國生育率與高齡化：總生育率、65 歲以上人口比例、扶老比、出生數。互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。」）。另外產生 `sitemap.xml`（首頁與每個主題，`lastmod` 是建置日）。`robots.txt` 只在網域根目錄有效（`skywitness.github.io/robots.txt` 不在這個 repo），所以 sitemap 要在 Google Search Console 提交。
+- **建置改用絕對路徑**（`base: '/map/'`，開發伺服器照舊 `/`）：原本是相對路徑 `./`，在 `t/<主題>/` 底下會變成 `t/<主題>/assets/…`。試過在 HTML 開頭用程式放 `<base>`，但瀏覽器的預先掃描（preload scanner）不跑程式，第一輪照樣用錯的路徑抓（404）；從首頁換主題後網址變成 `t/<主題>/`，之後相對路徑的 `fetch` 也會錯。`index.html` 的相對網址改成 `%BASE_URL%`，`preloadMapChunk`、`preloadTopicChunk` 寫 `/map/`，主題總覽的縮圖用 `import.meta.env.BASE_URL`。換網域或路徑時改 `vite.config.ts` 的 `SITE`。
+- **service worker**：離線時任何網址（含 `t/<主題>/`）都用預先快取的首頁 HTML 回應，絕對路徑所以抓得到 assets；預覽圖、主題頁的 HTML 不預先快取（給爬蟲的）。
+- **預覽圖**（`scripts/og-topics.mjs`，`public/og/<主題>.jpg`，1200×630、每張約 70 KB，98 張約 7 MB）：跟首頁的預覽圖同一種深藍底，上緣一條分類代表色，左邊分類的圖示與名稱、主題名稱（括號裡的補充不寫，字級依長度 46–62px）、前五個指標，右邊是主題總覽的縮圖，下面網站名稱、網址與底圖的版權。不用開發伺服器，腳本自己開一個小伺服器給卡片、縮圖與字型。字型用思源黑體（`OG_FONT_DIR` 指到 `@fontsource/noto-sans-tc`；沒設時用系統字型）。沒有預覽圖的主題用首頁那一張。新增主題時跑 `node scripts/og-topics.mjs <主題 id>`（第 4 節）。
+- **嵌入模式**（`?embed=1`，`url-state.ts` 的 `embed`、`App.tsx` 的 `.is-embed`）：給部落格、新聞、教材放在 iframe 裡。頂列換成主題名稱與「在世界資料地圖開啟 ↗」（新分頁開完整網站，網址在點的當下才算），控制列只留指標，不顯示指標說明、搜尋、地圖／排名表、分享，頁尾只留資料來源一行；地圖、圖例、時間軸、點國家的側欄照常。分享選單多一項「複製嵌入程式碼」：`<iframe src="…?embed=1" title="…" width="100%" height="560" style="border:0" loading="lazy" allowfullscreen>`。GitHub Pages 沒有 `X-Frame-Options`，別的網站可以嵌入。
 
 ### 部署更新測試
 

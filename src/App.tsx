@@ -29,7 +29,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, useUrlState, type ViewState } from './lib/url-state';
+import { currentHref, hrefWithEmbed, read as readUrlState, useUrlState, type ViewState } from './lib/url-state';
 import {
   buildGridIndex,
   gridInBox,
@@ -574,8 +574,26 @@ export function App() {
   };
 
   return (
-    <div className="app" ref={appRef}>
-      <header className="topbar">
+    <div className={`app${state.embed ? ' is-embed' : ''}`} ref={appRef}>
+      {state.embed && (
+        // 嵌入模式（?embed=1，放在別的網頁的 iframe 裡）：頂列換成主題名稱與「在世界資料地圖開啟」，
+        // 控制列只留指標，頁尾只留資料來源（CSS 的 .is-embed）
+        <header className="embed-bar">
+          <h1 className="embed-title">{topic.title}</h1>
+          <a
+            className="embed-open"
+            href={hrefWithEmbed(false)}
+            target="_blank"
+            rel="noopener"
+            // 網址在點的當下才算（年份、國家可能剛換過）
+            onClick={(e) => (e.currentTarget.href = hrefWithEmbed(false))}
+          >
+            {t.embedOpen}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        </header>
+      )}
+      <header className="topbar" hidden={state.embed}>
         <h1 className="brand">{t.brand}</h1>
         {!online && (
           <span className="offline-badge" role="status" title={t.offlineHint}>

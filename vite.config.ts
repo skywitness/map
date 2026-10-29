@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -23,11 +23,11 @@ function preloadMapChunk(): Plugin {
         if (!chunk || chunk.type !== 'chunk') return [];
         const css = [...(chunk.viteMetadata?.importedCss ?? [])].map((file) => ({
           tag: 'link',
-          attrs: { rel: 'preload', as: 'style', crossorigin: true, href: `./${file}` },
+          attrs: { rel: 'preload', as: 'style', crossorigin: true, href: `${BASE}${file}` },
           injectTo: 'head' as const,
         }));
         return [
-          { tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: `./${chunk.fileName}` }, injectTo: 'head' },
+          { tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: `${BASE}${chunk.fileName}` }, injectTo: 'head' },
           ...css,
         ];
       },
@@ -37,7 +37,7 @@ function preloadMapChunk(): Plugin {
 
 /**
  * 網址指定的主題（人口以外的主題各自一個 chunk，src/topics/registry.ts）也跟首頁程式同時下載：
- * 首頁 HTML 加一小段程式，依網址的 topic 插入那個 chunk 的 modulepreload，不必等首頁程式跑起來才發出請求
+ * 首頁 HTML 加一小段程式，依網址的主題（t/<主題>/ 或舊的 ?topic=）插入那個 chunk 的 modulepreload，不必等首頁程式跑起來才發出請求
  */
 function preloadTopicChunk(): Plugin {
   return {
@@ -53,17 +53,88 @@ function preloadTopicChunk(): Plugin {
         for (const c of Object.values(ctx.bundle ?? {})) {
           const file = c.type === 'chunk' ? /[\\/]src[\\/]topics[\\/]([\w-]+)\.ts$/.exec(c.facadeModuleId ?? '')?.[1] : undefined;
           const id = file && ids.get(file);
-          if (id && c.type === 'chunk') chunks[id] = `./${c.fileName}`;
+          if (id && c.type === 'chunk') chunks[id] = `${BASE}${c.fileName}`;
         }
         if (Object.keys(chunks).length !== ids.size) {
           this.warn(`preload-topic-chunk：${ids.size} 個主題只找到 ${Object.keys(chunks).length} 個 chunk`);
         }
         const script =
-          `(function(){var c=${JSON.stringify(chunks)};var t=new URLSearchParams(location.search).get('topic');` +
+          `(function(){var c=${JSON.stringify(chunks)};var t=new URLSearchParams(location.search).get('topic')||(location.pathname.match(/\\/t\\/([\\w-]+)\\/?$/)||[])[1];` +
           `if(!t||!c[t])return;var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';` +
           `l.href=c[t];document.head.appendChild(l)})()`;
         return [{ tag: 'script', children: script, injectTo: 'head' }];
       },
+    },
+  };
+}
+
+/** 正式網站的網址：分享預覽（og:url、og:image）、canonical、sitemap 都要寫完整網址 */
+const SITE = 'https://skywitness.github.io/map/';
+/** 建置後網站在網域底下的路徑（GitHub Pages 的專案網站），跟 SITE 一致 */
+const BASE = new URL(SITE).pathname;
+
+const escapeAttr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/** 主題目錄（scripts/topic-catalog.mjs 產生的 catalog.gen.ts）：每一行一個主題的 JSON */
+function readCatalog(): { id: string; title: { zh: string }; pure?: boolean; indicators: { label: { zh: string } }[] }[] {
+  const source = readFileSync('src/topics/catalog.gen.ts', 'utf8');
+  return [...source.matchAll(/^ {4}"[\w-]+": (\{.*\}),$/gm)].map((m) => JSON.parse(m[1]));
+}
+
+/**
+ * 每個主題自己的網址 t/<主題>/（2026-10-29）：爬蟲（LINE、Facebook、Google）不跑 JavaScript，GitHub Pages 每個網址又只能回傳
+ * 一個檔案，所以建置時把首頁的 HTML 複製一份到 t/<主題>/index.html，換掉標題、說明與分享預覽（og:*，預覽圖是
+ * scripts/og-topics.mjs 產生的 public/og/<主題>.jpg），加上 canonical；網站根目錄另外產生 sitemap.xml。
+ * 建置用絕對路徑（base 是 /map/），這份 HTML 放在 t/<主題>/ 底下照樣抓得到 assets、data
+ */
+function topicPages(): Plugin {
+  return {
+    name: 'topic-pages',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      const index = bundle['index.html'];
+      if (!index || index.type !== 'asset') {
+        this.warn('topic-pages：找不到 index.html');
+        return;
+      }
+      const html = String(index.source);
+      const topics = readCatalog();
+      const setMeta = (doc: string, attr: 'name' | 'property', key: string, value: string) => {
+        const re = new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`);
+        if (!re.test(doc)) throw new Error(`topic-pages：index.html 沒有 <meta ${attr}="${key}">`);
+        return doc.replace(re, `$1${escapeAttr(value)}$2`);
+      };
+      // 首頁本身也加 canonical
+      index.source = html.replace('</title>', `</title>\n    <link rel="canonical" href="${SITE}" />`);
+      const today = new Date().toISOString().slice(0, 10);
+      const urls = [SITE];
+      for (const topic of topics) {
+        const url = `${SITE}t/${topic.id}/`;
+        const title = topic.title.zh;
+        const labels = topic.indicators.map((i) => i.label.zh);
+        const description = topic.pure
+          ? '用地球儀看世界地圖，可以換底圖、搜尋國家；網站另有近百個主題的各國資料。'
+          : `${title}：${labels.slice(0, 4).join('、')}${labels.length > 4 ? '等' : ''}。互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。`;
+        const image = existsSync(`public/og/${topic.id}.jpg`) ? `${SITE}og/${topic.id}.jpg` : `${SITE}og-image.jpg`;
+        let page = html.replace(
+          /<title>[^<]*<\/title>/,
+          `<title>${escapeAttr(title)} · 世界資料地圖</title>\n    <link rel="canonical" href="${url}" />`,
+        );
+        page = setMeta(page, 'name', 'description', description);
+        page = setMeta(page, 'property', 'og:title', `${title} · 世界資料地圖`);
+        page = setMeta(page, 'property', 'og:description', description);
+        page = setMeta(page, 'property', 'og:url', url);
+        page = setMeta(page, 'property', 'og:image', image);
+        page = setMeta(page, 'property', 'og:image:alt', `${title}：世界資料地圖的主題`);
+        this.emitFile({ type: 'asset', fileName: `t/${topic.id}/index.html`, source: page });
+        urls.push(url);
+      }
+      const sitemap =
+        '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+        urls.map((u) => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).join('\n') +
+        '\n</urlset>\n';
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemap });
     },
   };
 }
@@ -114,6 +185,7 @@ export default defineConfig(({ command }) => ({
     react(),
     preloadMapChunk(),
     preloadTopicChunk(),
+    topicPages(),
     collectCoreAssets(),
     VitePWA({
       strategies: 'injectManifest',
@@ -164,8 +236,9 @@ export default defineConfig(({ command }) => ({
     // 開發模式不註冊 service worker，不必每次啟動都算雜湊
     __DATA_VERSION__: JSON.stringify(command === 'build' ? dataVersion() : 'dev'),
   },
-  // 相對路徑，方便部署到 GitHub Pages 的子路徑
-  base: './',
+  // 建置時用 GitHub Pages 的子路徑 /map/（絕對路徑）：每個主題有自己的網址 t/<主題>/（topicPages），相對路徑在那底下會錯。
+  // 2026-10-29 以前是相對路徑 './'。開發伺服器照舊在根目錄
+  base: command === 'build' ? BASE : '/',
   server: {
     // 網格圖磚（public/tiles，人口 6 萬張、暖化 2.4 萬張）不監看：產生圖磚時每一張都會觸發一次檔案事件，
     // 開發伺服器會整個停住不回應。代價是 Vite 只在啟動時列出 public/ 的檔案，重新產生圖磚後要重開開發伺服器

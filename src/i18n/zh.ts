@@ -28,6 +28,8 @@ export const zh = {
   overviewMatch: (label: string) => `符合：${label}`,
   overviewNoMatch: '沒有符合的主題',
   overviewRecent: '最近看過',
+  /** 嵌入模式（?embed=1）上緣的連結 */
+  embedOpen: '在世界資料地圖開啟',
   overviewCredit:
     '縮圖是各主題預設指標的世界地圖（資料出處見各主題的頁尾）；底圖 © OpenStreetMap contributors · OpenMapTiles · OpenFreeMap，國界 Natural Earth。主題圖示 Lucide（ISC 授權）。',
   language: '語言',

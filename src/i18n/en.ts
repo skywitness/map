@@ -24,6 +24,7 @@ export const en: Messages = {
   overviewMatch: (label) => `Matches: ${label}`,
   overviewNoMatch: 'No matching topics',
   overviewRecent: 'Recently viewed',
+  embedOpen: 'Open in World Data Map',
   overviewCredit:
     "Thumbnails show each topic's default indicator on a world map (sources are listed in each topic's footer). Basemap © OpenStreetMap contributors · OpenMapTiles · OpenFreeMap; borders Natural Earth. Topic icons Lucide (ISC licence).",
   language: 'Language',
