@@ -10,17 +10,27 @@
 - share.json（移民占人口比例）、immigrants.json（移民人數）、emigrants.json（僑民人數）
 - refugees-hosted.json（收容的難民）、refugees-per-1000.json（每千人收容的難民）、refugees-origin.json（依來源國）
 - flows/migrants/<年>.json、flows/refugees/<年>.json：每個國家前 15 大來源（import）與去向（export）
+- foreign-workers.json（2026-10-29 擴充，製作手冊第五批 46，使用者決定；build_foreign_workers() 可以單獨跑）：
+  勞動力裡外國出生者的比例，ILOSTAT 國際勞動移民統計的 EAP_TEAP_SEX_AGE_CBR_NB_A（依出生地，15 歲以上，CC BY 4.0）。
+  台灣不在裡面：勞動部產業及社福移工人數（data.gov.tw 41881，只有最新一年）÷（主計總處人力資源調查的勞動力＋移工），
+  假設人力資源調查的勞動力不含移工，附註寫明。
 """
 from __future__ import annotations
 
+import csv
+import io
 from collections import defaultdict
 
-from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
-from sources import nia, ocac, undesa_ims, unhcr, wpp
+from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
+from sources import dgbas, ilostat, nia, ocac, undesa_ims, unhcr, wpp
+from sources.countries import to_iso3
 
 TOP_N = 15
 REFUGEE_FROM = 1990
 TAIWAN = "TWN"
+ILO_FOREIGN_BORN = "EAP_TEAP_SEX_AGE_CBR_NB_A"
+MOL_MIGRANT_WORKERS = "https://apiservice.mol.gov.tw/OdService/download/A17000000J-030123-Q5d"
+FOREIGN_WITHIN = 5  # 隔幾年才有資料的國家多，地圖用 5 年內最近一年
 
 Pairs = dict[tuple[str, str], float]  # (來源, 目的地) → 人數
 
@@ -109,6 +119,7 @@ def build() -> None:
             notes=taiwan, notesEn=taiwan_en,
         ))
 
+    build_foreign_workers()
     write_json(out / "manifest.json", {
         "topic": "migration",
         "generatedAt": now_iso(),
@@ -193,3 +204,58 @@ def _emigrant_notes() -> tuple[dict[str, str], dict[str, str]]:
             f"Indonesia {o['印尼'] / 1e3:.0f},000, Canada {o['加拿大'] / 1e3:.0f},000), so the two are not comparable."
         )},
     )
+
+
+def _ilo_foreign_born() -> dict[str, dict[int, float]]:
+    """ILOSTAT：15 歲以上勞動力裡外國出生者的比例（%）"""
+    path = download(ilostat.API.format(id=ILO_FOREIGN_BORN), "ilostat", f"{ILO_FOREIGN_BORN}.csv")
+    cells: dict[tuple[str, int], dict[str, float]] = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if row["sex"] != "SEX_T" or row["classif1"] != "AGE_YTHADULT_YGE15" or not row["obs_value"]:
+                continue
+            if row.get("obs_status") == ilostat.UNRELIABLE or not (iso3 := to_iso3(row["ref_area"])):
+                continue
+            cells.setdefault((iso3, int(row["time"])), {})[row["classif2"]] = float(row["obs_value"])
+    out: dict[str, dict[int, float]] = {}
+    for (iso3, year), c in cells.items():
+        if c.get("CBR_BIR_TOTAL") and "CBR_BIR_FOREIGN" in c:
+            out.setdefault(iso3, {})[year] = c["CBR_BIR_FOREIGN"] / c["CBR_BIR_TOTAL"] * 100
+    return out
+
+
+def _taiwan_migrant_workers() -> tuple[int, float]:
+    """(西元年, 產業及社福移工人數)：勞動部各縣市的總計加起來"""
+    path = download(MOL_MIGRANT_WORKERS, "mol", "migrant-workers-by-county.csv")
+    rows = list(csv.DictReader(io.StringIO(path.read_bytes().decode("utf-8-sig"))))
+    years = {int(r["年度"]) for r in rows}
+    if len(years) != 1:
+        raise RuntimeError(f"勞動部移工人數的年度不只一個：{years}")
+    return years.pop() + 1911, sum(float(r["總計"]) for r in rows)
+
+
+def build_foreign_workers() -> None:
+    out = OUT_DIR / "topics" / "migration"
+    series = _ilo_foreign_born()
+    year, workers = _taiwan_migrant_workers()
+    header, table = dgbas._table("A040107010", 67, "0,8", "0,1")
+    labour = dgbas._num(table[year][header.index("勞動力(千人)")]) * 1000
+    share = workers / (labour + workers) * 100
+    series[TAIWAN] = {year: share}
+    years = latest_year_span(series, FOREIGN_WITHIN)
+    note = (f"台灣不在 ILO 的資料裡，用勞動部的產業及社福移工人數（{year} 年 {workers:,.0f} 人）÷（主計總處人力資源調查的勞動力 "
+            f"{labour / 1e4:,.0f} 萬人＋移工）自己算，假設人力資源調查的勞動力不含移工；只算移工，不含其他外國出生的人（例如新住民），"
+            "跟其他國家依出生地的定義不同")
+    note_en = (f"Taiwan is not in the ILO data; the share is migrant workers in industry and social welfare from the Ministry of Labor "
+               f"({workers:,.0f} in {year}) divided by the labour force from DGBAS's Manpower Survey ({labour / 1e6:.2f} million) plus "
+               "those workers, assuming the survey does not count them; it covers migrant workers only, not other foreign-born people "
+               "such as immigrant spouses, so it differs from the place-of-birth definition used for other countries")
+    write_json(out / "foreign-workers.json", indicator_file(
+        "foreign-workers", "%", years, {c: to_series(v, years, 1) for c, v in series.items() if v},
+        latestWithin=FOREIGN_WITHIN, notes={TAIWAN: note}, notesEn={TAIWAN: note_en},
+    ))
+    latest = {c: v[max(v)] for c, v in series.items() if max(v) >= years[-1] - FOREIGN_WITHIN}
+    ranked = sorted((round(v, 1), c) for c, v in latest.items())
+    print(f"  外國出生者占勞動力（{years[0]}–{years[-1]}，5 年內最近一年）：{len(latest)} 國，最高 {ranked[-5:]}，最低 {ranked[:3]}；"
+          f"台灣 {year} 年 {share:.1f}%（移工 {workers:,.0f}、勞動力 {labour:,.0f}）")
+

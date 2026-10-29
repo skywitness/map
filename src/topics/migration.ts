@@ -83,6 +83,16 @@ export const migration: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/13506',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
+    {
+      name: { zh: 'ILOSTAT，國際勞動移民統計（勞動力依出生地）', en: 'ILOSTAT, International Labour Migration Statistics (labour force by place of birth)' },
+      url: 'https://ilostat.ilo.org/topics/labour-migration/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '勞動部（產業及社福移工人數）、主計總處（人力資源調查）', en: 'Ministry of Labor (migrant workers) and DGBAS (Manpower Survey), Taiwan' },
+      url: 'https://data.gov.tw/dataset/41881',
+      license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+    },
   ],
   note: {
     zh:
@@ -109,6 +119,19 @@ export const migration: TopicDefinition = {
       format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
       formatTick: (v) => `${fixed(v, v < 10 && !Number.isInteger(v) ? 1 : 0)}%`,
       compareWorld: true,
+    },
+    {
+      id: 'foreign-workers',
+      label: { zh: '勞動力裡的外國出生者', en: 'Foreign-born share of the labour force' },
+      description: {
+        zh: '15 歲以上的勞動力（有工作或在找工作的人）裡，出生在其他國家的人占的比例，各國 5 年內最近一年（ILO）。盧森堡 61%、阿聯 43%、瑞士 36%、澳洲 35%，德國 22%、美國 20%；沙烏地、卡達沒有依出生地的資料。台灣只能算產業及社福移工，2025 年約 6.7%。',
+        en: 'People born in another country as a share of the labour force aged 15 and over (those working or looking for work), the latest year within five years (ILO). Luxembourg 61%, the UAE 43%, Switzerland 36%, Australia 35%, Germany 22%, the US 20%; Saudi Arabia and Qatar have no data by place of birth. For Taiwan only migrant workers in industry and social welfare can be counted: about 6.7% in 2025.',
+      },
+      unit: '%',
+      file: 'foreign-workers.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2.5, 5, 10, 15, 25, 40] } },
+      format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
+      formatTick: (v) => `${fixed(v, v < 10 && !Number.isInteger(v) ? 1 : 0)}%`,
     },
     {
       id: 'immigrants',
