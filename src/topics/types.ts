@@ -361,6 +361,7 @@ export type OverlayDef =
   | PointsOverlayDef
   | LinesOverlayDef
   | NightOverlayDef
+  | MoonOverlayDef
   | LiveGridOverlayDef
   | ClassGridOverlayDef
   | WindOverlayDef;
@@ -376,6 +377,29 @@ export interface NightOverlayDef {
   label: Text;
   /** 太陽直射點在圖例上的名稱 */
   sunLabel: Text;
+  hidden?: boolean;
+  /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
+  indicators?: string[];
+  items?: string[];
+}
+
+/**
+ * 月亮（2026-10-29 起，晝夜與季節的「月亮」）：依目前的時刻畫出看得到月亮的半個地球（月亮在地平線上，淡淡的一層）
+ * 與月下點（月亮在正頭頂的地方）。不讀資料檔，位置由主題的 position 算（晝夜與季節用 Astronomy Engine，
+ * 套件只進那個主題的程式）；地圖上跟晝夜同一種自訂圖層（src/map/nightLayer.ts）。
+ */
+export interface MoonOverlayDef {
+  kind: 'moon';
+  id: string;
+  label: Text;
+  /** 圖例上「看得到月亮」那一格的名稱 */
+  upLabel: Text;
+  /** 圖例上邊界（月出月落的那一圈）的名稱 */
+  edgeLabel: Text;
+  /** 月下點在圖例上的名稱 */
+  pointLabel: Text;
+  /** 那一刻的月下點與「月亮在地平線上」的地心高度門檻（°，見 lib/moon.ts 的 SublunarPoint） */
+  position: (time: number) => { lon: number; lat: number; horizon: number };
   hidden?: boolean;
   /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
   indicators?: string[];
@@ -936,6 +960,7 @@ export type Indicator = Localized<IndicatorDef>;
 export type PointsOverlay = Localized<PointsOverlayDef>;
 export type LinesOverlay = Localized<LinesOverlayDef>;
 export type NightOverlay = Localized<NightOverlayDef>;
+export type MoonOverlay = Localized<MoonOverlayDef>;
 export type LiveGridOverlay = Localized<LiveGridOverlayDef>;
 export type ClassGridOverlay = Localized<ClassGridOverlayDef>;
 export type WindOverlay = Localized<WindOverlayDef>;

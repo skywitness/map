@@ -21,3 +21,15 @@ export function nightAlphas(dark: boolean): number[] {
 
 /** 太陽直射點的顏色（琥珀色，MAP_TOKENS.categorical 的那一色），白色外框 */
 export const SUN_COLOR = MAP_TOKENS.categorical[2];
+
+/**
+ * 月亮（MoonOverlayDef）：看得到月亮的半個地球蓋一層很淡的月光色（淺色底圖偏藍、深色底圖偏白），
+ * 國家的顏色與夜色照樣看得出來；邊界（月出月落的那一圈）是一條比較清楚的細環（ring 是它的不透明度，
+ * ringWidth 是寬度，度）。月下點是銀灰色的點，白色外框
+ */
+export const MOON_LOOK = {
+  light: { color: '#3e5f8a', opacity: 0.08, ring: 0.5 },
+  dark: { color: '#dfe7f5', opacity: 0.07, ring: 0.45 },
+  ringWidth: 0.8,
+} as const;
+export const MOON_COLOR = '#9aa6b8';

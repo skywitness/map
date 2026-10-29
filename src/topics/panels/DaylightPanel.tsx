@@ -5,12 +5,17 @@ import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { dayKey, dayParts, daysInYear, formatDay, monthDayOfYear } from '../../lib/clock';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { clockDate, offsetText, seasonMoments, sunDay, type SunDay } from '../../lib/solar';
+import { moonPhase, nextQuarters, sublunarPoint } from '../../lib/moon';
+import { clockDate, clockTime, offsetText, seasonMoments, sunDay, type SunDay } from '../../lib/solar';
 import { Skeleton } from '../../panels/Skeleton';
 import type { Tokens } from '../../theme/tokens';
 import {
   capitalOf,
   duration,
+  MOON_PHASES,
+  MOON_QUARTERS,
+  moonOn,
+  moonRiseSetText,
   offsetAt,
   placeName,
   polarPlaceOf,
@@ -53,6 +58,11 @@ const TEXT = defineMessages({
     midnightSun: (from: string, to: string, days: number) => `極晝（太陽整天不落）${from}–${to}，${days} 天`,
     polarNight: (from: string, to: string, days: number) => `極夜（太陽整天不升）${from}–${to}，${days} 天`,
     noPolar: '這一年沒有極晝或極夜。',
+    moonTitle: '此刻的月亮',
+    moonLit: (pct: number, angle: number) => `亮面 ${pct}%・月相角 ${angle}°（0° 新月、180° 滿月）`,
+    sublunar: (lat: string, lon: string, km: string) => `月下點 ${lat}、${lon}・離地心 ${km} 公里`,
+    quartersTitle: '接下來的月相',
+    quartersNote: (zone: string) => `時間是這裡的時鐘（${zone}）。月相全世界同一刻，南半球看到的亮面左右相反。`,
   },
   en: {
     forCapital: (name) => `For the capital, ${name}`,
@@ -84,6 +94,11 @@ const TEXT = defineMessages({
     midnightSun: (from, to, days) => `Midnight sun ${from} – ${to}, ${days} days`,
     polarNight: (from, to, days) => `Polar night ${from} – ${to}, ${days} days`,
     noPolar: 'No midnight sun or polar night this year.',
+    moonTitle: 'The moon right now',
+    moonLit: (pct, angle) => `${pct}% lit · phase angle ${angle}° (0° new, 180° full)`,
+    sublunar: (lat, lon, km) => `Sublunar point ${lat}, ${lon} · ${km} km from Earth’s centre`,
+    quartersTitle: 'Coming phases',
+    quartersNote: (zone) => `Times are local clock time here (${zone}). Phases happen at the same moment everywhere; the southern hemisphere sees the lit side mirrored.`,
   },
 });
 
@@ -162,7 +177,7 @@ function chartOption(p: Place, year: number, days: SunDay[], selected: number, t
   };
 }
 
-export default function DaylightPanel({ topic, iso3, at, tokens, countryName }: PanelExtraProps) {
+export default function DaylightPanel({ topic, indicator, iso3, at, tokens, countryName }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
@@ -193,6 +208,11 @@ export default function DaylightPanel({ topic, iso3, at, tokens, countryName }: 
       return { name, key, sun: sunOn(place, key) };
     });
   }, [place?.lat, place?.lon, place?.std, place?.zone, year, lang]);
+  // 月亮（「月亮」指標才算）：主要月相每小時重算一次就夠
+  const isMoon = indicator.id === 'moon';
+  const moment = at?.time ?? Date.now();
+  const hour = Math.floor(moment / 3_600_000);
+  const quarters = useMemo(() => (isMoon ? nextQuarters(hour * 3_600_000) : null), [isMoon, hour]);
   const runs = useMemo(() => {
     const p = polar ?? (place && days?.some((d) => d.polar) ? place : null);
     return p ? { place: p, runs: polarRuns(p, year), isCapital: p === place } : null;
@@ -222,10 +242,45 @@ export default function DaylightPanel({ topic, iso3, at, tokens, countryName }: 
     return r.kind === 'day' ? text.midnightSun(from, to, r.days) : text.polarNight(from, to, r.days);
   };
 
+  const moonView = () => {
+    if (!quarters) return null;
+    const phase = moonPhase(moment);
+    const point = sublunarPoint(moment);
+    const [mLat, mLon] = latText(text, point.lat, point.lon);
+    const off = offsetAt(place, moment);
+    return (
+      <>
+        <h3>{text.moonTitle}</h3>
+        <dl className="daylight-today">
+          <dt>{tr(MOON_PHASES[phase.name], lang)}</dt>
+          <dd>{text.moonLit(Math.round(phase.fraction * 100), Math.round(phase.angle))}</dd>
+          <dd>{moonRiseSetText(place, moonOn(place, day), day)}</dd>
+          <dd>{text.sublunar(mLat, mLon, Math.round(point.distance).toLocaleString('en-US'))}</dd>
+        </dl>
+        <h3>{text.quartersTitle}</h3>
+        <ul className="daylight-seasons">
+          {quarters.map((q) => {
+            const qOff = offsetAt(place, q.time);
+            const [y, m, d] = clockDate(q.time, qOff);
+            return (
+              <li key={q.time}>
+                <span className="daylight-season-name">{tr(MOON_QUARTERS[q.quarter], lang)}</span>
+                <span className="daylight-season-day">{formatDay(y * 10000 + m * 100 + d)}</span>
+                <strong>{clockTime(q.time, qOff)}</strong>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="note">{text.quartersNote(offsetText(off))}</p>
+      </>
+    );
+  };
+
   return (
     <section className="panel-section daylight-panel">
       <h3>{place.capital ? text.forCapital(name) : text.forTown(name)}</h3>
       <p className="note">{text.where(lat, lon, place.zone, offsetText(place.std))}</p>
+      {isMoon && moonView()}
       {others.length > 0 && (
         <p className="note">
           {text.others(

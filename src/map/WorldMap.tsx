@@ -62,7 +62,7 @@ import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
 import { syncWind } from './windLayer';
 import { CLASS_GRID_OPACITY } from './Overlays';
-import { syncNight } from './nightLayer';
+import { syncMoon, syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
 import { isNameLayer, LAND_UNTIL, labelField, loadBaseStyle, WORLD_SUFFIX, WORLD_TILES_UNTIL, worldColors, type Projection } from './style';
@@ -917,6 +917,14 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !map || !installedRef.current) return;
     syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
   }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
+
+  /* ── 月亮（晝夜與季節的「月亮」，nightLayer.ts）：看得到月亮的半個地球與月下點，畫在夜色上面 ── */
+  const moon = overlays.find((o) => o.kind === 'moon');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    syncMoon(map, moon?.def.id ?? null, Boolean(moon?.visible), basemap.dark, time, moon?.def.position ?? null);
+  }, [revision, moon?.def.id, moon?.def.position, moon?.visible, basemap.dark, time, night?.visible]);
 
   /* ── 即時網格（此刻的極光，liveGridLayer.ts）：資料重讀時只換數值；換底圖後重新加上（晝夜之後加，畫在夜色上面） ── */
   const liveGrid = overlays.find((o) => o.kind === 'liveGrid');

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { ClassGrid } from './classGridLayer';
-import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData, WindOverlay } from '../topics/types';
+import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, MoonOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData, WindOverlay } from '../topics/types';
 import type { WindField } from './windLayer';
-import { NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
+import { MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 
 export interface LayerVisibility {
@@ -136,6 +136,8 @@ export type OverlayLayer =
   | { kind: 'lines'; def: LinesOverlay; visible: boolean; lines: DecodedLines | null }
   /** 晝夜（時刻主題）：沒有資料檔，依時刻畫（nightLayer.ts） */
   | { kind: 'night'; def: NightOverlay; visible: boolean }
+  /** 月亮（晝夜與季節）：看得到月亮的半個地球與月下點，依時刻畫（nightLayer.ts） */
+  | { kind: 'moon'; def: MoonOverlay; visible: boolean }
   /** 即時網格（此刻的極光）：值由主題的即時資料算（liveGridLayer.ts）；還沒讀到是 null */
   | { kind: 'liveGrid'; def: LiveGridOverlay; visible: boolean; values: Float32Array | null }
   /** 類別網格（氣候分區）：依年份與子項目的 PNG（classGridLayer.ts）；還沒讀到是 null */
@@ -192,6 +194,7 @@ const NIGHT_ROWS: { label: Text }[] = [
   { label: { zh: '夜晚（18° 以下）', en: 'Night (more than 18°)' } },
 ];
 const NIGHT_TITLE: Text = { zh: '晝夜與晨昏', en: 'Day, twilight and night' };
+const MOON_TITLE: Text = { zh: '月亮在哪裡', en: 'Where the moon is' };
 /** 夜色色塊（與面的分類）底下墊的顏色：彩色地形的陸地、深藍底圖的陸地 */
 const NIGHT_BASE = { light: '#ece6d6', dark: '#33435a' };
 /** 類別網格預設的不透明度（ClassGridOverlayDef.opacity） */
@@ -248,6 +251,25 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       swatch: { shape: 'fill', size: 5, color, opacity: alpha(o.def.opacity[o.def.opacity.length - 1][0]), base },
       label: o.def.label,
       details: [{ title: o.def.legend.title, layout: 'rows', rows }],
+    };
+  }
+  if (o.kind === 'moon') {
+    const look = darkMap ? MOON_LOOK.dark : MOON_LOOK.light;
+    const base = darkMap ? NIGHT_BASE.dark : NIGHT_BASE.light;
+    return {
+      swatch: { shape: 'fill', size: 5, color: look.color, opacity: look.ring, base },
+      label: o.def.label,
+      details: [
+        {
+          title: tr(MOON_TITLE),
+          layout: 'rows',
+          rows: [
+            { shape: 'line' as const, size: 2, color: look.color, label: o.def.edgeLabel },
+            { shape: 'fill' as const, size: 5, color: look.color, opacity: look.opacity, base, label: o.def.upLabel },
+            { shape: 'dot' as const, size: 4.5, color: MOON_COLOR, label: o.def.pointLabel },
+          ],
+        },
+      ],
     };
   }
   if (o.kind === 'night') {

@@ -61,7 +61,7 @@ export function useOverlays(
           ),
     [overlays, topic.id, topic.dimension, indicator.id, item, year, layers, pure],
   );
-  // 晝夜（kind 'night'）沒有資料檔，依時刻畫；即時網格（kind 'liveGrid'）由即時資料算；類別網格（kind 'classGrid'）是 PNG
+  // 晝夜（kind 'night'）、月亮（kind 'moon'）沒有資料檔，依時刻畫；即時網格（kind 'liveGrid'）由即時資料算；類別網格（kind 'classGrid'）是 PNG
   const wanted = useMemo(
     () => generic.filter((g) => g.visible && g.path && g.def.kind !== 'classGrid').map((g) => g.path),
     [generic],
@@ -90,6 +90,7 @@ export function useOverlays(
     const inView = new Set(tilePaths);
     return generic.map(({ def, visible, path }) => {
       if (def.kind === 'night') return { kind: 'night', def, visible };
+      if (def.kind === 'moon') return { kind: 'moon', def, visible };
       if (def.kind === 'liveGrid') return { kind: 'liveGrid', def, visible, values: liveGridValues(def, live) };
       if (def.kind === 'classGrid') {
         const grid = grids.get(path) ?? grids.get(path.slice(0, path.lastIndexOf('/') + 1)) ?? null;
@@ -124,7 +125,7 @@ export function useOverlays(
 
 /** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
-  if (o.kind === 'night' || o.kind === 'liveGrid' || o.kind === undefined) return '';
+  if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === undefined) return '';
   if (o.kind === 'classGrid' || o.kind === 'wind') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
   return overlayPath(topic, o, item, year);
 }

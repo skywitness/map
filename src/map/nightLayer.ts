@@ -17,6 +17,9 @@
  *
  * 太陽直射點是一般的 GeoJSON 圓點（`night-sun`），每一格 setData 一個點。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新加上。
+ *
+ * 月亮（MoonOverlayDef，2026-10-29 起）用同一個圖層畫「看得到月亮的半個地球」：方向換成月下點的反方向，
+ * 只用第一道邊界（月亮的地心高度門檻），淡淡一層月光色；月下點是另一個 GeoJSON 圓點（`moon-point`）。
  */
 import type {
   CircleLayerSpecification,
@@ -26,13 +29,14 @@ import type {
   Map as MaplibreMap,
 } from 'maplibre-gl';
 import { subsolarPoint, sunVector, SUNRISE_DEPRESSION, TWILIGHT_DEPRESSIONS } from '../lib/solar';
-import { NIGHT_LOOK, SUN_COLOR } from './nightLook';
+import { MOON_COLOR, MOON_LOOK, NIGHT_LOOK, SUN_COLOR } from './nightLook';
 
 /** 自訂圖層插在國界、選取外框之前：夜色蓋住底圖與國家的顏色，國界、外框、疊加圖層與地名畫在上面 */
 const NIGHT_BEFORE = 'data-border';
 /** 太陽直射點插在框選範圍之前（疊加圖層最上面） */
 const SUN_BEFORE = 'box-fill';
 const SUN_SOURCE = 'night-sun';
+const MOON_SOURCE = 'moon-point';
 
 /** 網格的間隔（°） */
 const STEP = 2;
@@ -118,12 +122,45 @@ function hexToRgb(hex: string): [number, number, number] {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 
+/** 圖層的樣子：顏色、四道邊界（高度角，由高到低）與過了每一道各加多少不透明度 */
+interface Shade {
+  color: string;
+  steps: readonly number[];
+  edges: readonly number[];
+}
+
+/** 晝夜：夜色，四道邊界是日出日落與三種曙暮光 */
+function nightShade(layer: NightLayer): Shade {
+  const look = layer.dark ? NIGHT_LOOK.dark : NIGHT_LOOK.light;
+  return { color: look.color, steps: look.steps, edges: [-SUNRISE_DEPRESSION, -TWILIGHT_DEPRESSIONS[0], -TWILIGHT_DEPRESSIONS[1], -TWILIGHT_DEPRESSIONS[2]] };
+}
+
+/**
+ * 月亮：方向是月下點的反方向，「從反方向看的高度」低於 −門檻就是月亮在地平線上，蓋一層月光色。
+ * 邊界的細環：第一道邊界往外推 ringWidth、加 ring，第二道邊界（真正的門檻）再減回去只剩淡淡的一層
+ * （ring + (opacity − ring) = opacity；兩段之間就是細環）。其他兩道放在 −91°（永遠碰不到）
+ */
+function moonShade(layer: NightLayer): Shade {
+  const look = layer.dark ? MOON_LOOK.dark : MOON_LOOK.light;
+  return {
+    color: look.color,
+    steps: [look.ring, look.opacity - look.ring, 0, 0],
+    edges: [-layer.threshold + MOON_LOOK.ringWidth, -layer.threshold, -91, -91],
+  };
+}
+
 class NightLayer implements CustomLayerInterface {
   readonly type = 'custom' as const;
   readonly renderingMode = '2d' as const;
   readonly id: string;
+  /** 著色器的方向（晝夜是太陽，月亮是月下點的反方向） */
   sun: [number, number, number] = [1, 0, 0];
   dark = false;
+  /** 月亮的地心高度門檻（°） */
+  threshold = 0;
+  /** 月亮：那一刻的月下點（主題給的 MoonOverlayDef.position） */
+  position: ((time: number) => { lon: number; lat: number; horizon: number }) | null = null;
+  private readonly shade: (layer: NightLayer) => Shade;
   private map: MaplibreMap | null = null;
   private vertices: WebGLBuffer | null = null;
   private indices: WebGLBuffer | null = null;
@@ -131,8 +168,9 @@ class NightLayer implements CustomLayerInterface {
   private programs = new Map<string, Program | null>();
   private webgl2 = true;
 
-  constructor(id: string) {
+  constructor(id: string, shade: (layer: NightLayer) => Shade = nightShade) {
     this.id = id;
+    this.shade = shade;
   }
 
   onAdd(map: MaplibreMap, gl: WebGLRenderingContext | WebGL2RenderingContext) {
@@ -234,10 +272,10 @@ class NightLayer implements CustomLayerInterface {
     gl.uniform4f(u.u_projection_clipping_plane, ...proj.clippingPlane);
     gl.uniform1f(u.u_projection_transition, proj.projectionTransition);
     gl.uniform3f(u.u_sun, ...this.sun);
-    const look = this.dark ? NIGHT_LOOK.dark : NIGHT_LOOK.light;
+    const look = this.shade(this);
     gl.uniform3f(u.u_color, ...hexToRgb(look.color));
     gl.uniform4f(u.u_steps, look.steps[0], look.steps[1], look.steps[2], look.steps[3]);
-    gl.uniform4f(u.u_edges, -SUNRISE_DEPRESSION, -TWILIGHT_DEPRESSIONS[0], -TWILIGHT_DEPRESSIONS[1], -TWILIGHT_DEPRESSIONS[2]);
+    gl.uniform4f(u.u_edges, look.edges[0], look.edges[1], look.edges[2], look.edges[3]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertices);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indices);
@@ -331,5 +369,79 @@ export function setNightTime(map: MaplibreMap, time: number) {
   if (!layer) return;
   layer.sun = sunVector(time);
   (map.getSource(SUN_SOURCE) as GeoJSONSource | undefined)?.setData(sunPoint(time));
+  map.triggerRepaint();
+}
+
+/* ── 月亮（MoonOverlayDef）：看得到月亮的半個地球與月下點 ── */
+
+const moonLayers = new WeakMap<MaplibreMap, NightLayer>();
+
+function pointCollection(lon: number, lat: number): GeoJSON.FeatureCollection {
+  return { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [lon, lat] } }] };
+}
+
+const MOON_LAYERS: CircleLayerSpecification[] = [
+  {
+    id: 'moon-point-glow',
+    type: 'circle',
+    source: MOON_SOURCE,
+    paint: { 'circle-radius': 15, 'circle-color': MOON_COLOR, 'circle-opacity': 0.3, 'circle-blur': 0.8 },
+  },
+  {
+    id: 'moon-point',
+    type: 'circle',
+    source: MOON_SOURCE,
+    paint: { 'circle-radius': 6, 'circle-color': MOON_COLOR, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 },
+  },
+];
+
+/**
+ * 讓地圖上的月亮圖層跟設定一致（跟 syncNight 一樣）：要畫時加上自訂圖層與月下點，不要時拿掉；換底圖後重新加上。
+ * position 是主題給的月下點（MoonOverlayDef.position）
+ */
+export function syncMoon(
+  map: MaplibreMap,
+  id: string | null,
+  visible: boolean,
+  dark: boolean,
+  time: number | null,
+  position: ((time: number) => { lon: number; lat: number; horizon: number }) | null,
+) {
+  const layerId = id ? `moon-${id}` : null;
+  let layer = moonLayers.get(map);
+  const off = !layerId || !visible || time === null || !position;
+  if (layer && (layer.id !== layerId || off || !map.getLayer(layer.id))) {
+    if (map.getLayer(layer.id)) map.removeLayer(layer.id);
+    moonLayers.delete(map);
+    layer = undefined;
+  }
+  if (off) {
+    for (const l of MOON_LAYERS) if (map.getLayer(l.id)) map.removeLayer(l.id);
+    if (map.getSource(MOON_SOURCE)) map.removeSource(MOON_SOURCE);
+    return;
+  }
+  if (!layer) {
+    layer = new NightLayer(layerId, moonShade);
+    map.addLayer(layer, map.getLayer(NIGHT_BEFORE) ? NIGHT_BEFORE : undefined);
+    moonLayers.set(map, layer);
+  }
+  const p = position(time);
+  if (!map.getSource(MOON_SOURCE)) map.addSource(MOON_SOURCE, { type: 'geojson', data: pointCollection(p.lon, p.lat) });
+  for (const l of MOON_LAYERS) if (!map.getLayer(l.id)) map.addLayer(l, map.getLayer(SUN_BEFORE) ? SUN_BEFORE : undefined);
+  layer.dark = dark;
+  layer.position = position;
+  setMoonTime(map, time);
+}
+
+/** 換一個時刻：月亮的方向、門檻與月下點；不重送網格 */
+export function setMoonTime(map: MaplibreMap, time: number) {
+  const layer = moonLayers.get(map);
+  if (!layer?.position) return;
+  const p = layer.position(time);
+  const c = Math.cos((p.lat * Math.PI) / 180);
+  const lon = (p.lon * Math.PI) / 180;
+  layer.sun = [-c * Math.cos(lon), -c * Math.sin(lon), -Math.sin((p.lat * Math.PI) / 180)];
+  layer.threshold = p.horizon;
+  (map.getSource(MOON_SOURCE) as GeoJSONSource | undefined)?.setData(pointCollection(p.lon, p.lat));
   map.triggerRepaint();
 }

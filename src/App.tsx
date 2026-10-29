@@ -444,7 +444,7 @@ export function App() {
   // 一般點圖層（地震、火山、駐外館處…）與有 tooltip 的線（海底電纜）的 tooltip 由主題設定決定內容
   const renderPointTooltip = (overlayId: string, index: number) => {
     const o = overlays.find((x) => x.def.id === overlayId);
-    if (!o || o.kind === 'night' || o.kind === 'liveGrid' || o.kind === 'classGrid' || o.kind === 'wind') return null;
+    if (!o || o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === 'classGrid' || o.kind === 'wind') return null;
     const p = o.kind === 'points' ? o.points?.[index] : o.lines?.records?.[index];
     const tooltip = o.def.tooltip;
     if (!p || !tooltip) return null;

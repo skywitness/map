@@ -12,14 +12,16 @@ import {
   type SkyPhase,
   type SunDay,
 } from '../lib/solar';
+import { moonAltitude, moonPhase, moonRiseSet, sublunarPoint, type MoonPhaseName } from '../lib/moon';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ClockAt, IndicatorData, IndicatorDef, LinesOverlayDef, PointRecord, TopicDefinition } from './types';
+import type { ClockAt, IndicatorData, IndicatorDef, LinesOverlayDef, MoonOverlayDef, PointRecord, TopicDefinition } from './types';
 
 /**
  * 晝夜與季節（pipeline/topics/daylight.py，DESIGN.md 第 8 節第 87 點）：地圖是選定那一刻的晝夜界線
  * （nightLayer.ts，夜半邊、三種曙暮光、太陽直射點）與赤道、回歸線、極圈；國家的指標以首都計算，
  * 在瀏覽器裡用 lib/solar.ts（NOAA Solar Calculator 的公式）依日期算（IndicatorDef.derive），
  * 跟地圖、側欄的全年圖表是同一份程式。時間是「某一刻」（TopicDefinition.clock），不是年份。
+ * 「月亮」（2026-10-29 起，DESIGN.md 第 8 節第 147 點）用 Astronomy Engine（lib/moon.ts）算月下點、月相與月出月落。
  */
 
 /** pipeline 的 capitals.json */
@@ -93,6 +95,58 @@ function elevationText(v: number): string {
   const phase = tr(PHASES[skyPhase(v)]);
   if (v >= 0) return tr({ zh: `${phase}，太陽高度 ${deg(v)}`, en: `${phase}, sun ${deg(v)} up` });
   return tr({ zh: `${phase}，太陽在地平線下 ${deg(-v)}`, en: `${phase}, sun ${deg(-v)} below the horizon` });
+}
+
+/** 此刻的月亮高度：「月亮在地平線上 35°」「月亮在地平線下 20°」 */
+function moonElevationText(v: number): string {
+  if (v >= 0) return tr({ zh: `月亮在地平線上 ${deg(v)}`, en: `Moon ${deg(v)} up` });
+  return tr({ zh: `月亮在地平線下 ${deg(-v)}`, en: `Moon ${deg(-v)} below the horizon` });
+}
+
+/** 月相的名稱（lib/moon.ts 的八個月相） */
+export const MOON_PHASES: Record<MoonPhaseName, Text> = {
+  new: { zh: '新月', en: 'New moon' },
+  waxingCrescent: { zh: '眉月', en: 'Waxing crescent' },
+  firstQuarter: { zh: '上弦月', en: 'First quarter' },
+  waxingGibbous: { zh: '盈凸月', en: 'Waxing gibbous' },
+  full: { zh: '滿月', en: 'Full moon' },
+  waningGibbous: { zh: '虧凸月', en: 'Waning gibbous' },
+  lastQuarter: { zh: '下弦月', en: 'Last quarter' },
+  waningCrescent: { zh: '殘月', en: 'Waning crescent' },
+};
+
+/** 主要月相（lib/moon.ts 的 nextQuarters：0 新月、1 上弦、2 滿月、3 下弦） */
+export const MOON_QUARTERS: Text[] = [
+  { zh: '新月', en: 'New moon' },
+  { zh: '上弦', en: 'First quarter' },
+  { zh: '滿月', en: 'Full moon' },
+  { zh: '下弦', en: 'Last quarter' },
+];
+
+/** 「虧凸月，亮面 85%」 */
+export function phaseText(ms: number): string {
+  const ph = moonPhase(ms);
+  const pct = Math.round(ph.fraction * 100);
+  return tr({ zh: `${tr(MOON_PHASES[ph.name])}，亮面 ${pct}%`, en: `${tr(MOON_PHASES[ph.name])}, ${pct}% lit` });
+}
+
+/** 這個地點那一天（當地標準時間的 0 時起 24 小時）的月出、月落 */
+export function moonOn(p: Place, day: number): { rise: number | null; set: number | null } {
+  const [y, m, d] = dayParts(day);
+  return moonRiseSet(p.lat, p.lon, Date.UTC(y, m - 1, d) - p.std * 60_000);
+}
+
+/** 月出、月落的時鐘時間：「月出 19:47、月落 10:16（UTC+8）」；沒有的寫「沒有月出」 */
+export function moonRiseSetText(p: Place, moon: { rise: number | null; set: number | null }, day: number): string {
+  const [y, m, d] = dayParts(day);
+  const off = offsetAt(p, Date.UTC(y, m - 1, d, 12) - p.std * 60_000);
+  const zone = `${offsetText(off)}${off !== p.std ? tr({ zh: '，夏令時間', en: ', DST' }) : ''}`;
+  const rise = moon.rise !== null ? tr({ zh: `月出 ${clockTime(moon.rise, off)}`, en: `moonrise ${clockTime(moon.rise, off)}` }) : tr({ zh: '沒有月出', en: 'no moonrise' });
+  const set = moon.set !== null ? tr({ zh: `月落 ${clockTime(moon.set, off)}`, en: `moonset ${clockTime(moon.set, off)}` }) : tr({ zh: '沒有月落', en: 'no moonset' });
+  // 依時間先後排（月落常在月出前面）
+  const parts = moon.set !== null && (moon.rise === null || moon.set < moon.rise) ? [set, rise] : [rise, set];
+  const text = parts.join(tr({ zh: '、', en: ', ' }));
+  return tr({ zh: `${text}（${zone}）`, en: `${text.charAt(0).toUpperCase()}${text.slice(1)} (${zone})` });
 }
 
 /** 時鐘和太陽的差（分鐘，正的是太陽正午比 12:00 晚）：「晚 1 小時 15 分」「早 6 分」 */
@@ -233,6 +287,25 @@ const indicators: IndicatorDef[] = [
     },
   },
   {
+    id: 'moon',
+    label: { zh: '月亮', en: 'Moon' },
+    description: {
+      zh: '選定那一刻月亮在哪裡：淡淡一層的半個地球看得到月亮（月亮在地平線上），銀灰色的點是月下點（月亮在正頭頂的地方）。月下點約 24 小時 50 分往西繞地球一圈（每天比太陽晚約 50 分鐘），一個月裡往北、往南各擺到約 28°（2026 年接近 18.6 年週期的最大值）；切到「一年」播放看它南北擺動。滑到國家上看首都此刻的月亮高度、那一天的月出月落與月相。月相全世界一樣，南半球看到的亮面左右相反。',
+      en: 'Where the moon is at the chosen moment: the faintly shaded half of the globe can see the moon (it is above the horizon), and the silver dot is the sublunar point, where the moon is overhead. The sublunar point circles the globe westwards about every 24 hours 50 minutes (some 50 minutes later each day than the sun) and swings to about 28° north and south over a month (near the top of its 18.6-year cycle in 2026); switch to “Year” and play to watch it swing. Hover over a country for the moon’s height at its capital right now, that day’s moonrise and moonset, and the phase. The phase is the same everywhere, but the southern hemisphere sees the lit side mirrored.',
+    },
+    unit: DEGREES,
+    file: 'capitals.json',
+    layer: { kind: 'none' },
+    format: moonElevationText,
+    formatTick: deg,
+    unranked: true,
+    rankingBars: false,
+    derive: {
+      per: 'minute',
+      values: (source, at) => perCapital(source, at, '°', (p) => round1(moonAltitude(p.lat, p.lon, at.time))),
+    },
+  },
+  {
     id: 'clock',
     label: { zh: '時鐘與太陽', en: 'Clock vs sun' },
     description: {
@@ -288,9 +361,26 @@ function tooltipLines(iso3: string, ctx: { indicator: string; at: ClockAt | null
     const phase = skyPhase(solarElevation(p.lat, p.lon, ctx.at.time));
     second.push(tr({ zh: `此刻是${tr(PHASES[phase])}`, en: `now: ${tr(PHASES[phase]).toLowerCase()}` }));
   }
+  if (ctx.indicator === 'moon') {
+    // 月亮：月出月落、月相，再加日出日落
+    const moonFirst = `${where}${tr({ zh: '：', en: ': ' })}${moonRiseSetText(p, moonOn(p, ctx.at.day), ctx.at.day)}`;
+    return [moonFirst, phaseText(ctx.at.time), riseSetText(p, sun)];
+  }
   const first = `${where}${tr({ zh: '：', en: ': ' })}${riseSetText(p, sun)}`;
   return [first, second.join(tr({ zh: '・', en: ' · ' }))];
 }
+
+/** 月亮：看得到月亮的半個地球與月下點（lib/moon.ts） */
+const MOON: MoonOverlayDef = {
+  kind: 'moon',
+  id: 'moon',
+  label: { zh: '月亮', en: 'Moon' },
+  upLabel: { zh: '看得到月亮（月亮在地平線上）', en: 'Moon above the horizon' },
+  edgeLabel: { zh: '正在月出或月落', en: 'Moonrise or moonset now' },
+  pointLabel: { zh: '月下點（月亮在正頭頂）', en: 'Sublunar point (moon overhead)' },
+  position: sublunarPoint,
+  indicators: ['moon'],
+};
 
 /* ── 地圖上的線：赤道、回歸線、極圈 ─────────── */
 
@@ -344,14 +434,19 @@ export const daylight: TopicDefinition = {
       license: 'CC0',
     },
     {
+      name: { zh: '月亮：Astronomy Engine 2.1.19（Don Cross）', en: 'Moon: Astronomy Engine 2.1.19 (Don Cross)' },
+      url: 'https://github.com/cosinekitty/astronomy',
+      license: 'MIT',
+    },
+    {
       name: { zh: 'IANA 時區資料庫（tzdata 2026e）', en: 'IANA Time Zone Database (tzdata 2026e)' },
       url: 'https://www.iana.org/time-zones',
       license: { zh: '公有領域', en: 'public domain' },
     },
   ],
   note: {
-    zh: '太陽的位置用 NOAA Solar Calculator 的公式（出自 Meeus《Astronomical Algorithms》）在瀏覽器裡算，1800–2100 年約 1 分鐘以內，高緯度的日出日落誤差較大；春分、夏至等的時刻用 Meeus 第 27 章。日出、日落是太陽中心在地平線下 0.833°（含大氣折射），沒有考慮地形與海拔。國家的數值以首都計算（國家小檔案主題的 Wikidata 首都，台灣是台北；有好幾個首都的國家用法定或行政首都，例如南非用普勒托利亞、玻利維亞用拉巴斯，側欄列出其他首都；香港、澳門、西撒哈拉等沒有首都的地區用主要的城鎮），國土大的國家各地差很多。日出日落的時間是當地時鐘（IANA 時區資料庫，瀏覽器換算，含夏令時間）；「時鐘與太陽」用標準時間。網址的時間是 UTC，畫面上是你電腦的時區。',
-    en: 'The sun’s position is computed in your browser with the NOAA Solar Calculator formulas (from Meeus, Astronomical Algorithms), accurate to about a minute for 1800–2100 and less so for sunrise and sunset at high latitudes; equinox and solstice times use Meeus chapter 27. Sunrise and sunset are when the sun’s centre is 0.833° below the horizon (allowing for refraction), ignoring terrain and altitude. Country values are for the capital (Wikidata, as in Country facts; Taipei for Taiwan; the official or executive capital where there are several, such as Pretoria for South Africa and La Paz for Bolivia, with the others listed in the side panel; the main town for places without a capital such as Hong Kong, Macau and Western Sahara), so large countries vary a lot. Sunrise and sunset times are local clock times (IANA time zones, converted by your browser, including daylight saving time); “Clock vs sun” uses standard time. The time in the link is UTC; the page shows your computer’s time zone.',
+    zh: '太陽的位置用 NOAA Solar Calculator 的公式（出自 Meeus《Astronomical Algorithms》）在瀏覽器裡算，1800–2100 年約 1 分鐘以內，高緯度的日出日落誤差較大；春分、夏至等的時刻用 Meeus 第 27 章。日出、日落是太陽中心在地平線下 0.833°（含大氣折射），沒有考慮地形與海拔。國家的數值以首都計算（國家小檔案主題的 Wikidata 首都，台灣是台北；有好幾個首都的國家用法定或行政首都，例如南非用普勒托利亞、玻利維亞用拉巴斯，側欄列出其他首都；香港、澳門、西撒哈拉等沒有首都的地區用主要的城鎮），國土大的國家各地差很多。日出日落的時間是當地時鐘（IANA 時區資料庫，瀏覽器換算，含夏令時間）；「時鐘與太陽」用標準時間。月亮的位置、月相與月出月落用 Astronomy Engine（MIT）在瀏覽器裡算，約 1 角分；月出月落是月亮上緣碰到地平線，含月亮的視差與大氣折射。網址的時間是 UTC，畫面上是你電腦的時區。',
+    en: 'The sun’s position is computed in your browser with the NOAA Solar Calculator formulas (from Meeus, Astronomical Algorithms), accurate to about a minute for 1800–2100 and less so for sunrise and sunset at high latitudes; equinox and solstice times use Meeus chapter 27. Sunrise and sunset are when the sun’s centre is 0.833° below the horizon (allowing for refraction), ignoring terrain and altitude. Country values are for the capital (Wikidata, as in Country facts; Taipei for Taiwan; the official or executive capital where there are several, such as Pretoria for South Africa and La Paz for Bolivia, with the others listed in the side panel; the main town for places without a capital such as Hong Kong, Macau and Western Sahara), so large countries vary a lot. Sunrise and sunset times are local clock times (IANA time zones, converted by your browser, including daylight saving time); “Clock vs sun” uses standard time. The moon’s position, phase, moonrise and moonset are computed in your browser with Astronomy Engine (MIT), to about an arcminute; moonrise and moonset are when the moon’s upper edge touches the horizon, allowing for its parallax and refraction. The time in the link is UTC; the page shows your computer’s time zone.',
   },
   panelExtra: () => import('./panels/DaylightPanel'),
   noValue: { ATA: NO_CAPITAL, HMD: NO_CAPITAL, _SIA: NO_CAPITAL },
@@ -362,8 +457,9 @@ export const daylight: TopicDefinition = {
       id: 'night',
       label: { zh: '晝夜', en: 'Day and night' },
       sunLabel: { zh: '太陽直射點', en: 'Subsolar point (sun overhead)' },
-      indicators: ['map', 'day-length', 'noon'],
+      indicators: ['map', 'day-length', 'noon', 'moon'],
     },
+    MOON,
     CIRCLES,
   ],
   indicators,

@@ -17,6 +17,7 @@
     "data": "node pipeline/npm-run.mjs"
   },
   "dependencies": {
+    "astronomy-engine": "^2.1.19",
     "d3-array": "^3.2.4",
     "d3-format": "^3.1.2",
     "d3-geo": "^3.1.1",
