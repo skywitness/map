@@ -130,6 +130,7 @@ const TOPIC_ICONS = {
   daylight: 'sun-moon',
   eclipses: 'eclipse',
   antipodes: 'arrow-up-down',
+  'taipei-view': 'compass',
   magnetic: 'magnet',
   aurora: 'sparkles',
   earthquakes: 'activity',
