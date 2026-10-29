@@ -233,6 +233,35 @@ const indicators: IndicatorDef[] = [
     itemFormats: RESERVE_FORMATS,
     shareOfWorld: true,
   },
+  // 全部能源（不分燃料，選燃料的下拉選單不影響）：EIA 的初級能源消費總量，人均用 WPP 人口
+  {
+    id: 'energy-per-capita',
+    label: { zh: '人均能源消費（全部能源）', en: 'Energy use per person (all energy)' },
+    description: {
+      zh: '每人一年的初級能源消費：石油、天然氣、煤、核能與再生能源合計（EIA 的消費總量 ÷ UN WPP 2024 的人口），單位是十億焦耳（GJ），1 GJ 約是 29 公升汽油的能量。2024 年卡達 808、新加坡 685、巴林 547、阿聯 480 GJ；加拿大 337、美國 289、韓國 253、台灣 209、日本 134、中國 127、印度 27 GJ；世界 78 GJ。產油國與煉油、加油港偏高，直布羅陀、福克蘭群島這類人口很少、賣船用燃料的地方特別高。',
+      en: 'Primary energy consumed per person in a year: oil, gas, coal, nuclear and renewables combined (EIA total consumption divided by UN WPP 2024 population), in gigajoules (GJ); 1 GJ is roughly the energy in 29 litres of petrol. In 2024: Qatar 808, Singapore 685, Bahrain 547 and the UAE 480 GJ; Canada 337, the US 289, South Korea 253, Taiwan 209, Japan 134, China 127 and India 27 GJ; 78 GJ worldwide. Oil producers and refining and bunkering hubs run high, and tiny places that sell ship fuel, such as Gibraltar and the Falkland Islands, are extreme.',
+    },
+    unit: { zh: 'GJ/人', en: 'GJ per person' },
+    file: 'energy-per-capita.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 30, 60, 100, 150, 250] } },
+    format: (v) => tr({ zh: `${num(v)} GJ`, en: `${num(v)} GJ` }),
+    formatTick: tick,
+    compareWorld: true,
+  },
+  {
+    id: 'energy-consumption',
+    label: { zh: '能源消費總量（全部能源）', en: 'Total energy use (all energy)' },
+    description: {
+      zh: '一年的初級能源消費總量（石油、天然氣、煤、核能與再生能源合計），單位是艾焦耳（EJ，10¹⁸ 焦耳），圓的面積與它成正比。2024 年全世界 639 EJ（1980 年 296 EJ），中國 180、美國 100、印度 40、俄羅斯 36、日本 17 EJ，台灣 4.8 EJ。',
+      en: 'Total primary energy consumed in a year (oil, gas, coal, nuclear and renewables combined), in exajoules (EJ, 10¹⁸ joules); circle area is proportional to it. In 2024 the world used 639 EJ (296 EJ in 1980): China 180, the US 100, India 40, Russia 36 and Japan 17 EJ; Taiwan 4.8 EJ.',
+    },
+    unit: { zh: '艾焦耳', en: 'EJ' },
+    file: 'energy-consumption.json',
+    layer: { kind: 'bubble', legendValues: [1, 10, 100] },
+    format: (v) => tr({ zh: `${num(v)} 艾焦耳`, en: `${num(v)} EJ` }),
+    formatTick: tick,
+    shareOfWorld: true,
+  },
   flow(
     'export',
     { zh: '流向：出口對象', en: 'Flows: export destinations' },
@@ -250,6 +279,8 @@ const indicators: IndicatorDef[] = [
     },
   ),
 ];
+/** 分燃料的指標（檔名有 {item}）：GEM 的管線、油氣田與煤礦只在這些指標畫，全部能源的兩個指標不畫 */
+const FUEL_INDICATORS = indicators.filter((i) => i.file.includes('{item}')).map((i) => i.id);
 
 // ── GEM 的疊加圖層 ─────────────────────────────────
 
@@ -402,6 +433,7 @@ const mineLayer = (id: string, file: string, label: Text, color: string, hidden:
   id,
   file,
   label,
+  indicators: FUEL_INDICATORS,
   items: [COAL],
   ...(hidden ? { hidden: true } : {}),
   radius: {
@@ -484,8 +516,8 @@ export const fossilFuels: TopicDefinition = {
     },
   ],
   note: {
-    zh: '產量、消費量與自給率是 EIA 的估計，各國同一套方法；1992 年以前的蘇聯、南斯拉夫等畫在當時的首都，1990 年以前的德國是東西德合計。流向是 CEPII BACI 的貿易數量，台灣在 BACI 列為「Other Asia, nes」，數字來自貿易夥伴。管線、接收站、油氣田與煤礦是 GEM 的 2026 年資料，不跟時間軸變；管線簡化到約 1 公里。',
-    en: 'Production, consumption and self-sufficiency are EIA estimates made the same way for every country; before 1992 the Soviet Union, Yugoslavia and others are drawn at their former capitals, and Germany before 1991 is East and West combined. Flows are trade quantities from CEPII BACI, where Taiwan appears as "Other Asia, nes" and its figures come from trading partners. Pipelines, terminals, fields and mines are 2026 data from GEM and do not change with the time slider; pipelines are simplified to about 1 km.',
+    zh: '產量、消費量與自給率是 EIA 的估計，各國同一套方法；全部能源的消費是 EIA 的初級能源消費（核能與再生能源依 EIA 的方法換算，跟 IEA 的數字不同）；1992 年以前的蘇聯、南斯拉夫等畫在當時的首都，1990 年以前的德國是東西德合計。流向是 CEPII BACI 的貿易數量，台灣在 BACI 列為「Other Asia, nes」，數字來自貿易夥伴。管線、接收站、油氣田與煤礦是 GEM 的 2026 年資料，不跟時間軸變；管線簡化到約 1 公里。',
+    en: 'Production, consumption and self-sufficiency are EIA estimates made the same way for every country; energy use across all sources is EIA primary energy consumption (nuclear and renewables are converted by EIA’s method, so figures differ from the IEA’s); before 1992 the Soviet Union, Yugoslavia and others are drawn at their former capitals, and Germany before 1991 is East and West combined. Flows are trade quantities from CEPII BACI, where Taiwan appears as "Other Asia, nes" and its figures come from trading partners. Pipelines, terminals, fields and mines are 2026 data from GEM and do not change with the time slider; pipelines are simplified to about 1 km.',
   },
   panelExtra: () => import('./panels/FossilFuelsPanel'),
   overlays: [
@@ -494,6 +526,7 @@ export const fossilFuels: TopicDefinition = {
       id: 'gas-pipelines',
       file: 'gas-pipelines.json',
       label: { zh: '天然氣管線', en: 'Gas pipelines' },
+      indicators: FUEL_INDICATORS,
       items: [GAS, PIPELINE],
       width: 1,
       color: {
@@ -511,6 +544,7 @@ export const fossilFuels: TopicDefinition = {
       id: 'lng',
       file: 'lng-operating.json',
       label: { zh: 'LNG 接收站（運轉中）', en: 'LNG terminals (operating)' },
+      indicators: FUEL_INDICATORS,
       items: [GAS, PIPELINE],
       radius: { field: 'op', stops: LNG_RADIUS },
       color: LNG_COLORS,
@@ -522,6 +556,7 @@ export const fossilFuels: TopicDefinition = {
       id: 'lng-planned',
       file: 'lng-planned.json',
       label: { zh: 'LNG 接收站（只有興建中或規劃中）', en: 'LNG terminals (under construction or proposed only)' },
+      indicators: FUEL_INDICATORS,
       items: [GAS, PIPELINE],
       hidden: true,
       radius: { field: 'plan', stops: LNG_RADIUS },
@@ -534,6 +569,7 @@ export const fossilFuels: TopicDefinition = {
       id: 'oil-pipelines',
       file: 'oil-pipelines.json',
       label: { zh: '油管', en: 'Oil pipelines' },
+      indicators: FUEL_INDICATORS,
       items: [OIL],
       width: 1,
       color: {
@@ -552,6 +588,7 @@ export const fossilFuels: TopicDefinition = {
       id: 'fields',
       file: 'fields.json',
       label: { zh: '油氣田', en: 'Oil and gas fields' },
+      indicators: FUEL_INDICATORS,
       items: [OIL, GAS],
       radius: {
         field: 'prod',

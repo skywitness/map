@@ -13,6 +13,10 @@
 - UN WPP 2024：人口（人均消費量）。
 - 經濟部能源署（sources/moeaea_fuels.py，政府資料開放授權條款）：台灣的能源供給與原油、LNG、煤炭的進口來源，只做對照。
 
+人均能源消費（build_energy，2026-10-29，使用者決定放這個主題、單位用 GJ）：EIA 的初級能源消費總量（44-2，千兆英熱單位）
+÷ WPP 年中人口，跟其他人均指標同一個人口；EIA 自己的人均（47-33）用 EIA 的人口，2024 年多數國家相差 5% 以內
+（賽普勒斯差 28%：WPP 含北部），冰島、千里達 2024 年的人均是 NA、總量有值。
+
 已經不存在的國家：蘇聯、南斯拉夫、捷克斯洛伐克、塞爾維亞與蒙特內哥羅畫成主題自訂的地點（`_SUN` 等，前端
 fossil-fuels.ts 的 PLACES），人口是今天的繼承國加總；東西德加總成德國（DEU 從 1991 年起）。
 """
@@ -46,6 +50,7 @@ COAL_RESERVES = "7-6-MST"  # 百萬短噸
 SHORT_TON = 0.90718474
 MIX_SERIES = {"coal": "4411-2-QBTU", "gas": "4413-2-QBTU", "oil": "4415-2-QBTU", "nuclear": "4417-2-QBTU", "renewables": "4418-2-QBTU"}
 MIX_TOTAL = "44-2-QBTU"
+QBTU_EJ = 1.055056  # 1 千兆（10^15）英熱單位 = 1.055056 艾焦耳（10^18 J）
 # 已經不存在的國家 → 主題自訂的地點；人口是今天的繼承國加總（WPP 依現在的國界回推）
 PLACES = {
     "SUN": ("_SUN", ["RUS", "UKR", "BLR", "KAZ", "UZB", "GEO", "ARM", "AZE", "LTU", "LVA", "EST", "MDA", "KGZ", "TJK", "TKM"]),
@@ -103,6 +108,7 @@ def build() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     pops = population()
     eia_data = eia_files(pops)
+    build_energy(pops)
     trade = trade_files()
     gem = gem_files()
     taiwan = taiwan_comparison(eia_data, trade)
@@ -125,6 +131,36 @@ def build() -> None:
             "license": "Public domain (EIA, CIA World Factbook); Etalab 2.0 (BACI); CC BY 4.0 (GEM); CC BY 3.0 IGO (UN WPP)",
         },
     )
+
+
+def build_energy(pops: dict[str, dict[int, float]] | None = None) -> None:
+    """初級能源消費總量（艾焦耳）與人均（GJ/人），1980 年起。"""
+    pops = pops or population()
+    raw = eia.annual([MIX_TOTAL])[MIX_TOTAL]
+    total, _ = map_regions(raw, known_countries())
+    total = {c: {y: v * QBTU_EJ for y, v in s.items() if y >= 1980} for c, s in total.items()}
+    world = {y: v * QBTU_EJ for y, v in raw["WORL"].items() if y >= 1980}
+    years = year_span(total)
+    write_json(OUT / "energy-consumption.json", indicator_file(
+        "energy-consumption", "艾焦耳", years,
+        {c: [sig(v) for v in to_series(s, years)] for c, s in sorted(total.items()) if any(s.get(y) for y in years)},
+        aggregates={"WLD": [sig(v) for v in to_series(world, years)]},
+    ))
+    per: dict[str, list] = {}
+    for c, s in total.items():
+        p = pops.get(c, {})
+        row = [sig(s[y] * 1e9 / p[y], 3) if y in s and p.get(y) else None for y in years]
+        if any(v for v in row):
+            per[c] = row
+    world_pop = pops["WLD"]
+    write_json(OUT / "energy-per-capita.json", indicator_file(
+        "energy-per-capita", "GJ/人", years, dict(sorted(per.items())),
+        aggregates={"WLD": [sig(world[y] * 1e9 / world_pop[y], 3) if y in world and world_pop.get(y) else None for y in years]},
+    ))
+    last = years[-1]
+    top = sorted(((r[-1], c) for c, r in per.items() if r[-1] is not None), reverse=True)
+    print(f"  初級能源消費 {years[0]}–{last}，{len(per)} 國；世界 {world[last]:.0f} EJ、每人 {world[last] * 1e9 / world_pop[last]:.1f} GJ；"
+          f"人均最高 {top[:6]}；台灣 {per.get(TAIWAN, [None])[-1]} GJ")
 
 
 # ── 人口與國家 ───────────────────────────────────
