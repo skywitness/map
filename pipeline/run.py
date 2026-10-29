@@ -198,6 +198,7 @@ STEPS = {
     # 山脈（海拔主題）：GMBA Mountain Inventory v2 的 291 個主要山系（EarthEnv，約 32 MB 的 zip），範圍、名稱、
     # 各國國土在山區的比例（0.025° 網格）；要先跑 geo 步驟；約 2 分鐘
     "mountains": "topics.mountains",
+    "landforms": "topics.landforms",  # 要先有 elevation 的 profiles.json
     # 出生的季節：UNdata 表 55 的逐月出生數（一國一頁，第一次約 156 頁）、內政部按登記的月份；約 1 分鐘
     "birth-season": "topics.birth_season",
     # 健康平均餘命（健康主題）：WHO 的 HALE 與平均壽命（data.who.int 的整檔 CSV，GHO API 壞了），台灣手抄衛福部的數字；幾秒

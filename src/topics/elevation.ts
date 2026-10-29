@@ -1,7 +1,7 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed, formatPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, IndicatorDef, PointRecord, Text, TopicDefinition } from './types';
 
 const M = { zh: '公尺', en: 'm' };
 const PERCENT = '%';
@@ -46,6 +46,29 @@ function rangeTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => stri
   };
 }
 
+/** 地形區的種類（pipeline/topics/landforms.py 的 CLASSES）：1 沙漠、2 高原、3 盆地與窪地、4 平原與低地 */
+const LANDFORMS: { value: number; label: Text; color: string }[] = [
+  { value: 1, label: { zh: '沙漠', en: 'Desert' }, color: MAP_TOKENS.categorical[2] },
+  { value: 2, label: { zh: '高原', en: 'Plateau' }, color: MAP_TOKENS.categorical[6] },
+  { value: 3, label: { zh: '盆地與窪地', en: 'Basin or depression' }, color: MAP_TOKENS.categorical[0] },
+  { value: 4, label: { zh: '平原與低地', en: 'Plain or lowland' }, color: MAP_TOKENS.categorical[3] },
+];
+const LANDFORM_COLORS: ColorClasses = {
+  field: 't',
+  title: { zh: '種類', en: 'Type' },
+  thresholds: [1.5, 2.5, 3.5],
+  classes: LANDFORMS.map(({ label, color }) => ({ label, color })),
+};
+
+function landformTooltip(p: PointRecord) {
+  const name = rangeName(p);
+  return {
+    title: name,
+    detail: tr(LANDFORMS.find((l) => l.value === p.t)?.label ?? ''),
+    properNoun: getLang() === 'zh' && name !== p.n ? String(p.n ?? '') : undefined,
+  };
+}
+
 export const elevation: TopicDefinition = {
   id: 'elevation',
   title: { zh: '各國海拔與地形', en: 'Elevation and terrain by country' },
@@ -69,6 +92,11 @@ export const elevation: TopicDefinition = {
       name: { zh: 'GMBA 山脈名錄 v2（291 個主要山系）', en: 'GMBA Mountain Inventory v2 (291 major mountain systems)' },
       url: 'https://www.earthenv.org/mountains',
       license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Natural Earth 1:10m 地理區（沙漠、高原、盆地、平原的範圍與名稱）', en: 'Natural Earth 1:10m geography regions (deserts, plateaus, basins and plains)' },
+      url: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-physical-labels/',
+      license: { zh: '公有領域', en: 'public domain' },
     },
     {
       name: { zh: '內政部 100 公尺數值高程模型（台灣交叉比對）', en: 'Ministry of the Interior 100 m DEM (Taiwan cross-check)' },
@@ -111,6 +139,34 @@ export const elevation: TopicDefinition = {
       tooltip: rangeTooltip,
       indicators: ['terrain', 'mountain'],
     },
+    {
+      kind: 'lines',
+      id: 'landforms',
+      file: 'landforms.json',
+      label: { zh: '沙漠、高原、盆地與平原（Natural Earth）', en: 'Deserts, plateaus, basins and plains (Natural Earth)' },
+      width: 0.6,
+      // 線與面的顏色依種類（types 跟 LANDFORMS 的 value 一樣）
+      color: { title: { zh: '種類', en: 'Type' }, classes: LANDFORMS.map(({ value, label, color }) => ({ value, label, color })) },
+      opacity: 0.55,
+      fill: { field: 'f', value: 1, opacity: 0.16, darkOpacity: 0.2, holeField: 'k', hover: true },
+      groupField: 'r',
+      tooltip: landformTooltip,
+      indicators: ['landforms'],
+    },
+    {
+      kind: 'points',
+      id: 'landform-names',
+      file: 'landform-labels.json',
+      label: { zh: '地形區的名稱', en: 'Landform names' },
+      radius: 0,
+      color: LANDFORM_COLORS,
+      // 縮小時只標 Natural Earth 的大的（SCALERANK 小），放大才標小的
+      minValue: { field: 'ns', stops: [[0, -3], [3, -5], [5, -9]] },
+      sortField: 'ns',
+      pointLabel: rangeName,
+      tooltip: landformTooltip,
+      indicators: ['landforms'],
+    },
   ],
   panelExtra: () => import('./panels/ElevationPanel'),
   indicators: [
@@ -120,6 +176,19 @@ export const elevation: TopicDefinition = {
       description: {
         zh: '依海拔分層設色，加上地形陰影，放大後越來越細；滑鼠移到國家上可看平均海拔。按右上角的「3D」看立體地形。',
         en: 'Elevation tints with hillshading that sharpen as you zoom in; hover over a country to see its mean elevation. Press “3D” at the top right for 3D terrain.',
+      },
+      unit: M,
+      file: 'mean.json',
+      layer: { kind: 'terrain' },
+      format: (v) => tr({ zh: `平均海拔 ${metres(v)}`, en: `Mean elevation: ${metres(v)}` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'landforms',
+      label: { zh: '沙漠、高原與平原', en: 'Deserts, plateaus and plains' },
+      description: {
+        zh: '世界的沙漠、高原、盆地、平原與窪地（Natural Earth 給地圖標名稱用的範圍，邊界很粗、彼此重疊），疊在地形上；滑過看名稱。撒哈拉、戈壁、喀拉哈里、魯卜哈利沙漠，青藏、德干、蒙古、巴西高原，剛果、亞馬遜、塔里木盆地，華北平原、北歐平原、美國大平原、彭巴草原。山脈另外在「地形」與「國土在山區的比例」畫。',
+        en: 'The world’s deserts, plateaus, basins, plains and depressions (Natural Earth’s areas for placing map labels, so the outlines are rough and overlap) over the terrain; hover for names. The Sahara, Gobi, Kalahari and Rub’ al Khali deserts; the Tibetan, Deccan, Mongolian and Brazilian plateaus; the Congo, Amazon and Tarim basins; the North China Plain, the North European Plain, the Great Plains and the Pampas. Mountain ranges are on the Terrain and mountain-area maps.',
       },
       unit: M,
       file: 'mean.json',
@@ -179,6 +248,20 @@ export const elevation: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-100, -10, -1, 1, 100, 500] } },
       format: (v) => (v === 0 ? tr({ zh: '0 公尺（海平面）', en: '0 m (sea level)' }) : metres(v)),
       formatTick: (v) => signed(v),
+    },
+    {
+      id: 'below-sea',
+      label: { zh: '低於海平面的土地', en: 'Land below sea level' },
+      description: {
+        zh: '海拔低於 0 公尺的土地占全國陸地的比例（1 公里網格的平均，細碎的圩田會被平均掉）。52 國有：亞塞拜然 17.8%（裏海沿岸的庫拉河低地）、巴勒斯坦 15.0%（約旦河谷與死海）、荷蘭 12.4%、以色列 6.8%、哈薩克 5.8%（面積最大，約 15.6 萬平方公里）、土庫曼 4.8%、約旦 2.8%、埃及 2.3%（蓋塔拉窪地）。荷蘭常說約四分之一低於海平面，網格把圩田與堤防平均掉了；台灣是 0。',
+        en: 'Share of land below 0 m (averaged over the 1 km grid, which smooths out small polders). 52 countries have some: Azerbaijan 17.8% (the Kura lowland on the Caspian), Palestine 15.0% (the Jordan valley and Dead Sea), the Netherlands 12.4%, Israel 6.8%, Kazakhstan 5.8% (the largest area, about 156,000 km²), Turkmenistan 4.8%, Jordan 2.8% and Egypt 2.3% (the Qattara Depression). The Netherlands is often said to be about a quarter below sea level; the grid averages away polders and dykes. Taiwan has none.',
+      },
+      unit: PERCENT,
+      file: 'below-sea.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.5, 1, 2, 5, 10] } },
+      format: share,
+      formatTick: (v) => fixed(v, v < 1 ? 1 : 0),
+      missing: { zh: '沒有低於海平面的土地', en: 'No land below sea level' },
     },
     above(500),
     above(1000),
