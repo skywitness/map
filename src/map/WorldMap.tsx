@@ -161,6 +161,8 @@ interface WorldMapProps {
    * 有傳才監聽
    */
   onViewChange?: (view: MapView) => void;
+  /** 放大超過全球視角時呼叫一次（App 才載入 1:50m 的國界，全球視角的 1:110m 已經含小國） */
+  onDetailNeeded?: () => void;
   /** 地圖外面（主題的側欄）要標出的一組線，跟滑過時一樣；null 時取消 */
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
@@ -192,6 +194,8 @@ function fitGlobeZoom(height: number): number {
   return Math.log2((0.5 * height * 2 * Math.PI) / 512 / 0.85);
 }
 const MAX_ZOOM = 18;
+/** 放大到這一級（或比預設的全球視角大 0.5 級）就要 1:50m 的國界（onDetailNeeded） */
+const DETAIL_ZOOM = 3;
 /** 面積小於這個值（km²）的國家在低縮放時另外畫一個點，才看得到也點得到 */
 const TINY_KM2 = 6000;
 /**
@@ -1868,6 +1872,26 @@ export function WorldMap(props: WorldMapProps) {
   /* ── 回報縮放與畫面範圍（線圖層的 detail 依它下載分區） ── */
   const onViewChangeRef = useRef(onViewChange);
   onViewChangeRef.current = onViewChange;
+
+  // 放大超過全球視角才要 1:50m 的國界：比預設的縮放大 0.5 級、或到 DETAIL_ZOOM（大螢幕的預設就接近 3 級）
+  const onDetailNeededRef = useRef(props.onDetailNeeded);
+  onDetailNeededRef.current = props.onDetailNeeded;
+  const wantsDetail = Boolean(props.onDetailNeeded);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !wantsDetail) return;
+    const check = () => {
+      const fit = fitGlobeZoom(map.getContainer().clientHeight);
+      if (map.getZoom() < Math.min(DETAIL_ZOOM, fit + 0.5)) return;
+      map.off('zoomend', check);
+      onDetailNeededRef.current?.();
+    };
+    check();
+    map.on('zoomend', check);
+    return () => {
+      map.off('zoomend', check);
+    };
+  }, [ready, wantsDetail]);
   const wantsView = Boolean(onViewChange);
   useEffect(() => {
     const map = mapRef.current;
