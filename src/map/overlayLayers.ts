@@ -152,6 +152,35 @@ function pointLayer(def: PointsOverlay): LayerSpecification {
   };
 }
 
+/**
+ * 點旁邊的文字（PointsOverlayDef.pointLabel，2026-10-29 起，各國在讀什麼的條目名稱）：寫在點的右邊，
+ * 彼此碰到時 MapLibre 只留一個（先畫 sortField 大的），放大後才看得到被擋住的；圖層在最上面，碰到底圖的地名時優先
+ */
+function pointLabelLayer(def: PointsOverlay, dark: boolean, font: DataDrivenPropertyValueSpecification<string[]>): LayerSpecification {
+  const id = OVERLAY_PREFIX + def.id;
+  return {
+    id: id + LABEL_SUFFIX,
+    type: 'symbol',
+    source: id,
+    filter: ['has', '_label'],
+    layout: {
+      'text-field': ['get', '_label'],
+      'text-font': font,
+      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 10.5, 5, 13],
+      'text-anchor': 'left',
+      'text-offset': [0.5, 0],
+      'text-max-width': 9,
+      'text-padding': 3,
+      ...(def.sortField ? { 'symbol-sort-key': ['-', 0, ['coalesce', ['get', def.sortField], 0]] as ExpressionSpecification } : {}),
+    },
+    paint: {
+      'text-color': dark ? '#f0efec' : MAP_TOKENS.ink,
+      'text-halo-color': dark ? '#0b0b0b' : '#ffffff',
+      'text-halo-width': 1.4,
+    },
+  };
+}
+
 /** 深色底圖上，中性的深灰線（板塊邊界）換成淺灰，跟鐵路一樣 */
 const ON_DARK: Record<string, string> = {
   [MAP_TOKENS.ink]: '#f0efec',
@@ -194,9 +223,13 @@ function lineZoomed(def: Pick<LinesOverlay, 'widthZoom'>, w: ExpressionSpecifica
   return ['interpolate', ['linear'], ['zoom'], ...def.widthZoom.flatMap(([z, k]) => [z, ['*', k, w]])] as ExpressionSpecification;
 }
 
-/** 底圖地名圖層用的字型（沿線文字要用底圖有的字型，否則下載不到字形） */
-export function labelFont(map: MaplibreMap): DataDrivenPropertyValueSpecification<string[]> {
-  const layer = map.getStyle().layers.find((l) => isNameLayer(l) && l.type === 'symbol' && l.layout?.['text-font']);
+/**
+ * 底圖地名圖層用的字型（沿線文字要用底圖有的字型，否則下載不到字形）。prefer 是優先找的圖層 id
+ * （點旁邊的文字用國名、城市名的字型：有的底圖第一個地名圖層是水域的斜體）
+ */
+export function labelFont(map: MaplibreMap, prefer?: RegExp): DataDrivenPropertyValueSpecification<string[]> {
+  const layers = map.getStyle().layers.filter((l) => isNameLayer(l) && l.type === 'symbol' && l.layout?.['text-font']);
+  const layer = (prefer && layers.find((l) => prefer.test(l.id))) || layers[0];
   return (layer?.type === 'symbol' && layer.layout?.['text-font']) || DEFAULT_FONT;
 }
 
@@ -420,6 +453,8 @@ function pointFeatures(o: Extract<DataOverlay, { kind: 'points' }>, epoch: numbe
         else properties[f] = v;
       }
     }
+    const label = def.pointLabel?.(p);
+    if (label) properties._label = label;
     features.push({ type: 'Feature', properties, geometry: { type: 'Point', coordinates: [lon, lat] } });
   });
   return { type: 'FeatureCollection', features };
@@ -688,6 +723,8 @@ export function syncOverlays(
       if (o.kind === 'points') {
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
         map.addLayer(pointLayer(o.def), before(POINTS_BEFORE));
+        // 文字放在最上面：MapLibre 依圖層由上往下排字，放在底圖地名的下面時會被國名、城市名擋掉
+        if (o.def.pointLabel) map.addLayer(pointLabelLayer(o.def, dark, labelFont(map, /place|country|city/)));
       } else {
         for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, before(LINES_BEFORE));
       }
@@ -695,7 +732,8 @@ export function syncOverlays(
     if (o.kind === 'points') {
       const epoch = overlayEpoch(o.def, year);
       const prev = sent.get(id);
-      if (o.points && (prev?.data !== o.points || prev.epoch !== epoch)) {
+      // 點旁邊的文字依語言寫（換語言時 def 是另一個物件），要重送
+      if (o.points && (prev?.data !== o.points || prev.epoch !== epoch || (o.def.pointLabel && prev.def !== o.def))) {
         (map.getSource(id) as GeoJSONSource).setData(pointFeatures(o, epoch));
         sent.set(id, { data: o.points, epoch, def: o.def });
       }
@@ -703,7 +741,7 @@ export function syncOverlays(
       sendLines(map, o, sent);
     }
     const visibility = o.visible && (o.kind === 'points' ? o.points : o.lines) ? 'visible' : 'none';
-    const layerIds = o.kind === 'points' ? [id] : lineLayers(o.def, dark).map((s) => s.layer.id);
+    const layerIds = o.kind === 'points' ? [id, id + LABEL_SUFFIX] : lineLayers(o.def, dark).map((s) => s.layer.id);
     for (const layerId of layerIds) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
@@ -726,6 +764,7 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], yea
     if (o.kind === 'points') {
       if (!o.def.timeField && !o.def.minValue) continue;
       if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));
+      if (map.getLayer(id + LABEL_SUFFIX)) map.setFilter(id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, year, mode) ?? null]));
       continue;
     }
     if (!o.def.timeField && !o.def.minValue) continue;

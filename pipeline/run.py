@@ -180,6 +180,9 @@ STEPS = {
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
+    # 各國在讀什麼：Wikimedia 的差分隱私每日瀏覽量，邊下載邊彙整成每月每國的前幾名（第一次約 30 分鐘、約 13 GB，
+    # 原始檔不留，月份的彙整快取在 .cache/wikimedia/months/）；中文、英文名稱用 Wikidata 的 SPARQL（約 5 分鐘），快取在 labels.json
+    "reads": "topics.reads",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

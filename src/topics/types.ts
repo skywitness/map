@@ -186,7 +186,15 @@ export interface IndicatorDef {
    * （「1996 年出生」，在呼叫當下讀目前的語言，用 tr()）。同一個主題裡 label 不同的指標年份的意思不同：
    * 側欄只列 label 相同的數值卡片，從選單換到 label 不同的指標時年份回到預設（見 sameTimeAxis()）。
    */
-  timeAxis?: { label: Text; year: (year: number) => string };
+  timeAxis?: {
+    label: Text;
+    year: (year: number) => string;
+    /**
+     * 時間軸上的刻度與目前的值的寫法（2026-10-29 起，各國在讀什麼：年份欄位存的是月份的編號，時間軸寫「2026/9」）；
+     * 沒寫時寫數字本身
+     */
+    tick?: (year: number) => string;
+  };
   /** 這個指標的預設年份（網址沒指定年份時），沒寫用主題的 defaultYear */
   defaultYear?: number;
   /**
@@ -474,6 +482,11 @@ export interface PointsOverlayDef extends OverlayBase {
   minZoom?: number;
   /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
+  /**
+   * 點旁邊寫的文字（2026-10-29 起，各國在讀什麼：那個月讀最多的條目名稱）：回傳空字串不寫。
+   * 彼此碰到時只留一個（有 sortField 時留數值大的），在呼叫當下讀目前的語言（tr()、getLang()）
+   */
+  pointLabel?: (p: PointRecord) => string;
   /**
    * tooltip：title 是第一行（粗體），detail 是第二行。
    * countryName 由 App 提供（目前語言的國名），原文專有名詞（地名、館處英文名）可以放在 properNoun，畫面上不翻譯。
@@ -785,7 +798,15 @@ export interface TopicDefinition {
   tooltipLines?: (
     iso3: string,
     /** countryName：目前語言的國名（2026-10-28 起，地球的另一邊寫對蹠點落在哪些國家） */
-    ctx: { indicator: string; at: ClockAt | null; item: string | null; source: unknown; countryName: (iso3: string) => string },
+    ctx: {
+      indicator: string;
+      at: ClockAt | null;
+      item: string | null;
+      source: unknown;
+      countryName: (iso3: string) => string;
+      /** 時間軸的年份（2026-10-29 起，各國在讀什麼：那個月讀最多的條目） */
+      year?: number;
+    },
   ) => string[];
   /**
    * 滑到地圖上任何一點（含海上）時的資訊（2026-10-28 起，地球的另一邊：游標的對蹠點在哪一國或哪一片海）。

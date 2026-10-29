@@ -2550,6 +2550,59 @@ kbd {
   font-size: 12px;
 }
 
+/* 各國在讀什麼的側欄（ReadsPanel.tsx）：前 10 名的名次、語言與原文標題，每個月的第一名 */
+.reads-list li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.reads-rank {
+  display: inline-block;
+  min-width: 1.4em;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reads-meta {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--ink-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reads-history {
+  display: grid;
+  gap: 1px;
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+
+.reads-history > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.reads-history dt .eclipse-more {
+  margin: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.reads-history dd {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reads-history .is-current dd {
+  font-weight: 650;
+}
+
 /* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */
 .antipode-summary {
   margin: 2px 0 4px;

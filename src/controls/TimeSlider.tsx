@@ -11,7 +11,7 @@ interface TimeSliderProps {
   /** 這一年以前多半是估計值（資料檔的 estimatesBefore）：沒有推估年份時，之前的年份標「估計值」 */
   estimatesBefore?: number;
   /** 年份不是「那一年的資料」時（指標的 timeAxis，例如平均身高的「出生年」）：寫在年份上面，也是拉桿的名稱 */
-  axis?: { label: string; year: (year: number) => string };
+  axis?: { label: string; year: (year: number) => string; tick?: (year: number) => string };
   onChange: (year: number) => void;
   /** 開始、停止播放時通知（App 在地圖上疊大大的年份） */
   onPlayingChange?: (playing: boolean) => void;
@@ -22,6 +22,8 @@ const PLAY_INTERVAL_MS = 120;
 export function TimeSlider({ years, year, projectionFrom, projectionLabel, estimatesBefore, axis, onChange, onPlayingChange }: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
+  /** 刻度與目前的值：有 axis.tick 時照它寫（各國在讀什麼的月份），沒有是數字本身 */
+  const tick = (y: number) => (axis?.tick ? axis.tick(y) : y);
   const [playing, setPlaying] = useState(false);
   const t = useT();
   const yearRef = useRef(year);
@@ -93,7 +95,7 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
         <span className="time-single-note">{t.singleSnapshot}</span>
         <output className="time-year">
           {axis && <span className="time-axis">{axis.label}</span>}
-          {year}
+          {tick(year)}
         </output>
       </div>
     );
@@ -136,19 +138,19 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
           style={{ '--projection-pct': `${projectionPct}%` } as CSSProperties}
         />
         <div className="time-ticks" aria-hidden="true" ref={ticksRef}>
-          <span style={{ left: '0%' }}>{first}</span>
+          <span style={{ left: '0%' }}>{tick(first)}</span>
           {projectionFrom !== undefined && projectionFrom < last && (
             <span className="tick-projection" style={{ left: `${projectionPct}%` }}>
               {projectionText}
             </span>
           )}
           {/* 只有最後一年是推估時（例如就業主題的 2025 年），兩個標籤合成一個，免得疊在一起 */}
-          <span style={{ left: '100%' }}>{projectionFrom === last ? projectionText : last}</span>
+          <span style={{ left: '100%' }}>{projectionFrom === last ? projectionText : tick(last)}</span>
         </div>
       </div>
       <output className="time-year">
         {axis && <span className="time-axis">{axis.label}</span>}
-        {year}
+        {tick(year)}
         {projectionFrom !== undefined && (!projectionLabel || projected) && (
           <span className={`year-tag${projected ? ' is-projected' : ''}`}>
             {projected ? (projectionLabel?.tag ?? t.projected) : t.estimated}

@@ -532,7 +532,7 @@ export function App() {
         {series && <Sparkline years={data!.years} series={series} year={valueYear ?? year} projectionFrom={data!.projectionFrom} />}
         {hint && !grid && <div className="tt-label tt-hint">{hint}</div>}
         {/* 主題自己加的幾行（晝夜與季節：以首都計算的日出、日落），滑過時才算 */}
-        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: sourceData, countryName: (c) => countryName(c, countries) }).map((line, i) => (
+        {topic.tooltipLines?.(iso3, { indicator: indicator.id, at, item, source: sourceData, countryName: (c) => countryName(c, countries), year }).map((line, i) => (
           <div key={i} className={`tt-label tt-hint${i > 0 ? ' is-next' : ''}`}>
             {line}
           </div>
