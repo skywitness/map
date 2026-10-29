@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, TopicDefinition } from './types';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
@@ -22,6 +22,38 @@ const TOP_CAUSES: CategoryDef[] = [
   { value: 540, label: { zh: '營養不良', en: 'Nutritional deficiencies' } },
 ];
 const causeLabel = new Map(TOP_CAUSES.map((c) => [c.value, c.label]));
+
+/**
+ * 死亡最多的癌症（2026-10-29 擴充）：GHE 第三層癌症部位的代碼（pipeline/topics/disease.py 的 CANCER_ICD10）。
+ * 2000–2023 年、三個子項目出現過的前 8 類，其他（白血病、口腔癌等，合計不到 3%）併成「其他」
+ */
+const CANCER_SITES: CategoryDef[] = [
+  { value: 680, label: { zh: '肺癌', en: 'Lung' } },
+  { value: 700, label: { zh: '乳癌', en: 'Breast' } },
+  { value: 710, label: { zh: '子宮頸癌', en: 'Cervix' } },
+  { value: 740, label: { zh: '攝護腺癌', en: 'Prostate' } },
+  { value: 660, label: { zh: '肝癌', en: 'Liver' } },
+  { value: 640, label: { zh: '胃癌', en: 'Stomach' } },
+  { value: 650, label: { zh: '大腸直腸癌', en: 'Colon and rectum' } },
+  { value: 630, label: { zh: '食道癌', en: 'Oesophagus' } },
+];
+const OTHER_SITES: Record<number, { zh: string; en: string }> = {
+  770: { zh: '白血病', en: 'Leukaemia' },
+  620: { zh: '口腔與口咽癌', en: 'Mouth and oropharynx' },
+  760: { zh: '淋巴瘤與多發性骨髓瘤', en: 'Lymphoma and multiple myeloma' },
+  752: { zh: '膽囊與膽道癌', en: 'Gallbladder and biliary tract' },
+  751: { zh: '腦與神經系統癌', en: 'Brain and nervous system' },
+};
+const siteLabel = new Map(CANCER_SITES.map((c) => [c.value, c.label]));
+const CANCER_SEX: DimensionDef = {
+  label: { zh: '性別', en: 'Sex' },
+  options: [
+    { id: 'total', label: { zh: '兩性', en: 'Both sexes' } },
+    { id: 'female', label: { zh: '女性', en: 'Women' } },
+    { id: 'male', label: { zh: '男性', en: 'Men' } },
+  ],
+  defaultOption: 'total',
+};
 
 export const disease: TopicDefinition = {
   id: 'disease',
@@ -55,6 +87,11 @@ export const disease: TopicDefinition = {
       name: 'United Nations, World Population Prospects 2024',
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
+    },
+    {
+      name: { zh: '國民健康署，癌症發生統計（台灣的附註）', en: 'Health Promotion Administration (Taiwan), cancer incidence statistics (notes on Taiwan)' },
+      url: 'https://data.gov.tw/dataset/6399',
+      license: OPEN_DATA_TW,
     },
   ],
   note: {
@@ -102,6 +139,22 @@ export const disease: TopicDefinition = {
       format: per100k,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'top-cancer',
+      label: { zh: '死亡最多的癌症', en: 'Deadliest cancer' },
+      description: {
+        zh: '死亡人數最多的癌症部位（WHO Global Health Estimates，不算「其他惡性腫瘤」）。2023 年肺癌在 80 國最多，乳癌 32 國、子宮頸癌 18 國（多在非洲）、肝癌 17 國；選男性、女性看攝護腺癌與乳癌。台灣男女都是肺癌。只能畫死亡，不能畫發生（新診斷）：國際的癌症發生資料（GLOBOCAN）不准大量轉載。',
+        en: 'The cancer site that kills the most people (WHO Global Health Estimates, leaving out “other malignant neoplasms”). In 2023 lung cancer led in 80 countries, breast cancer in 32, cervical cancer in 18 (mostly in Africa) and liver cancer in 17; choose Men or Women for prostate and breast cancer. In Taiwan it is lung cancer for both sexes. Only deaths can be shown, not new cases: the international incidence data (GLOBOCAN) may not be redistributed in bulk.',
+      },
+      unit: '',
+      file: 'top-cancer/{item}.json',
+      dimension: CANCER_SEX,
+      layer: { kind: 'categorical', categories: CANCER_SITES, other: { zh: '其他（白血病、口腔癌等）', en: 'Other (leukaemia, mouth cancer and others)' } },
+      format: (v) => tr(siteLabel.get(v) ?? OTHER_SITES[v] ?? { zh: '其他', en: 'Other' }),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
     },
     {
       id: 'diabetes',

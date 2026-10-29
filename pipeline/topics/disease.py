@@ -13,10 +13,17 @@
 - 癌症標準化死亡率：衛福部統計指標表7（同樣用 WHO 2000 年世界標準人口）。
 - 結核病：衛福部統計指標表5 的確定病例（新案）÷ 內政部年中人口。
 - 糖尿病、肥胖、愛滋、瘧疾：沒有跟國際定義一致的數字，地圖上留空，側欄附註寫官方數字與差異。
+
+2026-10-29 擴充（製作手冊第五批 44，使用者決定；build_cancer_sites() 可以單獨跑）：各國死亡數最多的癌症（GHE 第三層的
+癌症部位，不算「其他惡性腫瘤」780），男女合計、男性、女性三個子項目。台灣用衛福部死因統計的 ICD-10 碼依 GHE 的對照自己歸
+（CANCER_ICD10），國健署癌症登記的發生數（新診斷）只寫在附註；癌症發生率不能畫（GLOBOCAN 不准大量轉載）。
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
+import json
+import urllib.parse
+
+from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json, year_span
 from sources import mohw, mohw_deaths, who, worldbank, wpp
 
 # 首要死因的分類：GHE 第二層死因代碼。所有國家、所有年份的首要死因都要在這裡（前端 disease.ts 用同一組代碼）
@@ -209,3 +216,90 @@ def build() -> None:
             "source": "WHO GHO, WHO Global Health Estimates 2023; World Bank WDI (UNAIDS, WHO); 衛生福利部; UN WPP 2024",
         },
     )
+
+
+# ── 各國死亡數最多的癌症（2026-10-29 擴充） ──────────────────────────
+# GHE 第三層的癌症部位與 ICD-10（WHO GHE 方法說明的對照），台灣的死因統計依這張表歸類；780「其他惡性腫瘤」不參加比較
+CANCER_ICD10 = {
+    620: "C00-C14", 630: "C15", 640: "C16", 650: "C18-C21", 660: "C22", 670: "C25", 680: "C33-C34", 690: "C43-C44",
+    700: "C50", 710: "C53", 720: "C54-C55", 730: "C56", 740: "C61", 742: "C62", 745: "C64-C65", 750: "C67",
+    751: "C70-C72", 752: "C23-C24", 753: "C32", 754: "C73", 755: "C45", 760: "C81-C90,C96", 770: "C91-C95",
+}
+OTHER_CANCER = 780
+CANCER_SEXES = {"total": "TOTAL", "male": "MALE", "female": "FEMALE"}
+TW_SEX = {"1": "male", "2": "female"}
+# 國健署癌症登記（data.gov.tw 6399）2023 年新診斷人數，只放附註（製作手冊第三十六節查證的數字）
+CANCER_INCIDENCE_NOTE = (
+    "死亡最多的癌症依衛福部死因統計（ICD-10 依 WHO GHE 的分類歸類）。發生（新診斷）的人數另依國健署癌症登記：2023 年最多的是"
+    "肺癌 19,986 人、大腸直腸癌 19,074 人；男性最多是大腸直腸癌 10,749 人，女性是乳癌 17,779 人",
+    "The cancer causing the most deaths is from the Ministry of Health and Welfare's death statistics, with ICD-10 codes "
+    "grouped into WHO GHE categories. By new diagnoses (Health Promotion Administration cancer registry, 2023), lung cancer "
+    "led with 19,986 cases and colorectal cancer had 19,074; colorectal cancer led among men (10,749) and breast cancer "
+    "among women (17,779)",
+)
+
+
+def _ghe_cancer_sites(year: int) -> dict[str, dict[str, dict[int, float]]]:
+    """{性別: {iso3: {癌症部位: 死亡數}}}"""
+    query = (f"DIM_YEAR_CODE eq {year} and DIM_AGEGROUP_CODE eq 'TOTAL' and FLAG_LEVEL eq 3 and "
+             "DIM_GHECAUSE_CODE gt 610 and DIM_GHECAUSE_CODE lt 800")
+    select = "DIM_COUNTRY_CODE,DIM_GHECAUSE_CODE,DIM_SEX_CODE,VAL_DTHS_COUNT_NUMERIC"
+    url = f"{who.GHE_API}?{urllib.parse.urlencode({'$filter': query, '$select': select})}"
+    with open(download(url, "who", f"ghe-cancer-sites-{year}-v2.json"), encoding="utf-8") as f:
+        rows = json.load(f)["value"]
+    out: dict[str, dict[str, dict[int, float]]] = {}
+    sexes = {v: k for k, v in CANCER_SEXES.items()}
+    for r in rows:
+        iso3 = who.to_iso3(r["DIM_COUNTRY_CODE"])
+        if iso3 and r["DIM_SEX_CODE"] in sexes:
+            out.setdefault(sexes[r["DIM_SEX_CODE"]], {}).setdefault(iso3, {})[r["DIM_GHECAUSE_CODE"]] = r["VAL_DTHS_COUNT_NUMERIC"] or 0.0
+    return out
+
+
+def _taiwan_cancer_sites() -> dict[str, dict[int, dict[int, float]]]:
+    """衛福部死因統計：{性別: {年: {癌症部位: 死亡數}}}"""
+    ranges = {site: mohw_deaths._ranges(spec.replace(",", " ")) for site, spec in CANCER_ICD10.items()}
+    out: dict[str, dict[int, dict[int, float]]] = {"total": {}, "male": {}, "female": {}}
+    for row in mohw_deaths._rows():
+        code = str(row[2]).strip()
+        if not code.startswith("C"):
+            continue
+        site = next((s for s, r in ranges.items() if mohw_deaths._within(code, r)), OTHER_CANCER)
+        year, n = int(row[0]), float(row[3] or 0)
+        for sex in ("total", TW_SEX.get(str(row[1]))):
+            if sex:
+                cell = out[sex].setdefault(year, {})
+                cell[site] = cell.get(site, 0) + n
+    return out
+
+
+def _top_site(deaths: dict[int, float]) -> int | None:
+    sites = {c: n for c, n in deaths.items() if c != OTHER_CANCER and n > 0}
+    return max(sites, key=lambda c: sites[c]) if sites else None
+
+
+def build_cancer_sites() -> None:
+    out = OUT_DIR / "topics" / "disease" / "top-cancer"
+    years = list(who.GHE_YEARS)
+    series: dict[str, dict[str, dict[int, float]]] = {sex: {} for sex in CANCER_SEXES}
+    for year in years:
+        for sex, countries in _ghe_cancer_sites(year).items():
+            for iso3, deaths in countries.items():
+                top = _top_site(deaths)
+                if top:
+                    series[sex].setdefault(iso3, {})[year] = top
+    taiwan = _taiwan_cancer_sites()
+    for sex in CANCER_SEXES:
+        for year, deaths in taiwan[sex].items():
+            if year in years and (top := _top_site(deaths)):
+                series[sex].setdefault("TWN", {})[year] = top
+    zh, en = CANCER_INCIDENCE_NOTE
+    for sex in CANCER_SEXES:
+        write_json(out / f"{sex}.json", indicator_file(
+            "top-cancer", "", years, {c: to_series(v, years, 0) for c, v in series[sex].items() if v},
+            notes={"TWN": zh}, notesEn={"TWN": en},
+        ))
+        last = {c: v.get(years[-1]) for c, v in series[sex].items() if v.get(years[-1])}
+        from collections import Counter
+        print(f"  {sex} {years[-1]}：{len(last)} 國，{Counter(last.values()).most_common()}，台灣 {last.get('TWN')}")
+
