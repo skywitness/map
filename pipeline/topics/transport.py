@@ -6,6 +6,9 @@
 航空旅客量（build_air_passengers，2026-10-29）：世界銀行 WDI IS.AIR.PSGR（來源 ICAO，CC BY 4.0），各國註冊的航空公司
 一年載運的旅客（國內加國際，一趟轉機算兩次），與每人搭機次數（÷ WPP 人口）。使用者 2026-10-29 決定：兩個都做；
 WDI 沒有台灣，民航局的機場旅客數（sources/caa.py，口徑不同）放附註，地圖上留白。
+
+2026-10-30（第七批 117）起機場的點、機場數、航空旅客量與每人搭機次數輸出到航空主題（public/data/topics/aviation/），
+這個步驟照樣一起跑；交通主題留鐵路、地鐵與高鐵，各國的檔（countries/）照舊列機場給交通的側欄。
 """
 from __future__ import annotations
 
@@ -16,7 +19,7 @@ from datetime import date
 
 import pycountry
 
-from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json
+from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json, write_manifest_part
 from geoindex import country_at, land_polygons
 from sources import caa, worldbank, wpp
 from sources.countries import ISO3
@@ -26,6 +29,8 @@ RAILROADS_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/
 AIRPORTS_URL = "https://davidmegginson.github.io/ourairports-data/airports.csv"
 
 OUT = OUT_DIR / "topics" / "transport"
+# 機場與航空旅客的指標 2026-10-30 搬到航空主題（第七批 117）
+AIR_OUT = OUT_DIR / "topics" / "aviation"
 SIMPLIFY_DEGREES = 0.01  # Douglas–Peucker 容許誤差，約 1 公里
 QUANTUM = 0.005  # 座標量化單位（度），約 500 公尺
 EARTH_RADIUS_KM = 6371.0088
@@ -146,10 +151,10 @@ def airports(year: int) -> dict[str, list]:
             by_country.setdefault(iso3, []).append(row)
     # 大型機場排在後面，畫的時候疊在中型機場上面
     rows.sort(key=lambda row: -row[2])
-    write_json(OUT / "airports.json", {"fields": ["lon", "lat", "type", "name", "iata", "city", "iso3"], "rows": rows})
-    write_json(OUT / "airports-count.json", indicator_file(
+    write_json(AIR_OUT / "airports.json", {"fields": ["lon", "lat", "type", "name", "iata", "city", "iso3"], "rows": rows})
+    write_json(AIR_OUT / "airports-count.json", indicator_file(
         "airports-count", "座", [year], {a: [len(by_country.get(a, []))] for a in ISO3}))
-    write_json(OUT / "large-airports.json", indicator_file(
+    write_json(AIR_OUT / "large-airports.json", indicator_file(
         "large-airports", "座", [year],
         {a: [sum(1 for r in by_country.get(a, []) if r[2] == 1)] for a in ISO3}))
     print(f"  機場 {len(rows)} 座（大型 {sum(1 for r in rows if r[2] == 1)}）")
@@ -189,11 +194,11 @@ def build_air_passengers() -> None:
     }
     zh, en = _air_taiwan_notes(caa.airport_passengers())
     extra = {"license": AIR_LICENSE, "notes": {"TWN": zh}, "notesEn": {"TWN": en}}
-    write_json(OUT / "air-passengers.json", indicator_file(
+    write_json(AIR_OUT / "air-passengers.json", indicator_file(
         "air-passengers", "人次", years, {a: to_series(s, years, 0) for a, s in passengers.items()},
         aggregates={"WLD": to_series(world, years, 0)}, **extra))
     world_pp = {y: v / (pop["WLD"][y] * 1000) for y, v in world.items() if pop["WLD"].get(y)}
-    write_json(OUT / "air-trips.json", indicator_file(
+    write_json(AIR_OUT / "air-trips.json", indicator_file(
         "air-trips", "次/人", years, {a: to_series(s, years, 3) for a, s in per_person.items() if s},
         aggregates={"WLD": to_series(world_pp, years, 3)}, **extra))
     latest = sorted(((s[last], a) for a, s in per_person.items() if last in s), reverse=True)
@@ -218,5 +223,8 @@ def build() -> None:
     write_json(OUT / "manifest.json", {
         "topic": "transport",
         "generatedAt": now_iso(),
-        "source": "Natural Earth 1:10m railroads v5.1.2; OurAirports; World Bank WDI IS.AIR.PSGR (ICAO); 交通部民用航空局",
+        "source": "Natural Earth 1:10m railroads v5.1.2; OurAirports（側欄的機場清單）",
+    })
+    write_manifest_part(AIR_OUT, "aviation", "airports", {
+        "source": "OurAirports; World Bank WDI IS.AIR.PSGR (ICAO); 交通部民用航空局",
     })
