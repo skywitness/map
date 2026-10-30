@@ -96,7 +96,7 @@ pipeline/
 
 **所有資料一律用 ISO 3166-1 alpha-3 對應**（`TWN`、`JPN`…）。各來源的代碼在 `pipeline/sources/countries.py` 統一轉換。
 
-畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數，3D 模式是 `3d=1`，英文版另有 `lang=en`。
+畫面狀態都放在網址裡，例如 `?topic=agriculture&ind=self-sufficiency&item=wheat&year=2022&country=TWN`，任何畫面都能直接分享，框選範圍也會記在 `bbox=` 參數，3D 模式是 `3d=1`，地圖上標數值是 `vals=1`，英文版另有 `lang=en`。
 
 **分享選單**（控制列右邊的「分享」，`src/controls/ShareMenu.tsx`）：
 - **下載地圖圖片（PNG）**：只有地圖檢視有。內容是目前的地圖畫面，上面加標題（主題 · 指標 · 年份）與指標說明，左下角是圖例（跟畫面上一樣，含開著的疊加圖層），下面是資料來源、底圖版權（OpenFreeMap © OpenMapTiles © OpenStreetMap contributors）、國界來源與這個畫面的網址。做法見第 10 節。
@@ -3513,6 +3513,21 @@ pipeline/
 - 寬度跟著選到的那一項（CSS `field-sizing: content`），最寬 560px；不支援的瀏覽器（目前是 Firefox）是最長那一項的寬度。原本固定最寬 260px，英文較長的名稱會被截掉（「Average monthly earnings (US$)」要 278px，「Government & compulsory insurance share」353px，最長的是工業的「Machinery, electronics and transport equipment, % of manufacturing」526px）。
 - 1280px 寬時，所有主題、所有指標的選單（中英文）都完整顯示，控制列仍是一行。
 - 窄螢幕放不下時選單縮短、文字被切掉，不撐出水平捲動：`.controls-left`、`.select-field`、`select` 都要 `min-width: 0`，少一層就會撐開。375px 寬時英文較長的名稱會被切掉，點開的選項清單是完整的。
+
+### 播放設定、收藏的畫面、地圖上標數值（2026-10-30）
+
+- **播放設定**（`TimeSlider.tsx` 的 `PlaybackMenu`）：播放鈕旁邊的小按鈕寫目前的速度（「1×」，循環時加「↻」，有設定時是藍框），點開往上彈出：
+  - 速度 0.5×／1×／2×（1× 一年 120 ms），循環播放：記在這台裝置的 localStorage（`playback`），每個主題都一樣。
+  - 播放的年份：「從」「到」兩個下拉選單（選項寫時間軸的刻度，例如月份），只在目前的指標有效（換指標回到全部），軌道上那一段標成淡藍。按播放時年份不在範圍裡就從範圍的第一年開始，播到範圍的最後一年停下或從頭再播。
+  - 點外面、按 Esc 關閉（`controls/useDismiss.ts`，Esc 只關這個視窗，不會順便取消選取的國家）。時刻主題的時間軸（`MomentControl`）不受影響。
+- **收藏的畫面**（`controls/SavedViews.tsx`、`lib/savedViews.ts`）：控制列「分享」左邊的書籤按鈕（Lucide 的 bookmark，`UI_ICONS.saved`）。
+  - 打開後上面是「收藏目前的畫面」，名稱預設是分頁標題（「總生育率 · 日本」），下面列出收藏過的畫面，點一下在網頁裡換過去（跟主題之間的連結一樣用 popstate，上一頁回得來），× 刪掉。目前的畫面已經收藏過時按鈕是實心的藍色，清單裡那一筆是粗體。
+  - 存的是網址的路徑與參數（主題、指標、年份、國家、框選、比較…），拿掉 `lang` 與 `embed`：打開時照目前的語言。同一個網址只留一筆（再收藏一次是改名字），最多 50 筆，新的在前面。存在 localStorage（`savedViews`），只在這台裝置，不送到任何地方；別的分頁改了也跟著更新（`storage` 事件）。
+  - 指令面板（Ctrl+K）也列出收藏的畫面（「打開收藏：…」）。
+- **地圖上標數值**（`map/useValueLabels.ts`，網址 `vals=1`）：地圖右邊的工具列多一個「12」的開關（手機在「更多」裡），指令面板也有。
+  - 每個國家的位置（比例圓的那一點）寫一個短的數值（指標的 `formatTick`，沒有就用 `format`），面量圖、比例圓、類別圖才有；網格、3D 時不畫。
+  - 圖層插在底圖的地名下面：地名先排，數值放得下才放，四個方向（上、下、左、右）找空位，面積大的國家先排（`symbol-sort-key`），縮小時小國自然被略過。地球儀縮小時跟底圖的地名一樣只留離畫面中心 60° 以內的（邊緣擠成一團）。
+  - 匯出地圖圖片時一起畫進去（截的是地圖的畫面）。
 
 ## 12. 英文版介面（i18n）
 

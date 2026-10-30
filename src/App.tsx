@@ -3,6 +3,7 @@ import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
 import { ClampedText } from './controls/ClampedText';
 import type { PaletteAction } from './controls/CommandPalette';
+import { SavedViews } from './controls/SavedViews';
 import { ShareMenu } from './controls/ShareMenu';
 import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
@@ -11,6 +12,8 @@ import { localize, setLang, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { rememberTopic } from './lib/recentTopics';
+import { openSavedView, useSavedViews } from './lib/savedViews';
+import { langParam } from './i18n/lang';
 import { useUI } from './lib/strings';
 import type { TopicTarget } from './lib/topicSearch';
 import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMoment, formatTimeParam } from './lib/clock';
@@ -333,6 +336,7 @@ export function App() {
   const [overviewOpen, setOverviewOpen] = useState(false);
   // 指令面板（Ctrl+K）的指令，依目前的狀態列出
   const UI = useUI();
+  const savedViews = useSavedViews();
   const paletteActions = useMemo<PaletteAction[]>(() => {
     const A = UI.palette.actions;
     return [
@@ -341,8 +345,12 @@ export function App() {
       { id: 'theme', label: tokens.mode === 'dark' ? t.switchToLight : t.switchToDark, run: toggleTheme },
       { id: 'lang', label: lang === 'zh' ? A.english : A.chinese, run: () => setLang(lang === 'zh' ? 'en' : 'zh') },
       ...(state.country && !pure ? [{ id: 'clear', label: A.clear, run: () => selectCountry(null) }] : []),
+      ...(view === 'map' && !pure
+        ? [{ id: 'values', label: state.labels ? t.valueLabelsOff : t.valueLabels, run: () => update({ labels: !state.labels }) }]
+        : []),
+      ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
     ];
-  }, [UI, pure, view, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry]);
+  }, [UI, pure, view, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
@@ -667,6 +675,7 @@ export function App() {
                 ))}
               </div>
             )}
+            <SavedViews />
             <ShareMenu
               shareTitle={t.shareTitle(viewTitle)}
               onDownloadImage={view === 'map' ? downloadImage : undefined}
@@ -735,6 +744,8 @@ export function App() {
                   onDetailNeeded={wantDetail}
                   threeD={state.threeD}
                   onThreeDChange={setThreeD}
+                  valueLabels={state.labels}
+                  onValueLabelsChange={(on) => update({ labels: on })}
                   terrain={topic.terrain}
                   bareMap={topic.bareMap}
                   focus={focusRequest}

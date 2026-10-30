@@ -36,6 +36,7 @@ const UI_ICONS = {
   offline: 'cloud-off',
   error: 'triangle-alert',
   empty: 'chart-no-axes-column',
+  saved: 'bookmark',
 };
 
 const TOPIC_ICONS = {

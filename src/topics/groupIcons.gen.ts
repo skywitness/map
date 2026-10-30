@@ -13,10 +13,11 @@ export const GROUP_ICONS: Record<string, string> = {
   "geo": "M0 0m8 3 4 8 5-5 5 15H2L8 3zM4.14 15.08c2.62-1.57 5.24-1.43 7.86.42 2.74 1.94 5.49 2 8.23.19", // mountain-snow
 };
 
-export const UI_ICONS: Record<'country' | 'command' | 'offline' | 'error' | 'empty', string> = {
+export const UI_ICONS: Record<'country' | 'command' | 'offline' | 'error' | 'empty' | 'saved', string> = {
   "country": "M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", // map-pin
   "command": "M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3", // command
   "offline": "M10.94 5.274A7 7 0 0 1 15.71 10h1.79a4.5 4.5 0 0 1 4.222 6.057M18.796 18.81A4.5 4.5 0 0 1 17.5 19H9A7 7 0 0 1 5.79 5.78M0 0m2 2 20 20", // cloud-off
   "error": "M0 0m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4M12 17h.01", // triangle-alert
   "empty": "M5 21v-6M12 21V3M19 21V9", // chart-no-axes-column
+  "saved": "M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z", // bookmark
 };

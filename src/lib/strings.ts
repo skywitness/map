@@ -56,6 +56,8 @@ const UI_TEXT = defineMessages({
         english: '切換到英文（English）',
         chinese: '切換到中文',
         clear: '取消選取國家',
+        /** 收藏的畫面（SavedViews.tsx）也列在指令面板裡 */
+        openSaved: (name: string) => `打開收藏：${name}`,
       },
     },
     sheet: {
@@ -130,6 +132,7 @@ const UI_TEXT = defineMessages({
         // 語言名稱用該語言自己寫，看不懂英文的人也找得到
         chinese: 'Switch to Chinese (中文)', // i18n-ignore
         clear: 'Clear the selected country',
+        openSaved: (name) => `Open saved view: ${name}`,
       },
     },
     sheet: {

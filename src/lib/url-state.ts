@@ -31,6 +31,8 @@ export interface ViewState {
   time: number | null;
   /** 嵌入模式（embed=1，2026-10-29）：放在別的網頁的 iframe 裡，只留地圖、指標、時間軸與資料來源 */
   embed: boolean;
+  /** 在地圖上標數值（vals=1，2026-10-30） */
+  labels: boolean;
 }
 
 export const COMPARE_MAX = 3;
@@ -72,6 +74,7 @@ export function read(): ViewState {
     compare: [...new Set((p.get('cmp') ?? '').split(',').filter((c) => /^_?[A-Z]{3}$/.test(c)))].slice(0, COMPARE_MAX),
     time: parseTimeParam(p.get('time')),
     embed: p.get('embed') === '1',
+    labels: p.get('vals') === '1',
   };
 }
 
@@ -132,6 +135,7 @@ function buildUrl(state: ViewState): string {
   if (state.grid !== null) p.set('grid', state.grid ? '1' : '0');
   if (state.compare.length) p.set('cmp', state.compare.join(','));
   if (state.time !== null) p.set('time', formatTimeParam(state.time));
+  if (state.labels) p.set('vals', '1');
   if (state.embed) p.set('embed', '1');
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();

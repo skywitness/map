@@ -991,6 +991,142 @@ button {
   flex: none;
 }
 
+/* 收藏的畫面（SavedViews.tsx）：書籤按鈕，目前的畫面已收藏時是實心的藍色 */
+.saved-views {
+  position: relative;
+  flex: none;
+}
+
+.saved-button {
+  color: var(--ink-secondary);
+}
+
+.saved-button.is-saved {
+  color: var(--accent-text);
+}
+
+.saved-button.is-saved svg path {
+  fill: currentColor;
+}
+
+.saved-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.saved-form {
+  display: grid;
+  gap: 6px;
+}
+
+.saved-form label {
+  color: var(--ink-secondary);
+}
+
+.saved-form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.saved-form-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+}
+
+.saved-submit {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.saved-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.saved-list {
+  display: grid;
+  max-height: 260px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border-top: 1px solid var(--grid);
+}
+
+.saved-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.saved-list a {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 2px;
+  overflow: hidden;
+  color: var(--ink);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-list a:hover {
+  color: var(--accent-text);
+}
+
+.saved-list li.is-current a {
+  font-weight: 600;
+}
+
+.saved-remove {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.saved-remove:hover {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.saved-empty,
+.saved-note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .help-popover {
   position: absolute;
   top: calc(100% + 8px);
@@ -4023,6 +4159,112 @@ kbd {
   touch-action: none;
 }
 
+/* 播放設定（TimeSlider.tsx 的 PlaybackMenu）：播放鈕旁邊寫速度的小按鈕，往上彈出設定 */
+.playback {
+  position: relative;
+  flex: none;
+  margin-left: -8px;
+}
+
+.playback-button {
+  min-width: 34px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.playback-button.is-set {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.playback-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  width: 248px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.playback-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.playback-label {
+  color: var(--ink-secondary);
+}
+
+.playback-speeds {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--grid);
+}
+
+.playback-speeds .segment {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+.playback-check {
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.playback-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.playback-range select {
+  font: inherit;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.playback-reset {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 只播一段年份：軌道上那一段標成淡藍（跟圓鈕的位置對齊，左右縮進 10px） */
+.time-range {
+  position: absolute;
+  top: 10px;
+  left: calc(10px + (100% - 20px) * var(--from));
+  width: calc((100% - 20px) * (var(--to) - var(--from)));
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  pointer-events: none;
+}
+
 /* 拉桿背後的走勢（TimeSlider.tsx 的 TrendArea）：在軌道上面、圓鈕底下；左右縮進圓鈕的半徑，跟圓鈕的位置對齊 */
 .time-trend {
   position: absolute;
@@ -4806,6 +5048,8 @@ kbd {
   }
 
   .topic-menu,
+  .playback-popover,
+  .saved-popover,
   .share-menu,
   .map-menu-list,
   .palette-list,

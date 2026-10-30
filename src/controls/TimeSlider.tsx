@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { useT } from '../i18n';
 import { useHotkeys } from './hotkeys';
+import { useDismiss } from './useDismiss';
 
 interface TimeSliderProps {
   years: number[];
@@ -19,7 +20,21 @@ interface TimeSliderProps {
   onPlayingChange?: (playing: boolean) => void;
 }
 
+/** 1× 時每一年停多久；0.5× 是兩倍、2× 是一半 */
 const PLAY_INTERVAL_MS = 120;
+const SPEEDS = [0.5, 1, 2] as const;
+type Speed = (typeof SPEEDS)[number];
+/** 速度與循環記在這台裝置（每個主題都一樣）；播放的年份範圍只在目前的指標有效 */
+const PLAYBACK_KEY = 'playback';
+
+function readPlayback(): { speed: Speed; loop: boolean } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLAYBACK_KEY) ?? '{}') as { speed?: number; loop?: boolean };
+    return { speed: SPEEDS.find((s) => s === saved.speed) ?? 1, loop: saved.loop === true };
+  } catch {
+    return { speed: 1, loop: false };
+  }
+}
 
 export function TimeSlider({
   years,
@@ -40,25 +55,39 @@ export function TimeSlider({
   const t = useT();
   const yearRef = useRef(year);
   yearRef.current = year;
+  // 播放設定（2026-10-30）：速度、循環、只播一段年份
+  const [playback, setPlayback] = useState(readPlayback);
+  const changePlayback = (patch: Partial<{ speed: Speed; loop: boolean }>) => {
+    const next = { ...playback, ...patch };
+    setPlayback(next);
+    try {
+      localStorage.setItem(PLAYBACK_KEY, JSON.stringify(next));
+    } catch {
+      // 無痕模式等存不了：這次照樣用
+    }
+  };
+  const [range, setRange] = useState<[number, number] | null>(null);
+  // 換指標（年份不同）時範圍回到全部
+  useEffect(() => setRange(null), [first, last]);
+  const from = range && years.includes(range[0]) ? range[0] : first;
+  const to = range && years.includes(range[1]) && range[1] > from ? range[1] : last;
 
   useEffect(() => onPlayingChange?.(playing), [playing, onPlayingChange]);
 
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(() => {
-      // 年份不一定連續（例如移民存量每 5 年一筆），播放時跳到資料裡的下一個年份
-      const next = years.find((y) => y > yearRef.current);
-      if (next === undefined) {
-        setPlaying(false);
-        return;
-      }
-      onChange(next);
-    }, PLAY_INTERVAL_MS);
+      // 年份不一定連續（例如移民存量每 5 年一筆），播放時跳到資料裡的下一個年份；到了範圍的最後一年停下或從頭再播
+      const next = years.find((y) => y > yearRef.current && y <= to);
+      if (next !== undefined) onChange(next);
+      else if (playback.loop) onChange(from);
+      else setPlaying(false);
+    }, PLAY_INTERVAL_MS / playback.speed);
     return () => window.clearInterval(timer);
-  }, [playing, years, onChange]);
+  }, [playing, years, onChange, from, to, playback]);
 
   const togglePlay = () => {
-    if (!playing && year >= last) onChange(first);
+    if (!playing && (year < from || year >= to)) onChange(from);
     setPlaying((p) => !p);
   };
 
@@ -134,8 +163,27 @@ export function TimeSlider({
       >
         {playing ? '❚❚' : '▶'}
       </button>
+      <PlaybackMenu
+        years={years}
+        tick={tick}
+        speed={playback.speed}
+        loop={playback.loop}
+        from={from}
+        to={to}
+        onSpeed={(speed) => changePlayback({ speed })}
+        onLoop={(loop) => changePlayback({ loop })}
+        onRange={(f, l) => setRange(f === first && l === last ? null : [f, l])}
+      />
       <div className="time-track">
         {trend && <TrendArea years={years} values={trend} projectionFrom={projectionFrom} />}
+        {(from !== first || to !== last) && (
+          // 只播一段年份時在軌道上標出那一段（左右縮進圓鈕的半徑，跟走勢一樣）
+          <span
+            className="time-range"
+            aria-hidden="true"
+            style={{ '--from': (from - first) / (last - first), '--to': (to - first) / (last - first) } as CSSProperties}
+          />
+        )}
         <input
           type="range"
           min={first}
@@ -229,5 +277,109 @@ function TrendArea({ years, values, projectionFrom }: { years: number[]; values:
         );
       })}
     </svg>
+  );
+}
+
+/**
+ * 播放設定（2026-10-30）：速度 0.5×／1×／2×、循環播放、只播一段年份。按鈕上寫目前的速度；
+ * Esc 或點外面關閉
+ */
+function PlaybackMenu({
+  years,
+  tick,
+  speed,
+  loop,
+  from,
+  to,
+  onSpeed,
+  onLoop,
+  onRange,
+}: {
+  years: number[];
+  tick: (year: number) => string | number;
+  speed: Speed;
+  loop: boolean;
+  from: number;
+  to: number;
+  onSpeed: (speed: Speed) => void;
+  onLoop: (loop: boolean) => void;
+  onRange: (from: number, to: number) => void;
+}) {
+  const t = useT();
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  useDismiss(open, () => setOpen(false), [buttonRef, popoverRef], buttonRef);
+  const ranged = from !== years[0] || to !== years[years.length - 1];
+  return (
+    <div className="playback">
+      <button
+        ref={buttonRef}
+        type="button"
+        className={`playback-button${speed !== 1 || loop || ranged ? ' is-set' : ''}`}
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        aria-label={t.playSettings}
+        title={t.playSettings}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {speed}×{loop && <span aria-hidden="true"> ↻</span>}
+      </button>
+      {open && (
+        <div ref={popoverRef} id={id} className="playback-popover" role="dialog" aria-label={t.playSettings}>
+          <div className="playback-row">
+            <span className="playback-label">{t.playSpeed}</span>
+            <div className="playback-speeds" role="radiogroup" aria-label={t.playSpeed}>
+              {SPEEDS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={s === speed}
+                  className={`segment${s === speed ? ' is-active' : ''}`}
+                  onClick={() => onSpeed(s)}
+                >
+                  {s}×
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="playback-row playback-check">
+            <input type="checkbox" checked={loop} onChange={(e) => onLoop(e.target.checked)} />
+            {t.playLoop}
+          </label>
+          <div className="playback-row">
+            <span className="playback-label">{t.playRange}</span>
+            <span className="playback-range">
+              <select aria-label={t.playRangeFrom} value={from} onChange={(e) => onRange(Number(e.target.value), to)}>
+                {years
+                  .filter((y) => y < to)
+                  .map((y) => (
+                    <option key={y} value={y}>
+                      {tick(y)}
+                    </option>
+                  ))}
+              </select>
+              –
+              <select aria-label={t.playRangeTo} value={to} onChange={(e) => onRange(from, Number(e.target.value))}>
+                {years
+                  .filter((y) => y > from)
+                  .map((y) => (
+                    <option key={y} value={y}>
+                      {tick(y)}
+                    </option>
+                  ))}
+              </select>
+            </span>
+          </div>
+          {ranged && (
+            <button type="button" className="playback-reset" onClick={() => onRange(years[0], years[years.length - 1])}>
+              {t.playRangeAll}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -130,10 +130,13 @@ import {
   FILL_FADE_SHARE,
   FILL_SWITCH_MS,
   NO_DATA_SOURCE,
+  VALUE_SOURCE,
+  valueLabelLayer,
 } from './worldMapLayers';
 import { MapTooltip, MarkTooltip, PointerLines } from './MapTooltip';
 import { bindMapEvents, type MapHover } from './mapEvents';
 import { useCountryFills } from './useCountryFills';
+import { useValueLabels } from './useValueLabels';
 import { useRasterLayers } from './useRasterLayers';
 
 // 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
@@ -197,6 +200,9 @@ interface WorldMapProps {
   /** 3D 立體地圖；有傳 onThreeDChange 才會出現 3D 按鈕 */
   threeD?: boolean;
   onThreeDChange?: (on: boolean) => void;
+  /** 在地圖上標數值（網址 vals=1，useValueLabels.ts）；沒給 onValueLabelsChange 時沒有這個開關 */
+  valueLabels?: boolean;
+  onValueLabelsChange?: (on: boolean) => void;
   /** key 改變時把地圖移到這個國家（從搜尋選國家時用） */
   focus?: { iso3: string; key: number } | null;
   /** 地形圖層（主題的 terrain）：kind 為 'terrain' 的指標畫分層設色，面量圖上疊地形陰影，3D 改成立體地形 */
@@ -441,6 +447,9 @@ export function WorldMap(props: WorldMapProps) {
       m.addLayer({ id: 'base-land', type: 'fill', source: 'countries', maxzoom: LAND_UNTIL, paint: land }, afterBackground);
       m.addLayer({ id: 'base-lakes', type: 'fill', source: 'lakes', maxzoom: LAND_UNTIL, paint: { 'fill-color': world.sea } }, afterBackground);
     }
+    // 地圖上的數值：插在底圖的地名下面（地名先排，數值放得下才放）
+    m.addSource(VALUE_SOURCE, { type: 'geojson', data: EMPTY });
+    m.addLayer(valueLabelLayer(dark, labelFont(m, /country|place/)), beforeId);
     // 側欄的標記、游標的對蹠點：畫在最上面（連底圖的地名也蓋過，「台北的對蹠點」才不會被當地的地名壓住）
     for (const id of [MARKS_SOURCE, POINTER_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
     for (const layer of markLayers(dark, labelFont(m))) m.addLayer(layer);
@@ -667,6 +676,8 @@ export function WorldMap(props: WorldMapProps) {
   const mapContext = { mapRef, installedRef, ready, revision };
   useCountryFills(mapContext, { countries, shapeless, values, colorScale, categories, indicator, flagsOn, highlightCategory });
   const { gridUrl, backdrop } = useRasterLayers(mapContext, { grid, flags, flagsOn, countries, tinyCollection });
+  // 地圖上的數值：網格、3D 時不標（網格的格子不是國家的值；立體圖形會被字蓋住）
+  useValueLabels(mapContext, { on: Boolean(props.valueLabels) && !gridUrl && !threeD, countries, anchors, values, indicator, year });
 
   // 海的顏色：彩色地形上有資料圖層的主題用 CALM_SEA（水域、湖泊、世界視角的背景、蓋住地形陰影的水域）
   const calmSea = basemap.id === 'terrain' && indicator.layer.kind !== 'none' && indicator.layer.kind !== 'terrain';
@@ -770,7 +781,7 @@ export function WorldMap(props: WorldMapProps) {
     // pointerMark 每次都是新的陣列，依內容（pointerMarkKey）更新就好
   }, [revision, pointerMarkKey]);
 
-  // 地球儀縮小時，底圖的地名只留離畫面中心 LIMB_DEGREES 以內的（見 sphericalCap）；移動結束時更新
+  // 地球儀縮小時，底圖的地名與地圖上的數值只留離畫面中心 LIMB_DEGREES 以內的（見 sphericalCap）；移動結束時更新
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -779,7 +790,9 @@ export function WorldMap(props: WorldMapProps) {
       .getStyle()
       .layers.filter(
         (l): l is Extract<LayerSpecification, { type: 'symbol' }> =>
-          l.type === 'symbol' && ['place', 'water_name'].includes((l as { 'source-layer'?: string })['source-layer'] ?? ''),
+          // 地圖上的數值（VALUE_SOURCE）也一樣：地球邊緣擠成一團
+          (l.type === 'symbol' && ['place', 'water_name'].includes((l as { 'source-layer'?: string })['source-layer'] ?? '')) ||
+          l.id === VALUE_SOURCE,
       )
       .map((l) => ({ id: l.id, filter: l.filter }));
     let applied: [number, number] | null = null;
@@ -1451,6 +1464,9 @@ export function WorldMap(props: WorldMapProps) {
     else void containerRef.current?.requestFullscreen?.();
   };
 
+  // 地圖上標數值：上色、比例圓、類別圖的指標才有（網格、3D 時開關照樣在，只是不畫）
+  const canLabel =
+    Boolean(props.onValueLabelsChange) && ['choropleth', 'bubble', 'categorical'].includes(indicator.layer.kind);
   // 手機上 3D、全螢幕、框選收進「更多」（MoreMenu.tsx），按鈕列剩回到全球、平面／地球儀、底圖、更多。
   // 只有一項時照樣放在按鈕列，不必多點一下
   const moreItems: MoreMenuItem[] = [
@@ -1458,6 +1474,9 @@ export function WorldMap(props: WorldMapProps) {
     ...(canFullscreen ? [{ id: 'fullscreen', label: fullscreen ? t.exitFullscreen : t.fullscreen, onSelect: toggleFullscreen }] : []),
     ...(onBoxChange
       ? [{ id: 'box', label: boxToolLabel, checked: boxMode, disabled: threeD, note: t.boxIn3d, onSelect: () => setBoxMode((m) => !m) }]
+      : []),
+    ...(canLabel
+      ? [{ id: 'values', label: t.valueLabels, checked: Boolean(props.valueLabels), onSelect: () => props.onValueLabelsChange!(!props.valueLabels) }]
       : []),
   ];
   const collapseMore = narrow && moreItems.length > 1;
@@ -1652,6 +1671,18 @@ export function WorldMap(props: WorldMapProps) {
             title={fullscreen ? t.exitFullscreen : t.fullscreen}
           >
             {fullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
+          </button>
+        )}
+        {!collapseMore && canLabel && (
+          <button
+            type="button"
+            className={`map-text-button map-toggle${props.valueLabels ? ' is-active' : ''}`}
+            onClick={() => props.onValueLabelsChange!(!props.valueLabels)}
+            aria-pressed={Boolean(props.valueLabels)}
+            aria-label={t.valueLabels}
+            title={props.valueLabels ? t.valueLabelsOff : t.valueLabels}
+          >
+            12
           </button>
         )}
         {onBasemapChange && <BasemapMenu basemap={basemap} onChange={onBasemapChange} />}

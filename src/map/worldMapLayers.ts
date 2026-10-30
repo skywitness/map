@@ -627,6 +627,35 @@ export function markLayers(dark: boolean, font: DataDrivenPropertyValueSpecifica
   ];
 }
 
+/**
+ * 地圖上標數值（2026-10-30，useValueLabels.ts）：每個國家的位置寫一個短的數值（指標的 formatTick），
+ * 插在底圖的地名下面：地名先排，數值放得下才放（四個方向找空位），大國先排（symbol-sort-key）
+ */
+export const VALUE_SOURCE = 'value-labels';
+export function valueLabelLayer(dark: boolean, font: DataDrivenPropertyValueSpecification<string[]>): LayerSpecification {
+  return {
+    id: VALUE_SOURCE,
+    type: 'symbol',
+    source: VALUE_SOURCE,
+    layout: {
+      visibility: 'none',
+      'text-field': ['get', 'text'],
+      'text-font': font,
+      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 10.5, 4, 12.5, 7, 14],
+      'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+      'text-radial-offset': 0.6,
+      'text-justify': 'auto',
+      'text-padding': 1,
+      'symbol-sort-key': ['get', 'order'],
+    },
+    paint: {
+      'text-color': dark ? '#f0efec' : '#1f1f1d',
+      'text-halo-color': dark ? 'rgba(11, 11, 11, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+      'text-halo-width': 1.4,
+    },
+  };
+}
+
 /** 只留海的底圖（bareMap）蓋住今天陸地的那一層 */
 export const BARE_SEA = 'bare-sea';
 
