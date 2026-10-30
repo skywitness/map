@@ -1,6 +1,6 @@
 """維基百科 wikitext 的表格解析（有 rowspan 的表）：最長的直飛航線、最繁忙的機場用。
 
-- `fetch(頁名, 版本)`：用 MediaWiki API 讀固定版本的 wikitext（index.php?action=raw 常回 429），存進 pipeline/.cache/wikipedia。
+- `fetch(頁名, 版本)`：用 MediaWiki API 讀固定版本的 wikitext（index.php?action=raw 常回 429；API 回 429 時等一下再試），存進 pipeline/.cache/wikipedia。
 - `strip_refs()`：拿掉 <ref>…</ref>、{{efn|…}}、{{cn}} 這類註腳（模板可以巢狀，用括號配對）。
 - `rows(表格)`：一列一個 list，rowspan 的格子複製到下面幾列（colspan 複製到右邊幾格），表頭列（全是 !）略過。
   格子開頭的屬性（`rowspan="2" |`、`style=… |`、空的 `|`）拿掉，只留內容。
@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import json
 import re
+import time
+import urllib.error
 import urllib.parse
 
 from common import download
@@ -21,7 +23,17 @@ DROP_TEMPLATES = ("efn", "cn", "citation needed", "sfn", "refn", "r", "dubious",
 
 def fetch(page: str, revision: int, cache_name: str) -> str:
     url = f"{API}?{urllib.parse.urlencode({'action': 'parse', 'oldid': revision, 'prop': 'wikitext', 'format': 'json', 'formatversion': 2})}"
-    with open(download(url, "wikipedia", f"{cache_name}-{revision}.json"), encoding="utf-8") as f:
+    # 維基百科的 API 常回 429：等一下再試（下載成功後存在快取，之後不再下載）
+    for attempt in range(6):
+        try:
+            path = download(url, "wikipedia", f"{cache_name}-{revision}.json")
+            break
+        except urllib.error.HTTPError as err:
+            if err.code != 429 or attempt == 5:
+                raise
+            print(f"    維基百科回 429，等 {60 * (attempt + 1)} 秒", flush=True)
+            time.sleep(60 * (attempt + 1))
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)["parse"]
     assert data["title"] == page, (data["title"], page)
     return data["wikitext"]
