@@ -8,6 +8,7 @@ import { useJson, useJsonMany } from '../../lib/data';
 import { fixed, formatLargeTick } from '../../lib/format';
 import { km2, tonnes } from '../oceans';
 import type { IndicatorData, PanelExtraProps } from '../types';
+import TradePanel from './TradePanel';
 
 /**
  * 海洋與漁業的側欄（pipeline/topics/oceans.py 的 countries/<ISO3>.json 與兩個產量指標檔）：
@@ -221,7 +222,12 @@ const SOUTH_CHINA_SEA = 49003;
 /** 側欄的清單寫到 km²（地圖與長條用萬、M 的大數） */
 const km2Exact = (v: number) => `${fixed(v, 0)} km²`;
 
-export default function OceansPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+/** 海鮮的貿易（2026-10-30 擴充）是流向圖：側欄改成貿易主題的主要出口對象、進口來源 */
+export default function OceansPanel(props: PanelExtraProps) {
+  return props.indicator.layer.kind === 'flow' ? <TradePanel {...props} /> : <FisheriesPanel {...props} />;
+}
+
+function FisheriesPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];

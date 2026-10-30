@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
 import { dataUrl } from '../lib/data';
 import { fixed } from '../lib/format';
-import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridLayer';
+import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridData';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
 

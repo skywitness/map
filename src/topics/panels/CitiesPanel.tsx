@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, formatPercent, formatSignedPercent } from '../../lib/format';
-import { decodePoints } from '../../map/Overlays';
+import { decodePoints } from '../../map/overlayData';
 import { CITY_LAYER, cityValue, EPOCHS, firstEpoch, growthBase } from '../cities';
 import { overlayEpoch, type IndicatorData, type PanelExtraProps, type PointRecord, type PointsData } from '../types';
 

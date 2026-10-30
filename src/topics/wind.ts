@@ -1,8 +1,8 @@
 import { tr } from '../i18n/lang';
 import { dataUrl, fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
-import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridLayer';
-import { decodeWindField, windAt, type WindField, type WindFieldFile } from '../map/windLayer';
+import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridData';
+import { decodeWindField, windAt, type WindField, type WindFieldFile } from '../map/windField';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, TopicDefinition } from './types';
 
