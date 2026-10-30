@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
-import { decodeLines } from '../map/Overlays';
+import { decodeLines } from '../map/overlayData';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, LinesData, PointRecord, TopicDefinition } from './types';
 
