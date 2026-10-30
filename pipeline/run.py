@@ -181,6 +181,8 @@ STEPS = {
     "logbooks": "topics.logbooks",
     # 氣候分區（柯本）：Beck 2023 的 0.1° 網格（第一次下載 130 MB）；約 1 分鐘
     "koppen": "topics.koppen",
+    # 地表的岩石種類：GLiM 0.5° 網格（PANGAEA，38 KB 的 zip）；幾秒
+    "lithology": "topics.lithology",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
