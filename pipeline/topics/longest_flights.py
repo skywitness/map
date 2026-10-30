@@ -13,8 +13,8 @@
 現行表第 30 名 QR 713 的杜哈連到舊的「Doha International Airport」，卡達航空 2014 年起都從哈馬德國際機場（DOH）起降，改成 DOH。
 國家依機場的座標（geoindex）。
 
-**輸出**（public/data/topics/longest-flights/）：routes.json（大圓弧，紀錄：表 t 1 現行／2 停飛、名次、起訖 IATA、航空公司、
-班號、距離、表定時間、機型、首航或最後一班的日期）、airports.json（起訖機場的點，現行與停飛的航線數）、
+**輸出**（public/data/topics/aviation/）：routes.json（大圓弧，紀錄：表 t 1 現行／2 停飛、名次、起訖 IATA、航空公司、
+班號、距離、表定時間、機型、首航或最後一班的日期）、route-airports.json（起訖機場的點，現行與停飛的航線數）、
 routes.json 的國家指標 routes（現行前 30 名有幾條在這國起降）、longest（這國起降最長的一條，km）、discontinued（停飛前 30 名的條數）。
 """
 from __future__ import annotations
@@ -25,11 +25,11 @@ import re
 import urllib.parse
 from collections import Counter, defaultdict
 
-from common import OUT_DIR, download, indicator_file, lines_file, now_iso, points_file, write_json
+from common import OUT_DIR, download, indicator_file, lines_file, now_iso, points_file, write_json, write_manifest_part
 from geoindex import country_at
 from sources import wikitable as W
 
-OUT = OUT_DIR / "topics" / "longest-flights"
+OUT = OUT_DIR / "topics" / "aviation"  # 航空主題（2026-10-30 航空公司、最長的直飛航線、交通的航空指標合併）
 PAGE = "Longest flights"
 REVISION = 1380354690  # 2026-10-15T06:02:10Z
 YEAR = 2026
@@ -172,7 +172,7 @@ def build() -> None:
     pts = [{"lon": codes[c]["lon"], "lat": codes[c]["lat"], "iata": c.split("-")[0], "en": names[c], "zh": ZH[c], "iso3": iso[c],
             "n": n_cur[c], "d": n_old[c]} for c in codes]
     pts.sort(key=lambda p: p["lon"])
-    write_json(OUT / "airports.json", points_file(pts, ["lon", "lat", "iata", "en", "zh", "iso3", "n", "d"],
+    write_json(OUT / "route-airports.json", points_file(pts, ["lon", "lat", "iata", "en", "zh", "iso3", "n", "d"],
                                                   {"lon": 0.001, "lat": 0.001, "n": 1, "d": 1}, delta=("lon",)))
 
     # 國家的指標：一條航線兩端在同一國（沒有）算一次
@@ -195,7 +195,7 @@ def build() -> None:
     write_json(OUT / "routes-count.json", indicator_file("routes-count", "條", [YEAR], {c: [routes_n.get(c, 0)] for c in every}, **notes))
     write_json(OUT / "longest.json", indicator_file("longest", "km", [YEAR], {c: [v] for c, v in longest.items()}, **notes))
     write_json(OUT / "discontinued.json", indicator_file("discontinued", "條", [YEAR], {c: [old_n.get(c, 0)] for c in every}, **notes))
-    write_json(OUT / "manifest.json", {"topic": "longest-flights", "generatedAt": now_iso(), "revision": REVISION})
+    write_manifest_part(OUT, "aviation", "longest-flights", {"revision": REVISION})
 
     cur = [f for f in flights if f["t"] == CURRENT]
     old = [f for f in flights if f["t"] == DISCONTINUED]

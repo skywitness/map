@@ -15,15 +15,21 @@ from sources import iea_ev, thb
 # 交通部新聞稿公布的公共充電樁數（台灣附註用；沒有逐年統計）
 # 113-10-25「交通部持續建置公共充電樁，營造電動汽車使用環境」、114-09-12「國內公共充電樁突破1.2萬槍…」
 TW_CHARGERS = {
-    "zh": "交通部公布的數字：2024 年 9 月底 9,597 槍（慢充 7,348、快充 2,249），2025 年 7 月底 12,334 槍",
+    "zh": "交通部公布的數字：2024 年 9 月底 9,597 槍（慢充 7,348、快充 2,249），2025 年 7 月底 12,334 槍；"
+    "行政院 2026-09-15 的新聞（資料來源交通部路政及道安司）：2026 年 7 月底 16,280 槍。交通部 TDX 的充電樁 API 要註冊拿金鑰，沒有用",
     "en": "Figures published by the Ministry of Transportation and Communications: 9,597 at the end of September 2024 "
-    "(7,348 slow, 2,249 fast) and 12,334 at the end of July 2025",
+    "(7,348 slow, 2,249 fast) and 12,334 at the end of July 2025; an Executive Yuan press release of 2026-09-15 (data from "
+    "the ministry's Department of Railways and Highways) gives 16,280 at the end of July 2026. The ministry's TDX charger "
+    "API requires registering for a key, so it is not used",
 }
 TW_RATIO = {
     "zh": "交通部公布 2025 年 7 月底的車樁比是 9.0（純電小客車 110,768 輛 ÷ 公共充電樁 12,334 槍）；"
-    "IEA 的算法另含插電式混合車與輕型商用車",
+    "行政院 2026-09-15 的新聞：2026 年 7 月底 9.2（電動小客車 149,322 輛 ÷ 16,280 槍，快充 35.7）。"
+    "IEA 的算法另含插電式混合車與輕型商用車，而且是年底的數字",
     "en": "The Ministry of Transportation and Communications reported 9.0 at the end of July 2025 "
-    "(110,768 battery-electric cars ÷ 12,334 public charging points); the IEA's ratio also counts plug-in hybrids and vans",
+    "(110,768 battery-electric cars ÷ 12,334 public charging points); an Executive Yuan press release of 2026-09-15 gives "
+    "9.2 at the end of July 2026 (149,322 electric cars ÷ 16,280 charging points; 35.7 for fast chargers). The IEA's ratio "
+    "also counts plug-in hybrids and vans, and is for the end of the year",
 }
 NO_IEA = ("IEA 沒有台灣", "The IEA does not cover Taiwan")
 

@@ -42,6 +42,11 @@ export const marriage: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
     {
+      name: 'UN DESA Population Division, Estimates and Projections of Women of Reproductive Age Who Are Married or in a Union 2024',
+      url: 'https://www.un.org/development/desa/pd/data/world-marriage-data',
+      license: 'CC BY 3.0 IGO',
+    },
+    {
       name: {
         zh: 'UNdata，Demographic Statistics Database（聯合國統計司 Demographic Yearbook 的結婚、離婚對數）',
         en: 'UNdata, Demographic Statistics Database (UN Statistics Division, Demographic Yearbook marriages and divorces)',
@@ -89,6 +94,14 @@ export const marriage: TopicDefinition = {
         en: 'DGBAS (Taiwan), Survey of Family Income and Expenditure (including households by family type)',
       },
       url: 'https://data.gov.tw/dataset/27963',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
+        zh: '主計總處 109 年人口及住宅普查表 49、衛生福利部 111 年老人狀況調查（台灣 65 歲以上獨居，附註）',
+        en: 'DGBAS (Taiwan), 2020 Population and Housing Census table 49; Ministry of Health and Welfare, 2022 Survey of Senior Citizens (people aged 65+ living alone in Taiwan, in the notes)',
+      },
+      url: 'https://data.gov.tw/dataset/10906',
       license: OPEN_DATA_TW,
     },
     {
@@ -169,6 +182,20 @@ export const marriage: TopicDefinition = {
       unit: '%',
       file: 'married.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 45, 50, 55, 60, 65] } },
+      format: pct,
+      formatTick: pctTick,
+      unranked: true,
+    },
+    {
+      id: 'union-women',
+      label: { zh: '15–49 歲女性有偶或同居', en: 'Women 15–49 married or in a union' },
+      description: {
+        zh: '15–49 歲女性目前有配偶或同居的比例。聯合國人口司用各國的普查與調查建模估計，1970–2050 年，最後一次普查或調查以後是推估（各國不同，附註寫明）。跟「15 歲以上有偶比例」不同：只算育齡女性，同居也算。',
+        en: 'Share of women aged 15–49 who are currently married or living with a partner. Modelled by the UN Population Division from national censuses and surveys for 1970–2050; years after the latest census or survey are projections (this differs by country and is given in the notes). Unlike “Married, ages 15+”, it covers only women of reproductive age and counts cohabitation too.',
+      },
+      unit: '%',
+      file: 'union-women.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 45, 50, 55, 60, 70] } },
       format: pct,
       formatTick: pctTick,
       unranked: true,
@@ -289,8 +316,8 @@ export const marriage: TopicDefinition = {
       id: 'older-alone',
       label: { zh: '60 歲以上獨居比例', en: 'Older people living alone' },
       description: {
-        zh: '60 歲以上的人之中一個人住的比例（是人的比例，不是家戶的比例）。台灣沒有全國的調查數字。',
-        en: 'Share of people aged 60 and over who live alone (a share of people, not of households). No national figure is available for Taiwan.',
+        zh: '60 歲以上的人之中一個人住的比例（是人的比例，不是家戶的比例）。台灣只有 65 歲以上的數字（普查 15.6%、老人狀況調查 9.1%，定義不同），見附註。',
+        en: 'Share of people aged 60 and over who live alone (a share of people, not of households). Taiwan only has figures for ages 65 and over (15.6% in the census, 9.1% in a survey, defined differently); see the notes.',
       },
       unit: '%',
       file: 'older-alone.json',
@@ -298,7 +325,7 @@ export const marriage: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
       unranked: true,
-      noValue: { TWN: { zh: '沒有全國的開放資料（只有各縣市列冊的獨居老人人數）', en: 'No national open data (only county lists of older people living alone)' } },
+      noValue: { TWN: { zh: '只有 65 歲以上的數字（見附註）', en: 'Only figures for ages 65+ (see notes)' } },
     },
     {
       id: 'same-sex',

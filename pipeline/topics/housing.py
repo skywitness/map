@@ -9,7 +9,7 @@
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
+from common import OUT_DIR, indicator_file, latest_year_span, to_series, write_json, write_manifest_part
 from sources import eurostat, fies, moi_realestate, oecd_ahd, un_households, worldbank
 
 Series = dict[str, dict[int, float]]
@@ -209,12 +209,7 @@ def build() -> None:
             counts[y] = counts.get(y, 0) + 1
     write("slums", "%", slums, 1, sorted(y for y, n in counts.items() if n >= max(counts.values()) * 0.5))
 
-    write_json(
-        out / "manifest.json",
-        {
-            "topic": "housing",
-            "generatedAt": now_iso(),
-            "source": "Eurostat EU-SILC; OECD Affordable Housing Database; UN DESA Household Size and Composition 2022; "
-                      "World Bank WDI (UN-Habitat); 內政部不動產資訊平台; 主計總處家庭收支調查",
-        },
-    )
+    write_manifest_part(out, "housing", "housing", {
+        "source": "Eurostat EU-SILC; OECD Affordable Housing Database; UN DESA Household Size and Composition 2022; "
+                  "World Bank WDI (UN-Habitat); 內政部不動產資訊平台; 主計總處家庭收支調查",
+    })

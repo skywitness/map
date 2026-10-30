@@ -96,6 +96,8 @@ STEPS = {
     "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
+    # 缺水壓力的推估（水資源與森林主題）：WRI Aqueduct 4.0 的各國排名（約 13 MB）；幾秒
+    "aqueduct": "topics.aqueduct",
     "ev": "topics.ev",
     # 電動車主題的燃油車禁售年份與狀態（英文維基百科的表；要先有 profiles 的 government.json）
     "ev-phaseout": "topics.ev_phaseout",
@@ -121,6 +123,8 @@ STEPS = {
     # UN World Marriage Data（約 26 MB）、UNdata 的結婚與離婚對數（第一次約 220 頁網頁，每頁間隔 0.3 秒，約 4 分鐘）、
     # Eurostat、OECD Family Database、內政部戶政司、主計總處
     "marriage": "topics.marriage",
+    # 15–49 歲女性有偶或同居的比例（婚姻與家庭）：聯合國人口司的 xlsx（約 10 MB），讀一次約 5 秒
+    "union-women": "topics.union_women",
     "laws": "topics.laws",  # 自行整理的表，不必下載
     # GHSL Urban Centre Database 2025 與各國城鄉人口（約 43 MB）、Wikidata 的地點（兩次查詢約 1 分鐘）與中文名稱
     # （約 130 次查詢）、內政部戶政司的縣市人口；之後用快取約 30 秒
@@ -207,6 +211,8 @@ STEPS = {
     # 不下載新的東西：讀國家小檔案的首都（要先跑 profiles）、Natural Earth populated places（旅行實用的快取）與 tzdata 套件，
     # 不到 1 秒；白天長度等指標在瀏覽器裡算（src/lib/solar.ts）
     "daylight": "topics.daylight",
+    # 晝夜與季節的夜半邊燈光：夜間燈光的 VIIRS 最新一年（Zenodo 約 60 MB，跟 night-lights 共用快取）縮成 0.1° 的灰階 PNG；約 1 分鐘
+    "daylight-lights": "topics.daylight_lights",
     # 要先有 geo 的國界（與河流主題的海域網格，名稱用）；第一次會向 NASA 日食網站一頁一頁抓約 300 次日食的貝塞爾根數
     # （五千年日食典與路徑表兩組，每頁間隔 0.3 秒，共約 600 頁、5 MB），算路徑與經過的國家第一次約 10 分鐘，之後用快取約 5 分鐘
     "eclipses": "topics.eclipses",
@@ -297,8 +303,12 @@ STEPS = {
     "brands": "topics.brands",
     # 各國的航空公司：Wikidata 的客運航空公司（依總部所在國，含已停業的）；幾秒
     "airlines": "topics.airlines",
+    # 叫車服務在哪些國家：Uber、Grab、滴滴（手工整理的表，Uber 的國家照使用者用瀏覽器存的城市頁）
+    "ride-hailing": "topics.ride_hailing",
     # 海外軍事基地（軍事主題）：英文維基「List of countries with overseas military bases」（固定版本），國家層級的流向；不到 1 秒
     "overseas-bases": "topics.overseas_bases",
+    # 最新的兵力（軍事主題）：英文維基「List of countries by number of military and paramilitary personnel」（固定版本）；不到 1 秒
+    "military-personnel": "topics.military_personnel",
     # 此刻世界的新聞熱點：只輸出 FIPS 10-4 → ISO 的對照表（GeoNames）；事件由瀏覽器直接讀 GDELT；不到 1 秒
     "news": "topics.news",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
@@ -313,6 +323,8 @@ STEPS = {
     "landings": "topics.landings",
     # F1 賽道與冠軍：Jolpica-F1 的資料庫匯出（延遲 14 天的版本，不必登入，ZIP 約 15 MB；CC BY-NC-SA 4.0）；幾秒
     "f1": "topics.f1",
+    # 飛航情報區：VATSpy 的範圍（CC BY-SA 4.0，依 FIR 合併扇區）、OurAirports 的代碼字首對國家；約 1 分鐘（聯集面積）
+    "airspace": "topics.airspace",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

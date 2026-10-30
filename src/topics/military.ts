@@ -9,6 +9,8 @@ const PEOPLE = { zh: '人', en: 'people' };
  * 只畫國家層級的流向（派駐國→駐在國），一組一條線、線一樣粗（FlowLayer.presence），不畫每個基地的點。
  */
 const BASES_YEAR = 2026;
+// 最新的兵力（DESIGN.md 第 8 節第 212 點）：維基百科列表那個版本的年份，只有一年
+const PERSONNEL_YEAR = 2026;
 const COUNTRIES_UNIT = { zh: '國', en: 'countries' };
 const countriesText = (v: number) => tr({ zh: `${fixed(v, 0)} 國`, en: `${fixed(v, 0)} ${v === 1 ? 'country' : 'countries'}` });
 
@@ -85,10 +87,18 @@ export const military: TopicDefinition = {
       url: 'https://en.wikipedia.org/w/index.php?oldid=1381583292',
       license: { zh: 'CC BY-SA 4.0（資料檔也是）', en: 'CC BY-SA 4.0 (so are the data files)' },
     },
+    {
+      name: {
+        zh: '最新的兵力：英文維基百科「List of countries by number of military and paramilitary personnel」（2026-10-18 的版本，數字引自 IISS The Military Balance 2024–2026）',
+        en: 'Latest armed forces: English Wikipedia, “List of countries by number of military and paramilitary personnel” (revision of 2026-10-18, figures cited from IISS, The Military Balance 2024–2026)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?oldid=1380910017',
+      license: { zh: 'CC BY-SA 4.0（資料檔也是）', en: 'CC BY-SA 4.0 (so are the data files)' },
+    },
   ],
   note: {
-    zh: 'SIPRI 資料不是開放授權，依其使用條款只供非商業使用，且只轉載少於資料集 10% 的範圍（軍費與占 GDP 兩項、2011–2025 年）。軍費以當年匯率換算成美元，含國防部以外的軍事相關支出（例如軍人退休金、準軍事部隊）。兵力資料只到 2020 年，不含台灣。海外軍事基地依英文維基百科的列表，只看國家，不分基地的大小與駐軍人數；有爭議的地方（克里米亞、南千島群島、北賽普勒斯…）照列表畫，側欄與 tooltip 寫明。台灣沒有海外軍事基地，列表上也沒有駐在台灣的外國基地。',
-    en: 'SIPRI data is not openly licensed: under its terms it is for non-commercial use only, and less than 10% of the dataset is reproduced here (spending and share of GDP, 2011–2025). Spending is converted to US dollars at current exchange rates and includes military spending outside the defence ministry (such as military pensions and paramilitary forces). Armed forces data ends in 2020 and does not include Taiwan. Overseas military bases follow the English Wikipedia list and count countries only, not the size of bases or troop numbers; disputed places (Crimea, the southern Kuril Islands, Northern Cyprus and others) are drawn as the list has them, with a note in the side panel and tooltip. Taiwan has no overseas bases, and the list shows no foreign bases in Taiwan.',
+    zh: 'SIPRI 資料不是開放授權，依其使用條款只供非商業使用，且只轉載少於資料集 10% 的範圍（軍費與占 GDP 兩項、2011–2025 年）。軍費以當年匯率換算成美元，含國防部以外的軍事相關支出（例如軍人退休金、準軍事部隊）。世界銀行的兵力資料只到 2020 年，不含台灣；「現役兵力（最新）」另依英文維基百科的列表，各國引自 IISS The Military Balance 不同年份的版本（2024–2026，附註寫出處），列表標示部分內容已過時。海外軍事基地依英文維基百科的列表，只看國家，不分基地的大小與駐軍人數；有爭議的地方（克里米亞、南千島群島、北賽普勒斯…）照列表畫，側欄與 tooltip 寫明。台灣沒有海外軍事基地，列表上也沒有駐在台灣的外國基地。',
+    en: 'SIPRI data is not openly licensed: under its terms it is for non-commercial use only, and less than 10% of the dataset is reproduced here (spending and share of GDP, 2011–2025). Spending is converted to US dollars at current exchange rates and includes military spending outside the defence ministry (such as military pensions and paramilitary forces). World Bank armed forces data ends in 2020 and does not include Taiwan; “Active military (latest)” follows the English Wikipedia list instead, whose figures come from different editions of IISS, The Military Balance (2024–2026, cited in the notes), and which is flagged as partly outdated. Overseas military bases follow the English Wikipedia list and count countries only, not the size of bases or troop numbers; disputed places (Crimea, the southern Kuril Islands, Northern Cyprus and others) are drawn as the list has them, with a note in the side panel and tooltip. Taiwan has no overseas bases, and the list shows no foreign bases in Taiwan.',
   },
   indicators: [
     {
@@ -146,6 +156,36 @@ export const military: TopicDefinition = {
       format: (v) => `${fixed(v, 2)}%`,
       formatTick: (v) => `${v}%`,
       compareWorld: true,
+    },
+    {
+      id: 'active-latest',
+      label: { zh: '現役兵力（最新）', en: 'Active military (latest)' },
+      description: {
+        zh: '現役軍人的人數，不含後備軍人與準軍事部隊（附註另列）。依英文維基百科的列表（2026 年 10 月的版本），各國的數字引自 IISS The Military Balance 2024、2025 或 2026 年版，附註寫出處；少數國家的出處是維基百科的條目。列表標示部分內容已過時。圓的面積與人數成正比。',
+        en: 'Active-duty military personnel, excluding reserves and paramilitary forces (listed in the notes). From the English Wikipedia list (October 2026 revision), whose figures come from the 2024, 2025 or 2026 edition of IISS, The Military Balance, as cited in the notes; a few countries are sourced to Wikipedia articles instead. The list is flagged as partly outdated. Circle area is proportional to personnel.',
+      },
+      unit: PEOPLE,
+      file: 'active-latest.json',
+      layer: { kind: 'bubble', legendValues: [1e4, 1e5, 1e6] },
+      format: (v) => `${formatLargeNumber(v)} ${tr(PEOPLE)}`,
+      formatTick: formatLargeTick,
+      defaultYear: PERSONNEL_YEAR,
+      missing: { zh: '列表上沒有', en: 'Not listed' },
+    },
+    {
+      id: 'active-per-1000',
+      label: { zh: '每千人現役兵力', en: 'Active military per 1,000 people' },
+      description: {
+        zh: '現役軍人的人數除以人口（聯合國 WPP 2024，用 IISS 那一版描述的年份），每千人有幾人。現役兵力依英文維基百科的列表（引自 IISS The Military Balance 2024–2026）。',
+        en: 'Active-duty military personnel per 1,000 people, using UN WPP 2024 population for the year the cited IISS edition describes. Personnel figures follow the English Wikipedia list (citing IISS, The Military Balance 2024–2026).',
+      },
+      unit: { zh: '人/千人', en: 'per 1,000 people' },
+      file: 'active-per-1000.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 4, 6, 10, 20] } },
+      format: (v) => tr({ zh: `每千人 ${fixed(v, 1)} 人`, en: `${fixed(v, 1)} per 1,000` }),
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: PERSONNEL_YEAR,
+      missing: { zh: '列表上沒有', en: 'Not listed' },
     },
     basesIndicator(
       'bases-abroad',

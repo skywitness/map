@@ -12,18 +12,18 @@
 **國家**：Country/Agency 欄的國旗模板（{{flagicon|USA}}…）；蘇聯算在繼承國俄羅斯（跟太空主題同規則），好幾面國旗的（合作任務）
 每個國家都算一次，只有機構（ESA）的不算進任何國家、寫在附註。**年份**：登陸或撞擊的日期；還沒發生的（預定的任務）不收。
 
-**輸出**（public/data/topics/landings/）：moon.json、moon-soft.json、mars.json、mars-soft.json（各國累計到這一年的
-抵達表面次數、成功軟著陸次數，含樣本返回與載人）、list.json（每一次：天體、任務、國家、日期、結果，側欄用）。
+**輸出**（public/data/topics/space/，2026-10-30 併進太空主題）：moon.json、moon-soft.json、mars.json、mars-soft.json（各國累計到這一年的
+抵達表面次數、成功軟著陸次數，含樣本返回與載人）、landings.json（每一次：天體、任務、國家、日期、結果，側欄用）。
 """
 from __future__ import annotations
 
 import re
 from collections import Counter, defaultdict
 
-from common import OUT_DIR, indicator_file, now_iso, write_json
+from common import OUT_DIR, indicator_file, write_json, write_manifest_part
 from sources import wikitable as W
 
-OUT = OUT_DIR / "topics" / "landings"
+OUT = OUT_DIR / "topics" / "space"  # 2026-10-30 併進太空主題（第七批 118）
 PAGE = "List of landings on extraterrestrial bodies"
 REVISION = 1372275847  # 2026-08-31T02:53:47Z
 FIRST_YEAR, LAST_YEAR = 1959, 2026
@@ -131,9 +131,8 @@ def build() -> None:
             counts[name] = {c: v[-1] for c, v in values.items()}
             write_json(OUT / f"{name}.json", indicator_file(name, "次", years, values, notes={
                 "TWN": "台灣沒有登陸月球或火星的任務。"}, notesEn={"TWN": "Taiwan has had no Moon or Mars landing mission."}))
-    write_json(OUT / "list.json", [[e["body"], e["mission"], e["iso3"], e["date"], e["kind"]] for e in events])
-    write_json(OUT / "manifest.json", {"topic": "landings", "generatedAt": now_iso(), "revision": REVISION,
-                                       "agencyOnly": dict(agency_only)})
+    write_json(OUT / "landings.json", [[e["body"], e["mission"], e["iso3"], e["date"], e["kind"]] for e in events])
+    write_manifest_part(OUT, "space", "landings", {"revision": REVISION, "agencyOnly": dict(agency_only)})
     for body in ("moon", "mars"):
         evs = [e for e in events if e["body"] == body]
         print(f"  {body}：{len(evs)} 列，結果 {dict(Counter(e['kind'] for e in evs))}，只有機構的 {agency_only[body]}")

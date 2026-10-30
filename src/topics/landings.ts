@@ -5,6 +5,7 @@ import type { IndicatorDef, TopicDefinition } from './types';
 /**
  * 月球與火星的登陸點（pipeline/topics/landings.py）：英文維基「List of landings on extraterrestrial bodies」的月球、火星兩張表，
  * 在地球地圖上畫各國累計的登陸次數（使用者 2026-10-30 決定：先不做月球、火星的底圖）。
+ * 2026-10-30（第七批 118）併進「太空：衛星與發射」，這裡只匯出指標、資料來源與說明。
  */
 
 /** 結果（pipeline 的 kind，依條目的列底色） */
@@ -33,12 +34,8 @@ function indicator(id: string, label: Text, description: Text, legend: number[])
   };
 }
 
-export const landings: TopicDefinition = {
-  id: 'landings',
-  title: { zh: '月球與火星的登陸', en: 'Landings on the Moon and Mars' },
-  shortTitle: { zh: '月球與火星', en: 'Moon and Mars' },
-  defaultIndicator: 'moon',
-  defaultYear: 2026,
+/** 太空主題（space.ts）的月球與火星登陸部分：2026-10-30 起併進太空（原本是獨立的主題「月球與火星的登陸」） */
+export const landingsPart = {
   sources: [
     {
       name: {
@@ -57,7 +54,6 @@ export const landings: TopicDefinition = {
       'Based on the English Wikipedia article “List of landings on extraterrestrial bodies” as of 31 August 2026: every arrival on the surface of the Moon or Mars counts once, including successful soft landings, deliberate impacts and failed landings (crashes), classified as in the article. Countries follow each mission’s flag; Soviet missions count for Russia as the successor state, joint missions count once for each country, and the one European Space Agency mission (SMART-1’s lunar impact) counts for no country. ' +
       'The deliberate impact of Chang’e 6’s ascent stage is part of the same mission and is not counted separately; planned missions (South Korea’s 2032 lander) are excluded. The map shows the countries that sent the missions, not where they landed (maps of the Moon and Mars are not available yet). Taiwan has had no landing mission. The data files are shared under Wikipedia’s CC BY-SA 4.0.',
   },
-  panelExtra: () => import('./panels/LandingsPanel'),
   indicators: [
     indicator(
       'moon',
@@ -96,4 +92,4 @@ export const landings: TopicDefinition = {
       [1, 5, 10],
     ),
   ],
-};
+} satisfies Partial<TopicDefinition>;

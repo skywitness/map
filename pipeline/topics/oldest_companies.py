@@ -14,13 +14,13 @@ import json
 import re
 from collections import defaultdict
 
-from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, points_file, write_json
+from common import CACHE_DIR, OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
 from geoindex import countries_at
 from sources import wiki_oldest_companies as wiki
 from sources.countries import from_name
 from sources.wikidata_attractions import _sparql
 
-OUT = OUT_DIR / "topics" / "oldest-companies"
+OUT = OUT_DIR / "topics" / "companies"  # 企業與品牌（2026-10-30 最古老的公司、品牌的發源地合併）
 LICENSE = "CC BY-SA 4.0"
 LAST_YEAR = 1699
 BATCH = 150
@@ -124,8 +124,8 @@ def build() -> None:
                                                 {"lon": 0.001, "lat": 0.001, "y": 1}, delta=("y",), strings=("iso3", "f")))
     # 側欄：每家公司（含沒有座標的）[成立年份, 英文名, 中文名, 產業, 國家]
     write_json(OUT / "list.json", {"fields": ["year", "en", "zh", "field", "iso3"], "rows": listing})
-    write_json(OUT / "manifest.json", {"topic": "oldest-companies", "generatedAt": now_iso(), "license": LICENSE,
-                                       "sources": [f"{wiki.PAGE_URL} (CC BY-SA 4.0)", "Wikidata (CC0)"]})
+    write_manifest_part(OUT, "companies", "oldest-companies", {
+        "license": LICENSE, "sources": [f"{wiki.PAGE_URL} (CC BY-SA 4.0)", "Wikidata (CC0)"]})
     top = sorted(((s[-1], k) for k, s in cumulative.items()), reverse=True)
     print(f"  {len(companies)} 家（{years[0]}–{LAST_YEAR}），{len(cumulative)} 國：{top[:10]}")
     print(f"  座標：{dict(how)}；畫點 {len(rows)} 家；座標在別國的不畫 {len(moved)} 家："

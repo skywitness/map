@@ -2,7 +2,8 @@
 /**
  * Service worker（vite-plugin-pwa 的 injectManifest 模式，用 Workbox 模組組裝）。
  *
- * - App shell（index.html、第一個畫面要用的 JS 與 CSS、圖示）安裝時預先快取：第二次開啟不必等網路，離線也能開。
+ * - App shell（index.html、第一個畫面要用的 JS 與 CSS、圖示）安裝時預先快取：第二次開啟 JS、CSS 不必等網路，離線也能開。
+ *   HTML 先向伺服器拿（才拿得到新版），離線或 3 秒逾時才用快取的 index.html。
  * - 其他 JS、CSS（各主題、側欄、圖表，建置時標成 LAZY，見 vite.config.ts 的 collectCoreAssets）：網路不受限時
  *   安裝時也全部下載（離線也能換主題、開側欄）；開了省流量模式或 2G 網路時只存用到的（約省 1 MB）。
  * - 資料 JSON：stale-while-revalidate，先給快取、背景更新。快取名稱含資料版本
@@ -11,8 +12,8 @@
  *   不主動下載整個區域，符合 OpenFreeMap 的使用條款）。
  * - 人口密度的 1 km 網格圖磚：看過的才快取，有數量上限。
  *
- * 新版部署後：新的 service worker 裝好就直接接手（skipWaiting + clientsClaim），
- * 這次開著的頁面繼續用舊版，下次開啟就是新版。舊頁面如果要載入已經不存在的舊 chunk，
+ * 新版部署後：打開網頁一律先向伺服器拿 HTML，所以一開就是新版；新的 service worker 裝好就直接接手
+ * （skipWaiting + clientsClaim）。已經開著的舊頁面繼續用舊版，如果要載入已經不存在的舊 chunk，
  * main.tsx 的 vite:preloadError 會重新整理一次。
  */
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
@@ -63,9 +64,31 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 直接開任何畫面（t/<主題>/?country=…）都用預先快取的 index.html（它自己會在 t/<主題>/ 底下放 <base>）；
-// 直接開資料檔、圖磚的網址則照常回傳檔案
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/data\//, /\/tiles\//] }));
+// 打開網頁（任何網址，含 t/<主題>/?country=…）：先向伺服器拿最新的 HTML，拿不到（離線、3 秒逾時、404）才用預先快取的
+// index.html（assets 是絕對路徑，在 t/<主題>/ 底下照樣抓得到）。原本一律用快取，部署後第一次開還是舊版：新加的主題
+// 舊版不認得，網址是 t/f1/ 卻開成預設的人口主題（2026-10-30）。直接開資料檔、圖磚的網址則照常回傳檔案
+const appShell = createHandlerBoundToURL('index.html');
+const PAGE_TIMEOUT_MS = 3000;
+registerRoute(
+  new NavigationRoute(
+    async (options) => {
+      const abort = new AbortController();
+      const timer = setTimeout(() => abort.abort(), PAGE_TIMEOUT_MS);
+      try {
+        // no-cache：GitHub Pages 的 max-age=600 會讓瀏覽器快取在部署後 10 分鐘內還給舊的 HTML（沒變只回 304）。
+        // manual：伺服器的轉址（t/f1 → t/f1/）原樣交給瀏覽器
+        const response = await fetch(options.request.url, { cache: 'no-cache', redirect: 'manual', signal: abort.signal });
+        if (response.ok || response.type === 'opaqueredirect') return response;
+      } catch {
+        // 離線或逾時
+      } finally {
+        clearTimeout(timer);
+      }
+      return appShell(options);
+    },
+    { denylist: [/\/data\//, /\/tiles\//] },
+  ),
+);
 
 registerRoute(
   ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/data/') && url.pathname.endsWith('.json'),

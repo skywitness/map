@@ -519,18 +519,15 @@ def _cities(rows: list[dict], log: list[str]) -> None:
 
 def _ucdb_cities():
     """城市主題的 GHSL 城市（public/data/topics/cities/cities.json）：[(經度, 緯度, 半徑 km, 中文, 英文)]，
-    半徑是 2025 年面積的等面積圓半徑。城市主題重跑後這裡也要重跑。"""
-    path = OUT_DIR / "topics" / "cities" / "cities.json"
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    col = {name: data["columns"][i] for i, name in enumerate(data["fields"])}
-    areas = [f"a{y}" for y in range(1975, 2030, 5)]  # 面積也是每一期存跟前一期的差
+    半徑是 2025 年面積的等面積圓半徑（2025 年不是城市的不算）。城市主題重跑後這裡也要重跑。"""
+    from topics.cities import load_points
+
     out = []
-    for i in range(len(col["lon"])):
-        if col["a2025"][i] is None or col["lon"][i] is None:
+    for c in load_points(OUT_DIR / "topics" / "cities" / "cities.json"):
+        area = c["area"].get(2025)
+        if area is None:
             continue
-        area = sum(col[a][i] or 0 for a in areas) * data["scale"]["a2025"]
-        out.append((col["lon"][i] * 0.01, col["lat"][i] * 0.01, math.sqrt(max(area, 1) / math.pi), col["zh"][i], col["name"][i]))
+        out.append((c["lon"], c["lat"], math.sqrt(max(area, 1) / math.pi), c["zh"], c["name"]))
     return out
 
 

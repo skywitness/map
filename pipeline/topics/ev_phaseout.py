@@ -14,8 +14,11 @@
   2025（柴油車），條目的 Details 說 2030 年起新車都要是較乾淨的能源，取 2030。
 - 表裡沒有的國家是「沒有宣布」（代碼 0），值寫進指標檔，地圖才分得出「沒有宣布」與「沒有資料」；國家清單用
   國家小檔案的政體指標（所有國家與屬地）。美國聯邦沒有、加州等州有，附註寫明。
-- 台灣：表裡是 2040（引 2017 年 Taipei Times 報導的環保署計畫，汽油、柴油車），照畫；手冊要求用官方較新的資料核對，
-  國發會的淨零路徑網頁從 cloud 被 Cloudflare 擋下，沒有繞過，附註寫出處。
+- 台灣：表裡是 2040（引 2017 年 Taipei Times 報導的環保署計畫）。手冊要求用官方較新的資料核對：國發會的網頁從 cloud
+  被 Cloudflare 擋，2026-10-30 由使用者電腦上的本機 session 下載（skywitness/map-plan 的 data/ndc/，commit 8201bf0）。
+  《臺灣2050淨零排放路徑及策略總說明》（2022-03-30）第 40 頁：「於2040 年所有新售小客車均為電動車」「於2040 年所有新售
+  機車均為電動機車」，年份跟條目一樣是 2040；機車從 2017 年計畫的 2035 年延到 2040 年。交通部「運具電動化及無碳化」
+  行動計畫核定本（2023 年 4 月）第 19 頁明說是市售比目標、不是禁售，所以狀態是政策目標。國發會網站採 CC BY 4.0。
 - 輸出 public/data/topics/ev/phaseout-year.json、phaseout-status.json（一年 2026），hints 是範圍（哪些車）。
 """
 from __future__ import annotations
@@ -108,6 +111,8 @@ def build() -> None:
         years_v[iso3] = [year]
         status_v[iso3] = [status]
         zh, en = _scope(scope)
+        if iso3 == "TWN":  # 條目寫汽油、柴油車；國發會的目標是所有新售小客車與機車
+            zh, en = "所有新售小客車與機車", "All new cars and motorcycles"
         hints[iso3] = f"{STATUS_TEXT[status][0]}：{zh}"
         hints_en[iso3] = f"{STATUS_TEXT[status][1]}: {en}"
     notes = {c: "條目的國家表沒有列，依歐盟 2035 年起新車零排放的法規補上" for c in EU if c not in listed_eu}
@@ -121,11 +126,13 @@ def build() -> None:
     notes["USA"] = "聯邦沒有停售的年份；加州等十幾州採用加州的零排放車規定，訂 2035 年起新車零排放"
     notes_en["USA"] = ("No federal phase-out date; about a dozen states that follow California's zero-emission vehicle "
                        "rules set 2035 for all new cars to be zero-emission")
-    notes["TWN"] = ("條目引 2017 年環保署公布的計畫：2030 年公車與公務車、2035 年機車、2040 年汽車全面電動化；"
-                    "國發會 2022 年的淨零路徑是否改了年份還沒有核對")
-    notes_en["TWN"] = ("The article cites the Environmental Protection Administration's 2017 plan: buses and government "
-                       "cars by 2030, motorcycles by 2035 and all cars by 2040; whether the National Development Council's "
-                       "2022 net-zero pathway changed these dates has not been checked")
+    notes["TWN"] = ("國發會《臺灣2050淨零排放路徑及策略總說明》（2022 年）：2040 年所有新售小客車與機車都是電動車"
+                    "（2030 年市售比 30%、35%，2035 年 60%、70%），2030 年市區公車與公務車全面電動化。交通部的行動計畫說明"
+                    "這是靠補貼達成的市售比目標，不是禁售或禁買燃油車")
+    notes_en["TWN"] = ("National Development Council, Taiwan's 2050 net-zero pathway (2022): all new cars and motorcycles sold "
+                       "from 2040 are to be electric (sales shares of 30% and 35% in 2030, 60% and 70% in 2035), with city "
+                       "buses and government cars fully electric by 2030. The transport ministry's action plan says this is "
+                       "a sales-share target reached through subsidies, not a ban on selling or buying combustion vehicles")
     for name, values in (("phaseout-year", years_v), ("phaseout-status", status_v)):
         write_json(OUT / f"{name}.json", indicator_file(
             name, "", [YEAR], values, hints=hints, hintsEn=hints_en, notes=notes, notesEn=notes_en))

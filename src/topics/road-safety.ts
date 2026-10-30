@@ -26,7 +26,7 @@ export const roadSafety: TopicDefinition = {
         zh: 'WHO Global Health Observatory：道路交通死亡率估計值（RS_198）、2016 年的死亡組成與登記車輛數（RS_246、RS_194）',
         en: 'WHO Global Health Observatory: estimated road traffic death rates (RS_198); 2016 deaths by road user and registered vehicles (RS_246, RS_194)',
       },
-      url: 'https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/road-safety',
+      url: 'https://www.who.int/data/gho/data/themes/road-safety',
       license: WHO_LICENSE,
     },
     {

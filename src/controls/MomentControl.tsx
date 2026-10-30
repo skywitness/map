@@ -41,6 +41,8 @@ interface MomentControlProps {
   /** 回到現在 */
   onLive: () => void;
   onPlayingChange?: (playing: boolean) => void;
+  /** 版面選單關掉了時間軸：不顯示，但照樣掛著 */
+  hidden?: boolean;
 }
 
 type Mode = 'day' | 'year';
@@ -63,7 +65,7 @@ function stepYear(ms: number, days: number): number {
   return atDayOfYear(ms, ((((dayOfYear(ms) - 1 + days) % n) + n) % n) + 1);
 }
 
-export function MomentControl({ time, live, onChange, onPreview, onLive, onPlayingChange }: MomentControlProps) {
+export function MomentControl({ time, live, onChange, onPreview, onLive, onPlayingChange, hidden }: MomentControlProps) {
   const t = useT();
   const [mode, setMode] = useState<Mode>('day');
   const [playing, setPlaying] = useState(false);
@@ -136,7 +138,7 @@ export function MomentControl({ time, live, onChange, onPreview, onLive, onPlayi
   const clock = formatClock(time);
 
   return (
-    <div className="time-slider moment-control">
+    <div className="time-slider moment-control" hidden={hidden}>
       <button
         type="button"
         className="play"

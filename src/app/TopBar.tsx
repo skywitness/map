@@ -1,9 +1,11 @@
 import { CommandPalette, type PaletteAction } from '../controls/CommandPalette';
 import { LangSwitch } from '../controls/LangSwitch';
+import { LayoutMenu } from '../controls/LayoutMenu';
 import { ShortcutHelp } from '../controls/ShortcutHelp';
 import { TopicNav } from '../controls/TopicNav';
 import { useT } from '../i18n';
 import type { SearchEntry } from '../lib/countrySearch';
+import type { LayoutPrefs } from '../lib/layoutPrefs';
 import type { TopicTarget } from '../lib/topicSearch';
 import { hrefWithEmbed } from '../lib/url-state';
 import { MoonIcon, SunIcon } from '../map/MapIcons';
@@ -26,9 +28,12 @@ interface TopBarProps {
   paletteActions: PaletteAction[];
   themeMode: 'light' | 'dark';
   onToggleTheme: () => void;
+  /** 版面：時間軸、資料來源與說明各自顯示或關掉 */
+  layout: LayoutPrefs;
+  onLayoutChange: (patch: Partial<LayoutPrefs>) => void;
 }
 
-/** 頁面最上面的一列：網站名稱、離線標示、主題選單、指令面板、語言、快捷鍵、深淺色（App.tsx，2026-10-29 拆出來） */
+/** 頁面最上面的一列：網站名稱、離線標示、主題選單、指令面板、語言、版面、快捷鍵、深淺色（App.tsx，2026-10-29 拆出來） */
 export function TopBar({
   topic,
   embed,
@@ -42,6 +47,8 @@ export function TopBar({
   paletteActions,
   themeMode,
   onToggleTheme,
+  layout,
+  onLayoutChange,
 }: TopBarProps) {
   const t = useT();
   return (
@@ -86,6 +93,7 @@ export function TopBar({
           actions={paletteActions}
         />
         <LangSwitch />
+        <LayoutMenu prefs={layout} onChange={onLayoutChange} />
         <ShortcutHelp />
         <button
           type="button"

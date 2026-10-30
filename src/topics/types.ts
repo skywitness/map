@@ -217,6 +217,8 @@ export interface IndicatorDef {
   defaultYear?: number;
   /** 換到這個指標時地圖移到這個範圍（同主題的 focus，2026-10-30 起，北極航道） */
   focus?: [number, number, number, number];
+  /** 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖） */
+  timeless?: boolean;
   /**
    * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
    * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
@@ -379,6 +381,12 @@ export interface NightOverlayDef {
   label: Text;
   /** 太陽直射點在圖例上的名稱 */
   sunLabel: Text;
+  /**
+   * 夜半邊的燈光（2026-10-30 起，晝夜與季節）：經緯度對齊的 8 位元灰階 PNG（0 是沒有燈光、255 最亮），
+   * 天黑（太陽在地平線下約 6° 以下）的地方疊上燈光色，白天的那一半不畫。file 是 data/ 底下的路徑，
+   * bounds 是 [南, 北]（圖的上緣是北），label 是圖例上的名稱
+   */
+  lights?: { file: string; bounds: [number, number]; label: Text };
   hidden?: boolean;
   /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
   indicators?: string[];
@@ -525,6 +533,11 @@ export interface PointsOverlayDef extends OverlayBase {
   fromLive?: (live: unknown) => PointRecord[] | null;
   /** 圓點或三角形（火山）；預設圓點 */
   shape?: 'circle' | 'triangle';
+  /**
+   * 圓點的樣式（2026-10-30 起，發電廠的狀態）：'hollow' 空心粗框（淡淡的底色）、'faint' 空心細框、
+   * 'muted' 灰色實心（顏色分級不畫，只看大小）；沒寫是一般的實心圓點加白框
+   */
+  look?: 'hollow' | 'faint' | 'muted';
   /** 半徑（px，縮放 2 的大小，放大時跟著變大）：固定值，或依數值欄位線性內插 [[值, 半徑], …] */
   radius: number | { field: string; stops: [number, number][] };
   /** 顏色：固定色，或依數值欄位分級 */
@@ -930,6 +943,8 @@ export interface TopicDefinition {
       indicator: string;
       /** 時間軸的年份（2026-10-29 起，板塊漂移：游標下是哪一國過去的位置，依那個時間點的檔判斷） */
       year: number;
+      /** 時刻主題目前選的這一刻（2026-10-30 起，晝夜與季節：游標這一點的日出日落）；其他主題是 null */
+      at: ClockAt | null;
     },
   ) => PointerInfo | null;
   /**
@@ -948,9 +963,10 @@ export interface TopicDefinition {
   places?: PlaceDef[];
   /**
    * 換到這個主題時（沒有選國家）地圖移到這個範圍 [西, 南, 東, 北]（2026-10-30 起，企鵝在哪裡、南極的冰下湖：
-   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）
+   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）。
+   * 也可以是依時間軸年份給範圍的函式（2026-10-30 起，板塊漂移：打開時對著那個年代的大陸），只在換過來時算一次
    */
-  focus?: [number, number, number, number];
+  focus?: [number, number, number, number] | ((year: number) => [number, number, number, number]);
 }
 
 /**

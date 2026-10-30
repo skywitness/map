@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { PointsOverlay } from '../topics/types';
-import { MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
+import { setClassGridOnly } from './classGridHighlight';
+import { LIGHTS_LOOK, MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import type { LayerVisibility, OverlayLayer } from './overlayData';
 
@@ -52,6 +53,16 @@ export interface OverlaySwatch {
   opacity?: number;
   /** fill 的色塊底下墊的顏色（像地圖的陸地：淺色底圖米白、深色底圖深藍灰） */
   base?: string;
+  /** 圓點的樣式（PointsOverlayDef.look：空心粗框、空心細框、灰色），跟地圖上的一樣 */
+  look?: 'hollow' | 'faint' | 'muted';
+}
+
+/** 圓點樣式在圖例上的畫法（overlayLayers.ts 的 lookPaint）：填色、填色不透明度、框的顏色與粗細 */
+export function lookSwatch(look: OverlaySwatch['look'], color: string) {
+  if (look === 'hollow') return { fill: color, fillOpacity: 0.12, stroke: color, strokeWidth: 1.6 };
+  if (look === 'faint') return { fill: color, fillOpacity: 0, stroke: color, strokeWidth: 1 };
+  if (look === 'muted') return { fill: MAP_TOKENS.inkMuted, fillOpacity: 0.6, stroke: '#ffffff', strokeWidth: 0.8 };
+  return { fill: color, fillOpacity: 1, stroke: '#ffffff', strokeWidth: 0.8 };
 }
 
 /** 晝夜圖層的圖例：白天、三種曙暮光、夜晚的色塊（太陽在地平線下幾度），加上太陽直射點 */
@@ -75,8 +86,15 @@ const SEA_BASE = { light: '#9ebdff', dark: '#38435c' };
 export interface OverlayKey {
   swatch: OverlaySwatch;
   label: string;
-  /** chips：一格一格的小色塊加短名稱（類別網格的 30 類），hint 是滑過時的全名 */
-  details: { title?: string; layout: 'rows' | 'sizes' | 'chips'; rows: (OverlaySwatch & { label: string; hint?: string })[] }[];
+  /**
+   * chips：一格一格的小色塊加短名稱（類別網格的 30 類），hint 是滑過時的全名；
+   * classValue 是類別網格的代碼，滑過時地圖只亮那一類（classGridHighlight.ts）
+   */
+  details: {
+    title?: string;
+    layout: 'rows' | 'sizes' | 'chips';
+    rows: (OverlaySwatch & { label: string; hint?: string; classValue?: number })[];
+  }[];
 }
 
 /** 線、點的外框與中性色：大小圖例不代表顏色，用中性的深灰 */
@@ -105,7 +123,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       layout: 'chips',
       rows: o.def.classes
         .filter((c) => c.group === g)
-        .map((c) => ({ shape: 'fill' as const, size: 5, color: c.color, opacity, base, label: c.short, hint: `${c.short} ${c.label}` })),
+        .map((c) => ({ shape: 'fill' as const, size: 5, color: c.color, opacity, base, label: c.short, hint: `${c.short} ${c.label}`, classValue: c.value })),
     }));
     const first = o.def.classes[0];
     return { swatch: { shape: 'fill', size: 5, color: first?.color ?? '#888888', opacity, base }, label: o.def.label, details };
@@ -154,6 +172,10 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
           layout: 'rows',
           rows: [
             ...NIGHT_ROWS.map((r, i) => ({ shape: 'fill' as const, size: 5, color, opacity: alphas[i], base, label: tr(r.label) })),
+            // 夜半邊的燈光（暖黃色的小點）
+            ...(o.def.lights
+              ? [{ shape: 'dot' as const, size: 3, color: LIGHTS_LOOK.color, label: o.def.lights.label }]
+              : []),
             { shape: 'dot' as const, size: 4.5, color: SUN_COLOR, label: o.def.sunLabel },
           ],
         },
@@ -235,6 +257,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       shape,
       size: Math.min(5, typeof def.radius === 'number' ? def.radius : 4),
       color: classes ? classes.classes[0].color : (def.color as string),
+      ...(def.look ? { look: def.look } : {}),
     },
     label: def.label,
     details,
@@ -353,6 +376,8 @@ export function LayerControls({
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   const [showDetails, setShowDetails] = useState(() => !(typeof matchMedia === 'function' && matchMedia(NARROW).matches));
   const hasDetails = overlays.some((o) => o.visible && extraKeys.get(o)!.details.length > 0);
+  // 換主題、收起圖例時，滑過的那一類不留在地圖上
+  useEffect(() => () => setClassGridOnly(null), []);
   return (
     <fieldset className="legend map-layers">
       <legend className="legend-title">{t.layers}</legend>
@@ -382,7 +407,12 @@ export function LayerControls({
                   {d.title && <div className="legend-note">{d.title}</div>}
                   <div className="map-layer-rows">
                     {d.rows.map((r) => (
-                      <span key={r.label} title={r.hint}>
+                      <span
+                        key={r.label}
+                        title={r.hint}
+                        onPointerEnter={r.classValue === undefined ? undefined : () => setClassGridOnly(r.classValue!)}
+                        onPointerLeave={r.classValue === undefined ? undefined : () => setClassGridOnly(null)}
+                      >
                         <Swatch swatch={r} />
                         {r.label}
                       </span>
@@ -402,6 +432,11 @@ export function LayerControls({
   );
 }
 
+function LookCircle({ cx, cy, r, color, look }: { cx: number; cy: number; r: number; color: string; look?: OverlaySwatch['look'] }) {
+  const l = lookSwatch(look, color);
+  return <circle cx={cx} cy={cy} r={r} fill={l.fill} fillOpacity={l.fillOpacity} stroke={l.stroke} strokeWidth={l.strokeWidth} />;
+}
+
 /** 圖例符號（SVG），大小圖例的圓點依半徑放大 */
 function Swatch({ swatch }: { swatch: OverlaySwatch }) {
   const { shape, size, color } = swatch;
@@ -412,7 +447,7 @@ function Swatch({ swatch }: { swatch: OverlaySwatch }) {
     return (
       <svg width={w} height={h} aria-hidden="true">
         {shape === 'dot' ? (
-          <circle cx={w / 2} cy={h / 2} r={r} fill={color} stroke="#ffffff" strokeWidth={0.8} />
+          <LookCircle cx={w / 2} cy={h / 2} r={r} color={color} look={swatch.look} />
         ) : (
           <polygon points={trianglePoints(w / 2, h / 2, r)} fill={color} stroke="#ffffff" strokeWidth={0.8} />
         )}

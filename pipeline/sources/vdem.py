@@ -30,6 +30,11 @@ INDEX_COLUMNS = [
     "v2x_polyarchy", "v2x_polyarchy_codelow", "v2x_polyarchy_codehigh",
     "v2x_libdem", "v2x_libdem_codelow", "v2x_libdem_codehigh",
     "v2x_freexp_altinf", "v2x_freexp_altinf_codelow", "v2x_freexp_altinf_codehigh",
+    "v2x_partipdem", "v2x_partipdem_codelow", "v2x_partipdem_codehigh",
+    "v2x_delibdem", "v2x_delibdem_codelow", "v2x_delibdem_codehigh",
+    "v2x_egaldem", "v2x_egaldem_codelow", "v2x_egaldem_codehigh",
+    "v2x_civlib", "v2x_civlib_codelow", "v2x_civlib_codehigh",
+    "v2x_corr", "v2x_corr_codelow", "v2x_corr_codehigh",
     "v2x_regime",
 ]
 COLUMNS = ID_COLUMNS + INDEX_COLUMNS

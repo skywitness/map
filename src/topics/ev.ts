@@ -82,6 +82,14 @@ export const ev: TopicDefinition = {
       url: WIKI_PHASEOUT,
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: {
+        zh: '國家發展委員會、交通部：臺灣 2050 淨零排放路徑（總說明與運具電動化及無碳化行動計畫，台灣的停售年份）',
+        en: "National Development Council and Ministry of Transportation and Communications (Taiwan): Taiwan's 2050 net-zero pathway and its vehicle electrification action plan (Taiwan's phase-out year)",
+      },
+      url: 'https://www.ndc.gov.tw/Content_List.aspx?n=FD76ECBAE77D9811',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh:

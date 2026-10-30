@@ -30,6 +30,7 @@ const POINTS: PointsOverlayDef = {
   radius: 3,
   color: MAP_TOKENS.categorical[2],
   timeField: 'y',
+  indicators: ['companies'],
   tooltip: (p, ctx) => {
     const name = companyName(p);
     return {
@@ -42,12 +43,8 @@ const POINTS: PointsOverlayDef = {
   },
 };
 
-export const oldestCompanies: TopicDefinition = {
-  id: 'oldest-companies',
-  title: { zh: '最古老的公司', en: 'Oldest companies' },
-  shortTitle: { zh: '最古老的公司', en: 'Oldest companies' },
-  defaultIndicator: 'companies',
-  defaultYear: 1699,
+/** 企業與品牌（companies.ts）的最古老的公司部分：2026-10-30（第七批 120）起跟品牌的發源地合成一個主題 */
+export const oldestCompaniesPart = {
   sources: [
     {
       name: { zh: '英文維基百科「List of oldest companies」（2026-10-15 的版本）', en: 'English Wikipedia, “List of oldest companies” (revision of 15 October 2026)' },
@@ -66,8 +63,6 @@ export const oldestCompanies: TopicDefinition = {
       'Dots are companies whose linked article has a location in Wikidata (the company itself, its headquarters or its administrative area), about a quarter; the rest count only towards their country. The article cites a 2008 Bank of Korea study: 5,586 companies older than 200 years in 41 countries, 3,146 of them in Japan. ' +
       'The article is licensed CC BY-SA 4.0 (attribution, share-alike), and this topic’s data files are shared under CC BY-SA 4.0 as well.',
   },
-  noValue: { TWN: { zh: '沒有（見附註）', en: 'None (see note)' } },
-  panelExtra: () => import('./panels/OldestCompaniesPanel'),
   overlays: [POINTS],
   indicators: [
     {
@@ -79,6 +74,8 @@ export const oldestCompanies: TopicDefinition = {
       },
       unit: { zh: '家', en: 'companies' },
       file: 'companies.json',
+      defaultYear: 1699,
+      noValue: { TWN: { zh: '沒有（見附註）', en: 'None (see note)' } },
       layer: { kind: 'bubble', legendValues: [1, 10, 100] },
       overlayTime: 'cumulative',
       timeAxis: YEAR_AXIS,
@@ -88,4 +85,4 @@ export const oldestCompanies: TopicDefinition = {
       shareOfWorld: true,
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;
