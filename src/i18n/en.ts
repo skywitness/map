@@ -38,6 +38,7 @@ export const en: Messages = {
   viewMode: 'View',
   viewMap: 'Map',
   viewTable: 'Ranking',
+  viewAnalysis: 'Analysis',
   descMore: 'More',
   descLess: 'Less',
   loadFailed: (message) => `Failed to load data: ${message}`,

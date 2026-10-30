@@ -44,6 +44,7 @@ export const zh = {
   viewMode: '檢視方式',
   viewMap: '地圖',
   viewTable: '排名表',
+  viewAnalysis: '分析',
   /** 只露兩行的說明（手機上的指標說明、頁尾的主題說明）展開、收起的按鈕 */
   descMore: '更多',
   descLess: '收起',

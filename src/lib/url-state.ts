@@ -10,7 +10,7 @@ export interface ViewState {
   indicator: string | null;
   year: number | null;
   country: string | null;
-  view: 'map' | 'table';
+  view: 'map' | 'table' | 'analysis';
   /** 子項目，例如農產品代碼 */
   item: string | null;
   /** 框選範圍（經緯度 [西, 南, 東, 北]） */
@@ -33,6 +33,60 @@ export interface ViewState {
   embed: boolean;
   /** 在地圖上標數值（vals=1，2026-10-30） */
   labels: boolean;
+  /** 分析檢視（view=analysis，2026-10-30）的設定，見 AnalysisState */
+  analysis: AnalysisState;
+}
+
+/**
+ * 分析檢視（src/analysis/）的設定，都寫在網址裡：
+ * an=change|filter|multiples|swipe 分頁；back=10 變化跟幾年前比、chm=diff|pct 差值或成長率；
+ * flt=tfr:lt:1.5,aged-65:gt:20 篩選條件（指標:lt 或 gt:數值）；mul=years|inds 並排的是年份或指標；
+ * swp=y:1990 或 swp=i:aged-65 拉簾左邊放的年份或指標（右邊是目前的）
+ */
+export interface AnalysisState {
+  tab: 'change' | 'filter' | 'multiples' | 'swipe';
+  back: number;
+  changeMode: 'diff' | 'pct' | null;
+  filters: { indicator: string; op: 'lt' | 'gt'; value: number }[];
+  multiples: 'years' | 'inds';
+  swipe: { kind: 'year'; year: number } | { kind: 'ind'; indicator: string } | null;
+}
+
+const ANALYSIS_TABS = ['change', 'filter', 'multiples', 'swipe'] as const;
+
+function readAnalysis(p: URLSearchParams): AnalysisState {
+  const tab = ANALYSIS_TABS.find((t) => t === p.get('an')) ?? 'change';
+  const back = Number(p.get('back'));
+  const chm = p.get('chm');
+  const filters = (p.get('flt') ?? '')
+    .split(',')
+    .map((part) => /^([\w-]+):(lt|gt):(-?[\d.]+(?:e-?\d+)?)$/.exec(part))
+    .flatMap((m) => (m && Number.isFinite(Number(m[3])) ? [{ indicator: m[1], op: m[2] as 'lt' | 'gt', value: Number(m[3]) }] : []))
+    .slice(0, 3);
+  const swp = /^(y|i):(-?[\w-]+)$/.exec(p.get('swp') ?? '');
+  const swipe =
+    swp?.[1] === 'y' && Number.isInteger(Number(swp[2]))
+      ? { kind: 'year' as const, year: Number(swp[2]) }
+      : swp?.[1] === 'i'
+        ? { kind: 'ind' as const, indicator: swp[2] }
+        : null;
+  return {
+    tab,
+    back: Number.isInteger(back) && back > 0 ? back : 10,
+    changeMode: chm === 'diff' || chm === 'pct' ? chm : null,
+    filters,
+    multiples: p.get('mul') === 'inds' ? 'inds' : 'years',
+    swipe,
+  };
+}
+
+function writeAnalysis(p: URLSearchParams, a: AnalysisState): void {
+  if (a.tab !== 'change') p.set('an', a.tab);
+  if (a.back !== 10) p.set('back', String(a.back));
+  if (a.changeMode) p.set('chm', a.changeMode);
+  if (a.filters.length) p.set('flt', a.filters.map((f) => `${f.indicator}:${f.op}:${f.value}`).join(','));
+  if (a.multiples !== 'years') p.set('mul', a.multiples);
+  if (a.swipe) p.set('swp', a.swipe.kind === 'year' ? `y:${a.swipe.year}` : `i:${a.swipe.indicator}`);
 }
 
 export const COMPARE_MAX = 3;
@@ -65,7 +119,7 @@ export function read(): ViewState {
     indicator: p.get('ind'),
     year: Number.isInteger(year) ? year : null,
     country: p.get('country'),
-    view: p.get('view') === 'table' ? 'table' : 'map',
+    view: p.get('view') === 'table' ? 'table' : p.get('view') === 'analysis' ? 'analysis' : 'map',
     item: p.get('item'),
     // bbox= 是經緯度；舊版網址的 box= 是 Equal Earth 投影座標，換算過來
     box: parseBox(p.get('bbox')) ?? legacyBox(p.get('box')),
@@ -75,6 +129,7 @@ export function read(): ViewState {
     time: parseTimeParam(p.get('time')),
     embed: p.get('embed') === '1',
     labels: p.get('vals') === '1',
+    analysis: readAnalysis(p),
   };
 }
 
@@ -136,6 +191,8 @@ function buildUrl(state: ViewState): string {
   if (state.compare.length) p.set('cmp', state.compare.join(','));
   if (state.time !== null) p.set('time', formatTimeParam(state.time));
   if (state.labels) p.set('vals', '1');
+  // 分析的設定只在分析檢視時寫（換回地圖時網址保持乾淨；設定照樣留在狀態裡，切回來還在）
+  if (state.view === 'analysis') writeAnalysis(p, state.analysis);
   if (state.embed) p.set('embed', '1');
   // 介面語言由 i18n 管理（切換時它自己改網址），這裡重寫網址時要保留
   const lang = langParam();

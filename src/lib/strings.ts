@@ -53,6 +53,7 @@ const UI_TEXT = defineMessages({
         overview: '看全部主題',
         map: '切換到地圖',
         table: '切換到排名表',
+        analysis: '切換到分析（變化、篩選、並排、對照）',
         english: '切換到英文（English）',
         chinese: '切換到中文',
         clear: '取消選取國家',
@@ -128,6 +129,7 @@ const UI_TEXT = defineMessages({
         overview: 'Show all topics',
         map: 'Switch to the map',
         table: 'Switch to the ranking table',
+        analysis: 'Switch to analysis (change, filter, side by side, compare)',
         english: 'Switch to English',
         // 語言名稱用該語言自己寫，看不懂英文的人也找得到
         chinese: 'Switch to Chinese (中文)', // i18n-ignore

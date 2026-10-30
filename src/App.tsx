@@ -67,7 +67,7 @@ import {
   useNow,
   useTopicReady,
 } from './app/hooks';
-import { groupOptions, pickYear } from './app/options';
+import { canAnalyse, groupOptions, pickYear } from './app/options';
 import { useOverlays } from './app/overlays';
 import { worldTrend } from './app/trend';
 import { TopBar } from './app/TopBar';
@@ -75,6 +75,8 @@ import { Footer } from './app/Footer';
 
 // 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
+// 分析檢視（src/analysis/）：切到分析才下載
+const AnalysisView = lazy(() => import('./analysis/AnalysisView'));
 
 // MapLibre（約 1 MB）放在自己的 chunk。首頁程式一跑起來就同時開始下載地圖程式和底圖樣式，
 // 資料 JSON 也在這時發出請求，不必等 MapLibre 下載、解析完
@@ -155,9 +157,10 @@ export function App() {
   );
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
-  const view = pure ? 'map' : state.view;
   const chosenIndicator =
     topic.indicators.find((i) => i.id === state.indicator) ?? topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  // 分析檢視只給面量圖、比例圓、類別圖的指標（app/options.ts 的 canAnalyse）；其他指標退回地圖
+  const view = pure ? 'map' : state.view === 'analysis' && !canAnalyse(chosenIndicator) ? 'map' : state.view;
   // 子項目的選擇器：指標自己有的話用指標的（國旗的「顏色」與「圖案」），否則用主題的
   const dimension = dimensionOf(topic, chosenIndicator);
   const item = resolveItem(dimension, state.item, state.country);
@@ -341,7 +344,11 @@ export function App() {
     const A = UI.palette.actions;
     return [
       { id: 'overview', label: A.overview, run: () => setOverviewOpen(true) },
-      ...(pure ? [] : [{ id: 'view', label: view === 'map' ? A.table : A.map, run: () => update({ view: view === 'map' ? 'table' : 'map' }) }]),
+      ...(pure
+        ? []
+        : (['map', 'table', ...(canAnalyse(indicator) ? (['analysis'] as const) : [])] as const)
+            .filter((v) => v !== view)
+            .map((v) => ({ id: `view-${v}`, label: A[v], run: () => update({ view: v }) }))),
       { id: 'theme', label: tokens.mode === 'dark' ? t.switchToLight : t.switchToDark, run: toggleTheme },
       { id: 'lang', label: lang === 'zh' ? A.english : A.chinese, run: () => setLang(lang === 'zh' ? 'en' : 'zh') },
       ...(state.country && !pure ? [{ id: 'clear', label: A.clear, run: () => selectCountry(null) }] : []),
@@ -350,7 +357,7 @@ export function App() {
         : []),
       ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
     ];
-  }, [UI, pure, view, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews]);
+  }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
@@ -661,7 +668,7 @@ export function App() {
             />
             {!pure && (
               <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
-                {(['map', 'table'] as const).map((v) => (
+                {(canAnalyse(indicator) ? (['map', 'table', 'analysis'] as const) : (['map', 'table'] as const)).map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -670,7 +677,7 @@ export function App() {
                     className={`segment${view === v ? ' is-active' : ''}`}
                     onClick={() => update({ view: v })}
                   >
-                    {v === 'map' ? t.viewMap : t.viewTable}
+                    {v === 'map' ? t.viewMap : v === 'table' ? t.viewTable : t.viewAnalysis}
                   </button>
                 ))}
               </div>
@@ -786,6 +793,22 @@ export function App() {
                       />
                     )
                   }
+                />
+              </Suspense>
+            ) : view === 'analysis' ? (
+              // 分析（變化、篩選、並排、對照）：自己的 chunk，切過來才下載
+              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+                <AnalysisView
+                  topic={topic}
+                  indicator={indicator}
+                  item={item}
+                  data={loading ? null : data}
+                  year={year}
+                  countries={countries}
+                  selected={state.country}
+                  onSelect={selectCountry}
+                  state={state.analysis}
+                  onChange={(patch) => update({ analysis: { ...state.analysis, ...patch } })}
                 />
               </Suspense>
             ) : (
