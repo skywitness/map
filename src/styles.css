@@ -1441,6 +1441,152 @@ kbd {
   grid-template-columns: minmax(0, 1fr) 360px;
 }
 
+/* 清單側欄（panels/ListSide.tsx，主題的 listPanel，例如賽車的賽程）：桌機在地圖左邊，收起來剩一條窄邊 */
+.stage.has-list {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.stage.has-list.has-panel {
+  grid-template-columns: 280px minmax(0, 1fr) 360px;
+}
+
+.stage.has-list.list-closed {
+  grid-template-columns: 40px minmax(0, 1fr);
+}
+
+.stage.has-list.list-closed.has-panel {
+  grid-template-columns: 40px minmax(0, 1fr) 360px;
+}
+
+.list-side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.list-side.is-closed {
+  align-items: center;
+  padding-top: 8px;
+}
+
+.list-side-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.list-side.is-closed:not(.is-narrow) .list-side-toggle span {
+  writing-mode: vertical-rl;
+}
+
+.list-side-toggle:hover {
+  color: var(--ink);
+  background: var(--grid);
+}
+
+.list-side-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 12px 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-side-head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.list-side-count {
+  flex: 1;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.list-side-close {
+  width: 28px;
+  height: 28px;
+}
+
+.list-side > .empty {
+  padding: 12px 14px;
+}
+
+.list-side-rows {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.list-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 7px 14px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-row:hover,
+.list-row:focus-visible {
+  background: var(--grid);
+}
+
+.list-row.is-picked {
+  border-left-color: var(--accent);
+  background: var(--grid);
+}
+
+.list-row.is-muted {
+  color: var(--ink-secondary);
+}
+
+.list-row.is-muted .list-row-title {
+  font-weight: 500;
+}
+
+.list-row-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.list-row-line {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.list-row-badge {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .stage-main {
   position: relative;
   min-height: 0;
@@ -5393,6 +5539,27 @@ kbd {
   .panel {
     order: 3;
     margin-bottom: 12px;
+  }
+
+  /* 清單側欄：在時間軸下面、國家側欄前面（同一個 order 依 DOM 的順序），收起來只剩一顆按鈕，打開最高半個畫面（不擋地圖） */
+  .list-side {
+    order: 3;
+    margin-top: 12px;
+  }
+
+  .list-side.is-narrow:not(.is-closed) {
+    max-height: 50svh;
+  }
+
+  .list-side.is-closed {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .list-side-toggle {
+    flex-direction: row;
+    justify-content: center;
+    padding: 10px;
   }
 
   .footer {

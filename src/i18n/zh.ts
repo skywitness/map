@@ -123,6 +123,7 @@ export const zh = {
   layoutTitle: '版面',
   layoutTime: '時間軸（年份）',
   layoutSources: '資料來源與說明',
+  layoutList: '清單側欄（例如賽車的賽程）',
   layoutNote: '關掉的區域讓給地圖。只存在這台裝置的瀏覽器裡；分享的連結照樣都有。',
   showTime: '顯示時間軸',
   hideTime: '隱藏時間軸',

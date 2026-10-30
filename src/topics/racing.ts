@@ -2,7 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { f1Part } from './f1';
-import type { ColorClasses, DimensionDef, IndicatorDef, LinesOverlayDef, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { ColorClasses, DimensionDef, IndicatorDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 賽車（2026-10-30，製作手冊第九批順序 160，pipeline/topics/racing.py）：各類賽事今年（2026）的地點與日期，
@@ -196,6 +196,68 @@ const SEASON_NOTE: Text = {
   en: 'Races at the same venue on the same weekend count as one event (MotoGP with Moto2 and Moto3, Formula E and IndyCar double-headers, MTB XCO and XCC); each Grand Tour stage is a dot at its finish, and in the country counts a Grand Tour counts once for each country it visits (a stage starting or finishing there).',
 };
 
+/**
+ * 左邊的賽程清單（清單側欄，TopicDefinition.listPanel）：今年每一站依日期排，跟子項目「賽事」連動；
+ * 比完的淡一點，第一個還沒比的標「下一站」。點一站移到賽道（放大到 11 級）；三大環賽一個環賽一列，點了框住所有賽段的終點；
+ * 每月賽程的指標點了也把時間軸換到那個月
+ */
+const SCHEDULE: ListPanelDef = {
+  label: { zh: '賽程', en: 'Calendar' },
+  indicators: ['season', 'month'],
+  file: 'season/{item}.json',
+  empty: { zh: '今年沒有這個賽事', en: 'No events this year' },
+  rows: (points, { countryName }) => {
+    const rows: (ListRow & { d0: number; done: boolean })[] = [];
+    const tours = new Map<number, PointRecord[]>();
+    for (const p of points) {
+      if (TOUR_CODES.has(Number(p.s))) {
+        tours.set(Number(p.s), [...(tours.get(Number(p.s)) ?? []), p]);
+        continue;
+      }
+      const place = [String(p.venue ?? ''), p.place && !String(p.venue).includes(String(p.place)) ? String(p.place) : '']
+        .filter(Boolean)
+        .join(', ');
+      const iso3 = typeof p.iso3 === 'string' ? countryName(p.iso3) : '';
+      rows.push({
+        key: `${p.s}-${p.rnd}-${p.d0}`,
+        d0: Number(p.d0),
+        done: Boolean(p.done),
+        title: roundText(p),
+        properNoun: typeof p.name === 'string' && p.name ? p.name : undefined,
+        lines: [`${dateText(Number(p.d0), Number(p.d1))} · ${[place, iso3].filter(Boolean).join(' · ')}`],
+        muted: Boolean(p.done),
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 11 },
+        year: Number(p.m),
+      });
+    }
+    for (const [code, stages] of tours) {
+      stages.sort((a, b) => Number(a.d0) - Number(b.d0));
+      const first = stages[0];
+      const last = stages[stages.length - 1];
+      const lons = stages.map((p) => Number(p.lon));
+      const lats = stages.map((p) => Number(p.lat));
+      const countries = [...new Set(stages.map((p) => (typeof p.iso3 === 'string' ? countryName(p.iso3) : '')))].filter(Boolean);
+      rows.push({
+        key: `tour-${code}`,
+        d0: Number(first.d0),
+        done: Boolean(last.done),
+        title: tr({
+          zh: `${tr(seriesOf(code)?.label ?? { zh: '', en: '' })}（${stages.length} 個賽段）`,
+          en: `${tr(seriesOf(code)?.label ?? { zh: '', en: '' })} (${stages.length} stages)`,
+        }),
+        lines: [`${dateText(Number(first.d0), Number(last.d0))} · ${countries.join(tr({ zh: '、', en: ', ' }))}`],
+        muted: Boolean(last.done),
+        target: { box: [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)] },
+        year: Number(first.m),
+      });
+    }
+    rows.sort((a, b) => a.d0 - b.d0);
+    const next = rows.find((r) => !r.done);
+    if (next) next.badge = tr({ zh: '下一站', en: 'Next' });
+    return rows;
+  },
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'season',
@@ -287,6 +349,7 @@ export const racing: TopicDefinition = {
     en: `This year’s calendar runs to ${AS_OF.en}. Cancelled rounds are not shown (Formula One’s Saudi Arabian Grand Prix; the Bahrain Grand Prix moved to Sepang, Malaysia); Vuelta stage 3, cancelled for weather, is shown and marked as cancelled. The Formula E season spans two years (2025–26, including the São Paulo opener in December 2025). Mountain of Hell and Megavalanche have no season articles; their dates and places were compiled from the organisers’ announcements (Mountain of Hell: Les 2 Alpes tourist office press release, 18–21 June; Megavalanche: organiser UCC Sport Event’s event page, 10–12 July; facts only, no text reproduced). Event and venue names are as in English Wikipedia. Taiwan hosts none of these events, and none were added for Taiwan. Formula One: ${f1Part.note.en} Data files derived from Wikipedia are shared under CC BY-SA 4.0.`,
   },
   panelExtra: () => import('./panels/RacingPanel'),
+  listPanel: SCHEDULE,
   overlays: [
     seasonLayer('season-done', 'season', true, false),
     seasonLayer('season-todo', 'season', false, false),

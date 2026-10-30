@@ -36,6 +36,8 @@ import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { BoxResult } from './panels/BoxResult';
+import { coreBox } from './lib/coreBox';
+import { ListSide } from './panels/ListSide';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
@@ -47,6 +49,7 @@ import {
   forItem,
   indicatorPath,
   missingReason,
+  overlayEpoch,
   resolveAlias,
   resolveItem,
   sameTimeAxis,
@@ -54,6 +57,7 @@ import {
   yearBin,
   type ClockAt,
   type IndicatorData,
+  type ListRow,
   type MapMark,
   type TopicDefinition,
 } from './topics/types';
@@ -314,13 +318,17 @@ export function App() {
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
   const panelKey = `${topic.id}:${state.country ?? ''}`;
   const [lineHighlight, setLineHighlight] = useState<{ key: string; overlay: string; group: number } | null>(null);
-  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
+  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number; maxZoom?: number } | null>(null);
   const highlightLine = useCallback(
     (overlay: string, group: number | null) => setLineHighlight(group === null ? null : { key: panelKey, overlay, group }),
     [panelKey],
   );
   const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
-  const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
+  // maxZoom：清單側欄點一個點（賽道、城鎮）時放大到看得清楚，預設最多 8 級（WorldMap）
+  const moveToBox = useCallback(
+    (box: [number, number, number, number], maxZoom?: number) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1, maxZoom })),
+    [],
+  );
   // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
   const topicFocus = indicator.focus ?? topic.focus;
   useEffect(() => {
@@ -330,6 +338,39 @@ export function App() {
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
   const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
+  // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
+  const listDef =
+    !pure && !state.embed && view === 'map' && topic.listPanel && (!topic.listPanel.indicators || topic.listPanel.indicators.includes(indicator.id))
+      ? topic.listPanel
+      : null;
+  const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
+  // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
+  const fitLayer = overlays.find((o) => o.kind === 'points' && o.visible && o.def.fitOnEpoch && o.def.epochs && o.def.minValue);
+  const fitEpoch = fitLayer && fitLayer.kind === 'points' ? overlayEpoch(fitLayer.def, year) : null;
+  const fitPoints = fitLayer && fitLayer.kind === 'points' ? fitLayer.points : null;
+  useEffect(() => {
+    if (!fitLayer || fitLayer.kind !== 'points' || !fitPoints || fitEpoch === null) return;
+    const { epochs, minValue, fitOnEpoch } = fitLayer.def;
+    if (!epochs || !minValue || !fitOnEpoch) return;
+    const box = coreBox(
+      fitPoints.filter((p) => epochs.values(p, fitEpoch)[minValue.field] != null).map((p) => [Number(p.lon), Number(p.lat)] as [number, number]),
+      fitOnEpoch.core,
+    );
+    if (box) moveToBox(box, fitOnEpoch.maxZoom);
+    // 只在換期、換圖層、資料剛下載完時移動（選國家、滑地圖不動）
+  }, [fitLayer?.def.id, fitEpoch, fitPoints]);
+  const pickListRow = (row: ListRow) => {
+    if ('box' in row.target) moveToBox(row.target.box);
+    else {
+      // 點：框一個約 2 km 的範圍，放大到 zoom（預設 11 級，看得到賽道或城鎮）
+      const { lon, lat, zoom = 11 } = row.target;
+      const d = 0.01;
+      moveToBox([lon - d, lat - d, lon + d, lat + d], zoom);
+    }
+    const at = row.mark ?? ('box' in row.target ? null : row.target);
+    setMarks(at ? [{ lon: at.lon, lat: at.lat, label: row.title, kind: 'here' }] : null);
+    if (row.year != null && !timeless) setYear(row.year);
+  };
   // 滑到地圖上任何一點時主題給的資訊（地球的另一邊：游標的對蹠點在哪一國或哪一片海）
   const topicPointer = topic.pointer;
   const indicatorId = indicator.id;
@@ -737,7 +778,21 @@ export function App() {
         </div>
         <ClampedText key={description} text={description} className="indicator-desc" />
 
-        <div className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
+        <div
+          className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}`}
+        >
+          {listDef && (
+            <ListSide
+              def={listDef}
+              topicId={topic.id}
+              item={item}
+              year={year}
+              countryName={listCountryName}
+              open={layout.list}
+              onOpenChange={(open) => setLayout({ list: open })}
+              onPick={pickListRow}
+            />
+          )}
           <div className="stage-main">
             {error && (
               // 離線而這個主題還沒存到裝置（service worker 只快取看過的資料）跟一般的失敗分開說

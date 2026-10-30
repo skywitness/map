@@ -9,7 +9,7 @@
 沒有連結的場館（早期的條目常常只寫名稱）查不到座標，不畫，數量印出來、寫在說明。
 
 **輸出**（public/data/topics/sports/）：venues/<summer|winter>.json（場館的點：名稱、國家、辦過的屆、各屆的項目）、
-venue-count/<summer|winter>.json（各國到這一屆為止用過的比賽場館數，累計；年份是各屆，預定的標推估）。
+venue-count/<summer|winter>.json（各國在那一屆用的比賽場館數；年份是各屆，預定的標推估）。
 """
 from __future__ import annotations
 
@@ -90,14 +90,15 @@ def build() -> None:
         per: dict[str, list[int | None]] = {}
         for iso3 in {p["iso3"] for p in pts}:
             here = [p for p in pts if p["iso3"] == iso3]
-            per[iso3] = [sum(1 for p in here if p["first"] <= y) or None for y in editions]
+            # 那一屆在這個國家用的場館數（使用者 2026-10-30：每一屆只看當屆的場館）
+            per[iso3] = [sum(1 for p in here if str(y) in p["ed"].split(",")) or None for y in editions]
         planned = min(y for (s, y) in wiki.PLANNED if s == season)
         notes = {"TWN": "台灣沒有辦過奧運（2009 年高雄世界運動會、2017 年台北世界大學運動會不是奧運）。"}
         notes_en = {"TWN": "Taiwan has never hosted the Olympics (the 2009 World Games in Kaohsiung and the 2017 Universiade in Taipei are not Olympic Games)."}
         write_json(OUT / "venue-count" / f"{season}.json", indicator_file(
             "venues", "個", editions, per, projectionFrom=planned, notes=notes, notesEn=notes_en))
         summary[season] = {"venues": len(pts), "editions": len(editions)}
-        top = sorted(((v[-1] or 0, k) for k, v in per.items()), reverse=True)[:6]
+        top = sorted(((sum(x or 0 for x in v), k) for k, v in per.items()), reverse=True)[:6]
         multi = sorted(pts, key=lambda p: -len(p["ed"].split(",")))[:5]
         print(f"  {season}：{len(pts)} 個場館、{len(editions)} 屆；最多：{top}；辦最多屆：{[(p['name'], p['ed']) for p in multi]}")
     print(f"  沒有座標、不畫的 {len(dropped)} 筆：{dropped}")

@@ -9,6 +9,8 @@ export interface LayoutPrefs {
   time: boolean;
   /** 頁尾的資料來源、主題說明、免責聲明 */
   sources: boolean;
+  /** 主題的清單側欄（TopicDefinition.listPanel，例如賽車的賽程）：桌機預設打開，窄螢幕另外預設收起來（ListSide.tsx） */
+  list: boolean;
 }
 
 const KEY = 'layout';
@@ -16,9 +18,9 @@ const KEY = 'layout';
 function read(): LayoutPrefs {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<LayoutPrefs>;
-    return { time: saved.time !== false, sources: saved.sources !== false };
+    return { time: saved.time !== false, sources: saved.sources !== false, list: saved.list !== false };
   } catch {
-    return { time: true, sources: true };
+    return { time: true, sources: true, list: true };
   }
 }
 

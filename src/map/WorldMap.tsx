@@ -244,7 +244,7 @@ interface WorldMapProps {
   /** 地圖外面（主題的側欄）要標出的一組線，跟滑過時一樣；null 時取消 */
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
-  focusBox?: { box: [number, number, number, number]; key: number } | null;
+  focusBox?: { box: [number, number, number, number]; key: number; maxZoom?: number } | null;
   /**
    * 滑到地圖上任何一點（含海上）時的資訊（主題的 pointer，2026-10-28 起，地球的另一邊）：在國家上時幾行接在國家的
    * tooltip 下面，海上時自己是一個 tooltip（title 加幾行）；mark 是跟著游標動的小記號（游標的對蹠點）
@@ -1100,7 +1100,7 @@ export function WorldMap(props: WorldMapProps) {
         [w, s],
         [e, n],
       ],
-      { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() },
+      { padding: 48, maxZoom: focusBox.maxZoom ?? 8, duration: 900, bearing: map.getBearing() },
     );
     // 只依 key：同一個範圍再點一次也要移過去；ready 是第一個畫面還沒好時就要移過去的（主題的 focus）
   }, [ready, focusBox?.key]);
