@@ -112,6 +112,10 @@ STEPS = {
     "road-safety": "topics.road_safety",  # WHO（GHO、GSRRS 2023）與交通部統計查詢網
     # 洗腎大國（併進疾病主題，輸出到 topics/disease/）：USRDS 年報第 11 章（GraphQL 一次 30 KB）、WHO NCD CCS（xmart）；幾秒
     "dialysis": "topics.dialysis",
+    # 長期照顧（併進健康主題，輸出到 topics/health/）：OECD 長照床數與使用者（約 7 MB）、衛福部兩個 xlsx、WPP 年齡別人口
+    "long-term-care": "topics.long_term_care",
+    # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
+    "palliative": "topics.palliative",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
