@@ -84,7 +84,6 @@ import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExagge
 import { useElementSize } from './useElementSize';
 import { BasemapMenu, type PersonalMenu, type SharedLayerChoice } from './BasemapMenu';
 import { Extremes } from './Extremes';
-import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
 import { PlacePopup } from './PlacePopup';
 import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
@@ -1687,11 +1686,6 @@ export function WorldMap(props: WorldMapProps) {
         >
           <ResetIcon />
         </button>
-        <RegionMenu
-          onGo={(center) =>
-            mapRef.current?.easeTo({ center, zoom: fitGlobeZoom(mapRef.current.getContainer().clientHeight), duration: 1000 })
-          }
-        />
         <button
           type="button"
           onClick={() => !flatIn3d && setGlobe((g) => !g)}

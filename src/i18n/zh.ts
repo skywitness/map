@@ -164,7 +164,6 @@ export const zh = {
   zoomIn: '放大',
   zoomOut: '縮小',
   resetView: '回到全球',
-  goToRegion: '轉到某一洲',
   extremesLabel: '數值最高與最低的國家',
   extremesHigh: '最高',
   extremesLow: '最低',

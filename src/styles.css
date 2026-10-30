@@ -1770,7 +1770,6 @@ kbd {
 
 .map-zoom > button,
 .basemap-menu > button,
-.region-menu > button,
 .more-menu > button {
   display: grid;
   place-items: center;
@@ -1802,8 +1801,6 @@ kbd {
 .map-zoom > button:hover:not(:disabled),
 .basemap-menu > button:hover,
 .basemap-menu > button[aria-expanded='true'],
-.region-menu > button:hover,
-.region-menu > button[aria-expanded='true'],
 .more-menu > button:hover,
 .more-menu > button[aria-expanded='true'] {
   background: var(--grid);
@@ -1811,7 +1808,6 @@ kbd {
 
 .map-zoom > button:active:not(:disabled),
 .basemap-menu > button:active,
-.region-menu > button:active,
 .more-menu > button:active {
   background: var(--axis);
 }
@@ -1831,9 +1827,8 @@ kbd {
   background: none;
 }
 
-/* ── 底圖選單（BasemapMenu.tsx）、轉到某一洲（RegionMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
+/* ── 底圖選單（BasemapMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
 .basemap-menu,
-.region-menu,
 .more-menu {
   position: relative;
 }
