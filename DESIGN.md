@@ -3641,6 +3641,13 @@ pipeline/
     - **資料**：`public/data/topics/companies/`（公司的 `companies.json`、`list.json`、`points.json`，品牌的 `count/`、`list/`、`points/`，沒有重複）；pipeline 的 `oldest-companies`、`brands` 兩個步驟輸出到這裡，`manifest.json` 用 `common.write_manifest_part()`。
     - **轉址**（第 197 點）：`oldest-companies` → 1700 年以前成立的公司、`brands` → 品牌數量（子項目 id 不變，`t/brands/?item=cars` 照樣打開汽車）。舊主題的縮圖、預覽圖刪掉，新主題重新產生；圖示 `briefcase-business`。
     - **授權**：沒有變（英文維基百科 CC BY-SA 4.0，這個主題的資料檔照樣依 CC BY-SA 4.0 分享；Wikidata CC0）。
+203. **運動**（奧運獎牌、F1 賽道與冠軍合成一個主題，社會類，2026-10-30，製作手冊第七批 121；`src/topics/sports.ts`，兩個部分照舊在 `olympics.ts`、`f1.ts`）：
+    - **合併**：新主題「運動」（`sports`），7 個指標（控制列是下拉選單）：奧運的累計獎牌（預設）、累計金牌、單屆獎牌、單屆金牌、每千萬人獎牌，F1 的舉辦的分站數、車手冠軍（依國籍）。兩個檔改成匯出 `olympicsPart`、`f1Part`，`sports.ts` 組起來；資料來源、說明依「奧運：…F1：…」接起來，**F1 的 Jolpica 只准非商業，頁尾的寫法照舊**（來源寫明 CC BY-NC-SA 4.0、只准非商業，說明寫網站與資料檔、匯出的圖片都只能非商業使用）。之後如果做足球（使用者 2026-10-29 決定先不做）也放這裡。
+    - **原本在主題上的設定改到指標上**：奧運的子項目（夏季、冬季）改成奧運 5 個指標自己的 `dimension`；歷史隊伍的 `places` 照舊放在主題上（F1 用不到，沒有影響）。F1 的賽道圖層加上 `indicators`，只在 F1 的指標畫。
+    - **側欄**：`panels/SportsPanel.tsx` 依指標換 `F1Panel` 或 `OlympicsPanel`。
+    - **資料**：`public/data/topics/sports/`（奧運的 `countries/`、`medals/`、`gold/`…，F1 的 `races.json`、`champions.json`、`circuits.json`、`champions-list.json`，沒有重複）；pipeline 的 `olympics`、`f1` 兩個步驟輸出到這裡，`manifest.json` 用 `common.write_manifest_part()`。
+    - **轉址**（第 197 點）：`olympics` → 累計獎牌、`f1` → 舉辦的分站數，指標與子項目的 id 不變（`t/olympics/?item=winter`、`t/f1/?ind=champions` 照樣打開）。舊主題的縮圖、預覽圖刪掉，新主題重新產生；圖示用奧運原本的 `medal`。
+    - **授權**：沒有變（英文維基百科 CC BY-SA 4.0、WPP CC BY 3.0 IGO、Jolpica-F1 CC BY-NC-SA 4.0 只准非商業）。
 209. **中國的海外貸款換新版**（資料更新，2026-10-30，製作手冊第七批 127；`pipeline/sources/aiddata.py`、`pipeline/topics/china_lending.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`）：
     - **來源換成 AidData 的 China's Global Loans and Grants Dataset, Version 1.0**（CLG-Global 1.0，2025-11-18 發布；使用者選全球版，不是只有中低所得國的 CLG-LMIC 1.0）：承諾年 2000–2023，33,580 筆，搜尋過 217 個低、中、高所得國家與地區（CountryList 工作表），200 個有項目、17 個沒有（值是 0）。zip 43.8 MB，xlsx 40.6 MB 的 `CLG-Global 1.0_Records` 工作表（80 多欄）openpyxl 讀一次約 35 秒，只留用到的 13 欄存成 `.cache/aiddata/clg1-records.pkl`。授權見第 12 點。
     - **欄位跟 GCDF 3.0 的對照**（欄位定義 PDF 與 Guide 工作表）：欄名改成底線（`Recommended_for_Aggregates`、`Country_of_Activity_ISO3`、`Commitment_Year`、`Flow_Type_Simplified`、`Sector_Code`、`AidData_Record_ID`）；金額換成 2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`、`Adjusted_Amount_Nominal_USD`，一樣扣掉央行換匯與紓困貸款的短期展期）；年份、部門代碼與編號讀出來是浮點數，`_clean()` 轉整數。`Flow_Class` 多了 OFIC（高所得國的官方融資，不分 ODA／OOF），這個主題沒有用到。新增的 `Source_Dataset`（CLG-LMIC 1.0 23,816 筆、CLG-HIC 1.0 9,764 筆）也存進快取，之後要分開看可以用。CountryList 多了兩欄（所得分類、ODA 資格），筆數在第 4 欄；pycountry 對不到的只剩美屬維京群島（United States Virgin Islands）與巴勒斯坦（West Bank and Gaza Strip）。
@@ -3741,14 +3748,6 @@ pipeline/
     - **指標**：進口量（EIA）、出口量（EIA），比例圓，子項目只有天然氣與煤（`GAS_COAL`，id 跟燃料共用；石油的進出口看 BACI 的流向）。數值是原本側欄表用的同一組 EIA 系列（天然氣 `26-3-BCM`、`26-4-BCM` 十億立方公尺，管道與 LNG 合計；煤 `7-3-MT`、`7-4-MT` 換成百萬公噸），`eia-import/`、`eia-export/` 兩個資料夾（共約 97 KB），世界值是 EIA 的 WORL，年份依 `year_span()`（天然氣 1990–2024、煤 1980–2024），附註跟產量、消費量一樣（台灣的 EIA 估計）。
     - 同一個 EIA 檔（INTL.zip 2026-10-19 版，公有領域）；只重跑 `eia_files()`，其他 EIA 的檔重跑後不變。2024 年台灣：天然氣進口 28.9 十億立方公尺、煤進口 57.0 百萬公噸（第 5 名）。
     - 跟下面 BACI 的流向不同：EIA 是各國能源統計的數量，不分夥伴；BACI 是貿易申報（台灣的數字來自貿易夥伴）。說明寫明。
-
-203. **運動**（奧運獎牌、F1 賽道與冠軍合成一個主題，社會類，2026-10-30，製作手冊第七批 121；`src/topics/sports.ts`，兩個部分照舊在 `olympics.ts`、`f1.ts`）：
-    - **合併**：新主題「運動」（`sports`），7 個指標（控制列是下拉選單）：奧運的累計獎牌（預設）、累計金牌、單屆獎牌、單屆金牌、每千萬人獎牌，F1 的舉辦的分站數、車手冠軍（依國籍）。兩個檔改成匯出 `olympicsPart`、`f1Part`，`sports.ts` 組起來；資料來源、說明依「奧運：…F1：…」接起來，**F1 的 Jolpica 只准非商業，頁尾的寫法照舊**（來源寫明 CC BY-NC-SA 4.0、只准非商業，說明寫網站與資料檔、匯出的圖片都只能非商業使用）。之後如果做足球（使用者 2026-10-29 決定先不做）也放這裡。
-    - **原本在主題上的設定改到指標上**：奧運的子項目（夏季、冬季）改成奧運 5 個指標自己的 `dimension`；歷史隊伍的 `places` 照舊放在主題上（F1 用不到，沒有影響）。F1 的賽道圖層加上 `indicators`，只在 F1 的指標畫。
-    - **側欄**：`panels/SportsPanel.tsx` 依指標換 `F1Panel` 或 `OlympicsPanel`。
-    - **資料**：`public/data/topics/sports/`（奧運的 `countries/`、`medals/`、`gold/`…，F1 的 `races.json`、`champions.json`、`circuits.json`、`champions-list.json`，沒有重複）；pipeline 的 `olympics`、`f1` 兩個步驟輸出到這裡，`manifest.json` 用 `common.write_manifest_part()`。
-    - **轉址**（第 197 點）：`olympics` → 累計獎牌、`f1` → 舉辦的分站數，指標與子項目的 id 不變（`t/olympics/?item=winter`、`t/f1/?ind=champions` 照樣打開）。舊主題的縮圖、預覽圖刪掉，新主題重新產生；圖示用奧運原本的 `medal`。
-    - **授權**：沒有變（英文維基百科 CC BY-SA 4.0、WPP CC BY 3.0 IGO、Jolpica-F1 CC BY-NC-SA 4.0 只准非商業）。
 
 ## 9. 之後可以做的
 
