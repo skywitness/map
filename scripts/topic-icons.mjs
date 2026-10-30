@@ -69,6 +69,7 @@ const TOPIC_ICONS = {
   happiness: 'smile',
   nobel: 'award',
   olympics: 'medal',
+  f1: 'flag-triangle-right',
   reads: 'book-open',
   // 經濟
   income: 'banknote',
@@ -113,6 +114,7 @@ const TOPIC_ICONS = {
   'co2-stations': 'flask-round',
   temperature: 'thermometer-sun',
   'urban-heat': 'thermometer',
+  'ozone-hole': 'circle-dashed',
   'air-quality': 'haze',
   'water-forest': 'trees',
   'oil-palm': 'droplets',
@@ -163,6 +165,7 @@ const TOPIC_ICONS = {
   lithology: 'layers',
   'special-landforms': 'tree-palm',
   reclamation: 'land-plot',
+  'nuclear-accidents': 'radiation',
   typhoons: 'tornado',
   wildfires: 'flame',
   'night-lights': 'moon-star',

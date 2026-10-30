@@ -89,6 +89,8 @@ STEPS = {
     "co2-stations": "topics.co2_stations",
     # 城市熱島：Yang 等人的 Global UHII Dataset（figshare，RAR 約 1.4 GB，要有 bsdtar），要先有 cities 的點；第一次約 1 分鐘
     "urban-heat": "topics.urban_heat",
+    # 臭氧洞：NASA Ozone Watch 的年表與每年臭氧洞最大那一天的 1° 網格（46 個檔，約 9 MB）；約 1 分鐘
+    "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
@@ -226,6 +228,8 @@ STEPS = {
     "special-landforms": "topics.special_landforms",
     # 填海造陸：Sengupta 等 2023 的 135 個沿海城市（Zenodo，22 KB 的 xlsx）＋ Natural Earth 的城市位置與中文名稱；幾秒
     "reclamation": "topics.reclamation",
+    # 核子事故：手工整理的事件表（英文維基百科三篇的固定版本，sources/nuclear_accidents.py）＋ Wikidata 的座標；幾秒
+    "nuclear-accidents": "topics.nuclear_accidents",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
@@ -304,6 +308,8 @@ STEPS = {
     "heritage-railways": "topics.heritage_railways",
     # 月球與火星的登陸：英文維基「List of landings on extraterrestrial bodies」（固定版本）的月球、火星兩張表；不到 1 秒
     "landings": "topics.landings",
+    # F1 賽道與冠軍：Jolpica-F1 的資料庫匯出（延遲 14 天的版本，不必登入，ZIP 約 15 MB；CC BY-NC-SA 4.0）；幾秒
+    "f1": "topics.f1",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
