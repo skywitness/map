@@ -120,6 +120,8 @@ STEPS = {
     # UN World Marriage Data（約 26 MB）、UNdata 的結婚與離婚對數（第一次約 220 頁網頁，每頁間隔 0.3 秒，約 4 分鐘）、
     # Eurostat、OECD Family Database、內政部戶政司、主計總處
     "marriage": "topics.marriage",
+    # 15–49 歲女性有偶或同居的比例（婚姻與家庭）：聯合國人口司的 xlsx（約 10 MB），讀一次約 5 秒
+    "union-women": "topics.union_women",
     "laws": "topics.laws",  # 自行整理的表，不必下載
     # GHSL Urban Centre Database 2025 與各國城鄉人口（約 43 MB）、Wikidata 的地點（兩次查詢約 1 分鐘）與中文名稱
     # （約 130 次查詢）、內政部戶政司的縣市人口；之後用快取約 30 秒
