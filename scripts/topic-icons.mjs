@@ -152,6 +152,7 @@ const TOPIC_ICONS = {
   ice: 'snowflake',
   'antarctic-stations': 'tent',
   penguins: 'bird',
+  'subglacial-lakes': 'waves-arrow-down',
   wind: 'wind',
   daylight: 'sun-moon',
   eclipses: 'eclipse',
