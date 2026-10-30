@@ -29,11 +29,12 @@ const TEXT = defineMessages({
 });
 
 /** 主要出口對象與進口來源：長條直接寫出金額與占比 */
-export default function TradePanel({ topic, iso3, year, item, countryName }: PanelExtraProps) {
+export default function TradePanel({ topic, indicator: current, iso3, year, item, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const indicator = topic.indicators.find((i) => i.layer.kind === 'flow');
+  // 目前的指標是流向圖就用它（貿易的金額、公噸各一組），否則用主題的第一個流向圖（例如貿易依存度）
+  const indicator = current.layer.kind === 'flow' ? current : topic.indicators.find((i) => i.layer.kind === 'flow');
   const path = indicator ? flowPath(topic, indicator, item, year) : null;
   const { data, error } = useJson<FlowFile>(path);
   const countries = useJson<CountryTable>('countries.json').data;

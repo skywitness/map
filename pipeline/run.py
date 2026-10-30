@@ -27,6 +27,8 @@ STEPS = {
     "agriculture": "topics.agriculture",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
+    # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
+    "steel-cement": "topics.steel_cement",
     "ai": "topics.ai",
     "transport": "topics.transport",
     "climate": "topics.climate",
@@ -46,6 +48,8 @@ STEPS = {
     "tourism": "topics.tourism",
     "housing": "topics.housing",
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
+    # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
+    "trade-dependence": "topics.trade_dependence",
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
@@ -108,6 +112,8 @@ STEPS = {
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
     "road-safety": "topics.road_safety",  # WHO（GHO、GSRRS 2023）與交通部統計查詢網
+    # 洗腎大國（併進疾病主題，輸出到 topics/disease/）：USRDS 年報第 11 章（GraphQL 一次 30 KB）、WHO NCD CCS（xmart）；幾秒
+    "dialysis": "topics.dialysis",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
@@ -243,6 +249,8 @@ STEPS = {
     "news": "topics.news",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
     "ewaste": "topics.ewaste",
+    # 最長的直飛航線：英文維基「Longest flights」（固定版本）的現行與停飛前 30 名，機場座標用 OurAirports；不到 1 秒
+    "longest-flights": "topics.longest_flights",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
