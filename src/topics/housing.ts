@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { housePricesPart } from './house-prices';
 import type { TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -8,10 +9,15 @@ const PEOPLE = { zh: '人', en: 'people' };
 const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
+/**
+ * 住宅與房價：住宅類型、自有率、家戶人數、擁擠、居住負擔、貧民窟（pipeline/topics/housing.py），
+ * 2026-10-30（第七批 119）起加上「房價與居住負擔」的 5 個指標（house-prices.ts 的 housePricesPart，pipeline/topics/house_prices.py）。
+ * 舊網址 t/house-prices/ 轉到這裡（redirects.ts）
+ */
 export const housing: TopicDefinition = {
   id: 'housing',
-  title: { zh: '各國住宅', en: 'Housing by country' },
-  shortTitle: { zh: '住宅', en: 'Housing' },
+  title: { zh: '住宅與房價', en: 'Housing and house prices' },
+  shortTitle: { zh: '住宅與房價', en: 'Housing' },
   defaultIndicator: 'apartment-share',
   defaultYear: 2024,
   sources: [
@@ -57,20 +63,25 @@ export const housing: TopicDefinition = {
       url: 'https://www.stat.gov.tw/News.aspx?n=3908&sms=11530',
       license: OPEN_DATA_TW,
     },
+    ...housePricesPart.sources,
   ],
   note: {
     zh:
       '住宅類型、居住擁擠率、住房負擔過重率沒有全球的開放資料，只有歐洲（Eurostat）與部分 OECD 國家，其他地區是灰色。' +
       '各國的普查、調查年份不同，地圖用每個國家幾年內最近一年的資料，滑到國家上可以看到資料年份。' +
-      '歐洲的數字以人計算，歐洲以外的 OECD 國家多半以戶計算；台灣的住宅類型依建築樓層推算，定義見台灣側欄的附註。',
+      '歐洲的數字以人計算，歐洲以外的 OECD 國家多半以戶計算；台灣的住宅類型依建築樓層推算，定義見台灣側欄的附註。' +
+      '房價：' +
+      housePricesPart.note.zh,
     en:
       'There is no open global data on dwelling types, overcrowding or housing cost overburden, only for Europe (Eurostat) ' +
       'and some other OECD countries, so the rest of the world is grey. Censuses and surveys are held in different years, ' +
       "so the map shows each country's latest data within a few years; hover over a country to see the data year. " +
       'European figures are shares of people, while other OECD countries are mostly counted by household; ' +
-      "Taiwan's dwelling types are estimated from building heights, see the notes in Taiwan's panel.",
+      "Taiwan's dwelling types are estimated from building heights, see the notes in Taiwan's panel. " +
+      'House prices: ' +
+      housePricesPart.note.en,
   },
-  panelExtra: () => import('./panels/HousingPanel'),
+  panelExtra: () => import('./panels/HousingTopicPanel'),
   indicators: [
     {
       id: 'apartment-share',
@@ -150,5 +161,7 @@ export const housing: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
     },
+    // 房價的資料到 2025 年（住宅的到 2024 年）
+    ...housePricesPart.indicators.map((i) => ({ ...i, defaultYear: 2025 })),
   ],
 };

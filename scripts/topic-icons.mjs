@@ -80,7 +80,6 @@ const TOPIC_ICONS = {
   taxes: 'percent',
   reserves: 'vault',
   'stock-market': 'chart-candlestick',
-  'house-prices': 'key-round',
   sectors: 'chart-pie',
   industry: 'factory',
   agriculture: 'wheat',

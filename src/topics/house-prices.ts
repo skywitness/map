@@ -13,12 +13,11 @@ const indexTick = (v: number) => fixed(v, 0);
 /** 房價所得比、房價租金比共用的門檻：跟 2015 年比，兩個指數可以放在一起看 */
 const INDEX_SCALE: ScaleSpec = { type: 'diverging', thresholds: [70, 85, 95, 105, 115, 130], reverse: true };
 
-export const housePrices: TopicDefinition = {
-  id: 'house-prices',
-  title: { zh: '房價與居住負擔', en: 'House prices and affordability' },
-  shortTitle: { zh: '房價', en: 'House prices' },
-  defaultIndicator: 'real-price-10y',
-  defaultYear: 2025,
+/**
+ * 住宅與房價（housing.ts）的房價部分：2026-10-30（第七批 119）起「房價與居住負擔」併進住宅主題，
+ * 這裡只匯出指標、資料來源與說明
+ */
+export const housePricesPart = {
   sources: [
     {
       name: 'OECD, Analytical house price indicators',
@@ -51,15 +50,14 @@ export const housePrices: TopicDefinition = {
     zh:
       '各國只能比漲跌，不能比房價高低：房價所得比、房價租金比是 2015 年 = 100 的指數，不是「幾年的所得」，跨國的倍數只有不開放的資料（Demographia、Numbeo），沒有用。' +
       '實質房價用 OECD（民間消費平減），香港、新加坡等 11 個經濟體用 BIS（消費者物價平減；中文不是 BIS 的官方翻譯）；' +
-      '台灣用內政部與主計總處的資料，倍數與各縣市的房貸負擔率在台灣的側欄。住房負擔過重率見「住宅」主題。',
+      '台灣用內政部與主計總處的資料，倍數與各縣市的房貸負擔率在台灣的側欄。',
     en:
       'Countries can be compared only on changes, not price levels: price-to-income and price-to-rent are indices (2015 = 100), ' +
       'not "years of income"; cross-country ratios exist only in proprietary data (Demographia, Numbeo), which is not used. ' +
       'Real prices come from the OECD (consumption deflator) and, for 11 economies such as Hong Kong and Singapore, the BIS ' +
       "(CPI-deflated). Taiwan uses Ministry of the Interior and DGBAS data; the ratio in years of income and the mortgage burden " +
-      "by city are in Taiwan's panel. The housing cost overburden rate is in the Housing topic.",
+      "by city are in Taiwan's panel.",
   },
-  panelExtra: () => import('./panels/HousePricesPanel'),
   indicators: [
     {
       id: 'real-price-10y',
@@ -127,4 +125,4 @@ export const housePrices: TopicDefinition = {
       formatTick: changeTick,
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;
