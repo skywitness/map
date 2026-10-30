@@ -62,7 +62,12 @@ function niceCeil(max: number): number {
 const ROW = 10; // 每一組長條的高度（px）
 const GAP = 2;
 
-export default function FertilityPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+/** 時間軸是出生年的指標（沒有小孩的女性比例）不畫金字塔：那一年的金字塔跟這個指標無關 */
+export default function FertilityPanel(props: PanelExtraProps) {
+  return props.indicator.timeAxis ? null : <PyramidPanel {...props} />;
+}
+
+function PyramidPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];

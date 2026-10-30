@@ -127,3 +127,19 @@ def gsrrs_2023_motorcycles() -> dict[str, tuple[int, float, float]]:
         if iso3 and moto is not None and total and year:
             out[iso3] = (int(year), moto, total)
     return out
+
+
+def gsrrs_2023_cars() -> dict[str, tuple[int, float, float | None]]:
+    """GSRRS 2023 的登記汽車數（CP_38「Cars and 4-wheeled light vehicles」，含皮卡與輕型貨車）：
+    {iso3: (年份, 汽車數, 登記車輛總數或 None)}。奧地利沒有填年份（CP_118），當成跟其他國家一樣的 2021 年。"""
+    path = download(GSRRS_URL, "who-road", "gsrrs23-indicators.xlsx")
+    wb = openpyxl.load_workbook(path, read_only=True)
+    rows = list(wb["Indicators"].iter_rows(values_only=True))
+    col = {str(c): i for i, c in enumerate(rows[0]) if c is not None}
+    out: dict[str, tuple[int, float, float | None]] = {}
+    for row in rows[2:]:
+        iso3 = to_iso3(str(row[col["CP_0"]] or ""))
+        cars, total, year = (_num(row[col[c]]) for c in ("CP_38", "CP_36a", "CP_118"))
+        if iso3 and cars is not None:
+            out[iso3] = (int(year or 2021), cars, total)
+    return out

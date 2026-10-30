@@ -1,4 +1,4 @@
-"""主計總處 家庭收支調查（政府資料開放授權條款）：台灣的自有住宅率、平均每戶人數、單人家戶比例與所得分配（吉尼係數）。
+"""主計總處 家庭收支調查（政府資料開放授權條款）：台灣的自有住宅率、平均每戶人數、單人家戶比例、家庭組織型態與所得分配（吉尼係數）。
 
 - 每年的調查報告（https://www.stat.gov.tw/News.aspx?n=3908）附有歷年統計表，ods 讀 content.xml：
   - 第 24 表「家庭住宅狀況」：住宅權屬分配（自有、不住在一起的配偶父母或子女所有、租押、配住借用及其他）。
@@ -13,6 +13,8 @@
 """
 from __future__ import annotations
 
+import csv
+import urllib.parse
 from pathlib import Path
 
 from common import download
@@ -20,6 +22,11 @@ from sources.moe import _sheet_rows
 
 BASE = "https://ws.dgbas.gov.tw/001/Upload/463/relfile/11530/236588/"  # 114 年家庭收支調查報告
 EDITION = 114
+# 性別統計指標「家戶狀況按家庭組織型態分」（data.gov.tw 27963），2001 年起每年的各型態戶數
+TYPES_URL = "https://ws.dgbas.gov.tw/001/Upload/461/relfile/11525/232214/" + urllib.parse.quote(
+    "046-性別統計指標-家戶狀況按家庭組織型態分.csv"
+)
+TYPES = {"單人": "單人家庭戶數", "單親": "單親家庭戶數", "三代": "三代家庭戶數", "祖孫": "祖孫家庭戶數"}
 OWNERSHIP_FROM = 2010  # 自有住宅率改定義的那一年
 
 
@@ -96,4 +103,22 @@ def inequality() -> dict[int, dict[str, float]]:
         numbers = _numbers(row)
         if len(numbers) >= 2 and numbers[0] is not None and numbers[1] is not None:
             out.setdefault(year, {}).update(ratio_per_capita=numbers[0], gini_per_capita=numbers[1])
+    return out
+
+
+def household_types() -> dict[str, dict[int, float]]:
+    """家庭組織型態占全部家庭戶的比例（%）：{"單人"|"單親"|"三代"|"祖孫": {年: 比例}}，2001 年起。
+
+    主計總處的定義：單親＝父或母與未婚子女；三代＝祖父母、父母與未婚子女；祖孫＝祖父母與孫子女。跟聯合國的三代同堂、隔代家戶相近，但不完全相同（見主題的附註）。
+    """
+    path = download(TYPES_URL, "fies", "household-types.csv")
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.DictReader(f))
+    if not rows or "總計戶數" not in rows[0] or any(col not in rows[0] for col in TYPES.values()):
+        raise RuntimeError(f"家庭組織型態的欄位變了：{list(rows[0]) if rows else []}")
+    out: dict[str, dict[int, float]] = {key: {} for key in TYPES}
+    for row in rows:
+        total = float(row["總計戶數"])
+        for key, col in TYPES.items():
+            out[key][int(row["年"])] = float(row[col]) / total * 100
     return out
