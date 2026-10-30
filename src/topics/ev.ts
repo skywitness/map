@@ -82,6 +82,14 @@ export const ev: TopicDefinition = {
       url: WIKI_PHASEOUT,
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: {
+        zh: '國發會《臺灣2050淨零排放路徑及策略總說明》（台灣的停售年份）',
+        en: "National Development Council (Taiwan), Taiwan's 2050 net-zero pathway (Taiwan's phase-out year)",
+      },
+      url: 'https://www.ndc.gov.tw/Content_List.aspx?n=FD76ECBAE77D9811',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh:
