@@ -54,6 +54,8 @@ STEPS = {
     "blood-types": "topics.blood_types",
     "tourism": "topics.tourism",
     "housing": "topics.housing",
+    # 住宅與房價的平均每戶人數（housing 的一部分）：內政部不動產資訊平台從 cloud 被擋時單獨更新這一項
+    "housing-household-size": "topics.housing_household_size",
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
     # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
     "trade-dependence": "topics.trade_dependence",

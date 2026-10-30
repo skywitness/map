@@ -2121,6 +2121,46 @@ kbd {
   white-space: normal;
 }
 
+/* 右鍵（觸控長按）地圖的小卡片（PlacePopup.tsx）：跟 tooltip 一樣的外觀，但可以點 */
+.map-place {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  white-space: normal;
+}
+
+.map-place-coords {
+  margin-top: 2px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  user-select: text;
+}
+
+.map-place-link {
+  justify-self: start;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.map-place-link:hover {
+  border-color: var(--accent);
+}
+
 .tt-value {
   font-weight: 650;
   font-size: 15px;
@@ -5646,6 +5686,7 @@ kbd {
   .map-menu-list,
   .palette-list,
   .help-popover,
+  .map-place,
   .cmdk {
     animation: pop-in var(--motion-fast) var(--ease-out);
   }

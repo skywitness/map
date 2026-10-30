@@ -38,7 +38,7 @@ export const housing: TopicDefinition = {
       license: OECD_TERMS,
     },
     {
-      name: 'United Nations, Database on Household Size and Composition 2022',
+      name: 'United Nations, Database on Household Size and Composition 2026',
       url: 'https://www.un.org/development/desa/pd/data/household-size-and-composition',
       license: 'CC BY 3.0 IGO',
     },

@@ -115,6 +115,10 @@ export const zh = {
   savedViewsEmpty: '還沒有收藏。把現在的主題、指標、年份與選的國家存起來，之後點一下就回來。',
   savedViewsNote: '只存在這台裝置的瀏覽器裡。',
   removeSavedView: (name: string) => `刪掉收藏「${name}」`,
+  placeTitle: '這個位置',
+  openInGoogleMaps: '在 Google 地圖開啟',
+  coordinates: (lat: number, lng: number) =>
+    `${lat >= 0 ? '北緯' : '南緯'} ${Math.abs(lat).toFixed(4)}°、${lng >= 0 ? '東經' : '西經'} ${Math.abs(lng).toFixed(4)}°`,
   layout: '版面：時間軸、資料來源',
   layoutTitle: '版面',
   layoutTime: '時間軸（年份）',

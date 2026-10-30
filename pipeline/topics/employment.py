@@ -159,14 +159,14 @@ def _informal(out) -> None:
     )
     notes[TAIWAN] = (
         "台灣沒有 ILO 口徑的非正式就業統計（看雇主是否登記、有沒有勞健保等社會保險與帶薪假），所以留空。"
-        "最接近的是主計總處人力運用調查的「非典型就業」（部分時間、臨時性或人力派遣）：113 年 5 月 80.4 萬人、"
-        "占全體就業者 6.95%，114 年 10 月 79.9 萬人、6.86%。非典型看的是工時與契約期間，跟非正式就業的概念不同，只列在這裡對照。"
+        "最接近的是主計總處人力運用調查的「非典型就業」（部分時間、臨時性或人力派遣）：115 年 5 月 79.3 萬人、"
+        "占全體就業者 6.82%，是 102 年以來最低（115 年人力運用調查，2026-10-23 發布）。非典型看的是工時與契約期間，跟非正式就業的概念不同，只列在這裡對照。"
     )
     notes_en[TAIWAN] = (
         "Taiwan has no statistics on informal employment in the ILO sense (based on whether the employer is registered and "
         "whether the job carries social insurance and paid leave), so it is left blank. The closest figure is 'atypical "
-        "employment' (part-time, temporary or agency work) in DGBAS's Manpower Utilization Survey: 804,000 people or 6.95% "
-        "of the employed in May 2024, and 799,000 or 6.86% in October 2025. Atypical work is about hours and contract "
+        "employment' (part-time, temporary or agency work) in DGBAS's Manpower Utilization Survey: 793,000 people or 6.82% "
+        "of the employed in May 2026, the lowest since 2013 (2026 survey, published 23 October 2026). Atypical work is about hours and contract "
         "length, a different concept from informality, so it is given here for reference only."
     )
 
