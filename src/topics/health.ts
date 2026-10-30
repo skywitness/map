@@ -84,7 +84,7 @@ export const health: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
-      name: { zh: 'WHO 健康平均餘命與平均壽命（Global Health Estimates 2021）', en: 'WHO healthy life expectancy and life expectancy (Global Health Estimates 2021)' },
+      name: { zh: 'WHO 健康平均餘命與平均壽命（Global Health Estimates 2023）', en: 'WHO healthy life expectancy and life expectancy (Global Health Estimates 2023)' },
       url: 'https://data.who.int/indicators/i/C64284D',
       license: 'CC BY 4.0',
     },
@@ -139,9 +139,9 @@ export const health: TopicDefinition = {
   ],
   note: {
     zh: '平均壽命與嬰幼兒死亡率是聯合國用同一套方法估計的，可能跟各國官方統計不同。台灣改用內政部的簡易生命表（1992 年起），聯合國對台灣嬰幼兒死亡率的估計低了不少，例如 2023 年的嬰兒死亡率聯合國估 3.0‰，內政部是 4.3‰。醫療支出、醫師、護理人員與病床數的台灣資料來自衛生福利部；台灣的家庭自付含營養保健食品與民俗療法，範圍比多數國家寬。' +
-      '健康平均餘命與不健康的年數是 WHO 的估計（到 2021 年，地圖在之後的年份用 2021 年的值），每次發布會整個重算；台灣用衛福部的 2010、2020 年男女數字，算法不同（Sullivan 法、失能比例取自國健署的調查），不能直接比，衛福部沒有兩性合計。醫療的主要財源、全民健保的開辦年份取自英文維基百科的表（CC BY-SA 4.0），這兩個資料檔也依 CC BY-SA 4.0 分享。',
+      '健康平均餘命與不健康的年數是 WHO 的估計（Global Health Estimates 2023，到 2023 年，地圖在之後的年份用 2023 年的值），每次發布會整個重算；台灣用衛福部的 2010、2020 年男女數字，算法不同（Sullivan 法、失能比例取自國健署的調查），不能直接比，衛福部沒有兩性合計。醫療的主要財源、全民健保的開辦年份取自英文維基百科的表（CC BY-SA 4.0），這兩個資料檔也依 CC BY-SA 4.0 分享。',
     en: "Life expectancy and child mortality are UN estimates made with one method for every country and may differ from official national figures. For Taiwan the Ministry of the Interior's abridged life tables are used instead (from 1992), as the UN estimates of Taiwan's child mortality are noticeably lower: 3.0‰ versus the official 4.3‰ for infant mortality in 2023, for example. Taiwan's health spending, physician, nurse and hospital bed figures come from the Ministry of Health and Welfare; Taiwan's out-of-pocket spending also counts health supplements and folk remedies, a wider scope than most countries. " +
-      'Healthy life expectancy and years in poor health are WHO estimates (to 2021; later years on the map show 2021), recalculated in full with each release. Taiwan uses the Ministry of Health and Welfare’s figures for men and women in 2010 and 2020, calculated differently (the Sullivan method with disability rates from Health Promotion Administration surveys), so they are not directly comparable; the ministry gives no figure for both sexes. Health financing and the start of universal coverage come from English Wikipedia tables (CC BY-SA 4.0), and those two data files are shared under CC BY-SA 4.0 as well.',
+      'Healthy life expectancy and years in poor health are WHO estimates (Global Health Estimates 2023, to 2023; later years on the map show 2023), recalculated in full with each release. Taiwan uses the Ministry of Health and Welfare’s figures for men and women in 2010 and 2020, calculated differently (the Sullivan method with disability rates from Health Promotion Administration surveys), so they are not directly comparable; the ministry gives no figure for both sexes. Health financing and the start of universal coverage come from English Wikipedia tables (CC BY-SA 4.0), and those two data files are shared under CC BY-SA 4.0 as well.',
   },
   panelExtra: () => import('./panels/HealthPanel'),
   indicators: [
@@ -164,8 +164,8 @@ export const health: TopicDefinition = {
       id: 'hale',
       label: { zh: '健康平均餘命', en: 'Healthy life expectancy' },
       description: {
-        zh: '出生時預期能健康地（沒有失能或重病）活幾年，WHO 依各年齡的死亡率與失能程度估計。2021 年新加坡 73.6、日本 73.4、南韓 72.5 歲最高，賴索托 44.6 歲最低，美國 63.9 歲。台灣用衛福部的數字（2020 年男性 70.9、女性 75.8 歲），算法跟 WHO 不同、只有男女分開，在女性、男性看得到。',
-        en: 'How many years a newborn can expect to live in good health (without disability or serious illness), estimated by WHO from death rates and levels of disability at each age. In 2021 Singapore (73.6), Japan (73.4) and South Korea (72.5) were highest, Lesotho lowest at 44.6, and the US at 63.9. Taiwan uses Ministry of Health and Welfare figures (70.9 for men and 75.8 for women in 2020), calculated differently and only for men and women, so Taiwan appears under Women and Men.',
+        zh: '出生時預期能健康地（沒有失能或重病）活幾年，WHO 依各年齡的死亡率與失能程度估計。2023 年新加坡 72.9、日本 72.2、南韓 72.0 歲最高，中非 44.7、賴索托 47.9 歲最低，美國 64.6 歲。台灣用衛福部的數字（2020 年男性 70.9、女性 75.8 歲），算法跟 WHO 不同、只有男女分開，在女性、男性看得到。',
+        en: 'How many years a newborn can expect to live in good health (without disability or serious illness), estimated by WHO from death rates and levels of disability at each age. In 2023 Singapore (72.9), Japan (72.2) and South Korea (72.0) were highest, the Central African Republic (44.7) and Lesotho (47.9) lowest, and the US at 64.6. Taiwan uses Ministry of Health and Welfare figures (70.9 for men and 75.8 for women in 2020), calculated differently and only for men and women, so Taiwan appears under Women and Men.',
       },
       unit: YEARS,
       file: 'hale/{item}.json',
@@ -178,8 +178,8 @@ export const health: TopicDefinition = {
       id: 'unhealthy',
       label: { zh: '不健康的年數', en: 'Years in poor health' },
       description: {
-        zh: '平均壽命減掉健康平均餘命：一生中預期有幾年帶著疾病或失能（都用 WHO 同一次的估計）。2021 年澳洲、美國 12.5 年最多；平均壽命短的國家反而少（索馬利亞 6.5 年），因為能活到慢性病多的老年的人少。台灣 2020 年男性 7.2、女性 8.9 年（衛福部）。',
-        en: 'Life expectancy minus healthy life expectancy: the years a person can expect to live with illness or disability (both from the same WHO estimates). In 2021 Australia and the US were highest at 12.5 years; countries with short lives have fewer (Somalia 6.5) because fewer people reach the older ages when chronic illness is common. Taiwan: 7.2 years for men and 8.9 for women in 2020 (Ministry of Health and Welfare).',
+        zh: '平均壽命減掉健康平均餘命：一生中預期有幾年帶著疾病或失能（都用 WHO 同一次的估計）。2023 年美國 13.9、加拿大與澳洲 13.5 年最多；平均壽命短的國家反而少（索馬利亞 7.0 年），因為能活到慢性病多的老年的人少。台灣 2020 年男性 7.2、女性 8.9 年（衛福部）。',
+        en: 'Life expectancy minus healthy life expectancy: the years a person can expect to live with illness or disability (both from the same WHO estimates). In 2023 the US (13.9 years), Canada and Australia (13.5) were highest; countries with short lives have fewer (Somalia 7.0) because fewer people reach the older ages when chronic illness is common. Taiwan: 7.2 years for men and 8.9 for women in 2020 (Ministry of Health and Welfare).',
       },
       unit: YEARS,
       file: 'unhealthy/{item}.json',
