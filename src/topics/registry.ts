@@ -14,11 +14,11 @@ export interface TopicGroupSpec {
  * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'university-entrance', 'diet', 'foods', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'reads'] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'reads'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'companies'] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'chinatowns', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'co2-stations', 'temperature', 'urban-heat', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'planted-forests', 'plastic', 'ewaste', 'ev'] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'cloud-regions', 'space', 'transport', 'aviation', 'ride-hailing', 'airspace', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
+  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
+  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'planted-forests', 'plastic', 'ewaste', 'ev'] },
+  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'aviation', 'ride-hailing', 'airspace', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'antarctica', 'wind', 'daylight', 'eclipses', 'antipodes', 'taipei-view', 'magnetic', 'aurora', 'earthquakes', 'plates', 'lithology', 'special-landforms', 'reclamation', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'national-parks', 'skyscrapers', 'attractions', 'travel'] },
 ];
 
@@ -28,7 +28,6 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
  */
 export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>>> = {
   fertility: () => import('./fertility'),
-  'birth-season': () => import('./birth-season'),
   marriage: () => import('./marriage'),
   cities: () => import('./cities'),
   health: () => import('./health'),
@@ -39,8 +38,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'tobacco-alcohol': () => import('./tobacco-alcohol'),
   education: () => import('./education'),
   pisa: () => import('./pisa'),
-  'university-entrance': () => import('./university-entrance'),
-  chinatowns: () => import('./chinatowns'),
   diet: () => import('./diet'),
   housing: () => import('./housing'),
   religion: () => import('./religion'),
@@ -83,7 +80,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'fossil-fuels': () => import('./fossil-fuels'),
   renewables: () => import('./renewables'),
   climate: () => import('./climate'),
-  'co2-stations': () => import('./co2-stations'),
   temperature: () => import('./temperature'),
   'air-quality': () => import('./air-quality'),
   'water-forest': () => import('./water-forest'),
@@ -116,9 +112,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   attractions: () => import('./attractions'),
   antarctica: () => import('./antarctica'),
   'national-parks': () => import('./national-parks'),
-  foods: () => import('./foods'),
   festivals: () => import('./festivals'),
-  'cloud-regions': () => import('./cloud-regions'),
   companies: () => import('./companies'),
   aviation: () => import('./aviation'),
   'cable-cars': () => import('./cable-cars'),
@@ -147,7 +141,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'world-heritage': () => import('./world-heritage'),
   skyscrapers: () => import('./skyscrapers'),
   travel: () => import('./travel'),
-  'urban-heat': () => import('./urban-heat'),
   'ozone-hole': () => import('./ozone-hole'),
 };
 

@@ -1,6 +1,8 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { monthLabel, MONTHS } from './months';
+import { withParts } from './parts';
+import { universityEntrancePart } from './university-entrance';
 import type { CategoryDef, TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -15,7 +17,7 @@ const perTeacher = (v: number) => tr({ zh: `${fixed(v, 1)} 人`, en: `${fixed(v,
 const AGES: CategoryDef[] = [5, 6, 7].map((age) => ({ value: age, label: { zh: `${age} 歲`, en: `Age ${age}` } }));
 const ageLabel = (v: number) => tr({ zh: `${v} 歲`, en: `Age ${v}` });
 
-export const education: TopicDefinition = {
+export const education: TopicDefinition = withParts({
   id: 'education',
   title: { zh: '各國教育程度', en: 'Education by country' },
   shortTitle: { zh: '教育', en: 'Education' },
@@ -324,4 +326,4 @@ export const education: TopicDefinition = {
       panelChart: false,
     },
   ],
-};
+}, universityEntrancePart);

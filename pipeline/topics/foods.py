@@ -20,7 +20,7 @@ from sources import wikidata_attractions
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _sparql
 
-OUT = OUT_DIR / "topics" / "foods"
+OUT = OUT_DIR / "topics" / "diet"  # 2026-10-30 併進飲食（第七批 122）
 YEAR = 2026
 KINDS = {"cheese": "Q10943", "bread": "Q7802", "dessert": "Q182940"}
 COUNTRY_FIX = {"Q55": "NL", "Q29999": "NL"}
@@ -91,8 +91,8 @@ def build() -> None:
     for iso, lists in by_country.items():
         for rows in lists.values():
             rows.sort(key=lambda r: (-r[2], r[1]))
-        write_json(OUT / "countries" / f"{iso}.json", {"fields": ["zh", "en", "sitelinks", "qid"], **lists}, quiet=True)
-    write_json(OUT / "manifest.json", {"topic": "foods", "generatedAt": now_iso(), "sources": ["Wikidata (CC0)"]})
+        write_json(OUT / "foods" / f"{iso}.json", {"fields": ["zh", "en", "sitelinks", "qid"], **lists}, quiet=True)
+    write_json(OUT / "foods-manifest.json", {"topic": "foods", "generatedAt": now_iso(), "sources": ["Wikidata (CC0)"]})
     for kind in KINDS:
         top = sorted(((n, iso) for iso, n in counts[kind].items()), reverse=True)
         total = sum(1 for d in items[kind].values() if d["cc"])
