@@ -14,7 +14,7 @@ export interface TopicGroupSpec {
  * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'university-entrance', 'diet', 'foods', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics', 'f1', 'reads'] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'university-entrance', 'diet', 'foods', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'reads'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'companies'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'chinatowns', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'co2-stations', 'temperature', 'urban-heat', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'plastic', 'ewaste', 'ev'] },
@@ -50,8 +50,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   laws: () => import('./laws'),
   happiness: () => import('./happiness'),
   nobel: () => import('./nobel'),
-  olympics: () => import('./olympics'),
-  f1: () => import('./f1'),
+  sports: () => import('./sports'),
   income: () => import('./income'),
   wages: () => import('./wages'),
   employment: () => import('./employment'),

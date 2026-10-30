@@ -33,6 +33,9 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   // 企業與品牌（第七批 120）：最古老的公司、品牌的發源地，指標 id 不變
   'oldest-companies': { topic: 'companies', indicator: 'companies' },
   brands: { topic: 'companies', indicator: 'brands' },
+  // 運動（第七批 121）：奧運獎牌、F1 賽道與冠軍，指標 id 不變
+  olympics: { topic: 'sports', indicator: 'medals-total' },
+  f1: { topic: 'sports', indicator: 'races' },
 };
 
 /**
