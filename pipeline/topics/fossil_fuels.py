@@ -279,12 +279,26 @@ def eia_files(pops: dict[str, dict[int, float]]) -> dict:
               f"台灣 {cons_years[-1]} 年消費 {cons.get(TAIWAN, {}).get(cons_years[-1])}、自給率 "
               f"{ss.get(TAIWAN, [None])[-1]}%")
 
-    # 進出口（天然氣、煤，給側欄的表）
+    # 進出口（天然氣、煤）：側欄的表，2026-10-30 起也做成指標 eia-import/、eia-export/（製作手冊第七批 144）
     for fuel, (imp_key, exp_key, factor) in TRADE_SERIES.items():
         out["trade"][fuel] = {
             "import": {c: {y: v * factor for y, v in s.items() if y >= 1980} for c, s in data[imp_key].items()},
             "export": {c: {y: v * factor for y, v in s.items() if y >= 1980} for c, s in data[exp_key].items()},
         }
+        notes_zh, notes_en = eia_notes(fuel, out["production"][fuel], out["consumption"][fuel])
+        for direction, key in (("import", imp_key), ("export", exp_key)):
+            series = out["trade"][fuel][direction]
+            span = year_span(series)
+            write_json(OUT / f"eia-{direction}" / f"{fuel}.json", indicator_file(
+                f"eia-{direction}/{fuel}", UNIT_ZH[fuel], span,
+                {c: [sig(v) for v in to_series(s, span)] for c, s in sorted(series.items()) if any(s.get(y) for y in span)},
+                aggregates={"WLD": [sig(v * factor) if v is not None else None for v in to_series(world[key], span)]},
+                notes=notes_zh, notesEn=notes_en,
+            ))
+            last = {c: s.get(span[-1], 0) for c, s in series.items()}
+            top = sorted(last, key=lambda c: -last[c])[:5]
+            print(f"  EIA {fuel} {direction}：{span[0]}–{span[-1]}，{span[-1]} 年最多 "
+                  + "、".join(f"{c} {last[c]:,.1f}" for c in top) + f"；台灣 {last.get(TAIWAN)}")
     # 初級能源結構
     out["mix"] = {k: data[s] for k, s in MIX_SERIES.items()}
     out["mix"]["total"] = data[MIX_TOTAL]
