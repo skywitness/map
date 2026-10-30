@@ -11,7 +11,7 @@ BX.GSR.GNFS.CD（商品與服務出口）。IMF 的旅行不含國際客運，�
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
+from common import append_note, later_years_note, OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
 from sources import cbc, taiwan_tourism, worldbank, wpp
 
 TRAVEL, PASSENGER = "服務-旅行-收入", "服務-運輸-客運-收入"
@@ -109,13 +109,17 @@ def build() -> None:
         if key == "arrivals":
             arrivals = (countries, world)
         years = year_span(countries)
+        notes, notes_en = {"TWN": NOTES[key]}, {"TWN": NOTES_EN[key]}
+        if key == "arrivals":  # 觀光署比時間軸更新的年份寫在附註（製作手冊第八批 159）
+            append_note(notes, notes_en, "TWN", later_years_note(
+                taiwan[key], years, lambda v: f"{v / 1e4:,.0f} 萬人次", lambda v: f"{v / 1e6:,.2f} million arrivals"))
         write_json(
             out / f"{key}.json",
             indicator_file(
                 key, unit, years, {iso3: to_series(s, years, digits) for iso3, s in countries.items() if s},
                 aggregates={"WLD": to_series(world, years, digits)},
-                notes={"TWN": NOTES[key]},
-                notesEn={"TWN": NOTES_EN[key]},
+                notes=notes,
+                notesEn=notes_en,
             ),
         )
 
@@ -128,13 +132,16 @@ def build() -> None:
     }
     world_ratio = {y: v / (population["WLD"][y] * 1000) for y, v in world.items() if y in population["WLD"]}
     years = year_span(ratio)
+    notes, notes_en = {"TWN": NOTES["arrivals-per-capita"]}, {"TWN": NOTES_EN["arrivals-per-capita"]}
+    append_note(notes, notes_en, "TWN", later_years_note(
+        ratio.get("TWN", {}), years, lambda v: f"每人 {v:.3f} 人次", lambda v: f"{v:.3f} arrivals per person"))
     write_json(
         out / "arrivals-per-capita.json",
         indicator_file(
             "arrivals-per-capita", "人次/人", years, {iso3: to_series(s, years, 3) for iso3, s in ratio.items() if s},
             aggregates={"WLD": to_series(world_ratio, years, 3)},
-            notes={"TWN": NOTES["arrivals-per-capita"]},
-            notesEn={"TWN": NOTES_EN["arrivals-per-capita"]},
+            notes=notes,
+            notesEn=notes_en,
         ),
     )
     build_travel(out, taiwan)

@@ -21,13 +21,13 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部、文化資產局、國科會、衛福部、勞動部、中央銀行與民航局的開放資料，2026-10-29；教育部統計處，2026-10-30；中央銀行的國際收支 cpx.cbc.gov.tw、教育部的教育統計查詢網 eds.moe.gov.tw，2026-10-30；環境部的開放資料 data.moenv.gov.tw、內政部的開放資料 opdadm.moi.gov.tw、僑委會的開放資料 oas.ocac.gov.tw、中央氣象署 rdc28.cwa.gov.tw、內政部不動產資訊平台 pip.moi.gov.tw，2026-10-30）：Python 3.13 預設的
+# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部、文化資產局、國科會、衛福部、勞動部、中央銀行與民航局的開放資料，2026-10-29；教育部統計處，2026-10-30；中央銀行的國際收支 cpx.cbc.gov.tw、教育部的教育統計查詢網 eds.moe.gov.tw，2026-10-30；環境部的開放資料 data.moenv.gov.tw、內政部的開放資料 opdadm.moi.gov.tw、僑委會的開放資料 oas.ocac.gov.tw、中央氣象署 rdc28.cwa.gov.tw、內政部不動產資訊平台 pip.moi.gov.tw、內政部全球資訊網的下載 ws.moi.gov.tw，2026-10-30）：Python 3.13 預設的
 # VERIFY_X509_STRICT 會拒絕，這幾個主機只拿掉這一項嚴格檢查，憑證鏈與主機名稱照樣驗證（curl、瀏覽器都接受這張憑證）
 RELAXED_X509_HOSTS = {"statis.moi.gov.tw", "cloud.culture.tw", "mas.nstc.gov.tw", "www.mohw.gov.tw", "apiservice.mol.gov.tw",
                       "www.cbc.gov.tw", "www.caa.gov.tw", "data.boch.gov.tw", "stats.moe.gov.tw", "www.forest.gov.tw",
                       "stat.thb.gov.tw", "cpx.cbc.gov.tw", "eds.moe.gov.tw", "data.moenv.gov.tw",
                       "opdadm.moi.gov.tw", "oas.ocac.gov.tw", "rdc28.cwa.gov.tw",
-                      "pip.moi.gov.tw"}
+                      "pip.moi.gov.tw", "ws.moi.gov.tw"}
 # 只接受 Python 預設排除的加密套件（RSA 金鑰交換）的主機（國科會的開放資料，2026-10-29）：改用 OpenSSL 的 DEFAULT 套件清單，
 # 一樣是 TLS 1.2 加密、驗證憑證，只是沒有前向保密；下載的是公開資料
 LEGACY_CIPHER_HOSTS = {"mas.nstc.gov.tw"}
@@ -303,6 +303,36 @@ def latest_year_span(series: dict[str, dict[int, float]], within: int, min_share
     }
     enough = [y for y, n in counts.items() if n >= max(counts.values()) * min_share]
     return list(range(min(enough), max(enough) + 1))
+
+
+def later_years_note(
+    by_year: dict[int, float], years: list[int], fmt_zh, fmt_en=None, label_zh: str = "台灣", label_en: str = "Taiwan",
+) -> tuple[str, str] | None:
+    """某國（多半是台灣）比地圖時間軸更新的年份寫成附註的一句，例如「台灣 2025 年 81.27 歲（地圖的年份到 2023 年）」。
+    時間軸依各國的資料量截（year_span），不為一國延長；那些年份不在指標檔的 values 裡，只能寫在附註
+    （製作手冊第八批 159，使用者 2026-10-30 決定）。fmt_zh、fmt_en 把值轉成字串（含單位）。"""
+    later = sorted(y for y in by_year if years and y > years[-1] and by_year[y] is not None)
+    if not later:
+        return None
+    fmt_en = fmt_en or fmt_zh
+    return (
+        f"{label_zh} " + "、".join(f"{y} 年{_cjk_gap(fmt_zh(by_year[y]))}" for y in later) + f"（地圖的年份到 {years[-1]} 年）",
+        f"{label_en}: " + ", ".join(f"{fmt_en(by_year[y])} in {y}" for y in later) + f" (the map runs to {years[-1]})",
+    )
+
+
+def _cjk_gap(text: str) -> str:
+    """「2025 年」後面接中文不留空格、接數字留一個"""
+    return text if text and "\u4e00" <= text[0] <= "\u9fff" else f" {text}"
+
+
+def append_note(notes: dict, notes_en: dict, iso3: str, extra: tuple[str, str] | None) -> None:
+    """在 notes、notes_en 的某國附註後面接一句（沒有附註就新增）"""
+    if not extra:
+        return
+    zh, en = extra
+    notes[iso3] = f"{notes[iso3].rstrip('。')}。{zh}。" if notes.get(iso3) else f"{zh}。"
+    notes_en[iso3] = f"{notes_en[iso3].rstrip('.')}. {en}." if notes_en.get(iso3) else f"{en}."
 
 
 def to_series(by_year: dict[int, float], years: list[int], digits: int | None = None) -> list[float | None]:

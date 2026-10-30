@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import json
 
-from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
+from common import append_note, later_years_note, OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
 from sources import imf, moe, moi, oecd_eag, tw_childcare, tw_teacher_salary, undp, worldbank
 
 TAIWAN = "台灣不在{db}資料庫中，改用"
@@ -187,13 +187,19 @@ def build() -> None:
         countries, world = undp.series(code) if source == "undp" else worldbank.fetch(code, 1960)
         countries["TWN"] = taiwan()
         years = year_span(countries, min_share)
+        notes, notes_en = {"TWN": note}, {"TWN": NOTES_EN[key]}
+        # 台灣比時間軸更新的年份（例如內政部 114 年底的識字率）寫在附註（製作手冊第八批 159）
+        sep = "" if unit == "%" else " "
+        unit_en = "years" if unit == "年" else unit
+        append_note(notes, notes_en, "TWN", later_years_note(
+            countries["TWN"], years, lambda v: f"{v:.2f}{sep}{unit}", lambda v: f"{v:.2f}{sep}{unit_en}"))
         write_json(
             out / f"{key}.json",
             indicator_file(
                 key, unit, years, {iso3: to_series(s, years, 2) for iso3, s in countries.items() if s},
                 aggregates={"WLD": to_series(world, years, 2)},
-                notes={"TWN": note},
-                notesEn={"TWN": NOTES_EN[key]},
+                notes=notes,
+                notesEn=notes_en,
             ),
         )
     write_json(
