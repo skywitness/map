@@ -239,11 +239,18 @@ button {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
 }
 
-/* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄；2026-10-30 起依小標題分段，一段不拆到兩欄 */
+/* 主題多的分類分欄（TopicNav.tsx 的 packColumns）：依小標題分段、一段不拆開，一欄排完再排下一欄，左邊的欄最滿
+   （2026-10-30；原本是 CSS 多欄，瀏覽器平均分配，結果常常是左邊最少） */
 .topic-menu-items {
-  columns: var(--menu-columns, 1);
-  column-gap: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
   width: calc(var(--menu-columns, 1) * 264px);
+}
+
+.topic-menu-column {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .topic-menu-section {
@@ -266,7 +273,8 @@ button {
 /* 手機上螢幕窄，維持一欄、捲動 */
 @media (max-width: 768px) {
   .topic-menu-items {
-    columns: 1;
+    flex-direction: column;
+    align-items: stretch;
     width: auto;
   }
 }
@@ -4282,11 +4290,12 @@ kbd {
   stroke-width: 0.6;
 }
 
+/* 選取的國家：外框跟一般國界一樣細，只是深色（2026-10-30 使用者不要加粗，跟主地圖的 data-highlight 一致） */
 .svg-world-selected,
 .svg-world-hover {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 1.6;
+  stroke-width: 0.6;
   pointer-events: none;
 }
 

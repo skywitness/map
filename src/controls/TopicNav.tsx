@@ -39,17 +39,48 @@ const ITEMS_PER_COLUMN = 7;
 const MAX_COLUMNS = 3;
 /** 選單與按鈕、畫面邊緣的距離 */
 const GAP = 6;
+/** 選單裡主題以外的高度（px）：上下留白、「看全部主題」那一列、跟畫面下緣的距離 */
+const MENU_CHROME = 72;
 
 type Focus = 'current' | 'first' | 'last' | 'none';
 
-/**
- * 主題多的分類分成幾欄；由上往下排完一欄再排下一欄，↑↓ 的順序跟畫面一致。
- * 2026-10-30 起選單依小標題分段（CSS 多欄，一段不拆到兩欄），小標題也算一列
- */
-function menuStyle(group: TopicGroup, position: { left: number; top: number }): CSSProperties {
+/** 主題多的分類最多分成幾欄（小標題也算一列） */
+function maxColumns(group: TopicGroup): number {
   const rows = group.topics.length + group.sections.filter((s) => s.label).length;
-  const columns = Math.min(MAX_COLUMNS, Math.ceil(rows / ITEMS_PER_COLUMN));
-  return { left: position.left, top: position.top, '--menu-columns': columns } as CSSProperties;
+  return Math.min(MAX_COLUMNS, Math.ceil(rows / ITEMS_PER_COLUMN));
+}
+
+/** 還沒量到高度時的估計（px）：一個主題約兩行半，小標題約 26px，段與段之間 4px */
+function estimateHeights(group: TopicGroup): number[] {
+  return group.sections.map((s) => s.topics.length * 62 + (s.label ? 26 : 0) + 4);
+}
+
+/**
+ * 依小標題分段的主題排成幾欄（2026-10-30，使用者要左邊的欄排得最多）：段照順序、一段不拆開，由上往下排完一欄
+ * 再排下一欄（↑↓ 的順序跟畫面一致）。試每一種切法（段最多十來個、最多 3 欄，幾十種），依序挑：
+ * 1. 不超過 maxHeight（螢幕放得下）的；都放不下就全部一起比
+ * 2. 欄高由左往右遞減（左邊最滿）的，其次是左邊那欄最高的
+ * 3. 最高的那欄最矮的（選單最短），再來是最矮的那欄最高的（比較平均）
+ * 回傳每一欄放哪幾段（段的索引）
+ */
+export function packColumns(heights: number[], columns: number, maxHeight = Infinity): number[][] {
+  const n = heights.length;
+  const options: { cols: number[][]; order: number; max: number; min: number }[] = [];
+  const walk = (from: number, cuts: number[]) => {
+    const bounds = [0, ...cuts, n];
+    const cols = bounds.slice(0, -1).map((start, c) => Array.from({ length: bounds[c + 1] - start }, (_, k) => start + k));
+    const sums = cols.map((col) => col.reduce((sum, i) => sum + heights[i], 0));
+    // 差 2px 以內算一樣高
+    const order = sums.every((h, c) => c === 0 || h <= sums[c - 1] + 2) ? 0 : sums.every((h) => h <= sums[0] + 2) ? 1 : 2;
+    options.push({ cols, order, max: Math.max(...sums), min: Math.min(...sums) });
+    if (cuts.length === columns - 1) return;
+    for (let i = from; i < n; i++) walk(i + 1, [...cuts, i]);
+  };
+  walk(1, []);
+  const fitting = options.filter((o) => o.max <= maxHeight);
+  const pool = fitting.length ? fitting : options;
+  pool.sort((a, b) => a.order - b.order || a.max - b.max || b.min - a.min);
+  return pool[0].cols;
 }
 
 /** 只捲動主題列本身（scrollIntoView 可能連整頁一起捲）；右邊留出淡出的寬度 */
@@ -81,6 +112,8 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   const menuId = useId();
 
   const [overflowing, setOverflowing] = useState(false);
+  /** 選單裡每一段（小標題與它的主題）量到的高度，分欄用（packColumns）；換分類、換語言時重量 */
+  const [measured, setMeasured] = useState<{ key: string; heights: number[] } | null>(null);
   /** 主題總覽打開過了（之後留著，關上時有對話框的關閉動畫、再開不必等） */
   const overviewUsed = useRef(false);
   if (overviewOpen) overviewUsed.current = true;
@@ -99,6 +132,12 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   };
 
   const openGroup = TOPIC_GROUPS.find((g) => g.id === open) ?? null;
+  const measureKey = `${open}|${lang}`;
+  // 選單往下最多能多高：扣掉按鈕下緣、「看全部主題」那一列與留白
+  const menuRoom = position ? window.innerHeight - position.top - MENU_CHROME : Infinity;
+  const menuColumns = openGroup
+    ? packColumns(measured?.key === measureKey ? measured.heights : estimateHeights(openGroup), maxColumns(openGroup), menuRoom)
+    : [];
   // current 是 localize() 過的副本，要用 id 比對
   const activeGroup = TOPIC_GROUPS.find((g) => g.topics.some((topic) => topic.id === current.id)) ?? null;
   const isPure = current.id === pureMap.id;
@@ -161,6 +200,20 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
     check();
     return () => observer.disconnect();
   }, [lang, current.id, compact]);
+
+  // 量每一段的實際高度（摘要可能一行或兩行），跟估計的不同就重新分欄；欄寬都一樣，換欄高度不變，量一次就穩定。
+  // 在畫面更新之前做完，看不到跳動
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!open || !menu) return;
+    const heights = [...menu.querySelectorAll<HTMLElement>('.topic-menu-section')]
+      .sort((a, b) => Number(a.dataset.section) - Number(b.dataset.section))
+      .map((el) => el.offsetHeight + 4);
+    const known = measured?.key === measureKey ? measured.heights : null;
+    if (!known || known.length !== heights.length || heights.some((h, i) => Math.abs(h - known[i]) > 1)) {
+      setMeasured({ key: measureKey, heights });
+    }
+  });
 
   // 選單超出右邊時往左移
   useLayoutEffect(() => {
@@ -330,49 +383,67 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
             id={menuId}
             role="menu"
             aria-label={tr(openGroup.label, lang)}
-            style={{ ...menuStyle(openGroup, position), ...categoryStyle(openGroup.id) }}
+            style={
+              {
+                left: position.left,
+                top: position.top,
+                '--menu-columns': menuColumns.length,
+                ...categoryStyle(openGroup.id),
+              } as CSSProperties
+            }
             onKeyDown={onMenuKeyDown}
           >
-            {/* 主題排成網格（分欄），「看全部主題」在網格下面另起一行 */}
+            {/* 主題依小標題分段排成幾欄（packColumns，左邊的欄最滿），「看全部主題」在下面另起一行 */}
             <div className="topic-menu-items" role="none">
-              {openGroup.sections.map((section, si) => {
-                // 這一段第一個主題在 itemRefs 的位置（↑↓ 依畫面的順序，跨過小標題）
-                const offset = openGroup.sections.slice(0, si).reduce((n, s) => n + s.topics.length, 0);
-                const heading = section.label ? tr(section.label, lang) : undefined;
-                return (
-                  <div key={si} className="topic-menu-section" role={heading ? 'group' : 'none'} aria-label={heading}>
-                    {heading && (
-                      <div className="topic-menu-heading" aria-hidden="true">
-                        {heading}
-                      </div>
-                    )}
-                    {section.topics.map((topic, j) => (
-                      <button
-                        key={topic.id}
-                        ref={(el) => {
-                          itemRefs.current[offset + j] = el;
-                        }}
-                        type="button"
-                        role="menuitemradio"
-                        aria-checked={topic.id === current.id}
-                        tabIndex={-1}
-                        className="topic-item"
-                        // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
-                        onPointerEnter={() => prefetchTopic(topic.id)}
-                        onFocus={() => prefetchTopic(topic.id)}
-                        onClick={() => select(topic)}
+              {menuColumns.map((column, ci) => (
+                <div key={ci} className="topic-menu-column" role="none">
+                  {column.map((si) => {
+                    const section = openGroup.sections[si];
+                    // 這一段第一個主題在 itemRefs 的位置（↑↓ 依畫面的順序，跨過小標題）
+                    const offset = openGroup.sections.slice(0, si).reduce((n, s) => n + s.topics.length, 0);
+                    const heading = section.label ? tr(section.label, lang) : undefined;
+                    return (
+                      <div
+                        key={si}
+                        className="topic-menu-section"
+                        data-section={si}
+                        role={heading ? 'group' : 'none'}
+                        aria-label={heading}
                       >
-                        {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
-                        <span className="topic-tile" aria-hidden="true">
-                          <Glyph d={icons?.[topic.id]} size={18} />
-                        </span>
-                        <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
-                        <span className="topic-item-summary">{summary(topic)}</span>
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
+                        {heading && (
+                          <div className="topic-menu-heading" aria-hidden="true">
+                            {heading}
+                          </div>
+                        )}
+                        {section.topics.map((topic, j) => (
+                          <button
+                            key={topic.id}
+                            ref={(el) => {
+                              itemRefs.current[offset + j] = el;
+                            }}
+                            type="button"
+                            role="menuitemradio"
+                            aria-checked={topic.id === current.id}
+                            tabIndex={-1}
+                            className="topic-item"
+                            // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
+                            onPointerEnter={() => prefetchTopic(topic.id)}
+                            onFocus={() => prefetchTopic(topic.id)}
+                            onClick={() => select(topic)}
+                          >
+                            {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
+                            <span className="topic-tile" aria-hidden="true">
+                              <Glyph d={icons?.[topic.id]} size={18} />
+                            </span>
+                            <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
+                            <span className="topic-item-summary">{summary(topic)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
             <button
               ref={(el) => {
