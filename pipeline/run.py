@@ -84,6 +84,8 @@ STEPS = {
     "sunshine": "topics.sunshine",
     # 全球二氧化碳觀測站：NOAA GML 合作採樣網的瓶採樣月平均 CO2（約 6.7 MB）；幾秒
     "co2-stations": "topics.co2_stations",
+    # 城市熱島：Yang 等人的 Global UHII Dataset（figshare，RAR 約 1.4 GB，要有 bsdtar），要先有 cities 的點；第一次約 1 分鐘
+    "urban-heat": "topics.urban_heat",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
