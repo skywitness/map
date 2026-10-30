@@ -88,11 +88,22 @@ export const education: TopicDefinition = {
     },
     {
       name: {
-        zh: 'UNESCO 統計研究所 API（小學學生數與教師數、高中職業類課程的比例）',
-        en: 'UNESCO Institute for Statistics API (primary enrolment and teachers, share of upper secondary students in vocational programmes)',
+        zh: 'UNESCO 統計研究所 API（小學學生數與教師數、高中職業類課程的比例、學前教育的在學人數與學齡人口）',
+        en: 'UNESCO Institute for Statistics API (primary enrolment and teachers, share of upper secondary students in vocational programmes, pre-primary enrolment and school-age population)',
       },
       url: 'https://api.uis.unesco.org/api/public/documentation/',
-      license: { zh: 'CC BY-SA 4.0（生師比、技職比例的資料檔同樣用 CC BY-SA 4.0 分享）', en: 'CC BY-SA 4.0 (the pupil–teacher and vocational data files are shared under CC BY-SA 4.0 too)' },
+      license: {
+        zh: 'CC BY-SA 4.0（生師比、技職比例、學前教育毛入學率的資料檔同樣用 CC BY-SA 4.0 分享）',
+        en: 'CC BY-SA 4.0 (the pupil–teacher, vocational and pre-primary enrolment data files are shared under CC BY-SA 4.0 too)',
+      },
+    },
+    {
+      name: {
+        zh: '教育部統計處 教育統計查詢網（幼兒(稚)園 2–5 歲粗在學率）',
+        en: 'Ministry of Education (Taiwan), education statistics query system (gross enrolment rate of kindergartens, ages 2–5)',
+      },
+      url: 'https://eds.moe.gov.tw/',
+      license: OPEN_DATA_TW,
     },
   ],
   note: {
@@ -179,15 +190,14 @@ export const education: TopicDefinition = {
       id: 'preprimary',
       label: { zh: '學前教育毛入學率', en: 'Pre-primary enrolment' },
       description: {
-        zh: '上幼兒園等學前教育的人數，除以學前教育應屆年齡的人口。各國的應屆年齡不同，又含超齡或提早入學的，可以超過 100%（澳洲 160%）。台灣教育部有幼兒園的幼生數，但沒有歷年單一年齡人口的開放資料可以當分母，所以沒有。',
-        en: 'Pre-primary enrolment divided by the population of official pre-primary age. Official ages differ between countries and enrolment includes older and younger children, so it can exceed 100% (160% in Australia). Taiwan’s Ministry of Education counts kindergarten pupils, but there is no open data on population by single year of age over time to divide by, so Taiwan is not shown.',
+        zh: '上幼兒園等學前教育的人數（不論年齡），除以學前教育應屆年齡的人口。用 UNESCO 統計研究所的在學人數與學齡人口自行計算（算法跟 UIS 以前發布的相同；UIS 已經不發布這個比率，世界銀行轉載的只到 2022 年）。各國的應屆年齡不同，又含超齡或提早入學的，可以超過 100%。台灣用教育部公布的「幼兒(稚)園 2–5 歲粗在學率」：分母是 2–5 歲的人口，多數國家是 3–5 歲，比較時要留意。',
+        en: 'Pre-primary enrolment (of any age) divided by the population of official pre-primary age, calculated here from UNESCO Institute for Statistics enrolment and school-age population (the same method UIS used to publish; UIS no longer publishes the rate, and the World Bank copy ends in 2022). Official ages differ between countries and enrolment includes older and younger children, so it can exceed 100%. Taiwan uses the Ministry of Education’s gross enrolment rate for kindergartens, ages 2–5: its denominator is the population aged 2–5, while most countries use 3–5, so compare with care.',
       },
       unit: '%',
       file: 'preprimary.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 50, 75, 90, 100] } },
       format: pct,
       formatTick: pctTick,
-      noValue: { TWN: { zh: '沒有可以比的資料', en: 'No comparable data' } },
     },
     {
       id: 'teacher-salary',

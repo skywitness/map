@@ -96,6 +96,9 @@ def _zone(iso3: str, iso2: str | None, lat: float, lon: float, ne: dict) -> str 
     return cap[3] if cap else None
 
 
+# 有好幾個時區（zone.tab）但官方只用一個的國家
+SINGLE_ZONE = {"CHN"}
+
 # 一條緯線切成幾段：一整條從 −180° 到 180° 的直線（Web Mercator 上是水平的），MapLibre 的 GeoJSON 圖磚在低縮放時
 # 只有含起點的那幾張圖磚畫得出來（2026-10-28 實測：東半球那一張整條不見），切成 30° 一段就正常
 CIRCLE_SEGMENT = 30
@@ -150,6 +153,17 @@ def build() -> None:
     if missing:
         print(f"  沒有首都（或時區）的地圖區域，不算：{missing}")
 
+    # 有好幾個時區的國家（zone.tab）：滑到地圖上任一點時，取國內代表地點最近的那個時區（2026-10-30 起）。
+    # 中國官方只有北京時間（zone.tab 另有新疆的 Asia/Urumqi），照首都
+    zones: dict[str, list] = {}
+    by_country = iana_tz.zones_by_country()
+    for iso3 in capitals:
+        own = by_country.get(countries.get(iso3, {}).get("iso2") or "", [])
+        if len(own) > 1 and iso3 not in SINGLE_ZONE:
+            zones[iso3] = [
+                [z.name, round(z.lat, 2), round(z.lon, 2), round(iana_tz.offsets(z.name, YEAR)[0] * 60)] for z in own
+            ]
+
     polar = {}
     for iso3, (zh, en, lat, lon, zone) in POLAR_PLACES.items():
         std, _dst = iana_tz.offsets(zone, YEAR)
@@ -164,6 +178,8 @@ def build() -> None:
             # 有好幾個首都的國家，其他首都 [中文, 英文, 角色]（角色見 src/topics/profiles.ts 的 CAPITAL_ROLES）
             "others": others,
             "polar": polar,
+            # 有好幾個時區的國家：[IANA 時區, 代表地點的緯度, 經度, 標準時間的 UTC 偏移（分鐘）]
+            "zones": zones,
             "tzdata": iana_tz.VERSION,
         },
     )

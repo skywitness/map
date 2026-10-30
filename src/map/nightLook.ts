@@ -19,6 +19,12 @@ export function nightAlphas(dark: boolean): number[] {
   return steps.map((_, i) => steps.slice(0, i + 1).reduce((a, b) => a + b, 0));
 }
 
+/**
+ * 夜半邊的燈光（NightOverlayDef.lights）：暖黃色，最亮的地方不透明度 strength；
+ * 太陽在地平線下 fadeFrom° 開始出現、到 fadeTo° 全亮（民用曙暮光的後半）
+ */
+export const LIGHTS_LOOK = { color: '#ffd27a', strength: 0.95, fadeFrom: -3, fadeTo: -8 } as const;
+
 /** 太陽直射點的顏色（琥珀色，MAP_TOKENS.categorical 的那一色），白色外框 */
 export const SUN_COLOR = MAP_TOKENS.categorical[2];
 
