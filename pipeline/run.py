@@ -42,6 +42,7 @@ STEPS = {
     "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
     "pisa": "topics.pisa",  # OECD PISA 2025 Volume I 的兩個 Excel（約 2.8 MB）
+    "university-entrance": "topics.university_entrance",  # 依英文維基百科整理的表（sources/admission_tests.py），不必下載
     # NCD-RisC 的成人身高（2.4 MB）與兒童青少年身高（4.6 MB 的 zip），伺服器常斷線，用 curl 續傳；WPP 的年齡別人口
     "height": "topics.height",
     "blood-types": "topics.blood_types",

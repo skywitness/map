@@ -54,6 +54,7 @@ const TOPIC_ICONS = {
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
   pisa: 'book-open-check',
+  'university-entrance': 'notebook-pen',
   diet: 'utensils',
   foods: 'croissant',
   housing: 'house',

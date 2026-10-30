@@ -14,7 +14,7 @@ export interface TopicGroupSpec {
  * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'foods', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics', 'reads'] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'university-entrance', 'diet', 'foods', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics', 'reads'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'oldest-companies'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'water-forest', 'plastic', 'ewaste', 'ev'] },
@@ -39,6 +39,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'tobacco-alcohol': () => import('./tobacco-alcohol'),
   education: () => import('./education'),
   pisa: () => import('./pisa'),
+  'university-entrance': () => import('./university-entrance'),
   diet: () => import('./diet'),
   housing: () => import('./housing'),
   religion: () => import('./religion'),
