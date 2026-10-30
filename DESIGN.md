@@ -595,7 +595,8 @@ pipeline/
 | 氣溫與降雨 | 年平均氣溫（預設）、年降雨量、一年下雨幾天（CRU TS 的雨日，日雨量 ≥ 0.1 mm；台灣附註列中央氣象署測站）、日照時數（CRU CL v2.0 的 1961–1990 年平均，日照百分比換算成小時）、暖化（近 10 年平均比 1951–1980 年高多少；可以從國家平均切到 0.5° 網格） | 每月氣溫與降雨（1991–2020 年平均與選定年份：氣溫折線、降雨長條，加每月數字表） | CRU TS v4.10（東英吉利大學 CRU、NCAS），日照用 CRU CL v2.0，各國的值依地圖國界自己用面積加權算；台灣用中央氣象署交叉比對（雨日與日照用開放資料 C-B0026-002 的測站逐月資料） | 1901–2025（日照只有 1961–1990 年平均）；暖化 1910–2025；0.5° 網格 1910–2025 每年一期 |
 | 城市熱島 | 夏季白天的地表熱島（國家是城區依面積加權的平均，發散色；點是 10,196 個城區，顏色是那一年的熱島強度、大小依城區面積，縮小時只畫大的） | 這個國家最大的城區與熱島強度（前 10 個，其餘收起來） | Yang 等人的 Global Urban Heat Island Intensity Dataset（figshare 24821538 v3，Aqua MODIS 的地表溫度，CC BY 4.0）；城市名稱用城市主題的 GHSL UCDB 與 Wikidata | 2003–2021 |
 | 空氣品質 | PM2.5 年平均濃度（人口加權，預設）、超過 WHO 指引值（5 μg/m³）的人口比例、戶外空氣污染死亡率、戶外與室內空氣污染死亡率（SDG 3.9.1；兩個死亡率都是年齡標準化） | — | WHO GHO（SDG 11.6.2、SDG 3.9.1）、WashU ACAG SatPM2.5 V6.GL.02；台灣用環境部 PM2.5 手動監測站 | PM2.5 2010–2023（台灣 2015 年起）；超過指引值的比例 1998–2023；死亡率只有 2021 年 |
-| 水資源與森林 | 人均可再生淡水資源（預設）、水資源壓力（SDG 6.4.2）、安全管理的飲用水（SDG 6.1.1）、森林覆蓋率、森林面積年變化率（發散色） | — | FAO AQUASTAT（總可再生水資源）÷ UN WPP 2024 人口、World Bank WDI（AQUASTAT 的水資源壓力、WHO/UNICEF JMP）、FAO 全球森林資源評估 FRA 2025；台灣用經濟部水利署、農業部林業及自然保育署 | 人均水資源 1961–2023；水資源壓力 1987–2022（台灣從缺）；飲用水 2000–2024；森林只有 FRA 的報告年 1990、2000、2010、2015、2020、2025（年變化率標在後一年，2000–2025；台灣是 1990、2010 年的調查，之後顯示 2010 年的值） |
+| 臭氧洞 | 臭氧洞的最大面積（預設）、一季裡最低的臭氧（國家不上色，值只有南極洲；地圖畫每年臭氧洞面積最大那一天的 220 DU 等值線，打開時移到南極） | — （南極洲的歷年折線圖） | NASA Ozone Watch（每日 1° 臭氧全量網格與年表，NASA 公開資料、CC0） | 1979–2025（1995 年沒有資料） |
+| 水資源與森林 | 人均可再生淡水資源（預設）、水資源壓力（SDG 6.4.2）、缺水壓力的推估（WRI Aqueduct 4.0 的 0–5 分，1979–2019 年的基準與 2030、2050、2080 年，三種情境）、安全管理的飲用水（SDG 6.1.1）、森林覆蓋率、森林面積年變化率（發散色） | — | FAO AQUASTAT（總可再生水資源）÷ UN WPP 2024 人口、World Bank WDI（AQUASTAT 的水資源壓力、WHO/UNICEF JMP）、FAO 全球森林資源評估 FRA 2025；台灣用經濟部水利署、農業部林業及自然保育署 | 人均水資源 1961–2023；水資源壓力 1987–2022（台灣從缺）；飲用水 2000–2024；森林只有 FRA 的報告年 1990、2000、2010、2015、2020、2025（年變化率標在後一年，2000–2025；台灣是 1990、2010 年的調查，之後顯示 2010 年的值） |
 | 油棕園 | 油棕園的面積（比例圓，萬公頃，預設：2021 年是衛星範圍圖的面積，之前是那一年以前種下的部分）、小農的比例（面量圖，2021 年）；疊加圖層：約 7 km 的類別網格（`bounds` 只有熱帶）：預設指標依種植年份的中位數上色、時間軸只畫那一年以前的格子（`upTo`），播放看 1990–2021 年的擴張；小農的比例畫工業還是小農多 | — | Descals 等 Global oil palm extent and planting year 1990–2021 v1.2（Zenodo 13379129，CC BY 4.0） | 1990–2021 |
 | 塑膠污染 | 人均排放（預設）、年排放量（比例圓），兩者都有「排放形式」子項目：全部塑膠、塑膠碎片、露天焚燒的塑膠；人均塑膠垃圾、沒有垃圾收集的人口、河川流入海洋的塑膠（比例圓，加上河口的點）、塑膠廢料出口、進口（流向圖，公噸） | 排放的來源（未收集的垃圾、棄置場、亂丟、回收分選、收集與運輸）與 90% 區間、塑膠垃圾產生量與收集服務；排放最多的河口；塑膠廢料這一年的主要對象與 1995 年起的歷年堆疊面積；台灣另有環境部的一般廢棄物去處（2011–2025）、回收率、回收的塑膠，與財政部 HS 3915 進出口值對照 BACI | Cottom 等人（2024）SPOT 模型（Dryad，CC0 1.0）、Meijer 等人（2021）的河口（figshare，CC BY 4.0）、CEPII BACI HS92 版的 HS 3915（Etalab 2.0）；台灣的官方統計用環境部、財政部（只在附註與側欄） | 排放與收集 2020；河川 2015；貿易 1995–2024 |
 | 電子垃圾 | 每人產生的電子垃圾（預設）、電子垃圾產生量（比例圓）、正式回收的比例、正式回收量（比例圓） | — | UNITAR、ITU，Global E-waste Monitor 2024 的附錄表（CC BY-NC-SA 3.0 IGO，資料檔同樣授權） | 2022 年 |
@@ -626,6 +627,7 @@ pipeline/
 | 冰河、海冰與海平面 | 冰河變薄了多少（面量圖，公尺水當量，1976 年起累計，預設）、冰河少了多少冰（比例圓，Gt）、海冰邊緣（不上色：北極 9 月與南極 2 月的海冰邊緣，1979 年起累積到那一年，一年一條線，依年代上色，虛線是 1981–2010 年的中位數；滑過看那一年的海冰範圍）、海平面上升速度（不上色：1993–2025 年 0.5° 網格依速度分 7 級，滑到海上看那一格；國家的值是沿海 200 公里內的平均，給 tooltip 與排名表）、北極航道能通航幾天（比例圓畫在兩條航道上〔places：北方海航道、西北航道〕，每年航道上每一格海冰濃度都低於 15% 的天數；疊加圖層：航道的示意線；點圓點看 1979 年起的折線） | 冰河數與面積、全世界冰河累計少了多少（Gt、海平面 mm）、那一年北極與南極的海冰範圍（跟 1979 年與最少的一年比）、沿海的海平面速度與全球平均；目前的指標排在最前面 | WGMS AMCE 2026-02-10（CC BY 4.0）、NSIDC 海冰指數第 4 版（美國政府著作）、NOAA STAR 衛星測高（美國政府著作，照要求標示）、NOAA/NSIDC 海冰濃度 CDR 第 6 版（G02202，美國政府著作，要引用）、Natural Earth 1:10m／1:50m 國界、Marine Regions 的內陸國清單 | 冰河 1976–2025；海冰 1979–2026；海平面 1993–2025 的趨勢（一個時間點）；北極航道 1979–2025 |
 | 南極研究站 | 運作中的研究站（比例圓，各國經營、還在運作的站數，兩國合營的兩國都算）；疊加圖層：研究站的點（依狀態上色：運作中、已關閉、不在 COMNAP 名單，大小依維基百科條目數） | 這國經營的研究站：狀態、成立與關閉年份、海拔 | Wikidata；COMNAP Antarctic Facilities（2024 年 11 月版）只用來核對 | 單一快照（2026-10-29 查詢） |
 | 企鵝在哪裡 | 企鵝的種類與數量（不上色，國家沒有數值，預設）、普查有多舊；子項目：全部、阿德利、頰帶、巴布亞、皇帝、馬可羅尼、國王企鵝；疊加圖層：繁殖地的點（大小是時間軸那一季以前最近一次普查的數量，顏色是種類或最近一次普查隔了幾年） | — | MAPPPD v5.0（Oceanites，只准非商業） | 1892–2025/26 繁殖季 |
+| 南極的冰下湖 | 活動的冰下湖（不上色，國家沒有數值，沒有時間軸）；疊加圖層：冰下湖的範圍（封閉的環畫成半透明的面）與中心點（大小是範圍的面積，顏色分新發現的、重新分析的已知湖），滑過看每一次灌滿或排空的時間與冰面升降 | — | Wilson 等 2025（Nature Communications）的資料，Zenodo 16330565（CC BY 4.0） | 2010–2020 年的 CryoSat-2 測高（一個時間點） |
 | 板塊漂移 | 那時在哪個緯度（預設，不上色，`bareMap`：底圖只留海；今天的國界跟著板塊帶回 0–250 百萬年前，每 500 萬年一格，依今天所在的大洲上色，加上那時的板塊邊界〔隱沒帶、中洋脊與張裂、轉形斷層〕；滑到陸地上看是今天的哪一國與那時的緯度；國家的值是國土那時的緯度，給 tooltip、排名表與側欄） | 國土的緯度在 2.5 億年來的變化（折線） | Merdith 等 2021 的全板塊模型 v1.2.4（Zenodo，CC BY 4.0），pyGPlates 計算；Natural Earth 1:50m 國界與 1:10m 的大洲 | 2.5 億年前到今天，每 500 萬年（51 個時間點） |
 | 地表的岩石種類 | 岩石種類地圖（預設，不上色：GLiM 的 0.5° 網格，每格是面積最多的岩類，14 類依地質圖的慣例上色〔沉積物與沉積岩黃褐、碳酸鹽岩藍、火山岩紅橘、深成岩洋紅與紫、變質岩綠、冰河淡藍灰〕，滑到任一點看那裡的岩類；國家的值是面積最大的岩類）、主要岩類（類別圖，6 類）、碳酸鹽岩的比例、火山岩的比例、未固結沉積物的比例 | 國土的各岩類面積比例（長條，顏色跟地圖一樣） | Hartmann & Moosdorf 2012 GLiM 0.5° 網格版（PANGAEA，CC BY 3.0，第 8 節第 154 點） | — |
 | 特殊地形 | 特殊地形地圖（預設，不上色：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁與珊瑚島、泥火山、天坑與滲穴、間歇泉七類約 4,300 個點，依類別上色、大小是維基百科條目數，縮小時只畫有英文或中文條目的）、數量（比例圓，指標自己的子項目：七類合計與各類） | 這國的特殊地形（依類別列出，條目多的在前） | Wikidata（CC0，第 8 節第 157 點） | — |
@@ -830,6 +832,8 @@ pipeline/
     - **日照時數**（第 151 點，2026-10-30）：CRU CL v2.0（`grid_10min_sunp.dat.gz`）。下載頁 https://crudata.uea.ac.uk/cru/data/hrg/tmc/ 本身沒有授權字句，但 CRU 資料頁 https://crudata.uea.ac.uk/cru/data/hrg/ 的「Current CRU-CL datasets」列出 CRU-CL v2.0，同一頁的 License 一節「These datasets are made available under the Open Database License … Please use the attribution Climatic Research Unit, University of East Anglia」：有條件（ODbL，各國平均同樣以 ODbL 提供）。台灣附註同上用中央氣象署 C-B0026-002 的 SunshineDuration。
     - **全球二氧化碳觀測站**（第 152 點，2026-10-30）：NOAA GML 的瓶採樣 CO2（`co2_surface-flask_ccgg_text.zip`，README Version 2026-07-17）：可用。README 第 3 節「These data were produced by NOAA and are not subject to copyright protection in the United States. NOAA waives any potential copyright and related rights in these data worldwide through the Creative Commons Zero 1.0 Universal Public Domain Dedication (CC0 1.0)」；第 2 節請引用（Lan et al., doi:10.15138/wkgj-f215），寫在資料來源。
     - **城市熱島**（第 153 點，2026-10-30）：手冊提示的 Yale YCEO v4（CC BY 4.0）要 Earthdata 登入或 Google Earth Engine 帳號，不能用；改用 Yang 等人的 Global Urban Heat Island Intensity Dataset（figshare 24821538 v3，API 的 license 欄「CC BY 4.0」，`UHII_dataset.rar` 與 `CityInfo.csv` 直連不必登入）：可用。1 km 網格版放在百度網盤與 Google Drive，沒有用。城市名稱用城市主題的 GHSL UCDB（CC BY 4.0）與 Wikidata（CC0）。
+    - **臭氧洞**（第 162 點，2026-10-30）：NASA Ozone Watch：可用。https://ozonewatch.gsfc.nasa.gov/data/README.txt「The data in these directories are public data whose release is authorized by NASA.」，網站的 disclaimers「Please credit all material to “NASA Ozone Watch” unless otherwise noted.」，NASA ESDIS 的資料政策「Unless the content is marked with a use restriction or license, data provided from a NASA-led mission are licensed as Creative Commons Zero (CC0).」；資料來源寫「NASA Ozone Watch」。
+    - **缺水壓力的推估**（第 184 點，2026-10-30）：WRI Aqueduct 4.0 的國家排名（`aqueduct-4-0-country-rankings.zip`）：可用。資料頁 https://www.wri.org/data/aqueduct-40-country-rankings 的 License 欄只寫「Creative Commons」，WRI 的 Open Data Commitment（https://www.wri.org/data/open-data-commitment ）「We have adopted the Creative Commons Attribution 4.0 International License as our standard license for publications and data」，依此當成 CC BY 4.0；引用 Kuzma et al. 2023（doi.org/10.46830/writn.23.00061）。排名的地區單位用 GADM 3.6，這裡只用國家代碼與 WRI 的分數，沒有轉載 GADM 的界線。
     - World Bank 氣候知識平台（CCKP）是 CC BY 4.0，只用來比對，沒有轉載。
     - WashU ACAG 的 SatPM2.5（V6.GL.02）是 CC BY 4.0（資料頁標示）。
     - 環境部的開放資料（全國細懸浮微粒手動監測資料、空氣污染物濃度測值）適用政府資料開放授權條款。
@@ -1050,6 +1054,7 @@ pipeline/
     - **燃油車禁售的年份**（電動車主題的擴充，第 187 點，2026-10-30）：英文維基百科「Phase-out of fossil fuel vehicles」（固定 revid 1380317959）是 CC BY-SA 4.0（有條件：頁尾標授權並連到固定版本）；狀態是依條目的表逐國判斷的。ICCT 網站的條款也是 CC BY-SA 4.0，但沒有整理好的下載表，沒有用。國發會的淨零路徑網頁從 cloud 被 Cloudflare 擋（HTTP 403），沒有繞過。
     - **核子事故的事件表依英文維基百科三篇整理（CC BY-SA 4.0）**（新主題，第 183 點，2026-10-30）：「Nuclear and radiation accidents and incidents」revid 1382200054、「List of nuclear and radiation accidents by death toll」revid 1378930439、「List of civilian nuclear accidents」revid 1353556789，資料檔（points.json）依同一授權分享，頁尾寫條目名稱與連結；座標用 Wikidata（CC0）。**沒有用的**：IAEA NEWS（www-news.iaea.org，不登入可看）的條款要另外遵守 IAEA 網站條款，iaea.org 的條款頁被 Cloudflare 擋（待確認）；Wikidata 的 nuclear accident 類別只有 60 筆、有座標 23 筆，不夠；台灣核安會的核安管制月報是 PDF、沒有開放資料。
     - **品牌的發源地**（新主題，第 194 點，2026-10-30）：品牌的類別、創立地、總部、國家、創立年份與名稱都是 Wikidata 的結構化事實（CC0）。
+    - **南極的冰下湖是 CC BY 4.0，Livingstone 2022 待確認**（新主題，第 160 點，2026-10-30）：Wilson 等 2025 的資料 https://zenodo.org/records/16330565 license 欄 cc-by-4.0，README 要求引用論文（doi:10.1038/s41467-025-63773-9），頁尾寫論文與資料。Livingstone 等 2022（Nature Reviews Earth & Environment）的完整冰下湖清單：文章不是開放取用、頁面只有「Reprints and permissions」，補充檔裡沒有授權字樣，**待確認，沒有用**；說明只引用它的總數。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -3352,6 +3357,12 @@ pipeline/
     - **畫法**：預設指標「填海的城市」國家不上色、畫城市的點（面積與填海面積成正比，可忽略的是灰色小點，1,000 公頃以上與以下兩色）；國家的值是城市合計（tooltip、排名表）。另外兩個指標（各國合計、有填海的城市數）是比例圓，城市的點只在預設指標畫（兩種圓疊在一起分不清）。
     - **結果**：前 10 名都在中國大陸（上海 34,978、天津 32,800、寧波 32,278、唐山 28,689、營口 17,914 公頃）；各國合計中國大陸 215,508、阿聯 10,836、南韓 5,723、新加坡 3,735 公頃；台灣 1,135 公頃（高雄 498、台北 343、台中 294）。
     - **陷阱**（說明寫明）：只算人口百萬以上的沿海城市（彰濱、雲林離島工業區這類不在裡面），2000 年以前的填海不算；只有城市的點，沒有填海的範圍（作者說之後會公布）。
+160. **南極的冰下湖**（新主題，地理類，排在企鵝在哪裡後面，2026-10-30，製作手冊第六批 78；`pipeline/topics/subglacial_lakes.py`、`src/topics/subglacial-lakes.ts`）：
+    - **使用者決定**：手冊原本寫「先只做 Wilson 2025 的 179 個活動湖」，但 Wilson 的 Zenodo 檔只有 104 個（179 是 Livingstone 2022 的活動湖數）；使用者 2026-10-30 在這個 session 回答：先做 Wilson 的 104 個，完整的 773 個等 Livingstone 2022 的授權確認再加。
+    - **資料**：Zenodo 16330565 的 zip（559,937 bytes）裡的 `Wilson_2025_Supplement_pt2.xlsx`：Supplementary Table 1 是 85 個新的活動湖（一列一湖，每一次灌滿或排空一組 5 欄：開始、結束〔小數年〕、冰面高度變化 m、面積 km²、體積變化〔公式：面積 × 高度 / 1000〕），Table 2 是 19 個重新分析的已知活動湖（一湖好幾列）。範圍是 `boundaries/` 兩個 zip 裡的 GeoJSON（新 121 個、既有 35 個，一湖可能有好幾期），每個湖取面積最大的一期；既有湖的檔名跟表上的名稱不同，手工對照（`EXISTING_FILES`，Institute E1a、E1b 是 E1 的一部分，不另外畫）。內層 zip 沒標 UTF-8，Français 的檔名要從 cp437 換回來。
+    - **畫法**：湖的中心點（大小依範圍的面積，50–400 km²）與範圍（線圖層的 `fill`，半透明的面），顏色分新發現的（洋紅）、已知的（紫）；`timeless`，國家不上色。tooltip 寫範圍、上面的冰有多厚（BedMachine）、東或西南極冰蓋、每一次灌滿或排空的時間（小數年換成年月）與冰面升降、一次最多多少水。主題的 `focus` 移到南極，縮圖的 `VIEWS` 看南極（平面地圖只到南緯 85 度，最南的湖畫不進縮圖）。
+    - **數字**：範圍最大的是 Academy 45（413 km²）、思韋茨 THW124（354 km²）、康威湖（339 km²）。範圍與體積是從冰面的高度變化推的，資料註明可能高估，說明寫明。
+    - **台灣**：沒有冰下湖（`noValue`）。
 161. **北極航道能通航幾天**（冰河、海冰與海平面的擴充，2026-10-30，製作手冊第六批 79；`pipeline/topics/arctic_routes.py`、`src/topics/ice.ts` 的 `arctic-routes` 指標、`ROUTES`、`ROUTE_PLACES`）：
     - **使用者決定**：只算北方海航道、西北航道每年海冰濃度低於 15% 的天數：地圖畫航道線，側欄放 1979 年起的折線；不做每天的海冰動畫。
     - **資料**：NOAA/NSIDC 海冰濃度 CDR G02202 第 6 版北半球 25 km 每日，`north/aggregate/` 每年一個檔（1979–2025 年，每個 68–102 MB，共約 4 GB，`pipeline/.cache/g02202/`）。`cdr_seaice_conc` 讀原始的 uint8（0–100 是濃度 %，之上是陸地、海岸、湖、極點的洞、沒有資料的旗標）。1979 年是 SMMR 隔天一次，第 6 版已經內插成每天。
@@ -3360,6 +3371,15 @@ pipeline/
     - **結果**：北方海航道 1995 年 40 天第一次全線低於 15%，2011 年 66 天、2020 年最多 97 天，但 2013、2024 年 0 天；西北航道最多是 2007 年 7 天，大多數年份 0–3 天。試過放寬（95% 的格子低於 15%）時西北航道有 20–50 天，差別在富蘭克林海峽到維多利亞海峽一帶常卡著從麥克林托克海峽漂下來的多年冰，以及海岸格子混到陸地的訊號；手冊寫的是「低於 15% 的天數」，照最嚴格的定義（一格有冰就不算），說明寫明能不能通航還看冰的種類、破冰船與船級。
     - **畫法**：通用擴充是指標的 `focus`（換到這個指標時地圖移到北極，第 4 節的表）。兩條航道用主題的 `places`（`_NSR`、`_NWP`，圓點放在航道的中段），指標檔的鍵就是它們，地圖是比例圓（天數），點圓點開側欄就是一般的歷年折線，排名表兩列；疊加圖層 `arctic-routes`（線，只在這個指標）依航道上色，滑過寫那一年的天數與最多的一年。places 在冰河的其他指標也畫成無資料的小點（共用的機制，兩個點）。
     - **台灣**：不適用（`missing`：只算兩條北極航道）。
+162. **臭氧洞**（新主題，能源類，排在空氣品質後面，2026-10-30，製作手冊第六批 80；`pipeline/topics/ozone_hole.py`、`src/topics/ozone-hole.ts`）：
+    - **使用者決定**：一年一張：畫南極 9–10 月最大的臭氧洞範圍，不做每天的全球動畫。
+    - **哪一天**：Ozone Watch 年表（`statistics/annual_data.html` 的第一張表）每年「臭氧洞面積最大的一天」與「臭氧最低的一天」的日期與數值，1979–2025 年（1995 年沒有資料，所以 46 年）。指標的數值直接用年表；線用那一天的 L3 網格（`data/<衛星>/Y<年>/`，Nimbus-7 的檔名是 `L3_ozone_n7t_YYYYMMDD.txt`，其他是 `…YYYYmMMDD_…txt`，從目錄列表找）。年表的另一張（`annual_data.txt`）是 9/7–10/13 的平均、用 MERRA 補過，沒有用。
+    - **衛星**：1979–1992 Nimbus-7 TOMS、1993–1994 Meteor-3、1996–2004 Earth Probe TOMS、2005 起 Aura OMI。OMI 在 2014-09-11、2019-09-08 少了將近一半的軌道（南緯 50–75° 缺 50% 以上，2019 年算出的面積只有 1.7 對 16.4 百萬 km²），改成可用衛星裡缺最少的（`best_grid()`，這兩年用 Suomi NPP 的 OMPS）。
+    - **解析**：表頭第 2、3 行是經緯度的格數與間距（Nimbus-7 是 288 × 1.25°，其他 360 × 1°）；每列開頭一個空格、之後每 3 個字元一個值，一條緯線的最後一列接「lat = …」。0 是沒有量測。
+    - **補空隙**：同一條緯線左右內插（軌道空隙），極點附近的極夜用北邊一格往南延伸。補過的網格算南緯 40° 以南 220 DU 以下的面積，跟年表的最大面積比對：46 年都差 0.7 百萬 km² 以內（多半 0.3 以內），例如 2000 年 29.7 對 29.9、2025 年 23.0 對 22.9。
+    - **等值線**：南緯 35° 以南的網格先轉到極射投影的平面（環繞極點的線才會封閉），用 contourpy 畫 220 DU，再換回經緯度、經度展開成連續的（跨 180° 不斷開）。一年 1–6 段（主要的洞加上旁邊幾塊低值），紀錄寫年份、最大的日期與面積、最低值與日期、衛星（`holes.json` 172 KB）。
+    - **畫法**：線圖層依 `timeField: 'year'` 只畫那一年，橘紅色加細邊；國家不上色（`kind: 'none'`），兩個指標的值只有南極洲（`coverage`），點南極洲看歷年的折線圖。`focus` 讓沒選國家時地圖移到南極（企鵝主題的同一個欄位），縮圖也改看南極（`topic-thumbs.mjs` 的 `VIEWS`）。
+    - **台灣**：沒有臭氧洞；說明寫 2025 年 OMI 在台北附近的臭氧全量（1 月中約 250、7 月中約 290 DU）。
 163. **植物園**（景點地圖的第四個圖層，2026-10-30，製作手冊第六批 81；`pipeline/topics/botanical_gardens.py`、`src/topics/attractions.ts` 的 `LAYERS[3]`）：
     - **使用者決定**：照候選清單（Wikidata），加進「景點地圖」。
     - **資料**：Wikidata 一個 SPARQL 查詢：P31 是植物園（Q167346）或它的子類別、有座標的 3,449 列；樹木園（Q272231 與子類別）另外標出來。有停用日期的 24 處不收、沒有任何名稱的 2 處不收，剩 3,242 處（樹木園 508、有設立年份 1,045）：美國 776、法國 363、日本 268、德國 209、義大利與澳洲各 175。另外一步 `botanical-gardens`，輸出 `topics/attractions/gardens.json`，不必重跑 attractions（那一步第一次要查約 40 分鐘）；manifest 的 counts 加 gardens。
@@ -3486,6 +3506,12 @@ pipeline/
     - **位置**：英文維基條目（設施或事件）在 Wikidata 的 P625，沒有的用 P276、P131 的座標（一次 SPARQL）；沒有條目或條目沒有座標的 16 起寫城市的座標，tooltip 寫「位置是大約的」。國家依今天的國界。INES 等級依三篇表上的值，沒有評級的是 0（多半是 1990 年 INES 開始以前、或輻射源事故）。
     - **畫法**：點依年份累積出現（`overlayTime: 'cumulative'`），顏色依 INES 分 6 級（沒有評級灰色，1–3、4、5、6、7 用循序色），sizeLegend 寫「死亡人數（估計的上限）」。國家的指標是累計事故數（不上色，tooltip 與排名表）；台灣寫「來源沒有台灣的事件」。沒有改共用程式。
     - **陷阱**：英文維基收得多不多跟事件有沒有人寫有關（美國最多 10 起）；INES 1990 年才開始；死亡人數有爭議，只列範圍、不下結論。
+184. **缺水壓力的推估**（水資源與森林的擴充，2026-10-30，製作手冊第六批 102；`pipeline/topics/aqueduct.py`、`src/topics/water-forest.ts` 的 `aqueduct` 指標）：
+    - **使用者決定**：只做小擴充（國家層級的基準與推估，不畫流域）。
+    - **資料**：`Aqueduct40_rankings_download_Y2023M07D05.xlsx` 的 country_baseline 與 country_future，只取 `indicator_name` = bws（基準水資源壓力：取水量占可用水量）、`weight` = Tot（依全部用水加權）的 `score`（0–5）。手冊寫 189 國，那是表的列數；其中 25 國 score 是 −9999（NoData），有值的是 164 國（基準與推估都是 164）。台灣不在表裡（pipeline 會檢查，出現了要更新說明）。
+    - **畫法**：一個指標，子項目是三種情境（指標自己的 `dimension`：樂觀 SSP1-2.6、照常發展 SSP3-7.0（預設）、悲觀 SSP5-8.5），每個情境一個檔（`aqueduct-{opt,bau,pes}.json`，各 4 KB）。年份是 2019（存 1979–2019 年的基準）、2030、2050、2080，`projectionFrom: 2030`；`timeAxis` 把 2019 寫成「基準期（1979–2019）」、刻度寫「基準」，其他寫「2030 年推估」。分級照 Aqueduct 的 5 級（門檻 1、2、3、4），數值寫分數加等級與百分比範圍（「4.9（極高，>80%）」）。
+    - **跟 SDG 6.4.2 不同**：同一主題已有的「水資源壓力」是各國申報的取水量除以可再生淡水扣掉環境流量；Aqueduct 是 PCR-GLOBWB 2 水文模型依流域算、再依用水加權到國家。說明寫明兩個數字不會一致（例如以色列：SDG 6.4.2 近年超過 100%，Aqueduct 4.94 分＝極高）。
+    - **結果**（照常發展）：卡達基準 5.0、2080 年 5.0；以色列 4.94 → 5.0；印度 4.11 → 3.98；中國 2.80 → 2.76；美國 2.60 → 2.66；日本 1.97 → 1.60。
 185. **最長的直飛航線**（新主題，科技與交通類，排在各國的航空公司後面，2026-10-30，製作手冊第六批 103；`pipeline/topics/longest_flights.py`、`pipeline/sources/wikitable.py`、`src/topics/longest-flights.ts`、`src/topics/longest-flights-names.ts`、`src/topics/panels/LongestFlightsPanel.tsx`）：
     - **使用者決定**：照候選清單，現行前 30 名加停飛的前 30 名；直達（中途停靠）的表與未來航線不畫。
     - **資料**：英文維基百科「Longest flights」固定版本 1380354690（2026-10-15）的兩張表（Non-stop flights、Discontinued non-stop flights，都是 top 30 by great-circle distance）。表裡有 rowspan（同一個機場、航空公司、機型跨好幾列），`sources/wikitable.py` 是通用的 wikitable 解析（展開 rowspan／colspan、拿掉註腳模板、巢狀模板換成文字），之後別的維基表格也可以用。距離取 `{{cvt|…|km}}` 的數字（有兩列寫到小數，四捨五入）；日期取 `{{sort|YYYY-MM-DD|…}}` 的排序鍵。

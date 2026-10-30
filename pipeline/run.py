@@ -89,8 +89,12 @@ STEPS = {
     "co2-stations": "topics.co2_stations",
     # 城市熱島：Yang 等人的 Global UHII Dataset（figshare，RAR 約 1.4 GB，要有 bsdtar），要先有 cities 的點；第一次約 1 分鐘
     "urban-heat": "topics.urban_heat",
+    # 臭氧洞：NASA Ozone Watch 的年表與每年臭氧洞最大那一天的 1° 網格（46 個檔，約 9 MB）；約 1 分鐘
+    "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
+    # 缺水壓力的推估（水資源與森林主題）：WRI Aqueduct 4.0 的各國排名（約 13 MB）；幾秒
+    "aqueduct": "topics.aqueduct",
     "ev": "topics.ev",
     # 電動車主題的燃油車禁售年份與狀態（英文維基百科的表；要先有 profiles 的 government.json）
     "ev-phaseout": "topics.ev_phaseout",
@@ -273,6 +277,8 @@ STEPS = {
     "antarctic-stations": "topics.antarctic_stations",
     # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒
     "penguins": "topics.penguins",
+    # 南極的冰下湖：Wilson 等 2025 的 Zenodo 資料（560 KB，不必登入）；不到 1 秒
+    "subglacial-lakes": "topics.subglacial_lakes",
     # 國家公園：Wikidata 的國家公園點、WDI 的陸域保護區占國土；幾秒（Wikidata 第一次查要等查詢服務）
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒
