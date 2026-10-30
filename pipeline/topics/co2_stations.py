@@ -8,7 +8,7 @@
 - 授權：README 第 3 節「NOAA waives any potential copyright and related rights in these data worldwide through the
   Creative Commons Zero 1.0 Universal Public Domain Dedication (CC0 1.0)」，另請引用 Lan et al.。
 
-輸出（public/data/topics/co2-stations/）：
+輸出（public/data/topics/climate/，2026-10-30 併進溫室氣體排放）：
 - stations.json：點（PointsData），每站的名稱、國家、座標、海拔、起訖年月，與每年的年平均（欄位 y1968…，
   12 個月裡有 MIN_MONTHS 個月以上才算，月份不齊的年份會被季節循環拉偏）。
 - series.json：每站的月平均（側欄的濃度曲線）。
@@ -25,7 +25,7 @@ from common import OUT_DIR, download, indicator_file, now_iso, points_file, writ
 
 URL = "https://gml.noaa.gov/aftp/data/trace_gases/co2/flask/surface/co2_surface-flask_ccgg_text.zip"
 SOURCE = "noaa_gml"
-OUT = OUT_DIR / "topics" / "co2-stations"
+OUT = OUT_DIR / "topics" / "climate"  # 2026-10-30 併進溫室氣體排放（第七批 122）
 MIN_MONTHS = 9
 
 # 站 → (地圖上的國家／地區, 中文名稱)。國家依站的實際位置（不是 NOAA 寫的經營國）：
@@ -195,7 +195,7 @@ def build() -> None:
             aggregates={"WLD": [world_count.get(y) for y in years]},
         ),
     )
-    write_json(OUT / "manifest.json", {
+    write_json(OUT / "co2-stations-manifest.json", {
         "topic": "co2-stations",
         "generatedAt": now_iso(),
         "source": "NOAA GML Carbon Cycle Cooperative Global Air Sampling Network, CO2 flask monthly means (doi:10.15138/wkgj-f215, CC0 1.0)",

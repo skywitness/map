@@ -1,5 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { withParts } from './parts';
+import { cloudRegionsPart } from './cloud-regions';
 import type { TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, v < 1 ? 2 : 1)}%`;
@@ -7,7 +9,7 @@ const pct = (v: number) => `${fixed(v, v < 1 ? 2 : 1)}%`;
 const count = (v: number, unit: { zh: string; en: [one: string, many: string] }) =>
   `${fixed(v, 0)} ${tr({ zh: unit.zh, en: unit.en[Math.round(v) === 1 ? 0 : 1] })}`;
 
-export const ai: TopicDefinition = {
+export const ai: TopicDefinition = withParts({
   id: 'ai',
   title: { zh: '各國 AI 發展', en: 'AI by country' },
   shortTitle: 'AI',
@@ -133,4 +135,4 @@ export const ai: TopicDefinition = {
       formatTick: (v) => `${v}%`,
     },
   ],
-};
+}, cloudRegionsPart);

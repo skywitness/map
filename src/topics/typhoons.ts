@@ -67,15 +67,15 @@ export function dateRange(md0: number, md1: number): string {
 }
 
 /** 路徑的 tooltip：中文「凱米（2024 年）」，英文「Gaemi (2024)」；第二行巔峰強度、最低氣壓、起訖日期 */
-function trackTooltip(p: PointRecord) {
+function trackTooltip(p: PointRecord, names: (code: number | string | null) => string = className) {
   const year = p.year as number;
   const name = typeof p.name === 'string' ? p.name : null;
   const zh = typeof p.zh === 'string' ? p.zh : null;
   const parts: string[] = [];
   if (typeof p.wind === 'number') {
-    parts.push(tr({ zh: `巔峰 ${className(p.cat)}，${windText(p.wind)}`, en: `Peak ${className(p.cat)}, ${windText(p.wind)}` }));
+    parts.push(tr({ zh: `巔峰 ${names(p.cat)}，${windText(p.wind)}`, en: `Peak ${names(p.cat)}, ${windText(p.wind)}` }));
   } else {
-    parts.push(className(CLASS.unknown));
+    parts.push(names(CLASS.unknown));
   }
   if (typeof p.pres === 'number') parts.push(tr({ zh: `最低氣壓 ${n0(p.pres)} hPa`, en: `${n0(p.pres)} hPa` }));
   if (typeof p.md0 === 'number' && typeof p.md1 === 'number') parts.push(`${dateRange(p.md0, p.md1)} UTC`);
@@ -118,6 +118,35 @@ const TRACK_CLASSES = [
   },
 ];
 
+/**
+ * 日本氣象廳 10 分鐘風速那一組（2026-10-30 起，子項目 jma；pipeline 的 build_jma）：強度照中央氣象署的分級，
+ * 代碼沿用 TD、TS、C1、C2（熱帶性低氣壓、輕度、中度、強烈颱風）。顏色是 4 類的循序色（類別圖 ordinal 取的那幾級）
+ */
+const CWA_NAMES: Record<number, Text> = {
+  [CLASS.unknown]: { zh: '強度不明', en: 'Intensity unknown' },
+  [CLASS.other]: { zh: '非熱帶氣旋', en: 'Non-tropical' },
+  [CLASS.td]: { zh: '熱帶性低氣壓', en: 'Tropical depression' },
+  [CLASS.ts]: { zh: '輕度颱風', en: 'Mild typhoon' },
+  [CLASS.c1]: { zh: '中度颱風', en: 'Moderate typhoon' },
+  [CLASS.c2]: { zh: '強烈颱風', en: 'Severe typhoon' },
+};
+function cwaName(code: number | string | null): string {
+  return typeof code === 'number' && CWA_NAMES[code] ? tr(CWA_NAMES[code]) : tr(CWA_NAMES[CLASS.unknown]);
+}
+const JMA_CLASSES = [
+  { value: CLASS.c2, color: SEQ[6], label: { zh: '強烈颱風（51.0 公尺/秒以上）', en: 'Severe typhoon (100 kt or more)' } },
+  { value: CLASS.c1, color: SEQ[4], label: { zh: '中度颱風（32.7–50.9 公尺/秒）', en: 'Moderate typhoon (64–99 kt)' } },
+  { value: CLASS.ts, color: SEQ[2], label: { zh: '輕度颱風（17.2–32.6 公尺/秒）', en: 'Mild typhoon (34–63 kt)' } },
+  { value: CLASS.td, color: SEQ[0], label: { zh: '熱帶性低氣壓（17.1 公尺/秒以下）', en: 'Tropical depression (under 34 kt)' } },
+  {
+    value: CLASS.other,
+    color: MAP_TOKENS.inkMuted,
+    dash: true,
+    label: { zh: '溫帶氣旋', en: 'Extratropical' },
+  },
+  { value: CLASS.unknown, color: MAP_TOKENS.inkMuted, label: { zh: '強度不明（沒有日本氣象廳的風速）', en: 'Intensity unknown (no JMA wind)' } },
+];
+
 /** 等級的顏色（側欄的色塊跟地圖上的路徑一致） */
 export function classColor(code: number): string {
   return TRACK_CLASSES.find((c) => c.value === code)?.color ?? MAP_TOKENS.inkMuted;
@@ -136,6 +165,12 @@ const PARTIAL = {
   en: 'US agencies have no wind data for the North Indian Ocean and the Southern Hemisphere before 1980, so countries that depend on those basins (India, Bangladesh, Australia, Madagascar and others) start in 1980.',
 };
 
+/** 子項目選日本氣象廳時的規則（2026-10-30 起） */
+const JMA_RULE = {
+  zh: '上面的「風速」選日本氣象廳時，改用 10 分鐘平均風速與中央氣象署的分級（輕度、中度、強烈颱風），只算西北太平洋的颱風，1980 年代起。',
+  en: 'With JMA winds selected above, 10-minute winds and the CWA scale (mild, moderate and severe typhoons) are used instead, for western North Pacific storms only, from the 1980s.',
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'storms-year',
@@ -145,7 +180,7 @@ const indicators: IndicatorDef[] = [
       en: `Tracks of the year's tropical cyclones worldwide (by formation date), coloured by intensity along the way. Hover over a country for the number of storms that year (${RULE.en}); hover over a track for its name and strength.`,
     },
     unit: STORMS_UNIT,
-    file: 'storms-year.json',
+    file: 'storms-year/{item}.json',
     layer: { kind: 'none' },
     overlayTime: 'year',
     format: storms,
@@ -155,11 +190,11 @@ const indicators: IndicatorDef[] = [
     id: 'storms-decade',
     label: { zh: '每十年的颱風次數', en: 'Storms per decade' },
     description: {
-      zh: `每十年（1990 是 1990–1999 年）經過各國的颱風數：${RULE.zh}；同一個颱風可以算好幾國。地圖上同時畫出那十年的路徑；2020 年代只到今年。${PARTIAL.zh}`,
-      en: `Storms affecting each country per decade (1990 means 1990–1999): ${RULE.en}; one storm can count for several countries. The map shows that decade's tracks; the 2020s run only to the current year. ${PARTIAL.en}`,
+      zh: `每十年（1990 是 1990–1999 年）經過各國的颱風數：${RULE.zh}；同一個颱風可以算好幾國。地圖上同時畫出那十年的路徑；2020 年代只到今年。${PARTIAL.zh}${JMA_RULE.zh}`,
+      en: `Storms affecting each country per decade (1990 means 1990–1999): ${RULE.en}; one storm can count for several countries. The map shows that decade's tracks; the 2020s run only to the current year. ${PARTIAL.en} ${JMA_RULE.en}`,
     },
     unit: STORMS_UNIT,
-    file: 'storms-decade.json',
+    file: 'storms-decade/{item}.json',
     layer: { kind: 'bubble', legendValues: [10, 40, 80] },
     overlayTime: 10,
     format: storms,
@@ -169,11 +204,11 @@ const indicators: IndicatorDef[] = [
     id: 'strongest-decade',
     label: { zh: '最強的颱風（每十年）', en: 'Strongest storm per decade' },
     description: {
-      zh: `那十年經過的颱風裡，在國界內或離國界 100 公里以內時最強的等級（美國機構的 1 分鐘平均風速，薩菲爾－辛普森颶風等級；颱風的熱帶性低氣壓階段也算）。沒有颱風經過的國家不上色。${PARTIAL.zh}`,
-      en: `The highest intensity any storm reached while crossing the country or within 100 km of it in that decade (US 1-minute winds, Saffir–Simpson scale; tropical-depression stages count too). Countries with no storms are left blank. ${PARTIAL.en}`,
+      zh: `那十年經過的颱風裡，在國界內或離國界 100 公里以內時最強的等級（美國機構的 1 分鐘平均風速，薩菲爾－辛普森颶風等級；颱風的熱帶性低氣壓階段也算）。沒有颱風經過的國家不上色。${PARTIAL.zh}${JMA_RULE.zh}`,
+      en: `The highest intensity any storm reached while crossing the country or within 100 km of it in that decade (US 1-minute winds, Saffir–Simpson scale; tropical-depression stages count too). Countries with no storms are left blank. ${PARTIAL.en} ${JMA_RULE.en}`,
     },
     unit: '',
-    file: 'strongest-decade.json',
+    file: 'strongest-decade/{item}.json',
     layer: {
       kind: 'categorical',
       ordinal: true,
@@ -182,7 +217,10 @@ const indicators: IndicatorDef[] = [
         value,
         label: CLASS_NAMES[value],
       })),
+      // 日本氣象廳：中央氣象署的 4 級
+      itemCategories: { jma: [CLASS.c2, CLASS.c1, CLASS.ts, CLASS.td].map((value) => ({ value, label: CWA_NAMES[value] })) },
     },
+    itemFormats: { jma: { unit: '', format: (v) => cwaName(v) } },
     overlayTime: 10,
     format: (v) => className(v),
   },
@@ -194,6 +232,15 @@ export const typhoons: TopicDefinition = {
   shortTitle: { zh: '颱風與颶風', en: 'Cyclones' },
   defaultIndicator: 'storms-year',
   defaultYear: 2024,
+  // 風速的來源（2026-10-30 起）：美國機構的 1 分鐘平均（全球）、日本氣象廳的 10 分鐘平均（西北太平洋，中央氣象署的分級）
+  dimension: {
+    label: { zh: '風速', en: 'Winds' },
+    options: [
+      { id: 'usa', label: { zh: '美國機構（1 分鐘）', en: 'US agencies (1-min)' } },
+      { id: 'jma', label: { zh: '日本氣象廳（10 分鐘）', en: 'JMA (10-min)' } },
+    ],
+    defaultOption: 'usa',
+  },
   sources: [
     {
       name: {
@@ -213,8 +260,8 @@ export const typhoons: TopicDefinition = {
     },
   ],
   note: {
-    zh: '路徑與強度來自 NOAA 的 IBTrACS（International Best Track Archive for Climate Stewardship v04r01），1950 年起，00、06、12、18 時（UTC）的位置。風速一律用美國機構（國家颶風中心、中太平洋颶風中心、聯合颱風警報中心）的 1 分鐘平均最大持續風速，依薩菲爾－辛普森颶風等級分級；中央氣象署、日本氣象廳用 10 分鐘平均，數字比較小，分級也不同（輕度、中度、強烈颱風），所以強度跟氣象署公布的不一樣。最近一兩年是還沒重新分析的即時資料。時間軸的年份是颱風生成的那一年（UTC）；南半球的颱風季從 7 月算到隔年 6 月，這裡拆在兩個年份。國家的次數是颱風中心進入國界或離國界 100 公里以內、當時風速達熱帶風暴（34 kt）以上的颱風，路徑每 10 公里內插一點來量距離；中央氣象署的「侵台颱風」是颱風中心登陸台灣，或沒有登陸但陸上有災情的颱風，規則不同，次數也不完全一樣（台灣的附註有對照）。北印度洋與南半球 1980 年以前沒有美國機構的風速，路徑畫成灰色，相關國家 1980 年以前不統計；1960 年代以前沒有衛星，海上的颱風可能有缺漏；早年的強度估計方法也不同（例如 1950–60 年代西北太平洋的風速一般認為偏高），不一定能跟近年直接比較。中文名稱來自中央氣象署颱風資料庫。',
-    en: 'Tracks and intensities come from NOAA IBTrACS (International Best Track Archive for Climate Stewardship v04r01) since 1950, using positions at 00, 06, 12 and 18 UTC. Winds are always the 1-minute maximum sustained winds of the US agencies (National Hurricane Center, Central Pacific Hurricane Center, Joint Typhoon Warning Center) on the Saffir–Simpson scale; Taiwan\'s Central Weather Administration and the Japan Meteorological Agency use 10-minute winds, which are lower and graded differently, so intensities differ from theirs. The last year or two are provisional real-time data not yet reanalysed. The time slider uses the year a storm formed (UTC); Southern Hemisphere seasons run from July to June and are split across two years here. Country counts are storms whose centre crossed the country or passed within 100 km of it at tropical-storm strength (34 kt) or above, measured along tracks interpolated every 10 km; the CWA counts a typhoon as hitting Taiwan when its centre makes landfall or it causes damage on land, so its numbers differ (see the note for Taiwan). US agencies have no wind data for the North Indian Ocean and the Southern Hemisphere before 1980: those tracks are grey and the affected countries start in 1980. Before satellites (the 1960s), storms at sea may be missing, and early intensity estimates used different methods (western Pacific winds of the 1950s and 1960s are generally thought to be too high), so they are not directly comparable with recent ones. Chinese names are from the CWA Typhoon Database.',
+    zh: '路徑與強度來自 NOAA 的 IBTrACS（International Best Track Archive for Climate Stewardship v04r01），1950 年起，00、06、12、18 時（UTC）的位置。風速一律用美國機構（國家颶風中心、中太平洋颶風中心、聯合颱風警報中心）的 1 分鐘平均最大持續風速，依薩菲爾－辛普森颶風等級分級；中央氣象署、日本氣象廳用 10 分鐘平均，數字比較小，分級也不同（輕度、中度、強烈颱風），所以強度跟氣象署公布的不一樣。最近一兩年是還沒重新分析的即時資料。時間軸的年份是颱風生成的那一年（UTC）；南半球的颱風季從 7 月算到隔年 6 月，這裡拆在兩個年份。國家的次數是颱風中心進入國界或離國界 100 公里以內、當時風速達熱帶風暴（34 kt）以上的颱風，路徑每 10 公里內插一點來量距離；中央氣象署的「侵台颱風」是颱風中心登陸台灣，或沒有登陸但陸上有災情的颱風，規則不同，次數也不完全一樣（台灣的附註有對照）。北印度洋與南半球 1980 年以前沒有美國機構的風速，路徑畫成灰色，相關國家 1980 年以前不統計；1960 年代以前沒有衛星，海上的颱風可能有缺漏；早年的強度估計方法也不同（例如 1950–60 年代西北太平洋的風速一般認為偏高），不一定能跟近年直接比較。中文名稱來自中央氣象署颱風資料庫。上面的「風速」可以改成日本氣象廳（RSMC 東京）的 10 分鐘平均風速（IBTrACS 的 TOKYO_WIND，1977 年起，只有西北太平洋），強度照中央氣象署的分級（輕度 17.2、中度 32.7、強烈 51.0 公尺/秒以上），跟氣象署公布的比較接近；國家的次數規則相同（10 分鐘風速達輕度颱風以上），只算西北太平洋的颱風，到最近一個完整的年份（即時資料大多還沒有日本氣象廳的風速）。',
+    en: 'Tracks and intensities come from NOAA IBTrACS (International Best Track Archive for Climate Stewardship v04r01) since 1950, using positions at 00, 06, 12 and 18 UTC. Winds are always the 1-minute maximum sustained winds of the US agencies (National Hurricane Center, Central Pacific Hurricane Center, Joint Typhoon Warning Center) on the Saffir–Simpson scale; Taiwan\'s Central Weather Administration and the Japan Meteorological Agency use 10-minute winds, which are lower and graded differently, so intensities differ from theirs. The last year or two are provisional real-time data not yet reanalysed. The time slider uses the year a storm formed (UTC); Southern Hemisphere seasons run from July to June and are split across two years here. Country counts are storms whose centre crossed the country or passed within 100 km of it at tropical-storm strength (34 kt) or above, measured along tracks interpolated every 10 km; the CWA counts a typhoon as hitting Taiwan when its centre makes landfall or it causes damage on land, so its numbers differ (see the note for Taiwan). US agencies have no wind data for the North Indian Ocean and the Southern Hemisphere before 1980: those tracks are grey and the affected countries start in 1980. Before satellites (the 1960s), storms at sea may be missing, and early intensity estimates used different methods (western Pacific winds of the 1950s and 1960s are generally thought to be too high), so they are not directly comparable with recent ones. Chinese names are from the CWA Typhoon Database. The Winds menu above switches to the Japan Meteorological Agency (RSMC Tokyo) 10-minute winds (TOKYO_WIND in IBTrACS, from 1977, western North Pacific only), graded on Taiwan’s CWA scale (mild 17.2, moderate 32.7, severe 51.0 m/s and above), closer to what the CWA publishes; country counts use the same rule (10-minute winds of mild-typhoon strength or more) for western North Pacific storms only, up to the last complete year (real-time data mostly lack JMA winds).',
   },
   panelExtra: () => import('./panels/TyphoonsPanel'),
   overlays: [
@@ -228,7 +275,21 @@ export const typhoons: TopicDefinition = {
       timeField: 'year',
       sortByType: true,
       casing: true,
-      tooltip: trackTooltip,
+      tooltip: (p) => trackTooltip(p),
+      items: ['usa'],
+    },
+    {
+      kind: 'lines',
+      id: 'tracks-jma',
+      file: 'tracks-jma.json',
+      label: { zh: '颱風路徑（日本氣象廳）', en: 'Storm tracks (JMA)' },
+      width: 1.6,
+      color: { title: { zh: '強度（中央氣象署的分級）', en: 'Intensity (Taiwan CWA scale)' }, classes: JMA_CLASSES },
+      timeField: 'year',
+      sortByType: true,
+      casing: true,
+      tooltip: (p) => trackTooltip(p, cwaName),
+      items: ['jma'],
     },
   ],
   indicators,

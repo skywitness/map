@@ -1,7 +1,7 @@
 import { getLang, tr } from '../i18n/lang';
-import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { TopicPart } from './parts';
+import type { ColorClasses, PointRecord } from './types';
 
 /**
  * 唐人街（pipeline/topics/chinatowns.py）：Wikidata 的唐人街（CC0）加上依英文維基百科分區條目手工補的點（CC BY-SA 4.0）。
@@ -22,13 +22,12 @@ function name(p: PointRecord): string {
   return String(p.en ?? p.zh ?? '');
 }
 
-export const chinatowns: TopicDefinition = {
-  id: 'chinatowns',
-  title: { zh: '世界各地的唐人街', en: 'Chinatowns around the world' },
-  shortTitle: { zh: '唐人街', en: 'Chinatowns' },
-  defaultIndicator: 'map',
-  defaultYear: 2026,
-  timeless: true,
+/**
+ * 移民與難民（migration.ts）的唐人街部分：2026-10-30（第七批 122）起唐人街併進移民與難民，成為僑民人數的疊加圖層
+ * （預設關閉，左下角打開；舊網址 t/chinatowns/ 轉到僑民人數並打開這個圖層）。原本各國收錄的處數不再畫成指標
+ */
+export const chinatownsPart: TopicPart = {
+  name: { zh: '唐人街', en: 'Chinatowns' },
   sources: [
     { name: { zh: 'Wikidata（唐人街 Q202509 的位置與名稱）', en: 'Wikidata (locations and names of Chinatowns, Q202509)' }, url: 'https://www.wikidata.org/wiki/Q202509', license: 'CC0' },
     {
@@ -43,7 +42,7 @@ export const chinatowns: TopicDefinition = {
   note: {
     zh:
       'Wikidata 收錄、有座標的唐人街 87 處，加上依英文維基百科的歐洲、亞洲、非洲、大洋洲、拉丁美洲條目補的 48 處（條目寫明有唐人街、華人商店街的地方；寫「沒有正式的唐人街」、已經消失或只是計畫的不收）。補的點的座標取街區或城市在 Wikidata 的座標，只有城市座標的 tooltip 寫明。' +
-      '美國、加拿大的條目列了上百處（多半是歷史上的），沒有另外補。「唐人街」的定義各地不同：有歷史街區、新的華人商圈，也有只剩牌樓的；收錄多寡反映的是資料的範圍，各國的數字不能直接比。台灣沒有唐人街（維基的亞洲條目也不含中國、港澳與台灣）。',
+      '美國、加拿大的條目列了上百處（多半是歷史上的），沒有另外補。「唐人街」的定義各地不同：有歷史街區、新的華人商圈，也有只剩牌樓的；收錄多寡反映的是資料的範圍，各國的數目不能直接比。台灣沒有唐人街（維基的亞洲條目也不含中國、港澳與台灣）。',
     en:
       'The 87 Chinatowns in Wikidata with coordinates, plus 48 added from the English Wikipedia articles on Chinatowns in Europe, Asia, Africa, Oceania and Latin America (places the articles say have a Chinatown or Chinese shopping street; places described as having no official Chinatown, gone or only planned are left out). Added points use the Wikidata coordinates of the neighbourhood or the city; the tooltip says when only the city is known. ' +
       'The articles on the United States and Canada list hundreds of places, mostly historical, and are not added. What counts as a Chinatown varies, from historic districts to new Chinese business areas or just a gate, and coverage reflects the data, so country counts are not comparable. Taiwan has no Chinatown (the Asia article also excludes China, Hong Kong, Macau and Taiwan).',
@@ -52,8 +51,10 @@ export const chinatowns: TopicDefinition = {
     {
       kind: 'points',
       id: 'chinatowns',
-      file: 'points.json',
+      file: 'chinatowns.json',
       label: { zh: '唐人街', en: 'Chinatowns' },
+      indicators: ['emigrants'],
+      hidden: true,
       radius: { field: 's', stops: [[1, 4], [2, 4]] },
       color: SOURCE_COLORS,
       tooltip: (p, ctx) => ({
@@ -66,21 +67,5 @@ export const chinatowns: TopicDefinition = {
       }),
     },
   ],
-  indicators: [
-    {
-      id: 'map',
-      label: { zh: '唐人街地圖', en: 'Chinatown map' },
-      description: {
-        zh: '世界各地的唐人街：美國、加拿大最多，東南亞、日本、英國、澳洲也有不少。滑過點看名稱；國家的數字是收錄的處數，不能直接比較各國有多少唐人街。',
-        en: 'Chinatowns around the world: most are in the United States and Canada, with many in Southeast Asia, Japan, the UK and Australia. Hover over a dot for its name; country figures are the number of places recorded, not a comparable count of Chinatowns.',
-      },
-      unit: { zh: '處', en: 'places' },
-      file: 'count.json',
-      layer: { kind: 'none' },
-      format: (v) => tr({ zh: `收錄 ${fixed(v, 0)} 處`, en: `${fixed(v, 0)} recorded` }),
-      unranked: true,
-      panelChart: false,
-      missing: { zh: '沒有收錄的唐人街', en: 'No Chinatown recorded' },
-    },
-  ],
+  indicators: [],
 };

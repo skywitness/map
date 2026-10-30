@@ -41,8 +41,17 @@ export type LayerSpec =
    * diverging 為 true（兩個方向的強弱，例如專制 ↔ 民主）時改用發散色：categories 從一端排到另一端，
    * 前一半是橘色、後一半是青綠，越靠兩端越深，奇數類的正中間是中性色。
    * tooltip、排名表、側欄照常用 format(代碼) 顯示類別名稱。
+   * itemCategories 是各子項目自己的類別（2026-10-30 起，颱風的日本氣象廳 10 分鐘風速用中央氣象署的分級），
+   * 沒列的子項目用 categories（跟面量圖的 itemScales 一樣在 forItem() 換）。
    */
-  | { kind: 'categorical'; categories: CategoryDef[]; other?: Text; ordinal?: boolean; diverging?: boolean }
+  | {
+      kind: 'categorical';
+      categories: CategoryDef[];
+      other?: Text;
+      ordinal?: boolean;
+      diverging?: boolean;
+      itemCategories?: Record<string, CategoryDef[]>;
+    }
   /**
    * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
@@ -1017,7 +1026,8 @@ export function indicatorPath(
   item: string | null,
 ): string {
   const file = indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? '');
-  return `topics/${topic.id}/${file}`;
+  // ../<主題>/<檔名>：讀另一個主題的檔（2026-10-30，治安與司法的法治分數讀政府治理的，兩邊不另外存一份）
+  return file.startsWith('../') ? `topics/${file.slice(3)}` : `topics/${topic.id}/${file}`;
 }
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
@@ -1071,15 +1081,17 @@ export interface ItemFormat {
 export function forItem(indicator: Indicator, item: string | null): Indicator {
   const layer = indicator.layer;
   const scale = layer.kind === 'choropleth' && item ? layer.itemScales?.[item] : undefined;
+  const categories = layer.kind === 'categorical' && item ? layer.itemCategories?.[item] : undefined;
   const grid = indicator.grid?.dir.includes('{item}') ? indicator.grid : undefined;
   const fmt = item ? indicator.itemFormats?.[item] : undefined;
-  if (!item || (!scale && !grid && !fmt)) return indicator;
+  if (!item || (!scale && !categories && !grid && !fmt)) return indicator;
   let byItem = itemScaleCache.get(indicator);
   if (!byItem) itemScaleCache.set(indicator, (byItem = new Map()));
   let resolved = byItem.get(item);
   if (!resolved) {
     resolved = { ...indicator };
     if (scale && layer.kind === 'choropleth') resolved.layer = { ...layer, scale };
+    if (categories && layer.kind === 'categorical') resolved.layer = { ...layer, categories };
     if (grid) resolved.grid = { ...grid, dir: grid.dir.replace('{item}', item) };
     if (fmt) Object.assign(resolved, { unit: fmt.unit, format: fmt.format, formatTick: fmt.formatTick ?? fmt.format });
     byItem.set(item, resolved);

@@ -5,10 +5,12 @@ https://www.ncei.noaa.gov/products/international-best-track-archive ，資料集
 - 授權：NOAA 的產品頁寫「full and open access」（World Data Center for Meteorology 的政策，商業使用參照 WMO
   第 40 號決議）；data.gov 的資料集目錄標 CC0 1.0（公有領域）。這裡只用美國機構（NHC、CPHC、JTWC）的
   USA_* 欄位與 IBTrACS 合併後的位置，都是美國政府資料；WMO_PRES 只在美國機構沒有氣壓時補上。
+  2026-10-30 起另讀日本氣象廳（RSMC 東京）的 TOKYO_WIND、TOKYO_GRADE（同一個檔、同一份資料集的條款）。
 - 用整份的 ibtracs.ALL.list.v04r01.csv（約 333 MB，1842 年起）。第一列是欄名、第二列是單位，缺值是一個空白。
   NCEI 每週更新 2–3 次（覆寫同一個檔），要更新用 `--refresh`。2026-10-23 從 NCEI 下載時單一連線只有約
   20 KB/s（333 MB 要 4 小時以上），那次是用 HTTP Range 分 24 段平行下載同一個檔（ETag 相同）放進快取。
-- 只讀前 26 欄（到 USA_SSHS），每列 split(",", 26)，比 csv 模組快很多；這幾欄沒有引號或逗號（讀取時檢查）。
+- 每列 split(",", 26) 取前 26 欄（到 USA_SSHS），比 csv 模組快很多；這幾欄沒有引號或逗號（讀取時檢查）。
+  日本氣象廳的 TOKYO_WIND、TOKYO_GRADE 從剩下的那一段再切（2026-10-30 起，颱風主題的「日本氣象廳 10 分鐘風速」）。
 
 欄位的選擇（DESIGN.md 第 8 節）：
 - 風速一律用 USA_WIND（美國機構的 1 分鐘平均最大持續風速，kt），強度分級用 USA_SSHS（薩菲爾－辛普森）。
@@ -57,6 +59,10 @@ class Fix:
     synoptic: bool  # 00、06、12、18 UTC
     original: bool  # 美國機構的原始紀錄（IFLAG 第 1 個字元是 O），不是 IBTrACS 內插的
     basin: str
+    # 日本氣象廳（RSMC 東京）的 10 分鐘平均最大風速（kt）與等級（TOKYO_GRADE：2 熱帶性低氣壓、3 熱帶風暴、
+    # 4 強烈熱帶風暴、5 颱風、6 溫帶氣旋、7 合併、8 消散、9 熱帶風暴以上〔早年不分〕），只有西北太平洋（2026-10-30 起）
+    tokyo_wind: float | None = None
+    tokyo_grade: int | None = None
 
 
 @dataclass
@@ -99,6 +105,9 @@ def storms(start_season: int) -> list[Storm]:
             raise RuntimeError(f"IBTrACS 的欄位跟預期的不同：{header[:len(COLUMNS)]}")
         f.readline()  # 單位
         n_columns = len(header)
+        # TOKYO_* 在第 26 欄以後：從剩下的那一段再切
+        tokyo_wind = header.index("TOKYO_WIND") - len(COLUMNS)
+        tokyo_grade = header.index("TOKYO_GRADE") - len(COLUMNS)
         for line in f:
             row = line.rstrip("\r\n").split(",", len(COLUMNS))
             season = int(row[_I["SEASON"]])
@@ -120,12 +129,15 @@ def storms(start_season: int) -> list[Storm]:
                 storm.agency = row[_I["USA_AGENCY"]].strip()
             t, synoptic = _time(row[_I["ISO_TIME"]])
             sshs = _num(row[_I["USA_SSHS"]])
+            rest = row[-1].split(",")
+            grade = _num(rest[tokyo_grade])
             storm.fixes.append(Fix(
                 time=t, lat=float(row[_I["LAT"]]), lon=float(row[_I["LON"]]),
                 wind=_num(row[_I["USA_WIND"]]), pres=_num(row[_I["USA_PRES"]]), wmo_pres=_num(row[_I["WMO_PRES"]]),
                 sshs=None if sshs is None else int(sshs), nature=row[_I["NATURE"]].strip(),
                 dist2land=_num(row[_I["DIST2LAND"]]), synoptic=synoptic, original=row[_I["IFLAG"]][:1] == "O",
                 basin=row[_I["BASIN"]].strip(),
+                tokyo_wind=_num(rest[tokyo_wind]), tokyo_grade=None if grade is None else int(grade),
             ))
     for s in out.values():
         s.fixes.sort(key=lambda x: x.time)

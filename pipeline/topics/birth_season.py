@@ -11,7 +11,7 @@
 
 **換算**：每月的出生數除以那個月的天數（2 月依閏年 28 或 29 天），比的是每日平均，大小月不影響。
 
-**輸出**（public/data/topics/birth-season/）：
+**輸出**（public/data/topics/fertility/，2026-10-30 併進生育率與高齡化）：
 - peak-month.json：每日平均出生數最多的月份（1–12），各國只有實際有資料的年份；latestWithin 10 年（地圖上用 10 年內最近一年）
 - months.json：側欄 {iso3: {years: [年…], daily: [[1–12 月的每日平均]…], registration: 是否依登記}}
 """
@@ -28,7 +28,7 @@ from common import OUT_DIR, download, indicator_file, now_iso, write_json
 from sources.countries import from_numeric
 from sources.undata_dyb import COUNTRY, PARTIAL, _rows
 
-OUT = OUT_DIR / "topics" / "birth-season"
+OUT = OUT_DIR / "topics" / "fertility"  # 2026-10-30 併進生育率與高齡化（第七批 122）
 TABLE = 55
 URL = "https://data.un.org/Data.aspx?d=POP&f=tableCode%3a{table}{extra}"
 MONTHS = list(calendar.month_name)[1:]
@@ -143,7 +143,7 @@ def build() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     write_json(OUT / "peak-month.json", indicator_file("peak-month", "", years, peak, latestWithin=LATEST_WITHIN))
     write_json(OUT / "months.json", {"countries": panel})
-    write_json(OUT / "manifest.json", {
+    write_json(OUT / "birth-season-manifest.json", {
         "topic": "birth-season",
         "generatedAt": now_iso(),
         "sources": ["UNdata Demographic Statistics Database, table 55 (Live births by month of birth)",
