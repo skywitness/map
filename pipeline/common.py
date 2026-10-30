@@ -21,10 +21,11 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部、文化資產局、國科會、衛福部、勞動部、中央銀行與民航局的開放資料，2026-10-29；教育部統計處，2026-10-30）：Python 3.13 預設的
+# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部、文化資產局、國科會、衛福部、勞動部、中央銀行與民航局的開放資料，2026-10-29；教育部統計處，2026-10-30；中央銀行的國際收支 cpx.cbc.gov.tw，2026-10-30）：Python 3.13 預設的
 # VERIFY_X509_STRICT 會拒絕，這幾個主機只拿掉這一項嚴格檢查，憑證鏈與主機名稱照樣驗證（curl、瀏覽器都接受這張憑證）
 RELAXED_X509_HOSTS = {"statis.moi.gov.tw", "cloud.culture.tw", "mas.nstc.gov.tw", "www.mohw.gov.tw", "apiservice.mol.gov.tw",
-                      "www.cbc.gov.tw", "www.caa.gov.tw", "data.boch.gov.tw", "stats.moe.gov.tw"}
+                      "www.cbc.gov.tw", "www.caa.gov.tw", "data.boch.gov.tw", "stats.moe.gov.tw",
+                      "cpx.cbc.gov.tw"}
 # 只接受 Python 預設排除的加密套件（RSA 金鑰交換）的主機（國科會的開放資料，2026-10-29）：改用 OpenSSL 的 DEFAULT 套件清單，
 # 一樣是 TLS 1.2 加密、驗證憑證，只是沒有前向保密；下載的是公開資料
 LEGACY_CIPHER_HOSTS = {"mas.nstc.gov.tw"}
