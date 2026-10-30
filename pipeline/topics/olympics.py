@@ -18,10 +18,10 @@ import json
 
 import pycountry
 
-from common import OUT_DIR, indicator_file, now_iso, write_json
+from common import OUT_DIR, indicator_file, write_json, write_manifest_part
 from sources import wiki_olympics, wpp
 
-OUT = OUT_DIR / "topics" / "olympics"
+OUT = OUT_DIR / "topics" / "sports"  # 運動（2026-10-30 奧運、F1 合併）
 SEASONS = ("summer", "winter")
 PER = 1e7
 WPP_FIRST = 1950
@@ -228,7 +228,7 @@ def build() -> None:
 
     index = sorted(p.stem for p in (OUT / "countries").glob("*.json") if p.stem != "index")
     write_json(OUT / "countries" / "index.json", index)
-    write_json(OUT / "manifest.json", {"generatedAt": now_iso(), "revisions": manifest_games, "allTimeRevision": all_rev})
+    write_manifest_part(OUT, "sports", "olympics", {"revisions": manifest_games, "allTimeRevision": all_rev})
     tw = json.loads((OUT / "countries" / "TWN.json").read_text(encoding="utf-8"))
     tw_total = [sum(r[i] for r in tw.get("summer", [])) for i in (1, 2, 3)]
     print(f"  夏季 {summary['summer'][0]} 屆、{summary['summer'][1]:,} 面；冬季 {summary['winter'][0]} 屆、{summary['winter'][1]:,} 面；"
