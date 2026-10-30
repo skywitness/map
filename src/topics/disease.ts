@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, DimensionDef, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, PlaceDef, TopicDefinition } from './types';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
@@ -55,12 +55,27 @@ const CANCER_SEX: DimensionDef = {
   defaultOption: 'total',
 };
 
+/** USRDS 的透析人數只有次國家的地區：畫成點（鍵跟 pipeline/topics/dialysis.py 的 NAMES 一致） */
+const PLACES: PlaceDef[] = [
+  { id: '_MX-AGU', name: { zh: '阿瓜斯卡連特斯州（墨西哥）', en: 'Aguascalientes (Mexico)' }, lon: -102.29, lat: 21.88 },
+  { id: '_BE-NL', name: { zh: '比利時荷語區', en: 'Belgium, Dutch-speaking' }, lon: 4.4, lat: 51.05 },
+  { id: '_BE-FR', name: { zh: '比利時法語區', en: 'Belgium, French-speaking' }, lon: 4.87, lat: 50.4 },
+  { id: '_GB-EWN', name: { zh: '英格蘭、威爾斯與北愛爾蘭', en: 'England, Wales and Northern Ireland' }, lon: -1.5, lat: 52.6 },
+  { id: '_GB-SCT', name: { zh: '蘇格蘭', en: 'Scotland' }, lon: -4.2, lat: 56.6 },
+];
+
+const DIALYSIS_PUBLIC: CategoryDef[] = [
+  { value: 1, label: { zh: '可以', en: 'Generally available' } },
+  { value: 0, label: { zh: '不行', en: 'Not generally available' } },
+];
+
 export const disease: TopicDefinition = {
   id: 'disease',
   title: { zh: '各國疾病與死因', en: 'Disease and causes of death' },
   shortTitle: { zh: '疾病', en: 'Disease' },
   defaultIndicator: 'top-cause',
   defaultYear: 2023,
+  places: PLACES,
   sources: [
     {
       name: {
@@ -82,6 +97,22 @@ export const disease: TopicDefinition = {
       name: { zh: '衛生福利部統計處（死因統計、衛生福利統計指標）', en: 'Ministry of Health and Welfare (Taiwan), cause-of-death statistics and health indicators' },
       url: 'https://dep.mohw.gov.tw/dos/',
       license: OPEN_DATA_TW,
+    },
+    {
+      name: {
+        zh: 'United States Renal Data System, 2025 Annual Data Report 第 11 章 International Comparisons（透析人數，各國腎臟登錄系統提供）',
+        en: 'United States Renal Data System, 2025 Annual Data Report, chapter 11 International Comparisons (dialysis; data supplied by national renal registries)',
+      },
+      url: 'https://usrds-adr.niddk.nih.gov/2025/end-stage-renal-disease/11-international-comparisons',
+      license: { zh: 'NIDDK：大部分沒有著作權，可以自由轉載，註明 NIDDK', en: 'NIDDK: mostly copyright free, may be reproduced with acknowledgement of NIDDK' },
+    },
+    {
+      name: {
+        zh: 'WHO, Noncommunicable Disease Country Capacity Survey（公立體系的透析，GHO NCD_CCS_dialysis）',
+        en: 'WHO, Noncommunicable Disease Country Capacity Survey (dialysis in the public health system, GHO NCD_CCS_dialysis)',
+      },
+      url: 'https://www.who.int/data/gho/data/indicators',
+      license: 'CC BY 4.0',
     },
     {
       name: 'United Nations, World Population Prospects 2024',
@@ -152,6 +183,39 @@ export const disease: TopicDefinition = {
       dimension: CANCER_SEX,
       layer: { kind: 'categorical', categories: CANCER_SITES, other: { zh: '其他（白血病、口腔癌等）', en: 'Other (leukaemia, mouth cancer and others)' } },
       format: (v) => tr(siteLabel.get(v) ?? OTHER_SITES[v] ?? { zh: '其他', en: 'Other' }),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'dialysis',
+      label: { zh: '每百萬人的透析人數', en: 'People on dialysis per million' },
+      description: {
+        zh: '年底正在洗腎（血液透析或腹膜透析）的人數，每百萬人有幾人（2023 年，各國腎臟登錄系統提供給美國 USRDS 的數字，沒有年齡調整）。台灣 3,522 人最多，日本 2,667、泰國 2,317、新加坡 2,216、韓國 2,178（2022 年）、美國 1,677；北歐、英國多在 400 以下，南非 116、奈及利亞 13。只有約 50 個有登錄系統的國家或地區，非洲幾乎沒有。這是盛行率：洗腎的人活得越久、腎臟移植越少，數字越高，各國收集的方法也不同。墨西哥只有阿瓜斯卡連特斯州，比利時、英國分區，畫成點。',
+        en: 'People on dialysis (haemodialysis or peritoneal dialysis) at year end per million population (2023, from national renal registries reporting to the US Renal Data System, unadjusted). Taiwan is highest at 3,522, then Japan 2,667, Thailand 2,317, Singapore 2,216, South Korea 2,178 (2022) and the US 1,677; the Nordic countries and the UK are mostly under 400, South Africa 116 and Nigeria 13. Only about 50 countries or regions with registries are included, almost none in Africa. This is prevalence: longer survival on dialysis and fewer kidney transplants raise it, and data collection differs between countries. Mexico is represented by Aguascalientes state, and Belgium and the UK by their regions, drawn as dots.',
+      },
+      unit: { zh: '人/百萬人', en: 'per million' },
+      file: 'dialysis.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [200, 500, 800, 1100, 1500, 2000] } },
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, 0)} 人`, en: `${fixed(v, 0)} per million` }),
+      formatTick: (v) => fixed(v, 0),
+      noValue: {
+        MEX: { zh: '只有阿瓜斯卡連特斯州（見地圖上的點）', en: 'Only Aguascalientes state (see the dot on the map)' },
+        BEL: { zh: '分成荷語區與法語區（見地圖上的點）', en: 'Reported for the Dutch- and French-speaking regions (see the dots)' },
+        GBR: { zh: '分成英格蘭威爾斯北愛爾蘭與蘇格蘭（見地圖上的點）', en: 'Reported for England, Wales and Northern Ireland, and for Scotland (see the dots)' },
+      },
+    },
+    {
+      id: 'dialysis-public',
+      label: { zh: '公立醫療能不能洗腎', en: 'Dialysis in public health care' },
+      description: {
+        zh: '各國政府回答 WHO 的非傳染病國家能力調查：公立醫療體系是不是普遍提供透析（2015–2021 年，每兩年）。2021 年 137 國可以、47 國不行（多在非洲與太平洋島國），10 國沒有回答或不知道。是政府自己回答的「有沒有普遍提供」，不是有多少人洗得到。台灣不在調查裡，全民健保給付透析，編成「可以」。',
+        en: 'Government answers to the WHO Noncommunicable Disease Country Capacity Survey: is dialysis generally available in the public health system (2015–2021, every two years)? In 2021, 137 countries said yes and 47 no (mostly in Africa and the Pacific islands); 10 did not answer or did not know. It is a self-reported yes or no, not how many people get treatment. Taiwan is not in the survey; National Health Insurance covers dialysis, so it is coded as available.',
+      },
+      unit: '',
+      file: 'dialysis-public.json',
+      layer: { kind: 'categorical', categories: DIALYSIS_PUBLIC, ordinal: true },
+      format: (v) => tr(DIALYSIS_PUBLIC.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' }),
       unranked: true,
       rankingBars: false,
       panelChart: false,

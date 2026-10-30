@@ -10,7 +10,10 @@
   非歐洲 OECD 國家，其餘用 UNdata（Demographic Yearbook）的結婚、離婚對數除以 WPP 2024 的年中人口。台灣用戶政司。
 - 非婚生子女比例：Eurostat（demo_find 的 NMARPCT），歐洲以外的 OECD 國家用 OECD Family Database（SF2.4）。台灣用戶政司。
 - 單人家戶比例：歐洲用 Eurostat 的勞動力調查（lfst_hhnhtych，一個成人、沒有小孩的家戶），更早的年份與其他國家用
-  聯合國的家戶規模資料庫（2022）。台灣用主計總處家庭收支調查。
+  聯合國的家戶規模資料庫（2026）。台灣用主計總處家庭收支調查。
+- 單親家戶、三代同堂、隔代家戶（祖孫）的比例：聯合國的家戶規模資料庫（2026），台灣用主計總處家庭收支調查的
+  家庭組織型態（data.gov.tw 27963）。60 歲以上獨居的比例：聯合國的老人居住安排資料庫（2026），台灣沒有。
+- 一夫多妻的法律地位：自行整理的表（`sources/polygamy.py`，依維基百科，CC BY-SA 4.0），只有 2026 年。
 - 同性伴侶的法律地位：自行整理的表（`sources/same_sex_unions.py`，依維基百科，CC BY-SA 4.0），1989–2026 年每年年底的狀態。
 - 側欄：台灣另外有 `taiwan.json`（結婚、離婚對數與其中的相同性別、初婚年齡），見 src/topics/panels/MarriagePanel.tsx。
 """
@@ -19,7 +22,7 @@ from __future__ import annotations
 import json
 
 from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
-from sources import eurostat, fies, oecd_family, ris_marriage, same_sex_unions, un_households, undata_dyb, undesa_wmd, wpp
+from sources import eurostat, fies, oecd_family, ris_marriage, polygamy, same_sex_unions, un_households, undata_dyb, undesa_wmd, wpp
 
 Series = dict[str, dict[int, float]]
 TAIWAN = "TWN"
@@ -29,6 +32,8 @@ LAST_POP_YEAR = 2025  # WPP 2024 的 2024、2025 年是推估，當分母夠用
 WITHIN = {
     "age-women": 10, "age-men": 10, "married": 10, "never-married": 10,
     "marriage-rate": 5, "divorce-rate": 5, "births-outside": 5, "one-person": 10,
+    # 家戶組成大多來自普查、DHS、MICS，各國隔 5–10 年才一次
+    "single-parent": 15, "three-generation": 15, "skip-generation": 15, "older-alone": 15,
 }
 # OECD 的平均初婚年齡：墨西哥含再婚，不收（改用聯合國的 SMAM）；澳洲、紐西蘭、美國是中位數，照收但附註寫明
 # （聯合國的 SMAM 美國只到 2010 年、紐西蘭只到 2013 年）
@@ -82,6 +87,13 @@ TAIWAN_NOTES = {
         "內政部戶政司：出生登記時生母沒有婚姻關係的「非婚生」占出生數的比例（按登記日期，不含無依兒童）",
         "Department of Household Registration: births registered as born outside marriage, as a share of all births "
         "(by date of registration, excluding foundlings)",
+    ),
+    "household-types": (
+        "主計總處家庭收支調查的家庭組織型態（{kind}）占全部家庭戶的比例，跟聯合國的定義不完全相同；"
+        "2025 年的總戶數比 2024 年多約 50 萬戶，前後兩年可能不完全可比",
+        "DGBAS Survey of Family Income and Expenditure: {kind_en} as a share of all households, a definition close to "
+        "but not the same as the UN's; total households in 2025 are about 500,000 more than in 2024, so the two years "
+        "may not be fully comparable",
     ),
     "one-person": (
         "主計總處家庭收支調查：家庭戶中只有 1 人的比例。戶籍登記的「單獨生活戶」包含很多只是把戶籍分開的人，比例高很多，不用",
@@ -247,7 +259,8 @@ def build() -> None:
     total_hh = eurostat.series("lfst_hhnhtych", freq="A", agechild="TOTAL", n_child="TOTAL", phhcomp="TOTAL", unit="THS_HH")
     single = eurostat.series("lfst_hhnhtych", freq="A", agechild="TOTAL", n_child="TOTAL", phhcomp="A1_NCH", unit="THS_HH")
     one = {c: {y: v / total_hh[c][y] * 100 for y, v in s.items() if total_hh.get(c, {}).get(y)} for c, s in single.items()}
-    un = un_households.one_person_share()
+    composition = un_households.composition_2026()
+    un = composition["one-person"]
     notes_zh, notes_en = {}, {}
     for iso3, values in un.items():
         if not one.get(iso3):
@@ -263,12 +276,32 @@ def build() -> None:
     notes_zh[TAIWAN], notes_en[TAIWAN] = TAIWAN_NOTES["one-person"]
     write("one-person", "%", one, 1, (notes_zh, notes_en))
 
+    # ── 單親、三代同堂、隔代家戶；60 歲以上獨居 ──────────────
+    taiwan_types = fies.household_types()
+    for key, kind, kind_en, tw_key in (
+        ("single-parent", "單親家庭：父或母與未婚子女", "single-parent households: a father or mother with unmarried children", "單親"),
+        ("three-generation", "三代家庭：祖父母、父母與未婚子女", "three-generation households: grandparents, parents and unmarried children", "三代"),
+        ("skip-generation", "祖孫家庭：祖父母與孫子女", "grandparent–grandchild households", "祖孫"),
+    ):
+        series = dict(composition[key])
+        series[TAIWAN] = taiwan_types[tw_key]
+        zh, en = TAIWAN_NOTES["household-types"]
+        write(key, "%", series, 1, ({TAIWAN: zh.format(kind=kind)}, {TAIWAN: en.format(kind_en=kind_en)}))
+    write("older-alone", "%", un_households.older_alone_2026(), 1)
+
     # ── 同性伴侶的法律地位 ────────────────────────────────────
     status, status_notes = same_sex_unions.status(countries)
     years = list(range(same_sex_unions.FIRST_YEAR, same_sex_unions.LAST_YEAR + 1))
     write_json(out / "same-sex.json", indicator_file(
         "same-sex", "", years, {c: to_series(s, years, 0) for c, s in status.items()},
         notes={c: n[0] for c, n in status_notes.items()}, notesEn={c: n[1] for c, n in status_notes.items()},
+    ))
+
+    # ── 一夫多妻的法律地位（只有 2026 年）────────────────────
+    poly, poly_notes = polygamy.status(countries)
+    write_json(out / "polygamy.json", indicator_file(
+        "polygamy", "", [polygamy.YEAR], {c: [v] for c, v in poly.items()},
+        notes={c: n[0] for c, n in poly_notes.items()}, notesEn={c: n[1] for c, n in poly_notes.items()},
     ))
 
     # ── 台灣側欄 ──────────────────────────────────────────────
@@ -280,6 +313,6 @@ def build() -> None:
     })
     write_json(out / "manifest.json", {
         "topic": "marriage", "generatedAt": now_iso(),
-        "source": "UN DESA World Marriage Data 2019; UNdata; Eurostat; OECD Family Database; UN DESA household database; "
+        "source": "UN DESA World Marriage Data 2019; UNdata; Eurostat; OECD Family Database; UN DESA household databases 2026; "
                   "WPP 2024; 內政部戶政司; 主計總處; Wikipedia",
     })

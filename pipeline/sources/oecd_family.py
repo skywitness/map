@@ -85,3 +85,36 @@ def mean_age_first_marriage() -> dict[str, Series]:
 def births_outside_marriage() -> Series:
     """非婚生子女占所有活產的比例（%）。"""
     return _by_country(BIRTHS_FILE, "Births_outside_marriage")
+
+
+CHILDLESS_FILE = "SF_2-5-Childlessness.xlsx"
+# SF2.5 的附註：欄位的出生年跟實際的世代不同的國家（只列 HFD Lite 沒有、要用這張表的國家）
+CHILDLESS_COHORT = {
+    ("ITA", 1975): 1978,  # 「data concerns ... the 1978 cohort for Italy」
+    ("DEU", 1975): 1976,  # 1975–1977 年生
+}
+
+
+def childlessness() -> Series:
+    """SF2.5「Definitive childlessness」（2024-09-10）：{iso3: {出生年: 終身沒有小孩的女性比例（%）}}。
+
+    Chart SF2.5.A 的表：一列是一國，出生年在表頭（1935、1940…1975，不是每年）；大多數國家轉載 HFD，
+    德國、義大利、法國、韓國、中國、墨西哥、英格蘭與威爾斯是各國統計機關的數字（英格蘭與威爾斯當成英國）。
+    """
+    rows = _rows(CHILDLESS_FILE, "Chart SF2.5.A")
+    header = next(r for r in rows if sum(1 for c in r if isinstance(c, int) and 1900 < c < 2000) >= 5)
+    years = {i: c for i, c in enumerate(header) if isinstance(c, int) and 1900 < c < 2000}
+    names = {"England and Wales": "GBR", **NAMES}
+    out: Series = {}
+    for row in rows[rows.index(header) + 1 :]:
+        name = next((c.strip() for c in row if isinstance(c, str) and c.strip()), None)
+        if not name or name.startswith("Notes"):
+            break
+        iso3 = names.get(name) or to_iso3(name) or from_name(name)
+        if not iso3:
+            raise RuntimeError(f"SF2.5 的國名對不到代碼：{name}")
+        for col, year in years.items():
+            value = _number(row[col]) if col < len(row) else None
+            if value is not None:
+                out.setdefault(iso3, {})[CHILDLESS_COHORT.get((iso3, year), year)] = value
+    return out

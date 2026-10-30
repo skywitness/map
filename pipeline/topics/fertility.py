@@ -11,7 +11,10 @@
   - 母親的平均生育年齡：人口動態指標檔的 MAC（所有胎次的平均，不是第一胎）。
   - 扶幼比（0–14 歲 ÷ 15–64 歲 × 100）、總撫養比（扶幼加扶老）：五歲年齡組人口自己算。
   - 人口金字塔的形狀（類別）：0–14 歲占總人口 30% 以上是年輕型、65 歲以上 20% 以上是高齡型、其他是壯年型
-    （門檻是自訂的，沒有國際通用的定義；兩個都符合的情況 WPP 裡沒有）。
+    （門檻是自訂的，沒有國際通用的定義；兩個都符合的情況 WPP 裡沒有）。- 2026-10-30 擴充（製作手冊第六批 85）：沒有小孩的女性比例（childless.json）。時間軸是出生年（不是年份）：
+  同一年出生的女性到生育年齡結束時一直沒有生小孩的比例。Human Fertility Database 的 HFD Lite（CC BY 4.0，
+  25 國含台灣）；HFD Lite 沒有的德國、義大利、法國、韓國、中國、墨西哥、英國用 OECD Family Database SF2.5
+  （各國統計機關的數字，每 5 年一個世代）。不是 WPP，所以不跟其他指標共用年份與推估的標記。
 
 台灣：WPP 本身有台灣（跟人口主題一樣直接用 WPP），沒有改用內政部的數字：
 - 2023 年以前跟內政部很接近（總生育率 0.87 對 0.865），差異主要是 WPP 用年中人口、內政部用年底戶籍人口。
@@ -28,7 +31,7 @@ import gzip
 import math
 
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
-from sources import wpp
+from sources import hfd, oecd_family, wpp
 
 FIRST_YEAR, LAST_YEAR = 1950, 2100
 PROJECTION_FROM = 2024  # WPP 2024：2023 年以前是估計值，之後是推估值
@@ -182,8 +185,49 @@ def _pyramid(by_year: dict[int, dict[str, list[float]]]) -> dict:
     }
 
 
+CHILDLESS_YEARS = list(range(1935, 1982))  # HFD Lite 的出生世代
+CHILDLESS_WITHIN = 16  # 各國最新的世代不同（墨西哥 1965、韓國與中國 1970 年生……丹麥 1981 年生）
+# OECD SF2.5 的國家（HFD Lite 沒有）：附註寫來源與表的附註
+CHILDLESS_OECD_NOTES = {
+    "DEU": ("德國聯邦統計局（經 OECD Family Database）；1955 年是 1954–1956 年生，1976 年是 1975–1977 年生",
+            "Destatis via the OECD Family Database; 1955 covers women born 1954–1956 and 1976 those born 1975–1977"),
+    "ITA": ("義大利國家統計局（經 OECD Family Database）", "Istat via the OECD Family Database"),
+    "FRA": ("法國國家統計局（經 OECD Family Database）；1935 年是 1931–1935 年生",
+            "INSEE via the OECD Family Database; 1935 covers women born 1931–1935"),
+    "GBR": ("英格蘭與威爾斯（英國國家統計局，經 OECD Family Database）",
+            "England and Wales (Office for National Statistics) via the OECD Family Database"),
+    "KOR": ("韓國統計廳（經 OECD Family Database）；普查只問有過婚姻的女性的子女數（韓國的非婚生很少）",
+            "Statistics Korea via the OECD Family Database; the census asked only ever-married women about their children (births outside marriage are rare in Korea)"),
+    "CHN": ("中國國家統計局（經 OECD Family Database）；1935、1955 年是 1931–1935、1951–1955 年生，依 1995 年的 1% 人口抽樣調查，1970 年生依 2015 年的",
+            "National Bureau of Statistics of China via the OECD Family Database; 1935 and 1955 cover women born 1931–1935 and 1951–1955, from the 1995 1% population sample survey, and 1970 from the 2015 survey"),
+    "MEX": ("墨西哥國家統計局（經 OECD Family Database）；1960 年以前出生的依普查（45 歲時），之後依 2006 年的人口動態調查",
+            "INEGI via the OECD Family Database; cohorts born before 1960 from censuses (at age 45), later ones from the 2006 demographic dynamics survey"),
+}
+
+
+def build_childless(out) -> None:
+    """沒有小孩的女性比例（出生世代）：HFD Lite，沒有的國家用 OECD SF2.5"""
+    series = hfd.cohort_childlessness()
+    oecd = oecd_family.childlessness()
+    notes, notes_en = {}, {}
+    for iso3, values in oecd.items():
+        if iso3 not in series:
+            series[iso3] = values
+            notes[iso3], notes_en[iso3] = CHILDLESS_OECD_NOTES[iso3]
+    values = {
+        c: [round(s[y], 2) if y in s else None for y in CHILDLESS_YEARS]
+        for c, s in sorted(series.items())
+    }
+    write_json(out / "childless.json", indicator_file(
+        "childless", "%", CHILDLESS_YEARS, values, latestWithin=CHILDLESS_WITHIN, notes=notes, notesEn=notes_en,
+    ))
+    latest = sorted(((s[max(s)], c, max(s)) for c, s in series.items()), reverse=True)
+    print(f"  沒有小孩的女性 {len(series)} 國，最新世代最高 {latest[:4]}，最低 {latest[-3:]}")
+
+
 def build() -> None:
     out = OUT_DIR / "topics" / "fertility"
+    build_childless(out)
     series, world = _demographic()
 
     by_age = _by_age()
