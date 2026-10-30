@@ -3635,6 +3635,13 @@ pipeline/
     - **資料**：房價的檔（`real-price-*.json`、`price-*.json`、`real-rent-5y.json`、`index/`、`ltavg/`、`taiwan.json`）搬到 `public/data/topics/housing/`，檔名沒有重複；pipeline 的 `house-prices` 步驟輸出到 `housing/`，兩個步驟的 `manifest.json` 改用 `common.write_manifest_part()`。這次兩個步驟都沒能重跑：內政部不動產資訊平台（pip.moi.gov.tw）的憑證缺 Subject Key Identifier，把它加進 `RELAXED_X509_HOSTS` 的改動被 cloud session 的自動權限擋下（要使用者同意）；只改了輸出路徑，資料檔原樣搬過來。
     - **轉址**（第 197 點）：`house-prices` → 住宅與房價的實質房價 10 年，指標 id 不變。房價的縮圖、預覽圖刪掉；住宅的預設畫面沒有變，縮圖不重做（預覽圖的名稱與指標清單在建置時依主題目錄產生，`og/housing.jpg` 重新產生）。
     - **授權**：沒有變（第 12 點：OECD 資料條款、BIS 統計使用條款、政府資料開放授權條款，住宅的 Eurostat、UN DESA、WDI）。
+202. **企業與品牌**（最古老的公司、品牌的發源地合成一個主題，經濟類，2026-10-30，製作手冊第七批 120；`src/topics/companies.ts`，兩個部分照舊在 `oldest-companies.ts`、`brands.ts`）：
+    - **合併**：新主題「企業與品牌」（`companies`），2 個指標：1700 年以前成立的公司（預設，時間軸是成立年份）、品牌數量（子項目時尚、汽車）。兩個檔改成匯出 `oldestCompaniesPart`、`brandsPart`，`companies.ts` 組起來；資料來源合併（Wikidata 只列一次）、說明依「最古老的公司：…品牌：…」接起來。**便利商店與連鎖品牌不併**（店數密度，性質不同）。
+    - **原本在主題上的設定改到指標上**：公司的預設年份 1699、台灣的「沒有（見附註）」改成指標的 `defaultYear`、`noValue`；品牌的子項目改成指標自己的 `dimension`，`timeless` 改成指標的 `timeless`（第 198 點）。兩個點圖層加上 `indicators`，只在自己的指標畫。品牌的子項目改叫「時尚」「汽車」、指標叫「品牌數量」：控制列跟另一個指標並排時看得懂，標題照樣是「汽車品牌數量」（英文 Car brands）。
+    - **側欄**：`panels/CompaniesPanel.tsx` 依指標換 `BrandsPanel` 或 `OldestCompaniesPanel`。
+    - **資料**：`public/data/topics/companies/`（公司的 `companies.json`、`list.json`、`points.json`，品牌的 `count/`、`list/`、`points/`，沒有重複）；pipeline 的 `oldest-companies`、`brands` 兩個步驟輸出到這裡，`manifest.json` 用 `common.write_manifest_part()`。
+    - **轉址**（第 197 點）：`oldest-companies` → 1700 年以前成立的公司、`brands` → 品牌數量（子項目 id 不變，`t/brands/?item=cars` 照樣打開汽車）。舊主題的縮圖、預覽圖刪掉，新主題重新產生；圖示 `briefcase-business`。
+    - **授權**：沒有變（英文維基百科 CC BY-SA 4.0，這個主題的資料檔照樣依 CC BY-SA 4.0 分享；Wikidata CC0）。
 209. **中國的海外貸款換新版**（資料更新，2026-10-30，製作手冊第七批 127；`pipeline/sources/aiddata.py`、`pipeline/topics/china_lending.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`）：
     - **來源換成 AidData 的 China's Global Loans and Grants Dataset, Version 1.0**（CLG-Global 1.0，2025-11-18 發布；使用者選全球版，不是只有中低所得國的 CLG-LMIC 1.0）：承諾年 2000–2023，33,580 筆，搜尋過 217 個低、中、高所得國家與地區（CountryList 工作表），200 個有項目、17 個沒有（值是 0）。zip 43.8 MB，xlsx 40.6 MB 的 `CLG-Global 1.0_Records` 工作表（80 多欄）openpyxl 讀一次約 35 秒，只留用到的 13 欄存成 `.cache/aiddata/clg1-records.pkl`。授權見第 12 點。
     - **欄位跟 GCDF 3.0 的對照**（欄位定義 PDF 與 Guide 工作表）：欄名改成底線（`Recommended_for_Aggregates`、`Country_of_Activity_ISO3`、`Commitment_Year`、`Flow_Type_Simplified`、`Sector_Code`、`AidData_Record_ID`）；金額換成 2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`、`Adjusted_Amount_Nominal_USD`，一樣扣掉央行換匯與紓困貸款的短期展期）；年份、部門代碼與編號讀出來是浮點數，`_clean()` 轉整數。`Flow_Class` 多了 OFIC（高所得國的官方融資，不分 ODA／OOF），這個主題沒有用到。新增的 `Source_Dataset`（CLG-LMIC 1.0 23,816 筆、CLG-HIC 1.0 9,764 筆）也存進快取，之後要分開看可以用。CountryList 多了兩欄（所得分類、ODA 資格），筆數在第 4 欄；pycountry 對不到的只剩美屬維京群島（United States Virgin Islands）與巴勒斯坦（West Bank and Gaza Strip）。
@@ -3730,14 +3737,6 @@ pipeline/
     - **指標**：進口量（EIA）、出口量（EIA），比例圓，子項目只有天然氣與煤（`GAS_COAL`，id 跟燃料共用；石油的進出口看 BACI 的流向）。數值是原本側欄表用的同一組 EIA 系列（天然氣 `26-3-BCM`、`26-4-BCM` 十億立方公尺，管道與 LNG 合計；煤 `7-3-MT`、`7-4-MT` 換成百萬公噸），`eia-import/`、`eia-export/` 兩個資料夾（共約 97 KB），世界值是 EIA 的 WORL，年份依 `year_span()`（天然氣 1990–2024、煤 1980–2024），附註跟產量、消費量一樣（台灣的 EIA 估計）。
     - 同一個 EIA 檔（INTL.zip 2026-10-19 版，公有領域）；只重跑 `eia_files()`，其他 EIA 的檔重跑後不變。2024 年台灣：天然氣進口 28.9 十億立方公尺、煤進口 57.0 百萬公噸（第 5 名）。
     - 跟下面 BACI 的流向不同：EIA 是各國能源統計的數量，不分夥伴；BACI 是貿易申報（台灣的數字來自貿易夥伴）。說明寫明。
-
-202. **企業與品牌**（最古老的公司、品牌的發源地合成一個主題，經濟類，2026-10-30，製作手冊第七批 120；`src/topics/companies.ts`，兩個部分照舊在 `oldest-companies.ts`、`brands.ts`）：
-    - **合併**：新主題「企業與品牌」（`companies`），2 個指標：1700 年以前成立的公司（預設，時間軸是成立年份）、品牌數量（子項目時尚、汽車）。兩個檔改成匯出 `oldestCompaniesPart`、`brandsPart`，`companies.ts` 組起來；資料來源合併（Wikidata 只列一次）、說明依「最古老的公司：…品牌：…」接起來。**便利商店與連鎖品牌不併**（店數密度，性質不同）。
-    - **原本在主題上的設定改到指標上**：公司的預設年份 1699、台灣的「沒有（見附註）」改成指標的 `defaultYear`、`noValue`；品牌的子項目改成指標自己的 `dimension`，`timeless` 改成指標的 `timeless`（第 198 點）。兩個點圖層加上 `indicators`，只在自己的指標畫。品牌的子項目改叫「時尚」「汽車」、指標叫「品牌數量」：控制列跟另一個指標並排時看得懂，標題照樣是「汽車品牌數量」（英文 Car brands）。
-    - **側欄**：`panels/CompaniesPanel.tsx` 依指標換 `BrandsPanel` 或 `OldestCompaniesPanel`。
-    - **資料**：`public/data/topics/companies/`（公司的 `companies.json`、`list.json`、`points.json`，品牌的 `count/`、`list/`、`points/`，沒有重複）；pipeline 的 `oldest-companies`、`brands` 兩個步驟輸出到這裡，`manifest.json` 用 `common.write_manifest_part()`。
-    - **轉址**（第 197 點）：`oldest-companies` → 1700 年以前成立的公司、`brands` → 品牌數量（子項目 id 不變，`t/brands/?item=cars` 照樣打開汽車）。舊主題的縮圖、預覽圖刪掉，新主題重新產生；圖示 `briefcase-business`。
-    - **授權**：沒有變（英文維基百科 CC BY-SA 4.0，這個主題的資料檔照樣依 CC BY-SA 4.0 分享；Wikidata CC0）。
 
 ## 9. 之後可以做的
 
