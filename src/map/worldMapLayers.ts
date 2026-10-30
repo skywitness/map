@@ -57,8 +57,11 @@ export const FILL_FADE_SHARE = 0.6;
 export const FILL_FADE_MIN_MS = 60;
 /** 換指標、主題時的漸變（比換年份慢，看得出整張地圖換了；新的資料到了才開始，見 App.tsx 的 mapShot） */
 export const FILL_SWITCH_MS = 450;
-/** 選取的國家外框底下光暈的寬度（px）；新選到時從更寬收到這個寬度（SELECT_PULSE_MS） */
-export const HALO_WIDTH = 6.5;
+/**
+ * 選取的國家外框底下光暈的寬度（px）；新選到時從更寬收到這個寬度（SELECT_PULSE_MS）。
+ * 2026-10-30 起是 0：使用者不要選取的國界加粗（data-highlight 跟一般國界一樣細），圖層與動畫的程式留著，要恢復改回 6.5
+ */
+export const HALO_WIDTH = 0;
 export const SELECT_PULSE_MS = 450;
 /** 滑過的國家蓋一層白色（加亮）的不透明度 */
 export const HOVER_LIGHTEN = 0.16;
@@ -377,12 +380,25 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
       },
     },
     {
+      // 選取的國家：外框跟一般國界一樣細（data-border 的寬度），只是用全黑（深色介面全白）、不透明，看得出選到哪一國；
+      // 2026-10-30 使用者不要加粗（原本 2.4px 加上 6.5px 的淺色光暈，新選到時光暈從寬收窄）。滑過的國家照舊 1.4px
       id: 'data-highlight',
       type: 'line',
       source: 'countries',
+      layout: { 'line-join': 'round' },
       paint: {
         'line-color': ink,
-        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.4, hovered, 1.4, 0],
+        'line-width': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          1,
+          ['case', ['boolean', ['feature-state', 'selected'], false], 0.5, hovered, 1.4, 0],
+          6,
+          ['case', ['boolean', ['feature-state', 'selected'], false], 0.9, hovered, 1.4, 0],
+          10,
+          ['case', ['boolean', ['feature-state', 'selected'], false], 1.4, hovered, 1.4, 0],
+        ],
       },
     },
     {

@@ -621,6 +621,7 @@ export function WorldMap(props: WorldMapProps) {
   const hoverIdRef = useRef<string | null>(null);
   const dragRef = useRef<{ start: [number, number]; startPoint: { x: number; y: number } } | null>(null);
   const suppressClickRef = useRef(false);
+  const clickedRef = useRef<{ iso3: string; at: [number, number] } | null>(null);
 
   const bindEvents = (map: MaplibreMap) =>
     bindMapEvents(map, {
@@ -631,6 +632,7 @@ export function WorldMap(props: WorldMapProps) {
       hoverIdRef,
       dragRef,
       suppressClickRef,
+      clickedRef,
       latest,
       setHover,
       setBoxMode,
@@ -1223,8 +1225,15 @@ export function WorldMap(props: WorldMapProps) {
       if (selectedRef.current) map.setFeatureState({ source, id: selectedRef.current }, { selected: false });
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
-    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫
-    if (selected && selected !== selectedRef.current && map.getLayer('data-halo') && !matchMedia(REDUCED_MOTION).matches) {
+    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫。
+    // 2026-10-30 起選取不加粗、沒有光暈（HALO_WIDTH 是 0），這個動畫也不跑
+    if (
+      HALO_WIDTH > 0 &&
+      selected &&
+      selected !== selectedRef.current &&
+      map.getLayer('data-halo') &&
+      !matchMedia(REDUCED_MOTION).matches
+    ) {
       cancelAnimationFrame(pulseFrameRef.current);
       const start = performance.now();
       const step = (now: number) => {
@@ -1248,29 +1257,31 @@ export function WorldMap(props: WorldMapProps) {
       return;
     }
     if (!selected) placedRef.current = null;
-    const anchor = selected ? anchors.get(selected) : undefined;
-    if (!anchor) return;
-    const center = map.getCenter();
-    const p = map.project(anchor);
-    const canvas = map.getCanvas();
-    const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
-    const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
-    // 剛選到的國家在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變。
-    // 只在剛選到時（換成細的國界、換底圖時 anchors 會變，不要因此移動）
+    // 在地圖上點選的：以點的位置為準（點 F1 賽道、景點不會跳到國家的中心，2026-10-30 使用者要求）；
+    // 從搜尋、排名表、網址選的：國家的中心（anchors）
+    const clicked = selected && clickedRef.current?.iso3 === selected ? clickedRef.current.at : null;
+    const target = clicked ?? (selected ? anchors.get(selected) : undefined);
+    if (!target) return;
+    // 只在剛選到時移動（換成細的國界、換底圖、換主題時 anchors 會變，不要因此移動）
     const fresh = placedRef.current !== selected;
     placedRef.current = selected;
+    clickedRef.current = null;
+    if (!fresh) return;
+    const center = map.getCenter();
+    const p = map.project(target);
+    const canvas = map.getCanvas();
+    const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
+    const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], target) > Math.PI / 2.4;
+    // 在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變
     const inset = mapInsets(map.getContainer());
     const margin = Math.min(32, canvas.clientWidth / 10);
     const covered =
-      fresh &&
-      (p.x < margin ||
-        p.y < margin ||
-        p.x > canvas.clientWidth - inset.right - margin ||
-        p.y > canvas.clientHeight - inset.bottom - margin);
+      p.x < margin || p.y < margin || p.x > canvas.clientWidth - inset.right - margin || p.y > canvas.clientHeight - inset.bottom - margin;
     if (offScreen || behindGlobe || covered) {
       map.easeTo({
-        center: anchor,
-        zoom: offScreen || behindGlobe ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
+        center: target,
+        // 點選的位置本來就在眼前：只平移、不縮放
+        zoom: !clicked && (offScreen || behindGlobe) ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
         offset: [-inset.right / 2, -inset.bottom / 2],
         duration: 800,
       });
