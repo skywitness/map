@@ -286,6 +286,8 @@ STEPS = {
     "busiest-airports": "topics.busiest_airports",
     # 觀光鐵道與登山鐵路：Wikidata（用 QLever 查，含子類別）的保存、齒軌、登山、森林鐵路；第一次查約 1 分鐘
     "heritage-railways": "topics.heritage_railways",
+    # 月球與火星的登陸：英文維基「List of landings on extraterrestrial bodies」（固定版本）的月球、火星兩張表；不到 1 秒
+    "landings": "topics.landings",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
