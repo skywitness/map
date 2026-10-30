@@ -102,8 +102,15 @@ def build_recipients() -> None:
     }
     total = {k: s for k, s in total.items() if s}
     years = _years(total)
+    # 台灣沒有可以比的數字，地圖照舊留白，寫在附註（第七批 135，DESIGN.md 第 217 點）
     write_json(OUT / "ltc-recipients.json", indicator_file(
         "ltc-recipients", "%", years, {k: to_series(s, years, 1) for k, s in sorted(total.items())}, latestWithin=5,
+        notes={"TWN": "長照 2.0 的照顧服務（居家服務、日間照顧、家庭托顧）2025 年全年服務 431,420 人（衛福部社會福利公務統計表 4.1，"
+                      "全年歸人計算），沒有年齡別，又是全年累計、不是某一天的人數，不能跟 OECD 的 65 歲以上比例比"},
+        notesEn={"TWN": "Long-term Care 2.0 care services (home care, day care and family care) served 431,420 people over the whole "
+                        "of 2025 (Ministry of Health and Welfare social welfare statistics, table 4.1, unique persons in the year); "
+                        "there is no breakdown by age and it is a count over the year, not on one day, so it cannot be compared "
+                        "with the OECD share of people aged 65+"},
     ))
     latest = sorted(((s[max(s)], k, max(s)) for k, s in total.items()), reverse=True)
     print(f"  使用長照：{len(total)} 國，{years[0]}–{years[-1]}；最多 {latest[:6]}；最少 {latest[-3:]}")
