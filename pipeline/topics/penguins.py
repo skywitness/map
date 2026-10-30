@@ -8,7 +8,7 @@
 **一個繁殖季同一種企鵝有好幾筆時**（不同的計數單位、不同的調查）：依巢、成鳥、幼鳥的順序取，同一種單位取準確度最好的
 （accuracy 1 最好，±5%），再相同取數量大的。計數單位不同的數字不能相加，前端寫明單位。
 
-**輸出**（public/data/topics/penguins/）：
+**輸出**（public/data/topics/antarctica/）：
 - sites/<物種>.json（點）：每個繁殖地一筆，欄位 a、c、g、e、m、k 是六種企鵝的普查序列（字串「繁殖季:數量:單位;…」，
   單位 n 巢、a 成鳥、c 幼鳥；數量 -1 是有繁殖、沒有計數，0 是那一季沒有企鵝繁殖），前端依時間軸取那一季以前最近一次的普查（`src/topics/penguins.ts` 的 `latestCount`）。
   all.json 有全部的繁殖地，其他檔只有那一種企鵝的繁殖地與序列。
@@ -19,9 +19,9 @@ from __future__ import annotations
 import csv
 from collections import defaultdict
 
-from common import OUT_DIR, download, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, download, indicator_file, now_iso, points_file, write_json, write_manifest_part
 
-OUT = OUT_DIR / "topics" / "penguins"
+OUT = OUT_DIR / "topics" / "antarctica"  # 南極主題（2026-10-30 研究站、企鵝、冰下湖合併）
 URL = "https://www.penguinmap.com/mapppd/DownloadAll"
 # 物種：CSV 的 common_name → 欄位與檔名（順序同前端 src/topics/penguins.ts 的 SPECIES）
 SPECIES = {
@@ -90,8 +90,7 @@ def build() -> None:
     print(f"  {len(rows):,} 筆普查、{len(sites)} 個繁殖地、{len(best):,} 個（繁殖地、物種、繁殖季）；"
           f"繁殖季 {seasons[0]}–{seasons[-1]}；最大的一筆 {largest[0]} {largest[1][1]:,} {largest[1][2]}")
     print("  每種的繁殖地：" + "、".join(f"{k} {v}" for k, v in counts.items()))
-    write_json(OUT / "manifest.json", {
-        "topic": "penguins", "generatedAt": now_iso(),
+    write_manifest_part(OUT, "antarctica", "penguins", {
         "source": "MAPPPD v5.0 (Oceanites, Inc. 2026, https://www.penguinmap.com); non-commercial use per MAPPPD Terms of Use v3.0",
         "rows": len(rows), "sites": len(sites), "seasons": [seasons[0], seasons[-1]], "sitesBySpecies": counts,
     })

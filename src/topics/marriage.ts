@@ -42,6 +42,11 @@ export const marriage: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
     {
+      name: 'UN DESA Population Division, Estimates and Projections of Women of Reproductive Age Who Are Married or in a Union 2024',
+      url: 'https://www.un.org/development/desa/pd/data/world-marriage-data',
+      license: 'CC BY 3.0 IGO',
+    },
+    {
       name: {
         zh: 'UNdata，Demographic Statistics Database（聯合國統計司 Demographic Yearbook 的結婚、離婚對數）',
         en: 'UNdata, Demographic Statistics Database (UN Statistics Division, Demographic Yearbook marriages and divorces)',
@@ -177,6 +182,20 @@ export const marriage: TopicDefinition = {
       unit: '%',
       file: 'married.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 45, 50, 55, 60, 65] } },
+      format: pct,
+      formatTick: pctTick,
+      unranked: true,
+    },
+    {
+      id: 'union-women',
+      label: { zh: '15–49 歲女性有偶或同居', en: 'Women 15–49 married or in a union' },
+      description: {
+        zh: '15–49 歲女性目前有配偶或同居的比例。聯合國人口司用各國的普查與調查建模估計，1970–2050 年，最後一次普查或調查以後是推估（各國不同，附註寫明）。跟「15 歲以上有偶比例」不同：只算育齡女性，同居也算。',
+        en: 'Share of women aged 15–49 who are currently married or living with a partner. Modelled by the UN Population Division from national censuses and surveys for 1970–2050; years after the latest census or survey are projections (this differs by country and is given in the notes). Unlike “Married, ages 15+”, it covers only women of reproductive age and counts cohabitation too.',
+      },
+      unit: '%',
+      file: 'union-women.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 45, 50, 55, 60, 70] } },
       format: pct,
       formatTick: pctTick,
       unranked: true,

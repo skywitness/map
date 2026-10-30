@@ -317,8 +317,8 @@ export function App() {
     if (!topicPointer || !features) return undefined;
     const countryAt = countryLocator(features);
     return (lngLat: [number, number], iso3: string | null) =>
-      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year });
-  }, [topicPointer, features, countries, indicatorId, year]);
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at });
+  }, [topicPointer, features, countries, indicatorId, year, at]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -422,7 +422,7 @@ export function App() {
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
   // 不隨時間變化的資料（海拔），或時刻主題裡不隨時刻變的指標（晝長年較差）：標題、檔名、tooltip、排名表都不寫年份
   const per = at ? indicator.derive?.per : undefined;
-  const timeless = Boolean(topic.timeless) || per === 'fixed';
+  const timeless = Boolean(topic.timeless || indicator.timeless) || per === 'fixed';
   // 指標的 timeAxis 改寫了年份的意思（「1996 年出生」）：標題、tooltip、排名表用它；
   // 時刻主題寫那一刻（「6月21日 14:05」），只跟日期有關的指標只寫日期
   const yearText =
