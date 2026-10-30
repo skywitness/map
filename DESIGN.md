@@ -3629,6 +3629,13 @@ pipeline/
     - **資料**：`moon.json`、`moon-soft.json`、`mars.json`、`mars-soft.json` 搬到 `public/data/topics/space/`，側欄的清單 `list.json` 改名 `landings.json`；pipeline 的 `landings` 步驟輸出到 `space/`，`space` 與 `landings` 兩個步驟的 `manifest.json` 都改用 `common.write_manifest_part()`（第 198 點）。`landings` 這次重跑被維基百科的 429 擋下，只改了輸出路徑，資料檔原樣搬過來。
     - **轉址**（第 197 點）：`landings` → 太空的抵達月球表面的次數，指標 id 不變（`t/landings/?ind=mars-soft` 照樣打開）。舊主題的縮圖、預覽圖刪掉；太空的預設畫面沒有變，縮圖不重做。
     - **授權**：沒有變（GCAT CC BY 4.0、英文維基百科 CC BY-SA 4.0 的資料檔照樣依 CC BY-SA 4.0 分享）。
+201. **住宅與房價**（「各國住宅」與「房價與居住負擔」合成一個主題，社會類，2026-10-30，製作手冊第七批 119；`src/topics/housing.ts`、`src/topics/house-prices.ts`）：
+    - **合併**：保留住宅的 id `housing`，主題名稱改成「住宅與房價」，11 個指標（控制列是下拉選單）：住宅原本的 6 個（公寓住戶比例〔預設〕、自有住宅率、平均每戶人數、居住擁擠率、住房負擔過重率、都市貧民窟人口比例）加上房價的 5 個（實質房價 10 年、5 年、房價所得比、房價租金比、實質房租 5 年）。`house-prices.ts` 改成匯出 `housePricesPart`；資料來源、說明接在住宅後面（「房價：…」），原本兩邊互相指到對方主題的那一句拿掉。房價的指標加上自己的預設年份 2025（住宅是 2024）。兩邊的國家多半是 OECD，口徑一致。
+    - **側欄**：`panels/HousingTopicPanel.tsx` 依指標換：房價的 5 個指標用原本的 `HousePricesPanel`（實質房價、房租的折線、台灣的倍數與房貸負擔率），其他用 `HousingPanel`（住宅類型組成）。
+    - **分類**：住宅原本就在社會類，房價從經濟類拿掉（順序 124 的分類表放在「社會」的「人口與家庭」）。
+    - **資料**：房價的檔（`real-price-*.json`、`price-*.json`、`real-rent-5y.json`、`index/`、`ltavg/`、`taiwan.json`）搬到 `public/data/topics/housing/`，檔名沒有重複；pipeline 的 `house-prices` 步驟輸出到 `housing/`，兩個步驟的 `manifest.json` 改用 `common.write_manifest_part()`。這次兩個步驟都沒能重跑：內政部不動產資訊平台（pip.moi.gov.tw）的憑證缺 Subject Key Identifier，把它加進 `RELAXED_X509_HOSTS` 的改動被 cloud session 的自動權限擋下（要使用者同意）；只改了輸出路徑，資料檔原樣搬過來。
+    - **轉址**（第 197 點）：`house-prices` → 住宅與房價的實質房價 10 年，指標 id 不變。房價的縮圖、預覽圖刪掉；住宅的預設畫面沒有變，縮圖不重做（預覽圖的名稱與指標清單在建置時依主題目錄產生，`og/housing.jpg` 重新產生）。
+    - **授權**：沒有變（第 12 點：OECD 資料條款、BIS 統計使用條款、政府資料開放授權條款，住宅的 Eurostat、UN DESA、WDI）。
 209. **中國的海外貸款換新版**（資料更新，2026-10-30，製作手冊第七批 127；`pipeline/sources/aiddata.py`、`pipeline/topics/china_lending.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`）：
     - **來源換成 AidData 的 China's Global Loans and Grants Dataset, Version 1.0**（CLG-Global 1.0，2025-11-18 發布；使用者選全球版，不是只有中低所得國的 CLG-LMIC 1.0）：承諾年 2000–2023，33,580 筆，搜尋過 217 個低、中、高所得國家與地區（CountryList 工作表），200 個有項目、17 個沒有（值是 0）。zip 43.8 MB，xlsx 40.6 MB 的 `CLG-Global 1.0_Records` 工作表（80 多欄）openpyxl 讀一次約 35 秒，只留用到的 13 欄存成 `.cache/aiddata/clg1-records.pkl`。授權見第 12 點。
     - **欄位跟 GCDF 3.0 的對照**（欄位定義 PDF 與 Guide 工作表）：欄名改成底線（`Recommended_for_Aggregates`、`Country_of_Activity_ISO3`、`Commitment_Year`、`Flow_Type_Simplified`、`Sector_Code`、`AidData_Record_ID`）；金額換成 2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`、`Adjusted_Amount_Nominal_USD`，一樣扣掉央行換匯與紓困貸款的短期展期）；年份、部門代碼與編號讀出來是浮點數，`_clean()` 轉整數。`Flow_Class` 多了 OFIC（高所得國的官方融資，不分 ODA／OOF），這個主題沒有用到。新增的 `Source_Dataset`（CLG-LMIC 1.0 23,816 筆、CLG-HIC 1.0 9,764 筆）也存進快取，之後要分開看可以用。CountryList 多了兩欄（所得分類、ODA 資格），筆數在第 4 欄；pycountry 對不到的只剩美屬維京群島（United States Virgin Islands）與巴勒斯坦（West Bank and Gaza Strip）。
@@ -3715,14 +3722,6 @@ pipeline/
     - **顏色**：同一組發散色門檻；政治貪腐越高越貪腐，`reverse: true`（橘色是貪腐多）、`lowerIsBetter`（排名第 1 是最不貪腐的）。
     - **側欄**：三項指數的對照圖不變（八條線太擠）；目前的指標是新加的五項之一時，另寫這一項的估計值與 68% 可信區間。
     - 2025 年台灣：參與式 0.65（第 4 名）、審議式 0.69、平等 0.70、公民自由 0.93、政治貪腐 0.21（第 47 名；美國 0.06、中國 0.55）。資料量 0.68 → 1.7 MB（每項約 65 KB，加上可信區間兩個檔）。
-
-201. **住宅與房價**（「各國住宅」與「房價與居住負擔」合成一個主題，社會類，2026-10-30，製作手冊第七批 119；`src/topics/housing.ts`、`src/topics/house-prices.ts`）：
-    - **合併**：保留住宅的 id `housing`，主題名稱改成「住宅與房價」，11 個指標（控制列是下拉選單）：住宅原本的 6 個（公寓住戶比例〔預設〕、自有住宅率、平均每戶人數、居住擁擠率、住房負擔過重率、都市貧民窟人口比例）加上房價的 5 個（實質房價 10 年、5 年、房價所得比、房價租金比、實質房租 5 年）。`house-prices.ts` 改成匯出 `housePricesPart`；資料來源、說明接在住宅後面（「房價：…」），原本兩邊互相指到對方主題的那一句拿掉。房價的指標加上自己的預設年份 2025（住宅是 2024）。兩邊的國家多半是 OECD，口徑一致。
-    - **側欄**：`panels/HousingTopicPanel.tsx` 依指標換：房價的 5 個指標用原本的 `HousePricesPanel`（實質房價、房租的折線、台灣的倍數與房貸負擔率），其他用 `HousingPanel`（住宅類型組成）。
-    - **分類**：住宅原本就在社會類，房價從經濟類拿掉（順序 124 的分類表放在「社會」的「人口與家庭」）。
-    - **資料**：房價的檔（`real-price-*.json`、`price-*.json`、`real-rent-5y.json`、`index/`、`ltavg/`、`taiwan.json`）搬到 `public/data/topics/housing/`，檔名沒有重複；pipeline 的 `house-prices` 步驟輸出到 `housing/`，兩個步驟的 `manifest.json` 改用 `common.write_manifest_part()`。這次兩個步驟都沒能重跑：內政部不動產資訊平台（pip.moi.gov.tw）的憑證缺 Subject Key Identifier，把它加進 `RELAXED_X509_HOSTS` 的改動被 cloud session 的自動權限擋下（要使用者同意）；只改了輸出路徑，資料檔原樣搬過來。
-    - **轉址**（第 197 點）：`house-prices` → 住宅與房價的實質房價 10 年，指標 id 不變。房價的縮圖、預覽圖刪掉；住宅的預設畫面沒有變，縮圖不重做（預覽圖的名稱與指標清單在建置時依主題目錄產生，`og/housing.jpg` 重新產生）。
-    - **授權**：沒有變（第 12 點：OECD 資料條款、BIS 統計使用條款、政府資料開放授權條款，住宅的 Eurostat、UN DESA、WDI）。
 
 ## 9. 之後可以做的
 
