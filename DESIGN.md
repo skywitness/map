@@ -3732,7 +3732,7 @@ pipeline/
   - 手機的 LCP 快了 2.4 秒：LCP 是頁尾的文字，要等首頁程式跑起來（335 → 145 KB，gzip 後）。
   - 地圖出現資料只快了約 1 秒：底圖圖磚原本就不擋資料（上面「做了什麼」第 3 點），省下的主要是之後的 7 MB；手機上這 7 MB 原本要在背景下載將近一分鐘，跟換主題、開側欄搶頻寬。
 
-- **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡另加一個 source（`<原本的 id>--local`，maxzoom 3）與一個圖層，縮放 2.5（`RELIEF_LOCAL_UNTIL`，地球儀全球視角約 2，用到 3 級的圖磚）以下用它，以上照舊用 OpenFreeMap 的 4–6 級。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef` 把範圍改成空的）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
+- **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡那個 source 的網址改成自訂協定 `relief://{z}/{x}/{y}`（`WorldMap.tsx` 用 `addProtocol` 註冊 `loadReliefTile`）：0–3 級讀我們的 WebP（地球儀全球視角約縮放 2，用到 3 級的圖磚），4 級以上照舊讀 OpenFreeMap 的 PNG。一開始分成兩個 source（我們的到縮放 2.5、OpenFreeMap 的從 2.5 起），放大跨過 2.5 時新的圖磚到之前露出一塊塊空白；同一個 source 的話，MapLibre 會先放大上一級的圖磚墊著。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef`）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
 ### Service worker（`src/sw.ts`）
 
 | 內容 | 策略 | 快取名稱 | 上限 |

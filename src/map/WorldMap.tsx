@@ -65,7 +65,18 @@ import { CLASS_GRID_OPACITY } from './Overlays';
 import { syncMoon, syncNight } from './nightLayer';
 import { categoryScale } from './categories';
 import { BUBBLE_MIN_RADIUS, bubbleScale, choroplethScale, gridScale } from './scales';
-import { isNameLayer, LAND_UNTIL, labelField, loadBaseStyle, WORLD_SUFFIX, WORLD_TILES_UNTIL, worldColors, type Projection } from './style';
+import {
+  isNameLayer,
+  LAND_UNTIL,
+  labelField,
+  loadBaseStyle,
+  loadReliefTile,
+  RELIEF_PROTOCOL,
+  WORLD_SUFFIX,
+  WORLD_TILES_UNTIL,
+  worldColors,
+  type Projection,
+} from './style';
 import { GRID_PROTOCOL, gridLabels, loadGridTile, type GridLayer } from './densityGrid';
 import { FLAG_PROTOCOL, loadFlagTile, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
@@ -143,6 +154,8 @@ import { useRasterLayers } from './useRasterLayers';
 addProtocol(GRID_PROTOCOL, loadGridTile);
 // 國旗地圖的圖磚在瀏覽器裡畫（flagTiles.ts）
 addProtocol(FLAG_PROTOCOL, loadFlagTile);
+// 彩色地形的陰影點陣圖：0–3 級讀我們自己的 WebP（style.ts 的 localRelief）
+addProtocol(RELIEF_PROTOCOL, loadReliefTile);
 
 interface WorldMapProps {
   countries: CountryFeature[];
@@ -1371,9 +1384,7 @@ export function WorldMap(props: WorldMapProps) {
     const kind = indicator.layer.kind;
     const covered = flagsOn || ((kind === 'choropleth' || kind === 'categorical') && !gridOn && !(threeD && !terrain));
     for (const { id, minzoom, maxzoom } of baseRastersRef.current) {
-      // 世界視角用我們自己的陰影圖磚的那一層（style.ts 的 localRelief）只到 RELIEF_LOCAL_UNTIL：蓋住時整層不畫（範圍是空的）
-      const min = covered ? Math.max(minzoom, WORLD_TILES_UNTIL) : minzoom;
-      if (map.getLayer(id)) map.setLayerZoomRange(id, Math.min(min, maxzoom), maxzoom);
+      if (map.getLayer(id)) map.setLayerZoomRange(id, covered ? Math.max(minzoom, WORLD_TILES_UNTIL) : minzoom, maxzoom);
     }
   }, [revision, indicator.layer.kind, flagsOn, gridOn, threeD, terrain]);
 
