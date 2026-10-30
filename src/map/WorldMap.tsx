@@ -11,7 +11,7 @@
  * - 1 km 網格（densityGrid.ts）：點陣圖磚取代國家的顏色，國界、hover、點選照舊用國家的形狀
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
-import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import {
   addProtocol,
   Map as MaplibreMap,
@@ -85,6 +85,7 @@ import { BasemapMenu } from './BasemapMenu';
 import { Extremes } from './Extremes';
 import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
+import { PlacePopup } from './PlacePopup';
 import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
@@ -145,7 +146,7 @@ import {
   valueLabelLayer,
 } from './worldMapLayers';
 import { MapTooltip, MarkTooltip, PointerLines } from './MapTooltip';
-import { bindMapEvents, type MapHover } from './mapEvents';
+import { bindMapEvents, type MapHover, type MapPlace } from './mapEvents';
 import { GlobePlaceholder } from '../app/GlobePlaceholder';
 import { useCountryFills } from './useCountryFills';
 import { useValueLabels } from './useValueLabels';
@@ -333,6 +334,17 @@ export function WorldMap(props: WorldMapProps) {
     ),
   );
   const [boxMode, setBoxMode] = useState(false);
+  // 右鍵（觸控長按）那個位置的小卡片：地名、經緯度、在 Google 地圖開啟（PlacePopup.tsx）
+  const [place, setPlace] = useState<MapPlace | null>(null);
+  const closePlace = useCallback(() => setPlace(null), []);
+  // 點圖層的點：用資料檔的經緯度（地圖查到的座標經過圖磚量化，世界視角差到 0.005°，約 500 公尺）
+  const placeShown = useMemo(() => {
+    const at = place?.point;
+    if (!place || !at) return place;
+    const o = overlays.find((x) => x.def.id === at.overlay);
+    const p = o?.kind === 'points' ? o.points?.[at.index] : undefined;
+    return p && typeof p.lon === 'number' && typeof p.lat === 'number' ? { ...place, lng: p.lon, lat: p.lat } : place;
+  }, [place, overlays]);
   const [fullscreen, setFullscreen] = useState(false);
   // iPhone 的 Safari 不能讓一般元素全螢幕（只有影片可以），不放全螢幕鈕
   const canFullscreen = typeof document !== 'undefined' && document.fullscreenEnabled;
@@ -618,6 +630,7 @@ export function WorldMap(props: WorldMapProps) {
       latest,
       setHover,
       setBoxMode,
+      setPlace,
     });
 
   /* ── 切換底圖：換樣式後重新加上資料圖層，revision 加一後下面的 effect 會把資料重新套上 ── */
@@ -1820,7 +1833,20 @@ export function WorldMap(props: WorldMapProps) {
         ) : null}
       </div>
 
-      {hover && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
+      {placeShown && size && (
+        <PlacePopup
+          place={placeShown}
+          name={
+            (placeShown.point && renderPointTooltip?.(placeShown.point.overlay, placeShown.point.index)) ??
+            (placeShown.iso3 ? <div className="tt-value">{countryName(placeShown.iso3, countryTable, lang)}</div> : null)
+          }
+          width={size.width}
+          height={size.height}
+          onClose={closePlace}
+        />
+      )}
+
+      {hover && !place && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
           {hover.mark !== undefined && marks?.[hover.mark] ? (
             <MarkTooltip marks={marks} index={hover.mark} />
