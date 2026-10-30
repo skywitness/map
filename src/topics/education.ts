@@ -1,5 +1,5 @@
 import { tr } from '../i18n/lang';
-import { fixed } from '../lib/format';
+import { fixed, formatLargeTick } from '../lib/format';
 import { monthLabel, MONTHS } from './months';
 import type { CategoryDef, TopicDefinition } from './types';
 
@@ -7,6 +7,11 @@ const pct = (v: number) => `${fixed(v, 1)}%`;
 const pctTick = (v: number) => `${v}%`;
 const YEARS = { zh: '年', en: 'years' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
+const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
+const perClass = (v: number) => tr({ zh: `${fixed(v, 1)} 人`, en: `${fixed(v, 1)} pupils` });
+const perTeacher = (v: number) => tr({ zh: `${fixed(v, 1)} 人`, en: `${fixed(v, 1)} per teacher` });
+/** 台灣沒有這幾個指標可以比的數字（DESIGN.md 第 168 點） */
+const TW_NO_OECD = { TWN: { zh: 'OECD 沒有台灣', en: 'Not in the OECD data' } };
 
 /** 小學入學年齡（pipeline/topics/school_calendar.py，世界銀行 SE.PRM.AGES）：只有 5、6、7 歲 */
 const AGES: CategoryDef[] = [5, 6, 7].map((age) => ({ value: age, label: { zh: `${age} 歲`, en: `Age ${age}` } }));
@@ -55,12 +60,35 @@ export const education: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/14246',
       license: OPEN_DATA_TW,
     },
+    {
+      name: {
+        zh: 'OECD, Education at a Glance（教師的法定薪資、平均每班人數、上課天數）',
+        en: 'OECD, Education at a Glance (teachers’ statutory salaries, average class size, instruction days)',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: OECD_TERMS,
+    },
+    {
+      name: { zh: 'OECD Family Database（PF3.2 托育與學前教育）', en: 'OECD Family Database (PF3.2 enrolment in childcare and pre-school)' },
+      url: 'https://www.oecd.org/en/data/datasets/oecd-family-database.html',
+      license: OECD_TERMS,
+    },
+    {
+      name: {
+        zh: 'UNESCO 統計研究所 API（小學學生數與教師數、高中職業類課程的比例）',
+        en: 'UNESCO Institute for Statistics API (primary enrolment and teachers, share of upper secondary students in vocational programmes)',
+      },
+      url: 'https://api.uis.unesco.org/api/public/documentation/',
+      license: { zh: 'CC BY-SA 4.0（生師比、技職比例的資料檔同樣用 CC BY-SA 4.0 分享）', en: 'CC BY-SA 4.0 (the pupil–teacher and vocational data files are shared under CC BY-SA 4.0 too)' },
+    },
   ],
   note: {
     zh: '台灣不在聯合國與世界銀行的教育資料庫中，改用教育部與內政部的統計，定義見台灣側欄的附註。學年度以開始的那一年標示（2024 = 2024–25 學年度）。' +
-      '開學月份是 UIS 的資料，美國、巴西、德國 UIS 寫的是統計用的學年起算月或明顯不對，改成實際開學的月份（出處在各國的附註）；台灣依法規。聯邦國家各州不同，取多數。',
+      '開學月份是 UIS 的資料，美國、巴西、德國 UIS 寫的是統計用的學年起算月或明顯不對，改成實際開學的月份（出處在各國的附註）；台灣依法規。聯邦國家各州不同，取多數。' +
+      '教師薪資、每班人數、上課天數只有 OECD 與夥伴國（約 40 國）；比利時用荷語區、英國用英格蘭的值（OECD 只有分區的值）。教師薪資是公立學校的法定薪資（薪級表），不含加給。生師比是學生數除以教師數，不是每班人數；台灣的生師比、每班人數與技職比例用教育部的統計。',
     en: "Taiwan is not in the UN and World Bank education databases, so statistics from the Ministry of Education and the Ministry of the Interior are used instead; see the notes in Taiwan's panel for definitions. School years are labelled by the year they start (2024 = 2024–25). " +
-      'School start months come from UIS; for the US, Brazil and Germany UIS gives a statistical start of the school year or a clearly wrong month, so the actual month classes start is used instead (sources in each country’s note); Taiwan follows its regulations. In federal countries, where states differ, the most common month is used.',
+      'School start months come from UIS; for the US, Brazil and Germany UIS gives a statistical start of the school year or a clearly wrong month, so the actual month classes start is used instead (sources in each country’s note); Taiwan follows its regulations. In federal countries, where states differ, the most common month is used. ' +
+      'Teacher salaries, class sizes and instruction days cover only OECD members and partners (about 40 countries); Belgium uses the Flemish Community and the UK uses England, as the OECD gives only regional figures. Teacher salaries are statutory salaries in public schools (salary scales), excluding allowances. The pupil–teacher ratio is pupils divided by teachers, not class size; Taiwan’s pupil–teacher ratio, class size and vocational share come from the Ministry of Education.',
   },
   indicators: [
     {
@@ -118,6 +146,103 @@ export const education: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
       compareWorld: true,
+    },
+    {
+      id: 'childcare',
+      label: { zh: '0–2 歲上托育的比例', en: 'Childcare enrolment, ages 0–2' },
+      description: {
+        zh: '0–2 歲的幼兒在托嬰中心、幼兒園或登記的保母等托育服務的比例（OECD 約 45 國）。荷蘭、韓國、葡萄牙超過六成；各國收的服務範圍不同。',
+        en: 'Share of children aged 0–2 in nurseries, pre-schools or registered childminders and other childcare services (about 45 OECD countries). It exceeds 60% in the Netherlands, South Korea and Portugal; the services counted vary by country.',
+      },
+      unit: '%',
+      file: 'childcare.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] } },
+      format: pct,
+      formatTick: pctTick,
+      noValue: TW_NO_OECD,
+    },
+    {
+      id: 'preprimary',
+      label: { zh: '學前教育毛入學率', en: 'Pre-primary enrolment' },
+      description: {
+        zh: '上幼兒園等學前教育的人數，除以學前教育應屆年齡的人口。各國的應屆年齡不同，又含超齡或提早入學的，可以超過 100%（澳洲 160%）。台灣教育部有幼兒園的幼生數，但沒有歷年單一年齡人口的開放資料可以當分母，所以沒有。',
+        en: 'Pre-primary enrolment divided by the population of official pre-primary age. Official ages differ between countries and enrolment includes older and younger children, so it can exceed 100% (160% in Australia). Taiwan’s Ministry of Education counts kindergarten pupils, but there is no open data on population by single year of age over time to divide by, so Taiwan is not shown.',
+      },
+      unit: '%',
+      file: 'preprimary.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 50, 75, 90, 100] } },
+      format: pct,
+      formatTick: pctTick,
+      noValue: { TWN: { zh: '沒有可以比的資料', en: 'No comparable data' } },
+    },
+    {
+      id: 'teacher-salary',
+      label: { zh: '國中教師的法定年薪', en: 'Lower secondary teacher salaries' },
+      description: {
+        zh: '公立國中教師年資 15 年、最普遍資格的法定年薪（薪級表，不含加給），換成購買力平價美元，2025 年。盧森堡最高，OECD 平均約 6.5 萬。',
+        en: 'Statutory annual salary of lower secondary teachers in public schools with 15 years of experience and the most common qualification (salary scales, excluding allowances), in US dollars at purchasing power parity, 2025. Luxembourg pays the most; the OECD average is about $65,000.',
+      },
+      unit: { zh: '購買力平價美元', en: 'US$ (PPP)' },
+      file: 'teacher-salary.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [35000, 45000, 55000, 65000, 75000, 90000] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 美元（PPP）`, en: `$${fixed(v, 0)} (PPP)` }),
+      formatTick: formatLargeTick,
+      noValue: TW_NO_OECD,
+    },
+    {
+      id: 'class-size',
+      label: { zh: '小學每班人數', en: 'Primary class size' },
+      description: {
+        zh: '小學平均一班幾個學生（公私立全部學校，OECD 約 38 國）。智利、以色列、日本超過 26 人，OECD 平均約 21 人；台灣 2025 學年度 22.6 人。',
+        en: 'Average number of pupils per primary school class (all schools, about 38 OECD countries). It exceeds 26 in Chile, Israel and Japan, against an OECD average of about 21; Taiwan had 22.6 in the 2025 school year.',
+      },
+      unit: { zh: '人', en: 'pupils' },
+      file: 'class-size.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [16, 18, 20, 22, 24, 26] } },
+      format: perClass,
+      formatTick: (v) => fixed(v, 0),
+      chartZoom: true,
+    },
+    {
+      id: 'pupil-teacher',
+      label: { zh: '小學生師比', en: 'Primary pupil–teacher ratio' },
+      description: {
+        zh: '小學學生數除以教師數（人頭數，兼任也算一人），不是每班人數。非洲中部、東部超過 50，歐美、日本、台灣多在 10–15。',
+        en: 'Primary school pupils divided by teachers (headcount, part-time teachers count as one); this is not class size. It exceeds 50 in parts of Central and East Africa and is mostly 10–15 in Europe, North America, Japan and Taiwan.',
+      },
+      unit: { zh: '人', en: 'pupils per teacher' },
+      file: 'pupil-teacher.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 25, 35, 45] } },
+      format: perTeacher,
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'school-days',
+      label: { zh: '小學一年上課天數', en: 'School days per year, primary' },
+      description: {
+        zh: '公立小學一年上課幾天（2025 年，OECD 與夥伴國）。以色列 214 天、日本約 202 天最多，保加利亞 162.5 天最少；各國對考試日、教師進修日算不算不同。台灣的法規只規定寒暑假，沒有規定上課日數。',
+        en: 'Days of instruction per year in public primary schools (2025, OECD members and partners). Israel (214) and Japan (about 202) have the most and Bulgaria (162.5) the fewest; countries differ on whether exam and teacher-training days count. Taiwan’s regulations set only the length of the holidays, not the number of school days.',
+      },
+      unit: { zh: '天', en: 'days' },
+      file: 'school-days.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [170, 175, 180, 185, 190, 200] } },
+      format: (v) => tr({ zh: `${fixed(v, v % 1 ? 1 : 0)} 天`, en: `${fixed(v, v % 1 ? 1 : 0)} days` }),
+      formatTick: (v) => fixed(v, 0),
+      noValue: { TWN: { zh: '法規沒有規定上課日數', en: 'No set number of school days' } },
+    },
+    {
+      id: 'vocational',
+      label: { zh: '高中讀職業類課程的比例', en: 'Upper secondary students in vocational programmes' },
+      description: {
+        zh: '高中階段的學生讀職業類（技職）課程的比例。中歐、東歐常超過六成，德國約五成（含雙軌制的學徒），日本約兩成；台灣 2025 學年度高職（專業群科加實用技能學程）41.3%。',
+        en: 'Share of upper secondary students in vocational programmes. It often exceeds 60% in Central and Eastern Europe, is about half in Germany (including dual-system apprentices) and about a fifth in Japan; Taiwan had 41.3% in vocational and practical skills programmes in the 2025 school year.',
+      },
+      unit: '%',
+      file: 'vocational.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] } },
+      format: pct,
+      formatTick: pctTick,
+      noValue: { BOL: { zh: 'UNESCO 的值每年都是 100%，不收', en: 'Left out: UNESCO reports 100% every year' } },
     },
     {
       id: 'school-start',
