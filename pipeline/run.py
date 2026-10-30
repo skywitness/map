@@ -25,6 +25,9 @@ STEPS = {
     "income": "topics.income",
     "sectors": "topics.sectors",
     "agriculture": "topics.agriculture",
+    # 油棕園：Zenodo 13379129 的範圍圖（156 MB）與種植年份圖（146 MB），各 609 個圖磚；第一次讀約 15 分鐘，
+    # 之後用 .cache/oilpalm/aggregate.npz 幾秒；要先有 geo 的國界
+    "oil-palm": "topics.oil_palm",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
     # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
@@ -225,9 +228,14 @@ STEPS = {
     "special-landforms": "topics.special_landforms",
     # 填海造陸：Sengupta 等 2023 的 135 個沿海城市（Zenodo，22 KB 的 xlsx）＋ Natural Earth 的城市位置與中文名稱；幾秒
     "reclamation": "topics.reclamation",
+    # 核子事故：手工整理的事件表（英文維基百科三篇的固定版本，sources/nuclear_accidents.py）＋ Wikidata 的座標；幾秒
+    "nuclear-accidents": "topics.nuclear_accidents",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
+    # 北極航道能通航幾天（併進冰河、海冰與海平面，輸出到 topics/ice/）：NOAA/NSIDC 海冰濃度 CDR G02202 第 6 版的每日檔，
+    # 1979–2025 年每年一個（約 70–100 MB，共約 4 GB，第一次下載約 10 分鐘），之後約 1 分鐘
+    "arctic-routes": "topics.arctic_routes",
     # 各國在讀什麼：Wikimedia 的差分隱私每日瀏覽量，邊下載邊彙整成每月每國的前幾名（第一次約 30 分鐘、約 13 GB，
     # 原始檔不留，月份的彙整快取在 .cache/wikimedia/months/）；中文、英文名稱用 Wikidata 的 SPARQL（約 5 分鐘），快取在 labels.json
     "reads": "topics.reads",
@@ -261,6 +269,8 @@ STEPS = {
     "pandas": "topics.pandas",
     # 景點地圖：Wikidata 的博物館、動物園與水族館、樂園與雲霄飛車（第一次查約 40 分鐘，之後用快取）＋文化部的博物館
     "attractions": "topics.attractions",
+    # 植物園（景點地圖的第四個圖層，輸出到 topics/attractions/gardens.json）：Wikidata 一個 SPARQL 查詢；不必重跑 attractions，幾秒
+    "botanical-gardens": "topics.botanical_gardens",
     # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒
     "antarctic-stations": "topics.antarctic_stations",
     # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒
@@ -278,6 +288,8 @@ STEPS = {
     "cloud-regions": "topics.cloud_regions",
     # 最古老的公司：英文維基「List of oldest companies」（固定版本）＋ Wikidata 的座標；幾秒
     "oldest-companies": "topics.oldest_companies",
+    # 品牌的發源地：Wikidata 的時尚品牌與汽車品牌（SPARQL 兩次）
+    "brands": "topics.brands",
     # 各國的航空公司：Wikidata 的客運航空公司（依總部所在國，含已停業的）；幾秒
     "airlines": "topics.airlines",
     # 海外軍事基地（軍事主題）：英文維基「List of countries with overseas military bases」（固定版本），國家層級的流向；不到 1 秒
@@ -292,6 +304,10 @@ STEPS = {
     "busiest-airports": "topics.busiest_airports",
     # 觀光鐵道與登山鐵路：Wikidata（用 QLever 查，含子類別）的保存、齒軌、登山、森林鐵路；第一次查約 1 分鐘
     "heritage-railways": "topics.heritage_railways",
+    # 月球與火星的登陸：英文維基「List of landings on extraterrestrial bodies」（固定版本）的月球、火星兩張表；不到 1 秒
+    "landings": "topics.landings",
+    # F1 賽道與冠軍：Jolpica-F1 的資料庫匯出（延遲 14 天的版本，不必登入，ZIP 約 15 MB；CC BY-NC-SA 4.0）；幾秒
+    "f1": "topics.f1",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
