@@ -82,9 +82,13 @@ STEPS = {
     "wet-days": "topics.wet_days",
     # 日照時數（氣溫與降雨主題）：CRU CL v2.0 的日照百分比（1961–1990 年平均，約 12 MB）換算成小時＋中央氣象署測站（台灣附註）
     "sunshine": "topics.sunshine",
+    # 全球二氧化碳觀測站：NOAA GML 合作採樣網的瓶採樣月平均 CO2（約 6.7 MB）；幾秒
+    "co2-stations": "topics.co2_stations",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
+    # 電動車主題的燃油車禁售年份與狀態（英文維基百科的表；要先有 profiles 的 government.json）
+    "ev-phaseout": "topics.ev_phaseout",
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
@@ -282,6 +286,8 @@ STEPS = {
     "longest-flights": "topics.longest_flights",
     # 最繁忙的機場（交通主題）：英文維基「List of busiest airports by passenger traffic」（固定版本）2020–2025 每年前 50 名；不到 1 秒
     "busiest-airports": "topics.busiest_airports",
+    # 觀光鐵道與登山鐵路：Wikidata（用 QLever 查，含子類別）的保存、齒軌、登山、森林鐵路；第一次查約 1 分鐘
+    "heritage-railways": "topics.heritage_railways",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }

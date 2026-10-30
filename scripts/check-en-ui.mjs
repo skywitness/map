@@ -194,6 +194,9 @@ async function main() {
       await check(page, `主題選單 ${bi}`);
       const count = await page.$$eval('.topic-menu [role="menuitemradio"]', (els) => els.length);
       await page.keyboard.press('Escape');
+      // 選單關掉之後才點下一個分類：無頭 Chrome 裡 Preact 關選單的重繪會晚一點，馬上點下一個分類會撞在一起（點了沒反應）。
+      // 在 Node 這邊每 100 ms 看一次（頁面裡的 waitForFunction 在這裡等不到）
+      for (let i = 0; i < 30 && (await page.$('.topic-menu')); i++) await sleep(100);
       for (let mi = 0; mi < count; mi++) entries.push({ bi, mi });
     }
     for (const entry of entries) {
