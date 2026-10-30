@@ -15,11 +15,11 @@ export interface TopicGroupSpec {
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'birth-season', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'university-entrance', 'diet', 'foods', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'olympics', 'reads'] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'oldest-companies'] },
+  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'house-prices', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'oldest-companies', 'brands'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'chinatowns', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'fossil-fuels', 'renewables', 'climate', 'co2-stations', 'temperature', 'urban-heat', 'air-quality', 'water-forest', 'oil-palm', 'plastic', 'ewaste', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'cloud-regions', 'space', 'transport', 'airlines', 'longest-flights', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'antarctic-stations', 'penguins', 'penguins', 'wind', 'daylight', 'eclipses', 'antipodes', 'taipei-view', 'magnetic', 'aurora', 'earthquakes', 'plates', 'lithology', 'special-landforms', 'reclamation', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'national-parks', 'skyscrapers', 'attractions', 'travel'] },
+  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'antarctic-stations', 'penguins', 'wind', 'daylight', 'eclipses', 'antipodes', 'taipei-view', 'magnetic', 'aurora', 'earthquakes', 'plates', 'lithology', 'special-landforms', 'reclamation', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'national-parks', 'skyscrapers', 'attractions', 'travel'] },
 ];
 
 /**
@@ -65,6 +65,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),
   'chain-stores': () => import('./chain-stores'),
+  brands: () => import('./brands'),
   trade: () => import('./trade'),
   migration: () => import('./migration'),
   aid: () => import('./aid'),
