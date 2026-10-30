@@ -1,20 +1,20 @@
-"""中國的海外貸款主題：AidData 的 Global Chinese Development Finance Dataset 3.0（sources/aiddata.py，ODC-By 1.0）。
+"""中國的海外貸款主題：AidData 的 China's Global Loans and Grants Dataset 1.0（CLG-Global 1.0，sources/aiddata.py，ODC-By 1.0）。
 
-2000–2021 年中國官方機構對中低所得國家的開發融資（贈款、貸款、債務重整…）的**承諾金額**，不是實際撥款、
-也不是未償還的債務。只用 AidData 建議加總的項目（`Recommended For Aggregates` = Yes，17,957 筆：排除取消、暫停、
-只有承諾意向的與傘狀協議，傘狀協議底下的項目已經各自列出），金額用 `Adjusted Amount`（扣掉央行換匯與紓困貸款的
-短期展期，17,957 筆合計 1.34 兆美元，跟 AidData 的說明一致）。
+2000–2023 年中國官方機構對 217 個低、中、高所得國家與地區的開發融資（贈款、貸款、債務重整…）的**承諾金額**，不是
+實際撥款、也不是未償還的債務。只用 AidData 建議加總的項目（`Recommended_for_Aggregates` = Yes，30,133 筆：排除取消、
+暫停、只有承諾意向的與傘狀協議，傘狀協議底下的項目已經各自列出），金額用 `Adjusted_Amount`（扣掉央行換匯與紓困貸款
+的短期展期，30,133 筆合計 2.17 兆美元，跟 AidData 的說明一致）。
 
-子項目（`Flow Type Simplified`）：全部、貸款（Loan）、贈款（Grant）；全部另外含債務重整（Debt Rescheduling）與
+子項目（`Flow_Type_Simplified`）：全部、貸款（Loan）、贈款（Grant）；全部另外含債務重整（Debt Rescheduling）與
 類型不明（Vague）。指標：
-- 累計承諾金額、當年承諾金額：2021 年固定美元（`Adjusted Amount (Constant USD 2021)`，OECD 的平減方法）。
-- 累計承諾金額占 GDP：分子分母都用當期美元（`Adjusted Amount (Nominal USD)` 的累計 ÷ 那一年的 GDP，
+- 累計承諾金額、當年承諾金額：2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`，OECD 的平減方法）。
+- 累計承諾金額占 GDP：分子分母都用當期美元（`Adjusted_Amount_Nominal_USD` 的累計 ÷ 那一年的 GDP，
   人均收入主題的 gdp.json，IMF WEO＋世界銀行），固定美元除以當期 GDP 在早年會偏高。
-- 每人累計承諾金額：2021 年固定美元 ÷ 那一年的人口（人口主題的 total.json，UN WPP 2024）。
+- 每人累計承諾金額：2023 年固定美元 ÷ 那一年的人口（人口主題的 total.json，UN WPP 2024）。
 
-涵蓋範圍：AidData 有系統地搜尋過的 165 個國家與地區（CountryList 工作表），其中 18 個沒有找到項目，值是 0；
-範圍外的國家（高所得國家、中國本身、台灣）沒有值，前端用 coverage 與 noValue 說明。區域性的項目（「Africa, regional」
-等 283 筆，加總的 214 筆）沒有受援國，只算進世界合計。
+涵蓋範圍：AidData 有系統地搜尋過的 217 個國家與地區（CountryList 工作表），其中 17 個沒有找到項目，值是 0；
+範圍外的（中國本身、香港、澳門、台灣與少數小屬地）沒有值，前端用 coverage 與 noValue 說明。區域性的項目（加總的
+321 筆）沒有受援國，只算進世界合計。
 
 輸出（public/data/topics/china-lending/）：
 - {all,loan,grant}-cumulative.json、-annual.json、-gdp.json、-per-capita.json
@@ -31,19 +31,16 @@ from sources.countries import from_name, to_iso3
 from topics.profiles import _read_indicator
 
 OUT = OUT_DIR / "topics" / "china-lending"
-YEARS = list(range(2000, 2022))
+YEARS = list(range(2000, 2024))
 ITEMS = {"all": None, "loan": "Loan", "grant": "Grant"}
-CONSTANT = "Adjusted Amount (Constant USD 2021)"
-NOMINAL = "Adjusted Amount (Nominal USD)"
+CONSTANT = "Adjusted_Amount_Constant_USD_2023"
+NOMINAL = "Adjusted_Amount_Nominal_USD"
 TOP_N = 10
 TITLE_MAX = 200  # 側欄的項目名稱最多幾個字（最長的有 427 字）
 
 # CountryList 的英文名稱 pycountry 對不到的
 NAME_ALIASES = {
-    "St. Kitts and Nevis": "KNA",
-    "St. Martin (French part)": "MAF",
-    "St. Vincent and the Grenadines": "VCT",
-    "Virgin Islands (U.S.)": "VIR",
+    "United States Virgin Islands": "VIR",
     "West Bank and Gaza Strip": "PSE",
 }
 
@@ -60,6 +57,18 @@ NOTES = {
         "(a common flag of convenience) for buying vessels such as LNG carriers; the money does not go to the "
         "Marshallese government or economy, hence the very high share of GDP.",
     ),
+    "BMU": (
+        "大多是中國的銀行給在百慕達登記的航運、鑽油平台公司（Frontline、Seadrill 等）買船的貸款與售後租回，以及收購"
+        "保險公司的融資，錢不是給百慕達的政府或經濟，所以每人金額與占 GDP 的比例特別高。",
+        "Mostly loans and sale-leasebacks from Chinese banks to shipping and offshore-drilling companies registered in "
+        "Bermuda (Frontline, Seadrill and others) for buying vessels, plus financing for insurance acquisitions; the "
+        "money does not go to Bermuda’s government or economy, hence the very high per-person amount and share of GDP.",
+    ),
+    "MCO": (
+        "幾乎都是中國工商銀行租賃給總部在摩納哥的郵輪公司（Silversea）造船的融資，所以每人金額特別高。",
+        "Almost entirely ICBC Leasing finance for new ships for a cruise line headquartered in Monaco (Silversea), hence "
+        "the very high per-person amount.",
+    ),
 }
 
 Series = dict[int, float]
@@ -73,6 +82,11 @@ def covered() -> set[str]:
             raise ValueError(f"CountryList 的 {name} 對不到 ISO 代碼")
         out.add(iso3)
     return out
+
+
+def _clean(r: dict) -> dict:
+    """xlsx 的年份、部門代碼與編號讀出來是浮點數（2023.0），轉成整數"""
+    return r | {k: int(r[k]) for k in ("Commitment_Year", "Sector_Code", "AidData_Record_ID")}
 
 
 def cumulative(series: Series) -> Series:
@@ -95,9 +109,9 @@ def write_indicator(key: str, unit: str, by_country: dict[str, Series], digits: 
 
 def build() -> None:
     countries = covered()
-    rows = [r for r in aiddata.records() if r["Recommended For Aggregates"] == "Yes"]
+    rows = [_clean(r) for r in aiddata.records() if r["Recommended_for_Aggregates"] == "Yes"]
     for r in rows:
-        iso3 = to_iso3(r["Recipient ISO-3"])
+        iso3 = to_iso3(r["Country_of_Activity_ISO3"])
         if iso3 and iso3 not in countries:
             raise ValueError(f"{iso3} 有項目但不在 CountryList")
 
@@ -112,11 +126,11 @@ def build() -> None:
         nominal: dict[str, Series] = {c: {} for c in countries}
         world: Series = defaultdict(float)
         for r in rows:
-            if flow and r["Flow Type Simplified"] != flow:
+            if flow and r["Flow_Type_Simplified"] != flow:
                 continue
-            year = r["Commitment Year"]
+            year = r["Commitment_Year"]
             world[year] += r[CONSTANT] or 0
-            iso3 = to_iso3(r["Recipient ISO-3"])
+            iso3 = to_iso3(r["Country_of_Activity_ISO3"])
             if not iso3:
                 continue  # 區域性的項目
             constant[iso3][year] = constant[iso3].get(year, 0) + (r[CONSTANT] or 0)
@@ -142,7 +156,7 @@ def build() -> None:
         {
             "topic": "china-lending",
             "generatedAt": now_iso(),
-            "source": f"AidData, Global Chinese Development Finance Dataset, Version 3.0 (ODC-By 1.0), {aiddata.PAGE}",
+            "source": f"AidData, China's Global Loans and Grants Dataset, Version 1.0 (ODC-By 1.0), {aiddata.PAGE}",
             "records": len(rows),
             "covered": len(countries),
         },
@@ -153,7 +167,7 @@ def write_countries(rows: list[dict]) -> None:
     """側欄：歷年各類型的承諾金額、各部門的承諾金額（歷年，側欄加到時間軸那一年）、金額最大的 10 個項目。"""
     by_country: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
-        iso3 = to_iso3(r["Recipient ISO-3"])
+        iso3 = to_iso3(r["Country_of_Activity_ISO3"])
         if iso3:
             by_country[iso3].append(r)
     for iso3, items in by_country.items():
@@ -165,13 +179,13 @@ def write_countries(rows: list[dict]) -> None:
             amount = r[CONSTANT] or 0
             if not amount:
                 continue
-            i = YEARS.index(r["Commitment Year"])
-            flows[FLOW_CODES[r["Flow Type Simplified"]]][i] += amount
+            i = YEARS.index(r["Commitment_Year"])
+            flows[FLOW_CODES[r["Flow_Type_Simplified"]]][i] += amount
             for item, flow in ITEMS.items():
-                if not flow or r["Flow Type Simplified"] == flow:
-                    sectors[item][str(r["Sector Code"])][i] += amount
+                if not flow or r["Flow_Type_Simplified"] == flow:
+                    sectors[item][str(r["Sector_Code"])][i] += amount
         for item, flow in ITEMS.items():
-            matched = (r for r in items if r[CONSTANT] and (not flow or r["Flow Type Simplified"] == flow))
+            matched = (r for r in items if r[CONSTANT] and (not flow or r["Flow_Type_Simplified"] == flow))
             top[item] = sorted(matched, key=lambda r: -r[CONSTANT])[:TOP_N]
         write_json(
             OUT / "countries" / f"{iso3}.json",
@@ -185,12 +199,12 @@ def write_countries(rows: list[dict]) -> None:
                     item: [
                         [
                             _title(r["Title"]),
-                            r["Commitment Year"],
+                            r["Commitment_Year"],
                             round(r[CONSTANT] / 1e6, 2),
-                            str(r["Sector Code"]),
+                            str(r["Sector_Code"]),
                             STATUS_CODES[r["Status"]],
-                            FLOW_CODES[r["Flow Type Simplified"]],
-                            r["AidData Record ID"],
+                            FLOW_CODES[r["Flow_Type_Simplified"]],
+                            r["AidData_Record_ID"],
                         ]
                         for r in rows_
                     ]

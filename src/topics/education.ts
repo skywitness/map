@@ -62,6 +62,19 @@ export const education: TopicDefinition = {
     },
     {
       name: {
+        zh: '衛生福利部 社會福利公務統計（托嬰中心、居家托育的收托人數）',
+        en: 'Ministry of Health and Welfare (Taiwan), social welfare statistics (children in baby care centres and home childcare)',
+      },
+      url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: { zh: '內政部 單一年齡人口（0–2 歲）', en: 'Ministry of the Interior (Taiwan), population by single year of age (ages 0–2)' },
+      url: 'https://data.gov.tw/dataset/14226',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
         zh: 'OECD, Education at a Glance（教師的法定薪資、平均每班人數、上課天數）',
         en: 'OECD, Education at a Glance (teachers’ statutory salaries, average class size, instruction days)',
       },
@@ -96,10 +109,12 @@ export const education: TopicDefinition = {
   note: {
     zh: '台灣不在聯合國與世界銀行的教育資料庫中，改用教育部與內政部的統計，定義見台灣側欄的附註。學年度以開始的那一年標示（2024 = 2024–25 學年度）。' +
       '開學月份是 UIS 的資料，美國、巴西、德國 UIS 寫的是統計用的學年起算月或明顯不對，改成實際開學的月份（出處在各國的附註）；台灣依法規。聯邦國家各州不同，取多數。' +
-      '教師薪資、每班人數、上課天數只有 OECD 與夥伴國（約 40 國）；比利時用荷語區、英國用英格蘭的值（OECD 只有分區的值）。教師薪資是公立學校的法定薪資（薪級表），不含加給。生師比是學生數除以教師數，不是每班人數；台灣的生師比、每班人數與技職比例用教育部的統計。',
+      '教師薪資、每班人數、上課天數只有 OECD 與夥伴國（約 40 國）；比利時用荷語區、英國用英格蘭的值（OECD 只有分區的值）。教師薪資是公立學校的法定薪資（薪級表），不含加給。生師比是學生數除以教師數，不是每班人數；台灣的生師比、每班人數與技職比例用教育部的統計。' +
+      '台灣的 0–2 歲上托育是自算：衛福部的托嬰中心與居家托育收托人數加上教育部的幼兒園未滿 3 歲幼生數，除以內政部的 0–2 歲人口；托嬰中心、居家托育與人口是 12 月底，幼兒園是 11 月 1 日。',
     en: "Taiwan is not in the UN and World Bank education databases, so statistics from the Ministry of Education and the Ministry of the Interior are used instead; see the notes in Taiwan's panel for definitions. School years are labelled by the year they start (2024 = 2024–25). " +
       'School start months come from UIS; for the US, Brazil and Germany UIS gives a statistical start of the school year or a clearly wrong month, so the actual month classes start is used instead (sources in each country’s note); Taiwan follows its regulations. In federal countries, where states differ, the most common month is used. ' +
-      'Teacher salaries, class sizes and instruction days cover only OECD members and partners (about 40 countries); Belgium uses the Flemish Community and the UK uses England, as the OECD gives only regional figures. Teacher salaries are statutory salaries in public schools (salary scales), excluding allowances. The pupil–teacher ratio is pupils divided by teachers, not class size; Taiwan’s pupil–teacher ratio, class size and vocational share come from the Ministry of Education.',
+      'Teacher salaries, class sizes and instruction days cover only OECD members and partners (about 40 countries); Belgium uses the Flemish Community and the UK uses England, as the OECD gives only regional figures. Teacher salaries are statutory salaries in public schools (salary scales), excluding allowances. The pupil–teacher ratio is pupils divided by teachers, not class size; Taiwan’s pupil–teacher ratio, class size and vocational share come from the Ministry of Education. ' +
+      'Taiwan’s childcare enrolment for ages 0–2 is our own calculation: children in baby care centres and with home childcare providers (Ministry of Health and Welfare) plus kindergarten pupils under 3 (Ministry of Education), divided by the population aged 0–2 (Ministry of the Interior); childcare centres, home childcare and population are as of 31 December, kindergartens as of 1 November.',
   },
   indicators: [
     {
@@ -162,15 +177,14 @@ export const education: TopicDefinition = {
       id: 'childcare',
       label: { zh: '0–2 歲上托育的比例', en: 'Childcare enrolment, ages 0–2' },
       description: {
-        zh: '0–2 歲的幼兒在托嬰中心、幼兒園或登記的保母等托育服務的比例（OECD 約 45 國）。荷蘭、韓國、葡萄牙超過六成；各國收的服務範圍不同。',
-        en: 'Share of children aged 0–2 in nurseries, pre-schools or registered childminders and other childcare services (about 45 OECD countries). It exceeds 60% in the Netherlands, South Korea and Portugal; the services counted vary by country.',
+        zh: '0–2 歲的幼兒在托嬰中心、幼兒園或登記的保母等托育服務的比例（OECD 約 45 國）。荷蘭、韓國、葡萄牙超過六成；各國收的服務範圍不同。台灣是自算的：托嬰中心、居家托育與幼兒園未滿 3 歲的人數 ÷ 0–2 歲人口，2018 年 17.7% 到 2025 年 50.0%。',
+        en: 'Share of children aged 0–2 in nurseries, pre-schools or registered childminders and other childcare services (about 45 OECD countries). It exceeds 60% in the Netherlands, South Korea and Portugal; the services counted vary by country. Taiwan’s figure is our own calculation: children in childcare centres, with registered home childcare providers and in kindergartens under age 3, divided by the population aged 0–2, rising from 17.7% in 2018 to 50.0% in 2025.',
       },
       unit: '%',
       file: 'childcare.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] } },
       format: pct,
       formatTick: pctTick,
-      noValue: TW_NO_OECD,
     },
     {
       id: 'preprimary',

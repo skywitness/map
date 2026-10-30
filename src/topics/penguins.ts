@@ -185,8 +185,18 @@ const TIME_AXIS = {
 
 const NOT_COLOURED = { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' };
 
+/** 企鵝的子項目（種類）：南極主題裡是這兩個指標自己的 dimension */
+const DIMENSION = {
+  label: { zh: '企鵝', en: 'Penguin' },
+  options: [{ id: 'all', label: { zh: '全部', en: 'All species' } }, ...SPECIES.map((s) => ({ id: s.id, label: s.label }))],
+  defaultOption: 'all',
+};
+
 const base = {
   unit: '',
+  dimension: DIMENSION,
+  defaultYear: LAST_SEASON,
+  noValue: { TWN: { zh: '台灣沒有企鵝', en: 'Taiwan has no penguins' } },
   file: 'colonies-{item}.json',
   layer: { kind: 'none' } as const,
   unranked: true,
@@ -197,17 +207,8 @@ const base = {
   timeAxis: TIME_AXIS,
 } satisfies Partial<IndicatorDef>;
 
-export const penguins: TopicDefinition = {
-  id: 'penguins',
-  title: { zh: '企鵝在哪裡', en: 'Where penguins breed' },
-  shortTitle: { zh: '企鵝', en: 'Penguins' },
-  defaultIndicator: 'species',
-  defaultYear: LAST_SEASON,
-  dimension: {
-    label: { zh: '企鵝', en: 'Penguin' },
-    options: [{ id: 'all', label: { zh: '全部', en: 'All species' } }, ...SPECIES.map((s) => ({ id: s.id, label: s.label }))],
-    defaultOption: 'all',
-  },
+/** 南極主題（antarctica.ts）的企鵝部分：2026-10-30 起跟研究站、冰下湖合成一個主題 */
+export const penguinsPart = {
   sources: [
     {
       name: {
@@ -232,8 +233,6 @@ export const penguins: TopicDefinition = {
       'Many sites were last counted decades ago and may differ a lot today (see “How old is the census”). ' +
       'MAPPPD’s pages say CC BY 4.0, but its terms of use (version 3.0) forbid commercial use; this site uses it non-commercially. Taiwan has no penguins.',
   },
-  noValue: { TWN: { zh: '台灣沒有企鵝', en: 'Taiwan has no penguins' } },
-  focus: [-180, -88, 180, -62],
   overlays: [overlay('colonies', 'species', SPECIES_COLORS), overlay('census-age', 'census-age', AGE_COLORS)],
   indicators: [
     {
@@ -255,4 +254,4 @@ export const penguins: TopicDefinition = {
       },
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;
