@@ -86,6 +86,7 @@ const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ d
 // 排名表、時刻主題的時間軸（晝夜與季節，連同太陽位置的計算）也是用到才下載（2026-10-30）
 const RankingTable = lazy(() => import('./panels/RankingTable').then((m) => ({ default: m.RankingTable })));
 const MomentControl = lazy(() => import('./controls/MomentControl').then((m) => ({ default: m.MomentControl })));
+const RouteProfilePanel = lazy(() => import('./charts/RouteProfilePanel').then((m) => ({ default: m.RouteProfilePanel })));
 // 分析檢視（src/analysis/）：切到分析才下載
 const AnalysisView = lazy(() => import('./analysis/AnalysisView'));
 
@@ -344,15 +345,17 @@ export function App() {
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
   const panelKey = `${topic.id}:${state.country ?? ''}`;
   const [lineHighlight, setLineHighlight] = useState<{ key: string; overlay: string; group: number } | null>(null);
-  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number; maxZoom?: number } | null>(null);
+  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number; maxZoom?: number; bottom?: number } | null>(null);
   const highlightLine = useCallback(
     (overlay: string, group: number | null) => setLineHighlight(group === null ? null : { key: panelKey, overlay, group }),
     [panelKey],
   );
   const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
   // maxZoom：清單側欄點一個點（賽道、城鎮）時放大到看得清楚，預設最多 8 級（WorldMap）
+  // bottom：地圖下緣被蓋住的高度（我的路線的高度剖面），框的時候讓開
   const moveToBox = useCallback(
-    (box: [number, number, number, number], maxZoom?: number) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1, maxZoom })),
+    (box: [number, number, number, number], maxZoom?: number, bottom?: number) =>
+      setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1, maxZoom, bottom })),
     [],
   );
   // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
@@ -363,7 +366,36 @@ export function App() {
   }, [topic.id, indicator.focus]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
-  const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
+  const panelMarks = marks && marks.key === panelKey ? marks.marks : null;
+  // 我的路線：點地圖上的一條路線選取它（地圖移過去、標出那一條、下緣打開高度剖面），滑過剖面時地圖上放一個點
+  const [routePick, setRoutePick] = useState<{ topic: string; g: number } | null>(null);
+  const pickedRoute = routePick && routePick.topic === definition.id ? (personalRoutes[routePick.g] ?? null) : null;
+  const [routeMark, setRouteMark] = useState<MapMark | null>(null);
+  const onRouteHover = useCallback(
+    (at: { lon: number; lat: number } | null) => setRouteMark(at ? { lon: at.lon, lat: at.lat, label: '', kind: 'here' } : null),
+    [],
+  );
+  const shownMarks = useMemo(() => (routeMark && pickedRoute ? [...(panelMarks ?? []), routeMark] : panelMarks), [panelMarks, routeMark, pickedRoute]);
+  const onLineClick = useCallback(
+    (overlay: string, group: number) => {
+      if (overlay !== PERSONAL_ID) return false;
+      const route = personalRoutes[group];
+      if (!route) return false;
+      setRoutePick({ topic: definition.id, g: group });
+      highlightLine(PERSONAL_ID, group);
+      let box: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const line of route.lines)
+        for (const [x, y] of line) box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)];
+      moveToBox(box, 14, 190);
+      return true;
+    },
+    [personalRoutes, definition.id, highlightLine, moveToBox],
+  );
+  const closeRoute = useCallback(() => {
+    setRoutePick(null);
+    setRouteMark(null);
+    highlightLine(PERSONAL_ID, null);
+  }, [highlightLine]);
   // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
   const listDef =
     !pure && !state.embed && view === 'map' && topic.listPanel && (!topic.listPanel.indicators || topic.listPanel.indicators.includes(indicator.id))
@@ -907,6 +939,14 @@ export function App() {
                   focusBox={focusBox}
                   pointer={pure ? undefined : pointer}
                   marks={shownMarks}
+                  onLineClick={personalCfg ? onLineClick : undefined}
+                  bottom={
+                    pickedRoute && (
+                      <Suspense fallback={null}>
+                        <RouteProfilePanel route={pickedRoute} onHover={onRouteHover} onClose={closeRoute} />
+                      </Suspense>
+                    )
+                  }
                   overlay={
                     boxResult && (
                       <BoxResult

@@ -4247,6 +4247,11 @@ pipeline/
 - **設定**：`TopicDefinition.personalRoutes`（目前只有賽車）：`color`（跟線圖層一樣，分類代碼由 `type(series)` 算，沒有分類的是 0）、`seriesLabel`（tooltip 上的分類名稱）。賽車的顏色依賽事的 8 組類別，GeoJSON 的 `properties.series` 寫賽事代號（`tdf`、`wrc`、`mega`…），沒寫的灰色（`MAP_TOKENS.context`）。
 - **匯入**（`lib/personalRoutes.ts`）：圖層選單（`map/BasemapMenu.tsx`）多一欄「我的路線」：匯入檔案（可以多選）、匯入整個資料夾（`webkitdirectory`，含子資料夾）、匯出備份（GeoJSON）、刪除全部（先確認）。認得 GPX（`trk`、`rte`）、KML（`LineString`、`LinearRing`、`gx:Track`）、KMZ 與 zip（`lib/unzip.ts` 的 `unzipAll`，只支援不壓縮與 deflate）、GeoJSON（線、面的環當線；`properties` 的 `name`／`title`、`series`、`place`、`topic`）；點、不認得的檔列為略過。每條線用 Douglas–Peucker 簡化（約 2 m）。存在 IndexedDB（資料庫 `world-map-personal`、store `routes`，依主題的索引）；同一個檔名再匯入一次取代舊的（合輯更新後整份重新匯入即可）。私密瀏覽、封鎖網站資料時存不了，選單寫明。
 - **地圖**：有路線時多一個線圖層「我的路線（只存在這個瀏覽器）」（`app/personalOverlay.ts`，`LinesOverlayDef.local`：不讀資料檔，App 把解析好的線交給 `useOverlays`），圖例的開關照舊；滑過一條路線整條標出（`groupField`），tooltip 寫路線名稱、賽事、地點與匯入的檔名。
+- **高度剖面**（使用者 2026-10-30：「希望可以像這頁一樣（OpenRunner），選取賽道後有圖呈現高度與距離關係，並在滑鼠移到圖上時在地圖上有圓點呈現位置，圖上有顯示距離該點距離、高度、坡度、爬升高度」）：
+  - 點地圖上的一條我的路線（`mapEvents.ts` 的點選先問 `onLineClick`，我的路線的線圖層回 true，就不選國家）：地圖框住那一條（`moveToBox` 多一個 `bottom`，`fitBounds` 的下緣讓開剖面）、標出那一條，地圖下緣（`WorldMap` 的 `bottom`）打開 `charts/RouteProfilePanel.tsx`。
+  - 剖面（`lib/routeProfile.ts`）：沿路線等距取樣（至少 5 m，最多 1,500 點，好幾段的路線段與段之間不算距離），海拔用原檔的（匯入時保留 GPX 的 `ele`、KML 與 GeoJSON 的第三個座標，KML 寫 0 的當成沒有），沒有的從 AWS Terrain Tiles 的高程圖磚取（跟地形與 3D 同一個來源，terrarium 編碼，雙線性內插；全長 8 km 以下 14 級、300 km 以下 12 級、更長 11 級，選取時才下載，同一張只讀一次）。海拔平滑 3 點；坡度是前後各約 100 m（長的路線依取樣間距放寬）的平均；累計爬升有 2 m 的遲滯（平路的雜訊不累加）。
+  - 圖：橫軸距離、縱軸海拔，面依坡度的絕對值分 5 級上色（< 3%、3–6%、6–9%、9–12%、≥ 12%，`MAP_TOKENS.sequential` 的橘色由淺到深；短於全長約 0.5% 的一段併進前一段，不會一條一條），上面一條海拔的線；標題寫總長、總爬升、總下降、海拔範圍，下面寫海拔的來源。滑過（或左右鍵）時一條直線、一個點與 tooltip（距離、海拔、坡度、累計爬升），同時地圖上那個位置放一個實心的點（`marks`）；Esc 先清掉游標、再按關掉。窄螢幕不顯示坡度的圖例。
+  - 驗證（2026-10-30）：匯入合輯（192 條）後點超級雪崩阿爾普迪埃的比賽路線：21.3 km、爬升 191 m、下降 2,746 m、海拔 727–3,282 m（OpenRunner 的官方路線），滑過 8.60 km 處寫 2,011 m、−7.6%、34 m，地圖上的點跟著移動；沒有海拔的路線（阿爾普迪埃到 Allemond 的測試線）從圖磚取到起點 1,821 m。測試資料已刪。
 - **驗證**（2026-10-30）：開發伺服器上用 DataTransfer 塞一個 GPX、一個兩條線的 GeoJSON、一個 .txt：「匯入 2 個檔、3 條路線；略過 1 個檔」，地圖上有標賽事的是那一類的顏色、GPX 是灰色，滑到線上的 tooltip 正確；測試資料刪掉。
 
 ### 播放設定、收藏的畫面、地圖上標數值（2026-10-30）

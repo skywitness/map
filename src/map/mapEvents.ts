@@ -50,6 +50,8 @@ export interface LatestProps {
   boxMode: boolean;
   pointer: boolean;
   marks?: MapMark[] | null;
+  /** 點到線圖層的一條線（我的路線：選取那條路線、打開高度剖面）；回傳 true 表示處理了，不再選取國家 */
+  onLineClick?: (overlay: string, group: number) => boolean;
 }
 
 export interface MapEventRefs {
@@ -212,6 +214,12 @@ export function bindMapEvents(
       const target = link !== undefined ? marksNow?.[link] : undefined;
       if (target) map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
       return;
+    }
+    // 點到線（一般的點選略過線，選底下的國家）：有 onLineClick 的（我的路線）先問它
+    if (latest.current.onLineClick) {
+      const lf = featureAt(e.point);
+      const line = lf ? lineOverlayAt(lf.layer.id) : null;
+      if (line && lf && latest.current.onLineClick(line, Number(lf.properties.g))) return;
     }
     const f = featureAt(e.point, false);
     let iso3 = (f?.properties?.iso3 as string | undefined) ?? null;

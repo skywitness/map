@@ -187,6 +187,10 @@ interface WorldMapProps {
   boxToolLabel?: string;
   /** 疊在地圖右上角的內容，例如框選結果 */
   overlay?: ReactNode;
+  /** 疊在地圖下緣的內容（我的路線的高度剖面） */
+  bottom?: ReactNode;
+  /** 點到線圖層的一條線：回傳 true 表示處理了（不選取國家） */
+  onLineClick?: (overlay: string, group: number) => boolean;
   /** 疊加圖層：鐵路（經緯度 MultiLineString）與機場 */
   railways?: GeoJSON.MultiLineString | null;
   airports?: AirportsData | null;
@@ -246,7 +250,7 @@ interface WorldMapProps {
   /** 地圖外面（主題的側欄）要標出的一組線，跟滑過時一樣；null 時取消 */
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
-  focusBox?: { box: [number, number, number, number]; key: number; maxZoom?: number } | null;
+  focusBox?: { box: [number, number, number, number]; key: number; maxZoom?: number; bottom?: number } | null;
   /**
    * 滑到地圖上任何一點（含海上）時的資訊（主題的 pointer，2026-10-28 起，地球的另一邊）：在國家上時幾行接在國家的
    * tooltip 下面，海上時自己是一個 tooltip（title 加幾行）；mark 是跟著游標動的小記號（游標的對蹠點）
@@ -276,7 +280,7 @@ export function WorldMap(props: WorldMapProps) {
   const lang = useLang();
   const langRef = useRef(lang);
   langRef.current = lang;
-  const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
+  const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle, bottom, onLineClick } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES, time = null } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, handleRef, onFirstData } =
@@ -360,8 +364,8 @@ export function WorldMap(props: WorldMapProps) {
   const [overlayOnLeft, setOverlayOnLeft] = useState(false);
 
   // 地圖事件在建立時綁定一次，最新的 props 放在 ref 裡讀
-  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks });
-  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks };
+  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick });
+  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick };
 
   // 分級色、正負色用使用者選的配色（圖例的「配色」，palettes.ts）
   const mapTokens = useMapTokens();
@@ -1102,7 +1106,12 @@ export function WorldMap(props: WorldMapProps) {
         [w, s],
         [e, n],
       ],
-      { padding: 48, maxZoom: focusBox.maxZoom ?? 8, duration: 900, bearing: map.getBearing() },
+      {
+        padding: { top: 48, left: 48, right: 48, bottom: 48 + Math.min(focusBox.bottom ?? 0, map.getContainer().clientHeight / 2) },
+        maxZoom: focusBox.maxZoom ?? 8,
+        duration: 900,
+        bearing: map.getBearing(),
+      },
     );
     // 只依 key：同一個範圍再點一次也要移過去；ready 是第一個畫面還沒好時就要移過去的（主題的 focus）
   }, [ready, focusBox?.key]);
@@ -1777,6 +1786,7 @@ export function WorldMap(props: WorldMapProps) {
         </div>
       )}
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
+      {bottom && <div className="map-bottom">{bottom}</div>}
 
       <div className="map-legend">
         {showExtremes && (

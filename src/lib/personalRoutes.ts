@@ -19,6 +19,8 @@ export interface PersonalRoute {
   /** 匯入的檔名（zip 裡的檔是「zip 檔名/裡面的檔名」） */
   source: string;
   lines: [number, number][][];
+  /** 每個點的海拔（m），跟 lines 對齊；原檔沒有高度（KML 的 0、OpenStreetMap）的是 null，選取時再從地形圖磚取（lib/routeProfile.ts） */
+  ele?: (number | null)[][] | null;
   added: number;
 }
 
@@ -127,7 +129,9 @@ export function usePersonalRoutes(topic: string | null): { routes: PersonalRoute
 }
 
 // ── 解析 ──────────────────────────────────────────────────────────────
-type Parsed = Omit<PersonalRoute, 'topic' | 'source' | 'added' | 'id'> & { topic?: string };
+/** 解析出來的一條路線：每段是 [經度, 緯度, 海拔或 null] */
+type Pt = [number, number, number | null];
+type Parsed = { name: string; series?: string; place?: string; topic?: string; lines: Pt[][] };
 
 const ROUTE_FILE = /\.(gpx|kml|kmz|geojson|json|zip)$/i;
 
@@ -151,9 +155,20 @@ export async function importRouteFiles(files: File[], topic: string): Promise<Im
       for (const entry of entries) {
         const parsed = parseRouteText(entry.text, entry.name);
         for (const p of parsed) {
-          const lines = p.lines.map(simplify).filter((l) => l.length >= 2);
-          if (!lines.length) continue;
-          routes.push({ ...p, lines, topic: p.topic ?? topic, source: entry.name, added });
+          const kept = p.lines.map(simplify).filter((l) => l.length >= 2);
+          if (!kept.length) continue;
+          // 海拔：一整段都有高度才留（KML 寫 0 的當成沒有）
+          const ele = kept.map((l) => (l.every((q) => q[2] !== null) && l.some((q) => q[2] !== 0) ? l.map((q) => q[2]) : null));
+          routes.push({
+            name: p.name,
+            series: p.series,
+            place: p.place,
+            topic: p.topic ?? topic,
+            lines: kept.map((l) => l.map((q) => [q[0], q[1]] as [number, number])),
+            ele: ele.some(Boolean) ? ele.map((e, i) => e ?? kept[i].map(() => null)) : null,
+            source: entry.name,
+            added,
+          });
           found++;
         }
       }
@@ -197,7 +212,10 @@ function parseGpx(doc: Document, fallback: string): Parsed[] {
   const out: Parsed[] = [];
   const meta = all(doc, 'metadata')[0];
   const docName = (meta && childText(meta, 'name')) || fallback;
-  const pt = (e: Element): [number, number] => [Number(e.getAttribute('lon')), Number(e.getAttribute('lat'))];
+  const pt = (e: Element): Pt => {
+    const ele = childText(e, 'ele');
+    return [Number(e.getAttribute('lon')), Number(e.getAttribute('lat')), ele && Number.isFinite(Number(ele)) ? Number(ele) : null];
+  };
   for (const trk of all(doc, 'trk')) {
     const lines = all(trk, 'trkseg').map((seg) => all(seg, 'trkpt').map(pt));
     out.push({ name: childText(trk, 'name') || docName, lines });
@@ -206,19 +224,19 @@ function parseGpx(doc: Document, fallback: string): Parsed[] {
   return out;
 }
 
-function kmlCoords(text: string): [number, number][] {
+function kmlCoords(text: string): Pt[] {
   return text
     .trim()
     .split(/\s+/)
     .map((t) => t.split(',').map(Number))
     .filter((c) => c.length >= 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]))
-    .map((c) => [c[0], c[1]]);
+    .map((c) => [c[0], c[1], Number.isFinite(c[2]) ? c[2] : null]);
 }
 
 function parseKml(doc: Document, fallback: string): Parsed[] {
   const out: Parsed[] = [];
   for (const pm of all(doc, 'Placemark')) {
-    const lines: [number, number][][] = [];
+    const lines: Pt[][] = [];
     for (const ls of [...all(pm, 'LineString'), ...all(pm, 'LinearRing')]) {
       const c = all(ls, 'coordinates')[0];
       if (c?.textContent) lines.push(kmlCoords(c.textContent));
@@ -228,7 +246,7 @@ function parseKml(doc: Document, fallback: string): Parsed[] {
         all(track, 'coord')
           .map((c) => (c.textContent ?? '').trim().split(/\s+/).map(Number))
           .filter((c) => c.length >= 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]))
-          .map((c) => [c[0], c[1]] as [number, number]),
+          .map((c) => [c[0], c[1], Number.isFinite(c[2]) ? c[2] : null] as Pt),
       );
     }
     if (lines.length) out.push({ name: childText(pm, 'name') || fallback, lines });
@@ -238,10 +256,10 @@ function parseKml(doc: Document, fallback: string): Parsed[] {
 
 type Geo = { type?: string; coordinates?: unknown; geometries?: Geo[]; geometry?: Geo | null; features?: Geo[]; properties?: Record<string, unknown> | null };
 
-function geoLines(g: Geo | null | undefined): [number, number][][] {
+function geoLines(g: Geo | null | undefined): Pt[][] {
   if (!g) return [];
   const c = g.coordinates as number[][] & number[][][] & number[][][][];
-  const ring = (r: number[][]) => r.filter((p) => p.length >= 2).map((p) => [p[0], p[1]] as [number, number]);
+  const ring = (r: number[][]) => r.filter((p) => p.length >= 2).map((p) => [p[0], p[1], Number.isFinite(p[2]) ? p[2] : null] as Pt);
   switch (g.type) {
     case 'LineString':
       return [ring(c)];
@@ -270,7 +288,7 @@ function parseGeoJson(json: unknown, fallback: string): Parsed[] {
 }
 
 /** Douglas–Peucker（經緯度直接算，經度乘上 cos(緯度)），先去掉座標不合理的點 */
-function simplify(line: [number, number][]): [number, number][] {
+function simplify(line: Pt[]): Pt[] {
   const pts = line.filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y) && Math.abs(x) <= 180 && Math.abs(y) <= 90);
   if (pts.length < 3) return pts;
   const k = Math.cos((pts[0][1] * Math.PI) / 180);
@@ -310,7 +328,16 @@ export function routesToGeoJson(routes: PersonalRoute[]): string {
     features: routes.map((r) => ({
       type: 'Feature',
       properties: { name: r.name, series: r.series, place: r.place, topic: r.topic, source: r.source },
-      geometry: { type: 'MultiLineString', coordinates: r.lines.map((l) => l.map(([x, y]) => [Math.round(x * 1e6) / 1e6, Math.round(y * 1e6) / 1e6])) },
+      geometry: {
+        type: 'MultiLineString',
+        coordinates: r.lines.map((l, i) =>
+          l.map(([x, y], j) => {
+            const z = r.ele?.[i]?.[j];
+            const xy = [Math.round(x * 1e6) / 1e6, Math.round(y * 1e6) / 1e6];
+            return z === null || z === undefined ? xy : [...xy, Math.round(z * 10) / 10];
+          }),
+        ),
+      },
     })),
   });
 }
