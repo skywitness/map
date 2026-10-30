@@ -208,15 +208,13 @@ def _emigrant_notes() -> tuple[dict[str, str], dict[str, str]]:
 
 def _ilo_foreign_born() -> dict[str, dict[int, float]]:
     """ILOSTAT：15 歲以上勞動力裡外國出生者的比例（%）"""
-    path = download(ilostat.API.format(id=ILO_FOREIGN_BORN), "ilostat", f"{ILO_FOREIGN_BORN}.csv")
     cells: dict[tuple[str, int], dict[str, float]] = {}
-    with open(path, encoding="utf-8-sig", newline="") as f:
-        for row in csv.DictReader(f):
-            if row["sex"] != "SEX_T" or row["classif1"] != "AGE_YTHADULT_YGE15" or not row["obs_value"]:
-                continue
-            if row.get("obs_status") == ilostat.UNRELIABLE or not (iso3 := to_iso3(row["ref_area"])):
-                continue
-            cells.setdefault((iso3, int(row["time"])), {})[row["classif2"]] = float(row["obs_value"])
+    for row in ilostat.rows(ILO_FOREIGN_BORN):
+        if row["sex"] != "SEX_T" or row["classif1"] != "AGE_YTHADULT_YGE15" or not row["obs_value"]:
+            continue
+        if row.get("obs_status") == ilostat.UNRELIABLE or not (iso3 := to_iso3(row["ref_area"])):
+            continue
+        cells.setdefault((iso3, int(row["time"])), {})[row["classif2"]] = float(row["obs_value"])
     out: dict[str, dict[int, float]] = {}
     for (iso3, year), c in cells.items():
         if c.get("CBR_BIR_TOTAL") and "CBR_BIR_FOREIGN" in c:

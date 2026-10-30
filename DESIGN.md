@@ -1366,7 +1366,7 @@ pipeline/
     - GII：UNDP 人類發展報告（`gii_年`）。台灣用性平處依同一公式算的值：2019 年 0.045、2021 年 0.036、2022 年 0.041、2023 年 0.040（173 國中第 13 名）。《性別圖像》的 PDF 字型沒有 Unicode 對照，數字是把頁面轉成圖片讀的（2020 年的值沒有找到）。
 
 30. **薪資與工時**（`pipeline/topics/wages.py`、`pipeline/sources/ilostat.py`、`pwt.py`、`dgbas_wages.py`、`mol.py`、`cbc_fx.py`）：
-    - **ILOSTAT 的下載**：用 rplumber API（`https://rplumber.ilo.org/data/indicator/?id=<資料集>&format=.csv&type=code`），一次下載整個資料集。
+    - **ILOSTAT 的下載**：用 rplumber API（`https://rplumber.ilo.org/data/indicator/?id=<資料集>&format=.csv&type=code`），一次下載整個資料集。2026-10-30 起 rplumber 回空的內容，改用 sdmx.ilo.org（第 229 點）。
       - 沒帶 User-Agent 時回 HTTP 200，但內容是空的（`common.download()` 已經自帶 User-Agent）。ilostat.ilo.org 的批次下載頁有 Cloudflare 驗證，舊的 webapps.ilo.org 批次檔已經 404。
       - 資料集代碼改過：舊的 `EAR_4MTH_SEX_CUR_NB_A` 已停用，平均月薪是 `EAR_EMTA_SEX_CUR_NB_A`、最低工資 `EAR_INEE_CUR_NB_A`、每週工時 `HOW_TEMP_SEX_NB_A`。可用的代碼查 `https://rplumber.ilo.org/metadata/toc/indicator?lang=en&format=.csv`。
       - 年資料每個國家、每年只有一個來源（ILOSTAT 已經挑好主要序列），不必自己挑。
@@ -3743,6 +3743,12 @@ pipeline/
     - **糖尿病**：xmart 沒有 `NCD_DIABETES_PREVALENCE_AGESTD`，疾病主題的糖尿病照舊用 OData 壞掉以前產生的檔（`disease.py` 的 `KEEP_EXISTING`：檔在就不重新產生）。
     - **比對**（重跑空氣品質、疾病、疫苗、菸酒、交通安全）：空氣品質、疾病、菸酒的資料檔跟原本完全一樣（只有國家的順序與 `generatedAt` 不同，沒有提交），疫苗的 WUENIC 四項也一樣。交通安全只有史瓦帝尼：RS_246（死者依道路使用者分）它有 2013、2016 兩年，原本的程式依列的順序把兩年的占比混在一起（2016 年的機車 0.5% 配 2013 年的行人 33.5%），改成每國只用最新的一年（2016 年：四輪 53.7%、行人 43.8%、機車 0.5%）。
     - 順便：環境部開放資料（`data.moenv.gov.tw`，空氣品質的 PM2.5 手動監測）的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`（`moenv.py` 自己開連線，改成也用 `common._ssl_context()`）；國健署（`www.hpa.gov.tw`，菸酒的台灣吸菸率）只送伺服器憑證、沒有中繼憑證，`common.MISSING_INTERMEDIATE` 照憑證 AIA 的網址下載 TWCA Secure SSL CA 加進信任清單（瀏覽器也是這樣補，一樣驗證到系統的 TWCA Global Root CA）。
+229. **ILO 的資料改讀 sdmx.ilo.org，並重抓 ILOSTAT**（修正＋更新，2026-10-30，製作手冊第八批 147；`pipeline/sources/ilostat.py` 的 `rows()`、`topics/migration.py` 的 `_ilo_foreign_born()`）：
+    - **原因**：rplumber API（`rplumber.ilo.org`）2026-10-30 回 HTTP 200 但內容是空的，薪資、就業、移民重跑會失敗；`ilostat.ilo.org` 有 Cloudflare 驗證，不用。
+    - **做法**：改讀 ILO 的 SDMX API：`https://sdmx.ilo.org/rest/data/ILO,DF_<資料集>,1.0/all?format=csv`，資料集代碼是 ILOSTAT 的代碼去掉結尾的 `_A`（`EAR_INEE_CUR_NB_A` → `DF_EAR_INEE_CUR_NB`），同一份資料、同一個授權（CC BY 4.0）。`rows()` 把 SDMX-CSV 的欄位換回 rplumber 的名稱（`REF_AREA` → `ref_area`；分類維度 CUR、AGE、CBR 依欄位順序是 `classif1`、`classif2`），只收年資料（`FREQ` A；工時等資料集也有月、季）。
+    - **附註是文字**：SDMX 的 `NOTE_INDICATOR`、`NOTE_SOURCE` 是「Central tendency measure: Median」這樣的文字（多個用「 | 」分開），rplumber 是代碼（T8:128）；程式沿用代碼，`NOTE_LABELS` 對照（T8:128 中位數、S4:31 只涵蓋都市、S4:33「Main cities or metropolitan areas」，巴拉圭的單數「Main city or metropolitan area」原本就不是 S4:33，照舊不標）。
+    - **下載**：sdmx.ilo.org 偶爾回 HTTP 403（同一個網址過幾秒再下載就好），`rows()` 遇到 403 等 15、30、45 秒再試；同一次執行只讀一次（`functools.cache`，`--refresh` 時也不重複下載）。
+    - **比對**（`npm run data -- wages employment migration --refresh`）：失業率、青年失業率、勞參率完全一樣；非正式就業多了奈及利亞 2025 年（92.8%）；月薪 6 格、最低工資 5 格、每週工時 15 格（13 國）有小修正，超過 5% 的只有拉脫維亞 2006 年（來源換成 Structure of Earnings Survey，480 → 584 美元）與波蘭 2002 年（547 → 514 美元）；勞動力裡的外國出生者多了阿曼，科威特補上 2002–2007 年、貝南 2024 年。附註、國家數不變。
 
 ## 9. 之後可以做的
 
