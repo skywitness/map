@@ -726,7 +726,7 @@ export function App() {
               <Suspense fallback={<MapFallback dark={basemap.dark} text={t.loadingMap} />}>
                 {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
                 <WorldMap
-                  ref={mapHandle}
+                  handleRef={mapHandle}
                   countries={features ?? NO_FEATURES}
                   countryTable={countries}
                   onPickCountry={pure ? undefined : selectFromSearch}

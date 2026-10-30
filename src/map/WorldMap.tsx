@@ -247,7 +247,8 @@ interface WorldMapProps {
   pointer?: (lngLat: [number, number], iso3: string | null) => PointerInfo | null;
   /** 主題側欄放的標記（首都與它的對蹠點）：圓點加名稱，點一下移到 link 那一個（不會改變選取的國家） */
   marks?: MapMark[] | null;
-  ref?: Ref<WorldMapHandle>;
+  /** 地圖的操作（匯出圖片等）；不叫 ref：Preact 的函式元件收不到 ref 這個 prop（React 19 收得到） */
+  handleRef?: Ref<WorldMapHandle>;
 }
 
 export interface MapView {
@@ -271,7 +272,7 @@ export function WorldMap(props: WorldMapProps) {
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES, time = null } = props;
-  const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
+  const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, handleRef, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
@@ -1543,7 +1544,7 @@ export function WorldMap(props: WorldMapProps) {
           : null;
 
   useImperativeHandle(
-    ref,
+    handleRef,
     () => ({
       exportImage: async (content) => {
         const map = mapRef.current;
