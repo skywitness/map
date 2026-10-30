@@ -521,7 +521,7 @@ export const daylight: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
-      name: { zh: 'IANA 時區資料庫（tzdata 2026e）', en: 'IANA Time Zone Database (tzdata 2026e)' },
+      name: { zh: 'IANA 時區資料庫（tzdata 2026f）', en: 'IANA Time Zone Database (tzdata 2026f)' },
       url: 'https://www.iana.org/time-zones',
       license: { zh: '公有領域', en: 'public domain' },
     },
