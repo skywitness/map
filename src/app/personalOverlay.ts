@@ -35,12 +35,16 @@ export function personalOverlay(cfg: Config): LinesOverlayDef {
   };
 }
 
-/** 匯入的路線 → 線圖層的資料：一條路線可以有好幾段，每段一筆紀錄，g 是路線的序號（滑過整條一起標出） */
-export function personalDecoded(routes: PersonalRoute[], cfg: Config): DecodedLines {
+/**
+ * 匯入的路線 → 線圖層的資料：一條路線可以有好幾段，每段一筆紀錄，g 是路線在 routes 裡的序號（滑過整條一起標出、點選時找回路線）；
+ * shows 是這次要畫的路線（選了某個賽事時只畫那個賽事的），沒畫的序號照樣跳過不重排
+ */
+export function personalDecoded(routes: PersonalRoute[], cfg: Config, shows?: (r: PersonalRoute) => boolean): DecodedLines {
   const lines: [number, number][][] = [];
   const types: number[] = [];
   const records: PointRecord[] = [];
   routes.forEach((r, g) => {
+    if (shows && !shows(r)) return;
     const type = cfg.type?.(r.series) ?? 0;
     for (const line of r.lines) {
       lines.push(line);

@@ -939,12 +939,14 @@ export interface TopicDefinition {
   /**
    * 我的路線（2026-10-30 起，賽車）：圖層選單多一區，使用者可以匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip，
    * 一次很多個或一整個資料夾），只存在這個瀏覽器（lib/personalRoutes.ts），畫成一個線圖層。
-   * color 跟線圖層一樣（分類代碼由 type 算，沒有分類的用 0），seriesLabel 是 tooltip 上的分類名稱
+   * color 跟線圖層一樣（分類代碼由 type 算，沒有分類的用 0），seriesLabel 是 tooltip 上的分類名稱；
+   * forItem 決定選了某個子項目時畫哪些路線（2026-10-31 起，賽車選了某個賽事只畫那個賽事的），沒有就全部都畫
    */
   personalRoutes?: {
     color: LinesOverlayDef['color'];
     type?: (series: string | undefined) => number;
     seriesLabel?: (series: string) => Text | undefined;
+    forItem?: (series: string | undefined, item: string | null) => boolean;
   };
   /**
    * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，

@@ -33,7 +33,7 @@ import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
-import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes } from './lib/personalRoutes';
+import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes, type PersonalRoute } from './lib/personalRoutes';
 import type { PersonalMenu } from './map/BasemapMenu';
 import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
 import { loadBaseStyle } from './map/style';
@@ -171,10 +171,6 @@ export function App() {
   const personalCfg = definition.personalRoutes;
   const { routes: personalRoutes, error: personalError } = usePersonalRoutes(personalCfg ? definition.id : null);
   const personalDef = useMemo(() => (personalCfg && personalRoutes.length ? personalOverlay(personalCfg) : null), [personalCfg, personalRoutes.length]);
-  const personalLines = useMemo(
-    () => (personalCfg && personalRoutes.length ? new Map([[PERSONAL_ID, personalDecoded(personalRoutes, personalCfg)]]) : undefined),
-    [personalCfg, personalRoutes],
-  );
   const shown = useMemo(() => {
     const own = definition.overlays ?? [];
     const extra = sharedDefs.filter((d) => !own.some((o) => o.id === d.id) && ('topic' in d ? d.topic : undefined) !== definition.id);
@@ -223,6 +219,16 @@ export function App() {
   const item = resolveItem(dimension, state.item, state.country);
   // 子項目有自己的分級門檻時（itemScales），換成那一組
   const indicator = forItem(chosenIndicator, item);
+  // 我的路線的線：選了某個子項目時只畫它的（TopicDefinition.personalRoutes.forItem，賽車選了某個賽事只畫那個賽事的）
+  const personalShows = useCallback(
+    (r: PersonalRoute) => !personalCfg?.forItem || personalCfg.forItem(r.series, item),
+    [personalCfg, item],
+  );
+  const personalLines = useMemo(
+    () =>
+      personalCfg && personalRoutes.length ? new Map([[PERSONAL_ID, personalDecoded(personalRoutes, personalCfg, personalShows)]]) : undefined,
+    [personalCfg, personalRoutes, personalShows],
+  );
 
   const countries = useJson<CountryTable>('countries.json').data;
   const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
@@ -369,7 +375,9 @@ export function App() {
   const panelMarks = marks && marks.key === panelKey ? marks.marks : null;
   // 我的路線：點地圖上的一條路線選取它（地圖移過去、標出那一條、下緣打開高度剖面），滑過剖面時地圖上放一個點
   const [routePick, setRoutePick] = useState<{ topic: string; g: number } | null>(null);
-  const pickedRoute = routePick && routePick.topic === definition.id ? (personalRoutes[routePick.g] ?? null) : null;
+  const picked = routePick && routePick.topic === definition.id ? personalRoutes[routePick.g] : undefined;
+  // 換到別的賽事、選取的路線沒畫出來時，高度剖面也不顯示
+  const pickedRoute = picked && personalShows(picked) ? picked : null;
   const [routeMark, setRouteMark] = useState<MapMark | null>(null);
   const onRouteHover = useCallback(
     (at: { lon: number; lat: number } | null) => setRouteMark(at ? { lon: at.lon, lat: at.lat, label: '', kind: 'here' } : null),

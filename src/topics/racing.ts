@@ -375,6 +375,8 @@ export const racing: TopicDefinition = {
     },
     type: (series) => SERIES.find((s) => s.id === series)?.code ?? 0,
     seriesLabel: (series) => SERIES.find((s) => s.id === series)?.label,
+    // 選了某個賽事只畫那個賽事的路線（使用者 2026-10-31）；「全部賽事」或子項目不是賽事時畫全部
+    forItem: (series, item) => !item || !SERIES.some((s) => s.id === item) || series === item,
   },
   overlays: [
     seasonLayer('season-done', 'season', true, false),
