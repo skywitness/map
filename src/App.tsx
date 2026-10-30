@@ -7,10 +7,11 @@ import { SavedViews } from './controls/SavedViews';
 import { ShareMenu } from './controls/ShareMenu';
 import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
-import { localize, setLang, useLang, useT } from './i18n';
+import { localize, setLang, tr, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { rememberTopic } from './lib/recentTopics';
+import { useLayoutPrefs } from './lib/layoutPrefs';
 import { openSavedView, useSavedViews } from './lib/savedViews';
 import { langParam } from './i18n/lang';
 import { useUI } from './lib/strings';
@@ -25,26 +26,33 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, useUrlState } from './lib/url-state';
+import { currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
 import type { Box } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
+import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes } from './lib/personalRoutes';
+import type { PersonalMenu } from './map/BasemapMenu';
+import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { BoxResult } from './panels/BoxResult';
+import { coreBox } from './lib/coreBox';
+import { ListSide } from './panels/ListSide';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
 import { Sparkline } from './map/Sparkline';
 import { loadedTopic, loadTopic } from './topics';
+import { SHARED_LAYERS } from './topics/shared-layers';
 import {
   dimensionOf,
   forItem,
   indicatorPath,
   missingReason,
+  overlayEpoch,
   resolveAlias,
   resolveItem,
   sameTimeAxis,
@@ -52,6 +60,7 @@ import {
   yearBin,
   type ClockAt,
   type IndicatorData,
+  type ListRow,
   type MapMark,
   type TopicDefinition,
 } from './topics/types';
@@ -66,7 +75,7 @@ import {
   useTopicReady,
 } from './app/hooks';
 import { canAnalyse, groupOptions, pickYear } from './app/options';
-import { useOverlays } from './app/overlays';
+import { useOverlays, useSharedOverlays } from './app/overlays';
 import { worldTrend } from './app/trend';
 import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
@@ -77,6 +86,7 @@ const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ d
 // 排名表、時刻主題的時間軸（晝夜與季節，連同太陽位置的計算）也是用到才下載（2026-10-30）
 const RankingTable = lazy(() => import('./panels/RankingTable').then((m) => ({ default: m.RankingTable })));
 const MomentControl = lazy(() => import('./controls/MomentControl').then((m) => ({ default: m.MomentControl })));
+const RouteProfilePanel = lazy(() => import('./charts/RouteProfilePanel').then((m) => ({ default: m.RouteProfilePanel })));
 // 分析檢視（src/analysis/）：切到分析才下載
 const AnalysisView = lazy(() => import('./analysis/AnalysisView'));
 
@@ -141,6 +151,10 @@ export function App() {
     // 正在下載別的主題時（urlState 是舊的）不改網址
     if (state !== urlState && urlState === liveUrlState) update({ indicator: state.indicator, item: state.item }, { replace: true });
   }, [state, urlState, liveUrlState, update]);
+  // 版面：時間軸、資料來源與說明可以分別關掉（頂列的「版面」選單）；嵌入模式不管這個設定，照樣都顯示
+  const [layout, setLayout] = useLayoutPrefs();
+  const showTime = state.embed || layout.time;
+  const showSources = state.embed || layout.sources;
   const lang = useLang();
   const t = useT();
   const online = useOnline();
@@ -150,7 +164,48 @@ export function App() {
   useFitMap(appRef);
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
-  const topic = localize(definition, lang);
+  // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
+  const [sharedOn, setSharedOn] = useState<string[]>([]);
+  const sharedDefs = useSharedOverlays(sharedOn);
+  // 我的路線（TopicDefinition.personalRoutes，lib/personalRoutes.ts）：使用者在這個瀏覽器匯入的路線，有路線時多一個線圖層
+  const personalCfg = definition.personalRoutes;
+  const { routes: personalRoutes, error: personalError } = usePersonalRoutes(personalCfg ? definition.id : null);
+  const personalDef = useMemo(() => (personalCfg && personalRoutes.length ? personalOverlay(personalCfg) : null), [personalCfg, personalRoutes.length]);
+  const personalLines = useMemo(
+    () => (personalCfg && personalRoutes.length ? new Map([[PERSONAL_ID, personalDecoded(personalRoutes, personalCfg)]]) : undefined),
+    [personalCfg, personalRoutes],
+  );
+  const shown = useMemo(() => {
+    const own = definition.overlays ?? [];
+    const extra = sharedDefs.filter((d) => !own.some((o) => o.id === d.id) && ('topic' in d ? d.topic : undefined) !== definition.id);
+    if (personalDef) extra.push(personalDef);
+    return extra.length ? { ...definition, overlays: [...own, ...extra] } : definition;
+  }, [definition, sharedDefs, personalDef]);
+  const sharedChoices = useMemo(
+    () =>
+      SHARED_LAYERS.filter((l) => l.topic !== definition.id && !definition.overlays?.some((o) => l.ids.includes(o.id))).map((l) => ({
+        id: l.id,
+        label: tr(l.label, lang),
+        checked: sharedOn.includes(l.id),
+      })),
+    [definition, sharedOn, lang],
+  );
+  const toggleShared = useCallback((id: string) => setSharedOn((on) => (on.includes(id) ? on.filter((x) => x !== id) : [...on, id])), []);
+  const personalMenu = useMemo<PersonalMenu | undefined>(
+    () =>
+      personalCfg
+        ? {
+            count: personalRoutes.length,
+            unavailable: personalError,
+            onImport: (files) => importRouteFiles(files, definition.id),
+            onExport: () =>
+              downloadBlob(new Blob([routesToGeoJson(personalRoutes)], { type: 'application/geo+json' }), `my-routes-${definition.id}.geojson`),
+            onClear: () => clearRoutes(definition.id),
+          }
+        : undefined,
+    [personalCfg, personalRoutes, personalError, definition.id],
+  );
+  const topic = localize(shown, lang);
   // 主題自訂地點（奧運的歷史隊伍等）的名稱，排名表、tooltip、側欄的 countryName() 才查得到
   registerPlaces(definition.places);
   const placeAnchors = useMemo<[string, [number, number]][]>(
@@ -276,30 +331,104 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
+  // 舊網址轉到合併後的主題，要一起打開某個圖層（唐人街併進移民與難民）：打開那個主題時打開一次
+  useEffect(() => {
+    const layer = takeRedirectLayer(topic.id);
+    if (layer) setLayers((l) => ({ ...l, extra: { ...l.extra, [layer]: true } }));
+  }, [topic.id]);
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
-  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData, personalLines);
   // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
   // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
   const panelKey = `${topic.id}:${state.country ?? ''}`;
   const [lineHighlight, setLineHighlight] = useState<{ key: string; overlay: string; group: number } | null>(null);
-  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
+  const [focusBox, setFocusBox] = useState<{ box: [number, number, number, number]; key: number; maxZoom?: number; bottom?: number } | null>(null);
   const highlightLine = useCallback(
     (overlay: string, group: number | null) => setLineHighlight(group === null ? null : { key: panelKey, overlay, group }),
     [panelKey],
   );
   const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
-  const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
+  // maxZoom：清單側欄點一個點（賽道、城鎮）時放大到看得清楚，預設最多 8 級（WorldMap）
+  // bottom：地圖下緣被蓋住的高度（我的路線的高度剖面），框的時候讓開
+  const moveToBox = useCallback(
+    (box: [number, number, number, number], maxZoom?: number, bottom?: number) =>
+      setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1, maxZoom, bottom })),
+    [],
+  );
   // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
   const topicFocus = indicator.focus ?? topic.focus;
   useEffect(() => {
-    if (topicFocus && !state.country) moveToBox(topicFocus);
+    // 主題的 focus 可以依年份給（板塊漂移：那個年代的大陸在哪裡），只在換過來時看一次
+    if (topicFocus && !state.country) moveToBox(typeof topicFocus === 'function' ? topicFocus(year) : topicFocus);
   }, [topic.id, indicator.focus]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
-  const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
+  const panelMarks = marks && marks.key === panelKey ? marks.marks : null;
+  // 我的路線：點地圖上的一條路線選取它（地圖移過去、標出那一條、下緣打開高度剖面），滑過剖面時地圖上放一個點
+  const [routePick, setRoutePick] = useState<{ topic: string; g: number } | null>(null);
+  const pickedRoute = routePick && routePick.topic === definition.id ? (personalRoutes[routePick.g] ?? null) : null;
+  const [routeMark, setRouteMark] = useState<MapMark | null>(null);
+  const onRouteHover = useCallback(
+    (at: { lon: number; lat: number } | null) => setRouteMark(at ? { lon: at.lon, lat: at.lat, label: '', kind: 'here' } : null),
+    [],
+  );
+  const shownMarks = useMemo(() => (routeMark && pickedRoute ? [...(panelMarks ?? []), routeMark] : panelMarks), [panelMarks, routeMark, pickedRoute]);
+  const onLineClick = useCallback(
+    (overlay: string, group: number) => {
+      if (overlay !== PERSONAL_ID) return false;
+      const route = personalRoutes[group];
+      if (!route) return false;
+      setRoutePick({ topic: definition.id, g: group });
+      highlightLine(PERSONAL_ID, group);
+      let box: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const line of route.lines)
+        for (const [x, y] of line) box = [Math.min(box[0], x), Math.min(box[1], y), Math.max(box[2], x), Math.max(box[3], y)];
+      moveToBox(box, 14, 190);
+      return true;
+    },
+    [personalRoutes, definition.id, highlightLine, moveToBox],
+  );
+  const closeRoute = useCallback(() => {
+    setRoutePick(null);
+    setRouteMark(null);
+    highlightLine(PERSONAL_ID, null);
+  }, [highlightLine]);
+  // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
+  const listDef =
+    !pure && !state.embed && view === 'map' && topic.listPanel && (!topic.listPanel.indicators || topic.listPanel.indicators.includes(indicator.id))
+      ? topic.listPanel
+      : null;
+  const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
+  // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
+  const fitLayer = overlays.find((o) => o.kind === 'points' && o.visible && o.def.fitOnEpoch && o.def.epochs && o.def.minValue);
+  const fitEpoch = fitLayer && fitLayer.kind === 'points' ? overlayEpoch(fitLayer.def, year) : null;
+  const fitPoints = fitLayer && fitLayer.kind === 'points' ? fitLayer.points : null;
+  useEffect(() => {
+    if (!fitLayer || fitLayer.kind !== 'points' || !fitPoints || fitEpoch === null) return;
+    const { epochs, minValue, fitOnEpoch } = fitLayer.def;
+    if (!epochs || !minValue || !fitOnEpoch) return;
+    const box = coreBox(
+      fitPoints.filter((p) => epochs.values(p, fitEpoch)[minValue.field] != null).map((p) => [Number(p.lon), Number(p.lat)] as [number, number]),
+      fitOnEpoch.core,
+    );
+    if (box) moveToBox(box, fitOnEpoch.maxZoom);
+    // 只在換期、換圖層、資料剛下載完時移動（選國家、滑地圖不動）
+  }, [fitLayer?.def.id, fitEpoch, fitPoints]);
+  const pickListRow = (row: ListRow) => {
+    if ('box' in row.target) moveToBox(row.target.box);
+    else {
+      // 點：框一個約 2 km 的範圍，放大到 zoom（預設 11 級，看得到賽道或城鎮）
+      const { lon, lat, zoom = 11 } = row.target;
+      const d = 0.01;
+      moveToBox([lon - d, lat - d, lon + d, lat + d], zoom);
+    }
+    const at = row.mark ?? ('box' in row.target ? null : row.target);
+    setMarks(at ? [{ lon: at.lon, lat: at.lat, label: row.title, kind: 'here' }] : null);
+    if (row.year != null && !timeless) setYear(row.year);
+  };
   // 滑到地圖上任何一點時主題給的資訊（地球的另一邊：游標的對蹠點在哪一國或哪一片海）
   const topicPointer = topic.pointer;
   const indicatorId = indicator.id;
@@ -307,8 +436,8 @@ export function App() {
     if (!topicPointer || !features) return undefined;
     const countryAt = countryLocator(features);
     return (lngLat: [number, number], iso3: string | null) =>
-      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year });
-  }, [topicPointer, features, countries, indicatorId, year]);
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at });
+  }, [topicPointer, features, countries, indicatorId, year, at]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -363,8 +492,10 @@ export function App() {
         ? [{ id: 'values', label: state.labels ? t.valueLabelsOff : t.valueLabels, run: () => update({ labels: !state.labels }) }]
         : []),
       ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
+      { id: 'layout-time', label: layout.time ? t.hideTime : t.showTime, run: () => setLayout({ time: !layout.time }) },
+      { id: 'layout-sources', label: layout.sources ? t.hideSources : t.showSources, run: () => setLayout({ sources: !layout.sources }) },
     ];
-  }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews]);
+  }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews, layout, setLayout]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
@@ -410,7 +541,7 @@ export function App() {
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
   // 不隨時間變化的資料（海拔），或時刻主題裡不隨時刻變的指標（晝長年較差）：標題、檔名、tooltip、排名表都不寫年份
   const per = at ? indicator.derive?.per : undefined;
-  const timeless = Boolean(topic.timeless) || per === 'fixed';
+  const timeless = Boolean(topic.timeless || indicator.timeless) || per === 'fixed';
   // 指標的 timeAxis 改寫了年份的意思（「1996 年出生」）：標題、tooltip、排名表用它；
   // 時刻主題寫那一刻（「6月21日 14:05」），只跟日期有關的指標只寫日期
   const yearText =
@@ -568,7 +699,7 @@ export function App() {
   };
 
   return (
-    <div className={`app${state.embed ? ' is-embed' : ''}`} ref={appRef}>
+    <div className={`app${state.embed ? ' is-embed' : ''}${showSources ? '' : ' is-no-footer'}`} ref={appRef}>
       <TopBar
         topic={topic}
         embed={state.embed}
@@ -582,6 +713,8 @@ export function App() {
         paletteActions={paletteActions}
         themeMode={tokens.mode}
         onToggleTheme={toggleTheme}
+        layout={layout}
+        onLayoutChange={setLayout}
       />
 
       {/* 控制列、說明、地圖、時間軸都在 <main> 裡（axe 的 region：內容都要在某個 landmark 裡，2026-10-29）；
@@ -703,7 +836,21 @@ export function App() {
         </div>
         <ClampedText key={description} text={description} className="indicator-desc" />
 
-        <div className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}`}>
+        <div
+          className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}`}
+        >
+          {listDef && (
+            <ListSide
+              def={listDef}
+              topicId={topic.id}
+              item={item}
+              year={year}
+              countryName={listCountryName}
+              open={layout.list}
+              onOpenChange={(open) => setLayout({ list: open })}
+              onPick={pickListRow}
+            />
+          )}
           <div className="stage-main">
             {error && (
               // 離線而這個主題還沒存到裝置（service worker 只快取看過的資料）跟一般的失敗分開說
@@ -715,10 +862,14 @@ export function App() {
                 action={{ label: t.retry, onClick: () => location.reload() }}
               />
             )}
-            {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
+            {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出；
+                版面關掉了時間軸時一直顯示（小一號），才知道看的是哪一年 */}
             {view === 'map' && !pure && (!timeless || at) && (
               // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
-              <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
+              <div
+                className={`map-year${playing || !showTime ? ' is-on' : ''}${!showTime && !playing ? ' is-pinned' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`}
+                aria-hidden="true"
+              >
                 {/* 每換一年新的數字從下面滾上來（styles.css 的 .year-roll） */}
                 <span key={at ? at.time : year} className="year-roll">
                   {at ? formatMoment(at.time) : (yearText ?? year)}
@@ -753,6 +904,9 @@ export function App() {
                   }
                   basemap={basemap}
                   onBasemapChange={chooseBasemap}
+                  sharedLayers={pure ? undefined : sharedChoices}
+                  onSharedToggle={toggleShared}
+                  personal={pure ? undefined : personalMenu}
                   fitOnSelect={pure}
                   onFirstData={onMapShown}
                   onDetailNeeded={wantDetail}
@@ -785,6 +939,14 @@ export function App() {
                   focusBox={focusBox}
                   pointer={pure ? undefined : pointer}
                   marks={shownMarks}
+                  onLineClick={personalCfg ? onLineClick : undefined}
+                  bottom={
+                    pickedRoute && (
+                      <Suspense fallback={null}>
+                        <RouteProfilePanel route={pickedRoute} onHover={onRouteHover} onClose={closeRoute} />
+                      </Suspense>
+                    )
+                  }
                   overlay={
                     boxResult && (
                       <BoxResult
@@ -873,8 +1035,9 @@ export function App() {
         </div>
 
         {clock ? (
-          <Suspense fallback={<div className="time-slider" />}>
+          <Suspense fallback={<div className="time-slider" hidden={!showTime} />}>
             <MomentControl
+              hidden={!showTime}
               time={shownTime}
               live={state.time === null}
               onChange={(ms) => update({ time: floorMinute(ms) })}
@@ -897,13 +1060,14 @@ export function App() {
               onChange={setYear}
               trend={trend}
               onPlayingChange={setPlaying}
+              hidden={!showTime}
             />
           )
         )}
 
       </main>
 
-      <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} />
+      {showSources && <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} />}
     </div>
   );
 }

@@ -12,7 +12,7 @@ formula_one_driver.csv（車手與國籍）、formula_one_driverchampionship.csv
 - **車手冠軍**：每一季最後一站之後的積分榜第 1 名，依車手登記的國籍（FIA 登記的，country_code）；還沒結束的這一季不算。
 - **年份**：1950 年到匯出的那一年，都是累計到那一年年底。
 
-**輸出**（public/data/topics/f1/）：circuits.json（賽道的點：名稱、地點、國家、第一站與最後一站的年份、分站數）、
+**輸出**（public/data/topics/racing/，2026-10-30 起在「賽車」主題；之前跟奧運合成「運動」）：circuits.json（賽道的點：名稱、地點、國家、第一站與最後一站的年份、分站數）、
 races.json（各國累計舉辦的分站數）、champions.json（各國籍累計的車手冠軍數）、champions-list.json（每年的冠軍，側欄用）。
 """
 from __future__ import annotations
@@ -22,9 +22,9 @@ import io
 import zipfile
 from collections import Counter, defaultdict
 
-from common import OUT_DIR, download, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, download, indicator_file, points_file, write_json, write_manifest_part
 
-OUT = OUT_DIR / "topics" / "f1"
+OUT = OUT_DIR / "topics" / "racing"  # 賽車（2026-10-30 從「運動」搬過來）
 DUMP_URL = "https://api.jolpi.ca/data/dumps/download/delayed/?dump_type=csv"
 FIRST_YEAR = 1950
 
@@ -88,7 +88,7 @@ def build() -> None:
                                                   aggregates={"WLD": [sum(1 for r in rounds if int(r["date"][:4]) <= y) for y in years]}))
     write_json(OUT / "champions.json", indicator_file("champions", "次", years, champs, notes=notes, notesEn=notes_en))
     write_json(OUT / "champions-list.json", [[y, f"{d['forename']} {d['surname']}", d["country_code"]] for y, d in champions])
-    write_json(OUT / "manifest.json", {"topic": "f1", "generatedAt": now_iso(), "lastRace": last_date, "lastChampionYear": champions[-1][0]})
+    write_manifest_part(OUT, "racing", "f1", {"lastRace": last_date, "lastChampionYear": champions[-1][0]})
     print(f"  比到 {last_date}：分站 {len(rounds)} 站（{years[0]}–{last_year}）、賽道 {len(rows)} 條、車手冠軍 {champions[0][0]}–{champions[-1][0]}（{len(champions)} 屆）")
     print(f"  分站最多：{sorted(((v[-1], c) for c, v in races.items()), reverse=True)[:6]}")
     print(f"  冠軍最多：{sorted(((v[-1], c) for c, v in champs.items()), reverse=True)[:6]}")

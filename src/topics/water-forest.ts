@@ -136,8 +136,8 @@ export const waterForest: TopicDefinition = {
       id: 'aqueduct',
       label: { zh: '缺水壓力的推估（Aqueduct）', en: 'Projected water stress (Aqueduct)' },
       description: {
-        zh: 'WRI Aqueduct 4.0 的水資源壓力分數（0–5，取水量占可用水量：0–1 低 <10%、1–2 低到中 10–20%、2–3 中到高 20–40%、3–4 高 40–80%、4–5 極高 >80%），依流域的水文模型算、再依各國用水加權。時間軸是 1979–2019 年的基準與 2030、2050、2080 年的推估，可以選三種情境。跟上面的 SDG 6.4.2「水資源壓力」定義不同，數字不會一致；沒有台灣。',
-        en: 'WRI Aqueduct 4.0 water stress score (0–5, withdrawals as a share of available water: 0–1 low <10%, 1–2 low–medium 10–20%, 2–3 medium–high 20–40%, 3–4 high 40–80%, 4–5 extremely high >80%), computed by a hydrological model per river basin and weighted by each country’s water use. The timeline holds the 1979–2019 baseline and projections for 2030, 2050 and 2080 under three scenarios. It is defined differently from the SDG 6.4.2 water stress above, so the numbers will not match; Taiwan is not included.',
+        zh: 'WRI Aqueduct 4.0 的水資源壓力分數（0–5，取水量占可用水量：0–1 低 <10%、1–2 低到中 10–20%、2–3 中到高 20–40%、3–4 高 40–80%、4–5 極高 >80%），依流域的水文模型算、再依各國用水加權。時間軸是 1979–2019 年的基準與 2030、2050、2080 年的推估，可以選三種情境。跟上面的 SDG 6.4.2「水資源壓力」定義不同，數字不會一致；國家排名沒有台灣（台灣本島所在流域的分數見附註）。',
+        en: 'WRI Aqueduct 4.0 water stress score (0–5, withdrawals as a share of available water: 0–1 low <10%, 1–2 low–medium 10–20%, 2–3 medium–high 20–40%, 3–4 high 40–80%, 4–5 extremely high >80%), computed by a hydrological model per river basin and weighted by each country’s water use. The timeline holds the 1979–2019 baseline and projections for 2030, 2050 and 2080 under three scenarios. It is defined differently from the SDG 6.4.2 water stress above, so the numbers will not match; Taiwan is not in the country rankings (see the notes for the basin covering most of the island).',
       },
       unit: { zh: '分（0–5）', en: 'score (0–5)' },
       file: 'aqueduct-{item}.json',

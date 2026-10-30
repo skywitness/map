@@ -41,8 +41,17 @@ export type LayerSpec =
    * diverging 為 true（兩個方向的強弱，例如專制 ↔ 民主）時改用發散色：categories 從一端排到另一端，
    * 前一半是橘色、後一半是青綠，越靠兩端越深，奇數類的正中間是中性色。
    * tooltip、排名表、側欄照常用 format(代碼) 顯示類別名稱。
+   * itemCategories 是各子項目自己的類別（2026-10-30 起，颱風的日本氣象廳 10 分鐘風速用中央氣象署的分級），
+   * 沒列的子項目用 categories（跟面量圖的 itemScales 一樣在 forItem() 換）。
    */
-  | { kind: 'categorical'; categories: CategoryDef[]; other?: Text; ordinal?: boolean; diverging?: boolean }
+  | {
+      kind: 'categorical';
+      categories: CategoryDef[];
+      other?: Text;
+      ordinal?: boolean;
+      diverging?: boolean;
+      itemCategories?: Record<string, CategoryDef[]>;
+    }
   /**
    * 流向圖：點選國家後，畫出它與主要夥伴之間的大圓弧線，線寬與金額成正比；國家本身不上色。
    * file 是流向檔（FlowFile），相對於 data/topics/<topicId>/，可含 `{item}` 與 `{year}`。
@@ -217,6 +226,8 @@ export interface IndicatorDef {
   defaultYear?: number;
   /** 換到這個指標時地圖移到這個範圍（同主題的 focus，2026-10-30 起，北極航道） */
   focus?: [number, number, number, number];
+  /** 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖） */
+  timeless?: boolean;
   /**
    * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
    * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
@@ -359,7 +370,7 @@ export function resolveItem(
  */
 export type OverlayDef =
   /** 鐵路、機場（交通主題）；indicators 同 OverlayBase：只在這些指標顯示 */
-  | { id: 'railways' | 'airports'; kind?: undefined; file: string; indicators?: string[] }
+  | { id: 'railways' | 'airports'; kind?: undefined; file: string; indicators?: string[]; topic?: string }
   | PointsOverlayDef
   | LinesOverlayDef
   | NightOverlayDef
@@ -379,6 +390,12 @@ export interface NightOverlayDef {
   label: Text;
   /** 太陽直射點在圖例上的名稱 */
   sunLabel: Text;
+  /**
+   * 夜半邊的燈光（2026-10-30 起，晝夜與季節）：經緯度對齊的 8 位元灰階 PNG（0 是沒有燈光、255 最亮），
+   * 天黑（太陽在地平線下約 6° 以下）的地方疊上燈光色，白天的那一半不畫。file 是 data/ 底下的路徑，
+   * bounds 是 [南, 北]（圖的上緣是北），label 是圖例上的名稱
+   */
+  lights?: { file: string; bounds: [number, number]; label: Text };
   hidden?: boolean;
   /** 只在這些指標顯示（指標 id）；沒寫就是所有指標 */
   indicators?: string[];
@@ -501,6 +518,13 @@ interface OverlayBase {
   indicators?: string[];
   /** 只在這些子項目顯示（dimension 的選項 id，例如奧運的夏季、冬季）；沒寫就是所有子項目 */
   items?: string[];
+  /**
+   * 共用疊加圖層（shared-layers.ts，2026-10-30）：疊在別的主題時依自己的方式跟時間軸（例如地震累積到那一年），
+   * 取代目前指標的 overlayTime
+   */
+  overlayTime?: IndicatorDef['overlayTime'];
+  /** 共用疊加圖層：資料有的年份範圍，時間軸超出時用最接近的一年（颱風 1950–2026，時間軸在 2030 年時畫 2026 年） */
+  timeRange?: [number, number];
 }
 
 /** 依數值欄位分級的顏色：thresholds N 個 → classes N+1 個（由小到大），顏色取自 MAP_TOKENS */
@@ -525,6 +549,11 @@ export interface PointsOverlayDef extends OverlayBase {
   fromLive?: (live: unknown) => PointRecord[] | null;
   /** 圓點或三角形（火山）；預設圓點 */
   shape?: 'circle' | 'triangle';
+  /**
+   * 圓點的樣式（2026-10-30 起，發電廠的狀態）：'hollow' 空心粗框（淡淡的底色）、'faint' 空心細框、
+   * 'muted' 灰色實心（顏色分級不畫，只看大小）；沒寫是一般的實心圓點加白框
+   */
+  look?: 'hollow' | 'faint' | 'muted';
   /** 半徑（px，縮放 2 的大小，放大時跟著變大）：固定值，或依數值欄位線性內插 [[值, 半徑], …] */
   radius: number | { field: string; stops: [number, number][] };
   /** 顏色：固定色，或依數值欄位分級 */
@@ -545,6 +574,12 @@ export interface PointsOverlayDef extends OverlayBase {
    * 換到另一期時才重算、重送資料。
    */
   epochs?: { years: number[]; values: (p: PointRecord, epoch: number) => Record<string, number | null> };
+  /**
+   * 換到另一期時地圖移過去（2026-10-30 起，奧運場館：換屆時框住那一屆的場館）：框住這一期畫得出來的點
+   * （epochs 算出的 minValue 欄位不是 null 的）。點分散時只框離中位數 core 度以內的那一群（主辦城市；足球分散在別的城市的不算），
+   * 那一群不到一半時框全部。maxZoom 是最多放大到幾級。要有 epochs 與 minValue
+   */
+  fitOnEpoch?: { core: number; maxZoom: number };
   /**
    * 依縮放篩選：縮小時只畫數值大的點（例如世界全圖只畫 100 萬人以上的城市），stops 是 [縮放級數, 最小值]，
    * 由小到大，第一個的級數是 0。用 MapLibre 的 filter（['zoom'] 在 filter 裡是圖磚的整數級數），跟時間篩選合併；
@@ -587,6 +622,11 @@ export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number
 /** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、海底電纜 */
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
+  /**
+   * 線不是網站的資料檔，是使用者在這個瀏覽器匯入的（2026-10-30 起，我的路線：lib/personalRoutes.ts）：
+   * file 不用，App 把解析好的線交給 useOverlays
+   */
+  local?: boolean;
   /**
    * 線寬（px，縮放 2 時）：固定值，或依紀錄的數值欄位在 stops [[值, 線寬], …] 之間線性內插
    * （例如河流依平均流量，stops 依對數間隔取，看起來就是依流量的對數變粗）
@@ -813,6 +853,43 @@ export interface PanelExtraProps {
  * 側欄放在地圖上的標記（PanelExtraProps.setMarks）：圓點加名稱。link 是另一個標記的索引：點一下這個標記，
  * 地圖移到那一個（首都 ↔ 它的對蹠點，在地球儀上通常在背面）
  */
+/** 清單側欄的設定（TopicDefinition.listPanel） */
+export interface ListPanelDef {
+  /** 側欄的標題（例如「賽程」） */
+  label: Text;
+  /** 只在這些指標顯示；沒寫是所有指標 */
+  indicators?: string[];
+  /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item} */
+  file: string;
+  /**
+   * 點 → 清單的每一列（已經排好）。在呼叫當下讀目前的語言（tr()）；year 是時間軸的年份，item 是目前的子項目
+   */
+  rows: (points: PointRecord[], ctx: { countryName: (iso3: string) => string; year: number; item: string | null }) => ListRow[];
+  /** 沒有任何一列時的說明 */
+  empty?: Text;
+}
+
+/** 清單側欄的一列 */
+export interface ListRow {
+  key: string;
+  /** 第一行（粗體） */
+  title: string;
+  /** 第二行起（日期、地點…），一個字串一行 */
+  lines?: string[];
+  /** 不翻譯的原文名稱（另起一行，translate="no"） */
+  properNoun?: string;
+  /** 淡一點（例如已經比完的） */
+  muted?: boolean;
+  /** 標題旁的小標籤（例如「下一站」）；有標籤的第一列，打開時捲到它 */
+  badge?: string;
+  /** 點了移過去：一個點（放大到 zoom，預設 11）或一個範圍 [西, 南, 東, 北] */
+  target: { lon: number; lat: number; zoom?: number } | { box: [number, number, number, number] };
+  /** 點了在地圖上標出的位置（沒寫時用 target 的點；範圍不標） */
+  mark?: { lon: number; lat: number };
+  /** 點了把時間軸換到這一年（例如每月賽程換到那一站的月份） */
+  year?: number;
+}
+
 export interface MapMark {
   lon: number;
   lat: number;
@@ -853,6 +930,22 @@ export interface TopicDefinition {
    * `panelExtra: () => import('./electricity-panel')`
    */
   panelExtra?: () => Promise<{ default: React.ComponentType<PanelExtraProps> }>;
+  /**
+   * 清單側欄（2026-10-30 起，賽車的賽程）：地圖左邊列出主題的點（依日期或名稱排），點一列地圖移到那裡並標出來。
+   * 桌機在地圖左邊、可以收成一條窄邊；窄螢幕在地圖下面、預設收起來（收合記在版面偏好，lib/layoutPrefs.ts 的 list）。
+   * 程式在 panels/ListSide.tsx，任何有點的清單（節慶、日食、奧運場館…）都可以套用
+   */
+  listPanel?: ListPanelDef;
+  /**
+   * 我的路線（2026-10-30 起，賽車）：圖層選單多一區，使用者可以匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip，
+   * 一次很多個或一整個資料夾），只存在這個瀏覽器（lib/personalRoutes.ts），畫成一個線圖層。
+   * color 跟線圖層一樣（分類代碼由 type 算，沒有分類的用 0），seriesLabel 是 tooltip 上的分類名稱
+   */
+  personalRoutes?: {
+    color: LinesOverlayDef['color'];
+    type?: (series: string | undefined) => number;
+    seriesLabel?: (series: string) => Text | undefined;
+  };
   /**
    * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，
    * 網格只決定國內的分布，各國水準縮放到 indicator 當年的值。grid 是主題資料夾裡的網格檔。
@@ -930,6 +1023,8 @@ export interface TopicDefinition {
       indicator: string;
       /** 時間軸的年份（2026-10-29 起，板塊漂移：游標下是哪一國過去的位置，依那個時間點的檔判斷） */
       year: number;
+      /** 時刻主題目前選的這一刻（2026-10-30 起，晝夜與季節：游標這一點的日出日落）；其他主題是 null */
+      at: ClockAt | null;
     },
   ) => PointerInfo | null;
   /**
@@ -948,9 +1043,10 @@ export interface TopicDefinition {
   places?: PlaceDef[];
   /**
    * 換到這個主題時（沒有選國家）地圖移到這個範圍 [西, 南, 東, 北]（2026-10-30 起，企鵝在哪裡、南極的冰下湖：
-   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）
+   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）。
+   * 也可以是依時間軸年份給範圍的函式（2026-10-30 起，板塊漂移：打開時對著那個年代的大陸），只在換過來時算一次
    */
-  focus?: [number, number, number, number];
+  focus?: [number, number, number, number] | ((year: number) => [number, number, number, number]);
 }
 
 /**
@@ -1001,7 +1097,8 @@ export function indicatorPath(
   item: string | null,
 ): string {
   const file = indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? '');
-  return `topics/${topic.id}/${file}`;
+  // ../<主題>/<檔名>：讀另一個主題的檔（2026-10-30，治安與司法的法治分數讀政府治理的，兩邊不另外存一份）
+  return file.startsWith('../') ? `topics/${file.slice(3)}` : `topics/${topic.id}/${file}`;
 }
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
@@ -1055,15 +1152,17 @@ export interface ItemFormat {
 export function forItem(indicator: Indicator, item: string | null): Indicator {
   const layer = indicator.layer;
   const scale = layer.kind === 'choropleth' && item ? layer.itemScales?.[item] : undefined;
+  const categories = layer.kind === 'categorical' && item ? layer.itemCategories?.[item] : undefined;
   const grid = indicator.grid?.dir.includes('{item}') ? indicator.grid : undefined;
   const fmt = item ? indicator.itemFormats?.[item] : undefined;
-  if (!item || (!scale && !grid && !fmt)) return indicator;
+  if (!item || (!scale && !categories && !grid && !fmt)) return indicator;
   let byItem = itemScaleCache.get(indicator);
   if (!byItem) itemScaleCache.set(indicator, (byItem = new Map()));
   let resolved = byItem.get(item);
   if (!resolved) {
     resolved = { ...indicator };
     if (scale && layer.kind === 'choropleth') resolved.layer = { ...layer, scale };
+    if (categories && layer.kind === 'categorical') resolved.layer = { ...layer, categories };
     if (grid) resolved.grid = { ...grid, dir: grid.dir.replace('{item}', item) };
     if (fmt) Object.assign(resolved, { unit: fmt.unit, format: fmt.format, formatTick: fmt.formatTick ?? fmt.format });
     byItem.set(item, resolved);

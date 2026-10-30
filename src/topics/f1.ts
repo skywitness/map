@@ -22,12 +22,8 @@ function circuitTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
   };
 }
 
-export const f1: TopicDefinition = {
-  id: 'f1',
-  title: { zh: 'F1 賽道與冠軍', en: 'Formula One circuits and champions' },
-  shortTitle: { zh: 'F1', en: 'Formula One' },
-  defaultIndicator: 'races',
-  defaultYear: 2026,
+/** 賽車主題（racing.ts）的 F1 部分：2026-10-30（第七批 121）跟奧運合成「運動」，同一天（第九批 160）搬到「賽車」 */
+export const f1Part = {
   sources: [
     {
       name: {
@@ -46,7 +42,6 @@ export const f1: TopicDefinition = {
       'Formula One World Championship data come from Jolpica-F1 (the successor to Ergast) under CC BY-NC-SA 4.0: non-commercial use only, with derived data shared alike. This site is non-commercial, and its data files and exported images and CSVs may likewise be used only non-commercially. ' +
       'Races count for the country where the circuit is, not the race name (the European Grand Prix held in Spain counts for Spain, and three US races in a year count three times); cancelled races are excluded, and 2026 runs to 11 October. Drivers’ titles go to the leader of the standings after the last race of each season, by the nationality the driver is registered under with the FIA; the unfinished 2026 season is not counted. Taiwan has never hosted a race and has had no Formula One driver.',
   },
-  panelExtra: () => import('./panels/F1Panel'),
   overlays: [
     {
       kind: 'points',
@@ -57,6 +52,7 @@ export const f1: TopicDefinition = {
       color: MAP_TOKENS.hues.red,
       sortField: 'n',
       timeField: 'first',
+      indicators: ['races', 'champions'],
       sizeLegend: { title: { zh: '辦過的分站', en: 'Races held' }, values: [5, 25, 75], format: n0 },
       tooltip: circuitTooltip,
     },
@@ -96,4 +92,4 @@ export const f1: TopicDefinition = {
       missing: { zh: '還沒有這個國籍的車手冠軍', en: 'No drivers’ title yet' },
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;

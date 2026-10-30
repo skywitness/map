@@ -25,7 +25,9 @@ const GROUP_ICONS = {
   economy: 'coins',
   global: 'earth',
   energy: 'leaf',
+  environment: 'cloud-sun',
   tech: 'monitor-smartphone',
+  transport: 'bus',
   geo: 'mountain-snow',
 };
 
@@ -43,7 +45,6 @@ const TOPIC_ICONS = {
   // 社會
   population: 'users',
   fertility: 'baby',
-  'birth-season': 'cake',
   marriage: 'heart-handshake',
   cities: 'building-2',
   health: 'heart-pulse',
@@ -54,10 +55,7 @@ const TOPIC_ICONS = {
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
   pisa: 'book-open-check',
-  'university-entrance': 'notebook-pen',
-  chinatowns: 'lamp-ceiling',
   diet: 'utensils',
-  foods: 'croissant',
   housing: 'house',
   // 不用特定宗教的符號（教堂、清真寺…）
   religion: 'book-heart',
@@ -68,8 +66,8 @@ const TOPIC_ICONS = {
   laws: 'scroll-text',
   happiness: 'smile',
   nobel: 'award',
-  olympics: 'medal',
-  f1: 'flag-triangle-right',
+  sports: 'medal',
+  racing: 'flag-triangle-right',
   reads: 'book-open',
   // 經濟
   income: 'banknote',
@@ -80,14 +78,12 @@ const TOPIC_ICONS = {
   taxes: 'percent',
   reserves: 'vault',
   'stock-market': 'chart-candlestick',
-  'house-prices': 'key-round',
   sectors: 'chart-pie',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
   'chain-stores': 'store',
-  'oldest-companies': 'hourglass',
-  brands: 'tag',
+  companies: 'briefcase-business',
   // 國際
   trade: 'container',
   migration: 'footprints',
@@ -111,13 +107,12 @@ const TOPIC_ICONS = {
   'fossil-fuels': 'fuel',
   renewables: 'solar-panel',
   climate: 'cloud',
-  'co2-stations': 'flask-round',
   temperature: 'thermometer-sun',
-  'urban-heat': 'thermometer',
   'ozone-hole': 'circle-dashed',
   'air-quality': 'haze',
   'water-forest': 'trees',
   'oil-palm': 'droplets',
+  'planted-forests': 'sprout',
   plastic: 'recycle',
   ewaste: 'monitor-x',
   ev: 'plug-zap',
@@ -130,12 +125,11 @@ const TOPIC_ICONS = {
   innovation: 'lightbulb',
   publications: 'file-text',
   'submarine-cables': 'cable',
-  'cloud-regions': 'cloud-cog',
   space: 'rocket',
-  landings: 'moon',
   transport: 'train-front',
-  airlines: 'plane-takeoff',
-  'longest-flights': 'route',
+  aviation: 'plane-takeoff',
+  'ride-hailing': 'car-taxi-front',
+  airspace: 'radar',
   'cable-cars': 'cable-car',
   'heritage-railways': 'train-track',
   shipping: 'anchor',
@@ -150,9 +144,7 @@ const TOPIC_ICONS = {
   oceans: 'fish',
   koppen: 'cloud-sun-rain',
   ice: 'snowflake',
-  'antarctic-stations': 'tent',
-  penguins: 'bird',
-  'subglacial-lakes': 'waves-arrow-down',
+  antarctica: 'tent',
   wind: 'wind',
   daylight: 'sun-moon',
   eclipses: 'eclipse',
@@ -252,10 +244,15 @@ function icon(name, owner) {
 
 // 每個分類裡的主題（registry.ts），跟對照表比對
 const registry = readFileSync(`${ROOT}src/topics/registry.ts`, 'utf8');
-const groups = [...registry.matchAll(/\{ id: '([\w-]+)', label: .*?topics: \[([^\]]*)\]/g)].map((m) => ({
-  id: m[1],
-  topics: [...m[2].matchAll(/'([\w-]+)'/g)].map((t) => t[1]),
-}));
+// 每個分類是 { id: '…', label: …, sections: [{ label: …, topics: [...] }, …] }（2026-10-30 起有小標題）
+const specs = registry.slice(registry.indexOf('TOPIC_GROUP_SPECS'), registry.indexOf('export const groupTopics'));
+const groups = specs
+  .split(/\n {4}id: '/)
+  .slice(1)
+  .map((block) => ({
+    id: block.slice(0, block.indexOf("'")),
+    topics: [...block.matchAll(/topics: \[([^\]]*)\]/g)].flatMap((m) => [...m[1].matchAll(/'([\w-]+)'/g)].map((t) => t[1])),
+  }));
 if (!groups.length) problems.push('registry.ts 裡找不到 TOPIC_GROUP_SPECS');
 const topics = groups.flatMap((g) => g.topics);
 for (const g of groups) if (!GROUP_ICONS[g.id]) problems.push(`分類 ${g.id} 沒有圖示（GROUP_ICONS）`);

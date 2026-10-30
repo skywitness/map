@@ -3,6 +3,7 @@ import { langParam, URL_PARAM } from '../i18n/lang';
 import { boxFromLegacyRaw, type Box } from '../map/boxEstimate';
 import { formatTimeParam, parseTimeParam } from './clock';
 import { setHistoryUrl } from './history';
+import { redirectTopic } from '../topics/redirects';
 
 /** 畫面狀態全部放在網址參數，任何畫面都能直接複製網址分享。 */
 export interface ViewState {
@@ -107,20 +108,35 @@ export function topicPath(topic: string | null): string {
   return topic ? `${siteRoot()}t/${topic}/` : siteRoot();
 }
 
+/** 舊網址轉到合併後的主題時要一起打開的疊加圖層（topics/redirects.ts 的 layer），App 打開那個主題時取走 */
+let redirectLayer: { topic: string; layer: string } | null = null;
+
+/** 取走舊網址轉址時要打開的圖層（只取一次；主題不同時不給） */
+export function takeRedirectLayer(topic: string): string | null {
+  const pending = redirectLayer;
+  if (!pending || pending.topic !== topic) return null;
+  redirectLayer = null;
+  return pending.layer;
+}
+
 /** 目前網址的畫面狀態（App 啟動時也用它提早發出第一個畫面的資料請求） */
 export function read(): ViewState {
   const p = new URLSearchParams(window.location.search);
   // 年份可以是負的（西元前、百萬年前）或 0（板塊漂移的「今天」）；沒寫或寫錯是 null
   const rawYear = p.get('year')?.trim();
   const year = rawYear ? Number(rawYear) : NaN;
+  // ?topic= 優先（主題之間的連結、舊的網址），再來是路徑
+  const rawTopic = p.get('topic') ?? window.location.pathname.match(TOPIC_PATH)?.[1] ?? null;
+  // 合併掉的舊主題（或搬到別的主題的指標）轉到現在的主題與指標；寫回網址時就是新的寫法（topics/redirects.ts）
+  const moved = redirectTopic(rawTopic, p.get('ind'), p.get('item'));
+  if (moved?.layer) redirectLayer = { topic: moved.topic, layer: moved.layer };
   return {
-    // ?topic= 優先（主題之間的連結、舊的網址），再來是路徑
-    topic: p.get('topic') ?? window.location.pathname.match(TOPIC_PATH)?.[1] ?? null,
-    indicator: p.get('ind'),
+    topic: moved?.topic ?? rawTopic,
+    indicator: moved ? moved.indicator : p.get('ind'),
     year: Number.isInteger(year) ? year : null,
     country: p.get('country'),
     view: p.get('view') === 'table' ? 'table' : p.get('view') === 'analysis' ? 'analysis' : 'map',
-    item: p.get('item'),
+    item: moved ? moved.item : p.get('item'),
     // bbox= 是經緯度；舊版網址的 box= 是 Equal Earth 投影座標，換算過來
     box: parseBox(p.get('bbox')) ?? legacyBox(p.get('box')),
     threeD: p.get('3d') === '1',

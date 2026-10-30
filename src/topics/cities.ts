@@ -1,45 +1,60 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatPercent, formatSignedPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import { overlayEpoch, type IndicatorDef, type PointRecord, type PointsOverlayDef, type TopicDefinition } from './types';
+import {
+  overlayEpoch,
+  type IndicatorDef,
+  type LinesOverlayDef,
+  type PointRecord,
+  type PointsOverlayDef,
+  type TopicDefinition,
+} from './types';
+import { withParts } from './parts';
+import { urbanHeatPart } from './urban-heat';
 
 /**
- * 城市（pipeline/topics/cities.py）：GHSL Urban Centre Database 2025 的約 1.1 萬個城市（連續的市區，不是行政區），
- * 1975–2030 每 5 年一期；各國的都市化率、住在城市的比例、最大城市占全國人口、百萬人口以上的城市數、最大城市的人口。
+ * 城市（pipeline/topics/cities.py）：JRC GHS-WUP R2025A（聯合國《World Urbanization Prospects 2025》用的那一份）的
+ * 約 2.2 萬個城市（連續的市區，不是行政區），1950–2100 每 5 年一期；各國的都市化率、住在城市的比例、最大城市占全國
+ * 人口、百萬人口以上的城市數、最大城市的人口、建物面積。
  */
 
-/** GHSL 的各期（2025、2030 是推估） */
-export const EPOCHS = [1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025, 2030];
+/** GHS-WUP 的各期：1950–1970 是回推的，2025 年起是推估 */
+export const EPOCHS = Array.from({ length: 31 }, (_, i) => 1950 + i * 5);
 const PROJECTION_FROM = 2025;
+/** 1975 年起才有網格（城市的面積）；之前是用聯合國的資料回推 */
+const GRID_FROM = 1975;
 
 const PEOPLE = { zh: '人', en: 'people' };
 const CITIES_UNIT = { zh: '個', en: 'cities' };
 
 /**
- * 某一期的人口（prefix 'p'）或面積 km²（'a'）。cities.json 的 p1975…p2030、a1975…a2030 存的是跟前一期的差
- * （前一期還不是城市時是那一期本身），所以一路加到那一期；那一期還不是城市（或已經不是）時是 null。
+ * 某一期的人口（prefix 'p'）或面積 km²（'a'）。cities.json（pipeline/topics/cities.py 的 _encode()）的 `f`、`l` 是
+ * 第一期與最後一期是城市的年份；p1950…p2100、a1975…a2100 存的是跟前一個有值的期的差（f 到 l 之外是 0，之間偶爾
+ * 不是城市的期是 null），所以一路加到那一期。那一期還不是城市（或已經併進別的城市）時是 null。
  */
 export function cityValue(p: PointRecord, prefix: 'p' | 'a', epoch: number): number | null {
-  let acc: number | null = null;
+  if (typeof p.f !== 'number' || typeof p.l !== 'number' || epoch < p.f || epoch > p.l) return null;
+  if (prefix === 'a' && epoch < GRID_FROM) return null;
+  let acc = 0;
   for (const y of EPOCHS) {
     const v = p[`${prefix}${y}`];
-    acc = typeof v === 'number' ? (acc === null ? v : acc + v) : null;
-    if (y === epoch) return acc;
+    if (typeof v === 'number') acc += v;
+    if (y === epoch) return typeof v === 'number' ? acc : null;
   }
   return null;
 }
 
 /** 第一次成為城市的一期 */
 export function firstEpoch(p: PointRecord): number | null {
-  return EPOCHS.find((y) => typeof p[`p${y}`] === 'number') ?? null;
+  return typeof p.f === 'number' ? p.f : null;
 }
 
-/** 城市的名稱：中文介面用 Wikidata 的中文名稱（沒有時用英文），英文介面用 UCDB 的英文名稱 */
+/** 城市的名稱：中文介面用 Wikidata 的中文名稱（沒有時用英文），英文介面用 GHS-WUP 的英文名稱 */
 export function cityName(p: PointRecord): string {
   return getLang() === 'zh' && typeof p.zh === 'string' ? p.zh : String(p.name ?? '');
 }
 
-/** 跟哪一期比成長：10 年前（1980 年跟 1975 年比）；那一期還不是城市時是 null */
+/** 跟哪一期比成長：10 年前（1955 年跟 1950 年比）；那一期還不是城市時是 null */
 export function growthBase(p: PointRecord, epoch: number): number | null {
   const base = Math.max(EPOCHS[0], epoch - 10);
   return base < epoch && cityValue(p, 'p', base) !== null ? base : null;
@@ -66,7 +81,7 @@ export function growthText(p: PointRecord, epoch: number): string | null {
 
 /**
  * 城市的半徑（px，縮放 2 時）：圓的面積跟人口成正比（半徑 ≈ 3.5 × √(人口 ÷ 100 萬)），分段線性內插；
- * 5 萬人的城市放大到 1.1 px，世界全圖時才看得見。廣州（珠江三角洲連成的一片，4,300 萬人）約 23 px。
+ * 5 萬人的城市放大到 1.1 px，世界全圖時才看得見。2025 年最大的雅加達（4,200 萬人）約 23 px。
  */
 const POP_STOPS: [number, number][] = [
   [5e4, 1.1],
@@ -80,7 +95,7 @@ const POP_STOPS: [number, number][] = [
 
 /**
  * 依縮放只畫大城市：世界全圖（圖磚 0–1 級）200 萬人以上、2 級 100 萬、3 級 30 萬、4 級 10 萬、5 級起全部。
- * 1.1 萬個點一起畫在世界全圖上會糊成一片，也看不出大小。
+ * 上萬個點一起畫在世界全圖上會糊成一片，也看不出大小。
  */
 const ZOOM_STOPS: [number, number][] = [
   [0, 2e6],
@@ -97,7 +112,12 @@ function cityTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
   const parts: string[] = [];
   if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
   if (pop !== null) {
-    const projected = epoch >= PROJECTION_FROM ? tr({ zh: '（推估）', en: ' (projected)' }) : '';
+    const projected =
+      epoch >= PROJECTION_FROM
+        ? tr({ zh: '（推估）', en: ' (projected)' })
+        : epoch < GRID_FROM
+          ? tr({ zh: '（回推）', en: ' (back-cast)' })
+          : '';
     parts.push(tr({ zh: `${epoch} 年 ${people(pop)}${projected}`, en: `${people(pop)} in ${epoch}${projected}` }));
   }
   if (pop !== null && area) {
@@ -106,13 +126,11 @@ function cityTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
   const growth = growthText(p, epoch);
   if (growth) parts.push(growth);
   const zh = getLang() === 'zh' && typeof p.zh === 'string';
-  const more = typeof p.more === 'string' ? p.more : null;
-  const covers = more ? tr({ zh: `範圍還有 ${more}`, en: `Also covers ${more}` }) : null;
   return {
     title: cityName(p),
     detail: parts.join(' · '),
-    // 中文名稱下面寫 UCDB 的英文名稱；範圍內的其他地名（OpenStreetMap 的原文）也寫在這一行
-    properNoun: [zh ? String(p.name ?? '') : null, covers].filter(Boolean).join(' · ') || undefined,
+    // 中文名稱下面寫 GHS-WUP 的英文名稱
+    properNoun: zh ? String(p.name ?? '') : undefined,
   };
 }
 
@@ -138,6 +156,25 @@ export const CITY_LAYER: PointsOverlayDef = {
   tooltip: cityTooltip,
 };
 
+/**
+ * 城市的範圍（使用者 2026-10-30 決定每一期都畫）：GHS-WUP-MTUC 1975–2100 每一期的多邊形，放大到 6 級才下載畫面上的
+ * 10° 分區（boundaries/<分區>.json）。每個環的 `a`、`b` 是那個範圍從哪一期用到哪一期之前（連續幾期一樣的只存一次），
+ * 指標的 overlayTime 是 'cumulative'，所以只畫時間軸那一年的範圍；1975 年以前沒有範圍。
+ */
+const EXTENT_LAYER: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'city-extent',
+  file: 'boundaries.json',
+  label: { zh: '城市的範圍（放大才畫）', en: 'City extents (when zoomed in)' },
+  indicators: ['map'],
+  width: 0.6,
+  color: MAP_TOKENS.accent,
+  fill: { field: 'f', value: 1, opacity: 0.12, darkOpacity: 0.2, holeField: 'k' },
+  timeField: 'a',
+  endField: 'b',
+  detail: { minZoom: 6 },
+};
+
 const pct = (v: number) => formatPercent(v, v < 10 ? 1 : 0);
 const pctTick = (v: number) => `${v}%`;
 const seq = (thresholds: number[]) => ({ type: 'sequential' as const, thresholds });
@@ -152,12 +189,14 @@ const indicators: IndicatorDef[] = [
     id: 'map',
     label: { zh: '城市地圖', en: 'City map' },
     description: {
-      zh: '全球約 1.1 萬個城市（連續的市區，不是行政區：臺北、新北、桃園、基隆連成一片，算一個城市），圓的面積與人口成正比；拖動時間軸看 1975 年以來的變化。縮小時只畫大城市，放大才看得到小城市。',
-      en: 'Some 11,000 cities worldwide (continuous urban areas, not administrative units: Taipei, New Taipei, Taoyuan and Keelung form one city), with circle area proportional to population; drag the time slider to see the change since 1975. Only large cities are shown when zoomed out.',
+      zh: '全球的城市（連續的市區，不是行政區：臺北、新北、桃園、基隆連成一片，算一個城市；2025 年約 1.2 萬個），圓的面積與人口成正比；拖動時間軸看 1950 年到 2100 年的變化（1975 年以前是回推、2025 年起是推估）。縮小時只畫大城市，放大才看得到小城市；放大到一個地區時畫出那一年的城市範圍（1975 年起）。',
+      en: 'Cities worldwide (continuous urban areas, not administrative units: Taipei, New Taipei, Taoyuan and Keelung form one city; about 12,000 in 2025), with circle area proportional to population; drag the time slider to see the change from 1950 to 2100 (back-cast before 1975, projected from 2025). Only large cities are shown when zoomed out; zoom in to a region to see each city’s extent in that year (from 1975).',
     },
     unit: '%',
     file: 'city-share.json',
     layer: { kind: 'none' },
+    // 城市範圍的線依時間軸篩選：畫那一期用到下一次改變之前的範圍
+    overlayTime: 'cumulative',
     format: (v) => tr({ zh: `住在城市的人口 ${pct(v)}`, en: `${pct(v)} live in cities` }),
     formatTick: pctTick,
     compareWorld: true,
@@ -180,8 +219,8 @@ const indicators: IndicatorDef[] = [
     id: 'city-share',
     label: { zh: '住在城市的比例', en: 'Living in cities' },
     description: {
-      zh: `住在城市的人口比例。${CITY_DEFINITION.zh}。2025 年全世界約 45%，1975 年是 32%。`,
-      en: `Share of people living in cities. ${CITY_DEFINITION.en}. About 45% of the world's people lived in cities in 2025, up from 32% in 1975.`,
+      zh: `住在城市的人口比例。${CITY_DEFINITION.zh}。2025 年全世界約 45%，1950 年是 20%、1975 年是 31%，推估 2100 年是 53%。`,
+      en: `Share of people living in cities. ${CITY_DEFINITION.en}. About 45% of the world's people lived in cities in 2025, up from 20% in 1950 and 31% in 1975; 53% is projected for 2100.`,
     },
     unit: '%',
     file: 'city-share.json',
@@ -221,8 +260,8 @@ const indicators: IndicatorDef[] = [
     id: 'largest',
     label: { zh: '最大城市的人口', en: 'Largest city' },
     description: {
-      zh: '最大的城市（連續的市區）的人口，圓的面積與人口成正比。好幾個城市連成一片時，人口會跳一階：珠江三角洲的廣州、深圳、東莞、佛山在 1990 年代後期連成一個城市，從 1990 年的 582 萬人變成 2000 年的 2,777 萬人。',
-      en: 'Population of the largest city (continuous urban area); circle area is proportional to population. When several cities merge into one, the figure jumps: Guangzhou, Shenzhen, Dongguan and Foshan in the Pearl River Delta merged in the late 1990s, going from 5.8 million people in 1990 to 27.8 million in 2000.',
+      zh: '最大的城市（連續的市區）的人口，圓的面積與人口成正比。好幾個城市連成一片時，人口會跳一階：珠江三角洲的廣州在 1990 年代後期跟周圍的城市連成一片，從 1990 年的 414 萬人變成 2000 年的 1,897 萬人。跨越國界的城市（澳門與珠海、直布羅陀、摩納哥）比所在的國家還大。',
+      en: 'Population of the largest city (continuous urban area); circle area is proportional to population. When several cities merge into one, the figure jumps: Guangzhou in the Pearl River Delta merged with neighbouring cities in the late 1990s, going from 4.1 million people in 1990 to 19.0 million in 2000. Cities that straddle a border (Macao and Zhuhai, Gibraltar, Monaco) are bigger than the country they are placed in.',
     },
     unit: PEOPLE,
     file: 'largest.json',
@@ -235,8 +274,8 @@ const indicators: IndicatorDef[] = [
     id: 'built',
     label: { zh: '建物面積', en: 'Built-up surface' },
     description: {
-      zh: '全國建築物屋頂覆蓋的面積（km²，衛星影像判讀），不是市區的範圍，圓的面積與它成正比。全世界從 1975 年的約 17 萬 km² 變成 2020 年的 46 萬 km²；台灣從 495 km² 變成 1,316 km²，約占國土 3.5%。2025、2030 年是推估。',
-      en: 'The area covered by building roofs nationwide (km², from satellite imagery), not the extent of urban areas; circle area is proportional to it. Worldwide it grew from about 174,000 km² in 1975 to 465,000 km² in 2020; Taiwan’s grew from 495 to 1,316 km², about 3.5% of its land. 2025 and 2030 are projections.',
+      zh: '全國建築物屋頂覆蓋的面積（km²，衛星影像判讀），不是市區的範圍，圓的面積與它成正比。全世界從 1975 年的約 17 萬 km² 變成 2020 年的 46 萬 km²，推估 2100 年約 106 萬 km²；台灣從 494 km² 變成 1,309 km²，約占國土 3.6%。1975 年以前沒有資料，2025 年起是推估。',
+      en: 'The area covered by building roofs nationwide (km², from satellite imagery), not the extent of urban areas; circle area is proportional to it. Worldwide it grew from about 174,000 km² in 1975 to 465,000 km² in 2020 and is projected at about 1.06 million km² in 2100; Taiwan’s grew from 494 to 1,309 km², about 3.6% of its land. There are no figures before 1975, and values from 2025 on are projections.',
     },
     unit: { zh: 'km²', en: 'km²' },
     file: 'built.json',
@@ -263,8 +302,8 @@ const indicators: IndicatorDef[] = [
     id: 'built-growth',
     label: { zh: '建物面積比 1975 年多幾倍', en: 'Built-up surface growth since 1975' },
     description: {
-      zh: '這一年的建物面積是 1975 年的幾倍。全世界 2020 年是 2.7 倍；中國約 4.9 倍、孟加拉 5.9 倍、衣索比亞與肯亞 8 倍以上，美國 1.9 倍、日本 1.6 倍，台灣 2.7 倍。1975 年建物太少（不到 1 km²）的不算。',
-      en: 'Built-up surface in the selected year as a multiple of 1975. Worldwide it was 2.7 times in 2020; about 4.9 in China, 5.9 in Bangladesh and over 8 in Ethiopia and Kenya, against 1.9 in the US, 1.6 in Japan and 2.7 in Taiwan. Countries with under 1 km² built up in 1975 are not shown.',
+      zh: '這一年的建物面積是 1975 年的幾倍。全世界 2020 年是 2.7 倍；中國約 4.9 倍、孟加拉 5.9 倍、衣索比亞與肯亞 8 倍以上，美國 1.9 倍、日本 1.6 倍，台灣 2.65 倍。1975 年建物太少（不到 1 km²）的不算。',
+      en: 'Built-up surface in the selected year as a multiple of 1975. Worldwide it was 2.7 times in 2020; about 4.9 in China, 5.9 in Bangladesh and over 8 in Ethiopia and Kenya, against 1.9 in the US, 1.6 in Japan and 2.65 in Taiwan. Countries with under 1 km² built up in 1975 are not shown.',
     },
     unit: { zh: '倍', en: 'times' },
     file: 'built-growth.json',
@@ -275,12 +314,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-const NOT_SEPARATE = {
-  zh: 'GHSL 的國家統計把香港、澳門算在中國（GADM 的國界），所以沒有分開的值；地圖上香港、澳門的城市照樣畫出來',
-  en: 'GHSL country statistics count Hong Kong and Macao as part of China (GADM borders), so there is no separate value; their cities are still shown on the map',
-};
-
-export const cities: TopicDefinition = {
+export const cities: TopicDefinition = withParts({
   id: 'cities',
   title: { zh: '城市', en: 'Cities and urbanisation' },
   shortTitle: { zh: '城市', en: 'Cities' },
@@ -289,18 +323,18 @@ export const cities: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: 'European Commission JRC, GHS-UCDB R2024A（GHSL Urban Centre Database 2025）',
-        en: 'European Commission JRC, GHS-UCDB R2024A (GHSL Urban Centre Database 2025)',
+        zh: 'European Commission JRC, GHS-WUP-MTUC R2025A V1.1（每個城市 1950–2100 年的人口與面積，聯合國《World Urbanization Prospects 2025》用的那一份）',
+        en: 'European Commission JRC, GHS-WUP-MTUC R2025A V1.1 (population and area of every city, 1950–2100, as used in the UN World Urbanization Prospects 2025)',
       },
-      url: 'https://human-settlement.emergency.copernicus.eu/ghs_ucdb_2024.php',
+      url: 'https://human-settlement.emergency.copernicus.eu/ghs_wup_mtuc_r2025a.php',
       license: 'CC BY 4.0',
     },
     {
       name: {
-        zh: 'European Commission JRC, GHS-COUNTRY-STATS R2024A（各國依城鄉程度的人口、建物面積）',
-        en: 'European Commission JRC, GHS-COUNTRY-STATS R2024A (population by Degree of Urbanisation, built-up surface)',
+        zh: 'European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A（各國依城鄉程度的人口、建物面積）',
+        en: 'European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A (population by Degree of Urbanisation, built-up surface)',
       },
-      url: 'https://human-settlement.emergency.copernicus.eu/download.php',
+      url: 'https://human-settlement.emergency.copernicus.eu/ghs_wup_country_stats_r2025a.php',
       license: 'CC BY 4.0',
     },
     { name: { zh: 'Wikidata（城市的中文名稱）', en: 'Wikidata (Chinese city names)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
@@ -311,11 +345,10 @@ export const cities: TopicDefinition = {
     },
   ],
   note: {
-    zh: '城市與城鄉人口都來自歐盟執委會聯合研究中心（JRC）的全球人類住區圖層（GHSL）：用 1 km 的人口網格（GHS-POP R2023A，依各國普查分配到格子，總數配合聯合國 WPP 2022）套用「城鄉程度」（Degree of Urbanisation）定義。城市是每 km² 1,500 人以上的格子連成一片、合計 5 萬人以上的連續市區；城鎮與半密集區是每 km² 300 人以上、合計 5,000 人以上的地方；其他是鄉村。城市不是行政區：好幾個行政區連成一片的市區算一個城市（臺北、新北、桃園、基隆是一個；珠江三角洲的廣州、深圳、東莞、佛山也是一個），一個大的行政區也可能只有一部分算城市。每一期的城市範圍各自劃定，所以城市連成一片的那一年人口會跳一階。2025、2030 年是推估。城市的名稱是 UCDB 依 OpenStreetMap 等取的英文名稱，中文名稱來自 Wikidata，對不到的用英文。GHSL 的國家統計把香港、澳門算在中國。',
-    en: 'Cities and urban–rural populations come from the Global Human Settlement Layer (GHSL) of the European Commission’s Joint Research Centre: the Degree of Urbanisation applied to a 1 km population grid (GHS-POP R2023A, census counts allocated to cells, national totals aligned with UN WPP 2022). A city is a continuous urban area of cells with at least 1,500 people per km² and 50,000 people in total; towns and semi-dense areas have at least 300 people per km² and 5,000 people in total; the rest is rural. Cities are not administrative units: a built-up area spanning several municipalities is one city (Taipei, New Taipei, Taoyuan and Keelung form one; so do Guangzhou, Shenzhen, Dongguan and Foshan in the Pearl River Delta), and only part of a large municipality may count. City boundaries are drawn separately for each period, so a city’s population jumps in the year it merges with a neighbour. 2025 and 2030 are projections. City names are the UCDB’s English names (from OpenStreetMap and other sources). GHSL counts Hong Kong and Macao as part of China.',
+    zh: '城市與城鄉人口都來自歐盟執委會聯合研究中心（JRC）的全球人類住區圖層（GHSL）為聯合國《世界都市化展望 2025》（World Urbanization Prospects 2025）做的 GHS-WUP R2025A：用 1 km 的人口網格（總數配合聯合國 WPP 2024）套用「城鄉程度」（Degree of Urbanisation）定義。城市是每 km² 1,500 人以上的格子連成一片、合計 5 萬人以上的連續市區；城鎮與半密集區是每 km² 300 人以上、合計 5,000 人以上的地方；其他是鄉村。城市不是行政區：好幾個行政區連成一片的市區算一個城市（臺北、新北、桃園、基隆是一個），一個大的行政區也可能只有一部分算城市。每一期的城市範圍各自劃定，所以城市跟鄰近的城市連成一片的那一年人口會跳一階，被併進去的城市從那一期起不再畫。1975–2020 年是依各國普查分配的網格；1950–1970 年沒有網格，是用聯合國的資料回推的（沒有面積）；2025 年起是 JRC 的 CRISP 模型推估到 2100 年，不是觀測值。城市的名稱是 GHS-WUP 依 GISCO、OpenStreetMap 等取的英文名稱，中文名稱來自 Wikidata，對不到的用英文。跨越國界的城市（澳門與珠海、直布羅陀與西班牙的拉利內阿、摩納哥與周圍的法國市鎮）算在所在的小國，沒有「最大城市占全國人口」。依 GHSL 的使用條件（CC BY 4.0）引用：Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436。',
+    en: 'Cities and urban–rural populations come from GHS-WUP R2025A, produced by the European Commission’s Joint Research Centre (Global Human Settlement Layer) for the UN World Urbanization Prospects 2025: the Degree of Urbanisation applied to a 1 km population grid (national totals aligned with UN WPP 2024). A city is a continuous urban area of cells with at least 1,500 people per km² and 50,000 people in total; towns and semi-dense areas have at least 300 people per km² and 5,000 people in total; the rest is rural. Cities are not administrative units: a built-up area spanning several municipalities is one city (Taipei, New Taipei, Taoyuan and Keelung form one), and only part of a large municipality may count. City boundaries are drawn separately for each period, so a city’s population jumps in the year it merges with a neighbour, and the absorbed city is no longer drawn from then on. 1975–2020 come from grids built from national censuses; 1950–1970 have no grid and are back-cast from UN data (no area); values from 2025 to 2100 are projections from the JRC’s CRISP model, not observations. City names are GHS-WUP’s English names (from GISCO, OpenStreetMap and other sources). Cities straddling a border (Macao and Zhuhai, Gibraltar and La Línea in Spain, Monaco and the surrounding French towns) are placed in the smaller country and have no largest-city share. Citation under the GHSL conditions of use (CC BY 4.0): Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436.',
   },
-  noValue: { HKG: NOT_SEPARATE, MAC: NOT_SEPARATE },
   panelExtra: () => import('./panels/CitiesPanel'),
-  overlays: [CITY_LAYER],
+  overlays: [EXTENT_LAYER, CITY_LAYER],
   indicators,
-};
+}, urbanHeatPart);

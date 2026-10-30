@@ -9,6 +9,8 @@
  *   接手前就建立了，整個頁面期間都不會經過它，所以由 WorldMap 的 transformRequest 呼叫 noteMapRequest 記下來。
  */
 
+import { read as readUrlState } from './url-state';
+
 const MAX_URLS = 1000;
 const FLUSH_DELAY_MS = 2000;
 /** 這次開啟時還沒有 service worker（第一次造訪）；有的話所有請求本來就會經過它，不必補存 */
@@ -46,6 +48,38 @@ function scheduleFlush(): void {
     for (const url of urls) sent.add(url);
     controller.postMessage({ type: 'CACHE_URLS', payload: { urlsToCache: urls } });
   }, FLUSH_DELAY_MS);
+}
+
+/**
+ * 網址的主題這一版不認得：多半是部署後才加的主題，而這次打開網頁時伺服器太慢，service worker 改用了快取裡的
+ * 舊版首頁（sw.ts）。先照常開預設的主題，同時請 service worker 檢查新版；新版接手時網址還是那個主題，就重新整理
+ * 一次換成新版（sessionStorage 記住，打錯的主題不會一直重新整理）
+ */
+export function updateForUnknownTopic(topic: string): void {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return;
+  const KEY = 'reloaded-for-topic';
+  try {
+    if (sessionStorage.getItem(KEY) === topic) return;
+  } catch {
+    return;
+  }
+  const sw = navigator.serviceWorker;
+  sw.addEventListener(
+    'controllerchange',
+    () => {
+      if (readUrlState().topic !== topic) return;
+      try {
+        sessionStorage.setItem(KEY, topic);
+      } catch {
+        return;
+      }
+      window.location.reload();
+    },
+    { once: true },
+  );
+  sw.getRegistration()
+    .then((registration) => registration?.update())
+    .catch(() => {});
 }
 
 /** 記下地圖的請求（圖磚、字型、圖示集）；第一次造訪時才有作用 */

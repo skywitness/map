@@ -11,15 +11,19 @@ export type { TopicSummary } from './catalog';
 export interface TopicGroup {
   id: string;
   label: Text;
+  /** 依小標題分段（能源、交通只有一段、沒有小標題） */
+  sections: { label: Text | null; topics: TopicSummary[] }[];
+  /** 分類裡的所有主題（依小標題的順序） */
   topics: TopicSummary[];
+  /** 下拉選單每一欄放幾段（registry.ts 的 columns，使用者指定的排法）；沒有時自動分欄 */
+  columns?: number[];
 }
 
 /** 頂列的主題分類（registry.ts），主題只有名稱與指標名稱（主題目錄 catalog.gen.ts） */
-export const TOPIC_GROUPS: TopicGroup[] = TOPIC_GROUP_SPECS.map((g) => ({
-  id: g.id,
-  label: g.label,
-  topics: g.topics.map((id) => CATALOG.topics[id]),
-}));
+export const TOPIC_GROUPS: TopicGroup[] = TOPIC_GROUP_SPECS.map((g) => {
+  const sections = g.sections.map((s) => ({ label: s.label, topics: s.topics.map((id) => CATALOG.topics[id]) }));
+  return { id: g.id, label: g.label, sections, topics: sections.flatMap((s) => s.topics), columns: g.columns };
+});
 
 const GROUP_OF = new Map(TOPIC_GROUPS.flatMap((g) => g.topics.map((t) => [t.id, g.id] as const)));
 

@@ -11,7 +11,7 @@
  * - 1 km 網格（densityGrid.ts）：點陣圖磚取代國家的顏色，國界、hover、點選照舊用國家的形狀
  * 國家用 ISO alpha-3 當 feature id（promoteId）。
  */
-import { useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import {
   addProtocol,
   Map as MaplibreMap,
@@ -26,7 +26,7 @@ import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
-import { fetchJson } from '../lib/data';
+import { dataUrl, fetchJson } from '../lib/data';
 import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
@@ -60,6 +60,7 @@ import {
 import { applyTimeFilters, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
+import { useClassGridOnly } from './classGridHighlight';
 import { syncWind } from './windLayer';
 import { CLASS_GRID_OPACITY } from './Overlays';
 import { syncMoon, syncNight } from './nightLayer';
@@ -81,10 +82,10 @@ import { GRID_PROTOCOL, gridLabels, loadGridTile, type GridLayer } from './densi
 import { FLAG_PROTOCOL, loadFlagTile, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
-import { BasemapMenu } from './BasemapMenu';
+import { BasemapMenu, type PersonalMenu, type SharedLayerChoice } from './BasemapMenu';
 import { Extremes } from './Extremes';
-import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
+import { PlacePopup } from './PlacePopup';
 import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
@@ -145,7 +146,7 @@ import {
   valueLabelLayer,
 } from './worldMapLayers';
 import { MapTooltip, MarkTooltip, PointerLines } from './MapTooltip';
-import { bindMapEvents, type MapHover } from './mapEvents';
+import { bindMapEvents, type MapHover, type MapPlace } from './mapEvents';
 import { GlobePlaceholder } from '../app/GlobePlaceholder';
 import { useCountryFills } from './useCountryFills';
 import { useValueLabels } from './useValueLabels';
@@ -185,6 +186,10 @@ interface WorldMapProps {
   boxToolLabel?: string;
   /** 疊在地圖右上角的內容，例如框選結果 */
   overlay?: ReactNode;
+  /** 疊在地圖下緣的內容（我的路線的高度剖面） */
+  bottom?: ReactNode;
+  /** 點到線圖層的一條線：回傳 true 表示處理了（不選取國家） */
+  onLineClick?: (overlay: string, group: number) => boolean;
   /** 疊加圖層：鐵路（經緯度 MultiLineString）與機場 */
   railways?: GeoJSON.MultiLineString | null;
   airports?: AirportsData | null;
@@ -205,6 +210,11 @@ interface WorldMapProps {
   basemap: Basemap;
   /** 有傳才在右上角的按鈕列放「底圖」選單 */
   onBasemapChange?: (id: string) => void;
+  /** 圖層選單裡「其他主題的圖層」（topics/shared-layers.ts）：名稱與打開了沒 */
+  sharedLayers?: SharedLayerChoice[];
+  onSharedToggle?: (id: string) => void;
+  /** 我的路線（TopicDefinition.personalRoutes）：圖層選單裡的匯入、匯出、刪除 */
+  personal?: PersonalMenu;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
   /** 資料第一次畫到地圖上（不上色的指標：國界第一次畫上）時呼叫一次 */
@@ -239,7 +249,7 @@ interface WorldMapProps {
   /** 地圖外面（主題的側欄）要標出的一組線，跟滑過時一樣；null 時取消 */
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
-  focusBox?: { box: [number, number, number, number]; key: number } | null;
+  focusBox?: { box: [number, number, number, number]; key: number; maxZoom?: number; bottom?: number } | null;
   /**
    * 滑到地圖上任何一點（含海上）時的資訊（主題的 pointer，2026-10-28 起，地球的另一邊）：在國家上時幾行接在國家的
    * tooltip 下面，海上時自己是一個 tooltip（title 加幾行）；mark 是跟著游標動的小記號（游標的對蹠點）
@@ -269,7 +279,7 @@ export function WorldMap(props: WorldMapProps) {
   const lang = useLang();
   const langRef = useRef(lang);
   langRef.current = lang;
-  const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
+  const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle, bottom, onLineClick } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES, time = null } = props;
   const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, handleRef, onFirstData } =
@@ -333,6 +343,17 @@ export function WorldMap(props: WorldMapProps) {
     ),
   );
   const [boxMode, setBoxMode] = useState(false);
+  // 右鍵（觸控長按）那個位置的小卡片：地名、經緯度、在 Google 地圖開啟（PlacePopup.tsx）
+  const [place, setPlace] = useState<MapPlace | null>(null);
+  const closePlace = useCallback(() => setPlace(null), []);
+  // 點圖層的點：用資料檔的經緯度（地圖查到的座標經過圖磚量化，世界視角差到 0.005°，約 500 公尺）
+  const placeShown = useMemo(() => {
+    const at = place?.point;
+    if (!place || !at) return place;
+    const o = overlays.find((x) => x.def.id === at.overlay);
+    const p = o?.kind === 'points' ? o.points?.[at.index] : undefined;
+    return p && typeof p.lon === 'number' && typeof p.lat === 'number' ? { ...place, lng: p.lon, lat: p.lat } : place;
+  }, [place, overlays]);
   const [fullscreen, setFullscreen] = useState(false);
   // iPhone 的 Safari 不能讓一般元素全螢幕（只有影片可以），不放全螢幕鈕
   const canFullscreen = typeof document !== 'undefined' && document.fullscreenEnabled;
@@ -342,8 +363,8 @@ export function WorldMap(props: WorldMapProps) {
   const [overlayOnLeft, setOverlayOnLeft] = useState(false);
 
   // 地圖事件在建立時綁定一次，最新的 props 放在 ref 裡讀
-  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks });
-  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks };
+  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick });
+  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick };
 
   // 分級色、正負色用使用者選的配色（圖例的「配色」，palettes.ts）
   const mapTokens = useMapTokens();
@@ -605,6 +626,7 @@ export function WorldMap(props: WorldMapProps) {
   const hoverIdRef = useRef<string | null>(null);
   const dragRef = useRef<{ start: [number, number]; startPoint: { x: number; y: number } } | null>(null);
   const suppressClickRef = useRef(false);
+  const clickedRef = useRef<{ iso3: string; at: [number, number] } | null>(null);
 
   const bindEvents = (map: MaplibreMap) =>
     bindMapEvents(map, {
@@ -615,9 +637,11 @@ export function WorldMap(props: WorldMapProps) {
       hoverIdRef,
       dragRef,
       suppressClickRef,
+      clickedRef,
       latest,
       setHover,
       setBoxMode,
+      setPlace,
     });
 
   /* ── 切換底圖：換樣式後重新加上資料圖層，revision 加一後下面的 effect 會把資料重新套上 ── */
@@ -1002,8 +1026,9 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
-  }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
+    const lights = night?.def.lights;
+    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time, lights ? { url: dataUrl(lights.file), bounds: lights.bounds } : null);
+  }, [revision, night?.def.id, night?.def.lights, night?.visible, basemap.dark, time]);
 
   /* ── 月亮（晝夜與季節的「月亮」，nightLayer.ts）：看得到月亮的半個地球與月下點，畫在夜色上面 ── */
   const moon = overlays.find((o) => o.kind === 'moon');
@@ -1035,6 +1060,8 @@ export function WorldMap(props: WorldMapProps) {
       ),
     [classGrid?.def, classMax],
   );
+  // 滑到圖例或側欄的一類時只亮那一類（classGridHighlight.ts）
+  const classOnly = useClassGridOnly();
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -1042,10 +1069,10 @@ export function WorldMap(props: WorldMapProps) {
     syncClassGrid(map, def?.id ?? null, Boolean(classGrid?.visible), classGrid?.grid ?? null, {
       colors: classColors,
       opacity: def?.opacity ?? CLASS_GRID_OPACITY,
-      only: null,
+      only: classOnly !== null && classColors.has(classOnly) ? classOnly : null,
       bounds: def?.bounds,
     });
-  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors]);
+  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors, classOnly]);
 
   /* ── 風的粒子（風與季風，windLayer.ts）：換月份只換風場；換底圖後重新加上（類別網格之後，畫在風速的底色上面） ── */
   const wind = overlays.find((o) => o.kind === 'wind');
@@ -1078,7 +1105,12 @@ export function WorldMap(props: WorldMapProps) {
         [w, s],
         [e, n],
       ],
-      { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() },
+      {
+        padding: { top: 48, left: 48, right: 48, bottom: 48 + Math.min(focusBox.bottom ?? 0, map.getContainer().clientHeight / 2) },
+        maxZoom: focusBox.maxZoom ?? 8,
+        duration: 900,
+        bearing: map.getBearing(),
+      },
     );
     // 只依 key：同一個範圍再點一次也要移過去；ready 是第一個畫面還沒好時就要移過去的（主題的 focus）
   }, [ready, focusBox?.key]);
@@ -1203,8 +1235,15 @@ export function WorldMap(props: WorldMapProps) {
       if (selectedRef.current) map.setFeatureState({ source, id: selectedRef.current }, { selected: false });
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
-    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫
-    if (selected && selected !== selectedRef.current && map.getLayer('data-halo') && !matchMedia(REDUCED_MOTION).matches) {
+    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫。
+    // 2026-10-30 起選取不加粗、沒有光暈（HALO_WIDTH 是 0），這個動畫也不跑
+    if (
+      HALO_WIDTH > 0 &&
+      selected &&
+      selected !== selectedRef.current &&
+      map.getLayer('data-halo') &&
+      !matchMedia(REDUCED_MOTION).matches
+    ) {
       cancelAnimationFrame(pulseFrameRef.current);
       const start = performance.now();
       const step = (now: number) => {
@@ -1228,29 +1267,31 @@ export function WorldMap(props: WorldMapProps) {
       return;
     }
     if (!selected) placedRef.current = null;
-    const anchor = selected ? anchors.get(selected) : undefined;
-    if (!anchor) return;
-    const center = map.getCenter();
-    const p = map.project(anchor);
-    const canvas = map.getCanvas();
-    const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
-    const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
-    // 剛選到的國家在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變。
-    // 只在剛選到時（換成細的國界、換底圖時 anchors 會變，不要因此移動）
+    // 在地圖上點選的：以點的位置為準（點 F1 賽道、景點不會跳到國家的中心，2026-10-30 使用者要求）；
+    // 從搜尋、排名表、網址選的：國家的中心（anchors）
+    const clicked = selected && clickedRef.current?.iso3 === selected ? clickedRef.current.at : null;
+    const target = clicked ?? (selected ? anchors.get(selected) : undefined);
+    if (!target) return;
+    // 只在剛選到時移動（換成細的國界、換底圖、換主題時 anchors 會變，不要因此移動）
     const fresh = placedRef.current !== selected;
     placedRef.current = selected;
+    clickedRef.current = null;
+    if (!fresh) return;
+    const center = map.getCenter();
+    const p = map.project(target);
+    const canvas = map.getCanvas();
+    const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
+    const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], target) > Math.PI / 2.4;
+    // 在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變
     const inset = mapInsets(map.getContainer());
     const margin = Math.min(32, canvas.clientWidth / 10);
     const covered =
-      fresh &&
-      (p.x < margin ||
-        p.y < margin ||
-        p.x > canvas.clientWidth - inset.right - margin ||
-        p.y > canvas.clientHeight - inset.bottom - margin);
+      p.x < margin || p.y < margin || p.x > canvas.clientWidth - inset.right - margin || p.y > canvas.clientHeight - inset.bottom - margin;
     if (offScreen || behindGlobe || covered) {
       map.easeTo({
-        center: anchor,
-        zoom: offScreen || behindGlobe ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
+        center: target,
+        // 點選的位置本來就在眼前：只平移、不縮放
+        zoom: !clicked && (offScreen || behindGlobe) ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
         offset: [-inset.right / 2, -inset.bottom / 2],
         duration: 800,
       });
@@ -1645,11 +1686,6 @@ export function WorldMap(props: WorldMapProps) {
         >
           <ResetIcon />
         </button>
-        <RegionMenu
-          onGo={(center) =>
-            mapRef.current?.easeTo({ center, zoom: fitGlobeZoom(mapRef.current.getContainer().clientHeight), duration: 1000 })
-          }
-        />
         <button
           type="button"
           onClick={() => !flatIn3d && setGlobe((g) => !g)}
@@ -1707,7 +1743,15 @@ export function WorldMap(props: WorldMapProps) {
             12
           </button>
         )}
-        {onBasemapChange && <BasemapMenu basemap={basemap} onChange={onBasemapChange} />}
+        {onBasemapChange && (
+          <BasemapMenu
+            basemap={basemap}
+            onChange={onBasemapChange}
+            shared={props.sharedLayers}
+            onSharedToggle={props.onSharedToggle}
+            personal={props.personal}
+          />
+        )}
         {collapseMore && <MoreMenu items={moreItems} />}
         {!collapseMore && onBoxChange && (
           <button
@@ -1736,6 +1780,7 @@ export function WorldMap(props: WorldMapProps) {
         </div>
       )}
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
+      {bottom && <div className="map-bottom">{bottom}</div>}
 
       <div className="map-legend">
         {showExtremes && (
@@ -1804,7 +1849,8 @@ export function WorldMap(props: WorldMapProps) {
             }
           />
         ) : indicator.layer.kind === 'bubble' ? (
-          threeD ? (
+          // 資料還沒到（或載入失敗）時 bubbleMax 是 1，100 的圓會畫成最大圓的 10 倍、蓋住整張地圖：有數字才畫圖例
+          values.size === 0 ? null : threeD ? (
             <ColumnLegend indicator={indicator} title={legendTitle} max={bubbleMax} color={MAP_TOKENS.accent} tokens={tokens} />
           ) : (
             <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
@@ -1819,7 +1865,20 @@ export function WorldMap(props: WorldMapProps) {
         ) : null}
       </div>
 
-      {hover && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
+      {placeShown && size && (
+        <PlacePopup
+          place={placeShown}
+          name={
+            (placeShown.point && renderPointTooltip?.(placeShown.point.overlay, placeShown.point.index)) ??
+            (placeShown.iso3 ? <div className="tt-value">{countryName(placeShown.iso3, countryTable, lang)}</div> : null)
+          }
+          width={size.width}
+          height={size.height}
+          onClose={closePlace}
+        />
+      )}
+
+      {hover && !place && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
           {hover.mark !== undefined && marks?.[hover.mark] ? (
             <MarkTooltip marks={marks} index={hover.mark} />

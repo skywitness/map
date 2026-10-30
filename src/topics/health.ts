@@ -84,7 +84,7 @@ export const health: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
-      name: { zh: 'WHO 健康平均餘命與平均壽命（Global Health Estimates 2021）', en: 'WHO healthy life expectancy and life expectancy (Global Health Estimates 2021)' },
+      name: { zh: 'WHO 健康平均餘命與平均壽命（Global Health Estimates 2023）', en: 'WHO healthy life expectancy and life expectancy (Global Health Estimates 2023)' },
       url: 'https://data.who.int/indicators/i/C64284D',
       license: 'CC BY 4.0',
     },
@@ -103,8 +103,8 @@ export const health: TopicDefinition = {
     },
     {
       name: {
-        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）',
-        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly)',
+        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
+        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
       },
       url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
       license: OPEN_DATA_TW,
@@ -139,9 +139,9 @@ export const health: TopicDefinition = {
   ],
   note: {
     zh: '平均壽命與嬰幼兒死亡率是聯合國用同一套方法估計的，可能跟各國官方統計不同。台灣改用內政部的簡易生命表（1992 年起），聯合國對台灣嬰幼兒死亡率的估計低了不少，例如 2023 年的嬰兒死亡率聯合國估 3.0‰，內政部是 4.3‰。醫療支出、醫師、護理人員與病床數的台灣資料來自衛生福利部；台灣的家庭自付含營養保健食品與民俗療法，範圍比多數國家寬。' +
-      '健康平均餘命與不健康的年數是 WHO 的估計（到 2021 年，地圖在之後的年份用 2021 年的值），每次發布會整個重算；台灣用衛福部的 2010、2020 年男女數字，算法不同（Sullivan 法、失能比例取自國健署的調查），不能直接比，衛福部沒有兩性合計。醫療的主要財源、全民健保的開辦年份取自英文維基百科的表（CC BY-SA 4.0），這兩個資料檔也依 CC BY-SA 4.0 分享。',
+      '健康平均餘命與不健康的年數是 WHO 的估計（Global Health Estimates 2023，到 2023 年，地圖在之後的年份用 2023 年的值），每次發布會整個重算；台灣用衛福部的 2010、2020 年男女數字，算法不同（Sullivan 法、失能比例取自國健署的調查），不能直接比，衛福部沒有兩性合計。醫療的主要財源、全民健保的開辦年份取自英文維基百科的表（CC BY-SA 4.0），這兩個資料檔也依 CC BY-SA 4.0 分享。',
     en: "Life expectancy and child mortality are UN estimates made with one method for every country and may differ from official national figures. For Taiwan the Ministry of the Interior's abridged life tables are used instead (from 1992), as the UN estimates of Taiwan's child mortality are noticeably lower: 3.0‰ versus the official 4.3‰ for infant mortality in 2023, for example. Taiwan's health spending, physician, nurse and hospital bed figures come from the Ministry of Health and Welfare; Taiwan's out-of-pocket spending also counts health supplements and folk remedies, a wider scope than most countries. " +
-      'Healthy life expectancy and years in poor health are WHO estimates (to 2021; later years on the map show 2021), recalculated in full with each release. Taiwan uses the Ministry of Health and Welfare’s figures for men and women in 2010 and 2020, calculated differently (the Sullivan method with disability rates from Health Promotion Administration surveys), so they are not directly comparable; the ministry gives no figure for both sexes. Health financing and the start of universal coverage come from English Wikipedia tables (CC BY-SA 4.0), and those two data files are shared under CC BY-SA 4.0 as well.',
+      'Healthy life expectancy and years in poor health are WHO estimates (Global Health Estimates 2023, to 2023; later years on the map show 2023), recalculated in full with each release. Taiwan uses the Ministry of Health and Welfare’s figures for men and women in 2010 and 2020, calculated differently (the Sullivan method with disability rates from Health Promotion Administration surveys), so they are not directly comparable; the ministry gives no figure for both sexes. Health financing and the start of universal coverage come from English Wikipedia tables (CC BY-SA 4.0), and those two data files are shared under CC BY-SA 4.0 as well.',
   },
   panelExtra: () => import('./panels/HealthPanel'),
   indicators: [
@@ -164,8 +164,8 @@ export const health: TopicDefinition = {
       id: 'hale',
       label: { zh: '健康平均餘命', en: 'Healthy life expectancy' },
       description: {
-        zh: '出生時預期能健康地（沒有失能或重病）活幾年，WHO 依各年齡的死亡率與失能程度估計。2021 年新加坡 73.6、日本 73.4、南韓 72.5 歲最高，賴索托 44.6 歲最低，美國 63.9 歲。台灣用衛福部的數字（2020 年男性 70.9、女性 75.8 歲），算法跟 WHO 不同、只有男女分開，在女性、男性看得到。',
-        en: 'How many years a newborn can expect to live in good health (without disability or serious illness), estimated by WHO from death rates and levels of disability at each age. In 2021 Singapore (73.6), Japan (73.4) and South Korea (72.5) were highest, Lesotho lowest at 44.6, and the US at 63.9. Taiwan uses Ministry of Health and Welfare figures (70.9 for men and 75.8 for women in 2020), calculated differently and only for men and women, so Taiwan appears under Women and Men.',
+        zh: '出生時預期能健康地（沒有失能或重病）活幾年，WHO 依各年齡的死亡率與失能程度估計。2023 年新加坡 72.9、日本 72.2、南韓 72.0 歲最高，中非 44.7、賴索托 47.9 歲最低，美國 64.6 歲。台灣用衛福部的數字（2020 年男性 70.9、女性 75.8 歲），算法跟 WHO 不同、只有男女分開，在女性、男性看得到。',
+        en: 'How many years a newborn can expect to live in good health (without disability or serious illness), estimated by WHO from death rates and levels of disability at each age. In 2023 Singapore (72.9), Japan (72.2) and South Korea (72.0) were highest, the Central African Republic (44.7) and Lesotho (47.9) lowest, and the US at 64.6. Taiwan uses Ministry of Health and Welfare figures (70.9 for men and 75.8 for women in 2020), calculated differently and only for men and women, so Taiwan appears under Women and Men.',
       },
       unit: YEARS,
       file: 'hale/{item}.json',
@@ -178,8 +178,8 @@ export const health: TopicDefinition = {
       id: 'unhealthy',
       label: { zh: '不健康的年數', en: 'Years in poor health' },
       description: {
-        zh: '平均壽命減掉健康平均餘命：一生中預期有幾年帶著疾病或失能（都用 WHO 同一次的估計）。2021 年澳洲、美國 12.5 年最多；平均壽命短的國家反而少（索馬利亞 6.5 年），因為能活到慢性病多的老年的人少。台灣 2020 年男性 7.2、女性 8.9 年（衛福部）。',
-        en: 'Life expectancy minus healthy life expectancy: the years a person can expect to live with illness or disability (both from the same WHO estimates). In 2021 Australia and the US were highest at 12.5 years; countries with short lives have fewer (Somalia 6.5) because fewer people reach the older ages when chronic illness is common. Taiwan: 7.2 years for men and 8.9 for women in 2020 (Ministry of Health and Welfare).',
+        zh: '平均壽命減掉健康平均餘命：一生中預期有幾年帶著疾病或失能（都用 WHO 同一次的估計）。2023 年美國 13.9、加拿大與澳洲 13.5 年最多；平均壽命短的國家反而少（索馬利亞 7.0 年），因為能活到慢性病多的老年的人少。台灣 2020 年男性 7.2、女性 8.9 年（衛福部）。',
+        en: 'Life expectancy minus healthy life expectancy: the years a person can expect to live with illness or disability (both from the same WHO estimates). In 2023 the US (13.9 years), Canada and Australia (13.5) were highest; countries with short lives have fewer (Somalia 7.0) because fewer people reach the older ages when chronic illness is common. Taiwan: 7.2 years for men and 8.9 for women in 2020 (Ministry of Health and Welfare).',
       },
       unit: YEARS,
       file: 'unhealthy/{item}.json',
@@ -356,8 +356,8 @@ export const health: TopicDefinition = {
       id: 'ltc-recipients',
       label: { zh: '65 歲以上使用長照的比例', en: 'Aged 65+ receiving long-term care' },
       description: {
-        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字。',
-        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan.',
+        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字（長照 2.0 的服務人數見附註）。',
+        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan (see the notes for Long-term Care 2.0 service users).',
       },
       unit: '%',
       file: 'ltc-recipients.json',
@@ -460,6 +460,21 @@ export const health: TopicDefinition = {
       events: [FLU_1918, COVID],
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70, 80] } },
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'under5-mortality-1800',
+      label: { zh: '五歲以下死亡率（1800 年起）', en: 'Under-5 mortality (since 1800)' },
+      description: {
+        zh: `1800–2021 年每 1,000 個活產嬰兒中未滿 5 歲就死亡的人數（‰）：1800 年各國多在 300–500‰，也就是三到五成的孩子活不到 5 歲。1950 年起主要是聯合國兒童死亡率機構間小組（UN IGME）與 WPP 的估計，跟上面的指標略有不同；2022 年起的值跟之前接不起來（各國在 2021、2022 年之間都有一個落差，應該是換成推估），不收。${LONG_RUN_CAVEAT.zh}`,
+        en: `Deaths before age 5 per 1,000 live births (‰), 1800–2021: in 1800 most countries were at 300–500‰, meaning three to five in ten children died before turning five. From 1950 mostly UN IGME and WPP estimates, which differ slightly from the indicator above; from 2022 the series does not join up with earlier years (every country has a jump between 2021 and 2022, most likely a switch to projections), so those years are left out. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: '‰',
+      file: 'under5-mortality-1800.json',
+      events: [FLU_1918],
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 30, 100, 200, 300, 400] } },
+      format: perThousand,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },

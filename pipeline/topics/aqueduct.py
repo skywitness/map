@@ -9,7 +9,9 @@
   −9999 是沒有資料，不輸出。
 - 跟 SDG 6.4.2（同一個主題的「水資源壓力」）定義不同：Aqueduct 是水文模型依流域算、再依用水加權到國家，
   SDG 6.4.2 是各國申報的取水量除以可再生淡水扣掉環境流量，兩個數字不會一致。
-- 台灣：國家與省級的表都沒有 TWN（GADM 3.6 的國家裡有台灣，但這份排名沒有收）。
+- 台灣：國家與省級的表都沒有 TWN（GADM 3.6 的國家裡有台灣，但這份排名沒有收；香港、澳門也沒有）。
+  地圖照舊留白，附註寫流域資料（aqueduct-4-0-water-risk-data.zip 的 Aqueduct40_baseline_annual_y2023m07d05.csv）
+  裡台灣本島大部分所在的流域 pfaf_id 437001 的基準分數（第七批 135，DESIGN.md 第 217 點）。
 - 授權：資料頁的 License 欄寫「Creative Commons」，WRI 的 Open Data Commitment「We have adopted the Creative Commons
   Attribution 4.0 International License as our standard license for publications and data」（CC BY 4.0）。
   引用 Kuzma et al. 2023, doi.org/10.46830/writn.23.00061。
@@ -38,6 +40,14 @@ def sheet_rows(wb, name: str) -> list[dict]:
     head = next(rows)
     return [dict(zip(head, r)) for r in rows]
 
+TW_NOTE = (
+    "Aqueduct 4.0 的國家排名沒有台灣（香港、澳門也沒有）。流域資料裡台灣本島大部分所在的流域（pfaf_id 437001）"
+    "基準期的分數是 1.36，「低到中（10–20%）」；國家的分數是各流域依用水加權，這個流域的值不等於國家的分數",
+    "Taiwan is not in the Aqueduct 4.0 country rankings (nor are Hong Kong and Macao). In the basin data, the basin covering "
+    "most of the island of Taiwan (pfaf_id 437001) scores 1.36 for the baseline, “low–medium (10–20%)”; country scores "
+    "weight basins by water use, so one basin’s value is not the country score",
+)
+
 
 def build() -> None:
     path = download(URL, SOURCE, "aqueduct-4-0-country-rankings.zip")
@@ -62,7 +72,8 @@ def build() -> None:
             series[iso3] = [round(v, 2) if v is not None else None for v in values]
         write_json(
             OUT / f"aqueduct-{scenario}.json",
-            indicator_file(f"aqueduct-{scenario}", "score", years, series, projectionFrom=FUTURE[0]),
+            indicator_file(f"aqueduct-{scenario}", "score", years, series, projectionFrom=FUTURE[0],
+                           notes={"TWN": TW_NOTE[0]}, notesEn={"TWN": TW_NOTE[1]}),
         )
     print(f"  基準 {len(base)} 國、推估 {len(future)} 國")
     for iso3 in ("QAT", "ISR", "IND", "CHN", "USA", "JPN", "KOR", "EGY", "BRA"):

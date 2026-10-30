@@ -35,6 +35,7 @@ const POINTS: PointsOverlayDef = {
   radius: { field: 'w', stops: [[1, 1.6], [10, 2.6], [40, 4.5], [100, 7]] },
   color: ERA,
   sortField: 'w',
+  indicators: ['brands'],
   sizeLegend: {
     title: { zh: '維基百科的語言數', en: 'Wikipedia language editions' },
     values: [10, 40, 100],
@@ -56,13 +57,8 @@ const POINTS: PointsOverlayDef = {
   },
 };
 
-export const brands: TopicDefinition = {
-  id: 'brands',
-  title: { zh: '品牌的發源地（時尚、汽車）', en: 'Where brands come from (fashion, cars)' },
-  shortTitle: { zh: '品牌的發源地', en: 'Brand origins' },
-  defaultIndicator: 'brands',
-  defaultYear: 2026,
-  timeless: true,
+/** 企業與品牌（companies.ts）的品牌部分：2026-10-30（第七批 120）起跟最古老的公司合成一個主題 */
+export const brandsPart = {
   sources: [{ name: 'Wikidata', url: 'https://www.wikidata.org/', license: 'CC0' }],
   note: {
     zh:
@@ -74,26 +70,28 @@ export const brands: TopicDefinition = {
       'Wikidata often lacks dissolution dates, so many early small car makers (especially American and British ones from the 1900s) are counted as current, and subsidiaries and sub-brands are included. Coverage leans towards Europe and North America, so country counts are only roughly comparable. ' +
       'Countries follow the place of founding: its coordinates where available, otherwise the country of origin, the country or the headquarters. Dots mark the place of founding, or the headquarters when that is missing (Burberry was founded in Basingstoke, not London).',
   },
-  dimension: {
-    label: { zh: '品牌', en: 'Brands' },
-    options: [
-      { id: 'fashion', label: { zh: '時尚品牌', en: 'Fashion brands' } },
-      { id: 'cars', label: { zh: '汽車品牌', en: 'Car brands' } },
-    ],
-    defaultOption: 'fashion',
-  },
-  panelExtra: () => import('./panels/BrandsPanel'),
   overlays: [POINTS],
   indicators: [
     {
       id: 'brands',
-      label: { zh: '數量', en: 'Count' },
+      // 子項目是「時尚」「汽車」，標題寫成「汽車品牌數量」
+      label: { zh: '品牌數量', en: 'Brands' },
       description: {
         zh: '在這個國家創立、還沒有停業的品牌有幾個（有維基百科條目的），圓的面積與它成正比；點是每個品牌的創立地，大小依維基百科有幾種語言的條目，顏色是創立年份。時尚品牌美國、義大利、英國、法國最多（Gucci 創立於佛羅倫斯、Louis Vuitton 巴黎、Prada 米蘭），台灣有夏姿、StayReal；汽車品牌美國、英國、巴西、德國、中國最多，台灣有裕隆、納智捷、鴻華先進、福特六和。點國家看它的品牌。',
         en: 'Brands founded in the country with no recorded closure and a Wikipedia article; circle area is proportional to the count. Dots mark where each brand was founded, sized by how many Wikipedia language editions cover it and coloured by founding year. For fashion, the US, Italy, the UK and France lead (Gucci was founded in Florence, Louis Vuitton in Paris, Prada in Milan), and Taiwan has Shiatzy Chen and StayReal; for cars, the US, the UK, Brazil, Germany and China lead, and Taiwan has Yulon, Luxgen, Foxtron and Ford Lio Ho. Select a country to see its brands.',
       },
       unit: { zh: '個', en: 'brands' },
       file: 'count/{item}.json',
+      // 品牌的資料不分年份（2026 年的 Wikidata）：這個指標沒有時間軸
+      timeless: true,
+      dimension: {
+        label: { zh: '品牌', en: 'Brands' },
+        options: [
+          { id: 'fashion', label: { zh: '時尚', en: 'Fashion' } },
+          { id: 'cars', label: { zh: '汽車', en: 'Car' } },
+        ],
+        defaultOption: 'fashion',
+      },
       layer: { kind: 'bubble', legendValues: [1, 10, 100] },
       format: (v) => tr({ zh: `${fixed(v, 0)} 個`, en: `${fixed(v, 0)} ${v === 1 ? 'brand' : 'brands'}` }),
       formatTick: (v) => fixed(v, 0),
@@ -101,4 +99,4 @@ export const brands: TopicDefinition = {
       shareOfWorld: true,
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;

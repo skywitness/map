@@ -1,7 +1,10 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { withParts } from './parts';
+import { birthSeasonPart } from './birth-season';
 import type { IndicatorDef, TopicDefinition } from './types';
 import { CHINA_BIRTH_POLICY } from './events';
+import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 
 const PER_WOMAN = { zh: '每位婦女生育數', en: 'births per woman' };
 const BIRTHS = { zh: '人', en: 'births' };
@@ -21,7 +24,7 @@ const BORN: NonNullable<IndicatorDef['timeAxis']> = {
   year: (y) => tr({ zh: `${y} 年出生`, en: `${y} birth cohort` }),
 };
 
-export const fertility: TopicDefinition = {
+export const fertility: TopicDefinition = withParts({
   id: 'fertility',
   title: { zh: '各國生育率與高齡化', en: 'Fertility and ageing by country' },
   shortTitle: { zh: '生育與高齡', en: 'Fertility' },
@@ -62,10 +65,11 @@ export const fertility: TopicDefinition = {
       url: 'https://www.oecd.org/en/data/datasets/oecd-family-database.html',
       license: 'CC BY 4.0',
     },
+    LONG_RUN_SOURCE,
   ],
   note: {
-    zh: '沒有小孩的女性比例以外，所有國家都是聯合國 WPP 2024 用同一套方法的估計，2024 年起是推估（中推估）。沒有小孩的女性比例依 Human Fertility Database（CC BY 4.0）與 OECD Family Database，時間軸是出生年。台灣也用 WPP：2023 年以前跟內政部的統計很接近（總生育率 0.87 對 0.865），但 2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 的推估是 0.86、12.5 萬人；國發會 2026 年的人口推估也比 WPP 悲觀（2075 年 65 歲以上占 52.9%，WPP 是 43%）。點台灣可以看到對照。',
-    en: "Apart from women without children, every country is a UN WPP 2024 estimate made with the same method; from 2024 the figures are projections (medium variant). Women without children come from the Human Fertility Database (CC BY 4.0) and the OECD Family Database, with the birth year as the timeline. Taiwan uses WPP too: up to 2023 it is close to the Ministry of the Interior's statistics (a fertility rate of 0.87 against 0.865), but in 2025 Taiwan's actual fertility rate fell to 0.695 with 107,812 births, while WPP projected 0.86 and 125,000. The National Development Council's 2026 projections are also gloomier than WPP's (52.9% aged 65+ in 2075, against 43%). Select Taiwan for the comparison.",
+    zh: '沒有小孩的女性比例以外，所有國家都是聯合國 WPP 2024 用同一套方法的估計，2024 年起是推估（中推估）。沒有小孩的女性比例依 Human Fertility Database（CC BY 4.0）與 OECD Family Database，時間軸是出生年。台灣也用 WPP：2023 年以前跟內政部的統計很接近（總生育率 0.87 對 0.865），但 2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 的推估是 0.86、12.5 萬人；國發會 2026 年的人口推估也比 WPP 悲觀（2075 年 65 歲以上占 52.9%，WPP 是 43%）。點台灣可以看到對照。「總生育率（1800 年起）」是另外整理的長期資料（來源見頁尾），1950 年起跟 WPP 2024 相同，只到 2023 年。',
+    en: "Apart from women without children, every country is a UN WPP 2024 estimate made with the same method; from 2024 the figures are projections (medium variant). Women without children come from the Human Fertility Database (CC BY 4.0) and the OECD Family Database, with the birth year as the timeline. Taiwan uses WPP too: up to 2023 it is close to the Ministry of the Interior's statistics (a fertility rate of 0.87 against 0.865), but in 2025 Taiwan's actual fertility rate fell to 0.695 with 107,812 births, while WPP projected 0.86 and 125,000. The National Development Council's 2026 projections are also gloomier than WPP's (52.9% aged 65+ in 2075, against 43%). Select Taiwan for the comparison. “Fertility rate (since 1800)” is a separately compiled long-run series (see the sources below), matching WPP 2024 from 1950 and ending in 2023.",
   },
   panelExtra: () => import('./panels/FertilityPanel'),
   indicators: [
@@ -78,6 +82,21 @@ export const fertility: TopicDefinition = {
       },
       unit: PER_WOMAN,
       file: 'tfr.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [1, 1.5, 1.9, 2.3, 3.5, 5] } },
+      format: (v) => tr({ zh: `${fixed(v, 2)} 人`, en: `${fixed(v, 2)} per woman` }),
+      formatTick: (v) => fixed(v, v % 1 === 0 ? 0 : 1),
+      compareWorld: true,
+      events: CHINA_BIRTH_POLICY,
+    },
+    {
+      id: 'tfr-1800',
+      label: { zh: '總生育率（1800 年起）', en: 'Fertility rate (since 1800)' },
+      description: {
+        zh: `1800–2023 年的總生育率，看各國從一位婦女生五、六個孩子降到現在的過程。1950 年起是聯合國 WPP 2024 的估計（跟上面的總生育率相同，只有 1950 年前後為了接上歷史估計略有不同），2024 年以後的推估不收。${LONG_RUN_CAVEAT.zh}`,
+        en: `Total fertility rate 1800–2023, showing how countries fell from five or six children per woman to today's levels. From 1950 it is the UN WPP 2024 estimate (the same as the fertility rate above, apart from small differences around 1950 where it joins the historical estimates); projections from 2024 are left out. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: PER_WOMAN,
+      file: 'tfr-1800.json',
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [1, 1.5, 1.9, 2.3, 3.5, 5] } },
       format: (v) => tr({ zh: `${fixed(v, 2)} 人`, en: `${fixed(v, 2)} per woman` }),
       formatTick: (v) => fixed(v, v % 1 === 0 ? 0 : 1),
@@ -204,4 +223,4 @@ export const fertility: TopicDefinition = {
       shareOfWorld: true,
     },
   ],
-};
+}, birthSeasonPart);

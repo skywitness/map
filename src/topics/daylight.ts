@@ -1,5 +1,6 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { formatDay, dayParts } from '../lib/clock';
+import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import {
   clockTime,
@@ -33,6 +34,8 @@ export interface CapitalsFile {
   others: Record<string, [string, string, string][]>;
   /** 國土伸進極圈的國家，圈內的參考地點 [緯度, 經度, IANA 時區, 標準時間的 UTC 偏移, 中文名, 英文名] */
   polar: Record<string, [number, number, string, number, string, string]>;
+  /** 有好幾個時區的國家（zone.tab）：[IANA 時區, 代表地點的緯度, 經度, 標準時間的 UTC 偏移（分鐘）]（2026-10-30 起） */
+  zones?: Record<string, [string, number, number, number][]>;
   tzdata: string;
 }
 
@@ -370,6 +373,77 @@ function tooltipLines(iso3: string, ctx: { indicator: string; at: ClockAt | null
   return [first, second.join(tr({ zh: '・', en: ' · ' }))];
 }
 
+/* ── 地圖上任一點的日出日落（TopicDefinition.pointer，2026-10-30 起） ── */
+
+const CAPITALS_FILE = 'topics/daylight/capitals.json';
+/** 指標也讀同一個檔（fetchJson 同一個路徑只讀一次）；讀好以前滑過不顯示 */
+let capitals: CapitalsFile | null = null;
+let capitalsAsked = false;
+function capitalsNow(): CapitalsFile | null {
+  if (!capitals && !capitalsAsked) {
+    capitalsAsked = true;
+    fetchJson<CapitalsFile>(CAPITALS_FILE).then(
+      (f) => (capitals = f),
+      () => (capitalsAsked = false),
+    );
+  }
+  return capitals;
+}
+
+/** 兩點的距離（弧度，球面）：找最近的時區代表地點 */
+function arc(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const r = Math.PI / 180;
+  const c = Math.sin(lat1 * r) * Math.sin(lat2 * r) + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.cos((lon2 - lon1) * r);
+  return Math.acos(Math.max(-1, Math.min(1, c)));
+}
+
+/**
+ * 游標這一點用哪個時區：在國家裡用那一國的時區（好幾個時區的國家取代表地點最近的，例如美國西岸是洛杉磯），
+ * 海上與南極洲用經度的時區（每 15° 一小時，Etc/GMT−8 是 UTC+8）。how 是時區怎麼來的（tooltip 註明）
+ */
+function zoneAt(file: CapitalsFile, iso3: string | null, lat: number, lon: number): { zone: string; std: number; how: 'country' | 'nearest' | 'sea' } {
+  const list = iso3 ? file.zones?.[iso3] : undefined;
+  if (list?.length) {
+    const z = list.reduce((best, c) => (arc(lat, lon, c[1], c[2]) < arc(lat, lon, best[1], best[2]) ? c : best));
+    return { zone: z[0], std: z[3], how: 'nearest' };
+  }
+  const cap = iso3 ? file.capitals[iso3] : undefined;
+  if (cap) return { zone: cap[2], std: cap[3], how: 'country' };
+  const hours = Math.max(-12, Math.min(12, Math.round(lon / 15)));
+  return { zone: hours === 0 ? 'Etc/GMT' : `Etc/GMT${hours > 0 ? '-' : '+'}${Math.abs(hours)}`, std: hours * 60, how: 'sea' };
+}
+
+/** 「25.0°N 121.6°E」 */
+function lonLatText(lon: number, lat: number): string {
+  const ns = tr(lat >= 0 ? { zh: '北緯', en: 'N' } : { zh: '南緯', en: 'S' });
+  const ew = tr(lon >= 0 ? { zh: '東經', en: 'E' } : { zh: '西經', en: 'W' });
+  const a = fixed(Math.abs(lat), 1);
+  const o = fixed(Math.abs(lon), 1);
+  return tr({ zh: `${ns} ${a}°、${ew} ${o}°`, en: `${a}°${ns} ${o}°${ew}` });
+}
+
+const ZONE_HOW: Record<'nearest' | 'sea', Text> = {
+  nearest: { zh: '這一國有好幾個時區，取最近的', en: 'nearest of this country’s time zones' },
+  sea: { zh: '海上用經度的時區', en: 'nautical time zone at sea' },
+};
+
+function pointer([lon, lat]: [number, number], ctx: { iso3: string | null; indicator: string; at: ClockAt | null }) {
+  const file = capitalsNow();
+  if (!file || !ctx.at) return null;
+  const { zone, std, how } = zoneAt(file, ctx.iso3, lat, lon);
+  const here: Place = { lat, lon, zone, std, zh: '', en: '', capital: false };
+  const sun = sunOn(here, ctx.at.day);
+  const where = tr({ zh: `游標這一點（${lonLatText(lon, lat)}）：`, en: `Here (${lonLatText(lon, lat)}): ` });
+  const lines: string[] = [];
+  if (ctx.indicator === 'moon') lines.push(`${where}${moonRiseSetText(here, moonOn(here, ctx.at.day), ctx.at.day)}`, riseSetText(here, sun));
+  else lines.push(`${where}${riseSetText(here, sun)}`);
+  const second = [elevationText(solarElevation(lat, lon, ctx.at.time))];
+  if (!sun.polar) second.unshift(tr({ zh: `白天 ${duration(sun.dayLength)}`, en: `day ${duration(sun.dayLength)}` }));
+  if (how !== 'country') second.push(tr(ZONE_HOW[how]));
+  lines.push(second.join(tr({ zh: '・', en: ' · ' })));
+  return { title: tr({ zh: '這裡的太陽', en: 'The sun here' }), lines };
+}
+
 /** 月亮：看得到月亮的半個地球與月下點（lib/moon.ts） */
 const MOON: MoonOverlayDef = {
   kind: 'moon',
@@ -439,24 +513,35 @@ export const daylight: TopicDefinition = {
       license: 'MIT',
     },
     {
-      name: { zh: 'IANA 時區資料庫（tzdata 2026e）', en: 'IANA Time Zone Database (tzdata 2026e)' },
+      name: {
+        zh: '夜晚的燈光：Earth Observation Group（科羅拉多礦業學院 Payne Institute）Annual VNL V2 2024 年，檔案取自 Hengl (2025) 在 Zenodo 的轉存（doi:10.5281/zenodo.17294744）',
+        en: 'Lights at night: Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines, Annual VNL V2 2024; files from the Zenodo copy by Hengl (2025), doi:10.5281/zenodo.17294744',
+      },
+      url: 'https://eogdata.mines.edu/products/vnl/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'IANA 時區資料庫（tzdata 2026f）', en: 'IANA Time Zone Database (tzdata 2026f)' },
       url: 'https://www.iana.org/time-zones',
       license: { zh: '公有領域', en: 'public domain' },
     },
   ],
   note: {
-    zh: '太陽的位置用 NOAA Solar Calculator 的公式（出自 Meeus《Astronomical Algorithms》）在瀏覽器裡算，1800–2100 年約 1 分鐘以內，高緯度的日出日落誤差較大；春分、夏至等的時刻用 Meeus 第 27 章。日出、日落是太陽中心在地平線下 0.833°（含大氣折射），沒有考慮地形與海拔。國家的數值以首都計算（國家小檔案主題的 Wikidata 首都，台灣是台北；有好幾個首都的國家用法定或行政首都，例如南非用普勒托利亞、玻利維亞用拉巴斯，側欄列出其他首都；香港、澳門、西撒哈拉等沒有首都的地區用主要的城鎮），國土大的國家各地差很多。日出日落的時間是當地時鐘（IANA 時區資料庫，瀏覽器換算，含夏令時間）；「時鐘與太陽」用標準時間。月亮的位置、月相與月出月落用 Astronomy Engine（MIT）在瀏覽器裡算，約 1 角分；月出月落是月亮上緣碰到地平線，含月亮的視差與大氣折射。網址的時間是 UTC，畫面上是你電腦的時區。',
-    en: 'The sun’s position is computed in your browser with the NOAA Solar Calculator formulas (from Meeus, Astronomical Algorithms), accurate to about a minute for 1800–2100 and less so for sunrise and sunset at high latitudes; equinox and solstice times use Meeus chapter 27. Sunrise and sunset are when the sun’s centre is 0.833° below the horizon (allowing for refraction), ignoring terrain and altitude. Country values are for the capital (Wikidata, as in Country facts; Taipei for Taiwan; the official or executive capital where there are several, such as Pretoria for South Africa and La Paz for Bolivia, with the others listed in the side panel; the main town for places without a capital such as Hong Kong, Macau and Western Sahara), so large countries vary a lot. Sunrise and sunset times are local clock times (IANA time zones, converted by your browser, including daylight saving time); “Clock vs sun” uses standard time. The moon’s position, phase, moonrise and moonset are computed in your browser with Astronomy Engine (MIT), to about an arcminute; moonrise and moonset are when the moon’s upper edge touches the horizon, allowing for its parallax and refraction. The time in the link is UTC; the page shows your computer’s time zone.',
+    zh: '太陽的位置用 NOAA Solar Calculator 的公式（出自 Meeus《Astronomical Algorithms》）在瀏覽器裡算，1800–2100 年約 1 分鐘以內，高緯度的日出日落誤差較大；春分、夏至等的時刻用 Meeus 第 27 章。日出、日落是太陽中心在地平線下 0.833°（含大氣折射），沒有考慮地形與海拔。國家的數值以首都計算（國家小檔案主題的 Wikidata 首都，台灣是台北；有好幾個首都的國家用法定或行政首都，例如南非用普勒托利亞、玻利維亞用拉巴斯，側欄列出其他首都；香港、澳門、西撒哈拉等沒有首都的地區用主要的城鎮），國土大的國家各地差很多。日出日落的時間是當地時鐘（IANA 時區資料庫，瀏覽器換算，含夏令時間）；「時鐘與太陽」用標準時間。月亮的位置、月相與月出月落用 Astronomy Engine（MIT）在瀏覽器裡算，約 1 角分；月出月落是月亮上緣碰到地平線，含月亮的視差與大氣折射。網址的時間是 UTC，畫面上是你電腦的時區。滑到地圖上任一點（含海上）看那一點的日出日落、白天長度與此刻的太陽高度：時區用那一國的（美國、俄羅斯等有好幾個時區的國家，取 IANA 時區資料庫裡代表地點最近的那個，邊界附近可能差一小時；中國照官方只用北京時間），海上與南極洲用經度的時區（每 15° 一小時）。夜半邊的燈光是夜間燈光主題的 VIIRS 衛星 2024 年平均亮度縮成 0.1° 的格子（約 11 公里），太陽落到地平線下 3° 後漸漸亮起、8° 全亮；放大後是模糊的光暈，細節看夜間燈光主題。This product was made utilizing VIIRS Nighttime Lights (Annual VNL V2) data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.',
+    en: 'The sun’s position is computed in your browser with the NOAA Solar Calculator formulas (from Meeus, Astronomical Algorithms), accurate to about a minute for 1800–2100 and less so for sunrise and sunset at high latitudes; equinox and solstice times use Meeus chapter 27. Sunrise and sunset are when the sun’s centre is 0.833° below the horizon (allowing for refraction), ignoring terrain and altitude. Country values are for the capital (Wikidata, as in Country facts; Taipei for Taiwan; the official or executive capital where there are several, such as Pretoria for South Africa and La Paz for Bolivia, with the others listed in the side panel; the main town for places without a capital such as Hong Kong, Macau and Western Sahara), so large countries vary a lot. Sunrise and sunset times are local clock times (IANA time zones, converted by your browser, including daylight saving time); “Clock vs sun” uses standard time. The moon’s position, phase, moonrise and moonset are computed in your browser with Astronomy Engine (MIT), to about an arcminute; moonrise and moonset are when the moon’s upper edge touches the horizon, allowing for its parallax and refraction. The time in the link is UTC; the page shows your computer’s time zone. Hover anywhere on the map (including the sea) for sunrise, sunset, day length and the sun’s current height at that point: times use the country’s time zone (for countries with several, such as the US and Russia, the one whose reference place in the IANA database is nearest, so it can be an hour off near a boundary; China uses Beijing time only, as officially), and at sea and in Antarctica the nautical zone (one hour per 15° of longitude). Lights on the night side are the 2024 average from VIIRS, as in Night lights, on 0.1° cells (about 11 km); they fade in once the sun is 3° below the horizon and are full by 8°, and look like a blurred glow when zoomed in (see Night lights for detail). This product was made utilizing VIIRS Nighttime Lights (Annual VNL V2) data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.',
   },
   panelExtra: () => import('./panels/DaylightPanel'),
   noValue: { ATA: NO_CAPITAL, HMD: NO_CAPITAL, _SIA: NO_CAPITAL },
   tooltipLines,
+  pointer,
   overlays: [
     {
       kind: 'night',
       id: 'night',
       label: { zh: '晝夜', en: 'Day and night' },
       sunLabel: { zh: '太陽直射點', en: 'Subsolar point (sun overhead)' },
+      // 夜間燈光主題的 VIIRS 最新一年縮成 0.1°（pipeline/topics/daylight_lights.py）
+      lights: { file: 'topics/daylight/lights.png', bounds: [-62, 75], label: { zh: '夜晚的燈光（VIIRS 2024 年平均）', en: 'Lights at night (VIIRS, 2024 average)' } },
       indicators: ['map', 'day-length', 'noon', 'moon'],
     },
     MOON,

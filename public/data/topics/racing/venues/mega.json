@@ -1,0 +1,1 @@
+{"fields":["lon","lat","s","name","iso3","n","first","last","mix"],"scale":{"lon":0.0001,"lat":0.0001,"s":1,"n":1,"first":1,"last":1},"delta":[],"columns":[[60700,552697],[450900,-210097],[10,10],[1,2],["FRA","FRA"],[31,29],[1995,1995],[2026,2025],[null,null]],"strings":{"fields":["name"],"table":["","Alpe d'Huez","Saint-Paul (Réunion)"]}}

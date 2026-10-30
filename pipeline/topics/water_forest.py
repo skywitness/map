@@ -48,12 +48,15 @@ OUTLIER_MAX_RUN = 15
 TW_RUNOFF = 633.7  # 億立方公尺：年降雨 885 億立方公尺（2,458 公釐）扣除蒸發與入滲後的可利用逕流量
 TW_RAINFALL = 885.0
 TW_WITHDRAWAL = 163.7  # 億立方公尺：生活 31.8、工業 16.34、農業 115.5（不含保育用水與非灌區農業用水）
-# 水利署《113 年各標的用水統計年報》（https://web.wra.gov.tw/Annualwater/）的全國用水量
+# 水利署《113 年各標的用水統計年報》（https://web.wra.gov.tw/Annualwater/）的全國用水量；《中華民國 114 年水利統計》
+# （2026-10 上架）的用水量也是到 113 年（155.96），114 年的用水年報還沒有（Annualwater 從 cloud 回「Request Rejected」）
 TW_WITHDRAWAL_LATEST = (2024, 155.96)
 # AQUASTAT 裡日本、南韓的環境流量約占總可再生水資源的一半（2023 年 49%、51%），用來說明台灣可能的範圍
 TW_EFR_SHARE = 0.5
-# 水利署《113 年生活用水量統計報告》：自來水供水人口占總人口
-TW_TAP_WATER = {2023: 95.67, 2024: 95.78}
+# 自來水供水人口占總人口（每年 12 月底）：2023 年水利署《113 年生活用水量統計報告》；2024、2025 年公務統計報表
+# 「自來水供水普及率」（20420-02-01，113、114 年的 ods 第二張工作表「12 月底」，https://www.wra.gov.tw/news_content.aspx?n=2945&s=7417 ；
+# 113 年 12 月底 95.78% 跟生活用水量統計報告一樣）
+TW_TAP_WATER = {2023: 95.67, 2024: 95.78, 2025: 95.74}
 # 農業部林業及自然保育署 全國森林資源調查（https://www.forest.gov.tw/0000052）
 # 第三次（1990–1993 年，台灣本島）：森林 2,102,400 公頃、土地 3,591,500 公頃、58.53%
 # 第四次（2008–2013 年實地調查、2015 年公布，含金門、連江）：森林 2,197,090 公頃、土地 3,618,996 公頃、60.71%；
@@ -96,11 +99,11 @@ TAIWAN_NOTES = {
     ),
     "safe-water": (
         "台灣不在 WHO／UNICEF JMP 的資料庫中。改用經濟部水利署的自來水普及率（自來水供水人口占總人口，"
-        "《113 年生活用水量統計報告》）。JMP 的「安全管理」是在住家、需要時就有、水質合格的改善水源；"
+        "每年 12 月底，公務統計報表「自來水供水普及率」）。JMP 的「安全管理」是在住家、需要時就有、水質合格的改善水源；"
         "自來水的水質抽驗合格率約 99.9%（環境部），但沒有接自來水的人（用地下水、山泉水或簡易自來水）"
         "有一部分也可能符合 JMP 的定義，所以台灣的值可能略為低估",
         "Taiwan is not in the WHO/UNICEF JMP database. The Water Resources Agency's tap water coverage (population "
-        "served by public water supply as a share of the total, from its 2024 domestic water use report) is used "
+        "served by public water supply as a share of the total at the end of each year, from its official statistics) is used "
         "instead. JMP's 'safely managed' means an improved source on premises, available when needed and free from "
         "contamination; tap water passes about 99.9% of quality tests (Ministry of Environment), but some people "
         "without tap water (using groundwater, spring water or small community systems) may also meet the JMP "
@@ -263,6 +266,10 @@ def build() -> None:
     safe["TWN"] = dict(TW_TAP_WATER)
     years = year_span(safe)
     zh, en = TAIWAN_NOTES["safe-water"]
+    later = sorted(y for y in TW_TAP_WATER if y > years[-1])  # 其他國家還沒有、時間軸截掉的年份寫在附註
+    if later:
+        zh += "。" + "、".join(f"{y} 年底 {TW_TAP_WATER[y]}%" for y in later) + "（地圖的年份到 " + f"{years[-1]} 年）"
+        en += ". " + ", ".join(f"{TW_TAP_WATER[y]}% at the end of {y}" for y in later) + f" (the map runs to {years[-1]})"
     write("safe-water", "%", years, safe, 2, world, {"TWN": zh}, {"TWN": en})
 
     # ── 森林（FRA 2025） ──

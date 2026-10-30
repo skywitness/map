@@ -30,6 +30,8 @@ def _download(url: str, filename: str) -> Path:
     print(f"  下載 {url}")
     context = ssl.create_default_context()
     context.set_ciphers("DEFAULT:@SECLEVEL=1")
+    # 憑證缺 Subject Key Identifier（common.RELAXED_X509_HOSTS 也列了這個主機）：只拿掉這一項嚴格檢查
+    context.verify_flags &= ~ssl.VERIFY_X509_STRICT
     request = urllib.request.Request(url, headers={"User-Agent": common.USER_AGENT})
     tmp = target.with_suffix(target.suffix + ".part")
     with urllib.request.urlopen(request, context=context) as resp, open(tmp, "wb") as f:

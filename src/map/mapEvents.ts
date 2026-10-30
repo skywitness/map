@@ -1,8 +1,9 @@
 /**
- * 地圖的滑鼠、觸控事件（WorldMap.tsx，2026-10-29 拆出來）：滑過（hover、tooltip、線的強調）、框選的拖曳、點選國家與側欄的標記。
+ * 地圖的滑鼠、觸控事件（WorldMap.tsx，2026-10-29 拆出來）：滑過（hover、tooltip、線的強調）、框選的拖曳、點選國家與側欄的標記、
+ * 右鍵（觸控長按）那個位置的小卡片（PlacePopup.tsx）。
  * 地圖建立時綁定一次，最新的 props 從 latest 讀。
  */
-import type { Map as MaplibreMap, MapGeoJSONFeature, MapMouseEvent, MapTouchEvent } from 'maplibre-gl';
+import { LngLat, type Map as MaplibreMap, type MapGeoJSONFeature, type MapMouseEvent, type MapTouchEvent } from 'maplibre-gl';
 import type { RefObject } from 'react';
 import type { MapMark } from '../topics/types';
 import { boxFromCorners, type Box } from './boxEstimate';
@@ -23,6 +24,25 @@ export interface MapHover {
   mark?: number;
 }
 
+/** 右鍵（觸控長按）點的位置：小卡片寫地名與經緯度，連到 Google 地圖（PlacePopup.tsx） */
+export interface MapPlace {
+  /** 小卡片在地圖上的位置（px） */
+  x: number;
+  y: number;
+  /** 點圖層的點用那一點的經緯度，其他用點下去的位置（-180–180） */
+  lng: number;
+  lat: number;
+  /** 底下的國家 */
+  iso3: string | null;
+  /** 點在點圖層的點（或有 tooltip 的線）上：overlay 的 id 與資料的第幾筆 */
+  point?: { overlay: string; index: number };
+}
+
+/** 觸控按住多久算長按（ms） */
+const LONG_PRESS_MS = 550;
+/** 長按、右鍵時手指或滑鼠移動超過這個距離（px）就是拖曳（3D 時右鍵拖曳是旋轉），不跳卡片 */
+const PRESS_SLOP_PX = 8;
+
 /** 事件裡要讀的最新 props（WorldMap 每次 render 更新） */
 export interface LatestProps {
   onSelect: (iso3: string | null) => void;
@@ -30,6 +50,8 @@ export interface LatestProps {
   boxMode: boolean;
   pointer: boolean;
   marks?: MapMark[] | null;
+  /** 點到線圖層的一條線（我的路線：選取那條路線、打開高度剖面）；回傳 true 表示處理了，不再選取國家 */
+  onLineClick?: (overlay: string, group: number) => boolean;
 }
 
 export interface MapEventRefs {
@@ -41,9 +63,12 @@ export interface MapEventRefs {
   hoverIdRef: RefObject<string | null>;
   dragRef: RefObject<{ start: [number, number]; startPoint: { x: number; y: number } } | null>;
   suppressClickRef: RefObject<boolean>;
+  /** 在地圖上點選國家時點的位置：WorldMap 把地圖移過去時以它為準，不是國家的中心（點 F1 賽道不會跳到國家中間） */
+  clickedRef: RefObject<{ iso3: string; at: [number, number] } | null>;
   latest: RefObject<LatestProps>;
   setHover: (hover: MapHover | null) => void;
   setBoxMode: (on: boolean) => void;
+  setPlace: (place: MapPlace | null) => void;
 }
 
 export function bindMapEvents(
@@ -56,9 +81,11 @@ export function bindMapEvents(
     hoverIdRef,
     dragRef,
     suppressClickRef,
+    clickedRef,
     latest,
     setHover,
     setBoxMode,
+    setPlace,
   }: MapEventRefs,
 ): void {
   // lines 為 false 時略過線的查詢層：點一下電纜經過的陸地要選到國家，不是取消選取
@@ -74,6 +101,17 @@ export function bindMapEvents(
         return found.reduce((a, b) => (Number(b.properties?.[field] ?? 0) > Number(a.properties?.[field] ?? 0) ? b : a));
       }
       if (found[0]) return found[0];
+    }
+    return null;
+  };
+
+  /** 點底下的國家（略過點圖層、線） */
+  const countryAt = (point: { x: number; y: number }): string | null => {
+    for (const id of HOVER_LAYERS) {
+      if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
+      const [c] = map.queryRenderedFeatures([point.x, point.y], { layers: [id] });
+      const iso3 = (c?.properties?.iso3 as string | undefined) ?? null;
+      if (iso3) return iso3;
     }
     return null;
   };
@@ -177,17 +215,83 @@ export function bindMapEvents(
       if (target) map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
       return;
     }
+    // 點到線（一般的點選略過線，選底下的國家）：有 onLineClick 的（我的路線）先問它
+    if (latest.current.onLineClick) {
+      const lf = featureAt(e.point);
+      const line = lf ? lineOverlayAt(lf.layer.id) : null;
+      if (line && lf && latest.current.onLineClick(line, Number(lf.properties.g))) return;
+    }
     const f = featureAt(e.point, false);
     let iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
     // 點圖層的點沒有國家欄位時（便利商店與連鎖品牌的店家），選取點底下的國家，不要取消選取
-    if (!iso3 && f?.layer.id.startsWith(OVERLAY_PREFIX)) {
-      for (const id of HOVER_LAYERS) {
-        if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;
-        const [c] = map.queryRenderedFeatures([e.point.x, e.point.y], { layers: [id] });
-        iso3 = (c?.properties?.iso3 as string | undefined) ?? null;
-        if (iso3) break;
-      }
-    }
+    if (!iso3 && f?.layer.id.startsWith(OVERLAY_PREFIX)) iso3 = countryAt(e.point);
+    // 點的是點圖層的點（賽道、景點…）就用那一點的位置，否則用點下去的位置
+    const exact = f?.layer.id.startsWith(OVERLAY_PREFIX) && f.geometry.type === 'Point' ? (f.geometry.coordinates as [number, number]) : null;
+    const { lng, lat } = exact ? new LngLat(exact[0], exact[1]).wrap() : e.lngLat.wrap();
+    clickedRef.current = iso3 ? { iso3, at: [lng, lat] } : null;
     latest.current.onSelect(iso3);
   });
+
+  /* ── 右鍵（觸控長按）：那個位置的小卡片，可以在 Google 地圖開啟（2026-10-30） ── */
+  const openPlace = (at: { x: number; y: number }) => {
+    if (latest.current.boxMode || dragRef.current) return;
+    const here = map.unproject([at.x, at.y]);
+    // 地球儀外面（太空）：MapLibre 給的是地球邊緣上的點，投影回畫面跟點的位置差很遠
+    const back = map.project(here);
+    if (Math.hypot(back.x - at.x, back.y - at.y) >= 4) return;
+    const f = featureAt(at);
+    const line = f ? lineOverlayAt(f.layer.id) : null;
+    const point =
+      f && f.layer.id.startsWith(OVERLAY_PREFIX)
+        ? { overlay: line ?? f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
+        : undefined;
+    // 點圖層的點（賽道、景點…）用那一點的經緯度，比點下去的位置準
+    const exact = point && f?.geometry.type === 'Point' ? (f.geometry.coordinates as [number, number]) : null;
+    const { lng, lat } = (exact ? new LngLat(exact[0], exact[1]) : here).wrap();
+    const iso3 = (f?.properties?.iso3 as string | undefined) ?? countryAt(at);
+    setHover(null);
+    setPlace({ x: at.x, y: at.y, lng, lat, iso3, point });
+  };
+
+  // 右鍵：按下與放開的位置差太多是拖曳（3D 的旋轉），不跳卡片。Mac 的 Ctrl＋點一下也會送 contextmenu
+  let rightDown: { x: number; y: number } | null = null;
+  map.on('mousedown', (e) => {
+    rightDown = e.originalEvent.button === 2 ? { x: e.point.x, y: e.point.y } : null;
+  });
+  map.on('contextmenu', (e) => {
+    // 不出現瀏覽器的右鍵選單
+    e.originalEvent.preventDefault();
+    const start = rightDown;
+    rightDown = null;
+    if (start && Math.hypot(e.point.x - start.x, e.point.y - start.y) > PRESS_SLOP_PX) return;
+    openPlace(e.point);
+  });
+
+  // 觸控長按：一根手指按住不動 LONG_PRESS_MS；放開時不要再當成點一下（選國家）
+  let pressTimer = 0;
+  let pressAt: { x: number; y: number } | null = null;
+  const cancelPress = () => {
+    window.clearTimeout(pressTimer);
+    pressTimer = 0;
+    pressAt = null;
+  };
+  map.on('touchstart', (e) => {
+    cancelPress();
+    if (e.originalEvent.touches.length !== 1) return;
+    const at = { x: e.point.x, y: e.point.y };
+    pressAt = at;
+    pressTimer = window.setTimeout(() => {
+      cancelPress();
+      openPlace(at);
+      suppressClickRef.current = true;
+      setTimeout(() => (suppressClickRef.current = false), 800);
+    }, LONG_PRESS_MS);
+  });
+  map.on('touchmove', (e) => {
+    if (pressAt && Math.hypot(e.point.x - pressAt.x, e.point.y - pressAt.y) > PRESS_SLOP_PX) cancelPress();
+  });
+  map.on('touchend', cancelPress);
+  map.on('touchcancel', cancelPress);
+  // 地圖移動（拖曳、縮放、飛到別處）時卡片的位置就不對了：關掉
+  map.on('movestart', () => setPlace(null));
 }

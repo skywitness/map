@@ -37,7 +37,7 @@ export default function UrbanHeatPanel({ topic, iso3, year, countryName }: Panel
   const t = useT();
   const text = TEXT[lang];
   const [all, setAll] = useState(false);
-  const { data, error } = useJson<PointsData>(`topics/${topic.id}/cities.json`);
+  const { data, error } = useJson<PointsData>(`topics/${topic.id}/uhi-areas.json`);
   const rows = useMemo(
     () => (data ? decodePoints(data).filter((p: PointRecord) => p.iso3 === iso3).sort((a, b) => Number(b.area) - Number(a.area)) : null),
     [data, iso3],

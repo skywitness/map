@@ -285,8 +285,9 @@ def _profile_notes(pushes: dict[str, dict[tuple[int, int], int]], notes: dict[st
         notes[c] = f"{notes[c]}{zh}" if c in notes else zh
         notes_en[c] = f"{notes_en[c]} {en}" if c in notes_en else en
     print(f"  依個人檔案調整後 ÷ 依 IP（換算成四季）：{', '.join(lines)}")
-    # src/topics/developers.ts 的頁尾：「中國是依 IP 的 5 倍多、香港只有約四分之一、新加坡約一半，台灣差不多」、「60 多個經濟體」
-    expected = {"CHN": (5, 7), "HKG": (0.18, 0.32), "SGP": (0.4, 0.65), "TWN": (0.85, 1.15)}
+    # src/topics/developers.ts 的頁尾：「中國是依 IP 的 4 倍半、香港只有約五分之一、新加坡四成多，台灣約四分之三」、「60 多個經濟體」
+    # （2026-10-30 依 IP 的資料多了 2026 年第 2 季，不必再從前三季換算，比例跟著變：原本中國 5 倍多、台灣差不多）
+    expected = {"CHN": (4, 5), "HKG": (0.15, 0.25), "SGP": (0.38, 0.5), "TWN": (0.65, 0.85)}
     off = [f"{c} {ratios.get(c)}" for c, (lo, hi) in expected.items() if not lo <= ratios.get(c, -1) <= hi]
     if off or not 60 <= len(profile) < 70:
         raise ValueError(f"補充資料變了（{off}，{len(profile)} 個經濟體），改 src/topics/developers.ts 的頁尾說明")

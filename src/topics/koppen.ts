@@ -156,8 +156,8 @@ const indicators: IndicatorDef[] = [
     id: 'map',
     label: { zh: '氣候分區地圖', en: 'Climate zone map' },
     description: {
-      zh: '柯本－蓋格氣候分類的 0.1° 網格（約 10 公里）：依氣溫與降雨的季節變化分成 30 種類型，顏色照 Beck 等人 2023 的配色（藍是熱帶、紅橘黃是乾燥、綠是溫帶、紫與青是冷溫帶、灰是極地）。滑到任一點看那裡的類型；國家不上色，滑到國家上看面積最大的類型。時間軸是 30 年的時期，2041 年以後是推估（在上面選排放情境）。',
-      en: 'The Köppen–Geiger climate classification on a 0.1° grid (about 10 km): 30 types based on the seasonal pattern of temperature and precipitation, in the colours used by Beck et al. (2023) (blues tropical, reds, oranges and yellows arid, greens temperate, purples and cyans cold, greys polar). Hover anywhere for the local type; countries are not coloured, so hover over one for its most widespread type. The time slider steps through 30-year periods; from 2041 on they are projections (choose an emissions scenario above).',
+      zh: '柯本－蓋格氣候分類的 0.1° 網格（約 10 公里）：依氣溫與降雨的季節變化分成 30 種類型，顏色照 Beck 等人 2023 的配色（藍是熱帶、紅橘黃是乾燥、綠是溫帶、紫與青是冷溫帶、灰是極地）。滑到任一點看那裡的類型，滑到圖例或側欄的一種類型時地圖只亮那一類；國家不上色，滑到國家上看面積最大的類型。時間軸是 30 年的時期，2041 年以後是推估（在上面選排放情境）。',
+      en: 'The Köppen–Geiger climate classification on a 0.1° grid (about 10 km): 30 types based on the seasonal pattern of temperature and precipitation, in the colours used by Beck et al. (2023) (blues tropical, reds, oranges and yellows arid, greens temperate, purples and cyans cold, greys polar). Hover anywhere for the local type, or over a type in the key or side panel to show only that type; countries are not coloured, so hover over one for its most widespread type. The time slider steps through 30-year periods; from 2041 on they are projections (choose an emissions scenario above).',
     },
     unit: '',
     file: 'main/{item}.json',

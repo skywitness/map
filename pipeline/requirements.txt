@@ -18,3 +18,6 @@ contourpy>=1.3
 opencc-python-reimplemented>=0.1.7
 # 板塊漂移：板塊重建（GPL-2.0，只在建置時用，網站不帶它）
 pygplates>=1.0
+# 人工林：SDPT 的向量圖磚（Mapbox Vector Tile）、林型分布圖的 shapefile
+mapbox-vector-tile>=2.1
+pyshp>=2.3

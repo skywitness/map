@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
-import type { CategoryDef, TopicDefinition } from './types';
+import type { TopicPart } from './parts';
+import type { CategoryDef } from './types';
 
 /**
  * 大學入學考試（pipeline/sources/admission_tests.py）：各國上大學的主要方式，依英文維基百科的兩份清單自行整理，
@@ -22,13 +23,9 @@ function tooltipLines(iso3: string, { source }: { source: unknown }): string[] {
   return [first.length > 70 ? `${first.slice(0, 68)}…` : first];
 }
 
-export const universityEntrance: TopicDefinition = {
-  id: 'university-entrance',
-  title: { zh: '各國的大學入學考試', en: 'University entrance by country' },
-  shortTitle: { zh: '大學入學考試', en: 'University entrance' },
-  defaultIndicator: 'main-route',
-  defaultYear: 2026,
-  timeless: true,
+/** 教育程度（education.ts）的大學入學考試部分：2026-10-30（第七批 122）起併進教育程度 */
+export const universityEntrancePart: TopicPart = {
+  name: { zh: '大學入學考試', en: 'University entrance' },
   sources: [
     {
       name: {
@@ -65,6 +62,8 @@ export const universityEntrance: TopicDefinition = {
       },
       unit: '',
       file: 'main-route.json',
+      // 入學制度不分年份（2026 年的整理）：這個指標沒有時間軸
+      timeless: true,
       layer: { kind: 'categorical', categories: ROUTES },
       format: routeLabel,
       unranked: true,

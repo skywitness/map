@@ -20,10 +20,10 @@ import urllib.parse
 import urllib.request
 from collections import Counter
 
-from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, now_iso, points_file, write_json
+from common import CACHE_DIR, OUT_DIR, USER_AGENT, now_iso, points_file, write_json
 from geoindex import countries_at
 
-OUT = OUT_DIR / "topics" / "chinatowns"
+OUT = OUT_DIR / "topics" / "migration"  # 2026-10-30 唐人街變成移民與難民的疊加圖層（第七批 122）
 SPARQL = "https://query.wikidata.org/sparql"
 QUERY = """SELECT ?item ?itemLabel ?zh ?zht ?country ?iso ?coord ?inception ?city ?cityLabel ?enwiki WHERE {
   ?item wdt:P31/wdt:P279* wd:Q202509 .
@@ -164,12 +164,10 @@ def build() -> None:
     fields = ["lon", "lat", "s", "c", "iso3", "en", "zh"]
     scale = {"lon": 0.0001, "lat": 0.0001, "s": 1, "c": 1}
     OUT.mkdir(parents=True, exist_ok=True)
-    write_json(OUT / "points.json", points_file(rows, fields, scale, strings=("iso3",)))
+    write_json(OUT / "chinatowns.json", points_file(rows, fields, scale, strings=("iso3",)))
     counts = Counter(r["iso3"] for r in rows if r["iso3"])
-    write_json(OUT / "count.json", indicator_file(
-        "count", "處", [2026], {c: [n] for c, n in sorted(counts.items())}, license="CC BY-SA 4.0",
-    ))
-    write_json(OUT / "manifest.json", {"topic": "chinatowns", "generatedAt": now_iso(),
+    # 各國的處數 2026-10-30 起不再是指標（唐人街只剩疊加圖層），只印在下面
+    write_json(OUT / "chinatowns-manifest.json", {"topic": "chinatowns", "generatedAt": now_iso(),
                                        "sources": ["Wikidata (CC0)", "Wikipedia: Chinatowns in Europe/Asia/Africa/Oceania/Latin America (CC BY-SA 4.0)"]})
     print(f"  唐人街 {len(rows)} 處：Wikidata {len(rows) - added}、依維基補 {added}（{len(near)} 處 3 km 內已有：{near}）")
     print(f"  各國（前 12）：{counts.most_common(12)}；台灣 {counts.get('TWN', 0)}；沒有國家的 {[r['en'] for r in rows if not r['iso3']]}")

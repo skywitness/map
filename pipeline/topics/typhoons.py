@@ -35,7 +35,7 @@ import json
 import math
 import urllib.request
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta, timezone
 
 import numpy as np
@@ -66,8 +66,15 @@ SSHS_KT = [34, 64, 83, 96, 113, 137]  # 熱帶風暴、1–5 級的下限（kt�
 BASINS = ["NA", "EP", "WP", "NI", "SI", "SP", "SA"]
 
 
+# 分級的下限（kt）：平常是薩菲爾－辛普森；做日本氣象廳 10 分鐘風速那一組時（build_jma）換成中央氣象署的分級
+SCALE_KT = SSHS_KT
+# 中央氣象署的輕度、中度、強烈颱風的下限：10 分鐘平均 17.2、32.7、51.0 m/s（34、64、100 kt）；代碼沿用 TS、C1、C2
+CWA_KT = [34, 64, 100]
+JMA_FROM = 1977  # IBTrACS 的 TOKYO_WIND 從 1977 年起才有
+
+
 def wind_class(kt: float) -> int:
-    return TD + sum(kt >= t for t in SSHS_KT)
+    return TD + sum(kt >= t for t in SCALE_KT)
 
 
 def tropical(f: Fix) -> bool:
@@ -133,7 +140,8 @@ def cwa_list(page: str, action: str) -> list[dict]:
             "User-Agent": USER_AGENT, "X-Requested-With": "XMLHttpRequest",
             "Content-Type": "application/x-www-form-urlencoded", "Referer": f"{CWA_BASE}{page}/",
         })
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        # 中央氣象署的憑證沒有 Subject Key Identifier，Python 3.13 的嚴格檢查不收（common.RELAXED_X509_HOSTS，2026-10-30）
+        with urllib.request.urlopen(req, timeout=120, context=common._ssl_context(url)) as resp:
             data = resp.read()
         json.loads(data.decode("utf-8-sig"))  # 確認是 JSON 才存
         tmp = target.with_suffix(".part")
@@ -520,13 +528,13 @@ def build() -> None:
     notes = {c: PARTIAL_NOTE["zh"] for c in partial}
     notes_en = {c: PARTIAL_NOTE["en"] for c in partial}
     notes["TWN"], notes_en["TWN"] = tw_note["zh"], tw_note["en"]
-    write_json(OUT / "storms-year.json", indicator_file(
+    write_json(OUT / "storms-year" / "usa.json", indicator_file(
         "storms-year", "個", years, {c: series(c, years) for c in codes},
         aggregates={"WLD": world_year}, notes=notes, notesEn=notes_en))
-    write_json(OUT / "storms-decade.json", indicator_file(
+    write_json(OUT / "storms-decade" / "usa.json", indicator_file(
         "storms-decade", "個", decades, {c: series(c, decades, 10) for c in codes},
         aggregates={"WLD": world_decade}, notes=notes, notesEn=notes_en))
-    write_json(OUT / "strongest-decade.json", indicator_file(
+    write_json(OUT / "strongest-decade" / "usa.json", indicator_file(
         "strongest-decade", "級", decades,
         {c: [None if blank(c, d) else strongest[c].get(d) for d in decades] for c in codes if strongest.get(c)},
         notes=notes, notesEn=notes_en))
@@ -560,13 +568,117 @@ def build() -> None:
     dmax = max((v for c in codes for v in series(c, decades, 10) if v), default=0)
     print(f"  每十年最多 {dmax} 個")
 
+    build_jma(storms, cwa_all, index, years, decades)
+
     write_json(OUT / "manifest.json", {
         "topic": "typhoons",
         "generatedAt": now_iso(),
-        "source": "NOAA NCEI IBTrACS v04r01 (USA_WIND, USA_SSHS, USA_PRES/WMO_PRES), doi:10.25921/82ty-9e16; "
+        "source": "NOAA NCEI IBTrACS v04r01 (USA_WIND, USA_SSHS, USA_PRES/WMO_PRES; TOKYO_WIND, TOKYO_GRADE), "
+                  "doi:10.25921/82ty-9e16; "
                   "Central Weather Administration (Taiwan) Typhoon Database (Chinese names, Taiwan comparison)",
         "latestFix": utc(max(t.storm.fixes[-1].time for t in tracks)).strftime("%Y-%m-%dT%H:%MZ"),
     })
+
+
+# ── 日本氣象廳的 10 分鐘風速（2026-10-30 起，製作手冊第七批 142）─────────────────────────
+def jma_storm(s: Storm) -> Storm | None:
+    """只留日本氣象廳有紀錄的西北太平洋的點，風速換成 TOKYO_WIND；USA_SSHS 換成中央氣象署的分級
+    （−1 熱帶性低氣壓、0 輕度、1 中度、2 強烈；溫帶氣旋 −4；合併、消散 −5），其他的程式照用"""
+    fixes = []
+    for f in s.fixes:
+        if f.basin != "WP" or f.tokyo_grade is None:
+            continue
+        w = f.tokyo_wind
+        if f.tokyo_grade in (2, 3, 4, 5, 9):
+            sshs = -5 if w is None else -1 + sum(w >= t for t in CWA_KT)
+        else:
+            sshs = -4 if f.tokyo_grade == 6 else -5
+        # TOKYO_LAT/LON 跟 IBTrACS 合併的位置在西北太平洋幾乎相同，位置照用合併的
+        fixes.append(replace(f, wind=w, pres=None, sshs=sshs))
+    return replace(s, fixes=fixes, basin="WP") if len(fixes) >= 2 else None
+
+
+JMA_NOTE = {
+    "zh": "日本氣象廳（RSMC 東京）的 10 分鐘平均風速（IBTrACS 的 TOKYO_WIND，1977 年起），只有西北太平洋；"
+          "強度照中央氣象署的分級（輕度 17.2、中度 32.7、強烈 51.0 公尺/秒以上）。",
+    "en": "Japan Meteorological Agency (RSMC Tokyo) 10-minute winds (TOKYO_WIND in IBTrACS, from 1977), western North "
+          "Pacific only; intensity on Taiwan's CWA scale (mild 17.2, moderate 32.7, severe 51.0 m/s and above).",
+}
+
+
+def build_jma(storms: list[Storm], cwa_all: list[dict], index: NearIndex, years: list[int], decades: list[int]) -> None:
+    """日本氣象廳 10 分鐘風速那一組：tracks-jma.json 與三個國家指標的 jma.json（只有西北太平洋、1977 年起）"""
+    global SCALE_KT
+    SCALE_KT = CWA_KT
+    try:
+        jma = [j for j in (jma_storm(s) for s in storms) if j and utc(j.fixes[0].time).year >= JMA_FROM]
+        tracks = select(jma)
+        cwa_by_sid = match_cwa(tracks, cwa_all)
+        for t in tracks:
+            c = cwa_by_sid.get(t.storm.sid)
+            if c and c.get("cht_name", "").strip():
+                t.zh = c["cht_name"].strip()
+        lines, vtypes, records = track_lines(tracks)
+        data = lines_file(
+            lines, QUANTUM, vertex_types=vtypes, records=records,
+            record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov"],
+            record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1},
+            record_delta=("year",))
+        write_json(OUT / "tracks-jma.json", data)
+        print(f"    日本氣象廳：路徑 {len(data['lines'])} 條（{_size(data)}），各級巔峰 "
+              f"{sorted(Counter(t.peak_class for t in tracks).items())}")
+
+        # 即時資料（最近一年）大多還沒有 TOKYO_WIND：一年不到 10 個的年份以後不放（2026-10-30 時 2026 年只有 2 個）
+        per_track_year = Counter(t.year for t in tracks)
+        jma_last = max(y for y, n in per_track_year.items() if n >= 10)
+        years = [y for y in years if y <= jma_last]
+        decades = [d for d in decades if d <= jma_last]
+        all_passes = passes(tracks, index)
+        per_year: dict[str, Counter] = defaultdict(Counter)
+        strongest: dict[str, dict[int, int]] = defaultdict(dict)
+        for p in all_passes:
+            y = tracks[p.track].year
+            if p.counted:
+                per_year[p.country][y] += 1
+            d = y // 10 * 10
+            strongest[p.country][d] = max(strongest[p.country].get(d, TD), p.cls)
+        world = Counter(t.year for t in tracks if t.counted_possible)
+        codes = sorted(c for c in per_year if sum(per_year[c].values()))
+        # 1977 年以前、還有 1970 年代（只有 1977–1979 三年）是 null
+        series = lambda c, ys, span=1: [  # noqa: E731
+            sum(per_year[c].get(y + k, 0) for k in range(span)) if y >= JMA_FROM and y + span - 1 >= JMA_FROM and (span == 1 or y >= 1980) else None
+            for y in ys
+        ]
+        notes = {c: JMA_NOTE["zh"] for c in codes}
+        notes_en = {c: JMA_NOTE["en"] for c in codes}
+        ours = Counter(tracks[p.track].year for p in all_passes if p.country == "TWN" and p.counted)
+        warned, hit = _cwa_taiwan()
+        last = min(date.today().year - 1, jma_last)
+        span = range(JMA_FROM, last + 1)
+        a = sum(ours[y] for y in span) / len(span)
+        h = sum(len(hit[y]) for y in span) / len(span)
+        w = sum(len(warned[y]) for y in span) / len(span)
+        notes["TWN"] = (f"{JMA_NOTE['zh']}颱風中心（10 分鐘風速達輕度颱風以上時）進入台灣陸地或離陸地 {NEAR_KM} 公里以內的，"
+                        f"{JMA_FROM}–{last} 年平均每年 {a:.1f} 個；中央氣象署的侵台颱風同期平均 {h:.1f} 個，有發警報的 {w:.1f} 個。")
+        notes_en["TWN"] = (f"{JMA_NOTE['en']} Storms whose centre came within {NEAR_KM} km of Taiwan's land at mild-typhoon "
+                           f"strength or above (10-minute winds): {a:.1f} a year in {JMA_FROM}–{last}; the CWA counts {h:.1f} "
+                           f"hitting Taiwan and issued warnings for {w:.1f} a year.")
+        write_json(OUT / "storms-year" / "jma.json", indicator_file(
+            "storms-year", "個", years, {c: series(c, years) for c in codes},
+            aggregates={"WLD": [world[y] if y >= JMA_FROM else None for y in years]}, notes=notes, notesEn=notes_en))
+        write_json(OUT / "storms-decade" / "jma.json", indicator_file(
+            "storms-decade", "個", decades, {c: series(c, decades, 10) for c in codes},
+            aggregates={"WLD": [sum(world[y + k] for k in range(10)) if y >= 1980 else None for y in decades]},
+            notes=notes, notesEn=notes_en))
+        write_json(OUT / "strongest-decade" / "jma.json", indicator_file(
+            "strongest-decade", "級", decades,
+            {c: [strongest[c].get(d) if d >= 1980 else None for d in decades] for c in codes if strongest.get(c)},
+            notes=notes, notesEn=notes_en))
+        top = sorted(((sum(per_year[c].values()), c) for c in codes), reverse=True)[:8]
+        print(f"  日本氣象廳 {JMA_FROM} 年起最多的國家：" + "、".join(f"{c} {n}" for n, c in top)
+              + f"；台灣每年平均 {a:.1f}（氣象署侵台 {h:.1f}）；指標到 {jma_last} 年")
+    finally:
+        SCALE_KT = SSHS_KT
 
 
 PARTIAL_NOTE = {

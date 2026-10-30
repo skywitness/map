@@ -61,7 +61,7 @@ export const deathsText = (p: PointRecord) => String((getLang() === 'zh' ? p.dz 
 export const nuclearAccidents: TopicDefinition = {
   id: 'nuclear-accidents',
   title: { zh: '核子事故', en: 'Nuclear accidents' },
-  shortTitle: { zh: '核子事故', en: 'Nuclear accidents' },
+  shortTitle: { zh: '核子事故', en: 'Nuclear events' },
   defaultIndicator: 'map',
   defaultYear: 2026,
   sources: [

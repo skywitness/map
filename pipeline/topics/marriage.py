@@ -287,7 +287,14 @@ def build() -> None:
         series[TAIWAN] = taiwan_types[tw_key]
         zh, en = TAIWAN_NOTES["household-types"]
         write(key, "%", series, 1, ({TAIWAN: zh.format(kind=kind)}, {TAIWAN: en.format(kind_en=kind_en)}))
-    write("older-alone", "%", un_households.older_alone_2026(), 1)
+    # 台灣只有 65 歲以上的數字，地圖照舊留白，寫在附註（第七批 135，DESIGN.md 第 217 點）
+    write("older-alone", "%", un_households.older_alone_2026(), 1, (
+        {TAIWAN: "台灣只有 65 歲以上的數字：主計總處 109 年人口及住宅普查 65 歲以上常住人口獨居 15.6%（570,990 人，"
+                 "含住在安養中心、醫療院所等處所的人在分母）、衛福部 111 年老人狀況調查 65 歲以上獨居 9.1%，兩者定義不同"},
+        {TAIWAN: "Taiwan only has figures for ages 65 and over: 15.6% living alone in the 2020 Population and Housing Census "
+                 "(570,990 people; the denominator includes people in care homes, hospitals and other institutions) and "
+                 "9.1% in the Ministry of Health and Welfare’s 2022 Survey of Senior Citizens, which define it differently"},
+    ))
 
     # ── 同性伴侶的法律地位 ────────────────────────────────────
     status, status_notes = same_sex_unions.status(countries)

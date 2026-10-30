@@ -405,6 +405,12 @@ def build() -> None:
     if missing:
         print(f"  沒有時區的地圖區域：{missing}")
 
+    # 夏令時間規則的例外（tzdata 2026f，2026-10-27：古巴 2026-11-01 不改回 UTC−5）
+    dst_extra = {
+        "CUB": ("2026 年 11 月 1 日起不改回冬令時間，維持 UTC−4 到 2027 年 11 月 7 日（IANA tzdata 2026f）。",
+                "From 1 November 2026 Cuba stays on UTC−4 until 7 November 2027 instead of returning to standard time (IANA tzdata 2026f)."),
+    }
+
     def tz_notes(iso3: str) -> tuple[str, str] | None:
         t = tz[iso3]
         parts_zh, parts_en = [], []
@@ -420,6 +426,9 @@ def build() -> None:
             diff = t["dst"] - 8
             parts_zh.append(f"有夏令時間（{_offset_text(t['dst'])}，比台灣{'慢' if diff < 0 else '快'} {abs(diff):g} 小時）。" if diff else f"有夏令時間（{_offset_text(t['dst'])}，跟台灣相同）。")
             parts_en.append(f"Daylight saving time is {_offset_text(t['dst'])}.")
+        if iso3 in dst_extra:
+            parts_zh.append(dst_extra[iso3][0])
+            parts_en.append(dst_extra[iso3][1])
         if not parts_zh:
             return None
         return "".join(parts_zh), " ".join(parts_en)

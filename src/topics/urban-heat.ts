@@ -1,7 +1,8 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { TopicPart } from './parts';
+import type { ColorClasses, PointRecord } from './types';
 
 /**
  * 城市熱島（pipeline/topics/urban_heat.py）：Yang 等人的 Global Urban Heat Island Intensity Dataset。
@@ -41,12 +42,9 @@ export function cityName(p: PointRecord, lang = getLang()): string {
   return tr({ zh: `城區 #${String(p.id)}`, en: `Urban area #${String(p.id)}` });
 }
 
-export const urbanHeat: TopicDefinition = {
-  id: 'urban-heat',
-  title: { zh: '城市熱島', en: 'Urban heat islands' },
-  shortTitle: { zh: '城市熱島', en: 'Urban heat' },
-  defaultIndicator: 'uhi',
-  defaultYear: LAST_YEAR,
+/** 城市（cities.ts）的城市熱島部分：2026-10-30（第七批 122）起併進城市 */
+export const urbanHeatPart: TopicPart = {
+  name: { zh: '城市熱島', en: 'Urban heat' },
   sources: [
     {
       name: {
@@ -79,7 +77,7 @@ export const urbanHeat: TopicDefinition = {
     {
       kind: 'points',
       id: 'areas',
-      file: 'cities.json',
+      file: 'uhi-areas.json',
       label: { zh: '城區（夏季白天的熱島）', en: 'Urban areas (summer daytime)' },
       radius: { field: 'area', stops: [[10, 1.6], [100, 2.8], [1000, 5.5], [10000, 11]] },
       color: UHI_COLORS,
@@ -128,6 +126,7 @@ export const urbanHeat: TopicDefinition = {
       },
       unit: '°C',
       file: 'uhi.json',
+      defaultYear: LAST_YEAR,
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-4, -2, -0.5, 0.5, 2, 4], reverse: true } },
       format: degrees,
       formatTick: (v) => signed(v, Number.isInteger(v) ? 0 : 1),

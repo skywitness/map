@@ -18,6 +18,10 @@
  * 太陽直射點是一般的 GeoJSON 圓點（`night-sun`），每一格 setData 一個點。
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新加上。
  *
+ * 夜半邊的燈光（NightOverlayDef.lights，2026-10-30 起）：同一個片段著色器依經緯度讀一張 0.1° 的灰階燈光圖
+ * （pipeline/topics/daylight_lights.py），天黑的地方疊上燈光色，白天的那一半不畫；跟夜色在同一個像素裡合成，
+ * 不必另一個圖層去遮白天。圖不大（3600 × 1370），放大後是模糊的光暈。
+ *
  * 月亮（MoonOverlayDef，2026-10-29 起）用同一個圖層畫「看得到月亮的半個地球」：方向換成月下點的反方向，
  * 只用第一道邊界（月亮的地心高度門檻），淡淡一層月光色；月下點是另一個 GeoJSON 圓點（`moon-point`）。
  */
@@ -29,7 +33,7 @@ import type {
   Map as MaplibreMap,
 } from 'maplibre-gl';
 import { subsolarPoint, sunVector, SUNRISE_DEPRESSION, TWILIGHT_DEPRESSIONS } from '../lib/solar';
-import { MOON_COLOR, MOON_LOOK, NIGHT_LOOK, SUN_COLOR } from './nightLook';
+import { LIGHTS_LOOK, MOON_COLOR, MOON_LOOK, NIGHT_LOOK, SUN_COLOR } from './nightLook';
 
 /** 自訂圖層插在國界、選取外框之前：夜色蓋住底圖與國家的顏色，國界、外框、疊加圖層與地名畫在上面 */
 const NIGHT_BEFORE = 'data-border';
@@ -64,6 +68,8 @@ void main() {
 }`;
 
 // 片段：太陽高度 h 落在哪一段決定不透明度，段與段之間柔和地漸變（約 1°，縮小時至少一個像素寬）
+// 燈光（u_lights_on）：燈光圖是經緯度對齊的，x 是經度 −180°–180°，y 從北緣 u_lights_lat.y 到南緣 u_lights_lat.x；
+// u_lights_look 是最亮的不透明度、開始出現與全亮的太陽高度（LIGHTS_LOOK）
 const FRAGMENT_SOURCE = `
 precision highp float;
 in vec3 v_n;
@@ -71,16 +77,33 @@ uniform vec3 u_sun;
 uniform vec3 u_color;
 uniform vec4 u_steps;
 uniform vec4 u_edges;
+uniform sampler2D u_lights;
+uniform float u_lights_on;
+uniform vec2 u_lights_lat;
+uniform vec3 u_lights_color;
+uniform vec3 u_lights_look;
 out vec4 fragColor;
 float below(float edge, float h, float w) {
   return 1.0 - smoothstep(edge - w, edge + w, h);
 }
 void main() {
-  float h = degrees(asin(clamp(dot(normalize(v_n), u_sun), -1.0, 1.0)));
+  vec3 n = normalize(v_n);
+  float h = degrees(asin(clamp(dot(n, u_sun), -1.0, 1.0)));
   float w = max(fwidth(h) * 0.75, 0.5);
   float a = u_steps.x * below(u_edges.x, h, w) + u_steps.y * below(u_edges.y, h, w)
     + u_steps.z * below(u_edges.z, h, w) + u_steps.w * below(u_edges.w, h, w);
-  fragColor = vec4(u_color * a, a);
+  vec3 rgb = u_color * a;
+  if (u_lights_on > 0.5) {
+    float lat = degrees(asin(clamp(n.z, -1.0, 1.0)));
+    float lon = degrees(atan(n.y, n.x));
+    vec2 uv = vec2((lon + 180.0) / 360.0, (u_lights_lat.y - lat) / (u_lights_lat.y - u_lights_lat.x));
+    float inside = step(0.0, uv.y) * step(uv.y, 1.0);
+    float c = texture(u_lights, uv).r * inside;
+    float l = pow(c, 1.3) * u_lights_look.x * (1.0 - smoothstep(u_lights_look.z, u_lights_look.y, h));
+    rgb = u_lights_color * l + rgb * (1.0 - l);
+    a = l + a * (1.0 - l);
+  }
+  fragColor = vec4(rgb, a);
 }`;
 
 interface Program {
@@ -101,6 +124,11 @@ const UNIFORMS = [
   'u_color',
   'u_steps',
   'u_edges',
+  'u_lights',
+  'u_lights_on',
+  'u_lights_lat',
+  'u_lights_color',
+  'u_lights_look',
 ] as const;
 
 /** WebGL 1 沒有 in/out 與 fwidth：照 MapLibre 的做法改寫（fwidth 要 OES_standard_derivatives） */
@@ -110,7 +138,8 @@ function toWebGL1(source: string, fragment: boolean): string {
     out = `#extension GL_OES_standard_derivatives : enable\n${out}`
       .replace(/\bin\s+(?=\w+\s+\w+;)/g, 'varying ')
       .replace(/out vec4 fragColor;/, '')
-      .replace(/fragColor/g, 'gl_FragColor');
+      .replace(/fragColor/g, 'gl_FragColor')
+      .replace(/\btexture\(/g, 'texture2D(');
   } else {
     out = out.replace(/\bin\s+(?=\w+\s+\w+;)/g, 'attribute ').replace(/\bout\s+(?=\w+\s+\w+;)/g, 'varying ');
   }
@@ -160,6 +189,10 @@ class NightLayer implements CustomLayerInterface {
   threshold = 0;
   /** 月亮：那一刻的月下點（主題給的 MoonOverlayDef.position） */
   position: ((time: number) => { lon: number; lat: number; horizon: number }) | null = null;
+  /** 夜半邊的燈光（NightOverlayDef.lights）：圖的網址、[南, 北]、讀好的圖（還沒讀好是 null） */
+  lights: { url: string; bounds: [number, number]; image: HTMLImageElement | null } | null = null;
+  private lightsTexture: WebGLTexture | null = null;
+  private lightsUploaded: HTMLImageElement | null = null;
   private readonly shade: (layer: NightLayer) => Shade;
   private map: MaplibreMap | null = null;
   private vertices: WebGLBuffer | null = null;
@@ -214,6 +247,9 @@ class NightLayer implements CustomLayerInterface {
   onRemove(_map: MaplibreMap, gl: WebGLRenderingContext | WebGL2RenderingContext) {
     if (this.vertices) gl.deleteBuffer(this.vertices);
     if (this.indices) gl.deleteBuffer(this.indices);
+    if (this.lightsTexture) gl.deleteTexture(this.lightsTexture);
+    this.lightsTexture = null;
+    this.lightsUploaded = null;
     for (const p of this.programs.values()) if (p) gl.deleteProgram(p.program);
     this.programs.clear();
     this.map = null;
@@ -259,6 +295,26 @@ class NightLayer implements CustomLayerInterface {
     return result;
   }
 
+  /** 燈光圖讀好了就上傳成貼圖（只傳一次）；沒有燈光、還沒讀好、或貼圖太大這張顯示卡放不下時回傳 null */
+  private lightsReady(gl: WebGLRenderingContext | WebGL2RenderingContext) {
+    const lights = this.lights;
+    if (!lights?.image) return null;
+    if (this.lightsUploaded !== lights.image) {
+      const max = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+      if (lights.image.width > max || lights.image.height > max) return null;
+      if (!this.lightsTexture) this.lightsTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, this.lightsTexture);
+      // 寬高不是 2 的次方：WebGL 1 只能 CLAMP_TO_EDGE、不用 mipmap
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, lights.image);
+      this.lightsUploaded = lights.image;
+    }
+    return lights;
+  }
+
   render(gl: WebGLRenderingContext | WebGL2RenderingContext, args: CustomRenderMethodInput) {
     if (!this.vertices || !this.indices || !this.map) return;
     const p = this.program(gl, args.shaderData);
@@ -276,6 +332,16 @@ class NightLayer implements CustomLayerInterface {
     gl.uniform3f(u.u_color, ...hexToRgb(look.color));
     gl.uniform4f(u.u_steps, look.steps[0], look.steps[1], look.steps[2], look.steps[3]);
     gl.uniform4f(u.u_edges, look.edges[0], look.edges[1], look.edges[2], look.edges[3]);
+    const lights = this.lightsReady(gl);
+    gl.uniform1f(u.u_lights_on, lights ? 1 : 0);
+    if (lights) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.lightsTexture);
+      gl.uniform1i(u.u_lights, 0);
+      gl.uniform2f(u.u_lights_lat, lights.bounds[0], lights.bounds[1]);
+      gl.uniform3f(u.u_lights_color, ...hexToRgb(LIGHTS_LOOK.color));
+      gl.uniform3f(u.u_lights_look, LIGHTS_LOOK.strength, LIGHTS_LOOK.fadeFrom, LIGHTS_LOOK.fadeTo);
+    }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertices);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indices);
@@ -337,9 +403,16 @@ const SUN_LAYERS: CircleLayerSpecification[] = [
 
 /**
  * 讓地圖上的晝夜圖層跟設定一致：要畫（visible）時加上自訂圖層與太陽直射點，不要時拿掉；換底圖後重新加上。
- * id 是 null 時（這個主題沒有晝夜圖層）全部拿掉
+ * id 是 null 時（這個主題沒有晝夜圖層）全部拿掉。lights 是夜半邊的燈光圖（網址與 [南, 北]），沒有是 null
  */
-export function syncNight(map: MaplibreMap, id: string | null, visible: boolean, dark: boolean, time: number | null) {
+export function syncNight(
+  map: MaplibreMap,
+  id: string | null,
+  visible: boolean,
+  dark: boolean,
+  time: number | null,
+  lights: { url: string; bounds: [number, number] } | null = null,
+) {
   const layerId = id ? `night-${id}` : null;
   let layer = layers.get(map);
   if (layer && (layer.id !== layerId || !visible || time === null || !map.getLayer(layer.id))) {
@@ -360,7 +433,25 @@ export function syncNight(map: MaplibreMap, id: string | null, visible: boolean,
   if (!map.getSource(SUN_SOURCE)) map.addSource(SUN_SOURCE, { type: 'geojson', data: sunPoint(time) });
   for (const l of SUN_LAYERS) if (!map.getLayer(l.id)) map.addLayer(l, map.getLayer(SUN_BEFORE) ? SUN_BEFORE : undefined);
   layer.dark = dark;
+  setNightLights(map, layer, lights);
   setNightTime(map, time);
+}
+
+/** 換燈光圖：網址不同時重新讀（讀好才畫，讀不到就不畫燈光） */
+function setNightLights(map: MaplibreMap, layer: NightLayer, lights: { url: string; bounds: [number, number] } | null) {
+  if (!lights) {
+    layer.lights = null;
+    return;
+  }
+  if (layer.lights?.url === lights.url) return;
+  const entry: NonNullable<NightLayer['lights']> = { url: lights.url, bounds: lights.bounds, image: null };
+  layer.lights = entry;
+  const image = new Image();
+  image.onload = () => {
+    entry.image = image;
+    map.triggerRepaint();
+  };
+  image.src = lights.url;
 }
 
 /** 換一個時刻：太陽的方向（uniform）與直射點；不重送網格 */

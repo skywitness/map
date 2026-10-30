@@ -85,6 +85,11 @@ button {
     max(var(--gutter), env(safe-area-inset-left));
 }
 
+/* 版面選單關掉了頁尾：底部的安全區域改由 .app 留（原本是頁尾的 padding） */
+.app.is-no-footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* ── 頂列 ───────────────────────────── */
 .topbar {
   display: flex;
@@ -234,21 +239,43 @@ button {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
 }
 
-/* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄 */
+/* 主題多的分類分欄（TopicNav.tsx 的 packColumns）：依小標題分段、一段不拆開，一欄排完再排下一欄，左邊的欄最滿
+   （2026-10-30；原本是 CSS 多欄，瀏覽器平均分配，結果常常是左邊最少） */
 .topic-menu-items {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: calc(var(--menu-columns, 1) * 264px);
+}
+
+.topic-menu-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.topic-menu-section {
   display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(var(--menu-rows, 1), auto);
-  grid-template-columns: repeat(var(--menu-columns, 1), minmax(220px, 300px));
-  column-gap: 4px;
+  break-inside: avoid;
+}
+
+.topic-menu-section + .topic-menu-section {
+  margin-top: 4px;
+}
+
+/* 小標題（顏色只標示分類，文字照用 ink） */
+.topic-menu-heading {
+  padding: 8px 10px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
 }
 
 /* 手機上螢幕窄，維持一欄、捲動 */
 @media (max-width: 768px) {
   .topic-menu-items {
-    grid-auto-flow: row;
-    grid-template-rows: none;
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
+    align-items: stretch;
+    width: auto;
   }
 }
 
@@ -416,6 +443,18 @@ button {
   width: 28px;
   height: 28px;
   border-radius: 7px;
+}
+
+/* 分類裡的小標題（2026-10-30 起） */
+.overview-part + .overview-part {
+  margin-top: 12px;
+}
+
+.overview-body h4 {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
 }
 
 .overview-grid {
@@ -986,6 +1025,58 @@ button {
   flex: none;
 }
 
+/* ── 版面（LayoutMenu.tsx）：時間軸、資料來源與說明分別顯示或關掉 ── */
+.layout-menu {
+  position: relative;
+  flex: none;
+}
+
+.layout-button {
+  color: var(--ink);
+}
+
+/* 有東西收起來時是藍色的 */
+.layout-button.is-set {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.layout-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 6px;
+  width: 240px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.layout-popover h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.layout-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.layout-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
 /* ── 分享選單 ───────────────────────── */
 .share {
   position: relative;
@@ -1350,6 +1441,152 @@ kbd {
   grid-template-columns: minmax(0, 1fr) 360px;
 }
 
+/* 清單側欄（panels/ListSide.tsx，主題的 listPanel，例如賽車的賽程）：桌機在地圖左邊，收起來剩一條窄邊 */
+.stage.has-list {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.stage.has-list.has-panel {
+  grid-template-columns: 280px minmax(0, 1fr) 360px;
+}
+
+.stage.has-list.list-closed {
+  grid-template-columns: 40px minmax(0, 1fr);
+}
+
+.stage.has-list.list-closed.has-panel {
+  grid-template-columns: 40px minmax(0, 1fr) 360px;
+}
+
+.list-side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.list-side.is-closed {
+  align-items: center;
+  padding-top: 8px;
+}
+
+.list-side-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.list-side.is-closed:not(.is-narrow) .list-side-toggle span {
+  writing-mode: vertical-rl;
+}
+
+.list-side-toggle:hover {
+  color: var(--ink);
+  background: var(--grid);
+}
+
+.list-side-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 12px 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-side-head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.list-side-count {
+  flex: 1;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.list-side-close {
+  width: 28px;
+  height: 28px;
+}
+
+.list-side > .empty {
+  padding: 12px 14px;
+}
+
+.list-side-rows {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.list-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 7px 14px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-row:hover,
+.list-row:focus-visible {
+  background: var(--grid);
+}
+
+.list-row.is-picked {
+  border-left-color: var(--accent);
+  background: var(--grid);
+}
+
+.list-row.is-muted {
+  color: var(--ink-secondary);
+}
+
+.list-row.is-muted .list-row-title {
+  font-weight: 500;
+}
+
+.list-row-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.list-row-line {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.list-row-badge {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .stage-main {
   position: relative;
   min-height: 0;
@@ -1533,7 +1770,6 @@ kbd {
 
 .map-zoom > button,
 .basemap-menu > button,
-.region-menu > button,
 .more-menu > button {
   display: grid;
   place-items: center;
@@ -1565,8 +1801,6 @@ kbd {
 .map-zoom > button:hover:not(:disabled),
 .basemap-menu > button:hover,
 .basemap-menu > button[aria-expanded='true'],
-.region-menu > button:hover,
-.region-menu > button[aria-expanded='true'],
 .more-menu > button:hover,
 .more-menu > button[aria-expanded='true'] {
   background: var(--grid);
@@ -1574,7 +1808,6 @@ kbd {
 
 .map-zoom > button:active:not(:disabled),
 .basemap-menu > button:active,
-.region-menu > button:active,
 .more-menu > button:active {
   background: var(--axis);
 }
@@ -1594,9 +1827,8 @@ kbd {
   background: none;
 }
 
-/* ── 底圖選單（BasemapMenu.tsx）、轉到某一洲（RegionMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
+/* ── 底圖選單（BasemapMenu.tsx）與手機的「更多」（MoreMenu.tsx）：從按鈕列往左展開 ── */
 .basemap-menu,
-.region-menu,
 .more-menu {
   position: relative;
 }
@@ -1643,6 +1875,79 @@ kbd {
 }
 
 .basemap-item[aria-checked='true'] {
+  font-weight: 600;
+}
+
+/* 圖層選單裡的「其他主題的圖層」（BasemapMenu.tsx，2026-10-30）：跟底圖並排兩欄，左邊一格打勾 */
+.map-menu-col {
+  display: grid;
+  align-content: start;
+}
+
+.map-menu-list.has-shared {
+  display: flex;
+  gap: 4px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.map-menu-list.has-shared .map-menu-col + .map-menu-col {
+  padding-left: 4px;
+  border-left: 1px solid var(--grid);
+}
+
+/* 手機上螢幕窄，兩欄改成上下 */
+@media (max-width: 768px) {
+  .map-menu-list.has-shared {
+    flex-direction: column;
+  }
+
+  .map-menu-list.has-shared .map-menu-col + .map-menu-col {
+    padding: 4px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--grid);
+  }
+}
+
+.shared-layer-check {
+  flex: none;
+  width: 12px;
+  font-weight: 600;
+}
+
+/* 圖層選單裡的「我的路線」（BasemapMenu.tsx，2026-10-30）：說明與筆數可以換行，欄寬固定 */
+.personal-routes {
+  flex: none;
+  width: 14rem;
+}
+
+@media (max-width: 768px) {
+  .personal-routes {
+    width: auto;
+  }
+}
+
+.personal-routes-hint,
+.personal-routes-count {
+  margin: 0;
+  padding: 0 8px 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-secondary);
+  white-space: normal;
+}
+
+.personal-routes-count {
+  color: var(--ink);
+}
+
+.personal-routes-item:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+  background: none;
+}
+
+.shared-layer-item[aria-checked='true'] {
   font-weight: 600;
 }
 
@@ -1868,6 +2173,12 @@ kbd {
   transition: opacity 0.2s;
 }
 
+/* 版面關掉了時間軸：年份一直留在地圖上，小一號（播放時照樣是大的） */
+.map-year.is-pinned {
+  padding: 0 10px 2px;
+  font-size: 22px;
+}
+
 .map-year.is-center {
   left: 50%;
   transform: translateX(-50%);
@@ -1885,6 +2196,10 @@ kbd {
     left: 8px;
     padding: 0 10px 2px;
     font-size: 30px;
+  }
+
+  .map-year.is-pinned {
+    font-size: 18px;
   }
 }
 
@@ -1939,6 +2254,142 @@ kbd {
 .map-overlay.is-right {
   left: auto;
   right: 56px; /* 留給縮放按鈕 */
+}
+
+/* 地圖下緣：我的路線的高度剖面（charts/RouteProfilePanel.tsx，2026-10-30） */
+.map-bottom {
+  position: absolute;
+  left: 12px;
+  right: 56px; /* 留給縮放按鈕 */
+  bottom: 28px; /* 留給地圖的出處 */
+  z-index: 3;
+  pointer-events: none;
+}
+
+.route-profile {
+  position: relative;
+  pointer-events: auto;
+  padding: 8px 10px 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+.route-profile-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px 16px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+  padding-right: 28px; /* 右上角的關閉鈕 */
+}
+
+.route-profile-title {
+  display: grid;
+  gap: 1px;
+  flex: 1 1 16rem;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.route-profile-title strong {
+  font-size: 13px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-profile-legend {
+  margin: 0;
+  align-self: center;
+}
+
+.route-profile-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.route-profile-close:hover,
+.route-profile-close:focus-visible {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.route-profile-plot svg {
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.route-profile-plot svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.route-profile-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.route-profile-dot {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.route-profile-tip {
+  top: 4px;
+  min-width: 150px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.route-profile-tip span {
+  display: inline-block;
+  min-width: 5em;
+  color: var(--ink-secondary);
+}
+
+.route-profile-status,
+.route-profile-source {
+  margin: 0;
+  padding: 4px 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.route-profile-status {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .map-bottom {
+    left: 8px;
+    right: 8px;
+  }
+
+  .route-profile-legend {
+    display: none;
+  }
 }
 
 .box-result {
@@ -2026,6 +2477,46 @@ kbd {
   border: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   white-space: normal;
+}
+
+/* 右鍵（觸控長按）地圖的小卡片（PlacePopup.tsx）：跟 tooltip 一樣的外觀，但可以點 */
+.map-place {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  white-space: normal;
+}
+
+.map-place-coords {
+  margin-top: 2px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  user-select: text;
+}
+
+.map-place-link {
+  justify-self: start;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.map-place-link:hover {
+  border-color: var(--accent);
 }
 
 .tt-value {
@@ -3492,6 +3983,20 @@ kbd {
   white-space: nowrap;
 }
 
+/* 國家側欄最下面的相關主題（panels/RelatedTopics.tsx） */
+.related-topics {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--grid);
+}
+
+.related-topics h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
 /* 國旗（flagImages.tsx）：國旗主題的側欄、國家小檔案最上面、排名表的小國旗。細邊讓白色的部分看得出邊；
    用 drop-shadow 不用 box-shadow，尼泊爾不是長方形的旗才會沿著旗的形狀描邊 */
 .flag-image {
@@ -4094,11 +4599,12 @@ kbd {
   stroke-width: 0.6;
 }
 
+/* 選取的國家：外框跟一般國界一樣細，只是深色（2026-10-30 使用者不要加粗，跟主地圖的 data-highlight 一致） */
 .svg-world-selected,
 .svg-world-hover {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 1.6;
+  stroke-width: 0.6;
   pointer-events: none;
 }
 
@@ -4611,6 +5117,11 @@ kbd {
 }
 
 /* ── 時間軸 ─────────────────────────── */
+/* 版面選單關掉了時間軸（App.tsx 照樣掛著，← → 換年份還能用） */
+.time-slider[hidden] {
+  display: none;
+}
+
 .time-slider {
   display: flex;
   align-items: center;
@@ -5193,6 +5704,27 @@ kbd {
     margin-bottom: 12px;
   }
 
+  /* 清單側欄：在時間軸下面、國家側欄前面（同一個 order 依 DOM 的順序），收起來只剩一顆按鈕，打開最高半個畫面（不擋地圖） */
+  .list-side {
+    order: 3;
+    margin-top: 12px;
+  }
+
+  .list-side.is-narrow:not(.is-closed) {
+    max-height: 50svh;
+  }
+
+  .list-side.is-closed {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .list-side-toggle {
+    flex-direction: row;
+    justify-content: center;
+    padding: 10px;
+  }
+
   .footer {
     order: 4;
   }
@@ -5542,11 +6074,13 @@ kbd {
 
   .topic-menu,
   .playback-popover,
+  .layout-popover,
   .saved-popover,
   .share-menu,
   .map-menu-list,
   .palette-list,
   .help-popover,
+  .map-place,
   .cmdk {
     animation: pop-in var(--motion-fast) var(--ease-out);
   }

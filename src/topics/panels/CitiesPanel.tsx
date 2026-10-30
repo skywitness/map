@@ -33,10 +33,10 @@ const TEXT = defineMessages({
     since: (y: number) => `${y} 年起`,
     more: (n: number, total: number) => (n < total ? `顯示其餘 ${n} 個（共 ${total} 個）` : `顯示其餘 ${n} 個`),
     method:
-      '城市是每 km² 1,500 人以上的 1 km 格子連成一片、合計 5 萬人以上的連續市區，不是行政區；每一期的範圍各自劃定。名稱是 Wikidata 的中文名稱，沒有的寫 UCDB 的英文名稱。',
+      '城市是每 km² 1,500 人以上的 1 km 格子連成一片、合計 5 萬人以上的連續市區，不是行政區；每一期的範圍各自劃定。名稱是 Wikidata 的中文名稱，沒有的寫 GHS-WUP 的英文名稱。',
     taiwanTitle: '台灣的城市與縣市',
     taiwan: (t: TaiwanFile, taipei: TaiwanFile['rows'][number]) =>
-      `UCDB 的城市是連續的市區，不是行政區：臺北、新北、桃園、基隆的市區連成一片，算一個城市（${fixed(taipei.area, 0)} km²、${formatLargeNumber(taipei.pop)} 人）；臺中與彰化、臺南與高雄則是分開的城市。下表把 UCDB 的城市人口跟涵蓋它的縣市戶籍人口（內政部 ${t.year} 年底）放在一起。臺北這個城市比四市的戶籍人口合計還多，因為 GHSL 的人口網格配合聯合國 WPP 2022，台灣總人口 ${formatLargeNumber(t.ghslTotal)} 人，比內政部的 ${formatLargeNumber(t.moiTotal)} 人多 ${formatPercent((t.ghslTotal / t.moiTotal - 1) * 100, 1)}；其他城市只占縣市的一部分（臺中市的山區、臺南市的鄉村都不算城市）。`,
+      `GHSL 的城市是連續的市區，不是行政區：臺北、新北、桃園、基隆的市區連成一片，算一個城市（${fixed(taipei.area, 0)} km²、${formatLargeNumber(taipei.pop)} 人）；臺中與彰化、臺南與高雄則是分開的城市。下表把 GHSL 的城市人口跟涵蓋它的縣市戶籍人口（內政部 ${t.year} 年底）放在一起。臺北這個城市幾乎等於四市的戶籍人口合計；GHSL 的人口網格配合聯合國 WPP 2024，台灣總人口 ${formatLargeNumber(t.ghslTotal)} 人，跟內政部的 ${formatLargeNumber(t.moiTotal)} 人差 ${formatPercent((t.ghslTotal / t.moiTotal - 1) * 100, 1)}；其他城市只占縣市的一部分（臺中市的山區、臺南市的鄉村都不算城市）。城市的人口 ${t.year} 年起是推估。`,
     colUcdb: (year: number) => `城市（${year} 年）`,
     colCounties: '涵蓋的縣市',
     colMoi: '戶籍人口',
@@ -56,10 +56,10 @@ const TEXT = defineMessages({
     since: (y) => `since ${y}`,
     more: (n, total) => (n < total ? `Show ${n} more (of ${total})` : `Show ${n} more`),
     method:
-      'A city is a continuous urban area of 1 km cells with at least 1,500 people per km² and 50,000 people in total, not an administrative unit; boundaries are drawn separately for each period. Names are the UCDB’s English names.',
+      'A city is a continuous urban area of 1 km cells with at least 1,500 people per km² and 50,000 people in total, not an administrative unit; boundaries are drawn separately for each period. Names are GHS-WUP’s English names.',
     taiwanTitle: 'Taiwan’s cities and municipalities',
     taiwan: (t, taipei) =>
-      `UCDB cities are continuous urban areas, not administrative units: the built-up areas of Taipei, New Taipei, Taoyuan and Keelung form one city (${fixed(taipei.area, 0)} km², ${formatLargeNumber(taipei.pop)} people), while Taichung and Changhua, and Tainan and Kaohsiung, are separate cities. The table compares UCDB city populations with the registered population of the municipalities and counties they lie in (Ministry of the Interior, end of ${t.year}). The Taipei city has more people than the four municipalities combined because the GHSL population grid is aligned with UN WPP 2022, which puts Taiwan at ${formatLargeNumber(t.ghslTotal)}, ${formatPercent((t.ghslTotal / t.moiTotal - 1) * 100, 1)} above the ${formatLargeNumber(t.moiTotal)} on the household register; the other cities cover only part of their municipality (Taichung’s mountains and rural Tainan are not urban).`,
+      `GHSL cities are continuous urban areas, not administrative units: the built-up areas of Taipei, New Taipei, Taoyuan and Keelung form one city (${fixed(taipei.area, 0)} km², ${formatLargeNumber(taipei.pop)} people), while Taichung and Changhua, and Tainan and Kaohsiung, are separate cities. The table compares GHSL city populations with the registered population of the municipalities and counties they lie in (Ministry of the Interior, end of ${t.year}). The Taipei city has almost as many people as the four municipalities combined; the GHSL population grid is aligned with UN WPP 2024, which puts Taiwan at ${formatLargeNumber(t.ghslTotal)}, ${formatPercent((t.ghslTotal / t.moiTotal - 1) * 100, 1)} off the ${formatLargeNumber(t.moiTotal)} on the household register; the other cities cover only part of their municipality (Taichung’s mountains and rural Tainan are not urban). City populations from ${t.year} on are projections.`,
     colUcdb: (year) => `City (${year})`,
     colCounties: 'Municipalities',
     colMoi: 'Registered',

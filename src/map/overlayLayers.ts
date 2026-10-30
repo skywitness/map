@@ -15,6 +15,7 @@
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type {
+  CircleLayerSpecification,
   DataDrivenPropertyValueSpecification,
   ExpressionSpecification,
   FilterSpecification,
@@ -136,21 +137,53 @@ function pointLayer(def: PointsOverlay): LayerSpecification {
       paint: { 'icon-opacity': 0.95 },
     };
   }
+  const color: DataDrivenPropertyValueSpecification<string> =
+    typeof def.color === 'string' ? def.color : stepExpression(def.color.field, def.color.thresholds, pointColors(def));
   return {
     id,
     type: 'circle',
     source: id,
     ...(def.minZoom ? { minzoom: def.minZoom } : {}),
     layout: sortKey ? { 'circle-sort-key': sortKey } : {},
-    paint: {
+    paint: def.look ? lookPaint(def.look, zoomed(r), color) : {
       'circle-radius': zoomed(r),
-      'circle-color':
-        typeof def.color === 'string' ? def.color : stepExpression(def.color.field, def.color.thresholds, pointColors(def)),
+      'circle-color': color,
       'circle-opacity': 0.82,
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 6, 0.9],
       'circle-stroke-opacity': 0.9,
     },
+  };
+}
+
+/**
+ * 圓點的樣式（PointsOverlayDef.look，2026-10-30 起，發電廠的興建中、規劃中、退役）：
+ * hollow 是分類色的粗框加很淡的底色，faint 是分類色的細框、沒有底色，muted 是灰色實心加白框。
+ * 圖例的符號（Overlays.tsx 的 Swatch、exportImage.ts）照同一組數字畫
+ */
+function lookPaint(
+  look: NonNullable<PointsOverlay['look']>,
+  radius: ExpressionSpecification,
+  color: DataDrivenPropertyValueSpecification<string>,
+): NonNullable<CircleLayerSpecification['paint']> {
+  if (look === 'muted') {
+    return {
+      'circle-radius': radius,
+      'circle-color': MAP_TOKENS.inkMuted,
+      'circle-opacity': 0.6,
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 6, 0.9],
+      'circle-stroke-opacity': 0.8,
+    };
+  }
+  const hollow = look === 'hollow';
+  return {
+    'circle-radius': radius,
+    'circle-color': color,
+    'circle-opacity': hollow ? 0.12 : 0,
+    'circle-stroke-color': color,
+    'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, hollow ? 1.1 : 0.7, 6, hollow ? 1.8 : 1.1],
+    'circle-stroke-opacity': hollow ? 0.95 : 0.8,
   };
 }
 
@@ -768,9 +801,13 @@ export function syncOverlays(
 }
 
 /** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併 */
-export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], year: number, mode: IndicatorDef['overlayTime']) {
+export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], shownYear: number, indicatorMode: IndicatorDef['overlayTime']) {
   for (const o of overlays.filter(isData)) {
     const id = OVERLAY_PREFIX + o.def.id;
+    // 共用疊加圖層（shared-layers.ts）有自己跟時間軸的方式，時間軸超出它的資料範圍時用最接近的一年
+    const mode = o.def.overlayTime ?? indicatorMode;
+    const range = o.def.timeRange;
+    const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
     if (o.kind === 'points') {
       if (!o.def.timeField && !o.def.minValue) continue;
       if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));

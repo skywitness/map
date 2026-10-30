@@ -14,7 +14,8 @@
 - 超額死亡（累計，每 10 萬人，估計）：The Economist 的模型（MIT，`sources/economist_excess.py`），每年年底，2020–2023；
   側欄另外列 95% 區間與到 2024 年 6 月的變化。
 - 台灣的常規疫苗：疾管署「預防接種統計」各年的完成率（`sources/cdc_tw.py`）：五合一第三劑 → DTP3、MMR 第一劑 → 麻疹第一劑，
-  2015–2025。麻疹第二劑、HPV、零劑兒童沒有可以比的數字，附註寫官方公布的說法。
+  2015–2025。麻疹第二劑只有 2024 年，用疾管署的縣市別完成率依各縣市 5 歲人口加權自算（97.41%，製作手冊第八批 145）。
+  HPV、零劑兒童沒有可以比的數字，附註寫官方公布的說法。
 """
 from __future__ import annotations
 
@@ -51,7 +52,8 @@ def build() -> None:
         values = {k: to_series(s, years, 0) for k, s in countries.items()}
         notes, notes_en = _coverage_notes(antigen, tw)
         if antigen in tw:
-            values["TWN"] = to_series({y: round(v, 1) for y, v in tw[antigen].items()}, years)
+            digits = 2 if antigen == "mcv2" else 1  # 麻疹第二劑是自算的加權值，留到小數第二位（97.41%）
+            values["TWN"] = to_series({y: round(v, digits) for y, v in tw[antigen].items()}, years)
         write_json(
             OUT / f"{antigen}.json",
             indicator_file(
@@ -214,11 +216,18 @@ TW_COVERAGE_NOTE = {
         "months), since 2015.",
     ),
     "mcv2": (
-        "台灣不在 WHO/UNICEF 的估計裡。MMR 第二劑在滿 5 歲到入小學前接種；疾管署 2025 年 1 月 9 日的致醫界通函第 559 號寫"
-        "「近年 2 劑接種完成率均高達 97% 以上」，沒有逐年的全國數字，所以地圖上沒有值。",
-        "Taiwan is not in the WHO/UNICEF estimates. The second MMR dose is given between age five and primary school; Taiwan CDC "
-        "said in a letter to physicians on 9 January 2025 that completion of both doses has been above 97% in recent years, but "
-        "publishes no national figure for each year, so the map has no value.",
+        "台灣不在 WHO/UNICEF 的估計裡。MMR 第二劑在滿 5 歲到入小學前接種；疾管署沒有公布全國的第二劑完成率，"
+        "這裡是自算的估計，只有 2024 年：疾管署開放資料「各縣市衛生所及合約醫院診所 2024 年預防接種完成率統計」的 22 個縣市"
+        "完成率，用內政部 2024 年 12 月底各縣市的 5 歲戶籍人口加權（縣市的完成率沒有附分母，權重是戶籍人口；用 6 歲人口加權也是 97.41%，"
+        "同法算第一劑 98.77%，疾管署公布的是 98.7%）。統計對象是衛生所及合約醫院診所。疾管署 2025 年 1 月 9 日的致醫界通函"
+        "第 559 號寫「近年2劑接種完成率均高達97%以上」。",
+        "Taiwan is not in the WHO/UNICEF estimates. The second MMR dose is given between age five and primary school. Taiwan CDC "
+        "publishes no national completion rate for the second dose, so this is an estimate for 2024 only: the completion rates of "
+        "Taiwan's 22 counties and cities in Taiwan CDC's open data on immunization coverage at health stations and contracted "
+        "clinics in 2024, weighted by each county's registered population aged five at the end of 2024 (the county rates come "
+        "without denominators; weighting by age six also gives 97.41%, and the same method gives 98.77% for the first dose "
+        "against Taiwan CDC's published 98.7%). Taiwan CDC said in a letter to physicians on 9 January 2025 (no. 559) that "
+        "completion of both doses has been above 97% in recent years.",
     ),
     "hpv": (
         "台灣不在 WHO 的估計裡。國中女生的公費 HPV 疫苗 2018 年 12 月開始，國健署公布的是完成兩劑的比例（依入學年度，統計到 2024 年 4 月）："

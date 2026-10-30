@@ -6,6 +6,7 @@
   （只限個人、非商業使用，不得轉載或改作），所以用世界銀行以 CC BY 4.0 轉載的版本，跟觀光、水資源主題的做法一樣。
 - 法治分數（0–100）：世界銀行 Worldwide Governance Indicators 的 Rule of Law（sources/wgi.py，CC BY 4.0，含台灣），
   綜合 30 多個調查與評估對警察、法院、契約與財產權、犯罪與暴力風險的看法，1996 年起。
+  2026-10-30 起這個主題不另外存，前端讀政府治理主題的 rule-of-law.json（governance.py）。
 - 各國不是每年都有殺人統計：故意殺人率的指標檔加 latestWithin，顯示 5 年內最近一年的值並標出資料年份。
 
 **監禁人口率（每十萬人）只收有開放授權資料的國家**：涵蓋各國的 UNODC 資料入口（2025 年改版後條款不准轉載）
@@ -36,7 +37,7 @@ import zipfile
 import openpyxl
 
 from common import OUT_DIR, ROOT, download, indicator_file, latest_year_span, now_iso, to_series, write_json
-from sources import abs_prisoners, bjs, eurostat, moj, moj_jp, mohw_deaths, npa, statcan, wgi, worldbank, wpp
+from sources import abs_prisoners, bjs, eurostat, moj, moj_jp, mohw_deaths, npa, statcan, worldbank, wpp
 
 WITHIN = 5  # latestWithin：顯示 5 年內最近一年的值
 LAST_YEAR = 2025  # WPP 人口取到這一年（2024 年起是推估）
@@ -306,11 +307,8 @@ def build() -> None:
         print(f"  {key}：{years[0]}–{years[-1]}，{len(values)} 國；台灣 {last} 年 {series['TWN'][last]:.2f}")
 
     # ── 法治分數 ──
-    rule = wgi.fetch("GOV_WGI_RL.SC")
-    years = sorted({y for s in rule.values() for y in s})
-    values = {iso3: to_series(s, years, 1) for iso3, s in rule.items()}
-    write_json(OUT / "rule-of-law.json", indicator_file("rule-of-law", "分", years, values))
-    print(f"  法治分數：{years[0]}–{years[-1]}，{len(values)} 國；台灣 {years[-1]} 年 {rule['TWN'][years[-1]]:.1f}")
+    # 2026-10-30（第七批 123）起不另外存一份：治安與司法的法治分數讀政府治理的 rule-of-law.json（governance.py 產生，
+    # 同一份 WGI），更新時兩邊不會不一樣
 
     prison = _prison(population["TPopulation1July"])
 

@@ -100,10 +100,10 @@ export const disease: TopicDefinition = {
     },
     {
       name: {
-        zh: 'United States Renal Data System, 2025 Annual Data Report 第 11 章 International Comparisons（透析人數，各國腎臟登錄系統提供）',
-        en: 'United States Renal Data System, 2025 Annual Data Report, chapter 11 International Comparisons (dialysis; data supplied by national renal registries)',
+        zh: 'United States Renal Data System, 2026 Annual Data Report 第 11 章（2025 年報補南韓、巴西、奈及利亞） International Comparisons（透析人數，各國腎臟登錄系統提供）',
+        en: 'United States Renal Data System, 2026 Annual Data Report, chapter 11 International Comparisons (dialysis; data supplied by national renal registries; the 2025 report for South Korea, Brazil and Nigeria)',
       },
-      url: 'https://usrds-adr.niddk.nih.gov/2025/end-stage-renal-disease/11-international-comparisons',
+      url: 'https://usrds-adr.niddk.nih.gov/2026/end-stage-renal-disease/11-international-comparisons',
       license: { zh: 'NIDDK：大部分沒有著作權，可以自由轉載，註明 NIDDK', en: 'NIDDK: mostly copyright free, may be reproduced with acknowledgement of NIDDK' },
     },
     {
@@ -191,8 +191,8 @@ export const disease: TopicDefinition = {
       id: 'dialysis',
       label: { zh: '每百萬人的透析人數', en: 'People on dialysis per million' },
       description: {
-        zh: '年底正在洗腎（血液透析或腹膜透析）的人數，每百萬人有幾人（2023 年，各國腎臟登錄系統提供給美國 USRDS 的數字，沒有年齡調整）。台灣 3,522 人最多，日本 2,667、泰國 2,317、新加坡 2,216、韓國 2,178（2022 年）、美國 1,677；北歐、英國多在 400 以下，南非 116、奈及利亞 13。只有約 50 個有登錄系統的國家或地區，非洲幾乎沒有。這是盛行率：洗腎的人活得越久、腎臟移植越少，數字越高，各國收集的方法也不同。墨西哥只有阿瓜斯卡連特斯州，比利時、英國分區，畫成點。',
-        en: 'People on dialysis (haemodialysis or peritoneal dialysis) at year end per million population (2023, from national renal registries reporting to the US Renal Data System, unadjusted). Taiwan is highest at 3,522, then Japan 2,667, Thailand 2,317, Singapore 2,216, South Korea 2,178 (2022) and the US 1,677; the Nordic countries and the UK are mostly under 400, South Africa 116 and Nigeria 13. Only about 50 countries or regions with registries are included, almost none in Africa. This is prevalence: longer survival on dialysis and fewer kidney transplants raise it, and data collection differs between countries. Mexico is represented by Aguascalientes state, and Belgium and the UK by their regions, drawn as dots.',
+        zh: '年底正在洗腎（血液透析或腹膜透析）的人數，每百萬人有幾人（2024 年，各國腎臟登錄系統提供給美國 USRDS 的數字，沒有年齡調整；USRDS 2026 年報沒有的南韓、巴西、奈及利亞用 2025 年報的 2022、2023 年）。台灣 3,520 人最多，日本 2,621、泰國 2,268、新加坡 2,254、汶萊 2,243、韓國 2,178（2022 年）、美國 1,637；北歐、英國約 330–480，南非 115、奈及利亞 13（2023 年）。只有約 50 個有登錄系統的國家或地區，非洲幾乎沒有。這是盛行率：洗腎的人活得越久、腎臟移植越少，數字越高，各國收集的方法也不同。墨西哥只有阿瓜斯卡連特斯州，比利時、英國分區，畫成點。',
+        en: 'People on dialysis (haemodialysis or peritoneal dialysis) at year end per million population (2024, from national renal registries reporting to the US Renal Data System, unadjusted; South Korea, Brazil and Nigeria, missing from the USRDS 2026 report, use 2022–2023 figures from the 2025 report). Taiwan is highest at 3,520, then Japan 2,621, Thailand 2,268, Singapore 2,254, Brunei 2,243, South Korea 2,178 (2022) and the US 1,637; the Nordic countries and the UK are around 330–480, South Africa 115 and Nigeria 13 (2023). Only about 50 countries or regions with registries are included, almost none in Africa. This is prevalence: longer survival on dialysis and fewer kidney transplants raise it, and data collection differs between countries. Mexico is represented by Aguascalientes state, and Belgium and the UK by their regions, drawn as dots.',
       },
       unit: { zh: '人/百萬人', en: 'per million' },
       file: 'dialysis.json',

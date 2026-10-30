@@ -63,28 +63,26 @@ def _num(v: object) -> float | None:
 
 def gsrrs_2016() -> dict[str, Survey]:
     """GSRRS 2018 那一輪（GHO 的 RS_246 與 RS_194，CC BY 4.0）"""
-    import json
-
     out: dict[str, Survey] = {}
-    path = download(who.GHO_API.format(code="RS_246"), "who", "RS_246.json")
-    with open(path, encoding="utf-8") as f:
-        rows = json.load(f)["value"]
+    rows = [r for r in who.gho_rows("RS_246") if r["NumericValue"] is not None]
+    # 少數國家有兩個年份（史瓦帝尼 2013、2016），只用最新的一年，不同年份的占比不混在一起
+    latest: dict[str, int] = {}
+    for row in rows:
+        if row["SpatialDimType"] == "COUNTRY" and (iso3 := to_iso3(row["SpatialDim"])):
+            latest[iso3] = max(latest.get(iso3, 0), row["TimeDim"])
     for row in rows:
         iso3 = to_iso3(row["SpatialDim"]) if row["SpatialDimType"] == "COUNTRY" else None
         user = RS_246_USERS.get(row["Dim1"] or "")
-        if not iso3 or not user or row["NumericValue"] is None:
+        if not iso3 or not user or row["TimeDim"] != latest[iso3]:
             continue
-        s = out.setdefault(iso3, Survey(int(row["TimeDim"]), {}))
+        s = out.setdefault(iso3, Survey(row["TimeDim"], {}))
         s.shares[user] = float(row["NumericValue"])
-    path = download(who.GHO_API.format(code="RS_194"), "who", "RS_194.json")
-    with open(path, encoding="utf-8") as f:
-        rows = json.load(f)["value"]
-    for row in rows:
+    for row in who.gho_rows("RS_194"):
         iso3 = to_iso3(row["SpatialDim"]) if row["SpatialDimType"] == "COUNTRY" else None
         if not iso3 or row["NumericValue"] is None:
             continue
         s = out.setdefault(iso3, Survey(None, {}))
-        s.vehicles, s.vehicles_year = float(row["NumericValue"]), int(row["TimeDim"])
+        s.vehicles, s.vehicles_year = float(row["NumericValue"]), row["TimeDim"]
     return out
 
 

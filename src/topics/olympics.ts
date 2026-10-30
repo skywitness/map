@@ -78,12 +78,18 @@ const SUMMER_CAPITA: ScaleSpec = { type: 'sequential', thresholds: [ANY, 1, 3, 1
 const WINTER_CAPITA: ScaleSpec = { type: 'sequential', thresholds: [ANY, 0.5, 2, 5, 15, 40] };
 const capitaTick = (v: number) => (v === ANY ? '> 0' : fixed(v, v < 1 ? 1 : 0));
 
-export const olympics: TopicDefinition = {
-  id: 'olympics',
-  title: { zh: '奧運獎牌', en: 'Olympic medals' },
-  shortTitle: { zh: '奧運', en: 'Olympics' },
-  defaultIndicator: 'medals-total',
-  defaultYear: 2026,
+/** 奧運的子項目（夏季、冬季）：運動主題裡是奧運 5 個指標自己的 dimension */
+export const SEASONS = {
+  label: { zh: '季節', en: 'Season' },
+  options: [
+    { id: 'summer', label: { zh: '夏季奧運', en: 'Summer Games' } },
+    { id: 'winter', label: { zh: '冬季奧運', en: 'Winter Games' } },
+  ],
+  defaultOption: 'summer',
+};
+
+/** 運動主題（sports.ts）的奧運部分：2026-10-30（第七批 121）起跟 F1 合成一個主題 */
+export const olympicsPart = {
   sources: [
     {
       name: {
@@ -106,16 +112,6 @@ export const olympics: TopicDefinition = {
     zh: '獎牌數依維基百科各屆的獎牌榜（反映禁藥取消與重新分配等官方更動），代表隊照當屆的名義算，跟國際奧會一樣不併到繼承國：蘇聯、獨立國協聯隊、東德、西德、德國聯隊、捷克斯洛伐克、南斯拉夫、澳大拉西亞等歷史隊伍，以及 2018–2026 年以中立名義參賽的俄羅斯選手，畫在當時的首都附近（位置只是代表）。所以德國只有以德國名義參賽的年份，俄羅斯只有 1996–2014 年。混合隊、難民奧運隊、獨立奧運選手只算進世界合計。台灣以「中華台北」名義參賽，1960、1968 年以中華民國名義得到的獎牌也算在台灣。維基百科是 CC BY-SA 4.0 授權，這個主題的衍生資料檔、匯出的地圖圖片與 CSV 也依 CC BY-SA 4.0 分享。',
     en: 'Medal counts follow the Wikipedia medal tables for each Games (reflecting official changes such as doping disqualifications and reallocations). Teams are counted under the name they competed as and, like the IOC, are not merged into successor states: historical teams such as the Soviet Union, the Unified Team, East and West Germany, the United Team of Germany, Czechoslovakia, Yugoslavia and Australasia, as well as Russian athletes competing under neutral names in 2018–2026, are drawn near their capitals at the time (positions are indicative only). Germany therefore covers only the Games it entered as Germany, and Russia only 1996–2014. Mixed teams, the Refugee Olympic Team and Independent Olympic Athletes count only in the world total. Taiwan competes as Chinese Taipei; medals won as the Republic of China in 1960 and 1968 are counted for Taiwan too. Wikipedia is licensed under CC BY-SA 4.0, and the derived data files, map images and CSV files of this topic are shared under CC BY-SA 4.0 as well.',
   },
-  dimension: {
-    label: { zh: '季節', en: 'Season' },
-    options: [
-      { id: 'summer', label: { zh: '夏季奧運', en: 'Summer Games' } },
-      { id: 'winter', label: { zh: '冬季奧運', en: 'Winter Games' } },
-    ],
-    defaultOption: 'summer',
-  },
-  places: PLACES,
-  panelExtra: () => import('./panels/OlympicsPanel'),
   indicators: [
     {
       id: 'medals-total',
@@ -126,6 +122,7 @@ export const olympics: TopicDefinition = {
       },
       unit: MEDALS_UNIT,
       file: 'medals-total/{item}.json',
+      dimension: SEASONS,
       layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
       format: medals,
       formatTick: formatLargeTick,
@@ -140,6 +137,7 @@ export const olympics: TopicDefinition = {
       },
       unit: MEDALS_UNIT,
       file: 'gold-total/{item}.json',
+      dimension: SEASONS,
       layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
       format: golds,
       formatTick: formatLargeTick,
@@ -154,6 +152,7 @@ export const olympics: TopicDefinition = {
       },
       unit: MEDALS_UNIT,
       file: 'medals/{item}.json',
+      dimension: SEASONS,
       layer: { kind: 'bubble', legendValues: [1, 10, 100] },
       format: medals,
       formatTick: (v) => fixed(v, 0),
@@ -168,6 +167,7 @@ export const olympics: TopicDefinition = {
       },
       unit: MEDALS_UNIT,
       file: 'gold/{item}.json',
+      dimension: SEASONS,
       layer: { kind: 'bubble', legendValues: [1, 10, 40] },
       format: golds,
       formatTick: (v) => fixed(v, 0),
@@ -182,10 +182,11 @@ export const olympics: TopicDefinition = {
       },
       unit: { zh: '面／千萬人', en: 'medals / 10M people' },
       file: 'per-capita/{item}.json',
+      dimension: SEASONS,
       layer: { kind: 'choropleth', scale: SUMMER_CAPITA, itemScales: { winter: WINTER_CAPITA } },
       format: (v) => tr({ zh: `每千萬人 ${fixed(v, v < 1 ? 2 : 1)} 面`, en: `${fixed(v, v < 1 ? 2 : 1)} per 10M people` }),
       formatTick: capitaTick,
       compareWorld: true,
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;
