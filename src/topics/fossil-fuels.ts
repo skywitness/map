@@ -51,6 +51,13 @@ const FLOW_ITEMS: DimensionDef = {
   defaultOption: OIL,
 };
 
+/** EIA 的進出口量只有天然氣與煤（石油的進出口看 BACI 的流向）；id 跟燃料共用 */
+const GAS_COAL: DimensionDef = {
+  label: { zh: '燃料', en: 'Fuel' },
+  options: FUELS.options.filter((o) => o.id !== OIL),
+  defaultOption: GAS,
+};
+
 /** 已經不存在的國家（pipeline 的 PLACES），畫在當時的首都 */
 const PLACES: PlaceDef[] = [
   { id: '_SUN', name: { zh: '蘇聯（1980–1991）', en: 'Soviet Union (1980–1991)' }, lon: 37.62, lat: 55.75 },
@@ -216,6 +223,38 @@ const indicators: IndicatorDef[] = [
     layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [25, 50, 90, 110, 200, 400] } },
     format: percent,
     formatTick: (v) => `${v}%`,
+  },
+  {
+    id: 'eia-import',
+    label: { zh: '進口量（EIA）', en: 'Imports (EIA)' },
+    description: {
+      zh: `每年的進口量（EIA）：天然氣是管道天然氣與液化天然氣（LNG）合計，單位十億立方公尺；煤是各種煤合計，單位百萬公噸。跟下面 BACI 的流向不同：這裡是各國能源統計的數量，不分來源國。2024 年天然氣中國 179、美國 89、日本 88、德國 74；煤中國 543、印度 233、日本 171、韓國 116、台灣 57。${TAIWAN_NOTE.zh}`,
+      en: `Annual imports (EIA): natural gas is pipeline gas and LNG combined, in billion cubic metres; coal is all coal, in million tonnes. Unlike the BACI flows below, these are quantities from national energy statistics, not broken down by partner. In 2024 gas: China 179, the US 89, Japan 88 and Germany 74; coal: China 543, India 233, Japan 171, South Korea 116 and Taiwan 57. ${TAIWAN_NOTE.en}`,
+    },
+    unit: BCM.unit,
+    file: 'eia-import/{item}.json',
+    dimension: GAS_COAL,
+    layer: { kind: 'bubble', legendValues: 'auto' },
+    format: BCM.format,
+    formatTick: BCM.formatTick,
+    itemFormats: VOLUME_FORMATS,
+    shareOfWorld: true,
+  },
+  {
+    id: 'eia-export',
+    label: { zh: '出口量（EIA）', en: 'Exports (EIA)' },
+    description: {
+      zh: '每年的出口量（EIA）：天然氣是管道天然氣與液化天然氣（LNG）合計，單位十億立方公尺；煤是各種煤合計，單位百萬公噸。2024 年天然氣美國 218、俄羅斯 148、挪威 126、卡達 126、澳洲 106；煤印尼 558、澳洲 362、俄羅斯 182、美國 98、蒙古 75。管道天然氣的出口含轉口（例如過境比利時的天然氣）。',
+      en: 'Annual exports (EIA): natural gas is pipeline gas and LNG combined, in billion cubic metres; coal is all coal, in million tonnes. In 2024 gas: the US 218, Russia 148, Norway 126, Qatar 126 and Australia 106; coal: Indonesia 558, Australia 362, Russia 182, the US 98 and Mongolia 75. Pipeline gas exports include re-exports of gas in transit (through Belgium, for example).',
+    },
+    unit: BCM.unit,
+    file: 'eia-export/{item}.json',
+    dimension: GAS_COAL,
+    layer: { kind: 'bubble', legendValues: 'auto' },
+    format: BCM.format,
+    formatTick: BCM.formatTick,
+    itemFormats: VOLUME_FORMATS,
+    shareOfWorld: true,
   },
   {
     id: 'reserves',
