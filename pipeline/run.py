@@ -50,6 +50,8 @@ STEPS = {
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
     # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
     "trade-dependence": "topics.trade_dependence",
+    # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
+    "trade-goods": "topics.trade_goods",
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
@@ -127,6 +129,8 @@ STEPS = {
     # Marine Regions 的 WFS（EEZ 的屬性與界線，界線約 25 MB、2 分鐘）、FAO FishStat（約 6 MB）、FAOSTAT 土地利用（約 3 MB）、
     # 漁業署《漁業統計年報》的生產量報表（約 4 MB）
     "oceans": "topics.oceans",
+    # 海鮮的貿易（併進海洋與漁業主題）：BACI HS92（2.4 GB，跟貿易主題同一個檔）的第 03 章，幾分鐘
+    "seafood-trade": "topics.seafood_trade",
     # Cottom et al. 的 SPOT 輸出（OWID 快照的 Dryad 檔，4 MB）、Meijer et al. 的河口（figshare，0.7 MB）、
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
@@ -141,6 +145,8 @@ STEPS = {
     # OpenAlex API 的 group_by（約 300 次查詢，沒有金鑰時一天約 1,000 次的匿名額度，第一次約 3 分鐘）、WPP 的人口
     "publications": "topics.publications",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
+    # 太陽能板（併進半導體主題）：BACI HS22 版（約 300 MB，2022–2024），幾十秒；財政部的 854142、854143 對照
+    "solar-panels": "topics.solar_panels",
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     # 關鍵礦產的貿易流向（稀土、永久磁鐵、鈾）：BACI HS92（2.4 GB，塑膠污染的同一份快取）；約 5 分鐘
     "minerals-trade": "topics.minerals_trade",

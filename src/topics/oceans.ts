@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
-import { fixed, formatLargeNumber, formatLargeTick, formatPercent } from '../lib/format';
+import { fixed, formatLargeNumber, formatLargeTick, formatPercent, usd } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, LinesOverlayDef, PointRecord, Text, TopicDefinition } from './types';
+import type { FlowDirection, IndicatorDef, LinesOverlayDef, PointRecord, Text, TopicDefinition } from './types';
 
 /**
  * 海洋與漁業（pipeline/topics/oceans.py）：Marine Regions 第 12 版的專屬經濟海域（面積、跟陸地比、界線），
@@ -134,6 +134,26 @@ const EEZ_TEXT = {
   en: 'Under the UN Convention on the Law of the Sea, coastal states have rights over fisheries, energy and other resources up to 200 nautical miles (about 370 km) offshore, divided from neighbours by treaty, ruling or median line. Areas from Marine Regions v12 (2023), including internal and territorial waters; overseas territories count separately, and overlapping claims and joint regimes count for no party (see notes and side panel).',
 };
 
+/** 海鮮的貿易（2026-10-30 擴充，pipeline/topics/seafood_trade.py）：BACI HS92 第 03 章，格式同貿易主題 */
+function seafoodFlow(direction: FlowDirection, label: Text, description: Text): IndicatorDef {
+  return {
+    id: `seafood-${direction}`,
+    label,
+    description,
+    unit: { zh: '美元', en: 'US$' },
+    file: `${direction}/seafood.json`,
+    layer: { kind: 'flow', file: 'flows/seafood/{year}.json', direction },
+    format: (v) => usd(formatLargeNumber(v)),
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+  };
+}
+
+const SEAFOOD_TEXT = {
+  zh: '魚、蝦、蟹、貝類等（HS 第 03 章：活的、生鮮、冷凍、乾燥、燻製），不含罐頭與調製品（1604、1605）、魚粉與魚油；CEPII BACI，以金額計。',
+  en: 'Fish, shrimp, crabs, shellfish and the like (HS chapter 03: live, fresh, frozen, dried or smoked), excluding canned and prepared seafood (1604, 1605), fishmeal and fish oil; CEPII BACI, by value.',
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'eez',
@@ -222,6 +242,22 @@ const indicators: IndicatorDef[] = [
     formatTick: (v) => fixed(v, 0),
     compareWorld: true,
   },
+  seafoodFlow(
+    'export',
+    { zh: '海鮮出口', en: 'Seafood exports' },
+    {
+      zh: `${SEAFOOD_TEXT.zh}點選國家，弧線連到它的前 15 大出口對象，線寬與金額成正比。瑞典的出口多是挪威鮭魚轉進歐盟。`,
+      en: `${SEAFOOD_TEXT.en} Click a country to draw arcs to its top 15 destinations; line width is proportional to value. Sweden’s exports are largely Norwegian salmon passing into the EU.`,
+    },
+  ),
+  seafoodFlow(
+    'import',
+    { zh: '海鮮進口', en: 'Seafood imports' },
+    {
+      zh: `${SEAFOOD_TEXT.zh}點選國家，弧線連到它的前 15 大進口來源，線寬與金額成正比。`,
+      en: `${SEAFOOD_TEXT.en} Click a country to draw arcs to its top 15 sources; line width is proportional to value.`,
+    },
+  ),
 ];
 
 export const oceans: TopicDefinition = {
@@ -255,6 +291,11 @@ export const oceans: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
     {
+      name: { zh: 'CEPII, BACI（海鮮的貿易）', en: 'CEPII, BACI (seafood trade)' },
+      url: 'https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37',
+      license: 'Etalab 2.0',
+    },
+    {
       name: { zh: '農業部漁業署《漁業統計年報》（台灣的對照數字）', en: 'Fisheries Agency (Taiwan), Fisheries Statistical Yearbook (for comparison)' },
       url: 'https://www.fa.gov.tw/list.php?theme=FS_AR',
       license: { zh: '引用統計數字並註明出處', en: 'figures cited with source' },
@@ -262,8 +303,8 @@ export const oceans: TopicDefinition = {
   ],
   // 頁尾要短：英文版太長會把地圖擠扁（細節寫在指標說明、附註、側欄與 DESIGN.md）
   note: {
-    zh: 'Marine Regions 對任何國家、領土的法律地位與界線不表示意見；這裡照它的分類呈現重疊主張與共同管理區（未解決的界線畫虛線），不代表本站的立場。界線簡化到約 500 公尺。漁業只算水生動物（不含海藻），活體重量；FAO 的「Taiwan Province of China」照其他主題寫台灣。每人吃多少水產見「各國飲食」主題，港口與船隊見「航運與港口」主題，河川帶進海洋的塑膠見「塑膠污染」主題。',
-    en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports; for plastic carried to the sea by rivers see Plastic pollution.',
+    zh: 'Marine Regions 對任何國家、領土的法律地位與界線不表示意見；這裡照它的分類呈現重疊主張與共同管理區（未解決的界線畫虛線），不代表本站的立場。界線簡化到約 500 公尺。漁業只算水生動物（不含海藻），活體重量；FAO 的「Taiwan Province of China」照其他主題寫台灣。海鮮的貿易是 BACI HS92 版（1995 年起），台灣是夥伴國的申報。每人吃多少水產見「各國飲食」主題，港口與船隊見「航運與港口」主題，河川帶進海洋的塑膠見「塑膠污染」主題。',
+    en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. Seafood trade is from the HS92 version of BACI (from 1995), with Taiwan based on partner reports. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports; for plastic carried to the sea by rivers see Plastic pollution.',
   },
   panelExtra: () => import('./panels/OceansPanel'),
   overlays: [EEZ_LINES],
