@@ -4,7 +4,7 @@ import type { LayoutPrefs } from '../lib/layoutPrefs';
 import { useDismiss } from './useDismiss';
 
 /**
- * 頂列的「版面」按鈕（2026-10-30）：時間軸、資料來源與說明分別打勾顯示或關掉，關掉的高度讓給地圖。
+ * 頂列的「版面」按鈕（2026-10-30）：時間軸、資料來源與說明、清單側欄（有的主題才有，例如賽車的賽程）分別打勾顯示或關掉，關掉的空間讓給地圖。
  * 有關掉的時候按鈕是藍色的，提醒還有東西收起來
  */
 export function LayoutMenu({ prefs, onChange }: { prefs: LayoutPrefs; onChange: (patch: Partial<LayoutPrefs>) => void }) {
@@ -14,7 +14,7 @@ export function LayoutMenu({ prefs, onChange }: { prefs: LayoutPrefs; onChange: 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   useDismiss(open, () => setOpen(false), [buttonRef, popoverRef], buttonRef);
-  const changed = !prefs.time || !prefs.sources;
+  const changed = !prefs.time || !prefs.sources || !prefs.list;
   return (
     <div className="layout-menu">
       <button
@@ -42,6 +42,10 @@ export function LayoutMenu({ prefs, onChange }: { prefs: LayoutPrefs; onChange: 
           <label className="layout-check">
             <input type="checkbox" checked={prefs.sources} onChange={(e) => onChange({ sources: e.target.checked })} />
             {t.layoutSources}
+          </label>
+          <label className="layout-check">
+            <input type="checkbox" checked={prefs.list} onChange={(e) => onChange({ list: e.target.checked })} />
+            {t.layoutList}
           </label>
           <p className="layout-note">{t.layoutNote}</p>
         </div>

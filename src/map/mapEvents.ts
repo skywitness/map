@@ -61,6 +61,8 @@ export interface MapEventRefs {
   hoverIdRef: RefObject<string | null>;
   dragRef: RefObject<{ start: [number, number]; startPoint: { x: number; y: number } } | null>;
   suppressClickRef: RefObject<boolean>;
+  /** 在地圖上點選國家時點的位置：WorldMap 把地圖移過去時以它為準，不是國家的中心（點 F1 賽道不會跳到國家中間） */
+  clickedRef: RefObject<{ iso3: string; at: [number, number] } | null>;
   latest: RefObject<LatestProps>;
   setHover: (hover: MapHover | null) => void;
   setBoxMode: (on: boolean) => void;
@@ -77,6 +79,7 @@ export function bindMapEvents(
     hoverIdRef,
     dragRef,
     suppressClickRef,
+    clickedRef,
     latest,
     setHover,
     setBoxMode,
@@ -214,6 +217,10 @@ export function bindMapEvents(
     let iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
     // 點圖層的點沒有國家欄位時（便利商店與連鎖品牌的店家），選取點底下的國家，不要取消選取
     if (!iso3 && f?.layer.id.startsWith(OVERLAY_PREFIX)) iso3 = countryAt(e.point);
+    // 點的是點圖層的點（賽道、景點…）就用那一點的位置，否則用點下去的位置
+    const exact = f?.layer.id.startsWith(OVERLAY_PREFIX) && f.geometry.type === 'Point' ? (f.geometry.coordinates as [number, number]) : null;
+    const { lng, lat } = exact ? new LngLat(exact[0], exact[1]).wrap() : e.lngLat.wrap();
+    clickedRef.current = iso3 ? { iso3, at: [lng, lat] } : null;
     latest.current.onSelect(iso3);
   });
 

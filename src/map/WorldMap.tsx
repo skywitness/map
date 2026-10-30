@@ -82,7 +82,7 @@ import { GRID_PROTOCOL, gridLabels, loadGridTile, type GridLayer } from './densi
 import { FLAG_PROTOCOL, loadFlagTile, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
-import { BasemapMenu, type SharedLayerChoice } from './BasemapMenu';
+import { BasemapMenu, type PersonalMenu, type SharedLayerChoice } from './BasemapMenu';
 import { Extremes } from './Extremes';
 import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
@@ -210,6 +210,8 @@ interface WorldMapProps {
   /** 圖層選單裡「其他主題的圖層」（topics/shared-layers.ts）：名稱與打開了沒 */
   sharedLayers?: SharedLayerChoice[];
   onSharedToggle?: (id: string) => void;
+  /** 我的路線（TopicDefinition.personalRoutes）：圖層選單裡的匯入、匯出、刪除 */
+  personal?: PersonalMenu;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
   /** 資料第一次畫到地圖上（不上色的指標：國界第一次畫上）時呼叫一次 */
@@ -244,7 +246,7 @@ interface WorldMapProps {
   /** 地圖外面（主題的側欄）要標出的一組線，跟滑過時一樣；null 時取消 */
   lineHighlight?: { overlay: string; group: number } | null;
   /** key 改變時把地圖移到這個範圍 [西, 南, 東, 北]（主題的側欄點某條河） */
-  focusBox?: { box: [number, number, number, number]; key: number } | null;
+  focusBox?: { box: [number, number, number, number]; key: number; maxZoom?: number } | null;
   /**
    * 滑到地圖上任何一點（含海上）時的資訊（主題的 pointer，2026-10-28 起，地球的另一邊）：在國家上時幾行接在國家的
    * tooltip 下面，海上時自己是一個 tooltip（title 加幾行）；mark 是跟著游標動的小記號（游標的對蹠點）
@@ -621,6 +623,7 @@ export function WorldMap(props: WorldMapProps) {
   const hoverIdRef = useRef<string | null>(null);
   const dragRef = useRef<{ start: [number, number]; startPoint: { x: number; y: number } } | null>(null);
   const suppressClickRef = useRef(false);
+  const clickedRef = useRef<{ iso3: string; at: [number, number] } | null>(null);
 
   const bindEvents = (map: MaplibreMap) =>
     bindMapEvents(map, {
@@ -631,6 +634,7 @@ export function WorldMap(props: WorldMapProps) {
       hoverIdRef,
       dragRef,
       suppressClickRef,
+      clickedRef,
       latest,
       setHover,
       setBoxMode,
@@ -1098,7 +1102,7 @@ export function WorldMap(props: WorldMapProps) {
         [w, s],
         [e, n],
       ],
-      { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() },
+      { padding: 48, maxZoom: focusBox.maxZoom ?? 8, duration: 900, bearing: map.getBearing() },
     );
     // 只依 key：同一個範圍再點一次也要移過去；ready 是第一個畫面還沒好時就要移過去的（主題的 focus）
   }, [ready, focusBox?.key]);
@@ -1223,8 +1227,15 @@ export function WorldMap(props: WorldMapProps) {
       if (selectedRef.current) map.setFeatureState({ source, id: selectedRef.current }, { selected: false });
       if (selected) map.setFeatureState({ source, id: selected }, { selected: true });
     }
-    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫
-    if (selected && selected !== selectedRef.current && map.getLayer('data-halo') && !matchMedia(REDUCED_MOTION).matches) {
+    // 新選到的國家：外框底下的光暈從寬而淡收到原本的寬度，看得出選到哪裡（2026-10-29）；減少動態效果時直接畫。
+    // 2026-10-30 起選取不加粗、沒有光暈（HALO_WIDTH 是 0），這個動畫也不跑
+    if (
+      HALO_WIDTH > 0 &&
+      selected &&
+      selected !== selectedRef.current &&
+      map.getLayer('data-halo') &&
+      !matchMedia(REDUCED_MOTION).matches
+    ) {
       cancelAnimationFrame(pulseFrameRef.current);
       const start = performance.now();
       const step = (now: number) => {
@@ -1248,29 +1259,31 @@ export function WorldMap(props: WorldMapProps) {
       return;
     }
     if (!selected) placedRef.current = null;
-    const anchor = selected ? anchors.get(selected) : undefined;
-    if (!anchor) return;
-    const center = map.getCenter();
-    const p = map.project(anchor);
-    const canvas = map.getCanvas();
-    const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
-    const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
-    // 剛選到的國家在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變。
-    // 只在剛選到時（換成細的國界、換底圖時 anchors 會變，不要因此移動）
+    // 在地圖上點選的：以點的位置為準（點 F1 賽道、景點不會跳到國家的中心，2026-10-30 使用者要求）；
+    // 從搜尋、排名表、網址選的：國家的中心（anchors）
+    const clicked = selected && clickedRef.current?.iso3 === selected ? clickedRef.current.at : null;
+    const target = clicked ?? (selected ? anchors.get(selected) : undefined);
+    if (!target) return;
+    // 只在剛選到時移動（換成細的國界、換底圖、換主題時 anchors 會變，不要因此移動）
     const fresh = placedRef.current !== selected;
     placedRef.current = selected;
+    clickedRef.current = null;
+    if (!fresh) return;
+    const center = map.getCenter();
+    const p = map.project(target);
+    const canvas = map.getCanvas();
+    const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
+    const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], target) > Math.PI / 2.4;
+    // 在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變
     const inset = mapInsets(map.getContainer());
     const margin = Math.min(32, canvas.clientWidth / 10);
     const covered =
-      fresh &&
-      (p.x < margin ||
-        p.y < margin ||
-        p.x > canvas.clientWidth - inset.right - margin ||
-        p.y > canvas.clientHeight - inset.bottom - margin);
+      p.x < margin || p.y < margin || p.x > canvas.clientWidth - inset.right - margin || p.y > canvas.clientHeight - inset.bottom - margin;
     if (offScreen || behindGlobe || covered) {
       map.easeTo({
-        center: anchor,
-        zoom: offScreen || behindGlobe ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
+        center: target,
+        // 點選的位置本來就在眼前：只平移、不縮放
+        zoom: !clicked && (offScreen || behindGlobe) ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
         offset: [-inset.right / 2, -inset.bottom / 2],
         duration: 800,
       });
@@ -1728,7 +1741,13 @@ export function WorldMap(props: WorldMapProps) {
           </button>
         )}
         {onBasemapChange && (
-          <BasemapMenu basemap={basemap} onChange={onBasemapChange} shared={props.sharedLayers} onSharedToggle={props.onSharedToggle} />
+          <BasemapMenu
+            basemap={basemap}
+            onChange={onBasemapChange}
+            shared={props.sharedLayers}
+            onSharedToggle={props.onSharedToggle}
+            personal={props.personal}
+          />
         )}
         {collapseMore && <MoreMenu items={moreItems} />}
         {!collapseMore && onBoxChange && (

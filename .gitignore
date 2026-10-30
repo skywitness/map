@@ -6,3 +6,6 @@ pipeline/.venv/
 pipeline/.cache/
 __pycache__/
 *.tsbuildinfo
+
+# 我的路線：使用者自己下載、只給自己看的路線檔（沒有授權，不能進 repo；DESIGN.md 第 11 節「我的路線」）
+private/

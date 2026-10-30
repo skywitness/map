@@ -415,13 +415,14 @@ def tdf_departs() -> list[tuple[int, str, str]]:
     return out
 
 
-def megavalanche_years() -> list[int]:
-    """Megavalanche 條目「Megavalanche Alpe D'Huez」的成績表：有成績的年份"""
-    sec = section(section(wikitext("mega"), "Results"), "Megavalanche Alpe D'Huez", 3)
+def megavalanche_years(venue: str = "Megavalanche Alpe D'Huez") -> list[int]:
+    """Megavalanche 條目成績表（「Megavalanche Alpe D'Huez」或「Megavalanche Réunion」）：有成績的年份。
+    取消的年份也有一列（整列合併寫「Cancelled due to …」：兩站的 2020 年、留尼旺的 2018 年），不算"""
+    sec = section(section(wikitext("mega"), "Results"), venue, 3)
     years = []
     for r in wikitable.rows(first_table(sec)):
         y = wikitable.text(r[0])
-        if re.fullmatch(r"\d{4}", y):
+        if re.fullmatch(r"\d{4}", y) and len(r) > 1 and not wikitable.text(r[1]).startswith("Cancelled"):
             years.append(int(y))
     return years
 
@@ -471,8 +472,16 @@ def coordinates(titles: list[str], wiki: str = "en") -> dict[str, tuple[float, f
             resolved[t] = redir.get(n, n)
     targets = sorted(set(resolved.values()))
     found: dict[str, tuple[float, float, str]] = {}
-    for i in range(0, len(targets), 200):
-        batch = targets[i:i + 200]
+    # 一批的網址不能太長（Wikidata 的 SPARQL 端點回 431）：名稱合計約 4,000 字一批
+    batches, cur = [], []
+    for t in targets:
+        if cur and sum(len(x) + 8 for x in cur) + len(t) > 4000:
+            batches.append(cur)
+            cur = []
+        cur.append(t)
+    if cur:
+        batches.append(cur)
+    for batch in batches:
         key = hashlib.sha1("|".join(batch).encode()).hexdigest()[:12]
         values = " ".join(json.dumps(t, ensure_ascii=False) + f"@{wiki}" for t in batch)
         # 項目本身沒有座標的（ePrix 這種賽事的條目、沒有座標的山口）退一步用地點（P276）或所在的行政區（P131）的座標

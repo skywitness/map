@@ -106,6 +106,7 @@ export const en: Messages = {
   layoutTitle: 'Layout',
   layoutTime: 'Timeline (year)',
   layoutSources: 'Sources and notes',
+  layoutList: 'List sidebar (such as the racing calendar)',
   layoutNote: 'Hidden areas give the map more room. Stored only in this browser; shared links still show everything.',
   showTime: 'Show the timeline',
   hideTime: 'Hide the timeline',

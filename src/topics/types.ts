@@ -575,6 +575,12 @@ export interface PointsOverlayDef extends OverlayBase {
    */
   epochs?: { years: number[]; values: (p: PointRecord, epoch: number) => Record<string, number | null> };
   /**
+   * 換到另一期時地圖移過去（2026-10-30 起，奧運場館：換屆時框住那一屆的場館）：框住這一期畫得出來的點
+   * （epochs 算出的 minValue 欄位不是 null 的）。點分散時只框離中位數 core 度以內的那一群（主辦城市；足球分散在別的城市的不算），
+   * 那一群不到一半時框全部。maxZoom 是最多放大到幾級。要有 epochs 與 minValue
+   */
+  fitOnEpoch?: { core: number; maxZoom: number };
+  /**
    * 依縮放篩選：縮小時只畫數值大的點（例如世界全圖只畫 100 萬人以上的城市），stops 是 [縮放級數, 最小值]，
    * 由小到大，第一個的級數是 0。用 MapLibre 的 filter（['zoom'] 在 filter 裡是圖磚的整數級數），跟時間篩選合併；
    * 沒有這個欄位的點不畫。
@@ -616,6 +622,11 @@ export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number
 /** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、海底電纜 */
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
+  /**
+   * 線不是網站的資料檔，是使用者在這個瀏覽器匯入的（2026-10-30 起，我的路線：lib/personalRoutes.ts）：
+   * file 不用，App 把解析好的線交給 useOverlays
+   */
+  local?: boolean;
   /**
    * 線寬（px，縮放 2 時）：固定值，或依紀錄的數值欄位在 stops [[值, 線寬], …] 之間線性內插
    * （例如河流依平均流量，stops 依對數間隔取，看起來就是依流量的對數變粗）
@@ -842,6 +853,43 @@ export interface PanelExtraProps {
  * 側欄放在地圖上的標記（PanelExtraProps.setMarks）：圓點加名稱。link 是另一個標記的索引：點一下這個標記，
  * 地圖移到那一個（首都 ↔ 它的對蹠點，在地球儀上通常在背面）
  */
+/** 清單側欄的設定（TopicDefinition.listPanel） */
+export interface ListPanelDef {
+  /** 側欄的標題（例如「賽程」） */
+  label: Text;
+  /** 只在這些指標顯示；沒寫是所有指標 */
+  indicators?: string[];
+  /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item} */
+  file: string;
+  /**
+   * 點 → 清單的每一列（已經排好）。在呼叫當下讀目前的語言（tr()）；year 是時間軸的年份，item 是目前的子項目
+   */
+  rows: (points: PointRecord[], ctx: { countryName: (iso3: string) => string; year: number; item: string | null }) => ListRow[];
+  /** 沒有任何一列時的說明 */
+  empty?: Text;
+}
+
+/** 清單側欄的一列 */
+export interface ListRow {
+  key: string;
+  /** 第一行（粗體） */
+  title: string;
+  /** 第二行起（日期、地點…），一個字串一行 */
+  lines?: string[];
+  /** 不翻譯的原文名稱（另起一行，translate="no"） */
+  properNoun?: string;
+  /** 淡一點（例如已經比完的） */
+  muted?: boolean;
+  /** 標題旁的小標籤（例如「下一站」）；有標籤的第一列，打開時捲到它 */
+  badge?: string;
+  /** 點了移過去：一個點（放大到 zoom，預設 11）或一個範圍 [西, 南, 東, 北] */
+  target: { lon: number; lat: number; zoom?: number } | { box: [number, number, number, number] };
+  /** 點了在地圖上標出的位置（沒寫時用 target 的點；範圍不標） */
+  mark?: { lon: number; lat: number };
+  /** 點了把時間軸換到這一年（例如每月賽程換到那一站的月份） */
+  year?: number;
+}
+
 export interface MapMark {
   lon: number;
   lat: number;
@@ -882,6 +930,22 @@ export interface TopicDefinition {
    * `panelExtra: () => import('./electricity-panel')`
    */
   panelExtra?: () => Promise<{ default: React.ComponentType<PanelExtraProps> }>;
+  /**
+   * 清單側欄（2026-10-30 起，賽車的賽程）：地圖左邊列出主題的點（依日期或名稱排），點一列地圖移到那裡並標出來。
+   * 桌機在地圖左邊、可以收成一條窄邊；窄螢幕在地圖下面、預設收起來（收合記在版面偏好，lib/layoutPrefs.ts 的 list）。
+   * 程式在 panels/ListSide.tsx，任何有點的清單（節慶、日食、奧運場館…）都可以套用
+   */
+  listPanel?: ListPanelDef;
+  /**
+   * 我的路線（2026-10-30 起，賽車）：圖層選單多一區，使用者可以匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip，
+   * 一次很多個或一整個資料夾），只存在這個瀏覽器（lib/personalRoutes.ts），畫成一個線圖層。
+   * color 跟線圖層一樣（分類代碼由 type 算，沒有分類的用 0），seriesLabel 是 tooltip 上的分類名稱
+   */
+  personalRoutes?: {
+    color: LinesOverlayDef['color'];
+    type?: (series: string | undefined) => number;
+    seriesLabel?: (series: string) => Text | undefined;
+  };
   /**
    * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，
    * 網格只決定國內的分布，各國水準縮放到 indicator 當年的值。grid 是主題資料夾裡的網格檔。

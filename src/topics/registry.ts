@@ -13,6 +13,11 @@ export interface TopicGroupSpec {
   label: Text;
   /** 依小標題分段的主題（2026-10-30 起，第七批 124） */
   sections: TopicSection[];
+  /**
+   * 下拉選單每一欄放幾段（依 sections 的順序，由左往右），例如 [2, 2, 2]：使用者指定的排法（2026-10-30）。
+   * 沒有寫的分類由 TopicNav.tsx 的 packColumns 自動分欄（左邊的欄最滿）；手機上照樣是一欄
+   */
+  columns?: number[];
 }
 
 /**
@@ -26,32 +31,38 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '社會', en: 'People' },
     sections: [
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing'] },
+      { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
       { label: { zh: '健康', en: 'Health' }, topics: ['health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'diet'] },
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
       { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness'] },
-      { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
     ],
+    // 左：人口與家庭、平等與法律；中：健康、教育；右：生活與文化、獎項與運動
+    columns: [2, 2, 2],
   },
   {
     id: 'economy',
     label: { zh: '經濟', en: 'Economy' },
     sections: [
-      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
-      { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
       { label: { zh: '產業', en: 'Industries' }, topics: ['sectors', 'industry', 'agriculture', 'minerals'] },
       { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
+      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
+      { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
     ],
+    // 左：產業、企業；中：所得與財富；右：財政與金融
+    columns: [2, 1, 1],
   },
   {
     id: 'global',
     label: { zh: '國際', en: 'Global' },
     sections: [
       { label: { zh: '往來', en: 'Flows' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport'] },
-      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
       { label: { zh: '政治', en: 'Politics' }, topics: ['empires', 'democracy', 'governance'] },
       { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
+      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
     ],
+    // 左：往來；中：政治、外交；右：安全
+    columns: [1, 2, 1],
   },
   {
     id: 'energy',
@@ -89,10 +100,12 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '地理', en: 'Geography' },
     sections: [
       { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'travel', 'taipei-view'] },
-      { label: { zh: '地形與地質', en: 'Land & geology' }, topics: ['elevation', 'rivers', 'oceans', 'lithology', 'special-landforms', 'plates', 'earthquakes', 'reclamation', 'antarctica'] },
       { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
+      { label: { zh: '地形與地質', en: 'Land & geology' }, topics: ['elevation', 'rivers', 'oceans', 'lithology', 'special-landforms', 'plates', 'earthquakes', 'reclamation', 'antarctica'] },
       { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'attractions', 'skyscrapers', 'night-lights'] },
     ],
+    // 左：國家、天空；中：地形與地質；右：景點
+    columns: [2, 1, 1],
   },
 ];
 
