@@ -74,7 +74,8 @@ COUNTRY_FIXES = {
 # ── 地獄山、超級雪崩：沒有賽季條目，日期與地點是自己整理的事實（DESIGN.md 第 8 節第 242 點） ──
 MASS_START = [
     # (賽事, 名稱, 地點的條目, 地點, 開始, 結束)
-    # 主辦單位 UCC Sport Event 的賽事頁「Alpe d'huez 10-11-12 July 2026」（男子決賽 7 月 12 日）
+    # 主辦單位 UCC Sport Event 的賽事頁「Alpe d'huez 10-11-12 July 2026」（男子決賽 7 月 12 日；賽事頁 2026-10 已換成 2027 年，
+    # 7 月 10 日開始另有 ucc-sportevent.fr/megakidalpedhuez/ 的「MEGA KID Alpe d'huez 10 JUILLET 2026」佐證）
     ("mega", "Megavalanche Alpe d'Huez", "Alpe d'Huez", "Alpe d'Huez", date(2026, 7, 10), date(2026, 7, 12)),
     # 雙阿爾卑斯觀光局 2026-06-21 的成績新聞稿（第 26 屆，6 月 18–21 日，決賽 6 月 21 日；使用者上傳的 PDF 核對過）
     ("moh", "Mountain of Hell", "Les Deux Alpes", "Les 2 Alpes", date(2026, 6, 18), date(2026, 6, 21)),
