@@ -57,6 +57,9 @@ MINERALS = [
     Mineral("platinum", "platinum-group", "Platinum", 0.001, 0.001, "鉑", "Platinum"),  # 公斤；蘊藏量是鉑族金屬合計
     Mineral("palladium", "platinum-group", "Palladium", 0.001, 0.001, "鈀", "Palladium"),
     Mineral("bauxite", "bauxite-alumina", "Bauxite", 1000, 1000, "鋁土礦", "Bauxite"),  # 千公噸（乾重）
+    # 2026-10-30 加（製作手冊第六批 73）：黃金是礦場產量（金含量），鹽的產量是千公噸、沒有蘊藏量（USGS 只寫「Large」）
+    Mineral("gold", "gold", "Mine", 1, 1, "黃金", "Gold"),
+    Mineral("salt", "salt", "production", 1000, None, "鹽", "Salt"),
 ]
 
 # MCS 表上的註腳（PDF 的註腳沒有解析，重要的手動抄在這裡）：{(礦種, 國家): (中文, 英文)}
