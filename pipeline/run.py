@@ -131,6 +131,8 @@ STEPS = {
     # OpenAlex API 的 group_by（約 300 次查詢，沒有金鑰時一天約 1,000 次的匿名額度，第一次約 3 分鐘）、WPP 的人口
     "publications": "topics.publications",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
+    # 太陽能板（併進半導體主題）：BACI HS22 版（約 300 MB，2022–2024），幾十秒；財政部的 854142、854143 對照
+    "solar-panels": "topics.solar_panels",
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     "employment": "topics.employment",
     "reserves": "topics.reserves",
