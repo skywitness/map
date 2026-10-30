@@ -26,7 +26,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, useUrlState } from './lib/url-state';
+import { currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
 import type { Box } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { countryLocator, type CountryFeature } from './map/geometry';
@@ -281,6 +281,11 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
+  // 舊網址轉到合併後的主題，要一起打開某個圖層（唐人街併進移民與難民）：打開那個主題時打開一次
+  useEffect(() => {
+    const layer = takeRedirectLayer(topic.id);
+    if (layer) setLayers((l) => ({ ...l, extra: { ...l.extra, [layer]: true } }));
+  }, [topic.id]);
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
@@ -300,7 +305,8 @@ export function App() {
   // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
   const topicFocus = indicator.focus ?? topic.focus;
   useEffect(() => {
-    if (topicFocus && !state.country) moveToBox(topicFocus);
+    // 主題的 focus 可以依年份給（板塊漂移：那個年代的大陸在哪裡），只在換過來時看一次
+    if (topicFocus && !state.country) moveToBox(typeof topicFocus === 'function' ? topicFocus(year) : topicFocus);
   }, [topic.id, indicator.focus]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
@@ -312,8 +318,8 @@ export function App() {
     if (!topicPointer || !features) return undefined;
     const countryAt = countryLocator(features);
     return (lngLat: [number, number], iso3: string | null) =>
-      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year });
-  }, [topicPointer, features, countries, indicatorId, year]);
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at });
+  }, [topicPointer, features, countries, indicatorId, year, at]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -417,7 +423,7 @@ export function App() {
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
   // 不隨時間變化的資料（海拔），或時刻主題裡不隨時刻變的指標（晝長年較差）：標題、檔名、tooltip、排名表都不寫年份
   const per = at ? indicator.derive?.per : undefined;
-  const timeless = Boolean(topic.timeless) || per === 'fixed';
+  const timeless = Boolean(topic.timeless || indicator.timeless) || per === 'fixed';
   // 指標的 timeAxis 改寫了年份的意思（「1996 年出生」）：標題、tooltip、排名表用它；
   // 時刻主題寫那一刻（「6月21日 14:05」），只跟日期有關的指標只寫日期
   const yearText =

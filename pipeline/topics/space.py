@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 
-from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
 from geoindex import country_at
 from sources import gcat, wpp
 
@@ -191,8 +191,9 @@ def build() -> None:
         write_json(OUT / "countries" / f"{iso3}.json", entry, quiet=True)
         index.append(iso3)
     write_json(OUT / "countries" / "index.json", sorted(index))
-    write_json(OUT / "manifest.json", {
-        "generatedAt": now_iso(), "gcatRelease": gcat.RELEASE, "lastYear": last,
+    # 月球與火星的登陸（landings.py）2026-10-30 併進太空，manifest 各步驟一份
+    write_manifest_part(OUT, "space", "gcat", {
+        "gcatRelease": gcat.RELEASE, "lastYear": last,
         "international": {"inOrbit": intl_orbit, "byCode": dict(intl.most_common())},
     })
 

@@ -12,7 +12,7 @@
   德意志帝國這種歷史國家也能歸到今天的國家）；沒有的用原產國（P495）、國家（P17）的 ISO 代碼，再沒有用總部（P159）的座標。
 - 點：創立地的座標，沒有的用總部的座標；都沒有的只算在國家的品牌數裡。大小依維基百科的語言數（有名的程度），
   顏色依創立年份（1900 年以前、1900–1949、1950–1999、2000 年以後、不詳）。
-- 輸出 public/data/topics/brands/：count/{item}.json（各國品牌數，一年 2026，timeless）、points/{item}.json、
+- 輸出 public/data/topics/companies/（2026-10-30 起跟最古老的公司同一個主題）：count/{item}.json（各國品牌數，一年 2026，timeless）、points/{item}.json、
   list/{item}.json（側欄：每個品牌 [語言數, 英文名, 中文名, 創立年份, 國家]，依語言數排）。
 """
 from __future__ import annotations
@@ -21,11 +21,11 @@ import json
 import re
 from collections import defaultdict
 
-from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, points_file, write_json
+from common import CACHE_DIR, OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
 from geoindex import countries_at
 from sources.wikidata_attractions import _sparql
 
-OUT = OUT_DIR / "topics" / "brands"
+OUT = OUT_DIR / "topics" / "companies"  # 企業與品牌（2026-10-30 最古老的公司、品牌的發源地合併）
 YEAR = 2026
 KINDS = {
     "fashion": ("{ VALUES ?cls { wd:Q1618899 wd:Q1941779 wd:Q133459332 } ?item wdt:P31 ?cls . } UNION "
@@ -130,4 +130,4 @@ def build() -> None:
         tw = [b["zh"] or b["en"] for b in brands if b["iso3"] == "TWN"]
         print(f"  {kind}：{len(brands)} 個品牌，國家依 {dict(how)}；點 {len(rows)} 個；前幾名 {top}；台灣 {tw}")
         manifest[kind] = {"brands": len(brands), "points": len(rows)}
-    write_json(OUT / "manifest.json", {"topic": "brands", "generatedAt": now_iso(), "source": "Wikidata (CC0)", **manifest})
+    write_manifest_part(OUT, "companies", "brands", {"source": "Wikidata (CC0)", **manifest})

@@ -19,7 +19,7 @@ import {
   type ColumnLegendModel,
   type FlowLegendModel,
 } from './Legend';
-import { SHADE_KEY, trianglePoints, type OverlayKey, type OverlaySwatch } from './Overlays';
+import { lookSwatch, SHADE_KEY, trianglePoints, type OverlayKey, type OverlaySwatch } from './Overlays';
 import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
 
 /** 匯出至少用 2 倍解析度，在高解析度螢幕上看也清楚；只在匯出的那一下調高，之後還原 */
@@ -574,9 +574,11 @@ function drawSwatch(ctx: CanvasRenderingContext2D, swatch: OverlaySwatch, x: num
     return 18;
   }
   const w = Math.max(18, 2 * size + 4);
-  ctx.fillStyle = color;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 0.8;
+  // 圓點的樣式（空心、灰色）跟畫面上的圖例一樣（Overlays.tsx 的 lookSwatch）
+  const look = lookSwatch(shape === 'dot' ? swatch.look : undefined, color);
+  ctx.fillStyle = look.fill;
+  ctx.strokeStyle = look.stroke;
+  ctx.lineWidth = look.strokeWidth;
   ctx.beginPath();
   if (shape === 'dot') {
     ctx.arc(x + w / 2, cy, size, 0, Math.PI * 2);
@@ -587,7 +589,9 @@ function drawSwatch(ctx: CanvasRenderingContext2D, swatch: OverlaySwatch, x: num
     ctx.lineTo(c[0], c[1]);
     ctx.closePath();
   }
+  ctx.globalAlpha = look.fillOpacity;
   ctx.fill();
+  ctx.globalAlpha = 1;
   ctx.stroke();
   return w;
 }

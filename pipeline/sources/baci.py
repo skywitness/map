@@ -47,12 +47,12 @@ def _country_codes(z: zipfile.ZipFile) -> dict[bytes, str | None]:
     return codes
 
 
-def yearly_totals() -> Iterator[tuple[int, Pairs]]:
-    """逐年回傳 {(出口國, 進口國): 千美元}，所有商品加總。"""
-    path = download(URL, "baci", FILENAME)
+def yearly_totals(hs: str = HS) -> Iterator[tuple[int, Pairs]]:
+    """逐年回傳 {(出口國, 進口國): 千美元}，所有商品加總。hs 是 BACI 的版本（'HS92' 從 1995 年起）。"""
+    path = _archive(hs)
     with zipfile.ZipFile(path) as z:
         codes = _country_codes(z)
-        members = sorted(n for n in z.namelist() if re.match(rf"BACI_{HS}_Y\d{{4}}_", n))
+        members = sorted(n for n in z.namelist() if re.match(rf"BACI_{hs}_Y\d{{4}}_", n))
         for member in members:
             year = int(re.search(r"_Y(\d{4})_", member).group(1))
             # 每年約 1,100 萬列；不用 csv 模組，直接切逗號比較快（這個檔沒有引號）

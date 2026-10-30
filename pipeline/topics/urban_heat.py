@@ -10,7 +10,7 @@
     Terra（MOD11A1，上午 10 點半）2001 年起，但白天的熱島比較小（台北 2021 年夏季 8.5 對 10.6 °C）。
   - 郊外參考區：作者提出的 DEA（動態等面積法，排除水體、地形起伏與其他城區的影響，參考區跟城區一樣大）。
   - 夏季：北半球用 6–8 月（檔名的月份 22），南半球用 12–2 月（24），依城區中心的緯度分。
-- 城市名稱：資料只有編號，跟網站「城市」主題的點（GHSL UCDB）依位置對：城區中心到城市點的距離在
+- 城市名稱：資料只有編號，跟網站「城市」主題的點（GHS-WUP R2025A）依位置對：城區中心到城市點的距離在
   城區的等面積半徑的 1.3 倍加 5 km 以內、人口最多的那一個；對不到的只寫「城區 #編號」，國家依國界判斷。
 """
 from __future__ import annotations
@@ -33,7 +33,7 @@ ARTICLE = "https://figshare.com/articles/dataset/24821538"
 RAR_URL = "https://ndownloader.figshare.com/files/43661121"
 INFO_URL = "https://ndownloader.figshare.com/files/43661826"
 SOURCE = "uhii"
-OUT = OUT_DIR / "topics" / "urban-heat"
+OUT = OUT_DIR / "topics" / "cities"  # 2026-10-30 併進城市（第七批 122）
 SENSOR = "Myd1"
 YEARS = list(range(2003, 2022))
 NORTH, SOUTH = 22, 24  # 季平均的「月份」代碼：22 是 6–8 月、24 是 12–2 月
@@ -75,16 +75,14 @@ def read_season(year: int, season: int) -> dict[int, float]:
 
 def match_cities(info: list[dict]) -> dict[int, dict]:
     """UrbanId → 網站「城市」主題的那一個城市（名稱、中文名、國家）"""
-    data = __import__("json").loads((OUT_DIR / "topics" / "cities" / "cities.json").read_text(encoding="utf-8"))
-    fields, cols = data["fields"], data["columns"]
-    col = dict(zip(fields, cols))
-    lon = np.array(col["lon"]) * data["scale"]["lon"]
-    lat = np.array(col["lat"]) * data["scale"]["lat"]
-    # 2020 年的人口：p1975、p1980… 是跟前一期的差（cities.py），加起來
-    pop = np.zeros(len(lon))
-    for f in fields:
-        if f.startswith("p") and f[1:].isdigit() and int(f[1:]) <= 2020:
-            pop += np.array([v or 0 for v in col[f]], dtype=float) * data["scale"][f]
+    from topics.cities import load_points
+
+    points = load_points(OUT_DIR / "topics" / "cities" / "cities.json")
+    col = {k: [p[k] for p in points] for k in ("name", "zh", "iso3")}
+    lon = np.array([p["lon"] for p in points])
+    lat = np.array([p["lat"] for p in points])
+    # 2020 年的人口（2020 年不是城市的是 0）
+    pop = np.array([p["pop"].get(2020, 0.0) for p in points])
     out = {}
     for c in info:
         dy = (lat - c["lat"]) * 111.2
@@ -154,7 +152,7 @@ def build() -> None:
 
     fields = ["id", "lon", "lat", "area", "iso3", "name", "zh", "avg", *[f"y{y}" for y in YEARS]]
     scale = {"lon": 0.01, "lat": 0.01, "area": 1, "avg": 0.1, **{f"y{y}": 0.1 for y in YEARS}}
-    write_json(OUT / "cities.json", points_file(rows, fields, scale, strings=["iso3"]))
+    write_json(OUT / "uhi-areas.json", points_file(rows, fields, scale, strings=["iso3"]))
 
     # 國家：依城區面積加權的平均（大城市的分量比較重）
     series = {}
@@ -170,7 +168,7 @@ def build() -> None:
     notes = {iso3: f"這裡有 {n} 個城區，數值依城區面積加權" for iso3, n in counts.items() if n <= 2}
     notes_en = {iso3: f"{n} urban area{'s' if n > 1 else ''} here; area-weighted" for iso3, n in counts.items() if n <= 2}
     write_json(OUT / "uhi.json", indicator_file("uhi", "°C", YEARS, series, aggregates={"WLD": world}, notes=notes, notesEn=notes_en))
-    write_json(OUT / "manifest.json", {
+    write_json(OUT / "urban-heat-manifest.json", {
         "topic": "urban-heat",
         "generatedAt": now_iso(),
         "source": f"Yang et al., Global Urban Heat Island Intensity Dataset (figshare 24821538 v3, CC BY 4.0): {SENSOR} daytime, DEA, summer",

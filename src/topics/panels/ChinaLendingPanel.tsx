@@ -18,7 +18,7 @@ import { TopicLink } from './TopicLink';
 
 interface Detail {
   years: number[];
-  /** 類型 → 歷年承諾金額（百萬美元，2021 年固定美元） */
+  /** 類型 → 歷年承諾金額（百萬美元，2023 年固定美元） */
   flows: Partial<Record<FlowCode, number[]>>;
   /** 子項目 → 部門代碼（OECD 三位碼）→ 歷年 */
   sectors: Record<string, Record<string, number[]>>;
@@ -70,13 +70,13 @@ const TEXT = defineMessages({
     grant: '贈款',
     debt: '債務重整',
     vague: '類型不明',
-    flowsNote: '2021 年固定美元；一年只要簽下一筆大型貸款就會跳很高。',
+    flowsNote: '2023 年固定美元；一年只要簽下一筆大型貸款就會跳很高。',
     topTitle: (item: string) => `金額最大的 10 個項目（${item}）`,
     topAria: (country: string) => `${country}從中國官方機構得到的金額最大的項目`,
     all: '全部',
     status: { done: '已完成', ongoing: '執行中', pipeline: '已承諾、尚未動工' } as Record<Status, string>,
     meta: (year: number, sector: string, status: string, flow: string) => `${year} 年 · ${flow} · ${sector} · ${status}`,
-    topNote: '名稱是 AidData 的英文原文；金額是承諾金額（2021 年固定美元），不是實際撥款。',
+    topNote: '名稱是 AidData 的英文原文；金額是承諾金額（2023 年固定美元），不是實際撥款。',
     noData: '這個國家沒有有金額的項目。',
     aid: '看向 OECD 申報的援助國與多邊機構給的援助（國際援助與僑匯）',
   },
@@ -90,13 +90,13 @@ const TEXT = defineMessages({
     grant: 'Grants',
     debt: 'Debt rescheduling',
     vague: 'Unclear type',
-    flowsNote: 'Constant 2021 US dollars; a single large loan makes a year jump.',
+    flowsNote: 'Constant 2023 US dollars; a single large loan makes a year jump.',
     topTitle: (item) => `10 largest projects (${item})`,
     topAria: (country) => `Largest projects funded by official institutions in China in ${country}`,
     all: 'all',
     status: { done: 'Completed', ongoing: 'In implementation', pipeline: 'Committed, not started' },
     meta: (year, sector, status, flow) => `${year} · ${flow} · ${sector} · ${status}`,
-    topNote: 'Titles are AidData’s originals; amounts are commitments (constant 2021 US dollars), not disbursements.',
+    topNote: 'Titles are AidData’s originals; amounts are commitments (constant 2023 US dollars), not disbursements.',
     noData: 'No records with an amount for this country.',
     aid: 'See aid from donors reporting to the OECD and multilateral institutions (Aid topic)',
   },
@@ -108,7 +108,7 @@ export default function ChinaLendingPanel({ topic, indicator, iso3, year, item, 
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  // 有項目的國家才有明細檔（累計承諾金額在 2021 年大於 0；同一個檔 CountryPanel 已經載入過）
+  // 有項目的國家才有明細檔（累計承諾金額在 2023 年大於 0；同一個檔 CountryPanel 已經載入過）
   const cumulative = useJson<IndicatorData>(`topics/${topic.id}/all-cumulative.json`).data;
   const hasDetail = Boolean(cumulative?.values[iso3]?.some((v) => v != null && v > 0));
   const { data: detail, loading } = useJson<Detail>(hasDetail ? `topics/${topic.id}/countries/${iso3}.json` : null);

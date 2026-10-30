@@ -26,7 +26,7 @@ import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
-import { fetchJson } from '../lib/data';
+import { dataUrl, fetchJson } from '../lib/data';
 import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
@@ -60,6 +60,7 @@ import {
 import { applyTimeFilters, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
+import { useClassGridOnly } from './classGridHighlight';
 import { syncWind } from './windLayer';
 import { CLASS_GRID_OPACITY } from './Overlays';
 import { syncMoon, syncNight } from './nightLayer';
@@ -1015,8 +1016,9 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
-  }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
+    const lights = night?.def.lights;
+    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time, lights ? { url: dataUrl(lights.file), bounds: lights.bounds } : null);
+  }, [revision, night?.def.id, night?.def.lights, night?.visible, basemap.dark, time]);
 
   /* ── 月亮（晝夜與季節的「月亮」，nightLayer.ts）：看得到月亮的半個地球與月下點，畫在夜色上面 ── */
   const moon = overlays.find((o) => o.kind === 'moon');
@@ -1048,6 +1050,8 @@ export function WorldMap(props: WorldMapProps) {
       ),
     [classGrid?.def, classMax],
   );
+  // 滑到圖例或側欄的一類時只亮那一類（classGridHighlight.ts）
+  const classOnly = useClassGridOnly();
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -1055,10 +1059,10 @@ export function WorldMap(props: WorldMapProps) {
     syncClassGrid(map, def?.id ?? null, Boolean(classGrid?.visible), classGrid?.grid ?? null, {
       colors: classColors,
       opacity: def?.opacity ?? CLASS_GRID_OPACITY,
-      only: null,
+      only: classOnly !== null && classColors.has(classOnly) ? classOnly : null,
       bounds: def?.bounds,
     });
-  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors]);
+  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors, classOnly]);
 
   /* ── 風的粒子（風與季風，windLayer.ts）：換月份只換風場；換底圖後重新加上（類別網格之後，畫在風速的底色上面） ── */
   const wind = overlays.find((o) => o.kind === 'wind');

@@ -78,7 +78,7 @@ function airports(id: string, field: 'n' | 'd', indicators: string[]): PointsOve
   return {
     kind: 'points',
     id,
-    file: 'airports.json',
+    file: 'route-airports.json',
     label: { zh: '起訖機場', en: 'Airports' },
     indicators,
     radius: { field, stops: [[1, 2.4], [4, 3.6], [10, 5.5]] },
@@ -100,13 +100,8 @@ function airports(id: string, field: 'n' | 'd', indicators: string[]): PointsOve
 
 const CURRENT_INDICATORS = ['routes-count', 'longest'];
 
-export const longestFlights: TopicDefinition = {
-  id: 'longest-flights',
-  title: { zh: '最長的直飛航線', en: 'The longest non-stop flights' },
-  shortTitle: { zh: '最長的航線', en: 'Longest flights' },
-  defaultIndicator: 'routes-count',
-  defaultYear: 2026,
-  timeless: true,
+/** 航空主題（aviation.ts）的最長航線部分：2026-10-30 起跟航空公司、交通的航空指標合成一個主題 */
+export const longestFlightsPart = {
   sources: [
     {
       name: {
@@ -132,12 +127,12 @@ export const longestFlights: TopicDefinition = {
       'Discontinued routes are those that once made the top 30 and no longer fly; the date is the last flight. Airport locations come from OurAirports; countries follow the airport’s location. None of today’s top 30 serve Taiwan; the discontinued list includes EVA Air BR 32 Taoyuan–Newark (12,552 km, ended 2011). ' +
       'The derived data files are shared under Wikipedia’s CC BY-SA 4.0.',
   },
-  panelExtra: () => import('./panels/LongestFlightsPanel'),
   overlays: [
     routes('routes', CURRENT, { zh: '現行前 30 名的航線', en: 'Current top 30 routes' }, CURRENT_INDICATORS),
     routes('discontinued-routes', DISCONTINUED, { zh: '停飛的前 30 名', en: 'Discontinued top 30' }, ['discontinued']),
-    airports('airports', 'n', CURRENT_INDICATORS),
-    airports('airports-discontinued', 'd', ['discontinued']),
+    // 交通搬過來的機場圖層也叫 airports：這裡改名 route-airports（資料檔 route-airports.json）
+    airports('route-airports', 'n', CURRENT_INDICATORS),
+    airports('route-airports-discontinued', 'd', ['discontinued']),
   ],
   indicators: [
     {
@@ -154,6 +149,7 @@ export const longestFlights: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       integer: true,
       panelChart: false,
+      timeless: true,
     },
     {
       id: 'longest',
@@ -168,6 +164,7 @@ export const longestFlights: TopicDefinition = {
       format: km,
       formatTick: (v) => `${fixed(v / 1000, 1)}k`,
       panelChart: false,
+      timeless: true,
       missing: { zh: '沒有排進前 30 名的航線', en: 'No route in the top 30' },
     },
     {
@@ -184,6 +181,7 @@ export const longestFlights: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       integer: true,
       panelChart: false,
+      timeless: true,
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;

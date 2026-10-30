@@ -11,7 +11,7 @@ Nature Communications, https://doi.org/10.1038/s41467-025-63773-9 。
 使用者 2026-10-30 決定：手冊寫的「179 個活動湖」是 Livingstone 2022（授權待確認）的數字，Wilson 的檔只有 104 個，
 先做這 104 個；完整的 773 個等授權確認再加。
 
-**輸出**（public/data/topics/subglacial-lakes/）：lakes.json（湖的中心點）、outlines.json（範圍，封閉的環）、
+**輸出**（public/data/topics/antarctica/）：lakes.json（湖的中心點）、outlines.json（範圍，封閉的環）、
 lakes-count.json（空的指標檔）。不到 1 秒。
 """
 from __future__ import annotations
@@ -23,9 +23,9 @@ import re
 import unicodedata
 import zipfile
 
-from common import OUT_DIR, download, indicator_file, lines_file, now_iso, points_file, write_json
+from common import OUT_DIR, download, indicator_file, lines_file, now_iso, points_file, write_json, write_manifest_part
 
-OUT = OUT_DIR / "topics" / "subglacial-lakes"
+OUT = OUT_DIR / "topics" / "antarctica"  # 南極主題（2026-10-30 研究站、企鵝、冰下湖合併）
 URL = "https://zenodo.org/api/records/16330565/files/Wilson_2025_Antarctica_SGL_data_and_code.zip/content"
 NEW, EXISTING = 1, 2
 # Table 2 的湖名 → 範圍檔的前綴、地圖上的名稱
@@ -144,8 +144,7 @@ def build() -> None:
     write_json(OUT / "lakes-count.json", indicator_file("lakes-count", "", [2020], {}), quiet=True)
     biggest = sorted(rows, key=lambda r: -(r["a"] or 0))[:5]
     print("  範圍最大：" + "、".join(f"{r['name']} {r['a']} km²" for r in biggest))
-    write_json(OUT / "manifest.json", {
-        "topic": "subglacial-lakes", "generatedAt": now_iso(),
+    write_manifest_part(OUT, "antarctica", "lakes", {
         "source": "Wilson, S. F. et al. (2025) Detection of 85 new active subglacial lakes in Antarctica from a decade of "
                   "CryoSat-2 data. Nature Communications. Data: Zenodo 16330565 (CC BY 4.0)",
         "lakes": len(rows), "outlines": len(lines),

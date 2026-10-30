@@ -28,6 +28,7 @@ const TEXT = defineMessages({
     crossed: '中心經過陸地',
     closest: (km: number) => `最近 ${n0(km)} 公里`,
     peak: (cls: string, wind: string) => `巔峰 ${cls}，${wind}`,
+    jma: '上面選的是日本氣象廳的 10 分鐘風速，但這裡的清單仍用美國機構的 1 分鐘風速（全球同一套）。',
     note: '強度是美國機構的 1 分鐘平均風速（薩菲爾－辛普森颶風等級），經過時的風速沿路徑內插、取到 5 節；日期是世界標準時間（UTC）。中央氣象署用 10 分鐘平均風速，數字比較小。1950–60 年代的強度一般認為偏高。中文名稱來自中央氣象署颱風資料庫（1958 年起的西北太平洋颱風）。',
   },
   en: {
@@ -41,6 +42,7 @@ const TEXT = defineMessages({
     crossed: 'centre crossed land',
     closest: (km) => `closest ${n0(km)} km`,
     peak: (cls, wind) => `peak ${cls}, ${wind}`,
+    jma: 'JMA 10-minute winds are selected above, but these lists still use US 1-minute winds (the same for every basin).',
     note: 'Intensity uses US 1-minute winds (Saffir–Simpson scale); winds near the country are interpolated along the track and rounded to 5 kt. Intensities from the 1950s and 1960s are generally thought to be too high. Dates are UTC.',
   },
 });
@@ -86,7 +88,7 @@ function StormList({ rows, lang }: { rows: Row[]; lang: 'zh' | 'en' }) {
   );
 }
 
-export default function TyphoonsPanel({ topic, iso3 }: PanelExtraProps) {
+export default function TyphoonsPanel({ topic, iso3, item }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
@@ -98,6 +100,7 @@ export default function TyphoonsPanel({ topic, iso3 }: PanelExtraProps) {
   return (
     <section className="panel-section">
       <h3>{text.strongest}</h3>
+      {item === 'jma' && <p className="note">{text.jma}</p>}
       {own ? (
         <>
           <p className="panel-year-note">{text.count(own.n, own.from)}</p>

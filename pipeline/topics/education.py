@@ -3,9 +3,10 @@
 - 平均受教育年數用 UNDP 人類發展報告；粗在學率、教育支出、識字率用 World Bank WDI（UNESCO 統計研究所）。
 - 這些都沒有台灣：平均受教育年數、粗在學率、教育經費用教育部統計處，識字率用內政部的戶籍統計。
 - 2026-10-30 擴充（製作手冊第六批 86，`build_more()`）：
-  - 0–2 歲上托育的比例：OECD Family Database PF3.2（約 45 國，台灣沒有）。
-  - 學前教育毛入學率：World Bank WDI SE.PRE.ENRR（UNESCO UIS，CC BY 4.0），台灣沒有（缺單一年齡的人口，見 DESIGN.md 第 168 點）。
-  - 國中教師的法定年薪：OECD Education at a Glance，15 年年資、最普遍的資格、購買力平價美元，只有 2025 年。
+  - 0–2 歲上托育的比例：OECD Family Database PF3.2（約 45 國），台灣自算（衛福部、教育部、內政部，`sources/tw_childcare.py`，DESIGN.md 第 216 點）。
+  - 學前教育毛入學率：UIS 的學前在學人數 ÷ 學前學齡人口自行計算（CC BY-SA 4.0；WDI 的 SE.PRE.ENRR 停在 2021–2022 年，
+    UIS 也不再發布這個比率），台灣用教育部的「幼兒(稚)園 2–5 歲粗在學率」（DESIGN.md 第 213 點）。
+  - 國中教師的法定年薪：OECD Education at a Glance，15 年年資、最普遍的資格、購買力平價美元，只有 2025 年；台灣自算（法令的薪額、學術研究加給、年終 1.5 個月，`sources/tw_teacher_salary.py`，DESIGN.md 第 216 點）。
   - 小學平均每班人數：OECD Education at a Glance（2013–2024），台灣用教育部國民小學概況的學生數 ÷ 班級數。
   - 小學生師比：UIS 公開 API 的小學學生數（20062）÷ 教師數（20162），同一年兩個都有才算（CC BY-SA 4.0，
     資料檔同樣依 CC BY-SA 4.0 分享）；台灣用教育部的學生數 ÷ 教師數。世界銀行轉載的 SE.PRM.ENRL.TC.ZS 停在 2019 年，不用。
@@ -18,7 +19,7 @@ from __future__ import annotations
 import json
 
 from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
-from sources import moe, moi, oecd_eag, undp, worldbank
+from sources import imf, moe, moi, oecd_eag, tw_childcare, tw_teacher_salary, undp, worldbank
 
 TAIWAN = "台灣不在{db}資料庫中，改用"
 # 輸出檔名 -> (來源, 代碼, 單位, 頭尾年份至少要有最多那年幾成的國家, 台灣資料, 台灣附註)
@@ -87,6 +88,23 @@ def _uis() -> dict[str, dict[str, dict[int, float]]]:
     return out
 
 
+PREPRIMARY_URL = "https://api.uis.unesco.org/api/public/data/indicators?indicator=20060&indicator=SAP.02&geoUnitType=NATIONAL"
+
+
+def _preprimary() -> dict[str, dict[int, float]]:
+    """學前教育毛入學率（%）：UIS 的學前在學人數（20060）÷ 學前學齡人口（SAP.02）× 100，自行計算（DESIGN.md 第 213 點）。"""
+    path = download(PREPRIMARY_URL, "uis", "preprimary-20060-SAP02.json")
+    by: dict[str, dict[str, dict[int, float]]] = {}
+    for r in json.loads(path.read_text(encoding="utf-8"))["records"]:
+        if r["value"] is not None and len(r["geoUnit"]) == 3:
+            by.setdefault(r["indicatorId"], {}).setdefault(r["geoUnit"], {})[int(r["year"])] = float(r["value"])
+    enrolled, population = by["20060"], by["SAP.02"]
+    return {
+        c: {y: v / population[c][y] * 100 for y, v in years.items() if population.get(c, {}).get(y)}
+        for c, years in enrolled.items()
+    }
+
+
 def _region_notes(other: dict[str, dict[int, float]], fmt) -> tuple[dict[str, str], dict[str, str]]:
     zh, en = {}, {}
     for iso3, values in other.items():
@@ -109,12 +127,27 @@ def build_more(out) -> None:
         latest = sorted(((s[max(s)], c) for c, s in series.items()), reverse=True)
         print(f"  {key}：{len(series)} 國，最高 {latest[:3]}，最低 {latest[-3:]}，台灣 {series.get('TWN', {}).get(max(series.get('TWN', {0: 0})))}")
 
-    write("childcare", "%", oecd_eag.childcare_0_2(), 1)
-    preprimary, _ = worldbank.fetch("SE.PRE.ENRR", 1990)
-    write("preprimary", "%", preprimary, 1)
+    childcare = oecd_eag.childcare_0_2()
+    childcare["TWN"] = tw_childcare.childcare_0_2()
+    write("childcare", "%", childcare, 1, (
+        {"TWN": "自算：（衛福部托嬰中心收托人數 ＋ 居家托育 0–2 歲收托人數 ＋ 教育部幼兒園「未滿 3 歲」幼生數）÷ 內政部年底 0–2 歲人口。"
+                "托嬰中心、居家托育與人口是 12 月底，幼兒園是 11 月 1 日（學年年齡，跟戶籍的 0–2 歲有錯位）"},
+        {"TWN": "Own calculation: (children in Ministry of Health and Welfare baby care centres + children aged 0–2 with registered home "
+                "childcare providers + Ministry of Education kindergarten pupils under 3) ÷ population aged 0–2 at year end (Ministry of "
+                "the Interior). Childcare centres, home childcare and population are as of 31 December, kindergartens as of 1 November "
+                "(school-year age, which does not line up exactly with age 0–2)"},
+    ))
+    preprimary = _preprimary()
+    preprimary["TWN"] = moe.preprimary_enrollment()
+    write("preprimary", "%", preprimary, 1, (
+        {"TWN": "教育部統計處「幼兒(稚)園 2–5 歲粗在學率」：分母是 2–5 歲人口，多數國家是 3–5 歲（學年度開始的那一年）"},
+        {"TWN": "Ministry of Education gross enrolment rate for kindergartens, ages 2–5: the denominator is the population aged 2–5, while most countries use 3–5 (the year the school year starts)"},
+    ), license="CC BY-SA 4.0")
 
     salary, other = oecd_eag.teacher_salary()
-    write("teacher-salary", "USD PPP", salary, 0, _region_notes(other, lambda v: f"{v:,.0f}"))
+    salary_notes = _region_notes(other, lambda v: f"{v:,.0f}")
+    salary["TWN"], salary_notes[0]["TWN"], salary_notes[1]["TWN"] = tw_teacher_salary.teacher_salary_ppp(imf.fetch("PPPEX")[0]["TWN"])
+    write("teacher-salary", "USD PPP", salary, 0, salary_notes)
 
     taiwan = moe.primary_school()
     classes, other = oecd_eag.class_size()

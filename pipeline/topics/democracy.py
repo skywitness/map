@@ -34,6 +34,12 @@ INDICES = {
     "electoral-democracy": "v2x_polyarchy",
     "liberal-democracy": "v2x_libdem",
     "free-expression": "v2x_freexp_altinf",
+    # 2026-10-30 加（製作手冊第七批 140）：參與式、審議式、平等民主，公民自由，政治貪腐（越高越貪腐）
+    "participatory-democracy": "v2x_partipdem",
+    "deliberative-democracy": "v2x_delibdem",
+    "egalitarian-democracy": "v2x_egaldem",
+    "civil-liberties": "v2x_civlib",
+    "corruption": "v2x_corr",
 }
 REGIME = "v2x_regime"
 REGIME_NAMES = {

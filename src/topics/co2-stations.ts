@@ -1,7 +1,8 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { TopicPart } from './parts';
+import type { ColorClasses, PointRecord } from './types';
 
 /**
  * 全球二氧化碳觀測站（pipeline/topics/co2_stations.py）：NOAA GML 合作採樣網每週瓶採樣的月平均 CO2。
@@ -50,12 +51,9 @@ export function siteFacts(p: PointRecord): string {
 
 const stationsText = (v: number) => tr({ zh: `${fixed(v, 0)} 站`, en: `${fixed(v, 0)} ${v === 1 ? 'station' : 'stations'}` });
 
-export const co2Stations: TopicDefinition = {
-  id: 'co2-stations',
-  title: { zh: '全球二氧化碳觀測站', en: 'Carbon dioxide monitoring stations' },
-  shortTitle: { zh: '二氧化碳觀測站', en: 'CO₂ stations' },
-  defaultIndicator: 'stations',
-  defaultYear: LAST_YEAR,
+/** 溫室氣體排放（climate.ts）的二氧化碳觀測站部分：2026-10-30（第七批 122）起併進溫室氣體排放 */
+export const co2StationsPart: TopicPart = {
+  name: { zh: '二氧化碳觀測站', en: 'CO₂ stations' },
   sources: [
     {
       name: {
@@ -118,6 +116,7 @@ export const co2Stations: TopicDefinition = {
       },
       unit: { zh: '站', en: 'stations' },
       file: 'stations-count.json',
+      defaultYear: LAST_YEAR,
       layer: { kind: 'none' },
       format: stationsText,
       formatTick: (v) => fixed(v, 0),

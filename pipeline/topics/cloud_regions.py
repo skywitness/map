@@ -14,7 +14,7 @@ from collections import defaultdict
 from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
 from sources import cloud_regions
 
-OUT = OUT_DIR / "topics" / "cloud-regions"
+OUT = OUT_DIR / "topics" / "ai"  # 2026-10-30 併進 AI 發展（第七批 122）
 LAST_YEAR = 2026
 PROVIDERS = {"aws": 1, "google": 2, "azure": 3}
 OFFSET = {"aws": -0.12, "google": 0.0, "azure": 0.12}  # 經度錯開（度）
@@ -56,7 +56,7 @@ def build() -> None:
     world = [sum(c[i] for c in counts.values()) for i in range(len(years))]
     write_json(OUT / "regions-count.json", indicator_file(
         "regions-count", "個", years, dict(sorted(counts.items())), aggregates={"WLD": world}))
-    write_json(OUT / "manifest.json", {"topic": "cloud-regions", "generatedAt": now_iso(),
+    write_json(OUT / "cloud-regions-manifest.json", {"topic": "cloud-regions", "generatedAt": now_iso(),
                                        "sources": ["AWS, Google Cloud and Microsoft Azure region lists and launch announcements, "
                                                    "compiled by hand (pipeline/sources/cloud_regions.py)"]})
     by_provider = defaultdict(int)

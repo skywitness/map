@@ -44,12 +44,8 @@ export function stationFacts(p: PointRecord): string {
 
 const stationsText = (v: number) => tr({ zh: `${fixed(v, 0)} 處`, en: `${fixed(v, 0)} ${v === 1 ? 'station' : 'stations'}` });
 
-export const antarcticStations: TopicDefinition = {
-  id: 'antarctic-stations',
-  title: { zh: '南極研究站', en: 'Antarctic research stations' },
-  shortTitle: { zh: '南極研究站', en: 'Antarctic stations' },
-  defaultIndicator: 'operating',
-  defaultYear: 2026,
+/** 南極主題（antarctica.ts）的研究站部分：2026-10-30 起跟企鵝、冰下湖合成一個主題 */
+export const stationsPart = {
   sources: [
     { name: { zh: 'Wikidata（研究站的位置、經營者、成立與關閉年份、海拔、名稱）', en: 'Wikidata (locations, operators, opening and closing years, elevations, names)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
     {
@@ -68,14 +64,13 @@ export const antarcticStations: TopicDefinition = {
       `Wikidata often lacks closing dates, so stations without one were checked by position against COMNAP’s (Council of Managers of National Antarctic Programs) facilities list of November 2024: each of its ${COMNAP_TOTAL} facilities was matched to the nearest station within 15 km, and the ${COMNAP_MATCHED} matched stations count as operating; the rest are “not on the COMNAP list”, mostly closed historic bases (such as Amundsen’s Framheim) or temporary camps. Country values count operating stations only. ` +
       `COMNAP’s data may be used for educational and non-commercial purposes only; only the check results are used here, not its contents. Taiwan is not a party to the Antarctic Treaty and has no Antarctic station.`,
   },
-  noValue: { TWN: { zh: '沒有南極研究站（不是《南極條約》的締約方）', en: 'No Antarctic station (not a party to the Antarctic Treaty)' } },
-  panelExtra: () => import('./panels/AntarcticStationsPanel'),
   overlays: [
     {
       kind: 'points',
       id: 'stations',
       file: 'stations.json',
       label: { zh: '研究站', en: 'Research stations' },
+      indicators: ['operating'],
       radius: { field: 'sl', stops: [[0, 2.6], [10, 3.4], [30, 4.6], [55, 6]] },
       color: STATUS_COLORS,
       sortField: 'sl',
@@ -103,6 +98,7 @@ export const antarcticStations: TopicDefinition = {
       },
       unit: { zh: '處', en: 'stations' },
       file: 'operating.json',
+      noValue: { TWN: { zh: '沒有南極研究站（不是《南極條約》的締約方）', en: 'No Antarctic station (not a party to the Antarctic Treaty)' } },
       layer: { kind: 'bubble', legendValues: [1, 5, 10] },
       format: stationsText,
       formatTick: (v) => fixed(v, 0),
@@ -111,4 +107,4 @@ export const antarcticStations: TopicDefinition = {
       shareOfWorld: true,
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;

@@ -107,15 +107,18 @@ function plantTooltip(status: number) {
 
 /**
  * 四個狀態各一個點圖層，顏色、大小、圖例共用（同一組分級說明只列在第一個打開的圖層下面）。
+ * 狀態用不同樣式（2026-10-30 起，PointsOverlayDef.look）：運轉中實心、興建中空心粗框、規劃中空心細框、退役灰色，
+ * 同時打開時分得出來。
  * 不設 sortField：檔案依容量由大到小排，MapLibre 照資料順序畫，小電廠畫在大電廠上面，
  * 大電廠的圓才不會把範圍裡的小電廠整個蓋掉（比例符號地圖的慣例）。
  */
-const plantLayer = (id: string, label: Text, status: number, hidden: boolean): PointsOverlayDef => ({
+const plantLayer = (id: string, label: Text, status: number, hidden: boolean, look?: PointsOverlayDef['look']): PointsOverlayDef => ({
   kind: 'points',
   id: `plants-${id}`,
   file: `plants-${id}.json`,
   label,
   ...(hidden ? { hidden: true } : {}),
+  ...(look ? { look } : {}),
   radius: { field: 'mw', stops: MW_STOPS },
   color: FUEL_CLASSES,
   sizeLegend: SIZE_LEGEND,
@@ -288,15 +291,15 @@ export const powerPlants: TopicDefinition = {
   overlays: [
     { ...OPERATING_PLANTS, indicators: PLANT_INDICATORS },
     {
-      ...plantLayer('construction', { zh: '興建中', en: 'Under construction' }, 2, true),
+      ...plantLayer('construction', { zh: '興建中（空心）', en: 'Under construction (hollow)' }, 2, true, 'hollow'),
       indicators: PLANT_INDICATORS,
     },
     {
-      ...plantLayer('planned', { zh: '規劃中（籌備中、已宣布）', en: 'Planned (pre-construction, announced)' }, 3, true),
+      ...plantLayer('planned', { zh: '規劃中（籌備中、已宣布；細框）', en: 'Planned (pre-construction, announced; thin ring)' }, 3, true, 'faint'),
       indicators: PLANT_INDICATORS,
     },
     {
-      ...plantLayer('retired', { zh: '已退役、封存', en: 'Retired, mothballed' }, 5, true),
+      ...plantLayer('retired', { zh: '已退役、封存（灰色）', en: 'Retired, mothballed (grey)' }, 5, true, 'muted'),
       indicators: PLANT_INDICATORS,
     },
   ],
