@@ -30,6 +30,21 @@ export const CURRENCY: CategoryDef[] = [
 ];
 const OWN_CURRENCY: Text = { zh: '自己的貨幣', en: 'Own currency' };
 
+/**
+ * 匯率制度（IMF 2023 年的事實分類，pipeline/topics/exchange_regime.py 的 ROWS）：從最硬的釘住排到自由浮動，
+ * 循序色第一類最深。爬行釘住、類爬行安排、水平區間內的釘住併成一類（類別圖最多 8 色）
+ */
+export const EXCHANGE_REGIME: CategoryDef[] = [
+  { value: 1, label: { zh: '沒有自己的法定貨幣（直接用美元、歐元等）', en: 'No separate legal tender' } },
+  { value: 2, label: { zh: '貨幣局', en: 'Currency board' } },
+  { value: 3, label: { zh: '傳統釘住', en: 'Conventional peg' } },
+  { value: 4, label: { zh: '穩定安排', en: 'Stabilized arrangement' } },
+  { value: 5, label: { zh: '爬行釘住與區間', en: 'Crawling peg, crawl-like or band' } },
+  { value: 6, label: { zh: '其他管理安排', en: 'Other managed arrangement' } },
+  { value: 7, label: { zh: '浮動（管理浮動）', en: 'Floating (managed)' } },
+  { value: 8, label: { zh: '自由浮動', en: 'Free floating' } },
+];
+
 /** 內陸國（pipeline 的 DOUBLY、LANDLOCKED、COASTAL）：雙重內陸國排第一、顏色最深 */
 export const LANDLOCKED: CategoryDef[] = [
   { value: 1, label: { zh: '雙重內陸國（鄰國也都是內陸國）', en: 'Doubly landlocked' } },
@@ -188,6 +203,19 @@ export const profiles: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     { name: { zh: 'UN WPP 2024（人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
+    {
+      name: {
+        zh: '英文維基百科「List of countries by exchange rate regime」（整理自 IMF《AREAER 2023》，匯率制度）',
+        en: 'English Wikipedia, "List of countries by exchange rate regime" (from the IMF AREAER 2023; exchange rate regimes)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=List_of_countries_by_exchange_rate_regime&oldid=1369823927',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: '中央銀行 2011-09-04 新聞稿（台灣的匯率制度）', en: 'Central Bank of the Republic of China (Taiwan), press release of 4 Sep 2011 (Taiwan)' },
+      url: 'https://www.cbc.gov.tw/tw/cp-302-39220-C6D22-1.html',
+      license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+    },
   ],
   note: {
     zh: '政體形式是各國憲法（或過渡時期的憲政文件）規定的形式：元首怎麼產生、政府對誰負責，不代表民主程度，民主程度請看「民主與自由」主題（V-Dem 的評分）。Wikidata 的政體欄位很不一致，這裡依憲法逐國歸類，跟 Wikidata 不同的國家在資料管線裡寫了理由。元首與政府首長取自 Wikidata（國家那一邊的陳述，跟擔任職務那一邊的現任者比對，取比較新的），會隨選舉與政變改變，側欄寫出資料日期。鄰國數用地圖本身的國界（Natural Earth 1:50m，依實際控制線劃分）計算，屬地的陸地國界算進主權國。爭議地區照事實陳述各方的主張，地圖上的名稱與國界不代表任何政治立場。',
@@ -236,6 +264,18 @@ export const profiles: TopicDefinition = {
       file: 'currency.json',
       layer: { kind: 'categorical', categories: CURRENCY, other: OWN_CURRENCY },
       format: (v) => categoryLabel(CURRENCY, v, OWN_CURRENCY),
+    },
+    {
+      id: 'exchange-regime',
+      label: { zh: '匯率制度', en: 'Exchange rate regime' },
+      description: {
+        zh: 'IMF 依各國實際的做法（不是官方的說法）分的匯率制度，2023 年：從直接用別國貨幣、貨幣局（港幣）、釘住某種貨幣，到央行偶爾干預的浮動與完全由市場決定的自由浮動。歐元區國家沒有自己的貨幣，歐元對外自由浮動。滑過地圖可以看貨幣政策錨定什麼（美元、歐元、通膨目標…）。台灣不在 IMF 的分類裡，依中央銀行的說法是管理浮動。',
+        en: "The IMF's de facto classification of exchange rate arrangements in 2023, based on what countries actually do rather than what they say: from using another country's currency, currency boards (Hong Kong) and pegs to floats with occasional intervention and free floats set by the market. Euro area members have no currency of their own, and the euro floats freely. Hover to see the monetary policy anchor (US dollar, euro, inflation target…). Taiwan is not in the IMF classification; its central bank describes a managed float.",
+      },
+      unit: '',
+      file: 'exchange-regime.json',
+      layer: { kind: 'categorical', categories: EXCHANGE_REGIME, ordinal: true },
+      format: (v) => categoryLabel(EXCHANGE_REGIME, v),
     },
     {
       id: 'neighbours',

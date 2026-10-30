@@ -35,6 +35,27 @@ const ERA_COLORS: ColorClasses = {
 };
 const ERA_UNKNOWN = 4;
 
+/** 最繁忙的機場（pipeline/topics/busiest_airports.py）：2020–2025 每年旅客量前 50 名，欄位 p<年>、r<年> 是那一年的旅客與名次 */
+const BUSIEST_YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
+const paxText = (v: number) => tr({ zh: `${formatLargeNumber(v)} 人次`, en: `${formatLargeNumber(v)} passengers` });
+
+function busiestTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string; year: number }) {
+  const y = BUSIEST_YEARS.includes(ctx.year) ? ctx.year : BUSIEST_YEARS[BUSIEST_YEARS.length - 1];
+  const pax = p[`p${y}`];
+  const rank = p[`r${y}`];
+  const history = BUSIEST_YEARS.filter((k) => typeof p[`r${k}`] === 'number')
+    .map((k) => tr({ zh: `${k} 第 ${p[`r${k}`]}`, en: `${k}: No. ${p[`r${k}`]}` }))
+    .join(tr({ zh: '、', en: ', ' }));
+  return {
+    title: `${String(p.en ?? '')} (${String(p.iata ?? '')})`,
+    detail: [typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      typeof pax === 'number' ? tr({ zh: `${y} 年第 ${rank} 名，${paxText(pax)}`, en: `No. ${rank} in ${y}, ${paxText(pax)}` }) : null]
+      .filter(Boolean)
+      .join(' · '),
+    extra: history ? [tr({ zh: `前 50 名：${history}`, en: `Top 50: ${history}` })] : undefined,
+  };
+}
+
 type Bilingual = { zh: string; en: string };
 
 /** 「標準軌（1,435 mm）」；name 為 null 是不在分類裡的軌距，只寫毫米數 */
@@ -120,6 +141,14 @@ export const transport: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
     {
+      name: {
+        zh: '英文維基百科「List of busiest airports by passenger traffic」（2026-10-20 的版本，數字引 ACI 的初步統計）',
+        en: 'English Wikipedia, “List of busiest airports by passenger traffic” (revision of 20 October 2026, citing ACI preliminary figures)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?oldid=1381104599',
+      license: 'CC BY-SA 4.0',
+    },
+    {
       name: { zh: '交通部民用航空局（台灣各機場的旅客，附註用）', en: 'Taiwan Civil Aeronautics Administration (passengers at Taiwan’s airports, for the note)' },
       url: 'https://data.gov.tw/dataset/33238',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
@@ -136,7 +165,8 @@ export const transport: TopicDefinition = {
       '亞美尼亞、南蘇丹兩個版本都沒有，用英文維基百科的軌距、沒有長度。世界概況幾個明顯的筆誤（瑞士、南非、阿爾及利亞的軌距）已更正。' +
       '航空旅客量是世界銀行（來源 ICAO）各國註冊的航空公司一年載運的旅客（國內線加國際線），算在航空公司的註冊國，不是機場所在的國家或乘客的國籍：' +
       '瑞安航空註冊在愛爾蘭、威茲航空在匈牙利，所以這兩國特別高；一趟轉機算兩次，轉機樞紐的航空公司也偏高。多數國家到 2023 年。' +
-      '台灣沒有這項資料，民航局統計的機場旅客寫在台灣的附註（口徑不同，地圖上留白）。',
+      '台灣沒有這項資料，民航局統計的機場旅客寫在台灣的附註（口徑不同，地圖上留白）。' +
+      '最繁忙的機場依英文維基百科 2026 年 10 月 20 日的版本，數字是國際機場協會（ACI）的初步統計，各機場自己公布的可能不同；每年只有前 50 名，2019 年以前在別的條目，沒有收。資料檔依維基百科的 CC BY-SA 4.0 分享。',
     en:
       'Railways come from simplified Natural Earth 1:10m map data and may miss branch lines; North America includes main lines only, so rail lengths for the US and Canada are clearly too low. Airports include only large airports and medium airports with scheduled flights. For ports and sea transport, see the Shipping and ports topic. ' +
       'Metro stations come from Wikidata: metro only (stations classed as metro stations or belonging to a metro system), not light rail, trams, monorails, airport people movers or commuter rail; stations under construction or planned are excluded. ' +
@@ -147,7 +177,8 @@ export const transport: TopicDefinition = {
       'Neither edition covers Armenia or South Sudan, whose gauges come from English Wikipedia, without lengths. A few obvious Factbook typos (the gauges of Switzerland, South Africa and Algeria) have been corrected. ' +
       'Air passengers are the World Bank’s (from ICAO) passengers carried in a year by airlines registered in each country (domestic plus international), counted in the airline’s country of registration, not where the airport is or where the passengers come from: ' +
       'Ryanair is registered in Ireland and Wizz Air in Hungary, so both countries stand out; a journey with a connection counts twice, which also lifts hub carriers. Most countries have data to 2023. ' +
-      'There is no figure for Taiwan; passengers counted at Taiwan’s airports by its Civil Aeronautics Administration are given in Taiwan’s note (a different measure, so the map leaves Taiwan blank).',
+      'There is no figure for Taiwan; passengers counted at Taiwan’s airports by its Civil Aeronautics Administration are given in Taiwan’s note (a different measure, so the map leaves Taiwan blank). ' +
+      'The busiest airports follow English Wikipedia as of 20 October 2026, whose figures are Airports Council International (ACI) preliminary statistics and may differ from the airports’ own; only the top 50 of each year are listed, and years before 2020 are in other articles and not included. The data files are shared under Wikipedia’s CC BY-SA 4.0.',
   },
   overlays: [
     // 航空旅客量的兩個指標不畫鐵路
@@ -165,6 +196,20 @@ export const transport: TopicDefinition = {
       endField: 'd',
       indicators: ['metro-stations', 'hsr-first'],
       tooltip: stationTooltip,
+    },
+    {
+      kind: 'points',
+      id: 'busiest',
+      file: 'busiest-airports.json',
+      label: { zh: '旅客量前 50 名的機場', en: 'Top 50 airports by passengers' },
+      radius: { field: 'pax', stops: [[2e7, 3], [5e7, 6], [8e7, 9], [1.1e8, 11.5]] },
+      color: MAP_TOKENS.hues.violet,
+      sortField: 'pax',
+      epochs: { years: BUSIEST_YEARS, values: (p, y) => ({ pax: typeof p[`p${y}`] === 'number' ? (p[`p${y}`] as number) : null }) },
+      minValue: { field: 'pax', stops: [[0, 1]] },
+      sizeLegend: { title: { zh: '一年的旅客', en: 'Passengers a year' }, values: [3e7, 6e7, 1e8], format: formatLargeTick },
+      indicators: ['busiest-passengers'],
+      tooltip: busiestTooltip,
     },
   ],
   panelExtra: () => import('./panels/TransportPanel'),
@@ -290,6 +335,20 @@ export const transport: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, v < 1 ? 2 : 1)} 次`, en: `${fixed(v, v < 1 ? 2 : 1)} trips` }),
       formatTick: (v) => fixed(v, v < 1 ? 2 : 0),
       noValue: AIR_NO_TWN,
+    },
+    {
+      id: 'busiest-passengers',
+      label: { zh: '最繁忙的機場', en: 'Busiest airports' },
+      description: {
+        zh: '每年旅客量前 50 名的機場（ACI 的初步統計，依英文維基百科的整理），圓的面積與旅客量成正比，拖時間軸看 2020–2025 每一年。2025 年亞特蘭大 1.06 億人次第一，杜拜 9,519 萬、東京羽田 9,168 萬；台灣桃園 4,780 萬人次第 48 名。國家的值是它在前 50 名的機場旅客合計（排名表）。',
+        en: 'The 50 busiest airports each year by passengers (ACI preliminary figures as compiled on English Wikipedia), with circle area proportional to passengers; drag the timeline for 2020–2025. In 2025 Atlanta led with 106 million, followed by Dubai (95.2 million) and Tokyo Haneda (91.7 million); Taiwan Taoyuan ranked 48th with 47.8 million. A country’s value is the total for its airports in the top 50 (see the ranking).',
+      },
+      unit: { zh: '人次', en: 'passengers' },
+      file: 'busiest-passengers.json',
+      layer: { kind: 'none' },
+      format: paxText,
+      formatTick: formatLargeTick,
+      missing: { zh: '沒有機場在前 50 名', en: 'No airport in the top 50' },
     },
     {
       id: 'metro-stations',

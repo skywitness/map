@@ -220,6 +220,10 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       show(group.id, e.key === 'ArrowDown' ? 'first' : 'last');
+    } else if (e.key === 'Escape' && open) {
+      // 選單剛打開、焦點還沒移進選單時（Preact 的 effect 比較晚跑）按 Esc 也要關掉
+      e.preventDefault();
+      close(true);
     }
   };
 
