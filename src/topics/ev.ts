@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
-import type { TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { CategoryDef, TopicDefinition } from './types';
 
 const CARS = { zh: '輛', en: 'cars' };
 const CHARGERS = { zh: '個', en: 'chargers' };
@@ -25,6 +26,25 @@ export function count(v: number): string {
 }
 
 const percent = (v: number) => `${sig2(v)}%`;
+
+/** 停售燃油新車的年份（pipeline/topics/ev_phaseout.py）：值是年份本身，0 是沒有宣布 */
+const PHASEOUT_YEAR: CategoryDef[] = [
+  { value: 2000, max: 2025, label: { zh: '2025 年以前', en: 'By 2025' } },
+  { value: 2026, max: 2039, label: { zh: '2030 年代', en: '2030s' } },
+  { value: 2040, max: 2049, label: { zh: '2040 年代', en: '2040s' } },
+  { value: 2050, max: 2059, label: { zh: '2050 年代', en: '2050s' } },
+  { value: 0, label: { zh: '沒有宣布', en: 'None announced' }, color: MAP_TOKENS.categoricalOther },
+];
+/** 停售的狀態（pipeline 的 LEGISLATED、POLICY、DECLARATION、NONE） */
+const PHASEOUT_STATUS: CategoryDef[] = [
+  { value: 1, label: { zh: '已立法或已實施', en: 'Legislated or in force' } },
+  { value: 2, label: { zh: '政策目標', en: 'Policy target' } },
+  { value: 3, label: { zh: '只簽了格拉斯哥宣言', en: 'Glasgow Declaration only' } },
+  { value: 0, label: { zh: '沒有宣布', en: 'None announced' }, color: MAP_TOKENS.categoricalOther },
+];
+const categoryText = (list: CategoryDef[], v: number) =>
+  tr(list.find((c) => v >= c.value && v <= (c.max ?? c.value))?.label ?? { zh: '', en: '' });
+const WIKI_PHASEOUT = 'https://en.wikipedia.org/w/index.php?title=Phase-out_of_fossil_fuel_vehicles&oldid=1380317959';
 
 export const ev: TopicDefinition = {
   id: 'ev',
@@ -54,16 +74,26 @@ export const ev: TopicDefinition = {
       url: 'https://www.motc.gov.tw/ch/app/data/view?module=news&id=14&serno=3df3fb48-8179-4028-944c-6f4f7e99e2e9',
       license: { zh: '交通部政府資料開放宣告', en: 'MOTC open data declaration' },
     },
+    {
+      name: {
+        zh: '英文維基百科「Phase-out of fossil fuel vehicles」（停售燃油車的年份與狀態）',
+        en: 'English Wikipedia, "Phase-out of fossil fuel vehicles" (phase-out years and status)',
+      },
+      url: WIKI_PHASEOUT,
+      license: 'CC BY-SA 4.0',
+    },
   ],
   note: {
     zh:
       '「電動車」跟 IEA 的定義一樣，是純電（BEV）加插電式混合（PHEV，含增程式），只算小客車，不含燃料電池車與不能外接充電的油電混合車。' +
       'IEA 只涵蓋約 40–60 個主要汽車市場（銷售占比 61 國、保有量 46 國、充電樁 43 國），其他國家在地圖上是灰色；數值四捨五入到兩位有效數字，世界值是 IEA 自己的估計。' +
-      '台灣不在 IEA 的資料中，改用交通部公路局的小客車領牌與登記數，充電樁沒有逐年統計而從缺，見台灣側欄的附註。',
+      '台灣不在 IEA 的資料中，改用交通部公路局的小客車領牌與登記數，充電樁沒有逐年統計而從缺，見台灣側欄的附註。' +
+      '停售燃油車的年份與狀態依英文維基百科條目的國家表（2026 年 10 月的版本），逐國分成已立法、政策目標、只簽格拉斯哥宣言；表裡沒有的歐盟國家依歐盟 2035 年的法規補上。',
     en:
       '"Electric cars" follows the IEA definition: battery-electric (BEV) plus plug-in hybrid (PHEV, including range-extended) passenger cars, excluding fuel-cell cars and conventional hybrids that cannot be plugged in. ' +
       'The IEA covers only about 40–60 major car markets (61 countries for sales share, 46 for stock, 43 for chargers), so other countries are grey on the map; values are rounded to two significant figures and world values are the IEA\'s own estimates. ' +
-      'Taiwan is not in the IEA data, so passenger car registrations from the Highway Bureau are used instead; there is no yearly series of public chargers, so those are left blank. See the notes in Taiwan\'s panel.',
+      'Taiwan is not in the IEA data, so passenger car registrations from the Highway Bureau are used instead; there is no yearly series of public chargers, so those are left blank. See the notes in Taiwan\'s panel. ' +
+      'Phase-out years and status follow the country table in the English Wikipedia article (October 2026 revision), sorted by hand into legislated, policy target or Glasgow Declaration only; EU members not in the table are added under the EU\'s 2035 rule.',
   },
   panelExtra: () => import('./panels/EvPanel'),
   indicators: [
@@ -136,6 +166,32 @@ export const ev: TopicDefinition = {
       format: (v) => `${sig2(v)} ${tr(PER_CHARGER)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'phaseout-year',
+      label: { zh: '停售燃油車的年份', en: 'Combustion car phase-out year' },
+      description: {
+        zh: '各國宣布不再賣汽油、柴油（或所有會排放廢氣的）新車的年份。歐盟 2035 年起新車要零排放（德國、義大利要求重新檢討）；挪威 2025 年的目標幾乎達成，衣索比亞 2024 年起禁止進口燃油車。很多是政策目標或只簽了不具約束力的格拉斯哥宣言（2040 年），見「停售的狀態」。滑過看範圍。',
+        en: 'The year each country has announced it will stop sales of new petrol and diesel (or all tailpipe-emitting) vehicles. The EU requires zero-emission new cars from 2035 (Germany and Italy have asked for a review); Norway has almost met its 2025 target and Ethiopia banned combustion-car imports in 2024. Many dates are policy targets or come only from signing the non-binding Glasgow Declaration (2040); see Phase-out status. Hover to see the scope.',
+      },
+      unit: '',
+      file: 'phaseout-year.json',
+      layer: { kind: 'categorical', categories: PHASEOUT_YEAR, ordinal: true },
+      format: (v) => (v === 0 ? tr({ zh: '沒有宣布', en: 'None announced' }) : tr({ zh: `${v} 年`, en: String(v) })),
+      defaultYear: 2026,
+    },
+    {
+      id: 'phaseout-status',
+      label: { zh: '停售的狀態', en: 'Phase-out status' },
+      description: {
+        zh: '停售燃油新車的年份是法律、政策目標，還是只簽了 2021 年格拉斯哥氣候會議不具約束力的宣言（2040 年全球、主要市場 2035 年新車零排放）。依維基百科條目的表逐國判斷：歐盟法規與衣索比亞的進口禁令算已立法或已實施，政府的計畫、氣候計畫與提案算政策目標。',
+        en: "Whether the phase-out date is law, a policy target, or only comes from signing the non-binding Glasgow Declaration of the 2021 climate conference (zero-emission new cars by 2040 globally and 2035 in leading markets). Classified country by country from the Wikipedia article's table: the EU rule and Ethiopia's import ban count as legislated or in force; government plans, climate plans and proposals count as policy targets.",
+      },
+      unit: '',
+      file: 'phaseout-status.json',
+      layer: { kind: 'categorical', categories: PHASEOUT_STATUS },
+      format: (v) => categoryText(PHASEOUT_STATUS, v),
+      defaultYear: 2026,
     },
   ],
 };
