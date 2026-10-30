@@ -801,9 +801,13 @@ export function syncOverlays(
 }
 
 /** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併 */
-export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], year: number, mode: IndicatorDef['overlayTime']) {
+export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], shownYear: number, indicatorMode: IndicatorDef['overlayTime']) {
   for (const o of overlays.filter(isData)) {
     const id = OVERLAY_PREFIX + o.def.id;
+    // 共用疊加圖層（shared-layers.ts）有自己跟時間軸的方式，時間軸超出它的資料範圍時用最接近的一年
+    const mode = o.def.overlayTime ?? indicatorMode;
+    const range = o.def.timeRange;
+    const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
     if (o.kind === 'points') {
       if (!o.def.timeField && !o.def.minValue) continue;
       if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));

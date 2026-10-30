@@ -1729,6 +1729,47 @@ kbd {
   font-weight: 600;
 }
 
+/* 圖層選單裡的「其他主題的圖層」（BasemapMenu.tsx，2026-10-30）：跟底圖並排兩欄，左邊一格打勾 */
+.map-menu-col {
+  display: grid;
+  align-content: start;
+}
+
+.map-menu-list.has-shared {
+  display: flex;
+  gap: 4px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.map-menu-list.has-shared .map-menu-col + .map-menu-col {
+  padding-left: 4px;
+  border-left: 1px solid var(--grid);
+}
+
+/* 手機上螢幕窄，兩欄改成上下 */
+@media (max-width: 768px) {
+  .map-menu-list.has-shared {
+    flex-direction: column;
+  }
+
+  .map-menu-list.has-shared .map-menu-col + .map-menu-col {
+    padding: 4px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--grid);
+  }
+}
+
+.shared-layer-check {
+  flex: none;
+  width: 12px;
+  font-weight: 600;
+}
+
+.shared-layer-item[aria-checked='true'] {
+  font-weight: 600;
+}
+
 /* 「更多」：開關類的項目左邊留一格打勾；3D 時不能框選，原因寫在下面 */
 .more-check {
   flex: none;

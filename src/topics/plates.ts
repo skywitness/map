@@ -3,6 +3,7 @@ import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import { decodeLines } from '../map/overlayData';
 import { MAP_TOKENS } from '../theme/tokens';
+import { PLATES_TODAY } from './shared-layers';
 import type { IndicatorDef, LinesData, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -218,24 +219,8 @@ export const plates: TopicDefinition = {
       width: 1.3,
       color: { title: { zh: '邊界的種類', en: 'Boundary type' }, classes: BOUNDARIES },
     },
-    {
-      // 今天的板塊邊界（對照，預設關掉）：直接讀地震與火山主題的 plates.json，不複製（共用疊加圖層做好後改接過去）
-      kind: 'lines',
-      id: 'plates-today',
-      topic: 'earthquakes',
-      file: 'plates.json',
-      label: { zh: '今天的板塊邊界（對照）', en: 'Today’s plate boundaries (for comparison)' },
-      width: 1,
-      hidden: true,
-      color: {
-        title: { zh: '今天的邊界（PB2002）', en: 'Boundaries today (PB2002)' },
-        classes: [
-          { value: 1, color: MAP_TOKENS.inkSecondary, label: { zh: '聚合（隱沒帶、碰撞）', en: 'Convergent (subduction, collision)' } },
-          { value: 2, color: MAP_TOKENS.inkSecondary, dash: true, label: { zh: '張裂（中洋脊、裂谷）', en: 'Divergent (ridges, rifts)' } },
-          { value: 3, color: MAP_TOKENS.inkMuted, label: { zh: '轉形斷層', en: 'Transform faults' } },
-        ],
-      },
-    },
+    // 今天的板塊邊界（對照，預設關掉）：共用疊加圖層的定義（shared-layers.ts，讀地震與火山主題的 plates.json，不複製）
+    { ...PLATES_TODAY, label: { zh: '今天的板塊邊界（對照）', en: 'Today’s plate boundaries (for comparison)' }, hidden: true },
   ],
   indicators,
 };

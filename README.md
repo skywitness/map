@@ -15,6 +15,8 @@
 
 點國家後，側欄最下面列 2–4 個相關主題（交通安全 ↔ 交通、電動車 ↔ 發電量、疾病與死因 ↔ 健康與醫療 ↔ 疫苗…），點了換到那個主題、國家照樣選著。
 
+地圖右上角的「圖層」選單可以把其他主題的圖層疊在任何主題上：地震與火山、板塊邊界、發電廠、海底電纜、颱風路徑、鐵路、城市（例如在夜間燈光疊發電廠、在岩石種類疊板塊邊界），第一次打開才下載。
+
 每個畫面右上角的「分享」可以下載地圖圖片（PNG，含標題、圖例與資料來源）、下載目前指標的 CSV（選定年份或所有年份，Excel 可直接開啟），或複製這個畫面的連結。
 
 右上角的「中文 / EN」切換介面語言，不必重新整理；英文版的網址帶 `lang=en`，分享出去打開就是英文。
@@ -226,6 +228,7 @@ Live site: https://skywitness.github.io/map/?lang=en
 - **Keyboard shortcuts** (press `?`): `/` search, `←` `→` change year, Space play/pause, `+` `−` zoom, `Esc` clear the selection.
 - **Share**: download the current map as a PNG (with title, legend and sources), download the indicator as CSV, or copy a link. The whole view, including the language (`lang=en`), is stored in the URL.
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
+- **Layers from other topics**: the map’s layers menu can lay earthquakes and volcanoes, plate boundaries, power plants, submarine cables, cyclone tracks, railways or cities over any topic (for example power plants over night lights), loaded only when first switched on.
 - **Related topics**: the country panel ends with two to four related topics (road safety ↔ transport, EVs ↔ electricity…), opening them for the same country.
 - **1 km grid**: population density can switch from country averages to a grid of cells about 1 km across (JRC GHS-POP, every 5 years from 1975 to 2030, following the time slider). Warming (on the temperature topic) can likewise switch to a 0.5° grid (CRU TS, one map per year), solar and wind potential to a ~2 km grid (Global Solar Atlas, Global Wind Atlas), and download speed to a ~2 km grid of Speedtest by Ookla tests (the latest quarter). Night lights open on a ~500 m grid (EOG annual VIIRS composites for 2013, 2016, 2020 and 2024) drawn over a dark night backdrop, so it reads as a night view on any basemap. The grid tiles are not in the repository; the deploy workflow builds and caches them.
 
