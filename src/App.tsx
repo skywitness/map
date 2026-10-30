@@ -7,7 +7,7 @@ import { SavedViews } from './controls/SavedViews';
 import { ShareMenu } from './controls/ShareMenu';
 import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
-import { localize, setLang, useLang, useT } from './i18n';
+import { localize, setLang, tr, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { rememberTopic } from './lib/recentTopics';
@@ -41,6 +41,7 @@ import { PanelSkeleton } from './panels/Skeleton';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
 import { Sparkline } from './map/Sparkline';
 import { loadedTopic, loadTopic } from './topics';
+import { SHARED_LAYERS } from './topics/shared-layers';
 import {
   dimensionOf,
   forItem,
@@ -67,7 +68,7 @@ import {
   useTopicReady,
 } from './app/hooks';
 import { canAnalyse, groupOptions, pickYear } from './app/options';
-import { useOverlays } from './app/overlays';
+import { useOverlays, useSharedOverlays } from './app/overlays';
 import { worldTrend } from './app/trend';
 import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
@@ -155,7 +156,25 @@ export function App() {
   useFitMap(appRef);
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
-  const topic = localize(definition, lang);
+  // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
+  const [sharedOn, setSharedOn] = useState<string[]>([]);
+  const sharedDefs = useSharedOverlays(sharedOn);
+  const shown = useMemo(() => {
+    const own = definition.overlays ?? [];
+    const extra = sharedDefs.filter((d) => !own.some((o) => o.id === d.id) && ('topic' in d ? d.topic : undefined) !== definition.id);
+    return extra.length ? { ...definition, overlays: [...own, ...extra] } : definition;
+  }, [definition, sharedDefs]);
+  const sharedChoices = useMemo(
+    () =>
+      SHARED_LAYERS.filter((l) => l.topic !== definition.id && !definition.overlays?.some((o) => l.ids.includes(o.id))).map((l) => ({
+        id: l.id,
+        label: tr(l.label, lang),
+        checked: sharedOn.includes(l.id),
+      })),
+    [definition, sharedOn, lang],
+  );
+  const toggleShared = useCallback((id: string) => setSharedOn((on) => (on.includes(id) ? on.filter((x) => x !== id) : [...on, id])), []);
+  const topic = localize(shown, lang);
   // 主題自訂地點（奧運的歷史隊伍等）的名稱，排名表、tooltip、側欄的 countryName() 才查得到
   registerPlaces(definition.places);
   const placeAnchors = useMemo<[string, [number, number]][]>(
@@ -772,6 +791,8 @@ export function App() {
                   }
                   basemap={basemap}
                   onBasemapChange={chooseBasemap}
+                  sharedLayers={pure ? undefined : sharedChoices}
+                  onSharedToggle={toggleShared}
                   fitOnSelect={pure}
                   onFirstData={onMapShown}
                   onDetailNeeded={wantDetail}

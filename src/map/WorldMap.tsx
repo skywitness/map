@@ -82,7 +82,7 @@ import { GRID_PROTOCOL, gridLabels, loadGridTile, type GridLayer } from './densi
 import { FLAG_PROTOCOL, loadFlagTile, type FlagSpec } from './flagTiles';
 import { demSource, RELIEF_COLOR, reliefLegendModel, RELIEF_TITLE, terrainExaggeration } from './terrain';
 import { useElementSize } from './useElementSize';
-import { BasemapMenu } from './BasemapMenu';
+import { BasemapMenu, type SharedLayerChoice } from './BasemapMenu';
 import { Extremes } from './Extremes';
 import { RegionMenu } from './RegionMenu';
 import { MoreMenu, type MoreMenuItem } from './MoreMenu';
@@ -207,6 +207,9 @@ interface WorldMapProps {
   basemap: Basemap;
   /** 有傳才在右上角的按鈕列放「底圖」選單 */
   onBasemapChange?: (id: string) => void;
+  /** 圖層選單裡「其他主題的圖層」（topics/shared-layers.ts）：名稱與打開了沒 */
+  sharedLayers?: SharedLayerChoice[];
+  onSharedToggle?: (id: string) => void;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
   fitOnSelect?: boolean;
   /** 資料第一次畫到地圖上（不上色的指標：國界第一次畫上）時呼叫一次 */
@@ -1724,7 +1727,9 @@ export function WorldMap(props: WorldMapProps) {
             12
           </button>
         )}
-        {onBasemapChange && <BasemapMenu basemap={basemap} onChange={onBasemapChange} />}
+        {onBasemapChange && (
+          <BasemapMenu basemap={basemap} onChange={onBasemapChange} shared={props.sharedLayers} onSharedToggle={props.onSharedToggle} />
+        )}
         {collapseMore && <MoreMenu items={moreItems} />}
         {!collapseMore && onBoxChange && (
           <button

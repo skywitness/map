@@ -16,7 +16,8 @@ import {
   type OverlayLayer,
 } from '../map/overlayData';
 import type { MapView } from '../map/WorldMap';
-import type { AirportsData, Indicator, LinesData, PointRecord, PointsData, RailwaysData, Topic } from '../topics/types';
+import { loadSharedLayer } from '../topics/shared-layers';
+import type { AirportsData, Indicator, LinesData, OverlayDef, PointRecord, PointsData, RailwaysData, Topic } from '../topics/types';
 
 /**
  * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
@@ -38,7 +39,8 @@ export function useOverlays(
 ) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
-  const files = useMemo(() => legacy.map((o) => `topics/${topic.id}/${o.file}`), [topic.id, legacy]);
+  // 鐵路也可以是共用疊加圖層（shared-layers.ts，topic 是交通）
+  const files = useMemo(() => legacy.map((o) => `topics/${o.topic ?? topic.id}/${o.file}`), [topic.id, legacy]);
   const loaded = useJsonMany<unknown>(files);
   const railIndex = legacy.findIndex((o) => o.id === 'railways');
   const airportIndex = legacy.findIndex((o) => o.id === 'airports');
@@ -247,4 +249,25 @@ function useJsonEach(paths: string[]): Map<string, unknown> {
     }
   }, [key]);
   return loaded;
+}
+
+/**
+ * 打開的共用疊加圖層（topics/shared-layers.ts）的定義：第一次打開時才載入原本那個主題的定義（資料檔等畫的時候才下載），
+ * 載入過的留著，關掉再打開不必再等
+ */
+export function useSharedOverlays(ids: string[]): OverlayDef[] {
+  const [defs, setDefs] = useState<Record<string, OverlayDef[]>>({});
+  useEffect(() => {
+    let alive = true;
+    for (const id of ids) {
+      if (defs[id]) continue;
+      loadSharedLayer(id)
+        .then((list) => alive && setDefs((all) => ({ ...all, [id]: list })))
+        .catch(() => {});
+    }
+    return () => {
+      alive = false;
+    };
+  }, [ids, defs]);
+  return useMemo(() => ids.flatMap((id) => defs[id] ?? []), [ids, defs]);
 }
