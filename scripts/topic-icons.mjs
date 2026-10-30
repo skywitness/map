@@ -85,8 +85,7 @@ const TOPIC_ICONS = {
   agriculture: 'wheat',
   minerals: 'pickaxe',
   'chain-stores': 'store',
-  'oldest-companies': 'hourglass',
-  brands: 'tag',
+  companies: 'briefcase-business',
   // 國際
   trade: 'container',
   migration: 'footprints',

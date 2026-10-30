@@ -22,7 +22,7 @@ import unicodedata
 from collections import defaultdict
 
 import geoindex
-from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, indicator_file, lines_file, now_iso, points_file, write_json
 from sources import ghsl_wup, ris, wikidata_places
 from sources.nobel import zh_labels
 
@@ -48,6 +48,24 @@ COUNTY_EN = {
     "新竹市": "Hsinchu City", "新竹縣": "Hsinchu County", "彰化縣": "Changhua County",
 }
 MOI_YEAR = 2025
+# 台灣的城市 Wikidata 對不到中文名稱的（WUP 依村里或舊地名取英文名稱），依中心點所在的區、鄉鎮市手動對照
+# （使用者 2026-10-30 決定；DESIGN.md 第 210 點）。只在沒有中文名稱時用，名稱對不上時報錯
+TAIWAN_ZH = {
+    12120: ("Dazhuang", "沙鹿、梧棲"),  # 大庄（梧棲區），中心點在沙鹿區與梧棲區之間
+    12122: ("Waishuiwei", "大甲區"),
+    12130: ("Xinying District", "新營區"),
+    12133: ("Gonghuakeng", "林口、龜山"),  # 中心點在林口區南邊，範圍連到龜山區
+    12134: ("Ô-á-liâu / Kezihliao", "岡山區"),
+    20785: ("Douliu City", "斗六市"),
+    20935: ("Puli Township", "埔里鎮"),
+    21381: ("Huwei Township", "虎尾鎮"),
+    21382: ("Dongang", "東港鎮"),
+    21551: ("Dongang", "東港鎮"),
+    21552: ("Chaozhou", "潮州鎮"),
+    21639: ("Xiluo Township", "西螺鎮"),
+    21776: ("Puzi City", "朴子市"),
+    21777: ("Dounan Township", "斗南鎮"),
+}
 # 跨越國界、算在小國的城市：人口比那一國還多，最大城市占全國人口不算（各指標檔的附註）
 _CROSS = "GHSL 把 {zh}連成一片的市區算一個城市、放在{place}，人口比{place}全國還多，所以沒有「最大城市占全國人口」。"
 _CROSS_EN = "GHSL treats the continuous built-up area of {en} as one city placed in {place_en}; it has more people than {place_en} itself, so there is no largest-city share."
@@ -269,6 +287,12 @@ def build() -> None:
         print(f"  Wikidata 查不到（{e}），沿用上一次 cities.json 的中文名稱")
         matched, zh = {}, _previous_zh(centres)
 
+    for cid, (name, text) in TAIWAN_ZH.items():
+        c = next((c for c in centres if c.id == cid), None)
+        if c is None or c.name != name:
+            raise RuntimeError(f"TAIWAN_ZH 的 {cid} 不是 {name}（{c.name if c else '沒有這個 ID'}）")
+        zh.setdefault(cid, text)
+
     # ── 城市的點 ──
     rows = []
     by_loc: dict[int, list[ghsl_wup.UrbanCentre]] = defaultdict(list)
@@ -398,6 +422,7 @@ def build() -> None:
         aggregates={"WLD": [round(max(all_pops[y])) for y in years]}, **extra, **notes(city_note, city_note_en, cross=True)))
 
     build_built(stats)
+    build_boundaries()
 
     big = [c for c in centres if c.pop.get(REF, 0) >= 300_000]
     named_big = sum(1 for c in big if c.id in zh)
@@ -473,3 +498,88 @@ def build_built(stats: ghsl_wup.CountryStats | None = None) -> None:
     for k in ("AUS", "USA", "JPN", "CHN", "TWN", "BGD", "ETH", "KEN"):
         if k in built_growth:
             print(f"    {k}：2020 年 {built_growth[k][i2020]} 倍、人均 {built_cap[k][i2020]} m²、2025 年 {built[k][i2025]} km²")
+
+
+# ── 城市的範圍（放大才畫，使用者 2026-10-30 決定每一期都畫）──────────────────
+BOUNDARY_TOLERANCE = 1000  # 公尺（Mollweide）；網格是 1 km，500 m 幾乎簡化不掉格子的鋸齒（41 MB）
+BOUNDARY_QUANTUM = 0.005  # 經緯度量化（約 500 m）
+BOUNDARY_TILE = 10  # 分區的大小（度）
+MIN_HOLE_KM2 = 2  # 比這小的洞不畫
+
+
+def build_boundaries() -> None:
+    """GHS-WUP-MTUC 每個城市每一期（1975–2100）的範圍 → boundaries.json（主檔只有分區的清單）與 boundaries/<分區>.json。
+
+    每個環一條線（LinesData，fill 畫成半透明的面）：紀錄 `a` 是那一期、`b` 是範圍改變的那一期，前端用 overlayTime
+    'cumulative' 的 timeField、endField 只畫時間軸那一年所在的那一期；`k` 是 1 的環是前一個外環的洞。
+    分區依環的第一個點分到 10° 的格子。不用 Wikidata，可以單獨跑（`python -c "from topics import cities; cities.build_boundaries()"`）。
+    """
+    import numpy as np
+    import shapely
+    from rasterio.warp import transform
+
+    # 同一個城市連續幾期的範圍完全一樣時（57%，尤其是推估的年份）只存一次，`b` 寫最後那一期的下一期
+    by_city: dict[int, list[tuple[int, list[np.ndarray]]]] = defaultdict(list)
+    polygons = 0
+    for cid, year, parts in ghsl_wup.boundaries():
+        polygons += 1
+        by_city[cid].append((year, parts))
+    runs: list[tuple[int, int, list[np.ndarray]]] = []  # (第一期, 最後一期的下一期, 環)
+    for periods in by_city.values():
+        periods.sort(key=lambda p: p[0])
+        for year, parts in periods:
+            last = runs[-1] if runs and runs[-1][1] == year else None
+            if last and len(last[2]) == len(parts) and all(np.array_equal(p, q) for p, q in zip(last[2], parts)):
+                runs[-1] = (last[0], year + 5, last[2])
+            else:
+                runs.append((year, year + 5, parts))
+        runs.append((0, 0, []))  # 隔開下一個城市
+    rings: list[np.ndarray] = []
+    meta: list[tuple[int, int, int]] = []  # (第一期, 結束, 是不是洞)
+    for year, end, parts in runs:
+        for ring in parts:
+            if len(ring) < 4:
+                continue
+            x, y = ring[:, 0], ring[:, 1]
+            signed = 0.5 * float(np.dot(x[:-1], y[1:]) - np.dot(x[1:], y[:-1]))
+            hole = signed > 0  # shapefile 的外環是順時針（面積為負），洞是逆時針
+            if hole and abs(signed) < MIN_HOLE_KM2 * 1e6:
+                continue
+            simple = shapely.get_coordinates(shapely.simplify(shapely.linearrings(ring), BOUNDARY_TOLERANCE))
+            if len(simple) < 4:
+                continue
+            rings.append(simple)
+            meta.append((year, end, int(hole)))
+    sizes = [len(r) for r in rings]
+    allpts = np.concatenate(rings)
+    lon, lat = transform("ESRI:54009", "EPSG:4326", allpts[:, 0].tolist(), allpts[:, 1].tolist())
+    lon, lat = np.array(lon), np.array(lat)
+    by_tile: dict[str, list[int]] = defaultdict(list)
+    lines: list[list[tuple[float, float]]] = []
+    start, key = 0, ""
+    for i, n in enumerate(sizes):
+        xs, ys = lon[start:start + n], lat[start:start + n]
+        start += n
+        lines.append(list(zip(xs.tolist(), ys.tolist())))
+        if not meta[i][2] or not key:  # 洞跟著前一個外環放在同一個分區
+            key = f"{int((xs[0] + 180) // BOUNDARY_TILE)}_{int((ys[0] + 90) // BOUNDARY_TILE)}"
+        by_tile[key].append(i)
+    folder = OUT / "boundaries"
+    folder.mkdir(parents=True, exist_ok=True)
+    for old in folder.glob("*.json"):
+        old.unlink()
+    tiles, total = [], 0
+    for key in sorted(by_tile):
+        idx = by_tile[key]
+        records = [{"a": meta[i][0], "b": meta[i][1], "f": 1, "k": meta[i][2]} for i in idx]
+        data = lines_file([lines[i] for i in idx], BOUNDARY_QUANTUM, records=records, record_fields=["a", "b", "f", "k"],
+                          record_scale={"a": 5, "b": 5, "f": 1, "k": 1})
+        path = folder / f"{key}.json"
+        write_json(path, data, quiet=True)
+        total += path.stat().st_size
+        xs = [x for i in idx for x, _ in lines[i]]
+        ys = [y for i in idx for _, y in lines[i]]
+        tiles.append([key, round(min(xs), 2), round(min(ys), 2), round(max(xs), 2), round(max(ys), 2)])
+    write_json(OUT / "boundaries.json", {"quantum": BOUNDARY_QUANTUM, "lines": [],
+                                         "detail": {"file": "boundaries/{tile}.json", "tiles": tiles}})
+    print(f"  城市範圍：{polygons:,} 個多邊形、{len(rings):,} 個環、{len(allpts):,} 個點；分區 {len(tiles)} 個檔，共 {total / 1e6:.2f} MB")
