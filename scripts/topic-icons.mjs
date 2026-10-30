@@ -114,7 +114,7 @@ const TOPIC_ICONS = {
   'urban-heat': 'thermometer',
   'air-quality': 'haze',
   'water-forest': 'trees',
-  'oil-palm': 'tree-palm',
+  'oil-palm': 'droplets',
   plastic: 'recycle',
   ewaste: 'monitor-x',
   ev: 'plug-zap',
