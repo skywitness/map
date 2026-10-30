@@ -305,7 +305,8 @@ export function App() {
   // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
   const topicFocus = indicator.focus ?? topic.focus;
   useEffect(() => {
-    if (topicFocus && !state.country) moveToBox(topicFocus);
+    // 主題的 focus 可以依年份給（板塊漂移：那個年代的大陸在哪裡），只在換過來時看一次
+    if (topicFocus && !state.country) moveToBox(typeof topicFocus === 'function' ? topicFocus(year) : topicFocus);
   }, [topic.id, indicator.focus]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
