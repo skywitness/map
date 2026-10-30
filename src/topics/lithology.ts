@@ -1,5 +1,5 @@
 import { tr } from '../i18n/lang';
-import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridLayer';
+import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridData';
 import { dataUrl } from '../lib/data';
 import { fixed } from '../lib/format';
 import type { IndicatorDef, TopicDefinition } from './types';

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { decodePoints } from '../../map/Overlays';
+import { decodePoints } from '../../map/overlayData';
 import { elevation, lastEruption, magnitude, quakeDate, volcanoType } from '../earthquakes';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';
 

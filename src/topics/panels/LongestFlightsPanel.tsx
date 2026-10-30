@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { decodeLines } from '../../map/Overlays';
+import { decodeLines } from '../../map/overlayData';
 import { CURRENT, airlineName, routeFacts, routeTitle } from '../longest-flights';
 import type { LinesData, PanelExtraProps, PointRecord } from '../types';
 

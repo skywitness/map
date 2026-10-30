@@ -12,11 +12,11 @@
 | 國界 | **Natural Earth 1:50m**（world-atlas 套件） | 給資料上色、點選、框選用；全球視角畫 1:110m（原本沒有的新加坡、巴林等 63 個小國從 1:50m 補進去，第 13 節），放大才換 1:50m；pipeline 判斷一個點在哪一國另外用 1:10m（第 8 節第 85 點） |
 | 側欄圖表 | **自己畫的 SVG**（`src/charts/Chart.tsx`，2026-10-29 起） | 點國家時才載入（gzip 後約 4 KB）；2026-10-29 以前是 ECharts 6（約 187 KB gzip，第 5 節「側欄的圖表」） |
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
-| 前端 | Vite + React + TypeScript | |
+| 前端 | Vite + TypeScript，程式照 React 寫，執行時是 **Preact**（`preact/compat`，2026-10-30 起） | 首頁的程式 gzip 後從 141 KB 降到 76 KB（react-dom 約 200 KB 未壓縮）；寫法、型別（`@types/react`）不變，見第 13 節 |
 | 介面語言 | 繁體中文（預設）與英文，自己寫的小字典（`src/i18n/`），見第 12 節 | 字串不多，不需要 i18next 之類的套件；型別檢查保證兩種語言的鍵一致 |
 | 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟直接從快取載入；看過一次就能離線開啟；可以安裝成 App（見第 13 節） |
 | 資料處理 | Python（`pipeline/`），離線執行 | 前端只讀靜態 JSON，不需要後端 |
-| 部署 | GitHub Pages（GitHub Actions 自動建置） | `vite.config.ts` 已設 `base: './'` |
+| 部署 | GitHub Pages（GitHub Actions 自動建置） | 建置用絕對路徑 `base: '/map/'`（每個主題的網址 t/<主題>/，第 13 節） |
 
 **為什麼是 MapLibre 5 而不是 6**：
 - MapLibre 6 把 web worker 拆成獨立的 ES module 檔，經過 Vite 打包後 worker 找不到，底圖整個出不來。
@@ -3819,6 +3819,19 @@ pipeline/
   - 手機的 LCP 快了 2.4 秒：LCP 是頁尾的文字，要等首頁程式跑起來（335 → 145 KB，gzip 後）。
   - 地圖出現資料只快了約 1 秒：底圖圖磚原本就不擋資料（上面「做了什麼」第 3 點），省下的主要是之後的 7 MB；手機上這 7 MB 原本要在背景下載將近一分鐘，跟換主題、開側欄搶頻寬。
 
+- **React 換成 Preact**（2026-10-30，`vite.config.ts` 的 `resolve.alias`）：程式照舊 `import ... from 'react'`、型別用 `@types/react`，建置與開發都把 `react`、`react-dom`、`react-dom/client`、`react/jsx-runtime` 換成 `preact/compat`（Preact 11）。首頁的 chunk gzip 後從 141 KB 降到 76 KB（react-dom 約 200 KB 未壓縮，Preact 加 compat 約 15 KB）。
+  - 不再用 `@vitejs/plugin-react`：JSX 用 Vite 內建的轉換（`oxc.jsx`，automatic runtime，`importSource: 'preact'`）。它的 Fast Refresh 只認得 React，所以開發時改了程式是整頁重新載入（沒有保留狀態的熱更新）；`npm run check:en`（開發伺服器）測的也是 Preact，跟正式版一致。
+  - **React 19 才有、Preact 沒有的寫法**：函式元件直接收 `ref` 這個 prop。只有 `WorldMap` 這樣用，改名成 `handleRef`（App 傳 `handleRef={mapHandle}`）。新寫的元件不要用 `ref` 當一般的 prop（要的話用 `forwardRef` 或換名字），也不要用 `use()`、`useOptimistic`、`useActionState` 等 React 19 的新 hook。
+  - 驗證：全部主題的冒煙測試（正式建置）、每個主題的側欄（美國、台灣）、每個主題分析檢視的四個分頁、滑過與點選國家、框選、指令面板、主題總覽、排名表、時刻主題、時間軸的拖曳與 ←/→、下拉選單、CSV 與地圖圖片下載、篩選的數字輸入、拉簾拖曳、手機抽屜、嵌入模式，加上 `check:en`，都沒有錯誤。
+- **地圖還沒畫好前先放一張地球圖**（2026-10-30，`app/GlobePlaceholder.tsx`、`scripts/globe-placeholder.mjs`）：慢的網路上 MapLibre（gzip 後約 300 KB）、底圖樣式、國界都到了才畫得出地球，之前地圖的位置是一片太空背景。現在先放一張初始視角（亞洲在中間）的地球截圖：`public/globe/light.webp`（彩色地形，32 KB）、`dark.webp`（深藍，21 KB），640px、地球外面透明。
+  - 大小、位置跟 MapLibre 的初始地球一樣（直徑是地圖高度的 0.94、置中，截圖腳本量的），放在地圖畫布底下：太空背景從畫布移到外框（`.map`），畫布本身透明，MapLibre 一畫出地球就蓋過它，不必掐時間移除；`'load'` 之後不再畫。地圖的程式還沒下載時（App 的 Suspense）用 `MapFallback`：同樣的太空背景、地球圖，左下角「載入地圖…」。
+  - 深色底圖（或深色介面沒選過底圖）用深色的；`index.html` 的開頭程式依同樣的規則預先下載那一張（網址有 `view=` 時不下載），Service worker 也預先快取（共約 53 KB）。只用在地球儀的初始視角（平面地圖、3D 時不放）。
+  - 實測（無頭 Chrome 限速 1.6 Mbps、延遲 150 ms）：第 3 秒出現地球圖，第 5 秒地圖畫好、接上時看不出跳動。換了預設底圖、初始視角或國界、地名的畫法後要重跑 `node scripts/globe-placeholder.mjs <網站的網址>`。
+- **首頁的程式再拆小**（2026-10-30）：首頁 chunk 從 gzip 後 163 KB 降到 141 KB（未壓縮 500 → 426 KB）。量法：`vite build --sourcemap` 後用 sourcemap 算每個原始檔在 chunk 裡佔多少。搬出去的：
+  - 疊加圖層、風場、類別網格的**資料**部分拆成 `map/overlayData.ts`、`map/windField.ts`、`map/classGridData.ts`（首頁的 `app/overlays.ts`、主題的側欄只 import 這些）；圖層的開關與圖例元件（`Overlays.tsx`）、風的粒子與類別網格的 WebGL 圖層（`windLayer.ts`、`classGridLayer.ts`）留在地圖的 chunk。`Overlays.tsx` 照舊把資料的部分轉出去，地圖這邊的 import 不必改。
+  - 排名表（`RankingTable`）、時刻主題的時間軸（`MomentControl`，連同太陽位置的計算 `lib/solar.ts`）、主題總覽（`TopicsOverview`，第一次打開才載入，之後留著）、指令面板的對話框（`CommandPaletteDialog.tsx`；`CommandPalette.tsx` 只聽 Ctrl+K，第一次按才下載）改成用到才下載。
+  - 主題搜尋比對的子項目（農產品、礦產、品牌…，約 26 KB）拆到 `topics/catalogItems.gen.ts`（`npm run catalog` 一起產生、`--check` 一起比對），第一次搜尋時才下載（`lib/topicSearch.ts` 的 `loadSearchItems`）：到之前只比對主題與指標的名稱，到了之後重建索引，搜尋框、指令面板、主題總覽重算一次結果（`useTopicSearchItems`）。
+  - 剩下最大的是 react-dom（約 200 KB 未壓縮）與主題目錄（48 KB，頂列選單與主題總覽的主題、指標名稱）。
 - **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡那個 source 的網址改成自訂協定 `relief://{z}/{x}/{y}`（`WorldMap.tsx` 用 `addProtocol` 註冊 `loadReliefTile`）：0–3 級讀我們的 WebP（地球儀全球視角約縮放 2，用到 3 級的圖磚），4 級以上照舊讀 OpenFreeMap 的 PNG。一開始分成兩個 source（我們的到縮放 2.5、OpenFreeMap 的從 2.5 起），放大跨過 2.5 時新的圖磚到之前露出一塊塊空白；同一個 source 的話，MapLibre 會先放大上一級的圖磚墊著。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef`）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
 ### Service worker（`src/sw.ts`）
 

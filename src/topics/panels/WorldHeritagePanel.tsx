@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
 import { useJson } from '../../lib/data';
-import { decodePoints } from '../../map/Overlays';
+import { decodePoints } from '../../map/overlayData';
 import { SITE_TYPES } from '../world-heritage';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';
 

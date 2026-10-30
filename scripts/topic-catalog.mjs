@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 產生主題目錄 src/topics/catalog.gen.ts（src/topics/catalog.ts）：頂列選單、主題總覽、主題搜尋用的
+ * 產生主題目錄 src/topics/catalog.gen.ts 與主題搜尋的子項目 catalogItems.gen.ts（src/topics/catalog.ts）：頂列選單、主題總覽、主題搜尋用的
  * 主題名稱、指標名稱與子項目名稱。主題定義各自一個 chunk（registry.ts），首頁的程式不必包含全部主題。
  *
  *   npm run catalog            重新產生（npm run dev、npm run build 會先跑）
@@ -21,6 +21,8 @@ globalThis.localStorage ??= { getItem: () => null, setItem: noop, removeItem: no
 globalThis.document ??= { documentElement: {}, title: '', addEventListener: noop, querySelector: () => null };
 
 const OUT = `${ROOT}src/topics/catalog.gen.ts`;
+/** 主題搜尋的子項目：另一個檔，第一次搜尋時才下載（lib/topicSearch.ts，2026-10-30） */
+const OUT_ITEMS = `${ROOT}src/topics/catalogItems.gen.ts`;
 const check = process.argv.includes('--check');
 
 const server = await createServer({
@@ -63,27 +65,45 @@ try {
     '  topics: {',
     ...topics.map((t) => `    ${JSON.stringify(t.id)}: ${JSON.stringify(summarize(t))},`),
     '  },',
-    '  items: [',
-    ...topics.flatMap((t) => searchItems(t).map((item) => `    ${JSON.stringify(item)},`)),
-    '  ],',
     '};',
     '',
   ];
-  const text = lines.join('\n');
-  let current = '';
-  try {
-    current = readFileSync(OUT, 'utf8');
-  } catch {
-    // 第一次產生
+  const itemLines = [
+    '/**',
+    ' * 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改。',
+    ' * 主題搜尋比對的子項目（農產品、礦產、連鎖品牌…），第一次搜尋時才下載（lib/topicSearch.ts）。',
+    ' * i18n-ignore-file：內容是主題定義裡的雙語文字（{ zh, en }），check:i18n 已經檢查過原本的檔',
+    ' */',
+    "import type { TopicSearchItem } from './catalog';",
+    '',
+    'export const SEARCH_ITEMS: TopicSearchItem[] = [',
+    ...topics.flatMap((t) => searchItems(t).map((item) => `  ${JSON.stringify(item)},`)),
+    '];',
+    '',
+  ];
+  const files = [
+    [OUT, lines.join('\n')],
+    [OUT_ITEMS, itemLines.join('\n')],
+  ];
+  const stale = [];
+  for (const [file, text] of files) {
+    let current = '';
+    try {
+      current = readFileSync(file, 'utf8');
+    } catch {
+      // 第一次產生
+    }
+    if (current === text) continue;
+    stale.push(file.slice(ROOT.length));
+    if (!check) writeFileSync(file, text);
   }
   if (check) {
-    if (current !== text) {
-      console.error('src/topics/catalog.gen.ts 跟主題定義對不起來，請跑 npm run catalog');
+    if (stale.length) {
+      console.error(`${stale.join('、')} 跟主題定義對不起來，請跑 npm run catalog`);
       process.exitCode = 1;
     } else console.log('主題目錄跟主題定義一致');
-  } else if (current !== text) {
-    writeFileSync(OUT, text);
-    console.log(`主題目錄：${topics.length} 個主題，寫入 src/topics/catalog.gen.ts（${Math.round(text.length / 1024)} KB）`);
+  } else if (stale.length) {
+    console.log(`主題目錄：${topics.length} 個主題，寫入 ${stale.join('、')}（${files.map(([, t]) => `${Math.round(t.length / 1024)} KB`).join('、')}）`);
   }
 } finally {
   await server.close();
