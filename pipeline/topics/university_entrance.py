@@ -11,7 +11,7 @@ from sources import admission_tests
 
 
 def build() -> None:
-    out = OUT_DIR / "topics" / "university-entrance"
+    out = OUT_DIR / "topics" / "education"  # 2026-10-30 併進教育程度（第七批 122）
     countries = set(json.loads((OUT_DIR / "countries.json").read_text(encoding="utf-8")))
     routes = {c: r for c, r in admission_tests.routes().items() if c in countries}
     missing = sorted(set(admission_tests.routes()) - countries)
@@ -24,7 +24,7 @@ def build() -> None:
     ))
     counts = {k: sum(1 for r in routes.values() if r[0] == k) for k in (1, 2, 3, 4)}
     print(f"  {len(routes)} 國：統一考試 {counts[1]}、會考 {counts[2]}、申請審查 {counts[3]}、各校自辦 {counts[4]}")
-    write_json(out / "manifest.json", {
+    write_json(out / "university-entrance-manifest.json", {
         "topic": "university-entrance", "generatedAt": now_iso(),
         "source": "Wikipedia: List of admission tests to colleges and universities (revid 1381783633); "
                   "List of secondary school leaving qualifications (revid 1368870013)",

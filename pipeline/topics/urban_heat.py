@@ -33,7 +33,7 @@ ARTICLE = "https://figshare.com/articles/dataset/24821538"
 RAR_URL = "https://ndownloader.figshare.com/files/43661121"
 INFO_URL = "https://ndownloader.figshare.com/files/43661826"
 SOURCE = "uhii"
-OUT = OUT_DIR / "topics" / "urban-heat"
+OUT = OUT_DIR / "topics" / "cities"  # 2026-10-30 併進城市（第七批 122）
 SENSOR = "Myd1"
 YEARS = list(range(2003, 2022))
 NORTH, SOUTH = 22, 24  # 季平均的「月份」代碼：22 是 6–8 月、24 是 12–2 月
@@ -152,7 +152,7 @@ def build() -> None:
 
     fields = ["id", "lon", "lat", "area", "iso3", "name", "zh", "avg", *[f"y{y}" for y in YEARS]]
     scale = {"lon": 0.01, "lat": 0.01, "area": 1, "avg": 0.1, **{f"y{y}": 0.1 for y in YEARS}}
-    write_json(OUT / "cities.json", points_file(rows, fields, scale, strings=["iso3"]))
+    write_json(OUT / "uhi-areas.json", points_file(rows, fields, scale, strings=["iso3"]))
 
     # 國家：依城區面積加權的平均（大城市的分量比較重）
     series = {}
@@ -168,7 +168,7 @@ def build() -> None:
     notes = {iso3: f"這裡有 {n} 個城區，數值依城區面積加權" for iso3, n in counts.items() if n <= 2}
     notes_en = {iso3: f"{n} urban area{'s' if n > 1 else ''} here; area-weighted" for iso3, n in counts.items() if n <= 2}
     write_json(OUT / "uhi.json", indicator_file("uhi", "°C", YEARS, series, aggregates={"WLD": world}, notes=notes, notesEn=notes_en))
-    write_json(OUT / "manifest.json", {
+    write_json(OUT / "urban-heat-manifest.json", {
         "topic": "urban-heat",
         "generatedAt": now_iso(),
         "source": f"Yang et al., Global Urban Heat Island Intensity Dataset (figshare 24821538 v3, CC BY 4.0): {SENSOR} daytime, DEA, summer",

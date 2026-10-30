@@ -36,6 +36,15 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   // 運動（第七批 121）：奧運獎牌、F1 賽道與冠軍，指標 id 不變
   olympics: { topic: 'sports', indicator: 'medals-total' },
   f1: { topic: 'sports', indicator: 'races' },
+  // 七個小主題併進大主題（第七批 122）
+  'birth-season': { topic: 'fertility', indicator: 'peak-month' },
+  'university-entrance': { topic: 'education', indicator: 'main-route' },
+  foods: { topic: 'diet', indicator: 'foods', indicators: { count: { indicator: 'foods' } } },
+  'urban-heat': { topic: 'cities', indicator: 'uhi' },
+  'co2-stations': { topic: 'climate', indicator: 'stations' },
+  'cloud-regions': { topic: 'ai', indicator: 'regions' },
+  // 唐人街變成移民與難民的疊加圖層：打開僑民人數，並打開唐人街的圖層
+  chinatowns: { topic: 'migration', indicator: 'emigrants', indicators: { map: { indicator: 'emigrants' } }, layer: 'chinatowns' },
 };
 
 /**

@@ -1,6 +1,7 @@
 import { tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { DimensionDef, TopicDefinition } from './types';
+import type { TopicPart } from './parts';
+import type { DimensionDef } from './types';
 
 /**
  * 各國的特色食物（pipeline/topics/foods.py）：Wikidata 依原產國的乳酪、麵包、甜點。
@@ -19,14 +20,9 @@ const KINDS: DimensionDef = {
   defaultOption: 'dessert',
 };
 
-export const foods: TopicDefinition = {
-  id: 'foods',
-  title: { zh: '各國的特色食物', en: 'Signature foods by country' },
-  shortTitle: { zh: '特色食物', en: 'Signature foods' },
-  defaultIndicator: 'count',
-  defaultYear: 2026,
-  timeless: true,
-  dimension: KINDS,
+/** 飲食（diet.ts）的特色食物部分：2026-10-30（第七批 122）起併進飲食 */
+export const foodsPart: TopicPart = {
+  name: { zh: '特色食物', en: 'Signature foods' },
   sources: [
     {
       name: { zh: 'Wikidata（乳酪、麵包、甜點的原產國與名稱）', en: 'Wikidata (countries of origin and names of cheeses, breads and desserts)' },
@@ -47,7 +43,7 @@ export const foods: TopicDefinition = {
   panelExtra: () => import('./panels/FoodsPanel'),
   indicators: [
     {
-      id: 'count',
+      id: 'foods',
       label: { zh: '原產的種類', en: 'Kinds originating here' },
       description: {
         zh: 'Wikidata 收錄、原產於這個國家的乳酪、麵包或甜點有幾種，圓的面積與它成正比；用上面的選單換食物。乳酪法國 424、義大利 265、西班牙 78、英國 74、瑞士 44 種；麵包義大利 78、美國與西班牙各 45、法國 30、日本 28 種，台灣有太陽餅、兩相好；甜點義大利 301、西班牙 140、美國 81、印尼 55 種，台灣有芋圓、芋泥、芒果冰、澎湖鹹餅、牛搵水、兩相好。點國家列出它的清單。',
@@ -55,6 +51,8 @@ export const foods: TopicDefinition = {
       },
       unit: { zh: '種', en: 'kinds' },
       file: 'count/{item}.json',
+      // 特色食物不分年份（2026 年的 Wikidata）：這個指標沒有時間軸；子項目是乳酪、麵包、甜點
+      timeless: true,
       dimension: KINDS,
       layer: { kind: 'bubble', legendValues: [1, 10, 100] },
       format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} ${v === 1 ? 'kind' : 'kinds'}` }),

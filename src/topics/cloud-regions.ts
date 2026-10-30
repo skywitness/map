@@ -1,7 +1,8 @@
 import { tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { TopicPart } from './parts';
+import type { ColorClasses, PointRecord, PointsOverlayDef } from './types';
 
 /**
  * 雲端機房的區域（pipeline/topics/cloud_regions.py、sources/cloud_regions.py）：AWS、Google Cloud、Microsoft Azure 的
@@ -52,12 +53,9 @@ function layer(id: string, file: string, label: Text, preview: boolean): PointsO
   };
 }
 
-export const cloudRegions: TopicDefinition = {
-  id: 'cloud-regions',
-  title: { zh: '雲端機房的區域', en: 'Cloud regions' },
-  shortTitle: { zh: '雲端區域', en: 'Cloud regions' },
-  defaultIndicator: 'regions',
-  defaultYear: 2026,
+/** AI 發展（ai.ts）的雲端機房的區域部分：2026-10-30（第七批 122）起併進 AI 發展 */
+export const cloudRegionsPart: TopicPart = {
+  name: { zh: '雲端機房的區域', en: 'Cloud regions' },
   sources: [
     {
       name: {
@@ -93,6 +91,7 @@ export const cloudRegions: TopicDefinition = {
       },
       unit: { zh: '個', en: 'regions' },
       file: 'regions-count.json',
+      defaultYear: 2026,
       layer: { kind: 'bubble', legendValues: [1, 5, 20] },
       overlayTime: 'cumulative',
       format: (v) => tr({ zh: `${fixed(v, 0)} 個區域`, en: `${fixed(v, 0)} ${v === 1 ? 'region' : 'regions'}` }),

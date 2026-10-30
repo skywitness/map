@@ -1,5 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { withParts } from './parts';
+import { co2StationsPart } from './co2-stations';
 import type { IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
 
 /**
@@ -74,7 +76,7 @@ function perCapita(id: string, label: Text, description: Text): IndicatorDef {
   };
 }
 
-export const climate: TopicDefinition = {
+export const climate: TopicDefinition = withParts({
   id: 'climate',
   title: { zh: '各國溫室氣體排放', en: 'Greenhouse gas emissions by country' },
   shortTitle: { zh: '氣候', en: 'Climate' },
@@ -235,4 +237,4 @@ export const climate: TopicDefinition = {
       },
     },
   ],
-};
+}, co2StationsPart);

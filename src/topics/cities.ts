@@ -9,6 +9,8 @@ import {
   type PointsOverlayDef,
   type TopicDefinition,
 } from './types';
+import { withParts } from './parts';
+import { urbanHeatPart } from './urban-heat';
 
 /**
  * 城市（pipeline/topics/cities.py）：JRC GHS-WUP R2025A（聯合國《World Urbanization Prospects 2025》用的那一份）的
@@ -312,7 +314,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const cities: TopicDefinition = {
+export const cities: TopicDefinition = withParts({
   id: 'cities',
   title: { zh: '城市', en: 'Cities and urbanisation' },
   shortTitle: { zh: '城市', en: 'Cities' },
@@ -349,4 +351,4 @@ export const cities: TopicDefinition = {
   panelExtra: () => import('./panels/CitiesPanel'),
   overlays: [EXTENT_LAYER, CITY_LAYER],
   indicators,
-};
+}, urbanHeatPart);

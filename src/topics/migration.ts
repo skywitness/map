@@ -1,5 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { withParts } from './parts';
+import { chinatownsPart } from './chinatowns';
 import type { FlowLabels, FlowLayer, IndicatorDef, Text, TopicDefinition } from './types';
 
 /**
@@ -50,7 +52,7 @@ function flowIndicator(id: string, label: Text, description: Text, file: string,
   };
 }
 
-export const migration: TopicDefinition = {
+export const migration: TopicDefinition = withParts({
   id: 'migration',
   title: { zh: '移民與難民', en: 'Migration and refugees' },
   shortTitle: { zh: '移民', en: 'Migration' },
@@ -236,4 +238,4 @@ export const migration: TopicDefinition = {
       },
     ),
   ],
-};
+}, chinatownsPart);

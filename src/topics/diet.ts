@@ -1,5 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { withParts } from './parts';
+import { foodsPart } from './foods';
 import type { CategoryDef, IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
 
 const MEAT_FISH = { zh: '肉類與水產', en: 'Meat and seafood' };
@@ -74,7 +76,7 @@ function grams(id: string, label: Text, description: Text, thresholds: number[])
   };
 }
 
-export const diet: TopicDefinition = {
+export const diet: TopicDefinition = withParts({
   id: 'diet',
   title: { zh: '各國飲食', en: 'Diet by country' },
   shortTitle: { zh: '飲食', en: 'Diet' },
@@ -213,4 +215,4 @@ export const diet: TopicDefinition = {
       compareWorld: true,
     },
   ],
-};
+}, foodsPart);

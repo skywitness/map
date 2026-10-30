@@ -26,7 +26,7 @@ export default function FoodsPanel({ topic, iso3, item, countryName }: PanelExtr
   const t = useT();
   const text = TEXT[lang];
   // 沒有任何特色食物的國家沒有檔案（讀取失敗就當成沒有）
-  const { data, error } = useJson<FoodsData>(`topics/${topic.id}/countries/${iso3}.json`);
+  const { data, error } = useJson<FoodsData>(`topics/${topic.id}/foods/${iso3}.json`);
   if (!data && !error) return <p className="empty">{t.loading}</p>;
   // 目前選的食物放最前面，其他兩種接在後面
   const kinds = [...FOOD_KINDS].sort((a, b) => Number(b.id === item) - Number(a.id === item));

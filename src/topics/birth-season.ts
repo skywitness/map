@@ -1,17 +1,14 @@
 import { monthLabel, MONTHS } from './months';
-import type { TopicDefinition } from './types';
+import type { TopicPart } from './parts';
 
 /**
  * 出生的季節（pipeline/topics/birth_season.py）：每日平均出生數最多的月份。UNdata 表 55 的逐月出生數，
  * 台灣用內政部按登記的月份。各國最近的年份不同，指標檔設 latestWithin（10 年內最近一年）。
  */
 
-export const birthSeason: TopicDefinition = {
-  id: 'birth-season',
-  title: { zh: '各國出生的季節', en: 'Birth seasonality by country' },
-  shortTitle: { zh: '出生的季節', en: 'Birth season' },
-  defaultIndicator: 'peak-month',
-  defaultYear: 2025,
+/** 生育率與高齡化（fertility.ts）的出生的季節部分：2026-10-30（第七批 122）起併進生育率與高齡化 */
+export const birthSeasonPart: TopicPart = {
+  name: { zh: '出生的季節', en: 'Birth season' },
   sources: [
     {
       name: { zh: 'UNdata 人口統計資料庫（表 55：依出生月份的活產數）', en: 'UNdata Demographic Statistics (table 55: live births by month of birth)' },
@@ -47,6 +44,7 @@ export const birthSeason: TopicDefinition = {
       },
       unit: '',
       file: 'peak-month.json',
+      defaultYear: 2025,
       layer: { kind: 'categorical', categories: MONTHS.map(({ value, label, color }) => ({ value, label, color })) },
       format: monthLabel,
       unranked: true,
