@@ -202,6 +202,8 @@ export default defineConfig(({ command }) => ({
           'icons/icon.svg',
           'icons/apple-touch-icon-180.png',
           'data/countries.json',
+          // 地圖還沒畫好前的地球圖（共約 53 KB）：離線、再次打開時馬上有
+          'globe/*.webp',
         ],
         // 第一個畫面用不到的 JS、CSS 標成 LAZY_REVISION（collectCoreAssets），sw.ts 不在安裝時一定下載
         manifestTransforms: [

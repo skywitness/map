@@ -146,6 +146,7 @@ import {
 } from './worldMapLayers';
 import { MapTooltip, MarkTooltip, PointerLines } from './MapTooltip';
 import { bindMapEvents, type MapHover } from './mapEvents';
+import { GlobePlaceholder } from '../app/GlobePlaceholder';
 import { useCountryFills } from './useCountryFills';
 import { useValueLabels } from './useValueLabels';
 import { useRasterLayers } from './useRasterLayers';
@@ -305,6 +306,8 @@ export function WorldMap(props: WorldMapProps) {
   const baseRastersRef = useRef<{ id: string; minzoom: number; maxzoom: number }[]>([]);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
+  /** 地圖第一次畫好了（'load'）：之後不再放地球圖（GlobePlaceholder） */
+  const [loaded, setLoaded] = useState(false);
   // MapLibre 5 在地球儀上查不到立體圖形（queryRenderedFeatures 對 fill-extrusion 用的是平面的矩陣），
   // hover、點國家都會失效，所以 3D 時固定用平面地圖；離開 3D 再回到使用者選的投影。
   // 地形圖層的 3D 是立體地形、沒有立體圖形，地球儀上照樣點得到（5.24 實測），維持使用者選的投影
@@ -577,6 +580,7 @@ export function WorldMap(props: WorldMapProps) {
           setRevision((r) => r + 1);
         });
         m.once('load', () => {
+          setLoaded(true);
           // 窄螢幕時版權標示預設是展開的，會蓋住地圖下緣；先收合成 ⓘ 按鈕
           m.getContainer().querySelector('.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
         });
@@ -1600,12 +1604,11 @@ export function WorldMap(props: WorldMapProps) {
     <div
       ref={containerRef}
       className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}${fullscreen ? ' is-fullscreen' : ''}`}
+      style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
     >
-      <div
-        ref={mapNodeRef}
-        className="map-canvas"
-        style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
-      />
+      {/* 地圖第一次畫好（'load'）前，畫布底下先放一張初始視角的地球圖；地球儀畫出來就蓋過它 */}
+      {!loaded && projection === 'globe' && !threeD && <GlobePlaceholder dark={basemap.dark} />}
+      <div ref={mapNodeRef} className="map-canvas" />
       {failed && (
         <StatusCard overlay kind="error" title={t.basemapFailedTitle} detail={t.basemapFailed} action={{ label: t.reload, onClick: () => location.reload() }} />
       )}

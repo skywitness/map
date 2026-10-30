@@ -3732,6 +3732,10 @@ pipeline/
   - 手機的 LCP 快了 2.4 秒：LCP 是頁尾的文字，要等首頁程式跑起來（335 → 145 KB，gzip 後）。
   - 地圖出現資料只快了約 1 秒：底圖圖磚原本就不擋資料（上面「做了什麼」第 3 點），省下的主要是之後的 7 MB；手機上這 7 MB 原本要在背景下載將近一分鐘，跟換主題、開側欄搶頻寬。
 
+- **地圖還沒畫好前先放一張地球圖**（2026-10-30，`app/GlobePlaceholder.tsx`、`scripts/globe-placeholder.mjs`）：慢的網路上 MapLibre（gzip 後約 300 KB）、底圖樣式、國界都到了才畫得出地球，之前地圖的位置是一片太空背景。現在先放一張初始視角（亞洲在中間）的地球截圖：`public/globe/light.webp`（彩色地形，32 KB）、`dark.webp`（深藍，21 KB），640px、地球外面透明。
+  - 大小、位置跟 MapLibre 的初始地球一樣（直徑是地圖高度的 0.94、置中，截圖腳本量的），放在地圖畫布底下：太空背景從畫布移到外框（`.map`），畫布本身透明，MapLibre 一畫出地球就蓋過它，不必掐時間移除；`'load'` 之後不再畫。地圖的程式還沒下載時（App 的 Suspense）用 `MapFallback`：同樣的太空背景、地球圖，左下角「載入地圖…」。
+  - 深色底圖（或深色介面沒選過底圖）用深色的；`index.html` 的開頭程式依同樣的規則預先下載那一張（網址有 `view=` 時不下載），Service worker 也預先快取（共約 53 KB）。只用在地球儀的初始視角（平面地圖、3D 時不放）。
+  - 實測（無頭 Chrome 限速 1.6 Mbps、延遲 150 ms）：第 3 秒出現地球圖，第 5 秒地圖畫好、接上時看不出跳動。換了預設底圖、初始視角或國界、地名的畫法後要重跑 `node scripts/globe-placeholder.mjs <網站的網址>`。
 - **首頁的程式再拆小**（2026-10-30）：首頁 chunk 從 gzip 後 163 KB 降到 141 KB（未壓縮 500 → 426 KB）。量法：`vite build --sourcemap` 後用 sourcemap 算每個原始檔在 chunk 裡佔多少。搬出去的：
   - 疊加圖層、風場、類別網格的**資料**部分拆成 `map/overlayData.ts`、`map/windField.ts`、`map/classGridData.ts`（首頁的 `app/overlays.ts`、主題的側欄只 import 這些）；圖層的開關與圖例元件（`Overlays.tsx`）、風的粒子與類別網格的 WebGL 圖層（`windLayer.ts`、`classGridLayer.ts`）留在地圖的 chunk。`Overlays.tsx` 照舊把資料的部分轉出去，地圖這邊的 import 不必改。
   - 排名表（`RankingTable`）、時刻主題的時間軸（`MomentControl`，連同太陽位置的計算 `lib/solar.ts`）、主題總覽（`TopicsOverview`，第一次打開才載入，之後留著）、指令面板的對話框（`CommandPaletteDialog.tsx`；`CommandPalette.tsx` 只聽 Ctrl+K，第一次按才下載）改成用到才下載。

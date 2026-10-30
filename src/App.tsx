@@ -68,6 +68,7 @@ import {
 import { canAnalyse, groupOptions, pickYear } from './app/options';
 import { useOverlays } from './app/overlays';
 import { worldTrend } from './app/trend';
+import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
 import { Footer } from './app/Footer';
 
@@ -722,7 +723,7 @@ export function App() {
             )}
             {view === 'map' ? (
               // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
-              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+              <Suspense fallback={<MapFallback dark={basemap.dark} text={t.loadingMap} />}>
                 {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
                 <WorldMap
                   ref={mapHandle}
