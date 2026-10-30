@@ -1,7 +1,7 @@
 """貿易主題：各國之間的貿易流向。地圖上點選一個國家，畫出它跟主要貿易夥伴之間的弧線。
 
-- 全部商品：CEPII BACI（2017–2024）。BACI 已經把進出口兩邊的申報調和成一個數字，
-  A 出口到 B 就等於 B 從 A 進口。
+- 全部商品：CEPII BACI。BACI 已經把進出口兩邊的申報調和成一個數字，A 出口到 B 就等於 B 從 A 進口。
+  2017–2024 年用 HS17 版，1995–2016 年用 HS92 版往前接（2026-10-30，製作手冊第七批 143；build_all()）。
 - 舊衣（HS 6309，2026-10-29 擴充）：CEPII BACI 的 HS92 版（1995–2024），build_used_clothing()。
 - 農產品：FAOSTAT 詳細貿易矩陣（TM），品項跟農業主題相同，另外加上所有農產品的合計。
   TM 是各國自己申報的數字，同一筆貿易的出口方與進口方申報常常不一樣：
@@ -41,9 +41,7 @@ Pairs = dict[tuple[str | None, str | None], float]
 def build() -> None:
     out = OUT_DIR / "topics" / "trade"
 
-    print("  讀取 BACI（約 800 MB，需要一兩分鐘）…")
-    items: list[dict] = [{"id": "all", "label": "全部商品", "source": "BACI"}]
-    _write_item(out, "all", {year: _from_pairs(pairs) for year, pairs in baci.yearly_totals()})
+    items: list[dict] = [build_all()]
     items.append(build_used_clothing())
 
     print("  讀取 FAOSTAT 詳細貿易矩陣（解壓後 8.5 GB，需要十幾分鐘）…")
@@ -88,6 +86,26 @@ def build() -> None:
         out / "manifest.json",
         {"topic": "trade", "generatedAt": now_iso(), "source": "CEPII BACI, FAOSTAT (TM)", "items": items},
     )
+
+
+def build_all() -> dict:
+    """全部商品的流向與出口、進口總額（可以單獨跑，不必重讀 FAOSTAT）。
+
+    2017 年起用 HS17 版，之前用 HS92 版（1995 年起）往前接。2017–2024 年沒有整段換成 HS92：兩版的總額
+    世界只差 0.1–0.4%（2017 年 3.5%），但台灣（BACI 的「Other Asia, nes」）HS92 每年多 4–15%，
+    而且 HS92 的台灣在 2016 → 2017 年跳了 24%（3,260 → 4,050 億美元，HS17 是 3,510 億），
+    HS17 也比較接近財政部的海關統計；接在 2017 年，台灣、世界的數字都比較連續。
+    """
+    out = OUT_DIR / "topics" / "trade"
+    print("  讀取 BACI HS17（約 800 MB，需要一兩分鐘）…")
+    by_year = {year: _from_pairs(pairs) for year, pairs in baci.yearly_totals()}
+    first = min(by_year)
+    print(f"  讀取 BACI HS92（約 2.4 GB，{first} 年以前，幾分鐘）…")
+    for year, pairs in baci.yearly_totals(hs="HS92"):
+        if year < first:
+            by_year[year] = _from_pairs(pairs)
+    _write_item(out, "all", dict(sorted(by_year.items())))
+    return {"id": "all", "label": "全部商品", "source": f"BACI HS92（{min(by_year)}–{first - 1}）、HS17（{first} 起）"}
 
 
 # 二手衣（2026-10-29 擴充，製作手冊第五批 49，使用者決定：只做舊衣 HS 6309、線寬用金額，碎布 6310 不做）：
