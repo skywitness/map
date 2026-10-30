@@ -126,6 +126,7 @@ const TOPIC_ICONS = {
   space: 'rocket',
   transport: 'train-front',
   airlines: 'plane-takeoff',
+  'longest-flights': 'route',
   'cable-cars': 'cable-car',
   shipping: 'anchor',
   logbooks: 'sailboat',
