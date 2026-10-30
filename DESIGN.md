@@ -3683,6 +3683,11 @@ pipeline/
     - **代表色與圖示**：環境橄欖綠（淺色 #5f7a00、深色 #93b11c）、交通灰藍（#4b5a92、#8796d6），跟其他 6 類分得開，淺色那組跟白色圖示的對比 ≥ 4:1；分類圖示環境 `cloud-sun`、交通 `bus`（不跟主題重複）。`og-topics.mjs` 改成讀 `CATEGORY_COLORS` 的每一行（原本寫死 6 個分類的正則），環境、交通、科技（分類名稱變了）的主題與改了英文短名稱的 3 個主題的預覽圖重新產生（34 張）。
     - **寬度**（第 11 節的量法）：中文 1024px、英文 1280px 都放得下（第 11 節「8 類＋小標題」），英文短名稱改短 3 個；沒有用到備案。
 
+207. **相關主題的連結**（2026-10-30，製作手冊第七批 125；`src/topics/related.ts`、`src/panels/RelatedTopics.tsx`、`src/panels/CountryPanel.tsx`）：國家側欄最下面列 2–4 個相關主題（用 `TopicLink`：在網頁裡換主題、選取的國家留著，按住 Ctrl、Cmd 開新分頁），例如交通安全 ↔ 交通、電動車 ↔ 發電量、疾病與死因 ↔ 健康與醫療 ↔ 疫苗、中國的海外貸款 ↔ 援助與僑匯。
+    - **對照表**：`related.ts` 的 `RELATED` 用合併後（第七批 116–122）的主題 id，每個主題寫自己想連的 2–3 個；`relatedTopics()` 再補上連到它的（反方向），自己寫的在前、最多 4 個，所以盡量雙向（116 個主題、352 個連結裡 332 個是雙向的，每個主題至少 2 個）。名稱用主題的完整名稱（`title`），中英文跟著介面。
+    - **檢查**：`npm run catalog`（`scripts/topic-catalog.mjs`）多檢查每個主題都有一列、連到的主題都存在，合併或改名時不會連到不存在的主題；新增主題時在 `RELATED` 加一行。
+    - **為什麼放在國家側欄**：側欄是點了國家才出現，連過去的主題直接打開同一個國家；沒有選國家時頂列的選單與主題總覽本來就列出同一類的主題。
+
 209. **中國的海外貸款換新版**（資料更新，2026-10-30，製作手冊第七批 127；`pipeline/sources/aiddata.py`、`pipeline/topics/china_lending.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`）：
     - **來源換成 AidData 的 China's Global Loans and Grants Dataset, Version 1.0**（CLG-Global 1.0，2025-11-18 發布；使用者選全球版，不是只有中低所得國的 CLG-LMIC 1.0）：承諾年 2000–2023，33,580 筆，搜尋過 217 個低、中、高所得國家與地區（CountryList 工作表），200 個有項目、17 個沒有（值是 0）。zip 43.8 MB，xlsx 40.6 MB 的 `CLG-Global 1.0_Records` 工作表（80 多欄）openpyxl 讀一次約 35 秒，只留用到的 13 欄存成 `.cache/aiddata/clg1-records.pkl`。授權見第 12 點。
     - **欄位跟 GCDF 3.0 的對照**（欄位定義 PDF 與 Guide 工作表）：欄名改成底線（`Recommended_for_Aggregates`、`Country_of_Activity_ISO3`、`Commitment_Year`、`Flow_Type_Simplified`、`Sector_Code`、`AidData_Record_ID`）；金額換成 2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`、`Adjusted_Amount_Nominal_USD`，一樣扣掉央行換匯與紓困貸款的短期展期）；年份、部門代碼與編號讀出來是浮點數，`_clean()` 轉整數。`Flow_Class` 多了 OFIC（高所得國的官方融資，不分 ODA／OOF），這個主題沒有用到。新增的 `Source_Dataset`（CLG-LMIC 1.0 23,816 筆、CLG-HIC 1.0 9,764 筆）也存進快取，之後要分開看可以用。CountryList 多了兩欄（所得分類、ODA 資格），筆數在第 4 欄；pycountry 對不到的只剩美屬維京群島（United States Virgin Islands）與巴勒斯坦（West Bank and Gaza Strip）。
