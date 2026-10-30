@@ -117,6 +117,8 @@ STEPS = {
     # Marine Regions 的 WFS（EEZ 的屬性與界線，界線約 25 MB、2 分鐘）、FAO FishStat（約 6 MB）、FAOSTAT 土地利用（約 3 MB）、
     # 漁業署《漁業統計年報》的生產量報表（約 4 MB）
     "oceans": "topics.oceans",
+    # 海鮮的貿易（併進海洋與漁業主題）：BACI HS92（2.4 GB，跟貿易主題同一個檔）的第 03 章，幾分鐘
+    "seafood-trade": "topics.seafood_trade",
     # Cottom et al. 的 SPOT 輸出（OWID 快照的 Dryad 檔，4 MB）、Meijer et al. 的河口（figshare，0.7 MB）、
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
