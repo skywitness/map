@@ -63,6 +63,8 @@ STEPS = {
     "gender": "topics.gender",
     "wages": "topics.wages",
     "fiscal": "topics.fiscal",
+    # 物價與財政的擴充：政府支出的用途（IMF COFOG）、稅收的組成（OECD）、公共債務兩百年（IMF HPD）
+    "fiscal-structure": "topics.fiscal_structure",
     # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
     "taxes": "topics.taxes",
     # 要先有 geo 的國界；第一次會向 Overpass 發 27 個查詢（9 個品牌、6 種店型的名稱比對、便利商店 12 個經度帶，
