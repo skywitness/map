@@ -163,6 +163,7 @@ const TOPIC_ICONS = {
   'night-lights': 'moon-star',
   'world-heritage': 'castle',
   'national-parks': 'tree-pine',
+  trails: 'signpost',
   skyscrapers: 'building',
   attractions: 'ferris-wheel',
   travel: 'plane',

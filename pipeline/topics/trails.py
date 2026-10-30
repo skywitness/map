@@ -2,16 +2,18 @@
 
 使用者 2026-10-29 決定：
 - 用 OSM 的國際級、國家級路線（route=hiking，network=iwn、nwn），資料檔用 ODbL；
-- 台灣用林業保育署「自然步道基本資料」與觀光署「步道」的開放資料補；
+- 台灣用林業保育署「自然步道基本資料」與觀光署「步道」的開放資料補（2026-10-30 本機下載的 OSM 在台灣有 38 條
+  標成國家級的路線，所以台灣跟其他國家一樣用 OSM，觀光署的只補 OSM 沒有的：線有一半以上落在 OSM 路線 200 公尺內的不重算）；
 - cloud 連不到 Overpass（cloud 對外的關口在 TLS 握手後切斷），請本機 session 執行 map-plan 的
   `scripts/osm_hiking_routes.py`（查 Overpass、接線、簡化），結果放在 map-plan 的 `data/osm/hiking-routes.json`。
   在 cloud 重跑時把它複製到 `pipeline/.cache/osm/hiking-routes.json`。
 
 - trails.json：線圖層。每條最上層路線（重疊的 way 只算給一條，國際級優先）的線，種類 1 國際級、2 國家級；
-  台灣的國家步道（觀光署「步道」的 TrailClass 0，WKT 線形）也算國家級，紀錄的 s＝2 表示來源是觀光署。
+  台灣補上觀光署「步道」裡 TrailClass 0（多是林業保育署的國家步道，WKT 線形）而 OSM 沒有的，也算國家級，紀錄的 s＝2 表示來源是觀光署。
 - length.json：各國的步道總長（km）。每條路線的線依每一段的中點分到國家（geoindex.countries_at），
-  再依「簡化前的長度 ÷ 簡化後的長度」放大（簡化會截掉彎曲）。台灣是國家步道的長度（觀光署的 TrailLength）。
+  再依「簡化前的長度 ÷ 簡化後的長度」放大（簡化會截掉彎曲）。觀光署補的路線用觀光署寫的長度（TrailLength）。
 - routes.json：側欄用，每條路線 [編號, 名稱, 英文名, 中文名, 代號, 種類, 總長, [[國家, 這國的長度], …]]。
+- list.json：左邊清單側欄用（點），最長的 LIST_TOP 條路線，中心點與範圍（bw、bs、be、bn），點了移到那個範圍。
 """
 from __future__ import annotations
 
@@ -30,8 +32,10 @@ YEAR = 2026
 QUANTUM = 0.001
 TOLERANCE = 0.01  # 世界全圖用的簡化（度）
 TW_TOLERANCE = 0.0005
+TW_NEAR = 0.002  # 觀光署的步道跟 OSM 路線的距離在這以內（度，約 200 公尺）算同一條
 TYPES = {"iwn": 1, "nwn": 2}
 LICENSE = "ODbL 1.0"
+LIST_TOP = 100
 
 
 def _haversine(a, b) -> float:
@@ -123,13 +127,29 @@ def by_country(routes: list[dict]) -> None:
         r["countries"] = sorted(((c, round(v * scale, 1)) for c, v in d.items() if v * scale >= 0.5), key=lambda x: -x[1])
 
 
+def not_in_osm(tw: list[dict], osm_in_taiwan: list[dict]) -> list[dict]:
+    """觀光署的步道只留 OSM 沒有的：線有一半以上落在 OSM 路線 TW_NEAR 以內的算 OSM 已經有"""
+    from shapely.geometry import LineString, MultiLineString
+    from shapely.ops import unary_union
+
+    near = unary_union([LineString(l) for r in osm_in_taiwan for l in r["lines"]]).buffer(TW_NEAR)
+    out = []
+    for t in tw:
+        g = MultiLineString(t["lines"])
+        if g.length and g.intersection(near).length / g.length > 0.5:
+            continue
+        out.append(t)
+    return out
+
+
 def build() -> None:
     routes = osm_routes()
-    tw = taiwan_routes()
     routes = sorted(routes, key=lambda r: (r["t"], -(r.get("km") or 0)))
     by_country(routes)
-    by_country(tw)
     osm_in_taiwan = [r for r in routes if any(c == "TWN" for c, _ in r["countries"])]
+    tw_all = taiwan_routes()
+    tw = not_in_osm(tw_all, osm_in_taiwan)
+    by_country(tw)
     all_routes = routes + tw
 
     totals: dict[str, float] = defaultdict(float)
@@ -138,11 +158,11 @@ def build() -> None:
         for c, km in r["countries"]:
             totals[c] += km
             counts[c] += 1
-    print(f"  OSM 路線 {len(routes):,} 條（國際級 {sum(r['t'] == 1 for r in routes):,}），台灣國家步道 {len(tw)} 條；"
-          f"OSM 在台灣的 {len(osm_in_taiwan)} 條")
+    print(f"  OSM 路線 {len(routes):,} 條（國際級 {sum(r['t'] == 1 for r in routes):,}），OSM 在台灣的 {len(osm_in_taiwan)} 條；"
+          f"觀光署 TrailClass 0 的 {len(tw_all)} 條裡 OSM 沒有的 {len(tw)} 條")
 
     # 線：國家級先畫、國際級後畫（疊在上面）
-    lines, types, records, groups = [], [], [], []
+    lines, types, records, groups, boxes = [], [], [], [], {}
     order = sorted(range(len(all_routes)), key=lambda i: -all_routes[i]["t"])
     for gi, i in enumerate(order):
         r = all_routes[i]
@@ -150,9 +170,14 @@ def build() -> None:
             pts = _simplify(line, TOLERANCE if r["s"] == 1 else TW_TOLERANCE)
             if len(pts) < 2:
                 continue
-            lines.append(_unwrap(pts))
+            pts = _unwrap(pts)
+            lines.append(pts)
             types.append(r["t"])
             records.append({"r": gi})
+            xs, ys = [x for x, _ in pts], [y for _, y in pts]
+            b = boxes.get(gi)
+            boxes[gi] = (min(xs + ([b[0]] if b else [])), min(ys + ([b[1]] if b else [])),
+                         max(xs + ([b[2]] if b else [])), max(ys + ([b[3]] if b else [])))
         groups.append({"r": gi, "n": r.get("name") or r.get("ref") or "", "e": r.get("name_en"), "z": r.get("name_zh"),
                        "ref": r.get("ref"), "km": round(r["km"]) if r.get("km") else None, "t": r["t"], "s": r["s"],
                        "c": ",".join(c for c, _ in r["countries"][:6])})
@@ -171,17 +196,28 @@ def build() -> None:
         "rows": [[gi, r.get("name"), r.get("name_en"), r.get("name_zh"), r.get("ref"), r["t"],
                   round(r["km"], 1) if r.get("km") else None, r["countries"]] for gi, r in ((g, all_routes[i]) for g, i in enumerate(order))],
     })
+    longest = sorted((gi for gi in boxes if all_routes[order[gi]].get("km")), key=lambda gi: -all_routes[order[gi]]["km"])[:LIST_TOP]
+    listed = []
+    for gi in longest:
+        r, (w, so, e, n) = all_routes[order[gi]], boxes[gi]
+        listed.append({"lon": (w + e) / 2, "lat": (so + n) / 2, "bw": w, "bs": so, "be": e, "bn": n, "r": gi,
+                       "n": r.get("name") or r.get("ref") or "", "e": r.get("name_en"), "z": r.get("name_zh"), "ref": r.get("ref"),
+                       "km": round(r["km"]), "t": r["t"], "c": ",".join(c for c, _ in r["countries"][:8])})
+    write_json(OUT / "list.json", points_file(listed, ["lon", "lat", "bw", "bs", "be", "bn", "r", "n", "e", "z", "ref", "km", "t", "c"],
+                                              {"lon": 0.01, "lat": 0.01, "bw": 0.01, "bs": 0.01, "be": 0.01, "bn": 0.01,
+                                               "r": 1, "km": 1, "t": 1}, (), ("c",)))
     write_json(OUT / "manifest.json", {"topic": "trails", "generatedAt": now_iso(), "license": LICENSE,
                                        "sources": ["OpenStreetMap contributors (ODbL 1.0), via Overpass API", TW_URL]})
     top = sorted(((round(v), c) for c, v in totals.items()), reverse=True)[:12]
     print(f"  {len(lines):,} 條線；各國總長最多 {top}；台灣 {round(totals.get('TWN', 0))} km")
 
 
-TAIWAN_NOTE = ("台灣在 OSM 沒有標成國際級、國家級的長途步道，用觀光署「步道」開放資料裡的國家步道（林業保育署管理的 24 條）補，"
-               "長度是觀光署寫的長度；跟其他國家的長途步道不完全可比。")
-TAIWAN_NOTE_EN = ("Taiwan has no international or national hiking routes in OSM, so its national trails (24 trails managed by the "
-                  "Forestry and Nature Conservation Agency) from the Tourism Administration's open trail data are used, with their "
-                  "published lengths; not fully comparable with other countries' long-distance trails.")
+TAIWAN_NOTE = ("台灣在 OSM 有 38 條標成國家級的路線（八通關古道、淡蘭國家級綠道、雪山西稜等，也有國家公園裡的短步道），"
+               "另用觀光署「步道」開放資料補上 OSM 沒有的 18 條（多是林業保育署的國家步道，長度用觀光署寫的）。")
+TAIWAN_NOTE_EN = ("Taiwan has 38 routes tagged as national in OSM (such as the Batongguan Historic Trail, the Tamsui-Kavalan "
+                  "trails and the Xueshan West Ridge, plus some short trails in national parks); 18 more that OSM lacks, mostly "
+                  "national trails of the Forestry and Nature Conservation Agency, are added from the Tourism Administration’s "
+                  "open trail data with their published lengths.")
 
 
 if __name__ == "__main__":

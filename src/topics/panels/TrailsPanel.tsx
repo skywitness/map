@@ -69,7 +69,9 @@ export default function TrailsPanel({ topic, iso3, countryName, highlightLine }:
             <li key={g}>
               <button type="button" className="river-system" onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide} onClick={show}>
                 <span className="bar-key" style={{ background: LEVELS.find((l) => l.value === type)?.color }} />
-                <span className="river-system-name">{name}</span>
+                <span className="river-system-name" translate={lang === 'en' && name !== e ? 'no' : undefined}>
+                  {name}
+                </span>
                 <span className="stat-meta">
                   {levelLabel(type)} · {text.inCountry(kmText(here), km !== null ? kmText(km) : '—')}
                 </span>
