@@ -113,6 +113,7 @@ const TOPIC_ICONS = {
   temperature: 'thermometer-sun',
   'air-quality': 'haze',
   'water-forest': 'trees',
+  'oil-palm': 'tree-palm',
   plastic: 'recycle',
   ewaste: 'monitor-x',
   ev: 'plug-zap',

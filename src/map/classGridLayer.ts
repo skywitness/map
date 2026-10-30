@@ -17,6 +17,7 @@ const BEFORE = 'data-border';
 const MERCATOR_MAX_LAT = 85.0511287798;
 const LONS = 361;
 const LATS = 181;
+const GLOBAL: [number, number, number, number] = [-180, -90, 180, 90];
 
 
 const VERTEX_SOURCE = `
@@ -38,15 +39,18 @@ void main() {
 }`;
 
 // 代碼貼圖是單一通道（WebGL 2 的 R8、WebGL 1 的 LUMINANCE，值都在 r），乘 255 是代碼；調色盤 256 × 1，取格子中心
+// u_bounds 是網格的範圍（西、南、東、北，全球是 -180, -90, 180, 90），範圍外不畫
 const FRAGMENT_SOURCE = `
 precision highp float;
 in vec2 v_lonlat;
 uniform sampler2D u_codes;
 uniform sampler2D u_palette;
 uniform float u_opacity;
+uniform vec4 u_bounds;
 out vec4 fragColor;
 void main() {
-  vec2 uv = vec2((v_lonlat.x + 180.0) / 360.0, (90.0 - v_lonlat.y) / 180.0);
+  vec2 uv = vec2((v_lonlat.x - u_bounds.x) / (u_bounds.z - u_bounds.x), (u_bounds.w - v_lonlat.y) / (u_bounds.w - u_bounds.y));
+  if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard;
   float code = floor(texture(u_codes, uv).r * 255.0 + 0.5);
   vec4 c = texture(u_palette, vec2((code + 0.5) / 256.0, 0.5));
   float a = c.a * u_opacity;
@@ -70,6 +74,7 @@ const UNIFORMS = [
   'u_codes',
   'u_palette',
   'u_opacity',
+  'u_bounds',
 ] as const;
 
 /** WebGL 1 沒有 in/out、texture()：照 MapLibre 的做法改寫 */
@@ -97,6 +102,8 @@ export interface ClassGridLook {
   opacity: number;
   /** 只標出這一類（其他類變淡）；null 是全部照常 */
   only: number | null;
+  /** 網格的範圍 [西, 南, 東, 北]（2026-10-30 起，油棕園只有熱帶）；沒寫是全球 */
+  bounds?: [number, number, number, number];
 }
 
 class ClassGridLayer implements CustomLayerInterface {
@@ -273,6 +280,7 @@ class ClassGridLayer implements CustomLayerInterface {
     gl.uniform4f(u.u_projection_clipping_plane, ...proj.clippingPlane);
     gl.uniform1f(u.u_projection_transition, proj.projectionTransition);
     gl.uniform1f(u.u_opacity, this.look.opacity);
+    gl.uniform4f(u.u_bounds, ...(this.look.bounds ?? GLOBAL));
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.codes);
     gl.uniform1i(u.u_codes, 0);

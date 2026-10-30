@@ -61,9 +61,11 @@ async function fetchGrid(url: string): Promise<ClassGrid> {
 }
 
 /** 網格在這個經緯度的代碼（0 是沒有資料，例如海） */
-export function classAt(grid: ClassGrid, lon: number, lat: number): number {
-  const x = Math.floor((((((lon + 180) % 360) + 360) % 360) / 360) * grid.width);
-  const y = Math.floor(((90 - lat) / 180) * grid.height);
-  if (y < 0 || y >= grid.height) return 0;
+export function classAt(grid: ClassGrid, lon: number, lat: number, bounds?: [number, number, number, number]): number {
+  // bounds：網格的範圍 [西, 南, 東, 北]（2026-10-30 起，油棕園）；沒寫是全球
+  const [w, s, e, n] = bounds ?? [-180, -90, 180, 90];
+  const x = Math.floor((((((lon - w) % 360) + 360) % 360) / (e - w)) * grid.width);
+  const y = Math.floor(((n - lat) / (n - s)) * grid.height);
+  if (y < 0 || y >= grid.height || x >= grid.width) return 0;
   return grid.codes[y * grid.width + Math.min(grid.width - 1, x)];
 }
