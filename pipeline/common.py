@@ -21,23 +21,30 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部、文化資產局、國科會、衛福部、勞動部、中央銀行與民航局的開放資料，2026-10-29；教育部統計處，2026-10-30；中央銀行的國際收支 cpx.cbc.gov.tw、教育部的教育統計查詢網 eds.moe.gov.tw，2026-10-30）：Python 3.13 預設的
+# 憑證缺 Subject Key Identifier 的主機（內政部統計查詢網、文化部、文化資產局、國科會、衛福部、勞動部、中央銀行與民航局的開放資料，2026-10-29；教育部統計處，2026-10-30；中央銀行的國際收支 cpx.cbc.gov.tw、教育部的教育統計查詢網 eds.moe.gov.tw，2026-10-30；環境部的開放資料 data.moenv.gov.tw、內政部的開放資料 opdadm.moi.gov.tw、僑委會的開放資料 oas.ocac.gov.tw，2026-10-30）：Python 3.13 預設的
 # VERIFY_X509_STRICT 會拒絕，這幾個主機只拿掉這一項嚴格檢查，憑證鏈與主機名稱照樣驗證（curl、瀏覽器都接受這張憑證）
 RELAXED_X509_HOSTS = {"statis.moi.gov.tw", "cloud.culture.tw", "mas.nstc.gov.tw", "www.mohw.gov.tw", "apiservice.mol.gov.tw",
                       "www.cbc.gov.tw", "www.caa.gov.tw", "data.boch.gov.tw", "stats.moe.gov.tw", "www.forest.gov.tw",
-                      "stat.thb.gov.tw", "cpx.cbc.gov.tw", "eds.moe.gov.tw"}
+                      "stat.thb.gov.tw", "cpx.cbc.gov.tw", "eds.moe.gov.tw", "data.moenv.gov.tw",
+                      "opdadm.moi.gov.tw", "oas.ocac.gov.tw"}
 # 只接受 Python 預設排除的加密套件（RSA 金鑰交換）的主機（國科會的開放資料，2026-10-29）：改用 OpenSSL 的 DEFAULT 套件清單，
 # 一樣是 TLS 1.2 加密、驗證憑證，只是沒有前向保密；下載的是公開資料
 LEGACY_CIPHER_HOSTS = {"mas.nstc.gov.tw"}
+# 沒有送出中繼憑證的主機（國健署，2026-10-30：只送伺服器憑證，curl、Python 都驗不過；瀏覽器會依憑證的 AIA 自己去抓）：
+# 照憑證 AIA 寫的網址下載那張中繼憑證加進信任清單，一樣驗證到系統的根憑證（TWCA Global Root CA）
+MISSING_INTERMEDIATE = {"www.hpa.gov.tw": "http://sslserver.twca.com.tw/cacert/secure_sha2_2023G3.crt"}
 
 
 def _ssl_context(url: str):
     import ssl
 
     host = urllib.parse.urlsplit(url).hostname
-    if host not in RELAXED_X509_HOSTS and host not in LEGACY_CIPHER_HOSTS:
+    if host not in RELAXED_X509_HOSTS and host not in LEGACY_CIPHER_HOSTS and host not in MISSING_INTERMEDIATE:
         return None
     ctx = ssl.create_default_context()
+    if host in MISSING_INTERMEDIATE:
+        der = download(MISSING_INTERMEDIATE[host], "ca", MISSING_INTERMEDIATE[host].rsplit("/", 1)[1]).read_bytes()
+        ctx.load_verify_locations(cadata=ssl.DER_cert_to_PEM_cert(der))
     if host in RELAXED_X509_HOSTS:
         ctx.verify_flags &= ~ssl.VERIFY_X509_STRICT
     if host in LEGACY_CIPHER_HOSTS:

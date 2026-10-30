@@ -31,7 +31,7 @@ def _records(resource_id: str, cache_name: str) -> list[dict]:
             data=json.dumps({"resource_id": resource_id, "limit": 10000, "offset": 0}).encode(),
             headers={"Content-Type": "application/json", "User-Agent": common.USER_AGENT},
         )
-        with urllib.request.urlopen(request, timeout=120) as resp:
+        with urllib.request.urlopen(request, timeout=120, context=common._ssl_context(SEARCH)) as resp:
             payload = json.load(resp)
         if not payload.get("success"):
             raise RuntimeError(f"環境部開放資料平台回傳錯誤：{payload}")
@@ -107,7 +107,7 @@ def ghg_inventory() -> dict[int, dict[str, float]]:
             data=json.dumps({"resource_id": resources[0]["rid"], "limit": 1000, "offset": 0}).encode(),
             headers={"Content-Type": "application/json", "User-Agent": common.USER_AGENT},
         )
-        with urllib.request.urlopen(request, timeout=120) as resp:
+        with urllib.request.urlopen(request, timeout=120, context=common._ssl_context(SEARCH)) as resp:
             payload = json.load(resp)
         if not payload.get("success"):
             raise RuntimeError(f"環境部開放資料平台回傳錯誤：{payload}")
@@ -152,7 +152,7 @@ def _dataset(name: str) -> list[dict]:
                 data=json.dumps({"resource_id": resources[0]["rid"], "limit": 1000, "offset": len(records)}).encode(),
                 headers={"Content-Type": "application/json", "User-Agent": common.USER_AGENT},
             )
-            with urllib.request.urlopen(request, timeout=120) as resp:
+            with urllib.request.urlopen(request, timeout=120, context=common._ssl_context(SEARCH)) as resp:
                 payload = json.load(resp)
             if not payload.get("success"):
                 raise RuntimeError(f"環境部開放資料平台回傳錯誤：{payload}")

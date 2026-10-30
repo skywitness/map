@@ -2,6 +2,7 @@
 死因結構（三大類的占比）與各國的首要死因類別。
 
 - 糖尿病、肥胖、30–70 歲死於四大慢性病的機率：WHO GHO（糖尿病與肥胖是 NCD-RisC 的年齡標準化估計）。
+  GHO 的 OData 2026-10-30 起壞了，改讀 xmart；xmart 沒有糖尿病，糖尿病的檔不重新產生（KEEP_EXISTING）。
 - 死因結構、首要死因、癌症標準化死亡率：WHO Global Health Estimates 2023 版的死因別死亡數（2000–2023 年）。
   癌症死亡率用 GHE 的年齡別死亡數與人口，以 WHO 世界標準人口自己算年齡標準化死亡率。
 - 愛滋（UNAIDS）、結核病、瘧疾（WHO）：World Bank WDI 轉載的版本（CC BY 4.0）。
@@ -97,7 +98,9 @@ WB_INDICATORS = {
     "tb-incidence": ("SH.TBS.INCD", "人/十萬人", 1),
     "malaria": ("SH.MLR.INCD.P3", "人/千人", 1),
 }
-# 輸出檔名 -> (GHO 代碼, 篩選條件, 單位)
+# 輸出檔名 -> (GHO 代碼, 篩選條件, 單位)。GHO 的 OData 2026-10-30 起壞了，改讀 xmart（who.py）；
+# xmart 沒有糖尿病的代碼，糖尿病照舊用 OData 壞掉以前產生的檔（KEEP_EXISTING，製作手冊第八批 146）
+KEEP_EXISTING = {"diabetes"}
 GHO_INDICATORS = {
     "diabetes": ("NCD_DIABETES_PREVALENCE_AGESTD", {"Dim1": "SEX_BTSX", "Dim2": "AGEGROUP_YEARS18-PLUS"}, "%"),
     "obesity": ("NCD_BMI_30A", {"Dim1": "SEX_BTSX"}, "%"),
@@ -198,6 +201,9 @@ def build() -> None:
         )
 
     for key, (code, dims, unit) in GHO_INDICATORS.items():
+        if key in KEEP_EXISTING and (out / f"{key}.json").exists():
+            print(f"  {key}：xmart 沒有 {code}，保留現有的檔")
+            continue
         countries, world = who.gho(code, dims)
         write(key, unit, countries, world, 2)
     for key, (code, unit, digits) in WB_INDICATORS.items():

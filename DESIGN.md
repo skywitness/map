@@ -755,7 +755,7 @@ pipeline/
     - WPP 是 CC BY 3.0 IGO。
     - World Bank、Ember、FAOSTAT、JRC GHS-POP 是 CC BY 4.0。飲食主題 2026-10-28 加的咖啡、茶、可可（第 97 點）也是 FAOSTAT 糧食平衡表，同一個授權。
     - Harvard Atlas 是 CC0。
-    - WHO 的資料（GHO、Global Health Estimates）是 CC BY 4.0（data.who.int 的條款，另加爭議先調解、再仲裁的條款）。
+    - WHO 的資料（GHO、Global Health Estimates）是 CC BY 4.0（data.who.int 的條款，另加爭議先調解、再仲裁的條款）。GHO 的 OData API 2026-10-30 起壞了，改讀同一份資料的 xmart 後端（第 228 點），授權不變。
     - **健康平均餘命**（第 114 點，2026-10-29）：WHO 的 HALE（WHOSIS_000002）與平均壽命（WHOSIS_000001）同上，是 CC BY 4.0；GHO 的 API 壞了，改用 data.who.int 背後的整檔 CSV（同一份資料）。台灣用衛生福利部統計處的分析文章（政府資料開放授權條款），數字是手抄的。
     - **GLOBOCAN（IARC）與 IHME GBD 沒有用**：前者大量轉載要書面授權，後者只限非商業使用（見第 23 點）。
     - Epoch AI 是 CC BY。
@@ -3737,6 +3737,12 @@ pipeline/
     - **指標**：進口量（EIA）、出口量（EIA），比例圓，子項目只有天然氣與煤（`GAS_COAL`，id 跟燃料共用；石油的進出口看 BACI 的流向）。數值是原本側欄表用的同一組 EIA 系列（天然氣 `26-3-BCM`、`26-4-BCM` 十億立方公尺，管道與 LNG 合計；煤 `7-3-MT`、`7-4-MT` 換成百萬公噸），`eia-import/`、`eia-export/` 兩個資料夾（共約 97 KB），世界值是 EIA 的 WORL，年份依 `year_span()`（天然氣 1990–2024、煤 1980–2024），附註跟產量、消費量一樣（台灣的 EIA 估計）。
     - 同一個 EIA 檔（INTL.zip 2026-10-19 版，公有領域）；只重跑 `eia_files()`，其他 EIA 的檔重跑後不變。2024 年台灣：天然氣進口 28.9 十億立方公尺、煤進口 57.0 百萬公噸（第 5 名）。
     - 跟下面 BACI 的流向不同：EIA 是各國能源統計的數量，不分夥伴；BACI 是貿易申報（台灣的數字來自貿易夥伴）。說明寫明。
+228. **WHO 的資料改讀 xmart**（修正，2026-10-30，製作手冊第八批 146；`pipeline/sources/who.py` 的 `gho()`、`gho_rows()`，`who_road.py`、`topics/disease.py`）：
+    - **原因**：GHO 的 OData API（`ghoapi.azureedge.net`）2026-10-30 對 SDGPM25、NCDMORT3070、RS_198、WHS4_100 等都回 HTTP 500，空氣品質、疾病與死因、交通安全、菸酒、疫苗與防疫重跑會失敗。
+    - **做法**：`who.gho()` 改讀同一份資料的 xmart 後端（`https://xmart-api-public.who.int/GHO/FACT?$filter=INDICATOR_CODE eq '<代碼>'`，用第六批組 E 寫的 `who_xmart.facts()`），授權不變（CC BY 4.0）。`gho_rows()` 把 xmart 的欄位換回 OData 的名稱：xmart 的維度分成 `DIMENSION_1`（SEX）與 `DIMENSION_MEMBER_1`（BTSX），合成 OData 的 `SEX_BTSX`，各主題的篩選條件不用改；`LOCATION_TYPE` 的 GLOBAL 是世界值。`PERIOD_CODE` 少數是期間（RS_194 登記車輛數的「2016-2017」「1995-2016」），取最後一年。
+    - **糖尿病**：xmart 沒有 `NCD_DIABETES_PREVALENCE_AGESTD`，疾病主題的糖尿病照舊用 OData 壞掉以前產生的檔（`disease.py` 的 `KEEP_EXISTING`：檔在就不重新產生）。
+    - **比對**（重跑空氣品質、疾病、疫苗、菸酒、交通安全）：空氣品質、疾病、菸酒的資料檔跟原本完全一樣（只有國家的順序與 `generatedAt` 不同，沒有提交），疫苗的 WUENIC 四項也一樣。交通安全只有史瓦帝尼：RS_246（死者依道路使用者分）它有 2013、2016 兩年，原本的程式依列的順序把兩年的占比混在一起（2016 年的機車 0.5% 配 2013 年的行人 33.5%），改成每國只用最新的一年（2016 年：四輪 53.7%、行人 43.8%、機車 0.5%）。
+    - 順便：環境部開放資料（`data.moenv.gov.tw`，空氣品質的 PM2.5 手動監測）的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`（`moenv.py` 自己開連線，改成也用 `common._ssl_context()`）；國健署（`www.hpa.gov.tw`，菸酒的台灣吸菸率）只送伺服器憑證、沒有中繼憑證，`common.MISSING_INTERMEDIATE` 照憑證 AIA 的網址下載 TWCA Secure SSL CA 加進信任清單（瀏覽器也是這樣補，一樣驗證到系統的 TWCA Global Root CA）。
 
 ## 9. 之後可以做的
 
