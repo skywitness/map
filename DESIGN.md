@@ -215,6 +215,7 @@ pipeline/
 | 指標的 `integer` | 數值是整數：側欄折線圖的 y 軸只用整數刻度（`spec.ts` 的 `y.integer`），只有 1、2 棟時才不會寫成 0、1、1、2、2 | 摩天大樓的 300 m 以上的大樓數（2026-10-27 起） |
 | `indicatorAliases` | 舊網址的指標 id → 現在的指標與子項目（`{ 舊 id: { indicator, item? } }`）：指標改名或併進子項目後，舊的分享連結照樣打開同一份資料，網址也換成新的寫法（`types.ts` 的 `resolveAlias()`，App 與第一個畫面的預先下載共用；沒有對到的 id 原樣回傳同一個物件，App 依這個判斷要不要改寫網址） | 溫室氣體排放：原本只有二氧化碳的 `co2-per-capita`、`co2`，現在是「人均排放」「年排放量」選二氧化碳（資料檔還是 `co2-per-capita.json`、`co2.json`，`{item}-per-capita.json`、`{item}.json`） |
 | 主題的轉址（`src/topics/redirects.ts`，不是 `TopicDefinition` 的欄位） | 主題合併、指標搬到別的主題後，舊網址轉到新主題的對應指標（2026-10-30，第 8 節第 197 點）：`TOPIC_REDIRECTS`（整個主題）、`INDICATOR_MOVES`（某幾個指標），`url-state.ts` 的 `read()` 讀網址時就轉；舊路徑的 HTML 照樣產生 | 第七批的合併（南極、航空、住宅與房價…） |
+| 指標的 `file` 寫 `../<主題>/<檔名>` | 讀另一個主題的指標檔（2026-10-30，`indicatorPath()`）：同一份資料在兩個主題都有指標時只存一份（第 8 節第 205 點） | 治安與司法的法治分數讀政府治理的 `rule-of-law.json` |
 | 指標的 `coverage` | 刻意只收部分國家的指標：`{ countries, reason }`，`countries`（ISO alpha-3）以外的國家沒有值時一律寫 `reason`（`noValue` 要逐一列出國家，這裡只列有收的）；`countries` 裡的國家某一年沒有值時照常寫「無資料」 | 監禁人口率：44 國以外寫「沒有開放授權的資料」（第 8 節第 43 點） |
 | 指標的 `dimension` | 指標自己的子項目選擇器，取代主題的 `dimension`（2026-10-27 起）：同一個主題裡不同指標的子項目不同時用。網址的子項目不在這個指標的選項裡時用它的 `defaultOption`（`types.ts` 的 `itemFor()`；`indicatorPath()`、側欄的數值卡片、預先下載都經過它），網址留著原本的子項目，換回原本的指標時還在。側欄卡片的標題用各指標自己的子項目名稱（`itemLabelOf()`） | 國旗的「顏色」（紅、白、藍…）與「圖案」（星星、新月、太陽…） |
 | 指標的 `rankingBars: false` | 排名表不畫長條：數值是年份這類，長短沒有意義 | 國旗的採用年份 |
@@ -3669,6 +3670,12 @@ pipeline/
     - **資料**：搬到大主題的資料夾，檔名重複的改名：特色食物的各國清單 `countries/` → `diet/foods/`（飲食已經有 `countries/`），城市熱島的城區點 `cities.json` → `cities/uhi-areas.json`（城市主題的 `cities.json` 是城市的點），唐人街的 `points.json` → `migration/chinatowns.json`。小主題的 `manifest.json` 改名 `<小主題>-manifest.json` 放在大主題的資料夾（像交通的 `metro-manifest.json`），大主題的 `manifest.json` 不動。pipeline 的步驟名稱不變，輸出改到大主題的資料夾；`cloud-regions` 重跑過輸出相同，其他步驟要下載（UNdata、Wikidata、維基百科、NOAA、UHII 的 RAR），這次沒有重跑，資料檔原樣搬過來。
     - **轉址**（第 197 點）：7 個舊 id 都轉到大主題的對應指標（`t/foods/?item=cheese` → `t/diet/?ind=foods&item=cheese`），驗證過。7 個舊主題的縮圖、預覽圖、圖示刪掉；大主題的預設畫面沒有變，縮圖不重做。DESIGN.md 第 7 節的表保留 7 列（名稱前加「↳」寫併到哪裡），README 的主題清單在各自的說明前寫明併進哪個主題。
     - **授權**：沒有變（第 12 點各自的紀錄，各條已註明併到哪裡）；資料來源跟著指標搬，大主題的頁尾都列出來。
+
+205. **法治分數改讀同一個檔**（2026-10-30，製作手冊第七批 123；`src/topics/types.ts`、`src/topics/crime.ts`、`pipeline/topics/crime.py`）：「治安與司法」的法治分數與「政府治理」的法治是同一份世界銀行 WGI（Rule of Law 的 0–100 分），原本各存一份（`topics/crime/rule-of-law.json`、`topics/governance/rule-of-law.json`，數值相同，政府治理的多一個世界中位數）。
+    - **做法**：指標的 `file` 可以寫 `../<主題>/<檔名>` 讀另一個主題的檔（`types.ts` 的 `indicatorPath()` 換成 `topics/<主題>/<檔名>`；指標檔的載入、側欄的數值卡片、排名表、預先下載都經過它）。治安與司法的法治分數改成 `../governance/rule-of-law.json`，`crime.py` 不再產生自己的 `rule-of-law.json`（檔案刪掉），只由 `governance.py` 產生一次，更新時兩邊不會不一樣。指標本身留在兩個主題。
+    - **驗證**：治安與司法的法治分數照常畫，台灣 2023 年 78.8 分、第 28 名，側欄的歷年曲線 1996 年起，跟原本相同。
+    - **授權**：沒有變（WGI，CC BY 4.0）。
+
 209. **中國的海外貸款換新版**（資料更新，2026-10-30，製作手冊第七批 127；`pipeline/sources/aiddata.py`、`pipeline/topics/china_lending.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`）：
     - **來源換成 AidData 的 China's Global Loans and Grants Dataset, Version 1.0**（CLG-Global 1.0，2025-11-18 發布；使用者選全球版，不是只有中低所得國的 CLG-LMIC 1.0）：承諾年 2000–2023，33,580 筆，搜尋過 217 個低、中、高所得國家與地區（CountryList 工作表），200 個有項目、17 個沒有（值是 0）。zip 43.8 MB，xlsx 40.6 MB 的 `CLG-Global 1.0_Records` 工作表（80 多欄）openpyxl 讀一次約 35 秒，只留用到的 13 欄存成 `.cache/aiddata/clg1-records.pkl`。授權見第 12 點。
     - **欄位跟 GCDF 3.0 的對照**（欄位定義 PDF 與 Guide 工作表）：欄名改成底線（`Recommended_for_Aggregates`、`Country_of_Activity_ISO3`、`Commitment_Year`、`Flow_Type_Simplified`、`Sector_Code`、`AidData_Record_ID`）；金額換成 2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`、`Adjusted_Amount_Nominal_USD`，一樣扣掉央行換匯與紓困貸款的短期展期）；年份、部門代碼與編號讀出來是浮點數，`_clean()` 轉整數。`Flow_Class` 多了 OFIC（高所得國的官方融資，不分 ODA／OOF），這個主題沒有用到。新增的 `Source_Dataset`（CLG-LMIC 1.0 23,816 筆、CLG-HIC 1.0 9,764 筆）也存進快取，之後要分開看可以用。CountryList 多了兩欄（所得分類、ODA 資格），筆數在第 4 欄；pycountry 對不到的只剩美屬維京群島（United States Virgin Islands）與巴勒斯坦（West Bank and Gaza Strip）。
