@@ -296,6 +296,8 @@ STEPS = {
     "brands": "topics.brands",
     # 各國的航空公司：Wikidata 的客運航空公司（依總部所在國，含已停業的）；幾秒
     "airlines": "topics.airlines",
+    # 叫車服務在哪些國家：Uber、Grab、滴滴（手工整理的表，Uber 的國家照使用者用瀏覽器存的城市頁）
+    "ride-hailing": "topics.ride_hailing",
     # 海外軍事基地（軍事主題）：英文維基「List of countries with overseas military bases」（固定版本），國家層級的流向；不到 1 秒
     "overseas-bases": "topics.overseas_bases",
     # 此刻世界的新聞熱點：只輸出 FIPS 10-4 → ISO 的對照表（GeoNames）；事件由瀏覽器直接讀 GDELT；不到 1 秒
