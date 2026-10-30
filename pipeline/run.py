@@ -118,6 +118,9 @@ STEPS = {
     "long-term-care": "topics.long_term_care",
     # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
     "palliative": "topics.palliative",
+    # 菸酒的擴充（輸出到 topics/tobacco-alcohol/）：英文維基「Regulation of electronic cigarettes」固定版本（230 KB）、WHO MPOWER 的
+    # 室內禁菸場所（xmart，6 MB）；幾秒
+    "tobacco-policy": "topics.tobacco_policy",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
