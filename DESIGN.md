@@ -3624,6 +3624,12 @@ pipeline/
     - **檔名**：都搬到 `public/data/topics/aviation/`。重複的改名：最長航線的起訖機場 `airports.json` → `route-airports.json`（圖層 id 也改成 `route-airports`、`route-airports-discontinued`，跟交通搬過來的 `airports` 分開）；航空公司的 `operating.json` → `airlines.json`、各國的檔 `countries/` → `airlines/`（交通也有 `countries/`）。pipeline 的步驟不變：`transport` 把機場與航空旅客輸出到 `aviation/`（`AIR_OUT`，鐵路、地鐵、各國的檔照舊在 `transport/`），`busiest-airports`、`airlines`、`longest-flights` 輸出到 `aviation/`，`manifest.json` 用 `common.write_manifest_part()`（第 198 點）。
     - **轉址**（第 197 點）：`airlines` → 營運中的航空公司（`?ind=operating` 也轉成 `airlines`）、`longest-flights` → 最長航線前 30 名的條數；`INDICATOR_MOVES` 讓交通搬走的 5 個指標（`t/transport/?ind=air-passengers` 等）轉到航空，其他交通的指標不動。舊主題的縮圖、預覽圖刪掉；圖示用航空公司原本的 `plane-takeoff`。
     - **授權**：沒有變（第 12 點的 OurAirports 公有領域、WDI CC BY 4.0、WPP CC BY 3.0 IGO、民航局政府資料開放授權、Wikidata CC0、英文維基百科 CC BY-SA 4.0 的資料檔照樣依 CC BY-SA 4.0 分享）。
+200. **月球與火星的登陸併進太空**（科技與交通類，2026-10-30，製作手冊第七批 118；`src/topics/space.ts`、`src/topics/landings.ts`）：
+    - **合併**：「月球與火星的登陸」（第 192 點）的 4 個指標（抵達月球表面的次數、月球成功軟著陸、抵達火星表面的次數、火星成功軟著陸）併進「太空：衛星與發射」，太空變 8 個指標，控制列超過 5 個自動改成下拉選單。`landings.ts` 改成匯出 `landingsPart`（指標、資料來源、說明），資料來源與說明接在太空的後面（「月球與火星的登陸：…」）。發射場的點加上 `indicators`，登陸的指標不畫。
+    - **側欄**：`panels/SpaceTopicPanel.tsx` 依指標換：登陸的 4 個指標用原本的 `LandingsPanel`（這國的每一次登陸），其他用 `SpacePanel`。
+    - **資料**：`moon.json`、`moon-soft.json`、`mars.json`、`mars-soft.json` 搬到 `public/data/topics/space/`，側欄的清單 `list.json` 改名 `landings.json`；pipeline 的 `landings` 步驟輸出到 `space/`，`space` 與 `landings` 兩個步驟的 `manifest.json` 都改用 `common.write_manifest_part()`（第 198 點）。`landings` 這次重跑被維基百科的 429 擋下，只改了輸出路徑，資料檔原樣搬過來。
+    - **轉址**（第 197 點）：`landings` → 太空的抵達月球表面的次數，指標 id 不變（`t/landings/?ind=mars-soft` 照樣打開）。舊主題的縮圖、預覽圖刪掉；太空的預設畫面沒有變，縮圖不重做。
+    - **授權**：沒有變（GCAT CC BY 4.0、英文維基百科 CC BY-SA 4.0 的資料檔照樣依 CC BY-SA 4.0 分享）。
 209. **中國的海外貸款換新版**（資料更新，2026-10-30，製作手冊第七批 127；`pipeline/sources/aiddata.py`、`pipeline/topics/china_lending.py`、`src/topics/china-lending.ts`、`src/topics/panels/ChinaLendingPanel.tsx`）：
     - **來源換成 AidData 的 China's Global Loans and Grants Dataset, Version 1.0**（CLG-Global 1.0，2025-11-18 發布；使用者選全球版，不是只有中低所得國的 CLG-LMIC 1.0）：承諾年 2000–2023，33,580 筆，搜尋過 217 個低、中、高所得國家與地區（CountryList 工作表），200 個有項目、17 個沒有（值是 0）。zip 43.8 MB，xlsx 40.6 MB 的 `CLG-Global 1.0_Records` 工作表（80 多欄）openpyxl 讀一次約 35 秒，只留用到的 13 欄存成 `.cache/aiddata/clg1-records.pkl`。授權見第 12 點。
     - **欄位跟 GCDF 3.0 的對照**（欄位定義 PDF 與 Guide 工作表）：欄名改成底線（`Recommended_for_Aggregates`、`Country_of_Activity_ISO3`、`Commitment_Year`、`Flow_Type_Simplified`、`Sector_Code`、`AidData_Record_ID`）；金額換成 2023 年固定美元（`Adjusted_Amount_Constant_USD_2023`、`Adjusted_Amount_Nominal_USD`，一樣扣掉央行換匯與紓困貸款的短期展期）；年份、部門代碼與編號讀出來是浮點數，`_clean()` 轉整數。`Flow_Class` 多了 OFIC（高所得國的官方融資，不分 ODA／OOF），這個主題沒有用到。新增的 `Source_Dataset`（CLG-LMIC 1.0 23,816 筆、CLG-HIC 1.0 9,764 筆）也存進快取，之後要分開看可以用。CountryList 多了兩欄（所得分類、ODA 資格），筆數在第 4 欄；pycountry 對不到的只剩美屬維京群島（United States Virgin Islands）與巴勒斯坦（West Bank and Gaza Strip）。
@@ -3705,13 +3711,6 @@ pipeline/
     - **樣式**：運轉中照舊（實心、白框）；興建中 `hollow`（能源色的粗框 1.1–1.8 px、底色不透明度 0.12）；規劃中 `faint`（能源色的細框 0.7–1.1 px、沒有底色、框的不透明度 0.8）；已退役與封存 `muted`（灰色 `inkMuted` 實心、不透明度 0.6，能源只看 tooltip）。圖層名稱後面寫（空心）（細框）（灰色），圖層開關的符號照同一組數字畫，匯出的圖片也一樣。
     - **共用程式的改動**：點圖層引擎只在 `look` 有寫時換 `paint`（`lookPaint()`），沒寫的點圖層照舊，別的主題的點不變（smoke 過 power-plants、earthquakes、cities、electricity：發電量主題借用的運轉中電廠層不受影響）。三角形（火山）不支援 `look`。顏色分級、大小圖例的列照舊是實心（四個狀態共用一組說明）。
     - 驗證：東亞同時打開興建中與規劃中，粗框與細框的圓分得出來，跟運轉中的實心圓疊在一起也看得出。
-
-200. **月球與火星的登陸併進太空**（科技與交通類，2026-10-30，製作手冊第七批 118；`src/topics/space.ts`、`src/topics/landings.ts`）：
-    - **合併**：「月球與火星的登陸」（第 192 點）的 4 個指標（抵達月球表面的次數、月球成功軟著陸、抵達火星表面的次數、火星成功軟著陸）併進「太空：衛星與發射」，太空變 8 個指標，控制列超過 5 個自動改成下拉選單。`landings.ts` 改成匯出 `landingsPart`（指標、資料來源、說明），資料來源與說明接在太空的後面（「月球與火星的登陸：…」）。發射場的點加上 `indicators`，登陸的指標不畫。
-    - **側欄**：`panels/SpaceTopicPanel.tsx` 依指標換：登陸的 4 個指標用原本的 `LandingsPanel`（這國的每一次登陸），其他用 `SpacePanel`。
-    - **資料**：`moon.json`、`moon-soft.json`、`mars.json`、`mars-soft.json` 搬到 `public/data/topics/space/`，側欄的清單 `list.json` 改名 `landings.json`；pipeline 的 `landings` 步驟輸出到 `space/`，`space` 與 `landings` 兩個步驟的 `manifest.json` 都改用 `common.write_manifest_part()`（第 198 點）。`landings` 這次重跑被維基百科的 429 擋下，只改了輸出路徑，資料檔原樣搬過來。
-    - **轉址**（第 197 點）：`landings` → 太空的抵達月球表面的次數，指標 id 不變（`t/landings/?ind=mars-soft` 照樣打開）。舊主題的縮圖、預覽圖刪掉；太空的預設畫面沒有變，縮圖不重做。
-    - **授權**：沒有變（GCAT CC BY 4.0、英文維基百科 CC BY-SA 4.0 的資料檔照樣依 CC BY-SA 4.0 分享）。
 
 ## 9. 之後可以做的
 
