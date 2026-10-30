@@ -126,6 +126,8 @@ STEPS = {
     # 菸酒的擴充（輸出到 topics/tobacco-alcohol/）：英文維基「Regulation of electronic cigarettes」固定版本（230 KB）、WHO MPOWER 的
     # 室內禁菸場所（xmart，6 MB）；幾秒
     "tobacco-policy": "topics.tobacco_policy",
+    # 各國的健保制度（併進健康主題，輸出到 topics/health/）：OECD HSCS 2023 的 Q2（SDMX-JSON，32 KB）、英文維基兩個固定版本的表；幾秒
+    "health-systems": "topics.health_systems",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
