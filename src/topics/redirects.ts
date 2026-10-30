@@ -30,6 +30,9 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   landings: { topic: 'space', indicator: 'moon' },
   // 房價與居住負擔併進住宅（第七批 119，住宅與房價保留 housing 的 id），指標 id 不變
   'house-prices': { topic: 'housing', indicator: 'real-price-10y' },
+  // 企業與品牌（第七批 120）：最古老的公司、品牌的發源地，指標 id 不變
+  'oldest-companies': { topic: 'companies', indicator: 'companies' },
+  brands: { topic: 'companies', indicator: 'brands' },
 };
 
 /**
