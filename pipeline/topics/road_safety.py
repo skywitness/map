@@ -10,6 +10,10 @@
   2020 或 2021 年）÷ WPP 人口 × 1,000，與占登記機動車輛（CP_36a）的比例。機車數比車輛總數還多的（菲律賓、喬治亞、
   賽普勒斯、查德、南蘇丹：單位填錯）兩個指標都不用；台灣用交通部表 101 的年底登記機車數（使用者 2026-10-29 決定）。
   車輛數的年份跟死亡人數差 2 年以內才算；每千人不到 1 輛的通報值當成填錯，不用。
+- 汽車擁有率（build_cars，2026-10-30，製作手冊第六批 87）：GSRRS 2023 的登記汽車數（CP_38，含四輪輕型車，2020 或
+  2021 年）÷ WPP 人口 × 1,000；歐洲另有 Eurostat road_eqs_carhab 的每千人小客車數（1990–2025，CC BY 4.0）。
+  兩者定義不同（WHO 含皮卡與輕型貨車），分成兩個指標、不接成一條線。台灣是交通部表 101 的年底登記小客車數
+  （公路局的監理資料；公路局統計查詢網 2026-10-30 從 cloud 被 Incapsula 擋下），兩個指標都有。
 - **台灣**（WHO 沒有）：交通部統計查詢網的 30 日內死亡人數（2008 年起，`sources/motc.py`），跟 WHO 同樣是 30 天定義；
   人口用 WPP（跟其他國家一致），機動車輛是交通部的年底登記數。
   台灣的「機車」只算騎士，乘客不分車種另外一類，所以機車占比比 WHO 的定義（含乘客）略低。
@@ -17,7 +21,7 @@
 from __future__ import annotations
 
 from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
-from sources import motc, who_road, wpp
+from sources import eurostat, motc, who_road, wpp
 
 OUT = OUT_DIR / "topics" / "road-safety"
 FIRST_YEAR = 2000
@@ -91,6 +95,66 @@ def build_motorcycles() -> None:
     top = sorted(((next(iter(s.values())), k) for k, s in per_1000.items() if k != "TWN"), reverse=True)
     print(f"  機車：{len(per_1000) - 1} 國＋台灣；不用（機車多於車輛總數或沒有人口）：{dropped}")
     print(f"  每千人最多 {top[:8]}；台灣 {y} 年 {per_1000['TWN'][y]}（占 {share['TWN'][y]}%）")
+
+
+# GSRRS 2023 的汽車數明顯填錯的：每千人不到 3 輛（喬治亞 1 輛、賽普勒斯 701 輛、肯亞 7 萬輛…）、
+# 越南 43 萬輛（每千人 4 輛，越南的汽車實際上超過 500 萬輛）、菲律賓（車輛總數填 13）、
+# 查德（汽車比車輛總數還多）
+CARS_MIN_PER_1000 = 3
+CARS_BAD = {"VNM", "PHL"}
+
+
+def build_cars() -> None:
+    """每千人汽車數：各國 2020／2021 年（GSRRS 2023，含四輪輕型車）；歐洲每千人小客車數（Eurostat，1990 年起）；
+    台灣兩個都用交通部表 101 的年底登記小客車數，2012 年起每年"""
+    pop = wpp.demographic(["TPopulation1July"], last_year=TWN_LAST)["TPopulation1July"]  # 千人
+    cars_tw = {y: v for y, v in motc.annual(motc.VEHICLES_FROM_2012, "小客車", "車齡別總計").items() if y <= TWN_LAST}
+    vans_tw = motc.annual(motc.VEHICLES_FROM_2012, "小貨車", "車齡別總計")
+    tw = {y: round(v / pop["TWN"][y], 1) for y, v in cars_tw.items() if pop["TWN"].get(y)}
+
+    who_cars: dict[str, dict[int, float]] = {}
+    dropped = []
+    for iso3, (year, cars, total) in who_road.gsrrs_2023_cars().items():
+        people = pop.get(iso3, {}).get(year)
+        if not people:
+            dropped.append(iso3)
+            continue
+        value = cars / people  # 人口是千人
+        if value < CARS_MIN_PER_1000 or iso3 in CARS_BAD or (total and cars > total):
+            dropped.append(iso3)
+            continue
+        who_cars[iso3] = {year: round(value, 1)}
+    who_cars["TWN"] = tw
+    y = TWN_LAST
+    with_vans = (cars_tw[y] + vans_tw[y]) / pop["TWN"][y]
+    note = (f"台灣是交通部統計查詢網表 101 的年底登記小客車數（{y} 年底 {cars_tw[y] / 1e4:,.0f} 萬輛，公路局的監理資料）"
+            f" ÷ 聯合國的年中人口，不含小貨車；加上小貨車（{vans_tw[y] / 1e4:,.0f} 萬輛）是每千人 {with_vans:,.0f} 輛，"
+            "比較接近 WHO 含四輪輕型車的定義。")
+    note_en = (f"Taiwan: passenger cars registered at year end in table 101 of the Ministry of Transportation and Communications "
+               f"statistics database ({cars_tw[y] / 1e6:.2f} million at the end of {y}, Highway Bureau registration data) divided by "
+               f"UN mid-year population, excluding light trucks; with light trucks ({vans_tw[y] / 1e6:.2f} million) it is "
+               f"{with_vans:,.0f} per 1,000 people, closer to WHO’s definition that includes 4-wheeled light vehicles.")
+    years = list(range(min(cars_tw), TWN_LAST + 1))
+    write_json(OUT / "cars-per-1000.json", indicator_file(
+        "cars-per-1000", "輛/千人", years, {k: to_series(s, years) for k, s in sorted(who_cars.items())},
+        latestWithin=SHARE_WITHIN, notes={"TWN": note}, notesEn={"TWN": note_en},
+    ))
+
+    europe = eurostat.series("road_eqs_carhab", freq="A", unit="NR")
+    europe["TWN"] = tw
+    eu_years = list(range(min(min(s) for s in europe.values()), max(max(s) for s in europe.values()) + 1))
+    note = (f"台灣是交通部統計查詢網表 101 的年底登記小客車數 ÷ 聯合國的年中人口（{y} 年底 {cars_tw[y] / 1e4:,.0f} 萬輛），"
+            "跟 Eurostat 的小客車（passenger cars）定義相近。")
+    note_en = ("Taiwan: passenger cars registered at year end in table 101 of the Ministry of Transportation and Communications "
+               f"statistics database divided by UN mid-year population ({cars_tw[y] / 1e6:.2f} million at the end of {y}), "
+               "close to Eurostat’s passenger car definition.")
+    write_json(OUT / "passenger-cars.json", indicator_file(
+        "passenger-cars", "輛/千人", eu_years, {k: to_series(s, eu_years) for k, s in sorted(europe.items())},
+        latestWithin=2, notes={"TWN": note}, notesEn={"TWN": note_en},
+    ))
+    top = sorted(((next(iter(s.values())), k) for k, s in who_cars.items() if k != "TWN"), reverse=True)
+    print(f"  汽車：{len(who_cars) - 1} 國＋台灣；不用（明顯填錯）：{sorted(dropped)}")
+    print(f"  每千人最多 {top[:8]}；台灣 {y} 年 {tw[y]}（含小貨車 {with_vans:.0f}）；歐洲 {len(europe) - 1} 國 {eu_years[0]}–{eu_years[-1]}")
 
 
 def build() -> None:
@@ -250,6 +314,7 @@ def build() -> None:
         },
     )
     build_motorcycles()
+    build_cars()
     write_json(OUT / "manifest.json", {"generatedAt": now_iso(), "whoLastYear": last})
 
     tw23 = tw_rate[2023]
