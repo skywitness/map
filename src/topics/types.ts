@@ -370,7 +370,7 @@ export function resolveItem(
  */
 export type OverlayDef =
   /** 鐵路、機場（交通主題）；indicators 同 OverlayBase：只在這些指標顯示 */
-  | { id: 'railways' | 'airports'; kind?: undefined; file: string; indicators?: string[] }
+  | { id: 'railways' | 'airports'; kind?: undefined; file: string; indicators?: string[]; topic?: string }
   | PointsOverlayDef
   | LinesOverlayDef
   | NightOverlayDef
@@ -518,6 +518,13 @@ interface OverlayBase {
   indicators?: string[];
   /** 只在這些子項目顯示（dimension 的選項 id，例如奧運的夏季、冬季）；沒寫就是所有子項目 */
   items?: string[];
+  /**
+   * 共用疊加圖層（shared-layers.ts，2026-10-30）：疊在別的主題時依自己的方式跟時間軸（例如地震累積到那一年），
+   * 取代目前指標的 overlayTime
+   */
+  overlayTime?: IndicatorDef['overlayTime'];
+  /** 共用疊加圖層：資料有的年份範圍，時間軸超出時用最接近的一年（颱風 1950–2026，時間軸在 2030 年時畫 2026 年） */
+  timeRange?: [number, number];
 }
 
 /** 依數值欄位分級的顏色：thresholds N 個 → classes N+1 個（由小到大），顏色取自 MAP_TOKENS */

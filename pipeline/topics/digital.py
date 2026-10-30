@@ -5,7 +5,7 @@ ITU 與世界銀行都沒有台灣，台灣用數位發展部「數位近用調�
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
+from common import append_note, later_years_note, OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
 from sources import moda, ncc, worldbank, wpp
 
 # 輸出檔名 -> (World Bank 代碼, 單位, 台灣附註, 台灣附註的英文)
@@ -38,6 +38,17 @@ def taiwan_series() -> dict[str, dict[int, float]]:
     }
 
 
+def later_notes(key: str, unit: str, tw: dict[int, float], years: list[int], note: str, note_en: str) -> dict:
+    """台灣比時間軸更新的年份（數位部 114 年的個人上網率、NCC 到 2025 年的用戶數）寫在附註（製作手冊第八批 159）"""
+    notes, notes_en = {"TWN": note}, {"TWN": note_en}
+    if unit == "%":
+        fmt_zh = fmt_en = lambda v: f"{v:.1f}%"  # noqa: E731
+    else:
+        fmt_zh, fmt_en = (lambda v: f"每百人 {v:.1f}"), (lambda v: f"{v:.1f} per 100 people")  # noqa: E731
+    append_note(notes, notes_en, "TWN", later_years_note(tw, years, fmt_zh, fmt_en))
+    return {"notes": notes, "notesEn": notes_en}
+
+
 def build() -> None:
     out = OUT_DIR / "topics" / "digital"
     taiwan = taiwan_series()
@@ -51,8 +62,7 @@ def build() -> None:
             indicator_file(
                 key, unit, years, {iso3: to_series(s, years, 2) for iso3, s in countries.items() if s},
                 aggregates={"WLD": to_series(world, years, 2)},
-                notes={"TWN": note},
-                notesEn={"TWN": note_en},
+                **later_notes(key, unit, taiwan[key], years, note, note_en),
             ),
         )
     write_json(
