@@ -199,7 +199,7 @@ export function CountryPanel(props: CountryPanelProps) {
             {lang === 'en' ? displayCode(iso3) : `${enName(iso3, countries)} · ${displayCode(iso3)}`}
             {/* 年份寫在同一行（原本自己一行）：桌機 900px 高時，第一張折線圖不必捲動就看得到整張。
                 不隨時間變化的資料（海拔）不寫年份 */}
-            {!topic.timeless && (
+            {!(topic.timeless || indicator.timeless) && (
               <span className="panel-year">
                 {' · '}
                 {/* 時刻主題寫那一刻（「6月21日 14:05」） */}
@@ -244,7 +244,7 @@ export function CountryPanel(props: CountryPanelProps) {
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
-              {!topic.timeless && !at && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
+              {!(topic.timeless || ind.timeless) && !at && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
             </span>
             {loaded && others.length > 0 && (
               <span className="stat-compare">

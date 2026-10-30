@@ -67,13 +67,8 @@ function lakeTooltip(p: PointRecord) {
   return { title: String(p.name ?? ''), detail: kind ? tr(kind.label) : '', extra };
 }
 
-export const subglacialLakes: TopicDefinition = {
-  id: 'subglacial-lakes',
-  title: { zh: '南極的冰下湖', en: 'Antarctic subglacial lakes' },
-  shortTitle: { zh: '冰下湖', en: 'Subglacial lakes' },
-  defaultIndicator: 'lakes',
-  defaultYear: 2020,
-  timeless: true,
+/** 南極主題（antarctica.ts）的冰下湖部分：2026-10-30 起跟研究站、企鵝合成一個主題 */
+export const lakesPart = {
   sources: [
     {
       name: {
@@ -94,14 +89,13 @@ export const subglacialLakes: TopicDefinition = {
       'Wilson et al. 2025 used CryoSat-2 altimetry from 2010–2020 to find 85 new active lakes and re-analysed 19 known active lakes (from the lists of Smith et al. 2009 and 2017). Dots mark each lake’s centre and outlines show its extent mapped from the surface movement (the largest of its periods). Lake names give the glacier basin and the distance from the grounding line in kilometres. ' +
       'Extents and volumes are inferred from surface elevation change and, as the data note, may be overestimates. Some 773 subglacial lakes are known worldwide (Livingstone et al. 2022: 675 in Antarctica, 179 of them active), but that list’s licence has not been confirmed, so it is not shown yet. Taiwan has no subglacial lakes.',
   },
-  noValue: { TWN: { zh: '台灣沒有冰下湖', en: 'Taiwan has no subglacial lakes' } },
-  focus: [-180, -88, 180, -62],
   overlays: [
     {
       kind: 'lines',
       id: 'outlines',
       file: 'outlines.json',
       label: { zh: '冰下湖的範圍', en: 'Lake outlines' },
+      indicators: ['lakes'],
       width: 1.2,
       color: { classes: KINDS.map((k) => ({ value: k.value, color: k.color, label: k.label })) },
       fill: { field: 'ring', value: 1, opacity: 0.35, darkOpacity: 0.5 },
@@ -111,6 +105,7 @@ export const subglacialLakes: TopicDefinition = {
       id: 'lakes',
       file: 'lakes.json',
       label: { zh: '活動的冰下湖', en: 'Active subglacial lakes' },
+      indicators: ['lakes'],
       radius: { field: 'a', stops: [[0, 2.6], [50, 3.4], [150, 4.6], [400, 6.2]] },
       color: KIND_COLORS,
       sortField: 'a',
@@ -128,6 +123,10 @@ export const subglacialLakes: TopicDefinition = {
       },
       unit: '',
       file: 'lakes-count.json',
+      // 湖的資料不分年份（CryoSat-2 2010–2020 年的整理）：這個指標沒有時間軸
+      timeless: true,
+      defaultYear: 2020,
+      noValue: { TWN: { zh: '台灣沒有冰下湖', en: 'Taiwan has no subglacial lakes' } },
       layer: { kind: 'none' },
       unranked: true,
       rankingBars: false,
@@ -136,4 +135,4 @@ export const subglacialLakes: TopicDefinition = {
       missing: { zh: '冰下湖不屬於任何國家，看地圖上的點', en: 'Subglacial lakes belong to no country; see the dots on the map' },
     },
   ],
-};
+} satisfies Partial<TopicDefinition>;

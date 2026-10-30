@@ -3,7 +3,7 @@
 - 平均受教育年數用 UNDP 人類發展報告；粗在學率、教育支出、識字率用 World Bank WDI（UNESCO 統計研究所）。
 - 這些都沒有台灣：平均受教育年數、粗在學率、教育經費用教育部統計處，識字率用內政部的戶籍統計。
 - 2026-10-30 擴充（製作手冊第六批 86，`build_more()`）：
-  - 0–2 歲上托育的比例：OECD Family Database PF3.2（約 45 國，台灣沒有）。
+  - 0–2 歲上托育的比例：OECD Family Database PF3.2（約 45 國），台灣自算（衛福部、教育部、內政部，`sources/tw_childcare.py`，DESIGN.md 第 216 點）。
   - 學前教育毛入學率：World Bank WDI SE.PRE.ENRR（UNESCO UIS，CC BY 4.0），台灣沒有（缺單一年齡的人口，見 DESIGN.md 第 168 點）。
   - 國中教師的法定年薪：OECD Education at a Glance，15 年年資、最普遍的資格、購買力平價美元，只有 2025 年。
   - 小學平均每班人數：OECD Education at a Glance（2013–2024），台灣用教育部國民小學概況的學生數 ÷ 班級數。
@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 
 from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
-from sources import moe, moi, oecd_eag, undp, worldbank
+from sources import moe, moi, oecd_eag, tw_childcare, undp, worldbank
 
 TAIWAN = "台灣不在{db}資料庫中，改用"
 # 輸出檔名 -> (來源, 代碼, 單位, 頭尾年份至少要有最多那年幾成的國家, 台灣資料, 台灣附註)
@@ -109,7 +109,16 @@ def build_more(out) -> None:
         latest = sorted(((s[max(s)], c) for c, s in series.items()), reverse=True)
         print(f"  {key}：{len(series)} 國，最高 {latest[:3]}，最低 {latest[-3:]}，台灣 {series.get('TWN', {}).get(max(series.get('TWN', {0: 0})))}")
 
-    write("childcare", "%", oecd_eag.childcare_0_2(), 1)
+    childcare = oecd_eag.childcare_0_2()
+    childcare["TWN"] = tw_childcare.childcare_0_2()
+    write("childcare", "%", childcare, 1, (
+        {"TWN": "自算：（衛福部托嬰中心收托人數 ＋ 居家托育 0–2 歲收托人數 ＋ 教育部幼兒園「未滿 3 歲」幼生數）÷ 內政部年底 0–2 歲人口。"
+                "托嬰中心、居家托育與人口是 12 月底，幼兒園是 11 月 1 日（學年年齡，跟戶籍的 0–2 歲有錯位）"},
+        {"TWN": "Own calculation: (children in Ministry of Health and Welfare baby care centres + children aged 0–2 with registered home "
+                "childcare providers + Ministry of Education kindergarten pupils under 3) ÷ population aged 0–2 at year end (Ministry of "
+                "the Interior). Childcare centres, home childcare and population are as of 31 December, kindergartens as of 1 November "
+                "(school-year age, which does not line up exactly with age 0–2)"},
+    ))
     preprimary, _ = worldbank.fetch("SE.PRE.ENRR", 1990)
     write("preprimary", "%", preprimary, 1)
 
