@@ -3,7 +3,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { bisectRight } from 'd3-array';
-import { Map as MaplibreMap } from 'maplibre-gl';
+import type { GeoJSONSource, Map as MaplibreMap } from 'maplibre-gl';
 import type { Indicator } from '../topics/types';
 import type { CountryFeature } from './geometry';
 import { categoryScale } from './categories';
@@ -12,9 +12,12 @@ import {
   FILL_FADE_MIN_MS,
   FILL_FADE_MS,
   FILL_FADE_SHARE,
+  FILL_SWITCH_MS,
   NO_DATA,
+  NO_DATA_SOURCE,
   REDUCED_MOTION,
   classHeight,
+  hatchOpacity,
   mixColor,
 } from './worldMapLayers';
 import type { RefObject } from 'react';
@@ -56,6 +59,10 @@ export function useCountryFills(
   const fillRevisionRef = useRef(-1);
   /** 上一次顏色改變的時間（performance.now()） */
   const fillChangedRef = useRef(-Infinity);
+  /** 斜線的國家（data-nodata）上次設的是哪一組 */
+  const noDataKeyRef = useRef('');
+  /** 上一次的色階（換了就是換了指標或主題） */
+  const scaleRef = useRef<object | null>(null);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -67,15 +74,27 @@ export function useCountryFills(
       v === undefined ? null : colorScale ? colorScale(v) : (categories?.color(v) ?? null);
     /** iso3 → 要畫的顏色；shapeless 的國家只有 tiny 的圓點 */
     const target = new Map<string, string>();
+    const noData: CountryFeature[] = [];
     for (const c of countries) {
       const v = values.get(c.iso3);
       const color = colorOf(v);
       // 類別沒有高低，3D 時不拉高（只傾斜地圖），高度只給面量圖
       const h = on && v !== undefined && colorScale ? classHeight(thresholds, v) : 0;
       map.setFeatureState({ source: 'countries', id: c.iso3 }, { on, h });
+      // 有上色、沒資料的國家加斜線（data-nodata）；國旗地圖不畫
+      if (on && !flagsOn && color === null) noData.push(c);
       map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { on, h });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { on: on && color !== null });
       target.set(c.iso3, on && color !== null ? color : NO_DATA);
+    }
+    // 斜線的國家換了才換資料（播放時大多不變，不必每一年重切圖磚）
+    const noDataKey = `${revision}|${noData.map((c) => c.iso3).join(',')}`;
+    if (noDataKey !== noDataKeyRef.current) {
+      noDataKeyRef.current = noDataKey;
+      (map.getSource(NO_DATA_SOURCE) as GeoJSONSource | undefined)?.setData({
+        type: 'FeatureCollection',
+        features: noData.map((c) => c.feature),
+      });
     }
     const shapelessIds = new Set<string>();
     for (const [iso3] of shapeless) {
@@ -94,9 +113,13 @@ export function useCountryFills(
 
     const shown = fillShownRef.current;
     const now = performance.now();
-    // 漸變的時間：單獨一次變化（點時間軸、換指標）是 FILL_FADE_MS；播放時連續變化，只用間隔的 FILL_FADE_SHARE，
+    // 換了指標、主題（色階換了）：慢一點（FILL_SWITCH_MS），看得出整張地圖換成另一個指標（2026-10-30）
+    const scale = colorScale ?? categories;
+    const switched = scaleRef.current !== null && scaleRef.current !== scale;
+    scaleRef.current = scale;
+    // 漸變的時間：單獨一次變化（點時間軸）是 FILL_FADE_MS；播放時連續變化，只用間隔的 FILL_FADE_SHARE，
     // 下一年來之前就變完，顏色不會落後（2026-10-29 以前播放時不漸變，一格一格跳）
-    const duration = Math.min(FILL_FADE_MS, (now - fillChangedRef.current) * FILL_FADE_SHARE);
+    const duration = switched ? FILL_SWITCH_MS : Math.min(FILL_FADE_MS, (now - fillChangedRef.current) * FILL_FADE_SHARE);
     // 換底圖後 feature-state 都清掉了，第一次畫、拖時間軸（間隔太短）、使用者要求減少動態效果時直接換
     const fade =
       revision === fillRevisionRef.current &&
@@ -148,6 +171,9 @@ export function useCountryFills(
     }
     for (const [iso3] of shapeless) {
       map.setFeatureState({ source: 'tiny', id: iso3 }, { dim: dimOf(values.get(iso3)) });
+    }
+    if (map.getLayer('data-nodata')) {
+      map.setPaintProperty('data-nodata', 'fill-opacity', hatchOpacity(highlightCategory !== null && (categories !== null || colorScale !== null)));
     }
   }, [revision, countries, shapeless, values, categories, colorScale, highlightCategory]);
 }

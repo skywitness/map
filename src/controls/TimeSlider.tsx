@@ -13,13 +13,25 @@ interface TimeSliderProps {
   /** 年份不是「那一年的資料」時（指標的 timeAxis，例如平均身高的「出生年」）：寫在年份上面，也是拉桿的名稱 */
   axis?: { label: string; year: (year: number) => string; tick?: (year: number) => string };
   onChange: (year: number) => void;
+  /** 拉桿背後淡淡畫的走勢（世界的總量、平均或各國中位數，跟 years 一一對應，app/trend.ts） */
+  trend?: (number | null)[] | null;
   /** 開始、停止播放時通知（App 在地圖上疊大大的年份） */
   onPlayingChange?: (playing: boolean) => void;
 }
 
 const PLAY_INTERVAL_MS = 120;
 
-export function TimeSlider({ years, year, projectionFrom, projectionLabel, estimatesBefore, axis, onChange, onPlayingChange }: TimeSliderProps) {
+export function TimeSlider({
+  years,
+  year,
+  projectionFrom,
+  projectionLabel,
+  estimatesBefore,
+  axis,
+  onChange,
+  trend,
+  onPlayingChange,
+}: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
   /** 刻度與目前的值：有 axis.tick 時照它寫（各國在讀什麼的月份），沒有是數字本身 */
@@ -123,6 +135,7 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
         {playing ? '❚❚' : '▶'}
       </button>
       <div className="time-track">
+        {trend && <TrendArea years={years} values={trend} projectionFrom={projectionFrom} />}
         <input
           type="range"
           min={first}
@@ -150,7 +163,9 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
       </div>
       <output className="time-year">
         {axis && <span className="time-axis">{axis.label}</span>}
-        {tick(year)}
+        <span key={year} className="year-roll">
+          {tick(year)}
+        </span>
         {projectionFrom !== undefined && (!projectionLabel || projected) && (
           <span className={`year-tag${projected ? ' is-projected' : ''}`}>
             {projected ? (projectionLabel?.tag ?? t.projected) : t.estimated}
@@ -161,5 +176,58 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
         )}
       </output>
     </div>
+  );
+}
+
+/**
+ * 拉桿背後的走勢（2026-10-30）：淡淡的面積加一條細線，推估的年份更淡；不能點、螢幕閱讀器不唸（只是裝飾，
+ * 數字在側欄與排名表）。x 跟拉桿的圓鈕對齊（左右各縮進圓鈕的半徑，styles.css 的 .time-trend）；
+ * y 用最小到最大（下面多留 15%）：看的是形狀（哪幾年變化大），從 0 起算的話變化小的指標（母親的平均生育年齡
+ * 27–29 歲）整條是一塊平平的長方形
+ */
+function TrendArea({ years, values, projectionFrom }: { years: number[]; values: (number | null)[]; projectionFrom?: number }) {
+  const first = years[0];
+  const last = years[years.length - 1];
+  const present = values.filter((v): v is number => v != null);
+  const hi = Math.max(...present);
+  const min = Math.min(...present);
+  if (!(hi > min)) return null;
+  const lo = min - (hi - min) * 0.15;
+  const x = (y: number) => ((y - first) / (last - first)) * 1000;
+  const y = (v: number) => 100 - ((v - lo) / (hi - lo)) * 96;
+  // 連續有值的幾段各畫一塊；推估之前、之後分開（推估的那塊淡一點），在推估的第一年接起來
+  const runs: { points: [number, number][]; projected: boolean }[] = [];
+  let run: [number, number][] = [];
+  let runProjected = false;
+  const flush = () => {
+    if (run.length > 1) runs.push({ points: run, projected: runProjected });
+    run = [];
+  };
+  values.forEach((v, i) => {
+    const year = years[i];
+    if (v == null || year === undefined) return flush();
+    const projected = projectionFrom !== undefined && year >= projectionFrom;
+    if (projected !== runProjected && run.length) {
+      const joint = run[run.length - 1];
+      flush();
+      run = [joint];
+    }
+    runProjected = projected;
+    run.push([x(year), y(v)]);
+  });
+  flush();
+  return (
+    <svg className="time-trend" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+      {runs.map(({ points, projected }, i) => {
+        const line = points.map(([px, py], j) => `${j ? 'L' : 'M'}${px.toFixed(1)},${py.toFixed(1)}`).join('');
+        const area = `${line}L${points[points.length - 1][0].toFixed(1)},100L${points[0][0].toFixed(1)},100Z`;
+        return (
+          <g key={i} className={projected ? 'is-projected' : undefined}>
+            <path className="time-trend-area" d={area} />
+            <path className="time-trend-line" d={line} />
+          </g>
+        );
+      })}
+    </svg>
   );
 }

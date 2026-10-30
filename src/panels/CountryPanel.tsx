@@ -4,6 +4,7 @@ import { SectionSkeleton, Skeleton } from './Skeleton';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
 import { tr, useLang, useT } from '../i18n';
 import { StatusCard } from '../controls/StatusCard';
+import { TweenNumber } from '../controls/TweenNumber';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatMoment } from '../lib/clock';
 import { useJsonMany } from '../lib/data';
@@ -67,6 +68,9 @@ function panelExtraFor(topic: Topic) {
   }
   return component;
 }
+
+/** 數值可以滾動的指標：連續的量（面量圖、比例圓），不是類別，也不是年份這種長短沒有意義的數（rankingBars: false） */
+const tweens = (ind: Indicator) => (ind.layer.kind === 'choropleth' || ind.layer.kind === 'bubble') && ind.rankingBars !== false;
 
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
@@ -226,7 +230,12 @@ export function CountryPanel(props: CountryPanelProps) {
               {!loaded ? (
                 <Skeleton width="60%" height={20} />
               ) : value != null ? (
-                ind.format(value, shownYear ?? year)
+                // 連續的數值換年份、換指標、換國家時從原本的數字滾過去（類別、年份這種數值不滾）
+                tweens(ind) ? (
+                  <TweenNumber value={value} format={(v) => ind.format(v, shownYear ?? year)} />
+                ) : (
+                  ind.format(value, shownYear ?? year)
+                )
               ) : (
                 (reason(ind) ?? t.noData)
               )}

@@ -4,7 +4,8 @@ import { scaleLinear, type ScalePower, type ScaleThreshold } from 'd3-scale';
 import { niceLegendValues } from '../lib/format';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { FlowDirection, Indicator } from '../topics/types';
-import { MAP_TOKENS, type Tokens } from '../theme/tokens';
+import type { Tokens } from '../theme/tokens';
+import { NO_DATA_SWATCH } from './worldMapLayers';
 import { FLOW_MAX_WIDTH, FLOW_PRESENCE_WIDTH, flowColors, flowLegendValues, flowText, flowWidth } from './flows';
 import type { CategoryScale } from './categories';
 import { PaletteMenu } from './PaletteMenu';
@@ -100,7 +101,7 @@ export function ChoroplethLegend(props: ChoroplethLegendProps) {
       <div className={`legend-scale-row${stepped ? ' is-stepped' : ''}`}>
         {inlineNoData && (
           <div className="legend-nodata-inline">
-            <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
+            <span className="swatch-nodata" style={{ background: NO_DATA_SWATCH }} />
             {noDataLabel}
           </div>
         )}
@@ -456,7 +457,7 @@ function NoDataKey({ label }: { label?: string }) {
   const t = useT();
   return (
     <div className="legend-nodata">
-      <span className="swatch-nodata" style={{ background: MAP_TOKENS.noData }} />
+      <span className="swatch-nodata" style={{ background: NO_DATA_SWATCH }} />
       {label ?? t.noData}
     </div>
   );

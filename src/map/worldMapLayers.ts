@@ -55,6 +55,8 @@ export const FILL_FADE_MS = 280;
 export const FILL_FADE_SHARE = 0.6;
 /** 間隔短於這個（拖時間軸）就不漸變 */
 export const FILL_FADE_MIN_MS = 60;
+/** 換指標、主題時的漸變（比換年份慢，看得出整張地圖換了；新的資料到了才開始，見 App.tsx 的 mapShot） */
+export const FILL_SWITCH_MS = 450;
 /** 選取的國家外框底下光暈的寬度（px）；新選到時從更寬收到這個寬度（SELECT_PULSE_MS） */
 export const HALO_WIDTH = 6.5;
 export const SELECT_PULSE_MS = 450;
@@ -248,6 +250,43 @@ export function fillOpacity(on: number, tint = 0): ExpressionSpecification {
   return ['interpolate', ['linear'], ['zoom'], 1, at(1), 5, at(0.8), 9, at(0.35)];
 }
 
+/**
+ * 沒有資料的國家：灰底上再蓋一層斜線（2026-10-30），色盲、列印、灰階時也分得出「沒資料」跟「數值低」（淺色的那一級）。
+ * 圖案是 NO_DATA_HATCH（addImage），斜線的間距 6px、寬 1px；圖例與匯出圖片的「無資料」色塊畫同樣的斜線
+ */
+export const NO_DATA_HATCH = 'no-data-hatch';
+/** 斜線的顏色（淺灰底上的深一點的灰） */
+export const NO_DATA_HATCH_INK = 'rgba(70, 68, 62, 0.42)';
+const HATCH_RATIO = 2;
+const HATCH_SIZE = 6 * HATCH_RATIO;
+
+/** 斜線的圖案（右上到左下，左右、上下接得起來） */
+export function noDataHatchImage(): { width: number; height: number; data: Uint8Array } {
+  const data = new Uint8Array(HATCH_SIZE * HATCH_SIZE * 4);
+  const [r, g, b, a] = NO_DATA_HATCH_INK.match(/[\d.]+/g)!.map(Number);
+  for (let y = 0; y < HATCH_SIZE; y++) {
+    for (let x = 0; x < HATCH_SIZE; x++) {
+      // (x + y) 對間距取餘數：0、1（寬 2 個實際像素 = 1px）是線，接縫剛好連起來
+      const d = (x + y) % HATCH_SIZE;
+      const coverage = d < HATCH_RATIO ? 1 : 0;
+      const i = (y * HATCH_SIZE + x) * 4;
+      data.set([r, g, b, Math.round(a * 255 * coverage)], i);
+    }
+  }
+  return { width: HATCH_SIZE, height: HATCH_SIZE, data };
+}
+export const NO_DATA_HATCH_RATIO = HATCH_RATIO;
+/** 圖例的「無資料」色塊（CSS）：跟地圖上一樣的灰底與斜線（地圖上斜線的水平間距 6px，垂直於線是 6 ÷ √2 ≈ 4.24px） */
+export const NO_DATA_SWATCH = `repeating-linear-gradient(135deg, ${NO_DATA_HATCH_INK} 0 1px, transparent 1px 4.24px), ${NO_DATA}`;
+
+/** 斜線的 source：有上色、沒資料的國家（useCountryFills 換資料，沒變時不換） */
+export const NO_DATA_SOURCE = 'nodata';
+/** 斜線跟填色一樣放大後變淡；強調圖例的某一級時（沒資料的國家一定不在那一級）跟其他國家一起淡化 */
+export const hatchOpacity = (dim: boolean): ExpressionSpecification => {
+  const k = dim ? DIMMED : 1;
+  return ['interpolate', ['linear'], ['zoom'], 1, k, 5, 0.8 * k, 9, 0.35 * k];
+};
+
 /** 選取的國家外框底下光暈的寬度（只有選取的國家有） */
 export function haloWidth(width: number): ExpressionSpecification {
   return ['case', ['boolean', ['feature-state', 'selected'], false], width, 0];
@@ -293,6 +332,14 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
         ],
         'fill-opacity': fillOpacity(dataFillOpacity(dark), FLOW_TINT_OPACITY),
       },
+    },
+    {
+      // 沒有資料的國家加斜線（NO_DATA_HATCH，圖案在 installDataLayers 加）。另一個 source（只有沒資料的國家，
+      // useCountryFills 換）：圖案填色的圖層放在 countries 上的話，選了國家之後整份國界都不畫（MapLibre 5，2026-10-30 實測）
+      id: 'data-nodata',
+      type: 'fill',
+      source: NO_DATA_SOURCE,
+      paint: { 'fill-pattern': NO_DATA_HATCH, 'fill-opacity': hatchOpacity(false) },
     },
     {
       // 滑過的國家微微加亮（2026-10-29）：外框之外再蓋一層淡白色，深色的填色上也看得出游標在哪一國

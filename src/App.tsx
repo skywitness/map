@@ -66,6 +66,7 @@ import {
 } from './app/hooks';
 import { groupOptions, pickYear } from './app/options';
 import { useOverlays } from './app/overlays';
+import { worldTrend } from './app/trend';
 import { TopBar } from './app/TopBar';
 import { Footer } from './app/Footer';
 
@@ -234,6 +235,11 @@ export function App() {
     return index < 0 ? null : { year: year - CHANGE_YEARS, values: latestAt(data, index).values };
   }, [data, pure, at, yearIndex, year]);
   const bubbleMax = useMemo(() => (data ? maxAcrossYears(data) : 1), [data]);
+  // 時間軸背後的走勢：世界的總量、平均或各國中位數。載入中（data 是上一個指標的檔）照畫上一個指標的，跟地圖一樣
+  const freshTrend = useMemo(() => worldTrend(indicator, data), [indicator, data]);
+  const trendShot = useRef(freshTrend);
+  if (!loading) trendShot.current = freshTrend;
+  const trend = trendShot.current;
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
@@ -341,6 +347,11 @@ export function App() {
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
+  // 換指標、子項目、主題時新的資料檔還沒到：地圖照畫上一個指標（舊的數字、色階與圖例），到了再一起漸變過去
+  // （2026-10-30；原本是上一個檔的數字套上新指標的色階，顏色錯一下再跳到新的）
+  const mapShot = useRef({ indicator, values, bubbleMax, title: indicatorTitle });
+  if (!loading) mapShot.current = { indicator, values, bubbleMax, title: indicatorTitle };
+  const onMap = mapShot.current;
 
   // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
   const gridSpec = pure ? undefined : indicator.grid;
@@ -685,7 +696,10 @@ export function App() {
             {view === 'map' && !pure && (!timeless || at) && (
               // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
               <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
-                {at ? formatMoment(at.time) : (yearText ?? year)}
+                {/* 每換一年新的數字從下面滾上來（styles.css 的 .year-roll） */}
+                <span key={at ? at.time : year} className="year-roll">
+                  {at ? formatMoment(at.time) : (yearText ?? year)}
+                </span>
                 {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
               </div>
             )}
@@ -699,10 +713,10 @@ export function App() {
                   countryTable={countries}
                   onPickCountry={pure ? undefined : selectFromSearch}
                   places={placeAnchors}
-                  indicator={indicator}
-                  legendTitle={indicatorTitle}
-                  values={values}
-                  bubbleMax={bubbleMax}
+                  indicator={onMap.indicator}
+                  legendTitle={onMap.title}
+                  values={onMap.values}
+                  bubbleMax={onMap.bubbleMax}
                   tokens={tokens}
                   selected={state.country}
                   onSelect={selectCountry}
@@ -836,6 +850,7 @@ export function App() {
               estimatesBefore={data?.estimatesBefore}
               axis={indicator.timeAxis}
               onChange={setYear}
+              trend={trend}
               onPlayingChange={setPlaying}
             />
           )

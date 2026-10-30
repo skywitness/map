@@ -122,6 +122,14 @@ import {
   markLayers,
   markRadius,
   sphericalCap,
+  NO_DATA_HATCH,
+  NO_DATA_HATCH_RATIO,
+  noDataHatchImage,
+  FILL_FADE_MIN_MS,
+  FILL_FADE_MS,
+  FILL_FADE_SHARE,
+  FILL_SWITCH_MS,
+  NO_DATA_SOURCE,
 } from './worldMapLayers';
 import { MapTooltip, MarkTooltip, PointerLines } from './MapTooltip';
 import { bindMapEvents, type MapHover } from './mapEvents';
@@ -414,13 +422,14 @@ export function WorldMap(props: WorldMapProps) {
     }
     // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
     m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
-    for (const id of ['railways', 'airports', 'box', 'selected-mark']) m.addSource(id, { type: 'geojson', data: EMPTY });
+    for (const id of ['railways', 'airports', 'box', 'selected-mark', NO_DATA_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
     m.addSource('lakes', { type: 'geojson', data: lakesRef.current ?? EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
     const styleLayers = m.getStyle().layers;
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
+    if (!m.hasImage(NO_DATA_HATCH)) m.addImage(NO_DATA_HATCH, noDataHatchImage(), { pixelRatio: NO_DATA_HATCH_RATIO });
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
     // 世界視角（style.ts 的 splitWorldZoom）：底色是海，陸地用我們的國界、湖泊用 Natural Earth 1:110m 畫，
     // 插在背景色後面（彩色地形的陰影點陣圖蓋在上面）；放大到 LAND_UNTIL 以上換回底圖圖磚的陸地與水域
@@ -821,17 +830,63 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [revision, gridUrl]);
 
+  // 比例圓的大小也漸變（2026-10-30）：跟國家的顏色一樣，換年份 FILL_FADE_MS（播放時用間隔的一部分）、
+  // 換指標或主題 FILL_SWITCH_MS；新出現的圓從 0 長大，消失的縮到 0 再拿掉
+  const bubbleShownRef = useRef(new Map<string, number>());
+  const bubbleFrameRef = useRef(0);
+  const bubbleChangedRef = useRef(-Infinity);
+  const bubbleRevisionRef = useRef(-1);
+  const bubbleIndicatorRef = useRef<Indicator | null>(null);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     const entries =
       indicator.layer.kind === 'bubble' ? [...values].filter(([iso3, v]) => v > 0 && anchors.has(iso3)) : [];
-    const features: GeoJSON.Feature[] = entries.map(([iso3, v]) => ({
-      type: 'Feature',
-      properties: { iso3, r: Math.max(BUBBLE_MIN_RADIUS, radius(v)) },
-      geometry: { type: 'Point', coordinates: anchors.get(iso3)! },
-    }));
-    (map.getSource('bubbles') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
+    const target = new Map(entries.map(([iso3, v]) => [iso3, Math.max(BUBBLE_MIN_RADIUS, radius(v))]));
+    const source = map.getSource('bubbles') as GeoJSONSource;
+    const draw = (radii: Map<string, number>) => {
+      const features: GeoJSON.Feature[] = [];
+      for (const [iso3, r] of radii) {
+        const at = anchors.get(iso3);
+        if (at && r > 0.3) features.push({ type: 'Feature', properties: { iso3, r }, geometry: { type: 'Point', coordinates: at } });
+      }
+      source.setData({ type: 'FeatureCollection', features });
+      bubbleShownRef.current = radii;
+    };
+    const now = performance.now();
+    const switched = bubbleIndicatorRef.current !== null && bubbleIndicatorRef.current !== indicator;
+    bubbleIndicatorRef.current = indicator;
+    const duration = switched ? FILL_SWITCH_MS : Math.min(FILL_FADE_MS, (now - bubbleChangedRef.current) * FILL_FADE_SHARE);
+    bubbleChangedRef.current = now;
+    const from = bubbleShownRef.current;
+    const fade =
+      revision === bubbleRevisionRef.current &&
+      from.size + target.size > 0 &&
+      duration >= FILL_FADE_MIN_MS * FILL_FADE_SHARE &&
+      !matchMedia(REDUCED_MOTION).matches;
+    bubbleRevisionRef.current = revision;
+    if (fade) {
+      const ids = new Set([...from.keys(), ...target.keys()]);
+      const start = performance.now();
+      const step = (time: number) => {
+        const k = Math.min(1, Math.max(0, (time - start) / duration));
+        const eased = 1 - (1 - k) ** 3;
+        const radii = new Map<string, number>();
+        for (const id of ids) {
+          const a = from.get(id) ?? 0;
+          const b = target.get(id) ?? 0;
+          radii.set(id, k === 1 ? b : a + (b - a) * eased);
+        }
+        draw(radii);
+        if (k < 1) bubbleFrameRef.current = requestAnimationFrame(step);
+        else draw(target);
+      };
+      cancelAnimationFrame(bubbleFrameRef.current);
+      bubbleFrameRef.current = requestAnimationFrame(step);
+    } else {
+      cancelAnimationFrame(bubbleFrameRef.current);
+      draw(target);
+    }
     // 3D 柱子：底面固定，高度與數值成正比（線性，總量才能直接比較）；最高的柱子是所有年份的最大值
     const columns: GeoJSON.Feature[] = entries.map(([iso3, v]) => ({
       type: 'Feature',
@@ -839,7 +894,8 @@ export function WorldMap(props: WorldMapProps) {
       geometry: circlePolygon(anchors.get(iso3)!, COLUMN_RADIUS_KM),
     }));
     (map.getSource('columns') as GeoJSONSource).setData({ type: 'FeatureCollection', features: columns });
-  }, [revision, values, radius, anchors, bubbleMax, indicator.layer.kind]);
+  }, [revision, values, radius, anchors, bubbleMax, indicator]);
+  useEffect(() => () => cancelAnimationFrame(bubbleFrameRef.current), []);
 
   // 資料第一次畫到地圖上：通知 App（之後才載入精細國界、預先下載），並留下 performance mark「map-data」
   // 給載入速度量測用（DESIGN.md 第 13 節）。不上色的指標（純地圖、路網）以國界畫上為準
@@ -1278,6 +1334,8 @@ export function WorldMap(props: WorldMapProps) {
     show('data-highlight', !slabs && !bare);
     show('data-halo', !slabs && !bare);
     show('data-hover', !slabs && !bare);
+    // 無資料的斜線：網格、國旗（填色透明）與 3D 的立體圖形時不畫
+    show('data-nodata', !slabs && !gridOn && !flagsOn && !bare);
     // 只留海的底圖（bareMap）：國家不能 hover、點選（隱藏的圖層 featureAt 會跳過）
     show('data-fill', !bare);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
