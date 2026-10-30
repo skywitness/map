@@ -109,7 +109,7 @@ export function ListSide({ def, topicId, item, year, countryName, open, onOpenCh
                 }}
               >
                 <span className="list-row-title">
-                  {r.title}
+                  {r.titleProper ? <span translate="no">{r.title}</span> : r.title}
                   {r.badge && <span className="list-row-badge">{r.badge}</span>}
                 </span>
                 {r.properNoun && (

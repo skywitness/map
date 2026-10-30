@@ -57,13 +57,15 @@ const VIEWS = {
   antarctica: { center: [-5, -72], zoom: 0.6 },
   'oil-palm': { center: [108, 1], zoom: 2.3 },
   'ozone-hole': { center: [0, -62], zoom: 0.5 },
+  trails: { center: [8, 49], zoom: 2.4 },
 };
 
 mkdirSync(`${OUT_DIR}s/`, { recursive: true });
 const browser = await loadPuppeteer().launch({
   executablePath: chromePath(),
   headless: true,
-  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+  // 用 root 跑（容器裡）時 Chrome 不開沙箱就不肯啟動（跟 check-en-ui.mjs 一樣）
+  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', ...(process.getuid?.() === 0 ? ['--no-sandbox'] : [])],
 });
 try {
   const page = await browser.newPage();

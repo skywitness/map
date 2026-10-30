@@ -874,6 +874,8 @@ export interface ListRow {
   key: string;
   /** 第一行（粗體） */
   title: string;
+  /** title 本身是不翻譯的原文名稱（例如英文介面裡只有中文名的步道），畫面上標 translate="no" */
+  titleProper?: boolean;
   /** 第二行起（日期、地點…），一個字串一行 */
   lines?: string[];
   /** 不翻譯的原文名稱（另起一行，translate="no"） */

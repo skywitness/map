@@ -145,7 +145,6 @@ export const en: Messages = {
   zoomIn: 'Zoom in',
   zoomOut: 'Zoom out',
   resetView: 'Back to the whole world',
-  goToRegion: 'Go to a continent',
   extremesLabel: 'Highest and lowest values',
   extremesHigh: 'Highest',
   extremesLow: 'Lowest',
