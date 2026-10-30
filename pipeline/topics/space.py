@@ -1,4 +1,4 @@
-"""太空主題：在軌酬載（依擁有國）、每年入軌發射次數（依發射業者的國家）、累計入軌發射，發射場畫成點。
+"""太空主題：在軌酬載（依擁有國）、每年入軌發射次數（依發射業者的國家）、累計入軌發射、太空垃圾，發射場畫成點。
 
 - 資料：GCAT（Jonathan McDowell，CC BY 4.0，`sources/gcat.py`）。
 - **在軌酬載**：每年年底仍在地球軌道上的酬載（`Type` 第一個字是 P：衛星、太空船、太空站艙段等，不含火箭殘骸與碎片），
@@ -9,6 +9,9 @@
   蘇聯（SU）的酬載與發射算在繼承國俄羅斯（附註寫明），東德、捷克斯洛伐克等算在今天對應的國家。
   國際組織（歐洲太空總署 ESA、EUMETSAT、Intelsat 等，代碼 I-…）不屬於任何國家，不畫在地圖上，只算進世界合計，數量寫在附註。
 - **入軌發射**：`LaunchCode` 第一個字是 O（成功與失敗都算，是「發射次數」不是「成功次數」），1957 年起。
+- **太空垃圾**（2026-10-30 加，製作手冊第一百零一節）：`Type` 第一個字是 R（火箭殘骸）、D（碎片）、C（零件，例如整流罩、
+  分離的轉接環），每年年底仍在軌道上的（同酬載：`DDate` 空白或在那年以後），依 `State`（碎片算在母體的擁有國）。
+  碎片的 `LDate` 是母體的發射日期，產生的年份用 `SDate`（分離或解體的日期）；只有追蹤得到的物體（約 10 cm 以上）。
 - **發射場**：有入軌發射的發射場一個點，位置是 GCAT 的經緯度，國家是點所在的國家（`geoindex.country_at`；拜科努爾算哈薩克、瓜加林算馬紹爾群島），
   大小是入軌發射次數，時間軸依第一次入軌發射的年份顯示。
 """
@@ -92,6 +95,41 @@ def build() -> None:
         annual.setdefault(iso3, [0] * len(years))
         cumulative.setdefault(iso3, [0] * len(years))
 
+    # ── 太空垃圾：火箭殘骸（R）、碎片（D）、零件（C），年底仍在軌道上，依擁有國 ──
+    junk = []
+    for r in sat:
+        if r["Type"][:1] not in "RDC":
+            continue
+        # 碎片的 LDate 是母體的發射日期，產生的日期是 SDate（例如風雲一號 C 1999 年發射、2007 年被擊碎）
+        born = gcat.year(r["SDate"]) or gcat.year(r["LDate"])
+        if born is None:
+            continue
+        junk.append({"born": born, "gone": gcat.year(r["DDate"]), "state": r["State"], "iso3": mapper.iso3(r["State"]),
+                     "kind": r["Type"][:1], "fy1c": "FY-1C" in r["Name"]})
+    junk_alive = lambda j, y: j["born"] <= y and (j["gone"] is None or j["gone"] > y)  # noqa: E731
+    junk_by: dict[str, list[dict]] = defaultdict(list)
+    for j in junk:
+        if j["iso3"]:
+            junk_by[j["iso3"]].append(j)
+    debris_values = {iso3: [sum(junk_alive(j, y) for j in js) for y in years] for iso3, js in junk_by.items()}
+    debris_world = [sum(junk_alive(j, y) for j in junk) for y in years]
+    for iso3 in set(pop) - {"WLD"}:
+        debris_values.setdefault(iso3, [0] * len(years))
+    fy1c = sum(1 for j in junk if j["fy1c"] and junk_alive(j, last))
+    fy1c_2007 = sum(1 for j in junk if j["fy1c"] and j["born"] == 2007)
+    tw_junk = junk_by.get("TWN", [])
+    debris_notes = {
+        "RUS": f"含蘇聯時期的火箭殘骸與碎片（GCAT 的國家代碼 SU），{last} 年仍在軌道上 {sum(1 for j in junk if j['state'] == 'SU' and junk_alive(j, last)):,} 個，算在繼承國俄羅斯。",
+        "CHN": f"2007 年 1 月風雲一號 C 氣象衛星被反衛星飛彈擊碎，編目的碎片 {fy1c_2007:,} 個，{last} 年仍在軌道上 {fy1c:,} 個。",
+        "TWN": f"台灣擁有的物體裡有碎片 {len(tw_junk)} 個，都已經再入大氣層，{last} 年在軌道上的太空垃圾是 0。",
+    }
+    debris_notes_en = {
+        "RUS": f"Includes Soviet-era rocket bodies and debris (GCAT state code SU): {sum(1 for j in junk if j['state'] == 'SU' and junk_alive(j, last)):,} still in orbit in {last}, counted for Russia as the successor state.",
+        "CHN": f"China’s anti-satellite test destroyed the Fengyun-1C weather satellite in January 2007: {fy1c_2007:,} catalogued fragments, {fy1c:,} still in orbit in {last}.",
+        "TWN": f"Taiwan owns {len(tw_junk)} catalogued debris objects, all of which have re-entered; none was in orbit in {last}.",
+    }
+    write_json(OUT / "debris.json", indicator_file("debris", "個", years, debris_values, aggregates={"WLD": debris_world}, notes=debris_notes, notesEn=debris_notes_en))
+
     rus_su = sum(1 for p in payloads if p["state"] == "SU")
     rus_su_orbit = sum(1 for p in payloads if p["state"] == "SU" and in_orbit(p, last))
     su_launches = sum(1 for _, _, r in launch_country if mapper.org_state(r["Agency"].split("/")[0]) == "SU")
@@ -161,4 +199,6 @@ def build() -> None:
     tw = by_country["TWN"]
     print(f"  {len(payloads):,} 個酬載，{last} 年在軌 {orbit_world[-1]:,}（美國 {orbit_values['USA'][-1]:,}、中國 {orbit_values['CHN'][-1]:,}、"
           f"俄羅斯 {orbit_values['RUS'][-1]:,}、台灣 {orbit_values['TWN'][-1]}）；國際組織在軌 {intl_orbit}")
+    print(f"  太空垃圾 {last} 年在軌 {debris_world[-1]:,}（俄羅斯 {debris_values['RUS'][-1]:,}、中國 {debris_values['CHN'][-1]:,}、"
+          f"美國 {debris_values['USA'][-1]:,}、法國 {debris_values['FRA'][-1]:,}、台灣 {debris_values['TWN'][-1]}）；風雲一號 C 的碎片在軌 {fy1c:,}")
     print(f"  入軌發射 {len(launches):,} 次，{last} 年 {world_year[last]}；台灣的酬載 {len(tw)} 顆；發射場 {len(rows)} 個")

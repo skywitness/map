@@ -89,6 +89,8 @@ STEPS = {
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
+    # 電動車主題的燃油車禁售年份與狀態（英文維基百科的表；要先有 profiles 的 government.json）
+    "ev-phaseout": "topics.ev_phaseout",
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
@@ -219,6 +221,8 @@ STEPS = {
     "lithology": "topics.lithology",
     # 特殊地形：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁、泥火山、滲穴、間歇泉（一次 SPARQL）；幾秒（第一次查要等查詢服務）
     "special-landforms": "topics.special_landforms",
+    # 填海造陸：Sengupta 等 2023 的 135 個沿海城市（Zenodo，22 KB 的 xlsx）＋ Natural Earth 的城市位置與中文名稱；幾秒
+    "reclamation": "topics.reclamation",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
@@ -284,6 +288,8 @@ STEPS = {
     "longest-flights": "topics.longest_flights",
     # 最繁忙的機場（交通主題）：英文維基「List of busiest airports by passenger traffic」（固定版本）2020–2025 每年前 50 名；不到 1 秒
     "busiest-airports": "topics.busiest_airports",
+    # 觀光鐵道與登山鐵路：Wikidata（用 QLever 查，含子類別）的保存、齒軌、登山、森林鐵路；第一次查約 1 分鐘
+    "heritage-railways": "topics.heritage_railways",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
