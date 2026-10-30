@@ -17,7 +17,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'reads'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'companies'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'plastic', 'ewaste', 'ev'] },
+  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'planted-forests', 'plastic', 'ewaste', 'ev'] },
   { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'aviation', 'ride-hailing', 'airspace', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
   { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'antarctica', 'wind', 'daylight', 'eclipses', 'antipodes', 'taipei-view', 'magnetic', 'aurora', 'earthquakes', 'plates', 'lithology', 'special-landforms', 'reclamation', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'national-parks', 'skyscrapers', 'attractions', 'travel'] },
 ];
@@ -84,6 +84,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'air-quality': () => import('./air-quality'),
   'water-forest': () => import('./water-forest'),
   'oil-palm': () => import('./oil-palm'),
+  'planted-forests': () => import('./planted-forests'),
   plastic: () => import('./plastic'),
   ev: () => import('./ev'),
   ai: () => import('./ai'),

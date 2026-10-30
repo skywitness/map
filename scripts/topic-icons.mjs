@@ -109,6 +109,7 @@ const TOPIC_ICONS = {
   'air-quality': 'haze',
   'water-forest': 'trees',
   'oil-palm': 'droplets',
+  'planted-forests': 'sprout',
   plastic: 'recycle',
   ewaste: 'monitor-x',
   ev: 'plug-zap',

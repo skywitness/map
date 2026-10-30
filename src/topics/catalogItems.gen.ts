@@ -305,6 +305,8 @@ export const SEARCH_ITEMS: TopicSearchItem[] = [
   {"topic":"special-landforms","indicator":"count","item":"5","label":{"zh":"泥火山","en":"Mud volcanoes"}},
   {"topic":"special-landforms","indicator":"count","item":"6","label":{"zh":"天坑與滲穴","en":"Sinkholes"}},
   {"topic":"special-landforms","indicator":"count","item":"7","label":{"zh":"間歇泉","en":"Geysers"}},
+  {"topic":"typhoons","indicator":"storms-year","item":"usa","label":{"zh":"美國機構（1 分鐘）","en":"US agencies (1-min)"}},
+  {"topic":"typhoons","indicator":"storms-year","item":"jma","label":{"zh":"日本氣象廳（10 分鐘）","en":"JMA (10-min)"}},
   {"topic":"world-heritage","indicator":"sites","item":"all","label":{"zh":"全部","en":"All"}},
   {"topic":"world-heritage","indicator":"sites","item":"cultural","label":{"zh":"文化遺產","en":"Cultural"}},
   {"topic":"world-heritage","indicator":"sites","item":"natural","label":{"zh":"自然遺產","en":"Natural"}},
