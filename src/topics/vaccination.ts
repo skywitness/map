@@ -84,6 +84,14 @@ export const vaccination: TopicDefinition = {
     },
     {
       name: {
+        zh: '衛生福利部疾病管制署「各縣市衛生所及合約醫院診所 2024 年預防接種完成率統計」、內政部「村里戶數、單一年齡人口」2024 年 12 月（台灣的麻疹第二劑，依 5 歲人口加權自算）',
+        en: 'Taiwan CDC: 2024 immunization coverage by county at health stations and contracted clinics; Ministry of the Interior: village households and population by single year of age, December 2024 (Taiwan’s second measles dose, weighted by population aged five)',
+      },
+      url: 'https://data.gov.tw/dataset/24457',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
         zh: '衛生福利部統計處 死因統計（COVID-19 死亡，台灣）、國民健康署 HPV 疫苗接種（衛福部新聞稿）',
         en: 'Ministry of Health and Welfare (Taiwan): cause-of-death statistics (COVID-19) and HPV vaccination press release',
       },
@@ -129,8 +137,8 @@ export const vaccination: TopicDefinition = {
       id: 'mcv2',
       label: { zh: '麻疹疫苗第二劑', en: 'Measles, 2nd dose' },
       description: {
-        zh: '在各國規定的年齡打了第二劑含麻疹成分疫苗（MCV2）的比例。還沒有把第二劑納入常規接種的國家是 0%。WHO/UNICEF 的估計。',
-        en: 'Share of children who received a second dose of measles-containing vaccine (MCV2) by the nationally recommended age. Countries that have not added the second dose to their routine schedule show 0%. WHO/UNICEF estimates.',
+        zh: '在各國規定的年齡打了第二劑含麻疹成分疫苗（MCV2）的比例。還沒有把第二劑納入常規接種的國家是 0%。WHO/UNICEF 的估計；台灣只有 2024 年，是疾管署各縣市的 MMR 第二劑完成率依各縣市 5 歲人口加權自算的估計。',
+        en: 'Share of children who received a second dose of measles-containing vaccine (MCV2) by the nationally recommended age. Countries that have not added the second dose to their routine schedule show 0%. WHO/UNICEF estimates; Taiwan (2024 only) is an estimate from Taiwan CDC’s county completion rates for the second MMR dose, weighted by each county’s population aged five.',
       },
       unit: '%',
       file: 'mcv2.json',
