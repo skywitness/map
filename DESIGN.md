@@ -14,7 +14,7 @@
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
 | 前端 | Vite + TypeScript，程式照 React 寫，執行時是 **Preact**（`preact/compat`，2026-10-30 起） | 首頁的程式 gzip 後從 141 KB 降到 76 KB（react-dom 約 200 KB 未壓縮）；寫法、型別（`@types/react`）不變，見第 13 節 |
 | 介面語言 | 繁體中文（預設）與英文，自己寫的小字典（`src/i18n/`），見第 12 節 | 字串不多，不需要 i18next 之類的套件；型別檢查保證兩種語言的鍵一致 |
-| 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟直接從快取載入；看過一次就能離線開啟；可以安裝成 App（見第 13 節） |
+| 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟程式直接從快取載入（HTML 先向伺服器拿，才是新版）；看過一次就能離線開啟；可以安裝成 App（見第 13 節） |
 | 資料處理 | Python（`pipeline/`），離線執行 | 前端只讀靜態 JSON，不需要後端 |
 | 部署 | GitHub Pages（GitHub Actions 自動建置） | 建置用絕對路徑 `base: '/map/'`（每個主題的網址 t/<主題>/，第 13 節） |
 
@@ -4127,14 +4127,15 @@ pipeline/
 - **資料版本**：建置時把 `public/data` 全部內容算雜湊（`vite.config.ts` 的 `dataVersion()`，用 `define` 傳給 service worker）。資料有變，資料快取就換一個新名字，新版 service worker 啟用時刪掉舊的；只改程式不改資料時，資料快取照用。
 - **資料一律向伺服器確認**（`cache: 'no-cache'`，沒變只回 304）：GitHub Pages 的 `max-age=600` 會讓瀏覽器在部署後 10 分鐘內還拿舊檔，新的資料快取就會存到舊資料。
 - **底圖**：只快取使用者看過的圖磚，不主動下載整個區域。OpenFreeMap 的使用條款禁止自動大量抓取（離線下載每次最多 3,000 張或 50 MB），沒有限制瀏覽器快取；這裡的上限遠低於此。
-- **直接開任何畫面**（`?topic=…&country=…`）都用預先快取的 `index.html`；直接開資料檔的網址照常回傳檔案。
+- **打開任何網頁**（`t/<主題>/?country=…`）先向伺服器拿最新的 HTML（`cache: 'no-cache'`，沒變只回 304），離線、3 秒逾時或 404 才用預先快取的 `index.html`；直接開資料檔的網址照常回傳檔案。原本一律用快取的 `index.html`（不等網路），部署後第一次開還是舊版：2026-10-30 新加的 F1 主題，使用者開 `t/f1/?country=DEU` 看到的是人口主題（舊版不認得 `f1`，`topicIdOf` 改開預設主題）。這個網站一天部署好幾次，等於常常第一次開都是舊版，所以改成 HTML 先問伺服器；JS、CSS 檔名有雜湊，照樣從快取拿。
+- **網址的主題不認得時**（伺服器太慢、用了快取裡的舊版首頁）：`main.tsx` 呼叫 `updateForUnknownTopic`，先照常開預設主題，同時請 service worker 檢查新版，新版接手時網址還是那個主題就重新整理一次（`sessionStorage` 記住，打錯的主題不會一直重新整理）。
 - **只在正式版註冊**（`main.tsx`），等地圖第一次畫出資料（或頁面載入完 10 秒）才註冊。
 - **可以安裝**：`vite-plugin-pwa` 產生 `manifest.webmanifest`；圖示在 `public/icons/`（一般、maskable、apple-touch-icon），由 `icon.svg` 用無頭 Chrome 畫成 PNG。
 - **離線**：標題旁顯示「離線中」（`src/lib/useOnline.ts`）。資料、地圖都是上次看過的部分；沒看過的主題會顯示「資料載入失敗」。
 
 **部署新版時**（`skipWaiting` + `clientsClaim`，沒有「有新版本」的提示）：
 
-1. 部署後第一次開：先用快取裡的舊版（不等網路），背景下載新版的 app shell。
+1. 部署後第一次開：HTML 向伺服器拿，所以就是新版（新版的 JS、CSS 還不在快取裡，從網路下載）；背景裝新版的 service worker。2026-10-30 以前是先用快取裡的舊版（不等網路），見上面「打開任何網頁」。
 2. 新版裝好就直接接手，刪掉舊版的預先快取與舊版資料快取。
 3. 已經開著的舊頁面繼續能用；如果它要載入的舊 chunk（例如點國家才載入的圖表）已經不在伺服器上，`main.tsx` 的 `vite:preloadError` 會自動重新整理一次，換成新版（`sessionStorage` 記住，避免一直重新整理）。
 4. 下一次開就是新版。
