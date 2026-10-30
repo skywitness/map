@@ -150,6 +150,7 @@ const TOPIC_ICONS = {
   aurora: 'sparkles',
   earthquakes: 'activity',
   plates: 'puzzle',
+  lithology: 'layers',
   typhoons: 'tornado',
   wildfires: 'flame',
   'night-lights': 'moon-star',

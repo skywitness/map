@@ -1,6 +1,6 @@
 """CRU TS（東英吉利大學氣候研究中心 CRU 與英國國家大氣科學中心 NCAS）：全球陸地 0.5° 的逐月氣候網格。
 
-- 1901 年到最近一年（4.10 版到 2025 年），不含南極洲。這裡用月平均氣溫（tmp，°C）與月降雨量（pre，mm/月）。
+- 1901 年到最近一年（4.10 版到 2025 年），不含南極洲。這裡用月平均氣溫（tmp，°C）、月降雨量（pre，mm/月）與雨日（wet，日雨量 ≥ 0.1 mm 的日數）。
 - 由測站觀測內插而成：每個月的測站距平（相對 1961–1990 年）內插到網格，再加上 1961–1990 年的氣候平均值。
   **離測站太遠（氣溫約 1,200 km、降雨約 450 km）的格子距平是 0，也就是直接填氣候平均值**，
   所以早期測站稀少的地方（非洲、南美內陸、北極）看起來變化很小。
@@ -9,7 +9,7 @@
   （https://crudata.uea.ac.uk/cru/data/hrg/ 的 License 一節）。
 
 下載 ASCII 版（`.dat.gz`，一個變數約 160 MB），只要 numpy 就能讀，不必裝 NetCDF 的套件：
-- 每個月 360 列 × 720 欄的整數，單位是 0.1（0.1 °C、0.1 mm），沒有資料是 −999。
+- 每個月 360 列 × 720 欄的整數，單位是 0.1（0.1 °C、0.1 mm；雨日是 0.01 天），沒有資料是 −999。
 - 每個值 8 個字元寬、每列 720 個值；**第一列是最南邊**（南緯 89.75°），經度從 −179.75° 開始。
 
 解析一次約 1 分鐘，結果（只留陸地格子）存成 .npz 放在快取，國家指標與暖化網格圖磚兩個步驟共用。
@@ -43,6 +43,8 @@ MISSING = -999
 WIDTH = 8  # 每個值的字元數
 LINE = COLS * WIDTH + 1  # 含換行
 SOURCE = "cru"
+# ASCII 檔裡的整數要除以多少：多數變數是 0.1（°C、mm），雨日（wet）是 0.01 天
+DIVISOR = {"wet": 100}
 
 
 @dataclass
@@ -76,11 +78,12 @@ def raw_path(var: str) -> Path:
 
 
 def load(var: str) -> Grid:
-    """讀一個變數（'tmp' 或 'pre'）的全部月份。第一次會下載並解析，之後讀快取的 .npz。"""
+    """讀一個變數（'tmp'、'pre' 或 'wet'）的全部月份。第一次會下載並解析，之後讀快取的 .npz。"""
+    div = DIVISOR.get(var, 10)
     cached = CACHE_DIR / SOURCE / f"cru_ts{VERSION}.{var}.land.npz"
     if cached.exists():
         with np.load(cached) as z:
-            return Grid(var, z["mask"], z["values"].astype(np.float32) / 10, int(z["first_year"]))
+            return Grid(var, z["mask"], z["values"].astype(np.float32) / div, int(z["first_year"]))
     path = raw_path(var)
     print(f"  解析 {path.name}（約 1 分鐘）")
     months = (LAST_YEAR - FIRST_YEAR + 1) * 12
@@ -109,7 +112,7 @@ def load(var: str) -> Grid:
     small = out.min() >= np.iinfo(np.int16).min and out.max() <= np.iinfo(np.int16).max
     np.savez(cached, mask=mask, values=out.astype(np.int16) if small else out, first_year=FIRST_YEAR)
     print(f"  陸地 {mask.sum():,} 格 × {months} 個月")
-    return Grid(var, mask, out.astype(np.float32) / 10, FIRST_YEAR)
+    return Grid(var, mask, out.astype(np.float32) / div, FIRST_YEAR)
 
 
 def annual_mean(grid: Grid) -> np.ndarray:
