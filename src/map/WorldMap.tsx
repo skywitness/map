@@ -26,7 +26,7 @@ import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
-import { fetchJson } from '../lib/data';
+import { dataUrl, fetchJson } from '../lib/data';
 import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
@@ -1003,8 +1003,9 @@ export function WorldMap(props: WorldMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time);
-  }, [revision, night?.def.id, night?.visible, basemap.dark, time]);
+    const lights = night?.def.lights;
+    syncNight(map, night?.def.id ?? null, Boolean(night?.visible), basemap.dark, time, lights ? { url: dataUrl(lights.file), bounds: lights.bounds } : null);
+  }, [revision, night?.def.id, night?.def.lights, night?.visible, basemap.dark, time]);
 
   /* ── 月亮（晝夜與季節的「月亮」，nightLayer.ts）：看得到月亮的半個地球與月下點，畫在夜色上面 ── */
   const moon = overlays.find((o) => o.kind === 'moon');

@@ -206,6 +206,8 @@ STEPS = {
     # 不下載新的東西：讀國家小檔案的首都（要先跑 profiles）、Natural Earth populated places（旅行實用的快取）與 tzdata 套件，
     # 不到 1 秒；白天長度等指標在瀏覽器裡算（src/lib/solar.ts）
     "daylight": "topics.daylight",
+    # 晝夜與季節的夜半邊燈光：夜間燈光的 VIIRS 最新一年（Zenodo 約 60 MB，跟 night-lights 共用快取）縮成 0.1° 的灰階 PNG；約 1 分鐘
+    "daylight-lights": "topics.daylight_lights",
     # 要先有 geo 的國界（與河流主題的海域網格，名稱用）；第一次會向 NASA 日食網站一頁一頁抓約 300 次日食的貝塞爾根數
     # （五千年日食典與路徑表兩組，每頁間隔 0.3 秒，共約 600 頁、5 MB），算路徑與經過的國家第一次約 10 分鐘，之後用快取約 5 分鐘
     "eclipses": "topics.eclipses",

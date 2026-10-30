@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { PointsOverlay } from '../topics/types';
 import { setClassGridOnly } from './classGridHighlight';
-import { MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
+import { LIGHTS_LOOK, MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import type { LayerVisibility, OverlayLayer } from './overlayData';
 
@@ -162,6 +162,10 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
           layout: 'rows',
           rows: [
             ...NIGHT_ROWS.map((r, i) => ({ shape: 'fill' as const, size: 5, color, opacity: alphas[i], base, label: tr(r.label) })),
+            // 夜半邊的燈光（暖黃色的小點）
+            ...(o.def.lights
+              ? [{ shape: 'dot' as const, size: 3, color: LIGHTS_LOOK.color, label: o.def.lights.label }]
+              : []),
             { shape: 'dot' as const, size: 4.5, color: SUN_COLOR, label: o.def.sunLabel },
           ],
         },
