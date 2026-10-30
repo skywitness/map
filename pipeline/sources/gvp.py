@@ -22,8 +22,10 @@ WFS = (
     "https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0&request=GetFeature"
     "&typeName=GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes&outputFormat=application/json"
     "&propertyName=Volcano_Number,Volcano_Name,Primary_Volcano_Type,Last_Eruption_Year,Country,Elevation,"
-    "Latitude,Longitude,Evidence_Category"
+    "Latitude,Longitude,Evidence_Category,Tectonic_Setting"
 )
+# 加了 Tectonic_Setting（2026-10-30，熱點火山）以後換一個快取檔名，舊的快取沒有這個欄位
+CACHE = "holocene-volcanoes-tectonic.json"
 
 
 @dataclass
@@ -37,6 +39,7 @@ class Volcano:
     lon: float
     lat: float
     evidence: str
+    tectonic: str  # 構造環境，例如「Intraplate / Oceanic crust (< 15 km)」；GVP 沒寫的是空字串
 
 
 def _type(raw: str | None) -> str:
@@ -45,7 +48,7 @@ def _type(raw: str | None) -> str:
 
 
 def holocene_volcanoes() -> list[Volcano]:
-    with open(download(WFS, "gvp", "holocene-volcanoes.json"), encoding="utf-8") as f:
+    with open(download(WFS, "gvp", CACHE), encoding="utf-8") as f:
         features = json.load(f)["features"]
     out = []
     for feature in features:
@@ -56,6 +59,6 @@ def holocene_volcanoes() -> list[Volcano]:
             number=p["Volcano_Number"], name=p["Volcano_Name"].strip(), type=_type(p.get("Primary_Volcano_Type")),
             last_eruption=p.get("Last_Eruption_Year"), country=(p.get("Country") or "").strip(),
             elevation=p.get("Elevation"), lon=float(p["Longitude"]), lat=float(p["Latitude"]),
-            evidence=p.get("Evidence_Category") or "",
+            evidence=p.get("Evidence_Category") or "", tectonic=(p.get("Tectonic_Setting") or "").strip(),
         ))
     return sorted(out, key=lambda v: v.number)

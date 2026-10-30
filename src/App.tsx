@@ -292,6 +292,11 @@ export function App() {
   );
   const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
   const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
+  // 主題的資料集中在一個地方（南極）時，換過來就移過去；選了國家時照舊框住那個國家
+  const topicFocus = topic.focus;
+  useEffect(() => {
+    if (topicFocus && !state.country) moveToBox(topicFocus);
+  }, [topic.id]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
   const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
