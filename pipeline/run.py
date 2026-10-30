@@ -28,6 +28,9 @@ STEPS = {
     # 油棕園：Zenodo 13379129 的範圍圖（156 MB）與種植年份圖（146 MB），各 609 個圖磚；第一次讀約 15 分鐘，
     # 之後用 .cache/oilpalm/aggregate.npz 幾秒；要先有 geo 的國界
     "oil-palm": "topics.oil_palm",
+    # 人工林：FAOSTAT 土地利用（3 MB）、SDPT 的 6 級向量圖磚（約 1,000 張、1 小時，sources/sdpt_tiles.py）、
+    # 農業部的林型分布圖（420 MB 的 zip，shapefile 1.4 GB，第一次讀約 5 分鐘）；要先有 geo 的國界
+    "planted-forests": "topics.planted_forests",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
     # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
