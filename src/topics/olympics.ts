@@ -79,7 +79,7 @@ const WINTER_CAPITA: ScaleSpec = { type: 'sequential', thresholds: [ANY, 0.5, 2,
 const capitaTick = (v: number) => (v === ANY ? '> 0' : fixed(v, v < 1 ? 1 : 0));
 
 /** 奧運的子項目（夏季、冬季）：運動主題裡是奧運 5 個指標自己的 dimension */
-const SEASONS = {
+export const SEASONS = {
   label: { zh: '季節', en: 'Season' },
   options: [
     { id: 'summer', label: { zh: '夏季奧運', en: 'Summer Games' } },
