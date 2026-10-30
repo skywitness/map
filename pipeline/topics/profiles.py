@@ -985,21 +985,16 @@ def cross_topics(units: list[str]) -> tuple[dict[str, dict], int]:
         high = e.get("high")
         if u in units and high and high.get("e") is not None:
             out[u]["high"] = [high.get("zh"), high.get("en"), round(high["e"])]
-    # 城市的最大城市（2025 年人口）
-    with open(DATA / "cities" / "cities.json", encoding="utf-8") as f:
-        cities = json.load(f)
-    fields = cities["fields"]
-    col = {name: cities["columns"][i] for i, name in enumerate(fields)}
-    # 人口每一期存跟前一期的差（src/topics/cities.ts 的 cityValue()），2025 年是 1975–2025 年加起來；還不是城市的期是 null
-    epochs = [f"p{y}" for y in range(1975, 2030, 5)]
-    scale = cities["scale"].get("p2025", 1)
+    # 城市的最大城市（2025 年人口；cities.json 的編碼見 topics/cities.py 的 _encode()）
+    from topics.cities import load_points
+
     best: dict[str, tuple[float, str | None, str]] = {}
-    for i, iso in enumerate(col["iso3"]):
-        if iso is None or col["p2025"][i] is None:
+    for c in load_points(DATA / "cities" / "cities.json"):
+        iso, pop = c["iso3"], c["pop"].get(2025)
+        if iso is None or pop is None:
             continue
-        pop = sum(col[e][i] or 0 for e in epochs) * scale
         if iso not in best or pop > best[iso][0]:
-            best[iso] = (pop, col["zh"][i], col["name"][i])
+            best[iso] = (pop, c["zh"], c["name"])
     for u, (pop, zh, en) in best.items():
         if u in units:
             out[u]["city"] = [zh, en, round(pop, -3)]
