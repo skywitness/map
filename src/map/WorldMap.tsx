@@ -1804,7 +1804,8 @@ export function WorldMap(props: WorldMapProps) {
             }
           />
         ) : indicator.layer.kind === 'bubble' ? (
-          threeD ? (
+          // 資料還沒到（或載入失敗）時 bubbleMax 是 1，100 的圓會畫成最大圓的 10 倍、蓋住整張地圖：有數字才畫圖例
+          values.size === 0 ? null : threeD ? (
             <ColumnLegend indicator={indicator} title={legendTitle} max={bubbleMax} color={MAP_TOKENS.accent} tokens={tokens} />
           ) : (
             <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
