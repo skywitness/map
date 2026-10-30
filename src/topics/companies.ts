@@ -11,7 +11,7 @@ import { oldestCompaniesPart } from './oldest-companies';
 export const companies: TopicDefinition = {
   id: 'companies',
   title: { zh: '企業與品牌', en: 'Companies and brands' },
-  shortTitle: { zh: '企業與品牌', en: 'Companies and brands' },
+  shortTitle: { zh: '企業與品牌', en: 'Companies' },
   defaultIndicator: 'companies',
   defaultYear: 2026,
   sources: [...oldestCompaniesPart.sources, ...brandsPart.sources.filter((s) => s.url !== 'https://www.wikidata.org/')],

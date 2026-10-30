@@ -138,7 +138,7 @@ def dwelling_types() -> tuple[dict[str, Series], set[str], Series, Series]:
     return types, used, taiwan, last_eu
 
 
-def build() -> None:
+def _writer():
     out = OUT_DIR / "topics" / "housing"
 
     def write(key: str, unit: str, series: Series, digits: int, years: list[int] | None = None, **extra: object) -> list[int]:
@@ -154,6 +154,33 @@ def build() -> None:
             ),
         )
         return years
+
+    return out, write
+
+
+def build_household_size(write=None) -> None:
+    """平均每戶人數：歐洲 2003 年起用 EU-SILC，其他國家與更早的年份用聯合國的資料庫（2026 版）。
+    可以單獨跑（run.py 的 housing-household-size）：內政部不動產資訊平台從 cloud 回「Request Rejected」時，
+    整個 housing 步驟跑不完，這一項不需要它。"""
+    write = write or _writer()[1]
+    sizes = eurostat.series("ilc_lvph01", unit="AVG")
+    un = un_households.average_household_size()
+    notes, notes_en = {}, {}
+    for iso3, values in un.items():
+        first = min(sizes[iso3]) if iso3 in sizes else None
+        if first is None:
+            sizes[iso3] = values
+            continue
+        sizes[iso3].update({y: v for y, v in values.items() if y < first})
+        notes[iso3] = f"{first} 年起是 Eurostat 的 EU-SILC，之前是聯合國的家戶規模資料庫"
+        notes_en[iso3] = f"From {first}, Eurostat EU-SILC; earlier years from the UN Database on Household Size and Composition"
+    sizes["TWN"] = fies.household_size()
+    notes["TWN"], notes_en["TWN"] = TAIWAN_NOTES["household-size"]
+    write("household-size", "人", sizes, 2, notes=notes, notesEn=notes_en)
+
+
+def build() -> None:
+    out, write = _writer()
 
     # 住宅類型：地圖畫公寓比例，側欄另讀獨棟、雙併、其他與台灣依樓層的組成
     types, used, taiwan_floors, europe_flat = dwelling_types()
@@ -181,21 +208,7 @@ def build() -> None:
     notes["TWN"], notes_en["TWN"] = TAIWAN_NOTES["home-ownership"]
     write("home-ownership", "%", owners, 2, notes=notes, notesEn=notes_en)
 
-    # 平均每戶人數：歐洲 2003 年起用 EU-SILC，其他國家與更早的年份用聯合國的資料庫
-    sizes = eurostat.series("ilc_lvph01", unit="AVG")
-    un = un_households.average_household_size()
-    notes, notes_en = {}, {}
-    for iso3, values in un.items():
-        first = min(sizes[iso3]) if iso3 in sizes else None
-        if first is None:
-            sizes[iso3] = values
-            continue
-        sizes[iso3].update({y: v for y, v in values.items() if y < first})
-        notes[iso3] = f"{first} 年起是 Eurostat 的 EU-SILC，之前是聯合國的家戶規模資料庫"
-        notes_en[iso3] = f"From {first}, Eurostat EU-SILC; earlier years from the UN Database on Household Size and Composition"
-    sizes["TWN"] = fies.household_size()
-    notes["TWN"], notes_en["TWN"] = TAIWAN_NOTES["household-size"]
-    write("household-size", "人", sizes, 2, notes=notes, notesEn=notes_en)
+    build_household_size(write)
 
     # 居住擁擠率、住房負擔過重率：只有 EU-SILC
     write("overcrowding", "%", eurostat.series("ilc_lvho05a", rskpovth="TOTAL", age="TOTAL", sex="T", unit="PC"), 1)
@@ -210,6 +223,6 @@ def build() -> None:
     write("slums", "%", slums, 1, sorted(y for y, n in counts.items() if n >= max(counts.values()) * 0.5))
 
     write_manifest_part(out, "housing", "housing", {
-        "source": "Eurostat EU-SILC; OECD Affordable Housing Database; UN DESA Household Size and Composition 2022; "
+        "source": "Eurostat EU-SILC; OECD Affordable Housing Database; UN DESA Household Size and Composition 2026; "
                   "World Bank WDI (UN-Habitat); 內政部不動產資訊平台; 主計總處家庭收支調查",
     })

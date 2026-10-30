@@ -2,8 +2,10 @@
 
 授權：data.who.int 的資料集條款是 CC BY 4.0（另加一條爭議先調解、再仲裁的條款），要註明 WHO。
 
-- Global Health Observatory（GHO）OData API（https://ghoapi.azureedge.net/api/<代碼>）：
-  糖尿病與肥胖盛行率（NCD-RisC 的年齡標準化估計）、30–70 歲死於四大慢性病的機率。
+- Global Health Observatory（GHO）：肥胖盛行率（NCD-RisC 的年齡標準化估計）、30–70 歲死於四大慢性病的機率等。
+  原本讀 GHO 的 OData API（ghoapi.azureedge.net），2026-10-30 起回 HTTP 500，改讀同一份資料的 xmart 後端
+  （`sources/who_xmart.py`，製作手冊第八批 146）。xmart 沒有糖尿病盛行率（NCD_DIABETES_PREVALENCE_AGESTD），
+  疾病主題的糖尿病照舊用 2026-10 從 OData 產生的檔。
 - Global Health Estimates（GHE）2023 版：各國、各年、各年齡的死因別死亡數，2000–2023 年每年都有。
   從 WHO 自己的 GHE 圖表背後的公開 API（xmart-api-public.who.int/DEX_CMS/GHE_FULL）一年查一次。
   GHE 已經把「症狀、徵候與不明原因」等無法歸類的死因依比例分配到各類，所以各類加總就是全部死亡。
@@ -14,9 +16,9 @@ import json
 import urllib.parse
 
 from common import download
+from sources import who_xmart
 from sources.countries import to_iso3
 
-GHO_API = "https://ghoapi.azureedge.net/api/{code}"
 GHE_API = "https://xmart-api-public.who.int/DEX_CMS/GHE_FULL"
 GHE_YEARS = range(2000, 2024)
 
@@ -38,17 +40,35 @@ WHO_STANDARD_POPULATION = {
 GHE_AGE_MERGE = {"Y0T1": "Y0T4", "Y1T4": "Y0T4"}
 
 
+def _year(period: str) -> int:
+    """xmart 的 PERIOD_CODE 多半是年份，少數是期間（「2016-2017」「1995-2016」），取最後一年"""
+    return int(period.split("-")[-1])
+
+
+def gho_rows(code: str) -> list[dict]:
+    """GHO 指標的所有列，換成 OData 的欄位名稱：SpatialDim、SpatialDimType、TimeDim、Dim1、Dim2、NumericValue。
+    xmart 的維度分成 DIMENSION_1（例如 SEX）與 DIMENSION_MEMBER_1（BTSX），OData 寫成一個（SEX_BTSX）。"""
+    out = []
+    for row in who_xmart.facts(code):
+        dims = {}
+        for i in (1, 2):
+            if row.get(f"DIMENSION_{i}") and row.get(f"DIMENSION_MEMBER_{i}"):
+                dims[f"Dim{i}"] = f"{row[f'DIMENSION_{i}']}_{row[f'DIMENSION_MEMBER_{i}']}"
+        out.append({
+            "SpatialDim": row["LOCATION_CODE"], "SpatialDimType": row["LOCATION_TYPE"], "TimeDim": _year(row["PERIOD_CODE"]),
+            "NumericValue": row["VALUE_NUMERIC"], **dims,
+        })
+    return out
+
+
 def gho(code: str, dims: dict[str, str]) -> tuple[dict[str, dict[int, float]], dict[int, float]]:
     """GHO 指標，回傳 (各國 {iso3: {年: 值}}, 世界 {年: 值})。dims 例如 {'Dim1': 'SEX_BTSX'}。"""
-    path = download(GHO_API.format(code=code), "who", f"{code}.json")
-    with open(path, encoding="utf-8") as f:
-        rows = json.load(f)["value"]
     countries: dict[str, dict[int, float]] = {}
     world: dict[int, float] = {}
-    for row in rows:
+    for row in gho_rows(code):
         if row["NumericValue"] is None or any(row.get(k) != v for k, v in dims.items()):
             continue
-        year, value = int(row["TimeDim"]), float(row["NumericValue"])
+        year, value = row["TimeDim"], float(row["NumericValue"])
         if row["SpatialDimType"] == "GLOBAL":
             world[year] = value
         elif row["SpatialDimType"] == "COUNTRY" and (iso3 := to_iso3(row["SpatialDim"])):

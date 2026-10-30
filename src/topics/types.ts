@@ -1026,7 +1026,8 @@ export function indicatorPath(
   item: string | null,
 ): string {
   const file = indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? '');
-  return `topics/${topic.id}/${file}`;
+  // ../<主題>/<檔名>：讀另一個主題的檔（2026-10-30，治安與司法的法治分數讀政府治理的，兩邊不另外存一份）
+  return file.startsWith('../') ? `topics/${file.slice(3)}` : `topics/${topic.id}/${file}`;
 }
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {

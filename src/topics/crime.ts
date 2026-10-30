@@ -171,7 +171,8 @@ export const crime: TopicDefinition = {
         en: "The World Bank Worldwide Governance Indicators' rule of law: a composite of more than 30 surveys and expert assessments of confidence in the police, the courts, contract enforcement and property rights, and the likelihood of crime and violence. Scored 0–100, higher is better; it measures perceptions, not crime statistics. All six WGI dimensions are in the Governance topic.",
       },
       unit: { zh: '分', en: 'score' },
-      file: 'rule-of-law.json',
+      // 跟政府治理的法治是同一份 WGI：讀政府治理的檔（pipeline/topics/governance.py），更新時兩邊不會不一樣
+      file: '../governance/rule-of-law.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [35, 45, 55, 65, 75, 85] } },
       format: (v) => tr({ zh: `${fixed(v, 1)} 分`, en: fixed(v, 1) }),
       formatTick: (v) => fixed(v, 0),

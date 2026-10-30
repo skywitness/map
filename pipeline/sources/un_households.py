@@ -11,7 +11,7 @@ of Older Persons 2026。
 - 同一國同一年可能有好幾個來源（例如普查同時在 DYB 與 IPUMS），依 SOURCE_PRIORITY 取一個：
   普查（DYB、IPUMS）優先，其次是歐盟勞動力調查（LFS），最後才是抽樣調查（DHS、MICS）。
 - 兩個資料庫都沒有台灣。
-- 住宅主題用 2022 版的平均每戶人數；婚姻與家庭主題用 2026 版的單人家戶、單親、三代同堂、隔代家戶的比例，
+- 住宅與房價主題的平均每戶人數用 2026 版（2026-10-30 起，原本是 2022 版）；婚姻與家庭主題用 2026 版的單人家戶、單親、三代同堂、隔代家戶的比例，
   以及老人資料庫裡 60 歲以上的人獨居（「1 member」）的比例。
 - 三代同堂、隔代家戶要有戶內成員關係的個體資料（IPUMS、DHS、MICS）才算得出來，DYB 的表沒有，
   所以只有普查表的國家（日本、韓國、德國……）沒有這兩項。
@@ -80,8 +80,16 @@ def _pick(rows: list[tuple[str, int, int, float]]) -> Series:
 
 
 def average_household_size() -> Series:
-    """{iso3: {year: 平均每戶人數}}（2022 版）"""
-    return _column(4, "Average household size")
+    """{iso3: {year: 平均每戶人數}}（2026 版；製作手冊第八批 150 以前是 2022 版的 _column(4, …)）"""
+    names, rows = _rows_2026(URL_2026, "hh-size-composition-2026.xlsx", SHEET_2026)
+    iso, src, ref = names.index("ISO3 Code"), names.index("Data source category"), names.index("Reference year")
+    col = names.index("Average household size (number of members)")
+    picked = []
+    for row in rows:
+        value, year = _number(row[col]), _year(row[ref])
+        if value is not None and year is not None and row[iso]:
+            picked.append((str(row[iso]), year, _rank(row[src]), value))
+    return _pick(picked)
 
 
 def one_person_share() -> Series:

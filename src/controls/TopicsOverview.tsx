@@ -106,12 +106,18 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
     );
   };
 
+  // 分類裡再依小標題分段（2026-10-30 起；篩選時沒有符合的段落不列）
   const sections = [
-    { id: 'map', group: null, label: tr(pureMap.shortTitle, lang), topics: [pureMap] },
-    ...TOPIC_GROUPS.map((g) => ({ id: g.id, group: g.id, label: tr(g.label, lang), topics: g.topics })),
+    { id: 'map', group: null, label: tr(pureMap.shortTitle, lang), parts: [{ label: null, topics: [pureMap] as TopicSummary[] }] },
+    ...TOPIC_GROUPS.map((g) => ({ id: g.id, group: g.id, label: tr(g.label, lang), parts: g.sections })),
   ]
-    .map((s) => ({ ...s, cards: s.topics.map(card).filter(Boolean) }))
-    .filter((s) => s.cards.length);
+    .map((s) => ({
+      ...s,
+      parts: s.parts
+        .map((p) => ({ label: p.label ? tr(p.label, lang) : null, cards: p.topics.map(card).filter(Boolean) }))
+        .filter((p) => p.cards.length),
+    }))
+    .filter((s) => s.parts.length);
 
   // 點對話框外面的暗色背景也關閉（點到的是 <dialog> 本身，不是裡面的東西）
   const onDialogClick = (e: MouseEvent<HTMLDialogElement>) => {
@@ -172,7 +178,18 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
                   </span>
                   {s.label}
                 </h3>
-                <ul className="overview-grid">{s.cards}</ul>
+                {s.parts.map((p, i) =>
+                  p.label ? (
+                    <div key={i} className="overview-part">
+                      <h4>{p.label}</h4>
+                      <ul className="overview-grid">{p.cards}</ul>
+                    </div>
+                  ) : (
+                    <ul key={i} className="overview-grid">
+                      {p.cards}
+                    </ul>
+                  ),
+                )}
               </section>
             ))
           ) : (

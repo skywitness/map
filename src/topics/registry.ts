@@ -1,26 +1,103 @@
 import type { Text } from '../i18n/lang';
 import type { TopicDefinition } from './types';
 
-export interface TopicGroupSpec {
-  id: string;
-  label: Text;
+export interface TopicSection {
+  /** 下拉選單、主題總覽裡的小標題；沒有小標題的分類（能源、交通）是 null */
+  label: Text | null;
   /** 主題的 id，順序就是選單裡的順序 */
   topics: string[];
 }
 
+export interface TopicGroupSpec {
+  id: string;
+  label: Text;
+  /** 依小標題分段的主題（2026-10-30 起，第七批 124） */
+  sections: TopicSection[];
+}
+
 /**
- * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。
- * 新增主題時加進最接近的一類，也在下面的 TOPIC_MODULES 加一行，再跑 npm run catalog（dev、build 會自動跑）。
- * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
+ * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。2026-10-30（第七批 124）起 8 類，選單依小標題分段。
+ * 新增主題時加進最接近的分類與小標題，也在下面的 TOPIC_MODULES 加一行，再跑 npm run catalog（dev、build 會自動跑）。
+ * 分類名稱要短，中文 1024px、英文 1280px 寬的螢幕要放得下整列（DESIGN.md 第 11 節）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'racing', 'reads'] },
-  { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'companies'] },
-  { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
-  { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'planted-forests', 'plastic', 'ewaste', 'ev'] },
-  { id: 'tech', label: { zh: '科技與交通', en: 'Tech & transport' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'innovation', 'publications', 'submarine-cables', 'space', 'transport', 'aviation', 'ride-hailing', 'airspace', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
-  { id: 'geo', label: { zh: '地理', en: 'Geography' }, topics: ['profiles', 'flags', 'language', 'elevation', 'rivers', 'oceans', 'koppen', 'ice', 'antarctica', 'wind', 'daylight', 'eclipses', 'antipodes', 'taipei-view', 'magnetic', 'aurora', 'earthquakes', 'plates', 'lithology', 'special-landforms', 'reclamation', 'typhoons', 'wildfires', 'night-lights', 'world-heritage', 'national-parks', 'skyscrapers', 'attractions', 'travel'] },
+  {
+    id: 'society',
+    label: { zh: '社會', en: 'People' },
+    sections: [
+      { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing'] },
+      { label: { zh: '健康', en: 'Health' }, topics: ['health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'diet'] },
+      { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness'] },
+      { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
+      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
+    ],
+  },
+  {
+    id: 'economy',
+    label: { zh: '經濟', en: 'Economy' },
+    sections: [
+      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
+      { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
+      { label: { zh: '產業', en: 'Industries' }, topics: ['sectors', 'industry', 'agriculture', 'minerals'] },
+      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
+    ],
+  },
+  {
+    id: 'global',
+    label: { zh: '國際', en: 'Global' },
+    sections: [
+      { label: { zh: '往來', en: 'Flows' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport'] },
+      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
+      { label: { zh: '政治', en: 'Politics' }, topics: ['empires', 'democracy', 'governance'] },
+      { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
+    ],
+  },
+  {
+    id: 'energy',
+    label: { zh: '能源', en: 'Energy' },
+    sections: [
+      { label: null, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'ev'] },
+    ],
+  },
+  {
+    id: 'environment',
+    label: { zh: '環境', en: 'Climate' },
+    sections: [
+      { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
+      { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'ewaste'] },
+      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'oil-palm', 'planted-forests', 'wildfires'] },
+    ],
+  },
+  {
+    id: 'tech',
+    label: { zh: '科技', en: 'Tech' },
+    sections: [
+      { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'submarine-cables'] },
+      { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'publications', 'space'] },
+    ],
+  },
+  {
+    id: 'transport',
+    label: { zh: '交通', en: 'Transport' },
+    sections: [
+      { label: null, topics: ['transport', 'aviation', 'ride-hailing', 'airspace', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
+    ],
+  },
+  {
+    id: 'geo',
+    label: { zh: '地理', en: 'Geography' },
+    sections: [
+      { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'travel', 'taipei-view'] },
+      { label: { zh: '地形與地質', en: 'Land & geology' }, topics: ['elevation', 'rivers', 'oceans', 'lithology', 'special-landforms', 'plates', 'earthquakes', 'reclamation', 'antarctica'] },
+      { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'attractions', 'skyscrapers', 'night-lights'] },
+    ],
+  },
 ];
+
+/** 分類裡的所有主題（依小標題的順序） */
+export const groupTopics = (g: TopicGroupSpec): string[] => g.sections.flatMap((s) => s.topics);
 
 /**
  * 每個主題的定義各自一個 chunk，換到那個主題才下載（全部放在首頁的程式裡約 220 KB，gzip 後）。

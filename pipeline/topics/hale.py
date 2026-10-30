@@ -1,9 +1,11 @@
 """健康平均餘命（健康主題的擴充，2026-10-29）：出生時預期能健康地活幾年，與「不健康的年數」（平均壽命 − 健康平均餘命）。
 
 **來源**：
-- WHO 的 HALE（GHO 指標 WHOSIS_000002）與同一次發布的平均壽命（WHOSIS_000001），2000–2021 年，兩性合計與男女分開，
+- WHO 的 HALE（GHO 指標 WHOSIS_000002）與同一次發布的平均壽命（WHOSIS_000001），兩性合計與男女分開，
   CC BY 4.0（data.who.int 的條款，跟 sources/who.py 一樣）。GHO 的 OData API 2026-10-29 對所有資料都回 HTTP 500，
-  改用 WHO 資料入口（data.who.int）背後的整檔 CSV：C64284D（HALE）、90E2E48（平均壽命）。
+  原本改用 WHO 資料入口（data.who.int）背後的整檔 CSV（GHE 2021，2000–2021 年）；GHO 2026-10-01 把這兩個指標換成
+  GHE 2023（2000–2023 年，185 國，舊年份也重算過），2026-10-30 起改讀 xmart 的 GHO/FACT（`who.gho()`，製作手冊第八批 148），
+  跟疾病主題的死因（GHE 2023）同一版。
   「不健康的年數」用 WHO 同一次發布的平均壽命相減（健康主題的平均壽命是聯合國 WPP，跟 WHO 的 HALE 不是同一套模型，
   相減會混進兩邊估計的差異）。WHO 每次發布會整個重算，不跟舊版混用。
 - 台灣（WHO 沒有）：衛生福利部統計處「健康照護服務性別統計」（https://mohw.gov.tw/dl-80447-ce58557e-e2c7-4b8e-b7f3-c8ea4fc6886b.html ）
@@ -18,16 +20,12 @@
 """
 from __future__ import annotations
 
-import csv
-from collections import defaultdict
-
-from common import OUT_DIR, download, indicator_file, write_json
-from sources.countries import from_numeric
+from common import OUT_DIR, indicator_file, write_json
+from sources import who
 
 OUT = OUT_DIR / "topics" / "health"
-BASE = "https://srhdpeuwpubsa.blob.core.windows.net/whdh/DATADOT/INDICATOR/{code}_ALL_LATEST.csv"
-CODES = {"hale": "C64284D", "life": "90E2E48"}
-SEXES = {"TOTAL": "total", "FEMALE": "female", "MALE": "male"}
+CODES = {"hale": "WHOSIS_000002", "life": "WHOSIS_000001"}
+SEXES = {"SEX_BTSX": "total", "SEX_FMLE": "female", "SEX_MLE": "male"}
 # 衛福部統計處「健康照護服務性別統計」：{年: {性別: (平均壽命, 健康平均餘命)}}（109 年的不健康年數 男 7.2、女 8.9 是原文寫的）
 TAIWAN = {
     2010: {"male": (76.1, 68.8), "female": (82.5, 73.5)},
@@ -52,16 +50,7 @@ TW_TOTAL_EN = "Men and women only (see Women, Men)"
 
 def read(kind: str) -> dict[str, dict[str, dict[int, float]]]:
     """{性別: {iso3: {年: 值}}}"""
-    path = download(BASE.format(code=CODES[kind]), "who", f"{kind}-{CODES[kind]}.csv")
-    out: dict[str, dict[str, dict[int, float]]] = {s: defaultdict(dict) for s in SEXES.values()}
-    with open(path, encoding="utf-8-sig") as f:
-        for row in csv.DictReader(f):
-            if row["DIM_GEO_CODE_TYPE"] != "COUNTRY" or row["DIM_SEX"] not in SEXES:
-                continue
-            iso3 = from_numeric(row["DIM_GEO_CODE_M49"])
-            if iso3 and row["AMOUNT_N"]:
-                out[SEXES[row["DIM_SEX"]]][iso3][int(row["DIM_TIME"])] = float(row["AMOUNT_N"])
-    return out
+    return {sex: who.gho(CODES[kind], {"Dim1": dim})[0] for dim, sex in SEXES.items()}
 
 
 def build() -> None:

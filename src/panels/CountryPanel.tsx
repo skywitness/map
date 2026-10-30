@@ -29,6 +29,7 @@ import { categoryScale } from '../map/categories';
 import { CloseIcon } from '../map/MapIcons';
 import { HUE_ORDER, type Tokens } from '../theme/tokens';
 import { ComparePicker } from './ComparePicker';
+import { RelatedTopics } from './RelatedTopics';
 import { useMapTokens } from '../map/palettes';
 import { latestAt, rankOf } from './stats';
 
@@ -320,6 +321,7 @@ export function CountryPanel(props: CountryPanelProps) {
           />
         </Suspense>
       )}
+      <RelatedTopics topic={topic.id} iso3={iso3} />
     </aside>
   );
 }

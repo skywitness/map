@@ -25,7 +25,9 @@ const GROUP_ICONS = {
   economy: 'coins',
   global: 'earth',
   energy: 'leaf',
+  environment: 'cloud-sun',
   tech: 'monitor-smartphone',
+  transport: 'bus',
   geo: 'mountain-snow',
 };
 
@@ -242,10 +244,15 @@ function icon(name, owner) {
 
 // 每個分類裡的主題（registry.ts），跟對照表比對
 const registry = readFileSync(`${ROOT}src/topics/registry.ts`, 'utf8');
-const groups = [...registry.matchAll(/\{ id: '([\w-]+)', label: .*?topics: \[([^\]]*)\]/g)].map((m) => ({
-  id: m[1],
-  topics: [...m[2].matchAll(/'([\w-]+)'/g)].map((t) => t[1]),
-}));
+// 每個分類是 { id: '…', label: …, sections: [{ label: …, topics: [...] }, …] }（2026-10-30 起有小標題）
+const specs = registry.slice(registry.indexOf('TOPIC_GROUP_SPECS'), registry.indexOf('export const groupTopics'));
+const groups = specs
+  .split(/\n {4}id: '/)
+  .slice(1)
+  .map((block) => ({
+    id: block.slice(0, block.indexOf("'")),
+    topics: [...block.matchAll(/topics: \[([^\]]*)\]/g)].flatMap((m) => [...m[1].matchAll(/'([\w-]+)'/g)].map((t) => t[1])),
+  }));
 if (!groups.length) problems.push('registry.ts 裡找不到 TOPIC_GROUP_SPECS');
 const topics = groups.flatMap((g) => g.topics);
 for (const g of groups) if (!GROUP_ICONS[g.id]) problems.push(`分類 ${g.id} 沒有圖示（GROUP_ICONS）`);
