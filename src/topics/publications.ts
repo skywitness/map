@@ -172,10 +172,10 @@ export const publications: TopicDefinition = {
     },
     {
       name: {
-        zh: '科技部《科學技術統計要覽》2019 年版（教育部統計處轉載；台灣的 SCI 論文對照）',
-        en: 'Ministry of Science and Technology, Indicators of Science and Technology 2019 (via the Ministry of Education; Taiwan’s SCI papers for comparison)',
+        zh: '國家科學及技術委員會《科學技術統計要覽》2025 年版，表 II-9（台灣的 SCIE 論文對照）',
+        en: 'National Science and Technology Council, Indicators of Science and Technology 2025, table II-9 (Taiwan’s SCIE papers for comparison)',
       },
-      url: 'https://stats.moe.gov.tw/files/important/OVERVIEW_N09.pdf',
+      url: 'https://wsts.nstc.gov.tw/stsweb/technology/TechnologyDataIndex.aspx?language=C',
       license: { zh: '引用統計數字並註明出處', en: 'figures cited with source' },
     },
   ],
