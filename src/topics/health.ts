@@ -463,5 +463,20 @@ export const health: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },
+    {
+      id: 'under5-mortality-1800',
+      label: { zh: '五歲以下死亡率（1800 年起）', en: 'Under-5 mortality (since 1800)' },
+      description: {
+        zh: `1800–2021 年每 1,000 個活產嬰兒中未滿 5 歲就死亡的人數（‰）：1800 年各國多在 300–500‰，也就是三到五成的孩子活不到 5 歲。1950 年起主要是聯合國兒童死亡率機構間小組（UN IGME）與 WPP 的估計，跟上面的指標略有不同；2022 年起的值跟之前接不起來（各國在 2021、2022 年之間都有一個落差，應該是換成推估），不收。${LONG_RUN_CAVEAT.zh}`,
+        en: `Deaths before age 5 per 1,000 live births (‰), 1800–2021: in 1800 most countries were at 300–500‰, meaning three to five in ten children died before turning five. From 1950 mostly UN IGME and WPP estimates, which differ slightly from the indicator above; from 2022 the series does not join up with earlier years (every country has a jump between 2021 and 2022, most likely a switch to projections), so those years are left out. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: '‰',
+      file: 'under5-mortality-1800.json',
+      events: [FLU_1918],
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 30, 100, 200, 300, 400] } },
+      format: perThousand,
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
   ],
 };
