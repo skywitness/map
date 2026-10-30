@@ -58,7 +58,7 @@ export const SEARCH_ITEMS: TopicSearchItem[] = [
   {"topic":"racing","indicator":"season","item":"motogp","label":{"zh":"MotoGP（含 Moto2、Moto3）","en":"MotoGP (with Moto2 and Moto3)"}},
   {"topic":"racing","indicator":"season","item":"xc","label":{"zh":"登山車世界盃：越野","en":"MTB World Cup: cross-country"}},
   {"topic":"racing","indicator":"season","item":"dh","label":{"zh":"登山車世界盃：速降","en":"MTB World Cup: downhill"}},
-  {"topic":"racing","indicator":"season","item":"mega","label":{"zh":"超級雪崩（阿爾普迪埃）","en":"Megavalanche (Alpe d’Huez)"}},
+  {"topic":"racing","indicator":"season","item":"mega","label":{"zh":"超級雪崩（阿爾普迪埃、留尼旺）","en":"Megavalanche (Alpe d’Huez, Réunion)"}},
   {"topic":"racing","indicator":"season","item":"moh","label":{"zh":"地獄山（雙阿爾卑斯）","en":"Mountain of Hell (Les 2 Alpes)"}},
   {"topic":"racing","indicator":"season","item":"tdf","label":{"zh":"環法自由車賽","en":"Tour de France"}},
   {"topic":"racing","indicator":"season","item":"giro","label":{"zh":"環義自由車賽","en":"Giro d’Italia"}},
