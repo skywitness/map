@@ -442,6 +442,8 @@ function pointFeatures(o: Extract<DataOverlay, { kind: 'points' }>, epoch: numbe
   if (def.timeField) fields.add(def.timeField);
   if (def.endField) fields.add(def.endField);
   if (def.sortField) fields.add(def.sortField);
+  // 依縮放篩選的欄位（城市的人口來自 epochs，其他主題直接是紀錄的欄位：特殊地形的「有沒有維基條目」）
+  if (def.minValue) fields.add(def.minValue.field);
   const features: GeoJSON.Feature[] = [];
   points.forEach((p, i) => {
     const { lon, lat } = p;
