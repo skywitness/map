@@ -23,26 +23,29 @@ export const SERIES: { id: string; code: number; label: Text; short: Text }[] = 
   { id: 'dh', code: 9, label: { zh: '登山車世界盃：速降', en: 'MTB World Cup: downhill' }, short: { zh: '登山車速降', en: 'MTB DH' } },
   { id: 'mega', code: 10, label: { zh: '超級雪崩（阿爾普迪埃、留尼旺）', en: 'Megavalanche (Alpe d’Huez, Réunion)' }, short: { zh: '超級雪崩', en: 'Megavalanche' } },
   { id: 'moh', code: 11, label: { zh: '地獄山（雙阿爾卑斯）', en: 'Mountain of Hell (Les 2 Alpes)' }, short: { zh: '地獄山', en: 'Mountain of Hell' } },
-  { id: 'tdf', code: 12, label: { zh: '環法自由車賽', en: 'Tour de France' }, short: { zh: '環法', en: 'Tour de France' } },
-  { id: 'giro', code: 13, label: { zh: '環義自由車賽', en: 'Giro d’Italia' }, short: { zh: '環義', en: 'Giro' } },
-  { id: 'vuelta', code: 14, label: { zh: '環西自由車賽', en: 'Vuelta a España' }, short: { zh: '環西', en: 'Vuelta' } },
+  { id: 'maxi', code: 12, label: { zh: 'Maxiavalanche（大眾速降系列）', en: 'Maxiavalanche (mass-start series)' }, short: { zh: 'Maxiavalanche', en: 'Maxiavalanche' } },
+  { id: 'attack', code: 13, label: { zh: 'Bike Attack（倫策海德）', en: 'Bike Attack (Lenzerheide)' }, short: { zh: 'Bike Attack', en: 'Bike Attack' } },
+  { id: 'saasfee', code: 14, label: { zh: '冰河速降（薩斯費）', en: 'Glacier Bike Downhill (Saas-Fee)' }, short: { zh: '薩斯費冰河速降', en: 'Saas-Fee glacier DH' } },
+  { id: 'tdf', code: 15, label: { zh: '環法自由車賽', en: 'Tour de France' }, short: { zh: '環法', en: 'Tour de France' } },
+  { id: 'giro', code: 16, label: { zh: '環義自由車賽', en: 'Giro d’Italia' }, short: { zh: '環義', en: 'Giro' } },
+  { id: 'vuelta', code: 17, label: { zh: '環西自由車賽', en: 'Vuelta a España' }, short: { zh: '環西', en: 'Vuelta' } },
 ];
 const BY_CODE = new Map(SERIES.map((s) => [s.code, s]));
 export const seriesOf = (code: unknown) => BY_CODE.get(Number(code));
-const TOUR_CODES = new Set([12, 13, 14]);
+const TOUR_CODES = new Set([15, 16, 17]);
 
 /** 顏色依類別分 7 組（點的 s 欄位）：同一組的賽事同一個顏色，子項目可以只看一種賽事 */
 const SERIES_COLORS: ColorClasses = {
   field: 's',
   title: { zh: '賽事', en: 'Event' },
-  thresholds: [1.5, 5.5, 6.5, 7.5, 9.5, 11.5],
+  thresholds: [1.5, 5.5, 6.5, 7.5, 9.5, 14.5],
   classes: [
     { color: MAP_TOKENS.hues.red, label: { zh: 'F1', en: 'Formula One' } },
     { color: MAP_TOKENS.hues.orange, label: { zh: '其他場地賽車（Formula E、WEC、IndyCar、NASCAR）', en: 'Other circuit racing (Formula E, WEC, IndyCar, NASCAR)' } },
     { color: MAP_TOKENS.hues.yellow, label: { zh: '拉力賽（WRC）', en: 'Rally (WRC)' } },
     { color: MAP_TOKENS.hues.blue, label: { zh: '機車（MotoGP）', en: 'Motorcycles (MotoGP)' } },
     { color: MAP_TOKENS.hues.green, label: { zh: '登山車世界盃', en: 'MTB World Cup' } },
-    { color: MAP_TOKENS.hues.aqua, label: { zh: '大眾速降（超級雪崩、地獄山）', en: 'Mass-start downhill (Megavalanche, Mountain of Hell)' } },
+    { color: MAP_TOKENS.hues.aqua, label: { zh: '大眾速降（超級雪崩、地獄山、Maxiavalanche 等）', en: 'Mass-start downhill (Megavalanche, Mountain of Hell, Maxiavalanche and others)' } },
     { color: MAP_TOKENS.hues.violet, label: { zh: '公路自行車三大環賽', en: 'Grand Tours (road cycling)' } },
   ],
 };
@@ -137,13 +140,15 @@ const GROUPS: Record<string, Text> = {
 };
 const groupOf = (code: number) => (code <= 6 ? GROUPS.car : code === 7 ? GROUPS.moto : GROUPS.bike);
 const ALL = { id: 'all', label: { zh: '全部賽事', en: 'All events' } };
+/** 今年沒有辦、只有歷年的賽事（pipeline 不輸出它們今年的檔） */
+const NOT_THIS_YEAR = ['maxi', 'attack', 'saasfee'];
 const SEASON_DIMENSION: DimensionDef = {
   label: { zh: '賽事', en: 'Event' },
-  options: [ALL, ...SERIES.map((s) => ({ id: s.id, label: s.label, group: groupOf(s.code) }))],
+  options: [ALL, ...SERIES.filter((s) => !NOT_THIS_YEAR.includes(s.id)).map((s) => ({ id: s.id, label: s.label, group: groupOf(s.code) }))],
   defaultOption: 'all',
 };
 /** 有歷年列表的賽事（pipeline 的 _history）；其他的只有今年 */
-const HISTORY = ['f1', 'fe', 'wec', 'indycar', 'wrc', 'motogp', 'mega', 'moh', 'tdf', 'giro', 'vuelta'];
+const HISTORY = ['f1', 'fe', 'wec', 'indycar', 'wrc', 'motogp', 'mega', 'moh', 'maxi', 'attack', 'saasfee', 'tdf', 'giro', 'vuelta'];
 const VENUES_DIMENSION: DimensionDef = {
   label: { zh: '賽事', en: 'Event' },
   options: [ALL, ...SERIES.filter((s) => HISTORY.includes(s.id)).map((s) => ({ id: s.id, label: s.label, group: groupOf(s.code) }))],
@@ -299,8 +304,8 @@ const indicators: IndicatorDef[] = [
     id: 'venues',
     label: { zh: '歷年辦過的地點', en: 'Venues over the years' },
     description: {
-      zh: '各賽事歷年辦過的地方，點的大小是辦過幾次，滑到國家上看合計的次數。次數照各列表的算法：F1 是分站（1950 年起，Jolpica）、MotoGP 是在這條賽道辦的大獎賽（1949 年起）、WRC 是拉力賽，畫在總部的城鎮（1973 年起）、Formula E 是比過的場數（2014 年起，畫在 ePrix 的地點）、WEC 是比過的賽季數（2012 年起）、IndyCar 是場數（1996 年 IRL 起，不含更早的 CART 等）、三大環賽只有開幕站（環法 1903 年起、環義 1909 年起、環西 1935 年起）、超級雪崩是兩站各自辦過的年份（阿爾普迪埃、留尼旺都是 1995 年起，取消的年份不算）、地獄山是辦過的屆數（2000 年起）。NASCAR（列表只有比賽名稱、沒有場數）、登山車世界盃（沒有歷年場地的列表）只有今年。',
-      en: 'Places each event has been held, with dots sized by the number of times; hover over a country for its total. Counts follow each list: Formula One races (since 1950, Jolpica), MotoGP Grands Prix at each circuit (since 1949), WRC rallies placed at their headquarters town (since 1973), Formula E races (since 2014, at the ePrix location), WEC seasons (since 2012), IndyCar races (since the IRL in 1996, not earlier CART and other eras), Grand Tour openings only (Tour de France since 1903, Giro since 1909, Vuelta since 1935), Megavalanche editions at each of its two venues (Alpe d’Huez and Réunion, both since 1995, cancelled years not counted) and Mountain of Hell editions (since 2000). NASCAR (its list gives race names, not counts) and the MTB World Cup (no list of past venues) appear only in this year’s calendar.',
+      zh: '各賽事歷年辦過的地方，點的大小是辦過幾次，滑到國家上看合計的次數。次數照各列表的算法：F1 是分站（1950 年起，Jolpica）、MotoGP 是在這條賽道辦的大獎賽（1949 年起）、WRC 是拉力賽，畫在總部的城鎮（1973 年起）、Formula E 是比過的場數（2014 年起，畫在 ePrix 的地點）、WEC 是比過的賽季數（2012 年起）、IndyCar 是場數（1996 年 IRL 起，不含更早的 CART 等）、三大環賽只有開幕站（環法 1903 年起、環義 1909 年起、環西 1935 年起）、超級雪崩是兩站各自辦過的年份（阿爾普迪埃、留尼旺都是 1995 年起，取消的年份不算）、地獄山是辦過的屆數（2000 年起）、Maxiavalanche 系列（2002 年起，2026 年沒有辦）與瑞士已經停辦的 Bike Attack（倫策海德，1998–2017 年）、冰河速降（薩斯費，2004–2018 年）是各場地辦過的年份。NASCAR（列表只有比賽名稱、沒有場數）、登山車世界盃（沒有歷年場地的列表）只有今年。',
+      en: 'Places each event has been held, with dots sized by the number of times; hover over a country for its total. Counts follow each list: Formula One races (since 1950, Jolpica), MotoGP Grands Prix at each circuit (since 1949), WRC rallies placed at their headquarters town (since 1973), Formula E races (since 2014, at the ePrix location), WEC seasons (since 2012), IndyCar races (since the IRL in 1996, not earlier CART and other eras), Grand Tour openings only (Tour de France since 1903, Giro since 1909, Vuelta since 1935), Megavalanche editions at each of its two venues (Alpe d’Huez and Réunion, both since 1995, cancelled years not counted), Mountain of Hell editions (since 2000), and the years each venue hosted the Maxiavalanche series (since 2002, none in 2026) and the discontinued Swiss Bike Attack (Lenzerheide, 1998–2017) and Glacier Bike Downhill (Saas-Fee, 2004–2018). NASCAR (its list gives race names, not counts) and the MTB World Cup (no list of past venues) appear only in this year’s calendar.',
     },
     unit: { zh: '次', en: 'times' },
     file: 'venues-count/{item}.json',
@@ -345,8 +350,8 @@ export const racing: TopicDefinition = {
     ...f1Part.sources,
   ],
   note: {
-    zh: `今年的賽程到 ${AS_OF.zh}：取消的站不畫（F1 的沙烏地阿拉伯站；巴林站改在馬來西亞的雪邦辦），環西第 3 賽段因天候取消但照樣畫出來、寫「取消」。Formula E 的賽季跨年（2025–26 年，2025 年 12 月的聖保羅開季站也算）。地獄山、超級雪崩沒有賽季條目，日期與地點是自己核對主辦單位公布的整理（地獄山：雙阿爾卑斯觀光局的新聞稿，6 月 18–21 日；超級雪崩：主辦單位 UCC Sport Event 的賽事頁，阿爾普迪埃 7 月 10–12 日、留尼旺的聖保羅 11 月 22 日；只用事實，沒有轉載文字）。超級雪崩的歷年是 Megavalanche 條目兩站的成績表，取消的年份不算（兩站的 2020 年疫情、留尼旺 2018 年黃背心運動）；地獄山的歷年依觀光局 2025 年的新聞稿（2000 年起，2025 年是第 24 屆，2024 年沒有辦）加上 2026 年，共 25 屆（2026 年的新聞稿寫第 26 屆，跟前一年的算法差一屆）。各站名稱、場地照維基百科的英文原文。台灣沒有辦過這些賽事，也沒有為了台灣另外加賽事。F1：${f1Part.note.zh} 維基百科的資料檔依 CC BY-SA 4.0 分享。`,
-    en: `This year’s calendar runs to ${AS_OF.en}. Cancelled rounds are not shown (Formula One’s Saudi Arabian Grand Prix; the Bahrain Grand Prix moved to Sepang, Malaysia); Vuelta stage 3, cancelled for weather, is shown and marked as cancelled. The Formula E season spans two years (2025–26, including the São Paulo opener in December 2025). Mountain of Hell and Megavalanche have no season articles; their dates and places were compiled from the organisers’ announcements (Mountain of Hell: Les 2 Alpes tourist office press release, 18–21 June; Megavalanche: organiser UCC Sport Event’s event pages, 10–12 July at Alpe d’Huez and 22 November at Saint-Paul, Réunion; facts only, no text reproduced). Megavalanche’s past editions come from the results tables of the Megavalanche article for both venues, excluding cancelled years (2020 at both for the pandemic, 2018 in Réunion for the yellow vests protests); Mountain of Hell’s follow the tourist office’s 2025 press release (held since 2000, 2025 was the 24th edition, none in 2024) plus 2026, 25 editions in all (the 2026 release calls it the 26th, one more than the previous year’s count). Event and venue names are as in English Wikipedia. Taiwan hosts none of these events, and none were added for Taiwan. Formula One: ${f1Part.note.en} Data files derived from Wikipedia are shared under CC BY-SA 4.0.`,
+    zh: `今年的賽程到 ${AS_OF.zh}：取消的站不畫（F1 的沙烏地阿拉伯站；巴林站改在馬來西亞的雪邦辦），環西第 3 賽段因天候取消但照樣畫出來、寫「取消」。Formula E 的賽季跨年（2025–26 年，2025 年 12 月的聖保羅開季站也算）。地獄山、超級雪崩沒有賽季條目，日期與地點是自己核對主辦單位公布的整理（地獄山：雙阿爾卑斯觀光局的新聞稿，6 月 18–21 日；超級雪崩：主辦單位 UCC Sport Event 的賽事頁，阿爾普迪埃 7 月 10–12 日、留尼旺的聖保羅 11 月 22 日；只用事實，沒有轉載文字）。超級雪崩的歷年是 Megavalanche 條目兩站的成績表，取消的年份不算（兩站的 2020 年疫情、留尼旺 2018 年黃背心運動）；地獄山的歷年依觀光局 2025 年的新聞稿（2000 年起，2025 年是第 24 屆，2024 年沒有辦）加上 2026 年，共 25 屆（2026 年的新聞稿寫第 26 屆，跟前一年的算法差一屆）。Maxiavalanche（超級雪崩主辦單位 UCC Sport Event 的短版系列）各場地的年份是從主辦單位歷年的賽程、成績頁（網際網路檔案館的存檔）與文章整理的，一年一個場地算一次；安道爾與切爾維尼亞的 2006 年沒有找到成績，依主辦單位自己的屆數補上。Bike Attack 依官方網站的存檔、datasport 的成績與倫策海德觀光局（2017 年第 17 屆後停辦）；薩斯費的冰河速降依薩斯費觀光局的歷屆冠軍表（取消的 2009 年官方也算一屆，這裡照實際比過的次數，2019 年起取消、沒有再辦）。各站名稱、場地照維基百科的英文原文。台灣沒有辦過這些賽事，也沒有為了台灣另外加賽事。F1：${f1Part.note.zh} 維基百科的資料檔依 CC BY-SA 4.0 分享。`,
+    en: `This year’s calendar runs to ${AS_OF.en}. Cancelled rounds are not shown (Formula One’s Saudi Arabian Grand Prix; the Bahrain Grand Prix moved to Sepang, Malaysia); Vuelta stage 3, cancelled for weather, is shown and marked as cancelled. The Formula E season spans two years (2025–26, including the São Paulo opener in December 2025). Mountain of Hell and Megavalanche have no season articles; their dates and places were compiled from the organisers’ announcements (Mountain of Hell: Les 2 Alpes tourist office press release, 18–21 June; Megavalanche: organiser UCC Sport Event’s event pages, 10–12 July at Alpe d’Huez and 22 November at Saint-Paul, Réunion; facts only, no text reproduced). Megavalanche’s past editions come from the results tables of the Megavalanche article for both venues, excluding cancelled years (2020 at both for the pandemic, 2018 in Réunion for the yellow vests protests); Mountain of Hell’s follow the tourist office’s 2025 press release (held since 2000, 2025 was the 24th edition, none in 2024) plus 2026, 25 editions in all (the 2026 release calls it the 26th, one more than the previous year’s count). Maxiavalanche (the shorter series run by Megavalanche organiser UCC Sport Event) venue years were compiled from the organiser’s past calendars and results pages (Internet Archive copies) and posts, counting each venue once per year; no 2006 results were found for Andorra and Cervinia, so those years follow the organiser’s own edition numbers. Bike Attack follows archived copies of its official site, datasport results and the Lenzerheide tourist office (discontinued after the 17th edition in 2017); the Saas-Fee Glacier Bike Downhill follows the Saas-Fee tourist office’s roll of winners (which also numbers the cancelled 2009 race; only races actually held are counted here, none since the 2019 cancellation). Event and venue names are as in English Wikipedia. Taiwan hosts none of these events, and none were added for Taiwan. Formula One: ${f1Part.note.en} Data files derived from Wikipedia are shared under CC BY-SA 4.0.`,
   },
   panelExtra: () => import('./panels/RacingPanel'),
   listPanel: SCHEDULE,

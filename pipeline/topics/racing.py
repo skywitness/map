@@ -3,7 +3,9 @@
 
 使用者決定（2026-10-30）：F1 從「運動」搬到這裡；收 F1、MotoGP（含 Moto2、Moto3，同一個週末畫成一站）、UCI 登山車世界盃的
 越野（XCO＋XCC）與速降（DHI）、WRC、WEC（含利曼 24 小時）、Formula E、IndyCar、NASCAR Cup、環法、環義、環西、
-法國的「地獄山」（Mountain of Hell，雙阿爾卑斯）與「超級雪崩」（Megavalanche，阿爾普迪埃與留尼旺）。台灣都沒有辦過，不另加賽事。
+法國的「地獄山」（Mountain of Hell，雙阿爾卑斯）與「超級雪崩」（Megavalanche，阿爾普迪埃與留尼旺）；同類型的大眾速降另外收
+Maxiavalanche 系列、瑞士的 Bike Attack（倫策海德）與冰河速降（薩斯費），三個今年都沒有辦，只有歷年（使用者 2026-10-30 要加）。
+台灣都沒有辦過，不另加賽事。
 
 **資料**（sources/wiki_racing.py）：英文維基百科的賽季條目與歷年列表（CC BY-SA 4.0，固定版本），座標用 Wikidata（CC0）。
 - **今年**：每一站一個點（日期、站名、場地），賽事的站名、場地照條目的英文原文。同一個週末同一個場地的兩場併成一站
@@ -11,7 +13,7 @@
   （不是實際路線）。比完的與還沒比的分開（AS_OF 那一天以前結束的算比完）。
 - **歷年**：各賽事的列表給的次數（F1 是 Jolpica 的分站數、MotoGP 是在這條賽道辦過的大獎賽、WRC 是拉力賽依總部的城鎮、
   Formula E 是各 ePrix 比過的場數、WEC 是比過的賽季數、IndyCar 是 1996 年 IRL 起的場數、三大環賽是開幕站的城鎮、
-  超級雪崩是兩站各自有成績的年份、地獄山是觀光局新聞稿的屆數）；NASCAR（列表只有比賽名稱）、登山車世界盃（沒有場地的列表）只有今年。
+  超級雪崩是兩站各自有成績的年份、地獄山是觀光局新聞稿的屆數、Maxiavalanche 與瑞士的兩個是各場地辦過的年份）；NASCAR（列表只有比賽名稱）、登山車世界盃（沒有場地的列表）只有今年。
 
 **輸出**（public/data/topics/racing/）：
 - season/<子項目>.json：今年的點（子項目 all 是全部，其他是各賽事）；stages/<子項目>.json：三大環賽的賽段連線
@@ -34,7 +36,7 @@ AS_OF = date(2026, 10, 30)  # 這一天以前結束的站算比完了
 # 賽事：代碼（地圖上的顏色依代碼的範圍分組，見 src/topics/racing.ts 的 SERIES）
 SERIES: dict[str, int] = {
     "f1": 1, "fe": 2, "wec": 3, "indycar": 4, "nascar": 5, "wrc": 6, "motogp": 7,
-    "xc": 8, "dh": 9, "mega": 10, "moh": 11, "tdf": 12, "giro": 13, "vuelta": 14,
+    "xc": 8, "dh": 9, "mega": 10, "moh": 11, "maxi": 12, "attack": 13, "saasfee": 14, "tdf": 15, "giro": 16, "vuelta": 17,
 }
 TOURS = ("tdf", "giro", "vuelta")
 
@@ -88,6 +90,53 @@ MASS_START = [
 # 「(pas d'édition en 2024)」，加上 2026 年（6 月 18–21 日）辦過 → 2000–2026 年辦了 25 屆（2024 年與 2000–2023 年間的另一年
 # 沒辦，新聞稿沒寫哪一年，2021、2022 年都有辦）。2026 年的新聞稿寫「26e édition」，跟 2025 年的算法差一屆，照實際辦的次數
 MOH_HISTORY = {"n": 23 + 1 + 1, "first": 2000, "last": 2026}
+
+# Maxiavalanche（超級雪崩的主辦單位 UCC Sport Event 辦的短版大眾速降系列，2002 年起，DESIGN.md 第 8 節第 242 點）：
+# 各站辦過的年份（一年一個場地算一次；2013–2015 年安道爾一年兩站也只算一次），自己整理的事實，出處：
+# avalanchecup.com、maxiavalanche.com、avalanchetrophy.com、ucc-sportevent.com 的 Wayback 存檔（2002–2016 年的賽程與成績頁）、
+# ucc-sportevent.fr 的文章（wp-json）、enduro-mtb.com 的賽事報導。2026 年沒有辦（UCC 的系列頁到 2026-10-30 還寫「3 étapes en 2025」）。
+MAXI_HISTORY = [
+    # (地點的條目, 地點, 年份)
+    # 安道爾（La Massana；場地名稱依滑雪場改名：Pal Arinsal → Vallnord → Pal Arinsal）。2006 年沒有找到成績，用 UCC 自己的
+    # 屆數補：2024 年「En 22 éditions」＝2002–2024 年扣掉 2020 年（2022 年「21 ème anniversaire」也合）
+    ("Vallnord", "Pal Arinsal (Vallnord)", [*range(2002, 2020), 2021, 2022, 2023, 2024]),
+    # 切爾維尼亞：2003 年「L'étape à Cervinia n'aura pas lieu」、2010 年沒有成績、2020 年沒辦、2024 年取消；2006 年沒有成績，
+    # 用 UCC 2023 年的「Voilà 18 ans」補（2018 年是第 14 屆也合）
+    ("Breuil-Cervinia", "Cervinia", [2004, 2005, 2006, 2007, 2008, 2009, *range(2011, 2020), 2021, 2022, 2023]),
+    # 奧倫（Auron，聖艾蒂安德蒂內鎮內；Wikidata 的 Auron 沒有座標，用鎮）；2021 年只有公告的日期、沒有找到成績，不算
+    ("Saint-Étienne-de-Tinée", "Auron", [2002, 2012, 2022, 2023, 2024, 2025]),
+    ("Saint-Paul-en-Jarez", "Pilat", [2002, 2003]),
+    ("Villars-sur-Ollon", "Villars", [2003, 2004]),
+    ("Le Lioran", "Super Lioran", [2004]),
+    ("Les Orres", "Les Orres", [2004]),
+    ("La Pinilla", "La Pinilla", [2007]),  # 2008 年排了 10 月 5 日，沒有找到成績
+    ("Val Thorens", "Val Thorens", [2008, 2009]),
+    ("Bardonecchia", "Bardonecchia", [2008, 2009]),
+    ("Flims", "Flims", [2009, 2010, 2011]),
+    ("Samoëns", "Samoëns", [2010]),
+    ("Åre", "Åre", [2010, 2011, 2012]),  # 2013 年取消，改在安道爾
+    ("Orcières", "Orcières", [2012, 2013, 2014]),
+    ("Ax 3 Domaines", "Ax 3 Domaines", [2018, 2019, 2023, 2025]),  # 2018 年「première édition」；2020 年排了沒辦
+    ("Méribel", "Méribel", [2019, 2020]),
+    ("Alpe d'Huez", "Alpe d'Huez", [2020]),  # 超級雪崩因疫情取消的那年，8 月 1–2 日改辦 Maxiavalanche
+    ("Pra-Loup", "Pra-Loup", [2022, 2023]),
+]
+
+# 瑞士的兩個已經停辦的大眾速降（都沒有 2026 年），辦過的年份是自己整理的事實：
+OTHER_MASS_HISTORY = [
+    # (賽事, 地點的條目, 地點, 年份)
+    # Bike Attack（2007 年起叫 Trek Bike Attack）：倫策海德的 Parpaner Rothorn 山頂一起出發，2004 年以前到庫爾、2007 年起到
+    # Churwalden。bike-attack.ch 的 Wayback 存檔（2003 年「6. Austragung」、2004 年「7. BIKE-ATTACK」、2005 年「keinen
+    # BIKE-ATTACK mehr」、2007 年「wieder」）、datasport 的成績（2007–2017 年只缺 2010 年）、enduro-mtb.com（2014 年
+    # 「zum 14. Mal」、2015 年「das 15.」）、lenzerheide.com（2017 年「17. Austragung」、「Kein Bike Attack 2018 … nach 17.
+    # Austragungen」）。2005、2006、2010 年沒辦，屆數剛好對得起來
+    ("attack", "Lenzerheide", "Lenzerheide", [*range(1998, 2005), 2007, 2008, 2009, *range(2011, 2018)]),
+    # Glacier Bike Downhill：薩斯費的 Mittelallalin 冰河（約 3,500 m）一起出發，下到村裡。saas-fee.ch 的歷屆冠軍表（Wayback
+    # 2020-03）列 2004–2008、2010–2018 年，2009 年天候取消、2019 年「Rennen abgesagt」；2021 年「ABGESAGT」，之後沒有再辦。
+    # 官方的屆數連取消的 2009 年也算（2018 年「15. Glacier Bike Downhill」），照實際比過的次數。2004 年是「nach Jahren wieder」
+    # （ride-mtb.com），更早的幾屆查不到年份，不算
+    ("saasfee", "Saas-Fee", "Saas-Fee", [*range(2004, 2009), *range(2010, 2019)]),
+]
 
 
 def build() -> None:
@@ -160,7 +209,8 @@ def build() -> None:
     fields = ["lon", "lat", "s", "name", "venue", "place", "from", "rnd", "fmt", "d0", "d1", "m", "iso3", "done", "todo"]
     scale = {"lon": 0.0001, "lat": 0.0001, "s": 1, "d0": 1, "d1": 1, "m": 1, "done": 1, "todo": 1}
     code_of = {v: k for k, v in SERIES.items()}
-    items = ["all", *SERIES]
+    # 今年沒有辦的賽事（Maxiavalanche 等）不輸出今年的檔，子項目也不列（src/topics/racing.ts 的 SEASON_DIMENSION）
+    items = ["all", *(k for k in SERIES if any(code_of[r["s"]] == k for r in rows))]
     for item in items:
         sel = [r for r in rows if item == "all" or code_of[r["s"]] == item]
         write_json(OUT / "season" / f"{item}.json", points_file(sel, fields, scale, strings=("name", "venue", "place", "from")), quiet=True)
@@ -254,6 +304,10 @@ def _history() -> list[dict]:
         mega = wiki.megavalanche_years(venue)
         out.append({"s": "mega", "title": title, "label": label, "n": len(mega), "first": min(mega), "last": max(mega)})
     out.append({"s": "moh", "title": "Les Deux Alpes", "label": "Les 2 Alpes", **MOH_HISTORY})
+    for title, label, years in MAXI_HISTORY:
+        out.append({"s": "maxi", "title": title, "label": label, "n": len(years), "first": min(years), "last": max(years)})
+    for series, title, label, years in OTHER_MASS_HISTORY:
+        out.append({"s": series, "title": title, "label": label, "n": len(years), "first": min(years), "last": max(years)})
     return out
 
 
