@@ -3,14 +3,16 @@ import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
 import { ClampedText } from './controls/ClampedText';
 import type { PaletteAction } from './controls/CommandPalette';
+import { SavedViews } from './controls/SavedViews';
 import { ShareMenu } from './controls/ShareMenu';
 import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
-import { MomentControl } from './controls/MomentControl';
 import { localize, setLang, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { rememberTopic } from './lib/recentTopics';
+import { openSavedView, useSavedViews } from './lib/savedViews';
+import { langParam } from './i18n/lang';
 import { useUI } from './lib/strings';
 import type { TopicTarget } from './lib/topicSearch';
 import { clockAt, dateInputValue, floorMinute, formatClock, formatDay, formatMoment, formatTimeParam } from './lib/clock';
@@ -29,13 +31,12 @@ import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } fro
 import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
-import { DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
+import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { BoxResult } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
-import { RankingTable } from './panels/RankingTable';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
 import { Sparkline } from './map/Sparkline';
 import { loadedTopic, loadTopic } from './topics';
@@ -64,13 +65,20 @@ import {
   useNow,
   useTopicReady,
 } from './app/hooks';
-import { groupOptions, pickYear } from './app/options';
+import { canAnalyse, groupOptions, pickYear } from './app/options';
 import { useOverlays } from './app/overlays';
+import { worldTrend } from './app/trend';
+import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
 import { Footer } from './app/Footer';
 
 // 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
+// 排名表、時刻主題的時間軸（晝夜與季節，連同太陽位置的計算）也是用到才下載（2026-10-30）
+const RankingTable = lazy(() => import('./panels/RankingTable').then((m) => ({ default: m.RankingTable })));
+const MomentControl = lazy(() => import('./controls/MomentControl').then((m) => ({ default: m.MomentControl })));
+// 分析檢視（src/analysis/）：切到分析才下載
+const AnalysisView = lazy(() => import('./analysis/AnalysisView'));
 
 // MapLibre（約 1 MB）放在自己的 chunk。首頁程式一跑起來就同時開始下載地圖程式和底圖樣式，
 // 資料 JSON 也在這時發出請求，不必等 MapLibre 下載、解析完
@@ -151,9 +159,10 @@ export function App() {
   );
   // 純地圖頁：不載入統計資料，也沒有指標、時間軸、資料側欄與排名表
   const pure = Boolean(topic.pure);
-  const view = pure ? 'map' : state.view;
   const chosenIndicator =
     topic.indicators.find((i) => i.id === state.indicator) ?? topic.indicators.find((i) => i.id === topic.defaultIndicator)!;
+  // 分析檢視只給面量圖、比例圓、類別圖的指標（app/options.ts 的 canAnalyse）；其他指標退回地圖
+  const view = pure ? 'map' : state.view === 'analysis' && !canAnalyse(chosenIndicator) ? 'map' : state.view;
   // 子項目的選擇器：指標自己有的話用指標的（國旗的「顏色」與「圖案」），否則用主題的
   const dimension = dimensionOf(topic, chosenIndicator);
   const item = resolveItem(dimension, state.item, state.country);
@@ -234,6 +243,11 @@ export function App() {
     return index < 0 ? null : { year: year - CHANGE_YEARS, values: latestAt(data, index).values };
   }, [data, pure, at, yearIndex, year]);
   const bubbleMax = useMemo(() => (data ? maxAcrossYears(data) : 1), [data]);
+  // 時間軸背後的走勢：世界的總量、平均或各國中位數。載入中（data 是上一個指標的檔）照畫上一個指標的，跟地圖一樣
+  const freshTrend = useMemo(() => worldTrend(indicator, data), [indicator, data]);
+  const trendShot = useRef(freshTrend);
+  if (!loading) trendShot.current = freshTrend;
+  const trend = trendShot.current;
   const world = data?.aggregates?.WLD?.[yearIndex] ?? null;
 
   const setYear = useCallback((y: number) => update({ year: y }), [update]);
@@ -278,6 +292,11 @@ export function App() {
   );
   const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
   const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
+  // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
+  const topicFocus = indicator.focus ?? topic.focus;
+  useEffect(() => {
+    if (topicFocus && !state.country) moveToBox(topicFocus);
+  }, [topic.id, indicator.focus]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
   const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
@@ -327,20 +346,34 @@ export function App() {
   const [overviewOpen, setOverviewOpen] = useState(false);
   // 指令面板（Ctrl+K）的指令，依目前的狀態列出
   const UI = useUI();
+  const savedViews = useSavedViews();
   const paletteActions = useMemo<PaletteAction[]>(() => {
     const A = UI.palette.actions;
     return [
       { id: 'overview', label: A.overview, run: () => setOverviewOpen(true) },
-      ...(pure ? [] : [{ id: 'view', label: view === 'map' ? A.table : A.map, run: () => update({ view: view === 'map' ? 'table' : 'map' }) }]),
+      ...(pure
+        ? []
+        : (['map', 'table', ...(canAnalyse(indicator) ? (['analysis'] as const) : [])] as const)
+            .filter((v) => v !== view)
+            .map((v) => ({ id: `view-${v}`, label: A[v], run: () => update({ view: v }) }))),
       { id: 'theme', label: tokens.mode === 'dark' ? t.switchToLight : t.switchToDark, run: toggleTheme },
       { id: 'lang', label: lang === 'zh' ? A.english : A.chinese, run: () => setLang(lang === 'zh' ? 'en' : 'zh') },
       ...(state.country && !pure ? [{ id: 'clear', label: A.clear, run: () => selectCountry(null) }] : []),
+      ...(view === 'map' && !pure
+        ? [{ id: 'values', label: state.labels ? t.valueLabelsOff : t.valueLabels, run: () => update({ labels: !state.labels }) }]
+        : []),
+      ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
     ];
-  }, [UI, pure, view, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry]);
+  }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
   const indicatorTitle = itemLabel && usesDimension(indicator) ? t.itemIndicator(itemLabel, indicator.label) : indicator.label;
+  // 換指標、子項目、主題時新的資料檔還沒到：地圖照畫上一個指標（舊的數字、色階與圖例），到了再一起漸變過去
+  // （2026-10-30；原本是上一個檔的數字套上新指標的色階，顏色錯一下再跳到新的）
+  const mapShot = useRef({ indicator, values, bubbleMax, title: indicatorTitle });
+  if (!loading) mapShot.current = { indicator, values, bubbleMax, title: indicatorTitle };
+  const onMap = mapShot.current;
 
   // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
   const gridSpec = pure ? undefined : indicator.grid;
@@ -642,7 +675,7 @@ export function App() {
             />
             {!pure && (
               <div className="view-toggle" role="radiogroup" aria-label={t.viewMode}>
-                {(['map', 'table'] as const).map((v) => (
+                {(canAnalyse(indicator) ? (['map', 'table', 'analysis'] as const) : (['map', 'table'] as const)).map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -651,11 +684,12 @@ export function App() {
                     className={`segment${view === v ? ' is-active' : ''}`}
                     onClick={() => update({ view: v })}
                   >
-                    {v === 'map' ? t.viewMap : t.viewTable}
+                    {v === 'map' ? t.viewMap : v === 'table' ? t.viewTable : t.viewAnalysis}
                   </button>
                 ))}
               </div>
             )}
+            <SavedViews />
             <ShareMenu
               shareTitle={t.shareTitle(viewTitle)}
               onDownloadImage={view === 'map' ? downloadImage : undefined}
@@ -685,24 +719,27 @@ export function App() {
             {view === 'map' && !pure && (!timeless || at) && (
               // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
               <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
-                {at ? formatMoment(at.time) : (yearText ?? year)}
+                {/* 每換一年新的數字從下面滾上來（styles.css 的 .year-roll） */}
+                <span key={at ? at.time : year} className="year-roll">
+                  {at ? formatMoment(at.time) : (yearText ?? year)}
+                </span>
                 {projected && <span className="map-year-tag">{indicator.projectionLabel?.tag ?? t.projected}</span>}
               </div>
             )}
             {view === 'map' ? (
               // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
-              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+              <Suspense fallback={<MapFallback dark={basemap.dark} text={t.loadingMap} />}>
                 {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
                 <WorldMap
-                  ref={mapHandle}
+                  handleRef={mapHandle}
                   countries={features ?? NO_FEATURES}
                   countryTable={countries}
                   onPickCountry={pure ? undefined : selectFromSearch}
                   places={placeAnchors}
-                  indicator={indicator}
-                  legendTitle={indicatorTitle}
-                  values={values}
-                  bubbleMax={bubbleMax}
+                  indicator={onMap.indicator}
+                  legendTitle={onMap.title}
+                  values={onMap.values}
+                  bubbleMax={onMap.bubbleMax}
                   tokens={tokens}
                   selected={state.country}
                   onSelect={selectCountry}
@@ -721,6 +758,8 @@ export function App() {
                   onDetailNeeded={wantDetail}
                   threeD={state.threeD}
                   onThreeDChange={setThreeD}
+                  valueLabels={state.labels}
+                  onValueLabelsChange={(on) => update({ labels: on })}
                   terrain={topic.terrain}
                   bareMap={topic.bareMap}
                   focus={focusRequest}
@@ -763,22 +802,40 @@ export function App() {
                   }
                 />
               </Suspense>
+            ) : view === 'analysis' ? (
+              // 分析（變化、篩選、並排、對照）：自己的 chunk，切過來才下載
+              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+                <AnalysisView
+                  topic={topic}
+                  indicator={indicator}
+                  item={item}
+                  data={loading ? null : data}
+                  year={year}
+                  countries={countries}
+                  selected={state.country}
+                  onSelect={selectCountry}
+                  state={state.analysis}
+                  onChange={(patch) => update({ analysis: { ...state.analysis, ...patch } })}
+                />
+              </Suspense>
             ) : (
-              <RankingTable
-                indicator={indicator}
-                title={indicatorTitle}
-                values={values}
-                valueYears={valueYears}
-                latestWithin={data?.latestWithin}
-                world={world}
-                previous={timeless ? null : previous}
-                year={timeless ? null : year}
-                yearText={timeless ? undefined : yearText}
-                countries={countries}
-                selected={state.country}
-                onSelect={selectCountry}
-                icon={topic.rowIcon}
-              />
+              <Suspense fallback={<p className="loading">{t.loadingData}</p>}>
+                <RankingTable
+                  indicator={indicator}
+                  title={indicatorTitle}
+                  values={values}
+                  valueYears={valueYears}
+                  latestWithin={data?.latestWithin}
+                  world={world}
+                  previous={timeless ? null : previous}
+                  year={timeless ? null : year}
+                  yearText={timeless ? undefined : yearText}
+                  countries={countries}
+                  selected={state.country}
+                  onSelect={selectCountry}
+                  icon={topic.rowIcon}
+                />
+              </Suspense>
             )}
           </div>
           {state.country && !pure && (
@@ -816,14 +873,16 @@ export function App() {
         </div>
 
         {clock ? (
-          <MomentControl
-            time={shownTime}
-            live={state.time === null}
-            onChange={(ms) => update({ time: floorMinute(ms) })}
-            onPreview={setPlayTime}
-            onLive={() => update({ time: null })}
-            onPlayingChange={setPlaying}
-          />
+          <Suspense fallback={<div className="time-slider" />}>
+            <MomentControl
+              time={shownTime}
+              live={state.time === null}
+              onChange={(ms) => update({ time: floorMinute(ms) })}
+              onPreview={setPlayTime}
+              onLive={() => update({ time: null })}
+              onPlayingChange={setPlaying}
+            />
+          </Suspense>
         ) : (
           !pure &&
           !timeless &&
@@ -836,6 +895,7 @@ export function App() {
               estimatesBefore={data?.estimatesBefore}
               axis={indicator.timeAxis}
               onChange={setYear}
+              trend={trend}
               onPlayingChange={setPlaying}
             />
           )

@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { useT } from '../i18n';
 import { useHotkeys } from './hotkeys';
+import { useDismiss } from './useDismiss';
 
 interface TimeSliderProps {
   years: number[];
@@ -13,13 +14,39 @@ interface TimeSliderProps {
   /** 年份不是「那一年的資料」時（指標的 timeAxis，例如平均身高的「出生年」）：寫在年份上面，也是拉桿的名稱 */
   axis?: { label: string; year: (year: number) => string; tick?: (year: number) => string };
   onChange: (year: number) => void;
+  /** 拉桿背後淡淡畫的走勢（世界的總量、平均或各國中位數，跟 years 一一對應，app/trend.ts） */
+  trend?: (number | null)[] | null;
   /** 開始、停止播放時通知（App 在地圖上疊大大的年份） */
   onPlayingChange?: (playing: boolean) => void;
 }
 
+/** 1× 時每一年停多久；0.5× 是兩倍、2× 是一半 */
 const PLAY_INTERVAL_MS = 120;
+const SPEEDS = [0.5, 1, 2] as const;
+type Speed = (typeof SPEEDS)[number];
+/** 速度與循環記在這台裝置（每個主題都一樣）；播放的年份範圍只在目前的指標有效 */
+const PLAYBACK_KEY = 'playback';
 
-export function TimeSlider({ years, year, projectionFrom, projectionLabel, estimatesBefore, axis, onChange, onPlayingChange }: TimeSliderProps) {
+function readPlayback(): { speed: Speed; loop: boolean } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLAYBACK_KEY) ?? '{}') as { speed?: number; loop?: boolean };
+    return { speed: SPEEDS.find((s) => s === saved.speed) ?? 1, loop: saved.loop === true };
+  } catch {
+    return { speed: 1, loop: false };
+  }
+}
+
+export function TimeSlider({
+  years,
+  year,
+  projectionFrom,
+  projectionLabel,
+  estimatesBefore,
+  axis,
+  onChange,
+  trend,
+  onPlayingChange,
+}: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
   /** 刻度與目前的值：有 axis.tick 時照它寫（各國在讀什麼的月份），沒有是數字本身 */
@@ -28,25 +55,39 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
   const t = useT();
   const yearRef = useRef(year);
   yearRef.current = year;
+  // 播放設定（2026-10-30）：速度、循環、只播一段年份
+  const [playback, setPlayback] = useState(readPlayback);
+  const changePlayback = (patch: Partial<{ speed: Speed; loop: boolean }>) => {
+    const next = { ...playback, ...patch };
+    setPlayback(next);
+    try {
+      localStorage.setItem(PLAYBACK_KEY, JSON.stringify(next));
+    } catch {
+      // 無痕模式等存不了：這次照樣用
+    }
+  };
+  const [range, setRange] = useState<[number, number] | null>(null);
+  // 換指標（年份不同）時範圍回到全部
+  useEffect(() => setRange(null), [first, last]);
+  const from = range && years.includes(range[0]) ? range[0] : first;
+  const to = range && years.includes(range[1]) && range[1] > from ? range[1] : last;
 
   useEffect(() => onPlayingChange?.(playing), [playing, onPlayingChange]);
 
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(() => {
-      // 年份不一定連續（例如移民存量每 5 年一筆），播放時跳到資料裡的下一個年份
-      const next = years.find((y) => y > yearRef.current);
-      if (next === undefined) {
-        setPlaying(false);
-        return;
-      }
-      onChange(next);
-    }, PLAY_INTERVAL_MS);
+      // 年份不一定連續（例如移民存量每 5 年一筆），播放時跳到資料裡的下一個年份；到了範圍的最後一年停下或從頭再播
+      const next = years.find((y) => y > yearRef.current && y <= to);
+      if (next !== undefined) onChange(next);
+      else if (playback.loop) onChange(from);
+      else setPlaying(false);
+    }, PLAY_INTERVAL_MS / playback.speed);
     return () => window.clearInterval(timer);
-  }, [playing, years, onChange]);
+  }, [playing, years, onChange, from, to, playback]);
 
   const togglePlay = () => {
-    if (!playing && year >= last) onChange(first);
+    if (!playing && (year < from || year >= to)) onChange(from);
     setPlaying((p) => !p);
   };
 
@@ -122,7 +163,27 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
       >
         {playing ? '❚❚' : '▶'}
       </button>
+      <PlaybackMenu
+        years={years}
+        tick={tick}
+        speed={playback.speed}
+        loop={playback.loop}
+        from={from}
+        to={to}
+        onSpeed={(speed) => changePlayback({ speed })}
+        onLoop={(loop) => changePlayback({ loop })}
+        onRange={(f, l) => setRange(f === first && l === last ? null : [f, l])}
+      />
       <div className="time-track">
+        {trend && <TrendArea years={years} values={trend} projectionFrom={projectionFrom} />}
+        {(from !== first || to !== last) && (
+          // 只播一段年份時在軌道上標出那一段（左右縮進圓鈕的半徑，跟走勢一樣）
+          <span
+            className="time-range"
+            aria-hidden="true"
+            style={{ '--from': (from - first) / (last - first), '--to': (to - first) / (last - first) } as CSSProperties}
+          />
+        )}
         <input
           type="range"
           min={first}
@@ -150,7 +211,9 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
       </div>
       <output className="time-year">
         {axis && <span className="time-axis">{axis.label}</span>}
-        {tick(year)}
+        <span key={year} className="year-roll">
+          {tick(year)}
+        </span>
         {projectionFrom !== undefined && (!projectionLabel || projected) && (
           <span className={`year-tag${projected ? ' is-projected' : ''}`}>
             {projected ? (projectionLabel?.tag ?? t.projected) : t.estimated}
@@ -160,6 +223,163 @@ export function TimeSlider({ years, year, projectionFrom, projectionLabel, estim
           <span className="year-tag">{t.estimated}</span>
         )}
       </output>
+    </div>
+  );
+}
+
+/**
+ * 拉桿背後的走勢（2026-10-30）：淡淡的面積加一條細線，推估的年份更淡；不能點、螢幕閱讀器不唸（只是裝飾，
+ * 數字在側欄與排名表）。x 跟拉桿的圓鈕對齊（左右各縮進圓鈕的半徑，styles.css 的 .time-trend）；
+ * y 用最小到最大（下面多留 15%）：看的是形狀（哪幾年變化大），從 0 起算的話變化小的指標（母親的平均生育年齡
+ * 27–29 歲）整條是一塊平平的長方形
+ */
+function TrendArea({ years, values, projectionFrom }: { years: number[]; values: (number | null)[]; projectionFrom?: number }) {
+  const first = years[0];
+  const last = years[years.length - 1];
+  const present = values.filter((v): v is number => v != null);
+  const hi = Math.max(...present);
+  const min = Math.min(...present);
+  if (!(hi > min)) return null;
+  const lo = min - (hi - min) * 0.15;
+  const x = (y: number) => ((y - first) / (last - first)) * 1000;
+  const y = (v: number) => 100 - ((v - lo) / (hi - lo)) * 96;
+  // 連續有值的幾段各畫一塊；推估之前、之後分開（推估的那塊淡一點），在推估的第一年接起來
+  const runs: { points: [number, number][]; projected: boolean }[] = [];
+  let run: [number, number][] = [];
+  let runProjected = false;
+  const flush = () => {
+    if (run.length > 1) runs.push({ points: run, projected: runProjected });
+    run = [];
+  };
+  values.forEach((v, i) => {
+    const year = years[i];
+    if (v == null || year === undefined) return flush();
+    const projected = projectionFrom !== undefined && year >= projectionFrom;
+    if (projected !== runProjected && run.length) {
+      const joint = run[run.length - 1];
+      flush();
+      run = [joint];
+    }
+    runProjected = projected;
+    run.push([x(year), y(v)]);
+  });
+  flush();
+  return (
+    <svg className="time-trend" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+      {runs.map(({ points, projected }, i) => {
+        const line = points.map(([px, py], j) => `${j ? 'L' : 'M'}${px.toFixed(1)},${py.toFixed(1)}`).join('');
+        const area = `${line}L${points[points.length - 1][0].toFixed(1)},100L${points[0][0].toFixed(1)},100Z`;
+        return (
+          <g key={i} className={projected ? 'is-projected' : undefined}>
+            <path className="time-trend-area" d={area} />
+            <path className="time-trend-line" d={line} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
+ * 播放設定（2026-10-30）：速度 0.5×／1×／2×、循環播放、只播一段年份。按鈕上寫目前的速度；
+ * Esc 或點外面關閉
+ */
+function PlaybackMenu({
+  years,
+  tick,
+  speed,
+  loop,
+  from,
+  to,
+  onSpeed,
+  onLoop,
+  onRange,
+}: {
+  years: number[];
+  tick: (year: number) => string | number;
+  speed: Speed;
+  loop: boolean;
+  from: number;
+  to: number;
+  onSpeed: (speed: Speed) => void;
+  onLoop: (loop: boolean) => void;
+  onRange: (from: number, to: number) => void;
+}) {
+  const t = useT();
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  useDismiss(open, () => setOpen(false), [buttonRef, popoverRef], buttonRef);
+  const ranged = from !== years[0] || to !== years[years.length - 1];
+  return (
+    <div className="playback">
+      <button
+        ref={buttonRef}
+        type="button"
+        className={`playback-button${speed !== 1 || loop || ranged ? ' is-set' : ''}`}
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        aria-label={t.playSettings}
+        title={t.playSettings}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {speed}×{loop && <span aria-hidden="true"> ↻</span>}
+      </button>
+      {open && (
+        <div ref={popoverRef} id={id} className="playback-popover" role="dialog" aria-label={t.playSettings}>
+          <div className="playback-row">
+            <span className="playback-label">{t.playSpeed}</span>
+            <div className="playback-speeds" role="radiogroup" aria-label={t.playSpeed}>
+              {SPEEDS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={s === speed}
+                  className={`segment${s === speed ? ' is-active' : ''}`}
+                  onClick={() => onSpeed(s)}
+                >
+                  {s}×
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="playback-row playback-check">
+            <input type="checkbox" checked={loop} onChange={(e) => onLoop(e.target.checked)} />
+            {t.playLoop}
+          </label>
+          <div className="playback-row">
+            <span className="playback-label">{t.playRange}</span>
+            <span className="playback-range">
+              <select aria-label={t.playRangeFrom} value={from} onChange={(e) => onRange(Number(e.target.value), to)}>
+                {years
+                  .filter((y) => y < to)
+                  .map((y) => (
+                    <option key={y} value={y}>
+                      {tick(y)}
+                    </option>
+                  ))}
+              </select>
+              –
+              <select aria-label={t.playRangeTo} value={to} onChange={(e) => onRange(from, Number(e.target.value))}>
+                {years
+                  .filter((y) => y > from)
+                  .map((y) => (
+                    <option key={y} value={y}>
+                      {tick(y)}
+                    </option>
+                  ))}
+              </select>
+            </span>
+          </div>
+          {ranged && (
+            <button type="button" className="playback-reset" onClick={() => onRange(years[0], years[years.length - 1])}>
+              {t.playRangeAll}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

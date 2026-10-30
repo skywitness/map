@@ -65,3 +65,18 @@ export function focusBounds(country: CountryFeature): Bounds {
   }
   return [[box.w, box.s], [box.e, box.n]];
 }
+
+/**
+ * 地圖上被蓋住的部分（像素）：右邊的縮放按鈕那一欄、手機底部的國家抽屜（`data-occludes-map`）。
+ * 移到某國時避開這些地方，國家才不會停在按鈕或抽屜底下（2026-10-30）
+ */
+export function mapInsets(container: HTMLElement): { right: number; bottom: number } {
+  const rect = container.getBoundingClientRect();
+  let bottom = 0;
+  for (const el of document.querySelectorAll('[data-occludes-map]')) {
+    bottom = Math.max(bottom, rect.bottom - el.getBoundingClientRect().top);
+  }
+  const tools = container.parentElement?.querySelector('.map-zoom')?.getBoundingClientRect();
+  const right = tools && tools.width > 0 ? Math.max(0, rect.right - tools.left) : 0;
+  return { right, bottom: Math.min(Math.max(0, bottom), rect.height * 0.6) };
+}

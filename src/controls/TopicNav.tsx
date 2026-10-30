@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useId,
   useLayoutEffect,
@@ -14,7 +16,11 @@ import type { TopicTarget } from '../lib/topicSearch';
 import { prefetchTopic, TOPIC_GROUPS, type TopicGroup, type TopicSummary } from '../topics';
 import { pureMap } from '../topics/map';
 import { categoryStyle, Glyph, GroupGlyph, loadTopicIcons, useTopicIcons } from './TopicIcon';
-import { TopicsOverview } from './TopicsOverview';
+// 主題總覽（全部主題的縮圖與搜尋）第一次打開才下載（2026-10-30）
+const TopicsOverview = lazy(() => import('./TopicsOverview').then((m) => ({ default: m.TopicsOverview })));
+
+/** 主題列放不下時收緊的級數（styles.css 的 .is-compact-1…3） */
+const COMPACT_STEPS = 3;
 
 interface TopicNavProps {
   current: Pick<TopicSummary, 'id' | 'shortTitle'>;
@@ -76,6 +82,9 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   const menuId = useId();
 
   const [overflowing, setOverflowing] = useState(false);
+  /** 主題總覽打開過了（之後留著，關上時有對話框的關閉動畫、再開不必等） */
+  const overviewUsed = useRef(false);
+  if (overviewOpen) overviewUsed.current = true;
   const icons = useTopicIcons(open !== null);
 
   // 主題的圖示（另一個 chunk）：頁面安靜下來之後先下載，打開選單時就有；滑到、移到主題列上也開始下載
@@ -114,17 +123,45 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
     if (refocus && id) buttonRefs.current.get(id)?.focus();
   };
 
-  // 主題列放不下（窄螢幕、英文）時可以橫向捲動，右緣淡出提示後面還有
-  useEffect(() => {
+  // 主題列放不下時先一級一級收緊（COMPACT_STEPS：按鈕的間距、沒展開的分類的箭頭、圖示），
+  // 收到最緊還放不下（手機）就照原樣、可以橫向捲動，右緣淡出提示後面還有（2026-10-30；原本英文在 1280px 寬時「Geography」被切掉）
+  const [compact, setCompact] = useState(0);
+  /** 每一級需要的寬度（量過才有）；換語言、換主題時按鈕的寬度會變，重量 */
+  const needed = useRef<number[]>([]);
+  const measuredFor = useRef('');
+  useLayoutEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
-    const check = () => setOverflowing(nav.scrollWidth > nav.clientWidth + 1);
+    const key = `${lang}|${current.id}`;
+    if (measuredFor.current !== key) {
+      measuredFor.current = key;
+      needed.current = [];
+      if (compact !== 0) {
+        setCompact(0);
+        return;
+      }
+    }
+    const check = () => {
+      // 按鈕本身的寬度不受主題列的寬度影響（不換行、不縮），量第一個到最後一個看得見的按鈕
+      const rects = [...nav.children].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0);
+      if (!rects.length) return;
+      const style = getComputedStyle(nav);
+      const room = nav.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const width = Math.max(...rects.map((r) => r.right)) - rects[0].left;
+      needed.current[compact] = width;
+      const fits = (level: number) => needed.current[level] !== undefined && needed.current[level] <= room + 1;
+      const looser = [...Array(compact).keys()].find(fits);
+      const hopeless = needed.current[COMPACT_STEPS] !== undefined && !fits(COMPACT_STEPS);
+      const next =
+        looser !== undefined ? looser : width > room + 1 ? (hopeless ? 0 : Math.min(compact + 1, COMPACT_STEPS)) : compact;
+      if (next !== compact) setCompact(next);
+      else setOverflowing(nav.scrollWidth > nav.clientWidth + 1);
+    };
     const observer = new ResizeObserver(check);
     observer.observe(nav);
-    // 按鈕的寬度會跟著語言、目前主題改變，nav 本身的大小不一定會變
     check();
     return () => observer.disconnect();
-  }, [lang, current.id]);
+  }, [lang, current.id, compact]);
 
   // 選單超出右邊時往左移
   useLayoutEffect(() => {
@@ -183,6 +220,10 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       show(group.id, e.key === 'ArrowDown' ? 'first' : 'last');
+    } else if (e.key === 'Escape' && open) {
+      // 選單剛打開、焦點還沒移進選單時（Preact 的 effect 比較晚跑）按 Esc 也要關掉
+      e.preventDefault();
+      close(true);
     }
   };
 
@@ -236,7 +277,7 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
 
   return (
     <nav
-      className={`topics${overflowing ? ' is-overflowing' : ''}`}
+      className={`topics${overflowing ? ' is-overflowing' : ''}${compact ? ` is-compact-${compact}` : ''}`}
       aria-label={t.topicsNav}
       ref={navRef}
       onPointerEnter={warmIcons}
@@ -336,15 +377,19 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
           </div>,
           document.body,
         )}
-      <TopicsOverview
-        open={overviewOpen}
-        current={current}
-        onClose={() => onOverviewChange(false)}
-        onSelect={(target) => {
-          onOverviewChange(false);
-          if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
-        }}
-      />
+      {overviewUsed.current && (
+        <Suspense fallback={null}>
+          <TopicsOverview
+            open={overviewOpen}
+            current={current}
+            onClose={() => onOverviewChange(false)}
+            onSelect={(target) => {
+              onOverviewChange(false);
+              if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
+            }}
+          />
+        </Suspense>
+      )}
     </nav>
   );
 }

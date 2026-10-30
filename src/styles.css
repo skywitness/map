@@ -26,6 +26,11 @@
   --cat-solid-geo: #088f77;
   --radius: 8px;
   --gutter: 16px;
+  /* 動畫的時間與曲線（2026-10-30 統一）：按鈕、箭頭、淡入淡出用 --motion-fast，
+     側欄、抽屜、選單的開合用 --motion，都是同一條先快後慢的曲線 */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-fast: 0.15s;
+  --motion: 0.26s;
   font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
   color: var(--ink);
   background: var(--page);
@@ -147,6 +152,23 @@ button {
   opacity: 0.6;
 }
 
+/* 主題列放不下時一級一級收緊（TopicNav.tsx 的 compact）：間距 → 沒展開的分類的箭頭 → 它們的圖示 */
+.topics.is-compact-1,
+.topics.is-compact-2,
+.topics.is-compact-3 {
+  gap: 1px;
+}
+
+:is(.is-compact-1, .is-compact-2, .is-compact-3) > .topic {
+  padding-inline: 7px;
+  gap: 4px;
+}
+
+:is(.is-compact-2, .is-compact-3) > .topic:not(.is-active) .topic-caret,
+.is-compact-3 > .topic:not(.is-active) .topic-group-icon {
+  display: none;
+}
+
 /* 主題列放不下時可以橫向捲動：右緣淡出，看得出後面還有 */
 .topics.is-overflowing {
   padding-right: 24px;
@@ -188,7 +210,7 @@ button {
 .topic-caret {
   flex: none;
   opacity: 0.7;
-  transition: transform 0.15s;
+  transition: transform var(--motion-fast) var(--ease-out);
 }
 
 .topic-group[aria-expanded='true'] .topic-caret {
@@ -418,7 +440,10 @@ button {
   text-align: left;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition:
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-out);
 }
 
 .overview-card:hover,
@@ -803,7 +828,8 @@ button {
 
 .indicator-picker,
 .view-toggle,
-.grid-toggle {
+.grid-toggle,
+.segmented {
   display: inline-flex;
   padding: 3px;
   border-radius: var(--radius);
@@ -964,6 +990,142 @@ button {
 .share {
   position: relative;
   flex: none;
+}
+
+/* 收藏的畫面（SavedViews.tsx）：書籤按鈕，目前的畫面已收藏時是實心的藍色 */
+.saved-views {
+  position: relative;
+  flex: none;
+}
+
+.saved-button {
+  color: var(--ink-secondary);
+}
+
+.saved-button.is-saved {
+  color: var(--accent-text);
+}
+
+.saved-button.is-saved svg path {
+  fill: currentColor;
+}
+
+.saved-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.saved-form {
+  display: grid;
+  gap: 6px;
+}
+
+.saved-form label {
+  color: var(--ink-secondary);
+}
+
+.saved-form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.saved-form-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+}
+
+.saved-submit {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.saved-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.saved-list {
+  display: grid;
+  max-height: 260px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border-top: 1px solid var(--grid);
+}
+
+.saved-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.saved-list a {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 2px;
+  overflow: hidden;
+  color: var(--ink);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-list a:hover {
+  color: var(--accent-text);
+}
+
+.saved-list li.is-current a {
+  font-weight: 600;
+}
+
+.saved-remove {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.saved-remove:hover {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.saved-empty,
+.saved-note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .help-popover {
@@ -1198,6 +1360,25 @@ kbd {
   overflow: hidden;
 }
 
+/* 地圖還沒畫出來前的地球圖（GlobePlaceholder.tsx）：大小與位置跟 MapLibre 初始視角的地球一樣
+   （直徑約地圖高度的 0.94，scripts/globe-placeholder.mjs 量的；fitGlobeZoom），放在畫布底下 */
+.globe-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 94%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.map-fallback-text {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
 .loading,
 .error,
 .empty {
@@ -1311,21 +1492,18 @@ kbd {
 .map {
   position: absolute;
   inset: 0;
-  transition: opacity 0.15s;
+  transition: opacity var(--motion-fast) var(--ease-out);
 }
 
 .map.is-dimmed .map-canvas {
   opacity: 0.6;
 }
 
-/* MapLibre 的畫布；地球儀外面的深藍夜空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設定 */
+/* MapLibre 的畫布；地球儀外面的深藍夜空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設在外框（.map）上，
+   畫布本身透明，底下才看得到地圖還沒畫好時的地球圖（GlobePlaceholder） */
 .map-canvas {
   position: absolute;
   inset: 0;
-}
-
-.map.is-fullscreen {
-  background: #000;
 }
 
 /* 3D 是文字，跟圖示一樣粗細 */
@@ -1367,7 +1545,7 @@ kbd {
   color: var(--ink);
   cursor: pointer;
   font-size: 16px;
-  transition: background-color 0.15s;
+  transition: background-color var(--motion-fast) var(--ease-out);
 }
 
 .map-zoom > :first-child,
@@ -2288,7 +2466,7 @@ kbd {
   border: 0;
   cursor: pointer;
   pointer-events: auto;
-  transition: opacity 0.15s;
+  transition: opacity var(--motion-fast) var(--ease-out);
 }
 
 .legend-bin::after {
@@ -2484,7 +2662,7 @@ kbd {
   font-variant-numeric: tabular-nums;
 }
 
-/* 顏色在 Legend.tsx 用 MAP_TOKENS.noData，跟地圖上沒有資料的國家一樣 */
+/* 顏色在 Legend.tsx 用 NO_DATA_SWATCH（灰底加斜線），跟地圖上沒有資料的國家一樣 */
 .swatch-nodata {
   width: 16px;
   height: 10px;
@@ -3788,6 +3966,482 @@ kbd {
   overflow: auto;
 }
 
+/* 分析檢視（src/analysis/，2026-10-30）：跟排名表一樣在地圖的框裡自己捲動。
+   上面是分頁與說明，下面左邊是地圖（SVG，寬度跟著框），右邊是圖例、清單；窄的時候圖例排到地圖下面 */
+.analysis {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 12px 16px 16px;
+  font-size: 13px;
+}
+
+.analysis-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-bottom: 10px;
+}
+
+.analysis-tab {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.analysis-tab.is-active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--page);
+}
+
+.analysis-tab-note {
+  margin-left: 6px;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.analysis-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-auto-rows: min-content;
+  align-items: start;
+  gap: 10px 20px;
+}
+
+.analysis-body > .analysis-controls,
+.analysis-body > .analysis-conditions,
+.analysis-body > .analysis-note {
+  grid-column: 1 / -1;
+}
+
+.analysis-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.analysis-label,
+.analysis-span {
+  color: var(--ink-secondary);
+}
+
+.analysis-span {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.analysis-note {
+  margin: 8px 0;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+
+.analysis-hint {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.analysis-figure,
+.analysis-multiples,
+.analysis-swipe {
+  position: relative;
+  min-width: 0;
+}
+
+/* 一張大地圖：不超過框的高度（AnalysisView 算的 --fit-width），置中 */
+.analysis-figure,
+.analysis-swipe {
+  width: 100%;
+  max-width: var(--fit-width, 100%);
+  justify-self: center;
+}
+
+.svg-world {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.svg-world-sea {
+  fill: color-mix(in srgb, var(--grid) 70%, #b7c6dd);
+}
+
+.svg-world-countries path {
+  stroke: var(--surface);
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+.svg-world-countries path:hover {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.svg-world-bubbles circle {
+  fill-opacity: 0.72;
+  stroke: #ffffff;
+  stroke-width: 0.6;
+}
+
+.svg-world-selected,
+.svg-world-hover {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  pointer-events: none;
+}
+
+.svg-world-hover {
+  stroke-width: 1.1;
+  stroke-dasharray: 3 2;
+}
+
+.analysis-aside {
+  display: grid;
+  gap: 14px;
+}
+
+.analysis-legend {
+  display: grid;
+  gap: 6px;
+}
+
+.analysis-legend-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.analysis-legend-unit {
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+.analysis-steps {
+  display: flex;
+  margin: 2px 0 16px;
+}
+
+.analysis-step {
+  position: relative;
+  flex: 1;
+  height: 12px;
+}
+
+.analysis-step:first-child {
+  border-radius: 2px 0 0 2px;
+}
+
+.analysis-step:last-child {
+  border-radius: 0 2px 2px 0;
+}
+
+/* 門檻寫在兩格的交界下面 */
+.analysis-tick {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  transform: translateX(-50%);
+  color: var(--ink-secondary);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.analysis-legend-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-secondary);
+}
+
+.analysis-cats {
+  display: grid;
+  gap: 4px;
+}
+
+.analysis-swatch {
+  flex: none;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.analysis-bubbles {
+  width: 140px;
+  overflow: visible;
+}
+
+.analysis-bubbles circle {
+  fill: none;
+  stroke: var(--ink-muted);
+}
+
+.analysis-bubbles line {
+  stroke: var(--axis);
+  stroke-dasharray: 2 2;
+}
+
+.analysis-bubbles text {
+  fill: var(--ink-secondary);
+  font-size: 10px;
+}
+
+.analysis-flat-note {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.analysis-extremes {
+  display: grid;
+  gap: 2px;
+}
+
+.analysis-extremes button,
+.analysis-chips button {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.analysis-extremes button {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.analysis-extremes button:hover,
+.analysis-extremes button.is-selected {
+  background: var(--grid);
+}
+
+.analysis-extremes .num {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-secondary);
+}
+
+.analysis-conditions {
+  display: grid;
+  gap: 8px;
+}
+
+.analysis-condition {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.analysis-condition select,
+.analysis-condition input {
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.analysis-condition input {
+  width: 96px;
+}
+
+.analysis-unit {
+  color: var(--ink-muted);
+}
+
+.analysis-remove {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.analysis-remove:hover {
+  background: var(--grid);
+}
+
+.analysis-add {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.analysis-matches {
+  display: grid;
+  gap: 6px;
+}
+
+.analysis-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.analysis-chips button {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.analysis-chips button.is-selected,
+.analysis-chips button:hover {
+  border-color: var(--ink);
+}
+
+/* 小地圖並排：兩欄（窄的時候一欄） */
+.analysis-multiples {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.analysis-panel {
+  margin: 0;
+}
+
+.analysis-panel figcaption {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.analysis-panel .analysis-legend {
+  margin-top: 6px;
+}
+
+/* 拉簾：兩張地圖疊在一起，右邊那張用 clip-path 切掉左邊 */
+.analysis-swipe {
+  display: grid;
+  user-select: none;
+}
+
+.analysis-swipe > .svg-world {
+  grid-area: 1 / 1;
+}
+
+.analysis-swipe-label {
+  position: absolute;
+  top: 6px;
+  max-width: 45%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.analysis-swipe-label.is-left {
+  left: 6px;
+}
+
+.analysis-swipe-label.is-right {
+  right: 6px;
+}
+
+.analysis-swipe-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.analysis-swipe-handle > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 13px;
+  letter-spacing: -1px;
+  transform: translate(-50%, -50%);
+}
+
+.analysis-swipe-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.analysis-tooltip {
+  position: absolute;
+  z-index: 5;
+  max-width: 260px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.analysis-tooltip-name {
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.analysis-tooltip-line {
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .analysis-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analysis-aside {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .analysis-multiples {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analysis-tab-note {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+
 .ranking table {
   width: 100%;
   border-collapse: collapse;
@@ -3950,6 +4604,12 @@ kbd {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
+/* 深色介面：地圖色階最深的幾級（深褐 #611e00、墨綠）跟深色卡片的對比只有 1.4–2.3:1，長條幾乎看不見。
+   顏色照樣跟地圖一樣，加一圈淡白的邊（跟卡片約 3.8:1，2026-10-30） */
+:root[data-theme='dark'] .value-bar {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
 /* ── 時間軸 ─────────────────────────── */
 .time-slider {
   display: flex;
@@ -3990,6 +4650,146 @@ kbd {
   appearance: none;
   cursor: pointer;
   touch-action: none;
+}
+
+/* 播放設定（TimeSlider.tsx 的 PlaybackMenu）：播放鈕旁邊寫速度的小按鈕，往上彈出設定 */
+.playback {
+  position: relative;
+  flex: none;
+  margin-left: -8px;
+}
+
+.playback-button {
+  min-width: 34px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.playback-button.is-set {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.playback-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  width: 248px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.playback-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.playback-label {
+  color: var(--ink-secondary);
+}
+
+.playback-speeds {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--grid);
+}
+
+.playback-speeds .segment {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+.playback-check {
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.playback-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.playback-range select {
+  font: inherit;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.playback-reset {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 只播一段年份：軌道上那一段標成淡藍（跟圓鈕的位置對齊，左右縮進 10px） */
+.time-range {
+  position: absolute;
+  top: 10px;
+  left: calc(10px + (100% - 20px) * var(--from));
+  width: calc((100% - 20px) * (var(--to) - var(--from)));
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  pointer-events: none;
+}
+
+/* 拉桿背後的走勢（TimeSlider.tsx 的 TrendArea）：在軌道上面、圓鈕底下；左右縮進圓鈕的半徑，跟圓鈕的位置對齊 */
+.time-trend {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 0;
+  width: calc(100% - 20px);
+  height: 13px;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.time-trend-area {
+  fill: var(--axis);
+  opacity: 0.5;
+}
+
+.time-trend-line {
+  fill: none;
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
+}
+
+.time-trend .is-projected {
+  opacity: 0.45;
+}
+
+.time-track input[type='range'] {
+  position: relative;
+  z-index: 1;
 }
 
 .time-track input[type='range']:focus-visible {
@@ -4684,7 +5484,7 @@ kbd {
 
 @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
   .sheet:not(.is-dragging) {
-    transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: height var(--motion) var(--ease-out);
   }
 }
 
@@ -4707,5 +5507,51 @@ kbd {
   .moment-control .time-track {
     min-width: 80px;
     padding-bottom: 0;
+  }
+}
+
+/* 開合的動畫（2026-10-30）：選單、說明、指令面板淡入並往下滑一點；桌機的國家側欄從右邊滑進來。
+   手機的抽屜照舊是高度的過渡（同一條曲線）。系統設定減少動態效果時都不動 */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+
+/* 年份換了：新的數字從下面滾上來（時間軸右邊的年份、播放時地圖上的大年份） */
+@keyframes year-roll {
+  from {
+    opacity: 0.15;
+    transform: translateY(0.35em);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .year-roll {
+    display: inline-block;
+    animation: year-roll var(--motion-fast) var(--ease-out);
+  }
+
+  .topic-menu,
+  .playback-popover,
+  .saved-popover,
+  .share-menu,
+  .map-menu-list,
+  .palette-list,
+  .help-popover,
+  .cmdk {
+    animation: pop-in var(--motion-fast) var(--ease-out);
+  }
+
+  .stage > .panel {
+    animation: panel-in var(--motion) var(--ease-out);
   }
 }

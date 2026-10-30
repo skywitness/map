@@ -179,6 +179,12 @@ export const SPACE_GRADIENT_LIGHT: [number, string][] = [
   [1, '#d3dce8'],
 ];
 
+/** 地圖背景（地球儀外面）的 CSS：WorldMap 的地圖外框與地圖還沒載入時的佔位（app/GlobePlaceholder.tsx）共用 */
+export const spaceBackground = (stops: [number, string][]) =>
+  `radial-gradient(circle at 50% 50%, ${stops.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
+export const SPACE_BACKGROUND = spaceBackground(SPACE_GRADIENT);
+export const SPACE_BACKGROUND_LIGHT = spaceBackground(SPACE_GRADIENT_LIGHT);
+
 export interface MapTokens extends Tokens {
   /** 類別圖（kind: 'categorical'）的顏色，依序取用，最多 8 類；超過的要併到「其他」 */
   categorical: string[];

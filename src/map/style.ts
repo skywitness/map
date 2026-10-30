@@ -98,6 +98,41 @@ function splitWorldZoom(style: StyleSpecification): void {
   style.layers = layers;
 }
 
+/**
+ * 彩色地形的陰影點陣圖（Natural Earth II，ne2sr）在世界視角改用我們自己放的 WebP（2026-10-30）：
+ * OpenFreeMap 的是 256px 的 PNG，地球儀一開就要 32 張、約 3.2 MB（比例圓、點圖層的主題；面量圖的主題世界視角不畫，
+ * 見 WorldMap 的 baseRastersRef）。public/relief/ 是 0–3 級的 85 張 WebP（共約 0.6 MB，pipeline/relief_tiles.py）。
+ * 同一個 source 的網址改成自訂協定 relief://z/x/y（WorldMap 用 addProtocol 註冊 loadReliefTile）：0–3 級讀我們的、
+ * 4 級以上讀 OpenFreeMap 的。不分成兩個 source：放大時新的圖磚到之前，MapLibre 會先放大上一級的墊著（分開的話會露出空白）
+ */
+export const RELIEF_PROTOCOL = 'relief';
+const RELIEF_LOCAL_MAX = 3;
+const RELIEF_TILES = /\/natural_earth\/ne2sr\//;
+/** OpenFreeMap 原本的網址（{z}/{x}/{y}），4 級以上用 */
+let reliefRemote: string | null = null;
+
+function localRelief(style: StyleSpecification): void {
+  for (const source of Object.values(style.sources)) {
+    if (source.type !== 'raster') continue;
+    const remote = source.tiles?.find((url) => RELIEF_TILES.test(url));
+    if (!remote) continue;
+    reliefRemote = remote;
+    source.tiles = [`${RELIEF_PROTOCOL}://{z}/{x}/{y}`];
+  }
+}
+
+/** MapLibre 的 addProtocol 載入函式：relief://<z>/<x>/<y>；經過 service worker，看過的存在快取 */
+export async function loadReliefTile(params: { url: string }, abort: AbortController): Promise<{ data: ArrayBuffer }> {
+  const [z, x, y] = params.url.slice(RELIEF_PROTOCOL.length + 3).split('/');
+  const url =
+    Number(z) <= RELIEF_LOCAL_MAX || !reliefRemote
+      ? `${import.meta.env.BASE_URL}relief/${z}/${x}/${y}.webp`
+      : reliefRemote.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+  const res = await fetch(url, { signal: abort.signal });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return { data: await res.arrayBuffer() };
+}
+
 const cache = new Map<string, Promise<StyleSpecification>>();
 
 /**
@@ -117,6 +152,7 @@ export function loadBaseStyle(url: string, projection: Projection = 'globe', lan
   return promise.then((raw) => {
     const style = structuredClone(raw);
     splitWorldZoom(style);
+    localRelief(style);
     for (const layer of style.layers) {
       if (isNameLayer(layer) && layer.type === 'symbol') layer.layout = { ...layer.layout, 'text-field': LABELS[lang] };
     }

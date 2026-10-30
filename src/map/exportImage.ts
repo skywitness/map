@@ -8,6 +8,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { messages, tr } from '../i18n';
 import { MAP_TOKENS, SPACE_GRADIENT, type Tokens } from '../theme/tokens';
+import { NO_DATA_HATCH_INK } from './worldMapLayers';
 import {
   COLUMN_NOTE,
   STEP_MAX_PX,
@@ -301,6 +302,18 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
       roundRect(ctx, 0, y + 2, 16, 10, 2);
       ctx.fillStyle = MAP_TOKENS.noData;
       ctx.fill();
+      // 跟地圖上一樣的斜線（worldMapLayers.ts 的 NO_DATA_HATCH）
+      ctx.save();
+      ctx.clip();
+      ctx.strokeStyle = NO_DATA_HATCH_INK;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = -10; x < 26; x += 6) {
+        ctx.moveTo(x, y + 12);
+        ctx.lineTo(x + 10, y + 2);
+      }
+      ctx.stroke();
+      ctx.restore();
     }
     ctx.font = `11px ${font}`;
     ctx.fillStyle = tokens.inkSecondary;

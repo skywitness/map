@@ -10,6 +10,7 @@ import type { FlowDirection, IndicatorDef, Text, TopicDefinition } from './types
 const CHIPS = { zh: '晶片', en: 'Chips' };
 const EQUIPMENT = { zh: '設備', en: 'Equipment' };
 const SEPARATE = { zh: '另列', en: 'Listed separately' };
+const SOLAR = { zh: '太陽能（HS 2022）', en: 'Solar (HS 2022)' };
 
 const ITEMS = [
   { id: 'ic', label: { zh: '積體電路（IC）', en: 'Integrated circuits' }, group: CHIPS },
@@ -17,6 +18,9 @@ const ITEMS = [
   { id: 'chips', label: { zh: '晶片合計', en: 'All chips' }, group: CHIPS },
   { id: 'equipment', label: { zh: '半導體設備', en: 'Semiconductor equipment' }, group: EQUIPMENT },
   { id: 'photo', label: { zh: '光電元件（含太陽能、LED）', en: 'Photosensitive (solar, LED)' }, group: SEPARATE },
+  // 太陽能板（2026-10-30 擴充，pipeline/topics/solar_panels.py）：HS 2022 才從 854140 拆出來，BACI HS22 版只有 2022–2024 年
+  { id: 'solar-modules', label: { zh: '太陽能模組（板，2022 年起）', en: 'Solar modules (panels, from 2022)' }, group: SOLAR },
+  { id: 'solar-cells', label: { zh: '太陽能電池（2022 年起）', en: 'Solar cells (from 2022)' }, group: SOLAR },
 ];
 
 // 指標檔只收有貿易的國家，占比都大於 0；百萬分之一 % 以下的值壓縮後會變成 0（common.compact_series 最多 6 位小數），也寫成 <0.01%
@@ -62,7 +66,7 @@ export const semiconductors: TopicDefinition = {
   defaultYear: 2024,
   sources: [
     {
-      name: 'CEPII, BACI (HS 2017, V202601)',
+      name: 'CEPII, BACI (HS 2017, HS 2022, V202601)',
       url: 'https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37',
       license: 'Etalab 2.0',
     },
@@ -81,14 +85,16 @@ export const semiconductors: TopicDefinition = {
       '不含太陽能電池與 LED（854140，另列為光電元件）與壓電晶體（854160）；晶片合計是前兩項；半導體設備是 8486（不含平面顯示器設備）' +
       '加上晶圓檢測儀器（903082、903141）。晶片從晶圓廠到封裝測試、組裝常跨國好幾次，每次都算一次貿易。' +
       '台灣在 UN Comtrade 與 BACI 列為「Other Asia, nes」，沒有自己的申報，台灣的出口、進口來自貿易夥伴的申報，跟財政部的統計不同（見台灣的附註）。' +
-      'BACI 不計香港的轉口，經香港轉往中國大陸的貨記在香港的進口。每個國家只列前 15 大夥伴。',
+      'BACI 不計香港的轉口，經香港轉往中國大陸的貨記在香港的進口。每個國家只列前 15 大夥伴。' +
+      '太陽能模組（854143）與電池（854142）是 HS 2022 才從 854140 拆出來的代碼，用 BACI 的 HS22 版，只有 2022–2024 年；2023–2024 年價格大跌，金額減少不代表裝置量減少；美國對中國大陸的關稅讓產地移到越南、泰國、馬來西亞、柬埔寨。',
     en:
       'CEPII BACI (2017–2024) reconciles exporter and importer reports, valued FOB. Products follow HS 2017: integrated circuits are 8542; ' +
       'discrete semiconductors are 8541 excluding solar cells and LEDs (854140, listed separately as photosensitive devices) and piezo-electric crystals (854160); ' +
       'all chips is the sum of the two; semiconductor equipment is 8486 (excluding flat-panel display equipment) plus wafer inspection and testing instruments (903082, 903141). ' +
       'Chips often cross borders several times between wafer fabs, assembly and testing, and final assembly, and each crossing counts as trade. ' +
       'Taiwan appears in UN Comtrade and BACI as "Other Asia, nes" with no reports of its own, so its exports and imports come from partner reports and differ from the Ministry of Finance figures (see the notes on Taiwan). ' +
-      "BACI leaves out Hong Kong's re-exports, so goods passing through Hong Kong to mainland China count as Hong Kong's imports. Only the top 15 partners of each country are listed.",
+      "BACI leaves out Hong Kong's re-exports, so goods passing through Hong Kong to mainland China count as Hong Kong's imports. Only the top 15 partners of each country are listed. " +
+      'Solar modules (854143) and cells (854142) were split out of 854140 only in HS 2022, so they use the HS22 version of BACI and cover 2022–2024; prices fell sharply in 2023–2024, so lower values do not mean fewer installations, and US tariffs on mainland China moved production to Vietnam, Thailand, Malaysia and Cambodia.',
   },
   dimension: { label: { zh: '商品', en: 'Product' }, options: ITEMS, defaultOption: 'ic' },
   panelExtra: () => import('./panels/TradePanel'),

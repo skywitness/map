@@ -16,6 +16,15 @@ const DEATH_PENALTY: CategoryDef[] = [
 ];
 const deathPenaltyLabel = (v: number) => tr(DEATH_PENALTY.find((c) => c.value === v)?.label ?? '');
 
+/** 博弈的合法性（pipeline/sources/gambling.py）：從寬到嚴是循序的，「各地不同」不在順序上，用灰色 */
+const GAMBLING: CategoryDef[] = [
+  { value: 1, label: { zh: '賭場合法', en: 'Casinos legal' } },
+  { value: 2, label: { zh: '只准彩券等特許', en: 'Lotteries or licensed betting only' } },
+  { value: 3, label: { zh: '全部禁止', en: 'All gambling banned' } },
+  { value: 4, label: { zh: '各地不同', en: 'Varies by region' }, color: '#7a776f' }, // 跟法定年齡的「禁止」同一個灰色
+];
+const gamblingLabel = (v: number) => tr(GAMBLING.find((c) => c.value === v)?.label ?? '');
+
 /**
  * 法定年齡（pipeline/sources/legal_ages.py）：值是歲數，0 是沒有規定、1 是禁止。
  * 類別圖、循序色，年齡越大越深；「禁止」「沒有規定」不在年齡的順序上，用灰色（categories.ts 不讓它們占色階）
@@ -95,6 +104,11 @@ export const laws: TopicDefinition = {
       url: 'https://law.moj.gov.tw/',
       license: { zh: '法律條文不是著作權的標的（著作權法第 9 條）', en: 'Statutes are not subject to copyright (Copyright Act, Article 9)' },
     },
+    {
+      name: { zh: '英文維基百科「Gambling age」（博弈的合法性，2026 年 10 月）', en: 'Wikipedia, “Gambling age” (legality of gambling, October 2026)' },
+      url: 'https://en.wikipedia.org/w/index.php?oldid=1379514800',
+      license: 'CC BY-SA 4.0',
+    },
   ],
   tooltipLines,
   note: {
@@ -102,12 +116,14 @@ export const laws: TopicDefinition = {
       '死刑依英文維基百科的條目自行整理（2026 年 10 月，CC BY-SA 4.0），是每年年底的狀態，各國廢除的年份與最後一次執行寫在側欄的附註；這個指標的資料檔也依 CC BY-SA 4.0 分享。' +
       '「事實上廢除」是法律上還有死刑、但那一年與之前 9 年都沒有執行，依各國最後一次執行的年份判斷：只知道最後一次執行的國家，之前的年份當成有在執行，中間另有 10 年以上空檔的（例如緬甸 1988–2022 年、甘比亞 1981–2012 年）只算進條目寫明的。' +
       '「只廢除普通犯罪」是戰時、軍法等例外仍有死刑。國家畫在今天的國界上，獨立以前用那個地方當時的法律與執行紀錄；德國 1949–1990 年是西德。' +
-      '法定年齡是 2026 年的現況，依英文維基百科的條目自行整理（CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享），台灣用法條核對：取不需父母同意、法院許可的一般年齡，例外寫在附註；各地不同的取住最多人的那個值；結婚取女性的年齡（女性一律要監護人同意的國家取男性的）；飲酒取購買年齡，酒類不同時取最低的；汽車駕照不算有人陪同、學習駕照；刑事責任取可以負刑事責任的最低年齡。',
+      '法定年齡是 2026 年的現況，依英文維基百科的條目自行整理（CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享），台灣用法條核對：取不需父母同意、法院許可的一般年齡，例外寫在附註；各地不同的取住最多人的那個值；結婚取女性的年齡（女性一律要監護人同意的國家取男性的）；飲酒取購買年齡，酒類不同時取最低的；汽車駕照不算有人陪同、學習駕照；刑事責任取可以負刑事責任的最低年齡。' +
+      '博弈的合法性依英文維基百科「Gambling age」的年齡欄分類（2026 年 10 月，CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）：寫「全部禁止（賭場）、彩券 18 歲」這類的算只准彩券等特許，只寫年齡的算賭場合法（條目沒有分賭場與彩券，沒有逐國查證賭場是否真的存在），非營利的賓果、摸彩不算；台灣、香港、日本、印度、馬來西亞、美國、澳門依法條或條目的說明另外判斷，寫在附註。',
     en:
       'The death penalty is compiled from Wikipedia articles (October 2026, CC BY-SA 4.0) and shows the situation at the end of each year, with the years of abolition and the last execution in the panel notes; the data file of this indicator is shared under CC BY-SA 4.0 as well. ' +
       '“Abolished in practice” means the death penalty is still in law but there were no executions in that year or the 9 years before, judged from the year of each country’s last execution: earlier years count as having executions unless the articles record a gap of 10 years or more (such as Myanmar in 1988–2022 and the Gambia in 1981–2012). ' +
       '“Abolished for ordinary crimes only” keeps it for exceptions such as wartime or military law. Countries are shown within today’s borders, with the law and executions of the area before independence; Germany in 1949–1990 is West Germany. ' +
-      'Legal ages are as of 2026, compiled from Wikipedia articles (CC BY-SA 4.0, and the data files are shared under CC BY-SA 4.0 as well), with Taiwan checked against its statutes: the general age without parental or judicial consent is shown and exceptions are in the notes; where it varies by region, the value for most of the population; for marriage, the age for women (for men where women always need a guardian’s consent); for alcohol, the purchase age, and the lowest where it differs by drink; for driving, not counting accompanied or learner driving; for criminal responsibility, the minimum age.',
+      'Legal ages are as of 2026, compiled from Wikipedia articles (CC BY-SA 4.0, and the data files are shared under CC BY-SA 4.0 as well), with Taiwan checked against its statutes: the general age without parental or judicial consent is shown and exceptions are in the notes; where it varies by region, the value for most of the population; for marriage, the age for women (for men where women always need a guardian’s consent); for alcohol, the purchase age, and the lowest where it differs by drink; for driving, not counting accompanied or learner driving; for criminal responsibility, the minimum age. ' +
+      'The legality of gambling is classified from the age column of the Wikipedia article “Gambling age” (October 2026, CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well): entries such as “illegal for all ages (casinos), 18 (lotteries)” count as lotteries or licensed betting only, and entries giving only an age count as casinos legal (the article does not separate casinos from lotteries, and whether casinos actually operate was not checked country by country); non-profit bingo and raffles are ignored. Taiwan, Hong Kong, Japan, India, Malaysia, the US and Macao are classified from their laws or the article’s notes, as given in the panel notes.',
   },
   indicators: [
     {
@@ -121,6 +137,19 @@ export const laws: TopicDefinition = {
       file: 'death-penalty.json',
       layer: { kind: 'categorical', categories: DEATH_PENALTY, diverging: true },
       format: deathPenaltyLabel,
+    },
+    {
+      id: 'gambling',
+      label: { zh: '博弈的合法性', en: 'Legality of gambling' },
+      description: {
+        zh: '2026 年各國賭博合法的程度：有合法的賭場、賭場違法但准彩券或賽馬等特許項目、全部禁止，或依州（邦）不同。台灣賭場違法（刑法第 266 條），公益彩券合法、不得賣給未滿 18 歲的人；離島可以經公投設賭場，但專法沒有制定，至今沒有賭場。',
+        en: 'How far gambling is legal in 2026: legal casinos, casinos banned but lotteries, racing or other licensed betting allowed, all gambling banned, or varying by state. In Taiwan casinos are illegal (Article 266 of the Criminal Code), while the public welfare lottery is legal from 18; outlying islands may allow casinos after a referendum, but the required law has never been passed, so there are none.',
+      },
+      unit: '',
+      file: 'gambling.json',
+      layer: { kind: 'categorical', categories: GAMBLING, ordinal: true },
+      format: gamblingLabel,
+      defaultYear: 2026,
     },
     ageIndicator(
       'voting',

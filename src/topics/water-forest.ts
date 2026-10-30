@@ -6,6 +6,19 @@ const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
+/** Aqueduct 的分數（0–5）與等級：0–1 低（<10%）、1–2 低到中（10–20%）、2–3 中到高（20–40%）、3–4 高（40–80%）、4–5 極高（>80%） */
+const AQUEDUCT_LEVELS = [
+  { zh: '低，<10%', en: 'low, <10%' },
+  { zh: '低到中，10–20%', en: 'low–medium, 10–20%' },
+  { zh: '中到高，20–40%', en: 'medium–high, 20–40%' },
+  { zh: '高，40–80%', en: 'high, 40–80%' },
+  { zh: '極高，>80%', en: 'extremely high, >80%' },
+];
+const aqueductText = (v: number) => {
+  const level = AQUEDUCT_LEVELS[Math.min(4, Math.max(0, Math.floor(v)))];
+  return tr({ zh: `${fixed(v, 1)}（${level.zh}）`, en: `${fixed(v, 1)} (${level.en})` });
+};
+
 export const waterForest: TopicDefinition = {
   id: 'water-forest',
   title: { zh: '各國水資源與森林', en: 'Water and forests by country' },
@@ -59,6 +72,14 @@ export const waterForest: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    {
+      name: {
+        zh: 'WRI Aqueduct 4.0 各國排名（缺水壓力的推估；Kuzma et al. 2023）',
+        en: 'WRI Aqueduct 4.0 country rankings (projected water stress; Kuzma et al. 2023)',
+      },
+      url: 'https://www.wri.org/data/aqueduct-40-country-rankings',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh:
@@ -66,7 +87,8 @@ export const waterForest: TopicDefinition = {
       '取用量很多國家隔幾年才更新，中間的年份是 FAO 的推估，明顯的錯值已經排除（見各國附註）。' +
       '森林用 FAO 全球森林資源評估 FRA 2025，只有 1990、2000、2010、2015、2020、2025 年。' +
       '台灣不在 FAO 與 JMP 的資料中，改用經濟部水利署、林業及自然保育署的數字，口徑見台灣側欄的附註；' +
-      '水資源壓力沒有官方的環境流量數字，所以台灣從缺。',
+      '水資源壓力沒有官方的環境流量數字，所以台灣從缺。' +
+      '缺水壓力的推估是 WRI Aqueduct 4.0（CC BY 4.0，Kuzma et al. 2023）：用 PCR-GLOBWB 2 水文模型依流域算取水量占可用水量，再依各國用水加權成 0–5 分，有 1979–2019 年的基準與 2030、2050、2080 年三種情境（CMIP6）的推估；跟 SDG 6.4.2 的定義不同，數字不會一致，排名裡也沒有台灣。',
     en:
       "Water per person is FAO AQUASTAT's total renewable water resources (a long-term average) divided by UN " +
       "mid-year population; water stress is AQUASTAT data via the World Bank (to 2022). Many countries report " +
@@ -75,7 +97,11 @@ export const waterForest: TopicDefinition = {
       'Global Forest Resources Assessment 2025 and cover only 1990, 2000, 2010, 2015, 2020 and 2025. Taiwan is not ' +
       "in the FAO or JMP data, so figures from its Water Resources Agency and Forestry and Nature Conservation Agency " +
       "are used instead (see the notes in Taiwan's panel); Taiwan has no official environmental flow figure, so its " +
-      'water stress is left blank.',
+      'water stress is left blank. ' +
+      'Projected water stress is from WRI Aqueduct 4.0 (CC BY 4.0, Kuzma et al. 2023): the PCR-GLOBWB 2 hydrological model ' +
+      'computes withdrawals as a share of available water per river basin, weighted by each country’s water use into a 0–5 ' +
+      'score, for the 1979–2019 baseline and 2030, 2050 and 2080 under three CMIP6 scenarios. It is defined differently from ' +
+      'SDG 6.4.2, so the numbers will not match, and Taiwan is not in its rankings.',
   },
   indicators: [
     {
@@ -105,6 +131,35 @@ export const waterForest: TopicDefinition = {
       format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
       formatTick: percentTick,
       compareWorld: true,
+    },
+    {
+      id: 'aqueduct',
+      label: { zh: '缺水壓力的推估（Aqueduct）', en: 'Projected water stress (Aqueduct)' },
+      description: {
+        zh: 'WRI Aqueduct 4.0 的水資源壓力分數（0–5，取水量占可用水量：0–1 低 <10%、1–2 低到中 10–20%、2–3 中到高 20–40%、3–4 高 40–80%、4–5 極高 >80%），依流域的水文模型算、再依各國用水加權。時間軸是 1979–2019 年的基準與 2030、2050、2080 年的推估，可以選三種情境。跟上面的 SDG 6.4.2「水資源壓力」定義不同，數字不會一致；沒有台灣。',
+        en: 'WRI Aqueduct 4.0 water stress score (0–5, withdrawals as a share of available water: 0–1 low <10%, 1–2 low–medium 10–20%, 2–3 medium–high 20–40%, 3–4 high 40–80%, 4–5 extremely high >80%), computed by a hydrological model per river basin and weighted by each country’s water use. The timeline holds the 1979–2019 baseline and projections for 2030, 2050 and 2080 under three scenarios. It is defined differently from the SDG 6.4.2 water stress above, so the numbers will not match; Taiwan is not included.',
+      },
+      unit: { zh: '分（0–5）', en: 'score (0–5)' },
+      file: 'aqueduct-{item}.json',
+      dimension: {
+        label: { zh: '情境', en: 'Scenario' },
+        options: [
+          { id: 'opt', label: { zh: '樂觀（SSP1-2.6）', en: 'Optimistic (SSP1 RCP2.6)' } },
+          { id: 'bau', label: { zh: '照常發展（SSP3-7.0）', en: 'Business as usual (SSP3 RCP7.0)' } },
+          { id: 'pes', label: { zh: '悲觀（SSP5-8.5）', en: 'Pessimistic (SSP5 RCP8.5)' } },
+        ],
+        defaultOption: 'bau',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 3, 4] } },
+      format: aqueductText,
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2019,
+      timeAxis: {
+        label: { zh: '基準期與推估年份', en: 'Baseline and projection years' },
+        year: (y) => (y === 2019 ? tr({ zh: '基準期（1979–2019）', en: 'baseline (1979–2019)' }) : tr({ zh: `${y} 年推估`, en: `${y} projection` })),
+        tick: (y) => (y === 2019 ? tr({ zh: '基準', en: 'Baseline' }) : String(y)),
+      },
+      noValue: { TWN: { zh: 'Aqueduct 的國家排名沒有台灣', en: 'Taiwan is not in Aqueduct’s country rankings' } },
     },
     {
       id: 'safe-water',

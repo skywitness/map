@@ -2,6 +2,7 @@
  * 年份與子項目選單的小工具（App.tsx，2026-10-29 拆出來）。
  */
 import { LOCALES, type Lang } from '../i18n';
+import type { Indicator } from '../topics/types';
 
 /**
  * 網址指定的年份 → 主題預設年份 → 資料中最接近預設年份的一年。
@@ -37,4 +38,10 @@ export function groupOptions<T extends { group?: string; label: string }>(option
     for (const list of groups.values()) list.sort((a, b) => collator.compare(a.label, b.label));
   }
   return [...groups];
+}
+
+/** 分析檢視（src/analysis/）用得到的指標：面量圖、比例圓、類別圖，而且是資料檔（不是在瀏覽器裡算的） */
+export function canAnalyse(indicator: Indicator): boolean {
+  const kind = indicator.layer.kind;
+  return !indicator.derive && (kind === 'choropleth' || kind === 'bubble' || kind === 'categorical');
 }

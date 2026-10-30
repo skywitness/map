@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
 import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
-import type { DimensionDef, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, TopicDefinition } from './types';
 import { COVID, FLU_1918 } from './events';
 
 const perThousand = (v: number) => `${fixed(v, v < 10 ? 1 : 0)}‰`;
@@ -23,6 +23,30 @@ const SEX: DimensionDef = {
   ],
   defaultOption: 'total',
 };
+
+/** 安寧緩和醫療（pipeline/topics/palliative.py）：WHO 國家能力調查的有／沒有 */
+const AVAILABLE: CategoryDef[] = [
+  { value: 1, label: { zh: '普遍提供', en: 'Generally available' } },
+  { value: 0, label: { zh: '沒有普遍提供', en: 'Not generally available' } },
+];
+/** 健保制度（pipeline/topics/health_systems.py）：OECD 的四類、英文維基的五類，不互相對應 */
+const OECD_SYSTEMS: CategoryDef[] = [
+  { value: 1, label: { zh: '國家衛生服務', en: 'National health system' } },
+  { value: 2, label: { zh: '單一保險人', en: 'Single insurance fund' } },
+  { value: 3, label: { zh: '多個保險人', en: 'Multiple insurers' } },
+  { value: 4, label: { zh: '地方衛生體系', en: 'Local health systems' } },
+];
+const FINANCING: CategoryDef[] = [
+  { value: 1, label: { zh: '政府單一支付', en: 'Single-payer' } },
+  { value: 2, label: { zh: '社會保險', en: 'Social insurance' } },
+  { value: 3, label: { zh: '公私混合', en: 'Public–private mix' } },
+  { value: 4, label: { zh: '私人保險為主', en: 'Private insurance' } },
+  { value: 5, label: { zh: '社區健康保險', en: 'Community-based insurance' } },
+];
+const categoryLabel = (cats: CategoryDef[]) => (v: number) =>
+  tr(cats.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
+
+const availableLabel = (v: number) => tr(AVAILABLE.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
 
 export const health: TopicDefinition = {
   id: 'health',
@@ -69,13 +93,55 @@ export const health: TopicDefinition = {
       url: 'https://www.imf.org/external/datamapper/',
       license: { zh: '註明出處', en: 'Attribution' },
     },
+    {
+      name: {
+        zh: 'OECD Health Statistics：Long-term care resources and utilisation（長照床數、使用長照的人）',
+        en: 'OECD Health Statistics: Long-term care resources and utilisation (beds and recipients)',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
+        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）',
+        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly)',
+      },
+      url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
+        zh: 'WHO, Noncommunicable Disease Country Capacity Survey（公立體系的安寧緩和醫療，GHO NCD_CCS_palliative_prim、NCD_CCS_palliative_home）',
+        en: 'WHO, Noncommunicable Disease Country Capacity Survey (palliative care in the public health system, GHO NCD_CCS_palliative_prim and NCD_CCS_palliative_home)',
+      },
+      url: 'https://www.who.int/data/gho/data/indicators',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'OECD, Health System Characteristics Survey 2023（基本醫療保障的主要來源）', en: 'OECD, Health System Characteristics Survey 2023 (main source of basic coverage)' },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
+        zh: '英文維基百科「Health care systems by country」（revid 1379352169）與「Universal health care」（revid 1382403456）的表（醫療的主要財源、全民健保的開辦年份）',
+        en: 'English Wikipedia, “Health care systems by country” (revid 1379352169) and “Universal health care” (revid 1382403456) tables (financing, start of universal coverage)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=Health_care_systems_by_country&oldid=1379352169',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: '全國法規資料庫，全民健康保險法（台灣的保險人）', en: 'Laws & Regulations Database (Taiwan), National Health Insurance Act' },
+      url: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=L0060001',
+      license: OPEN_DATA_TW,
+    },
     LONG_RUN_SOURCE,
   ],
   note: {
     zh: '平均壽命與嬰幼兒死亡率是聯合國用同一套方法估計的，可能跟各國官方統計不同。台灣改用內政部的簡易生命表（1992 年起），聯合國對台灣嬰幼兒死亡率的估計低了不少，例如 2023 年的嬰兒死亡率聯合國估 3.0‰，內政部是 4.3‰。醫療支出、醫師、護理人員與病床數的台灣資料來自衛生福利部；台灣的家庭自付含營養保健食品與民俗療法，範圍比多數國家寬。' +
-      '健康平均餘命與不健康的年數是 WHO 的估計（到 2021 年，地圖在之後的年份用 2021 年的值），每次發布會整個重算；台灣用衛福部的 2010、2020 年男女數字，算法不同（Sullivan 法、失能比例取自國健署的調查），不能直接比，衛福部沒有兩性合計。',
+      '健康平均餘命與不健康的年數是 WHO 的估計（到 2021 年，地圖在之後的年份用 2021 年的值），每次發布會整個重算；台灣用衛福部的 2010、2020 年男女數字，算法不同（Sullivan 法、失能比例取自國健署的調查），不能直接比，衛福部沒有兩性合計。醫療的主要財源、全民健保的開辦年份取自英文維基百科的表（CC BY-SA 4.0），這兩個資料檔也依 CC BY-SA 4.0 分享。',
     en: "Life expectancy and child mortality are UN estimates made with one method for every country and may differ from official national figures. For Taiwan the Ministry of the Interior's abridged life tables are used instead (from 1992), as the UN estimates of Taiwan's child mortality are noticeably lower: 3.0‰ versus the official 4.3‰ for infant mortality in 2023, for example. Taiwan's health spending, physician, nurse and hospital bed figures come from the Ministry of Health and Welfare; Taiwan's out-of-pocket spending also counts health supplements and folk remedies, a wider scope than most countries. " +
-      'Healthy life expectancy and years in poor health are WHO estimates (to 2021; later years on the map show 2021), recalculated in full with each release. Taiwan uses the Ministry of Health and Welfare’s figures for men and women in 2010 and 2020, calculated differently (the Sullivan method with disability rates from Health Promotion Administration surveys), so they are not directly comparable; the ministry gives no figure for both sexes.',
+      'Healthy life expectancy and years in poor health are WHO estimates (to 2021; later years on the map show 2021), recalculated in full with each release. Taiwan uses the Ministry of Health and Welfare’s figures for men and women in 2010 and 2020, calculated differently (the Sullivan method with disability rates from Health Promotion Administration surveys), so they are not directly comparable; the ministry gives no figure for both sexes. Health financing and the start of universal coverage come from English Wikipedia tables (CC BY-SA 4.0), and those two data files are shared under CC BY-SA 4.0 as well.',
   },
   panelExtra: () => import('./panels/HealthPanel'),
   indicators: [
@@ -272,6 +338,115 @@ export const health: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 1,000` }),
       formatTick: perThousandTick,
       compareWorld: true,
+    },
+    {
+      id: 'ltc-beds',
+      label: { zh: '長照機構床數（每千名 65 歲以上）', en: 'Long-term care beds per 1,000 aged 65+' },
+      description: {
+        zh: '護理之家等長期照顧機構的床數，每 1,000 名 65 歲以上的人有幾床（OECD，不含醫院的病床）。盧森堡 77、荷蘭 68、瑞典 63、比利時 62 最多；德國 53、加拿大 43、英國 41；美國 27、日本 27、韓國 25；土耳其 9、葡萄牙 4、希臘 1。台灣 21（2025 年）：衛福部的一般護理之家加上社家署的老人長期照顧機構（不含安養機構、榮民之家）。各國對「長照機構」的定義不同，南歐多由家人照顧。',
+        en: 'Beds in nursing homes and other long-term care institutions per 1,000 people aged 65 and over (OECD; hospital beds are not included). Luxembourg 77, the Netherlands 68, Sweden 63 and Belgium 62 are highest; Germany 53, Canada 43, the UK 41; the US 27, Japan 27, South Korea 25; Türkiye 9, Portugal 4, Greece 1. Taiwan 21 (2025): general nursing homes (Ministry of Health and Welfare) plus long-term care institutions for the elderly (Social and Family Affairs Administration), excluding residential homes and veterans’ homes. Definitions differ between countries, and in southern Europe families provide much of the care.',
+      },
+      unit: { zh: '床/千名 65 歲以上', en: 'per 1,000 aged 65+' },
+      file: 'ltc-beds.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] } },
+      format: (v) => tr({ zh: `每千名長者 ${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 1,000 aged 65+` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'ltc-recipients',
+      label: { zh: '65 歲以上使用長照的比例', en: 'Aged 65+ receiving long-term care' },
+      description: {
+        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字。',
+        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan.',
+      },
+      unit: '%',
+      file: 'ltc-recipients.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)}% 使用長照`, en: `${fixed(v, 1)}% receiving care` }),
+      formatTick: percentTick,
+      noValue: { TWN: { zh: '沒有可以跟 OECD 比的數字', en: 'No figure comparable with the OECD data' } },
+    },
+    {
+      id: 'palliative-primary',
+      label: { zh: '安寧緩和醫療：基層醫療', en: 'Palliative care in primary care' },
+      description: {
+        zh: '各國政府回答 WHO 的非傳染病國家能力調查：公立醫療體系的基層醫療（診所、衛生所）是不是普遍提供安寧緩和醫療（2015–2021 年，每兩年）。2021 年 81 國普遍提供、105 國沒有，8 國沒有回答或不知道。是政府自己回答的有或沒有，不是服務量，也不代表品質：法國、韓國回答沒有，印度回答有。台灣不在調查裡，全民健保給付安寧住院、居家與社區安寧照護，編成「普遍提供」。',
+        en: 'Government answers to the WHO Noncommunicable Disease Country Capacity Survey: is palliative care generally available in primary care (clinics, health centres) in the public health system (2015–2021, every two years)? In 2021, 81 countries said yes and 105 no; 8 did not answer or did not know. It is a self-reported yes or no, not the amount or quality of care: France and South Korea answered no, India yes. Taiwan is not in the survey; National Health Insurance covers inpatient, home and community palliative care, so it is coded as available.',
+      },
+      unit: '',
+      file: 'palliative-primary.json',
+      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
+      format: availableLabel,
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'palliative-home',
+      label: { zh: '安寧緩和醫療：社區或居家', en: 'Palliative care at home' },
+      description: {
+        zh: '同一份 WHO 調查：公立醫療體系是不是普遍提供社區或居家的安寧緩和醫療（2015–2021 年）。2021 年 84 國普遍提供、97 國沒有，13 國沒有回答或不知道。台灣不在調查裡，全民健保給付安寧居家療護，編成「普遍提供」。',
+        en: 'The same WHO survey: is community or home-based palliative care generally available in the public health system (2015–2021)? In 2021, 84 countries said yes and 97 no; 13 did not answer or did not know. Taiwan is not in the survey; National Health Insurance covers home hospice care, so it is coded as available.',
+      },
+      unit: '',
+      file: 'palliative-home.json',
+      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
+      format: availableLabel,
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'health-system',
+      label: { zh: '健保制度（OECD 的分類）', en: 'Health coverage system (OECD)' },
+      description: {
+        zh: '基本醫療保障主要來自哪一種制度（OECD 2023 年的問卷，各國自己回答，32 國）：國家衛生服務（稅收支應的公立體系，英國、加拿大、北歐、南歐等 11 國）、單一保險人（一個公營保險，韓國、法國、波蘭等 9 國）、多個保險人（德國、日本、荷蘭、瑞士、美國等 11 國）、地方衛生體系（瑞典）。多數國家其實是混合制。台灣不在 OECD 裡，依《全民健康保險法》由中央健康保險署擔任唯一的保險人，是單一保險人。其他國家看「醫療的主要財源」。',
+        en: 'Where basic health coverage mainly comes from (OECD 2023 survey, self-reported, 32 countries): a national health system (tax-funded public system: the UK, Canada, the Nordic and southern European countries, 11 in all), a single insurance fund (one public insurer: South Korea, France, Poland and others, 9), multiple insurers (Germany, Japan, the Netherlands, Switzerland, the US and others, 11) or local health systems (Sweden). Most countries are in fact mixed. Taiwan is not in the OECD; under the National Health Insurance Act the National Health Insurance Administration is the sole insurer, a single insurance fund. For other countries see “Health financing”.',
+      },
+      unit: '',
+      file: 'health-system.json',
+      layer: { kind: 'categorical', categories: OECD_SYSTEMS },
+      format: categoryLabel(OECD_SYSTEMS),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      coverage: {
+        countries: ['AUS', 'AUT', 'BEL', 'BGR', 'CAN', 'CRI', 'CZE', 'DEU', 'ESP', 'EST', 'FIN', 'FRA', 'GBR', 'GRC', 'HUN', 'IRL', 'ISL', 'ISR', 'JPN', 'KOR', 'LTU', 'LUX', 'LVA', 'NLD', 'NOR', 'POL', 'PRT', 'SVK', 'SVN', 'SWE', 'CHE', 'USA', 'CHL', 'TWN'],
+        reason: { zh: '不在 OECD 的調查裡（見「醫療的主要財源」）', en: 'Not in the OECD survey (see “Health financing”)' },
+      },
+    },
+    {
+      id: 'health-financing',
+      label: { zh: '醫療的主要財源（維基百科的分類）', en: 'Health financing (Wikipedia)' },
+      description: {
+        zh: '英文維基百科「Health care systems by country」表整理的主要財源（2026 年 10 月 9 日的版本，99 國；表上 N/A 的不畫）：政府單一支付（40 國，稅收的國家衛生服務與單一公營保險都算，英國、加拿大、巴西、台灣）、社會保險（41 國：日本、韓國、中國、印尼、俄羅斯）、公私混合（10 國：澳洲、墨西哥、阿根廷、土耳其；美國是沒有全民保障的混合制）、私人保險為主（強制投保：荷蘭、瑞士、以色列、列支敦斯登）、社區健康保險（衣索比亞、馬利、塞內加爾、坦尚尼亞）。分類跟 OECD 不同，不能對應；各國的附註寫表上的原文與出處。',
+        en: 'Main source of health financing as compiled in the English Wikipedia table “Health care systems by country” (version of 9 October 2026, 99 countries; N/A entries are not shown): single-payer (40, covering both tax-funded national health services and single public insurers: the UK, Canada, Brazil, Taiwan), social insurance (41: Japan, South Korea, China, Indonesia, Russia), public–private mix (10: Australia, Mexico, Argentina, Türkiye; the US is a mixed, non-universal system), private insurance (compulsory: the Netherlands, Switzerland, Israel, Liechtenstein) and community-based insurance (Ethiopia, Mali, Senegal, Tanzania). The categories differ from the OECD’s and cannot be matched; each country’s note gives the table entry and its source.',
+      },
+      unit: '',
+      file: 'health-financing.json',
+      defaultYear: 2026,
+      layer: { kind: 'categorical', categories: FINANCING },
+      format: categoryLabel(FINANCING),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'uhc-start',
+      label: { zh: '全民健保的開辦年份', en: 'Universal health care since' },
+      description: {
+        zh: '開始有全民醫療保障的年份（英文維基百科「Universal health care」的表，44 個國家與地區，出處是紐約州衛生署）：俄羅斯 1918（蘇聯）、紐西蘭 1938、德國 1941、英國 1948、日本 1961、加拿大 1966、韓國 1988、台灣 1995、泰國 2001、中國 2009、印尼 2014、亞美尼亞 2023。各國的定義不一，有的寫立法的年份，有的寫全面涵蓋的年份。',
+        en: 'The year universal health coverage began (English Wikipedia, “Universal health care” table, 44 countries and territories, citing the New York State Department of Health): Russia 1918 (Soviet), New Zealand 1938, Germany 1941, the UK 1948, Japan 1961, Canada 1966, South Korea 1988, Taiwan 1995, Thailand 2001, China 2009, Indonesia 2014, Armenia 2023. Definitions vary: some years are when the law passed, others when coverage became universal.',
+      },
+      unit: { zh: '年', en: 'year' },
+      file: 'uhc-start.json',
+      defaultYear: 2026,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1950, 1960, 1970, 1980, 1990, 2000] } },
+      format: (v) => tr({ zh: `${v} 年`, en: `since ${v}` }),
+      formatTick: (v) => String(v),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
     },
     {
       id: 'life-expectancy-1800',

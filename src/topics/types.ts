@@ -215,6 +215,8 @@ export interface IndicatorDef {
   };
   /** 這個指標的預設年份（網址沒指定年份時），沒寫用主題的 defaultYear */
   defaultYear?: number;
+  /** 換到這個指標時地圖移到這個範圍（同主題的 focus，2026-10-30 起，北極航道） */
+  focus?: [number, number, number, number];
   /**
    * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
    * 例如「與美國的投票一致度」裡的美國自己（寫「比較的對象」，不寫「無資料」）
@@ -444,11 +446,18 @@ export interface ClassGridOverlayDef {
   /** 資料檔（相對於這個主題的資料夾），依時間軸的年份與子項目 */
   file: (year: number, item: string | null) => string;
   /** 代碼、顏色、圖例上的短名稱（例如 Cfa）與全名；group 是 groups 的索引 */
-  classes: { value: number; color: string; short: string; label: Text; group: number }[];
+  classes: { value: number; color: string; short: string | Text; label: Text; group: number }[];
   /** 圖例的分組標題（例如 A 熱帶） */
   groups: Text[];
   /** 不透明度，預設 0.85 */
   opacity?: number;
+  /** 網格只涵蓋這個範圍 [西, 南, 東, 北]（2026-10-30 起，油棕園：熱帶的 4096 × 640）；沒寫是全球 */
+  bounds?: [number, number, number, number];
+  /**
+   * 依時間軸只畫代碼不大於 upTo(年) 的格子（2026-10-30 起，油棕園：代碼是種下去的年份，播放就是擴張）。
+   * 只換調色盤，不必每年一張網格
+   */
+  upTo?: (year: number) => number;
   hidden?: boolean;
   indicators?: string[];
   items?: string[];
@@ -937,6 +946,11 @@ export interface TopicDefinition {
    * 地圖在 lon/lat 畫一個小圓點與比例圓（跟吐瓦魯這類沒有形狀的國家一樣），排名表、tooltip、側欄用 name 當名稱。
    */
   places?: PlaceDef[];
+  /**
+   * 換到這個主題時（沒有選國家）地圖移到這個範圍 [西, 南, 東, 北]（2026-10-30 起，企鵝在哪裡、南極的冰下湖：
+   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）
+   */
+  focus?: [number, number, number, number];
 }
 
 /**
