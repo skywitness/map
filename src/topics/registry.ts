@@ -14,7 +14,7 @@ export interface TopicGroupSpec {
  * 分類名稱要短，1280px 寬的螢幕要放得下整列（英文也是）。
  */
 export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
-  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'reads'] },
+  { id: 'society', label: { zh: '社會', en: 'People' }, topics: ['population', 'fertility', 'marriage', 'cities', 'health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'education', 'pisa', 'diet', 'housing', 'religion', 'festivals', 'inequality', 'gender', 'crime', 'laws', 'happiness', 'nobel', 'sports', 'racing', 'reads'] },
   { id: 'economy', label: { zh: '經濟', en: 'Economy' }, topics: ['income', 'wages', 'employment', 'wealth', 'fiscal', 'taxes', 'reserves', 'stock-market', 'sectors', 'industry', 'agriculture', 'minerals', 'chain-stores', 'companies'] },
   { id: 'global', label: { zh: '國際', en: 'Global' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport', 'military', 'conflict', 'news', 'empires', 'democracy', 'governance', 'organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
   { id: 'energy', label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'climate', 'temperature', 'air-quality', 'ozone-hole', 'water-forest', 'oil-palm', 'planted-forests', 'plastic', 'ewaste', 'ev'] },
@@ -48,6 +48,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   happiness: () => import('./happiness'),
   nobel: () => import('./nobel'),
   sports: () => import('./sports'),
+  racing: () => import('./racing'),
   income: () => import('./income'),
   wages: () => import('./wages'),
   employment: () => import('./employment'),

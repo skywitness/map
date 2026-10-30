@@ -323,6 +323,9 @@ STEPS = {
     "landings": "topics.landings",
     # F1 賽道與冠軍：Jolpica-F1 的資料庫匯出（延遲 14 天的版本，不必登入，ZIP 約 15 MB；CC BY-NC-SA 4.0）；幾秒
     "f1": "topics.f1",
+    # 賽車：英文維基百科 12 個賽季條目與 5 個歷年列表（固定版本）、Wikidata 的座標；F1 的歷年讀 f1 這一步的 circuits.json（要先跑 f1）；
+    # 第一次下載約 2 分鐘（維基百科常回 429，照 Retry-After 等）
+    "racing": "topics.racing",
     # 飛航情報區：VATSpy 的範圍（CC BY-SA 4.0，依 FIR 合併扇區）、OurAirports 的代碼字首對國家；約 1 分鐘（聯集面積）
     "airspace": "topics.airspace",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
