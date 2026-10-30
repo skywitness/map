@@ -112,3 +112,39 @@ def mean_years_of_schooling() -> dict[int, float]:
             if i < len(taiwan) and (v := _number(taiwan[i])) is not None:
                 out[year] = v
     return out
+
+
+# ── 開放資料的 CSV（data.gov.tw；學年度是民國年，換成開始的西元年）──────────
+OPENDATA = "https://stats.moe.gov.tw/files/opendata/"
+
+
+def _opendata(name: str) -> list[list[str]]:
+    import csv
+
+    path = download(f"{OPENDATA}{name}.csv", "moe", f"{name}.csv")
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        return list(csv.reader(f))
+
+
+def primary_school() -> dict[int, dict[str, float]]:
+    """國民小學概況（edu_B_3_1，data.gov.tw 31444）：{年: {學生數, 教師數, 班級數}}，「總計」欄，104 學年度起。"""
+    out: dict[int, dict[str, float]] = {}
+    for row in _opendata("edu_B_3_1")[1:]:
+        if len(row) > 2 and row[1] in ("學生數", "教師數", "班級數") and row[0].isdigit():
+            out.setdefault(int(row[0]) + 1911, {})[row[1]] = float(row[2])
+    return out
+
+
+def upper_secondary_vocational() -> dict[int, float]:
+    """高級中等學校讀專業群（職業）科與實用技能學程的學生占全部學生的比例（%），各級學校概況（edu_B_1_2，data.gov.tw 31436）。
+
+    綜合高中、進修部不算（綜合高中高一不分流，進修部有普通科也有職業類科，分不開）。
+    """
+    by_year: dict[int, dict[str, float]] = {}
+    for row in _opendata("edu_B_1_2")[1:]:
+        if len(row) > 2 and row[0].isdigit() and row[1] in ("高級中等學校", "專業群(職業)科", "實用技能學程"):
+            by_year.setdefault(int(row[0]) + 1911, {})[row[1]] = float(row[2])
+    return {
+        y: (v["專業群(職業)科"] + v["實用技能學程"]) / v["高級中等學校"] * 100
+        for y, v in by_year.items() if len(v) == 3 and v["高級中等學校"]
+    }

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJsonMany } from '../../lib/data';
-import { decodePoints } from '../../map/Overlays';
+import { decodePoints } from '../../map/overlayData';
 import { articlesText, kindLabel, LAYERS, placeName } from '../attractions';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';
 

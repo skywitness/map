@@ -27,7 +27,6 @@ export interface TopicSearchItem {
 
 export interface TopicCatalog {
   topics: Record<string, TopicSummary>;
-  items: TopicSearchItem[];
 }
 
 export function summarize(topic: TopicDefinition): TopicSummary {

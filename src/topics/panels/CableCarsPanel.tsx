@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJsonMany } from '../../lib/data';
-import { decodePoints } from '../../map/Overlays';
+import { decodePoints } from '../../map/overlayData';
 import { kindLabel, lineFacts, lineName } from '../cable-cars';
 import type { PanelExtraProps, PointsData } from '../types';
 

@@ -7,7 +7,6 @@ import { SavedViews } from './controls/SavedViews';
 import { ShareMenu } from './controls/ShareMenu';
 import { StatusCard } from './controls/StatusCard';
 import { TimeSlider } from './controls/TimeSlider';
-import { MomentControl } from './controls/MomentControl';
 import { localize, setLang, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
@@ -32,13 +31,12 @@ import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } fro
 import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
-import { DEFAULT_LAYERS, type LayerVisibility } from './map/Overlays';
+import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { BoxResult } from './panels/BoxResult';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
-import { RankingTable } from './panels/RankingTable';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
 import { Sparkline } from './map/Sparkline';
 import { loadedTopic, loadTopic } from './topics';
@@ -70,11 +68,15 @@ import {
 import { canAnalyse, groupOptions, pickYear } from './app/options';
 import { useOverlays } from './app/overlays';
 import { worldTrend } from './app/trend';
+import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
 import { Footer } from './app/Footer';
 
 // 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
+// 排名表、時刻主題的時間軸（晝夜與季節，連同太陽位置的計算）也是用到才下載（2026-10-30）
+const RankingTable = lazy(() => import('./panels/RankingTable').then((m) => ({ default: m.RankingTable })));
+const MomentControl = lazy(() => import('./controls/MomentControl').then((m) => ({ default: m.MomentControl })));
 // 分析檢視（src/analysis/）：切到分析才下載
 const AnalysisView = lazy(() => import('./analysis/AnalysisView'));
 
@@ -290,6 +292,11 @@ export function App() {
   );
   const shownHighlight = lineHighlight && lineHighlight.key === panelKey ? lineHighlight : null;
   const moveToBox = useCallback((box: [number, number, number, number]) => setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1 })), []);
+  // 主題的資料集中在一個地方（南極）時，換過來就移過去；選了國家時照舊框住那個國家
+  const topicFocus = topic.focus;
+  useEffect(() => {
+    if (topicFocus && !state.country) moveToBox(topicFocus);
+  }, [topic.id]);
   const [marks, setMarksState] = useState<{ key: string; marks: MapMark[] } | null>(null);
   const setMarks = useCallback((list: MapMark[] | null) => setMarksState(list ? { key: panelKey, marks: list } : null), [panelKey]);
   const shownMarks = marks && marks.key === panelKey ? marks.marks : null;
@@ -721,10 +728,10 @@ export function App() {
             )}
             {view === 'map' ? (
               // 地圖不等資料：底圖先出來，國界與資料到了再畫上去
-              <Suspense fallback={<p className="loading">{t.loadingMap}</p>}>
+              <Suspense fallback={<MapFallback dark={basemap.dark} text={t.loadingMap} />}>
                 {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
                 <WorldMap
-                  ref={mapHandle}
+                  handleRef={mapHandle}
                   countries={features ?? NO_FEATURES}
                   countryTable={countries}
                   onPickCountry={pure ? undefined : selectFromSearch}
@@ -812,21 +819,23 @@ export function App() {
                 />
               </Suspense>
             ) : (
-              <RankingTable
-                indicator={indicator}
-                title={indicatorTitle}
-                values={values}
-                valueYears={valueYears}
-                latestWithin={data?.latestWithin}
-                world={world}
-                previous={timeless ? null : previous}
-                year={timeless ? null : year}
-                yearText={timeless ? undefined : yearText}
-                countries={countries}
-                selected={state.country}
-                onSelect={selectCountry}
-                icon={topic.rowIcon}
-              />
+              <Suspense fallback={<p className="loading">{t.loadingData}</p>}>
+                <RankingTable
+                  indicator={indicator}
+                  title={indicatorTitle}
+                  values={values}
+                  valueYears={valueYears}
+                  latestWithin={data?.latestWithin}
+                  world={world}
+                  previous={timeless ? null : previous}
+                  year={timeless ? null : year}
+                  yearText={timeless ? undefined : yearText}
+                  countries={countries}
+                  selected={state.country}
+                  onSelect={selectCountry}
+                  icon={topic.rowIcon}
+                />
+              </Suspense>
             )}
           </div>
           {state.country && !pure && (
@@ -864,14 +873,16 @@ export function App() {
         </div>
 
         {clock ? (
-          <MomentControl
-            time={shownTime}
-            live={state.time === null}
-            onChange={(ms) => update({ time: floorMinute(ms) })}
-            onPreview={setPlayTime}
-            onLive={() => update({ time: null })}
-            onPlayingChange={setPlaying}
-          />
+          <Suspense fallback={<div className="time-slider" />}>
+            <MomentControl
+              time={shownTime}
+              live={state.time === null}
+              onChange={(ms) => update({ time: floorMinute(ms) })}
+              onPreview={setPlayTime}
+              onLive={() => update({ time: null })}
+              onPlayingChange={setPlaying}
+            />
+          </Suspense>
         ) : (
           !pure &&
           !timeless &&

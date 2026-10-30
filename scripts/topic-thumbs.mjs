@@ -49,6 +49,14 @@ const ISOLATE = `
   .map-zoom, .map-legend, .maplibregl-ctrl, .map-status, .map-hint, .map-overlay, .sheet, .panel { display: none !important; }
 `;
 
+/**
+ * 資料只在一小塊地方的主題（2026-10-30 起，企鵝在哪裡、南極的冰下湖：都在南極）：縮圖改看那裡。
+ * center 是中心的經緯度，zoom 是比整個世界放大幾級
+ */
+const VIEWS = {
+  penguins: { center: [-5, -66], zoom: 0.7 },
+};
+
 mkdirSync(`${OUT_DIR}s/`, { recursive: true });
 const browser = await loadPuppeteer().launch({
   executablePath: chromePath(),
@@ -73,15 +81,15 @@ try {
       document.querySelector('.map-zoom button[aria-label*="平面"], .map-zoom button[aria-label*="flat"]')?.click();
     });
     await new Promise((r) => setTimeout(r, 1500));
-    await page.evaluate((w) => {
+    await page.evaluate((w, view) => {
       const m = window.__map;
       m.resize();
       for (const layer of m.getStyle().layers) {
         // 只藏底圖的地名（openmaptiles，世界視角的是 openmaptiles--world），資料的符號（國旗主題小國的國旗）照畫
         if (layer.type === 'symbol' && layer.source?.startsWith('openmaptiles')) m.setLayoutProperty(layer.id, 'visibility', 'none');
       }
-      m.jumpTo({ center: [12, 18], zoom: Math.log2(w / 512), bearing: 0, pitch: 0 });
-    }, WIDTH * 2);
+      m.jumpTo({ center: view?.center ?? [12, 18], zoom: Math.log2(w / 512) + (view?.zoom ?? 0), bearing: 0, pitch: 0 });
+    }, WIDTH * 2, VIEWS[id]);
     // 圖磚與資料都畫好：等 idle，最多 20 秒
     await page.evaluate(
       () =>

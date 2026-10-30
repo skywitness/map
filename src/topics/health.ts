@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
 import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
-import type { DimensionDef, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, TopicDefinition } from './types';
 import { COVID, FLU_1918 } from './events';
 
 const perThousand = (v: number) => `${fixed(v, v < 10 ? 1 : 0)}‰`;
@@ -23,6 +23,13 @@ const SEX: DimensionDef = {
   ],
   defaultOption: 'total',
 };
+
+/** 安寧緩和醫療（pipeline/topics/palliative.py）：WHO 國家能力調查的有／沒有 */
+const AVAILABLE: CategoryDef[] = [
+  { value: 1, label: { zh: '普遍提供', en: 'Generally available' } },
+  { value: 0, label: { zh: '沒有普遍提供', en: 'Not generally available' } },
+];
+const availableLabel = (v: number) => tr(AVAILABLE.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
 
 export const health: TopicDefinition = {
   id: 'health',
@@ -68,6 +75,30 @@ export const health: TopicDefinition = {
       name: { zh: 'IMF, World Economic Outlook（台灣的購買力平價）', en: 'IMF, World Economic Outlook (PPP rate for Taiwan)' },
       url: 'https://www.imf.org/external/datamapper/',
       license: { zh: '註明出處', en: 'Attribution' },
+    },
+    {
+      name: {
+        zh: 'OECD Health Statistics：Long-term care resources and utilisation（長照床數、使用長照的人）',
+        en: 'OECD Health Statistics: Long-term care resources and utilisation (beds and recipients)',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
+        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）',
+        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly)',
+      },
+      url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
+        zh: 'WHO, Noncommunicable Disease Country Capacity Survey（公立體系的安寧緩和醫療，GHO NCD_CCS_palliative_prim、NCD_CCS_palliative_home）',
+        en: 'WHO, Noncommunicable Disease Country Capacity Survey (palliative care in the public health system, GHO NCD_CCS_palliative_prim and NCD_CCS_palliative_home)',
+      },
+      url: 'https://www.who.int/data/gho/data/indicators',
+      license: 'CC BY 4.0',
     },
     LONG_RUN_SOURCE,
   ],
@@ -272,6 +303,63 @@ export const health: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 1,000` }),
       formatTick: perThousandTick,
       compareWorld: true,
+    },
+    {
+      id: 'ltc-beds',
+      label: { zh: '長照機構床數（每千名 65 歲以上）', en: 'Long-term care beds per 1,000 aged 65+' },
+      description: {
+        zh: '護理之家等長期照顧機構的床數，每 1,000 名 65 歲以上的人有幾床（OECD，不含醫院的病床）。盧森堡 77、荷蘭 68、瑞典 63、比利時 62 最多；德國 53、加拿大 43、英國 41；美國 27、日本 27、韓國 25；土耳其 9、葡萄牙 4、希臘 1。台灣 21（2025 年）：衛福部的一般護理之家加上社家署的老人長期照顧機構（不含安養機構、榮民之家）。各國對「長照機構」的定義不同，南歐多由家人照顧。',
+        en: 'Beds in nursing homes and other long-term care institutions per 1,000 people aged 65 and over (OECD; hospital beds are not included). Luxembourg 77, the Netherlands 68, Sweden 63 and Belgium 62 are highest; Germany 53, Canada 43, the UK 41; the US 27, Japan 27, South Korea 25; Türkiye 9, Portugal 4, Greece 1. Taiwan 21 (2025): general nursing homes (Ministry of Health and Welfare) plus long-term care institutions for the elderly (Social and Family Affairs Administration), excluding residential homes and veterans’ homes. Definitions differ between countries, and in southern Europe families provide much of the care.',
+      },
+      unit: { zh: '床/千名 65 歲以上', en: 'per 1,000 aged 65+' },
+      file: 'ltc-beds.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] } },
+      format: (v) => tr({ zh: `每千名長者 ${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 1,000 aged 65+` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'ltc-recipients',
+      label: { zh: '65 歲以上使用長照的比例', en: 'Aged 65+ receiving long-term care' },
+      description: {
+        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字。',
+        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan.',
+      },
+      unit: '%',
+      file: 'ltc-recipients.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)}% 使用長照`, en: `${fixed(v, 1)}% receiving care` }),
+      formatTick: percentTick,
+      noValue: { TWN: { zh: '沒有可以跟 OECD 比的數字', en: 'No figure comparable with the OECD data' } },
+    },
+    {
+      id: 'palliative-primary',
+      label: { zh: '安寧緩和醫療：基層醫療', en: 'Palliative care in primary care' },
+      description: {
+        zh: '各國政府回答 WHO 的非傳染病國家能力調查：公立醫療體系的基層醫療（診所、衛生所）是不是普遍提供安寧緩和醫療（2015–2021 年，每兩年）。2021 年 81 國普遍提供、105 國沒有，8 國沒有回答或不知道。是政府自己回答的有或沒有，不是服務量，也不代表品質：法國、韓國回答沒有，印度回答有。台灣不在調查裡，全民健保給付安寧住院、居家與社區安寧照護，編成「普遍提供」。',
+        en: 'Government answers to the WHO Noncommunicable Disease Country Capacity Survey: is palliative care generally available in primary care (clinics, health centres) in the public health system (2015–2021, every two years)? In 2021, 81 countries said yes and 105 no; 8 did not answer or did not know. It is a self-reported yes or no, not the amount or quality of care: France and South Korea answered no, India yes. Taiwan is not in the survey; National Health Insurance covers inpatient, home and community palliative care, so it is coded as available.',
+      },
+      unit: '',
+      file: 'palliative-primary.json',
+      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
+      format: availableLabel,
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'palliative-home',
+      label: { zh: '安寧緩和醫療：社區或居家', en: 'Palliative care at home' },
+      description: {
+        zh: '同一份 WHO 調查：公立醫療體系是不是普遍提供社區或居家的安寧緩和醫療（2015–2021 年）。2021 年 84 國普遍提供、97 國沒有，13 國沒有回答或不知道。台灣不在調查裡，全民健保給付安寧居家療護，編成「普遍提供」。',
+        en: 'The same WHO survey: is community or home-based palliative care generally available in the public health system (2015–2021)? In 2021, 84 countries said yes and 97 no; 13 did not answer or did not know. Taiwan is not in the survey; National Health Insurance covers home hospice care, so it is coded as available.',
+      },
+      unit: '',
+      file: 'palliative-home.json',
+      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
+      format: availableLabel,
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
     },
     {
       id: 'life-expectancy-1800',

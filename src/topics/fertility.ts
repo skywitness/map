@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
-import type { TopicDefinition } from './types';
+import type { IndicatorDef, TopicDefinition } from './types';
 import { CHINA_BIRTH_POLICY } from './events';
 
 const PER_WOMAN = { zh: '每位婦女生育數', en: 'births per woman' };
@@ -15,6 +15,11 @@ const SHAPES = [
   { value: 3, label: { zh: '高齡型（65 歲以上 20% 以上）', en: 'Aged (20%+ aged 65+)' } },
 ];
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
+/** 沒有小孩的女性比例的時間軸是出生年（同一年出生的女性），跟平均身高的成人身高一樣 */
+const BORN: NonNullable<IndicatorDef['timeAxis']> = {
+  label: { zh: '出生年', en: 'Birth year' },
+  year: (y) => tr({ zh: `${y} 年出生`, en: `${y} birth cohort` }),
+};
 
 export const fertility: TopicDefinition = {
   id: 'fertility',
@@ -44,10 +49,23 @@ export const fertility: TopicDefinition = {
       url: 'https://pop-proj.ndc.gov.tw/',
       license: OPEN_DATA_TW,
     },
+    {
+      name: {
+        zh: 'Human Fertility Database（Max Planck Institute for Demographic Research、Vienna Institute of Demography），HFD Lite「Cohort childlessness」',
+        en: 'Human Fertility Database (Max Planck Institute for Demographic Research and Vienna Institute of Demography), HFD Lite “Cohort childlessness”',
+      },
+      url: 'https://www.humanfertility.org/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'OECD Family Database（SF2.5 終身無子女）', en: 'OECD Family Database (SF2.5 Childlessness)' },
+      url: 'https://www.oecd.org/en/data/datasets/oecd-family-database.html',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
-    zh: '所有國家都是聯合國 WPP 2024 用同一套方法的估計，2024 年起是推估（中推估）。台灣也用 WPP：2023 年以前跟內政部的統計很接近（總生育率 0.87 對 0.865），但 2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 的推估是 0.86、12.5 萬人；國發會 2026 年的人口推估也比 WPP 悲觀（2075 年 65 歲以上占 52.9%，WPP 是 43%）。點台灣可以看到對照。',
-    en: "Every country is a UN WPP 2024 estimate made with the same method; from 2024 the figures are projections (medium variant). Taiwan uses WPP too: up to 2023 it is close to the Ministry of the Interior's statistics (a fertility rate of 0.87 against 0.865), but in 2025 Taiwan's actual fertility rate fell to 0.695 with 107,812 births, while WPP projected 0.86 and 125,000. The National Development Council's 2026 projections are also gloomier than WPP's (52.9% aged 65+ in 2075, against 43%). Select Taiwan for the comparison.",
+    zh: '沒有小孩的女性比例以外，所有國家都是聯合國 WPP 2024 用同一套方法的估計，2024 年起是推估（中推估）。沒有小孩的女性比例依 Human Fertility Database（CC BY 4.0）與 OECD Family Database，時間軸是出生年。台灣也用 WPP：2023 年以前跟內政部的統計很接近（總生育率 0.87 對 0.865），但 2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 的推估是 0.86、12.5 萬人；國發會 2026 年的人口推估也比 WPP 悲觀（2075 年 65 歲以上占 52.9%，WPP 是 43%）。點台灣可以看到對照。',
+    en: "Apart from women without children, every country is a UN WPP 2024 estimate made with the same method; from 2024 the figures are projections (medium variant). Women without children come from the Human Fertility Database (CC BY 4.0) and the OECD Family Database, with the birth year as the timeline. Taiwan uses WPP too: up to 2023 it is close to the Ministry of the Interior's statistics (a fertility rate of 0.87 against 0.865), but in 2025 Taiwan's actual fertility rate fell to 0.695 with 107,812 births, while WPP projected 0.86 and 125,000. The National Development Council's 2026 projections are also gloomier than WPP's (52.9% aged 65+ in 2075, against 43%). Select Taiwan for the comparison.",
   },
   panelExtra: () => import('./panels/FertilityPanel'),
   indicators: [
@@ -122,6 +140,22 @@ export const fertility: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 1)} 歲`, en: `${fixed(v, 1)} years` }),
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'childless',
+      label: { zh: '沒有小孩的女性比例', en: 'Women without children' },
+      description: {
+        zh: '同一年出生的女性到 45–50 歲時一直沒有生過小孩的比例（時間軸是出生年）。依 Human Fertility Database，德國、義大利、法國、韓國、中國、墨西哥與英國用 OECD 的表；各國最新的世代不同，HFD 也提醒這個指標要小心使用。',
+        en: 'Share of women born in a given year who have had no children by age 45–50 (the timeline is the birth year). From the Human Fertility Database, with OECD figures for Germany, Italy, France, South Korea, China, Mexico and the UK; the latest cohort differs by country, and the HFD advises caution with this indicator.',
+      },
+      unit: '%',
+      file: 'childless.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [6, 9, 12, 15, 18, 22] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      timeAxis: BORN,
+      defaultYear: 1980,
+      chartZoom: true,
     },
     {
       id: 'dependency',

@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 
 import { tr, useLang } from '../i18n';
 import { searchCountries, type SearchEntry } from '../lib/countrySearch';
 import { useUI } from '../lib/strings';
-import { searchTopics, type TopicTarget } from '../lib/topicSearch';
+import { searchTopics, useTopicSearchItems, type TopicTarget } from '../lib/topicSearch';
 import { SearchIcon } from '../map/MapIcons';
 import { useHotkeys } from './hotkeys';
 
@@ -43,6 +43,8 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf, compact
   // compact 時輸入框是否展開
   const [unfolded, setUnfolded] = useState(false);
   const folded = compact && !unfolded;
+  // 主題搜尋的子項目第一次搜尋時才下載，到了重算一次結果
+  const itemsReady = useTopicSearchItems();
   const groups = useMemo(() => {
     const countries = searchCountries(index, query, lang);
     const topics = onSelectTopic ? searchTopics(query) : [];
@@ -60,7 +62,7 @@ export function CountrySearch({ index, onSelect, onSelectTopic, valueOf, compact
       { heading: UI.search.topics, options: topicOptions, best: topics[0]?.score ?? 0 },
     ].filter((g) => g.options.length);
     return list.sort((a, b) => b.best - a.best);
-  }, [index, query, lang, onSelectTopic, UI]);
+  }, [index, query, lang, onSelectTopic, UI, itemsReady]);
   const options = groups.flatMap((g) => g.options);
   const expanded = open && query.trim() !== '';
   const optionId = (i: number) => `${id}-option-${i}`;

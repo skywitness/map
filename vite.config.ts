@@ -3,7 +3,6 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
-import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /**
@@ -181,8 +180,20 @@ function dataVersion(dir = 'public/data'): string {
 }
 
 export default defineConfig(({ command }) => ({
+  // React 換成 Preact（2026-10-30，DESIGN.md 第 13 節）：程式照舊寫 React（import 'react'、@types/react），
+  // 建置與開發都換成 preact/compat，首頁的程式 gzip 後少約 45 KB。JSX 用 Vite 內建的轉換（automatic runtime），
+  // 不用 @vitejs/plugin-react（它的 Fast Refresh 只認得 React）：開發時改了程式是整頁重新載入
+  resolve: {
+    alias: [
+      { find: /^react$/, replacement: 'preact/compat' },
+      { find: /^react-dom$/, replacement: 'preact/compat' },
+      { find: /^react-dom\/client$/, replacement: 'preact/compat/client' },
+      { find: /^react\/jsx-runtime$/, replacement: 'preact/jsx-runtime' },
+      { find: /^react\/jsx-dev-runtime$/, replacement: 'preact/jsx-dev-runtime' },
+    ],
+  },
+  oxc: { jsx: { runtime: 'automatic', importSource: 'preact' } },
   plugins: [
-    react(),
     preloadMapChunk(),
     preloadTopicChunk(),
     topicPages(),
@@ -202,6 +213,8 @@ export default defineConfig(({ command }) => ({
           'icons/icon.svg',
           'icons/apple-touch-icon-180.png',
           'data/countries.json',
+          // 地圖還沒畫好前的地球圖（共約 53 KB）：離線、再次打開時馬上有
+          'globe/*.webp',
         ],
         // 第一個畫面用不到的 JS、CSS 標成 LAZY_REVISION（collectCoreAssets），sw.ts 不在安裝時一定下載
         manifestTransforms: [
