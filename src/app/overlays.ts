@@ -36,6 +36,8 @@ export function useOverlays(
   view: MapView | null,
   /** 主題的即時資料（TopicDefinition.live）：即時網格（kind 'liveGrid'）由它算 */
   live: unknown,
+  /** 使用者在這個瀏覽器匯入的線（LinesOverlayDef.local，我的路線）：圖層 id → 解析好的線 */
+  localLines?: Map<string, DecodedLines>,
 ) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
@@ -113,6 +115,7 @@ export function useOverlays(
       // 即時資料的點（PointsOverlayDef.fromLive，此刻世界的新聞熱點）：每份即時資料算一次
       if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live) };
       if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
+      if (def.local) return { kind: 'lines', def, visible, lines: localLines?.get(def.id) ?? null };
       const index = (data as LinesData | null)?.detail;
       const loaded = index
         ? index.tiles.flatMap(([id]) => {
@@ -123,7 +126,7 @@ export function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, live, grids]);
+  }, [generic, raw, tiles, tilePaths, live, grids, localLines]);
   return { railways, airports, overlays: result };
 }
 
@@ -131,6 +134,7 @@ export function useOverlays(
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
   if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === undefined) return '';
   if (o.kind === 'points' && o.fromLive) return '';
+  if (o.kind === 'lines' && o.local) return '';
   if (o.kind === 'classGrid' || o.kind === 'wind') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
   return overlayPath(topic, o, item, year);
 }

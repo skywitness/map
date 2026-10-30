@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import type { ImportResult } from '../lib/personalRoutes';
 import { defineMessages, tr, useLang, useT } from '../i18n';
 import { BASEMAPS, type Basemap } from './basemaps';
 import { LayersIcon } from './MapIcons';
@@ -10,24 +11,64 @@ export interface SharedLayerChoice {
   checked: boolean;
 }
 
+/**
+ * 我的路線（TopicDefinition.personalRoutes，lib/personalRoutes.ts）：匯入使用者自己下載的路線檔，只存在這個瀏覽器。
+ * count 是這個主題已經匯入的路線數；unavailable 是瀏覽器不能存（私密瀏覽、封鎖網站資料）
+ */
+export interface PersonalMenu {
+  count: number;
+  unavailable: boolean;
+  onImport: (files: File[]) => Promise<ImportResult>;
+  onExport: () => void;
+  onClear: () => Promise<void>;
+}
+
 interface BasemapMenuProps {
   basemap: Basemap;
   onChange: (id: string) => void;
   /** 其他主題的圖層（2026-10-30，第七批 126）：勾選了就疊在這個主題上，第一次打開才下載 */
   shared?: SharedLayerChoice[];
   onSharedToggle?: (id: string) => void;
+  personal?: PersonalMenu;
 }
 
 const TEXT = defineMessages({
-  zh: { shared: '其他主題的圖層' },
-  en: { shared: 'Layers from other topics' },
+  zh: {
+    shared: '其他主題的圖層',
+    personal: '我的路線',
+    personalHint: '匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip），只存在這個瀏覽器，不會上傳。',
+    personalCount: (n: number) => (n ? `已經匯入 ${n} 條路線` : '還沒有匯入路線'),
+    importFiles: '匯入檔案…',
+    importFolder: '匯入整個資料夾…',
+    exportRoutes: '匯出備份（GeoJSON）',
+    clearRoutes: '刪除全部路線',
+    confirmClear: '刪除這個主題匯入的所有路線？（只刪這個瀏覽器裡的，原本的檔案不受影響）',
+    importing: '匯入中…',
+    imported: (r: ImportResult) => `匯入 ${r.files} 個檔、${r.routes} 條路線${r.skipped.length ? `；略過 ${r.skipped.length} 個檔（不是路線檔或沒有線）` : ''}`,
+    failed: '匯入失敗：這個瀏覽器不能存資料（私密瀏覽或封鎖了網站資料）',
+  },
+  en: {
+    shared: 'Layers from other topics',
+    personal: 'My routes',
+    personalHint: 'Import route files you downloaded yourself (GPX, KML, KMZ, GeoJSON, zip). They stay in this browser and are never uploaded.',
+    personalCount: (n: number) => (n ? `${n} ${n === 1 ? 'route' : 'routes'} imported` : 'No routes imported yet'),
+    importFiles: 'Import files…',
+    importFolder: 'Import a whole folder…',
+    exportRoutes: 'Export a backup (GeoJSON)',
+    clearRoutes: 'Delete all routes',
+    confirmClear: 'Delete all routes imported for this topic? (Only from this browser; your original files are not affected.)',
+    importing: 'Importing…',
+    imported: (r: ImportResult) =>
+      `Imported ${r.routes} ${r.routes === 1 ? 'route' : 'routes'} from ${r.files} ${r.files === 1 ? 'file' : 'files'}${r.skipped.length ? `; skipped ${r.skipped.length} (not route files or no lines)` : ''}`,
+    failed: 'Import failed: this browser cannot store data (private browsing or site data blocked)',
+  },
 });
 
 /**
  * 地圖右上角按鈕列裡的「底圖」：點開往左展開五種底圖（原本是控制列上的下拉選單，手機上多占一整行）。
  * 鍵盤操作照 WAI-ARIA 的 menu button：↑↓ 移動、Home/End、Esc 關閉並回到按鈕。
  */
-export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle }: BasemapMenuProps) {
+export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, personal }: BasemapMenuProps) {
   const t = useT();
   const lang = useLang();
   const [open, setOpen] = useState(false);
@@ -36,6 +77,18 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle }: 
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const menuId = useId();
   const hasShared = shared.length > 0 && Boolean(onSharedToggle);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const folderRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const runImport = (list: FileList | null) => {
+    const files = list ? Array.from(list) : [];
+    if (!files.length || !personal) return;
+    setStatus(TEXT[lang].importing);
+    personal.onImport(files).then(
+      (r) => setStatus(TEXT[lang].imported(r)),
+      () => setStatus(TEXT[lang].failed),
+    );
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -86,7 +139,7 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle }: 
       </button>
       {open && (
         <div
-          className={`map-menu-list${hasShared ? ' has-shared' : ''}`}
+          className={`map-menu-list${hasShared || personal ? ' has-shared' : ''}`}
           id={menuId}
           role="menu"
           aria-label={t.basemapStyle}
@@ -143,6 +196,63 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle }: 
                   {s.label}
                 </button>
               ))}
+            </div>
+          )}
+          {personal && (
+            <div className="map-menu-col personal-routes" role="group" aria-label={TEXT[lang].personal}>
+              <div className="basemap-list-title is-shared" aria-hidden="true">
+                {TEXT[lang].personal}
+              </div>
+              <p className="personal-routes-hint">{TEXT[lang].personalHint}</p>
+              <p className="personal-routes-count" aria-live="polite">
+                {status ?? TEXT[lang].personalCount(personal.count)}
+              </p>
+              {/* 選單項目的鍵盤移動照舊（itemRefs 接在底圖與其他主題的圖層後面） */}
+              {[
+                { key: 'files', label: TEXT[lang].importFiles, run: () => fileRef.current?.click(), off: personal.unavailable },
+                { key: 'folder', label: TEXT[lang].importFolder, run: () => folderRef.current?.click(), off: personal.unavailable },
+                { key: 'export', label: TEXT[lang].exportRoutes, run: personal.onExport, off: !personal.count },
+                {
+                  key: 'clear',
+                  label: TEXT[lang].clearRoutes,
+                  run: () => {
+                    if (window.confirm(TEXT[lang].confirmClear)) personal.onClear().then(() => setStatus(null), () => {});
+                  },
+                  off: !personal.count,
+                },
+              ].map((b, i) => (
+                <button
+                  key={b.key}
+                  ref={(el) => {
+                    itemRefs.current[BASEMAPS.length + shared.length + i] = el;
+                  }}
+                  type="button"
+                  role="menuitem"
+                  tabIndex={-1}
+                  disabled={b.off}
+                  className="map-menu-item personal-routes-item"
+                  onClick={b.run}
+                >
+                  {b.label}
+                </button>
+              ))}
+              <input ref={fileRef} type="file" multiple hidden accept=".gpx,.kml,.kmz,.geojson,.json,.zip" onChange={(e) => {
+                runImport(e.currentTarget.files);
+                e.currentTarget.value = '';
+              }} />
+              {/* webkitdirectory：選一個資料夾，匯入裡面所有的路線檔（含子資料夾） */}
+              <input
+                ref={(el) => {
+                  folderRef.current = el;
+                  el?.setAttribute('webkitdirectory', '');
+                }}
+                type="file"
+                hidden
+                onChange={(e) => {
+                  runImport(e.currentTarget.files);
+                  e.currentTarget.value = '';
+                }}
+              />
             </div>
           )}
         </div>

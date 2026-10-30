@@ -1920,6 +1920,38 @@ kbd {
   font-weight: 600;
 }
 
+/* 圖層選單裡的「我的路線」（BasemapMenu.tsx，2026-10-30）：說明與筆數可以換行，欄寬固定 */
+.personal-routes {
+  flex: none;
+  width: 14rem;
+}
+
+@media (max-width: 768px) {
+  .personal-routes {
+    width: auto;
+  }
+}
+
+.personal-routes-hint,
+.personal-routes-count {
+  margin: 0;
+  padding: 0 8px 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-secondary);
+  white-space: normal;
+}
+
+.personal-routes-count {
+  color: var(--ink);
+}
+
+.personal-routes-item:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+  background: none;
+}
+
 .shared-layer-item[aria-checked='true'] {
   font-weight: 600;
 }

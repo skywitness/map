@@ -53,6 +53,9 @@ const SERIES_COLORS: ColorClasses = {
   ],
 };
 
+/** 賽事代碼的顏色（SERIES_COLORS 依門檻分組） */
+const colorOfCode = (code: number) => SERIES_COLORS.classes[SERIES_COLORS.thresholds.filter((x) => code > x).length].color;
+
 const n0 = (v: number) => fixed(v, 0);
 const eventsText = (v: number) => tr({ zh: `${n0(v)} 場`, en: `${n0(v)} ${Math.round(v) === 1 ? 'event' : 'events'}` });
 const timesText = (v: number) => tr({ zh: `${n0(v)} 次`, en: `${n0(v)} ${Math.round(v) === 1 ? 'time' : 'times'}` });
@@ -361,6 +364,18 @@ export const racing: TopicDefinition = {
   },
   panelExtra: () => import('./panels/RacingPanel'),
   listPanel: SCHEDULE,
+  // 我的路線（使用者 2026-10-30：沒有授權的路線只給自己看）：匯入自己下載的路線檔，顏色依賽事的類別（同上面的 7 組＋長距離賽），
+  // GeoJSON 的 properties.series 寫賽事代號（tdf、wrc、mega…）；沒寫的用灰色
+  personalRoutes: {
+    color: {
+      classes: [
+        { value: 0, color: MAP_TOKENS.context, label: { zh: '其他', en: 'Other' } },
+        ...SERIES.map((s) => ({ value: s.code, color: colorOfCode(s.code), label: s.short })),
+      ],
+    },
+    type: (series) => SERIES.find((s) => s.id === series)?.code ?? 0,
+    seriesLabel: (series) => SERIES.find((s) => s.id === series)?.label,
+  },
   overlays: [
     seasonLayer('season-done', 'season', true, false),
     seasonLayer('season-todo', 'season', false, false),

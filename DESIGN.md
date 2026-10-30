@@ -4240,6 +4240,15 @@ pipeline/
 - **點一列**（`App.tsx` 的 `pickListRow`）：點的目標框一個約 2 km 的範圍、`moveToBox(範圍, 放大級數)`（`focusBox` 多一個選填的 `maxZoom`，原本最多 8 級），範圍的目標照原本的 `moveToBox`；地點用既有的 `setMarks` 標出來（換國家、換主題就拿掉）；有 `year` 而指標有時間軸時換年份。
 - **換期時移過去**（`PointsOverlayDef.fitOnEpoch: { core, maxZoom }`，奧運場館）：有 `epochs` 的點圖層換到另一期時，地圖框住這一期畫得出來的點；點分散時只框離中位數 `core` 度以內的那一群（`lib/coreBox.ts`，主辦城市；別的城市的足球場不算），那一群不到一半時框全部。只在換期、換圖層、資料剛下載完時移動。
 
+### 我的路線：匯入自己下載的路線檔，只存在這個瀏覽器（2026-10-30）
+
+- **使用者決定**（2026-10-30）：賽車的路線大多沒有能公開的授權（三大環賽的賽段、WRC 的特殊賽段、登山車世界盃的賽道、大眾速降與長距離賽的路線檔；主辦單位多半禁止轉載），問「如果只做給自己看可否避開權利問題」，選了「做法一」：網站加匯入功能，路線檔由使用者自己下載，在瀏覽器裡解析、只存在這個瀏覽器；要能一次匯入所有賽事。不考慮不同年份的路線變化。
+- **為什麼這樣可以**：著作權的私人重製例外（台灣著作權法第 51 條、法國的 copie privée）只保護自己用；網站與公開的 repo 都不放這些資料，GitHub Pages 上的網站本身沒有任何受保護的路線。使用條款禁止程式下載、要登入、有防機器人驗證的網站不用程式抓，請使用者自己用瀏覽器下載。`C:\dev\map\private\`（`.gitignore` 的 `private/`）是本機放下載檔與合輯的地方，不進 repo。
+- **設定**：`TopicDefinition.personalRoutes`（目前只有賽車）：`color`（跟線圖層一樣，分類代碼由 `type(series)` 算，沒有分類的是 0）、`seriesLabel`（tooltip 上的分類名稱）。賽車的顏色依賽事的 8 組類別，GeoJSON 的 `properties.series` 寫賽事代號（`tdf`、`wrc`、`mega`…），沒寫的灰色（`MAP_TOKENS.context`）。
+- **匯入**（`lib/personalRoutes.ts`）：圖層選單（`map/BasemapMenu.tsx`）多一欄「我的路線」：匯入檔案（可以多選）、匯入整個資料夾（`webkitdirectory`，含子資料夾）、匯出備份（GeoJSON）、刪除全部（先確認）。認得 GPX（`trk`、`rte`）、KML（`LineString`、`LinearRing`、`gx:Track`）、KMZ 與 zip（`lib/unzip.ts` 的 `unzipAll`，只支援不壓縮與 deflate）、GeoJSON（線、面的環當線；`properties` 的 `name`／`title`、`series`、`place`、`topic`）；點、不認得的檔列為略過。每條線用 Douglas–Peucker 簡化（約 2 m）。存在 IndexedDB（資料庫 `world-map-personal`、store `routes`，依主題的索引）；同一個檔名再匯入一次取代舊的（合輯更新後整份重新匯入即可）。私密瀏覽、封鎖網站資料時存不了，選單寫明。
+- **地圖**：有路線時多一個線圖層「我的路線（只存在這個瀏覽器）」（`app/personalOverlay.ts`，`LinesOverlayDef.local`：不讀資料檔，App 把解析好的線交給 `useOverlays`），圖例的開關照舊；滑過一條路線整條標出（`groupField`），tooltip 寫路線名稱、賽事、地點與匯入的檔名。
+- **驗證**（2026-10-30）：開發伺服器上用 DataTransfer 塞一個 GPX、一個兩條線的 GeoJSON、一個 .txt：「匯入 2 個檔、3 條路線；略過 1 個檔」，地圖上有標賽事的是那一類的顏色、GPX 是灰色，滑到線上的 tooltip 正確；測試資料刪掉。
+
 ### 播放設定、收藏的畫面、地圖上標數值（2026-10-30）
 
 - **播放設定**（`TimeSlider.tsx` 的 `PlaybackMenu`）：播放鈕旁邊的小按鈕寫目前的速度（「1×」，循環時加「↻」，有設定時是藍框），點開往上彈出：

@@ -623,6 +623,11 @@ export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
   /**
+   * 線不是網站的資料檔，是使用者在這個瀏覽器匯入的（2026-10-30 起，我的路線：lib/personalRoutes.ts）：
+   * file 不用，App 把解析好的線交給 useOverlays
+   */
+  local?: boolean;
+  /**
    * 線寬（px，縮放 2 時）：固定值，或依紀錄的數值欄位在 stops [[值, 線寬], …] 之間線性內插
    * （例如河流依平均流量，stops 依對數間隔取，看起來就是依流量的對數變粗）
    */
@@ -931,6 +936,16 @@ export interface TopicDefinition {
    * 程式在 panels/ListSide.tsx，任何有點的清單（節慶、日食、奧運場館…）都可以套用
    */
   listPanel?: ListPanelDef;
+  /**
+   * 我的路線（2026-10-30 起，賽車）：圖層選單多一區，使用者可以匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip，
+   * 一次很多個或一整個資料夾），只存在這個瀏覽器（lib/personalRoutes.ts），畫成一個線圖層。
+   * color 跟線圖層一樣（分類代碼由 type 算，沒有分類的用 0），seriesLabel 是 tooltip 上的分類名稱
+   */
+  personalRoutes?: {
+    color: LinesOverlayDef['color'];
+    type?: (series: string | undefined) => number;
+    seriesLabel?: (series: string) => Text | undefined;
+  };
   /**
    * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，
    * 網格只決定國內的分布，各國水準縮放到 indicator 當年的值。grid 是主題資料夾裡的網格檔。

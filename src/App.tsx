@@ -33,6 +33,9 @@ import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
 import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
+import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes } from './lib/personalRoutes';
+import type { PersonalMenu } from './map/BasemapMenu';
+import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { BoxResult } from './panels/BoxResult';
@@ -163,11 +166,20 @@ export function App() {
   // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
   const [sharedOn, setSharedOn] = useState<string[]>([]);
   const sharedDefs = useSharedOverlays(sharedOn);
+  // 我的路線（TopicDefinition.personalRoutes，lib/personalRoutes.ts）：使用者在這個瀏覽器匯入的路線，有路線時多一個線圖層
+  const personalCfg = definition.personalRoutes;
+  const { routes: personalRoutes, error: personalError } = usePersonalRoutes(personalCfg ? definition.id : null);
+  const personalDef = useMemo(() => (personalCfg && personalRoutes.length ? personalOverlay(personalCfg) : null), [personalCfg, personalRoutes.length]);
+  const personalLines = useMemo(
+    () => (personalCfg && personalRoutes.length ? new Map([[PERSONAL_ID, personalDecoded(personalRoutes, personalCfg)]]) : undefined),
+    [personalCfg, personalRoutes],
+  );
   const shown = useMemo(() => {
     const own = definition.overlays ?? [];
     const extra = sharedDefs.filter((d) => !own.some((o) => o.id === d.id) && ('topic' in d ? d.topic : undefined) !== definition.id);
+    if (personalDef) extra.push(personalDef);
     return extra.length ? { ...definition, overlays: [...own, ...extra] } : definition;
-  }, [definition, sharedDefs]);
+  }, [definition, sharedDefs, personalDef]);
   const sharedChoices = useMemo(
     () =>
       SHARED_LAYERS.filter((l) => l.topic !== definition.id && !definition.overlays?.some((o) => l.ids.includes(o.id))).map((l) => ({
@@ -178,6 +190,20 @@ export function App() {
     [definition, sharedOn, lang],
   );
   const toggleShared = useCallback((id: string) => setSharedOn((on) => (on.includes(id) ? on.filter((x) => x !== id) : [...on, id])), []);
+  const personalMenu = useMemo<PersonalMenu | undefined>(
+    () =>
+      personalCfg
+        ? {
+            count: personalRoutes.length,
+            unavailable: personalError,
+            onImport: (files) => importRouteFiles(files, definition.id),
+            onExport: () =>
+              downloadBlob(new Blob([routesToGeoJson(personalRoutes)], { type: 'application/geo+json' }), `my-routes-${definition.id}.geojson`),
+            onClear: () => clearRoutes(definition.id),
+          }
+        : undefined,
+    [personalCfg, personalRoutes, personalError, definition.id],
+  );
   const topic = localize(shown, lang);
   // 主題自訂地點（奧運的歷史隊伍等）的名稱，排名表、tooltip、側欄的 countryName() 才查得到
   registerPlaces(definition.places);
@@ -312,7 +338,7 @@ export function App() {
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
-  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData, personalLines);
   // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
   // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
@@ -848,6 +874,7 @@ export function App() {
                   onBasemapChange={chooseBasemap}
                   sharedLayers={pure ? undefined : sharedChoices}
                   onSharedToggle={toggleShared}
+                  personal={pure ? undefined : personalMenu}
                   fitOnSelect={pure}
                   onFirstData={onMapShown}
                   onDetailNeeded={wantDetail}
