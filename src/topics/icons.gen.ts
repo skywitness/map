@@ -66,6 +66,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   "fossil-fuels": "M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16M2 21h13M3 9h11", // fuel
   "renewables": "M11 2h2M0 0m14.28 14-4.56 8M0 0m21 22-1.558-4H4.558M3 10v2M6.245 15.04A2 2 0 0 1 8 14h12a1 1 0 0 1 .864 1.505l-3.11 5.457A2 2 0 0 1 16 22H4a1 1 0 0 1-.863-1.506zM7 2a4 4 0 0 1-4 4M0 0m8.66 7.66 1.41 1.41", // solar-panel
   "climate": "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z", // cloud
+  "co2-stations": "M10 2v6.292a7 7 0 1 0 4 0V2M5 15h14M8.5 2h7", // flask-round
   "temperature": "M12 2v2M12 8a4 4 0 0 0-1.645 7.647M2 12h2M20 14.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0zM0 0m4.93 4.93 1.41 1.41M0 0m6.34 17.66-1.41 1.41", // thermometer-sun
   "air-quality": "M0 0m5.2 6.2 1.4 1.4M2 13h2M20 13h2M0 0m17.4 7.6 1.4-1.4M22 17H2M22 21H2M16 13a4 4 0 0 0-8 0M12 5V2.5", // haze
   "water-forest": "M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0ZM7 16v6M13 19v3M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5", // trees

@@ -107,6 +107,7 @@ const TOPIC_ICONS = {
   'fossil-fuels': 'fuel',
   renewables: 'solar-panel',
   climate: 'cloud',
+  'co2-stations': 'flask-round',
   temperature: 'thermometer-sun',
   'air-quality': 'haze',
   'water-forest': 'trees',

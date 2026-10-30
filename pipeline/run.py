@@ -77,6 +77,8 @@ STEPS = {
     "wet-days": "topics.wet_days",
     # 日照時數（氣溫與降雨主題）：CRU CL v2.0 的日照百分比（1961–1990 年平均，約 12 MB）換算成小時＋中央氣象署測站（台灣附註）
     "sunshine": "topics.sunshine",
+    # 全球二氧化碳觀測站：NOAA GML 合作採樣網的瓶採樣月平均 CO2（約 6.7 MB）；幾秒
+    "co2-stations": "topics.co2_stations",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
