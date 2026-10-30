@@ -300,6 +300,8 @@ STEPS = {
     "ride-hailing": "topics.ride_hailing",
     # 海外軍事基地（軍事主題）：英文維基「List of countries with overseas military bases」（固定版本），國家層級的流向；不到 1 秒
     "overseas-bases": "topics.overseas_bases",
+    # 最新的兵力（軍事主題）：英文維基「List of countries by number of military and paramilitary personnel」（固定版本）；不到 1 秒
+    "military-personnel": "topics.military_personnel",
     # 此刻世界的新聞熱點：只輸出 FIPS 10-4 → ISO 的對照表（GeoNames）；事件由瀏覽器直接讀 GDELT；不到 1 秒
     "news": "topics.news",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
