@@ -10,8 +10,6 @@ const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Governmen
 const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const perClass = (v: number) => tr({ zh: `${fixed(v, 1)} 人`, en: `${fixed(v, 1)} pupils` });
 const perTeacher = (v: number) => tr({ zh: `${fixed(v, 1)} 人`, en: `${fixed(v, 1)} per teacher` });
-/** 台灣沒有這幾個指標可以比的數字（DESIGN.md 第 168 點） */
-const TW_NO_OECD = { TWN: { zh: 'OECD 沒有台灣', en: 'Not in the OECD data' } };
 
 /** 小學入學年齡（pipeline/topics/school_calendar.py，世界銀行 SE.PRM.AGES）：只有 5、6、7 歲 */
 const AGES: CategoryDef[] = [5, 6, 7].map((age) => ({ value: age, label: { zh: `${age} 歲`, en: `Age ${age}` } }));
@@ -69,6 +67,22 @@ export const education: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
+      name: {
+        zh: '行政院人事行政總處：全國軍公教員工待遇支給要點附表二（俸額表）、114 年年終工作獎金發給注意事項（台灣的教師薪資）',
+        en: 'Directorate-General of Personnel Administration (Taiwan): civil service pay table and 2025 year-end bonus rules (teacher salaries in Taiwan)',
+      },
+      url: 'https://www.dgpa.gov.tw/information?uid=108&pid=12407',
+      license: { zh: '政府網站資料開放宣告（無償、非專屬、得再授權，應註明出處）', en: 'Government website open data declaration (free, non-exclusive, sublicensable, with attribution)' },
+    },
+    {
+      name: {
+        zh: '全國法規資料庫 教師待遇條例；行政院 114 年 4 月 22 日院授人給字第 1140000001U 號函附件「公立中小學校教育人員學術研究加給表」（臺南大學網站轉載）',
+        en: 'Teachers’ Remuneration Act (Laws & Regulations Database of Taiwan); Executive Yuan letter of 22 April 2025 with the research allowance table for primary and secondary school staff (copy on National University of Tainan’s website)',
+      },
+      url: 'https://www.nutn.edu.tw/gac150/upload/120250508091042.pdf',
+      license: { zh: '法令與公文不受著作權保護', en: 'statutes and official documents are not subject to copyright' },
+    },
+    {
       name: { zh: '內政部 單一年齡人口（0–2 歲）', en: 'Ministry of the Interior (Taiwan), population by single year of age (ages 0–2)' },
       url: 'https://data.gov.tw/dataset/14226',
       license: OPEN_DATA_TW,
@@ -109,11 +123,11 @@ export const education: TopicDefinition = {
   note: {
     zh: '台灣不在聯合國與世界銀行的教育資料庫中，改用教育部與內政部的統計，定義見台灣側欄的附註。學年度以開始的那一年標示（2024 = 2024–25 學年度）。' +
       '開學月份是 UIS 的資料，美國、巴西、德國 UIS 寫的是統計用的學年起算月或明顯不對，改成實際開學的月份（出處在各國的附註）；台灣依法規。聯邦國家各州不同，取多數。' +
-      '教師薪資、每班人數、上課天數只有 OECD 與夥伴國（約 40 國）；比利時用荷語區、英國用英格蘭的值（OECD 只有分區的值）。教師薪資是公立學校的法定薪資（薪級表），不含加給。生師比是學生數除以教師數，不是每班人數；台灣的生師比、每班人數與技職比例用教育部的統計。' +
+      '教師薪資、每班人數、上課天數只有 OECD 與夥伴國（約 40 國）；比利時用荷語區、英國用英格蘭的值（OECD 只有分區的值）。教師薪資是公立學校的法定薪資（薪級表），不含加給；台灣是自算的，含所有教師都領的學術研究加給與年終 1.5 個月（見附註）。生師比是學生數除以教師數，不是每班人數；台灣的生師比、每班人數與技職比例用教育部的統計。' +
       '台灣的 0–2 歲上托育是自算：衛福部的托嬰中心與居家托育收托人數加上教育部的幼兒園未滿 3 歲幼生數，除以內政部的 0–2 歲人口；托嬰中心、居家托育與人口是 12 月底，幼兒園是 11 月 1 日。',
     en: "Taiwan is not in the UN and World Bank education databases, so statistics from the Ministry of Education and the Ministry of the Interior are used instead; see the notes in Taiwan's panel for definitions. School years are labelled by the year they start (2024 = 2024–25). " +
       'School start months come from UIS; for the US, Brazil and Germany UIS gives a statistical start of the school year or a clearly wrong month, so the actual month classes start is used instead (sources in each country’s note); Taiwan follows its regulations. In federal countries, where states differ, the most common month is used. ' +
-      'Teacher salaries, class sizes and instruction days cover only OECD members and partners (about 40 countries); Belgium uses the Flemish Community and the UK uses England, as the OECD gives only regional figures. Teacher salaries are statutory salaries in public schools (salary scales), excluding allowances. The pupil–teacher ratio is pupils divided by teachers, not class size; Taiwan’s pupil–teacher ratio, class size and vocational share come from the Ministry of Education. ' +
+      'Teacher salaries, class sizes and instruction days cover only OECD members and partners (about 40 countries); Belgium uses the Flemish Community and the UK uses England, as the OECD gives only regional figures. Teacher salaries are statutory salaries in public schools (salary scales), excluding allowances; Taiwan’s is our own calculation and includes the academic research allowance paid to all teachers and a 1.5-month year-end bonus (see notes). The pupil–teacher ratio is pupils divided by teachers, not class size; Taiwan’s pupil–teacher ratio, class size and vocational share come from the Ministry of Education. ' +
       'Taiwan’s childcare enrolment for ages 0–2 is our own calculation: children in baby care centres and with home childcare providers (Ministry of Health and Welfare) plus kindergarten pupils under 3 (Ministry of Education), divided by the population aged 0–2 (Ministry of the Interior); childcare centres, home childcare and population are as of 31 December, kindergartens as of 1 November.',
   },
   indicators: [
@@ -203,15 +217,14 @@ export const education: TopicDefinition = {
       id: 'teacher-salary',
       label: { zh: '國中教師的法定年薪', en: 'Lower secondary teacher salaries' },
       description: {
-        zh: '公立國中教師年資 15 年、最普遍資格的法定年薪（薪級表，不含加給），換成購買力平價美元，2025 年。盧森堡最高，OECD 平均約 6.5 萬。',
-        en: 'Statutory annual salary of lower secondary teachers in public schools with 15 years of experience and the most common qualification (salary scales, excluding allowances), in US dollars at purchasing power parity, 2025. Luxembourg pays the most; the OECD average is about $65,000.',
+        zh: '公立國中教師年資 15 年、最普遍資格的法定年薪（薪級表，不含加給），換成購買力平價美元，2025 年。盧森堡最高，OECD 平均約 6.5 萬。台灣約 8.4 萬是自算的：碩士 15 年的薪額加學術研究加給（所有教師都領），再加年終 1.5 個月；只算薪額約 4.9 萬。',
+        en: 'Statutory annual salary of lower secondary teachers in public schools with 15 years of experience and the most common qualification (salary scales, excluding allowances), in US dollars at purchasing power parity, 2025. Luxembourg pays the most; the OECD average is about $65,000. Taiwan’s figure of about $84,000 is our own calculation: base pay for a teacher with a master’s degree and 15 years of experience plus the academic research allowance (paid to all teachers) and a 1.5-month year-end bonus; base pay alone gives about $49,000.',
       },
       unit: { zh: '購買力平價美元', en: 'US$ (PPP)' },
       file: 'teacher-salary.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [35000, 45000, 55000, 65000, 75000, 90000] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 美元（PPP）`, en: `$${fixed(v, 0)} (PPP)` }),
       formatTick: formatLargeTick,
-      noValue: TW_NO_OECD,
     },
     {
       id: 'class-size',
