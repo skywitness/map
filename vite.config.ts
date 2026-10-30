@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { redirectedTopicIds } from './src/topics/redirects';
 
 /**
  * 首頁 HTML 加上地圖程式（MapLibre）chunk 與它的 CSS 的預載：跟首頁程式同時下載，
@@ -57,9 +58,10 @@ function preloadTopicChunk(): Plugin {
         if (Object.keys(chunks).length !== ids.size) {
           this.warn(`preload-topic-chunk：${ids.size} 個主題只找到 ${Object.keys(chunks).length} 個 chunk`);
         }
+        // 合併掉的舊主題（src/topics/redirects.ts）預載新主題的 chunk
         const script =
-          `(function(){var c=${JSON.stringify(chunks)};var t=new URLSearchParams(location.search).get('topic')||(location.pathname.match(/\\/t\\/([\\w-]+)\\/?$/)||[])[1];` +
-          `if(!t||!c[t])return;var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';` +
+          `(function(){var c=${JSON.stringify(chunks)},r=${JSON.stringify(redirectedTopicIds())};var t=new URLSearchParams(location.search).get('topic')||(location.pathname.match(/\\/t\\/([\\w-]+)\\/?$/)||[])[1];` +
+          `t=r[t]||t;if(!t||!c[t])return;var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';` +
           `l.href=c[t];document.head.appendChild(l)})()`;
         return [{ tag: 'script', children: script, injectTo: 'head' }];
       },
@@ -108,6 +110,7 @@ function topicPages(): Plugin {
       index.source = html.replace('</title>', `</title>\n    <link rel="canonical" href="${SITE}" />`);
       const today = new Date().toISOString().slice(0, 10);
       const urls = [SITE];
+      const pages = new Map<string, string>();
       for (const topic of topics) {
         const url = `${SITE}t/${topic.id}/`;
         const title = topic.title.zh;
@@ -128,6 +131,15 @@ function topicPages(): Plugin {
         page = setMeta(page, 'property', 'og:image:alt', `${title}：世界資料地圖的主題`);
         this.emitFile({ type: 'asset', fileName: `t/${topic.id}/index.html`, source: page });
         urls.push(url);
+        pages.set(topic.id, page);
+      }
+      // 合併掉的舊主題（src/topics/redirects.ts）：舊路徑照樣有 HTML（分享出去的連結、嵌入碼不會 404），內容與預覽圖
+      // 是新主題的，canonical 指到新主題；頁面打開後 url-state.ts 把網址換成新主題。sitemap 不列
+      for (const [from, to] of Object.entries(redirectedTopicIds())) {
+        const page = pages.get(to);
+        if (!page) throw new Error(`topic-pages：舊主題 ${from} 轉到的 ${to} 不在主題目錄裡`);
+        if (pages.has(from)) throw new Error(`topic-pages：舊主題 ${from} 還在主題目錄裡`);
+        this.emitFile({ type: 'asset', fileName: `t/${from}/index.html`, source: page });
       }
       const sitemap =
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

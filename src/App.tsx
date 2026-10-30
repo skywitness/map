@@ -26,7 +26,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, useUrlState } from './lib/url-state';
+import { currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
 import type { Box } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { countryLocator, type CountryFeature } from './map/geometry';
@@ -281,6 +281,11 @@ export function App() {
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
   const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
+  // 舊網址轉到合併後的主題，要一起打開某個圖層（唐人街併進移民與難民）：打開那個主題時打開一次
+  useEffect(() => {
+    const layer = takeRedirectLayer(topic.id);
+    if (layer) setLayers((l) => ({ ...l, extra: { ...l.extra, [layer]: true } }));
+  }, [topic.id]);
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));

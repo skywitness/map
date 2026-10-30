@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { PointsOverlay } from '../topics/types';
+import { setClassGridOnly } from './classGridHighlight';
 import { MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import type { LayerVisibility, OverlayLayer } from './overlayData';
@@ -75,8 +76,15 @@ const SEA_BASE = { light: '#9ebdff', dark: '#38435c' };
 export interface OverlayKey {
   swatch: OverlaySwatch;
   label: string;
-  /** chips：一格一格的小色塊加短名稱（類別網格的 30 類），hint 是滑過時的全名 */
-  details: { title?: string; layout: 'rows' | 'sizes' | 'chips'; rows: (OverlaySwatch & { label: string; hint?: string })[] }[];
+  /**
+   * chips：一格一格的小色塊加短名稱（類別網格的 30 類），hint 是滑過時的全名；
+   * classValue 是類別網格的代碼，滑過時地圖只亮那一類（classGridHighlight.ts）
+   */
+  details: {
+    title?: string;
+    layout: 'rows' | 'sizes' | 'chips';
+    rows: (OverlaySwatch & { label: string; hint?: string; classValue?: number })[];
+  }[];
 }
 
 /** 線、點的外框與中性色：大小圖例不代表顏色，用中性的深灰 */
@@ -105,7 +113,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       layout: 'chips',
       rows: o.def.classes
         .filter((c) => c.group === g)
-        .map((c) => ({ shape: 'fill' as const, size: 5, color: c.color, opacity, base, label: c.short, hint: `${c.short} ${c.label}` })),
+        .map((c) => ({ shape: 'fill' as const, size: 5, color: c.color, opacity, base, label: c.short, hint: `${c.short} ${c.label}`, classValue: c.value })),
     }));
     const first = o.def.classes[0];
     return { swatch: { shape: 'fill', size: 5, color: first?.color ?? '#888888', opacity, base }, label: o.def.label, details };
@@ -353,6 +361,8 @@ export function LayerControls({
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   const [showDetails, setShowDetails] = useState(() => !(typeof matchMedia === 'function' && matchMedia(NARROW).matches));
   const hasDetails = overlays.some((o) => o.visible && extraKeys.get(o)!.details.length > 0);
+  // 換主題、收起圖例時，滑過的那一類不留在地圖上
+  useEffect(() => () => setClassGridOnly(null), []);
   return (
     <fieldset className="legend map-layers">
       <legend className="legend-title">{t.layers}</legend>
@@ -382,7 +392,12 @@ export function LayerControls({
                   {d.title && <div className="legend-note">{d.title}</div>}
                   <div className="map-layer-rows">
                     {d.rows.map((r) => (
-                      <span key={r.label} title={r.hint}>
+                      <span
+                        key={r.label}
+                        title={r.hint}
+                        onPointerEnter={r.classValue === undefined ? undefined : () => setClassGridOnly(r.classValue!)}
+                        onPointerLeave={r.classValue === undefined ? undefined : () => setClassGridOnly(null)}
+                      >
                         <Swatch swatch={r} />
                         {r.label}
                       </span>
