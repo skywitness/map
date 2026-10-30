@@ -152,6 +152,7 @@ const TOPIC_ICONS = {
   earthquakes: 'activity',
   plates: 'puzzle',
   lithology: 'layers',
+  'special-landforms': 'tree-palm',
   typhoons: 'tornado',
   wildfires: 'flame',
   'night-lights': 'moon-star',
