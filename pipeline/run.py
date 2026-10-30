@@ -167,6 +167,8 @@ STEPS = {
     # Wikidata 的 6 個 SPARQL 查詢（每個 2–5 秒）與約 40 批名稱（wbgetentities）、FAOSTAT 土地利用（陸地面積）；
     # 要先有 geo 的國界，也讀人口、旅行實用、語言、民主與自由、城市、海拔、國際組織、台灣的外交已經產生的資料檔
     "profiles": "topics.profiles",
+    # 國家小檔案的匯率制度（英文維基百科照 IMF AREAER 2023 整理的表）
+    "exchange-regime": "topics.exchange_regime",
     # Wikidata：7 個 SPARQL 查詢（150 m 以上的候選、所在行政區往上 4 層、城市類別、國家代碼）與約 50 批 wbgetentities
     # （第一次約 1 分鐘，之後用快取不到 1 秒）；要先有 geo 的國界，也讀城市主題的 cities.json（P131 找不到城市時用）。
     # 跑完要重跑 profiles（小檔案的「最高的大樓」讀這裡的 buildings.json）
