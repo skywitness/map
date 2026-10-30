@@ -1027,9 +1027,13 @@ export function WorldMap(props: WorldMapProps) {
 
   /* ── 類別網格（氣候分區，classGridLayer.ts）：換時期只換代碼的貼圖；換底圖後重新加上 ── */
   const classGrid = overlays.find((o) => o.kind === 'classGrid');
+  const classMax = classGrid?.def.upTo?.(year) ?? Infinity;
   const classColors = useMemo(
-    () => new Map((classGrid?.def.classes ?? []).map((c) => [c.value, c.color] as [number, string])),
-    [classGrid?.def],
+    () =>
+      new Map(
+        (classGrid?.def.classes ?? []).filter((c) => c.value <= classMax).map((c) => [c.value, c.color] as [number, string]),
+      ),
+    [classGrid?.def, classMax],
   );
   useEffect(() => {
     const map = mapRef.current;
@@ -1039,6 +1043,7 @@ export function WorldMap(props: WorldMapProps) {
       colors: classColors,
       opacity: def?.opacity ?? CLASS_GRID_OPACITY,
       only: null,
+      bounds: def?.bounds,
     });
   }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors]);
 

@@ -3,11 +3,13 @@ import { dataUrl } from '../lib/data';
 import { fixed } from '../lib/format';
 import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridData';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, PlaceDef, PointRecord, TopicDefinition } from './types';
 
 /**
  * 冰河、海冰與海平面（pipeline/topics/ice.py）：WGMS 的冰河年質量變化（各國冰河平均變薄多少、少了多少質量）、
- * NSIDC 北極 9 月與南極 2 月的海冰邊緣（1979 年起一年一條線）、NOAA STAR 衛星測高的海平面上升速度（0.5° 網格）。
+ * NSIDC 北極 9 月與南極 2 月的海冰邊緣（1979 年起一年一條線）、NOAA STAR 衛星測高的海平面上升速度（0.5° 網格）；
+ * 北極航道能通航幾天（pipeline/topics/arctic_routes.py，2026-10-30）：NOAA/NSIDC 海冰濃度 CDR 每天的網格沿兩條航道取樣，
+ * 航道上每一格都低於 15% 的天數。兩條航道是 places（_NSR、_NWP），國家的指標檔用它們當鍵，側欄就是一般的歷年折線。
  */
 
 const n1 = (v: number) => fixed(v, 1);
@@ -82,6 +84,36 @@ function edgeTooltip(p: PointRecord) {
   };
 }
 
+/** 北極航道（arctic-routes-lines.json 的 types 與 records.r；places 的 id 是指標檔的鍵） */
+const FIRST_ROUTE_YEAR = 1979;
+export const ROUTES = [
+  { value: 1, id: '_NSR', color: MAP_TOKENS.categorical[5], label: { zh: '北方海航道', en: 'Northern Sea Route' } },
+  { value: 2, id: '_NWP', color: MAP_TOKENS.categorical[1], label: { zh: '西北航道', en: 'Northwest Passage' } },
+];
+
+/** 航道的圓點放在航道的中段（側欄、排名表、tooltip 用航道的名稱） */
+const ROUTE_PLACES: PlaceDef[] = [
+  { id: '_NSR', name: ROUTES[0].label, lon: 125, lat: 75.3 },
+  { id: '_NWP', name: ROUTES[1].label, lon: -103, lat: 68.3 },
+];
+
+const daysText = (v: number) => tr({ zh: `${fixed(v, 0)} 天`, en: `${fixed(v, 0)} ${v === 1 ? 'day' : 'days'}` });
+
+function routeTooltip(p: PointRecord, year: number) {
+  const route = ROUTES.find((r) => r.value === p.r);
+  const days = String(p.d ?? '').split(',').map(Number);
+  const i = year - FIRST_ROUTE_YEAR;
+  const y = Math.max(FIRST_ROUTE_YEAR, Math.min(FIRST_ROUTE_YEAR + days.length - 1, year));
+  const v = days[Math.max(0, Math.min(days.length - 1, i))];
+  const best = Math.max(...days);
+  const bestYear = FIRST_ROUTE_YEAR + days.indexOf(best);
+  return {
+    title: route ? tr(route.label) : '',
+    detail: tr({ zh: `${y} 年海冰濃度都低於 15% 的天數：${daysText(v)}`, en: `Days with all ice below 15% in ${y}: ${daysText(v)}` }),
+    extra: [tr({ zh: `最多是 ${bestYear} 年的 ${daysText(best)}`, en: `Most: ${daysText(best)} in ${bestYear}` })],
+  };
+}
+
 const GLACIER_NOTE = {
   zh: '依冰河的面積加權，1976 年起累計到時間軸那一年（WGMS 的水文年：北半球 10 月起、南半球 4 月起）。',
   en: 'Area-weighted, accumulated from 1976 to the selected year (WGMS hydrological years: from October in the Northern Hemisphere, April in the Southern).',
@@ -151,6 +183,22 @@ const indicators: IndicatorDef[] = [
     panelChart: false,
     missing: { zh: '內陸國，沒有沿海的海', en: 'Landlocked: no coastal waters' },
   },
+  {
+    id: 'arctic-routes',
+    label: { zh: '北極航道能通航幾天', en: 'Arctic shipping routes' },
+    description: {
+      zh: '北方海航道（俄羅斯沿岸）與西北航道（加拿大北極群島）每年有幾天整條航道的海冰濃度都低於 15%（圓點的大小）。1979 年起逐年變長，但年年差很多：北方海航道 2020 年有 97 天，2024 年一天也沒有；西北航道的窄海峽常卡著從北邊漂下來的多年冰，最多一年只有 7 天。點航道的圓點看 1979 年起的折線；滑到航道上看那一年的天數。',
+      en: 'How many days a year the sea-ice concentration stays below 15% along the whole of the Northern Sea Route (off Russia) and the Northwest Passage (through the Canadian Arctic Archipelago), shown by circle size. The open season has lengthened since 1979 but swings from year to year: the Northern Sea Route had 97 days in 2020 and none in 2024, while the Northwest Passage’s narrow straits are often choked by old ice drifting down from the north, giving at most 7 days a year. Click a route’s circle for its line chart since 1979; hover over a route for that year’s count.',
+    },
+    unit: { zh: '天', en: 'days' },
+    file: 'arctic-routes.json',
+    layer: { kind: 'bubble', legendValues: [10, 50, 100] },
+    focus: [-180, 62, 180, 82],
+    format: daysText,
+    formatTick: (v) => fixed(v, 0),
+    integer: true,
+    missing: { zh: '只算兩條北極航道，看地圖上的航道與圓點', en: 'Only the two Arctic routes are counted; see the routes and circles on the map' },
+  },
 ];
 
 export const ice: TopicDefinition = {
@@ -175,6 +223,14 @@ export const ice: TopicDefinition = {
     },
     {
       name: {
+        zh: 'NOAA/NSIDC 海冰濃度氣候資料紀錄第 6 版（G02202，Meier 等）',
+        en: 'NOAA/NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration, Version 6 (G02202; Meier et al.)',
+      },
+      url: 'https://doi.org/10.7265/b18j-z797',
+      license: { zh: '美國政府著作（要引用）', en: 'US Government work (citation required)' },
+    },
+    {
+      name: {
         zh: 'NOAA STAR 衛星測高的海平面趨勢（Altimetry data are provided by NOAA Laboratory for Satellite Altimetry）',
         en: 'NOAA STAR sea-level trends (Altimetry data are provided by NOAA Laboratory for Satellite Altimetry)',
       },
@@ -183,10 +239,13 @@ export const ice: TopicDefinition = {
     },
   ],
   note: {
-    zh: '冰河是 WGMS（世界冰河監測服務）2026 年 2 月的 AMCE：全世界約 21 萬條冰河（RGI 6.0 的輪廓）1976–2025 年每年的質量變化，由衛星與航測的多年高程變化，配上實地量測的逐年變化推算（Dussaillant 等 2025）；格陵蘭與南極的冰蓋本體不算冰河，只有周邊的冰河。每條冰河依中心點歸到國家（Natural Earth 1:10m），國家的值依面積加權；冰河少的國家（例如赤道附近的高山）誤差大。台灣沒有冰河（雪山、南湖大山的圈谷是冰河期留下的地形）。海冰是 NSIDC 海冰指數第 4 版的月平均範圍與邊緣（衛星被動微波，海面至少 15% 有冰算在範圍內），北極 9 月與南極 2 月各自是一年裡最少的月份；1981–2010 年的中位數邊緣當比較的基準。海平面是 NOAA STAR 的衛星測高（TOPEX、Jason-1/2/3、Sentinel-6MF）1993–2025 年的線性趨勢，0.5° 網格，NOAA 標示為實驗性產品；沿海的平均是離國界 200 公里以內的格子依緯度加權，內陸國不算。全球海洋格子的平均約 3.2 mm/年。衛星測高量的是海面高度，不含地層下陷：台灣西南沿海的地層下陷讓陸地看到的海平面上升比這個快。',
-    en: 'Glaciers come from the WGMS (World Glacier Monitoring Service) AMCE of February 2026: yearly mass change of some 210,000 glaciers worldwide (RGI 6.0 outlines) for 1976–2025, combining multi-year elevation changes from satellites and aerial surveys with year-to-year field measurements (Dussaillant et al. 2025). The Greenland and Antarctic ice sheets themselves are not glaciers; only the glaciers around them are included. Each glacier is assigned to a country by its centre point (Natural Earth 1:10m) and country values are area-weighted; countries with few glaciers (such as tropical mountains) are less certain. Taiwan has no glaciers (the cirques on Xueshan and Nanhu Mountain are relics of the ice age). Sea ice is the monthly mean extent and edge from the NSIDC Sea Ice Index, Version 4 (passive microwave satellites; the extent counts sea at least 15% covered by ice); September in the Arctic and February in the Antarctic are each the month of least ice, and the 1981–2010 median edge is the reference. Sea level is the linear trend for 1993–2025 from NOAA STAR satellite altimetry (TOPEX, Jason-1/2/3, Sentinel-6MF) on a 0.5° grid, labelled experimental by NOAA; coastal averages use cells within 200 km of the country, weighted by latitude, and exclude landlocked countries. The average over all ocean cells is about 3.2 mm a year. Altimetry measures the height of the sea surface and does not include land subsidence: along Taiwan’s south-western coast, subsidence makes the sea rise faster relative to the land.',
+    zh: '冰河是 WGMS（世界冰河監測服務）2026 年 2 月的 AMCE：全世界約 21 萬條冰河（RGI 6.0 的輪廓）1976–2025 年每年的質量變化，由衛星與航測的多年高程變化，配上實地量測的逐年變化推算（Dussaillant 等 2025）；格陵蘭與南極的冰蓋本體不算冰河，只有周邊的冰河。每條冰河依中心點歸到國家（Natural Earth 1:10m），國家的值依面積加權；冰河少的國家（例如赤道附近的高山）誤差大。台灣沒有冰河（雪山、南湖大山的圈谷是冰河期留下的地形）。海冰是 NSIDC 海冰指數第 4 版的月平均範圍與邊緣（衛星被動微波，海面至少 15% 有冰算在範圍內），北極 9 月與南極 2 月各自是一年裡最少的月份；1981–2010 年的中位數邊緣當比較的基準。海平面是 NOAA STAR 的衛星測高（TOPEX、Jason-1/2/3、Sentinel-6MF）1993–2025 年的線性趨勢，0.5° 網格，NOAA 標示為實驗性產品；沿海的平均是離國界 200 公里以內的格子依緯度加權，內陸國不算。全球海洋格子的平均約 3.2 mm/年。衛星測高量的是海面高度，不含地層下陷：台灣西南沿海的地層下陷讓陸地看到的海平面上升比這個快。' +
+      '北極航道是 NOAA/NSIDC 海冰濃度氣候資料紀錄第 6 版（25 km 網格，每天一張）沿兩條航道取樣：航道線是自己沿主要航線畫的示意線（沒有開放的官方 GIS），北方海航道從喀拉海峽到白令海峽，西北航道是多數船走的南線（蘭開斯特海峽、皮爾海峽、毛德皇后灣、阿蒙森灣到巴羅角）。一天裡航道上每一格的海冰濃度都低於 15% 才算一天，一格（25 km）有冰就不算；比 25 km 窄的海峽（例如辛普森海峽）在網格上是陸地，不算在內。能不能通航還看冰的種類、破冰船的護航與船級，不只看濃度：北方海航道有破冰船時，濃度更高也有船走。',
+    en: 'Glaciers come from the WGMS (World Glacier Monitoring Service) AMCE of February 2026: yearly mass change of some 210,000 glaciers worldwide (RGI 6.0 outlines) for 1976–2025, combining multi-year elevation changes from satellites and aerial surveys with year-to-year field measurements (Dussaillant et al. 2025). The Greenland and Antarctic ice sheets themselves are not glaciers; only the glaciers around them are included. Each glacier is assigned to a country by its centre point (Natural Earth 1:10m) and country values are area-weighted; countries with few glaciers (such as tropical mountains) are less certain. Taiwan has no glaciers (the cirques on Xueshan and Nanhu Mountain are relics of the ice age). Sea ice is the monthly mean extent and edge from the NSIDC Sea Ice Index, Version 4 (passive microwave satellites; the extent counts sea at least 15% covered by ice); September in the Arctic and February in the Antarctic are each the month of least ice, and the 1981–2010 median edge is the reference. Sea level is the linear trend for 1993–2025 from NOAA STAR satellite altimetry (TOPEX, Jason-1/2/3, Sentinel-6MF) on a 0.5° grid, labelled experimental by NOAA; coastal averages use cells within 200 km of the country, weighted by latitude, and exclude landlocked countries. The average over all ocean cells is about 3.2 mm a year. Altimetry measures the height of the sea surface and does not include land subsidence: along Taiwan’s south-western coast, subsidence makes the sea rise faster relative to the land. ' +
+      'The Arctic routes sample the NOAA/NSIDC Sea Ice Concentration Climate Data Record, Version 6 (25 km grid, one map a day) along two routes drawn by hand along the main shipping lanes (there is no open official GIS): the Northern Sea Route from the Kara Gate to the Bering Strait, and the southern Northwest Passage most ships use (Lancaster Sound, Peel Sound, Queen Maud Gulf and Amundsen Gulf to Point Barrow). A day counts only if every grid cell along the route is below 15% ice; one 25 km cell of ice rules it out, and straits narrower than 25 km (such as Simpson Strait) are land on the grid and left out. Whether ships can pass also depends on the type of ice, icebreaker escort and ship class, not just concentration: with icebreakers, ships use the Northern Sea Route at higher concentrations.',
   },
   panelExtra: () => import('./panels/IcePanel'),
+  places: ROUTE_PLACES,
   pointer: ([lon, lat], { indicator }) => {
     if (indicator !== 'sea-level') return null;
     const c = SEA_LEVEL_CLASSES.find((k) => k.value === seaLevelAt(lon, lat));
@@ -218,6 +277,17 @@ export const ice: TopicDefinition = {
       casing: true,
       tooltip: edgeTooltip,
       indicators: ['sea-ice'],
+    },
+    {
+      kind: 'lines',
+      id: 'arctic-routes',
+      file: 'arctic-routes-lines.json',
+      label: { zh: '北極航道（示意）', en: 'Arctic routes (schematic)' },
+      width: 2.4,
+      color: { title: { zh: '航道', en: 'Route' }, classes: ROUTES.map((r) => ({ value: r.value, color: r.color, label: r.label })) },
+      casing: true,
+      tooltip: (p, ctx) => routeTooltip(p, ctx.year),
+      indicators: ['arctic-routes'],
     },
     {
       kind: 'classGrid',
