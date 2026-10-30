@@ -1075,8 +1075,8 @@ export function WorldMap(props: WorldMapProps) {
       ],
       { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() },
     );
-    // 只依 key：同一個範圍再點一次也要移過去
-  }, [focusBox?.key]);
+    // 只依 key：同一個範圍再點一次也要移過去；ready 是第一個畫面還沒好時就要移過去的（主題的 focus）
+  }, [ready, focusBox?.key]);
 
   /* ── 回報縮放與畫面範圍（線圖層的 detail 依它下載分區） ── */
   const onViewChangeRef = useRef(onViewChange);
