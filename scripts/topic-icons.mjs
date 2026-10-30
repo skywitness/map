@@ -132,7 +132,6 @@ const TOPIC_ICONS = {
   'submarine-cables': 'cable',
   'cloud-regions': 'cloud-cog',
   space: 'rocket',
-  landings: 'moon',
   transport: 'train-front',
   aviation: 'plane-takeoff',
   'ride-hailing': 'car-taxi-front',

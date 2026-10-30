@@ -26,6 +26,8 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   // 航空（第七批 117）：航空公司（指標 operating 改名 airlines）、最長的直飛航線（指標 id 不變）
   airlines: { topic: 'aviation', indicator: 'airlines', indicators: { operating: { indicator: 'airlines' } } },
   'longest-flights': { topic: 'aviation', indicator: 'routes-count' },
+  // 月球與火星的登陸併進太空（第七批 118），指標 id 不變
+  landings: { topic: 'space', indicator: 'moon' },
 };
 
 /**

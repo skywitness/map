@@ -26,7 +26,7 @@ export default function LandingsPanel({ topic, iso3, countryName }: PanelExtraPr
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data } = useJson<Landing[]>(`topics/${topic.id}/list.json`);
+  const { data } = useJson<Landing[]>(`topics/${topic.id}/landings.json`);
   if (!data) return <p className="empty">{t.loading}</p>;
   const mine = data.filter((l) => l[2].includes(iso3));
   const list = (body: 'moon' | 'mars') => mine.filter((l) => l[0] === body);
