@@ -214,6 +214,7 @@ pipeline/
 | 指標的 `chartZoom` | 側欄折線圖的 y 軸不從 0 開始 | 平均身高（都在 140–185 公分，從 0 畫起整條線是平的） |
 | 指標的 `integer` | 數值是整數：側欄折線圖的 y 軸只用整數刻度（`spec.ts` 的 `y.integer`），只有 1、2 棟時才不會寫成 0、1、1、2、2 | 摩天大樓的 300 m 以上的大樓數（2026-10-27 起） |
 | `indicatorAliases` | 舊網址的指標 id → 現在的指標與子項目（`{ 舊 id: { indicator, item? } }`）：指標改名或併進子項目後，舊的分享連結照樣打開同一份資料，網址也換成新的寫法（`types.ts` 的 `resolveAlias()`，App 與第一個畫面的預先下載共用；沒有對到的 id 原樣回傳同一個物件，App 依這個判斷要不要改寫網址） | 溫室氣體排放：原本只有二氧化碳的 `co2-per-capita`、`co2`，現在是「人均排放」「年排放量」選二氧化碳（資料檔還是 `co2-per-capita.json`、`co2.json`，`{item}-per-capita.json`、`{item}.json`） |
+| 主題的轉址（`src/topics/redirects.ts`，不是 `TopicDefinition` 的欄位） | 主題合併、指標搬到別的主題後，舊網址轉到新主題的對應指標（2026-10-30，第 8 節第 197 點）：`TOPIC_REDIRECTS`（整個主題）、`INDICATOR_MOVES`（某幾個指標），`url-state.ts` 的 `read()` 讀網址時就轉；舊路徑的 HTML 照樣產生 | 第七批的合併（南極、航空、住宅與房價…） |
 | 指標的 `coverage` | 刻意只收部分國家的指標：`{ countries, reason }`，`countries`（ISO alpha-3）以外的國家沒有值時一律寫 `reason`（`noValue` 要逐一列出國家，這裡只列有收的）；`countries` 裡的國家某一年沒有值時照常寫「無資料」 | 監禁人口率：44 國以外寫「沒有開放授權的資料」（第 8 節第 43 點） |
 | 指標的 `dimension` | 指標自己的子項目選擇器，取代主題的 `dimension`（2026-10-27 起）：同一個主題裡不同指標的子項目不同時用。網址的子項目不在這個指標的選項裡時用它的 `defaultOption`（`types.ts` 的 `itemFor()`；`indicatorPath()`、側欄的數值卡片、預先下載都經過它），網址留著原本的子項目，換回原本的指標時還在。側欄卡片的標題用各指標自己的子項目名稱（`itemLabelOf()`） | 國旗的「顏色」（紅、白、藍…）與「圖案」（星星、新月、太陽…） |
 | 指標的 `rankingBars: false` | 排名表不畫長條：數值是年份這類，長短沒有意義 | 國旗的採用年份 |
@@ -3594,6 +3595,13 @@ pipeline/
     - **分類規則**：條目主要是最低年齡，依「Age」欄的文字分：「Illegal for all ages」加上賭場的括號或彩券、賽事的年齡（中國、泰國、土耳其、梵蒂岡、巴西……）或附註寫「except for the Government lottery」的算只准彩券等特許；只寫「Illegal for all ages」的算全部禁止（非營利的賓果、摸彩不算，例如美屬薩摩亞、巴林、馬紹爾）；寫「varies by state」「Dependent on State law」的算各地不同；只寫年齡的算賭場合法（條目沒有分賭場與彩券，**沒有逐國查證賭場是否真的存在**，例如北歐只有國營博弈的國家也在這類，說明寫明）。美國各州、加拿大各省的摺疊表不收。有一列的分隔寫成「|- This law is often not enforced」，古巴的國名在第二格，另外處理。
     - **另外判斷的（`OVERRIDES`，附註寫依據）**：台灣（條目寫 20 歲，跟法條不符：賭場違法，公益彩券 18 歲；離島建設條例第 10-2 條的專法沒有制定）、香港（條目寫有准許賭場的法律架構，但《賭博條例》只准賽馬、足球博彩、六合彩，改成只准特許）、日本（2018 年的綜合度假區法准許賭場、還沒開幕，算賭場合法）、印度（大多數地方禁止、各邦不同，算各地不同）、馬來西亞（穆斯林全面禁止，附註寫明）、美國、澳門。
     - **結果**：219 國：賭場合法 175、只准彩券等 12、全部禁止 29（多在中東、南亞與部分太平洋島國）、各地不同 3。有強弱順序，用 ordinal 的循序色，「各地不同」是法定年齡「禁止」那個灰色。資料只有 2026 年，指標的 `defaultYear` 是 2026。最低年齡沒有另外做成指標（手冊的已決定只有類別）。
+
+197. **主題的舊網址轉址**（共用程式，2026-10-30，製作手冊第七批 115；`src/topics/redirects.ts`、`src/lib/url-state.ts`、`vite.config.ts`）：第七批要把幾個主題合併，合併前先做好主題層級的轉址（指標層級的 `indicatorAliases` 只能在同一個主題裡轉）。
+    - **轉址表**：`TOPIC_REDIRECTS` 是整個主題併進別的主題（`舊 id → { topic, indicator?, item?, indicators?, layer? }`：`indicator`、`item` 是網址沒寫指標時打開的指標，`indicators` 是改了 id 的指標，沒列的照原 id；`layer` 是一起打開的疊加圖層）；`INDICATOR_MOVES` 是主題留著、某幾個指標搬到別的主題（`主題 → { 指標 → 新主題 }`，例如交通的航空指標搬到航空）。
+    - **在哪裡轉**：`url-state.ts` 的 `read()` 讀網址（路徑 `t/<主題>/` 與舊的 `?topic=`）時先經過 `redirectTopic()`，所以第一個畫面、上一頁、主題之間的連結（`TopicLink` 走 popstate）、收藏的畫面（`savedViews` 存的是網址）都一樣轉，存的資料不必改；`useUrlState` 第一次寫網址時就換成新主題的路徑與指標。要一起打開的圖層由 App 打開那個主題時取走（`takeRedirectLayer()`，只取一次，圖層開關照舊記在畫面的狀態裡）。
+    - **舊路徑的 HTML 留著**：`redirects.ts` 不 import 任何東西，`vite.config.ts` 直接讀它：`topicPages` 照樣產生 `t/<舊 id>/index.html`（內容、預覽圖是新主題的，`canonical` 指到新主題），分享出去的連結與嵌入碼（`?embed=1`）不會 404；sitemap 只列新主題。首頁預載主題 chunk 的那段程式也先把舊 id 換成新的。舊 id 還在主題目錄裡、或轉到的主題不存在時建置失敗。
+    - **舊主題的縮圖、預覽圖**：合併後刪掉（`public/thumbs/`、`public/og/` 的舊 id），舊路徑的 HTML 用新主題的預覽圖。
+    - **驗證**：開發伺服器上暫時加一筆轉址，`t/<舊 id>/`、`?topic=<舊 id>&ind=…&country=JPN`、`t/transport/?ind=air-passengers&year=2010` 都打開新主題的對應指標，網址換成新的寫法，年份、國家等其他參數照留；沒有搬走的指標（`t/transport/?ind=gauge`）不轉。合併的每個舊 id 在各項（第 198 點起）另外驗證。
 
 ## 9. 之後可以做的
 
