@@ -60,6 +60,7 @@ import {
 import { applyTimeFilters, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
+import { useClassGridOnly } from './classGridHighlight';
 import { syncWind } from './windLayer';
 import { CLASS_GRID_OPACITY } from './Overlays';
 import { syncMoon, syncNight } from './nightLayer';
@@ -1035,6 +1036,8 @@ export function WorldMap(props: WorldMapProps) {
       ),
     [classGrid?.def, classMax],
   );
+  // 滑到圖例或側欄的一類時只亮那一類（classGridHighlight.ts）
+  const classOnly = useClassGridOnly();
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -1042,10 +1045,10 @@ export function WorldMap(props: WorldMapProps) {
     syncClassGrid(map, def?.id ?? null, Boolean(classGrid?.visible), classGrid?.grid ?? null, {
       colors: classColors,
       opacity: def?.opacity ?? CLASS_GRID_OPACITY,
-      only: null,
+      only: classOnly !== null && classColors.has(classOnly) ? classOnly : null,
       bounds: def?.bounds,
     });
-  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors]);
+  }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors, classOnly]);
 
   /* ── 風的粒子（風與季風，windLayer.ts）：換月份只換風場；換底圖後重新加上（類別網格之後，畫在風速的底色上面） ── */
   const wind = overlays.find((o) => o.kind === 'wind');
