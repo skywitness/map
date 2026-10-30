@@ -958,9 +958,10 @@ export interface TopicDefinition {
   places?: PlaceDef[];
   /**
    * 換到這個主題時（沒有選國家）地圖移到這個範圍 [西, 南, 東, 北]（2026-10-30 起，企鵝在哪裡、南極的冰下湖：
-   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）
+   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）。
+   * 也可以是依時間軸年份給範圍的函式（2026-10-30 起，板塊漂移：打開時對著那個年代的大陸），只在換過來時算一次
    */
-  focus?: [number, number, number, number];
+  focus?: [number, number, number, number] | ((year: number) => [number, number, number, number]);
 }
 
 /**
