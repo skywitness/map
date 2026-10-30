@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
+import { setClassGridOnly } from '../../map/classGridHighlight';
 import { fixed } from '../../lib/format';
 import { BASE_PERIOD, CLASSES, GROUPS, periodKey, periodText } from '../koppen';
 import { MAP_TOKENS } from '../../theme/tokens';
@@ -32,7 +34,7 @@ const TEXT = defineMessages({
     groups: '氣候帶的面積比例',
     sep: '、',
     none: '這個國家太小，0.1° 網格沒有格子落在國界內。',
-    note: '依 0.1° 格子的面積（依緯度加權）。百分點是跟 1991–2020 年比的增減；2041 年以後是推估，依上面選的排放情境。',
+    note: '依 0.1° 格子的面積（依緯度加權）。滑到一種類型時，地圖只亮那一類。百分點是跟 1991–2020 年比的增減；2041 年以後是推估，依上面選的排放情境。',
   },
   en: {
     title: (period) => `Climate types, ${period}`,
@@ -44,7 +46,7 @@ const TEXT = defineMessages({
     groups: 'Share of each climate group',
     sep: ', ',
     none: 'This country is too small for the 0.1° grid: no cell centre falls inside it.',
-    note: 'By the area of 0.1° cells (weighted by latitude). Points are the change from 1991–2020; from 2041 on, projections under the emissions scenario chosen above.',
+    note: 'By the area of 0.1° cells (weighted by latitude). Hover over a type to show only that type on the map. Points are the change from 1991–2020; from 2041 on, projections under the emissions scenario chosen above.',
   },
 });
 
@@ -53,6 +55,8 @@ export default function KoppenPanel({ topic, iso3, year, item }: PanelExtraProps
   const text = TEXT[lang];
   const t = useT();
   const { data, error } = useJson<PanelData>(`topics/${topic.id}/panel.json`);
+  // 滑到類型時地圖只亮那一類；換國家、關掉側欄時還原
+  useEffect(() => () => setClassGridOnly(null), [iso3]);
   if (error) return <p className="empty">{t.loadFailed(error.message)}</p>;
   if (!data) return <p className="empty">{t.loading}</p>;
 
@@ -93,7 +97,12 @@ export default function KoppenPanel({ topic, iso3, year, item }: PanelExtraProps
                     ? text.same
                     : text.delta(`${diff! > 0 ? '+' : '−'}${fixed(Math.abs(diff!), 1)}`);
             return (
-              <li key={code} title={change ?? undefined}>
+              <li
+                key={code}
+                title={change ?? undefined}
+                onPointerEnter={() => setClassGridOnly(code)}
+                onPointerLeave={() => setClassGridOnly(null)}
+              >
                 <span className="bar-label">
                   <span className="bar-key" style={{ background: c.color }} />
                   <strong translate="no">{c.symbol}</strong> {c.label[lang]}
