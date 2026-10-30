@@ -143,5 +143,35 @@ export const nobel: TopicDefinition = {
       format: laureates,
       formatTick: countTick,
     },
+    // 2026-10-30 起（製作手冊第七批 141）：女性得主、得獎時的年齡（同一個 Nobel Prize API 的 gender、birth.date、dateAwarded）
+    {
+      id: 'women',
+      label: { zh: '女性得主', en: 'Women laureates' },
+      description: {
+        zh: '在這個國家出生的女性得主，從 1901 年累計到這一年（依諾貝爾獎資料的性別）。全部獎項到 2026 年共 69 位女性，占個人得主的 6.9%；和平獎 21 位、文學獎 19 位最多，物理學獎 5 位、經濟學獎 3 位。美國 18 位、法國 6 位、波蘭 4 位。台灣還沒有女性得主。',
+        en: 'Women laureates born in the country, cumulative from 1901 to the selected year (by gender in the Nobel Prize data). Up to 2026 there are 69 women across all prizes, 6.9% of individual laureates: 21 in Peace and 19 in Literature, but 5 in Physics and 3 in Economic Sciences. The US has 18, France 6 and Poland 4. Taiwan has none yet.',
+      },
+      unit: { zh: '位', en: 'laureates' },
+      file: 'women/{item}.json',
+      layer: { kind: 'bubble', legendValues: [1, 5, 15] },
+      format: laureates,
+      formatTick: countTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'age',
+      label: { zh: '得獎年齡', en: 'Age at award' },
+      description: {
+        zh: '在這個國家出生的得主，到這一年為止得獎時的平均年齡（滿幾歲，依頒布的日期；得過兩次的用這個獎項第一次得獎的年齡）。全部獎項平均 60.4 歲：最年輕的是 17 歲得和平獎的馬拉拉（巴基斯坦），2023 年的阿戈斯蒂尼（突尼西亞出生）82 歲得物理學獎。台灣的李遠哲得獎時 49 歲。只有一兩位得主的國家就是那一兩位的年齡。',
+        en: 'Average age at award of laureates born in the country, up to the selected year (completed years on the announcement date; for people who won twice, the age at their first award in this category). The average across all prizes is 60.4: the youngest was Malala Yousafzai (Pakistan), 17 when she won the Peace Prize, while Pierre Agostini (born in Tunisia) was 82 when he shared the 2023 Physics Prize. Taiwan’s Yuan T. Lee was 49. Countries with one or two laureates simply show their ages.',
+      },
+      unit: { zh: '歲', en: 'years' },
+      file: 'age/{item}.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 55, 58, 61, 64, 67] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 歲`, en: `${fixed(v, 1)} years` }),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+      unranked: true,
+    },
   ],
 };
