@@ -59,6 +59,9 @@ def _query(query: str, filename: str) -> Path:
             request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/tab-separated-values"})
             with urllib.request.urlopen(request, timeout=180) as resp:
                 data = resp.read()
+            # 查詢服務逾時的時候會先送出一部分結果、再接 Java 的錯誤訊息（HTTP 200），不能存成快取
+            if b"java.util.concurrent.TimeoutException" in data or b"\tat org.eclipse.jetty" in data:
+                raise TimeoutError("查詢服務逾時，回傳的結果不完整")
             break
         except (urllib.error.URLError, TimeoutError) as e:
             if attempt == 3:

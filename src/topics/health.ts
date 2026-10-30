@@ -103,8 +103,8 @@ export const health: TopicDefinition = {
     },
     {
       name: {
-        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）',
-        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly)',
+        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
+        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
       },
       url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
       license: OPEN_DATA_TW,
@@ -356,8 +356,8 @@ export const health: TopicDefinition = {
       id: 'ltc-recipients',
       label: { zh: '65 歲以上使用長照的比例', en: 'Aged 65+ receiving long-term care' },
       description: {
-        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字。',
-        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan.',
+        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字（長照 2.0 的服務人數見附註）。',
+        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan (see the notes for Long-term Care 2.0 service users).',
       },
       unit: '%',
       file: 'ltc-recipients.json',
@@ -460,6 +460,21 @@ export const health: TopicDefinition = {
       events: [FLU_1918, COVID],
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70, 80] } },
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'under5-mortality-1800',
+      label: { zh: '五歲以下死亡率（1800 年起）', en: 'Under-5 mortality (since 1800)' },
+      description: {
+        zh: `1800–2021 年每 1,000 個活產嬰兒中未滿 5 歲就死亡的人數（‰）：1800 年各國多在 300–500‰，也就是三到五成的孩子活不到 5 歲。1950 年起主要是聯合國兒童死亡率機構間小組（UN IGME）與 WPP 的估計，跟上面的指標略有不同；2022 年起的值跟之前接不起來（各國在 2021、2022 年之間都有一個落差，應該是換成推估），不收。${LONG_RUN_CAVEAT.zh}`,
+        en: `Deaths before age 5 per 1,000 live births (‰), 1800–2021: in 1800 most countries were at 300–500‰, meaning three to five in ten children died before turning five. From 1950 mostly UN IGME and WPP estimates, which differ slightly from the indicator above; from 2022 the series does not join up with earlier years (every country has a jump between 2021 and 2022, most likely a switch to projections), so those years are left out. ${LONG_RUN_CAVEAT.en}`,
+      },
+      unit: '‰',
+      file: 'under5-mortality-1800.json',
+      events: [FLU_1918],
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 30, 100, 200, 300, 400] } },
+      format: perThousand,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
     },

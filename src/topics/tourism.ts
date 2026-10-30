@@ -23,6 +23,14 @@ export const tourism: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: {
+        zh: 'World Bank, World Development Indicators（IMF 國際收支：旅行收入）',
+        en: 'World Bank, World Development Indicators (IMF balance of payments: travel receipts)',
+      },
+      url: 'https://data.worldbank.org/indicator/BX.GSR.TRVL.ZS',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '交通部觀光署 來臺旅客人次', en: 'Tourism Administration (Taiwan), visitor arrivals' },
       url: 'https://data.gov.tw/dataset/7322',
       license: OPEN_DATA_TW,
@@ -42,8 +50,8 @@ export const tourism: TopicDefinition = {
     },
   ],
   note: {
-    zh: '資料只到 2020 年：UN Tourism 之後的資料不開放轉載。旅客人次有些國家只算過夜旅客、有些含當日來回的旅客，跨國比較時要留意。2020 年起受疫情影響大幅減少。',
-    en: 'Data ends in 2020 because later UN Tourism data may not be republished. Some countries count only overnight visitors and others include same-day visitors, so compare with care. Figures drop sharply from 2020 because of the pandemic.',
+    zh: '國際旅客、觀光收入與觀光收入占出口只到 2020 年：UN Tourism 之後的資料不開放轉載。旅行收入與旅行收入占出口是世界銀行轉載的 IMF 國際收支，到最新一年；IMF 的「旅行」不含國際客運（觀光收入含付給本國航空公司的機票錢），兩者不能直接接起來比。旅客人次有些國家只算過夜旅客、有些含當日來回的旅客，跨國比較時要留意。2020 年起受疫情影響大幅減少。',
+    en: 'International arrivals, tourism receipts and their share of exports end in 2020 because later UN Tourism data may not be republished. Travel receipts and their share of exports come from IMF balance-of-payments data republished by the World Bank and run to the latest year; IMF "travel" excludes international passenger transport (tourism receipts include fares paid to national carriers), so the two series cannot be joined directly. Some countries count only overnight visitors and others include same-day visitors, so compare with care. Figures drop sharply from 2020 because of the pandemic.',
   },
   indicators: [
     {
@@ -85,6 +93,35 @@ export const tourism: TopicDefinition = {
       },
       unit: '%',
       file: 'receipts-exports.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 20, 40, 60] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+    },
+    {
+      id: 'travel',
+      label: { zh: '旅行收入（IMF）', en: 'Travel receipts (IMF)' },
+      description: {
+        zh: '外國旅客在當地的食宿、交通、購物等花費（國際收支的「旅行」服務出口），以當年美元計，到最新一年。不含國際客運，比觀光收入少一些，兩者不能直接接起來比。圓的面積與收入成正比。',
+        en: 'What foreign visitors spend in the country on lodging, food, local transport, shopping and so on ("travel" services exports in the balance of payments), in current US dollars, up to the latest year. It excludes international passenger transport, so it is somewhat lower than tourism receipts and the two cannot be joined directly. Circle area is proportional to receipts.',
+      },
+      unit: { zh: '美元', en: 'US$' },
+      file: 'travel.json',
+      events: [COVID],
+      layer: { kind: 'bubble', legendValues: [1e9, 1e10, 1e11] },
+      format: (v) => usd(formatLargeNumber(v)),
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'travel-exports',
+      label: { zh: '旅行收入占出口（IMF）', en: 'Travel receipts, % of exports (IMF)' },
+      description: {
+        zh: '旅行收入占商品與服務出口總額的比例，到最新一年。不含國際客運，比「觀光收入占出口」低一些。',
+        en: 'Travel receipts as a share of total exports of goods and services, up to the latest year. It excludes international passenger transport, so it is somewhat lower than tourism receipts as a share of exports.',
+      },
+      unit: '%',
+      file: 'travel-exports.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 20, 40, 60] } },
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,

@@ -148,3 +148,26 @@ def upper_secondary_vocational() -> dict[int, float]:
         y: (v["專業群(職業)科"] + v["實用技能學程"]) / v["高級中等學校"] * 100
         for y, v in by_year.items() if len(v) == 3 and v["高級中等學校"]
     }
+
+
+# ── 教育統計查詢網（eds.moe.gov.tw，政府資料開放授權條款）──────────
+# 粗在學率（funid B060100）103–114 學年的 CSV 匯出；ym、ymt 是民國年 × 100，新學年公布後改 ymt
+EDS_GER_URL = (
+    "https://eds.moe.gov.tw/edust/webMain.aspx?sys=220&ym=10300&ymt=11400&kind=21&type=1&funid=B060100"
+    "&cycle=4&outmode=12&compmode=0&outkind=1&fldspc=0,8,&codspc0=0,3,&utf=1"
+)
+
+
+def preprimary_enrollment() -> dict[int, float]:
+    """幼兒(稚)園 2–5 歲粗在學率（%）：教育部公布的值，分母是 2–5 歲人口（多數國家的學前教育是 3–5 歲）。"""
+    import csv
+
+    path = download(EDS_GER_URL, "moe", "eds-B060100-103-114.csv")
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.reader(f))
+    col = rows[0].index("幼兒(稚)園2-5歲/ 計")
+    out = {}
+    for row in rows[1:]:
+        if row and (m := re.fullmatch(r"(\d+)學年", row[0])):
+            out[int(m.group(1)) + 1911] = float(row[col])
+    return out

@@ -317,8 +317,8 @@ export function App() {
     if (!topicPointer || !features) return undefined;
     const countryAt = countryLocator(features);
     return (lngLat: [number, number], iso3: string | null) =>
-      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year });
-  }, [topicPointer, features, countries, indicatorId, year]);
+      topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at });
+  }, [topicPointer, features, countries, indicatorId, year, at]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
