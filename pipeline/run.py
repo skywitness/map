@@ -46,6 +46,8 @@ STEPS = {
     "tourism": "topics.tourism",
     "housing": "topics.housing",
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
+    # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
+    "trade-dependence": "topics.trade_dependence",
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
