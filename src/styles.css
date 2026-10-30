@@ -1360,6 +1360,25 @@ kbd {
   overflow: hidden;
 }
 
+/* 地圖還沒畫出來前的地球圖（GlobePlaceholder.tsx）：大小與位置跟 MapLibre 初始視角的地球一樣
+   （直徑約地圖高度的 0.94，scripts/globe-placeholder.mjs 量的；fitGlobeZoom），放在畫布底下 */
+.globe-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 94%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.map-fallback-text {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
 .loading,
 .error,
 .empty {
@@ -1480,14 +1499,11 @@ kbd {
   opacity: 0.6;
 }
 
-/* MapLibre 的畫布；地球儀外面的深藍夜空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設定 */
+/* MapLibre 的畫布；地球儀外面的深藍夜空由 WorldMap 用 tokens.ts 的 SPACE_GRADIENT 設在外框（.map）上，
+   畫布本身透明，底下才看得到地圖還沒畫好時的地球圖（GlobePlaceholder） */
 .map-canvas {
   position: absolute;
   inset: 0;
-}
-
-.map.is-fullscreen {
-  background: #000;
 }
 
 /* 3D 是文字，跟圖示一樣粗細 */

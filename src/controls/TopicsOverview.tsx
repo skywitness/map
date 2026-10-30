@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { tr, useLang, useT } from '../i18n';
 import { readRecentTopics } from '../lib/recentTopics';
-import { matchTopics, type TopicHit, type TopicTarget } from '../lib/topicSearch';
+import { matchTopics, useTopicSearchItems, type TopicHit, type TopicTarget } from '../lib/topicSearch';
 import { CloseIcon } from '../map/MapIcons';
 import { groupOfTopic, prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '../topics';
 import { CATALOG } from '../topics/catalog.gen';
@@ -52,10 +52,11 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
     } else if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  const itemsReady = useTopicSearchItems();
   const matches = useMemo(() => {
     if (!query.trim()) return null;
     return new Map<string, TopicHit>(matchTopics(query).map((hit) => [hit.entry.target.topic, hit]));
-  }, [query]);
+  }, [query, itemsReady]);
 
   const summary = (topic: TopicSummary) =>
     t.topicSummary(

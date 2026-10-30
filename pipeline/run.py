@@ -75,6 +75,8 @@ STEPS = {
     "temperature-grid-tiles": "topics.temperature_grid_tiles",
     # 一年下雨幾天（氣溫與降雨主題）：CRU TS 的 wet（第一次下載約 233 MB）＋中央氣象署測站的降雨日數（台灣附註）
     "wet-days": "topics.wet_days",
+    # 日照時數（氣溫與降雨主題）：CRU CL v2.0 的日照百分比（1961–1990 年平均，約 12 MB）換算成小時＋中央氣象署測站（台灣附註）
+    "sunshine": "topics.sunshine",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
@@ -138,6 +140,8 @@ STEPS = {
     "publications": "topics.publications",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
+    # 關鍵礦產的貿易流向（稀土、永久磁鐵、鈾）：BACI HS92（2.4 GB，塑膠污染的同一份快取）；約 5 分鐘
+    "minerals-trade": "topics.minerals_trade",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
@@ -251,6 +255,8 @@ STEPS = {
     "news": "topics.news",
     # 電子垃圾：Global E-waste Monitor 2024 的 PDF 附錄表（CC BY-NC-SA 3.0 IGO）；讀 PDF 約 30 秒
     "ewaste": "topics.ewaste",
+    # 最長的直飛航線：英文維基「Longest flights」（固定版本）的現行與停飛前 30 名，機場座標用 OurAirports；不到 1 秒
+    "longest-flights": "topics.longest_flights",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
