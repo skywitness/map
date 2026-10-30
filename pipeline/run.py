@@ -269,6 +269,8 @@ STEPS = {
     "ewaste": "topics.ewaste",
     # 最長的直飛航線：英文維基「Longest flights」（固定版本）的現行與停飛前 30 名，機場座標用 OurAirports；不到 1 秒
     "longest-flights": "topics.longest_flights",
+    # 最繁忙的機場（交通主題）：英文維基「List of busiest airports by passenger traffic」（固定版本）2020–2025 每年前 50 名；不到 1 秒
+    "busiest-airports": "topics.busiest_airports",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
