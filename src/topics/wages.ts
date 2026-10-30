@@ -51,7 +51,7 @@ export const wages: TopicDefinition = {
     },
     {
       name: { zh: '勞動部 基本工資與最低工資', en: 'Ministry of Labor (Taiwan), basic wage and minimum wage' },
-      url: 'https://www.mol.gov.tw/1607/28162/28166/28180/28182/28184/29016/',
+      url: 'https://www.mol.gov.tw/1607/28162/28166/28180/99861/28184/29016/',
       license: OPEN_DATA_TW,
     },
     {

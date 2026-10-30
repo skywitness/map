@@ -368,6 +368,8 @@ def build() -> None:
                 "ILOSTAT 沒有台灣，改用勞動部公告的每月基本工資（2025 年起改稱最低工資），取每年 7 月 1 日適用的金額"
                 f"（ILOSTAT 對年中調整的國家也是這樣取），{'用中央銀行的年平均匯率' if currency == 'usd' else '用民間消費的購買力平價（同平均月薪）'}換算。"
                 + "、".join(f"{year} 年 {fmt(minimum_ntd[year])} 元" for year in [y, *later])
+                + "".join(f"；勞動部 {pub} 公告 {d.year} 年 {d.month} 月 {d.day} 日起每月 {fmt(m)} 元、每小時 {h} 元"
+                          for d, m, h, pub in mol.upcoming())
             )},
             notesEn={**notes_en, "TWN": (
                 "Taiwan is not in ILOSTAT; the monthly basic wage announced by the Ministry of Labor (called the minimum wage "
@@ -375,6 +377,8 @@ def build() -> None:
                 "that change it mid-year), converted at "
                 f"{'the Central Bank annual average exchange rate' if currency == 'usd' else 'the household consumption PPP (as for average earnings)'}. "
                 + ", ".join(f"NT${fmt(minimum_ntd[year])} in {year}" for year in [y, *later])
+                + "".join(f"; on {pub} the Ministry of Labor announced NT${fmt(m)} a month and NT${h} an hour from "
+                          f"{d.isoformat()}" for d, m, h, pub in mol.upcoming())
             )},
         )
 
