@@ -215,6 +215,8 @@ STEPS = {
     "lithology": "topics.lithology",
     # 特殊地形：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁、泥火山、滲穴、間歇泉（一次 SPARQL）；幾秒（第一次查要等查詢服務）
     "special-landforms": "topics.special_landforms",
+    # 填海造陸：Sengupta 等 2023 的 135 個沿海城市（Zenodo，22 KB 的 xlsx）＋ Natural Earth 的城市位置與中文名稱；幾秒
+    "reclamation": "topics.reclamation",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",

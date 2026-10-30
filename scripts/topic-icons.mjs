@@ -155,6 +155,7 @@ const TOPIC_ICONS = {
   plates: 'puzzle',
   lithology: 'layers',
   'special-landforms': 'tree-palm',
+  reclamation: 'land-plot',
   typhoons: 'tornado',
   wildfires: 'flame',
   'night-lights': 'moon-star',
