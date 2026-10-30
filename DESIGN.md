@@ -569,7 +569,7 @@ pipeline/
 | 人均收入 | 人均 GDP（名目、PPP）、GDP 總額、經濟成長率、人均 GDP（1800 年起，PPP，2021 年國際元） | — | IMF WEO（含台灣），IMF 未涵蓋的 17 個地區用 World Bank 補；1800 年起用 Gapminder（1990 年起同世界銀行，之前主要是 Maddison Project 回推） | 1980–2031（2026 起推估）；1800 年起的 1800–2024（1950 年以前標估計值） |
 | 發電量 | 總發電量、人均用電、再生/低碳/燃煤/核能占比、碳排強度 | 發電結構堆疊面積圖＋各能源長條 | Ember | 2000–2025 |
 | 產業結構 | 農/工/製造/服務業占 GDP、三業就業占比 | GDP 結構與就業結構對照 | World Bank WDI；台灣用主計總處 | 1960–2025 |
-| 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處 | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024 |
+| 工業 | 製造業附加價值、五大類占製造業比重、中高科技占比、粗鋼產量、水泥產量（兩個都是比例圓，各疊 GEM 的鋼鐵廠、水泥廠的點：依狀態上色、大小是年產能，2026-10-30 加）、各產業占出口比重 | 製造業組成、台灣 25 個製造業細項、商品出口結構 | World Bank WDI（UNIDO）、Harvard Atlas、主計總處；粗鋼與水泥用 USGS Minerals Yearbook 2023，廠用 Global Energy Monitor 的 GIST（2026 年 9 月版）與 GCCT（2026 年 7 月版） | 生產面 1963–2025（多數國家到 2022）、出口 1995–2024、粗鋼與水泥 2019–2023 |
 | 農業 | 22 種農產品的產量、出口量、進口量、自給率；農業總產值、農產品貿易收支；有機農地的比例、有機農地面積（比例圓） | 主要農產品（產值）、主要進出口品項 | FAOSTAT（QCL、TCL、QV；有機農地用土地利用 RL） | 1961–2024（有機農地 2004–2024） |
 | 關鍵礦產 | 17 種礦產（稀土、鋰、鈷、鎳、天然石墨、錳、鎵、鍺、錫、鎢、釩、鈮、銻、鉑、鈀、銅、鋁土礦，子項目）的產量（比例圓，預設稀土）、占全球產量、蘊藏量（比例圓）、占全球蘊藏量 | 主要生產的礦產（全球前 5 名而且占 1% 以上，或占 5% 以上，附名次與占比） | USGS Mineral Commodity Summaries 2020–2026 年版（各章 PDF 的世界產量與蘊藏量表） | 產量 2018–2025（2025 年是初估；鍺只到 2020）；蘊藏量 2019–2025；台灣不是生產國（noValue） |
 | 便利商店與連鎖品牌 | 品牌（子項目：7-Eleven、全家、Lawson、所有便利商店、麥當勞、星巴克、肯德基、Subway、IKEA、Costco）的每百萬人店數（預設 7-Eleven，各品牌自己的門檻）與店數（比例圓）；放大到 5 級以上畫出選定品牌的每一家店（一個品牌一個檔，選到才下載） | 各品牌在 OSM 上的店數、每百萬人、公司公布的店數與涵蓋率，公司店數的出處；所有便利商店的數量與標示最多的品牌 | OpenStreetMap（Overpass API，ODbL；這個主題的資料檔是衍生資料庫，同樣 ODbL）；人口用 UN WPP 2024 的 2026 年；公司公布的店數（年報、10-K、法說會簡報、官網，`pipeline/sources/chain_official.py`）只寫在附註、tooltip 與側欄 | 2026-10-26 的快照（沒有歷年資料） |
@@ -859,7 +859,8 @@ pipeline/
       - 「All Global Energy Monitor tracker data are freely available under a Creative Commons Attribution 4.0 International Public License unless otherwise noted.」只在搜尋引擎索引的舊版下載頁看得到；發電廠地圖已經照這句話標示（第 59 點）。
       - 資料用 GEM 公開地圖 `config.js` 裡的 GeoJSON（publicgemdata.nyc3.cdn.digitaloceanspaces.com），直接下載、不必填表、不必登入；官網的「Download data」要填表，沒有用。
       - 頁尾每個 tracker 一列，名稱寫建議引用（含月份；GGIT 的管線是 2025 年 11 月版、LNG 接收站是 2026 年 10 月版，兩個都寫），授權寫 CC BY 4.0，連到 tracker 頁面。
-      - **GEM 公開說明授權改了的話，這四個圖層與發電廠地圖一起重新檢查。**
+      - 2026-10-30 補充（鋼鐵與水泥，第 176 點）：官網「Download data」表單的程式（https://api.globalenergymonitor.org/static/gem-download-form.bundle.js ，58,733 bytes）裡預設的授權文字是「Creative Commons Attribution 4.0 International (CC BY 4.0) — 」加上授權網址（`_licenseText()`），表單寄出的資料也標 CC BY 4.0，跟上面舊版下載頁的那句一致。
+      - **GEM 公開說明授權改了的話，這四個圖層、發電廠地圖與工業主題的鋼鐵廠、水泥廠一起重新檢查。**
     - **經濟部能源署的能源供給年資料、原油／液化天然氣／煤炭進口來源年資料**（data.gov.tw 8309、163714、163715、163716）的資料集頁面都寫「政府資料開放授權條款-第1版」。能源署網站從 cloud 下載會拿到 Cloudflare 的驗證頁（HTTP 403），沒有繞過：2026-10-28 由本機 session 用一般的 HTTP GET（User-Agent 寫專案網址）代為下載，放進 skywitness/map-plan 的 `data/moeaea/`（附 SHA-256），pipeline 照常用 `download()`，在 cloud 重跑時把那幾個檔複製到 `pipeline/.cache/moeaea/`。只用在台灣的附註與側欄對照。
     - USGS Mineral Commodity Summaries（各章 PDF 與 ScienceBase 的資料發布）是美國公有領域（https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits ，請註明 USGS；2026 版資料發布的中繼資料標 CC0 1.0），見第 53 點。
     - 就業與失業主題直接用 ILOSTAT 的 ILO 模型估計（ILOEST）與非正式就業比例（`EMP_NIFL_SEX_RT_A`），適用上面 ILOSTAT 的 CC BY 4.0（第 54 點）。
@@ -988,6 +989,7 @@ pipeline/
     - **有機農業**（農業主題的擴充，第 135 點，2026-10-29）：FAOSTAT 土地利用（RL）的有機農地（品項 6671，含轉型期）。有機面積是 FAO 用 FiBL 的全球調查補的，而 FiBL 自己網站的資料寫「provided for internal use only」「Larger data extracts (more than 100 datasets) may not be re-disseminated without written permission of FiBL」，FAO 資料庫條款又寫第三方資料可能另有限制、「these conditions are included in the dataset metadata or webpage」。使用者決定先確認、確認不了就不做。用 FAOSTAT 網站（一般瀏覽器開 https://www.fao.org/faostat/en/#data/RL/metadata ，網站自己帶授權標頭讀中繼資料 API）讀到 RL 的中繼資料：Release policy 寫「As per FAO Policy on Open Data Licensing for FAO Statistical Databases, this work is made available under the Creative Commons Attribution-4.0 International license (CC BY 4.0 …)」，Data compilation 寫「Data collected and disseminated by the Research Institute of Organic Agriculture (FiBL) are used to complement information on FAOSTAT items “Area certified organic” and “Area in conversion to certified organic”」，沒有列第三方的限制，所以照 CC BY 4.0 用 FAOSTAT 的數字（不直接用 FiBL 的資料）；頁尾與附註寫明 FAO 用 FiBL 的調查補齊。
     - **航空旅客量**（交通主題的擴充，第 134 點，2026-10-29）：世界銀行 WDI IS.AIR.PSGR（序列中繼資料 License_Type「CC BY-4.0」，來源 ICAO）與 UN WPP 2024（已記）。台灣附註用交通部民用航空局「民航運輸各機場營運量－按國際、兩岸及國內航線分」（data.gov.tw 33238，政府資料開放授權條款第 1 版）；`www.caa.gov.tw` 的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`。
     - **Global E-waste Monitor 2024 是 CC BY-NC-SA 3.0 IGO**（電子垃圾，新主題，第 133 點，2026-10-29）：報告版權頁「This work is available under the Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 IGO licence」，ewastemonitor.info 的 Copyright 頁相同。使用者決定照用（非商業可以接受）：這個主題的資料檔的 `license` 與 `manifest.json` 寫 CC BY-NC-SA 3.0 IGO，頁尾的來源寫明資料檔同樣授權。報告 PDF 從 ewastemonitor.info 直接下載，不用帳號。
+    - **鋼鐵與水泥**（工業主題的擴充，第 176 點，2026-10-30）：USGS Minerals Yearbook 2023 的鋼鐵、水泥兩章 xlsx 是美國政府著作、公有領域（USGS 已記，https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits ，頁尾寫 USGS）。GEM 的 Global Iron and Steel Tracker（2026 年 9 月版）與 Global Cement and Concrete Tracker（2026 年 7 月版）用公開地圖 `config.js` 裡的 GeoJSON（不必填表），照上面 GEM 的決定標 CC BY 4.0（下載表單程式的預設授權也是 CC BY 4.0，見上面 GEM 那一項）。worldsteel 的資料「may be quoted as long as the source of the information is acknowledged」、訂閱資料「cannot be shared with a third party」，授權不清楚，沒有用。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -3218,6 +3220,12 @@ pipeline/
     - **國家**：事件發生地的國家（ActionGeo_CountryCode，FIPS 10-4：CH 中國、UK 英國、SF 南非、RS 俄羅斯、TW 台灣），用 `fips.json`（pipeline 從 GeoNames 的 countryInfo.txt 產生，251 個；GDELT 用、GeoNames 沒有的 RB 塞爾維亞、GZ 加薩補上，`FIPS_FIX`；TW、CH、UK、SF、RS、NI、KV 每次檢查）換成 ISO。指標「事件數」是面量圖（2、5、10、20、50、100 分級），沒有事件的寫「這 15 分鐘的新聞裡沒有這裡的事件」。
     - **側欄**：這國的事件依地點列出（事件多的在前，最多 30 個地點），每個地點寫事件數、各種類的數量與最多 5 則新聞的連結（網域加網址最後一段的標題字，另開分頁、`rel="noopener noreferrer"`）。
     - **限制**（說明寫明）：機器抽取，同一則新聞常抽出好幾個事件、也會誤判；英語媒體（美、英）最多，美國一批常有 500–600 個事件，台灣常常沒有或只有幾個；只寫國名的新聞落在國家中心。GDELT 只有最新一批，不能選別的時刻；GDELT 讀不到時這個主題沒有資料。手冊提到的 DOC 2.0 API 從 cloud 回 429、GEO 2.0 API 回 404，沒有用。
+176. **鋼鐵與水泥**（工業主題的擴充，2026-10-30，製作手冊第六批 94；`pipeline/topics/steel_cement.py`、`pipeline/sources/usgs_myb.py`、`src/topics/industry.ts`）：
+    - **使用者決定**：國家的比例圓加 GEM 的鋼鐵廠、水泥廠點（照發電廠地圖的做法）。
+    - **資料**：USGS Minerals Yearbook 2023 的世界產量表（鋼鐵章表 10 粗鋼、水泥章表 22 水硬性水泥，千公噸，2019–2023），檔案在 USGS 網站的 S3（d9-wret），pubs.usgs.gov/myb/vol1/ 的舊網址是 404。國名後面黏著註腳字母或數字（「Irane」「Ethiopiae, 5」「United States6」），`usgs_myb._code()` 先照原樣查、再拿掉註腳；「--」是零；最新一年註記 e（估計）的國家附註寫「2023 年是 USGS 的估計值」。世界合計用表裡的 Total（USGS 四捨五入，粗鋼 18.9 億、水泥 40.9 億公噸），所以「占全球」是近似值。MCS 只列 11、14 個主要國，沒有用。
+    - **廠**：GEM 公開地圖的 GeoJSON（`gist_map_2026-09.geojson` 1,293 座、`gcct_map_2026-07.geojson` 3,884 座），取消（cancelled）與狀態不明（unknown）的不畫，剩 1,257、3,847 座；狀態併成四類（運轉中含 operating pre-retirement、興建中、已宣布、封存或已退役）。容量：鋼鐵廠是 GEM 的 `capacity`（千公噸/年，煉鐵與煉鋼各製程的加總，所以一貫作業廠會比實際粗鋼產能大）、水泥廠是水泥產能（百萬公噸/年）；tooltip 寫狀態、年產能、啟用年份、國家，下一行是製程（GEM 的 prod-type、plant-type，翻成中文）與母公司，最後是英文原名。點只畫在各自的指標（`indicators`），依容量由大到小排、小廠畫在上面（同發電廠地圖）。水泥廠很多（中國 1,402 座），半徑的係數比鋼鐵廠小（最大的約 7 px），紫色的比例圓才看得到。
+    - **指標**：粗鋼產量、水泥產量（比例圓，公噸，跟世界比，預設 2023 年）。
+    - **結果**：2023 年粗鋼中國 10.19 億公噸（54%）、印度 1.41 億、日本 8,700 萬、美國 8,140 萬，台灣 1,915 萬（第 13 名，1.0%）；水泥中國 20.2 億、印度 4.2 億（估計）、越南 1.07 億、美國 9,010 萬、土耳其 8,145 萬，台灣 1,025 萬公噸。台灣的廠：鋼鐵 11 座（中鋼小港 2,252 萬公噸/年最大）、水泥 5 座（和平最大）。資料 4 個檔約 0.6 MB。
 
 ## 9. 之後可以做的
 

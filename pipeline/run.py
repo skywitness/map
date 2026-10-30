@@ -27,6 +27,8 @@ STEPS = {
     "agriculture": "topics.agriculture",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
+    # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
+    "steel-cement": "topics.steel_cement",
     "ai": "topics.ai",
     "transport": "topics.transport",
     "climate": "topics.climate",
