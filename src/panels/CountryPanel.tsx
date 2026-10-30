@@ -80,9 +80,10 @@ export function CountryPanel(props: CountryPanelProps) {
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
   const t = useT();
   const lang = useLang();
-  // 子項目的名稱依各指標自己的選項（指標有自己的 dimension 時，目前的子項目不一定是它的，itemLabelOf 換成它的預設）
+  // 子項目的名稱依各指標自己的選項（指標有自己的 dimension 時，目前的子項目不一定是它的，itemLabelOf 換成它的預設）；
+  // 目前的指標有自己的 dimension 時，用主題 dimension 的指標也要換成它自己的名稱（關鍵礦產：選了貿易的「永久磁鐵」，產量卡片是稀土）
   const label = (ind: Indicator) => {
-    const own = ind.dimension ? itemLabelOf(topic, ind, item) : itemLabel;
+    const own = ind.dimension || indicator.dimension ? itemLabelOf(topic, ind, item) : itemLabel;
     return own && usesDimension(ind) ? t.itemIndicator(own, ind.label) : ind.label;
   };
   const Extra = panelExtraFor(topic);

@@ -44,10 +44,26 @@
           document.head.appendChild(link);
         }
         // 預設底圖「彩色地形」（src/map/basemaps.ts 的 terrain）的樣式；選了其他底圖的由程式自己下載
+        var stored = null;
         try {
-          var stored = localStorage.getItem('basemap');
+          stored = localStorage.getItem('basemap');
           if (!stored || stored === 'terrain') preload('https://tiles.openfreemap.org/styles/liberty');
         } catch (e) {}
+        // 地圖還沒畫好前放的地球圖（src/app/GlobePlaceholder.tsx）：深色底圖（或深色介面沒選過底圖）用深色的
+        var q0 = new URLSearchParams(location.search);
+        if (!q0.get('view')) {
+          var theme = null;
+          try {
+            theme = localStorage.getItem('theme');
+          } catch (e) {}
+          var darkUi = theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = stored ? stored === 'dark' || stored === 'fiord' : darkUi;
+          var img = document.createElement('link');
+          img.rel = 'preload';
+          img.as = 'image';
+          img.href = '%BASE_URL%globe/' + (dark ? 'dark' : 'light') + '.webp';
+          document.head.appendChild(img);
+        }
         // 首頁預設是人口主題的總人口（src/topics/index.ts、population.ts）；其他主題由程式自己下載。
         // 主題在路徑（t/<主題>/），舊的網址在 ?topic=
         var q = new URLSearchParams(location.search);
