@@ -294,6 +294,8 @@ STEPS = {
     "heritage-railways": "topics.heritage_railways",
     # 月球與火星的登陸：英文維基「List of landings on extraterrestrial bodies」（固定版本）的月球、火星兩張表；不到 1 秒
     "landings": "topics.landings",
+    # F1 賽道與冠軍：Jolpica-F1 的資料庫匯出（延遲 14 天的版本，不必登入，ZIP 約 15 MB；CC BY-NC-SA 4.0）；幾秒
+    "f1": "topics.f1",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
