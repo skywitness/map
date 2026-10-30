@@ -135,6 +135,7 @@ const TOPIC_ICONS = {
   transport: 'train-front',
   airlines: 'plane-takeoff',
   'longest-flights': 'route',
+  airspace: 'radar',
   'cable-cars': 'cable-car',
   'heritage-railways': 'train-track',
   shipping: 'anchor',
