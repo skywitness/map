@@ -73,6 +73,19 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def write_manifest_part(out: Path, topic: str, part: str, data: dict) -> None:
+    """合併的主題（第七批：南極、航空、運動…）由好幾個步驟輸出到同一個資料夾：manifest.json 的 parts 各步驟一份，
+    generatedAt 是最後跑的那一步（頁尾的「資料更新」），別的步驟寫的那份留著"""
+    path = out / "manifest.json"
+    m = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    if m.get("topic") != topic:
+        m = {"topic": topic, "parts": {}}
+    now = now_iso()
+    m["generatedAt"] = now
+    m["parts"] = {**m.get("parts", {}), part: {"generatedAt": now, **data}}
+    write_json(path, m)
+
+
 def indicator_file(
     indicator: str,
     unit: str,
