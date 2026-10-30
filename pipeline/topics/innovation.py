@@ -15,7 +15,7 @@
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
+from common import append_note, later_years_note, OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
 from sources import dgbas, imf, nstc, tipo, worldbank, wpp
 
 Series = dict[str, dict[int, float]]
@@ -109,17 +109,18 @@ def build() -> None:
     ppp_world = {y: v * 1e9 for y, v in ppp_world.items()}
 
     def write(key: str, unit: str, years: list[int], series: Series, digits: int, world: dict[int, float],
-              within: int) -> None:
+              within: int, later: tuple[str, str] | None = None) -> None:
         values = {iso: to_series(s, years, digits) for iso, s in series.items()}
-        note, note_en = NOTES[key]
+        notes, notes_en = {"TWN": NOTES[key][0]}, {"TWN": NOTES[key][1]}
+        append_note(notes, notes_en, "TWN", later)  # 台灣比時間軸更新的年份（製作手冊第八批 159）
         write_json(
             out / f"{key}.json",
             indicator_file(
                 key, unit, years, {iso: s for iso, s in values.items() if any(v is not None for v in s)},
                 latestWithin=within,
                 aggregates={"WLD": to_series(world, years, digits)},
-                notes={"TWN": note},
-                notesEn={"TWN": note_en},
+                notes=notes,
+                notesEn=notes_en,
             ),
         )
 
@@ -158,14 +159,18 @@ def build() -> None:
     years = latest_year_span(patents, PATENT_WITHIN)
     # WIPO 的全球總數不含台灣（智慧局不是 WIPO 的會員），加回去
     world = {y: v + patents["TWN"].get(y, 0) for y, v in patents_world.items()}
-    write("patent-applications", "件", years, patents, 0, world, PATENT_WITHIN)
+    tw_patents = {y: float(v) for y, v in tw["patents"].items()}
+    write("patent-applications", "件", years, patents, 0, world, PATENT_WITHIN, later_years_note(
+        tw_patents, years, lambda v: f"{v:,.0f} 件", lambda v: f"{v:,.0f} applications"))
 
     per_million = {
         iso: {y: v / population[iso][y] * 1e6 for y, v in s.items() if y in population.get(iso, {})}
         for iso, s in patents.items()
     }
     world_per_million = {y: v / population["WLD"][y] * 1e6 for y, v in world.items() if y in population["WLD"]}
-    write("patents-per-million", "件/百萬人", years, per_million, 2, world_per_million, PATENT_WITHIN)
+    tw_per_million = {y: v / population["TWN"][y] * 1e6 for y, v in tw_patents.items() if y in population["TWN"]}
+    write("patents-per-million", "件/百萬人", years, per_million, 2, world_per_million, PATENT_WITHIN, later_years_note(
+        tw_per_million, years, lambda v: f"每百萬人 {v:,.1f} 件", lambda v: f"{v:,.1f} per million people"))
     print(f"  專利：{years[0]}–{years[-1]}")
 
     write_json(

@@ -8,7 +8,7 @@
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
+from common import append_note, later_years_note, OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
 from sources import imf, moi, mohw, mohw_deaths, ris_marriage, worldbank, wpp
 
 # 輸出檔名 -> (WPP 欄位, 單位, 小數位數)
@@ -97,12 +97,17 @@ def build() -> None:
         un_taiwan = countries.get("TWN", {})
         countries["TWN"] = taiwan_life[key]  # 內政部有比 WPP 估計值更新的年份，year_span 會截掉
         years = year_span(countries)
+        notes = taiwan_notes(key, un_taiwan) if key in TAIWAN_NOTES else {"notes": {}, "notesEn": {}}
+        # 內政部比時間軸更新的年份（例如 2025 年的簡易生命表）寫在附註（製作手冊第八批 159）
+        unit_en = "years" if unit == "歲" else unit
+        append_note(notes["notes"], notes["notesEn"], "TWN", later_years_note(
+            taiwan_life[key], years, lambda v: f"{v:.{digits}f} {unit}", lambda v: f"{v:.{digits}f} {unit_en}"))
         write_json(
             out / f"{key}.json",
             indicator_file(
                 key, unit, years, {iso3: to_series(s, years, digits) for iso3, s in countries.items()},
                 aggregates={"WLD": to_series(world, years, digits)},
-                **(taiwan_notes(key, un_taiwan) if key in TAIWAN_NOTES else {}),
+                **{k: v for k, v in notes.items() if v},
             ),
         )
 
