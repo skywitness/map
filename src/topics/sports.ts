@@ -1,5 +1,5 @@
 import type { TopicDefinition } from './types';
-import { VENUE_INDICATOR, VENUE_OVERLAYS } from './olympic-venues';
+import { VENUE_INDICATOR, VENUE_LIST, VENUE_OVERLAYS } from './olympic-venues';
 import { olympicsPart, PLACES } from './olympics';
 
 /**
@@ -35,5 +35,6 @@ export const sports: TopicDefinition = {
   places: PLACES,
   panelExtra: () => import('./panels/SportsPanel'),
   overlays: VENUE_OVERLAYS,
+  listPanel: VENUE_LIST,
   indicators: [...olympicsPart.indicators, VENUE_INDICATOR],
 };
