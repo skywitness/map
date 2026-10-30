@@ -163,19 +163,23 @@ def _from_pairs(pairs: Pairs) -> dict:
     return out
 
 
-def _write_item(out, item: str, by_year: dict[int, dict]) -> None:
-    """寫出一個商品的流向檔（每年一個）與出口、進口總額的指標檔。"""
+def _write_item(out, item: str, by_year: dict[int, dict], suffix: str = "", unit: str = "千美元") -> None:
+    """寫出一個商品的流向檔（每年一個）與出口、進口總額的指標檔。
+
+    suffix、unit：公噸的那一組（貿易的商品流向，2026-10-30）寫到 flows-t/、export-t/、import-t/，數值不換算。
+    """
+    scale = 1000 if unit == "千美元" else 1
     years = sorted(by_year)
     totals: dict[str, dict[str, dict[int, float]]] = {"export": defaultdict(dict), "import": defaultdict(dict)}
     for year in years:
-        flows: dict[str, object] = {"item": item, "year": year, "unit": "千美元"}
+        flows: dict[str, object] = {"item": item, "year": year, "unit": unit, **({} if scale == 1000 else {"scale": scale})}
         for direction, by_country in by_year[year].items():
             entries = {}
             for country, partners in sorted(by_country.items()):
                 total = sum(partners.values())
                 if total < 0.5:
                     continue
-                totals[direction][country][year] = total * 1000
+                totals[direction][country][year] = total * scale
                 # 自己對自己（再進口）與對應不到國家的夥伴只計入總額，不畫成弧線
                 ranked = sorted(
                     ((p, v) for p, v in partners.items() if p is not None and p != country and v >= 0.5),
@@ -183,19 +187,19 @@ def _write_item(out, item: str, by_year: dict[int, dict]) -> None:
                 )
                 entries[country] = [round(total), [[p, round(v)] for p, v in ranked[:TOP_N]]]
             flows[direction] = entries
-        write_json(out / "flows" / item / f"{year}.json", flows, quiet=True)
+        write_json(out / f"flows{suffix}" / item / f"{year}.json", flows, quiet=True)
 
-    sizes = sum((out / "flows" / item / f"{y}.json").stat().st_size for y in years)
-    print(f"  {item}：{years[0]}–{years[-1]}，流向檔共 {sizes / 1024:.0f} KB")
+    sizes = sum((out / f"flows{suffix}" / item / f"{y}.json").stat().st_size for y in years)
+    print(f"  {item}{suffix}：{years[0]}–{years[-1]}，流向檔共 {sizes / 1024:.0f} KB")
     for direction, series in totals.items():
         world = defaultdict(float)
         for by in series.values():
             for y, v in by.items():
                 world[y] += v
         write_json(
-            out / direction / f"{item}.json",
+            out / f"{direction}{suffix}" / f"{item}.json",
             indicator_file(
-                f"{direction}/{item}", "美元", years,
+                f"{direction}{suffix}/{item}", "美元" if scale == 1000 else unit, years,
                 {c: to_series(s, years, 0) for c, s in series.items()},
                 aggregates={"WLD": to_series(dict(world), years, 0)},
             ),

@@ -44,6 +44,38 @@ const DEPTH: ColorClasses = {
 };
 /** 火山：深褐色三角形（ORANGE 700），跟地震的三色在形狀、亮度上都分得開 */
 const VOLCANO_COLOR = MAP_TOKENS.sequential[6];
+/**
+ * 板塊內部的火山（熱點火山，2026-10-30）：青綠色三角形，跟深褐色的隱沒帶、裂谷火山，地震的紅、黃、紫都分得開。
+ * 代碼跟 pipeline/topics/earthquakes.py 的 TECTONIC 一致：1 隱沒帶、2 裂谷、3 板塊內部、0 不明
+ */
+const INTRAPLATE_COLOR = MAP_TOKENS.categorical[0];
+const VOLCANO_COLORS: ColorClasses = {
+  field: 'ts',
+  title: { zh: '構造環境（GVP）', en: 'Tectonic setting (GVP)' },
+  thresholds: [3],
+  classes: [
+    { color: VOLCANO_COLOR, label: { zh: '隱沒帶、裂谷', en: 'Subduction zones and rifts' } },
+    { color: INTRAPLATE_COLOR, label: { zh: '板塊內部（不等於熱點）', en: 'Intraplate (not the same as hotspots)' } },
+  ],
+};
+const TECTONIC: Record<number, { zh: string; en: string }> = {
+  1: { zh: '隱沒帶', en: 'Subduction zone' },
+  2: { zh: '裂谷', en: 'Rift zone' },
+  3: { zh: '板塊內部', en: 'Intraplate' },
+};
+const CRUST: Record<number, { zh: string; en: string }> = {
+  1: { zh: '大陸地殼', en: 'continental crust' },
+  2: { zh: '中間型地殼', en: 'intermediate crust' },
+  3: { zh: '海洋地殼', en: 'oceanic crust' },
+};
+
+/** 「板塊內部・海洋地殼」：GVP 的構造環境 */
+function tectonicSetting(p: PointRecord): string | null {
+  const zone = typeof p.ts === 'number' ? TECTONIC[p.ts] : undefined;
+  if (!zone) return null;
+  const crust = typeof p.crust === 'number' ? CRUST[p.crust] : undefined;
+  return crust ? tr({ zh: `${zone.zh}・${crust.zh}`, en: `${zone.en}, ${crust.en}` }) : tr(zone);
+}
 /** 板塊邊界用中性色，不跟地震的顏色搶；三類用實線、虛線與淺灰分開 */
 const PLATE_DARK = MAP_TOKENS.inkSecondary;
 const PLATE_LIGHT = MAP_TOKENS.inkMuted;
@@ -117,10 +149,12 @@ function volcanoTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
   if (typeof p.elev === 'number') parts.push(elevation(p.elev));
   if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
   parts.push(lastEruption(p.last));
+  const setting = tectonicSetting(p);
   return {
     title: volcanoType(p.type),
     detail: parts.join(' · '),
     properNoun: typeof p.name === 'string' ? p.name : undefined,
+    extra: setting ? [tr({ zh: `構造環境：${setting}`, en: `Tectonic setting: ${setting}` })] : undefined,
   };
 }
 
@@ -196,8 +230,8 @@ const indicators: IndicatorDef[] = [
     id: 'volcanoes',
     label: { zh: '全新世火山數', en: 'Holocene volcanoes' },
     description: {
-      zh: '過去約 11,700 年（全新世）曾經噴發或有活動跡象的火山（Smithsonian 全球火山計畫），含離岸 50 公里以內的海底火山。',
-      en: 'Volcanoes that have erupted or shown signs of activity in the last 11,700 years or so (the Holocene), per the Smithsonian Global Volcanism Program, including submarine volcanoes within 50 km of the coast.',
+      zh: '過去約 11,700 年（全新世）曾經噴發或有活動跡象的火山（Smithsonian 全球火山計畫），含離岸 50 公里以內的海底火山。地圖上青綠色的三角形是板塊內部的火山（GVP 的構造環境，149 座，例如夏威夷的基拉韋亞、冒納羅亞），其他是隱沒帶與裂谷的火山；板塊內部不等於熱點：冰島在 GVP 歸為裂谷，有的板塊內部火山跟地函熱點無關。',
+      en: 'Volcanoes that have erupted or shown signs of activity in the last 11,700 years or so (the Holocene), per the Smithsonian Global Volcanism Program, including submarine volcanoes within 50 km of the coast. Teal triangles on the map are intraplate volcanoes (the GVP tectonic setting; 149 of them, such as Kīlauea and Mauna Loa in Hawaii); the rest sit on subduction zones and rifts. Intraplate does not mean hotspot: GVP classes Iceland as a rift, and some intraplate volcanoes have nothing to do with mantle plumes.',
     },
     unit: { zh: '座', en: 'volcanoes' },
     file: 'volcanoes-count.json',
@@ -247,8 +281,8 @@ export const earthquakes: TopicDefinition = {
     },
   ],
   note: {
-    zh: '地震是 USGS 目錄裡規模 6 以上（1900 年起）與規模 5–6（1973 年起，預設關閉）的地震，日期是世界標準時間（UTC），台灣時間要加 8 小時（集集地震是台灣時間 9 月 21 日凌晨）。1970 年代以前的地震來自重新定位的 ISC-GEM 目錄，小一點的地震可能有缺漏。國家的次數只算震央在國界內或離岸 50 公里以內的地震，深海、洋脊上的地震不算任何國家。死亡人數來自 NOAA 的重大地震資料庫，跟 USGS 的地震依時間與距離配對，含地震引發的海嘯，算在震央附近的國家。火山是 Smithsonian 全球火山計畫的全新世火山清單（Global Volcanism Program, Smithsonian Institution）。',
-    en: 'Earthquakes are M6+ events from the USGS catalogue since 1900 and M5–6 events since 1973 (off by default); dates are UTC, so add 8 hours for Taiwan time (the Chi-Chi earthquake struck in the early hours of 21 September local time). Events before the 1970s come from the relocated ISC-GEM catalogue, and smaller ones may be missing. Country counts include only epicentres on land or within 50 km of the coast; quakes in the deep ocean or on mid-ocean ridges belong to no country. Deaths come from the NOAA Significant Earthquake Database, matched to USGS events by time and distance; they include tsunami deaths and are counted in the country near the epicentre. Volcanoes are the Holocene volcano list of the Global Volcanism Program, Smithsonian Institution.',
+    zh: '地震是 USGS 目錄裡規模 6 以上（1900 年起）與規模 5–6（1973 年起，預設關閉）的地震，日期是世界標準時間（UTC），台灣時間要加 8 小時（集集地震是台灣時間 9 月 21 日凌晨）。1970 年代以前的地震來自重新定位的 ISC-GEM 目錄，小一點的地震可能有缺漏。國家的次數只算震央在國界內或離岸 50 公里以內的地震，深海、洋脊上的地震不算任何國家。死亡人數來自 NOAA 的重大地震資料庫，跟 USGS 的地震依時間與距離配對，含地震引發的海嘯，算在震央附近的國家。火山是 Smithsonian 全球火山計畫的全新世火山清單（Global Volcanism Program, Smithsonian Institution），依 GVP 的構造環境把板塊內部的 149 座另外上色（青綠色）。板塊內部不等於熱點：熱點（地函柱）的數目與位置學界沒有共識（有的列 40 個、有的列 100 個以上），冰島、亞速爾與加拉巴哥群島的火山（多數）在 GVP 歸為裂谷，這裡不另外整理熱點清單。台灣的大屯火山群、龜山島是隱沒帶的火山。',
+    en: 'Earthquakes are M6+ events from the USGS catalogue since 1900 and M5–6 events since 1973 (off by default); dates are UTC, so add 8 hours for Taiwan time (the Chi-Chi earthquake struck in the early hours of 21 September local time). Events before the 1970s come from the relocated ISC-GEM catalogue, and smaller ones may be missing. Country counts include only epicentres on land or within 50 km of the coast; quakes in the deep ocean or on mid-ocean ridges belong to no country. Deaths come from the NOAA Significant Earthquake Database, matched to USGS events by time and distance; they include tsunami deaths and are counted in the country near the epicentre. Volcanoes are the Holocene volcano list of the Global Volcanism Program, Smithsonian Institution; the 149 intraplate volcanoes in the GVP tectonic setting are coloured teal. Intraplate is not the same as hotspot: there is no scientific consensus on how many hotspots (mantle plumes) exist or where (lists range from about 40 to over 100), GVP classes Iceland and most volcanoes of the Azores and Galápagos as rifts, and no separate hotspot list is drawn here. Taiwan’s Tatun volcanoes and Kueishantao are subduction-zone volcanoes.',
   },
   panelExtra: () => import('./panels/EarthquakesPanel'),
   overlays: [
@@ -275,7 +309,9 @@ export const earthquakes: TopicDefinition = {
       label: { zh: '火山（全新世）', en: 'Volcanoes (Holocene)' },
       shape: 'triangle',
       radius: 3.5,
-      color: VOLCANO_COLOR,
+      color: VOLCANO_COLORS,
+      // 板塊內部的畫在上面
+      sortField: 'ts',
       tooltip: volcanoTooltip,
     },
     {

@@ -42,6 +42,7 @@ STEPS = {
     "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
     "pisa": "topics.pisa",  # OECD PISA 2025 Volume I 的兩個 Excel（約 2.8 MB）
+    "university-entrance": "topics.university_entrance",  # 依英文維基百科整理的表（sources/admission_tests.py），不必下載
     # NCD-RisC 的成人身高（2.4 MB）與兒童青少年身高（4.6 MB 的 zip），伺服器常斷線，用 curl 續傳；WPP 的年齡別人口
     "height": "topics.height",
     "blood-types": "topics.blood_types",
@@ -50,6 +51,8 @@ STEPS = {
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
     # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
     "trade-dependence": "topics.trade_dependence",
+    # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
+    "trade-goods": "topics.trade_goods",
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
@@ -63,6 +66,8 @@ STEPS = {
     "gender": "topics.gender",
     "wages": "topics.wages",
     "fiscal": "topics.fiscal",
+    # 物價與財政的擴充：政府支出的用途（IMF COFOG）、稅收的組成（OECD）、公共債務兩百年（IMF HPD）
+    "fiscal-structure": "topics.fiscal_structure",
     # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
     "taxes": "topics.taxes",
     # 要先有 geo 的國界；第一次會向 Overpass 發 27 個查詢（9 個品牌、6 種店型的名稱比對、便利商店 12 個經度帶，
@@ -120,6 +125,11 @@ STEPS = {
     "long-term-care": "topics.long_term_care",
     # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
     "palliative": "topics.palliative",
+    # 菸酒的擴充（輸出到 topics/tobacco-alcohol/）：英文維基「Regulation of electronic cigarettes」固定版本（230 KB）、WHO MPOWER 的
+    # 室內禁菸場所（xmart，6 MB）；幾秒
+    "tobacco-policy": "topics.tobacco_policy",
+    # 各國的健保制度（併進健康主題，輸出到 topics/health/）：OECD HSCS 2023 的 Q2（SDMX-JSON，32 KB）、英文維基兩個固定版本的表；幾秒
+    "health-systems": "topics.health_systems",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
@@ -127,6 +137,8 @@ STEPS = {
     # Marine Regions 的 WFS（EEZ 的屬性與界線，界線約 25 MB、2 分鐘）、FAO FishStat（約 6 MB）、FAOSTAT 土地利用（約 3 MB）、
     # 漁業署《漁業統計年報》的生產量報表（約 4 MB）
     "oceans": "topics.oceans",
+    # 海鮮的貿易（併進海洋與漁業主題）：BACI HS92（2.4 GB，跟貿易主題同一個檔）的第 03 章，幾分鐘
+    "seafood-trade": "topics.seafood_trade",
     # Cottom et al. 的 SPOT 輸出（OWID 快照的 Dryad 檔，4 MB）、Meijer et al. 的河口（figshare，0.7 MB）、
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
@@ -141,6 +153,8 @@ STEPS = {
     # OpenAlex API 的 group_by（約 300 次查詢，沒有金鑰時一天約 1,000 次的匿名額度，第一次約 3 分鐘）、WPP 的人口
     "publications": "topics.publications",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
+    # 太陽能板（併進半導體主題）：BACI HS22 版（約 300 MB，2022–2024），幾十秒；財政部的 854142、854143 對照
+    "solar-panels": "topics.solar_panels",
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     # 關鍵礦產的貿易流向（稀土、永久磁鐵、鈾）：BACI HS92（2.4 GB，塑膠污染的同一份快取）；約 5 分鐘
     "minerals-trade": "topics.minerals_trade",
@@ -161,6 +175,8 @@ STEPS = {
     # Wikidata 的 6 個 SPARQL 查詢（每個 2–5 秒）與約 40 批名稱（wbgetentities）、FAOSTAT 土地利用（陸地面積）；
     # 要先有 geo 的國界，也讀人口、旅行實用、語言、民主與自由、城市、海拔、國際組織、台灣的外交已經產生的資料檔
     "profiles": "topics.profiles",
+    # 國家小檔案的匯率制度（英文維基百科照 IMF AREAER 2023 整理的表）
+    "exchange-regime": "topics.exchange_regime",
     # Wikidata：7 個 SPARQL 查詢（150 m 以上的候選、所在行政區往上 4 層、城市類別、國家代碼）與約 50 批 wbgetentities
     # （第一次約 1 分鐘，之後用快取不到 1 秒）；要先有 geo 的國界，也讀城市主題的 cities.json（P131 找不到城市時用）。
     # 跑完要重跑 profiles（小檔案的「最高的大樓」讀這裡的 buildings.json）
@@ -199,6 +215,8 @@ STEPS = {
     "koppen": "topics.koppen",
     # 地表的岩石種類：GLiM 0.5° 網格（PANGAEA，38 KB 的 zip）；幾秒
     "lithology": "topics.lithology",
+    # 特殊地形：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁、泥火山、滲穴、間歇泉（一次 SPARQL）；幾秒（第一次查要等查詢服務）
+    "special-landforms": "topics.special_landforms",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
@@ -247,6 +265,7 @@ STEPS = {
     "foods": "topics.foods",
     # 節慶：Wikidata 的節慶（依月份與種類）＋文化資產局登錄的台灣民俗；幾秒（第一次查 Wikidata 約 5 分鐘）
     "festivals": "topics.festivals",
+    "chinatowns": "topics.chinatowns",  # Wikidata 的唐人街（一次 SPARQL）加上依維基分區條目補的表
     # 雲端機房的區域：AWS、Google Cloud、Azure 的區域（手工整理的事實表 sources/cloud_regions.py）；不到 1 秒
     "cloud-regions": "topics.cloud_regions",
     # 最古老的公司：英文維基「List of oldest companies」（固定版本）＋ Wikidata 的座標；幾秒
@@ -261,6 +280,8 @@ STEPS = {
     "ewaste": "topics.ewaste",
     # 最長的直飛航線：英文維基「Longest flights」（固定版本）的現行與停飛前 30 名，機場座標用 OurAirports；不到 1 秒
     "longest-flights": "topics.longest_flights",
+    # 最繁忙的機場（交通主題）：英文維基「List of busiest airports by passenger traffic」（固定版本）2020–2025 每年前 50 名；不到 1 秒
+    "busiest-airports": "topics.busiest_airports",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
