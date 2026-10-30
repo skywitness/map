@@ -60,6 +60,8 @@ export const SEARCH_ITEMS: TopicSearchItem[] = [
   {"topic":"racing","indicator":"season","item":"dh","label":{"zh":"登山車世界盃：速降","en":"MTB World Cup: downhill"}},
   {"topic":"racing","indicator":"season","item":"mega","label":{"zh":"超級雪崩（阿爾普迪埃、留尼旺）","en":"Megavalanche (Alpe d’Huez, Réunion)"}},
   {"topic":"racing","indicator":"season","item":"moh","label":{"zh":"地獄山（雙阿爾卑斯）","en":"Mountain of Hell (Les 2 Alpes)"}},
+  {"topic":"racing","indicator":"season","item":"transv","label":{"zh":"Transvésubienne（拉科爾米亞訥 → 尼斯）","en":"Transvésubienne (La Colmiane → Nice)"}},
+  {"topic":"racing","indicator":"season","item":"transriv","label":{"zh":"TransRiviera（坦德 → 芒通）","en":"TransRiviera (Tende → Menton)"}},
   {"topic":"racing","indicator":"season","item":"tdf","label":{"zh":"環法自由車賽","en":"Tour de France"}},
   {"topic":"racing","indicator":"season","item":"giro","label":{"zh":"環義自由車賽","en":"Giro d’Italia"}},
   {"topic":"racing","indicator":"season","item":"vuelta","label":{"zh":"環西自由車賽","en":"Vuelta a España"}},

@@ -4,7 +4,8 @@
 使用者決定（2026-10-30）：F1 從「運動」搬到這裡；收 F1、MotoGP（含 Moto2、Moto3，同一個週末畫成一站）、UCI 登山車世界盃的
 越野（XCO＋XCC）與速降（DHI）、WRC、WEC（含利曼 24 小時）、Formula E、IndyCar、NASCAR Cup、環法、環義、環西、
 法國的「地獄山」（Mountain of Hell，雙阿爾卑斯）與「超級雪崩」（Megavalanche，阿爾普迪埃與留尼旺）；同類型的大眾速降另外收
-Maxiavalanche 系列、瑞士的 Bike Attack（倫策海德）與冰河速降（薩斯費），三個今年都沒有辦，只有歷年（使用者 2026-10-30 要加）。
+Maxiavalanche 系列、瑞士的 Bike Attack（倫策海德）與冰河速降（薩斯費），三個今年都沒有辦，只有歷年；另外加 UCC Sport Event
+的長距離登山車賽 Transvésubienne 與 TransRiviera（使用者 2026-10-30 要加）。
 台灣都沒有辦過，不另加賽事。
 
 **資料**（sources/wiki_racing.py）：英文維基百科的賽季條目與歷年列表（CC BY-SA 4.0，固定版本），座標用 Wikidata（CC0）。
@@ -13,7 +14,7 @@ Maxiavalanche 系列、瑞士的 Bike Attack（倫策海德）與冰河速降（
   （不是實際路線）。比完的與還沒比的分開（AS_OF 那一天以前結束的算比完）。
 - **歷年**：各賽事的列表給的次數（F1 是 Jolpica 的分站數、MotoGP 是在這條賽道辦過的大獎賽、WRC 是拉力賽依總部的城鎮、
   Formula E 是各 ePrix 比過的場數、WEC 是比過的賽季數、IndyCar 是 1996 年 IRL 起的場數、三大環賽是開幕站的城鎮、
-  超級雪崩是兩站各自有成績的年份、地獄山是觀光局新聞稿的屆數、Maxiavalanche 與瑞士的兩個是各場地辦過的年份）；NASCAR（列表只有比賽名稱）、登山車世界盃（沒有場地的列表）只有今年。
+  超級雪崩是兩站各自有成績的年份、地獄山是觀光局新聞稿的屆數、Maxiavalanche、瑞士的兩個與 UCC 的長距離賽是各場地辦過的年份）；NASCAR（列表只有比賽名稱）、登山車世界盃（沒有場地的列表）只有今年。
 
 **輸出**（public/data/topics/racing/）：
 - season/<子項目>.json：今年的點（子項目 all 是全部，其他是各賽事）；stages/<子項目>.json：三大環賽的賽段連線
@@ -36,7 +37,8 @@ AS_OF = date(2026, 10, 30)  # 這一天以前結束的站算比完了
 # 賽事：代碼（地圖上的顏色依代碼的範圍分組，見 src/topics/racing.ts 的 SERIES）
 SERIES: dict[str, int] = {
     "f1": 1, "fe": 2, "wec": 3, "indycar": 4, "nascar": 5, "wrc": 6, "motogp": 7,
-    "xc": 8, "dh": 9, "mega": 10, "moh": 11, "maxi": 12, "attack": 13, "saasfee": 14, "tdf": 15, "giro": 16, "vuelta": 17,
+    "xc": 8, "dh": 9, "mega": 10, "moh": 11, "maxi": 12, "attack": 13, "saasfee": 14, "transv": 15, "transriv": 16,
+    "tdf": 17, "giro": 18, "vuelta": 19,
 }
 TOURS = ("tdf", "giro", "vuelta")
 
@@ -73,7 +75,7 @@ COUNTRY_FIXES = {
     "Vatican City": "VAT",  # 環義的開幕站，梵蒂岡太小，1:10m 判成義大利（網站有梵蒂岡的圓點）  # WRC 的中歐拉力賽（2023 年起）的總部，德國帕紹，在因河與多瑙河的匯流處，1:10m 判成奧地利
 }
 
-# ── 地獄山、超級雪崩：沒有賽季條目，日期與地點是自己整理的事實（DESIGN.md 第 8 節第 242 點） ──
+# ── 地獄山、超級雪崩、UCC 的長距離賽：沒有賽季條目，日期與地點是自己整理的事實（DESIGN.md 第 8 節第 242 點） ──
 MASS_START = [
     # (賽事, 名稱, 地點的條目, 地點, 開始, 結束)
     # 主辦單位 UCC Sport Event 的賽事頁「Alpe d'huez 10-11-12 July 2026」（男子決賽 7 月 12 日；賽事頁 2026-10 已換成 2027 年，
@@ -84,6 +86,11 @@ MASS_START = [
     # 超級雪崩的留尼旺站：UCC Sport Event 的賽事頁「Megavalanche Saint Paul … 22 Novembre 2026」「Pour cette 31e édition」
     # （2026-10-30 讀的；一天，取消了排位賽日；從馬伊多 Maïdo 的山坡下到聖保羅的 Moulin à Eau，點畫在聖保羅）
     ("mega", "Megavalanche Réunion", "Saint-Paul, Réunion", "Saint-Paul (Réunion)", date(2026, 11, 22), date(2026, 11, 22)),
+    # UCC Sport Event 的兩個長距離登山車賽（XC Marathon，使用者 2026-10-30 要加 ucc-sportevent.fr/en/ 上的所有賽事）：
+    # Transvésubienne 的賽事頁「LA COLMIANE → NICE · 4 OCTOBRE 2026」（點畫在起點拉科爾米亞訥所在的瓦爾德布洛爾鎮，
+    # Wikidata 沒有 La Colmiane 的座標）；TransRiviera 的賽事頁「10 MAI 2026 TENDE MENTON 80KM … 6eme édition」（點畫在起點坦德）
+    ("transv", "Transvésubienne", "Valdeblore", "La Colmiane → Nice", date(2026, 10, 4), date(2026, 10, 4)),
+    ("transriv", "TransRiviera", "Tende", "Tende → Menton", date(2026, 5, 10), date(2026, 5, 10)),
 ]
 
 # 地獄山的歷屆：英文維基沒有條目，用雙阿爾卑斯觀光局的新聞稿（2025 年 4 月的 CP N°3，les2alpes.com）：
@@ -123,8 +130,8 @@ MAXI_HISTORY = [
     ("Pra-Loup", "Pra-Loup", [2022, 2023]),
 ]
 
-# 瑞士的兩個已經停辦的大眾速降（都沒有 2026 年），辦過的年份是自己整理的事實：
-OTHER_MASS_HISTORY = [
+# 其他沒有維基列表的賽事辦過的年份（自己整理的事實）：瑞士的兩個已經停辦的大眾速降、UCC 的兩個長距離登山車賽
+EXTRA_HISTORY = [
     # (賽事, 地點的條目, 地點, 年份)
     # Bike Attack（2007 年起叫 Trek Bike Attack）：倫策海德的 Parpaner Rothorn 山頂一起出發，2004 年以前到庫爾、2007 年起到
     # Churwalden。bike-attack.ch 的 Wayback 存檔（2003 年「6. Austragung」、2004 年「7. BIKE-ATTACK」、2005 年「keinen
@@ -137,6 +144,14 @@ OTHER_MASS_HISTORY = [
     # 官方的屆數連取消的 2009 年也算（2018 年「15. Glacier Bike Downhill」），照實際比過的次數。2004 年是「nach Jahren wieder」
     # （ride-mtb.com），更早的幾屆查不到年份，不算
     ("saasfee", "Saas-Fee", "Saas-Fee", [*range(2004, 2009), *range(2010, 2019)]),
+    # Transvésubienne（拉科爾米亞訥 → 尼斯，終點換過幾次：2003–2004 年 Falicon、2005–2008 年 Levens、1992 年 St Martin Vésubie；
+    # 2023 年從聖馬丁韋蘇比出發）：UCC 的歷屆冠軍 PDF（Resultats-transvesubienne-1988-a-1999.pdf，其實到 2011 年）「1988 : 1ère
+    # édition」…「2011: 19ème édition」，1991、1993–1995、1998 年沒辦；1997 年「annulée en raison d'un orage」（只比了前一天的
+    # 序幕賽，官方照算一屆，這裡不算）；1999 年起每年都辦（2016 年「24ème édition」；2020 年延到 9 月、2021 年起在秋天）
+    ("transv", "Valdeblore", "La Colmiane", [1988, 1989, 1990, 1992, 1996, *range(1999, 2027)]),
+    # TransRiviera（坦德 → 芒通，短程從布雷伊出發）：2021 年 10 月 24 日「première édition」，之後每年 5 月（2024 年「4 e édition」、
+    # 2025 年「5ᵉ édition」、2026 年「6eme édition」）
+    ("transriv", "Tende", "Tende", [*range(2021, 2027)]),
 ]
 
 
@@ -307,7 +322,7 @@ def _history() -> list[dict]:
     out.append({"s": "moh", "title": "Les Deux Alpes", "label": "Les 2 Alpes", **MOH_HISTORY})
     for title, label, years in MAXI_HISTORY:
         out.append({"s": "maxi", "title": title, "label": label, "n": len(years), "first": min(years), "last": max(years)})
-    for series, title, label, years in OTHER_MASS_HISTORY:
+    for series, title, label, years in EXTRA_HISTORY:
         out.append({"s": series, "title": title, "label": label, "n": len(years), "first": min(years), "last": max(years)})
     return out
 
