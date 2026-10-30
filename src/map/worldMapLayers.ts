@@ -3,7 +3,7 @@
  */
 import { bisectRight } from 'd3-array';
 import type { DataDrivenPropertyValueSpecification, ExpressionSpecification, LayerSpecification } from 'maplibre-gl';
-import { MAP_TOKENS, SPACE_GRADIENT, SPACE_GRADIENT_LIGHT, TOKENS } from '../theme/tokens';
+import { MAP_TOKENS, TOKENS } from '../theme/tokens';
 import { flowColors } from './flows';
 import type { OverlayLayer } from './Overlays';
 import { WORLD_SUFFIX } from './style';
@@ -557,10 +557,7 @@ export const EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', fea
 export const NO_OVERLAYS: OverlayLayer[] = [];
 export const NO_PLACES: [string, [number, number]][] = [];
 
-export const spaceBackground = (stops: [number, string][]) =>
-  `radial-gradient(circle at 50% 50%, ${stops.map(([at, color]) => `${color} ${at * 100}%`).join(', ')})`;
-export const SPACE_BACKGROUND = spaceBackground(SPACE_GRADIENT);
-export const SPACE_BACKGROUND_LIGHT = spaceBackground(SPACE_GRADIENT_LIGHT);
+export { SPACE_BACKGROUND, SPACE_BACKGROUND_LIGHT, spaceBackground } from '../theme/tokens';
 /** 3D 傾斜時地平線以上的天空：深藍夜空（style.ts 的 sky），淺色介面時跟著 SPACE_GRADIENT_LIGHT */
 export const LIGHT_SKY = { 'sky-color': '#dfe6ef', 'fog-color': '#dfe6ef' };
 export const DARK_SKY = { 'sky-color': '#0c1830', 'fog-color': '#6fa3e0' };

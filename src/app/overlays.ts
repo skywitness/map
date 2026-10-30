@@ -2,8 +2,8 @@
  * 主題的疊加圖層（鐵路、機場、點、線、晝夜、即時網格、類別網格、風）的資料：載入、解碼與快取（App.tsx，2026-10-29 拆出來）。
  */
 import { useEffect, useMemo, useState } from 'react';
-import { loadClassGrid, type ClassGrid } from '../map/classGridLayer';
-import { decodeWindField, type WindField, type WindFieldFile } from '../map/windLayer';
+import { loadClassGrid, type ClassGrid } from '../map/classGridData';
+import { decodeWindField, type WindField, type WindFieldFile } from '../map/windField';
 import { dataUrl, fetchJson, useJsonMany } from '../lib/data';
 import {
   concatLines,
@@ -14,7 +14,7 @@ import {
   type DecodedLines,
   type LayerVisibility,
   type OverlayLayer,
-} from '../map/Overlays';
+} from '../map/overlayData';
 import type { MapView } from '../map/WorldMap';
 import type { AirportsData, Indicator, LinesData, PointRecord, PointsData, RailwaysData, Topic } from '../topics/types';
 
