@@ -574,7 +574,7 @@ pipeline/
 | 關鍵礦產 | 17 種礦產（稀土、鋰、鈷、鎳、天然石墨、錳、鎵、鍺、錫、鎢、釩、鈮、銻、鉑、鈀、銅、鋁土礦，子項目）的產量（比例圓，預設稀土）、占全球產量、蘊藏量（比例圓）、占全球蘊藏量 | 主要生產的礦產（全球前 5 名而且占 1% 以上，或占 5% 以上，附名次與占比） | USGS Mineral Commodity Summaries 2020–2026 年版（各章 PDF 的世界產量與蘊藏量表） | 產量 2018–2025（2025 年是初估；鍺只到 2020）；蘊藏量 2019–2025；台灣不是生產國（noValue） |
 | 便利商店與連鎖品牌 | 品牌（子項目：7-Eleven、全家、Lawson、所有便利商店、麥當勞、星巴克、肯德基、Subway、IKEA、Costco）的每百萬人店數（預設 7-Eleven，各品牌自己的門檻）與店數（比例圓）；放大到 5 級以上畫出選定品牌的每一家店（一個品牌一個檔，選到才下載） | 各品牌在 OSM 上的店數、每百萬人、公司公布的店數與涵蓋率，公司店數的出處；所有便利商店的數量與標示最多的品牌 | OpenStreetMap（Overpass API，ODbL；這個主題的資料檔是衍生資料庫，同樣 ODbL）；人口用 UN WPP 2024 的 2026 年；公司公布的店數（年報、10-K、法說會簡報、官網，`pipeline/sources/chain_official.py`）只寫在附註、tooltip 與側欄 | 2026-10-26 的快照（沒有歷年資料） |
 | 最古老的公司 | 1700 年以前成立的公司（比例圓，時間軸是成立年份，累積）；疊 Wikidata 有位置的公司的點 | 這國在這一年以前成立、還在營業的公司（成立年份、產業） | 英文維基百科「List of oldest companies」（CC BY-SA 4.0，資料檔同樣授權）、Wikidata（座標、中文名） | 成立年份 578–1699 |
-| 貿易 | 出口、進口流向圖（點選國家畫出前 15 大夥伴的弧線）；全部商品、農產品合計與農業主題的 22 種農產品、二手衣（舊衣 HS 6309，BACI HS92，1995 年起） | 主要出口對象、主要進口來源（金額與占比） | CEPII BACI（全部商品）、FAOSTAT 詳細貿易矩陣（農產品） | 全部商品 2017–2024；農產品 2000–2023 |
+| 貿易 | 出口、進口流向圖（點選國家畫出前 15 大夥伴的弧線）；全部商品、農產品合計與農業主題的 22 種農產品、二手衣（舊衣 HS 6309，BACI HS92，1995 年起）；貿易依存度（商品與服務出口加進口占 GDP，面量圖） | 主要出口對象、主要進口來源（金額與占比） | CEPII BACI（全部商品）、FAOSTAT 詳細貿易矩陣（農產品）、世界銀行 WDI（貿易占 GDP）；台灣的貿易占 GDP 用主計總處國民所得統計自行計算 | 全部商品 2017–2024；農產品 2000–2023；貿易依存度 1960–2025（世界合計到 2024） |
 | 交通 | 路網地圖（鐵路線＋機場點）、鐵路長度、鐵路密度、主要軌距（類別圖，7 類＋其他）、標準軌的比例、機場數、大型機場數；地鐵站數（比例圓，地鐵站依開通年份累積出現）、第一條高鐵（通車年份）；航空旅客量（比例圓）、每人搭機次數 | 鐵路長度、機場清單（IATA 代碼）；地鐵指標時改列今年營運中的地鐵站數、各路網的通車年份與站數、高鐵路線與通車年份；軌距指標時改列各種軌距的長度、雙軌距與資料來源 | Natural Earth 1:10m 鐵路、OurAirports；地鐵與高鐵用 Wikidata；軌距用 CIA 世界概況（factbook.json 鏡像），亞美尼亞、南蘇丹用英文維基百科；航空旅客用世界銀行 WDI IS.AIR.PSGR（ICAO）與 UN WPP 2024，台灣附註用民航局的機場旅客 | 鐵路與機場是目前的快照；地鐵站 1863–2026、第一條高鐵 1964–2026；軌距是各國 2008–2023 年的資料（放在 2026 年）；航空旅客 1970–2023 |
 | 各國的航空公司 | 營運中的航空公司（比例圓，2026 年是現在營運中的，拖時間軸看每一年營運中的） | 這國在這一年營運中的、已停業的、之後才成立的航空公司：成立與停業年份、IATA／ICAO 代碼、國家航空 | Wikidata | 1909–2026 |
 | 纜車與索道 | 纜車地圖（不上色，畫往復式空中纜車、吊廂纜車、纜索鐵道的點：依開通年份累積出現、停用的畫到那一年，年份不詳的另一個圖層預設關閉） | 這國的纜車：種類、開通與停用年份、長度 | Wikidata | 1850–2026 |
@@ -988,6 +988,7 @@ pipeline/
     - **有機農業**（農業主題的擴充，第 135 點，2026-10-29）：FAOSTAT 土地利用（RL）的有機農地（品項 6671，含轉型期）。有機面積是 FAO 用 FiBL 的全球調查補的，而 FiBL 自己網站的資料寫「provided for internal use only」「Larger data extracts (more than 100 datasets) may not be re-disseminated without written permission of FiBL」，FAO 資料庫條款又寫第三方資料可能另有限制、「these conditions are included in the dataset metadata or webpage」。使用者決定先確認、確認不了就不做。用 FAOSTAT 網站（一般瀏覽器開 https://www.fao.org/faostat/en/#data/RL/metadata ，網站自己帶授權標頭讀中繼資料 API）讀到 RL 的中繼資料：Release policy 寫「As per FAO Policy on Open Data Licensing for FAO Statistical Databases, this work is made available under the Creative Commons Attribution-4.0 International license (CC BY 4.0 …)」，Data compilation 寫「Data collected and disseminated by the Research Institute of Organic Agriculture (FiBL) are used to complement information on FAOSTAT items “Area certified organic” and “Area in conversion to certified organic”」，沒有列第三方的限制，所以照 CC BY 4.0 用 FAOSTAT 的數字（不直接用 FiBL 的資料）；頁尾與附註寫明 FAO 用 FiBL 的調查補齊。
     - **航空旅客量**（交通主題的擴充，第 134 點，2026-10-29）：世界銀行 WDI IS.AIR.PSGR（序列中繼資料 License_Type「CC BY-4.0」，來源 ICAO）與 UN WPP 2024（已記）。台灣附註用交通部民用航空局「民航運輸各機場營運量－按國際、兩岸及國內航線分」（data.gov.tw 33238，政府資料開放授權條款第 1 版）；`www.caa.gov.tw` 的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`。
     - **Global E-waste Monitor 2024 是 CC BY-NC-SA 3.0 IGO**（電子垃圾，新主題，第 133 點，2026-10-29）：報告版權頁「This work is available under the Creative Commons Attribution-Non-Commercial-ShareAlike 3.0 IGO licence」，ewastemonitor.info 的 Copyright 頁相同。使用者決定照用（非商業可以接受）：這個主題的資料檔的 `license` 與 `manifest.json` 寫 CC BY-NC-SA 3.0 IGO，頁尾的來源寫明資料檔同樣授權。報告 PDF 從 ewastemonitor.info 直接下載，不用帳號。
+    - **貿易依存度**（貿易主題的擴充，第 179 點，2026-10-30）：世界銀行 WDI 的 NE.TRD.GNFS.ZS（序列中繼資料「License_Type: CC BY-4.0」）。台灣：主計總處「國民所得統計-國內生產毛額及平減指數依支出分-年(1981以後)」（data.gov.tw 44224）與「(1951-1980)」（44221），授權欄都是政府資料開放授權條款第 1 版（主計總處已記）。
     - 頁尾已標示各主題的來源。
 13. **網格人口歸國**（`pipeline/topics/population_grid.py`）：
     - world-atlas 的俄羅斯本土 ring 跨過換日線（楚科奇），平面上直接畫會在北緯 65°–69° 拉出一條橫跨全球的帶子，把俄羅斯北部挖空。畫之前要把經度展開成連續的，超出 ±180° 的部分再補一份平移 360° 的。
@@ -3218,6 +3219,13 @@ pipeline/
     - **國家**：事件發生地的國家（ActionGeo_CountryCode，FIPS 10-4：CH 中國、UK 英國、SF 南非、RS 俄羅斯、TW 台灣），用 `fips.json`（pipeline 從 GeoNames 的 countryInfo.txt 產生，251 個；GDELT 用、GeoNames 沒有的 RB 塞爾維亞、GZ 加薩補上，`FIPS_FIX`；TW、CH、UK、SF、RS、NI、KV 每次檢查）換成 ISO。指標「事件數」是面量圖（2、5、10、20、50、100 分級），沒有事件的寫「這 15 分鐘的新聞裡沒有這裡的事件」。
     - **側欄**：這國的事件依地點列出（事件多的在前，最多 30 個地點），每個地點寫事件數、各種類的數量與最多 5 則新聞的連結（網域加網址最後一段的標題字，另開分頁、`rel="noopener noreferrer"`）。
     - **限制**（說明寫明）：機器抽取，同一則新聞常抽出好幾個事件、也會誤判；英語媒體（美、英）最多，美國一批常有 500–600 個事件，台灣常常沒有或只有幾個；只寫國名的新聞落在國家中心。GDELT 只有最新一批，不能選別的時刻；GDELT 讀不到時這個主題沒有資料。手冊提到的 DOC 2.0 API 從 cloud 回 429、GEO 2.0 API 回 404，沒有用。
+
+179. **貿易依存度**（貿易主題的擴充，2026-10-30，製作手冊第六批 97；`pipeline/topics/trade_dependence.py`、`pipeline/sources/dgbas_expenditure.py`、`src/topics/trade.ts` 的 `trade-gdp`）：
+    - **使用者決定**：照候選清單，世界銀行 WDI 的 NE.TRD.GNFS.ZS（商品與服務的出口加進口占 GDP），台灣用主計總處的國民所得統計自己算。
+    - **台灣**：支出面 GDP 的兩個 XML（1951–1980、1981 以後，當期價格），（4.商品及服務輸出＋5.商品及服務輸入）÷ GDP。兩個檔的項目編號不同（GDP 在舊檔是 6、新檔是 8），依名稱對，`4.1`、`5.1` 這類細項不要混進合計。結果 1981 年 99.7%、2000 年 103.6%、2024 年 112.9%、2025 年 128.1%，跟手冊相同；地圖從 1960 年起（WDI 的起點），之前的年份不放。
+    - **世界合計**：2025 年只有 138 國（沒有美國），WDI 的世界值跳到 68.5%；涵蓋國家不到高峰八成的年份不放世界合計（只到 2024 年，56.7%）。國家的值照樣放到 2025 年，預設年份 2024。
+    - **附註**：香港、新加坡超過 300% 是轉口貿易，不是「依賴」（說明與附註寫明）；蘇丹 2021 年起只剩 2–4%（2019 年 26%），世界銀行的原始值明顯偏低，照放、附註寫明。
+    - **側欄**：沿用 `TradePanel`；它改成目前的指標是流向圖時用目前的指標，不是就用主題的第一個流向圖（在貿易依存度上看到全部商品的出口對象、進口來源）。
 
 ## 9. 之後可以做的
 
