@@ -3758,6 +3758,7 @@ pipeline/
   - 新增或修改一個主題：`CHECK_TOPICS=<主題 id> npm run check:en`（其他主題只點過；4 核心的雲端環境 `CHECK_TOPICS=antipodes` 約 8 分鐘，完整的要 1 小時以上）。
   - 改了好幾個主題共用的介面（`src/App.tsx`、`src/panels/`、`src/controls/`、`src/map/` 的圖例與 tooltip、`src/i18n/`、`src/lib/strings.ts`）：`CHECK_TOPICS` 列出用到那段程式的幾個主題（例如改了線圖層就列河流、日食、颱風），一樣不跑完整的。
   - **完整的（`CHECK_ALL=1 npm run check:en`）只在使用者特別要求時跑**（使用者 2026-10-28 決定）；任務說明只寫「`npm run check:en` 通過」時，照上面指定主題，不算是要求跑完整的。
+- **check:en 卡在「Waiting for selector `.topic-menu`」**（2026-10-30，組 H 修）：換成 Preact 之後，無頭 Chrome 裡 effect 晚一點才跑（requestAnimationFrame 很少觸發，靠 100 ms 的備援計時），check:en 點開分類選單後馬上按 Esc，焦點還在分類按鈕上、還沒移進選單，Esc 沒有關掉選單；接著點下一個分類時，滑鼠移過去先把選單換過去（`onButtonPointerEnter`）、點下去又關掉，所以等不到選單。修法：分類按鈕本身也接 Esc（選單開著時關掉，`TopicNav.tsx` 的 `onButtonKeyDown`；真的使用者在選單剛打開的瞬間按 Esc 也會遇到），check:en 按 Esc 之後在 Node 這邊每 100 ms 看一次、等選單關掉才點下一個（頁面裡的 `waitForFunction` 預設用 requestAnimationFrame 輪詢，在這裡等不到）。
 
 ## 13. 載入速度與離線
 
