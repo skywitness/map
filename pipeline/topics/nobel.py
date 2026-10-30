@@ -16,6 +16,8 @@
 - **每千萬人**：累計人數 ÷ 當年的年中人口（WPP 2024，2024 年起是中推估）× 1,000 萬。WPP 從 1950 年開始，
   所以這個指標從 1950 年（經濟學獎 1969 年）開始，不拿 1950 年的人口去除更早的年份。
 - 經濟學獎（瑞典中央銀行紀念諾貝爾經濟科學獎）1969 年才開始頒發，這個子項目的年份從 1969 年開始。
+- **女性得主、得獎年齡**（2026-10-30 起）：API 的 gender 依出生地累計（women/）；得獎時滿幾歲（出生日期到 dateAwarded），
+  每國到那一年為止的平均（age/，這個子項目第一次得獎的年齡；只知道出生年份的當成 7 月 1 日）。
 """
 from __future__ import annotations
 
@@ -97,6 +99,9 @@ class Laureate:
     # [(年, 獎項代碼, 得獎理由)]，依年份排序
     prizes: list[tuple[int, str, str]] = field(default_factory=list)
     org: bool = False
+    female: bool = False
+    # (得獎年, 獎項) → 得獎時的年齡（滿幾歲，依頒布日 dateAwarded；沒有出生日期的是 None）
+    ages: dict[tuple[int, str], int | None] = field(default_factory=dict)
 
 
 def _iso3(name: str) -> str:
@@ -108,6 +113,20 @@ def _iso3(name: str) -> str:
         return pycountry.countries.lookup(name).alpha_3
     except LookupError:
         raise RuntimeError(f"Nobel API 的國名「{name}」對不到 ISO 代碼，請加進 COUNTRY_NAMES") from None
+
+
+def _age(born: str, awarded: str) -> int | None:
+    """滿幾歲：出生日期「1879-03-14」到頒布日；API 只知道年份時寫成「1900-00-00」，月日當成 7 月 1 日"""
+    try:
+        by, bm, bd = (int(x) for x in born.split("-"))
+        ay, am, ad = (int(x) for x in awarded.split("-"))
+    except ValueError:
+        return None
+    if by <= 0:
+        return None
+    if bm == 0:
+        bm, bd = 7, 1
+    return ay - by - ((am, ad) < (bm, bd))
 
 
 def _laureates() -> list[Laureate]:
@@ -126,8 +145,12 @@ def _laureates() -> list[Laureate]:
             person.iso3 = _iso3(country_now["en"])
             person.place = (place.get("locationString") or {}).get("en") or country_now["en"]
             person.country_now = country_now["en"]
+        person.female = raw.get("gender") == "female"
+        born = (raw.get("birth") or {}).get("date", "")
         for prize in raw["nobelPrizes"]:
-            person.prizes.append((int(prize["awardYear"]), CATEGORIES[prize["category"]["en"]], (prize.get("motivation") or {}).get("en", "")))
+            year, cat = int(prize["awardYear"]), CATEGORIES[prize["category"]["en"]]
+            person.prizes.append((year, cat, (prize.get("motivation") or {}).get("en", "")))
+            person.ages[(year, cat)] = None if org else _age(born, prize.get("dateAwarded") or f"{year}-12-10")
         person.prizes.sort()
         out.append(person)
     return out
@@ -147,6 +170,15 @@ def _check_prizes(laureates: list[Laureate]) -> int:
             raise RuntimeError(f"Nobel API 的兩個端點對不上：{key} {sorted(ids)} vs {sorted(from_laureates.get(key, set()))}")
         awarded += bool(ids)
     return awarded
+
+
+def _mean_ages(people: list[Laureate], first: dict[str, int], age_at: dict[str, int | None], years: list[int]) -> list[float | None]:
+    """每一年：到那一年為止（第一次得獎）的得主得獎時的平均年齡，四捨五入到 0.1 歲；還沒有得主是 None"""
+    out: list[float | None] = []
+    for y in years:
+        ages = [age_at[p.id] for p in people if first[p.id] <= y and age_at[p.id] is not None]
+        out.append(round(sum(ages) / len(ages), 1) if ages else None)
+    return out
 
 
 def _prize_text_zh(prizes: list[tuple[int, str, str]]) -> str:
@@ -247,6 +279,18 @@ def build() -> None:
         world_cumulative = [sum(f <= y for f in first.values()) for y in years]
         world_annual = [sum(y in w for w in won.values()) for y in years]
 
+        # 女性得主（累計人數）與得獎時的年齡（這個子項目第一次得獎時滿幾歲，到那一年為止的平均），2026-10-30 起
+        age_at = {p.id: p.ages.get((first[p.id], next(c for y, c, _ in p.prizes if y == first[p.id] and (item == "all" or c == item))))
+                  for p in people if p.id in first}
+        women: dict[str, list[float | None]] = {}
+        mean_age: dict[str, list[float | None]] = {}
+        for iso3 in countries:
+            mine = [p for p in people if p.iso3 == iso3 and p.id in first]
+            women[iso3] = [sum(first[p.id] <= y for p in mine if p.female) for y in years]
+            mean_age[iso3] = _mean_ages(mine, first, age_at, years)
+        world_women = [sum(first[p.id] <= y for p in people if p.id in first and p.female) for y in years]
+        world_age = _mean_ages([p for p in people if p.id in first], first, age_at, years)
+
         capita_years = [y for y in years if y >= WPP_FIRST]
         offset = years.index(capita_years[0])
         per_capita = {}
@@ -275,6 +319,21 @@ def build() -> None:
             indicator_file("annual", "位", years, annual, aggregates={"WLD": world_annual}, **note_fields),
             quiet=True,
         )
+        write_json(
+            OUT / "women" / f"{item}.json",
+            indicator_file("women", "位", years, women, aggregates={"WLD": world_women}, **note_fields),
+            quiet=True,
+        )
+        write_json(
+            OUT / "age" / f"{item}.json",
+            indicator_file(
+                "age", "歲", years, {k: v for k, v in mean_age.items() if any(x is not None for x in v)},
+                aggregates={"WLD": world_age}, **note_fields,
+            ),
+            quiet=True,
+        )
+        print(f"  {item}: 女性 {world_women[-1]} 人（{world_women[-1] / world_cumulative[-1] * 100:.1f}%），"
+              f"得獎時平均 {world_age[-1]} 歲；台灣女性 {women.get('TWN', [0])[-1]}、平均 {mean_age.get('TWN', [None])[-1]} 歲")
         last = {iso3: s[-1] for iso3, s in cumulative.items()}
         capita_last = {iso3: s[-1] for iso3, s in per_capita.items() if s[-1] is not None}
         summary[item] = (last, world_cumulative[-1], capita_last, world_capita[-1], max(max(s) for s in annual.values()))
