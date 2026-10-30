@@ -50,6 +50,8 @@ STEPS = {
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
     # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
     "trade-dependence": "topics.trade_dependence",
+    # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
+    "trade-goods": "topics.trade_goods",
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
@@ -63,6 +65,8 @@ STEPS = {
     "gender": "topics.gender",
     "wages": "topics.wages",
     "fiscal": "topics.fiscal",
+    # 物價與財政的擴充：政府支出的用途（IMF COFOG）、稅收的組成（OECD）、公共債務兩百年（IMF HPD）
+    "fiscal-structure": "topics.fiscal_structure",
     # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
     "taxes": "topics.taxes",
     # 要先有 geo 的國界；第一次會向 Overpass 發 27 個查詢（9 個品牌、6 種店型的名稱比對、便利商店 12 個經度帶，
@@ -75,6 +79,8 @@ STEPS = {
     "temperature-grid-tiles": "topics.temperature_grid_tiles",
     # 一年下雨幾天（氣溫與降雨主題）：CRU TS 的 wet（第一次下載約 233 MB）＋中央氣象署測站的降雨日數（台灣附註）
     "wet-days": "topics.wet_days",
+    # 日照時數（氣溫與降雨主題）：CRU CL v2.0 的日照百分比（1961–1990 年平均，約 12 MB）換算成小時＋中央氣象署測站（台灣附註）
+    "sunshine": "topics.sunshine",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
@@ -112,6 +118,10 @@ STEPS = {
     "road-safety": "topics.road_safety",  # WHO（GHO、GSRRS 2023）與交通部統計查詢網
     # 洗腎大國（併進疾病主題，輸出到 topics/disease/）：USRDS 年報第 11 章（GraphQL 一次 30 KB）、WHO NCD CCS（xmart）；幾秒
     "dialysis": "topics.dialysis",
+    # 長期照顧（併進健康主題，輸出到 topics/health/）：OECD 長照床數與使用者（約 7 MB）、衛福部兩個 xlsx、WPP 年齡別人口
+    "long-term-care": "topics.long_term_care",
+    # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
+    "palliative": "topics.palliative",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
@@ -119,6 +129,8 @@ STEPS = {
     # Marine Regions 的 WFS（EEZ 的屬性與界線，界線約 25 MB、2 分鐘）、FAO FishStat（約 6 MB）、FAOSTAT 土地利用（約 3 MB）、
     # 漁業署《漁業統計年報》的生產量報表（約 4 MB）
     "oceans": "topics.oceans",
+    # 海鮮的貿易（併進海洋與漁業主題）：BACI HS92（2.4 GB，跟貿易主題同一個檔）的第 03 章，幾分鐘
+    "seafood-trade": "topics.seafood_trade",
     # Cottom et al. 的 SPOT 輸出（OWID 快照的 Dryad 檔，4 MB）、Meijer et al. 的河口（figshare，0.7 MB）、
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
@@ -133,7 +145,11 @@ STEPS = {
     # OpenAlex API 的 group_by（約 300 次查詢，沒有金鑰時一天約 1,000 次的匿名額度，第一次約 3 分鐘）、WPP 的人口
     "publications": "topics.publications",
     "semiconductors": "topics.semiconductors",  # 讀貿易主題已下載的 BACI（約 800 MB），一兩分鐘；另外查財政部兩個小檔
+    # 太陽能板（併進半導體主題）：BACI HS22 版（約 300 MB，2022–2024），幾十秒；財政部的 854142、854143 對照
+    "solar-panels": "topics.solar_panels",
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
+    # 關鍵礦產的貿易流向（稀土、永久磁鐵、鈾）：BACI HS92（2.4 GB，塑膠污染的同一份快取）；約 5 分鐘
+    "minerals-trade": "topics.minerals_trade",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
@@ -227,6 +243,8 @@ STEPS = {
     "attractions": "topics.attractions",
     # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒
     "antarctic-stations": "topics.antarctic_stations",
+    # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒
+    "penguins": "topics.penguins",
     # 國家公園：Wikidata 的國家公園點、WDI 的陸域保護區占國土；幾秒（Wikidata 第一次查要等查詢服務）
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒

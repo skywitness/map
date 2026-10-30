@@ -6,7 +6,7 @@ import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { countryName as nameOf, type CountryTable } from '../../lib/countries';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, formatLargeTick } from '../../lib/format';
-import { decodePoints } from '../../map/Overlays';
+import { decodePoints } from '../../map/overlayData';
 import type { Tokens } from '../../theme/tokens';
 import { PLSCI_QUARTER, PORT_SIZE_SHORT, portName } from '../shipping';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';

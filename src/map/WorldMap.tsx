@@ -146,6 +146,7 @@ import {
 } from './worldMapLayers';
 import { MapTooltip, MarkTooltip, PointerLines } from './MapTooltip';
 import { bindMapEvents, type MapHover } from './mapEvents';
+import { GlobePlaceholder } from '../app/GlobePlaceholder';
 import { useCountryFills } from './useCountryFills';
 import { useValueLabels } from './useValueLabels';
 import { useRasterLayers } from './useRasterLayers';
@@ -246,7 +247,8 @@ interface WorldMapProps {
   pointer?: (lngLat: [number, number], iso3: string | null) => PointerInfo | null;
   /** 主題側欄放的標記（首都與它的對蹠點）：圓點加名稱，點一下移到 link 那一個（不會改變選取的國家） */
   marks?: MapMark[] | null;
-  ref?: Ref<WorldMapHandle>;
+  /** 地圖的操作（匯出圖片等）；不叫 ref：Preact 的函式元件收不到 ref 這個 prop（React 19 收得到） */
+  handleRef?: Ref<WorldMapHandle>;
 }
 
 export interface MapView {
@@ -270,7 +272,7 @@ export function WorldMap(props: WorldMapProps) {
   const { box, onBoxChange, boxToolLabel = t.boxTool, overlay, legendTitle } = props;
   const { railways = null, airports = null, layers = DEFAULT_LAYERS, onLayersChange, renderAirportTooltip } = props;
   const { overlays = NO_OVERLAYS, year = 0, renderPointTooltip, places = NO_PLACES, time = null } = props;
-  const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, ref, onFirstData } =
+  const { basemap, fitOnSelect = false, flows = null, threeD = false, onThreeDChange, focus = null, handleRef, onFirstData } =
     props;
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
@@ -305,6 +307,8 @@ export function WorldMap(props: WorldMapProps) {
   const baseRastersRef = useRef<{ id: string; minzoom: number; maxzoom: number }[]>([]);
   const [failed, setFailed] = useState(false);
   const [globe, setGlobe] = useState(true);
+  /** 地圖第一次畫好了（'load'）：之後不再放地球圖（GlobePlaceholder） */
+  const [loaded, setLoaded] = useState(false);
   // MapLibre 5 在地球儀上查不到立體圖形（queryRenderedFeatures 對 fill-extrusion 用的是平面的矩陣），
   // hover、點國家都會失效，所以 3D 時固定用平面地圖；離開 3D 再回到使用者選的投影。
   // 地形圖層的 3D 是立體地形、沒有立體圖形，地球儀上照樣點得到（5.24 實測），維持使用者選的投影
@@ -577,6 +581,7 @@ export function WorldMap(props: WorldMapProps) {
           setRevision((r) => r + 1);
         });
         m.once('load', () => {
+          setLoaded(true);
           // 窄螢幕時版權標示預設是展開的，會蓋住地圖下緣；先收合成 ⓘ 按鈕
           m.getContainer().querySelector('.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
         });
@@ -1070,8 +1075,8 @@ export function WorldMap(props: WorldMapProps) {
       ],
       { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() },
     );
-    // 只依 key：同一個範圍再點一次也要移過去
-  }, [focusBox?.key]);
+    // 只依 key：同一個範圍再點一次也要移過去；ready 是第一個畫面還沒好時就要移過去的（主題的 focus）
+  }, [ready, focusBox?.key]);
 
   /* ── 回報縮放與畫面範圍（線圖層的 detail 依它下載分區） ── */
   const onViewChangeRef = useRef(onViewChange);
@@ -1539,7 +1544,7 @@ export function WorldMap(props: WorldMapProps) {
           : null;
 
   useImperativeHandle(
-    ref,
+    handleRef,
     () => ({
       exportImage: async (content) => {
         const map = mapRef.current;
@@ -1600,12 +1605,11 @@ export function WorldMap(props: WorldMapProps) {
     <div
       ref={containerRef}
       className={`map${dimmed ? ' is-dimmed' : ''}${boxMode ? ' is-box-mode' : ''}${fullscreen ? ' is-fullscreen' : ''}`}
+      style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
     >
-      <div
-        ref={mapNodeRef}
-        className="map-canvas"
-        style={{ background: tokens.mode === 'light' ? SPACE_BACKGROUND_LIGHT : SPACE_BACKGROUND }}
-      />
+      {/* 地圖第一次畫好（'load'）前，畫布底下先放一張初始視角的地球圖；地球儀畫出來就蓋過它 */}
+      {!loaded && projection === 'globe' && !threeD && <GlobePlaceholder dark={basemap.dark} />}
+      <div ref={mapNodeRef} className="map-canvas" />
       {failed && (
         <StatusCard overlay kind="error" title={t.basemapFailedTitle} detail={t.basemapFailed} action={{ label: t.reload, onClick: () => location.reload() }} />
       )}

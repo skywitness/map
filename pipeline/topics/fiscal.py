@@ -19,6 +19,7 @@ import statistics
 from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
 from sources import dgbas, imf, imf_revenue, mof, oecd_revenue, worldbank
 from sources.countries import to_iso3
+from topics import fiscal_structure
 
 FIRST_YEAR = 1980
 TAX_LATEST_WITHIN = 1
@@ -287,6 +288,7 @@ def build() -> None:
     _price_level(out, projection_from)
     tax_filled = _tax_revenue(out)
     build_food_share()
+    fiscal_structure.build()
 
     write_json(
         out / "manifest.json",
