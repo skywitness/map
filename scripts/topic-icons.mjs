@@ -112,6 +112,7 @@ const TOPIC_ICONS = {
   'co2-stations': 'flask-round',
   temperature: 'thermometer-sun',
   'urban-heat': 'thermometer',
+  'ozone-hole': 'circle-dashed',
   'air-quality': 'haze',
   'water-forest': 'trees',
   plastic: 'recycle',

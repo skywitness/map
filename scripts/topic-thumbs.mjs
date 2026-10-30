@@ -50,11 +50,12 @@ const ISOLATE = `
 `;
 
 /**
- * 資料只在一小塊地方的主題（2026-10-30 起，企鵝在哪裡、南極的冰下湖：都在南極）：縮圖改看那裡。
+ * 資料只在一小塊地方的主題（2026-10-30 起，企鵝在哪裡、南極的冰下湖、臭氧洞：都在南極）：縮圖改看那裡。
  * center 是中心的經緯度，zoom 是比整個世界放大幾級
  */
 const VIEWS = {
   penguins: { center: [-5, -66], zoom: 0.7 },
+  'ozone-hole': { center: [0, -62], zoom: 0.5 },
 };
 
 mkdirSync(`${OUT_DIR}s/`, { recursive: true });

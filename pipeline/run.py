@@ -86,6 +86,8 @@ STEPS = {
     "co2-stations": "topics.co2_stations",
     # 城市熱島：Yang 等人的 Global UHII Dataset（figshare，RAR 約 1.4 GB，要有 bsdtar），要先有 cities 的點；第一次約 1 分鐘
     "urban-heat": "topics.urban_heat",
+    # 臭氧洞：NASA Ozone Watch 的年表與每年臭氧洞最大那一天的 1° 網格（46 個檔，約 9 MB）；約 1 分鐘
+    "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
