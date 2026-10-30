@@ -240,6 +240,7 @@ STEPS = {
     "foods": "topics.foods",
     # 節慶：Wikidata 的節慶（依月份與種類）＋文化資產局登錄的台灣民俗；幾秒（第一次查 Wikidata 約 5 分鐘）
     "festivals": "topics.festivals",
+    "chinatowns": "topics.chinatowns",  # Wikidata 的唐人街（一次 SPARQL）加上依維基分區條目補的表
     # 雲端機房的區域：AWS、Google Cloud、Azure 的區域（手工整理的事實表 sources/cloud_regions.py）；不到 1 秒
     "cloud-regions": "topics.cloud_regions",
     # 最古老的公司：英文維基「List of oldest companies」（固定版本）＋ Wikidata 的座標；幾秒

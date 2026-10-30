@@ -55,6 +55,7 @@ const TOPIC_ICONS = {
   education: 'graduation-cap',
   pisa: 'book-open-check',
   'university-entrance': 'notebook-pen',
+  chinatowns: 'lamp-ceiling',
   diet: 'utensils',
   foods: 'croissant',
   housing: 'house',
