@@ -140,6 +140,7 @@ const TOPIC_ICONS = {
   koppen: 'cloud-sun-rain',
   ice: 'snowflake',
   'antarctic-stations': 'tent',
+  penguins: 'bird',
   wind: 'wind',
   daylight: 'sun-moon',
   eclipses: 'eclipse',

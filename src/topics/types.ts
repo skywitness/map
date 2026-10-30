@@ -937,6 +937,11 @@ export interface TopicDefinition {
    * 地圖在 lon/lat 畫一個小圓點與比例圓（跟吐瓦魯這類沒有形狀的國家一樣），排名表、tooltip、側欄用 name 當名稱。
    */
   places?: PlaceDef[];
+  /**
+   * 換到這個主題時（沒有選國家）地圖移到這個範圍 [西, 南, 東, 北]（2026-10-30 起，企鵝在哪裡、南極的冰下湖：
+   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）
+   */
+  focus?: [number, number, number, number];
 }
 
 /**

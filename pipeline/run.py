@@ -217,6 +217,8 @@ STEPS = {
     "attractions": "topics.attractions",
     # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒
     "antarctic-stations": "topics.antarctic_stations",
+    # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒
+    "penguins": "topics.penguins",
     # 國家公園：Wikidata 的國家公園點、WDI 的陸域保護區占國土；幾秒（Wikidata 第一次查要等查詢服務）
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒
