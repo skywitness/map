@@ -69,6 +69,8 @@ STEPS = {
     "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
     # 暖化（近 10 年平均與 1951–1980 年的差）的網格圖磚（不進版本控制，部署時產生）
     "temperature-grid-tiles": "topics.temperature_grid_tiles",
+    # 一年下雨幾天（氣溫與降雨主題）：CRU TS 的 wet（第一次下載約 233 MB）＋中央氣象署測站的降雨日數（台灣附註）
+    "wet-days": "topics.wet_days",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
