@@ -11,6 +11,7 @@ import { localize, setLang, useLang, useT } from './i18n';
 import { countryName, registerPlaces, type CountryTable } from './lib/countries';
 import { buildSearchIndex } from './lib/countrySearch';
 import { rememberTopic } from './lib/recentTopics';
+import { useLayoutPrefs } from './lib/layoutPrefs';
 import { openSavedView, useSavedViews } from './lib/savedViews';
 import { langParam } from './i18n/lang';
 import { useUI } from './lib/strings';
@@ -141,6 +142,10 @@ export function App() {
     // 正在下載別的主題時（urlState 是舊的）不改網址
     if (state !== urlState && urlState === liveUrlState) update({ indicator: state.indicator, item: state.item }, { replace: true });
   }, [state, urlState, liveUrlState, update]);
+  // 版面：時間軸、資料來源與說明可以分別關掉（頂列的「版面」選單）；嵌入模式不管這個設定，照樣都顯示
+  const [layout, setLayout] = useLayoutPrefs();
+  const showTime = state.embed || layout.time;
+  const showSources = state.embed || layout.sources;
   const lang = useLang();
   const t = useT();
   const online = useOnline();
@@ -363,8 +368,10 @@ export function App() {
         ? [{ id: 'values', label: state.labels ? t.valueLabelsOff : t.valueLabels, run: () => update({ labels: !state.labels }) }]
         : []),
       ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
+      { id: 'layout-time', label: layout.time ? t.hideTime : t.showTime, run: () => setLayout({ time: !layout.time }) },
+      { id: 'layout-sources', label: layout.sources ? t.hideSources : t.showSources, run: () => setLayout({ sources: !layout.sources }) },
     ];
-  }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews]);
+  }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews, layout, setLayout]);
 
   const projected = data?.projectionFrom !== undefined && year >= data.projectionFrom;
   const itemLabel = dimension?.options.find((o) => o.id === item)?.label;
@@ -568,7 +575,7 @@ export function App() {
   };
 
   return (
-    <div className={`app${state.embed ? ' is-embed' : ''}`} ref={appRef}>
+    <div className={`app${state.embed ? ' is-embed' : ''}${showSources ? '' : ' is-no-footer'}`} ref={appRef}>
       <TopBar
         topic={topic}
         embed={state.embed}
@@ -582,6 +589,8 @@ export function App() {
         paletteActions={paletteActions}
         themeMode={tokens.mode}
         onToggleTheme={toggleTheme}
+        layout={layout}
+        onLayoutChange={setLayout}
       />
 
       {/* 控制列、說明、地圖、時間軸都在 <main> 裡（axe 的 region：內容都要在某個 landmark 裡，2026-10-29）；
@@ -715,10 +724,14 @@ export function App() {
                 action={{ label: t.retry, onClick: () => location.reload() }}
               />
             )}
-            {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出 */}
+            {/* 播放歷年變化時地圖左上角疊大大的年份（看地圖、錄影時一眼知道是哪一年），停下後淡出；
+                版面關掉了時間軸時一直顯示（小一號），才知道看的是哪一年 */}
             {view === 'map' && !pure && (!timeless || at) && (
               // 有框選結果時它在左上角（或右上角），年份改放中間；時刻主題寫日期與時間（播放一天時時間在變）
-              <div className={`map-year${playing ? ' is-on' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`} aria-hidden="true">
+              <div
+                className={`map-year${playing || !showTime ? ' is-on' : ''}${!showTime && !playing ? ' is-pinned' : ''}${boxResult ? ' is-center' : ''}${at ? ' is-moment' : ''}`}
+                aria-hidden="true"
+              >
                 {/* 每換一年新的數字從下面滾上來（styles.css 的 .year-roll） */}
                 <span key={at ? at.time : year} className="year-roll">
                   {at ? formatMoment(at.time) : (yearText ?? year)}
@@ -873,8 +886,9 @@ export function App() {
         </div>
 
         {clock ? (
-          <Suspense fallback={<div className="time-slider" />}>
+          <Suspense fallback={<div className="time-slider" hidden={!showTime} />}>
             <MomentControl
+              hidden={!showTime}
               time={shownTime}
               live={state.time === null}
               onChange={(ms) => update({ time: floorMinute(ms) })}
@@ -897,13 +911,14 @@ export function App() {
               onChange={setYear}
               trend={trend}
               onPlayingChange={setPlaying}
+              hidden={!showTime}
             />
           )
         )}
 
       </main>
 
-      <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} />
+      {showSources && <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} />}
     </div>
   );
 }

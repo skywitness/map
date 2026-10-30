@@ -18,6 +18,8 @@ interface TimeSliderProps {
   trend?: (number | null)[] | null;
   /** 開始、停止播放時通知（App 在地圖上疊大大的年份） */
   onPlayingChange?: (playing: boolean) => void;
+  /** 版面選單關掉了時間軸：不顯示，但照樣掛著（← → 換年份、空白鍵播放照樣能用） */
+  hidden?: boolean;
 }
 
 /** 1× 時每一年停多久；0.5× 是兩倍、2× 是一半 */
@@ -46,6 +48,7 @@ export function TimeSlider({
   onChange,
   trend,
   onPlayingChange,
+  hidden,
 }: TimeSliderProps) {
   const first = years[0];
   const last = years[years.length - 1];
@@ -132,7 +135,7 @@ export function TimeSlider({
 
   if (first === last) {
     return (
-      <div className="time-slider is-single">
+      <div className="time-slider is-single" hidden={hidden}>
         <span className="time-single-note">{t.singleSnapshot}</span>
         <output className="time-year">
           {axis && <span className="time-axis">{axis.label}</span>}
@@ -153,7 +156,7 @@ export function TimeSlider({
         : t.projectionFrom(projectionFrom);
 
   return (
-    <div className="time-slider">
+    <div className="time-slider" hidden={hidden}>
       <button
         type="button"
         className="play"

@@ -85,6 +85,11 @@ button {
     max(var(--gutter), env(safe-area-inset-left));
 }
 
+/* 版面選單關掉了頁尾：底部的安全區域改由 .app 留（原本是頁尾的 padding） */
+.app.is-no-footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* ── 頂列 ───────────────────────────── */
 .topbar {
   display: flex;
@@ -986,6 +991,58 @@ button {
   flex: none;
 }
 
+/* ── 版面（LayoutMenu.tsx）：時間軸、資料來源與說明分別顯示或關掉 ── */
+.layout-menu {
+  position: relative;
+  flex: none;
+}
+
+.layout-button {
+  color: var(--ink);
+}
+
+/* 有東西收起來時是藍色的 */
+.layout-button.is-set {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.layout-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 6px;
+  width: 240px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.layout-popover h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.layout-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.layout-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
 /* ── 分享選單 ───────────────────────── */
 .share {
   position: relative;
@@ -1868,6 +1925,12 @@ kbd {
   transition: opacity 0.2s;
 }
 
+/* 版面關掉了時間軸：年份一直留在地圖上，小一號（播放時照樣是大的） */
+.map-year.is-pinned {
+  padding: 0 10px 2px;
+  font-size: 22px;
+}
+
 .map-year.is-center {
   left: 50%;
   transform: translateX(-50%);
@@ -1885,6 +1948,10 @@ kbd {
     left: 8px;
     padding: 0 10px 2px;
     font-size: 30px;
+  }
+
+  .map-year.is-pinned {
+    font-size: 18px;
   }
 }
 
@@ -4611,6 +4678,11 @@ kbd {
 }
 
 /* ── 時間軸 ─────────────────────────── */
+/* 版面選單關掉了時間軸（App.tsx 照樣掛著，← → 換年份還能用） */
+.time-slider[hidden] {
+  display: none;
+}
+
 .time-slider {
   display: flex;
   align-items: center;
@@ -5542,6 +5614,7 @@ kbd {
 
   .topic-menu,
   .playback-popover,
+  .layout-popover,
   .saved-popover,
   .share-menu,
   .map-menu-list,
