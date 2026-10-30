@@ -141,8 +141,27 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
  * 不相鄰的國際藍與科技紫在綠色盲下接近，靠亮度（淺色 L 0.55 對 0.45）與圖示區分。
  */
 export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
-  light: { society: '#bc1f4f', economy: '#b17000', global: '#006fd8', energy: '#008a22', tech: '#6130b1', geo: '#088f77' },
-  dark: { society: '#ee5377', economy: '#c78600', global: '#3e95fe', energy: '#2aaf3d', tech: '#8e57d8', geo: '#04a19b' },
+  // 環境（橄欖綠）、交通（灰藍）2026-10-30 加（第七批 124：能源拆成能源與環境、科技與交通拆成科技與交通）
+  light: {
+    society: '#bc1f4f',
+    economy: '#b17000',
+    global: '#006fd8',
+    energy: '#008a22',
+    environment: '#5f7a00',
+    tech: '#6130b1',
+    transport: '#4b5a92',
+    geo: '#088f77',
+  },
+  dark: {
+    society: '#ee5377',
+    economy: '#c78600',
+    global: '#3e95fe',
+    energy: '#2aaf3d',
+    environment: '#93b11c',
+    tech: '#8e57d8',
+    transport: '#8796d6',
+    geo: '#04a19b',
+  },
 };
 
 export function applyTokens(tokens: Tokens): void {

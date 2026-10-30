@@ -22,7 +22,7 @@ function circuitTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
   };
 }
 
-/** 運動主題（sports.ts）的 F1 部分：2026-10-30（第七批 121）起跟奧運合成一個主題 */
+/** 賽車主題（racing.ts）的 F1 部分：2026-10-30（第七批 121）跟奧運合成「運動」，同一天（第九批 160）搬到「賽車」 */
 export const f1Part = {
   sources: [
     {

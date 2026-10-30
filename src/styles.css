@@ -239,21 +239,35 @@ button {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
 }
 
-/* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄 */
+/* 主題多的分類分欄（TopicNav.tsx 的 menuStyle），一欄排完再排下一欄；2026-10-30 起依小標題分段，一段不拆到兩欄 */
 .topic-menu-items {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(var(--menu-rows, 1), auto);
-  grid-template-columns: repeat(var(--menu-columns, 1), minmax(220px, 300px));
+  columns: var(--menu-columns, 1);
   column-gap: 4px;
+  width: calc(var(--menu-columns, 1) * 264px);
+}
+
+.topic-menu-section {
+  display: grid;
+  break-inside: avoid;
+}
+
+.topic-menu-section + .topic-menu-section {
+  margin-top: 4px;
+}
+
+/* 小標題（顏色只標示分類，文字照用 ink） */
+.topic-menu-heading {
+  padding: 8px 10px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
 }
 
 /* 手機上螢幕窄，維持一欄、捲動 */
 @media (max-width: 768px) {
   .topic-menu-items {
-    grid-auto-flow: row;
-    grid-template-rows: none;
-    grid-template-columns: minmax(0, 1fr);
+    columns: 1;
+    width: auto;
   }
 }
 
@@ -421,6 +435,18 @@ button {
   width: 28px;
   height: 28px;
   border-radius: 7px;
+}
+
+/* 分類裡的小標題（2026-10-30 起） */
+.overview-part + .overview-part {
+  margin-top: 12px;
+}
+
+.overview-body h4 {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
 }
 
 .overview-grid {
@@ -3597,6 +3623,20 @@ kbd {
 
 .profile-link {
   white-space: nowrap;
+}
+
+/* 國家側欄最下面的相關主題（panels/RelatedTopics.tsx） */
+.related-topics {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--grid);
+}
+
+.related-topics h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
 }
 
 /* 國旗（flagImages.tsx）：國旗主題的側欄、國家小檔案最上面、排名表的小國旗。細邊讓白色的部分看得出邊；

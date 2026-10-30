@@ -33,9 +33,10 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   // 企業與品牌（第七批 120）：最古老的公司、品牌的發源地，指標 id 不變
   'oldest-companies': { topic: 'companies', indicator: 'companies' },
   brands: { topic: 'companies', indicator: 'brands' },
-  // 運動（第七批 121）：奧運獎牌、F1 賽道與冠軍，指標 id 不變
+  // 運動（第七批 121）：奧運獎牌，指標 id 不變
   olympics: { topic: 'sports', indicator: 'medals-total' },
-  f1: { topic: 'sports', indicator: 'races' },
+  // F1 賽道與冠軍：第七批 121 併進運動，第九批 160 再搬到賽車，指標 id 不變
+  f1: { topic: 'racing', indicator: 'races' },
   // 七個小主題併進大主題（第七批 122）
   'birth-season': { topic: 'fertility', indicator: 'peak-month' },
   'university-entrance': { topic: 'education', indicator: 'main-route' },
@@ -56,6 +57,8 @@ export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
   transport: Object.fromEntries(
     ['airports-count', 'large-airports', 'air-passengers', 'air-trips', 'busiest-passengers'].map((id) => [id, { topic: 'aviation' }]),
   ),
+  // 賽車（第九批 160）：運動的 F1 指標搬到賽車，指標 id 不變
+  sports: Object.fromEntries(['races', 'champions'].map((id) => [id, { topic: 'racing' }])),
 };
 
 export interface Redirected {

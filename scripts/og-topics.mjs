@@ -46,20 +46,27 @@ const catalog = [...readFileSync(join(ROOT, 'src/topics/catalog.gen.ts'), 'utf8'
   JSON.parse(m[1]),
 );
 const registry = readFileSync(join(ROOT, 'src/topics/registry.ts'), 'utf8');
-const groups = [...registry.matchAll(/\{ id: '([\w-]+)', label: \{ zh: '([^']+)'.*?topics: \[([^\]]*)\]/g)].map((m) => ({
-  id: m[1],
-  label: m[2],
-  topics: [...m[3].matchAll(/'([\w-]+)'/g)].map((t) => t[1]),
-}));
+// 每個分類是 { id: '…', label: { zh: '…', … }, sections: [{ label: …, topics: [...] }, …] }（2026-10-30 起有小標題）
+const specs = registry.slice(registry.indexOf('TOPIC_GROUP_SPECS'), registry.indexOf('export const groupTopics'));
+const groups = specs
+  .split(/\n {4}id: '/)
+  .slice(1)
+  .map((block) => ({
+    id: block.slice(0, block.indexOf("'")),
+    label: /label: \{ zh: '([^']+)'/.exec(block)[1],
+    topics: [...block.matchAll(/topics: \[([^\]]*)\]/g)].flatMap((m) => [...m[1].matchAll(/'([\w-]+)'/g)].map((t) => t[1])),
+  }));
 const groupOf = new Map(groups.flatMap((g) => g.topics.map((t) => [t, g])));
 const iconsOf = (file) =>
   Object.fromEntries([...readFileSync(join(ROOT, file), 'utf8').matchAll(/^ {2}"([\w-]+)": ("[^\n]*"), \/\/ /gm)].map((m) => [m[1], JSON.parse(m[2])]));
 const topicIcons = iconsOf('src/topics/icons.gen.ts');
 const groupIcons = iconsOf('src/topics/groupIcons.gen.ts');
 const tokens = readFileSync(join(ROOT, 'src/theme/tokens.ts'), 'utf8');
-const lightColors = /light: \{ society: '([^']+)', economy: '([^']+)', global: '([^']+)', energy: '([^']+)', tech: '([^']+)', geo: '([^']+)' \}/.exec(tokens);
-if (!lightColors) throw new Error('tokens.ts 裡找不到 CATEGORY_COLORS 的淺色');
-const COLORS = Object.fromEntries(['society', 'economy', 'global', 'energy', 'tech', 'geo'].map((k, i) => [k, lightColors[i + 1]]));
+// CATEGORY_COLORS 的淺色那組（light: { society: '#…', … }，2026-10-30 起一行一個分類）
+const lightBlock = /light: \{([^}]*)\}/.exec(tokens.slice(tokens.indexOf('CATEGORY_COLORS')));
+if (!lightBlock) throw new Error('tokens.ts 裡找不到 CATEGORY_COLORS 的淺色');
+const COLORS = Object.fromEntries([...lightBlock[1].matchAll(/(\w+): '(#[0-9a-f]{6})'/g)].map((m) => [m[1], m[2]]));
+for (const g of groups) if (!COLORS[g.id]) throw new Error(`CATEGORY_COLORS 沒有分類 ${g.id} 的顏色`);
 
 const escape = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 

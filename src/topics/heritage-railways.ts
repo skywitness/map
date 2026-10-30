@@ -72,7 +72,7 @@ const lines = (v: number) => tr({ zh: `${fixed(v, 0)} 條`, en: `${fixed(v, 0)} 
 export const heritageRailways: TopicDefinition = {
   id: 'heritage-railways',
   title: { zh: '觀光鐵道與登山鐵路', en: 'Heritage and mountain railways' },
-  shortTitle: { zh: '觀光鐵道', en: 'Heritage railways' },
+  shortTitle: { zh: '觀光鐵道', en: 'Heritage rail' },
   defaultIndicator: 'map',
   defaultYear: 2026,
   sources: [

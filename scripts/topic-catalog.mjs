@@ -38,12 +38,22 @@ try {
   const { pureMap } = await server.ssrLoadModule('/src/topics/map.ts');
   const { population } = await server.ssrLoadModule('/src/topics/population.ts');
 
-  const ids = TOPIC_GROUP_SPECS.flatMap((g) => g.topics);
+  const ids = TOPIC_GROUP_SPECS.flatMap((g) => g.sections.flatMap((s) => s.topics));
   const missing = ids.filter((id) => id !== population.id && !TOPIC_MODULES[id]);
   const extra = Object.keys(TOPIC_MODULES).filter((id) => !ids.includes(id));
   if (missing.length || extra.length) {
     throw new Error(`registry.ts：分類裡的主題跟 TOPIC_MODULES 對不起來（缺 ${missing.join(', ') || '無'}；多 ${extra.join(', ') || '無'}）`);
   }
+
+  // 相關主題（related.ts，2026-10-30）：每個主題都要有一列，連到的主題要存在（合併、改名後才不會連到不存在的主題）
+  const { RELATED } = await server.ssrLoadModule('/src/topics/related.ts');
+  const badRelated = [
+    ...ids.filter((id) => !RELATED[id]).map((id) => `${id} 沒有相關主題`),
+    ...Object.entries(RELATED).flatMap(([id, list]) =>
+      [id, ...list].filter((x) => !ids.includes(x)).map((x) => `${id} 的 ${x} 不是現有的主題`),
+    ),
+  ];
+  if (badRelated.length) throw new Error(`related.ts：${badRelated.join('；')}`);
 
   const topics = [pureMap];
   for (const id of ids) topics.push(id === population.id ? population : topicOf(await TOPIC_MODULES[id](), id));
