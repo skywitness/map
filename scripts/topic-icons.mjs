@@ -135,6 +135,7 @@ const TOPIC_ICONS = {
   landings: 'moon',
   transport: 'train-front',
   airlines: 'plane-takeoff',
+  'ride-hailing': 'car-taxi-front',
   'longest-flights': 'route',
   airspace: 'radar',
   'cable-cars': 'cable-car',
