@@ -32,7 +32,7 @@ import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxPolygon, type Box } from './boxEstimate';
 import { FLOW_PRESENCE_WIDTH, flowColors, flowText, flowWidth, greatCircle, type FlowSelection } from './flows';
-import { focusBounds } from './focus';
+import { focusBounds, mapInsets } from './focus';
 import { unwrapAntimeridian, type CountryFeature } from './geometry';
 import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
 import {
@@ -1100,6 +1100,8 @@ export function WorldMap(props: WorldMapProps) {
 
   // 選取的國家加粗外框；不在畫面上時（例如從搜尋或排名表選）把地圖轉過去
   const selectedRef = useRef<string | null>(null);
+  /** 已經檢查過要不要移過去的選取（有 anchors 之後才檢查得了） */
+  const placedRef = useRef<string | null>(null);
   const pulseFrameRef = useRef(0);
   useEffect(() => () => cancelAnimationFrame(pulseFrameRef.current), []);
   useEffect(() => {
@@ -1133,6 +1135,7 @@ export function WorldMap(props: WorldMapProps) {
       if (bounds) map.fitBounds(bounds, { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() });
       return;
     }
+    if (!selected) placedRef.current = null;
     const anchor = selected ? anchors.get(selected) : undefined;
     if (!anchor) return;
     const center = map.getCenter();
@@ -1140,7 +1143,26 @@ export function WorldMap(props: WorldMapProps) {
     const canvas = map.getCanvas();
     const offScreen = p.x < 0 || p.y < 0 || p.x > canvas.clientWidth || p.y > canvas.clientHeight;
     const behindGlobe = projection === 'globe' && geoDistance([center.lng, center.lat], anchor) > Math.PI / 2.4;
-    if (offScreen || behindGlobe) map.easeTo({ center: anchor, zoom: Math.max(map.getZoom(), 2.5), duration: 800 });
+    // 剛選到的國家在畫面上但被縮放按鈕、手機的抽屜蓋住（或貼著邊）也移過去，停在沒被蓋住的那塊的中間，縮放不變。
+    // 只在剛選到時（換成細的國界、換底圖時 anchors 會變，不要因此移動）
+    const fresh = placedRef.current !== selected;
+    placedRef.current = selected;
+    const inset = mapInsets(map.getContainer());
+    const margin = Math.min(32, canvas.clientWidth / 10);
+    const covered =
+      fresh &&
+      (p.x < margin ||
+        p.y < margin ||
+        p.x > canvas.clientWidth - inset.right - margin ||
+        p.y > canvas.clientHeight - inset.bottom - margin);
+    if (offScreen || behindGlobe || covered) {
+      map.easeTo({
+        center: anchor,
+        zoom: offScreen || behindGlobe ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
+        offset: [-inset.right / 2, -inset.bottom / 2],
+        duration: 800,
+      });
+    }
     // 投影不放進依賴：切換投影、進出 3D 時不要重跑，否則這裡的 easeTo 會打斷傾斜的動畫
   }, [revision, selected, anchors, fitOnSelect, countryBounds, markedCountries, bare]);
 
@@ -1162,14 +1184,11 @@ export function WorldMap(props: WorldMapProps) {
     const bounds = countryBounds.get(focus.iso3);
     if (!bounds) return;
     const rect = map.getContainer().getBoundingClientRect();
-    let covered = 0;
-    for (const el of document.querySelectorAll('[data-occludes-map]')) {
-      covered = Math.max(covered, rect.bottom - el.getBoundingClientRect().top);
-    }
+    const inset = mapInsets(map.getContainer());
     const pad = Math.min(48, rect.width / 8, rect.height / 8);
-    const bottom = Math.min(Math.max(pad, covered + pad / 2), rect.height * 0.6);
+    const bottom = Math.min(Math.max(pad, inset.bottom + pad / 2), rect.height * 0.6);
     map.fitBounds(bounds, {
-      padding: { top: pad, left: pad, right: pad + 40, bottom }, // 右邊留給縮放按鈕
+      padding: { top: pad, left: pad, right: pad + inset.right, bottom }, // 右邊留給縮放按鈕
       maxZoom: fitOnSelect ? 8 : 5,
       duration: 1200,
       bearing: map.getBearing(), // 3D 時保留目前的方位（fitBounds 預設會轉回正北）

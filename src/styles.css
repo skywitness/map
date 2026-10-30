@@ -147,6 +147,23 @@ button {
   opacity: 0.6;
 }
 
+/* 主題列放不下時一級一級收緊（TopicNav.tsx 的 compact）：間距 → 沒展開的分類的箭頭 → 它們的圖示 */
+.topics.is-compact-1,
+.topics.is-compact-2,
+.topics.is-compact-3 {
+  gap: 1px;
+}
+
+:is(.is-compact-1, .is-compact-2, .is-compact-3) > .topic {
+  padding-inline: 7px;
+  gap: 4px;
+}
+
+:is(.is-compact-2, .is-compact-3) > .topic:not(.is-active) .topic-caret,
+.is-compact-3 > .topic:not(.is-active) .topic-group-icon {
+  display: none;
+}
+
 /* 主題列放不下時可以橫向捲動：右緣淡出，看得出後面還有 */
 .topics.is-overflowing {
   padding-right: 24px;
@@ -3948,6 +3965,12 @@ kbd {
   background: var(--accent);
   /* 長條用地圖的顏色（RankingTable.tsx），最淺的幾級在淺色卡片上要看得到邊 */
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+/* 深色介面：地圖色階最深的幾級（深褐 #611e00、墨綠）跟深色卡片的對比只有 1.4–2.3:1，長條幾乎看不見。
+   顏色照樣跟地圖一樣，加一圈淡白的邊（跟卡片約 3.8:1，2026-10-30） */
+:root[data-theme='dark'] .value-bar {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 /* ── 時間軸 ─────────────────────────── */
