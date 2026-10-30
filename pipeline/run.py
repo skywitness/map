@@ -42,6 +42,7 @@ STEPS = {
     "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
     "pisa": "topics.pisa",  # OECD PISA 2025 Volume I 的兩個 Excel（約 2.8 MB）
+    "university-entrance": "topics.university_entrance",  # 依英文維基百科整理的表（sources/admission_tests.py），不必下載
     # NCD-RisC 的成人身高（2.4 MB）與兒童青少年身高（4.6 MB 的 zip），伺服器常斷線，用 curl 續傳；WPP 的年齡別人口
     "height": "topics.height",
     "blood-types": "topics.blood_types",
@@ -81,6 +82,8 @@ STEPS = {
     "wet-days": "topics.wet_days",
     # 日照時數（氣溫與降雨主題）：CRU CL v2.0 的日照百分比（1961–1990 年平均，約 12 MB）換算成小時＋中央氣象署測站（台灣附註）
     "sunshine": "topics.sunshine",
+    # 全球二氧化碳觀測站：NOAA GML 合作採樣網的瓶採樣月平均 CO2（約 6.7 MB）；幾秒
+    "co2-stations": "topics.co2_stations",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
@@ -122,6 +125,11 @@ STEPS = {
     "long-term-care": "topics.long_term_care",
     # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
     "palliative": "topics.palliative",
+    # 菸酒的擴充（輸出到 topics/tobacco-alcohol/）：英文維基「Regulation of electronic cigarettes」固定版本（230 KB）、WHO MPOWER 的
+    # 室內禁菸場所（xmart，6 MB）；幾秒
+    "tobacco-policy": "topics.tobacco_policy",
+    # 各國的健保制度（併進健康主題，輸出到 topics/health/）：OECD HSCS 2023 的 Q2（SDMX-JSON，32 KB）、英文維基兩個固定版本的表；幾秒
+    "health-systems": "topics.health_systems",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     # 航運密度的網格圖磚（不進版本控制，部署時產生）；第一次會下載世界銀行的 Global Shipping Traffic Density（535 MB）
@@ -167,6 +175,8 @@ STEPS = {
     # Wikidata 的 6 個 SPARQL 查詢（每個 2–5 秒）與約 40 批名稱（wbgetentities）、FAOSTAT 土地利用（陸地面積）；
     # 要先有 geo 的國界，也讀人口、旅行實用、語言、民主與自由、城市、海拔、國際組織、台灣的外交已經產生的資料檔
     "profiles": "topics.profiles",
+    # 國家小檔案的匯率制度（英文維基百科照 IMF AREAER 2023 整理的表）
+    "exchange-regime": "topics.exchange_regime",
     # Wikidata：7 個 SPARQL 查詢（150 m 以上的候選、所在行政區往上 4 層、城市類別、國家代碼）與約 50 批 wbgetentities
     # （第一次約 1 分鐘，之後用快取不到 1 秒）；要先有 geo 的國界，也讀城市主題的 cities.json（P131 找不到城市時用）。
     # 跑完要重跑 profiles（小檔案的「最高的大樓」讀這裡的 buildings.json）
@@ -205,6 +215,8 @@ STEPS = {
     "koppen": "topics.koppen",
     # 地表的岩石種類：GLiM 0.5° 網格（PANGAEA，38 KB 的 zip）；幾秒
     "lithology": "topics.lithology",
+    # 特殊地形：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁、泥火山、滲穴、間歇泉（一次 SPARQL）；幾秒（第一次查要等查詢服務）
+    "special-landforms": "topics.special_landforms",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
@@ -253,6 +265,7 @@ STEPS = {
     "foods": "topics.foods",
     # 節慶：Wikidata 的節慶（依月份與種類）＋文化資產局登錄的台灣民俗；幾秒（第一次查 Wikidata 約 5 分鐘）
     "festivals": "topics.festivals",
+    "chinatowns": "topics.chinatowns",  # Wikidata 的唐人街（一次 SPARQL）加上依維基分區條目補的表
     # 雲端機房的區域：AWS、Google Cloud、Azure 的區域（手工整理的事實表 sources/cloud_regions.py）；不到 1 秒
     "cloud-regions": "topics.cloud_regions",
     # 最古老的公司：英文維基「List of oldest companies」（固定版本）＋ Wikidata 的座標；幾秒
