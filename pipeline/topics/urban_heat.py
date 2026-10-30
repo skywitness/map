@@ -10,7 +10,7 @@
     Terra（MOD11A1，上午 10 點半）2001 年起，但白天的熱島比較小（台北 2021 年夏季 8.5 對 10.6 °C）。
   - 郊外參考區：作者提出的 DEA（動態等面積法，排除水體、地形起伏與其他城區的影響，參考區跟城區一樣大）。
   - 夏季：北半球用 6–8 月（檔名的月份 22），南半球用 12–2 月（24），依城區中心的緯度分。
-- 城市名稱：資料只有編號，跟網站「城市」主題的點（GHSL UCDB）依位置對：城區中心到城市點的距離在
+- 城市名稱：資料只有編號，跟網站「城市」主題的點（GHS-WUP R2025A）依位置對：城區中心到城市點的距離在
   城區的等面積半徑的 1.3 倍加 5 km 以內、人口最多的那一個；對不到的只寫「城區 #編號」，國家依國界判斷。
 """
 from __future__ import annotations
@@ -75,16 +75,14 @@ def read_season(year: int, season: int) -> dict[int, float]:
 
 def match_cities(info: list[dict]) -> dict[int, dict]:
     """UrbanId → 網站「城市」主題的那一個城市（名稱、中文名、國家）"""
-    data = __import__("json").loads((OUT_DIR / "topics" / "cities" / "cities.json").read_text(encoding="utf-8"))
-    fields, cols = data["fields"], data["columns"]
-    col = dict(zip(fields, cols))
-    lon = np.array(col["lon"]) * data["scale"]["lon"]
-    lat = np.array(col["lat"]) * data["scale"]["lat"]
-    # 2020 年的人口：p1975、p1980… 是跟前一期的差（cities.py），加起來
-    pop = np.zeros(len(lon))
-    for f in fields:
-        if f.startswith("p") and f[1:].isdigit() and int(f[1:]) <= 2020:
-            pop += np.array([v or 0 for v in col[f]], dtype=float) * data["scale"][f]
+    from topics.cities import load_points
+
+    points = load_points(OUT_DIR / "topics" / "cities" / "cities.json")
+    col = {k: [p[k] for p in points] for k in ("name", "zh", "iso3")}
+    lon = np.array([p["lon"] for p in points])
+    lat = np.array([p["lat"] for p in points])
+    # 2020 年的人口（2020 年不是城市的是 0）
+    pop = np.array([p["pop"].get(2020, 0.0) for p in points])
     out = {}
     for c in info:
         dy = (lat - c["lat"]) * 111.2

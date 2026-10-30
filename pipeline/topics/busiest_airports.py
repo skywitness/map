@@ -7,7 +7,7 @@
 （各機場自己公布的可能不同）；ACI World 網站本身的條款是 All rights reserved，不用。同名次的機場依表上的順序。
 機場的座標用 OurAirports（公有領域），依表上的 IATA 代碼對；國家依座標（geoindex）。
 
-**輸出**（public/data/topics/transport/）：busiest-airports.json（點：IATA、英文名稱、國家、每一年的旅客與名次 p2020…p2025、r2020…r2025）、
+**輸出**（public/data/topics/aviation/）：busiest-airports.json（點：IATA、英文名稱、國家、每一年的旅客與名次 p2020…p2025、r2020…r2025）、
 busiest-passengers.json（國家的指標：這一年前 50 名機場的旅客合計）。
 """
 from __future__ import annotations
@@ -20,7 +20,7 @@ from common import OUT_DIR, download, indicator_file, points_file, write_json
 from geoindex import country_at
 from sources import wikitable as W
 
-OUT = OUT_DIR / "topics" / "transport"
+OUT = OUT_DIR / "topics" / "aviation"  # 2026-10-30 從交通搬到航空主題（第七批 117）
 PAGE = "List of busiest airports by passenger traffic"
 REVISION = 1381104599  # 2026-10-20T01:36
 YEARS = list(range(2020, 2026))

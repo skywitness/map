@@ -22,12 +22,12 @@ import json
 import re
 from collections import Counter, defaultdict
 
-from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, write_json
+from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, write_json, write_manifest_part
 from sources import wikidata_attractions
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _sparql
 
-OUT = OUT_DIR / "topics" / "airlines"
+OUT = OUT_DIR / "topics" / "aviation"  # 航空主題（2026-10-30 航空公司、最長的直飛航線、交通的航空指標合併）
 FIRST_YEAR, LAST_YEAR = 1909, 2026
 AIRLINE = {"Q46970", "Q190915", "Q721639", "Q2440569", "Q607958", "Q7142591", "Q131632054", "Q3455680"}
 NOT_PASSENGER = {"Q1057026", "Q53649729", "Q4357531"}  # 貨運、直升機、虛擬航空公司
@@ -169,13 +169,13 @@ def build() -> None:
 
     OUT.mkdir(parents=True, exist_ok=True)
     world = [sum(c[i] for c in counts.values()) for i in range(len(years))]
-    write_json(OUT / "operating.json", indicator_file(
-        "operating", "家", years, {iso: c for iso, c in sorted(counts.items())}, aggregates={"WLD": world}))
+    write_json(OUT / "airlines.json", indicator_file(
+        "airlines", "家", years, {iso: c for iso, c in sorted(counts.items())}, aggregates={"WLD": world}))
     fields = ["zh", "en", "founded", "ceased", "iata", "icao", "flag"]
     for iso, rows in by_country.items():
         rows.sort(key=lambda r: (r[3] is not None, r[2] or 9999, r[1]))
-        write_json(OUT / "countries" / f"{iso}.json", {"fields": fields, "rows": rows}, quiet=True)
-    write_json(OUT / "manifest.json", {"topic": "airlines", "generatedAt": now_iso(), "sources": ["Wikidata (CC0)"]})
+        write_json(OUT / "airlines" / f"{iso}.json", {"fields": fields, "rows": rows}, quiet=True)
+    write_manifest_part(OUT, "aviation", "airlines", {"sources": ["Wikidata (CC0)"]})
 
     now = sorted(((c[-1], iso) for iso, c in counts.items()), reverse=True)
     print(f"  航空公司 {len(kept)} 家（不收 {dict(skipped)}）；{LAST_YEAR} 年營運中 {world[-1]} 家，1950 年 {world[1950 - FIRST_YEAR]}、"

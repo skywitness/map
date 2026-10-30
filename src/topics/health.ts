@@ -103,8 +103,8 @@ export const health: TopicDefinition = {
     },
     {
       name: {
-        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）',
-        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly)',
+        zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
+        en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
       },
       url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
       license: OPEN_DATA_TW,
@@ -356,8 +356,8 @@ export const health: TopicDefinition = {
       id: 'ltc-recipients',
       label: { zh: '65 歲以上使用長照的比例', en: 'Aged 65+ receiving long-term care' },
       description: {
-        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字。',
-        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan.',
+        zh: '65 歲以上的人有多少比例在使用長期照顧（住在機構加上在家接受服務，OECD，兩者同一年都有的國家）。立陶宛 47%、以色列 33%、瑞士 24%、德國 24%；瑞典 15%、韓國 12%、荷蘭 11%、法國 9%、波蘭 5%。各國算法差很多：立陶宛、以色列算進領現金給付的人，所以特別高。台灣沒有可以比的數字（長照 2.0 的服務人數見附註）。',
+        en: 'Share of people aged 65 and over receiving long-term care (in institutions plus at home, OECD; countries reporting both for the same year). Lithuania 47%, Israel 33%, Switzerland 24%, Germany 24%; Sweden 15%, South Korea 12%, the Netherlands 11%, France 9%, Poland 5%. Definitions vary widely: Lithuania and Israel count people receiving cash benefits, which makes them especially high. There is no comparable figure for Taiwan (see the notes for Long-term Care 2.0 service users).',
       },
       unit: '%',
       file: 'ltc-recipients.json',
