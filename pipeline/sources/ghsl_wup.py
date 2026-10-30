@@ -150,3 +150,52 @@ def country_stats() -> CountryStats:
             raise RuntimeError(f"GHS-WUP-COUNTRY-STATS 的 {names[loc]} 年份不是 1950–2100 每 5 年：{years[:3]}…")
         pop[loc] = {y: (v.get("UC", 0.0), v.get("UCL", 0.0), v.get("RUR", 0.0)) for y, v in by_year.items()}
     return CountryStats(names=names, pop=pop, built=built)
+
+
+VECTOR = f"{BASE}/GHS_WUP_MTUC_GLOBE_R2025A/V1-1/GHS_WUP_MTUC_GLOBE_R2025A_V1_1_vector.zip"
+VECTOR_SHP = "GHS_WUP_MTUC_MT_GLOBE_R2025A_v1_1"
+
+
+def _dbf(data: bytes) -> list[dict[str, str]]:
+    """dBase III 的欄位（只有文字與數字欄，這裡全部當字串讀）"""
+    import struct
+
+    n, header_len, record_len = struct.unpack("<IHH", data[4:12])
+    fields, pos = [], 32
+    while data[pos] != 0x0D:
+        fields.append((data[pos:pos + 11].split(b"\0")[0].decode(), data[pos + 16]))
+        pos += 32
+    out = []
+    for i in range(n):
+        rec = data[header_len + i * record_len: header_len + (i + 1) * record_len]
+        row, at = {}, 1  # 第一個位元組是刪除標記
+        for name, length in fields:
+            row[name] = rec[at:at + length].decode("latin1").strip()
+            at += length
+        out.append(row)
+    return out
+
+
+def boundaries():
+    """GHS-WUP-MTUC 的城市範圍（vector.zip 的 shapefile，Mollweide ESRI:54009，每個城市每一期一個多邊形，1975–2100）：
+    依序產生 (ID_UC_G0, 期, [環 (N×2 的 numpy 陣列，公尺)])。標準函式庫讀 shp（多邊形的格式很單純），不必裝 GDAL。"""
+    import struct
+
+    import numpy as np
+
+    path = download(VECTOR, CACHE, VECTOR.rsplit("/", 1)[1])
+    with zipfile.ZipFile(path) as z:
+        records = _dbf(z.read(f"{VECTOR_SHP}.dbf"))
+        shp = z.read(f"{VECTOR_SHP}.shp")
+    pos = 100
+    for rec in records:
+        _num, length = struct.unpack(">ii", shp[pos:pos + 8])
+        body = shp[pos + 8: pos + 8 + length * 2]
+        pos += 8 + length * 2
+        if struct.unpack("<i", body[:4])[0] == 0:
+            continue  # 空的形狀
+        nparts, npts = struct.unpack("<ii", body[36:44])
+        parts = list(struct.unpack(f"<{nparts}i", body[44:44 + 4 * nparts])) + [npts]
+        start = 44 + 4 * nparts
+        pts = np.frombuffer(body[start:start + 16 * npts], dtype="<f8").reshape(-1, 2)
+        yield int(float(rec["ID_UC_G0"])), int(float(rec["Year"])), [pts[parts[k]:parts[k + 1]] for k in range(nparts)]

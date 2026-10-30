@@ -23,6 +23,8 @@ const TEXT = defineMessages({
       `${year} 年的估計值與 68% 可信區間：${parts.join('、')}。區間重疊的國家，高低不一定有意義。`,
     part: (label: string, value: string, low: string, high: string) => `${label} ${value}（${low}–${high}）`,
     chartAria: (country: string) => `${country}歷年的選舉民主、自由民主與言論自由指數`,
+    current: (label: string, year: number, value: string, low: string, high: string) =>
+      `${label}：${year} 年 ${value}（68% 可信區間 ${low}–${high}）。`,
   },
   en: {
     title: 'The three indices compared',
@@ -30,12 +32,13 @@ const TEXT = defineMessages({
       `Estimates for ${year} with 68% credible intervals: ${parts.join('; ')}. Where intervals overlap, countries may not really differ.`,
     part: (label, value, low, high) => `${label.toLowerCase()} ${value} (${low}–${high})`,
     chartAria: (country) => `Electoral democracy, liberal democracy and freedom of expression indices in ${country} over time`,
+    current: (label, year, value, low, high) => `${label}: ${value} in ${year} (68% credible interval ${low}–${high}).`,
   },
 });
 
 const index = (v: number) => fixed(v, 2);
 
-export default function DemocracyPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+export default function DemocracyPanel({ topic, indicator, iso3, year, countryName, tokens }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   // 每項指數三個檔：估計值、68% 可信區間的下限與上限（pipeline/topics/democracy.py 的 intervals/）
@@ -86,6 +89,29 @@ export default function DemocracyPanel({ topic, iso3, year, countryName, tokens 
       <h3>{text.title}</h3>
       <Chart spec={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
       {view.interval && <p className="note">{view.interval}</p>}
+      <CurrentInterval topicId={topic.id} indicator={indicator} iso3={iso3} year={year} />
     </section>
   );
+}
+
+/**
+ * 目前的指標不是上面三項之一（2026-10-30 加的參與式、審議式、平等民主、公民自由、政治貪腐）時，
+ * 另外寫這一項的估計值與 68% 可信區間
+ */
+function CurrentInterval({ topicId, indicator, iso3, year }: { topicId: string; indicator: PanelExtraProps['indicator']; iso3: string; year: number }) {
+  const lang = useLang();
+  const extra = indicator.layer.kind === 'choropleth' && !INDICES.some((d) => d.id === indicator.id);
+  const files = useMemo(
+    () => (extra ? ['', '-low', '-high'].map((s) => (s ? `topics/${topicId}/intervals/${indicator.id}${s}.json` : `topics/${topicId}/${indicator.id}.json`)) : []),
+    [extra, topicId, indicator.id],
+  );
+  const [main, low, high] = useJsonMany<IndicatorData>(files);
+  if (!extra || !main || !low || !high) return null;
+  const own = main.values[iso3];
+  if (!own) return null;
+  const at = latestIndexAtOrBefore(main.years, year, (i) => own[i] != null);
+  const lo = low.values[iso3]?.[at];
+  const hi = high.values[iso3]?.[at];
+  if (at < 0 || lo == null || hi == null) return null;
+  return <p className="note">{TEXT[lang].current(tr(indicator.label, lang), main.years[at], index(own[at]!), index(lo), index(hi))}</p>;
 }
