@@ -24,10 +24,12 @@ export const REGIMES: CategoryDef[] = [
 const regimeLabel = new Map(REGIMES.map((r) => [r.value, r.label]));
 
 /**
- * 三個指數用同一組發散色門檻，切換時顏色可以互相比較，也跟政體分類同一個讀法：橘色偏專制、青綠偏民主。
+ * 各指數用同一組發散色門檻，切換時顏色可以互相比較，也跟政體分類同一個讀法：橘色偏專制、青綠偏民主。
  * 中間的中性灰跨過 0.5（政體分類裡選舉民主的門檻之一）。
  */
 const DEMOCRACY_SCALE: ScaleSpec = { type: 'diverging', thresholds: [0.2, 0.35, 0.45, 0.55, 0.65, 0.8] };
+/** 政治貪腐指數：越高越貪腐，門檻一樣、顏色反過來（橘色是貪腐多），跟其他指數同一個讀法 */
+const CORRUPTION_SCALE: ScaleSpec = { ...DEMOCRACY_SCALE, reverse: true };
 
 export const democracy: TopicDefinition = {
   id: 'democracy',
@@ -101,6 +103,77 @@ export const democracy: TopicDefinition = {
       format: index,
       formatTick: indexTick,
       compareWorld: true,
+    },
+    {
+      id: 'participatory-democracy',
+      label: { zh: '參與式民主指數', en: 'Participatory democracy index' },
+      description: {
+        zh: '在選舉民主之外，再看公民除了投票以外能不能直接參與政治：公民社會組織是否活躍、有沒有公民投票等直接民主的管道，以及地方與區域政府是否由選舉產生。0 到 1，越高越民主。',
+        en: 'Electoral democracy plus active participation by citizens beyond voting: a vibrant civil society, channels of direct democracy such as referendums, and elected local and regional government. From 0 to 1, higher is more democratic.',
+      },
+      unit: INDEX_UNIT,
+      file: 'participatory-democracy.json',
+      layer: { kind: 'choropleth', scale: DEMOCRACY_SCALE },
+      format: index,
+      formatTick: indexTick,
+      compareWorld: true,
+    },
+    {
+      id: 'deliberative-democracy',
+      label: { zh: '審議式民主指數', en: 'Deliberative democracy index' },
+      description: {
+        zh: '在選舉民主之外，再看政治決策是否經過公開、理性的討論：政治人物是否為公共利益說理、是否尊重反對意見、決策前是否廣泛諮詢社會各方。0 到 1，越高越民主。',
+        en: 'Electoral democracy plus the quality of public deliberation: whether political elites justify their positions in terms of the common good, respect counterarguments and consult widely before decisions are made. From 0 to 1, higher is more democratic.',
+      },
+      unit: INDEX_UNIT,
+      file: 'deliberative-democracy.json',
+      layer: { kind: 'choropleth', scale: DEMOCRACY_SCALE },
+      format: index,
+      formatTick: indexTick,
+      compareWorld: true,
+    },
+    {
+      id: 'egalitarian-democracy',
+      label: { zh: '平等民主指數', en: 'Egalitarian democracy index' },
+      description: {
+        zh: '在選舉民主之外，再看不同社會群體（階級、性別、族群、地區）是否同樣享有權利與自由、教育與醫療等資源是否平均，以及是否同樣接近權力。0 到 1，越高越民主。',
+        en: 'Electoral democracy plus equality across social groups (class, gender, ethnicity, region): equal protection of rights and freedoms, equal access to resources such as education and health care, and equal access to power. From 0 to 1, higher is more democratic.',
+      },
+      unit: INDEX_UNIT,
+      file: 'egalitarian-democracy.json',
+      layer: { kind: 'choropleth', scale: DEMOCRACY_SCALE },
+      format: index,
+      formatTick: indexTick,
+      compareWorld: true,
+    },
+    {
+      id: 'civil-liberties',
+      label: { zh: '公民自由指數', en: 'Civil liberties index' },
+      description: {
+        zh: '人身與政治上的自由：政府是否不使用酷刑與政治殺害、是否尊重財產、遷徙與宗教等私人自由，以及言論、結社等政治自由。0 到 1，越高越自由。',
+        en: 'Physical integrity (freedom from torture and political killings by the government), private liberties such as property rights and freedom of movement and religion, and political liberties such as freedom of expression and association. From 0 to 1, higher is freer.',
+      },
+      unit: INDEX_UNIT,
+      file: 'civil-liberties.json',
+      layer: { kind: 'choropleth', scale: DEMOCRACY_SCALE },
+      format: index,
+      formatTick: indexTick,
+      compareWorld: true,
+    },
+    {
+      id: 'corruption',
+      label: { zh: '政治貪腐指數', en: 'Political corruption index' },
+      description: {
+        zh: '政治貪腐有多普遍：公務員與行政部門的收賄與挪用公款、國會議員的貪腐，以及司法的貪腐。0 到 1，越高越貪腐（跟其他指數相反，顏色也反過來：橘色是貪腐多）。世界銀行的「貪腐控制」在「政府治理」主題。',
+        en: 'How pervasive political corruption is: bribery and embezzlement in the public sector and the executive, corruption in the legislature and in the judiciary. From 0 to 1, higher is more corrupt (the opposite of the other indices, so the colours are reversed: orange means more corruption). The World Bank’s Control of Corruption is in the Governance topic.',
+      },
+      unit: INDEX_UNIT,
+      file: 'corruption.json',
+      layer: { kind: 'choropleth', scale: CORRUPTION_SCALE },
+      format: index,
+      formatTick: indexTick,
+      compareWorld: true,
+      lowerIsBetter: true,
     },
   ],
 };

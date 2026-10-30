@@ -110,6 +110,28 @@ function countryThen(year: number, lon: number, lat: number): string | null {
   return null;
 }
 
+/**
+ * 打開時地圖對著的地方（TopicDefinition.focus，2026-10-30 起）：每 500 萬年陸地（countries/<年份>.json 的面）
+ * 依面積加權的重心 [經度, 緯度]，2026-10-30 從資料檔算的；2 億年前的盤古大陸在東經 16°、北緯 23° 附近
+ */
+const LAND_CENTRE: Record<number, [number, number]> = {
+  [-250]: [20, 1], [-245]: [20, 3], [-240]: [21, 7], [-235]: [20, 9], [-230]: [19, 11], [-225]: [18, 15],
+  [-220]: [17, 18], [-215]: [17, 20], [-210]: [16, 21], [-205]: [16, 21], [-200]: [16, 23], [-195]: [17, 22],
+  [-190]: [18, 27], [-185]: [19, 25], [-180]: [20, 27], [-175]: [21, 26], [-170]: [23, 26], [-165]: [23, 23],
+  [-160]: [25, 23], [-155]: [26, 19], [-150]: [27, 17], [-145]: [27, 19], [-140]: [28, 21], [-135]: [28, 23],
+  [-130]: [27, 24], [-125]: [28, 25], [-120]: [27, 26], [-115]: [27, 27], [-110]: [27, 27], [-105]: [25, 28],
+  [-100]: [25, 28], [-95]: [24, 28], [-90]: [23, 28], [-85]: [23, 28], [-80]: [22, 28], [-75]: [22, 28],
+  [-70]: [22, 29], [-65]: [22, 30], [-60]: [21, 31], [-55]: [20, 32], [-50]: [20, 34], [-45]: [20, 35],
+  [-40]: [20, 36], [-35]: [20, 39], [-30]: [19, 42], [-25]: [19, 44], [-20]: [20, 45], [-15]: [21, 47],
+  [-10]: [22, 48], [-5]: [23, 51], [0]: [25, 54],
+};
+
+/** 那個年代的陸地重心前後各 50°（地球儀上就是轉到那一面） */
+function landFocus(year: number): [number, number, number, number] {
+  const [lon, lat] = LAND_CENTRE[Math.max(-250, Math.min(0, Math.round(year / 5) * 5))] ?? LAND_CENTRE[-200];
+  return [lon - 50, Math.max(-85, lat - 50), lon + 50, Math.min(85, lat + 50)];
+}
+
 const AXIS = { label: { zh: '時間', en: 'Time' }, year: maText, tick: maTick };
 
 const indicators: IndicatorDef[] = [
@@ -138,6 +160,7 @@ export const plates: TopicDefinition = {
   defaultIndicator: 'paleolat',
   defaultYear: -200,
   bareMap: true,
+  focus: landFocus,
   sources: [
     {
       name: {
@@ -147,10 +170,18 @@ export const plates: TopicDefinition = {
       url: 'https://doi.org/10.5281/zenodo.13635864',
       license: 'CC BY 4.0',
     },
+    {
+      name: {
+        zh: '今天的板塊邊界：PB2002（Bird 2003；Hugo Ahlenius、Nordpil 整理；地震與火山主題的檔）',
+        en: 'Today’s plate boundaries: PB2002 (Bird 2003; compiled by Hugo Ahlenius, Nordpil; the Earthquakes topic’s file)',
+      },
+      url: 'https://github.com/fraxen/tectonicplates',
+      license: 'ODC-By 1.0',
+    },
   ],
   note: {
-    zh: '板塊的位置來自 Merdith 等 2021 年的全板塊重建模型（v1.2.4），用 pyGPlates 計算：今天的國界（Natural Earth 1:50m，簡化到約 40 公里）先依模型的靜態多邊形切到各塊板塊上，再跟著板塊轉回過去，同一國的各塊轉回去後合併。那塊地殼還沒形成的年代不畫。國界是今天的，過去當然沒有這些國家；陸地的形狀也是今天的海岸線，不是當時的海岸（那時的海平面、被擠壓或拉開的地殼都不同）。緯度依古地磁定出比較可靠，經度是模型推算的參考框架。國家的緯度是國土各塊依面積加權的重心。板塊邊界是模型解出的那時的邊界（隱沒帶、中洋脊與張裂、轉形斷層）。',
-    en: 'Plate positions come from the full-plate reconstruction model of Merdith et al. (2021), v1.2.4, computed with pyGPlates: today’s borders (Natural Earth 1:50m, simplified to about 40 km) are first split onto plates using the model’s static polygons, then rotated back with their plates, and each country’s pieces are merged again. Crust that did not yet exist is not drawn. The borders are today’s, and these countries of course did not exist; the shapes are today’s coastlines, not those of the time (sea levels and stretched or compressed crust were different). Latitudes are better constrained (by palaeomagnetism) than longitudes, which depend on the model’s reference frame. A country’s latitude is the area-weighted centroid of its pieces. Plate boundaries are those resolved by the model for that time (subduction zones, mid-ocean ridges and rifts, transform faults).',
+    zh: '板塊的位置來自 Merdith 等 2021 年的全板塊重建模型（v1.2.4），用 pyGPlates 計算：今天的國界（Natural Earth 1:50m，簡化到約 40 公里）先依模型的靜態多邊形切到各塊板塊上，再跟著板塊轉回過去，同一國的各塊轉回去後合併。那塊地殼還沒形成的年代不畫。國界是今天的，過去當然沒有這些國家；陸地的形狀也是今天的海岸線，不是當時的海岸（那時的海平面、被擠壓或拉開的地殼都不同）。緯度依古地磁定出比較可靠，經度是模型推算的參考框架。國家的緯度是國土各塊依面積加權的重心。板塊邊界是模型解出的那時的邊界（隱沒帶、中洋脊與張裂、轉形斷層）；圖層裡可以另外打開今天的板塊邊界（PB2002，地震與火山主題的同一份）對照，它是今天的位置，不跟著時間移動。打開時地圖轉到那個年代陸地的重心。',
+    en: 'Plate positions come from the full-plate reconstruction model of Merdith et al. (2021), v1.2.4, computed with pyGPlates: today’s borders (Natural Earth 1:50m, simplified to about 40 km) are first split onto plates using the model’s static polygons, then rotated back with their plates, and each country’s pieces are merged again. Crust that did not yet exist is not drawn. The borders are today’s, and these countries of course did not exist; the shapes are today’s coastlines, not those of the time (sea levels and stretched or compressed crust were different). Latitudes are better constrained (by palaeomagnetism) than longitudes, which depend on the model’s reference frame. A country’s latitude is the area-weighted centroid of its pieces. Plate boundaries are those resolved by the model for that time (subduction zones, mid-ocean ridges and rifts, transform faults); today’s boundaries (PB2002, the same file as in Earthquakes) can be switched on in the layers for comparison and stay in today’s positions. The map opens centred on the land of the chosen time.',
   },
   pointer: ([lon, lat], { year, countryName }) => {
     const code = countryThen(year, lon, lat);
@@ -186,6 +217,24 @@ export const plates: TopicDefinition = {
       label: { zh: '那時的板塊邊界', en: 'Plate boundaries then' },
       width: 1.3,
       color: { title: { zh: '邊界的種類', en: 'Boundary type' }, classes: BOUNDARIES },
+    },
+    {
+      // 今天的板塊邊界（對照，預設關掉）：直接讀地震與火山主題的 plates.json，不複製（共用疊加圖層做好後改接過去）
+      kind: 'lines',
+      id: 'plates-today',
+      topic: 'earthquakes',
+      file: 'plates.json',
+      label: { zh: '今天的板塊邊界（對照）', en: 'Today’s plate boundaries (for comparison)' },
+      width: 1,
+      hidden: true,
+      color: {
+        title: { zh: '今天的邊界（PB2002）', en: 'Boundaries today (PB2002)' },
+        classes: [
+          { value: 1, color: MAP_TOKENS.inkSecondary, label: { zh: '聚合（隱沒帶、碰撞）', en: 'Convergent (subduction, collision)' } },
+          { value: 2, color: MAP_TOKENS.inkSecondary, dash: true, label: { zh: '張裂（中洋脊、裂谷）', en: 'Divergent (ridges, rifts)' } },
+          { value: 3, color: MAP_TOKENS.inkMuted, label: { zh: '轉形斷層', en: 'Transform faults' } },
+        ],
+      },
     },
   ],
   indicators,

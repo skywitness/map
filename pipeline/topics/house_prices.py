@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
+from common import OUT_DIR, indicator_file, latest_year_span, to_series, write_json, write_manifest_part
 from sources import bis_rpp, dgbas_cpi, moi_realestate, oecd
 
 Series = dict[str, dict[int, float]]
@@ -182,7 +182,7 @@ def write_taiwan(out) -> None:
 
 
 def build() -> None:
-    out = OUT_DIR / "topics" / "house-prices"
+    out = OUT_DIR / "topics" / "housing"  # 2026-10-30 併進住宅與房價（第七批 119）
     rhp, rhp_g = oecd_measure("RHP")
     hpi, hpi_g = oecd_measure("HPI")
     rpi, rpi_g = oecd_measure("RPI")
@@ -279,11 +279,6 @@ def build() -> None:
 
     print(f"  BIS 補上的經濟體：{filled}")
     print(f"  台灣：實質房價 {last} 年 {tw['real-price'][last]:.1f}（2015 = 100）、房價所得比 {tw['pti-level'][last]:.2f} 倍")
-    write_json(
-        out / "manifest.json",
-        {
-            "topic": "house-prices",
-            "generatedAt": now_iso(),
-            "source": "OECD Analytical house price indicators; BIS residential property prices; 內政部不動產資訊平台; 行政院主計總處",
-        },
-    )
+    write_manifest_part(out, "housing", "house-prices", {
+        "source": "OECD Analytical house price indicators; BIS residential property prices; 內政部不動產資訊平台; 行政院主計總處",
+    })

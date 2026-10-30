@@ -1,11 +1,13 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { landingsPart } from './landings';
 import type { PointRecord, TopicDefinition } from './types';
 
 /**
  * 太空（pipeline/topics/space.py）：GCAT 的在軌酬載（依擁有國）、入軌發射（依發射業者的國家），發射場畫成點。
  * 蘇聯的酬載與發射算在俄羅斯；國際組織（ESA、EUMETSAT、Intelsat…）的酬載只算進世界合計。
+ * 2026-10-30（第七批 118）起「月球與火星的登陸」的 4 個指標也在這裡（landings.ts 的 landingsPart），共 8 個指標。
  */
 
 const n0 = (v: number) => fixed(v, 0);
@@ -45,18 +47,21 @@ export const space: TopicDefinition = {
       url: 'https://planet4589.org/space/gcat/',
       license: 'CC BY 4.0',
     },
+    ...landingsPart.sources,
   ],
   note: {
-    zh: '資料來自 Jonathan McDowell 的 GCAT（data from GCAT, J. McDowell, planet4589.org/space/gcat），到 2026 年 10 月 29 日，所以 2026 年是到目前為止。酬載是衛星、太空船與太空站艙段，含已經失效的衛星，不含火箭殘骸與碎片；國家是擁有者所屬的國家。太空垃圾是火箭殘骸、碎片與零件，只有追蹤得到、編進目錄的物體（大約 10 公分以上），更小的碎片是模型推算的、不在這裡；碎片算在原本那個物體的擁有國，年份用它產生（分離或解體）的日期。發射是入軌發射（成功與失敗都算），國家是發射業者所屬的國家（阿利安太空公司在法屬圭亞那發射算法國、Rocket Lab 在紐西蘭發射算美國）。蘇聯的酬載與發射算在繼承國俄羅斯；歐洲太空總署、EUMETSAT、Intelsat 等國際組織的酬載只算進世界合計。',
-    en: 'Data from GCAT (J. McDowell, planet4589.org/space/gcat) up to 29 October 2026, so 2026 is year to date. Payloads are satellites, spacecraft and space station modules, including defunct satellites but not rocket bodies or debris, assigned to the owner’s country. Space debris covers rocket bodies, fragments and components that are tracked and catalogued (roughly 10 cm and larger); smaller debris is only modelled and is not shown. Fragments count for the owner of the object they came from, dated by when they separated or broke up. Launches are orbital launch attempts (successes and failures), assigned to the launch provider’s country (Arianespace from French Guiana counts for France, Rocket Lab from New Zealand for the United States). Soviet payloads and launches count for Russia as the successor state; payloads of international organisations such as ESA, EUMETSAT and Intelsat count only in the world total.',
+    zh: '資料來自 Jonathan McDowell 的 GCAT（data from GCAT, J. McDowell, planet4589.org/space/gcat），到 2026 年 10 月 29 日，所以 2026 年是到目前為止。酬載是衛星、太空船與太空站艙段，含已經失效的衛星，不含火箭殘骸與碎片；國家是擁有者所屬的國家。太空垃圾是火箭殘骸、碎片與零件，只有追蹤得到、編進目錄的物體（大約 10 公分以上），更小的碎片是模型推算的、不在這裡；碎片算在原本那個物體的擁有國，年份用它產生（分離或解體）的日期。發射是入軌發射（成功與失敗都算），國家是發射業者所屬的國家（阿利安太空公司在法屬圭亞那發射算法國、Rocket Lab 在紐西蘭發射算美國）。蘇聯的酬載與發射算在繼承國俄羅斯；歐洲太空總署、EUMETSAT、Intelsat 等國際組織的酬載只算進世界合計。' + ' 月球與火星的登陸：' + landingsPart.note.zh,
+    en: 'Data from GCAT (J. McDowell, planet4589.org/space/gcat) up to 29 October 2026, so 2026 is year to date. Payloads are satellites, spacecraft and space station modules, including defunct satellites but not rocket bodies or debris, assigned to the owner’s country. Space debris covers rocket bodies, fragments and components that are tracked and catalogued (roughly 10 cm and larger); smaller debris is only modelled and is not shown. Fragments count for the owner of the object they came from, dated by when they separated or broke up. Launches are orbital launch attempts (successes and failures), assigned to the launch provider’s country (Arianespace from French Guiana counts for France, Rocket Lab from New Zealand for the United States). Soviet payloads and launches count for Russia as the successor state; payloads of international organisations such as ESA, EUMETSAT and Intelsat count only in the world total.' + ' Moon and Mars landings: ' + landingsPart.note.en,
   },
-  panelExtra: () => import('./panels/SpacePanel'),
+  panelExtra: () => import('./panels/SpaceTopicPanel'),
   overlays: [
     {
       kind: 'points',
       id: 'sites',
       file: 'sites.json',
       label: { zh: '發射場（入軌發射）', en: 'Launch sites (orbital)' },
+      // 月球與火星的登陸（landingsPart）不畫發射場
+      indicators: ['in-orbit', 'debris', 'launches', 'launches-cumulative'],
       radius: { field: 'n', stops: [[1, 1.6], [10, 3], [100, 5.5], [1000, 10], [2500, 14]] },
       color: MAP_TOKENS.hues.red,
       sortField: 'n',
@@ -126,5 +131,6 @@ export const space: TopicDefinition = {
       formatTick: formatLargeTick,
       shareOfWorld: true,
     },
+    ...landingsPart.indicators,
   ],
 };

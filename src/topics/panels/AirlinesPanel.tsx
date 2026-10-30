@@ -39,7 +39,7 @@ export default function AirlinesPanel({ topic, iso3, year, countryName }: PanelE
   const t = useT();
   const text = TEXT[lang];
   // 沒有航空公司的國家沒有檔案（讀取失敗就當成沒有）
-  const { data, error } = useJson<AirlinesData>(`topics/${topic.id}/countries/${iso3}.json`);
+  const { data, error } = useJson<AirlinesData>(`topics/${topic.id}/airlines/${iso3}.json`);
   const groups = useMemo(() => {
     const rows = data?.rows ?? [];
     return {

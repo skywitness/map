@@ -6,7 +6,7 @@
   - 0–2 歲上托育的比例：OECD Family Database PF3.2（約 45 國），台灣自算（衛福部、教育部、內政部，`sources/tw_childcare.py`，DESIGN.md 第 216 點）。
   - 學前教育毛入學率：UIS 的學前在學人數 ÷ 學前學齡人口自行計算（CC BY-SA 4.0；WDI 的 SE.PRE.ENRR 停在 2021–2022 年，
     UIS 也不再發布這個比率），台灣用教育部的「幼兒(稚)園 2–5 歲粗在學率」（DESIGN.md 第 213 點）。
-  - 國中教師的法定年薪：OECD Education at a Glance，15 年年資、最普遍的資格、購買力平價美元，只有 2025 年。
+  - 國中教師的法定年薪：OECD Education at a Glance，15 年年資、最普遍的資格、購買力平價美元，只有 2025 年；台灣自算（法令的薪額、學術研究加給、年終 1.5 個月，`sources/tw_teacher_salary.py`，DESIGN.md 第 216 點）。
   - 小學平均每班人數：OECD Education at a Glance（2013–2024），台灣用教育部國民小學概況的學生數 ÷ 班級數。
   - 小學生師比：UIS 公開 API 的小學學生數（20062）÷ 教師數（20162），同一年兩個都有才算（CC BY-SA 4.0，
     資料檔同樣依 CC BY-SA 4.0 分享）；台灣用教育部的學生數 ÷ 教師數。世界銀行轉載的 SE.PRM.ENRL.TC.ZS 停在 2019 年，不用。
@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 
 from common import OUT_DIR, download, indicator_file, latest_year_span, now_iso, to_series, write_json, year_span
-from sources import moe, moi, oecd_eag, tw_childcare, undp, worldbank
+from sources import imf, moe, moi, oecd_eag, tw_childcare, tw_teacher_salary, undp, worldbank
 
 TAIWAN = "台灣不在{db}資料庫中，改用"
 # 輸出檔名 -> (來源, 代碼, 單位, 頭尾年份至少要有最多那年幾成的國家, 台灣資料, 台灣附註)
@@ -145,7 +145,9 @@ def build_more(out) -> None:
     ), license="CC BY-SA 4.0")
 
     salary, other = oecd_eag.teacher_salary()
-    write("teacher-salary", "USD PPP", salary, 0, _region_notes(other, lambda v: f"{v:,.0f}"))
+    salary_notes = _region_notes(other, lambda v: f"{v:,.0f}")
+    salary["TWN"], salary_notes[0]["TWN"], salary_notes[1]["TWN"] = tw_teacher_salary.teacher_salary_ppp(imf.fetch("PPPEX")[0]["TWN"])
+    write("teacher-salary", "USD PPP", salary, 0, salary_notes)
 
     taiwan = moe.primary_school()
     classes, other = oecd_eag.class_size()

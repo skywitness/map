@@ -533,6 +533,11 @@ export interface PointsOverlayDef extends OverlayBase {
   fromLive?: (live: unknown) => PointRecord[] | null;
   /** 圓點或三角形（火山）；預設圓點 */
   shape?: 'circle' | 'triangle';
+  /**
+   * 圓點的樣式（2026-10-30 起，發電廠的狀態）：'hollow' 空心粗框（淡淡的底色）、'faint' 空心細框、
+   * 'muted' 灰色實心（顏色分級不畫，只看大小）；沒寫是一般的實心圓點加白框
+   */
+  look?: 'hollow' | 'faint' | 'muted';
   /** 半徑（px，縮放 2 的大小，放大時跟著變大）：固定值，或依數值欄位線性內插 [[值, 半徑], …] */
   radius: number | { field: string; stops: [number, number][] };
   /** 顏色：固定色，或依數值欄位分級 */
@@ -958,9 +963,10 @@ export interface TopicDefinition {
   places?: PlaceDef[];
   /**
    * 換到這個主題時（沒有選國家）地圖移到這個範圍 [西, 南, 東, 北]（2026-10-30 起，企鵝在哪裡、南極的冰下湖：
-   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）
+   * 資料都在南極，預設以台灣為中心的地球儀看不到）。跟側欄的 focusBox 走同一條路（App 的 moveToBox）。
+   * 也可以是依時間軸年份給範圍的函式（2026-10-30 起，板塊漂移：打開時對著那個年代的大陸），只在換過來時算一次
    */
-  focus?: [number, number, number, number];
+  focus?: [number, number, number, number] | ((year: number) => [number, number, number, number]);
 }
 
 /**
