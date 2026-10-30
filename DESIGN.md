@@ -3732,6 +3732,11 @@ pipeline/
   - 手機的 LCP 快了 2.4 秒：LCP 是頁尾的文字，要等首頁程式跑起來（335 → 145 KB，gzip 後）。
   - 地圖出現資料只快了約 1 秒：底圖圖磚原本就不擋資料（上面「做了什麼」第 3 點），省下的主要是之後的 7 MB；手機上這 7 MB 原本要在背景下載將近一分鐘，跟換主題、開側欄搶頻寬。
 
+- **首頁的程式再拆小**（2026-10-30）：首頁 chunk 從 gzip 後 163 KB 降到 141 KB（未壓縮 500 → 426 KB）。量法：`vite build --sourcemap` 後用 sourcemap 算每個原始檔在 chunk 裡佔多少。搬出去的：
+  - 疊加圖層、風場、類別網格的**資料**部分拆成 `map/overlayData.ts`、`map/windField.ts`、`map/classGridData.ts`（首頁的 `app/overlays.ts`、主題的側欄只 import 這些）；圖層的開關與圖例元件（`Overlays.tsx`）、風的粒子與類別網格的 WebGL 圖層（`windLayer.ts`、`classGridLayer.ts`）留在地圖的 chunk。`Overlays.tsx` 照舊把資料的部分轉出去，地圖這邊的 import 不必改。
+  - 排名表（`RankingTable`）、時刻主題的時間軸（`MomentControl`，連同太陽位置的計算 `lib/solar.ts`）、主題總覽（`TopicsOverview`，第一次打開才載入，之後留著）、指令面板的對話框（`CommandPaletteDialog.tsx`；`CommandPalette.tsx` 只聽 Ctrl+K，第一次按才下載）改成用到才下載。
+  - 主題搜尋比對的子項目（農產品、礦產、品牌…，約 26 KB）拆到 `topics/catalogItems.gen.ts`（`npm run catalog` 一起產生、`--check` 一起比對），第一次搜尋時才下載（`lib/topicSearch.ts` 的 `loadSearchItems`）：到之前只比對主題與指標的名稱，到了之後重建索引，搜尋框、指令面板、主題總覽重算一次結果（`useTopicSearchItems`）。
+  - 剩下最大的是 react-dom（約 200 KB 未壓縮）與主題目錄（48 KB，頂列選單與主題總覽的主題、指標名稱）。
 - **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡那個 source 的網址改成自訂協定 `relief://{z}/{x}/{y}`（`WorldMap.tsx` 用 `addProtocol` 註冊 `loadReliefTile`）：0–3 級讀我們的 WebP（地球儀全球視角約縮放 2，用到 3 級的圖磚），4 級以上照舊讀 OpenFreeMap 的 PNG。一開始分成兩個 source（我們的到縮放 2.5、OpenFreeMap 的從 2.5 起），放大跨過 2.5 時新的圖磚到之前露出一塊塊空白；同一個 source 的話，MapLibre 會先放大上一級的圖磚墊著。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef`）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
 ### Service worker（`src/sw.ts`）
 

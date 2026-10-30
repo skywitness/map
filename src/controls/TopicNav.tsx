@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useEffect,
   useId,
   useLayoutEffect,
@@ -14,7 +16,8 @@ import type { TopicTarget } from '../lib/topicSearch';
 import { prefetchTopic, TOPIC_GROUPS, type TopicGroup, type TopicSummary } from '../topics';
 import { pureMap } from '../topics/map';
 import { categoryStyle, Glyph, GroupGlyph, loadTopicIcons, useTopicIcons } from './TopicIcon';
-import { TopicsOverview } from './TopicsOverview';
+// 主題總覽（全部主題的縮圖與搜尋）第一次打開才下載（2026-10-30）
+const TopicsOverview = lazy(() => import('./TopicsOverview').then((m) => ({ default: m.TopicsOverview })));
 
 /** 主題列放不下時收緊的級數（styles.css 的 .is-compact-1…3） */
 const COMPACT_STEPS = 3;
@@ -79,6 +82,9 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   const menuId = useId();
 
   const [overflowing, setOverflowing] = useState(false);
+  /** 主題總覽打開過了（之後留著，關上時有對話框的關閉動畫、再開不必等） */
+  const overviewUsed = useRef(false);
+  if (overviewOpen) overviewUsed.current = true;
   const icons = useTopicIcons(open !== null);
 
   // 主題的圖示（另一個 chunk）：頁面安靜下來之後先下載，打開選單時就有；滑到、移到主題列上也開始下載
@@ -367,15 +373,19 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
           </div>,
           document.body,
         )}
-      <TopicsOverview
-        open={overviewOpen}
-        current={current}
-        onClose={() => onOverviewChange(false)}
-        onSelect={(target) => {
-          onOverviewChange(false);
-          if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
-        }}
-      />
+      {overviewUsed.current && (
+        <Suspense fallback={null}>
+          <TopicsOverview
+            open={overviewOpen}
+            current={current}
+            onClose={() => onOverviewChange(false)}
+            onSelect={(target) => {
+              onOverviewChange(false);
+              if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
+            }}
+          />
+        </Suspense>
+      )}
     </nav>
   );
 }
