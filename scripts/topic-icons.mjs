@@ -158,6 +158,7 @@ const TOPIC_ICONS = {
   lithology: 'layers',
   'special-landforms': 'tree-palm',
   reclamation: 'land-plot',
+  'nuclear-accidents': 'radiation',
   typhoons: 'tornado',
   wildfires: 'flame',
   'night-lights': 'moon-star',
