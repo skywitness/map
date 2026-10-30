@@ -12,6 +12,8 @@ const n0 = (v: number) => fixed(v, 0);
 // 數字寫完整：formatLargeNumber 的中文萬取整數，美國的 13,203 顆會寫成「1 萬」
 export const payloads = (v: number) =>
   tr({ zh: `${n0(v)} 顆`, en: `${n0(v)} ${Math.round(v) === 1 ? 'payload' : 'payloads'}` });
+export const objects = (v: number) =>
+  tr({ zh: `${n0(v)} 個`, en: `${n0(v)} ${Math.round(v) === 1 ? 'object' : 'objects'}` });
 const launches = (v: number) => tr({ zh: `${n0(v)} 次`, en: `${n0(v)} ${Math.round(v) === 1 ? 'launch' : 'launches'}` });
 
 /** 發射場的 tooltip：短名稱是標題，國家與入軌發射次數、年份範圍，GCAT 的完整英文名稱放在不翻譯的那一行 */
@@ -45,8 +47,8 @@ export const space: TopicDefinition = {
     },
   ],
   note: {
-    zh: '資料來自 Jonathan McDowell 的 GCAT（data from GCAT, J. McDowell, planet4589.org/space/gcat），到 2026 年 10 月 17 日，所以 2026 年是到目前為止。酬載是衛星、太空船與太空站艙段，含已經失效的衛星，不含火箭殘骸與碎片；國家是擁有者所屬的國家。發射是入軌發射（成功與失敗都算），國家是發射業者所屬的國家（阿利安太空公司在法屬圭亞那發射算法國、Rocket Lab 在紐西蘭發射算美國）。蘇聯的酬載與發射算在繼承國俄羅斯；歐洲太空總署、EUMETSAT、Intelsat 等國際組織的酬載只算進世界合計。',
-    en: 'Data from GCAT (J. McDowell, planet4589.org/space/gcat) up to 17 October 2026, so 2026 is year to date. Payloads are satellites, spacecraft and space station modules, including defunct satellites but not rocket bodies or debris, assigned to the owner’s country. Launches are orbital launch attempts (successes and failures), assigned to the launch provider’s country (Arianespace from French Guiana counts for France, Rocket Lab from New Zealand for the United States). Soviet payloads and launches count for Russia as the successor state; payloads of international organisations such as ESA, EUMETSAT and Intelsat count only in the world total.',
+    zh: '資料來自 Jonathan McDowell 的 GCAT（data from GCAT, J. McDowell, planet4589.org/space/gcat），到 2026 年 10 月 29 日，所以 2026 年是到目前為止。酬載是衛星、太空船與太空站艙段，含已經失效的衛星，不含火箭殘骸與碎片；國家是擁有者所屬的國家。太空垃圾是火箭殘骸、碎片與零件，只有追蹤得到、編進目錄的物體（大約 10 公分以上），更小的碎片是模型推算的、不在這裡；碎片算在原本那個物體的擁有國，年份用它產生（分離或解體）的日期。發射是入軌發射（成功與失敗都算），國家是發射業者所屬的國家（阿利安太空公司在法屬圭亞那發射算法國、Rocket Lab 在紐西蘭發射算美國）。蘇聯的酬載與發射算在繼承國俄羅斯；歐洲太空總署、EUMETSAT、Intelsat 等國際組織的酬載只算進世界合計。',
+    en: 'Data from GCAT (J. McDowell, planet4589.org/space/gcat) up to 29 October 2026, so 2026 is year to date. Payloads are satellites, spacecraft and space station modules, including defunct satellites but not rocket bodies or debris, assigned to the owner’s country. Space debris covers rocket bodies, fragments and components that are tracked and catalogued (roughly 10 cm and larger); smaller debris is only modelled and is not shown. Fragments count for the owner of the object they came from, dated by when they separated or broke up. Launches are orbital launch attempts (successes and failures), assigned to the launch provider’s country (Arianespace from French Guiana counts for France, Rocket Lab from New Zealand for the United States). Soviet payloads and launches count for Russia as the successor state; payloads of international organisations such as ESA, EUMETSAT and Intelsat count only in the world total.',
   },
   panelExtra: () => import('./panels/SpacePanel'),
   overlays: [
@@ -76,6 +78,21 @@ export const space: TopicDefinition = {
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
       overlayTime: 'cumulative',
       format: payloads,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'debris',
+      label: { zh: '太空垃圾（依擁有國）', en: 'Space debris' },
+      description: {
+        zh: '這一年年底還在地球軌道上的火箭殘骸、碎片與零件（整流罩、轉接環等），依擁有國；碎片算在原本那個物體的擁有國。2026 年約 1.46 萬個：俄羅斯（含蘇聯）4,908、美國 4,458、中國 4,441，其中 2007 年中國反衛星試射擊碎的風雲一號 C 還有 2,313 個碎片。反衛星試射、衛星或火箭爆炸讓一國的數字一年跳上幾千。台灣擁有的 2 個碎片都已經再入大氣層。',
+        en: 'Rocket bodies, debris and components (fairings, adapters and the like) still in Earth orbit at the end of the year, by the owner’s country; fragments count for the owner of the object they came from. About 14,600 in 2026: Russia (including the Soviet Union) 4,908, the US 4,458 and China 4,441, of which 2,313 are still fragments of the Fengyun-1C satellite destroyed in China’s 2007 anti-satellite test. Anti-satellite tests and explosions of satellites or rockets can add thousands in a single year. Taiwan’s two debris objects have both re-entered.',
+      },
+      unit: { zh: '個', en: 'objects' },
+      file: 'debris.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 5000] },
+      overlayTime: 'cumulative',
+      format: objects,
       formatTick: formatLargeTick,
       shareOfWorld: true,
     },
