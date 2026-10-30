@@ -39,6 +39,8 @@ const ITEMS_PER_COLUMN = 7;
 const MAX_COLUMNS = 3;
 /** 選單與按鈕、畫面邊緣的距離 */
 const GAP = 6;
+/** 滑過換開分類之後這段時間內在同一個按鈕上的點擊，當成同一個動作、不關掉選單 */
+const HOVER_CLICK_GRACE = 500;
 
 type Focus = 'current' | 'first' | 'last' | 'none';
 
@@ -79,6 +81,11 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const focusOnOpen = useRef<Focus>('current');
+  /** 目前開著的分類（滑過、點擊時看這個，不靠可能還沒重繪的 state） */
+  const openRef = useRef<string | null>(null);
+  openRef.current = open;
+  /** 最近一次滑過換開的分類與時間 */
+  const hoverOpened = useRef<{ id: string; at: number } | null>(null);
   const menuId = useId();
 
   const [overflowing, setOverflowing] = useState(false);
@@ -114,11 +121,13 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   const show = (id: string, focus: Focus) => {
     if (!place(id)) return;
     focusOnOpen.current = focus;
+    openRef.current = id;
     setOpen(id);
   };
 
   const close = (refocus: boolean) => {
     const id = open;
+    openRef.current = null;
     setOpen(null);
     if (refocus && id) buttonRefs.current.get(id)?.focus();
   };
@@ -229,7 +238,21 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
 
   // 滑鼠移到另一個分類時，已經開著的選單直接換過去（跟桌面程式的選單列一樣）
   const onButtonPointerEnter = (group: TopicGroup) => (e: PointerEvent) => {
-    if (open && open !== group.id && e.pointerType === 'mouse') show(group.id, 'none');
+    const opened = openRef.current;
+    if (opened && opened !== group.id && e.pointerType === 'mouse') {
+      hoverOpened.current = { id: group.id, at: performance.now() };
+      show(group.id, 'none');
+    }
+  };
+
+  // 點分類按鈕：開著就關、關著就開。但選單開著時直接點另一個分類，移過去的那一下已經換開了選單，
+  // 緊接著的點擊是要打開它、不是關掉（2026-10-30；原本會閃一下就關掉，check:en 也因此偶爾等不到 .topic-menu）
+  const onButtonClick = (group: TopicGroup) => () => {
+    const hovered = hoverOpened.current;
+    hoverOpened.current = null;
+    if (hovered?.id === group.id && performance.now() - hovered.at < HOVER_CLICK_GRACE) return;
+    if (openRef.current === group.id) close(false);
+    else show(group.id, 'current');
   };
 
   const onMenuKeyDown = (e: KeyboardEvent) => {
@@ -309,7 +332,7 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
             aria-haspopup="menu"
             aria-expanded={expanded}
             aria-controls={expanded ? menuId : undefined}
-            onClick={() => (expanded ? close(false) : show(group.id, 'current'))}
+            onClick={onButtonClick(group)}
             onKeyDown={onButtonKeyDown(group)}
             onPointerEnter={onButtonPointerEnter(group)}
           >

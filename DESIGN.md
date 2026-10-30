@@ -3763,6 +3763,7 @@ pipeline/
 - 選單用 portal 放到 `body`、`position: fixed` 對齊按鈕：主題列有 `overflow-x: auto`，放在裡面往下長的選單會被裁掉。主題列或頁面捲動、視窗改變大小時，選單跟著按鈕移動。
 - 鍵盤依 WAI-ARIA 的 menu button 模式：在分類按鈕上 ↓↑ 開啟，選單裡 ↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉並回到按鈕。項目是 `menuitemradio`，目前主題 `aria-checked`。
 - 選單開著時滑鼠移到另一個分類，直接換成那一類的選單（桌面程式選單列的習慣）；觸控不受影響。
+  - 移過去之後 0.5 秒內點同一個分類不會把剛換開的選單關掉（`HOVER_CLICK_GRACE`）：選單開著時直接點另一個分類，移動與點擊是同一個動作，原本會閃一下就關掉；`check:en` 偶爾卡在「Waiting for selector .topic-menu」也是這個（2026-10-30）。之後再點一次照樣關掉。
 - `npm run check:en` 照這個結構逐一打開每個分類、點選每個主題。
 
 **國家搜尋**（`src/lib/countrySearch.ts`、`src/controls/CountrySearch.tsx`）：
