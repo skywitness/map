@@ -3872,7 +3872,7 @@ pipeline/
     - `npm run data -- wages` 後只有兩個最低工資檔的台灣附註變了。
 238. **水資源：水利署 114 年的自來水普及率**（台灣，2026-10-30，製作手冊第八批 156；`pipeline/topics/water_forest.py`）：
     - **自來水普及率**：水利署公務統計報表「自來水供水普及率」（20420-02-01，https://www.wra.gov.tw/news_content.aspx?n=2945&s=7417 ，從 cloud 下載得到）每年一個 ods，第二張工作表是 12 月底：113 年 12 月底 95.78%（跟原本用的《113 年生活用水量統計報告》一樣）、**114 年 12 月底 95.74%**（實際供水 22,307,539 人 ÷ 行政區域 23,299,132 人）。`TW_TAP_WATER` 加 2025 年；飲用水指標的時間軸到 2024 年（其他國家還沒有 2025 年），所以 2025 年寫在台灣的附註（「2025 年底 95.74%（地圖的年份到 2024 年）」，跟第 241 點同一個做法），附註的出處改成公務統計報表。
-    - **用水量沒有更新（跟手冊不同）**：《中華民國 114 年水利統計》（https://www.wra.gov.tw/News.aspx?n=2953&sms=9084 ，PDF 下載得到）的用水量只到 113 年（155.96 億立方公尺，跟現在一樣），114 年的《各標的用水統計年報》在 web.wra.gov.tw/Annualwater/，從 cloud 回「Request Rejected」，沒有繞過。`TW_WITHDRAWAL_LATEST` 維持 (2024, 155.96)，註解寫明。
+    - **用水量沒有更新（跟手冊不同）**：《中華民國 114 年水利統計》（https://www.wra.gov.tw/News.aspx?n=2953&sms=9084 ，PDF 下載得到）的用水量只到 113 年（155.96 億立方公尺，跟現在一樣），114 年的《各標的用水統計年報》在 web.wra.gov.tw/Annualwater/，從 cloud 回「Request Rejected」，沒有繞過。`TW_WITHDRAWAL_LATEST` 維持 (2024, 155.96)，註解寫明。使用者 2026-10-30 決定用水量不再更新（不請本機 session 代為下載年報）。
     - `npm run data -- water-forest` 後只有 `safe-water.json` 的台灣附註變了。
 239. **學術論文：《科學技術統計要覽》2025 年版**（台灣，2026-10-30，製作手冊第八批 157；`pipeline/topics/publications.py` 的 `TW_SCI`、`TW_SCI_YEARS`，`src/topics/publications.ts`）：
     - 國科會統計資料庫（https://wsts.nstc.gov.tw/stsweb/technology/TechnologyDataIndex.aspx?language=C ，使用者提供網址）的《科學技術統計要覽》2025 年版表 II-9「SCIE 各國論文發表篇數及名次」（國研院科政中心依 InCites 整理，更新日期 2025-11）：台灣 2020 年 32,870 篇（第 21 名）、2021 年 37,825（22）、2022 年 36,782（21）、2023 年 31,177（22）、2024 年 31,029（22）。這一版含 SSCI，文獻類型是論文與評論，中國含港澳。那一頁是 ASP.NET 的樹狀選單，表格用頁面自己的表單（`__doPostBack`）取得 PDF；Python 跟這台主機的 TLS 交握失敗，用 curl（同一個誠實的 User-Agent）。使用者另外上傳的教育部 OVERVIEW_N09.pdf 還是 2019 年版。
