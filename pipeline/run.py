@@ -71,6 +71,8 @@ STEPS = {
     "temperature-grid-tiles": "topics.temperature_grid_tiles",
     # 一年下雨幾天（氣溫與降雨主題）：CRU TS 的 wet（第一次下載約 233 MB）＋中央氣象署測站的降雨日數（台灣附註）
     "wet-days": "topics.wet_days",
+    # 日照時數（氣溫與降雨主題）：CRU CL v2.0 的日照百分比（1961–1990 年平均，約 12 MB）換算成小時＋中央氣象署測站（台灣附註）
+    "sunshine": "topics.sunshine",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",

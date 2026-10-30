@@ -31,14 +31,22 @@ export const temperature: TopicDefinition = {
       license: 'Open Database License (ODbL)',
     },
     {
-      name: { zh: '中央氣象署（台灣交叉比對；雨日用開放資料「過去氣象觀測」的測站逐月資料 C-B0026-002）', en: 'Central Weather Administration, Taiwan (cross-check; wet days from the monthly station data C-B0026-002 on its open data platform)' },
+      name: {
+        zh: 'CRU CL v2.0（日照百分比，1961–1990 年平均；New et al. 2002, Climate Research）',
+        en: 'CRU CL v2.0 (sunshine percentage, 1961–1990 average; New et al. 2002, Climate Research)',
+      },
+      url: 'https://crudata.uea.ac.uk/cru/data/hrg/tmc/',
+      license: 'Open Database License (ODbL)',
+    },
+    {
+      name: { zh: '中央氣象署（台灣交叉比對；雨日與日照用開放資料「過去氣象觀測」的測站逐月資料 C-B0026-002）', en: 'Central Weather Administration, Taiwan (cross-check; wet days and sunshine from the monthly station data C-B0026-002 on its open data platform)' },
       url: 'https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
   ],
   note: {
-    zh: 'CRU TS 由各地測站的逐月觀測內插成 0.5° 的陸地網格（不含南極洲），各國的值是國界內格子依面積加權的平均，含高山與沙漠，跟首都或平地測站的數字可能差很多（例如台灣含中央山脈，比平地測站低約 4 °C）。離測站太遠的格子直接填 1961–1990 年的平均值，所以測站很少的地方變化看起來偏小：20 世紀初的非洲、南美內陸、北極，以及到現在都是如此的太平洋小島與新幾內亞。暖化的基準期因此用測站較多的 1951–1980 年。一年下雨幾天是 CRU TS 的雨日（wet，日雨量 0.1 毫米以上），雨日觀測少的地方由測站的雨量與 1961–1990 年的氣候值推算（Harris et al. 2020），台灣的格子比中央氣象署測站的平均多約 90 天。國土比一個格子還小、或網格上沒有陸地的小島國，用涵蓋它或最近的陸地格子，附註會說明。各國平均與 0.5° 網格是 CRU TS 的衍生資料庫，跟 CRU TS 一樣以 Open Database License（ODbL）提供。造成暖化的溫室氣體見「各國溫室氣體排放」主題。',
-    en: 'CRU TS interpolates monthly station observations onto a 0.5° land grid (Antarctica excluded). Country values are area-weighted averages of the cells within each border, mountains and deserts included, so they can differ a lot from figures for capitals or lowland stations (Taiwan, for example, includes its Central Mountain Range and comes out about 4 °C cooler than lowland stations). Cells too far from any station are filled with their 1961–1990 average, so places with few stations show less change than they probably had: Africa, inland South America and the Arctic in the early 20th century, and Pacific islands and New Guinea to this day. That is why warming is measured against 1951–1980, when stations were far more numerous. Wet days per year are CRU TS wet days (at least 0.1 mm of precipitation); where few wet-day reports exist they are derived from station rainfall and 1961–1990 normals (Harris et al. 2020), and Taiwan’s cells come out about 90 days higher than the Central Weather Administration’s station average. Small islands smaller than a grid cell, or with no land cell on the grid, use the cell covering them or the nearest land cell, as noted per country. The country averages and the 0.5° grid are derived from CRU TS and, like it, are available under the Open Database License (ODbL). For the greenhouse gases behind warming, see Greenhouse gas emissions by country.',
+    zh: 'CRU TS 由各地測站的逐月觀測內插成 0.5° 的陸地網格（不含南極洲），各國的值是國界內格子依面積加權的平均，含高山與沙漠，跟首都或平地測站的數字可能差很多（例如台灣含中央山脈，比平地測站低約 4 °C）。離測站太遠的格子直接填 1961–1990 年的平均值，所以測站很少的地方變化看起來偏小：20 世紀初的非洲、南美內陸、北極，以及到現在都是如此的太平洋小島與新幾內亞。暖化的基準期因此用測站較多的 1951–1980 年。一年下雨幾天是 CRU TS 的雨日（wet，日雨量 0.1 毫米以上），雨日觀測少的地方由測站的雨量與 1961–1990 年的氣候值推算（Harris et al. 2020），台灣的格子比中央氣象署測站的平均多約 90 天。日照時數只有 CRU CL v2.0 的 1961–1990 年平均（10′ 網格，測站少的地方是內插的），由日照百分比乘上每個月中旬的天文可照時數換算成小時；太平洋與印度洋的一些小島國在這個網格上沒有格子，從缺。國土比一個格子還小、或網格上沒有陸地的小島國，用涵蓋它或最近的陸地格子，附註會說明。各國平均與 0.5° 網格是 CRU TS 的衍生資料庫，跟 CRU TS 一樣以 Open Database License（ODbL）提供。造成暖化的溫室氣體見「各國溫室氣體排放」主題。',
+    en: 'CRU TS interpolates monthly station observations onto a 0.5° land grid (Antarctica excluded). Country values are area-weighted averages of the cells within each border, mountains and deserts included, so they can differ a lot from figures for capitals or lowland stations (Taiwan, for example, includes its Central Mountain Range and comes out about 4 °C cooler than lowland stations). Cells too far from any station are filled with their 1961–1990 average, so places with few stations show less change than they probably had: Africa, inland South America and the Arctic in the early 20th century, and Pacific islands and New Guinea to this day. That is why warming is measured against 1951–1980, when stations were far more numerous. Wet days per year are CRU TS wet days (at least 0.1 mm of precipitation); where few wet-day reports exist they are derived from station rainfall and 1961–1990 normals (Harris et al. 2020), and Taiwan’s cells come out about 90 days higher than the Central Weather Administration’s station average. Sunshine hours exist only as the CRU CL v2.0 average for 1961–1990 (10′ grid, interpolated where stations are sparse), converted to hours by multiplying the sunshine percentage by each mid-month astronomical day length; some small Pacific and Indian Ocean island states have no cell on that grid and are left blank. Small islands smaller than a grid cell, or with no land cell on the grid, use the cell covering them or the nearest land cell, as noted per country. The country averages and the 0.5° grid are derived from CRU TS and, like it, are available under the Open Database License (ODbL). For the greenhouse gases behind warming, see Greenhouse gas emissions by country.',
   },
   panelExtra: () => import('./panels/TemperaturePanel'),
   indicators: [
@@ -83,6 +91,26 @@ export const temperature: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 0)} 天`, en: `${fixed(v, 0)} days` }),
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'sunshine',
+      label: { zh: '日照時數', en: 'Sunshine hours' },
+      description: {
+        zh: '一年有多少小時的日照（1961–1990 年的平均，全國陸地依面積加權）。CRU CL 的日照百分比（實際日照占可照時數的比例）乘上每個月的可照時數換算；只有這一段 30 年的平均，台灣附註列出中央氣象署測站近年的值。',
+        en: 'Hours of bright sunshine a year (1961–1990 average, area-weighted over the country’s land). Converted from CRU CL’s sunshine percentage (share of the possible daylight hours) times each month’s day length; only this 30-year average exists – see the note for recent Central Weather Administration station figures in Taiwan.',
+      },
+      unit: { zh: '小時', en: 'hours' },
+      file: 'sunshine.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1500, 2000, 2500, 3000, 3500] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 小時`, en: `${fixed(v, 0)} hours` }),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+      defaultYear: 1990,
+      timeAxis: {
+        label: { zh: '1961–1990 年平均', en: '1961–1990 average' },
+        year: () => tr({ zh: '1961–1990 年平均', en: '1961–1990 average' }),
+        tick: () => '1961–1990',
+      },
     },
     {
       id: 'warming',
