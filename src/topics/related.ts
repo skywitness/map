@@ -28,7 +28,8 @@ export const RELATED: Record<string, string[]> = {
   crime: ['laws', 'governance', 'conflict'],
   laws: ['crime', 'marriage', 'democracy'],
   nobel: ['publications', 'innovation'],
-  sports: ['nobel', 'tourism'],
+  sports: ['nobel', 'racing', 'tourism'],
+  racing: ['sports', 'tourism'],
   // 經濟
   income: ['wages', 'inequality', 'happiness'],
   wages: ['income', 'employment', 'taxes'],

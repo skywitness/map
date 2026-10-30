@@ -30,7 +30,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
       { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
-      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports'] },
+      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
     ],
   },
   {
@@ -125,6 +125,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   happiness: () => import('./happiness'),
   nobel: () => import('./nobel'),
   sports: () => import('./sports'),
+  racing: () => import('./racing'),
   income: () => import('./income'),
   wages: () => import('./wages'),
   employment: () => import('./employment'),

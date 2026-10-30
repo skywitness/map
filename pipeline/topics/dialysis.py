@@ -1,7 +1,8 @@
 """洗腎大國（疾病主題的擴充，2026-10-30，製作手冊第六批 89；輸出到 topics/disease/）。
 
-- 每百萬人的透析人數：USRDS Annual Data Report 2025 第 11 章圖 11.15（2023 年年底的盛行率，49 個國家或地區，
-  `sources/usrds.py`）。2023 年沒有值的韓國、印尼、蒙特內哥羅用圖 11.16a 的 2022 年。
+- 每百萬人的透析人數：USRDS Annual Data Report 2026 第 11 章圖 11.13（2024 年年底的盛行率，51 個國家或地區，
+  `sources/usrds.py`；製作手冊第八批 149）。2026 年版沒有 2024 年值的南韓、巴西、奈及利亞沿用 2025 年版
+  （圖 11.15 的 2023 年，沒有的再用圖 11.16a 的最後一年：南韓 2022 年），使用者 2026-10-30 決定；附註寫明。
   墨西哥只有阿瓜斯卡連特斯州、比利時分成荷語區與法語區、英國分成英格蘭威爾斯北愛爾蘭與蘇格蘭，
   都畫成地圖上的點（前端 disease.ts 的 PLACES，鍵跟這裡的 PLACES 一致），國家本身不上色。
 - 公立醫療體系能不能洗腎：WHO 非傳染病國家能力調查（NCD CCS）的 NCD_CCS_dialysis「General availability of
@@ -27,6 +28,7 @@ NAMES = {
     "Czech Republic": "CZE",
     "Brunei Darussalam": "BRN",
     "Bosnia and Herzegovina": "BIH",
+    "Turkey": "TUR",
     "Aguascalientes (Mexico)": "_MX-AGU",
     "Belgium, French speaking": "_BE-FR",
     "Belgium, Dutch speaking": "_BE-NL",
@@ -47,25 +49,30 @@ def _iso3(name: str) -> str:
 
 
 def build_prevalence() -> None:
-    year = 2023
-    latest = {_iso3(k): {year: round(v)} for k, v in usrds.by_place("Figure 11.15").items()}
-    filled = []
-    for name, series in usrds.trends("Figure 11.16a").items():
+    year = 2024
+    latest = {_iso3(k): {year: round(v)} for k, v in usrds.by_place("Figure 11.13").items()}
+    # 2026 年版沒有的，沿用 2025 年版：圖 11.15（2023 年），再沒有的用圖 11.16a 的最後一年
+    previous = {_iso3(k): {2023: round(v)} for k, v in usrds.by_place("Figure 11.15", 2025).items()}
+    for name, series in usrds.trends("Figure 11.16a", 2025).items():
         iso3 = _iso3(name)
-        if iso3 not in latest and series:
+        if iso3 not in previous and series:
             last = max(series)
-            latest[iso3] = {last: round(series[last])}
-            filled.append(f"{iso3} {last}")
+            previous[iso3] = {last: round(series[last])}
+    filled = []
+    for iso3, s in previous.items():
+        if iso3 not in latest:
+            latest[iso3] = s
+            filled.append(f"{iso3} {next(iter(s))}")
     years = list(range(2022, year + 1))
     values = {k: [s.get(y) for y in years] for k, s in sorted(latest.items())}
-    note = {k: f"{next(iter(s))} 年（2023 年沒有值）" for k, s in latest.items() if year not in s}
+    note = {k: next(iter(s)) for k, s in latest.items() if year not in s}
     write_json(OUT / "dialysis.json", indicator_file(
-        "dialysis", "人/百萬人", years, values, latestWithin=1,
-        notes={k: f"USRDS 圖 11.16a 的 {v}。" for k, v in note.items()},
-        notesEn={k: f"USRDS figure 11.16a, {next(iter(latest[k]))} (no 2023 value)." for k in note},
+        "dialysis", "人/百萬人", years, values, latestWithin=2,
+        notes={k: f"USRDS 2026 年報沒有 {year} 年的值，沿用 2025 年報的 {y} 年。" for k, y in note.items()},
+        notesEn={k: f"No {year} value in the USRDS 2026 report; {y} figure from the 2025 report." for k, y in note.items()},
     ))
     top = sorted(((next(iter(s.values())), k) for k, s in latest.items()), reverse=True)
-    print(f"  透析盛行率：{len(latest)} 個（含 {len(PLACES)} 個次國家地區）；用 2022 年補的 {filled}")
+    print(f"  透析盛行率：{len(latest)} 個（含 {len(PLACES)} 個次國家地區）；沿用 2025 年報的 {filled}")
     print(f"  最多 {top[:6]}；最少 {top[-4:]}")
 
 

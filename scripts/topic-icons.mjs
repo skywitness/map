@@ -67,6 +67,7 @@ const TOPIC_ICONS = {
   happiness: 'smile',
   nobel: 'award',
   sports: 'medal',
+  racing: 'flag-triangle-right',
   reads: 'book-open',
   // 經濟
   income: 'banknote',
