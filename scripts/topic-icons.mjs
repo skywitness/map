@@ -128,6 +128,7 @@ const TOPIC_ICONS = {
   airlines: 'plane-takeoff',
   'longest-flights': 'route',
   'cable-cars': 'cable-car',
+  'heritage-railways': 'train-track',
   shipping: 'anchor',
   logbooks: 'sailboat',
   'road-safety': 'traffic-cone',
