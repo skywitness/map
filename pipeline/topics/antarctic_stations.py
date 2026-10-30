@@ -12,7 +12,7 @@ Wikidata 少了哪些），前端的說明只引用它的總數，不轉載內�
 名單」（Wikidata 常沒標關閉，多半是已關閉的歷史站或臨時營地）。國家的站數只算運作中的。只用核對的結果（對不對得到），
 不轉載 COMNAP 的名稱、人數這類內容。
 
-**輸出**（public/data/topics/antarctic-stations/）：stations.json（點）、operating.json（各國運作中的站數）。
+**輸出**（public/data/topics/antarctica/）：stations.json（點）、operating.json（各國運作中的站數）。
 """
 from __future__ import annotations
 
@@ -26,9 +26,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from common import CACHE_DIR, OUT_DIR, USER_AGENT, download, indicator_file, now_iso, points_file, write_json
+from common import CACHE_DIR, OUT_DIR, USER_AGENT, download, indicator_file, now_iso, points_file, write_json, write_manifest_part
 
-OUT = OUT_DIR / "topics" / "antarctic-stations"
+OUT = OUT_DIR / "topics" / "antarctica"  # 南極主題（2026-10-30 研究站、企鵝、冰下湖合併）
 SPARQL = "https://query.wikidata.org/sparql"
 COMNAP_URL = "https://www.comnap.aq/s/Facilities_Nov2024.csv"
 YEAR = 2026
@@ -232,8 +232,8 @@ def build() -> None:
     write_json(OUT / "stations.json", points_file(rows, ["lon", "lat", "s", "y", "e", "h", "sl", "iso3", "iso3b", "en", "zh"],
                                                   {"lon": 0.001, "lat": 0.001, "s": 1, "y": 1, "e": 1, "h": 1, "sl": 1}))
     write_json(OUT / "operating.json", indicator_file("operating", "處", [YEAR], values))
-    write_json(OUT / "manifest.json", {
-        "topic": "antarctic-stations", "generatedAt": now_iso(), "sources": ["Wikidata (CC0)"],
+    write_manifest_part(OUT, "antarctica", "stations", {
+        "sources": ["Wikidata (CC0)"],
         "check": {"comnap": COMNAP_URL, "facilities": len(facilities), "matched": matched},
     })
 

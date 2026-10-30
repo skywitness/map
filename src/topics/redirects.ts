@@ -18,7 +18,12 @@ export interface TopicRedirect {
 }
 
 /** 舊主題 id → 新主題（整個主題併進別的主題） */
-export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {};
+export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
+  // 南極（第七批 116）：研究站、企鵝、冰下湖合成一個主題，指標 id 不變
+  'antarctic-stations': { topic: 'antarctica', indicator: 'operating' },
+  penguins: { topic: 'antarctica', indicator: 'species' },
+  'subglacial-lakes': { topic: 'antarctica', indicator: 'lakes' },
+};
 
 /**
  * 主題留著、但某幾個指標搬到別的主題：主題 id → { 指標 id → 新主題 }。
