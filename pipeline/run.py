@@ -93,6 +93,8 @@ STEPS = {
     "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
+    # 缺水壓力的推估（水資源與森林主題）：WRI Aqueduct 4.0 的各國排名（約 13 MB）；幾秒
+    "aqueduct": "topics.aqueduct",
     "ev": "topics.ev",
     # 電動車主題的燃油車禁售年份與狀態（英文維基百科的表；要先有 profiles 的 government.json）
     "ev-phaseout": "topics.ev_phaseout",
