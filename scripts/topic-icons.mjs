@@ -86,6 +86,7 @@ const TOPIC_ICONS = {
   minerals: 'pickaxe',
   'chain-stores': 'store',
   'oldest-companies': 'hourglass',
+  brands: 'tag',
   // 國際
   trade: 'container',
   migration: 'footprints',

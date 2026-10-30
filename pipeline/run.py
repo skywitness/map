@@ -276,6 +276,8 @@ STEPS = {
     "cloud-regions": "topics.cloud_regions",
     # 最古老的公司：英文維基「List of oldest companies」（固定版本）＋ Wikidata 的座標；幾秒
     "oldest-companies": "topics.oldest_companies",
+    # 品牌的發源地：Wikidata 的時尚品牌與汽車品牌（SPARQL 兩次）
+    "brands": "topics.brands",
     # 各國的航空公司：Wikidata 的客運航空公司（依總部所在國，含已停業的）；幾秒
     "airlines": "topics.airlines",
     # 海外軍事基地（軍事主題）：英文維基「List of countries with overseas military bases」（固定版本），國家層級的流向；不到 1 秒
