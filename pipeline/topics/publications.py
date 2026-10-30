@@ -51,10 +51,12 @@ MIN_POPULATION = 100_000
 MIN_PAPERS = 100  # 比例要那一年（那個領域）有 100 篇以上才算
 TOP_N = 15  # 流向檔每個國家存的合著國家數
 
-# 科技部（現在的國科會）《科學技術統計要覽》2019 年版的 SCI 論文篇數與名次（教育部統計處「重要教育統計資訊」OVERVIEW_N09 轉載，
-# https://stats.moe.gov.tw/files/important/OVERVIEW_N09.pdf ，2026-10-27 查）：Web of Science 的 SCIE，
-# 只拿來對照數量級，寫在台灣的附註
-TW_SCI = {2014: (28_111, 18), 2015: (27_105, 21), 2016: (27_027, 21), 2017: (25_907, 21), 2018: (25_610, 22)}
+# 國科會《科學技術統計要覽》2025 年版表 II-9「SCIE 各國論文發表篇數及名次」（國研院科政中心依 InCites 整理，更新日期 2025-11；
+# 國科會統計資料庫 https://wsts.nstc.gov.tw/stsweb/technology/TechnologyDataIndex.aspx?language=C ，2026-10-30 查）：
+# SCIE 加 SSCI，文獻類型是論文與評論，中國含香港、澳門。只拿來對照數量級，寫在台灣的附註
+# （製作手冊第八批 157；原本用 2019 年版的 2014–2018 年，教育部統計處 OVERVIEW_N09 轉載）
+TW_SCI = {2020: (32_870, 21), 2021: (37_825, 22), 2022: (36_782, 21), 2023: (31_177, 22), 2024: (31_029, 22)}
+TW_SCI_YEARS = (2020, 2024)  # 附註寫的頭尾兩年
 
 
 def check_topic(small: list[str]) -> None:
@@ -253,22 +255,21 @@ def _rank(values: dict[str, dict[int, int]] | dict[str, float], c: str, y: int |
 def _taiwan_notes(papers_all: dict[str, dict[int, int]]) -> tuple[dict[str, str], dict[str, str]]:
     tw = papers_all["TWN"]
     parts_zh, parts_en = [], []
-    for y in (2014, 2018):
+    for y in TW_SCI_YEARS:
         sci, sci_rank = TW_SCI[y]
         rank, n = _rank(papers_all, "TWN", y)
-        parts_zh.append(f"{y} 年 SCI 論文 {sci:,} 篇（第 {sci_rank} 名），這裡是 {tw[y]:,} 篇（第 {rank} 名）")
-        parts_en.append(f"{sci:,} SCI papers in {y} (rank {sci_rank}), against {tw[y]:,} here (rank {rank})")
+        parts_zh.append(f"{y} 年 SCIE 論文 {sci:,} 篇（第 {sci_rank} 名），這裡是 {tw[y]:,} 篇（第 {rank} 名）")
+        parts_en.append(f"{sci:,} SCIE papers in {y} (rank {sci_rank}), against {tw[y]:,} here (rank {rank})")
     zh = (
-        "科技部（現在的國科會）《科學技術統計要覽》2019 年版依 Web of Science 的 SCI（科學引文索引擴充版），教育部統計處轉載："
+        "國科會《科學技術統計要覽》2025 年版依 Web of Science 的 SCIE 與 SSCI（論文與評論，國研院科政中心整理）："
         + "；".join(parts_zh)
-        + "。SCI 只收自然科學與工程的期刊，這裡另外含社會科學、人文的期刊與會議論文，資料庫與收錄範圍都不同。"
+        + "。SCIE、SSCI 只收 Web of Science 選的期刊，這裡另外含人文的期刊與會議論文，資料庫與收錄範圍都不同。"
     )
     en = (
-        "The Indicators of Science and Technology, 2019 edition, by the Ministry of Science and Technology (now the "
-        "National Science and Technology Council), as republished by the Ministry of Education and based on "
-        "Web of Science's Science Citation Index Expanded, gives "
+        "The Indicators of Science and Technology, 2025 edition, by the National Science and Technology Council, "
+        "based on Web of Science's SCIE and SSCI (articles and reviews, compiled by STPI), gives "
         + "; ".join(parts_en)
-        + ". SCI covers science and engineering journals only, while this map also includes social science and "
+        + ". SCIE and SSCI cover only the journals selected by Web of Science, while this map also includes "
         "humanities journals and conference papers, so the databases and coverage differ."
     )
     return {"TWN": zh}, {"TWN": en}
