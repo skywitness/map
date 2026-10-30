@@ -42,15 +42,14 @@ const GAP = 6;
 
 type Focus = 'current' | 'first' | 'last' | 'none';
 
-/** 主題多的分類分成幾欄；由上往下排完一欄再排下一欄，↑↓ 的順序跟畫面一致 */
-function menuStyle(count: number, position: { left: number; top: number }): CSSProperties {
-  const columns = Math.min(MAX_COLUMNS, Math.ceil(count / ITEMS_PER_COLUMN));
-  return {
-    left: position.left,
-    top: position.top,
-    '--menu-columns': columns,
-    '--menu-rows': Math.ceil(count / columns),
-  } as CSSProperties;
+/**
+ * 主題多的分類分成幾欄；由上往下排完一欄再排下一欄，↑↓ 的順序跟畫面一致。
+ * 2026-10-30 起選單依小標題分段（CSS 多欄，一段不拆到兩欄），小標題也算一列
+ */
+function menuStyle(group: TopicGroup, position: { left: number; top: number }): CSSProperties {
+  const rows = group.topics.length + group.sections.filter((s) => s.label).length;
+  const columns = Math.min(MAX_COLUMNS, Math.ceil(rows / ITEMS_PER_COLUMN));
+  return { left: position.left, top: position.top, '--menu-columns': columns } as CSSProperties;
 }
 
 /** 只捲動主題列本身（scrollIntoView 可能連整頁一起捲）；右邊留出淡出的寬度 */
@@ -331,35 +330,49 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
             id={menuId}
             role="menu"
             aria-label={tr(openGroup.label, lang)}
-            style={{ ...menuStyle(openGroup.topics.length, position), ...categoryStyle(openGroup.id) }}
+            style={{ ...menuStyle(openGroup, position), ...categoryStyle(openGroup.id) }}
             onKeyDown={onMenuKeyDown}
           >
             {/* 主題排成網格（分欄），「看全部主題」在網格下面另起一行 */}
             <div className="topic-menu-items" role="none">
-              {openGroup.topics.map((topic, i) => (
-                <button
-                  key={topic.id}
-                  ref={(el) => {
-                    itemRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={topic.id === current.id}
-                  tabIndex={-1}
-                  className="topic-item"
-                  // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
-                  onPointerEnter={() => prefetchTopic(topic.id)}
-                  onFocus={() => prefetchTopic(topic.id)}
-                  onClick={() => select(topic)}
-                >
-                  {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
-                  <span className="topic-tile" aria-hidden="true">
-                    <Glyph d={icons?.[topic.id]} size={18} />
-                  </span>
-                  <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
-                  <span className="topic-item-summary">{summary(topic)}</span>
-                </button>
-              ))}
+              {openGroup.sections.map((section, si) => {
+                // 這一段第一個主題在 itemRefs 的位置（↑↓ 依畫面的順序，跨過小標題）
+                const offset = openGroup.sections.slice(0, si).reduce((n, s) => n + s.topics.length, 0);
+                const heading = section.label ? tr(section.label, lang) : undefined;
+                return (
+                  <div key={si} className="topic-menu-section" role={heading ? 'group' : 'none'} aria-label={heading}>
+                    {heading && (
+                      <div className="topic-menu-heading" aria-hidden="true">
+                        {heading}
+                      </div>
+                    )}
+                    {section.topics.map((topic, j) => (
+                      <button
+                        key={topic.id}
+                        ref={(el) => {
+                          itemRefs.current[offset + j] = el;
+                        }}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={topic.id === current.id}
+                        tabIndex={-1}
+                        className="topic-item"
+                        // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
+                        onPointerEnter={() => prefetchTopic(topic.id)}
+                        onFocus={() => prefetchTopic(topic.id)}
+                        onClick={() => select(topic)}
+                      >
+                        {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
+                        <span className="topic-tile" aria-hidden="true">
+                          <Glyph d={icons?.[topic.id]} size={18} />
+                        </span>
+                        <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
+                        <span className="topic-item-summary">{summary(topic)}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
             <button
               ref={(el) => {

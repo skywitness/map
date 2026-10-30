@@ -38,7 +38,7 @@ try {
   const { pureMap } = await server.ssrLoadModule('/src/topics/map.ts');
   const { population } = await server.ssrLoadModule('/src/topics/population.ts');
 
-  const ids = TOPIC_GROUP_SPECS.flatMap((g) => g.topics);
+  const ids = TOPIC_GROUP_SPECS.flatMap((g) => g.sections.flatMap((s) => s.topics));
   const missing = ids.filter((id) => id !== population.id && !TOPIC_MODULES[id]);
   const extra = Object.keys(TOPIC_MODULES).filter((id) => !ids.includes(id));
   if (missing.length || extra.length) {
