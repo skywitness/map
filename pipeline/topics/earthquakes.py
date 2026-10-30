@@ -215,6 +215,20 @@ def noaa_iso3(name: str) -> str | None:
     return from_name(name.title())
 
 
+# GVP 的構造環境（Tectonic_Setting，「Intraplate / Oceanic crust (< 15 km)」）→ 代碼（src/topics/earthquakes.ts 的 TECTONIC、CRUST）
+TECTONIC = {"Subduction zone": 1, "Rift zone": 2, "Intraplate": 3}
+CRUST = {"Continental crust": 1, "Intermediate crust": 2, "Oceanic crust": 3}
+
+
+def tectonic(setting: str) -> dict[str, int]:
+    """{"ts": 構造環境, "crust": 地殼}，不明是 0（熱點火山：板塊內部的火山另外上色，2026-10-30）"""
+    zone, _, crust = (part.strip() for part in setting.partition("/"))
+    if zone and zone not in TECTONIC:
+        raise ValueError(f"GVP 的構造環境認不得：{setting}")
+    crust = crust.split(" (")[0]
+    return {"ts": TECTONIC.get(zone, 0), "crust": CRUST.get(crust, 0)}
+
+
 def gvp_iso3(name: str) -> str | None:
     if name in GVP_COUNTRY:
         return GVP_COUNTRY[name]
@@ -433,12 +447,16 @@ def build() -> None:
     vdata = points_file(
         [{
             "lon": v.lon, "lat": v.lat, "vn": v.number, "name": v.name, "type": v.type or None,
-            "elev": v.elevation, "last": v.last_eruption, "iso3": c,
+            "elev": v.elevation, "last": v.last_eruption, "iso3": c, **tectonic(v.tectonic),
         } for v, c in zip(volcanoes, v_iso3)],
-        ["lon", "lat", "vn", "name", "type", "elev", "last", "iso3"],
+        ["lon", "lat", "vn", "name", "type", "elev", "last", "iso3", "ts", "crust"],
         {"lon": 0.001, "lat": 0.001, "vn": 1, "elev": 1, "last": 1}, delta=("vn",))
     write_json(OUT / "volcanoes.json", vdata)
     print(f"  GVP：全新世火山 {len(volcanoes)} 座（{_size(vdata)}），{sum(1 for c in v_iso3 if not c)} 座不屬於任何國家")
+    ts = defaultdict(int)
+    for v in volcanoes:
+        ts[tectonic(v.tectonic)["ts"]] += 1
+    print(f"  構造環境（1 隱沒帶、2 裂谷、3 板塊內部、0 不明）：{dict(sorted(ts.items()))}")
     v_count: dict[str, int] = defaultdict(int)
     for c in v_iso3:
         if c:

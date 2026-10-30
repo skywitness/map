@@ -13,25 +13,33 @@ from sources.countries import to_iso3
 
 # 維度：REF_AREA.MEASURE.SECTOR.STANDARD_REVENUE.CTRY_SPECIFIC_REVENUE.UNIT_MEASURE.FREQ
 # 一般政府（S13）的某一類稅收（STANDARD_REVENUE：_T 全部、T_2000 社會安全捐）占 GDP。版本留空 = 最新版。
+# 單位 PT_B1GQ 是占 GDP，PT_OTR_SECTOR 是占這個部門的稅收總額（稅收的組成）
 URL = (
     "https://sdmx.oecd.org/public/rest/data/OECD.CTP.TPS,DSD_REV_COMP_GLOBAL@DF_RSGLOBAL,/"
-    ".TAX_REV.S13.{revenue}._T.PT_B1GQ.A?startPeriod=1990&format=csvfile"
+    ".TAX_REV.S13.{revenue}._T.{unit}.A?startPeriod=1990&format=csvfile"
 )
 
 
-def _series(revenue: str, filename: str) -> dict[str, dict[int, float]]:
-    """{iso3: {year: 占 GDP %}}；OECD 平均、非洲平均這類合計（代碼不是 ISO）不收。"""
-    path = download(URL.format(revenue=revenue), "oecd-revenue", filename)
-    out: dict[str, dict[int, float]] = {}
+def _by_category(revenue: str, filename: str, unit: str = "PT_B1GQ") -> dict[str, dict[str, dict[int, float]]]:
+    """{稅收類別: {iso3: {year: 值}}}；revenue 可以用 + 連接好幾類。OECD 平均、非洲平均這類合計（代碼不是 ISO）不收。"""
+    path = download(URL.format(revenue=revenue, unit=unit), "oecd-revenue", filename)
+    wanted = set(revenue.split("+"))
+    out: dict[str, dict[str, dict[int, float]]] = {}
     with open(path, encoding="utf-8-sig", newline="") as f:
         for row in csv.DictReader(f):
-            if row["STANDARD_REVENUE"] != revenue or row["SECTOR"] != "S13" or not row["OBS_VALUE"]:
+            if row["STANDARD_REVENUE"] not in wanted or row["SECTOR"] != "S13" or not row["OBS_VALUE"]:
                 continue
             if iso3 := to_iso3(row["REF_AREA"]):
-                out.setdefault(iso3, {})[int(row["TIME_PERIOD"])] = float(row["OBS_VALUE"])
+                out.setdefault(row["STANDARD_REVENUE"], {}).setdefault(iso3, {})[int(row["TIME_PERIOD"])] = float(
+                    row["OBS_VALUE"])
     if not out:
         raise RuntimeError(f"OECD 全球稅收統計（{revenue}）沒有資料，API 格式可能變了")
     return out
+
+
+def _series(revenue: str, filename: str) -> dict[str, dict[int, float]]:
+    """{iso3: {year: 占 GDP %}}"""
+    return _by_category(revenue, filename)[revenue]
 
 
 def total_tax_revenue() -> dict[str, dict[int, float]]:
@@ -42,3 +50,8 @@ def total_tax_revenue() -> dict[str, dict[int, float]]:
 def social_security_contributions() -> dict[str, dict[int, float]]:
     """其中的社會安全捐占 GDP %，用來找出前面年份沒有社會安全捐的國家。"""
     return _series("T_2000", "social-security-contributions.csv")
+
+
+def tax_structure(categories: list[str]) -> dict[str, dict[str, dict[int, float]]]:
+    """稅收的組成：{OECD 類別（T_1100）: {iso3: {year: 占稅收總額 %}}}（稅收總額含社會安全捐）"""
+    return _by_category("+".join(categories), "tax-structure.csv", "PT_OTR_SECTOR")
