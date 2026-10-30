@@ -98,6 +98,38 @@ function splitWorldZoom(style: StyleSpecification): void {
   style.layers = layers;
 }
 
+/**
+ * 彩色地形的陰影點陣圖（Natural Earth II，ne2sr）在世界視角改用我們自己放的 WebP（2026-10-30）：
+ * OpenFreeMap 的是 256px 的 PNG，地球儀一開就要 32 張、約 3.2 MB（比例圓、點圖層的主題；面量圖的主題世界視角不畫，
+ * 見 WorldMap 的 baseRastersRef）。public/relief/ 是 0–3 級的 85 張 WebP（共約 0.6 MB，pipeline/relief_tiles.py），
+ * 縮放 RELIEF_LOCAL_UNTIL 以下用它，以上照舊用 OpenFreeMap 的
+ */
+export const RELIEF_LOCAL_UNTIL = 2.5;
+const RELIEF_TILES = /\/natural_earth\/ne2sr\//;
+
+function localRelief(style: StyleSpecification): void {
+  const remote = Object.keys(style.sources).find((id) => {
+    const source = style.sources[id];
+    return source.type === 'raster' && source.tiles?.some((url) => RELIEF_TILES.test(url));
+  });
+  if (!remote) return;
+  const local = `${remote}--local`;
+  style.sources[local] = {
+    type: 'raster',
+    tiles: [`${window.location.origin}${import.meta.env.BASE_URL}relief/{z}/{x}/{y}.webp`],
+    tileSize: 256,
+    maxzoom: 3,
+  };
+  style.layers = style.layers.flatMap((layer) =>
+    layer.type === 'raster' && layer.source === remote
+      ? [
+          { ...layer, id: `${layer.id}--local`, source: local, maxzoom: Math.min(layer.maxzoom ?? 24, RELIEF_LOCAL_UNTIL) },
+          { ...layer, minzoom: Math.max(layer.minzoom ?? 0, RELIEF_LOCAL_UNTIL) },
+        ]
+      : [layer],
+  );
+}
+
 const cache = new Map<string, Promise<StyleSpecification>>();
 
 /**
@@ -117,6 +149,7 @@ export function loadBaseStyle(url: string, projection: Projection = 'globe', lan
   return promise.then((raw) => {
     const style = structuredClone(raw);
     splitWorldZoom(style);
+    localRelief(style);
     for (const layer of style.layers) {
       if (isNameLayer(layer) && layer.type === 'symbol') layer.layout = { ...layer.layout, 'text-field': LABELS[lang] };
     }

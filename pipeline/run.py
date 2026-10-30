@@ -16,6 +16,8 @@ import common
 
 STEPS = {
     "geo": "build_geo",
+    # 世界視角（0–3 級）的地形陰影圖磚，轉成 WebP 跟網站一起部署（src/map/style.ts 的 localRelief）
+    "relief-tiles": "relief_tiles",
     "population": "topics.population",
     "population-grid": "topics.population_grid",  # 要先有 geo 的國界；第一次會下載 460 MB
     # 人口密度的 1 km 網格圖磚（不進版本控制，部署時產生）；第一次會下載 12 期、共 5.8 GB

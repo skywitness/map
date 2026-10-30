@@ -1371,7 +1371,9 @@ export function WorldMap(props: WorldMapProps) {
     const kind = indicator.layer.kind;
     const covered = flagsOn || ((kind === 'choropleth' || kind === 'categorical') && !gridOn && !(threeD && !terrain));
     for (const { id, minzoom, maxzoom } of baseRastersRef.current) {
-      if (map.getLayer(id)) map.setLayerZoomRange(id, covered ? Math.max(minzoom, WORLD_TILES_UNTIL) : minzoom, maxzoom);
+      // 世界視角用我們自己的陰影圖磚的那一層（style.ts 的 localRelief）只到 RELIEF_LOCAL_UNTIL：蓋住時整層不畫（範圍是空的）
+      const min = covered ? Math.max(minzoom, WORLD_TILES_UNTIL) : minzoom;
+      if (map.getLayer(id)) map.setLayerZoomRange(id, Math.min(min, maxzoom), maxzoom);
     }
   }, [revision, indicator.layer.kind, flagsOn, gridOn, threeD, terrain]);
 

@@ -127,6 +127,15 @@ registerRoute(
   }),
 );
 
+// 世界視角的地形陰影（relief/z/x/y.webp，85 張共約 0.6 MB，style.ts 的 localRelief）：看過的直接用快取
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && url.pathname.includes('/relief/') && url.pathname.endsWith('.webp'),
+  new CacheFirst({
+    cacheName: 'relief-tiles',
+    plugins: [new CacheableResponsePlugin({ statuses: [200] }), new ExpirationPlugin({ maxEntries: 100, purgeOnQuotaError: true })],
+  }),
+);
+
 // 1 km 網格的圖磚（tiles/<資料夾>/<版本>/<年>/z/x/y.png，部署時產生）：網址含版本，內容不會變，直接用快取。
 // 512 px 的圖磚平均約 10 KB，上限 800 張約 8–10 MB；只存看過的，不預先下載
 registerRoute(
