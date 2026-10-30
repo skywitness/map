@@ -15,6 +15,7 @@
  * 切換底圖後新樣式沒有這些圖層，WorldMap 依 revision 重新呼叫 syncOverlays() 加回來。
  */
 import type {
+  CircleLayerSpecification,
   DataDrivenPropertyValueSpecification,
   ExpressionSpecification,
   FilterSpecification,
@@ -136,21 +137,53 @@ function pointLayer(def: PointsOverlay): LayerSpecification {
       paint: { 'icon-opacity': 0.95 },
     };
   }
+  const color: DataDrivenPropertyValueSpecification<string> =
+    typeof def.color === 'string' ? def.color : stepExpression(def.color.field, def.color.thresholds, pointColors(def));
   return {
     id,
     type: 'circle',
     source: id,
     ...(def.minZoom ? { minzoom: def.minZoom } : {}),
     layout: sortKey ? { 'circle-sort-key': sortKey } : {},
-    paint: {
+    paint: def.look ? lookPaint(def.look, zoomed(r), color) : {
       'circle-radius': zoomed(r),
-      'circle-color':
-        typeof def.color === 'string' ? def.color : stepExpression(def.color.field, def.color.thresholds, pointColors(def)),
+      'circle-color': color,
       'circle-opacity': 0.82,
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 6, 0.9],
       'circle-stroke-opacity': 0.9,
     },
+  };
+}
+
+/**
+ * 圓點的樣式（PointsOverlayDef.look，2026-10-30 起，發電廠的興建中、規劃中、退役）：
+ * hollow 是分類色的粗框加很淡的底色，faint 是分類色的細框、沒有底色，muted 是灰色實心加白框。
+ * 圖例的符號（Overlays.tsx 的 Swatch、exportImage.ts）照同一組數字畫
+ */
+function lookPaint(
+  look: NonNullable<PointsOverlay['look']>,
+  radius: ExpressionSpecification,
+  color: DataDrivenPropertyValueSpecification<string>,
+): NonNullable<CircleLayerSpecification['paint']> {
+  if (look === 'muted') {
+    return {
+      'circle-radius': radius,
+      'circle-color': MAP_TOKENS.inkMuted,
+      'circle-opacity': 0.6,
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, 0.5, 6, 0.9],
+      'circle-stroke-opacity': 0.8,
+    };
+  }
+  const hollow = look === 'hollow';
+  return {
+    'circle-radius': radius,
+    'circle-color': color,
+    'circle-opacity': hollow ? 0.12 : 0,
+    'circle-stroke-color': color,
+    'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 1, hollow ? 1.1 : 0.7, 6, hollow ? 1.8 : 1.1],
+    'circle-stroke-opacity': hollow ? 0.95 : 0.8,
   };
 }
 

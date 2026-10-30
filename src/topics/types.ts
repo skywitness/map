@@ -533,6 +533,11 @@ export interface PointsOverlayDef extends OverlayBase {
   fromLive?: (live: unknown) => PointRecord[] | null;
   /** 圓點或三角形（火山）；預設圓點 */
   shape?: 'circle' | 'triangle';
+  /**
+   * 圓點的樣式（2026-10-30 起，發電廠的狀態）：'hollow' 空心粗框（淡淡的底色）、'faint' 空心細框、
+   * 'muted' 灰色實心（顏色分級不畫，只看大小）；沒寫是一般的實心圓點加白框
+   */
+  look?: 'hollow' | 'faint' | 'muted';
   /** 半徑（px，縮放 2 的大小，放大時跟著變大）：固定值，或依數值欄位線性內插 [[值, 半徑], …] */
   radius: number | { field: string; stops: [number, number][] };
   /** 顏色：固定色，或依數值欄位分級 */
