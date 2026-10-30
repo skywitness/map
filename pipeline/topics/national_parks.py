@@ -1,5 +1,6 @@
 """國家公園（新主題，地理類，2026-10-29）：Wikidata 的國家公園（Q46169 與子類別）的點，依設立年份累積出現；
-各國陸域保護區占國土的比例（世界銀行 WDI 的 ER.LND.PTLD.ZS，UNEP-WCMC 的轉載，CC BY 4.0）。
+各國陸域保護區占國土的比例（世界銀行 WDI 的 ER.LND.PTLD.ZS，UNEP-WCMC 的轉載，CC BY 4.0）；
+台灣用林業保育署的保護區面積統計表 ÷ 內政部的土地面積（只有現況，2026-10-30 補，DESIGN.md 第 216 點）。
 
 使用者 2026-10-29 決定：新主題（地理）；範圍的面（OSM，ODbL）不做。WDPA（Protected Planet）不准轉載，不用。
 
@@ -21,7 +22,7 @@ import urllib.request
 
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, now_iso, points_file, to_series, write_json, year_span
 from geoindex import countries_at
-from sources import worldbank
+from sources import tw_protected_areas, worldbank
 
 OUT = OUT_DIR / "topics" / "national-parks"
 SPARQL = "https://query.wikidata.org/sparql"
@@ -130,13 +131,29 @@ def build() -> None:
 
     land, land_world = worldbank.fetch("ER.LND.PTLD.ZS", 1990)
     years = year_span(land)
+    # 台灣：林業保育署的現況（只有一年），放在資料最新的一年（第七批 134，DESIGN.md 第 216 點）
+    tw = tw_protected_areas.protected_land_share()
+    land["TWN"] = {years[-1]: tw["share"]}
+    month = int(tw["updated"][5:7])
     write_json(OUT / "protected-land.json", indicator_file(
         "protected-land", "%", years, {c: to_series(v, years, 1) for c, v in land.items() if v},
         aggregates={"WLD": to_series(land_world, years, 1)},
+        notes={"TWN": (
+            f"{years[-1]} 年的位置放的是 {tw['updated'][:4]} 年 {month} 月的現況：林業保育署「臺灣國家保護區系統面積統計表」"
+            f"（{tw['updated']}）{tw['count']} 處保護區扣掉範圍重複部分後的陸域面積 {tw['ha']:,.2f} 公頃，"
+            f"÷ 內政部的土地面積 {tw['km2']:,.2f} 平方公里（含金門、連江）。"
+            "不含其他有效保育措施（OECM），沒有逐年的數字"
+        )},
+        notesEn={"TWN": (
+            f"The {years[-1]} value is the situation as of {tw['updated']}: {tw['ha']:,.2f} ha of land in Taiwan’s "
+            f"{tw['count']} protected areas, net of overlaps, from the Forestry and Nature Conservation Agency’s protected area "
+            f"statistics, ÷ the Ministry of the Interior’s land area of {tw['km2']:,.2f} km² (including Kinmen and Lienchiang). "
+            "Excludes other effective area-based conservation measures (OECMs); no yearly series"
+        )},
     ))
     write_json(OUT / "manifest.json", {
         "topic": "national-parks", "generatedAt": now_iso(),
-        "sources": ["Wikidata (CC0)", "World Bank WDI ER.LND.PTLD.ZS (UNEP-WCMC, CC BY 4.0)"],
+        "sources": ["Wikidata (CC0)", "World Bank WDI ER.LND.PTLD.ZS (UNEP-WCMC, CC BY 4.0)", "林業保育署", "內政部"],
     })
     by_c = {k: sum(1 for r in rows if r["c"] == k) for k in (1, 2, 3)}
     print(f"  國家公園 {len(rows)} 處（有設立年份 {len(dated)}、不詳 {len(undated)}），不收 {skipped}；IUCN II {by_c[1]}、其他 {by_c[2]}、沒標 {by_c[3]}")
@@ -145,7 +162,7 @@ def build() -> None:
     print(f"  台灣：{sorted(tw, key=lambda x: x[0] or 0)}")
     last = years[-1]
     ranked = sorted((v.get(last), c) for c, v in land.items() if v.get(last) is not None)
-    print(f"  陸域保護區 {years[0]}–{last}，{len(ranked)} 國；最高 {ranked[-4:]}，世界 {land_world.get(last)}")
+    print(f"  陸域保護區 {years[0]}–{last}，{len(ranked)} 國；最高 {ranked[-4:]}，世界 {land_world.get(last)}，台灣 {tw['share']:.2f}%")
 
 
 if __name__ == "__main__":
