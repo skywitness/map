@@ -415,13 +415,14 @@ def tdf_departs() -> list[tuple[int, str, str]]:
     return out
 
 
-def megavalanche_years() -> list[int]:
-    """Megavalanche 條目「Megavalanche Alpe D'Huez」的成績表：有成績的年份"""
-    sec = section(section(wikitext("mega"), "Results"), "Megavalanche Alpe D'Huez", 3)
+def megavalanche_years(venue: str = "Megavalanche Alpe D'Huez") -> list[int]:
+    """Megavalanche 條目成績表（「Megavalanche Alpe D'Huez」或「Megavalanche Réunion」）：有成績的年份。
+    取消的年份也有一列（整列合併寫「Cancelled due to …」：兩站的 2020 年、留尼旺的 2018 年），不算"""
+    sec = section(section(wikitext("mega"), "Results"), venue, 3)
     years = []
     for r in wikitable.rows(first_table(sec)):
         y = wikitable.text(r[0])
-        if re.fullmatch(r"\d{4}", y):
+        if re.fullmatch(r"\d{4}", y) and len(r) > 1 and not wikitable.text(r[1]).startswith("Cancelled"):
             years.append(int(y))
     return years
 

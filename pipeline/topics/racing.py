@@ -3,7 +3,7 @@
 
 使用者決定（2026-10-30）：F1 從「運動」搬到這裡；收 F1、MotoGP（含 Moto2、Moto3，同一個週末畫成一站）、UCI 登山車世界盃的
 越野（XCO＋XCC）與速降（DHI）、WRC、WEC（含利曼 24 小時）、Formula E、IndyCar、NASCAR Cup、環法、環義、環西、
-法國的「地獄山」（Mountain of Hell，雙阿爾卑斯）與「超級雪崩」（Megavalanche，阿爾普迪埃）。台灣都沒有辦過，不另加賽事。
+法國的「地獄山」（Mountain of Hell，雙阿爾卑斯）與「超級雪崩」（Megavalanche，阿爾普迪埃與留尼旺）。台灣都沒有辦過，不另加賽事。
 
 **資料**（sources/wiki_racing.py）：英文維基百科的賽季條目與歷年列表（CC BY-SA 4.0，固定版本），座標用 Wikidata（CC0）。
 - **今年**：每一站一個點（日期、站名、場地），賽事的站名、場地照條目的英文原文。同一個週末同一個場地的兩場併成一站
@@ -11,7 +11,7 @@
   （不是實際路線）。比完的與還沒比的分開（AS_OF 那一天以前結束的算比完）。
 - **歷年**：各賽事的列表給的次數（F1 是 Jolpica 的分站數、MotoGP 是在這條賽道辦過的大獎賽、WRC 是拉力賽依總部的城鎮、
   Formula E 是各 ePrix 比過的場數、WEC 是比過的賽季數、IndyCar 是 1996 年 IRL 起的場數、三大環賽是開幕站的城鎮、
-  超級雪崩是辦過的年份）；NASCAR（列表只有比賽名稱）、登山車世界盃（沒有場地的列表）、地獄山（沒有可靠的歷屆紀錄）只有今年。
+  超級雪崩是兩站各自有成績的年份、地獄山是觀光局新聞稿的屆數）；NASCAR（列表只有比賽名稱）、登山車世界盃（沒有場地的列表）只有今年。
 
 **輸出**（public/data/topics/racing/）：
 - season/<子項目>.json：今年的點（子項目 all 是全部，其他是各賽事）；stages/<子項目>.json：三大環賽的賽段連線
@@ -78,7 +78,16 @@ MASS_START = [
     ("mega", "Megavalanche Alpe d'Huez", "Alpe d'Huez", "Alpe d'Huez", date(2026, 7, 10), date(2026, 7, 12)),
     # 雙阿爾卑斯觀光局 2026-06-21 的成績新聞稿（第 26 屆，6 月 18–21 日，決賽 6 月 21 日；使用者上傳的 PDF 核對過）
     ("moh", "Mountain of Hell", "Les Deux Alpes", "Les 2 Alpes", date(2026, 6, 18), date(2026, 6, 21)),
+    # 超級雪崩的留尼旺站：UCC Sport Event 的賽事頁「Megavalanche Saint Paul … 22 Novembre 2026」「Pour cette 31e édition」
+    # （2026-10-30 讀的；一天，取消了排位賽日；從馬伊多 Maïdo 的山坡下到聖保羅的 Moulin à Eau，點畫在聖保羅）
+    ("mega", "Megavalanche Réunion", "Saint-Paul, Réunion", "Saint-Paul (Réunion)", date(2026, 11, 22), date(2026, 11, 22)),
 ]
+
+# 地獄山的歷屆：英文維基沒有條目，用雙阿爾卑斯觀光局的新聞稿（2025 年 4 月的 CP N°3，les2alpes.com）：
+# 「UN CONCEPT ORIGINAL DEPUIS 2000 … MÊME APRÈS 23 ÉDITIONS」「24ème édition du vendredi 20 juin au dimanche 22 juin」
+# 「(pas d'édition en 2024)」，加上 2026 年（6 月 18–21 日）辦過 → 2000–2026 年辦了 25 屆（2024 年與 2000–2023 年間的另一年
+# 沒辦，新聞稿沒寫哪一年，2021、2022 年都有辦）。2026 年的新聞稿寫「26e édition」，跟 2025 年的算法差一屆，照實際辦的次數
+MOH_HISTORY = {"n": 23 + 1 + 1, "first": 2000, "last": 2026}
 
 
 def build() -> None:
@@ -240,8 +249,11 @@ def _history() -> list[dict]:
         for title, ys in by_town.items():
             years = [y for y, _ in ys]
             out.append({"s": series, "title": title, "label": ys[-1][1], "n": len(years), "first": min(years), "last": max(years)})
-    mega = wiki.megavalanche_years()
-    out.append({"s": "mega", "title": "Alpe d'Huez", "label": "Alpe d'Huez", "n": len(mega), "first": min(mega), "last": max(mega)})
+    for venue, title, label in (("Megavalanche Alpe D'Huez", "Alpe d'Huez", "Alpe d'Huez"),
+                                ("Megavalanche Réunion", "Saint-Paul, Réunion", "Saint-Paul (Réunion)")):
+        mega = wiki.megavalanche_years(venue)
+        out.append({"s": "mega", "title": title, "label": label, "n": len(mega), "first": min(mega), "last": max(mega)})
+    out.append({"s": "moh", "title": "Les Deux Alpes", "label": "Les 2 Alpes", **MOH_HISTORY})
     return out
 
 
