@@ -26,11 +26,9 @@
 """
 from __future__ import annotations
 
-import csv
-import gzip
 import math
 
-from common import OUT_DIR, download, indicator_file, now_iso, write_json
+from common import OUT_DIR, indicator_file, now_iso, write_json
 from sources import hfd, oecd_family, wpp
 
 FIRST_YEAR, LAST_YEAR = 1950, 2100
@@ -85,49 +83,45 @@ NOTES: dict[str, tuple[str, str]] = {
 
 def _demographic() -> tuple[dict[str, dict[str, list]], dict[str, list]]:
     """總生育率、出生數：{指標: {iso3: 序列}}、{指標: 世界序列}"""
-    path = download(wpp.URL, "wpp", "WPP2024_Demographic_Indicators_Medium.csv.gz")
     series: dict[str, dict[str, list]] = {"tfr": {}, "births": {}, "mac": {}}
     world: dict[str, list] = {k: [None] * len(YEARS) for k in series}
-    with gzip.open(path, "rt", encoding="utf-8-sig", newline="") as f:
-        for row in csv.DictReader(f):
-            year = int(row["Time"])
-            if row["LocTypeID"] not in (COUNTRY, WORLD) or not FIRST_YEAR <= year <= LAST_YEAR:
-                continue
-            if row["LocTypeID"] == COUNTRY and not row["ISO3_code"]:
-                continue
-            i = year - FIRST_YEAR
-            values = {
-                "tfr": round(float(row["TFR"]), 2) if row["TFR"] else None,
-                "births": round(float(row["Births"]) * 1000) if row["Births"] else None,  # 原始單位是千人
-                "mac": round(float(row["MAC"]), 1) if row["MAC"] else None,
-            }
-            for key, value in values.items():
-                if row["LocTypeID"] == WORLD:
-                    world[key][i] = value
-                else:
-                    series[key].setdefault(row["ISO3_code"], [None] * len(YEARS))[i] = value
+    for row in wpp.rows("indicators"):
+        year = int(row["Time"])
+        if row["LocTypeID"] not in (COUNTRY, WORLD) or not FIRST_YEAR <= year <= LAST_YEAR:
+            continue
+        if row["LocTypeID"] == COUNTRY and not row["ISO3_code"]:
+            continue
+        i = year - FIRST_YEAR
+        values = {
+            "tfr": round(float(row["TFR"]), 2) if row["TFR"] else None,
+            "births": round(float(row["Births"]) * 1000) if row["Births"] else None,  # 原始單位是千人
+            "mac": round(float(row["MAC"]), 1) if row["MAC"] else None,
+        }
+        for key, value in values.items():
+            if row["LocTypeID"] == WORLD:
+                world[key][i] = value
+            else:
+                series[key].setdefault(row["ISO3_code"], [None] * len(YEARS))[i] = value
     return series, world
 
 
 def _by_age() -> dict[str, dict[int, dict[str, list[float]]]]:
     """五歲年齡組人口：{iso3 或 'WLD': {年: {'m': [21 組], 'f': [21 組]}}}，單位是人"""
-    path = download(wpp.AGE5_URL, "wpp", "WPP2024_PopulationByAge5GroupSex_Medium.csv.gz")
     out: dict[str, dict[int, dict[str, list[float]]]] = {}
-    with gzip.open(path, "rt", encoding="utf-8-sig", newline="") as f:
-        for row in csv.DictReader(f):
-            if row["LocTypeID"] == WORLD:
-                area = "WLD"
-            elif row["LocTypeID"] == COUNTRY and row["ISO3_code"]:
-                area = row["ISO3_code"]
-            else:
-                continue
-            year = int(row["Time"])
-            if not FIRST_YEAR <= year <= LAST_YEAR:
-                continue
-            k = AGE_STARTS.index(int(row["AgeGrpStart"]))
-            cell = out.setdefault(area, {}).setdefault(year, {"m": [0.0] * len(AGE_STARTS), "f": [0.0] * len(AGE_STARTS)})
-            cell["m"][k] = float(row["PopMale"] or 0) * 1000  # 千人
-            cell["f"][k] = float(row["PopFemale"] or 0) * 1000
+    for row in wpp.rows("age5"):
+        if row["LocTypeID"] == WORLD:
+            area = "WLD"
+        elif row["LocTypeID"] == COUNTRY and row["ISO3_code"]:
+            area = row["ISO3_code"]
+        else:
+            continue
+        year = int(row["Time"])
+        if not FIRST_YEAR <= year <= LAST_YEAR:
+            continue
+        k = AGE_STARTS.index(int(row["AgeGrpStart"]))
+        cell = out.setdefault(area, {}).setdefault(year, {"m": [0.0] * len(AGE_STARTS), "f": [0.0] * len(AGE_STARTS)})
+        cell["m"][k] = float(row["PopMale"] or 0) * 1000  # 千人
+        cell["f"][k] = float(row["PopFemale"] or 0) * 1000
     return out
 
 

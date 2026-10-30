@@ -4,11 +4,10 @@
 """
 from __future__ import annotations
 
-import csv
-import gzip
 from collections.abc import Callable
 
-from common import OUT_DIR, download, indicator_file, now_iso, write_json
+from common import OUT_DIR, indicator_file, now_iso, write_json
+from sources import wpp
 
 WPP_URL = (
     "https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/"
@@ -30,28 +29,26 @@ WORLD = "1"
 
 
 def build() -> None:
-    src = download(WPP_URL, "wpp", "WPP2024_Demographic_Indicators_Medium.csv.gz")
     years = list(range(FIRST_YEAR, LAST_YEAR + 1))
     series: dict[str, dict[str, list]] = {k: {} for k in INDICATORS}
     world: dict[str, list] = {k: [None] * len(years) for k in INDICATORS}
 
-    with gzip.open(src, "rt", encoding="utf-8-sig", newline="") as f:
-        for row in csv.DictReader(f):
-            loc_type = row["LocTypeID"]
-            year = int(row["Time"])
-            if loc_type not in (COUNTRY, WORLD) or not FIRST_YEAR <= year <= LAST_YEAR:
-                continue
-            iso3 = row["ISO3_code"]
-            if loc_type == COUNTRY and not iso3:
-                continue
-            i = year - FIRST_YEAR
-            for key, (col, _unit, convert) in INDICATORS.items():
-                raw = row[col]
-                value = convert(float(raw)) if raw else None
-                if loc_type == WORLD:
-                    world[key][i] = value
-                else:
-                    series[key].setdefault(iso3, [None] * len(years))[i] = value
+    for row in wpp.rows("indicators"):
+        loc_type = row["LocTypeID"]
+        year = int(row["Time"])
+        if loc_type not in (COUNTRY, WORLD) or not FIRST_YEAR <= year <= LAST_YEAR:
+            continue
+        iso3 = row["ISO3_code"]
+        if loc_type == COUNTRY and not iso3:
+            continue
+        i = year - FIRST_YEAR
+        for key, (col, _unit, convert) in INDICATORS.items():
+            raw = row[col]
+            value = convert(float(raw)) if raw else None
+            if loc_type == WORLD:
+                world[key][i] = value
+            else:
+                series[key].setdefault(iso3, [None] * len(years))[i] = value
 
     out = OUT_DIR / "topics" / "population"
     for key, (_col, unit, _convert) in INDICATORS.items():
