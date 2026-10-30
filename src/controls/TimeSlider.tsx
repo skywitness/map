@@ -94,12 +94,15 @@ export function TimeSlider({
     setPlaying((p) => !p);
   };
 
-  /** 鍵盤 ←/→：跳到資料裡的上一個／下一個年份（年份不一定連續） */
+  /**
+   * 鍵盤 ←/→：跳到資料裡的上一個／下一個年份（年份不一定連續）。目前的年份不在資料裡時（拖到兩屆奧運之間、
+   * 網址寫的年份）跳到它後面／前面最近的一個，不會卡住（2026-10-30 修：從 1964 按右鍵原本停在 1965）
+   */
   const stepYear = (delta: number) => {
     setPlaying(false);
-    const i = years.indexOf(yearRef.current);
-    const next = years[Math.min(years.length - 1, Math.max(0, i + delta))];
-    if (next !== undefined && next !== yearRef.current) onChange(next);
+    const current = yearRef.current;
+    const next = delta > 0 ? years.find((y) => y > current) : [...years].reverse().find((y) => y < current);
+    if (next !== undefined && next !== current) onChange(next);
   };
 
   useHotkeys({ ArrowLeft: () => stepYear(-1), ArrowRight: () => stepYear(1), ' ': togglePlay }, first !== last);
@@ -198,6 +201,14 @@ export function TimeSlider({
           onChange={(e) => {
             setPlaying(false);
             onChange(Number(e.target.value));
+          }}
+          // 拉桿有焦點時方向鍵原本由瀏覽器一次加減 1 年（會停在沒有資料的年份），改成跳到資料裡的上一個／下一個年份
+          onKeyDown={(e) => {
+            const delta = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
+            if (!delta || years.length < 2) return;
+            e.preventDefault();
+            e.stopPropagation();
+            stepYear(delta);
           }}
           style={{ '--projection-pct': `${projectionPct}%` } as CSSProperties}
         />
