@@ -48,6 +48,8 @@ STEPS = {
     "tourism": "topics.tourism",
     "housing": "topics.housing",
     "trade": "topics.trade",  # 第一次會下載約 1.2 GB（BACI、FAOSTAT 詳細貿易矩陣）
+    # 貿易依存度（併進貿易主題）：世界銀行 WDI（約 3.6 MB）、主計總處支出面 GDP 的兩個 XML（約 1.5 MB），幾秒
+    "trade-dependence": "topics.trade_dependence",
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
@@ -71,6 +73,8 @@ STEPS = {
     "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
     # 暖化（近 10 年平均與 1951–1980 年的差）的網格圖磚（不進版本控制，部署時產生）
     "temperature-grid-tiles": "topics.temperature_grid_tiles",
+    # 一年下雨幾天（氣溫與降雨主題）：CRU TS 的 wet（第一次下載約 233 MB）＋中央氣象署測站的降雨日數（台灣附註）
+    "wet-days": "topics.wet_days",
     "air-quality": "topics.air_quality",
     "water-forest": "topics.water_forest",
     "ev": "topics.ev",
@@ -181,6 +185,8 @@ STEPS = {
     "logbooks": "topics.logbooks",
     # 氣候分區（柯本）：Beck 2023 的 0.1° 網格（第一次下載 130 MB）；約 1 分鐘
     "koppen": "topics.koppen",
+    # 地表的岩石種類：GLiM 0.5° 網格（PANGAEA，38 KB 的 zip）；幾秒
+    "lithology": "topics.lithology",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",

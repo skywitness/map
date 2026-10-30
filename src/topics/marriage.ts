@@ -20,6 +20,15 @@ const SAME_SEX: CategoryDef[] = [
 ];
 const sameSexLabel = (v: number) => tr(SAME_SEX.find((c) => c.value === v)?.label ?? '');
 
+/** 一夫多妻（多偶婚）的法律地位（pipeline/sources/polygamy.py）：沒有強弱順序，用一般的類別色 */
+const POLYGAMY: CategoryDef[] = [
+  { value: 1, label: { zh: '承認多偶婚', en: 'Recognized' } },
+  { value: 2, label: { zh: '只承認穆斯林的多偶婚', en: 'Recognized for Muslims only' } },
+  { value: 3, label: { zh: '只依習慣法承認', en: 'Recognized under customary law only' } },
+  { value: 4, label: { zh: '不承認', en: 'Not recognized' } },
+];
+const polygamyLabel = (v: number) => tr(POLYGAMY.find((c) => c.value === v)?.label ?? '');
+
 export const marriage: TopicDefinition = {
   id: 'marriage',
   title: { zh: '婚姻與家庭', en: 'Marriage and family' },
@@ -57,8 +66,8 @@ export const marriage: TopicDefinition = {
       license: OECD_TERMS,
     },
     {
-      name: 'United Nations, Database on Household Size and Composition 2022',
-      url: 'https://www.un.org/development/desa/pd/data/household-size-and-composition',
+      name: 'United Nations, Database on Household Size and Composition 2026; Database on the Households and Living Arrangements of Older Persons 2026',
+      url: 'https://www.un.org/development/desa/pd/data/living-arrangements-older-persons',
       license: 'CC BY 3.0 IGO',
     },
     {
@@ -75,8 +84,11 @@ export const marriage: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
-      name: { zh: '主計總處 家庭收支調查', en: 'DGBAS (Taiwan), Survey of Family Income and Expenditure' },
-      url: 'https://www.stat.gov.tw/News.aspx?n=3908&sms=11530',
+      name: {
+        zh: '主計總處 家庭收支調查（含性別統計指標「家戶狀況按家庭組織型態分」）',
+        en: 'DGBAS (Taiwan), Survey of Family Income and Expenditure (including households by family type)',
+      },
+      url: 'https://data.gov.tw/dataset/27963',
       license: OPEN_DATA_TW,
     },
     {
@@ -87,18 +99,35 @@ export const marriage: TopicDefinition = {
       url: 'https://en.wikipedia.org/w/index.php?oldid=1381842102',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: { zh: '英文維基百科「Legality of polygamy」（一夫多妻的法律地位）', en: 'Wikipedia, “Legality of polygamy”' },
+      url: 'https://en.wikipedia.org/w/index.php?oldid=1378459627',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
+        zh: 'Pew Research Center，〈Polygamy is rare around the world and mostly confined to a few regions〉（2020，摘錄）',
+        en: 'Pew Research Center, “Polygamy is rare around the world and mostly confined to a few regions” (2020, excerpts)',
+      },
+      url: 'https://www.pewresearch.org/short-reads/2020/12/07/polygamy-is-rare-around-the-world-and-mostly-confined-to-a-few-regions/',
+      license: { zh: 'Pew 使用條款（只能摘錄）', en: 'Pew Research Center terms of use (excerpts only)' },
+    },
   ],
   note: {
     zh:
       '初婚年齡在歐洲、其他 OECD 國家與台灣是依結婚登記的初婚者平均年齡（美國、澳洲、紐西蘭是中位數），其他國家是聯合國依普查或調查的未婚比例推算的單身平均結婚年齡（SMAM），兩種算法的數字相近但不完全相同；' +
       '聯合國的資料大多只到 2010 年代，地圖用每個國家 10 年內最近一年的值。有偶比例與 30–34 歲未婚比例用聯合國的各年齡組比例，以 WPP 的人口加權成男女合計，部分國家的「有偶」含同居。' +
       '粗結婚率、粗離婚率是一年的結婚（離婚）對數除以年中人口，受年齡結構影響；聯合國的對數只收 Demographic Yearbook 認為登記完整的國家，庫克群島、塞席爾等觀光結婚多的地方會特別高。' +
-      '同性伴侶的法律地位依英文維基百科的條目自行整理（2026 年 10 月，CC BY-SA 4.0），是每年年底的狀態，各國的依據寫在側欄的附註；這個指標的資料檔也依 CC BY-SA 4.0 分享。',
+      '單親、三代同堂、隔代家戶與 60 歲以上獨居的比例來自聯合國 2026 年版的家戶資料庫（普查、DHS、MICS 等），各國的年份差很多，地圖用每個國家 15 年內最近一年的值；三代同堂與隔代家戶要有戶內成員的關係才算得出來，只有普查統計表的國家（日本、韓國、德國等）沒有。台灣用主計總處家庭收支調查的家庭組織型態，分類跟聯合國的不完全相同。' +
+      '同性伴侶的法律地位依英文維基百科的條目自行整理（2026 年 10 月，CC BY-SA 4.0），是每年年底的狀態，各國的依據寫在側欄的附註；這個指標的資料檔也依 CC BY-SA 4.0 分享。' +
+      '一夫多妻的法律地位依英文維基百科「Legality of polygamy」的清單整理（2026 年 10 月版，CC BY-SA 4.0，條目本身標示出處不足），是法律承不承認，不是實際有多少人；資料檔依 CC BY-SA 4.0 分享。Pew 研究中心估計全世界約 2% 的人住在多偶家庭，大多數國家不到 0.5%，最高的是布吉納法索（36%）、馬利（34%）、奈及利亞（28%）（Pew 不為這裡的分析或解讀負責）。',
     en:
       'Age at first marriage is the mean age of people marrying for the first time, from registrations, in Europe, other OECD countries and Taiwan (the median in the United States, Australia and New Zealand); elsewhere it is the UN’s singulate mean age at marriage (SMAM), estimated from the share never married in censuses and surveys, which gives similar but not identical figures. ' +
       'Most UN data end in the 2010s, so the map shows each country’s latest value within 10 years. The married and never-married shares use the UN’s age-specific figures weighted to both sexes with WPP population; in some countries “married” includes cohabiting couples. ' +
       'Crude marriage and divorce rates are marriages (divorces) in a year per 1,000 mid-year population, so they depend on age structure; UN counts are used only for countries whose registration the Demographic Yearbook considers complete, and places with many destination weddings, such as the Cook Islands and Seychelles, stand out. ' +
-      'The legal status of same-sex couples is compiled from Wikipedia articles (October 2026, CC BY-SA 4.0) and shows the situation at the end of each year, with the legal basis for each country in the panel notes; the data file of this indicator is shared under CC BY-SA 4.0 as well.',
+      'Single-parent, three-generation and skip-generation households and older people living alone come from the UN’s 2026 household databases (censuses, DHS, MICS and others); survey years vary widely, so the map shows each country’s latest value within 15 years. Three-generation and skip-generation households need the relationships between household members, so countries with only census tables (Japan, South Korea, Germany and others) have none. Taiwan uses family types from the DGBAS Survey of Family Income and Expenditure, whose categories differ slightly from the UN’s. ' +
+      'The legal status of same-sex couples is compiled from Wikipedia articles (October 2026, CC BY-SA 4.0) and shows the situation at the end of each year, with the legal basis for each country in the panel notes; the data file of this indicator is shared under CC BY-SA 4.0 as well. ' +
+      'The legal status of polygamy follows the lists in the Wikipedia article “Legality of polygamy” (October 2026 revision, CC BY-SA 4.0; the article itself is tagged as lacking inline citations). It shows whether the law recognizes polygamous marriages, not how common they are, and its data file is shared under CC BY-SA 4.0. Pew Research Center estimates that about 2% of the world’s population lives in polygamous households, under 0.5% in most countries, with the highest shares in Burkina Faso (36%), Mali (34%) and Nigeria (28%). (Pew Research Center bears no responsibility for the analyses or interpretations of the data presented here.)',
   },
   panelExtra: () => import('./panels/MarriagePanel'),
   indicators: [
@@ -215,6 +244,63 @@ export const marriage: TopicDefinition = {
       unranked: true,
     },
     {
+      id: 'single-parent',
+      label: { zh: '單親家戶比例', en: 'Single-parent households' },
+      description: {
+        zh: '父親或母親一個人與子女同住的家戶占所有家戶的比例（不含與祖父母等其他親屬同住的大家庭）。',
+        en: 'Share of households made up of a single father or mother living with their children (excluding extended families with grandparents or other relatives).',
+      },
+      unit: '%',
+      file: 'single-parent.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [4, 6, 8, 10, 12, 15] } },
+      format: pct,
+      formatTick: pctTick,
+      unranked: true,
+    },
+    {
+      id: 'three-generation',
+      label: { zh: '三代同堂比例', en: 'Three-generation households' },
+      description: {
+        zh: '祖父母、父母與孫子女三代住在一起的家戶占所有家戶的比例。',
+        en: 'Share of households in which grandparents, parents and grandchildren live together.',
+      },
+      unit: '%',
+      file: 'three-generation.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 30, 40] } },
+      format: pct,
+      formatTick: pctTick,
+      unranked: true,
+    },
+    {
+      id: 'skip-generation',
+      label: { zh: '隔代家戶比例', en: 'Skip-generation households' },
+      description: {
+        zh: '祖父母與孫子女同住、中間的父母不在家的家戶（祖孫家庭）占所有家戶的比例，常見於父母外出工作或過世的地方。',
+        en: 'Share of households in which grandparents live with grandchildren without the parents, common where parents work far away or have died.',
+      },
+      unit: '%',
+      file: 'skip-generation.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 3, 5, 7] } },
+      format: pct,
+      formatTick: pctTick,
+      unranked: true,
+    },
+    {
+      id: 'older-alone',
+      label: { zh: '60 歲以上獨居比例', en: 'Older people living alone' },
+      description: {
+        zh: '60 歲以上的人之中一個人住的比例（是人的比例，不是家戶的比例）。台灣沒有全國的調查數字。',
+        en: 'Share of people aged 60 and over who live alone (a share of people, not of households). No national figure is available for Taiwan.',
+      },
+      unit: '%',
+      file: 'older-alone.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [3, 6, 10, 15, 20, 25] } },
+      format: pct,
+      formatTick: pctTick,
+      unranked: true,
+      noValue: { TWN: { zh: '沒有全國的開放資料（只有各縣市列冊的獨居老人人數）', en: 'No national open data (only county lists of older people living alone)' } },
+    },
+    {
       id: 'same-sex',
       label: { zh: '同性伴侶的法律地位', en: 'Same-sex unions' },
       description: {
@@ -225,6 +311,19 @@ export const marriage: TopicDefinition = {
       file: 'same-sex.json',
       layer: { kind: 'categorical', categories: SAME_SEX, ordinal: true },
       format: sameSexLabel,
+    },
+    {
+      id: 'polygamy',
+      label: { zh: '一夫多妻的法律地位', en: 'Legality of polygamy' },
+      description: {
+        zh: '法律承不承認一個人同時有多個配偶（幾乎都是一夫多妻），依維基百科 2026 年 10 月的清單。台灣依民法第 985 條禁止重婚。',
+        en: 'Whether the law recognizes marriages with more than one spouse at a time (almost always one husband with several wives), from Wikipedia’s lists as of October 2026. Taiwan prohibits bigamy under Article 985 of the Civil Code.',
+      },
+      unit: '',
+      file: 'polygamy.json',
+      layer: { kind: 'categorical', categories: POLYGAMY, ordinal: true },
+      format: polygamyLabel,
+      defaultYear: 2026,
     },
   ],
 };
