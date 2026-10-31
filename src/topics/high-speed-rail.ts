@@ -1,4 +1,5 @@
 import { tr } from '../i18n/lang';
+import { hsrExtra } from './rail-extra';
 import type { TopicDefinition } from './types';
 
 /**
@@ -20,7 +21,9 @@ export const highSpeedRail: TopicDefinition = {
       url: 'https://www.wikidata.org/',
       license: 'CC0',
     },
+    ...hsrExtra.sources,
   ],
+  listPanel: hsrExtra.listPanel,
   note: {
     zh: '高鐵是 Wikidata 標成高速鐵路線、有啟用日期的路線，每一國最早的一條逐一核對過。鐵路的路網與軌距見「鐵路」主題，地鐵見「地鐵與城市軌道」主題。',
     en: 'High-speed lines are those classed as high-speed railway lines in Wikidata with an opening date; each country’s earliest line was checked by hand. For rail networks and track gauges see the Railways topic; for metros, the Metro and urban rail topic.',
@@ -45,5 +48,6 @@ export const highSpeedRail: TopicDefinition = {
       rankingBars: false,
       panelChart: false,
     },
+    ...hsrExtra.indicators,
   ],
 };

@@ -1,6 +1,7 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { metroExtra } from './rail-extra';
 import type { ColorClasses, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -61,7 +62,9 @@ export const metro: TopicDefinition = {
       url: 'https://www.wikidata.org/',
       license: 'CC0',
     },
+    ...metroExtra.sources,
   ],
+  listPanel: metroExtra.listPanel,
   note: {
     zh:
       '地鐵站取自 Wikidata：只收地鐵（Wikidata 標成地鐵站、或所屬路網是地鐵的車站），不收輕軌、電車、單軌、機場的旅客捷運與通勤鐵路；興建中、規劃中的不算。' +
@@ -87,6 +90,7 @@ export const metro: TopicDefinition = {
       indicators: ['metro-stations'],
       tooltip: stationTooltip,
     },
+    ...metroExtra.overlays,
   ],
   panelExtra: () => import('./panels/MetroPanel'),
   indicators: [
@@ -106,5 +110,6 @@ export const metro: TopicDefinition = {
       integer: true,
       shareOfWorld: true,
     },
+    ...metroExtra.indicators,
   ],
 };

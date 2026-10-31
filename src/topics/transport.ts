@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { transportExtra } from './rail-extra';
 import type { CategoryDef, TopicDefinition } from './types';
 
 const KM = { zh: '公里', en: 'km' };
@@ -56,6 +57,7 @@ export const transport: TopicDefinition = {
       url: 'https://en.wikipedia.org/',
       license: 'CC BY-SA 4.0',
     },
+    ...transportExtra.sources,
   ],
   note: {
     zh:
@@ -140,5 +142,6 @@ export const transport: TopicDefinition = {
       unranked: true,
       panelChart: false,
     },
+    ...transportExtra.indicators,
   ],
 };
