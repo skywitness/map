@@ -1,11 +1,13 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { heritageExtra } from './heritage-extra';
 import type { ColorClasses, PointRecord, TopicDefinition } from './types';
 
 /**
  * 世界遺產（pipeline/topics/world_heritage.py）：UNESCO 世界遺產名錄，各國的遺產數（依登錄年份累計）、瀕危數，
  * 每個遺產一個點（依類型上色，瀕危的另一色）。跨國遺產每個締約國都算一次。
+ * 預備名單、世界地質公園、拉姆薩濕地在 heritage-extra.ts（2026-10-31，第十批 181）。
  */
 
 /** 遺產的類型（點的 type 欄位，跟 pipeline 的 CULTURAL、NATURAL、MIXED 一致） */
@@ -87,10 +89,12 @@ export const worldHeritage: TopicDefinition = {
       license: { zh: '只用是否為締約國的事實', en: 'membership facts only' },
     },
     { name: { zh: 'Wikidata（遺產的中文名稱、生物圈保護區）', en: 'Wikidata (Chinese names of sites; biosphere reserves)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+ 
+    ...heritageExtra.sources,
   ],
   note: {
-    zh: '世界遺產依 UNESCO 的名錄（含 2026 年世界遺產委員會新登錄的）。跨國遺產每個締約國都算一次，所以各國加起來比世界的總數多；「耶路撒冷舊城及其城牆」由約旦提名、名錄上沒有締約國，只算進世界的總數。瀕危世界遺產只有目前的名單。台灣不是《世界遺產公約》的締約國，不能提名，所以沒有世界遺產。中文名稱來自 Wikidata，沒有的用英文名稱。UNESCO DataHub 的世界遺產名錄是 CC BY-SA 4.0 授權，這個主題的衍生資料檔、匯出的地圖圖片與 CSV 也依 CC BY-SA 4.0 分享。',
-    en: 'World Heritage sites follow the UNESCO list, including sites inscribed by the World Heritage Committee in 2026. Transboundary sites count once for each State Party, so country totals add up to more than the world total; the Old City of Jerusalem and its Walls, proposed by Jordan, has no State Party on the list and counts only in the world total. The List of World Heritage in Danger is current only. Taiwan is not a State Party to the World Heritage Convention and cannot nominate sites, so it has none. Chinese names come from Wikidata, with English names where none exist. The UNESCO DataHub World Heritage List is licensed under CC BY-SA 4.0, and the derived data files, map images and CSV files of this topic are shared under CC BY-SA 4.0 too.',
+    zh: '世界遺產依 UNESCO 的名錄（含 2026 年世界遺產委員會新登錄的）。跨國遺產每個締約國都算一次，所以各國加起來比世界的總數多；「耶路撒冷舊城及其城牆」由約旦提名、名錄上沒有締約國，只算進世界的總數。瀕危世界遺產只有目前的名單。台灣不是《世界遺產公約》的締約國，不能提名，所以沒有世界遺產。中文名稱來自 Wikidata，沒有的用英文名稱。UNESCO DataHub 的世界遺產名錄是 CC BY-SA 4.0 授權，這個主題的衍生資料檔、匯出的地圖圖片與 CSV 也依 CC BY-SA 4.0 分享。預備名單與世界地質公園用 Wikidata 與英文維基百科（UNESCO 的網站條款不准大量擷取），拉姆薩濕地用 Ramsar Sites Information Service（CC BY 4.0）。',
+    en: 'World Heritage sites follow the UNESCO list, including sites inscribed by the World Heritage Committee in 2026. Transboundary sites count once for each State Party, so country totals add up to more than the world total; the Old City of Jerusalem and its Walls, proposed by Jordan, has no State Party on the list and counts only in the world total. The List of World Heritage in Danger is current only. Taiwan is not a State Party to the World Heritage Convention and cannot nominate sites, so it has none. Chinese names come from Wikidata, with English names where none exist. The UNESCO DataHub World Heritage List is licensed under CC BY-SA 4.0, and the derived data files, map images and CSV files of this topic are shared under CC BY-SA 4.0 too. Tentative Lists and Global Geoparks come from Wikidata and English Wikipedia (UNESCO’s website terms forbid bulk extraction); Ramsar sites come from the Ramsar Sites Information Service (CC BY 4.0).',
   },
   noValue: {
     TWN: { zh: '台灣不是《世界遺產公約》的締約國，不能提名世界遺產', en: 'Taiwan is not a State Party to the World Heritage Convention and cannot nominate sites' },
@@ -129,6 +133,7 @@ export const worldHeritage: TopicDefinition = {
       tooltip: biosphereTooltip,
       indicators: ['biosphere'],
     },
+    ...heritageExtra.overlays,
   ],
   indicators: [
     {
@@ -177,5 +182,6 @@ export const worldHeritage: TopicDefinition = {
       format: () => '',
       missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
     },
+    ...heritageExtra.indicators,
   ],
 };

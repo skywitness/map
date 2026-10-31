@@ -292,6 +292,7 @@ STEPS = {
     "school-calendar": "topics.school_calendar",
     # 生物圈保護區（世界遺產主題）：Wikidata 的項目去重後畫點（要先跑 world-heritage，用它的最新年份）；幾秒
     "biosphere": "topics.biosphere",
+    "heritage-extra": "topics.heritage_extra",
     # 從台北看世界：各國首都離台北的距離、方位、距離圈與大圓航線（要先跑 daylight，用它的首都檔）；不到 1 秒
     "taipei-view": "topics.taipei_view",
     # 熊貓外交：手工整理的表（sources/panda_diplomacy.py，英文維基固定版本），動物園的座標與中文名稱查 Wikidata；幾秒
