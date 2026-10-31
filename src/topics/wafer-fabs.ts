@@ -86,12 +86,13 @@ const CLOSED: PointsOverlayDef = {
 };
 
 /**
- * 左邊的清單（第十二批 L18，使用者 2026-10-30 決定依公司分組）：運作中的廠區依公司分組（廠區多的公司在前），組內依量產年份；
- * 每組第一列的標籤寫公司與廠區數。跟選取的國家連動（L23）是第十二批的通用功能，那時再接
+ * 左邊的清單（第十二批 L18，使用者 2026-10-30 決定依公司分組）：運作中的廠區依公司分組（廠區多的公司在前），組內依量產年份。
+ * 2026-10-31（第十二批 206）：組名改用清單側欄的分組（ListRow.group，寫公司與廠區數），跟選取的國家連動（L23，點台灣只列台灣的）
  */
 const LIST: ListPanelDef = {
   label: { zh: '晶圓廠', en: 'Fabs' },
   file: 'fabs.json',
+  countryField: 'iso3',
   rows: (points, { countryName }) => {
     const byCompany = new Map<string, PointRecord[]>();
     for (const p of points) {
@@ -108,8 +109,8 @@ const LIST: ListPanelDef = {
             key: `${co}-${p.loc}-${i}`,
             title: place(p) || co,
             titleProper: true,
-            lines: [co, ...details(p, countryName)],
-            badge: i === 0 ? tr({ zh: `${co} ${list.length}`, en: `${co} (${list.length})` }) : undefined,
+            lines: details(p, countryName),
+            group: tr({ zh: `${co}（${list.length}）`, en: `${co} (${list.length})` }),
             target: { lon: p.lon as number, lat: p.lat as number, zoom: 10 },
           });
         });

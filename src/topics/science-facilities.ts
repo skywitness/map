@@ -125,11 +125,13 @@ const PLANNED_LAYER: PointsOverlayDef = {
 
 /**
  * 左邊的清單（第十二批 L18，使用者 2026-10-30 決定依類型分組）：時間軸那一年已經啟用的設施（2026 年加上興建中、規劃中），
- * 依細類分組、組內依啟用年份；每組第一列的標籤寫類型與數量。已關閉的淡一點
+ * 依細類分組、組內依啟用年份；已關閉的淡一點。2026-10-31（第十二批 206）：組名改用清單側欄的分組（ListRow.group，
+ * 寫類型與數量），跟選取的國家連動
  */
 const LIST: ListPanelDef = {
   label: { zh: '設施', en: 'Facilities' },
   file: 'list.json',
+  countryField: 'iso3',
   rows: (points, { countryName, year }) => {
     const shown = points.filter((p) => (p.st === PLANNED ? year >= LAST : stateAt(p, year) !== null));
     const sorted = [...shown].sort(
@@ -137,7 +139,6 @@ const LIST: ListPanelDef = {
     );
     const size = (t: unknown) => shown.filter((p) => p.t === t).length;
     return sorted.map((p, i): ListRow => {
-      const first = i === 0 || sorted[i - 1].t !== p.t;
       const zhName = getLang() === 'zh' && str(p.zh);
       return {
         key: `${p.t}-${p.en}-${i}`,
@@ -145,7 +146,7 @@ const LIST: ListPanelDef = {
         titleProper: !zhName,
         lines: lines(p, countryName),
         muted: p.st !== PLANNED && stateAt(p, year) === 'off',
-        badge: first ? tr({ zh: `${tr(TYPES[p.t as number])} ${size(p.t)}`, en: `${tr(TYPES[p.t as number])} (${size(p.t)})` }) : undefined,
+        group: tr({ zh: `${tr(TYPES[p.t as number])}（${size(p.t)}）`, en: `${tr(TYPES[p.t as number])} (${size(p.t)})` }),
         target: { lon: p.lon as number, lat: p.lat as number, zoom: 10 },
       };
     });
