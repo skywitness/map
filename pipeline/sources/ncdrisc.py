@@ -53,7 +53,9 @@ def _download(path: str) -> Path:
     total = None
     for _ in range(30):
         head = _curl(["-I", url]).stdout
-        if re.search(r"^HTTP/\S+ 200", head, re.M):
+        # 經過 HTTPS proxy 時前面多一行「HTTP/1.1 200 Connection Established」，要看最後一個狀態列
+        statuses = re.findall(r"^HTTP/\S+ (\d+)", head, re.M)
+        if statuses and statuses[-1] == "200":
             m = re.search(r"^content-length:\s*(\d+)", head, re.M | re.I)
             total = int(m.group(1)) if m else None
             break
