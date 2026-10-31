@@ -41,4 +41,9 @@ export const AIRPORTS_ZH: Record<string, string> = {
   BOM: '孟買', AUH: '阿布達比', HYD: '海德拉巴', ORD: '芝加哥歐海爾', IAD: '華盛頓杜勒斯', PVG: '上海浦東',
   DTW: '底特律', FLL: '勞德岱堡', TPE: '台灣桃園', 'HKG-KT': '香港啟德', DPS: '峇里島登巴薩', MIA: '邁阿密',
   LFW: '洛美', CKG: '重慶', GRU: '聖保羅瓜魯柳斯', MSP: '明尼亞波利斯', YYZ: '多倫多皮爾森', YVR: '溫哥華',
+  // 最繁忙的航線與貨運機場（第十批 175，aviation-extra.ts）
+  CJU: '濟州', CTS: '札幌新千歲', FUK: '福岡', HAN: '河內', HND: '東京羽田', PEK: '北京首都', SHA: '上海虹橋', CAN: '廣州',
+  BOG: '波哥大', CAI: '開羅', KUL: '吉隆坡', ICN: '首爾仁川', CGK: '雅加達', CTU: '成都雙流', GMP: '首爾金浦', SGN: '胡志明市',
+  RUH: '利雅德', OKA: '那霸', DEL: '德里', MDE: '麥德林', NRT: '東京成田', KIX: '大阪關西', ANC: '安克拉治', SDF: '路易維爾',
+  MEM: '曼非斯',
 };

@@ -253,6 +253,8 @@ STEPS = {
     "starlink": "topics.starlink",
     "wafer-fabs": "topics.wafer_fabs",
     "rd-companies": "topics.rd_companies",
+    # 航空的擴充（第十批 175）：最繁忙的航線、航空貨運、貨運機場、聯盟、廉價航空
+    "aviation-extra": "topics.aviation_extra",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",

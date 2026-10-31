@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { aviationExtra } from './aviation-extra';
 import type { PointRecord, TopicDefinition } from './types';
 
 /**
@@ -68,6 +69,7 @@ export const aviation: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/33238',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
+    ...aviationExtra.sources,
   ],
   note: {
     zh:
@@ -103,6 +105,7 @@ export const aviation: TopicDefinition = {
       indicators: ['busiest-passengers'],
       tooltip: busiestTooltip,
     },
+    ...aviationExtra.overlays,
   ],
   indicators: [
     {
@@ -174,5 +177,6 @@ export const aviation: TopicDefinition = {
       formatTick: formatLargeTick,
       missing: { zh: '沒有機場在前 50 名', en: 'No airport in the top 50' },
     },
+    ...aviationExtra.indicators,
   ],
 };

@@ -858,7 +858,7 @@ export function App() {
           {listDef && (
             <ListSide
               def={listDef}
-              topicId={topic.id}
+              topicId={dataFolder(topic)}
               item={item}
               year={year}
               countryName={listCountryName}

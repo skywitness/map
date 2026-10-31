@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { airRoutesExtra } from './aviation-extra';
 import { longestFlightsPart } from './longest-flights';
 import type { TopicDefinition } from './types';
 
@@ -24,6 +25,7 @@ export const airRoutes: TopicDefinition = {
       license: 'CC0',
     },
     ...longestFlightsPart.sources,
+    ...airRoutesExtra.sources,
   ],
   note: {
     zh:
@@ -33,7 +35,8 @@ export const airRoutes: TopicDefinition = {
       '停業的依成立到停業的年份算在時間軸上；成立年份不詳的營運中航空公司（約 240 家）只算在 2026 年，所以 2026 年比 2025 年多。國家照 Wikidata 的國家，北歐航空這類兩國以上的每國都算，沒有國家的用總部所在的國家。' +
       '威航在 Wikidata 沒有停業日期，照它 2016 年 10 月停止營運改成 2016 年。' +
       ' 最長的直飛航線：' +
-      longestFlightsPart.note.zh,
+      longestFlightsPart.note.zh +
+      ' 最繁忙的航線、航空貨運、聯盟、廉價航空（2026-10-31 加）：最繁忙的航線用英文維基依 OAG 年度報告整理的 2025 年座位數（OAG 的條款不准轉載，維基轉載的事實數字照用、寫出原始出處），座位數是班表的座位，不是旅客。航空貨運量算在航空公司的註冊國。聯盟只算正式成員。廉價航空沒有公認的定義，依維基編者的清單。這些資料檔依維基百科的 CC BY-SA 4.0 分享。',
     en:
       'Airlines: ' +
       'Airlines are Wikidata items classed as airlines (including low-cost, flag, regional and charter airlines), plus items with an IATA or ICAO airline code classed as ordinary companies (such as Tigerair Taiwan); cargo-only and helicopter operators are left out. ' +
@@ -41,10 +44,13 @@ export const airRoutes: TopicDefinition = {
       'Defunct airlines are counted in the timeline from founding to closing; operating airlines with an unknown founding year (about 240) count only in 2026, which is why 2026 is higher than 2025. Countries follow Wikidata, airlines of two or more countries, such as SAS, count in each, and those without a country use the country of their headquarters. ' +
       'V Air has no closing date in Wikidata; it stopped flying in October 2016 and is treated as closed that year.' +
       ' Longest flights: ' +
-      longestFlightsPart.note.en,
+      longestFlightsPart.note.en +
+      ' Busiest routes, air freight, alliances and low-cost airlines (added 31 October 2026): busiest routes use 2025 seat counts compiled on English Wikipedia from OAG’s annual reports (OAG’s terms forbid reuse; the facts as republished on Wikipedia are used and the original source is credited); seats are scheduled capacity, not passengers. Air freight counts by the airline’s country of registration. Alliances count full members only. There is no agreed definition of a low-cost airline; the list follows Wikipedia editors. These data files are shared under Wikipedia’s CC BY-SA 4.0.',
   },
   panelExtra: () => import('./panels/AirRoutesPanel'),
-  overlays: [...longestFlightsPart.overlays],
+  overlays: [...longestFlightsPart.overlays, ...airRoutesExtra.overlays],
+  // 第十批 175：最繁忙航線的清單（L12 的一部分；最長航線的清單等第十二批 200）
+  listPanel: airRoutesExtra.listPanel,
   indicators: [
     {
       id: 'airlines',
@@ -62,5 +68,6 @@ export const airRoutes: TopicDefinition = {
       shareOfWorld: true,
     },
     ...longestFlightsPart.indicators,
+    ...airRoutesExtra.indicators,
   ],
 };
