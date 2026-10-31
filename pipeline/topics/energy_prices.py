@@ -215,12 +215,31 @@ def moeaea_retail() -> dict[str, dict[int, float]]:
 
 
 def research() -> list[dict]:
-    """逐筆查的價格，一行一筆：iso3、indicator、year、value（本國貨幣，含稅）、currency、
-    basis（"annual average"，或某一天的價格 "YYYY-MM-DD"）、source_zh、source_en、source_url、source_type、quote，
-    有的另有 detail_zh、detail_en（油品等級、地區、用電級距這類跟定義不完全一樣的地方，寫進附註）"""
+    """逐筆查的價格（2026-10-31 由四個研究代理查、map cloud 整理），一行一筆：
+    iso3、indicator、year、value（本國貨幣）、currency、basis（"annual average"，或日期 "YYYY-MM-DD"／"YYYY-MM"）、
+    basisKind（日期的意思：on 那一天的價格、since 那一天起施行的、until 施行到那一天的）、
+    source_zh、source_en、source_url、source_type（government、regulator、statistics office、utility、news）、quote（原文），
+    detail_zh、detail_en（等級、地區、稅這類跟定義不完全一樣的地方，寫進附註），
+    有的另有 hint_zh、hint_en（滑過地圖時的短註，例如「不含稅」）；map: false 的只寫附註、地圖不上色
+    （使用者 2026-10-31 決定：電價不是全國平均的，城市、單一電力公司、某一級費率），noValue_zh、noValue_en 是地圖留白的原因"""
     if not RESEARCH.exists():
         return []
     return [json.loads(line) for line in RESEARCH.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+# 官方長序列的說明（同一國混用逐筆查的資料時寫進附註）
+OFFICIAL = {
+    "eurostat": {
+        "household": ("Eurostat 年用電 2,500–4,999 度家庭的電價（含所有稅費，上下半年的平均）",
+                      "Eurostat price for households using 2,500–4,999 kWh a year (all taxes included, mean of the two half-years)"),
+        "industrial": ("Eurostat 年用電 2,000–19,999 MWh 非家庭用戶的電價（含所有稅費，上下半年的平均）",
+                       "Eurostat price for non-household consumers using 2,000–19,999 MWh a year (all taxes included, mean of the two half-years)"),
+    },
+    "wob": {
+        "gasoline": ("EU Weekly Oil Bulletin 每週含稅價的年平均", "annual average of weekly prices with taxes from the EU Weekly Oil Bulletin"),
+        "diesel": ("EU Weekly Oil Bulletin 每週含稅價的年平均", "annual average of weekly prices with taxes from the EU Weekly Oil Bulletin"),
+    },
+}
 
 
 def _years_text(years: list[int], sep: str) -> str:
@@ -243,12 +262,24 @@ def research_notes(records: list[dict]) -> tuple[list[str], list[str]]:
         if r["basis"] == "annual average":
             annual[(r["source_zh"], r["source_en"], r.get("detail_zh", ""), r.get("detail_en", ""))].append(int(r["year"]))
     for (src_zh, src_en, d_zh, d_en), years in annual.items():
-        zh.append(f"{_years_text(years, '、')} 年：{src_zh}的年平均{f'（{d_zh}）' if d_zh else ''}")
-        en.append(f"{_years_text(years, ', ')}: annual average from {src_en}{f' ({d_en})' if d_en else ''}")
+        gap = " " if src_zh[-1].isascii() and src_zh[-1].isalnum() else ""
+        zh.append(f"{_years_text(years, '、')} 年：{src_zh}{gap}的年平均{f'，{d_zh}' if d_zh else ''}")
+        en.append(f"{_years_text(years, ', ')}: annual average from {src_en}{f'; {d_en}' if d_en else ''}")
+    points: dict[tuple, list[dict]] = defaultdict(list)
     for r in sorted((r for r in records if r["basis"] != "annual average"), key=lambda r: int(r["year"])):
-        d_zh, d_en = r.get("detail_zh", ""), r.get("detail_en", "")
-        zh.append(f"{r['year']} 年：{r['basis']} 的價格 {r['value']:g} {r['currency']}（{r['source_zh']}{f'，{d_zh}' if d_zh else ''}）")
-        en.append(f"{r['year']}: {r['currency']} {r['value']:g} on {r['basis']} ({r['source_en']}{f', {d_en}' if d_en else ''})")
+        points[(r["source_zh"].split("（")[0] if r["source_type"] == "news" else r["source_zh"], r.get("detail_zh", ""))].append(r)
+    when_zh = {"on": "{} 的價格", "since": "{} 起施行的價格", "until": "施行到 {} 的價格"}
+    when_en = {"on": "price on {}", "since": "price in force from {}", "until": "price in force until {}"}
+    for (_src, d_zh), rs in points.items():
+        items_zh = "；".join(f"{r['year']} 年 {r['value']:g} {r['currency']}（{when_zh[r.get('basisKind', 'on')].format(r['basis'])}）"
+                            for r in rs)
+        items_en = "; ".join(f"{r['year']}: {r['currency']} {r['value']:g} ({when_en[r.get('basisKind', 'on')].format(r['basis'])})"
+                             for r in rs)
+        sources_zh = "、".join(dict.fromkeys(r["source_zh"] for r in rs))
+        sources_en = ", ".join(dict.fromkeys(r["source_en"] for r in rs))
+        zh.append(f"{items_zh}（{sources_zh}{f'；{d_zh}' if d_zh else ''}）")
+        d_en = rs[0].get("detail_en", "")
+        en.append(f"{items_en} ({sources_en}{f'; {d_en}' if d_en else ''})")
     return zh, en
 
 
@@ -284,12 +315,13 @@ def commodity_history() -> dict:
 def build() -> None:
     rates, eur = exchange_rates()
     usd: dict[str, dict[str, dict[int, float]]] = {k: defaultdict(dict) for k in INDICATORS}
-    origin: dict[str, dict[str, str]] = {k: {} for k in INDICATORS}
+    # 每國每年用了哪個來源（同一國混用官方長序列與逐筆查的，附註寫官方的那幾年）
+    origin: dict[str, dict[str, dict[str, list[int]]]] = {k: defaultdict(lambda: defaultdict(list)) for k in INDICATORS}
 
     def put(indicator: str, iso3: str, year: int, value_usd: float, source: str) -> None:
         if year in YEARS and year not in usd[indicator][iso3]:
             usd[indicator][iso3][year] = value_usd
-            origin[indicator].setdefault(iso3, source)
+            origin[indicator][iso3][source].append(year)
 
     # 歐洲（歐元）
     for indicator, dataset, band in (("household", "nrg_pc_204", "KWH2500-4999"), ("industrial", "nrg_pc_205", "MWH2000-19999")):
@@ -328,8 +360,14 @@ def build() -> None:
                      key=lambda r: (r["basis"] != "annual average", rank.get(r["source_type"], 3)))
     skipped = []
     used: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    hints: dict[str, dict[str, tuple[str, str]]] = {k: {} for k in INDICATORS}
+    no_value: dict[str, dict[str, tuple[str, str]]] = {k: {} for k in INDICATORS}
     for r in records:
         iso3, indicator, year = r["iso3"], r["indicator"], int(r["year"])
+        if r.get("map") is False:
+            used[(iso3, indicator)].append(r)
+            no_value[indicator][iso3] = (r["noValue_zh"], r["noValue_en"])
+            continue
         if year in usd[indicator].get(iso3, {}):
             continue
         rate = 1.0 if r["currency"] == "USD" else rates.get(iso3, {}).get(year)
@@ -338,8 +376,14 @@ def build() -> None:
             continue
         put(indicator, iso3, year, float(r["value"]) / rate, "research")
         used[(iso3, indicator)].append(r)
+        if "hint_zh" in r:
+            hints[indicator][iso3] = (r["hint_zh"], r["hint_en"])
     for (iso3, indicator), rs in sorted(used.items()):
         zh, en = research_notes(rs)
+        for source, years in origin[indicator][iso3].items():
+            if source in OFFICIAL:
+                zh.insert(0, f"{_years_text(years, '、')} 年：{OFFICIAL[source][indicator][0]}")
+                en.insert(0, f"{_years_text(years, ', ')}: {OFFICIAL[source][indicator][1]}")
         notes[indicator][iso3].extend(zh)
         notes_en[indicator][iso3].extend(en)
 
@@ -366,10 +410,13 @@ def build() -> None:
     for indicator in INDICATORS:
         unit = "美元/度" if indicator in ("household", "industrial") else "美元/公升"
         values = {c: [round(s[y], 3) if y in s else None for y in YEARS] for c, s in sorted(usd[indicator].items())}
+        blank = {c: v for c, v in no_value[indicator].items() if c not in values}
         write_json(OUT / f"{indicator}.json", indicator_file(
             indicator, unit, YEARS, values, latestWithin=3,
             notes={c: "；".join(v) for c, v in notes[indicator].items()},
-            notesEn={c: "; ".join(v) for c, v in notes_en[indicator].items()}))
+            notesEn={c: "; ".join(v) for c, v in notes_en[indicator].items()},
+            hints={c: v[0] for c, v in hints[indicator].items()}, hintsEn={c: v[1] for c, v in hints[indicator].items()},
+            noValue={c: v[0] for c, v in blank.items()}, noValueEn={c: v[1] for c, v in blank.items()}))
         last = {c: s[max(s)] for c, s in usd[indicator].items() if s}
         print(f"  {indicator}：{len(values)} 國；最新一年最高 {sorted(((round(v, 3), c) for c, v in last.items()), reverse=True)[:5]}，"
               f"台灣 {round(last.get('TWN', 0), 3)}")

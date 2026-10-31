@@ -24,10 +24,8 @@ const perKwh = (v: number) => tr({ zh: `${fixed(v, 3)} 美元/度`, en: `US$${fi
 /** 油價：1.09 美元/公升、US$1.09/litre */
 const perLitre = (v: number) => tr({ zh: `${fixed(v, 2)} 美元/公升`, en: `US$${fixed(v, 2)}/litre` });
 
-const MISSING: Text = {
-  zh: '沒有找到官方或可查證的價格（只收歐洲、美國、G20 與台灣周邊）',
-  en: 'No official or verifiable price found (only Europe, the US, the G20 and Taiwan’s neighbours are covered)',
-};
+/** 只收歐洲、美國、G20 與台灣周邊（主題的說明有寫），其他國家留白 */
+const MISSING: Text = { zh: '沒有找到可查證的價格', en: 'No verifiable price found' };
 
 function price(
   id: string,
@@ -99,8 +97,8 @@ export const energyPrices: TopicDefinition = {
     },
   ],
   note: {
-    zh: '價格都含稅，用當年的平均匯率換成美元（台灣用中央銀行的年平均匯率，其他用世界銀行的官方匯率），所以本國貨幣升貶也會讓價格跟著變。電價的定義各國不同：歐洲是 Eurostat 固定用電級距（家庭年用電 2,500–4,999 度、工業 2,000–19,999 千度）的價格，美國、台灣是總收入除以售電量的平均單價，其他國家多半是公告的費率，附註寫明。油價歐盟、英國是每週含稅零售價的年平均，美國是 EIA 的年平均（汽油用高級汽油），台灣是中油牌價依天數加權的年平均，其他國家是政府公告價或新聞，有的只是某一天的價格。',
-    en: 'All prices include taxes and are converted to US dollars at that year’s average exchange rate (Taiwan uses the central bank’s annual average, others the World Bank’s official rate), so currency movements also change the price. Electricity prices are defined differently: Europe uses Eurostat’s fixed consumption bands (households using 2,500–4,999 kWh a year, industry 2,000–19,999 MWh), the US and Taiwan the average revenue per kWh sold, and most other countries published tariffs, as noted. Fuel prices for the EU and the UK are annual averages of weekly retail prices with taxes, the US the EIA annual average (premium for gasoline), Taiwan CPC’s posted prices averaged over the days each was in force, and other countries government-set prices or news reports, some for a single day.',
+    zh: '只收歐洲、美國、台灣與 G20、台灣周邊的國家（各國政府、主管機關或新聞的價格，每個值的出處與日期寫在附註）。價格都含稅（少數國家不含稅，滑過與附註有寫），用當年的平均匯率換成美元（台灣用中央銀行的年平均匯率，其他用世界銀行的官方匯率），所以本國貨幣升貶也會讓價格跟著變。電價的定義各國不同：歐洲是 Eurostat 固定用電級距（家庭年用電 2,500–4,999 度、工業 2,000–19,999 千度）的價格，美國、台灣是總收入除以售電量的平均單價，其他國家多半是公告的費率，附註寫明。油價歐盟、英國是每週含稅零售價的年平均，美國是 EIA 的年平均（汽油用高級汽油），台灣是中油牌價依天數加權的年平均，其他國家是政府公告價或新聞，有的只是某一天的價格。',
+    en: 'Only Europe, the US, Taiwan, the G20 and Taiwan’s neighbours are covered (prices from governments, regulators or news reports; the source and date of each value are in the country notes). Prices include taxes (a few countries’ do not, as noted on hover and in the notes) and are converted to US dollars at that year’s average exchange rate (Taiwan uses the central bank’s annual average, others the World Bank’s official rate), so currency movements also change the price. Electricity prices are defined differently: Europe uses Eurostat’s fixed consumption bands (households using 2,500–4,999 kWh a year, industry 2,000–19,999 MWh), the US and Taiwan the average revenue per kWh sold, and most other countries published tariffs, as noted. Fuel prices for the EU and the UK are annual averages of weekly retail prices with taxes, the US the EIA annual average (premium for gasoline), Taiwan CPC’s posted prices averaged over the days each was in force, and other countries government-set prices or news reports, some for a single day.',
   },
   worldPanel: {
     title: { zh: '國際能源價格', en: 'International energy prices' },
@@ -111,8 +109,8 @@ export const energyPrices: TopicDefinition = {
       'household',
       { zh: '家庭電價', en: 'Household electricity price' },
       {
-        zh: '家庭每度電的價格，含所有稅費，換成美元。',
-        en: 'Price of a kWh of electricity for households, including all taxes, in US dollars.',
+        zh: '家庭每度電的價格，含所有稅費，用當年的平均匯率換成美元。2025 年德國 0.435 美元最高，愛爾蘭 0.411、比利時 0.399、英國 0.391；土耳其 0.071、喬治亞 0.084 最低；台灣 0.100（台電的電燈平均單價），南韓 0.112、美國 0.173。巴西、南韓、印尼、新加坡、南非的值不含稅或沒寫是否含稅（滑過有寫）；只有某個城市或某一級費率的國家（加拿大、印度、沙烏地等）只寫在附註，地圖留白。',
+        en: 'Price of a kWh of electricity for households, including all taxes, converted to US dollars at that year’s average exchange rate. In 2025 Germany was highest at US$0.435, followed by Ireland (0.411), Belgium (0.399) and the UK (0.391); Türkiye (0.071) and Georgia (0.084) were lowest; Taiwan 0.100 (Taipower’s average price for lighting customers), South Korea 0.112, the US 0.173. Values for Brazil, South Korea, Indonesia, Singapore and South Africa exclude taxes or do not say (noted on hover); countries with only one city’s price or one tariff band (Canada, India, Saudi Arabia and others) are described in the notes and left blank.',
       },
       PER_KWH,
       perKwh,
@@ -122,8 +120,8 @@ export const energyPrices: TopicDefinition = {
       'industrial',
       { zh: '工業電價', en: 'Industrial electricity price' },
       {
-        zh: '工業用電每度的價格，含所有稅費，換成美元。',
-        en: 'Price of a kWh of electricity for industry, including all taxes, in US dollars.',
+        zh: '工業用電每度的價格，含所有稅費，換成美元。2025 年丹麥 0.311 美元、賽普勒斯 0.305、愛爾蘭 0.275、德國 0.268 最高；美國 0.086、蒙特內哥羅 0.093 最低；台灣 0.136（台電的電力平均單價），南韓 0.128。歐洲是 Eurostat 年用電 2,000–19,999 MWh 的級距，美國、台灣、南韓等是平均單價；英國、巴西、南非等不含稅（滑過有寫）。',
+        en: 'Price of a kWh of electricity for industry, including all taxes, in US dollars. In 2025 Denmark (US$0.311), Cyprus (0.305), Ireland (0.275) and Germany (0.268) were highest; the US (0.086) and Montenegro (0.093) were lowest; Taiwan 0.136 (Taipower’s average price for power customers), South Korea 0.128. Europe uses Eurostat’s 2,000–19,999 MWh band; the US, Taiwan, South Korea and others average revenue per kWh; the UK, Brazil, South Africa and others exclude taxes (noted on hover).',
       },
       PER_KWH,
       perKwh,
@@ -133,8 +131,8 @@ export const energyPrices: TopicDefinition = {
       'gasoline',
       { zh: '汽油價格', en: 'Gasoline price' },
       {
-        zh: '每公升 95 無鉛汽油的零售價，含稅，換成美元。',
-        en: 'Retail price of a litre of 95-octane unleaded gasoline, including taxes, in US dollars.',
+        zh: '每公升 95 無鉛汽油（或最接近的等級）的零售價，含稅，換成美元。2025 年丹麥 2.22 美元、荷蘭 2.17 最高；馬來西亞 0.51、印尼 0.61、沙烏地 0.62 這些有補貼或產油的國家最低；台灣 0.94（中油 95 無鉛的牌價），中國（上海）1.06、美國 1.09、南韓 1.36（美國、南韓是高級汽油）。加拿大、印度、印尼、巴西只有一般汽油的全國價（滑過有寫）。',
+        en: 'Retail price of a litre of 95-octane unleaded gasoline (or the closest grade), including taxes, in US dollars. In 2025 Denmark (US$2.22) and the Netherlands (2.17) were highest; subsidised or oil-producing Malaysia (0.51), Indonesia (0.61) and Saudi Arabia (0.62) were lowest; Taiwan 0.94 (CPC’s posted price for 95 unleaded), China (Shanghai) 1.06, the US 1.09 and South Korea 1.36 (premium grade in the US and South Korea). Canada, India, Indonesia and Brazil publish national prices only for regular grades (noted on hover).',
       },
       PER_LITRE,
       perLitre,
@@ -144,8 +142,8 @@ export const energyPrices: TopicDefinition = {
       'diesel',
       { zh: '柴油價格', en: 'Diesel price' },
       {
-        zh: '每公升柴油的零售價，含稅，換成美元。',
-        en: 'Retail price of a litre of diesel, including taxes, in US dollars.',
+        zh: '每公升柴油的零售價，含稅，換成美元。2025 年丹麥 1.99 美元、愛爾蘭 1.93、荷蘭 1.92 最高；印尼 0.41（補貼的柴油）、沙烏地 0.44 最低；台灣 0.85（中油超級柴油的牌價），中國（上海）0.95、美國 0.97。南非是批發價（只管制批發價，零售價通常高一點）。',
+        en: 'Retail price of a litre of diesel, including taxes, in US dollars. In 2025 Denmark (US$1.99), Ireland (1.93) and the Netherlands (1.92) were highest; Indonesia (0.41, subsidised diesel) and Saudi Arabia (0.44) were lowest; Taiwan 0.85 (CPC’s posted price for premium diesel), China (Shanghai) 0.95, the US 0.97. South Africa is the wholesale price (only the wholesale price is regulated; pump prices are usually a little higher).',
       },
       PER_LITRE,
       perLitre,
