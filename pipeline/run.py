@@ -72,6 +72,7 @@ STEPS = {
     "china-lending": "topics.china_lending",
     "religion": "topics.religion",
     "religion-extra": "topics.religion_extra",
+    "oldest-universities": "topics.oldest_universities",
     "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
     "gender": "topics.gender",
     "wages": "topics.wages",

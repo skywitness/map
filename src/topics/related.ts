@@ -73,6 +73,7 @@ export const RELATED: Record<string, string[]> = {
   'science-facilities': ['innovation', 'publications', 'nuclear-waste'],
   starlink: ['digital', 'internet-speed', 'space'],
   'wafer-fabs': ['semiconductors', 'ai', 'innovation'],
+  'oldest-universities': ['education', 'world-heritage', 'attractions'],
   'rd-companies': ['innovation', 'semiconductors', 'companies'],
   renewables: ['electricity', 'wind', 'climate'],
   ev: ['electricity', 'vehicles', 'minerals'],

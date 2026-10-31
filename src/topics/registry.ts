@@ -109,7 +109,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'travel', 'taipei-view'] },
       { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
       { label: { zh: '地形與地質', en: 'Land & geology' }, topics: ['elevation', 'rivers', 'oceans', 'lithology', 'special-landforms', 'plates', 'earthquakes', 'reclamation', 'antarctica'] },
-      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'skyscrapers', 'night-lights'] },
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers', 'night-lights'] },
     ],
     // 左：國家、天空；中：地形與地質；右：景點
     columns: [2, 1, 1],
@@ -218,6 +218,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   antipodes: () => import('./antipodes'),
   pandas: () => import('./pandas'),
   attractions: () => import('./attractions'),
+  'oldest-universities': () => import('./oldest-universities'),
   antarctica: () => import('./antarctica'),
   'national-parks': () => import('./national-parks'),
   trails: () => import('./trails'),
