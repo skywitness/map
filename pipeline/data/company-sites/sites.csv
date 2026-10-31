@@ -1,0 +1,269 @@
+company,kind,status,name,name_zh,city,iso3,lat,lon,precision,year,source,note
+apple,hq,open,Apple Park,,Cupertino,USA,37.334787,-122.009002,site,2017,https://s2.q4cdn.com/470004039/files/doc_earnings/2025/q4/filing/10K-Q4-2025-as-filed.pdf,Wikidata Q22041180；10-K（2025 會計年度）Item 2 只寫總部在 Cupertino；啟用年取自 Wikidata P1619；園區也有研發
+apple,datacenter,open,Apple Maiden data center,,Maiden,USA,35.58,-81.21,city,,https://www.catawbaedc.org/post/north-carolina-data-center-is-part-of-apple-s-500-billion-expansion-plan-across-the-us,非官方來源：Catawba County 經濟發展公司網站 2025-02-24 轉載的報導，寫 Apple 2009 年在 Maiden 設立營運並在當地有資料中心；州政府 2009-06-03 新聞稿只寫北卡州
+apple,datacenter,open,Apple Mesa data center,,Mesa,USA,33.42,-111.83,city,,https://www.mesanow.org/news/public/article/1341,Mesa 市政府 2015-02-02 轉載州長宣布：Apple 投資 20 億美元在 Mesa 設全球網路的 command center；待確認：啟用年份
+apple,datacenter,open,Apple Prineville data center,,Prineville,USA,44.30,-120.85,city,,https://energyinfo.oregon.gov/counties/2018/12/31/crook-county,奧勒岡州能源資訊網的 Crook County 頁：Prineville 一帶有 Apple 與 Facebook 的資料中心；待確認：啟用年份
+apple,datacenter,open,Apple Reno data center,,Reno,USA,39.53,-119.81,city,2012,https://goed.nv.gov/wp-content/uploads/2024/07/7-B.-Apple-Inc.-Board-Packet.pdf,內華達州經濟發展局 2024-07 擴建減稅文件：2012 年 12 月啟用，在 Reno 郊外的 Reno Technology Park（地址寫 Sparks）；座標用 Reno 市
+apple,datacenter,open,Apple Waukee data center,,Waukee,USA,41.61,-93.87,city,,https://www.waukee.org/1244/Data-Centers,Waukee 市政府：2026 年有 1 棟資料中心營運中，未來一年可能再加 2 棟；在市區西緣
+apple,datacenter,open,Apple Viborg data center,,Viborg,DNK,56.4834,9.5739,site,,https://dca.au.dk/en/current-news/news/show/artikel/aarhus-universitet-hilser-apple-velkommen-som-naermeste-nabo-til-au-foulum-1,Wikidata Q19721053（Foulum Data Center，所有者 APPLE ApS）；在 Viborg 郊外的 Foulum；出處是奧胡斯大學 2015-02-24 的新聞（Apple 決定在此建大型資料中心）；待確認：營運中是依 2020 年的報導，沒有讀到官方來源
+apple,office,open,Apple Austin campus,,Austin,USA,30.30,-97.73,city,,https://www.tdlr.texas.gov/TABS/Search/Print/TABS2025025970,非官方來源：德州 TDLR 建築工程登記（2025）的 Apple Campus Building 1（6900 W Parmer Lane，業主 Apple Inc.，既有空間改裝並增加辦公室）；待確認：園區用途與啟用年份
+apple,rnd,planned,Apple Research Triangle campus,,Research Triangle Park,USA,35.91,-78.86,city,,https://www.commerce.nc.gov/news/press-releases/2021/04/26/governor-cooper-announces-apple-will-create-3000-jobs-wake-county,"北卡州政府 2021-04-26：Apple 在 Wake County 設研發、營運與工程中心（至少 100 萬平方英尺、3,000 個工作）；待確認：2024 年報導 Apple 暫停開發、延後 4 年；座標用 Research Triangle Park"
+apple,rnd,open,Apple European Silicon Design Center,,Munich,DEU,48.14,11.58,city,,https://www.stmwi.bayern.de/presse/pressemeldungen/86-2023/,巴伐利亞邦經濟部 2023-03-02：Apple 宣布再投資 10 億歐元於慕尼黑的歐洲晶片設計中心
+apple,rnd,open,Apple Longtan,美商蘋果電子股份有限公司台灣分公司,Longtan,TWN,24.84,121.21,city,,https://www.sipa.gov.tw/home.jsp?serno=201001210041&mserno=201001210037&menudata=ChineseMenu&contlink=ap%2Fmanufacturers_1_3_view.jsp&level2=Y&dataserno=A1104&stype=C&qsipa=05,"竹科管理局龍潭園區廠商資料（A1104，英文名 Taiwan Apple LLC, Taiwan Branch）：研究、設計、開發、製造 LTPS 與氧化物半導體面板、QuantumFilm 影像感測器；龍潭園區 2 處（龍園十路 55 號、龍三廠 龍園八路 88 號）；登記的營業項目也有製造"
+apple,office,open,Apple Taipei,美商蘋果亞洲股份有限公司台灣分公司,Taipei,TWN,25.04,121.56,city,,https://fbfh.trade.gov.tw/eai/detail?year=110&lang=zh&mode=Ranking&banNo=23826594,"國貿署出進口廠商資料：APPLE ASIA LLC, TAIWAN BRANCH (U.S.A.)，臺北市信義區松仁路 100 號 32 樓，民國 79 年（1990）登記"
+amazon,hq,open,Amazon Seattle headquarters,,Seattle,USA,47.61,-122.33,city,,https://s2.q4cdn.com/299287126/files/doc_financials/2026/ar/Amazon-2025-Annual-Report.pdf,2025 年報：總部在華盛頓州 Puget Sound 地區與 Arlington（自有與租用），封面地址 Seattle
+amazon,hq,open,Amazon HQ2,,Arlington,USA,38.88,-77.11,city,2023,https://s2.q4cdn.com/299287126/files/doc_financials/2026/ar/Amazon-2025-Annual-Report.pdf,第二總部（年報寫總部在 Puget Sound 地區與 Virginia 州 Arlington）；第一期 Metropolitan Park 2023 年啟用（Arlington County 2023-03-03 聲明說當年稍後開幕）；第二期 PenPlace 待確認；座標用 Arlington County
+amazon,office,open,Amazon Nashville Operations Center of Excellence,,Nashville,USA,36.16,-86.77,city,,https://tnecd.com/news/governor-haslam-commissioner-rolfe-announce-amazon-to-create-5000-new-jobs-in-nashville/,"田納西州 2018-11-13 宣布：在 Nashville Yards 設零售營運部門的美東中心，100 萬平方英尺、5,000 個工作；待確認：2019 年州政府文章說預計 2021 年進駐第一棟，沒有讀到啟用的官方來源"
+amazon,office,open,Amazon Hyderabad campus,,Hyderabad,IND,17.36,78.47,city,,https://www.telangana.gov.in/news/press-releases/2024/08/amazon-web-services-to-significantly-expand-their-data-centre-operations-in-telangana-augment-ai-offerings-in-a-big-way/,Telangana 州政府 2024-08 新聞稿：Amazon 在 Hyderabad 有全球最大的企業大樓；待確認：啟用年份（報導是 2019 年）
+amazon,factory,open,Amazon Leo Kirkland satellite production facility,,Kirkland,USA,47.69,-122.19,city,2024,https://www.kirklandwa.gov/Whats-Happening/News/Mayor-Curtis-Remarks-at-Project-Kuiper-Ribbon-Cutting,Amazon Leo（原 Project Kuiper）的衛星工廠；Kirkland 市長 2024-06-28 剪綵致詞：Amazon 在 Kirkland 製造衛星
+amazon,factory,open,Zoox Hayward production facility,,Hayward,USA,37.67,-122.08,city,2025,https://business.ca.gov/governor-newsom-celebrates-manufacturing-month-highlighting-californias-dominant-role-in-american-manufacturing/,子公司 Zoox；加州州長辦公室 2025-10-06 新聞稿：美國第一座專門生產 robotaxi 的工廠，22 萬平方英尺；年份依新聞稿日期，待確認
+meta,hq,open,Meta headquarters (1 Meta Way),,Menlo Park,USA,37.485,-122.148,site,,https://s21.q4cdn.com/399680738/files/doc_financials/2024/ar/Meta-12-31-2024-10K-ARS.pdf,Wikidata Q58814026（標籤 1 Hacker Way）；2024 年報：總部在 Menlo Park，地址 1 Meta Way；在 90 多個城市有辦公室（年報沒有列）
+meta,datacenter,building,Meta Singapore Data Centre,,Singapore,SGP,1.30,103.80,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Singapore-Data-Center-.pdf,2018 年動工；官方資訊表寫 will be（興建中）
+meta,datacenter,open,Meta Odense Data Centre,,Odense,DNK,55.36668,10.48479,site,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Odense-Data-Center.pdf,Wikidata Q106859609；2017 年動工
+meta,datacenter,open,Meta Clonee Data Centre,,Clonee,IRL,53.41,-6.44,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Clonee-Data-Center.pdf,2016 年動工；在 Meath 郡
+meta,datacenter,open,Meta Luleå Data Centre,,Luleå,SWE,65.58,22.19,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Lulea-Data-Center.pdf,2011 年動工
+meta,datacenter,building,Meta Sturgeon Data Centre,,Sturgeon County,CAN,53.80,-113.65,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Sturgeon-Data-Center.pdf,2026 年動工；Alberta 省；座標用 Sturgeon County
+meta,datacenter,open,Meta Huntsville Data Center,,Huntsville,USA,34.71,-86.59,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Huntsville-Data-Center.pdf,2018 年動工
+meta,datacenter,building,Meta Montgomery Data Center,,Montgomery,USA,32.37,-86.30,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Montgomery-Data-Center.pdf,2024 年動工
+meta,datacenter,open,Meta Mesa Data Center,,Mesa,USA,33.42,-111.83,city,2025,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Mesa-Data-Center.pdf,2021 年動工，2025 年上線
+meta,datacenter,open,Meta Stanton Springs Data Center,,Stanton Springs,USA,33.65,-83.72,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Stanton-Springs-Data-Center.pdf,2018 年動工；Stanton Springs 是 Georgia 州 Newton County 的產業園區，Wikidata 沒有條目，座標用鄰近的 Social Circle（Q1852917）
+meta,datacenter,building,Meta Kuna Data Center,,Kuna,USA,43.49,-116.42,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Kuna-Data-Center.pdf,2022 年動工
+meta,datacenter,open,Meta DeKalb Data Center,,DeKalb,USA,41.93,-88.75,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-DeKalb-Data-Center.pdf,2020 年動工
+meta,datacenter,building,Meta Jeffersonville Data Center,,Jeffersonville,USA,38.30,-85.73,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Jeffersonville-Data-Center.pdf,2024 年動工
+meta,datacenter,building,Meta Lebanon Data Center,,Lebanon,USA,40.05,-86.47,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Lebanon-Data-Center.pdf,2026 年動工；Indiana 州
+meta,datacenter,open,Meta Altoona Data Center,,Altoona,USA,41.65,-93.47,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Altoona-Data-Center.pdf,2013 年動工；Iowa 州
+meta,datacenter,building,Meta Richland Parish Data Center,,Richland Parish,USA,32.477149,-91.632333,site,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Richland-Parish-Data-Center.pdf,Wikidata Q138001063（Hyperion）；2024 年動工
+meta,datacenter,building,Meta Rosemount Data Center,,Rosemount,USA,44.74,-93.13,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Rosemount-Data-Center.pdf,2024 年動工
+meta,datacenter,open,Meta Kansas City Data Center,,Kansas City,USA,39.05,-94.58,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Kansas-City-Data-Center.pdf,2022 年動工；Missouri 州
+meta,datacenter,open,Meta Sarpy Data Center,,Sarpy County,USA,41.11,-96.11,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Sarpy-Data-Center.pdf,2017 年動工；Meta 只寫 Sarpy（Nebraska 州的郡），座標用 Sarpy County
+meta,datacenter,open,Meta Los Lunas Data Center,,Los Lunas,USA,34.81,-106.74,city,2018,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Los-Lunas-Data-Center.pdf,2016 年動工，2018 年上線
+meta,datacenter,open,Meta Forest City Data Center,,Forest City,USA,35.33,-81.87,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Forest-City-Data-Center.pdf,2010 年動工
+meta,datacenter,building,Meta Bowling Green Data Center,,Bowling Green,USA,41.37,-83.65,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Bowling-Green-Data-Center.pdf,2025 年動工；Ohio 州
+meta,datacenter,open,Meta New Albany Data Center,,New Albany,USA,40.08,-82.82,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-New-Albany-Data-Center.pdf,2017 年動工；Ohio 州
+meta,datacenter,building,Meta Tulsa Data Center,,Tulsa,USA,36.13,-95.94,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Tulsa-Data-Center.pdf,2026 年動工
+meta,datacenter,open,Meta Prineville Data Center,,Prineville,USA,44.30,-120.85,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Prineville-Data-Center.pdf,2010 年動工
+meta,datacenter,building,Meta Aiken Data Center,,Aiken,USA,33.55,-81.72,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Aiken-Data-Center.pdf,2024 年動工
+meta,datacenter,open,Meta Gallatin Data Center,,Gallatin,USA,36.38,-86.45,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Gallatin-Data-Center.pdf,2020 年動工；Tennessee 州
+meta,datacenter,building,Meta El Paso Data Center,,El Paso,USA,31.76,-106.49,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-El-Paso-Data-Center.pdf,2025 年動工
+meta,datacenter,open,Meta Fort Worth Data Center,,Fort Worth,USA,32.76,-97.33,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Fort-Worth-Data-Center.pdf,2015 年動工
+meta,datacenter,building,Meta Temple Data Center,,Temple,USA,31.10,-97.34,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Metas-Temple-Data-Center.pdf,2022 年動工；Texas 州
+meta,datacenter,open,Meta Eagle Mountain Data Center,,Eagle Mountain,USA,40.31,-112.01,city,2021,https://datacenters.atmeta.com/wp-content/uploads/2022/02/Metas-Eagle-Mountain-Data-Center-2026.pdf,2018 年動工，2021 年上線
+meta,datacenter,open,Meta Henrico Data Center,,Henrico,USA,37.483928,-77.237311,site,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Henrico-Data-Center.pdf,Wikidata Q139609394；2017 年動工；Virginia 州 Henrico County
+meta,datacenter,building,Meta Beaver Dam Data Center,,Beaver Dam,USA,43.46,-88.84,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Beaver-Dam-Data-Center.pdf,2025 年動工；Wisconsin 州
+meta,datacenter,building,Meta Cheyenne Data Center,,Cheyenne,USA,41.15,-104.80,city,,https://datacenters.atmeta.com/wp-content/uploads/2026/09/Meta_s-Cheyenne-Data-Center.pdf,2024 年動工
+tsmc,hq,open,Corporate Headquarters & Fab 12A,公司總部及晶圓十二A廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區力行六路8號；也是晶圓十二A廠（12 吋晶圓廠）
+tsmc,factory,open,Fab 12B,晶圓十二B廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區園區二路168號；12 吋晶圓廠（與十二A廠同屬晶圓十二廠）
+tsmc,rnd,open,Global R&D Center,全球研發中心,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區科環路168號（竹科寶山，郵遞區號 308）
+tsmc,factory,open,Fab 2,晶圓二廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,6 吋（150mm）晶圓廠，與晶圓五廠同址（園區三路121號）；待確認：台積電 2025 年宣布兩年內逐步退出 6 吋晶圓生產
+tsmc,factory,open,Fab 3,晶圓三廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠（研新一路9號）
+tsmc,factory,open,Fab 5,晶圓五廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠，與晶圓二廠同址（園區三路121號）
+tsmc,factory,open,Fab 8,晶圓八廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠（力行路25號）
+tsmc,factory,open,Fab 20,晶圓二十廠,Hsinchu,TWN,24.8,120.97,city,2025,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,12 吋晶圓廠，竹科寶山園區（科環路1號，郵遞區號 308）；20-F 寫 2025 年開始生產
+tsmc,factory,open,Advanced Backend Fab 1,先進封測一廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區；先進封裝測試廠
+tsmc,factory,open,Fab 6,晶圓六廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區（南科北路1號）
+tsmc,factory,open,Fab 14A,晶圓十四A廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區；12 吋晶圓廠（與十四B廠同屬晶圓十四廠）
+tsmc,factory,open,Fab 14B,晶圓十四B廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區；12 吋晶圓廠（與十四A廠同屬晶圓十四廠）
+tsmc,factory,open,Fab 18A,晶圓十八A廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區；12 吋晶圓廠（與十八B廠同屬晶圓十八廠）
+tsmc,factory,open,Fab 18B,晶圓十八B廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區北園二路8號；12 吋晶圓廠（與十八A廠同屬晶圓十八廠）
+tsmc,factory,open,Advanced Backend Fab 2,先進封測二廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區（三抱竹路1號）
+tsmc,factory,open,Advanced Backend Fab 8,先進封測八廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,臺南市新市區（郵遞區號 744）
+tsmc,factory,open,Fab 15A,晶圓十五A廠,Taichung,TWN,24.14,120.68,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,中部科學園區；12 吋晶圓廠（與十五B廠同屬晶圓十五廠）
+tsmc,factory,open,Fab 15B,晶圓十五B廠,Taichung,TWN,24.14,120.68,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,中部科學園區；12 吋晶圓廠（與十五A廠同屬晶圓十五廠）
+tsmc,factory,open,Advanced Backend Fab 5,先進封測五廠,Taichung,TWN,24.14,120.68,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,中部科學園區科雅西路5號（大雅區）
+tsmc,factory,building,Fab 25,,Taichung,TWN,24.14,120.68,city,,https://www.peoplenews.tw/?p=3440,非官方來源（民報 2025-10-18）；中科二期計畫編號晶圓25廠，A14（1.4 奈米）製程，2025-10-17 向中科管理局申報開工，預計 2028 年下半年量產；台積電 20-F 附件有中科 F25 土地租約
+tsmc,factory,open,Fab 22,晶圓二十二廠,Kaohsiung,TWN,22.61,120.3,city,2025,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,高雄市楠梓區園區北路1號；20-F 寫 2025 年開始生產
+tsmc,factory,open,Advanced Backend Fab 3,先進封測三廠,Taoyuan,TWN,24.99,121.31,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,桃園市龍潭區龍園六路101號（竹科龍潭園區）
+tsmc,factory,open,Advanced Backend Fab 6,先進封測六廠,Zhunan,TWN,24.68,120.88,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,苗栗縣竹南鎮科專一路1號（竹科竹南園區）
+tsmc,factory,open,Advanced Backend Fab 7,先進封測七廠,Taibao,TWN,23.48,120.33,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,嘉義縣太保市（嘉義科學園區）；待確認：20-F 把它算在營運中的 7 座先進封測廠內，但產業新聞說各期 2026–2027 年陸續量產
+tsmc,factory,open,Fab 21 (TSMC Arizona),,Phoenix,USA,33.78,-112.16,site,2024,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Arizona（100% 持有）；第一座廠 2024 年第 4 季量產 4 奈米，第二座已完工裝機，第三座 2025 年動工；另規劃先進封裝廠與研發中心；Wikidata Q135913497
+tsmc,factory,open,Fab 23 (JASM),,Kikuyo,JPN,32.88564,130.84222,site,2024,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 JASM（Japan Advanced Semiconductor Manufacturing，台積公司持有多數股權的合資公司）；熊本縣菊陽町，第一座廠 2024 年底量產，第二座 2025 年動工；座標取自 JASM 公司條目；Wikidata Q111362867
+tsmc,factory,building,Fab 24 (ESMC),,Dresden,DEU,51.05,13.74,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 ESMC（European Semiconductor Manufacturing Company，合資）；2024 年動工的 28/22、16/12 奈米特殊製程廠
+tsmc,factory,open,Fab 16 (TSMC Nanjing),台積電（南京）有限公司,Nanjing,CHN,32.06,118.78,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Nanjing（浦口經濟開發區）；12 吋晶圓廠
+tsmc,factory,open,Fab 10 (TSMC China),台積電（中國）有限公司,Shanghai,CHN,31.23,121.47,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC China，上海松江區；8 吋晶圓廠
+tsmc,factory,open,Fab 11 (TSMC Washington),,Camas,USA,45.59,-122.41,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Washington（原 WaferTech）；8 吋晶圓廠
+tsmc,office,open,TSMC North America,,San Jose,USA,37.3,-121.87,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司；2851 Junction Avenue
+tsmc,office,open,TSMC Europe,,Amsterdam,NLD,52.37,4.88,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Europe B.V.；World Trade Center Amsterdam
+tsmc,office,open,TSMC Japan,,Yokohama,JPN,35.45,139.63,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Japan Limited；橫濱港未來
+tsmc,office,open,TSMC Korea,,Seoul,KOR,37.56,126.99,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Korea Limited；江南區德黑蘭路
+tsmc,rnd,open,TSMC Design Technology Japan,,Yokohama,JPN,35.45,139.63,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司（設計中心）；橫濱港未來
+tsmc,rnd,open,TSMC Japan 3DIC R&D Center,,Tsukuba,JPN,36.08,140.08,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司；茨城縣筑波市
+tsmc,rnd,open,TSMC Design Technology Canada,,Ottawa,CAN,45.42,-75.69,city,,https://www.tsmc.com/static/english/careers/designCenter_Canada.htm,子公司（設計中心），位於渥太華的 Kanata
+tsmc,rnd,open,TSMC Europe Design Center (Munich),,Munich,DEU,48.14,11.57,city,,https://www.tomshardware.com/tech-industry/semiconductors/tsmc-to-open-up-chip-design-center-in-munich-to-help-local-chip-developers,非官方來源（Tom's Hardware 2025-05-28，報導台積電在歐洲技術論壇宣布）；台積電第 10 個、歐洲第 1 個設計中心；待確認：報導說預定 2025 年第 3 季開始運作，沒找到開幕的官方消息
+samsung,hq,open,Samsung Digital City,,Suwon,KOR,37.29,127.01,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,總公司地址：水原市靈通區三星路129號；「Digital City」名稱見 2026 永續報告書
+samsung,office,open,Samsung Electronics Seocho,,Seoul,KOR,37.56,126.99,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,半年報列為國內事業場「Seocho」
+samsung,rnd,open,Samsung Research (Woomyeon),,Seoul,KOR,37.56,126.99,city,,https://research.samsung.com/global-rnd-network,Samsung Research 總部（首爾瑞草區城村路56號，半年報列為國內事業場「Woomyeon」）；也是 AI Center Seoul
+samsung,rnd,open,Samsung Advanced Institute of Technology (SAIT),,Suwon,KOR,37.29,127.01,city,,https://semiconductor.samsung.com/about-us/locations/,三星綜合技術院
+samsung,factory,open,Samsung Giheung,,Yongin,KOR,37.24,127.2,city,,https://semiconductor.samsung.com/about-us/locations/,半導體晶圓廠；也是 Device Solutions Korea 區域辦公室
+samsung,factory,open,Samsung Hwaseong,,Hwaseong,KOR,37.2,126.77,city,,https://semiconductor.samsung.com/about-us/locations/,半導體晶圓廠；也是研發中心 Device Solutions Research（DSR）
+samsung,factory,open,Samsung Pyeongtaek,,Pyeongtaek,KOR,36.99,127.09,city,,https://semiconductor.samsung.com/about-us/locations/,半導體製造據點
+samsung,factory,open,Samsung Cheonan,,Cheonan,KOR,36.81,127.15,city,,https://semiconductor.samsung.com/about-us/locations/,半導體製造據點
+samsung,factory,open,Samsung Onyang,,Asan,KOR,36.35,126.92,city,,https://semiconductor.samsung.com/about-us/locations/,半導體製造據點；地址在牙山市排芳邑
+samsung,factory,open,Samsung Display Asan,,Asan,KOR,36.35,126.92,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 Samsung Display（三星電子持股 84.8%）；半年報列為國內事業場「Asan」；待確認：確切廠區
+samsung,factory,open,Samsung Future City (Gumi),,Gumi,KOR,36.21,128.35,city,,https://www.samsung.com/global/sustainability/media/pdf/Samsung_Electronics_Sustainability_Report_2026_ENG.pdf,2026 半年報列兩個事業場 Gumi1、Gumi2
+samsung,factory,open,Samsung Green City (Gwangju),,Gwangju,KOR,35.17,126.92,city,,https://www.samsung.com/global/sustainability/media/pdf/Samsung_Electronics_Sustainability_Report_2026_ENG.pdf,2026 半年報列為國內事業場
+samsung,office,open,Samsung Electronics North America Headquarters,,Ridgefield Park,USA,40.85,-74.02,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,DX 部門北美區域總部；2026 半年報只寫 New Jersey，城市取自 2012 年 Global Network
+samsung,office,open,Samsung Electronics Europe Headquarters,,Chertsey,GBR,51.39,-0.51,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,"DX 部門歐洲區域總部；2026 半年報只寫 Surrey, UK，城市取自 2012 年 Global Network"
+samsung,office,open,Samsung Electronics China Headquarters,,Beijing,CHN,39.9,116.41,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,DX 部門中國區域總部
+samsung,office,open,Samsung Singapore,,Singapore,SGP,1.3,103.8,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,2 處：DX 部門東南亞區域總部、DS 部門東南亞區域總部（Samsung Hub）
+samsung,office,open,Samsung Electronics Southwest Asia Headquarters,,Gurugram,IND,28.47,77.03,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,DX 部門西南亞區域總部；2026 半年報只寫 Haryana，2012 年 Global Network 寫 Gurgaon（今 Gurugram）
+samsung,office,open,Samsung Electronics CIS Headquarters,,Moscow,RUS,55.75,37.62,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,DX 部門獨立國協區域總部
+samsung,office,open,Samsung Electronics Middle East Headquarters,,Riyadh,SAU,24.64,46.72,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,DX 部門中東區域總部
+samsung,office,open,Samsung Electronics Africa Headquarters,,Johannesburg,ZAF,-26.2,28.04,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,DX 部門非洲區域總部
+samsung,office,open,Samsung Electronics Latin America Headquarters,,São Paulo,BRA,-23.55,-46.63,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,DX 部門中南美區域總部
+samsung,office,open,Device Solutions America,,San Jose,USA,37.3,-121.87,city,,https://semiconductor.samsung.com/about-us/locations/,DS 部門美洲區域總部（3655 North First Street）
+samsung,office,open,Device Solutions Europe,,Munich,DEU,48.14,11.57,city,,https://semiconductor.samsung.com/about-us/locations/,DS 部門歐洲區域辦公室；待確認：2026 半年報寫 DS 歐洲區域總部在 Eschborn
+samsung,office,open,Samsung Semiconductor Europe (Eschborn),,Eschborn,DEU,50.14,8.57,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,半年報列為 DS 部門歐洲區域總部；待確認：半導體官網的歐洲區域辦公室寫在慕尼黑
+samsung,office,open,Samsung Semiconductor China (Shanghai),,Shanghai,CHN,31.23,121.47,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,半年報列為 DS 部門中國區域總部；待確認：半導體官網的 Device Solutions China 寫在深圳
+samsung,office,open,Device Solutions China,,Shenzhen,CHN,22.55,114.05,city,,https://semiconductor.samsung.com/about-us/locations/,DS 部門中國區域辦公室（南山區）
+samsung,office,open,Device Solutions Japan,,Tokyo,JPN,35.69,139.69,city,,https://semiconductor.samsung.com/about-us/locations/,DS 部門日本區域總部（品川）
+samsung,factory,open,Samsung Austin Semiconductor,,Austin,USA,30.3,-97.73,city,1996,https://semiconductor.samsung.com/foundry/manufacturing/manufacturing-sites/,子公司 SAS；晶圓代工廠（S2），官網寫 1996 年開始營運
+samsung,factory,building,Samsung Taylor fab,,Taylor,USA,30.57,-97.42,city,,https://semiconductor.samsung.com/foundry/manufacturing/manufacturing-sites/,晶圓代工新廠；據報導（Korea Times 2026-07）預計 2026 年或 2027 年初開始營運，第二座廠 2026 年內動工
+samsung,factory,open,Samsung China Semiconductor (Xi'an),,Xi'an,CHN,34.26,108.94,city,,https://semiconductor.samsung.com/about-us/locations/,子公司 SCS（半導體製造）
+samsung,factory,open,Samsung Electronics Suzhou Semiconductor,,Suzhou,CHN,31.3,120.62,city,,https://semiconductor.samsung.com/about-us/locations/,子公司 SESS（半導體代工處理）
+samsung,factory,open,Tianjin Samsung LED,,Tianjin,CHN,39.15,117.21,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 TSLED（LED 製造，2026 半年報仍列）；城市取自 2012 年 Global Network
+samsung,factory,open,Samsung Electronics Vietnam (SEV),,Bac Ninh,VNM,21.1,106.1,city,,https://www.samsung.com/global/sustainability/media/pdf/Samsung_Electronics_Sustainability_Report_2026_ENG.pdf,子公司 SEV（電子產品製造）；永續報告書稱 Bac Ninh site
+samsung,factory,open,Samsung Electronics Vietnam Thai Nguyen (SEVT),,Thai Nguyen,VNM,21.6,105.85,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 SEVT（通訊設備製造）
+samsung,factory,open,Samsung Electronics HCMC CE Complex (SEHC),,Ho Chi Minh City,VNM,10.78,106.7,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 SEHC（電子產品製造）
+samsung,factory,open,Samsung India Electronics Noida,,Noida,IND,28.57,77.32,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SIEL 的 Noida 生產據點（SIEL-P(N)，2026 永續報告書仍提到）
+samsung,factory,open,Samsung India Electronics Chennai,,Chennai,IND,13.08,80.28,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SIEL 的 Chennai 生產據點（SIEL-P(C)，2026 永續報告書仍提到）
+samsung,factory,open,Samsung Eletronica da Amazonia Manaus,,Manaus,BRA,-3.12,-60.02,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEDA 的 Manaus 生產據點（2026 永續報告書仍提到）
+samsung,factory,open,Samsung Eletronica da Amazonia Campinas,,Campinas,BRA,-22.9,-47.06,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEDA 的 Campinas 生產據點（2026 永續報告書仍提到）
+samsung,factory,open,Samsung Mexicana (SAMEX),,Tijuana,MEX,32.54,-117.04,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SAMEX（電子產品製造，2026 半年報仍列）
+samsung,factory,open,Samsung Electronics Digital Appliance Mexico (SEDAM),,Querétaro,MEX,20.59,-100.39,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,家電製造；2012 年 Global Network 的 Querétaro 生產法人（SEM-P）；待確認：是否就是 2026 半年報的 SEDAM
+samsung,factory,open,Samsung Electronics Home Appliances America (SEHA),,Newberry,USA,34.28,-81.62,city,2018,https://www.assemblymag.com/articles/94116-samsung-opens-first-us-appliance-assembly-plant-in-south-carolina,非官方來源（Assembly Magazine）；子公司 SEHA（家電製造，2026 半年報列），洗衣機工廠 2018 年 1 月開始生產
+samsung,factory,open,Samsung Electronics Hungarian (SEH),,Jászfényszaru,HUN,47.57,19.72,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEH（電子產品製造，2026 半年報仍列）
+samsung,factory,open,Samsung Electronics Slovakia (SESK),,Galanta,SVK,48.19,17.73,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SESK（電視、顯示器製造，2026 半年報仍列）
+samsung,factory,open,Samsung Electronics Poland Manufacturing (SEPM),,Wronki,POL,52.7,16.38,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEPM（家電製造，2026 半年報仍列）
+samsung,factory,open,Samsung Electronics Rus Kaluga (SERK),,Kaluga,RUS,54.53,36.27,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SERK（電視製造，2026 半年報仍列）；待確認：2022 年後的實際生產狀況
+samsung,factory,open,Samsung Electronics Egypt (SEEG),,Beni Suef,EGY,29.07,31.08,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEEG（電子產品製造，2026 半年報仍列）
+samsung,factory,open,Samsung Electronics South Africa Production (SSAP),,Durban,ZAF,-29.86,31.02,city,,https://nairametrics.com/2014/07/29/aganga-watch-samsung-to-open-television-manufacturing-plant-in-durban-south-africa/,非官方來源（Nairametrics 2014）；子公司 SSAP（電視、顯示器製造，2026 半年報列）；待確認：工廠城市
+samsung,factory,open,Samsung Electronics Indonesia (SEIN),,Cikarang,IDN,-6.36,107.18,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEIN（電子產品製造，2026 半年報仍列）
+samsung,factory,open,Thai Samsung Electronics (TSE),,Si Racha,THA,13.17,100.93,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 TSE（三星電子持股 91.8%；電子產品製造）
+samsung,factory,open,Samsung Electronics Display (M) (SDMA),,Seremban,MYS,2.73,101.94,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SDMA（電子產品製造，2026 半年報仍列）
+samsung,factory,open,Samsung Electronics (M) (SEMA),,Klang,MYS,3.03,101.45,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SEMA（家電製造，2026 半年報仍列）
+samsung,factory,open,Suzhou Samsung Electronics (SSEC),,Suzhou,CHN,31.3,120.62,city,,https://images.samsung.com/is/content/samsung/iran-aboutsamsung-2012_E_07,子公司 SSEC（三星電子持股 88.3%；家電製造，2026 半年報仍列）
+samsung,factory,open,Tianjin Samsung Telecom Technology (TSTC),,Tianjin,CHN,39.15,117.21,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 TSTC（三星電子持股 90%；通訊設備製造）
+samsung,rnd,open,Samsung Semiconductor US R&D Lab,,San Jose,USA,37.3,-121.87,city,,https://semiconductor.samsung.com/about-us/locations/,也是 Samsung Strategy and Innovation Center（SSIC），同址 3655 North First Street
+samsung,rnd,open,Samsung Semiconductor India Research (SSIR),,Bengaluru,IND,12.98,77.59,city,,https://semiconductor.samsung.com/about-us/locations/,
+samsung,rnd,open,Samsung R&D Institute India-Bangalore,,Bengaluru,IND,12.98,77.59,city,,https://research.samsung.com/global-rnd-network,Samsung Research 海外研發中心
+samsung,rnd,open,Samsung Device Solutions R&D Japan (DSRJ),,Yokohama,JPN,35.45,139.63,city,,https://semiconductor.samsung.com/about-us/locations/,同城也有 Samsung R&D Institute Japan（Samsung Research）
+samsung,rnd,open,Samsung R&D Institute Japan (Osaka),,Osaka,JPN,34.69,135.5,city,,https://research.samsung.com/global-rnd-network,Samsung Research 日本研發中心的大阪據點
+samsung,rnd,open,Samsung Israel R&D Center (SIRC),,Tel Aviv,ISR,32.08,34.78,city,,https://semiconductor.samsung.com/about-us/locations/,同城也有子公司 Corephotonics（研發）
+samsung,rnd,open,Samsung R&D Institute Israel,,Herzliya,ISR,32.16,34.84,city,,https://research.samsung.com/global-rnd-network,Samsung Research 海外研發中心
+samsung,rnd,open,SAIT AI Lab Montreal,,Montreal,CAN,45.5,-73.59,city,,https://semiconductor.samsung.com/about-us/locations/,同城也有 Samsung AI Center Montreal（Samsung Research）
+samsung,rnd,open,Samsung Cambridge Solution Centre (SCSC),,Cambridge,GBR,52.21,0.12,city,,https://semiconductor.samsung.com/about-us/locations/,同城也有 Samsung AI Center Cambridge（Samsung Research）
+samsung,rnd,open,Samsung Semiconductor China Research (SSCR),,Hangzhou,CHN,30.25,120.17,city,,https://semiconductor.samsung.com/about-us/locations/,
+samsung,rnd,open,Samsung R&D Institute China Xi'an (SRCX),,Xi'an,CHN,34.26,108.94,city,,https://semiconductor.samsung.com/about-us/locations/,
+samsung,rnd,open,Samsung Taiwan Design Center (TDC),,Zhubei,TWN,24.83,121.0,city,,https://semiconductor.samsung.com/about-us/locations/,半導體部門設計中心，新竹縣竹北市台元一街
+samsung,rnd,open,Device Solutions R&D Singapore (DSRS),,Singapore,SGP,1.3,103.8,city,,https://semiconductor.samsung.com/about-us/locations/,
+samsung,rnd,open,Samsung R&D Institute Russia,,Moscow,RUS,55.75,37.62,city,,https://research.samsung.com/global-rnd-network,同城也有 Samsung AI Center Moscow
+samsung,rnd,open,Samsung R&D Institute Poland,,Warsaw,POL,52.23,21.01,city,,https://research.samsung.com/global-rnd-network,也是 AI Center Warsaw
+samsung,rnd,open,Samsung R&D Institute United Kingdom,,Staines-upon-Thames,GBR,51.43,-0.51,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute Ukraine,,Kyiv,UKR,50.45,30.52,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute Jordan,,Amman,JOR,31.95,35.93,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung Research America,,Mountain View,USA,37.39,-122.04,city,,https://research.samsung.com/global-rnd-network,也是 AI Center Mountain View
+samsung,rnd,open,Samsung R&D Institute China-Beijing,,Beijing,CHN,39.9,116.41,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute China-Nanjing,,Nanjing,CHN,32.06,118.78,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute Indonesia,,Jakarta,IDN,-6.18,106.83,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute Philippines,,Manila,PHL,14.6,120.98,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute Bangladesh,,Dhaka,BGD,23.73,90.39,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung R&D Institute Canada,,Vancouver,CAN,49.26,-123.11,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung AI Center Toronto,,Toronto,CAN,43.67,-79.39,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung AI Center New York,,New York,USA,40.71,-74.01,city,,https://research.samsung.com/global-rnd-network,
+samsung,rnd,open,Samsung Mobile R&D Center China-Guangzhou,,Guangzhou,CHN,23.13,113.26,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 SRC-Guangzhou
+samsung,rnd,open,Samsung R&D Institute China-Shenzhen,,Shenzhen,CHN,22.55,114.05,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 SRC-Shenzhen
+samsung,rnd,open,Samsung Electronics Suzhou Computer,,Suzhou,CHN,31.3,120.62,city,,https://images.samsung.com/is/content/samsung/assets/global/ir/docs/2026_Half_Interim_Report.pdf,子公司 SESC（研發）
+micron,hq,open,Micron Boise,,Boise,USA,43.61,-116.24,city,,https://www.micron.com/about/locations,8000 S Federal Way；也是研發與製造據點（官網列 Boise 為製造地點）
+micron,factory,building,Micron Idaho fab,,Boise,USA,43.61,-116.24,city,,https://www.micron.com/content/dam/micron/global/public/programs/sustainability/documents/micron-technology-2026-sustainability-report.pdf,愛達荷州第一座先進量產晶圓廠，2026 永續報告書寫預計 2027 年開始產出晶圓；第二座愛達荷廠 2026 年動工、預計 2028 年底營運；待確認：確切位置（座標用 Boise 市）
+micron,factory,building,Micron New York megafab,,Clay,USA,43.15,-76.19,city,,https://www.waer.org/local-news/2026-01-16/micron-digs-into-central-new-york-soil-marking-a-100-billion-investment-in-microchip-manufacturing-in-the-state,非官方來源（WAER）；2026-01-16 在 Clay 的 White Pine Commerce Park 動工，規劃 4 座晶圓廠，預計 2030 年開始生產；2026 永續報告書也寫 2026 年 1 月在紐約動工
+micron,factory,open,Micron Manassas,,Manassas,USA,38.75,-77.48,city,,https://www.micron.com/about/locations,9600 Godwin Drive；官網列為製造地點，擴建中
+micron,office,open,Micron Austin,,Austin,USA,30.3,-97.73,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Folsom,,Folsom,USA,38.67,-121.16,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Longmont,,Longmont,USA,40.17,-105.11,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Meridian,,Meridian,USA,43.61,-116.4,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Minneapolis,,Minneapolis,USA,44.98,-93.27,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Richardson,,Richardson,USA,32.95,-96.73,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron San Jose,,San Jose,USA,37.3,-121.87,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Syracuse,,Syracuse,USA,43.05,-76.14,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Guadalajara,,Tlaquepaque,MEX,20.64,-103.31,city,,https://www.micron.com/about/locations,官網標題寫 Guadalajara，地址在 Tlaquepaque
+micron,office,open,Micron Shanghai,,Shanghai,CHN,31.23,121.47,city,,https://www.micron.com/about/locations,4 家子公司同址
+micron,office,open,Micron Shenzhen,,Shenzhen,CHN,22.55,114.05,city,,https://www.micron.com/about/locations,
+micron,factory,open,Micron Xi'an,,Xi'an,CHN,34.26,108.94,city,,https://www.micron.com/about/locations,子公司 Micron Semiconductor (Xi'an)；官網列 Xian 為製造地點
+micron,office,open,Micron Bengaluru,,Bengaluru,IND,12.98,77.59,city,,https://www.micron.com/about/locations,
+micron,factory,open,Micron Sanand,,Sanand,IND,22.98,72.38,city,,https://www.micron.com/about/locations,2 處（含經濟特區廠）；封裝測試廠，2026 永續報告書寫已開幕、2026 年擴產；官網列 Gujarat 為製造地點
+micron,office,open,Micron Hyderabad,,Hyderabad,IND,17.36,78.47,city,,https://www.micron.com/about/locations,
+micron,rnd,open,Micron Hashimoto Engineering Center,,Sagamihara,JPN,35.57,139.37,city,,https://www.micron.com/about/locations,Micron Memory Japan
+micron,factory,open,Micron Hiroshima Plant,,Higashihiroshima,JPN,34.43,132.74,city,,https://www.micron.com/about/locations,Micron Memory Japan 廣島工廠與技術開發；同市另有 Saijo 辦公室（共 2 處）
+micron,office,open,Micron Tokyo,,Tokyo,JPN,35.69,139.69,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Seoul,,Seoul,KOR,37.56,126.99,city,,https://www.micron.com/about/locations,
+micron,factory,open,Micron Penang (Seberang Prai),,Prai,MYS,5.38,100.38,city,,https://www.micron.com/about/locations,Micron Memory Malaysia；官網列 Penang 為製造地點
+micron,factory,open,Micron Penang (Batu Kawan),,Batu Kawan,MYS,5.26,100.43,city,,https://www.micron.com/about/locations,Micron Memory Malaysia；官網列 Penang 為製造地點
+micron,factory,open,Micron Muar,,Muar,MYS,2.05,102.56,city,,https://www.micron.com/about/locations,Micron Semiconductor Malaysia；官網列為製造地點
+micron,factory,open,Micron Singapore,,Singapore,SGP,1.3,103.8,city,,https://www.micron.com/about/locations,4 處（Woodlands、North Coast Drive、North Coast Avenue、Bendemeer Road）；官網列為製造地點
+micron,factory,building,Micron Singapore HBM advanced packaging facility,,Singapore,SGP,1.3,103.8,city,,https://www.micron.com/content/dam/micron/global/public/programs/sustainability/documents/micron-technology-2026-sustainability-report.pdf,2026 永續報告書寫興建中
+micron,factory,building,Micron Singapore advanced wafer fab,,Singapore,SGP,1.3,103.8,city,,https://www.micron.com/content/dam/micron/global/public/programs/sustainability/documents/micron-technology-2026-sustainability-report.pdf,2026 年 1 月動工，擴充 NAND 與 HBM
+micron,office,open,Micron Technology Asia Pacific (Hsinchu),美光亞太科技股份有限公司,Zhubei,TWN,24.83,121.0,city,,https://tw.micron.com/about/locations,新竹縣竹北市環科一路1號7樓
+micron,office,open,Micron Technology Asia Pacific (Taipei),美光亞太科技股份有限公司,Taipei,TWN,25.04,121.56,city,,https://tw.micron.com/about/locations,台北市南港區經貿一路170號
+micron,factory,open,Micron Memory Taiwan (Taichung),台灣美光記憶體股份有限公司,Taichung,TWN,24.14,120.68,city,,https://tw.micron.com/about/locations,台中市后里區三豐路四段369號；官網只列這一個台中地址；待確認：A3、A5 等個別廠房官網沒有分列，所以沒有拆開
+micron,factory,open,Micron Advanced Assembly and Test Taiwan 2 (AATT2),台灣美光先進封裝與測試二廠,Taichung,TWN,24.14,120.68,city,2026,https://finance.technews.tw/2026/10/15/micron-taiwans-advanced-packaging-and-testing-plant-2-commences-operation/,非官方來源（科技新報）；2026-10-15 啟用，HBM 先進封裝與測試；名稱為報導引用的官方名稱
+micron,factory,open,Micron Memory Taiwan (Tainan),台灣美光記憶體股份有限公司,Tainan,TWN,22.99,120.19,city,,https://tw.micron.com/about/locations,台南市安南區科技一路36號；官網列 Tainan 為製造地點
+micron,factory,open,Micron Technology Taiwan (Taoyuan),台灣美光晶圓科技股份有限公司,Taoyuan,TWN,24.99,121.31,city,,https://tw.micron.com/about/locations,桃園市龜山區華亞科技園區復興三路667號；官網列 Taoyuan 為製造地點
+micron,factory,building,Micron Memory Taiwan (Tongluo),台灣美光記憶體股份有限公司,Tongluo,TWN,24.48,120.78,city,,https://tw.micron.com/about/locations,苗栗縣銅鑼鄉銅科七路8號；向力積電買下的銅鑼 P5 廠，2026 永續報告書寫已完成收購並計畫再蓋第二座同規模廠房；待確認：開始量產時間
+micron,office,open,Micron Massy,,Massy,FRA,48.73,2.28,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Munich,,Munich,DEU,48.14,11.57,city,,https://www.micron.com/about/locations,2 處
+micron,office,open,Micron Arzano,,Arzano,ITA,40.92,14.27,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Avezzano,,Avezzano,ITA,42.03,13.43,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Vimercate,,Vimercate,ITA,45.62,9.37,city,,https://www.micron.com/about/locations,
+micron,office,open,Micron Bracknell,,Bracknell,GBR,51.42,-0.75,city,,https://www.micron.com/about/locations,Micron Europe Ltd
+intel,hq,open,Intel Santa Clara,,Santa Clara,USA,37.35,-121.97,city,,https://www.intc.com/filings-reports/all-sec-filings/content/0000050863-26-000011/0000050863-26-000011.pdf,總部（年報封面：2200 Mission College Boulevard）；城市座標 Wikidata Q159260
+intel,factory,open,Intel Hillsboro,,Hillsboro,USA,45.52,-122.99,city,,https://www.nist.gov/chips/intel-corporation-oregon-hillsboro,晶圓廠，也是製程研發中心（NIST：全美最主要的先進製程研發據點、全球第一套商用 High-NA EUV；Intel 2025 年報：2025 年開始量產 Intel 18A）；城市座標 Wikidata Q81824
+intel,factory,open,Intel Chandler,,Chandler,USA,33.3,-111.84,city,,https://www.nist.gov/chips/intel-corporation-arizona-chandler,晶圓廠（NIST：興建兩座新的先進邏輯廠、更新一座既有廠，量產 Intel 18A；Intel 2025 年報：生產 Intel 7、開始量產 Intel 18A）；城市座標 Wikidata Q49272
+intel,factory,open,Intel Rio Rancho,,Rio Rancho,USA,35.23,-106.66,city,,https://www.nist.gov/chips/intel-corporation-new-mexico-rio-rancho,先進封裝廠（NIST：兩座既有晶圓廠改建為先進封裝廠；Intel 2025 年報：Intel 主要的先進封裝據點）；城市座標 Wikidata Q33555
+intel,factory,building,Intel New Albany,,New Albany,USA,40.08,-82.82,city,,https://www.nist.gov/chips/intel-corporation-ohio-new-albany,興建中的先進邏輯晶圓廠；Intel 2025 年報說已放慢興建速度；城市座標 Wikidata Q2372892
+intel,factory,open,Intel Leixlip,,Leixlip,IRL,53.36,-6.49,city,,https://www.intc.com/news-events/press-releases/detail/1652/intels-new-fab-in-ireland-begins-high-volume-production,晶圓廠；Fab 34 於 2023-09-29 開始量產 Intel 4（新聞稿引述愛爾蘭總理：Intel 1989 年進入愛爾蘭）；Intel 2025 年報：生產 Intel 4、Intel 3；城市座標 Wikidata Q987797
+intel,factory,open,Intel Kiryat Gat,,Kiryat Gat,ISR,31.61,34.77,city,,https://en.globes.co.il/en/article-intel-kiryat-gat-expansion-frozen-for-foreseeable-future-1001515435,晶圓廠 Fab 28 營運中（Intel 2025 年報：以色列廠生產 Intel 7）；新廠 Fab 38 第二期 2024 年起凍結；非官方來源（Globes 2025-07-10）；城市座標 Wikidata Q152406
+intel,factory,open,Intel Penang,,Bayan Lepas,MYS,5.28,100.27,city,,https://www.intc.com/news-events/press-releases/detail/1767/intel-reports-first-quarter-2026-financial-results,封裝測試廠；Intel 2026 第一季財報說擴充了檳城的封測產能；先進 3D 封裝新廠興建中（InvestPenang 2023、Intel 2025 年報）；待確認：出處只寫 Penang，城市暫用 Bayan Lepas；城市座標 Wikidata Q4874282
+intel,factory,open,Intel Kulim,,Kulim,MYS,5.36,100.55,city,,https://investpenang.gov.my/zh-hans/intel-to-quadruple-cutting-edge-chip-packaging-capacity-by-2025/,封裝測試廠；2023 年報導 Intel 在 Kulim 加蓋一座封測廠（InvestPenang 轉載）；Intel 2025 年報：馬來西亞是主要封測據點；城市座標 Wikidata Q2272953
+intel,factory,open,Intel Products Vietnam,,Ho Chi Minh City,VNM,10.78,106.7,city,2010,https://bizhub.vietnamnews.vn/intel-deepens-engagement-in-viet-nams-semiconductor-industry-post403220.html,封裝測試廠，在西貢高科技園區（SHTP），Intel 全球最大的封測廠；承接哥斯大黎加移來的產線；非官方來源（越南通訊社）；城市座標 Wikidata Q1854
+intel,factory,open,Intel Chengdu,,Chengdu,CHN,30.66,104.06,city,,https://www.intc.com/filings-reports/all-sec-filings/content/0000050863-24-000055/a2024ars202310k.htm,封裝測試廠（子公司 Intel Products (Chengdu)）；2023 年報的製造據點圖列 Chengdu 為封測；Intel 2025 年報：中國是主要封測據點；城市座標 Wikidata Q30002
+intel,rnd,open,Intel Costa Rica,,Belén,CRI,9.98,-84.19,city,,https://www.larepublica.net/noticia/intel-anuncia-que-trasladara-una-parte-de-sus-operaciones-de-costa-rica-a-asia,"工程中心（Intel Products）與全球服務中心（Intel Corporate），2,000 多人；封裝測試廠 2025-07 宣布逐步關閉、移往越南與馬來西亞（Intel 2025 年報：預計 2026 年底完成），所以不列為工廠；城市依 Tico Times 2020-12-10（總部在 Heredia 省 Belén）；非官方來源；城市座標 Wikidata Q2613791"
+intel,rnd,open,Intel Haifa,,Haifa,ISR,32.82,35.0,city,,https://www.sdxcentral.com/news/intel-to-lay-off-several-hundred-employees-at-its-israeli-rd-centers-report/,以色列三個研發中心之一（CPU、AI 硬體、軟體）；非官方來源（2024-11）；城市座標 Wikidata Q41621
+intel,rnd,open,Intel Petah Tikva,,Petah Tikva,ISR,32.08,34.88,city,,https://www.sdxcentral.com/news/intel-to-lay-off-several-hundred-employees-at-its-israeli-rd-centers-report/,以色列三個研發中心之一（通訊與 AI 解決方案）；非官方來源（2024-11）；城市座標 Wikidata Q190828
+intel,rnd,open,Intel Jerusalem,,Jerusalem,ISR,31.78,35.23,city,,https://www.sdxcentral.com/news/intel-to-lay-off-several-hundred-employees-at-its-israeli-rd-centers-report/,以色列三個研發中心之一（通訊、軟體、資安），不是 Mobileye；非官方來源（2024-11）；城市座標 Wikidata Q1218
+intel,rnd,open,Intel Bengaluru,,Bengaluru,IND,12.98,77.59,city,,https://www.electronicsforyou.biz/press-release/intel-india-opens-a-new-state-of-the-art-design-engineering-center-in-bengaluru/,"Intel India 是 Intel 在美國以外最大的設計與工程中心；2022-06 啟用新的設計與工程中心（可容納 2,000 人）；出處是 Intel India 新聞稿的轉載；城市座標 Wikidata Q1355"
+intel,rnd,open,Intel Gdańsk,,Gdańsk,POL,54.35,18.65,city,,https://www.paih.gov.pl/semiconductors-in-poland/,"Intel 在歐洲最大的研發中心（波蘭投資貿易局 PAIH：4,000 多名工程師）；城市座標 Wikidata Q1792"
+intel,office,open,Intel Taipei,,Taipei,TWN,25.053194,121.607056,site,,https://finance.ettoday.net/news/683421,英特爾台灣的台北辦公室，在潤泰南港車站大樓（Wikidata Q24836619）；待確認：出處是 2016 年的房地產新聞（非官方來源），現況要用 Intel 據點頁確認
+intel,office,open,Intel Hsinchu,,Zhubei,TWN,24.83,121,city,,https://web.ee.nthu.edu.tw/p/16-1175-144285.php?Lang=zh-tw,英特爾台灣的新竹辦公室，在竹北台元科技園區；待確認：出處是清大電機系 2018 年轉貼的實習徵才（非官方來源），現況要用 Intel 據點頁確認；城市座標 Wikidata Q29624
+amd,hq,open,AMD Santa Clara,,Santa Clara,USA,37.35,-121.97,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,總部；城市座標 Wikidata Q159260
+amd,office,open,AMD Austin,,Austin,USA,30.3,-97.73,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；Lone Star 園區 2008 年啟用（AMD 2008-06-16 新聞稿）；待確認：年報沒有分別寫各據點的用途（研發或行政）；城市座標 Wikidata Q16559
+amd,office,open,AMD San Jose,,San Jose,USA,37.3,-121.87,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q16553
+amd,office,open,AMD Shanghai,,Shanghai,CHN,31.23,121.47,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q8686
+amd,office,open,AMD Markham,,Markham,CAN,43.88,-79.25,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q44016
+amd,office,open,AMD Longmont,,Longmont,USA,40.17,-105.11,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q988283
+amd,rnd,open,AMD Dublin,,Dublin,IRL,53.35,-6.26,city,1995,https://ir.amd.com/news-events/press-releases/detail/1139/amd-announces-plan-to-invest-135-million-to-expand-adaptive-computing-research-development-and-engineering-operations-in-ireland,研發據點（AMD 在歐洲最大的研發據點之一）；原 Xilinx 據點，1994 年設立、1995 年開始營運；年報列為主要營運據點；城市座標 Wikidata Q1761
+amd,office,open,AMD Singapore,,Singapore,SGP,1.3,103.8,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；年報說在新加坡的稅務優惠與併購 Xilinx 時的承諾有關；城市座標 Wikidata Q334
+amd,rnd,open,AMD Bengaluru,,Bengaluru,IND,12.98,77.59,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,AMD 最大的設計中心（2023-07 宣布的新園區，當時預計 2023 年底啟用）；年報列為主要營運據點；城市座標 Wikidata Q1355
+amd,office,open,AMD Hyderabad,,Hyderabad,IND,17.36,78.47,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q1361
+amd,office,open,AMD New Delhi,,New Delhi,IND,28.61,77.21,city,2001,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,AMD 在印度的第一個據點（2001 年）；新聞稿列出的印度辦公室城市之一；城市座標 Wikidata Q987
+amd,office,open,AMD Gurgaon,,Gurgaon,IND,28.47,77.03,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,新聞稿列出的印度辦公室城市之一；城市座標 Wikidata Q238508
+amd,office,open,AMD Mumbai,,Mumbai,IND,19.08,72.88,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,新聞稿列出的印度辦公室城市之一；城市座標 Wikidata Q1156
+amd,rnd,open,AMD Cork,,Cork,IRL,51.9,-8.47,city,,https://ir.amd.com/news-events/press-releases/detail/1139/amd-announces-plan-to-invest-135-million-to-expand-adaptive-computing-research-development-and-engineering-operations-in-ireland,愛爾蘭研發據點之一（2023 年宣布擴大 Dublin 與 Cork 的研發與工程）；城市座標 Wikidata Q36647
+amd,rnd,open,AMD Tainan,,Tainan,TWN,22.99,120.19,city,2025,https://technews.tw/2025/03/24/amd-tainan-office-open/,AMD 台灣分公司進駐台南市歸仁區沙崙的國科會資安暨智慧科技研發大樓，2025-03-24 揭幕；經濟部 A+ 全球研發創新夥伴計畫的研發據點（2024 年宣布）；非官方來源；城市座標 Wikidata Q140631
+amd,rnd,open,AMD Kaohsiung,,Kaohsiung,TWN,22.61,120.3,city,2025,https://www.cna.com.tw/news/afe/202503250211.aspx,在苓雅區的高雄領航大樓，2025-03-25 揭幕；經濟部 A+ 全球研發創新夥伴計畫的研發據點（2024 年宣布）；非官方來源；城市座標 Wikidata Q181557
+amd,rnd,open,Silo AI Helsinki,,Helsinki,FIN,60.17,24.94,city,,https://ir.amd.com/news-events/press-releases/detail/1206/amd-to-acquire-silo-ai-to-expand-enterprise-ai-solutions-globally,子公司 Silo AI（歐洲最大的民間 AI 實驗室），總部在 Helsinki；2024-08 併購完成；城市座標 Wikidata Q1757
+spacex,hq,open,Starbase,,Starbase,USA,25.9875,-97.185833,site,,https://www.spacex.com/sites,總部；也是 Starship 的開發、製造與試驗據點（工廠）；發射台另列一列；Wikidata Q16950811
+spacex,launch,open,Starbase launch site,,Starbase,USA,25.997,-97.155,site,,https://www.spacex.com/sites/starbase-tx,兩座軌道發射台與發射塔，可整合、試驗、發射並回收 Starship 與 Super Heavy；Wikidata Q117433755
+spacex,factory,open,SpaceX Hawthorne,,Hawthorne,USA,33.92,-118.35,city,,https://www.spacex.com/sites,Falcon 火箭與 Dragon 太空船的設計與製造廠區；城市座標 Wikidata Q688596
+spacex,launch,open,Vandenberg SLC-4E,,Vandenberg Space Force Base,USA,34.632023,-120.610667,site,,https://www.spacex.com/sites,發射台（Space Launch Complex 4E），旁邊的降落區併入；Wikidata Q98493195
+spacex,launch,planned,Vandenberg SLC-6,,Vandenberg Space Force Base,USA,34.581436,-120.626063,site,,https://www.faa.gov/files/space/environmental/nepa_docs/VSFB-Falcon-Launch-EIS-ROD-Oct2025.pdf,美國空軍部 2025-10-10 核准把 SLC-6 改建給 Falcon 9 與 Falcon Heavy 使用（另需 FAA 執照）；待確認：是否已動工；Wikidata Q2510125
+spacex,launch,open,Kennedy LC-39A,,Kennedy Space Center,USA,28.608389,-80.604333,site,,https://www.spacex.com/sites,發射台（Launch Complex 39A）；官網說也要在這裡蓋 Starship 發射台；Wikidata Q24256513
+spacex,launch,open,Cape Canaveral SLC-40,,Cape Canaveral Space Force Station,USA,28.561944,-80.577222,site,,https://www.spacex.com/sites,發射台（Space Launch Complex 40）；Wikidata Q948471
+spacex,launch,building,Cape Canaveral SLC-37,,Cape Canaveral Space Force Station,USA,28.532,-80.5668,site,,https://www.spacex.com/sites,Starship 發射場，規劃兩座軌道發射台；待確認：官網只說正在擴展，沒寫興建進度；Wikidata Q2175575
+spacex,launch,open,SpaceX McGregor,,McGregor,USA,31.399208,-97.465828,site,,https://www.spacex.com/sites,"試驗場（火箭引擎與推進系統試驗，4,000 英畝）；Wikidata Q111759054"
+spacex,factory,open,Starlink Bastrop,,Bastrop,USA,30.11,-97.32,city,2023,https://www.spacex.com/sites,Starlink 用戶端設備（Starlink Kit）工廠；城市座標 Wikidata Q810678
+spacex,factory,open,Starlink Redmond,,Redmond,USA,47.67,-122.12,city,,https://www.spacex.com/sites,Starlink 衛星工廠；城市座標 Wikidata Q223718
+spacex,rnd,open,SpaceX Palo Alto,,Palo Alto,USA,37.44,-122.16,city,,https://www.spacex.com/sites,AI 研究與工程團隊（Grok 模型）；城市座標 Wikidata Q47265
+spacex,datacenter,open,Colossus I,,Memphis,USA,35.15,-90.05,city,2024,https://www.spacex.com/Mid-South,AI 超級電腦資料中心（22 萬顆以上 GPU）；年份是官網寫的進駐當地年份；城市座標 Wikidata Q16563
+spacex,datacenter,open,Colossus II,,Memphis,USA,35.15,-90.05,city,,https://www.spacex.com/Mid-South,"AI 超級電腦資料中心（規劃 100 萬顆以上 GPU）；待確認：城市（官網把 Memphis, TN 與 Southaven, MS 寫在一起，Colossus II 的段落提到 Southaven 社區）；城市座標 Wikidata Q16563"
+spacex,factory,planned,Terafab,,Grimes County,USA,30.55,-95.98,city,,https://gov.texas.gov/news/post/governor-abbott-announces-spacex-expansion-in-grimes-county,半導體晶圓廠（邏輯、記憶體、先進封裝），2026-08-06 德州州長宣布，第一期投資 168 億美元以上；待確認：官方只寫 Grimes County，座標用郡的 Wikidata 座標；城市座標 Wikidata Q26616
+spacex,launch,planned,"Starbase, Louisiana",,Pecan Island,USA,29.6467,-92.4531,site,,https://www.spacex.com/sites/starbase-la,Starship 發射場（官網：2027 年開始興建、2029 年首次發射）；Wikidata Q141190378

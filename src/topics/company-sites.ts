@@ -10,31 +10,33 @@ import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef
  * 不收零售店與物流倉庫。
  */
 
+const PLATFORMS: Text = { zh: '科技平台', en: 'Platforms' };
+const CHIPS: Text = { zh: '晶片', en: 'Chips' };
+const SPACE: Text = { zh: '太空', en: 'Space' };
+
 /** 公司（順序同 pipeline 的 COMPANIES，代碼是索引 + 1；使用者列的順序） */
 export const COMPANIES: { id: string; label: Text; group: Text }[] = [
-  { id: 'apple', label: 'Apple', group: { zh: '科技平台', en: 'Platforms' } },
-  { id: 'nvidia', label: 'NVIDIA', group: { zh: '晶片', en: 'Chips' } },
-  { id: 'microsoft', label: 'Microsoft', group: { zh: '科技平台', en: 'Platforms' } },
-  { id: 'amazon', label: 'Amazon', group: { zh: '科技平台', en: 'Platforms' } },
-  { id: 'tsmc', label: { zh: '台積電（TSMC）', en: 'TSMC' }, group: { zh: '晶片', en: 'Chips' } },
-  { id: 'spacex', label: 'SpaceX', group: { zh: '太空', en: 'Space' } },
-  { id: 'meta', label: 'Meta', group: { zh: '科技平台', en: 'Platforms' } },
-  { id: 'broadcom', label: 'Broadcom', group: { zh: '晶片', en: 'Chips' } },
-  { id: 'samsung', label: { zh: '三星電子（Samsung）', en: 'Samsung Electronics' }, group: { zh: '晶片', en: 'Chips' } },
-  { id: 'micron', label: { zh: '美光（Micron）', en: 'Micron' }, group: { zh: '晶片', en: 'Chips' } },
-  { id: 'amd', label: 'AMD', group: { zh: '晶片', en: 'Chips' } },
-  { id: 'intel', label: 'Intel', group: { zh: '晶片', en: 'Chips' } },
+  { id: 'apple', label: 'Apple', group: PLATFORMS },
+  { id: 'nvidia', label: 'NVIDIA', group: CHIPS },
+  { id: 'microsoft', label: 'Microsoft', group: PLATFORMS },
+  { id: 'amazon', label: 'Amazon', group: PLATFORMS },
+  { id: 'tsmc', label: { zh: '台積電（TSMC）', en: 'TSMC' }, group: CHIPS },
+  { id: 'spacex', label: 'SpaceX', group: SPACE },
+  { id: 'meta', label: 'Meta', group: PLATFORMS },
+  { id: 'broadcom', label: 'Broadcom', group: CHIPS },
+  { id: 'samsung', label: { zh: '三星電子（Samsung）', en: 'Samsung Electronics' }, group: CHIPS },
+  { id: 'micron', label: { zh: '美光（Micron）', en: 'Micron' }, group: CHIPS },
+  { id: 'amd', label: 'AMD', group: CHIPS },
+  { id: 'intel', label: 'Intel', group: CHIPS },
 ];
 const ALL = 'all';
 const ALL_LABEL = { zh: '12 家合計', en: 'All 12 companies' };
-const GROUP_ORDER = ['科技平台', '晶片', '太空'];
+/** 選單依組排（科技平台、晶片、太空），組內照使用者列的順序 */
+const GROUP_ORDER: Text[] = [PLATFORMS, CHIPS, SPACE];
 const OPTIONS = [
   { id: ALL, label: ALL_LABEL, group: { zh: '全部', en: 'All' } },
-  ...[...COMPANIES].sort((a, b) => GROUP_ORDER.indexOf(tr0(a.group)) - GROUP_ORDER.indexOf(tr0(b.group))),
+  ...[...COMPANIES].sort((a, b) => GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group)),
 ];
-function tr0(t: Text) {
-  return typeof t === 'string' ? t : t.zh;
-}
 const companyLabel = (code: unknown) => (typeof code === 'number' ? tr(COMPANIES[code - 1]?.label ?? '') : '');
 
 /** 據點的類型（k；pipeline 的 KINDS） */
