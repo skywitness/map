@@ -70,6 +70,7 @@ STEPS = {
     "aid": "topics.aid",
     # AidData GCDF 3.0 的 zip（28.6 MB，xlsx 讀一次約 15 秒，之後用 .pkl 快取）；也讀人均收入的 GDP、人口主題的總人口
     "china-lending": "topics.china_lending",
+    "china-lending-codf": "topics.china_lending_codf",  # BU 的 CODF（OSF，CC BY 4.0）
     "religion": "topics.religion",
     "religion-extra": "topics.religion_extra",
     "oldest-universities": "topics.oldest_universities",
