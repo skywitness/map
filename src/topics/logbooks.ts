@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, LinesOverlayDef, PointRecord, TopicDefinition } from './types';
 
 /**
  * 大航海時代的航海日誌（pipeline/topics/logbooks.py，資料是 CLIWOC 2.1）。
@@ -12,7 +12,10 @@ import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
 const n0 = (v: number) => fixed(v, 0);
 
 /** 國籍代碼：pipeline/topics/logbooks.py 的 NATIONS（tracks.json 的 n、panel.json 的國籍） */
-export const NATIONS: { code: string; iso3: string; name: Text }[] = [
+/** 中英文都有的名稱（拿來組成指標的名稱與說明） */
+type Bilingual = { zh: string; en: string };
+
+export const NATIONS: { code: string; iso3: string; name: Bilingual }[] = [
   { code: 'UK', iso3: 'GBR', name: { zh: '英國', en: 'British' } },
   { code: 'NL', iso3: 'NLD', name: { zh: '荷蘭', en: 'Dutch' } },
   { code: 'ES', iso3: 'ESP', name: { zh: '西班牙', en: 'Spanish' } },
@@ -109,16 +112,63 @@ function trackTooltip(p: PointRecord) {
 const SHIPS_UNIT = { zh: '艘', en: 'ships' };
 const ships = (v: number) => tr({ zh: `${n0(v)} 艘船`, en: `${n0(v)} ${Math.round(v) === 1 ? 'ship' : 'ships'}` });
 
-const indicators: IndicatorDef[] = [
+/**
+ * 指標＝要看哪些船的航線（2026-10-31 使用者要求：全部，或只看某一國的船）。types 是 tracks.json 的分類代碼
+ * （英、荷、西、法、其他），null 是全部；每個指標一個只畫那幾類的線圖層（overlays，同一個檔只下載一次），
+ * 側欄的航程清單也只列那幾類（LogbooksPanel）。國家的值是那一年各國有航海日誌的船數：全部是 ships.json，
+ * 某一國的是 ships-<代碼>.json（pipeline 的 SHIP_VIEWS，只有那一國，滑到別的國家寫「這個指標只看…的船」）
+ */
+export const SHIP_VIEWS: { id: string; overlay: string; types: number[] | null; label: Text; nations: Bilingual }[] = [
+  { id: 'ships', overlay: 'voyages', types: null, label: { zh: '全部的船', en: 'All ships' }, nations: { zh: '', en: '' } },
+  ...NATIONS.slice(0, OTHER).map((n, i) => ({
+    id: `ships-${n.code.toLowerCase()}`,
+    overlay: `voyages-${n.code.toLowerCase()}`,
+    types: [i],
+    label: { zh: `${n.name.zh}的船`, en: `${n.name.en} ships` },
+    nations: n.name,
+  })),
   {
-    id: 'ships',
-    label: { zh: '船數與航線', en: 'Ships and voyages' },
-    description: {
-      zh: '時間軸那一年每艘船的航線：航海日誌每天記下的正午船位連成線，顏色是船的國籍；滑到線上看船名、公司、航程與船長。國家不上色，滑到英國、荷蘭、西班牙、法國等國上看那一年有幾艘這國的船留下航海日誌；點國家看本國的船與經過附近的船。',
-      en: "Each ship's track in the selected year: the noon positions recorded in its logbook, joined into a line and coloured by the ship's nationality. Hover over a track for the ship, company, voyage and captain. Countries are not coloured; hover over Britain, the Netherlands, Spain, France and others for the number of their ships with logbooks that year, or click a country for its own ships and the ships that passed nearby.",
-    },
+    id: 'ships-other',
+    overlay: 'voyages-other',
+    types: [OTHER],
+    label: { zh: '其他國家的船', en: 'Other ships' },
+    nations: { zh: '瑞典、美國、漢堡、丹麥', en: 'Swedish, American, Hamburg and Danish' },
+  },
+];
+
+/** 這個指標畫哪一個線圖層（側欄標出航程用） */
+export function voyagesOverlay(indicatorId: string): string {
+  return SHIP_VIEWS.find((v) => v.id === indicatorId)?.overlay ?? 'voyages';
+}
+
+/** 這個指標看的分類代碼（null 是全部）；國籍代碼 n 的分類是 min(n, 其他) */
+export function viewTypes(indicatorId: string): number[] | null {
+  return SHIP_VIEWS.find((v) => v.id === indicatorId)?.types ?? null;
+}
+
+export function nationType(nation: number): number {
+  return Math.min(nation, OTHER);
+}
+
+const ALL_DESCRIPTION: Text = {
+  zh: '時間軸那一年每艘船的航線：航海日誌每天記下的正午船位連成線，顏色是船的國籍；滑到線上看船名、公司、航程與船長。國家不上色，滑到英國、荷蘭、西班牙、法國等國上看那一年有幾艘這國的船留下航海日誌；點國家看本國的船與經過附近的船。要只看某一國的船，選上面的指標。',
+  en: "Each ship's track in the selected year: the noon positions recorded in its logbook, joined into a line and coloured by the ship's nationality. Hover over a track for the ship, company, voyage and captain. Countries are not coloured; hover over Britain, the Netherlands, Spain, France and others for the number of their ships with logbooks that year, or click a country for its own ships and the ships that passed nearby. Pick an indicator above to show one nationality only.",
+};
+
+const indicators: IndicatorDef[] = SHIP_VIEWS.map((view): IndicatorDef => {
+  const only = view.types !== null;
+  const iso3s = only ? NATIONS.filter((_, i) => view.types!.includes(nationType(i))).map((n) => n.iso3) : NATIONS.map((n) => n.iso3);
+  return {
+    id: view.id,
+    label: view.label,
+    description: only
+      ? {
+          zh: `時間軸那一年${view.nations.zh}的船的航線（航海日誌每天記下的正午船位連成線），其他國家的船不畫；滑到線上看船名、公司、航程與船長。點國家看經過附近的${view.nations.zh}的船。`,
+          en: `Tracks of ${view.nations.en} ships in the selected year (the noon positions recorded in their logbooks, joined into lines); other ships are hidden. Hover over a track for the ship, company, voyage and captain, or click a country for the ${view.nations.en} ships that passed nearby.`,
+        }
+      : ALL_DESCRIPTION,
     unit: SHIPS_UNIT,
-    file: 'ships.json',
+    file: only ? `${view.id}.json` : 'ships.json',
     layer: { kind: 'none' },
     overlayTime: 'year',
     unranked: true,
@@ -126,15 +176,41 @@ const indicators: IndicatorDef[] = [
     format: ships,
     formatTick: n0,
     coverage: {
-      countries: NATIONS.map((n) => n.iso3),
-      reason: {
-        zh: '不是這些船的國籍（CLIWOC 收英國、荷蘭、西班牙、法國檔案館的航海日誌，另有少數瑞典、美國、漢堡、丹麥的船）',
-        en: 'Not a nationality of these ships (CLIWOC covers logbooks in British, Dutch, Spanish and French archives, plus a few Swedish, American, Hamburg and Danish ships)',
-      },
+      countries: iso3s,
+      reason: only
+        ? { zh: `這個指標只看${view.nations.zh}的船`, en: `This view shows ${view.nations.en} ships only` }
+        : {
+            zh: '不是這些船的國籍（CLIWOC 收英國、荷蘭、西班牙、法國檔案館的航海日誌，另有少數瑞典、美國、漢堡、丹麥的船）',
+            en: 'Not a nationality of these ships (CLIWOC covers logbooks in British, Dutch, Spanish and French archives, plus a few Swedish, American, Hamburg and Danish ships)',
+          },
     },
     missing: { zh: '這一年沒有這國的船的航海日誌', en: 'No logbooks from this country’s ships this year' },
+  };
+});
+
+/** 航線圖層（每個指標一份，只差 id、indicators 與 onlyTypes） */
+const VOYAGES: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'voyages',
+  file: 'tracks.json',
+  label: { zh: '航線', en: 'Voyages' },
+  width: 1.3,
+  color: {
+    title: { zh: '船的國籍', en: 'Nationality' },
+    classes: [
+      ...NATION_COLORS.map((c, i) => ({ value: i, color: c.light, dark: c.dark, label: NATIONS[i].name })),
+      {
+        value: OTHER,
+        color: MAP_TOKENS.inkMuted,
+        label: { zh: '其他（瑞典、美國、漢堡、丹麥）', en: 'Other (Swedish, American, Hamburg, Danish)' },
+      },
+    ],
   },
-];
+  timeField: 'y',
+  groupField: 'v',
+  casing: true,
+  tooltip: trackTooltip,
+};
 
 export const logbooks: TopicDefinition = {
   id: 'logbooks',
@@ -165,29 +241,6 @@ export const logbooks: TopicDefinition = {
     en: 'The data come from CLIWOC (Climatological Database for the World’s Oceans 1750–1854), release 2.1: an EU-funded project (completed in 2003) transcribed more than 1,700 logbooks from British, Dutch, Spanish and French archives, about 287,000 records, plus a few Swedish, American, Hamburg and Danish ships (1662–1855, mostly 1750–1854). Tracks join each day’s noon position (dead reckoning or astronomical fixes, longitudes converted to Greenwich) with straight lines, so they are not the actual course. A track is broken where consecutive positions are more than 10 days apart or farther apart than a ship could sail at 550 km a day; isolated positions far from both neighbours (copying errors, east and west swapped) are removed, as are straight lines between positions that run more than 30 km inland (land and sea from the Marine Regions IHO sea areas); a few wrong positions may remain. A new voyage starts when the departure or destination port changes within a logbook. Dates are UTC as converted by CLIWOC and may differ by a day from the logbook. Place names, ship names and captains are as written in the logbooks (Dutch, English, Spanish or French). Country values are the number of ships with logbooks that year (nationality mapped to today’s countries, Hamburg to Germany); they reflect the logbooks that survived and were transcribed, not the number of ships each country sailed. Passing nearby means the track (interpolated every 10 km) entered the country or came within 100 km of it (Natural Earth 1:50m borders).',
   },
   panelExtra: () => import('./panels/LogbooksPanel'),
-  overlays: [
-    {
-      kind: 'lines',
-      id: 'voyages',
-      file: 'tracks.json',
-      label: { zh: '航線', en: 'Voyages' },
-      width: 1.3,
-      color: {
-        title: { zh: '船的國籍', en: 'Nationality' },
-        classes: [
-          ...NATION_COLORS.map((c, i) => ({ value: i, color: c.light, dark: c.dark, label: NATIONS[i].name })),
-          {
-            value: OTHER,
-            color: MAP_TOKENS.inkMuted,
-            label: { zh: '其他（瑞典、美國、漢堡、丹麥）', en: 'Other (Swedish, American, Hamburg, Danish)' },
-          },
-        ],
-      },
-      timeField: 'y',
-      groupField: 'v',
-      casing: true,
-      tooltip: trackTooltip,
-    },
-  ],
+  overlays: SHIP_VIEWS.map((view) => ({ ...VOYAGES, id: view.overlay, indicators: [view.id], onlyTypes: view.types ?? undefined })),
   indicators,
 };

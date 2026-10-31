@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { NATIONS, companyName, dateRange, nationColor, nationName, routeText, shipName } from '../logbooks';
+import { NATIONS, SHIP_VIEWS, companyName, dateRange, nationColor, nationName, nationType, routeText, shipName, viewTypes, voyagesOverlay } from '../logbooks';
 import type { PanelExtraProps } from '../types';
 
 /**
@@ -17,7 +17,6 @@ interface PanelData {
   own: Record<string, Record<string, number[]>>;
 }
 
-const OVERLAY = 'voyages';
 const SHOWN = 12;
 const n0 = (v: number) => fixed(v, 0);
 
@@ -25,7 +24,7 @@ const TEXT = defineMessages({
   zh: {
     own: (year: number, name: string) => `${year} 年${name}的船`,
     ownCount: (n: number) => `${n0(n)} 個航程（同一艘船換了出發地或目的地算另一個航程）。`,
-    near: (year: number, name: string) => `${year} 年經過${name}附近的船`,
+    near: (year: number, name: string, ships: string | null) => `${year} 年經過${name}附近的${ships ? `${ships}的` : ''}船`,
     nearNone: '這一年沒有船經過附近（航線離國界 100 公里以內）。',
     nearTotal: (n: number, years: number, first: number, last: number) =>
       `${first}–${last} 年間共 ${n0(n)} 個航程經過附近（${n0(years)} 個年份）。`,
@@ -40,7 +39,7 @@ const TEXT = defineMessages({
   en: {
     own: (year, name) => `${name} ships in ${year}`,
     ownCount: (n) => `${n0(n)} ${n === 1 ? 'voyage' : 'voyages'} (a ship starts a new voyage when its departure or destination port changes).`,
-    near: (year, name) => `Ships passing near ${name} in ${year}`,
+    near: (year, name, ships) => `${ships ? `${ships} ships` : 'Ships'} passing near ${name} in ${year}`,
     nearNone: 'No ship passed nearby this year (within 100 km of the country).',
     nearTotal: (n, years, first, last) =>
       `${n0(n)} ${n === 1 ? 'voyage' : 'voyages'} passed nearby between ${first} and ${last} (in ${n0(years)} ${years === 1 ? 'year' : 'years'}).`,
@@ -118,38 +117,46 @@ function VoyageList({
   );
 }
 
-export default function LogbooksPanel({ topic, iso3, year, countryName, tokens, highlightLine, selectYear }: PanelExtraProps) {
+export default function LogbooksPanel({ topic, indicator, iso3, year, countryName, tokens, highlightLine, selectYear }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
   const { data, error } = useJson<PanelData>(`topics/${topic.id}/panel.json`);
   const [picked, setPicked] = useState<number | null>(null);
+  // 指標選了某一國的船（2026-10-31）：地圖上是那一國的線圖層，清單也只列那一國的船
+  const overlay = voyagesOverlay(indicator.id);
+  const types = viewTypes(indicator.id);
 
-  // 換國家、換年份：取消標出的航程（那一年的線已經不在地圖上）
+  // 換國家、換年份、換指標：取消標出的航程（那一年的線已經不在地圖上）
   useEffect(() => {
     setPicked(null);
-    return () => highlightLine?.(OVERLAY, null);
-  }, [iso3, year, highlightLine]);
+    return () => highlightLine?.(overlay, null);
+  }, [iso3, year, highlightLine, overlay]);
 
   if (error) return <p className="empty">{t.loadFailed(error.message)}</p>;
   if (!data) return <p className="empty">{t.loading}</p>;
 
   const dark = tokens.mode === 'dark';
   const nation = NATIONS.findIndex((n) => n.iso3 === iso3);
-  const own = data.own[iso3]?.[String(year)] ?? [];
-  const nearByYear = data.near[iso3] ?? {};
+  const kept = (ids: number[]) => (types ? ids.filter((v) => types.includes(nationType(data.voyages[v][1]))) : ids);
+  const own = nation >= 0 && (!types || types.includes(nationType(nation))) ? (data.own[iso3]?.[String(year)] ?? []) : [];
+  const nearByYear = Object.fromEntries(
+    Object.entries(data.near[iso3] ?? {})
+      .map(([y, ids]) => [y, kept(ids)] as const)
+      .filter(([, ids]) => ids.length > 0),
+  );
   const near = nearByYear[String(year)] ?? [];
   const nearYears = Object.keys(nearByYear).map(Number);
   const nearAll = new Set(Object.values(nearByYear).flat());
   const prev = nearYears.filter((y) => y < year).pop();
   const next = nearYears.find((y) => y > year);
 
-  const show = (v: number) => highlightLine?.(OVERLAY, v);
-  const restore = () => highlightLine?.(OVERLAY, picked);
+  const show = (v: number) => highlightLine?.(overlay, v);
+  const restore = () => highlightLine?.(overlay, picked);
   const pick = (v: number) => {
     const p = picked === v ? null : v;
     setPicked(p);
-    highlightLine?.(OVERLAY, p);
+    highlightLine?.(overlay, p);
   };
   const listProps = { data, dark, picked, onShow: show, onRestore: restore, onPick: pick };
 
@@ -163,7 +170,7 @@ export default function LogbooksPanel({ topic, iso3, year, countryName, tokens, 
         </section>
       )}
       <section className="panel-section">
-        <h3>{text.near(year, countryName)}</h3>
+        <h3>{text.near(year, countryName, types ? (SHIP_VIEWS.find((v) => v.id === indicator.id)?.nations[lang] ?? null) : null)}</h3>
         {nearYears.length === 0 ? (
           <p className="note">{text.nearNever}</p>
         ) : (
