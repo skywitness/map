@@ -32,7 +32,9 @@ import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } fro
 import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
-import { DEFAULT_LAYERS, type LayerVisibility } from './map/overlayData';
+import { DEFAULT_LAYERS, type LayerVisibility, type OverlayLayer } from './map/overlayData';
+import { buildPlaceIndex, searchPlaces as findPlaces, type PlaceEntry, type PlaceLayer } from './lib/placeSearch';
+import type { PlaceOption } from './controls/CommandPaletteDialog';
 import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes, type PersonalRoute } from './lib/personalRoutes';
 import type { PersonalMenu } from './map/BasemapMenu';
 import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
@@ -65,6 +67,7 @@ import {
   type IndicatorData,
   type ListRow,
   type MapMark,
+  type PointRecord,
   type TopicDefinition,
 } from './topics/types';
 import { initialThemeMode, useTheme } from './theme/useTheme';
@@ -587,6 +590,35 @@ export function App() {
 
   /* ── 分享：圖片、CSV、連結 ───────────── */
   const mapHandle = useRef<WorldMapHandle>(null);
+
+  // 指令面板搜尋這個主題地圖上的點（2026-10-31，lib/placeSearch.ts）：只在地圖檢視、只收開著的點圖層；
+  // 索引第一次搜尋時才建，圖層或語言變了重建。選了地圖飛過去、打開那一點的小卡片（WorldMap 的 showPlace）
+  const placeIndexRef = useRef<{ overlays: OverlayLayer[]; lang: string; index: PlaceEntry[] } | null>(null);
+  const searchPlacesFor = useCallback(
+    (query: string, limit: number): PlaceOption[] => {
+      if (view !== 'map') return [];
+      let cached = placeIndexRef.current;
+      if (!cached || cached.overlays !== overlays || cached.lang !== lang) {
+        const ctx = { countryName: (iso3: string) => countryName(iso3, countries), year, item };
+        const layers: PlaceLayer[] = overlays.flatMap((o) =>
+          o.kind === 'points' && o.visible && o.points && o.def.tooltip
+            ? [{ id: o.def.id, label: o.def.label, points: o.points, tooltip: (p: PointRecord) => o.def.tooltip!(p, ctx) }]
+            : [],
+        );
+        cached = { overlays, lang, index: buildPlaceIndex(layers) };
+        placeIndexRef.current = cached;
+      }
+      return findPlaces(cached.index, query, limit).map(({ entry, score }) => ({
+        key: `${entry.overlay}/${entry.index}`,
+        name: entry.name,
+        meta: entry.meta,
+        score,
+        run: () => mapHandle.current?.showPlace({ lng: entry.lng, lat: entry.lat, point: { overlay: entry.overlay, index: entry.index } }),
+      }));
+    },
+    [view, overlays, lang, countries, year, item],
+  );
+  const searchPlaces = pure ? undefined : searchPlacesFor;
   // 流向圖畫的是選取國家的夥伴，標題要寫出是哪個國家
   const flowTitle = flows ? t.flowTitle(countryName(flows.origin, countries), indicatorTitle) : mapTitle;
   // 不隨時間變化的資料（海拔），或時刻主題裡不隨時刻變的指標（晝長年較差）：標題、檔名、tooltip、排名表都不寫年份
@@ -761,6 +793,7 @@ export function App() {
         searchIndex={searchIndex}
         onSelectCountry={selectFromSearch}
         paletteActions={paletteActions}
+        searchPlaces={searchPlaces}
         themeMode={tokens.mode}
         onToggleTheme={toggleTheme}
         layout={layout}

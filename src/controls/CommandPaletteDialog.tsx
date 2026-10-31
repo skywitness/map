@@ -21,6 +21,17 @@ export interface CommandPaletteProps {
   onSelectCountry: (iso3: string) => void;
   onSelectTopic: (target: TopicTarget) => void;
   actions: PaletteAction[];
+  /** 搜尋目前主題地圖上的點（賽道、博物館…，App.tsx 的 searchPlaces）；沒有點圖層的主題回傳空的 */
+  places?: (query: string, limit: number) => PlaceOption[];
+}
+
+/** 搜尋到的地圖上的一點：選了地圖飛過去、打開那一點的小卡片 */
+export interface PlaceOption {
+  key: string;
+  name: string;
+  meta: string;
+  score: number;
+  run: () => void;
 }
 
 interface DialogProps extends CommandPaletteProps {
@@ -34,6 +45,7 @@ const RECENT_COUNT = 6;
 type Option =
   | { kind: 'topic'; key: string; target: TopicTarget; name: string; meta: string; tag?: string }
   | { kind: 'country'; key: string; iso3: string; name: string; meta: string }
+  | { kind: 'place'; key: string; name: string; meta: string; run: () => void }
   | { kind: 'action'; key: string; action: PaletteAction };
 
 interface Group {
@@ -49,7 +61,7 @@ interface Group {
  * 觸控裝置沒有 Ctrl+K，用控制列的搜尋框。
  */
 /** 指令面板的對話框（CommandPalette.tsx 第一次打開時才下載這個 chunk，2026-10-30） */
-export default function CommandPaletteDialog({ open, setOpen, index, currentTopic, onSelectCountry, onSelectTopic, actions }: DialogProps) {
+export default function CommandPaletteDialog({ open, setOpen, index, currentTopic, onSelectCountry, onSelectTopic, actions, places }: DialogProps) {
   const id = useId();
   const UI = useUI();
   const P = UI.palette;
@@ -99,6 +111,7 @@ export default function CommandPaletteDialog({ open, setOpen, index, currentTopi
     }
     const topics = searchTopics(query, 6);
     const countries = searchCountries(index, query, lang, 5);
+    const placeHits = places?.(query, 6) ?? [];
     const matched = actions
       .map((action) => {
         const key = makeKey(action.label, 3);
@@ -130,10 +143,15 @@ export default function CommandPaletteDialog({ open, setOpen, index, currentTopi
           meta: lang === 'en' ? entry.iso3 : `${entry.en} · ${entry.iso3}`,
         })),
       },
+      {
+        heading: P.places,
+        best: placeHits[0]?.score ?? 0,
+        options: placeHits.map((p) => ({ kind: 'place', key: `place/${p.key}`, name: p.name, meta: p.meta, run: p.run })),
+      },
       { heading: P.commands, best: matched[0]?.score ?? 0, options: matched.map((a) => actionOption(a.action)) },
     ];
     return list.filter((g) => g.options.length).sort((a, b) => b.best - a.best);
-  }, [open, query, recent, currentTopic, actions, index, lang, P, UI, itemsReady]);
+  }, [open, query, recent, currentTopic, actions, index, lang, P, UI, itemsReady, places]);
   const options = groups.flatMap((g) => g.options);
   const optionId = (i: number) => `${id}-option-${i}`;
 
@@ -145,6 +163,7 @@ export default function CommandPaletteDialog({ open, setOpen, index, currentTopi
     setOpen(false);
     if (option.kind === 'topic') onSelectTopic(option.target);
     else if (option.kind === 'country') onSelectCountry(option.iso3);
+    else if (option.kind === 'place') option.run();
     else option.action.run();
   };
 
@@ -227,7 +246,7 @@ export default function CommandPaletteDialog({ open, setOpen, index, currentTopi
                       d={
                         option.kind === 'topic'
                           ? topicGlyph(icons, option.target.topic)
-                          : UI_ICONS[option.kind === 'country' ? 'country' : 'command']
+                          : UI_ICONS[option.kind === 'country' ? 'country' : option.kind === 'place' ? 'place' : 'command']
                       }
                     />
                   </span>

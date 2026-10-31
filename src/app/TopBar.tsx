@@ -1,4 +1,5 @@
 import { CommandPalette, type PaletteAction } from '../controls/CommandPalette';
+import type { PlaceOption } from '../controls/CommandPaletteDialog';
 import { LangSwitch } from '../controls/LangSwitch';
 import { LayoutMenu } from '../controls/LayoutMenu';
 import { ShortcutHelp } from '../controls/ShortcutHelp';
@@ -26,6 +27,8 @@ interface TopBarProps {
   searchIndex: SearchEntry[];
   onSelectCountry: (iso3: string) => void;
   paletteActions: PaletteAction[];
+  /** 指令面板搜尋目前主題地圖上的點 */
+  searchPlaces?: (query: string, limit: number) => PlaceOption[];
   themeMode: 'light' | 'dark';
   onToggleTheme: () => void;
   /** 版面：時間軸、資料來源與說明各自顯示或關掉 */
@@ -45,6 +48,7 @@ export function TopBar({
   searchIndex,
   onSelectCountry,
   paletteActions,
+  searchPlaces,
   themeMode,
   onToggleTheme,
   layout,
@@ -91,6 +95,7 @@ export function TopBar({
           onSelectCountry={onSelectCountry}
           onSelectTopic={onSelectTarget}
           actions={paletteActions}
+          places={searchPlaces}
         />
         <LangSwitch />
         <LayoutMenu prefs={layout} onChange={onLayoutChange} />

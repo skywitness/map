@@ -274,6 +274,11 @@ export interface MapView {
 export interface WorldMapHandle {
   /** 把目前的地圖畫面加上標題、圖例與來源，輸出成 PNG */
   exportImage: (content: MapImageContent) => Promise<Blob>;
+  /**
+   * 飛到地圖上的一點，停下後打開那一點的小卡片（PlacePopup：說明、經緯度、在 Google 地圖開啟）。
+   * 指令面板搜尋到的地點（賽道、博物館…，2026-10-31）用；point 是點圖層的 id 與資料的第幾筆
+   */
+  showPlace: (target: { lng: number; lat: number; point?: { overlay: string; index: number } }) => void;
 }
 
 /** 圖例卡片收起來沒（localStorage，'0' 是收起） */
@@ -1725,6 +1730,17 @@ export function WorldMap(props: WorldMapProps) {
           : [];
         const { canvas, ratio } = await captureMap(map);
         return canvasToPng(composeMapImage(canvas, ratio, { ...content, legend, layerKeys, tokens }));
+      },
+      showPlace: ({ lng, lat, point }) => {
+        const map = mapRef.current;
+        if (!map) return;
+        // 放大到看得清楚附近（至少 5 級），停在沒被按鈕、抽屜蓋住的那一塊的中間
+        const inset = mapInsets(map.getContainer());
+        map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 5), offset: [-inset.right / 2, -inset.bottom / 2], duration: 1400 });
+        map.once('moveend', () => {
+          const at = map.project([lng, lat]);
+          setPlace({ x: at.x, y: at.y, lng, lat, iso3: null, point });
+        });
       },
     }),
     [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, overlays, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang],

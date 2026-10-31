@@ -45,9 +45,10 @@ const UI_TEXT = defineMessages({
     /** 指令面板（CommandPalette.tsx，Ctrl+K） */
     palette: {
       title: '指令面板',
-      placeholder: '找主題、指標、國家或指令…',
+      placeholder: '找主題、指標、國家、地點或指令…',
       recent: '最近看過',
       commands: '指令',
+      places: '這個主題地圖上的地點',
       noResults: '找不到符合的主題、國家或指令',
       hint: '↑↓ 選擇　Enter 開啟　Esc 關閉',
       actions: {
@@ -122,9 +123,10 @@ const UI_TEXT = defineMessages({
     },
     palette: {
       title: 'Command palette',
-      placeholder: 'Find a topic, indicator, country or command…',
+      placeholder: 'Find a topic, indicator, country, place or command…',
       recent: 'Recently viewed',
       commands: 'Commands',
+      places: 'Places on this map',
       noResults: 'No matching topics, countries or commands',
       hint: '↑↓ to choose · Enter to open · Esc to close',
       actions: {

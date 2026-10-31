@@ -31,7 +31,7 @@ const GROUP_ICONS = {
   geo: 'mountain-snow',
 };
 
-/** 介面用的圖示：指令面板（CommandPalette.tsx）的國家與指令、狀態畫面（StatusCard.tsx）的離線、錯誤、沒有資料 */
+/** 介面用的圖示：指令面板（CommandPalette.tsx）的國家、地點與指令、狀態畫面（StatusCard.tsx）的離線、錯誤、沒有資料 */
 const UI_ICONS = {
   country: 'map-pin',
   command: 'command',
@@ -39,6 +39,8 @@ const UI_ICONS = {
   error: 'triangle-alert',
   empty: 'chart-no-axes-column',
   saved: 'bookmark',
+  // 指令面板搜尋到的地圖上的點（賽道、博物館…，2026-10-31）：國家已經用了 map-pin
+  place: 'map-pinned',
 };
 
 const TOPIC_ICONS = {
