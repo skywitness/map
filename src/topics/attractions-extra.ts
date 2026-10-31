@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, PointsOverlayDef, SourceDef } from './types';
+import type { IndicatorDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, SourceDef } from './types';
 
 /**
  * 景點地圖的擴充（2026-10-31，製作手冊第十批 182；pipeline/topics/attractions_extra.py，DESIGN.md 第 8 節第 264 點）：
@@ -64,6 +64,63 @@ const PARK_VISITORS: PointsOverlayDef = {
     const extra = [typeof v === 'number' ? tr({ zh: `${y} 年 ${visitorsText(v)}`, en: `${visitorsText(v)} in ${y}` }) : ''];
     if (p.src === 2) extra.push(tr({ zh: `觀光署的數字${str(p.note) ? `（${p.note}）` : ''}，跟 TEA 的估計不能直接比`, en: 'Tourism Administration figure; not directly comparable with TEA estimates' }));
     return { title, detail: [tr({ zh: '主題樂園', en: 'Theme park' }), country(p, countryName)].filter(Boolean).join(' · '), extra: extra.filter(Boolean), properNoun: proper };
+  },
+};
+
+/**
+ * 最多人造訪的博物館、主題樂園（第十二批 201）：「博物館與樂園的人次」指標的兩個清單（清單上面的分頁切換），依人次；
+ * 每列：名次與名稱、國家、人次與資料年份（主題樂園跟時間軸的年份，2009–2024）。資料沒有城市欄，只寫國家
+ */
+const MUSEUM_LIST: ListPanelDef = {
+  label: { zh: '最多人造訪的博物館', en: 'Most-visited museums' },
+  tabLabel: { zh: '博物館', en: 'Museums' },
+  indicators: ['visitors'],
+  file: 'museum-visitors.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => Number(b.v) - Number(a.v))
+      .map((p, i): ListRow => {
+        const { title, proper } = names(p);
+        return {
+          key: `${p.en ?? p.zh}-${i}`,
+          title: `${i + 1}. ${title}`,
+          properNoun: proper,
+          lines: [
+            country(p, countryName) ?? '',
+            tr({ zh: `${p.vy} 年 ${visitorsText(Number(p.v))}`, en: `${visitorsText(Number(p.v))} in ${p.vy}` }) +
+              (p.src === 2 ? tr({ zh: '（觀光署）', en: ' (Tourism Administration)' }) : ''),
+          ].filter(Boolean),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+        };
+      }),
+};
+
+const PARK_LIST: ListPanelDef = {
+  label: { zh: '最多人造訪的主題樂園', en: 'Most-visited theme parks' },
+  tabLabel: { zh: '主題樂園', en: 'Theme parks' },
+  indicators: ['visitors'],
+  file: 'park-visitors.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, year }) => {
+    const y = Math.max(PARK_YEARS[0], Math.min(PARK_YEARS[PARK_YEARS.length - 1], year));
+    return points
+      .filter((p) => typeof p[`v${y}`] === 'number')
+      .sort((a, b) => Number(b[`v${y}`]) - Number(a[`v${y}`]))
+      .map((p, i): ListRow => {
+        const { title, proper } = names(p);
+        return {
+          key: `${p.en ?? p.zh}-${i}`,
+          title: `${i + 1}. ${title}`,
+          properNoun: proper,
+          lines: [
+            country(p, countryName) ?? '',
+            tr({ zh: `${y} 年 ${visitorsText(Number(p[`v${y}`]))}`, en: `${visitorsText(Number(p[`v${y}`]))} in ${y}` }) +
+              (p.src === 2 ? tr({ zh: '（觀光署，跟 TEA 的估計不能直接比）', en: ' (Tourism Administration; not comparable with TEA)' }) : ''),
+          ].filter(Boolean),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+        };
+      });
   },
 };
 
@@ -210,7 +267,7 @@ const EXPOS: PointsOverlayDef = {
 
 const empty = { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' };
 
-export const attractionsExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]; indicators: IndicatorDef[] } = {
+export const attractionsExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]; indicators: IndicatorDef[]; listPanel: ListPanelDef[] } = {
   sources: [
     {
       name: {
@@ -227,13 +284,14 @@ export const attractionsExtra: { sources: SourceDef[]; overlays: PointsOverlayDe
     },
   ],
   overlays: [MUSEUM_VISITORS, PARK_VISITORS, FERRIS, MALLS, WONDERS, CREATIVE, EXPOS],
+  listPanel: [MUSEUM_LIST, PARK_LIST],
   indicators: [
     {
       id: 'visitors',
       label: { zh: '博物館與樂園的人次', en: 'Museum and park visitors' },
       description: {
-        zh: '最多人造訪的博物館與主題樂園，點的大小是一年的人次。博物館是英文維基「最多人造訪的博物館」表上一年 125 萬人次以上的（各館自己公布的數字，年份不一），羅浮宮 2025 年 900 萬第一，中國國家博物館 703 萬、梵蒂岡博物館 693 萬；台灣的 4 館另附觀光署 2024 年的數字，並補上表上沒有的海科館、科教館。主題樂園是英文維基轉載 TEA／AECOM 的全世界前 25 與各區前 20（2009–2024 年，拖時間軸看 2020 年疫情的斷崖），2024 年魔法王國 1,784 萬人次第一；台灣的樂園沒有進亞太前 20，綠色的點是觀光署的人次（麗寶、義大含購物中心與飯店，跟 TEA 的估計不能直接比）。',
-        en: 'The most-visited museums and theme parks, sized by visitors a year. Museums are those in English Wikipedia’s list of most-visited museums with over 1.25 million visitors (each museum’s own figures, for varying years): the Louvre led with 9.0 million in 2025, ahead of the National Museum of China (7.03 million) and the Vatican Museums (6.93 million); Taiwan’s four also show the Tourism Administration’s 2024 figure, and two missing from the list (the National Museum of Marine Science and Technology and the National Taiwan Science Education Center) are added from it. Theme parks are the worldwide top 25 and regional top 20 from TEA/AECOM as reproduced on English Wikipedia (2009–2024; drag the time slider to see the 2020 pandemic drop), led by Magic Kingdom with 17.8 million in 2024; no Taiwanese park makes the Asia-Pacific top 20, so green dots show Tourism Administration counts (Lihpao and E-DA include their malls and hotels and are not directly comparable).',
+        zh: '最多人造訪的博物館與主題樂園，點的大小是一年的人次。博物館是英文維基「最多人造訪的博物館」表上一年 125 萬人次以上的（各館自己公布的數字，年份不一），羅浮宮 2025 年 900 萬第一，中國國家博物館 703 萬、梵蒂岡博物館 693 萬；台灣的 4 館另附觀光署 2024 年的數字，並補上表上沒有的海科館、科教館。主題樂園是英文維基轉載 TEA／AECOM 的全世界前 25 與各區前 20（2009–2024 年，拖時間軸看 2020 年疫情的斷崖），2024 年魔法王國 1,784 萬人次第一；台灣的樂園沒有進亞太前 20，綠色的點是觀光署的人次（麗寶、義大含購物中心與飯店，跟 TEA 的估計不能直接比）。左邊的清單依人次列出博物館與主題樂園（上面的分頁切換）。',
+        en: 'The most-visited museums and theme parks, sized by visitors a year. Museums are those in English Wikipedia’s list of most-visited museums with over 1.25 million visitors (each museum’s own figures, for varying years): the Louvre led with 9.0 million in 2025, ahead of the National Museum of China (7.03 million) and the Vatican Museums (6.93 million); Taiwan’s four also show the Tourism Administration’s 2024 figure, and two missing from the list (the National Museum of Marine Science and Technology and the National Taiwan Science Education Center) are added from it. Theme parks are the worldwide top 25 and regional top 20 from TEA/AECOM as reproduced on English Wikipedia (2009–2024; drag the time slider to see the 2020 pandemic drop), led by Magic Kingdom with 17.8 million in 2024; no Taiwanese park makes the Asia-Pacific top 20, so green dots show Tourism Administration counts (Lihpao and E-DA include their malls and hotels and are not directly comparable). The list on the left ranks the museums and the theme parks by visitors (switch with the tabs above it).',
       },
       unit: '',
       file: 'visitors.json',

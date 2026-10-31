@@ -413,10 +413,14 @@ export function App() {
     highlightLine(PERSONAL_ID, null);
   }, [highlightLine]);
   // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
-  const listDef =
+  // 同一個指標有幾個清單時（景點的博物館、主題樂園人次）清單上面一排分頁切換，換主題或指標時回到第一個
+  const listDefs =
     !pure && !state.embed && view === 'map'
-      ? ([topic.listPanel ?? []].flat().find((l) => !l.indicators || l.indicators.includes(indicator.id)) ?? null)
-      : null;
+      ? [topic.listPanel ?? []].flat().filter((l) => !l.indicators || l.indicators.includes(indicator.id))
+      : [];
+  const [listTab, setListTab] = useState(0);
+  useEffect(() => setListTab(0), [topic.id, indicator.id]);
+  const listDef = listDefs[Math.min(listTab, listDefs.length - 1)] ?? null;
   const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
   // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
   const fitLayer = overlays.find((o) => o.kind === 'points' && o.visible && o.def.fitOnEpoch && o.def.epochs && o.def.minValue);
@@ -872,6 +876,9 @@ export function App() {
           {listDef && (
             <ListSide
               def={listDef}
+              tabs={listDefs.length > 1 ? listDefs.map((d) => d.tabLabel ?? d.label) : undefined}
+              tab={listTab}
+              onTabChange={setListTab}
               topicId={dataFolder(topic)}
               item={item}
               year={year}

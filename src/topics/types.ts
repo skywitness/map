@@ -865,6 +865,8 @@ export interface PanelExtraProps {
 export interface ListPanelDef {
   /** 側欄的標題（例如「賽程」） */
   label: Text;
+  /** 同一個指標有幾個清單時分頁上的短名稱（沒寫用 label，第十二批 201） */
+  tabLabel?: Text;
   /** 只在這些指標顯示；沒寫是所有指標 */
   indicators?: string[];
   /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}；有 lines 時是線檔（LinesData） */

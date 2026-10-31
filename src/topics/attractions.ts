@@ -145,6 +145,7 @@ export const attractions: TopicDefinition = {
     overlay(LAYERS[3], [[0, 10], [3, 3], [5, 0]]),
     ...attractionsExtra.overlays,
   ],
+  listPanel: attractionsExtra.listPanel,
   indicators: [
     {
       id: 'attractions',

@@ -3,7 +3,7 @@ import { defineMessages, tr, useLang, useT } from '../i18n';
 import { useJson } from '../lib/data';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { decodeLines, decodePoints } from '../map/overlayData';
-import type { LinesData, ListPanelDef, ListRow, PointRecord, PointsData } from '../topics/types';
+import type { LinesData, ListPanelDef, ListRow, PointRecord, PointsData, Text } from '../topics/types';
 
 const TEXT = defineMessages({
   zh: {
@@ -52,6 +52,10 @@ interface ListSideProps {
   onHover?: (row: ListRow | null) => void;
   /** 主題的即時資料（ListPanelDef.fromLive 用；還沒讀到是 null） */
   live?: unknown;
+  /** 同一個指標有幾個清單時的分頁（各清單的標題）、目前的分頁與切換（第十二批 201） */
+  tabs?: Text[];
+  tab?: number;
+  onTabChange?: (tab: number) => void;
 }
 
 /**
@@ -90,7 +94,7 @@ function matches(row: ListRow, query: string): boolean {
  * 窄螢幕在地圖與時間軸下面，預設收起來（只有一顆按鈕，不擋地圖），點一列後把地圖捲回畫面。
  * 2026-10-31（第十二批 188）：讀線、搜尋框、切換排序、跟選取的國家連動。
  */
-export function ListSide({ def, topicId, item, year, country, countryName, sort, onSortChange, open, onOpenChange, onPick, onHover, live }: ListSideProps) {
+export function ListSide({ def, topicId, item, year, country, countryName, sort, onSortChange, open, onOpenChange, onPick, onHover, live, tabs, tab = 0, onTabChange }: ListSideProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
@@ -162,6 +166,22 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
           </svg>
         </button>
       </div>
+      {tabs && tabs.length > 1 && (
+        <div className="list-side-sorts list-side-tabs" role="tablist">
+          {tabs.map((label, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              className={`list-side-sort${i === tab ? ' is-active' : ''}`}
+              aria-selected={i === tab}
+              onClick={() => onTabChange?.(i)}
+            >
+              {tr(label, lang)}
+            </button>
+          ))}
+        </div>
+      )}
       {def.sorts && def.sorts.length > 1 && (
         <div className="list-side-sorts" role="group" aria-label={text.sortBy}>
           {def.sorts.map((s, i) => (
