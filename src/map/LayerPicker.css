@@ -1,0 +1,230 @@
+/*
+ * 圖層選單的「更多主題的圖層…」對話框（LayerPicker.tsx，2026-10-31）的樣式：跟著元件的程式延後下載。
+ * 外觀跟指令面板（CommandPaletteDialog.css）一致：同樣的寬度、圓角、陰影與暗色背景
+ */
+.layer-picker {
+  width: min(680px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(720px, calc(100dvh - 48px));
+  margin: max(24px, 8vh) auto auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.layer-picker[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.layer-picker::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.layer-picker-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 0;
+}
+
+.layer-picker-head h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 17px;
+}
+
+.layer-picker-close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.layer-picker-close:hover {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.layer-picker-hint {
+  margin: 6px 16px 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.layer-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink-secondary);
+}
+
+.layer-picker-search:focus-within {
+  border-color: var(--accent, var(--ink-secondary));
+}
+
+.layer-picker-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.layer-picker-list {
+  /* 高度依內容，超過對話框的 max-height 才縮、捲動（跟指令面板的清單一樣） */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px 8px;
+  border-top: 1px solid var(--grid);
+}
+
+.layer-picker-group-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 10px 0 4px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.layer-picker-topic {
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.layer-picker-topic legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.layer-picker-topic .topic-tile {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.layer-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 2px 8px 2px 32px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.layer-picker-item:hover {
+  background: var(--grid);
+}
+
+.layer-picker-item input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--cat);
+}
+
+.layer-picker-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.layer-picker-kind {
+  flex: none;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.layer-picker-empty {
+  margin: 16px 0;
+  color: var(--ink-secondary);
+}
+
+.layer-picker-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--grid);
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.layer-picker-foot > span {
+  flex: 1;
+}
+
+.layer-picker-clear,
+.layer-picker-done {
+  flex: none;
+  min-height: 32px;
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.layer-picker-done {
+  border-color: transparent;
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.layer-picker-clear:hover {
+  background: var(--grid);
+}
+
+/* 手機：鋪滿畫面，勾選的範圍大一點 */
+@media (max-width: 600px) {
+  .layer-picker {
+    width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .layer-picker-list {
+    flex: 1 1 auto;
+  }
+
+  .layer-picker-item {
+    min-height: 40px;
+  }
+}

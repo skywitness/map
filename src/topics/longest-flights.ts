@@ -157,7 +157,8 @@ export const longestFlightsPart = {
     routes('discontinued-routes', DISCONTINUED, { zh: '停飛的前 30 名', en: 'Discontinued top 30' }, ['discontinued']),
     // 交通搬過來的機場圖層也叫 airports：這裡改名 route-airports（資料檔 route-airports.json）
     airports('route-airports', 'n', CURRENT_INDICATORS),
-    airports('route-airports-discontinued', 'd', ['discontinued']),
+    // 疊到別的主題上只列現行航線的機場（名稱一樣）
+    { ...airports('route-airports-discontinued', 'd', ['discontinued']), shareable: false as const },
   ],
   indicators: [
     {

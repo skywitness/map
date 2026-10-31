@@ -149,6 +149,8 @@ function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[numb
   if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === undefined) return '';
   if (o.kind === 'points' && o.fromLive) return '';
   if (o.kind === 'lines' && o.local) return '';
+  // 共用疊加圖層的季風（shared-layers.ts）：風場在風與季風主題的資料夾，月份固定（file 不看時間軸）
+  if (o.kind === 'wind' && o.topic) return `topics/${o.topic}/${o.file(year, null)}`;
   if (o.kind === 'classGrid' || o.kind === 'wind') return `topics/${topic.id}/${o.file(year, item ?? topic.dimension?.defaultOption ?? null)}`;
   return overlayPath(topic, o, item, year);
 }

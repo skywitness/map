@@ -281,6 +281,13 @@ export const logbooks: TopicDefinition = {
   },
   panelExtra: () => import('./panels/LogbooksPanel'),
   listPanel: SHIP_VIEWS.map(voyageList),
-  overlays: SHIP_VIEWS.map((view) => ({ ...VOYAGES, id: view.overlay, indicators: [view.id], onlyTypes: view.types ?? undefined })),
+  // 疊到別的主題上（圖層選單的「更多主題的圖層…」）只列全部的船
+  overlays: SHIP_VIEWS.map((view) => ({
+    ...VOYAGES,
+    id: view.overlay,
+    indicators: [view.id],
+    onlyTypes: view.types ?? undefined,
+    ...(view.types ? { shareable: false as const } : {}),
+  })),
   indicators,
 };

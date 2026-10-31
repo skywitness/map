@@ -63,7 +63,8 @@ function layer(id: string, file: string, label: Text, dated: boolean): PointsOve
     radius: dated ? { field: 'sl', stops: [[0, 4], [20, 5], [60, 7]] } : { field: 'sl', stops: [[0, 2], [20, 2.8], [60, 4]] },
     color: KIND_COLORS,
     sortField: 'sl',
-    ...(dated ? { timeField: 'm' } : {}),
+    // 疊到別的主題上（時間軸是年份，不是月份）時全部畫
+    ...(dated ? { timeField: 'm', shareable: 'untimed' as const } : {}),
     tooltip: (p, ctx) => {
       const name = festivalName(p);
       const country = typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null;

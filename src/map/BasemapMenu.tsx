@@ -1,8 +1,11 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { lazy, Suspense, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import type { ImportResult } from '../lib/personalRoutes';
 import { defineMessages, tr, useLang, useT } from '../i18n';
 import { BASEMAPS, type Basemap } from './basemaps';
 import { LayersIcon } from './MapIcons';
+
+// 「更多主題的圖層…」的對話框與可以選的圖層清單（foreignLayers.gen.ts）第一次打開才下載
+const LayerPicker = lazy(() => import('./LayerPicker'));
 
 /** 「其他主題的圖層」的一項（topics/shared-layers.ts，App 依目前主題給，名稱已經是目前的語言） */
 export interface SharedLayerChoice {
@@ -29,12 +32,18 @@ interface BasemapMenuProps {
   /** 其他主題的圖層（2026-10-30，第七批 126）：勾選了就疊在這個主題上，第一次打開才下載 */
   shared?: SharedLayerChoice[];
   onSharedToggle?: (id: string) => void;
+  /**
+   * 「更多主題的圖層…」（2026-10-31，第四輪 一、4，LayerPicker.tsx）：任何主題的點、線圖層。selected 是目前打開的
+   * （`<主題>/<圖層 id>`，勾選狀態），topic 是目前的主題（它自己的圖層不列）；勾選也走 onSharedToggle
+   */
+  more?: { selected: string[]; topic: string };
   personal?: PersonalMenu;
 }
 
 const TEXT = defineMessages({
   zh: {
     shared: '其他主題的圖層',
+    more: '更多主題的圖層…',
     personal: '我的路線',
     personalHint: '匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip），只存在這個瀏覽器，不會上傳。',
     personalCount: (n: number) => (n ? `已經匯入 ${n} 條路線` : '還沒有匯入路線'),
@@ -49,6 +58,7 @@ const TEXT = defineMessages({
   },
   en: {
     shared: 'Layers from other topics',
+    more: 'More topics’ layers…',
     personal: 'My routes',
     personalHint: 'Import route files you downloaded yourself (GPX, KML, KMZ, GeoJSON, zip). They stay in this browser and are never uploaded.',
     personalCount: (n: number) => (n ? `${n} ${n === 1 ? 'route' : 'routes'} imported` : 'No routes imported yet'),
@@ -68,15 +78,19 @@ const TEXT = defineMessages({
  * 地圖右上角按鈕列裡的「底圖」：點開往左展開五種底圖（原本是控制列上的下拉選單，手機上多占一整行）。
  * 鍵盤操作照 WAI-ARIA 的 menu button：↑↓ 移動、Home/End、Esc 關閉並回到按鈕。
  */
-export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, personal }: BasemapMenuProps) {
+export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, more, personal }: BasemapMenuProps) {
   const t = useT();
   const lang = useLang();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const menuId = useId();
   const hasShared = shared.length > 0 && Boolean(onSharedToggle);
+  const hasMore = hasShared && Boolean(more);
+  // 「更多主題的圖層…」的對話框：第一次打開才載入，之後留著（關掉再開不必再等）
+  const [picker, setPicker] = useState<'closed' | 'open' | 'never'>('never');
   const fileRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -99,6 +113,24 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, pe
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open]);
+
+  // 選單超出地圖下緣時（按鈕列在地圖下半部、加了好幾個別的主題的圖層）往上移，還是太長就限制高度、在選單裡捲動，
+  // 不會被地圖的外框切掉（2026-10-31）
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const frame = list?.closest('.map');
+    if (!open || !list || !frame) return;
+    list.style.top = '';
+    list.style.maxHeight = '';
+    const pad = 8;
+    const box = frame.getBoundingClientRect();
+    const rect = list.getBoundingClientRect();
+    const overflow = rect.bottom - (box.bottom - pad);
+    if (overflow <= 0) return;
+    const shift = Math.max(0, Math.min(overflow, rect.top - (box.top + pad)));
+    if (shift) list.style.top = `${parseFloat(getComputedStyle(list).top) - shift}px`;
+    if (overflow > shift) list.style.maxHeight = `${box.bottom - pad - (rect.top - shift)}px`;
+  }, [open, shared.length, hasMore, Boolean(personal)]);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -139,6 +171,7 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, pe
       </button>
       {open && (
         <div
+          ref={listRef}
           className={`map-menu-list${hasShared || personal ? ' has-shared' : ''}`}
           id={menuId}
           role="menu"
@@ -186,7 +219,7 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, pe
                   role="menuitemcheckbox"
                   aria-checked={s.checked}
                   tabIndex={-1}
-                  className="map-menu-item shared-layer-item"
+                  className={`map-menu-item shared-layer-item${s.id.includes('/') ? ' is-foreign' : ''}`}
                   // 可以連續勾好幾個，選單不關
                   onClick={() => onSharedToggle!(s.id)}
                 >
@@ -196,6 +229,27 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, pe
                   {s.label}
                 </button>
               ))}
+              {hasMore && (
+                <button
+                  ref={(el) => {
+                    itemRefs.current[BASEMAPS.length + shared.length] = el;
+                  }}
+                  type="button"
+                  role="menuitem"
+                  aria-haspopup="dialog"
+                  tabIndex={-1}
+                  className="map-menu-item shared-layer-item shared-layer-more"
+                  onClick={() => {
+                    setOpen(false);
+                    setPicker('open');
+                  }}
+                >
+                  <span className="shared-layer-check" aria-hidden="true">
+                    +
+                  </span>
+                  {TEXT[lang].more}
+                </button>
+              )}
             </div>
           )}
           {personal && (
@@ -224,7 +278,7 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, pe
                 <button
                   key={b.key}
                   ref={(el) => {
-                    itemRefs.current[BASEMAPS.length + shared.length + i] = el;
+                    itemRefs.current[BASEMAPS.length + shared.length + (hasMore ? 1 : 0) + i] = el;
                   }}
                   type="button"
                   role="menuitem"
@@ -256,6 +310,20 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, pe
             </div>
           )}
         </div>
+      )}
+      {more && onSharedToggle && picker !== 'never' && (
+        <Suspense fallback={null}>
+          <LayerPicker
+            open={picker === 'open'}
+            onClose={() => {
+              setPicker('closed');
+              buttonRef.current?.focus();
+            }}
+            selected={more.selected}
+            topic={more.topic}
+            onToggle={onSharedToggle}
+          />
+        </Suspense>
       )}
     </div>
   );

@@ -218,6 +218,8 @@ interface WorldMapProps {
   /** 圖層選單裡「其他主題的圖層」（topics/shared-layers.ts）：名稱與打開了沒 */
   sharedLayers?: SharedLayerChoice[];
   onSharedToggle?: (id: string) => void;
+  /** 圖層選單的「更多主題的圖層…」（BasemapMenu 的 more）：目前打開的與目前的主題 */
+  moreLayers?: { selected: string[]; topic: string };
   /** 我的路線（TopicDefinition.personalRoutes）：圖層選單裡的匯入、匯出、刪除 */
   personal?: PersonalMenu;
   /** 點選國家時把地圖縮放到整個國家（純地圖頁用） */
@@ -1848,6 +1850,7 @@ export function WorldMap(props: WorldMapProps) {
             onChange={onBasemapChange}
             shared={props.sharedLayers}
             onSharedToggle={props.onSharedToggle}
+            more={props.moreLayers}
             personal={props.personal}
           />
         )}

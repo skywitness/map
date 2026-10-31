@@ -23,6 +23,8 @@ globalThis.document ??= { documentElement: {}, title: '', addEventListener: noop
 const OUT = `${ROOT}src/topics/catalog.gen.ts`;
 /** 主題搜尋的子項目：另一個檔，第一次搜尋時才下載（lib/topicSearch.ts，2026-10-30） */
 const OUT_ITEMS = `${ROOT}src/topics/catalogItems.gen.ts`;
+/** 可以疊到別的主題上的點、線圖層：另一個檔，打開「更多主題的圖層…」才下載（topics/foreign-layers.ts，2026-10-31） */
+const OUT_FOREIGN = `${ROOT}src/topics/foreignLayers.gen.ts`;
 const check = process.argv.includes('--check');
 
 const server = await createServer({
@@ -95,9 +97,35 @@ try {
     '};',
     '',
   ];
+  // 別的主題的圖層：共用疊加圖層已經包含的（SharedLayer.covers）不列；covers 寫的圖層要存在（改名後才不會又出現在清單裡）
+  const { shareableOverlays } = await server.ssrLoadModule('/src/topics/foreign-layers.ts');
+  const { SHARED_LAYERS } = await server.ssrLoadModule('/src/topics/shared-layers.ts');
+  const covered = new Set(SHARED_LAYERS.flatMap((l) => l.covers ?? []));
+  const shareable = topics.filter((t) => t.id !== pureMap.id).map((t) => ({ topic: t.id, layers: shareableOverlays(t) }));
+  const known = new Set(shareable.flatMap((t) => t.layers.map((l) => `${t.topic}/${l.id}`)));
+  const badCovers = [...covered].filter((key) => !known.has(key));
+  if (badCovers.length) throw new Error(`shared-layers.ts 的 covers 寫的圖層不存在或不能疊到別的主題：${badCovers.join('、')}`);
+  const foreign = shareable
+    .map((t) => ({ topic: t.topic, layers: t.layers.filter((l) => !covered.has(`${t.topic}/${l.id}`)) }))
+    .filter((t) => t.layers.length);
+  const foreignLines = [
+    '/**',
+    ' * 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改。',
+    ' * 可以疊到別的主題上的點、線圖層（topics/foreign-layers.ts 的 shareableOverlays，共用疊加圖層已經包含的不列），',
+    ' * 打開圖層選單的「更多主題的圖層…」才下載。',
+    ' * i18n-ignore-file：內容是主題定義裡的雙語文字（{ zh, en }），check:i18n 已經檢查過原本的檔',
+    ' */',
+    "import type { ForeignTopicEntry } from './foreign-layers';",
+    '',
+    'export const FOREIGN_LAYERS: ForeignTopicEntry[] = [',
+    ...foreign.map((t) => `  ${JSON.stringify(t)},`),
+    '];',
+    '',
+  ];
   const files = [
     [OUT, lines.join('\n')],
     [OUT_ITEMS, itemLines.join('\n')],
+    [OUT_FOREIGN, foreignLines.join('\n')],
   ];
   const stale = [];
   for (const [file, text] of files) {

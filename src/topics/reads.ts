@@ -213,6 +213,8 @@ export const reads: TopicDefinition = {
       pointLabel: mapLabel,
       tooltip: pointTooltip,
       indicators: ['top'],
+      // 每個月一份，年份欄位是月份的編號：疊到別的主題上對不到時間軸，全部畫又太多
+      shareable: false,
     },
   ],
   indicators,

@@ -464,7 +464,7 @@ export const rivers: TopicDefinition = {
   overlays: [
     { ...RIVERS, indicators: ['map'] },
     { ...DAMS, indicators: ['dam-count', 'dam-capacity'] },
-    { ...DAMS, id: 'dams-map', hidden: true, indicators: ['map'] },
+    { ...DAMS, id: 'dams-map', hidden: true, indicators: ['map'], shareable: false },
   ],
   indicators,
 };

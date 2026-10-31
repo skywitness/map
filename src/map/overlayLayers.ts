@@ -806,7 +806,7 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
     const id = OVERLAY_PREFIX + o.def.id;
     // 共用疊加圖層（shared-layers.ts）有自己跟時間軸的方式，時間軸超出它的資料範圍時用最接近的一年
     const mode = o.def.overlayTime ?? indicatorMode;
-    const range = o.def.timeRange;
+    const range = o.def.timeRange === 'data' ? dataYears(o) : o.def.timeRange;
     const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
     if (o.kind === 'points') {
       if (!o.def.timeField && !o.def.minValue) continue;
@@ -824,6 +824,29 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
       map.setFilter(layer.id, allOf([base, hover ? value : extra]));
     }
   }
+}
+
+/**
+ * 資料的年份範圍（timeRange 是 'data' 的疊加圖層，別的主題的圖層 topics/foreign-layers.ts）：timeField 的最小、最大值，
+ * 依資料（同一份點、同一組線）快取；還沒讀到或沒有年份是 undefined（不夾）
+ */
+const yearsCache = new WeakMap<object, [number, number] | undefined>();
+function dataYears(o: OverlayLayer): [number, number] | undefined {
+  const records = o.kind === 'points' ? o.points : o.kind === 'lines' ? o.lines?.records : null;
+  const field = o.kind === 'points' || o.kind === 'lines' ? o.def.timeField : undefined;
+  if (!records || !field) return undefined;
+  if (yearsCache.has(records)) return yearsCache.get(records);
+  let min = Infinity;
+  let max = -Infinity;
+  for (const r of records) {
+    const v = r[field];
+    if (typeof v !== 'number') continue;
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  const range: [number, number] | undefined = min <= max ? [min, max] : undefined;
+  yearsCache.set(records, range);
+  return range;
 }
 
 /** 滑到線圖層的查詢層（主檔或分區的線，或 fill.hover 的面）時，回傳那個疊加圖層的 id；不是線的查詢層回傳 null */

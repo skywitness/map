@@ -1,11 +1,12 @@
 import type { Text } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
+import { foreignTopic, isForeignKey, loadForeignLayer } from './foreign-layers';
 import { TOPIC_MODULES, topicOf } from './registry';
 import type { LinesOverlayDef, OverlayDef } from './types';
 
 /**
  * 共用疊加圖層（2026-10-30，製作手冊第七批 126）：任何主題都能從地圖右上角的「圖層」選單打開幾個常用的圖層
- * （地震與火山、板塊邊界、發電廠、海底電纜、颱風路徑、鐵路、城市）。圖層的定義與資料檔都是原本那個主題的
+ * （地震與火山、板塊邊界、發電廠、海底電纜、颱風路徑、鐵路、城市、季風）。圖層的定義與資料檔都是原本那個主題的
  * （打開時才下載那個主題的定義，`topic` 指到它的資料夾，不複製資料檔）；這裡只改 id、名稱（寫明是哪一年）與跟時間軸的方式。
  */
 
@@ -19,6 +20,13 @@ export interface SharedLayer {
   ids: string[];
   /** 圖層的定義（第一次打開才載入） */
   load: () => Promise<OverlayDef[]>;
+  /**
+   * 這一項已經包含的別的主題的圖層（`<主題>/<圖層 id>`，foreign-layers.ts）：「更多主題的圖層…」不再列
+   * （scripts/topic-catalog.mjs 檢查它們存在）
+   */
+  covers?: string[];
+  /** 同一組只能開一個（季風的 1 月、7 月：風的粒子一次只畫一層），勾另一個時這個關掉 */
+  group?: string;
 }
 
 /**
@@ -60,6 +68,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     label: { zh: '地震與火山', en: 'Earthquakes and volcanoes' },
     topic: 'earthquakes',
     ids: ['shared-volcanoes', 'shared-quakes'],
+    covers: ['earthquakes/volcanoes', 'earthquakes/quakes'],
     load: from('earthquakes', {
       volcanoes: { id: 'shared-volcanoes' },
       quakes: {
@@ -74,6 +83,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     label: { zh: '板塊邊界', en: 'Plate boundaries' },
     topic: 'earthquakes',
     ids: ['plates-today'],
+    covers: ['earthquakes/plates'],
     load: async () => [PLATES_TODAY],
   },
   {
@@ -81,6 +91,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     label: { zh: '發電廠', en: 'Power plants' },
     topic: 'power-plants',
     ids: ['shared-plants', 'plants-operating'],
+    covers: ['power-plants/plants-operating'],
     load: from('power-plants', {
       'plants-operating': {
         id: 'shared-plants',
@@ -93,6 +104,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     label: { zh: '海底電纜', en: 'Submarine cables' },
     topic: 'submarine-cables',
     ids: ['shared-cables'],
+    covers: ['submarine-cables/cables'],
     load: from('submarine-cables', {
       cables: {
         id: 'shared-cables',
@@ -106,6 +118,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     label: { zh: '颱風路徑', en: 'Cyclone tracks' },
     topic: 'typhoons',
     ids: ['shared-tracks'],
+    covers: ['typhoons/tracks'],
     load: from('typhoons', {
       tracks: {
         id: 'shared-tracks',
@@ -128,6 +141,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     label: { zh: '城市', en: 'Cities' },
     topic: 'cities',
     ids: ['shared-cities'],
+    covers: ['cities/cities'],
     load: from('cities', {
       cities: {
         id: 'shared-cities',
@@ -135,16 +149,45 @@ export const SHARED_LAYERS: SharedLayer[] = [
       },
     }),
   },
+  // 季風（2026-10-31，第四輪 一、4 的「航海日誌疊季風」）：風與季風主題的風的粒子，月份固定（別的主題的時間軸是年份，不是月份）。
+  // 風的粒子一次只畫一層，1 月、7 月同一組
+  ...([1, 7] as const).map(
+    (month): SharedLayer => ({
+      id: `wind-${month}`,
+      label: month === 1 ? { zh: '1 月的風（冬季季風）', en: 'January winds (winter monsoon)' } : { zh: '7 月的風（夏季季風）', en: 'July winds (summer monsoon)' },
+      topic: 'wind',
+      ids: [`shared-wind-${month}`],
+      group: 'wind',
+      load: from('wind', {
+        wind: {
+          id: `shared-wind-${month}`,
+          label:
+            month === 1
+              ? { zh: '1 月的風（1991–2020 年平均，冬季季風）', en: 'January winds (1991–2020 average, winter monsoon)' }
+              : { zh: '7 月的風（1991–2020 年平均，夏季季風）', en: 'July winds (1991–2020 average, summer monsoon)' },
+          file: () => `field/${month}.json`,
+        },
+      }),
+    }),
+  ),
 ];
+
+/** 共用疊加圖層或別的主題的圖層（`<主題>/<圖層 id>`）的資料屬於哪個主題：在那個主題裡不畫（它自己就有） */
+export function sharedSourceTopic(id: string): string | undefined {
+  return isForeignKey(id) ? foreignTopic(id) : SHARED_LAYERS.find((l) => l.id === id)?.topic;
+}
 
 const loaded = new Map<string, Promise<OverlayDef[]>>();
 
-/** 共用圖層的定義（同一個只載入一次，失敗的下次重試） */
+/** 共用圖層、別的主題的圖層的定義（同一個只載入一次，失敗的下次重試） */
 export function loadSharedLayer(id: string): Promise<OverlayDef[]> {
   let promise = loaded.get(id);
   if (!promise) {
     const layer = SHARED_LAYERS.find((l) => l.id === id);
-    promise = layer ? layer.load() : Promise.resolve([]);
+    promise = (isForeignKey(id) ? loadForeignLayer(id) : layer ? layer.load() : Promise.resolve([])).then((list) =>
+      // 標成從圖層選單加上的（圖層開關的分級說明預設收起，Overlays.tsx 的 LayerControls）；鐵路是舊的寫法，沒有分級說明
+      list.map((d) => (d.kind === undefined ? d : { ...d, added: true })),
+    );
     promise.catch(() => loaded.delete(id));
     loaded.set(id, promise);
   }

@@ -374,8 +374,15 @@ export function LayerControls({
   const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
-  const [showDetails, setShowDetails] = useState(() => !(typeof matchMedia === 'function' && matchMedia(NARROW).matches));
-  const hasDetails = overlays.some((o) => o.visible && extraKeys.get(o)!.details.length > 0);
+  // 分級說明顯示到哪裡：none（手機預設）、own（主題自己的圖層，桌機預設）、all（含從圖層選單加上的別的主題的圖層，
+  // 2026-10-31：加了好幾個時卡片會蓋住半張地圖，預設只列名稱與符號）
+  const [detailLevel, setDetailLevel] = useState<'none' | 'own' | 'all'>(() =>
+    typeof matchMedia === 'function' && matchMedia(NARROW).matches ? 'none' : 'own',
+  );
+  const showsDetails = (o: OverlayLayer) => detailLevel === 'all' || (detailLevel === 'own' && !('added' in o.def && o.def.added));
+  const withDetails = overlays.filter((o) => o.visible && extraKeys.get(o)!.details.length > 0);
+  const hasDetails = withDetails.length > 0;
+  const allShown = withDetails.every(showsDetails);
   // 換主題、收起圖例時，滑過的那一類不留在地圖上
   useEffect(() => () => setClassGridOnly(null), []);
   return (
@@ -398,7 +405,7 @@ export function LayerControls({
               {key.label}
             </label>
             {o.visible &&
-              showDetails &&
+              showsDetails(o) &&
               key.details.map((d) => (
                 <div
                   key={d.title ?? d.rows[0]?.label}
@@ -424,8 +431,8 @@ export function LayerControls({
         );
       })}
       {hasDetails && (
-        <button type="button" className="map-layer-toggle" aria-expanded={showDetails} onClick={() => setShowDetails((v) => !v)}>
-          {tr(showDetails ? HIDE_DETAILS : SHOW_DETAILS, lang)}
+        <button type="button" className="map-layer-toggle" aria-expanded={allShown} onClick={() => setDetailLevel(allShown ? 'none' : 'all')}>
+          {tr(allShown ? HIDE_DETAILS : SHOW_DETAILS, lang)}
         </button>
       )}
     </fieldset>

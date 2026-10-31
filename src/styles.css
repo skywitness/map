@@ -1656,6 +1656,18 @@ kbd {
   font-weight: 600;
 }
 
+/* 從「更多主題的圖層…」加上的（2026-10-31）：名稱含主題名稱、可能很長，換行，欄不會被撐得太寬 */
+.shared-layer-item.is-foreign {
+  align-items: baseline;
+  max-width: 16rem;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.shared-layer-more {
+  color: var(--accent-text);
+}
+
 /* 「更多」：開關類的項目左邊留一格打勾；3D 時不能框選，原因寫在下面 */
 .more-check {
   flex: none;

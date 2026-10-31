@@ -490,6 +490,10 @@ export interface WindOverlayDef {
   label: Text;
   /** 資料檔（相對於這個主題的資料夾），依時間軸的年份與子項目 */
   file: (year: number, item: string | null) => string;
+  /** 資料檔屬於另一個主題（共用疊加圖層的季風：風與季風主題的風場） */
+  topic?: string;
+  /** 從圖層選單加上的（同 OverlayBase.added） */
+  added?: boolean;
   /** 粒子的顏色：淺色、深色底圖 */
   color: { light: string; dark: string };
   /** 圖例裡的說明（例如「粒子順著風移動，越快走得越快」） */
@@ -519,12 +523,22 @@ interface OverlayBase {
   /** 只在這些子項目顯示（dimension 的選項 id，例如奧運的夏季、冬季）；沒寫就是所有子項目 */
   items?: string[];
   /**
+   * 疊到別的主題上（圖層選單的「更多主題的圖層…」，topics/foreign-layers.ts，2026-10-31）：false 不列（同一份資料的另一種分法，
+   * 例如航海日誌只看某國的船）；'untimed' 不跟時間軸、全部畫（年份欄位不是西元年，例如節慶的月份）
+   */
+  shareable?: false | 'untimed';
+  /** 從圖層選單加上的（共用疊加圖層、別的主題的圖層；loadSharedLayer 標上）：圖層開關的分級說明預設收起 */
+  added?: boolean;
+  /**
    * 共用疊加圖層（shared-layers.ts，2026-10-30）：疊在別的主題時依自己的方式跟時間軸（例如地震累積到那一年），
    * 取代目前指標的 overlayTime
    */
   overlayTime?: IndicatorDef['overlayTime'];
-  /** 共用疊加圖層：資料有的年份範圍，時間軸超出時用最接近的一年（颱風 1950–2026，時間軸在 2030 年時畫 2026 年） */
-  timeRange?: [number, number];
+  /**
+   * 共用疊加圖層：資料有的年份範圍，時間軸超出時用最接近的一年（颱風 1950–2026，時間軸在 2030 年時畫 2026 年）。
+   * 'data' 是讀到資料後依 timeField 的最小、最大值（別的主題的圖層，topics/foreign-layers.ts）
+   */
+  timeRange?: [number, number] | 'data';
 }
 
 /** 依數值欄位分級的顏色：thresholds N 個 → classes N+1 個（由小到大），顏色取自 MAP_TOKENS */

@@ -49,7 +49,8 @@ import { PanelSkeleton } from './panels/Skeleton';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
 import { Sparkline } from './map/Sparkline';
 import { loadedTopic, loadTopic } from './topics';
-import { SHARED_LAYERS } from './topics/shared-layers';
+import { foreignLayerId, isForeignKey } from './topics/foreign-layers';
+import { SHARED_LAYERS, sharedSourceTopic } from './topics/shared-layers';
 import {
   dataFolder,
   dimensionOf,
@@ -171,10 +172,13 @@ export function App() {
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
   // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
+  // 也存別的主題的圖層（圖層選單的「更多主題的圖層…」，key 是 `<主題>/<圖層 id>`，topics/foreign-layers.ts）；換主題也留著
   const [sharedOn, setSharedOn] = useState<string[]>([]);
   // 沒選國家時的側欄（主題的 worldPanel）：關掉的主題記在這裡，這次不再出現
   const [worldClosed, setWorldClosed] = useState<string | null>(null);
-  const sharedDefs = useSharedOverlays(sharedOn);
+  // 資料屬於目前主題的不載入（它自己就有那個圖層）；換回別的主題時再畫
+  const sharedActive = useMemo(() => sharedOn.filter((id) => sharedSourceTopic(id) !== definition.id), [sharedOn, definition.id]);
+  const sharedDefs = useSharedOverlays(sharedActive);
   // 我的路線（TopicDefinition.personalRoutes，lib/personalRoutes.ts）：使用者在這個瀏覽器匯入的路線，有路線時多一個線圖層
   const personalCfg = definition.personalRoutes;
   const { routes: personalRoutes, error: personalError } = usePersonalRoutes(personalCfg ? definition.id : null);
@@ -186,15 +190,31 @@ export function App() {
     return extra.length ? { ...definition, overlays: [...own, ...extra] } : definition;
   }, [definition, sharedDefs, personalDef]);
   const sharedChoices = useMemo(
-    () =>
-      SHARED_LAYERS.filter((l) => l.topic !== definition.id && !definition.overlays?.some((o) => l.ids.includes(o.id))).map((l) => ({
+    () => [
+      ...SHARED_LAYERS.filter((l) => l.topic !== definition.id && !definition.overlays?.some((o) => l.ids.includes(o.id))).map((l) => ({
         id: l.id,
         label: tr(l.label, lang),
         checked: sharedOn.includes(l.id),
       })),
-    [definition, sharedOn, lang],
+      // 從「更多主題的圖層…」加上的：列在常用的後面（打勾），在這裡取消就拿掉；名稱用載入的定義（含主題名稱）
+      ...sharedActive.filter(isForeignKey).map((key) => {
+        const def = sharedDefs.find((d) => d.id === foreignLayerId(key));
+        return { id: key, label: def && 'label' in def ? tr(def.label, lang) : key, checked: true };
+      }),
+    ],
+    [definition, sharedOn, sharedActive, sharedDefs, lang],
   );
-  const toggleShared = useCallback((id: string) => setSharedOn((on) => (on.includes(id) ? on.filter((x) => x !== id) : [...on, id])), []);
+  const moreLayers = useMemo(() => ({ selected: sharedOn, topic: definition.id }), [sharedOn, definition.id]);
+  // 同一組（SharedLayer.group，季風的 1 月、7 月）只能開一個：勾另一個時原本的關掉
+  const toggleShared = useCallback(
+    (id: string) =>
+      setSharedOn((on) => {
+        if (on.includes(id)) return on.filter((x) => x !== id);
+        const group = SHARED_LAYERS.find((l) => l.id === id)?.group;
+        return [...(group ? on.filter((x) => SHARED_LAYERS.find((l) => l.id === x)?.group !== group) : on), id];
+      }),
+    [],
+  );
   const personalMenu = useMemo<PersonalMenu | undefined>(
     () =>
       personalCfg
@@ -1001,6 +1021,7 @@ export function App() {
                   onBasemapChange={chooseBasemap}
                   sharedLayers={pure ? undefined : sharedChoices}
                   onSharedToggle={toggleShared}
+                  moreLayers={pure ? undefined : moreLayers}
                   personal={pure ? undefined : personalMenu}
                   fitOnSelect={pure}
                   onFirstData={onMapShown}
