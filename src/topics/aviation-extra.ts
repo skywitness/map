@@ -206,8 +206,8 @@ export const aviationExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
       id: 'busiest-cargo',
       label: { zh: '最繁忙的貨運機場', en: 'Busiest cargo airports' },
       description: {
-        zh: '2025 年貨運量前 10 名的機場（ACI 的初步統計，依英文維基；公噸，含轉運），圓的面積與貨運量成正比：香港 507 萬公噸第一，上海浦東 410 萬、安克拉治 385 萬、路易維爾、邁阿密、曼非斯、首爾仁川、杜哈；台灣桃園 250 萬公噸第 9（民航局的數字一樣）。國家的值是它在前 10 名的機場合計。',
-        en: 'The 10 busiest cargo airports in 2025 (ACI preliminary figures via English Wikipedia; tonnes including transit), with circle area proportional to cargo: Hong Kong led with 5.07 million tonnes, followed by Shanghai Pudong (4.10 million), Anchorage (3.85 million), Louisville, Miami, Memphis, Seoul Incheon and Doha; Taiwan Taoyuan was 9th with 2.5 million (matching the Civil Aeronautics Administration). A country’s value is the total for its airports in the top 10.',
+        zh: '2025 年貨運量前 10 名的機場（ACI 的初步統計，依英文維基；公噸，含轉運），圓的面積與貨運量成正比：香港 507 萬公噸第一，上海浦東 410 萬、安克拉治 385 萬、路易維爾、邁阿密、曼非斯、首爾仁川、杜哈；台灣桃園 250 萬公噸第 9（民航局的數字一樣）。國家的值是它在前 10 名的機場合計。左邊的清單依名次列出這 10 座。',
+        en: 'The 10 busiest cargo airports in 2025 (ACI preliminary figures via English Wikipedia; tonnes including transit), with circle area proportional to cargo: Hong Kong led with 5.07 million tonnes, followed by Shanghai Pudong (4.10 million), Anchorage (3.85 million), Louisville, Miami, Memphis, Seoul Incheon and Doha; Taiwan Taoyuan was 9th with 2.5 million (matching the Civil Aeronautics Administration). A country’s value is the total for its airports in the top 10. The list on the left shows the 10 by rank.',
       },
       unit: { zh: '公噸', en: 'tonnes' },
       file: 'busiest-cargo.json',

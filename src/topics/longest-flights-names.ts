@@ -33,6 +33,12 @@ export const AIRLINES_ZH: Record<string, string> = {
 
 /** 機場的中文名稱（airports.json 的 zh）；routes.json 只有 IATA，側欄與 tooltip 用這張表 */
 export const AIRPORTS_ZH: Record<string, string> = {
+  // 2026-10-31（第十二批 196）：旅客量前 50 名的機場清單補的
+  LAS: '拉斯維加斯', PHX: '鳳凰城', SLC: '鹽湖城', DEN: '丹佛', CUN: '坎昆', MCO: '奧蘭多', CLT: '夏洛特',
+  LGA: '紐約拉瓜地亞', BOS: '波士頓', MAD: '馬德里', LGW: '倫敦蓋威克', BCN: '巴塞隆納', ORY: '巴黎奧利',
+  AMS: '阿姆斯特丹', FRA: '法蘭克福', MUC: '慕尼黑', IST: '伊斯坦堡', SAW: '伊斯坦堡薩比哈格克琴', AYT: '安塔利亞',
+  SVO: '莫斯科謝列梅捷沃', DME: '莫斯科多莫傑多沃', KMG: '昆明', TFU: '成都天府', KWE: '貴陽', XIY: '西安',
+  HAK: '海口', CSX: '長沙', CGO: '鄭州', PKX: '北京大興', XMN: '廈門', NKG: '南京', HGH: '杭州',
   JFK: '紐約甘迺迪', EWR: '紐瓦克', SIN: '新加坡', AKL: '奧克蘭', DOH: '杜哈', PER: '伯斯', LHR: '倫敦希斯洛',
   DFW: '達拉斯沃斯堡', MEL: '墨爾本', CDG: '巴黎戴高樂', DXB: '杜拜', SZX: '深圳', MEX: '墨西哥城',
   LAX: '洛杉磯', IAH: '休士頓洲際', SYD: '雪梨', MNL: '馬尼拉', SFO: '舊金山', JNB: '約翰尼斯堡',

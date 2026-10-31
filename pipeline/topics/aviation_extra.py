@@ -245,7 +245,9 @@ def cargo_airports(airports: dict[str, dict]) -> None:
         if not rank or code not in by_iata:
             raise RuntimeError(f"貨運機場：對不到「{W.text(r[1])}」（{code}）")
         a = by_iata[code]
-        pts.append({"lon": a["lon"], "lat": a["lat"], "rank": rank, "iata": code, "en": W.text(r[1]), "t": tonnes,
+        # 名稱的格子前面有國旗模板（{{flagicon|HKG}}），W.text 會留下國家代碼，先拿掉（2026-10-31 修正）
+        name = W.text(re.sub(r"\{\{\s*flag(?:icon|deco|u)?\s*\|[^{}]*\}\}", "", r[1]))
+        pts.append({"lon": a["lon"], "lat": a["lat"], "rank": rank, "iata": code, "en": name, "t": tonnes,
                     "iso3": country_at(a["lon"], a["lat"])})
     write_json(OUT / "cargo-airports.json", {
         **points_file(pts, ["lon", "lat", "rank", "iata", "en", "t", "iso3"], {"lon": 0.001, "lat": 0.001, "rank": 1, "t": 1}),

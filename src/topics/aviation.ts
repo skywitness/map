@@ -1,8 +1,9 @@
-import { tr } from '../i18n/lang';
+import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { aviationExtra } from './aviation-extra';
-import type { PointRecord, TopicDefinition } from './types';
+import { AIRPORTS_ZH } from './longest-flights-names';
+import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 機場與旅客（主題 id 照舊是 aviation）：第七批 117（2026-10-30）把交通的機場、航空旅客指標（連同機場的疊加圖層）、
@@ -37,6 +38,66 @@ function busiestTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
     extra: history ? [tr({ zh: `前 50 名：${history}`, en: `Top 50: ${history}` })] : undefined,
   };
 }
+
+/** 機場名稱：中文介面用 AIRPORTS_ZH 的中文（沒有的用英文），英文介面用英文全名 */
+function airportTitle(p: PointRecord): { title: string; proper?: string } {
+  const en = String(p.en ?? '');
+  const zh = getLang() === 'zh' ? AIRPORTS_ZH[String(p.iata)] : undefined;
+  return zh ? { title: zh, proper: en } : { title: en };
+}
+
+/**
+ * 最繁忙的 50 座機場（第十二批 196）：「最繁忙的機場」指標，時間軸那一年（2020–2025，其他年份用最近的 2025）的旅客量前 50 名，
+ * 依名次；每列：名次與機場、國家與 IATA 代碼、旅客量。點了放大到 11 級並標出機場
+ */
+const PAX_LIST: ListPanelDef = {
+  label: { zh: '最繁忙的 50 座機場', en: '50 busiest airports' },
+  indicators: ['busiest-passengers'],
+  file: 'busiest-airports.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, year }) => {
+    const y = BUSIEST_YEARS.includes(year) ? year : BUSIEST_YEARS[BUSIEST_YEARS.length - 1];
+    return points
+      .filter((p) => typeof p[`r${y}`] === 'number')
+      .sort((a, b) => Number(a[`r${y}`]) - Number(b[`r${y}`]))
+      .map((p): ListRow => {
+        const { title, proper } = airportTitle(p);
+        return {
+          key: String(p.iata),
+          title: `${p[`r${y}`]}. ${title}`,
+          properNoun: proper,
+          lines: [
+            [typeof p.iso3 === 'string' ? countryName(p.iso3) : null, String(p.iata ?? '')].filter(Boolean).join(' · '),
+            tr({ zh: `${y} 年 ${paxText(p[`p${y}`] as number)}`, en: `${paxText(p[`p${y}`] as number)} in ${y}` }),
+          ],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 11 },
+        };
+      });
+  },
+};
+
+/** 最繁忙的貨運機場（第十二批 196）：「最繁忙的貨運機場」指標的 2025 年前 10 名（只有 10 座、跟旅客的不是同一批機場，另一個清單） */
+const CARGO_LIST: ListPanelDef = {
+  label: { zh: '最繁忙的貨運機場（2025 年）', en: 'Busiest cargo airports (2025)' },
+  indicators: ['busiest-cargo'],
+  file: 'cargo-airports.json',
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => Number(a.rank) - Number(b.rank))
+      .map((p): ListRow => {
+        const { title, proper } = airportTitle(p);
+        return {
+          key: String(p.iata),
+          title: `${p.rank}. ${title}`,
+          properNoun: proper,
+          lines: [
+            [typeof p.iso3 === 'string' ? countryName(p.iso3) : null, String(p.iata ?? '')].filter(Boolean).join(' · '),
+            tr({ zh: `${fixed(p.t as number, 0)} 公噸（含轉運）`, en: `${fixed(p.t as number, 0)} tonnes (incl. transit)` }),
+          ],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 11 },
+        };
+      }),
+};
 
 export const aviation: TopicDefinition = {
   id: 'aviation',
@@ -88,6 +149,7 @@ export const aviation: TopicDefinition = {
       'For airlines and the longest flights see the Air routes and airlines topic; for railways, the Railways topic.',
   },
   panelExtra: () => import('./panels/AviationPanel'),
+  listPanel: [PAX_LIST, CARGO_LIST],
   overlays: [
     // 交通主題搬過來的機場（鐵路、機場是舊的寫法，app/overlays.ts 依 id 認得 airports）
     { id: 'airports', file: 'airports.json', indicators: ['airports-count', 'large-airports'] },
@@ -167,8 +229,8 @@ export const aviation: TopicDefinition = {
       id: 'busiest-passengers',
       label: { zh: '最繁忙的機場', en: 'Busiest airports' },
       description: {
-        zh: '每年旅客量前 50 名的機場（ACI 的初步統計，依英文維基百科的整理），圓的面積與旅客量成正比，拖時間軸看 2020–2025 每一年。2025 年亞特蘭大 1.06 億人次第一，杜拜 9,519 萬、東京羽田 9,168 萬；台灣桃園 4,780 萬人次第 48 名。國家的值是它在前 50 名的機場旅客合計（排名表）。',
-        en: 'The 50 busiest airports each year by passengers (ACI preliminary figures as compiled on English Wikipedia), with circle area proportional to passengers; drag the timeline for 2020–2025. In 2025 Atlanta led with 106 million, followed by Dubai (95.2 million) and Tokyo Haneda (91.7 million); Taiwan Taoyuan ranked 48th with 47.8 million. A country’s value is the total for its airports in the top 50 (see the ranking).',
+        zh: '每年旅客量前 50 名的機場（ACI 的初步統計，依英文維基百科的整理），圓的面積與旅客量成正比，拖時間軸看 2020–2025 每一年。2025 年亞特蘭大 1.06 億人次第一，杜拜 9,519 萬、東京羽田 9,168 萬；台灣桃園 4,780 萬人次第 48 名。國家的值是它在前 50 名的機場旅客合計（排名表）。左邊的清單依名次列出那一年的 50 座。',
+        en: 'The 50 busiest airports each year by passengers (ACI preliminary figures as compiled on English Wikipedia), with circle area proportional to passengers; drag the timeline for 2020–2025. In 2025 Atlanta led with 106 million, followed by Dubai (95.2 million) and Tokyo Haneda (91.7 million); Taiwan Taoyuan ranked 48th with 47.8 million. A country’s value is the total for its airports in the top 50 (see the ranking). The list on the left shows that year’s 50 by rank.',
       },
       unit: { zh: '人次', en: 'passengers' },
       file: 'busiest-passengers.json',
