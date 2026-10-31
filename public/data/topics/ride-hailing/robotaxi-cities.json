@@ -1,0 +1,1 @@
+{"indicator":"robotaxi-cities","unit":"cities","years":[2020,2021,2022,2023,2024,2025,2026],"noValue":{"TWN":"台灣沒有無人計程車的商業營運"},"noValueEn":{"TWN":"No commercial robotaxi service in Taiwan"},"encoding":"delta","values":{"ARE":[0,null,null,null,null,null,1,1],"CHN":[0,null,null,2,3,0,0,0],"USA":[0,1,0,1,0,1,2,10]}}

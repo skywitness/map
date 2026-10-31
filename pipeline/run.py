@@ -324,6 +324,7 @@ STEPS = {
     "airlines": "topics.airlines",
     # 叫車服務在哪些國家：Uber、Grab、滴滴（手工整理的表，Uber 的國家照使用者用瀏覽器存的城市頁）
     "ride-hailing": "topics.ride_hailing",
+    "robotaxi": "topics.robotaxi",
     # 海外軍事基地（軍事主題）：英文維基「List of countries with overseas military bases」（固定版本），國家層級的流向；不到 1 秒
     "overseas-bases": "topics.overseas_bases",
     # 最新的兵力（軍事主題）：英文維基「List of countries by number of military and paramilitary personnel」（固定版本）；不到 1 秒
