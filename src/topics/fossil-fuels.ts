@@ -58,6 +58,19 @@ const GAS_COAL: DimensionDef = {
   defaultOption: GAS,
 };
 
+/** 一次能源的組成（2026-10-31，第十批 163）：EIA 的五類，id 跟燃料共用（石油、天然氣、煤） */
+const MIX_ITEMS: DimensionDef = {
+  label: { zh: '能源', en: 'Source' },
+  options: [
+    { id: OIL, label: { zh: '石油', en: 'Oil' } },
+    { id: GAS, label: { zh: '天然氣', en: 'Natural gas' } },
+    { id: COAL, label: { zh: '煤', en: 'Coal' } },
+    { id: 'nuclear', label: { zh: '核能', en: 'Nuclear' } },
+    { id: 'renewables', label: { zh: '再生能源及其他', en: 'Renewables and other' } },
+  ],
+  defaultOption: OIL,
+};
+
 /** 已經不存在的國家（pipeline 的 PLACES），畫在當時的首都 */
 const PLACES: PlaceDef[] = [
   { id: '_SUN', name: { zh: '蘇聯（1980–1991）', en: 'Soviet Union (1980–1991)' }, lon: 37.62, lat: 55.75 },
@@ -301,6 +314,65 @@ const indicators: IndicatorDef[] = [
     formatTick: tick,
     shareOfWorld: true,
   },
+  // 第十批 163（2026-10-31）：一次能源的組成、能源強度、能源進口依存度（pipeline/topics/energy_mix.py）、煉油能力（refineries.py）
+  {
+    id: 'primary-mix',
+    label: { zh: '一次能源的組成', en: 'Primary energy mix' },
+    description: {
+      zh: '各種能源占初級能源消費的比例（EIA），子項目選能源。2024 年世界石油 33.2%、煤 29.6%、天然氣 25.7%、再生能源及其他 7.0%、核能 4.7%。煤最高北韓 85.0%、寮國 79.1%、南非 69.9%，中國 61.7%、印度 58.2%；核能法國 43.7%、瑞典 33.2%；再生能源不丹 74.2%、冰島 58.2%、挪威 41.1%。台灣石油 38.4%、煤 31.3%、天然氣 24.6%、再生 3.0%、核能 2.7%（能源署的比例見附註）。',
+      en: 'Each source’s share of primary energy consumption (EIA); choose the source in the menu. In 2024 the world used oil 33.2%, coal 29.6%, gas 25.7%, renewables and other 7.0% and nuclear 4.7%. Coal is highest in North Korea (85.0%), Laos (79.1%) and South Africa (69.9%), with China at 61.7% and India 58.2%; nuclear in France (43.7%) and Sweden (33.2%); renewables in Bhutan (74.2%), Iceland (58.2%) and Norway (41.1%). Taiwan: oil 38.4%, coal 31.3%, gas 24.6%, renewables 3.0%, nuclear 2.7% (see the note for the Energy Administration’s shares).',
+    },
+    unit: '%',
+    file: 'primary-mix/{item}.json',
+    dimension: MIX_ITEMS,
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 15, 30, 50, 70] } },
+    format: percent,
+    formatTick: (v) => `${v}%`,
+    compareWorld: true,
+  },
+  {
+    id: 'energy-intensity',
+    label: { zh: '能源強度', en: 'Energy intensity' },
+    description: {
+      zh: '每 1 美元 GDP 用掉的初級能源（百萬焦耳，MJ）：EIA 的初級能源消費 ÷ 購買力平價 GDP（2015 年的美元）。2024 年世界 4.3 MJ；土庫曼 18.4、北韓 17.7、利比亞 12.4 最高，查德、索馬利亞、澳門 0.7 左右最低；台灣 3.4（1990 年 6.6，少了一半）、日本 3.1、美國 4.4、南韓 5.2、中國 6.2。寒冷、產油、重工業的國家本來就偏高，強度不等於效率。',
+      en: 'Primary energy used per US dollar of GDP, in megajoules (MJ): EIA primary energy consumption ÷ GDP at purchasing power parity (2015 dollars). 4.3 MJ worldwide in 2024; Turkmenistan (18.4), North Korea (17.7) and Libya (12.4) are highest and Chad, Somalia and Macao lowest at about 0.7; Taiwan 3.4 (6.6 in 1990, half as much now), Japan 3.1, the US 4.4, South Korea 5.2, China 6.2. Cold, oil-producing and heavy-industry countries run high, so intensity is not the same as efficiency.',
+    },
+    unit: { zh: 'MJ/美元', en: 'MJ per dollar' },
+    file: 'energy-intensity.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 3, 4, 6, 9, 12] } },
+    format: (v) => tr({ zh: `每美元 ${num(v)} MJ`, en: `${num(v)} MJ per dollar` }),
+    formatTick: tick,
+    compareWorld: true,
+  },
+  {
+    id: 'import-dependency',
+    label: { zh: '能源進口依存度', en: 'Energy import dependence' },
+    description: {
+      zh: '整體能源有多少靠進口：1 −（初級能源產量 ÷ 消費），EIA。負的是淨出口（產量比消費多），挪威 −717%、澳洲 −198%、沙烏地阿拉伯 −127%、俄羅斯 −76%、美國 −9.5%。2024 年香港 99.8%、新加坡 99.0%、台灣 94.3%、日本 87.5%、南韓 82.9%、德國 71.1%、印度 40.4%、中國 23.3%。EIA 把核能算自產，能源署把核燃料算進口，所以台灣比能源署的數字低（見附註）。',
+      en: 'How much of all energy is imported: 1 − (primary energy production ÷ consumption), EIA. Negative values are net exporters (producing more than they use): Norway −717%, Australia −198%, Saudi Arabia −127%, Russia −76%, the US −9.5%. In 2024 Hong Kong was at 99.8%, Singapore 99.0%, Taiwan 94.3%, Japan 87.5%, South Korea 82.9%, Germany 71.1%, India 40.4% and China 23.3%. The EIA counts nuclear as domestic while Taiwan’s Energy Administration counts nuclear fuel as imported, so Taiwan’s figure is lower than the official one (see the note).',
+    },
+    unit: '%',
+    file: 'import-dependency.json',
+    layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-200, -50, -10, 10, 50, 90], reverse: true } },
+    format: (v) => (v < 0 ? tr({ zh: `淨出口（${num(v)}%）`, en: `Net exporter (${num(v)}%)` }) : `${num(v)}%`),
+    formatTick: (v) => `${v}%`,
+    compareWorld: true,
+  },
+  {
+    id: 'refining-capacity',
+    label: { zh: '煉油能力', en: 'Refining capacity' },
+    description: {
+      zh: '運轉中的煉油廠一天能處理的原油合計（萬桶），圓的面積與它成正比；地圖上的點是 Wikidata 有座標的煉油廠（不到三成），大小是能力，顏色是狀態。依英文維基百科「List of oil refineries」2026-10-18 的版本：美國 1,857 萬桶/日最多，俄羅斯 511、印度 467、中國 388、日本 381、沙烏地阿拉伯 319、南韓 308；最大的煉油廠是印度 Jamnagar 140 萬桶/日。台灣 74 萬（麥寮 54、桃園 20、大林 10）。清單不完整：中國的地方煉油廠多半沒有列、印度有的只寫年處理噸數，合計明顯偏低。',
+      en: 'Total crude oil that operating refineries can process per day (10,000 barrels); circle area is proportional to it. Dots are the refineries that have coordinates in Wikidata (under 30%), sized by capacity and coloured by status. Based on English Wikipedia’s “List of oil refineries” as of 18 October 2026: the US leads with 18.6 million barrels a day, then Russia 5.1, India 4.7, China 3.9, Japan 3.8, Saudi Arabia 3.2 and South Korea 3.1 million; the largest refinery is India’s Jamnagar at 1.4 million. Taiwan 0.74 million (Mailiao 0.54, Taoyuan 0.20, Dalin 0.10). The list is incomplete: most of China’s independent refineries are missing and some Indian ones give only tonnes a year, so totals are clearly too low.',
+    },
+    unit: { zh: '萬桶/日', en: '10,000 b/d' },
+    file: 'refining-capacity.json',
+    layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+    format: (v) => tr({ zh: `${num(v)} 萬桶/日`, en: `${fixed(v * 10, 0)} thousand b/d` }),
+    formatTick: tick,
+    timeless: true,
+    shareOfWorld: true,
+  },
   flow(
     'export',
     { zh: '流向：出口對象', en: 'Flows: export destinations' },
@@ -319,7 +391,43 @@ const indicators: IndicatorDef[] = [
   ),
 ];
 /** 分燃料的指標（檔名有 {item}）：GEM 的管線、油氣田與煤礦只在這些指標畫，全部能源的兩個指標不畫 */
-const FUEL_INDICATORS = indicators.filter((i) => i.file.includes('{item}')).map((i) => i.id);
+const FUEL_INDICATORS = indicators.filter((i) => i.file.includes('{item}') && i.id !== 'primary-mix').map((i) => i.id);
+
+// ── 煉油廠（第十批 163，pipeline/topics/refineries.py）─────────────────
+
+const REFINERY_STATUS: Record<number, Text> = {
+  1: { zh: '運轉中', en: 'Operating' },
+  2: { zh: '規劃或興建中', en: 'Planned or under construction' },
+  3: { zh: '已關閉', en: 'Closed' },
+};
+const REFINERY_COLORS: ColorClasses = {
+  field: 'st',
+  title: { zh: '狀態', en: 'Status' },
+  thresholds: [2, 3],
+  classes: [
+    { color: MAP_TOKENS.categorical[0], label: REFINERY_STATUS[1] },
+    { color: MAP_TOKENS.hues.yellow, label: REFINERY_STATUS[2] },
+    { color: MAP_TOKENS.inkSecondary, label: REFINERY_STATUS[3] },
+  ],
+};
+function refineryTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
+  const zh = typeof p.zh === 'string' ? p.zh : null;
+  const name = tr({ zh: zh ?? String(p.name ?? ''), en: String(p.name ?? '') });
+  const cap =
+    typeof p.cap === 'number'
+      ? tr({ zh: `每日 ${num(p.cap)} 萬桶${p.est ? '（由年處理噸數換算）' : ''}`, en: `${fixed(p.cap * 10, 0)} thousand b/d${p.est ? ' (converted from tonnes a year)' : ''}` })
+      : tr({ zh: '能力不詳', en: 'Capacity unknown' });
+  return {
+    title: name,
+    detail: [typeof p.st === 'number' ? tr(REFINERY_STATUS[p.st]) : null, cap].filter(Boolean).join(' · '),
+    extra: [
+      typeof p.op === 'string' ? p.op : null,
+      typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      tr({ zh: '能力依英文維基百科 2026-10-18 的版本（各廠的資料年份不一）', en: 'Capacity per English Wikipedia as of 18 Oct 2026 (data years vary)' }),
+    ].filter((x): x is string => Boolean(x)),
+    properNoun: zh ? String(p.name ?? '') : undefined,
+  };
+}
 
 // ── GEM 的疊加圖層 ─────────────────────────────────
 
@@ -541,14 +649,23 @@ export const fossilFuels: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: {
+        zh: '英文維基百科「List of oil refineries」（2026-10-18 的版本，煉油廠與能力）',
+        en: 'English Wikipedia, “List of oil refineries” (revision of 18 October 2026, refineries and capacities)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?oldid=1380836230',
+      license: { zh: 'CC BY-SA 4.0（煉油能力與煉油廠的資料檔也是）', en: 'CC BY-SA 4.0 (so are the refining data files)' },
+    },
+    { name: { zh: 'Wikidata（煉油廠的座標）', en: 'Wikidata (refinery coordinates)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    {
       name: { zh: '聯合國 World Population Prospects 2024（人口）', en: 'UN World Population Prospects 2024 (population)' },
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
     {
       name: {
-        zh: '經濟部能源署 能源供給年資料、原油／液化天然氣／煤炭進口來源年資料（台灣的對照）',
-        en: 'Energy Administration, Ministry of Economic Affairs (Taiwan): energy supply and crude oil, LNG and coal import sources (for comparison)',
+        zh: '經濟部能源署 能源供給年資料、能源指標年資料、原油／液化天然氣／煤炭進口來源年資料（台灣的對照）',
+        en: 'Energy Administration, Ministry of Economic Affairs (Taiwan): energy supply, energy indicators and crude oil, LNG and coal import sources (for comparison)',
       },
       url: 'https://data.gov.tw/dataset/163714',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
@@ -652,6 +769,26 @@ export const fossilFuels: TopicDefinition = {
       MAP_TOKENS.inkSecondary,
       true,
     ),
+    {
+      kind: 'points',
+      id: 'refineries',
+      file: 'refineries.json',
+      label: { zh: '煉油廠（Wikidata 有座標的）', en: 'Refineries (with coordinates in Wikidata)' },
+      indicators: ['refining-capacity'],
+      radius: {
+        field: 'cap',
+        stops: [
+          [0, 2],
+          [10, 4],
+          [50, 9],
+          [140, 15],
+        ],
+      },
+      color: REFINERY_COLORS,
+      sortField: 'cap',
+      sizeLegend: { title: { zh: '能力（萬桶/日）', en: 'Capacity (10,000 b/d)' }, values: [10, 50, 140], format: tick },
+      tooltip: refineryTooltip,
+    },
   ],
   indicators,
 };

@@ -161,6 +161,10 @@ STEPS = {
     # BACI HS92 版（2.4 GB，讀 HS 3915 約 5 分鐘）、環境部的一般廢棄物與資源回收、財政部的 HS 3915
     "plastic": "topics.plastic",
     "fossil-fuels": "topics.fossil_fuels",  # 第一次會下載 EIA（24 MB）、BACI HS92（2.4 GB，跟塑膠污染共用）、GEM 四個 tracker（約 430 MB）
+    # 一次能源組成、能源強度、能源進口依存度（第十批 163；fossil-fuels 最後也會跑）；約 30 秒
+    "energy-mix": "topics.energy_mix",
+    # 煉油廠（英文維基的清單＋Wikidata 座標，第十批 163；fossil-fuels 最後也會跑）
+    "refineries": "topics.refineries",
     # 要先有 geo 的國界；Ookla Open Data 每年第 3 季的固網與行動各一個 parquet（2019–2026 年，pyarrow 只讀需要的欄位，
     # 共約 1.4 GB、3 分鐘），約 2,000 萬個圖塊第一次歸國要十幾分鐘（之後用快取）；數位發展部的 5G 量測（CC0，幾 KB）
     "internet-speed": "topics.internet_speed",

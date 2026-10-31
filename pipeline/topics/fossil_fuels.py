@@ -113,6 +113,11 @@ def build() -> None:
     gem = gem_files()
     taiwan = taiwan_comparison(eia_data, trade)
     details(eia_data, trade, gem, taiwan)
+    # 第十批 163（2026-10-31）：一次能源組成、能源強度、進口依存度與煉油廠，各自也是單獨的步驟（energy-mix、refineries）
+    from topics import energy_mix, refineries
+
+    energy_mix.build()
+    refineries.build()
     write_json(
         OUT / "manifest.json",
         {
@@ -126,9 +131,11 @@ def build() -> None:
                 "Global Oil Infrastructure Tracker (June 2026), Global Oil and Gas Extraction Tracker (March 2026), "
                 "Global Coal Mine Tracker (August 2026) (CC BY 4.0).",
                 "UN World Population Prospects 2024 (CC BY 3.0 IGO).",
-                "經濟部能源署 能源供給年資料、原油／液化天然氣／煤炭進口來源年資料（政府資料開放授權條款第 1 版）。",
+                "經濟部能源署 能源供給年資料、能源指標年資料、原油／液化天然氣／煤炭進口來源年資料（政府資料開放授權條款第 1 版）。",
+                "English Wikipedia, List of oil refineries, revision 1380836230 of 2026-10-18 (CC BY-SA 4.0); Wikidata (CC0).",
             ],
-            "license": "Public domain (EIA, CIA World Factbook); Etalab 2.0 (BACI); CC BY 4.0 (GEM); CC BY 3.0 IGO (UN WPP)",
+            "license": "Public domain (EIA, CIA World Factbook); Etalab 2.0 (BACI); CC BY 4.0 (GEM); CC BY 3.0 IGO (UN WPP); "
+                       "CC BY-SA 4.0 (refineries, refining capacity)",
         },
     )
 

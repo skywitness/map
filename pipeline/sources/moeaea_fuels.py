@@ -6,6 +6,7 @@
 | 原油進口來源年資料 | 163714 | 242 | 千桶 |
 | 液化天然氣進口來源年資料 | 163715 | 243 | 千公噸 |
 | 煤炭進口來源年資料 | 163716 | 244 | 千公噸 |
+| 能源指標年資料（初級能源密集度、進口能源依存度等 35 欄；2026-10-31 加，第十批 163 的台灣附註） | 8308 | 13 | 各欄不同 |
 
 - 都是 2005 年起的年資料（2026-09-23 更新到 2025 年）。進口來源只有幾個主要來源國的欄位，其餘併進「其他」
   （原油 2005 年的「其他」占 27.6%，2024 年 0.4%）。
@@ -26,6 +27,7 @@ FILES = {
     "oil": (242, "crude-oil-import-sources-annual.csv", "https://data.gov.tw/dataset/163714"),
     "lng": (243, "lng-import-sources-annual.csv", "https://data.gov.tw/dataset/163715"),
     "coal": (244, "coal-import-sources-annual.csv", "https://data.gov.tw/dataset/163716"),
+    "indicators": (13, "energy-indicators-annual.csv", "https://data.gov.tw/dataset/8308"),
 }
 # 進口來源的國名 → ISO alpha-3（「其他」是 None）
 COUNTRIES = {
@@ -54,6 +56,12 @@ def _number(text: str | None) -> float:
 def supply() -> dict[int, dict[str, float]]:
     """能源供給表：{年: {欄位: 千公噸油當量}}，欄位名稱去掉「(統計數值)」，例如「自產能源_原油」「進口能源_液化天然氣」。"""
     return {int(r["西元年"]): {k: _number(v) for k, v in r.items() if k not in ("西元年", "單位")} for r in _rows("supply")}
+
+
+def indicators() -> dict[int, dict[str, float]]:
+    """能源指標年資料：{年: {欄位: 值}}，欄位名稱去掉「(數值)」，例如「初級能源密集度(公升油當量/千元)」「進口能源依存度(%)」。"""
+    return {int(r["西元年"]): {k.replace("(數值)", "").strip(): _number(v) for k, v in r.items() if k != "西元年"}
+            for r in _rows("indicators")}
 
 
 def import_sources(fuel: str) -> dict[int, dict[str | None, float]]:
