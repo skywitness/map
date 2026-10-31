@@ -17,6 +17,7 @@ export const payloads = (v: number) =>
 export const objects = (v: number) =>
   tr({ zh: `${n0(v)} 個`, en: `${n0(v)} ${Math.round(v) === 1 ? 'object' : 'objects'}` });
 const launches = (v: number) => tr({ zh: `${n0(v)} 次`, en: `${n0(v)} ${Math.round(v) === 1 ? 'launch' : 'launches'}` });
+const missions = (v: number) => tr({ zh: `${n0(v)} 個`, en: `${n0(v)} ${Math.round(v) === 1 ? 'mission' : 'missions'}` });
 
 /** 發射場的 tooltip：短名稱是標題，國家與入軌發射次數、年份範圍，GCAT 的完整英文名稱放在不翻譯的那一行 */
 function siteTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
@@ -48,6 +49,22 @@ export const space: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     ...landingsPart.sources,
+    {
+      name: {
+        zh: 'OECD：Government budget allocations for R&D（太空的探索與利用）',
+        en: 'OECD, Government budget allocations for R&D (exploration and exploitation of space)',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
+        zh: '英文維基百科「List of Solar System probes」（revid 1382377257）、「List of government space agencies」（revid 1382533503，中國、印度的附註）',
+        en: 'English Wikipedia, “List of Solar System probes” (revision 1382377257) and “List of government space agencies” (revision 1382533503; notes for China and India)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=List_of_Solar_System_probes&oldid=1382377257',
+      license: 'CC BY-SA 4.0',
+    },
   ],
   note: {
     zh: '資料來自 Jonathan McDowell 的 GCAT（data from GCAT, J. McDowell, planet4589.org/space/gcat），到 2026 年 10 月 29 日，所以 2026 年是到目前為止。酬載是衛星、太空船與太空站艙段，含已經失效的衛星，不含火箭殘骸與碎片；國家是擁有者所屬的國家。太空垃圾是火箭殘骸、碎片與零件，只有追蹤得到、編進目錄的物體（大約 10 公分以上），更小的碎片是模型推算的、不在這裡；碎片算在原本那個物體的擁有國，年份用它產生（分離或解體）的日期。發射是入軌發射（成功與失敗都算），國家是發射業者所屬的國家（阿利安太空公司在法屬圭亞那發射算法國、Rocket Lab 在紐西蘭發射算美國）。蘇聯的酬載與發射算在繼承國俄羅斯；歐洲太空總署、EUMETSAT、Intelsat 等國際組織的酬載只算進世界合計。' + ' 月球與火星的登陸：' + landingsPart.note.zh,
@@ -132,5 +149,66 @@ export const space: TopicDefinition = {
       shareOfWorld: true,
     },
     ...landingsPart.indicators,
+    {
+      id: 'space-budget',
+      label: { zh: '政府的太空研發預算', en: 'Government space R&D budget' },
+      description: {
+        zh: '政府預算裡分給「太空的探索與利用」的研發經費（OECD 的 GBARD，百萬美元，購買力平價、當期價格）。2025 年美國 106 億、日本 42 億、法國 34 億、德國與義大利各 25 億，南韓 2024 年 11 億；台灣 2025 年 4.27 億（新台幣 58.2 億元）。只算研發，不是太空機構的全部預算；歐洲國家含給歐洲太空總署的錢。OECD 沒有中國、印度，它們的機構預算寫在附註（英文維基：中國國家航天局 2023 年 181.5 億美元、印度太空研究組織 2022 年 18.3 億美元，市場匯率）。',
+        en: 'Government budget allocations for R&D on the “exploration and exploitation of space” (OECD GBARD, US$ millions at purchasing power parity, current prices). In 2025: the US 10.6 billion, Japan 4.2 billion, France 3.4 billion, Germany and Italy 2.5 billion each; South Korea 1.1 billion in 2024; Taiwan 427 million in 2025 (NT$5.82 billion). This covers R&D only, not entire space agency budgets; European figures include contributions to ESA. China and India are not in the OECD data; their agency budgets are in the notes (English Wikipedia: CNSA US$18.15 billion in 2023, ISRO US$1.83 billion in 2022, at market exchange rates).',
+      },
+      unit: { zh: '百萬美元（購買力平價）', en: 'US$ millions (PPP)' },
+      file: 'space-budget.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 50, 100, 500, 1000, 3000] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 百萬美元`, en: `US$${fixed(v, 0)} million` }),
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'probes',
+      label: { zh: '月球以外的探測任務', en: 'Missions beyond the Moon' },
+      description: {
+        zh: '到這一年為止，各國派到月球以外（太陽、行星、小行星、彗星）的探測任務數（成功、失敗、進行中都算）。英文維基的太陽系探測器清單，一個任務飛過好幾個目的地只算主要的那一個。美國 72、蘇聯與俄羅斯 55、日本 15、中國 5；印度 2（曼加里安號、太陽探測的 Aditya-L1）、阿聯 1（希望號）。歐洲太空總署自己的 13 個任務不算進任何國家。',
+        en: 'Missions sent beyond the Moon (to the Sun, planets, asteroids and comets) up to the selected year, by country, whether successful, failed or ongoing. From English Wikipedia’s list of Solar System probes; a mission that visits several destinations counts once, for its main one. The US has 72, the Soviet Union and Russia 55, Japan 15 and China 5; India 2 (Mangalyaan and the solar probe Aditya-L1) and the UAE 1 (Hope). ESA’s own 13 missions are not assigned to any country.',
+      },
+      unit: { zh: '個', en: 'missions' },
+      file: 'probes.json',
+      missing: { zh: '沒有', en: 'None' },
+      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+      overlayTime: 'cumulative',
+      format: missions,
+      formatTick: n0,
+      shareOfWorld: true,
+    },
+    {
+      id: 'probes-success',
+      label: { zh: '成功的探測任務', en: 'Successful missions beyond the Moon' },
+      description: {
+        zh: '月球以外的探測任務裡，主要目的地的任務成功（含部分成功）的數量，到這一年為止。條目的列用顏色標成功、失敗、進行中。',
+        en: 'Missions beyond the Moon that succeeded (fully or partly) at their main destination, up to the selected year; the article colours each row as successful, failed or ongoing.',
+      },
+      unit: { zh: '個', en: 'missions' },
+      file: 'probes-success.json',
+      missing: { zh: '沒有', en: 'None' },
+      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+      overlayTime: 'cumulative',
+      format: missions,
+      formatTick: n0,
+      shareOfWorld: true,
+    },
+    {
+      id: 'probes-failed',
+      label: { zh: '失敗的探測任務', en: 'Failed missions beyond the Moon' },
+      description: {
+        zh: '月球以外的探測任務裡失敗的數量（含發射失敗），到這一年為止。1960–70 年代蘇聯的火星、金星任務失敗最多。',
+        en: 'Missions beyond the Moon that failed (including launch failures), up to the selected year. Soviet Mars and Venus missions of the 1960s and 1970s account for the most failures.',
+      },
+      unit: { zh: '個', en: 'missions' },
+      file: 'probes-failed.json',
+      missing: { zh: '沒有', en: 'None' },
+      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+      overlayTime: 'cumulative',
+      format: missions,
+      formatTick: n0,
+      shareOfWorld: true,
+    },
   ],
 };

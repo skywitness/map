@@ -335,6 +335,8 @@ STEPS = {
     "heritage-railways": "topics.heritage_railways",
     # 月球與火星的登陸：英文維基「List of landings on extraterrestrial bodies」（固定版本）的月球、火星兩張表；不到 1 秒
     "landings": "topics.landings",
+    # 太空的擴充（第十批 171）：OECD 的政府太空研發預算、英文維基的太陽系探測器清單
+    "space-extra": "topics.space_extra",
     # F1 賽道與冠軍：Jolpica-F1 的資料庫匯出（延遲 14 天的版本，不必登入，ZIP 約 15 MB；CC BY-NC-SA 4.0）；幾秒
     "f1": "topics.f1",
     # 賽車：英文維基百科 12 個賽季條目與 5 個歷年列表（固定版本）、Wikidata 的座標；F1 的歷年讀 f1 這一步的 circuits.json（要先跑 f1）；
