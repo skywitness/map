@@ -248,6 +248,7 @@ STEPS = {
     # 核子事故：手工整理的事件表（英文維基百科三篇的固定版本，sources/nuclear_accidents.py）＋ Wikidata 的座標；幾秒
     "nuclear-accidents": "topics.nuclear_accidents",
     "nuclear-waste": "topics.nuclear_waste",
+    "energy-policy": "topics.energy_policy",
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
