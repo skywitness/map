@@ -63,6 +63,8 @@ LAND_KM = 30
 
 # 國籍代碼（tracks.json 的 types、voyages 的國籍；src/topics/logbooks.ts 的 NATIONS 要一致）與對應的今天的國家
 NATIONS = ["UK", "NL", "ES", "FR", "SE", "US", "DE", "DK"]
+# 只看某一國的船的指標：檔名的代碼與包含的國籍（英、荷、西、法各一，其他四國併成一個）
+SHIP_VIEWS = [("uk", ["UK"]), ("nl", ["NL"]), ("es", ["ES"]), ("fr", ["FR"]), ("other", ["SE", "US", "DE", "DK"])]
 OTHER = 4  # tracks.json 的 types：英、荷、西、法各一類，其他國家（瑞典、美國、漢堡、丹麥）併成一類
 NATION_ISO3 = {"UK": "GBR", "NL": "NLD", "ES": "ESP", "FR": "FRA", "SE": "SWE", "US": "USA", "DE": "DEU", "DK": "DNK"}
 
@@ -420,6 +422,11 @@ def build() -> None:
         record_strings=["s", "c", "f", "t", "k"],
     ))
     write_json(OUT / "ships.json", indicator_file("ships", "艘", years, values, notes=notes, notesEn=notes_en))
+    # 只看某一國的船的指標（2026-10-31，src/topics/logbooks.ts 的 SHIP_VIEWS）：同樣的船數，只留那一國；
+    # 其他是瑞典、美國、漢堡、丹麥。年份跟 ships.json 一樣，換指標時時間軸不跳
+    for code, nations in SHIP_VIEWS:
+        keep = {NATION_ISO3[n] for n in nations}
+        write_json(OUT / f"ships-{code}.json", indicator_file(f"ships-{code}", "艘", years, {k: v for k, v in values.items() if k in keep}))
     write_json(OUT / "panel.json", {
         "fields": ["ship", "nation", "company", "from", "to", "start", "end", "captain"],
         "voyages": table,
