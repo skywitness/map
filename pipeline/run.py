@@ -299,6 +299,7 @@ STEPS = {
     "pandas": "topics.pandas",
     # 景點地圖：Wikidata 的博物館、動物園與水族館、樂園與雲霄飛車（第一次查約 40 分鐘，之後用快取）＋文化部的博物館
     "attractions": "topics.attractions",
+    "attractions-extra": "topics.attractions_extra",
     # 植物園（景點地圖的第四個圖層，輸出到 topics/attractions/gardens.json）：Wikidata 一個 SPARQL 查詢；不必重跑 attractions，幾秒
     "botanical-gardens": "topics.botanical_gardens",
     # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒

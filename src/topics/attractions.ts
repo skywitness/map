@@ -1,6 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
+import { attractionsExtra } from './attractions-extra';
 import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
@@ -8,6 +9,7 @@ import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } fro
  * 2026-10-30 加上第四個圖層植物園（pipeline/topics/botanical_gardens.py，Wikidata）。
  * 使用者 2026-10-29 決定：三類合成一個主題、用圖層切換；只畫點，不做各國的數量（數量反映 Wikidata 的收錄程度）；
  * 台灣的博物館用文化部的開放資料補，台灣缺的動物園、水族館手工補；已拆除、停業的不畫。
+ * 人次、摩天輪、購物中心、世界奇觀、創意城市、世界博覽會在 attractions-extra.ts（2026-10-31，第十批 182）。
  */
 
 export interface LayerKinds {
@@ -79,6 +81,8 @@ function overlay(layer: LayerKinds, minValue: [number, number][]): PointsOverlay
     id: layer.id,
     file: `${layer.id}.json`,
     label: layer.label,
+    // 人次、地標、創意城市、世界博覽會的指標不畫這四層（點太多，跟那些圖層混在一起）
+    indicators: ['attractions'],
     radius: { field: 'sl', stops: [[0, 1.8], [10, 2.6], [40, 3.8], [100, 5.2]] },
     color,
     sortField: 'sl',
@@ -119,6 +123,7 @@ export const attractions: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/6242',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
+    ...attractionsExtra.sources,
   ],
   note: {
     zh:
@@ -138,6 +143,7 @@ export const attractions: TopicDefinition = {
     overlay(LAYERS[1], [[0, 15], [3, 5], [5, 0]]),
     overlay(LAYERS[2], [[0, 15], [3, 5], [5, 0]]),
     overlay(LAYERS[3], [[0, 10], [3, 3], [5, 0]]),
+    ...attractionsExtra.overlays,
   ],
   indicators: [
     {
@@ -156,5 +162,6 @@ export const attractions: TopicDefinition = {
       format: () => '',
       missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
     },
+    ...attractionsExtra.indicators,
   ],
 };
