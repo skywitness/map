@@ -1521,6 +1521,61 @@ kbd {
   height: 28px;
 }
 
+/* 清單側欄的排序按鈕、搜尋框、「看全部」（2026-10-31，第十二批 188） */
+.list-side-sorts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px 0 14px;
+}
+
+.list-side-sort {
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.list-side-sort:hover {
+  background: var(--grid);
+}
+
+.list-side-sort.is-active {
+  border-color: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.list-side-search {
+  margin: 8px 12px 4px 14px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+.list-side-all {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.list-side-all:hover {
+  text-decoration: underline;
+}
+
 .list-side > .empty {
   padding: 12px 14px;
 }

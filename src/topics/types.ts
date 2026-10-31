@@ -867,14 +867,33 @@ export interface ListPanelDef {
   label: Text;
   /** 只在這些指標顯示；沒寫是所有指標 */
   indicators?: string[];
-  /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item} */
+  /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}；有 lines 時是線檔（LinesData） */
   file: string;
   /**
-   * 點 → 清單的每一列（已經排好）。在呼叫當下讀目前的語言（tr()）；year 是時間軸的年份，item 是目前的子項目
+   * 讀線（2026-10-31，第十二批 188）：file 是線檔，rows 拿到的是每一組線一筆紀錄（groupField 相同的線併成一組，
+   * 紀錄是那一組第一條線的紀錄），加上那一組的範圍 bw、bs、be、bn。列的 line 寫 { overlay, group }（group 是
+   * groupField 的值，跟地圖上線圖層的分組一樣），滑過、點了把地圖上那一組線標出來
    */
-  rows: (points: PointRecord[], ctx: { countryName: (iso3: string) => string; year: number; item: string | null }) => ListRow[];
+  lines?: { groupField: string };
+  /**
+   * 點 → 清單的每一列（已經排好）。在呼叫當下讀目前的語言（tr()）；year 是時間軸的年份，item 是目前的子項目，
+   * country 是選取的國家（沒選是 null），sort 是 sorts 裡目前選的 id（沒有 sorts 時是 null）
+   */
+  rows: (
+    points: PointRecord[],
+    ctx: { countryName: (iso3: string) => string; year: number; item: string | null; country: string | null; sort: string | null },
+  ) => ListRow[];
   /** 沒有任何一列時的說明 */
   empty?: Text;
+  /**
+   * 切換排序（2026-10-31，L22）：清單上面一排小按鈕，第一個是預設；選的記在網址（lsort=）。rows 依 ctx.sort 排
+   */
+  sorts?: { id: string; label: Text }[];
+  /**
+   * 跟選取的國家連動（2026-10-31，L23）：選了國家時只列這個欄位是那一國的點（欄位可以是一個 ISO3 或以逗號分隔的幾個），
+   * 清單標題前面加國名，旁邊一個「看全部」；那一國一筆也沒有時照樣列全部
+   */
+  countryField?: string;
 }
 
 /** 清單側欄的一列 */
@@ -898,6 +917,8 @@ export interface ListRow {
   mark?: { lon: number; lat: number };
   /** 點了把時間軸換到這一年（例如每月賽程換到那一站的月份） */
   year?: number;
+  /** 滑過、點了標出地圖上的一組線（讀線的清單，ListPanelDef.lines）：線圖層的 id 與組別 */
+  line?: { overlay: string; group: number };
 }
 
 export interface MapMark {

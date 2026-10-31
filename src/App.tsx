@@ -433,7 +433,21 @@ export function App() {
     if (box) moveToBox(box, fitOnEpoch.maxZoom);
     // 只在換期、換圖層、資料剛下載完時移動（選國家、滑地圖不動）
   }, [fitLayer?.def.id, fitEpoch, fitPoints]);
+  // 讀線的清單（第十二批 188）：點了的那一組線一直標著，滑過別的列時暫時換成那一組，離開清單時回到點了的
+  const [listLine, setListLine] = useState<{ topic: string; overlay: string; group: number } | null>(null);
+  const hoverListRow = useCallback(
+    (row: ListRow | null) => {
+      const line = row?.line ?? (listLine && listLine.topic === topic.id ? listLine : null);
+      if (line) highlightLine(line.overlay, line.group);
+      else if (row === null) setLineHighlight((h) => (h && h.overlay !== PERSONAL_ID ? null : h));
+    },
+    [listLine, topic.id, highlightLine],
+  );
   const pickListRow = (row: ListRow) => {
+    if (row.line) {
+      setListLine({ topic: topic.id, ...row.line });
+      highlightLine(row.line.overlay, row.line.group);
+    }
     if ('box' in row.target) moveToBox(row.target.box);
     else {
       // 點：框一個約 2 km 的範圍，放大到 zoom（預設 11 級，看得到賽道或城鎮）
@@ -861,10 +875,14 @@ export function App() {
               topicId={dataFolder(topic)}
               item={item}
               year={year}
+              country={state.country}
               countryName={listCountryName}
+              sort={state.listSort}
+              onSortChange={(id) => update({ listSort: id })}
               open={layout.list}
               onOpenChange={(open) => setLayout({ list: open })}
               onPick={pickListRow}
+              onHover={hoverListRow}
             />
           )}
           <div className="stage-main">

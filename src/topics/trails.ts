@@ -117,6 +117,7 @@ const LIST: ListPanelDef = {
           lines: [[levelLabel(p.t), kmText(Number(p.km))].join(' · '), countries].filter(Boolean),
           properNoun: typeof p.n === 'string' && p.n !== name ? p.n : undefined,
           target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] as [number, number, number, number] },
+          line: { overlay: 'trails', group: Number(p.r) },
         };
       }),
 };

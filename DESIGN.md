@@ -4496,9 +4496,15 @@ pipeline/
 ### 清單側欄：地圖左邊列出主題的點，點了移過去（2026-10-30，製作手冊第九批 160 的追加）
 
 使用者 2026-10-30：「像賽車這類主題，可否在左邊加個側邊欄顯示賽程，並且點擊可以直接跳到地點」。做成通用的設定，任何有點的清單都可以套用（這次套用在賽車的賽程、奧運的比賽場館，之後加了長途步道最長的 100 條〔範圍的目標〕；之後節慶、日食與月食這類有日期或地點清單的主題可以直接用）。
-- **設定**（`TopicDefinition.listPanel: ListPanelDef`，`src/topics/types.ts`）：`label`（標題）、`indicators`（只在這些指標顯示）、`file`（點的資料檔，可以含 `{item}`，跟子項目連動）、`rows(點, { countryName, year, item })`（排好的每一列 `ListRow`：`title`、`titleProper`（標題本身是不翻譯的原文名稱，標 `translate="no"`，2026-10-30 長途步道加）、`lines`、`properNoun`、`muted`（淡一點）、`badge`（小標籤，打開時捲到第一個有標籤的列）、`target`（一個點與放大的級數，或一個範圍）、`mark`、`year`（點了把時間軸換到這一年））、`empty`。
+- **設定**（`TopicDefinition.listPanel: ListPanelDef | ListPanelDef[]`〔陣列時各自寫 `indicators`，用第一個符合目前指標的，2026-10-31〕，`src/topics/types.ts`）：`label`（標題）、`indicators`（只在這些指標顯示）、`file`（點的資料檔，可以含 `{item}`，跟子項目連動）、`rows(點, { countryName, year, item })`（排好的每一列 `ListRow`：`title`、`titleProper`（標題本身是不翻譯的原文名稱，標 `translate="no"`，2026-10-30 長途步道加）、`lines`、`properNoun`、`muted`（淡一點）、`badge`（小標籤，打開時捲到第一個有標籤的列）、`target`（一個點與放大的級數，或一個範圍）、`mark`、`year`（點了把時間軸換到這一年））、`empty`。
 - **元件**（`src/panels/ListSide.tsx`）：桌機在地圖左邊（`.stage.has-list` 多一欄 280px，收起來剩 40px 的窄邊與打開的按鈕；跟右邊的國家側欄同時在時是三欄）；900px 以下版面改成上下排時在時間軸下面、國家側欄前面，預設收起來只剩一顆按鈕（不擋地圖），打開最高半個畫面，點一列後把地圖捲回畫面。收合記在版面偏好（`lib/layoutPrefs.ts` 的 `list`，頂列「版面」選單也可以打勾；窄螢幕的打開不記）。不寫網址：選到哪一列不需要分享。嵌入、純地圖、排名表與分析檢視不顯示。
 - **點一列**（`App.tsx` 的 `pickListRow`）：點的目標框一個約 2 km 的範圍、`moveToBox(範圍, 放大級數)`（`focusBox` 多一個選填的 `maxZoom`，原本最多 8 級），範圍的目標照原本的 `moveToBox`；地點用既有的 `setMarks` 標出來（換國家、換主題就拿掉）；有 `year` 而指標有時間軸時換年份。
+- **元件加強**（2026-10-31，製作手冊第十二批 188；`ListSide.tsx`、`types.ts` 的 `ListPanelDef`、`App.tsx`）：
+  - **讀線**：`ListPanelDef.lines: { groupField }` 時 `file` 是線檔（`LinesData`），`rows` 拿到的是每一組線一筆紀錄（`groupField` 相同的線併成一組，紀錄是那一組第一條線的、併進了 `groups` 的共用欄位），加上那一組的範圍 `bw`、`bs`、`be`、`bn`（經度沒有折回，跨 180° 的線照樣框得住）。`ListRow.line: { overlay, group }`：滑過一列時把地圖上那一組線標出來（`highlightLine`，`group` 是線圖層 `groupField` 的值），點了以後一直標著，滑過別的列暫時換掉、離開清單時回到點了的那一條。用點檔加範圍的清單（渡輪、長途步道）也可以寫 `line`。
+  - **搜尋框**（L21）：清單有 15 列以上時上面一個搜尋框，比對標題、第二行起與原文名稱（不分大小寫），沒有符合的寫「沒有符合的項目」；換主題時清空。
+  - **切換排序**（L22）：`ListPanelDef.sorts: { id, label }[]` 時清單上面一排小按鈕，第一個是預設；選的寫在網址 `lsort=`（`ViewState.listSort`，選第一個時拿掉），`rows` 的 `ctx.sort` 是目前的 id，由主題自己排。
+  - **跟選取的國家連動**（L23）：`ListPanelDef.countryField` 時，選了國家只列這個欄位是那一國的點（欄位可以是一個 ISO3 或以逗號分隔的幾個；那一國一筆也沒有時照樣列全部），標題寫「台灣的渡輪航線」，旁邊一個「看全部」（只對這次選的國家有效，換國家又會篩）；`rows` 的 `ctx.country` 是選取的國家。
+  - 這次套用：渡輪航線（`line` 與 `countryField`）、長途步道（`line`）。
 - **換期時移過去**（`PointsOverlayDef.fitOnEpoch: { core, maxZoom }`，奧運場館）：有 `epochs` 的點圖層換到另一期時，地圖框住這一期畫得出來的點；點分散時只框離中位數 `core` 度以內的那一群（`lib/coreBox.ts`，主辦城市；別的城市的足球場不算），那一群不到一半時框全部。只在換期、換圖層、資料剛下載完時移動。
 
 ### 我的路線：匯入自己下載的路線檔，只存在這個瀏覽器（2026-10-30）

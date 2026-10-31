@@ -34,6 +34,8 @@ export interface ViewState {
   embed: boolean;
   /** 在地圖上標數值（vals=1，2026-10-30） */
   labels: boolean;
+  /** 清單側欄選的排序（lsort=，2026-10-31，ListPanelDef.sorts）；null 是預設的第一個 */
+  listSort: string | null;
   /** 分析檢視（view=analysis，2026-10-30）的設定，見 AnalysisState */
   analysis: AnalysisState;
 }
@@ -145,6 +147,7 @@ export function read(): ViewState {
     time: parseTimeParam(p.get('time')),
     embed: p.get('embed') === '1',
     labels: p.get('vals') === '1',
+    listSort: p.get('lsort'),
     analysis: readAnalysis(p),
   };
 }
@@ -207,6 +210,7 @@ function buildUrl(state: ViewState): string {
   if (state.compare.length) p.set('cmp', state.compare.join(','));
   if (state.time !== null) p.set('time', formatTimeParam(state.time));
   if (state.labels) p.set('vals', '1');
+  if (state.listSort) p.set('lsort', state.listSort);
   // 分析的設定只在分析檢視時寫（換回地圖時網址保持乾淨；設定照樣留在狀態裡，切回來還在）
   if (state.view === 'analysis') writeAnalysis(p, state.analysis);
   if (state.embed) p.set('embed', '1');

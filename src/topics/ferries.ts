@@ -96,6 +96,8 @@ const LIST: ListPanelDef = {
   label: { zh: '渡輪航線', en: 'Ferry routes' },
   indicators: INDICATORS,
   file: 'ferries-list.json',
+  // 選了國家時只列兩端有那一國的（L23）
+  countryField: 'c',
   rows: (points, { countryName }) => {
     const rows: ListRow[] = [];
     for (const [g, badge] of [
@@ -113,6 +115,7 @@ const LIST: ListPanelDef = {
           properNoun: properName(p, title),
           badge: i === 0 ? `${tr(badge)} ${list.length}` : undefined,
           target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+          line: { overlay: 'ferries', group: Number(p.r) },
         });
       });
     }
