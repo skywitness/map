@@ -110,6 +110,7 @@ const TOPIC_ICONS = {
   'science-facilities': 'atom',
   starlink: 'satellite-dish',
   'wafer-fabs': 'microchip',
+  'rd-companies': 'flask-conical',
   renewables: 'solar-panel',
   climate: 'cloud',
   temperature: 'thermometer-sun',

@@ -82,7 +82,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 電價與油價、能源政策、核廢料做好時照手冊的表放進對應的欄
     sections: [
       { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'digital', 'internet-speed', 'starlink', 'developers', 'submarine-cables'] },
-      { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'publications', 'science-facilities', 'space'] },
+      { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'space'] },
       { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'energy-prices', 'energy-policy', 'nuclear-accidents', 'nuclear-waste'] },
     ],
     // 左：數位；中：研發與太空；右：能源
@@ -181,6 +181,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'science-facilities': () => import('./science-facilities'),
   starlink: () => import('./starlink'),
   'wafer-fabs': () => import('./wafer-fabs'),
+  'rd-companies': () => import('./rd-companies'),
   renewables: () => import('./renewables'),
   climate: () => import('./climate'),
   temperature: () => import('./temperature'),
