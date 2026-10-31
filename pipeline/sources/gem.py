@@ -46,6 +46,7 @@ class Unit:
     owner: str  # 「A [60%]; B [40%]」這種寫法
     lon: float
     lat: float
+    unit: str = ""  # 機組或分期的名稱（unit-name，例如核電廠的 "1"、"2"）
 
 
 def _year(text: str) -> int | None:
@@ -67,6 +68,7 @@ def units() -> list[Unit]:
                 plant=row["project-id"], name=row["name"].strip(), fuel=row["asset-type"], tech=row["tech-type"],
                 status=row["status"].strip().lower(), mw=mw, start=_year(row["start-year"]), end=_year(row["end-year"]),
                 country=row["country-area1"].strip(), owner=row["owner"].strip(), lon=lon, lat=lat,
+                unit=row.get("unit-name", "").strip(),
             ))
     return out
 

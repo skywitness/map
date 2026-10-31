@@ -21,6 +21,8 @@
 - countries/{ISO}.json：側欄的各燃料容量（運轉中、興建中、規劃中）與最大的 10 座運轉中電廠（含主要業主）。
 
 台灣：建置時印出 GEM 跟經濟部能源署「發電裝置容量」的對照，也寫進指標檔的附註（notes、notesEn）。
+
+核電機組、儲能（抽蓄與電池）、各國最大的電廠在 power_plants_extra.py（2026-10-31，第十批 165）。
 """
 from __future__ import annotations
 
@@ -32,6 +34,7 @@ from dataclasses import dataclass, field
 from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
 from sources import gem, moeaea_capacity
 from sources.countries import from_name
+from topics import power_plants_extra
 
 OUT = OUT_DIR / "topics" / "power-plants"
 YEAR = 2026  # GEM 2026 年 9 月版的狀態
@@ -288,6 +291,11 @@ def build() -> None:
         write_json(OUT / "countries" / f"{c}.json", out, quiet=True)
         written += 1
     print(f"  輸出 countries/ {written} 國")
+
+    # ── 2026-10-31 擴充（第十批 165）：核電機組、儲能、各國最大的電廠 ──
+    power_plants_extra.build_nuclear(units, iso3, OUT, YEAR)
+    power_plants_extra.build_storage(units, iso3, OUT)
+    power_plants_extra.build_largest(units, iso3, shares, FUELS, OUT, YEAR)
 
     # ── 檢查 ──
     print(f"  全球運轉中 {world_op / 1000:,.0f} GW；前 8 國：" + "、".join(

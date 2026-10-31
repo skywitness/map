@@ -1,7 +1,16 @@
 import { tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, IndicatorDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
+import type {
+  ColorClasses,
+  IndicatorDef,
+  ListPanelDef,
+  ListRow,
+  PointRecord,
+  PointsOverlayDef,
+  ScaleSpec,
+  TopicDefinition,
+} from './types';
 
 /**
  * 發電廠地圖（pipeline/topics/power_plants.py）：Global Energy Monitor 的 Global Integrated Power Tracker，2026 年 9 月版。
@@ -160,6 +169,279 @@ const SHARE_SCALES: Record<string, ScaleSpec> = {
 
 const GW_UNIT = 'GW';
 
+// ── 2026-10-31 擴充（製作手冊第十批 165，pipeline/topics/power_plants_extra.py）：核電機組、儲能、各國最大的電廠 ──
+
+const NUCLEAR_FIRST = 1951;
+const NUCLEAR_LAST = 2026;
+const NUCLEAR_YEARS = Array.from({ length: NUCLEAR_LAST - NUCLEAR_FIRST + 1 }, (_, i) => NUCLEAR_FIRST + i);
+/** 核電的指標（點、機組清單只在這兩個指標） */
+const NUCLEAR_INDICATORS = ['nuclear-units', 'nuclear-capacity'];
+const NUCLEAR_COLOR = FUELS[2].color;
+
+/** 核電廠的附註代碼（pipeline 的 NOTE_*）：狀態照 GEM（使用者決定），這裡寫實際的情況 */
+const NUCLEAR_NOTES: Record<number, Text> = {
+  1: {
+    zh: 'GEM 列為運轉中；2022 年起被俄軍占領，6 部機組都停機。',
+    en: 'Operating in GEM; occupied by Russian forces since 2022, with all six units shut down.',
+  },
+  2: {
+    zh: '2011 年起停機，GEM 列為封存（等待重新運轉的審查）。',
+    en: 'Offline since 2011; GEM lists it as mothballed (awaiting restart reviews).',
+  },
+  3: {
+    zh: '2 號機 2025 年 5 月運轉執照到期停機，台灣從此沒有運轉中的核電機組；台電 2026 年 3 月申請重新運轉。',
+    en: 'Unit 2 shut down when its licence expired in May 2025, leaving Taiwan with no operating reactors; Taipower applied to restart the plant in March 2026.',
+  },
+  4: {
+    zh: 'GEM 的啟用年份是重新啟動的年份，這裡改回原本的商轉年份（英文維基）。',
+    en: 'GEM gives the restart year as the start year; the original commercial operation year (English Wikipedia) is used here.',
+  },
+  5: {
+    zh: '7 號機 GEM 列為興建中，其實 1997 年就商轉，2011 年起停機等待重新運轉。',
+    en: 'GEM lists unit 7 as under construction, but it entered service in 1997 and has been offline since 2011, awaiting restart.',
+  },
+};
+const nuclearNote = (p: PointRecord) => (typeof p.note === 'number' && NUCLEAR_NOTES[p.note] ? tr(NUCLEAR_NOTES[p.note]) : null);
+
+/** 核電廠那一年的狀態：1 運轉中、2 封存（只在最新一年，GEM 的現況）、3 已退役 */
+const NUCLEAR_STATE: ColorClasses = {
+  field: 'state',
+  title: { zh: '核電廠', en: 'Nuclear plants' },
+  thresholds: [1.5, 2.5],
+  classes: [
+    { color: NUCLEAR_COLOR, label: { zh: '運轉中', en: 'Operating' } },
+    { color: MAP_TOKENS.categorical[2], label: { zh: '停機（GEM 列為封存）', en: 'Idle (mothballed in GEM)' } },
+    { color: MAP_TOKENS.inkMuted, label: { zh: '已退役', en: 'Retired' } },
+  ],
+};
+
+interface UnitSpan {
+  start: number;
+  end: number;
+  mw: number;
+  st: number;
+}
+/** units 欄位「商轉年:退役年:MW:狀態;…」（退役年 0 是還沒退役；狀態 1 運轉中、2 封存、3 已退役） */
+function unitSpans(p: PointRecord): UnitSpan[] {
+  if (typeof p.units !== 'string') return [];
+  return p.units.split(';').map((u) => {
+    const [start, end, mw, st] = u.split(':').map(Number);
+    return { start, end, mw, st };
+  });
+}
+/** 那一年運轉中（已商轉、未退役）與已退役的機組 */
+function unitsAt(p: PointRecord, year: number) {
+  const units = unitSpans(p);
+  return {
+    op: units.filter((u) => u.start <= year && !(u.end && u.end <= year)),
+    ret: units.filter((u) => u.end && u.end <= year),
+  };
+}
+
+const NUCLEAR_PLANTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'nuclear-plants',
+  file: 'nuclear-plants.json',
+  label: { zh: '核電廠（依年份）', en: 'Nuclear plants (by year)' },
+  indicators: NUCLEAR_INDICATORS,
+  radius: { field: 'cap', stops: MW_STOPS },
+  color: NUCLEAR_STATE,
+  // 每一年算一次：已商轉的機組才畫，全部退役的變灰；封存是 GEM 的現況，只在最新一年標
+  epochs: {
+    years: NUCLEAR_YEARS,
+    values: (p, year) => {
+      const { op, ret } = unitsAt(p, year);
+      if (op.length) {
+        const idle = year === NUCLEAR_LAST && op.every((u) => u.st === 2);
+        return { state: idle ? 2 : 1, cap: op.reduce((s, u) => s + u.mw, 0) };
+      }
+      if (ret.length) return { state: 3, cap: ret.reduce((s, u) => s + u.mw, 0) };
+      return { state: null, cap: null };
+    },
+  },
+  minValue: { field: 'cap', stops: [[0, 0]] },
+  sizeLegend: SIZE_LEGEND,
+  tooltip: (p, ctx) => {
+    const { op, ret } = unitsAt(p, ctx.year);
+    const mwOf = (us: UnitSpan[]) => us.reduce((s, u) => s + u.mw, 0);
+    const title = op.length
+      ? tr({ zh: `核電 · ${mw(mwOf(op))}（${op.length} 部機組）`, en: `Nuclear · ${mw(mwOf(op))} (${op.length} units)` })
+      : tr({ zh: `已退役 · ${mw(mwOf(ret))}（${ret.length} 部機組）`, en: `Retired · ${mw(mwOf(ret))} (${ret.length} units)` });
+    const spans = unitSpans(p)
+      .filter((u) => u.start <= ctx.year)
+      .map((u) => (u.end && u.end <= ctx.year ? `${u.start}–${u.end}` : `${u.start}–`))
+      .join(tr({ zh: '、', en: ', ' }));
+    return {
+      title,
+      detail: [typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null, spans ? tr({ zh: `機組 ${spans}`, en: `units ${spans}` }) : null]
+        .filter(Boolean)
+        .join(' · '),
+      properNoun: typeof p.name === 'string' ? p.name : undefined,
+      extra: [nuclearNote(p)].filter((x): x is string => Boolean(x)),
+    };
+  },
+};
+
+/** 興建中的核電機組：只在最新一年畫（yr 欄位都是 2026，指標的 overlayTime 是 cumulative） */
+const NUCLEAR_CONSTRUCTION: PointsOverlayDef = {
+  kind: 'points',
+  id: 'nuclear-construction',
+  file: 'nuclear-construction.json',
+  label: { zh: '興建中的核電機組（空心，只在 2026 年）', en: 'Reactors under construction (hollow, 2026 only)' },
+  indicators: NUCLEAR_INDICATORS,
+  look: 'hollow',
+  radius: { field: 'mw', stops: MW_STOPS },
+  color: NUCLEAR_COLOR,
+  timeField: 'yr',
+  tooltip: (p, ctx) => ({
+    title: tr({
+      zh: `興建中 · ${typeof p.mw === 'number' ? mw(p.mw) : ''}（${p.n} 部機組）`,
+      en: `Under construction · ${typeof p.mw === 'number' ? mw(p.mw) : ''} (${p.n} units)`,
+    }),
+    detail: [
+      typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      typeof p.start === 'number' ? tr({ zh: `預計 ${p.start} 年起商轉`, en: `expected from ${p.start}` }) : null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+    properNoun: typeof p.name === 'string' ? p.name : undefined,
+    extra: [nuclearNote(p)].filter((x): x is string => Boolean(x)),
+  }),
+};
+
+/**
+ * 左邊的核電機組清單（使用者 2026-10-30 決定）：時間軸那一年以前商轉的機組依商轉年份排（新的在上面，
+ * 跟著時間軸看得到那幾年新商轉的），已退役的淡一點，那一年商轉的標「商轉」；興建中的不列。
+ * 那一年退役的不加標籤：清單打開時捲到第一個有標籤的列，退役的機組多半在很下面
+ */
+const NUCLEAR_LIST: ListPanelDef = {
+  label: { zh: '核電機組', en: 'Nuclear reactors' },
+  indicators: NUCLEAR_INDICATORS,
+  file: 'nuclear-list.json',
+  empty: { zh: '這一年還沒有商轉的核電機組。', en: 'No reactors in commercial operation by this year.' },
+  rows: (points, { countryName, year }) =>
+    points
+      .filter((p) => typeof p.start === 'number' && p.start <= year && p.st !== 4)
+      .reverse()
+      .map((p, i): ListRow => {
+        const start = p.start as number;
+        const end = typeof p.end === 'number' ? p.end : null;
+        const retired = end !== null && end <= year;
+        const note = nuclearNote(p);
+        return {
+          key: `${p.name}-${p.unit}-${i}`,
+          title: `${p.name}${p.unit ? ` ${p.unit}` : ''}`,
+          titleProper: true,
+          lines: [
+            [
+              typeof p.iso3 === 'string' ? countryName(p.iso3) : null,
+              retired ? `${start}–${end}` : tr({ zh: `${start} 年起`, en: `since ${start}` }),
+              typeof p.mw === 'number' ? mw(p.mw) : null,
+            ]
+              .filter(Boolean)
+              .join(' · '),
+            ...(note ? [note] : []),
+          ],
+          muted: retired,
+          badge: start === year ? tr({ zh: '商轉', en: 'New' }) : undefined,
+          target: { lon: p.lon as number, lat: p.lat as number, zoom: 9 },
+        };
+      }),
+};
+
+/** 抽蓄水力電廠（GEM）：狀態 1 運轉中、2 興建中、3 規劃中 */
+const PUMPED_STATUS: ColorClasses = {
+  field: 'st',
+  title: { zh: '抽蓄水力電廠', en: 'Pumped-storage plants' },
+  thresholds: [1.5, 2.5],
+  classes: [
+    { color: FUELS[3].color, label: { zh: '運轉中', en: 'Operating' } },
+    // 興建中不用紫色：國家容量的比例圓是紫色，疊在一起分不出來
+    { color: MAP_TOKENS.categorical[5], label: { zh: '興建中', en: 'Under construction' } },
+    { color: MAP_TOKENS.categorical[2], label: { zh: '規劃中', en: 'Planned' } },
+  ],
+};
+const PUMPED_PLANTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'pumped-plants',
+  file: 'pumped-plants.json',
+  label: { zh: '抽蓄水力電廠', en: 'Pumped-storage hydro plants' },
+  indicators: ['storage'],
+  radius: { field: 'mw', stops: MW_STOPS },
+  color: PUMPED_STATUS,
+  sizeLegend: SIZE_LEGEND,
+  tooltip: (p, ctx) => {
+    const st = typeof p.st === 'number' ? p.st : 1;
+    const start = typeof p.start === 'number' ? p.start : null;
+    return {
+      title: tr({
+        zh: `${p.mixed ? '抽蓄（含慣常水力）' : '抽蓄水力'} · ${typeof p.mw === 'number' ? mw(p.mw) : ''}`,
+        en: `${p.mixed ? 'Pumped storage (with conventional hydro)' : 'Pumped storage'} · ${typeof p.mw === 'number' ? mw(p.mw) : ''}`,
+      }),
+      detail: [
+        tr(PUMPED_STATUS.classes[st - 1].label),
+        start ? (st === 1 ? tr({ zh: `${start} 年啟用`, en: `opened ${start}` }) : tr({ zh: `預計 ${start} 年`, en: `expected ${start}` })) : null,
+        typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      properNoun: typeof p.name === 'string' ? p.name : undefined,
+    };
+  },
+};
+
+/** 電池儲能電站（英文維基的清單加 Wikidata，CC BY-SA 4.0，不完整） */
+const BATTERIES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'batteries',
+  file: 'batteries.json',
+  label: { zh: '電池儲能電站（不完整）', en: 'Battery storage plants (incomplete)' },
+  indicators: ['storage'],
+  radius: { field: 'size', stops: MW_STOPS },
+  color: MAP_TOKENS.categorical[7],
+  tooltip: (p, ctx) => {
+    const parts = [
+      typeof p.mw === 'number' ? mw(p.mw) : null,
+      typeof p.mwh === 'number' ? `${fixed(p.mwh, p.mwh < 10 ? 1 : 0)} MWh` : null,
+    ].filter(Boolean);
+    return {
+      title: tr({ zh: `電池儲能${parts.length ? ` · ${parts.join(' / ')}` : ''}`, en: `Battery storage${parts.length ? ` · ${parts.join(' / ')}` : ''}` }),
+      detail: [
+        typeof p.year === 'number' ? tr({ zh: `${p.year} 年`, en: String(p.year) }) : null,
+        typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+        p.src === 1 ? tr({ zh: '英文維基', en: 'English Wikipedia' }) : 'Wikidata',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      properNoun: typeof p.name === 'string' ? p.name : undefined,
+      extra: p.approx
+        ? [tr({ zh: '位置是清單寫的所在地（縣、城市），不是電站本身', en: 'Location is the county or city given in the list, not the site itself' })]
+        : [],
+    };
+  },
+};
+
+/** 各國最大的電廠（GEM 運轉中的電廠，依 project-id 加總）：of 是它是哪幾國最大的（跨國電廠兩國都算） */
+const LARGEST_PLANTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'largest-plants',
+  file: 'largest-plants.json',
+  label: { zh: '各國最大的電廠', en: 'Largest plant in each country' },
+  indicators: ['largest'],
+  radius: { field: 'mw', stops: MW_STOPS },
+  color: FUEL_CLASSES,
+  sizeLegend: SIZE_LEGEND,
+  tooltip: (p, ctx) => {
+    const fuel = fuelByCode(p.fuel);
+    const of = typeof p.of === 'string' ? p.of.split(',').map(ctx.countryName).join(tr({ zh: '、', en: ' and ' })) : '';
+    return {
+      title: `${fuel ? tr(fuel.label) : ''}${typeof p.mw === 'number' ? ` · ${mw(p.mw)}` : ''}`,
+      detail: tr({ zh: `${of}最大的電廠`, en: `Largest plant in ${of}` }),
+      properNoun: typeof p.name === 'string' ? p.name : undefined,
+    };
+  },
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'plants',
@@ -244,6 +526,66 @@ const indicators: IndicatorDef[] = [
     formatTick: gwTick,
     shareOfWorld: true,
   },
+  {
+    id: 'nuclear-units',
+    label: { zh: '核電機組數', en: 'Nuclear reactors' },
+    description: {
+      zh: '已經商轉、還沒退役的核電機組數，1951 年起每年（GEM 的機組資料，含停機待審的）。2026 年世界 443 部：美國 94、中國 61、法國 57、俄羅斯 34、日本 30（其中 16 部 2011 年起停機）、南韓 26；最多是 2002 年的 448 部。台灣 1985 年 6 部，核一、核二、核三陸續退役，2025 年起是 0。地圖上的核電廠跟著時間軸出現，全部退役後變灰；左邊列出每部機組。',
+      en: 'Nuclear reactors in commercial operation and not yet retired, each year since 1951 (GEM unit data, including idle units). 443 worldwide in 2026: the US 94, China 61, France 57, Russia 34, Japan 30 (16 of them offline since 2011) and South Korea 26; the peak was 448 in 2002. Taiwan had six in 1985; Jinshan, Kuosheng and Maanshan were retired one after another, leaving none from 2025. Nuclear plants on the map appear with the timeline and turn grey once fully retired; every reactor is listed on the left.',
+    },
+    unit: { zh: '部', en: 'reactors' },
+    file: 'nuclear-units.json',
+    layer: { kind: 'choropleth', scale: seq([1, 3, 6, 10, 20, 40]) },
+    format: (v) => tr({ zh: `${fixed(v, 0)} 部`, en: `${fixed(v, 0)} reactor${v === 1 ? '' : 's'}` }),
+    formatTick: (v) => fixed(v, 0),
+    defaultYear: NUCLEAR_LAST,
+    overlayTime: 'cumulative',
+    missing: { zh: '從來沒有核電機組', en: 'Never had a nuclear reactor' },
+  },
+  {
+    id: 'nuclear-capacity',
+    label: { zh: '核電裝置容量', en: 'Nuclear capacity' },
+    description: {
+      zh: '已經商轉、還沒退役的核電機組的裝置容量合計，圓的面積與容量成正比。2026 年世界 423 GW。',
+      en: 'Combined capacity of nuclear reactors in commercial operation and not yet retired; circle area is proportional to capacity. 423 GW worldwide in 2026.',
+    },
+    unit: GW_UNIT,
+    file: 'nuclear-capacity.json',
+    layer: { kind: 'bubble', legendValues: [1, 10, 100] },
+    format: gw,
+    formatTick: gwTick,
+    defaultYear: NUCLEAR_LAST,
+    overlayTime: 'cumulative',
+    shareOfWorld: true,
+  },
+  {
+    id: 'storage',
+    label: { zh: '儲能（抽蓄水力）', en: 'Storage (pumped hydro)' },
+    description: {
+      zh: '抽蓄水力的裝置容量（EIA，1980 年起）：用電少時把水抽到上池，用電多時放水發電，是目前最主要的大型儲能。2024 年世界 200.6 GW，43 國有：中國 58.7、日本 27.3、美國 23.2、瑞士 12.3、德國 9.4 GW；台灣 2.6 GW（明潭、大觀二廠）。地圖上有 GEM 的抽蓄電廠（運轉中、興建中、規劃中），以及英文維基與 Wikidata 的電池儲能電站：電池的清單很不完整，多半是美國、英國、澳洲，電池儲能最多的中國幾乎沒有。',
+      en: 'Installed pumped-storage hydro capacity (EIA, since 1980): water is pumped uphill when demand is low and released through turbines when it is high, still the main form of large-scale storage. 200.6 GW worldwide in 2024 across 43 countries: China 58.7, Japan 27.3, the US 23.2, Switzerland 12.3 and Germany 9.4 GW; Taiwan 2.6 GW (Mingtan and Taikuan II). The map shows GEM’s pumped-storage plants (operating, under construction and planned) and battery storage plants from English Wikipedia and Wikidata; the battery list is far from complete, mostly the US, the UK and Australia, with almost nothing for China, which has the most battery storage.',
+    },
+    unit: GW_UNIT,
+    file: 'storage.json',
+    layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+    format: gw,
+    formatTick: gwTick,
+    defaultYear: 2024,
+    shareOfWorld: true,
+  },
+  {
+    id: 'largest',
+    label: { zh: '各國最大的電廠', en: 'Largest power plant' },
+    description: {
+      zh: '每個國家裝置容量最大的運轉中電廠是哪種能源（GEM 的一座電廠，機組加總），滑過看名稱與容量。217 國裡燃氣 93 國、水力 46、燃煤 28、太陽能 18、核能 17、風力 11、生質能 4。最大的是中國三峽 22,500 MW；台灣是大潭（燃氣）7,539 MW，日本是富津（燃氣），南韓是韓光（核能）。跨國電廠依份額算兩國各一次：伊泰普在巴拉圭算 7,000 MW 是最大的，在巴西則是貝盧蒙蒂（Belo Monte）水電廠較大。',
+      en: 'The energy source of each country’s largest operating power plant by capacity (a GEM plant, summed over its units); hover for the name and capacity. Of 217 countries, gas leads in 93, hydro in 46, coal in 28, solar in 18, nuclear in 17, wind in 11 and bioenergy in 4. The largest is China’s Three Gorges at 22,500 MW; Taiwan’s is Datan (gas) at 7,539 MW, Japan’s Futtsu (gas) and South Korea’s Hanbit (nuclear). Cross-border plants count once in each country by share: Itaipu at 7,000 MW is Paraguay’s largest, while in Brazil Belo Monte is larger.',
+    },
+    unit: '',
+    file: 'largest.json',
+    layer: { kind: 'categorical', categories: FUELS.map((f) => ({ value: f.code, label: f.label, color: f.color })) },
+    format: (v) => (fuelByCode(v) ? tr(fuelByCode(v)!.label) : ''),
+    timeless: true,
+  },
 ];
 
 export const powerPlants: TopicDefinition = {
@@ -266,10 +608,27 @@ export const powerPlants: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/16480',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
+    {
+      name: {
+        zh: 'EIA International Energy Statistics：抽蓄水力裝置容量（2026 年 10 月）',
+        en: 'EIA International Energy Statistics: pumped-storage capacity (October 2026)',
+      },
+      url: 'https://www.eia.gov/international/data/world',
+      license: { zh: '公有領域（美國政府著作）', en: 'Public domain (US government work)' },
+    },
+    {
+      name: {
+        zh: '英文維基百科「List of energy storage power plants」（電池儲能，revid 1372757055）與核電廠條目（重啟機組的商轉年份）',
+        en: 'English Wikipedia, “List of energy storage power plants” (battery storage, revision 1372757055) and nuclear plant articles (commissioning years of restarted units)',
+      },
+      url: 'https://en.wikipedia.org/wiki/List_of_energy_storage_power_plants',
+      license: 'CC BY-SA 4.0',
+    },
+    { name: { zh: 'Wikidata：電池儲能系統', en: 'Wikidata: battery energy storage systems' }, url: 'https://www.wikidata.org/wiki/Q810924', license: 'CC0' },
   ],
   note: {
-    zh: '電廠資料是 Global Energy Monitor（GEM）追蹤的發電機組，依各能源的收錄門檻：燃煤 30 MW、燃氣與燃油 50 MW（歐盟、英國 20 MW）、水力 30 MW、風力 10 MW、生質能 20 MW 以上，太陽能是 1 MW 以上的地面型案場（不含屋頂型），核能與地熱幾乎全收；不含電池儲能。容量是銘牌容量（MW），一座電廠的機組加總。跨國的水力電廠（伊泰普、亞西雷塔等）在國家統計裡依份額拆給兩國。台灣的數字跟經濟部能源署的發電裝置容量對照，見側欄附註。',
-    en: 'Plant data are the generating units tracked by Global Energy Monitor (GEM), subject to each tracker’s threshold: 30 MW for coal, 50 MW for gas and oil (20 MW in the EU and UK), 30 MW for hydro, 10 MW for wind and 20 MW for bioenergy; solar covers ground-mounted farms of 1 MW or more (no rooftop systems), and nuclear and geothermal are nearly complete; battery storage is not included. Capacity is nameplate capacity in MW, summed over a plant’s units. Cross-border hydro plants (Itaipu, Yacyretá and others) are split between the two countries in the country statistics. Taiwan’s figures are compared with the Energy Administration’s installed capacity in the country panel notes.',
+    zh: '電廠資料是 Global Energy Monitor（GEM）追蹤的發電機組，依各能源的收錄門檻：燃煤 30 MW、燃氣與燃油 50 MW（歐盟、英國 20 MW）、水力 30 MW、風力 10 MW、生質能 20 MW 以上，太陽能是 1 MW 以上的地面型案場（不含屋頂型），核能與地熱幾乎全收；不含電池儲能。容量是銘牌容量（MW），一座電廠的機組加總。跨國的水力電廠（伊泰普、亞西雷塔等）在國家統計裡依份額拆給兩國。台灣的數字跟經濟部能源署的發電裝置容量對照，見側欄附註。核電機組依 GEM 的商轉與退役年份畫出每一年的狀態（狀態照 GEM，滑過有實際情況的說明）；抽蓄水力的國家容量用 EIA；電池儲能電站來自英文維基的清單與 Wikidata，很不完整。',
+    en: 'Plant data are the generating units tracked by Global Energy Monitor (GEM), subject to each tracker’s threshold: 30 MW for coal, 50 MW for gas and oil (20 MW in the EU and UK), 30 MW for hydro, 10 MW for wind and 20 MW for bioenergy; solar covers ground-mounted farms of 1 MW or more (no rooftop systems), and nuclear and geothermal are nearly complete; battery storage is not included. Capacity is nameplate capacity in MW, summed over a plant’s units. Cross-border hydro plants (Itaipu, Yacyretá and others) are split between the two countries in the country statistics. Taiwan’s figures are compared with the Energy Administration’s installed capacity in the country panel notes. Nuclear reactors are drawn year by year from GEM’s start and retirement years (statuses follow GEM, with notes on hover where reality differs); national pumped-storage capacity comes from the EIA; battery storage plants come from an English Wikipedia list and Wikidata and are far from complete.',
   },
   dimension: {
     label: { zh: '能源', en: 'Source' },
@@ -288,7 +647,13 @@ export const powerPlants: TopicDefinition = {
     defaultOption: 'coal',
   },
   panelExtra: () => import('./panels/PowerPlantsPanel'),
+  listPanel: NUCLEAR_LIST,
   overlays: [
+    { ...NUCLEAR_PLANTS },
+    { ...NUCLEAR_CONSTRUCTION },
+    { ...PUMPED_PLANTS },
+    { ...BATTERIES },
+    { ...LARGEST_PLANTS },
     { ...OPERATING_PLANTS, indicators: PLANT_INDICATORS },
     {
       ...plantLayer('construction', { zh: '興建中（空心）', en: 'Under construction (hollow)' }, 2, true, 'hollow'),
