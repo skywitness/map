@@ -24,6 +24,7 @@ export const DIRECTIONS: CategoryDef[] = [
 ];
 
 export const kmText = (v: number) => tr({ zh: `${fixed(v, 0)} 公里`, en: `${fixed(v, 0)} km` });
+const hoursText = (v: number) => tr({ zh: `約 ${fixed(v, 1)} 小時`, en: `about ${fixed(v, 1)} h` });
 
 /** 方位角 → 「北偏東 16°」／「N 16° E」（0° 是正北、90° 是正東） */
 export function bearingText(deg: number): string {
@@ -146,14 +147,30 @@ export const taipeiView: TopicDefinition = {
       unranked: true,
       panelChart: false,
     },
+    {
+      id: 'flight-hours',
+      label: { zh: '搭飛機要幾小時（估算）', en: 'Flight time (estimate)' },
+      description: {
+        zh: '從台北直飛各國首都要幾小時的估算：大圓距離 ÷ 850 公里／小時（客機的巡航速度）＋ 0.5 小時（起飛、爬升、降落）。香港約 1.5 小時、東京 3.0 小時、新加坡 4.3 小時、倫敦 12.0 小時、華盛頓 15.4 小時，最遠的亞松森約 23.9 小時；4 小時內到得了的首都有 17 個、12 小時內 127 個。這只是理論上的直飛時間：多數首都沒有從台北直飛的班機，要轉機；往東順風、往西逆風差 1 小時以上，空域限制也會繞路。用「最長的直飛航線」校正過：新加坡航空紐約–新加坡 15,349 公里實際 18 小時 55 分，公式 18.6 小時；長榮桃園–紐瓦克 12,552 公里實際 14 小時 45 分（往東順風），公式 15.3 小時。',
+        en: 'An estimate of the non-stop flight time from Taipei to each capital: great-circle distance ÷ 850 km/h (an airliner’s cruising speed) + 0.5 h (take-off, climb and landing). Hong Kong is about 1.5 hours, Tokyo 3.0, Singapore 4.3, London 12.0 and Washington 15.4, and the farthest, Asunción, about 23.9; 17 capitals are within 4 hours and 127 within 12. These are theoretical non-stop times: most capitals have no direct flight from Taipei, and eastbound flights with tailwinds can be over an hour faster than westbound ones, while airspace restrictions force detours. Checked against the longest non-stop flights: Singapore Airlines’ New York–Singapore (15,349 km) takes 18 h 55 min against 18.6 h by the formula, and EVA Air’s Taoyuan–Newark (12,552 km) 14 h 45 min eastbound against 15.3 h.',
+      },
+      unit: { zh: '小時', en: 'h' },
+      file: 'flight-hours.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 4, 8, 12, 16, 20] } },
+      format: hoursText,
+      formatTick: (v) => fixed(v, 0),
+      unranked: true,
+      lowerIsBetter: true,
+      panelChart: false,
+    },
   ],
   tooltipLines: (iso3, ctx) => {
     if (iso3 === 'TWN') return [];
     const deg = valueOf(lazy('topics/taipei-view/bearing-deg.json'), iso3);
     const km = valueOf(lazy('topics/taipei-view/distance.json'), iso3);
     if (deg === null || km === null) return [];
-    return ctx.indicator === 'distance'
-      ? [tr({ zh: `一開始朝${bearingText(deg)}`, en: `Sets off ${bearingText(deg)}` })]
-      : [tr({ zh: `${bearingText(deg)}，${kmText(km)}`, en: `${bearingText(deg)}, ${kmText(km)}` })];
+    if (ctx.indicator === 'distance') return [tr({ zh: `一開始朝${bearingText(deg)}`, en: `Sets off ${bearingText(deg)}` })];
+    if (ctx.indicator === 'flight-hours') return [tr({ zh: `大圓距離 ${kmText(km)}`, en: `Great-circle distance ${kmText(km)}` })];
+    return [tr({ zh: `${bearingText(deg)}，${kmText(km)}`, en: `${bearingText(deg)}, ${kmText(km)}` })];
   },
 };

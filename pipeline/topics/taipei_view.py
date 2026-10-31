@@ -10,7 +10,7 @@
 到華盛頓一開始往北偏東 16°（越過阿拉斯加），不是往東。對蹠點附近（阿根廷、巴拉圭、烏拉圭）往哪個方向都差不多遠，方位不穩定。
 
 **輸出**（public/data/topics/taipei-view/）：distance.json（km）、bearing.json（八方位的代碼 1–8）、bearing-deg.json
-（方位角，tooltip 與側欄用）、circles.json（1,000、5,000、10,000、15,000、20,000 km 的距離圈）、routes.json（大圓航線，
+（方位角，tooltip 與側欄用）、flight-hours.json（搭飛機要幾小時的估算，2026-10-31 第十批 178）、circles.json（1,000、5,000、10,000、15,000、20,000 km 的距離圈）、routes.json（大圓航線，
 紀錄 iso3、距離、方位角）、taipei.json（台北的點）。
 """
 from __future__ import annotations
@@ -28,6 +28,11 @@ YEAR = 2026
 RINGS = [1000, 5000, 10000, 15000, 20000]
 # 航線每隔多少公里一點
 STEP_KM = 150
+# 搭飛機要幾小時（使用者 2026-10-30 決定的估算）：大圓距離 ÷ 850 km/h ＋ 0.5 小時（起飛、爬升、降落、繞行）。
+# 用「最長的直飛航線」校正過：新加坡航空 SQ 23 紐約–新加坡 15,349 km 實際 18:55，公式 18.6 小時；
+# 長榮 BR 32 桃園–紐瓦克 12,552 km 實際 14:45，公式 15.3 小時（往東順風）
+CRUISE_KMH = 850
+OVERHEAD_H = 0.5
 
 
 def distance_bearing(lon1: float, lat1: float, lon2: float, lat2: float) -> tuple[float, float]:
@@ -82,6 +87,8 @@ def build() -> None:
     write_json(OUT / "distance.json", indicator_file("distance", "km", [YEAR], dist, **notes))
     write_json(OUT / "bearing.json", indicator_file("bearing", "", [YEAR], bear, **notes))
     write_json(OUT / "bearing-deg.json", indicator_file("bearing-deg", "°", [YEAR], deg, **notes))
+    hours = {c: [round(v[0] / CRUISE_KMH + OVERHEAD_H, 1)] for c, v in dist.items()}
+    write_json(OUT / "flight-hours.json", indicator_file("flight-hours", "h", [YEAR], hours, **notes))
     write_json(OUT / "routes.json", lines_file(
         routes, 0.01, records=records, record_fields=["iso3", "d", "b"], record_scale={"d": 1, "b": 1}))
     rings = []
@@ -94,7 +101,7 @@ def build() -> None:
     print(f"  {len(dist)} 個首都；最近 {[(c, dist[c][0]) for c in nearest[:4]]}，最遠 {[(c, dist[c][0]) for c in nearest[-3:]]}")
     for c in ("USA", "GBR", "JPN", "PHL", "PRY", "ARG", "URY", "AUS", "ZAF", "FRA"):
         if c in dist:
-            print(f"    {c}：{dist[c][0]:,} km，方位 {deg[c][0]}°（{octant(deg[c][0])}）")
+            print(f"    {c}：{dist[c][0]:,} km，方位 {deg[c][0]}°（{octant(deg[c][0])}），約 {dist[c][0] / CRUISE_KMH + OVERHEAD_H:.1f} 小時")
 
 
 if __name__ == "__main__":
