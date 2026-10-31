@@ -314,6 +314,7 @@ STEPS = {
     "penguins": "topics.penguins",
     # 南極的冰下湖：Wilson 等 2025 的 Zenodo 資料（560 KB，不必登入）；不到 1 秒
     "subglacial-lakes": "topics.subglacial_lakes",
+    "subglacial-lakes-all": "topics.subglacial_lakes_all",  # Livingstone 2022 的 773 個（xlsx 從 map-plan 複製到 .cache/livingstone/）
     # 國家公園：Wikidata 的國家公園點、WDI 的陸域保護區占國土；幾秒（Wikidata 第一次查要等查詢服務）
     "national-parks": "topics.national_parks",
     # 纜車與索道：Wikidata 的空中纜車、吊廂纜車、纜索鐵道（不含吊椅）；幾秒
