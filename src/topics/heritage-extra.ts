@@ -111,6 +111,47 @@ const RAMSAR: PointsOverlayDef = {
   }),
 };
 
+/** 台灣的國家重要濕地的等級（pipeline/topics/tw_wetlands.py 的 LEVELS） */
+const TW_WETLAND_LEVELS: Record<number, Text> = {
+  1: { zh: '國際級', en: 'international' },
+  2: { zh: '國家級', en: 'national' },
+  3: { zh: '地方級', en: 'local' },
+  4: { zh: '暫定地方級', en: 'provisional local' },
+};
+
+/**
+ * 台灣的國家重要濕地（2026-10-31，第十批 181 的補齊；pipeline/topics/tw_wetlands.py）：台灣不是《拉姆薩公約》的締約方，
+ * 拉姆薩濕地的指標另外用一個顏色畫國家公園署公告的 61 處國家重要濕地（名稱只有中文）
+ */
+const TW_WETLANDS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'tw-wetlands',
+  file: 'tw-wetlands.json',
+  label: { zh: '台灣的國家重要濕地（國家公園署）', en: 'Taiwan’s wetlands of importance (National Park Service)' },
+  indicators: ['ramsar', 'ramsar-area'],
+  radius: { field: 'ha', stops: [[100, 1.8], [10000, 2.6], [1000000, 4.5]] },
+  color: MAP_TOKENS.categorical[7],
+  sortField: 'ha',
+  tooltip: (p) => {
+    const level = TW_WETLAND_LEVELS[Number(p.lv)];
+    return {
+      title: String(p.name ?? ''),
+      detail: [
+        tr({ zh: `${level ? tr(level) : ''}國家重要濕地`, en: `Wetland of ${level ? tr(level) : ''} importance` }),
+        typeof p.city === 'string' ? p.city : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      extra: [
+        typeof p.ha === 'number' ? haText(p.ha) : '',
+        Number(p.n) > 1 ? tr({ zh: `${p.n} 處子濕地`, en: `${p.n} component sites` }) : '',
+        tr({ zh: '國家公園署公告，不是拉姆薩濕地', en: 'Designated by Taiwan’s National Park Service; not a Ramsar site' }),
+      ].filter(Boolean),
+      properNoun: getLang() === 'en' ? String(p.name ?? '') : undefined,
+    };
+  },
+};
+
 /**
  * 左邊的清單（第十二批 204）：台灣的世界遺產潛力點、世界地質公園（依國家分組）、拉姆薩濕地（依國家分組，組內依面積），
  * 各自在自己的指標；點了移到那一點。瀕危的世界遺產在 world-heritage.ts
@@ -208,8 +249,13 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
       url: 'https://rsis.ramsar.org/',
       license: 'CC BY 4.0',
     },
+    {
+      name: { zh: '內政部國家公園署「國家重要濕地」重要濕地範圍圖（data.gov.tw 25659）', en: 'National Park Service (Taiwan), wetlands of importance: boundaries (data.gov.tw 25659)' },
+      url: 'https://data.gov.tw/dataset/25659',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
-  overlays: [TENTATIVE, GEOPARKS, TW_GEOPARKS, RAMSAR],
+  overlays: [TENTATIVE, GEOPARKS, TW_GEOPARKS, RAMSAR, TW_WETLANDS],
   listPanel: [POTENTIAL_LIST, GEOPARK_LIST, RAMSAR_LIST],
   indicators: [
     {
@@ -234,6 +280,7 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
         zh: 'UNESCO 世界地質公園：有國際價值的地質景觀，結合保育、教育與在地發展。各國的處數照英文維基依國家的總表（192 處、49 國，跨國的每國都算；依加入年份累計），中國 36 處最多，其次西班牙 16、義大利 12、印尼 12、英國 10。UNESCO 公布 51 國 241 處（2026 年 7 月），UNESCO 與 Global Geoparks Network 的名單都不能轉載，維基的總表約涵蓋八成；點是英文維基各洲的表與 Wikidata 有座標、有加入年份的 172 處。台灣不是 UNESCO 會員，洋紅色的點是國內的地質公園（野柳、草嶺、富岡、月世界、桶盤；高雄泥岩惡地、龍崎牛埔惡地 Wikidata 沒有座標）。',
         en: 'UNESCO Global Geoparks: landscapes of international geological significance managed for conservation, education and local development. Country counts follow English Wikipedia’s list by country (192 geoparks in 49 countries, transboundary ones counted for each; cumulative by year joined): China leads with 36, followed by Spain 16, Italy 12, Indonesia 12 and the UK 10. UNESCO lists 241 in 51 countries (July 2026), but neither UNESCO’s nor the Global Geoparks Network’s list may be republished; Wikipedia’s list covers about four-fifths. Dots show the 172 geoparks with coordinates and a year joined in Wikipedia’s continental lists and Wikidata. Taiwan is not a UNESCO member; magenta dots mark its own geoparks (Yehliu, Caoling, Fugang, Moon World and Tongpan; Wikidata has no coordinates for the Kaohsiung mudstone badlands or Longqi Niupu badlands).',
       },
+      noValue: { TWN: { zh: '不是 UNESCO 會員國；地圖上畫國內的地質公園', en: 'Not a UNESCO member; its own geoparks are on the map' } },
       unit: { zh: '處', en: 'sites' },
       file: 'geoparks.json',
       layer: { kind: 'bubble', legendValues: [1, 5, 20] },
@@ -246,9 +293,10 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
       id: 'ramsar',
       label: { zh: '拉姆薩濕地', en: 'Ramsar sites' },
       description: {
-        zh: '《拉姆薩公約》的國際重要濕地處數：2,536 處、172 國，合計 2.53 億公頃（Ramsar Sites Information Service）。英國 176 處最多，其次墨西哥 144、印度 103、中國 82、西班牙 76。點的大小是面積。只有目前的名單。台灣不是締約方，沒有；國家公園署另外公告國家重要濕地。',
-        en: 'Wetlands of International Importance under the Ramsar Convention: 2,536 sites in 172 countries, covering 253 million hectares (Ramsar Sites Information Service). The UK has the most with 176, followed by Mexico 144, India 103, China 82 and Spain 76. Dot size shows area. Current list only. Taiwan is not a party and has none; it designates its own wetlands of national importance.',
+        zh: '《拉姆薩公約》的國際重要濕地處數：2,536 處、172 國，合計 2.53 億公頃（Ramsar Sites Information Service）。英國 176 處最多，其次墨西哥 144、印度 103、中國 82、西班牙 76。點的大小是面積。只有目前的名單。台灣不是締約方，沒有；地圖上另一個顏色的點是國家公園署公告的 61 處國家重要濕地（國際級 2、國家級 40、地方級 17、暫定地方級 2，合計 4.3 萬公頃，最大的是七家灣溪）。',
+        en: 'Wetlands of International Importance under the Ramsar Convention: 2,536 sites in 172 countries, covering 253 million hectares (Ramsar Sites Information Service). The UK has the most with 176, followed by Mexico 144, India 103, China 82 and Spain 76. Dot size shows area. Current list only. Taiwan is not a party and has none; the dots in a different colour are the 61 wetlands of importance designated by its National Park Service (2 international, 40 national, 17 local and 2 provisional local, 43,000 hectares in all; the largest is Qijiawan Creek).',
       },
+      noValue: { TWN: { zh: '不是《拉姆薩公約》的締約方；地圖上畫國家重要濕地', en: 'Not a Ramsar party; its own wetlands of importance are on the map' } },
       unit: { zh: '處', en: 'sites' },
       file: 'ramsar.json',
       layer: { kind: 'bubble', legendValues: [5, 50, 150] },
@@ -264,6 +312,7 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
         zh: '拉姆薩濕地的官方面積合計（公頃，含海域，所以可能比國土大）：巴西 2,679 萬公頃最大，其次玻利維亞 1,484 萬、剛果 1,381 萬、加拿大 1,309 萬、查德 1,241 萬。',
         en: 'Total official area of Ramsar sites, in hectares (including marine areas, so it can exceed land area): Brazil is largest at 26.8 million ha, followed by Bolivia 14.8 million, Congo 13.8 million, Canada 13.1 million and Chad 12.4 million.',
       },
+      noValue: { TWN: { zh: '不是《拉姆薩公約》的締約方；地圖上畫國家重要濕地', en: 'Not a Ramsar party; its own wetlands of importance are on the map' } },
       unit: { zh: '公頃', en: 'ha' },
       file: 'ramsar-area.json',
       layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7] },

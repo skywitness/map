@@ -12,7 +12,7 @@
 - 拉姆薩濕地：Ramsar Sites Information Service 的 WFS 中心點 CSV（CC BY 4.0，使用者 2026-10-30 用瀏覽器讀到 RSIS 的
   licence-information；RSIS 有防機器人，本機 session 2026-10-31 下載，放在 map-plan 的 data/ramsar/，在 cloud 重跑時
   複製到 pipeline/.cache/ramsar/）。登錄日期不在 CSV 裡，只做目前的快照。台灣不是締約方，附國家公園署的國家重要濕地
-  （data.gov.tw 25659；圖資在 TGOS，從 cloud 是 HTTP 403，請本機 session 下載中，到了再補）。
+  （data.gov.tw 25659；圖資在 TGOS，從 cloud 是 HTTP 403，本機 session 2026-10-31 下載，另一個步驟 topics/tw_wetlands.py）。
 
 輸出（public/data/topics/world-heritage/）：tentative.json（各國預備名單件數）、tentative-points.json（點；cls 1 預備名單、
 2 台灣的潛力點）、geoparks.json（各國世界地質公園數，依加入年份累計）、geopark-points.json（點，y 加入年份）、
