@@ -99,6 +99,14 @@ export const elevation: TopicDefinition = {
       license: { zh: '公有領域', en: 'public domain' },
     },
     {
+      name: {
+        zh: 'Nunn & Puga（2012），Ruggedness: The Blessing of Bad Geography in Africa 的重製資料（Harvard Dataverse，地形崎嶇指數）',
+        en: 'Nunn & Puga (2012), Ruggedness: The Blessing of Bad Geography in Africa, replication data (Harvard Dataverse; terrain ruggedness)',
+      },
+      url: 'https://doi.org/10.7910/DVN/VEHPPS',
+      license: 'CC0 1.0',
+    },
+    {
       name: { zh: '內政部 100 公尺數值高程模型（台灣交叉比對）', en: 'Ministry of the Interior 100 m DEM (Taiwan cross-check)' },
       url: 'https://data.gov.tw/dataset/7507',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
@@ -208,6 +216,19 @@ export const elevation: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 60, 80] } },
       format: share,
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'rugged',
+      label: { zh: '地形崎嶇指數', en: 'Terrain ruggedness' },
+      description: {
+        zh: 'Nunn 與 Puga（2012）算的地形崎嶇指數（Terrain Ruggedness Index）：約 1 公里的網格裡，每一格跟周圍 8 格的海拔差的平均起伏，再對全國平均，單位是百公尺（1 是平均起伏約 100 公尺）。直布羅陀 7.8、不丹 6.7、摩納哥、賴索托、安道爾最崎嶇，尼泊爾 5.0、瑞士 4.8、台灣 3.5（第 17）、日本 2.1、中國 1.9、美國 1.1，荷蘭 0.04。小島國的網格太粗，數字可能偏低。',
+        en: 'The terrain ruggedness index computed by Nunn and Puga (2012): for each cell of a roughly 1 km grid, the typical difference in elevation from its eight neighbours, averaged over the country, in hundreds of metres (1 means about 100 m of local relief). Gibraltar (7.8), Bhutan (6.7), Monaco, Lesotho and Andorra are the most rugged; Nepal 5.0, Switzerland 4.8, Taiwan 3.5 (17th), Japan 2.1, China 1.9, the US 1.1 and the Netherlands 0.04. The grid is too coarse for very small islands, whose values may be too low.',
+      },
+      unit: { zh: '百公尺', en: '100 m' },
+      file: 'rugged.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.25, 0.5, 1, 2, 3, 5] } },
+      format: (v) => tr({ zh: `${fixed(v, 2)}（起伏約 ${fixed(v * 100, 0)} 公尺）`, en: `${fixed(v, 2)} (≈${fixed(v * 100, 0)} m relief)` }),
+      formatTick: (v) => fixed(v, v < 1 ? 2 : 0),
     },
     {
       id: 'mean',
