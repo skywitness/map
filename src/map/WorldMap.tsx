@@ -271,6 +271,9 @@ export interface WorldMapHandle {
   exportImage: (content: MapImageContent) => Promise<Blob>;
 }
 
+/** 圖例卡片收起來沒（localStorage，'0' 是收起） */
+const LEGEND_KEY = 'legendOpen';
+
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
@@ -355,6 +358,22 @@ export function WorldMap(props: WorldMapProps) {
     return p && typeof p.lon === 'number' && typeof p.lat === 'number' ? { ...place, lng: p.lon, lat: p.lat } : place;
   }, [place, overlays]);
   const [fullscreen, setFullscreen] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(() => {
+    try {
+      return localStorage.getItem(LEGEND_KEY) !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const toggleLegend = () =>
+    setLegendOpen((open) => {
+      try {
+        localStorage.setItem(LEGEND_KEY, open ? '0' : '1');
+      } catch {
+        // 存不了就只影響這次
+      }
+      return !open;
+    });
   // iPhone 的 Safari 不能讓一般元素全螢幕（只有影片可以），不放全螢幕鈕
   const canFullscreen = typeof document !== 'undefined' && document.fullscreenEnabled;
   const narrow = useMediaQuery(NARROW_QUERY);
@@ -1782,7 +1801,22 @@ export function WorldMap(props: WorldMapProps) {
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
       {bottom && <div className="map-bottom">{bottom}</div>}
 
-      <div className="map-legend">
+      {/* 圖例（最多的國家、圖層開關、數值圖例）合成一張卡片，各段之間細線分隔；右上角的鈕收起成一顆「圖例」
+          （2026-10-31，原本最多三張卡片疊在一起，例如 F1）。收起記在這台裝置；沒有任何一段時整張不畫（CSS 的 :has） */}
+      <div className={`map-legend${legendOpen ? '' : ' is-collapsed'}`}>
+        <button
+          type="button"
+          className="map-legend-toggle"
+          aria-expanded={legendOpen}
+          aria-label={legendOpen ? t.legendHide : t.legendShow}
+          title={legendOpen ? t.legendHide : t.legendShow}
+          onClick={toggleLegend}
+        >
+          {!legendOpen && <span>{t.legendTitle}</span>}
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+            <path d={legendOpen ? 'M3 4.5 6 7.5 9 4.5' : 'M3 7.5 6 4.5 9 7.5'} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
         {showExtremes && (
           <Extremes
             indicator={indicator}

@@ -351,8 +351,8 @@ interface LayerControlsProps {
   darkMap?: boolean;
 }
 
-const SHOW_DETAILS: Text = { zh: '顯示圖例', en: 'Show key' };
-const HIDE_DETAILS: Text = { zh: '收起圖例', en: 'Hide key' };
+const SHOW_DETAILS: Text = { zh: '顯示細項', en: 'More details' };
+const HIDE_DETAILS: Text = { zh: '收起細項', en: 'Fewer details' };
 /** 手機上圖層開關下面的分級說明（震源深度、規模、邊界類型）預設收起，否則蓋住一半的地圖 */
 const NARROW = '(max-width: 768px)';
 

@@ -197,6 +197,9 @@ export const zh = {
   threeDHintGlobe: '；3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
   unitSuffix: (unit: string) => (unit ? `（${unit}）` : ''),
   layers: '圖層',
+  legendTitle: '圖例',
+  legendShow: '打開圖例',
+  legendHide: '收起圖例',
   categoryTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一類，再點一下取消）`,
   // 面量圖的分級（圖例的色塊可以滑過、點選）
   binBelow: (x: string) => `低於 ${x}`,

@@ -176,6 +176,9 @@ export const en: Messages = {
   threeDHintGlobe: '. In 3D the map is flat, because 3D shapes on the globe cannot be clicked (a MapLibre 5 limitation)',
   unitSuffix: (unit) => (unit ? ` (${unit})` : ''),
   layers: 'Layers',
+  legendTitle: 'Key',
+  legendShow: 'Show the key',
+  legendHide: 'Hide the key',
   categoryTitle: (label, count) =>
     `${label}: ${count} ${count === 1 ? 'country or territory' : 'countries and territories'} (click to highlight only this category; click again to undo)`,
   binBelow: (x) => `Below ${x}`,
