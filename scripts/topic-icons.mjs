@@ -163,6 +163,7 @@ const TOPIC_ICONS = {
   'special-landforms': 'tree-palm',
   reclamation: 'land-plot',
   'nuclear-accidents': 'radiation',
+  'nuclear-waste': 'cylinder',
   typhoons: 'tornado',
   wildfires: 'flame',
   'night-lights': 'moon-star',
