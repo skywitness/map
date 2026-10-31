@@ -10,7 +10,10 @@
   - 各國首都的磁偏角（declination.json，指標）：首都用晝夜與季節主題的 capitals.json（國家小檔案的 Wikidata 首都）。
   - 前端滑到任一點時在瀏覽器算那裡的磁偏角（src/lib/wmm.ts），係數另外輸出成 wmm.json。
 - 首都離北磁極（distance.json，指標）：每一年首都到北磁極的大圓距離（km）。
-- WMM2025 只適用 2025–2030 年；歷史的磁偏角要用 IGRF-14（授權待確認），第一版不做（使用者 2026-10-28 決定）。
+- WMM2025 只適用 2025–2030 年；歷史的磁偏角用 IGRF-14（sources/igrf.py，CC BY 4.0；2026-10-31 第十四批順序 256，
+  使用者決定每 5 年一格、不內插）：1900–2020 年每 5 年用 IGRF-14 的係數，2025 年照舊用 WMM2025。等偏角線、不可靠區、
+  首都的磁偏角每一年各一份（isogonic.json、blackout.json 的紀錄多一欄 y，前端依時間軸篩選；declination.json 1900–2025
+  每 5 年）；瀏覽器滑到任一點時用那一年的係數（igrf.json，2025 年用 wmm.json）。
 
 授權：NCEI 的磁極位置與 WMM2025 都是美國政府資料（公有領域，WMM 由 NOAA NCEI 與英國 BGS 共同製作，
 頁面寫「may be used freely by the public」），引用寫在主題的資料來源。
@@ -26,11 +29,12 @@ from shapely.geometry import LineString, Polygon
 from shapely.geometry.polygon import orient
 
 from common import OUT_DIR, download, indicator_file, lines_file, now_iso, points_file, write_json
-from sources import wmm
+from sources import igrf, wmm
 
 OUT = OUT_DIR / "topics" / "magnetic"
 POLES = {"north": "https://www.ngdc.noaa.gov/geomag/data/poles/NP.xy", "south": "https://www.ngdc.noaa.gov/geomag/data/poles/SP.xy"}
 YEAR = 2025  # 磁偏角的年份（WMM2025 的 2025.0）
+FIRST = 1900  # IGRF-14 的第一年；之後每 5 年一格（2025 年用 WMM2025）
 BLACKOUT_NT = 2000  # WMM 的 blackout zone：水平分量小於 2,000 nT
 STEP = 0.5  # 網格（度）
 LEVELS = sorted({*range(-30, 31, 5), *range(-60, 61, 10), -90, 90, -120, 120})
@@ -89,44 +93,49 @@ def build() -> None:
     print(f"  北磁極：{np_first[2]} 年 {np_first[1]}°N {np_first[0]}° → {np_last[2]} 年 {np_last[1]}°N {np_last[0]}°；"
           f"南磁極 {poles['south'][-1][2]} 年 {poles['south'][-1][1]}° {poles['south'][-1][0]}°")
 
-    # ── 0.5° 網格的磁偏角與水平分量 ──
+    # ── 0.5° 網格的磁偏角與水平分量：1900–2020 年每 5 年用 IGRF-14，2025 年用 WMM2025 ──
+    igrf_models = igrf.models()
+    epochs = list(range(FIRST, YEAR + 1, 5))
+    models = {y: (model if y == YEAR else igrf_models[y]) for y in epochs}
     lats = np.arange(-89.5, 89.5 + STEP / 2, STEP)
     lons = np.arange(-180, 180 + STEP / 2, STEP)
-    f = wmm.field(model, lats, lons, 0.0, float(YEAR))
-    D, H = f["D"], f["H"]
-    print(f"  網格 {lats.size} × {lons.size}；水平分量 < {BLACKOUT_NT} nT 的格子 {int((H < BLACKOUT_NT).sum())} 個")
-
-    # 等偏角線：不可靠區與 ±180° 跳躍處的格子當成沒有值
-    masked = np.ma.masked_where((H < BLACKOUT_NT) | (np.abs(D) > JUMP), D)
-    gen = contourpy.contour_generator(lons, lats, masked, line_type=contourpy.LineType.Separate)
     lines, types, records = [], [], []
-    for level in LEVELS:
-        for seg in gen.lines(level):
-            if len(seg) < 4:
-                continue
-            pts = simplify(seg, 0.05)
-            if len(pts) < 2 or LineString(pts).length < 2:  # 太短的碎片（不到約 2°）不畫
-                continue
-            lines.append(pts)
-            types.append(line_code(level))
-            records.append({"d": level})
-    write_json(OUT / "isogonic.json", lines_file(
-        lines, 0.01, types, records=records, record_fields=["d"], record_scale={"d": 1},
-    ))
-    print(f"  等偏角線：{len(lines)} 條，{sum(len(l) for l in lines)} 個頂點")
-
-    # 不可靠區：H < 2,000 nT 的面（contourpy 的填色等值線，碰到網格邊緣時沿邊緣封起來）
-    fill = contourpy.contour_generator(lons, lats, H, fill_type=contourpy.FillType.OuterOffset)
-    polys, offsets = fill.filled(0, BLACKOUT_NT)
     rings, ring_records = [], []
-    for points, offs in zip(polys, offsets):
-        parts = [points[offs[i]:offs[i + 1]] for i in range(len(offs) - 1)]
-        poly = orient(Polygon(parts[0], parts[1:]), 1.0).simplify(0.05)
-        for k, ring in enumerate([poly.exterior, *poly.interiors]):
-            rings.append([(round(x, 3), round(y, 3)) for x, y in ring.coords])
-            ring_records.append({"f": 1, "hole": 1 if k else 0})
+    for y, mdl in models.items():
+        f = wmm.field(mdl, lats, lons, 0.0, float(y))
+        D, H = f["D"], f["H"]
+        # 等偏角線：不可靠區與 ±180° 跳躍處的格子當成沒有值
+        masked = np.ma.masked_where((H < BLACKOUT_NT) | (np.abs(D) > JUMP), D)
+        gen = contourpy.contour_generator(lons, lats, masked, line_type=contourpy.LineType.Separate)
+        n_before = len(lines)
+        for level in LEVELS:
+            for seg in gen.lines(level):
+                if len(seg) < 4:
+                    continue
+                pts = simplify(seg, 0.05)
+                if len(pts) < 2 or LineString(pts).length < 2:  # 太短的碎片（不到約 2°）不畫
+                    continue
+                lines.append(pts)
+                types.append(line_code(level))
+                records.append({"d": level, "y": y})
+        # 不可靠區：H < 2,000 nT 的面（contourpy 的填色等值線，碰到網格邊緣時沿邊緣封起來）
+        fill = contourpy.contour_generator(lons, lats, H, fill_type=contourpy.FillType.OuterOffset)
+        polys, offsets = fill.filled(0, BLACKOUT_NT)
+        for points, offs in zip(polys, offsets):
+            parts = [points[offs[i]:offs[i + 1]] for i in range(len(offs) - 1)]
+            poly = orient(Polygon(parts[0], parts[1:]), 1.0).simplify(0.05)
+            for k, ring in enumerate([poly.exterior, *poly.interiors]):
+                rings.append([(round(x, 3), round(y_, 3)) for x, y_ in ring.coords])
+                ring_records.append({"f": 1, "hole": 1 if k else 0, "y": y})
+        if y in (FIRST, 1950, 2000, YEAR):
+            print(f"  {y} 年（{'WMM2025' if y == YEAR else 'IGRF-14'}）：等偏角線 {len(lines) - n_before} 條；"
+                  f"水平分量 < {BLACKOUT_NT} nT 的格子 {int((H < BLACKOUT_NT).sum())} 個")
+    write_json(OUT / "isogonic.json", lines_file(
+        lines, 0.01, types, records=records, record_fields=["d", "y"], record_scale={"d": 1, "y": 1}, record_delta=("y",),
+    ))
+    print(f"  等偏角線：{len(lines)} 條，{sum(len(l) for l in lines)} 個頂點（{len(epochs)} 個年份）")
     write_json(OUT / "blackout.json", lines_file(
-        rings, 0.01, [1] * len(rings), records=ring_records, record_fields=["f", "hole"],
+        rings, 0.01, [1] * len(rings), records=ring_records, record_fields=["f", "hole", "y"], record_scale={"y": 1},
     ))
     print(f"  不可靠區：{len(rings)} 個環")
 
@@ -134,7 +143,7 @@ def build() -> None:
     with open(OUT_DIR / "topics" / "daylight" / "capitals.json", encoding="utf-8") as fh:
         cap = json.load(fh)
     fi = {k: i for i, k in enumerate(cap["fields"])}
-    declination: dict[str, float] = {}
+    declination: dict[str, list[float]] = {}
     notes: dict[str, str] = {}
     notes_en: dict[str, str] = {}
     hints: dict[str, str] = {}
@@ -143,9 +152,12 @@ def build() -> None:
     distance: dict[str, list[float | None]] = {}
     for iso3, row in sorted(cap["capitals"].items()):
         lat, lon = row[fi["lat"]], row[fi["lon"]]
-        p = wmm.field(model, np.array([lat]), np.array([lon]), 0.0, float(YEAR))
-        d, h = float(p["D"][0, 0]), float(p["H"][0, 0])
-        declination[iso3] = round(d, 1)
+        series = []
+        for y, mdl in models.items():
+            p = wmm.field(mdl, np.array([lat]), np.array([lon]), 0.0, float(y))
+            series.append(round(float(p["D"][0, 0]), 1))
+        d, h = series[-1], float(p["H"][0, 0])
+        declination[iso3] = series
         hints[iso3] = f"以首都{row[fi['zh']]}計算"
         hints_en[iso3] = f"At the capital, {row[fi['en']]}"
         if h < 6000:
@@ -153,22 +165,27 @@ def build() -> None:
             notes_en[iso3] = f"The horizontal field at the capital is only {h:,.0f} nT, close to the magnetic pole, so compasses are easily disturbed (WMM’s caution zone is below 6,000 nT)."
         distance[iso3] = [round(haversine(lat, lon, plat, plon)) for plon, plat, _ in poles["north"]]
     write_json(OUT / "declination.json", indicator_file(
-        "declination", "°", [YEAR], {i: [v] for i, v in declination.items()},
+        "declination", "°", epochs, declination,
         hints=hints, hintsEn=hints_en, notes=notes, notesEn=notes_en,
     ))
     write_json(OUT / "distance.json", indicator_file("distance", "km", years, distance, hints=hints, hintsEn=hints_en))
-    tw = declination.get("TWN")
+    tw = declination["TWN"][-1] if "TWN" in declination else None
     if tw is None or not -5.5 < tw < -4.5:
         raise RuntimeError(f"台北的磁偏角 {tw}° 不在 −5.5 到 −4.5 之間，要檢查")
-    print(f"  首都 {len(declination)} 個；台北 {tw}°（偏西），離北磁極 {distance['TWN'][0]} km（1590）→ {distance['TWN'][-1]} km（2025）")
+    print(f"  首都 {len(declination)} 個；台北 {declination['TWN'][0]}°（{FIRST}）→ {tw}°（{YEAR}，偏西），離北磁極 {distance['TWN'][0]} km（1590）→ {distance['TWN'][-1]} km（2025）")
 
     # ── 瀏覽器用的係數（src/lib/wmm.ts） ──
     coef = [[n, m, model.g[n, m], model.h[n, m], model.gdot[n, m], model.hdot[n, m]]
             for n in range(1, model.degree + 1) for m in range(n + 1)]
     write_json(OUT / "wmm.json", {"model": "WMM2025", "epoch": model.epoch, "coef": coef})
+    # IGRF-14 的各年份（1900–2020），格式跟 wmm.json 的 coef 一樣但沒有年變率：{年份: [[n, m, g, h], …]}，0 的係數不寫
+    write_json(OUT / "igrf.json", {"model": "IGRF-14", "epochs": {
+        str(y): [[n, m, mdl.g[n, m], mdl.h[n, m]] for n in range(1, mdl.degree + 1) for m in range(n + 1)
+                 if mdl.g[n, m] or mdl.h[n, m]]
+        for y, mdl in models.items() if y != YEAR}})
     write_json(OUT / "manifest.json", {
         "topic": "magnetic",
         "generatedAt": now_iso(),
-        "source": f"NOAA NCEI geomagnetic pole positions ({POLES['north']}, {POLES['south']}); {wmm.CITATION}; Wikidata capitals (CC0)",
-        "license": "US Government data / public domain; Wikidata: CC0",
+        "source": f"NOAA NCEI geomagnetic pole positions ({POLES['north']}, {POLES['south']}); {wmm.CITATION}; {igrf.CITATION}; Wikidata capitals (CC0)",
+        "license": "US Government data / public domain; IGRF-14: CC BY 4.0; Wikidata: CC0",
     })
