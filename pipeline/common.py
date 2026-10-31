@@ -88,8 +88,10 @@ def write_manifest_part(out: Path, topic: str, part: str, data: dict) -> None:
     generatedAt 是最後跑的那一步（頁尾的「資料更新」），別的步驟寫的那份留著"""
     path = out / "manifest.json"
     m = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    if m.get("topic") != topic:
+    if m.get("topic", topic) != topic:
         m = {"topic": topic, "parts": {}}
+    # 主題自己的步驟寫的 manifest（沒有 topic 欄位）也留著，只加上 parts
+    m["topic"] = topic
     now = now_iso()
     m["generatedAt"] = now
     m["parts"] = {**m.get("parts", {}), part: {"generatedAt": now, **data}}
