@@ -1,4 +1,5 @@
-"""研發與創新主題：研發經費占 GDP、研發經費總額（購買力平價）、每百萬人研究人員、專利申請（件數與每百萬人）。
+"""研發與創新主題：研發經費占 GDP、研發經費總額（購買力平價）、每百萬人研究人員、專利申請（件數與每百萬人）；
+2026-10-31（製作手冊第十批 174）加商標與工業設計申請（件數與每百萬人）。
 
 - 研發經費與研究人員用世界銀行 WDI 轉載的 UNESCO 統計研究所（UIS）資料，專利用 WDI 轉載的 WIPO 資料，都是 CC BY 4.0。
   UIS 自己的資料庫是 CC BY-SA 4.0（衍生資料要用相同授權），WIPO 統計資料庫的使用條款不准轉載，所以都用世界銀行的版本。
@@ -6,6 +7,9 @@
   - 研發經費占 GDP：國科會「全國科技動態調查」的研發經費 ÷ 主計總處的名目 GDP。
   - 研究人員：國科會的研究人員全時約當數 ÷ 聯合國 WPP 年中人口（UIS 也是用 WPP 的人口）。
   - 專利：經濟部智慧財產局的本國人發明專利申請件數（不含新型、設計）。
+  - 商標：智慧局「商標案件統計季報」（data.gov.tw 35459）本國人的申請註冊件數，四季加總。WIPO 的商標申請是類別數
+    （一件可以指定好幾類），本國人沒有分開的類別數，台灣用件數，附註寫全部申請平均每件幾類。
+  - 工業設計：智慧局本國人的設計專利新申請件數。
 - 研發經費總額 = 研發經費占 GDP × IMF WEO 的購買力平價 GDP（各國同一套換算，含台灣）。
 - 研發調查很多國家隔一兩年才做一次，專利也有些國家漏報，所以指標檔加 latestWithin（研發 5 年、專利 3 年）。
 - 世界值自己算（WDI 的世界值只平均當年有報的國家、用匯率換算的 GDP 加權，2020 年是 2.46%，UIS 公布的全球值是 1.93%）：
@@ -57,6 +61,31 @@ NOTES = {
         "Taiwan is not in the WIPO/World Bank database; invention patent applications by Taiwanese applicants from "
         "the Intellectual Property Office (by nationality, whereas WIPO uses residence; excluding utility models and "
         "designs) are used instead; from 2007",
+    ),
+    "trademark-applications": (
+        "台灣不在 WIPO／世界銀行資料庫中，改用經濟部智慧財產局「商標案件統計季報」的本國人商標申請註冊件數（四季加總，"
+        "2016 年起）。WIPO 數的是類別數（一件可以指定好幾類），智慧局沒有本國人的類別數，所以台灣是件數，會比類別數少："
+        "{ratio}",
+        "Taiwan is not in the WIPO/World Bank database; trademark applications by Taiwanese applicants from the "
+        "Intellectual Property Office's quarterly statistics (summed over four quarters, from 2016) are used instead. "
+        "WIPO counts classes (one application can cover several), but the office does not report class counts for "
+        "Taiwanese applicants, so Taiwan's figure counts applications and is lower than a class count would be: {ratio_en}",
+    ),
+    "trademarks-per-million": (
+        "台灣用經濟部智慧財產局的本國人商標申請註冊件數（件數，不是 WIPO 的類別數），除以聯合國年中人口；2016 年起",
+        "Taiwan uses trademark applications by Taiwanese applicants from the Intellectual Property Office (application "
+        "counts rather than WIPO's class counts) divided by UN mid-year population; from 2016",
+    ),
+    "design-applications": (
+        "台灣不在 WIPO／世界銀行資料庫中，改用經濟部智慧財產局的本國人設計專利新申請件數（依申請人國籍，WIPO 依居住地）；"
+        "2007 年起",
+        "Taiwan is not in the WIPO/World Bank database; design patent applications by Taiwanese applicants from the "
+        "Intellectual Property Office (by nationality, whereas WIPO uses residence) are used instead; from 2007",
+    ),
+    "designs-per-million": (
+        "台灣用經濟部智慧財產局的本國人設計專利新申請件數，除以聯合國年中人口；2007 年起",
+        "Taiwan uses design patent applications by Taiwanese applicants from the Intellectual Property Office divided "
+        "by UN mid-year population; from 2007",
     ),
 }
 
@@ -173,11 +202,40 @@ def build() -> None:
         tw_per_million, years, lambda v: f"每百萬人 {v:,.1f} 件", lambda v: f"{v:,.1f} per million people"))
     print(f"  專利：{years[0]}–{years[-1]}")
 
+    # ── 商標、工業設計申請（本國居民，第十批 174） ─────────────
+    trademarks, ratio = tipo.trademark_applications()
+    last_ratio = max(ratio)
+    NOTES["trademark-applications"] = (
+        NOTES["trademark-applications"][0].format(ratio=f"{last_ratio} 年全部申請平均每件 {ratio[last_ratio]:.2f} 類"),
+        NOTES["trademark-applications"][1].format(ratio_en=f"in {last_ratio} all applications averaged {ratio[last_ratio]:.2f} classes each"),
+    )
+    for key, per_key, code, tw_series in (
+        ("trademark-applications", "trademarks-per-million", "IP.TMK.RSCT", trademarks),
+        ("design-applications", "designs-per-million", "IP.IDS.RSCT", tipo.design_applications()),
+    ):
+        data, data_world = worldbank.fetch(code, 1960)
+        last = max(y for s in data.values() for y in s)
+        tw_full = {y: float(v) for y, v in tw_series.items()}
+        data["TWN"] = {y: v for y, v in tw_full.items() if y <= last}
+        years = latest_year_span(data, PATENT_WITHIN)
+        world = {y: v + data["TWN"].get(y, 0) for y, v in data_world.items()}
+        write(key, "件", years, data, 0, world, PATENT_WITHIN, later_years_note(
+            tw_full, years, lambda v: f"{v:,.0f} 件", lambda v: f"{v:,.0f} applications"))
+        per = {iso: {y: v / population[iso][y] * 1e6 for y, v in s.items() if y in population.get(iso, {})}
+               for iso, s in data.items()}
+        world_per = {y: v / population["WLD"][y] * 1e6 for y, v in world.items() if y in population["WLD"]}
+        tw_per = {y: v / population["TWN"][y] * 1e6 for y, v in tw_full.items() if y in population["TWN"]}
+        write(per_key, "件/百萬人", years, per, 2, world_per, PATENT_WITHIN, later_years_note(
+            tw_per, years, lambda v: f"每百萬人 {v:,.1f} 件", lambda v: f"{v:,.1f} per million people"))
+        top = sorted(((c, s[max(s)]) for c, s in data.items() if s and len(c) == 3), key=lambda kv: -kv[1])[:4]
+        print(f"  {key}：{years[0]}–{years[-1]}；" + "、".join(f"{c} {v:,.0f}" for c, v in top)
+              + f"；台灣 {sorted(tw_full.items())[-1]}")
+
     write_json(
         out / "manifest.json",
         {
             "topic": "innovation",
             "generatedAt": now_iso(),
-            "source": "World Bank WDI (UNESCO UIS, WIPO); 國科會; 經濟部智慧財產局; 行政院主計總處; IMF WEO; UN WPP 2024",
+            "source": "World Bank WDI (UNESCO UIS, WIPO); 國科會; 經濟部智慧財產局（專利、商標）; 行政院主計總處; IMF WEO; UN WPP 2024",
         },
     )
