@@ -38,6 +38,7 @@ import type { PersonalMenu } from './map/BasemapMenu';
 import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
+import { CloseIcon } from './map/MapIcons';
 import { BoxResult } from './panels/BoxResult';
 import { coreBox } from './lib/coreBox';
 import { ListSide } from './panels/ListSide';
@@ -167,6 +168,8 @@ export function App() {
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
   // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
   const [sharedOn, setSharedOn] = useState<string[]>([]);
+  // 沒選國家時的側欄（主題的 worldPanel）：關掉的主題記在這裡，這次不再出現
+  const [worldClosed, setWorldClosed] = useState<string | null>(null);
   const sharedDefs = useSharedOverlays(sharedOn);
   // 我的路線（TopicDefinition.personalRoutes，lib/personalRoutes.ts）：使用者在這個瀏覽器匯入的路線，有路線時多一個線圖層
   const personalCfg = definition.personalRoutes;
@@ -292,6 +295,10 @@ export function App() {
   const years = data?.years ?? [defaultYear];
   // 時刻主題的「年份」是那一刻的日期（YYYYMMDD），算出來的資料只有這一筆
   const year = at ? at.day : pickYear(years, state.year, defaultYear, yearBin(indicator));
+  // 沒選國家時的側欄（主題的 worldPanel，2026-10-31 起）：每個主題的元件各自動態載入
+  const worldLoad = topic.worldPanel?.load;
+  const WorldPanel = useMemo(() => (worldLoad ? lazy(worldLoad) : null), [worldLoad]);
+  const showWorld = Boolean(WorldPanel) && !state.country && !pure && worldClosed !== topic.id;
   const yearIndex = data ? (at ? 0 : data.years.indexOf(year)) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
   const { values, years: valueYears } = useMemo(
@@ -846,7 +853,7 @@ export function App() {
         <ClampedText key={description} text={description} className="indicator-desc" />
 
         <div
-          className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}`}
+          className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}`}
         >
           {listDef && (
             <ListSide
@@ -1009,6 +1016,23 @@ export function App() {
               </Suspense>
             )}
           </div>
+          {showWorld && WorldPanel && topic.worldPanel && (
+            <PanelSheet onClose={() => setWorldClosed(topic.id)}>
+              <aside className="panel" aria-label={topic.worldPanel.title}>
+                <header className="panel-header">
+                  <div>
+                    <h2>{topic.worldPanel.title}</h2>
+                  </div>
+                  <button type="button" className="icon-button" onClick={() => setWorldClosed(topic.id)} aria-label={t.close}>
+                    <CloseIcon />
+                  </button>
+                </header>
+                <Suspense fallback={<PanelSkeleton />}>
+                  <WorldPanel topic={topic} indicator={indicator} year={year} tokens={tokens} />
+                </Suspense>
+              </aside>
+            </PanelSheet>
+          )}
           {state.country && !pure && (
             <PanelSheet onClose={() => selectCountry(null)}>
               <Suspense

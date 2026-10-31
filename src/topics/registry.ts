@@ -83,7 +83,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'submarine-cables'] },
       { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'publications', 'space'] },
-      { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'nuclear-accidents'] },
+      { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'energy-prices', 'nuclear-accidents'] },
     ],
     // 左：數位；中：研發與太空；右：能源
     columns: [1, 1, 1],
@@ -176,6 +176,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   electricity: () => import('./electricity'),
   'power-plants': () => import('./power-plants'),
   'fossil-fuels': () => import('./fossil-fuels'),
+  'energy-prices': () => import('./energy-prices'),
   renewables: () => import('./renewables'),
   climate: () => import('./climate'),
   temperature: () => import('./temperature'),

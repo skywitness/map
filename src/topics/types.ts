@@ -817,6 +817,14 @@ export interface AirportsData {
   rows: [number, number, number, string, string, string, string][];
 }
 
+/** 沒選國家時的側欄（TopicDefinition.worldPanel）的 props */
+export interface WorldPanelProps {
+  topic: Topic;
+  indicator: Indicator;
+  year: number;
+  tokens: Tokens;
+}
+
 /** 主題自訂的側欄區塊，接在通用側欄下方 */
 export interface PanelExtraProps {
   /** 已依目前語言解析過的主題 */
@@ -937,6 +945,11 @@ export interface TopicDefinition {
    * `panelExtra: () => import('./electricity-panel')`
    */
   panelExtra?: () => Promise<{ default: React.ComponentType<PanelExtraProps> }>;
+  /**
+   * 沒選國家時的側欄（2026-10-31 起，電價與油價的國際能源價格）：桌機在地圖右邊（跟國家側欄同一欄），窄螢幕是底部抽屜；
+   * 可以關掉（同一個主題這次不再出現），選了國家就換成國家側欄
+   */
+  worldPanel?: { title: Text; load: () => Promise<{ default: React.ComponentType<WorldPanelProps> }> };
   /**
    * 清單側欄（2026-10-30 起，賽車的賽程）：地圖左邊列出主題的點（依日期或名稱排），點一列地圖移到那裡並標出來。
    * 桌機在地圖左邊、可以收成一條窄邊；窄螢幕在地圖下面、預設收起來（收合記在版面偏好，lib/layoutPrefs.ts 的 list）。

@@ -105,6 +105,7 @@ const TOPIC_ICONS = {
   electricity: 'zap',
   'power-plants': 'utility-pole',
   'fossil-fuels': 'fuel',
+  'energy-prices': 'badge-dollar-sign',
   renewables: 'solar-panel',
   climate: 'cloud',
   temperature: 'thermometer-sun',

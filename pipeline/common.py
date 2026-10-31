@@ -28,7 +28,7 @@ RELAXED_X509_HOSTS = {"statis.moi.gov.tw", "cloud.culture.tw", "mas.nstc.gov.tw"
                       "stat.thb.gov.tw", "cpx.cbc.gov.tw", "eds.moe.gov.tw", "data.moenv.gov.tw",
                       "opdadm.moi.gov.tw", "oas.ocac.gov.tw", "rdc28.cwa.gov.tw",
                       "pip.moi.gov.tw", "ws.moi.gov.tw",
-                      "ba.npa.gov.tw", "media.taiwan.net.tw"}
+                      "ba.npa.gov.tw", "media.taiwan.net.tw", "www2.moeaea.gov.tw"}
 # 只接受 Python 預設排除的加密套件（RSA 金鑰交換）的主機（國科會的開放資料，2026-10-29）：改用 OpenSSL 的 DEFAULT 套件清單，
 # 一樣是 TLS 1.2 加密、驗證憑證，只是沒有前向保密；下載的是公開資料
 LEGACY_CIPHER_HOSTS = {"mas.nstc.gov.tw"}

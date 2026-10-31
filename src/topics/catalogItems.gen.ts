@@ -260,6 +260,8 @@ export const SEARCH_ITEMS: TopicSearchItem[] = [
   {"topic":"fossil-fuels","indicator":"production","item":"oil","label":{"zh":"石油","en":"Oil"}},
   {"topic":"fossil-fuels","indicator":"production","item":"gas","label":{"zh":"天然氣","en":"Natural gas"}},
   {"topic":"fossil-fuels","indicator":"production","item":"coal","label":{"zh":"煤","en":"Coal"}},
+  {"topic":"fossil-fuels","indicator":"primary-mix","item":"nuclear","label":{"zh":"核能","en":"Nuclear"}},
+  {"topic":"fossil-fuels","indicator":"primary-mix","item":"renewables","label":{"zh":"再生能源及其他","en":"Renewables and other"}},
   {"topic":"fossil-fuels","indicator":"export","item":"pipeline","label":{"zh":"管道天然氣","en":"Pipeline gas"}},
   {"topic":"flags","indicator":"colours","item":"red","label":{"zh":"紅色","en":"Red"}},
   {"topic":"flags","indicator":"colours","item":"white","label":{"zh":"白色","en":"White"}},
