@@ -150,12 +150,13 @@ def _geocode(pairs: set[tuple[str, str]]) -> dict[tuple[str, str], list[dict]]:
 
 
 def _pick(cands: list[dict], others: list[str], settlement: bool) -> dict | None:
+    """候選裡挑一個：上一層、上兩層的名稱跟表裡其他名稱（州、省）相符的優先（回傳的 matched 是 True），再挑人口最多的"""
     cands = [c for c in cands if c["settle"] == settlement] if settlement else cands
     if not cands:
         return None
     hint = [o.lower() for o in others]
     match = [c for c in cands if any(h in a or a in h for h in hint for a in c["admins"])]
-    return max(match or cands, key=lambda c: c["pop"])
+    return {**max(match or cands, key=lambda c: c["pop"]), "matched": bool(match)}
 
 
 def build() -> None:
@@ -167,10 +168,12 @@ def build() -> None:
     approx_rows = 0
     for r in rows:
         best = None
-        # 先找聚落（城市、鄉鎮），表裡的其他名稱當作州、省比對；都沒有再用州、省本身的座標
+        # 先找聚落（城市、鄉鎮），表裡的其他名稱當作州、省比對；都沒有再用州、省本身的座標。
+        # 上一層名稱對得上的優先（2026-10-31 修：「New Mexico, Rio Rancho」原本挑到馬里蘭州一個叫 New Mexico 的小聚落、
+        # 「California, Santa Clara」挑到 California City，因為只比人口、取小的）
         for i, q in enumerate(r["lookup"]):
             got = _pick(places.get(q, []), r["places"][:i] + r["places"][i + 1:], True)
-            if got and (best is None or got["pop"] < best["pop"] or best.get("approx")):
+            if got and (best is None or (got["matched"], -got["pop"]) > (best["matched"], -best["pop"]) or best.get("approx")):
                 best = got
         if best is None:
             for q in r["lookup"]:
