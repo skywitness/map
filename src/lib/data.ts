@@ -35,8 +35,8 @@ function decodeRecord(record: Record<string, Series>): Record<string, Series> {
   return out;
 }
 
-/** 指標檔有 "encoding": "delta" 就還原；沒有的（舊格式、其他檔案）原樣回傳 */
-function decode(json: unknown): unknown {
+/** 指標檔有 "encoding": "delta" 就還原；沒有的（舊格式、其他檔案）原樣回傳（data.test.ts 測） */
+export function decode(json: unknown): unknown {
   const d = json as { encoding?: unknown; values?: Record<string, Series>; aggregates?: Record<string, Series> };
   if (!d || typeof d !== 'object' || d.encoding !== 'delta') return json;
   const { encoding: _, ...rest } = d;

@@ -4292,6 +4292,9 @@ pipeline/
   - 「加入比較」按鈕看得到的字要包含在名稱裡（label-content-name-mismatch）：「＋」改成 `aria-hidden` 的另一個 span。
 
 - **GitHub Actions 的「檢查」**（`.github/workflows/check.yml`，2026-10-29 加）：每次推送（任何分支）與 PR 都跑 `check:i18n`、主題目錄比對（`npm run catalog -- --check`）、`npm run build`（含型別檢查）與冒煙測試（`npm run smoke`，`scripts/smoke-topics.mjs`：每個主題打開一次，有頁面錯誤或主控台錯誤就失敗，約 10–15 分鐘）。不擋部署，失敗時 commit 旁是紅色的叉。好幾個工作同時推到 main，合併時容易漏掉別人的主題（例如 `topics/registry.ts` 衝突）或改壞共用的程式，推之前本機也可以跑 `npm run build && npm run smoke`（`SMOKE_TOPICS=a,b` 只開幾個）。
+- **單元測試**（2026-10-31，使用者要求；`npm test` = `vitest run`，CI 的「單元測試」步驟，在建置之前）：`src/**/*.test.ts`，測純函式——網址解析（`url-state`）、指標檔的差分解碼（`data.ts` 的 `decode`，含一個真的資料檔）、名次與 latestWithin（`panels/stats`）、數字格式（中英文）、時刻參數與日期、國家搜尋（簡轉繁、重音、單字開頭、ISO 代碼）、分析的變化分級、框選、主題選單的分欄（`controls/menuColumns.ts`，從 TopicNav 搬出來）、Google 地圖連結（`map/googleMaps.ts`）、航海日誌的國籍指標。11 個檔、54 個測試，不到 1 秒，比冒煙測試快很多，也抓得到冒煙測試看不出的錯（例如名次、格式錯了頁面照樣打得開）。
+  - 設定在 `vitest.config.ts`，不讀 `vite.config.ts`（那裡的外掛會算整個 `public/data` 的雜湊）；別名一樣換成 Preact。在 Node 跑，`src/test/setup.ts` 給最小的 `window`、`localStorage`、`history`（`i18n/lang.ts` 一匯入就讀網址），`setLocation()` 換網址。
+  - `check:i18n` 不掃測試檔（測試資料裡的中文不是介面）。新的純函式邏輯要一起加測試；有畫面的元件照舊靠冒煙測試與手動截圖。
 - **App.tsx、WorldMap.tsx 拆檔**（2026-10-29，行為不變）：兩個檔原本各約 1,350、2,700 行，改一個地方要在一大片程式裡找。
   - `App.tsx`（約 840 行）只留畫面狀態的組合與版面；不依賴 App 狀態的 hook 與小工具搬到 `src/app/`（`hooks.ts`、`overlays.ts`、`options.ts`），頂列與頁尾是 `TopBar.tsx`、`Footer.tsx`。
   - `WorldMap.tsx`（約 1,700 行）留地圖的建立、圖層的安裝與同步、控制項；常數、圖層定義與小工具在 `worldMapLayers.ts`，滑鼠與觸控事件在 `mapEvents.ts`（`bindMapEvents`，事件在地圖建立時綁一次，最新的 props 從 `latest` ref 讀），國家的上色與漸變在 `useCountryFills.ts`，網格、國旗等點陣圖層在 `useRasterLayers.ts`，tooltip 在 `MapTooltip.tsx`。拆出來的 hook 拿 `MapContext`（地圖的 ref、圖層裝好了沒、`ready`、`revision`），跟原本在 WorldMap 裡一樣依它們重跑。

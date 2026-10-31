@@ -21,6 +21,8 @@ const CJK = /[　-〿㐀-鿿豈-﫿！-｠]/;
 function files(dir) {
   return readdirSync(dir).flatMap((name) => {
     const p = join(dir, name);
+    // 單元測試（*.test.ts、src/test/）不是介面，測試資料裡的中文不算
+    if (name === 'test' || /\.test\.tsx?$/.test(name)) return [];
     if (statSync(p).isDirectory()) return files(p);
     return /\.(ts|tsx)$/.test(name) && !SKIP.has(p) ? [p] : [];
   });
