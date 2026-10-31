@@ -54,6 +54,8 @@ export const zh = {
   offlineNotSavedTitle: '目前離線，這個主題還沒存到這台裝置',
   offlineNotSavedHint: '連上網路後就能看；看過的主題之後離線也能打開。',
   retry: '重試',
+  /** 側欄的數值卡片：那個指標的資料沒有載入成功 */
+  loadFailedShort: '沒有載入成功',
   reload: '重新整理',
   basemapFailedTitle: '底圖沒有載入成功',
   loadingMap: '地圖載入中…',

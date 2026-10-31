@@ -46,6 +46,7 @@ export const en: Messages = {
   offlineNotSavedTitle: "You're offline, and this topic isn't saved on this device yet",
   offlineNotSavedHint: "It will load once you're back online. Topics you've viewed also open offline later.",
   retry: 'Try again',
+  loadFailedShort: 'Failed to load',
   reload: 'Reload',
   basemapFailedTitle: "Couldn't load the base map",
   loadingMap: 'Loading map…',

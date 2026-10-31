@@ -3287,6 +3287,13 @@ kbd {
   margin: 3px 0;
 }
 
+/* 那個指標的資料沒有載入成功（CountryPanel 的 stat-failed）：小一號的灰字，不是一直灰色的載入中 */
+.stat-failed {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
 .panel {
   min-height: 0;
   overflow-y: auto;

@@ -7,7 +7,8 @@ import { StatusCard } from '../controls/StatusCard';
 import { TweenNumber } from '../controls/TweenNumber';
 import { countryName, displayCode, enName, type CountryTable } from '../lib/countries';
 import { formatMoment } from '../lib/clock';
-import { useJsonMany } from '../lib/data';
+import { useJsonManyStatus } from '../lib/data';
+import { useOnline } from '../lib/useOnline';
 import { derivedData } from '../lib/derive';
 import { formatPercent } from '../lib/format';
 import {
@@ -88,7 +89,9 @@ export function CountryPanel(props: CountryPanelProps) {
     return own && usesDimension(ind) ? t.itemIndicator(own, ind.label) : ind.label;
   };
   const Extra = panelExtraFor(topic);
-  const loadedData = useJsonMany<IndicatorData>(files);
+  // failed：下載失敗的指標（離線、伺服器錯誤），卡片與圖表寫失敗、給重試，不是一直灰色的載入中（2026-10-31）
+  const { data: loadedData, failed, retry } = useJsonManyStatus<IndicatorData>(files);
+  const online = useOnline();
   // 在瀏覽器裡算的指標（時刻主題）：跟地圖用同一份快取（derivedData），同一刻拿到同一個物件
   const allData = useMemo(
     () => loadedData.map((d, i) => derivedData(topic.indicators[i], d, at, live)),
@@ -113,7 +116,7 @@ export function CountryPanel(props: CountryPanelProps) {
   const resolved = (ind: Indicator) => forItem(ind, itemFor(topic, ind, item));
   const stats = topic.indicators.flatMap((ind, i) => (card(ind, i) ? [[resolved(ind), i] as const] : [])).map(([ind, i]) => {
     const data = allData[i];
-    if (!data) return { ind, loaded: false, value: null, rank: null, total: 0, share: null, shownYear: null, others: [] };
+    if (!data) return { ind, loaded: false, failed: failed[i], value: null, rank: null, total: 0, share: null, shownYear: null, others: [] };
     // 各指標涵蓋的年份不同（例如數據中心只有單一快照），沒有這一年就改用最接近的一年
     const yearIndex = nearestYearIndex(data.years, year, yearBin(ind));
     // 年份零散的指標（latestWithin）沒有當年資料時用之前最近一年的值，標出實際的資料年份
@@ -126,6 +129,7 @@ export function CountryPanel(props: CountryPanelProps) {
     return {
       ind,
       loaded: true,
+      failed: false,
       value,
       rank: countZero || ind.layer.kind === 'categorical' || ind.unranked ? null : rankOf(values, iso3, ind.lowerIsBetter),
       total: values.size,
@@ -137,7 +141,9 @@ export function CountryPanel(props: CountryPanelProps) {
   });
 
   // 用 id 找：有子項目分級門檻的指標（forItem）是另一個物件
-  const activeData = allData[topic.indicators.findIndex((i) => i.id === indicator.id)];
+  const activeIndex = topic.indicators.findIndex((i) => i.id === indicator.id);
+  const activeData = allData[activeIndex];
+  const activeFailed = !activeData && failed[activeIndex];
   // 不上色的指標（城市地圖、發電廠地圖）跟某張數值卡片用同一個資料檔時，折線圖用那張卡片的名稱與格式
   // （「住在城市的比例的變化」，不是「城市地圖的變化」）；流向圖也一樣（「移民人數的變化」，不是「流向：移民來源的變化」）
   const chartIndicator =
@@ -218,7 +224,7 @@ export function CountryPanel(props: CountryPanelProps) {
       </header>
 
       <div className="stats">
-        {stats.map(({ ind, loaded, value, rank, total, share, shownYear, others }) => (
+        {stats.map(({ ind, loaded, failed: cardFailed, value, rank, total, share, shownYear, others }) => (
           <button
             type="button"
             key={ind.id}
@@ -230,7 +236,11 @@ export function CountryPanel(props: CountryPanelProps) {
             {/* 資料還沒到時不要先寫「無資料」，畫一塊灰色 */}
             <span className="stat-value">
               {!loaded ? (
-                <Skeleton width="60%" height={20} />
+                cardFailed ? (
+                  <span className="stat-failed">{t.loadFailedShort}</span>
+                ) : (
+                  <Skeleton width="60%" height={20} />
+                )
               ) : value != null ? (
                 // 連續的數值換年份、換指標、換國家時從原本的數字滾過去（類別、年份這種數值不滾）
                 tweens(ind) ? (
@@ -277,7 +287,15 @@ export function CountryPanel(props: CountryPanelProps) {
         <section className="panel-chart">
           <h3>{t.overTime(chartLabel)}</h3>
           {/* 有原因、而且這個國家完全沒有值時才用原因取代圖表：台灣在聯合國投票只有 1946–1971 年有值，照樣畫圖 */}
-          {activeReason && !activeData?.values[iso3]?.some((v) => v != null) ? (
+          {/* 資料沒有下載成功：先說失敗、給重試（不要寫成「沒有資料」的原因） */}
+          {activeFailed ? (
+            <StatusCard
+              kind={online ? 'error' : 'offline'}
+              title={online ? t.dataFailedTitle : t.offlineNotSavedTitle}
+              detail={online ? undefined : t.offlineNotSavedHint}
+              action={{ label: t.retry, onClick: retry }}
+            />
+          ) : activeReason && !activeData?.values[iso3]?.some((v) => v != null) ? (
             <StatusCard kind="empty" title={activeReason} />
           ) : indicator.layer.kind === 'categorical' && activeData ? (
             <CategoryHistory indicator={indicator} data={activeData} iso3={iso3} />
