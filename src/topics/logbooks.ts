@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, LinesOverlayDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 大航海時代的航海日誌（pipeline/topics/logbooks.py，資料是 CLIWOC 2.1）。
@@ -212,6 +212,45 @@ const VOYAGES: LinesOverlayDef = {
   tooltip: trackTooltip,
 };
 
+/**
+ * 航程清單（第十二批 207）：每個指標一份（只列那個指標看的船），讀線（tracks.json 依 v 分組，一趟航程一組）；
+ * 時間軸那一年在海上的航程（出發到抵達跨過那一年），依出發日期；每列：船名、國籍與公司、出發地 → 目的地、日期。
+ * 點了框住整趟航線並標出來
+ */
+function voyageList(view: (typeof SHIP_VIEWS)[number]): ListPanelDef {
+  return {
+    label: { zh: '這一年的航程', en: 'Voyages this year' },
+    indicators: [view.id],
+    file: 'tracks.json',
+    lines: { groupField: 'v' },
+    empty: { zh: '這一年沒有這些船的航海日誌', en: 'No logbooks for these ships this year' },
+    rows: (points, { year }) =>
+      points
+        .filter((p) => {
+          if (view.types && !view.types.includes(nationType(Number(p.n)))) return false;
+          const a = typeof p.a === 'number' ? Math.floor(p.a / 10000) : Number(p.y);
+          const b = typeof p.b === 'number' ? Math.floor(p.b / 10000) : Number(p.y);
+          return a <= year && year <= b;
+        })
+        .sort((a, b) => Number(a.a ?? 0) - Number(b.a ?? 0) || Number(a.v) - Number(b.v))
+        .map((p): ListRow => {
+          const company = companyName(p.c);
+          return {
+            key: String(p.v),
+            title: shipName(p.s),
+            titleProper: typeof p.s === 'string' && p.s !== '',
+            lines: [
+              company ? `${nationName(p.n)} · ${company}` : nationName(p.n),
+              routeText(p.f, p.t),
+              typeof p.a === 'number' && typeof p.b === 'number' ? dateRange(p.a, p.b) : '',
+            ].filter(Boolean),
+            target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+            line: { overlay: view.overlay, group: Number(p.v) },
+          };
+        }),
+  };
+}
+
 export const logbooks: TopicDefinition = {
   id: 'logbooks',
   title: { zh: '大航海時代的航海日誌', en: "Ships' logbooks of the age of sail" },
@@ -241,6 +280,7 @@ export const logbooks: TopicDefinition = {
     en: 'The data come from CLIWOC (Climatological Database for the World’s Oceans 1750–1854), release 2.1: an EU-funded project (completed in 2003) transcribed more than 1,700 logbooks from British, Dutch, Spanish and French archives, about 287,000 records, plus a few Swedish, American, Hamburg and Danish ships (1662–1855, mostly 1750–1854). Tracks join each day’s noon position (dead reckoning or astronomical fixes, longitudes converted to Greenwich) with straight lines, so they are not the actual course. A track is broken where consecutive positions are more than 10 days apart or farther apart than a ship could sail at 550 km a day; isolated positions far from both neighbours (copying errors, east and west swapped) are removed, as are straight lines between positions that run more than 30 km inland (land and sea from the Marine Regions IHO sea areas); a few wrong positions may remain. A new voyage starts when the departure or destination port changes within a logbook. Dates are UTC as converted by CLIWOC and may differ by a day from the logbook. Place names, ship names and captains are as written in the logbooks (Dutch, English, Spanish or French). Country values are the number of ships with logbooks that year (nationality mapped to today’s countries, Hamburg to Germany); they reflect the logbooks that survived and were transcribed, not the number of ships each country sailed. Passing nearby means the track (interpolated every 10 km) entered the country or came within 100 km of it (Natural Earth 1:50m borders).',
   },
   panelExtra: () => import('./panels/LogbooksPanel'),
+  listPanel: SHIP_VIEWS.map(voyageList),
   overlays: SHIP_VIEWS.map((view) => ({ ...VOYAGES, id: view.overlay, indicators: [view.id], onlyTypes: view.types ?? undefined })),
   indicators,
 };
