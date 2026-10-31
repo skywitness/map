@@ -2,7 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { ferriesExtra } from './ferries';
-import type { PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
+import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
  * 航運與港口（pipeline/topics/shipping.py）：UNCTAD 的貨櫃吞吐量、班輪航運連結指數、商船隊（船旗國、實質船東）、造船，
@@ -121,6 +121,39 @@ const PORTS: PointsOverlayDef = {
       extra,
       properNoun: title !== p.name ? String(p.name) : undefined,
     };
+  },
+};
+
+/**
+ * 主要貨櫃港（第十二批 197）：ports.json 裡有港口自己公布的吞吐量的 30 個港（含台灣的高雄、基隆、臺中、臺北），
+ * 依吞吐量由大到小。使用者 2026-10-31 決定：不寫名次、不叫「前 50 大」（只用官方數字、不照 Lloyd's List 等的排名，
+ * 前端不排名的原則不變）。每列：港名、國家、年份與吞吐量、口徑。點了移到港口
+ */
+const PORT_LIST: ListPanelDef = {
+  label: { zh: '主要貨櫃港', en: 'Major container ports' },
+  indicators: ['container', 'lsci'],
+  file: 'ports.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) => {
+    const lang = getLang();
+    return points
+      .filter((p) => typeof p.teu === 'number')
+      .sort((a, b) => Number(b.teu) - Number(a.teu))
+      .map((p): ListRow => {
+        const title = portName(p, lang);
+        const scope = lang === 'zh' ? p.scope : p.scopeEn;
+        return {
+          key: String(p.name),
+          title,
+          properNoun: title !== p.name ? String(p.name) : undefined,
+          lines: [
+            countryName(String(p.iso3)),
+            tr({ zh: `${p.teuYear} 年 ${teu(p.teu as number)}`, en: `${teu(p.teu as number)} in ${p.teuYear}` }),
+            ...(typeof scope === 'string' ? [scope] : []),
+          ],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+        };
+      });
   },
 };
 
@@ -288,14 +321,14 @@ export const shipping: TopicDefinition = {
   },
   panelExtra: () => import('./panels/ShippingPanel'),
   overlays: [PORTS, WATERWAYS, CHOKEPOINTS, ...ferriesExtra.overlays],
-  listPanel: ferriesExtra.listPanel,
+  listPanel: [PORT_LIST, ferriesExtra.listPanel],
   indicators: [
     {
       id: 'container',
       label: { zh: '貨櫃吞吐量', en: 'Container throughput' },
       description: {
-        zh: '各國港口一年裝卸的貨櫃（TEU，20 呎櫃的數量；40 呎櫃算 2 個）。轉運櫃在中轉港卸下、裝上各算一次，所以新加坡這類轉運港特別大。圓的面積與 TEU 成正比；點是港口，滑過看港口的連結指數與主要港口公布的吞吐量。',
-        en: 'Containers handled by each country’s ports in a year, in TEU (twenty-foot equivalent units; a 40-foot box counts as 2). Transhipped boxes are counted when unloaded and again when reloaded, so hubs such as Singapore stand out. Circle area is proportional to TEU; dots are ports — hover for their connectivity and, for major ports, their own published throughput.',
+        zh: '各國港口一年裝卸的貨櫃（TEU，20 呎櫃的數量；40 呎櫃算 2 個）。轉運櫃在中轉港卸下、裝上各算一次，所以新加坡這類轉運港特別大。圓的面積與 TEU 成正比；點是港口，滑過看港口的連結指數與主要港口公布的吞吐量；左邊的清單依吞吐量列出有官方數字的 30 個主要貨櫃港（不排名次）。',
+        en: 'Containers handled by each country’s ports in a year, in TEU (twenty-foot equivalent units; a 40-foot box counts as 2). Transhipped boxes are counted when unloaded and again when reloaded, so hubs such as Singapore stand out. Circle area is proportional to TEU; dots are ports — hover for their connectivity and, for major ports, their own published throughput. The list on the left shows the 30 major container ports with official figures, by throughput (not ranked).',
       },
       unit: TEU,
       file: 'container.json',
