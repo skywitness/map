@@ -3,7 +3,7 @@ import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { decodeLines } from '../../map/overlayData';
 import { CURRENT, airlineName, routeFacts, routeTitle } from '../longest-flights';
-import type { LinesData, PanelExtraProps, PointRecord } from '../types';
+import { dataFolder, type LinesData, type PanelExtraProps, type PointRecord } from '../types';
 
 const TEXT = defineMessages({
   zh: {
@@ -24,7 +24,7 @@ export default function LongestFlightsPanel({ topic, iso3, countryName }: PanelE
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data } = useJson<LinesData>(`topics/${topic.id}/routes.json`);
+  const { data } = useJson<LinesData>(`topics/${dataFolder(topic)}/routes.json`);
   const rows = useMemo(() => {
     if (!data) return null;
     const records = decodeLines(data).records ?? [];

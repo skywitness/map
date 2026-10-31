@@ -913,6 +913,11 @@ export interface PointerInfo {
 
 export interface TopicDefinition {
   id: string;
+  /**
+   * 資料在另一個主題的資料夾（2026-10-30，第十一批 186：從交通、航空、交通安全拆出來、資料沒搬的主題）：
+   * 指標檔、疊加圖層、manifest.json（頁尾的資料更新時間）與側欄都讀 data/topics/<dataTopic>/；沒寫就是自己的 id
+   */
+  dataTopic?: string;
   title: Text;
   /** 主題選單上的短名稱 */
   shortTitle: Text;
@@ -1096,14 +1101,17 @@ export type ClassGridOverlay = Localized<ClassGridOverlayDef>;
 export type WindOverlay = Localized<WindOverlayDef>;
 
 export function indicatorPath(
-  topic: Pick<Topic, 'id' | 'dimension'>,
+  topic: Pick<Topic, 'id' | 'dimension' | 'dataTopic'>,
   indicator: Pick<Indicator, 'file' | 'dimension'>,
   item: string | null,
 ): string {
   const file = indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? '');
   // ../<主題>/<檔名>：讀另一個主題的檔（2026-10-30，治安與司法的法治分數讀政府治理的，兩邊不另外存一份）
-  return file.startsWith('../') ? `topics/${file.slice(3)}` : `topics/${topic.id}/${file}`;
+  return file.startsWith('../') ? `topics/${file.slice(3)}` : `topics/${dataFolder(topic)}/${file}`;
 }
+
+/** 主題的資料夾名稱（data/topics/ 底下）：dataTopic 或主題 id */
+export const dataFolder = (topic: Pick<Topic, 'id' | 'dataTopic'>): string => topic.dataTopic ?? topic.id;
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');

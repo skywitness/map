@@ -68,7 +68,8 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'energy',
     label: { zh: '能源', en: 'Energy' },
     sections: [
-      { label: null, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables', 'ev'] },
+      // 電動車 2026-10-30（第十一批 186）搬到交通
+      { label: null, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables'] },
     ],
   },
   {
@@ -92,7 +93,27 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'transport',
     label: { zh: '交通', en: 'Transport' },
     sections: [
-      { label: null, topics: ['transport', 'aviation', 'ride-hailing', 'airspace', 'cable-cars', 'heritage-railways', 'shipping', 'logbooks', 'road-safety'] },
+      // 2026-10-30（第十一批 186）交通拆成鐵路（id 照舊 transport）、高鐵、地鐵與城市軌道，航空拆成機場與旅客（id 照舊 aviation）、
+      // 航線與航空公司，交通安全拆出汽機車，電動車從能源搬過來；分欄、小標題是第十一批 187
+      {
+        label: null,
+        topics: [
+          'transport',
+          'high-speed-rail',
+          'metro',
+          'heritage-railways',
+          'cable-cars',
+          'aviation',
+          'air-routes',
+          'airspace',
+          'shipping',
+          'logbooks',
+          'road-safety',
+          'vehicles',
+          'ev',
+          'ride-hailing',
+        ],
+      },
     ],
   },
   {
@@ -190,6 +211,10 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   transport: () => import('./transport'),
   shipping: () => import('./shipping'),
   'road-safety': () => import('./road-safety'),
+  vehicles: () => import('./vehicles'),
+  'high-speed-rail': () => import('./high-speed-rail'),
+  metro: () => import('./metro'),
+  'air-routes': () => import('./air-routes'),
   profiles: () => import('./profiles'),
   flags: () => import('./flags'),
   language: () => import('./language'),

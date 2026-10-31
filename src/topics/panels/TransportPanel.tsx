@@ -4,7 +4,7 @@ import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { MAP_TOKENS } from '../../theme/tokens';
 import { GAUGES, gaugeText } from '../transport';
-import type { PanelExtraProps } from '../types';
+import { dataFolder, type PanelExtraProps } from '../types';
 
 interface TransportFile {
   railKm: number;
@@ -23,7 +23,6 @@ type GaugeRow = ['factbook' | 'factbook-2022' | 'wikipedia', number | null, [num
 
 const TEXT = defineMessages({
   zh: {
-    noCountry: '地圖資料上沒有這個國家的鐵路或機場。',
     railways: '鐵路',
     railKm: (km: string) => `地圖上約 ${km} 公里`,
     noRail: '地圖資料上沒有鐵路',
@@ -43,7 +42,8 @@ const TEXT = defineMessages({
     hsr: '高鐵',
     noHsr: 'Wikidata 沒有這個國家通車的高速鐵路線。',
     hsrLine: (year: number) => `${year} 年通車`,
-    metroNote: '地鐵站數、路網與高鐵取自 Wikidata，收錄各國不一；名稱沒有中文時用原文。',
+    metroNote: '地鐵站數與路網取自 Wikidata，收錄各國不一；名稱沒有中文時用原文。',
+    hsrNote: '高速鐵路線取自 Wikidata，收錄各國不一；名稱沒有中文時用原文。',
     gauge: '軌距',
     noGauge: '世界概況與英文維基百科都沒有這個國家的軌距。',
     gaugeAria: (country: string) => `${country}各種軌距的鐵路長度`,
@@ -55,7 +55,6 @@ const TEXT = defineMessages({
     wikipedia: '資料：英文維基百科條目',
   },
   en: {
-    noCountry: 'The map data has no railways or airports for this country.',
     railways: 'Railways',
     railKm: (km) => `About ${km} km on the map`,
     noRail: 'No railways in the map data',
@@ -74,7 +73,8 @@ const TEXT = defineMessages({
     hsr: 'High-speed rail',
     noHsr: 'Wikidata has no high-speed line in service in this country.',
     hsrLine: (year) => `Opened ${year}`,
-    metroNote: 'Metro stations, systems and high-speed lines come from Wikidata, whose coverage varies by country.',
+    metroNote: 'Metro stations and systems come from Wikidata, whose coverage varies by country.',
+    hsrNote: 'High-speed lines come from Wikidata, whose coverage varies by country.',
     gauge: 'Track gauge',
     noGauge: 'Neither the World Factbook nor English Wikipedia gives a track gauge for this country.',
     gaugeAria: (country) => `Rail length by track gauge in ${country}`,
@@ -87,15 +87,20 @@ const TEXT = defineMessages({
   },
 });
 
-/** 地鐵站數、第一條高鐵這兩個逐年的指標才列地鐵與高鐵；軌距的兩個指標列各種軌距；其他指標照舊列鐵路與機場 */
-const METRO_INDICATORS = new Set(['metro-stations', 'hsr-first']);
+/**
+ * 鐵路主題的側欄：軌距的兩個指標列各種軌距，其他指標列鐵路長度。
+ * 2026-10-30（第十一批 186）交通拆開後，地鐵、高鐵、機場的清單給拆出來的主題用（MetroPanel、HighSpeedRailPanel、
+ * 機場與旅客的 AviationPanel），一樣讀 data/topics/transport/countries/<國家>.json
+ */
 const GAUGE_INDICATORS = new Set(['gauge', 'standard-share']);
 
 export default function TransportPanel(props: PanelExtraProps) {
-  if (METRO_INDICATORS.has(props.indicator.id)) return <MetroSection {...props} />;
   if (GAUGE_INDICATORS.has(props.indicator.id)) return <GaugeSection {...props} />;
-  return <RailAirports {...props} />;
+  return <RailSection {...props} />;
 }
+
+/** 各國的鐵路、機場、地鐵、高鐵（pipeline/topics/transport.py、metro.py）都在交通（鐵路）的資料夾 */
+const countryFile = (iso3: string) => `topics/transport/countries/${iso3}.json`;
 
 /** 某個軌距屬於哪一類：名稱與地圖的顏色（不在分類裡的是「其他軌距」的顏色） */
 function gaugeKind(mm: number) {
@@ -109,7 +114,7 @@ function GaugeSection({ topic, iso3, countryName }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
-  const { data, error } = useJson<{ countries: Record<string, GaugeRow> }>(`topics/${topic.id}/gauge-detail.json`);
+  const { data, error } = useJson<{ countries: Record<string, GaugeRow> }>(`topics/${dataFolder(topic)}/gauge-detail.json`);
   if (!data && !error) return <p className="empty">{t.loading}</p>;
   const row = data?.countries[iso3];
   if (!row) return <p className="empty">{text.noGauge}</p>;
@@ -165,14 +170,14 @@ function GaugeSection({ topic, iso3, countryName }: PanelExtraProps) {
   );
 }
 
-function MetroSection({ topic, iso3 }: PanelExtraProps) {
+/** 地鐵與城市軌道的側欄：這國今年營運中的地鐵站與路網 */
+export function MetroSection({ iso3 }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
-  const { data, error } = useJson<TransportFile>(`topics/${topic.id}/countries/${iso3}.json`);
+  const { data, error } = useJson<TransportFile>(countryFile(iso3));
   if (!data && !error) return <p className="empty">{t.loading}</p>;
   const metro = data?.metro;
-  const hsr = data?.hsr ?? [];
   const name = (en: string | null, zh: string | null) => (lang === 'zh' && zh ? zh : en ?? zh ?? '');
   return (
     <section className="panel-section">
@@ -193,6 +198,22 @@ function MetroSection({ topic, iso3 }: PanelExtraProps) {
       ) : (
         <p className="empty">{text.noMetro}</p>
       )}
+      <p className="note">{text.metroNote}</p>
+    </section>
+  );
+}
+
+/** 高鐵的側欄：這國通車的高速鐵路線（依年份） */
+export function HsrSection({ iso3 }: PanelExtraProps) {
+  const lang = useLang();
+  const text = TEXT[lang];
+  const t = useT();
+  const { data, error } = useJson<TransportFile>(countryFile(iso3));
+  if (!data && !error) return <p className="empty">{t.loading}</p>;
+  const hsr = data?.hsr ?? [];
+  const name = (en: string, zh: string | null) => (lang === 'zh' && zh ? zh : en);
+  return (
+    <section className="panel-section">
       <h3>{text.hsr}</h3>
       {hsr.length > 0 ? (
         <ul className="plain-list">
@@ -206,16 +227,30 @@ function MetroSection({ topic, iso3 }: PanelExtraProps) {
       ) : (
         <p className="empty">{text.noHsr}</p>
       )}
-      <p className="note">{text.metroNote}</p>
+      <p className="note">{text.hsrNote}</p>
     </section>
   );
 }
 
-function RailAirports({ topic, iso3 }: PanelExtraProps) {
+function RailSection({ iso3 }: PanelExtraProps) {
   const text = TEXT[useLang()];
   const t = useT();
-  const { data, error } = useJson<TransportFile>(`topics/${topic.id}/countries/${iso3}.json`);
-  if (error) return <p className="empty">{text.noCountry}</p>;
+  const { data, error } = useJson<TransportFile>(countryFile(iso3));
+  if (!data && !error) return <p className="empty">{t.loading}</p>;
+  return (
+    <section className="panel-section">
+      <h3>{text.railways}</h3>
+      <p className="panel-figure">{data && data.railKm > 0 ? text.railKm(fixed(data.railKm, 0)) : text.noRail}</p>
+    </section>
+  );
+}
+
+/** 機場與旅客（主題 id aviation）的側欄：這國的大型機場與有定期航班的中型機場 */
+export function AirportsSection({ iso3 }: PanelExtraProps) {
+  const text = TEXT[useLang()];
+  const t = useT();
+  const { data, error } = useJson<TransportFile>(countryFile(iso3));
+  if (error) return <p className="empty">{text.noAirports}</p>;
   if (!data) return <p className="empty">{t.loading}</p>;
 
   const large = data.airports.filter((a) => a.large);
@@ -223,9 +258,6 @@ function RailAirports({ topic, iso3 }: PanelExtraProps) {
 
   return (
     <section className="panel-section">
-      <h3>{text.railways}</h3>
-      <p className="panel-figure">{data.railKm > 0 ? text.railKm(fixed(data.railKm, 0)) : text.noRail}</p>
-
       <h3>{text.airports(data.airports.length)}</h3>
       {data.airports.length === 0 && <p className="empty">{text.noAirports}</p>}
       {[

@@ -48,6 +48,7 @@ import { Sparkline } from './map/Sparkline';
 import { loadedTopic, loadTopic } from './topics';
 import { SHARED_LAYERS } from './topics/shared-layers';
 import {
+  dataFolder,
   dimensionOf,
   forItem,
   indicatorPath,
@@ -231,7 +232,7 @@ export function App() {
   );
 
   const countries = useJson<CountryTable>('countries.json').data;
-  const manifest = useJson<Manifest>(pure ? null : `topics/${topic.id}/manifest.json`).data;
+  const manifest = useJson<Manifest>(pure ? null : `topics/${dataFolder(topic)}/manifest.json`).data;
   const source = useJson<IndicatorData>(pure ? null : indicatorPath(topic, indicator, item));
   const { loading } = source;
 

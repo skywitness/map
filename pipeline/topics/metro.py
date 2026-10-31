@@ -53,7 +53,7 @@ CLOSED = {"Q11639308": "decommissioned", "Q63065035": "abandoned", "Q104664889":
           "Q56651571": "out of service"}
 WIKI_ISO = {"XKS": "XKX"}
 
-# 開通年份的分段（點的顏色，src/topics/transport.ts 的 ERA_COLORS 同順序）；ERA_UNKNOWN 是開通日期不明
+# 開通年份的分段（點的顏色，src/topics/metro.ts 的 ERA_COLORS 同順序）；ERA_UNKNOWN 是開通日期不明
 ERAS = (1950, 2000, 2020)
 ERA_UNKNOWN = len(ERAS) + 1
 

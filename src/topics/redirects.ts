@@ -23,9 +23,10 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   'antarctic-stations': { topic: 'antarctica', indicator: 'operating' },
   penguins: { topic: 'antarctica', indicator: 'species' },
   'subglacial-lakes': { topic: 'antarctica', indicator: 'lakes' },
-  // 航空（第七批 117）：航空公司（指標 operating 改名 airlines）、最長的直飛航線（指標 id 不變）
-  airlines: { topic: 'aviation', indicator: 'airlines', indicators: { operating: { indicator: 'airlines' } } },
-  'longest-flights': { topic: 'aviation', indicator: 'routes-count' },
+  // 航空（第七批 117）：航空公司（指標 operating 改名 airlines）、最長的直飛航線（指標 id 不變）；
+  // 第十一批 186 航空再拆開後，這兩個在航線與航空公司
+  airlines: { topic: 'air-routes', indicator: 'airlines', indicators: { operating: { indicator: 'airlines' } } },
+  'longest-flights': { topic: 'air-routes', indicator: 'routes-count' },
   // 月球與火星的登陸併進太空（第七批 118），指標 id 不變
   landings: { topic: 'space', indicator: 'moon' },
   // 房價與居住負擔併進住宅（第七批 119，住宅與房價保留 housing 的 id），指標 id 不變
@@ -53,9 +54,20 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
  * 例如交通的航空旅客量搬到航空：t/transport/?ind=air-passengers 轉到 t/aviation/?ind=air-passengers
  */
 export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
-  // 航空（第七批 117）：交通的機場與航空旅客指標搬到航空，指標 id 不變
-  transport: Object.fromEntries(
-    ['airports-count', 'large-airports', 'air-passengers', 'air-trips', 'busiest-passengers'].map((id) => [id, { topic: 'aviation' }]),
+  // 交通（id transport，第十一批 186 起叫鐵路）：機場與航空旅客指標搬到航空（第七批 117，第十一批起叫機場與旅客），
+  // 地鐵站、第一條高鐵搬到地鐵與城市軌道、高鐵（第十一批 186），指標 id 都不變
+  transport: {
+    ...Object.fromEntries(
+      ['airports-count', 'large-airports', 'air-passengers', 'air-trips', 'busiest-passengers'].map((id) => [id, { topic: 'aviation' }]),
+    ),
+    'metro-stations': { topic: 'metro' },
+    'hsr-first': { topic: 'high-speed-rail' },
+  },
+  // 航空（id aviation，第十一批 186 起叫機場與旅客）：航空公司、最長航線的指標搬到航線與航空公司，指標 id 不變
+  aviation: Object.fromEntries(['airlines', 'routes-count', 'longest', 'discontinued'].map((id) => [id, { topic: 'air-routes' }])),
+  // 交通安全：機車、汽車的指標搬到汽機車（第十一批 186），指標 id 不變
+  'road-safety': Object.fromEntries(
+    ['motorcycles-per-1000', 'motorcycle-share', 'cars-per-1000', 'passenger-cars'].map((id) => [id, { topic: 'vehicles' }]),
   ),
   // 賽車（第九批 160）：運動的 F1 指標搬到賽車，指標 id 不變
   sports: Object.fromEntries(['races', 'champions'].map((id) => [id, { topic: 'racing' }])),

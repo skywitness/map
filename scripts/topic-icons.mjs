@@ -127,7 +127,10 @@ const TOPIC_ICONS = {
   'submarine-cables': 'cable',
   space: 'rocket',
   transport: 'train-front',
+  'high-speed-rail': 'train-front-tunnel',
+  metro: 'tram-front',
   aviation: 'plane-takeoff',
+  'air-routes': 'route',
   'ride-hailing': 'car-taxi-front',
   airspace: 'radar',
   'cable-cars': 'cable-car',
@@ -135,6 +138,7 @@ const TOPIC_ICONS = {
   shipping: 'anchor',
   logbooks: 'sailboat',
   'road-safety': 'traffic-cone',
+  vehicles: 'motorbike',
   // 地理
   profiles: 'id-card',
   flags: 'flag',

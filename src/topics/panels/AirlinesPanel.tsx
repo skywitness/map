@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
-import type { PanelExtraProps } from '../types';
+import { dataFolder, type PanelExtraProps } from '../types';
 
 /** pipeline/topics/airlines.py 的 countries/<ISO3>.json：rows 是 [中文名, 英文名, 成立, 停業, IATA, ICAO, 國家航空] */
 interface AirlinesData {
@@ -39,7 +39,7 @@ export default function AirlinesPanel({ topic, iso3, year, countryName }: PanelE
   const t = useT();
   const text = TEXT[lang];
   // 沒有航空公司的國家沒有檔案（讀取失敗就當成沒有）
-  const { data, error } = useJson<AirlinesData>(`topics/${topic.id}/airlines/${iso3}.json`);
+  const { data, error } = useJson<AirlinesData>(`topics/${dataFolder(topic)}/airlines/${iso3}.json`);
   const groups = useMemo(() => {
     const rows = data?.rows ?? [];
     return {

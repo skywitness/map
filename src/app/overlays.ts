@@ -17,7 +17,7 @@ import {
 } from '../map/overlayData';
 import type { MapView } from '../map/WorldMap';
 import { loadSharedLayer } from '../topics/shared-layers';
-import type { AirportsData, Indicator, LinesData, OverlayDef, PointRecord, PointsData, RailwaysData, Topic } from '../topics/types';
+import { dataFolder, type AirportsData, type Indicator, type LinesData, type OverlayDef, type PointRecord, type PointsData, type RailwaysData, type Topic } from '../topics/types';
 
 /**
  * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
@@ -42,7 +42,7 @@ export function useOverlays(
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
   // 鐵路也可以是共用疊加圖層（shared-layers.ts，topic 是交通）
-  const files = useMemo(() => legacy.map((o) => `topics/${o.topic ?? topic.id}/${o.file}`), [topic.id, legacy]);
+  const files = useMemo(() => legacy.map((o) => `topics/${o.topic ?? dataFolder(topic)}/${o.file}`), [topic.id, legacy]);
   const loaded = useJsonMany<unknown>(files);
   const railIndex = legacy.findIndex((o) => o.id === 'railways');
   const airportIndex = legacy.findIndex((o) => o.id === 'airports');
@@ -222,7 +222,7 @@ function mergedLines(main: LinesData, parts: LinesData[]): DecodedLines {
  */
 function overlayPath(topic: Topic, o: { file: string; topic?: string }, item: string | null, year: number): string {
   const file = o.file.replace('{item}', item ?? topic.dimension?.defaultOption ?? '').replace('{year}', String(year));
-  return `topics/${o.topic ?? topic.id}/${file}`;
+  return `topics/${o.topic ?? dataFolder(topic)}/${file}`;
 }
 
 const decodedCache = new WeakMap<object, PointRecord[] | DecodedLines>();
