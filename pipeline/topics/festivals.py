@@ -11,6 +11,10 @@
   國曆月份（農曆正月約在國曆 2 月）。
 - 時間軸是月份（1–12），只篩選有月份的點；Wikidata 很少寫舉辦的日子（約 1,760 個裡 40 個），月份不詳的圖層預設也畫。
   國家不上色，值是節慶總數（Wikidata 加文資局，含月份不詳的），給 tooltip 與排名表。
+- 2026-10-31（第十二批 190，左邊「這個月的節慶」清單）：有月份的點多寫日期與地點：
+  d 是有固定日子的那一天（排序用；文資局農曆的用農曆的日，跟月份一樣當成大約的國曆），dz、de 是中英文的日期
+  （Wikidata 的「每年發生的日子」照原文翻，例如「7 月第三個星期六」；文資局的寫「農曆 7 月 15 日」），
+  pz、pe 是中英文的城市（Wikidata 的所在行政區 P131；文資局的縣市與鄉鎮市區，英文只寫縣市）。
 """
 from __future__ import annotations
 
@@ -24,12 +28,28 @@ from geoindex import countries_at
 from sources import wikidata_attractions
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _sparql
+from topics.house_prices import CITY_EN
 
 OUT = OUT_DIR / "topics" / "festivals"
 BOCH_URL = "https://data.boch.gov.tw/opendata/v2/assetsCase/5.1.json"
 FESTIVAL = "Q132241"
 MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
           "november", "december"]
+MONTHS_EN = [m.capitalize() for m in MONTHS]
+ORDINAL_ZH = {"first": "第一個", "second": "第二個", "third": "第三個", "fourth": "第四個", "last": "最後一個"}
+WEEKDAY_ZH = {"monday": "星期一", "tuesday": "星期二", "wednesday": "星期三", "thursday": "星期四", "friday": "星期五",
+              "saturday": "星期六", "sunday": "星期日"}
+COUNTY_EN = {**CITY_EN, "金門縣": "Kinmen County", "連江縣": "Lienchiang County", "台北市": "Taipei", "台中市": "Taichung",
+             "台南市": "Tainan", "台東縣": "Taitung County"}
+# 有月份的 Wikidata 節慶的所在行政區（P131）：清單的「城市」
+PLACE_QUERY = """SELECT ?item ?en ?zhtw ?zhhant ?zh WHERE {{
+  VALUES ?item {{ {items} }}
+  ?item wdt:P131 ?p .
+  OPTIONAL {{ ?p rdfs:label ?en FILTER(LANG(?en) = "en") }}
+  OPTIONAL {{ ?p rdfs:label ?zhtw FILTER(LANG(?zhtw) = "zh-tw") }}
+  OPTIONAL {{ ?p rdfs:label ?zhhant FILTER(LANG(?zhhant) = "zh-hant") }}
+  OPTIONAL {{ ?p rdfs:label ?zh FILTER(LANG(?zh) = "zh") }}
+}}"""
 # 種類（前端 KINDS 的代碼）：1 傳統、宗教與民俗節慶、3 電影節、4 藝術節、5 嘉年華、6 美食與飲酒節、7 其他。
 # 依類別的英文標籤裡的字分（節慶本身算 1）；音樂節不是節慶的直接子類別，查不到，2 沒有用
 KIND_WORDS = [
@@ -97,6 +117,62 @@ def _month(label: str | None) -> int | None:
     return found[0] if found else None
 
 
+def wikidata_date(labels: set[str], month: int) -> tuple[int | None, str, str]:
+    """Wikidata「每年發生的日子」→（固定的日或 None、中文、英文）；對不到格式的只寫月份"""
+    lows = sorted(x.strip().lower() for x in labels)
+    for low in lows:
+        if (m := re.fullmatch(r"([a-z]+) (\d{1,2})", low)) and m[1] in MONTHS and MONTHS.index(m[1]) + 1 == month:
+            day = int(m[2])
+            return day, f"{month} 月 {day} 日", f"{MONTHS_EN[month - 1]} {day}"
+    for low in lows:
+        if (m := re.fullmatch(r"(first|second|third|fourth|last) ([a-z]+day) in ([a-z]+)", low)) and m[2] in WEEKDAY_ZH:
+            return None, f"{month} 月{ORDINAL_ZH[m[1]]}{WEEKDAY_ZH[m[2]]}", f"{m[1].capitalize()} {m[2].capitalize()} in {MONTHS_EN[month - 1]}"
+        if (m := re.fullmatch(r"first ([a-z]+day) after the (\d+)(?:st|nd|rd|th) of ([a-z]+)", low)) and m[1] in WEEKDAY_ZH:
+            return (None, f"{month} 月 {m[2]} 日後的第一個{WEEKDAY_ZH[m[1]]}",
+                    f"First {m[1].capitalize()} after {MONTHS_EN[month - 1]} {m[2]}")
+    return None, f"{month} 月", MONTHS_EN[month - 1]
+
+
+def _int(v) -> int | None:
+    try:
+        return int(v) if v not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+def boch_date(case: dict) -> tuple[int | None, str | None, str | None]:
+    """文資局的舉辦日期 →（開始的日、中文、英文）；農曆照農曆寫"""
+    sm, sd, em, ed = (_int(case.get(k)) for k in ("holdStartMonth", "holdStartDay", "holdEndMonth", "holdEndDay"))
+    if not sm:
+        return None, None, None
+    lunar = case.get("holdCalendarType") == "農曆"
+    pre_zh = "農曆 " if lunar else ""
+    if not sd:
+        return None, f"{pre_zh}{sm} 月", (f"Lunar month {sm}" if lunar else MONTHS_EN[sm - 1])
+    same = not em or not ed or (em, ed) == (sm, sd)
+    if lunar:
+        zh = f"農曆 {sm} 月 {sd} 日" + ("" if same else f"–{ed} 日" if em == sm else f"–{em} 月 {ed} 日")
+        en = f"Lunar {sm}/{sd}" + ("" if same else f"–{sm}/{ed}" if em == sm else f"–{em}/{ed}")
+    else:
+        zh = f"{sm} 月 {sd} 日" + ("" if same else f"–{ed} 日" if em == sm else f"–{em} 月 {ed} 日")
+        en = f"{MONTHS_EN[sm - 1]} {sd}" + ("" if same else f"–{ed}" if em == sm else f" – {MONTHS_EN[em - 1]} {ed}")
+    return sd, zh, en
+
+
+def boch_place(addrs: list[dict]) -> tuple[str | None, str | None]:
+    """文資局的地址 →（中文、英文）：一個鄉鎮市區寫縣市加鄉鎮市區，同一縣市的幾個寫縣市，幾個縣市寫前兩個加「等」"""
+    cities = list(dict.fromkeys(a["cityName"] for a in addrs if a.get("cityName")))
+    if not cities:
+        return None, None
+    if len(cities) == 1:
+        dists = list(dict.fromkeys(a["distName"] for a in addrs if a.get("distName")))
+        zh = cities[0] + (dists[0] if len(dists) == 1 else "")
+    else:
+        zh = "、".join(cities[:2]) + ("等" if len(cities) > 2 else "")
+    en = ", ".join(COUNTY_EN.get(c, "") for c in cities[:2] if COUNTY_EN.get(c)) or None
+    return zh, en
+
+
 def taiwan_towns() -> dict[tuple[str, str], tuple[float, float]]:
     """(縣市, 鄉鎮市區) → (經度, 緯度)；縣市名稱的「臺」「台」都收"""
     out: dict[tuple[str, str], tuple[float, float]] = {}
@@ -130,6 +206,7 @@ def build() -> None:
             d["coord"] = p
         if (m := _month(v("whenLabel"))) is not None:
             d["months"].add(m)
+            d.setdefault("whens", set()).add(v("whenLabel"))
         if v("cc"):
             d["cc"].add(v("cc"))
         for k in ("en", "mul", "zhtw", "zhhant", "zh"):
@@ -147,9 +224,23 @@ def build() -> None:
         if not (en or zh):
             continue
         kind = min(k for k in d["kinds"] if k != OTHER) if d["kinds"] - {OTHER} else OTHER
+        month = min(d["months"]) if d["months"] else None
+        day, dz, de = wikidata_date(d.get("whens", set()), month) if month else (None, None, None)
         rows.append({"lon": round(d["coord"][0], 3), "lat": round(d["coord"][1], 3), "k": kind,
-                     "m": min(d["months"]) if d["months"] else None, "sl": d["sl"], "en": en,
-                     "zh": zh if zh and zh != en else None, "src": 1})
+                     "m": month, "sl": d["sl"], "en": en, "zh": zh if zh and zh != en else None, "src": 1,
+                     "q": d["q"], "d": day, "dz": dz, "de": de})
+    # 有月份的：所在行政區（清單的城市）
+    dated_q = sorted(r["q"] for r in rows if r["m"])
+    places: dict[str, tuple[str | None, str | None]] = {}
+    for r in _cached("festivals-places", PLACE_QUERY.format(items=" ".join(f"wd:{q}" for q in dated_q))):
+        v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
+        q = v("item").rsplit("/", 1)[1]
+        zh = s2tw.convert(v("zhtw") or v("zhhant")) if v("zhtw") or v("zhhant") else (s2twp.convert(v("zh")) if v("zh") else None)
+        old = places.get(q)
+        if not old or (not old[0] and zh):
+            places[q] = (zh, v("en"))
+    for r in rows:
+        r["pz"], r["pe"] = places.get(r.pop("q"), (None, None))
 
     # ── 台灣：文資局的民俗（儀式、祭典、節慶） ──
     towns = taiwan_towns()
@@ -178,9 +269,12 @@ def build() -> None:
             month = None
         if month and case.get("holdCalendarType") == "農曆":
             month = month % 12 + 1  # 農曆的月份大約晚國曆一個月
+        day, dz, de = boch_date(case)
+        pz, pe = boch_place(addrs)
         rows.append({"lon": round(coord[0], 3), "lat": round(coord[1], 3), "k": 1, "m": month, "sl": 0,
                      "en": None, "zh": case["caseName"], "src": 2,
-                     "imp": 1 if case.get("assetsClassifyName") == "重要民俗" else 0})
+                     "imp": 1 if case.get("assetsClassifyName") == "重要民俗" else 0,
+                     "d": day if month else None, "dz": dz if month else None, "de": de if month else None, "pz": pz, "pe": pe})
         tw += 1
 
     for r, iso3 in zip(rows, countries_at([r["lon"] for r in rows], [r["lat"] for r in rows])):
@@ -189,11 +283,11 @@ def build() -> None:
     undated = [r for r in rows if not r["m"]]
     dated.sort(key=lambda r: (r["m"], r["sl"]))
     undated.sort(key=lambda r: r["sl"])
-    fields = ["lon", "lat", "k", "m", "sl", "src", "imp", "iso3", "en", "zh"]
-    scale = {"lon": 0.001, "lat": 0.001, "k": 1, "m": 1, "sl": 1, "src": 1, "imp": 1}
+    fields = ["lon", "lat", "k", "m", "sl", "src", "imp", "iso3", "en", "zh", "d", "dz", "de", "pz", "pe"]
+    scale = {"lon": 0.001, "lat": 0.001, "k": 1, "m": 1, "sl": 1, "src": 1, "imp": 1, "d": 1}
     OUT.mkdir(parents=True, exist_ok=True)
-    write_json(OUT / "festivals.json", points_file(dated, fields, scale, strings=("iso3",)))
-    write_json(OUT / "festivals-undated.json", points_file(undated, fields, scale, strings=("iso3",)))
+    write_json(OUT / "festivals.json", points_file(dated, fields, scale, strings=("iso3", "pz", "pe")))
+    write_json(OUT / "festivals-undated.json", points_file(undated, fields, scale, strings=("iso3", "pz", "pe")))
     # 國家的值：這個國家的節慶總數（含月份不詳的；時間軸是月份，每個月都寫同一個數，tooltip 與排名表用）
     months = list(range(1, 13))
     totals: dict[str, int] = defaultdict(int)

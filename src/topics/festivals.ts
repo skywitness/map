@@ -1,11 +1,12 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 節慶（pipeline/topics/festivals.py）：Wikidata 的節慶點依月份篩選，台灣用文化資產局的民俗補。
  * 使用者 2026-10-29 決定：主題叫「節慶」（「大型」排不出來），台灣用文資局的民俗。
+ * 2026-10-31（第十二批 190）：左邊「這個月的節慶」清單，跟時間軸的月份連動。
  */
 
 /** 種類（pipeline 的 KIND_WORDS 的代碼；2 沒有用） */
@@ -77,6 +78,41 @@ function layer(id: string, file: string, label: Text, dated: boolean): PointsOve
   };
 }
 
+/**
+ * 這個月的節慶（第十二批 190）：時間軸那個月、有月份的節慶；有固定日子的依日子（文資局農曆的用農曆的日，
+ * 跟月份一樣當成大約的國曆），其他依名稱。每列：名稱、國家與城市、日期
+ */
+const MONTH_LIST: ListPanelDef = {
+  label: { zh: '這個月的節慶', en: 'Festivals this month' },
+  file: 'festivals.json',
+  empty: { zh: '這個月沒有標了月份的節慶', en: 'No festivals with a known date this month' },
+  rows: (points, { countryName, year }) => {
+    const name = festivalName;
+    return points
+      .filter((p) => p.m === year)
+      .sort((a, b) => {
+        const da = typeof a.d === 'number' ? a.d : Infinity;
+        const db = typeof b.d === 'number' ? b.d : Infinity;
+        return da - db || name(a).localeCompare(name(b), getLang() === 'zh' ? 'zh-Hant-TW' : 'en');
+      })
+      .map((p, i): ListRow => {
+        const zh = getLang() === 'zh';
+        const place = zh ? (p.pz ?? p.pe) : p.pe;
+        const country = typeof p.iso3 === 'string' ? countryName(p.iso3) : null;
+        const date = zh ? p.dz : p.de;
+        const original = nameIsOriginal(p);
+        return {
+          key: `${i}-${name(p)}`,
+          title: name(p),
+          titleProper: original,
+          lines: [[country, typeof place === 'string' && place !== country ? place : null].filter(Boolean).join(' · '), typeof date === 'string' ? date : monthName(year)].filter(Boolean),
+          properNoun: !original && zh && typeof p.en === 'string' && p.en !== name(p) ? p.en : undefined,
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        };
+      });
+  },
+};
+
 const MONTH_AXIS = {
   label: { zh: '月份', en: 'Month' } as Text,
   year: monthName,
@@ -101,13 +137,16 @@ export const festivals: TopicDefinition = {
     zh:
       '節慶是 Wikidata 直接標成節慶或它的子類別（電影節、藝術節、嘉年華、美食節、民俗節慶…）、有位置的約 1,760 個，加上文化資產局登錄的台灣民俗裡「儀式、祭典、節慶」類的 226 項。Wikidata 的節慶以歐美為主、電影節占三分之一，各國收得多少不一。' +
       '月份用 Wikidata 的「每年發生的日子」，只有約 40 個有，多數畫在「月份不詳」的圖層（不隨時間軸變）；文資局的民俗有舉辦月份的照月份出現，農曆的月份加一個月當成大約的國曆月份。' +
-      '文資局的地址只到鄉鎮市區，點在鄉鎮市區的位置（Wikidata 的座標；只寫縣市的在縣市的中間）。',
+      '文資局的地址只到鄉鎮市區，點在鄉鎮市區的位置（Wikidata 的座標；只寫縣市的在縣市的中間）。' +
+      '左邊的清單列出那個月有月份的節慶：有固定日子的依日子排（文資局農曆的照農曆寫，依農曆的日排），其他依名稱；城市用 Wikidata 的所在行政區與文資局的地址。',
     en:
       'Festivals are about 1,760 Wikidata items classed as festivals or a subclass (film, arts, carnival, food, folk festivals and so on) with a location, plus the 226 registered folk customs in the “rituals, ceremonies and festivals” class of Taiwan’s Bureau of Cultural Heritage. Wikidata’s festivals are mostly in Europe and the Americas, a third are film festivals, and coverage varies by country. ' +
       'Months come from Wikidata’s “day in year for periodic occurrence”, which only about 40 have, so most are in the “month unknown” layer (which does not change with the slider); Taiwan’s folk customs appear in their month where it is given, with lunar months shifted by one as an approximate calendar month. ' +
-      'The bureau gives only the township, so Taiwanese customs are placed at the township (Wikidata coordinates; those giving only a county at its centre).',
+      'The bureau gives only the township, so Taiwanese customs are placed at the township (Wikidata coordinates; those giving only a county at its centre). ' +
+      'The list on the left shows the festivals with a known month: those with a fixed day come first in date order (Taiwanese lunar dates are written as lunar dates and ordered by the lunar day), the rest by name; places come from Wikidata’s administrative location and the bureau’s addresses.',
   },
   panelExtra: () => import('./panels/FestivalsPanel'),
+  listPanel: MONTH_LIST,
   overlays: [
     layer('festivals', 'festivals.json', { zh: '有月份的節慶（依月份）', en: 'Festivals with a month (by month)' }, true),
     layer('festivals-undated', 'festivals-undated.json', { zh: '月份不詳的節慶', en: 'Festivals, month unknown' }, false),
@@ -117,8 +156,8 @@ export const festivals: TopicDefinition = {
       id: 'map',
       label: { zh: '節慶地圖', en: 'Festival map' },
       description: {
-        zh: '世界的節慶，依種類上色：傳統與民俗節慶、電影節、藝術節、嘉年華、美食節。拖動月份看那個月舉辦的（只有有月份的會跟著變，台灣的民俗大多有）；小點是月份不詳的。台灣有大甲媽祖遶境進香、鷄籠中元祭、東港迎王平安祭典、鄒族戰祭等文化資產局登錄的民俗。滑過看名稱，點國家列出它的節慶。',
-        en: 'Festivals around the world, coloured by type: traditional and folk festivals, film and arts festivals, carnivals and food festivals. Move the month slider to see what happens in each month (only festivals with a known month change, which includes most of Taiwan’s folk customs); small dots have no known month. Taiwan’s registered folk customs include the Dajia Mazu pilgrimage, the Keelung Ghost Festival, the Donggang King Boat Festival and the Tsou Mayasvi. Hover for names; select a country for its list.',
+        zh: '世界的節慶，依種類上色：傳統與民俗節慶、電影節、藝術節、嘉年華、美食節。拖動月份看那個月舉辦的（只有有月份的會跟著變，台灣的民俗大多有）；小點是月份不詳的。台灣有大甲媽祖遶境進香、鷄籠中元祭、東港迎王平安祭典、鄒族戰祭等文化資產局登錄的民俗。滑過看名稱，點國家列出它的節慶；左邊的清單列出那個月的節慶與日期。',
+        en: 'Festivals around the world, coloured by type: traditional and folk festivals, film and arts festivals, carnivals and food festivals. Move the month slider to see what happens in each month (only festivals with a known month change, which includes most of Taiwan’s folk customs); small dots have no known month. Taiwan’s registered folk customs include the Dajia Mazu pilgrimage, the Keelung Ghost Festival, the Donggang King Boat Festival and the Tsou Mayasvi. Hover for names; select a country for its list. The list on the left shows that month’s festivals and their dates.',
       },
       unit: { zh: '個', en: 'festivals' },
       file: 'count.json',
