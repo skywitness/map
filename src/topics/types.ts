@@ -869,6 +869,10 @@ export interface ListPanelDef {
   indicators?: string[];
   /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}；有 lines 時是線檔（LinesData） */
   file: string;
+  /** 子項目各自的檔（子項目 id → 檔名；沒列的用 file），例如颱風的日本氣象廳那一組是另一個路徑檔 */
+  itemFiles?: Record<string, string>;
+  /** 有標籤（badge）的列只是標記、打開時不捲過去（預設捲到第一個有標籤的，例如「下一站」）；颱風的「侵台」 */
+  scrollToBadge?: boolean;
   /**
    * 讀線（2026-10-31，第十二批 188）：file 是線檔，rows 拿到的是每一組線一筆紀錄（groupField 相同的線併成一組，
    * 紀錄是那一組第一條線的紀錄），加上那一組的範圍 bw、bs、be、bn。列的 line 寫 { overlay, group }（group 是

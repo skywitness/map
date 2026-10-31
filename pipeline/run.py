@@ -112,6 +112,7 @@ STEPS = {
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     # 要先有 geo 的國界；第一次會下載 IBTrACS v04r01（333 MB，NCEI 單一連線很慢，見 DESIGN.md 第 8 節）
     "typhoons": "topics.typhoons",
+    "typhoon-list": "topics.typhoon_list",
     "power-plants": "topics.power_plants",  # 第一次會下載 GEM 公開地圖的資料檔（約 62 MB）
     # 要先有 geo 的國界；第一次會下載 Global Solar Atlas 的 PVOUT（345 MB）與 Global Wind Atlas 的 0.02° 縮小版（182 MB）
     "renewables": "topics.renewables",

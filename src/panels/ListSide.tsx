@@ -96,7 +96,7 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const [narrowOpen, setNarrowOpen] = useState(false);
   const shown = narrow ? narrowOpen : open;
   const setShown = (v: boolean) => (narrow ? setNarrowOpen(v) : onOpenChange(v));
-  const path = `topics/${topicId}/${def.file.replace('{item}', item ?? '')}`;
+  const path = `topics/${topicId}/${(item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '')}`;
   const { data, error } = useJson<PointsData | LinesData>(shown ? path : null);
   const points = useMemo(
     () => (data ? (def.lines ? lineGroups(data as LinesData, def.lines.groupField) : decodePoints(data as PointsData)) : null),
@@ -122,7 +122,7 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const [picked, setPicked] = useState<string | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
   // 打開或換了清單時捲到有標籤的那一列（下一站）
-  const firstBadge = rows?.find((r) => r.badge)?.key ?? null;
+  const firstBadge = def.scrollToBadge === false ? null : (rows?.find((r) => r.badge)?.key ?? null);
   useEffect(() => {
     if (!shown || !firstBadge) return;
     const el = listRef.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(firstBadge)}"]`);
