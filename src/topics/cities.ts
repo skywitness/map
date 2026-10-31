@@ -5,6 +5,8 @@ import {
   overlayEpoch,
   type IndicatorDef,
   type LinesOverlayDef,
+  type ListPanelDef,
+  type ListRow,
   type PointRecord,
   type PointsOverlayDef,
   type TopicDefinition,
@@ -175,6 +177,41 @@ const EXTENT_LAYER: LinesOverlayDef = {
   detail: { minZoom: 6 },
 };
 
+/**
+ * 人口最多的城市（第十二批 198）：城市地圖，時間軸那一期（1950–2100 每 5 年）人口最多的 50 個城市，排名跟著年份變；
+ * 每列：名次與城市、國家、人口（推估、回推的標出來）。跟選取的國家連動（那一國人口最多的 50 個）；點了移過去並標出那一點
+ */
+const TOP_CITIES = 50;
+const TOP_LIST: ListPanelDef = {
+  label: { zh: '人口最多的城市', en: 'Largest cities' },
+  indicators: ['map'],
+  file: 'cities.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, year }) => {
+    const epoch = overlayEpoch(CITY_LAYER, year) ?? PROJECTION_FROM;
+    const note =
+      epoch >= PROJECTION_FROM ? tr({ zh: '（推估）', en: ' (projected)' }) : epoch < GRID_FROM ? tr({ zh: '（回推）', en: ' (back-cast)' }) : '';
+    return points
+      .map((p) => ({ p, pop: cityValue(p, 'p', epoch) }))
+      .filter((x): x is { p: PointRecord; pop: number } => x.pop !== null)
+      .sort((a, b) => b.pop - a.pop)
+      .slice(0, TOP_CITIES)
+      .map(({ p, pop }, i): ListRow => {
+        const zh = getLang() === 'zh' && typeof p.zh === 'string';
+        return {
+          key: `${p.name}-${p.lon}-${p.lat}`,
+          title: `${i + 1}. ${cityName(p)}`,
+          properNoun: zh ? String(p.name ?? '') : undefined,
+          lines: [
+            typeof p.iso3 === 'string' ? countryName(p.iso3) : '',
+            tr({ zh: `${epoch} 年 ${people(pop)}${note}`, en: `${people(pop)} in ${epoch}${note}` }),
+          ].filter(Boolean),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        };
+      });
+  },
+};
+
 const pct = (v: number) => formatPercent(v, v < 10 ? 1 : 0);
 const pctTick = (v: number) => `${v}%`;
 const seq = (thresholds: number[]) => ({ type: 'sequential' as const, thresholds });
@@ -189,8 +226,8 @@ const indicators: IndicatorDef[] = [
     id: 'map',
     label: { zh: '城市地圖', en: 'City map' },
     description: {
-      zh: '全球的城市（連續的市區，不是行政區：臺北、新北、桃園、基隆連成一片，算一個城市；2025 年約 1.2 萬個），圓的面積與人口成正比；拖動時間軸看 1950 年到 2100 年的變化（1975 年以前是回推、2025 年起是推估）。縮小時只畫大城市，放大才看得到小城市；放大到一個地區時畫出那一年的城市範圍（1975 年起）。',
-      en: 'Cities worldwide (continuous urban areas, not administrative units: Taipei, New Taipei, Taoyuan and Keelung form one city; about 12,000 in 2025), with circle area proportional to population; drag the time slider to see the change from 1950 to 2100 (back-cast before 1975, projected from 2025). Only large cities are shown when zoomed out; zoom in to a region to see each city’s extent in that year (from 1975).',
+      zh: '全球的城市（連續的市區，不是行政區：臺北、新北、桃園、基隆連成一片，算一個城市；2025 年約 1.2 萬個），圓的面積與人口成正比；拖動時間軸看 1950 年到 2100 年的變化（1975 年以前是回推、2025 年起是推估）。縮小時只畫大城市，放大才看得到小城市；放大到一個地區時畫出那一年的城市範圍（1975 年起）。左邊的清單列出那一年人口最多的 50 個城市。',
+      en: 'Cities worldwide (continuous urban areas, not administrative units: Taipei, New Taipei, Taoyuan and Keelung form one city; about 12,000 in 2025), with circle area proportional to population; drag the time slider to see the change from 1950 to 2100 (back-cast before 1975, projected from 2025). Only large cities are shown when zoomed out; zoom in to a region to see each city’s extent in that year (from 1975). The list on the left shows that year’s 50 largest cities.',
     },
     unit: '%',
     file: 'city-share.json',
@@ -349,6 +386,7 @@ export const cities: TopicDefinition = withParts({
     en: 'Cities and urban–rural populations come from GHS-WUP R2025A, produced by the European Commission’s Joint Research Centre (Global Human Settlement Layer) for the UN World Urbanization Prospects 2025: the Degree of Urbanisation applied to a 1 km population grid (national totals aligned with UN WPP 2024). A city is a continuous urban area of cells with at least 1,500 people per km² and 50,000 people in total; towns and semi-dense areas have at least 300 people per km² and 5,000 people in total; the rest is rural. Cities are not administrative units: a built-up area spanning several municipalities is one city (Taipei, New Taipei, Taoyuan and Keelung form one), and only part of a large municipality may count. City boundaries are drawn separately for each period, so a city’s population jumps in the year it merges with a neighbour, and the absorbed city is no longer drawn from then on. 1975–2020 come from grids built from national censuses; 1950–1970 have no grid and are back-cast from UN data (no area); values from 2025 to 2100 are projections from the JRC’s CRISP model, not observations. City names are GHS-WUP’s English names (from GISCO, OpenStreetMap and other sources). Cities straddling a border (Macao and Zhuhai, Gibraltar and La Línea in Spain, Monaco and the surrounding French towns) are placed in the smaller country and have no largest-city share. Citation under the GHSL conditions of use (CC BY 4.0): Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436.',
   },
   panelExtra: () => import('./panels/CitiesPanel'),
+  listPanel: TOP_LIST,
   overlays: [EXTENT_LAYER, CITY_LAYER],
   indicators,
 }, urbanHeatPart);
