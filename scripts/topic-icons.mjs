@@ -107,6 +107,7 @@ const TOPIC_ICONS = {
   'fossil-fuels': 'fuel',
   'energy-prices': 'badge-dollar-sign',
   'energy-policy': 'milestone',
+  'science-facilities': 'atom',
   renewables: 'solar-panel',
   climate: 'cloud',
   temperature: 'thermometer-sun',

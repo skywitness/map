@@ -70,6 +70,7 @@ export const RELATED: Record<string, string[]> = {
   'fossil-fuels': ['electricity', 'climate', 'minerals'],
   'energy-prices': ['electricity', 'fossil-fuels', 'fiscal'],
   'energy-policy': ['power-plants', 'electricity', 'nuclear-waste'],
+  'science-facilities': ['innovation', 'publications', 'nuclear-waste'],
   renewables: ['electricity', 'wind', 'climate'],
   ev: ['electricity', 'vehicles', 'minerals'],
   // 環境
