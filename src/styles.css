@@ -2114,12 +2114,18 @@ kbd {
 }
 
 /* ── 圖層開關 ───────────────────────── */
+/* 卡片裡的一段（最多的國家、圖層、數值圖例）：沒有自己的框，段與段之間一條細線（.map-legend 是那張卡片） */
 .map-legend > .legend {
   position: relative;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border: 1px solid var(--border);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.map-legend > .legend ~ .legend {
+  padding-top: 8px;
+  border-top: 1px solid var(--grid);
 }
 
 .map-layers {
@@ -2824,6 +2830,7 @@ kbd {
 
 /* ── 圖例 ───────────────────────────── */
 /* 圖例容器：圖層開關與數值圖例各一個方塊，由下往上疊 */
+/* 圖例卡片（WorldMap.tsx）：2026-10-31 起最多的國家、圖層、數值圖例合成一張，右上角的鈕收起成一顆「圖例」 */
 .map-legend {
   position: absolute;
   left: 12px;
@@ -2832,13 +2839,66 @@ kbd {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  pointer-events: none;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
   /* 圖層開關加上數值圖例比地圖高時（地震主題），數值圖例換到右邊一欄，不超出地圖上緣 */
   max-height: calc(100% - 24px);
   flex-wrap: wrap;
   justify-content: flex-end;
   align-content: flex-start;
   column-gap: 8px;
+}
+
+/* 沒有任何一段（純地圖、國旗以外沒有圖例的主題）時整張卡片不畫 */
+.map-legend:not(:has(.legend)) {
+  display: none;
+}
+
+/* 收起：只剩「圖例」那一顆 */
+.map-legend.is-collapsed {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.map-legend.is-collapsed > .legend {
+  display: none;
+}
+
+/* 打開時是卡片右上角一顆小圓鈕（一半在卡片外，不占卡片的空間）；收起時是一顆「圖例 ˄」 */
+.map-legend-toggle {
+  position: absolute;
+  top: -11px;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.map-legend-toggle:hover {
+  color: var(--ink);
+  border-color: var(--axis);
+}
+
+.map-legend.is-collapsed > .map-legend-toggle {
+  position: static;
+  height: 28px;
+  padding: 0 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 /* 數值最高、最低的國家（Extremes.tsx，寬螢幕）：圖例上面，最高、最低各一欄，點了選取並飛過去 */
@@ -3285,6 +3345,13 @@ kbd {
 
 .stat-value .skeleton {
   margin: 3px 0;
+}
+
+/* 那個指標的資料沒有載入成功（CountryPanel 的 stat-failed）：小一號的灰字，不是一直灰色的載入中 */
+.stat-failed {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-muted);
 }
 
 .panel {
@@ -5905,7 +5972,7 @@ kbd {
     transform-origin: bottom left;
   }
 
-  .map-legend > .legend {
+  .map-legend {
     padding: 6px 8px;
   }
 }

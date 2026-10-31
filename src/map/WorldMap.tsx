@@ -141,7 +141,10 @@ import {
   FILL_FADE_MS,
   FILL_FADE_SHARE,
   FILL_SWITCH_MS,
+  NO_DATA_NAME_OPACITY,
   NO_DATA_SOURCE,
+  BUBBLE_LABEL_SOURCE,
+  bubbleLabelLayer,
   VALUE_SOURCE,
   valueLabelLayer,
 } from './worldMapLayers';
@@ -271,6 +274,9 @@ export interface WorldMapHandle {
   exportImage: (content: MapImageContent) => Promise<Blob>;
 }
 
+/** 圖例卡片收起來沒（localStorage，'0' 是收起） */
+const LEGEND_KEY = 'legendOpen';
+
 export function WorldMap(props: WorldMapProps) {
   const { countries, indicator, values, bubbleMax, tokens, selected, onSelect, renderTooltip, ariaLabel, dimmed } =
     props;
@@ -355,6 +361,22 @@ export function WorldMap(props: WorldMapProps) {
     return p && typeof p.lon === 'number' && typeof p.lat === 'number' ? { ...place, lng: p.lon, lat: p.lat } : place;
   }, [place, overlays]);
   const [fullscreen, setFullscreen] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(() => {
+    try {
+      return localStorage.getItem(LEGEND_KEY) !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const toggleLegend = () =>
+    setLegendOpen((open) => {
+      try {
+        localStorage.setItem(LEGEND_KEY, open ? '0' : '1');
+      } catch {
+        // 存不了就只影響這次
+      }
+      return !open;
+    });
   // iPhone 的 Safari 不能讓一般元素全螢幕（只有影片可以），不放全螢幕鈕
   const canFullscreen = typeof document !== 'undefined' && document.fullscreenEnabled;
   const narrow = useMediaQuery(NARROW_QUERY);
@@ -488,6 +510,9 @@ export function WorldMap(props: WorldMapProps) {
     // 地圖上的數值：插在底圖的地名下面（地名先排，數值放得下才放）
     m.addSource(VALUE_SOURCE, { type: 'geojson', data: EMPTY });
     m.addLayer(valueLabelLayer(dark, labelFont(m, /country|place/)), beforeId);
+    // 比例圓的國名（圓的外面）：畫在底圖地名的上面，國名先放
+    m.addSource(BUBBLE_LABEL_SOURCE, { type: 'geojson', data: EMPTY });
+    m.addLayer(bubbleLabelLayer(dark, labelFont(m, /country|place/)));
     // 側欄的標記、游標的對蹠點：畫在最上面（連底圖的地名也蓋過，「台北的對蹠點」才不會被當地的地名壓住）
     for (const id of [MARKS_SOURCE, POINTER_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
     for (const layer of markLayers(dark, labelFont(m))) m.addLayer(layer);
@@ -684,15 +709,56 @@ export function WorldMap(props: WorldMapProps) {
     return out;
   }, [countryTable, lang]);
 
-  // 切換語言：底圖地名換成另一種語言，不必重新載入樣式
+  // 比例圓的指標（不是 3D）：有圓的國家不畫底圖的國名（改寫在圓的外面，bubbleLabelLayer），
+  // 沒有資料的國家的國名淡一點（2026-10-31）。依國家代碼組成字串，數值變了但國家沒變時不必重設圖層
+  const bubbleNames = indicator.layer.kind === 'bubble' && !threeD && values.size > 0;
+  const hiddenIso2 = useMemo(() => {
+    if (!bubbleNames || !countryTable) return '';
+    return [...values]
+      .flatMap(([iso3, v]) => (v > 0 && anchors.has(iso3) && countryTable[iso3]?.iso2 ? [countryTable[iso3].iso2!] : []))
+      .sort()
+      .join(',');
+  }, [bubbleNames, values, anchors, countryTable]);
+  const fadedIso2 = useMemo(() => {
+    if (!bubbleNames || !countryTable) return '';
+    return Object.entries(countryTable)
+      .flatMap(([iso3, ref]) => (ref.iso2 && !((values.get(iso3) ?? 0) > 0) ? [ref.iso2] : []))
+      .sort()
+      .join(',');
+  }, [bubbleNames, values, countryTable]);
+  /** 底圖地名圖層原本的 text-opacity（換底圖後重記） */
+  const nameOpacityRef = useRef<{ revision: number; original: Map<string, unknown> } | null>(null);
+
+  // 切換語言：底圖地名換成另一種語言，不必重新載入樣式；比例圓的國名、沒有資料的國名也在這裡處理
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    const field = labelField(lang, countryLabels);
+    const hidden = new Set(hiddenIso2 ? hiddenIso2.split(',') : []);
+    const field = labelField(
+      lang,
+      countryLabels.map(([iso2, name]): [string, string] => [iso2, hidden.has(iso2) ? '' : name]),
+    );
+    if (nameOpacityRef.current?.revision !== revision) nameOpacityRef.current = { revision, original: new Map() };
+    const original = nameOpacityRef.current.original;
+    const faded = fadedIso2 ? fadedIso2.split(',') : [];
     for (const layer of map.getStyle().layers) {
-      if (isNameLayer(layer)) map.setLayoutProperty(layer.id, 'text-field', field);
+      // 只改底圖（向量圖磚）的地名圖層；自己加的文字圖層（比例圓的國名、數值、疊加圖層的名稱）不動
+      if (!isNameLayer(layer) || !('source-layer' in layer)) continue;
+      map.setLayoutProperty(layer.id, 'text-field', field);
+      // 淡化只動國名所在的 place 圖層；底圖自己有 text-opacity 運算式的不動
+      if (layer['source-layer'] !== 'place') continue;
+      if (!original.has(layer.id)) original.set(layer.id, map.getPaintProperty(layer.id, 'text-opacity'));
+      const base = original.get(layer.id) as number | undefined;
+      if (base !== undefined && typeof base !== 'number') continue;
+      map.setPaintProperty(
+        layer.id,
+        'text-opacity',
+        faded.length
+          ? (['match', ['coalesce', ['get', 'iso_a2'], ''], faded, NO_DATA_NAME_OPACITY, base ?? 1] as unknown as ExpressionSpecification)
+          : base,
+      );
     }
-  }, [revision, lang, countryLabels]);
+  }, [revision, lang, countryLabels, hiddenIso2, fadedIso2]);
 
   // 面量圖、類別圖開著時隱藏底圖的國界（改畫 data-border），其他時候用底圖的國界
   useEffect(() => {
@@ -834,7 +900,8 @@ export function WorldMap(props: WorldMapProps) {
         (l): l is Extract<LayerSpecification, { type: 'symbol' }> =>
           // 地圖上的數值（VALUE_SOURCE）也一樣：地球邊緣擠成一團
           (l.type === 'symbol' && ['place', 'water_name'].includes((l as { 'source-layer'?: string })['source-layer'] ?? '')) ||
-          l.id === VALUE_SOURCE,
+          l.id === VALUE_SOURCE ||
+          l.id === BUBBLE_LABEL_SOURCE,
       )
       .map((l) => ({ id: l.id, filter: l.filter }));
     let applied: [number, number] | null = null;
@@ -899,13 +966,21 @@ export function WorldMap(props: WorldMapProps) {
       indicator.layer.kind === 'bubble' ? [...values].filter(([iso3, v]) => v > 0 && anchors.has(iso3)) : [];
     const target = new Map(entries.map(([iso3, v]) => [iso3, Math.max(BUBBLE_MIN_RADIUS, radius(v))]));
     const source = map.getSource('bubbles') as GeoJSONSource;
+    const labelSource = map.getSource(BUBBLE_LABEL_SOURCE) as GeoJSONSource | undefined;
     const draw = (radii: Map<string, number>) => {
       const features: GeoJSON.Feature[] = [];
+      // 國名寫在圓的外面（只寫這一年有圓的國家，跟著漸變的半徑移動；消失中的圓改回底圖的國名）
+      const labels: GeoJSON.Feature[] = [];
       for (const [iso3, r] of radii) {
         const at = anchors.get(iso3);
-        if (at && r > 0.3) features.push({ type: 'Feature', properties: { iso3, r }, geometry: { type: 'Point', coordinates: at } });
+        if (!at) continue;
+        if (r > 0.3) features.push({ type: 'Feature', properties: { iso3, r }, geometry: { type: 'Point', coordinates: at } });
+        if (target.has(iso3)) {
+          labels.push({ type: 'Feature', properties: { label: countryName(iso3, countryTable, lang), r }, geometry: { type: 'Point', coordinates: at } });
+        }
       }
       source.setData({ type: 'FeatureCollection', features });
+      labelSource?.setData({ type: 'FeatureCollection', features: labels });
       bubbleShownRef.current = radii;
     };
     const now = performance.now();
@@ -949,7 +1024,7 @@ export function WorldMap(props: WorldMapProps) {
       geometry: circlePolygon(anchors.get(iso3)!, COLUMN_RADIUS_KM),
     }));
     (map.getSource('columns') as GeoJSONSource).setData({ type: 'FeatureCollection', features: columns });
-  }, [revision, values, radius, anchors, bubbleMax, indicator]);
+  }, [revision, values, radius, anchors, bubbleMax, indicator, countryTable, lang]);
   useEffect(() => () => cancelAnimationFrame(bubbleFrameRef.current), []);
 
   // 資料第一次畫到地圖上：通知 App（之後才載入精細國界、預先下載），並留下 performance mark「map-data」
@@ -1406,6 +1481,7 @@ export function WorldMap(props: WorldMapProps) {
     show('extrude-tiny', slabs);
     show('extrude-columns', extrude && kind === 'bubble');
     show('bubbles', !extrude);
+    show(BUBBLE_LABEL_SOURCE, !extrude);
     show('data-tiny', !slabs && !gridOn && !flagsOn && !bare);
     show('data-border', !slabs && !bare);
     show('data-highlight', !slabs && !bare);
@@ -1782,7 +1858,22 @@ export function WorldMap(props: WorldMapProps) {
       {overlay && <div className={`map-overlay${overlayOnLeft ? '' : ' is-right'}`}>{overlay}</div>}
       {bottom && <div className="map-bottom">{bottom}</div>}
 
-      <div className="map-legend">
+      {/* 圖例（最多的國家、圖層開關、數值圖例）合成一張卡片，各段之間細線分隔；右上角的鈕收起成一顆「圖例」
+          （2026-10-31，原本最多三張卡片疊在一起，例如 F1）。收起記在這台裝置；沒有任何一段時整張不畫（CSS 的 :has） */}
+      <div className={`map-legend${legendOpen ? '' : ' is-collapsed'}`}>
+        <button
+          type="button"
+          className="map-legend-toggle"
+          aria-expanded={legendOpen}
+          aria-label={legendOpen ? t.legendHide : t.legendShow}
+          title={legendOpen ? t.legendHide : t.legendShow}
+          onClick={toggleLegend}
+        >
+          {!legendOpen && <span>{t.legendTitle}</span>}
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+            <path d={legendOpen ? 'M3 4.5 6 7.5 9 4.5' : 'M3 7.5 6 4.5 9 7.5'} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
         {showExtremes && (
           <Extremes
             indicator={indicator}

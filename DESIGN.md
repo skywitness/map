@@ -449,6 +449,12 @@ pipeline/
 - **選取的國家**（2026-10-28 加強）：外框 2.4px（淺色底圖深色、深色底圖白色），底下墊一圈 6.5px 的光暈（`data-halo`，顏色相反），在深色的填色上也看得出來。比 12 萬 km² 小的國家（台灣、南韓、葡萄牙…與沒有形狀的）再畫一個圓圈標記（`selected-mark`，半徑 11px，白色襯底加深色線），放大到 4–5.5 級時淡出：全球視角下台灣只有十來個像素，原本只靠外框幾乎看不到。
   - **新選到時光暈由寬收窄**（2026-10-29，`worldMapLayers.ts` 的 `SELECT_PULSE_MS`）：光暈從 22.5px、0.35 不透明度在 0.45 秒內收到 6.5px、0.9（ease-out），看得出剛選到哪裡；用 `setPaintProperty` 逐格改 `data-halo` 的寬度（運算式照舊只有選取的國家有寬度）。系統設定減少動態效果時直接畫。
   - **2026-10-30 改成不加粗**（使用者：點了國家之後國界線不要加粗）：`data-highlight` 選取時跟一般國界（`data-border`）一樣細（縮放 1、6、10 級為 0.5、0.9、1.4px），只是全黑（深色介面全白）、不透明，還看得出選到哪一國；光暈 `HALO_WIDTH` 改成 0，收窄的動畫不跑（圖層與程式留著，要恢復改回 6.5）。滑過的國家照舊 1.4px。小國家的圓圈標記（`selected-mark`）照舊。分析檢視的 SVG 地圖選取外框也從 1.6 改成 0.6。
+- **比例圓的國名寫在圓外**（2026-10-31，使用者選的第四輪 二、2；`worldMapLayers.ts` 的 `bubbleLabelLayer`）：原本底圖的國名壓在比例圓上（F1、人口），圓大的地方一團亂。比例圓的指標（不是 3D）時：
+  - 這一年有圓的國家，底圖的國名換成空字串（`labelField` 的 iso2 對照表），改在自己的圖層 `bubble-labels` 寫，位置是圓心往外推半徑再加 0.25 個字高（`text-radial-offset`，依縮放跟著字級換算），先試圓的正下方、再上、右、左（`text-variable-anchor`），圓越大越先排；畫在底圖地名的上面。資料跟比例圓一起更新，圓的大小漸變時國名跟著移動；消失中的圓改回底圖的國名。
+  - 沒有資料（或 0）的國家，底圖國名的不透明度降到 0.45（`place` 圖層的 `text-opacity`，換指標、換主題時還原）。
+  - 只改底圖（向量圖磚）的地名圖層；自己加的文字圖層的欄位不能叫 `name`（換語言時會被改寫）。地球邊緣一樣只留畫面中央的（`LIMB_DEGREES`）。
+- **左下角的圖例合成一張卡片**（2026-10-31，第四輪 二、1；`WorldMap.tsx` 的 `.map-legend`）：最多的國家、圖層開關、數值圖例原本各自一張卡片（F1 疊三張）。現在 `.map-legend` 本身是卡片，各段沒有自己的框、段之間一條細線；右上角一顆小圓鈕（一半在卡片外，不占空間）收起成「圖例 ˄」，收起記在這台裝置（localStorage `legendOpen`）；沒有任何一段時整張不畫（CSS `:has(.legend)`）。圖層開關裡收起分級說明的按鈕改叫「收起細項」，不跟收起圖例混淆。
+- **國家側欄載入失敗**（2026-10-31，第四輪 〇、1；`lib/data.ts` 的 `useJsonManyStatus`）：原本下載失敗的指標當成還沒到，卡片與圖表一直是灰色的載入中。現在卡片寫「沒有載入成功」，圖表區顯示「這個主題的資料沒有載入成功」（離線時寫還沒存到這台裝置）與「重試」（重新下載失敗的檔），排在主題自訂的缺值原因之前。
 - **沒有資料的國家畫斜線**（2026-10-30，`worldMapLayers.ts` 的 `NO_DATA_HATCH`）：原本只是灰色（`#c9c7c0`），在灰階列印、某些色盲下跟最淺的那一級分不清。現在灰底上蓋一層 1px 的斜線（間距 6px、深灰 42%），圖例與匯出圖片的「無資料」色塊畫同樣的斜線（CSS 的 `NO_DATA_SWATCH`、`exportImage.ts`）。斜線只畫在有上色（面量圖、類別圖）而沒資料的國家；國旗、網格、3D 的立體圖形時不畫；強調圖例某一級時跟其他國家一起淡化。
   - **斜線放在另一個 source**（`nodata`，只有沒資料的國家，`useCountryFills.ts` 在那一組國家變了才 `setData`）：一開始在 `countries` 上加一個 `fill-pattern` 的圖層，結果網址有選國家（`?country=TWN`）時整份國界都不畫（`queryRenderedFeatures` 是 0，沒有錯誤訊息；拿掉圖案填色或改用另一個 source 就好，MapLibre 5.24）。
 - **滑過的國家微微加亮**（2026-10-29，`data-hover` 圖層）：除了 1.4px 的外框，再蓋一層 16% 的白色（選取中的國家不蓋），深色的填色上也看得出游標在哪一國。跟 `data-halo` 一樣在 3D 的立體圖形、只留海的底圖時隱藏。
@@ -4292,6 +4298,9 @@ pipeline/
   - 「加入比較」按鈕看得到的字要包含在名稱裡（label-content-name-mismatch）：「＋」改成 `aria-hidden` 的另一個 span。
 
 - **GitHub Actions 的「檢查」**（`.github/workflows/check.yml`，2026-10-29 加）：每次推送（任何分支）與 PR 都跑 `check:i18n`、主題目錄比對（`npm run catalog -- --check`）、`npm run build`（含型別檢查）與冒煙測試（`npm run smoke`，`scripts/smoke-topics.mjs`：每個主題打開一次，有頁面錯誤或主控台錯誤就失敗，約 10–15 分鐘）。不擋部署，失敗時 commit 旁是紅色的叉。好幾個工作同時推到 main，合併時容易漏掉別人的主題（例如 `topics/registry.ts` 衝突）或改壞共用的程式，推之前本機也可以跑 `npm run build && npm run smoke`（`SMOKE_TOPICS=a,b` 只開幾個）。
+- **單元測試**（2026-10-31，使用者要求；`npm test` = `vitest run`，CI 的「單元測試」步驟，在建置之前）：`src/**/*.test.ts`，測純函式——網址解析（`url-state`）、指標檔的差分解碼（`data.ts` 的 `decode`，含一個真的資料檔）、名次與 latestWithin（`panels/stats`）、數字格式（中英文）、時刻參數與日期、國家搜尋（簡轉繁、重音、單字開頭、ISO 代碼）、分析的變化分級、框選、主題選單的分欄（`controls/menuColumns.ts`，從 TopicNav 搬出來）、Google 地圖連結（`map/googleMaps.ts`）、航海日誌的國籍指標。11 個檔、54 個測試，不到 1 秒，比冒煙測試快很多，也抓得到冒煙測試看不出的錯（例如名次、格式錯了頁面照樣打得開）。
+  - 設定在 `vitest.config.ts`，不讀 `vite.config.ts`（那裡的外掛會算整個 `public/data` 的雜湊）；別名一樣換成 Preact。在 Node 跑，`src/test/setup.ts` 給最小的 `window`、`localStorage`、`history`（`i18n/lang.ts` 一匯入就讀網址），`setLocation()` 換網址。
+  - `check:i18n` 不掃測試檔（測試資料裡的中文不是介面）。新的純函式邏輯要一起加測試；有畫面的元件照舊靠冒煙測試與手動截圖。
 - **App.tsx、WorldMap.tsx 拆檔**（2026-10-29，行為不變）：兩個檔原本各約 1,350、2,700 行，改一個地方要在一大片程式裡找。
   - `App.tsx`（約 840 行）只留畫面狀態的組合與版面；不依賴 App 狀態的 hook 與小工具搬到 `src/app/`（`hooks.ts`、`overlays.ts`、`options.ts`），頂列與頁尾是 `TopBar.tsx`、`Footer.tsx`。
   - `WorldMap.tsx`（約 1,700 行）留地圖的建立、圖層的安裝與同步、控制項；常數、圖層定義與小工具在 `worldMapLayers.ts`，滑鼠與觸控事件在 `mapEvents.ts`（`bindMapEvents`，事件在地圖建立時綁一次，最新的 props 從 `latest` ref 讀），國家的上色與漸變在 `useCountryFills.ts`，網格、國旗等點陣圖層在 `useRasterLayers.ts`，tooltip 在 `MapTooltip.tsx`。拆出來的 hook 拿 `MapContext`（地圖的 ref、圖層裝好了沒、`ready`、`revision`），跟原本在 WorldMap 裡一樣依它們重跑。

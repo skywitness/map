@@ -54,6 +54,8 @@ export const zh = {
   offlineNotSavedTitle: '目前離線，這個主題還沒存到這台裝置',
   offlineNotSavedHint: '連上網路後就能看；看過的主題之後離線也能打開。',
   retry: '重試',
+  /** 側欄的數值卡片：那個指標的資料沒有載入成功 */
+  loadFailedShort: '沒有載入成功',
   reload: '重新整理',
   basemapFailedTitle: '底圖沒有載入成功',
   loadingMap: '地圖載入中…',
@@ -195,6 +197,9 @@ export const zh = {
   threeDHintGlobe: '；3D 時改用平面地圖：地球儀上的立體圖形無法點選（MapLibre 5 的限制）',
   unitSuffix: (unit: string) => (unit ? `（${unit}）` : ''),
   layers: '圖層',
+  legendTitle: '圖例',
+  legendShow: '打開圖例',
+  legendHide: '收起圖例',
   categoryTitle: (label: string, count: number) => `${label}：${count} 個國家/地區（點一下只突顯這一類，再點一下取消）`,
   // 面量圖的分級（圖例的色塊可以滑過、點選）
   binBelow: (x: string) => `低於 ${x}`,

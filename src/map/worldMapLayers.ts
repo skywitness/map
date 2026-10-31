@@ -669,6 +669,41 @@ export function valueLabelLayer(dark: boolean, font: DataDrivenPropertyValueSpec
   };
 }
 
+/**
+ * 比例圓的國名（2026-10-31，使用者選的第四輪 二、2）：比例圓的指標時，有圓的國家不畫底圖的國名（壓在圓上很亂，
+ * WorldMap 的 labelField 換成空字串），改在圓的外面寫：依半徑往外推（text-radial-offset，單位是字高，跟著
+ * text-size 換算），先試圓的下方，再上、右、左；圓越大越先排。畫在底圖地名的上面，國名先放
+ */
+export const BUBBLE_LABEL_SOURCE = 'bubble-labels';
+export function bubbleLabelLayer(dark: boolean, font: DataDrivenPropertyValueSpecification<string[]>): LayerSpecification {
+  const r = ['get', 'r'] as ExpressionSpecification;
+  const offset = (size: number): ExpressionSpecification => ['+', ['/', r, size], 0.25];
+  return {
+    id: BUBBLE_LABEL_SOURCE,
+    type: 'symbol',
+    source: BUBBLE_LABEL_SOURCE,
+    layout: {
+      // 欄位不要叫 name：WorldMap 換語言時會改寫所有讀 name 的文字圖層（isNameLayer）
+      'text-field': ['get', 'label'],
+      'text-font': font,
+      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 11, 4, 13, 7, 15],
+      'text-variable-anchor': ['top', 'bottom', 'right', 'left'],
+      'text-radial-offset': ['interpolate', ['linear'], ['zoom'], 1, offset(11), 4, offset(13), 7, offset(15)],
+      'text-justify': 'auto',
+      'text-padding': 1,
+      'symbol-sort-key': ['-', 0, r],
+    },
+    paint: {
+      'text-color': dark ? '#f0efec' : '#2b2b29',
+      'text-halo-color': dark ? 'rgba(11, 11, 11, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+      'text-halo-width': 1.4,
+    },
+  };
+}
+
+/** 比例圓的指標時，沒有資料的國家的國名淡一點（底圖國名圖層的 text-opacity） */
+export const NO_DATA_NAME_OPACITY = 0.45;
+
 /** 只留海的底圖（bareMap）蓋住今天陸地的那一層 */
 export const BARE_SEA = 'bare-sea';
 

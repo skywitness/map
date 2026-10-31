@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const cache = new Map<string, Promise<unknown>>();
 
@@ -35,8 +35,8 @@ function decodeRecord(record: Record<string, Series>): Record<string, Series> {
   return out;
 }
 
-/** 指標檔有 "encoding": "delta" 就還原；沒有的（舊格式、其他檔案）原樣回傳 */
-function decode(json: unknown): unknown {
+/** 指標檔有 "encoding": "delta" 就還原；沒有的（舊格式、其他檔案）原樣回傳（data.test.ts 測） */
+export function decode(json: unknown): unknown {
   const d = json as { encoding?: unknown; values?: Record<string, Series>; aggregates?: Record<string, Series> };
   if (!d || typeof d !== 'object' || d.encoding !== 'delta') return json;
   const { encoding: _, ...rest } = d;
@@ -110,21 +110,49 @@ export function useJson<T>(path: string | null): { data: T | null; loading: bool
   return { data: state.data, loading: path !== state.path, error: state.error };
 }
 
-/** 一次讀多個檔案（例如一個主題的所有指標），還沒到的位置是 null */
+/** 一次讀多個檔案（例如一個主題的所有指標），還沒到的位置是 null（失敗的也是 null；要分辨用 useJsonManyStatus） */
 export function useJsonMany<T>(paths: string[]): (T | null)[] {
+  return useJsonManyStatus<T>(paths).data;
+}
+
+/**
+ * 同 useJsonMany，另外回報哪些檔案下載失敗（failed），retry() 重新下載（失敗的不在快取裡，會真的再抓一次）。
+ * 國家側欄用：原本失敗的指標當成還沒到，數值卡片與圖表一直是灰色的「載入中」（2026-10-31）
+ */
+export function useJsonManyStatus<T>(paths: string[]): { data: (T | null)[]; failed: boolean[]; retry: () => void } {
   const key = paths.join('|');
-  const [state, setState] = useState<{ key: string; data: (T | null)[] }>({ key: '', data: [] });
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState<{ key: string; attempt: number; data: (T | null)[]; failed: boolean[] }>({
+    key: '',
+    attempt: 0,
+    data: [],
+    failed: [],
+  });
 
   useEffect(() => {
     let cancelled = false;
     const list = key ? key.split('|') : [];
-    Promise.all(list.map((p) => fetchJson<T>(p).catch(() => null))).then(
-      (data) => !cancelled && setState({ key, data }),
-    );
+    Promise.all(
+      list.map((p) =>
+        fetchJson<T>(p).then(
+          (data) => ({ data, failed: false }),
+          () => ({ data: null, failed: true }),
+        ),
+      ),
+    ).then((rows) => {
+      if (!cancelled) setState({ key, attempt, data: rows.map((r) => r.data), failed: rows.map((r) => r.failed) });
+    });
     return () => {
       cancelled = true;
     };
-  }, [key]);
+  }, [key, attempt]);
 
-  return state.key === key ? state.data : paths.map(() => null);
+  const retry = useCallback(() => setAttempt((a) => a + 1), []);
+  // 重試中：照舊是 null、還不算失敗（畫面回到載入中）
+  const current = state.key === key && state.attempt === attempt;
+  return {
+    data: state.key === key ? state.data : paths.map(() => null),
+    failed: current ? state.failed : paths.map(() => false),
+    retry,
+  };
 }
