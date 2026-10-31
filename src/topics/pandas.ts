@@ -1,7 +1,7 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 熊貓外交（pipeline/topics/pandas.py、sources/panda_diplomacy.py）：中國贈送或租借大熊貓到各國動物園的每一次，
@@ -50,6 +50,41 @@ function zooTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string
   };
 }
 
+/**
+ * 那一年在國外的大熊貓（第十二批 203）：時間軸那一年在國外動物園的（開始年份 ≤ 那一年、還沒結束或那一年才結束），
+ * 依國家分組（國名依語言排），組內依開始年份；每列：動物園、熊貓的名字、贈送或租借與期間。點了移到動物園
+ */
+const ABROAD_LIST: ListPanelDef = {
+  label: { zh: '那一年在國外的大熊貓', en: 'Pandas abroad that year' },
+  file: 'zoos.json',
+  countryField: 'iso3',
+  empty: { zh: '這一年國外沒有大熊貓', en: 'No pandas abroad this year' },
+  rows: (points, { countryName, year }) => {
+    const collator = new Intl.Collator(getLang() === 'zh' ? 'zh-Hant-TW' : 'en');
+    const country = (p: PointRecord) => countryName(String(p.iso3 ?? ''));
+    return points
+      .filter((p) => Number(p.a) <= year && (typeof p.e !== 'number' || p.e >= year))
+      .sort((a, b) => collator.compare(country(a), country(b)) || Number(a.a) - Number(b.a))
+      .map((p, i): ListRow => {
+        const title = zooName(p, countryName);
+        // 贈送、短期出借沒寫結束年份的：條目沒寫熊貓什麼時候死亡或送回，不一定還在，淡一點並註明
+        const unknownEnd = typeof p.e !== 'number' && Number(p.k) !== 4 && Number(p.k) !== 5;
+        return {
+          key: `${p.zoo ?? p.iso3}-${p.a}-${i}`,
+          title,
+          properNoun: getLang() === 'zh' && typeof p.zoo === 'string' && title !== p.zoo ? p.zoo : undefined,
+          lines: [
+            typeof p.names === 'string' ? p.names : null,
+            placementText(p) + (unknownEnd ? tr({ zh: '（條目沒寫結束的年份）', en: ' (end year not given)' }) : ''),
+          ].filter((x): x is string => Boolean(x)),
+          muted: unknownEnd,
+          group: country(p),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 12 },
+        };
+      });
+  },
+};
+
 const times = (v: number) => tr({ zh: `${fixed(v, 0)} 次`, en: `${fixed(v, 0)} ${v === 1 ? 'time' : 'times'}` });
 
 export const pandas: TopicDefinition = {
@@ -80,6 +115,7 @@ export const pandas: TopicDefinition = {
       'Where the articles give no start year but show a panda was there by a certain year (such as a cub born there), that year is used and marked “by … at the latest”; placements with no year at all (Memphis, Kobe Oji Zoo, Qatar) are left out, as are Hong Kong and Macau, which are part of China.',
   },
   panelExtra: () => import('./panels/PandasPanel'),
+  listPanel: ABROAD_LIST,
   overlays: [
     {
       kind: 'lines',
@@ -108,8 +144,8 @@ export const pandas: TopicDefinition = {
       id: 'received',
       label: { zh: '收到大熊貓的次數', en: 'Times pandas were received' },
       description: {
-        zh: '到這一年為止，這個國家的動物園收到中國大熊貓的次數（贈送與租借都算）。拖動時間軸，從 1941 年中華民國送給美國的那一對看起：1957–1983 年毛澤東時代送給 9 國，1984 年起改成租借，美國 13 次最多。點是每一次的動物園，滑過看熊貓的名字與年份。',
-        en: 'How many times a country’s zoos had received giant pandas from China by the selected year (gifts and loans). Drag the timeline from the pair the Republic of China gave the US in 1941: nine countries received gifts between 1957 and 1983, loans replaced gifts from 1984, and the US leads with 13. Dots mark each placement; hover for the pandas and years.',
+        zh: '到這一年為止，這個國家的動物園收到中國大熊貓的次數（贈送與租借都算）。拖動時間軸，從 1941 年中華民國送給美國的那一對看起：1957–1983 年毛澤東時代送給 9 國，1984 年起改成租借，美國 13 次最多。點是每一次的動物園，滑過看熊貓的名字與年份；左邊的清單依國家列出那一年在國外的大熊貓。',
+        en: 'How many times a country’s zoos had received giant pandas from China by the selected year (gifts and loans). Drag the timeline from the pair the Republic of China gave the US in 1941: nine countries received gifts between 1957 and 1983, loans replaced gifts from 1984, and the US leads with 13. Dots mark each placement; hover for the pandas and years. The list on the left shows, by country, the pandas abroad in the selected year.',
       },
       unit: { zh: '次', en: 'times' },
       file: 'received.json',
