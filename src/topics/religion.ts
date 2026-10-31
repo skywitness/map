@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { religionExtra } from './religion-extra';
 import type { CategoryDef, TopicDefinition } from './types';
 
 /**
@@ -42,7 +43,10 @@ export const religion: TopicDefinition = {
       url: 'https://statis.moi.gov.tw/micst/webMain.aspx?sys=100&funid=defjsp',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
+    ...religionExtra.sources,
   ],
+  overlays: religionExtra.overlays,
+  listPanel: religionExtra.listPanel,
   note: {
     zh:
       'Pew 依 2,700 多份普查與調查估計 201 個國家與地區的宗教組成，分成基督宗教（天主教、基督新教、東正教等）、伊斯蘭教、無宗教信仰、印度教、佛教、猶太教與其他宗教（民間信仰、道教、神道教、錫克教、巴哈伊教等）七大類，只有 2010、2020 兩年。' +
@@ -107,5 +111,6 @@ export const religion: TopicDefinition = {
       formatTick: (v) => fixed(v, v % 1 ? 1 : 0),
       compareWorld: true,
     },
+    ...religionExtra.indicators,
   ],
 };

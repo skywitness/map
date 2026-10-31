@@ -71,6 +71,7 @@ STEPS = {
     # AidData GCDF 3.0 的 zip（28.6 MB，xlsx 讀一次約 15 秒，之後用 .pkl 快取）；也讀人均收入的 GDP、人口主題的總人口
     "china-lending": "topics.china_lending",
     "religion": "topics.religion",
+    "religion-extra": "topics.religion_extra",
     "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
     "gender": "topics.gender",
     "wages": "topics.wages",

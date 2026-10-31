@@ -955,7 +955,8 @@ export interface TopicDefinition {
    * 桌機在地圖左邊、可以收成一條窄邊；窄螢幕在地圖下面、預設收起來（收合記在版面偏好，lib/layoutPrefs.ts 的 list）。
    * 程式在 panels/ListSide.tsx，任何有點的清單（節慶、日食、奧運場館…）都可以套用
    */
-  listPanel?: ListPanelDef;
+  /** 好幾個清單時（2026-10-31 起，各國宗教：最大的宗教建築、朝聖地）各自寫 indicators，用第一個符合目前指標的 */
+  listPanel?: ListPanelDef | ListPanelDef[];
   /**
    * 我的路線（2026-10-30 起，賽車）：圖層選單多一區，使用者可以匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip，
    * 一次很多個或一整個資料夾），只存在這個瀏覽器（lib/personalRoutes.ts），畫成一個線圖層。

@@ -414,8 +414,8 @@ export function App() {
   }, [highlightLine]);
   // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
   const listDef =
-    !pure && !state.embed && view === 'map' && topic.listPanel && (!topic.listPanel.indicators || topic.listPanel.indicators.includes(indicator.id))
-      ? topic.listPanel
+    !pure && !state.embed && view === 'map'
+      ? ([topic.listPanel ?? []].flat().find((l) => !l.indicators || l.indicators.includes(indicator.id)) ?? null)
       : null;
   const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
   // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
