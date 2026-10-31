@@ -46,6 +46,7 @@ STEPS = {
     # WHO GHO 的 WUENIC、世界銀行、OWID 的 COVID-19 資料（約 180 MB）、The Economist 的超額死亡（約 11 MB）、
     # 衛福部死因統計（疾病主題的同一個檔，約 9 MB）
     "vaccination": "topics.vaccination",
+    "vaccination-pcv3": "topics.vaccination_pcv3",  # WHO 的 PCV3（data.who.int，CC BY 4.0），台灣用疾管署的縣市完成率加權
     "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
     "pisa": "topics.pisa",  # OECD PISA 2025 Volume I 的兩個 Excel（約 2.8 MB）

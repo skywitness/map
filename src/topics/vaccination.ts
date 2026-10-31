@@ -38,6 +38,11 @@ export const vaccination: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: { zh: 'WHO 資料平臺：PCV3 immunization coverage（age 1）（WHO/UNICEF 的估計，2008–2024）', en: 'WHO data: PCV3 immunization coverage (age 1) (WHO/UNICEF estimates, 2008–2024)' },
+      url: 'https://data.who.int/indicators/i/4B4DAF2/D45F91C',
+      license: { zh: 'CC BY 4.0（另有 WHO 的附加條款）', en: 'CC BY 4.0 (with WHO’s additional terms)' },
+    },
+    {
       name: {
         zh: 'World Bank, World Development Indicators（WUENIC 的 DTP3、麻疹 1980–1999 年）',
         en: 'World Bank, World Development Indicators (WUENIC DTP3 and measles, 1980–1999)',
@@ -142,6 +147,21 @@ export const vaccination: TopicDefinition = {
       },
       unit: '%',
       file: 'mcv2.json',
+      layer: { kind: 'choropleth', scale: COVERAGE_SCALE },
+      format: pct,
+      formatTick: pctTick,
+      compareWorld: true,
+      noValue: { TWN: { zh: '沒有逐年的全國數字', en: 'No national figure by year' } },
+    },
+    {
+      id: 'pcv3',
+      label: { zh: '肺炎鏈球菌疫苗第三劑', en: 'Pneumococcal, 3rd dose' },
+      description: {
+        zh: '滿 1 歲的嬰兒打完三劑結合型肺炎鏈球菌疫苗（PCV3）的比例，預防肺炎、腦膜炎與菌血症（5 歲以下兒童肺炎死亡的主因之一）。還沒有把 PCV 納入常規接種的國家是 0%（例如中國，PCV 是自費疫苗）；世界 2008 年 4%、2024 年 67%，印度 95%、日本 91%、美國 84%。WHO/UNICEF 的估計；台灣只有 2024 年，是疾管署各縣市的完成率依各縣市 1 歲人口加權自算的估計（97.1%）。',
+        en: 'Share of one-year-olds who received three doses of pneumococcal conjugate vaccine (PCV3), which prevents pneumonia, meningitis and bacteraemia (pneumonia is a leading killer of children under five). Countries that have not added PCV to their routine schedule show 0% (China, for example, where it is a paid vaccine); the world rose from 4% in 2008 to 67% in 2024, with India at 95%, Japan 91% and the US 84%. WHO/UNICEF estimates; Taiwan (2024 only) is an estimate from Taiwan CDC’s county completion rates, weighted by each county’s population aged one (97.1%).',
+      },
+      unit: '%',
+      file: 'pcv3.json',
       layer: { kind: 'choropleth', scale: COVERAGE_SCALE },
       format: pct,
       formatTick: pctTick,
