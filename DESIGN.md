@@ -3990,7 +3990,7 @@ pipeline/
     - **左側欄**：手冊寫這一項不做（國家指標）。
 
 247. **發電廠地圖的擴充：核電機組、儲能、各國最大的電廠**（2026-10-31，製作手冊第十批 165；`pipeline/topics/power_plants_extra.py`、`pipeline/sources/battery_storage.py`、`src/topics/power-plants.ts`）：
-    - **步驟**：`power_plants.build()` 最後呼叫 `power_plants_extra`，輸出到同一個資料夾。`gem.Unit` 多一個 `unit`（GEM 的 unit-name，核電廠的「1」「2」）。能源署的發電裝置容量檔（set_id=69）cloud 下載是 403、map-plan 還沒有，所以這次只跑擴充的部分（既有的國家統計沒有重算）；檔案進 map-plan 後整個步驟照常重跑。
+    - **步驟**：`power_plants.build()` 最後呼叫 `power_plants_extra`，輸出到同一個資料夾。`gem.Unit` 多一個 `unit`（GEM 的 unit-name，核電廠的「1」「2」）。能源署的發電裝置容量檔（set_id=69）cloud 下載是 403，本機 session 2026-10-31 放進 map-plan 的 `data/moeaea/capacity-annual.csv`；在 cloud 重跑時複製到 `pipeline/.cache/moeaea/`。整個步驟重跑過，既有的檔都沒有變。
     - **核電機組**（使用者決定狀態照 GEM，tooltip 寫實際情況）：一部機組從 start-year 算到 end-year（那一年起不算），GEM 列為封存的（日本 2011 年起停機的 16 部等）算未退役；沒有 start-year 的（Shoreham、Bataan、V.C. Summer 2、3 號機、東通 TEPCO：都沒商轉過）不算。指標「核電機組數」「核電裝置容量」1951–2026 年：2026 年 443 部、423 GW，最多是 2002 年 448 部；台灣 1985 年 6 部，2025 年起 0。日本封存、烏克蘭札波羅熱（GEM 算運轉中，實際被占領停機）、台灣用指標檔的 `hints` 寫一句。
       - 重新啟動的日本機組 GEM 的 start-year 是重啟的年份，使用者決定改成原本的商轉年份（`RESTART_FIX`：柏崎刈羽 6 號機 1996、女川 2 號機 1995、島根 2 號機 1989，英文維基），tooltip 寫明。柏崎刈羽 7 號機 GEM 寫興建中（預計 2030 年），其實 1997 年就商轉，tooltip 寫明。
       - 地圖：一座電廠一個點（同一座電廠的機組座標相同，一部一個點會疊在一起），`units` 欄位存每部機組的「商轉年:退役年:MW:狀態」，用點圖層的 `epochs`（每一年一期）算那一年的狀態與容量：有運轉中的機組是紫色（最新一年全部封存的是琥珀色），全部退役的是灰色；還沒商轉的沒有 `cap`，`minValue` 把它篩掉。興建中的機組另一個空心圖層，`yr` 欄位都是 2026，指標的 `overlayTime` 是 cumulative，所以只在 2026 年畫。
