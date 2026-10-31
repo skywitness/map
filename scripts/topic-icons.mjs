@@ -109,6 +109,7 @@ const TOPIC_ICONS = {
   'energy-policy': 'milestone',
   'science-facilities': 'atom',
   starlink: 'satellite-dish',
+  'wafer-fabs': 'microchip',
   renewables: 'solar-panel',
   climate: 'cloud',
   temperature: 'thermometer-sun',
