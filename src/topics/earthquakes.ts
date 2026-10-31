@@ -1,6 +1,7 @@
 import { tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { landslidesPart } from './landslides';
 import type { ColorClasses, IndicatorDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -312,14 +313,18 @@ export const earthquakes: TopicDefinition = {
       url: 'https://github.com/fraxen/tectonicplates',
       license: 'ODC-By 1.0',
     },
+    ...landslidesPart.sources,
   ],
   note: {
-    zh: '地震是 USGS 目錄裡規模 6 以上（1900 年起）與規模 5–6（1973 年起，預設關閉）的地震，日期是世界標準時間（UTC），台灣時間要加 8 小時（集集地震是台灣時間 9 月 21 日凌晨）。1970 年代以前的地震來自重新定位的 ISC-GEM 目錄，小一點的地震可能有缺漏。國家的次數只算震央在國界內或離岸 50 公里以內的地震，深海、洋脊上的地震不算任何國家。死亡人數來自 NOAA 的重大地震資料庫，跟 USGS 的地震依時間與距離配對，含地震引發的海嘯，算在震央附近的國家。火山是 Smithsonian 全球火山計畫的全新世火山清單（Global Volcanism Program, Smithsonian Institution），依 GVP 的構造環境把板塊內部的 149 座另外上色（青綠色）。板塊內部不等於熱點：熱點（地函柱）的數目與位置學界沒有共識（有的列 40 個、有的列 100 個以上），冰島、亞速爾與加拉巴哥群島的火山（多數）在 GVP 歸為裂谷，這裡不另外整理熱點清單。台灣的大屯火山群、龜山島是隱沒帶的火山。',
-    en: 'Earthquakes are M6+ events from the USGS catalogue since 1900 and M5–6 events since 1973 (off by default); dates are UTC, so add 8 hours for Taiwan time (the Chi-Chi earthquake struck in the early hours of 21 September local time). Events before the 1970s come from the relocated ISC-GEM catalogue, and smaller ones may be missing. Country counts include only epicentres on land or within 50 km of the coast; quakes in the deep ocean or on mid-ocean ridges belong to no country. Deaths come from the NOAA Significant Earthquake Database, matched to USGS events by time and distance; they include tsunami deaths and are counted in the country near the epicentre. Volcanoes are the Holocene volcano list of the Global Volcanism Program, Smithsonian Institution; the 149 intraplate volcanoes in the GVP tectonic setting are coloured teal. Intraplate is not the same as hotspot: there is no scientific consensus on how many hotspots (mantle plumes) exist or where (lists range from about 40 to over 100), GVP classes Iceland and most volcanoes of the Azores and Galápagos as rifts, and no separate hotspot list is drawn here. Taiwan’s Tatun volcanoes and Kueishantao are subduction-zone volcanoes.',
+    zh: '地震是 USGS 目錄裡規模 6 以上（1900 年起）與規模 5–6（1973 年起，預設關閉）的地震，日期是世界標準時間（UTC），台灣時間要加 8 小時（集集地震是台灣時間 9 月 21 日凌晨）。1970 年代以前的地震來自重新定位的 ISC-GEM 目錄，小一點的地震可能有缺漏。國家的次數只算震央在國界內或離岸 50 公里以內的地震，深海、洋脊上的地震不算任何國家。死亡人數來自 NOAA 的重大地震資料庫，跟 USGS 的地震依時間與距離配對，含地震引發的海嘯，算在震央附近的國家。火山是 Smithsonian 全球火山計畫的全新世火山清單（Global Volcanism Program, Smithsonian Institution），依 GVP 的構造環境把板塊內部的 149 座另外上色（青綠色）。板塊內部不等於熱點：熱點（地函柱）的數目與位置學界沒有共識（有的列 40 個、有的列 100 個以上），冰島、亞速爾與加拉巴哥群島的火山（多數）在 GVP 歸為裂谷，這裡不另外整理熱點清單。台灣的大屯火山群、龜山島是隱沒帶的火山。' +
+      '山崩事件是 NASA 全球山崩目錄（GLC，NASA Goddard 太空飛行中心從 2007 年起從新聞、災害資料庫與報告整理，以降雨引發的為主）2007–2025 年的 11,357 件（目錄裡 2007 年以前零星補的 82 件不收；民眾回報的 Landslide Reporter 不收）；目錄的國名不可靠（台灣的都寫中國），國家一律依座標判斷。英語新聞多的國家收得比較完整，國與國之間不能直接比。',
+    en: 'Earthquakes are M6+ events from the USGS catalogue since 1900 and M5–6 events since 1973 (off by default); dates are UTC, so add 8 hours for Taiwan time (the Chi-Chi earthquake struck in the early hours of 21 September local time). Events before the 1970s come from the relocated ISC-GEM catalogue, and smaller ones may be missing. Country counts include only epicentres on land or within 50 km of the coast; quakes in the deep ocean or on mid-ocean ridges belong to no country. Deaths come from the NOAA Significant Earthquake Database, matched to USGS events by time and distance; they include tsunami deaths and are counted in the country near the epicentre. Volcanoes are the Holocene volcano list of the Global Volcanism Program, Smithsonian Institution; the 149 intraplate volcanoes in the GVP tectonic setting are coloured teal. Intraplate is not the same as hotspot: there is no scientific consensus on how many hotspots (mantle plumes) exist or where (lists range from about 40 to over 100), GVP classes Iceland and most volcanoes of the Azores and Galápagos as rifts, and no separate hotspot list is drawn here. Taiwan’s Tatun volcanoes and Kueishantao are subduction-zone volcanoes.' +
+      ' Landslides are the 11,357 events of 2007–2025 in NASA’s Global Landslide Catalog (GLC, compiled at NASA Goddard Space Flight Center since 2007 from news reports, disaster databases and research, mostly rain-triggered); the 82 older events added sporadically and the citizen reports of Landslide Reporter are not included. The catalogue’s country names are unreliable (those in Taiwan say China), so countries are assigned by location. Countries with more English-language news are covered more completely, so countries are not directly comparable.',
   },
   panelExtra: () => import('./panels/EarthquakesPanel'),
-  listPanel: YEAR_LIST,
+  listPanel: [YEAR_LIST, landslidesPart.listPanel],
   overlays: [
+    ...landslidesPart.overlays,
     {
       kind: 'lines',
       id: 'plates',
@@ -375,5 +380,5 @@ export const earthquakes: TopicDefinition = {
       tooltip: quakeTooltip,
     },
   ],
-  indicators,
+  indicators: [...indicators, ...landslidesPart.indicators],
 };
