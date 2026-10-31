@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 南極研究站（pipeline/topics/antarctic_stations.py）：Wikidata 收錄的南極研究站的點，與各國經營、運作中的站數。
@@ -43,6 +43,40 @@ export function stationFacts(p: PointRecord): string {
 }
 
 const stationsText = (v: number) => tr({ zh: `${fixed(v, 0)} 處`, en: `${fixed(v, 0)} ${v === 1 ? 'station' : 'stations'}` });
+
+/**
+ * 研究站清單（第十二批 208）：依經營國分組（國名依語言排，兩國合營的兩國都列），組內運作中的在前、再依成立年份；
+ * 每列：名稱、狀態、成立與關閉年份、海拔。Wikidata 與這份資料沒有常年站、夏季站的區分，所以不分開
+ */
+const STATION_LIST: ListPanelDef = {
+  label: { zh: '南極研究站', en: 'Antarctic research stations' },
+  indicators: ['operating'],
+  file: 'stations.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, country }) => {
+    const collator = new Intl.Collator(getLang() === 'zh' ? 'zh-Hant-TW' : 'en');
+    // 兩國合營的站在兩國各列一次（選了國家時只列那一國那一組）
+    const entries = points.flatMap((p) =>
+      [p.iso3, p.iso3b]
+        .filter((c): c is string => typeof c === 'string' && (!country || c === country))
+        .map((c) => ({ p, c, name: countryName(c) })),
+    );
+    return entries
+      .sort((a, b) => collator.compare(a.name, b.name) || (a.p.s === 1 ? 0 : 1) - (b.p.s === 1 ? 0 : 1) || Number(a.p.y ?? 9999) - Number(b.p.y ?? 9999))
+      .map(({ p, c, name }, i): ListRow => {
+        const title = stationName(p);
+        return {
+          key: `${c}-${p.en ?? p.zh}-${i}`,
+          title,
+          properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== title ? p.en : undefined,
+          lines: [statusLabel(p.s), stationFacts(p)].filter(Boolean),
+          muted: p.s !== 1,
+          group: name,
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 8 },
+        };
+      });
+  },
+};
 
 /** 南極主題（antarctica.ts）的研究站部分：2026-10-30 起跟企鵝、冰下湖合成一個主題 */
 export const stationsPart = {
@@ -93,8 +127,8 @@ export const stationsPart = {
       id: 'operating',
       label: { zh: '運作中的研究站', en: 'Operating stations' },
       description: {
-        zh: `各國在南極經營、還在運作的研究站數（含夏季站與營地，兩國合營的兩國都算），依 Wikidata 並跟 COMNAP 2024 年的名單核對。阿根廷、俄羅斯、智利最多；點是每一個研究站，滑過看成立年份與海拔，紫色是已關閉的、橘黃色是 COMNAP 名單上沒有的。`,
-        en: `Antarctic research stations each country runs that are still operating (including summer stations and camps; joint stations count for both countries), from Wikidata checked against COMNAP’s 2024 list. Argentina, Russia and Chile run the most; dots mark each station – hover for the year it opened and its elevation; purple ones are closed and amber ones are not on the COMNAP list.`,
+        zh: `各國在南極經營、還在運作的研究站數（含夏季站與營地，兩國合營的兩國都算），依 Wikidata 並跟 COMNAP 2024 年的名單核對。阿根廷、俄羅斯、智利最多；點是每一個研究站，滑過看成立年份與海拔，紫色是已關閉的、橘黃色是 COMNAP 名單上沒有的；左邊的清單依國家列出每一站。`,
+        en: `Antarctic research stations each country runs that are still operating (including summer stations and camps; joint stations count for both countries), from Wikidata checked against COMNAP’s 2024 list. Argentina, Russia and Chile run the most; dots mark each station – hover for the year it opened and its elevation; purple ones are closed and amber ones are not on the COMNAP list. The list on the left groups every station by country.`,
       },
       unit: { zh: '處', en: 'stations' },
       file: 'operating.json',
@@ -107,4 +141,5 @@ export const stationsPart = {
       shareOfWorld: true,
     },
   ],
+  listPanel: STATION_LIST,
 } satisfies Partial<TopicDefinition>;

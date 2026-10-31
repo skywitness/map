@@ -23,6 +23,7 @@ export const antarctica: TopicDefinition = {
     en: `Research stations: ${stationsPart.note.en} Penguins: ${penguinsPart.note.en} Subglacial lakes: ${lakesPart.note.en}`,
   },
   panelExtra: () => import('./panels/AntarcticStationsPanel'),
+  listPanel: stationsPart.listPanel,
   overlays: [...stationsPart.overlays, ...penguinsPart.overlays, ...lakesPart.overlays],
   indicators: [...stationsPart.indicators, ...penguinsPart.indicators, ...lakesPart.indicators],
 };
