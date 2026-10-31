@@ -869,6 +869,10 @@ export interface ListPanelDef {
   indicators?: string[];
   /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}；有 lines 時是線檔（LinesData） */
   file: string;
+  /**
+   * 即時資料（TopicDefinition.live，2026-10-31，新聞熱點）換成清單的點；有這個時不讀 file，即時資料重讀時清單跟著換
+   */
+  fromLive?: (live: unknown) => PointRecord[] | null;
   /** 子項目各自的檔（子項目 id → 檔名；沒列的用 file），例如颱風的日本氣象廳那一組是另一個路徑檔 */
   itemFiles?: Record<string, string>;
   /** 有標籤（badge）的列只是標記、打開時不捲過去（預設捲到第一個有標籤的，例如「下一站」）；颱風的「侵台」 */
@@ -923,6 +927,8 @@ export interface ListRow {
   year?: number;
   /** 滑過、點了標出地圖上的一組線（讀線的清單，ListPanelDef.lines）：線圖層的 id 與組別 */
   line?: { overlay: string; group: number };
+  /** 列底下的外部連結（另開分頁，例如新聞熱點的原始新聞）；label 是不翻譯的原文 */
+  link?: { href: string; label: string };
 }
 
 export interface MapMark {

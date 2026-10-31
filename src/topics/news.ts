@@ -2,13 +2,14 @@ import { tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { unzipFirst } from '../lib/unzip';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ClockAt, ColorClasses, IndicatorData, IndicatorDef, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { ClockAt, ColorClasses, IndicatorData, IndicatorDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 此刻世界的新聞熱點（DESIGN.md 第 8 節第 148 點）：GDELT 2.0 的事件（機器從全世界的新聞抽出的「誰對誰做了什麼、在哪裡」），
  * 瀏覽器每 15 分鐘直接讀最新的檔（TopicDefinition.live 的 load：先讀 lastupdate.txt，再讀 export.CSV.zip、解壓、解析）。
  * 使用者 2026-10-29 決定：瀏覽器每 15 分鐘讀；事件類型的中文分類自己定；滑過事件顯示原始新聞的連結。
  * GDELT 的國家代碼是 FIPS 10-4，用 pipeline/topics/news.py 輸出的對照表（GeoNames）換成 ISO alpha-3。
+ * 2026-10-31（第十二批 194）：左邊「此刻的新聞事件」清單，跟即時資料一起更新。
  */
 
 const LAST_UPDATE = 'https://data.gdeltproject.org/gdeltv2/lastupdate.txt';
@@ -277,6 +278,50 @@ const EVENTS: PointsOverlayDef = {
   },
 };
 
+/**
+ * 此刻的新聞事件（第十二批 194）：最近 15 分鐘、目前讀到的那一批，依地點（同一個地點的事件併成一列，跟地圖上的點一樣），
+ * 事件多的在前；每列：地名（GDELT 的英文原文）、事件的種類、國家與這一批的時刻、第一則原始新聞的連結。
+ * 一批的事件都是同一個 15 分鐘加進來的，沒有更細的先後，所以不依時間排。跟選取的國家連動；點了移過去並標出那一點
+ */
+const LIST: ListPanelDef = {
+  label: { zh: '此刻的新聞事件', en: 'Latest news events' },
+  indicators: ['map', 'events'],
+  file: '',
+  fromLive: (live) => {
+    if (!isNews(live)) return null;
+    latest = live;
+    return placesOf(live).map((p) => ({ lon: p.lon, lat: p.lat, key: p.key, iso3: isoOf(p.fips), t: live.time }));
+  },
+  countryField: 'iso3',
+  empty: { zh: '這 15 分鐘的新聞裡沒有事件', en: 'No events in these 15 minutes of news' },
+  rows: (points, { countryName }) => {
+    const all = latest ? placesOf(latest) : [];
+    const byKey = new Map(all.map((p) => [p.key, p]));
+    return points.flatMap((r): ListRow[] => {
+      const place = byKey.get(String(r.key));
+      if (!place) return [];
+      const time = new Date(Number(r.t));
+      const hhmm = `${String(time.getUTCHours()).padStart(2, '0')}:${String(time.getUTCMinutes()).padStart(2, '0')} UTC`;
+      const url = place.urls[0];
+      return [
+        {
+          key: place.key,
+          title: place.place,
+          titleProper: true,
+          lines: [
+            `${eventsText(place.events.length)}${tr({ zh: '：', en: ': ' })}${kindsText(place.kinds)}`,
+            [typeof r.iso3 === 'string' ? countryName(r.iso3) : null, place.countryOnly ? tr({ zh: '只寫到國家', en: 'country only' }) : null, hhmm]
+              .filter(Boolean)
+              .join(' · '),
+          ],
+          link: url ? { href: url, label: linkText(url) } : undefined,
+          target: { lon: place.lon, lat: place.lat, zoom: place.countryOnly ? 4 : 8 },
+        },
+      ];
+    });
+  },
+};
+
 /* ── 指標 ──────────────────────────── */
 
 const ABOUT = {
@@ -292,8 +337,8 @@ const indicators: IndicatorDef[] = [
     id: 'map',
     label: { zh: '新聞熱點地圖', en: 'News hotspots' },
     description: {
-      zh: `最近 15 分鐘的新聞裡，事件發生在哪裡：同一個地點的事件併成一個點，越大事件越多，顏色是最多的那一種（發言與會談、合作與援助、調查要求與批評、威脅與施壓、抗議、攻擊與戰鬥）。只寫到國家的新聞點在國家中心。滑到點上看事件的種類與原始新聞的網址，點國家看側欄的新聞連結。${ABOUT.zh}`,
-      en: `Where events in the last 15 minutes of news took place: events at the same place are merged into one dot, bigger for more events and coloured by the most common type (statements and talks; cooperation and aid; probes, demands and criticism; threats and coercion; protests; assaults and fighting). News naming only a country is placed at its centre. Hover over a dot for the types of event and the original article addresses; click a country for links in the side panel. ${ABOUT.en}`,
+      zh: `最近 15 分鐘的新聞裡，事件發生在哪裡：同一個地點的事件併成一個點，越大事件越多，顏色是最多的那一種（發言與會談、合作與援助、調查要求與批評、威脅與施壓、抗議、攻擊與戰鬥）。只寫到國家的新聞點在國家中心。滑到點上看事件的種類與原始新聞的網址，點國家看側欄的新聞連結；左邊的清單依地點列出這一批的事件與新聞連結。${ABOUT.zh}`,
+      en: `Where events in the last 15 minutes of news took place: events at the same place are merged into one dot, bigger for more events and coloured by the most common type (statements and talks; cooperation and aid; probes, demands and criticism; threats and coercion; protests; assaults and fighting). News naming only a country is placed at its centre. Hover over a dot for the types of event and the original article addresses; click a country for links in the side panel. The list on the left shows this batch’s events by place, with article links. ${ABOUT.en}`,
     },
     unit: EVENTS_UNIT,
     file: 'fips.json',
@@ -348,6 +393,7 @@ export const news: TopicDefinition = {
     en: 'Events are read by your browser directly from GDELT (lastupdate.txt on data.gdeltproject.org points to the latest export.CSV.zip, which is unzipped in the browser), re-read every 15 minutes; if GDELT cannot be reached, this topic has no data. GDELT data does not pass through this site’s server, and only the latest batch is available, with no other times to choose. Event types merge CAMEO’s 20 root codes into 6 (statements and talks: public statements, appeals, consultations; cooperation and aid: intent to cooperate, diplomatic and material cooperation, aid, yielding; probes, demands and criticism: investigations, demands, disapproval, rejection; threats and coercion: threats, shows of force, reduced relations, coercion including arrests and sanctions; protests; assaults and fighting: assaults, fighting, mass violence). The country is where the event took place (ActionGeo); GDELT’s FIPS 10-4 codes are converted to ISO with GeoNames. Article addresses belong to their publishers and are only linked here.',
   },
   panelExtra: () => import('./panels/NewsPanel'),
+  listPanel: LIST,
   overlays: [EVENTS],
   indicators,
 };

@@ -883,6 +883,7 @@ export function App() {
               onOpenChange={(open) => setLayout({ list: open })}
               onPick={pickListRow}
               onHover={hoverListRow}
+              live={liveData}
             />
           )}
           <div className="stage-main">
