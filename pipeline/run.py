@@ -38,6 +38,7 @@ STEPS = {
     "ai": "topics.ai",
     "transport": "topics.transport",
     "climate": "topics.climate",
+    "climate-transport": "topics.climate_transport",
     "military": "topics.military",
     "digital": "topics.digital",
     "health": "topics.health",

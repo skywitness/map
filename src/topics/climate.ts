@@ -10,6 +10,7 @@ import type { IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
  * - 甲烷、氧化亞氮、含氟氣體：EDGAR 2026 年版（歐盟 JRC），1970–2025 年（含氟氣體 1990–2024 年）
  * - 全部溫室氣體 = 兩者相加，1990–2024 年；CO₂ 當量用 IPCC AR5 的 GWP-100，不含土地利用變化
  * EDGAR 自己的二氧化碳是 CC BY-NC-ND 4.0（IEA-EDGAR CO₂），不用（DESIGN.md 第 8 節第 14 點）。
+ * - 交通運輸占幾成、人均交通運輸二氧化碳：CEDS（pipeline/topics/climate_transport.py，2026-10-31 第十批 180）
  *
  * 「人均排放」「年排放量」有「氣體」子項目；舊網址的 co2-per-capita、co2 是這兩個指標選二氧化碳（indicatorAliases），
  * 資料檔還是同一個（co2-per-capita.json、co2.json）。
@@ -111,8 +112,8 @@ export const climate: TopicDefinition = withParts({
     },
     {
       name: {
-        zh: 'CEDS v_2025_03_18（PNNL）：燃料燃燒的二氧化碳用途（側欄）',
-        en: 'CEDS v_2025_03_18 (PNNL): CO₂ from fuel combustion by use (side panel)',
+        zh: 'CEDS v_2025_03_18（PNNL）：燃料燃燒的二氧化碳用途（側欄）、交通運輸的二氧化碳',
+        en: 'CEDS v_2025_03_18 (PNNL): CO₂ from fuel combustion by use (side panel) and from transport',
       },
       url: 'https://doi.org/10.5281/zenodo.15059443',
       license: 'CC BY 4.0',
@@ -129,6 +130,11 @@ export const climate: TopicDefinition = withParts({
       },
       url: 'https://data.gov.tw/dataset/16024',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+    },
+    {
+      name: { zh: '交通部運輸研究所：運輸部門歷年二氧化碳排放量推估（台灣的交通運輸附註）', en: 'Institute of Transportation (Taiwan): transport-sector CO₂ estimates (Taiwan transport note)' },
+      url: 'https://data.gov.tw/dataset/8331',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
   note: {
@@ -218,6 +224,32 @@ export const climate: TopicDefinition = withParts({
       format: (v) => `${fixed(v, 3)} ${tr(KG_PER_DOLLAR)}`,
       formatTick: (v) => fixed(v, 2),
       compareWorld: true,
+    },
+    {
+      id: 'transport-co2-share',
+      label: { zh: '交通運輸占幾成', en: 'Transport share of CO₂' },
+      description: {
+        zh: '燃料燃燒的二氧化碳裡，國內運輸（公路、鐵路、國內航空與水運）占幾 %（CEDS，1970–2023 年；燃料燃燒不到 100 萬公噸的國家不算）。2023 年美國 37.4%、法國 47.7%、挪威 40.7%、德國 25.9%、南韓 22.6%、日本 20.6%、台灣 15.3%、印度 12.8%、中國 9.7%；全世界約 22%。比例高的常是發電排放少的國家（巴拉圭 83% 靠水力、法國靠核能），不一定是車開得多。國際航空與海運的燃料不算在任何國家。',
+        en: 'Domestic transport (road, rail, domestic aviation and shipping) as a share of fuel-combustion CO₂ (CEDS, 1970–2023; countries burning under 1 million tonnes are left out). In 2023: the US 37.4%, France 47.7%, Norway 40.7%, Germany 25.9%, South Korea 22.6%, Japan 20.6%, Taiwan 15.3%, India 12.8% and China 9.7%; about 22% worldwide. High shares often mean low-emission electricity (Paraguay, 83%, runs on hydropower; France on nuclear) rather than heavy driving. International aviation and shipping fuel is not assigned to any country.',
+      },
+      unit: '%',
+      file: 'transport-co2-share.json',
+      layer: { kind: 'choropleth', scale: sequential([10, 20, 30, 40, 50, 60]) },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+    },
+    {
+      id: 'transport-co2-per-capita',
+      label: { zh: '人均交通運輸二氧化碳', en: 'Transport CO₂ per person' },
+      description: {
+        zh: '國內運輸燃燒燃料排放的二氧化碳除以人口（CEDS，1970–2023 年；人口是 UN WPP 2024）。2023 年 500 萬公噸以上的國家裡，盧森堡 6.5 公噸最高（鄰國的人來加油），其次美國 5.0、沙烏地阿拉伯 4.2、加拿大 4.2；台灣 1.8、日本 1.5、中國 0.74、印度 0.24，全世界約 0.89。CEDS 的總量比 Global Carbon Project 高，這個指標只跟 CEDS 自己比。',
+        en: 'CO₂ from fuel burned in domestic transport, divided by population (CEDS, 1970–2023; population from UN WPP 2024). Among countries emitting over 5 million tonnes in 2023, Luxembourg is highest at 6.5 tonnes (fuel bought by visitors from neighbouring countries), followed by the US 5.0, Saudi Arabia 4.2 and Canada 4.2; Taiwan 1.8, Japan 1.5, China 0.74, India 0.24, and about 0.89 worldwide. CEDS totals are higher than the Global Carbon Project’s, so compare this only within CEDS.',
+      },
+      unit: PER_PERSON,
+      file: 'transport-co2-per-capita.json',
+      layer: { kind: 'choropleth', scale: sequential([0.2, 0.5, 1, 1.5, 2.5, 4]) },
+      format: perPerson,
+      formatTick: thresholdTick,
     },
     {
       id: 'luc-co2-per-capita',
