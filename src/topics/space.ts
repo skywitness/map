@@ -1,13 +1,14 @@
-import { tr } from '../i18n/lang';
+import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { landingsPart } from './landings';
-import type { PointRecord, TopicDefinition } from './types';
+import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 太空（pipeline/topics/space.py）：GCAT 的在軌酬載（依擁有國）、入軌發射（依發射業者的國家），發射場畫成點。
  * 蘇聯的酬載與發射算在俄羅斯；國際組織（ESA、EUMETSAT、Intelsat…）的酬載只算進世界合計。
  * 2026-10-30（第七批 118）起「月球與火星的登陸」的 4 個指標也在這裡（landings.ts 的 landingsPart），共 8 個指標。
+ * 2026-10-31（第十二批 193）：左邊「入軌發射（這一年）」清單（pipeline/topics/space_launches.py 的 launch-list.json）。
  */
 
 const n0 = (v: number) => fixed(v, 0);
@@ -32,6 +33,48 @@ function siteTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
     properNoun: typeof p.full === 'string' && p.full !== p.name ? p.full : undefined,
   };
 }
+
+/** 火箭名稱：中文介面把中國的火箭系列寫成中文（長征、快舟），其他照 GCAT 的英文 */
+function rocketName(name: unknown): string {
+  const v = typeof name === 'string' ? name : '';
+  return getLang() === 'zh' ? v.replace(/^Chang Zheng/, '長征').replace(/^Kuaizhou/, '快舟') : v; // i18n-ignore（只在中文介面）
+}
+
+/**
+ * 入軌發射（這一年）（第十二批 193）：時間軸那一年的入軌發射，依日期；每列：主要酬載、火箭與發射場、日期與國家，
+ * 失敗的淡一點並加「失敗」標籤。跟選取的國家連動（發射業者的國家）；點了移到發射場
+ */
+const LAUNCH_LIST: ListPanelDef = {
+  label: { zh: '入軌發射（這一年）', en: 'Orbital launches this year' },
+  indicators: ['in-orbit', 'debris', 'launches', 'launches-cumulative'],
+  file: 'launch-list.json',
+  countryField: 'c',
+  scrollToBadge: false,
+  empty: { zh: '這一年沒有入軌發射', en: 'No orbital launches this year' },
+  rows: (points, { countryName, year }) =>
+    points
+      .filter((p) => p.y === year)
+      .map((p, i): ListRow => {
+        const md = typeof p.md === 'number' ? p.md : 0;
+        const pad = (v: number) => String(v).padStart(2, '0');
+        const date = md ? `${year}-${pad(Math.floor(md / 100))}-${pad(md % 100)}` : String(year);
+        const site = getLang() === 'zh' && typeof p.sz === 'string' ? p.sz : String(p.s ?? '');
+        const rocket = rocketName(p.r);
+        const failed = p.ok === 0;
+        return {
+          key: `${year}-${i}`,
+          title: typeof p.m === 'string' ? p.m : rocket,
+          titleProper: typeof p.m === 'string',
+          lines: [
+            [rocket, site].filter(Boolean).join(' · '),
+            [`${date} UTC`, typeof p.c === 'string' ? countryName(p.c) : null].filter(Boolean).join(' · '),
+          ],
+          badge: failed ? tr({ zh: '失敗', en: 'Failed' }) : undefined,
+          muted: failed,
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 7 },
+        };
+      }),
+};
 
 export const space: TopicDefinition = {
   id: 'space',
@@ -71,6 +114,7 @@ export const space: TopicDefinition = {
     en: 'Data from GCAT (J. McDowell, planet4589.org/space/gcat) up to 29 October 2026, so 2026 is year to date. Payloads are satellites, spacecraft and space station modules, including defunct satellites but not rocket bodies or debris, assigned to the owner’s country. Space debris covers rocket bodies, fragments and components that are tracked and catalogued (roughly 10 cm and larger); smaller debris is only modelled and is not shown. Fragments count for the owner of the object they came from, dated by when they separated or broke up. Launches are orbital launch attempts (successes and failures), assigned to the launch provider’s country (Arianespace from French Guiana counts for France, Rocket Lab from New Zealand for the United States). Soviet payloads and launches count for Russia as the successor state; payloads of international organisations such as ESA, EUMETSAT and Intelsat count only in the world total.' + ' Moon and Mars landings: ' + landingsPart.note.en,
   },
   panelExtra: () => import('./panels/SpaceTopicPanel'),
+  listPanel: LAUNCH_LIST,
   overlays: [
     {
       kind: 'points',
@@ -122,8 +166,8 @@ export const space: TopicDefinition = {
       id: 'launches',
       label: { zh: '每年入軌發射次數', en: 'Orbital launches per year' },
       description: {
-        zh: '這一年的入軌發射次數（成功與失敗都算），依發射業者所屬的國家。1957 年蘇聯發射史普尼克一號以來，美蘇（俄）長期領先，2010 年代起中國追上，2020 年代 SpaceX 讓美國的次數大增。',
-        en: 'Orbital launch attempts in the year (successes and failures), by the launch provider’s country. Since Sputnik in 1957 the US and the Soviet Union (Russia) led for decades; China caught up in the 2010s, and SpaceX sent US numbers soaring in the 2020s.',
+        zh: '這一年的入軌發射次數（成功與失敗都算），依發射業者所屬的國家。1957 年蘇聯發射史普尼克一號以來，美蘇（俄）長期領先，2010 年代起中國追上，2020 年代 SpaceX 讓美國的次數大增。左邊的清單依日期列出那一年的每一次入軌發射（失敗的加標籤），點了移到發射場。',
+        en: 'Orbital launch attempts in the year (successes and failures), by the launch provider’s country. Since Sputnik in 1957 the US and the Soviet Union (Russia) led for decades; China caught up in the 2010s, and SpaceX sent US numbers soaring in the 2020s. The list on the left shows each orbital launch of the year by date (failures are marked); pick one to fly to its launch site.',
       },
       unit: { zh: '次', en: 'launches' },
       file: 'launches.json',

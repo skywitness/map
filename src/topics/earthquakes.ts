@@ -1,7 +1,7 @@
 import { tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, IndicatorDef, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, IndicatorDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 地震與火山（pipeline/topics/earthquakes.py）。
@@ -158,6 +158,39 @@ function volcanoTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
   };
 }
 
+/**
+ * 這一年最大的地震（第十二批 192）：「當年的地震」指標時，時間軸那一年規模最大的 50 個（規模 6 以上的 quakes.json），
+ * 依規模（同規模的死亡多的在前）；每列：規模與國家、日期、死亡人數（有的話）、USGS 的英文地名
+ */
+const TOP_QUAKES = 50;
+const YEAR_LIST: ListPanelDef = {
+  label: { zh: '這一年最大的地震', en: 'Largest earthquakes this year' },
+  indicators: ['quakes'],
+  file: 'quakes.json',
+  empty: { zh: '這一年沒有規模 6 以上的地震紀錄', en: 'No M6+ earthquakes recorded this year' },
+  rows: (points, { countryName, year }) =>
+    points
+      .filter((p) => p.year === year && typeof p.mag === 'number')
+      .sort((a, b) => Number(b.mag) - Number(a.mag) || Number(b.deaths ?? 0) - Number(a.deaths ?? 0) || Number(a.md) - Number(b.md))
+      .slice(0, TOP_QUAKES)
+      .map((p, i): ListRow => {
+        const country = typeof p.iso3 === 'string' ? countryName(p.iso3) : null;
+        const place = typeof p.place === 'string' && p.place !== country ? p.place : undefined;
+        return {
+          key: `${p.year}-${p.md}-${i}`,
+          title: `${magnitude(p.mag as number)}${country ? ` · ${country}` : ''}`,
+          properNoun: place,
+          lines: [
+            [`${quakeDate(p.year as number, p.md as number | null)} UTC`, typeof p.depth === 'number' ? tr({ zh: `深度 ${n0(p.depth)} 公里`, en: `depth ${n0(p.depth)} km` }) : null]
+              .filter(Boolean)
+              .join(' · '),
+            typeof p.deaths === 'number' && p.deaths > 0 ? deaths(p.deaths) : null,
+          ].filter((x): x is string => Boolean(x)),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 6 },
+        };
+      }),
+};
+
 /** 有地震點的指標（火山數不畫地震，只畫火山與板塊邊界） */
 const QUAKE_INDICATORS = ['quakes-cumulative', 'quakes', 'quakes-decade', 'deaths'];
 
@@ -185,8 +218,8 @@ const indicators: IndicatorDef[] = [
     id: 'quakes',
     label: { zh: '當年的地震', en: 'Earthquakes by year' },
     description: {
-      zh: '時間軸那一年的規模 6 以上地震（全球每年約 100–200 次）；滑鼠移到國家上可看當年的次數（震央在國界內或離岸 50 公里以內）。按播放看每一年的變化。',
-      en: 'M6+ earthquakes in the selected year (about 100–200 a year worldwide); hover over a country for its count that year (epicentres on land or within 50 km of the coast). Press play to step through the years.',
+      zh: '時間軸那一年的規模 6 以上地震（全球每年約 100–200 次）；滑鼠移到國家上可看當年的次數（震央在國界內或離岸 50 公里以內）。按播放看每一年的變化；左邊的清單依規模列出那一年最大的 50 個。',
+      en: 'M6+ earthquakes in the selected year (about 100–200 a year worldwide); hover over a country for its count that year (epicentres on land or within 50 km of the coast). Press play to step through the years; the list on the left shows the year’s 50 largest by magnitude.',
     },
     unit: QUAKES_UNIT,
     file: 'count-year.json',
@@ -285,6 +318,7 @@ export const earthquakes: TopicDefinition = {
     en: 'Earthquakes are M6+ events from the USGS catalogue since 1900 and M5–6 events since 1973 (off by default); dates are UTC, so add 8 hours for Taiwan time (the Chi-Chi earthquake struck in the early hours of 21 September local time). Events before the 1970s come from the relocated ISC-GEM catalogue, and smaller ones may be missing. Country counts include only epicentres on land or within 50 km of the coast; quakes in the deep ocean or on mid-ocean ridges belong to no country. Deaths come from the NOAA Significant Earthquake Database, matched to USGS events by time and distance; they include tsunami deaths and are counted in the country near the epicentre. Volcanoes are the Holocene volcano list of the Global Volcanism Program, Smithsonian Institution; the 149 intraplate volcanoes in the GVP tectonic setting are coloured teal. Intraplate is not the same as hotspot: there is no scientific consensus on how many hotspots (mantle plumes) exist or where (lists range from about 40 to over 100), GVP classes Iceland and most volcanoes of the Azores and Galápagos as rifts, and no separate hotspot list is drawn here. Taiwan’s Tatun volcanoes and Kueishantao are subduction-zone volcanoes.',
   },
   panelExtra: () => import('./panels/EarthquakesPanel'),
+  listPanel: YEAR_LIST,
   overlays: [
     {
       kind: 'lines',

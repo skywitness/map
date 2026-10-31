@@ -50,6 +50,8 @@ interface ListSideProps {
   onPick: (row: ListRow) => void;
   /** 滑過一列（有 line 的標出那一組線）；離開清單時是 null */
   onHover?: (row: ListRow | null) => void;
+  /** 主題的即時資料（ListPanelDef.fromLive 用；還沒讀到是 null） */
+  live?: unknown;
 }
 
 /**
@@ -87,7 +89,7 @@ function matches(row: ListRow, query: string): boolean {
  * 窄螢幕在地圖與時間軸下面，預設收起來（只有一顆按鈕，不擋地圖），點一列後把地圖捲回畫面。
  * 2026-10-31（第十二批 188）：讀線、搜尋框、切換排序、跟選取的國家連動。
  */
-export function ListSide({ def, topicId, item, year, country, countryName, sort, onSortChange, open, onOpenChange, onPick, onHover }: ListSideProps) {
+export function ListSide({ def, topicId, item, year, country, countryName, sort, onSortChange, open, onOpenChange, onPick, onHover, live }: ListSideProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
@@ -96,12 +98,12 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const [narrowOpen, setNarrowOpen] = useState(false);
   const shown = narrow ? narrowOpen : open;
   const setShown = (v: boolean) => (narrow ? setNarrowOpen(v) : onOpenChange(v));
-  const path = `topics/${topicId}/${def.file.replace('{item}', item ?? '')}`;
-  const { data, error } = useJson<PointsData | LinesData>(shown ? path : null);
-  const points = useMemo(
-    () => (data ? (def.lines ? lineGroups(data as LinesData, def.lines.groupField) : decodePoints(data as PointsData)) : null),
-    [data, def.lines],
-  );
+  const path = `topics/${topicId}/${(item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '')}`;
+  const { data, error } = useJson<PointsData | LinesData>(shown && !def.fromLive ? path : null);
+  const points = useMemo(() => {
+    if (def.fromLive) return shown ? def.fromLive(live) : null;
+    return data ? (def.lines ? lineGroups(data as LinesData, def.lines.groupField) : decodePoints(data as PointsData)) : null;
+  }, [data, def, live, shown]);
   const sortId = def.sorts?.length ? (def.sorts.some((s) => s.id === sort) ? sort : def.sorts[0].id) : null;
   // 跟選取的國家連動：那一國有資料才篩（沒有的照樣列全部）；「看全部」只在這次選的國家有效
   const [allFor, setAllFor] = useState<string | null>(null);
@@ -122,7 +124,7 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const [picked, setPicked] = useState<string | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
   // 打開或換了清單時捲到有標籤的那一列（下一站）
-  const firstBadge = rows?.find((r) => r.badge)?.key ?? null;
+  const firstBadge = def.scrollToBadge === false ? null : (rows?.find((r) => r.badge)?.key ?? null);
   useEffect(() => {
     if (!shown || !firstBadge) return;
     const el = listRef.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(firstBadge)}"]`);
@@ -222,6 +224,11 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
                   </span>
                 ))}
               </button>
+              {r.link && (
+                <a className="list-row-link" href={r.link.href} target="_blank" rel="noopener noreferrer" translate="no">
+                  {r.link.label}
+                </a>
+              )}
             </li>
           ))}
         </ol>

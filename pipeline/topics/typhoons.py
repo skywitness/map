@@ -455,6 +455,8 @@ def match_cwa(tracks: list[Track], cwa: list[dict]) -> dict[str, dict]:
 
 
 def build() -> None:
+    from topics.typhoon_list import add_columns
+
     this_year = date.today().year
     years = list(range(START_YEAR, this_year + 1))
     decades = list(range(START_YEAR, this_year + 1, 10))
@@ -480,6 +482,7 @@ def build() -> None:
         record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov"],
         record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1},
         record_delta=("year",))
+    add_columns(data)  # 清單用的 id 與台灣的警報（topics/typhoon_list.py，2026-10-31）
     # 量化後不到兩個點的路徑（幾乎原地不動、只有一兩筆紀錄的颱風）lines_file 會連同紀錄一起拿掉，國家統計照樣算
     short = [f"{t.year} {t.name or t.storm.sid}" for t, line in zip(tracks, lines)
              if len({(round(x / QUANTUM), round(y / QUANTUM)) for x, y in line}) < 2]
@@ -609,6 +612,8 @@ JMA_NOTE = {
 def build_jma(storms: list[Storm], cwa_all: list[dict], index: NearIndex, years: list[int], decades: list[int]) -> None:
     """日本氣象廳 10 分鐘風速那一組：tracks-jma.json 與三個國家指標的 jma.json（只有西北太平洋、1977 年起）"""
     global SCALE_KT
+    from topics.typhoon_list import add_columns
+
     SCALE_KT = CWA_KT
     try:
         jma = [j for j in (jma_storm(s) for s in storms) if j and utc(j.fixes[0].time).year >= JMA_FROM]
@@ -624,6 +629,7 @@ def build_jma(storms: list[Storm], cwa_all: list[dict], index: NearIndex, years:
             record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov"],
             record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1},
             record_delta=("year",))
+        add_columns(data)
         write_json(OUT / "tracks-jma.json", data)
         print(f"    日本氣象廳：路徑 {len(data['lines'])} 條（{_size(data)}），各級巔峰 "
               f"{sorted(Counter(t.peak_class for t in tracks).items())}")

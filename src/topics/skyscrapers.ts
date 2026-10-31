@@ -2,7 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { towersExtra } from './towers';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 摩天大樓（pipeline/topics/skyscrapers.py）：Wikidata 收錄的 150 m 以上的大樓（完工、還沒拆除的），每一棟一個點；
@@ -10,6 +10,7 @@ import type { ColorClasses, PointRecord, TopicDefinition } from './types';
  *
  * Wikidata 對 150、200 m 的大樓收錄很不完整（跟 CTBUH 的總數比，200 m 以上約兩成、中國約一成），國家之間不能比，
  * 所以國家的棟數只做 300 m 以上（約六成五），150、200 m 的只畫成點、在側欄列出。
+ * 2026-10-31（第十二批 195）：左邊「最高的 50 棟」清單，跟時間軸連動。
  */
 
 /** 跟 CTBUH 的 2025 年底總數比的涵蓋率（%），pipeline 會核對（skyscrapers.py 的 check_topic） */
@@ -78,6 +79,43 @@ function buildingTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => s
   };
 }
 
+/**
+ * 最高的 50 棟（第十二批 195）：時間軸那一年已經完工、還沒拆除的大樓，依高度的前 50 棟；每列：名次與名稱、城市與國家、
+ * 高度、樓層、完工年份。資料只有完工的大樓（pipeline 排除了還沒完工的），所以沒有「興建中」
+ */
+const TOP_BUILDINGS = 50;
+const TOP_LIST: ListPanelDef = {
+  label: { zh: '最高的 50 棟大樓', en: 'Tallest 50 buildings' },
+  indicators: ['supertall', 'tallest'],
+  file: 'buildings.json',
+  rows: (points, { countryName, year }) =>
+    points
+      .filter((p) => Number(p.y) <= year && !(typeof p.d === 'number' && p.d <= year))
+      .sort((a, b) => Number(b.h) - Number(a.h) || Number(a.y) - Number(b.y))
+      .slice(0, TOP_BUILDINGS)
+      .map((p, i): ListRow => {
+        const city = cityName(p);
+        const country = typeof p.iso3 === 'string' ? countryName(p.iso3) : null;
+        const zh = getLang() === 'zh' && typeof p.zh === 'string';
+        return {
+          key: `${p.q ?? p.name}-${i}`,
+          title: `${i + 1}. ${buildingName(p)}`,
+          properNoun: zh ? String(p.name ?? '') : undefined,
+          lines: [
+            [city, country !== city ? country : null].filter(Boolean).join(tr({ zh: '，', en: ', ' })),
+            [
+              metres(p.h as number),
+              typeof p.fl === 'number' ? tr({ zh: `${p.fl} 層`, en: `${p.fl} floors` }) : null,
+              tr({ zh: `${p.y} 年完工`, en: `completed ${p.y}` }),
+            ]
+              .filter(Boolean)
+              .join(' · '),
+          ].filter(Boolean),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+        };
+      }),
+};
+
 export const skyscrapers: TopicDefinition = {
   id: 'skyscrapers',
   title: { zh: '摩天大樓', en: 'Skyscrapers' },
@@ -133,14 +171,14 @@ export const skyscrapers: TopicDefinition = {
     },
     ...towersExtra.overlays,
   ],
-  listPanel: towersExtra.listPanel,
+  listPanel: [TOP_LIST, towersExtra.listPanel],
   indicators: [
     {
       id: 'supertall',
       label: { zh: '300 m 以上的大樓數', en: 'Buildings 300 m+' },
       description: {
-        zh: `這一年還在的 300 m 以上的大樓（CTBUH 叫「超高層」），依 Wikidata，約收錄 CTBUH 統計的 ${COVERAGE_WORLD_300}%。150、200 m 以上的收錄太少（200 m 以上約 ${COVERAGE_WORLD_200}%，中國約 ${COVERAGE_CHINA_200}%），只畫成點。拖動時間軸，從 1930 年紐約的克萊斯勒大樓看起。`,
-        en: `Buildings of 300 m or more (“supertall”, in CTBUH terms) standing in the year, from Wikidata, which has about ${COVERAGE_WORLD_300}% of the CTBUH’s count. Buildings of 150 and 200 m+ are too incompletely covered (about ${COVERAGE_WORLD_200}% of 200 m+, ${COVERAGE_CHINA_200}% in China) and are shown only as dots. Drag the slider from New York’s Chrysler Building in 1930.`,
+        zh: `這一年還在的 300 m 以上的大樓（CTBUH 叫「超高層」），依 Wikidata，約收錄 CTBUH 統計的 ${COVERAGE_WORLD_300}%。150、200 m 以上的收錄太少（200 m 以上約 ${COVERAGE_WORLD_200}%，中國約 ${COVERAGE_CHINA_200}%），只畫成點。拖動時間軸，從 1930 年紐約的克萊斯勒大樓看起；左邊的清單列出那一年最高的 50 棟。`,
+        en: `Buildings of 300 m or more (“supertall”, in CTBUH terms) standing in the year, from Wikidata, which has about ${COVERAGE_WORLD_300}% of the CTBUH’s count. Buildings of 150 and 200 m+ are too incompletely covered (about ${COVERAGE_WORLD_200}% of 200 m+, ${COVERAGE_CHINA_200}% in China) and are shown only as dots. Drag the slider from New York’s Chrysler Building in 1930; the list on the left shows the 50 tallest standing that year.`,
       },
       unit: { zh: '棟', en: 'buildings' },
       file: 'supertall.json',
@@ -155,8 +193,8 @@ export const skyscrapers: TopicDefinition = {
       id: 'tallest',
       label: { zh: '最高建築的高度', en: 'Tallest building' },
       description: {
-        zh: '這一年這個國家最高的大樓（Wikidata 收錄的 150 m 以上的建築，不含電視塔）。1931–1972 年世界最高是紐約的帝國大廈，2004–2010 年是台北 101，2010 年起是杜拜的哈里發塔（828 m）。',
-        en: 'The tallest building standing in the country in the year (buildings of 150 m or more in Wikidata, not TV towers). The world’s tallest was the Empire State Building in New York in 1931–1972, Taipei 101 in 2004–2010 and the Burj Khalifa in Dubai (828 m) since 2010.',
+        zh: '這一年這個國家最高的大樓（Wikidata 收錄的 150 m 以上的建築，不含電視塔）。1931–1972 年世界最高是紐約的帝國大廈，2004–2010 年是台北 101，2010 年起是杜拜的哈里發塔（828 m）。左邊的清單列出那一年最高的 50 棟。',
+        en: 'The tallest building standing in the country in the year (buildings of 150 m or more in Wikidata, not TV towers). The world’s tallest was the Empire State Building in New York in 1931–1972, Taipei 101 in 2004–2010 and the Burj Khalifa in Dubai (828 m) since 2010. The list on the left shows the 50 tallest standing that year.',
       },
       unit: 'm',
       file: 'tallest.json',

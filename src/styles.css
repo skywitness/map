@@ -1632,6 +1632,17 @@ kbd {
   font-size: 12px;
 }
 
+/* 一列底下的外部連結（新聞熱點的原始新聞）：放在按鈕外面，跟列的文字對齊 */
+.list-row-link {
+  display: block;
+  margin-top: -4px;
+  padding: 0 14px 7px 17px;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .list-row-badge {
   margin-left: 6px;
   padding: 0 6px;

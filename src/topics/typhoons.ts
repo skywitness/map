@@ -1,13 +1,14 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 颱風與颶風（pipeline/topics/typhoons.py，資料是 NOAA IBTrACS v04r01）。
  * 地圖上是颱風路徑的線圖層（tracks.json）：一個颱風一條線，依每個時間點的強度分段上色，跟著時間軸篩選
  * （當年，或每十年的指標的那十年）。風速一律是美國機構（NHC、CPHC、JTWC）的 1 分鐘平均風速，
  * 強度用薩菲爾－辛普森颶風等級；國家的統計是颱風中心進入國界或離國界 100 公里以內、風速達熱帶風暴以上的次數。
+ * 2026-10-31（第十二批 191）：左邊「這一年的颱風」清單（讀線），中央氣象署的侵台颱風加標籤。
  */
 
 const n0 = (v: number) => fixed(v, 0);
@@ -152,6 +153,62 @@ export function classColor(code: number): string {
   return TRACK_CLASSES.find((c) => c.value === code)?.color ?? MAP_TOKENS.inkMuted;
 }
 
+/** IBTrACS 的海域代碼 → 名稱（清單的「海域」） */
+const BASINS: Record<string, Text> = {
+  WP: { zh: '西北太平洋', en: 'Western North Pacific' },
+  EP: { zh: '東北太平洋', en: 'Eastern North Pacific' },
+  NA: { zh: '北大西洋', en: 'North Atlantic' },
+  NI: { zh: '北印度洋', en: 'North Indian Ocean' },
+  SI: { zh: '南印度洋', en: 'South Indian Ocean' },
+  SP: { zh: '南太平洋', en: 'South Pacific' },
+  SA: { zh: '南大西洋', en: 'South Atlantic' },
+};
+
+/**
+ * 這一年的颱風（第十二批 191）：「當年的颱風」指標，時間軸那一年生成的颱風依生成日期；每列：名稱（有中文名稱的寫中文）、
+ * 海域、最強等級、起訖日期。中央氣象署的侵台颱風加「侵台」標籤，有發警報但不算侵台的另寫一行（pipeline/topics/typhoon_list.py）。
+ * 讀線：跟子項目「風速」連動（日本氣象廳那一組是另一個路徑檔），點了框住整條路徑並標出來
+ */
+const YEAR_LIST: ListPanelDef = {
+  label: { zh: '這一年的颱風', en: 'Storms this year' },
+  indicators: ['storms-year'],
+  file: 'tracks.json',
+  itemFiles: { jma: 'tracks-jma.json' },
+  lines: { groupField: 'id' },
+  scrollToBadge: false,
+  empty: { zh: '這一年沒有收錄的颱風', en: 'No storms recorded this year' },
+  rows: (points, { year, item }) => {
+    const jma = item === 'jma';
+    const names = jma ? cwaName : className;
+    return points
+      .filter((p) => p.year === year)
+      .sort((a, b) => Number(a.md0) - Number(b.md0) || Number(a.id) - Number(b.id))
+      .map((p): ListRow => {
+        const name = typeof p.name === 'string' ? p.name : null;
+        const zh = getLang() === 'zh' && typeof p.zh === 'string' ? p.zh : null;
+        const basin = typeof p.basin === 'string' && BASINS[p.basin] ? tr(BASINS[p.basin]) : null;
+        const peak =
+          typeof p.wind === 'number'
+            ? tr({ zh: `最強 ${names(p.cat)}，${windText(p.wind)}`, en: `Peak ${names(p.cat)}, ${windText(p.wind)}` })
+            : names(CLASS.unknown);
+        const dates = typeof p.md0 === 'number' && typeof p.md1 === 'number' ? `${dateRange(p.md0, p.md1)} UTC` : null;
+        return {
+          key: String(p.id),
+          title: zh ?? name ?? tr({ zh: `未命名的${stormWord(p.basin)}`, en: `Unnamed ${stormWord(p.basin).toLowerCase()}` }),
+          properNoun: zh && name ? name : undefined,
+          lines: [
+            [basin, peak].filter(Boolean).join(' · '),
+            dates,
+            p.tw === 1 ? tr({ zh: '中央氣象署發布過颱風警報（不算侵台）', en: 'Taiwan’s CWA issued warnings (did not hit Taiwan)' }) : null,
+          ].filter((x): x is string => Boolean(x)),
+          badge: p.tw === 2 ? tr({ zh: '侵台', en: 'Hit Taiwan' }) : undefined,
+          target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+          line: { overlay: jma ? 'tracks-jma' : 'tracks', group: Number(p.id) },
+        };
+      });
+  },
+};
+
 const STORMS_UNIT = { zh: '個', en: 'storms' };
 const storms = (v: number) =>
   tr({ zh: `${n0(v)} 個颱風`, en: `${n0(v)} ${Math.round(v) === 1 ? 'storm' : 'storms'}` });
@@ -176,8 +233,8 @@ const indicators: IndicatorDef[] = [
     id: 'storms-year',
     label: { zh: '當年的颱風', en: 'Storms by year' },
     description: {
-      zh: `時間軸那一年（依颱風生成的日期）全球的颱風與颶風路徑，顏色是每個時間點的強度。滑鼠移到國家上可看那一年經過的颱風數（${RULE.zh}）；滑到路徑上看名稱與強度。`,
-      en: `Tracks of the year's tropical cyclones worldwide (by formation date), coloured by intensity along the way. Hover over a country for the number of storms that year (${RULE.en}); hover over a track for its name and strength.`,
+      zh: `時間軸那一年（依颱風生成的日期）全球的颱風與颶風路徑，顏色是每個時間點的強度。滑鼠移到國家上可看那一年經過的颱風數（${RULE.zh}）；滑到路徑上看名稱與強度；左邊的清單依生成日期列出那一年的颱風，標出中央氣象署的侵台颱風，點一個框住整條路徑。`,
+      en: `Tracks of the year's tropical cyclones worldwide (by formation date), coloured by intensity along the way. Hover over a country for the number of storms that year (${RULE.en}); hover over a track for its name and strength. The list on the left shows the year’s storms by formation date, marks those Taiwan’s CWA counts as hitting Taiwan, and zooms to a track when you pick it.`,
     },
     unit: STORMS_UNIT,
     file: 'storms-year/{item}.json',
@@ -264,6 +321,7 @@ export const typhoons: TopicDefinition = {
     en: 'Tracks and intensities come from NOAA IBTrACS (International Best Track Archive for Climate Stewardship v04r01) since 1950, using positions at 00, 06, 12 and 18 UTC. Winds are always the 1-minute maximum sustained winds of the US agencies (National Hurricane Center, Central Pacific Hurricane Center, Joint Typhoon Warning Center) on the Saffir–Simpson scale; Taiwan\'s Central Weather Administration and the Japan Meteorological Agency use 10-minute winds, which are lower and graded differently, so intensities differ from theirs. The last year or two are provisional real-time data not yet reanalysed. The time slider uses the year a storm formed (UTC); Southern Hemisphere seasons run from July to June and are split across two years here. Country counts are storms whose centre crossed the country or passed within 100 km of it at tropical-storm strength (34 kt) or above, measured along tracks interpolated every 10 km; the CWA counts a typhoon as hitting Taiwan when its centre makes landfall or it causes damage on land, so its numbers differ (see the note for Taiwan). US agencies have no wind data for the North Indian Ocean and the Southern Hemisphere before 1980: those tracks are grey and the affected countries start in 1980. Before satellites (the 1960s), storms at sea may be missing, and early intensity estimates used different methods (western Pacific winds of the 1950s and 1960s are generally thought to be too high), so they are not directly comparable with recent ones. Chinese names are from the CWA Typhoon Database. The Winds menu above switches to the Japan Meteorological Agency (RSMC Tokyo) 10-minute winds (TOKYO_WIND in IBTrACS, from 1977, western North Pacific only), graded on Taiwan’s CWA scale (mild 17.2, moderate 32.7, severe 51.0 m/s and above), closer to what the CWA publishes; country counts use the same rule (10-minute winds of mild-typhoon strength or more) for western North Pacific storms only, up to the last complete year (real-time data mostly lack JMA winds).',
   },
   panelExtra: () => import('./panels/TyphoonsPanel'),
+  listPanel: YEAR_LIST,
   overlays: [
     {
       kind: 'lines',
@@ -276,6 +334,8 @@ export const typhoons: TopicDefinition = {
       sortByType: true,
       casing: true,
       tooltip: (p) => trackTooltip(p),
+      // 一個颱風一組（pipeline/topics/typhoon_list.py 的 id）：清單滑過、點一列時標出那一條
+      groupField: 'id',
       items: ['usa'],
     },
     {
@@ -289,6 +349,7 @@ export const typhoons: TopicDefinition = {
       sortByType: true,
       casing: true,
       tooltip: (p) => trackTooltip(p, cwaName),
+      groupField: 'id',
       items: ['jma'],
     },
   ],
