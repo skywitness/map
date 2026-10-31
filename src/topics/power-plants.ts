@@ -442,6 +442,64 @@ const LARGEST_PLANTS: PointsOverlayDef = {
   },
 };
 
+/**
+ * 世界前 50 大電廠（第十二批 199）：發電廠地圖、裝置容量、各燃料的容量與占比四個指標，GEM 運轉中的電廠（依 project 加總）
+ * 依容量前 50 座；「各燃料」兩個指標選了一種燃料時只列那一種的前 50 座。每列：名次與名稱（GEM 的英文原名）、國家與能源、
+ * 容量與第一部機組商轉的年份。跟選取的國家連動（那一國前 50 座）
+ */
+const TOP_PLANTS = 50;
+const TOP_LIST: ListPanelDef = {
+  label: { zh: '最大的 50 座電廠', en: '50 largest power plants' },
+  indicators: ['plants', 'capacity', 'capacity-fuel', 'share'],
+  file: 'plants-operating.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, item }) => {
+    const fuel = FUELS.find((f) => f.id === item);
+    return points
+      .filter((p) => typeof p.mw === 'number' && (!fuel || p.fuel === fuel.code))
+      .sort((a, b) => Number(b.mw) - Number(a.mw))
+      .slice(0, TOP_PLANTS)
+      .map((p, i): ListRow => {
+        const f = fuelByCode(p.fuel);
+        return {
+          key: `${p.name}-${p.lon}-${p.lat}`,
+          title: `${i + 1}. ${String(p.name ?? '')}`,
+          titleProper: true,
+          lines: [
+            [typeof p.iso3 === 'string' ? countryName(p.iso3) : null, f ? tr(f.label) : null].filter(Boolean).join(' · '),
+            [mw(p.mw as number), typeof p.start === 'number' ? tr({ zh: `${p.start} 年起`, en: `since ${p.start}` }) : null].filter(Boolean).join(' · '),
+          ],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 11 },
+        };
+      });
+  },
+};
+
+/** 各國最大的電廠（第十二批 199，第十批 165 的指標）：依容量；每列：名稱、它是哪幾國最大的、能源、容量 */
+const LARGEST_LIST: ListPanelDef = {
+  label: { zh: '各國最大的電廠', en: 'Largest plant in each country' },
+  indicators: ['largest'],
+  file: 'largest-plants.json',
+  countryField: 'of',
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => Number(b.mw) - Number(a.mw))
+      .map((p, i): ListRow => {
+        const f = fuelByCode(p.fuel);
+        const of = typeof p.of === 'string' ? p.of.split(',').map(countryName).join(tr({ zh: '、', en: ' and ' })) : '';
+        return {
+          key: `${p.name}-${i}`,
+          title: String(p.name ?? ''),
+          titleProper: true,
+          lines: [
+            tr({ zh: `${of}最大`, en: `Largest in ${of}` }),
+            [f ? tr(f.label) : null, typeof p.mw === 'number' ? mw(p.mw) : null].filter(Boolean).join(' · '),
+          ],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 11 },
+        };
+      }),
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'plants',
@@ -647,7 +705,7 @@ export const powerPlants: TopicDefinition = {
     defaultOption: 'coal',
   },
   panelExtra: () => import('./panels/PowerPlantsPanel'),
-  listPanel: NUCLEAR_LIST,
+  listPanel: [NUCLEAR_LIST, TOP_LIST, LARGEST_LIST],
   overlays: [
     { ...NUCLEAR_PLANTS },
     { ...NUCLEAR_CONSTRUCTION },
