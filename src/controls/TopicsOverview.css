@@ -1,0 +1,249 @@
+/*
+ * 主題總覽（TopicsOverview.tsx）的樣式：2026-10-31 從 src/styles.css 搬出來，跟著元件的程式延後下載（首頁的 CSS 變小）。
+ * 載入順序在 styles.css 之後：同樣具體的規則這裡的優先
+ */
+
+.overview-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.overview-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.overview-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* 跟國家搜尋框一樣的外觀，但不用 .search（測試腳本用 .search 找國家搜尋框） */
+.overview-header .overview-filter {
+  flex: 1;
+  min-width: 0;
+  max-width: 360px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.overview-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 20px 20px;
+}
+
+.overview-body h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 10px;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.overview-body h3 .topic-tile {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
+/* 分類裡的小標題（2026-10-30 起） */
+.overview-part + .overview-part {
+  margin-top: 12px;
+}
+
+.overview-body h4 {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.overview-card {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 0 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    transform var(--motion-fast) var(--ease-out);
+}
+
+.overview-card:hover,
+.overview-card:focus-visible {
+  border-color: var(--axis);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  outline: none;
+}
+
+.overview-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.overview-card:active {
+  transform: translateY(1px);
+}
+
+.overview-card.is-current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.overview-thumb {
+  position: relative;
+  display: block;
+}
+
+.overview-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 480 / 280;
+  object-fit: cover;
+  background: #9ebdff;
+}
+
+/* 縮圖左上角的主題圖示：分類代表色的圓底、白色線條，外圈一圈卡片底色跟地圖分開 */
+.overview-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cat-solid);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.overview-card-title {
+  padding: 4px 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.overview-card-summary {
+  padding: 0 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-secondary);
+}
+
+.overview-credit {
+  margin: 20px 0 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 768px) {
+
+  .overview-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  }
+
+  .overview-header .overview-filter {
+    order: 1;
+    flex-basis: 100%;
+    max-width: none;
+    margin-left: 0;
+    font-size: 16px; /* 小於 16px 的輸入框，iOS 點下去會放大整頁 */
+  }
+
+  .overview-header .icon-button {
+    margin-left: auto;
+  }
+
+  .overview-body {
+    padding: 4px 16px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview-card {
+    transition: none;
+  }
+}
+
+/* ── 主題總覽的「最近看過」（TopicsOverview.tsx）─────────── */
+.overview-recent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.overview-recent button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.overview-recent button:hover,
+.overview-recent button:focus-visible {
+  border-color: var(--axis);
+  outline: none;
+}
+
+.overview-recent button:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.overview-recent .topic-tile {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}

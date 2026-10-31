@@ -12,6 +12,8 @@ import { MultiplesTab } from './MultiplesTab';
 import { useWorldShapes, VIEW_W } from './shapes';
 import { SwipeTab } from './SwipeTab';
 import { TEXT } from './text';
+// 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
+import './analysis.css';
 
 export interface AnalysisViewProps {
   topic: Topic;

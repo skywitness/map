@@ -5,7 +5,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import { TOPIC_GROUPS, TOPICS } from '../topics';
-import type { TopicSearchItem } from '../topics/catalog';
+import type { TopicIndicators, TopicSearchItem } from '../topics/catalog';
 import type { Text } from '../i18n/lang';
 import { makeKey, normalize, scoreKey, type SearchKey } from './countrySearch';
 
@@ -38,6 +38,8 @@ function keysOf(text: Text, weight: number): SearchKey[] {
  * 到之前只比對主題與指標的名稱，到了之後重建索引，useTopicSearchItems() 的元件重畫一次
  */
 let searchItems: TopicSearchItem[] | null = null;
+/** 每個主題的全部指標（跟子項目同一個檔）；到之前用目錄裡的前幾個 */
+let topicIndicators: TopicIndicators | null = null;
 let itemsLoading: Promise<void> | null = null;
 const itemListeners = new Set<() => void>();
 
@@ -45,6 +47,7 @@ export function loadSearchItems(): Promise<void> {
   itemsLoading ??= import('../topics/catalogItems.gen').then(
     (m) => {
       searchItems = m.SEARCH_ITEMS;
+      topicIndicators = m.TOPIC_INDICATORS;
       index = null;
       itemListeners.forEach((listener) => listener());
     },
@@ -82,7 +85,7 @@ function buildTopicIndex(): TopicEntry[] {
       label: topic.title,
       keys: [...keysOf(topic.title, 4), ...keysOf(topic.shortTitle, 4)],
     });
-    for (const ind of topic.indicators) {
+    for (const ind of topicIndicators?.[topic.id] ?? topic.firstIndicators) {
       out.push({
         ...base,
         target: { topic: topic.id, indicator: ind.id, item: null },

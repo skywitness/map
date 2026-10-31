@@ -33,6 +33,8 @@ import { ComparePicker } from './ComparePicker';
 import { RelatedTopics } from './RelatedTopics';
 import { useMapTokens } from '../map/palettes';
 import { latestAt, rankOf } from './stats';
+// 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
+import './panels.css';
 
 interface CountryPanelProps {
   topic: Topic;

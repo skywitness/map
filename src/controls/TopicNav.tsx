@@ -291,8 +291,8 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
 
   const summary = (topic: TopicSummary) =>
     t.topicSummary(
-      topic.indicators.slice(0, SUMMARY_COUNT).map((ind) => tr(ind.label, lang)),
-      topic.indicators.length > SUMMARY_COUNT,
+      topic.firstIndicators.slice(0, SUMMARY_COUNT).map((ind) => tr(ind.label, lang)),
+      topic.firstIndicators.length > SUMMARY_COUNT || Boolean(topic.more),
     );
 
   // 每個分類選單的最後一項是「看全部主題」，也在 itemRefs 裡（↑↓ 移得到）

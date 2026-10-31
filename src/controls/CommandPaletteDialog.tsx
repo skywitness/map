@@ -11,6 +11,8 @@ import { UI_ICONS } from '../topics/groupIcons.gen';
 import { categoryStyle, Glyph, topicGlyph, useTopicIcons } from './TopicIcon';
 
 import type { PaletteAction } from './CommandPalette';
+// 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
+import './CommandPaletteDialog.css';
 
 export interface CommandPaletteProps {
   /** 國家搜尋的範圍（跟搜尋框一樣，App.tsx 的 searchIndex） */

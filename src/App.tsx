@@ -61,6 +61,7 @@ import {
   usesDimension,
   yearBin,
   type ClockAt,
+  type Indicator,
   type IndicatorData,
   type ListRow,
   type MapMark,
@@ -280,11 +281,22 @@ export function App() {
   const features = useCountryFeatures(detailWanted || (mapShown && Boolean(topic.pointer)));
   const firstPaint = Boolean(features && (data || pure));
 
-  // 閒置時預先下載同主題的其他指標，換指標、開側欄時不用等
-  const neighbours = useMemo(
-    () => (pure ? [] : topic.indicators.map((i) => indicatorPath(topic, i, item))),
-    [topic, item, pure],
-  );
+  // 閒置時預先下載同主題的其他指標，換指標、開側欄時不用等。2026-10-31 收斂（首頁原本多下載約 190 KB）：
+  // 閒置時只下載前後兩個指標；滑到指標按鈕時下載那一個（prefetchIndicator）；第一次在地圖上滑到國家
+  // （多半接著點國家，側欄的數值卡片要用到全部指標）才下載其餘的
+  const [hoveredTopic, setHoveredTopic] = useState<string | null>(null);
+  const onCountryHover = useCallback(() => setHoveredTopic(topic.id), [topic.id]);
+  const indicatorIndex = topic.indicators.findIndex((i) => i.id === indicator.id);
+  const neighbours = useMemo(() => {
+    if (pure) return [];
+    const all = hoveredTopic === topic.id;
+    return topic.indicators
+      .filter((_, i) => all || Math.abs(i - indicatorIndex) === 1)
+      .map((i) => indicatorPath(topic, i, item));
+  }, [topic, item, pure, hoveredTopic, indicatorIndex]);
+  const prefetchIndicator = (ind: Indicator) => {
+    if (!pure) fetchJson(indicatorPath(topic, ind, item), 'low').catch(() => {});
+  };
   const settled = mapShown || (view !== 'map' && Boolean(data));
   useEffect(() => {
     if (settled) return prefetchJson(neighbours);
@@ -297,7 +309,11 @@ export function App() {
   const year = at ? at.day : pickYear(years, state.year, defaultYear, yearBin(indicator));
   // 沒選國家時的側欄（主題的 worldPanel，2026-10-31 起）：每個主題的元件各自動態載入
   const worldLoad = topic.worldPanel?.load;
-  const WorldPanel = useMemo(() => (worldLoad ? lazy(worldLoad) : null), [worldLoad]);
+  // 主題側欄區塊的樣式在 panels.css（跟著國家側欄載入）；沒選國家時的側欄也要一起載入
+  const WorldPanel = useMemo(
+    () => (worldLoad ? lazy(() => Promise.all([worldLoad(), import('./panels/panels.css')]).then(([m]) => m)) : null),
+    [worldLoad],
+  );
   const showWorld = Boolean(WorldPanel) && !state.country && !pure && worldClosed !== topic.id;
   const yearIndex = data ? (at ? 0 : data.years.indexOf(year)) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
@@ -802,6 +818,8 @@ export function App() {
                     aria-checked={ind.id === indicator.id}
                     className={`segment${ind.id === indicator.id ? ' is-active' : ''}`}
                     onClick={() => chooseIndicator(ind.id)}
+                    onPointerEnter={() => prefetchIndicator(ind)}
+                    onFocus={() => prefetchIndicator(ind)}
                   >
                     {ind.label}
                   </button>
@@ -937,6 +955,7 @@ export function App() {
                   selected={state.country}
                   onSelect={selectCountry}
                   renderTooltip={renderTooltip}
+                  onCountryHover={onCountryHover}
                   ariaLabel={
                     pure
                       ? t.worldMapAria

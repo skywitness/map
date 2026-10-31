@@ -1,0 +1,129 @@
+/*
+ * 排名表（RankingTable.tsx）的樣式：2026-10-31 從 src/styles.css 搬出來，跟著元件的程式延後下載（首頁的 CSS 變小）。
+ * 載入順序在 styles.css 之後：同樣具體的規則這裡的優先
+ */
+
+/* 洲別篩選（RankingTable.tsx）：接在標題後面，放不下時換到下一行 */
+.region-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.region-filter .segment {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.region-filter .segment.is-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--page);
+  box-shadow: none;
+}
+
+.region-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.row-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.row-link:hover {
+  text-decoration: underline;
+}
+
+.row-en {
+  margin-left: 8px;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+@media (max-width: 768px) {
+  html:lang(zh) .row-en {
+    display: none;
+  }
+}
+
+.value-cell {
+  width: 45%;
+}
+@media (min-width: 769px) {
+  .ranking .name-col {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  /* 表格自動排版會把多的寬度依內容寬度分給各欄（國名長，分到最多）：數值欄要 100%，多的寬度都給長條 */
+  .value-cell {
+    width: 100%;
+  }
+
+  .value-track {
+    min-width: 120px;
+  }
+}
+
+.ranking .change.is-flat {
+  color: var(--ink-muted);
+}
+
+
+.value-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.ranking .value-year {
+  color: var(--ink-muted);
+}
+
+/* 資料年份欄：標題可以換行，窄螢幕時少一點留白，表格才不會超出畫面 */
+.ranking th.year-col {
+  white-space: normal;
+}
+
+/* 類別圖：色塊跟類別名稱靠近一點 */
+.value-wrap:has(> .legend-swatch) {
+  gap: 6px;
+}
+
+.value-track {
+  flex: 1;
+  height: 8px;
+}
+
+.value-bar {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  /* 長條用地圖的顏色（RankingTable.tsx），最淺的幾級在淺色卡片上要看得到邊 */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+/* 深色介面：地圖色階最深的幾級（深褐 #611e00、墨綠）跟深色卡片的對比只有 1.4–2.3:1，長條幾乎看不見。
+   顏色照樣跟地圖一樣，加一圈淡白的邊（跟卡片約 3.8:1，2026-10-30） */
+:root[data-theme='dark'] .value-bar {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+@media (max-width: 900px) {
+
+  /* 「名次」只有兩個字，換行會變成上下各一個字 */
+  .ranking th.rank-col {
+    white-space: nowrap;
+  }
+}

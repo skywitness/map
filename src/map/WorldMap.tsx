@@ -180,6 +180,8 @@ interface WorldMapProps {
   selected: string | null;
   onSelect: (iso3: string | null) => void;
   renderTooltip: (iso3: string) => ReactNode;
+  /** 滑鼠滑到國家上（App 這時才預先下載同主題的其他指標，見 App.tsx 的 neighbours） */
+  onCountryHover?: () => void;
   ariaLabel: string;
   /** 新資料載入中，先調淡舊畫面 */
   dimmed?: boolean;
@@ -349,6 +351,11 @@ export function WorldMap(props: WorldMapProps) {
     ),
   );
   const [boxMode, setBoxMode] = useState(false);
+  const onCountryHover = props.onCountryHover;
+  const hoveredIso3 = hover?.iso3 ?? null;
+  useEffect(() => {
+    if (hoveredIso3) onCountryHover?.();
+  }, [hoveredIso3, onCountryHover]);
   // 右鍵（觸控長按）那個位置的小卡片：地名、經緯度、在 Google 地圖開啟（PlacePopup.tsx）
   const [place, setPlace] = useState<MapPlace | null>(null);
   const closePlace = useCallback(() => setPlace(null), []);

@@ -8,6 +8,8 @@ import { MAP_TOKENS } from '../theme/tokens';
 import { useMapTokens } from '../map/palettes';
 import type { Indicator } from '../topics/types';
 import { ranking, rowRanks } from './stats';
+// 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
+import './RankingTable.css';
 
 interface RankingTableProps {
   indicator: Indicator;

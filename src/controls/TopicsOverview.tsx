@@ -7,6 +7,8 @@ import { groupOfTopic, prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '..
 import { CATALOG } from '../topics/catalog.gen';
 import { pureMap } from '../topics/map';
 import { categoryStyle, Glyph, GroupGlyph, topicGlyph, useTopicIcons } from './TopicIcon';
+// 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
+import './TopicsOverview.css';
 
 interface TopicsOverviewProps {
   open: boolean;
@@ -60,8 +62,8 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
 
   const summary = (topic: TopicSummary) =>
     t.topicSummary(
-      topic.indicators.slice(0, SUMMARY_COUNT).map((ind) => tr(ind.label, lang)),
-      topic.indicators.length > SUMMARY_COUNT,
+      topic.firstIndicators.slice(0, SUMMARY_COUNT).map((ind) => tr(ind.label, lang)),
+      topic.firstIndicators.length > SUMMARY_COUNT || Boolean(topic.more),
     );
 
   const card = (topic: TopicSummary) => {
@@ -108,7 +110,7 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
 
   // 分類裡再依小標題分段（2026-10-30 起；篩選時沒有符合的段落不列）
   const sections = [
-    { id: 'map', group: null, label: tr(pureMap.shortTitle, lang), parts: [{ label: null, topics: [pureMap] as TopicSummary[] }] },
+    { id: 'map', group: null, label: tr(pureMap.shortTitle, lang), parts: [{ label: null, topics: [CATALOG.topics[pureMap.id]] }] },
     ...TOPIC_GROUPS.map((g) => ({ id: g.id, group: g.id, label: tr(g.label, lang), parts: g.sections })),
   ]
     .map((s) => ({

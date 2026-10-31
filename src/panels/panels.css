@@ -1,0 +1,1134 @@
+/*
+ * 國家側欄與各主題的側欄區塊（CountryPanel.tsx、src/topics/panels/）的樣式：2026-10-31 從 src/styles.css 搬出來，跟著元件的程式延後下載（首頁的 CSS 變小）。
+ * 載入順序在 styles.css 之後：同樣具體的規則這裡的優先
+ */
+
+/* 側欄：類別圖的歷年變化（CountryPanel 的 CategoryHistory） */
+.category-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.category-history li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-period {
+  min-width: 96px;
+  color: var(--ink-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value .skeleton {
+  margin: 3px 0;
+}
+
+/* 那個指標的資料沒有載入成功（CountryPanel 的 stat-failed）：小一號的灰字，不是一直灰色的載入中 */
+.stat-failed {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.panel-sub {
+  margin: 2px 0 0;
+  color: var(--ink-secondary);
+  font-size: 13px;
+}
+
+/* 年份接在英文名與代碼後面（同一行），不另佔一行 */
+.panel-year {
+  white-space: nowrap;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.stat-value {
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.stat-meta {
+  font-size: 11px;
+  color: var(--ink-muted);
+  min-height: 1.4em;
+}
+
+/* 數值卡片裡比較的國家（CountryPanel 的 stat-compare）：色點、國名、數值，一國一行 */
+.stat-compare {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--grid);
+  font-size: 11px;
+}
+
+.stat-compare-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.stat-compare-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-secondary);
+}
+
+.stat-compare-value {
+  margin-left: auto;
+  padding-left: 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.compare-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.compare-label {
+  color: var(--ink-secondary);
+}
+
+.compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.compare-remove {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.compare-remove:hover {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.compare-add {
+  padding: 3px 10px;
+  border: 1px dashed var(--axis);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.compare-add:hover {
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+
+.compare-search {
+  position: relative;
+}
+
+.compare-search input {
+  width: 150px;
+  padding: 4px 10px;
+  border: 1px solid var(--axis);
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.compare-search input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.compare-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  min-width: 180px;
+  padding: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.compare-results ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compare-results li {
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.compare-results li.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.compare-empty {
+  display: block;
+  padding: 5px 8px;
+  color: var(--ink-muted);
+}
+
+.panel-chart {
+  margin-top: 20px;
+}
+
+.panel-chart h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+/* 海拔：高度分布的長條用地圖的分層設色，高山的灰白色在淺色背景上要有一圈細框才看得到 */
+.elevation-bands .bar-fill,
+.elevation-bands .bar-key {
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+}
+
+/* ── 側欄：主題額外區塊 ─────────────── */
+
+.elevation-points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.elevation-point {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* 河流與流域的側欄（RiversPanel.tsx）：國土流向各大洋的 100% 長條、國內最大的河流系統 */
+.river-share {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  margin: 8px 0 6px;
+}
+
+.river-share span {
+  height: 100%;
+  min-width: 2px;
+}
+
+.river-share span:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.river-share span:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.river-share-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.river-systems {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.river-system {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  width: 100%;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--grid);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.river-system:hover,
+.river-system:focus-visible {
+  background: var(--grid);
+}
+
+.river-system .bar-key {
+  margin-top: 4px;
+}
+
+.river-system-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.river-system .stat-meta {
+  grid-column: 2;
+  min-height: 0;
+}
+
+/* 日食路徑的側欄（EclipsesPanel.tsx）：上一次、下一次日全食，經過這裡的每一次日食（點一下換年份、標出路徑） */
+.eclipse-summary {
+  margin: 4px 0 8px;
+  font-size: 13px;
+}
+
+.eclipse-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+
+.eclipse-facts dt {
+  color: var(--ink-secondary);
+}
+
+.eclipse-facts dd {
+  margin: 0;
+}
+
+.eclipse-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--grid);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eclipse-row:hover,
+.eclipse-row:focus-visible,
+.eclipse-row.is-picked {
+  background: var(--grid);
+}
+
+.eclipse-row.is-picked .eclipse-date {
+  font-weight: 600;
+}
+
+.eclipse-row.is-past .eclipse-date,
+.eclipse-row.is-past .eclipse-kind {
+  color: var(--ink-secondary);
+}
+
+.eclipse-kind {
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+.eclipse-row .stat-meta {
+  grid-column: 2 / 4;
+  min-height: 0;
+}
+
+.eclipse-row .year-tag {
+  margin-left: 0;
+}
+
+.eclipse-row .stat-meta > * + * {
+  margin-left: 6px;
+}
+
+.eclipse-row .year-tag.is-shown {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--ink);
+}
+
+.eclipse-more {
+  margin: 6px 0 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  /* --accent-ink 是藍底上的白字；淺色的側欄上用 --accent（2026-10-29 改，原本看不見） */
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.eclipse-more:hover {
+  text-decoration: underline;
+}
+
+/* 航海日誌的側欄（LogbooksPanel.tsx）：清單用日食的列（.eclipse-row），下面是上一次、下一次有船經過的年份 */
+.logbook-years {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 2px 0 0;
+}
+
+.logbook-years .eclipse-more {
+  margin: 0;
+}
+
+/* 氣候分區的側欄（KoppenPanel.tsx）：類型清單下面的增減、各時期氣候帶的堆疊長條與圖例 */
+.koppen-change {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.stack-bar-row.is-current {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.koppen-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0 0 6px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+}
+
+/* 各國在讀什麼的側欄（ReadsPanel.tsx）：前 10 名的名次、語言與原文標題，每個月的第一名 */
+.reads-list li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.reads-rank {
+  display: inline-block;
+  min-width: 1.4em;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reads-meta {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--ink-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reads-history {
+  display: grid;
+  gap: 1px;
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+
+.reads-history > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.reads-history dt .eclipse-more {
+  margin: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.reads-history dd {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reads-history .is-current dd {
+  font-weight: 650;
+}
+
+/* 風與季風的側欄（WindPanel.tsx）：12 個月的風向（箭頭指向風吹去的方向）、穩定度與風速 */
+.wind-summary {
+  margin: 2px 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wind-table {
+  width: 100%;
+  margin-bottom: 8px;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.wind-table th,
+.wind-table td {
+  padding: 3px 4px;
+  font-weight: inherit;
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.wind-table thead th {
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.wind-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wind-table tr.is-current {
+  font-weight: 650;
+}
+
+.wind-table th .eclipse-more {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.wind-arrow {
+  display: inline-block;
+  width: 1.1em;
+  margin-right: 3px;
+  color: var(--accent-text);
+  text-align: center;
+}
+
+.wind-steady {
+  margin-left: 6px;
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* 地球的另一邊的側欄（AntipodesPanel.tsx）：國土的對蹠點落在哪些國家與海（100% 長條加清單）、首都的對蹠點 */
+.antipode-summary {
+  margin: 2px 0 4px;
+  font-size: 13px;
+}
+
+.antipode-coords {
+  margin: 0 0 4px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.antipode-targets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.antipode-targets li {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: baseline;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.antipode-targets strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.antipode-target-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.antipode-go {
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.antipode-go:hover,
+.antipode-go:focus-visible {
+  background: var(--grid);
+}
+
+.panel-subsection + .panel-subsection {
+  margin-top: 20px;
+}
+
+/* 旅行實用的側欄：時間、行車方向、插頭、電壓，每項一個小標題加幾行說明 */
+.travel-facts {
+  margin: 0;
+}
+
+.travel-facts > div + div {
+  margin-top: 12px;
+}
+
+.travel-facts dt {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.travel-facts dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+/* 國家小檔案（ProfilesPanel）：上面是國旗（左）與屬地、爭議地區的說明（右），下面是兩欄的欄位表 */
+.profile-hero {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 12px;
+}
+
+.profile-hero-text {
+  min-width: 0;
+}
+
+.profile-status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.profile-status + .profile-status {
+  margin-top: 4px;
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-facts > div {
+  display: contents;
+}
+
+.profile-facts dt {
+  color: var(--ink-muted);
+}
+
+.profile-facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-person {
+  display: block;
+}
+
+.profile-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.profile-muted {
+  color: var(--ink-muted);
+}
+
+.profile-more {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-more li + li {
+  margin-top: 4px;
+}
+
+.profile-link {
+  white-space: nowrap;
+}
+
+/* 國家側欄最下面的相關主題（panels/RelatedTopics.tsx） */
+.related-topics {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--grid);
+}
+
+.related-topics h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.profile-flag-link {
+  flex: none;
+  max-width: 45%;
+}
+
+.profile-flag {
+  max-width: 100%;
+}
+
+.flag-figure {
+  margin: 0 0 10px;
+}
+
+.flag-figure figcaption {
+  margin-top: 8px;
+}
+
+.flag-title {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.flag-panel .profile-status {
+  margin-bottom: 6px;
+}
+
+.flag-facts {
+  margin-top: 10px;
+}
+
+.flag-colour-bar {
+  position: relative;
+  display: flex;
+  height: 14px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* 外框畫在色塊上面（inset 的 box-shadow 會被色塊蓋住），白色那段在淺色、深色底上都看得出邊 */
+.flag-colour-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.5);
+  pointer-events: none;
+}
+
+.flag-colour-bar span {
+  flex-basis: 0;
+  min-width: 1px;
+}
+
+.flag-colour-list,
+.flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.flag-colour-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.flag-chips {
+  gap: 4px;
+  margin: 0;
+}
+
+.flag-chips li {
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  line-height: 1.6;
+}
+
+.panel-year-note,
+.panel-figure {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.panel-figure {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.stack-bars {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.stack-bar-row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.stack-bar {
+  display: flex;
+  gap: 2px;
+  height: 16px;
+}
+
+.stack-bar span {
+  height: 100%;
+}
+
+.stack-bar span:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.stack-bar span:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.stack-bar-rest {
+  background: repeating-linear-gradient(45deg, var(--axis) 0 1px, transparent 1px 4px), var(--grid);
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--grid);
+  text-align: left;
+  font-weight: 400;
+}
+
+.mini-table thead th {
+  color: var(--ink-secondary);
+}
+
+.mini-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 便利商店與連鎖品牌的側欄：目前地圖上的品牌那一列 */
+.mini-table tr.is-current th,
+.mini-table tr.is-current td {
+  font-weight: 650;
+}
+
+/* 海洋與漁業的側欄：台灣漁業署的數字表；溫室氣體的側欄：跟環境部清冊的對照表；開發者與開源的側欄：跟全世界的對照表。數字欄之間留空 */
+.ocean-tw .num,
+.climate-inventory .num,
+.dev-table .num {
+  padding-left: 6px;
+}
+
+/* 網路速度的側欄：數字欄之間留空；每一項下面「全世界」那一列縮排、調淡 */
+.speed-table .num {
+  padding-left: 6px;
+}
+
+.speed-table tr.is-world th,
+.speed-table tr.is-world td {
+  color: var(--ink-muted);
+}
+
+.speed-table tr.is-world th {
+  padding-left: 1em;
+}
+
+.chain-sources,
+.source-list {
+  padding-left: 18px;
+}
+
+.chain-sources li + li,
+.source-list li + li {
+  margin-top: 4px;
+}
+
+.chain-poor {
+  color: var(--ink);
+}
+
+/* 政府治理的側欄：六個面向的分數（點）、90% 信賴區間（色帶）與世界中位數（短線），0–100 的軸 */
+.gov-dims {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.gov-dim {
+  padding: 6px 0 5px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.gov-dim-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gov-dim-head strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.gov-muted,
+.gov-median-text {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.gov-median-text {
+  font-size: 11px;
+  text-align: right;
+}
+
+.gov-track {
+  position: relative;
+  height: 14px;
+  margin: 4px 5px 0;
+}
+
+.gov-track-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 2px;
+  background: var(--grid);
+}
+
+.gov-ci {
+  position: absolute;
+  top: 3px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.gov-median {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 14px;
+  transform: translateX(-50%);
+}
+
+.gov-dot {
+  position: absolute;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface);
+  box-sizing: border-box;
+  transform: translateX(-50%);
+}
+
+/* 點圖底下的 0、50、100 刻度，左右留白跟 .gov-track 一樣 */
+.gov-scale {
+  position: relative;
+  height: 14px;
+  margin: 2px 5px 0;
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+.gov-scale span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.gov-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 8px 0 10px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.gov-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gov-key-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.gov-key-line {
+  width: 14px;
+  height: 2px;
+}
+
+.gov-key-band {
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.gov-key-tick {
+  width: 2px;
+  height: 12px;
+}
+
+.gov-key-dash {
+  width: 14px;
+  border-top: 2px dashed;
+}
+
+.gov-table {
+  margin-top: 4px;
+}
+
+.gov-multiples {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2px 12px;
+}
+
+.gov-multiples h5 {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.plain-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.plain-list li {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.plain-title {
+  font-weight: 600;
+}
+
+.plain-meta {
+  color: var(--ink-muted);
+}
+
+/* 晝夜與季節的側欄：選定那一天、四個節氣 */
+.daylight-today {
+  margin: 12px 0 0;
+}
+
+.daylight-today dt {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.daylight-today dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.daylight-seasons,
+.daylight-polar {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.daylight-seasons {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: baseline;
+}
+
+/* 每一列的三欄（名稱、日期、白天長度）對齊成同一張表；「一年中白天最長」寫在白天長度下面 */
+.daylight-seasons li {
+  display: contents;
+}
+
+.daylight-seasons .stat-meta {
+  grid-column: 3;
+  margin-top: -2px;
+}
+
+.daylight-season-name {
+  color: var(--ink-secondary);
+}
+
+.daylight-polar li {
+  padding: 3px 0;
+}

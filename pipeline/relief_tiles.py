@@ -5,7 +5,9 @@
 面量圖的主題世界視角不畫它，見 DESIGN.md 第 13 節）。這裡把 0–3 級（共 85 張）下載下來轉成 WebP，
 放在 public/relief/<z>/<x>/<y>.webp，跟網站一起部署；4 級以上照舊用 OpenFreeMap 的（src/map/style.ts 的 localRelief）。
 
-畫質：WebP 有損 82，跟原本的 PNG 比 OKLab 色差平均小於 1（看不出差別），一張約 25–40 KB。
+畫質：WebP 有損 60（2026-10-31 從 82 降下來，85 張 622 → 469 KB）：跟原本的 PNG 比，RGB 平均差 0.78/255
+（82 是 0.51），放大三倍也看不出差別。試過 AVIF：同樣的誤差下檔案跟 WebP 差不多大（品質 45 是 410 KB、誤差 1.09，
+WebP 50 是 408 KB、0.97），解碼又比較吃 CPU、舊的 Safari 還要另一套 WebP，所以不用（DESIGN.md 第 13 節）。
 """
 from __future__ import annotations
 
@@ -18,7 +20,7 @@ import common
 
 SOURCE = "https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png"
 MAX_ZOOM = 3
-QUALITY = 82
+QUALITY = 60
 OUT = common.ROOT / "public" / "relief"
 
 

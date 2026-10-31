@@ -34,7 +34,7 @@ const server = await createServer({
 });
 try {
   const { TOPIC_GROUP_SPECS, TOPIC_MODULES, topicOf } = await server.ssrLoadModule('/src/topics/registry.ts');
-  const { summarize, searchItems } = await server.ssrLoadModule('/src/topics/catalog.ts');
+  const { summarize, searchItems, indicatorList } = await server.ssrLoadModule('/src/topics/catalog.ts');
   const { pureMap } = await server.ssrLoadModule('/src/topics/map.ts');
   const { population } = await server.ssrLoadModule('/src/topics/population.ts');
 
@@ -81,14 +81,18 @@ try {
   const itemLines = [
     '/**',
     ' * 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改。',
-    ' * 主題搜尋比對的子項目（農產品、礦產、連鎖品牌…），第一次搜尋時才下載（lib/topicSearch.ts）。',
+    ' * 主題搜尋比對的子項目（農產品、礦產、連鎖品牌…）與每個主題的全部指標名稱，第一次搜尋時才下載（lib/topicSearch.ts）。',
     ' * i18n-ignore-file：內容是主題定義裡的雙語文字（{ zh, en }），check:i18n 已經檢查過原本的檔',
     ' */',
-    "import type { TopicSearchItem } from './catalog';",
+    "import type { TopicIndicators, TopicSearchItem } from './catalog';",
     '',
     'export const SEARCH_ITEMS: TopicSearchItem[] = [',
     ...topics.flatMap((t) => searchItems(t).map((item) => `  ${JSON.stringify(item)},`)),
     '];',
+    '',
+    'export const TOPIC_INDICATORS: TopicIndicators = {',
+    ...topics.map((t) => `  ${JSON.stringify(t.id)}: ${JSON.stringify(indicatorList(t))},`),
+    '};',
     '',
   ];
   const files = [

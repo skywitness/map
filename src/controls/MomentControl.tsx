@@ -15,6 +15,8 @@ import {
 } from '../lib/clock';
 import { seasonMoments } from '../lib/solar';
 import { useHotkeys } from './hotkeys';
+// 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
+import './MomentControl.css';
 
 /**
  * 時刻主題（TopicDefinition.clock，晝夜與季節）的時間控制，取代年份的時間軸，一樣是一行：

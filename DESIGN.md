@@ -4798,6 +4798,22 @@ pipeline/
   - 排名表（`RankingTable`）、時刻主題的時間軸（`MomentControl`，連同太陽位置的計算 `lib/solar.ts`）、主題總覽（`TopicsOverview`，第一次打開才載入，之後留著）、指令面板的對話框（`CommandPaletteDialog.tsx`；`CommandPalette.tsx` 只聽 Ctrl+K，第一次按才下載）改成用到才下載。
   - 主題搜尋比對的子項目（農產品、礦產、品牌…，約 26 KB）拆到 `topics/catalogItems.gen.ts`（`npm run catalog` 一起產生、`--check` 一起比對），第一次搜尋時才下載（`lib/topicSearch.ts` 的 `loadSearchItems`）：到之前只比對主題與指標的名稱，到了之後重建索引，搜尋框、指令面板、主題總覽重算一次結果（`useTopicSearchItems`）。
   - 剩下最大的是 react-dom（約 200 KB 未壓縮）與主題目錄（48 KB，頂列選單與主題總覽的主題、指標名稱）。
+- **第四輪的效能（2026-10-31，使用者選的 三、3／4／5）**：首頁（人口主題）第一次載入，本機模擬 GitHub Pages、等 9 秒，兩次平均：**1,055 KB → 885 KB**（資料 234 → 132、地形陰影 254 → 199、CSS 25 → 20、程式 441 → 434 KB）。
+  - **預先下載收斂**（`App.tsx` 的 `neighbours`）：原本地圖畫出資料後閒置時下載同主題的全部指標（人口主題約 190 KB，多半用不到）。改成閒置時只下載前後兩個指標；滑到（或用鍵盤移到）指標按鈕時下載那一個（`prefetchIndicator`）；第一次在地圖上滑到國家時（`WorldMap` 的 `onCountryHover`，多半接著點國家，側欄的數值卡片要用到全部指標）才下載其餘的。手機沒有滑鼠，點國家時才下載，側欄的卡片晚一點出現。
+  - **CSS 拆分**：`styles.css`（119 KB 原始碼）裡只有延後載入的元件用到的樣式搬到各自的 CSS 檔，跟著元件的程式下載：`panels/RankingTable.css`、`controls/TopicsOverview.css`、`controls/CommandPaletteDialog.css`、`controls/MomentControl.css`、`analysis/analysis.css`、`panels/panels.css`（國家側欄與各主題的側欄區塊；沒選國家時的側欄 `worldPanel` 另外載入它）。判斷方式：class 只出現在那個元件（與它載入的檔）裡，連同 @media 裡的覆寫一起搬（一次性的程式，規則數量前後一致：895 = 留下 541 + 搬走 354）。首頁的 CSS 147 → 120 KB（gzip 24.8 → 20.3 KB，含 MapLibre 的）。
+    - **順序的陷阱**：搬走的檔載入順序在 `styles.css` 之後，同樣具體的規則改成它優先。原本排在後面、用來覆寫的規則（例如窄螢幕的 `.ranking th.num { white-space: normal }` 覆寫 `.ranking th.change-col { white-space: nowrap }`）就失效了：手機排名表的欄名換行跟原本不同。檢查方式：搬走的規則 vs `styles.css` 原本在它後面、有共同 class、設定同一個屬性的規則，逐一看是不是同一個元素；`.ranking th.change-col` 留在 `styles.css`。前後截圖（排名表、主題總覽、指令面板、時刻控制、分析、三個主題的側欄，桌機與手機）比對過，除了地圖本身都一樣。之後新增延後載入的元件，它專用的樣式也放在自己的 CSS 檔。
+  - **主題目錄瘦身**：`catalog.gen.ts` 原本有每個主題的全部指標名稱（占四分之三），首頁一開就下載（gzip 約 23 KB）；只有主題選單用到，而且只寫前三個。改成每個主題只留前四個（`firstIndicators`，主題頁的說明寫前四個）與 `more`，全部指標移到 `catalogItems.gen.ts` 的 `TOPIC_INDICATORS`（跟搜尋的子項目一起，第一次搜尋時才下載；到之前用前四個比對）。23 → 16 KB（gzip）。
+  - **地形陰影**：WebP 品質 82 → 60（85 張 622 → 469 KB，跟原圖的 RGB 平均差 0.51 → 0.78/255，放大三倍看不出差別）。建議時說改用 AVIF 約省 30%，實測同樣的誤差下 AVIF 跟 WebP 差不多大：
+
+    | 格式與品質 | 85 張 | 平均差（/255） |
+    |---|---|---|
+    | WebP 82（原本） | 622 KB | 0.51 |
+    | WebP 60（現在） | 469 KB | 0.78 |
+    | WebP 50 | 408 KB | 0.97 |
+    | AVIF 45 | 410 KB | 1.09 |
+    | AVIF 40 | 314 KB | 1.24 |
+
+    AVIF 解碼又比較吃 CPU、舊的 Safari 要另一套 WebP，所以不用。圖磚網址不變，已經存在裝置上的舊圖磚（service worker 的 `relief-tiles`）照用。
 - **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡那個 source 的網址改成自訂協定 `relief://{z}/{x}/{y}`（`WorldMap.tsx` 用 `addProtocol` 註冊 `loadReliefTile`）：0–3 級讀我們的 WebP（地球儀全球視角約縮放 2，用到 3 級的圖磚），4 級以上照舊讀 OpenFreeMap 的 PNG。一開始分成兩個 source（我們的到縮放 2.5、OpenFreeMap 的從 2.5 起），放大跨過 2.5 時新的圖磚到之前露出一塊塊空白；同一個 source 的話，MapLibre 會先放大上一級的圖磚墊著。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef`）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
 ### Service worker（`src/sw.ts`）
 

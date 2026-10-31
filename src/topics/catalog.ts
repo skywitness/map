@@ -11,8 +11,21 @@ export interface TopicSummary {
   title: Text;
   shortTitle: Text;
   pure?: boolean;
-  indicators: { id: string; label: Text }[];
+  /**
+   * 前 SUMMARY_INDICATORS 個指標（選單的摘要列寫前三個、主題頁的說明寫前四個）。全部指標的名稱在
+   * catalogItems.gen.ts 的 TOPIC_INDICATORS，第一次搜尋時才下載（2026-10-31：指標名稱占目錄的四分之三，
+   * 首頁原本一開就下載約 23 KB）
+   */
+  firstIndicators: { id: string; label: Text }[];
+  /** 指標超過 SUMMARY_INDICATORS 個 */
+  more?: boolean;
 }
+
+/** 目錄裡每個主題留幾個指標的名稱 */
+export const SUMMARY_INDICATORS = 4;
+
+/** 每個主題的全部指標（id 與名稱），在 catalogItems.gen.ts */
+export type TopicIndicators = Record<string, { id: string; label: Text }[]>;
 
 /**
  * 主題搜尋比對的子項目（農產品、礦產、連鎖品牌…）：選到之後開的主題、指標與子項目。
@@ -35,8 +48,14 @@ export function summarize(topic: TopicDefinition): TopicSummary {
     title: topic.title,
     shortTitle: topic.shortTitle,
     ...(topic.pure && { pure: true }),
-    indicators: topic.indicators.map((ind) => ({ id: ind.id, label: ind.label })),
+    firstIndicators: indicatorList(topic).slice(0, SUMMARY_INDICATORS),
+    ...(topic.indicators.length > SUMMARY_INDICATORS && { more: true }),
   };
+}
+
+/** 主題的全部指標（id 與名稱），給主題搜尋（catalogItems.gen.ts 的 TOPIC_INDICATORS） */
+export function indicatorList(topic: TopicDefinition): { id: string; label: Text }[] {
+  return topic.indicators.map((ind) => ({ id: ind.id, label: ind.label }));
 }
 
 /**

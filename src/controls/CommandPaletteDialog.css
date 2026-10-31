@@ -1,0 +1,135 @@
+/*
+ * 指令面板的對話框（CommandPaletteDialog.tsx）的樣式：2026-10-31 從 src/styles.css 搬出來，跟著元件的程式延後下載（首頁的 CSS 變小）。
+ * 載入順序在 styles.css 之後：同樣具體的規則這裡的優先
+ */
+
+/* ── 指令面板（CommandPalette.tsx，<dialog>，Ctrl+K）─────────── */
+.cmdk {
+  width: min(620px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(560px, calc(100dvh - 48px));
+  margin: max(24px, 12vh) auto auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.cmdk[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.cmdk::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.cmdk-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--grid);
+  color: var(--ink-secondary);
+}
+
+.cmdk-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.cmdk-esc {
+  flex: none;
+  font-size: 11px;
+}
+
+.cmdk-list {
+  /* 高度依內容，超過對話框的 max-height 才縮、捲動（flex: 1 的基準是 0，對話框沒有固定高度時會縮成 0） */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 4px 6px 6px;
+  list-style: none;
+}
+
+.cmdk-heading {
+  padding: 10px 10px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.cmdk-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cmdk-option.is-active {
+  background: var(--grid);
+}
+
+.cmdk-option .topic-tile {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+}
+
+.cmdk-name {
+  flex: none;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cmdk-meta {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.cmdk-tag {
+  flex: none;
+  margin-left: auto;
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.cmdk-empty {
+  margin: 0;
+  padding: 24px 16px;
+  color: var(--ink-secondary);
+}
+
+.cmdk-hint {
+  margin: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--grid);
+  font-size: 12px;
+  color: var(--ink-muted);
+}

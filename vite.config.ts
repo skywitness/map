@@ -77,7 +77,7 @@ const BASE = new URL(SITE).pathname;
 const escapeAttr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** 主題目錄（scripts/topic-catalog.mjs 產生的 catalog.gen.ts）：每一行一個主題的 JSON */
-function readCatalog(): { id: string; title: { zh: string }; pure?: boolean; indicators: { label: { zh: string } }[] }[] {
+function readCatalog(): { id: string; title: { zh: string }; pure?: boolean; firstIndicators: { label: { zh: string } }[]; more?: boolean }[] {
   const source = readFileSync('src/topics/catalog.gen.ts', 'utf8');
   return [...source.matchAll(/^ {4}"[\w-]+": (\{.*\}),$/gm)].map((m) => JSON.parse(m[1]));
 }
@@ -114,10 +114,10 @@ function topicPages(): Plugin {
       for (const topic of topics) {
         const url = `${SITE}t/${topic.id}/`;
         const title = topic.title.zh;
-        const labels = topic.indicators.map((i) => i.label.zh);
+        const labels = topic.firstIndicators.map((i) => i.label.zh);
         const description = topic.pure
           ? '用地球儀看世界地圖，可以換底圖、搜尋國家；網站另有近百個主題的各國資料。'
-          : `${title}：${labels.slice(0, 4).join('、')}${labels.length > 4 ? '等' : ''}。互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。`;
+          : `${title}：${labels.slice(0, 4).join('、')}${labels.length > 4 || topic.more ? '等' : ''}。互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。`;
         const image = existsSync(`public/og/${topic.id}.jpg`) ? `${SITE}og/${topic.id}.jpg` : `${SITE}og-image.jpg`;
         let page = html.replace(
           /<title>[^<]*<\/title>/,
