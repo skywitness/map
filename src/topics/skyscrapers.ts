@@ -1,6 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { towersExtra } from './towers';
 import type { ColorClasses, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -85,6 +86,7 @@ export const skyscrapers: TopicDefinition = {
   defaultYear: 2026,
   sources: [
     { name: { zh: 'Wikidata（大樓的高度、樓層、完工年份、位置）', en: 'Wikidata (heights, floors, completion years, locations)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    ...towersExtra.sources,
     {
       name: { zh: 'CTBUH Skyscraper Center：2026 Trends & Forecasts（只引用總數對照涵蓋率）', en: 'CTBUH Skyscraper Center: 2026 Trends & Forecasts (totals cited only to check coverage)' },
       url: CTBUH_URL,
@@ -117,6 +119,7 @@ export const skyscrapers: TopicDefinition = {
       kind: 'points',
       id: 'buildings',
       file: 'buildings.json',
+      indicators: ['supertall', 'tallest'],
       label: { zh: '150 m 以上的大樓（縮小時只畫高的）', en: 'Buildings 150 m+ (only the tallest when zoomed out)' },
       radius: { field: 'h', stops: [[150, 1.6], [200, 2.2], [300, 3.2], [500, 4.8], [830, 7]] },
       color: HEIGHT_COLORS,
@@ -128,7 +131,9 @@ export const skyscrapers: TopicDefinition = {
       // 大小跟顏色都是高度，圖例只列顏色的分段
       tooltip: buildingTooltip,
     },
+    ...towersExtra.overlays,
   ],
+  listPanel: towersExtra.listPanel,
   indicators: [
     {
       id: 'supertall',
@@ -164,5 +169,6 @@ export const skyscrapers: TopicDefinition = {
         reason: { zh: 'Wikidata 沒有這一年 150 m 以上的大樓', en: 'No building of 150 m or more in Wikidata for this year' },
       },
     },
+    ...towersExtra.indicators,
   ],
 };
