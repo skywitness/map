@@ -1,6 +1,6 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 核子事故（pipeline/topics/nuclear_accidents.py）：民用核電廠、反應爐、核燃料設施與輻射源的事故，事件表手工整理自
@@ -58,6 +58,34 @@ export function inesLabel(p: PointRecord): string {
 export const what = (p: PointRecord) => String((getLang() === 'zh' ? p.wz : p.we) ?? '');
 export const deathsText = (p: PointRecord) => String((getLang() === 'zh' ? p.dz : p.de) ?? '');
 
+/**
+ * 依國際核事件分級的清單（第十二批 205）：7 級到 1 級（沒有評級的在最後），同級依年份；每列：名稱、國家、日期、等級、
+ * 死亡人數的範圍。全部列出（不跟時間軸篩選），點了移過去並把時間軸換到那一年
+ */
+const INES_LIST: ListPanelDef = {
+  label: { zh: '核子事故（依 INES 等級）', en: 'Nuclear accidents by INES level' },
+  file: 'points.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => Number(b.i ?? 0) - Number(a.i ?? 0) || Number(a.y) - Number(b.y))
+      .map((p, i): ListRow => {
+        const zh = getLang() === 'zh' && typeof p.zh === 'string';
+        return {
+          key: `${p.en}-${i}`,
+          title: accidentName(p),
+          properNoun: zh ? String(p.en ?? '') : undefined,
+          lines: [
+            [typeof p.iso3 === 'string' ? countryName(p.iso3) : null, accidentDate(p), inesLabel(p)].filter(Boolean).join(' · '),
+            tr({ zh: `死亡：${deathsText(p)}`, en: `Deaths: ${deathsText(p)}` }),
+          ],
+          group: inesLabel(p),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 8 },
+          year: Number(p.y),
+        };
+      }),
+};
+
 export const nuclearAccidents: TopicDefinition = {
   id: 'nuclear-accidents',
   title: { zh: '核子事故', en: 'Nuclear accidents' },
@@ -89,6 +117,7 @@ export const nuclearAccidents: TopicDefinition = {
     TWN: { zh: '來源沒有台灣的事件', en: 'No event in Taiwan in the sources' },
   },
   panelExtra: () => import('./panels/NuclearAccidentsPanel'),
+  listPanel: INES_LIST,
   overlays: [
     {
       kind: 'points',
@@ -125,8 +154,8 @@ export const nuclearAccidents: TopicDefinition = {
       id: 'map',
       label: { zh: '核子事故地圖', en: 'Accident map' },
       description: {
-        zh: '民用核電廠、反應爐、核燃料設施與輻射源的事故，依發生的年份累積出現：顏色是國際核事件分級（INES，7 級最嚴重），面積是死亡人數（各方估計的上限）。車諾比與福島是 7 級、基什特姆 6 級、三哩島、溫斯喬、戈亞尼亞 5 級。死亡人數各方說法差很多，滑過看範圍與出處；點國家列出它的事故。不收核潛艇等軍事事故。',
-        en: 'Accidents at civilian nuclear power plants, reactors and fuel facilities and with radiation sources, appearing in the year they happened: colour is the International Nuclear Event Scale (INES; level 7 is the worst) and area the number of deaths (highest estimate). Chernobyl and Fukushima are level 7, Kyshtym 6, and Three Mile Island, Windscale and Goiânia 5. Death tolls are heavily disputed, so hover for the range and sources; select a country for its list. Military accidents such as those on nuclear submarines are not included.',
+        zh: '民用核電廠、反應爐、核燃料設施與輻射源的事故，依發生的年份累積出現：顏色是國際核事件分級（INES，7 級最嚴重），面積是死亡人數（各方估計的上限）。車諾比與福島是 7 級、基什特姆 6 級、三哩島、溫斯喬、戈亞尼亞 5 級。死亡人數各方說法差很多，滑過看範圍與出處；點國家列出它的事故。不收核潛艇等軍事事故。左邊的清單依 INES 等級列出全部，點一個時間軸換到那一年。',
+        en: 'Accidents at civilian nuclear power plants, reactors and fuel facilities and with radiation sources, appearing in the year they happened: colour is the International Nuclear Event Scale (INES; level 7 is the worst) and area the number of deaths (highest estimate). Chernobyl and Fukushima are level 7, Kyshtym 6, and Three Mile Island, Windscale and Goiânia 5. Death tolls are heavily disputed, so hover for the range and sources; select a country for its list. Military accidents such as those on nuclear submarines are not included. The list on the left groups all of them by INES level; picking one moves the timeline to its year.',
       },
       unit: { zh: '起', en: 'accidents' },
       file: 'map.json',
