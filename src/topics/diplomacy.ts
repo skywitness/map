@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { CategoryDef, ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { CategoryDef, ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 台灣的外交（pipeline/topics/taiwan_diplomacy.py）：從台灣看世界的主題，台灣本身沒有值（它是觀點），
@@ -78,6 +78,75 @@ function missionTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
   return { title: String(p.name ?? ''), detail: [missionType(p.type), country].filter(Boolean).join(' · '), properNoun: city || undefined };
 }
 
+/**
+ * 邦交國清單（第十二批 202）：每一段邦交（pipeline/topics/diplomacy_lists.py 的 allies-list.json）依建交日期，
+ * 時間軸那一年年底沒有邦交的（已斷交、還沒建交）淡一點；點了框住那一國
+ */
+const ALLIES_LIST: ListPanelDef = {
+  label: { zh: '邦交國（依建交年份）', en: 'Diplomatic allies by year' },
+  indicators: ['allies'],
+  file: 'allies-list.json',
+  rows: (points, { countryName, year }) =>
+    points.map((p, i): ListRow => {
+      const from = typeof p.d0 === 'string' ? p.d0 : null;
+      const to = typeof p.d1 === 'string' ? p.d1 : null;
+      const active = (typeof p.y0 !== 'number' || p.y0 <= year) && (typeof p.y1 !== 'number' || p.y1 > year);
+      return {
+        key: `${p.iso3}-${from ?? 'old'}-${i}`,
+        title: countryName(String(p.iso3)),
+        lines: [
+          [
+            from ? tr({ zh: `${from} 建交`, en: `from ${from}` }) : tr({ zh: '1949 年以前建交', en: 'from before 1949' }),
+            to ? tr({ zh: `${to} 斷交`, en: `ended ${to}` }) : tr({ zh: '至今', en: 'to date' }),
+          ].join(' – '),
+        ],
+        muted: !active,
+        target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+      };
+    }),
+};
+
+/** 洲（regions.json 的代碼）：館處清單依洲分組的順序與名稱 */
+const REGIONS: [string, Text][] = [
+  ['AS', { zh: '亞洲', en: 'Asia' }],
+  ['OC', { zh: '大洋洲', en: 'Oceania' }],
+  ['NA', { zh: '北美洲、中美洲與加勒比海', en: 'North and Central America, Caribbean' }],
+  ['SA', { zh: '南美洲', en: 'South America' }],
+  ['EU', { zh: '歐洲', en: 'Europe' }],
+  ['AF', { zh: '非洲', en: 'Africa' }],
+];
+const regionOrder = (rg: unknown) => {
+  const i = REGIONS.findIndex(([code]) => code === rg);
+  return i < 0 ? REGIONS.length : i;
+};
+
+/**
+ * 駐外館處清單（第十二批 202）：依洲分組（ListRow.group），組內依國家、館處類型；點了移到館處所在的城市
+ */
+const MISSIONS_LIST: ListPanelDef = {
+  label: { zh: '駐外館處', en: 'Taiwan missions' },
+  indicators: ['missions-presence', 'mission-count'],
+  file: 'missions-list.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) => {
+    const collator = new Intl.Collator(getLang() === 'zh' ? 'zh-Hant-TW' : 'en');
+    const country = (p: PointRecord) => (typeof p.iso3 === 'string' ? countryName(p.iso3) : '');
+    return [...points]
+      .sort((a, b) => regionOrder(a.rg) - regionOrder(b.rg) || collator.compare(country(a), country(b)) || Number(a.type) - Number(b.type))
+      .map((p, i): ListRow => {
+        const region = REGIONS.find(([code]) => code === p.rg)?.[1];
+        const city = typeof p.city === 'string' ? p.city : '';
+        return {
+          key: `${p.nameEn}-${i}`,
+          title: getLang() === 'en' ? String(p.nameEn ?? '') : String(p.name ?? ''),
+          lines: [[country(p), city].filter(Boolean).join(' · '), missionType(p.type)].filter(Boolean),
+          group: region ? tr(region) : tr({ zh: '國際組織與其他', en: 'International organisations and other' }),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+        };
+      });
+  },
+};
+
 const missions = (v: number) =>
   tr({ zh: `${fixed(v, 0)} 個館處`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'mission' : 'missions'}` });
 
@@ -133,6 +202,7 @@ export const diplomacy: TopicDefinition = {
     HKG: { zh: '由陸委會主管', en: 'Under the Mainland Affairs Council' },
   },
   panelExtra: () => import('./panels/DiplomacyPanel'),
+  listPanel: [ALLIES_LIST, MISSIONS_LIST],
   overlays: [
     {
       kind: 'points',

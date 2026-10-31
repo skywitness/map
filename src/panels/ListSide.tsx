@@ -215,7 +215,12 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
         <p className="empty">{query ? text.noMatch : def.empty ? tr(def.empty, lang) : t.noData}</p>
       ) : (
         <ol className="list-side-rows" ref={listRef} onMouseLeave={() => onHover?.(null)}>
-          {visible.map((r) => (
+          {visible.map((r, i) => [
+            r.group && r.group !== visible[i - 1]?.group ? (
+              <li key={`group-${r.group}-${i}`} className="list-side-group">
+                {r.group}
+              </li>
+            ) : null,
             <li key={r.key} data-key={r.key}>
               <button
                 type="button"
@@ -250,8 +255,8 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
                   {r.link.label}
                 </a>
               )}
-            </li>
-          ))}
+            </li>,
+          ])}
         </ol>
       )}
     </aside>

@@ -1632,6 +1632,18 @@ kbd {
   font-size: 12px;
 }
 
+/* 分組的組名（ListRow.group）：跟列的文字對齊的小標題，捲動時黏在清單上方 */
+.list-side-group {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 14px 4px 17px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* 一列底下的外部連結（新聞熱點的原始新聞）：放在按鈕外面，跟列的文字對齊 */
 .list-row-link {
   display: block;

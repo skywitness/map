@@ -937,6 +937,10 @@ export interface ListRow {
   line?: { overlay: string; group: number };
   /** 列底下的外部連結（另開分頁，例如新聞熱點的原始新聞）；label 是不翻譯的原文 */
   link?: { href: string; label: string };
+  /**
+   * 分組（第十二批 202）：跟上一列不同時，這一列上面加一行組名（館處的洲、南極研究站的國家）。rows 要先依組排好
+   */
+  group?: string;
 }
 
 export interface MapMark {
