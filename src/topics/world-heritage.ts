@@ -2,7 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { heritageExtra } from './heritage-extra';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 世界遺產（pipeline/topics/world_heritage.py）：UNESCO 世界遺產名錄，各國的遺產數（依登錄年份累計）、瀕危數，
@@ -71,6 +71,36 @@ function siteTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
   };
 }
 
+/**
+ * 瀕危的世界遺產（第十二批 204）：「瀕危的世界遺產」指標，時間軸那一年已經列為瀕危的，依列入瀕危的年份（新的在上面）；
+ * 每列：名稱、國家、類型與登錄、列入瀕危的年份。點了移過去並標出那一點
+ */
+const DANGER_LIST: ListPanelDef = {
+  label: { zh: '瀕危的世界遺產', en: 'World Heritage in Danger' },
+  indicators: ['danger'],
+  file: 'sites.json',
+  countryField: 'iso3',
+  empty: { zh: '這一年還沒有列為瀕危的遺產', en: 'No sites in danger by this year' },
+  rows: (points, { countryName, year }) =>
+    points
+      .filter((p) => typeof p.danger === 'number' && p.danger <= year)
+      .sort((a, b) => Number(b.danger) - Number(a.danger) || Number(a.year) - Number(b.year))
+      .map((p): ListRow => {
+        const zhName = getLang() === 'zh' && typeof p.zh === 'string';
+        const states = [p.iso3, ...(typeof p.more === 'string' ? p.more.split(',') : [])].filter((s): s is string => typeof s === 'string' && s !== '');
+        return {
+          key: String(p.id),
+          title: siteName(p),
+          properNoun: zhName ? String(p.name ?? '') : undefined,
+          lines: [
+            states.map(countryName).join(tr({ zh: '、', en: ', ' })),
+            [tr(SITE_TYPES[p.type as number] ?? ''), tr({ zh: `${p.year} 年登錄`, en: `inscribed ${p.year}` }), tr({ zh: `${p.danger} 年起列為瀕危`, en: `in danger since ${p.danger}` })].join(' · '),
+          ].filter(Boolean),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        };
+      }),
+};
+
 export const worldHeritage: TopicDefinition = {
   id: 'world-heritage',
   title: { zh: '世界遺產', en: 'World Heritage' },
@@ -110,6 +140,7 @@ export const worldHeritage: TopicDefinition = {
     defaultOption: 'all',
   },
   panelExtra: () => import('./panels/WorldHeritagePanel'),
+  listPanel: [DANGER_LIST, ...heritageExtra.listPanel],
   overlays: [
     {
       kind: 'points',

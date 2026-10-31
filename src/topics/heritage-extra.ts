@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, PointsOverlayDef, SourceDef } from './types';
+import type { IndicatorDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, SourceDef } from './types';
 
 /**
  * 世界遺產的擴充（2026-10-31，製作手冊第十批 181；pipeline/topics/heritage_extra.py，DESIGN.md 第 8 節第 263 點）：
@@ -111,7 +111,79 @@ const RAMSAR: PointsOverlayDef = {
   }),
 };
 
-export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]; indicators: IndicatorDef[] } = {
+/**
+ * 左邊的清單（第十二批 204）：台灣的世界遺產潛力點、世界地質公園（依國家分組）、拉姆薩濕地（依國家分組，組內依面積），
+ * 各自在自己的指標；點了移到那一點。瀕危的世界遺產在 world-heritage.ts
+ */
+const firstCountry = (p: PointRecord, countryName: (iso3: string) => string) => (typeof p.iso3 === 'string' ? countryName(p.iso3) : '');
+const byCountry = (countryName: (iso3: string) => string) => {
+  const collator = new Intl.Collator(getLang() === 'zh' ? 'zh-Hant-TW' : 'en');
+  return (a: PointRecord, b: PointRecord) => collator.compare(firstCountry(a, countryName), firstCountry(b, countryName));
+};
+
+const POTENTIAL_LIST: ListPanelDef = {
+  label: { zh: '臺灣世界遺產潛力點', en: 'Taiwan’s potential World Heritage sites' },
+  indicators: ['tentative'],
+  file: 'tentative-points.json',
+  rows: (points) =>
+    points
+      .filter((p) => p.cls === 2)
+      .sort((a, b) => Number(a.y) - Number(b.y))
+      .map((p, i): ListRow => {
+        const { title, proper } = nameOf(p);
+        return {
+          key: `${p.zh ?? p.name}-${i}`,
+          title,
+          properNoun: proper,
+          lines: [tr({ zh: `${tr(TYPES[Number(p.t)] ?? '')} · ${p.y} 年入選`, en: `${tr(TYPES[Number(p.t)] ?? '')} · selected ${p.y}` })],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+        };
+      }),
+};
+
+const GEOPARK_LIST: ListPanelDef = {
+  label: { zh: 'UNESCO 世界地質公園', en: 'UNESCO Global Geoparks' },
+  indicators: ['geoparks'],
+  file: 'geopark-points.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, year }) =>
+    [...points]
+      .sort((a, b) => byCountry(countryName)(a, b) || Number(a.y) - Number(b.y))
+      .map((p, i): ListRow => {
+        const { title, proper } = nameOf(p);
+        return {
+          key: `${p.name}-${i}`,
+          title,
+          properNoun: proper,
+          lines: [[tr({ zh: `${p.y} 年加入`, en: `joined ${p.y}` }), countries(p, countryName)].filter(Boolean).join(' · ')],
+          group: firstCountry(p, countryName),
+          muted: Number(p.y) > year,
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        };
+      }),
+};
+
+const RAMSAR_LIST: ListPanelDef = {
+  label: { zh: '拉姆薩國際重要濕地', en: 'Ramsar sites' },
+  indicators: ['ramsar', 'ramsar-area'],
+  file: 'ramsar-points.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => byCountry(countryName)(a, b) || Number(b.ha ?? 0) - Number(a.ha ?? 0))
+      .map(
+        (p): ListRow => ({
+          key: String(p.id),
+          title: String(p.name ?? ''),
+          titleProper: true,
+          lines: [[tr({ zh: `#${p.id}`, en: `#${p.id}` }), typeof p.ha === 'number' ? haText(p.ha) : null].filter(Boolean).join(' · ')],
+          group: firstCountry(p, countryName),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        }),
+      ),
+};
+
+export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]; indicators: IndicatorDef[]; listPanel: ListPanelDef[] } = {
   sources: [
     {
       name: { zh: 'Wikidata（世界遺產預備名單 P4171、世界地質公園、台灣的地質公園）', en: 'Wikidata (Tentative List P4171, UNESCO Global Geoparks, geoparks in Taiwan)' },
@@ -138,6 +210,7 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
     },
   ],
   overlays: [TENTATIVE, GEOPARKS, TW_GEOPARKS, RAMSAR],
+  listPanel: [POTENTIAL_LIST, GEOPARK_LIST, RAMSAR_LIST],
   indicators: [
     {
       id: 'tentative',
