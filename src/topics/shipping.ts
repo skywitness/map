@@ -1,11 +1,13 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { ferriesExtra } from './ferries';
 import type { PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
  * 航運與港口（pipeline/topics/shipping.py）：UNCTAD 的貨櫃吞吐量、班輪航運連結指數、商船隊（船旗國、實質船東）、造船，
- * NGA World Port Index 的港口，世界銀行／IMF 的航運密度網格（部署時產生，pipeline/topics/shipping_density_tiles.py）。
+ * NGA World Port Index 的港口，世界銀行／IMF 的航運密度網格（部署時產生，pipeline/topics/shipping_density_tiles.py）；
+ * 渡輪航線在 ferries.ts（pipeline/topics/ferry_routes.py）。
  */
 
 const TEU = 'TEU';
@@ -53,6 +55,9 @@ export function portName(p: PointRecord, lang: 'zh' | 'en'): string {
   return typeof own === 'string' ? own : String(p.name ?? '');
 }
 
+/** 港口、運河與海峽、航運咽喉畫在這些指標（渡輪航線不畫：點的顏色跟渡輪的線混在一起） */
+const POINT_INDICATORS = ['container', 'lsci', 'fleet-flag', 'fleet-owner', 'shipbuilding', 'traffic'];
+
 const quarterText = (q: string) => {
   const [y, n] = [q.slice(0, 4), Number(q.slice(5))];
   return tr({ zh: `${y} 年第 ${n} 季`, en: `Q${n} ${y}` });
@@ -63,6 +68,7 @@ export const PLSCI_QUARTER = '2026Q03';
 const PORTS: PointsOverlayDef = {
   kind: 'points',
   id: 'ports',
+  indicators: POINT_INDICATORS,
   file: 'ports.json',
   label: { zh: '港口（World Port Index）', en: 'Ports (World Port Index)' },
   radius: { field: 'size', stops: [[1, 1.6], [2, 2.3], [3, 3.2], [4, 4.6]] },
@@ -124,6 +130,7 @@ const count = (v: number) => (getLang() === 'zh' ? formatLargeNumber(v) : fixed(
 const CHOKEPOINTS: PointsOverlayDef = {
   kind: 'points',
   id: 'chokepoints',
+  indicators: POINT_INDICATORS,
   file: 'chokepoints.json',
   label: { zh: '航運咽喉（IMF PortWatch，一年通過的貨船）', en: 'Shipping chokepoints (IMF PortWatch, cargo ships a year)' },
   radius: { field: 'n', stops: [[1000, 4], [10000, 6.5], [30000, 9.5], [90000, 14]] },
@@ -175,6 +182,7 @@ const CHOKEPOINTS: PointsOverlayDef = {
 const WATERWAYS: PointsOverlayDef = {
   kind: 'points',
   id: 'waterways',
+  indicators: POINT_INDICATORS,
   file: 'waterways.json',
   label: { zh: '運河與海峽（Wikidata）', en: 'Canals and straits (Wikidata)' },
   radius: { field: 'sl', stops: [[0, 2], [20, 2.8], [60, 3.8], [150, 5]] },
@@ -272,13 +280,15 @@ export const shipping: TopicDefinition = {
       license: { zh: 'IMF 條款（註明來源）', en: 'IMF terms (with attribution)' },
     },
     { name: { zh: 'Wikidata（運河與海峽）', en: 'Wikidata (canals and straits)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    ...ferriesExtra.sources,
   ],
   note: {
-    zh: `資料來源：United Nations Trade and Development Data Hub（UNCTADstat）。${UNCTAD_NOTE.zh}港口的點是美國國家地理空間情報局（NGA）的 World Port Index，大小與類型照它的分類；點上的港口班輪航運連結指數（PLSCI）也來自 UNCTAD（依 UN/LOCODE 與港名對到 World Port Index，900 多個貨櫃港對到約 780 個）。主要貨櫃港的 2025 年吞吐量是各港自己公布的數字（港務局、港口公司或政府統計，引用事實並註明出處），沒有用 Lloyd's List、Alphaliner 等有版權的排名。航運咽喉是 IMF PortWatch 的 28 個運河與海峽，用 AIS 船位推算每天通過的貨船（貨櫃船、乾散貨船、雜貨船、滾裝船、油輪；同一艘船 48 小時內不重複算、沒有依船的大小加權），這裡加總成一整年：2025 年台灣海峽 8.7 萬艘次最多，其次麻六甲海峽、朝鮮海峽；蘇伊士運河從 2023 年的 2.7 萬掉到 1.4 萬（紅海危機後改繞好望角，好望角從 1.8 萬增加到 3.3 萬）。運河與海峽的點是 Wikidata 直接標成運河、海峽、有英文維基百科條目的（世界全圖只畫條目多的，放大才全部畫）；Wikidata 只有一個點，運河畫不出整條線，標成運河的也有不少是灌溉渠。各國之間的貿易流向見「國際貿易流向」主題，鐵路與機場見「各國交通」主題，專屬經濟海域與漁業見「海洋與漁業」主題。`,
-    en: `Source: United Nations Trade and Development Data Hub (UNCTADstat). ${UNCTAD_NOTE.en} Port points are the US National Geospatial-Intelligence Agency’s World Port Index, with its size and type classes; the port liner shipping connectivity index (PLSCI) on the points is also UNCTAD’s (matched to the World Port Index by UN/LOCODE and name: about 780 of 900-odd container ports). The 2025 throughput of major container ports is each port’s own published figure (port authority, port company or government statistics, cited as facts); no proprietary rankings such as Lloyd’s List or Alphaliner are used. Shipping chokepoints are IMF PortWatch’s 28 canals and straits, with daily cargo ship transits (container ships, dry bulk carriers, general cargo ships, ro-ro ships and tankers) estimated from AIS positions (a ship is not counted twice within 48 hours, and transits are not weighted by ship size), summed here over a full year: in 2025 the Taiwan Strait led with 87,000, followed by the Strait of Malacca and the Korea Strait; the Suez Canal fell from 27,000 in 2023 to 14,000 (ships rerouted round the Cape of Good Hope after the Red Sea crisis, which rose from 18,000 to 33,000). Canal and strait dots are Wikidata items classed directly as canals or straits that have an English Wikipedia article (the world view shows only those with many articles; zoom in for all); Wikidata has a single point for each, so canals cannot be drawn as lines, and some items classed as canals are irrigation channels. For trade flows between countries see the International trade flows topic; for railways and airports, Transport by country; for exclusive economic zones and fisheries, Oceans and fisheries.`,
+    zh: `資料來源：United Nations Trade and Development Data Hub（UNCTADstat）。${UNCTAD_NOTE.zh}港口的點是美國國家地理空間情報局（NGA）的 World Port Index，大小與類型照它的分類；點上的港口班輪航運連結指數（PLSCI）也來自 UNCTAD（依 UN/LOCODE 與港名對到 World Port Index，900 多個貨櫃港對到約 780 個）。主要貨櫃港的 2025 年吞吐量是各港自己公布的數字（港務局、港口公司或政府統計，引用事實並註明出處），沒有用 Lloyd's List、Alphaliner 等有版權的排名。航運咽喉是 IMF PortWatch 的 28 個運河與海峽，用 AIS 船位推算每天通過的貨船（貨櫃船、乾散貨船、雜貨船、滾裝船、油輪；同一艘船 48 小時內不重複算、沒有依船的大小加權），這裡加總成一整年：2025 年台灣海峽 8.7 萬艘次最多，其次麻六甲海峽、朝鮮海峽；蘇伊士運河從 2023 年的 2.7 萬掉到 1.4 萬（紅海危機後改繞好望角，好望角從 1.8 萬增加到 3.3 萬）。運河與海峽的點是 Wikidata 直接標成運河、海峽、有英文維基百科條目的（世界全圖只畫條目多的，放大才全部畫）；Wikidata 只有一個點，運河畫不出整條線，標成運河的也有不少是灌溉渠。渡輪航線是 OpenStreetMap 的 route=ferry，只留定期客運（排除觀光船與河上的擺渡），台灣附航港局國內固定航班的班次；渡輪的資料檔是 OSM 的衍生資料庫，以 ODbL 提供。各國之間的貿易流向見「國際貿易流向」主題，鐵路與機場見「各國交通」主題，專屬經濟海域與漁業見「海洋與漁業」主題。`,
+    en: `Source: United Nations Trade and Development Data Hub (UNCTADstat). ${UNCTAD_NOTE.en} Port points are the US National Geospatial-Intelligence Agency’s World Port Index, with its size and type classes; the port liner shipping connectivity index (PLSCI) on the points is also UNCTAD’s (matched to the World Port Index by UN/LOCODE and name: about 780 of 900-odd container ports). The 2025 throughput of major container ports is each port’s own published figure (port authority, port company or government statistics, cited as facts); no proprietary rankings such as Lloyd’s List or Alphaliner are used. Shipping chokepoints are IMF PortWatch’s 28 canals and straits, with daily cargo ship transits (container ships, dry bulk carriers, general cargo ships, ro-ro ships and tankers) estimated from AIS positions (a ship is not counted twice within 48 hours, and transits are not weighted by ship size), summed here over a full year: in 2025 the Taiwan Strait led with 87,000, followed by the Strait of Malacca and the Korea Strait; the Suez Canal fell from 27,000 in 2023 to 14,000 (ships rerouted round the Cape of Good Hope after the Red Sea crisis, which rose from 18,000 to 33,000). Canal and strait dots are Wikidata items classed directly as canals or straits that have an English Wikipedia article (the world view shows only those with many articles; zoom in for all); Wikidata has a single point for each, so canals cannot be drawn as lines, and some items classed as canals are irrigation channels. Ferry routes are OpenStreetMap’s route=ferry, keeping only scheduled passenger services (no sightseeing boats or river ferries), with sailings from Taiwan’s Maritime and Port Bureau timetable for Taiwan; the ferry data files are a derived database of OSM, available under the ODbL. For trade flows between countries see the International trade flows topic; for railways and airports, Transport by country; for exclusive economic zones and fisheries, Oceans and fisheries.`,
   },
   panelExtra: () => import('./panels/ShippingPanel'),
-  overlays: [PORTS, WATERWAYS, CHOKEPOINTS],
+  overlays: [PORTS, WATERWAYS, CHOKEPOINTS, ...ferriesExtra.overlays],
+  listPanel: ferriesExtra.listPanel,
   indicators: [
     {
       id: 'container',
@@ -354,6 +364,7 @@ export const shipping: TopicDefinition = {
       shareOfWorld: true,
       defaultYear: 2025,
     },
+    ...ferriesExtra.indicators,
     {
       id: 'traffic',
       label: { zh: '航運密度', en: 'Ship traffic' },
