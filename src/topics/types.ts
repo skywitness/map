@@ -882,7 +882,13 @@ export interface ListPanelDef {
    * 紀錄是那一組第一條線的紀錄），加上那一組的範圍 bw、bs、be、bn。列的 line 寫 { overlay, group }（group 是
    * groupField 的值，跟地圖上線圖層的分組一樣），滑過、點了把地圖上那一組線標出來
    */
-  lines?: { groupField: string };
+  lines?: {
+    /**
+     * 沒寫時跟地圖一樣：紀錄完全相同的線是同一組（同一條航線在換日線切成兩段），組別依第一次出現的順序從 0 編
+     * （線圖層也沒有 groupField、資料是單一檔時才對得上）
+     */
+    groupField?: string;
+  };
   /**
    * 點 → 清單的每一列（已經排好）。在呼叫當下讀目前的語言（tr()）；year 是時間軸的年份，item 是目前的子項目，
    * country 是選取的國家（沒選是 null），sort 是 sorts 裡目前選的 id（沒有 sorts 時是 null）

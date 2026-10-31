@@ -2,7 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { AIRLINES_ZH, AIRPORTS_ZH } from './longest-flights-names';
-import type { LinesOverlayDef, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 最長的直飛航線（pipeline/topics/longest_flights.py）：英文維基「Longest flights」的現行前 30 名與停飛的前 30 名，
@@ -100,6 +100,31 @@ function airports(id: string, field: 'n' | 'd', indicators: string[]): PointsOve
 
 const CURRENT_INDICATORS = ['routes-count', 'longest'];
 
+/**
+ * 最長的直飛航線清單（第十二批 200）：讀線（routes.json 沒有 groupField，同一條航線在換日線切成的兩段一組），
+ * 現行與停飛各一個清單，依名次；每列：兩端機場、航空公司與班號、名次與距離、時間。點了框住整條大圓弧並標出來
+ */
+function longestList(type: number, overlay: string, label: Text, indicators: string[]): ListPanelDef {
+  return {
+    label,
+    indicators,
+    file: 'routes.json',
+    lines: {},
+    rows: (points) =>
+      points
+        .filter((p) => p.t === type)
+        .sort((a, b) => Number(a.rank) - Number(b.rank) || Number(b.km) - Number(a.km))
+        .map((p): ListRow => ({
+          key: `${p.a}-${p.b}-${p.airline}`,
+          title: routeTitle(p),
+          lines: [`${airlineName(p.airline)} ${p.no}`, ...routeFacts(p)],
+          properNoun: getLang() === 'zh' && AIRLINES_ZH[String(p.airline)] ? String(p.airline) : undefined,
+          target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+          line: { overlay, group: Number(p._g) },
+        })),
+  };
+}
+
 /** 航空主題（aviation.ts）的最長航線部分：2026-10-30 起跟航空公司、交通的航空指標合成一個主題 */
 export const longestFlightsPart = {
   sources: [
@@ -184,4 +209,8 @@ export const longestFlightsPart = {
       timeless: true,
     },
   ],
-} satisfies Partial<TopicDefinition>;
+  listPanels: [
+    longestList(CURRENT, 'routes', { zh: '最長的直飛航線', en: 'Longest non-stop routes' }, CURRENT_INDICATORS),
+    longestList(DISCONTINUED, 'discontinued-routes', { zh: '停飛的最長航線', en: 'Longest discontinued routes' }, ['discontinued']),
+  ],
+} satisfies Partial<TopicDefinition> & { listPanels: ListPanelDef[] };

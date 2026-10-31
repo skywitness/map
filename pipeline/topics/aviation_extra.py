@@ -12,7 +12,7 @@
   依加入、退出（停權）年份算每一年每個國家有哪些聯盟的航空公司：一國有好幾家分屬不同聯盟的歸「兩個以上」（使用者決定）。
 - 廉價航空：英文維基「List of low-cost airlines」（revid 1377811665，CC BY-SA 4.0）依國家列的營運中廉價航空家數。
 
-輸出：busiest-routes.json（線）、busiest-routes-list.json（左邊清單用的點）、busy-routes.json、air-freight.json、
+輸出：busiest-routes.json（線；左邊的清單直接讀線，2026-10-31 起不再另外輸出清單用的點檔）、busy-routes.json、air-freight.json、
 cargo-airports.json、busiest-cargo.json、alliances.json、low-cost.json。
 """
 from __future__ import annotations
@@ -122,7 +122,7 @@ def busiest_routes(airports: dict[str, dict]) -> None:
                 continue
             routes[key] = {"ends": ends, "seats": seats, "kind": kind, "rank": rank}
     ranked = sorted(routes.values(), key=lambda x: -x["seats"])
-    lines, records, list_pts = [], [], []
+    lines, records = [], []
     for i, rt in enumerate(ranked, 1):
         (a, an), (b, bn) = rt["ends"]
         ai, bi = country_at(a["lon"], a["lat"]), country_at(b["lon"], b["lat"])
@@ -132,11 +132,6 @@ def busiest_routes(airports: dict[str, dict]) -> None:
         lines.append(arc)
         rec = {"t": dom, "rank": i, "a": a["iata"], "b": b["iata"], "an": an, "bn": bn, "ai": ai, "bi": bi, "seats": rt["seats"], "km": km}
         records.append(rec)
-        lons = [p[0] for p in arc]
-        lats = [p[1] for p in arc]
-        mid = arc[len(arc) // 2]
-        list_pts.append({**rec, "lon": round(mid[0], 3), "lat": round(mid[1], 3),
-                         "box": f"{min(lons):.2f},{min(lats):.2f},{max(lons):.2f},{max(lats):.2f}"})
     fields = ["t", "rank", "a", "b", "an", "bn", "ai", "bi", "seats", "km"]
     attribution = {"license": "CC BY-SA 4.0",
                    "attribution": f"Wikipedia contributors, “List of busiest passenger flight routes” (revision {PAGES['routes'][1]}); "
@@ -144,9 +139,6 @@ def busiest_routes(airports: dict[str, dict]) -> None:
     write_json(OUT / "busiest-routes.json", {**lines_file(
         lines, 0.01, types=[r["t"] for r in records], records=records, record_fields=fields,
         record_scale={"t": 1, "rank": 1, "seats": 1, "km": 1}, record_strings=("a", "b", "an", "bn", "ai", "bi")), **attribution})
-    write_json(OUT / "busiest-routes-list.json", {**points_file(
-        list_pts, ["lon", "lat"] + fields + ["box"], {"lon": 0.001, "lat": 0.001, "t": 1, "rank": 1, "seats": 1, "km": 1},
-        strings=("ai", "bi")), **attribution})
     count: Counter = Counter()
     for r in records:
         for c in {r["ai"], r["bi"]}:

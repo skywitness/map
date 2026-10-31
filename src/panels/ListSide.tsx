@@ -56,17 +56,18 @@ interface ListSideProps {
 
 /**
  * 讀線（第十二批 188）：線檔的每一組線（groupField 相同）一筆紀錄，加上那一組的範圍 bw、bs、be、bn。
- * 紀錄是那一組第一條線的（併進了 groups 的共用欄位）
+ * 紀錄是那一組第一條線的（併進了 groups 的共用欄位）；沒有 groupField 時另外加組別 _g（第十二批 200）
  */
-function lineGroups(data: LinesData, groupField: string): PointRecord[] {
+function lineGroups(data: LinesData, groupField: string | undefined): PointRecord[] {
   const { lines, records } = decodeLines(data);
   if (!records) return [];
   const out = new Map<unknown, PointRecord>();
   lines.forEach((line, i) => {
     const r = records[i];
-    const g = r[groupField];
+    // 沒有 groupField：跟地圖的 partFeatures 一樣，紀錄完全相同的是同一組，組別依第一次出現的順序（寫在 _g）
+    const g = groupField ? r[groupField] : JSON.stringify(r);
     let rec = out.get(g);
-    if (!rec) out.set(g, (rec = { ...r, bw: Infinity, bs: Infinity, be: -Infinity, bn: -Infinity }));
+    if (!rec) out.set(g, (rec = { ...r, _g: out.size, bw: Infinity, bs: Infinity, be: -Infinity, bn: -Infinity }));
     for (const [x, y] of line) {
       rec.bw = Math.min(rec.bw as number, x);
       rec.bs = Math.min(rec.bs as number, y);

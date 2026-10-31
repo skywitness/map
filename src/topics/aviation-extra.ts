@@ -47,18 +47,27 @@ const BUSIEST_ROUTES: LinesOverlayDef = {
   tooltip: (p) => ({ title: routeName(p), extra: routeFacts(p) }),
 };
 
-/** 左邊的清單（第十二批 L12 的最繁忙航線部分）：依座位數，點了框住整條航線 */
+/**
+ * 左邊的清單（第十二批 L12 的最繁忙航線部分）：依座位數，點了框住整條航線。
+ * 2026-10-31（第十二批 200）起讀線（busiest-routes.json，沒有 groupField），滑過、點了標出那一條
+ */
 const BUSY_LIST: ListPanelDef = {
   label: { zh: '最繁忙的航線', en: 'Busiest routes' },
   indicators: BUSY_INDICATORS,
-  file: 'busiest-routes-list.json',
+  file: 'busiest-routes.json',
+  lines: {},
   rows: (points) =>
     [...points]
       .sort((a, b) => (a.rank as number) - (b.rank as number))
-      .map((p): ListRow => {
-        const box = String(p.box).split(',').map(Number) as [number, number, number, number];
-        return { key: `${p.a}-${p.b}`, title: routeName(p), lines: routeFacts(p), target: { box } };
-      }),
+      .map(
+        (p): ListRow => ({
+          key: `${p.a}-${p.b}`,
+          title: routeName(p),
+          lines: routeFacts(p),
+          target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+          line: { overlay: 'busiest-routes', group: Number(p._g) },
+        }),
+      ),
 };
 
 /** 航空公司聯盟（pipeline 的 1 星空、2 天合、3 寰宇一家、4 兩個以上、0 沒有） */

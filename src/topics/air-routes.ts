@@ -49,8 +49,8 @@ export const airRoutes: TopicDefinition = {
   },
   panelExtra: () => import('./panels/AirRoutesPanel'),
   overlays: [...longestFlightsPart.overlays, ...airRoutesExtra.overlays],
-  // 第十批 175：最繁忙航線的清單（L12 的一部分；最長航線的清單等第十二批 200）
-  listPanel: airRoutesExtra.listPanel,
+  // 依指標切換：最長的直飛航線（現行、停飛，第十二批 200）、最繁忙的航線（第十批 175）
+  listPanel: [...longestFlightsPart.listPanels, airRoutesExtra.listPanel],
   indicators: [
     {
       id: 'airlines',
