@@ -108,6 +108,7 @@ const TOPIC_ICONS = {
   'energy-prices': 'badge-dollar-sign',
   'energy-policy': 'milestone',
   'science-facilities': 'atom',
+  starlink: 'satellite-dish',
   renewables: 'solar-panel',
   climate: 'cloud',
   temperature: 'thermometer-sun',

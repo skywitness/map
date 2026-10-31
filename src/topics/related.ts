@@ -71,6 +71,7 @@ export const RELATED: Record<string, string[]> = {
   'energy-prices': ['electricity', 'fossil-fuels', 'fiscal'],
   'energy-policy': ['power-plants', 'electricity', 'nuclear-waste'],
   'science-facilities': ['innovation', 'publications', 'nuclear-waste'],
+  starlink: ['digital', 'internet-speed', 'space'],
   renewables: ['electricity', 'wind', 'climate'],
   ev: ['electricity', 'vehicles', 'minerals'],
   // 環境
