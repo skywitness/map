@@ -17,7 +17,7 @@ import {
 } from '../map/overlayData';
 import type { MapView } from '../map/WorldMap';
 import { loadSharedLayer } from '../topics/shared-layers';
-import { dataFolder, type AirportsData, type Indicator, type LinesData, type OverlayDef, type PointRecord, type PointsData, type RailwaysData, type Topic } from '../topics/types';
+import { dataFolder, moreFile, type AirportsData, type Indicator, type LinesData, type OverlayDef, type PointRecord, type PointsData, type RailwaysData, type Topic } from '../topics/types';
 
 /**
  * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
@@ -88,6 +88,16 @@ export function useOverlays(
     [generic, raw, view],
   );
   const tiles = useJsonEach(tilePaths);
+  // 大型點檔的其餘的點（PointsOverlayDef.more，2026-10-31）：放大到 minZoom 以上才下載；下載過的留著，
+  // 縮小時照樣接在後面（minValue 會篩掉），不必再下載
+  const morePaths = useMemo(
+    () =>
+      generic.flatMap(({ def, visible, path }) =>
+        def.kind === 'points' && def.more && visible && path && view && view.zoom >= def.more.minZoom ? [moreFile(path)] : [],
+      ),
+    [generic, view],
+  );
+  const more = useJsonEach(morePaths);
   const result = useMemo<OverlayLayer[]>(() => {
     // 地圖上只畫跟畫面重疊的分區（下載過的檔留著，移回來時不必再下載）：看過的分區全部畫上去的話，
     // 每多一個分區 MapLibre 就要把越來越多的線重切一次圖磚
@@ -114,7 +124,11 @@ export function useOverlays(
       if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
       // 即時資料的點（PointsOverlayDef.fromLive，此刻世界的新聞熱點）：每份即時資料算一次
       if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live) };
-      if (def.kind === 'points') return { kind: 'points', def, visible, points: data ? decodedPoints(data as PointsData) : null };
+      if (def.kind === 'points') {
+        const base = data ? decodedPoints(data as PointsData) : null;
+        const rest = def.more ? (more.get(moreFile(path)) as PointsData | undefined) : undefined;
+        return { kind: 'points', def, visible, points: base && rest ? joinedPoints(base, decodedPoints(rest)) : base };
+      }
       if (def.local) return { kind: 'lines', def, visible, lines: localLines?.get(def.id) ?? null };
       const index = (data as LinesData | null)?.detail;
       const loaded = index
@@ -126,7 +140,7 @@ export function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, live, grids, localLines]);
+  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines]);
   return { railways, airports, overlays: result };
 }
 
@@ -226,6 +240,16 @@ function overlayPath(topic: Topic, o: { file: string; topic?: string }, item: st
 }
 
 const decodedCache = new WeakMap<object, PointRecord[] | DecodedLines>();
+/** 重要的點接上其餘的點（PointsOverlayDef.more）：同一組只接一次，物件不變地圖才不必重畫 */
+const joinedCache = new WeakMap<PointRecord[], { rest: PointRecord[]; all: PointRecord[] }>();
+function joinedPoints(base: PointRecord[], rest: PointRecord[]): PointRecord[] {
+  const hit = joinedCache.get(base);
+  if (hit?.rest === rest) return hit.all;
+  const all = base.concat(rest);
+  joinedCache.set(base, { rest, all });
+  return all;
+}
+
 function decodedPoints(data: PointsData): PointRecord[] {
   let out = decodedCache.get(data) as PointRecord[] | undefined;
   if (!out) decodedCache.set(data, (out = decodePoints(data)));

@@ -17,12 +17,13 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 import re
 import unicodedata
 from collections import defaultdict
 
 import geoindex
-from common import OUT_DIR, indicator_file, lines_file, now_iso, points_file, write_json
+from common import OUT_DIR, indicator_file, lines_file, more_path, now_iso, points_file, write_json, write_layered_points
 from sources import ghsl_wup, ris, wikidata_places
 from sources.nobel import zh_labels
 
@@ -30,6 +31,9 @@ OUT = OUT_DIR / "topics" / "cities"
 EPOCHS = ghsl_wup.EPOCHS
 REF = 2025  # 名稱、中心點、排序用的那一期
 MILLION = 1_000_000
+# cities.json 收的城市：曾經到過這麼多人（地圖縮放 3 級以下只畫這些，src/topics/cities.ts 的 ZOOM_STOPS），其餘的在 -more.json
+IMPORTANT_POP = 3e5
+
 POP_UNIT = 1000  # 城市人口存到千人（最小的城市 5 萬人，誤差 1% 以內；存到百人時檔案大 0.3 MB）
 
 # 台灣主要的城市跟哪些縣市對照（WUP 的 ID、主要名稱，對不上時報錯）。
@@ -209,12 +213,36 @@ def _encode(c: ghsl_wup.UrbanCentre) -> dict[str, object]:
     return row
 
 
-def load_points(path=None) -> list[dict]:
-    """讀回 cities.json（給其他主題用）：每個城市 {lon, lat, iso3, name, zh, pop: {期: 人口}, area: {期: km²}}"""
+def _important_city(row: dict) -> bool:
+    """曾經（任何一期）到過 IMPORTANT_POP 的城市；人口欄位在一列裡是逐期的差（_encode），累加回來"""
+    total = top = 0.0
+    for y in EPOCHS:
+        v = row.get(f"p{y}")
+        if v is not None:
+            total += v
+            top = max(top, total)
+    return top >= IMPORTANT_POP
+
+
+def _read_cities(path=None) -> dict:
+    """cities.json 加上 cities-more.json（2026-10-31 起分兩個檔）合成一份欄位分開存的資料"""
     import json
 
-    with open(path or OUT / "cities.json", encoding="utf-8") as f:
+    first = Path(path) if path else OUT / "cities.json"
+    with open(first, encoding="utf-8") as f:
         data = json.load(f)
+    more = more_path(first)
+    if more.exists():
+        with open(more, encoding="utf-8") as f:
+            rest = json.load(f)
+        # 檔案層級沒有差分（delta 是空的），欄位直接接起來
+        data["columns"] = [a + b for a, b in zip(data["columns"], rest["columns"])]
+    return data
+
+
+def load_points(path=None) -> list[dict]:
+    """讀回 cities.json（給其他主題用）：每個城市 {lon, lat, iso3, name, zh, pop: {期: 人口}, area: {期: km²}}"""
+    data = _read_cities(path)
     col = dict(zip(data["fields"], data["columns"]))
     sc = data["scale"]
     years = sorted(int(k[1:]) for k in col if k[0] == "p" and k[1:].isdigit())
@@ -243,7 +271,7 @@ def _previous_zh(centres: list[ghsl_wup.UrbanCentre]) -> dict[int, str]:
     path = OUT / "cities.json"
     if not path.exists():
         return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = _read_cities(path)
     col = dict(zip(data["fields"], data["columns"]))
     index: dict[str, list[tuple[float, float, str]]] = defaultdict(list)
     for i, zh in enumerate(col["zh"]):
@@ -306,7 +334,9 @@ def build() -> None:
         "lon": 0.01, "lat": 0.01, "f": 5, "l": 5,
         **{f"p{y}": POP_UNIT for y in EPOCHS}, **{f"a{y}": 1 for y in AREA_EPOCHS},
     }
-    write_json(OUT / "cities.json", points_file(rows, fields, scale))
+    # 地圖縮放 3 級以下只畫 30 萬人以上的城市（src/topics/cities.ts 的 ZOOM_STOPS）：曾經到過 IMPORTANT_POP 的城市
+    # （約四分之一）在 cities.json，其餘的在 cities-more.json，放大到 3.5 級才下載（2026-10-31）
+    write_layered_points(OUT / "cities.json", rows, _important_city, fields, scale)
 
     # ── 各國的指標 ──
     years = EPOCHS

@@ -1,21 +1,25 @@
 import { useEffect, useState } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
-import { useJson } from '../../lib/data';
+import { useCountryPart } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { NATIONS, SHIP_VIEWS, companyName, dateRange, nationColor, nationName, nationType, routeText, shipName, viewTypes, voyagesOverlay } from '../logbooks';
 import type { PanelExtraProps } from '../types';
 
 /**
- * pipeline/topics/logbooks.py 的 panel.json：
- * - voyages：每個航程 [船名, 國籍代碼, 公司, 出發地, 目的地, 開始 YYYYMMDD, 結束 YYYYMMDD, 船長]，索引就是 tracks.json 的 v
- * - near：每國每年經過附近（航線離國界 100 公里以內）的航程；own：每國（國籍對到的今天的國家）每年自己的船的航程
+ * 側欄的資料依國家分檔（pipeline/panel_parts.py 的 logbook_parts，panel/<ISO3>.json，2026-10-31；原本整份 544 KB）：
+ * - voyages：這一國用到的航程 [船名, 國籍代碼, 公司, 出發地, 目的地, 開始 YYYYMMDD, 結束 YYYYMMDD, 船長]，
+ *   鍵是航程的索引，就是 tracks.json 的 v
+ * - near：每年經過附近（航線離國界 100 公里以內）的航程；own：每年自己的船（國籍對到的今天的國家）的航程
  */
 type Voyage = [string, number, string | null, string, string, number, number, string];
 interface PanelData {
-  voyages: Voyage[];
-  near: Record<string, Record<string, number[]>>;
-  own: Record<string, Record<string, number[]>>;
+  voyages: Record<string, Voyage>;
+  near: Record<string, number[]>;
+  own: Record<string, number[]>;
 }
+
+/** index.json 沒列的國家：沒有船經過附近、也沒有自己的船 */
+const NO_VOYAGES: PanelData = { voyages: {}, near: {}, own: {} };
 
 const SHOWN = 12;
 const n0 = (v: number) => fixed(v, 0);
@@ -121,7 +125,7 @@ export default function LogbooksPanel({ topic, indicator, iso3, year, countryNam
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
-  const { data, error } = useJson<PanelData>(`topics/${topic.id}/panel.json`);
+  const { part, loading, error } = useCountryPart<PanelData>(`topics/${topic.id}/panel`, iso3);
   const [picked, setPicked] = useState<number | null>(null);
   // 指標選了某一國的船（2026-10-31）：地圖上是那一國的線圖層，清單也只列那一國的船
   const overlay = voyagesOverlay(indicator.id);
@@ -134,14 +138,15 @@ export default function LogbooksPanel({ topic, indicator, iso3, year, countryNam
   }, [iso3, year, highlightLine, overlay]);
 
   if (error) return <p className="empty">{t.loadFailed(error.message)}</p>;
-  if (!data) return <p className="empty">{t.loading}</p>;
+  if (loading) return <p className="empty">{t.loading}</p>;
+  const data = part ?? NO_VOYAGES;
 
   const dark = tokens.mode === 'dark';
   const nation = NATIONS.findIndex((n) => n.iso3 === iso3);
   const kept = (ids: number[]) => (types ? ids.filter((v) => types.includes(nationType(data.voyages[v][1]))) : ids);
-  const own = nation >= 0 && (!types || types.includes(nationType(nation))) ? (data.own[iso3]?.[String(year)] ?? []) : [];
+  const own = nation >= 0 && (!types || types.includes(nationType(nation))) ? (data.own[String(year)] ?? []) : [];
   const nearByYear = Object.fromEntries(
-    Object.entries(data.near[iso3] ?? {})
+    Object.entries(data.near)
       .map(([y, ids]) => [y, kept(ids)] as const)
       .filter(([, ids]) => ids.length > 0),
   );

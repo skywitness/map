@@ -23,7 +23,7 @@ GOVERNMENT_OVERRIDES 逐國指定，每一國寫理由。建置時印出每一�
 照事實中立陳述，不替任何一方下判斷：說明文字寫在 src/topics/profiles.ts（STATUS、CAPITAL_NOTES），這裡只輸出事實欄位。
 
 輸出（public/data/topics/profiles/）：government.json、currency.json、neighbours.json、landlocked.json（指標檔，2026 年一年）、
-profiles.json（側欄的小檔案）、capitals.json（首都的點）、manifest.json。
+profiles/<ISO3>.json（側欄的小檔案，依國家分檔，見 panel_parts.py）、capitals.json（首都的點）、manifest.json。
 """
 from __future__ import annotations
 
@@ -33,6 +33,7 @@ import re
 from collections import defaultdict
 
 from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
+from panel_parts import write_country_parts
 from sources import faostat, wikidata_profiles
 
 OUT = OUT_DIR / "topics" / "profiles"
@@ -879,7 +880,8 @@ def build() -> None:
     write_json(OUT / "neighbours.json", indicator_file("neighbours", "個", [YEAR], {u: [len(v)] for u, v in nb.items()},
                                                        hints=nb_hints, hintsEn=nb_hints_en))
     write_json(OUT / "landlocked.json", indicator_file("landlocked", "類別", [YEAR], {u: [v] for u, v in landlocked.items()}))
-    write_json(OUT / "profiles.json", {"date": today, "popYear": YEAR, "regimeYear": regime_year, "countries": profiles})
+    # 側欄依國家分檔（panel_parts.py）：profiles/<ISO3>.json 一國的小檔案，共用的日期與年份在 index.json
+    write_country_parts(OUT / "profiles", profiles, {"date": today, "popYear": YEAR, "regimeYear": regime_year})
     capital_points.sort(key=lambda r: (r["lon"], r["lat"]))
     for r in capital_points:
         r["role"] = r["role"] or None

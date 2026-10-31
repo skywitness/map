@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
-import { useJson } from '../../lib/data';
+import { useCountryPart } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { discharge, km, km2, OCEAN, OCEAN_FILLS, OCEAN_NAMES, RIVERS } from '../rivers';
 import type { PanelExtraProps } from '../types';
 
-/** pipeline/topics/rivers.py 的 panel.json */
+/**
+ * 側欄的資料依國家分檔（pipeline/panel_parts.py 的 river_parts，panel/<ISO3>.json，2026-10-31；原本整份 200 KB）：
+ * 這一國的流域統計，加上它前幾大河流系統的資料
+ */
 interface RiversPanelData {
-  countries: Record<string, CountryRivers>;
+  country: CountryRivers;
   systems: Record<string, RiverSystem>;
 }
 
@@ -75,8 +78,8 @@ export default function RiversPanel({ topic, iso3, countryName, highlightLine, f
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
-  const { data, loading } = useJson<RiversPanelData>(`topics/${topic.id}/panel.json`);
-  const country = data?.countries[iso3];
+  const { part: data, loading } = useCountryPart<RiversPanelData>(`topics/${topic.id}/panel`, iso3);
+  const country = data?.country;
   // 換國家、關掉側欄時取消標出的水系
   useEffect(() => () => highlightLine?.(RIVERS.id, null), [iso3, highlightLine]);
 

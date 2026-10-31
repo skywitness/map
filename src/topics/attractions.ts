@@ -69,6 +69,9 @@ export function placeName(p: PointRecord, lang = getLang()): string {
 export const articlesText = (n: number) =>
   tr({ zh: `${fixed(n, 0)} 種語言的維基百科有條目`, en: `Wikipedia articles in ${fixed(n, 0)} ${n === 1 ? 'language' : 'languages'}` });
 
+/** museums.json 收的博物館：維基百科條目語言數這麼多以上（下面 museums 的 stops 在 7 級以下只畫這些） */
+export const MUSEUM_MIN_SL = 8;
+
 function overlay(layer: LayerKinds, minValue: [number, number][]): PointsOverlayDef {
   const color: ColorClasses = {
     field: 't',
@@ -87,6 +90,9 @@ function overlay(layer: LayerKinds, minValue: [number, number][]): PointsOverlay
     color,
     sortField: 'sl',
     minValue: { field: 'sl', stops: minValue },
+    // 博物館 6 萬多座：museums.json 只有 7 級以下會畫的（條目語言數 MUSEUM_MIN_SL 以上），其餘的在 museums-more.json，
+    // 放大到 6.5 級才下載（pipeline/topics/attractions.py 的 MUSEUM_IMPORTANT_SL，2026-10-31）
+    ...(layer.id === 'museums' ? { more: { minZoom: 6.5 } } : {}),
     tooltip: (p, ctx) => {
       const country = typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null;
       const sl = Number(p.sl);
@@ -139,7 +145,7 @@ export const attractions: TopicDefinition = {
   },
   panelExtra: () => import('./panels/AttractionsPanel'),
   overlays: [
-    overlay(LAYERS[0], [[0, 40], [3, 20], [5, 8], [7, 0]]),
+    overlay(LAYERS[0], [[0, 40], [3, 20], [5, MUSEUM_MIN_SL], [7, 0]]),
     overlay(LAYERS[1], [[0, 15], [3, 5], [5, 0]]),
     overlay(LAYERS[2], [[0, 15], [3, 5], [5, 0]]),
     overlay(LAYERS[3], [[0, 10], [3, 3], [5, 0]]),

@@ -371,7 +371,8 @@ export function App() {
   }, [topic.id]);
   // 線圖層放大後的分區依畫面範圍下載（只有有 detail 的主題才監聽地圖的移動）
   const [mapView, setMapView] = useState<MapView | null>(null);
-  const wantsView = !pure && Boolean(topic.overlays?.some((o) => o.kind === 'lines' && o.detail));
+  // 地圖的縮放與範圍：線圖層的分區（detail）、大型點檔的其餘的點（more）放大才下載
+  const wantsView = !pure && Boolean(topic.overlays?.some((o) => (o.kind === 'lines' && o.detail) || (o.kind === 'points' && o.more)));
   const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData, personalLines);
   // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
   // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；

@@ -30,7 +30,7 @@ import urllib.error
 import urllib.parse
 from collections import Counter, defaultdict
 
-from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, write_json, write_manifest_part
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, write_json, write_manifest_part, more_path
 from sources import wikitable as W
 from sources.countries import from_name
 from sources.wikidata_profiles import _rows, _sparql
@@ -207,7 +207,15 @@ def museums(tw: dict, existing: list[dict]) -> list[dict]:
 
 
 def _read_points(path) -> list[dict]:
-    """讀回 points_file() 的輸出（景點地圖既有的 museums.json、parks.json）"""
+    """讀回 points_file() 的輸出（景點地圖既有的 museums.json、parks.json）；有 -more.json（2026-10-31 起博物館分兩個檔）
+    的話接在後面"""
+    more = more_path(path)
+    if more.exists():
+        return _read_points_one(path) + _read_points_one(more)
+    return _read_points_one(path)
+
+
+def _read_points_one(path) -> list[dict]:
     import json
 
     data = json.loads(path.read_text(encoding="utf-8"))

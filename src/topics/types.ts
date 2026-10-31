@@ -591,6 +591,12 @@ export interface PointsOverlayDef extends OverlayBase {
    * 跟 minValue 不同，所有點都一樣，不必每個點多一個欄位
    */
   minZoom?: number;
+  /**
+   * 大型點檔分層（2026-10-31，pipeline/common.py 的 write_layered_points）：file 只有縮小時會畫的重要的點，
+   * 其餘的在 <file>-more.json（moreFile），地圖放大到 minZoom 才下載、接在後面（點的索引不變）。
+   * minValue 要讓 minZoom 以下只畫得到 file 裡的點；側欄要完整清單的用 useAllPoints 兩個一起讀
+   */
+  more?: { minZoom: number };
   /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
@@ -763,6 +769,9 @@ export interface PointTooltip {
 /** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */
 export type PointRecord = Record<string, number | string | null>;
 
+/** 大型點檔的「其餘的點」（PointsOverlayDef.more）：cities.json → cities-more.json */
+export const moreFile = (file: string) => file.replace(/\.json$/, '-more.json');
+
 /**
  * 一般點圖層的資料檔（pipeline/common.py 的 points_file()）：欄位分開存（columnar）。
  * - 數值欄位存量化後的整數，乘上 scale[欄位] 還原；沒有 scale 的欄位是字串（或 null）
@@ -871,6 +880,11 @@ export interface ListPanelDef {
   indicators?: string[];
   /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}；有 lines 時是線檔（LinesData） */
   file: string;
+  /**
+   * 檔是分層的（PointsOverlayDef.more：file 加上 <file>-more.json）：選了國家（countryField）時兩個都讀；沒選國家時
+   * 只讀 file，所以清單要是全世界的前幾名（例如人口最多的城市），保證都在重要的那一份裡
+   */
+  layered?: boolean;
   /**
    * 即時資料（TopicDefinition.live，2026-10-31，新聞熱點）換成清單的點；有這個時不讀 file，即時資料重讀時清單跟著換
    */

@@ -31,7 +31,7 @@ import json
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, indicator_file, now_iso, points_file, write_json, write_layered_points
 from sources import gem, moeaea_capacity
 from sources.countries import from_name
 from topics import power_plants_extra
@@ -57,6 +57,9 @@ FUELS = {
 FUEL_IDS = [fid for _, fid in FUELS.values()]
 GROUPS = {"renewables": ["hydro", "wind", "solar", "bioenergy", "geothermal"], "fossil": ["coal", "oil-gas"]}
 PUMPED = "pumped storage"  # GEM 的 tech-type；「conventional and pumped storage」是混合式，算再生能源
+
+# plants-operating.json 收的電廠：這麼多 MW 以上（跟 src/topics/power-plants.ts 的 PLANT_MIN_MW 一致），其餘的在 -more.json
+PLANT_IMPORTANT_MW = 200
 
 # 狀態代碼（plants-planned、plants-retired 的 st 欄位；跟 src/topics/power-plants.ts 的 STATUS 一致）
 STATUS = {"operating": 1, "construction": 2, "pre-construction": 3, "announced": 4, "retired": 5, "mothballed": 6}
@@ -253,8 +256,15 @@ def build() -> None:
         if len(statuses) > 1:
             fields.insert(4, "st")
         scale = {"lon": 0.001, "lat": 0.001, "mw": 0.1, "fuel": 1, "start": 1, "last": 1, "ret": 1, "st": 1}
-        data = points_file(rows, fields, scale, delta=("mw",))
-        write_json(OUT / f"plants-{name}.json", data, quiet=True)
+        if name == "operating":
+            # 運轉中的 3 萬多座：PLANT_IMPORTANT_MW 以上的（約四分之一）在 plants-operating.json，地圖縮小時只畫它們
+            # （src/topics/power-plants.ts 的 minValue），其餘的在 plants-operating-more.json，放大才下載（2026-10-31）。
+            # rows 依容量由大到小排，兩份各自照樣排好
+            data, _more = write_layered_points(OUT / f"plants-{name}.json", rows, lambda r: r["mw"] >= PLANT_IMPORTANT_MW,
+                                               fields, scale, delta=("mw",))
+        else:
+            data = points_file(rows, fields, scale, delta=("mw",))
+            write_json(OUT / f"plants-{name}.json", data, quiet=True)
         total = sum(p.mw for p in plants.values())
         kept = sum(r["mw"] for r in rows)
         print(f"  plants-{name}.json：{len(rows)} 座（共 {len(plants)} 座，{min_mw} MW 以上占容量 "

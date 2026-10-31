@@ -166,6 +166,57 @@ def compact_indicator(data: dict) -> dict:
 
 
 # ── 疊加圖層的點與線（前端 src/map/Overlays.tsx 的 decodePoints、decodeLines 還原） ──────────
+def more_path(path: Path) -> Path:
+    """大型點檔的「其餘的點」：cities.json → cities-more.json（前端 PointsOverlayDef.more）"""
+    return path.with_name(f"{path.stem}-more.json")
+
+
+def write_layered_points(path: Path, rows: list[dict[str, object]], important, *args, **kwargs) -> tuple[dict, dict]:
+    """大型點檔分層（2026-10-31，DESIGN.md 第 13 節；前端 PointsOverlayDef.more）：path 只有重要的點
+    （important(row) 為真，地圖縮小時會畫的那些），<name>-more.json 是其餘的，放大到 more.minZoom 才下載、接在後面。
+    兩份各自照 rows 的順序（rows 依 delta 欄位排序過的話，兩份也是排序的）；其他參數照 points_file()"""
+    base = [r for r in rows if important(r)]
+    rest = [r for r in rows if not important(r)]
+    first = points_file(base, *args, **kwargs)
+    more = points_file(rest, *args, **kwargs)
+    write_json(path, first, quiet=True)
+    write_json(more_path(path), more, quiet=True)
+    print(f"  {path.name}：重要的 {len(base)} 個點，其餘 {len(rest)} 個在 {more_path(path).name}")
+    return first, more
+
+
+def read_points_file(data: dict) -> list[dict[str, object]]:
+    """points_file() 的反運算：還原成寫入時的紀錄（數值是量化過的），重新編碼時用同樣的參數會得到同樣的結果"""
+    fields = data["fields"]
+    scale = data.get("scale", {})
+    delta = set(data.get("delta", []))
+    strings = data.get("strings") or {}
+    string_fields = set(strings.get("fields", []))
+    table = strings.get("table", [])
+    n = len(data["columns"][0]) if data["columns"] else 0
+    rows: list[dict[str, object]] = [{} for _ in range(n)]
+    for field, col in zip(fields, data["columns"]):
+        q = scale.get(field)
+        acc = 0
+        for i, v in enumerate(col):
+            if field in string_fields:
+                rows[i][field] = table[v] if v else None
+            elif v is None or q is None:
+                rows[i][field] = v
+            elif field in delta:
+                acc += v
+                rows[i][field] = acc * q
+            else:
+                rows[i][field] = v * q
+    return rows
+
+
+def points_params(data: dict) -> dict:
+    """已經寫好的點檔的編碼參數（fields、scale、delta、strings），給 write_layered_points 重新編碼用"""
+    strings = (data.get("strings") or {}).get("fields", [])
+    return {"fields": data["fields"], "scale": data.get("scale", {}), "delta": data.get("delta", []), "strings": strings}
+
+
 def points_file(
     rows: list[dict[str, object]],
     fields: list[str],

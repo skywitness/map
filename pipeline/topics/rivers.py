@@ -26,6 +26,7 @@ import numpy as np
 
 import geoindex
 from common import CACHE_DIR, OUT_DIR, download, indicator_file, lines_file, now_iso, points_file, write_json
+from panel_parts import river_parts, write_country_parts
 from sources import hydrorivers as hr
 from sources import sea_areas
 from sources import wikidata_buildings as wd
@@ -896,10 +897,11 @@ def write_panel(stats, systems_meta) -> None:
     for g in sorted(used):
         m = systems_meta[g]
         systems[str(g)] = {k: m[k] for k in ("zh", "en", "ocean", "seaZh", "seaEn", "A", "Q", "L", "box")}
-    write_json(OUT / "panel.json", {"countries": countries, "systems": systems})
+    # 側欄依國家分檔（panel_parts.py）：panel/<ISO3>.json 是那一國的統計與它的前幾大河流系統
+    write_country_parts(OUT / "panel", river_parts(countries, systems))
 
 
-NOTICE = f"""River data in this folder (rivers.json, detail/*.json, panel.json and the indicator files) are derived from
+NOTICE = f"""River data in this folder (rivers.json, detail/*.json, panel/*.json and the indicator files) are derived from
 HydroRIVERS v1.0 and are provided only as part of World Data Map (https://skywitness.github.io/map/?topic=rivers).
 
 Required attribution (HydroSHEDS v1 License Agreement, Exhibit B):
@@ -916,7 +918,7 @@ Ocean classification: Marine Regions (Flanders Marine Institute) IHO Sea Areas v
 Global Oceans and Seas v1 ({sea_areas.GOAS_DOI}), CC BY 4.0. River names: Natural Earth (public domain) and
 Wikidata (CC0); Taiwan's rivers from the Water Resources Agency's list of central rivers.
 
-本資料夾的河流資料（rivers.json、detail/*.json、panel.json 與各指標檔）是 HydroRIVERS v1.0 的衍生資料，只作為
+本資料夾的河流資料（rivers.json、detail/*.json、panel/*.json 與各指標檔）是 HydroRIVERS v1.0 的衍生資料，只作為
 世界資料地圖的一部分提供，不保證正確；可以搭配本地圖使用，但不得抽出來當成獨立的資料集再散布、授權或販售，也不得
 還原成 HydroSHEDS 的原始資料。原始資料與授權條款見 https://www.hydrosheds.org/ 。
 """

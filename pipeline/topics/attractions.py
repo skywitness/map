@@ -12,7 +12,8 @@
 - 名稱：英文介面用英文標籤，沒有的用多語言標籤（mul）或當地語言的名稱（sources 的 FALLBACK_LANGS），欄位照樣叫 en；
   中文介面用台灣用字的中文名稱，沒有的用 en。
 
-**輸出**（public/data/topics/attractions/）：museums.json、zoos.json、parks.json（點）、attractions.json（空的指標檔，國家不上色）。
+**輸出**（public/data/topics/attractions/）：museums.json（重要的）與 museums-more.json（其餘的，見 MUSEUM_IMPORTANT_SL）、
+zoos.json、parks.json（點）、attractions.json（空的指標檔，國家不上色）。
 """
 from __future__ import annotations
 
@@ -20,11 +21,14 @@ import json
 import math
 import re
 
-from common import CACHE_DIR, OUT_DIR, download, indicator_file, now_iso, points_file, write_json
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, now_iso, points_file, write_json, write_layered_points
 from geoindex import countries_at
 from sources import wikidata_attractions as wd
 
 OUT = OUT_DIR / "topics" / "attractions"
+# museums.json 收的博物館：維基百科條目語言數這麼多以上（src/topics/attractions.ts 的 overlay() 在 7 級以下只畫這些），其餘的在 -more.json
+MUSEUM_IMPORTANT_SL = 8
+
 MOC_URL = "https://cloud.culture.tw/frontsite/trans/emapOpenDataAction.do?method=exportEmapJson&typeId=H"
 # 博物館的類型代碼（前端 MUSEUM_TYPES 的順序）
 MUSEUM_CODE = {"art": 1, "nature": 2, "history": 3}
@@ -157,8 +161,13 @@ def build() -> None:
             if r["zh"] == r["en"]:
                 r["zh"] = None
         rows.sort(key=lambda r: (r["lon"], r["lat"], r["q"] or "", r["zh"] or ""))
-        write_json(OUT / f"{name}.json", points_file(rows, fields + (["moc"] if name == "museums" else []), scale,
-                                                     delta=("lon",), strings=("iso3",)))
+        if name == "museums":
+            # 6 萬多座博物館：維基百科條目語言數 MUSEUM_IMPORTANT_SL 以上的（約 6.5%）在 museums.json，縮放 7 級以下只畫它們
+            # （src/topics/attractions.ts 的 overlay() 的 stops），其餘的在 museums-more.json，放大到 6.5 級才下載（2026-10-31）
+            write_layered_points(OUT / "museums.json", rows, lambda r: (r.get("sl") or 0) >= MUSEUM_IMPORTANT_SL,
+                                 fields + ["moc"], scale, delta=("lon",), strings=("iso3",))
+        else:
+            write_json(OUT / f"{name}.json", points_file(rows, fields, scale, delta=("lon",), strings=("iso3",)))
     write_json(OUT / "attractions.json", indicator_file("attractions", "", [2026], {}))
     write_json(OUT / "manifest.json", {
         "topic": "attractions", "generatedAt": now_iso(),

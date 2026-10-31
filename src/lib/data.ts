@@ -110,6 +110,26 @@ export function useJson<T>(path: string | null): { data: T | null; loading: bool
   return { data: state.data, loading: path !== state.path, error: state.error };
 }
 
+/**
+ * 側欄依國家分檔的資料（pipeline/panel_parts.py，2026-10-31）：先讀 <dir>/index.json（有檔的國家與各國共用的欄位），
+ * 這一國有檔才下載 <dir>/<ISO3>.json。index 沒列的國家：part 是 null、loading 是 false（這一國沒有資料）。
+ * 換國家時不留上一國的資料（part 在新的檔到之前是 null）
+ */
+export function useCountryPart<T, S extends object = object>(
+  dir: string,
+  iso3: string,
+): { index: (S & { countries: string[] }) | null; part: T | null; loading: boolean; error: Error | null } {
+  const index = useJson<S & { countries: string[] }>(`${dir}/index.json`);
+  const has = index.data?.countries.includes(iso3) ?? false;
+  const file = useJson<T>(has ? `${dir}/${iso3}.json` : null);
+  return {
+    index: index.data,
+    part: has && !file.loading ? file.data : null,
+    loading: index.loading || (has && file.loading),
+    error: index.error ?? (has ? file.error : null),
+  };
+}
+
 /** 一次讀多個檔案（例如一個主題的所有指標），還沒到的位置是 null（失敗的也是 null；要分辨用 useJsonManyStatus） */
 export function useJsonMany<T>(paths: string[]): (T | null)[] {
   return useJsonManyStatus<T>(paths).data;

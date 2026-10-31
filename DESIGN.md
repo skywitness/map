@@ -4824,6 +4824,19 @@ pipeline/
     | AVIF 40 | 314 KB | 1.24 |
 
     AVIF 解碼又比較吃 CPU、舊的 Safari 要另一套 WebP，所以不用。圖磚網址不變，已經存在裝置上的舊圖磚（service worker 的 `relief-tiles`）照用。
+- **大型資料分檔（2026-10-31，使用者選的第四輪 三、1／2）**：
+  - **大型點檔分層**（`PointsOverlayDef.more`、`pipeline/common.py` 的 `write_layered_points`）：原本打開主題就下載整份點檔。現在 `<名稱>.json` 只有地圖縮小時會畫的重要的點，其餘的在 `<名稱>-more.json`，地圖放大到 `more.minZoom` 才下載、接在後面（點的索引不變，tooltip、標出照用；下載過的留著，縮小時由 `minValue` 篩掉）。打開主題時下載的量（gzip）：
+
+    | 點檔 | 重要的點 | 原本 | 現在 | 其餘的點（放大才下載） |
+    |---|---|---|---|---|
+    | 博物館 `museums.json` | 條目語言數 8 以上（4,174／64,320） | 1,009 KB | 86 KB | 6.5 級以上 |
+    | 城市 `cities.json` | 曾經到過 30 萬人（3,642／21,777） | 890 KB | 233 KB | 3.5 級以上 |
+    | 運轉中的電廠 `plants-operating.json` | 200 MW 以上（8,700／35,395） | 614 KB | 161 KB | 3.5 級以上 |
+
+    - 重要的點要剛好是 `minZoom` 以下會畫的：城市原本就有 `minValue`（3 級以下只畫 30 萬人以上），博物館的 stops 在 7 級以下只畫條目語言數 8 以上；電廠原本每個縮放都畫全部（世界全圖一片密密麻麻），加了 `minValue`（4 級以下只畫 200 MW 以上），世界全圖少了小電廠。
+    - 要完整清單的：城市的側欄兩個檔都讀（`lib/points.ts` 的 `useAllPoints`）；「人口最多的城市」清單選了國家才讀其餘的（沒選國家時全世界的前 50 名都在重要的那一份，`ListPanelDef.layered`）；景點的側欄只列那一國最有名的 8 座博物館，重要的那一份裡已經有 8 座以上就不必下載其餘的。
+    - 資料流程：城市、景點、電廠的 `build()` 寫兩個檔；別的主題讀城市的 `load_points()`、景點延伸的 `_read_points()` 都會把 `-more.json` 接上。現有的檔用 `read_points_file`（`points_file` 的反運算，往返完全一致）轉成兩個檔，跟重跑的結果一樣。
+  - **側欄依國家分檔**（`pipeline/panel_parts.py` 的 `write_country_parts`、`src/lib/data.ts` 的 `useCountryPart`）：只給側欄用的大檔改成 `<資料夾>/<ISO3>.json` 一國一個檔，加上 `index.json`（有檔的國家與各國共用的欄位）；index 沒列的國家不去要不存在的檔。航海日誌 `panel/`（原本 544 KB、gzip 136 KB；多半的國家 1–5 KB，英國最大 74 KB）、河流 `panel/`（200 KB → 每國約 1 KB）、國家小檔案 `profiles/`（160 KB → 每國不到 1 KB）。航海日誌的航程會在好幾國的檔裡重複，總大小 0.5 → 1.9 MB，但每次只下載一國。
 - **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡那個 source 的網址改成自訂協定 `relief://{z}/{x}/{y}`（`WorldMap.tsx` 用 `addProtocol` 註冊 `loadReliefTile`）：0–3 級讀我們的 WebP（地球儀全球視角約縮放 2，用到 3 級的圖磚），4 級以上照舊讀 OpenFreeMap 的 PNG。一開始分成兩個 source（我們的到縮放 2.5、OpenFreeMap 的從 2.5 起），放大跨過 2.5 時新的圖磚到之前露出一塊塊空白；同一個 source 的話，MapLibre 會先放大上一級的圖磚墊著。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef`）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
 ### Service worker（`src/sw.ts`）
 

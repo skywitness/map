@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { defineMessages, tr, useLang, useT } from '../i18n';
 import { useJson } from '../lib/data';
+import { useAllPoints } from '../lib/points';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { decodeLines, decodePoints } from '../map/overlayData';
 import type { LinesData, ListPanelDef, ListRow, PointRecord, PointsData, Text } from '../topics/types';
@@ -104,11 +105,15 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const shown = narrow ? narrowOpen : open;
   const setShown = (v: boolean) => (narrow ? setNarrowOpen(v) : onOpenChange(v));
   const path = `topics/${topicId}/${(item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '')}`;
-  const { data, error } = useJson<PointsData | LinesData>(shown && !def.fromLive ? path : null);
+  const { data, error: fileError } = useJson<PointsData | LinesData>(shown && !def.fromLive && !def.layered ? path : null);
+  // 分層的點檔（城市）：選了國家時兩個檔都讀（那一國的小城市在其餘的裡）；沒選國家時全世界的前幾名都在 file 裡
+  const layered = useAllPoints(shown && !def.fromLive && def.layered ? path : null, Boolean(country && def.countryField));
+  const error = fileError ?? layered.error;
   const points = useMemo(() => {
     if (def.fromLive) return shown ? def.fromLive(live) : null;
+    if (def.layered) return layered.points;
     return data ? (def.lines ? lineGroups(data as LinesData, def.lines.groupField) : decodePoints(data as PointsData)) : null;
-  }, [data, def, live, shown]);
+  }, [data, def, live, shown, layered.points]);
   const sortId = def.sorts?.length ? (def.sorts.some((s) => s.id === sort) ? sort : def.sorts[0].id) : null;
   // 跟選取的國家連動：那一國有資料才篩（沒有的照樣列全部）；「看全部」只在這次選的國家有效
   const [allFor, setAllFor] = useState<string | null>(null);

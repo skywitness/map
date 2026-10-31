@@ -1,4 +1,4 @@
-River data in this folder (rivers.json, detail/*.json, panel.json and the indicator files) are derived from
+River data in this folder (rivers.json, detail/*.json, panel/*.json and the indicator files) are derived from
 HydroRIVERS v1.0 and are provided only as part of World Data Map (https://skywitness.github.io/map/?topic=rivers).
 
 Required attribution (HydroSHEDS v1 License Agreement, Exhibit B):
@@ -15,6 +15,6 @@ Ocean classification: Marine Regions (Flanders Marine Institute) IHO Sea Areas v
 Global Oceans and Seas v1 (https://doi.org/10.14284/542), CC BY 4.0. River names: Natural Earth (public domain) and
 Wikidata (CC0); Taiwan's rivers from the Water Resources Agency's list of central rivers.
 
-本資料夾的河流資料（rivers.json、detail/*.json、panel.json 與各指標檔）是 HydroRIVERS v1.0 的衍生資料，只作為
+本資料夾的河流資料（rivers.json、detail/*.json、panel/*.json 與各指標檔）是 HydroRIVERS v1.0 的衍生資料，只作為
 世界資料地圖的一部分提供，不保證正確；可以搭配本地圖使用，但不得抽出來當成獨立的資料集再散布、授權或販售，也不得
 還原成 HydroSHEDS 的原始資料。原始資料與授權條款見 https://www.hydrosheds.org/ 。

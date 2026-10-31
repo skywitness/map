@@ -134,16 +134,20 @@ const plantLayer = (id: string, label: Text, status: number, hidden: boolean, lo
   tooltip: plantTooltip(status),
 });
 
+/** 縮放 4 級以下只畫這麼多 MW 以上的運轉中電廠（跟 pipeline/topics/power_plants.py 的 PLANT_IMPORTANT_MW 一致） */
+export const PLANT_MIN_MW = 200;
+
 /**
  * 運轉中的電廠：發電量主題也拿來當預設關閉的疊加圖層（`{ ...OPERATING_PLANTS, topic: 'power-plants', hidden: true }`），
  * 所以這裡不寫 indicators。
  */
-export const OPERATING_PLANTS: PointsOverlayDef = plantLayer(
-  'operating',
-  { zh: '運轉中的電廠（20 MW 以上）', en: 'Operating power plants (20 MW+)' },
-  1,
-  false,
-);
+export const OPERATING_PLANTS: PointsOverlayDef = {
+  ...plantLayer('operating', { zh: '運轉中的電廠（20 MW 以上）', en: 'Operating power plants (20 MW+)' }, 1, false),
+  // 3 萬多座：縮放 4 級以下只畫 PLANT_MIN_MW 以上的（世界全圖原本一片密密麻麻），plants-operating.json 也只有這些，
+  // 其餘的在 plants-operating-more.json，放大到 3.5 級才下載（pipeline/topics/power_plants.py 的 PLANT_IMPORTANT_MW，2026-10-31）
+  minValue: { field: 'mw', stops: [[0, PLANT_MIN_MW], [4, 0]] },
+  more: { minZoom: 3.5 },
+};
 
 /** 電廠的點只畫在「發電廠地圖」：比例圓、面量圖上再疊幾萬個彩色的點會看不清楚 */
 const PLANT_INDICATORS = ['plants'];

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { defineMessages, tr, useLang, useT, type Lang, type Text } from '../../i18n';
 import { countryName, type CountryTable } from '../../lib/countries';
-import { useJson } from '../../lib/data';
+import { useCountryPart, useJson } from '../../lib/data';
 import { fixed, formatLargeNumber } from '../../lib/format';
 import { REGIMES } from '../democracy';
 import { ALLY } from '../diplomacy';
@@ -74,13 +74,16 @@ interface Profile {
   };
 }
 
-interface ProfilesFile {
+/**
+ * 小檔案依國家分檔（pipeline/panel_parts.py，profiles/<ISO3>.json，2026-10-31；原本整份 160 KB）；
+ * 各國共用的日期與年份在 profiles/index.json
+ */
+interface ProfilesIndex {
   /** Wikidata 的查詢日期 */
   date: string;
   popYear: number;
   /** V-Dem 政體分類（x.regime）的年份 */
   regimeYear: number;
-  countries: Record<string, Profile>;
 }
 
 const TEXT = defineMessages({
@@ -258,13 +261,13 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data } = useJson<ProfilesFile>(`topics/${topic.id}/profiles.json`);
+  const { index: data, part, loading } = useCountryPart<Profile, ProfilesIndex>(`topics/${topic.id}/profiles`, iso3);
   const countries = useJson<CountryTable>('countries.json').data;
   const government = useJson<IndicatorData>(`topics/${topic.id}/government.json`).data;
   const neighbours = useJson<IndicatorData>(`topics/${topic.id}/neighbours.json`).data;
   const flagEntry = useFlags()?.units[iso3];
-  if (!data) return <p className="empty">{t.loading}</p>;
-  const p: Profile | undefined = data.countries[iso3];
+  if (!data || loading) return <p className="empty">{t.loading}</p>;
+  const p: Profile | undefined = part ?? undefined;
   const name = (code: string) => countryName(code, countries, lang);
   // 國旗連到國旗主題（同一個國家），點了看完整的國旗、顏色與圖案
   const flag = flagEntry && (

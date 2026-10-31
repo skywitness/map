@@ -150,6 +150,9 @@ export const CITY_LAYER: PointsOverlayDef = {
     values: (p, epoch) => ({ pop: cityValue(p, 'p', epoch) }),
   },
   minValue: { field: 'pop', stops: ZOOM_STOPS },
+  // cities.json 只有曾經到過 30 萬人的城市（3 級以下只畫這些），其餘的在 cities-more.json，放大到 3.5 級才下載
+  // （pipeline/topics/cities.py 的 IMPORTANT_POP，2026-10-31）
+  more: { minZoom: 3.5 },
   sizeLegend: {
     title: { zh: '人口', en: 'Population' },
     values: [1e6, 1e7, 4e7],
@@ -186,6 +189,7 @@ const TOP_LIST: ListPanelDef = {
   label: { zh: '人口最多的城市', en: 'Largest cities' },
   indicators: ['map'],
   file: 'cities.json',
+  layered: true,
   countryField: 'iso3',
   rows: (points, { countryName, year }) => {
     const epoch = overlayEpoch(CITY_LAYER, year) ?? PROJECTION_FROM;

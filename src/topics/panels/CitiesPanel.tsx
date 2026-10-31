@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
+import { useAllPoints } from '../../lib/points';
 import { fixed, formatLargeNumber, formatPercent, formatSignedPercent } from '../../lib/format';
-import { decodePoints } from '../../map/overlayData';
 import { CITY_LAYER, cityValue, EPOCHS, firstEpoch, growthBase } from '../cities';
-import { overlayEpoch, type IndicatorData, type PanelExtraProps, type PointRecord, type PointsData } from '../types';
+import { overlayEpoch, type IndicatorData, type PanelExtraProps, type PointRecord } from '../types';
 
 /** 一開始列出幾個城市，其他收在「顯示其餘」；再多的不列（中國有上千個） */
 const SHOWN = 10;
@@ -72,8 +72,8 @@ export default function CitiesPanel({ topic, iso3, year, countryName }: PanelExt
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data, error } = useJson<PointsData>(`topics/${topic.id}/cities.json`);
-  const points = useMemo(() => (data ? decodePoints(data) : null), [data]);
+  // 城市分兩個檔（cities.json 是曾經到過 30 萬人的，其餘的在 cities-more.json）：側欄的清單兩個都讀
+  const { points, error } = useAllPoints(`topics/${topic.id}/cities.json`, true);
   const shares = useJson<IndicatorData>(`topics/${topic.id}/city-share.json`).data;
   const taiwan = useJson<TaiwanFile>(iso3 === 'TWN' ? `topics/${topic.id}/taiwan.json` : null).data;
   const epoch = overlayEpoch(CITY_LAYER, year) ?? EPOCHS[EPOCHS.length - 1];

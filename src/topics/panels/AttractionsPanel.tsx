@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
-import { useJsonMany } from '../../lib/data';
+import { useJson, useJsonMany } from '../../lib/data';
 import { decodePoints } from '../../map/overlayData';
 import { articlesText, kindLabel, LAYERS, placeName } from '../attractions';
-import type { PanelExtraProps, PointRecord, PointsData } from '../types';
+import { moreFile, type PanelExtraProps, type PointRecord, type PointsData } from '../types';
 
 /** 每一類列出幾處（依有幾種語言的維基百科有條目） */
 const SHOWN = 8;
@@ -29,17 +29,25 @@ export default function AttractionsPanel({ topic, iso3 }: PanelExtraProps) {
   const text = TEXT[lang];
   const files = useJsonMany<PointsData>(LAYERS.map((l) => `topics/${topic.id}/${l.id}.json`));
   const decoded = useMemo(() => files.map((f) => (f ? decodePoints(f) : null)), [files]);
+  // 博物館分兩個檔（museums.json 是條目語言數 MUSEUM_MIN_SL 以上的，2026-10-31）：這一國在裡面有 SHOWN 座以上時，
+  // 最有名的 SHOWN 座一定都在裡面；不到才下載其餘的（museums-more.json，約 0.9 MB）
+  const museumIndex = LAYERS.findIndex((l) => l.id === 'museums');
+  const museumCount = decoded[museumIndex]?.filter((p) => p.iso3 === iso3).length ?? null;
+  const needMore = museumCount !== null && museumCount < SHOWN;
+  const moreData = useJson<PointsData>(needMore ? `topics/${topic.id}/${moreFile('museums.json')}` : null).data;
+  const moreRows = useMemo(() => (moreData ? decodePoints(moreData) : null), [moreData]);
   const lists = useMemo(
     () =>
-      decoded.map((rows) =>
-        rows
+      decoded.map((base, i) => {
+        const rows = i === museumIndex && needMore ? (base && moreRows ? base.concat(moreRows) : null) : base;
+        return rows
           ? rows
               .filter((p) => p.iso3 === iso3)
               .sort((a, b) => Number(b.sl) - Number(a.sl))
               .slice(0, SHOWN)
-          : null,
-      ),
-    [decoded, iso3],
+          : null;
+      }),
+    [decoded, iso3, museumIndex, needMore, moreRows],
   );
   if (lists.some((l) => !l)) return <p className="empty">{t.loading}</p>;
   const meta = (layer: (typeof LAYERS)[number], p: PointRecord) => {

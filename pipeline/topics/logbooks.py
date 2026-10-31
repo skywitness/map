@@ -28,7 +28,7 @@
 **國家**（ships.json）：每年各國有航海日誌的船數（航程不同但同一本日誌、同一艘船算一艘），國籍對到今天的國家
 （UK → 英國、NL → 荷蘭…）。國家不上色（指標是 kind: 'none'），只給 tooltip 與側欄。
 
-**側欄**（panel.json）：每個國家每年「經過附近」的航程：航線每 DENSIFY_KM 公里內插一點，在國界內或離國界 NEAR_KM 公里以內
+**側欄**（panel/<ISO3>.json，依國家分檔，見 panel_parts.py）：每個國家每年「經過附近」的航程：航線每 DENSIFY_KM 公里內插一點，在國界內或離國界 NEAR_KM 公里以內
 （用颱風主題的 NearIndex：Natural Earth 1:50m 國界）；本國的船另外列（不論在哪裡）。voyages 是航程的資料表。
 
 約 1 分鐘（大部分在讀 2.5 GB 的原始檔與量距離）。
@@ -47,6 +47,7 @@ from datetime import date
 import numpy as np
 
 from common import OUT_DIR, download, indicator_file, lines_file, now_iso, write_json
+from panel_parts import logbook_parts, write_country_parts
 from sources import sea_areas
 from topics.typhoons import NearIndex, simplify, unwrap
 
@@ -427,12 +428,12 @@ def build() -> None:
     for code, nations in SHIP_VIEWS:
         keep = {NATION_ISO3[n] for n in nations}
         write_json(OUT / f"ships-{code}.json", indicator_file(f"ships-{code}", "艘", years, {k: v for k, v in values.items() if k in keep}))
-    write_json(OUT / "panel.json", {
-        "fields": ["ship", "nation", "company", "from", "to", "start", "end", "captain"],
-        "voyages": table,
-        "near": panel_near,
-        "own": panel_own,
-    })
+    # 側欄依國家分檔（panel_parts.py）：panel/<ISO3>.json 只有那一國用到的航程
+    write_country_parts(
+        OUT / "panel",
+        logbook_parts(table, panel_near, panel_own),
+        {"fields": ["ship", "nation", "company", "from", "to", "start", "end", "captain"]},
+    )
     write_json(OUT / "manifest.json", {
         "topic": "logbooks",
         "generatedAt": now_iso(),
