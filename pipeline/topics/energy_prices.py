@@ -45,6 +45,10 @@ PINK_SHEET = ("https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b
 TAIPOWER_SALES = "https://service.taipower.com.tw/data/opendata/apply/file/d003001/001.csv"
 TAIPOWER_INTL = "https://service.taipower.com.tw/data/opendata/apply/file/d007009/001.csv"
 MOEAEA_RETAIL = "https://www2.moeaea.gov.tw/oil111/Gasoline/RetailPrice/load"
+# 日本資源能源廳（網站前面有 AWS WAF，cloud 與本機用誠實的 User-Agent 都回 403）：使用者 2026-10-31 用瀏覽器下載，
+# 放在 skywitness/map-plan 的 data/enecho/；在 cloud 重跑時把兩個檔複製到 pipeline/.cache/enecho/。不要繞過驗證
+ENECHO_FUEL = "https://www.enecho.meti.go.jp/statistics/petroleum_and_lpgas/pl007/xlsx/261028s5.xlsx"
+ENECHO_POWER = "https://www.enecho.meti.go.jp/about/energytrends/202506/html/data/2026/14-1-8.xlsx"
 INDICATORS = ("household", "industrial", "gasoline", "diesel")
 # 側欄的國際能源價格（Pink Sheet 的欄名 → 代號）
 COMMODITIES = {
@@ -211,6 +215,44 @@ def moeaea_retail() -> dict[str, dict[int, float]]:
     return out
 
 
+def enecho_fuel() -> dict[str, dict[int, float]]:
+    """石油製品價格調查（加油站零售價，全國平均，每週，含消費稅）：ハイオク（高級汽油，使用者決定用最接近 95 的等級）、
+    軽油（柴油）每週的平均，一年至少 40 週才算。回傳 {"gasoline": {年: 円/公升}, "diesel": …}"""
+    import openpyxl
+
+    path = download(ENECHO_FUEL, "enecho", "pl007-261028s5.xlsx")
+    wb = openpyxl.load_workbook(path, read_only=True)
+    out: dict[str, dict[int, float]] = {}
+    for indicator, sheet in (("gasoline", "ハイオク"), ("diesel", "軽油")):
+        weeks: dict[int, list[float]] = defaultdict(list)
+        for row in wb[sheet].iter_rows(min_row=2, max_col=3, values_only=True):
+            day, national = row[1], row[2]
+            if hasattr(day, "year") and isinstance(national, (int, float)):
+                weeks[day.year].append(national)
+        # 今年還沒結束，不收
+        out[indicator] = {y: statistics.fmean(v) for y, v in weeks.items() if len(v) >= 40 and y < date.today().year}
+    return out
+
+
+def enecho_power() -> tuple[dict[int, float], dict[int, float]]:
+    """能源動向【第14-1-8】電氣料金的推移（円/kWh，電灯料收入 ÷ 販賣電力量）：電灯（主要是家庭）、電力（工廠與辦公室）。
+    會計年度（4 月到隔年 3 月）記在開始的那一年；2015 年度以前是舊一般電氣事業者 10 家，2016 年度起是全電氣事業者
+    （2016 年度兩種都有，用全電氣事業者）。不含再生能源附加費，消費稅沒有寫。"""
+    import openpyxl
+
+    path = download(ENECHO_POWER, "enecho", "energytrends-2026-14-1-8.xlsx")
+    rows = list(openpyxl.load_workbook(path, read_only=True, data_only=True)["データ"].iter_rows(min_row=10, max_row=16, values_only=True))
+    years = rows[0]
+    lighting: dict[int, float] = {}
+    power: dict[int, float] = {}
+    for scope_rows in ((rows[1], rows[2]), (rows[4], rows[5])):  # 舊一般電氣事業者、全電氣事業者（後面的覆蓋前面的）
+        for i, y in enumerate(years):
+            if isinstance(y, int) and isinstance(scope_rows[0][i], float):
+                lighting[y] = scope_rows[0][i]
+                power[y] = scope_rows[1][i]
+    return lighting, power
+
+
 # ── 逐筆查的其他國家 ─────────────────────────────────
 
 
@@ -346,6 +388,13 @@ def build() -> None:
         for y, v in s.items():
             if y in rates["TWN"]:
                 put(indicator, "TWN", y, v / rates["TWN"][y], "taipower")
+    # 日本（円）
+    jp_lighting, jp_power = enecho_power()
+    jp_fuel = enecho_fuel()
+    for indicator, s in (("household", jp_lighting), ("industrial", jp_power), *jp_fuel.items()):
+        for y, v in s.items():
+            if y in rates["JPN"]:
+                put(indicator, "JPN", y, v / rates["JPN"][y], "enecho")
     tw_fuel = moeaea_retail()
     for indicator, s in tw_fuel.items():
         for y, v in s.items():
@@ -405,6 +454,32 @@ def build() -> None:
         notes[indicator]["TWN"].insert(0, f"地圖用中油{' ' if grade[0].isdigit() else ''}{grade}的牌價，依天數加權的年平均（能源署汽柴油參考零售價）；{last} 年 {s[last]:.2f} 元/公升。")
         notes_en[indicator]["TWN"].insert(0, f"The map uses CPC’s posted price for {grade_en}, averaged over the days each price was in force "
                                              f"(Energy Administration reference retail prices); NT${s[last]:.2f} per litre in {last}.")
+
+    jp = {
+        "household": ("電灯（主要是家庭）", "lighting (mainly households)", jp_lighting, "円/度", "kWh"),
+        "industrial": ("電力（工廠與辦公室）", "power (factories and offices)", jp_power, "円/度", "kWh"),
+        "gasoline": ("高級汽油（ハイオク）", "high-octane gasoline (RON 96+)", jp_fuel["gasoline"], "円/公升", "litre"),
+        "diesel": ("柴油（軽油）", "diesel", jp_fuel["diesel"], "円/公升", "litre"),
+    }
+    for indicator, (name_zh, name_en, s, unit_zh, unit_en) in jp.items():
+        last = max(s)
+        if indicator in ("household", "industrial"):
+            notes[indicator]["JPN"].append(
+                f"資源能源廳「能源動向」第 14-1-8 表的{name_zh}平均單價（收入 ÷ 售電量），會計年度（4 月到隔年 3 月）記在開始的那一年；"
+                f"2015 年度以前只有舊的 10 家電力公司，2016 年度起是全部售電業者；不含再生能源附加費，沒有寫是否含消費稅。{last} 年度 {s[last]:.2f} {unit_zh}。")
+            notes_en[indicator]["JPN"].append(
+                f"Agency for Natural Resources and Energy, Energy Trends table 14-1-8: average price for {name_en} (revenue ÷ kWh sold), "
+                f"by fiscal year (April–March) recorded under its first year; the 10 former regional utilities until FY2015, all retailers from FY2016; "
+                f"excludes the renewable energy surcharge; consumption tax not stated. FY{last}: ¥{s[last]:.2f} per {unit_en}.")
+            hints[indicator]["JPN"] = ("沒有寫是否含消費稅；會計年度", "Consumption tax not stated; fiscal year")
+        else:
+            notes[indicator]["JPN"].append(
+                f"資源能源廳「石油製品價格調查」每週全國平均的年平均，{name_zh}，含消費稅；{last} 年 {s[last]:.1f} {unit_zh}。")
+            notes_en[indicator]["JPN"].append(
+                f"Agency for Natural Resources and Energy, weekly petroleum product price survey: annual average of national weekly prices, {name_en}, "
+                f"including consumption tax; ¥{s[last]:.1f} per {unit_en} in {last}.")
+            if indicator == "gasoline":
+                hints[indicator]["JPN"] = ("高級汽油（ハイオク）", "Premium grade")
 
     OUT.mkdir(parents=True, exist_ok=True)
     for indicator in INDICATORS:

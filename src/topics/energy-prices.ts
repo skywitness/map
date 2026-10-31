@@ -81,6 +81,14 @@ export const energyPrices: TopicDefinition = {
       license: { zh: '政府網站資料開放宣告（註明出處即可利用）', en: 'Government website open data declaration (free reuse with attribution)' },
     },
     {
+      name: {
+        zh: '日本資源能源廳：石油製品價格調查、能源動向第 14-1-8 表（電氣料金的推移），本網站換算成美元',
+        en: 'Agency for Natural Resources and Energy (Japan): petroleum product price survey; Energy Trends table 14-1-8 (electricity prices), converted to US dollars by this site',
+      },
+      url: 'https://www.enecho.meti.go.jp/statistics/petroleum_and_lpgas/pl007/results.html',
+      license: { zh: '公共資料利用規約 1.0 版（PDL1.0，與 CC BY 4.0 相容）', en: 'Public Data License 1.0 (PDL1.0, compatible with CC BY 4.0)' },
+    },
+    {
       name: { zh: '世界銀行 Commodity Price Data（Pink Sheet）', en: 'World Bank, Commodity Price Data (Pink Sheet)' },
       url: 'https://www.worldbank.org/en/research/commodity-markets',
       license: 'CC BY 4.0',
@@ -109,8 +117,8 @@ export const energyPrices: TopicDefinition = {
       'household',
       { zh: '家庭電價', en: 'Household electricity price' },
       {
-        zh: '家庭每度電的價格，含所有稅費，用當年的平均匯率換成美元。2025 年德國 0.435 美元最高，愛爾蘭 0.411、比利時 0.399、英國 0.391；土耳其 0.071、喬治亞 0.084 最低；台灣 0.100（台電的電燈平均單價），南韓 0.112、美國 0.173。巴西、南韓、印尼、新加坡、南非的值不含稅或沒寫是否含稅（滑過有寫）；只有某個城市或某一級費率的國家（加拿大、印度、沙烏地等）只寫在附註，地圖留白。',
-        en: 'Price of a kWh of electricity for households, including all taxes, converted to US dollars at that year’s average exchange rate. In 2025 Germany was highest at US$0.435, followed by Ireland (0.411), Belgium (0.399) and the UK (0.391); Türkiye (0.071) and Georgia (0.084) were lowest; Taiwan 0.100 (Taipower’s average price for lighting customers), South Korea 0.112, the US 0.173. Values for Brazil, South Korea, Indonesia, Singapore and South Africa exclude taxes or do not say (noted on hover); countries with only one city’s price or one tariff band (Canada, India, Saudi Arabia and others) are described in the notes and left blank.',
+        zh: '家庭每度電的價格，含所有稅費，用當年的平均匯率換成美元。2025 年德國 0.435 美元最高，愛爾蘭 0.411、比利時 0.399、英國 0.391；土耳其 0.071、喬治亞 0.084 最低；台灣 0.100（台電的電燈平均單價），南韓 0.112、美國 0.173。巴西、南韓、日本、印尼、新加坡、南非的值不含稅或沒寫是否含稅（滑過有寫）；只有某個城市或某一級費率的國家（加拿大、印度、沙烏地等）只寫在附註，地圖留白。',
+        en: 'Price of a kWh of electricity for households, including all taxes, converted to US dollars at that year’s average exchange rate. In 2025 Germany was highest at US$0.435, followed by Ireland (0.411), Belgium (0.399) and the UK (0.391); Türkiye (0.071) and Georgia (0.084) were lowest; Taiwan 0.100 (Taipower’s average price for lighting customers), South Korea 0.112, the US 0.173. Values for Brazil, South Korea, Japan, Indonesia, Singapore and South Africa exclude taxes or do not say (noted on hover); countries with only one city’s price or one tariff band (Canada, India, Saudi Arabia and others) are described in the notes and left blank.',
       },
       PER_KWH,
       perKwh,
