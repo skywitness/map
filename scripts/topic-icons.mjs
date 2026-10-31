@@ -24,8 +24,8 @@ const GROUP_ICONS = {
   society: 'person-standing',
   economy: 'coins',
   global: 'earth',
-  energy: 'leaf',
-  environment: 'cloud-sun',
+  // 能源 2026-10-30（第十一批 187）併進科技，環境改用原本能源的葉子
+  environment: 'leaf',
   tech: 'monitor-smartphone',
   transport: 'bus',
   geo: 'mountain-snow',

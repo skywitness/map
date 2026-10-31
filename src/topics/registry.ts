@@ -2,7 +2,7 @@ import type { Text } from '../i18n/lang';
 import type { TopicDefinition } from './types';
 
 export interface TopicSection {
-  /** 下拉選單、主題總覽裡的小標題；沒有小標題的分類（能源、交通）是 null */
+  /** 下拉選單、主題總覽裡的小標題；沒有小標題的分類是 null（2026-10-30 第十一批 187 起每一類都有小標題） */
   label: Text | null;
   /** 主題的 id，順序就是選單裡的順序 */
   topics: string[];
@@ -21,7 +21,8 @@ export interface TopicGroupSpec {
 }
 
 /**
- * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。2026-10-30（第七批 124）起 8 類，選單依小標題分段。
+ * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。2026-10-30（第七批 124）起 8 類，選單依小標題分段；
+ * 同一天第十一批 187 把能源併進科技，變成 7 類。
  * 新增主題時加進最接近的分類與小標題，也在下面的 TOPIC_MODULES 加一行，再跑 npm run catalog（dev、build 會自動跑）。
  * 分類名稱要短，中文 1024px、英文 1280px 寬的螢幕要放得下整列（DESIGN.md 第 11 節）。
  */
@@ -65,16 +66,9 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     columns: [1, 2, 1],
   },
   {
-    id: 'energy',
-    label: { zh: '能源', en: 'Energy' },
-    sections: [
-      // 電動車 2026-10-30（第十一批 186）搬到交通
-      { label: null, topics: ['electricity', 'power-plants', 'nuclear-accidents', 'fossil-fuels', 'renewables'] },
-    ],
-  },
-  {
     id: 'environment',
-    label: { zh: '環境', en: 'Climate' },
+    // 英文 2026-10-30（第十一批 187）由 Climate 改成 Environment
+    label: { zh: '環境', en: 'Environment' },
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'ewaste'] },
@@ -84,37 +78,29 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   {
     id: 'tech',
     label: { zh: '科技', en: 'Tech' },
+    // 2026-10-30（第十一批 187）「能源」分類併進科技的右欄；第十批的晶圓廠地圖、Starlink、研發投入最多的公司、大型科學設施、
+    // 電價與油價、能源政策、核廢料做好時照手冊的表放進對應的欄
     sections: [
       { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'digital', 'internet-speed', 'developers', 'submarine-cables'] },
       { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'publications', 'space'] },
+      { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'nuclear-accidents'] },
     ],
+    // 左：數位；中：研發與太空；右：能源
+    columns: [1, 1, 1],
   },
   {
     id: 'transport',
     label: { zh: '交通', en: 'Transport' },
+    // 2026-10-30（第十一批 186）交通拆成鐵路（id 照舊 transport）、高鐵、地鐵與城市軌道，航空拆成機場與旅客（id 照舊 aviation）、
+    // 航線與航空公司，交通安全拆出汽機車，電動車從能源搬過來；187 排成三欄（使用者要水運放中欄）
     sections: [
-      // 2026-10-30（第十一批 186）交通拆成鐵路（id 照舊 transport）、高鐵、地鐵與城市軌道，航空拆成機場與旅客（id 照舊 aviation）、
-      // 航線與航空公司，交通安全拆出汽機車，電動車從能源搬過來；分欄、小標題是第十一批 187
-      {
-        label: null,
-        topics: [
-          'transport',
-          'high-speed-rail',
-          'metro',
-          'heritage-railways',
-          'cable-cars',
-          'aviation',
-          'air-routes',
-          'airspace',
-          'shipping',
-          'logbooks',
-          'road-safety',
-          'vehicles',
-          'ev',
-          'ride-hailing',
-        ],
-      },
+      { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways', 'cable-cars'] },
+      { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
+      { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
+      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'vehicles', 'ev', 'ride-hailing'] },
     ],
+    // 左：鐵道；中：航空、水運；右：道路
+    columns: [1, 2, 1],
   },
   {
     id: 'geo',
