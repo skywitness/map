@@ -24,3 +24,16 @@ def internet_users() -> dict[int, float]:
         if row and row[0].strip().isdigit() and row[column].strip():
             out[int(row[0]) + ROC_OFFSET] = float(row[column])
     return out
+
+
+def column(prefix: str) -> dict[int, float]:
+    """數位近用調查的某一欄（欄名開頭比對，例如「男性」「家戶連網率」）：{西元年: %}，沒調查的年份不放"""
+    path = download(URL, "moda", "digital-access.csv")
+    with open(path, encoding="cp950", newline="") as f:
+        rows = list(csv.reader(f))
+    index = next(i for i, name in enumerate(rows[0]) if name.replace("\n", "").startswith(prefix))
+    out: dict[int, float] = {}
+    for row in rows[1:]:
+        if row and row[0].strip().isdigit() and row[index].strip():
+            out[int(row[0]) + ROC_OFFSET] = float(row[index])
+    return out

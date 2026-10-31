@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from common import append_note, later_years_note, OUT_DIR, indicator_file, now_iso, to_series, write_json, year_span
 from sources import moda, ncc, worldbank, wpp
+from topics import digital_extra
 
 # 輸出檔名 -> (World Bank 代碼, 單位, 台灣附註, 台灣附註的英文)
 INDICATORS = {
@@ -65,7 +66,8 @@ def build() -> None:
                 **later_notes(key, unit, taiwan[key], years, note, note_en),
             ),
         )
+    digital_extra.build(out)
     write_json(
         out / "manifest.json",
-        {"topic": "digital", "generatedAt": now_iso(), "source": "World Bank WDI (ITU); 數位發展部; NCC; UN WPP 2024"},
+        {"topic": "digital", "generatedAt": now_iso(), "source": "World Bank WDI (ITU); ITU DataHub via World Bank Data360; Global Findex 2025; ITU GCI 2024; 數位發展部; NCC; UN WPP 2024"},
     )
