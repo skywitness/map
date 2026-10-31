@@ -46,7 +46,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '經濟', en: 'Economy' },
     sections: [
       { label: { zh: '產業', en: 'Industries' }, topics: ['sectors', 'industry', 'agriculture', 'minerals'] },
-      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
+      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies', 'company-sites'] },
       { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
       { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
     ],
@@ -159,6 +159,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),
   'chain-stores': () => import('./chain-stores'),
+  'company-sites': () => import('./company-sites'),
   trade: () => import('./trade'),
   migration: () => import('./migration'),
   aid: () => import('./aid'),

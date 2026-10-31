@@ -14,6 +14,7 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
   {"topic":"industry","layers":[{"id":"steel-plants","label":{"zh":"鋼鐵廠（Global Energy Monitor）","en":"Iron and steel plants (Global Energy Monitor)"},"kind":"points"},{"id":"cement-plants","label":{"zh":"水泥廠（Global Energy Monitor）","en":"Cement plants (Global Energy Monitor)"},"kind":"points"}]},
   {"topic":"companies","layers":[{"id":"companies","label":{"zh":"公司（有 Wikidata 座標的）","en":"Companies (with Wikidata locations)"},"kind":"points"}]},
+  {"topic":"company-sites","layers":[{"id":"all-sites","label":{"zh":"營運中的據點","en":"Operating sites"},"kind":"points"}]},
   {"topic":"migration","layers":[{"id":"chinatowns","label":{"zh":"唐人街","en":"Chinatowns"},"kind":"points"}]},
   {"topic":"empires","layers":[{"id":"polities","label":{"zh":"政體的範圍","en":"Polities"},"kind":"lines"},{"id":"polity-names","label":{"zh":"政體的名稱","en":"Polity names"},"kind":"points"}]},
   {"topic":"taiwan-diplomacy","layers":[{"id":"missions","label":{"zh":"駐外館處","en":"Taiwan missions"},"kind":"points"}]},

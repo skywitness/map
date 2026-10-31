@@ -85,6 +85,7 @@ const TOPIC_ICONS = {
   agriculture: 'wheat',
   minerals: 'pickaxe',
   'chain-stores': 'store',
+  'company-sites': 'network',
   companies: 'briefcase-business',
   // 國際
   trade: 'container',
