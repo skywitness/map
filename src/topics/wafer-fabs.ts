@@ -149,8 +149,8 @@ export const waferFabs: TopicDefinition = {
       id: 'campuses',
       label: { zh: '運作中的晶圓廠區', en: 'Operating fab sites' },
       description: {
-        zh: '每個國家運作中的晶圓廠區數（同一家公司在同一個城市算一個），點的顏色是最大的晶圓尺寸。英文維基的清單：日本 64、美國 63、中國 50、台灣 33、德國 17。台灣有台積電、聯電、力積電、世界先進、南亞科、美光等，例如聯電新竹（Fab 8A–8F 等 7 列）。',
-        en: 'Operating semiconductor fab sites in each country (one per company per town); points are coloured by the largest wafer size. From the English Wikipedia list: Japan 64, the US 63, China 50, Taiwan 33, Germany 17. Taiwan’s include TSMC, UMC, PSMC, Vanguard, Nanya and Micron, such as UMC in Hsinchu (7 entries, including Fab 8A–8F).',
+        zh: '每個國家運作中的晶圓廠區數（同一家公司在同一個城市算一個），點的顏色是最大的晶圓尺寸。英文維基的清單：美國、日本各 64，中國 50、台灣 33、德國 17。台灣有台積電、聯電、力積電、世界先進、南亞科、美光等，例如聯電新竹（Fab 8A–8F 等 7 列）。',
+        en: 'Operating semiconductor fab sites in each country (one per company per town); points are coloured by the largest wafer size. From the English Wikipedia list: the US and Japan 64 each, China 50, Taiwan 33, Germany 17. Taiwan’s include TSMC, UMC, PSMC, Vanguard, Nanya and Micron, such as UMC in Hsinchu (7 entries, including Fab 8A–8F).',
       },
       unit: { zh: '個', en: 'sites' },
       file: 'campuses.json',
@@ -165,8 +165,8 @@ export const waferFabs: TopicDefinition = {
       id: 'campuses-300',
       label: { zh: '有 300 mm 產線的廠區', en: 'Sites with 300 mm lines' },
       description: {
-        zh: '運作中、有 300 mm（12 吋）晶圓產線的廠區數，先進製程與記憶體多半在這裡。中國 17、台灣 13、美國 13、日本 7、南韓與德國各 3（清單只填了部分廠的晶圓尺寸）。',
-        en: 'Operating sites with 300 mm (12-inch) wafer lines, where most leading-edge logic and memory is made: China 17, Taiwan 13, the US 13, Japan 7, South Korea and Germany 3 each (wafer sizes are given for only some fabs in the list).',
+        zh: '運作中、有 300 mm（12 吋）晶圓產線的廠區數，先進製程與記憶體多半在這裡。中國 17、美國 14、台灣 13、日本 7、南韓與德國各 3（清單只填了部分廠的晶圓尺寸）。',
+        en: 'Operating sites with 300 mm (12-inch) wafer lines, where most leading-edge logic and memory is made: China 17, the US 14, Taiwan 13, Japan 7, South Korea and Germany 3 each (wafer sizes are given for only some fabs in the list).',
       },
       unit: { zh: '個', en: 'sites' },
       file: 'campuses-300.json',
