@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, LinesOverlayDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 日食路徑（pipeline/topics/eclipses.py，DESIGN.md 第 8 節第 88 點）：1900–2100 年每一次日全食、日環食、混合食的本影（偽本影）路徑，
@@ -415,6 +415,100 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
+/** 今天（YYYYMMDD，世界時）：清單從這天起算「下一次」 */
+const todayYmd = () => {
+  const now = new Date();
+  return now.getUTCFullYear() * 10000 + (now.getUTCMonth() + 1) * 100 + now.getUTCDate();
+};
+const TW_SOLAR: Record<number, Text> = {
+  1: { zh: '台灣看得到：日環食經過', en: 'Seen in Taiwan: annular path crosses' },
+  2: { zh: '台灣看得到：日全食經過', en: 'Seen in Taiwan: total path crosses' },
+  3: { zh: '台灣看得到：全食與環食經過', en: 'Seen in Taiwan: total and annular paths cross' },
+};
+const NEXT: Text = { zh: '下一次', en: 'Next' };
+
+/**
+ * 左邊的清單（第十二批 189，L1）：1900–2100 年的日食（eclipse-list.json，pipeline/topics/eclipse_lists.py），依日期；
+ * 過去的淡一點，第一個還沒發生的標「下一次」並捲到它；點了框住整條路徑、標出那一條、時間軸換到那一年
+ */
+const SOLAR_LIST: ListPanelDef = {
+  label: { zh: '日全食與日環食', en: 'Total and annular eclipses' },
+  indicators: ['paths', 'next-total'],
+  file: 'eclipse-list.json',
+  rows: (points, { countryName }) => {
+    const today = todayYmd();
+    let next = false;
+    return [...points]
+      .sort((a, b) => Number(a.d) - Number(b.d))
+      .map((p): ListRow => {
+        const d = Number(p.d);
+        const k = num(p.k) ?? KIND.total;
+        const past = d < today;
+        const isNext = !past && !next;
+        if (isNext) next = true;
+        const dur = num(p.D);
+        const countries = str(p.c)
+          ?.split(',')
+          .map((c) => countryName(c))
+          .join(tr({ zh: '、', en: ', ' }));
+        const tw = num(p.tw) ?? 0;
+        return {
+          key: `s${p.e}`,
+          title: tr({ zh: `${dateText(d)} ${tr(KIND_NAMES[k])}`, en: `${dateText(d)} · ${tr(KIND_NAMES[k])}` }),
+          lines: [
+            [dur !== null ? tr({ zh: `最長 ${durationText(dur)}`, en: `up to ${durationText(dur)}` }) : null, num(p.w) !== null ? tr({ zh: `路徑寬 ${km(num(p.w) as number)}`, en: `${km(num(p.w) as number)} wide` }) : null]
+              .filter(Boolean)
+              .join(' · '),
+            countries ? tr({ zh: `經過：${countries}`, en: `Crosses: ${countries}` }) : tr({ zh: '只經過海上或南極', en: 'Over sea or Antarctica only' }),
+            tw ? tr(TW_SOLAR[tw]) : '',
+          ].filter(Boolean),
+          muted: past,
+          badge: isNext ? tr(NEXT) : undefined,
+          target: { box: [Number(p.bw), Number(p.bs), Number(p.be), Number(p.bn)] },
+          line: { overlay: 'paths', group: Number(p.e) },
+          year: Math.floor(d / 10000),
+        };
+      });
+  },
+};
+
+/** 月全食的清單（lunar-list.json）：點了移到月亮在天頂的點（看得到的那一半地球的中心）、標出那一次的範圍 */
+const LUNAR_LIST: ListPanelDef = {
+  label: { zh: '月全食', en: 'Total lunar eclipses' },
+  indicators: ['lunar-year', 'next-lunar'],
+  file: 'lunar-list.json',
+  rows: (points) => {
+    const today = todayYmd();
+    let next = false;
+    return [...points]
+      .sort((a, b) => Number(a.d) - Number(b.d))
+      .map((p): ListRow => {
+        const d = Number(p.d);
+        const past = d < today;
+        const isNext = !past && !next;
+        if (isNext) next = true;
+        const tw = num(p.tw) ?? 0;
+        return {
+          key: `l${p.e}`,
+          title: tr({ zh: `${dateText(d)} 月全食`, en: `${dateText(d)} · Total lunar eclipse` }),
+          lines: [
+            tr({ zh: `全食 ${minutesText(Number(p.T))}，偏食 ${minutesText(Number(p.P))}`, en: `Totality ${minutesText(Number(p.T))}, partial phase ${minutesText(Number(p.P))}` }),
+            tw === 3
+              ? tr({ zh: '台北看得到整個全食', en: 'All of totality visible from Taipei' })
+              : tw === 2
+                ? tr({ zh: '台北看得到一部分的全食', en: 'Part of totality visible from Taipei' })
+                : '',
+          ].filter(Boolean),
+          muted: past,
+          badge: isNext ? tr(NEXT) : undefined,
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 1.5 },
+          line: { overlay: 'lunar', group: Number(p.e) },
+          year: Math.floor(d / 10000),
+        };
+      });
+  },
+};
+
 export const eclipses: TopicDefinition = {
   id: 'eclipses',
   // 2026-10-28 加上月食後改名（原本是「日食路徑」，id 與網址不變）
@@ -452,5 +546,6 @@ export const eclipses: TopicDefinition = {
     { ...HISTORY_ANNULAR, indicators: ['annular-count'] },
     { ...LUNAR_ZONES, indicators: ['lunar-year', 'next-lunar'] },
   ],
+  listPanel: [SOLAR_LIST, LUNAR_LIST],
   indicators,
 };
