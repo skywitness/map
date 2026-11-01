@@ -121,6 +121,121 @@ button {
   display: none;
 }
 
+/* 浮在地圖上的側欄的高度把手（panels/FloatResize.tsx）：只有全螢幕的寬螢幕才有 */
+.float-resize {
+  display: none;
+}
+
+/*
+ * 全螢幕時兩邊的側欄放進地圖裡（2026-11-01，使用者要求）：地圖占滿整個寬度，左邊的清單、右邊的國家側欄變成浮在地圖上的卡片，
+ * 高度依內容、最多約地圖的 65%（不必拉滿整個高度），下緣的把手拖動改高度（記在這台裝置）。地圖的按鈕、圖例、年份、出處跟著讓開，
+ * 選國家、搜尋地點時地圖也扣掉被蓋住的地方（map/focus.ts 的 mapInsets）。窄螢幕照舊（國家側欄本來就是浮在地圖上的底部抽屜）
+ */
+@media (min-width: 901px) {
+  .app:fullscreen .stage.is-map {
+    position: relative;
+  }
+
+  .app:fullscreen .stage.is-map > .stage-main {
+    grid-column: 1 / -1;
+  }
+
+  .app:fullscreen .stage.is-map > .list-side,
+  .app:fullscreen .stage.is-map > .panel {
+    position: absolute;
+    top: 24px;
+    z-index: 4;
+    height: var(--float-h, auto);
+    max-height: min(var(--float-h, 65%), calc(100% - 48px));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  }
+
+  .app:fullscreen .stage.is-map > .list-side {
+    left: 12px;
+    width: 280px;
+  }
+
+  .app:fullscreen .stage.is-map > .panel {
+    right: 12px;
+    width: 360px;
+    padding-bottom: 0;
+  }
+
+  /* 收起的清單：左上角一顆橫的按鈕（平常是一條直的窄邊） */
+  .app:fullscreen .stage.is-map > .list-side.is-closed {
+    height: auto;
+    width: auto;
+    padding: 4px;
+  }
+
+  .app:fullscreen .stage.is-map > .list-side.is-closed .list-side-toggle {
+    flex-direction: row;
+  }
+
+  .app:fullscreen .stage.is-map > .list-side.is-closed .list-side-toggle span {
+    writing-mode: horizontal-tb;
+  }
+
+  /* 高度把手：卡片下緣一條，中間一小段灰線 */
+  .app:fullscreen .stage.is-map > :is(.list-side, .panel) .float-resize {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    height: 14px;
+    border-top: 1px solid var(--grid);
+    background: var(--surface);
+    cursor: ns-resize;
+    touch-action: none;
+  }
+
+  .app:fullscreen .stage.is-map > :is(.list-side, .panel) .float-resize::before {
+    content: '';
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--axis);
+  }
+
+  .app:fullscreen .stage.is-map > :is(.list-side, .panel) .float-resize:hover::before,
+  .app:fullscreen .stage.is-map > :is(.list-side, .panel) .float-resize:focus-visible::before {
+    background: var(--ink-secondary);
+  }
+
+  .app:fullscreen .stage.is-map > :is(.list-side, .panel) .float-resize:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  /* 國家側欄自己捲動：把手黏在捲動範圍的下緣（蓋住 16px 的內距） */
+  .app:fullscreen .stage.is-map > .panel .float-resize {
+    position: sticky;
+    bottom: 0;
+    margin: 12px -16px 0;
+  }
+
+  /* 地圖上的東西讓開浮在上面的側欄：清單打開時左邊的往右移，收起時左上角的往下移；國家側欄在時右邊的往左移 */
+  .app:fullscreen .stage.is-map.has-list:not(.list-closed) :is(.map-legend, .map-year:not(.is-center), .map-overlay:not(.is-right), .map-bottom) {
+    left: 304px;
+  }
+
+  .app:fullscreen .stage.is-map.has-list.list-closed :is(.map-year:not(.is-center), .map-overlay:not(.is-right)) {
+    top: 60px;
+  }
+
+  .app:fullscreen .stage.is-map.has-panel .map-zoom {
+    right: 384px;
+  }
+
+  .app:fullscreen .stage.is-map.has-panel :is(.map-overlay.is-right, .map-bottom) {
+    right: 428px;
+  }
+
+  .app:fullscreen .stage.is-map.has-panel .maplibregl-ctrl-bottom-right {
+    right: 372px;
+  }
+}
+
 /* ── 頂列 ───────────────────────────── */
 .topbar {
   display: flex;

@@ -1375,13 +1375,16 @@ export function WorldMap(props: WorldMapProps) {
     const inset = mapInsets(map.getContainer());
     const margin = Math.min(32, canvas.clientWidth / 10);
     const covered =
-      p.x < margin || p.y < margin || p.x > canvas.clientWidth - inset.right - margin || p.y > canvas.clientHeight - inset.bottom - margin;
+      p.x < inset.left + margin ||
+      p.y < margin ||
+      p.x > canvas.clientWidth - inset.right - margin ||
+      p.y > canvas.clientHeight - inset.bottom - margin;
     if (offScreen || behindGlobe || covered) {
       map.easeTo({
         center: target,
         // 點選的位置本來就在眼前：只平移、不縮放
         zoom: !clicked && (offScreen || behindGlobe) ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
-        offset: [-inset.right / 2, -inset.bottom / 2],
+        offset: [(inset.left - inset.right) / 2, -inset.bottom / 2],
         duration: 800,
       });
     }
@@ -1410,7 +1413,7 @@ export function WorldMap(props: WorldMapProps) {
     const pad = Math.min(48, rect.width / 8, rect.height / 8);
     const bottom = Math.min(Math.max(pad, inset.bottom + pad / 2), rect.height * 0.6);
     map.fitBounds(bounds, {
-      padding: { top: pad, left: pad, right: pad + inset.right, bottom }, // 右邊留給縮放按鈕
+      padding: { top: pad, left: pad + inset.left, right: pad + inset.right, bottom }, // 右邊留給縮放按鈕，左邊留給全螢幕時浮在地圖上的清單
       maxZoom: fitOnSelect ? 8 : 5,
       duration: 1200,
       bearing: map.getBearing(), // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
@@ -1740,7 +1743,7 @@ export function WorldMap(props: WorldMapProps) {
         if (!map) return;
         // 放大到看得清楚附近（至少 5 級），停在沒被按鈕、抽屜蓋住的那一塊的中間
         const inset = mapInsets(map.getContainer());
-        map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 5), offset: [-inset.right / 2, -inset.bottom / 2], duration: 1400 });
+        map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 5), offset: [(inset.left - inset.right) / 2, -inset.bottom / 2], duration: 1400 });
         map.once('moveend', () => {
           const at = map.project([lng, lat]);
           setPlace({ x: at.x, y: at.y, lng, lat, iso3: null, point });

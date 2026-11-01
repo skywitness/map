@@ -43,6 +43,7 @@ import type { MapView, WorldMapHandle } from './map/WorldMap';
 import { CloseIcon } from './map/MapIcons';
 import { BoxResult } from './panels/BoxResult';
 import { coreBox } from './lib/coreBox';
+import { FloatResize } from './panels/FloatResize';
 import { ListSide } from './panels/ListSide';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
@@ -944,7 +945,8 @@ export function App() {
         <ClampedText key={description} text={description} className="indicator-desc" />
 
         <div
-          className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}`}
+          // is-map：地圖檢視（全螢幕時側欄浮在地圖上只在地圖檢視，排名表、分析照平常排，styles.css 的 .app:fullscreen）
+          className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
         >
           {listDef && (
             <ListSide
@@ -1131,6 +1133,7 @@ export function App() {
                 <Suspense fallback={<PanelSkeleton />}>
                   <WorldPanel topic={topic} indicator={indicator} year={year} tokens={tokens} />
                 </Suspense>
+                <FloatResize which="panel" />
               </aside>
             </PanelSheet>
           )}
