@@ -468,6 +468,13 @@ pipeline/
   - 圖例在比例圓下面兩欄列出各片的顏色與名稱（`.legend-pie`，匯出的圖片也有）。
   - 發電量：燃煤、燃氣、燃油等其他化石、核能、水力、風力、太陽能、生質能、地熱等其他再生九片，顏色跟發電廠地圖的燃料一樣（`FUELS`；燃油等其他化石用灰色）。
   - 順便修了比例圓圖例的標籤寬度：原本固定留 52px，「1,000 TWh」會被切掉，改成依字數估（`bubbleLegendModel`）。
+- **衛星影像**（2026-11-01，使用者選的 MapLibre 範例「Display a satellite map」「Add a raster tile source」；NASA GIBS）：
+  - **授權**：GIBS 的文件寫「NASA promotes full and open sharing of data」，WMTS 的 GetCapabilities 是 `Fees none`、`AccessConstraints none`，不需金鑰、沒有寫流量限制，圖磚有 `Access-Control-Allow-Origin: *`；文件要求使用的程式標示「We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)」（https://nasa-gibs.github.io/gibs-api-docs/#data-use-guidance-and-acknowledgements ），圖磚 source 的 attribution 寫這一句（`style.ts` 的 `GIBS_ATTRIBUTION`），匯出圖片的頁尾、有用到的主題的資料來源也寫。Earthdata 的資料政策頁擋自動抓取，沒有讀到原文。
+  - **衛星底圖**（底圖選單的「衛星（NASA）」，`basemaps.ts` 的 satellite）：Blue Marble Next Generation（`BlueMarble_NextGeneration`，Web Mercator 的 `GoogleMapsCompatible_Level8`，JPEG，放大超過 8 級會糊），加上深色底圖的地名與國界：`loadBaseStyle` 看到網址後面的 `#satellite`（fetch 不會送出去）就拿掉深色底圖所有的面、線（國界除外）與點陣圖層，背景後面放影像（`satelliteStyle`）；沒有水域的填色，世界視角不會加我們自己的陸地。地名用深色底圖的亮字。
+  - **那一天的衛星照片**（主題的 `satellite`，`map/satelliteDay.ts`）：MODIS Terra 每日真彩影像（`MODIS_Terra_CorrectedReflectance_TrueColor`，`GoogleMapsCompatible_Level9`，JPEG，2000-02-24 起每天一張），畫在資料圖層下面（`data-fill` 前面）、底圖上面，不透明度 0.9；換日期時 `setTiles` 換網址。圖層卡片有開關（`LayerVisibility.satellite`，舊的記錄沒有時當成開著），名稱後面寫日期。
+    - **颱風**：清單點了一個颱風時，看它起訖日中間那一天（多半接近最強的時候）的影像，看得到颱風的雲；沒點時不畫。
+    - **冰河、海冰與海平面**的海冰邊緣：那一年 9 月 15 日（北極海冰接近最少、南極接近最多）的影像，2000 年起。每日影像有衛星軌道之間沒拍到的黑色斜帶（正常）。
+    - **野火沒有做**：這個主題是每年的燒毀面積（面量圖、比例圓），沒有「那一天」可以對；GIBS 有每天的火點（`MODIS_Combined_Thermal_Anomalies_All`，向量圖磚），之後要做每日的野火再用。
 - **3D 的數字浮在柱子上、圓柱**（2026-11-01，使用者選的 MapLibre 範例「Elevate symbols above the terrain」「Fill extrusion rounded corners」）：
   - 地圖上標數值原本在 3D 時不畫（數字在地面，被柱子擋住），現在照畫，用 MapLibre 6.6 的 `symbol-height-offset` 浮在柱子（比例圓）或立起來的國家（面量圖）的頂上：數值標籤的每一筆多 `hf`（高度的比例：比例圓是值 ÷ 所有年份的最大值，面量圖是 `classHeight`）與 `hm`（最高的公尺數 `MAX_COLUMN_M`、`MAX_SLAB_M`），`valueLabelLayer` 用跟 `extrusionHeight` 同一套依縮放的換算；平面、有地形的主題、類別圖是 0。
   - 柱子（`extrude-columns`、小國的 `extrude-tiny`，都是 24 邊形的圓）加 `fill-extrusion-rounded-corner-distance` 20 km（MapLibre 會夾在每邊的 20% 以內），角磨圓、牆的光影是一整片曲面（6.12），看起來是平滑的圓柱。立起來的國家不加（國界的頂點多，每個角換成一段弧，三角形會多很多）。

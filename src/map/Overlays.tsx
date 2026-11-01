@@ -272,7 +272,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
 export interface LayerKey {
   key: Exclude<keyof LayerVisibility, 'extra'>;
   /** relief：只有地形圖（海拔主題的 kind 'terrain' 指標）才有的 */
-  source: 'railways' | 'airports' | 'terrain' | 'relief';
+  source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite';
   label: Text;
   /** 線（鐵路）、圓點（機場）或陰影色塊（地形陰影），size 是線寬或半徑（px） */
   shape: 'line' | 'dot' | 'shade';
@@ -297,6 +297,7 @@ export const LAYER_KEYS: LayerKey[] = [
   },
   { key: 'hillshade', source: 'terrain', label: { zh: '地形陰影', en: 'Hillshade' }, shape: 'shade', size: 5 },
   { key: 'contours', source: 'relief', label: { zh: '等高線（放大後）', en: 'Contour lines (zoomed in)' }, shape: 'line', size: 1 },
+  { key: 'satellite', source: 'satellite', label: { zh: '那一天的衛星照片（NASA MODIS）', en: 'Satellite image of the day (NASA MODIS)' }, shape: 'shade', size: 5 },
 ];
 
 /** 圖層開關是不是開著：舊的記錄沒有的項目（contours）照預設 */
@@ -357,6 +358,8 @@ interface LayerControlsProps {
   hasTerrain?: boolean;
   /** 地形圖（等高線） */
   hasRelief?: boolean;
+  /** 那一天的衛星照片：有日期時寫在名稱後面（「· 2024-07-24」），沒有是不顯示 */
+  satelliteDate?: string | null;
   /** 主題的一般疊加圖層（地震、火山、板塊邊界…） */
   overlays?: OverlayLayer[];
   tokens: Tokens;
@@ -377,6 +380,7 @@ export function LayerControls({
   hasAirports,
   hasTerrain = false,
   hasRelief = false,
+  satelliteDate = null,
   overlays = [],
   tokens,
   darkMap = false,
@@ -385,7 +389,7 @@ export function LayerControls({
   const lang = useLang();
   const toggle = (key: LayerKey['key']) => onChange({ ...layers, [key]: !isOn(layers, key) });
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
-  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief };
+  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief, satellite: Boolean(satelliteDate) };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   // 分級說明顯示到哪裡：none（手機預設）、own（主題自己的圖層，桌機預設）、all（含從圖層選單加上的別的主題的圖層，
@@ -407,6 +411,7 @@ export function LayerControls({
           <input type="checkbox" checked={isOn(layers, k.key)} onChange={() => toggle(k.key)} />
           <Swatch swatch={{ shape: k.shape, size: k.size, color: layerKeyColor(k, tokens) }} />
           {tr(k.label, lang)}
+          {k.key === 'satellite' && satelliteDate ? ` · ${satelliteDate}` : ''}
         </label>
       ))}
       {overlays.map((o) => {

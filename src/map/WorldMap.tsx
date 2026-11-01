@@ -28,7 +28,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
 import { StatusCard } from '../controls/StatusCard';
-import type { AirportsData, Indicator, MapMark, PointerInfo, PointRecord } from '../topics/types';
+import type { AirportsData, Indicator, MapMark, PointerInfo, Topic } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
 import { applyDivisions, divisionAt, hoverDivision, installDivisions, type DivisionView } from './divisions';
@@ -102,6 +102,7 @@ import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, LocateIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 import { Pins, type PinConfig } from './pins';
+import { syncSatelliteDay, validDay } from './satelliteDay';
 import {
   BARE_SEA,
   CALM_SEA,
@@ -288,6 +289,8 @@ interface WorldMapProps {
    * cooperativeGestures，2026-11-01）；全螢幕時照常操作
    */
   cooperativeGestures?: boolean;
+  /** 那一天的衛星照片（主題的 satellite，map/satelliteDay.ts） */
+  satellite?: Topic['satellite'];
   /** 地圖上的觀察點（主題的 pin，map/pins.ts）；null 是沒有 */
   pin?: PinConfig | null;
   /**
@@ -345,7 +348,7 @@ export function WorldMap(props: WorldMapProps) {
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null, routeAnimation = null, pin = null, onLocate } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null, routeAnimation = null, pin = null, onLocate, satellite } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -1355,25 +1358,40 @@ export function WorldMap(props: WorldMapProps) {
     );
   };
 
-  /* ── 沿路線移動的點（線圖層的 animate，routeAnimation.ts）：清單側欄點一組線時走一次；換一組、換主題、換底圖時停 ── */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!ready || !map || !installedRef.current || !routeAnimation) return;
+  /** 清單側欄點了的那一組線的第一筆紀錄與路徑（沿路線移動的點、那一天的衛星照片用） */
+  const picked = useMemo(() => {
+    if (!routeAnimation) return null;
     const o = overlays.find((x) => x.kind === 'lines' && x.def.id === routeAnimation.overlay);
-    if (!o || o.kind !== 'lines' || !o.def.animate || !o.lines) return;
+    if (!o || o.kind !== 'lines' || !o.lines) return null;
     const path = groupPath(o.def.id, routeAnimation.group);
-    if (!path) return;
+    if (!path) return null;
     // 紀錄的索引跨過各分區（parts）
-    let record: PointRecord | null = null;
     let offset = 0;
     for (const part of o.lines.parts ?? [o.lines]) {
       if (path.i < offset + part.lines.length) {
-        record = part.records?.[path.i - offset] ?? null;
-        break;
+        const record = part.records?.[path.i - offset] ?? null;
+        return record ? { overlay: o, path, record } : null;
       }
       offset += part.lines.length;
     }
-    if (!record) return;
+    return null;
+    // overlays 換了（資料到了）才重算；routeAnimation 依 key
+  }, [routeAnimation?.key, overlays]);
+
+  /* ── 那一天的衛星照片（主題的 satellite，satelliteDay.ts）：畫在資料圖層下面 ── */
+  const satelliteDate = validDay(satellite?.date({ year, indicator: indicator.id, picked: picked?.record ?? null }) ?? null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    syncSatelliteDay(map, satelliteDate && isOn(layers, 'satellite') ? satelliteDate : null, 'data-fill');
+  }, [ready, revision, satelliteDate, layers.satellite]);
+
+  /* ── 沿路線移動的點（線圖層的 animate，routeAnimation.ts）：清單側欄點一組線時走一次；換一組、換主題、換底圖時停 ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current || !routeAnimation || !picked) return;
+    const { overlay: o, path, record } = picked;
+    if (o.kind !== 'lines' || !o.def.animate) return;
     const { def } = o;
     const animate = def.animate!;
     const classes = typeof def.color === 'string' ? null : def.color.classes;
@@ -1387,8 +1405,8 @@ export function WorldMap(props: WorldMapProps) {
       { coords: path.coords, colors: path.codes.map(colorOf), label: (f) => animate.label(rec, f), seconds: animate.seconds ?? 6 },
       matchMedia(REDUCED_MOTION).matches,
     );
-    // 只依 key（同一組再點一次也重來）、換底圖（source 是新的）
-  }, [ready, revision, routeAnimation?.key]);
+    // 只依 key（同一組再點一次也重來）、換底圖（source 是新的）；picked 跟著 key 變
+  }, [ready, revision, routeAnimation?.key, picked]);
 
   /* ── 主題側欄點某條河：把地圖移到它的範圍 ── */
   useEffect(() => {
@@ -2012,7 +2030,7 @@ export function WorldMap(props: WorldMapProps) {
           : valueLegend;
         const layerKeys = onLayersChange
           ? exportLayerKeys(
-              LAYER_KEYS.filter((k) => ({ railways, airports, terrain, relief: terrain && indicator.layer.kind === 'terrain' })[k.source] && isOn(layers, k.key)).map((key) => ({
+              LAYER_KEYS.filter((k) => ({ railways, airports, terrain, relief: terrain && indicator.layer.kind === 'terrain', satellite: Boolean(satelliteDate) })[k.source] && isOn(layers, k.key)).map((key) => ({
                 key,
                 color: layerKeyColor(key, tokens),
               })),
@@ -2217,6 +2235,7 @@ export function WorldMap(props: WorldMapProps) {
             hasAirports={Boolean(airports)}
             hasTerrain={terrain}
             hasRelief={terrain && indicator.layer.kind === 'terrain'}
+            satelliteDate={satelliteDate}
             overlays={overlays}
             tokens={tokens}
             darkMap={basemap.dark}

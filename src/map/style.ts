@@ -4,6 +4,7 @@
  */
 import type { ExpressionSpecification, LayerSpecification, StyleSpecification } from 'maplibre-gl';
 import type { Lang } from '../i18n/lang';
+import { SATELLITE_MARK } from './basemaps';
 
 /** 有些地名寫成「肯亞;肯尼亞」「巴布亞新幾內亞 / 巴布亞紐幾內亞」，只取第一個 */
 function firstName(expr: ExpressionSpecification, separator: string): ExpressionSpecification {
@@ -197,6 +198,27 @@ const cache = new Map<string, Promise<StyleSpecification>>();
  * 下載底圖樣式，改成目前語言的地名、指定的投影、深藍夜空的大氣層。
  * 同一個網址只下載一次（App 啟動時先抓），每次呼叫都在複本上改寫（MapLibre 可能會改動樣式物件）。
  */
+/** NASA GIBS 的 Blue Marble（Web Mercator 的 GoogleMapsCompatible_Level8，JPEG） */
+const BLUE_MARBLE =
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg';
+/** GIBS 要求的致謝（https://nasa-gibs.github.io/gibs-api-docs/#data-use-guidance-and-acknowledgements） */
+export const GIBS_ATTRIBUTION =
+  '<a href="https://nasa-gibs.github.io/gibs-api-docs/" target="_blank" rel="noreferrer">Imagery provided by services from NASA’s Global Imagery Browse Services (GIBS), part of NASA’s ESDIS</a>';
+
+/**
+ * 衛星底圖（basemaps.ts 的 satellite）：拿掉深色底圖所有的面、線（國界除外）與點陣圖層，背景後面放 Blue Marble，
+ * 只留地名與國界畫在影像上。沒有水域的填色，splitWorldZoom 不會加世界視角的陸地（整個地球都是影像）
+ */
+function satelliteStyle(style: StyleSpecification): void {
+  style.sources.bluemarble = { type: 'raster', tiles: [BLUE_MARBLE], tileSize: 256, maxzoom: 8, attribution: GIBS_ATTRIBUTION };
+  const kept = style.layers.filter(
+    (l) => l.type === 'background' || l.type === 'symbol' || (l.type === 'line' && /boundary/.test(l.id)),
+  );
+  const background = kept.findIndex((l) => l.type === 'background');
+  kept.splice(background + 1, 0, { id: 'satellite-base', type: 'raster', source: 'bluemarble', paint: { 'raster-fade-duration': 150 } });
+  style.layers = kept;
+}
+
 export function loadBaseStyle(url: string, projection: Projection = 'globe', lang: Lang = 'zh'): Promise<StyleSpecification> {
   let promise = cache.get(url);
   if (!promise) {
@@ -209,7 +231,8 @@ export function loadBaseStyle(url: string, projection: Projection = 'globe', lan
   }
   return promise.then((raw) => {
     const style = structuredClone(raw);
-    readableLabels(style, url);
+    if (url.endsWith(SATELLITE_MARK)) satelliteStyle(style);
+    readableLabels(style, url.split('#')[0]);
     splitWorldZoom(style);
     localRelief(style);
     for (const layer of style.layers) {

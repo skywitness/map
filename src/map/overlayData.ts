@@ -14,6 +14,8 @@ export interface LayerVisibility {
   hillshade: boolean;
   /** 等高線（海拔主題的地形圖才有，2026-11-01；舊的記錄沒有這一項，當成開著） */
   contours?: boolean;
+  /** 那一天的衛星照片（主題的 satellite，2026-11-01；舊的記錄沒有這一項，當成開著） */
+  satellite?: boolean;
   /** 一般疊加圖層（主題 overlays 裡 kind 為 points、lines 的），key 是 overlay 的 id；沒有記錄的看 overlay 的 hidden */
   extra: Record<string, boolean>;
 }
@@ -25,6 +27,7 @@ export const DEFAULT_LAYERS: LayerVisibility = {
   mediumAirports: false,
   hillshade: true,
   contours: true,
+  satellite: true,
   extra: {},
 };
 

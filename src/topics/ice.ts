@@ -209,6 +209,11 @@ export const ice: TopicDefinition = {
   defaultYear: 2025,
   sources: [
     {
+      name: { zh: 'NASA GIBS：MODIS Terra 每日真彩影像（那一天的衛星照片）', en: 'NASA GIBS: MODIS Terra daily true colour (satellite image of the day)' },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
+    },
+    {
       name: {
         zh: 'WGMS（2026）冰河年質量變化 AMCE（Dussaillant 等 2025）',
         en: 'WGMS (2026) Annual mass-change estimates for the world’s glaciers (AMCE; Dussaillant et al. 2025)',
@@ -300,5 +305,7 @@ export const ice: TopicDefinition = {
       indicators: ['sea-level'],
     },
   ],
+  // 海冰邊緣：那一年 9 月 15 日（北極海冰接近最少、南極接近最多）的 MODIS 真彩影像，白色的冰看得到（2026-11-01；2000 年起）
+  satellite: { date: ({ year, indicator }) => (indicator === 'sea-ice' ? `${year}-09-15` : null) },
   indicators,
 };

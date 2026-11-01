@@ -7,7 +7,17 @@ export interface Basemap {
   url: string;
   /** 深色底圖上，鐵路、選取外框等要改用淺色 */
   dark: boolean;
+  /** 另外要標示的出處（匯出圖片的頁尾；畫面上由圖磚 source 的 attribution 顯示） */
+  credit?: string;
 }
+
+/**
+ * 衛星底圖（2026-11-01，MapLibre 範例「Display a satellite map」「hybrid satellite map」）：NASA GIBS 的 Blue Marble
+ * Next Generation（地表真彩的合成影像，Web Mercator 最大 8 級），加上深色底圖的地名與國界（style.ts 的 satelliteStyle）。
+ * 網址後面的 #satellite 是給 loadBaseStyle 看的記號（fetch 不會送出去）
+ */
+export const SATELLITE_MARK = '#satellite';
+export const GIBS_CREDIT = 'Imagery: NASA GIBS (Blue Marble, MODIS)';
 
 export const BASEMAPS: Basemap[] = [
   { id: 'terrain', label: { zh: '彩色地形', en: 'Terrain' }, url: 'https://tiles.openfreemap.org/styles/liberty', dark: false },
@@ -15,6 +25,13 @@ export const BASEMAPS: Basemap[] = [
   { id: 'positron', label: { zh: '淺灰', en: 'Light grey' }, url: 'https://tiles.openfreemap.org/styles/positron', dark: false },
   { id: 'dark', label: { zh: '深色', en: 'Dark' }, url: 'https://tiles.openfreemap.org/styles/dark', dark: true },
   { id: 'fiord', label: { zh: '深藍', en: 'Dark blue' }, url: 'https://tiles.openfreemap.org/styles/fiord', dark: true },
+  {
+    id: 'satellite',
+    label: { zh: '衛星（NASA）', en: 'Satellite (NASA)' },
+    url: 'https://tiles.openfreemap.org/styles/dark' + SATELLITE_MARK,
+    dark: true,
+    credit: GIBS_CREDIT,
+  },
 ];
 
 export const DEFAULT_BASEMAP = 'terrain';

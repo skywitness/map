@@ -79,6 +79,17 @@ function stormAt(p: PointRecord, fraction: number): string {
   return `${name} ${monthDay((at.getUTCMonth() + 1) * 100 + at.getUTCDate())}`;
 }
 
+/**
+ * 那一天的衛星照片（TopicDefinition.satellite，2026-11-01）：清單點了一個颱風時，看它生命中段那一天（起訖日的中間，
+ * 多半接近最強的時候）的 MODIS 真彩影像，看得到颱風的雲。沒點的時候不畫
+ */
+function stormMidDay(p: PointRecord | null): string | null {
+  if (!p || typeof p.year !== 'number' || typeof p.md0 !== 'number' || typeof p.md1 !== 'number') return null;
+  const start = Date.UTC(p.year, Math.floor(p.md0 / 100) - 1, p.md0 % 100);
+  const end = Date.UTC(p.md1 < p.md0 ? p.year + 1 : p.year, Math.floor(p.md1 / 100) - 1, p.md1 % 100);
+  return new Date((start + end) / 2).toISOString().slice(0, 10);
+}
+
 /** 起訖日期：「7/20–7/29」，同一天只寫一次 */
 export function dateRange(md0: number, md1: number): string {
   return md0 === md1 ? monthDay(md0) : `${monthDay(md0)}–${monthDay(md1)}`;
@@ -317,6 +328,11 @@ export const typhoons: TopicDefinition = {
   },
   sources: [
     {
+      name: { zh: 'NASA GIBS：MODIS Terra 每日真彩影像（那一天的衛星照片）', en: 'NASA GIBS: MODIS Terra daily true colour (satellite image of the day)' },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
+    },
+    {
       name: {
         zh: 'NOAA NCEI IBTrACS v04r01（國際熱帶氣旋最佳路徑；Knapp et al. 2010）',
         en: 'NOAA NCEI IBTrACS v04r01 (International Best Track Archive for Climate Stewardship; Knapp et al. 2010)',
@@ -372,5 +388,6 @@ export const typhoons: TopicDefinition = {
       items: ['jma'],
     },
   ],
+  satellite: { date: ({ picked }) => stormMidDay(picked) },
   indicators,
 };

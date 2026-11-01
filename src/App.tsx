@@ -761,11 +761,13 @@ export function App() {
   const downloadImage = async () => {
     if (!mapHandle.current) throw new Error('The map has not loaded yet');
     // 純地圖頁的國界是底圖本身的，資料主題另外畫 Natural Earth 的國界
+    // 衛星底圖另外標 NASA GIBS（basemaps.ts 的 credit）
+    const basemapCredit = t.basemapCredit(basemap.credit ? `${BASEMAP_ATTRIBUTION} · ${basemap.credit}` : BASEMAP_ATTRIBUTION);
     const credits = pure
-      ? [t.basemapCredit(BASEMAP_ATTRIBUTION), t.disclaimer]
+      ? [basemapCredit, t.disclaimer]
       : [
           `${t.sources}${topic.sources.map((s) => `${s.name}${t.sourceLicense(s.license)}`).join(t.listSeparator)}`,
-          t.basemapCredit(BASEMAP_ATTRIBUTION),
+          basemapCredit,
           t.bordersCredit,
         ];
     credits.push(currentHref());
@@ -1177,6 +1179,7 @@ export function App() {
                   pies={pies}
                   routeAnimation={routeAnim && routeAnim.topic === topic.id ? routeAnim : null}
                   pin={view === 'map' ? pinConfig : null}
+                  satellite={pure ? undefined : topic.satellite}
                   onLocate={onLocate}
                   bubbleMax={onMap.bubbleMax}
                   tokens={tokens}

@@ -1147,6 +1147,11 @@ export interface TopicDefinition {
     },
   ) => PointerInfo | null;
   /**
+   * 那一天的衛星照片（2026-11-01，NASA GIBS 的 MODIS Terra 每日真彩影像，map/satelliteDay.ts）：date 回傳要看哪一天
+   * （YYYY-MM-DD，2000-02-24 起），null 是不畫。picked 是清單側欄點了的那一組線的紀錄（颱風）。圖層卡片有開關
+   */
+  satellite?: { date: (ctx: { year: number; indicator: string; picked: PointRecord | null }) => string | null };
+  /**
    * 地圖上的觀察點（2026-11-01，map/pins.ts）：一個標記，旁邊寫 label（沒給的話用 pointer 的資訊）。
    * pair 是 'antipode' 時多一個它的對蹠點，兩個一起移動（地球的另一邊）。draggable 的可以拖、可以用方向鍵移動，
    * 位置記在網址（pin=經度,緯度），沒有時放在 default；右上角「定位我」把它放到使用者的位置（不寫進網址，分享時不會帶出去）
