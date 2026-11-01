@@ -945,7 +945,7 @@ export function App() {
         <ClampedText key={description} text={description} className="indicator-desc" />
 
         <div
-          // is-map：地圖檢視（全螢幕時側欄浮在地圖上只在地圖檢視，排名表、分析照平常排，styles.css 的 .app:fullscreen）
+          // is-map：地圖檢視（寬螢幕時側欄浮在地圖上只在地圖檢視，排名表、分析照舊排成幾欄，styles.css 的 .stage.is-map）
           className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
         >
           {listDef && (

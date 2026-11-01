@@ -2,9 +2,9 @@ import { useLayoutEffect, useRef, type KeyboardEvent, type PointerEvent } from '
 import { defineMessages, useLang } from '../i18n';
 
 /**
- * 浮在地圖上的側欄的高度把手（2026-11-01）：全螢幕時左邊的清單、右邊的國家側欄浮在地圖上（styles.css 的 .app:fullscreen），
+ * 浮在地圖上的側欄的高度把手（2026-11-01）：寬螢幕時左邊的清單、右邊的國家側欄浮在地圖上（styles.css 的 .stage.is-map），
  * 下緣這條拖動改高度（側欄的 --float-h），記在這台裝置（localStorage `floatHeights`）；按兩下回到預設（依內容，最多約地圖的 65%）。
- * 方向鍵也可以調。平常（不是全螢幕、窄螢幕）不顯示，--float-h 也沒有作用
+ * 方向鍵也可以調。窄螢幕、排名表不顯示，--float-h 也沒有作用
  */
 export type FloatPanel = 'list' | 'panel';
 
@@ -44,8 +44,15 @@ export function FloatResize({ which }: { which: FloatPanel }) {
   const ref = useRef<HTMLDivElement>(null);
   /** 把手所在的側欄 */
   const card = () => ref.current?.closest<HTMLElement>('.list-side, .panel') ?? null;
-  /** 最高：浮動的側欄上下各留 24px（相對於 .stage，styles.css） */
-  const maxOf = (el: HTMLElement) => Math.max(MIN, ((el.offsetParent as HTMLElement | null)?.clientHeight ?? window.innerHeight) - 48);
+  /** 最高：下緣離地圖下緣 12px，清單停在左下角的圖例上面 12px（跟 styles.css 的 .stage.is-map 一樣） */
+  const maxOf = (el: HTMLElement) => {
+    const stage = el.offsetParent as HTMLElement | null;
+    if (!stage) return window.innerHeight;
+    let limit = stage.getBoundingClientRect().bottom - 25; // .stage 的內距 12、地圖的框 1、離地圖下緣 12
+    const legend = which === 'list' ? stage.querySelector('.map-legend')?.getBoundingClientRect() : undefined;
+    if (legend && legend.height > 0) limit = legend.top - 12;
+    return Math.max(MIN, limit - el.getBoundingClientRect().top);
+  };
   const apply = (el: HTMLElement, height: number) => {
     const h = Math.round(Math.min(Math.max(height, MIN), maxOf(el)));
     el.style.setProperty('--float-h', `${h}px`);

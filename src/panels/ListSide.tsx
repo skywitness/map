@@ -265,7 +265,7 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
           ])}
         </ol>
       )}
-      {/* 全螢幕時浮在地圖上：下緣拖動改高度（平常不顯示） */}
+      {/* 寬螢幕時浮在地圖上：下緣拖動改高度（窄螢幕不顯示） */}
       <FloatResize which="list" />
     </aside>
   );

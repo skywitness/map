@@ -343,7 +343,7 @@ export function CountryPanel(props: CountryPanelProps) {
         </Suspense>
       )}
       <RelatedTopics topic={topic.id} iso3={iso3} />
-      {/* 全螢幕時浮在地圖上：下緣拖動改高度（平常不顯示） */}
+      {/* 寬螢幕時浮在地圖上：下緣拖動改高度（窄螢幕不顯示） */}
       <FloatResize which="panel" />
     </aside>
   );
