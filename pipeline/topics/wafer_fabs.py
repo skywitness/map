@@ -52,6 +52,13 @@ PLACE_ALIASES = {
 }
 
 
+# 維基固定版本之後換了經營者的廠（使用者 2026-11-01 決定改）：(表裡的公司, 國家, 地點裡的字) → (新的公司, 附註)
+OWNER_FIXES = {
+    ("Intel", "CHN", "Dalian"): ("SK Hynix", "Intel FY2025 10-K 的 Note 10：NAND 業務（含大連 Fab 68）已賣給 SK hynix，"
+                                             "2025 年完成；維基的固定版本還寫 Intel"),
+}
+
+
 def _company(text: str) -> str:
     """比對廠區用的公司名稱：去掉括號裡的前身、母公司"""
     return re.sub(r"\s*\((?:formerly|part of|previously|originally|now)[^)]*\)", "", text, flags=re.I).strip()
@@ -88,6 +95,9 @@ def _parse() -> list[dict]:
             if kind == OPERATING and (re.search(r"plan|construction|under", started, re.I) or (start_years and min(start_years) > YEAR)):
                 status = PLANNED
             wafers = [float(w) for w in re.findall(r"\d+(?:\.\d+)?", wafer)]
+            for (old, fix_iso, word), (new, _why) in OWNER_FIXES.items():
+                if _company(company) == old and iso == fix_iso and word in loc:
+                    company = new
             out.append({
                 "company": company, "key": _company(company), "plant": plant, "iso3": iso, "places": rest, "loc": loc.replace("\n", " "),
                 "status": status, "start": min(start_years) if start_years else None, "wafer": wafer, "maxWafer": max(wafers) if wafers else None,
