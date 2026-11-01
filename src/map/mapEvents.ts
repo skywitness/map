@@ -7,7 +7,7 @@ import { LngLat, type Map as MaplibreMap, type MapGeoJSONFeature, type MapMouseE
 import type { RefObject } from 'react';
 import type { MapMark } from '../topics/types';
 import { boxFromCorners, type Box } from './boxEstimate';
-import { highlightLine, lineOverlayAt, OVERLAY_PREFIX } from './overlayLayers';
+import { highlightLine, lineOverlayAt, OVERLAY_PREFIX, pointOverlayId } from './overlayLayers';
 import { HOVER_LAYERS, HOVER_SOURCES, MARK_LABEL_LAYER, MARK_LAYER, MIN_BOX_PX } from './worldMapLayers';
 
 /** 游標下的東西（tooltip 用） */
@@ -161,7 +161,7 @@ export function bindMapEvents(
     const line = f ? lineOverlayAt(f.layer.id) : null;
     const point =
       f && f.layer.id.startsWith(OVERLAY_PREFIX)
-        ? { overlay: line ?? f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
+        ? { overlay: line ?? pointOverlayId(f.layer.id), index: Number(f.properties.i) }
         : undefined;
     const lineHover = line && f ? { overlay: line, group: Number(f.properties.g) } : lineHighlightRef.current;
     highlightLine(map, lineHoverRef.current, lineHover);
@@ -268,7 +268,7 @@ export function bindMapEvents(
     const line = f ? lineOverlayAt(f.layer.id) : null;
     const point =
       f && f.layer.id.startsWith(OVERLAY_PREFIX)
-        ? { overlay: line ?? f.layer.id.slice(OVERLAY_PREFIX.length), index: Number(f.properties.i) }
+        ? { overlay: line ?? pointOverlayId(f.layer.id), index: Number(f.properties.i) }
         : undefined;
     // 點圖層的點（賽道、景點…）用那一點的經緯度，比點下去的位置準
     const exact = point && f?.geometry.type === 'Point' ? (f.geometry.coordinates as [number, number]) : null;

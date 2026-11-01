@@ -611,6 +611,19 @@ export interface PointsOverlayDef extends OverlayBase {
    * minValue 要讓 minZoom 以下只畫得到 file 裡的點；側欄要完整清單的用 useAllPoints 兩個一起讀
    */
   more?: { minZoom: number };
+  /**
+   * 縮小時聚成甜甜圈（2026-11-01，map/clusterDonuts.ts）：maxZoom（含）以下，同一區（radius px，預設 50）的點聚成一個
+   * 甜甜圈，各片是各類（color 的 ColorClasses）的個數，或 weight 欄位（電廠的 MW）的總和；size 是總數 → 半徑（px），
+   * format 寫在中間，title 是無障礙標籤的開頭（「這一區的裝置容量 」）。有時間篩選的照時間軸那一年送資料。color 要是分類的
+   */
+  cluster?: {
+    maxZoom: number;
+    radius?: number;
+    weight?: string;
+    size: (total: number) => number;
+    format: (total: number) => string;
+    title: Text;
+  };
   /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**

@@ -22,9 +22,11 @@ import type {
   GeoJSONSource,
   LayerSpecification,
   Map as MaplibreMap,
+  SourceSpecification,
 } from 'maplibre-gl';
 import { overlayEpoch, type IndicatorDef, type LinesOverlay, type PointsOverlay } from '../topics/types';
 import { MAP_TOKENS } from '../theme/tokens';
+import { clusterKey, resetDonuts, syncDonuts, type DonutSpec } from './clusterDonuts';
 import type { DecodedLines, OverlayLayer } from './Overlays';
 import { isNameLayer } from './style';
 
@@ -60,6 +62,61 @@ const HIT_WIDTH = 9;
 /** 分區的 source 與圖層、標出的那一組的 source（見檔頭） */
 const DETAIL_SUFFIX = '~d';
 const HIGHLIGHT_SUFFIX = '~h';
+/** 聚成甜甜圈的點圖層（PointsOverlayDef.cluster）：開了 cluster 的 source 與沒聚在一起的點的圖層 */
+export const CLUSTER_SUFFIX = '~cl';
+
+/** 點圖層的圖層 id → 疊加圖層的 id（聚合 source 上的複本圖層也算同一個） */
+export function pointOverlayId(layerId: string): string {
+  const id = layerId.slice(OVERLAY_PREFIX.length);
+  return id.endsWith(CLUSTER_SUFFIX) ? id.slice(0, -CLUSTER_SUFFIX.length) : id;
+}
+
+/** 分類的點（ColorClasses）第 k 類的條件：欄位值在 thresholds[k − 1] 與 thresholds[k] 之間；缺值歸第一類（跟 stepExpression 一樣） */
+function classTest(field: string, thresholds: number[], k: number): ExpressionSpecification {
+  const v: ExpressionSpecification = ['coalesce', ['get', field], thresholds[0] - 1];
+  const parts: ExpressionSpecification[] = [];
+  if (k > 0) parts.push(['>=', v, thresholds[k - 1]]);
+  if (k < thresholds.length) parts.push(['<', v, thresholds[k]]);
+  return parts.length === 1 ? parts[0] : ['all', ...parts];
+}
+
+/** 聚合的 source：各類加總放在 c0、c1…（clusterDonuts.ts 的 clusterKey） */
+function clusterSource(def: PointsOverlay): SourceSpecification {
+  const cluster = def.cluster!;
+  const color = typeof def.color === 'string' ? null : def.color;
+  const weight: ExpressionSpecification | number = cluster.weight ? ['coalesce', ['get', cluster.weight], 0] : 1;
+  const properties: Record<string, [string, ExpressionSpecification]> = {};
+  (color?.classes ?? [null]).forEach((_, k) => {
+    properties[clusterKey(k)] = ['+', color ? ['case', classTest(color.field, color.thresholds, k), weight, 0] : weight] as [string, ExpressionSpecification];
+  });
+  return {
+    type: 'geojson',
+    data: EMPTY,
+    cluster: true,
+    clusterMaxZoom: cluster.maxZoom,
+    clusterRadius: cluster.radius ?? 50,
+    clusterProperties: properties,
+  } as SourceSpecification;
+}
+
+const donutSpecs = new WeakMap<PointsOverlay, DonutSpec>();
+function donutSpec(def: PointsOverlay): DonutSpec {
+  let spec = donutSpecs.get(def);
+  if (!spec) {
+    const cluster = def.cluster!;
+    const color = typeof def.color === 'string' ? null : def.color;
+    spec = {
+      maxZoom: cluster.maxZoom,
+      colors: color ? color.classes.map((c) => c.color) : [def.color as string],
+      labels: color ? color.classes.map((c) => c.label) : [def.label],
+      size: cluster.size,
+      format: cluster.format,
+      title: cluster.title,
+    };
+    donutSpecs.set(def, spec);
+  }
+  return spec;
+}
 
 /** 半徑是縮放 2 時的大小，放大時跟著變大（但比地圖放大得慢，密集的地方才不會糊成一片） */
 function zoomed(r: ExpressionSpecification | number): ExpressionSpecification {
@@ -731,7 +788,10 @@ export function syncOverlays(
   year: number,
 ): string[] {
   overlays = overlays.filter(isData);
-  const sourcesOf = (o: DataOverlay) => (o.kind === 'points' ? [OVERLAY_PREFIX + o.def.id] : lineSources(o.def));
+  const sourcesOf = (o: DataOverlay) =>
+    o.kind === 'points'
+      ? [OVERLAY_PREFIX + o.def.id, ...(o.def.cluster ? [OVERLAY_PREFIX + o.def.id + CLUSTER_SUFFIX] : [])]
+      : lineSources(o.def);
   const wanted = new Set((overlays as DataOverlay[]).flatMap(sourcesOf));
   const font = labelFont(map);
   // 換主題後不要的疊加圖層
@@ -753,13 +813,31 @@ export function syncOverlays(
     const fade = o.kind === 'lines' && o.def.fadeOut ? { maxzoom: Math.ceil(o.def.fadeOut[1]) } : {};
     for (const source of sourcesOf(o)) {
       if (map.getSource(source)) continue;
-      map.addSource(source, { type: 'geojson', data: EMPTY, ...fade });
+      const clustered = o.kind === 'points' && source.endsWith(CLUSTER_SUFFIX);
+      map.addSource(source, clustered ? clusterSource(o.def) : { type: 'geojson', data: EMPTY, ...fade });
       sent.delete(source);
     }
     if (!map.getLayer(id)) {
       if (o.kind === 'points') {
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
-        map.addLayer(pointLayer(o.def), before(POINTS_BEFORE));
+        const layer = pointLayer(o.def);
+        map.addLayer(layer, before(POINTS_BEFORE));
+        // 聚成甜甜圈的（cluster）：maxZoom 以下畫聚合 source 上沒聚在一起的點（原本的點圖層的複本），原本的從 maxZoom + 1 起畫
+        if (o.def.cluster) {
+          const from = o.def.cluster.maxZoom + 1;
+          const notClustered: FilterSpecification = ['!', ['has', 'point_count']];
+          map.addLayer(
+            {
+              ...layer,
+              id: id + CLUSTER_SUFFIX,
+              source: id + CLUSTER_SUFFIX,
+              maxzoom: from,
+              filter: 'filter' in layer && layer.filter ? ['all', notClustered, layer.filter] : notClustered,
+            } as LayerSpecification,
+            before(POINTS_BEFORE),
+          );
+          map.setLayerZoomRange(id, Math.max(from, o.def.minZoom ?? 0), 24);
+        }
         // 文字放在最上面：MapLibre 依圖層由上往下排字，放在底圖地名的下面時會被國名、城市名擋掉
         if (o.def.pointLabel) map.addLayer(pointLabelLayer(o.def, dark, labelFont(map, /place|country|city/)));
       } else {
@@ -778,13 +856,22 @@ export function syncOverlays(
       sendLines(map, o, sent);
     }
     const visibility = o.visible && (o.kind === 'points' ? o.points : o.lines) ? 'visible' : 'none';
-    const layerIds = o.kind === 'points' ? [id, id + LABEL_SUFFIX] : lineLayers(o.def, dark).map((s) => s.layer.id);
+    const layerIds = o.kind === 'points' ? [id, id + LABEL_SUFFIX, id + CLUSTER_SUFFIX] : lineLayers(o.def, dark).map((s) => s.layer.id);
     for (const layerId of layerIds) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
   }
+  // 甜甜圈（clusterDonuts.ts）：開著、資料到了的才畫
+  const donuts = new Map<string, { spec: DonutSpec; visible: boolean }>();
+  for (const o of overlays as DataOverlay[]) {
+    if (o.kind !== 'points' || !o.def.cluster) continue;
+    donuts.set(OVERLAY_PREFIX + o.def.id + CLUSTER_SUFFIX, { spec: donutSpec(o.def), visible: Boolean(o.visible && o.points) });
+  }
+  syncDonuts(map, donuts);
   const reversed = [...(overlays as DataOverlay[])].reverse();
-  const pointIds = reversed.filter((o) => o.kind === 'points').map((o) => OVERLAY_PREFIX + o.def.id);
+  const pointIds = reversed
+    .filter((o) => o.kind === 'points')
+    .flatMap((o) => [OVERLAY_PREFIX + o.def.id, ...(o.def.cluster ? [OVERLAY_PREFIX + o.def.id + CLUSTER_SUFFIX] : [])]);
   // 線的查詢層：主檔的在前（游標附近有大河時先選到大河），再來是分區的
   const lineIds = reversed.flatMap((o) => {
     if (o.kind !== 'lines' || !o.def.tooltip) return [];
@@ -809,6 +896,7 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
     const range = o.def.timeRange === 'data' ? dataYears(o) : o.def.timeRange;
     const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
     if (o.kind === 'points') {
+      if (o.def.cluster) sendClustered(map, o, year, mode);
       if (!o.def.timeField && !o.def.minValue) continue;
       if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));
       if (map.getLayer(id + LABEL_SUFFIX)) map.setFilter(id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, year, mode) ?? null]));
@@ -824,6 +912,39 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
       map.setFilter(layer.id, allOf([base, hover ? value : extra]));
     }
   }
+}
+
+/** 一筆紀錄在不在時間軸這一年（跟 timeFilter 一樣的規則，聚合的 source 在瀏覽器裡先篩好再送） */
+function inTime(p: Record<string, unknown>, def: { timeField?: string; endField?: string }, year: number, mode: IndicatorDef['overlayTime']): boolean {
+  if (!def.timeField) return true;
+  const t = p[def.timeField];
+  if (typeof t !== 'number') return false;
+  if (mode === 'cumulative') {
+    const end = def.endField ? p[def.endField] : undefined;
+    return t <= year && !(typeof end === 'number' && end <= year);
+  }
+  if (typeof mode === 'number') return t >= year && t < year + mode;
+  return t === year;
+}
+
+/** 聚合 source 上次送的資料（同一份點、同一年、同一個 source 就不必再送） */
+const clusterSent = new WeakMap<MaplibreMap, Map<string, { source: unknown; points: unknown; year: number; mode: unknown }>>();
+
+/** 聚合的 source：時間軸這一年的點（聚合是 source 層級的，不能用圖層的 filter 篩） */
+function sendClustered(map: MaplibreMap, o: Extract<DataOverlay, { kind: 'points' }>, year: number, mode: IndicatorDef['overlayTime']) {
+  const id = OVERLAY_PREFIX + o.def.id + CLUSTER_SUFFIX;
+  const source = map.getSource(id) as GeoJSONSource | undefined;
+  if (!source || !o.points) return;
+  let sent = clusterSent.get(map);
+  if (!sent) clusterSent.set(map, (sent = new Map()));
+  const timeYear = o.def.timeField ? year : 0;
+  const prev = sent.get(id);
+  if (prev && prev.source === source && prev.points === o.points && prev.year === timeYear && prev.mode === mode) return;
+  const all = pointFeatures(o, overlayEpoch(o.def, year));
+  const features = o.def.timeField ? all.features.filter((f) => inTime(f.properties ?? {}, o.def, year, mode)) : all.features;
+  source.setData({ type: 'FeatureCollection', features });
+  sent.set(id, { source, points: o.points, year: timeYear, mode });
+  resetDonuts(map, id);
 }
 
 /**

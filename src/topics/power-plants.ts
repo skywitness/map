@@ -147,6 +147,16 @@ export const OPERATING_PLANTS: PointsOverlayDef = {
   // 其餘的在 plants-operating-more.json，放大到 3.5 級才下載（pipeline/topics/power_plants.py 的 PLANT_IMPORTANT_MW，2026-10-31）
   minValue: { field: 'mw', stops: [[0, PLANT_MIN_MW], [4, 0]] },
   more: { minZoom: 3.5 },
+  // 縮小時聚成甜甜圈（2026-11-01）：各片是各燃料的裝置容量，大小依總容量；4 級起畫一座座電廠。
+  // 3.5 級以下只讀得到 200 MW 以上的電廠（file），甜甜圈也只算這些（占總容量的大部分）
+  cluster: {
+    maxZoom: 3,
+    radius: 70,
+    weight: 'mw',
+    size: (total) => Math.min(32, 8 + 0.95 * Math.sqrt(total / 1000)),
+    format: (total) => (total >= 1000 ? `${fixed(total / 1000, total >= 10000 ? 0 : 1)} GW` : `${fixed(total, 0)} MW`),
+    title: { zh: '這一區運轉中電廠的裝置容量 ', en: 'Operating capacity in this area: ' },
+  },
 };
 
 /** 電廠的點只畫在「發電廠地圖」：比例圓、面量圖上再疊幾萬個彩色的點會看不清楚 */

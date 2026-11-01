@@ -468,6 +468,14 @@ pipeline/
   - 圖例在比例圓下面兩欄列出各片的顏色與名稱（`.legend-pie`，匯出的圖片也有）。
   - 發電量：燃煤、燃氣、燃油等其他化石、核能、水力、風力、太陽能、生質能、地熱等其他再生九片，顏色跟發電廠地圖的燃料一樣（`FUELS`；燃油等其他化石用灰色）。
   - 順便修了比例圓圖例的標籤寬度：原本固定留 52px，「1,000 TWh」會被切掉，改成依字數估（`bubbleLegendModel`）。
+- **點圖層縮小時聚成甜甜圈**（2026-11-01，使用者看過 MapLibre 範例後選的；`map/clusterDonuts.ts`、點圖層的 `cluster`，第一個用在發電廠地圖的運轉中電廠與世界遺產）：
+  - 另一個開了 cluster 的 GeoJSON source（`<點圖層>~cl`，`overlayLayers.ts` 的 `syncOverlays` 加上），`clusterProperties` 依點的分類（`color` 的 ColorClasses，`classTest` 跟顏色的 step 同一套門檻）加總個數或 `weight` 欄位（電廠的 MW），放在 `c0`、`c1`…。聚合是 source 層級的，不能用圖層的 filter 依時間軸篩，所以有 `timeField` 的在瀏覽器裡先篩好那一年的點再送（`applyTimeFilters` 的 `sendClustered`，規則跟 `timeFilter` 一樣；同一份資料、同一年不重送）。
+  - 聚在一起的畫成 HTML 標記（MapLibre 的 Marker，範例「Display HTML clusters with custom properties」的做法）：SVG 甜甜圈，各片從 12 點鐘方向順時針、依分類的順序，中間的洞放得下才寫總數（canvas 量字寬，10px 放不下試 9px），大小是 `size(總數)`；`title`、`aria-label` 寫「這一區運轉中電廠的裝置容量 1,846 GW：燃煤 53%、水力 16%…」（前四類）。點一下放大到分開（`getClusterExpansionZoom`，最多到 maxZoom + 1），滑鼠、觸控事件不往地圖傳（不會同時選到底下的國家）。地球儀背面的 MapLibre 會加上 `maplibregl-marker-covered`，原本是 20% 不透明（背面的疊在正面上很亂），改成 `opacityWhenCovered: '0'`、不能點。
+  - 標記在 `move`（每一格最多一次）、`moveend` 與那個 source 的資料到了時更新（`querySourceFeatures`，依 `cluster_id` 重用；換年份送新資料後聚合的編號會重用，標記全部重建）。
+  - 沒聚在一起的點畫在聚合 source 上的點圖層（原本點圖層的複本，`~cl`，maxzoom 是 maxZoom + 1，篩選加上不是聚合點）；原本的點圖層從 maxZoom + 1 起畫。複本也在 hover 查詢的圖層裡，`mapEvents.ts` 用 `pointOverlayId` 把 `~cl` 對回原本的疊加圖層，tooltip、點選照舊。
+  - 樣式（`.cluster-donut`）：位置由 MapLibre 的 `.maplibregl-marker`（absolute）決定，不能另外寫 `position`（寫了 relative 時標記會在文件流裡一個個往下排，位置全錯，截圖才發現）；洞用 `--surface`，深淺色都看得到；淡淡的陰影。
+  - **發電廠地圖**的運轉中電廠：3 級以下聚合（4 級起一座座電廠），半徑 70 px 內的聚成一個，各片是各燃料的 MW，大小 `min(32, 8 + 0.95 × √GW)`，中間寫「1,846 GW」。3.5 級以下只讀得到 200 MW 以上的電廠（分層的點檔），甜甜圈也只算這些（占總容量的大部分）。發電量主題裡預設關閉的電廠圖層一樣。
+  - **世界遺產**：3 級以下聚合，半徑 40 px，各片是文化、自然、複合、瀕危的處數，大小 `min(20, 7 + 1.6 × √處數)`（比國家的比例圓小，疊在上面不會整片蓋住），跟著時間軸（登錄年份，累積）。
 - **比例圓的國名寫在圓外**（2026-10-31，使用者選的第四輪 二、2；`worldMapLayers.ts` 的 `bubbleLabelLayer`）：原本底圖的國名壓在比例圓上（F1、人口），圓大的地方一團亂。比例圓的指標（不是 3D）時：
   - 這一年有圓的國家，底圖的國名換成空字串（`labelField` 的 iso2 對照表），改在自己的圖層 `bubble-labels` 寫，位置是圓心往外推半徑再加 0.25 個字高（`text-radial-offset`，依縮放跟著字級換算），先試圓的正下方、再上、右、左（`text-variable-anchor`），圓越大越先排；畫在底圖地名的上面。資料跟比例圓一起更新，圓的大小漸變時國名跟著移動；消失中的圓改回底圖的國名。
   - 沒有資料（或 0）的國家，底圖國名的不透明度降到 0.45（`place` 圖層的 `text-opacity`，換指標、換主題時還原）。

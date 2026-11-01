@@ -151,6 +151,15 @@ export const worldHeritage: TopicDefinition = {
       color: SITE_COLORS,
       sortField: 'cls',
       timeField: 'year',
+      // 縮小時聚成甜甜圈（2026-11-01）：各片是文化、自然、複合、瀕危的處數；4 級起畫一個個遺產
+      cluster: {
+        maxZoom: 3,
+        radius: 40,
+        // 比國家的比例圓小，疊在上面不會整片蓋住
+        size: (n) => Math.min(20, 7 + 1.6 * Math.sqrt(n)),
+        format: (n) => fixed(n, 0),
+        title: { zh: '這一區的世界遺產 ', en: 'World Heritage sites in this area: ' },
+      },
       tooltip: siteTooltip,
       indicators: ['sites', 'danger'],
     },

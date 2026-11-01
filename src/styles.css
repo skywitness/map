@@ -3206,6 +3206,49 @@ kbd {
   cursor: pointer;
 }
 
+/* 點圖層縮小時聚成的甜甜圈（map/clusterDonuts.ts，2026-11-01）：中間寫總數，點一下放大 */
+.cluster-donut {
+  /* 位置由 MapLibre 的 .maplibregl-marker（absolute）決定，這裡不能寫 position */
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink);
+  font: 600 10px/1 var(--font-sans, inherit);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
+}
+
+.cluster-donut svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cluster-donut span {
+  position: relative;
+  white-space: nowrap;
+}
+
+.cluster-donut-hole {
+  fill: var(--surface);
+  fill-opacity: 0.92;
+}
+
+/* 地球儀背面的（MapLibre 加上 covered）不要點得到 */
+.cluster-donut.maplibregl-marker-covered {
+  pointer-events: none;
+}
+
+.cluster-donut:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* 圓餅的各片（比例圓圖例的下面，2026-11-01）：不能點，只是說明 */
 .legend-pie {
   margin-top: 6px;
