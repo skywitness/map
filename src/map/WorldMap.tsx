@@ -1763,6 +1763,22 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, []);
 
+  // 右下角出處（ⓘ）的寬度寫在 .stage 的 --attrib-w（2026-11-01，使用者要求）：展開時 ⓘ 左邊的開關往左移、時間軸與資料來源的
+  // 卡片右緣跟著縮，不被展開的出處文字蓋住（styles.css 的 .stage.is-map）
+  useEffect(() => {
+    const stage = containerRef.current?.closest<HTMLElement>('.stage');
+    const attrib = mapRef.current?.getContainer().querySelector<HTMLElement>('.maplibregl-ctrl-attrib');
+    if (!loaded || !stage || !attrib) return;
+    const observer = new ResizeObserver(() => {
+      stage.style.setProperty('--attrib-w', `${Math.round(attrib.getBoundingClientRect().width)}px`);
+    });
+    observer.observe(attrib);
+    return () => {
+      observer.disconnect();
+      stage.style.removeProperty('--attrib-w');
+    };
+  }, [loaded]);
+
   // 全螢幕的是整個頁面（App 的 .app，data-fullscreen-root，2026-11-01）：左右側欄、時間軸照舊，頂列、控制列、說明、頁尾收起
   // （styles.css 的 .app:fullscreen）；原本只有地圖本身，側欄看不到。沒有這個祖先時（單獨用的地圖）全螢幕地圖本身
   useEffect(() => {

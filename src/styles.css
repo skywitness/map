@@ -285,7 +285,8 @@ button {
     position: absolute;
     z-index: 4;
     left: calc(13px + var(--legend-w, 0px));
-    right: 105px;
+    /* ⓘ（--attrib-w，WorldMap 量的；收起時 24px）左邊是開關（約 52px），再留 12px：展開出處時跟著往左縮 */
+    right: calc(81px + var(--attrib-w, 24px));
     bottom: 25px;
     display: flex;
     flex-direction: column;
@@ -297,7 +298,7 @@ button {
   }
 
   .stage.is-map.has-panel > .map-dock {
-    right: 385px;
+    right: max(385px, calc(81px + var(--attrib-w, 24px)));
   }
 
   .stage.is-map > .map-dock:not(:has(> :not([hidden]))) {
@@ -341,12 +342,12 @@ button {
     }
   }
 
-  /* ⓘ 左邊的開關（app/MapDockToggles.tsx）：跟 ⓘ 一樣的小圓鈕、同一列；開著是深色圖示，關掉是淡的。
-     z-index 比 MapLibre 的出處（2）低：展開的出處文字蓋在它們上面 */
+  /* ⓘ 左邊的開關（app/MapDockToggles.tsx）：跟 ⓘ 一樣的小圓鈕、同一列；開著是深色圖示，關掉是淡的 */
   .stage.is-map > .map-dock-toggles {
     position: absolute;
     z-index: 1;
-    right: 41px;
+    /* 在 ⓘ 左邊 4px：展開出處時跟著往左移（2026-11-01，使用者要求；原本被展開的文字蓋住） */
+    right: calc(17px + var(--attrib-w, 24px));
     bottom: 23px;
     display: flex;
     gap: 4px;
@@ -1751,15 +1752,26 @@ kbd {
 }
 
 /* 出處（ⓘ）的顏色跟著網站的深淺色模式（2026-11-01，使用者要求；原本是 MapLibre 固定的白底黑色圖示）：
-   底是 --surface，圖示用遮罩畫成 --ink（MapLibre 的圖示是固定黑色的背景圖），展開後的文字、連結也用網站的顏色 */
+   跟左邊的開關（.map-dock-toggle）一樣：圓底是 --surface、滑過換成 --grid，只畫「i」這個字（遮罩），顏色是 --ink
+   （深色模式白、淺色模式黑；原本是 --ink 的實心圓、字挖空）。展開後的文字、連結也用網站的顏色 */
 .map .maplibregl-ctrl-attrib.maplibregl-compact {
   background-color: var(--surface);
   color: var(--ink);
 }
 
 .map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button {
+  border-radius: 12px;
   background-color: transparent;
   background-image: none;
+}
+
+.map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:hover {
+  background-color: var(--grid);
+}
+
+/* 用滑鼠點開時不畫 MapLibre 的藍色焦點框（用鍵盤移到這裡時照畫） */
+.map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus:not(:focus-visible) {
+  box-shadow: none;
 }
 
 .map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::before {
@@ -1767,9 +1779,9 @@ kbd {
   position: absolute;
   inset: 0;
   background-color: var(--ink);
-  -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E")
+  -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 20 20'%3E%3Cpath d='M10 4.95a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 1 0 0-2.5zM8.85 9.75a1.15 1.15 0 0 1 2.3 0v3.1a1.15 1.15 0 0 1-2.3 0z'/%3E%3C/svg%3E")
     center / 24px 24px no-repeat;
-  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E")
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 20 20'%3E%3Cpath d='M10 4.95a1.25 1.25 0 1 0 0 2.5a1.25 1.25 0 1 0 0-2.5zM8.85 9.75a1.15 1.15 0 0 1 2.3 0v3.1a1.15 1.15 0 0 1-2.3 0z'/%3E%3C/svg%3E")
     center / 24px 24px no-repeat;
 }
 
