@@ -94,7 +94,11 @@ export function useFitMap(appRef: RefObject<HTMLDivElement | null>) {
     const measure = () => {
       const map = app.querySelector('.stage-main');
       if (!map) return;
-      const top = map.getBoundingClientRect().top + window.scrollY;
+      // 全螢幕時（地圖的全螢幕鈕讓整個 .app 全螢幕）捲動的是 .app 本身，不是視窗
+      const top =
+        document.fullscreenElement === app
+          ? map.getBoundingClientRect().top - app.getBoundingClientRect().top + app.scrollTop
+          : map.getBoundingClientRect().top + window.scrollY;
       const time = app.querySelector<HTMLElement>('.time-slider')?.offsetHeight ?? 0;
       app.style.setProperty('--map-top', `${Math.round(top)}px`);
       app.style.setProperty('--time-h', `${time}px`);
@@ -103,7 +107,11 @@ export function useFitMap(appRef: RefObject<HTMLDivElement | null>) {
     // .app 的高度變了（上面的東西換行、展開，或時間軸出現、消失）就重新量；地圖跟著調整後高度不變，不會一直觸發
     const observer = new ResizeObserver(measure);
     observer.observe(app);
-    return () => observer.disconnect();
+    document.addEventListener('fullscreenchange', measure);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('fullscreenchange', measure);
+    };
   }, [appRef]);
 }
 
