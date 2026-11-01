@@ -25,6 +25,8 @@ const OUT = `${ROOT}src/topics/catalog.gen.ts`;
 const OUT_ITEMS = `${ROOT}src/topics/catalogItems.gen.ts`;
 /** 可以疊到別的主題上的點、線圖層：另一個檔，打開「更多主題的圖層…」才下載（topics/foreign-layers.ts，2026-10-31） */
 const OUT_FOREIGN = `${ROOT}src/topics/foreignLayers.gen.ts`;
+/** 關於頁的資料來源一覽與主題、指標數（src/about/AboutPage.tsx，製作手冊第十五批 262，2026-11-01），打開關於頁才下載 */
+const OUT_ABOUT = `${ROOT}src/about/sources.gen.ts`;
 const check = process.argv.includes('--check');
 
 const server = await createServer({
@@ -122,10 +124,54 @@ try {
     '];',
     '',
   ];
+  // 關於頁的資料來源一覽：各主題的 sources 依網址合併（同一個網址在不同主題的名稱不同時用第一個），列出用到的主題與授權。
+  // 每個來源都要有名稱、網址與授權，缺的話報錯（關於頁的授權篩選、頁尾的標示才完整）
+  const textOf = (v) => (typeof v === 'string' ? v : v && typeof v === 'object' ? `${v.zh ?? ''}${v.en ?? ''}` : '');
+  const bySource = new Map();
+  const badSources = [];
+  let indicatorCount = 0;
+  for (const t of topics) {
+    if (t.id !== pureMap.id) indicatorCount += indicatorList(t).length;
+    for (const s of t.sources ?? []) {
+      if (!textOf(s.name).trim() || !s.url || !textOf(s.license).trim()) {
+        badSources.push(`${t.id} 的「${textOf(s.name) || s.url || '（沒有名稱）'}」`);
+        continue;
+      }
+      const key = s.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      const entry = bySource.get(key) ?? { name: s.name, url: s.url, licenses: [], topics: [] };
+      // 同一個網址在各主題的名稱不同時（「Wikidata（位置）」「Wikidata（城市的中文名稱）」）用最短的，通常是最一般的寫法
+      const zhOf = (v) => (typeof v === 'string' ? v : v.zh);
+      if (zhOf(s.name).length < zhOf(entry.name).length) entry.name = s.name;
+      if (!entry.licenses.some((l) => JSON.stringify(l) === JSON.stringify(s.license))) entry.licenses.push(s.license);
+      if (!entry.topics.includes(t.id)) entry.topics.push(t.id);
+      bySource.set(key, entry);
+    }
+  }
+  if (badSources.length) throw new Error(`主題的資料來源缺名稱、網址或授權：${badSources.join('、')}`);
+  const sources = [...bySource.values()].sort(
+    (a, b) => b.topics.length - a.topics.length || textOf(a.name).localeCompare(textOf(b.name), 'en'),
+  );
+  const aboutLines = [
+    '/**',
+    ' * 這個檔由 scripts/topic-catalog.mjs 從主題定義產生（npm run catalog），不要手動修改。',
+    ' * 關於頁（about/AboutPage.tsx）的資料來源一覽：各主題的 sources 依網址合併，列出用到的主題與授權；主題數與指標數。',
+    ' * i18n-ignore-file：內容是主題定義裡的雙語文字（{ zh, en }），check:i18n 已經檢查過原本的檔',
+    ' */',
+    "import type { AboutSource } from './sources';",
+    '',
+    `export const TOPIC_COUNT = ${topics.filter((t) => t.id !== pureMap.id).length};`,
+    `export const INDICATOR_COUNT = ${indicatorCount};`,
+    '',
+    'export const SOURCES: AboutSource[] = [',
+    ...sources.map((s) => `  ${JSON.stringify(s)},`),
+    '];',
+    '',
+  ];
   const files = [
     [OUT, lines.join('\n')],
     [OUT_ITEMS, itemLines.join('\n')],
     [OUT_FOREIGN, foreignLines.join('\n')],
+    [OUT_ABOUT, aboutLines.join('\n')],
   ];
   const stale = [];
   for (const [file, text] of files) {

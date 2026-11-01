@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { setLocation } from '../test/setup';
-import { read, topicPath } from './url-state';
+import { aboutPath, isAboutPage, read, siteRoot, topicPath } from './url-state';
 
 describe('網址 → 畫面狀態（read）', () => {
   it('主題在路徑，指標、年份、國家在參數', () => {
@@ -62,5 +62,18 @@ describe('topicPath', () => {
   it('每個主題自己的網址', () => {
     expect(topicPath('trade')).toMatch(/\/t\/trade\/$/);
     expect(topicPath(null)).not.toMatch(/\/t\//);
+  });
+});
+
+describe('關於頁 about/', () => {
+  it('認得關於頁的路徑，根目錄去掉 about/', () => {
+    setLocation('http://localhost/map/about/?lang=en');
+    expect(isAboutPage()).toBe(true);
+    expect(siteRoot()).toBe('/map/');
+    expect(topicPath('trade')).toBe('/map/t/trade/');
+    setLocation('http://localhost/map/t/trade/');
+    expect(isAboutPage()).toBe(false);
+    expect(aboutPath('en')).toBe('/map/about/?lang=en');
+    expect(aboutPath()).toBe('/map/about/');
   });
 });

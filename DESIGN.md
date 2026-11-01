@@ -4655,6 +4655,22 @@ pipeline/
 - 文字在 `analysis/text.ts`（`defineMessages`，中英對照，標點也走字典，英文介面不會出現全形的「：」「（」）。
 - **驗證**：每個主題打開分析、四個分頁各點一次，沒有頁面錯誤與主控台錯誤；手機 390px 寬時分頁、控制列換行，圖例排到地圖下面，小地圖一欄。
 
+### 關於頁（2026-11-01，製作手冊第十五批 262，`src/about/`，網址 `about/`）
+
+使用者 2026-11-01 看過類似網站的整理（map-plan 的 similar-sites.md）只選 I19「關於頁」，六題都選 A：台灣與爭議領土寫實際的做法、照實寫 AI 的角色、用 GitHub Issues 收更正、獨立的頁面、資料來源一覽自動產生、寫方法與限制。
+
+- **頁面**：`/map/about/`（`url-state.ts` 的 `isAboutPage`、`aboutPath`；`siteRoot()` 也去掉 `about/`）。跟主題頁一樣用同一份首頁的 HTML：`main.tsx` 看到這個路徑就不載入地圖與主題，改載入 `about/AboutPage.tsx`（自己一個 chunk，約 150 KB、gzip 後 49 KB，service worker 標成 lazy，安裝時不下載）；`index.html` 的預先下載（底圖樣式、地球圖、人口資料）在關於頁跳過。建置時 `topicPages` 另外產生 `about/index.html`（標題「關於這個網站 · 世界資料地圖」、description、canonical、預覽圖用網站的 `og-image.jpg`），列進 sitemap。中英文照網站的語言設定（`?lang=en`），頁首有「English／中文」與深淺色切換、回到地圖；分頁標題在換語言後由頁面自己改回來（i18n 換語言時會改成網站的標題）。
+- **連結**：每個主題的頁尾（免責聲明後面「關於這個網站」）、主題總覽最下面、Ctrl+K 指令面板的「關於這個網站（來源與授權、方法、更正）」。
+- **內容**（照手冊的順序，開頭有這一頁的目錄）：
+  1. 這個網站是什麼：主題數、指標數由 `npm run catalog` 算（2026-11-01 是 131 個主題、751 個指標，不含純地圖）；不用帳號、免費、沒有廣告；沒有統計、廣告或追蹤的程式、不用 cookie（2026-11-01 查過 `index.html` 與 `src/`，只有 localStorage 存設定）；底圖、地形從 OpenFreeMap、AWS 的 Terrain Tiles 下載，「此刻的極光」「此刻世界的新聞熱點」直接向 NOAA、GDELT 下載；程式在 GitHub，repo 沒有 LICENSE，所以寫「不是開源授權的軟體」。
+  2. 原則：數字都有出處；寫資料年份（`latestWithin` 的指標標出實際年份）；推估值（`projectionFrom`）時間軸標「推估值」、側欄折線圖畫虛線，早年的估計（`estimatesBefore`）標「估計值」；沒有資料畫斜線不補。
+  3. 台灣與爭議領土：手冊的草稿照用（英文照意思翻）。
+  4. 方法與限制：最新年份不同、定義不同、世界合計依主題（人口用 WPP 的世界值、民主指數簡單平均、成人身高人口加權、海底電纜加總，都對照過 pipeline）、屬地與爭議地區、更新週期與頁尾的「資料產生於」、補值與換算寫在附註。
+  5. 資料來源一覽：`scripts/topic-catalog.mjs` 從每個主題的 `sources` 產生 `src/about/sources.gen.ts`（依網址合併，同一個網址名稱不同時用最短的；列出授權與用到的主題，連到主題頁）；**主題的來源缺名稱、網址或授權時 `npm run catalog` 報錯**。2026-11-01 是 403 個來源。授權依寫法分成 8 類可以篩選（`sources.ts` 的 `licenseKind`：CC BY 等、CC BY-SA、ODbL、只准非商業、公有領域與 CC0、政府資料開放授權條款、只引用事實、機構自己的條款），另外可以搜尋來源或主題；相同方式分享的授權寫明資料檔用同一種授權；授權的細節連到這份文件第 8 節。全站共用的 Natural Earth、底圖（OpenFreeMap、OpenMapTiles、OpenStreetMap）、Terrain Tiles 另外列。
+  6. AI 的角色：手冊的草稿照用（查證是 AI session 讀條款原文、使用者做決定）。
+  7. 更正：GitHub Issues（2026-11-01 確認 skywitness/map 的 Issues 是開的），寫明要有 GitHub 帳號。
+- **驗證**：開發伺服器上中文、英文、手機 390px 寬都看過，沒有主控台錯誤；授權篩選、搜尋、主題連結、頁尾與指令面板的連結都點過；`vite build` 產生 `about/index.html` 與 sitemap 的一筆。
+
 ## 12. 英文版介面（i18n）
 
 右上角的「中文 / EN」切換語言，不必重新整理。沒有用 i18next 之類的套件：介面字串只有一百多個，自己寫的小字典加上 TypeScript 型別就夠了，也不會多一個依賴。

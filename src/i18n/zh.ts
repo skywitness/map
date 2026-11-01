@@ -101,6 +101,8 @@ export const zh = {
   publicDomain: '（公有領域）',
   generatedAt: (date: string) => ` · 資料產生於 ${date}`,
   disclaimer: '國界與名稱僅為資料呈現，不代表任何政治立場。',
+  /** 頁尾、主題總覽連到關於頁（about/） */
+  aboutSite: '關於這個網站',
   // 匯出圖片底下的來源標示、分享面板的標題
   basemapCredit: (attribution: string) => `底圖：${attribution}`,
   bordersCredit: '國界：Natural Earth（公有領域）。國界與名稱僅為資料呈現，不代表任何政治立場。',

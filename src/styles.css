@@ -4162,3 +4162,145 @@ kbd {
     animation: panel-in var(--motion) var(--ease-out);
   }
 }
+
+/* ── 關於頁（about/，src/about/AboutPage.tsx，製作手冊第十五批 262）：一欄的文字頁，不載入地圖 ─────────── */
+.about-page {
+  min-height: 100dvh;
+  color: var(--ink);
+}
+
+.about-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--grid);
+  background: var(--page);
+}
+
+.about-back {
+  color: var(--accent-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.about-back:hover {
+  text-decoration: underline;
+}
+
+.about-tools {
+  display: flex;
+  gap: 8px;
+}
+
+.about-tool,
+.about-chip {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.about-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.about-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px var(--gutter) 64px;
+  line-height: 1.75;
+}
+
+.about-main h1 {
+  margin: 8px 0 16px;
+  font-size: 28px;
+}
+
+.about-main h2 {
+  margin: 36px 0 8px;
+  font-size: 20px;
+}
+
+.about-main h3 {
+  margin: 20px 0 6px;
+  font-size: 16px;
+}
+
+.about-main p,
+.about-main li {
+  color: var(--ink-secondary);
+}
+
+.about-main ul {
+  padding-left: 1.4em;
+}
+
+.about-main a {
+  color: var(--accent-text);
+}
+
+.about-note,
+.about-count {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.about-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 8px;
+}
+
+.about-search {
+  width: 100%;
+  margin: 8px 0 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.about-main .about-source-list {
+  padding: 0;
+  list-style: none;
+}
+
+.about-source-list li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--grid);
+}
+
+.about-source-list a {
+  overflow-wrap: anywhere;
+}
+
+.about-meta {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.about-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 14px;
+}
+
+.about-main section {
+  scroll-margin-top: 56px;
+}

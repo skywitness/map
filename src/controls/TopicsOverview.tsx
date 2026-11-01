@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
-import { tr, useLang, useT } from '../i18n';
+import { langParam, tr, useLang, useT } from '../i18n';
 import { readRecentTopics } from '../lib/recentTopics';
+import { aboutPath } from '../lib/url-state';
 import { matchTopics, useTopicSearchItems, type TopicHit, type TopicTarget } from '../lib/topicSearch';
 import { CloseIcon } from '../map/MapIcons';
 import { groupOfTopic, prefetchTopic, TOPIC_GROUPS, type TopicSummary } from '../topics';
@@ -197,7 +198,9 @@ export function TopicsOverview({ open, current, onSelect, onClose }: TopicsOverv
           ) : (
             <p className="empty">{t.overviewNoMatch}</p>
           )}
-          <p className="overview-credit">{t.overviewCredit}</p>
+          <p className="overview-credit">
+            {t.overviewCredit} <a href={aboutPath(langParam())}>{t.aboutSite}</a>
+          </p>
         </div>
       </div>
     </dialog>

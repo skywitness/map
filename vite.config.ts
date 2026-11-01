@@ -133,6 +133,24 @@ function topicPages(): Plugin {
         urls.push(url);
         pages.set(topic.id, page);
       }
+      // 關於頁 about/（製作手冊第十五批 262，2026-11-01）：同一份首頁的 HTML，main.tsx 依路徑畫關於頁；預覽圖用網站的那一張
+      {
+        const url = `${SITE}about/`;
+        const title = '關於這個網站';
+        const description = '世界資料地圖是怎麼做的：資料來源與授權一覽、台灣與爭議領土、方法與限制、AI 的角色，以及怎麼回報錯誤。';
+        let page = html.replace(
+          /<title>[^<]*<\/title>/,
+          `<title>${title} · 世界資料地圖</title>\n    <link rel="canonical" href="${url}" />`,
+        );
+        page = setMeta(page, 'name', 'description', description);
+        page = setMeta(page, 'property', 'og:title', `${title} · 世界資料地圖`);
+        page = setMeta(page, 'property', 'og:description', description);
+        page = setMeta(page, 'property', 'og:url', url);
+        page = setMeta(page, 'property', 'og:image', `${SITE}og-image.jpg`);
+        page = setMeta(page, 'property', 'og:image:alt', `${title}：世界資料地圖`);
+        this.emitFile({ type: 'asset', fileName: 'about/index.html', source: page });
+        urls.push(url);
+      }
       // 合併掉的舊主題（src/topics/redirects.ts）：舊路徑照樣有 HTML（分享出去的連結、嵌入碼不會 404），內容與預覽圖
       // 是新主題的，canonical 指到新主題；頁面打開後 url-state.ts 把網址換成新主題。sitemap 不列
       for (const [from, to] of Object.entries(redirectedTopicIds())) {

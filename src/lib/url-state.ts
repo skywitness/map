@@ -100,9 +100,22 @@ export const COMPARE_MAX = 3;
  */
 const TOPIC_PATH = /\/t\/([\w-]+)\/?$/;
 
-/** 網站的根目錄（/map/）：在 t/<主題>/ 底下時去掉這一段 */
+/** 關於頁的路徑 about/（製作手冊第十五批 262，2026-11-01；建置時有自己的 HTML，vite.config.ts 的 topicPages） */
+const ABOUT_PATH = /\/about\/?$/;
+
+/** 網站的根目錄（/map/）：在 t/<主題>/ 或 about/ 底下時去掉這一段 */
 export function siteRoot(): string {
-  return window.location.pathname.replace(TOPIC_PATH, '/').replace(/index\.html$/, '');
+  return window.location.pathname.replace(TOPIC_PATH, '/').replace(ABOUT_PATH, '/').replace(/index\.html$/, '');
+}
+
+/** 目前是不是關於頁（main.tsx 依這個決定畫關於頁還是地圖） */
+export function isAboutPage(): boolean {
+  return ABOUT_PATH.test(window.location.pathname);
+}
+
+/** 關於頁的網址（中文是預設，英文加 ?lang=en） */
+export function aboutPath(lang: string | null = null): string {
+  return `${siteRoot()}about/${lang ? `?lang=${lang}` : ''}`;
 }
 
 /** 主題的網址路徑（不含參數） */

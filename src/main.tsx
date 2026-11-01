@@ -3,27 +3,41 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ErrorBoundary } from './ErrorBoundary';
 import { registerServiceWorker, updateForUnknownTopic } from './lib/serviceWorker';
-import { read as readUrlState } from './lib/url-state';
+import { isAboutPage, read as readUrlState } from './lib/url-state';
 import { loadTopic, topicIdOf } from './topics';
 // MapLibre 的 CSS 放在首頁、排在 styles.css 前面：styles.css 有些規則要蓋過它（例如 .map-canvas 的定位）。
 // 如果跟著地圖程式的 chunk 晚載入，它會反過來蓋掉 styles.css，地圖容器變成 0 高度
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles.css';
 
+const about = isAboutPage();
 // 網址的主題（人口以外的各自一個 chunk，index.html 已經先預載）下載完才畫第一個畫面；
 // 失敗的話照樣畫，App 改開預設的主題
-const urlTopic = readUrlState().topic;
-loadTopic(urlTopic)
-  .catch(() => {})
-  .finally(() =>
+const urlTopic = about ? null : readUrlState().topic;
+if (about) {
+  // 關於頁 about/（製作手冊第十五批 262）：不載入地圖與主題，關於頁自己一個 chunk
+  void import('./about/AboutPage').then(({ default: AboutPage }) =>
     createRoot(document.getElementById('root')!).render(
       <StrictMode>
         <ErrorBoundary>
-          <App />
+          <AboutPage />
         </ErrorBoundary>
       </StrictMode>,
     ),
   );
+} else {
+  loadTopic(urlTopic)
+    .catch(() => {})
+    .finally(() =>
+      createRoot(document.getElementById('root')!).render(
+        <StrictMode>
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </StrictMode>,
+      ),
+    );
+}
 
 // Service worker：離線也能開、再次開啟直接從快取載入
 registerServiceWorker();

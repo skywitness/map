@@ -1,5 +1,6 @@
 import { ClampedText } from '../controls/ClampedText';
-import { useT } from '../i18n';
+import { langParam, useT } from '../i18n';
+import { aboutPath } from '../lib/url-state';
 import type { Topic } from '../topics/types';
 
 /** 頁尾：主題的資料來源與授權、國界、資料更新日期、主題的說明、免責聲明（App.tsx，2026-10-29 拆出來） */
@@ -27,7 +28,9 @@ export function Footer({ topic, generatedAt }: { topic: Topic; generatedAt: stri
       </p>
       {/* 主題的說明常常有好幾行：先露兩行，授權要求的聲明（夜間燈光的 EOG、學生能力的 OECD）寫在開頭 */}
       {topic.note && <ClampedText key={topic.note} text={topic.note} className="footer-note" />}
-      <p className="footer-disclaimer">{t.disclaimer}</p>
+      <p className="footer-disclaimer">
+        {t.disclaimer} <a href={aboutPath(langParam())}>{t.aboutSite}</a>
+      </p>
     </footer>
   );
 }

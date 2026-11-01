@@ -26,7 +26,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
-import { currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
+import { aboutPath, currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
 import type { Box } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
 import { countryLocator, type CountryFeature } from './map/geometry';
@@ -563,6 +563,7 @@ export function App() {
       { id: 'theme', label: tokens.mode === 'dark' ? t.switchToLight : t.switchToDark, run: toggleTheme },
       { id: 'lang', label: lang === 'zh' ? A.english : A.chinese, run: () => setLang(lang === 'zh' ? 'en' : 'zh') },
       ...(state.country && !pure ? [{ id: 'clear', label: A.clear, run: () => selectCountry(null) }] : []),
+      { id: 'about', label: A.about, run: () => window.location.assign(aboutPath(langParam())) },
       ...(view === 'map' && !pure
         ? [{ id: 'values', label: state.labels ? t.valueLabelsOff : t.valueLabels, run: () => update({ labels: !state.labels }) }]
         : []),

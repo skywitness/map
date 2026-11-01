@@ -35,6 +35,8 @@
     <link rel="preload" as="fetch" crossorigin href="%BASE_URL%data/countries.json" />
     <script>
       (function () {
+        // 關於頁（about/）不畫地圖，不預先下載底圖與資料
+        if (/\/about\/?$/.test(location.pathname)) return;
         function preload(href) {
           var link = document.createElement('link');
           link.rel = 'preload';
