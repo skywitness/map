@@ -32,8 +32,9 @@ export const SELECTED_MARK_KM2 = 120_000;
  */
 export function markRadius(name: string): number {
   let width = 0;
-  for (const ch of name) width += /[\u3000-\u9fff\uff00-\uffef]/.test(ch) ? 13 : 7;
-  return Math.max(11, Math.min(22, width / 2 + 6));
+  // 國名放大了 COUNTRY_LABEL_SCALE 倍（2026-11-01），圈也跟著大
+  for (const ch of name) width += /[\u3000-\u9fff\uff00-\uffef]/.test(ch) ? 15.5 : 8.5;
+  return Math.max(12, Math.min(26, width / 2 + 7));
 }
 /**
  * 1:50m 國界沒有形狀的國家（DESIGN.md 第 8 節第 8 點），用首府的位置畫小國圓點，也當比例圓、弧線的位置；
@@ -654,7 +655,8 @@ export function valueLabelLayer(dark: boolean, font: DataDrivenPropertyValueSpec
       visibility: 'none',
       'text-field': ['get', 'text'],
       'text-font': font,
-      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 10.5, 4, 12.5, 7, 14],
+      // 2026-11-01 放大（使用者要求，原本 10.5、12.5、14）
+      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 12.5, 4, 15, 7, 17],
       'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
       'text-radial-offset': 0.6,
       'text-justify': 'auto',
@@ -686,9 +688,10 @@ export function bubbleLabelLayer(dark: boolean, font: DataDrivenPropertyValueSpe
       // 欄位不要叫 name：WorldMap 換語言時會改寫所有讀 name 的文字圖層（isNameLayer）
       'text-field': ['get', 'label'],
       'text-font': font,
-      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 11, 4, 13, 7, 15],
+      // 2026-11-01 放大，跟底圖的國名一樣乘 COUNTRY_LABEL_SCALE（原本 11、13、15）；往外推的距離以字高為單位，跟著換算
+      'text-size': ['interpolate', ['linear'], ['zoom'], 1, 13, 4, 15.5, 7, 18],
       'text-variable-anchor': ['top', 'bottom', 'right', 'left'],
-      'text-radial-offset': ['interpolate', ['linear'], ['zoom'], 1, offset(11), 4, offset(13), 7, offset(15)],
+      'text-radial-offset': ['interpolate', ['linear'], ['zoom'], 1, offset(13), 4, offset(15.5), 7, offset(18)],
       'text-justify': 'auto',
       'text-padding': 1,
       'symbol-sort-key': ['-', 0, r],

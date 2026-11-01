@@ -41,6 +41,64 @@ export function isNameLayer(layer: LayerSpecification): boolean {
 export type Projection = 'globe' | 'mercator';
 
 /**
+ * 底圖的國名放大的倍數（2026-11-01，使用者要求放大地圖上的國名與數字）：底圖的國名圖層（id 含 country）的 text-size 乘上它；
+ * 自己畫的數值（valueLabelLayer）、比例圓的國名（bubbleLabelLayer）也放大同樣的比例
+ */
+export const COUNTRY_LABEL_SCALE = 1.2;
+
+/**
+ * 深色、深藍底圖的地名顏色（2026-11-01，使用者要求再明顯一點）：OpenFreeMap 的深色底圖地名全是 rgb(101,101,101)、海名是 70% 的黑字，
+ * 深藍底圖的國名是灰藍色，在深色的地圖上看不清楚。依底圖樣式的名稱（網址最後一段）換成亮一點的顏色與深一點的光暈：
+ * 國名與洲名最亮，其他地名次之，海名偏藍，道路名稱最淡
+ */
+const DARK_LABELS: Record<string, { country: string; place: string; water: string; road: string; halo: string }> = {
+  dark: { country: '#efeee9', place: '#cfcdc8', water: '#9db3c9', road: '#aaa8a3', halo: 'rgba(0, 0, 0, 0.8)' },
+  fiord: { country: '#f1f5f9', place: '#d2e0e9', water: '#a9bedf', road: '#a6b8cf', halo: 'hsla(228, 60%, 14%, 0.85)' },
+};
+
+/** text-size 乘上倍數：數字、interpolate、step 運算式的輸出值，與舊的 { stops } 寫法 */
+export function scaleTextSize(size: unknown, factor: number): unknown {
+  const scale = (v: unknown) => (typeof v === 'number' ? Math.round(v * factor * 10) / 10 : v);
+  if (typeof size === 'number') return scale(size);
+  if (Array.isArray(size) && size[0] === 'interpolate') return [...size.slice(0, 3), ...size.slice(3).map((v, i) => (i % 2 ? scale(v) : v))];
+  if (Array.isArray(size) && size[0] === 'step') return [size[0], size[1], scale(size[2]), ...size.slice(3).map((v, i) => (i % 2 ? scale(v) : v))];
+  if (size && typeof size === 'object' && 'stops' in size) {
+    const s = size as { stops: [number, number][] };
+    return { ...s, stops: s.stops.map(([z, v]) => [z, scale(v)]) };
+  }
+  return size;
+}
+
+/** 國名放大，深色、深藍底圖的地名調亮（loadBaseStyle；世界視角複製的圖層在這之後複製，跟著一樣） */
+function readableLabels(style: StyleSpecification, url: string): void {
+  const colors = DARK_LABELS[url.split('/').pop() ?? ''];
+  for (const layer of style.layers) {
+    if (!isNameLayer(layer) || layer.type !== 'symbol') continue;
+    const sourceLayer = 'source-layer' in layer ? layer['source-layer'] : '';
+    const country = /country/.test(layer.id);
+    if (country) {
+      layer.layout = { ...layer.layout, 'text-size': scaleTextSize(layer.layout?.['text-size'] ?? 16, COUNTRY_LABEL_SCALE) as number };
+    }
+    if (!colors) continue;
+    const kind =
+      country || /continent/.test(layer.id)
+        ? 'country'
+        : sourceLayer === 'water_name' || /water/.test(layer.id)
+          ? 'water'
+          : sourceLayer === 'transportation_name' || /highway|road/.test(layer.id)
+            ? 'road'
+            : 'place';
+    const width = layer.paint?.['text-halo-width'];
+    layer.paint = {
+      ...layer.paint,
+      'text-color': colors[kind],
+      'text-halo-color': colors.halo,
+      'text-halo-width': typeof width === 'number' ? Math.max(width, 1.2) : 1.2,
+    };
+  }
+}
+
+/**
  * 世界視角（縮放 WORLD_TILES_UNTIL 以下）的底圖改用 OpenFreeMap 的 0–1 級向量圖磚。
  * 2 級的圖磚一張約 600 KB（gzip 後），95% 是各國的州、省地名（每個地名 83 種語言），地球儀一開就要 9 張（約 4.7 MB）；
  * 0–1 級只有國名、海名與國界，4 張共約 450 KB，深色底圖也不會擠滿各省的名稱。
@@ -151,6 +209,7 @@ export function loadBaseStyle(url: string, projection: Projection = 'globe', lan
   }
   return promise.then((raw) => {
     const style = structuredClone(raw);
+    readableLabels(style, url);
     splitWorldZoom(style);
     localRelief(style);
     for (const layer of style.layers) {
