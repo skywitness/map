@@ -16,6 +16,7 @@
 | 介面語言 | 繁體中文（預設）與英文，自己寫的小字典（`src/i18n/`），見第 12 節 | 字串不多，不需要 i18next 之類的套件；型別檢查保證兩種語言的鍵一致 |
 | 離線與快取 | **Service worker**（vite-plugin-pwa 的 injectManifest + Workbox 模組，`src/sw.ts`） | 第二次開啟程式直接從快取載入（HTML 先向伺服器拿，才是新版）；看過一次就能離線開啟；可以安裝成 App（見第 13 節） |
 | 資料處理 | Python（`pipeline/`），離線執行 | 前端只讀靜態 JSON，不需要後端 |
+| 大的線與面圖層 | **PMTiles**（向量圖磚包成一個檔，`pmtiles` 套件 4.5、BSD-3；tippecanoe 2.79 切圖，BSD；2026-11-01，製作手冊第十六批 263，第 13 節） | 1:10m 國界、行政區界這類幾十 MB 的圖層不必整個下載：瀏覽器用 HTTP Range 只讀看得到的那一塊（GitHub Pages 回 206）；新的大圖層先用，舊的之後一層一層換（第 9 節） |
 | 部署 | GitHub Pages（GitHub Actions 自動建置） | 建置用絕對路徑 `base: '/map/'`（每個主題的網址 t/<主題>/，第 13 節） |
 
 **為什麼是 MapLibre 5 而不是 6**：
@@ -4207,6 +4208,8 @@ pipeline/
 
 ## 9. 之後可以做的
 
+**改用 PMTiles 的舊圖層**（製作手冊第十六批 263，使用者選 6A：這一批只用在新的 1:10m 國界與行政區界，舊的之後一層一層換，每換一層用 `npm run measure:load` 量一次）：渡輪航線約 9.5 MB、人口網格 7.4 MB、長途步道 4.7 MB、景點 3.3 MB、城市 2.8 MB、地震 2.7 MB、帝國疆界 2.0 MB（2026-11-01 的大小）。
+
 **使用者決定不做的建議**（2026-10-29，第二輪「使用體驗、美化、效能」建議裡沒選的；之後不要再提，使用者改變主意才做）：
 - **換到 Cloudflare Pages**：可以讓有雜湊的檔案永久快取、Brotli 再小 15–20%、每個分支有預覽網址；不做，照樣用 GitHub Pages（`max-age=600`、只有 gzip）。
 - **實機量測、收集真實使用者的 Web Vitals**：這台機器用 SwiftShader 畫 WebGL，播放時 CPU 時間約 95% 在畫圖、網站程式（含 MapLibre）只約 3%，看不出低階手機的瓶頸；不做。
@@ -4903,6 +4906,17 @@ pipeline/
     - 資料流程：城市、景點、電廠的 `build()` 寫兩個檔；別的主題讀城市的 `load_points()`、景點延伸的 `_read_points()` 都會把 `-more.json` 接上。現有的檔用 `read_points_file`（`points_file` 的反運算，往返完全一致）轉成兩個檔，跟重跑的結果一樣。
   - **側欄依國家分檔**（`pipeline/panel_parts.py` 的 `write_country_parts`、`src/lib/data.ts` 的 `useCountryPart`）：只給側欄用的大檔改成 `<資料夾>/<ISO3>.json` 一國一個檔，加上 `index.json`（有檔的國家與各國共用的欄位）；index 沒列的國家不去要不存在的檔。航海日誌 `panel/`（原本 544 KB、gzip 136 KB；多半的國家 1–5 KB，英國最大 74 KB）、河流 `panel/`（200 KB → 每國約 1 KB）、國家小檔案 `profiles/`（160 KB → 每國不到 1 KB）。航海日誌的航程會在好幾國的檔裡重複，總大小 0.5 → 1.9 MB，但每次只下載一國。
 - **世界視角的地形陰影改用自己的 WebP**（2026-10-30，`style.ts` 的 `localRelief`、`pipeline/relief_tiles.py`）：彩色地形低縮放時的 Natural Earth II 陰影點陣圖（ne2sr，公有領域）是 OpenFreeMap 的 256px PNG，比例圓、點圖層的主題（首頁的人口就是）地球儀一開就要 32 張、約 3.2 MB，占第一次載入約 3.9 MB 的八成。`npm run data -- relief-tiles` 把 0–3 級的 85 張下載下來轉成 WebP（有損 82，method 6）放在 `public/relief/`：PNG 共 9.1 MB → WebP 0.6 MB（一張約 7 KB），跟原本的平均差 1/255、看不出差別。樣式裡那個 source 的網址改成自訂協定 `relief://{z}/{x}/{y}`（`WorldMap.tsx` 用 `addProtocol` 註冊 `loadReliefTile`）：0–3 級讀我們的 WebP（地球儀全球視角約縮放 2，用到 3 級的圖磚），4 級以上照舊讀 OpenFreeMap 的 PNG。一開始分成兩個 source（我們的到縮放 2.5、OpenFreeMap 的從 2.5 起），放大跨過 2.5 時新的圖磚到之前露出一塊塊空白；同一個 source 的話，MapLibre 會先放大上一級的圖磚墊著。面量圖的主題世界視角本來就不畫陰影（`baseRastersRef`）。Service worker 用 CacheFirst 快取看過的（`relief-tiles`）。
+### PMTiles：大的線與面圖層只讀看得到的那一塊（2026-11-01，製作手冊第十六批 263）
+
+參考 World View Data（它用 tippecanoe 做了 4 個 `.pmtiles`）。使用者選 7A：map cloud 先試做；6A：這一批只用在 264（1:10m 國界）、265（行政區界）。
+
+- **pipeline**（`pipeline/pmtiles.py` 的 `build(name, geojson, layer, min_zoom=…, max_zoom=…, keep=[…], polygons=…)`）：tippecanoe 把 GeoJSON（或 GeoJSONSeq）切成向量圖磚、包成 `.pmtiles`；`keep` 是要留的屬性（前端依它上色、hover 的，例如 iso3，要留）；面加 `--detect-shared-borders`、`--no-tiny-polygon-reduction`，不丟、不合併 feature（每個國家、行政區都要在），圖磚不設 500 KB 上限；線與點用 `--drop-densest-as-needed`。輸出 `public/pmtiles/<名稱>-<內容雜湊 8 碼>.pmtiles`（換檔就換網址，快取不會拿到舊的；同名的舊檔刪掉），`public/pmtiles/index.json` 記檔名、圖層、縮放範圍、大小。單檔超過 95 MB 就報錯（GitHub 的上限是 100 MB；整個 Pages 網站 1 GB）。
+- **放在 `public/pmtiles/`，不是手冊寫的 `public/tiles/`**：`public/tiles/` 是人口、暖化網格圖磚的資料夾，`.gitignore` 忽略、部署時在 GitHub Actions 產生並快取整個資料夾，放在那裡的 `.pmtiles` 不會進 git。
+- **tippecanoe 在本機跑**：cloud session 編譯外部下載的程式被權限規則擋下（2026-11-01），照手冊的備案由使用者電腦上的本機 session 安裝（macOS `brew install tippecanoe`，或照 felt/tippecanoe 的 README 編譯 2.79.0 以後的版本）、跑用到它的步驟、把 `.pmtiles` 推上來；沒有 tippecanoe 時 `build()` 報錯並寫清楚怎麼做。
+- **前端**（`src/map/pmtiles.ts`）：`pmtiles://` protocol 在 `WorldMap.tsx` 跟 grid、flag、relief 一起註冊（`loadPmtiles`），`pmtiles` 套件（含 fflate，建置後自己一個 chunk，gzip 後約 7 KB）第一次讀圖磚時才下載。`loadTilesIndex()` 讀 `pmtiles/index.json`，`pmtilesSource(entry, promoteId)` 給 MapLibre 的向量來源；要依國家或行政區上色、hover、點選的設 `promoteId`（例如 iso3），feature-state 與 `queryRenderedFeatures` 照常能用。
+- **service worker**：`.pmtiles` 不預先快取、沒有路由（Range 請求照常走網路，不用 Workbox 的 range requests：快取整個 Range 回應容易出錯，圖磚檔也大）；離線時這些圖層看不到，用到的地方放 `TilesOffline`（`StatusCard` 的離線樣子，「目前離線，看不到…」）。
+- **驗證**（還沒有正式的 `.pmtiles` 檔，264 才有）：用 Python 手寫的測試檔（z0 一張圖磚、兩個面，不提交）在開發伺服器上試：Vite 的開發伺服器回 206，瀏覽器只讀了檔頭、目錄與那張圖磚（`bytes=0-16383`、`132-258`、`259-374`）；`promoteId: 'iso3'` 讓 feature 的 id 是代碼，hover 的 feature-state 與 `queryRenderedFeatures` 都正常，沒有主控台錯誤。GitHub Pages 支援 Range（規劃 session 2026-11-01 實測 `data/countries.json` 回 206、`accept-ranges: bytes`）。
+
 ### Service worker（`src/sw.ts`）
 
 | 內容 | 策略 | 快取名稱 | 上限 |
@@ -4916,6 +4930,7 @@ pipeline/
 | 1 km 網格圖磚（`/tiles/**.png`，第 14 節） | cache first（網址含版本） | `grid-tiles` | 800 張（約 10 MB）、60 天 |
 | 1 km 網格的 `meta.json` | network first（5 秒逾時才用快取）：它決定圖磚的版本，部署後要馬上換新 | `grid-meta` | 10 |
 | 地形圖磚（AWS Terrain Tiles，只有海拔主題） | cache first（內容不變） | `terrain-tiles` | 200 張、30 天 |
+| PMTiles（`/pmtiles/*.pmtiles`、`/pmtiles/index.json`，2026-11-01） | 不經過 service worker（沒有路由，照常走網路；Range 回應不快取） | — | 離線時這些圖層看不到，用到的地方顯示 `TilesOffline` |
 | 國旗的 SVG（`/data/topics/flags/svg/*.svg`） | cache first（檔名含內容的雜湊，內容不變）；另一個快取，不跟資料 JSON 的 400 個上限搶位置 | `flag-images` | 300 個、120 天 |
 
 - **資料版本**：建置時把 `public/data` 全部內容算雜湊（`vite.config.ts` 的 `dataVersion()`，用 `define` 傳給 service worker）。資料有變，資料快取就換一個新名字，新版 service worker 啟用時刪掉舊的；只改程式不改資料時，資料快取照用。

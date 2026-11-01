@@ -53,6 +53,9 @@ export const zh = {
   dataFailedTitle: '這個主題的資料沒有載入成功',
   offlineNotSavedTitle: '目前離線，這個主題還沒存到這台裝置',
   offlineNotSavedHint: '連上網路後就能看；看過的主題之後離線也能打開。',
+  /** 用 PMTiles 的圖層（map/pmtiles.ts）：圖磚不存到裝置，離線時看不到 */
+  tilesOfflineTitle: (what: string) => `目前離線，看不到${what}`,
+  tilesOfflineHint: '這個圖層每次從網路讀需要的那一塊，不存到裝置；連上網路後就會出現。',
   retry: '重試',
   /** 側欄的數值卡片：那個指標的資料沒有載入成功 */
   loadFailedShort: '沒有載入成功',

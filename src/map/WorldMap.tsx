@@ -26,6 +26,7 @@ import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
+import { loadPmtiles, PMTILES_PROTOCOL } from './pmtiles';
 import { dataUrl, fetchJson } from '../lib/data';
 import { countryName, type CountryTable } from '../lib/countries';
 import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
@@ -161,6 +162,8 @@ addProtocol(GRID_PROTOCOL, loadGridTile);
 addProtocol(FLAG_PROTOCOL, loadFlagTile);
 // 彩色地形的陰影點陣圖：0–3 級讀我們自己的 WebP（style.ts 的 localRelief）
 addProtocol(RELIEF_PROTOCOL, loadReliefTile);
+// PMTiles（大的線與面圖層，map/pmtiles.ts）：pmtiles 套件第一次讀圖磚時才下載
+addProtocol(PMTILES_PROTOCOL, loadPmtiles);
 
 interface WorldMapProps {
   countries: CountryFeature[];

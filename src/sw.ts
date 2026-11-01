@@ -159,6 +159,10 @@ registerRoute(
   }),
 );
 
+// PMTiles（pmtiles/<名稱>-<雜湊>.pmtiles 與 pmtiles/index.json，map/pmtiles.ts，製作手冊第十六批 263）：沒有路由，
+// 照常走網路（瀏覽器用 HTTP Range 讀一小段，GitHub Pages 回 206），不預先快取也不存；離線時這些圖層看不到，
+// 用到的地方顯示 TilesOffline。不要加會比對到 /pmtiles/ 的路由（快取整個 Range 回應很容易出錯）
+
 // 1 km 網格的圖磚（tiles/<資料夾>/<版本>/<年>/z/x/y.png，部署時產生）：網址含版本，內容不會變，直接用快取。
 // 512 px 的圖磚平均約 10 KB，上限 800 張約 8–10 MB；只存看過的，不預先下載
 registerRoute(

@@ -45,6 +45,8 @@ export const en: Messages = {
   dataFailedTitle: "Couldn't load this topic's data",
   offlineNotSavedTitle: "You're offline, and this topic isn't saved on this device yet",
   offlineNotSavedHint: "It will load once you're back online. Topics you've viewed also open offline later.",
+  tilesOfflineTitle: (what) => `You're offline, so ${what} can't be shown`,
+  tilesOfflineHint: 'This layer reads just the part it needs from the network each time and is not saved on this device; it will appear once you are back online.',
   retry: 'Try again',
   loadFailedShort: 'Failed to load',
   reload: 'Reload',

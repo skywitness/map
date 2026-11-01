@@ -94,6 +94,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `population-density-tiles` 產生人口密度的 1 km 網格圖磚（`public/tiles/`，約 585 MB、6 萬個檔）。圖磚不進版本控制，部署時由 GitHub Actions 產生；本機要看網格才需要跑，第一次會下載 12 期 GHS-POP（共 5.8 GB），約 25 分鐘。沒跑的話，切到「1 km 網格」會顯示載入失敗、改畫國家平均。開發伺服器不監看 `public/tiles/`（檔案太多會卡住），所以產生圖磚之後要重開 `npm run dev`。做法與大小見 DESIGN.md 第 14 節。
 
+大的線與面圖層（1:10m 國界、行政區界）用 PMTiles：`pipeline/pmtiles.py` 呼叫 tippecanoe（2.79.0 以後，macOS `brew install tippecanoe`）切成 `public/pmtiles/<名稱>-<雜湊>.pmtiles`，前端用 HTTP Range 只讀看得到的那一塊；cloud session 不能編譯 tippecanoe，這些步驟在本機跑。
+
 `submarine-cables` 讀 TeleGeography 2022 年 11 月以 CC BY-NC-SA 3.0 公開的最後一版（2026-11-01 起不再抓網站 API 的現在的資料）：重跑前把 skywitness/map-plan 的 `data/telegeography-2022/` 裡的 `api/`、`upstream/`、`SHA256SUMS` 複製到 `pipeline/.cache/telegeography-2022/`，pipeline 會核對 SHA-256。
 
 `temperature` 是氣溫與降雨主題（CRU TS，第一次會下載月均溫與降雨約 385 MB）。`wet-days` 是同一個主題的「一年下雨幾天」（CRU TS 的雨日，第一次下載約 233 MB；台灣附註用中央氣象署的測站逐月資料）。`wet-days` 是同一個主題的「一年下雨幾天」（CRU TS 的雨日，第一次下載約 233 MB；台灣附註用中央氣象署的測站逐月資料），`sunshine` 是「日照時數」（CRU CL v2.0 的日照百分比，約 12 MB）。`temperature-grid-tiles` 產生暖化的 0.5° 網格圖磚（`public/tiles/warming/`，約 20 MB、2.4 萬個檔），跟人口密度的網格一樣不進版本控制、部署時產生，本機約 3–5 分鐘。
