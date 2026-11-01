@@ -95,3 +95,33 @@ export function mapInsets(container: HTMLElement): { left: number; right: number
     bottom: Math.min(Math.max(0, bottom), rect.height * 0.6),
   };
 }
+
+/** MapLibre 地球儀的半徑在這個緯度以上不再變（`cos(min(|緯度|, 85.051129°))`，6.16 的 Tk） */
+const GLOBE_MAX_LAT = 85.051129;
+
+/**
+ * 主題的 focus 範圍是不是一整圈極區（經度 −180 到 180、整個在南緯或北緯 30° 以外）：是的話回傳哪一極與極區的外緣緯度。
+ * 這種範圍用 fitBounds 會停在範圍中間的緯度（南極是南緯 77°），改成從極點正上方看（2026-11-01，MapLibre 6.13 起地球儀的中心可以到極點）
+ */
+export function polarCap(box: readonly [number, number, number, number]): { pole: 1 | -1; edge: number } | null {
+  const [w, s, e, n] = box;
+  if (w > -180 || e < 180) return null;
+  if (s >= 30) return { pole: 1, edge: s };
+  if (n <= -30) return { pole: -1, edge: n };
+  return null;
+}
+
+/**
+ * 從極點正上方看、讓外緣緯度 edge 那一圈在畫面上的半徑是 radius（px）時的縮放級數。
+ * 相機在地球儀中心的正上方、距離畫面中心點 cameraDistance（MapLibre 的 cameraToCenterDistance：0.5 × 高 ÷ tan(視角 ÷ 2)）；
+ * 角半徑 θ 的一圈在畫面上的半徑 = 距離 × R sinθ ÷ (距離 + R(1 − cosθ))，反解出地球儀的半徑 R（px），
+ * 再用 MapLibre 的 R = 512 × 2^zoom ÷ 2π ÷ cos(min(|緯度|, 85.05°)) 換成縮放級數
+ */
+export function poleZoom(edge: number, radius: number, viewportHeight: number, fovDeg: number): number {
+  const theta = ((90 - Math.abs(edge)) * Math.PI) / 180;
+  const distance = (0.5 * viewportHeight) / Math.tan((fovDeg * Math.PI) / 360);
+  const denominator = distance * Math.sin(theta) - radius * (1 - Math.cos(theta));
+  // 半徑大到畫面放不下那一圈（理論上不會）時，讓整個地球儀小一點
+  const globeRadius = denominator > 0 ? (radius * distance) / denominator : radius * 4;
+  return Math.log2((globeRadius * 2 * Math.PI * Math.cos((GLOBE_MAX_LAT * Math.PI) / 180)) / 512);
+}

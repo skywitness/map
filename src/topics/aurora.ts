@@ -268,6 +268,8 @@ export const aurora: TopicDefinition = {
   shortTitle: { zh: '極光', en: 'Aurora' },
   defaultIndicator: 'map',
   defaultYear: 2026,
+  // 打開時從北極正上方看（2026-11-01）：北半球的極光橢圓帶整圈在畫面上，南半球的轉過去看
+  focus: [-180, 45, 180, 90],
   live: { url: OVATION_URL, minutes: REFRESH_MINUTES, time: forecastTime },
   sources: [
     {

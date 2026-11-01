@@ -14,12 +14,16 @@
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import {
   addProtocol,
+  GPUInitializationError,
   Map as MaplibreMap,
+  setWorkerUrl,
   type ExpressionSpecification,
   type GeoJSONSource,
   type LayerSpecification,
   type MapSourceDataEvent,
 } from 'maplibre-gl';
+// MapLibre 6 只出 ES module，worker 是另一個檔：用 Vite 的 ?worker&url 打包成獨立的檔，告訴 MapLibre 網址
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
 import { StatusCard } from '../controls/StatusCard';
@@ -35,7 +39,7 @@ import { BASEMAP_COUNTRY_BORDER, type Basemap } from './basemaps';
 import { useHotkeys } from '../controls/hotkeys';
 import { boxPolygon, type Box } from './boxEstimate';
 import { FLOW_PRESENCE_WIDTH, flowColors, flowText, flowWidth, greatCircle, type FlowSelection } from './flows';
-import { focusBounds, mapInsets } from './focus';
+import { focusBounds, mapInsets, polarCap, poleZoom } from './focus';
 import { unwrapAntimeridian, type CountryFeature } from './geometry';
 import { canvasToPng, captureMap, composeMapImage, type ImageLegend, type MapImageContent } from './exportImage';
 import {
@@ -158,6 +162,7 @@ import { useCountryFills } from './useCountryFills';
 import { useValueLabels } from './useValueLabels';
 import { useRasterLayers } from './useRasterLayers';
 
+setWorkerUrl(maplibreWorkerUrl);
 // 1 km 網格的圖磚經過這個協定載入：沒有內容的圖磚（海洋、無人區）不發出請求
 addProtocol(GRID_PROTOCOL, loadGridTile);
 // 國旗地圖的圖磚在瀏覽器裡畫（flagTiles.ts）
@@ -269,6 +274,11 @@ interface WorldMapProps {
   pointer?: (lngLat: [number, number], iso3: string | null) => PointerInfo | null;
   /** 主題側欄放的標記（首都與它的對蹠點）：圓點加名稱，點一下移到 link 那一個（不會改變選取的國家） */
   marks?: MapMark[] | null;
+  /**
+   * 嵌入模式（?embed=1）：滾輪要按著 Ctrl（Mac 是 ⌘）才縮放、手機要兩指才拖曳，嵌入的網頁才捲得動（MapLibre 的
+   * cooperativeGestures，2026-11-01）；全螢幕時照常操作
+   */
+  cooperativeGestures?: boolean;
   /** 地圖的操作（匯出圖片等）；不叫 ref：Preact 的函式元件收不到 ref 這個 prop（React 19 收得到） */
   handleRef?: Ref<WorldMapHandle>;
   /** 世界地圖主題的行政區（map/divisions.ts）：要畫哪一國的哪一層；null 是不畫 */
@@ -315,7 +325,7 @@ export function WorldMap(props: WorldMapProps) {
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -344,7 +354,8 @@ export function WorldMap(props: WorldMapProps) {
    * 我們的地形陰影蓋住，隱藏起來就不必下載（全球視角約 3 MB）
    */
   const baseRastersRef = useRef<{ id: string; minzoom: number; maxzoom: number }[]>([]);
-  const [failed, setFailed] = useState(false);
+  /** 地圖開不起來：network 是底圖樣式下載失敗，webgl 是瀏覽器或裝置不支援 WebGL2（MapLibre 6 起必要） */
+  const [failed, setFailed] = useState<'network' | 'webgl' | null>(null);
   const [globe, setGlobe] = useState(true);
   /** 地圖第一次畫好了（'load'）：之後不再放地球圖（GlobePlaceholder） */
   const [loaded, setLoaded] = useState(false);
@@ -498,7 +509,7 @@ export function WorldMap(props: WorldMapProps) {
   );
 
   /** 換過海的顏色（CALM_SEA）後的背景色；載入時暫時換成海的顏色、之後換回來時用它（installDataLayers） */
-  const backgroundPaintRef = useRef<unknown>(null);
+  const backgroundPaintRef = useRef<ExpressionSpecification | null>(null);
   /** 世界視角的湖泊（geo/lakes-110m.json，約 3 KB）；切換底圖時新樣式直接用 */
   const lakesRef = useRef<GeoJSON.FeatureCollection | null>(null);
   useEffect(() => {
@@ -649,6 +660,12 @@ export function WorldMap(props: WorldMapProps) {
           maxZoom: MAX_ZOOM,
           // 預設的版權標示會依寬度自動收合（地圖窄於 640px 時只顯示 ⓘ）
           localIdeographFontFamily: "'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif",
+          // 嵌入模式的操作提示（cooperativeGestures）用網站的語言
+          locale: {
+            'CooperativeGesturesHandler.WindowsHelpText': t.coopWindows,
+            'CooperativeGesturesHandler.MacHelpText': t.coopMac,
+            'CooperativeGesturesHandler.MobileHelpText': t.coopMobile,
+          },
           // 旋轉、傾斜只在 3D 模式開啟（右鍵或 Ctrl＋拖曳；見下面的操作 effect）
           dragRotate: false,
           // 第一次造訪時記下底圖的請求，service worker 接手後補存進快取（離線也能看到底圖）
@@ -679,7 +696,7 @@ export function WorldMap(props: WorldMapProps) {
           if (!canvas.matches(':focus-visible')) canvas.blur();
         });
       })
-      .catch(() => !cancelled && setFailed(true));
+      .catch((e: unknown) => !cancelled && setFailed(e instanceof GPUInitializationError ? 'webgl' : 'network'));
     return () => {
       cancelled = true;
       clearTimeout(seaTimerRef.current);
@@ -1225,6 +1242,19 @@ export function WorldMap(props: WorldMapProps) {
     lineHoverRef.current = lineHighlight;
   }, [revision, lineHighlight]);
 
+  /* ── 嵌入模式：滾輪縮放、單指拖曳讓給外面的網頁（全螢幕時照常） ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    const sync = () => {
+      if (cooperativeGestures && !document.fullscreenElement) map.cooperativeGestures.enable();
+      else map.cooperativeGestures.disable();
+    };
+    sync();
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
+  }, [ready, cooperativeGestures]);
+
   /* ── 主題側欄點某條河：把地圖移到它的範圍 ── */
   useEffect(() => {
     const map = mapRef.current;
@@ -1232,6 +1262,23 @@ export function WorldMap(props: WorldMapProps) {
     const [w, s, e, n] = focusBox.box;
     // 扣掉按鈕列與浮在地圖上的清單、國家側欄（mapInsets，跟 focus 一樣；世界地圖主題的行政區清單 2026-11-01 起也是）
     const inset = mapInsets(map.getContainer());
+    // 一整圈的極區（南極、臭氧洞、北極航道、極光）：從極點正上方看，外緣那一圈避開浮在地圖上的面板（地圖中心不移）。
+    // 南極照南極地圖的慣例 0° 經線朝上；北極照 NSIDC 的極區圖（EPSG:3413）西經 45° 朝下
+    const cap = polarCap(focusBox.box);
+    if (cap) {
+      const { clientWidth: width, clientHeight: height } = map.getContainer();
+      const radius = Math.max(
+        Math.min(height, width) * 0.3,
+        Math.min(height / 2 - Math.max(inset.top, inset.bottom), width / 2 - Math.max(inset.left, inset.right)) - 16,
+      );
+      map.easeTo({
+        center: [cap.pole > 0 ? -45 : 0, cap.pole * 90],
+        zoom: poleZoom(cap.edge, radius, height, map.getVerticalFieldOfView()),
+        bearing: 0,
+        duration: 900,
+      });
+      return;
+    }
     map.fitBounds(
       [
         [w, s],
@@ -1836,7 +1883,11 @@ export function WorldMap(props: WorldMapProps) {
       {!loaded && projection === 'globe' && !threeD && <GlobePlaceholder dark={basemap.dark} />}
       <div ref={mapNodeRef} className="map-canvas" />
       {failed && (
-        <StatusCard overlay kind="error" title={t.basemapFailedTitle} detail={t.basemapFailed} action={{ label: t.reload, onClick: () => location.reload() }} />
+        failed === 'webgl' ? (
+          <StatusCard overlay kind="error" title={t.webglFailedTitle} detail={t.webglFailed} />
+        ) : (
+          <StatusCard overlay kind="error" title={t.basemapFailedTitle} detail={t.basemapFailed} action={{ label: t.reload, onClick: () => location.reload() }} />
+        )
       )}
 
       <div className="map-zoom" role="group" aria-label={t.mapControls}>

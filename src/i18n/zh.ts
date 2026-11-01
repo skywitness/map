@@ -188,6 +188,11 @@ export const zh = {
   boxToolActive: '在地圖上拖曳畫框（Esc 取消）',
   boxHint: '在地圖上拖曳畫出範圍（Esc 取消）',
   basemapFailed: '請檢查網路連線後重新整理。',
+  coopWindows: '按住 Ctrl 再捲動滾輪來縮放地圖',
+  coopMac: '按住 ⌘ 再捲動滾輪來縮放地圖',
+  coopMobile: '用兩指移動地圖',
+  webglFailedTitle: '這個瀏覽器畫不出地圖',
+  webglFailed: '地圖需要 WebGL 2。請更新瀏覽器、開啟硬體加速，或換一台裝置；排名表照樣可以用。',
   // 3D
   valueLabels: '在地圖上標數值',
   valueLabelsOff: '拿掉地圖上的數值',

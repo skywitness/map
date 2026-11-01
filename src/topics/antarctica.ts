@@ -15,7 +15,7 @@ export const antarctica: TopicDefinition = {
   shortTitle: { zh: '南極', en: 'Antarctica' },
   defaultIndicator: 'operating',
   defaultYear: 2026,
-  // 打開時地圖轉到南極上空（預設以台灣為中心的地球儀看不到南極）
+  // 打開時從南極點正上方看（預設以台灣為中心的地球儀看不到南極；2026-11-01 起一整圈的極區範圍改成對著極點，map/focus.ts 的 polarCap）
   focus: [-180, -88, 180, -62],
   sources: [...stationsPart.sources, ...penguinsPart.sources, ...lakesPart.sources],
   note: {

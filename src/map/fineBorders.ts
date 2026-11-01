@@ -1,4 +1,4 @@
-import type { FilterSpecification, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
+import type { FilterSpecification, LayerSpecification, Map as MaplibreMap, MapEventType } from 'maplibre-gl';
 import { loadTilesIndex, pmtilesSource } from './pmtiles';
 
 /**
@@ -158,9 +158,11 @@ export function installFineBorders(map: MaplibreMap): void {
   };
   // 平移、縮放時取消的請求（AbortError）不算出錯。地圖有 error 監聽時 MapLibre 不再自己把錯誤印到主控台，
   // 別的 source 的錯誤照舊印出來
-  const onError = (e: { sourceId?: string; error?: { name?: string } }) => {
-    if (e.sourceId !== FINE_SOURCE) console.error(e.error);
-    else if (e.error?.name !== 'AbortError') fallBack(map, s);
+  const onError = (e: MapEventType['error']) => {
+    // MapLibre 把出錯的 source 放在事件上（ErrorEvent 的 data），型別沒有寫
+    const { sourceId } = e as MapEventType['error'] & { sourceId?: string };
+    if (sourceId !== FINE_SOURCE) console.error(e.error);
+    else if ((e.error as { name?: string }).name !== 'AbortError') fallBack(map, s);
   };
   const add = (index: Record<string, Parameters<typeof pmtilesSource>[0]>) => {
     const entry = index[TILES_NAME];

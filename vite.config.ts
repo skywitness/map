@@ -191,6 +191,8 @@ function collectCoreAssets(): Plugin {
       for (const chunk of chunks.values()) {
         if (chunk.isEntry || /[\\/]src[\\/]map[\\/]WorldMap\.tsx$/.test(chunk.facadeModuleId ?? '')) visit(chunk.fileName);
       }
+      // MapLibre 6 的 worker 是另一個檔（WorldMap.tsx 的 ?worker&url），地圖一開就要
+      for (const fileName of Object.keys(bundle)) if (/maplibre-gl-worker/.test(fileName)) coreAssets.add(fileName);
     },
   };
 }

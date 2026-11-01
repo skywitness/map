@@ -1,4 +1,4 @@
-import type { GetResourceResponse, RequestParameters, VectorSourceSpecification } from 'maplibre-gl';
+import type { AddProtocolResponseData, GetResourceResponse, RequestParameters, VectorSourceSpecification } from 'maplibre-gl';
 import type { Protocol } from 'pmtiles';
 
 /**
@@ -25,9 +25,9 @@ function getProtocol(): Promise<Protocol> {
 }
 
 /** `pmtiles://` 的讀取函式（WorldMap.tsx 用 addProtocol 註冊）：TileJSON 與圖磚都交給 pmtiles 套件，用 Range 讀 */
-export async function loadPmtiles(params: RequestParameters, abort: AbortController): Promise<GetResourceResponse<unknown>> {
+export async function loadPmtiles(params: RequestParameters, abort: AbortController): Promise<GetResourceResponse<AddProtocolResponseData>> {
   const p = await getProtocol();
-  return p.tile(params, abort);
+  return p.tile(params, abort) as Promise<GetResourceResponse<AddProtocolResponseData>>;
 }
 
 /** pmtiles/index.json 的一筆（pipeline/pmtiles.py 寫的） */

@@ -1124,6 +1124,7 @@ export function App() {
                 {!firstPaint && !error && <p className="map-status">{t.loadingData}</p>}
                 <WorldMap
                   handleRef={mapHandle}
+                  cooperativeGestures={state.embed}
                   countries={features ?? NO_FEATURES}
                   countryTable={countries}
                   onPickCountry={pure ? undefined : selectFromSearch}
