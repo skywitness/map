@@ -445,6 +445,21 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
       },
       paint: { 'icon-opacity': ['case', ['boolean', ['feature-state', 'dim'], false], DIMMED, 1] },
     },
+    // 圓餅（map/pies.ts）：有 pie 的圓貼上那一國的圓餅圖片，畫在圓的下面（圓變透明，只留外框與滑過的深色外框）
+    {
+      id: 'bubble-pies',
+      type: 'symbol',
+      source: 'bubbles',
+      filter: ['==', ['get', 'pie'], 1],
+      layout: {
+        'icon-image': ['concat', 'pie-', ['get', 'iso3'], '-', ['to-string', ['get', 'ps']]],
+        'icon-size': ['/', ['*', 2, ['get', 'r']], ['get', 'ps']],
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'symbol-sort-key': ['-', 0, ['get', 'r']],
+      },
+      paint: { 'icon-opacity': 0.92 },
+    },
     {
       id: 'bubbles',
       type: 'circle',
@@ -453,7 +468,7 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
       paint: {
         'circle-radius': ['get', 'r'],
         'circle-color': t.accent,
-        'circle-opacity': 0.72,
+        'circle-opacity': ['case', ['==', ['get', 'pie'], 1], 0, 0.72],
         'circle-stroke-color': ['case', hovered, ink, '#ffffff'],
         'circle-stroke-width': ['case', hovered, 1.6, 1],
       },

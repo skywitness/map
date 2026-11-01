@@ -189,7 +189,9 @@ export function bubbleLegendModel(indicator: Indicator, radius: ScalePower<numbe
     items[i].labelY = Math.max(items[i].labelY, items[i - 1].labelY + LABEL_GAP);
   }
   const height = Math.max(baseline, items[items.length - 1]?.labelY ?? 0) + 7;
-  return { items, maxR, baseline, labelX, width: labelX + 52, height };
+  // 標籤的寬度依字數估（11px 字：中日文約 11px、其他約 6.4px）；原本固定 52px，「1,000 TWh」會被切掉（2026-11-01）
+  const textWidth = Math.max(0, ...items.map(({ label }) => [...label].reduce((w, ch) => w + (/[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]/.test(ch) ? 11 : 6.4), 0)));
+  return { items, maxR, baseline, labelX, width: labelX + Math.max(52, Math.ceil(textWidth) + 2), height };
 }
 
 interface BubbleLegendProps {
@@ -202,6 +204,7 @@ interface BubbleLegendProps {
 export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
   const t = useT();
   const { items, maxR, baseline, labelX, width, height } = bubbleLegendModel(indicator, radius);
+  const pie = indicator.layer.kind === 'bubble' ? indicator.layer.pie : undefined;
   return (
     <div className="legend">
       <div className="legend-title">
@@ -223,6 +226,17 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
           </g>
         ))}
       </svg>
+      {pie && (
+        // 圓餅的各片（指標的 layer.pie）：兩欄的色塊與名稱，從 12 點鐘方向順時針的順序
+        <ul className="legend-categories legend-pie is-two-columns" style={{ '--rows': Math.ceil(pie.parts.length / 2) } as CSSProperties}>
+          {pie.parts.map((p) => (
+            <li key={p.indicator} className="legend-category">
+              <span className="legend-swatch" style={{ background: p.color }} />
+              <span className="legend-category-label">{p.label ?? p.indicator}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       <NoDataKey />
     </div>
   );

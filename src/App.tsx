@@ -86,6 +86,7 @@ import {
 } from './app/hooks';
 import { canAnalyse, groupOptions, pickYear } from './app/options';
 import { useOverlays, useSharedOverlays } from './app/overlays';
+import { usePies } from './app/pies';
 import { worldTrend } from './app/trend';
 import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
@@ -638,6 +639,8 @@ export function App() {
   const mapShot = useRef({ indicator, values, bubbleMax, title: indicatorTitle });
   if (!loading) mapShot.current = { indicator, values, bubbleMax, title: indicatorTitle };
   const onMap = mapShot.current;
+  // 比例圓畫成圓餅的指標（layer.pie）：各片的指標檔，地圖檢視才下載
+  const pies = usePies(topic, onMap.indicator, item, year, view === 'map' && !pure);
 
   // 網格（人口密度的 1 km 網格、暖化的 0.5° 網格）：只影響地圖；圖磚的 meta.json 載入後才畫，失敗時照常畫國家平均
   const gridSpec = pure ? undefined : indicator.grid;
@@ -1132,6 +1135,7 @@ export function App() {
                   indicator={onMap.indicator}
                   legendTitle={onMap.title}
                   values={onMap.values}
+                  pies={pies}
                   bubbleMax={onMap.bubbleMax}
                   tokens={tokens}
                   selected={state.country}

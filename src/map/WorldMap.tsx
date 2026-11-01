@@ -66,6 +66,7 @@ import {
   type OverlayLayer,
 } from './Overlays';
 import { syncContours } from './contours';
+import { pieTier, syncPieImages, type PieData } from './pies';
 import { applyTimeFilters, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
@@ -281,6 +282,8 @@ interface WorldMapProps {
    * cooperativeGestures，2026-11-01）；全螢幕時照常操作
    */
   cooperativeGestures?: boolean;
+  /** 比例圓畫成圓餅（指標的 layer.pie，App 的 usePies）：各國各片的值與顏色；null 是畫實心的圓 */
+  pies?: PieData | null;
   /** 地圖的操作（匯出圖片等）；不叫 ref：Preact 的函式元件收不到 ref 這個 prop（React 19 收得到） */
   handleRef?: Ref<WorldMapHandle>;
   /** 世界地圖主題的行政區（map/divisions.ts）：要畫哪一國的哪一層；null 是不畫 */
@@ -327,7 +330,7 @@ export function WorldMap(props: WorldMapProps) {
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -1045,6 +1048,8 @@ export function WorldMap(props: WorldMapProps) {
   const bubbleChangedRef = useRef(-Infinity);
   const bubbleRevisionRef = useRef(-1);
   const bubbleIndicatorRef = useRef<Indicator | null>(null);
+  /** 已經加到地圖上的圓餅圖片與它的內容（pies.ts 的 syncPieImages 比對，內容沒變就不重畫） */
+  const pieDrawnRef = useRef(new Map<string, string>());
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
@@ -1053,6 +1058,9 @@ export function WorldMap(props: WorldMapProps) {
     const target = new Map(entries.map(([iso3, v]) => [iso3, Math.max(BUBBLE_MIN_RADIUS, radius(v))]));
     const source = map.getSource('bubbles') as GeoJSONSource;
     const labelSource = map.getSource(BUBBLE_LABEL_SOURCE) as GeoJSONSource | undefined;
+    // 圓餅的解析度依這一年（漸變的終點）的半徑選，漸變中不換圖
+    const pieTiers = pies ? new Map([...target].map(([iso3, r]) => [iso3, pieTier(r)])) : null;
+    const pieSet = pies && pieTiers ? syncPieImages(map, pies, pieTiers, pieDrawnRef.current) : null;
     const draw = (radii: Map<string, number>) => {
       const features: GeoJSON.Feature[] = [];
       // 國名寫在圓的外面（只寫這一年有圓的國家，跟著漸變的半徑移動；消失中的圓改回底圖的國名）
@@ -1060,7 +1068,9 @@ export function WorldMap(props: WorldMapProps) {
       for (const [iso3, r] of radii) {
         const at = anchors.get(iso3);
         if (!at) continue;
-        if (r > 0.3) features.push({ type: 'Feature', properties: { iso3, r }, geometry: { type: 'Point', coordinates: at } });
+        // 圓餅（pies.ts）：有圓餅的國家多 pie、ps（圖片的解析度），圓本身變透明、symbol 圖層貼上圓餅
+        const ps = pieSet?.has(iso3) ? pieTiers!.get(iso3) : undefined;
+        if (r > 0.3) features.push({ type: 'Feature', properties: ps ? { iso3, r, pie: 1, ps } : { iso3, r }, geometry: { type: 'Point', coordinates: at } });
         if (target.has(iso3)) {
           labels.push({ type: 'Feature', properties: { label: countryName(iso3, countryTable, lang), r }, geometry: { type: 'Point', coordinates: at } });
         }
@@ -1110,7 +1120,7 @@ export function WorldMap(props: WorldMapProps) {
       geometry: circlePolygon(anchors.get(iso3)!, COLUMN_RADIUS_KM),
     }));
     (map.getSource('columns') as GeoJSONSource).setData({ type: 'FeatureCollection', features: columns });
-  }, [revision, values, radius, anchors, bubbleMax, indicator, countryTable, lang]);
+  }, [revision, values, radius, anchors, bubbleMax, indicator, countryTable, lang, pies]);
   useEffect(() => () => cancelAnimationFrame(bubbleFrameRef.current), []);
 
   // 資料第一次畫到地圖上：通知 App（之後才載入精細國界、預先下載），並留下 performance mark「map-data」
@@ -1613,6 +1623,7 @@ export function WorldMap(props: WorldMapProps) {
     show('extrude-tiny', slabs);
     show('extrude-columns', extrude && kind === 'bubble');
     show('bubbles', !extrude);
+    show('bubble-pies', !extrude);
     show(BUBBLE_LABEL_SOURCE, !extrude);
     show('data-tiny', !slabs && !gridOn && !flagsOn && !bare);
     show('data-border', !slabs && !bare);
@@ -1854,7 +1865,13 @@ export function WorldMap(props: WorldMapProps) {
               : null
             : threeD
               ? { kind: 'column', title, unit, model: columnLegendModel(indicator, bubbleMax), color: MAP_TOKENS.accent }
-              : { kind: 'bubble', title, unit, model: bubbleLegendModel(indicator, radius) };
+              : {
+                  kind: 'bubble',
+                  title,
+                  unit,
+                  model: bubbleLegendModel(indicator, radius),
+                  pie: indicator.layer.kind === 'bubble' ? indicator.layer.pie?.parts.map((p) => ({ color: p.color, label: p.label ?? p.indicator })) : undefined,
+                };
         // 網格：網格的分級、哪一期、不上色的格子
         const legend: ImageLegend | null = gridLegend
           ? {

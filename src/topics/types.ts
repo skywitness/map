@@ -31,7 +31,7 @@ export type LayerSpec =
   | { kind: 'choropleth'; scale: ScaleSpec; itemScales?: Record<string, ScaleSpec> }
   /** 比例圓：適合總量（人口數、發電量），圓面積與數值成正比 */
   /** legendValues 為 'auto' 時依資料最大值自動挑（各農產品的量級差很多） */
-  | { kind: 'bubble'; legendValues: number[] | 'auto' }
+  | { kind: 'bubble'; legendValues: number[] | 'auto'; pie?: PieSpec }
   /** 不依數值上色，只畫疊加圖層（例如鐵路與機場）；資料仍用於 tooltip 與排名 */
   | { kind: 'none' }
   /**
@@ -1184,6 +1184,15 @@ export type MoonOverlay = Localized<MoonOverlayDef>;
 export type LiveGridOverlay = Localized<LiveGridOverlayDef>;
 export type ClassGridOverlay = Localized<ClassGridOverlayDef>;
 export type WindOverlay = Localized<WindOverlayDef>;
+
+/**
+ * 比例圓畫成圓餅（2026-11-01，`map/pies.ts`）：圓的大小照這個指標，各片是同一個主題其他指標（parts 的 indicator）
+ * 那一年的值，依 parts 的順序從 12 點鐘方向順時針排、用 parts 的顏色；各片的值照比例分一整圈（占比加起來不必剛好 100）。
+ * 這一年各片都沒有值的國家照舊畫實心的圓。圖例在比例圓下面列出各片的顏色與指標名稱（label 可以另外寫短的）
+ */
+export interface PieSpec {
+  parts: { indicator: string; color: string; label?: Text }[];
+}
 
 export function indicatorPath(
   topic: Pick<Topic, 'id' | 'dimension' | 'dataTopic'>,

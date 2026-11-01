@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
-import { OPERATING_PLANTS, powerPlants } from './power-plants';
+import { FUELS, OPERATING_PLANTS, powerPlants } from './power-plants';
 import type { IndicatorDef, Text, TopicDefinition } from './types';
 
 const twh = (v: number) => `${fixed(v, v < 10 ? 2 : v < 1000 ? 1 : 0)} TWh`;
@@ -31,6 +31,20 @@ function fuelShare(id: string, label: Text, description: Text, thresholds: numbe
 }
 
 const NO_TWN = { TWN: { zh: '沒有（見附註）', en: 'None (see note)' } };
+
+const fuel = (id: string) => FUELS.find((f) => f.id === id)!.color;
+/** 總發電量的圓餅：化石燃料（燃煤、燃氣、其他化石）、核能、再生能源（水力、風力、太陽能、生質能、其他再生）依序排 */
+const GENERATION_MIX = [
+  { indicator: 'coal-share', color: fuel('coal'), label: { zh: '燃煤', en: 'Coal' } },
+  { indicator: 'gas-share', color: fuel('oil-gas'), label: { zh: '燃氣', en: 'Gas' } },
+  { indicator: 'other-fossil-share', color: '#8f8a84', label: { zh: '燃油等其他化石', en: 'Oil and other fossil' } },
+  { indicator: 'nuclear-share', color: fuel('nuclear'), label: { zh: '核能', en: 'Nuclear' } },
+  { indicator: 'hydro-share', color: fuel('hydro'), label: { zh: '水力', en: 'Hydro' } },
+  { indicator: 'wind-share', color: fuel('wind'), label: { zh: '風力', en: 'Wind' } },
+  { indicator: 'solar-share', color: fuel('solar'), label: { zh: '太陽能', en: 'Solar' } },
+  { indicator: 'bioenergy-share', color: fuel('bioenergy'), label: { zh: '生質能', en: 'Bioenergy' } },
+  { indicator: 'other-renewables-share', color: fuel('geothermal'), label: { zh: '地熱等其他再生', en: 'Geothermal and other renewables' } },
+];
 
 export const electricity: TopicDefinition = {
   id: 'electricity',
@@ -70,12 +84,13 @@ export const electricity: TopicDefinition = {
       id: 'generation',
       label: { zh: '總發電量', en: 'Electricity generation' },
       description: {
-        zh: '一年的總發電量，1 TWh 等於 10 億度。圓的面積與發電量成正比。',
-        en: 'Total electricity generated in a year; 1 TWh is 1 billion kWh. Circle area is proportional to generation.',
+        zh: '一年的總發電量，1 TWh 等於 10 億度。圓的面積與發電量成正比，圓餅的各片是各能源的占比（燃煤、燃氣、核能、水力、風力、太陽能…）。',
+        en: 'Total electricity generated in a year; 1 TWh is 1 billion kWh. Circle area is proportional to generation, and the slices show each source’s share (coal, gas, nuclear, hydro, wind, solar…).',
       },
       unit: 'TWh',
       file: 'generation.json',
-      layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+      // 圓餅（2026-11-01）：各能源的占比，顏色跟發電廠地圖的燃料一樣（燃煤、燃氣、核能…）
+      layer: { kind: 'bubble', legendValues: [10, 100, 1000], pie: { parts: GENERATION_MIX } },
       format: twh,
       formatTick: (v) => `${fixed(v, 0)} TWh`,
       shareOfWorld: true,

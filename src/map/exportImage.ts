@@ -76,7 +76,7 @@ export type ImageLegend =
       /** 灰色那一格的說明，取代「無資料」（指標的 missing） */
       noDataKey?: string;
     }
-  | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel }
+  | { kind: 'bubble'; title: string; unit: string; model: BubbleLegendModel; pie?: { color: string; label: string }[] }
   /** 3D 模式的柱子 */
   | { kind: 'column'; title: string; unit: string; model: ColumnLegendModel; color: string }
   /** 流向圖：線寬樣本與流向說明 */
@@ -483,10 +483,25 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
   }
 
   const { items, maxR, baseline, labelX, width, height } = legend.model;
+  // 圓餅的各片（跟畫面上的 .legend-pie 一樣兩欄）
+  const pie = legend.pie ?? [];
+  const pieRows = Math.ceil(pie.length / 2);
+  const pieCell = 16 + 6 + Math.max(0, ...pie.map((p) => ctx.measureText(p.label).width));
+  const pieHeight = pieRows ? 6 + pieRows * CATEGORY_ROW : 0;
   return {
-    width: Math.max(titleTotal, width, noDataWidth),
-    height: top + height + NO_DATA_ROW,
+    width: Math.max(titleTotal, width, noDataWidth, pie.length > 1 ? pieCell * 2 + CATEGORY_GAP : pieCell),
+    height: top + height + pieHeight + NO_DATA_ROW,
     draw: () => {
+      pie.forEach(({ label, color }, i) => {
+        const x = Math.floor(i / pieRows) * (pieCell + CATEGORY_GAP);
+        const y = top + height + 6 + (i % pieRows) * CATEGORY_ROW + CATEGORY_ROW / 2;
+        ctx.fillStyle = color;
+        roundRect(ctx, x, y - 5, 16, 10, 2);
+        ctx.fill();
+        ctx.font = `11px ${font}`;
+        ctx.fillStyle = tokens.ink;
+        ctx.fillText(label, x + 22, y);
+      });
       drawTitle();
       ctx.font = `11px ${font}`;
       ctx.lineWidth = 1;
@@ -504,7 +519,7 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
         ctx.fillStyle = tokens.inkSecondary;
         ctx.fillText(label, labelX, top + labelY);
       }
-      drawNoData(top + height);
+      drawNoData(top + height + pieHeight);
     },
   };
 }

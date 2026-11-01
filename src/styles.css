@@ -3206,6 +3206,16 @@ kbd {
   cursor: pointer;
 }
 
+/* 圓餅的各片（比例圓圖例的下面，2026-11-01）：不能點，只是說明 */
+.legend-pie {
+  margin-top: 6px;
+  pointer-events: none;
+}
+
+.legend-pie .legend-category {
+  cursor: default;
+}
+
 .legend-category.is-faded {
   opacity: 0.4;
 }
