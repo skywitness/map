@@ -612,6 +612,12 @@ export interface PointsOverlayDef extends OverlayBase {
    */
   more?: { minZoom: number };
   /**
+   * 縮小時畫成熱度圖（2026-11-01，MapLibre 範例「Create a heatmap layer」；overlayLayers.ts 的 heatLayer）：只在指標的
+   * overlayTime 是累積或幾年（點多）時，maxZoom（含）以下改畫依 weight 加權的密度，maxZoom 到 maxZoom + 1 之間漸漸換成一個個點；
+   * 只有一年的點少，照舊畫點。label 寫在圖例（「縮小時畫成密度…」）
+   */
+  heatmap?: { maxZoom: number; weight?: { field: string; stops: [number, number][] }; label: Text };
+  /**
    * 縮小時聚成甜甜圈（2026-11-01，map/clusterDonuts.ts）：maxZoom（含）以下，同一區（radius px，預設 50）的點聚成一個
    * 甜甜圈，各片是各類（color 的 ColorClasses）的個數，或 weight 欄位（電廠的 MW）的總和；size 是總數 → 半徑（px），
    * format 寫在中間，title 是無障礙標籤的開頭（「這一區的裝置容量 」）。有時間篩選的照時間軸那一年送資料。color 要是分類的

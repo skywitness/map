@@ -468,6 +468,8 @@ pipeline/
   - 圖例在比例圓下面兩欄列出各片的顏色與名稱（`.legend-pie`，匯出的圖片也有）。
   - 發電量：燃煤、燃氣、燃油等其他化石、核能、水力、風力、太陽能、生質能、地熱等其他再生九片，顏色跟發電廠地圖的燃料一樣（`FUELS`；燃油等其他化石用灰色）。
   - 順便修了比例圓圖例的標籤寬度：原本固定留 52px，「1,000 TWh」會被切掉，改成依字數估（`bubbleLegendModel`）。
+- **點多時縮小畫成熱度圖**（2026-11-01，使用者看過 MapLibre 範例後選的；點圖層的 `heatmap`，`overlayLayers.ts` 的 `heatLayer`，第一個用在地震）：同一個點的 source 多一個 heatmap 圖層（`~heat`，畫在點的下面），只在指標的 `overlayTime` 是累積或幾年（點多）時打開，篩選跟點一樣依時間軸（heatmap 圖層可以用 filter，不必像甜甜圈那樣先篩資料）；`maxZoom`（含）以下畫密度，`maxZoom` 到 `maxZoom + 1` 之間熱度淡出、點從 `maxZoom` 起畫（兩者交疊一級，換得比較順）。只有一年的點少，照舊都是點。顏色淡黃 → 深紅（透明起頭，點少的地方看得到底圖，`HEAT_COLORS`），半徑 5–16 px、強度 0.25–0.5（依縮放），權重依 `weight` 欄位。圖例在那個點圖層下面多一行橘色色塊「縮小時畫成密度…」。滑過熱度圖沒有 tooltip（放大後的點照舊有）。
+  - **地震**：規模 6 以上、規模 5–6 兩個點圖層都有，3 級以下畫熱度；權重依規模（6 級 0.3、7 級 0.75、8 級 1.9、9 級 4.7，每多 1 級約 2.5 倍；5–6 的 5 級 0.12）。累積到 2026 年時環太平洋、喜馬拉雅一帶最紅，大陸內部淡；強度原本太高整條地震帶都是最深的紅，截圖後調低。
 - **點圖層縮小時聚成甜甜圈**（2026-11-01，使用者看過 MapLibre 範例後選的；`map/clusterDonuts.ts`、點圖層的 `cluster`，第一個用在發電廠地圖的運轉中電廠與世界遺產）：
   - 另一個開了 cluster 的 GeoJSON source（`<點圖層>~cl`，`overlayLayers.ts` 的 `syncOverlays` 加上），`clusterProperties` 依點的分類（`color` 的 ColorClasses，`classTest` 跟顏色的 step 同一套門檻）加總個數或 `weight` 欄位（電廠的 MW），放在 `c0`、`c1`…。聚合是 source 層級的，不能用圖層的 filter 依時間軸篩，所以有 `timeField` 的在瀏覽器裡先篩好那一年的點再送（`applyTimeFilters` 的 `sendClustered`，規則跟 `timeFilter` 一樣；同一份資料、同一年不重送）。
   - 聚在一起的畫成 HTML 標記（MapLibre 的 Marker，範例「Display HTML clusters with custom properties」的做法）：SVG 甜甜圈，各片從 12 點鐘方向順時針、依分類的順序，中間的洞放得下才寫總數（canvas 量字寬，10px 放不下試 9px），大小是 `size(總數)`；`title`、`aria-label` 寫「這一區運轉中電廠的裝置容量 1,846 GW：燃煤 53%、水力 16%…」（前四類）。點一下放大到分開（`getClusterExpansionZoom`，最多到 maxZoom + 1），滑鼠、觸控事件不往地圖傳（不會同時選到底下的國家）。地球儀背面的 MapLibre 會加上 `maplibregl-marker-covered`，原本是 20% 不透明（背面的疊在正面上很亂），改成 `opacityWhenCovered: '0'`、不能點。

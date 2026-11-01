@@ -62,6 +62,42 @@ const HIT_WIDTH = 9;
 /** 分區的 source 與圖層、標出的那一組的 source（見檔頭） */
 const DETAIL_SUFFIX = '~d';
 const HIGHLIGHT_SUFFIX = '~h';
+/** 縮小時的熱度圖（PointsOverlayDef.heatmap）：同一個 source 的另一個圖層 */
+export const HEAT_SUFFIX = '~heat';
+/** 熱度的顏色：淡黃到深紅（透明起頭，點少的地方看得到底圖），跟圖例的色塊一樣 */
+export const HEAT_COLORS: [number, string][] = [
+  [0, 'rgba(255, 237, 160, 0)'],
+  [0.15, 'rgba(254, 217, 118, 0.6)'],
+  [0.35, '#feb24c'],
+  [0.55, '#fd8d3c'],
+  [0.75, '#e31a1c'],
+  [1, '#800026'],
+];
+
+function heatLayer(def: PointsOverlay): LayerSpecification {
+  const heat = def.heatmap!;
+  const id = OVERLAY_PREFIX + def.id;
+  return {
+    id: id + HEAT_SUFFIX,
+    type: 'heatmap',
+    source: id,
+    maxzoom: heat.maxZoom + 1,
+    layout: { visibility: 'none' },
+    paint: {
+      'heatmap-weight': heat.weight
+        ? (['interpolate', ['linear'], ['coalesce', ['get', heat.weight.field], heat.weight.stops[0][0]], ...heat.weight.stops.flat()] as ExpressionSpecification)
+        : 1,
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 5, 2, 9, 3, 12, 4, 16],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.25, 3, 0.5],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], ...HEAT_COLORS.flat()] as ExpressionSpecification,
+      'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], heat.maxZoom, 0.85, heat.maxZoom + 1, 0],
+    },
+  };
+}
+
+/** 點多的時間模式（累積、幾年）才畫熱度圖 */
+const manyPoints = (mode: IndicatorDef['overlayTime']) => mode === 'cumulative' || typeof mode === 'number';
+
 /** 聚成甜甜圈的點圖層（PointsOverlayDef.cluster）：開了 cluster 的 source 與沒聚在一起的點的圖層 */
 export const CLUSTER_SUFFIX = '~cl';
 
@@ -840,6 +876,8 @@ export function syncOverlays(
         }
         // 文字放在最上面：MapLibre 依圖層由上往下排字，放在底圖地名的下面時會被國名、城市名擋掉
         if (o.def.pointLabel) map.addLayer(pointLabelLayer(o.def, dark, labelFont(map, /place|country|city/)));
+        // 熱度圖畫在點的下面（applyTimeFilters 依時間模式打開）
+        if (o.def.heatmap) map.addLayer(heatLayer(o.def), id);
       } else {
         for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, before(LINES_BEFORE));
       }
@@ -897,6 +935,13 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
     const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
     if (o.kind === 'points') {
       if (o.def.cluster) sendClustered(map, o, year, mode);
+      if (o.def.heatmap && map.getLayer(id + HEAT_SUFFIX)) {
+        // 點多的時候縮小畫熱度、maxZoom 起換成點；點少（只有一年）時照舊都是點
+        const heat = Boolean(o.visible && o.points) && manyPoints(mode);
+        map.setFilter(id + HEAT_SUFFIX, pointFilter(o.def, year, mode));
+        map.setLayoutProperty(id + HEAT_SUFFIX, 'visibility', heat ? 'visible' : 'none');
+        map.setLayerZoomRange(id, heat ? o.def.heatmap.maxZoom : (o.def.minZoom ?? 0), 24);
+      }
       if (!o.def.timeField && !o.def.minValue) continue;
       if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));
       if (map.getLayer(id + LABEL_SUFFIX)) map.setFilter(id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, year, mode) ?? null]));

@@ -244,6 +244,10 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       rows: classes.classes.map((c) => ({ shape, size: 4, color: c.color, label: c.label })),
     });
   }
+  if (def.heatmap) {
+    // 熱度圖（縮小時，點多的指標）：一格中間的顏色
+    details.push({ layout: 'rows', rows: [{ shape: 'fill', size: 5, color: '#fd8d3c', opacity: 0.85, label: def.heatmap.label }] });
+  }
   if (def.sizeLegend) {
     const { title, values, format } = def.sizeLegend;
     details.push({

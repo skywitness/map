@@ -364,6 +364,11 @@ export const earthquakes: TopicDefinition = {
       color: DEPTH,
       sortField: 'mag',
       timeField: 'year',
+      heatmap: {
+        maxZoom: 3,
+        weight: { field: 'mag', stops: [[5, 0.12], [6, 0.3]] },
+        label: { zh: '縮小時畫成密度（累積、十年的指標，依規模加權，越紅越多）', en: 'Zoomed out: density (cumulative and decade views, weighted by magnitude; redder is more)' },
+      },
       tooltip: quakeTooltip,
     },
     {
@@ -376,6 +381,12 @@ export const earthquakes: TopicDefinition = {
       color: DEPTH,
       sortField: 'mag',
       timeField: 'year',
+      // 累積、十年的指標點很多：世界全圖畫依規模加權的密度（規模每多 1 級約 2.5 倍），放大到 3–4 級換成一個個地震（2026-11-01）
+      heatmap: {
+        maxZoom: 3,
+        weight: { field: 'mag', stops: [[6, 0.3], [7, 0.75], [8, 1.9], [9, 4.7]] },
+        label: { zh: '縮小時畫成密度（累積、十年的指標，依規模加權，越紅越多）', en: 'Zoomed out: density (cumulative and decade views, weighted by magnitude; redder is more)' },
+      },
       sizeLegend: { title: { zh: '規模', en: 'Magnitude' }, values: [6, 7, 8, 9], format: magnitude },
       tooltip: quakeTooltip,
     },
