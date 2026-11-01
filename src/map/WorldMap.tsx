@@ -103,7 +103,7 @@ import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, LocateIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 import { Pins, type PinConfig } from './pins';
-import { syncSatelliteDay, validDay } from './satelliteDay';
+import { loadDayTile, SATELLITE_PROTOCOL, syncSatelliteDay, validDay } from './satelliteDay';
 import {
   BARE_SEA,
   CALM_SEA,
@@ -182,6 +182,8 @@ addProtocol(FLAG_PROTOCOL, loadFlagTile);
 addProtocol(RELIEF_PROTOCOL, loadReliefTile);
 // PMTiles（大的線與面圖層，map/pmtiles.ts）：pmtiles 套件第一次讀圖磚時才下載
 addProtocol(PMTILES_PROTOCOL, loadPmtiles);
+// 那一天的衛星照片：幾顆衛星的圖磚疊起來補黑縫（map/satelliteDay.ts）
+addProtocol(SATELLITE_PROTOCOL, loadDayTile);
 
 interface WorldMapProps {
   countries: CountryFeature[];

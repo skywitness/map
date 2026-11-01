@@ -328,7 +328,7 @@ export const typhoons: TopicDefinition = {
   },
   sources: [
     {
-      name: { zh: 'NASA GIBS：MODIS Terra 每日真彩影像（那一天的衛星照片）', en: 'NASA GIBS: MODIS Terra daily true colour (satellite image of the day)' },
+      name: { zh: 'NASA GIBS：VIIRS、MODIS 每日真彩影像（那一天的衛星照片）', en: 'NASA GIBS: VIIRS and MODIS daily true colour (satellite image of the day)' },
       url: 'https://nasa-gibs.github.io/gibs-api-docs/',
       license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
     },

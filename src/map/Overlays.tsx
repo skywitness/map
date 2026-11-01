@@ -297,7 +297,7 @@ export const LAYER_KEYS: LayerKey[] = [
   },
   { key: 'hillshade', source: 'terrain', label: { zh: '地形陰影', en: 'Hillshade' }, shape: 'shade', size: 5 },
   { key: 'contours', source: 'relief', label: { zh: '等高線（放大後）', en: 'Contour lines (zoomed in)' }, shape: 'line', size: 1 },
-  { key: 'satellite', source: 'satellite', label: { zh: '那一天的衛星照片（NASA MODIS）', en: 'Satellite image of the day (NASA MODIS)' }, shape: 'shade', size: 5 },
+  { key: 'satellite', source: 'satellite', label: { zh: '那一天的衛星照片（NASA）', en: 'Satellite image of the day (NASA)' }, shape: 'shade', size: 5 },
 ];
 
 /** 圖層開關是不是開著：舊的記錄沒有的項目（contours）照預設 */
