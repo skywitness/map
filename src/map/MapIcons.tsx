@@ -48,6 +48,13 @@ export const ResetIcon = () => (
   </Icon>
 );
 
+/** 定位我：導航箭頭（2026-11-01） */
+export const LocateIcon = () => (
+  <Icon>
+    <path d="M15.5 2.5 2.5 8l5.5 2 2 5.5Z" />
+  </Icon>
+);
+
 /** 現在是地球儀，按了換成平面：攤開的地圖 */
 export const FlatIcon = () => (
   <Icon>

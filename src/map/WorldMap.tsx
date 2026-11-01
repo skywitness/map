@@ -16,6 +16,7 @@ import {
   addProtocol,
   GPUInitializationError,
   Map as MaplibreMap,
+  Marker,
   setWorkerUrl,
   type ExpressionSpecification,
   type GeoJSONSource,
@@ -99,7 +100,8 @@ import { MoreMenu, type MoreMenuItem } from './MoreMenu';
 import { PlacePopup } from './PlacePopup';
 import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
-import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
+import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, LocateIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
+import { Pins, type PinConfig } from './pins';
 import {
   BARE_SEA,
   CALM_SEA,
@@ -283,6 +285,13 @@ interface WorldMapProps {
    * cooperativeGestures，2026-11-01）；全螢幕時照常操作
    */
   cooperativeGestures?: boolean;
+  /** 地圖上的觀察點（主題的 pin，map/pins.ts）；null 是沒有 */
+  pin?: PinConfig | null;
+  /**
+   * 「定位我」取得使用者的位置後（地圖已經飛過去）：有觀察點的主題把它放到這裡（App）；沒有給的時候地圖自己放一個
+   * 「你在這裡」的點，8 秒後拿掉
+   */
+  onLocate?: (at: [number, number]) => void;
   /** 清單側欄點了一組線（颱風、航程）：線圖層有 animate 時，一個點沿著那條線走一次（key 變了就重來） */
   routeAnimation?: { overlay: string; group: number; key: number } | null;
   /** 比例圓畫成圓餅（指標的 layer.pie，App 的 usePies）：各國各片的值與顏色；null 是畫實心的圓 */
@@ -333,7 +342,7 @@ export function WorldMap(props: WorldMapProps) {
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null, routeAnimation = null } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null, routeAnimation = null, pin = null, onLocate } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -1285,6 +1294,55 @@ export function WorldMap(props: WorldMapProps) {
     return () => document.removeEventListener('fullscreenchange', sync);
   }, [ready, cooperativeGestures]);
 
+  /* ── 觀察點（主題的 pin，pins.ts）：標記是 HTML，換底圖不受影響；拿掉地圖時一起拿掉 ── */
+  const pinsRef = useRef<Pins | null>(null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    pinsRef.current ??= new Pins(map);
+    pinsRef.current.set(pin);
+  }, [ready, pin]);
+  useEffect(() => () => pinsRef.current?.remove(), []);
+
+  /* ── 定位我（2026-11-01，MapLibre 範例「Locate the user」的想法，用瀏覽器的 geolocation，位置只在這台裝置用） ── */
+  const [locating, setLocating] = useState<'busy' | 'failed' | null>(null);
+  const hereRef = useRef<{ marker: Marker; timer: number } | null>(null);
+  const locate = () => {
+    const map = mapRef.current;
+    if (!map || !('geolocation' in navigator)) {
+      setLocating('failed');
+      return;
+    }
+    setLocating('busy');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocating(null);
+        const at: [number, number] = [coords.longitude, coords.latitude];
+        map.flyTo({ center: at, zoom: Math.max(map.getZoom(), 4), duration: 1200 });
+        if (onLocate) {
+          onLocate(at);
+          return;
+        }
+        if (hereRef.current) {
+          hereRef.current.marker.remove();
+          clearTimeout(hereRef.current.timer);
+        }
+        const el = document.createElement('div');
+        el.className = 'map-pin is-here';
+        el.setAttribute('role', 'img');
+        el.setAttribute('aria-label', t.youAreHere);
+        el.innerHTML = '<span class="map-pin-dot"></span>';
+        const marker = new Marker({ element: el, anchor: 'center', opacityWhenCovered: '0' }).setLngLat(at).addTo(map);
+        hereRef.current = { marker, timer: window.setTimeout(() => marker.remove(), 8000) };
+      },
+      () => {
+        setLocating('failed');
+        window.setTimeout(() => setLocating((s) => (s === 'failed' ? null : s)), 4000);
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
+    );
+  };
+
   /* ── 沿路線移動的點（線圖層的 animate，routeAnimation.ts）：清單側欄點一組線時走一次；換一組、換主題、換底圖時停 ── */
   useEffect(() => {
     const map = mapRef.current;
@@ -2012,6 +2070,9 @@ export function WorldMap(props: WorldMapProps) {
         >
           <ResetIcon />
         </button>
+        <button type="button" onClick={locate} aria-label={t.locateMe} title={t.locateMe} aria-busy={locating === 'busy'}>
+          <LocateIcon />
+        </button>
         <button
           type="button"
           onClick={() => !flatIn3d && setGlobe((g) => !g)}
@@ -2098,6 +2159,7 @@ export function WorldMap(props: WorldMapProps) {
       </div>
 
       {boxMode && <div className="map-hint">{t.boxHint}</div>}
+      {locating === 'failed' && <div className="map-hint">{t.locateFailed}</div>}
       {flowHint && !threeDHint && <div className="map-hint">{flowHint}</div>}
       {gridFailed && !boxMode && !threeDHint && <div className="map-hint">{gridLabels(indicator.grid ?? { dir: '' }, lang).failed}</div>}
       {threeDHint && (

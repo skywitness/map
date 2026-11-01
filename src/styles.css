@@ -3218,6 +3218,67 @@ kbd {
   cursor: pointer;
 }
 
+/* 地圖上的觀察點（map/pins.ts，2026-11-01）：圓點加旁邊的小卡；可以拖的游標是手，鍵盤移到時有外框。
+   位置由 MapLibre 的 .maplibregl-marker（absolute）決定，這裡不寫 position */
+.map-pin {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+}
+
+.map-pin[role='slider'] {
+  cursor: grab;
+}
+
+.map-pin[role='slider']:active {
+  cursor: grabbing;
+}
+
+.map-pin:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+.map-pin-dot {
+  width: 14px;
+  height: 14px;
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  background: #2f6fdf;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.map-pin.is-pair .map-pin-dot {
+  background: #e8590c;
+}
+
+/* 「定位我」的你在這裡：淡淡的一圈光暈 */
+.map-pin.is-here .map-pin-dot {
+  box-shadow: 0 0 0 6px rgba(47, 111, 223, 0.25), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.map-pin-label {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.map-pin-label:empty {
+  display: none;
+}
+
 /* 點圖層縮小時聚成的甜甜圈（map/clusterDonuts.ts，2026-11-01）：中間寫總數，點一下放大 */
 .cluster-donut {
   /* 位置由 MapLibre 的 .maplibregl-marker（absolute）決定，這裡不能寫 position */

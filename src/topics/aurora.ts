@@ -295,6 +295,8 @@ export const aurora: TopicDefinition = {
   panelExtra: () => import('./panels/AuroraPanel'),
   tooltipLines,
   pointer,
+  // 「定位我」時在你的位置放一個標記，旁邊寫這一點的資訊（跟滑鼠滑過時一樣；2026-11-01）
+  pin: { draggable: false },
   overlays: [
     {
       kind: 'night',

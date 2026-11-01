@@ -227,6 +227,17 @@ function pointer(
   };
 }
 
+/** 觀察點（TopicDefinition.pin，2026-11-01）旁邊的字：這一點在哪一國或哪一片海，與經緯度 */
+function pinLabel(
+  [lon, lat]: [number, number],
+  { countryAt, countryName }: { countryAt: (lon: number, lat: number) => string | null; countryName: (iso3: string) => string },
+): string[] {
+  const seas = lazyJson<SeasFile>(SEAS_PATH);
+  const here = countryAt(lon, lat);
+  const name = here ? countryName(here) : seas ? seaName(seas, seaAt(seas, lon, lat)) : '…';
+  return [name, formatLatLon(lon, lat)];
+}
+
 /** 對蹠點落在哪裡的名稱：國家（目前語言的國名）或海 */
 export function targetName(target: string | number, seas: SeasFile | null, countryName: (iso3: string) => string): string {
   return typeof target === 'string' ? countryName(target) : seas ? seaName(seas, target) : '…';
@@ -360,5 +371,7 @@ export const antipodes: TopicDefinition = {
   ],
   indicators,
   pointer,
+  // 一對可以拖的標記：這裡與它的對蹠點（2026-11-01，使用者選的 MapLibre 範例「draggable Marker」）；預設在台北
+  pin: { pair: 'antipode', draggable: true, default: [121.565, 25.033], label: pinLabel },
   tooltipLines,
 };

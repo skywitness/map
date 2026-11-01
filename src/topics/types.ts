@@ -1147,6 +1147,18 @@ export interface TopicDefinition {
     },
   ) => PointerInfo | null;
   /**
+   * 地圖上的觀察點（2026-11-01，map/pins.ts）：一個標記，旁邊寫 label（沒給的話用 pointer 的資訊）。
+   * pair 是 'antipode' 時多一個它的對蹠點，兩個一起移動（地球的另一邊）。draggable 的可以拖、可以用方向鍵移動，
+   * 位置記在網址（pin=經度,緯度），沒有時放在 default；右上角「定位我」把它放到使用者的位置（不寫進網址，分享時不會帶出去）
+   */
+  pin?: {
+    pair?: 'antipode';
+    draggable: boolean;
+    default?: [number, number];
+    /** ctx 跟 pointer 的一樣（iso3 是這一點所在的國家） */
+    label?: (lngLat: [number, number], ctx: Parameters<NonNullable<TopicDefinition['pointer']>>[1]) => string[];
+  };
+  /**
    * 某些國家沒有值的原因，取代 tooltip 與側欄的「無資料」（key 是 ISO alpha-3）：
    * 例如台灣的外交主題裡台灣是觀點、中國大陸與香港由陸委會主管，寫「無資料」會誤導
    */

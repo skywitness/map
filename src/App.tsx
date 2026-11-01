@@ -87,6 +87,7 @@ import {
 import { canAnalyse, groupOptions, pickYear } from './app/options';
 import { useOverlays, useSharedOverlays } from './app/overlays';
 import { usePies } from './app/pies';
+import type { PinConfig } from './map/pins';
 import { worldTrend } from './app/trend';
 import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
@@ -573,6 +574,40 @@ export function App() {
     return (lngLat: [number, number], iso3: string | null) =>
       topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at });
   }, [topicPointer, features, countries, indicatorId, year, at]);
+  // 地圖上的觀察點（主題的 pin，map/pins.ts）：網址的 pin=、主題的預設，或「定位我」的位置（localPin，不寫進網址）
+  const topicPin = pure ? undefined : topic.pin;
+  const [localPin, setLocalPin] = useState<{ topic: string; at: [number, number] } | null>(null);
+  const pinAt = (localPin?.topic === topic.id ? localPin.at : null) ?? state.pin ?? topicPin?.default ?? null;
+  const pinConfig = useMemo<PinConfig | null>(() => {
+    if (!topicPin || !pinAt || !features) return null;
+    const countryAt = countryLocator(features);
+    const custom = topicPin.label;
+    const label = custom
+      ? (ll: [number, number]) =>
+          custom(ll, { iso3: countryAt(ll[0], ll[1]), countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at })
+      : (ll: [number, number]) => {
+          const info = pointer?.(ll, countryAt(ll[0], ll[1]));
+          return info ? [info.title, ...info.lines].filter((x): x is string => Boolean(x)) : [];
+        };
+    return {
+      at: pinAt,
+      pair: topicPin.pair === 'antipode',
+      draggable: topicPin.draggable,
+      label,
+      names: [t.pinMain, t.pinPair],
+      otherSide: t.pinOtherSide,
+      onMove: (at) => {
+        setLocalPin(null);
+        update({ pin: at }, { replace: true });
+      },
+    };
+    // pinAt 依數值比較（每次 render 都是新的陣列）
+  }, [topicPin, pinAt?.[0], pinAt?.[1], features, countries, pointer, t, update, indicatorId, year, at]);
+  const onLocate = useMemo(() => (topicPin ? (at: [number, number]) => setLocalPin({ topic: topic.id, at }) : undefined), [topicPin, topic.id]);
+  // 換到沒有觀察點的主題：網址的 pin= 拿掉
+  useEffect(() => {
+    if (state.pin && !topic.pin) update({ pin: null }, { replace: true });
+  }, [topic.id]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
 
@@ -1141,6 +1176,8 @@ export function App() {
                   values={onMap.values}
                   pies={pies}
                   routeAnimation={routeAnim && routeAnim.topic === topic.id ? routeAnim : null}
+                  pin={view === 'map' ? pinConfig : null}
+                  onLocate={onLocate}
                   bubbleMax={onMap.bubbleMax}
                   tokens={tokens}
                   selected={state.country}

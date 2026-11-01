@@ -427,13 +427,17 @@ const ZONE_HOW: Record<'nearest' | 'sea', Text> = {
   sea: { zh: '海上用經度的時區', en: 'nautical time zone at sea' },
 };
 
-function pointer([lon, lat]: [number, number], ctx: { iso3: string | null; indicator: string; at: ClockAt | null }) {
+const CURSOR_HERE = { zh: '游標這一點', en: 'Here' };
+/** 「定位我」的標記（TopicDefinition.pin）旁邊寫的 */
+const PIN_HERE = { zh: '你的位置', en: 'Your location' };
+
+function pointer([lon, lat]: [number, number], ctx: { iso3: string | null; indicator: string; at: ClockAt | null }, place: { zh: string; en: string } = CURSOR_HERE) {
   const file = capitalsNow();
   if (!file || !ctx.at) return null;
   const { zone, std, how } = zoneAt(file, ctx.iso3, lat, lon);
   const here: Place = { lat, lon, zone, std, zh: '', en: '', capital: false };
   const sun = sunOn(here, ctx.at.day);
-  const where = tr({ zh: `游標這一點（${lonLatText(lon, lat)}）：`, en: `Here (${lonLatText(lon, lat)}): ` });
+  const where = tr({ zh: `${place.zh}（${lonLatText(lon, lat)}）：`, en: `${place.en} (${lonLatText(lon, lat)}): ` });
   const lines: string[] = [];
   if (ctx.indicator === 'moon') lines.push(`${where}${moonRiseSetText(here, moonOn(here, ctx.at.day), ctx.at.day)}`, riseSetText(here, sun));
   else lines.push(`${where}${riseSetText(here, sun)}`);
@@ -534,6 +538,8 @@ export const daylight: TopicDefinition = {
   noValue: { ATA: NO_CAPITAL, HMD: NO_CAPITAL, _SIA: NO_CAPITAL },
   tooltipLines,
   pointer,
+  // 「定位我」時在你的位置放一個標記，旁邊寫那裡的日出日落、白天長度、太陽高度（跟滑鼠滑過時一樣；2026-11-01）
+  pin: { draggable: false, label: (ll, ctx) => pointer(ll, ctx, PIN_HERE)?.lines ?? [] },
   overlays: [
     {
       kind: 'night',

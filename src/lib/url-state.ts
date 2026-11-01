@@ -43,6 +43,8 @@ export interface ViewState {
    * 國家代碼、第一級、第二級的 id（map/divisions.ts）；null 是世界
    */
   div: string | null;
+  /** 地圖上的觀察點（pin=121.565,25.033，經度,緯度，2026-11-01，TopicDefinition.pin）；拖過才寫，定位的不寫 */
+  pin: [number, number] | null;
 }
 
 /** div= 的格式：國家代碼，後面最多兩段「-代碼」（map/divisions.ts 的 id） */
@@ -171,7 +173,15 @@ export function read(): ViewState {
     listSort: p.get('lsort'),
     analysis: readAnalysis(p),
     div: DIV_PATTERN.test(p.get('div') ?? '') ? p.get('div') : null,
+    pin: parsePin(p.get('pin')),
   };
+}
+
+function parsePin(text: string | null): [number, number] | null {
+  const nums = text?.split(',').map(Number);
+  return nums && nums.length === 2 && nums.every(Number.isFinite) && Math.abs(nums[0]) <= 180 && Math.abs(nums[1]) <= 90
+    ? [nums[0], nums[1]]
+    : null;
 }
 
 function parseNumbers(text: string | null): Box | null {
@@ -234,6 +244,7 @@ function buildUrl(state: ViewState): string {
   if (state.labels) p.set('vals', '1');
   if (state.listSort) p.set('lsort', state.listSort);
   if (state.div) p.set('div', state.div);
+  if (state.pin) p.set('pin', state.pin.map((v) => v.toFixed(3)).join(','));
   // 分析的設定只在分析檢視時寫（換回地圖時網址保持乾淨；設定照樣留在狀態裡，切回來還在）
   if (state.view === 'analysis') writeAnalysis(p, state.analysis);
   if (state.embed) p.set('embed', '1');
