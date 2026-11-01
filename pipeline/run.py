@@ -335,6 +335,8 @@ STEPS = {
     "oldest-companies": "topics.oldest_companies",
     # 品牌的發源地：Wikidata 的時尚品牌與汽車品牌（SPARQL 兩次）
     "brands": "topics.brands",
+    # 大企業的據點：12 家公司官方公開的據點（手工整理的 pipeline/data/company-sites/sites.csv）＋ AWS、Azure 的雲端區域；不下載
+    "company-sites": "topics.company_sites",
     # 各國的航空公司：Wikidata 的客運航空公司（依總部所在國，含已停業的）；幾秒
     "airlines": "topics.airlines",
     # 叫車服務在哪些國家：Uber、Grab、滴滴（手工整理的表，Uber 的國家照使用者用瀏覽器存的城市頁）

@@ -45,6 +45,7 @@ export const RELATED: Record<string, string[]> = {
   minerals: ['industry', 'fossil-fuels', 'ev'],
   'chain-stores': ['companies', 'cities'],
   companies: ['chain-stores', 'stock-market', 'industry'],
+  'company-sites': ['companies', 'wafer-fabs', 'rd-companies', 'ai'],
   // 國際
   trade: ['shipping', 'reserves', 'china-lending'],
   migration: ['population', 'aid', 'passport'],

@@ -74,7 +74,8 @@ function card(topic) {
   const group = groupOf.get(topic.id);
   const color = group ? COLORS[group.id] : '#52514e';
   const icon = topic.id === 'map' ? groupIcons.map : topicIcons[topic.id];
-  const labels = topic.pure ? [] : topic.indicators.map((i) => i.label.zh);
+  // 主題目錄 2026-10-31 瘦身後只留前幾個指標（firstIndicators），卡片最多也只寫 5 個
+  const labels = topic.pure ? [] : (topic.firstIndicators ?? topic.indicators).map((i) => i.label.zh);
   const shown = labels.slice(0, 5);
   // 括號裡的補充（「國家小檔案（首都、元首…）」）下面的指標已經列了，卡片上不寫；字級依長度，一行放得下就一行
   const title = topic.title.zh.replace(/（[^）]*）$/, '');
