@@ -66,6 +66,11 @@ describe('放大後的國界（1:10m 雙胞胎圖層）', () => {
     installFineBorders(map);
     map.setFeatureState({ source: 'countries', id: 'TWN' }, { fill: '#123456' });
     await flush();
+    // 全球視角：還不準備
+    expect(layers.some((l) => l.id.endsWith('-fine'))).toBe(false);
+    view.zoom = 4.2;
+    fire('moveend');
+    await flush();
     // 雙胞胎排在原本那層的正後面，先不畫
     expect(layers.map((l) => l.id)).toEqual([
       'data-fill',
@@ -109,9 +114,9 @@ describe('放大後的國界（1:10m 雙胞胎圖層）', () => {
 
   it('1:10m 的圖磚出錯就拿掉，換回 1:50m 畫到所有縮放；取消的請求不算', async () => {
     const { map, layers, view, fire, find } = fakeMap();
+    view.zoom = 6;
     installFineBorders(map);
     await flush();
-    view.zoom = 6;
     view.loaded = true;
     fire('sourcedata');
     fire('error', { sourceId: FINE_SOURCE, error: { name: 'AbortError' } });

@@ -19,6 +19,8 @@ import { loadTilesIndex, pmtilesSource } from './pmtiles';
 
 /** 從這一級開始換成 1:10m（pipeline/borders_10m.py 的 MIN_ZOOM，比它低的圖磚沒有切） */
 export const FINE_ZOOM = 5;
+/** 放大到這一級才準備 1:10m（讀 index.json、加上雙胞胎），全球視角不必多下載 */
+const PREPARE_ZOOM = 4;
 export const FINE_SOURCE = 'countries-fine';
 /** PMTiles 裡的圖層名稱（borders_10m.py 的 LAYER）與 index.json 的名稱 */
 const FINE_SOURCE_LAYER = 'countries';
@@ -130,7 +132,8 @@ function fallBack(map: MaplibreMap, state: FineState): void {
 
 /**
  * installDataLayers（WorldMap.tsx）的最後呼叫：每次換底圖，`countries` 跟著重建，feature-state 也重來。
- * pmtiles/index.json 讀到 `countries-10m` 才加上雙胞胎（非同步，地圖照舊先用 1:50m 畫）
+ * 放大到 PREPARE_ZOOM 以上才讀 pmtiles/index.json、加上雙胞胎（pmtiles 套件約 7 KB 與檔頭、目錄約 16 KB 這時才下載，
+ * 全球視角的第一個畫面不必等）；讀到 `countries-10m` 才加上，在這之前地圖照舊用 1:50m 畫
  */
 export function installFineBorders(map: MaplibreMap): void {
   let state = fine.get(map);
@@ -148,35 +151,44 @@ export function installFineBorders(map: MaplibreMap): void {
   s.failed = false;
   s.noData = [];
   const install = s.install;
-  loadTilesIndex().then(
-    (index) => {
-      const entry = index[TILES_NAME];
-      if (!entry || install !== s.install || !map.getSource(COUNTRIES) || map.getSource(FINE_SOURCE)) return;
-      addTwins(map, s, pmtilesSource(entry, 'iso3'));
-      const check = () => {
-        if (s.handedOver || s.failed || map.getZoom() < FINE_ZOOM || !map.isSourceLoaded(FINE_SOURCE)) return;
-        handOver(map, s);
-      };
-      // 平移、縮放時取消的請求（AbortError）不算出錯。地圖有 error 監聽時 MapLibre 不再自己把錯誤印到主控台，
-      // 別的 source 的錯誤照舊印出來
-      const onError = (e: { sourceId?: string; error?: { name?: string } }) => {
-        if (e.sourceId !== FINE_SOURCE) console.error(e.error);
-        else if (e.error?.name !== 'AbortError') fallBack(map, s);
-      };
-      map.on('sourcedata', check);
-      map.on('moveend', check);
-      map.on('error', onError);
-      s.detach = () => {
-        map.off('sourcedata', check);
-        map.off('moveend', check);
-        map.off('error', onError);
-      };
-      check();
-    },
-    () => {
-      // 沒有 index.json（還沒切圖）、離線：照舊用 1:50m
-    },
-  );
+
+  const check = () => {
+    if (!s.added || s.handedOver || s.failed || map.getZoom() < FINE_ZOOM || !map.isSourceLoaded(FINE_SOURCE)) return;
+    handOver(map, s);
+  };
+  // 平移、縮放時取消的請求（AbortError）不算出錯。地圖有 error 監聽時 MapLibre 不再自己把錯誤印到主控台，
+  // 別的 source 的錯誤照舊印出來
+  const onError = (e: { sourceId?: string; error?: { name?: string } }) => {
+    if (e.sourceId !== FINE_SOURCE) console.error(e.error);
+    else if (e.error?.name !== 'AbortError') fallBack(map, s);
+  };
+  const add = (index: Record<string, Parameters<typeof pmtilesSource>[0]>) => {
+    const entry = index[TILES_NAME];
+    if (!entry || install !== s.install || !map.getSource(COUNTRIES) || map.getSource(FINE_SOURCE)) return;
+    addTwins(map, s, pmtilesSource(entry, 'iso3'));
+    map.on('sourcedata', check);
+    map.on('error', onError);
+    check();
+  };
+  let started = false;
+  const start = () => {
+    if (started || map.getZoom() < PREPARE_ZOOM) return;
+    started = true;
+    loadTilesIndex().then(add, () => {
+      // 沒有 index.json、離線：照舊用 1:50m（下次換底圖再試）
+    });
+  };
+  const onMoveEnd = () => {
+    start();
+    check();
+  };
+  map.on('moveend', onMoveEnd);
+  s.detach = () => {
+    map.off('moveend', onMoveEnd);
+    map.off('sourcedata', check);
+    map.off('error', onError);
+  };
+  start();
 }
 
 /** 沒有資料、要畫斜線的國家（useCountryFills 換 data-nodata 的資料時一起呼叫）：1:10m 用 filter 選出同一批 */

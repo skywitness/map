@@ -165,7 +165,7 @@ def build_geojson() -> None:
         raise ValueError(f"這些代碼不在 countries.json：{unknown}")
     GEOJSON.parent.mkdir(parents=True, exist_ok=True)
     vertices = 0
-    with open(GEOJSON, "w", encoding="utf-8") as f:
+    with open(GEOJSON, "w", encoding="utf-8", newline="\n") as f:
         # 一行一個 feature（GeoJSONSeq），tippecanoe 讀得比整份 FeatureCollection 快
         for iso3, geom in sorted(shapes.items()):
             g = mapping(geom)

@@ -1,1 +1,10 @@
-{}
+{
+ "countries-10m": {
+  "bytes": 5423311,
+  "file": "countries-10m-27ad4201.pmtiles",
+  "generatedAt": "2026-11-01T10:26:42Z",
+  "layer": "countries",
+  "maxzoom": 8,
+  "minzoom": 5
+ }
+}
