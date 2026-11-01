@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
+import { FloatResize } from './FloatResize';
 import { Chart } from '../charts/Chart';
 import { SectionSkeleton, Skeleton } from './Skeleton';
 import { timeSeriesOption, type TimeSeriesLine } from '../charts/timeSeries';
@@ -342,6 +343,8 @@ export function CountryPanel(props: CountryPanelProps) {
         </Suspense>
       )}
       <RelatedTopics topic={topic.id} iso3={iso3} />
+      {/* 寬螢幕時浮在地圖上：下緣拖動改高度（窄螢幕不顯示） */}
+      <FloatResize which="panel" />
     </aside>
   );
 }

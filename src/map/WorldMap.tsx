@@ -312,6 +312,7 @@ export function WorldMap(props: WorldMapProps) {
   const loadedBasemapRef = useRef<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const legendRef = useRef<HTMLDivElement>(null);
   const mapNodeRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
   const size = useElementSize(containerRef);
@@ -1375,13 +1376,16 @@ export function WorldMap(props: WorldMapProps) {
     const inset = mapInsets(map.getContainer());
     const margin = Math.min(32, canvas.clientWidth / 10);
     const covered =
-      p.x < margin || p.y < margin || p.x > canvas.clientWidth - inset.right - margin || p.y > canvas.clientHeight - inset.bottom - margin;
+      p.x < inset.left + margin ||
+      p.y < inset.top + margin ||
+      p.x > canvas.clientWidth - inset.right - margin ||
+      p.y > canvas.clientHeight - inset.bottom - margin;
     if (offScreen || behindGlobe || covered) {
       map.easeTo({
         center: target,
         // 點選的位置本來就在眼前：只平移、不縮放
         zoom: !clicked && (offScreen || behindGlobe) ? Math.max(map.getZoom(), 2.5) : map.getZoom(),
-        offset: [-inset.right / 2, -inset.bottom / 2],
+        offset: [(inset.left - inset.right) / 2, (inset.top - inset.bottom) / 2],
         duration: 800,
       });
     }
@@ -1410,7 +1414,8 @@ export function WorldMap(props: WorldMapProps) {
     const pad = Math.min(48, rect.width / 8, rect.height / 8);
     const bottom = Math.min(Math.max(pad, inset.bottom + pad / 2), rect.height * 0.6);
     map.fitBounds(bounds, {
-      padding: { top: pad, left: pad, right: pad + inset.right, bottom }, // 右邊留給縮放按鈕
+      // 扣掉按鈕列與浮在地圖上的清單、國家側欄（mapInsets）
+      padding: { top: Math.max(pad, inset.top + pad / 2), left: pad + inset.left, right: pad + inset.right, bottom },
       maxZoom: fitOnSelect ? 8 : 5,
       duration: 1200,
       bearing: map.getBearing(), // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
@@ -1607,6 +1612,19 @@ export function WorldMap(props: WorldMapProps) {
     }
   };
 
+  // 左下角圖例卡片的高度寫在 .stage 的 --legend-h：寬螢幕時浮在地圖左上角的清單停在圖例上面（styles.css 的 .stage.is-map）
+  useEffect(() => {
+    const legend = legendRef.current;
+    const stage = containerRef.current?.closest<HTMLElement>('.stage');
+    if (!legend || !stage) return;
+    const observer = new ResizeObserver(() => stage.style.setProperty('--legend-h', `${Math.round(legend.getBoundingClientRect().height)}px`));
+    observer.observe(legend);
+    return () => {
+      observer.disconnect();
+      stage.style.removeProperty('--legend-h');
+    };
+  }, []);
+
   // 全螢幕的是整個頁面（App 的 .app，data-fullscreen-root，2026-11-01）：左右側欄、時間軸照舊，頂列、控制列、說明、頁尾收起
   // （styles.css 的 .app:fullscreen）；原本只有地圖本身，側欄看不到。沒有這個祖先時（單獨用的地圖）全螢幕地圖本身
   useEffect(() => {
@@ -1740,7 +1758,7 @@ export function WorldMap(props: WorldMapProps) {
         if (!map) return;
         // 放大到看得清楚附近（至少 5 級），停在沒被按鈕、抽屜蓋住的那一塊的中間
         const inset = mapInsets(map.getContainer());
-        map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 5), offset: [-inset.right / 2, -inset.bottom / 2], duration: 1400 });
+        map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 5), offset: [(inset.left - inset.right) / 2, (inset.top - inset.bottom) / 2], duration: 1400 });
         map.once('moveend', () => {
           const at = map.project([lng, lat]);
           setPlace({ x: at.x, y: at.y, lng, lat, iso3: null, point });
@@ -1888,7 +1906,7 @@ export function WorldMap(props: WorldMapProps) {
 
       {/* 圖例（最多的國家、圖層開關、數值圖例）合成一張卡片，各段之間細線分隔；右上角的鈕收起成一顆「圖例」
           （2026-10-31，原本最多三張卡片疊在一起，例如 F1）。收起記在這台裝置；沒有任何一段時整張不畫（CSS 的 :has） */}
-      <div className={`map-legend${legendOpen ? '' : ' is-collapsed'}`}>
+      <div ref={legendRef} className={`map-legend${legendOpen ? '' : ' is-collapsed'}`}>
         <button
           type="button"
           className="map-legend-toggle"

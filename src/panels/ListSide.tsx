@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { FloatResize } from './FloatResize';
 import { defineMessages, tr, useLang, useT } from '../i18n';
 import { useJson } from '../lib/data';
 import { useAllPoints } from '../lib/points';
@@ -264,6 +265,8 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
           ])}
         </ol>
       )}
+      {/* 寬螢幕時浮在地圖上：下緣拖動改高度（窄螢幕不顯示） */}
+      <FloatResize which="list" />
     </aside>
   );
 }

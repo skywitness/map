@@ -70,13 +70,28 @@ export function focusBounds(country: CountryFeature): Bounds {
  * 地圖上被蓋住的部分（像素）：右邊的縮放按鈕那一欄、手機底部的國家抽屜（`data-occludes-map`）。
  * 移到某國時避開這些地方，國家才不會停在按鈕或抽屜底下（2026-10-30）
  */
-export function mapInsets(container: HTMLElement): { right: number; bottom: number } {
+export function mapInsets(container: HTMLElement): { left: number; right: number; top: number; bottom: number } {
   const rect = container.getBoundingClientRect();
   let bottom = 0;
   for (const el of document.querySelectorAll('[data-occludes-map]')) {
     bottom = Math.max(bottom, rect.bottom - el.getBoundingClientRect().top);
   }
+  const overlaps = (r: DOMRect | undefined): r is DOMRect => Boolean(r && r.width > 0 && r.left < rect.right && r.right > rect.left);
+  // 按鈕列：窄螢幕是右邊直的一列（蓋住右邊），寬螢幕是右上角橫的一列（蓋住上面）
   const tools = container.parentElement?.querySelector('.map-zoom')?.getBoundingClientRect();
-  const right = tools && tools.width > 0 ? Math.max(0, rect.right - tools.left) : 0;
-  return { right, bottom: Math.min(Math.max(0, bottom), rect.height * 0.6) };
+  const column = tools && tools.width > 0 && tools.height > tools.width;
+  let right = column ? Math.max(0, rect.right - tools.left) : 0;
+  const top = tools && tools.width > 0 && !column ? Math.max(0, tools.bottom - rect.top) : 0;
+  // 寬螢幕時浮在地圖上的清單（左邊）、國家側欄（右邊）（styles.css 的 .stage.is-map）；窄螢幕清單在地圖下面，跟地圖不重疊
+  const stage = container.closest('.stage');
+  const list = stage?.querySelector(':scope > .list-side')?.getBoundingClientRect();
+  const left = overlaps(list) ? Math.max(0, list.right - rect.left) : 0;
+  const panel = stage?.querySelector(':scope > .panel')?.getBoundingClientRect();
+  if (overlaps(panel)) right = Math.max(right, rect.right - panel.left);
+  return {
+    left: Math.min(left, rect.width * 0.5),
+    right: Math.min(right, rect.width * 0.5),
+    top: Math.min(top, rect.height * 0.3),
+    bottom: Math.min(Math.max(0, bottom), rect.height * 0.6),
+  };
 }
