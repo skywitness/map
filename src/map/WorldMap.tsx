@@ -106,6 +106,9 @@ import {
   BARE_SEA,
   CALM_SEA,
   COLUMN_RADIUS_KM,
+  MAX_COLUMN_M,
+  MAX_SLAB_M,
+  classHeight,
   DARK_SKY,
   DETAIL_ZOOM,
   EARTH_RADIUS_KM,
@@ -889,7 +892,16 @@ export function WorldMap(props: WorldMapProps) {
   useCountryFills(mapContext, { countries, shapeless, values, colorScale, categories, indicator, flagsOn, highlightCategory });
   const { gridUrl, backdrop } = useRasterLayers(mapContext, { grid, flags, flagsOn, countries, tinyCollection });
   // 地圖上的數值：網格、3D 時不標（網格的格子不是國家的值；立體圖形會被字蓋住）
-  useValueLabels(mapContext, { on: Boolean(props.valueLabels) && !gridUrl && !threeD, countries, anchors, values, indicator, year });
+  // 3D 時數字浮在柱子（比例圓）或立起來的國家（面量圖）上面（2026-11-01）；有地形的主題、類別圖不立起來，高度 0
+  const kindNow = indicator.layer.kind;
+  const labelHeight = useMemo(() => {
+    if (!threeD || terrain) return null;
+    if (kindNow === 'bubble') return (_: string, v: number) => ({ f: v / bubbleMax, max: MAX_COLUMN_M });
+    const thresholds = kindNow === 'choropleth' ? (colorScale?.domain() ?? null) : null;
+    if (!thresholds) return null;
+    return (_: string, v: number) => ({ f: classHeight(thresholds, v), max: MAX_SLAB_M });
+  }, [threeD, terrain, kindNow, bubbleMax, colorScale]);
+  useValueLabels(mapContext, { on: Boolean(props.valueLabels) && !gridUrl, countries, anchors, values, indicator, year, height: labelHeight });
 
   // 海的顏色：彩色地形上有資料圖層的主題用 CALM_SEA（水域、湖泊、世界視角的背景、蓋住地形陰影的水域）
   const calmSea = basemap.id === 'terrain' && indicator.layer.kind !== 'none' && indicator.layer.kind !== 'terrain';

@@ -468,6 +468,9 @@ pipeline/
   - 圖例在比例圓下面兩欄列出各片的顏色與名稱（`.legend-pie`，匯出的圖片也有）。
   - 發電量：燃煤、燃氣、燃油等其他化石、核能、水力、風力、太陽能、生質能、地熱等其他再生九片，顏色跟發電廠地圖的燃料一樣（`FUELS`；燃油等其他化石用灰色）。
   - 順便修了比例圓圖例的標籤寬度：原本固定留 52px，「1,000 TWh」會被切掉，改成依字數估（`bubbleLegendModel`）。
+- **3D 的數字浮在柱子上、圓柱**（2026-11-01，使用者選的 MapLibre 範例「Elevate symbols above the terrain」「Fill extrusion rounded corners」）：
+  - 地圖上標數值原本在 3D 時不畫（數字在地面，被柱子擋住），現在照畫，用 MapLibre 6.6 的 `symbol-height-offset` 浮在柱子（比例圓）或立起來的國家（面量圖）的頂上：數值標籤的每一筆多 `hf`（高度的比例：比例圓是值 ÷ 所有年份的最大值，面量圖是 `classHeight`）與 `hm`（最高的公尺數 `MAX_COLUMN_M`、`MAX_SLAB_M`），`valueLabelLayer` 用跟 `extrusionHeight` 同一套依縮放的換算；平面、有地形的主題、類別圖是 0。
+  - 柱子（`extrude-columns`、小國的 `extrude-tiny`，都是 24 邊形的圓）加 `fill-extrusion-rounded-corner-distance` 20 km（MapLibre 會夾在每邊的 20% 以內），角磨圓、牆的光影是一整片曲面（6.12），看起來是平滑的圓柱。立起來的國家不加（國界的頂點多，每個角換成一段弧，三角形會多很多）。
 - **地圖上的觀察點**（2026-11-01，使用者看過 MapLibre 範例「Create a draggable Marker」後選的；主題的 `pin`、`map/pins.ts`）：
   - 一個標記（藍色圓點、白框）旁邊一張小卡寫說明（主題的 `pin.label`，ctx 跟 `pointer` 一樣；沒給時用 `pointer` 的標題與幾行）。`pair: 'antipode'` 時多一個對蹠點的標記（橘色），拖任何一個另一個跟著到它的對蹠點，兩張小卡各多一行「另一邊：阿根廷」（地球背面的那個看不到）。
   - `draggable` 的可以拖，也可以用鍵盤：Tab 移到標記，方向鍵移 1°（Shift 10°）；拖完、按完才回報位置，寫進網址 `pin=經度,緯度`（`url-state.ts`，只改寫目前這一筆；換到沒有 pin 的主題時拿掉）。沒有 `pin=` 時用主題的 `default`。

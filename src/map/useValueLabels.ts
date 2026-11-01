@@ -19,7 +19,10 @@ export function useValueLabels(
     values,
     indicator,
     year,
+    height = null,
   }: {
+    /** 3D 時每個國家立起來的高度（比例與最高的公尺數），數字浮在上面；平面時 null */
+    height?: ((iso3: string, v: number) => { f: number; max: number }) | null;
     on: boolean;
     countries: CountryFeature[];
     anchors: Map<string, [number, number]>;
@@ -45,10 +48,16 @@ export function useValueLabels(
       ? [...values].flatMap(([iso3, v]) => {
           const at = anchors.get(iso3);
           return at
-            ? [{ type: 'Feature', properties: { text: short(v), order: order.get(iso3) ?? 9999 }, geometry: { type: 'Point', coordinates: at } }]
+            ? [
+                {
+                  type: 'Feature',
+                  properties: { text: short(v), order: order.get(iso3) ?? 9999, ...(height ? { hf: height(iso3, v).f, hm: height(iso3, v).max } : {}) },
+                  geometry: { type: 'Point', coordinates: at },
+                },
+              ]
             : [];
         })
       : [];
     (map.getSource(VALUE_SOURCE) as GeoJSONSource).setData({ type: 'FeatureCollection', features });
-  }, [revision, ready, shown, values, anchors, order, indicator, year]);
+  }, [revision, ready, shown, values, anchors, order, indicator, year, height]);
 }

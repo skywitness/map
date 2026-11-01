@@ -507,7 +507,8 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
       type: 'fill-extrusion',
       source: 'tiny-columns',
       maxzoom: 5,
-      layout: { visibility: 'none' },
+      // 圓柱的 24 個角磨圓（MapLibre 6.2，距離會被夾在每邊 20% 以內；6.12 起圓角的牆是一整片曲面的光影），看起來是平滑的圓柱
+      layout: { visibility: 'none', 'fill-extrusion-rounded-corner-distance': 20000 },
       paint: slabPaint,
     },
     {
@@ -515,7 +516,7 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
       id: 'extrude-columns',
       type: 'fill-extrusion',
       source: 'columns',
-      layout: { visibility: 'none' },
+      layout: { visibility: 'none', 'fill-extrusion-rounded-corner-distance': 20000 },
       paint: {
         'fill-extrusion-color': highlight3d(t.accent),
         'fill-extrusion-height': extrusionHeight(['number', ['get', 'h'], 0], MAX_COLUMN_M),
@@ -678,6 +679,9 @@ export function valueLabelLayer(dark: boolean, font: DataDrivenPropertyValueSpec
       'text-justify': 'auto',
       'text-padding': 1,
       'symbol-sort-key': ['get', 'order'],
+      // 3D 時浮在柱子、立起來的國家上面（2026-11-01，MapLibre 6.6 的 symbol-height-offset；hf 是高度的比例、hm 是最高的公尺數，
+      // 跟 extrusionHeight 同一套換算），平面時 hf 是 0
+      'symbol-height-offset': extrusionHeight(['*', ['coalesce', ['get', 'hf'], 0], ['coalesce', ['get', 'hm'], 0]], 1),
     },
     paint: {
       'text-color': dark ? '#f0efec' : '#1f1f1d',
