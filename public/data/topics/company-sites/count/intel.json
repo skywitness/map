@@ -1,1 +1,1 @@
-{"indicator":"sites","unit":"處","years":[2026],"encoding":"delta","aggregates":{"WLD":[0,18]},"values":{"CHN":[0,1],"CRI":[0,1],"IND":[0,1],"IRL":[0,1],"ISR":[0,4],"MYS":[0,2],"POL":[0,1],"TWN":[0,2],"USA":[0,4],"VNM":[0,1]}}
+{"indicator":"sites","unit":"處","years":[2026],"encoding":"delta","aggregates":{"WLD":[0,20]},"values":{"CHN":[0,1],"CRI":[0,1],"IND":[0,1],"IRL":[0,1],"ISR":[0,4],"MEX":[0,1],"MYS":[0,2],"POL":[0,1],"TWN":[0,2],"USA":[0,5],"VNM":[0,1]}}
