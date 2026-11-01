@@ -6,5 +6,61 @@
   "layer": "countries",
   "maxzoom": 8,
   "minzoom": 5
+ },
+ "divisions1": {
+  "bytes": 21067964,
+  "file": "divisions1-079d65b9.pmtiles",
+  "generatedAt": "2026-11-01T12:42:29Z",
+  "layer": "d1",
+  "maxzoom": 9,
+  "minzoom": 1
+ },
+ "divisions2-africa": {
+  "bytes": 14541458,
+  "file": "divisions2-africa-521c46d8.pmtiles",
+  "generatedAt": "2026-11-01T12:42:58Z",
+  "layer": "d2",
+  "maxzoom": 10,
+  "minzoom": 3
+ },
+ "divisions2-asia": {
+  "bytes": 30279822,
+  "file": "divisions2-asia-edd32f4b.pmtiles",
+  "generatedAt": "2026-11-01T12:43:55Z",
+  "layer": "d2",
+  "maxzoom": 10,
+  "minzoom": 3
+ },
+ "divisions2-europe": {
+  "bytes": 31962409,
+  "file": "divisions2-europe-7027df6b.pmtiles",
+  "generatedAt": "2026-11-01T12:45:00Z",
+  "layer": "d2",
+  "maxzoom": 10,
+  "minzoom": 3
+ },
+ "divisions2-latinamerica": {
+  "bytes": 28061044,
+  "file": "divisions2-latinamerica-cf29f58d.pmtiles",
+  "generatedAt": "2026-11-01T12:45:49Z",
+  "layer": "d2",
+  "maxzoom": 10,
+  "minzoom": 3
+ },
+ "divisions2-northamerica": {
+  "bytes": 9578309,
+  "file": "divisions2-northamerica-9bb0c6fd.pmtiles",
+  "generatedAt": "2026-11-01T12:46:21Z",
+  "layer": "d2",
+  "maxzoom": 10,
+  "minzoom": 3
+ },
+ "divisions2-oceania": {
+  "bytes": 3731004,
+  "file": "divisions2-oceania-150c8c27.pmtiles",
+  "generatedAt": "2026-11-01T12:46:33Z",
+  "layer": "d2",
+  "maxzoom": 10,
+  "minzoom": 3
  }
 }

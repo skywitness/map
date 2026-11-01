@@ -1398,9 +1398,14 @@ export function WorldMap(props: WorldMapProps) {
     // 只留海的底圖（板塊漂移）：國家今天的位置在地圖上沒有意義，不移過去
     if (bare) return;
     if (fitOnSelect && selected) {
+      // 只在剛選到時框住：放大超過全球視角後換成 1:50m 的國界、換底圖時 countryBounds 會變，不要因此再框一次
+      // （世界地圖主題點了第一級行政區、地圖已經跳到那一區，2026-11-01 會被拉回整個國家）
+      if (placedRef.current === selected) return;
       const bounds = countryBounds.get(selected);
+      if (!bounds) return;
+      placedRef.current = selected;
       // 3D 時保留目前的方位（fitBounds 預設會轉回正北）
-      if (bounds) map.fitBounds(bounds, { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() });
+      map.fitBounds(bounds, { padding: 48, maxZoom: 8, duration: 900, bearing: map.getBearing() });
       return;
     }
     if (!selected) placedRef.current = null;
