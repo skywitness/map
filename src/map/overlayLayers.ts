@@ -788,7 +788,7 @@ function clipLatitude(line: [number, number][]): [number, number][][] {
 /** 依時間軸篩選的點：只有那一年、累積到那一年，或那一年起的 n 年（指標的 overlayTime） */
 export function timeFilter(
   def: { timeField?: string; endField?: string },
-  year: number,
+  year: number | ExpressionSpecification,
   mode: IndicatorDef['overlayTime'],
 ): FilterSpecification | null {
   if (!def.timeField) return null;
@@ -800,7 +800,7 @@ export function timeFilter(
     const end: ExpressionSpecification = ['get', def.endField];
     return ['all', has, ['<=', t, year], ['any', ['!', ['has', def.endField]], ['>', end, year]]];
   }
-  if (typeof mode === 'number') return ['all', has, ['>=', t, year], ['<', t, year + mode]];
+  if (typeof mode === 'number') return ['all', has, ['>=', t, year], ['<', t, typeof year === 'number' ? year + mode : ['+', year, mode]]];
   return ['all', has, ['==', t, year]];
 }
 
@@ -820,7 +820,7 @@ function valueFilter(def: { minValue?: { field: string; stops: [number, number][
 /** 點、線圖層的篩選：時間篩選與依縮放的篩選合併 */
 function pointFilter(
   def: Pick<PointsOverlay, 'timeField' | 'endField' | 'minValue'>,
-  year: number,
+  year: number | ExpressionSpecification,
   mode: IndicatorDef['overlayTime'],
 ): FilterSpecification | null {
   return allOf([timeFilter(def, year, mode), valueFilter(def)]);
@@ -949,6 +949,28 @@ export function syncOverlays(
 }
 
 /** 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併 */
+/** 疊加圖層的時間篩選讀這個全域狀態（每個疊加圖層一個，timeRange 會夾到各自的資料範圍） */
+const yearKey = (id: string) => `year:${id}`;
+/** 每個圖層上次設的篩選（JSON），結構沒變就不再 setFilter */
+const filterSent = new WeakMap<MaplibreMap, Map<string, string>>();
+
+function setFilterOnce(map: MaplibreMap, layerId: string, filter: FilterSpecification | null) {
+  if (!map.getLayer(layerId)) return;
+  let sent = filterSent.get(map);
+  if (!sent) filterSent.set(map, (sent = new Map()));
+  const key = JSON.stringify(filter);
+  // 換底圖後圖層是新的（篩選是加上時的）：用圖層物件的篩選比對，不只看記錄
+  if (sent.get(layerId) === key && JSON.stringify(map.getFilter(layerId) ?? null) === key) return;
+  map.setFilter(layerId, filter);
+  sent.set(layerId, key);
+}
+
+/**
+ * 換年份或指標時更新點與線的篩選；線的時間篩選要跟它本身的篩選（實線／虛線）合併，點的跟依縮放的篩選合併。
+ * 2026-11-01 起篩選裡的年份是全域狀態（MapLibre 的 global-state，使用者選的範例「Filter layer symbols using global state」）：
+ * 篩選的結構只在換指標（時間模式）時設一次，換年份時只改 `year:<疊加圖層>` 的值（setGlobalStateProperty），
+ * 不必每一年把每個圖層的篩選重設一次（播放時每一格十幾個 setFilter）
+ */
 export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], shownYear: number, indicatorMode: IndicatorDef['overlayTime']) {
   for (const o of overlays.filter(isData)) {
     const id = OVERLAY_PREFIX + o.def.id;
@@ -956,29 +978,28 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
     const mode = o.def.overlayTime ?? indicatorMode;
     const range = o.def.timeRange === 'data' ? dataYears(o) : o.def.timeRange;
     const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
+    const y: ExpressionSpecification = ['global-state', yearKey(o.def.id)];
+    if (o.def.timeField) map.setGlobalStateProperty(yearKey(o.def.id), year);
     if (o.kind === 'points') {
       if (o.def.cluster) sendClustered(map, o, year, mode);
       if (o.def.heatmap && map.getLayer(id + HEAT_SUFFIX)) {
         // 點多的時候縮小畫熱度、maxZoom 起換成點；點少（只有一年）時照舊都是點
         const heat = Boolean(o.visible && o.points) && manyPoints(mode);
-        map.setFilter(id + HEAT_SUFFIX, pointFilter(o.def, year, mode));
+        setFilterOnce(map, id + HEAT_SUFFIX, pointFilter(o.def, y, mode));
         map.setLayoutProperty(id + HEAT_SUFFIX, 'visibility', heat ? 'visible' : 'none');
         map.setLayerZoomRange(id, heat ? o.def.heatmap.maxZoom : (o.def.minZoom ?? 0), 24);
       }
       if (!o.def.timeField && !o.def.minValue) continue;
-      if (map.getLayer(id)) map.setFilter(id, pointFilter(o.def, year, mode));
-      if (map.getLayer(id + LABEL_SUFFIX)) map.setFilter(id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, year, mode) ?? null]));
+      setFilterOnce(map, id, pointFilter(o.def, y, mode));
+      setFilterOnce(map, id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, y, mode) ?? null]));
       continue;
     }
     if (!o.def.timeField && !o.def.minValue) continue;
     // 時間篩選與依縮放的篩選要跟它本身的篩選（實線／虛線、只畫線或面）合併；標出一組的那幾層只合併依縮放的篩選
     // （放大前看不到的支流不會跟著亮起來）
     const value = valueFilter(o.def);
-    const extra = allOf([timeFilter(o.def, year, mode), value]);
-    for (const { layer, base, hover } of lineLayers(o.def, false)) {
-      if (!map.getLayer(layer.id)) continue;
-      map.setFilter(layer.id, allOf([base, hover ? value : extra]));
-    }
+    const extra = allOf([timeFilter(o.def, y, mode), value]);
+    for (const { layer, base, hover } of lineLayers(o.def, false)) setFilterOnce(map, layer.id, allOf([base, hover ? value : extra]));
   }
 }
 

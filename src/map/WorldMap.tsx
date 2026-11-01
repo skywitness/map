@@ -19,6 +19,7 @@ import {
   Marker,
   setWorkerUrl,
   type ExpressionSpecification,
+  type GeoJSONFeatureDiff,
   type GeoJSONSource,
   type LayerSpecification,
   type MapSourceDataEvent,
@@ -1078,6 +1079,38 @@ export function WorldMap(props: WorldMapProps) {
   const bubbleChangedRef = useRef(-Infinity);
   const bubbleRevisionRef = useRef(-1);
   const bubbleIndicatorRef = useRef<Indicator | null>(null);
+  /**
+   * 比例圓的 source 上次送的每一國（iso3 → 屬性）：漸變的每一格只送變了的（MapLibre 的 updateData，使用者選的範例
+   * 「Update a feature in realtime」，2026-11-01），不必每一格把約 200 個點整份重送、重切圖磚；換底圖（source 是新的）時整份送
+   */
+  const bubbleSentRef = useRef<{ source: GeoJSONSource; props: Map<string, Record<string, number | string>> } | null>(null);
+  const sendBubbles = (source: GeoJSONSource, features: GeoJSON.Feature[]) => {
+    const next = new Map(features.map((f) => [f.properties!.iso3 as string, f.properties as Record<string, number | string>]));
+    const sent = bubbleSentRef.current;
+    if (!sent || sent.source !== source) {
+      source.setData({ type: 'FeatureCollection', features });
+      bubbleSentRef.current = { source, props: next };
+      return;
+    }
+    const remove = [...sent.props.keys()].filter((id) => !next.has(id));
+    const add = features.filter((f) => !sent.props.has(f.properties!.iso3 as string));
+    const update: GeoJSONFeatureDiff[] = [];
+    for (const [id, props] of next) {
+      const before = sent.props.get(id);
+      if (!before) continue;
+      const changed = Object.entries(props).filter(([k, v]) => before[k] !== v);
+      const dropped = Object.keys(before).filter((k) => !(k in props));
+      if (changed.length || dropped.length) {
+        update.push({
+          id,
+          ...(changed.length ? { addOrUpdateProperties: changed.map(([key, value]) => ({ key, value })) } : {}),
+          ...(dropped.length ? { removeProperties: dropped } : {}),
+        });
+      }
+    }
+    if (remove.length || add.length || update.length) source.updateData({ remove, add, update });
+    sent.props = next;
+  };
   /** 已經加到地圖上的圓餅圖片與它的內容（pies.ts 的 syncPieImages 比對，內容沒變就不重畫） */
   const pieDrawnRef = useRef(new Map<string, string>());
   useEffect(() => {
@@ -1105,7 +1138,7 @@ export function WorldMap(props: WorldMapProps) {
           labels.push({ type: 'Feature', properties: { label: countryName(iso3, countryTable, lang), r }, geometry: { type: 'Point', coordinates: at } });
         }
       }
-      source.setData({ type: 'FeatureCollection', features });
+      sendBubbles(source, features);
       labelSource?.setData({ type: 'FeatureCollection', features: labels });
       bubbleShownRef.current = radii;
     };

@@ -4848,7 +4848,9 @@ pipeline/
 - **換年份、換指標時國家的顏色漸變 280 ms**（`FILL_FADE_MS`）：顏色放在 feature-state，MapLibre 不會替 feature-state 的改變做過渡，所以每一格自己算中間色（`mixColor`）。漸變到一半又換年份，從畫面上的中間色接著變。直接換、不漸變的情況：換底圖（feature-state 全清掉）、第一次畫、系統設定減少動態效果，以及跟上一次改變相隔不到 60 ms（拖時間軸），否則顏色會落後拉桿。
   - **播放時也漸變**（2026-10-29 起；以前相隔不到 280 ms 就直接換，播放時一格一格跳）：漸變時間是 `min(280 ms, 間隔 × 0.6)`（`FILL_FADE_SHARE`），播放一年 120 ms 時約 70 ms，下一年來之前就變完，不會累積落後。
   - **換指標、換主題時真的漸變**（2026-10-30）：原本新的資料檔載入中時，地圖拿上一個檔的數字套上新指標的色階（顏色錯一下），檔到了再直接跳到新的顏色（兩次變化相隔太短，不漸變）。現在 `App.tsx` 的 `mapShot`：載入中地圖照畫上一個指標（舊的數字、色階、圖例標題），檔到了 `indicator`、`values` 一起換，國家的顏色用 450 ms 漸變過去（`FILL_SWITCH_MS`，色階換了就算換指標；換配色也是）。時間軸背後的走勢一樣等檔到了才換。
-  - **比例圓的大小也漸變**（2026-10-30，`WorldMap.tsx` 的 `bubbleShownRef`）：跟顏色同樣的時間（換年份 280 ms、播放時間隔的 0.6、換指標 450 ms），每一格重新 `setData` 比例圓的 source（約 200 個點）；新出現的圓從 0 長大，消失的縮到 0 再拿掉。3D 柱子照舊直接換。
+  - **疊加圖層的時間篩選改用全域狀態**（2026-11-01，使用者選的 MapLibre 範例「Filter layer symbols using global state」；`overlayLayers.ts` 的 `applyTimeFilters`）：篩選裡的年份寫成 `['global-state', 'year:<疊加圖層>']`（每個疊加圖層一個，`timeRange` 會夾到各自的資料範圍），篩選的結構只在換指標（時間模式）、換底圖時設一次（`setFilterOnce` 比對上次設的與圖層現在的篩選），換年份時只 `setGlobalStateProperty`。原本播放時每一格對每個點、線、熱度、標籤圖層各 `setFilter` 一次（颱風路徑一個疊加圖層就有六、七層）。甜甜圈的聚合 source 照舊在瀏覽器裡篩好再送（聚合是 source 層級的）。
+  - **比例圓漸變只送變了的**（同一天，範例「Update a feature in realtime」；`WorldMap.tsx` 的 `sendBubbles`）：漸變的每一格原本把約 200 個點整份 `setData`（MapLibre 重新解析、重切圖磚），改成跟上一格比對，只把變了的屬性（半徑 r、圓餅的 pie、ps）、新出現的、消失的用 `updateData` 送（source 有 `promoteId: 'iso3'`）；換底圖後 source 是新的，整份送。國名的 source 照舊整份送（要重新排字）。帝國疆界這類線圖層本來就是用篩選換年份，不必重送資料。
+- **比例圓的大小也漸變**（2026-10-30，`WorldMap.tsx` 的 `bubbleShownRef`）：跟顏色同樣的時間（換年份 280 ms、播放時間隔的 0.6、換指標 450 ms），每一格重新 `setData` 比例圓的 source（約 200 個點）；新出現的圓從 0 長大，消失的縮到 0 再拿掉。3D 柱子照舊直接換。
   - 在這台機器的無頭 Chrome（SwiftShader）上，地圖重畫一格要幾百毫秒，漸變只看得到頭尾兩三格；要看效果用有顯示卡的瀏覽器。
 
 ### 量測方法
