@@ -26,6 +26,7 @@ import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
+import { installFineBorders } from './fineBorders';
 import { loadPmtiles, PMTILES_PROTOCOL } from './pmtiles';
 import { dataUrl, fetchJson } from '../lib/data';
 import { countryName, type CountryTable } from '../lib/countries';
@@ -605,6 +606,8 @@ export function WorldMap(props: WorldMapProps) {
       seaTimerRef.current = setTimeout(restore, SEA_PLACEHOLDER_MAX_MS);
       m.once('idle', restore);
     }
+    // 縮放 5 級以上的 1:10m 國界（PMTiles，非同步加上；在這之前與沒有檔案時照舊用 1:50m）
+    installFineBorders(m);
     installedRef.current = true;
   };
 

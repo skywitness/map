@@ -9,7 +9,7 @@
 | 地圖繪製 | **MapLibre GL JS 5**（WebGL 向量地圖） | 可以一路放大到街道（zoom 18）；地球儀與平面可切換；資料圖層插在底圖文字下面，地名永遠看得到 |
 | 底圖 | **OpenFreeMap** 的 5 種樣式（免費、不需金鑰），使用者可切換 | 預設 Liberty：低縮放是 Natural Earth II 彩色地形，放大後是 OpenStreetMap 細節；地名跟著介面語言，中文用 `name:zh-Hant`、英文用 `name:en` |
 | 投影 | **地球儀**（預設），可切換成平面（Web Mercator）；3D 模式固定用平面（海拔主題的立體地形除外） | 地球儀沒有高緯度放大的問題；平面方便一次看全世界；3D 的原因見第 5 節 |
-| 國界 | **Natural Earth 1:50m**（world-atlas 套件） | 給資料上色、點選、框選用；全球視角畫 1:110m（原本沒有的新加坡、巴林等 63 個小國從 1:50m 補進去，第 13 節），放大才換 1:50m；pipeline 判斷一個點在哪一國另外用 1:10m（第 8 節第 85 點） |
+| 國界 | **Natural Earth 1:50m**（world-atlas 套件）；放大到 5 級以上換成 **1:10m**（PMTiles） | 給資料上色、點選、框選用；全球視角畫 1:110m（原本沒有的新加坡、巴林等 63 個小國從 1:50m 補進去，第 13 節），放大才換 1:50m，5 級以上國家的上色、外框、hover、點選換成 Natural Earth 1:10m（`pipeline/borders_10m.py` 切成 PMTiles，`src/map/fineBorders.ts`；2026-11-01，製作手冊第十六批 264，第 8 節第 271 點、第 13 節）；3D 的立體國界、框選估算、網格歸國照舊用 1:50m；pipeline 判斷一個點在哪一國另外用 1:10m（第 8 節第 85 點） |
 | 側欄圖表 | **自己畫的 SVG**（`src/charts/Chart.tsx`，2026-10-29 起） | 點國家時才載入（gzip 後約 4 KB）；2026-10-29 以前是 ECharts 6（約 187 KB gzip，第 5 節「側欄的圖表」） |
 | 色彩與比例尺 | d3-scale | 分級門檻固定寫在主題設定裡 |
 | 前端 | Vite + TypeScript，程式照 React 寫，執行時是 **Preact**（`preact/compat`，2026-10-30 起） | 首頁的程式 gzip 後從 141 KB 降到 76 KB（react-dom 約 200 KB 未壓縮）；寫法、型別（`@types/react`）不變，見第 13 節 |
@@ -92,6 +92,8 @@ pipeline/
    ├─ compact.py       把還沒壓縮的舊指標檔改成差分編碼（npm run data -- compact）
    ├─ build_geo.py     國界與 ISO 對照表
    ├─ geoindex.py      經緯度 → 國家（Natural Earth 1:10m 的國界，代碼跟上面的一樣；見第 8 節第 85 點）
+   ├─ borders_10m.py   放大後的國界：Natural Earth 1:10m → PMTiles（第 8 節第 271 點）
+   ├─ pmtiles.py       tippecanoe 切 PMTiles 的共用函式（第 13 節）
    ├─ sources/         各資料來源的下載與解析（worldbank、imf、faostat、atlas、dgbas、ghsl、epoch、osm…）
    └─ topics/          每個主題一支組裝腳本
 ```
@@ -808,7 +810,7 @@ pipeline/
       - 那個主題的公司公布店數（年報、10-K、法說會簡報、官網）是引用的事實：一國一個數字加日期與出處，寫在附註、tooltip 與側欄，不是轉載誰的資料庫；沒有用 AllThePlaces（爬各公司官網的店家位置）這類從公司網站複製的資料集。
       - **長途步道**（第 149 點，2026-10-30）：步道路線（`trails.json`、`routes.json`、`list.json`）與各國步道總長（`length.json`）也是 OSM 的衍生資料庫，同樣以 ODbL 提供（`manifest.json`、`length.json` 的 `license` 寫 ODbL 1.0，頁尾的來源寫明「資料檔也是」）。cloud 連不上 Overpass，路線由使用者電腦上的本機 session 執行 map-plan 的 `scripts/osm_hiking_routes.py` 查 Overpass（User-Agent 寫專案網址，502、504 重試或分小批）下載，放在 map-plan 的 `data/osm/hiking-routes.json`。台灣補的國家步道是交通部觀光署「步道」開放資料（data.gov.tw 41653，`media.taiwan.net.tw` 的 Trail-json.zip），政府資料開放授權條款第 1 版；`media.taiwan.net.tw` 的憑證缺 Subject Key Identifier，跟內政部統計查詢網一樣只放寬這一項嚴格檢查（`common.RELAXED_X509_HOSTS`）。
     - OECD.AI 的 OpenRouter 資料未明示授權。
-    - Natural Earth（國界、鐵路、河流中心線）與 OurAirports 是公有領域。
+    - Natural Earth（國界、鐵路、河流中心線）與 OurAirports 是公有領域。地圖放大到 5 級以上畫的 1:10m 國界（ne_10m_admin_0_countries 4.1.0，第 271 點，2026-11-01）也是同一份公有領域的資料，切成 PMTiles 用的 tippecanoe 是 BSD 授權（只是工具，不跟網站一起散布）。
     - **NASA 日食網站（eclipse.gsfc.nasa.gov，Fred Espenak）的預報是公有領域，要求標示**（日食路徑主題，第 88 點；2026-10-28 讀過）：
       - NASA Copyright Information（https://eclipse.gsfc.nasa.gov/SEpubs/copyright.html）：「NASA material is not protected by copyright unless noted. If not copyrighted, NASA material may be reproduced and distributed without further permission from NASA.」，並請標示「Eclipse map/figure/table/predictions courtesy of Fred Espenak, NASA/Goddard Space Flight Center, from eclipse.gsfc.nasa.gov.」
       - 貝塞爾根數頁（SEdata、SEbeselm）與路徑表的頁尾：「Permission is freely granted to reproduce this data when accompanied by an acknowledgment: "Eclipse Predictions by Fred Espenak, NASA's GSFC"」；五千年日食目錄的說明頁（SEcatkey.html）寫「"Eclipse Predictions by Fred Espenak and Jean Meeus (NASA's GSFC)"」。
@@ -4207,6 +4209,14 @@ pipeline/
     - **前端**：子項目（`dimension`）是公司，預設「12 家合計」，選單依科技平台、晶片、太空分組。據點數是比例圓，疊營運中的點（顏色是 7 種類型，總部大一點、畫在最上面）與興建中、已宣布的空心點；「有幾家在這裡」是面量圖，疊 12 家的點。滑過點寫類型、狀態、年份、出處是新聞時的「非官方來源」、城市；中文介面有官方中文名稱時用中文名稱。左邊的清單分「營運中」「興建中」兩頁，選一家時依國家分組（據點多的國家在前）、12 家合計時依公司分組，組內依類型，每一列連到出處（寫主機名稱），跟選取的國家連動。
     - **台積電與 AMD 的核對**（2026-11-01）：本機 session 從使用者電腦用 pipeline 的 User-Agent 下載了台積電的 2025 年報（中、英文）、20-F 與條款頁（放在 map-plan 的 `data/tsmc/`，私人 repo，不搬到公開的 repo）。38 列逐一對過英文年報第 2 頁的聯絡資訊與中文年報的同一頁（中文版用 pdftotext 抽出來是亂碼，PyMuPDF 抽得出來）：地址、中文廠名都對；照 20-F 的廠區表補上 8 座廠的量產年份（晶圓二廠 1990 年等，A、B 分開列的廠不填），先進封測七廠的「待確認」拿掉（20-F 寫營運 7 座先進封測廠），晶圓二廠照 20-F 仍在營運，Arizona 的第二座廠改成「興建中」（之前寫已完工裝機），日本 3DIC 研發中心照年報的地址放筑波（20-F 的子公司表寫橫濱）。采鈺（台積電持股約 67%）不是完全持有，不收。AMD 的網站（Akamai）對自動程式完全不回應，本機沒有繞過，使用者用瀏覽器存了條款頁與據點頁（`data/amd/`）：條款沒有禁止機器人或資料探勘，內容授權限個人使用 → 只取城市這些事實。據點頁 127 個地址只有地址、沒寫用途，同一城市合成一列、類型都是辦公室（新增 79 個城市；原本 17 列的附註補上據點頁列了幾個地址），納閩（境外金融中心的登記地址）與大園的遠雄自由貿易港區（可能是物流）不收；新城市的座標用 WDQS 依英文維基條目查（每分鐘一次）。
     - **順手發現**：晶圓廠地圖的大連 Fab 68 還掛 Intel（維基的固定版本），Intel 年報寫已賣給 SK hynix，使用者決定改（第 254 點）。
+271. **放大後的國界更精細：Natural Earth 1:10m**（2026-11-01，製作手冊第十六批 264；`pipeline/borders_10m.py`〔步驟 `borders-10m`〕、`src/map/fineBorders.ts`）：國家的上色、點選、hover 用的 1:50m（`countries-50m.json`）放大到城市時跟底圖的海岸線對不上。縮放 5 級以上改用 Natural Earth 1:10m Admin 0，切成 PMTiles（`public/pmtiles/countries-10m-<雜湊>.pmtiles`，5–8 級，超過 8 級前端放大第 8 級）；全球視角的 1:110m、中間的 1:50m 照舊。
+    - **版本與代碼**：用 4.1.0（`geoindex.py` 判斷位置的同一份，跟地圖的 1:50m 同一版，國家的劃分一樣；5.1.2 把東耶路撒冷畫進以色列）。代碼照 `geoindex.ten_m_units()`，三種比例尺一致；同一個代碼的單位合併成一個（賽普勒斯與英屬基地區、哈薩克與拜科努爾、古巴與關達那摩），中間不多一條線。`TEN_M_ONLY` 寫 None 的（南沙群島、聯合國緩衝區、美國本土外小島嶼等）不畫，跟 1:50m 一樣不算任何國家；南極洲不畫。1:10m 比 1:50m 多直布羅陀、吐瓦魯的形狀（1:50m 只畫圓點）。241 個國家或地區、約 52 萬個頂點。
+    - **波赫東部少了一大塊**：4.1.0 版 1:10m 的波赫東界整段偏西（最東到 19.06°E，實際約 19.6°E），波赫只有 40,041 km²（1:50m 51,809 km²），中間約 1.15 萬 km²（茲沃爾尼克、斯雷布雷尼察、維舍格勒、福查一帶）不屬於任何國家，放大後會是一塊沒上色的地方。照 `geoindex.py` 的 `BORDER_FIXES`「波赫東部」用 1:50m 補：同一組範圍裡 1:50m 的波赫（外擴 0.03°，補上兩份國界的縫）扣掉 1:10m 其他國家，只留跟 1:10m 波赫接在一起的（範圍西界外被切下來的 1.7 km² 小塊不要），補上 10,828 km²。
+    - **國界之間的縫**：補完之後全世界被國家圍起來、不屬於任何國家的地方還有 6 塊（都在波赫東界：範圍西邊的 914.9 km²，德里納河東岸柳博維亞一帶 12.7、5.4、1.2、0.2 km²，蒙特內哥羅 0.8 km²），照 `geoindex.country_at()` 判斷那裡算哪一國併進去（波赫 1 塊、塞爾維亞 4 塊、蒙特內哥羅 1 塊），跟網站判斷位置的結果一致。裏海 `country_at()` 判不出國家，照舊留空。補完後波赫 51,973 km²。
+    - **跨 180° 經線**：1:10m 把俄羅斯（楚科奇、弗蘭格爾島）、斐濟在 ±180° 切開，切口在外框上會畫成一條直線。碰到 −180° 的部分往東平移 360° 跟另一半合併（俄羅斯到 190.36°E）；tippecanoe 在第 0 級把超出世界邊緣的部分複製一份平移到另一邊（`tile.cpp` 的 `clip_to_tile`，2026-11-01 讀原始碼確認），兩邊的圖磚都有，切口落在圖磚的緩衝區外。測試檔在楚科奇、斐濟看不到直線。
+    - **台灣**：1:10m 的台灣有本島與金門（跟 1:50m 一樣），另外多了澎湖（3 個島）、蘭嶼、綠島；馬祖、烏坵、東沙 1:10m 也沒有形狀，跟 1:50m 一樣不畫（`geoindex.py` 的 `ISLANDS` 只用在判斷位置）。
+    - **切圖在本機**：tippecanoe 在 cloud 編譯不了（第 13 節），`borders-10m` 步驟由本機 session 跑；GeoJSON（`pipeline/.cache/borders/countries-10m.geojson`，10.8 MB，一行一個國家）cloud 也產生得出來。切好之前 `public/pmtiles/index.json` 是 `{}`，前端照舊用 1:50m 畫到所有縮放。
+    - **前端**：第 13 節「放大後的國界」。
 
 ## 9. 之後可以做的
 
@@ -4919,12 +4929,22 @@ pipeline/
 
 參考 World View Data（它用 tippecanoe 做了 4 個 `.pmtiles`）。使用者選 7A：map cloud 先試做；6A：這一批只用在 264（1:10m 國界）、265（行政區界）。
 
-- **pipeline**（`pipeline/pmtiles.py` 的 `build(name, geojson, layer, min_zoom=…, max_zoom=…, keep=[…], polygons=…)`）：tippecanoe 把 GeoJSON（或 GeoJSONSeq）切成向量圖磚、包成 `.pmtiles`；`keep` 是要留的屬性（前端依它上色、hover 的，例如 iso3，要留）；面加 `--detect-shared-borders`、`--no-tiny-polygon-reduction`，不丟、不合併 feature（每個國家、行政區都要在），圖磚不設 500 KB 上限；線與點用 `--drop-densest-as-needed`。輸出 `public/pmtiles/<名稱>-<內容雜湊 8 碼>.pmtiles`（換檔就換網址，快取不會拿到舊的；同名的舊檔刪掉），`public/pmtiles/index.json` 記檔名、圖層、縮放範圍、大小。單檔超過 95 MB 就報錯（GitHub 的上限是 100 MB；整個 Pages 網站 1 GB）。
+- **pipeline**（`pipeline/pmtiles.py` 的 `build(name, geojson, layer, min_zoom=…, max_zoom=…, keep=[…], polygons=…)`）：tippecanoe 把 GeoJSON（或 GeoJSONSeq）切成向量圖磚、包成 `.pmtiles`；`keep` 是要留的屬性（前端依它上色、hover 的，例如 iso3，要留）；面加 `--no-simplification-of-shared-nodes`（tippecanoe 的 README 寫舊的 `--detect-shared-borders` 已 DEPRECATED，2026-11-01 第十六批 264 改用這個）、`--no-tiny-polygon-reduction`，不丟、不合併 feature（每個國家、行政區都要在），圖磚不設 500 KB 上限；線與點用 `--drop-densest-as-needed`。輸出 `public/pmtiles/<名稱>-<內容雜湊 8 碼>.pmtiles`（換檔就換網址，快取不會拿到舊的；同名的舊檔刪掉），`public/pmtiles/index.json` 記檔名、圖層、縮放範圍、大小。單檔超過 95 MB 就報錯（GitHub 的上限是 100 MB；整個 Pages 網站 1 GB）。
 - **放在 `public/pmtiles/`，不是手冊寫的 `public/tiles/`**：`public/tiles/` 是人口、暖化網格圖磚的資料夾，`.gitignore` 忽略、部署時在 GitHub Actions 產生並快取整個資料夾，放在那裡的 `.pmtiles` 不會進 git。
 - **tippecanoe 在本機跑**：cloud session 編譯外部下載的程式被權限規則擋下（2026-11-01），照手冊的備案由使用者電腦上的本機 session 安裝（macOS `brew install tippecanoe`，或照 felt/tippecanoe 的 README 編譯 2.79.0 以後的版本）、跑用到它的步驟、把 `.pmtiles` 推上來；沒有 tippecanoe 時 `build()` 報錯並寫清楚怎麼做。
 - **前端**（`src/map/pmtiles.ts`）：`pmtiles://` protocol 在 `WorldMap.tsx` 跟 grid、flag、relief 一起註冊（`loadPmtiles`），`pmtiles` 套件（含 fflate，建置後自己一個 chunk，gzip 後約 7 KB）第一次讀圖磚時才下載。`loadTilesIndex()` 讀 `pmtiles/index.json`，`pmtilesSource(entry, promoteId)` 給 MapLibre 的向量來源；要依國家或行政區上色、hover、點選的設 `promoteId`（例如 iso3），feature-state 與 `queryRenderedFeatures` 照常能用。
 - **service worker**：`.pmtiles` 不預先快取、沒有路由（Range 請求照常走網路，不用 Workbox 的 range requests：快取整個 Range 回應容易出錯，圖磚檔也大）；離線時這些圖層看不到，用到的地方放 `TilesOffline`（`StatusCard` 的離線樣子，「目前離線，看不到…」）。
 - **驗證**（還沒有正式的 `.pmtiles` 檔，264 才有）：用 Python 手寫的測試檔（z0 一張圖磚、兩個面，不提交）在開發伺服器上試：Vite 的開發伺服器回 206，瀏覽器只讀了檔頭、目錄與那張圖磚（`bytes=0-16383`、`132-258`、`259-374`）；`promoteId: 'iso3'` 讓 feature 的 id 是代碼，hover 的 feature-state 與 `queryRenderedFeatures` 都正常，沒有主控台錯誤。GitHub Pages 支援 Range（規劃 session 2026-11-01 實測 `data/countries.json` 回 206、`accept-ranges: bytes`）。
+
+### 放大後的國界：5 級以上換成 1:10m（2026-11-01，製作手冊第十六批 264，`src/map/fineBorders.ts`）
+
+資料見第 8 節第 271 點。
+
+- **雙胞胎圖層**：`data-fill`、`data-nodata`、`data-hover`、`data-border`、`data-halo`、`data-highlight` 各複製一份 `<id>-fine`，source 換成 PMTiles（`countries-fine`，`promoteId: 'iso3'`）、minzoom 5（`FINE_ZOOM`），排在原本那層的正後面。無資料的斜線用 filter 選出跟 `nodata` 同一批國家（`setFineNoData`）；斜線圖層放在有 feature-state 的 source 上，選了國家之後也照常畫（1:50m 時 MapLibre 5 有這個問題，向量圖磚實測沒有）。
+- **跟著原本那層走**：`installFineBorders`（`installDataLayers` 的最後）把地圖的 `setFeatureState`（`countries`）、`setPaintProperty`、`setLayoutProperty` 包一層，同一個呼叫也套到 1:10m；雙胞胎加上前設的 feature-state 先記著，加上時補上。所以 `WorldMap`、`useCountryFills`、`mapEvents` 照舊只對 `countries` 與原本的圖層下指令。hover 與點選多查 `data-fill-fine`（`HOVER_LAYERS`）。
+- **換手不閃、不重疊**：雙胞胎先用永遠不成立的 filter（圖磚照樣下載，只是不畫），1:50m 照舊畫在所有縮放；放大到 5 級以上、看得到的 1:10m 圖磚都到了（`isSourceLoaded`），同一格畫面裡拿掉雙胞胎的 filter、1:50m 設 maxzoom 5。之後兩份各管一段縮放，不會同時畫。換底圖（換樣式）時整個重來。之後移到還沒下載過的地方，1:10m 的圖磚跟底圖的圖磚一起下載。
+- **沒有檔案、離線、出錯**：`pmtiles/index.json` 沒有 `countries-10m`（本機 session 切好以前）、離線讀不到，都不加雙胞胎；圖磚出錯（平移縮放取消的請求不算）時拿掉雙胞胎。這三種情況國界照舊用 1:50m 畫到所有縮放，所以不必像其他 PMTiles 圖層那樣顯示 `TilesOffline`。
+- **驗證**（正式檔由本機 session 切）：用 cloud 產生的 GeoJSON 加一支測試用的簡易切圖程式（z5–z6、不簡化，2.5 MB，不提交）在開發伺服器上試：4.6 級時畫 1:50m、5.6 級換手後畫 1:10m（請求 6 張圖磚）；波赫東部有上色，滑過、點選的外框與側欄正常；台灣有澎湖、蘭嶼、綠島，金門照舊；楚科奇與斐濟沒有 180° 的直線；西撒哈拉的斜線照 1:10m 畫，選了阿爾及利亞之後照常；換深色底圖後重新加上並換手；3D 時 1:10m 的外框跟 1:50m 一起隱藏；`index.json` 是 `{}` 或檔案讀不到時照舊用 1:50m，沒有主控台錯誤。單元測試 `fineBorders.test.ts`。
 
 ### Service worker（`src/sw.ts`）
 
@@ -4939,7 +4959,7 @@ pipeline/
 | 1 km 網格圖磚（`/tiles/**.png`，第 14 節） | cache first（網址含版本） | `grid-tiles` | 800 張（約 10 MB）、60 天 |
 | 1 km 網格的 `meta.json` | network first（5 秒逾時才用快取）：它決定圖磚的版本，部署後要馬上換新 | `grid-meta` | 10 |
 | 地形圖磚（AWS Terrain Tiles，只有海拔主題） | cache first（內容不變） | `terrain-tiles` | 200 張、30 天 |
-| PMTiles（`/pmtiles/*.pmtiles`、`/pmtiles/index.json`，2026-11-01） | 不經過 service worker（沒有路由，照常走網路；Range 回應不快取） | — | 離線時這些圖層看不到，用到的地方顯示 `TilesOffline` |
+| PMTiles（`/pmtiles/*.pmtiles`、`/pmtiles/index.json`，2026-11-01） | 不經過 service worker（沒有路由，照常走網路；Range 回應不快取） | — | 離線時這些圖層看不到，用到的地方顯示 `TilesOffline`；放大後的 1:10m 國界改用 1:50m 畫，不顯示 |
 | 國旗的 SVG（`/data/topics/flags/svg/*.svg`） | cache first（檔名含內容的雜湊，內容不變）；另一個快取，不跟資料 JSON 的 400 個上限搶位置 | `flag-images` | 300 個、120 天 |
 
 - **資料版本**：建置時把 `public/data` 全部內容算雜湊（`vite.config.ts` 的 `dataVersion()`，用 `define` 傳給 service worker）。資料有變，資料快取就換一個新名字，新版 service worker 啟用時刪掉舊的；只改程式不改資料時，資料快取照用。

@@ -4,6 +4,7 @@
 import { bisectRight } from 'd3-array';
 import type { DataDrivenPropertyValueSpecification, ExpressionSpecification, LayerSpecification } from 'maplibre-gl';
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
+import { fineTwin } from './fineBorders';
 import { flowColors } from './flows';
 import type { OverlayLayer } from './Overlays';
 import { WORLD_SUFFIX } from './style';
@@ -723,6 +724,8 @@ export const HOVER_LAYERS = [
   FLAG_TINY,
   'data-tiny',
   'data-fill',
+  // 縮放 FINE_ZOOM 以上的 1:10m 國界（fineBorders.ts）；沒有加上或還沒換手時查不到，照舊查 data-fill
+  fineTwin('data-fill'),
 ];
 /** 這些 source 的 feature-state 要跟著 hover、選取更新 */
 export const HOVER_SOURCES = ['countries', 'bubbles', 'columns', 'tiny-columns', 'flows', 'flow-ends'];

@@ -96,6 +96,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 大的線與面圖層（1:10m 國界、行政區界）用 PMTiles：`pipeline/pmtiles.py` 呼叫 tippecanoe（2.79.0 以後，macOS `brew install tippecanoe`）切成 `public/pmtiles/<名稱>-<雜湊>.pmtiles`，前端用 HTTP Range 只讀看得到的那一塊；cloud session 不能編譯 tippecanoe，這些步驟在本機跑。
 
+`borders-10m` 是放大後的國界：Natural Earth 1:10m Admin 0（4.1.0，跟 `geoindex` 同一份，公有領域）依網站的國家代碼合併、補上 4.1.0 版波赫東部缺的一塊與國界之間的縫、把跨 180° 經線的俄羅斯與斐濟接起來（約 6 秒，cloud 也能跑），再用 tippecanoe 切成 `public/pmtiles/countries-10m-<雜湊>.pmtiles`（5–8 級，要在本機跑）；地圖放大到 5 級以上改用它畫國家的上色、外框與點選。要先跑 `geo`。做法見 DESIGN.md 第 8 節第 271 點、第 13 節。
+
 `submarine-cables` 讀 TeleGeography 2022 年 11 月以 CC BY-NC-SA 3.0 公開的最後一版（2026-11-01 起不再抓網站 API 的現在的資料）：重跑前把 skywitness/map-plan 的 `data/telegeography-2022/` 裡的 `api/`、`upstream/`、`SHA256SUMS` 複製到 `pipeline/.cache/telegeography-2022/`，pipeline 會核對 SHA-256。
 
 `temperature` 是氣溫與降雨主題（CRU TS，第一次會下載月均溫與降雨約 385 MB）。`wet-days` 是同一個主題的「一年下雨幾天」（CRU TS 的雨日，第一次下載約 233 MB；台灣附註用中央氣象署的測站逐月資料）。`wet-days` 是同一個主題的「一年下雨幾天」（CRU TS 的雨日，第一次下載約 233 MB；台灣附註用中央氣象署的測站逐月資料），`sunshine` 是「日照時數」（CRU CL v2.0 的日照百分比，約 12 MB）。`temperature-grid-tiles` 產生暖化的 0.5° 網格圖磚（`public/tiles/warming/`，約 20 MB、2.4 萬個檔），跟人口密度的網格一樣不進版本控制、部署時產生，本機約 3–5 分鐘。

@@ -76,7 +76,8 @@ def build(
     - min_zoom、max_zoom：切到哪幾級；超過 max_zoom 前端會放大最後一級（overzoom），不必切到 18。
     - keep：要留的屬性（其他的丟掉，檔案才小）；前端要依國家或行政區上色、標出的屬性（例如 iso3）要在裡面，
       並在前端設 promoteId。
-    - polygons：面（國界、行政區界）加 --detect-shared-borders，相鄰的面簡化後邊界還是貼在一起。
+    - polygons：面（國界、行政區界）加 --no-simplification-of-shared-nodes，相鄰的面簡化後邊界還是貼在一起
+      （tippecanoe 的 README 寫 --detect-shared-borders 已經不建議用〔DEPRECATED〕，改用這個「faster and more correct」）。
     回傳寫出的檔案路徑；index.json 記下檔名、圖層、縮放範圍、大小與產生時間。
     """
     exe = _require_tippecanoe()
@@ -87,9 +88,10 @@ def build(
         for prop in keep:
             args += ["-y", prop]
         if polygons:
-            # 國界、行政區：每個面都要在（依代碼上色、點選），不丟、不合併 feature；相鄰的面簡化後邊界貼在一起；
-            # 小島不換成小方塊。圖磚可能超過預設的 500 KB，所以不設上限（低縮放級別的圖磚由 min_zoom 控制）
-            args += ["--detect-shared-borders", "--no-tiny-polygon-reduction", "--no-tile-size-limit"]
+            # 國界、行政區：每個面都要在（依代碼上色、點選），不丟、不合併 feature；相鄰的面在交會點之間簡化成一樣的線
+            # （--no-simplification-of-shared-nodes，取代 DEPRECATED 的 --detect-shared-borders）；小島不換成小方塊。
+            # 圖磚可能超過預設的 500 KB，所以不設上限（低縮放級別的圖磚由 min_zoom 控制）
+            args += ["--no-simplification-of-shared-nodes", "--no-tiny-polygon-reduction", "--no-tile-size-limit"]
         else:
             # 線與點：圖磚太大時先丟最密的地方，還是太大就多切幾級
             args += ["--drop-densest-as-needed", "--extend-zooms-if-still-dropping"]

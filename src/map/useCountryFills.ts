@@ -7,6 +7,7 @@ import type { GeoJSONSource, Map as MaplibreMap } from 'maplibre-gl';
 import type { Indicator } from '../topics/types';
 import type { CountryFeature } from './geometry';
 import { categoryScale } from './categories';
+import { setFineNoData } from './fineBorders';
 import { choroplethScale } from './scales';
 import {
   FILL_FADE_MIN_MS,
@@ -95,6 +96,11 @@ export function useCountryFills(
         type: 'FeatureCollection',
         features: noData.map((c) => c.feature),
       });
+      // 縮放 FINE_ZOOM 以上的 1:10m 國界用 filter 選出同一批（fineBorders.ts）
+      setFineNoData(
+        map,
+        noData.map((c) => c.iso3),
+      );
     }
     const shapelessIds = new Set<string>();
     for (const [iso3] of shapeless) {
