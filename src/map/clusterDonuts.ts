@@ -8,6 +8,7 @@
  *   tooltip、點選照舊。
  */
 import { Marker, type GeoJSONSource, type Map as MaplibreMap, type MapGeoJSONFeature } from 'maplibre-gl';
+import { getLang } from '../i18n';
 import { pieSlices } from './pies';
 
 export interface DonutSpec {
@@ -60,7 +61,10 @@ function donutElement(spec: DonutSpec, parts: number[], total: number, onClick: 
     .sort((a, b) => b.v - a.v)
     .slice(0, 4)
     .map((p) => `${spec.labels[p.k]} ${Math.round((p.v / total) * 100)}%`);
-  const label = `${spec.title}${spec.format(total)}：${shares.join('、')}`;
+  const label =
+    getLang() === 'zh'
+      ? `${spec.title}${spec.format(total)}：${shares.join('、')}` // i18n-ignore 中文介面的標點
+      : `${spec.title}${spec.format(total)} (${shares.join(', ')})`;
   button.title = label;
   button.setAttribute('aria-label', label);
   const svg = document.createElementNS(SVG, 'svg');
