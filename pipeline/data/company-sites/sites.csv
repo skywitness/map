@@ -8,7 +8,7 @@ apple,datacenter,open,Apple Waukee data center,,Waukee,USA,41.61,-93.87,city,,ht
 apple,datacenter,open,Apple Viborg data center,,Viborg,DNK,56.4834,9.5739,site,,https://dca.au.dk/en/current-news/news/show/artikel/aarhus-universitet-hilser-apple-velkommen-som-naermeste-nabo-til-au-foulum-1,Wikidata Q19721053（Foulum Data Center，所有者 APPLE ApS）；在 Viborg 郊外的 Foulum；出處是奧胡斯大學 2015-02-24 的新聞（Apple 決定在此建大型資料中心）；待確認：營運中是依 2020 年的報導，沒有讀到官方來源
 apple,office,open,Apple Austin campus,,Austin,USA,30.30,-97.73,city,,https://www.tdlr.texas.gov/TABS/Search/Print/TABS2025025970,非官方來源：德州 TDLR 建築工程登記（2025）的 Apple Campus Building 1（6900 W Parmer Lane，業主 Apple Inc.，既有空間改裝並增加辦公室）；待確認：園區用途與啟用年份
 apple,rnd,planned,Apple Research Triangle campus,,Research Triangle Park,USA,35.91,-78.86,city,,https://www.commerce.nc.gov/news/press-releases/2021/04/26/governor-cooper-announces-apple-will-create-3000-jobs-wake-county,"北卡州政府 2021-04-26：Apple 在 Wake County 設研發、營運與工程中心（至少 100 萬平方英尺、3,000 個工作）；待確認：2024 年報導 Apple 暫停開發、延後 4 年；座標用 Research Triangle Park"
-apple,rnd,open,Apple European Silicon Design Center,,Munich,DEU,48.14,11.58,city,,https://www.stmwi.bayern.de/presse/pressemeldungen/86-2023/,巴伐利亞邦經濟部 2023-03-02：Apple 宣布再投資 10 億歐元於慕尼黑的歐洲晶片設計中心
+apple,rnd,open,Apple European Silicon Design Center,,Munich,DEU,48.14,11.57,city,,https://www.stmwi.bayern.de/presse/pressemeldungen/86-2023/,巴伐利亞邦經濟部 2023-03-02：Apple 宣布再投資 10 億歐元於慕尼黑的歐洲晶片設計中心
 apple,rnd,open,Apple Longtan,美商蘋果電子股份有限公司台灣分公司,Longtan,TWN,24.84,121.21,city,,https://www.sipa.gov.tw/home.jsp?serno=201001210041&mserno=201001210037&menudata=ChineseMenu&contlink=ap%2Fmanufacturers_1_3_view.jsp&level2=Y&dataserno=A1104&stype=C&qsipa=05,"竹科管理局龍潭園區廠商資料（A1104，英文名 Taiwan Apple LLC, Taiwan Branch）：研究、設計、開發、製造 LTPS 與氧化物半導體面板、QuantumFilm 影像感測器；龍潭園區 2 處（龍園十路 55 號、龍三廠 龍園八路 88 號）；登記的營業項目也有製造"
 apple,office,open,Apple Taipei,美商蘋果亞洲股份有限公司台灣分公司,Taipei,TWN,25.04,121.56,city,,https://fbfh.trade.gov.tw/eai/detail?year=110&lang=zh&mode=Ranking&banNo=23826594,"國貿署出進口廠商資料：APPLE ASIA LLC, TAIWAN BRANCH (U.S.A.)，臺北市信義區松仁路 100 號 32 樓，民國 79 年（1990）登記"
 apple,office,open,Apple European headquarters (Hollyhill),,Cork,IRL,51.9,-8.47,city,1980,https://www.corkcity.ie/en/council-services/news-room/latest-news/civic-reception-acknowledges-45-years-of-apple-operations-in-cork/,"歐洲總部，在 Cork 市郊的 Hollyhill 園區；Cork 市議會 2026-02-20 新聞：Apple 1980 年在 Cork 開始營運，愛爾蘭約 6,000 名員工大多在 Hollyhill，2026 年 2 月新大樓 Hollyhill 5 啟用；也有 AI／機器學習團隊與歐洲產品的工程測試設施"
@@ -264,13 +264,13 @@ amazon,office,open,Amazon Dublin,,Dublin,IRL,53.35,-6.26,city,,https://enterpris
 tsmc,hq,open,Corporate Headquarters & Fab 12A,公司總部及晶圓十二A廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區力行六路8號；也是晶圓十二A廠（12 吋晶圓廠）
 tsmc,factory,open,Fab 12B,晶圓十二B廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區園區二路168號；12 吋晶圓廠（與十二A廠同屬晶圓十二廠）
 tsmc,rnd,open,Global R&D Center,全球研發中心,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區科環路168號（竹科寶山，郵遞區號 308）
-tsmc,factory,open,Fab 2,晶圓二廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,6 吋（150mm）晶圓廠，與晶圓五廠同址（園區三路121號）；待確認：台積電 2025 年宣布兩年內逐步退出 6 吋晶圓生產
-tsmc,factory,open,Fab 3,晶圓三廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠（研新一路9號）
-tsmc,factory,open,Fab 5,晶圓五廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠，與晶圓二廠同址（園區三路121號）
-tsmc,factory,open,Fab 8,晶圓八廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠（力行路25號）
+tsmc,factory,open,Fab 2,晶圓二廠,Hsinchu,TWN,24.8,120.97,city,1990,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,6 吋（150mm）晶圓廠，與晶圓五廠同址（園區三路121號）；20-F 列為營運中（1990 年量產）；台積電 2025 年宣布兩年內逐步退出 6 吋晶圓生產
+tsmc,factory,open,Fab 3,晶圓三廠,Hsinchu,TWN,24.8,120.97,city,1995,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠（研新一路9號）
+tsmc,factory,open,Fab 5,晶圓五廠,Hsinchu,TWN,24.8,120.97,city,1997,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠，與晶圓二廠同址（園區三路121號）
+tsmc,factory,open,Fab 8,晶圓八廠,Hsinchu,TWN,24.8,120.97,city,1998,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,8 吋晶圓廠（力行路25號）
 tsmc,factory,open,Fab 20,晶圓二十廠,Hsinchu,TWN,24.8,120.97,city,2025,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,12 吋晶圓廠，竹科寶山園區（科環路1號，郵遞區號 308）；20-F 寫 2025 年開始生產
-tsmc,factory,open,Advanced Backend Fab 1,先進封測一廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區；先進封裝測試廠
-tsmc,factory,open,Fab 6,晶圓六廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區（南科北路1號）
+tsmc,factory,open,Advanced Backend Fab 1,先進封測一廠,Hsinchu,TWN,24.8,120.97,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,新竹科學園區研新二路6號；先進封裝測試廠
+tsmc,factory,open,Fab 6,晶圓六廠,Tainan,TWN,22.99,120.19,city,2000,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區（南科北路1號）
 tsmc,factory,open,Fab 14A,晶圓十四A廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區；12 吋晶圓廠（與十四B廠同屬晶圓十四廠）
 tsmc,factory,open,Fab 14B,晶圓十四B廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區；12 吋晶圓廠（與十四A廠同屬晶圓十四廠）
 tsmc,factory,open,Fab 18A,晶圓十八A廠,Tainan,TWN,22.99,120.19,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,南部科學園區；12 吋晶圓廠（與十八B廠同屬晶圓十八廠）
@@ -284,19 +284,19 @@ tsmc,factory,building,Fab 25,,Taichung,TWN,24.14,120.68,city,,https://www.people
 tsmc,factory,open,Fab 22,晶圓二十二廠,Kaohsiung,TWN,22.61,120.3,city,2025,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,高雄市楠梓區園區北路1號；20-F 寫 2025 年開始生產
 tsmc,factory,open,Advanced Backend Fab 3,先進封測三廠,Taoyuan,TWN,24.99,121.31,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,桃園市龍潭區龍園六路101號（竹科龍潭園區）
 tsmc,factory,open,Advanced Backend Fab 6,先進封測六廠,Zhunan,TWN,24.68,120.88,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,苗栗縣竹南鎮科專一路1號（竹科竹南園區）
-tsmc,factory,open,Advanced Backend Fab 7,先進封測七廠,Taibao,TWN,23.48,120.33,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,嘉義縣太保市（嘉義科學園區）；待確認：20-F 把它算在營運中的 7 座先進封測廠內，但產業新聞說各期 2026–2027 年陸續量產
-tsmc,factory,open,Fab 21 (TSMC Arizona),,Phoenix,USA,33.78,-112.16,site,2024,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Arizona（100% 持有）；第一座廠 2024 年第 4 季量產 4 奈米，第二座已完工裝機，第三座 2025 年動工；另規劃先進封裝廠與研發中心；Wikidata Q135913497
+tsmc,factory,open,Advanced Backend Fab 7,先進封測七廠,Taibao,TWN,23.48,120.33,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.C.pdf,嘉義縣太保市嘉科五路68號（嘉義科學園區）；20-F 寫目前營運 7 座先進封測廠（年報列一、二、三、五、六、七、八廠），各期陸續量產
+tsmc,factory,open,Fab 21 (TSMC Arizona),,Phoenix,USA,33.78,-112.16,site,2024,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Arizona（100% 持有）；20-F：第一座廠 2024 年底量產，第二座興建中，第三座 2025 年動工；Wikidata Q135913497
 tsmc,factory,open,Fab 23 (JASM),,Kikuyo,JPN,32.88564,130.84222,site,2024,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 JASM（Japan Advanced Semiconductor Manufacturing，台積公司持有多數股權的合資公司）；熊本縣菊陽町，第一座廠 2024 年底量產，第二座 2025 年動工；座標取自 JASM 公司條目；Wikidata Q111362867
 tsmc,factory,building,Fab 24 (ESMC),,Dresden,DEU,51.05,13.74,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 ESMC（European Semiconductor Manufacturing Company，合資）；2024 年動工的 28/22、16/12 奈米特殊製程廠
-tsmc,factory,open,Fab 16 (TSMC Nanjing),台積電（南京）有限公司,Nanjing,CHN,32.06,118.78,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Nanjing（浦口經濟開發區）；12 吋晶圓廠
-tsmc,factory,open,Fab 10 (TSMC China),台積電（中國）有限公司,Shanghai,CHN,31.23,121.47,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC China，上海松江區；8 吋晶圓廠
-tsmc,factory,open,Fab 11 (TSMC Washington),,Camas,USA,45.59,-122.41,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Washington（原 WaferTech）；8 吋晶圓廠
+tsmc,factory,open,Fab 16 (TSMC Nanjing),台積電（南京）有限公司,Nanjing,CHN,32.06,118.78,city,2018,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Nanjing（浦口經濟開發區）；12 吋晶圓廠
+tsmc,factory,open,Fab 10 (TSMC China),台積電（中國）有限公司,Shanghai,CHN,31.23,121.47,city,2004,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC China，上海松江區；8 吋晶圓廠
+tsmc,factory,open,Fab 11 (TSMC Washington),,Camas,USA,45.59,-122.41,city,1998,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Washington（原 WaferTech）；8 吋晶圓廠
 tsmc,office,open,TSMC North America,,San Jose,USA,37.3,-121.87,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司；2851 Junction Avenue
 tsmc,office,open,TSMC Europe,,Amsterdam,NLD,52.37,4.88,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Europe B.V.；World Trade Center Amsterdam
 tsmc,office,open,TSMC Japan,,Yokohama,JPN,35.45,139.63,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Japan Limited；橫濱港未來
 tsmc,office,open,TSMC Korea,,Seoul,KOR,37.56,126.99,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司 TSMC Korea Limited；江南區德黑蘭路
 tsmc,rnd,open,TSMC Design Technology Japan,,Yokohama,JPN,35.45,139.63,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司（設計中心）；橫濱港未來
-tsmc,rnd,open,TSMC Japan 3DIC R&D Center,,Tsukuba,JPN,36.08,140.08,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司；茨城縣筑波市
+tsmc,rnd,open,TSMC Japan 3DIC R&D Center,,Tsukuba,JPN,36.08,140.08,city,,https://investor.tsmc.com/sites/ir/annual-report/2025/2025%20TSMC%20Annual%20Report.E.pdf,子公司；年報的聯絡資訊寫茨城縣筑波市（20-F 的子公司表寫 Yokohama，照年報的地址）
 tsmc,rnd,open,TSMC Design Technology Canada,,Ottawa,CAN,45.42,-75.69,city,,https://www.tsmc.com/static/english/careers/designCenter_Canada.htm,子公司（設計中心），位於渥太華的 Kanata
 tsmc,rnd,open,TSMC Europe Design Center (Munich),,Munich,DEU,48.14,11.57,city,,https://www.tomshardware.com/tech-industry/semiconductors/tsmc-to-open-up-chip-design-center-in-munich-to-help-local-chip-developers,非官方來源（Tom's Hardware 2025-05-28，報導台積電在歐洲技術論壇宣布）；台積電第 10 個、歐洲第 1 個設計中心；待確認：報導說預定 2025 年第 3 季開始運作，沒找到開幕的官方消息
 spacex,hq,open,Starbase,,Starbase,USA,25.9875,-97.185833,site,,https://www.spacex.com/sites,總部；也是 Starship 的開發、製造與試驗據點（工廠）；發射台另列一列；Wikidata Q16950811
@@ -566,23 +566,102 @@ micron,office,open,Micron Arzano,,Arzano,ITA,40.92,14.27,city,,https://www.micro
 micron,office,open,Micron Avezzano,,Avezzano,ITA,42.03,13.43,city,,https://www.micron.com/about/locations,
 micron,office,open,Micron Vimercate,,Vimercate,ITA,45.62,9.37,city,,https://www.micron.com/about/locations,
 micron,office,open,Micron Bracknell,,Bracknell,GBR,51.42,-0.75,city,,https://www.micron.com/about/locations,Micron Europe Ltd
-amd,hq,open,AMD Santa Clara,,Santa Clara,USA,37.35,-121.97,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,總部；城市座標 Wikidata Q159260
-amd,office,open,AMD Austin,,Austin,USA,30.3,-97.73,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；Lone Star 園區 2008 年啟用（AMD 2008-06-16 新聞稿）；待確認：年報沒有分別寫各據點的用途（研發或行政）；城市座標 Wikidata Q16559
-amd,office,open,AMD San Jose,,San Jose,USA,37.3,-121.87,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q16553
-amd,office,open,AMD Shanghai,,Shanghai,CHN,31.23,121.47,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q8686
-amd,office,open,AMD Markham,,Markham,CAN,43.88,-79.25,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q44016
-amd,office,open,AMD Longmont,,Longmont,USA,40.17,-105.11,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q988283
-amd,rnd,open,AMD Dublin,,Dublin,IRL,53.35,-6.26,city,1995,https://ir.amd.com/news-events/press-releases/detail/1139/amd-announces-plan-to-invest-135-million-to-expand-adaptive-computing-research-development-and-engineering-operations-in-ireland,研發據點（AMD 在歐洲最大的研發據點之一）；原 Xilinx 據點，1994 年設立、1995 年開始營運；年報列為主要營運據點；城市座標 Wikidata Q1761
-amd,office,open,AMD Singapore,,Singapore,SGP,1.3,103.8,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；年報說在新加坡的稅務優惠與併購 Xilinx 時的承諾有關；城市座標 Wikidata Q334
-amd,rnd,open,AMD Bengaluru,,Bengaluru,IND,12.98,77.59,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,AMD 最大的設計中心（2023-07 宣布的新園區，當時預計 2023 年底啟用）；年報列為主要營運據點；城市座標 Wikidata Q1355
-amd,office,open,AMD Hyderabad,,Hyderabad,IND,17.36,78.47,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；城市座標 Wikidata Q1361
-amd,office,open,AMD New Delhi,,New Delhi,IND,28.61,77.21,city,2001,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,AMD 在印度的第一個據點（2001 年）；新聞稿列出的印度辦公室城市之一；城市座標 Wikidata Q987
-amd,office,open,AMD Gurgaon,,Gurgaon,IND,28.47,77.03,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,新聞稿列出的印度辦公室城市之一；城市座標 Wikidata Q238508
-amd,office,open,AMD Mumbai,,Mumbai,IND,19.08,72.88,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,新聞稿列出的印度辦公室城市之一；城市座標 Wikidata Q1156
-amd,rnd,open,AMD Cork,,Cork,IRL,51.9,-8.47,city,,https://ir.amd.com/news-events/press-releases/detail/1139/amd-announces-plan-to-invest-135-million-to-expand-adaptive-computing-research-development-and-engineering-operations-in-ireland,愛爾蘭研發據點之一（2023 年宣布擴大 Dublin 與 Cork 的研發與工程）；城市座標 Wikidata Q36647
-amd,rnd,open,AMD Tainan,,Tainan,TWN,22.99,120.19,city,2025,https://technews.tw/2025/03/24/amd-tainan-office-open/,AMD 台灣分公司進駐台南市歸仁區沙崙的國科會資安暨智慧科技研發大樓，2025-03-24 揭幕；經濟部 A+ 全球研發創新夥伴計畫的研發據點（2024 年宣布）；非官方來源；城市座標 Wikidata Q140631
-amd,rnd,open,AMD Kaohsiung,,Kaohsiung,TWN,22.61,120.3,city,2025,https://www.cna.com.tw/news/afe/202503250211.aspx,在苓雅區的高雄領航大樓，2025-03-25 揭幕；經濟部 A+ 全球研發創新夥伴計畫的研發據點（2024 年宣布）；非官方來源；城市座標 Wikidata Q181557
-amd,rnd,open,Silo AI Helsinki,,Helsinki,FIN,60.17,24.94,city,,https://ir.amd.com/news-events/press-releases/detail/1206/amd-to-acquire-silo-ai-to-expand-enterprise-ai-solutions-globally,子公司 Silo AI（歐洲最大的民間 AI 實驗室），總部在 Helsinki；2024-08 併購完成；城市座標 Wikidata Q1757
+amd,hq,open,AMD Santa Clara,,Santa Clara,USA,37.35,-121.97,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,總部；AMD 據點頁列出的地址；城市座標 Wikidata Q159260
+amd,office,open,AMD Austin,,Austin,USA,30.3,-97.73,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；Lone Star 園區 2008 年啟用（AMD 2008-06-16 新聞稿）；待確認：年報沒有分別寫各據點的用途（研發或行政）；AMD 據點頁列出 5 個地址；城市座標 Wikidata Q16559
+amd,office,open,AMD San Jose,,San Jose,USA,37.3,-121.87,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；AMD 據點頁列出的地址；城市座標 Wikidata Q16553
+amd,office,open,AMD Shanghai,,Shanghai,CHN,31.23,121.47,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；AMD 據點頁列出 3 個地址；城市座標 Wikidata Q8686
+amd,office,open,AMD Markham,,Markham,CAN,43.88,-79.25,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；AMD 據點頁列出 3 個地址；城市座標 Wikidata Q44016
+amd,office,open,AMD Longmont,,Longmont,USA,40.17,-105.11,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；AMD 據點頁列出 2 個地址；城市座標 Wikidata Q988283
+amd,rnd,open,AMD Dublin,,Dublin,IRL,53.35,-6.26,city,1995,https://ir.amd.com/news-events/press-releases/detail/1139/amd-announces-plan-to-invest-135-million-to-expand-adaptive-computing-research-development-and-engineering-operations-in-ireland,研發據點（AMD 在歐洲最大的研發據點之一）；原 Xilinx 據點，1994 年設立、1995 年開始營運；年報列為主要營運據點；AMD 據點頁列出的地址；城市座標 Wikidata Q1761
+amd,office,open,AMD Singapore,,Singapore,SGP,1.3,103.8,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；年報說在新加坡的稅務優惠與併購 Xilinx 時的承諾有關；AMD 據點頁列出 4 個地址；城市座標 Wikidata Q334
+amd,rnd,open,AMD Bengaluru,,Bengaluru,IND,12.98,77.59,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,AMD 最大的設計中心（2023-07 宣布的新園區，當時預計 2023 年底啟用）；年報列為主要營運據點；AMD 據點頁列出 4 個地址；城市座標 Wikidata Q1355
+amd,office,open,AMD Hyderabad,,Hyderabad,IND,17.36,78.47,city,,https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000018/0000002488-26-000018.pdf,年報列為主要營運據點；待確認：年報沒有分別寫各據點的用途；AMD 據點頁列出 2 個地址；城市座標 Wikidata Q1361
+amd,office,open,AMD New Delhi,,New Delhi,IND,28.61,77.21,city,2001,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,AMD 在印度的第一個據點（2001 年）；新聞稿列出的印度辦公室城市之一；AMD 據點頁列出的地址；城市座標 Wikidata Q987
+amd,office,open,AMD Gurgaon,,Gurgaon,IND,28.47,77.03,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,新聞稿列出的印度辦公室城市之一；AMD 據點頁列出的地址；城市座標 Wikidata Q238508
+amd,office,open,AMD Mumbai,,Mumbai,IND,19.08,72.88,city,,https://ir.amd.com/news-events/press-releases/detail/1145/amd-announces-plan-to-invest-approximately-400-million-over-the-next-five-years-to-expand-research-development-and-engineering-operations-in-india,新聞稿列出的印度辦公室城市之一；AMD 據點頁列出的地址；城市座標 Wikidata Q1156
+amd,rnd,open,AMD Cork,,Cork,IRL,51.9,-8.47,city,,https://ir.amd.com/news-events/press-releases/detail/1139/amd-announces-plan-to-invest-135-million-to-expand-adaptive-computing-research-development-and-engineering-operations-in-ireland,愛爾蘭研發據點之一（2023 年宣布擴大 Dublin 與 Cork 的研發與工程）；AMD 據點頁列出的地址；城市座標 Wikidata Q36647
+amd,rnd,open,AMD Tainan,,Tainan,TWN,22.99,120.19,city,2025,https://technews.tw/2025/03/24/amd-tainan-office-open/,AMD 台灣分公司進駐台南市歸仁區沙崙的國科會資安暨智慧科技研發大樓，2025-03-24 揭幕；經濟部 A+ 全球研發創新夥伴計畫的研發據點（2024 年宣布）；非官方來源；AMD 據點頁列出的地址；城市座標 Wikidata Q140631
+amd,rnd,open,AMD Kaohsiung,,Kaohsiung,TWN,22.61,120.3,city,2025,https://www.cna.com.tw/news/afe/202503250211.aspx,在苓雅區的高雄領航大樓，2025-03-25 揭幕；經濟部 A+ 全球研發創新夥伴計畫的研發據點（2024 年宣布）；非官方來源；AMD 據點頁列出的地址；城市座標 Wikidata Q181557
+amd,rnd,open,Silo AI Helsinki,,Helsinki,FIN,60.17,24.94,city,,https://ir.amd.com/news-events/press-releases/detail/1206/amd-to-acquire-silo-ai-to-expand-enterprise-ai-solutions-globally,子公司 Silo AI（歐洲最大的民間 AI 實驗室），總部在 Helsinki；2024-08 併購完成；AMD 據點頁列出的地址；城市座標 Wikidata Q1757
+amd,office,open,AMD Buenos Aires,,Buenos Aires,ARG,-34.6,-58.38,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1486
+amd,office,open,AMD São Paulo,,São Paulo,BRA,-23.55,-46.63,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q174
+amd,office,open,AMD Calgary,,Calgary,CAN,51.05,-114.06,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q36312
+amd,office,open,AMD Ottawa,,Ottawa,CAN,45.42,-75.69,city,,https://www.amd.com/en/corporate/locations.html,Kanata；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Vancouver,,Vancouver,CAN,49.26,-123.11,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q24639
+amd,office,open,AMD Waterloo,,Waterloo,CAN,43.47,-80.52,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q639408
+amd,office,open,AMD Mexico City,,Mexico City,MEX,19.35,-99.14,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1489
+amd,office,open,AMD Addison,,Addison,USA,32.96,-96.83,city,,https://www.amd.com/en/corporate/locations.html,德州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q353089
+amd,office,open,AMD Albuquerque,,Albuquerque,USA,35.08,-106.65,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q34804
+amd,office,open,AMD Bellevue,,Bellevue,USA,47.61,-122.19,city,,https://www.amd.com/en/corporate/locations.html,華盛頓州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q214164
+amd,office,open,AMD Boxborough,,Boxborough,USA,42.48,-71.52,city,,https://www.amd.com/en/corporate/locations.html,麻州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q3643258
+amd,office,open,AMD Fishkill,,Fishkill,USA,41.54,-73.9,city,,https://www.amd.com/en/corporate/locations.html,紐約州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q2533908
+amd,office,open,AMD Folsom,,Folsom,USA,38.67,-121.16,city,,https://www.amd.com/en/corporate/locations.html,加州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Fort Collins,,Fort Collins,USA,40.57,-105.08,city,,https://www.amd.com/en/corporate/locations.html,科羅拉多州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q490732
+amd,office,open,AMD Irvine,,Irvine,USA,33.68,-117.79,city,,https://www.amd.com/en/corporate/locations.html,加州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q49219
+amd,office,open,AMD Orlando,,Orlando,USA,28.53,-81.39,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q49233
+amd,office,open,AMD Plymouth,,Plymouth,USA,45.01,-93.46,city,,https://www.amd.com/en/corporate/locations.html,明尼蘇達州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q936753
+amd,office,open,AMD Raleigh,,Raleigh,USA,35.78,-78.64,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q41087
+amd,office,open,AMD Rochester,,Rochester,USA,43.17,-77.61,city,,https://www.amd.com/en/corporate/locations.html,紐約州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q49218
+amd,office,open,AMD San Diego,,San Diego,USA,32.72,-117.16,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q16552
+amd,office,open,AMD Seattle,,Seattle,USA,47.61,-122.33,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Secaucus,,Secaucus,USA,40.79,-74.06,city,,https://www.amd.com/en/corporate/locations.html,紐澤西州；AMD 據點頁列出 3 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q1013249
+amd,office,open,AMD Spring,,Spring,USA,30.05,-95.39,city,,https://www.amd.com/en/corporate/locations.html,德州（休士頓北邊）；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q981346
+amd,office,open,"AMD Washington, D.C.",,"Washington, D.C.",USA,38.9,-77.04,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q61
+amd,office,open,AMD Wixom,,Wixom,USA,42.52,-83.54,city,,https://www.amd.com/en/corporate/locations.html,密西根州；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q2677877
+amd,office,open,AMD Yerevan,,Yerevan,ARM,40.18,44.51,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1953
+amd,office,open,AMD Aalst,,Aalst,BEL,50.94,4.04,city,,https://www.amd.com/en/corporate/locations.html,Erembodegen；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q13121
+amd,office,open,AMD Copenhagen,,Copenhagen,DNK,55.68,12.57,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1748
+amd,office,open,AMD Espoo,,Espoo,FIN,60.21,24.66,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q47034
+amd,office,open,AMD Jyväskylä,,Jyväskylä,FIN,62.24,25.74,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q134620
+amd,office,open,AMD Tampere,,Tampere,FIN,61.5,23.76,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q40840
+amd,office,open,AMD Turku,,Turku,FIN,60.45,22.27,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q38511
+amd,office,open,AMD Eybens,,Eybens,FRA,45.15,5.75,city,,https://www.amd.com/en/corporate/locations.html,格勒諾布爾近郊；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1002915
+amd,office,open,AMD Palaiseau,,Palaiseau,FRA,48.72,2.25,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q205580
+amd,office,open,AMD Paris,,Paris,FRA,48.86,2.35,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Voisins-le-Bretonneux,,Voisins-le-Bretonneux,FRA,48.76,2.05,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q83450
+amd,office,open,AMD Dresden,,Dresden,DEU,51.05,13.74,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Cologne,,Cologne,DEU,50.94,6.96,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q365
+amd,office,open,AMD Munich,,Munich,DEU,48.14,11.57,city,,https://www.amd.com/en/corporate/locations.html,含 Aschheim；AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Holon,,Holon,ISR,32.02,34.77,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q192213
+amd,office,open,AMD Milan,,Milan,ITA,45.47,9.19,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q490
+amd,office,open,AMD Amstelveen,,Amstelveen,NLD,52.3,4.86,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q9898
+amd,office,open,AMD Nijmegen,,Nijmegen,NLD,51.85,5.86,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q47887
+amd,office,open,AMD Iași,,Iași,ROU,47.16,27.59,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q46852
+amd,office,open,AMD Riyadh,,Riyadh,SAU,24.64,46.72,city,,https://www.amd.com/en/corporate/locations.html,King Saud University 校內；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q3692
+amd,office,open,AMD Belgrade,,Belgrade,SRB,44.82,20.46,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q3711
+amd,office,open,AMD Niš,,Niš,SRB,43.32,21.9,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q129259
+amd,office,open,AMD Mölndal,,Mölndal,SWE,57.65,12.01,city,,https://www.amd.com/en/corporate/locations.html,哥特堡；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q27437
+amd,office,open,AMD Malmö,,Malmö,SWE,55.58,13.0,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q2211
+amd,office,open,AMD Stockholm,,Stockholm,SWE,59.33,18.07,city,,https://www.amd.com/en/corporate/locations.html,含 Kista；AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q1754
+amd,office,open,AMD Istanbul,,Istanbul,TUR,41.01,28.96,city,,https://www.amd.com/en/corporate/locations.html,Ataşehir；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q406
+amd,office,open,AMD Dubai,,Dubai,ARE,25.27,55.31,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q612
+amd,office,open,AMD Belfast,,Belfast,GBR,54.6,-5.93,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q10686
+amd,office,open,AMD Bristol,,Bristol,GBR,51.45,-2.6,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q23154
+amd,office,open,AMD Cambridge,,Cambridge,GBR,52.21,0.12,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q350
+amd,office,open,AMD London,,London,GBR,51.51,-0.13,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q84
+amd,office,open,AMD Manchester,,Manchester,GBR,53.48,-2.25,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q18125
+amd,office,open,AMD Oxford,,Oxford,GBR,51.75,-1.26,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q34217
+amd,office,open,AMD Penicuik,,Penicuik,GBR,55.83,-3.22,city,,https://www.amd.com/en/corporate/locations.html,蘇格蘭，愛丁堡近郊；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1011428
+amd,office,open,AMD Sydney,,Sydney,AUS,-33.87,151.21,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q3130
+amd,office,open,AMD Beijing,,Beijing,CHN,39.9,116.41,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q956
+amd,office,open,AMD Chengdu,,Chengdu,CHN,30.66,104.06,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q30002
+amd,office,open,AMD Chongqing,,Chongqing,CHN,29.55,106.51,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q11725
+amd,office,open,AMD Nanjing,,Nanjing,CHN,32.06,118.78,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Shenzhen,,Shenzhen,CHN,22.55,114.05,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Suzhou,,Suzhou,CHN,31.3,120.62,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q42622
+amd,office,open,AMD Xi'an,,Xi'an,CHN,34.26,108.94,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Hong Kong,,Hong Kong,HKG,22.28,114.16,city,,https://www.amd.com/en/corporate/locations.html,含香港科學園；AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q8646
+amd,office,open,AMD Nagoya,,Nagoya,JPN,35.18,136.91,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q11751
+amd,office,open,AMD Tokyo,,Tokyo,JPN,35.69,139.69,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q1490
+amd,office,open,AMD Bandar Cassia,,Bandar Cassia,MYS,5.26,100.44,city,,https://www.amd.com/en/corporate/locations.html,檳城州 Batu Kawan；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q16253123
+amd,office,open,AMD Bayan Lepas,,Bayan Lepas,MYS,5.28,100.27,city,,https://www.amd.com/en/corporate/locations.html,檳城；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q4874282
+amd,office,open,AMD Cyberjaya,,Cyberjaya,MYS,2.92,101.66,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1147163
+amd,office,open,AMD Seoul,,Seoul,KOR,37.56,126.99,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出 2 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q8684
+amd,office,open,AMD Hsinchu,,Hsinchu,TWN,24.8,120.97,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出 3 個地址（只有地址，沒寫用途）；城市座標 Wikidata Q249994
+amd,office,open,AMD Zhunan,,Zhunan,TWN,24.68,120.88,city,,https://www.amd.com/en/corporate/locations.html,苗栗縣竹南鎮；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD New Taipei,,New Taipei,TWN,25.01,121.47,city,,https://www.amd.com/en/corporate/locations.html,汐止；AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q244898
+amd,office,open,AMD Taipei,,Taipei,TWN,25.04,121.56,city,,https://www.amd.com/en/corporate/locations.html,南港；AMD 據點頁列出 3 個地址（只有地址，沒寫用途）；城市座標同其他列
+amd,office,open,AMD Bangkok,,Bangkok,THA,13.75,100.52,city,,https://www.amd.com/en/corporate/locations.html,AMD 據點頁列出的地址（只有地址，沒寫用途）；城市座標 Wikidata Q1861
 intel,hq,open,Intel Santa Clara,,Santa Clara,USA,37.35,-121.97,city,,https://www.intc.com/filings-reports/all-sec-filings/content/0000050863-26-000011/0000050863-26-000011.pdf,總部（年報封面：2200 Mission College Boulevard）；城市座標 Wikidata Q159260
 intel,factory,open,Intel Hillsboro,,Hillsboro,USA,45.52,-122.99,city,,https://www.nist.gov/chips/intel-corporation-oregon-hillsboro,晶圓廠，也是製程研發中心（NIST：全美最主要的先進製程研發據點、全球第一套商用 High-NA EUV；Intel 2025 年報：2025 年開始量產 Intel 18A）；城市座標 Wikidata Q81824
 intel,factory,open,Intel Chandler,,Chandler,USA,33.3,-111.84,city,,https://www.nist.gov/chips/intel-corporation-arizona-chandler,晶圓廠（NIST：興建兩座新的先進邏輯廠、更新一座既有廠，量產 Intel 18A；Intel 2025 年報：生產 Intel 7、開始量產 Intel 18A）；城市座標 Wikidata Q49272

@@ -216,8 +216,8 @@ export const companySites: TopicDefinition = {
       id: 'sites',
       label: { zh: '據點數', en: 'Sites' },
       description: {
-        zh: '這國有幾處營運中的據點：總部、辦公室、研發中心、工廠、資料中心、雲端區域、發射場各算一處，同一個城市的好幾個辦公室算一處。用上面的選單看單一公司。12 家合計 632 處、在 97 國：美國 143 處最多，台灣 44 處第二（台積電 23 處），中國 43 處。',
-        en: 'Operating sites in each country: a headquarters, office, R&D centre, factory, data centre, cloud region or launch site each counts as one, and several offices in one city count as one. Use the menu above to see a single company. The 12 companies have 632 sites in 97 countries: the US has the most (143), then Taiwan (44, of which 23 are TSMC’s) and China (43).',
+        zh: '這國有幾處營運中的據點：總部、辦公室、研發中心、工廠、資料中心、雲端區域、發射場各算一處，同一個城市的好幾個辦公室算一處。用上面的選單看單一公司。12 家合計 711 處、在 97 國：美國 161 處最多，中國 50 處、台灣 48 處（台積電 23 處）居次。',
+        en: 'Operating sites in each country: a headquarters, office, R&D centre, factory, data centre, cloud region or launch site each counts as one, and several offices in one city count as one. Use the menu above to see a single company. The 12 companies have 711 sites in 97 countries: the US has the most (161), followed by China (50) and Taiwan (48, of which 23 are TSMC’s).',
       },
       unit: { zh: '處', en: 'sites' },
       file: 'count/{item}.json',
@@ -232,8 +232,8 @@ export const companySites: TopicDefinition = {
       id: 'companies',
       label: { zh: '有幾家在這裡', en: 'Companies present' },
       description: {
-        zh: '12 家裡有幾家在這國有營運中的據點（雲端區域也算）。12 家都在的只有美國；台灣、中國各有 10 家（台灣沒有 SpaceX、Meta），德國、印度、以色列、新加坡各 8 家。',
-        en: 'How many of the 12 companies have an operating site in each country (cloud regions included). Only the US has all 12; Taiwan and China have 10 each (Taiwan has no SpaceX or Meta site), and Germany, India, Israel and Singapore 8 each.',
+        zh: '12 家裡有幾家在這國有營運中的據點（雲端區域也算）。12 家都在的只有美國；台灣、中國各有 10 家（台灣沒有 SpaceX、Meta），德國、以色列各 9 家。',
+        en: 'How many of the 12 companies have an operating site in each country (cloud regions included). Only the US has all 12; Taiwan and China have 10 each (Taiwan has no SpaceX or Meta site), and Germany and Israel 9 each.',
       },
       unit: { zh: '家', en: 'companies' },
       file: 'companies.json',
