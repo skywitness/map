@@ -1615,16 +1615,22 @@ export function WorldMap(props: WorldMapProps) {
     }
   };
 
-  // 左下角圖例卡片的高度寫在 .stage 的 --legend-h：寬螢幕時浮在地圖左上角的清單停在圖例上面（styles.css 的 .stage.is-map）
+  // 左下角圖例卡片的大小寫在 .stage：--legend-h（高）讓寬螢幕時浮在地圖左上角的清單停在圖例上面，--legend-w（寬加 12px 間隔，
+  // 沒有圖例時 0）讓地圖下方的時間軸、資料來源卡片排在圖例右邊（styles.css 的 .stage.is-map）
   useEffect(() => {
     const legend = legendRef.current;
     const stage = containerRef.current?.closest<HTMLElement>('.stage');
     if (!legend || !stage) return;
-    const observer = new ResizeObserver(() => stage.style.setProperty('--legend-h', `${Math.round(legend.getBoundingClientRect().height)}px`));
+    const observer = new ResizeObserver(() => {
+      const { width, height } = legend.getBoundingClientRect();
+      stage.style.setProperty('--legend-h', `${Math.round(height)}px`);
+      stage.style.setProperty('--legend-w', `${width ? Math.round(width) + 12 : 0}px`);
+    });
     observer.observe(legend);
     return () => {
       observer.disconnect();
       stage.style.removeProperty('--legend-h');
+      stage.style.removeProperty('--legend-w');
     };
   }, []);
 

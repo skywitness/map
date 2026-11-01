@@ -223,7 +223,8 @@ export function TimeSlider({
           <span style={{ left: '100%' }}>{projectionFrom === last ? projectionText : tick(last)}</span>
         </div>
       </div>
-      <output className="time-year">
+      {/* has-tags：有的年份會標「估計值」「推估值」，留出標籤的寬度（播放時拉桿不會忽長忽短）；沒有標籤的主題不留空（2026-11-01） */}
+      <output className={`time-year${projectionFrom !== undefined || estimatesBefore !== undefined ? ' has-tags' : ''}`}>
         {axis && <span className="time-axis">{axis.label}</span>}
         <span key={year} className="year-roll">
           {tick(year)}

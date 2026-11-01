@@ -156,7 +156,7 @@ button {
     top: 25px;
     left: 13px;
     width: 280px;
-    max-height: max(120px, min(var(--float-h, 65%), calc(100% - 62px - var(--legend-h, 0px) - var(--dock-h, 0px))));
+    max-height: max(120px, min(var(--float-h, 65%), calc(100% - 62px - max(var(--legend-h, 0px), var(--dock-h, 0px) - 12px))));
   }
 
   /* 橫的按鈕列（25 + 34）下面 8px，右緣跟按鈕列對齊；下緣停在右下角的出處（ⓘ，固定在角落、高 24px、離邊 10px）上面 8px：
@@ -277,15 +277,15 @@ button {
   }
 
   /*
-   * 地圖下方的卡片（App.tsx 的 .map-dock，2026-11-01，使用者要求）：時間軸、資料來源與說明、國界聲明與「關於這個網站」
-   * 從地圖外面搬進來。左緣跟圖例對齊，右邊到 ⓘ 左邊那幾顆開關之前（國家側欄在時到側欄左邊）；三項都關掉時整張不畫。
-   * 卡片的高度（加 12px 間隔）在 .stage 的 --dock-h，圖例、清單、路線剖面往上讓
+   * 地圖下方的卡片（App.tsx 的 .map-dock，2026-11-01，使用者要求）：時間軸、資料來源與說明（含國界聲明與「關於這個網站」）
+   * 從地圖外面搬進來。在左下角的圖例右邊（--legend-w，下緣對齊），右邊到 ⓘ 左邊那兩顆開關之前（國家側欄在時到側欄左邊）；
+   * 兩項都關掉時整張不畫。卡片的高度（加 12px 間隔）在 .stage 的 --dock-h，清單、路線剖面往上讓
    */
   .stage.is-map > .map-dock {
     position: absolute;
     z-index: 4;
-    left: 13px;
-    right: 133px;
+    left: calc(13px + var(--legend-w, 0px));
+    right: 105px;
     bottom: 25px;
     display: flex;
     flex-direction: column;
@@ -321,13 +321,24 @@ button {
     border-top: 1px solid var(--grid);
   }
 
-  .stage.is-map .map-legend {
-    bottom: calc(12px + var(--dock-h, 0px));
-    max-height: calc(100% - 24px - var(--dock-h, 0px));
-  }
-
   .stage.is-map .map-bottom {
     bottom: calc(28px + var(--dock-h, 0px));
+  }
+
+  /* 國家側欄開著而螢幕不夠寬時，圖例右邊放不下卡片：卡片改成從左緣開始整條，圖例移到它上面 */
+  @media (max-width: 1199px) {
+    .stage.is-map.has-panel > .map-dock {
+      left: 13px;
+    }
+
+    .stage.is-map.has-panel .map-legend {
+      bottom: calc(12px + var(--dock-h, 0px));
+      max-height: calc(100% - 24px - var(--dock-h, 0px));
+    }
+
+    .stage.is-map.has-panel > .list-side {
+      max-height: max(120px, min(var(--float-h, 65%), calc(100% - 62px - var(--legend-h, 0px) - var(--dock-h, 0px))));
+    }
   }
 
   /* ⓘ 左邊的開關（app/MapDockToggles.tsx）：跟 ⓘ 一樣的小圓鈕、同一列；開著是深色圖示，關掉是淡的。
@@ -3811,9 +3822,15 @@ kbd {
 }
 
 .time-year {
-  min-width: 112px;
   font-size: 22px;
   font-weight: 650;
+  /* 數字等寬：換年份時寬度不變 */
+  font-variant-numeric: tabular-nums;
+}
+
+/* 有的年份會標「估計值」「推估值」的時間軸才留出標籤的寬度（2026-11-01：沒有標籤的年份右邊原本也空一塊） */
+.time-year.has-tags {
+  min-width: 112px;
 }
 
 /* 年份不是「那一年的資料」時（指標的 timeAxis，例如「出生年」），寫在年份上面 */
@@ -4026,7 +4043,8 @@ kbd {
     margin-left: auto;
   }
 
-  .time-year {
+  .time-year,
+  .time-year.has-tags {
     min-width: 0;
     font-size: 18px;
   }

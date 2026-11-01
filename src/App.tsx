@@ -164,8 +164,7 @@ export function App() {
   const [layout, setLayout] = useLayoutPrefs();
   const showTime = state.embed || layout.time;
   const showSources = state.embed || layout.sources;
-  const showDisclaimer = state.embed || layout.disclaimer;
-  // 寬螢幕：側欄浮在地圖上，地圖檢視時時間軸、資料來源、國界聲明放進地圖下方的卡片（.map-dock，2026-11-01）
+  // 寬螢幕：側欄浮在地圖上，地圖檢視時時間軸、資料來源（含國界聲明）放進地圖下方的卡片（.map-dock，2026-11-01）
   const wide = useMediaQuery(FLOAT_QUERY);
   const lang = useLang();
   const t = useT();
@@ -576,11 +575,6 @@ export function App() {
       ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
       { id: 'layout-time', label: layout.time ? t.hideTime : t.showTime, run: () => setLayout({ time: !layout.time }) },
       { id: 'layout-sources', label: layout.sources ? t.hideSources : t.showSources, run: () => setLayout({ sources: !layout.sources }) },
-      {
-        id: 'layout-disclaimer',
-        label: layout.disclaimer ? t.hideDisclaimer : t.showDisclaimer,
-        run: () => setLayout({ disclaimer: !layout.disclaimer }),
-      },
     ];
   }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews, layout, setLayout]);
 
@@ -844,10 +838,7 @@ export function App() {
       hidden={!showTime}
     />
   ) : null;
-  const footer =
-    showSources || showDisclaimer ? (
-      <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} sources={showSources} disclaimer={showDisclaimer} />
-    ) : null;
+  const footer = showSources ? <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} /> : null;
   // 地圖下方卡片的高度（加上 12px 的間隔）寫在 .stage 的 --dock-h：左下角的圖例、清單、路線剖面往上讓（styles.css 的 .stage.is-map）
   useLayoutEffect(() => {
     const stage = stageRef.current;
