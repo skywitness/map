@@ -44,11 +44,12 @@ export function FloatResize({ which }: { which: FloatPanel }) {
   const ref = useRef<HTMLDivElement>(null);
   /** 把手所在的側欄 */
   const card = () => ref.current?.closest<HTMLElement>('.list-side, .panel') ?? null;
-  /** 最高：下緣離地圖下緣 12px，清單停在左下角的圖例上面 12px（跟 styles.css 的 .stage.is-map 一樣） */
+  /** 最高：清單停在左下角的圖例上面 12px，國家側欄停在右下角的出處（ⓘ）上面 8px（跟 styles.css 的 .stage.is-map 一樣） */
   const maxOf = (el: HTMLElement) => {
     const stage = el.offsetParent as HTMLElement | null;
     if (!stage) return window.innerHeight;
-    let limit = stage.getBoundingClientRect().bottom - 25; // .stage 的內距 12、地圖的框 1、離地圖下緣 12
+    // .stage 的內距 12、地圖的框 1、離地圖下緣 12；國家側欄再讓出右下角的出處（ⓘ，離邊 10、高 24，上面留 8）
+    let limit = stage.getBoundingClientRect().bottom - (which === 'panel' ? 55 : 25);
     const legend = which === 'list' ? stage.querySelector('.map-legend')?.getBoundingClientRect() : undefined;
     if (legend && legend.height > 0) limit = legend.top - 12;
     return Math.max(MIN, limit - el.getBoundingClientRect().top);
