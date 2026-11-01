@@ -29,3 +29,30 @@ AWS、Azure 的雲端區域不在這裡（沿用 `pipeline/sources/cloud_regions
 - 座標只用 Wikidata（CC0）：據點本身有條目、有座標的用據點的，其他用城市的（所以辦公室多半是城市的位置，不是大樓本身）。
 
 ## 出處與抓取方式
+
+2026-10-31 由 map cloud 整理，抓網頁一律用 pipeline 的 User-Agent（`world-map-viz-pipeline/0.1`），同一網站兩次請求至少隔 1 秒；
+**使用條款禁止機器人、爬蟲或資料探勘的網站完全不抓**，改用掛在別的主機上的年報、政府文件；被 Cloudflare 擋或連線被重設的網址沒有繞過。
+座標一律取自 Wikidata（SPARQL、`Special:EntityData`，CC0）。
+
+### 使用條款禁止抓取、沒有讀的網站
+
+| 網站 | 條款 | 影響 |
+|---|---|---|
+| apple.com（含 Newsroom、jobs.apple.com、investor.apple.com） | Website Terms of Use 禁止「page-scrape, robot, spider … or similar manual process」，範圍包括 Apple 連結出去的網站 | Apple 沒有官方據點清單可用，只收年報與政府文件能證實的 |
+| Amazon（aboutamazon.com、amazon.jobs、amazon.science、ir） | Conditions of Use（2026-08-14 版）禁止「data mining, robots, or similar data gathering and extraction tools」 | Amazon 的辦公室與科技中心沒有收 |
+| zoox.com | 條款禁止「any robot, spider … or other automatic device」 | Zoox 只收加州政府新聞稿寫的 Hayward 工廠 |
+| metacareers.com | robots.txt 寫明未經書面許可禁止自動蒐集 | Meta 的辦公室（年報寫「90 多個城市」）沒有收 |
+| intel.com（含 newsroom.intel.com） | Terms of Use（2024-06-21 版）4.1.14 禁止 bots、scraping，4.1.16 禁止 text／data mining | Intel 的據點頁沒有讀；工廠用 intc.com 的年報，辦公室與研發中心只收得到 8 處 |
+| baxtel.com | 條款禁止 data scraping | 沒有拿來當出處 |
+
+### 各公司
+
+- **Apple**（12 列）：總部用 FY2025 10-K（s2.q4cdn.com）。資料中心、研發中心與台灣的兩處用政府文件：內華達州經濟發展局（Reno）、Mesa 市政府、Waukee 市政府、奧勒岡州能源資訊網（Prineville）、德州 TDLR（Austin）、北卡州商務部（Research Triangle，已宣布、報導說暫停）、巴伐利亞邦經濟部（Munich）、竹科管理局的廠商資料（龍潭）、國貿署的出進口廠商資料（台北）；Maiden 用 Catawba County 經濟發展公司轉載的報導（非官方來源）。
+- **Meta**（34 列）：資料中心是官方清單 https://datacenters.atmeta.com/all-locations/ 的全部 33 處（網站沒有使用條款，robots.txt 允許），各處資訊表寫「is part of」的算營運中、「will be part of」的算興建中；總部用 2024 年報。
+- **Amazon**（6 列）：兩個總部（Seattle、Arlington HQ2）用 2025 年報（s2.q4cdn.com）；Nashville 用田納西州經濟發展廳、Amazon Leo（原 Project Kuiper）的 Kirkland 衛星工廠用 Kirkland 市長的剪綵致詞、Zoox 的 Hayward 工廠用加州州長辦公室新聞稿、Hyderabad 園區用 Telangana 州政府新聞稿。
+- **TSMC**（38 列）：2025 年報（中文版的台灣各廠與中文名稱、英文版的海外子公司）與 2025 年 20-F 列出的晶圓廠、先進封測廠、研發中心、海外子公司與辦公室；A、B 廠照年報分開列。**台積電的官方主機（tsmc.com、investor.tsmc.com、esg.tsmc.com）從 cloud 都是 Cloudflare 驗證頁（403）**，年報是用搜尋結果引用的內容核對，待本機 session 下載年報再核對一次。Fab 25（中科）、慕尼黑設計中心用新聞（非官方來源）。
+- **Samsung**（84 列）：半導體部門的據點頁與晶圓代工製造據點頁（semiconductor.samsung.com）、Samsung Research 的全球研發網（research.samsung.com）、2026 年半年報（國內事業場、區域總部、子公司清單）；生產法人的城市補自官方 2012 年報的 Global Network 頁，只收 2026 半年報仍列為製造法人的。不收 89 個銷售法人、設計中心、Harman、FläktGroup。
+- **Micron**（42 列）：官網據點頁 https://www.micron.com/about/locations 的全部城市（台灣的中文名稱用 tw.micron.com）、公司簡介的 11 個製造地點、2026 永續報告書（興建中的）；紐約 Clay 與台中先進封裝與測試二廠用新聞（非官方來源）。
+- **Intel**（19 列）：FY2025 10-K（intc.com，投資人網站沒有引用 intel.com 的條款）與 intc.com 的新聞稿、NIST CHIPS 的各據點頁、InvestPenang、波蘭投資貿易局；以色列、越南、哥斯大黎加、印度與台灣的據點用新聞（非官方來源）。德國 Magdeburg、波蘭 Wrocław（年報寫取消）、大連（已賣給 SK hynix）、Mobileye（不是完全持有）不收。
+- **AMD**（17 列）：FY2025 10-K 的 Item 2（總部 Santa Clara 與 9 個主要據點）與 ir.amd.com 的新聞稿（印度、愛爾蘭、Silo AI）；台南、高雄用新聞。只出現在年報、沒寫用途的據點標辦公室。amd.com 的條款頁與據點頁從 cloud 連不上（HTTP/2 錯誤、連線被重設），待本機 session 確認。
+- **SpaceX**（16 列）：官網的 Sites 頁 https://www.spacex.com/sites 與子頁（內容是網站自己的 JavaScript 檔載入的文字）列出的全部據點，發射台各一列；SLC-6 用 FAA 的決策紀錄、Terafab 用德州州長新聞稿。總部與 Starfactory 同一個園區，只列一列總部。
