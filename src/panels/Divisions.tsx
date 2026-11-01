@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { defineMessages, useLang } from '../i18n';
 import { useJson } from '../lib/data';
 import { useMediaQuery } from '../lib/useMediaQuery';
@@ -100,14 +100,39 @@ export function DivisionPath({
   model,
   countryName,
   onGo,
+  listOpen,
 }: {
   div: string;
   model: DivisionsModel | null;
   countryName: (iso3: string) => string;
   onGo: (id: string | null) => void;
+  /** 左側欄打開沒（收起時路徑放在那顆按鈕右邊，按鈕的寬度跟著語言變，要量） */
+  listOpen: boolean;
 }) {
   const lang = useLang();
   const text = TEXT[lang];
+  const ref = useRef<HTMLElement>(null);
+  // 寬螢幕、左側欄收起時：量那顆按鈕，路徑放在它右邊 12px、跟它垂直置中（styles.css 的 --div-path-left、--div-path-top）
+  useLayoutEffect(() => {
+    const nav = ref.current;
+    const main = nav?.parentElement;
+    if (!nav || !main) return;
+    const place = () => {
+      const button = nav.closest('.stage')?.querySelector(':scope > .list-side.is-closed');
+      if (!button) {
+        nav.style.removeProperty('--div-path-left');
+        nav.style.removeProperty('--div-path-top');
+        return;
+      }
+      const b = button.getBoundingClientRect();
+      const m = main.getBoundingClientRect();
+      nav.style.setProperty('--div-path-left', `${Math.round(b.right - m.left + 12)}px`);
+      nav.style.setProperty('--div-path-top', `${Math.round(b.top - m.top + (b.height - nav.offsetHeight) / 2)}px`);
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [listOpen, lang]);
   const parts = div.split('-');
   const crumbs: { id: string | null; label: string }[] = [{ id: null, label: text.world }];
   for (let i = 1; i <= parts.length; i++) {
@@ -116,7 +141,7 @@ export function DivisionPath({
     crumbs.push({ id, label: i === 1 ? countryName(id) : d ? divisionName(d, lang) : id });
   }
   return (
-    <nav className="div-path" aria-label={text.path} title={text.back}>
+    <nav ref={ref} className="div-path" aria-label={text.path} title={text.back}>
       <ol>
         {crumbs.map((c, i) => (
           <li key={c.id ?? 'world'}>

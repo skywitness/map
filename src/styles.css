@@ -4505,8 +4505,8 @@ kbd {
   }
 }
 
-/* 寬螢幕時左側欄浮在地圖上（.stage.is-map）：路徑放在清單的右邊，上緣跟清單對齊（2026-11-01 使用者要求）；
-   清單收起時跟年份、框選結果一樣移到那顆按鈕下面。右邊留給橫的按鈕列 */
+/* 寬螢幕時左側欄浮在地圖上（.stage.is-map）：路徑放在清單的右邊，上緣跟清單對齊；清單收起時放在那顆按鈕的右邊
+   、跟它垂直置中（按鈕的寬度跟著語言變，Divisions.tsx 量好寫在 --div-path-left、--div-path-top）（2026-11-01 使用者要求）。右邊留給橫的按鈕列 */
 @media (min-width: 901px) {
   .stage.is-map.has-list:not(.list-closed) .div-path {
     top: 12px;
@@ -4515,8 +4515,9 @@ kbd {
   }
 
   .stage.is-map.has-list.list-closed .div-path {
-    top: 64px;
-    left: 12px;
+    top: var(--div-path-top, 12px);
+    left: var(--div-path-left, 112px);
+    max-width: calc(100% - var(--div-path-left, 112px) - 280px);
   }
 }
 

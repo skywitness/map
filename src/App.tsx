@@ -1090,7 +1090,9 @@ export function App() {
             />
           )}
           <div className="stage-main">
-            {div && view === 'map' && <DivisionPath div={div} model={divModel} countryName={listCountryName} onGo={goDivision} />}
+            {div && view === 'map' && (
+              <DivisionPath div={div} model={divModel} countryName={listCountryName} onGo={goDivision} listOpen={layout.list} />
+            )}
             {error && (
               // 離線而這個主題還沒存到裝置（service worker 只快取看過的資料）跟一般的失敗分開說
               <StatusCard
