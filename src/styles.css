@@ -156,7 +156,7 @@ button {
     top: 25px;
     left: 13px;
     width: 280px;
-    max-height: max(120px, min(var(--float-h, 65%), calc(100% - 62px - var(--legend-h, 0px))));
+    max-height: max(120px, min(var(--float-h, 65%), calc(100% - 62px - var(--legend-h, 0px) - var(--dock-h, 0px))));
   }
 
   /* 橫的按鈕列（25 + 34）下面 8px，右緣跟按鈕列對齊；下緣停在右下角的出處（ⓘ，固定在角落、高 24px、離邊 10px）上面 8px：
@@ -274,6 +274,99 @@ button {
   /* 滑到側欄旁邊的點時 tooltip 不要被側欄蓋住（右鍵的小卡片本來就是 6） */
   .stage.is-map .map-tooltip {
     z-index: 5;
+  }
+
+  /*
+   * 地圖下方的卡片（App.tsx 的 .map-dock，2026-11-01，使用者要求）：時間軸、資料來源與說明、國界聲明與「關於這個網站」
+   * 從地圖外面搬進來。左緣跟圖例對齊，右邊到 ⓘ 左邊那幾顆開關之前（國家側欄在時到側欄左邊）；三項都關掉時整張不畫。
+   * 卡片的高度（加 12px 間隔）在 .stage 的 --dock-h，圖例、清單、路線剖面往上讓
+   */
+  .stage.is-map > .map-dock {
+    position: absolute;
+    z-index: 4;
+    left: 13px;
+    right: 133px;
+    bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .stage.is-map.has-panel > .map-dock {
+    right: 385px;
+  }
+
+  .stage.is-map > .map-dock:not(:has(> :not([hidden]))) {
+    display: none;
+  }
+
+  .stage.is-map > .map-dock > .time-slider {
+    padding: 6px 0;
+  }
+
+  /* 資料來源可能好幾行：卡片裡最多約 6 行，再多在裡面捲動 */
+  .stage.is-map > .map-dock > .footer {
+    max-height: 7.5rem;
+    overflow-y: auto;
+    padding: 6px 0;
+    border-top: 0;
+    font-size: 12px;
+  }
+
+  .stage.is-map > .map-dock > .time-slider:not([hidden]) + .footer {
+    border-top: 1px solid var(--grid);
+  }
+
+  .stage.is-map .map-legend {
+    bottom: calc(12px + var(--dock-h, 0px));
+    max-height: calc(100% - 24px - var(--dock-h, 0px));
+  }
+
+  .stage.is-map .map-bottom {
+    bottom: calc(28px + var(--dock-h, 0px));
+  }
+
+  /* ⓘ 左邊的開關（app/MapDockToggles.tsx）：跟 ⓘ 一樣的小圓鈕、同一列；開著是深色圖示，關掉是淡的。
+     z-index 比 MapLibre 的出處（2）低：展開的出處文字蓋在它們上面 */
+  .stage.is-map > .map-dock-toggles {
+    position: absolute;
+    z-index: 1;
+    right: 41px;
+    bottom: 23px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .map-dock-toggle {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .map-dock-toggle[aria-pressed='false'] {
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+    color: var(--ink-muted);
+  }
+
+  .map-dock-toggle:hover {
+    background: var(--grid);
+    color: var(--ink);
+  }
+
+  .map-dock-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
   }
 }
 

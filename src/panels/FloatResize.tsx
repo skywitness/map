@@ -50,8 +50,13 @@ export function FloatResize({ which }: { which: FloatPanel }) {
     if (!stage) return window.innerHeight;
     // .stage 的內距 12、地圖的框 1、離地圖下緣 12；國家側欄再讓出右下角的出處（ⓘ，離邊 10、高 24，上面留 8）
     let limit = stage.getBoundingClientRect().bottom - (which === 'panel' ? 55 : 25);
-    const legend = which === 'list' ? stage.querySelector('.map-legend')?.getBoundingClientRect() : undefined;
-    if (legend && legend.height > 0) limit = legend.top - 12;
+    // 清單：停在左下角的圖例上面，沒有圖例時停在地圖下方的卡片（時間軸、資料來源）上面
+    if (which === 'list') {
+      for (const sel of ['.map-legend', ':scope > .map-dock']) {
+        const box = stage.querySelector(sel)?.getBoundingClientRect();
+        if (box && box.height > 0) limit = Math.min(limit, box.top - 12);
+      }
+    }
     return Math.max(MIN, limit - el.getBoundingClientRect().top);
   };
   const apply = (el: HTMLElement, height: number) => {

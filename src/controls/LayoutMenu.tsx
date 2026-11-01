@@ -14,7 +14,7 @@ export function LayoutMenu({ prefs, onChange }: { prefs: LayoutPrefs; onChange: 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   useDismiss(open, () => setOpen(false), [buttonRef, popoverRef], buttonRef);
-  const changed = !prefs.time || !prefs.sources || !prefs.list;
+  const changed = !prefs.time || !prefs.sources || !prefs.disclaimer || !prefs.list;
   return (
     <div className="layout-menu">
       <button
@@ -42,6 +42,10 @@ export function LayoutMenu({ prefs, onChange }: { prefs: LayoutPrefs; onChange: 
           <label className="layout-check">
             <input type="checkbox" checked={prefs.sources} onChange={(e) => onChange({ sources: e.target.checked })} />
             {t.layoutSources}
+          </label>
+          <label className="layout-check">
+            <input type="checkbox" checked={prefs.disclaimer} onChange={(e) => onChange({ disclaimer: e.target.checked })} />
+            {t.layoutDisclaimer}
           </label>
           <label className="layout-check">
             <input type="checkbox" checked={prefs.list} onChange={(e) => onChange({ list: e.target.checked })} />

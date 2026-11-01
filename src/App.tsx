@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CountrySearch } from './controls/CountrySearch';
 import { useHotkeys } from './controls/hotkeys';
 import { ClampedText } from './controls/ClampedText';
@@ -24,7 +24,7 @@ import { fetchJson, prefetchJson, useJson } from './lib/data';
 import { downloadBlob, safeFilename } from './lib/download';
 import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
-import { NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
+import { FLOAT_QUERY, NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
 import { aboutPath, currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
 import type { Box } from './map/boxEstimate';
@@ -88,6 +88,7 @@ import { worldTrend } from './app/trend';
 import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
 import { Footer } from './app/Footer';
+import { MapDockToggles } from './app/MapDockToggles';
 
 // 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
@@ -163,6 +164,9 @@ export function App() {
   const [layout, setLayout] = useLayoutPrefs();
   const showTime = state.embed || layout.time;
   const showSources = state.embed || layout.sources;
+  const showDisclaimer = state.embed || layout.disclaimer;
+  // 寬螢幕：側欄浮在地圖上，地圖檢視時時間軸、資料來源、國界聲明放進地圖下方的卡片（.map-dock，2026-11-01）
+  const wide = useMediaQuery(FLOAT_QUERY);
   const lang = useLang();
   const t = useT();
   const online = useOnline();
@@ -170,6 +174,8 @@ export function App() {
   const narrow = useMediaQuery(NARROW_QUERY);
   const appRef = useRef<HTMLDivElement>(null);
   useFitMap(appRef);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
 
   // 主題設定裡的雙語文字依目前語言解析成字串（有快取，同一語言拿到同一個物件）
   // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
@@ -570,6 +576,11 @@ export function App() {
       ...savedViews.map((v) => ({ id: `saved-${v.id}`, label: A.openSaved(v.name), run: () => openSavedView(v, langParam()) })),
       { id: 'layout-time', label: layout.time ? t.hideTime : t.showTime, run: () => setLayout({ time: !layout.time }) },
       { id: 'layout-sources', label: layout.sources ? t.hideSources : t.showSources, run: () => setLayout({ sources: !layout.sources }) },
+      {
+        id: 'layout-disclaimer',
+        label: layout.disclaimer ? t.hideDisclaimer : t.showDisclaimer,
+        run: () => setLayout({ disclaimer: !layout.disclaimer }),
+      },
     ];
   }, [UI, pure, view, indicator, update, tokens.mode, t, toggleTheme, lang, state.country, selectCountry, state.labels, savedViews, layout, setLayout]);
 
@@ -803,9 +814,62 @@ export function App() {
     );
   };
 
+  // 時間軸（時刻主題是日期與時間的控制）與頁尾：寬螢幕的地圖檢視放進地圖下方的卡片（.map-dock，ⓘ 左邊的鈕開關），
+  // 其他時候照舊在地圖下面、頁面最下面
+  const dock = wide && view === 'map';
+  const hasTime = Boolean(clock) || (!pure && !timeless && !liveDef);
+  const timeControl = clock ? (
+    <Suspense fallback={<div className="time-slider" hidden={!showTime} />}>
+      <MomentControl
+        hidden={!showTime}
+        time={shownTime}
+        live={state.time === null}
+        onChange={(ms) => update({ time: floorMinute(ms) })}
+        onPreview={setPlayTime}
+        onLive={() => update({ time: null })}
+        onPlayingChange={setPlaying}
+      />
+    </Suspense>
+  ) : hasTime ? (
+    <TimeSlider
+      years={years}
+      year={year}
+      projectionFrom={data?.projectionFrom}
+      projectionLabel={indicator.projectionLabel}
+      estimatesBefore={data?.estimatesBefore}
+      axis={indicator.timeAxis}
+      onChange={setYear}
+      trend={trend}
+      onPlayingChange={setPlaying}
+      hidden={!showTime}
+    />
+  ) : null;
+  const footer =
+    showSources || showDisclaimer ? (
+      <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} sources={showSources} disclaimer={showDisclaimer} />
+    ) : null;
+  // 地圖下方卡片的高度（加上 12px 的間隔）寫在 .stage 的 --dock-h：左下角的圖例、清單、路線剖面往上讓（styles.css 的 .stage.is-map）
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    const el = dockRef.current;
+    if (!stage) return;
+    if (!dock || !el) {
+      stage.style.removeProperty('--dock-h');
+      return;
+    }
+    const measure = () => {
+      const h = el.getBoundingClientRect().height;
+      stage.style.setProperty('--dock-h', `${h ? Math.round(h) + 12 : 0}px`);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [dock]);
+
   return (
     // data-fullscreen-root：地圖的全螢幕鈕讓整個頁面全螢幕（左右側欄、時間軸照舊，頂列、控制列、頁尾收起；WorldMap.tsx、styles.css 的 .app:fullscreen）
-    <div className={`app${state.embed ? ' is-embed' : ''}${showSources ? '' : ' is-no-footer'}`} ref={appRef} data-fullscreen-root="">
+    <div className={`app${state.embed ? ' is-embed' : ''}${footer && !dock ? '' : ' is-no-footer'}`} ref={appRef} data-fullscreen-root="">
       <TopBar
         topic={topic}
         embed={state.embed}
@@ -946,6 +1010,7 @@ export function App() {
         <ClampedText key={description} text={description} className="indicator-desc" />
 
         <div
+          ref={stageRef}
           // is-map：地圖檢視（寬螢幕時側欄浮在地圖上只在地圖檢視，排名表、分析照舊排成幾欄，styles.css 的 .stage.is-map）
           className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
         >
@@ -1170,42 +1235,24 @@ export function App() {
               </Suspense>
             </PanelSheet>
           )}
+          {dock && (
+            <>
+              {/* 地圖下方的卡片：時間軸、資料來源與說明、國界聲明（各自開關，全關時整張不畫，CSS 的 :has）；
+                  data-occludes-map：選國家、搜尋地點時地圖扣掉被它蓋住的地方（map/focus.ts） */}
+              <div className="map-dock" ref={dockRef} data-occludes-map="">
+                {timeControl}
+                {footer}
+              </div>
+              {!state.embed && <MapDockToggles prefs={layout} hasTime={hasTime} onChange={setLayout} />}
+            </>
+          )}
         </div>
 
-        {clock ? (
-          <Suspense fallback={<div className="time-slider" hidden={!showTime} />}>
-            <MomentControl
-              hidden={!showTime}
-              time={shownTime}
-              live={state.time === null}
-              onChange={(ms) => update({ time: floorMinute(ms) })}
-              onPreview={setPlayTime}
-              onLive={() => update({ time: null })}
-              onPlayingChange={setPlaying}
-            />
-          </Suspense>
-        ) : (
-          !pure &&
-          !timeless &&
-          !liveDef && (
-            <TimeSlider
-              years={years}
-              year={year}
-              projectionFrom={data?.projectionFrom}
-              projectionLabel={indicator.projectionLabel}
-              estimatesBefore={data?.estimatesBefore}
-              axis={indicator.timeAxis}
-              onChange={setYear}
-              trend={trend}
-              onPlayingChange={setPlaying}
-              hidden={!showTime}
-            />
-          )
-        )}
+        {!dock && timeControl}
 
       </main>
 
-      {showSources && <Footer topic={topic} generatedAt={manifest?.generatedAt ?? null} />}
+      {!dock && footer}
     </div>
   );
 }
