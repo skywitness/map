@@ -802,7 +802,8 @@ export function App() {
   };
 
   return (
-    <div className={`app${state.embed ? ' is-embed' : ''}${showSources ? '' : ' is-no-footer'}`} ref={appRef}>
+    // data-fullscreen-root：地圖的全螢幕鈕讓整個頁面全螢幕（左右側欄、時間軸照舊，頂列、控制列、頁尾收起；WorldMap.tsx、styles.css 的 .app:fullscreen）
+    <div className={`app${state.embed ? ' is-embed' : ''}${showSources ? '' : ' is-no-footer'}`} ref={appRef} data-fullscreen-root="">
       <TopBar
         topic={topic}
         embed={state.embed}

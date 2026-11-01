@@ -1607,15 +1607,17 @@ export function WorldMap(props: WorldMapProps) {
     }
   };
 
+  // 全螢幕的是整個頁面（App 的 .app，data-fullscreen-root，2026-11-01）：左右側欄、時間軸照舊，頂列、控制列、說明、頁尾收起
+  // （styles.css 的 .app:fullscreen）；原本只有地圖本身，側欄看不到。沒有這個祖先時（單獨用的地圖）全螢幕地圖本身
   useEffect(() => {
-    const onChange = () => setFullscreen(document.fullscreenElement === containerRef.current);
+    const onChange = () => setFullscreen(Boolean(document.fullscreenElement?.contains(containerRef.current)));
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) void document.exitFullscreen();
-    else void containerRef.current?.requestFullscreen?.();
+    else void (containerRef.current?.closest<HTMLElement>('[data-fullscreen-root]') ?? containerRef.current)?.requestFullscreen?.();
   };
 
   // 地圖上標數值：上色、比例圓、類別圖的指標才有（網格、3D 時開關照樣在，只是不畫）

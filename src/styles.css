@@ -90,6 +90,37 @@ button {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/*
+ * 地圖全螢幕（WorldMap.tsx 的全螢幕鈕，2026-11-01）：全螢幕的是整個 .app，左邊的清單、右邊的國家側欄與時間軸
+ * （版面選單沒關掉的話）照舊，頂列、控制列、指標說明、頁尾收起來，地圖占滿剩下的高度。窄螢幕跟平常一樣整頁捲動（在 .app 裡捲）
+ */
+.app:fullscreen {
+  background: var(--page);
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 頂列不用 display: none：指令面板（Ctrl+K）、主題總覽的 <dialog> 在頂列裡，showModal 之後要畫得出來
+   （top layer 不受祖先的高度、overflow 影響；祖先 display: none 的話對話框畫不出來，頁面卻變成不能點） */
+.app:fullscreen > .topbar,
+.app:fullscreen > .embed-bar {
+  height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.app:fullscreen > .topbar dialog {
+  visibility: visible;
+}
+
+.app:fullscreen .app-main > .controls,
+.app:fullscreen .app-main > .indicator-desc-row,
+.app:fullscreen > .footer {
+  display: none;
+}
+
 /* ── 頂列 ───────────────────────────── */
 .topbar {
   display: flex;
@@ -3683,6 +3714,13 @@ kbd {
 
   .stage-main:has(.ranking) {
     height: auto;
+  }
+
+  /* 全螢幕時 .app 的高度固定是整個畫面（平常是依內容），地圖、時間軸、清單這些 flex 項目不要被壓扁，照平常的高度在 .app 裡捲動 */
+  .app:fullscreen > *,
+  .app:fullscreen .app-main > *,
+  .app:fullscreen .stage > * {
+    flex-shrink: 0;
   }
 
   .brand {

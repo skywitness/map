@@ -4511,6 +4511,9 @@ pipeline/
   - 觸控裝置（`(pointer: coarse)`）不放放大、縮小：用兩指縮放，鍵盤的 +/− 照樣可以用。
   - 窄螢幕（768px 以下）把 3D、全螢幕、框選收進「更多」（`src/map/MoreMenu.tsx`，三個點的圖示，外觀與鍵盤操作跟底圖選單一樣；3D、框選是 `menuitemcheckbox`，開著時「更多」按鈕右上角有一個小點）。按鈕列剩回到全球、平面／地球儀、底圖、更多 4 顆（128px）；只有一項可以收時照樣放在按鈕列。
   - 不支援元素全螢幕的瀏覽器（iPhone 的 Safari，`document.fullscreenEnabled` 是 false）不放全螢幕鈕，原本按了沒有反應。
+  - **全螢幕看得到左右側欄**（2026-11-01，使用者要求）：原本全螢幕的是地圖本身（`.map`），左邊的清單（航程、賽程…）與右邊的國家側欄都看不到。改成整個頁面（App 的 `.app`，`data-fullscreen-root`；`WorldMap.tsx` 往上找這個祖先，單獨用的地圖沒有時照舊全螢幕地圖本身），全螢幕時頂列、控制列、指標說明、頁尾收起來（`styles.css` 的 `.app:fullscreen`），左邊的清單、地圖、右邊的側欄照平常的三欄，占滿整個螢幕的高度；時間軸照版面選單的設定（沒關掉就在下面）。
+    - 頂列不用 `display: none`，改成高度 0、`visibility: hidden`：指令面板（Ctrl+K）、主題總覽的 `<dialog>` 在頂列裡，祖先 `display: none` 的話 `showModal()` 之後對話框畫不出來、頁面卻變成不能點；對話框本身改回 `visibility: visible`（在 top layer，不受祖先的高度與 overflow 影響），全螢幕時照樣可以用 Ctrl+K。
+    - 窄螢幕（900px 以下）的 `.stage` 是 `display: contents`，地圖、時間軸、清單直接排在 `.app` 裡：全螢幕時 `.app` 的高度固定是整個畫面，這些 flex 項目會被壓扁（地圖從 698 變 486 px），改成 `flex-shrink: 0`，照平常的高度在 `.app` 裡捲動；國家側欄照樣是底部抽屜。`useFitMap` 量地圖上緣時，全螢幕要用 `.app` 自己的捲動（不是視窗的），`fullscreenchange` 時重量一次。
 - **底圖選單**（`src/map/BasemapMenu.tsx`）：原本是控制列上的下拉選單，手機上多占一整行。點開往左展開五種底圖，每種畫出陸地與海的顏色（OpenFreeMap 樣式的 `background` 與 `water` 的顏色）。鍵盤照 WAI-ARIA 的 menu button。按鈕列不能 `overflow: hidden`（選單會被裁掉），圓角由第一顆、最後一顆按鈕自己切。
 
 **頁尾**（2026-10-27 改）：來源一段（名稱與授權一直看得到）、主題說明（`ClampedText`，先露兩行，「更多」展開）、免責聲明。有的主題說明十幾行，原本整段攤開。授權要求寫出的聲明放在說明的開頭：夜間燈光的 EOG 聲明本來就在開頭，學生能力的 OECD 改作聲明（「This is an adaptation of an original work by the OECD…」）從結尾移到開頭；新主題的說明要照這個規則寫。
