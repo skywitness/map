@@ -59,11 +59,13 @@ import {
   DEFAULT_LAYERS,
   exportLayerKeys,
   LAYER_KEYS,
+  isOn,
   LayerControls,
   layerKeyColor,
   type LayerVisibility,
   type OverlayLayer,
 } from './Overlays';
+import { syncContours } from './contours';
 import { applyTimeFilters, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
@@ -349,6 +351,8 @@ export function WorldMap(props: WorldMapProps) {
   const installedRef = useRef(false);
   /** 分層設色、地形陰影插在這個圖層前面（底圖的水域，海面才會蓋住海底地形） */
   const reliefBeforeRef = useRef<string | undefined>(undefined);
+  /** 底圖第一個文字圖層（資料圖層插在它前面）：等高線的高度標籤也插在這裡 */
+  const labelsBeforeRef = useRef<string | undefined>(undefined);
   /**
    * 底圖本身的點陣圖層（彩色地形的 Natural Earth 陰影）與原本的縮放範圍：地形圖時被分層設色整個蓋住，面量圖時被國家顏色與
    * 我們的地形陰影蓋住，隱藏起來就不必下載（全球視角約 3 MB）
@@ -543,6 +547,7 @@ export function WorldMap(props: WorldMapProps) {
     const styleLayers = m.getStyle().layers;
     const lastShape = styleLayers.reduce((found, l, i) => (l.type === 'symbol' ? found : i), -1);
     const beforeId = styleLayers[lastShape + 1]?.id;
+    labelsBeforeRef.current = beforeId;
     if (!m.hasImage(NO_DATA_HATCH)) m.addImage(NO_DATA_HATCH, noDataHatchImage(), { pixelRatio: NO_DATA_HATCH_RATIO });
     for (const layer of dataLayers(dark)) m.addLayer(layer, beforeId);
     // 世界視角（style.ts 的 splitWorldZoom）：底色是海，陸地用我們的國界、湖泊用 Natural Earth 1:110m 畫，
@@ -589,7 +594,16 @@ export function WorldMap(props: WorldMapProps) {
         type: 'hillshade',
         source: 'dem',
         layout: { visibility: 'none' },
-        paint: { 'hillshade-shadow-color': '#3d3526', 'hillshade-highlight-color': '#ffffff', 'hillshade-accent-color': '#3d3526' },
+        // 多方向的陰影（MapLibre 的 multidirectional，2026-11-01）：西南、西、西北、北四個光源，西北最強（地圖慣用的光源方向），
+        // 其他三個補出單一光源照不到的山脊；亮面淡、暗面深，分層設色才透得出來
+        paint: {
+          'hillshade-method': 'multidirectional',
+          'hillshade-illumination-direction': [225, 270, 315, 360],
+          'hillshade-illumination-altitude': [40, 40, 40, 40],
+          'hillshade-highlight-color': ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.18)', 'rgba(255,255,255,0.32)', 'rgba(255,255,255,0.18)'],
+          'hillshade-shadow-color': ['rgba(61,53,38,0.25)', 'rgba(61,53,38,0.45)', 'rgba(61,53,38,0.7)', 'rgba(61,53,38,0.45)'],
+          'hillshade-accent-color': '#3d3526',
+        },
       },
       water,
     );
@@ -1654,6 +1668,14 @@ export function WorldMap(props: WorldMapProps) {
     map.setPaintProperty('relief-shade', 'hillshade-exaggeration', reliefMap ? 0.55 : 0.4);
   }, [revision, terrain, indicator.layer.kind, layers.hillshade]);
 
+  // 等高線（contours.ts）：只在地形圖、放大到 7 級以上畫；外掛第一次打開時才下載。換底圖後 revision 變了重新加上
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const on = terrain && indicator.layer.kind === 'terrain' && isOn(layers, 'contours');
+    syncContours(map, on, { before: reliefBeforeRef.current, labelsBefore: labelsBeforeRef.current, font: labelFont(map) });
+  }, [revision, terrain, indicator.layer.kind, layers.contours]);
+
   // 3D 立體地形（有地形圖層的主題）。全球視角時要放大很多倍才看得出起伏，縮放結束時依縮放級數換倍率；
   // 切換底圖後新樣式沒有地形，revision 變了會重新設定
   useEffect(() => {
@@ -1846,7 +1868,7 @@ export function WorldMap(props: WorldMapProps) {
           : valueLegend;
         const layerKeys = onLayersChange
           ? exportLayerKeys(
-              LAYER_KEYS.filter((k) => ({ railways, airports, terrain })[k.source] && layers[k.key]).map((key) => ({
+              LAYER_KEYS.filter((k) => ({ railways, airports, terrain, relief: terrain && indicator.layer.kind === 'terrain' })[k.source] && isOn(layers, k.key)).map((key) => ({
                 key,
                 color: layerKeyColor(key, tokens),
               })),
@@ -2046,6 +2068,7 @@ export function WorldMap(props: WorldMapProps) {
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
             hasTerrain={terrain}
+            hasRelief={terrain && indicator.layer.kind === 'terrain'}
             overlays={overlays}
             tokens={tokens}
             darkMap={basemap.dark}

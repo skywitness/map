@@ -7,14 +7,15 @@
 import type { ExpressionSpecification, RasterDEMSourceSpecification } from 'maplibre-gl';
 import type { Text } from '../i18n/lang';
 
-const TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+/** AWS Terrain Tiles（terrarium 編碼）；等高線（contours.ts）也讀這一份 */
+export const DEM_TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
 /** 圖磚的資料來源要標示（https://github.com/tilezen/joerd/blob/master/docs/attribution.md）；匯出圖片的頁尾由主題的資料來源列出 */
 const TERRAIN_ATTRIBUTION =
   '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noreferrer">Terrain Tiles</a>' +
   ' (Mapzen, AWS Open Data: SRTM, GMTED2010, ETOPO1, EU-DEM, ArcticDEM, NED, …)';
 
 export function demSource(): RasterDEMSourceSpecification {
-  return { type: 'raster-dem', tiles: [TILES], tileSize: 256, maxzoom: 15, encoding: 'terrarium', attribution: TERRAIN_ATTRIBUTION };
+  return { type: 'raster-dem', tiles: [DEM_TILES], tileSize: 256, maxzoom: 15, encoding: 'terrarium', attribution: TERRAIN_ATTRIBUTION };
 }
 
 /**

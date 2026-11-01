@@ -4,7 +4,7 @@ import type { PointsOverlay } from '../topics/types';
 import { setClassGridOnly } from './classGridHighlight';
 import { LIGHTS_LOOK, MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
-import type { LayerVisibility, OverlayLayer } from './overlayData';
+import { DEFAULT_LAYERS as LAYER_DEFAULTS, type LayerVisibility, type OverlayLayer } from './overlayData';
 
 // 資料的部分在 overlayData.ts（首頁的程式與側欄只要它）；地圖這邊照舊從這裡 import
 export {
@@ -267,7 +267,8 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
 /** 圖層的圖例：畫面上的開關與匯出的圖片共用 */
 export interface LayerKey {
   key: Exclude<keyof LayerVisibility, 'extra'>;
-  source: 'railways' | 'airports' | 'terrain';
+  /** relief：只有地形圖（海拔主題的 kind 'terrain' 指標）才有的 */
+  source: 'railways' | 'airports' | 'terrain' | 'relief';
   label: Text;
   /** 線（鐵路）、圓點（機場）或陰影色塊（地形陰影），size 是線寬或半徑（px） */
   shape: 'line' | 'dot' | 'shade';
@@ -291,7 +292,13 @@ export const LAYER_KEYS: LayerKey[] = [
     size: 2.5,
   },
   { key: 'hillshade', source: 'terrain', label: { zh: '地形陰影', en: 'Hillshade' }, shape: 'shade', size: 5 },
+  { key: 'contours', source: 'relief', label: { zh: '等高線（放大後）', en: 'Contour lines (zoomed in)' }, shape: 'line', size: 1 },
 ];
+
+/** 圖層開關是不是開著：舊的記錄沒有的項目（contours）照預設 */
+export function isOn(layers: LayerVisibility, key: LayerKey['key']): boolean {
+  return layers[key] ?? LAYER_DEFAULTS[key] ?? false;
+}
 
 /** 陰影色塊：左上亮、右下暗（光源在西北方，跟地圖上的地形陰影一樣） */
 export const SHADE_KEY: [string, string] = ['#f4f1ea', '#6b6355'];
@@ -344,6 +351,8 @@ interface LayerControlsProps {
   hasRailways: boolean;
   hasAirports: boolean;
   hasTerrain?: boolean;
+  /** 地形圖（等高線） */
+  hasRelief?: boolean;
   /** 主題的一般疊加圖層（地震、火山、板塊邊界…） */
   overlays?: OverlayLayer[];
   tokens: Tokens;
@@ -363,15 +372,16 @@ export function LayerControls({
   hasRailways,
   hasAirports,
   hasTerrain = false,
+  hasRelief = false,
   overlays = [],
   tokens,
   darkMap = false,
 }: LayerControlsProps) {
   const t = useT();
   const lang = useLang();
-  const toggle = (key: LayerKey['key']) => onChange({ ...layers, [key]: !layers[key] });
+  const toggle = (key: LayerKey['key']) => onChange({ ...layers, [key]: !isOn(layers, key) });
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
-  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain };
+  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   // 分級說明顯示到哪裡：none（手機預設）、own（主題自己的圖層，桌機預設）、all（含從圖層選單加上的別的主題的圖層，
@@ -390,7 +400,7 @@ export function LayerControls({
       <legend className="legend-title">{t.layers}</legend>
       {keys.map((k) => (
         <label key={k.key}>
-          <input type="checkbox" checked={layers[k.key]} onChange={() => toggle(k.key)} />
+          <input type="checkbox" checked={isOn(layers, k.key)} onChange={() => toggle(k.key)} />
           <Swatch swatch={{ shape: k.shape, size: k.size, color: layerKeyColor(k, tokens) }} />
           {tr(k.label, lang)}
         </label>
