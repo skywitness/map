@@ -8,6 +8,9 @@
   （跟雲端機房的區域一樣）。
 - 呈現：新主題，選公司看點，國家的值是據點數。
 
+使用者 2026-11-01 決定：官網條款禁止程式抓取的 Apple、Amazon（含 Zoox）、Meta（徵才網站）、Intel、NVIDIA，用年報、政府文件與
+可靠新聞補「主要據點」（區域總部、大型研發中心、有名稱的大型園區），note 寫「非官方來源」；這幾家的辦公室不是完整的清單。
+
 **資料**：`pipeline/data/company-sites/sites.csv`（手工整理的事實表，欄位說明見同一個資料夾的 README.md），加上
 AWS 與 Azure 的雲端區域（沿用 sources/cloud_regions.py，Amazon 與 Microsoft 的「雲端區域」：業者不公開機房位置，點在區域的城市）。
 
@@ -37,6 +40,8 @@ STATUS = {"open": 1, "building": 2, "planned": 3}
 FIELDS = ["company", "kind", "status", "name", "name_zh", "city", "iso3", "lat", "lon", "precision", "year", "source", "note"]
 CLOUD = {"aws": "amazon", "azure": "microsoft"}
 CLOUD_SOURCE = "https://github.com/skywitness/map/blob/main/pipeline/sources/cloud_regions.py"
+# note 裡寫這幾個字的列：出處是新聞，不是公司或政府的文件
+UNOFFICIAL = "非官方來源"
 # 同一個座標有好幾個點時在這個半徑（度）的圓上錯開，放大才分得開
 SPREAD = 0.025
 
@@ -110,14 +115,16 @@ def point_rows(sites: list[dict]) -> list[dict]:
             "s": STATUS[r["status"]], "pr": 1 if r["kind"] == "hq" else 0, "y": int(r["year"]) if r["year"] else None,
             "name": r["name"], "zh": r["name_zh"] or None, "city": r["city"], "iso3": r["iso3"],
             "src": None if r["source"] == CLOUD_SOURCE else r["source"],
+            # 出處是新聞（note 寫「非官方來源」），清單與滑過時標出來
+            "uo": 1 if UNOFFICIAL in r["note"] else 0,
         })
     spread(rows)
     rows.sort(key=lambda p: (p["co"], p["k"], p["iso3"], p["name"]))
     return rows
 
 
-POINT_FIELDS = ["lon", "lat", "co", "k", "s", "pr", "y", "name", "zh", "city", "iso3", "src"]
-POINT_SCALE = {"lon": 0.0001, "lat": 0.0001, "co": 1, "k": 1, "s": 1, "pr": 1, "y": 1}
+POINT_FIELDS = ["lon", "lat", "co", "k", "s", "pr", "y", "uo", "name", "zh", "city", "iso3", "src"]
+POINT_SCALE = {"lon": 0.0001, "lat": 0.0001, "co": 1, "k": 1, "s": 1, "pr": 1, "y": 1, "uo": 1}
 
 
 def write_points(folder: str, rows: list[dict], key: str) -> None:
@@ -159,7 +166,7 @@ def build() -> None:
     print(f"  合計營運中 {len(open_rows)} 處、{len(counts['all'])} 國；興建中與已宣布 {len(future_rows)} 處；"
           f"12 家都在的國家 {[k for k, v in present.items() if len(v) == 12]}；最多家 {[(k, len(v)) for k, v in many]}")
     precision = Counter(r["precision"] for r in sites)
-    print(f"  座標：據點本身 {precision['site']}、城市 {precision['city']}")
+    print(f"  座標：據點本身 {precision['site']}、城市 {precision['city']}；出處是新聞的 {sum(r['uo'] for r in rows)} 處")
 
 
 if __name__ == "__main__":

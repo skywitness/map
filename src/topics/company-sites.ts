@@ -7,7 +7,8 @@ import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef
  * 大企業的據點（2026-10-31，使用者在 map cloud 直接要求；pipeline/topics/company_sites.py）：12 家大企業的總部、辦公室、
  * 研發中心、工廠、資料中心與發射場，各公司官方公開的資料手工整理（pipeline/data/company-sites/sites.csv，每一列附出處），
  * Amazon、Microsoft 另外沿用雲端機房的區域（AWS、Azure）。使用者決定：新主題放「經濟 › 企業」，選公司看點，國家的值是據點數；
- * 不收零售店與物流倉庫。
+ * 不收零售店與物流倉庫。官網條款禁止程式抓取的 Apple、Amazon、Meta、Intel、NVIDIA 用可靠新聞補主要據點、標「非官方來源」
+ * （使用者 2026-11-01 決定）。
  */
 
 const PLATFORMS: Text = { zh: '科技平台', en: 'Platforms' };
@@ -78,6 +79,8 @@ function facts(p: PointRecord, countryName: (iso3: string) => string, withCompan
   if (status && STATUS[status]) first.push(tr(STATUS[status]));
   const year = num(p.y);
   if (year) first.push(tr(status === 1 ? { zh: `${year} 年起`, en: `since ${year}` } : { zh: `預計 ${year} 年`, en: `due ${year}` }));
+  // 出處是新聞的（官網條款禁止抓取的幾家用新聞補的主要據點）
+  if (p.uo === 1) first.push(tr({ zh: '非官方來源', en: 'unofficial source' }));
   const place = [str(p.city), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(', ');
   return [first.filter(Boolean).join(' · '), place];
 }
@@ -181,8 +184,8 @@ export const companySites: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: '各公司官方公開的據點資料（官網、年報、永續報告書、新聞稿；手工整理，每一列的出處見清單與 sites.csv）',
-        en: 'Sites published by each company (corporate websites, annual reports, sustainability reports, press releases; compiled by hand, with a source for every row in the list and in sites.csv)',
+        zh: '各公司公開的據點資料（官網、年報、永續報告書、政府文件；官網禁止程式抓取的幾家用可靠新聞補主要據點；手工整理，每一列的出處見清單與 sites.csv）',
+        en: 'Sites published by the companies (corporate websites, annual reports, sustainability reports, government documents; for companies whose websites forbid automated access, main sites were added from reliable news reports; compiled by hand, with a source for every row in the list and in sites.csv)',
       },
       url: 'https://github.com/skywitness/map/blob/main/pipeline/data/company-sites/sites.csv',
       license: { zh: '引用事實並註明出處', en: 'facts cited with sources' },
@@ -194,7 +197,10 @@ export const companySites: TopicDefinition = {
     },
     { name: { zh: 'Wikidata（位置）', en: 'Wikidata (locations)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
   ],
-  note: { zh: 'TODO', en: 'TODO' },
+  note: {
+    zh: '12 家公司的總部、辦公室、研發中心、工廠、資料中心與發射場，手工整理，左邊的清單每一列都連到出處。Apple、Amazon、Meta、Intel、NVIDIA 的官網條款禁止程式抓取，官方的據點清單不能用，所以只收年報、政府文件與可靠新聞（標「非官方來源」）寫到的主要據點，辦公室不是完整的清單。Amazon、Microsoft 另外畫 AWS、Azure 的雲端區域（業者不公開機房位置，點在區域的城市）。位置多半是城市在 Wikidata 的座標，不是大樓本身；同一個城市的好幾個點排在一個小圈上。興建中與已宣布的畫空心、不算進據點數。不收零售店、物流倉庫與代工廠。',
+    en: 'Headquarters, offices, R&D centres, factories, data centres and launch sites of 12 companies, compiled by hand; every row in the list on the left links to its source. The websites of Apple, Amazon, Meta, Intel and NVIDIA forbid automated access in their terms, so their official location lists could not be used: only the main sites named in annual reports, government documents and reliable news reports (marked “unofficial source”) are included, and their offices are not a complete list. Amazon and Microsoft also show their AWS and Azure cloud regions (the providers do not publish data centre locations, so these sit at the region’s city). Most locations are the city’s Wikidata coordinates rather than the building itself; several sites in one city are arranged on a small ring. Sites under construction or announced are hollow and are not counted. Retail stores, warehouses and contract manufacturers are not included.',
+  },
   listPanel: [
     siteList('points', { zh: '據點', en: 'Sites' }, { zh: '營運中', en: 'Operating' }, { zh: '沒有營運中的據點', en: 'No operating sites' }),
     siteList(
@@ -209,7 +215,10 @@ export const companySites: TopicDefinition = {
     {
       id: 'sites',
       label: { zh: '據點數', en: 'Sites' },
-      description: { zh: 'TODO', en: 'TODO' },
+      description: {
+        zh: '這國有幾處營運中的據點：總部、辦公室、研發中心、工廠、資料中心、雲端區域、發射場各算一處，同一個城市的好幾個辦公室算一處。用上面的選單看單一公司。12 家合計 632 處、在 97 國：美國 143 處最多，台灣 44 處第二（台積電 23 處），中國 43 處。',
+        en: 'Operating sites in each country: a headquarters, office, R&D centre, factory, data centre, cloud region or launch site each counts as one, and several offices in one city count as one. Use the menu above to see a single company. The 12 companies have 632 sites in 97 countries: the US has the most (143), then Taiwan (44, of which 23 are TSMC’s) and China (43).',
+      },
       unit: { zh: '處', en: 'sites' },
       file: 'count/{item}.json',
       layer: { kind: 'bubble', legendValues: 'auto' },
@@ -222,7 +231,10 @@ export const companySites: TopicDefinition = {
     {
       id: 'companies',
       label: { zh: '有幾家在這裡', en: 'Companies present' },
-      description: { zh: 'TODO', en: 'TODO' },
+      description: {
+        zh: '12 家裡有幾家在這國有營運中的據點（雲端區域也算）。12 家都在的只有美國；台灣、中國各有 10 家（台灣沒有 SpaceX、Meta），德國、印度、以色列、新加坡各 8 家。',
+        en: 'How many of the 12 companies have an operating site in each country (cloud regions included). Only the US has all 12; Taiwan and China have 10 each (Taiwan has no SpaceX or Meta site), and Germany, India, Israel and Singapore 8 each.',
+      },
       unit: { zh: '家', en: 'companies' },
       file: 'companies.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 4, 6, 8, 10] } },

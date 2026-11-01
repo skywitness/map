@@ -1,1 +1,1 @@
-{"topic":"company-sites","generatedAt":"2026-11-01T02:19:23Z","parts":{"company-sites":{"generatedAt":"2026-11-01T02:19:23Z","source":"各公司官方公開的據點資料（手工整理，出處見 pipeline/data/company-sites/sites.csv）；AWS、Azure 的雲端區域見 pipeline/sources/cloud_regions.py","license":"引用事實並註明出處"}}}
+{"topic":"company-sites","generatedAt":"2026-11-01T02:33:37Z","parts":{"company-sites":{"generatedAt":"2026-11-01T02:33:37Z","source":"各公司官方公開的據點資料（手工整理，出處見 pipeline/data/company-sites/sites.csv）；AWS、Azure 的雲端區域見 pipeline/sources/cloud_regions.py","license":"引用事實並註明出處"}}}
