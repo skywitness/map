@@ -108,7 +108,7 @@ export const SHARED_LAYERS: SharedLayer[] = [
     load: from('submarine-cables', {
       cables: {
         id: 'shared-cables',
-        label: { zh: '海底電纜（到時間軸那一年啟用的，之後的年份含規劃中）', en: 'Submarine cables (in service by the year shown; later years include planned)' },
+        label: { zh: '海底電纜（TeleGeography 2022 年 11 月版，到時間軸那一年啟用的）', en: 'Submarine cables (TeleGeography, November 2022; in service by the year shown)' },
         overlayTime: 'cumulative',
       },
     }),

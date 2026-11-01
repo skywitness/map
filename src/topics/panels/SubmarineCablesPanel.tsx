@@ -40,8 +40,8 @@ const TEXT = defineMessages({
     none: (year: number) => `到 ${year} 年底沒有海底電纜在這裡登陸（依 TeleGeography 的資料）。`,
     later: (n: number) => `另有 ${n} 條在時間軸這一年之後才啟用，拖動時間軸可以看到。`,
     inService: '營運中',
-    planned: '規劃中（尚未啟用）',
-    plannedNote: '年份是 TeleGeography 的預計啟用年份。地圖與統計從明年起才算進去：預計今年底前啟用、或預定年份已過還沒啟用的，都算在明年。',
+    planned: '2022 年時還在規劃',
+    plannedNote: '年份是 TeleGeography 2022 年 11 月時的預計啟用年份；之後有沒有完工，這一版的資料看不出來。地圖上畫虛線，不算進統計。',
     since: (rfs: number | null) => (rfs ? `${rfs} 年啟用` : '啟用年份不明'),
     expected: (rfs: number | null) => (rfs ? `預計 ${rfs} 年啟用` : '啟用年份未定'),
     landsAt: '登陸點：',
@@ -51,9 +51,9 @@ const TEXT = defineMessages({
     more: (n: number) => `顯示其餘 ${n} 條`,
     partners: '直接連到的國家或地區',
     partnersNote: (n: number) =>
-      `同一條電纜登陸的其他國家都算直接連到；長條是連到那裡的電纜數（含規劃中、時間軸這一年以前預計啟用的）。${n > PARTNERS_SHOWN ? `只列前 ${PARTNERS_SHOWN} 個。` : ''}`,
+      `同一條電纜登陸的其他國家都算直接連到；長條是連到那裡、營運中的電纜數。${n > PARTNERS_SHOWN ? `只列前 ${PARTNERS_SHOWN} 個。` : ''}`,
     partnersAria: (country: string) => `${country}經由海底電纜直接連到的國家`,
-    note: '電纜名稱、登陸點與擁有者是 TeleGeography 的英文原文。TeleGeography 只收營運中與規劃中的電纜，已經退役的不在清單裡。',
+    note: '電纜名稱、登陸點與擁有者是 TeleGeography 2022 年 11 月版的英文原文（CC BY-NC-SA 3.0）。TeleGeography 只收營運中與規劃中的電纜，已經退役的不在清單裡；2022 年以後新增的電纜不在這一版裡。',
   },
   en: {
     title: (country) => `Submarine cables landing in ${country}`,
@@ -62,8 +62,8 @@ const TEXT = defineMessages({
     none: (year) => `No submarine cables land here by the end of ${year} (per TeleGeography).`,
     later: (n) => `${n} more ${n === 1 ? 'enters' : 'enter'} service after the selected year; drag the time slider to see ${n === 1 ? 'it' : 'them'}.`,
     inService: 'In service',
-    planned: 'Planned (not yet in service)',
-    plannedNote: "Years are TeleGeography's expected ready-for-service dates. The map and statistics count planned cables from next year on; those due by the end of this year, or past their planned date, count from next year.",
+    planned: 'Still planned in 2022',
+    plannedNote: "Years are TeleGeography's expected ready-for-service dates as of November 2022; this version cannot tell whether they were completed. They are dashed on the map and not counted.",
     since: (rfs) => (rfs ? `In service since ${rfs}` : 'In service (year unknown)'),
     expected: (rfs) => (rfs ? `Expected ${rfs}` : 'Date to be determined'),
     landsAt: 'Lands at ',
@@ -73,9 +73,9 @@ const TEXT = defineMessages({
     more: (n) => `Show ${n} more`,
     partners: 'Directly linked countries and territories',
     partnersNote: (n) =>
-      `Every other country a cable lands in counts as directly linked; bars show the number of cables to each (including planned cables due by the selected year).${n > PARTNERS_SHOWN ? ` Top ${PARTNERS_SHOWN} shown.` : ''}`,
+      `Every other country a cable lands in counts as directly linked; bars show the number of cables in service to each.${n > PARTNERS_SHOWN ? ` Top ${PARTNERS_SHOWN} shown.` : ''}`,
     partnersAria: (country) => `Countries linked to ${country} by submarine cable`,
-    note: "Cable names, landing points and owners are TeleGeography's original English text. TeleGeography lists only cables in service or planned; retired cables are not included.",
+    note: "Cable names, landing points and owners are the original English text of TeleGeography's November 2022 version (CC BY-NC-SA 3.0). TeleGeography lists only cables in service or planned; retired cables are not included, and cables added after 2022 are not in this version.",
   },
 });
 
@@ -92,13 +92,13 @@ export default function SubmarineCablesPanel({ topic, iso3, year, countryName }:
 
   const { active, planned, counted, later, partners } = useMemo(() => {
     const rows = data?.cables ?? [];
-    // 地圖與統計：從「地圖上的年份」那一年年底起算（規劃中的電纜從明年起）
-    const counted = rows.filter((r) => r[2] <= year);
+    // 統計：營運中的電纜從「地圖上的年份」那一年年底起算；2022 年時規劃中的不算（地圖上畫虛線）
+    const counted = rows.filter((r) => !r[5] && r[2] <= year);
     const links = new Map<string, number>();
     for (const r of counted) for (const p of r[7]) links.set(p, (links.get(p) ?? 0) + 1);
     return {
-      active: counted.filter((r) => !r[5]),
-      // 規劃中的一律列出（預設的今年不算進統計，但側欄要看得到）
+      active: counted,
+      // 規劃中的一律列出（不算進統計，但側欄要看得到）
       planned: rows.filter((r) => r[5]).sort((a, b) => (a[1] ?? 9999) - (b[1] ?? 9999) || a[0].localeCompare(b[0])),
       counted,
       later: rows.filter((r) => !r[5] && r[2] > year).length,

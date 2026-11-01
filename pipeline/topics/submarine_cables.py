@@ -1,4 +1,5 @@
-"""海底電纜主題：TeleGeography Submarine Cable Map（CC BY-NC-SA 3.0，見 sources/telegeography.py）。
+"""海底電纜主題：TeleGeography Submarine Cable Map 2022 年 11 月公開的最後一版（CC BY-NC-SA 3.0，見 sources/telegeography.py；
+2026-11-01 起不再用網站 API 的現在的資料，製作手冊第十八批 286）。
 
 地圖上的疊加圖層：
 - cables.json：電纜路線（`lines_file()`，每條線一筆屬性：名稱、啟用年份、長度、擁有者），依「營運中／規劃中」分類。
@@ -11,12 +12,11 @@
 - partners.json（國際連線數）：經由電纜直接連到的其他國家數（同一條電纜登陸的國家兩兩都算連到）。
 - landings.json（登陸點數）：有電纜登陸的地點數。
 
-**時間**：用 TeleGeography 的 RFS（ready for service）年份累計。TeleGeography 只收「營運中與規劃中」的電纜，
-已經退役的（例如 TAT-8、TPC-3）不在裡面，所以早期的數字偏少，只代表「今天還在用的電纜是哪一年啟用的」。
-- 今年（資料下載的那一年）是「現在已經啟用的電纜」：營運中的電纜依 RFS 年份算。
-- 規劃中的電纜（`is_planned`）從明年起依預計啟用年份算進去（預計今年底前啟用、或預定年份已過但還沒啟用的，算在明年），
-  明年起標成推估（`projectionFrom`），說明寫「規劃中」。
-- 沒有 RFS 年份的：營運中的算在今年（只知道現在有、不知道哪一年啟用），規劃中的算在最後一年。
+**時間**：用 TeleGeography 的 RFS（ready for service）年份累計，時間軸到這一版的年份（2022）。TeleGeography 只收
+「營運中與規劃中」的電纜，已經退役的（例如 TAT-8、TPC-3）不在裡面，所以早期的數字偏少，只代表「2022 年還在用的電纜是哪一年
+啟用的」。2022 年以後新增的電纜不在這一版裡。
+- 營運中的電纜依 RFS 年份算（RFS 在 2022 年以後、或沒有年份的，算在 2022 年）。
+- 規劃中的電纜（`is_planned`，2022 年 11 月時的狀態）不算進國家統計；地圖上在 2022 年畫成虛線，tooltip 與側欄寫預計啟用年份。
 
 **國家**：登陸點的國家是 TeleGeography 明細裡的英文國名，屬地照自己的 ISO 代碼（關島 GUM、法屬玻里尼西亞 PYF、
 留尼旺 REU…）；COUNTRY_NAMES 對照 pycountry 查不到或會查錯的寫法，對不上就報錯。
@@ -26,14 +26,13 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter, defaultdict
-from datetime import date
 
 from common import OUT_DIR, ROOT, indicator_file, lines_file, now_iso, points_file, write_json
 from sources import telegeography
 from sources.countries import from_name
 
 OUT = OUT_DIR / "topics" / "submarine-cables"
-THIS_YEAR = date.today().year
+SNAP_YEAR = telegeography.SNAPSHOT_YEAR  # 這一版的年份：時間軸到這一年
 IN_SERVICE, PLANNED = 1, 2  # 線的分類代碼，跟 src/topics/submarine-cables.ts 的 CABLE_TYPES 一致
 QUANTUM = 0.01  # 座標量化（度），約 1 公里
 OWNERS_SHOWN = 4  # 線的屬性只放前幾個擁有者（tooltip 用），完整的清單在側欄的國家檔裡
@@ -138,26 +137,24 @@ MERGED_IN = {
 # （https://www.cna.com.tw/news/aipl/202501100035.aspx ，數字來自中華電信與數位發展部）寫台灣聯外海纜約 14 條，
 # 提到 SJC2、Apricot、APCN2、FNAL/RNAL、EAC、C2C、CSCN、TSE-1、TPE、APG、FASTER、NCP，未來還有 TPU、ORCA；
 # 國內海纜 10 條（台馬、台金、台澎、澎金各兩條），都由中華電信投資維護。只引用事實，不轉載內容。
-# 這裡列出這些電纜在 TeleGeography 的 id，資料管線每次都檢查，名單變了（新增、改名、下架）會印出來。
+# 這裡列出這些電纜在 TeleGeography 2022 年版的 id，資料管線每次都檢查，名單對不上會印出來。
 TAIWAN_EXPECTED = {
     "SJC2": "southeast-asia-japan-cable-2-sjc2",
     "Apricot": "apricot",
     "APCN-2": "apcn-2",
     "FNAL/RNAL": "flag-north-asia-loopreach-north-asia-loop",
     "EAC-C2C": "eac-c2c",
-    "CSCN": "cross-straits-cable-network-cscn",
+    "CSCN": "cross-straits-cable-network",
     "TSE-1": "taiwan-strait-express-1-tse-1",
     "TPE": "trans-pacific-express-tpe-cable-system",
     "APG": "asia-pacific-gateway-apg",
     "FASTER": "faster",
     "NCP": "new-cross-pacific-ncp-cable-system",
     "PLCN": "pacific-light-cable-network-plcn",
-    "TPU": "tpu",
-    "ORCA": "orca",
-    "E2A": "e2a",
+    "SEA-ME-WE 3": "seamewe-3",
 }
-# 1999 年啟用、曾在台灣登陸的 SEA-ME-WE 3 不在 TeleGeography 現在的清單裡（all.json 只有 SeaMeWe-4、5、6）
-TAIWAN_ABSENT = {"SEA-ME-WE 3": "seamewe-3"}
+# 2022 年 11 月以後才公布或列入的（中央社 2025 年的報導提到 TPU、ORCA），這一版沒有
+TAIWAN_LATER = ["TPU", "ORCA", "E2A"]
 
 
 def _iso3(country: str, where: str) -> str:
@@ -226,13 +223,11 @@ def _stitch(parts: list[list[tuple[float, float]]]) -> list[list[tuple[float, fl
 
 
 # ── 年份 ─────────────────────────────────────────
-def _effective_year(c: telegeography.Cable, last_year: int) -> int:
-    """這條電纜從哪一年年底起算進統計與地圖（見檔頭的「時間」）"""
+def _effective_year(c: telegeography.Cable) -> int:
+    """這條電纜從哪一年年底起畫在地圖上（見檔頭的「時間」）；規劃中的畫在這一版的年份、不算進統計"""
     if not c.planned:
-        return min(c.rfs_year, THIS_YEAR) if c.rfs_year else THIS_YEAR
-    if c.rfs_year:
-        return max(c.rfs_year, THIS_YEAR + 1)
-    return last_year
+        return min(c.rfs_year, SNAP_YEAR) if c.rfs_year else SNAP_YEAR
+    return SNAP_YEAR
 
 
 def _quantized_points(line: list[tuple[float, float]]) -> int:
@@ -270,19 +265,18 @@ def build() -> None:
         cable_countries[c.id] = isos
 
     # ── 年份 ──
-    planned_years = [c.rfs_year for c in cables if c.planned and c.rfs_year]
-    last_year = max(THIS_YEAR + 1, max(planned_years, default=THIS_YEAR + 1))
-    year_of = {c.id: _effective_year(c, last_year) for c in cables}
+    year_of = {c.id: _effective_year(c) for c in cables}
     first_year = min(year_of.values())
+    last_year = SNAP_YEAR
     years = list(range(first_year, last_year + 1))
     no_rfs = [c for c in cables if not c.rfs_year]
-    late_planned = [c for c in cables if c.planned and c.rfs_year and c.rfs_year <= THIS_YEAR]
-    future_active = [c for c in cables if not c.planned and c.rfs_year and c.rfs_year > THIS_YEAR]
+    late_planned = [c for c in cables if c.planned and c.rfs_year and c.rfs_year <= SNAP_YEAR]
+    future_active = [c for c in cables if not c.planned and c.rfs_year and c.rfs_year > SNAP_YEAR]
     print(
         f"  年份 {first_year}–{last_year}；規劃中 {sum(c.planned for c in cables)} 條"
-        f"（預定今年或更早、還沒啟用 {len(late_planned)} 條，算在 {THIS_YEAR + 1} 年）；"
+        f"（預定 {SNAP_YEAR} 年或更早、當時還沒啟用 {len(late_planned)} 條）；"
         f"沒有 RFS 年份 {len(no_rfs)} 條（營運中 {sum(not c.planned for c in no_rfs)}、規劃中 {sum(c.planned for c in no_rfs)}）；"
-        f"營運中但 RFS 在今年以後 {len(future_active)} 條"
+        f"營運中但 RFS 在 {SNAP_YEAR} 年以後 {len(future_active)} 條"
     )
 
     # ── 國家統計 ──
@@ -294,13 +288,16 @@ def build() -> None:
     shapeless = sorted(set(all_countries) - shapes)
     print(f"  有電纜登陸的國家／地區 {len(all_countries)} 個；地圖上沒有形狀的：{', '.join(shapeless)}")
 
-    # 登陸點：最早那條電纜的年份
+    # 登陸點：最早那條電纜的年份（畫在地圖上）；統計只算有營運中電纜的登陸點
     lp_cables: dict[str, list[str]] = defaultdict(list)
     for c in cables:
         for lp_id, _, _ in c.landings:
             if c.id not in lp_cables[lp_id]:
                 lp_cables[lp_id].append(c.id)
     lp_year = {lp: min(year_of[cid] for cid in cids) for lp, cids in lp_cables.items()}
+    planned_ids = {c.id for c in cables if c.planned}
+    lp_year_active = {lp: min(year_of[cid] for cid in cids if cid not in planned_ids)
+                      for lp, cids in lp_cables.items() if any(cid not in planned_ids for cid in cids)}
 
     n_cables: dict[str, list[float | None]] = {}
     n_partners: dict[str, list[float | None]] = {}
@@ -311,16 +308,18 @@ def build() -> None:
             by_country[iso].append(c)
     lps_by_country = defaultdict(list)
     for lp, iso in landing_country.items():
-        lps_by_country[iso].append(lp)
+        if lp in lp_year_active:
+            lps_by_country[iso].append(lp)
+    active = [c for c in cables if not c.planned]
     for iso in countries:
-        mine = by_country.get(iso, [])
+        mine = [c for c in by_country.get(iso, []) if not c.planned]
         n_cables[iso] = [sum(year_of[c.id] <= y for c in mine) for y in years]
         n_partners[iso] = [
             len({p for c in mine if year_of[c.id] <= y for p in cable_countries[c.id] if p != iso}) for y in years
         ]
-        n_landings[iso] = [sum(lp_year[lp] <= y for lp in lps_by_country.get(iso, [])) for y in years]
-    world_cables = [sum(year_of[c.id] <= y for c in cables) for y in years]
-    world_landings = [sum(v <= y for v in lp_year.values()) for y in years]
+        n_landings[iso] = [sum(lp_year_active[lp] <= y for lp in lps_by_country.get(iso, [])) for y in years]
+    world_cables = [sum(year_of[c.id] <= y for c in active) for y in years]
+    world_landings = [sum(v <= y for v in lp_year_active.values()) for y in years]
 
     # 附註：台灣，以及地圖上併在本國形狀裡的海外地區
     notes: dict[str, str] = {}
@@ -336,7 +335,7 @@ def build() -> None:
             notes_en[code] = f"On the map {en} is part of the shape of {sov_en}; cables are counted by ISO code, so the figures for {sov_en} exclude it."
         notes[sovereign] = f"不含{'、'.join(zh for _, zh, _ in parts)}：這些地區另外計算（地圖上併在{sov_zh}的形狀裡）。"
         notes_en[sovereign] = f"Excludes {', '.join(en for _, _, en in parts)}, which are counted separately (on the map they are part of the shape of {sov_en})."
-    extra = {"projectionFrom": THIS_YEAR + 1, "notes": notes, "notesEn": notes_en}
+    extra = {"notes": notes, "notesEn": notes_en, "license": telegeography.LICENSE, "attribution": telegeography.ATTRIBUTION}
     write_json(OUT / "cables.json", indicator_file("cables", "條", years, n_cables, aggregates={"WLD": world_cables}, **extra))
     write_json(OUT / "partners.json", indicator_file("partners", "國", years, n_partners, **extra))
     write_json(OUT / "landings.json", indicator_file("landings", "處", years, n_landings, aggregates={"WLD": world_landings}, **extra))
@@ -376,7 +375,7 @@ def build() -> None:
     data["records"] = points_file(rows, fields, scale, delta=("year",))
     if len(data["lines"]) != len(rows):
         raise RuntimeError("線與屬性的筆數對不上")
-    write_json(OUT / "cables-lines.json", data)
+    write_json(OUT / "cables-lines.json", {**data, "license": telegeography.LICENSE, "attribution": telegeography.ATTRIBUTION})
 
     # ── 疊加圖層：登陸點 ──
     lp_country_name = {lp_id: country for c in cables for lp_id, _, country in c.landings}
@@ -395,12 +394,16 @@ def build() -> None:
     print(f"  登陸點：{len(lp_rows)} 個有電纜（{unused} 個沒有任何電纜用到，不畫）；位置未定（TBD）{sum(1 for r in lp_rows if r['tbd'])} 個")
     write_json(
         OUT / "landing-points.json",
-        points_file(
-            lp_rows,
-            ["lon", "lat", "iso3", "name", "year", "n", "np", "tbd"],
-            {"lon": 0.01, "lat": 0.01, "year": 1, "n": 1, "np": 1, "tbd": 1},
-            delta=("lon",),
-        ),
+        {
+            **points_file(
+                lp_rows,
+                ["lon", "lat", "iso3", "name", "year", "n", "np", "tbd"],
+                {"lon": 0.01, "lat": 0.01, "year": 1, "n": 1, "np": 1, "tbd": 1},
+                delta=("lon",),
+            ),
+            "license": telegeography.LICENSE,
+            "attribution": telegeography.ATTRIBUTION,
+        },
     )
 
     # ── 側欄：每個國家登陸的電纜 ──
@@ -422,27 +425,32 @@ def build() -> None:
                 here,
                 [p for p in cable_countries[c.id] if p != iso],
             ])
-        write_json(OUT / "countries" / f"{iso}.json", {"cables": rows_out}, quiet=True)
+        write_json(OUT / "countries" / f"{iso}.json", {"cables": rows_out, "license": telegeography.LICENSE}, quiet=True)
     write_json(OUT / "countries" / "index.json", sorted(by_country))
 
     write_json(OUT / "manifest.json", {
         "topic": "submarine-cables",
         "generatedAt": now_iso(),
-        "source": "TeleGeography Submarine Cable Map (CC BY-NC-SA 3.0)",
+        "source": f"TeleGeography Submarine Cable Map, the last public version ({telegeography.SNAPSHOT}, commit {telegeography.COMMIT[:8]})",
+        "sourceUrl": telegeography.SOURCE_URL,
+        "license": telegeography.LICENSE,
+        "licenseUrl": telegeography.LICENSE_URL,
+        "attribution": telegeography.ATTRIBUTION,
+        "snapshot": telegeography.SNAPSHOT,
         "cables": len(cables),
         "landingPoints": len(lp_rows),
         "years": [first_year, last_year],
     })
 
     # ── 檢查用的數字 ──
-    last = {iso: s[years.index(THIS_YEAR)] for iso, s in n_cables.items()}
+    last = {iso: s[years.index(SNAP_YEAR)] for iso, s in n_cables.items()}
     top = sorted(((v, k) for k, v in last.items() if v), reverse=True)[:10]
-    print(f"  {THIS_YEAR} 年登陸的電纜數前 10：" + "、".join(f"{k} {v}" for v, k in top))
-    lastp = {iso: s[years.index(THIS_YEAR)] for iso, s in n_partners.items()}
+    print(f"  {SNAP_YEAR} 年登陸的電纜數前 10：" + "、".join(f"{k} {v}" for v, k in top))
+    lastp = {iso: s[years.index(SNAP_YEAR)] for iso, s in n_partners.items()}
     topp = sorted(((v, k) for k, v in lastp.items() if v), reverse=True)[:10]
-    print(f"  {THIS_YEAR} 年國際連線數前 10：" + "、".join(f"{k} {v}" for v, k in topp))
+    print(f"  {SNAP_YEAR} 年國際連線數前 10：" + "、".join(f"{k} {v}" for v, k in topp))
     print(f"  分布（國際連線數）：{sorted(Counter(lastp.values()).items())}")
-    print(f"  台灣：{last.get('TWN')} 條電纜、連到 {lastp.get('TWN')} 國；最後一年 {n_cables['TWN'][-1]} 條")
+    print(f"  世界：{world_cables[-1]} 條營運中、{world_landings[-1]} 個登陸點；台灣：{last.get('TWN')} 條電纜、連到 {lastp.get('TWN')} 國")
 
 
 def lp_cables_order(c: telegeography.Cable) -> list[str]:
@@ -464,10 +472,10 @@ def _taiwan_check(
         print(f"    台灣：{c.name}（{c.id}）RFS {c.rfs_year}{'，規劃中' if c.planned else ''}，連到 {', '.join(p for p in cable_countries[c.id] if p != 'TWN') or '（國內）'}")
     missing = [name for name, cid in TAIWAN_EXPECTED.items() if cid not in ids]
     if missing:
-        print(f"    警告：中央社報導提到、TeleGeography 卻沒有在台灣登陸的：{missing}（要改附註）")
-    back = [name for name, cid in TAIWAN_ABSENT.items() if cid in all_ids]
-    if back:
-        print(f"    警告：{back} 又出現在 TeleGeography 的清單裡（要改附註）")
+        print(f"    警告：中央社報導提到、TeleGeography 2022 年版卻沒有在台灣登陸的：{missing}（要改附註）")
+    later = [name for name in TAIWAN_LATER if name.lower() in all_ids]
+    if later:
+        print(f"    警告：{later} 出現在 2022 年版的清單裡（要改附註）")
     domestic = [c for c in tw if cable_countries[c.id] == ["TWN"]]
     international = [c for c in tw if c not in domestic and not c.planned]
     planned = [c for c in tw if c not in domestic and c.planned]
@@ -475,19 +483,21 @@ def _taiwan_check(
     names = "、".join(short(c) for c in international)
     names_en = ", ".join(short(c) for c in international)
     zh = (
-        f"TeleGeography 收錄 {len(international)} 條在台灣登陸、營運中的國際電纜（{names}；CSCN 的登陸點在金門），"
-        f"跟中央社 2025 年 1 月報導中華電信與數位發展部提供的「台灣聯外海纜約 14 條」相近；"
-        f"另有 {len(planned)} 條規劃中（{'、'.join(short(c) for c in planned)}）。"
+        f"TeleGeography 2022 年 11 月的資料收錄 {len(international)} 條在台灣登陸、營運中的國際電纜（{names}；"
+        "Cross Straits Cable Network 的登陸點在金門），"
+        f"另有 {len(planned)} 條當時還在規劃（{'、'.join(short(c) for c in planned)}）。"
+        "中央社 2025 年 1 月報導中華電信與數位發展部提供的數字是「台灣聯外海纜約 14 條」，那是 2025 年的數字；"
+        f"之後才列入的 {'、'.join(TAIWAN_LATER)} 不在 2022 年的資料裡。"
         f"國內電纜只收了 {len(domestic)} 個系統（{'、'.join(c.name for c in domestic)}，串起本島與澎湖、金門、馬祖），"
         "同一篇報導說國內海纜有 10 條（台馬、台金、台澎、澎金各兩條），TeleGeography 沒有逐條收錄。"
-        "1999 年啟用、曾在台灣登陸的 SEA-ME-WE 3 不在 TeleGeography 現在的清單裡。"
     )
     en = (
-        f"TeleGeography lists {len(international)} international cables in service landing in Taiwan ({names_en}; CSCN lands on Kinmen), "
-        "close to the “about 14” international cables that Chunghwa Telecom and the Ministry of Digital Affairs gave the Central News Agency in January 2025; "
-        f"{len(planned)} more are planned ({', '.join(short(c) for c in planned)}). "
+        f"TeleGeography's November 2022 data list {len(international)} international cables in service landing in Taiwan ({names_en}; "
+        "the Cross Straits Cable Network lands on Kinmen), "
+        f"with {len(planned)} more planned at the time ({', '.join(short(c) for c in planned)}). "
+        "Chunghwa Telecom and the Ministry of Digital Affairs gave the Central News Agency a figure of “about 14” international cables in January 2025, "
+        f"a 2025 figure; {', '.join(TAIWAN_LATER)}, added later, are not in the 2022 data. "
         f"Only {len(domestic)} domestic systems are listed ({', '.join(c.name for c in domestic)}, linking the main island with Penghu, Kinmen and Matsu), "
-        "whereas the same report counts 10 domestic cables (two each on the Taiwan–Matsu, Taiwan–Kinmen, Taiwan–Penghu and Penghu–Kinmen routes). "
-        "SEA-ME-WE 3, in service since 1999 with a landing in Taiwan, is not in TeleGeography's current list."
+        "whereas the same report counts 10 domestic cables (two each on the Taiwan–Matsu, Taiwan–Kinmen, Taiwan–Penghu and Penghu–Kinmen routes)."
     )
     return zh, en
