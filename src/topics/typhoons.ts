@@ -62,6 +62,23 @@ export function monthDay(md: number): string {
   return getLang() === 'en' ? `${MONTHS[month - 1]} ${day}` : `${month}/${day}`;
 }
 
+/**
+ * 沿路徑移動的颱風眼旁邊寫的字（線圖層的 animate，2026-11-01）：「凱米 7/24」。日期依起訖日（UTC）在路徑上的位置內插
+ * （每 6 小時一個頂點，所以跟時間成正比）；跨年的（12 月形成、1 月消散）結束日算到隔年
+ */
+function stormAt(p: PointRecord, fraction: number): string {
+  const zh = typeof p.zh === 'string' ? p.zh : null;
+  const en = typeof p.name === 'string' ? p.name : null;
+  const name = (getLang() === 'zh' ? (zh ?? en) : en) ?? stormWord(p.basin);
+  if (typeof p.year !== 'number' || typeof p.md0 !== 'number' || typeof p.md1 !== 'number') return name;
+  const start = Date.UTC(p.year, Math.floor(p.md0 / 100) - 1, p.md0 % 100);
+  const endYear = p.md1 < p.md0 ? p.year + 1 : p.year;
+  // 結束那一天也走完（算到當天 18 時，最後一筆每 6 小時的紀錄）
+  const end = Date.UTC(endYear, Math.floor(p.md1 / 100) - 1, p.md1 % 100, 18);
+  const at = new Date(start + (end - start) * fraction);
+  return `${name} ${monthDay((at.getUTCMonth() + 1) * 100 + at.getUTCDate())}`;
+}
+
 /** 起訖日期：「7/20–7/29」，同一天只寫一次 */
 export function dateRange(md0: number, md1: number): string {
   return md0 === md1 ? monthDay(md0) : `${monthDay(md0)}–${monthDay(md1)}`;
@@ -336,6 +353,7 @@ export const typhoons: TopicDefinition = {
       tooltip: (p) => trackTooltip(p),
       // 一個颱風一組（pipeline/topics/typhoon_list.py 的 id）：清單滑過、點一列時標出那一條
       groupField: 'id',
+      animate: { label: stormAt },
       items: ['usa'],
     },
     {
@@ -350,6 +368,7 @@ export const typhoons: TopicDefinition = {
       casing: true,
       tooltip: (p) => trackTooltip(p, cwaName),
       groupField: 'id',
+      animate: { label: stormAt },
       items: ['jma'],
     },
   ],

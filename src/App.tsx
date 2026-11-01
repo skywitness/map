@@ -544,10 +544,14 @@ export function App() {
     },
     [listLine, topic.id, highlightLine],
   );
+  // 點了一組線（颱風、航程）：線圖層有 animate 時一個點沿著那條線走一次（WorldMap 的 routeAnimation）
+  const [routeAnim, setRouteAnim] = useState<{ topic: string; overlay: string; group: number; key: number } | null>(null);
   const pickListRow = (row: ListRow) => {
     if (row.line) {
-      setListLine({ topic: topic.id, ...row.line });
-      highlightLine(row.line.overlay, row.line.group);
+      const line = row.line;
+      setListLine({ topic: topic.id, ...line });
+      highlightLine(line.overlay, line.group);
+      setRouteAnim((r) => ({ topic: topic.id, ...line, key: (r?.key ?? 0) + 1 }));
     }
     if ('box' in row.target) moveToBox(row.target.box);
     else {
@@ -1136,6 +1140,7 @@ export function App() {
                   legendTitle={onMap.title}
                   values={onMap.values}
                   pies={pies}
+                  routeAnimation={routeAnim && routeAnim.topic === topic.id ? routeAnim : null}
                   bubbleMax={onMap.bubbleMax}
                   tokens={tokens}
                   selected={state.country}

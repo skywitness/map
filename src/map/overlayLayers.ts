@@ -697,6 +697,29 @@ function groupFeatures(overlay: string, group: number): GeoJSON.Feature[] {
   return entry.byGroup.get(group) ?? [];
 }
 
+/**
+ * 一組線的第一條線（同一筆紀錄）從頭到尾的頂點與每個頂點的分類代碼（依代碼切開的各段接回來，交界的頂點只留一次）：
+ * 沿路線移動的點用（routeAnimation.ts）。i 是那筆紀錄的索引
+ */
+export function groupPath(overlay: string, group: number): { coords: [number, number][]; codes: (number | null)[]; i: number } | null {
+  const features = groupFeatures(overlay, group).filter((f) => f.geometry.type === 'LineString');
+  if (!features.length) return null;
+  const i = Number(features[0].properties!.i);
+  const coords: [number, number][] = [];
+  const codes: (number | null)[] = [];
+  for (const f of features) {
+    if (Number(f.properties!.i) !== i) continue;
+    const line = (f.geometry as GeoJSON.LineString).coordinates as [number, number][];
+    const code = typeof f.properties!.type === 'number' ? (f.properties!.type as number) : null;
+    line.forEach((c, k) => {
+      if (k === 0 && coords.length) return;
+      coords.push(c);
+      codes.push(code);
+    });
+  }
+  return coords.length >= 2 ? { coords, codes, i } : null;
+}
+
 const sameParts = (a: unknown, b: DecodedLines[]) => Array.isArray(a) && a.length === b.length && a.every((p, k) => p === b[k]);
 
 /**

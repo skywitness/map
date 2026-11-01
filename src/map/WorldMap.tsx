@@ -27,7 +27,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import { geoArea, geoDistance } from 'd3-geo';
 import { tr, useLang, useT } from '../i18n';
 import { StatusCard } from '../controls/StatusCard';
-import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
+import type { AirportsData, Indicator, MapMark, PointerInfo, PointRecord } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
 import { applyDivisions, divisionAt, hoverDivision, installDivisions, type DivisionView } from './divisions';
@@ -67,7 +67,8 @@ import {
 } from './Overlays';
 import { syncContours } from './contours';
 import { pieTier, syncPieImages, type PieData } from './pies';
-import { applyTimeFilters, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { applyTimeFilters, groupPath, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { playRoute, ROUTE_SOURCE, routeLayers } from './routeAnimation';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
 import { useClassGridOnly } from './classGridHighlight';
@@ -282,6 +283,8 @@ interface WorldMapProps {
    * cooperativeGestures，2026-11-01）；全螢幕時照常操作
    */
   cooperativeGestures?: boolean;
+  /** 清單側欄點了一組線（颱風、航程）：線圖層有 animate 時，一個點沿著那條線走一次（key 變了就重來） */
+  routeAnimation?: { overlay: string; group: number; key: number } | null;
   /** 比例圓畫成圓餅（指標的 layer.pie，App 的 usePies）：各國各片的值與顏色；null 是畫實心的圓 */
   pies?: PieData | null;
   /** 地圖的操作（匯出圖片等）；不叫 ref：Preact 的函式元件收不到 ref 這個 prop（React 19 收得到） */
@@ -330,7 +333,7 @@ export function WorldMap(props: WorldMapProps) {
   const terrain = Boolean(props.terrain);
   const bare = Boolean(props.bareMap);
   const { grid = null, gridFailed = false, flags = null, onBasemapChange } = props;
-  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null } = props;
+  const { onViewChange, lineHighlight = null, focusBox = null, pointer, marks = null, cooperativeGestures = false, pies = null, routeAnimation = null } = props;
   const flagsOn = indicator.layer.kind === 'flags';
   const basemapRef = useRef(basemap);
   basemapRef.current = basemap;
@@ -572,6 +575,9 @@ export function WorldMap(props: WorldMapProps) {
     // 側欄的標記、游標的對蹠點：畫在最上面（連底圖的地名也蓋過，「台北的對蹠點」才不會被當地的地名壓住）
     for (const id of [MARKS_SOURCE, POINTER_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
     for (const layer of markLayers(dark, labelFont(m))) m.addLayer(layer);
+    // 沿路線移動的點（routeAnimation.ts）：畫在最上面
+    m.addSource(ROUTE_SOURCE, { type: 'geojson', data: EMPTY });
+    for (const layer of routeLayers(labelFont(m), dark)) m.addLayer(layer);
     baseRastersRef.current = styleLayers
       .filter((l) => l.type === 'raster' && l.layout?.visibility !== 'none')
       .map((l) => ({ id: l.id, minzoom: l.minzoom ?? 0, maxzoom: l.maxzoom ?? 24 }));
@@ -1278,6 +1284,41 @@ export function WorldMap(props: WorldMapProps) {
     document.addEventListener('fullscreenchange', sync);
     return () => document.removeEventListener('fullscreenchange', sync);
   }, [ready, cooperativeGestures]);
+
+  /* ── 沿路線移動的點（線圖層的 animate，routeAnimation.ts）：清單側欄點一組線時走一次；換一組、換主題、換底圖時停 ── */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current || !routeAnimation) return;
+    const o = overlays.find((x) => x.kind === 'lines' && x.def.id === routeAnimation.overlay);
+    if (!o || o.kind !== 'lines' || !o.def.animate || !o.lines) return;
+    const path = groupPath(o.def.id, routeAnimation.group);
+    if (!path) return;
+    // 紀錄的索引跨過各分區（parts）
+    let record: PointRecord | null = null;
+    let offset = 0;
+    for (const part of o.lines.parts ?? [o.lines]) {
+      if (path.i < offset + part.lines.length) {
+        record = part.records?.[path.i - offset] ?? null;
+        break;
+      }
+      offset += part.lines.length;
+    }
+    if (!record) return;
+    const { def } = o;
+    const animate = def.animate!;
+    const classes = typeof def.color === 'string' ? null : def.color.classes;
+    const colorOf = (code: number | null) => {
+      const c = code === null ? null : classes?.find((k) => k.value === code);
+      return c ? (basemap.dark && c.dark ? c.dark : c.color) : typeof def.color === 'string' ? def.color : (classes?.[0]?.color ?? '#333333');
+    };
+    const rec = record;
+    return playRoute(
+      map,
+      { coords: path.coords, colors: path.codes.map(colorOf), label: (f) => animate.label(rec, f), seconds: animate.seconds ?? 6 },
+      matchMedia(REDUCED_MOTION).matches,
+    );
+    // 只依 key（同一組再點一次也重來）、換底圖（source 是新的）
+  }, [ready, revision, routeAnimation?.key]);
 
   /* ── 主題側欄點某條河：把地圖移到它的範圍 ── */
   useEffect(() => {

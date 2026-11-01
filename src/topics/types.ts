@@ -682,6 +682,12 @@ export interface LinesOverlayDef extends OverlayBase {
    */
   groupField?: string;
   /**
+   * 在清單側欄點一組線（一個颱風、一次航程）時，一個點沿著那條線從頭走到尾（2026-11-01，MapLibre 範例「Animate a point
+   * along a route」；WorldMap 的 routeAnimation）：依頂點的順序等速走（颱風每 6 小時、航海日誌每天正午一個頂點，所以跟時間成正比），
+   * 點的顏色是那一段的分類色，旁邊寫 label(紀錄, 走到幾成)（名稱與那一刻的日期）；seconds 是走完的秒數（預設 6）
+   */
+  animate?: { label: (p: PointRecord, fraction: number) => string; seconds?: number };
+  /**
    * 依縮放篩選（跟點圖層的 minValue 一樣）：紀錄的 field 要大於等於這一級的門檻，stops 是 [縮放級數, 最小值]，
    * 由小到大，第一個的級數是 0。例如縮小時只畫大河、放大後小河才出現
    */

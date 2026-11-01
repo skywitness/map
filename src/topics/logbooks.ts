@@ -83,6 +83,16 @@ export function dateRange(a: number, b: number): string {
   return a === b ? dateText(a) : `${dateText(a)} – ${dateText(b)}`;
 }
 
+/** 沿航線移動的船旁邊寫的字：「Amsterdam 1767/5/3」（日期依航程的起訖日內插） */
+function shipAt(p: PointRecord, fraction: number): string {
+  const name = shipName(p.s);
+  if (typeof p.a !== 'number' || typeof p.b !== 'number') return name;
+  const utc = (ymd: number) => Date.UTC(Math.floor(ymd / 10000), (Math.floor(ymd / 100) % 100) - 1, ymd % 100);
+  const start = utc(p.a);
+  const at = new Date(start + (utc(p.b) - start) * fraction);
+  return `${name} ${dateText(at.getUTCFullYear() * 10000 + (at.getUTCMonth() + 1) * 100 + at.getUTCDate())}`;
+}
+
 export function shipName(name: string | number | null): string {
   return typeof name === 'string' && name ? name : tr({ zh: '船名不明', en: 'Unnamed ship' });
 }
@@ -208,6 +218,8 @@ const VOYAGES: LinesOverlayDef = {
   },
   timeField: 'y',
   groupField: 'v',
+  // 清單點一次航程：船沿著航線走一次，旁邊寫船名與那一天（每天正午一個船位，日期依起訖日在航線上的位置內插，2026-11-01）
+  animate: { label: shipAt, seconds: 8 },
   casing: true,
   tooltip: trackTooltip,
 };
