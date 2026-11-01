@@ -26,6 +26,7 @@ import { StatusCard } from '../controls/StatusCard';
 import type { AirportsData, Indicator, MapMark, PointerInfo } from '../topics/types';
 import { MAP_TOKENS, type Tokens } from '../theme/tokens';
 import { noteMapRequest } from '../lib/serviceWorker';
+import { applyDivisions, divisionAt, hoverDivision, installDivisions, type DivisionView } from './divisions';
 import { installFineBorders } from './fineBorders';
 import { loadPmtiles, PMTILES_PROTOCOL } from './pmtiles';
 import { dataUrl, fetchJson } from '../lib/data';
@@ -270,6 +271,14 @@ interface WorldMapProps {
   marks?: MapMark[] | null;
   /** 地圖的操作（匯出圖片等）；不叫 ref：Preact 的函式元件收不到 ref 這個 prop（React 19 收得到） */
   handleRef?: Ref<WorldMapHandle>;
+  /** 世界地圖主題的行政區（map/divisions.ts）：要畫哪一國的哪一層；null 是不畫 */
+  divisions?: DivisionView | null;
+  /** 點了地圖上的行政區（id） */
+  onDivisionPick?: (id: string) => void;
+  /** 側欄滑過的行政區：地圖上一起標出 */
+  divisionHover?: string | null;
+  /** 滑過行政區時的 tooltip 內容 */
+  renderDivisionTooltip?: (id: string) => ReactNode;
 }
 
 export interface MapView {
@@ -404,8 +413,17 @@ export function WorldMap(props: WorldMapProps) {
   const [overlayOnLeft, setOverlayOnLeft] = useState(false);
 
   // 地圖事件在建立時綁定一次，最新的 props 放在 ref 裡讀
-  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick });
-  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick };
+  const divisionsOn = Boolean(props.divisions);
+  const onDivisionPick = props.onDivisionPick;
+  const divisionHandlers = {
+    divisionAt: (point: { x: number; y: number }) => (divisionsOn && mapRef.current ? divisionAt(mapRef.current, point) : null),
+    onDivisionHover: (id: string | null) => {
+      if (mapRef.current) hoverDivision(mapRef.current, id);
+    },
+    onDivisionClick: (id: string) => onDivisionPick?.(id),
+  };
+  const latest = useRef({ onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick, ...divisionHandlers });
+  latest.current = { onSelect, onBoxChange, boxMode, pointer: Boolean(pointer), marks, onLineClick, ...divisionHandlers };
 
   // 分級色、正負色用使用者選的配色（圖例的「配色」，palettes.ts）
   const mapTokens = useMapTokens();
@@ -608,6 +626,8 @@ export function WorldMap(props: WorldMapProps) {
     }
     // 縮放 5 級以上的 1:10m 國界（PMTiles，非同步加上；在這之前與沒有檔案時照舊用 1:50m）
     installFineBorders(m);
+    // 世界地圖主題的行政區（先不畫，divisions 的 effect 設 filter 與名稱）
+    installDivisions(m, dark, labelFont(m, /place|state|country/));
     installedRef.current = true;
   };
 
@@ -792,6 +812,20 @@ export function WorldMap(props: WorldMapProps) {
       }
     }
   }, [revision, indicator.layer.kind, flagsOn]);
+
+  /* ── 世界地圖主題的行政區 ─────────────── */
+  const divisionView = props.divisions ?? null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    void applyDivisions(map, divisionView, basemap.dark);
+  }, [revision, divisionView, basemap.dark]);
+  const divisionHover = props.divisionHover ?? null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    hoverDivision(map, divisionHover);
+  }, [revision, divisionHover]);
 
   /* ── 資料 → 地圖 ─────────────────────── */
   useEffect(() => {
@@ -1196,13 +1230,20 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!ready || !map || !focusBox) return;
     const [w, s, e, n] = focusBox.box;
+    // 扣掉按鈕列與浮在地圖上的清單、國家側欄（mapInsets，跟 focus 一樣；世界地圖主題的行政區清單 2026-11-01 起也是）
+    const inset = mapInsets(map.getContainer());
     map.fitBounds(
       [
         [w, s],
         [e, n],
       ],
       {
-        padding: { top: 48, left: 48, right: 48, bottom: 48 + Math.min(focusBox.bottom ?? 0, map.getContainer().clientHeight / 2) },
+        padding: {
+          top: 48 + inset.top / 2,
+          left: 48 + inset.left,
+          right: 48 + inset.right,
+          bottom: 48 + Math.min(focusBox.bottom ?? 0, map.getContainer().clientHeight / 2),
+        },
         maxZoom: focusBox.maxZoom ?? 8,
         duration: 900,
         bearing: map.getBearing(),
@@ -2027,9 +2068,11 @@ export function WorldMap(props: WorldMapProps) {
         />
       )}
 
-      {hover && !place && size && (hover.iso3 || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
+      {hover && !place && size && (hover.iso3 || hover.division || hover.point || hover.airport !== undefined || hover.mark !== undefined || pointerInfo) && (
         <MapTooltip x={hover.x} y={hover.y} width={size.width} height={size.height}>
-          {hover.mark !== undefined && marks?.[hover.mark] ? (
+          {hover.division && props.renderDivisionTooltip ? (
+            props.renderDivisionTooltip(hover.division)
+          ) : hover.mark !== undefined && marks?.[hover.mark] ? (
             <MarkTooltip marks={marks} index={hover.mark} />
           ) : hover.point && renderPointTooltip ? (
             renderPointTooltip(hover.point.overlay, hover.point.index)

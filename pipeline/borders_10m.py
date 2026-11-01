@@ -150,14 +150,27 @@ def _rounded(coords):
     return [_rounded(c) for c in coords]
 
 
+def country_shapes(quiet: bool = False) -> dict:
+    """{iso3: shapely 幾何}：1:10m 合併、補好波赫與國界之間的縫，還沒接起跨 180° 經線的部分
+    （行政區界 divisions.py 也用這一份裁切，三份國界一致）"""
+    shapes = _shapes()
+    filled = _fix_bosnia(shapes)
+    holes = _fill_holes(shapes)
+    if not quiet:
+        print(f"  波赫東部：用 1:50m 補上 {filled:,.0f} km²")
+        print(f"  國界之間的縫：{'、'.join(f'{iso3} {km2:,.1f} km²' for iso3, km2 in holes)}")
+    return shapes
+
+
+def unwrap_antimeridian(shapes: dict) -> list[str]:
+    """碰到 −180° 的部分往東平移 360°（俄羅斯、斐濟；行政區界也照同樣的規則）"""
+    return _unwrap_antimeridian(shapes)
+
+
 def build_geojson() -> None:
     from shapely.geometry import mapping
 
-    shapes = _shapes()
-    filled = _fix_bosnia(shapes)
-    print(f"  波赫東部：用 1:50m 補上 {filled:,.0f} km²")
-    holes = _fill_holes(shapes)
-    print(f"  國界之間的縫：{'、'.join(f'{iso3} {km2:,.1f} km²' for iso3, km2 in holes)}")
+    shapes = country_shapes()
     print(f"  跨 180° 經線合併：{', '.join(_unwrap_antimeridian(shapes))}")
     known = set(json.loads((OUT_DIR / "countries.json").read_text(encoding="utf-8")))
     unknown = sorted(set(shapes) - known)

@@ -22,6 +22,8 @@ export interface MapHover {
   lngLat?: [number, number];
   /** 滑到側欄放的標記（marks 的第幾個） */
   mark?: number;
+  /** 世界地圖主題的行政區 id（map/divisions.ts） */
+  division?: string;
 }
 
 /** 右鍵（觸控長按）點的位置：小卡片寫地名與經緯度，連到 Google 地圖（PlacePopup.tsx） */
@@ -52,6 +54,13 @@ export interface LatestProps {
   marks?: MapMark[] | null;
   /** 點到線圖層的一條線（我的路線：選取那條路線、打開高度剖面）；回傳 true 表示處理了，不再選取國家 */
   onLineClick?: (overlay: string, group: number) => boolean;
+  /**
+   * 世界地圖主題的行政區（map/divisions.ts）：游標底下的行政區 id。有的話 hover 與點選都給它（onDivisionClick），
+   * 不選國家；沒有畫行政區時是 null
+   */
+  divisionAt?: (point: { x: number; y: number }) => string | null;
+  onDivisionHover?: (id: string | null) => void;
+  onDivisionClick?: (id: string) => void;
 }
 
 export interface MapEventRefs {
@@ -136,6 +145,15 @@ export function bindMapEvents(
       return;
     }
     if (latest.current.boxMode) return;
+    // 世界地圖主題的行政區：游標底下有就只標它（國家不標）
+    const division = latest.current.divisionAt?.(e.point) ?? null;
+    latest.current.onDivisionHover?.(division);
+    if (division) {
+      setHoverId(null);
+      map.getCanvas().style.cursor = 'pointer';
+      setHover({ iso3: null, x: e.point.x, y: e.point.y, division });
+      return;
+    }
     const mark = markAt(e.point);
     const f = mark === null ? featureAt(e.point) : null;
     const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
@@ -196,6 +214,7 @@ export function bindMapEvents(
   map.on('mouseup', onUp);
   map.on('touchend', onUp);
   map.on('mouseout', () => {
+    latest.current.onDivisionHover?.(null);
     setHoverId(null);
     setHover(null);
     highlightLine(map, lineHoverRef.current, lineHighlightRef.current);
@@ -213,6 +232,12 @@ export function bindMapEvents(
       const link = marksNow?.[mark]?.link;
       const target = link !== undefined ? marksNow?.[link] : undefined;
       if (target) map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
+      return;
+    }
+    // 世界地圖主題的行政區：點了跳到那一區，不選國家
+    const division = latest.current.divisionAt?.(e.point) ?? null;
+    if (division) {
+      latest.current.onDivisionClick?.(division);
       return;
     }
     // 點到線（一般的點選略過線，選底下的國家）：有 onLineClick 的（我的路線）先問它

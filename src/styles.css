@@ -4444,3 +4444,77 @@ kbd {
 .about-main section {
   scroll-margin-top: 56px;
 }
+
+/* ── 世界地圖主題的行政區（panels/Divisions.tsx，製作手冊第十六批 265） ── */
+/* 地圖左上角的路徑：世界 › 台灣 › 臺北市；右上角是地圖的按鈕，留出位置 */
+.div-path {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  max-width: calc(100% - 300px);
+  padding: 3px 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  font-size: 13px;
+}
+
+.div-path ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.div-path li + li::before {
+  content: '›';
+  margin: 0 3px;
+  color: var(--ink-muted);
+}
+
+.div-path button {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.div-path button:hover,
+.div-path button:focus-visible {
+  text-decoration: underline;
+}
+
+.div-path [aria-current] {
+  padding: 2px 4px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .div-path {
+    max-width: calc(100% - 20px);
+    top: auto;
+    bottom: 10px;
+  }
+}
+
+/* 側欄最下面的行政區界來源與授權 */
+.div-sources {
+  margin: 0;
+  padding: 8px 14px 10px;
+  border-top: 1px solid var(--border);
+  color: var(--ink-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.div-sources a {
+  color: inherit;
+}

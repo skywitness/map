@@ -19,6 +19,11 @@ STEPS = {
     # 放大後的國界：Natural Earth 1:10m 切成 PMTiles（public/pmtiles/countries-10m-<雜湊>.pmtiles，約 6 秒＋切圖）；
     # 要先有 geo 的國界，切圖要 tippecanoe（cloud 編譯不了，在本機 session 跑，pipeline/pmtiles.py）
     "borders-10m": "borders_10m",
+    # 世界地圖主題的行政區（製作手冊第十六批 265）：Natural Earth 第一級、geoBoundaries 第二級（第一次下載約 420 MB）、
+    # 內政部的縣市與鄉鎮市區（map-plan data/nlsc/ 複製到 .cache/nlsc/）裁切到 1:10m 國界，輸出 public/data/divisions/；
+    # 約 15 分鐘。divisions-tiles 把它切成 PMTiles（tippecanoe，本機 session 跑）
+    "divisions": "divisions",
+    "divisions-tiles": "divisions_tiles",
     # 世界視角（0–3 級）的地形陰影圖磚，轉成 WebP 跟網站一起部署（src/map/style.ts 的 localRelief）
     "relief-tiles": "relief_tiles",
     "population": "topics.population",

@@ -94,6 +94,7 @@ pipeline/
    ├─ geoindex.py      經緯度 → 國家（Natural Earth 1:10m 的國界，代碼跟上面的一樣；見第 8 節第 85 點）
    ├─ borders_10m.py   放大後的國界：Natural Earth 1:10m → PMTiles（第 8 節第 271 點）
    ├─ pmtiles.py       tippecanoe 切 PMTiles 的共用函式（第 13 節）
+   ├─ divisions.py     世界地圖主題的行政區界（第 8 節第 272 點）
    ├─ sources/         各資料來源的下載與解析（worldbank、imf、faostat、atlas、dgbas、ghsl、epoch、osm…）
    └─ topics/          每個主題一支組裝腳本
 ```
@@ -583,7 +584,7 @@ pipeline/
 
 | 主題 | 地圖指標 | 側欄額外區塊 | 資料來源 | 年份 |
 |---|---|---|---|---|
-| 地圖（純地圖） | 不上色，只看底圖；點國家會放大到該國 | — | OpenFreeMap、OpenStreetMap | — |
+| 地圖（純地圖） | 不上色，只看底圖；點國家會放大到該國並畫出它的第一級行政區（省、州、直轄市與縣市），點第一級再畫出它裡面的第二級（縣、區、鄉鎮市區），地圖左上角的路徑與 Esc 回到上一層（第 8 節第 272 點、第 11 節） | 左側欄列出目前這一層的行政區（依名稱或面積排，點了跳過去），最下面寫這一國行政區界的來源與授權 | OpenFreeMap、OpenStreetMap；行政區界：Natural Earth 1:10m Admin 1（公有領域）、geoBoundaries（依各國授權）、內政部國土測繪中心（政府資料開放授權條款第 1 版），中文名稱 Wikidata（CC0） | 行政區界：Natural Earth 5.1.2、geoBoundaries 多半 2017–2021、內政部 1140318 版 |
 | 人口 | 總人口、密度（國家平均，或切到 1 km 網格）、年增率、年齡中位數、總人口（1800 年起）；可框選估算 | — | UN WPP 2024；1 km 網格與框選用 JRC GHS-POP R2023A；1800 年起用 Gapminder（CC BY 4.0，第 8 節第 98 點） | 1950–2100（2024 起推估）；1800 年起的 1800–2023（1950 年以前標估計值）；1 km 網格 1975–2030 每 5 年一期（2025 起推估）；框選的網格是 2020 年 |
 | 生育率與高齡化 | 總生育率（發散色，中性一級跨過替代水準 2.1）、65 歲以上人口比例、扶老比、人口金字塔的形狀（類別圖：年輕型、壯年型、高齡型）、母親的平均生育年齡、沒有小孩的女性比例（時間軸是出生年）、總撫養比（不寫名次）、扶幼比、出生數（比例圓）、總生育率（1800 年起） | 人口金字塔（男女五歲年齡組，比例尺固定為 1950–2100 年最大的一組，推估年份調淡；沒有小孩的女性比例不畫） | UN WPP 2024（中推估）；台灣也用 WPP，附註對照內政部戶政司與國發會人口推估（2026 至 2075 年）；沒有小孩的女性比例用 Human Fertility Database（HFD Lite，含台灣）與 OECD Family Database SF2.5；1800 年起用 Gapminder | 1950–2100（2024 起推估）；沒有小孩的女性 1935–1981 年出生；總生育率（1800 年起）1800–2023（1950 年以前標估計值） |
 | ↳ 出生的季節（2026-10-30 併進「生育率與高齡化」，第 8 節第 204 點；舊網址轉過去） | 出生最多的月份（類別圖，12 個月：四季色系 × 深淺，自己驗證的配色） | 這一年 12 個月每日平均的出生數（長條，顏色同地圖）、比全年平均多幾 %、依登記月份的標註；出生最多的月份的變化 | UNdata 人口統計資料庫表 55；台灣用內政部統計處（按登記月份） | 2000–2025（各國最近的年份不同，地圖用 10 年內最近一年） |
@@ -810,6 +811,12 @@ pipeline/
       - 那個主題的公司公布店數（年報、10-K、法說會簡報、官網）是引用的事實：一國一個數字加日期與出處，寫在附註、tooltip 與側欄，不是轉載誰的資料庫；沒有用 AllThePlaces（爬各公司官網的店家位置）這類從公司網站複製的資料集。
       - **長途步道**（第 149 點，2026-10-30）：步道路線（`trails.json`、`routes.json`、`list.json`）與各國步道總長（`length.json`）也是 OSM 的衍生資料庫，同樣以 ODbL 提供（`manifest.json`、`length.json` 的 `license` 寫 ODbL 1.0，頁尾的來源寫明「資料檔也是」）。cloud 連不上 Overpass，路線由使用者電腦上的本機 session 執行 map-plan 的 `scripts/osm_hiking_routes.py` 查 Overpass（User-Agent 寫專案網址，502、504 重試或分小批）下載，放在 map-plan 的 `data/osm/hiking-routes.json`。台灣補的國家步道是交通部觀光署「步道」開放資料（data.gov.tw 41653，`media.taiwan.net.tw` 的 Trail-json.zip），政府資料開放授權條款第 1 版；`media.taiwan.net.tw` 的憑證缺 Subject Key Identifier，跟內政部統計查詢網一樣只放寬這一項嚴格檢查（`common.RELAXED_X509_HOSTS`）。
     - OECD.AI 的 OpenRouter 資料未明示授權。
+    - **行政區界（世界地圖主題，第 272 點，2026-11-01）**：
+      - Natural Earth 1:10m Admin 1 5.1.2：公有領域。
+      - geoBoundaries gbOpen：授權依各國（API 的 `boundaryLicense`），每一國用的寫在 `public/data/divisions/<代碼>.json` 的 `sources` 與左側欄最下面。API 列出的第二級 178 國（不含阿曼；台灣用內政部的，那一份不用）：CC BY 3.0 IGO 47 國、ODbL 1.0 33 國、公有領域 28 國、CC BY 4.0 38 國、CC BY-SA 2.0／3.0 11 國、CC BY 3.0 7 國、CC0 5 國，其他各 1 國（CC BY 2.5、加拿大 Open Government 2.0、瑞士 swisstopo、PDDL〔中國〕、德國 Data license 2.0、西班牙 INE、法國 Etalab 2.0、英國 Open Government Licence 3.0、新加坡 Open Data Licence 1.0）。錯層國家的第一級另有 12 國的 ADM1（或義大利的 ADM2）。**CC BY-SA、ODbL 的國家，那一國的 JSON 與圖磚裡那一國的界線照同樣授權分享**（JSON 的 `sources` 寫明；圖磚是各國分開的 feature，帶國家代碼）。
+      - **阿曼的第二級不用**：geoBoundaries 寫「Other - Direct Permission」，只授權給 geoBoundaries（2026-11-01 使用者決定）。
+      - 內政部國土測繪中心「直轄市、縣市界線(TWD97經緯度)」（data.gov.tw 7442）、「鄉鎮市區界線(TWD97經緯度)」（7441）：政府資料開放授權條款第 1 版，顯名聲明「內政部國土測繪中心」。**TGOS 的 robots.txt 禁止所有程式**（`User-agent: * Disallow: /`），cloud 下載也回 403；本機 session 2026-11-01 各下載一次放在 map-plan 的 `data/nlsc/`，pipeline 不從 TGOS 下載。
+      - 中文名稱：Wikidata，CC0。
     - Natural Earth（國界、鐵路、河流中心線）與 OurAirports 是公有領域。地圖放大到 5 級以上畫的 1:10m 國界（ne_10m_admin_0_countries 4.1.0，第 271 點，2026-11-01）也是同一份公有領域的資料，切成 PMTiles 用的 tippecanoe 是 BSD 授權（只是工具，不跟網站一起散布）。
     - **NASA 日食網站（eclipse.gsfc.nasa.gov，Fred Espenak）的預報是公有領域，要求標示**（日食路徑主題，第 88 點；2026-10-28 讀過）：
       - NASA Copyright Information（https://eclipse.gsfc.nasa.gov/SEpubs/copyright.html）：「NASA material is not protected by copyright unless noted. If not copyrighted, NASA material may be reproduced and distributed without further permission from NASA.」，並請標示「Eclipse map/figure/table/predictions courtesy of Fred Espenak, NASA/Goddard Space Flight Center, from eclipse.gsfc.nasa.gov.」
@@ -4218,6 +4225,22 @@ pipeline/
     - **切圖在本機**：tippecanoe 在 cloud 編譯不了（第 13 節），`borders-10m` 步驟由本機 session 跑（2026-11-01，使用者的電腦是 Windows 11，沒有 brew、WSL、Docker：在 MSYS2 裡從 felt/tippecanoe 的 2.79.0 標籤原始碼編譯，沒改原始碼，只加 `-D_GNU_SOURCE`），檔案放在 map-plan 的 `data/pmtiles/`（README 寫了編譯步驟、套件版本與輸出），cloud 檢查後提交。本機跑的前四行輸出跟 cloud 逐字相同；中間產物 GeoJSON 比 cloud 的多 241 bytes，剛好是 241 行的 CRLF 換行（現在一律寫 LF）。
     - **檔案**：`countries-10m-27ad4201.pmtiles`，5,423,311 bytes（SHA-256 `27ad4201…`，跟檔名一致），PMTiles 第 3 版，MVT、gzip，5–8 級，23,208 張圖磚（目錄 18,063 筆、不重複的內容 12,088 份），`vector_layers` 只有 `countries`（`iso3`），241 個 feature；`antimeridian_adjusted_bounds` 是 0.00009–359.99843°，俄羅斯、斐濟有接起來。metadata 的 `name`、`description`、`generator_options` 有本機的暫存路徑（`C:\dev\map\pipeline\.cache\tmp\…`，沒有使用者名稱；第一次切的檔有使用者名稱，本機 session 沒有用、重切了）。之後 `pmtiles.py` 在 repo 根目錄用相對路徑、固定的輸出位置跑，加 `-n`、`-N`，metadata 不會再有電腦的資料夾，同樣的輸入切出同樣的檔。
     - **前端**：第 13 節「放大後的國界」。
+272. **世界地圖：點國家、省、縣市，一層一層跳過去**（2026-11-01，製作手冊第十六批 265；`pipeline/divisions.py`〔步驟 `divisions`、`divisions-tiles`〕、`pipeline/sources/geoboundaries.py`、`pipeline/sources/wikidata_labels.py`、`src/map/divisions.ts`、`src/panels/Divisions.tsx`）：使用者要「跟 World View Data 一樣點某個國家時能跳轉過去顯示整個國家範圍，接著可以選更小的省或縣市範圍」。只在世界地圖主題（1A），台灣做到鄉鎮市區（3A），網址記住在哪一層（4A，第 11 節）。
+    - **資料**（2A，加上使用者 2026-11-01 的兩個決定）：
+      - 台灣兩級：內政部國土測繪中心 1140318 版，22 個縣市、368 個鄉鎮市區。鄉鎮市區的 zip 裡另有一層 `Town_Majia_Sanhe`（瑪家鄉含三和村平地的 5.36 km²，跟長治、內埔、鹽埔重疊），用不重疊的 `TOWN_MOI_1140318`。內政部的界線比 Natural Earth 精細，台灣不裁切，只扣掉跟別國重疊的部分：連江縣（1:10m 沒有馬祖的形狀）、宜蘭縣的釣魚台、高雄市的東沙與南沙都在。
+      - 其他國家的第一級：Natural Earth 1:10m Admin 1 5.1.2；中文名稱用 `wikidataid` 查 Wikidata 的 zh-tw、zh-hant、zh-hk，都沒有時用 Natural Earth 的 `name_zht`，但有簡體字的不用（「上塞纳省」「滨海省」，`SIMPLIFIED`），顯示英文。
+      - 其他國家的第二級：geoBoundaries gbOpen ADM2 簡化版（API 給的 github.com raw 網址 cloud 的 proxy 不轉，改用 media.githubusercontent.com 的同一個 commit 的 LFS 內容）。API 的清單存在 `pipeline/data/geoboundaries/`（commit 9469f09），本機重跑時拿到一樣的檔。沒有中文名稱；中國（行政區劃代碼 P442，6 位）、日本（地方公共團體代碼 P429）用 Wikidata 有代碼、有座標的縣級單位，座標落在裡面剛好一個時取繁體名稱：中國 2,369 個裡 1,506 個、日本 1,730 個裡 1,485 個，其他照 geoBoundaries 的拼音或當地名稱。
+      - **錯層的國家逐國換**（使用者選）：Natural Earth 的 Admin 1 在 16 國其實是第二級（法國 101 省、英國 232 個郡區…）。英國、法國、西班牙、比利時、希臘、菲律賓、布吉納法索、幾內亞、馬拉威、斯里蘭卡、波赫的第一級改用 geoBoundaries ADM1，義大利用它的 ADM2（20 個大區；ADM1 是 5 個統計大區），Natural Earth 那一份當第二級（保留中文名稱）。中文名稱先用 geoBoundaries 的 ISO 3166-2 代碼對 Wikidata 的 P300，再用這一國 P150（下轄行政區）的座標（落在裡面剛好一個才用）。斯洛維尼亞、北馬其頓、亞塞拜然、烏干達的 geoBoundaries ADM1 是統計分區，照舊只有一級。使用者先問了「為何不建議全部改用 geoBoundaries」：實測 geoBoundaries 第一級 3,253 個只有 74% 對得上 Natural Earth（取得到中文名稱），第一級也要逐國標授權（33 國 ODbL），義大利的第一級是統計大區、中國把台港澳算進去且名稱有錯。
+      - 阿曼的第二級不用（授權，第 12 點）。
+    - **幾何**：
+      - 用 264 的 1:10m 國界（`borders_10m.country_shapes()`）裁切，**爭議地區跟著網站的國界走**：Natural Earth 5.1.2 的 Admin 1 寫烏克蘭的克里米亞、塞瓦斯托波爾，4.1.0 版的國界畫在俄羅斯，所以歸俄羅斯（跟國家上色一致）。別國的行政區落在這一國的部分不到那一區的一半時丟掉（國界對不齊的碎片；阿克賽欽在網站的國界是中國，原本中國會多出印度的「拉達克」「北阿坎德邦」「阿魯納恰爾邦」），由相鄰的區補縫。台灣、香港、澳門的國界裡不會有中國的行政區（中國的第二級 geoBoundaries 有台灣、香港、澳門，裁切後沒有）。
+      - 第二級歸到重疊面積最大的第一級，再用第一級裁切（同一國不同來源的界線才貼齊）。大的先佔、小的扣掉重疊；國家（或第一級）裡沒被蓋到的縫，併到相鄰邊界最長的一區（小碎片併到最近的）。
+      - 同一國（或同一個第一級）的行政區一起用 shapely 的 `coverage_simplify` 簡化（第一級約 50 m、第二級約 100 m、台灣約 20 m），相鄰的界線一起動，外圍（國界、第一級的界線）不動。
+      - 跨 180° 經線（俄羅斯、斐濟）照 borders_10m 的規則接起來。面積用球面公式（km²）；跳過去時框的範圍只算面積 5% 以上的部分（宜蘭縣不框進釣魚台、高雄市不框進東沙與南沙）；名稱寫在最大那一塊離邊界最遠的點（polylabel）。
+    - **結果**（2026-11-01）：241 國有第一級（3,911 個，有中文名稱的 3,552 個），175 國有第二級（48,338 個，有中文名稱的 4,090 個：台灣 368、中國 1,506、日本 1,485，其他是錯層國家的 Natural Earth 那一份）。台灣 22 個縣市、368 個鄉鎮市區；中國的第一級 32 個（沒有台灣、香港、澳門，也沒有印度的拉達克、阿魯納恰爾邦）。香港 18 區的 Natural Earth 中文名稱是機器翻譯（「中西部」「北方」「島嶼」），又沒有 wikidataid，改用 Wikidata 香港的 P150 對座標（`P150_RENAME`，對到 12 區，其他 6 區寫英文）。JSON 共 6.1 MB（巴西最大，620 KB）；圖磚的 GeoJSON 第一級 30 MB，第二級依洲 5–45 MB（美洲分北美與拉丁美洲兩份）。花約 7 分鐘（Wikidata 與 geoBoundaries 已經下載過時）。
+    - **輸出**：`public/data/divisions/<代碼>.json`（一國一個，點了才下載）每一列 [id, 中文名稱, 英文名稱, 中文種類, 英文種類, 面積, 範圍, 寫名稱的位置]（第二級多一欄上一級的 id），`sources` 是這一國的來源與授權，`tiles2` 是第二級的圖磚；`index.json` 列出有資料的國家。id：國家代碼、第一級 `<代碼>-<Natural Earth 的編號>`（錯層的國家 `-r<n>`，台灣 `TWN-<縣市代碼>`）、第二級 `<第一級>-<n>`（台灣 `TWN-63000-010`，鄉鎮市區代碼的後三碼）；第二級的編號只看英文名稱與來源裡的序號，不看 Wikidata 的名稱，本機重跑時一樣。中文種類只寫確定的：台灣（直轄市、縣、市；區、鄉、鎮、市）與中國的第一級（省、自治區、直轄市）。
+    - **圖磚**：`divisions-tiles` 步驟用 tippecanoe 切 `divisions1`（第一級，1–9 級，圖層 d1，屬性 id、c）與 `divisions2-<洲>`（第二級依 geoBoundaries 的洲分 6 份：非洲、亞洲、歐洲、北美、拉丁美洲、大洋洲，3–10 級，圖層 d2，屬性 id、c、p；最大縮放跟簡化的精度一致，再放大前端放大最後一級），由本機 session 跑（第 13 節）。
+    - **前端**：第 11 節「世界地圖：點國家、省、縣市」。
 
 ## 9. 之後可以做的
 
@@ -4678,6 +4701,20 @@ pipeline/
 - 文字在 `analysis/text.ts`（`defineMessages`，中英對照，標點也走字典，英文介面不會出現全形的「：」「（」）。
 - **驗證**：每個主題打開分析、四個分頁各點一次，沒有頁面錯誤與主控台錯誤；手機 390px 寬時分頁、控制列換行，圖例排到地圖下面，小地圖一欄。
 
+### 世界地圖：點國家、省、縣市，一層一層跳過去（2026-11-01，製作手冊第十六批 265，`src/map/divisions.ts`、`src/panels/Divisions.tsx`）
+
+資料見第 8 節第 272 點。只在世界地圖主題（`pure`）。
+
+- **網址**：`div=TWN`（台灣的第一級）、`div=TWN-63000`（臺北市的區）、`div=TWN-63000-020`（選到信義區）。`ViewState.div`（`url-state.ts` 的 `DIV_PATTERN`：國家代碼加最多兩段），換層會在瀏覽紀錄留一筆（`HISTORY_KEYS`），上一頁回得去。不是世界地圖主題時清掉。
+- **操作**：
+  - 點國家：選取並框住整個國家（原本的 `fitOnSelect`），畫出它的第一級（`div=<代碼>`）。
+  - 點第一級：框住那一區（主要部分的範圍，`focusBox`，扣掉浮在地圖上的清單），畫出它裡面的第二級；點第二級：框住並標出那一區。點到國家外面：選那一國；點海：回到世界。
+  - 地圖左上角的路徑「世界 › 台灣 › 臺北市 › 信義區」，點了回到那一層；Esc 回上一層（第二級 → 第一級 → 國家 → 世界）。窄螢幕放在地圖下緣。
+  - hover：游標底下有行政區時只標它（`mapEvents` 先問 `divisionAt`，國家不標），tooltip 寫名稱、另一種語言的名稱、種類（有的話）與面積。
+  - 左側欄（清單側欄的樣子，跟 `layout.list` 一起收起打開）：目前這一層的行政區（選到第一級時是它裡面的第二級；沒有第二級的國家照舊列第一級），依名稱（中文照筆畫，`zh-Hant-TW-u-co-stroke`）或面積排，15 個以上有搜尋框；點了跳過去，滑過時地圖上一起標出。最下面寫這一國行政區界的來源與授權（JSON 的 `sources`）。
+- **地圖圖層**（`installDivisions`，插在國家外框上面、底圖文字下面）：每一級一組透明的面（hover 時微微加亮）、界線（第一級實線、第二級虛線）、選到的那一區的外框；名稱是另一個 GeoJSON 的點（JSON 的寫名稱位置，照介面語言，大的先放）。圖磚只有 id、國家、上一級，用 filter 只畫選到的那一國或那一區裡面的；第二級的 source 依國家換成那一洲的圖磚。
+- **離線**：界線是 PMTiles，離線時看不到，左側欄上面顯示 `TilesOffline`；清單是 JSON，看過的國家 service worker 有存。
+
 ### 關於頁（2026-11-01，製作手冊第十五批 262，`src/about/`，網址 `about/`）
 
 使用者 2026-11-01 看過類似網站的整理（map-plan 的 similar-sites.md）只選 I19「關於頁」，六題都選 A：台灣與爭議領土寫實際的做法、照實寫 AI 的角色、用 GitHub Issues 收更正、獨立的頁面、資料來源一覽自動產生、寫方法與限制。
@@ -4933,6 +4970,7 @@ pipeline/
 - **pipeline**（`pipeline/pmtiles.py` 的 `build(name, geojson, layer, min_zoom=…, max_zoom=…, keep=[…], polygons=…)`）：tippecanoe 把 GeoJSON（或 GeoJSONSeq）切成向量圖磚、包成 `.pmtiles`；`keep` 是要留的屬性（前端依它上色、hover 的，例如 iso3，要留）；面加 `--no-simplification-of-shared-nodes`（tippecanoe 的 README 寫舊的 `--detect-shared-borders` 已 DEPRECATED，2026-11-01 第十六批 264 改用這個）、`--no-tiny-polygon-reduction`，不丟、不合併 feature（每個國家、行政區都要在），圖磚不設 500 KB 上限；線與點用 `--drop-densest-as-needed`。輸出 `public/pmtiles/<名稱>-<內容雜湊 8 碼>.pmtiles`（換檔就換網址，快取不會拿到舊的；同名的舊檔刪掉），`public/pmtiles/index.json` 記檔名、圖層、縮放範圍、大小。單檔超過 95 MB 就報錯（GitHub 的上限是 100 MB；整個 Pages 網站 1 GB）。
 - **放在 `public/pmtiles/`，不是手冊寫的 `public/tiles/`**：`public/tiles/` 是人口、暖化網格圖磚的資料夾，`.gitignore` 忽略、部署時在 GitHub Actions 產生並快取整個資料夾，放在那裡的 `.pmtiles` 不會進 git。
 - **tippecanoe 在本機跑**：cloud session 編譯外部下載的程式被權限規則擋下（2026-11-01），照手冊的備案由使用者電腦上的本機 session 安裝（macOS `brew install tippecanoe`，或照 felt/tippecanoe 的 README 編譯 2.79.0 以後的版本）、跑用到它的步驟、把 `.pmtiles` 推上來；沒有 tippecanoe 時 `build()` 報錯並寫清楚怎麼做。本機 session 把切好的檔放在 map-plan 的 `data/pmtiles/`，cloud 檢查後提交（264 的做法，第 8 節第 271 點）。
+- **用到的檔**：`countries-10m`（264，放大後的國界）、`divisions1` 與 `divisions2-<洲>`（265，世界地圖主題的行政區界，第 8 節第 272 點、第 11 節）。
 - **metadata 不留電腦的資料夾**：tippecanoe 把整個指令列寫進檔案的 metadata（`generator_options`），沒給 `-n`、`-N` 時 `name`、`description` 也是輸出路徑。`build()` 在 repo 根目錄跑、路徑都用相對的（斜線，Windows 的 MSYS2 版也讀得懂）、argv[0] 只寫 `tippecanoe`、輸出到固定的 `pipeline/.cache/pmtiles/<名稱>.pmtiles`（不用亂數命名的暫存資料夾），同樣的輸入在同一版 tippecanoe 切出同樣的檔，檔名的雜湊不變；`index.json` 一律寫 LF。
 - **前端**（`src/map/pmtiles.ts`）：`pmtiles://` protocol 在 `WorldMap.tsx` 跟 grid、flag、relief 一起註冊（`loadPmtiles`），`pmtiles` 套件（含 fflate，建置後自己一個 chunk，gzip 後約 7 KB）第一次讀圖磚時才下載。`loadTilesIndex()` 讀 `pmtiles/index.json`，`pmtilesSource(entry, promoteId)` 給 MapLibre 的向量來源；要依國家或行政區上色、hover、點選的設 `promoteId`（例如 iso3），feature-state 與 `queryRenderedFeatures` 照常能用。
 - **service worker**：`.pmtiles` 不預先快取、沒有路由（Range 請求照常走網路，不用 Workbox 的 range requests：快取整個 Range 回應容易出錯，圖磚檔也大）；離線時這些圖層看不到，用到的地方放 `TilesOffline`（`StatusCard` 的離線樣子，「目前離線，看不到…」）。
@@ -4962,7 +5000,7 @@ pipeline/
 | 1 km 網格圖磚（`/tiles/**.png`，第 14 節） | cache first（網址含版本） | `grid-tiles` | 800 張（約 10 MB）、60 天 |
 | 1 km 網格的 `meta.json` | network first（5 秒逾時才用快取）：它決定圖磚的版本，部署後要馬上換新 | `grid-meta` | 10 |
 | 地形圖磚（AWS Terrain Tiles，只有海拔主題） | cache first（內容不變） | `terrain-tiles` | 200 張、30 天 |
-| PMTiles（`/pmtiles/*.pmtiles`、`/pmtiles/index.json`，2026-11-01） | 不經過 service worker（沒有路由，照常走網路；Range 回應不快取） | — | 離線時這些圖層看不到，用到的地方顯示 `TilesOffline`；放大後的 1:10m 國界改用 1:50m 畫，不顯示 |
+| PMTiles（`/pmtiles/*.pmtiles`、`/pmtiles/index.json`，2026-11-01） | 不經過 service worker（沒有路由，照常走網路；Range 回應不快取） | — | 離線時這些圖層看不到，用到的地方顯示 `TilesOffline`（世界地圖主題的行政區清單上面）；放大後的 1:10m 國界改用 1:50m 畫，不顯示 |
 | 國旗的 SVG（`/data/topics/flags/svg/*.svg`） | cache first（檔名含內容的雜湊，內容不變）；另一個快取，不跟資料 JSON 的 400 個上限搶位置 | `flag-images` | 300 個、120 天 |
 
 - **資料版本**：建置時把 `public/data` 全部內容算雜湊（`vite.config.ts` 的 `dataVersion()`，用 `define` 傳給 service worker）。資料有變，資料快取就換一個新名字，新版 service worker 啟用時刪掉舊的；只改程式不改資料時，資料快取照用。

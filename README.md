@@ -96,6 +96,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 大的線與面圖層（1:10m 國界、行政區界）用 PMTiles：`pipeline/pmtiles.py` 呼叫 tippecanoe（2.79.0 以後，macOS `brew install tippecanoe`）切成 `public/pmtiles/<名稱>-<雜湊>.pmtiles`，前端用 HTTP Range 只讀看得到的那一塊；cloud session 不能編譯 tippecanoe，這些步驟在本機跑。
 
+`divisions` 是世界地圖主題的行政區界（點國家、省、縣市一層一層跳過去）：Natural Earth 1:10m Admin 1 5.1.2（公有領域）當第一級、geoBoundaries 各國的 ADM2 簡化版（授權依各國，第一次下載約 420 MB，清單固定在 `pipeline/data/geoboundaries/`）當第二級，台灣兩級用內政部國土測繪中心的縣市界與鄉鎮市區界（TGOS 擋程式下載，本機 session 下載到 map-plan 的 `data/nlsc/`，重跑前把兩個 zip 複製到 `pipeline/.cache/nlsc/`）；用 `borders-10m` 的 1:10m 國界裁切、補縫、相鄰的界線一起簡化，中文名稱查 Wikidata，輸出 `public/data/divisions/<代碼>.json`，約 25 分鐘。`divisions-tiles` 把它切成 PMTiles（`public/pmtiles/divisions1-*`、`divisions2-<洲>-*`，tippecanoe，在本機跑；要在同一台電腦先跑 `divisions`）。做法見 DESIGN.md 第 8 節第 272 點。
+
 `borders-10m` 是放大後的國界：Natural Earth 1:10m Admin 0（4.1.0，跟 `geoindex` 同一份，公有領域）依網站的國家代碼合併、補上 4.1.0 版波赫東部缺的一塊與國界之間的縫、把跨 180° 經線的俄羅斯與斐濟接起來（約 6 秒，cloud 也能跑），再用 tippecanoe 切成 `public/pmtiles/countries-10m-<雜湊>.pmtiles`（5–8 級，要在本機跑）；地圖放大到 5 級以上改用它畫國家的上色、外框與點選。要先跑 `geo`。做法見 DESIGN.md 第 8 節第 271 點、第 13 節。
 
 `submarine-cables` 讀 TeleGeography 2022 年 11 月以 CC BY-NC-SA 3.0 公開的最後一版（2026-11-01 起不再抓網站 API 的現在的資料）：重跑前把 skywitness/map-plan 的 `data/telegeography-2022/` 裡的 `api/`、`upstream/`、`SHA256SUMS` 複製到 `pipeline/.cache/telegeography-2022/`，pipeline 會核對 SHA-256。

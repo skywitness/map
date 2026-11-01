@@ -38,7 +38,15 @@ export interface ViewState {
   listSort: string | null;
   /** 分析檢視（view=analysis，2026-10-30）的設定，見 AnalysisState */
   analysis: AnalysisState;
+  /**
+   * 世界地圖主題看到哪一層行政區（div=TWN、div=TWN-63000、div=TWN-63000-010，2026-11-01，製作手冊第十六批 265）：
+   * 國家代碼、第一級、第二級的 id（map/divisions.ts）；null 是世界
+   */
+  div: string | null;
 }
+
+/** div= 的格式：國家代碼，後面最多兩段「-代碼」（map/divisions.ts 的 id） */
+export const DIV_PATTERN = /^_?[A-Z]{3}(?:-[A-Za-z0-9]+){0,2}$/;
 
 /**
  * 分析檢視（src/analysis/）的設定，都寫在網址裡：
@@ -162,6 +170,7 @@ export function read(): ViewState {
     labels: p.get('vals') === '1',
     listSort: p.get('lsort'),
     analysis: readAnalysis(p),
+    div: DIV_PATTERN.test(p.get('div') ?? '') ? p.get('div') : null,
   };
 }
 
@@ -184,7 +193,7 @@ function legacyBox(text: string | null): Box | null {
  * 這些變了才在瀏覽紀錄留一筆，瀏覽器的「上一頁」回得到前一個主題、指標、國家（原本一律改寫目前這一筆，
  * 上一頁會直接離開網站）。年份、時刻、框選、3D、網格只改寫目前這一筆：拖時間軸、播放不會塞滿紀錄。
  */
-const HISTORY_KEYS = ['topic', 'indicator', 'item', 'country', 'view'] as const;
+const HISTORY_KEYS = ['topic', 'indicator', 'item', 'country', 'view', 'div'] as const;
 
 /**
  * 只改寫目前這一筆的變動（拖時間軸、播放）最多每 REPLACE_INTERVAL_MS 寫一次網址，停下來時寫最後的狀態。
@@ -224,6 +233,7 @@ function buildUrl(state: ViewState): string {
   if (state.time !== null) p.set('time', formatTimeParam(state.time));
   if (state.labels) p.set('vals', '1');
   if (state.listSort) p.set('lsort', state.listSort);
+  if (state.div) p.set('div', state.div);
   // 分析的設定只在分析檢視時寫（換回地圖時網址保持乾淨；設定照樣留在狀態裡，切回來還在）
   if (state.view === 'analysis') writeAnalysis(p, state.analysis);
   if (state.embed) p.set('embed', '1');

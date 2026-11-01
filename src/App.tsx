@@ -45,6 +45,8 @@ import { BoxResult } from './panels/BoxResult';
 import { coreBox } from './lib/coreBox';
 import { FloatResize } from './panels/FloatResize';
 import { ListSide } from './panels/ListSide';
+import { DivisionList, DivisionPath, DivisionTooltip, useDivisionsData } from './panels/Divisions';
+import { divisionBounds, divisionCountry, divisionLevel, divisionParent, divisionView } from './map/divisions';
 import { PanelSheet } from './panels/PanelSheet';
 import { PanelSkeleton } from './panels/Skeleton';
 import { latestAt, maxAcrossYears, ranking, rowRanks } from './panels/stats';
@@ -379,11 +381,16 @@ export function App() {
   const selectCountry = useCallback(
     (iso3: string | null) => {
       const nextCompare = iso3 ? compare.filter((c) => c !== iso3) : [];
+      // 世界地圖主題：點國家顯示它的第一級行政區（div=國家代碼）；地圖由 fitOnSelect 框住，不另外移
+      if (pure) {
+        divFitSkipRef.current = iso3;
+        return update({ country: iso3, div: iso3 });
+      }
       if (!follows) return update({ country: iso3, compare: nextCompare });
       const next = iso3 && follows.options.some((o) => o.id === iso3) ? iso3 : item;
       update({ country: iso3, item: next, compare: nextCompare });
     },
-    [update, follows, item, compare],
+    [update, follows, item, compare, pure],
   );
   const setBox = useCallback((box: Box | null) => update({ box }), [update]);
   const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
@@ -418,6 +425,49 @@ export function App() {
       setFocusBox((f) => ({ box, key: (f?.key ?? 0) + 1, maxZoom, bottom })),
     [],
   );
+  // 世界地圖主題的行政區（製作手冊第十六批 265，panels/Divisions.tsx、map/divisions.ts）：div= 記住看到哪一層，
+  // 換層時框住那一層（在地圖上點國家時由 fitOnSelect 框住，divFitSkipRef 記下不要再移一次）
+  const div = pure ? state.div : null;
+  const { model: divModel, missing: divMissing } = useDivisionsData(div);
+  const divView = useMemo(() => (div && divModel ? divisionView(divModel, div, lang) : null), [div, divModel, lang]);
+  const divFitSkipRef = useRef<string | null>(null);
+  const divFittedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const level = div ? divisionLevel(div) : 0;
+    if (!div || (level > 0 && !divModel) || divFittedRef.current === div) return;
+    divFittedRef.current = div;
+    if (divFitSkipRef.current === div) {
+      divFitSkipRef.current = null;
+      return;
+    }
+    // 國家用地圖原本框國家的方式（美國不框進阿拉斯加的阿留申群島與夏威夷）；第一級、第二級框那一區的主要部分
+    if (level === 0) return setFocusRequest({ iso3: div, key: Date.now() });
+    const box = divModel && divisionBounds(divModel, div);
+    if (box) moveToBox(box, level === 2 ? 12 : 11);
+  }, [div, divModel, moveToBox]);
+  useEffect(() => {
+    if (!div) divFittedRef.current = null;
+  }, [div]);
+  const goDivision = useCallback(
+    (id: string | null) => {
+      if (!id) return update({ country: null, div: null });
+      update({ country: divisionCountry(id), div: id });
+    },
+    [update],
+  );
+  // 不是世界地圖主題時不留 div=（換主題時清掉）
+  useEffect(() => {
+    if (!pure && state.div) update({ div: null }, { replace: true });
+  }, [pure, state.div, update]);
+  const [divHover, setDivHover] = useState<string | null>(null);
+  const renderDivisionTooltip = useCallback(
+    (id: string) => {
+      const d = divModel?.byId.get(id);
+      return d ? <DivisionTooltip d={d} /> : null;
+    },
+    [divModel],
+  );
+
   // 主題（或指標）的資料集中在一個地方（南極、北極航道）時，換過來就移過去；選了國家時照舊框住那個國家
   const topicFocus = indicator.focus ?? topic.focus;
   useEffect(() => {
@@ -544,7 +594,9 @@ export function App() {
     });
   useHotkeys({
     Escape: () => {
-      if (state.country) selectCountry(null);
+      // 世界地圖主題：回上一層行政區（第二級 → 第一級 → 國家 → 世界）
+      if (div) goDivision(divisionParent(div));
+      else if (state.country) selectCountry(null);
       else if (state.box) setBox(null);
     },
   });
@@ -1003,8 +1055,20 @@ export function App() {
         <div
           ref={stageRef}
           // is-map：地圖檢視（寬螢幕時側欄浮在地圖上只在地圖檢視，排名表、分析照舊排成幾欄，styles.css 的 .stage.is-map）
-          className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
+          className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef || div ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
         >
+          {div && !state.embed && (
+            <DivisionList
+              div={div}
+              model={divModel}
+              missing={divMissing}
+              countryName={listCountryName}
+              onPick={goDivision}
+              onHover={setDivHover}
+              open={layout.list}
+              onOpenChange={(open) => setLayout({ list: open })}
+            />
+          )}
           {listDef && (
             <ListSide
               def={listDef}
@@ -1026,6 +1090,7 @@ export function App() {
             />
           )}
           <div className="stage-main">
+            {div && view === 'map' && <DivisionPath div={div} model={divModel} countryName={listCountryName} onGo={goDivision} />}
             {error && (
               // 離線而這個主題還沒存到裝置（service worker 只快取看過的資料）跟一般的失敗分開說
               <StatusCard
@@ -1084,6 +1149,10 @@ export function App() {
                   moreLayers={pure ? undefined : moreLayers}
                   personal={pure ? undefined : personalMenu}
                   fitOnSelect={pure}
+                  divisions={divView}
+                  divisionHover={divHover}
+                  onDivisionPick={goDivision}
+                  renderDivisionTooltip={renderDivisionTooltip}
                   onFirstData={onMapShown}
                   onDetailNeeded={wantDetail}
                   threeD={state.threeD}

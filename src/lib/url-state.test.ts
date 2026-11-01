@@ -29,6 +29,19 @@ describe('網址 → 畫面狀態（read）', () => {
     expect(read().year).toBeNull();
   });
 
+  it('行政區（div=）：國家代碼加最多兩段，格式不對是 null', () => {
+    setLocation('http://localhost/map/t/map/?div=TWN-63000-010');
+    expect(read().div).toBe('TWN-63000-010');
+    setLocation('http://localhost/map/t/map/?div=FRA-r3');
+    expect(read().div).toBe('FRA-r3');
+    setLocation('http://localhost/map/t/map/?div=_CYN');
+    expect(read().div).toBe('_CYN');
+    setLocation('http://localhost/map/t/map/?div=TWN-1-2-3');
+    expect(read().div).toBeNull();
+    setLocation('http://localhost/map/t/map/?div=<script>');
+    expect(read().div).toBeNull();
+  });
+
   it('比較的國家：去重、只收國家代碼', () => {
     setLocation('http://localhost/map/?cmp=JPN,USA,JPN,bad,_SOL');
     expect(read().compare).toEqual(['JPN', 'USA', '_SOL']);
