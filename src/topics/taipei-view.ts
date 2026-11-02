@@ -1,7 +1,8 @@
 import { getLang, tr } from '../i18n/lang';
-import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { distanceBearing, distanceRing, greatCircle, octant } from '../lib/greatCircle';
+import { formatLatLon } from './antipodes';
 import type { CategoryDef, IndicatorData, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -38,27 +39,71 @@ export function bearingText(deg: number): string {
   return tr({ zh: `${zh[ns as 'N' | 'S']}偏${zh[ew as 'E' | 'W']} ${angle}°`, en: `${ns} ${angle}° ${ew}` });
 }
 
-/** tooltip 另外一行要用到另一個指標檔：第一次用到時下載，下載完之後才有 */
-const files = new Map<string, IndicatorData | null>();
-function lazy(path: string): IndicatorData | null {
-  if (!files.has(path)) {
-    files.set(path, null);
-    fetchJson<IndicatorData>(path)
-      .then((d) => files.set(path, d))
-      .catch(() => files.delete(path));
-  }
-  return files.get(path) ?? null;
-}
-const valueOf = (d: IndicatorData | null, iso3: string) => (d ? (d.values[iso3]?.[0] ?? null) : null);
 
 function routeTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
   const iso3 = String(p.iso3 ?? '');
   return {
-    title: tr({ zh: `台北 → ${ctx.countryName(iso3)}`, en: `Taipei → ${ctx.countryName(iso3)}` }),
+    title: p.t === 0 ? tr({ zh: `這一點 → ${ctx.countryName(iso3)}`, en: `This point → ${ctx.countryName(iso3)}` }) : tr({ zh: `台北 → ${ctx.countryName(iso3)}`, en: `Taipei → ${ctx.countryName(iso3)}` }),
     detail: typeof p.d === 'number' ? kmText(p.d) : undefined,
     extra: typeof p.b === 'number' ? [tr({ zh: `一開始朝${bearingText(p.b)}`, en: `Sets off ${bearingText(p.b)}` })] : undefined,
   };
 }
+
+// ── 中心可以拖（2026-11-02，新33）：指標、航線、距離圈都在瀏覽器裡依中心算（src/lib/greatCircle.ts，跟 pipeline 同一套公式），
+// 材料是晝夜與季節整理的各國首都（../daylight/capitals.json）。中心預設是台北（網址沒有 pin= 時），拖過、方向鍵移動或「定位我」後換成那裡。
+
+const CAPITALS_FILE = '../daylight/capitals.json';
+const CRUISE_KMH = 850;
+const OVERHEAD_H = 0.5;
+const RINGS = [1000, 5000, 10000, 15000, 20000];
+const YEAR = 2026;
+
+type Capitals = { capitals: Record<string, [number, number, ...unknown[]]> };
+const isTaipei = ([lon, lat]: [number, number]) => Math.abs(lon - TAIPEI[0]) < 1e-4 && Math.abs(lat - TAIPEI[1]) < 1e-4;
+
+/** 各國首都離中心的距離與方位（中心是台北時不算台灣，跟 pipeline 一樣） */
+function fromCenter(source: unknown, center: [number, number]): Map<string, [number, number]> {
+  const out = new Map<string, [number, number]>();
+  const caps = (source as Capitals | null)?.capitals;
+  if (!caps) return out;
+  const skipTaiwan = isTaipei(center);
+  for (const [iso3, [lat, lon]] of Object.entries(caps)) {
+    if (skipTaiwan && iso3 === 'TWN') continue;
+    out.set(iso3, distanceBearing(center[0], center[1], lon, lat));
+  }
+  return out;
+}
+
+/** 最近一次算指標時的材料與中心（tooltip 的另外一行用：tooltipLines 拿不到中心） */
+let last: { source: unknown; center: [number, number] } | null = null;
+
+function centerData(indicator: string, unit: string, source: unknown, center: [number, number], value: (d: number, b: number) => number): IndicatorData {
+  last = { source, center };
+  const values: Record<string, (number | null)[]> = {};
+  for (const [iso3, [d, b]] of fromCenter(source, center)) values[iso3] = [value(d, b)];
+  return { indicator, unit, years: [YEAR], values } as IndicatorData;
+}
+
+/** 中心的名稱：台北，或「這一點」 */
+export function centerName(center: [number, number] | null | undefined): string {
+  return !center || isTaipei(center) ? tr({ zh: '台北', en: 'Taipei' }) : tr({ zh: '這一點', en: 'this point' });
+}
+
+const routes = (center: [number, number], data: unknown) => {
+  const lines: [number, number][][] = [];
+  const records: PointRecord[] = [];
+  const caps = (data as Capitals | null)?.capitals ?? {};
+  for (const [iso3, [d, b]] of fromCenter(data, center)) {
+    const [lat, lon] = caps[iso3];
+    lines.push(greatCircle(center, [lon, lat]));
+    records.push({ iso3, d: Math.round(d), b: Math.round(b), t: isTaipei(center) ? 1 : 0 });
+  }
+  return { lines, records };
+};
+const rings = (center: [number, number]) => ({
+  lines: RINGS.map((km) => distanceRing(center, km)),
+  records: RINGS.map((km) => ({ km }) as PointRecord),
+});
 
 export const taipeiView: TopicDefinition = {
   id: 'taipei-view',
@@ -85,11 +130,22 @@ export const taipeiView: TopicDefinition = {
       'Near the antipode (Argentina, Paraguay, Uruguay) every direction is about equally far, so the bearing means little (see the Antipodes topic).',
   },
   panelExtra: () => import('./panels/TaipeiViewPanel'),
+  // 2026-11-02（新33）：中心可以拖、方向鍵移動、「定位我」放到你的位置（網址 pin=）；指標、航線、距離圈、側欄的圓盤都跟著換
+  pin: {
+    draggable: true,
+    center: true,
+    default: TAIPEI,
+    label: ([lon, lat]) => [
+      isTaipei([lon, lat]) ? tr({ zh: '中心：台北（可以拖）', en: 'Centre: Taipei (drag me)' }) : tr({ zh: '中心（可以拖）', en: 'Centre (drag me)' }),
+      formatLatLon(lon, lat),
+    ],
+  },
   overlays: [
     {
       kind: 'lines',
       id: 'circles',
-      file: 'circles.json',
+      file: CAPITALS_FILE,
+      generate: rings,
       label: { zh: '距離圈（1,000、5,000、10,000…公里）', en: 'Distance rings (1,000, 5,000, 10,000… km)' },
       width: 1,
       color: MAP_TOKENS.inkSecondary,
@@ -98,7 +154,8 @@ export const taipeiView: TopicDefinition = {
     {
       kind: 'lines',
       id: 'routes',
-      file: 'routes.json',
+      file: CAPITALS_FILE,
+      generate: routes,
       label: { zh: '到各國首都的大圓航線', en: 'Great-circle routes to capitals' },
       width: 0.6,
       opacity: 0.45,
@@ -121,11 +178,12 @@ export const taipeiView: TopicDefinition = {
       id: 'distance',
       label: { zh: '首都離台北多遠', en: 'Distance from Taipei' },
       description: {
-        zh: '台北到各國首都的大圓距離（地球表面的最短距離）。最近的是香港 814、馬尼拉 1,162、首爾 1,484 公里；最遠的亞松森 19,929 公里，快到地球的另一邊（20,015 公里）。點國家看以台北為中心的圓盤圖。',
-        en: 'Great-circle distance (the shortest route over the Earth’s surface) from Taipei to each capital. Nearest are Hong Kong (814 km), Manila (1,162 km) and Seoul (1,484 km); farthest is Asunción at 19,929 km, close to the far side of the Earth (20,015 km). Click a country for a map centred on Taipei.',
+        zh: '台北到各國首都的大圓距離（地球表面的最短距離）。最近的是香港 814、馬尼拉 1,162、首爾 1,484 公里；最遠的亞松森 19,929 公里，快到地球的另一邊（20,015 公里）。點國家看以台北為中心的圓盤圖。拖地圖上的中心標記（或按「定位我」）可以改成從別的地方看，距離、方位、航線與圓盤都跟著換。',
+        en: 'Great-circle distance (the shortest route over the Earth’s surface) from Taipei to each capital. Nearest are Hong Kong (814 km), Manila (1,162 km) and Seoul (1,484 km); farthest is Asunción at 19,929 km, close to the far side of the Earth (20,015 km). Click a country for a map centred on Taipei. Drag the centre marker on the map (or use Locate me) to look from somewhere else; distances, bearings, routes and the disc all follow.',
       },
       unit: 'km',
-      file: 'distance.json',
+      file: CAPITALS_FILE,
+      derive: { per: 'center', values: (source, _at, _live, center) => centerData('distance', 'km', source, center ?? TAIPEI, (d) => Math.round(d)) },
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2000, 5000, 8000, 11000, 14000, 17000] } },
       format: kmText,
       formatTick: (v) => `${fixed(v / 1000, 0)}k`,
@@ -141,7 +199,8 @@ export const taipeiView: TopicDefinition = {
         en: 'The initial direction of the great-circle route from Taipei (eight compass points). The US looks east on the map, but the route sets off north (16° east of north, passing Alaska); Europe is mostly northwest and Africa southwest. Hover for the exact bearing.',
       },
       unit: '',
-      file: 'bearing.json',
+      file: CAPITALS_FILE,
+      derive: { per: 'center', values: (source, _at, _live, center) => centerData('bearing', '', source, center ?? TAIPEI, (_d, b) => octant(b)) },
       layer: { kind: 'categorical', categories: DIRECTIONS },
       format: (v) => tr(DIRECTIONS.find((d) => d.value === v)?.label ?? ''),
       unranked: true,
@@ -155,7 +214,12 @@ export const taipeiView: TopicDefinition = {
         en: 'An estimate of the non-stop flight time from Taipei to each capital: great-circle distance ÷ 850 km/h (an airliner’s cruising speed) + 0.5 h (take-off, climb and landing). Hong Kong is about 1.5 hours, Tokyo 3.0, Singapore 4.3, London 12.0 and Washington 15.4, and the farthest, Asunción, about 23.9; 17 capitals are within 4 hours and 127 within 12. These are theoretical non-stop times: most capitals have no direct flight from Taipei, and eastbound flights with tailwinds can be over an hour faster than westbound ones, while airspace restrictions force detours. Checked against the longest non-stop flights: Singapore Airlines’ New York–Singapore (15,349 km) takes 18 h 55 min against 18.6 h by the formula, and EVA Air’s Taoyuan–Newark (12,552 km) 14 h 45 min eastbound against 15.3 h.',
       },
       unit: { zh: '小時', en: 'h' },
-      file: 'flight-hours.json',
+      file: CAPITALS_FILE,
+      derive: {
+        per: 'center',
+        values: (source, _at, _live, center) =>
+          centerData('flight-hours', 'h', source, center ?? TAIPEI, (d) => Math.round((d / CRUISE_KMH + OVERHEAD_H) * 10) / 10),
+      },
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 4, 8, 12, 16, 20] } },
       format: hoursText,
       formatTick: (v) => fixed(v, 0),
@@ -165,10 +229,9 @@ export const taipeiView: TopicDefinition = {
     },
   ],
   tooltipLines: (iso3, ctx) => {
-    if (iso3 === 'TWN') return [];
-    const deg = valueOf(lazy('topics/taipei-view/bearing-deg.json'), iso3);
-    const km = valueOf(lazy('topics/taipei-view/distance.json'), iso3);
-    if (deg === null || km === null) return [];
+    const here = last ? fromCenter(last.source, last.center).get(iso3) : undefined;
+    if (!here) return [];
+    const [km, deg] = here;
     if (ctx.indicator === 'distance') return [tr({ zh: `一開始朝${bearingText(deg)}`, en: `Sets off ${bearingText(deg)}` })];
     if (ctx.indicator === 'flight-hours') return [tr({ zh: `大圓距離 ${kmText(km)}`, en: `Great-circle distance ${kmText(km)}` })];
     return [tr({ zh: `${bearingText(deg)}，${kmText(km)}`, en: `${bearingText(deg)}, ${kmText(km)}` })];

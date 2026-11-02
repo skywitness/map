@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridData';
+import { formatLatLon } from './antipodes';
 import { dataUrl } from '../lib/data';
 import { fixed } from '../lib/format';
 import type { IndicatorDef, TopicDefinition } from './types';
@@ -205,6 +206,34 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
+/** 觀察點用的網格（1901–1930、1991–2020、2071–2099 兩種情境）：第一次放觀察點時才下載，下載完之前小卡是空的（pins.ts 會再寫一次） */
+const PIN_KEYS = ['1901', '1991', '2071-ssp245', '2071-ssp585'] as const;
+const pinGrids = new Map<string, ClassGrid>();
+let pinLoading = false;
+function pinGridsReady(): boolean {
+  if (pinGrids.size === PIN_KEYS.length) return true;
+  if (!pinLoading) {
+    pinLoading = true;
+    void Promise.all(PIN_KEYS.map((k) => loadClassGrid(gridUrl(k)).then((g) => pinGrids.set(k, g))))
+      .catch(() => undefined)
+      .finally(() => (pinLoading = false));
+  }
+  return false;
+}
+
+function pinLabel([lon, lat]: [number, number]): string[] {
+  if (!pinGridsReady()) return [];
+  const at = (k: string) => className(classAt(pinGrids.get(k)!, lon, lat) || null);
+  const now = at('1991');
+  return [
+    tr({ zh: `這裡（${formatLatLon(lon, lat)}）的氣候：`, en: `Climate here (${formatLatLon(lon, lat)}):` }),
+    tr({ zh: `1901–1930：${at('1901')}`, en: `1901–1930: ${at('1901')}` }),
+    tr({ zh: `1991–2020：${now}`, en: `1991–2020: ${now}` }),
+    tr({ zh: `2071–2099 中度排放：${at('2071-ssp245')}`, en: `2071–2099, intermediate emissions: ${at('2071-ssp245')}` }),
+    tr({ zh: `2071–2099 高排放：${at('2071-ssp585')}`, en: `2071–2099, very high emissions: ${at('2071-ssp585')}` }),
+  ];
+}
+
 export const koppen: TopicDefinition = {
   id: 'koppen',
   title: { zh: '氣候分區（柯本）', en: 'Köppen climate zones' },
@@ -234,6 +263,8 @@ export const koppen: TopicDefinition = {
     en: 'The data are the Köppen–Geiger maps of Beck et al. (2023), updated in January 2026 to correct a small calculation error (figshare version 2), used here on the 0.1° grid (about 10 km; a 1 km version also exists). Historical periods use high-resolution, observation-based climatologies of monthly temperature and precipitation; future periods use downscaled, bias-corrected CMIP6 climate projections (67 models evaluated, keeping the 42 with the most plausible CO2-induced warming rates), shown here under SSP2-4.5 (intermediate emissions) and SSP5-8.5 (very high). Beck et al. estimate that about 5% of the global land surface (excluding Antarctica) moved to a different major climate group from 1901–1930 to 1991–2020, and that from 1991–2020 to 2071–2099 about 8% will under SSP2-4.5 and 13% under SSP5-8.5. The classification follows the standard Köppen–Geiger rules (tropical: coldest month 18°C or warmer; temperate and cold split at a coldest month of 0°C; arid from thresholds based on annual precipitation and temperature). Observations before 1930 are sparse, so early maps are less certain. Country values use the area of 0.1° cells (weighted by latitude), each assigned to the country containing its centre (Natural Earth 1:10m, or the nearest within 0.3°); very small island nations cover only a cell or two. Colours follow Beck et al.; a few pairs look alike (Cfb and Cwa, for example), so hover for the name.',
   },
   panelExtra: () => import('./panels/KoppenPanel'),
+  // 2026-11-02（新31）：「定位我」（或拖過）的觀察點寫這裡過去、現在、未來各是哪一型
+  pin: { draggable: true, label: (ll) => pinLabel(ll) },
   pointer: ([lon, lat]) => {
     const grid = current.grid;
     if (!grid) return null;

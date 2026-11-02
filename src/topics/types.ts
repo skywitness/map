@@ -235,6 +235,11 @@ export interface IndicatorDef {
    * Climate TRACE 每月換版、完整的年份跟著資料走；資料讀到之前用主題的 defaultYear）
    */
   defaultYear?: number | 'latest';
+  /**
+   * 地圖上每一國寫的字（2026-11-02，新24，語言：主要官方語言用它自己的文字寫，例如 العربية、हिन्दी、ไทย）：
+   * 走「地圖上標數值」同一個圖層（useValueLabels），always 時不必打開數值也一直寫；回傳 null 的國家不寫
+   */
+  mapLabels?: { text: (value: number, iso3: string) => string | null; always?: boolean };
   /** 換到這個指標時地圖移到這個範圍（同主題的 focus，2026-10-30 起，北極航道） */
   focus?: [number, number, number, number];
   /**
@@ -274,9 +279,13 @@ export interface IndicatorDef {
    * App 與側欄經過 lib/derive.ts 的 derivedData()，同一個指標、同一個時刻回傳同一個物件（有快取）。
    */
   derive?: {
-    per: 'minute' | 'day' | 'fixed';
-    /** live：主題的即時資料（TopicDefinition.live，此刻的極光的 OVATION 預報）；其他主題是 undefined */
-    values: (source: unknown, at: ClockAt, live?: unknown) => IndicatorData;
+    /** 'center'（2026-11-02，新33）：跟著觀察點（主題的 pin.center，從台北看世界的中心）變，不是時刻主題也可以用 */
+    per: 'minute' | 'day' | 'fixed' | 'center';
+    /**
+     * live：主題的即時資料（TopicDefinition.live，此刻的極光的 OVATION 預報）；其他主題是 undefined。
+     * center：per 是 'center' 時的中心（經度、緯度）
+     */
+    values: (source: unknown, at: ClockAt, live?: unknown, center?: [number, number]) => IndicatorData;
   };
 }
 
@@ -749,6 +758,11 @@ export interface LinesOverlayDef extends OverlayBase {
    */
   play?: { load: (record: PointRecord) => Promise<PlayScript | null> };
   /**
+   * 線在瀏覽器裡算（2026-11-02，新33，從台北看世界的航線與距離圈）：依觀察點的中心（主題的 pin.center）與 file 讀到的資料
+   * （例如各國首都的位置）算出線與每條線的紀錄；經度要先展開成連續的
+   */
+  generate?: (center: [number, number], data: unknown) => { lines: [number, number][][]; records: PointRecord[] };
+  /**
    * 畫在國家的面下面（2026-11-02，新26，專屬經濟海域的面）：海岸那一側的邊簡化得很粗，由陸地蓋住；
    * 只適合海上的面（陸地上的東西會被國家的顏色蓋住）
    */
@@ -974,6 +988,8 @@ export interface PanelExtraProps {
   at?: ClockAt;
   /** 主題的即時資料（TopicDefinition.live，2026-10-29 起）；還沒讀到是 null，其他主題是 undefined */
   live?: unknown;
+  /** 觀察點是主題的中心時（pin.center，從台北看世界，2026-11-02）：中心的經緯度 */
+  center?: [number, number] | null;
   /**
    * 在地圖上放幾個標記（2026-10-28 起，地球的另一邊：首都與它的對蹠點）；null 時拿掉。
    * 換國家、換主題時 App 會拿掉，側欄不必自己清
@@ -1241,6 +1257,11 @@ export interface TopicDefinition {
     pair?: 'antipode';
     draggable: boolean;
     default?: [number, number];
+    /**
+     * 觀察點是這個主題的中心（2026-11-02，新33，從台北看世界）：derive.per 是 'center' 的指標、線圖層的 generate 與主題側欄
+     * 都跟著它（預設 default，拖過或「定位我」後是那裡）
+     */
+    center?: boolean;
     /** ctx 跟 pointer 的一樣（iso3 是這一點所在的國家） */
     label?: (lngLat: [number, number], ctx: Parameters<NonNullable<TopicDefinition['pointer']>>[1]) => string[];
   };

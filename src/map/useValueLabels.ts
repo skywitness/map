@@ -37,7 +37,8 @@ export function useValueLabels(
     return new Map(ranked.map((c, i) => [c.iso3, i]));
   }, [countries]);
   const kind = indicator.layer.kind;
-  const shown = on && (kind === 'choropleth' || kind === 'bubble' || kind === 'categorical');
+  const custom = indicator.mapLabels;
+  const shown = (on || Boolean(custom?.always)) && (kind === 'choropleth' || kind === 'bubble' || kind === 'categorical');
 
   useEffect(() => {
     const map = mapRef.current;
@@ -47,11 +48,12 @@ export function useValueLabels(
     const features: GeoJSON.Feature[] = shown
       ? [...values].flatMap(([iso3, v]) => {
           const at = anchors.get(iso3);
-          return at
+          const text = custom ? custom.text(v, iso3) : short(v);
+          return at && text
             ? [
                 {
                   type: 'Feature',
-                  properties: { text: short(v), order: order.get(iso3) ?? 9999, ...(height ? { hf: height(iso3, v).f, hm: height(iso3, v).max } : {}) },
+                  properties: { text, order: order.get(iso3) ?? 9999, ...(height ? { hf: height(iso3, v).f, hm: height(iso3, v).max } : {}) },
                   geometry: { type: 'Point', coordinates: at },
                 },
               ]

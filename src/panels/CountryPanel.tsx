@@ -60,6 +60,8 @@ interface CountryPanelProps {
   at?: ClockAt | null;
   /** 主題的即時資料（TopicDefinition.live）：在瀏覽器裡算的指標要用；還沒讀到是 null，其他主題是 undefined */
   live?: unknown;
+  /** 觀察點是主題的中心時（pin.center）：中心的經緯度 */
+  center?: [number, number] | null;
 }
 
 // 每個主題的額外側欄區塊只建立一次 lazy 元件
@@ -79,7 +81,7 @@ const tweens = (ind: Indicator) => (ind.layer.kind === 'choropleth' || ind.layer
 
 export function CountryPanel(props: CountryPanelProps) {
   const { topic, indicator, item, itemLabel, iso3, year, countries, tokens, onClose, onIndicatorChange, compare } = props;
-  const { onCompareChange, highlightLine, focusBox, selectYear, setMarks, at = null, live } = props;
+  const { onCompareChange, highlightLine, focusBox, selectYear, setMarks, at = null, live, center = null } = props;
   // 比較的國家的顏色：類別色依固定順序，第 1 色（藍）是這個國家自己，接著是橘、綠松、黃
   const compareColors = HUE_ORDER.slice(1, 4).map((h) => tokens.hues[h]);
   const files = useMemo(() => topic.indicators.map((i) => indicatorPath(topic, i, item)), [topic, item]);
@@ -97,8 +99,8 @@ export function CountryPanel(props: CountryPanelProps) {
   const online = useOnline();
   // 在瀏覽器裡算的指標（時刻主題）：跟地圖用同一份快取（derivedData），同一刻拿到同一個物件
   const allData = useMemo(
-    () => loadedData.map((d, i) => derivedData(topic.indicators[i], d, at, live)),
-    [loadedData, topic, at, live],
+    () => loadedData.map((d, i) => derivedData(topic.indicators[i], d, at, live, center)),
+    [loadedData, topic, at, live, center?.[0], center?.[1]],
   );
   const name = countryName(iso3, countries);
 
@@ -339,6 +341,7 @@ export function CountryPanel(props: CountryPanelProps) {
             setMarks={setMarks}
             at={at ?? undefined}
             live={live}
+            center={center}
           />
         </Suspense>
       )}

@@ -17,7 +17,7 @@ import {
 } from '../map/overlayData';
 import type { MapView } from '../map/WorldMap';
 import { loadSharedLayer } from '../topics/shared-layers';
-import { dataFolder, moreFile, type AirportsData, type Indicator, type LinesData, type OverlayDef, type PointRecord, type PointsData, type RailwaysData, type Topic } from '../topics/types';
+import { dataFolder, moreFile, type AirportsData, type Indicator, type LinesData, type LinesOverlay, type OverlayDef, type PointRecord, type PointsData, type RailwaysData, type Topic } from '../topics/types';
 
 /**
  * 主題的疊加圖層，只在該主題載入：鐵路、機場，以及一般的點、線圖層（地震、火山、板塊邊界…）。
@@ -38,6 +38,8 @@ export function useOverlays(
   live: unknown,
   /** 使用者在這個瀏覽器匯入的線（LinesOverlayDef.local，我的路線）：圖層 id → 解析好的線 */
   localLines?: Map<string, DecodedLines>,
+  /** 觀察點是主題的中心時（pin.center）：線圖層的 generate 依它算 */
+  center?: [number, number] | null,
 ) {
   const overlays = topic.overlays ?? NO_OVERLAY_DEFS;
   const legacy = useMemo(() => overlays.filter((o) => o.kind === undefined), [overlays]);
@@ -130,6 +132,8 @@ export function useOverlays(
         return { kind: 'points', def, visible, points: base && rest ? joinedPoints(base, decodedPoints(rest)) : base };
       }
       if (def.local) return { kind: 'lines', def, visible, lines: localLines?.get(def.id) ?? null };
+      // 在瀏覽器裡算的線（從台北看世界的航線、距離圈）：依中心與讀到的材料，同一個中心、同一份材料不重算
+      if (def.generate) return { kind: 'lines', def, visible, lines: data && center ? generatedLines(def, data, center) : null };
       const index = (data as LinesData | null)?.detail;
       const loaded = index
         ? index.tiles.flatMap(([id]) => {
@@ -140,8 +144,20 @@ export function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines]);
+  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center]);
   return { railways, airports, overlays: result };
+}
+
+/** LinesOverlayDef.generate 算出的線：依圖層記下最近一次的（中心與材料都一樣就拿同一個物件，地圖不重送） */
+const generated = new WeakMap<object, { key: string; data: unknown; lines: DecodedLines }>();
+function generatedLines(def: LinesOverlay, data: unknown, center: [number, number]): DecodedLines {
+  const key = `${center[0]},${center[1]}`;
+  const prev = generated.get(def);
+  if (prev && prev.key === key && prev.data === data) return prev.lines;
+  const { lines, records } = def.generate!(center, data);
+  const out: DecodedLines = { lines, types: null, records, vertexTypes: null };
+  generated.set(def, { key, data, lines: out });
+  return out;
 }
 
 /** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */

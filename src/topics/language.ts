@@ -91,6 +91,24 @@ const LANGUAGES: { id: string; label: Text; group: Text }[] = [
 ];
 
 /** 主要官方語言的類別：當主要官方語言的國家最多、或涵蓋大片土地的 8 種，其餘併成「其他語言」 */
+/** 語言用它自己的文字怎麼叫自己（瀏覽器內建的 CLDR 資料；不支援時回傳 null，地圖就不寫） */
+const autonyms = new Map<string, string | null>();
+export function autonym(code: string): string | null {
+  if (!autonyms.has(code)) {
+    let name: string | null = null;
+    try {
+      // 瀏覽器沒有那個語言的資料時會改用預設語言（寫成英文的「Burmese」），這種不寫
+      if (Intl.DisplayNames.supportedLocalesOf([code]).length > 0) {
+        name = new Intl.DisplayNames([code], { type: 'language', fallback: 'none' }).of(code) ?? null;
+      }
+    } catch {
+      name = null;
+    }
+    autonyms.set(code, name);
+  }
+  return autonyms.get(code) ?? null;
+}
+
 const MAIN: CategoryDef[] = ['en', 'fr', 'es', 'ar', 'pt', 'ru', 'zh', 'de'].map((id) => ({
   value: code36(id),
   label: id === 'ar' ? NAMES.ar : LANGUAGES.find((l) => l.id === id)!.label,
@@ -207,6 +225,8 @@ export const language: TopicDefinition = {
       unit: '',
       file: 'main.json',
       layer: { kind: 'categorical', categories: MAIN, other: { zh: '其他語言', en: 'Other languages' } },
+      // 2026-11-02（新24）：每一國寫主要語言自己的名稱（瀏覽器的 Intl.DisplayNames 用那個語言叫它自己：العربية、हिन्दी、ไทย）
+      mapLabels: { always: true, text: (v) => autonym(v.toString(36)) },
       format: (v) => languageName(v.toString(36)) ?? v.toString(36),
     },
     {

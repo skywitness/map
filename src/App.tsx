@@ -295,7 +295,14 @@ export function App() {
   const liveData = liveDef ? live.data : undefined;
   // 即時資料讀不到、手上也沒有上一份時才算載入失敗（有上一份就照舊畫，下一輪再試）
   const error = source.error ?? (liveDef && !live.data ? live.error : null);
-  const data = useMemo(() => derivedData(indicator, sourceData, at, liveData), [indicator, sourceData, at, liveData]);
+  // 地圖上的觀察點（主題的 pin，map/pins.ts）：網址的 pin=、主題的預設，或「定位我」的位置（localPin，不寫進網址）
+  const topicPin = pure ? undefined : topic.pin;
+  const [localPin, setLocalPin] = useState<{ topic: string; at: [number, number] } | null>(null);
+  const pinAt = (localPin?.topic === topic.id ? localPin.at : null) ?? state.pin ?? topicPin?.default ?? null;
+  // 觀察點是主題的中心（pin.center，從台北看世界）：跟著中心算的指標（derive.per 'center'）、線圖層與側欄用它
+  const centerKey = topicPin?.center && pinAt ? `${pinAt[0]},${pinAt[1]}` : null;
+  const center = useMemo<[number, number] | null>(() => (centerKey ? (centerKey.split(',').map(Number) as [number, number]) : null), [centerKey]);
+  const data = useMemo(() => derivedData(indicator, sourceData, at, liveData, center), [indicator, sourceData, at, liveData, center]);
   // 沒自己選過底圖時跟著介面深淺色換（深色用深藍）；選過的照舊，切換深淺色也不變
   const [basemapId, setBasemapId] = useState(readStoredBasemap);
   const basemap = getBasemap(basemapId ?? defaultBasemap(tokens.mode === 'dark'));
@@ -409,7 +416,7 @@ export function App() {
   const [mapView, setMapView] = useState<MapView | null>(null);
   // 地圖的縮放與範圍：線圖層的分區（detail）、大型點檔的其餘的點（more）放大才下載
   const wantsView = !pure && Boolean(topic.overlays?.some((o) => (o.kind === 'lines' && o.detail) || (o.kind === 'points' && o.more)));
-  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData, personalLines);
+  const { railways, airports, overlays } = useOverlays(topic, indicator, item, year, layers, pure, wantsView ? mapView : null, liveData, personalLines, center);
   // 主題側欄要在地圖上標出的一組線（滑到某條河、地球的另一邊選取國家的形狀）、放的標記（首都與它的對蹠點）、
   // 要移過去的範圍。標出的線與標記記下是哪個主題、哪個國家的，換國家、換主題就不畫（側欄關掉時滑鼠不一定移開過）；
   // 不用 effect 清掉：子元件的 effect 先跑，側欄一打開就標出的會被父元件換國家的 effect 清掉（2026-10-28 改）
@@ -575,10 +582,7 @@ export function App() {
     return (lngLat: [number, number], iso3: string | null) =>
       topicPointer(lngLat, { iso3, countryAt, countryName: (c) => countryName(c, countries), indicator: indicatorId, year, at });
   }, [topicPointer, features, countries, indicatorId, year, at]);
-  // 地圖上的觀察點（主題的 pin，map/pins.ts）：網址的 pin=、主題的預設，或「定位我」的位置（localPin，不寫進網址）
-  const topicPin = pure ? undefined : topic.pin;
-  const [localPin, setLocalPin] = useState<{ topic: string; at: [number, number] } | null>(null);
-  const pinAt = (localPin?.topic === topic.id ? localPin.at : null) ?? state.pin ?? topicPin?.default ?? null;
+  // 觀察點的設定（topicPin、pinAt 在上面算，跟著中心算的指標要用）
   const pinConfig = useMemo<PinConfig | null>(() => {
     if (!topicPin || !pinAt || !features) return null;
     const countryAt = countryLocator(features);
@@ -1345,6 +1349,7 @@ export function App() {
                   setMarks={setMarks}
                   at={at}
                   live={liveData}
+                  center={center}
                 />
               </Suspense>
             </PanelSheet>

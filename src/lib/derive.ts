@@ -9,7 +9,8 @@ const KEEP = 4;
 const cache = new WeakMap<object, Map<string, IndicatorData>>();
 
 /** 指標的值跟著什麼變（derive.per）決定快取的鍵：分鐘、日期，或不隨時刻變（只看年份） */
-function keyOf(per: NonNullable<Indicator['derive']>['per'], at: ClockAt): string {
+function keyOf(per: NonNullable<Indicator['derive']>['per'], at: ClockAt, center?: [number, number]): string {
+  if (per === 'center') return `c${center?.[0]},${center?.[1]}`;
   if (per === 'minute') return `m${Math.floor(at.time / 60_000)}`;
   if (per === 'day') return `d${at.day}`;
   return `y${Math.floor(at.day / 10000)}`;
@@ -30,18 +31,25 @@ export function derivedData(
   at: ClockAt | null,
   /** 主題的即時資料（TopicDefinition.live）：有的話快取跟著它（重讀一次就是新的物件，重算）；還沒讀到時是 null */
   live?: unknown,
+  /** derive.per 是 'center' 的指標的中心（主題的 pin.center，觀察點的位置） */
+  center?: [number, number] | null,
 ): IndicatorData | null {
   const derive = indicator.derive;
   if (!derive) return isIndicatorData(source) ? source : null;
+  // 跟著中心變的（從台北看世界）不是時刻主題，沒有 at：用一個固定的時刻
+  if (derive.per === 'center') {
+    if (!source || typeof source !== 'object' || !center) return null;
+    at = at ?? { time: 0, day: 0 };
+  }
   if (!source || !at || typeof source !== 'object' || live === null) return null;
   const owner = live && typeof live === 'object' ? live : source;
   let byKey = cache.get(owner);
   if (!byKey) cache.set(owner, (byKey = new Map()));
-  const key = `${indicator.id}|${keyOf(derive.per, at)}`;
+  const key = `${indicator.id}|${keyOf(derive.per, at, center ?? undefined)}`;
   let data = byKey.get(key);
   if (!data) {
     // 算出來的只有一個時間點（years 是 [at.day]；'fixed' 的是第一次算的那天），App 與側欄取第 0 筆
-    data = derive.values(source, at, live);
+    data = derive.values(source, at, live, center ?? undefined);
     byKey.set(key, data);
     // 同一個指標只留最近 KEEP 個時刻
     const mine = [...byKey.keys()].filter((k) => k.startsWith(`${indicator.id}|`));
