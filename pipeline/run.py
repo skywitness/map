@@ -60,6 +60,7 @@ STEPS = {
     "vaccination-pcv3": "topics.vaccination_pcv3",  # WHO 的 PCV3（data.who.int，CC BY 4.0），台灣用疾管署的縣市完成率加權
     "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
+    "education-projection": "topics.education_projection",  # 大專以上的成人比例推估到 2100 年（Wittgenstein Centre，Zenodo 約 130 MB）
     "pisa": "topics.pisa",  # OECD PISA 2025 Volume I 的兩個 Excel（約 2.8 MB）
     "university-entrance": "topics.university_entrance",  # 依英文維基百科整理的表（sources/admission_tests.py），不必下載
     # NCD-RisC 的成人身高（2.4 MB）與兒童青少年身高（4.6 MB 的 zip），伺服器常斷線，用 curl 續傳；WPP 的年齡別人口

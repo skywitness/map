@@ -121,16 +121,34 @@ export const education: TopicDefinition = withParts({
       url: 'https://eds.moe.gov.tw/',
       license: OPEN_DATA_TW,
     },
+    {
+      name: {
+        zh: 'Wittgenstein Centre／IIASA, SSP Population and Human-Capital Projections, 2025-Rebased（zen2025V01，大專以上的成人比例推估）',
+        en: 'Wittgenstein Centre / IIASA, SSP Population and Human-Capital Projections, 2025-Rebased (zen2025V01; projected tertiary attainment)',
+      },
+      url: 'https://doi.org/10.5281/zenodo.21738149',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: '內政部統計處，15 歲以上人口高等教育程度（台灣的對照）',
+        en: 'Ministry of the Interior (Taiwan), population aged 15+ with tertiary education (comparison for Taiwan)',
+      },
+      url: 'https://data.gov.tw/dataset/14219',
+      license: { zh: '政府資料開放授權條款－第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
   note: {
     zh: '台灣不在聯合國與世界銀行的教育資料庫中，改用教育部與內政部的統計，定義見台灣側欄的附註。學年度以開始的那一年標示（2024 = 2024–25 學年度）。' +
       '開學月份是 UIS 的資料，美國、巴西、德國 UIS 寫的是統計用的學年起算月或明顯不對，改成實際開學的月份（出處在各國的附註）；台灣依法規。聯邦國家各州不同，取多數。' +
       '教師薪資、每班人數、上課天數只有 OECD 與夥伴國（約 40 國）；比利時用荷語區、英國用英格蘭的值（OECD 只有分區的值）。教師薪資是公立學校的法定薪資（薪級表），不含加給；台灣是自算的，含所有教師都領的學術研究加給與年終 1.5 個月（見附註）。生師比是學生數除以教師數，不是每班人數；台灣的生師比、每班人數與技職比例用教育部的統計。' +
-      '台灣的 0–2 歲上托育是自算：衛福部的托嬰中心與居家托育收托人數加上教育部的幼兒園未滿 3 歲幼生數，除以內政部的 0–2 歲人口；托嬰中心、居家托育與人口是 12 月底，幼兒園是 11 月 1 日。',
+      '台灣的 0–2 歲上托育是自算：衛福部的托嬰中心與居家托育收托人數加上教育部的幼兒園未滿 3 歲幼生數，除以內政部的 0–2 歲人口；托嬰中心、居家托育與人口是 12 月底，幼兒園是 11 月 1 日。' +
+      '大專以上的成人比例推估是 Wittgenstein Centre／IIASA 以 2025 年為起點的推估（zen2025V01）的中推估 SSP2：照各世代的學歷、生育、死亡與遷移往後推，是情境不是預測，小國的長期值要小心看；台灣在這份資料裡有（UN 代碼 158）。',
     en: "Taiwan is not in the UN and World Bank education databases, so statistics from the Ministry of Education and the Ministry of the Interior are used instead; see the notes in Taiwan's panel for definitions. School years are labelled by the year they start (2024 = 2024–25). " +
       'School start months come from UIS; for the US, Brazil and Germany UIS gives a statistical start of the school year or a clearly wrong month, so the actual month classes start is used instead (sources in each country’s note); Taiwan follows its regulations. In federal countries, where states differ, the most common month is used. ' +
       'Teacher salaries, class sizes and instruction days cover only OECD members and partners (about 40 countries); Belgium uses the Flemish Community and the UK uses England, as the OECD gives only regional figures. Teacher salaries are statutory salaries in public schools (salary scales), excluding allowances; Taiwan’s is our own calculation and includes the academic research allowance paid to all teachers and a 1.5-month year-end bonus (see notes). The pupil–teacher ratio is pupils divided by teachers, not class size; Taiwan’s pupil–teacher ratio, class size and vocational share come from the Ministry of Education. ' +
-      'Taiwan’s childcare enrolment for ages 0–2 is our own calculation: children in baby care centres and with home childcare providers (Ministry of Health and Welfare) plus kindergarten pupils under 3 (Ministry of Education), divided by the population aged 0–2 (Ministry of the Interior); childcare centres, home childcare and population are as of 31 December, kindergartens as of 1 November.',
+      'Taiwan’s childcare enrolment for ages 0–2 is our own calculation: children in baby care centres and with home childcare providers (Ministry of Health and Welfare) plus kindergarten pupils under 3 (Ministry of Education), divided by the population aged 0–2 (Ministry of the Interior); childcare centres, home childcare and population are as of 31 December, kindergartens as of 1 November. ' +
+      'The projected share of adults with tertiary education is the middle-of-the-road SSP2 scenario of the Wittgenstein Centre / IIASA projections rebased to 2025 (zen2025V01): cohorts are carried forward by education, fertility, mortality and migration, so these are scenarios rather than forecasts, and long-run values for small countries deserve caution. Taiwan is included (UN code 158).',
   },
   indicators: [
     {
@@ -146,6 +164,21 @@ export const education: TopicDefinition = withParts({
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'tertiary-2100',
+      label: { zh: '大專以上的成人比例（推估到 2100 年）', en: 'Adults with tertiary education (projected to 2100)' },
+      description: {
+        zh: '25 歲以上的人有大專以上學歷（含研究所）的比例，2025–2100 年每 5 年，Wittgenstein Centre 的中推估（SSP2），全部是推估。台灣 45.0%（2025）→ 61.9%（2050）→ 84.7%（2100），韓國 48.3% → 86.0%，世界 20.3% → 48.9%。',
+        en: 'Share of people aged 25 and over with tertiary education (including graduate degrees), 2025–2100 in five-year steps, from the Wittgenstein Centre’s middle-of-the-road projection (SSP2); all values are projections. Taiwan 45.0% (2025) → 61.9% (2050) → 84.7% (2100); South Korea 48.3% → 86.0%; world 20.3% → 48.9%.',
+      },
+      unit: '%',
+      file: 'tertiary-2100.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 30, 45, 60] } },
+      format: pct,
+      formatTick: pctTick,
+      compareWorld: true,
+      defaultYear: 2025,
     },
     {
       id: 'tertiary-enrollment',
