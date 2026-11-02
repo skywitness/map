@@ -4338,6 +4338,7 @@ pipeline/
       - `description` 用頁面的說明加預設指標的說明：頁面的說明（meta description）只有 36–86 字，有幾頁不到 Google 要的 50 字。
     - **結果**（2026-11-01）：132 個主題頁加上 18 個舊主題的頁面，150 頁都通過檢查；126 個主題有年份範圍，22 個主題的來源授權都一樣（寫 `license`），其餘每個來源寫自己的授權。
     - 單元測試 `structuredData.test.ts`（授權對照、年份、license 與 isBasedOn、檢查）。
+    - **Google 複合式搜尋結果測試**（使用者 2026-11-02 用 https://skywitness.github.io/map/t/cities/ 試）：偵測到 1 個有效的資料集，只有「license 欄位未填（選擇性）」一個非重大問題。城市的來源授權不一樣（CC BY 4.0、CC BY 3.0 IGO、政府資料開放授權條款…），各自寫在 `isBasedOn`；把幾種授權一起列在最上層會讀成「任選一種」，使用者決定**維持不寫**。
 
 275. **溫室氣體排放的擴充：Climate TRACE 的排放源地圖與各國最新的排放**（2026-11-02，製作手冊第十七批 268；`pipeline/sources/climate_trace.py`（新）、`pipeline/topics/climate_trace.py`〔步驟 `climate-trace`，輸出到 climate 的資料夾〕、`pipeline/sources/moenv.py` 的 `facility_ghg()`、`src/topics/climate-trace.ts`（新，`TopicPart`）、`src/topics/panels/TracePanel.tsx`（新）、`src/topics/parts.ts`）：
     - **使用者 2026-11-02 的決定**（開工時問，四題都照建議）：用 Zenodo 的 5.12.0（下載頁的 latest 還是 5.10.0）；取自 EDGAR、CEDS 的 18 個子部門不算二氧化碳（第 12 點）；排放源只收 Climate TRACE 自己估計的設施；2026 年做成另一個指標「比去年同期」，不放進時間軸。
