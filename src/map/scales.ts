@@ -26,6 +26,6 @@ export function bubbleMaxRadius(mapWidth: number): number {
 export const BUBBLE_MIN_RADIUS = 3;
 
 /** 圓面積與數值成正比（半徑取平方根）；domain 用所有年份的最大值，時間軸拖動時大小可以互相比較 */
-export function bubbleScale(max: number, mapWidth: number) {
-  return scaleSqrt().domain([0, max]).range([0, bubbleMaxRadius(mapWidth)]);
+export function bubbleScale(max: number, mapWidth: number, size = 1) {
+  return scaleSqrt().domain([0, max]).range([0, bubbleMaxRadius(mapWidth) * size]);
 }

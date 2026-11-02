@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, ScaleSpec, TopicDefinition } from './types';
 
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
@@ -20,6 +21,14 @@ export const BEVERAGE_CATEGORIES: CategoryDef[] = [
   { value: 4, label: { zh: '其他酒類', en: 'Other' } },
 ];
 const beverageLabel = new Map(BEVERAGE_CATEGORIES.map((c) => [c.value, c.label]));
+
+/** 人均飲酒量的圓餅（新11）：顏色跟「主要酒類」的類別圖一樣（依 BEVERAGE_CATEGORIES 的順序取類別色） */
+const BEVERAGE_PIE = [
+  { indicator: 'beer', file: 'beverage/beer.json', color: MAP_TOKENS.categorical[2], label: { zh: '啤酒', en: 'Beer' } },
+  { indicator: 'wine', file: 'beverage/wine.json', color: MAP_TOKENS.categorical[1], label: { zh: '葡萄酒', en: 'Wine' } },
+  { indicator: 'spirits', file: 'beverage/spirits.json', color: MAP_TOKENS.categorical[0], label: { zh: '烈酒', en: 'Spirits' } },
+  { indicator: 'other', file: 'beverage/other.json', color: MAP_TOKENS.categorical[3], label: { zh: '其他酒類', en: 'Other' } },
+];
 
 /** 含尼古丁電子菸的規範（pipeline/topics/tobacco_policy.py 的 STATUS）：由嚴到寬，ordinal 類別圖越前面顏色越深 */
 const ECIG_CATEGORIES: CategoryDef[] = [
@@ -121,12 +130,14 @@ export const tobaccoAlcohol: TopicDefinition = {
       id: 'alcohol',
       label: { zh: '人均飲酒量', en: 'Alcohol consumption' },
       description: {
-        zh: '平均每個 15 歲以上的人一年喝下多少公升的純酒精（10 公升約等於每天 1.7 罐 330 毫升、酒精 5% 的啤酒），含沒有登記的自釀、走私酒，扣掉觀光客喝的（SDG 3.5.2）。',
-        en: 'Litres of pure alcohol drunk per person aged 15+ in a year (10 litres is about 1.7 cans of 330 ml, 5% beer a day), including unrecorded home-made and smuggled drinks and excluding what tourists drink (SDG 3.5.2).',
+        zh: '平均每個 15 歲以上的人一年喝下多少公升的純酒精（10 公升約等於每天 1.7 罐 330 毫升、酒精 5% 的啤酒），含沒有登記的自釀、走私酒，扣掉觀光客喝的（SDG 3.5.2）。圓的大小是飲酒量，各片是有登記的銷售裡啤酒、葡萄酒、烈酒與其他酒類的比例。',
+        en: 'Litres of pure alcohol drunk per person aged 15+ in a year (10 litres is about 1.7 cans of 330 ml, 5% beer a day), including unrecorded home-made and smuggled drinks and excluding what tourists drink (SDG 3.5.2). Circle size shows consumption; the slices show the shares of beer, wine, spirits and other drinks in recorded sales.',
       },
       unit: LITRES,
       file: 'alcohol.json',
-      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2.5, 5, 7.5, 10, 12.5] } },
+      // 2026-11-02（新11）：原本是面量圖，改成圓餅：圓的大小是人均飲酒量，各片是有登記的銷售裡啤酒、葡萄酒、烈酒、其他的比例
+      // （側欄「各類酒的消費量」同一份資料；比例只算有登記的，圓的大小含沒登記的）
+      layer: { kind: 'bubble', legendValues: [5, 10, 20], pie: { parts: BEVERAGE_PIE }, size: 0.5 },
       format: (v) => tr({ zh: `${fixed(v, 1)} 公升`, en: `${fixed(v, 1)} litres` }),
       formatTick: (v) => fixed(v, v % 1 === 0 ? 0 : 1),
       compareWorld: true,

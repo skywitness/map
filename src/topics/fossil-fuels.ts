@@ -71,6 +71,15 @@ const MIX_ITEMS: DimensionDef = {
   defaultOption: OIL,
 };
 
+/** 能源消費總量的圓餅（新10）：石油橘（跟原油管線同色）、天然氣紫（跟天然氣管線同色）、煤深灰、核能紫紅、再生綠 */
+const PRIMARY_MIX_PIE = [
+  { indicator: 'primary-mix', item: OIL, color: MAP_TOKENS.categorical[5], label: { zh: '石油', en: 'Oil' } },
+  { indicator: 'primary-mix', item: GAS, color: MAP_TOKENS.categorical[1], label: { zh: '天然氣', en: 'Natural gas' } },
+  { indicator: 'primary-mix', item: COAL, color: '#5f5a54', label: { zh: '煤', en: 'Coal' } },
+  { indicator: 'primary-mix', item: 'nuclear', color: MAP_TOKENS.categorical[6], label: { zh: '核能', en: 'Nuclear' } },
+  { indicator: 'primary-mix', item: 'renewables', color: MAP_TOKENS.categorical[3], label: { zh: '再生能源及其他', en: 'Renewables and other' } },
+];
+
 /** 已經不存在的國家（pipeline 的 PLACES），畫在當時的首都 */
 const PLACES: PlaceDef[] = [
   { id: '_SUN', name: { zh: '蘇聯（1980–1991）', en: 'Soviet Union (1980–1991)' }, lon: 37.62, lat: 55.75 },
@@ -304,12 +313,13 @@ const indicators: IndicatorDef[] = [
     id: 'energy-consumption',
     label: { zh: '能源消費總量（全部能源）', en: 'Total energy use (all energy)' },
     description: {
-      zh: '一年的初級能源消費總量（石油、天然氣、煤、核能與再生能源合計），單位是艾焦耳（EJ，10¹⁸ 焦耳），圓的面積與它成正比。2024 年全世界 639 EJ（1980 年 296 EJ），中國 180、美國 100、印度 40、俄羅斯 36、日本 17 EJ，台灣 4.8 EJ。',
-      en: 'Total primary energy consumed in a year (oil, gas, coal, nuclear and renewables combined), in exajoules (EJ, 10¹⁸ joules); circle area is proportional to it. In 2024 the world used 639 EJ (296 EJ in 1980): China 180, the US 100, India 40, Russia 36 and Japan 17 EJ; Taiwan 4.8 EJ.',
+      zh: '一年的初級能源消費總量（石油、天然氣、煤、核能與再生能源合計），單位是艾焦耳（EJ，10¹⁸ 焦耳），圓的面積與它成正比。2024 年全世界 639 EJ（1980 年 296 EJ），中國 180、美國 100、印度 40、俄羅斯 36、日本 17 EJ，台灣 4.8 EJ。各片是石油、天然氣、煤、核能、再生能源的比例（EIA）。',
+      en: 'Total primary energy consumed in a year (oil, gas, coal, nuclear and renewables combined), in exajoules (EJ, 10¹⁸ joules); circle area is proportional to it. In 2024 the world used 639 EJ (296 EJ in 1980): China 180, the US 100, India 40, Russia 36 and Japan 17 EJ; Taiwan 4.8 EJ. The slices show the shares of oil, gas, coal, nuclear and renewables (EIA).',
     },
     unit: { zh: '艾焦耳', en: 'EJ' },
     file: 'energy-consumption.json',
-    layer: { kind: 'bubble', legendValues: [1, 10, 100] },
+    // 2026-11-02（新10）：圓畫成圓餅，各片是一次能源的組成（EIA 的五類，同一份「一次能源的組成」）
+    layer: { kind: 'bubble', legendValues: [1, 10, 100], pie: { parts: PRIMARY_MIX_PIE } },
     format: (v) => tr({ zh: `${num(v)} 艾焦耳`, en: `${num(v)} EJ` }),
     formatTick: tick,
     shareOfWorld: true,

@@ -31,7 +31,10 @@ export type LayerSpec =
   | { kind: 'choropleth'; scale: ScaleSpec; itemScales?: Record<string, ScaleSpec> }
   /** 比例圓：適合總量（人口數、發電量），圓面積與數值成正比 */
   /** legendValues 為 'auto' 時依資料最大值自動挑（各農產品的量級差很多） */
-  | { kind: 'bubble'; legendValues: number[] | 'auto'; pie?: PieSpec }
+  /**
+   * 比例圓。size 是圓的大小倍數（預設 1，2026-11-02 起）：人均這類每國都差不多大的值，圓縮小才不會在歐洲疊成一團
+   */
+  | { kind: 'bubble'; legendValues: number[] | 'auto'; pie?: PieSpec; size?: number }
   /** 不依數值上色，只畫疊加圖層（例如鐵路與機場）；資料仍用於 tooltip 與排名 */
   | { kind: 'none' }
   /**
@@ -1273,7 +1276,11 @@ export type WindOverlay = Localized<WindOverlayDef>;
  * 五個類別）；沒寫的用目前選的子項目
  */
 export interface PieSpec {
-  parts: { indicator: string; item?: string; color: string; label?: Text }[];
+  /**
+   * 各片：indicator（＋ item）是同主題的指標檔；不是指標的資料檔（側欄才用的，例如各類酒的消費量）用 file
+   * （主題資料夾底下的路徑，2026-11-02 起），這時 indicator 只當作識別、label 要寫
+   */
+  parts: { indicator: string; item?: string; file?: string; color: string; label?: Text }[];
 }
 
 export function indicatorPath(

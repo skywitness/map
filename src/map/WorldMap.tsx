@@ -484,7 +484,8 @@ export function WorldMap(props: WorldMapProps) {
     setPinnedCategory(null);
   }, [categories, colorScale]);
   const highlightCategory = previewCategory ?? pinnedCategory;
-  const radius = useMemo(() => bubbleScale(bubbleMax, size?.width ?? 1000), [bubbleMax, size]);
+  const bubbleSize = indicator.layer.kind === 'bubble' ? (indicator.layer.size ?? 1) : 1;
+  const radius = useMemo(() => bubbleScale(bubbleMax, size?.width ?? 1000, bubbleSize), [bubbleMax, size, bubbleSize]);
 
   const countryCollection = useMemo<GeoJSON.FeatureCollection>(
     () => ({
