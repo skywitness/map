@@ -286,6 +286,8 @@ export const NO_DATA_SWATCH = `repeating-linear-gradient(135deg, ${NO_DATA_HATCH
 
 /** 斜線的 source：有上色、沒資料的國家（useCountryFills 換資料，沒變時不換） */
 export const NO_DATA_SOURCE = 'nodata';
+/** 變形的類別（CategoryDef.hatch）的國家：另一個 source（跟沒資料的斜線一樣，pattern 圖層不放在 countries 上），屬性 pat 是斜線圖片 */
+export const CATEGORY_HATCH_SOURCE = 'category-hatch';
 /** 斜線跟填色一樣放大後變淡；強調圖例的某一級時（沒資料的國家一定不在那一級）跟其他國家一起淡化 */
 export const hatchOpacity = (dim: boolean): ExpressionSpecification => {
   const k = dim ? DIMMED : 1;
@@ -345,6 +347,13 @@ export function dataLayers(dark: boolean): LayerSpecification[] {
       type: 'fill',
       source: NO_DATA_SOURCE,
       paint: { 'fill-pattern': NO_DATA_HATCH, 'fill-opacity': hatchOpacity(false) },
+    },
+    {
+      // 變形的類別（叫車的「兩家都有」、國際組織的「暫停參與」）：底色是 base 那一類，這一層疊上斜線（2026-11-02，新25）
+      id: 'data-category-hatch',
+      type: 'fill',
+      source: CATEGORY_HATCH_SOURCE,
+      paint: { 'fill-pattern': ['get', 'pat'], 'fill-opacity': 0.9 },
     },
     {
       // 滑過的國家微微加亮（2026-10-29）：外框之外再蓋一層淡白色，深色的填色上也看得出游標在哪一國

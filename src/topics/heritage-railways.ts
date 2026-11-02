@@ -108,6 +108,8 @@ export const heritageRailways: TopicDefinition = {
       unit: '',
       file: 'map.json',
       layer: { kind: 'none' },
+      // 2026-11-02（新30）：底下鋪淡的地形陰影（山脈、谷地看得出來）
+      shade: 'land',
       overlayTime: 'cumulative',
       unranked: true,
       rankingBars: false,

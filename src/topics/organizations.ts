@@ -192,7 +192,8 @@ export const STATUS: CategoryDef[] = [
   { value: 1, label: { zh: '成員', en: 'Member' } },
   { value: 2, label: { zh: '申請或加入中', en: 'Applicant or acceding' } },
   { value: 3, label: { zh: '夥伴或觀察員', en: 'Partner or observer' } },
-  { value: 4, label: { zh: '成員（暫停參與）', en: 'Member (suspended)' } },
+  // 2026-11-02（新25）：暫停參與是成員的變形：成員的顏色加白色斜線
+  { value: 4, label: { zh: '成員（暫停參與）', en: 'Member (suspended)' }, hatch: { base: 1, stripes: '#ffffff' } },
 ];
 export const NOT_MEMBER: Text = { zh: '非成員', en: 'Not a member' };
 

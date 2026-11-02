@@ -119,6 +119,11 @@ export interface CategoryDef {
   color?: string;
   /** 代碼 value 到 max（含）都算這一類（2026-10-28 起）：例如「7–9 歲」一類，資料檔照樣寫實際的歲數 */
   max?: number;
+  /**
+   * 另一類的「變形」（2026-11-02，新25）：塗 base 那一類的顏色，再疊 stripes（另一類的代碼，用它的顏色；或直接寫顏色）的斜線，
+   * 不另開一種顏色。例：叫車的「Uber 與滴滴」是 Uber 的顏色加滴滴顏色的斜線；國際組織的「暫停參與」是成員的顏色加白色斜線
+   */
+  hatch?: { base: number; stripes: number | string };
 }
 
 /**
@@ -638,6 +643,10 @@ export interface PointsOverlayDef extends OverlayBase {
     indicators?: string[];
     /** 熱度的顏色：預設淡黃到深紅；底下是橘色面量圖時用紫色（店家） */
     ramp?: 'heat' | 'violet';
+    /** 熱度是全部年份累計、不跟時間軸（2026-11-02，武裝衝突 1989 年起的累計死亡） */
+    allYears?: boolean;
+    /** 縮小時照舊畫點（熱度只是墊在底下的背景，不換成點） */
+    keepPoints?: boolean;
   };
   /**
    * 縮小時聚成甜甜圈（2026-11-01，map/clusterDonuts.ts）：maxZoom（含）以下，同一區（radius px，預設 50）的點聚成一個
@@ -739,6 +748,16 @@ export interface LinesOverlayDef extends OverlayBase {
    * 清單側欄點一組線）：load(那一組的紀錄) 準備資料（例如下載貝塞爾根數），回傳每一刻的畫面；null 是這一組不能播
    */
   play?: { load: (record: PointRecord) => Promise<PlayScript | null> };
+  /**
+   * 畫在國家的面下面（2026-11-02，新26，專屬經濟海域的面）：海岸那一側的邊簡化得很粗，由陸地蓋住；
+   * 只適合海上的面（陸地上的東西會被國家的顏色蓋住）
+   */
+  under?: boolean;
+  /**
+   * 線的密度熱度圖（2026-11-02，新20，航海日誌的航線密度）：線的頂點（每 every 個取一個）做成點畫熱度，畫在線的下面；
+   * only 時只畫熱度不畫線（另一個圖層開關），不依時間軸篩選（全部年份一起看）。intensity 是強度倍數，ramp 是顏色
+   */
+  heat?: { label: Text; only?: boolean; every?: number; intensity?: number; opacity?: number; maxZoom?: number; ramp?: 'heat' | 'violet' };
   /**
    * 依縮放篩選（跟點圖層的 minValue 一樣）：紀錄的 field 要大於等於這一級的門檻，stops 是 [縮放級數, 最小值]，
    * 由小到大，第一個的級數是 0。例如縮小時只畫大河、放大後小河才出現
@@ -1302,6 +1321,12 @@ export interface PieSpec {
    * （主題資料夾底下的路徑，2026-11-02 起），這時 indicator 只當作識別、label 要寫
    */
   parts: { indicator: string; item?: string; file?: string; color: string; label?: Text }[];
+  /** 畫成甜甜圈（中間挖空，2026-11-02，漁業的捕撈與養殖：兩片的時候比圓餅好比較） */
+  donut?: boolean;
+  /** 只有這幾個子項目畫圓餅（2026-11-02，諾貝爾獎：「全部獎項」才分成六個獎；選了單一獎項照舊是實心的圓） */
+  items?: string[];
+  /** 只畫有組成資料的國家（2026-11-02，血型：圓的大小用人口，沒有血型資料的國家不畫圓） */
+  only?: boolean;
 }
 
 export function indicatorPath(

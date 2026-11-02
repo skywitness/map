@@ -94,6 +94,8 @@ const indicators: IndicatorDef[] = [
     unit: '',
     file: 'main.json',
     layer: { kind: 'none' },
+    // 2026-11-02（新30）：底下鋪淡的地形陰影（山脈、谷地看得出來）
+    shade: 'land',
     unranked: true,
     rankingBars: false,
     panelChart: false,

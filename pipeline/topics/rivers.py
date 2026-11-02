@@ -868,6 +868,15 @@ def write_indicators(stats) -> None:
         name = "endorheic" if k == ENDORHEIC else f"share/{CLASS_KEYS[k]}"
         write_json(OUT / f"{name}.json", indicator_file(name.replace("/", "-"), "%", [YEAR], values, **extra))
     print(f"  指標：{len(keep)} 個國家/地區；有附註（河道只經過不到八成的國土）的 {len(notes)} 個")
+    write_land(keep, hints, hints_en)
+
+
+def write_land(keep: list[str], hints: dict[str, str] | None = None, hints_en: dict[str, str] | None = None) -> None:
+    """國土面積（km²，FAOSTAT 陸地面積；2026-11-02，新17：「國土流向」的圓餅，圓的大小是國土、各片是流向各大洋的比例）"""
+    land = land_areas()
+    values = {c: [round(land[c])] for c in keep if c in land}
+    extra = {"hints": hints, "hintsEn": hints_en} if hints else {}
+    write_json(OUT / "land.json", indicator_file("land", "km²", [YEAR], values, **extra))
 
 
 def land_areas() -> dict[str, float]:

@@ -34,7 +34,7 @@ export function pieSlices(shares: readonly number[], min = 0.005): { index: numb
 }
 
 /** 畫一個圓餅的點陣圖（邊長 tier × ratio） */
-export function drawPie(shares: readonly number[], colors: readonly string[], tier: number, ratio: number): ImageData | null {
+export function drawPie(shares: readonly number[], colors: readonly string[], tier: number, ratio: number, donut = false): ImageData | null {
   const size = Math.round(tier * ratio);
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
@@ -61,6 +61,19 @@ export function drawPie(shares: readonly number[], colors: readonly string[], ti
       ctx.stroke();
     }
   }
+  // 甜甜圈：中間挖空（半徑 55%），挖空的邊也留一圈白縫
+  if (donut) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(c, c, r * 0.55, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, ratio * 0.75);
+    ctx.beginPath();
+    ctx.arc(c, c, r * 0.55, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
   return ctx.getImageData(0, 0, size, size);
 }
 
@@ -69,6 +82,10 @@ export interface PieData {
   colors: string[];
   labels: string[];
   shares: Map<string, number[]>;
+  /** 甜甜圈（PieSpec.donut） */
+  donut?: boolean;
+  /** 只畫有組成資料的國家（PieSpec.only） */
+  only?: boolean;
 }
 
 /**
@@ -83,9 +100,9 @@ export function syncPieImages(map: MaplibreMap, pies: PieData, tiers: Map<string
     if (!shares || pieSlices(shares).length === 0) continue;
     const id = pieImageId(iso3, tier);
     // 同一張圖的內容沒變就不重畫（播放時大部分國家的組成年年不同，但換底圖、只改大小時不必重畫）
-    const signature = `${shares.join(',')}|${pies.colors.join(',')}`;
+    const signature = `${shares.join(',')}|${pies.colors.join(',')}|${pies.donut ? 'd' : 'p'}`;
     if (drawn.get(id) !== signature || !map.hasImage(id)) {
-      const image = drawPie(shares, pies.colors, tier, ratio);
+      const image = drawPie(shares, pies.colors, tier, ratio, pies.donut);
       if (!image) continue;
       if (map.hasImage(id)) map.updateImage(id, image);
       else map.addImage(id, image, { pixelRatio: ratio });

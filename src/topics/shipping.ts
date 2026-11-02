@@ -272,6 +272,17 @@ const UNCTAD_NOTE = {
   en: 'UNCTAD’s “China, Taiwan Province of” is shown as Taiwan; UNCTAD’s China excludes Hong Kong, Macao and Taiwan.',
 };
 
+/** 船旗國船隊的圓餅（新27，pipeline 的 fleet-type/<船種>.json） */
+const FLEET_PIE = (
+  [
+    ['oil', 'orange', { zh: '油輪', en: 'Oil tankers' }],
+    ['bulk', 'blue', { zh: '散裝船', en: 'Bulk carriers' }],
+    ['general', 'yellow', { zh: '雜貨船', en: 'General cargo' }],
+    ['container', 'aqua', { zh: '貨櫃船', en: 'Container ships' }],
+    ['other', 'violet', { zh: '其他', en: 'Other' }],
+  ] as const
+).map(([id, hue, label]) => ({ indicator: `fleet-${id}`, file: `fleet-type/${id}.json`, color: MAP_TOKENS.hues[hue], label }));
+
 export const shipping: TopicDefinition = {
   id: 'shipping',
   title: { zh: '航運與港口', en: 'Shipping and ports' },
@@ -356,12 +367,13 @@ export const shipping: TopicDefinition = {
       id: 'fleet-flag',
       label: { zh: '商船隊（船旗國）', en: 'Fleet by flag' },
       description: {
-        zh: '在這個國家登記、掛它的國旗的商船（100 總噸以上），以載重噸（能載多少噸貨）計，每年 1 月 1 日。巴拿馬、賴比瑞亞、馬紹爾群島這類「權宜船籍」國登記了世界上最多的船，船東大多在別的國家（見「商船隊（船東國）」）。',
-        en: 'Merchant ships (100 GT and above) registered in, and flying the flag of, each country, by deadweight tonnage (how many tonnes of cargo they can carry), as of 1 January. Open registries such as Panama, Liberia and the Marshall Islands register the most ships, mostly owned from elsewhere (see Fleet by owner).',
+        zh: '在這個國家登記、掛它的國旗的商船（100 總噸以上），以載重噸（能載多少噸貨）計，每年 1 月 1 日。巴拿馬、賴比瑞亞、馬紹爾群島這類「權宜船籍」國登記了世界上最多的船，船東大多在別的國家（見「商船隊（船東國）」）。圓餅的各片是油輪、散裝船、雜貨船、貨櫃船與其他的載重噸。',
+        en: 'Merchant ships (100 GT and above) registered in, and flying the flag of, each country, by deadweight tonnage (how many tonnes of cargo they can carry), as of 1 January. Open registries such as Panama, Liberia and the Marshall Islands register the most ships, mostly owned from elsewhere (see Fleet by owner). The slices show oil tankers, bulk carriers, general cargo, container ships and other ships by deadweight tonnage.',
       },
       unit: DWT,
       file: 'fleet-flag.json',
-      layer: { kind: 'bubble', legendValues: [1e6, 1e7, 1e8] },
+      // 2026-11-02（新27）：圓畫成船種的圓餅（油輪、散裝、雜貨、貨櫃、其他），顏色跟側欄的船種堆疊圖一樣
+      layer: { kind: 'bubble', legendValues: [1e6, 1e7, 1e8], pie: { parts: FLEET_PIE } },
       format: dwt,
       formatTick: formatLargeTick,
       shareOfWorld: true,

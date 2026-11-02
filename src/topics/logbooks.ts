@@ -224,6 +224,23 @@ const VOYAGES: LinesOverlayDef = {
   tooltip: trackTooltip,
 };
 
+/** 航線密度（新20）：同一份 tracks.json 的頂點做成熱度圖，只畫熱度、不依時間軸 */
+const DENSITY: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'density',
+  file: 'tracks.json',
+  label: { zh: '航線密度（1662–1855 年所有的航程）', en: 'Route density (all voyages, 1662–1855)' },
+  width: 1,
+  color: MAP_TOKENS.inkMuted,
+  heat: {
+    only: true,
+    every: 2,
+    intensity: 0.12,
+    opacity: 0.65,
+    label: { zh: '船每天正午的位置的密度，越紅越常走（看得出信風帶與季風的航道）', en: 'Density of noon positions; redder means more often sailed (trade-wind and monsoon routes stand out)' },
+  },
+};
+
 /**
  * 航程清單（第十二批 207）：每個指標一份（只列那個指標看的船），讀線（tracks.json 依 v 分組，一趟航程一組）；
  * 時間軸那一年在海上的航程（出發到抵達跨過那一年），依出發日期；每列：船名、國籍與公司、出發地 → 目的地、日期。
@@ -294,12 +311,17 @@ export const logbooks: TopicDefinition = {
   panelExtra: () => import('./panels/LogbooksPanel'),
   listPanel: SHIP_VIEWS.map(voyageList),
   // 疊到別的主題上（圖層選單的「更多主題的圖層…」）只列全部的船
-  overlays: SHIP_VIEWS.map((view) => ({
-    ...VOYAGES,
-    id: view.overlay,
-    indicators: [view.id],
-    onlyTypes: view.types ?? undefined,
-    ...(view.types ? { shareable: false as const } : {}),
-  })),
+  overlays: [
+    // 2026-11-02（新20）：航線密度：全部年份所有航程每天的船位（每 2 天取一點）畫成熱度，看得出信風帶、好望角、季風這些長期的航道；
+    // 畫在那一年的航線下面，不跟時間軸變
+    DENSITY,
+    ...SHIP_VIEWS.map((view) => ({
+      ...VOYAGES,
+      id: view.overlay,
+      indicators: [view.id],
+      onlyTypes: view.types ?? undefined,
+      ...(view.types ? { shareable: false as const } : {}),
+    })),
+  ],
   indicators,
 };

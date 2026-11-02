@@ -216,6 +216,14 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
   }
   if (o.kind === 'lines') {
     const { def } = o;
+    // 只有熱度圖的線圖層（航海日誌的航線密度）：熱度色的色塊
+    if (def.heat?.only) {
+      return {
+        swatch: { shape: 'fill', size: 5, color: heatRamp(def.heat.ramp)[3][1], opacity: 0.85 },
+        label: def.label,
+        details: [{ layout: 'rows', rows: [{ shape: 'fill', size: 5, color: heatRamp(def.heat.ramp)[3][1], opacity: 0.85, label: def.heat.label }] }],
+      };
+    }
     // onlyTypes：圖例也只列畫出來的那幾類
     const classes =
       typeof def.color === 'string' ? null : def.color.classes.filter((c) => !def.onlyTypes || def.onlyTypes.includes(c.value));
@@ -247,7 +255,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       return angle === undefined ? null : { shape: 'hatch', size: Math.max(1.5, typical), color: classColor(c), angle };
     };
     const swatchOf = (c: (NonNullable<typeof classes>)[number]) =>
-      c.area ? areaSwatch(c) : (hatchSwatch(c) ?? lineSwatch(classColor(c), c.dash));
+      hatchSwatch(c) ?? (c.area ? areaSwatch(c) : lineSwatch(classColor(c), c.dash));
     const details: OverlayKey['details'] = [];
     if (classes && typeof def.color !== 'string' && def.keyClasses !== false) {
       details.push({

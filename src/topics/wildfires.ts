@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { TopicDefinition } from './types';
 
 const KM2 = { zh: '平方公里', en: 'km²' };
@@ -17,6 +18,17 @@ function percent(v: number): string {
   if (v === 0) return '0%';
   return `${fixed(v, v < 0.01 ? 4 : v < 0.1 ? 3 : v < 1 ? 2 : 1)}%`;
 }
+
+/** 燒毀面積的圓餅（新28，pipeline 的 landcover/<類別>.json，GWIS 的 MODIS 土地覆蓋） */
+const LANDCOVER_PIE = (
+  [
+    ['forest', 'green', { zh: '森林', en: 'Forest' }],
+    ['savannas', 'yellow', { zh: '疏林草原', en: 'Savannas' }],
+    ['shrublands_grasslands', 'magenta', { zh: '灌叢與草地', en: 'Shrublands and grasslands' }],
+    ['croplands', 'blue', { zh: '農地', en: 'Croplands' }],
+    ['other', 'aqua', { zh: '其他', en: 'Other' }],
+  ] as const
+).map(([id, hue, label]) => ({ indicator: `landcover-${id}`, file: `landcover/${id}.json`, color: MAP_TOKENS.hues[hue], label }));
 
 export const wildfires: TopicDefinition = {
   id: 'wildfires',
@@ -85,12 +97,13 @@ export const wildfires: TopicDefinition = {
       id: 'burned-area',
       label: { zh: '燒毀面積', en: 'Burned area' },
       description: {
-        zh: '一年內衛星偵測到燒過的土地面積，含森林、草原、灌叢與農地。圓的面積與燒毀面積成正比。',
-        en: 'Land the satellite detected as burned in a year, including forests, grasslands, shrublands and croplands. Circle area is proportional to burned area.',
+        zh: '一年內衛星偵測到燒過的土地面積，含森林、草原、灌叢與農地。圓的面積與燒毀面積成正比，各片是燒到的土地覆蓋：森林、疏林草原、灌叢與草地、農地與其他。',
+        en: 'Land the satellite detected as burned in a year, including forests, grasslands, shrublands and croplands. Circle area is proportional to burned area; the slices show the land cover that burned: forest, savannas, shrublands and grasslands, croplands and other.',
       },
       unit: KM2,
       file: 'burned-area.json',
-      layer: { kind: 'bubble', legendValues: [1000, 10000, 100000] },
+      // 2026-11-02（新28）：圓畫成燒到的土地覆蓋的圓餅（森林、疏林草原、灌叢與草地、農地、其他），顏色跟側欄的堆疊圖一樣
+      layer: { kind: 'bubble', legendValues: [1000, 10000, 100000], pie: { parts: LANDCOVER_PIE } },
       format: km2,
       formatTick: formatLargeTick,
       shareOfWorld: true,

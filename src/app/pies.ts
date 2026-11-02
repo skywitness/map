@@ -11,7 +11,9 @@ import { dataFolder, indicatorPath, type Indicator, type IndicatorData, type Top
 const NONE: string[] = [];
 
 export function usePies(topic: Topic, indicator: Indicator, item: string | null, year: number, enabled: boolean): PieData | null {
-  const pie = enabled && indicator.layer.kind === 'bubble' ? indicator.layer.pie : undefined;
+  const spec = enabled && indicator.layer.kind === 'bubble' ? indicator.layer.pie : undefined;
+  // items：只有這幾個子項目畫圓餅（諾貝爾獎的「全部獎項」）
+  const pie = spec && (!spec.items || (item !== null && spec.items.includes(item))) ? spec : undefined;
   const parts = useMemo(
     () => (pie ? pie.parts.map((p) => ({ ...p, def: topic.indicators.find((i) => i.id === p.indicator) })) : []),
     [pie, topic],
@@ -38,6 +40,12 @@ export function usePies(topic: Topic, indicator: Indicator, item: string | null,
         row[k] = v;
       }
     });
-    return { colors: parts.map((p) => p.color), labels: parts.map((p) => p.label ?? p.def?.label ?? p.indicator), shares };
-  }, [files, parts, year]);
+    return {
+      colors: parts.map((p) => p.color),
+      labels: parts.map((p) => p.label ?? p.def?.label ?? p.indicator),
+      shares,
+      donut: Boolean(pie?.donut),
+      only: Boolean(pie?.only),
+    };
+  }, [files, parts, year, pie]);
 }

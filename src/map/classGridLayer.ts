@@ -339,8 +339,11 @@ export function syncClassGrid(map: MaplibreMap, id: string | null, visible: bool
     layer.setGrid(grid);
     layer.setLook(look);
     // 風的粒子（windLayer.ts）畫在類別網格上面：已經有的話插在它前面
-    const wind = map.getStyle().layers.find((l) => l.id.startsWith(WIND_LAYER_PREFIX))?.id;
-    map.addLayer(layer, wind ?? (map.getLayer(BEFORE) ? BEFORE : undefined));
+    const ids = map.getStyle().layers.map((l) => l.id);
+    const wind = ids.find((id) => id.startsWith(WIND_LAYER_PREFIX));
+    // 地形陰影疊在國家的面上面時（自然地理圖的 shade，2026-11-02），網格插在陰影下面，山脈的陰影才看得到
+    const shade = ids.indexOf('relief-shade') > ids.indexOf('data-fill') && ids.indexOf('data-fill') >= 0 ? 'relief-shade' : undefined;
+    map.addLayer(layer, wind ?? shade ?? (map.getLayer(BEFORE) ? BEFORE : undefined));
     layers.set(map, layer);
   } else {
     layer.setGrid(grid);

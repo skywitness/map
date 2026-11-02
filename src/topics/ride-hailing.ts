@@ -10,7 +10,8 @@ import type { CategoryDef, TopicDefinition } from './types';
  */
 const PLATFORMS: CategoryDef[] = [
   { value: 1, label: { zh: 'Uber', en: 'Uber' } },
-  { value: 2, label: { zh: 'Uber 與滴滴', en: 'Uber and DiDi' } },
+  // 2026-11-02（新25）：兩家都有不另開一種顏色：Uber 的顏色加滴滴顏色的斜線
+  { value: 2, label: { zh: 'Uber 與滴滴', en: 'Uber and DiDi' }, hatch: { base: 1, stripes: 3 } },
   { value: 3, label: { zh: '滴滴（DiDi）', en: 'DiDi' } },
   { value: 4, label: { zh: 'Grab', en: 'Grab' } },
   { value: 0, label: { zh: '三家都沒有', en: 'None of the three' }, color: MAP_TOKENS.categoricalOther },

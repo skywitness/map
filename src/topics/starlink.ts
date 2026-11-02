@@ -10,7 +10,8 @@ import type { CategoryDef, TopicDefinition } from './types';
 /** 狀態（pipeline 的 COLORS）：灰色在說明頁寫 Unknown、條目的圖例寫 Not covered，所以寫成「地圖沒有標」 */
 const STATUS: CategoryDef[] = [
   { value: 1, label: { zh: '已開通', en: 'Active' } },
-  { value: 2, label: { zh: '開通但沒有核准', en: 'Active without approval' } },
+  // 2026-11-02（新25）：開通但沒有核准是已開通的變形：已開通的顏色加白色斜線
+  { value: 2, label: { zh: '開通但沒有核准', en: 'Active without approval' }, hatch: { base: 1, stripes: '#ffffff' } },
   { value: 3, label: { zh: '已核准、等待開通', en: 'Approved, pending activation' } },
   { value: 0, label: { zh: '地圖沒有標（沒有服務或狀態不明）', en: 'Not marked (no service or unknown)' }, color: MAP_TOKENS.categoricalOther },
 ];

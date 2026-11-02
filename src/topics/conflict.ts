@@ -217,6 +217,15 @@ const overlays: PointsOverlayDef[] = VIOLENCE_TYPES.map((type) => ({
   // 三個圖層同一組大小說明，圖例只列在第一個打開的圖層下面
   sizeLegend: { title: { zh: '死亡人數', en: 'Deaths' }, values: [100, 1000, 10000], format: formatLargeTick },
   tooltip: eventTooltip(type),
+  // 2026-11-02（新21）：墊一層 1989 年起累計的熱度（依死亡人數加權），看得出長期的衝突熱點；那一年的事件點照舊畫在上面
+  heatmap: {
+    maxZoom: 5,
+    allYears: true,
+    keepPoints: true,
+    intensity: 0.6,
+    weight: { field: 'deaths', stops: [[1, 0.01], [100, 0.1], [1000, 0.5], [10000, 2], [100000, 6]] },
+    label: { zh: '1989 年起累計的死亡（依人數加權，越紅越多）', en: 'Deaths since 1989 (weighted; redder means more)' },
+  },
 }));
 
 export const conflict: TopicDefinition = {

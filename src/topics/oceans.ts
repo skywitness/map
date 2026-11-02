@@ -109,6 +109,34 @@ const EEZ_LINES: LinesOverlayDef = {
   tooltip: lineTooltip,
 };
 
+/**
+ * 專屬經濟海域的面（2026-11-02，新26，pipeline 的 eez_fill → eez-fill.json）：一般的 200 浬是淡藍色的面，重疊主張是洋紅斜線、
+ * 共同管理區是綠色斜線（顏色跟界線的分類一樣）。畫在國家的面下面（海岸那一側簡化得很粗，由陸地蓋住），滑過看是哪一國的海域
+ */
+const EEZ_FILL: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'eez-fill',
+  file: 'eez-fill.json',
+  label: { zh: '專屬經濟海域的範圍', en: 'EEZ areas' },
+  width: 0,
+  color: {
+    title: { zh: '海域', en: 'Area' },
+    classes: [
+      { value: 1, color: MAP_TOKENS.hues.blue, label: { zh: '一國的專屬經濟海域', en: 'One country’s EEZ' }, area: 'sea' },
+      { value: 2, color: MAP_TOKENS.categorical[7], label: { zh: '重疊主張', en: 'Overlapping claim' }, area: 'sea' },
+      { value: 3, color: MAP_TOKENS.categorical[3], label: { zh: '共同管理區', en: 'Joint regime' }, area: 'sea' },
+    ],
+  },
+  fill: { field: 'f', value: 1, opacity: 0.16, darkOpacity: 0.22, holeField: 'h', outline: false, hover: true, hatch: { 2: 45, 3: 135 } },
+  under: true,
+  tooltip: (p, ctx) => ({
+    title:
+      sideName({ a: p.a, an: p.an, anEn: p.anEn, ak: p.k, ap: p.p }, 'a', ctx.countryName) ??
+      tr({ zh: '專屬經濟海域', en: 'Exclusive economic zone' }),
+    detail: tr({ zh: '專屬經濟海域（Marine Regions 第 12 版）', en: 'Exclusive economic zone (Marine Regions v12)' }),
+  }),
+};
+
 /** 專屬經濟海域的兩個指標：沒有值的原因 */
 const EEZ_NO_VALUE: Record<string, Text> = {
   IOT: {
@@ -185,6 +213,31 @@ const indicators: IndicatorDef[] = [
     formatTick: (v) => (v >= 1000 ? formatLargeTick(v) : fixed(v, v < 1 ? 1 : 0)),
     defaultYear: 2023,
     noValue: EEZ_NO_VALUE,
+  },
+  {
+    // 2026-11-02（新18）：漁業總產量（捕撈＋養殖）畫成甜甜圈，兩片是捕撈與養殖（顏色跟「養殖的比例」的兩端一樣）
+    id: 'production',
+    label: { zh: '漁業總產量（捕撈與養殖）', en: 'Fisheries production (capture and aquaculture)' },
+    description: {
+      zh: '一年捕撈加上養殖的水生動物（活體重量，不含海藻）。甜甜圈的大小是總產量，兩片是捕撈（橘）與養殖（青綠）：中國、印尼、越南、印度的養殖超過一半，秘魯、俄羅斯、美國幾乎都是捕撈。捕撈算在漁船的船旗國（見「捕撈漁業產量」）。',
+      en: 'Aquatic animals caught plus farmed in a year (live weight, excluding seaweed). Donut size is total production; the two slices are capture (orange) and aquaculture (teal): aquaculture is over half in China, Indonesia, Vietnam and India, while Peru, Russia and the US almost only catch. Catches count for the vessel’s flag state (see Capture fisheries).',
+    },
+    unit: TONNES,
+    file: 'production.json',
+    layer: {
+      kind: 'bubble',
+      legendValues: [1e5, 1e6, 1e7],
+      pie: {
+        donut: true,
+        parts: [
+          { indicator: 'capture', color: MAP_TOKENS.diverging[0], label: { zh: '捕撈', en: 'Capture' } },
+          { indicator: 'aquaculture', color: MAP_TOKENS.diverging[6], label: { zh: '養殖', en: 'Aquaculture' } },
+        ],
+      },
+    },
+    format: tonnes,
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
   },
   {
     id: 'capture',
@@ -314,6 +367,6 @@ export const oceans: TopicDefinition = {
     en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. Seafood trade is from the HS92 version of BACI (from 1995), with Taiwan based on partner reports. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports; for plastic carried to the sea by rivers see Plastic pollution.',
   },
   panelExtra: () => import('./panels/OceansPanel'),
-  overlays: [EEZ_LINES],
+  overlays: [EEZ_FILL, EEZ_LINES],
   indicators,
 };

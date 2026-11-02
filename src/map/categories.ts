@@ -7,7 +7,7 @@ import type { MapTokens } from '../theme/tokens';
 /** 類別圖（kind: 'categorical'，已解析成目前語言）的設定 */
 export interface CategoricalLayer {
   /** color：這一類自己的顏色（類別本身就是顏色時，例如國旗的主要顏色），有寫的優先 */
-  categories: { value: number; label: string; color?: string; max?: number }[];
+  categories: { value: number; label: string; color?: string; max?: number; hatch?: { base: number; stripes: number | string } }[];
   other?: string;
   ordinal?: boolean;
   diverging?: boolean;
@@ -17,6 +17,8 @@ export interface CategoricalLayer {
 export interface CategoryItem {
   label: string;
   color: string;
+  /** 變形的類別（CategoryDef.hatch）：疊在 color 上的斜線顏色 */
+  hatch?: string;
   /** 「其他」：不在設定裡的代碼都歸到這一類 */
   other?: boolean;
 }
@@ -68,7 +70,18 @@ export function categoryScale(layer: CategoricalLayer, tokens: MapTokens): Categ
     if (n > tokens.categorical.length) throw new Error(`類別色最多 ${tokens.categorical.length} 類，其餘請併到「其他」`); // i18n-ignore
     colors = tokens.categorical.slice(0, n);
   }
-  const items: CategoryItem[] = layer.categories.map((c, i) => ({ label: c.label, color: c.color ?? colors[i] }));
+  const own = layer.categories.map((c, i) => c.color ?? colors[i]);
+  const colorOfValue = (value: number) => own[layer.categories.findIndex((c) => c.value === value)];
+  // 變形的類別：底色是 base 那一類的顏色，斜線是 stripes（另一類的顏色或直接寫的顏色）
+  const items: CategoryItem[] = layer.categories.map((c, i) =>
+    c.hatch
+      ? {
+          label: c.label,
+          color: colorOfValue(c.hatch.base) ?? own[i],
+          hatch: typeof c.hatch.stripes === 'string' ? c.hatch.stripes : (colorOfValue(c.hatch.stripes) ?? '#ffffff'),
+        }
+      : { label: c.label, color: own[i] },
+  );
   if (layer.other) items.push({ label: layer.other, color: tokens.categoricalOther, other: true });
   const byValue = new Map(layer.categories.map((c, i) => [c.value, i]));
   // 有 max 的類別涵蓋 value–max 的代碼

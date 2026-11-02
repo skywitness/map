@@ -77,6 +77,8 @@ const indicators: IndicatorDef[] = [
     unit: KM,
     file: 'length.json',
     layer: { kind: 'none' },
+    // 2026-11-02（新30）：底下鋪淡的地形陰影（山脈、谷地看得出來）
+    shade: 'land',
     format: kmText,
     formatTick: (v) => fixed(v, 0),
     unranked: true,

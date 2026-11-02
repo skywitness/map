@@ -1,5 +1,6 @@
 import { tr, type Text } from '../i18n/lang';
-import { fixed } from '../lib/format';
+import { fixed, formatLargeNumber } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, IndicatorDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
@@ -21,6 +22,14 @@ const MAIN: CategoryDef[] = [
   { value: 3, label: { zh: 'B 型', en: 'Type B' } },
 ];
 const AB: Text = { zh: 'AB 型', en: 'Type AB' };
+
+/** 血型組成的圓餅（新32）：顏色依類別色的固定位置，O、A、B 跟「最多的血型」的類別圖同色 */
+const BLOOD_PIE = [
+  { indicator: 'o', color: MAP_TOKENS.categorical[0], label: { zh: 'O 型', en: 'O' } },
+  { indicator: 'a', color: MAP_TOKENS.categorical[1], label: { zh: 'A 型', en: 'A' } },
+  { indicator: 'b', color: MAP_TOKENS.categorical[2], label: { zh: 'B 型', en: 'B' } },
+  { indicator: 'ab', color: MAP_TOKENS.categorical[3], label: AB },
+];
 
 const SCALES: Record<string, ScaleSpec> = {
   o: { type: 'sequential', thresholds: [30, 35, 40, 45, 50, 60] },
@@ -67,6 +76,21 @@ export const bloodTypes: TopicDefinition = {
   },
   panelExtra: () => import('./panels/BloodTypesPanel'),
   indicators: [
+    {
+      // 2026-11-02（新32，試做）：每國一個 O、A、B、AB 的圓餅，圓的大小是人口（世界人口展望，跟人口主題同一份），沒有血型資料的國家不畫
+      id: 'mix',
+      label: { zh: '血型組成（圓餅）', en: 'Blood type mix (pies)' },
+      description: {
+        zh: '每國一個圓餅：O、A、B、AB 型的比例（Rh 陽性加陰性），圓的大小是那一國的人口，所以大概看得出全世界哪一型的人最多在哪裡。只畫維基百科表上有的 126 國。',
+        en: 'One pie per country: the shares of types O, A, B and AB (Rh-positive and negative combined), with circle size showing population, so you can roughly see where most people of each type live. Only the 126 countries in the Wikipedia table are drawn.',
+      },
+      unit: { zh: '人', en: 'people' },
+      file: '../population/total.json',
+      layer: { kind: 'bubble', legendValues: [1e7, 1e8, 1e9], pie: { parts: BLOOD_PIE, only: true } },
+      format: (v) => tr({ zh: `人口 ${formatLargeNumber(v)}`, en: `Population ${formatLargeNumber(v)}` }),
+      formatTick: (v) => formatLargeNumber(v),
+      unranked: true,
+    },
     {
       id: 'main',
       label: { zh: '最多的血型', en: 'Most common type' },

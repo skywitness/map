@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from common import download
 
@@ -52,6 +53,12 @@ def eez_polygons() -> list[dict]:
     if len(features) < 250:
         raise RuntimeError(f"Marine Regions 的 EEZ 只有 {len(features)} 個多邊形，下載可能不完整")
     return [f["properties"] for f in features]
+
+
+def eez_shapes() -> Path:
+    """專屬經濟海域多邊形的幾何（2026-11-02，新26：海洋與漁業的 EEZ 面）：WFS 的 SHAPE-ZIP（約 150 MB，第一次下載要幾分鐘）"""
+    url = WFS.replace("outputFormat=application/json", "outputFormat=SHAPE-ZIP").format(layer="eez")
+    return download(url, "marine-regions", "eez_v12_shapes.zip")
 
 
 def landlocked() -> set[str]:

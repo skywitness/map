@@ -234,6 +234,14 @@ def merchant_fleet() -> dict[str, dict[str, Series]]:
             breaks[iso3].append(int(r["Year"]))
     notes = {k: f"{'、'.join(map(str, sorted(v)))} 年 UNCTAD 標示統計有斷層（跟前一年不完全可比）。" for k, v in breaks.items()}
     notes_en = {k: f"UNCTAD marks a break in series in {', '.join(map(str, sorted(v)))}." for k, v in breaks.items()}
+    # 依船種（2026-11-02，新27：船旗國船隊的圓餅，各片是油輪、散裝、雜貨、貨櫃、其他；載重噸）
+    for code, key in SHIP_TYPES.items():
+        s_type, w_type, _ = by_economy(rows, col, ShipType=code)
+        write_json(OUT / "fleet-type" / f"{key}.json", indicator_file(
+            f"fleet-{key}", "載重噸", years,
+            {iso3: to_series({y: v * 1000 for y, v in s.items()}, years, 0) for iso3, s in s_type.items()},
+            aggregates={"WLD": to_series({y: v * 1000 for y, v in w_type.items()}, years, 0)},
+        ))
     values = {iso3: to_series({y: v * 1000 for y, v in s.items()}, years, 0) for iso3, s in total.items()}
     write_json(OUT / "fleet-flag.json", indicator_file(
         "fleet-flag", "載重噸", years, values,

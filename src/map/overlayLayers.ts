@@ -54,6 +54,8 @@ const CASING_SUFFIX = '-casing';
 /** 封閉的環畫成的面（LinesOverlayDef.fill）與滑過時加深的那一組 */
 const FILL_SUFFIX = '-fill';
 const HOVER_FILL_SUFFIX = '-hover-fill';
+/** 斜線的面（fill.hatch）：畫在半透明的面上面的另一層 */
+const HATCH_SUFFIX = '-hatch';
 const IS_POLYGON: FilterSpecification = ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]];
 const NOT_POLYGON: FilterSpecification = ['!', IS_POLYGON];
 const LABEL_SUFFIX = '-label';
@@ -92,6 +94,41 @@ function heatLayer(def: PointsOverlay): LayerSpecification {
 const manyPoints = (def: PointsOverlay, mode: IndicatorDef['overlayTime']) => !def.timeField || mode === 'cumulative' || typeof mode === 'number';
 
 /** 聚成甜甜圈的點圖層（PointsOverlayDef.cluster）：開了 cluster 的 source 與沒聚在一起的點的圖層 */
+/** 線的密度（LinesOverlayDef.heat，2026-11-02，新20 航海日誌的航線密度）：頂點做成點的 source 與熱度圖 */
+const HEAT_POINTS = '~heatpts';
+
+function lineHeatLayer(def: LinesOverlay): LayerSpecification {
+  const heat = def.heat!;
+  const id = OVERLAY_PREFIX + def.id;
+  const k = heat.intensity ?? 1;
+  return {
+    id: id + HEAT_SUFFIX,
+    type: 'heatmap',
+    source: id + HEAT_POINTS,
+    ...(heat.maxZoom !== undefined ? { maxzoom: heat.maxZoom + 1 } : {}),
+    paint: {
+      'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 4, 2, 7, 4, 12, 6, 18],
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.15 * k, 3, 0.35 * k, 6, 0.6 * k],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], ...heatRamp(heat.ramp).flat()] as ExpressionSpecification,
+      'heatmap-opacity': heat.opacity ?? 0.75,
+    },
+  };
+}
+
+/** 線的頂點（每 every 個取一個）送到熱度圖的 source；同一份線不重送 */
+function sendLineHeat(map: MaplibreMap, o: Extract<DataOverlay, { kind: 'lines' }>, sent: OverlayDataCache) {
+  if (!o.lines || !o.def.heat) return;
+  const source = OVERLAY_PREFIX + o.def.id + HEAT_POINTS;
+  if (sent.get(source)?.data === o.lines) return;
+  const every = Math.max(1, o.def.heat.every ?? 1);
+  const coordinates: [number, number][] = [];
+  for (const line of o.lines.lines) {
+    for (let i = 0; i < line.length; i += every) coordinates.push(line[i]);
+  }
+  (map.getSource(source) as GeoJSONSource | undefined)?.setData({ type: 'Feature', properties: {}, geometry: { type: 'MultiPoint', coordinates } });
+  sent.set(source, { data: o.lines, epoch: null, def: o.def });
+}
+
 export const CLUSTER_SUFFIX = '~cl';
 
 /** 點圖層的圖層 id → 疊加圖層的 id（聚合 source 上的複本圖層也算同一個） */
@@ -453,10 +490,15 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
         : k(opacity);
     // 斜線（fill.hatch）：每一類一張斜線圖片（addHatchImages），方向不同，重疊的地方變成交叉線
     const hatch = def.fill.hatch;
-    const hatchPattern =
-      hatch && classes.some((c) => hatch[c.value] !== undefined)
-        ? (['match', ['coalesce', ['get', 'type'], -1], ...classes.filter((c) => hatch[c.value] !== undefined).flatMap((c) => [c.value, hatchImageId(classColor(c), hatch[c.value])]), hatchImageId(classColor(classes[0]), hatch[classes[0].value] ?? 45)] as unknown as ExpressionSpecification)
-        : null;
+    const hatched = hatch ? classes.filter((c) => hatch[c.value] !== undefined) : [];
+    // 斜線的分類：底下的面（查詢、滑過用）不透明度 0，另一層畫斜線圖片（addHatchImages），方向不同，重疊的地方變成交叉線；
+    // 其他分類照舊是半透明的面（專屬經濟海域：一般的 200 浬是淡色的面、重疊主張與共同管理區是斜線）
+    const hatchedTypes = hatched.map((c) => c.value);
+    const baseOpacity = fillOpacity((o) => o);
+    const solidOpacity: ExpressionSpecification | number = hatchedTypes.length
+      ? (['case', ['in', ['coalesce', ['get', 'type'], -1], ['literal', hatchedTypes]], 0, baseOpacity] as ExpressionSpecification)
+      : baseOpacity;
+    const isHatched: FilterSpecification = ['in', ['coalesce', ['get', 'type'], -1], ['literal', hatchedTypes]];
     for (const source of sources) {
       out.push({
         layer: {
@@ -464,13 +506,31 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
           type: 'fill',
           source,
           filter: IS_POLYGON,
-          paint: hatchPattern
-            ? { 'fill-pattern': hatchPattern, 'fill-opacity': dark ? 0.85 : 0.75, 'fill-antialias': false }
-            : { 'fill-color': color, 'fill-opacity': fillOpacity((o) => o), 'fill-antialias': false },
+          paint: { 'fill-color': color, 'fill-opacity': solidOpacity, 'fill-antialias': false },
         },
         base: IS_POLYGON,
         hover: false,
       });
+      if (hatched.length) {
+        const pattern = [
+          'match',
+          ['coalesce', ['get', 'type'], -1],
+          ...hatched.flatMap((c) => [c.value, hatchImageId(classColor(c), hatch![c.value])]),
+          hatchImageId(classColor(hatched[0]), hatch![hatched[0].value]),
+        ] as unknown as ExpressionSpecification;
+        const filter = ['all', IS_POLYGON, isHatched] as unknown as FilterSpecification;
+        out.push({
+          layer: {
+            id: source + HATCH_SUFFIX,
+            type: 'fill',
+            source,
+            filter,
+            paint: { 'fill-pattern': pattern, 'fill-opacity': dark ? 0.85 : 0.75, 'fill-antialias': false },
+          },
+          base: filter,
+          hover: false,
+        });
+      }
     }
     if (canHighlight(def)) {
       out.push({
@@ -904,7 +964,7 @@ export function syncOverlays(
   const sourcesOf = (o: DataOverlay) =>
     o.kind === 'points'
       ? [OVERLAY_PREFIX + o.def.id, ...(o.def.cluster ? [OVERLAY_PREFIX + o.def.id + CLUSTER_SUFFIX] : [])]
-      : lineSources(o.def);
+      : [...(o.def.heat?.only ? [] : lineSources(o.def)), ...(o.def.heat ? [OVERLAY_PREFIX + o.def.id + HEAT_POINTS] : [])];
   const wanted = new Set((overlays as DataOverlay[]).flatMap(sourcesOf));
   const font = labelFont(map);
   // 換主題後不要的疊加圖層
@@ -930,8 +990,15 @@ export function syncOverlays(
       map.addSource(source, clustered ? clusterSource(o.def) : { type: 'geojson', data: EMPTY, ...fade });
       sent.delete(source);
     }
-    if (!map.getLayer(id)) {
-      if (o.kind === 'points' && o.def.trail) {
+    const heatOnly = o.kind === 'lines' && Boolean(o.def.heat?.only);
+    if (!map.getLayer(heatOnly ? id + HEAT_SUFFIX : id)) {
+      if (o.kind === 'lines' && o.def.heat) {
+        // 線的密度（heat）：頂點做成點的熱度圖，畫在線的下面
+        map.addLayer(lineHeatLayer(o.def), before(LINES_BEFORE));
+      }
+      if (heatOnly) {
+        // 只有熱度圖，不畫線
+      } else if (o.kind === 'points' && o.def.trail) {
         // 連成線的點（trails.ts）畫在疊在地圖上的 canvas，不加圓點的圖層
       } else if (o.kind === 'points') {
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
@@ -959,7 +1026,9 @@ export function syncOverlays(
         if (o.def.heatmap) map.addLayer(heatLayer(o.def), id);
       } else {
         addHatchImages(map, o.def, dark);
-        for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, before(LINES_BEFORE));
+        // under：面畫在國家的面下面（專屬經濟海域：海岸那一側很粗略，由陸地蓋住）
+        const at = o.def.under ? before('data-fill') : before(LINES_BEFORE);
+        for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, at);
       }
     }
     if (o.kind === 'points') {
@@ -971,10 +1040,14 @@ export function syncOverlays(
         sent.set(id, { data: o.points, epoch, def: o.def });
       }
     } else {
-      sendLines(map, o, sent);
+      if (!heatOnly) sendLines(map, o, sent);
+      if (o.def.heat) sendLineHeat(map, o, sent);
     }
     const visibility = o.visible && (o.kind === 'points' ? o.points : o.lines) ? 'visible' : 'none';
-    const layerIds = o.kind === 'points' ? [id, id + LABEL_SUFFIX, id + CLUSTER_SUFFIX] : lineLayers(o.def, dark).map((s) => s.layer.id);
+    const layerIds =
+      o.kind === 'points'
+        ? [id, id + LABEL_SUFFIX, id + CLUSTER_SUFFIX]
+        : [...(heatOnly ? [] : lineLayers(o.def, dark).map((s) => s.layer.id)), id + HEAT_SUFFIX];
     for (const layerId of layerIds) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', visibility);
     }
@@ -1068,11 +1141,13 @@ export function applyTimeFilters(
         // 點多的時候縮小畫熱度、maxZoom 起換成點；點少（只有一年）時照舊都是點
         // heatmap.indicators：只有這幾個指標畫熱度（語言的「語言多樣性」；「語系」照舊畫依語系上色的點）
         const forIndicator = !o.def.heatmap.indicators || (indicatorId !== undefined && o.def.heatmap.indicators.includes(indicatorId));
-        const heat = Boolean(o.visible && o.points) && manyPoints(o.def, mode) && forIndicator;
-        setFilterOnce(map, id + HEAT_SUFFIX, pointFilter(o.def, y, mode));
+        // allYears：熱度是全部年份累計（武裝衝突 1989 年起），不跟時間軸篩選，點照舊畫那一年的（keepPoints）
+        const all = Boolean(o.def.heatmap.allYears);
+        const heat = Boolean(o.visible && o.points) && (all || manyPoints(o.def, mode)) && forIndicator;
+        setFilterOnce(map, id + HEAT_SUFFIX, all ? valueFilter(o.def) : pointFilter(o.def, y, mode));
         map.setLayoutProperty(id + HEAT_SUFFIX, 'visibility', heat ? 'visible' : 'none');
         const minZoom = o.def.minZoom ?? 0;
-        map.setLayerZoomRange(id, heat ? Math.max(o.def.heatmap.maxZoom, minZoom) : minZoom, 24);
+        if (!o.def.heatmap.keepPoints) map.setLayerZoomRange(id, heat ? Math.max(o.def.heatmap.maxZoom, minZoom) : minZoom, 24);
       }
       if (!o.def.timeField && !o.def.minValue) continue;
       setFilterOnce(map, id, pointFilter(o.def, y, mode));
@@ -1080,6 +1155,7 @@ export function applyTimeFilters(
       continue;
     }
     if (!o.def.timeField && !o.def.minValue) continue;
+    if (o.def.heat?.only) continue;
     // 時間篩選與依縮放的篩選要跟它本身的篩選（實線／虛線、只畫線或面）合併；標出一組的那幾層只合併依縮放的篩選
     // （放大前看不到的支流不會跟著亮起來）
     const value = valueFilter(o.def);

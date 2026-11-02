@@ -155,6 +155,7 @@ def build() -> None:
     land = land_areas()
     eez_files(eez, land)
     eez_lines(polygons, eez)
+    eez_fill(eez)
 
     prod = fishstat.production()
     population = wpp.demographic(["TPopulation1July"], last_year=prod.years[-1])["TPopulation1July"]
@@ -381,6 +382,52 @@ def eez_files(eez: dict, land: dict[str, float]) -> None:
 # ── 專屬經濟海域的界線 ────────────────────────────────
 
 
+EEZ_FILL_TOLERANCE = 0.03  # 度（約 3 km）：面的海岸那一側由陸地蓋住，外側的界線另外由 eez-lines 精確畫
+EEZ_FILL_MIN_AREA = 0.004  # 平方度：小於這個的碎片（礁石周圍的小圈）不畫
+
+
+def eez_fill(eez: dict) -> None:
+    """專屬經濟海域的面（2026-11-02，新26）：eez-fill.json，每個多邊形的外環與洞（f = 1、h = 1 是洞），分類 1 一般的
+    200 浬、2 重疊主張、3 共同管理區（前端畫成斜線）；紀錄跟 eez-lines 的界線一樣寫是哪一國（a、an、anEn）或當事方（p）"""
+    import shapefile
+    from shapely.geometry import MultiPolygon, Polygon, shape
+
+    sides = eez["sides"]
+    lines: list[list[tuple[float, float]]] = []
+    types: list[int] = []
+    records: list[dict] = []
+    with shapefile.Reader(str(marine_regions.eez_shapes()), encoding="latin-1") as reader:
+        fields = [f[0] for f in reader.fields[1:]]
+        for sr in reader.iterShapeRecords():
+            p = dict(zip(fields, sr.record))
+            mrgid = int(p["mrgid"])
+            side = sides.get(mrgid)
+            if side is None:
+                raise ValueError(f"EEZ 多邊形 {p.get('geoname')}（{mrgid}）不在 eez_areas 的清單裡")
+            # 先簡化再修幾何（原始的多邊形有上百萬點，先 buffer(0) 很慢）
+            geom = shape(sr.shape.__geo_interface__).simplify(EEZ_FILL_TOLERANCE, preserve_topology=False).buffer(0)
+            record: dict[str, object] = {"k": side["kind"]}
+            if side["iso"]:
+                record["a"] = side["iso"]
+            if side["name"]:
+                record["an"], record["anEn"] = side["name"]
+            if side["parties"]:
+                record["p"] = " ".join(side["parties"])
+            for poly in geom.geoms if isinstance(geom, MultiPolygon) else [geom]:
+                if poly.area < EEZ_FILL_MIN_AREA:
+                    continue
+                rings = [poly.exterior] + [r for r in poly.interiors if Polygon(r).area >= EEZ_FILL_MIN_AREA]
+                for k, ring in enumerate(rings):
+                    lines.append([(round(x, 3), round(y, 3)) for x, y in ring.coords])
+                    types.append(side["kind"] + 1)
+                    records.append({**record, "f": 1, "h": int(k > 0)})
+    write_json(OUT / "eez-fill.json", lines_file(
+        lines, 0.02, types=types, records=records, record_fields=["a", "an", "anEn", "k", "p", "f", "h"],
+        record_scale={"k": 1, "f": 1, "h": 1}, record_strings=("a", "an", "anEn", "p"),
+    ))
+    print(f"  EEZ 的面：{len(lines)} 個環（{sum(len(x) for x in lines):,} 點）")
+
+
 def eez_lines(polygons: list[dict], eez: dict) -> None:
     features = marine_regions.boundaries()
     sides = eez["sides"]
@@ -525,6 +572,18 @@ def fisheries_files(prod: fishstat.Production, population: dict[str, Series], tw
     write_json(OUT / "aquaculture.json", indicator_file(
         "aquaculture", "公噸", years, aquaculture, aggregates={"WLD": to_series(prod.world_aquaculture, years, 0)},
         notes=aqua_notes, notesEn=aqua_notes_en,
+    ))
+
+    # 漁業總產量（捕撈＋養殖，2026-11-02，新18：甜甜圈的圓，兩片是捕撈與養殖）
+    production: dict[str, list] = {}
+    for iso in set(prod.capture) | set(prod.aquaculture):
+        tot = {y: (prod.capture[iso].get(y) or 0) + (prod.aquaculture[iso].get(y) or 0)
+               for y in years if prod.capture[iso].get(y) is not None or prod.aquaculture[iso].get(y) is not None}
+        production[iso] = to_series(tot, years, 0)
+    world_prod = {y: prod.world_capture[y] + prod.world_aquaculture[y] for y in years}
+    write_json(OUT / "production.json", indicator_file(
+        "production", "公噸", years, production, aggregates={"WLD": to_series(world_prod, years, 0)},
+        notes={"CHN": china_zh}, notesEn={"CHN": china_en},
     ))
 
     share: dict[str, Series] = {}

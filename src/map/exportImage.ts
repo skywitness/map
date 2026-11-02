@@ -399,13 +399,28 @@ function valueCard(ctx: CanvasRenderingContext2D, legend: ImageLegend, tokens: T
       draw: () => {
         drawTitle();
         ctx.font = `11px ${font}`;
-        items.forEach(({ label, color, count }, i) => {
+        items.forEach(({ label, color, hatch, count }, i) => {
           // 由上往下先排滿第一欄
           const x = Math.floor(i / rows) * (cellWidth + CATEGORY_GAP);
           const y = top + (i % rows) * CATEGORY_ROW + CATEGORY_ROW / 2;
           ctx.fillStyle = color;
           roundRect(ctx, x, y - 5, 16, 10, 2);
           ctx.fill();
+          // 變形的類別：底色加斜線（跟地圖上一樣）
+          if (hatch) {
+            ctx.save();
+            roundRect(ctx, x, y - 5, 16, 10, 2);
+            ctx.clip();
+            ctx.strokeStyle = hatch;
+            ctx.lineWidth = 1.5;
+            for (let d = -10; d < 20; d += 3.5) {
+              ctx.beginPath();
+              ctx.moveTo(x + d, y + 5);
+              ctx.lineTo(x + d + 10, y - 5);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
           // 淺色（黃、「其他」）在淺色卡片上也看得到邊（跟 .legend-swatch 一樣）
           ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
           ctx.lineWidth = 1;

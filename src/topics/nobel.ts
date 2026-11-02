@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { ScaleSpec, Text, TopicDefinition } from './types';
 
 /** 獎項（子項目），代碼跟 pipeline/topics/nobel.py 的 CATEGORIES 一致 */
@@ -26,6 +27,17 @@ export const FIRST_YEAR = 1901;
 export const START: Partial<Record<string, number>> = { economics: 1969 };
 
 const ALL = { id: 'all', label: { zh: '全部獎項', en: 'All' } };
+
+/** 全部獎項的圓餅（新19）：六個獎各一個類別色（不用黃色，淺色底圖上看不清楚） */
+const PRIZE_COLORS: Record<Category, string> = {
+  physics: MAP_TOKENS.categorical[0],
+  chemistry: MAP_TOKENS.categorical[1],
+  medicine: MAP_TOKENS.categorical[2],
+  literature: MAP_TOKENS.categorical[3],
+  peace: MAP_TOKENS.categorical[7],
+  economics: MAP_TOKENS.categorical[6],
+};
+const PRIZE_PIE = CATEGORIES.map((c) => ({ indicator: 'laureates', item: c.id, color: PRIZE_COLORS[c.id], label: c.short ?? c.label }));
 
 export const laureates = (n: number) =>
   tr({ zh: `${fixed(n, 0)} 位`, en: `${fixed(n, 0)} ${Math.round(n) === 1 ? 'laureate' : 'laureates'}` });
@@ -101,13 +113,14 @@ export const nobel: TopicDefinition = {
       id: 'laureates',
       label: { zh: '累計得主人數', en: 'Laureates (cumulative)' },
       description: {
-        zh: '在這個國家（以今天的國界）出生的諾貝爾獎得主，從 1901 年累計到這一年。同一個人得過兩次只算一人。圓的面積與人數成正比。',
-        en: "Nobel laureates born in the country (within today's borders), cumulative from 1901 to the selected year. A person who won twice counts once. Circle area is proportional to the number of laureates.",
+        zh: '在這個國家（以今天的國界）出生的諾貝爾獎得主，從 1901 年累計到這一年。同一個人得過兩次只算一人。圓的面積與人數成正比；選「全部獎項」時各片是六個獎（一個人得過兩個獎各算一次）。',
+        en: "Nobel laureates born in the country (within today's borders), cumulative from 1901 to the selected year. A person who won twice counts once. Circle area is proportional to the number of laureates; with All prizes selected, the slices show the six prizes (someone who won two prizes counts in both).",
       },
       unit: { zh: '位', en: 'laureates' },
       file: 'laureates/{item}.json',
-      // 全部獎項最多是美國的 300 位，單一獎項最多約 85 位（醫學獎）
-      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+      // 全部獎項最多是美國的 300 位，單一獎項最多約 85 位（醫學獎）。
+      // 2026-11-02（新19）：「全部獎項」的圓畫成六個獎的圓餅（一個人得過兩個獎各算一次，所以各片加起來可能比人數多一點）
+      layer: { kind: 'bubble', legendValues: [1, 10, 50], pie: { parts: PRIZE_PIE, items: ['all'] } },
       format: laureates,
       formatTick: countTick,
       shareOfWorld: true,

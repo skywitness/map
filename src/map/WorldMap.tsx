@@ -161,6 +161,7 @@ import {
   FILL_SWITCH_MS,
   NO_DATA_NAME_OPACITY,
   NO_DATA_SOURCE,
+  CATEGORY_HATCH_SOURCE,
   BUBBLE_LABEL_SOURCE,
   bubbleLabelLayer,
   VALUE_SOURCE,
@@ -567,7 +568,7 @@ export function WorldMap(props: WorldMapProps) {
     }
     // lineMetrics：弧線的漸層（line-gradient）要用到沿線的位置
     m.addSource('flows', { type: 'geojson', data: EMPTY, promoteId: 'iso3', lineMetrics: true });
-    for (const id of ['railways', 'airports', 'box', 'selected-mark', NO_DATA_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
+    for (const id of ['railways', 'airports', 'box', 'selected-mark', NO_DATA_SOURCE, CATEGORY_HATCH_SOURCE]) m.addSource(id, { type: 'geojson', data: EMPTY });
     m.addSource('lakes', { type: 'geojson', data: lakesRef.current ?? EMPTY });
     // 插在底圖最後一個非文字圖層（道路、國界等）之後：資料蓋在道路上面、文字標籤下面。
     // 不能用「第一個文字圖層」，深色樣式的水域名稱排在很前面，資料會被道路線壓住。
@@ -1122,7 +1123,9 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     const entries =
-      indicator.layer.kind === 'bubble' ? [...values].filter(([iso3, v]) => v > 0 && anchors.has(iso3)) : [];
+      indicator.layer.kind === 'bubble'
+        ? [...values].filter(([iso3, v]) => v > 0 && anchors.has(iso3) && (!pies?.only || pies.shares.has(iso3)))
+        : [];
     const target = new Map(entries.map(([iso3, v]) => [iso3, Math.max(BUBBLE_MIN_RADIUS, radius(v))]));
     const source = map.getSource('bubbles') as GeoJSONSource;
     const labelSource = map.getSource(BUBBLE_LABEL_SOURCE) as GeoJSONSource | undefined;
@@ -1812,6 +1815,7 @@ export function WorldMap(props: WorldMapProps) {
     show('data-hover', !slabs && !bare);
     // 無資料的斜線：網格、國旗（填色透明）與 3D 的立體圖形時不畫
     show('data-nodata', !slabs && !gridOn && !flagsOn && !bare);
+    show('data-category-hatch', !slabs && !gridOn && !flagsOn && !bare);
     // 只留海的底圖（bareMap）：國家不能 hover、點選（隱藏的圖層 featureAt 會跳過）
     show('data-fill', !bare);
     // 要維持同一種運算式（依縮放與 feature-state）：改成常數 0 的話，舊圖磚在重新排版前遇到 hover
@@ -2086,7 +2090,7 @@ export function WorldMap(props: WorldMapProps) {
                   title,
                   unit,
                   model: bubbleLegendModel(indicator, radius),
-                  pie: indicator.layer.kind === 'bubble' ? indicator.layer.pie?.parts.map((p) => ({ color: p.color, label: p.label ?? p.indicator })) : undefined,
+                  pie: pies && indicator.layer.kind === 'bubble' ? indicator.layer.pie?.parts.map((p) => ({ color: p.color, label: p.label ?? p.indicator })) : undefined,
                 };
         // 網格：網格的分級、哪一期、不上色的格子
         const legend: ImageLegend | null = gridLegend
@@ -2125,7 +2129,7 @@ export function WorldMap(props: WorldMapProps) {
         });
       },
     }),
-    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, overlays, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang, hasIsobaths],
+    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, overlays, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang, hasIsobaths, pies],
   );
 
   return (
@@ -2361,7 +2365,7 @@ export function WorldMap(props: WorldMapProps) {
           values.size === 0 ? null : threeD ? (
             <ColumnLegend indicator={indicator} title={legendTitle} max={bubbleMax} color={MAP_TOKENS.accent} tokens={tokens} />
           ) : (
-            <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} />
+            <BubbleLegend indicator={indicator} title={legendTitle} radius={radius} tokens={tokens} pieShown={Boolean(pies)} />
           )
         ) : flowLayer && flows && flowMax > 0 ? (
           <FlowLegend indicator={indicator} title={legendTitle} direction={flows.direction} max={flowMax} tokens={tokens} />

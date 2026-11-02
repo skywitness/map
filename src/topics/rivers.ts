@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatPercent } from '../lib/format';
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
-import type { CategoryDef, IndicatorDef, LinesOverlayDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
+import type { IndicatorDef, LinesOverlayDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
  * 河流與流域（pipeline/topics/rivers.py，DESIGN.md 第 8 節第 86 點）：HydroRIVERS v1.0 的河道依最後流進哪一個大洋上色，
@@ -310,6 +310,12 @@ const OCEAN_ITEMS: { id: string; label: Text }[] = [
   { id: 'arctic', label: OCEAN_NAMES[OCEAN.arctic] },
 ];
 
+/** 國土流向的圓餅（新17）：各大洋的流域比例（share/<大洋>.json）與內流區（endorheic.json），顏色跟原本的類別圖一樣 */
+const BASIN_PIE = [
+  ...OCEAN_ITEMS.map((o) => ({ indicator: 'share', item: o.id, color: OCEAN_FILLS[OCEAN[o.id as keyof typeof OCEAN]], label: o.label })),
+  { indicator: 'endorheic', color: OCEAN_FILLS[OCEAN.endorheic], label: OCEAN_NAMES[OCEAN.endorheic] },
+];
+
 const SHARE_SCALE: ScaleSpec = { type: 'sequential', thresholds: [1, 10, 30, 50, 70, 99] };
 
 const HOW = {
@@ -334,19 +340,20 @@ const indicators: IndicatorDef[] = [
     formatTick: n0,
   },
   {
+    // 2026-11-02（新17）：原本是類別圖（國土最大的一部分流向哪一個大洋），改成圓餅：圓的大小是國土面積，各片是流向各大洋與內流區的比例。
+    // id 不變（舊的網址照樣打得開）；main-ocean.json（類別代碼）留給 pipeline 的國家清單
     id: 'main-ocean',
-    label: { zh: '主要流向', en: 'Main ocean' },
+    label: { zh: '國土流向哪個大洋', en: 'Where the land drains' },
     description: {
-      zh: `國土最大的一部分流向哪一個大洋（或是內流區）。${HOW.zh}`,
-      en: `The ocean that drains the largest part of the country (or inland basins). ${HOW.en}`,
+      zh: `國土的河流流向哪些大洋：圓的大小是國土面積（FAOSTAT 陸地面積），各片是流進太平洋、大西洋、印度洋、北冰洋與內流區的比例。${HOW.zh}`,
+      en: `Which oceans the country's rivers drain to: circle size is land area (FAOSTAT), and the slices are the shares draining to the Pacific, Atlantic, Indian and Arctic Oceans and to inland basins. ${HOW.en}`,
     },
-    unit: '',
-    file: 'main-ocean.json',
-    layer: {
-      kind: 'categorical',
-      categories: ORDER.map((value): CategoryDef => ({ value, label: OCEAN_NAMES[value], color: OCEAN_FILLS[value] })),
-    },
-    format: (v) => oceanName(v),
+    unit: 'km²',
+    file: 'land.json',
+    layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7], pie: { parts: BASIN_PIE } },
+    format: (v) => tr({ zh: `國土 ${fixed(v, 0)} km²`, en: `${fixed(v, 0)} km² of land` }),
+    formatTick: (v) => tr({ zh: v >= 1e6 ? `${fixed(v / 1e6, 0)} 百萬` : `${fixed(v / 1e4, 0)} 萬`, en: v >= 1e6 ? `${fixed(v / 1e6, 0)}M` : `${fixed(v / 1e3, 0)}K` }),
+    unranked: true,
   },
   {
     id: 'share',
@@ -457,6 +464,11 @@ export const rivers: TopicDefinition = {
       name: { zh: 'Terrain Tiles（地圖底下的地形陰影，Mapzen、AWS Open Data）', en: 'Terrain Tiles (hillshade under the map; Mapzen, AWS Open Data)' },
       url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
       license: { zh: '依各資料來源標示', en: 'attribution per data source' },
+    },
+    {
+      name: { zh: 'FAOSTAT 土地利用（陸地面積，國土流向的圓的大小）', en: 'FAOSTAT Land Use (land area; circle size for where the land drains)' },
+      url: 'https://www.fao.org/faostat/en/#data/RL',
+      license: 'CC BY 4.0',
     },
   ],
   // 授權協議要求的聲明寫在最前面（頁尾先露兩行）；細節寫在指標說明、資料夾裡的 HYDROSHEDS-NOTICE.txt 與 DESIGN.md

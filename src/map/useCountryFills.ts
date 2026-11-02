@@ -16,12 +16,14 @@ import {
   FILL_SWITCH_MS,
   NO_DATA,
   NO_DATA_SOURCE,
+  CATEGORY_HATCH_SOURCE,
   REDUCED_MOTION,
   classHeight,
   hatchOpacity,
   mixColor,
 } from './worldMapLayers';
 import type { RefObject } from 'react';
+import { drawHatch, hatchImageId } from './overlayLayers';
 
 /** WorldMap 的地圖狀態，抽出去的 effect 都要：地圖建好、資料圖層加上了才動作；換底圖時 revision 加一，圖層要重新加上 */
 export interface MapContext {
@@ -62,6 +64,8 @@ export function useCountryFills(
   const fillChangedRef = useRef(-Infinity);
   /** 斜線的國家（data-nodata）上次設的是哪一組 */
   const noDataKeyRef = useRef('');
+  /** 變形的類別的斜線上次設的是哪一組 */
+  const hatchKeyRef = useRef('');
   /** 上一次的色階（換了就是換了指標或主題） */
   const scaleRef = useRef<object | null>(null);
   useEffect(() => {
@@ -87,6 +91,28 @@ export function useCountryFills(
       map.setFeatureState({ source: 'tiny-columns', id: c.iso3 }, { on, h });
       map.setFeatureState({ source: 'tiny', id: c.iso3 }, { on: on && color !== null });
       target.set(c.iso3, on && color !== null ? color : NO_DATA);
+    }
+    // 變形的類別（CategoryDef.hatch）：底色已經是 base 那一類的顏色，再疊斜線（強調某一類時只留那一類的）
+    const hatched: GeoJSON.Feature[] = [];
+    if (categories && on) {
+      for (const c of countries) {
+        const v = values.get(c.iso3);
+        const i = v === undefined ? null : categories.index(v);
+        const item = i === null ? null : categories.items[i];
+        if (!item?.hatch || (highlightCategory !== null && highlightCategory !== i)) continue;
+        const pat = hatchImageId(item.hatch, 45);
+        if (!map.hasImage(pat)) {
+          const ratio = Math.min(2, Math.max(1, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1));
+          const image = drawHatch(item.hatch, 45, ratio);
+          if (image) map.addImage(pat, image, { pixelRatio: ratio });
+        }
+        hatched.push({ ...c.feature, properties: { ...c.feature.properties, pat } });
+      }
+    }
+    const hatchKey = `${revision}|${hatched.map((f) => `${f.properties?.iso3}:${f.properties?.pat}`).join(',')}`;
+    if (hatchKey !== hatchKeyRef.current) {
+      hatchKeyRef.current = hatchKey;
+      (map.getSource(CATEGORY_HATCH_SOURCE) as GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: hatched });
     }
     // 斜線的國家換了才換資料（播放時大多不變，不必每一年重切圖磚）
     const noDataKey = `${revision}|${noData.map((c) => c.iso3).join(',')}`;

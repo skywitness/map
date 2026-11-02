@@ -214,6 +214,19 @@ def build() -> None:
     write("burned-area", "平方公里", total, 1 / HA_PER_KM2, 2, world_total)
     write("burned-share", "%", share, 1, 6, world_share)
 
+    # 燒毀面積依土地覆蓋（2026-11-02，新28：燒毀面積的圓餅，各片是森林、莽原、灌叢與草地、農地、其他；平方公里）
+    for i, lc in enumerate(gwis.LANDCOVER):
+        by_lc: dict[str, dict[int, float]] = {}
+        for code, by_year in sorted(data.yearly.items()):
+            if code in SKIP:
+                continue
+            by_lc[CODES.get(code, code)] = {y: v[i] for y, v in by_year.items() if y in years}
+        lc_world = {y: sum(s.get(y, 0) for s in by_lc.values()) for y in years}
+        values = {iso3: ha_series(s, years, 1 / HA_PER_KM2, 2) for iso3, s in sorted(by_lc.items())}
+        write_json(out / "landcover" / f"{lc}.json", indicator_file(
+            f"landcover-{lc}", "平方公里", years, values, aggregates={"WLD": ha_series(lc_world, years, 1 / HA_PER_KM2, 2)},
+        ))
+
     # ── 側欄：每國一個檔，5 種土地覆蓋的逐年面積與逐月面積（公頃，整數） ──
     for code, by_year in sorted(data.yearly.items()):
         if code in SKIP:

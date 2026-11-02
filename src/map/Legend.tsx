@@ -199,12 +199,14 @@ interface BubbleLegendProps {
   title: string;
   radius: ScalePower<number, number>;
   tokens: Tokens;
+  /** 地圖上真的畫了圓餅（PieSpec.items 不含這個子項目時是 false，各片的圖例不列） */
+  pieShown?: boolean;
 }
 
-export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendProps) {
+export function BubbleLegend({ indicator, title, radius, tokens, pieShown = true }: BubbleLegendProps) {
   const t = useT();
   const { items, maxR, baseline, labelX, width, height } = bubbleLegendModel(indicator, radius);
-  const pie = indicator.layer.kind === 'bubble' ? indicator.layer.pie : undefined;
+  const pie = pieShown && indicator.layer.kind === 'bubble' ? indicator.layer.pie : undefined;
   return (
     <div className="legend">
       <div className="legend-title">
@@ -392,12 +394,17 @@ export function FlowLegend({ indicator, title, direction, max, tokens }: FlowLeg
 
 /** 類別圖圖例：每一類一列（色塊、名稱、國家數），類別多時排成兩欄（畫面上的圖例與匯出的圖片共用） */
 export interface CategoricalLegendModel {
-  items: { label: string; color: string; count: number }[];
+  items: { label: string; color: string; hatch?: string; count: number }[];
   columns: number;
 }
 
 /** 超過這麼多類就排成兩欄，圖例才不會太高（手機上會蓋住半張地圖） */
 const ONE_COLUMN_MAX = 5;
+
+/** 類別的色塊：變形的類別（CategoryDef.hatch）是底色加斜線，跟地圖上一樣 */
+export function hatchBackground(color: string, hatch?: string): string {
+  return hatch ? `repeating-linear-gradient(135deg, transparent 0 2px, ${hatch} 2px 3.5px), ${color}` : color;
+}
 
 export function categoricalLegendModel(scale: CategoryScale, values: Map<string, number>): CategoricalLegendModel {
   const counts = scale.items.map(() => 0);
@@ -406,7 +413,7 @@ export function categoricalLegendModel(scale: CategoryScale, values: Map<string,
     if (i !== null) counts[i]++;
   }
   return {
-    items: scale.items.map((item, i) => ({ label: item.label, color: item.color, count: counts[i] })),
+    items: scale.items.map((item, i) => ({ label: item.label, color: item.color, hatch: item.hatch, count: counts[i] })),
     columns: scale.items.length > ONE_COLUMN_MAX ? 2 : 1,
   };
 }
@@ -441,7 +448,7 @@ export function CategoricalLegend({ title, scale, values, highlight, onPreview, 
         style={{ '--rows': Math.ceil(items.length / columns) } as CSSProperties}
         aria-label={title}
       >
-        {items.map(({ label, color, count }, i) => (
+        {items.map(({ label, color, hatch, count }, i) => (
           <li key={label}>
             <button
               type="button"
@@ -454,7 +461,7 @@ export function CategoricalLegend({ title, scale, values, highlight, onPreview, 
               onClick={() => onPin(pinned === i ? null : i)}
               title={t.categoryTitle(label, count)}
             >
-              <span className="legend-swatch" style={{ background: color }} />
+              <span className="legend-swatch" style={{ background: hatchBackground(color, hatch) }} />
               <span className="legend-category-label">{label}</span>
               <span className="legend-count">{count}</span>
             </button>
