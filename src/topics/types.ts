@@ -690,6 +690,22 @@ export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number
 /** 斜線的方向（度）：只用這四種，圖片可以無縫地鋪 */
 export type HatchAngle = 0 | 45 | 90 | 135;
 
+/** 播放的一刻（LinesOverlayDef.play）：一個點、它旁邊的字，可以再加一塊面（本影的形狀） */
+export interface PlayFrame {
+  point: [number, number];
+  polygon?: [number, number][];
+  label: string;
+}
+export interface PlayScript {
+  /** 播完的秒數 */
+  seconds: number;
+  /** 點與面的顏色 */
+  color: string;
+  /** 使用者偏好減少動態效果時停在哪一刻（0–1） */
+  still: number;
+  frame: (fraction: number) => PlayFrame | null;
+}
+
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
   /**
@@ -718,6 +734,11 @@ export interface LinesOverlayDef extends OverlayBase {
    * 點的顏色是那一段的分類色，旁邊寫 label(紀錄, 走到幾成)（名稱與那一刻的日期）；seconds 是走完的秒數（預設 6）
    */
   animate?: { label: (p: PointRecord, fraction: number) => string; seconds?: number };
+  /**
+   * 播放一個會變形的東西沿著路徑走（2026-11-02，新14，日食的本影；WorldMap 的 routeAnimation 跟 animate 同一個觸發：
+   * 清單側欄點一組線）：load(那一組的紀錄) 準備資料（例如下載貝塞爾根數），回傳每一刻的畫面；null 是這一組不能播
+   */
+  play?: { load: (record: PointRecord) => Promise<PlayScript | null> };
   /**
    * 依縮放篩選（跟點圖層的 minValue 一樣）：紀錄的 field 要大於等於這一級的門檻，stops 是 [縮放級數, 最小值]，
    * 由小到大，第一個的級數是 0。例如縮小時只畫大河、放大後小河才出現

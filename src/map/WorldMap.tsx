@@ -70,7 +70,7 @@ import {
 import { syncContours, syncIsobaths } from './contours';
 import { pieTier, syncPieImages, type PieData } from './pies';
 import { applyTimeFilters, groupPath, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
-import { playRoute, ROUTE_SOURCE, routeLayers } from './routeAnimation';
+import { playRoute, playScript, ROUTE_SOURCE, routeLayers } from './routeAnimation';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
 import { useClassGridOnly } from './classGridHighlight';
@@ -1429,7 +1429,20 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current || !routeAnimation || !picked) return;
     const { overlay: o, path, record } = picked;
-    if (o.kind !== 'lines' || !o.def.animate) return;
+    if (o.kind !== 'lines') return;
+    // 會變形的（日食的本影，def.play）：先準備資料（下載根數），準備好了才播；換一組時取消
+    if (o.def.play) {
+      let stop: (() => void) | null = null;
+      let cancelled = false;
+      void o.def.play.load(record).then((script) => {
+        if (!cancelled && script && map.getSource(ROUTE_SOURCE)) stop = playScript(map, script, matchMedia(REDUCED_MOTION).matches);
+      });
+      return () => {
+        cancelled = true;
+        stop?.();
+      };
+    }
+    if (!o.def.animate) return;
     const { def } = o;
     const animate = def.animate!;
     const classes = typeof def.color === 'string' ? null : def.color.classes;

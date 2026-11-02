@@ -6,7 +6,8 @@
  * - 點的顏色是那一段的分類色（颱風的強度），白色外框；畫在最上面（`route-anim` source 的兩個圖層）。
  * - 使用者偏好減少動態效果時直接停在終點。
  */
-import type { DataDrivenPropertyValueSpecification, GeoJSONSource, Map as MaplibreMap } from 'maplibre-gl';
+import type { DataDrivenPropertyValueSpecification, ExpressionSpecification, FilterSpecification, GeoJSONSource, Map as MaplibreMap } from 'maplibre-gl';
+import type { PlayScript } from '../topics/types';
 
 export const ROUTE_SOURCE = 'route-anim';
 const HOLD_MS = 2000;
@@ -43,17 +44,36 @@ export function pointAt(coords: [number, number][], fraction: number): { at: [nu
   return { at: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t], index };
 }
 
+const IS_POINT: FilterSpecification = ['==', ['geometry-type'], 'Point'];
+const IS_POLYGON: FilterSpecification = ['==', ['geometry-type'], 'Polygon'];
+
 export function routeLayers(font: DataDrivenPropertyValueSpecification<string[]>, dark: boolean) {
   return [
+    // 播放的面（LinesOverlayDef.play：日食的本影）：黑色半透明的面（影子）加白色外框
+    {
+      id: 'route-anim-shape',
+      type: 'fill' as const,
+      source: ROUTE_SOURCE,
+      filter: IS_POLYGON,
+      paint: { 'fill-color': '#000000', 'fill-opacity': dark ? 0.75 : 0.6 },
+    },
+    {
+      id: 'route-anim-shape-line',
+      type: 'line' as const,
+      source: ROUTE_SOURCE,
+      filter: IS_POLYGON,
+      paint: { 'line-color': '#ffffff', 'line-width': 1.2, 'line-opacity': 0.9 },
+    },
     {
       id: 'route-anim-dot',
       type: 'circle' as const,
       source: ROUTE_SOURCE,
+      filter: IS_POINT,
       paint: {
-        'circle-radius': 7,
+        'circle-radius': ['case', ['==', ['get', 'small'], 1], 2.5, 7] as ExpressionSpecification,
         'circle-color': ['get', 'color'] as ['get', string],
         'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 2.5,
+        'circle-stroke-width': ['case', ['==', ['get', 'small'], 1], 1, 2.5] as ExpressionSpecification,
         'circle-pitch-alignment': 'map' as const,
       },
     },
@@ -61,6 +81,7 @@ export function routeLayers(font: DataDrivenPropertyValueSpecification<string[]>
       id: 'route-anim-label',
       type: 'symbol' as const,
       source: ROUTE_SOURCE,
+      filter: IS_POINT,
       layout: {
         'text-field': ['get', 'label'] as ['get', string],
         'text-font': font,
@@ -100,6 +121,47 @@ export function playRoute(map: MaplibreMap, path: RoutePath, reduceMotion: boole
   const step = (now: number) => {
     const fraction = reduceMotion ? 1 : (now - start) / duration;
     draw(fraction);
+    if (fraction < 1) frame = requestAnimationFrame(step);
+    else hold = window.setTimeout(clear, HOLD_MS);
+  };
+  frame = requestAnimationFrame(step);
+  return () => {
+    cancelAnimationFrame(frame);
+    clearTimeout(hold);
+    if (map.getSource(ROUTE_SOURCE)) clear();
+  };
+}
+
+/**
+ * 播放一段會變形的東西（LinesOverlayDef.play，2026-11-02，日食的本影）：每一格算那一刻的點與面，走完停 2 秒再消失。
+ * 回傳停止的函式
+ */
+export function playScript(map: MaplibreMap, script: PlayScript, reduceMotion: boolean): () => void {
+  const source = map.getSource(ROUTE_SOURCE) as GeoJSONSource | undefined;
+  if (!source) return () => {};
+  const duration = script.seconds * 1000;
+  const start = performance.now();
+  let frame = 0;
+  let hold = 0;
+  const draw = (fraction: number) => {
+    const f = script.frame(fraction);
+    const features: GeoJSON.Feature[] = [];
+    if (f?.polygon) {
+      features.push({ type: 'Feature', properties: { color: script.color }, geometry: { type: 'Polygon', coordinates: [f.polygon] } });
+    }
+    // 有面的時候點畫小一點（本影在世界全圖只有十幾 px，大的點會把它蓋住）
+    if (f) features.push({ type: 'Feature', properties: { color: script.color, label: f.label, small: f.polygon ? 1 : 0 }, geometry: { type: 'Point', coordinates: f.point } });
+    source.setData({ type: 'FeatureCollection', features });
+  };
+  const clear = () => source.setData({ type: 'FeatureCollection', features: [] });
+  const step = (now: number) => {
+    if (reduceMotion) {
+      draw(script.still);
+      hold = window.setTimeout(clear, HOLD_MS * 3);
+      return;
+    }
+    const fraction = (now - start) / duration;
+    draw(Math.min(1, fraction));
     if (fraction < 1) frame = requestAnimationFrame(step);
     else hold = window.setTimeout(clear, HOLD_MS);
   };

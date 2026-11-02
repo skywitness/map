@@ -1,7 +1,9 @@
 import { getLang, tr, type Text } from '../i18n/lang';
+import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import { formatLatLon } from './antipodes';
+import type { IndicatorDef, LinesData, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsData, TopicDefinition } from './types';
 
 /**
  * 日食路徑（pipeline/topics/eclipses.py，DESIGN.md 第 8 節第 88 點）：1900–2100 年每一次日全食、日環食、混合食的本影（偽本影）路徑，
@@ -99,6 +101,51 @@ function pathTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
   };
 }
 
+// ── 播放本影（2026-11-02，新14）：清單點一次日食時，用貝塞爾根數（elements.json，pipeline/topics/eclipse_elements.py）
+// 在瀏覽器算每一刻的本影（src/lib/eclipseShadow.ts），10 秒走完影子在地球上的那一段，旁邊寫世界時 ───────────────
+
+type ElementsModule = typeof import('../lib/eclipseShadow');
+let elementsPromise: Promise<{ lib: ElementsModule; byId: Map<number, import('../lib/eclipseShadow').EclipseElements> }> | null = null;
+function eclipseElements() {
+  return (elementsPromise ??= Promise.all([
+    import('../lib/eclipseShadow'),
+    fetchJson<{ rows: import('../lib/eclipseShadow').ElementsRow[] }>('topics/eclipses/elements.json'),
+  ]).then(([lib, file]) => ({ lib, byId: new Map(file.rows.map((r) => [r[0], lib.parseElements(r)])) })));
+}
+
+const PLAY_UMBRA: NonNullable<LinesOverlayDef['play']> = {
+  load: async (p) => {
+    const e = num(p.e);
+    if (e === null) return null;
+    const { lib, byId } = await eclipseElements().catch(() => {
+      elementsPromise = null;
+      return { lib: null, byId: new Map() };
+    });
+    const el = byId.get(e);
+    if (!lib || !el) return null;
+    const span = lib.centralSpan(el);
+    if (!span) return null;
+    const k = num(p.k) ?? KIND.total;
+    const [t0, t1] = span;
+    return {
+      seconds: 10,
+      color: KIND_COLORS[k]?.color ?? KIND_COLORS[KIND.total].color,
+      still: 0.5,
+      frame: (f) => {
+        const t = t0 + (t1 - t0) * f;
+        const u = lib.umbraAt(el, t);
+        if (!u) return null;
+        const time = lib.utcText(el, t);
+        return {
+          point: u.center,
+          polygon: u.ring ?? undefined,
+          label: tr({ zh: `本影 · 世界時 ${time}`, en: `Umbra · ${time} UTC` }),
+        };
+      },
+    };
+  },
+};
+
 const CLASSES = [KIND.total, KIND.annular, KIND.hybrid].map((value) => ({ value, ...KIND_COLORS[value], label: KIND_NAMES[value] }));
 const COLOR = { title: { zh: '類型（帶子是路徑，中間的線是中心線）', en: 'Type (band: path; line: central line)' }, classes: CLASSES };
 /** 只有中心線的圖層 */
@@ -127,6 +174,7 @@ export const PATHS: LinesOverlayDef = {
   casing: true,
   hoverHalo: true,
   tooltip: pathTooltip,
+  play: PLAY_UMBRA,
 };
 
 /**
@@ -509,6 +557,138 @@ const LUNAR_LIST: ListPanelDef = {
   },
 };
 
+// ── 這一點看得到的日食與月食（2026-11-02，新15）：可以拖的觀察點（預設台北）、「定位我」放到你的位置 ─────────────────
+// - 日全食、日環食：那一點在路徑環（paths.json 的 r = 0）裡面的那幾次（經度展開過，各加減 360° 再測一次）；混合食算在日全食。
+// - 月全食：月亮在天頂的點（lunar-list.json，誤差幾度）離這一點不到 90°，再加上全食一半時間裡天頂點往西移的距離
+//   （每小時約 14.5°），就是看得到至少一部分的全食。
+// 兩個檔都是地圖本來就會下載的（路徑、月全食的清單），第一次用到時解碼一次留著。
+
+interface Ring {
+  e: number;
+  d: number;
+  k: number;
+  ring: [number, number][];
+  box: [number, number, number, number];
+}
+interface LunarSpot {
+  d: number;
+  T: number;
+  lon: number;
+  lat: number;
+}
+let hereData: { rings: Ring[]; lunar: LunarSpot[] } | null = null;
+let hereLoading = false;
+function hereFiles(): { rings: Ring[]; lunar: LunarSpot[] } | null {
+  if (!hereData && !hereLoading) {
+    hereLoading = true;
+    void Promise.all([
+      import('../map/overlayData'),
+      fetchJson<LinesData>('topics/eclipses/paths.json'),
+      fetchJson<PointsData>('topics/eclipses/lunar-list.json'),
+    ])
+      .then(([{ decodeLines, decodePoints }, paths, lunar]) => {
+        const decoded = decodeLines(paths);
+        const rings: Ring[] = [];
+        decoded.lines.forEach((line, i) => {
+          const r = decoded.records?.[i];
+          if (!r || r.r !== 0 || line.length < 4) return;
+          let [w, so, ea, n] = [Infinity, Infinity, -Infinity, -Infinity];
+          for (const [lon, lat] of line) {
+            w = Math.min(w, lon);
+            ea = Math.max(ea, lon);
+            so = Math.min(so, lat);
+            n = Math.max(n, lat);
+          }
+          rings.push({ e: Number(r.e), d: Number(r.d), k: Number(r.k), ring: line as [number, number][], box: [w, so, ea, n] });
+        });
+        const spots = decodePoints(lunar).map((p) => ({ d: Number(p.d), T: Number(p.T), lon: Number(p.lon), lat: Number(p.lat) }));
+        hereData = { rings, lunar: spots };
+      })
+      .catch(() => (hereLoading = false));
+  }
+  return hereData;
+}
+
+function inRing(ring: [number, number][], x: number, y: number): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** 兩點的大圓角距（度） */
+function arcDegrees(lon1: number, lat1: number, lon2: number, lat2: number): number {
+  const r = Math.PI / 180;
+  const c = Math.sin(lat1 * r) * Math.sin(lat2 * r) + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.cos((lon1 - lon2) * r);
+  return Math.acos(Math.min(1, Math.max(-1, c))) / r;
+}
+
+/** 這一點 1900–2100 年經過的日全食、日環食（依日期）與看得到的月全食 */
+export function eclipsesHere(
+  data: { rings: Ring[]; lunar: LunarSpot[] },
+  [lon, lat]: [number, number],
+): { solar: { d: number; k: number }[]; lunar: number[] } {
+  const seen = new Set<number>();
+  const solar: { d: number; k: number }[] = [];
+  for (const r of data.rings) {
+    if (seen.has(r.e) || lat < r.box[1] || lat > r.box[3]) continue;
+    const hit = [lon, lon - 360, lon + 360].some((x) => x >= r.box[0] && x <= r.box[2] && inRing(r.ring, x, lat));
+    if (hit) {
+      seen.add(r.e);
+      solar.push({ d: r.d, k: r.k });
+    }
+  }
+  solar.sort((a, b) => a.d - b.d);
+  const lunar = data.lunar
+    .filter((m) => arcDegrees(lon, lat, m.lon, m.lat) < 90 + ((m.T / 2) * 14.5) / 60)
+    .map((m) => m.d)
+    .sort((a, b) => a - b);
+  return { solar, lunar };
+}
+
+/** 短的日期：「2070/4/11」「11 Apr 2070」 */
+function shortDate(ymd: number): string {
+  const y = Math.floor(ymd / 10000);
+  const m = Math.floor(ymd / 100) % 100;
+  const d = ymd % 100;
+  return tr({ zh: `${y}/${m}/${d}`, en: `${d} ${MONTHS[m - 1]} ${y}` });
+}
+
+/** 一串日期：4 次以內全寫，多的寫頭兩次、…、最後一次 */
+function dateList(ds: number[]): string {
+  const sep = tr({ zh: '、', en: ', ' });
+  if (ds.length <= 4) return ds.map(shortDate).join(sep);
+  return [...ds.slice(0, 2).map(shortDate), '…', shortDate(ds[ds.length - 1])].join(sep);
+}
+
+function pinLabel(at: [number, number]): string[] {
+  const data = hereFiles();
+  if (!data) return [];
+  const { solar, lunar } = eclipsesHere(data, at);
+  const today = todayYmd();
+  const total = solar.filter((s) => s.k !== KIND.annular).map((s) => s.d);
+  const annular = solar.filter((s) => s.k !== KIND.total).map((s) => s.d);
+  const next = (ds: number[]) => ds.find((d) => d >= today);
+  const nextText = (ds: number[]) => {
+    const n = next(ds);
+    return n ? tr({ zh: `，下一次 ${shortDate(n)}`, en: `; next ${shortDate(n)}` }) : '';
+  };
+  const lines = [tr({ zh: `這一點（${formatLatLon(at[0], at[1])}）1900–2100 年：`, en: `Here (${formatLatLon(at[0], at[1])}), 1900–2100:` })];
+  if (total.length) lines.push(tr({ zh: `日全食 ${total.length} 次：${dateList(total)}`, en: `Total: ${total.length} (${dateList(total)})` }));
+  if (annular.length) lines.push(tr({ zh: `日環食 ${annular.length} 次：${dateList(annular)}`, en: `Annular: ${annular.length} (${dateList(annular)})` }));
+  if (!total.length && !annular.length) lines.push(tr({ zh: '沒有日全食、日環食的路徑經過', en: 'No total or annular eclipse path crosses here' }));
+  lines.push(
+    tr({
+      zh: `月全食看得到 ${lunar.length} 次${nextText(lunar)}`,
+      en: `Total lunar eclipses visible: ${lunar.length}${nextText(lunar)}`,
+    }),
+  );
+  return lines;
+}
+
 export const eclipses: TopicDefinition = {
   id: 'eclipses',
   // 2026-10-28 加上月食後改名（原本是「日食路徑」，id 與網址不變）
@@ -547,5 +727,7 @@ export const eclipses: TopicDefinition = {
     { ...LUNAR_ZONES, indicators: ['lunar-year', 'next-lunar'] },
   ],
   listPanel: [SOLAR_LIST, LUNAR_LIST],
+  // 這一點看得到的日食與月食（新15）：預設在台北，可以拖、方向鍵移動、「定位我」放到你的位置
+  pin: { draggable: true, default: [121.565, 25.033], label: (ll) => pinLabel(ll) },
   indicators,
 };
