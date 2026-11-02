@@ -259,6 +259,35 @@ const indicators: IndicatorDef[] = [
     compareWorld: true,
   },
   {
+    id: 'urban-national',
+    label: { zh: '都市化率（各國自己的定義）', en: 'Urbanisation rate (national definitions)' },
+    description: {
+      zh: '各國政府自己定義的都市人口比例（聯合國 WUP 2025 整理，1950–2050 年每年，2025 年起是推估）。定義各國不同：有的看行政區（日本的「市」）、有的看人口規模或密度、台灣是都市計畫區內的人口，所以不能直接比較；上面的「都市化率」是同一套 1 km 網格算的統一定義。',
+      en: 'Share of people living in areas each government defines as urban (compiled in UN World Urbanization Prospects 2025, every year 1950–2050, projected from 2025). Definitions differ: some use administrative units (Japan’s shi), some population size or density, and Taiwan counts urban planning districts, so countries are not directly comparable; the Urbanisation rate above applies one 1 km grid definition everywhere.',
+    },
+    unit: '%',
+    file: 'urban-national.json',
+    layer: { kind: 'choropleth', scale: seq([40, 55, 70, 80, 90, 95]) },
+    format: pct,
+    formatTick: pctTick,
+    compareWorld: true,
+  },
+  {
+    id: 'urban-gap',
+    label: { zh: '兩種都市化率差多少', en: 'Gap between the two urbanisation rates' },
+    description: {
+      zh: '各國自己定義的都市化率，減去統一定義的都市化率（城市加城鎮），單位是百分點，1950–2050 年每 5 年。橘色是自己的定義算得比較少（多數國家是這樣：南亞與非洲的大村落、城郊在統一定義算城鎮），綠色是算得比較多。人口很少的島（安吉拉、福克蘭群島）到不了統一定義城鎮的 5,000 人門檻，統一定義是 0%，差距特別大。',
+      en: 'The urbanisation rate by national definition minus the harmonised rate (cities plus towns), in percentage points, every five years 1950–2050. Orange means the national definition counts fewer people as urban (most countries: large villages and peri-urban areas in South Asia and Africa count as towns under the harmonised definition); teal means it counts more. Tiny islands (Anguilla, the Falklands) fall below the 5,000-person threshold for towns, so their harmonised rate is 0% and the gap is very large.',
+    },
+    unit: { zh: '百分點', en: 'percentage points' },
+    file: 'urban-gap.json',
+    layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-40, -20, -5, 5, 20, 40] } },
+    format: (v) => tr({ zh: `${v > 0 ? '+' : ''}${fixed(v, 1)} 個百分點`, en: `${v > 0 ? '+' : ''}${fixed(v, 1)} pp` }),
+    formatTick: (v) => `${v > 0 ? '+' : ''}${fixed(v, 0)}`,
+    compareWorld: true,
+    unranked: true,
+  },
+  {
     id: 'city-share',
     label: { zh: '住在城市的比例', en: 'Living in cities' },
     description: {
@@ -374,11 +403,19 @@ export const cities: TopicDefinition = withParts({
     },
     {
       name: {
-        zh: 'United Nations, World Urbanization Prospects 2025（File 21：各城市 1975–2050 年的人口，跟 GHS-WUP-MTUC 的數字相同；GHS-WUP 沒有名稱的城市用它的名稱）',
-        en: 'United Nations, World Urbanization Prospects 2025 (File 21: population of each city, 1975–2050; the same figures as GHS-WUP-MTUC; names for cities GHS-WUP leaves unnamed)',
+        zh: 'United Nations, World Urbanization Prospects 2025（File 21：各城市 1975–2050 年的人口，跟 GHS-WUP-MTUC 的數字相同；GHS-WUP 沒有名稱的城市用它的名稱。File 15：各國自己定義的都市人口比例）',
+        en: 'United Nations, World Urbanization Prospects 2025 (File 21: population of each city, 1975–2050; the same figures as GHS-WUP-MTUC; names for cities GHS-WUP leaves unnamed. File 15: urban share by national definitions)',
       },
       url: 'https://population.un.org/wup/',
       license: 'CC BY 3.0 IGO',
+    },
+    {
+      name: {
+        zh: '國家發展委員會「4-1 都市計畫區面積與人口數」（都市及區域發展統計彙編）：台灣的都市計畫區人口比例',
+        en: 'Taiwan National Development Council, urban planning district area and population (Urban and Regional Development Statistics): Taiwan comparison',
+      },
+      url: 'https://data.gov.tw/dataset/6489',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     {
       name: {

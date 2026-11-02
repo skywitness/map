@@ -1,5 +1,7 @@
-"""聯合國人口司《World Urbanization Prospects: The 2025 Revision》（CC BY 3.0 IGO）的 File 21：人口 5 萬以上的城市
-1975–2050 年每年年中的人口（千人）。城市主題只拿它補城市的名稱（製作手冊第十六批 266）。
+"""聯合國人口司《World Urbanization Prospects: The 2025 Revision》（CC BY 3.0 IGO）：
+- File 21：人口 5 萬以上的城市 1975–2050 年每年年中的人口（千人）。城市主題只拿它補城市的名稱（製作手冊第十六批 266，city_names()）。
+- File 15：依各國自己的都市定義，都市人口占幾 %，1950–2050 年每年（2025 年起推估）。城市主題的「都市化率（各國自己的定義）」
+  （製作手冊第十七批 269，national_urban()）。城鄉程度（Degree of Urbanisation）的 F01–F13 跟 GHS-WUP 是同一份 JRC 資料，不另外讀。
 
 - 城市就是 GHS-WUP-MTUC R2025A 的城市（`City_Code`＝`ID_UC_G0`，sources/ghsl_wup.py）：2026-11-01 核對 16,828 個城市，
   每 5 年的人口、國家（LocID）、首都都相同（人口最多差 0.001%），中間的年份是前後兩期之間的直線內插；1975–2050 年
@@ -26,6 +28,12 @@ CITATION = (
     "World Urbanization Prospects: The 2025 Revision, Online Edition."
 )
 NO_NAME = {"", "N/A"}
+NATIONAL_URL = ("https://population.un.org/wup/assets/Download/Countries%20and%20Aggregates/"
+                "WUP2025-F15-National-Definitions_percPop_by_category.xlsx")
+NATIONAL_FILE = "WUP2025-F15-National-Definitions_percPop_by_category.xlsx"
+# 各國用的定義與資料來源（台灣是國發會的《都市及區域發展統計彙編》，都市計畫區的人口）
+SOURCES_URL = "https://population.un.org/wup/assets/Download/WUP2025-M02-DataSources-National-Definitions-UrbanPercentage.xlsx"
+WORLD_LOC = 900
 
 
 @lru_cache(maxsize=1)
@@ -55,3 +63,32 @@ def city_names() -> dict[int, str]:
     with open(cache, "wb") as f:
         pickle.dump(out, f)
     return out
+
+
+@lru_cache(maxsize=1)
+def national_urban() -> tuple[dict[int, dict[int, float]], dict[int, float]]:
+    """File 15 的 Urban 工作表：（{LocID: {年: 都市人口 %}}（國家與地區，LocType 4），{年: 世界的 %}）。
+    讀檔時核對 info 工作表的授權那一句（跟 File 21 一樣）"""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(download(NATIONAL_URL, CACHE, NATIONAL_FILE), read_only=True, data_only=True)
+    info = " ".join(str(v) for row in wb["info"].iter_rows(values_only=True) for v in row if v is not None)
+    if LICENSE_LINE not in info:
+        raise RuntimeError(f"{NATIONAL_FILE} 的 info 工作表沒有「{LICENSE_LINE}」，授權可能換了，先查清楚再用")
+    rows = wb["Urban"].iter_rows(values_only=True)
+    header = [str(h) for h in next(rows)]
+    loc_i, type_i = header.index("LocID"), header.index("LocTypeName")
+    year_cols = {int(h): i for i, h in enumerate(header) if h.isdigit()}
+    countries: dict[int, dict[int, float]] = {}
+    world: dict[int, float] = {}
+    for r in rows:
+        if r[loc_i] is None:
+            continue
+        values = {y: float(r[i]) for y, i in year_cols.items() if r[i] is not None}
+        if int(r[loc_i]) == WORLD_LOC:
+            world = values
+        elif r[type_i] == "Country/Area":
+            countries[int(r[loc_i])] = values
+    if not world or len(countries) < 200:
+        raise RuntimeError(f"{NATIONAL_FILE} 的格式可能變了：世界 {bool(world)}、{len(countries)} 個國家")
+    return countries, world

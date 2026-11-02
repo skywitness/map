@@ -150,6 +150,8 @@ STEPS = {
     # GHSL Urban Centre Database 2025 與各國城鄉人口（約 43 MB）、Wikidata 的地點（兩次查詢約 1 分鐘）與中文名稱
     # （約 130 次查詢）、內政部戶政司的縣市人口；之後用快取約 30 秒
     "cities": "topics.cities",
+    # 城市的都市化率（各國自己的定義，聯合國 WUP 2025 的 File 15），對照 GHS-WUP 的統一定義
+    "urban-definitions": "topics.urban_definitions",
     "crime": "topics.crime",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "happiness": "topics.happiness",
