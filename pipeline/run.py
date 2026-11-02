@@ -47,6 +47,8 @@ STEPS = {
     "transport": "topics.transport",
     "climate": "topics.climate",
     "climate-transport": "topics.climate_transport",
+    # Climate TRACE 5.12.0（Zenodo，用 HTTP Range 只讀需要的檔，第一次約 400 MB、10 分鐘）
+    "climate-trace": "topics.climate_trace",
     "military": "topics.military",
     "digital": "topics.digital",
     "health": "topics.health",

@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import type { Text } from '../i18n/lang';
-import type { IndicatorDef, OverlayDef, PanelExtraProps, SourceDef, TopicDefinition } from './types';
+import type { IndicatorDef, ListPanelDef, OverlayDef, PanelExtraProps, SourceDef, TopicDefinition } from './types';
 
 /**
  * 併進大主題的小主題（2026-10-30，第七批 122）：小主題的檔改成匯出一個 TopicPart，大主題用 withParts() 接上，
@@ -17,6 +17,8 @@ export interface TopicPart {
   panelExtra?: TopicDefinition['panelExtra'];
   /** 這幾個指標的 tooltip 多寫的幾行（取代大主題的 tooltipLines） */
   tooltipLines?: TopicDefinition['tooltipLines'];
+  /** 清單側欄（2026-11-02，溫室氣體排放的 Climate TRACE 排放源）：接在大主題的清單後面，各自用 indicators 限定指標 */
+  listPanel?: ListPanelDef[];
 }
 
 /** 大主題接上小主題：資料來源、說明接在後面，指標、疊加圖層加在後面，側欄依指標換 */
@@ -34,6 +36,12 @@ export function withParts(topic: TopicDefinition, ...parts: TopicPart[]): TopicD
     indicators: [...topic.indicators, ...parts.flatMap((p) => p.indicators)],
     panelExtra: partsPanel(topic.panelExtra, parts),
     tooltipLines: partsTooltip(topic.tooltipLines, parts),
+    ...(parts.some((p) => p.listPanel?.length) && {
+      listPanel: [
+        ...(Array.isArray(topic.listPanel) ? topic.listPanel : topic.listPanel ? [topic.listPanel] : []),
+        ...parts.flatMap((p) => p.listPanel ?? []),
+      ],
+    }),
   };
 }
 
