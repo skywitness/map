@@ -19,7 +19,7 @@ import {
   type ColumnLegendModel,
   type FlowLegendModel,
 } from './Legend';
-import { lookSwatch, SHADE_KEY, trianglePoints, type OverlayKey, type OverlaySwatch } from './Overlays';
+import { hatchLines, lookSwatch, SHADE_KEY, trianglePoints, type OverlayKey, type OverlaySwatch } from './Overlays';
 import { RELIEF_NOTE, type ReliefLegendModel } from './terrain';
 
 /** 匯出至少用 2 倍解析度，在高解析度螢幕上看也清楚；只在匯出的那一下調高，之後還原 */
@@ -44,7 +44,12 @@ export async function captureMap(map: MaplibreMap): Promise<{ canvas: HTMLCanvas
         const canvas = document.createElement('canvas');
         canvas.width = source.width;
         canvas.height = source.height;
-        canvas.getContext('2d')!.drawImage(source, 0, 0);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(source, 0, 0);
+        // 疊在地圖上的 canvas（北磁極的軌跡，trails.ts 的 OVERLAY_CANVAS_CLASS）
+        for (const extra of map.getCanvasContainer().querySelectorAll<HTMLCanvasElement>('canvas.map-overlay-canvas')) {
+          if (extra.width > 0 && extra.height > 0) ctx.drawImage(extra, 0, 0, canvas.width, canvas.height);
+        }
         resolve({ canvas, ratio: source.width / source.clientWidth });
       };
       const timer = setTimeout(() => {
@@ -545,6 +550,20 @@ function drawSwatch(ctx: CanvasRenderingContext2D, swatch: OverlaySwatch, x: num
     ctx.lineTo(x + 17, cy);
     ctx.stroke();
     ctx.setLineDash([]);
+    return 18;
+  }
+  if (shape === 'hatch') {
+    // 外框加斜線（防空識別區，跟畫面上的圖例一樣）
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(x + 1.5, cy - 4, 15, 8);
+    ctx.lineWidth = 1;
+    for (const [x1, y1, x2, y2] of hatchLines(swatch.angle ?? 45)) {
+      ctx.beginPath();
+      ctx.moveTo(x + x1, cy - 5 + y1);
+      ctx.lineTo(x + x2, cy - 5 + y2);
+      ctx.stroke();
+    }
     return 18;
   }
   if (shape === 'band') {

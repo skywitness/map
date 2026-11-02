@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { heatRamp } from './heatRamps';
+import { ISOBATH_COLOR } from './isobathStyle';
 import { tr, useLang, useT, type Text } from '../i18n';
 import type { PointsOverlay } from '../topics/types';
 import { setClassGridOnly } from './classGridHighlight';
@@ -41,12 +43,42 @@ export function interpolateStops(size: number | { stops: [number, number][] }, v
 }
 
 /** 圖例上的一個符號 */
+/** 圖例的斜線（18 × 10 的框裡，x 1.5–16.5、y 1–9）：依方向每隔 4 px 一條，裁到框裡 */
+export function hatchLines(angle: number): [number, number, number, number][] {
+  const out: [number, number, number, number][] = [];
+  const [x0, x1, y0, y1] = [1.5, 16.5, 1, 9];
+  if (angle === 0) {
+    for (const y of [3, 5, 7]) out.push([x0, y, x1, y]);
+  } else if (angle === 90) {
+    for (let x = 4; x < x1; x += 3.5) out.push([x, y0, x, y1]);
+  } else {
+    // 45°：x − (y1 − y) = c；135°：x − (y − y0) = c，c 每隔 4
+    for (let c = x0 - 8; c < x1; c += 4) {
+      const pts: [number, number][] = [];
+      const at = (y: number) => c + (angle === 45 ? y1 - y : y - y0);
+      for (const y of [y0, y1]) {
+        const x = at(y);
+        if (x >= x0 && x <= x1) pts.push([x, y]);
+      }
+      for (const x of [x0, x1]) {
+        const y = angle === 45 ? y1 - (x - c) : y0 + (x - c);
+        if (y > y0 && y < y1) pts.push([x, y]);
+      }
+      if (pts.length >= 2) out.push([pts[0][0], pts[0][1], pts[1][0], pts[1][1]]);
+    }
+  }
+  return out;
+}
+
 export interface OverlaySwatch {
   /**
    * band：半透明的帶子加上兩側的邊與中間的線（有 fill 的線圖層，例如日食的路徑）；
-   * fill：一塊半透明的色塊（晝夜的夜色，opacity 是它的不透明度；0 是只有外框的白天）
+   * fill：一塊半透明的色塊（晝夜的夜色，opacity 是它的不透明度；0 是只有外框的白天）；
+   * hatch：外框加上斜線（防空識別區，LinesOverlayDef.fill.hatch，angle 是線的方向）
    */
-  shape: 'line' | 'dash' | 'dot' | 'triangle' | 'shade' | 'band' | 'fill';
+  shape: 'line' | 'dash' | 'dot' | 'triangle' | 'shade' | 'band' | 'fill' | 'hatch';
+  /** hatch 的線的方向（度） */
+  angle?: number;
   /** 線寬或半徑（px） */
   size: number;
   color: string;
@@ -209,7 +241,13 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       const color = darkMap && !c.dark && c.color === MAP_TOKENS.ink ? '#f0efec' : classColor(c);
       return { shape: 'fill', size: 5, color, opacity: darkMap ? dark : light, base: darkMap ? base.dark : base.light };
     };
-    const swatchOf = (c: (NonNullable<typeof classes>)[number]) => (c.area ? areaSwatch(c) : lineSwatch(classColor(c), c.dash));
+    // 斜線的面（防空識別區）：外框加上那一類方向的斜線，跟地圖上一樣
+    const hatchSwatch = (c: (NonNullable<typeof classes>)[number]): OverlaySwatch | null => {
+      const angle = def.fill?.hatch?.[c.value];
+      return angle === undefined ? null : { shape: 'hatch', size: Math.max(1.5, typical), color: classColor(c), angle };
+    };
+    const swatchOf = (c: (NonNullable<typeof classes>)[number]) =>
+      c.area ? areaSwatch(c) : (hatchSwatch(c) ?? lineSwatch(classColor(c), c.dash));
     const details: OverlayKey['details'] = [];
     if (classes && typeof def.color !== 'string' && def.keyClasses !== false) {
       details.push({
@@ -228,7 +266,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
       });
     }
     return {
-      swatch: classes ? (classes[0].area ? areaSwatch(classes[0]) : lineSwatch(classColor(classes[0]))) : lineSwatch(def.color as string),
+      swatch: classes ? swatchOf(classes[0]) : lineSwatch(def.color as string),
       label: def.label,
       details,
     };
@@ -246,7 +284,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
   }
   if (def.heatmap) {
     // 熱度圖（縮小時，點多的指標）：一格中間的顏色
-    details.push({ layout: 'rows', rows: [{ shape: 'fill', size: 5, color: '#fd8d3c', opacity: 0.85, label: def.heatmap.label }] });
+    details.push({ layout: 'rows', rows: [{ shape: 'fill', size: 5, color: heatRamp(def.heatmap.ramp)[3][1], opacity: 0.85, label: def.heatmap.label }] });
   }
   if (def.sizeLegend) {
     const { title, values, format } = def.sizeLegend;
@@ -272,11 +310,13 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
 export interface LayerKey {
   key: Exclude<keyof LayerVisibility, 'extra'>;
   /** relief：只有地形圖（海拔主題的 kind 'terrain' 指標）才有的 */
-  source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite';
+  source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite' | 'isobaths';
   label: Text;
   /** 線（鐵路）、圓點（機場）或陰影色塊（地形陰影），size 是線寬或半徑（px） */
   shape: 'line' | 'dot' | 'shade';
   size: number;
+  /** 跟地圖上一樣的顏色（等深線的藍）；沒寫時線用介面的文字色 */
+  color?: string;
 }
 
 export const LAYER_KEYS: LayerKey[] = [
@@ -297,6 +337,14 @@ export const LAYER_KEYS: LayerKey[] = [
   },
   { key: 'hillshade', source: 'terrain', label: { zh: '地形陰影', en: 'Hillshade' }, shape: 'shade', size: 5 },
   { key: 'contours', source: 'relief', label: { zh: '等高線（放大後）', en: 'Contour lines (zoomed in)' }, shape: 'line', size: 1 },
+  {
+    key: 'isobaths',
+    source: 'isobaths',
+    label: { zh: '等深線（200、1,000、4,000 公尺）', en: 'Depth contours (200, 1,000 and 4,000 m)' },
+    shape: 'line',
+    size: 1,
+    color: ISOBATH_COLOR,
+  },
   { key: 'satellite', source: 'satellite', label: { zh: '那一天的衛星照片（NASA）', en: 'Satellite image of the day (NASA)' }, shape: 'shade', size: 5 },
 ];
 
@@ -310,6 +358,7 @@ export const SHADE_KEY: [string, string] = ['#f4f1ea', '#6b6355'];
 
 /** 線用介面的文字色（圖例卡片跟著深淺色切換），機場點跟地圖上一樣用地圖色 */
 export function layerKeyColor(k: LayerKey, tokens: Tokens): string {
+  if (k.color) return k.color;
   return k.shape === 'line' ? tokens.ink : MAP_TOKENS.hues.orange;
 }
 
@@ -360,6 +409,8 @@ interface LayerControlsProps {
   hasRelief?: boolean;
   /** 那一天的衛星照片：有日期時寫在名稱後面（「· 2024-07-24」），沒有是不顯示 */
   satelliteDate?: string | null;
+  /** 主題有等深線（TopicDefinition.isobaths） */
+  hasIsobaths?: boolean;
   /** 主題的一般疊加圖層（地震、火山、板塊邊界…） */
   overlays?: OverlayLayer[];
   tokens: Tokens;
@@ -381,6 +432,7 @@ export function LayerControls({
   hasTerrain = false,
   hasRelief = false,
   satelliteDate = null,
+  hasIsobaths = false,
   overlays = [],
   tokens,
   darkMap = false,
@@ -389,7 +441,7 @@ export function LayerControls({
   const lang = useLang();
   const toggle = (key: LayerKey['key']) => onChange({ ...layers, [key]: !isOn(layers, key) });
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
-  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief, satellite: Boolean(satelliteDate) };
+  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief, satellite: Boolean(satelliteDate), isobaths: hasIsobaths };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   // 分級說明顯示到哪裡：none（手機預設）、own（主題自己的圖層，桌機預設）、all（含從圖層選單加上的別的主題的圖層，
@@ -477,6 +529,18 @@ function Swatch({ swatch }: { swatch: OverlaySwatch }) {
         ) : (
           <polygon points={trianglePoints(w / 2, h / 2, r)} fill={color} stroke="#ffffff" strokeWidth={0.8} />
         )}
+      </svg>
+    );
+  }
+  if (shape === 'hatch') {
+    return (
+      <svg width="18" height="10" aria-hidden="true">
+        <rect x="1.5" y="1" width="15" height="8" fill="none" stroke={color} strokeWidth={1.2} />
+        <g stroke={color} strokeWidth={1}>
+          {hatchLines(swatch.angle ?? 45).map(([x1, y1, x2, y2], k) => (
+            <line key={k} x1={x1} y1={y1} x2={x2} y2={y2} />
+          ))}
+        </g>
       </svg>
     );
   }

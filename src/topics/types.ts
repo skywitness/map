@@ -226,6 +226,12 @@ export interface IndicatorDef {
   defaultYear?: number;
   /** 換到這個指標時地圖移到這個範圍（同主題的 focus，2026-10-30 起，北極航道） */
   focus?: [number, number, number, number];
+  /**
+   * 不上色的自然地理圖底下鋪淡的地形陰影（2026-11-02，新7、新8；國家不上色的 layer.kind 'none' 才用，面量圖不要鋪）：
+   * 'land' 只有陸地（河流：看得到分水嶺與盆地，海面蓋住），'land-sea' 連海底一起（地震：海溝、海脊看得到）。
+   * 陰影可以在左下角的圖層關掉（「地形陰影」）。海拔主題（terrain）照舊
+   */
+  shade?: 'land' | 'land-sea';
   /** 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖） */
   timeless?: boolean;
   /**
@@ -614,9 +620,19 @@ export interface PointsOverlayDef extends OverlayBase {
   /**
    * 縮小時畫成熱度圖（2026-11-01，MapLibre 範例「Create a heatmap layer」；overlayLayers.ts 的 heatLayer）：只在指標的
    * overlayTime 是累積或幾年（點多）時，maxZoom（含）以下改畫依 weight 加權的密度，maxZoom 到 maxZoom + 1 之間漸漸換成一個個點；
-   * 只有一年的點少，照舊畫點。label 寫在圖例（「縮小時畫成密度…」）
+   * 只有一年的點少，照舊畫點。沒有 timeField 的點（2026-11-02 起，店家、語言）一直畫熱度。label 寫在圖例（「縮小時畫成密度…」）
    */
-  heatmap?: { maxZoom: number; weight?: { field: string; stops: [number, number][] }; label: Text };
+  heatmap?: {
+    maxZoom: number;
+    weight?: { field: string; stops: [number, number][] };
+    label: Text;
+    /** 熱度的強度倍數（預設 1）：點很密的（7-Eleven 在東京一帶幾萬家）調低，才不會一大片都是最深的顏色 */
+    intensity?: number;
+    /** 只有這幾個指標畫熱度（沒寫是全部）：語言的「語系」照舊畫依語系上色的點 */
+    indicators?: string[];
+    /** 熱度的顏色：預設淡黃到深紅；底下是橘色面量圖時用紫色（店家） */
+    ramp?: 'heat' | 'violet';
+  };
   /**
    * 縮小時聚成甜甜圈（2026-11-01，map/clusterDonuts.ts）：maxZoom（含）以下，同一區（radius px，預設 50）的點聚成一個
    * 甜甜圈，各片是各類（color 的 ColorClasses）的個數，或 weight 欄位（電廠的 MW）的總和；size 是總數 → 半徑（px），
@@ -630,6 +646,12 @@ export interface PointsOverlayDef extends OverlayBase {
     format: (total: number) => string;
     title: Text;
   };
+  /**
+   * 依時間連成一條線（2026-11-02，新1，北磁極的漂移；map/trails.ts）：點依 timeField 排好連成線，顏色依年份漸層
+   * （color 要是 timeField 的分級，每一級的顏色放在那一級的中間內插），那一年的點畫大一點、旁邊寫 head 回傳的字。
+   * 用疊在地圖上的 canvas 畫，南北緯 85.05° 以北也畫在正確的位置（GeoJSON 圖層會壓到 85.05°）；不畫一個個圓點
+   */
+  trail?: { head: (p: PointRecord) => string };
   /** 圖層開關下面的大小圖例（例如規模 6、7、8 各畫一個圓），values 是 radius.field 的值 */
   sizeLegend?: { title: Text; values: number[]; format: (v: number) => string };
   /**
@@ -659,6 +681,9 @@ export function overlayEpoch(def: { epochs?: { years: number[] } }, year: number
 }
 
 /** 一般的線圖層（資料檔是 LinesData），例如板塊邊界、海底電纜 */
+/** 斜線的方向（度）：只用這四種，圖片可以無縫地鋪 */
+export type HatchAngle = 0 | 45 | 90 | 135;
+
 export interface LinesOverlayDef extends OverlayBase {
   kind: 'lines';
   /**
@@ -728,6 +753,11 @@ export interface LinesOverlayDef extends OverlayBase {
     outline?: false | number[];
     /** 依分類代碼的不透明度 { 代碼: [淺色底圖, 深色底圖] }，沒列的用 opacity、darkOpacity（2026-10-28 起） */
     typeOpacity?: Record<number, [number, number]>;
+    /**
+     * 面改成分類顏色的斜線（2026-11-02，新4，防空識別區）：{ 代碼: 線的方向（度，0 是橫線、45 是右上斜、90 是直線、135 是左上斜）}。
+     * 不同分類用不同方向，重疊的地方變成交叉線，不會混成另一個顏色；滑過的那一組照舊加深成實心的面
+     */
+    hatch?: Record<number, HatchAngle>;
     /**
      * 面本身也給 hover 查詢（2026-10-29 起，山脈）：滑到面裡面就出現那一組的 tooltip、加深那一組，不必剛好滑到外框；
      * 面底下的國家滑不到（點一下照樣選國家）。要有 tooltip
@@ -1151,6 +1181,11 @@ export interface TopicDefinition {
    * （YYYY-MM-DD，2000-02-24 起），null 是不畫。picked 是清單側欄點了的那一組線的紀錄（颱風）。圖層卡片有開關
    */
   satellite?: { date: (ctx: { year: number; indicator: string; picked: PointRecord | null }) => string | null };
+  /**
+   * 等深線（2026-11-02，新13，海洋與漁業；map/contours.ts 的 syncIsobaths）：這幾個深度（公尺，正數）的線，
+   * 從 AWS Terrain Tiles 的海底地形算出來，世界全圖就畫、放大後沿線寫深度。圖層卡片有開關（「等深線」）
+   */
+  isobaths?: number[];
   /**
    * 地圖上的觀察點（2026-11-01，map/pins.ts）：一個標記，旁邊寫 label（沒給的話用 pointer 的資訊）。
    * pair 是 'antipode' 時多一個它的對蹠點，兩個一起移動（地球的另一邊）。draggable 的可以拖、可以用方向鍵移動，

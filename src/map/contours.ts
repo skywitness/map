@@ -9,6 +9,7 @@
 import type { DataDrivenPropertyValueSpecification, ExpressionSpecification, LayerSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import { addProtocol } from 'maplibre-gl';
 import { DEM_TILES } from './terrain';
+import { ISOBATH_COLOR } from './isobathStyle';
 
 export const CONTOUR_SOURCE = 'contours';
 export const CONTOUR_LINES = 'contour-lines';
@@ -25,15 +26,32 @@ const THRESHOLDS: Record<number, [number, number]> = {
   13: [20, 100],
 };
 
+type Dem = InstanceType<(typeof import('maplibre-contour'))['default']['DemSource']>;
+let demPromise: Promise<Dem> | null = null;
 let tilesUrl: Promise<string> | null = null;
+let isobathUrl: Promise<string> | null = null;
 
-/** 第一次要畫等高線時才載入外掛、註冊協定；之後換底圖重新加圖層時共用同一個網址 */
-function contourTiles(): Promise<string> {
-  return (tilesUrl ??= import('maplibre-contour').then(({ default: mlcontour }) => {
+/** 第一次要畫等高線、等深線時才載入外掛、註冊協定（兩種共用同一個 DemSource） */
+function demSourceOnce(): Promise<Dem> {
+  return (demPromise ??= import('maplibre-contour').then(({ default: mlcontour }) => {
     const dem = new mlcontour.DemSource({ url: DEM_TILES, encoding: 'terrarium', maxzoom: 12, worker: true, cacheSize: 100 });
     dem.setupMaplibre({ addProtocol });
-    return dem.contourProtocolUrl({ thresholds: THRESHOLDS, contourLayer: 'contours', elevationKey: 'ele', levelKey: 'level', overzoom: 1 });
+    return dem;
   }));
+}
+
+/** 等高線圖磚的網址；之後換底圖重新加圖層時共用同一個網址 */
+function contourTiles(): Promise<string> {
+  return (tilesUrl ??= demSourceOnce().then((dem) =>
+    dem.contourProtocolUrl({ thresholds: THRESHOLDS, contourLayer: 'contours', elevationKey: 'ele', levelKey: 'level', overzoom: 1 }),
+  ));
+}
+
+/** 等深線圖磚的網址：每 200 m 一條（200、1,000、4,000 m 都是 200 的倍數），圖層再只留要畫的那幾條 */
+function isobathTiles(): Promise<string> {
+  return (isobathUrl ??= demSourceOnce().then((dem) =>
+    dem.contourProtocolUrl({ thresholds: { 0: [ISOBATH_STEP] }, contourLayer: 'isobaths', elevationKey: 'ele', overzoom: 1 }),
+  ));
 }
 
 function layers(font: DataDrivenPropertyValueSpecification<string[]>): LayerSpecification[] {
@@ -96,5 +114,84 @@ export function syncContours(
     const [lines, labels] = layers(opts.font);
     map.addLayer(lines, opts.before && map.getLayer(opts.before) ? opts.before : undefined);
     map.addLayer(labels, opts.labelsBefore && map.getLayer(opts.labelsBefore) ? opts.labelsBefore : undefined);
+  });
+}
+
+// ── 等深線（2026-11-02，新13，海洋與漁業：TopicDefinition.isobaths）──────────────────────────
+// 同一份 AWS Terrain Tiles（含海底地形）用 maplibre-contour 算出每 200 m 一條的線，圖層只留主題要的深度（200、1,000、4,000 m：
+// 大陸棚的邊緣、大陸坡、深海平原）。世界全圖就畫（低縮放的圖磚粗，線是平滑的大概位置），放大後跟著變細緻。
+// 插在國家的面下面：陸地上低於海平面的窪地（死海）被陸地蓋住；標籤沿線寫深度。
+
+export const ISOBATH_SOURCE = 'isobaths';
+export const ISOBATH_LINES = 'isobath-lines';
+export const ISOBATH_LABELS = 'isobath-labels';
+const ISOBATH_STEP = 200;
+
+function isobathLayers(depths: number[], font: DataDrivenPropertyValueSpecification<string[]>, dark: boolean): LayerSpecification[] {
+  const wanted: ExpressionSpecification = ['in', ['get', 'ele'], ['literal', depths.map((d) => -d)]];
+  const color = dark ? '#8fb8e8' : ISOBATH_COLOR;
+  return [
+    {
+      id: ISOBATH_LINES,
+      type: 'line',
+      source: ISOBATH_SOURCE,
+      'source-layer': 'isobaths',
+      filter: wanted,
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': color,
+        // 淺的（大陸棚的邊緣）實一點，深的淡一點
+        'line-opacity': ['interpolate', ['linear'], ['-', 0, ['get', 'ele']], 200, 0.85, 4000, 0.5],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 6, 1.2],
+      },
+    },
+    {
+      id: ISOBATH_LABELS,
+      type: 'symbol',
+      source: ISOBATH_SOURCE,
+      'source-layer': 'isobaths',
+      minzoom: 3,
+      filter: wanted,
+      layout: {
+        'symbol-placement': 'line',
+        'text-field': ['concat', ['number-format', ['-', 0, ['get', 'ele']], {}], ' m'],
+        'text-font': font,
+        'text-size': 10.5,
+        'symbol-spacing': 400,
+        'text-max-angle': 25,
+        'text-padding': 4,
+      },
+      paint: {
+        'text-color': color,
+        'text-halo-color': dark ? 'rgba(11, 11, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+        'text-halo-width': 1.3,
+      },
+    },
+  ];
+}
+
+/**
+ * 依 depths 加上、藏起或拿掉等深線（null 是不畫）。before 是插在哪個圖層前面（國家的面）。
+ * 換底圖（深淺色）後樣式裡沒有這些圖層，WorldMap 依 revision 重新呼叫
+ */
+export function syncIsobaths(
+  map: MaplibreMap,
+  depths: number[] | null,
+  opts: { before?: string; font: DataDrivenPropertyValueSpecification<string[]>; dark: boolean },
+): void {
+  if (map.getLayer(ISOBATH_LINES)) {
+    for (const id of [ISOBATH_LINES, ISOBATH_LABELS]) map.setLayoutProperty(id, 'visibility', depths ? 'visible' : 'none');
+    if (depths) {
+      const wanted: ExpressionSpecification = ['in', ['get', 'ele'], ['literal', depths.map((d) => -d)]];
+      for (const id of [ISOBATH_LINES, ISOBATH_LABELS]) map.setFilter(id, wanted);
+    }
+    return;
+  }
+  if (!depths) return;
+  void isobathTiles().then((url) => {
+    if (map.getLayer(ISOBATH_LINES) || !map.style) return;
+    if (!map.getSource(ISOBATH_SOURCE)) map.addSource(ISOBATH_SOURCE, { type: 'vector', tiles: [url], maxzoom: 10 });
+    const before = opts.before && map.getLayer(opts.before) ? opts.before : undefined;
+    for (const layer of isobathLayers(depths, opts.font, opts.dark)) map.addLayer(layer, before);
   });
 }

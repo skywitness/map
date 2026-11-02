@@ -428,8 +428,8 @@ const ZONE_HOW: Record<'nearest' | 'sea', Text> = {
 };
 
 const CURSOR_HERE = { zh: '游標這一點', en: 'Here' };
-/** 「定位我」的標記（TopicDefinition.pin）旁邊寫的 */
-const PIN_HERE = { zh: '你的位置', en: 'Your location' };
+/** 觀察點（TopicDefinition.pin：可以拖、方向鍵移動，「定位我」放到你的位置）旁邊寫的 */
+const PIN_HERE = { zh: '觀察點', en: 'Pin' };
 
 function pointer([lon, lat]: [number, number], ctx: { iso3: string | null; indicator: string; at: ClockAt | null }, place: { zh: string; en: string } = CURSOR_HERE) {
   const file = capitalsNow();
@@ -538,8 +538,10 @@ export const daylight: TopicDefinition = {
   noValue: { ATA: NO_CAPITAL, HMD: NO_CAPITAL, _SIA: NO_CAPITAL },
   tooltipLines,
   pointer,
-  // 「定位我」時在你的位置放一個標記，旁邊寫那裡的日出日落、白天長度、太陽高度（跟滑鼠滑過時一樣；2026-11-01）
-  pin: { draggable: false, label: (ll, ctx) => pointer(ll, ctx, PIN_HERE)?.lines ?? [] },
+  // 觀察點：旁邊寫那裡的日出日落、白天長度、太陽高度（跟滑鼠滑過時一樣）。2026-11-01 只在「定位我」時放；
+  // 2026-11-02（新2）起預設放在台北、可以拖、Tab 後用方向鍵移動，位置記在網址 pin=；拖時間軸、播放時說明跟著換，
+  // 手機沒有「滑過」也一直看得到
+  pin: { draggable: true, default: [121.565, 25.033], label: (ll, ctx) => pointer(ll, ctx, PIN_HERE)?.lines ?? [] },
   overlays: [
     {
       kind: 'night',

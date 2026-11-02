@@ -328,6 +328,8 @@ const indicators: IndicatorDef[] = [
     unit: { zh: '公里', en: 'km' },
     file: 'length.json',
     layer: { kind: 'none' },
+    // 2026-11-02（新7）：底下鋪淡的地形陰影，看得到分水嶺、山脈與盆地（河往哪裡流的原因）；海面蓋住
+    shade: 'land',
     format: (v) => tr({ zh: `河道 ${km(v)}`, en: `${km(v)} of rivers` }),
     formatTick: n0,
   },
@@ -450,6 +452,11 @@ export const rivers: TopicDefinition = {
       },
       url: 'https://data.gov.tw/dataset/32726',
       license: { zh: '政府資料開放授權條款第 1 版、CC0', en: 'Open Government Data License v1.0, CC0' },
+    },
+    {
+      name: { zh: 'Terrain Tiles（地圖底下的地形陰影，Mapzen、AWS Open Data）', en: 'Terrain Tiles (hillshade under the map; Mapzen, AWS Open Data)' },
+      url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
+      license: { zh: '依各資料來源標示', en: 'attribution per data source' },
     },
   ],
   // 授權協議要求的聲明寫在最前面（頁尾先露兩行）；細節寫在指標說明、資料夾裡的 HYDROSHEDS-NOTICE.txt 與 DESIGN.md

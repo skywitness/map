@@ -1180,6 +1180,7 @@ export function App() {
                   routeAnimation={routeAnim && routeAnim.topic === topic.id ? routeAnim : null}
                   pin={view === 'map' ? pinConfig : null}
                   satellite={pure ? undefined : topic.satellite}
+                  isobaths={pure ? undefined : topic.isobaths}
                   onLocate={onLocate}
                   bubbleMax={onMap.bubbleMax}
                   tokens={tokens}

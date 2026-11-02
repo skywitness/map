@@ -65,12 +65,17 @@ function poleTooltip(which: 'north' | 'south') {
 }
 
 const POLE_BASE = { kind: 'points', radius: 3, color: POLE_YEARS, sortField: 'y', timeField: 'y' } as const;
+/**
+ * 2026-11-02（新1）：每年的點連成一條依年份漸層的線（map/trails.ts），那一年的位置畫大一點、寫年份，播放時沿著線移動。
+ * 北磁極 2011 年起在北緯 85.05° 以北，MapLibre 的 GeoJSON 圖層畫不到（會壓在 85.05° 那一圈），軌跡用疊在地圖上的 canvas 畫
+ */
 const NORTH: PointsOverlayDef = {
   ...POLE_BASE,
   id: 'north',
   file: 'north.json',
   label: { zh: '北磁極的位置', en: 'North magnetic pole' },
   tooltip: poleTooltip('north'),
+  trail: { head: (p) => tr({ zh: `北磁極 ${p.y}`, en: `North pole ${p.y}` }) },
 };
 const SOUTH: PointsOverlayDef = {
   ...POLE_BASE,
@@ -78,6 +83,7 @@ const SOUTH: PointsOverlayDef = {
   file: 'south.json',
   label: { zh: '南磁極的位置', en: 'South magnetic pole' },
   tooltip: poleTooltip('south'),
+  trail: { head: (p) => tr({ zh: `南磁極 ${p.y}`, en: `South pole ${p.y}` }) },
 };
 
 /** 等偏角線的分類（pipeline 的 line_code()）：西偏青綠、東偏橘（跟首都的磁偏角同一組發散色），零偏角深灰 */
@@ -204,6 +210,8 @@ const indicators: IndicatorDef[] = [
     format: km,
     overlayTime: 'cumulative',
     unranked: true,
+    // 2026-11-02（新1）：打開時從北極正上方看（focus.ts 的 polarCap），北磁極的軌跡整條看得到
+    focus: [-180, 55, 180, 90],
   },
   {
     id: 'declination',

@@ -266,6 +266,8 @@ export const oceans: TopicDefinition = {
   shortTitle: { zh: '海洋與漁業', en: 'Fisheries' },
   defaultIndicator: 'eez',
   defaultYear: 2024,
+  // 2026-11-02（新13）：200 m（大陸棚的邊緣，大部分的漁場在這以內）、1,000 m、4,000 m（深海平原）的等深線，跟專屬經濟海域的界線一起看
+  isobaths: [200, 1000, 4000],
   sources: [
     {
       name: 'Flanders Marine Institute (2023). Maritime Boundaries Geodatabase v12, MarineRegions.org',
@@ -299,6 +301,11 @@ export const oceans: TopicDefinition = {
       name: { zh: '農業部漁業署《漁業統計年報》（台灣的對照數字）', en: 'Fisheries Agency (Taiwan), Fisheries Statistical Yearbook (for comparison)' },
       url: 'https://www.fa.gov.tw/list.php?theme=FS_AR',
       license: { zh: '引用統計數字並註明出處', en: 'figures cited with source' },
+    },
+    {
+      name: { zh: 'Terrain Tiles（等深線，海底地形來自 ETOPO1、GEBCO 等，Mapzen、AWS Open Data）', en: 'Terrain Tiles (depth contours; sea-floor data from ETOPO1, GEBCO and others; Mapzen, AWS Open Data)' },
+      url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
+      license: { zh: '依各資料來源標示', en: 'attribution per data source' },
     },
   ],
   // 頁尾要短：英文版太長會把地圖擠扁（細節寫在指標說明、附註、側欄與 DESIGN.md）

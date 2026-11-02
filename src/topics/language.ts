@@ -146,6 +146,14 @@ const LANGUAGE_POINTS: PointsOverlayDef = {
   radius: 1.8,
   color: FAMILY_COLORS,
   indicators: ['family', 'diversity'],
+  // 2026-11-02（新6）：「語言多樣性」縮小時畫語言的密度，新幾內亞、奈及利亞、喀麥隆這些熱點一眼看得出來；放大到 4 級換回依語系上色的點。
+  // 「語系」照舊畫上色的點（顏色是重點）
+  heatmap: {
+    maxZoom: 3,
+    intensity: 0.35,
+    indicators: ['diversity'],
+    label: { zh: '縮小時畫成語言的密度（越紅越多種語言擠在一起）', en: 'Language density when zoomed out (redder means more languages packed together)' },
+  },
   tooltip: (p) => {
     const lang = getLang();
     const title = String((lang === 'zh' ? p.zh : null) ?? p.en);

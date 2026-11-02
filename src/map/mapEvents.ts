@@ -8,6 +8,7 @@ import type { RefObject } from 'react';
 import type { MapMark } from '../topics/types';
 import { boxFromCorners, type Box } from './boxEstimate';
 import { highlightLine, lineOverlayAt, OVERLAY_PREFIX, pointOverlayId } from './overlayLayers';
+import { trailAt } from './trails';
 import { HOVER_LAYERS, HOVER_SOURCES, MARK_LABEL_LAYER, MARK_LAYER, MIN_BOX_PX } from './worldMapLayers';
 
 /** 游標下的東西（tooltip 用） */
@@ -99,6 +100,9 @@ export function bindMapEvents(
 ): void {
   // lines 為 false 時略過線的查詢層：點一下電纜經過的陸地要選到國家，不是取消選取
   const featureAt = (point: { x: number; y: number }, lines = true): MapGeoJSONFeature | null => {
+    // 連成線的點（北磁極的軌跡，trails.ts）畫在 canvas 上，不在 MapLibre 的圖層裡
+    const trail = trailAt(map, point);
+    if (trail) return trail;
     for (const id of [...pointLayersRef.current, ...HOVER_LAYERS]) {
       if (!lines && lineOverlayAt(id)) continue;
       if (!map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none') continue;

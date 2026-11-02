@@ -67,7 +67,7 @@ import {
   type LayerVisibility,
   type OverlayLayer,
 } from './Overlays';
-import { syncContours } from './contours';
+import { syncContours, syncIsobaths } from './contours';
 import { pieTier, syncPieImages, type PieData } from './pies';
 import { applyTimeFilters, groupPath, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { playRoute, ROUTE_SOURCE, routeLayers } from './routeAnimation';
@@ -294,6 +294,8 @@ interface WorldMapProps {
   cooperativeGestures?: boolean;
   /** 那一天的衛星照片（主題的 satellite，map/satelliteDay.ts） */
   satellite?: Topic['satellite'];
+  /** 等深線的深度（主題的 isobaths，map/contours.ts） */
+  isobaths?: number[];
   /** 地圖上的觀察點（主題的 pin，map/pins.ts）；null 是沒有 */
   pin?: PinConfig | null;
   /**
@@ -1250,7 +1252,7 @@ export function WorldMap(props: WorldMapProps) {
     if (overlaySentRef.current.revision !== revision) overlaySentRef.current = { revision, cache: new Map() };
     // 換年份時也要同步：有 epochs 的點圖層（城市每 5 年一期的人口）換到另一期要重送資料，其他圖層不會重送
     pointLayersRef.current = syncOverlays(map, overlays, overlaySentRef.current.cache, basemap.dark, year);
-    applyTimeFilters(map, overlays, year, indicator.overlayTime);
+    applyTimeFilters(map, overlays, year, indicator.overlayTime, indicator.id);
     // 換底圖後新的圖層一開始沒有標出任何線：重新標出目前要標的那一組
     const shown = lineHoverRef.current ?? lineHighlightRef.current;
     if (shown) highlightLine(map, null, shown);
@@ -1828,7 +1830,10 @@ export function WorldMap(props: WorldMapProps) {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
     const reliefMap = terrain && indicator.layer.kind === 'terrain';
-    const shade = terrain && layers.hillshade;
+    // 自然地理圖的陰影（指標的 shade，2026-11-02）：跟面量圖上的陰影一樣疊在國家的底色上面；'land' 再用底圖的水域蓋回海面，
+    // 'land-sea' 不蓋（看得到海溝、海脊）
+    const natural = !terrain ? (indicator.shade ?? null) : null;
+    const shade = (terrain || natural !== null) && layers.hillshade;
     map.setLayoutProperty('relief-color', 'visibility', reliefMap ? 'visible' : 'none');
     map.setLayoutProperty('relief-shade', 'visibility', shade ? 'visible' : 'none');
     for (const { id } of baseRastersRef.current) {
@@ -1837,11 +1842,16 @@ export function WorldMap(props: WorldMapProps) {
     map.moveLayer('relief-shade', reliefMap ? reliefBeforeRef.current : 'data-border');
     for (const id of ['relief-water', RELIEF_WATER_WORLD]) {
       if (!map.getLayer(id)) continue;
-      map.setLayoutProperty(id, 'visibility', shade && !reliefMap ? 'visible' : 'none');
+      map.setLayoutProperty(id, 'visibility', shade && !reliefMap && natural !== 'land-sea' ? 'visible' : 'none');
       map.moveLayer(id, 'data-border');
     }
-    map.setPaintProperty('relief-shade', 'hillshade-exaggeration', reliefMap ? 0.55 : 0.4);
-  }, [revision, terrain, indicator.layer.kind, layers.hillshade]);
+    // 自然地理圖的陰影：縮小時 MapLibre 的陰影很淡（低縮放的坡度小），世界全圖加強、放大後淡
+    map.setPaintProperty(
+      'relief-shade',
+      'hillshade-exaggeration',
+      reliefMap ? 0.55 : natural ? ['interpolate', ['linear'], ['zoom'], 1, 1, 3, 0.8, 5, 0.45, 8, 0.3] : 0.4,
+    );
+  }, [revision, terrain, indicator.layer.kind, indicator.shade, layers.hillshade]);
 
   // 等高線（contours.ts）：只在地形圖、放大到 7 級以上畫；外掛第一次打開時才下載。換底圖後 revision 變了重新加上
   useEffect(() => {
@@ -1850,6 +1860,15 @@ export function WorldMap(props: WorldMapProps) {
     const on = terrain && indicator.layer.kind === 'terrain' && isOn(layers, 'contours');
     syncContours(map, on, { before: reliefBeforeRef.current, labelsBefore: labelsBeforeRef.current, font: labelFont(map) });
   }, [revision, terrain, indicator.layer.kind, layers.contours]);
+
+  // 等深線（contours.ts 的 syncIsobaths，主題的 isobaths）：插在國家的面下面，陸地上的窪地被陸地蓋住；換底圖後重新加上
+  const isobathKey = props.isobaths?.join(',') ?? '';
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const depths = isobathKey && isOn(layers, 'isobaths') ? isobathKey.split(',').map(Number) : null;
+    syncIsobaths(map, depths, { before: 'data-fill', font: labelFont(map), dark: basemap.dark });
+  }, [revision, isobathKey, layers.isobaths, basemap.dark]);
 
   // 3D 立體地形（有地形圖層的主題）。全球視角時要放大很多倍才看得出起伏，縮放結束時依縮放級數換倍率；
   // 切換底圖後新樣式沒有地形，revision 變了會重新設定
@@ -2001,7 +2020,10 @@ export function WorldMap(props: WorldMapProps) {
     };
   }, [grid, lang, legendTitle, threeD, indicator]);
 
-  const hasOverlays = Boolean(railways || airports || terrain || overlays.length);
+  // 有地形陰影可以開關的：海拔主題（terrain），或指標鋪了自然地理圖的陰影（shade）
+  const shadeable = terrain || Boolean(indicator.shade);
+  const hasIsobaths = Boolean(props.isobaths?.length);
+  const hasOverlays = Boolean(railways || airports || shadeable || hasIsobaths || overlays.length);
   const reliefLegend = useMemo(
     () => (terrain && indicator.layer.kind === 'terrain' ? reliefLegendModel(indicator.formatTick ?? indicator.format) : null),
     [terrain, indicator, lang],
@@ -2065,7 +2087,7 @@ export function WorldMap(props: WorldMapProps) {
           : valueLegend;
         const layerKeys = onLayersChange
           ? exportLayerKeys(
-              LAYER_KEYS.filter((k) => ({ railways, airports, terrain, relief: terrain && indicator.layer.kind === 'terrain', satellite: Boolean(satelliteDate) })[k.source] && isOn(layers, k.key)).map((key) => ({
+              LAYER_KEYS.filter((k) => ({ railways, airports, terrain: shadeable, relief: terrain && indicator.layer.kind === 'terrain', satellite: Boolean(satelliteDate), isobaths: hasIsobaths })[k.source] && isOn(layers, k.key)).map((key) => ({
                 key,
                 color: layerKeyColor(key, tokens),
               })),
@@ -2089,7 +2111,7 @@ export function WorldMap(props: WorldMapProps) {
         });
       },
     }),
-    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, overlays, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang],
+    [colorScale, categories, values, radius, indicator, legendTitle, onLayersChange, railways, airports, terrain, layers, overlays, tokens, threeD, bubbleMax, flowLayer, flows, flowMax, gridLegend, reliefLegend, lang, hasIsobaths],
   );
 
   return (
@@ -2268,9 +2290,10 @@ export function WorldMap(props: WorldMapProps) {
             onChange={onLayersChange}
             hasRailways={Boolean(railways)}
             hasAirports={Boolean(airports)}
-            hasTerrain={terrain}
+            hasTerrain={shadeable}
             hasRelief={terrain && indicator.layer.kind === 'terrain'}
             satelliteDate={satelliteDate}
+            hasIsobaths={hasIsobaths}
             overlays={overlays}
             tokens={tokens}
             darkMap={basemap.dark}

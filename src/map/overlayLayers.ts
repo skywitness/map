@@ -24,9 +24,11 @@ import type {
   Map as MaplibreMap,
   SourceSpecification,
 } from 'maplibre-gl';
-import { overlayEpoch, type IndicatorDef, type LinesOverlay, type PointsOverlay } from '../topics/types';
+import { overlayEpoch, type HatchAngle, type IndicatorDef, type LinesOverlay, type PointsOverlay } from '../topics/types';
 import { MAP_TOKENS } from '../theme/tokens';
 import { clusterKey, resetDonuts, syncDonuts, type DonutSpec } from './clusterDonuts';
+import { setTrailYear, syncTrails, type TrailInput } from './trails';
+import { heatRamp } from './heatRamps';
 import type { DecodedLines, OverlayLayer } from './Overlays';
 import { isNameLayer } from './style';
 
@@ -64,15 +66,6 @@ const DETAIL_SUFFIX = '~d';
 const HIGHLIGHT_SUFFIX = '~h';
 /** 縮小時的熱度圖（PointsOverlayDef.heatmap）：同一個 source 的另一個圖層 */
 export const HEAT_SUFFIX = '~heat';
-/** 熱度的顏色：淡黃到深紅（透明起頭，點少的地方看得到底圖），跟圖例的色塊一樣 */
-export const HEAT_COLORS: [number, string][] = [
-  [0, 'rgba(255, 237, 160, 0)'],
-  [0.15, 'rgba(254, 217, 118, 0.6)'],
-  [0.35, '#feb24c'],
-  [0.55, '#fd8d3c'],
-  [0.75, '#e31a1c'],
-  [1, '#800026'],
-];
 
 function heatLayer(def: PointsOverlay): LayerSpecification {
   const heat = def.heatmap!;
@@ -88,15 +81,15 @@ function heatLayer(def: PointsOverlay): LayerSpecification {
         ? (['interpolate', ['linear'], ['coalesce', ['get', heat.weight.field], heat.weight.stops[0][0]], ...heat.weight.stops.flat()] as ExpressionSpecification)
         : 1,
       'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 5, 2, 9, 3, 12, 4, 16],
-      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.25, 3, 0.5],
-      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], ...HEAT_COLORS.flat()] as ExpressionSpecification,
+      'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.25 * (heat.intensity ?? 1), 3, 0.5 * (heat.intensity ?? 1)],
+      'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], ...heatRamp(heat.ramp).flat()] as ExpressionSpecification,
       'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], heat.maxZoom, 0.85, heat.maxZoom + 1, 0],
     },
   };
 }
 
-/** 點多的時間模式（累積、幾年）才畫熱度圖 */
-const manyPoints = (mode: IndicatorDef['overlayTime']) => mode === 'cumulative' || typeof mode === 'number';
+/** 點多的時間模式（累積、幾年）才畫熱度圖；沒有時間篩選的點（店家、語言）一直都是全部的點 */
+const manyPoints = (def: PointsOverlay, mode: IndicatorDef['overlayTime']) => !def.timeField || mode === 'cumulative' || typeof mode === 'number';
 
 /** 聚成甜甜圈的點圖層（PointsOverlayDef.cluster）：開了 cluster 的 source 與沒聚在一起的點的圖層 */
 export const CLUSTER_SUFFIX = '~cl';
@@ -205,6 +198,59 @@ function addTriangleIcons(map: MaplibreMap, colors: string[]) {
     ctx.strokeStyle = '#ffffff';
     ctx.stroke();
     map.addImage(name, ctx.getImageData(0, 0, size, size), { pixelRatio: ICON_RATIO });
+  }
+}
+
+/** 斜線圖片（LinesOverlayDef.fill.hatch）的邊長（CSS px）、線寬 */
+const HATCH_SIZE = 8;
+const HATCH_WIDTH = 1.3;
+export const hatchImageId = (color: string, angle: HatchAngle) => `hatch-${angle}-${color.replace('#', '')}`;
+
+/** 一張可以無縫鋪開的斜線圖片（透明底、一條分類顏色的線） */
+export function drawHatch(color: string, angle: HatchAngle, ratio: number): ImageData | null {
+  const size = Math.round(HATCH_SIZE * ratio);
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = HATCH_WIDTH * ratio;
+  ctx.lineCap = 'square';
+  ctx.beginPath();
+  if (angle === 0) {
+    ctx.moveTo(0, size / 2);
+    ctx.lineTo(size, size / 2);
+  } else if (angle === 90) {
+    ctx.moveTo(size / 2, 0);
+    ctx.lineTo(size / 2, size);
+  } else {
+    // 斜的：三段（中間一段加上左右兩段的延伸），鋪開時在邊上接起來
+    for (const dx of [-size, 0, size]) {
+      if (angle === 45) {
+        ctx.moveTo(dx, size);
+        ctx.lineTo(dx + size, 0);
+      } else {
+        ctx.moveTo(dx, 0);
+        ctx.lineTo(dx + size, size);
+      }
+    }
+  }
+  ctx.stroke();
+  return ctx.getImageData(0, 0, size, size);
+}
+
+/** 線圖層的斜線面要用的圖片（換底圖後樣式是新的，重新加） */
+function addHatchImages(map: MaplibreMap, def: LinesOverlay, dark: boolean) {
+  const hatch = def.fill?.hatch;
+  if (!hatch || typeof def.color === 'string') return;
+  const ratio = Math.min(2, Math.max(1, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1));
+  for (const c of def.color.classes) {
+    const angle = hatch[c.value];
+    if (angle === undefined) continue;
+    const color = dark && c.dark ? c.dark : c.color;
+    const id = hatchImageId(color, angle);
+    if (map.hasImage(id)) continue;
+    const image = drawHatch(color, angle, ratio);
+    if (image) map.addImage(id, image, { pixelRatio: ratio });
   }
 }
 
@@ -405,6 +451,12 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
       byType.length
         ? (['match', ['coalesce', ['get', 'type'], -1], ...byType.flatMap(([code, o]) => [code, k(o)]), k(opacity)] as unknown as ExpressionSpecification)
         : k(opacity);
+    // 斜線（fill.hatch）：每一類一張斜線圖片（addHatchImages），方向不同，重疊的地方變成交叉線
+    const hatch = def.fill.hatch;
+    const hatchPattern =
+      hatch && classes.some((c) => hatch[c.value] !== undefined)
+        ? (['match', ['coalesce', ['get', 'type'], -1], ...classes.filter((c) => hatch[c.value] !== undefined).flatMap((c) => [c.value, hatchImageId(classColor(c), hatch[c.value])]), hatchImageId(classColor(classes[0]), hatch[classes[0].value] ?? 45)] as unknown as ExpressionSpecification)
+        : null;
     for (const source of sources) {
       out.push({
         layer: {
@@ -412,7 +464,9 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
           type: 'fill',
           source,
           filter: IS_POLYGON,
-          paint: { 'fill-color': color, 'fill-opacity': fillOpacity((o) => o), 'fill-antialias': false },
+          paint: hatchPattern
+            ? { 'fill-pattern': hatchPattern, 'fill-opacity': dark ? 0.85 : 0.75, 'fill-antialias': false }
+            : { 'fill-color': color, 'fill-opacity': fillOpacity((o) => o), 'fill-antialias': false },
         },
         base: IS_POLYGON,
         hover: false,
@@ -877,7 +931,9 @@ export function syncOverlays(
       sent.delete(source);
     }
     if (!map.getLayer(id)) {
-      if (o.kind === 'points') {
+      if (o.kind === 'points' && o.def.trail) {
+        // 連成線的點（trails.ts）畫在疊在地圖上的 canvas，不加圓點的圖層
+      } else if (o.kind === 'points') {
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
         const layer = pointLayer(o.def);
         map.addLayer(layer, before(POINTS_BEFORE));
@@ -902,6 +958,7 @@ export function syncOverlays(
         // 熱度圖畫在點的下面（applyTimeFilters 依時間模式打開）
         if (o.def.heatmap) map.addLayer(heatLayer(o.def), id);
       } else {
+        addHatchImages(map, o.def, dark);
         for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, before(LINES_BEFORE));
       }
     }
@@ -929,6 +986,21 @@ export function syncOverlays(
     donuts.set(OVERLAY_PREFIX + o.def.id + CLUSTER_SUFFIX, { spec: donutSpec(o.def), visible: Boolean(o.visible && o.points) });
   }
   syncDonuts(map, donuts);
+  // 連成線的點（trails.ts）
+  const trails: TrailInput[] = [];
+  for (const o of overlays as DataOverlay[]) {
+    if (o.kind !== 'points' || !o.def.trail || !o.def.timeField || typeof o.def.color === 'string') continue;
+    trails.push({
+      layerId: OVERLAY_PREFIX + o.def.id,
+      points: o.points ?? null,
+      timeField: o.def.timeField,
+      colors: o.def.color,
+      visible: Boolean(o.visible && o.points),
+      head: o.def.trail.head,
+      dark,
+    });
+  }
+  syncTrails(map, trails);
   const reversed = [...(overlays as DataOverlay[])].reverse();
   const pointIds = reversed
     .filter((o) => o.kind === 'points')
@@ -971,7 +1043,13 @@ function setFilterOnce(map: MaplibreMap, layerId: string, filter: FilterSpecific
  * 篩選的結構只在換指標（時間模式）時設一次，換年份時只改 `year:<疊加圖層>` 的值（setGlobalStateProperty），
  * 不必每一年把每個圖層的篩選重設一次（播放時每一格十幾個 setFilter）
  */
-export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], shownYear: number, indicatorMode: IndicatorDef['overlayTime']) {
+export function applyTimeFilters(
+  map: MaplibreMap,
+  overlays: OverlayLayer[],
+  shownYear: number,
+  indicatorMode: IndicatorDef['overlayTime'],
+  indicatorId?: string,
+) {
   for (const o of overlays.filter(isData)) {
     const id = OVERLAY_PREFIX + o.def.id;
     // 共用疊加圖層（shared-layers.ts）有自己跟時間軸的方式，時間軸超出它的資料範圍時用最接近的一年
@@ -981,13 +1059,20 @@ export function applyTimeFilters(map: MaplibreMap, overlays: OverlayLayer[], sho
     const y: ExpressionSpecification = ['global-state', yearKey(o.def.id)];
     if (o.def.timeField) map.setGlobalStateProperty(yearKey(o.def.id), year);
     if (o.kind === 'points') {
+      if (o.def.trail) {
+        setTrailYear(map, id, year, mode);
+        continue;
+      }
       if (o.def.cluster) sendClustered(map, o, year, mode);
       if (o.def.heatmap && map.getLayer(id + HEAT_SUFFIX)) {
         // 點多的時候縮小畫熱度、maxZoom 起換成點；點少（只有一年）時照舊都是點
-        const heat = Boolean(o.visible && o.points) && manyPoints(mode);
+        // heatmap.indicators：只有這幾個指標畫熱度（語言的「語言多樣性」；「語系」照舊畫依語系上色的點）
+        const forIndicator = !o.def.heatmap.indicators || (indicatorId !== undefined && o.def.heatmap.indicators.includes(indicatorId));
+        const heat = Boolean(o.visible && o.points) && manyPoints(o.def, mode) && forIndicator;
         setFilterOnce(map, id + HEAT_SUFFIX, pointFilter(o.def, y, mode));
         map.setLayoutProperty(id + HEAT_SUFFIX, 'visibility', heat ? 'visible' : 'none');
-        map.setLayerZoomRange(id, heat ? o.def.heatmap.maxZoom : (o.def.minZoom ?? 0), 24);
+        const minZoom = o.def.minZoom ?? 0;
+        map.setLayerZoomRange(id, heat ? Math.max(o.def.heatmap.maxZoom, minZoom) : minZoom, 24);
       }
       if (!o.def.timeField && !o.def.minValue) continue;
       setFilterOnce(map, id, pointFilter(o.def, y, mode));

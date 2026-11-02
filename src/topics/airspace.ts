@@ -95,7 +95,8 @@ export const airspace: TopicDefinition = {
         ],
       },
       groupField: 'c',
-      fill: { field: 'f', value: 1, opacity: 0.12, darkOpacity: 0.18, holeField: 'h', hover: true },
+      // 2026-11-02（新4）：各國用自己顏色、不同方向的斜線，重疊的地方（東海、與那國島、離於島）變成交叉線，不再混成一團
+      fill: { field: 'f', value: 1, opacity: 0.12, darkOpacity: 0.18, holeField: 'h', hover: true, hatch: { 1: 45, 2: 90, 3: 135, 4: 0 } },
       tooltip: (p) => {
         const z = ADIZ[Number(p.c)];
         return {

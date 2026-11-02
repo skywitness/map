@@ -84,12 +84,19 @@ const STORE_POINTS: PointsOverlayDef = {
   kind: 'points',
   id: 'stores',
   file: 'points/{item}.json',
-  label: { zh: '店家位置（放大後才畫）', en: 'Store locations (when zoomed in)' },
+  label: { zh: '店家位置', en: 'Store locations' },
   indicators: ['density', 'stores'],
   items: BRANDS.map((b) => b.id),
   radius: 1.8,
   color: MAP_TOKENS.accent,
   minZoom: 5,
+  // 2026-11-02（新5）：放大到 5 級之前畫店家的熱度圖（東京、曼谷、台北這些密集的地方一眼看得出來），放大後換成一家家的點
+  heatmap: {
+    maxZoom: 4,
+    intensity: 0.04,
+    ramp: 'violet',
+    label: { zh: '縮小時畫成店家的密度（越深越密），放大後是一家家的店', en: 'Store density when zoomed out (darker is denser); individual stores when zoomed in' },
+  },
   tooltip: (_p, ctx) => ({
     title: tr(brandLabel(ctx.item ?? '')),
     detail: tr({ zh: 'OpenStreetMap 上標示的店家', en: 'Store mapped on OpenStreetMap' }),

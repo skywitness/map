@@ -211,6 +211,8 @@ const indicators: IndicatorDef[] = [
     unit: QUAKES_UNIT,
     file: 'count-cumulative.json',
     layer: { kind: 'none' },
+    // 2026-11-02（新8）：陸地與海底都鋪淡的地形陰影，看得出地震沿著海溝、山脈排列
+    shade: 'land-sea',
     overlayTime: 'cumulative',
     format: (v) => tr({ zh: `1900 年起規模 6 以上 ${quakes(v)}`, en: `${quakes(v)} of M6+ since 1900` }),
     formatTick: n0,
@@ -225,6 +227,8 @@ const indicators: IndicatorDef[] = [
     unit: QUAKES_UNIT,
     file: 'count-year.json',
     layer: { kind: 'none' },
+    // 2026-11-02（新8）：陸地與海底都鋪淡的地形陰影，看得出地震沿著海溝、山脈排列
+    shade: 'land-sea',
     overlayTime: 'year',
     format: (v) => tr({ zh: `規模 6 以上 ${quakes(v)}`, en: `${quakes(v)} of M6+` }),
     formatTick: n0,
@@ -314,6 +318,11 @@ export const earthquakes: TopicDefinition = {
       license: 'ODC-By 1.0',
     },
     ...landslidesPart.sources,
+    {
+      name: { zh: 'Terrain Tiles（陸地與海底的地形陰影，Mapzen、AWS Open Data）', en: 'Terrain Tiles (land and sea-floor hillshade; Mapzen, AWS Open Data)' },
+      url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
+      license: { zh: '依各資料來源標示', en: 'attribution per data source' },
+    },
   ],
   note: {
     zh: '地震是 USGS 目錄裡規模 6 以上（1900 年起）與規模 5–6（1973 年起，預設關閉）的地震，日期是世界標準時間（UTC），台灣時間要加 8 小時（集集地震是台灣時間 9 月 21 日凌晨）。1970 年代以前的地震來自重新定位的 ISC-GEM 目錄，小一點的地震可能有缺漏。國家的次數只算震央在國界內或離岸 50 公里以內的地震，深海、洋脊上的地震不算任何國家。死亡人數來自 NOAA 的重大地震資料庫，跟 USGS 的地震依時間與距離配對，含地震引發的海嘯，算在震央附近的國家。火山是 Smithsonian 全球火山計畫的全新世火山清單（Global Volcanism Program, Smithsonian Institution），依 GVP 的構造環境把板塊內部的 149 座另外上色（青綠色）。板塊內部不等於熱點：熱點（地函柱）的數目與位置學界沒有共識（有的列 40 個、有的列 100 個以上），冰島、亞速爾與加拉巴哥群島的火山（多數）在 GVP 歸為裂谷，這裡不另外整理熱點清單。台灣的大屯火山群、龜山島是隱沒帶的火山。' +
