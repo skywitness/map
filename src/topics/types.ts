@@ -1242,7 +1242,20 @@ export interface TopicDefinition {
    * 那一天的衛星照片（2026-11-01，NASA GIBS 的 MODIS Terra 每日真彩影像，map/satelliteDay.ts）：date 回傳要看哪一天
    * （YYYY-MM-DD，2000-02-24 起），null 是不畫。picked 是清單側欄點了的那一組線的紀錄（颱風）。圖層卡片有開關
    */
-  satellite?: { date: (ctx: { year: number; indicator: string; picked: PointRecord | null }) => string | null };
+  satellite?: {
+    date: (ctx: { year: number; indicator: string; picked: PointRecord | null }) => string | null;
+    /**
+     * 哪一種每日影像（2026-11-02，新22、新35）：真彩（預設）、臭氧總量、葉綠素（幾天合成）、夜間影像（VIIRS Day/Night Band）
+     */
+    product?: 'truecolor' | 'ozone' | 'chlorophyll' | 'night';
+    /** 圖層卡片上的名稱（沒寫是「那一天的衛星照片（NASA）」） */
+    label?: Text;
+    /**
+     * 播放一季（2026-11-02，新22，臭氧洞張開又闔上）：圖層卡片多一個播放鍵，從 from 到 to（那一年的 MM-DD）每 step 天換一張，
+     * 每張停 ms 毫秒
+     */
+    season?: { from: string; to: string; step: number; ms: number };
+  };
   /**
    * 等深線（2026-11-02，新13，海洋與漁業；map/contours.ts 的 syncIsobaths）：這幾個深度（公尺，正數）的線，
    * 從 AWS Terrain Tiles 的海底地形算出來，世界全圖就畫、放大後沿線寫深度。圖層卡片有開關（「等深線」）

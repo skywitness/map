@@ -321,6 +321,12 @@ export const oceans: TopicDefinition = {
   defaultYear: 2024,
   // 2026-11-02（新13）：200 m（大陸棚的邊緣，大部分的漁場在這以內）、1,000 m、4,000 m（深海平原）的等深線，跟專屬經濟海域的界線一起看
   isobaths: [200, 1000, 4000],
+  // 2026-11-02（新35）：海上疊那一年 7 月 15 日前一週合成的葉綠素（浮游植物，漁場多的地方），2002 年起
+  satellite: {
+    product: 'chlorophyll',
+    label: { zh: '葉綠素（7 月中一週合成，NASA；綠黃紅越多浮游植物）', en: 'Chlorophyll (one-week composite in mid-July, NASA; greener to red is more plankton)' },
+    date: ({ year }) => (year >= 2002 ? `${year}-07-15` : null),
+  },
   sources: [
     {
       name: 'Flanders Marine Institute (2023). Maritime Boundaries Geodatabase v12, MarineRegions.org',
@@ -359,6 +365,11 @@ export const oceans: TopicDefinition = {
       name: { zh: 'Terrain Tiles（等深線，海底地形來自 ETOPO1、GEBCO 等，Mapzen、AWS Open Data）', en: 'Terrain Tiles (depth contours; sea-floor data from ETOPO1, GEBCO and others; Mapzen, AWS Open Data)' },
       url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
       license: { zh: '依各資料來源標示', en: 'attribution per data source' },
+    },
+    {
+      name: { zh: 'NASA GIBS：VIIRS、MODIS 每日葉綠素影像', en: 'NASA GIBS: VIIRS and MODIS daily chlorophyll imagery' },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
     },
   ],
   // 頁尾要短：英文版太長會把地圖擠扁（細節寫在指標說明、附註、側欄與 DESIGN.md）

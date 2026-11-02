@@ -269,6 +269,12 @@ export const aurora: TopicDefinition = {
   defaultIndicator: 'map',
   defaultYear: 2026,
   // 打開時從北極正上方看（2026-11-01）：北半球的極光橢圓帶整圈在畫面上，南半球的轉過去看
+  // 2026-11-02（新35）：昨晚的夜間影像（VIIRS Day/Night Band），極光在極區的夜裡看得到一道道亮帶
+  satellite: {
+    product: 'night',
+    label: { zh: '昨晚的夜間影像（NASA VIIRS）', en: 'Last night’s night-time image (NASA VIIRS)' },
+    date: () => new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+  },
   focus: [-180, 45, 180, 90],
   live: { url: OVATION_URL, minutes: REFRESH_MINUTES, time: forecastTime },
   sources: [
@@ -286,6 +292,11 @@ export const aurora: TopicDefinition = {
       name: { zh: '首都：Wikidata（國家小檔案）', en: 'Capitals: Wikidata (Country facts)' },
       url: 'https://www.wikidata.org/',
       license: 'CC0',
+    },
+    {
+      name: { zh: 'NASA GIBS：VIIRS Day/Night Band 每日夜間影像', en: 'NASA GIBS: VIIRS Day/Night Band daily night-time imagery' },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
     },
   ],
   note: {

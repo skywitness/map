@@ -1,4 +1,5 @@
 import { tr } from '../i18n/lang';
+import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { PointRecord, TopicDefinition } from './types';
@@ -49,6 +50,18 @@ function holeTooltip(p: PointRecord) {
 
 const ONLY_ANTARCTICA = { zh: '臭氧洞在南極上空（國家的值只有南極洲）', en: 'The ozone hole is over Antarctica (only Antarctica has a value)' };
 
+/** 每一年臭氧洞最大的那一天（dates.json 的 area：[月, 日]）：模組載入時先下載（不到 2 KB），還沒到時用 9 月 25 日 */
+let peakDates: Record<string, { area: [number, number] }> | null = null;
+void fetchJson<Record<string, { area: [number, number] }>>('topics/ozone-hole/dates.json')
+  .then((d) => (peakDates = d))
+  .catch(() => undefined);
+function peakDay(year: number): string | null {
+  // GIBS 的臭氧影像從 2004-10-01 起（OMI），之前沒有
+  if (year < 2005) return null;
+  const [m, d] = peakDates?.[String(year)]?.area ?? [9, 25];
+  return `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 export const ozoneHole: TopicDefinition = {
   id: 'ozone-hole',
   title: { zh: '南極臭氧洞', en: 'The Antarctic ozone hole' },
@@ -56,6 +69,14 @@ export const ozoneHole: TopicDefinition = {
   defaultIndicator: 'area',
   defaultYear: LAST_YEAR,
   focus: [-180, -90, 180, -40],
+  // 2026-11-02（新22）：疊上那一年臭氧洞最大那一天的臭氧總量影像（NASA GIBS 的 OMPS、OMI，2005 年起），
+  // 圖層卡片可以「播放這一季」：8 月 1 日到 12 月 15 日每 3 天一張，看臭氧洞張開又闔上
+  satellite: {
+    product: 'ozone',
+    label: { zh: '那一天的臭氧總量（NASA；藍綠是臭氧少）', en: 'Total ozone that day (NASA; blue-green is low)' },
+    date: ({ year }) => peakDay(year),
+    season: { from: '08-01', to: '12-15', step: 3, ms: 700 },
+  },
   sources: [
     {
       name: {
@@ -64,6 +85,11 @@ export const ozoneHole: TopicDefinition = {
       },
       url: 'https://ozonewatch.gsfc.nasa.gov/',
       license: { zh: 'NASA 公開資料（CC0）', en: 'NASA public data (CC0)' },
+    },
+    {
+      name: { zh: 'NASA GIBS：OMPS、OMI 每日臭氧總量影像', en: 'NASA GIBS: OMPS and OMI daily total ozone imagery' },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
     },
   ],
   note: {

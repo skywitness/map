@@ -2132,6 +2132,25 @@ kbd {
   accent-color: var(--accent);
 }
 
+/* 那一天的影像播放一季（主題的 satellite.season，臭氧洞）：名稱後面的小按鈕 */
+.map-layer-play {
+  margin-left: auto;
+  padding: 1px 8px;
+  border: 1px solid var(--grid);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.map-layer-play[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
 /* 一般疊加圖層（地震、火山…）打開時，下面列出顏色分級與大小 */
 .map-layer-detail {
   margin: 2px 0 2px 19px;

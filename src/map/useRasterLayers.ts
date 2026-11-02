@@ -41,39 +41,42 @@ export function useRasterLayers(
   const gridUrl = grid ? gridTiles(grid) : null;
   const gridMeta = grid?.meta ?? null;
   const gridSourceKey = useRef('');
+  /**
+   * 換年份不閃（2026-11-02，新23，暖化網格的播放）：兩組網格圖層輪流用，新的一年先載入到看不見的那一組（不透明度 0），
+   * 那一組的圖磚都到了才淡入、舊的淡出，畫面上一直有一整張網格，不會先空掉再一塊塊出現
+   */
+  const frontRef = useRef<0 | 1>(0);
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    let source = map.getSource<RasterTileSource>(GRID_LAYER);
+    const ids = [GRID_LAYER, `${GRID_LAYER}-b`] as const;
     if (!gridUrl || !gridMeta) {
-      if (source) map.setLayoutProperty(GRID_LAYER, 'visibility', 'none');
+      for (const id of ids) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
       return;
     }
     const attribution = gridMeta.attribution
       ? `<a href="${gridMeta.sourceUrl}" target="_blank" rel="noreferrer">${escapeHtml(gridMeta.attribution)}</a>`
       : `<a href="${gridMeta.sourceUrl}" target="_blank" rel="noreferrer">GHS-POP</a> © European Commission JRC`;
     const key = `${attribution}|${gridMeta.tileSize}|${gridMeta.maxzoom}`;
-    if (source && gridSourceKey.current !== key) {
-      map.removeLayer(GRID_LAYER);
-      map.removeSource(GRID_LAYER);
-      source = undefined;
+    if (gridSourceKey.current !== key) {
+      for (const id of ids) {
+        if (map.getLayer(id)) map.removeLayer(id);
+        if (map.getSource(id)) map.removeSource(id);
+      }
+      frontRef.current = 0;
     }
-    if (!source) {
+    const ensure = (id: string, url: string, opacity: typeof GRID_OPACITY | number) => {
+      if (map.getSource(id)) return;
       gridSourceKey.current = key;
-      map.addSource(GRID_LAYER, {
-        type: 'raster',
-        tiles: [gridUrl],
-        tileSize: gridMeta.tileSize,
-        maxzoom: gridMeta.maxzoom,
-        attribution,
-      });
+      map.addSource(id, { type: 'raster', tiles: [url], tileSize: gridMeta.tileSize, maxzoom: gridMeta.maxzoom, attribution });
       map.addLayer(
         {
-          id: GRID_LAYER,
+          id,
           type: 'raster',
-          source: GRID_LAYER,
+          source: id,
           paint: {
-            'raster-opacity': GRID_OPACITY,
+            'raster-opacity': opacity,
+            'raster-opacity-transition': { duration: 250, delay: 0 },
             // 放大超過圖磚的級數時格子維持方塊；線性內插會把相鄰兩級混成圖例上沒有的顏色
             'raster-resampling': 'nearest',
             'raster-fade-duration': 0,
@@ -81,10 +84,45 @@ export function useRasterLayers(
         },
         'data-fill',
       );
-    } else if (source.tiles[0] !== gridUrl) {
-      source.setTiles([gridUrl]);
+    };
+    const front = ids[frontRef.current];
+    const back = ids[1 - frontRef.current];
+    const frontSource = map.getSource<RasterTileSource>(front);
+    if (!frontSource) {
+      ensure(front, gridUrl, GRID_OPACITY);
+      map.setLayoutProperty(front, 'visibility', 'visible');
+      return;
     }
-    map.setLayoutProperty(GRID_LAYER, 'visibility', 'visible');
+    map.setLayoutProperty(front, 'visibility', 'visible');
+    if (frontSource.tiles[0] === gridUrl) {
+      map.setPaintProperty(front, 'raster-opacity', GRID_OPACITY);
+      if (map.getLayer(back)) map.setPaintProperty(back, 'raster-opacity', 0);
+      return;
+    }
+    // 新的一年載入到後面那一組，圖磚都到了再交換
+    ensure(back, gridUrl, 0);
+    const backSource = map.getSource<RasterTileSource>(back)!;
+    if (backSource.tiles[0] !== gridUrl) backSource.setTiles([gridUrl]);
+    map.setPaintProperty(back, 'raster-opacity', 0);
+    map.setLayoutProperty(back, 'visibility', 'visible');
+    let done = false;
+    const swap = () => {
+      if (done || !map.getSource(back) || !map.isSourceLoaded(back)) return;
+      done = true;
+      map.off('sourcedata', onData);
+      map.setPaintProperty(back, 'raster-opacity', GRID_OPACITY);
+      map.setPaintProperty(front, 'raster-opacity', 0);
+      frontRef.current = frontRef.current === 0 ? 1 : 0;
+    };
+    const onData = (e: { sourceId?: string }) => {
+      if (e.sourceId === back) swap();
+    };
+    map.on('sourcedata', onData);
+    swap();
+    return () => {
+      done = true;
+      map.off('sourcedata', onData);
+    };
   }, [revision, gridUrl, gridMeta]);
 
   // 夜色底：網格有 backdrop 時（夜間燈光），在資料範圍鋪一層第一級的顏色，彩色地形底圖上也是夜景；

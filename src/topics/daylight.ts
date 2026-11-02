@@ -529,6 +529,11 @@ export const daylight: TopicDefinition = {
       url: 'https://www.iana.org/time-zones',
       license: { zh: '公有領域', en: 'public domain' },
     },
+    {
+      name: { zh: 'NASA GIBS：VIIRS、MODIS 每日真彩影像（那一天的衛星照片）', en: 'NASA GIBS: VIIRS and MODIS daily true colour (satellite image of the day)' },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
+    },
   ],
   note: {
     zh: '太陽的位置用 NOAA Solar Calculator 的公式（出自 Meeus《Astronomical Algorithms》）在瀏覽器裡算，1800–2100 年約 1 分鐘以內，高緯度的日出日落誤差較大；春分、夏至等的時刻用 Meeus 第 27 章。日出、日落是太陽中心在地平線下 0.833°（含大氣折射），沒有考慮地形與海拔。國家的數值以首都計算（國家小檔案主題的 Wikidata 首都，台灣是台北；有好幾個首都的國家用法定或行政首都，例如南非用普勒托利亞、玻利維亞用拉巴斯，側欄列出其他首都；香港、澳門、西撒哈拉等沒有首都的地區用主要的城鎮），國土大的國家各地差很多。日出日落的時間是當地時鐘（IANA 時區資料庫，瀏覽器換算，含夏令時間）；「時鐘與太陽」用標準時間。月亮的位置、月相與月出月落用 Astronomy Engine（MIT）在瀏覽器裡算，約 1 角分；月出月落是月亮上緣碰到地平線，含月亮的視差與大氣折射。網址的時間是 UTC，畫面上是你電腦的時區。滑到地圖上任一點（含海上）看那一點的日出日落、白天長度與此刻的太陽高度：時區用那一國的（美國、俄羅斯等有好幾個時區的國家，取 IANA 時區資料庫裡代表地點最近的那個，邊界附近可能差一小時；中國照官方只用北京時間），海上與南極洲用經度的時區（每 15° 一小時）。夜半邊的燈光是夜間燈光主題的 VIIRS 衛星 2024 年平均亮度縮成 0.1° 的格子（約 11 公里），太陽落到地平線下 3° 後漸漸亮起、8° 全亮；放大後是模糊的光暈，細節看夜間燈光主題。This product was made utilizing VIIRS Nighttime Lights (Annual VNL V2) data produced by the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.',
@@ -541,6 +546,17 @@ export const daylight: TopicDefinition = {
   // 觀察點：旁邊寫那裡的日出日落、白天長度、太陽高度（跟滑鼠滑過時一樣）。2026-11-01 只在「定位我」時放；
   // 2026-11-02（新2）起預設放在台北、可以拖、Tab 後用方向鍵移動，位置記在網址 pin=；拖時間軸、播放時說明跟著換，
   // 手機沒有「滑過」也一直看得到
+  // 2026-11-02（新35）：夜色底下鋪選定那一天的衛星照片（今天的還沒拍完，用前一天的）
+  satellite: {
+    label: { zh: '那一天的衛星照片（NASA，今天的用昨天的）', en: 'Satellite image of the day (NASA; yesterday’s for today)' },
+    date: ({ year }) => {
+      const day = String(year);
+      if (day.length !== 8) return null;
+      const iso = `${day.slice(0, 4)}-${day.slice(4, 6)}-${day.slice(6, 8)}`;
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      return iso > yesterday ? yesterday : iso;
+    },
+  },
   pin: { draggable: true, default: [121.565, 25.033], label: (ll, ctx) => pointer(ll, ctx, PIN_HERE)?.lines ?? [] },
   overlays: [
     {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blackShare, fillBlack, validDay } from './satelliteDay';
+import { blackShare, dayCandidates, fillBlack, fillClear, validDay } from './satelliteDay';
 
 const px = (...colors: [number, number, number][]) => new Uint8ClampedArray(colors.flatMap(([r, g, b]) => [r, g, b, 255]));
 
@@ -33,5 +33,26 @@ describe('validDay', () => {
     expect(validDay('1999-09-15', '2026-11-01')).toBeNull();
     expect(validDay('2027-01-01', '2026-11-01')).toBeNull();
     expect(validDay('2012-9-15', '2026-11-01')).toBeNull();
+  });
+});
+
+describe('其他產品', () => {
+  it('臭氧：OMPS 之前用 OMI，再用前一天的', () => {
+    const list = dayCandidates('2010-09-20', 'ozone');
+    expect(list.map((c) => c.layer)).toEqual(['OMI_Ozone_TOMS_Total_Column', 'OMI_Ozone_TOMS_Total_Column']);
+    expect(list[1].date).toBe('2010-09-19');
+  });
+  it('葉綠素：當天再往前 7 天，只用那時有資料的衛星', () => {
+    const list = dayCandidates('2023-07-15', 'chlorophyll');
+    expect(list[0]).toEqual({ layer: 'VIIRS_NOAA20_Chlorophyll_a', date: '2023-07-15' });
+    expect(list.some((c) => c.layer === 'MODIS_Aqua_L2_Chlorophyll_A')).toBe(false);
+    expect(list.filter((c) => c.layer === 'VIIRS_NOAA20_Chlorophyll_a')).toHaveLength(8);
+  });
+  it('透明的像素用下一張補', () => {
+    const rgba = (...p: [number, number, number, number][]) => new Uint8ClampedArray(p.flat());
+    const base = rgba([0, 0, 0, 0], [10, 20, 30, 255]);
+    const share = fillClear(base, rgba([5, 6, 7, 255], [1, 1, 1, 255]));
+    expect([...base]).toEqual([5, 6, 7, 255, 10, 20, 30, 255]);
+    expect(share).toBe(0);
   });
 });

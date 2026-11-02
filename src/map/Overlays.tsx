@@ -417,6 +417,10 @@ interface LayerControlsProps {
   hasRelief?: boolean;
   /** 那一天的衛星照片：有日期時寫在名稱後面（「· 2024-07-24」），沒有是不顯示 */
   satelliteDate?: string | null;
+  /** 那一天的影像的名稱（主題的 satellite.label，臭氧、葉綠素、夜間影像） */
+  satelliteLabel?: Text;
+  /** 播放一季的影像（主題的 satellite.season）：按鈕的狀態與切換 */
+  season?: { playing: boolean; toggle: () => void } | null;
   /** 主題有等深線（TopicDefinition.isobaths） */
   hasIsobaths?: boolean;
   /** 主題的一般疊加圖層（地震、火山、板塊邊界…） */
@@ -440,6 +444,8 @@ export function LayerControls({
   hasTerrain = false,
   hasRelief = false,
   satelliteDate = null,
+  satelliteLabel,
+  season = null,
   hasIsobaths = false,
   overlays = [],
   tokens,
@@ -470,8 +476,21 @@ export function LayerControls({
         <label key={k.key}>
           <input type="checkbox" checked={isOn(layers, k.key)} onChange={() => toggle(k.key)} />
           <Swatch swatch={{ shape: k.shape, size: k.size, color: layerKeyColor(k, tokens) }} />
-          {tr(k.label, lang)}
+          {tr(k.key === 'satellite' && satelliteLabel ? satelliteLabel : k.label, lang)}
           {k.key === 'satellite' && satelliteDate ? ` · ${satelliteDate}` : ''}
+          {k.key === 'satellite' && season && (
+            <button
+              type="button"
+              className="map-layer-play"
+              aria-pressed={season.playing}
+              onClick={(e) => {
+                e.preventDefault();
+                season.toggle();
+              }}
+            >
+              {tr(season.playing ? { zh: '停', en: 'Stop' } : { zh: '播放這一季', en: 'Play the season' }, lang)}
+            </button>
+          )}
         </label>
       ))}
       {overlays.map((o) => {

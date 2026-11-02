@@ -1420,12 +1420,36 @@ export function WorldMap(props: WorldMapProps) {
   }, [routeAnimation?.key, overlays]);
 
   /* ── 那一天的衛星照片（主題的 satellite，satelliteDay.ts）：畫在資料圖層下面 ── */
-  const satelliteDate = validDay(satellite?.date({ year, indicator: indicator.id, picked: picked?.record ?? null }) ?? null);
+  const baseSatelliteDate = validDay(satellite?.date({ year, indicator: indicator.id, picked: picked?.record ?? null }) ?? null);
+  // 播放一季（satellite.season，臭氧洞張開又闔上）：從那一年的 from 到 to，每 step 天換一張；換年份、換主題時停
+  const [seasonDay, setSeasonDay] = useState<string | null>(null);
+  const season = satellite?.season;
+  const seasonYear = baseSatelliteDate?.slice(0, 4) ?? null;
+  useEffect(() => setSeasonDay(null), [seasonYear, satellite]);
+  useEffect(() => {
+    if (!seasonDay || !season || !seasonYear) return;
+    const timer = window.setTimeout(() => {
+      const next = new Date(Date.parse(`${seasonDay}T00:00:00Z`) + season.step * 86400000).toISOString().slice(0, 10);
+      setSeasonDay(next <= `${seasonYear}-${season.to}` ? validDay(next) : null);
+    }, season.ms);
+    return () => clearTimeout(timer);
+  }, [seasonDay, season, seasonYear]);
+  const satelliteDate = seasonDay ?? baseSatelliteDate;
+  const seasonControl = useMemo(
+    () =>
+      season && seasonYear
+        ? {
+            playing: seasonDay !== null,
+            toggle: () => setSeasonDay((d) => (d ? null : validDay(`${seasonYear}-${season.from}`))),
+          }
+        : null,
+    [season, seasonYear, seasonDay !== null],
+  );
   useEffect(() => {
     const map = mapRef.current;
     if (!ready || !map || !installedRef.current) return;
-    syncSatelliteDay(map, satelliteDate && isOn(layers, 'satellite') ? satelliteDate : null, 'data-fill');
-  }, [ready, revision, satelliteDate, layers.satellite]);
+    syncSatelliteDay(map, satelliteDate && isOn(layers, 'satellite') ? satelliteDate : null, 'data-fill', satellite?.product ?? 'truecolor');
+  }, [ready, revision, satelliteDate, layers.satellite, satellite?.product]);
 
   /* ── 沿路線移動的點（線圖層的 animate，routeAnimation.ts）：清單側欄點一組線時走一次；換一組、換主題、換底圖時停 ── */
   useEffect(() => {
@@ -2311,6 +2335,8 @@ export function WorldMap(props: WorldMapProps) {
             hasTerrain={shadeable}
             hasRelief={terrain && indicator.layer.kind === 'terrain'}
             satelliteDate={satelliteDate}
+            satelliteLabel={satellite?.label}
+            season={seasonControl}
             hasIsobaths={hasIsobaths}
             overlays={overlays}
             tokens={tokens}
