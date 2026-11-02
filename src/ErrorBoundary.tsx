@@ -12,6 +12,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
     return { failed: true };
   }
 
+  // Preact 不一定把錯誤印出來：自己印，回報問題時看得到是哪裡壞的
+  componentDidCatch(error: unknown) {
+    console.error('畫面出錯', error); // i18n-ignore（開發者看的）
+  }
+
   render() {
     if (!this.state.failed) return this.props.children;
     const t = messages();

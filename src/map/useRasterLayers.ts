@@ -94,7 +94,7 @@ export function useRasterLayers(
       return;
     }
     map.setLayoutProperty(front, 'visibility', 'visible');
-    if (frontSource.tiles[0] === gridUrl) {
+    if (frontSource.tiles?.[0] === gridUrl) {
       map.setPaintProperty(front, 'raster-opacity', GRID_OPACITY);
       if (map.getLayer(back)) map.setPaintProperty(back, 'raster-opacity', 0);
       return;
@@ -102,7 +102,8 @@ export function useRasterLayers(
     // 新的一年載入到後面那一組，圖磚都到了再交換
     ensure(back, gridUrl, 0);
     const backSource = map.getSource<RasterTileSource>(back)!;
-    if (backSource.tiles[0] !== gridUrl) backSource.setTiles([gridUrl]);
+    // 剛加上的 source 還沒有 tiles（MapLibre 載入 TileJSON 後才填），那時候的網址就是剛給的
+    if (backSource.tiles && backSource.tiles[0] !== gridUrl) backSource.setTiles([gridUrl]);
     map.setPaintProperty(back, 'raster-opacity', 0);
     map.setLayoutProperty(back, 'visibility', 'visible');
     let done = false;
