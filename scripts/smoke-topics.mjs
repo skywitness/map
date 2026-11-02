@@ -73,8 +73,10 @@ try {
   page.on('console', (m) => {
     if (m.type() !== 'error') return;
     const text = m.text();
-    // 外部服務（底圖、地形圖磚）的網路錯誤不算
+    // 外部服務（底圖、地形圖磚）的網路錯誤不算；NASA GIBS 偶爾回沒有 CORS 標頭的錯誤（伺服器忙），瀏覽器記成 CORS 錯誤，
+    // 地圖那一張圖磚是空的（satelliteDay.ts 接住了），也不算
     if (/Failed to load resource|net::ERR|AJAXError|ERR_INTERNET_DISCONNECTED/.test(text)) return;
+    if (/gibs\.earthdata\.nasa\.gov.*blocked by CORS policy/.test(text)) return;
     problems.push(`${current}：主控台錯誤 ${text.slice(0, 300)}`);
   });
   // 等伺服器起來
