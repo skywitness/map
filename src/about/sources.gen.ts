@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 131;
-export const INDICATOR_COUNT = 768;
+export const INDICATOR_COUNT = 769;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","diet","festivals","reads","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -93,6 +93,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},
   {"name":{"zh":"FIPS 10-4 與 ISO 國家代碼對照：GeoNames","en":"FIPS 10-4 to ISO country codes: GeoNames"},"url":"https://www.geonames.org/","licenses":["CC BY 4.0"],"topics":["news"]},
   {"name":"Flanders Marine Institute (2023). Maritime Boundaries Geodatabase v12, MarineRegions.org","url":"https://doi.org/10.14284/632","licenses":["CC BY 4.0"],"topics":["oceans"]},
+  {"name":{"zh":"Garner, G. G. 等（2021）IPCC AR6 Sea Level Projections，版本 20210809（海平面上升推估）","en":"Garner, G. G. et al. (2021), IPCC AR6 Sea Level Projections, version 20210809 (projected sea-level rise)"},"url":"https://doi.org/10.5281/zenodo.5914709","licenses":["CC BY 4.0"],"topics":["ice"]},
   {"name":{"zh":"GDELT 2.0 事件資料庫（每 15 分鐘）","en":"GDELT 2.0 Event Database (every 15 minutes)"},"url":"https://www.gdeltproject.org/","licenses":[{"zh":"可自由使用、轉載，需註明 GDELT Project 並連結","en":"free to use and redistribute with a citation and link to the GDELT Project"}],"topics":["news"]},
   {"name":{"zh":"geoBoundaries（第二級行政區）","en":"geoBoundaries (second-level divisions)"},"url":"https://www.geoboundaries.org/","licenses":[{"zh":"依各國授權","en":"licence varies by country"}],"topics":["map"]},
   {"name":"GitHub Innovation Graph","url":"https://github.com/github/innovationgraph","licenses":["CC0 1.0"],"topics":["developers"]},

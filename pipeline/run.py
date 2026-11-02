@@ -289,6 +289,7 @@ STEPS = {
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
+    "sea-level-rise": "topics.sea_level_rise",  # IPCC AR6 的海平面上升推估：從 9.2 GB 的 zip 用 HTTP Range 讀三個情境（各約 72 MB），要 h5py
     # 北極航道能通航幾天（併進冰河、海冰與海平面，輸出到 topics/ice/）：NOAA/NSIDC 海冰濃度 CDR G02202 第 6 版的每日檔，
     # 1979–2025 年每年一個（約 70–100 MB，共約 4 GB，第一次下載約 10 分鐘），之後約 1 分鐘
     "arctic-routes": "topics.arctic_routes",

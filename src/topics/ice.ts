@@ -1,9 +1,9 @@
-import { tr } from '../i18n/lang';
+import { getLang, tr } from '../i18n/lang';
 import { dataUrl } from '../lib/data';
 import { fixed } from '../lib/format';
 import { classAt, loadClassGrid, type ClassGrid } from '../map/classGridData';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PlaceDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, ListPanelDef, ListRow, PlaceDef, PointRecord, TopicDefinition } from './types';
 
 /**
  * 冰河、海冰與海平面（pipeline/topics/ice.py）：WGMS 的冰河年質量變化（各國冰河平均變薄多少、少了多少質量）、
@@ -38,6 +38,70 @@ export const SEA_LEVEL_CLASSES = [
   { value: 6, color: SEQ[4], short: '5–6', label: { zh: '每年上升 5–6 mm', en: 'Rising 5–6 mm a year' } },
   { value: 7, color: SEQ[6], short: '≥ 6', label: { zh: '每年上升 6 mm 以上', en: 'Rising 6 mm a year or more' } },
 ];
+
+/**
+ * 海平面上升推估（2026-11-02，製作手冊第十七批 275，pipeline/topics/sea_level_rise.py）：IPCC AR6，相對 1995–2014 年，
+ * 2050、2100 年，三個情境（使用者決定）。國家用海岸外 200 公里內 1° 網格的平均，潮位站畫成點（一個情境一個檔，
+ * 兩期用 epochs 換成那一年的中位數 v），左側欄依上升量排名
+ */
+export const SLR_SCENARIOS = [
+  { id: 'ssp126', label: { zh: '低排放（SSP1-2.6）', en: 'Low emissions (SSP1-2.6)' } },
+  { id: 'ssp245', label: { zh: '中排放（SSP2-4.5）', en: 'Intermediate emissions (SSP2-4.5)' } },
+  { id: 'ssp585', label: { zh: '高排放（SSP5-8.5）', en: 'High emissions (SSP5-8.5)' } },
+];
+const SLR_YEARS = [2050, 2100];
+const SLR_LIST_TOP = 100;
+/** 地圖上潮位站的中文名稱（只有台灣的兩站） */
+const GAUGE_ZH: Record<string, string> = { 'KEELUNG II': '基隆', 'KAOHSIUNG II': '高雄' }; // i18n-ignore：只在中文介面用（gaugeName）
+const slrEpoch = (year: number) => SLR_YEARS.reduce((e, y) => (y <= year ? y : e), SLR_YEARS[0]);
+const rise = (v: number) =>
+  v >= 0
+    ? tr({ zh: `上升 ${fixed(v, 0)} 公分`, en: `${fixed(v, 0)} cm higher` })
+    : tr({ zh: `下降 ${fixed(-v, 0)} 公分`, en: `${fixed(-v, 0)} cm lower` });
+const gaugeValue = (p: PointRecord, key: string, year: number) => {
+  const v = p[`${key}${slrEpoch(year)}`];
+  return typeof v === 'number' ? v : null;
+};
+const gaugeName = (p: PointRecord) => tr({ zh: GAUGE_ZH[String(p.name)] ?? String(p.name), en: String(p.name) });
+const likely = (p: PointRecord, year: number) => {
+  const l = gaugeValue(p, 'l', year);
+  const h = gaugeValue(p, 'h', year);
+  return l === null || h === null ? null : tr({ zh: `可能範圍 ${fixed(l, 0)}–${fixed(h, 0)} 公分`, en: `likely range ${fixed(l, 0)}–${fixed(h, 0)} cm` });
+};
+/** 潮位站的分級：下降是青綠，上升是橘色（國家的面量圖同一組門檻，再多一級「下降」） */
+const SLR_CLASSES = [
+  { color: MAP_TOKENS.diverging[5], label: { zh: '下降', en: 'Falling' } },
+  { color: SEQ[0], label: { zh: '0–20 公分', en: '0–20 cm' } },
+  { color: SEQ[1], label: { zh: '20–30 公分', en: '20–30 cm' } },
+  { color: SEQ[2], label: { zh: '30–40 公分', en: '30–40 cm' } },
+  { color: SEQ[3], label: { zh: '40–50 公分', en: '40–50 cm' } },
+  { color: SEQ[4], label: { zh: '50–60 公分', en: '50–60 cm' } },
+  { color: SEQ[5], label: { zh: '60–80 公分', en: '60–80 cm' } },
+  { color: SEQ[6], label: { zh: '80 公分以上', en: '80 cm or more' } },
+];
+
+const SLR_LIST: ListPanelDef = {
+  label: { zh: '潮位站的推估', en: 'Tide-gauge projections' },
+  indicators: ['sea-level-rise'],
+  file: 'slr-gauges/{item}.json',
+  countryField: 'iso3',
+  empty: { zh: '沒有潮位站的推估。', en: 'No tide-gauge projections.' },
+  rows: (points, { countryName, year, country }) =>
+    points
+      .map((p) => ({ p, v: gaugeValue(p, 'm', year) }))
+      .filter((r): r is { p: PointRecord; v: number } => r.v !== null)
+      .sort((a, b) => b.v - a.v)
+      .slice(0, country ? Infinity : SLR_LIST_TOP)
+      .map(({ p, v }, i): ListRow => ({
+        key: `${p.name}-${p.lon}-${p.lat}`,
+        title: gaugeName(p),
+        titleProper: !GAUGE_ZH[String(p.name)],
+        lines: [
+          [`${i + 1}. ${rise(v)}`, likely(p, year), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+        ],
+        target: { lon: p.lon as number, lat: p.lat as number, zoom: 8 },
+      })),
+};
 
 export function hemisphereName(h: string | number | null): string {
   return h === 'S' ? tr({ zh: '南極', en: 'Antarctic' }) : tr({ zh: '北極', en: 'Arctic' });
@@ -184,6 +248,23 @@ const indicators: IndicatorDef[] = [
     missing: { zh: '內陸國，沒有沿海的海', en: 'Landlocked: no coastal waters' },
   },
   {
+    id: 'sea-level-rise',
+    label: { zh: '海平面上升（推估）', en: 'Projected sea-level rise' },
+    description: {
+      zh: 'IPCC 第六次評估報告推估 2050、2100 年的海平面比 1995–2014 年的平均高多少（公分，中位數），選上方的「排放情境」切換。國家是沿海（海岸外 200 公里以內的 1° 網格）的平均；點是潮位站，含當地地層下陷或隆起，所以同一國的站差很多（日本鳥羽 2 公尺多、阿拉斯加因冰河消退後地殼回彈反而下降）。中排放下 2100 年世界 56 公分、台灣沿海 59 公分、基隆 57 公分（可能範圍 38–84）。',
+      en: 'How much higher than the 1995–2014 average the sea is projected to be in 2050 and 2100 (cm, median) in the IPCC Sixth Assessment Report; switch with "Emissions scenario" above. Countries show the average of their coastal waters (1° grid cells within 200 km); points are tide gauges, which include local land subsidence or uplift, so gauges in one country can differ widely (over 2 m at Toba in Japan; falling in Alaska, where land is still rebounding after deglaciation). Under intermediate emissions: world 56 cm in 2100, Taiwan’s coast 59 cm, Keelung 57 cm (likely range 38–84).',
+    },
+    unit: { zh: '公分', en: 'cm' },
+    file: 'sea-level-rise/{item}.json',
+    dimension: { label: { zh: '排放情境', en: 'Emissions scenario' }, options: SLR_SCENARIOS, defaultOption: 'ssp245' },
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 30, 40, 50, 60, 80] } },
+    format: rise,
+    formatTick: (v) => fixed(v, 0),
+    compareWorld: true,
+    defaultYear: 2100,
+    missing: { zh: '內陸國，沒有沿海', en: 'Landlocked: no coast' },
+  },
+  {
     id: 'arctic-routes',
     label: { zh: '北極航道能通航幾天', en: 'Arctic shipping routes' },
     description: {
@@ -242,14 +323,25 @@ export const ice: TopicDefinition = {
       url: 'https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/',
       license: { zh: '美國政府著作', en: 'US Government work' },
     },
+    {
+      name: {
+        zh: 'Garner, G. G. 等（2021）IPCC AR6 Sea Level Projections，版本 20210809（海平面上升推估）',
+        en: 'Garner, G. G. et al. (2021), IPCC AR6 Sea Level Projections, version 20210809 (projected sea-level rise)',
+      },
+      url: 'https://doi.org/10.5281/zenodo.5914709',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '冰河是 WGMS（世界冰河監測服務）2026 年 2 月的 AMCE：全世界約 21 萬條冰河（RGI 6.0 的輪廓）1976–2025 年每年的質量變化，由衛星與航測的多年高程變化，配上實地量測的逐年變化推算（Dussaillant 等 2025）；格陵蘭與南極的冰蓋本體不算冰河，只有周邊的冰河。每條冰河依中心點歸到國家（Natural Earth 1:10m），國家的值依面積加權；冰河少的國家（例如赤道附近的高山）誤差大。台灣沒有冰河（雪山、南湖大山的圈谷是冰河期留下的地形）。海冰是 NSIDC 海冰指數第 4 版的月平均範圍與邊緣（衛星被動微波，海面至少 15% 有冰算在範圍內），北極 9 月與南極 2 月各自是一年裡最少的月份；1981–2010 年的中位數邊緣當比較的基準。海平面是 NOAA STAR 的衛星測高（TOPEX、Jason-1/2/3、Sentinel-6MF）1993–2025 年的線性趨勢，0.5° 網格，NOAA 標示為實驗性產品；沿海的平均是離國界 200 公里以內的格子依緯度加權，內陸國不算。全球海洋格子的平均約 3.2 mm/年。衛星測高量的是海面高度，不含地層下陷：台灣西南沿海的地層下陷讓陸地看到的海平面上升比這個快。' +
-      '北極航道是 NOAA/NSIDC 海冰濃度氣候資料紀錄第 6 版（25 km 網格，每天一張）沿兩條航道取樣：航道線是自己沿主要航線畫的示意線（沒有開放的官方 GIS），北方海航道從喀拉海峽到白令海峽，西北航道是多數船走的南線（蘭開斯特海峽、皮爾海峽、毛德皇后灣、阿蒙森灣到巴羅角）。一天裡航道上每一格的海冰濃度都低於 15% 才算一天，一格（25 km）有冰就不算；比 25 km 窄的海峽（例如辛普森海峽）在網格上是陸地，不算在內。能不能通航還看冰的種類、破冰船的護航與船級，不只看濃度：北方海航道有破冰船時，濃度更高也有船走。',
+      '北極航道是 NOAA/NSIDC 海冰濃度氣候資料紀錄第 6 版（25 km 網格，每天一張）沿兩條航道取樣：航道線是自己沿主要航線畫的示意線（沒有開放的官方 GIS），北方海航道從喀拉海峽到白令海峽，西北航道是多數船走的南線（蘭開斯特海峽、皮爾海峽、毛德皇后灣、阿蒙森灣到巴羅角）。一天裡航道上每一格的海冰濃度都低於 15% 才算一天，一格（25 km）有冰就不算；比 25 km 窄的海峽（例如辛普森海峽）在網格上是陸地，不算在內。能不能通航還看冰的種類、破冰船的護航與船級，不只看濃度：北方海航道有破冰船時，濃度更高也有船走。' +
+      '海平面上升推估是 IPCC 第六次評估報告第一工作組的區域推估（中等信心，FACTS 模型），相對 1995–2014 年的平均，取中位數，提示框另寫 17%–83% 的可能範圍；「total」含垂直地殼運動（地層下陷、冰河消退後的地殼回彈），潮位站的值因此跟附近的網格不同。國家的值是海岸外 200 公里以內有值的 1° 網格點依緯度加權平均（跟上面的上升速度同一個做法），世界值是報告的全球平均海平面。依資料集的要求引用：Fox-Kemper, B. 等（2021）Ocean, Cryosphere and Sea Level Change，IPCC AR6 WG1 第 9 章，doi:10.1017/9781009157896.011；Kopp, R. E. 等（2023）The Framework for Assessing Changes To Sea-Level (FACTS) v1.0，Geoscientific Model Development 16, 7461–7489，doi:10.5194/gmd-16-7461-2023；Garner, G. G. 等（2021）IPCC AR6 Sea Level Projections，版本 20210809，doi:10.5281/zenodo.5914709（2026-11-02 取用）。致謝（原文）：We thank the projection authors for developing and making the sea-level rise projections available, multiple funding agencies for supporting the development of the projections, and the NASA Sea Level Change Team for developing and hosting the IPCC AR6 Sea Level Projection Tool.',
     en: 'Glaciers come from the WGMS (World Glacier Monitoring Service) AMCE of February 2026: yearly mass change of some 210,000 glaciers worldwide (RGI 6.0 outlines) for 1976–2025, combining multi-year elevation changes from satellites and aerial surveys with year-to-year field measurements (Dussaillant et al. 2025). The Greenland and Antarctic ice sheets themselves are not glaciers; only the glaciers around them are included. Each glacier is assigned to a country by its centre point (Natural Earth 1:10m) and country values are area-weighted; countries with few glaciers (such as tropical mountains) are less certain. Taiwan has no glaciers (the cirques on Xueshan and Nanhu Mountain are relics of the ice age). Sea ice is the monthly mean extent and edge from the NSIDC Sea Ice Index, Version 4 (passive microwave satellites; the extent counts sea at least 15% covered by ice); September in the Arctic and February in the Antarctic are each the month of least ice, and the 1981–2010 median edge is the reference. Sea level is the linear trend for 1993–2025 from NOAA STAR satellite altimetry (TOPEX, Jason-1/2/3, Sentinel-6MF) on a 0.5° grid, labelled experimental by NOAA; coastal averages use cells within 200 km of the country, weighted by latitude, and exclude landlocked countries. The average over all ocean cells is about 3.2 mm a year. Altimetry measures the height of the sea surface and does not include land subsidence: along Taiwan’s south-western coast, subsidence makes the sea rise faster relative to the land. ' +
-      'The Arctic routes sample the NOAA/NSIDC Sea Ice Concentration Climate Data Record, Version 6 (25 km grid, one map a day) along two routes drawn by hand along the main shipping lanes (there is no open official GIS): the Northern Sea Route from the Kara Gate to the Bering Strait, and the southern Northwest Passage most ships use (Lancaster Sound, Peel Sound, Queen Maud Gulf and Amundsen Gulf to Point Barrow). A day counts only if every grid cell along the route is below 15% ice; one 25 km cell of ice rules it out, and straits narrower than 25 km (such as Simpson Strait) are land on the grid and left out. Whether ships can pass also depends on the type of ice, icebreaker escort and ship class, not just concentration: with icebreakers, ships use the Northern Sea Route at higher concentrations.',
+      'The Arctic routes sample the NOAA/NSIDC Sea Ice Concentration Climate Data Record, Version 6 (25 km grid, one map a day) along two routes drawn by hand along the main shipping lanes (there is no open official GIS): the Northern Sea Route from the Kara Gate to the Bering Strait, and the southern Northwest Passage most ships use (Lancaster Sound, Peel Sound, Queen Maud Gulf and Amundsen Gulf to Point Barrow). A day counts only if every grid cell along the route is below 15% ice; one 25 km cell of ice rules it out, and straits narrower than 25 km (such as Simpson Strait) are land on the grid and left out. Whether ships can pass also depends on the type of ice, icebreaker escort and ship class, not just concentration: with icebreakers, ships use the Northern Sea Route at higher concentrations. ' +
+      'Projected sea-level rise is the regional projection of the IPCC Sixth Assessment Report, Working Group I (medium confidence, FACTS), relative to the 1995–2014 average; the median is mapped and the tooltip gives the 17–83% likely range. The “total” projection includes vertical land motion (subsidence, rebound after deglaciation), so tide gauges can differ from nearby grid cells. Country values average the 1° grid cells with data within 200 km of the coast, weighted by latitude (as for the rate above); the world value is the report’s global mean sea level. Cited as the dataset requires: Fox-Kemper, B. et al. (2021), Ocean, Cryosphere and Sea Level Change, IPCC AR6 WG1 Chapter 9, doi:10.1017/9781009157896.011; Kopp, R. E. et al. (2023), The Framework for Assessing Changes To Sea-Level (FACTS) v1.0, Geoscientific Model Development 16, 7461–7489, doi:10.5194/gmd-16-7461-2023; Garner, G. G. et al. (2021), IPCC AR6 Sea Level Projections, version 20210809, doi:10.5281/zenodo.5914709 (accessed 2026-11-02). We thank the projection authors for developing and making the sea-level rise projections available, multiple funding agencies for supporting the development of the projections, and the NASA Sea Level Change Team for developing and hosting the IPCC AR6 Sea Level Projection Tool.',
   },
   panelExtra: () => import('./panels/IcePanel'),
+  listPanel: [SLR_LIST],
   places: ROUTE_PLACES,
   pointer: ([lon, lat], { indicator }) => {
     if (indicator !== 'sea-level') return null;
@@ -293,6 +385,33 @@ export const ice: TopicDefinition = {
       casing: true,
       tooltip: (p, ctx) => routeTooltip(p, ctx.year),
       indicators: ['arctic-routes'],
+    },
+    {
+      kind: 'points',
+      id: 'slr-gauges',
+      file: 'slr-gauges/{item}.json',
+      label: { zh: '潮位站的推估', en: 'Tide-gauge projections' },
+      radius: 4,
+      color: {
+        field: 'v',
+        title: { zh: '比 1995–2014 年高（公分）', en: 'Rise since 1995–2014 (cm)' },
+        thresholds: [0, 20, 30, 40, 50, 60, 80],
+        classes: SLR_CLASSES,
+      },
+      sortField: 'v',
+      epochs: { years: SLR_YEARS, values: (p, epoch) => ({ v: gaugeValue(p, 'm', epoch) }) },
+      tooltip: (p, ctx) => {
+        const v = gaugeValue(p, 'm', ctx.year);
+        const range = likely(p, ctx.year);
+        return {
+          title: gaugeName(p),
+          // 原文的站名（PSMSL）另起一行，畫面上不翻譯
+          ...(GAUGE_ZH[String(p.name)] && getLang() === 'zh' ? { properNoun: String(p.name) } : {}),
+          detail: v === null ? '' : tr({ zh: `${slrEpoch(ctx.year)} 年：${rise(v)}`, en: `${slrEpoch(ctx.year)}: ${rise(v)}` }),
+          extra: [range, typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null].filter((x): x is string => Boolean(x)),
+        };
+      },
+      indicators: ['sea-level-rise'],
     },
     {
       kind: 'classGrid',
