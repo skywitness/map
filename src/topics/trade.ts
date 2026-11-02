@@ -1,5 +1,6 @@
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import { tr } from '../i18n';
+import { MAP_TOKENS } from '../theme/tokens';
 import { PRODUCTS } from './agriculture';
 import type { FlowDirection, IndicatorDef, Text, TopicDefinition } from './types';
 
@@ -118,6 +119,24 @@ function flowLong(direction: FlowDirection, label: Text, description: Text): Ind
   };
 }
 
+/**
+ * 服務出口的組成（2026-11-02，製作手冊第十七批 271，pipeline/topics/services_trade.py）：WDI 轉載的 IMF 國際收支，
+ * 台灣用中央銀行國際收支。pipeline 的 GROUPS 同一組 id 與順序；顏色依順序取 MAP_TOKENS.categorical（圓餅、側欄的堆疊圖一樣）
+ */
+export const SERVICE_GROUPS: { id: string; label: Text }[] = [
+  { id: 'transport', label: { zh: '運輸', en: 'Transport' } },
+  { id: 'travel', label: { zh: '旅行', en: 'Travel' } },
+  { id: 'ict', label: { zh: '電信、電腦與資訊', en: 'Telecom, computer and information' } },
+  { id: 'finance', label: { zh: '保險與金融', en: 'Insurance and finance' } },
+  { id: 'other', label: { zh: '其他服務', en: 'Other services' } },
+];
+
+/** 側欄畫服務出口組成的指標 */
+export const SERVICES_INDICATORS = ['services-export', 'services-mix', 'services-share'];
+
+const pct = (v: number) => `${fixed(v, 1)}%`;
+const pctTick = (v: number) => `${v}%`;
+
 export const trade: TopicDefinition = {
   id: 'trade',
   title: { zh: '國際貿易流向', en: 'International trade flows' },
@@ -144,6 +163,19 @@ export const trade: TopicDefinition = {
       license: 'CC0 1.0',
     },
     {
+      name: {
+        zh: '世界銀行 WDI（服務出口與組成，轉載 IMF 國際收支）',
+        en: 'World Bank, WDI (service exports and their composition; IMF balance of payments)',
+      },
+      url: 'https://data.worldbank.org/indicator/BX.GSR.NFSV.CD',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '中央銀行 國際收支統計（台灣的服務出口）', en: 'Central Bank of the Republic of China (Taiwan), balance of payments (Taiwan’s service exports)' },
+      url: 'https://cpx.cbc.gov.tw/',
+      license: { zh: '政府資料開放授權條款－第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
       name: { zh: '世界銀行 WDI（貿易占 GDP）', en: 'World Bank, WDI (trade, % of GDP)' },
       url: 'https://data.worldbank.org/indicator/NE.TRD.GNFS.ZS',
       license: 'CC BY 4.0',
@@ -164,6 +196,7 @@ export const trade: TopicDefinition = {
       '瑞士、阿聯、香港、比利時、新加坡、荷蘭這類精煉、轉口與物流中心的進出口很大，不代表在那裡生產或使用；品牌國也不是產地。黃金不含央行之間的貨幣用黃金；鑽石的工業用鑽石不列；化肥的磷酸銨在 3105。' +
       '貿易依存度是世界銀行 WDI 的商品與服務出口加進口占 GDP（1960 年起），台灣用主計總處的國民所得統計自行計算；香港、新加坡、盧森堡超過 300% 是轉口貿易與跨國企業的帳，不代表「依賴」；世界合計的最新一年國家數不全，只畫到 2024 年。' +
       '長期出口、長期進口是 Harvard Atlas 的 SITC Rev. 2（1962–2024 年），UN Comtrade 的申報由 Growth Lab 用雙邊申報互相調和；台灣沒有向聯合國申報，台灣的值來自貿易夥伴的申報。1991 年以前的蘇聯算在俄羅斯，捷克斯洛伐克、南斯拉夫、東德沒有資料（拆分後的國家從獨立那一年起才有）。調和方法跟 BACI 不同，1995 年以後兩份的數字不一樣（2024 年台灣出口 Atlas 4,625 億美元、BACI 5,313 億），所以分成兩組，不接成一條。' +
+      '服務出口是世界銀行 WDI 轉載的 IMF 國際收支（BPM6，2005 年起），組成用 WDI 的運輸、旅行、電信電腦與資訊（ICT）、保險與金融四類，其他服務是 100% 減這四類（顧問、研發、權利金、加工、營建、政府服務…）；WDI 的「Communications, computer, etc.」是大的剩餘類別，不少國家缺項，所以不用。四類都有的國家才畫組成。旅行是外國旅客在當地的花費，不含國際客運（客運算在運輸）。台灣用中央銀行國際收支，保險與金融是保險及退休金服務加金融服務。世界的組成是四類都有的國家依服務出口加權（涵蓋世界服務出口九成以上）；2025 年的國家數還不全，預設看 2024 年。' +
       '貿易靠的港口、貨櫃量與商船隊見「航運與港口」主題，塑膠廢料的流向見「塑膠污染」主題。',
     en:
       'All goods: CEPII BACI (1995–2024; the HS 1992 version for 1995–2016 and the HS 2017 version from 2017), which reconciles exporter and importer reports, valued FOB; Taiwan appears in UN Comtrade and BACI as "Other Asia, nes". ' +
@@ -174,6 +207,7 @@ export const trade: TopicDefinition = {
       'Refining, re-export and logistics hubs such as Switzerland, the UAE, Hong Kong, Belgium, Singapore and the Netherlands trade large amounts without producing or using them, and brand countries are not where goods are made. Gold excludes monetary gold traded between central banks; industrial diamonds are not listed; ammonium phosphates are under 3105. ' +
       'Trade openness is exports plus imports of goods and services as a share of GDP from the World Bank WDI (from 1960); Taiwan is computed from DGBAS national accounts. Hong Kong, Singapore and Luxembourg exceed 300% because of re-exports and multinational accounting, not "dependence"; the world total stops at 2024 because the latest year covers too few countries. ' +
       'Long-run exports and imports come from the Harvard Atlas SITC Rev. 2 data (1962–2024): UN Comtrade reports reconciled by the Growth Lab using both sides of each flow; Taiwan does not report to the UN, so its figures come from its partners. The Soviet Union is counted as Russia before 1992; Czechoslovakia, Yugoslavia and East Germany have no data (successor states appear from independence). The reconciliation differs from BACI, so the two disagree after 1995 (Taiwan’s 2024 exports: US$462.5 billion in the Atlas, US$531.3 billion in BACI); they are kept as separate indicators rather than spliced. ' +
+      'Service exports are IMF balance-of-payments data (BPM6, from 2005) republished in the World Bank WDI. The mix uses four WDI categories, transport, travel, telecommunications, computer and information services (ICT), and insurance and finance; other services are 100% minus these four (consulting, R&D, royalties, manufacturing services, construction, government services and so on). The WDI "Communications, computer, etc." series is a large residual with many gaps, so it is not used. Only countries with all four categories are shown. Travel is spending by foreign visitors and excludes international passenger fares, which fall under transport. Taiwan uses Central Bank balance-of-payments data, with insurance and finance combining insurance and pension services and financial services. The world mix weights countries with all four categories by their service exports (covering over 90% of world service exports); 2025 is still incomplete, so 2024 is the default year. ' +
       'For the ports, container volumes and merchant fleets that carry trade, see the Shipping and ports topic; for plastic waste flows, see Plastic pollution.',
   },
   dimension: { label: { zh: '商品', en: 'Product' }, options: ITEMS, defaultOption: 'all' },
@@ -227,6 +261,77 @@ export const trade: TopicDefinition = {
         en: 'Imports of all goods, 1962–2024 (Harvard Atlas, SITC classification). Click a country to draw arcs to its top 15 sources. A different dataset from Imports (from 1995), so the figures differ.',
       },
     ),
+    {
+      id: 'services-export',
+      label: { zh: '服務出口', en: 'Service exports' },
+      description: {
+        zh: '賣給外國人的服務：運輸、外國旅客在當地的花費、軟體與資訊服務、金融保險、顧問與研發、權利金等，2005 年起（IMF 國際收支）。圓的面積與金額成正比，圓餅是五類各占幾成；點國家看組成的變化。',
+        en: 'Services sold to non-residents: transport, spending by foreign visitors, software and information services, finance and insurance, consulting and R&D, royalties and more, from 2005 (IMF balance of payments). Circle area is proportional to value; the pie shows the five categories. Click a country to see how the mix changed.',
+      },
+      unit: { zh: '美元', en: 'US$' },
+      file: 'services-export.json',
+      layer: {
+        kind: 'bubble',
+        legendValues: [1e9, 1e10, 1e11],
+        pie: {
+          parts: SERVICE_GROUPS.map((g, i) => ({
+            indicator: 'services-mix',
+            item: g.id,
+            color: MAP_TOKENS.categorical[i],
+            label: g.label,
+          })),
+        },
+      },
+      format: (v) => usd(formatLargeNumber(v)),
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'services-mix',
+      label: { zh: '占服務出口比重', en: 'Share of service exports' },
+      description: {
+        zh: '選定類別占服務出口的比例，2005 年起，選上方的「服務類別」切換。旅行是外國旅客在當地的花費（觀光大國很高），運輸含國際客運、貨運與港口機場服務；電信、電腦與資訊是軟體、資料處理、雲端這類，愛爾蘭、以色列、印度超過四成。其他服務包括顧問、研發、權利金、加工、營建。',
+        en: 'The selected category as a share of service exports, from 2005; switch with "Service type" above. Travel is spending by foreign visitors (high in tourism economies); transport covers international passenger and freight transport and port and airport services. Telecom, computer and information services cover software, data processing and cloud services, over 40% in Ireland, Israel and India. Other services include consulting, R&D, royalties, manufacturing services and construction.',
+      },
+      unit: '%',
+      file: 'services-mix/{item}.json',
+      dimension: {
+        label: { zh: '服務類別', en: 'Service type' },
+        options: SERVICE_GROUPS,
+        defaultOption: 'ict',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [5, 10, 20, 30, 45, 60] },
+        itemScales: {
+          transport: { type: 'sequential', thresholds: [5, 10, 15, 25, 35, 50] },
+          travel: { type: 'sequential', thresholds: [10, 20, 30, 45, 60, 75] },
+          ict: { type: 'sequential', thresholds: [2, 5, 10, 15, 25, 40] },
+          finance: { type: 'sequential', thresholds: [1, 2.5, 5, 10, 15, 25] },
+          other: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] },
+        },
+      },
+      format: pct,
+      formatTick: pctTick,
+      compareWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'services-share',
+      label: { zh: '服務出口占總出口', en: 'Service exports, % of total exports' },
+      description: {
+        zh: '服務出口占商品加服務出口的比例，2005 年起。英國、印度、美國這類服務業強的經濟體與觀光島國比較高，製造業出口大國（台灣、中國、德國、韓國）比較低。',
+        en: 'Service exports as a share of exports of goods and services, from 2005. High in service-heavy economies such as the UK, India and the US and in tourism islands; low in big manufacturing exporters such as Taiwan, China, Germany and South Korea.',
+      },
+      unit: '%',
+      file: 'services-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 45, 60, 80] } },
+      format: pct,
+      formatTick: pctTick,
+      compareWorld: true,
+      defaultYear: 2024,
+    },
     // 貿易依存度（2026-10-30 擴充）：WDI NE.TRD.GNFS.ZS，台灣用主計總處自行計算
     {
       id: 'trade-gdp',

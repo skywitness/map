@@ -230,7 +230,7 @@ export function BubbleLegend({ indicator, title, radius, tokens }: BubbleLegendP
         // 圓餅的各片（指標的 layer.pie）：兩欄的色塊與名稱，從 12 點鐘方向順時針的順序
         <ul className="legend-categories legend-pie is-two-columns" style={{ '--rows': Math.ceil(pie.parts.length / 2) } as CSSProperties}>
           {pie.parts.map((p) => (
-            <li key={p.indicator} className="legend-category">
+            <li key={`${p.indicator}:${p.item ?? ''}`} className="legend-category">
               <span className="legend-swatch" style={{ background: p.color }} />
               <span className="legend-category-label">{p.label ?? p.indicator}</span>
             </li>

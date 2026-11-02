@@ -1233,10 +1233,12 @@ export type WindOverlay = Localized<WindOverlayDef>;
 /**
  * 比例圓畫成圓餅（2026-11-01，`map/pies.ts`）：圓的大小照這個指標，各片是同一個主題其他指標（parts 的 indicator）
  * 那一年的值，依 parts 的順序從 12 點鐘方向順時針排、用 parts 的顏色；各片的值照比例分一整圈（占比加起來不必剛好 100）。
- * 這一年各片都沒有值的國家照舊畫實心的圓。圖例在比例圓下面列出各片的顏色與指標名稱（label 可以另外寫短的）
+ * 這一年各片都沒有值的國家照舊畫實心的圓。圖例在比例圓下面列出各片的顏色與指標名稱（label 可以另外寫短的）。
+ * item 是有子項目的指標（dimension）讀哪一個子項目的檔（2026-11-02，貿易主題的服務出口：各片是「服務出口的組成」的
+ * 五個類別）；沒寫的用目前選的子項目
  */
 export interface PieSpec {
-  parts: { indicator: string; color: string; label?: Text }[];
+  parts: { indicator: string; item?: string; color: string; label?: Text }[];
 }
 
 export function indicatorPath(

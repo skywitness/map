@@ -75,6 +75,7 @@ STEPS = {
     "trade-goods": "topics.trade_goods",
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",
+    "services-trade": "topics.services_trade",  # 服務出口的組成（WDI、央行國際收支），輸出到 topics/trade/
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "ruggedness": "topics.ruggedness",  # Nunn & Puga 的地形崎嶇指數（Harvard Dataverse，CC0）

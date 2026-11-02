@@ -17,7 +17,7 @@ export function usePies(topic: Topic, indicator: Indicator, item: string | null,
     [pie, topic],
   );
   const paths = useMemo(
-    () => (parts.length ? parts.flatMap((p) => (p.def ? [indicatorPath(topic, p.def, item)] : [])) : NONE),
+    () => (parts.length ? parts.flatMap((p) => (p.def ? [indicatorPath(topic, p.def, p.item ?? item)] : [])) : NONE),
     [parts, topic, item],
   );
   const files = useJsonMany<IndicatorData>(paths);

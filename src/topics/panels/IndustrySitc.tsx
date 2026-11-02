@@ -1,12 +1,6 @@
-import { useMemo } from 'react';
-import { Chart } from '../../charts/Chart';
-import { stackedAreaOption } from '../../charts/stackedArea';
-import { defineMessages, tr, useLang, useT } from '../../i18n';
-import { useJsonMany } from '../../lib/data';
-import { fixed } from '../../lib/format';
-import { MAP_TOKENS } from '../../theme/tokens';
+import { defineMessages, useLang } from '../../i18n';
 import { SITC_GROUPS } from '../industry';
-import type { IndicatorData } from '../types';
+import { ShareStack } from './ShareStack';
 
 /**
  * 工業主題「出口組成（1962 年起）」「最大的出口類別」的側欄（2026-11-02，製作手冊第十七批 270）：這一國 1962–2024 年
@@ -27,31 +21,9 @@ const TEXT = defineMessages({
   },
 });
 
+const FILES = (topicId: string) => SITC_GROUPS.map((g) => `topics/${topicId}/exports-sitc/${g.id}.json`);
+
 export function IndustrySitc({ topicId, iso3, year }: { topicId: string; iso3: string; year: number }) {
-  const lang = useLang();
-  const t = useT();
-  const text = TEXT[lang];
-  const files = useJsonMany<IndicatorData>(SITC_GROUPS.map((g) => `topics/${topicId}/exports-sitc/${g.id}.json`));
-  const ready = files.every(Boolean);
-  const option = useMemo(() => {
-    if (!ready) return null;
-    const years = files[0]!.years;
-    const series = SITC_GROUPS.map((g, i) => ({
-      name: tr(g.label, lang),
-      values: files[i]!.values[iso3] ?? years.map(() => null),
-      color: MAP_TOKENS.categorical[i],
-    }));
-    if (series.every((s) => s.values.every((v) => v === null))) return null;
-    const spec = stackedAreaOption({ years, series, year, format: (v) => `${fixed(v, 1)}%`, formatTick: (v) => `${v}%` });
-    // 比例的合計是 100%：y 軸固定 0–100%，刻度 0、25、50、75、100
-    return { ...spec, y: { ...spec.y, min: 0, max: 100, ticks: [0, 25, 50, 75, 100] } };
-  }, [ready, files, iso3, year, lang]);
-  if (!ready) return <p className="empty">{t.loading}</p>;
-  return (
-    <>
-      <h3>{text.title}</h3>
-      {option ? <Chart spec={option} height={220} ariaLabel={text.title} /> : <p className="empty">{text.none}</p>}
-      <p className="note">{text.note}</p>
-    </>
-  );
+  const text = TEXT[useLang()];
+  return <ShareStack files={FILES(topicId)} groups={SITC_GROUPS} iso3={iso3} year={year} {...text} />;
 }
