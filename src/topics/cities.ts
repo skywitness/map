@@ -17,7 +17,9 @@ import { urbanHeatPart } from './urban-heat';
 /**
  * 城市（pipeline/topics/cities.py）：JRC GHS-WUP R2025A（聯合國《World Urbanization Prospects 2025》用的那一份）的
  * 約 2.2 萬個城市（連續的市區，不是行政區），1950–2100 每 5 年一期；各國的都市化率、住在城市的比例、最大城市占全國
- * 人口、百萬人口以上的城市數、最大城市的人口、建物面積。
+ * 人口、百萬人口以上的城市數、最大城市的人口、建物面積。聯合國《World Urbanization Prospects 2025》的城市人口（File 21，
+ * 1975–2050 年每年）就是這一份每 5 年的數字加上中間的直線內插，所以不另加指標，只列為來源，並用它補 GHS-WUP 沒有名稱的
+ * 城市（製作手冊第十六批 266）。
  */
 
 /** GHS-WUP 的各期：1950–1970 是回推的，2025 年起是推估 */
@@ -257,6 +259,35 @@ const indicators: IndicatorDef[] = [
     compareWorld: true,
   },
   {
+    id: 'urban-national',
+    label: { zh: '都市化率（各國自己的定義）', en: 'Urbanisation rate (national definitions)' },
+    description: {
+      zh: '各國政府自己定義的都市人口比例（聯合國 WUP 2025 整理，1950–2050 年每年，2025 年起是推估）。定義各國不同：有的看行政區（日本的「市」）、有的看人口規模或密度、台灣是都市計畫區內的人口，所以不能直接比較；上面的「都市化率」是同一套 1 km 網格算的統一定義。',
+      en: 'Share of people living in areas each government defines as urban (compiled in UN World Urbanization Prospects 2025, every year 1950–2050, projected from 2025). Definitions differ: some use administrative units (Japan’s shi), some population size or density, and Taiwan counts urban planning districts, so countries are not directly comparable; the Urbanisation rate above applies one 1 km grid definition everywhere.',
+    },
+    unit: '%',
+    file: 'urban-national.json',
+    layer: { kind: 'choropleth', scale: seq([40, 55, 70, 80, 90, 95]) },
+    format: pct,
+    formatTick: pctTick,
+    compareWorld: true,
+  },
+  {
+    id: 'urban-gap',
+    label: { zh: '兩種都市化率差多少', en: 'Gap between the two urbanisation rates' },
+    description: {
+      zh: '各國自己定義的都市化率，減去統一定義的都市化率（城市加城鎮），單位是百分點，1950–2050 年每 5 年。橘色是自己的定義算得比較少（多數國家是這樣：南亞與非洲的大村落、城郊在統一定義算城鎮），綠色是算得比較多。人口很少的島（安吉拉、福克蘭群島）到不了統一定義城鎮的 5,000 人門檻，統一定義是 0%，差距特別大。',
+      en: 'The urbanisation rate by national definition minus the harmonised rate (cities plus towns), in percentage points, every five years 1950–2050. Orange means the national definition counts fewer people as urban (most countries: large villages and peri-urban areas in South Asia and Africa count as towns under the harmonised definition); teal means it counts more. Tiny islands (Anguilla, the Falklands) fall below the 5,000-person threshold for towns, so their harmonised rate is 0% and the gap is very large.',
+    },
+    unit: { zh: '百分點', en: 'percentage points' },
+    file: 'urban-gap.json',
+    layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-40, -20, -5, 5, 20, 40] } },
+    format: (v) => tr({ zh: `${v > 0 ? '+' : ''}${fixed(v, 1)} 個百分點`, en: `${v > 0 ? '+' : ''}${fixed(v, 1)} pp` }),
+    formatTick: (v) => `${v > 0 ? '+' : ''}${fixed(v, 0)}`,
+    compareWorld: true,
+    unranked: true,
+  },
+  {
     id: 'city-share',
     label: { zh: '住在城市的比例', en: 'Living in cities' },
     description: {
@@ -372,6 +403,22 @@ export const cities: TopicDefinition = withParts({
     },
     {
       name: {
+        zh: 'United Nations, World Urbanization Prospects 2025（File 21：各城市 1975–2050 年的人口，跟 GHS-WUP-MTUC 的數字相同；GHS-WUP 沒有名稱的城市用它的名稱。File 15：各國自己定義的都市人口比例）',
+        en: 'United Nations, World Urbanization Prospects 2025 (File 21: population of each city, 1975–2050; the same figures as GHS-WUP-MTUC; names for cities GHS-WUP leaves unnamed. File 15: urban share by national definitions)',
+      },
+      url: 'https://population.un.org/wup/',
+      license: 'CC BY 3.0 IGO',
+    },
+    {
+      name: {
+        zh: '國家發展委員會「4-1 都市計畫區面積與人口數」（都市及區域發展統計彙編）：台灣的都市計畫區人口比例',
+        en: 'Taiwan National Development Council, urban planning district area and population (Urban and Regional Development Statistics): Taiwan comparison',
+      },
+      url: 'https://data.gov.tw/dataset/6489',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
+      name: {
         zh: 'European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A（各國依城鄉程度的人口、建物面積）',
         en: 'European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A (population by Degree of Urbanisation, built-up surface)',
       },
@@ -386,8 +433,8 @@ export const cities: TopicDefinition = withParts({
     },
   ],
   note: {
-    zh: '城市與城鄉人口都來自歐盟執委會聯合研究中心（JRC）的全球人類住區圖層（GHSL）為聯合國《世界都市化展望 2025》（World Urbanization Prospects 2025）做的 GHS-WUP R2025A：用 1 km 的人口網格（總數配合聯合國 WPP 2024）套用「城鄉程度」（Degree of Urbanisation）定義。城市是每 km² 1,500 人以上的格子連成一片、合計 5 萬人以上的連續市區；城鎮與半密集區是每 km² 300 人以上、合計 5,000 人以上的地方；其他是鄉村。城市不是行政區：好幾個行政區連成一片的市區算一個城市（臺北、新北、桃園、基隆是一個），一個大的行政區也可能只有一部分算城市。每一期的城市範圍各自劃定，所以城市跟鄰近的城市連成一片的那一年人口會跳一階，被併進去的城市從那一期起不再畫。1975–2020 年是依各國普查分配的網格；1950–1970 年沒有網格，是用聯合國的資料回推的（沒有面積）；2025 年起是 JRC 的 CRISP 模型推估到 2100 年，不是觀測值。城市的名稱是 GHS-WUP 依 GISCO、OpenStreetMap 等取的英文名稱，中文名稱來自 Wikidata，對不到的用英文。跨越國界的城市（澳門與珠海、直布羅陀與西班牙的拉利內阿、摩納哥與周圍的法國市鎮）算在所在的小國，沒有「最大城市占全國人口」。依 GHSL 的使用條件（CC BY 4.0）引用：Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436。',
-    en: 'Cities and urban–rural populations come from GHS-WUP R2025A, produced by the European Commission’s Joint Research Centre (Global Human Settlement Layer) for the UN World Urbanization Prospects 2025: the Degree of Urbanisation applied to a 1 km population grid (national totals aligned with UN WPP 2024). A city is a continuous urban area of cells with at least 1,500 people per km² and 50,000 people in total; towns and semi-dense areas have at least 300 people per km² and 5,000 people in total; the rest is rural. Cities are not administrative units: a built-up area spanning several municipalities is one city (Taipei, New Taipei, Taoyuan and Keelung form one), and only part of a large municipality may count. City boundaries are drawn separately for each period, so a city’s population jumps in the year it merges with a neighbour, and the absorbed city is no longer drawn from then on. 1975–2020 come from grids built from national censuses; 1950–1970 have no grid and are back-cast from UN data (no area); values from 2025 to 2100 are projections from the JRC’s CRISP model, not observations. City names are GHS-WUP’s English names (from GISCO, OpenStreetMap and other sources). Cities straddling a border (Macao and Zhuhai, Gibraltar and La Línea in Spain, Monaco and the surrounding French towns) are placed in the smaller country and have no largest-city share. Citation under the GHSL conditions of use (CC BY 4.0): Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436.',
+    zh: '城市與城鄉人口都來自歐盟執委會聯合研究中心（JRC）的全球人類住區圖層（GHSL）為聯合國《世界都市化展望 2025》（World Urbanization Prospects 2025）做的 GHS-WUP R2025A：用 1 km 的人口網格（總數配合聯合國 WPP 2024）套用「城鄉程度」（Degree of Urbanisation）定義。城市是每 km² 1,500 人以上的格子連成一片、合計 5 萬人以上的連續市區；城鎮與半密集區是每 km² 300 人以上、合計 5,000 人以上的地方；其他是鄉村。城市不是行政區：好幾個行政區連成一片的市區算一個城市（臺北、新北、桃園、基隆是一個），一個大的行政區也可能只有一部分算城市。每一期的城市範圍各自劃定，所以城市跟鄰近的城市連成一片的那一年人口會跳一階，被併進去的城市從那一期起不再畫。1975–2020 年是依各國普查分配的網格；1950–1970 年沒有網格，是用聯合國的資料回推的（沒有面積）；2025 年起是 JRC 的 CRISP 模型推估到 2100 年，不是觀測值。城市的名稱是 GHS-WUP 依 GISCO、OpenStreetMap 等取的英文名稱（GHS-WUP 沒有名稱的用聯合國 WUP 2025 的名稱補，兩邊都沒有的寫 N/A），中文名稱來自 Wikidata，對不到的用英文。跨越國界的城市（澳門與珠海、直布羅陀與西班牙的拉利內阿、摩納哥與周圍的法國市鎮）算在所在的小國，沒有「最大城市占全國人口」。依 GHSL 的使用條件（CC BY 4.0）引用：Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436。聯合國人口司《世界都市化展望 2025》公布的城市人口（File 21，CC BY 3.0 IGO）就是這一份：城市與每 5 年的人口相同，1975–2050 年中間的年份是前後兩期之間的直線內插，所以這裡照 GHS-WUP 每 5 年一期畫；聯合國的引用寫法是 United Nations, Department of Economic and Social Affairs, Population Division (2025). World Urbanization Prospects: The 2025 Revision, Online Edition。',
+    en: 'Cities and urban–rural populations come from GHS-WUP R2025A, produced by the European Commission’s Joint Research Centre (Global Human Settlement Layer) for the UN World Urbanization Prospects 2025: the Degree of Urbanisation applied to a 1 km population grid (national totals aligned with UN WPP 2024). A city is a continuous urban area of cells with at least 1,500 people per km² and 50,000 people in total; towns and semi-dense areas have at least 300 people per km² and 5,000 people in total; the rest is rural. Cities are not administrative units: a built-up area spanning several municipalities is one city (Taipei, New Taipei, Taoyuan and Keelung form one), and only part of a large municipality may count. City boundaries are drawn separately for each period, so a city’s population jumps in the year it merges with a neighbour, and the absorbed city is no longer drawn from then on. 1975–2020 come from grids built from national censuses; 1950–1970 have no grid and are back-cast from UN data (no area); values from 2025 to 2100 are projections from the JRC’s CRISP model, not observations. City names are GHS-WUP’s English names (from GISCO, OpenStreetMap and other sources), with the UN World Urbanization Prospects 2025 names filling in cities GHS-WUP leaves unnamed (those with neither show N/A). Cities straddling a border (Macao and Zhuhai, Gibraltar and La Línea in Spain, Monaco and the surrounding French towns) are placed in the smaller country and have no largest-city share. Citation under the GHSL conditions of use (CC BY 4.0): Schiavina, M., Melchiorri, M., Mari Rivero, I., Florio, P., Freire, S. et al. (2025): GHSL WUP Projections Data Package 2025 – Public release GHS-WUP R2025, Publications Office of the European Union, doi:10.2760/2416436. The city populations published by the UN Population Division in World Urbanization Prospects 2025 (File 21, CC BY 3.0 IGO) are the same data: the same cities and five-yearly figures, with the years in between interpolated linearly from 1975 to 2050, so the map keeps GHS-WUP’s five-year periods. UN citation: United Nations, Department of Economic and Social Affairs, Population Division (2025). World Urbanization Prospects: The 2025 Revision, Online Edition.',
   },
   panelExtra: () => import('./panels/CitiesPanel'),
   listPanel: TOP_LIST,

@@ -1,4 +1,5 @@
 """環境部（https://data.moenv.gov.tw，政府資料開放授權條款）：台灣的 PM2.5 年平均、國家溫室氣體排放清冊（ghg_inventory()）、
+事業的溫室氣體年排放量（facility_ghg()，Climate TRACE 排放源的台灣對照）、
 一般廢棄物與資源回收（municipal_waste()、recycled_plastics()，塑膠污染主題）。
 
 - 資料集「全國細懸浮微粒手動監測資料」（AQX_P_10）：各手動監測站每 3 天一次的 24 小時採樣，
@@ -123,6 +124,30 @@ def ghg_inventory() -> dict[int, dict[str, float]]:
     if not out or min(out) != 1990:
         raise RuntimeError(f"{GHG_INVENTORY} 的年份不對，API 的格式可能變了")
     return dict(sorted(out.items()))
+
+
+FACILITY_GHG = "GHG_P_01"
+
+
+def facility_ghg() -> tuple[int, dict[str, dict]]:
+    """環境部「溫室氣體年排放量」（GHG_P_01，data.gov.tw 16059，政府資料開放授權條款）：環境部公告應盤查登錄的事業，
+    每年登錄並查驗過的年排放量。回傳（最新一年，{管制編號: {name、city、town、direct、indirect}}），direct 是直接排放
+    （範疇一，公噸 CO₂e），indirect 是外購電力等的間接排放（範疇二）。用 AR5 的 GWP（事業依環境部的公告換算）。
+    2026-11-02 讀到民國 89–113 年（2000–2024 年），113 年 562 家、直接排放合計 2.11 億公噸。"""
+    rows = _dataset(FACILITY_GHG)
+    latest = max(int(r["app_year"]) for r in rows) + 1911
+    out: dict[str, dict] = {}
+    for r in rows:
+        if int(r["app_year"]) + 1911 != latest:
+            continue
+        code = r["controlno"].strip().upper()
+        if code in out:
+            raise RuntimeError(f"{FACILITY_GHG} {latest} 年的管制編號 {code} 重複")
+        out[code] = {
+            "name": r["companyname"].strip(), "city": r["city"], "town": r["town"],
+            "direct": float(r["tot1_value"] or 0), "indirect": float(r["tot2_value"] or 0),
+        }
+    return latest, out
 
 
 # ── 一般廢棄物與資源回收（塑膠污染主題的台灣） ──────────────────────

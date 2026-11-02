@@ -33,6 +33,7 @@ STEPS = {
     "income": "topics.income",
     "sectors": "topics.sectors",
     "agriculture": "topics.agriculture",
+    "crop-yield": "topics.crop_yield",  # 農業主題的每公頃產量（FAOSTAT QCL 的 Yield，只讀產量那個檔）
     # 油棕園：Zenodo 13379129 的範圍圖（156 MB）與種植年份圖（146 MB），各 609 個圖磚；第一次讀約 15 分鐘，
     # 之後用 .cache/oilpalm/aggregate.npz 幾秒；要先有 geo 的國界
     "oil-palm": "topics.oil_palm",
@@ -47,6 +48,8 @@ STEPS = {
     "transport": "topics.transport",
     "climate": "topics.climate",
     "climate-transport": "topics.climate_transport",
+    # Climate TRACE 5.12.0（Zenodo，用 HTTP Range 只讀需要的檔，第一次約 400 MB、10 分鐘）
+    "climate-trace": "topics.climate_trace",
     "military": "topics.military",
     "digital": "topics.digital",
     "health": "topics.health",
@@ -57,6 +60,7 @@ STEPS = {
     "vaccination-pcv3": "topics.vaccination_pcv3",  # WHO 的 PCV3（data.who.int，CC BY 4.0），台灣用疾管署的縣市完成率加權
     "diet": "topics.diet",  # 第一次會下載約 130 MB（FAOSTAT 糧食平衡表新舊兩版、糧食安全指標）
     "education": "topics.education",
+    "education-projection": "topics.education_projection",  # 大專以上的成人比例推估到 2100 年（Wittgenstein Centre，Zenodo 約 130 MB）
     "pisa": "topics.pisa",  # OECD PISA 2025 Volume I 的兩個 Excel（約 2.8 MB）
     "university-entrance": "topics.university_entrance",  # 依英文維基百科整理的表（sources/admission_tests.py），不必下載
     # NCD-RisC 的成人身高（2.4 MB）與兒童青少年身高（4.6 MB 的 zip），伺服器常斷線，用 curl 續傳；WPP 的年齡別人口
@@ -71,6 +75,9 @@ STEPS = {
     "trade-dependence": "topics.trade_dependence",
     # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
     "trade-goods": "topics.trade_goods",
+    # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
+    "atlas-sitc": "topics.atlas_sitc",
+    "services-trade": "topics.services_trade",  # 服務出口的組成（WDI、央行國際收支），輸出到 topics/trade/
     "language": "topics.language",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "ruggedness": "topics.ruggedness",  # Nunn & Puga 的地形崎嶇指數（Harvard Dataverse，CC0）
@@ -148,6 +155,8 @@ STEPS = {
     # GHSL Urban Centre Database 2025 與各國城鄉人口（約 43 MB）、Wikidata 的地點（兩次查詢約 1 分鐘）與中文名稱
     # （約 130 次查詢）、內政部戶政司的縣市人口；之後用快取約 30 秒
     "cities": "topics.cities",
+    # 城市的都市化率（各國自己的定義，聯合國 WUP 2025 的 File 15），對照 GHS-WUP 的統一定義
+    "urban-definitions": "topics.urban_definitions",
     "crime": "topics.crime",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "happiness": "topics.happiness",
@@ -280,6 +289,7 @@ STEPS = {
     # 冰河、海冰與海平面：WGMS AMCE（54 MB）、NSIDC 海冰邊緣（約 200 個小檔）、NOAA STAR 海平面網格；
     # 沿海的平均用颱風主題的 NearIndex、內陸國用海洋主題的 Marine Regions 清單；約 1 分鐘
     "ice": "topics.ice",
+    "sea-level-rise": "topics.sea_level_rise",  # IPCC AR6 的海平面上升推估：從 9.2 GB 的 zip 用 HTTP Range 讀三個情境（各約 72 MB），要 h5py
     # 北極航道能通航幾天（併進冰河、海冰與海平面，輸出到 topics/ice/）：NOAA/NSIDC 海冰濃度 CDR G02202 第 6 版的每日檔，
     # 1979–2025 年每年一個（約 70–100 MB，共約 4 GB，第一次下載約 10 分鐘），之後約 1 分鐘
     "arctic-routes": "topics.arctic_routes",

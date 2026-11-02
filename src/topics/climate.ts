@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { withParts } from './parts';
+import { climateTracePart } from './climate-trace';
 import { co2StationsPart } from './co2-stations';
 import type { IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
 
@@ -11,6 +12,7 @@ import type { IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
  * - 全部溫室氣體 = 兩者相加，1990–2024 年；CO₂ 當量用 IPCC AR5 的 GWP-100，不含土地利用變化
  * EDGAR 自己的二氧化碳是 CC BY-NC-ND 4.0（IEA-EDGAR CO₂），不用（DESIGN.md 第 8 節第 14 點）。
  * - 交通運輸占幾成、人均交通運輸二氧化碳：CEDS（pipeline/topics/climate_transport.py，2026-10-31 第十批 180）
+ * - Climate TRACE 的估計、2026 年比去年同期、排放源地圖：climate-trace.ts（第十七批 268，2026-11-02）
  *
  * 「人均排放」「年排放量」有「氣體」子項目；舊網址的 co2-per-capita、co2 是這兩個指標選二氧化碳（indicatorAliases），
  * 資料檔還是同一個（co2-per-capita.json、co2.json）。
@@ -269,4 +271,4 @@ export const climate: TopicDefinition = withParts({
       },
     },
   ],
-}, co2StationsPart);
+}, co2StationsPart, climateTracePart);

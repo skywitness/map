@@ -36,7 +36,10 @@ def series(wanted: list[Key]) -> dict[Key, dict[str, dict[int, float]]]:
         return {tuple(k.split("|")): {c: {int(y): v for y, v in s.items()} for c, s in by.items()} for k, by in raw.items()}  # type: ignore[misc]
 
     want = set(wanted)
-    variables = {v.encode() for v, _ in wanted}
+    # 變數代碼有兩種寫法（2026-11-02 起的整包檔）：世界（WO）還是「概念 6 碼＋人口單位＋年齡」（sptincj992），
+    # 國家檔改成「概念＋年齡＋人口單位」（sptinc992j）。新的寫法換回舊的再比對
+    variables = {v.encode(): v for v, _ in wanted}
+    variables.update({(v[:6] + v[7:] + v[6]).encode(): v for v, _ in wanted})
     out: dict[Key, dict[str, dict[int, float]]] = {k: {} for k in wanted}
     with zipfile.ZipFile(path) as z:
         names = [n for n in z.namelist() if n.startswith("WID_data_") and n.endswith(".csv")]
@@ -50,7 +53,7 @@ def series(wanted: list[Key]) -> dict[Key, dict[str, dict[int, float]]]:
                     parts = line.split(b";", 5)
                     if len(parts) < 5 or parts[1] not in variables:
                         continue
-                    key = (parts[1].decode(), parts[2].decode())
+                    key = (variables[parts[1]], parts[2].decode())
                     if key in want and parts[4]:
                         out[key].setdefault(iso3, {})[int(parts[3])] = float(parts[4])
             if i % 50 == 0:

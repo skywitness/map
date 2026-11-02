@@ -12,11 +12,14 @@
 - 中文名稱：Wikidata（CC0）裡人口 3 萬以上、在城市範圍附近、英文（或 mul）名稱或別名跟 WUP 的主要名稱相同的項目
   （sources/wikidata_places.py），名稱用 zh-tw、zh-hant、zh-hk，沒有時用伺服器轉成台灣用字的（sources/nobel.py）。
   對不到的用 WUP 的英文名稱，不自己翻譯。
+- 英文名稱：GHS-WUP 寫「N/A」的城市，用聯合國《World Urbanization Prospects 2025》File 21 的名稱補（同一套城市，
+  sources/un_wup.py；製作手冊第十六批 266），再拿補上的名稱查中文名稱；兩邊都沒有名稱的照樣寫 N/A。
 - 台灣：側欄的對照（`taiwan.json`）把主要的城市跟內政部戶政司的縣市戶籍人口放在一起（sources/ris.py）。
 """
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from pathlib import Path
 import re
 import unicodedata
@@ -24,7 +27,7 @@ from collections import defaultdict
 
 import geoindex
 from common import OUT_DIR, indicator_file, lines_file, more_path, now_iso, points_file, write_json, write_layered_points
-from sources import ghsl_wup, ris, wikidata_places
+from sources import ghsl_wup, ris, un_wup, wikidata_places
 from sources.nobel import zh_labels
 
 OUT = OUT_DIR / "topics" / "cities"
@@ -297,8 +300,18 @@ def _city_iso(centres: list[ghsl_wup.UrbanCentre]) -> dict[int, str | None]:
     return out
 
 
+def _fill_names(centres: list[ghsl_wup.UrbanCentre]) -> list[ghsl_wup.UrbanCentre]:
+    """GHS-WUP 沒有名稱（N/A）的城市換成聯合國 WUP 2025 File 21 的名稱（同一個 ID）；有名稱的不動"""
+    names = un_wup.city_names()
+    out = [replace(c, name=names[c.id]) if c.name in un_wup.NO_NAME and c.id in names else c for c in centres]
+    filled = sum(1 for a, b in zip(centres, out) if a is not b)
+    left = sum(1 for c in out if c.name in un_wup.NO_NAME)
+    print(f"  名稱：GHS-WUP 是 N/A 的城市，{filled} 個用聯合國 WUP 2025 的名稱補上，還有 {left} 個沒有名稱")
+    return out
+
+
 def build() -> None:
-    centres = ghsl_wup.urban_centres()
+    centres = _fill_names(ghsl_wup.urban_centres())
     stats = ghsl_wup.country_stats()
     iso_of = _city_iso(centres)
     print(
@@ -461,7 +474,7 @@ def build() -> None:
         "cities": len(centres),
         "epochs": EPOCHS,
         "zhNames": {"all": len(zh), "over300k": named_big, "over300kTotal": len(big)},
-        "sources": [ghsl_wup.CITATION_MTUC, ghsl_wup.CITATION_STATS, ghsl_wup.CITATION_PACKAGE],
+        "sources": [ghsl_wup.CITATION_MTUC, ghsl_wup.CITATION_STATS, ghsl_wup.CITATION_PACKAGE, un_wup.CITATION],
     })
 
     for y in (1950, 1975, 2025, 2050, 2100):

@@ -2,7 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { DGBAS_SOURCE } from './sectors';
-import type { ColorClasses, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
+import type { CategoryDef, ColorClasses, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
 const pctTick = (v: number) => `${v}%`;
@@ -19,6 +19,25 @@ function share(id: string, label: Text, description: Text, thresholds: number[])
     formatTick: pctTick,
   };
 }
+
+/**
+ * 1962 年起的出口組成（2026-11-02，製作手冊第十七批 270，pipeline/topics/atlas_sitc.py）：Harvard Atlas 的 SITC Rev. 2
+ * 一位碼十大類併成八類（食品與活動物、飲料與菸草、動植物油脂併成一類：地圖的類別色只有 8 個）。順序與 id 跟 pipeline 的
+ * GROUPS 一致，「最大的出口類別」的代碼是順序 + 1；地圖與側欄的堆疊圖都依這個順序取 MAP_TOKENS.categorical
+ */
+export const SITC_GROUPS: { id: string; label: Text }[] = [
+  { id: 'machinery', label: { zh: '機械與運輸設備', en: 'Machinery and transport equipment' } },
+  { id: 'material', label: { zh: '依材料分的製品（紡織品、鋼鐵、紙…）', en: 'Goods by material (textiles, steel, paper…)' } },
+  { id: 'misc', label: { zh: '雜項製品（成衣、鞋、玩具、儀器…）', en: 'Miscellaneous manufactures (clothing, footwear, toys, instruments…)' } },
+  { id: 'chemicals', label: { zh: '化學品', en: 'Chemicals' } },
+  { id: 'fuels', label: { zh: '礦物燃料', en: 'Mineral fuels' } },
+  { id: 'food', label: { zh: '食品、飲料與油脂', en: 'Food, beverages and oils' } },
+  { id: 'crude', label: { zh: '非食用原料（礦砂、木材、棉花…）', en: 'Crude materials (ores, timber, cotton…)' } },
+  { id: 'other', label: { zh: '未分類商品', en: 'Not classified elsewhere' } },
+];
+const SITC_CATEGORIES: CategoryDef[] = SITC_GROUPS.map((g, i) => ({ value: i + 1, label: g.label }));
+/** 這兩個指標的側欄多一張 1962 年起的堆疊面積圖（panels/IndustrySitc.tsx） */
+export const SITC_INDICATORS = ['exports-sitc', 'top-export-sitc'];
 
 /** 出口產業類別（與 pipeline/topics/industry.py 的 EXPORT_GROUPS 對應） */
 export const EXPORT_GROUPS: { id: string; label: Text }[] = [
@@ -145,6 +164,14 @@ export const industry: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     { name: 'Harvard Growth Lab, Atlas of Economic Complexity', url: 'https://atlas.hks.harvard.edu/', license: 'CC0' },
+    {
+      name: {
+        zh: 'Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (SITC, Rev. 2)（1962 年起的出口組成）',
+        en: 'Harvard Growth Lab, Atlas of Economic Complexity: International Trade Data (SITC, Rev. 2) (export mix from 1962)',
+      },
+      url: 'https://doi.org/10.7910/DVN/H8SFD2',
+      license: 'CC0 1.0',
+    },
     DGBAS_SOURCE,
     {
       name: {
@@ -164,8 +191,8 @@ export const industry: TopicDefinition = {
     },
   ],
   note: {
-    zh: '製造業組成依 UNIDO 的五大類（ISIC Rev.3），台灣由主計總處各業 GDP 依同樣分類換算。出口結構依 HS 商品分類歸類。粗鋼與水泥產量是 USGS 年鑑的世界產量表（最新是 2023 年，有些國家是估計值）；鋼鐵廠、水泥廠的點是 Global Energy Monitor 2026 年的追蹤資料（不含已取消的計畫），鋼鐵廠的產能是煉鐵與煉鋼各製程的加總。',
-    en: "Manufacturing composition follows UNIDO's five groups (ISIC Rev.3); Taiwan's is derived from DGBAS GDP by industry using the same grouping. Export structure is grouped by HS product codes. Crude steel and cement output come from the USGS Minerals Yearbook world production tables (latest year 2023; some countries are estimates). Steel and cement plants are from Global Energy Monitor's 2026 trackers (cancelled projects excluded); steel plant capacity sums all ironmaking and steelmaking processes.",
+    zh: '製造業組成依 UNIDO 的五大類（ISIC Rev.3），台灣由主計總處各業 GDP 依同樣分類換算。出口結構依 HS 商品分類歸類（1995 年起）；1962 年起的出口組成是 Harvard Atlas 的 SITC Rev. 2 一位碼（食品、飲料與菸草、動植物油脂併成一類），台灣的值來自貿易夥伴的申報，1991 年以前的蘇聯算在俄羅斯，捷克斯洛伐克、南斯拉夫、東德沒有資料。粗鋼與水泥產量是 USGS 年鑑的世界產量表（最新是 2023 年，有些國家是估計值）；鋼鐵廠、水泥廠的點是 Global Energy Monitor 2026 年的追蹤資料（不含已取消的計畫），鋼鐵廠的產能是煉鐵與煉鋼各製程的加總。',
+    en: "Manufacturing composition follows UNIDO's five groups (ISIC Rev.3); Taiwan's is derived from DGBAS GDP by industry using the same grouping. Export structure is grouped by HS product codes (from 1995); the export mix from 1962 uses Harvard Atlas SITC Rev. 2 sections (food, beverages and tobacco, and animal and vegetable oils merged), with Taiwan's figures taken from its partners' reports, the Soviet Union counted as Russia before 1992, and no data for Czechoslovakia, Yugoslavia or East Germany. Crude steel and cement output come from the USGS Minerals Yearbook world production tables (latest year 2023; some countries are estimates). Steel and cement plants are from Global Energy Monitor's 2026 trackers (cancelled projects excluded); steel plant capacity sums all ironmaking and steelmaking processes.",
   },
   overlays: [plantLayer('steel'), plantLayer('cement')],
   dimension: {
@@ -285,6 +312,39 @@ export const industry: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2.5, 5, 10, 20, 40] } },
       format: pct,
       formatTick: pctTick,
+    },
+    {
+      id: 'exports-sitc',
+      label: { zh: '出口組成（1962 年起）', en: 'Export mix (from 1962)' },
+      description: {
+        zh: '選定類別占全部商品出口的比例，1962–2024 年（Harvard Atlas，SITC 分類）。選上方的「出口類別」切換；點國家看它的出口從什麼變成什麼。跟上面 1995 年起依 HS 分類的「占商品出口比重」類別不同。台灣 1962 年食品占 46.9%，1980 年雜項製品（成衣、鞋、玩具）37.3%，2024 年機械與運輸設備 65.1%。',
+        en: 'The selected category as a share of all goods exports, 1962–2024 (Harvard Atlas, SITC classification). Switch with "Export category" above; click a country to see how its exports changed. Categories differ from the HS-based Share of goods exports (from 1995) above. Taiwan: food 46.9% in 1962, miscellaneous manufactures (clothing, footwear, toys) 37.3% in 1980, machinery and transport equipment 65.1% in 2024.',
+      },
+      unit: '%',
+      file: 'exports-sitc/{item}.json',
+      dimension: {
+        label: { zh: '出口類別', en: 'Export category' },
+        options: SITC_GROUPS,
+        defaultOption: 'machinery',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 35, 50, 70] } },
+      format: pct,
+      formatTick: pctTick,
+      compareWorld: true,
+      defaultYear: 'latest',
+    },
+    {
+      id: 'top-export-sitc',
+      label: { zh: '最大的出口類別（1962 年起）', en: 'Largest export category (from 1962)' },
+      description: {
+        zh: '各國出口最多的商品類別，1962–2024 年（Harvard Atlas，SITC 分類），播放時間軸看各國從賣原料、農產品變成賣製品與機械。出口總額不到 100 萬美元的不算。',
+        en: 'Each country’s largest export category, 1962–2024 (Harvard Atlas, SITC classification); play the timeline to watch countries move from raw materials and farm goods to manufactures and machinery. Countries exporting under US$1 million are left out.',
+      },
+      unit: '',
+      file: 'top-export-sitc.json',
+      layer: { kind: 'categorical', categories: SITC_CATEGORIES },
+      format: (v) => tr(SITC_CATEGORIES.find((c) => c.value === v)?.label ?? ''),
+      defaultYear: 'latest',
     },
   ],
 };

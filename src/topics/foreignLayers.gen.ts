@@ -20,7 +20,7 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"taiwan-diplomacy","layers":[{"id":"missions","label":{"zh":"駐外館處","en":"Taiwan missions"},"kind":"points"}]},
   {"topic":"pandas","layers":[{"id":"arcs","label":{"zh":"從中國出發的弧線","en":"Arcs from China"},"kind":"lines"},{"id":"zoos","label":{"zh":"動物園","en":"Zoos"},"kind":"points"}]},
   {"topic":"conflict","layers":[{"id":"events-state","label":{"zh":"以國家為一方的衝突事件","en":"State-based conflict events"},"kind":"points"},{"id":"events-nonstate","label":{"zh":"非國家衝突事件","en":"Non-state conflict events"},"kind":"points"},{"id":"events-onesided","label":{"zh":"單方面暴力事件","en":"One-sided violence events"},"kind":"points"}]},
-  {"topic":"climate","layers":[{"id":"sites","label":{"zh":"觀測站（年平均濃度）","en":"Stations (annual mean)"},"kind":"points"}]},
+  {"topic":"climate","layers":[{"id":"sites","label":{"zh":"觀測站（年平均濃度）","en":"Stations (annual mean)"},"kind":"points"},{"id":"trace-sources","label":{"zh":"排放源（Climate TRACE，年排放 1 萬公噸以上）","en":"Emission sources (Climate TRACE, 10,000 t+ a year)"},"kind":"points"}]},
   {"topic":"ice","layers":[{"id":"ice-edges","label":{"zh":"海冰邊緣","en":"Sea-ice edge"},"kind":"lines"},{"id":"arctic-routes","label":{"zh":"北極航道（示意）","en":"Arctic routes (schematic)"},"kind":"lines"}]},
   {"topic":"typhoons","layers":[{"id":"tracks-jma","label":{"zh":"颱風路徑（日本氣象廳）","en":"Storm tracks (JMA)"},"kind":"lines"}]},
   {"topic":"ozone-hole","layers":[{"id":"holes","label":{"zh":"臭氧洞最大的一天（220 DU）","en":"Ozone hole at its largest (220 DU)"},"kind":"lines"}]},

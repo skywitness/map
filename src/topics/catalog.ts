@@ -4,7 +4,8 @@
  * 從主題定義產生 catalog.gen.ts；npm run dev、npm run build 會先跑一次。
  */
 import type { Text } from '../i18n/lang';
-import { dimensionOf, usesDimension, type TopicDefinition } from './types';
+import type { DatasetEntry } from './structuredData';
+import { dimensionOf, indicatorPath, usesDimension, type TopicDefinition } from './types';
 
 export interface TopicSummary {
   id: string;
@@ -86,4 +87,32 @@ function preferredIndicator(topic: TopicDefinition, option: string): string | un
   const def = topic.indicators.find((i) => i.id === topic.defaultIndicator);
   const dim = def && dimensionOf(topic, def);
   return def && usesDimension(def) && dim?.options.some((o) => o.id === option) ? def.id : undefined;
+}
+
+const zhText = (text: Text) => (typeof text === 'string' ? text : text.zh);
+const bilingual = (text: Text) => (typeof text === 'string' ? { zh: text, en: text } : text);
+
+/**
+ * 主題頁結構化資料（schema.org Dataset，structuredData.ts）用的一個主題：名稱、預設指標的說明、全部指標的名稱、
+ * 指標的資料檔（子項目用預設的；data/ 底下的路徑，建置時讀 years 算年份範圍）與資料來源（照主題定義，不合併）。
+ * scripts/topic-catalog.mjs 寫進 datasets.gen.json，只有建置用，不進網站的程式
+ */
+export function datasetEntry(topic: TopicDefinition): DatasetEntry {
+  const main = topic.indicators.find((i) => i.id === topic.defaultIndicator) ?? topic.indicators[0];
+  // indicatorPath 要的是文字已經換成目前語言的 Topic；路徑只用到 id、dataTopic 與子項目的 id、預設值，型別不同沒有關係
+  const pathTopic = topic as unknown as Parameters<typeof indicatorPath>[0];
+  const files = [
+    ...new Set(
+      topic.indicators
+        .filter((i) => i.file)
+        .map((i) => indicatorPath(pathTopic, i as unknown as Parameters<typeof indicatorPath>[1], null)),
+    ),
+  ];
+  return {
+    name: bilingual(topic.title),
+    about: main ? zhText(main.description) : '',
+    indicators: topic.indicators.map((i) => zhText(i.label)),
+    files,
+    sources: (topic.sources ?? []).map((s) => ({ name: s.name, url: s.url, license: s.license })),
+  };
 }

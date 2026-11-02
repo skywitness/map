@@ -5,6 +5,7 @@ import { join, relative } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { redirectedTopicIds } from './src/topics/redirects';
+import { datasetJsonLd, datasetProblems, jsonLdScript, temporalCoverage, type DatasetEntry } from './src/topics/structuredData';
 
 /**
  * 首頁 HTML 加上地圖程式（MapLibre）chunk 與它的 CSS 的預載：跟首頁程式同時下載，
@@ -82,11 +83,34 @@ function readCatalog(): { id: string; title: { zh: string }; pure?: boolean; fir
   return [...source.matchAll(/^ {4}"[\w-]+": (\{.*\}),$/gm)].map((m) => JSON.parse(m[1]));
 }
 
+/** 主題頁的結構化資料（scripts/topic-catalog.mjs 產生的 datasets.gen.json，src/topics/structuredData.ts） */
+function readDatasets(): Record<string, DatasetEntry> {
+  return JSON.parse(readFileSync('src/topics/datasets.gen.json', 'utf8'));
+}
+
+/** 指標資料檔的 years（public/data/ 底下；沒有這個檔或沒有 years 時是空的），同一個檔只讀一次 */
+const yearsCache = new Map<string, unknown[]>();
+function dataYears(file: string): unknown[] {
+  let years = yearsCache.get(file);
+  if (!years) {
+    const path = `public/data/${file}`;
+    years = [];
+    if (existsSync(path)) {
+      const data = JSON.parse(readFileSync(path, 'utf8')) as { years?: unknown };
+      if (Array.isArray(data.years)) years = data.years;
+    }
+    yearsCache.set(file, years);
+  }
+  return years;
+}
+
 /**
  * 每個主題自己的網址 t/<主題>/（2026-10-29）：爬蟲（LINE、Facebook、Google）不跑 JavaScript，GitHub Pages 每個網址又只能回傳
  * 一個檔案，所以建置時把首頁的 HTML 複製一份到 t/<主題>/index.html，換掉標題、說明與分享預覽（og:*，預覽圖是
  * scripts/og-topics.mjs 產生的 public/og/<主題>.jpg），加上 canonical；網站根目錄另外產生 sitemap.xml。
- * 建置用絕對路徑（base 是 /map/），這份 HTML 放在 t/<主題>/ 底下照樣抓得到 assets、data
+ * 建置用絕對路徑（base 是 /map/），這份 HTML 放在 t/<主題>/ 底下照樣抓得到 assets、data。
+ * 每一頁另外加 schema.org Dataset 的 JSON-LD（製作手冊第十六批 267，2026-11-01，src/topics/structuredData.ts），讓 Google
+ * 資料集搜尋找得到；年份範圍讀指標資料檔的 years。每一頁都檢查 JSON-LD 能解析、必填欄位都有，不對就建置失敗
  */
 function topicPages(): Plugin {
   return {
@@ -101,6 +125,8 @@ function topicPages(): Plugin {
       }
       const html = String(index.source);
       const topics = readCatalog();
+      const datasets = readDatasets();
+      const problems: string[] = [];
       const setMeta = (doc: string, attr: 'name' | 'property', key: string, value: string) => {
         const re = new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`);
         if (!re.test(doc)) throw new Error(`topic-pages：index.html 沒有 <meta ${attr}="${key}">`);
@@ -129,10 +155,21 @@ function topicPages(): Plugin {
         page = setMeta(page, 'property', 'og:url', url);
         page = setMeta(page, 'property', 'og:image', image);
         page = setMeta(page, 'property', 'og:image:alt', `${title}：世界資料地圖的主題`);
+        const dataset = datasets[topic.id];
+        if (!dataset) throw new Error(`topic-pages：datasets.gen.json 沒有 ${topic.id}，請跑 npm run catalog`);
+        const jsonLd = datasetJsonLd(dataset, {
+          url,
+          site: SITE,
+          description,
+          temporalCoverage: temporalCoverage(dataset.files.flatMap(dataYears)),
+        });
+        page = page.replace('</head>', `\n    ${jsonLdScript(jsonLd)}\n  </head>`);
+        problems.push(...datasetProblems(page, url).map((p) => `${topic.id}：${p}`));
         this.emitFile({ type: 'asset', fileName: `t/${topic.id}/index.html`, source: page });
         urls.push(url);
         pages.set(topic.id, page);
       }
+      if (problems.length) throw new Error(`topic-pages：主題頁的結構化資料有問題：${problems.join('；')}`);
       // 關於頁 about/（製作手冊第十五批 262，2026-11-01）：同一份首頁的 HTML，main.tsx 依路徑畫關於頁；預覽圖用網站的那一張
       {
         const url = `${SITE}about/`;

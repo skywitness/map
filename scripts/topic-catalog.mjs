@@ -27,6 +27,8 @@ const OUT_ITEMS = `${ROOT}src/topics/catalogItems.gen.ts`;
 const OUT_FOREIGN = `${ROOT}src/topics/foreignLayers.gen.ts`;
 /** 關於頁的資料來源一覽與主題、指標數（src/about/AboutPage.tsx，製作手冊第十五批 262，2026-11-01），打開關於頁才下載 */
 const OUT_ABOUT = `${ROOT}src/about/sources.gen.ts`;
+/** 主題頁的結構化資料（schema.org Dataset，src/topics/structuredData.ts，製作手冊第十六批 267，2026-11-01）：只有建置用 */
+const OUT_DATASETS = `${ROOT}src/topics/datasets.gen.json`;
 const check = process.argv.includes('--check');
 
 const server = await createServer({
@@ -38,7 +40,7 @@ const server = await createServer({
 });
 try {
   const { TOPIC_GROUP_SPECS, TOPIC_MODULES, topicOf } = await server.ssrLoadModule('/src/topics/registry.ts');
-  const { summarize, searchItems, indicatorList } = await server.ssrLoadModule('/src/topics/catalog.ts');
+  const { summarize, searchItems, indicatorList, datasetEntry } = await server.ssrLoadModule('/src/topics/catalog.ts');
   const { pureMap } = await server.ssrLoadModule('/src/topics/map.ts');
   const { population } = await server.ssrLoadModule('/src/topics/population.ts');
 
@@ -167,8 +169,16 @@ try {
     '];',
     '',
   ];
+  // 主題頁的結構化資料：一行一個主題（JSON，vite.config.ts 的 topicPages 讀）
+  const datasetLines = [
+    '{',
+    ...topics.map((t, i) => `  ${JSON.stringify(t.id)}: ${JSON.stringify(datasetEntry(t))}${i < topics.length - 1 ? ',' : ''}`),
+    '}',
+    '',
+  ];
   const files = [
     [OUT, lines.join('\n')],
+    [OUT_DATASETS, datasetLines.join('\n')],
     [OUT_ITEMS, itemLines.join('\n')],
     [OUT_FOREIGN, foreignLines.join('\n')],
     [OUT_ABOUT, aboutLines.join('\n')],
