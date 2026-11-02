@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 131;
-export const INDICATOR_COUNT = 764;
+export const INDICATOR_COUNT = 766;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","diet","festivals","reads","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -234,7 +234,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikimedia 基金會：各國每日瀏覽量（差分隱私，country_project_page）","en":"Wikimedia Foundation: daily pageviews per country (differentially private, country_project_page)"},"url":"https://analytics.wikimedia.org/published/datasets/country_project_page/00_README.html","licenses":["CC0"],"topics":["reads"]},
   {"name":{"zh":"Wilson 等 2025，Detection of 85 new active subglacial lakes in Antarctica from a decade of CryoSat-2 data（Nature Communications）的資料","en":"Wilson et al. 2025, Detection of 85 new active subglacial lakes in Antarctica from a decade of CryoSat-2 data (Nature Communications), data"},"url":"https://doi.org/10.5281/zenodo.16330565","licenses":["CC BY 4.0"],"topics":["antarctica"]},
   {"name":{"zh":"World Bank, International Comparison Program 2021（食物支出占消費）","en":"World Bank, International Comparison Program 2021 (food share of consumption)"},"url":"https://datacatalog.worldbank.org/search/dataset/0066092/international-comparison-program-2021","licenses":["CC BY 4.0"],"topics":["fiscal"]},
-  {"name":{"zh":"World Bank, Poverty and Inequality Platform（WDI）","en":"World Bank, Poverty and Inequality Platform (WDI)"},"url":"https://pip.worldbank.org/","licenses":["CC BY 4.0"],"topics":["inequality"]},
+  {"name":{"zh":"World Bank, Poverty and Inequality Platform（WDI 與 PIP API）","en":"World Bank, Poverty and Inequality Platform (WDI and PIP API)"},"url":"https://pip.worldbank.org/","licenses":["CC BY 4.0"],"topics":["inequality"]},
   {"name":{"zh":"World Bank, WDI（陸域保護區占國土，UNEP-WCMC 的 WDPA 與 WD-OECM）","en":"World Bank, WDI (terrestrial protected areas, from UNEP-WCMC’s WDPA and WD-OECM)"},"url":"https://data.worldbank.org/indicator/ER.LND.PTLD.ZS","licenses":["CC BY 4.0"],"topics":["national-parks"]},
   {"name":{"zh":"World Bank, Women, Business and the Law（1971–2024 歷史面板、2026 年版）","en":"World Bank, Women, Business and the Law (1971–2024 panel, 2026 edition)"},"url":"https://wbl.worldbank.org/en/data/download-data","licenses":[{"zh":"CC BY 4.0（依 WDI 轉載 WBL 的序列中繼資料）","en":"CC BY 4.0 (per the WDI metadata for WBL series)"}],"topics":["gender"]},
   {"name":{"zh":"World Bank, World Development Indicators（ICAO 的航空貨運量）","en":"World Bank, World Development Indicators (ICAO air freight)"},"url":"https://data.worldbank.org/indicator/IS.AIR.GOOD.MT.K1","licenses":["CC BY 4.0"],"topics":["air-routes"]},
