@@ -39,7 +39,9 @@ export default function TradePanel({ topic, indicator: current, iso3, year, item
   const { data, error } = useJson<FlowFile>(path);
   const countries = useJson<CountryTable>('countries.json').data;
   if (error) return <p className="empty">{text.noYear}</p>;
-  if (!data || data.year !== year || (item !== null && data.item !== item)) return <p className="empty">{t.loading}</p>;
+  // 檔名沒有 {item} 的流向圖（1962 年起的長期流向，只有全部商品）不看子項目，跟地圖的 flows.ts 一樣
+  const usesItem = indicator?.layer.kind === 'flow' && indicator.layer.file.includes('{item}');
+  if (!data || data.year !== year || (usesItem && item !== null && data.item !== item)) return <p className="empty">{t.loading}</p>;
 
   // 流向圖指標自己的格式（貿易、半導體是美元，石油、天然氣與煤是公噸）
   const format = (v: number) => (indicator ? indicator.format(v) : usd(formatLargeNumber(v)));

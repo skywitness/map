@@ -3,8 +3,9 @@ import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, usd } from '../../lib/format';
-import { EXPORT_GROUPS } from '../industry';
+import { EXPORT_GROUPS, SITC_INDICATORS } from '../industry';
 import type { PanelExtraProps } from '../types';
+import { IndustrySitc } from './IndustrySitc';
 
 interface Series {
   years: number[];
@@ -95,7 +96,7 @@ const TEXT = defineMessages({
 
 const DETAIL_SHOWN = 12;
 
-export default function IndustryPanel({ topic, iso3, year, countryName }: PanelExtraProps) {
+export default function IndustryPanel({ topic, indicator, iso3, year, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
@@ -110,6 +111,8 @@ export default function IndustryPanel({ topic, iso3, year, countryName }: PanelE
 
   return (
     <section className="panel-section">
+      {/* 1962 年起的出口組成（SITC）的兩個指標：先畫這一國的長期變化 */}
+      {SITC_INDICATORS.includes(indicator.id) && <IndustrySitc topicId={topic.id} iso3={iso3} year={year} />}
       <h3>{text.production}</h3>
       {production ? (
         <>

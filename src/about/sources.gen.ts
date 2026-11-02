@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 131;
-export const INDICATOR_COUNT = 757;
+export const INDICATOR_COUNT = 761;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","diet","festivals","reads","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -32,6 +32,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"European Commission JRC, GHS-POP R2023A（住在沒有燈光地方的人口）","en":"European Commission JRC, GHS-POP R2023A (population in unlit areas)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php","licenses":["CC BY 4.0"],"topics":["population","night-lights"]},
   {"name":"FAO, FAOSTAT","url":"https://www.fao.org/faostat/","licenses":["CC BY 4.0"],"topics":["diet","agriculture"]},
   {"name":{"zh":"GHSL Urban Centre Database（部分大樓的城市名稱，同城市主題）","en":"GHSL Urban Centre Database (city names for some buildings, as in the Cities topic)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_ucdb_2024.php","licenses":["CC BY 4.0 / CC0","CC BY 4.0"],"topics":["cities","skyscrapers"]},
+  {"name":{"zh":"Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (SITC, Rev. 2)（1962 年起的出口組成）","en":"Harvard Growth Lab, Atlas of Economic Complexity: International Trade Data (SITC, Rev. 2) (export mix from 1962)"},"url":"https://doi.org/10.7910/DVN/H8SFD2","licenses":["CC0 1.0"],"topics":["industry","trade"]},
   {"name":{"zh":"IANA 時區資料庫（tzdata 2026f）","en":"IANA Time Zone Database (tzdata 2026f)"},"url":"https://www.iana.org/time-zones","licenses":[{"zh":"公有領域","en":"public domain"}],"topics":["travel","daylight"]},
   {"name":{"zh":"NASA GIBS：VIIRS、MODIS 每日真彩影像（那一天的衛星照片）","en":"NASA GIBS: VIIRS and MODIS daily true colour (satellite image of the day)"},"url":"https://nasa-gibs.github.io/gibs-api-docs/","licenses":[{"zh":"NASA 開放資料（依要求標示 GIBS）","en":"NASA open data (GIBS acknowledged as requested)"}],"topics":["ice","typhoons"]},
   {"name":{"zh":"Natural Earth 1:10m 第一級行政區","en":"Natural Earth 1:10m Admin 1"},"url":"https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/","licenses":[{"zh":"公有領域","en":"public domain"},{"zh":"公有領域","en":"Public domain"}],"topics":["map","night-lights"]},

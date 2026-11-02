@@ -99,6 +99,25 @@ function flowTonnes(direction: FlowDirection, label: Text, description: Text): I
   };
 }
 
+/**
+ * 1962 年起的長期流向（2026-11-02，製作手冊第十七批 270，pipeline/topics/atlas_sitc.py）：Harvard Atlas 的 SITC Rev. 2，
+ * 只有全部商品（檔名沒有 {item}，商品選單不出現）。使用者決定另做一組、整段用 Atlas，不接 BACI 的「出口／進口」
+ */
+function flowLong(direction: FlowDirection, label: Text, description: Text): IndicatorDef {
+  return {
+    id: `${direction}-sitc`,
+    label,
+    description,
+    unit: { zh: '美元', en: 'US$' },
+    file: `${direction}-sitc/all.json`,
+    layer: { kind: 'flow', file: 'flows-sitc/all/{year}.json', direction },
+    format: (v) => usd(formatLargeNumber(v)),
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+    defaultYear: 1975,
+  };
+}
+
 export const trade: TopicDefinition = {
   id: 'trade',
   title: { zh: '國際貿易流向', en: 'International trade flows' },
@@ -115,6 +134,14 @@ export const trade: TopicDefinition = {
       name: { zh: 'FAO, FAOSTAT（詳細貿易矩陣）', en: 'FAO, FAOSTAT (detailed trade matrix)' },
       url: 'https://www.fao.org/faostat/en/#data/TM',
       license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (SITC, Rev. 2)（1962 年起的長期流向）',
+        en: 'Harvard Growth Lab, Atlas of Economic Complexity: International Trade Data (SITC, Rev. 2) (long-run flows from 1962)',
+      },
+      url: 'https://doi.org/10.7910/DVN/H8SFD2',
+      license: 'CC0 1.0',
     },
     {
       name: { zh: '世界銀行 WDI（貿易占 GDP）', en: 'World Bank, WDI (trade, % of GDP)' },
@@ -136,6 +163,7 @@ export const trade: TopicDefinition = {
       '汽車、手機、藥品、黃金、鑽石、回收物、化肥等 25 種商品是 BACI HS92 版（1995 年起，以金額計；回收物與化肥另有公噸）；HS92 分不開的純電車（870380）、手機（851712）、鋰電池（850760）用 HS17 版，2017 年起。' +
       '瑞士、阿聯、香港、比利時、新加坡、荷蘭這類精煉、轉口與物流中心的進出口很大，不代表在那裡生產或使用；品牌國也不是產地。黃金不含央行之間的貨幣用黃金；鑽石的工業用鑽石不列；化肥的磷酸銨在 3105。' +
       '貿易依存度是世界銀行 WDI 的商品與服務出口加進口占 GDP（1960 年起），台灣用主計總處的國民所得統計自行計算；香港、新加坡、盧森堡超過 300% 是轉口貿易與跨國企業的帳，不代表「依賴」；世界合計的最新一年國家數不全，只畫到 2024 年。' +
+      '長期出口、長期進口是 Harvard Atlas 的 SITC Rev. 2（1962–2024 年），UN Comtrade 的申報由 Growth Lab 用雙邊申報互相調和；台灣沒有向聯合國申報，台灣的值來自貿易夥伴的申報。1991 年以前的蘇聯算在俄羅斯，捷克斯洛伐克、南斯拉夫、東德沒有資料（拆分後的國家從獨立那一年起才有）。調和方法跟 BACI 不同，1995 年以後兩份的數字不一樣（2024 年台灣出口 Atlas 4,625 億美元、BACI 5,313 億），所以分成兩組，不接成一條。' +
       '貿易靠的港口、貨櫃量與商船隊見「航運與港口」主題，塑膠廢料的流向見「塑膠污染」主題。',
     en:
       'All goods: CEPII BACI (1995–2024; the HS 1992 version for 1995–2016 and the HS 2017 version from 2017), which reconciles exporter and importer reports, valued FOB; Taiwan appears in UN Comtrade and BACI as "Other Asia, nes". ' +
@@ -145,6 +173,7 @@ export const trade: TopicDefinition = {
       'The 25 goods such as cars, phones, medicines, gold, diamonds, scrap and fertilisers come from the HS92 version of BACI (from 1995, by value; scrap and fertilisers also in tonnes); battery-electric cars (870380), mobile phones (851712) and lithium-ion batteries (850760), which HS92 cannot separate, use the HS17 version from 2017. ' +
       'Refining, re-export and logistics hubs such as Switzerland, the UAE, Hong Kong, Belgium, Singapore and the Netherlands trade large amounts without producing or using them, and brand countries are not where goods are made. Gold excludes monetary gold traded between central banks; industrial diamonds are not listed; ammonium phosphates are under 3105. ' +
       'Trade openness is exports plus imports of goods and services as a share of GDP from the World Bank WDI (from 1960); Taiwan is computed from DGBAS national accounts. Hong Kong, Singapore and Luxembourg exceed 300% because of re-exports and multinational accounting, not "dependence"; the world total stops at 2024 because the latest year covers too few countries. ' +
+      'Long-run exports and imports come from the Harvard Atlas SITC Rev. 2 data (1962–2024): UN Comtrade reports reconciled by the Growth Lab using both sides of each flow; Taiwan does not report to the UN, so its figures come from its partners. The Soviet Union is counted as Russia before 1992; Czechoslovakia, Yugoslavia and East Germany have no data (successor states appear from independence). The reconciliation differs from BACI, so the two disagree after 1995 (Taiwan’s 2024 exports: US$462.5 billion in the Atlas, US$531.3 billion in BACI); they are kept as separate indicators rather than spliced. ' +
       'For the ports, container volumes and merchant fleets that carry trade, see the Shipping and ports topic; for plastic waste flows, see Plastic pollution.',
   },
   dimension: { label: { zh: '商品', en: 'Product' }, options: ITEMS, defaultOption: 'all' },
@@ -180,6 +209,22 @@ export const trade: TopicDefinition = {
       {
         zh: '回收物與化肥的進口重量。點選國家，弧線連到它的前 15 大進口來源，線寬與公噸數成正比。',
         en: 'Import weight of scrap and fertilisers. Click a country to draw arcs to its top 15 sources; line width is proportional to tonnes.',
+      },
+    ),
+    flowLong(
+      'export',
+      { zh: '長期出口（1962 年起）', en: 'Long-run exports (from 1962)' },
+      {
+        zh: '全部商品的出口，1962–2024 年（Harvard Atlas，SITC 分類），拖時間軸看冷戰時期誰跟誰做生意。點選國家，弧線連到它的前 15 大出口對象。跟 1995 年起的「出口」是不同的資料，數字不同。台灣 1962 年出口日本 25.2%、美國 22.8%，2024 年中國大陸 20.9%、美國 20.6%。',
+        en: 'Exports of all goods, 1962–2024 (Harvard Atlas, SITC classification); drag the timeline to see who traded with whom during the Cold War. Click a country to draw arcs to its top 15 destinations. A different dataset from Exports (from 1995), so the figures differ. Taiwan sent 25.2% of its exports to Japan and 22.8% to the US in 1962; 20.9% to mainland China and 20.6% to the US in 2024.',
+      },
+    ),
+    flowLong(
+      'import',
+      { zh: '長期進口（1962 年起）', en: 'Long-run imports (from 1962)' },
+      {
+        zh: '全部商品的進口，1962–2024 年（Harvard Atlas，SITC 分類）。點選國家，弧線連到它的前 15 大進口來源。跟 1995 年起的「進口」是不同的資料，數字不同。',
+        en: 'Imports of all goods, 1962–2024 (Harvard Atlas, SITC classification). Click a country to draw arcs to its top 15 sources. A different dataset from Imports (from 1995), so the figures differ.',
       },
     ),
     // 貿易依存度（2026-10-30 擴充）：WDI NE.TRD.GNFS.ZS，台灣用主計總處自行計算
