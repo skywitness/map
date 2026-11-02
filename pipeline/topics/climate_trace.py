@@ -2,19 +2,21 @@
 資料見 sources/climate_trace.py）。
 
 輸出到 public/data/topics/climate/：
-- trace/<部門>.json：各國每年的溫室氣體排放（公噸 CO₂e，AR6 GWP-100），2015–2025 年。部門是 SECTORS 的 id，total 是全部部門
-  （跟 Climate TRACE 一樣不含森林與土地利用）。EDGAR_SUBSECTORS 的二氧化碳不算（使用者 2026-11-02 決定），所以比 Climate TRACE
-  網站公布的小：2025 年世界少約 11%、台灣少約 8%。國際航空、海運算在出發的機場、港口所在的國家（Climate TRACE 的算法），
+- trace/<部門>.json：各國每年的溫室氣體排放（公噸 CO₂e，AR6 GWP-100），2015 年到最新的完整一年（complete_years()，
+  5.12.0 是 2025 年）。部門是 SECTORS 的 id，total 是全部部門（跟 Climate TRACE 一樣不含森林與土地利用）。國家值取自
+  EDGAR／CEDS 的子部門（ct.release().edgar）的二氧化碳不算（使用者 2026-11-02 決定），所以比 Climate TRACE 網站公布的小
+  （5.12.0 的 2025 年世界少約 11%、台灣少約 8%）。國際航空、海運算在出發的機場、港口所在的國家（Climate TRACE 的算法），
   跟 GCP、EDGAR 不同。
 - trace-per-capita.json：全部部門 ÷ UN WPP 2024 的年中人口（公噸／人）；人口不到 10 萬的不算（福克蘭群島 2025 年會是
   每人 2,000 公噸：漁船與轉運船的排放算在那裡）。
-- trace-change/<部門>.json：最新一年（2026 年）1 月到 LATEST 月，比前一年同期增減幾 %（使用者 2026-11-02 決定另做一個指標）；
+- trace-change/<部門>.json：最新一年 1 月到資料的最新月份，比前一年同期增減幾 %（使用者 2026-11-02 決定另做一個指標）；
+  年份欄位寫 YYYYMM（202608 = 2026 年 1–8 月，前端的 timeAxis 寫成期間）；
   前一年同期不到 CHANGE_MIN 的不算。
 - trace-sources.json（＋ trace-sources-more.json）：排放源的點，只收 POINT_SUBSECTORS（Climate TRACE 自己估計的設施），
-  2021–2025 年有一年排放 POINT_MIN 以上的；機場的國內、國際航線，港口的國內、國際航運，油氣盆地的開採與輸送各併成一個點。
+  2021 年到最新的完整一年有一年排放 POINT_MIN 以上的；機場的國內、國際航線，港口的國內、國際航運，油氣盆地的開採與輸送各併成一個點。
   不是一個地方的不畫：純鹼以國名命名的國家合計、油氣的「Other basins」（一國其餘盆地的合計，點在國家中間）。
   縮小時只畫 POINT_IMPORTANT 以上的（前端 climate-trace.ts 的 SOURCE_MIN）。台灣的排放源對照環境部的事業溫室氣體年排放量
-  （TAIWAN_MATCH，名稱與管制編號都對得上才寫）。
+  （TAIWAN_MATCH，名稱與管制編號都對得上才寫，對不到的印警告；twy 是環境部的年份）。版本、月份都從資料來，換版只要重跑。
 - trace-sources-total.json：各國地圖上排放源的排放合計（排放源地圖指標的國家值）。
 """
 from __future__ import annotations
@@ -44,8 +46,12 @@ SECTORS = {
     "fgas": "fluorinated-gases",
     "mining": "mineral-extraction",
 }
-YEARS = list(range(ct.FIRST_COUNTRY_YEAR, ct.LATEST[0]))
-SOURCE_YEARS = list(range(ct.FIRST_SOURCE_YEAR, ct.LATEST[0]))
+
+
+def complete_years(first: int) -> list[int]:
+    """first 到最新的完整一年（資料到 12 月時那一年也算）；版本換了跟著變，不寫死"""
+    y, m = ct.latest_month()
+    return list(range(first, (y if m == 12 else y - 1) + 1))
 CHANGE_MIN = 1e5  # 前一年同期不到 10 萬公噸的不算增減（比例容易跳動）
 POINT_MIN = 1e4  # 排放源：有一年 1 萬公噸以上才畫
 POINT_IMPORTANT = 1e6  # 縮小時畫的：有一年 100 萬公噸以上
@@ -111,7 +117,7 @@ TAIWAN_MATCH = {
 def _value(sub: str, cell: dict[str, float]) -> float:
     """一個月的排放（公噸 CO₂e）：EDGAR／CEDS 的子部門扣掉二氧化碳"""
     v = cell.get("co2e", 0.0)
-    if sub in ct.EDGAR_SUBSECTORS:
+    if sub in ct.release().edgar:
         v -= cell.get("co2", 0.0)
     return v
 
@@ -122,17 +128,21 @@ def country_series() -> tuple[dict[str, dict[str, dict[int, float]]], dict[str, 
     ytd: dict[str, dict[str, list[float]]] = {k: defaultdict(lambda: [0.0, 0.0]) for k in [*SECTORS, "total"]}
     removed: dict[str, dict[int, float]] = defaultdict(lambda: defaultdict(float))
     by_sector = {v: k for k, v in SECTORS.items()}
-    last_year, last_month = ct.LATEST
+    years = set(complete_years(ct.FIRST_COUNTRY_YEAR))
+    last_year, last_month = ct.latest_month()
+    edgar = ct.release().edgar
     for (sector, sub), countries in ct.country_monthly().items():
         if sector == ct.LAND_SECTOR:
             continue
+        if sector not in by_sector:
+            raise RuntimeError(f"Climate TRACE 多了部門 {sector}（{sub}），SECTORS 與前端 climate-trace.ts 的 SECTOR_DIM 要加")
         item = by_sector[sector]
         for iso3, months in countries.items():
             for (y, m), cell in months.items():
                 v = _value(sub, cell)
-                if sub in ct.EDGAR_SUBSECTORS:
+                if sub in edgar:
                     removed[iso3][y] += cell.get("co2", 0.0)
-                if y in YEARS:
+                if y in years:
                     annual[item][iso3][y] += v
                     annual["total"][iso3][y] += v
                 if m <= last_month and y in (last_year - 1, last_year):
@@ -217,29 +227,37 @@ def source_rows() -> tuple[list[dict], dict[str, dict]]:
     rows = [r for r in rows if r["years"] and max(r["years"].values()) >= POINT_MIN]
 
     # 台灣對照：每一筆都要對到剛好一個排放源（同名的取排放最大的）與環境部的一家事業
+    # 新版改了名稱、環境部換了年份時，對不到的印警告、不對照（不讓換版卡住）
+    last = complete_years(ct.FIRST_SOURCE_YEAR)[-1]
     tw_year, facilities = moenv.facility_ghg()
     matched: dict[str, dict] = {}
     for (sub, name), code in TAIWAN_MATCH.items():
         cands = [r for r in rows if r["iso3"] == "TWN" and r["subsector"] == sub and r["name"] == name]
         if not cands:
-            raise RuntimeError(f"Climate TRACE 沒有台灣的「{name}」（{sub}），TAIWAN_MATCH 要更新")
+            print(f"  ⚠ Climate TRACE 沒有台灣的「{name}」（{sub}），這一筆不對照；TAIWAN_MATCH 要更新")
+            continue
         if code not in facilities:
-            raise RuntimeError(f"環境部 {tw_year} 年的事業溫室氣體排放量沒有管制編號 {code}（{name}）")
-        target = max(cands, key=lambda r: r["years"].get(SOURCE_YEARS[-1], 0.0))
+            print(f"  ⚠ 環境部 {tw_year} 年的事業溫室氣體排放量沒有管制編號 {code}（{name}），這一筆不對照")
+            continue
+        target = max(cands, key=lambda r: r["years"].get(last, 0.0))
         f = facilities[code]
         target["tw"] = f["direct"]
         target["twn"] = f["name"]
+        target["twy"] = tw_year
         matched[code] = {**f, "trace": target["years"].get(tw_year), "name_en": name}
-    rows.sort(key=lambda r: -max(r["years"].get(SOURCE_YEARS[-1], 0.0), 0.0) - 1e-9 * max(r["years"].values()))
+    rows.sort(key=lambda r: -max(r["years"].get(last, 0.0), 0.0) - 1e-9 * max(r["years"].values()))
     return rows, {"year": tw_year, **matched}
 
 
 def build() -> None:
-    ct.check_latest()
+    rel = ct.release()
+    years = complete_years(ct.FIRST_COUNTRY_YEAR)
+    source_years = complete_years(ct.FIRST_SOURCE_YEAR)
+    latest = ct.latest_month()
     annual, change, removed = country_series()
-    pop = wpp.demographic(["TPopulation1July"], last_year=YEARS[-1])["TPopulation1July"]
+    pop = wpp.demographic(["TPopulation1July"], last_year=years[-1])["TPopulation1July"]
     inventory = moenv.ghg_inventory()
-    last = YEARS[-1]
+    last = years[-1]
 
     # 台灣跟環境部國家清冊（不含碳匯）比；Climate TRACE 不扣 EDGAR 的二氧化碳是多少也寫出來
     tw_inv_year = max(inventory)
@@ -257,11 +275,11 @@ def build() -> None:
 
     world: dict[str, dict[int, float]] = {}
     for item, data in annual.items():
-        world[item] = {y: sum(s.get(y, 0.0) for s in data.values()) for y in YEARS}
-        values = {iso3: to_series(s, YEARS, 0) for iso3, s in sorted(data.items())
-                  if iso3 != ct.UNKNOWN and any(s.get(y) for y in YEARS)}
+        world[item] = {y: sum(s.get(y, 0.0) for s in data.values()) for y in years}
+        values = {iso3: to_series(s, years, 0) for iso3, s in sorted(data.items())
+                  if iso3 != ct.UNKNOWN and any(s.get(y) for y in years)}
         write_json(OUT / "trace" / f"{item}.json", indicator_file(
-            f"trace-{item}", "公噸 CO₂e", YEARS, values, aggregates={"WLD": to_series(world[item], YEARS, 0)},
+            f"trace-{item}", "公噸 CO₂e", years, values, aggregates={"WLD": to_series(world[item], years, 0)},
             **(extra if item == "total" else {}),
         ))
     per_capita = {}
@@ -269,60 +287,62 @@ def build() -> None:
         if iso3 == ct.UNKNOWN:
             continue
         # 人口不到 PER_CAPITA_MIN_POP 的不算（福克蘭群島的漁船、轉運船會讓人均到上千公噸）
-        row = [s[y] / (pop[iso3][y] * 1000) if pop.get(iso3, {}).get(y, 0) >= PER_CAPITA_MIN_POP else None for y in YEARS]
+        row = [s[y] / (pop[iso3][y] * 1000) if pop.get(iso3, {}).get(y, 0) >= PER_CAPITA_MIN_POP else None for y in years]
         if any(v is not None for v in row):
             per_capita[iso3] = [None if v is None else round(v, 2) for v in row]
-    w_pc = [world["total"][y] / (pop["WLD"][y] * 1000) for y in YEARS]
+    w_pc = [world["total"][y] / (pop["WLD"][y] * 1000) for y in years]
     write_json(OUT / "trace-per-capita.json", indicator_file(
-        "trace-per-capita", "公噸 CO₂e/人", YEARS, per_capita, aggregates={"WLD": [round(v, 2) for v in w_pc]}, **extra,
+        "trace-per-capita", "公噸 CO₂e/人", years, per_capita, aggregates={"WLD": [round(v, 2) for v in w_pc]}, **extra,
     ))
 
-    cy = ct.LATEST[0]
+    period = latest[0] * 100 + latest[1]  # YYYYMM
     for item, rows in change.items():
         w = rows.pop("WLD")
         write_json(OUT / "trace-change" / f"{item}.json", indicator_file(
-            f"trace-change-{item}", "%", [cy], {iso3: [round(v, 1)] for iso3, v in sorted(rows.items()) if iso3 != ct.UNKNOWN},
+            f"trace-change-{item}", "%", [period], {iso3: [round(v, 1)] for iso3, v in sorted(rows.items()) if iso3 != ct.UNKNOWN},
             aggregates={"WLD": [round(w, 1)]},
         ))
 
     # 排放源
     rows, matched = source_rows()
-    fields = ["lon", "lat", "name", "s", "t", "iso3", *[f"e{y}" for y in SOURCE_YEARS], "cap", "tw", "twn"]
+    fields = ["lon", "lat", "name", "s", "t", "iso3", *[f"e{y}" for y in source_years], "cap", "tw", "twn", "twy"]
     points = []
     for r in rows:
         p = {"lon": r["lon"], "lat": r["lat"], "name": r["name"], "s": r["s"], "t": r["type"] or None, "iso3": r["iso3"]}
-        for y in SOURCE_YEARS:
+        for y in source_years:
             v = r["years"].get(y)
             p[f"e{y}"] = round(v) if v is not None else None
         p["cap"] = round(r["cap"]) if r["s"] == 1 and r["cap"] and r["cap_units"] == "MW" else None
         p["tw"] = r.get("tw")
         p["twn"] = r.get("twn")
+        p["twy"] = r.get("twy")
         points.append(p)
-    scale = {"lon": 0.001, "lat": 0.001, "cap": 1, "tw": 100, **{f"e{y}": 100 for y in SOURCE_YEARS}}
+    scale = {"lon": 0.001, "lat": 0.001, "cap": 1, "tw": 100, **{f"e{y}": 100 for y in source_years}}
     write_layered_points(
         OUT / "trace-sources.json", points,
-        lambda p: max((p[f"e{y}"] or 0) for y in SOURCE_YEARS) >= POINT_IMPORTANT,
+        lambda p: max((p[f"e{y}"] or 0) for y in source_years) >= POINT_IMPORTANT,
         fields, scale, strings=["t", "iso3", "twn"],
     )
     totals: dict[str, dict[int, float]] = defaultdict(lambda: defaultdict(float))
     for p in points:
-        for y in SOURCE_YEARS:
+        for y in source_years:
             if p[f"e{y}"]:
                 totals[p["iso3"]][y] += p[f"e{y}"]
     write_json(OUT / "trace-sources-total.json", indicator_file(
-        "trace-sources", "公噸 CO₂e", SOURCE_YEARS, {iso3: to_series(s, SOURCE_YEARS, 0) for iso3, s in sorted(totals.items())},
-        aggregates={"WLD": [sum(s.get(y, 0.0) for s in totals.values()) for y in SOURCE_YEARS]},
+        "trace-sources", "公噸 CO₂e", source_years, {iso3: to_series(s, source_years, 0) for iso3, s in sorted(totals.items())},
+        aggregates={"WLD": [sum(s.get(y, 0.0) for s in totals.values()) for y in source_years]},
     ))
 
     write_json(OUT / "climate-trace-manifest.json", {
-        "topic": "climate", "part": "climate-trace", "generatedAt": now_iso(), "version": ct.VERSION, "doi": ct.DOI,
-        "latest": f"{ct.LATEST[0]}-{ct.LATEST[1]:02d}", "citation": ct.CITATION, "gwp": "IPCC AR6 GWP-100",
-        "edgarCo2Removed": sorted(ct.EDGAR_SUBSECTORS), "sources": len(points),
+        "topic": "climate", "part": "climate-trace", "generatedAt": now_iso(), "version": rel.version, "doi": rel.doi,
+        "published": rel.published, "latest": f"{latest[0]}-{latest[1]:02d}", "citation": rel.citation,
+        "gwp": "IPCC AR6 GWP-100", "terms": rel.terms, "edgarCo2Removed": sorted(rel.edgar), "sources": len(points),
+        "taiwanMatched": len(matched) - 1, "taiwanYear": matched["year"],
     })
 
     # 檢查用的摘要
     full_world = world["total"][last] + sum(r.get(last, 0.0) for r in removed.values())
-    print(f"  各國：{len(annual['total']) - 1} 國（另有 UNK），{YEARS[0]}–{last} 年；{last} 年世界 {world['total'][last] / 1e9:.2f} Gt"
+    print(f"  各國：{len(annual['total']) - 1} 國（另有 UNK），{years[0]}–{last} 年；{last} 年世界 {world['total'][last] / 1e9:.2f} Gt"
           f"（扣掉 EDGAR／CEDS 的 CO₂ {(full_world - world['total'][last]) / 1e9:.2f} Gt，"
           f"{(full_world - world['total'][last]) / full_world * 100:.1f}%）")
     for item in SECTORS:
@@ -330,7 +350,7 @@ def build() -> None:
     print("  ", note)
     big = sorted(((iso3, v) for iso3, v in change["total"].items()
                   if iso3 != ct.UNKNOWN and annual["total"][iso3].get(last, 0) > 1e8), key=lambda kv: kv[1])
-    print(f"  {cy} 年 1–{ct.LATEST[1]} 月比前一年同期（1 億公噸以上的國家）：最低 {[(c, round(v, 1)) for c, v in big[:5]]}，"
+    print(f"  {latest[0]} 年 1–{latest[1]} 月比前一年同期（1 億公噸以上的國家）：最低 {[(c, round(v, 1)) for c, v in big[:5]]}，"
           f"最高 {[(c, round(v, 1)) for c, v in big[-5:]]}；台灣 {change['total'].get('TWN', math.nan):+.1f}%")
     counts = defaultdict(int)
     for p in points:

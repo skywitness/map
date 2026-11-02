@@ -336,7 +336,8 @@ export function App() {
   }, [settled, neighbours]);
 
   // 指標可以有自己的預設年份（平均身高：出生年的指標預設 1996、19 歲的身高預設 2019）
-  const defaultYear = indicator.defaultYear ?? topic.defaultYear;
+  const defaultYear =
+    indicator.defaultYear === 'latest' ? (data?.years.at(-1) ?? topic.defaultYear) : (indicator.defaultYear ?? topic.defaultYear);
   const years = data?.years ?? [defaultYear];
   // 時刻主題的「年份」是那一刻的日期（YYYYMMDD），算出來的資料只有這一筆
   const year = at ? at.day : pickYear(years, state.year, defaultYear, yearBin(indicator));

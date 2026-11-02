@@ -102,7 +102,7 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `borders-10m` 是放大後的國界：Natural Earth 1:10m Admin 0（4.1.0，跟 `geoindex` 同一份，公有領域）依網站的國家代碼合併、補上 4.1.0 版波赫東部缺的一塊與國界之間的縫、把跨 180° 經線的俄羅斯與斐濟接起來（約 6 秒，cloud 也能跑），再用 tippecanoe 切成 `public/pmtiles/countries-10m-<雜湊>.pmtiles`（5–8 級，要在本機跑）；地圖放大到 5 級以上改用它畫國家的上色、外框與點選。要先跑 `geo`。做法見 DESIGN.md 第 8 節第 271 點、第 13 節。
 
-`climate-trace` 讀 Climate TRACE 5.12.0（Zenodo 10.5281/zenodo.23789204，CC BY 4.0）：每個子部門一個 zip，用 HTTP Range 只讀各國每月的檔與 18 個子部門的排放源（第一次約 7 分鐘，快取約 40 MB），輸出溫室氣體排放主題的「Climate TRACE」指標與排放源地圖；取自 EDGAR、CEDS 的子部門不算二氧化碳。台灣的排放源對照環境部「溫室氣體年排放量」。資料到哪個月寫在 `pipeline/sources/climate_trace.py` 與 `src/topics/climate-trace.ts` 的 `LATEST`，換新版時兩邊一起改。做法見 DESIGN.md 第 8 節第 275 點。
+`climate-trace` 讀 Climate TRACE 在 Zenodo 的最新版（每月底一版，CC BY 4.0）：每個子部門一個 zip，用 HTTP Range 只讀各國每月的檔與 18 個子部門的排放源（新的一版第一次約 7 分鐘，快取約 40 MB），輸出溫室氣體排放主題的「Climate TRACE」指標與排放源地圖；取自 EDGAR、CEDS 的子部門不算二氧化碳。台灣的排放源對照環境部「溫室氣體年排放量」。**換版只要重跑**：版本、年份、月份都從資料來；新版的授權例外跟核對過的不同時，pipeline 印出新的例外、照用上一個核對過的版本，看過條款後在 `pipeline/sources/climate_trace.py` 的 `REVIEWED` 加一筆。要 pypdf（`requirements.txt`）。做法見 DESIGN.md 第 8 節第 275 點。
 
 `submarine-cables` 讀 TeleGeography 2022 年 11 月以 CC BY-NC-SA 3.0 公開的最後一版（2026-11-01 起不再抓網站 API 的現在的資料）：重跑前把 skywitness/map-plan 的 `data/telegeography-2022/` 裡的 `api/`、`upstream/`、`SHA256SUMS` 複製到 `pipeline/.cache/telegeography-2022/`，pipeline 會核對 SHA-256。
 

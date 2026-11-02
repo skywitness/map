@@ -222,8 +222,11 @@ export interface IndicatorDef {
      */
     tick?: (year: number) => string;
   };
-  /** 這個指標的預設年份（網址沒指定年份時），沒寫用主題的 defaultYear */
-  defaultYear?: number;
+  /**
+   * 這個指標的預設年份（網址沒指定年份時），沒寫用主題的 defaultYear。'latest' 是資料的最後一年（2026-11-02 起，
+   * Climate TRACE 每月換版、完整的年份跟著資料走；資料讀到之前用主題的 defaultYear）
+   */
+  defaultYear?: number | 'latest';
   /** 換到這個指標時地圖移到這個範圍（同主題的 focus，2026-10-30 起，北極航道） */
   focus?: [number, number, number, number];
   /** 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖） */
