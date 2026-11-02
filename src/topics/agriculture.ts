@@ -33,6 +33,19 @@ export const PRODUCTS: { id: string; label: Text; group: Text }[] = [
   { id: 'eggs', label: { zh: '雞蛋', en: 'Eggs' }, group: LIVESTOCK },
 ];
 
+/**
+ * 每公頃產量的選項（2026-11-02，製作手冊第十七批 273，pipeline/topics/crop_yield.py）：只有作物，畜產品的單產是每頭
+ * 不是每公頃；棕櫚油、糖、棉花是加工品，用原料作物的單產（id 跟農產品選單一樣，換指標時選的東西不變）
+ */
+const YIELD_LABELS: Record<string, Text> = {
+  rice: { zh: '稻米（稻穀）', en: 'Rice (paddy)' },
+  'palm-oil': { zh: '油棕果（棕櫚油的原料）', en: 'Oil palm fruit (for palm oil)' },
+  sugar: { zh: '甘蔗（糖的原料）', en: 'Sugar cane (for sugar)' },
+  cotton: { zh: '籽棉（棉花的原料）', en: 'Seed cotton (for cotton)' },
+};
+const YIELD_PRODUCTS = PRODUCTS.filter((p) => p.group !== LIVESTOCK).map((p) => ({ ...p, label: YIELD_LABELS[p.id] ?? p.label }));
+const yieldScale = (thresholds: number[]) => ({ type: 'sequential' as const, thresholds });
+
 const TONNES = { zh: '公噸', en: 'tonnes' };
 const tonnes = (v: number) => `${formatLargeNumber(v)} ${tr(TONNES)}`;
 
@@ -60,9 +73,11 @@ export const agriculture: TopicDefinition = {
   note: {
     zh:
       '稻米產量為稻穀重量，貿易與自給率以白米當量計算。農業總產值為 2014–2016 年固定價格的國際元。' +
+      '每公頃產量是 FAOSTAT 的單產（產量 ÷ 收穫面積），1961 年起；只有作物，畜產品的單產是每頭不是每公頃；棕櫚油、糖、棉花是加工品，用油棕果、甘蔗、籽棉的單產（甜菜糖的國家沒有甘蔗）。' +
       '有機農地是 FAOSTAT 土地利用資料的「有機農業的農地」，含正在轉型、還沒取得認證的；FAO 用瑞士有機農業研究所（FiBL）每年的全球調查補齊，2004 年起。放牧地也算，澳洲的有機農地多半是內陸的粗放牧場。',
     en:
       'Rice production is paddy weight; trade and self-sufficiency use milled-rice equivalent. Gross agricultural production value is in constant 2014–2016 international dollars. ' +
+      'Yield per hectare is FAOSTAT’s yield (production ÷ area harvested), from 1961; crops only, as livestock yields are per animal rather than per hectare. Palm oil, sugar and cotton are processed products, so the yields of oil palm fruit, sugar cane and seed cotton are used (beet-sugar countries grow no cane). ' +
       'Organic farmland is FAOSTAT’s “agricultural area under organic agriculture” from its land use data, including land in conversion that is not yet certified; FAO fills it in with the annual global survey of the Research Institute of Organic Agriculture (FiBL), from 2004. Grazing land counts too, and most of Australia’s organic farmland is extensive outback pasture.',
   },
   dimension: {
@@ -99,6 +114,43 @@ export const agriculture: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [25, 50, 90, 110, 200, 400] } },
       format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
       formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'yield',
+      label: { zh: '每公頃產量', en: 'Yield per hectare' },
+      description: {
+        zh: '每公頃收成幾公斤（單產），看種得多有效率：灌溉、品種、肥料與機械都會影響。2024 年稻米（稻穀）埃及 9,132 公斤、日本 6,956、台灣 6,572（1961 年 3,266），世界 4,757。只有作物；棕櫚油、糖、棉花用原料作物（油棕果、甘蔗、籽棉）。',
+        en: 'Kilograms harvested per hectare, a measure of how productively a crop is grown, shaped by irrigation, varieties, fertiliser and machinery. Rice (paddy) in 2024: Egypt 9,132 kg, Japan 6,956, Taiwan 6,572 (3,266 in 1961), world 4,757. Crops only; palm oil, sugar and cotton use their raw crops (oil palm fruit, sugar cane, seed cotton).',
+      },
+      unit: { zh: '公斤／公頃', en: 'kg/ha' },
+      file: 'yield/{item}.json',
+      dimension: { label: { zh: '作物', en: 'Crop' }, options: YIELD_PRODUCTS, defaultOption: 'rice' },
+      layer: {
+        kind: 'choropleth',
+        scale: yieldScale([2000, 3000, 4000, 5000, 6000, 8000]),
+        // 各作物的單產差好幾個數量級（咖啡不到 1 公噸、甘蔗 70 公噸）
+        itemScales: {
+          wheat: yieldScale([1500, 2000, 3000, 4000, 5000, 7000]),
+          maize: yieldScale([1500, 3000, 4500, 6000, 8000, 10000]),
+          barley: yieldScale([1500, 2000, 3000, 4000, 5000, 6000]),
+          soybeans: yieldScale([800, 1200, 1600, 2000, 2500, 3000]),
+          'palm-oil': yieldScale([5000, 8000, 10000, 13000, 16000, 20000]),
+          sugar: yieldScale([20000, 35000, 50000, 65000, 80000, 100000]),
+          coffee: yieldScale([300, 500, 750, 1000, 1500, 2000]),
+          cocoa: yieldScale([200, 300, 400, 500, 700, 1000]),
+          cotton: yieldScale([500, 1000, 1500, 2000, 3000, 4000]),
+          rubber: yieldScale([500, 800, 1100, 1400, 1700, 2000]),
+          potatoes: yieldScale([8000, 12000, 18000, 25000, 32000, 40000]),
+          tomatoes: yieldScale([10000, 20000, 30000, 50000, 80000, 120000]),
+          bananas: yieldScale([5000, 10000, 15000, 25000, 35000, 50000]),
+          apples: yieldScale([5000, 10000, 15000, 25000, 35000, 45000]),
+          oranges: yieldScale([5000, 10000, 15000, 20000, 30000, 40000]),
+          grapes: yieldScale([4000, 6000, 8000, 12000, 16000, 20000]),
+        },
+      },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 公斤`, en: `${fixed(v, 0)} kg` }),
+      formatTick: formatLargeTick,
+      compareWorld: true,
     },
     {
       id: 'production-value',
