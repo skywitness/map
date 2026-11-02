@@ -4327,6 +4327,14 @@ pipeline/
     - **連帶重跑**：`urban-heat`（城市熱島的城區對到城市的點，名稱照抄）：原本寫 N/A 的 17 個城區補上 15 個（美國的 Moline、Killeen、Evansville…），熱島強度沒有變。這個步驟要 bsdtar 讀 1.44 GB 的 RAR，cloud 用 `apt-get install libarchive-tools` 裝。`skyscrapers`、`profiles` 的輸出沒有對到 N/A 的城市，不用重跑。
     - 左側欄（人口最多的城市）不用改：名稱照 `cities.json`。
 
+274. **主題頁的結構化資料（schema.org Dataset）**（2026-11-01，製作手冊第十六批 267；`src/topics/structuredData.ts`（新）、`src/topics/catalog.ts` 的 `datasetEntry()`、`scripts/topic-catalog.mjs`、`src/topics/datasets.gen.json`（新，產生的）、`vite.config.ts` 的 `topicPages`）：做法見第 13 節「每個主題的網址、預覽圖與嵌入」。
+    - **跟手冊不同或手冊沒寫到的**：
+      - `isBasedOn` 一律列出全部來源（手冊寫授權不一樣時才列），授權一樣時只在最上層寫 `license`；多了 `alternateName`（英文主題名稱）與 `keywords`（指標名稱）。
+      - 年份範圍不是從主題目錄算（目錄沒有年份），是建置時讀資料檔的 `years`；有西元前年份的帝國與疆界不寫。
+      - `description` 用頁面的說明加預設指標的說明：頁面的說明（meta description）只有 36–86 字，有幾頁不到 Google 要的 50 字。
+    - **結果**（2026-11-01）：132 個主題頁加上 18 個舊主題的頁面，150 頁都通過檢查；126 個主題有年份範圍，22 個主題的來源授權都一樣（寫 `license`），其餘每個來源寫自己的授權。
+    - 單元測試 `structuredData.test.ts`（授權對照、年份、license 與 isBasedOn、檢查）。
+
 ## 9. 之後可以做的
 
 **改用 PMTiles 的舊圖層**（製作手冊第十六批 263，使用者選 6A：這一批只用在新的 1:10m 國界與行政區界，舊的之後一層一層換，每換一層用 `npm run measure:load` 量一次）：渡輪航線約 9.5 MB、人口網格 7.4 MB、長途步道 4.7 MB、景點 3.3 MB、城市 2.8 MB、地震 2.7 MB、帝國疆界 2.0 MB（2026-11-01 的大小）。
@@ -5129,6 +5137,14 @@ pipeline/
 
 - **網址改成路徑**：`/map/t/<主題>/?country=TWN&year=2023`（`url-state.ts` 的 `topicPath`、`siteRoot`）。舊的 `?topic=` 照樣讀得懂（優先於路徑，主題之間的連結 `TopicLink` 也改成新的寫法），寫回網址時換成新的。網站首頁 `/map/` 是預設的人口主題。
 - **每個主題一份 HTML**（`vite.config.ts` 的 `topicPages`）：建置時把首頁的 HTML 複製到 `t/<主題>/index.html`，換掉 `<title>`、`description`、`og:title`、`og:description`、`og:url`、`og:image`，加上 `canonical`；說明用主題名稱與前四個指標（「各國生育率與高齡化：總生育率、65 歲以上人口比例、扶老比、出生數。互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。」）。另外產生 `sitemap.xml`（首頁與每個主題，`lastmod` 是建置日）。`robots.txt` 只在網域根目錄有效（`skywitness.github.io/robots.txt` 不在這個 repo），所以 sitemap 要在 Google Search Console 提交。
+- **結構化資料**（schema.org `Dataset`，2026-11-01，製作手冊第十六批 267，第 8 節第 274 點；`src/topics/structuredData.ts`）：每個 `t/<主題>/index.html` 的 `</head>` 前加一段 `<script type="application/ld+json">`，讓 Google 資料集搜尋找得到。首頁、關於頁不加（不是一份資料）。
+  - 欄位：`name`（中文主題名稱）、`alternateName`（英文）、`description`（頁面的說明加預設指標的說明，Google 要 50–5,000 字）、`url`（主題頁）、`inLanguage`（zh-Hant、en）、`isAccessibleForFree`、`creator`（世界資料地圖與網址）、`spatialCoverage`（World）、`keywords`（全部指標的名稱）、`temporalCoverage`、`license` 或 `isBasedOn`。
+  - 資料：`scripts/topic-catalog.mjs` 從主題定義整理成 `src/topics/datasets.gen.json`（`catalog.ts` 的 `datasetEntry()`：名稱、預設指標的說明、指標名稱、指標的資料檔、來源；`npm run catalog -- --check` 一起比對），只有建置用，不進網站的程式。
+  - **年份範圍**：建置時讀指標資料檔（子項目用預設的）的 `years`，寫最早到最晚（「1950/2100」，只有一年時寫那一年，西元 1000 年以前補成四位數「0578/2026」），所以資料更新時不必重跑主題目錄。沒有年份的 5 個（世界地圖、此刻世界的新聞熱點、晝夜與季節、此刻的極光、板塊漂移）、有西元前年份的（帝國與疆界）不寫：資料檔的「-3400」是西元前 3400 年，ISO 8601 有 0 年、負數還要另外約定位數，寫了容易被讀錯。包含推估的年份（人口到 2100 年）。
+  - **授權**：每個來源的授權照 `LICENSE_URLS` 換成網址（CC、ODbL、ODC-By、MIT、Unicode、加拿大統計局、日本 PDL 1.0、台灣的政府資料開放授權條款；2026-11-01 每個網址都打開過，Etalab 2.0 的官方頁 cloud 連不上，沒有收），認不得的（公有領域、各機構的條款、「只引用事實」…）寫 `{ "@type": "CreativeWork", "name": 中文名稱 }`。名稱後面括號裡只說明「資料檔也用同一個授權」或「非商業」的看括號前面（「ODbL 1.0（© OpenStreetMap 貢獻者；資料檔也是）」）；括號裡有條款、事實、附加條件的不算（「CC BY 4.0（另有 WHO 的附加條款）」）。來源的授權都一樣時寫在 `license`（2026-11-01 有 22 個主題），不一樣時不寫，每個來源在 `isBasedOn` 寫自己的授權。`isBasedOn` 一律列出全部來源（名稱、網址），授權一樣時每個來源不再重寫。
+  - **建置時檢查**（`datasetProblems()`）：每一頁剛好一段 JSON-LD、能解析，`name`、`description`（50–5,000 字）、`url`、`creator`、`temporalCoverage` 的格式、每個來源的名稱與網址、`license`（或每個來源的授權）都要有，不對就建置失敗。內容裡的 `<` 寫成 `\u003c`，說明裡有「</script>」也不會截斷。
+  - 大小：每頁 1–5 KB（中位數約 2 KB）。合併掉的舊主題的頁面是新主題那一份，canonical 指到新主題，JSON-LD 也一樣。
+  - Google 的 Rich Results Test（https://search.google.com/test/rich-results ）要在瀏覽器用，部署後請使用者試一頁。
 - **建置改用絕對路徑**（`base: '/map/'`，開發伺服器照舊 `/`）：原本是相對路徑 `./`，在 `t/<主題>/` 底下會變成 `t/<主題>/assets/…`。試過在 HTML 開頭用程式放 `<base>`，但瀏覽器的預先掃描（preload scanner）不跑程式，第一輪照樣用錯的路徑抓（404）；從首頁換主題後網址變成 `t/<主題>/`，之後相對路徑的 `fetch` 也會錯。`index.html` 的相對網址改成 `%BASE_URL%`，`preloadMapChunk`、`preloadTopicChunk` 寫 `/map/`，主題總覽的縮圖用 `import.meta.env.BASE_URL`。換網域或路徑時改 `vite.config.ts` 的 `SITE`。
 - **service worker**：離線時任何網址（含 `t/<主題>/`）都用預先快取的首頁 HTML 回應，絕對路徑所以抓得到 assets；預覽圖、主題頁的 HTML 不預先快取（給爬蟲的）。
 - **預覽圖**（`scripts/og-topics.mjs`，`public/og/<主題>.jpg`，1200×630、每張約 70 KB，98 張約 7 MB）：跟首頁的預覽圖同一種深藍底，上緣一條分類代表色，左邊分類的圖示與名稱、主題名稱（括號裡的補充不寫，字級依長度 46–62px）、前五個指標，右邊是主題總覽的縮圖，下面網站名稱、網址與底圖的版權。不用開發伺服器，腳本自己開一個小伺服器給卡片、縮圖與字型。字型用思源黑體（`OG_FONT_DIR` 指到 `@fontsource/noto-sans-tc`；沒設時用系統字型）。沒有預覽圖的主題用首頁那一張。新增主題時跑 `node scripts/og-topics.mjs <主題 id>`（第 4 節）。
