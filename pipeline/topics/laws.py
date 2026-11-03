@@ -7,13 +7,16 @@
   值是歲數或類別代碼（0 沒有規定、1 禁止），只有 2026 年；各地不同的國家列在指標檔的 `varies`（tooltip 標「各地不同」）。
 - 博弈的合法性（2026-10-30，製作手冊第六批 114）：`sources/gambling.py` 依英文維基百科「Gambling age」的年齡欄分類
   （賭場合法、只准彩券等特許、全部禁止、各地不同），只有 2026 年，資料檔依 CC BY-SA 4.0 分享；台灣依法條。
+- 醫療用大麻（2026-11-03，製作手冊第十九批 299）：`sources/medical_cannabis.py` 依英文維基百科「Legality of cannabis」的
+  Medical 欄分類（合法、有條件或各地不同、只准特定藥品或 CBD、非法），只有 2026 年，資料檔依 CC BY-SA 4.0 分享；
+  台灣依食藥署的許可證。
 """
 from __future__ import annotations
 
 import json
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json
-from sources import death_penalty, gambling, legal_ages
+from sources import death_penalty, gambling, legal_ages, medical_cannabis
 
 
 def build() -> None:
@@ -43,6 +46,14 @@ def build() -> None:
     ))
     counts = {k: sum(1 for v in status.values() if v == k) for k in (1, 2, 3, 4)}
     print(f"  博弈 {len(status)} 國：賭場合法 {counts[1]}、只准彩券等 {counts[2]}、全部禁止 {counts[3]}、各地不同 {counts[4]}")
+    cannabis, notes = medical_cannabis.status(known)
+    write_json(out / "medical-cannabis.json", indicator_file(
+        "medical-cannabis", "", [legal_ages.YEAR], {c: [v] for c, v in sorted(cannabis.items())},
+        notes={c: n[0] for c, n in notes.items()}, notesEn={c: n[1] for c, n in notes.items()},
+        license="CC BY-SA 4.0",
+    ))
+    counts = {k: sum(1 for v in cannabis.values() if v == k) for k in (1, 2, 3, 4)}
+    print(f"  醫療用大麻 {len(cannabis)} 國：合法 {counts[1]}、有條件 {counts[2]}、只准特定藥品 {counts[3]}、非法 {counts[4]}")
     write_json(out / "manifest.json", {
         "topic": "laws", "generatedAt": now_iso(),
         "source": "Wikipedia (CC BY-SA 4.0); 法務部",

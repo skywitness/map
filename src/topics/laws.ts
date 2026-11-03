@@ -25,6 +25,15 @@ const GAMBLING: CategoryDef[] = [
 ];
 const gamblingLabel = (v: number) => tr(GAMBLING.find((c) => c.value === v)?.label ?? '');
 
+/** 醫療用大麻（pipeline/sources/medical_cannabis.py，2026-11-03，製作手冊第十九批 299）：從寬到嚴是循序的（跟博弈同方向） */
+const MEDICAL_CANNABIS: CategoryDef[] = [
+  { value: 1, label: { zh: '合法', en: 'Legal' } },
+  { value: 2, label: { zh: '有條件或各地不同', en: 'Restricted or varies by region' } },
+  { value: 3, label: { zh: '只准特定藥品或 CBD', en: 'Specific medicines or CBD only' } },
+  { value: 4, label: { zh: '非法', en: 'Illegal' } },
+];
+const medicalCannabisLabel = (v: number) => tr(MEDICAL_CANNABIS.find((c) => c.value === v)?.label ?? '');
+
 /**
  * 法定年齡（pipeline/sources/legal_ages.py）：值是歲數，0 是沒有規定、1 是禁止。
  * 類別圖、循序色，年齡越大越深；「禁止」「沒有規定」不在年齡的順序上，用灰色（categories.ts 不讓它們占色階）
@@ -109,6 +118,22 @@ export const laws: TopicDefinition = {
       url: 'https://en.wikipedia.org/w/index.php?oldid=1379514800',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: {
+        zh: '英文維基百科「Legality of cannabis」的 Medical 欄（醫療用大麻，2026 年 10 月）、「Legal status of psilocybin mushrooms」（迷幻蘑菇）',
+        en: 'Wikipedia, “Legality of cannabis”, Medical column (medical cannabis, October 2026) and “Legal status of psilocybin mushrooms”',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=Legality_of_cannabis&oldid=1378590397',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
+        zh: '衛生福利部食品藥物管理署：未註銷藥品許可證資料集（台灣的大麻二酚藥品）',
+        en: 'Taiwan Food and Drug Administration: unrevoked drug licences (cannabidiol medicine in Taiwan)',
+      },
+      url: 'https://data.gov.tw/dataset/9123',
+      license: OPEN_DATA_TW,
+    },
   ],
   tooltipLines,
   note: {
@@ -149,6 +174,19 @@ export const laws: TopicDefinition = {
       file: 'gambling.json',
       layer: { kind: 'categorical', categories: GAMBLING, ordinal: true },
       format: gamblingLabel,
+      defaultYear: 2026,
+    },
+    {
+      id: 'medical-cannabis',
+      label: { zh: '醫療用大麻', en: 'Medical cannabis' },
+      description: {
+        zh: '2026 年醫療用大麻合不合法：合法（可能要處方或執照）、有條件或各地不同（只限特定病人、特別許可、試辦，或法律上可以但沒有供應的制度；美國依州而定）、只准特定的大麻藥品（Sativex、Epidiolex 等）或 CBD、非法。約 50 國合法，例如德國、加拿大、澳洲、泰國、以色列、阿根廷、烏拉圭；日本、南韓、新加坡只准特定藥品或 CBD。台灣的大麻是第二級毒品，但食藥署 2024 年核准大麻二酚口服液 Epidyolex 治療兩種罕見的癲癇，歸「只准特定藥品」。迷幻蘑菇（psilocybin）的醫療用途更少：澳洲 2023 年 7 月起准許授權的精神科醫師開給難治型憂鬱症，捷克 2026 年 1 月起准許在精神科醫院輔助治療；在台灣是第二級毒品。',
+        en: 'Whether medical cannabis is legal in 2026: legal (possibly with a prescription or licence), restricted or varying by region (only certain patients, special permits, trials, or legal but with no supply system; by state in the US), specific cannabis medicines (Sativex, Epidiolex and the like) or CBD only, or illegal. About 50 countries allow it, including Germany, Canada, Australia, Thailand, Israel, Argentina and Uruguay; Japan, South Korea and Singapore allow only specific medicines or CBD. In Taiwan cannabis is a Schedule 2 narcotic, but in 2024 the Taiwan FDA licensed the cannabidiol oral solution Epidyolex for two rare forms of epilepsy, so it counts as specific medicines only. Medical use of psilocybin mushrooms is rarer still: since July 2023 authorised psychiatrists in Australia may prescribe it for treatment-resistant depression, and since January 2026 the Czech Republic has allowed psilocybin-assisted therapy in psychiatric hospitals; in Taiwan it is a Schedule 2 narcotic.',
+      },
+      unit: '',
+      file: 'medical-cannabis.json',
+      layer: { kind: 'categorical', categories: MEDICAL_CANNABIS, ordinal: true },
+      format: medicalCannabisLabel,
       defaultYear: 2026,
     },
     ageIndicator(
