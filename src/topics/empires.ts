@@ -1,3 +1,5 @@
+import { ohmBordersPart } from './ohm-borders';
+import { withParts } from './parts';
 import { getLang, tr } from '../i18n/lang';
 import { fetchJson } from '../lib/data';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -154,7 +156,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const empires: TopicDefinition = {
+export const empires: TopicDefinition = withParts({
   id: 'empires',
   title: { zh: '帝國與疆界', en: 'Empires and borders' },
   shortTitle: { zh: '帝國與疆界', en: 'Empires' },
@@ -228,4 +230,4 @@ export const empires: TopicDefinition = {
     },
   ],
   indicators,
-};
+}, ohmBordersPart);

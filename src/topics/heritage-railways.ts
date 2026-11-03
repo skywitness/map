@@ -1,3 +1,4 @@
+import { SINICA_SOURCE, sinicaLayer } from './sinica';
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -81,6 +82,7 @@ export const heritageRailways: TopicDefinition = {
       url: 'https://www.wikidata.org/',
       license: 'CC0',
     },
+    SINICA_SOURCE,
   ],
   note: {
     zh:
@@ -96,6 +98,12 @@ export const heritageRailways: TopicDefinition = {
   overlays: [
     layer('lines', 'lines.json', { zh: '觀光鐵道與登山鐵路（依開通年份）', en: 'Heritage and mountain railways (by opening year)' }, true),
     layer('lines-undated', 'lines-undated.json', { zh: '開通年份不詳（預設關閉）', en: 'Year unknown (off by default)' }, false),
+    // 2026-11-03（製作手冊第十七批 280）：1953 年的臺糖鐵道網圖（中研院，預設關閉），台灣的糖鐵當年遍布西部平原
+    sinicaLayer('sinica-1953', 'TM150K_1953', 'png', { zh: '1953 年臺糖鐵道網圖（1:150,000，中研院）', en: '1953 Taiwan Sugar railway map (1:150,000, Academia Sinica)' }, {
+      maxzoom: 14,
+      bounds: [119.85, 22.33, 121.16, 25.08],
+      note: { zh: '放大到台灣西部才看得到', en: 'Visible when zoomed in on western Taiwan' },
+    }),
   ],
   indicators: [
     {

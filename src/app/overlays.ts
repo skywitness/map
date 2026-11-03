@@ -108,6 +108,8 @@ export function useOverlays(
       if (def.kind === 'night') return { kind: 'night', def, visible };
       if (def.kind === 'moon') return { kind: 'moon', def, visible };
       if (def.kind === 'liveGrid') return { kind: 'liveGrid', def, visible, values: liveGridValues(def, live) };
+      // 點陣圖磚（中研院的舊地圖）：沒有資料檔；years 之外的年份不畫
+      if (def.kind === 'tiles') return { kind: 'tiles', def, visible, active: !def.years || (year >= def.years[0] && year <= def.years[1]) };
       if (def.kind === 'classGrid') {
         const grid = grids.get(path) ?? grids.get(path.slice(0, path.lastIndexOf('/') + 1)) ?? null;
         return { kind: 'classGrid', def, visible, grid };
@@ -162,7 +164,7 @@ function generatedLines(def: LinesOverlay, data: unknown, center: [number, numbe
 
 /** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
-  if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === undefined) return '';
+  if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === 'tiles' || o.kind === undefined) return '';
   if (o.kind === 'points' && o.fromLive) return '';
   if (o.kind === 'lines' && o.local) return '';
   // 共用疊加圖層的季風（shared-layers.ts）：風場在風與季風主題的資料夾，月份固定（file 不看時間軸）

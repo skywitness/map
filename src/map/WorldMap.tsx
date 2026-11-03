@@ -104,6 +104,7 @@ import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, LocateIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 import { Pins, type PinConfig } from './pins';
 import { loadDayTile, SATELLITE_EXTRA, SATELLITE_PROTOCOL, syncSatelliteDay, validDay } from './satelliteDay';
+import { syncTilesOverlays } from './tilesOverlay';
 import {
   BARE_SEA,
   CALM_SEA,
@@ -1315,6 +1316,18 @@ export function WorldMap(props: WorldMapProps) {
       bounds: def?.bounds,
     });
   }, [revision, classGrid?.def, classGrid?.visible, classGrid?.grid, classColors, classOnly]);
+
+  /* ── 點陣圖磚（中研院的舊地圖，tilesOverlay.ts）：開著、時間軸在 years 裡面才畫；換底圖後重新加上 ── */
+  const tilesShown = useMemo(
+    () => overlays.flatMap((o) => (o.kind === 'tiles' && o.visible && o.active ? [o.def] : [])),
+    [overlays],
+  );
+  const tilesKey = tilesShown.map((d) => d.id).join('|');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    syncTilesOverlays(map, tilesShown);
+  }, [ready, revision, tilesKey]);
 
   /* ── 風的粒子（風與季風，windLayer.ts）：換月份只換風場；換底圖後重新加上（類別網格之後，畫在風速的底色上面） ── */
   const wind = overlays.find((o) => o.kind === 'wind');

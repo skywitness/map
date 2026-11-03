@@ -3,7 +3,7 @@
  * 首頁的程式（App、app/overlays.ts）與主題的側欄只要這些，不必連圖層的圖例、開關元件一起下載
  */
 import type { ClassGrid } from './classGridData';
-import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, MoonOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData, WindOverlay } from '../topics/types';
+import type { ClassGridOverlay, LinesData, LinesOverlay, LiveGridOverlay, MoonOverlay, NightOverlay, PointRecord, PointsData, PointsOverlay, RailwaysData, TilesOverlay, WindOverlay } from '../topics/types';
 import type { WindField } from './windField';
 
 export interface LayerVisibility {
@@ -155,7 +155,9 @@ export type OverlayLayer =
   /** 類別網格（氣候分區）：依年份與子項目的 PNG（classGridLayer.ts）；還沒讀到是 null */
   | { kind: 'classGrid'; def: ClassGridOverlay; visible: boolean; grid: ClassGrid | null }
   /** 風的粒子（風與季風）：依月份的風場（windLayer.ts）；還沒讀到是 null */
-  | { kind: 'wind'; def: WindOverlay; visible: boolean; field: WindField | null };
+  | { kind: 'wind'; def: WindOverlay; visible: boolean; field: WindField | null }
+  /** 點陣圖磚（中研院的舊地圖）：別人的圖磚伺服器，沒有資料檔（tilesOverlay.ts）；active 是時間軸在 years 裡面 */
+  | { kind: 'tiles'; def: TilesOverlay; visible: boolean; active: boolean };
 
 export function overlayVisible(layers: LayerVisibility, def: { id: string; hidden?: boolean }): boolean {
   return layers.extra[def.id] ?? !def.hidden;

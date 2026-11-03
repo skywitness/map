@@ -1,3 +1,4 @@
+import { SINICA_SOURCE, sinicaLayer } from './sinica';
 import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -47,6 +48,7 @@ export const reclamation: TopicDefinition = {
       url: 'https://doi.org/10.5281/zenodo.7528236',
       license: 'CC BY 4.0',
     },
+    SINICA_SOURCE,
   ],
   note: {
     zh:
@@ -55,7 +57,27 @@ export const reclamation: TopicDefinition = {
       'The data come from Sengupta et al. (2023) in Earth’s Future, who compared Landsat images from 2000 and 2020 to measure the land reclaimed from the sea over those 20 years in 135 coastal cities of over a million people (hectares, with the error in brackets): 253,734 ha in all (about 2,537 km²), in 106 of the cities, with the top 10 all in mainland China. Only cities of a million or more are covered, so smaller cities, ports and industrial zones (such as Taiwan’s Changhua and Yunlin offshore industrial parks) are not included, nor is reclamation before 2000 (most of the reclaimed land in Hong Kong, Singapore and Tokyo Bay). The authors plan to publish the reclaimed areas as a map layer; for now there are only city points. A few fixes were made to the original file: the Taichung row lists “China” as its country (with “Taichung . Taiwan” as the city), Singapore has no country and Hong Kong is “China SAR”, changed here to Taiwan, Singapore and Hong Kong; the latitude and longitude of Kochi, Thiruvananthapuram and Port-au-Prince were swapped and are corrected; cities with negligible reclamation have no coordinates and are placed with Natural Earth city locations. A second file (land use on reclaimed land) consists of points taken from OpenStreetMap and is not used.',
   },
   panelExtra: () => import('./panels/ReclamationPanel'),
+  // 2026-11-03（製作手冊第十七批 280）：放大到台灣時可以疊中研院的舊地圖、舊航照（預設關閉），看 2000 年以前的西海岸
   overlays: [
+    sinicaLayer('sinica-1904', 'JM20K_1904', 'jpg', { zh: '1904 年日治臺灣堡圖（1:20,000，中研院）', en: '1904 Taiwan Fort Maps (1:20,000, Academia Sinica)' }, {
+      maxzoom: 17,
+      note: { zh: '放大到台灣才看得到；跟今天的海岸線對照', en: 'Visible when zoomed in on Taiwan; compare with today’s coastline' },
+    }),
+    sinicaLayer('sinica-1944', 'AM25K_1944B', 'png', { zh: '1944 年美軍航照（1:25,000，中研院）', en: '1944 US Army aerial photos (1:25,000, Academia Sinica)' }, {
+      maxzoom: 15,
+      bounds: [119.38, 21.83, 122.01, 25.33],
+      note: { zh: '放大到台灣才看得到', en: 'Visible when zoomed in on Taiwan' },
+    }),
+    sinicaLayer('sinica-1962', 'TM5K_1962', 'png', { zh: '1962 年西海岸海埔地地形圖（中研院）', en: '1962 west-coast tidal flat maps (Academia Sinica)' }, {
+      maxzoom: 17,
+      bounds: [119.98, 23.1, 120.19, 23.65],
+      note: { zh: '只有嘉義、臺南沿海', en: 'Chiayi and Tainan coast only' },
+    }),
+    sinicaLayer('sinica-1966', 'Taiwan_Corona_1966', 'png', { zh: '1966 年 Corona 衛星影像（中研院）', en: '1966 Corona satellite images (Academia Sinica)' }, {
+      maxzoom: 15,
+      bounds: [119.25, 23.23, 122.32, 25.47],
+      note: { zh: '中北部；放大到台灣才看得到', en: 'Central and northern Taiwan; visible when zoomed in' },
+    }),
     {
       kind: 'points',
       id: 'cities',

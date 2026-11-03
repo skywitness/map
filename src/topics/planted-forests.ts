@@ -1,3 +1,4 @@
+import { SINICA_SOURCE, sinicaLayer } from './sinica';
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
@@ -48,6 +49,7 @@ export const plantedForests: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/57873',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
+    SINICA_SOURCE,
   ],
   note: {
     zh:
@@ -63,7 +65,14 @@ export const plantedForests: TopicDefinition = {
       'The grid comes from the World Resources Institute’s Spatial Database of Planted Trees (SDPT 2.0, 158 countries, sources and years vary by country, around 2020), aggregated from the Global Forest Watch vector tiles to cells of about 10 km: cells at least 5% planted forest plus tree crops (oil palm, rubber, orchards and so on) are drawn, coloured by whichever is larger. ' +
       'SDPT labels Taiwan’s plantations as China; Taiwan’s cells use the forest-type map instead (planted forest only, no tree crops). Places where polygons are too dense for the website to produce tiles are not drawn: about a third of Sweden and a few patches (each about 80–150 km across) in Finland, South Korea, Thailand, Indonesia, Chile, the United States and elsewhere. Countries with under 50,000 ha of forest have no share.',
   },
-  overlays: [RANGE],
+  // 2026-11-03（製作手冊第十七批 280）：1956 年的臺灣土地利用及林型圖（中研院，預設關閉），對照第四次森林資源調查
+  overlays: [
+    RANGE,
+    sinicaLayer('sinica-1956', '1956_Landuse', 'png', { zh: '1956 年臺灣土地利用及林型圖（中研院）', en: '1956 Taiwan land use and forest type map (Academia Sinica)' }, {
+      maxzoom: 16,
+      note: { zh: '放大到台灣才看得到；對照今天的人工林', en: 'Visible when zoomed in on Taiwan; compare with today’s plantations' },
+    }),
+  ],
   indicators: [
     {
       id: 'planted-share',

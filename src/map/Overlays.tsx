@@ -137,6 +137,14 @@ const SIZE_KEY_COLOR = MAP_TOKENS.inkMuted;
  * 在深色卡片上看不到，換成介面的文字色（跟鐵路一樣）。
  */
 export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): OverlayKey {
+  if (o.kind === 'tiles') {
+    // 點陣圖磚（舊地圖、舊航照）：陰影色塊，說明寫在下面
+    return {
+      swatch: { shape: 'shade', size: 5, color: '#8a7a5c' },
+      label: o.def.label,
+      details: o.def.note ? [{ layout: 'rows', rows: [{ shape: 'shade', size: 5, color: '#8a7a5c', label: o.def.note }] }] : [],
+    };
+  }
   if (o.kind === 'wind') {
     // 粒子是一個顏色的小點：符號是一串由淡到濃的點，說明寫在下面
     const color = darkMap ? o.def.color.dark : o.def.color.light;

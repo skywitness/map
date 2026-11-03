@@ -403,7 +403,39 @@ export type OverlayDef =
   | MoonOverlayDef
   | LiveGridOverlayDef
   | ClassGridOverlayDef
-  | WindOverlayDef;
+  | WindOverlayDef
+  | TilesOverlayDef;
+
+/**
+ * 點陣圖磚的疊加圖層（2026-11-03 起，製作手冊第十七批 280，中研院臺灣百年歷史地圖的舊地圖、舊航照與日治行政區）：
+ * 別人的圖磚伺服器（{z}/{x}/{y} 的網址），畫在國家的面上面、地名下面（map/tilesOverlay.ts）。不讀資料檔；
+ * 預設關閉（hidden），使用者打開才向伺服器要圖磚。years 是只在時間軸的這幾年畫（日治的行政區界）
+ */
+export interface TilesOverlayDef {
+  kind: 'tiles';
+  id: string;
+  label: Text;
+  /** 圖磚網址，{z}、{x}、{y} 換成縮放與行列 */
+  url: string;
+  /** 圖磚 source 的 attribution（HTML，地圖右下角） */
+  attribution: string;
+  /** 圖磚涵蓋的範圍 [西, 南, 東, 北]：範圍外不要圖磚 */
+  bounds?: [number, number, number, number];
+  minzoom?: number;
+  /** 伺服器有圖磚的最大縮放，再放大是把這一級放大 */
+  maxzoom: number;
+  opacity?: number;
+  /** 只在時間軸的這幾年（含）畫 */
+  years?: [number, number];
+  /** 圖層卡片開關下面的一行說明 */
+  note?: Text;
+  hidden?: boolean;
+  indicators?: string[];
+  items?: string[];
+  shareable?: false;
+  added?: boolean;
+  overlayTime?: IndicatorDef['overlayTime'];
+}
 
 /**
  * 晝夜（時刻主題）：依目前的時刻畫出地球的夜半邊與晨昏蒙影（民用、航海、天文曙暮光一層一層變暗），
@@ -1355,6 +1387,7 @@ export type MoonOverlay = Localized<MoonOverlayDef>;
 export type LiveGridOverlay = Localized<LiveGridOverlayDef>;
 export type ClassGridOverlay = Localized<ClassGridOverlayDef>;
 export type WindOverlay = Localized<WindOverlayDef>;
+export type TilesOverlay = Localized<TilesOverlayDef>;
 
 /**
  * 比例圓畫成圓餅（2026-11-01，`map/pies.ts`）：圓的大小照這個指標，各片是同一個主題其他指標（parts 的 indicator）

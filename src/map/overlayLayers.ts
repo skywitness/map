@@ -33,9 +33,9 @@ import type { DecodedLines, OverlayLayer } from './Overlays';
 import { isNameLayer } from './style';
 
 /** 點、線疊加圖層（晝夜是另外的自訂圖層，nightLayer.ts） */
-type DataOverlay = Exclude<OverlayLayer, { kind: 'night' } | { kind: 'moon' } | { kind: 'liveGrid' } | { kind: 'classGrid' } | { kind: 'wind' }>;
+type DataOverlay = Exclude<OverlayLayer, { kind: 'night' } | { kind: 'moon' } | { kind: 'liveGrid' } | { kind: 'classGrid' } | { kind: 'wind' } | { kind: 'tiles' }>;
 const isData = (o: OverlayLayer): o is DataOverlay =>
-  o.kind !== 'night' && o.kind !== 'moon' && o.kind !== 'liveGrid' && o.kind !== 'classGrid' && o.kind !== 'wind';
+  o.kind !== 'night' && o.kind !== 'moon' && o.kind !== 'liveGrid' && o.kind !== 'classGrid' && o.kind !== 'wind' && o.kind !== 'tiles';
 
 export const OVERLAY_PREFIX = 'ov-';
 /** 點圖層插在框選範圍之前（疊在機場、比例圓、立體圖形上面），線圖層插在機場之前（在點的下面） */
