@@ -1261,6 +1261,7 @@ export function App() {
                         contributions={boxResult.contributions}
                         grid={boxResult.grid}
                         countries={countries}
+                        taiwan={boxResult.taiwan}
                         onClear={() => setBox(null)}
                       />
                     )

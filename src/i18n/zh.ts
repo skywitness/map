@@ -239,6 +239,8 @@ export const zh = {
   boxNote: (epoch: number, cellSize: number, label: string) =>
     `依 GHS-POP ${epoch} 年約 1 km 網格的${label}分布（彙整成 ${cellSize}° 網格）估算，` +
     `再把各國調整到該年的總${label}。國內分布固定用 ${epoch} 年，年份離得越遠越不準。`,
+  boxTaiwan: (value: string, asOf: string) => `內政部最小統計區的戶籍人口（${asOf}）：${value} 人`,
+  boxTaiwanNote: '中心點在框內的最小統計區加總；戶籍人口跟上面的網格估計（常住人口的推估）定義不同，兩個數字對照、不相加。',
   /** 面積：1 萬 km² 以上用「萬」 */
   area: (km2: number) =>
     km2 >= 1e4 ? `${fixed(km2 / 1e4, km2 >= 1e6 ? 0 : 1)} 萬 km²` : `${fixed(km2, 0)} km²`,

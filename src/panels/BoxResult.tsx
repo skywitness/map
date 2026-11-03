@@ -22,12 +22,14 @@ interface BoxResultProps {
   /** 網格人口的年份與網格大小（度），還沒載入時是 null */
   grid: { epoch: number; cellSize: number } | null;
   countries: CountryTable | null;
+  /** 台灣的最小統計區戶籍人口（框碰到台灣時，topic.boxEstimate.taiwan）；沒有是 null */
+  taiwan?: { total: number; asOf: string } | null;
   onClear: () => void;
 }
 
 const TOP_N = 5;
 
-export function BoxResult({ label, unit, year, total, landKm2, contributions, grid, countries, onClear }: BoxResultProps) {
+export function BoxResult({ label, unit, year, total, landKm2, contributions, grid, countries, taiwan = null, onClear }: BoxResultProps) {
   const t = useT();
   const top = contributions.slice(0, TOP_N);
   const rest = contributions.slice(TOP_N);
@@ -73,6 +75,12 @@ export function BoxResult({ label, unit, year, total, landKm2, contributions, gr
         </>
       )}
       {grid && <p className="box-result-note">{t.boxNote(grid.epoch, grid.cellSize, label)}</p>}
+      {taiwan && (
+        <>
+          <p className="box-result-meta">{t.boxTaiwan(formatLargeNumber(taiwan.total), taiwan.asOf)}</p>
+          <p className="box-result-note">{t.boxTaiwanNote}</p>
+        </>
+      )}
     </section>
   );
 }

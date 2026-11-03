@@ -14,9 +14,10 @@ import {
   type PopulationGrid,
 } from '../map/boxEstimate';
 import { toCountryFeatures, type CountryFeature } from '../map/geometry';
+import { decodePoints } from '../map/overlayData';
 import type { BoxContribution } from '../panels/BoxResult';
 import { loadedTopic, loadTopic } from '../topics';
-import { indicatorPath, type Indicator, type IndicatorData, type Topic } from '../topics/types';
+import { indicatorPath, type Indicator, type IndicatorData, type PointsData, type Topic } from '../topics/types';
 import { flagAspect, flagUrl, type FlagsFile } from '../topics/flagImages';
 import type { FlagSpec } from '../map/flagTiles';
 
@@ -151,6 +152,9 @@ export function useFlagSpecs(topic: Topic, indicator: Indicator, active: boolean
  * 框選估算：網格決定國內怎麼分布，選定年份的國家總量決定水準。
  * 某國的框內估計 = 框內網格人數 ÷ 該國網格總人數 × 該國當年總量。
  */
+/** 台灣（含金門、馬祖）的範圍 [西, 南, 東, 北]：框碰到才下載最小統計區的點 */
+const TAIWAN_BOX: [number, number, number, number] = [118.1, 21.8, 122.1, 26.4];
+
 export function useBoxEstimate(
   topic: Topic,
   item: string | null,
@@ -163,6 +167,21 @@ export function useBoxEstimate(
   const active = Boolean(spec && indicator && box && features);
   const { data } = useJson<IndicatorData>(active && indicator ? indicatorPath(topic, indicator, item) : null);
   const grid = useJson<PopulationGrid>(active && spec ? `topics/${topic.id}/${spec.grid}` : null).data;
+  // 台灣另外加總的點（boxEstimate.taiwan，內政部最小統計區）：框碰到台灣時才下載
+  const nearTaiwan = Boolean(box && box[0] < TAIWAN_BOX[2] && box[2] > TAIWAN_BOX[0] && box[1] < TAIWAN_BOX[3] && box[3] > TAIWAN_BOX[1]);
+  const taiwanFile = useJson<PointsData & { asOf: string }>(active && spec?.taiwan && nearTaiwan ? `topics/${topic.id}/${spec.taiwan}` : null).data;
+  const taiwanPoints = useMemo(() => (taiwanFile ? decodePoints(taiwanFile) : null), [taiwanFile]);
+  const taiwan = useMemo(() => {
+    if (!taiwanFile || !taiwanPoints || !box || !nearTaiwan) return null;
+    const [w, s, e, n] = box;
+    let total = 0;
+    for (const p of taiwanPoints) {
+      const lon = p.lon as number;
+      const lat = p.lat as number;
+      if (lon >= w && lon <= e && lat >= s && lat <= n) total += p.p as number;
+    }
+    return total > 0 ? { total, asOf: taiwanFile.asOf } : null;
+  }, [taiwanFile, taiwanPoints, box, nearTaiwan]);
 
   const landKm2 = useMemo(
     () => (active && features && box ? landAreaInBox(features, box) : null),
@@ -210,6 +229,7 @@ export function useBoxEstimate(
       landKm2,
       contributions,
       grid: gridIndex && { epoch: gridIndex.epoch, cellSize: gridIndex.cellSize },
+      taiwan,
     };
-  }, [spec, indicator, landKm2, gridIndex, inBox, data, year]);
+  }, [spec, indicator, landKm2, gridIndex, inBox, data, year, taiwan]);
 }

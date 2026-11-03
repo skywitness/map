@@ -13,7 +13,7 @@ export const population: TopicDefinition = {
   shortTitle: { zh: '人口', en: 'Population' },
   defaultIndicator: 'total',
   defaultYear: 2023,
-  boxEstimate: { indicator: 'total', label: { zh: '人口', en: 'population' }, grid: 'grid.json' },
+  boxEstimate: { indicator: 'total', label: { zh: '人口', en: 'population' }, grid: 'grid.json', taiwan: 'taiwan-segis.json' },
   sources: [
     {
       name: {
@@ -30,6 +30,14 @@ export const population: TopicDefinition = {
       },
       url: 'https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php',
       license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: '內政部統計處 SEGIS：統計區人口統計（最小統計區，data.gov.tw 18681）、最小統計區圖（data.gov.tw 25128）：台灣框選的戶籍人口（只用中心點與人口，資料已變更）',
+        en: 'Ministry of the Interior (Taiwan), SEGIS: population by smallest statistical area (data.gov.tw 18681) and statistical area maps (25128): registered population for boxes over Taiwan (centres and totals only; data modified)',
+      },
+      url: 'https://data.gov.tw/dataset/18681',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     LONG_RUN_SOURCE,
   ],

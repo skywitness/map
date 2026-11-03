@@ -1161,7 +1161,16 @@ export interface TopicDefinition {
    * 地圖框選：加總框內的網格人口估算框內的總量。indicator 必須是可加總的總量，
    * 網格只決定國內的分布，各國水準縮放到 indicator 當年的值。grid 是主題資料夾裡的網格檔。
    */
-  boxEstimate?: { indicator: string; label: Text; grid: string };
+  boxEstimate?: {
+    indicator: string;
+    label: Text;
+    grid: string;
+    /**
+     * 台灣另外加總的點（2026-11-03，製作手冊第十七批 285，內政部最小統計區的戶籍人口）：框碰到台灣時才下載，
+     * 點檔（PointsData，欄位 lon、lat、p，加上 asOf），框內的點加總寫在網格估計的下面
+     */
+    taiwan?: string;
+  };
   /** 顯示在頁尾的資料說明 */
   note?: Text;
   /** 疊加圖層（鐵路、機場、地震、火山、板塊邊界…），使用者可以在地圖上開關 */

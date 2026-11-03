@@ -27,6 +27,8 @@ STEPS = {
     # 世界視角（0–3 級）的地形陰影圖磚，轉成 WebP 跟網站一起部署（src/map/style.ts 的 localRelief）
     "relief-tiles": "relief_tiles",
     "population": "topics.population",
+    # 台灣的最小統計區人口（第十七批 285）：map-plan data/segis/ 的 22 個 XML 先複製到 .cache/segis/，SHP 的中心點從 data.gov.tw 25128 下載
+    "segis-population": "topics.segis_population",
     "population-grid": "topics.population_grid",  # 要先有 geo 的國界；第一次會下載 460 MB
     # 人口密度的 1 km 網格圖磚（不進版本控制，部署時產生）；第一次會下載 12 期、共 5.8 GB
     "population-density-tiles": "topics.population_density_tiles",

@@ -217,6 +217,9 @@ export const en: Messages = {
     `Estimated from the ${label} distribution of the GHS-POP ${epoch} grid (about 1 km, aggregated to ${cellSize}° cells), ` +
     `then scaled to each country's total ${label} for the selected year. The distribution within each country is fixed at ${epoch}, ` +
     `so the further the year is from ${epoch}, the less accurate the estimate.`,
+  boxTaiwan: (value, asOf) => `Registered population, Ministry of the Interior statistical areas (${asOf}): ${value}`,
+  boxTaiwanNote:
+    'Sum of the smallest statistical areas whose centres fall inside the box. Household registration differs from the grid estimate above (of where people live), so compare the two; do not add them.',
   area: (km2) => `${fixed(km2, 0)} km²`,
 
   panelAria: (name) => `Data for ${name}`,
