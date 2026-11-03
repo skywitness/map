@@ -17,11 +17,13 @@ export interface LocalField {
   label: Text;
   unit?: Text;
   decimals?: number;
+  /** 值是年份：不加千分位 */
+  year?: boolean;
 }
 
 export type LocalColor =
   | { field: string; categories: { value: string; label: Text }[] }
-  | { field: string; scale?: number[] | 'auto'; diverging?: boolean };
+  | { field: string; scale?: number[] | 'auto'; diverging?: boolean; reverse?: boolean };
 
 export interface LocalTime {
   field: string;

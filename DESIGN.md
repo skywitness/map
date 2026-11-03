@@ -5158,10 +5158,10 @@ pipeline/
   "label": Text, "description": Text,
   "name": "name",                      // 名稱的欄位（預設 name）
   "country": "iso3",                   // 選填：ISO3 的欄位（逗號分隔可以多國）：點了選那一國、清單跟選取的國家連動
-  "fields": [ { "field": "summer", "label": Text, "unit": Text, "decimals": 0 } ],  // tooltip 與清單寫的欄位（依序）
+  "fields": [ { "field": "summer", "label": Text, "unit": Text, "decimals": 0 } ],  // tooltip 與清單寫的欄位（依序）；年份加 "year": true（沒有單位、1000–2100 的整數也當成年份，不加千分位）
   "size": { "field": "summer" },       // 選填：點的面積跟這個數值成正比（依資料的最大值）；沒寫是固定大小
   "color": { "field": "kind", "categories": [ { "value": "beach", "label": Text } ] },  // 選填：依類別上色……
-  //       { "field": "trend", "scale": [門檻…] | "auto", "diverging": true }          // ……或依數值分級
+  //       { "field": "trend", "scale": [門檻…] | "auto", "diverging": true, "reverse": true }  // ……或依數值分級（reverse：大的是橘色）
   "time": { "field": "year", "mode": "cumulative", "end": "closed" },  // 選填：跟著時間軸；mode 是 "year"（只有那一年）、"cumulative"（累積到那一年）或數字 n（那一年起 n 年）；end 是結束年份的欄位
   "list": {                            // 選填：左側欄的清單
     "label": Text,
@@ -5192,7 +5192,8 @@ pipeline/
 }
 ```
 
-- 網站另外依流向算出各國的指標：每年以起點加總（`presence` 時是對方的國家數），地圖、排名表、側欄用它。
+- 網站另外依流向算出各國的指標：每年依 `direction` 加總，`export` 以起點、`import` 以終點、`larger` 取兩個方向比較大的（`presence` 時是對方的國家數），地圖、排名表、側欄用它。
+- 同一個 CSV 可以在 `flows` 列兩次（不同的 `id`），例如一次 `export`（它在哪些國家設館）、一次 `import`（哪些國家在它那裡設館）。
 - 期間（同盟的起訖年）由轉換程式展開成每年一列。
 
 **線面**（`shapes`）：GeoJSON 的 LineString、MultiLineString、Polygon、MultiPolygon（`properties` 是欄位）。面畫成半透明的面加外框。

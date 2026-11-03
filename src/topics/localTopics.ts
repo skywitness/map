@@ -87,7 +87,9 @@ const monthLabel = (index: number): string => {
 function fieldText(p: PointRecord, f: LocalField): string | null {
   const v = p[f.field];
   if (v === null || v === undefined || v === '') return null;
-  const shown = typeof v === 'number' ? numberFormat(f.unit, f.decimals ?? 0).format(v) : String(v);
+  // 年份不加千分位：about 寫了 year，或沒有單位、介於 1000–2100 的整數
+  const year = typeof v === 'number' && (f.year || (!f.unit && Number.isInteger(v) && v >= 1000 && v <= 2100));
+  const shown = typeof v !== 'number' ? String(v) : year ? String(v) : numberFormat(f.unit, f.decimals ?? 0).format(v);
   return `${tr(f.label)}${tr({ zh: '：', en: ': ' })}${shown}`;
 }
 
@@ -225,7 +227,8 @@ function pointColor(spec: { color?: LocalColor; label: Text; fields?: LocalField
   const thresholds = d.thresholds ?? [1];
   const field = spec.fields?.find((f) => f.field === color.field);
   const fmt = numberFormat(undefined, field?.decimals ?? 0).tick;
-  const ramp = color.diverging ? MAP_TOKENS.diverging : MAP_TOKENS.sequential;
+  // 發散色預設小的是橘、大的是青綠；reverse 反過來（海平面上升是橘色，跟網站的冰河與海平面一樣）
+  const ramp = color.diverging ? (color.reverse ? [...MAP_TOKENS.diverging].reverse() : MAP_TOKENS.diverging) : MAP_TOKENS.sequential;
   // 門檻 N 個 → N+1 級，從 7 階的色帶平均取
   const n = thresholds.length + 1;
   const picks = Array.from({ length: n }, (_, i) => ramp[Math.round((i * (ramp.length - 1)) / Math.max(1, n - 1))]);

@@ -65,6 +65,7 @@ const TEXT = defineMessages({
     listSep: '、',
     warnSep: '；',
     entry: (label: string, detail: string) => `${label}（${detail}）`,
+    count: (n: number) => `${n.toLocaleString('zh-TW')} 筆`,
   },
   en: {
     pageTitle: 'Local import · World Data Map',
@@ -112,6 +113,7 @@ const TEXT = defineMessages({
     listSep: ', ',
     warnSep: '; ',
     entry: (label: string, detail: string) => `${label} (${detail})`,
+    count: (n: number) => `${n.toLocaleString('en-US')} rows`,
   },
 });
 
@@ -122,7 +124,8 @@ function entryList(meta: LocalSourceMeta, text: (typeof TEXT)['zh'], lang: 'zh' 
     const d = meta.derived[entryId(spec)];
     const tw = d && 'taiwan' in d && !d.taiwan ? `, ${text.noTaiwan}` : '';
     const years = d && 'years' in d && d.years ? ` ${d.years[0] === d.years[1] ? d.years[0] : `${yearText(d.years[0], d)}–${yearText(d.years[1], d)}`}` : '';
-    out.push(text.entry(tr(spec.label, lang), `${text.kinds[kind]}${years}${tw}`));
+    const n = !d ? null : 'rows' in d ? d.rows : d.count;
+    out.push(text.entry(tr(spec.label, lang), `${text.kinds[kind]}${years}${n === null ? '' : `, ${text.count(n)}`}${tw}`));
   };
   for (const s of a.tables ?? []) add('table', s);
   for (const s of a.flows ?? []) add('flow', s);
