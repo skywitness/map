@@ -9,7 +9,8 @@
 - GloFAS：CEMS-FLOODS datasets licence（https://ecds.ecmwf.int/licences/cems-floods ）准許重製、散布、改作，
   改作過的要標「Contains modified Copernicus Emergency Management Service information [年份]」。
 **用量**：免費 API 每天 1 萬次、每小時 5,000 次、每分鐘 600 次；超過兩週的請求依天數折算成多次（10 年約 261 次），
-所以一天抓不完。每條河的結果存在 pipeline/.cache/open-meteo-flood/，遇到每天的上限就停，隔天再跑會從快取接著抓。
+所以一天抓不完。每條河的結果存在 pipeline/.cache/open-meteo-flood/，遇到每天的上限就停，隔天再跑會從快取接著抓；
+cloud 的容器被回收、快取不見時，已經在 flow.json（同樣的年份）的河沿用它的值，不重抓。
 **挑哪些河**：河流主題（topics/rivers.py 已經輸出的 rivers.json）裡 HydroRIVERS 長期平均流量前 40 名、有名稱的河流系統，
 加上流域大或有名但流量排不進前 40 的 10 條（EXTRA），再加台灣流域面積前 10 大的河（rivers.TAIWAN 的前 10 條）。
 **位置**：河口附近 GloFAS 的格點不一定落在主流上（文件建議把座標挪 0.1° 試試；高屏溪河口那一格只有 6 m³/s，
@@ -215,8 +216,19 @@ def monthly(daily: dict[str, float | None]) -> list[float]:
 def build() -> None:
     todo = rivers()
     print(f"  要抓 {len(todo)} 條河（台灣 {sum(r['tw'] for r in todo)} 條）；{FIRST}–{LAST} 年、{MODEL}")
+    # 已經在 flow.json 的河（同樣的年份）：快取不見時（cloud 的容器被回收）沿用，不重抓
+    previous: dict[int, dict] = {}
+    old_file = OUT / "flow.json"
+    if old_file.exists():
+        old = json.loads(old_file.read_text(encoding="utf-8"))
+        if old.get("years") == [FIRST, LAST]:
+            previous = {int(r["g"]): r for r in _unpack(old)}
     rows, missing = [], []
     for river in todo:
+        if not (CACHE / f"cell-{_slug(river)}.json").exists() and river["g"] in previous:
+            rows.append(previous[river["g"]])
+            print(f"  {river['zh']}：快取沒有，沿用 flow.json 的值")
+            continue
         try:
             cell = locate(river)
             daily, fetched = series(river, cell)
