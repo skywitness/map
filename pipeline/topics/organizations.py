@@ -1,10 +1,10 @@
-"""國際組織：16 個組織（歐盟、北約、東協、OECD、G7、G20、金磚國家、CPTPP、RCEP、非洲聯盟、OPEC、大英國協、
-阿拉伯國家聯盟、上海合作組織、WTO、APEC）裡每個國家的身分，與參加了幾個組織。
+"""國際組織：17 個組織（歐盟、北約、東協、OECD、G7、G20、金磚國家、CPTPP、RCEP、非洲聯盟、OPEC、大英國協、
+阿拉伯國家聯盟、上海合作組織、WTO、APEC、PIC/S）裡每個國家的身分，與參加了幾個組織。
 
 - membership/<組織>.json：類別圖，每年 12 月 31 日的狀態（今年是資料產生當天的狀態），
   代碼 1 成員、2 申請或加入中、3 夥伴或觀察員、4 暫停參與、0 非成員（跟 src/topics/organizations.ts 的 STATUS 一致）。
   年份從組織成立（或前身）的那一年到今年；附註（notes／notesEn）寫參加時用的名稱（中華台北、中國香港…）。
-- count.json：16 個組織裡是成員（含暫停參與）的有幾個，1945 年到今年。
+- count.json：16 個組織（不算 PIC/S，它的成員是藥政機關）裡是成員（含暫停參與）的有幾個，1945 年到今年。
 - details.json：側欄用，每個國家在每個組織的每一段（狀態、開始、結束、種類）、參加時用的名稱、附註與各組織的資料來源。
 
 資料是 sources/igo_members.py 手工整理的表；CHECK_COUNTS（地圖上的成員數）對不上會報錯。
@@ -130,7 +130,7 @@ def build() -> None:
         count[iso3] = [
             sum(
                 y >= igo.FIRST_YEAR[org] and status(periods_for(org, iso3), at(y)) in (igo.MEMBER, igo.SUSPENDED)
-                for org in igo.ORDER
+                for org in igo.COUNTED_ORDER
             )
             for y in years
         ]
@@ -153,7 +153,10 @@ def build() -> None:
         notes_all.setdefault(iso3, {})[org] = list(pair)
     write_json(OUT / "details.json", {
         "asOf": today.isoformat(),
-        "orgs": {org: {"first": igo.FIRST_YEAR[org], "sources": igo.SOURCES[org]} for org in igo.ORDER},
+        "orgs": {
+            org: {"first": igo.FIRST_YEAR[org], "sources": igo.SOURCES[org], "accessed": igo.ACCESSED_BY.get(org, igo.ACCESSED)}
+            for org in igo.ORDER
+        },
         "accessed": igo.ACCESSED,
         "partOf": igo.PART_OF,
         "countries": countries,

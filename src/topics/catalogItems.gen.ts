@@ -249,6 +249,7 @@ export const SEARCH_ITEMS: TopicSearchItem[] = [
   {"topic":"organizations","indicator":"membership","item":"cptpp","label":{"zh":"跨太平洋夥伴全面進步協定（CPTPP）","en":"CPTPP"}},
   {"topic":"organizations","indicator":"membership","item":"rcep","label":{"zh":"區域全面經濟夥伴協定（RCEP）","en":"RCEP"}},
   {"topic":"organizations","indicator":"membership","item":"opec","label":{"zh":"石油輸出國組織（OPEC）","en":"OPEC"}},
+  {"topic":"organizations","indicator":"membership","item":"pics","label":{"zh":"國際醫藥品稽查協約組織（PIC/S）","en":"Pharmaceutical Inspection Co-operation Scheme (PIC/S)"}},
   {"topic":"climate","indicator":"ghg-per-capita","item":"ghg","label":{"zh":"全部溫室氣體","en":"Greenhouse gas"}},
   {"topic":"climate","indicator":"ghg-per-capita","item":"co2","label":{"zh":"二氧化碳","en":"CO₂"}},
   {"topic":"climate","indicator":"ghg-per-capita","item":"ch4","label":{"zh":"甲烷（CH₄）","en":"Methane (CH₄)"}},

@@ -12,6 +12,7 @@ const REGIONAL: Text = { zh: '區域組織', en: 'Regional' };
 const POLITICAL: Text = { zh: '政治與安全', en: 'Politics & security' };
 const FORUMS: Text = { zh: '高峰會論壇', en: 'Summit forums' };
 const ECONOMY: Text = { zh: '經濟與貿易', en: 'Economy & trade' };
+const TECHNICAL: Text = { zh: '專業合作', en: 'Technical cooperation' };
 
 export interface OrgDef {
   id: string;
@@ -185,6 +186,16 @@ export const ORGS: OrgDef[] = [
       en: 'Founded in 1960. The UAE left on 1 May 2026. Members that "suspended" their own membership (Indonesia, Ecuador) are treated as having left. Partners are the non-OPEC producers in the OPEC+ Declaration of Cooperation since 2016.',
     },
   },
+  {
+    id: 'pics',
+    label: { zh: '國際醫藥品稽查協約組織（PIC/S）', en: 'Pharmaceutical Inspection Co-operation Scheme (PIC/S)' },
+    short: { zh: 'PIC/S', en: 'PIC/S' },
+    group: TECHNICAL,
+    about: {
+      zh: '各國藥政機關在藥品優良製造規範（GMP）稽查上的合作，1995 年 11 月成立起算，不畫前身 1970 年的藥品稽查公約（PIC）。成員是藥政機關、不是國家：捷克、法國、義大利、英國各有 2 個機關，共 57 個機關、53 個國家或地區（地圖畫國家，取最早加入的機關）。台灣食藥署 2013 年 1 月以「中華台北」加入，香港 2016 年加入。不算在「參加幾個組織」裡。',
+      en: 'Co-operation between medicines regulators on inspections for good manufacturing practice (GMP), counted from the Scheme’s start in November 1995; its predecessor, the 1970 Pharmaceutical Inspection Convention (PIC), is not shown. Members are regulatory authorities rather than countries: Czechia, France, Italy and the UK have two each, making 57 authorities in 53 countries or territories (the map shows countries, dated by the earliest authority). The Taiwan FDA joined in January 2013 as Chinese Taipei, and Hong Kong in 2016. PIC/S is not included in the number of memberships.',
+    },
+  },
 ];
 
 /** 類別（代碼跟 pipeline 一致）。非成員（0）是「其他」，所以地圖不會整片灰色 */
@@ -294,8 +305,8 @@ export const organizations: TopicDefinition = {
     ...Object.fromEntries(NO_MEMBERSHIP.split(' ').map((id) => [id, NO_MEMBERSHIP_TEXT])),
     ...PART_OF,
     HKG: {
-      zh: '香港特別行政區：以「中國香港」參加 WTO、APEC，申請加入 RCEP；其他組織不另外上色',
-      en: 'Hong Kong SAR: a member of the WTO and APEC as Hong Kong, China, and an RCEP applicant; not shaded for other organisations',
+      zh: '香港特別行政區：以「中國香港」參加 WTO、APEC，香港的藥劑業及毒藥管理局參加 PIC/S，申請加入 RCEP；其他組織不另外上色',
+      en: 'Hong Kong SAR: a member of the WTO and APEC as Hong Kong, China, with its Pharmacy and Poisons Board in PIC/S, and an RCEP applicant; not shaded for other organisations',
     },
     MAC: {
       zh: '澳門特別行政區：以「中國澳門」參加 WTO；其他組織不另外上色',
@@ -340,8 +351,8 @@ export const organizations: TopicDefinition = {
       id: 'count',
       label: { zh: '參加幾個組織', en: 'Number of memberships' },
       description: {
-        zh: '這裡列的 16 個組織裡，這個國家是成員的有幾個（暫停參與的也算），每年 12 月 31 日的狀態。申請、夥伴與觀察員不算；只是挑出來的 16 個，不代表一個國家參加的所有國際組織。',
-        en: 'How many of the 16 organisations listed here the country belongs to (suspended members included), on 31 December of each year. Applicants, partners and observers are not counted; this is a selection of 16, not every organisation a country belongs to.',
+        zh: '這裡列的組織裡（PIC/S 的成員是藥政機關、不是國家，不算），這個國家是成員的有幾個（暫停參與的也算），每年 12 月 31 日的狀態。申請、夥伴與觀察員不算；只是挑出來的 16 個，不代表一個國家參加的所有國際組織。',
+        en: 'How many of the organisations listed here the country belongs to (suspended members included; PIC/S is left out because its members are regulators, not countries), on 31 December of each year. Applicants, partners and observers are not counted; this is a selection of 16, not every organisation a country belongs to.',
       },
       unit: { zh: '個', en: '' },
       file: 'count.json',

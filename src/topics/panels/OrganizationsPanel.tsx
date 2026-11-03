@@ -14,7 +14,8 @@ type Period = [string, string, string | null, string | null];
 interface DetailsFile {
   /** 資料產生的日期：今年的狀態是這一天的 */
   asOf: string;
-  orgs: Record<string, { first: number; sources: string[] }>;
+  /** accessed：這個組織官網的查閱日期（之後才加的組織跟 accessed 不同） */
+  orgs: Record<string, { first: number; sources: string[]; accessed?: string }>;
   /** 官網的查閱日期 */
   accessed: string;
   /** 主權國家的一部分（格陵蘭 → 丹麥）：跟著主權國家上色 */
@@ -41,7 +42,7 @@ const TEXT = defineMessages({
     formerOther: '目前沒有參加',
     name: (name: string) => `名稱：${name}`,
     notMember: (list: string) => `不是成員：${list}`,
-    noneAtAll: '這一年不是這 16 個組織的成員，也沒有申請或夥伴關係。',
+    noneAtAll: '這一年不是這 17 個組織的成員，也沒有申請或夥伴關係。',
     partOf: (parent: string) => `這裡是${parent}的一部分，隨${parent}參加各組織，地圖上不另外上色（歐盟的範圍除外）。`,
     // 簡稱是英文縮寫（WTO）時中英文之間空一格
     about: (org: string) => (/^[A-Za-z]/.test(org) ? `關於 ${org}` : `關於${org}`),
@@ -60,7 +61,7 @@ const TEXT = defineMessages({
     formerOther: 'Not taking part now',
     name: (name) => `Name used: ${name}`,
     notMember: (list) => `Not a member: ${list}`,
-    noneAtAll: 'Not a member of any of these 16 organisations this year, nor an applicant or partner.',
+    noneAtAll: 'Not a member of any of these 17 organisations this year, nor an applicant or partner.',
     partOf: (parent) => `Part of ${parent}; it takes part through ${parent} and is not shaded separately (except for the EU).`,
     about: (org) => `${org} in brief`,
     suspended: 'Suspended',
@@ -180,7 +181,7 @@ export default function OrganizationsPanel({ topic, iso3, year, item }: PanelExt
           <h3>{text.about(tr(selected.short, lang))}</h3>
           <p className="note">{tr(selected.about, lang)}</p>
           <p className="note">
-            {text.sources(data.accessed)}
+            {text.sources((selected && data.orgs[selected.id]?.accessed) ?? data.accessed)}
             {sources.map((url, i) => (
               <span key={url}>
                 {i > 0 && text.sep}

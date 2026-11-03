@@ -1,4 +1,4 @@
-"""16 個國際組織歷年的成員、申請／加入中、夥伴／觀察員與暫停參與（手工整理）。
+"""17 個國際組織歷年的成員、申請／加入中、夥伴／觀察員與暫停參與（手工整理；2026-11-03 加 PIC/S，製作手冊第十九批 300）。
 
 沒有一份開放資料同時有這些組織的成員與加入日期，所以依各組織官網的成員名單整理成這張表（2026-10-23 查閱，
 網址見各組織的 SOURCES）。官網擋自動抓取或沒有列日期的（OECD、東協、OPEC、阿拉伯國家聯盟），
@@ -27,6 +27,8 @@ MEMBER, SUSPENDED, CANDIDATE, PARTNER = "m", "s", "c", "p"
 Period = tuple[str, str, "str | None", "str | None"]
 
 ACCESSED = "2026-10-23"
+# 之後才加的組織另外寫查閱日期
+ACCESSED_BY = {"pics": "2026-11-03"}
 
 
 def M(start: str, end: str | None = None, kind: str | None = None) -> Period:
@@ -59,13 +61,16 @@ def _table(*rows: tuple[str, list[Period] | Period]) -> dict[str, list[Period]]:
 # ── 組織：資料的第一年、官方來源（網址, 查閱日期） ───────────────────
 ORDER = [
     "eu", "nato", "asean", "oecd", "g7", "g20", "brics", "cptpp", "rcep",
-    "au", "opec", "commonwealth", "arab-league", "sco", "wto", "apec",
+    "au", "opec", "commonwealth", "arab-league", "sco", "wto", "apec", "pics",
 ]
+# 「參加幾個組織」不算的：PIC/S 的成員是藥政機關（一國可以有好幾個），不是國家
+NOT_COUNTED = {"pics"}
+COUNTED_ORDER = [org for org in ORDER if org not in NOT_COUNTED]
 
 FIRST_YEAR = {
     "eu": 1958, "nato": 1949, "asean": 1967, "oecd": 1961, "g7": 1975, "g20": 1999, "brics": 2009,
     "cptpp": 2018, "rcep": 2020, "au": 1963, "opec": 1960, "commonwealth": 1949, "arab-league": 1945,
-    "sco": 2001, "wto": 1995, "apec": 1989,
+    "sco": 2001, "wto": 1995, "apec": 1989, "pics": 1995,
 }
 
 # 查閱日期都是 ACCESSED；註明「無法自動讀取」的網頁是用瀏覽器以外的方式（新聞稿、官方文件）確認的
@@ -116,6 +121,8 @@ SOURCES: dict[str, list[str]] = {
         "https://www.wto.org/english/thewto_e/acc_e/status_e.htm",
     ],
     "apec": ["https://apec.org/who-we-are/our-members"],
+    # 2026-11-03 查閱（比 ACCESSED 晚）；網站條款只准個人非商業的單份副本，所以只整理加入年月（事實），不轉載內容
+    "pics": ["https://picscheme.org/en/members"],
 }
 
 # ── 地圖上的地方 ──────────────────────────────────────────
@@ -654,10 +661,50 @@ APEC = _table(
     ("PER RUS VNM", M("1998-11-14")),
 )
 
+# ── 國際醫藥品稽查協約組織（PIC/S；依 PIC/S 網站各參與機關的「Accession to PIC Scheme」年月） ─────
+# 1995 年 11 月 PIC Scheme 成立起算，不畫前身 1970 年的藥品稽查公約（PIC）。成員是藥政機關：一國有好幾個機關的
+# （捷克、法國、義大利、英國各 2 個；德國的 BMG 與 ZLG、日本的 MHLW 與 PMDA 各算一個）取最早加入的那個。
+# 共 57 個機關、53 個國家或地區。格陵蘭隨丹麥（地圖不另外上色）。
+PICS = _table(
+    ("AUS DNK ISL LIE NLD NOR ROU", M("1995-11")),
+    ("HUN", M("1995-12")),
+    ("FIN", M("1996-01")),
+    ("IRL SWE CHE", M("1996-02")),
+    ("CZE SVK", M("1997-01")),
+    ("BEL FRA", M("1997-02")),
+    ("ESP", M("1998-01")),
+    ("CAN PRT", M("1999-01")),
+    ("GBR", M("1999-06")),
+    ("AUT", M("1999-11")),
+    ("SGP", M("2000-01")),
+    ("ITA", M("2000-02")),
+    ("DEU", M("2000-12")),
+    ("GRC MYS", M("2002-01")),
+    ("LVA", M("2004-01")),
+    ("POL", M("2006-01")),
+    ("EST", M("2007-01")),
+    ("ZAF", M("2007-07")),
+    ("ARG MLT", M("2008-01")),
+    ("CYP", M("2008-07")),
+    ("ISR", M("2009-01")),
+    ("LTU", M("2009-07")),
+    ("UKR USA", M("2011-01")),
+    ("SVN", M("2012-01")),
+    ("IDN", M("2012-07")),
+    ("NZL TWN", M("2013-01")),
+    ("JPN KOR", M("2014-07")),
+    ("HRV HKG", M("2016-01")),
+    ("THA", M("2016-08")),
+    ("IRN MEX TUR", M("2018-01")),
+    ("BRA", M("2021-01")),
+    ("BGR SAU", M("2023-07")),
+    ("JOR", M("2026-01")),
+)
+
 TABLES: dict[str, dict[str, list[Period]]] = {
     "eu": EU, "nato": NATO, "asean": ASEAN, "oecd": OECD, "g7": G7, "g20": G20, "brics": BRICS, "cptpp": CPTPP,
     "rcep": RCEP, "au": AU, "opec": OPEC, "commonwealth": COMMONWEALTH, "arab-league": ARAB_LEAGUE, "sco": SCO,
-    "wto": WTO, "apec": APEC,
+    "wto": WTO, "apec": APEC, "pics": PICS,
 }
 
 # ── 參加時用的名稱（側欄顯示）：(org, iso3) → (中文, 英文) ───────────────────
@@ -667,6 +714,8 @@ NAMES: dict[tuple[str, str], tuple[str, str]] = {
         "Separate Customs Territory of Taiwan, Penghu, Kinmen and Matsu (Chinese Taipei)",
     ),
     ("apec", "TWN"): ("中華台北", "Chinese Taipei"),
+    ("pics", "TWN"): ("中華台北（衛生福利部食品藥物管理署）", "Chinese Taipei (Taiwan Food and Drug Administration)"),
+    ("pics", "HKG"): ("中國香港特別行政區（藥劑業及毒藥管理局）", "Hong Kong SAR, China (Pharmacy and Poisons Board)"),
     ("cptpp", "TWN"): ("臺澎金馬個別關稅領域", "Separate Customs Territory of Taiwan, Penghu, Kinmen and Matsu"),
     ("wto", "HKG"): ("中國香港（1997 年以前稱香港）", "Hong Kong, China (Hong Kong before 1997)"),
     ("apec", "HKG"): ("中國香港（1997 年以前稱香港）", "Hong Kong, China (Hong Kong before 1997)"),
@@ -879,6 +928,11 @@ NOTES: dict[tuple[str, str], tuple[str, str]] = {
     ("wto", "CUW"): ("荷蘭王國的自治國，以自己的名義申請加入（觀察員）。", "A constituent country of the Kingdom of the Netherlands, applying in its own right (observer)."),
     # APEC
     ("apec", "TWN"): ("1991 年與中國、香港同時加入。", "Joined in 1991 together with China and Hong Kong."),
+    # PIC/S
+    ("pics", "TWN"): (
+        "2013 年 1 月由食藥署加入，是台灣少數由政府機關正式參加的國際組織之一。",
+        "The Taiwan FDA joined in January 2013, one of the few international organisations in which a Taiwanese government agency takes part as a full member.",
+    ),
 }
 
 # ── 檢查用的數字（地圖上的成員數，含暫停參與；不含歐盟、非洲聯盟這類組織成員） ─────
@@ -899,6 +953,7 @@ CHECK_COUNTS = {
     "sco": {2001: 6, 2017: 8, 2023: 9, 2026: 10},
     "wto": {2024: 165, 2026: 165},
     "apec": {1989: 12, 1991: 15, 1993: 17, 1994: 18, 1998: 21, 2026: 21},
+    "pics": {1995: 8, 1999: 21, 2013: 41, 2016: 46, 2023: 52, 2026: 53},
 }
 # 今年的暫停參與（側欄、DESIGN.md 用）
 CHECK_SUSPENDED = {"au": {2026: 6}, "arab-league": {2022: 1, 2026: 0}, "commonwealth": {2026: 0}}
