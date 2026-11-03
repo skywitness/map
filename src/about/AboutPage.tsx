@@ -30,7 +30,7 @@ const TEXT = defineMessages({
       `世界資料地圖是個人做的互動世界地圖，目前有 ${topics} 個主題、${indicators} 個指標：在地圖上看各國的數字，拖時間軸看歷年變化，也可以看排名表、點國家看細節與比較。`,
     free: '不用帳號、免費、沒有廣告。',
     tracking:
-      '網站沒有統計、廣告或追蹤的程式，也不用 cookie；語言、深淺色、底圖、收藏的畫面這些設定只存在你自己的瀏覽器裡。地圖的底圖與地形由 OpenFreeMap 與 AWS 上的 Terrain Tiles 提供，「此刻的極光」「此刻世界的新聞熱點」會直接向 NOAA、GDELT 下載最新的資料，這些網站會看到你的連線。',
+      '網站沒有統計、廣告或追蹤的程式，也不用 cookie；語言、深淺色、底圖、收藏的畫面這些設定只存在你自己的瀏覽器裡。地圖的底圖與地形由 OpenFreeMap 與 AWS 上的 Terrain Tiles 提供，衛星底圖與颱風、海冰、臭氧洞、空氣品質、晝夜與季節、極光、海洋與漁業的衛星影像直接向 NASA 的 GIBS 下載，「此刻的極光」「此刻世界的新聞熱點」會直接向 NOAA、GDELT 下載最新的資料，這些網站會看到你的連線。',
     code: '程式公開在 GitHub（skywitness/map）。這個 repo 沒有附授權條款（LICENSE），所以程式不是開源授權的軟體；資料各自依來源的授權使用與分享（見下面的資料來源一覽）。',
     principlesTitle: '原則',
     principles: [
@@ -53,6 +53,7 @@ const TEXT = defineMessages({
       '屬地、爭議地區在各來源的處理不一致：有的併在本國，有的分開列，有的沒有；地圖上沒有自己形狀的地區，附註寫明數字算在哪裡。',
       '資料不定期更新，各來源的週期不同。每個主題的頁尾寫資料產生的日期，來源的版本寫在來源名稱或說明裡；詳細的版本與下載方式在 GitHub 上的 DESIGN.md。',
       '用台灣官方資料補的值、自己換算的值（例如人均、加權平均）都寫在附註。',
+      '有些資料不是依國家：例如依遺傳族群的基因頻率、國際能源價格。這類資料地圖不上色，放在地圖左邊的側欄；依遺傳族群的資料多半沒有台灣自己的一組，側欄會寫明台灣算在哪一群或為什麼沒有。',
     ],
     sourcesTitle: '資料來源一覽',
     sourcesIntro: (n: number) =>
@@ -78,6 +79,11 @@ const TEXT = defineMessages({
         name: 'Terrain Tiles（地形與 3D）',
         url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
         license: '依各資料來源的標示（連結）',
+      },
+      {
+        name: 'NASA GIBS（衛星底圖 Blue Marble）',
+        url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+        license: 'NASA 開放資料（依要求標示 GIBS）',
       },
     ],
     aiTitle: 'AI 的角色',
@@ -105,7 +111,7 @@ const TEXT = defineMessages({
       `World Data Map is an interactive world map made by one person, with ${topics} topics and ${indicators} indicators: see each country’s figures on the map, drag the time slider for changes over the years, or use the ranking table and click a country for details and comparisons.`,
     free: 'No account, free, no ads.',
     tracking:
-      'There is no analytics, advertising or tracking code, and no cookies; settings such as language, theme, basemap and saved views stay in your own browser. Basemaps and terrain come from OpenFreeMap and Terrain Tiles on AWS, and “Aurora now” and “News hotspots now” download the latest data directly from NOAA and GDELT, so those sites see your connection.',
+      'There is no analytics, advertising or tracking code, and no cookies; settings such as language, theme, basemap and saved views stay in your own browser. Basemaps and terrain come from OpenFreeMap and Terrain Tiles on AWS, the satellite basemap and the satellite imagery in the cyclones, sea ice, ozone hole, air quality, daylight and seasons, aurora and oceans topics come directly from NASA’s GIBS, and “Aurora now” and “News hotspots now” download the latest data directly from NOAA and GDELT, so those sites see your connection.',
     code: 'The code is public on GitHub (skywitness/map). The repository has no licence file, so the code is not open-source licensed; the data are used and shared under each source’s own licence (see the list of sources below).',
     principlesTitle: 'Principles',
     principles: [
@@ -128,6 +134,7 @@ const TEXT = defineMessages({
       'Dependent and disputed territories are handled inconsistently across sources: some are included with their sovereign state, some are listed separately, some are missing; for areas without their own shape on the map, a note says where their figures are counted.',
       'Data are updated irregularly and each source has its own cycle. The footer of each topic gives the date the data were generated, and the source version is in the source name or description; full details of versions and downloads are in DESIGN.md on GitHub.',
       'Figures filled in from Taiwan’s official data and figures calculated here (per capita, weighted averages and the like) are explained in notes.',
+      'Some data are not by country, such as gene frequencies by ancestry group or international energy prices. These are not coloured on the map but shown in the panel to the left of the map; data by ancestry group rarely have a group of their own for Taiwan, and the panel says which group Taiwan falls in or why it is missing.',
     ],
     sourcesTitle: 'List of sources',
     sourcesIntro: (n) =>
@@ -153,6 +160,11 @@ const TEXT = defineMessages({
         name: 'Terrain Tiles (terrain and 3D)',
         url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
         license: 'As attributed for each data source (see link)',
+      },
+      {
+        name: 'NASA GIBS (Blue Marble satellite basemap)',
+        url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+        license: 'NASA open data (GIBS acknowledged as requested)',
       },
     ],
     aiTitle: 'The role of AI',
