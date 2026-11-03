@@ -14,13 +14,15 @@
   Recreational 欄與「Legal status of psilocybin mushrooms」的 Possession 欄分類，只有 2026 年，資料檔依 CC BY-SA 4.0 分享。
 - 徵兵制、強制投票（2026-11-03，「之後」階段的另外兩項，使用者決定做）：`sources/conscription.py` 依 CIA World Factbook
   （JSON 鏡像，CC0）的兵役欄逐國分類；`sources/compulsory_voting.py` 依英文維基「Compulsory voting」的兩張表（CC BY-SA 4.0）。
+- 墮胎、安樂死（2026-11-03，第二階段，使用者決定做）：`sources/abortion.py` 依英文維基「Abortion law」的各國表與
+  「Legality of euthanasia」的表（CC BY-SA 4.0），台灣依優生保健法、病人自主權利法與刑法。
 """
 from __future__ import annotations
 
 import json
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json
-from sources import compulsory_voting, conscription, death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs
+from sources import abortion, compulsory_voting, conscription, death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs
 
 
 def build() -> None:
@@ -63,6 +65,8 @@ def build() -> None:
         ("psilocybin", recreational_drugs.psilocybin(known), "CC BY-SA 4.0"),
         ("conscription", conscription.status(known), "Public domain (CIA World Factbook); CC0 1.0 (factbook.json)"),
         ("compulsory-voting", compulsory_voting.status(known), "CC BY-SA 4.0"),
+        ("abortion", abortion.abortion(known), "CC BY-SA 4.0"),
+        ("euthanasia", abortion.euthanasia(known), "CC BY-SA 4.0"),
     ):
         write_json(out / f"{name}.json", indicator_file(
             name, "", [legal_ages.YEAR], {c: [v] for c, v in sorted(values.items())},

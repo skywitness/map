@@ -72,6 +72,22 @@ const COMPULSORY_VOTING: CategoryDef[] = [
   { value: 4, label: { zh: '沒有強制投票', en: 'Not compulsory' } },
   { value: 5, label: { zh: '各地不同', en: 'Varies by region' }, color: VARIES_COLOR },
 ];
+/** 墮胎（pipeline/sources/abortion.py，2026-11-03）：全國都准許的最寬理由，從寬到嚴，「各地不同」是灰色 */
+const ABORTION: CategoryDef[] = [
+  { value: 1, label: { zh: '可以依請求', en: 'On request' } },
+  { value: 2, label: { zh: '社會經濟理由', en: 'Social or economic grounds' } },
+  { value: 3, label: { zh: '健康、強暴或胎兒異常', en: 'Health, rape or fetal impairment' } },
+  { value: 4, label: { zh: '只為救命', en: 'Only to save a life' } },
+  { value: 5, label: { zh: '全面禁止', en: 'Prohibited' } },
+  { value: 6, label: { zh: '各地不同', en: 'Varies by region' }, color: VARIES_COLOR },
+];
+/** 安樂死（pipeline/sources/abortion.py，2026-11-03）：從寬到嚴 */
+const EUTHANASIA: CategoryDef[] = [
+  { value: 1, label: { zh: '安樂死合法', en: 'Euthanasia legal' } },
+  { value: 2, label: { zh: '已立法，還沒生效', en: 'Passed, not yet in force' } },
+  { value: 3, label: { zh: '只准協助自殺', en: 'Assisted suicide only' } },
+  { value: 4, label: { zh: '沒有合法化', en: 'Not legal' } },
+];
 
 /**
  * 法定年齡（pipeline/sources/legal_ages.py）：值是歲數，0 是沒有規定、1 是禁止。
@@ -146,7 +162,7 @@ export const laws: TopicDefinition = {
     },
     {
       name: {
-        zh: '全國法規資料庫（台灣的法定年齡：憲法、公民投票法、民法、兒童及少年福利與權益保障法、道路交通安全規則、刑法）',
+        zh: '全國法規資料庫（台灣的法定年齡：憲法、公民投票法、民法、兒童及少年福利與權益保障法、道路交通安全規則、刑法；墮胎、安樂死：優生保健法與施行細則、病人自主權利法）',
         en: 'Laws & Regulations Database of Taiwan (legal ages in Taiwan)',
       },
       url: 'https://law.moj.gov.tw/',
@@ -176,6 +192,14 @@ export const laws: TopicDefinition = {
     {
       name: { zh: '英文維基百科「Compulsory voting」（強制投票，2026 年 11 月）', en: 'Wikipedia, “Compulsory voting” (November 2026)' },
       url: 'https://en.wikipedia.org/w/index.php?title=Compulsory_voting&oldid=1383198941',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
+        zh: '英文維基百科「Abortion law」「Legality of euthanasia」（墮胎、安樂死，2026 年 10–11 月）',
+        en: 'Wikipedia, “Abortion law” and “Legality of euthanasia” (October–November 2026)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=Abortion_law&oldid=1383125224',
       license: 'CC BY-SA 4.0',
     },
     {
@@ -291,6 +315,32 @@ export const laws: TopicDefinition = {
       file: 'compulsory-voting.json',
       layer: { kind: 'categorical', categories: COMPULSORY_VOTING, ordinal: true },
       format: labelOf(COMPULSORY_VOTING),
+      defaultYear: 2026,
+    },
+    {
+      id: 'abortion',
+      label: { zh: '墮胎', en: 'Abortion' },
+      description: {
+        zh: '全國都可以合法人工流產的最寬理由：可以依請求（68 個，例如中國、南韓、德國、法國、加拿大，多數有週數上限）、社會經濟理由（台灣、日本、英國、印度等 14 個）、只限健康、強暴或胎兒異常（71 個）、只為救命（37 個）、全面禁止（菲律賓、尼加拉瓜、宏都拉斯、薩爾瓦多等 7 國）；美國、墨西哥各州差很多，算各地不同。台灣依優生保健法，懷孕會影響心理健康或家庭生活時可以人工流產，24 週以內，有配偶的人要配偶同意，不能單純依請求。游標移到國家上看週數上限。',
+        en: 'The widest ground on which abortion is legal nationwide: on request (68 countries and territories, including China, South Korea, Germany, France and Canada, mostly with a gestational limit), social or economic grounds (14, including Taiwan, Japan, the UK and India), only health, rape or fetal impairment (71), only to save the woman’s life (37), or prohibited altogether (7, including the Philippines, Nicaragua, Honduras and El Salvador); the US and Mexico vary widely by state. In Taiwan the Eugenic Health Act allows abortion when pregnancy would affect mental health or family life, within 24 weeks, with a spouse’s consent for married women, but not on request alone. Hover over a country for the gestational limit.',
+      },
+      unit: '',
+      file: 'abortion.json',
+      layer: { kind: 'categorical', categories: ABORTION, ordinal: true },
+      format: labelOf(ABORTION),
+      defaultYear: 2026,
+    },
+    {
+      id: 'euthanasia',
+      label: { zh: '安樂死', en: 'Euthanasia' },
+      description: {
+        zh: '醫師可以應病人要求施打致死藥物的安樂死：合法的有荷蘭、比利時（2002 年起）、盧森堡、哥倫比亞、加拿大、西班牙、紐西蘭、厄瓜多、烏拉圭（2026 年 4 月起）與澳洲各州；法國、葡萄牙已立法還沒生效；瑞士、德國、奧地利與美國部分州只准協助自殺（病人自己服藥）。台灣沒有合法化：病人自主權利法只准依預立醫療決定撤除或不施行維生治療，受囑託殺人與幫助自殺是刑法第 275 條的罪。不在英文維基表上的國家算沒有合法化。',
+        en: 'Euthanasia, where a doctor administers a lethal drug at the patient’s request, is legal in the Netherlands, Belgium (since 2002), Luxembourg, Colombia, Canada, Spain, New Zealand, Ecuador, Uruguay (since April 2026) and the Australian states; France and Portugal have passed laws not yet in force; Switzerland, Germany, Austria and some US states allow only assisted suicide (the patient takes the drug). Taiwan has not legalised it: the Patient Right to Autonomy Act only allows life-sustaining treatment to be withheld or withdrawn under an advance decision, and killing on request and assisting suicide are crimes under Art. 275 of the Criminal Code. Countries not in the English Wikipedia table count as not legal.',
+      },
+      unit: '',
+      file: 'euthanasia.json',
+      layer: { kind: 'categorical', categories: EUTHANASIA, ordinal: true },
+      format: labelOf(EUTHANASIA),
       defaultYear: 2026,
     },
     ageIndicator(
