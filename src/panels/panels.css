@@ -884,6 +884,18 @@
   padding-left: 6px;
 }
 
+/* 新生兒篩檢的側欄：台灣 21 種疾病的表，數字欄之間留空、不換行；依開始篩檢的時間分組 */
+.screening-tw .num {
+  padding-left: 8px;
+  white-space: nowrap;
+}
+
+.screening-tw tr.is-group th {
+  padding-top: 8px;
+  color: var(--ink-secondary);
+  font-weight: 650;
+}
+
 /* 網路速度的側欄：數字欄之間留空；每一項下面「全世界」那一列縮排、調淡 */
 .speed-table .num {
   padding-left: 6px;

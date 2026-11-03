@@ -61,8 +61,8 @@ const indicators: IndicatorDef[] = [
     id: 'g6pd',
     label: { zh: '蠶豆症（G6PD 缺乏）', en: 'G6PD deficiency' },
     description: {
-      zh: 'G6PD 缺乏的等位基因頻率，約等於男性得蠶豆症的比例（基因在 X 染色體上，女性要兩條都有才會發病，比例低很多）。剛果民主共和國 19.2%、奈及利亞 16.9%、柬埔寨 14.3%、泰國 13.6%、沙烏地 12.4%、印度 8.0%、巴西 4.8%、中國 4.7%；台灣約 2.2%（網格推估）。蠶豆症的人吃蠶豆、用某些藥（例如治瘧疾的 primaquine）會溶血，所以台灣的新生兒都要篩檢。國家值是 Howes 等 2012 的 99 個瘧疾流行國，表上沒有的（台灣、香港、新加坡等 7 處）用網格的國內平均；網格只涵蓋 2010 年的瘧疾流行區，歐洲、日本、美國沒有值。',
-      en: 'G6PD deficiency allele frequency, roughly the share of males with the deficiency (the gene is on the X chromosome, so females need two copies and are affected far less often). DR Congo 19.2%, Nigeria 16.9%, Cambodia 14.3%, Thailand 13.6%, Saudi Arabia 12.4%, India 8.0%, Brazil 4.8%, China 4.7%; Taiwan about 2.2% (grid estimate). People with the deficiency can suffer haemolysis after eating fava beans or taking certain drugs (such as the antimalarial primaquine), which is why all newborns in Taiwan are screened. National values are for the 99 malaria-endemic countries in Howes et al. 2012; seven places not in that table (Taiwan, Hong Kong, Singapore and others) use the grid average within the country. The grid covers only areas malaria-endemic in 2010, so Europe, Japan and the US have no value.',
+      zh: 'G6PD 缺乏的等位基因頻率，約等於男性得蠶豆症的比例（基因在 X 染色體上，女性要兩條都有才會發病，比例低很多）。剛果民主共和國 19.2%、奈及利亞 16.9%、柬埔寨 14.3%、泰國 13.6%、沙烏地 12.4%、印度 8.0%、巴西 4.8%、中國 4.7%；台灣約 2.2%（網格推估）。蠶豆症的人吃蠶豆、用某些藥（例如治瘧疾的 primaquine）會溶血，所以台灣的新生兒都要篩檢：國健署的新生兒篩檢 2024 年篩出 2,958 例，每千名 22.0 例（男女合計，1995 年以後大多每千名 17–22 例），跟網格推估接近。國家值是 Howes 等 2012 的 99 個瘧疾流行國，表上沒有的（台灣、香港、新加坡等 7 處）用網格的國內平均；網格只涵蓋 2010 年的瘧疾流行區，歐洲、日本、美國沒有值。',
+      en: 'G6PD deficiency allele frequency, roughly the share of males with the deficiency (the gene is on the X chromosome, so females need two copies and are affected far less often). DR Congo 19.2%, Nigeria 16.9%, Cambodia 14.3%, Thailand 13.6%, Saudi Arabia 12.4%, India 8.0%, Brazil 4.8%, China 4.7%; Taiwan about 2.2% (grid estimate). People with the deficiency can suffer haemolysis after eating fava beans or taking certain drugs (such as the antimalarial primaquine), which is why all newborns in Taiwan are screened: Taiwan’s newborn screening found 2,958 cases in 2024, 22.0 per 1,000 (both sexes; mostly 17–22 per 1,000 since 1995), close to the grid estimate. National values are for the 99 malaria-endemic countries in Howes et al. 2012; seven places not in that table (Taiwan, Hong Kong, Singapore and others) use the grid average within the country. The grid covers only areas malaria-endemic in 2010, so Europe, Japan and the US have no value.',
     },
     unit: '%',
     file: 'g6pd.json',
@@ -153,10 +153,18 @@ export const redCellTraits: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     { name: MAP_SOURCE, url: 'https://malariaatlas.org/', license: 'CC BY 3.0' },
+    {
+      name: {
+        zh: '衛生福利部國民健康署「新生兒先天性代謝異常疾病篩檢歷年成果表」（台灣蠶豆症的個案數，附註）',
+        en: 'Health Promotion Administration, Ministry of Health and Welfare, newborn screening results (G6PD cases in Taiwan, in the note)',
+      },
+      url: 'https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=4083&pid=401',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
   note: {
-    zh: '都是 2010 年左右的模型估計（彙整各地的抽樣調查，再依地理位置推估沒有調查的地方），不是普查。蠶豆症、鐮刀型血球與血紅素 C 的「等位基因頻率」是帶這個基因的染色體的比例，不是帶因者或病人的比例。這些性狀跟瘧疾有關，所以在瘧疾流行過的地方特別常見，跟種族沒有必然關係，地圖上的高低不代表任何族群的優劣。網格是 Malaria Atlas Project 以 CC BY 3.0 公開的血液疾病圖層（G6PD 來自 Howes 等 2012 的模型；Duffy 陰性的原始論文 Howes 等 2011、鐮刀型血紅素的 Piel 等 2010 是非商業授權，這裡只用 MAP 的網格，不用論文本身）。台灣常見的血紅素疾病是海洋性貧血，這幾份資料沒有；國健署的台灣新生兒篩檢成果（蠶豆症的異常個案數）網站從國外連不上，這次沒有放。',
-    en: 'All are model estimates for around 2010 (pooling local sample surveys and predicting unsurveyed places from geography), not censuses. The “allele frequency” for G6PD deficiency, sickle haemoglobin and haemoglobin C is the share of chromosomes carrying the gene, not the share of carriers or patients. These traits are linked to malaria, which is why they are common where malaria was widespread; they are not tied to race, and higher or lower values say nothing about any group. The grids are the Malaria Atlas Project’s blood disorder layers published under CC BY 3.0 (G6PD from the Howes et al. 2012 model; the original Duffy paper by Howes et al. 2011 and the sickle haemoglobin paper by Piel et al. 2010 are non-commercial, so only the MAP grids are used, not the papers themselves). Thalassaemia, Taiwan’s common haemoglobin disorder, is not covered by these data.',
+    zh: '都是 2010 年左右的模型估計（彙整各地的抽樣調查，再依地理位置推估沒有調查的地方），不是普查。蠶豆症、鐮刀型血球與血紅素 C 的「等位基因頻率」是帶這個基因的染色體的比例，不是帶因者或病人的比例。這些性狀跟瘧疾有關，所以在瘧疾流行過的地方特別常見，跟種族沒有必然關係，地圖上的高低不代表任何族群的優劣。網格是 Malaria Atlas Project 以 CC BY 3.0 公開的血液疾病圖層（G6PD 來自 Howes 等 2012 的模型；Duffy 陰性的原始論文 Howes 等 2011、鐮刀型血紅素的 Piel 等 2010 是非商業授權，這裡只用 MAP 的網格，不用論文本身）。台灣常見的血紅素疾病是海洋性貧血，這幾份資料沒有。台灣的蠶豆症另有國健署新生兒篩檢的個案數（附註與「新生兒篩檢」主題的側欄）：篩檢的是新生兒的酵素活性，男女都算，跟這裡的等位基因頻率（約等於男性的比例）不是同一個量。',
+    en: 'All are model estimates for around 2010 (pooling local sample surveys and predicting unsurveyed places from geography), not censuses. The “allele frequency” for G6PD deficiency, sickle haemoglobin and haemoglobin C is the share of chromosomes carrying the gene, not the share of carriers or patients. These traits are linked to malaria, which is why they are common where malaria was widespread; they are not tied to race, and higher or lower values say nothing about any group. The grids are the Malaria Atlas Project’s blood disorder layers published under CC BY 3.0 (G6PD from the Howes et al. 2012 model; the original Duffy paper by Howes et al. 2011 and the sickle haemoglobin paper by Piel et al. 2010 are non-commercial, so only the MAP grids are used, not the papers themselves). Thalassaemia, Taiwan’s common haemoglobin disorder, is not covered by these data. For G6PD deficiency in Taiwan there are also case counts from the Health Promotion Administration’s newborn screening (in the note and the “Newborn screening” topic’s side panel); screening measures enzyme activity in newborns of both sexes, which is not the same quantity as the allele frequency here (roughly the share of males).',
   },
   overlays: [
     gridLayer('g6pd', 'g6pd', { zh: '蠶豆症的網格（G6PD 缺乏的等位基因頻率）', en: 'G6PD deficiency grid (allele frequency)' }),

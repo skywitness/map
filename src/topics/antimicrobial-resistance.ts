@@ -4,7 +4,7 @@ import type { TopicDefinition } from './types';
 
 /**
  * 抗藥性（2026-11-03，製作手冊第十九批 293；pipeline/topics/antimicrobial_resistance.py）：
- * WHO GLASS 的大腸桿菌、MRSA 抗藥比例與抗藥性結核（GHO，CC BY 4.0）。
+ * WHO GLASS 的大腸桿菌、MRSA 抗藥比例與抗藥性結核（GHO，CC BY 4.0）；台灣用疾管署的抗生素敏感性統計（data.gov.tw 43600）。
  */
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -34,18 +34,26 @@ export const antimicrobialResistance: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    {
+      name: {
+        zh: '衛生福利部疾病管制署「抗藥性監測通報之抗生素敏感性統計資料分析」（台灣，2021–2025 年）',
+        en: 'Taiwan Centers for Disease Control, antimicrobial susceptibility statistics from resistance surveillance (Taiwan, 2021–2025)',
+      },
+      url: 'https://data.gov.tw/dataset/43600',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
   note: {
-    zh: `抗藥比例來自各國向 WHO 全球抗藥性監測系統（GLASS）的通報，2017 年起，各國用 2 年內最近的一年。${CAVEAT.zh}抗藥性結核是 WHO 估計的 rifampicin 抗藥或多重抗藥結核（RR/MDR-TB）新病例數，每 10 萬人用聯合國的人口自己算。台灣不在 WHO 的資料裡；疾管署有醫院通報的抗生素敏感性統計，但下載點從國外連不上，這次沒有放（定義也跟 WHO 不同：WHO 只算血流感染）。`,
-    en: `Resistance shares come from national reports to WHO’s Global Antimicrobial Resistance and Use Surveillance System (GLASS) from 2017, using each country’s latest year within two years. ${CAVEAT.en} Drug-resistant TB is WHO’s estimate of new rifampicin-resistant or multidrug-resistant (RR/MDR-TB) cases, converted to a rate per 100,000 with UN population. Taiwan is not in WHO’s data.`,
+    zh: `抗藥比例來自各國向 WHO 全球抗藥性監測系統（GLASS）的通報，2017 年起，各國用 2 年內最近的一年。${CAVEAT.zh}抗藥性結核是 WHO 估計的 rifampicin 抗藥或多重抗藥結核（RR/MDR-TB）新病例數，每 10 萬人用聯合國的人口自己算。台灣不在 WHO 的資料裡，用疾管署抗藥性監測通報的全國統計（2023 年 315 家醫院）：大腸桿菌對 ceftriaxone、金黃色葡萄球菌對 oxacillin 不敏感的比例。疾管署的統計含所有檢體（不只血流感染），「不敏感」也含中間型，跟 WHO 的定義不同，只能大略比較；2024、2025 年的數字寫在台灣的附註。`,
+    en: `Resistance shares come from national reports to WHO’s Global Antimicrobial Resistance and Use Surveillance System (GLASS) from 2017, using each country’s latest year within two years. ${CAVEAT.en} Drug-resistant TB is WHO’s estimate of new rifampicin-resistant or multidrug-resistant (RR/MDR-TB) cases, converted to a rate per 100,000 with UN population. Taiwan is not in WHO’s data; its values are national figures from Taiwan CDC’s resistance surveillance (315 hospitals in 2023): E. coli non-susceptible to ceftriaxone and S. aureus non-susceptible to oxacillin. They cover all specimen types (not just bloodstream infections) and count intermediate isolates as non-susceptible, so they are only roughly comparable with WHO’s definition; 2024 and 2025 figures are in Taiwan’s note.`,
   },
   indicators: [
     {
       id: 'ecoli',
       label: { zh: '大腸桿菌的抗藥比例', en: 'Resistant E. coli' },
       description: {
-        zh: `血流感染的大腸桿菌裡，對第三代頭孢菌素（常用的強效抗生素）有抗藥性的比例。2023 年尚比亞 93.5%、迦納 90.6%、埃及 89.4%、印度 80.1%；南韓 38.9%、泰國 38.7%、日本 20.3%；英國 13.2%、德國 9.8%、丹麥 6.3%、挪威 5.7%。${CAVEAT.zh}`,
-        en: `Share of E. coli from bloodstream infections resistant to third-generation cephalosporins (widely used strong antibiotics). In 2023: Zambia 93.5%, Ghana 90.6%, Egypt 89.4%, India 80.1%; South Korea 38.9%, Thailand 38.7%, Japan 20.3%; the UK 13.2%, Germany 9.8%, Denmark 6.3%, Norway 5.7%. ${CAVEAT.en}`,
+        zh: `血流感染的大腸桿菌裡，對第三代頭孢菌素（常用的強效抗生素）有抗藥性的比例。2023 年尚比亞 93.5%、迦納 90.6%、埃及 89.4%、印度 80.1%；南韓 38.9%、泰國 38.7%、日本 20.3%；英國 13.2%、德國 9.8%、丹麥 6.3%、挪威 5.7%。台灣（疾管署，對 ceftriaxone 不敏感，所有檢體）2023 年 30.6%、2025 年 33.3%。${CAVEAT.zh}`,
+        en: `Share of E. coli from bloodstream infections resistant to third-generation cephalosporins (widely used strong antibiotics). In 2023: Zambia 93.5%, Ghana 90.6%, Egypt 89.4%, India 80.1%; South Korea 38.9%, Thailand 38.7%, Japan 20.3%; the UK 13.2%, Germany 9.8%, Denmark 6.3%, Norway 5.7%. Taiwan (Taiwan CDC, non-susceptible to ceftriaxone, all specimens): 30.6% in 2023, 33.3% in 2025. ${CAVEAT.en}`,
       },
       unit: '%',
       file: 'ecoli.json',
@@ -57,8 +65,8 @@ export const antimicrobialResistance: TopicDefinition = {
       id: 'mrsa',
       label: { zh: 'MRSA 的比例', en: 'MRSA' },
       description: {
-        zh: `血流感染的金黃色葡萄球菌裡，抗甲氧西林（MRSA，對大部分 β-內醯胺類抗生素都有抗藥性）的比例。2023 年伊拉克 89.7%、埃及 88.9%、印度 53.6%、南韓 45.2%、日本 32.5%；英國 9.9%、芬蘭 0.4%。${CAVEAT.zh}`,
-        en: `Share of Staphylococcus aureus from bloodstream infections that are methicillin-resistant (MRSA, resistant to most beta-lactam antibiotics). In 2023: Iraq 89.7%, Egypt 88.9%, India 53.6%, South Korea 45.2%, Japan 32.5%; the UK 9.9%, Finland 0.4%. ${CAVEAT.en}`,
+        zh: `血流感染的金黃色葡萄球菌裡，抗甲氧西林（MRSA，對大部分 β-內醯胺類抗生素都有抗藥性）的比例。2023 年伊拉克 89.7%、埃及 88.9%、印度 53.6%、南韓 45.2%、日本 32.5%；英國 9.9%、芬蘭 0.4%。台灣（疾管署，所有檢體）2023 年 45.5%、2025 年 47.3%。${CAVEAT.zh}`,
+        en: `Share of Staphylococcus aureus from bloodstream infections that are methicillin-resistant (MRSA, resistant to most beta-lactam antibiotics). In 2023: Iraq 89.7%, Egypt 88.9%, India 53.6%, South Korea 45.2%, Japan 32.5%; the UK 9.9%, Finland 0.4%. Taiwan (Taiwan CDC, all specimens): 45.5% in 2023, 47.3% in 2025. ${CAVEAT.en}`,
       },
       unit: '%',
       file: 'mrsa.json',

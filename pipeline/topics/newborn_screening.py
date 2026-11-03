@@ -15,6 +15,9 @@ Neonatal Screening》10(2):38（PMC11203842），Europe PMC 的全文 XML（不�
 **篩檢的疾病數**：狀態 3 的疾病有幾種（台灣 28、新加坡 28、菲律賓 26、日本 19，跟論文的說法一致）。
 **美國、加拿大**：各州（省）依出生數加權，篩這種病的州（省）出生數過半就算 3。美國的表把 28 種核心疾病（RUSP 的
 Core DBS）併成一欄、次要疾病依類別各一欄，依 Table 1、2 的清單對到這裡的 30 種（`US_CORE`、`US_SECONDARY_FAO`）。
+**台灣的歷年成果**（2026-11-03 補）：國健署「新生兒先天性代謝異常疾病篩檢歷年成果表」（`sources/hpa_newborn.py`，政府資料開放授權
+條款第 1 版；使用者用瀏覽器下載、本機 session 放在 map-plan 的 data/hpa/）：1984–2024 年的篩檢率與 21 種疾病的異常個案數，
+寫成 `taiwan.json` 給側欄，地圖上台灣的附註也寫最近一年。
 """
 from __future__ import annotations
 
@@ -22,7 +25,7 @@ import re
 import xml.etree.ElementTree as ET
 
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
-from sources import countries
+from sources import countries, hpa_newborn
 
 OUT = OUT_DIR / "topics" / "newborn-screening"
 XML = "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11203842/fullTextXML"
@@ -209,20 +212,70 @@ def north_america(root: ET.Element) -> dict[str, dict]:
     return out
 
 
+def taiwan() -> tuple[dict, dict[str, tuple[str, str]]]:
+    """國健署的歷年成果 → 側欄的 taiwan.json 與地圖上台灣的附註（{指標: (中文, 英文)}）"""
+    r = hpa_newborn.results()
+    years, screened = r["years"], r["screened"]
+    per_k = lambda cases: [None if c is None else round(c / s * 1000, 2) for c, s in zip(cases, screened)]
+    diseases = []
+    for i, (zh, code, en) in enumerate(r["diseases"]):
+        cases = r["cases"][i]
+        first = next(y for y, c in zip(years, cases) if c is not None)
+        diseases.append({"zh": zh, "en": en, "code": code, "from": 1984 if i == 0 else first,
+                         "latest": int(cases[-1]), "total": int(sum(c or 0 for c in cases))})
+    out = {
+        "years": years,
+        "rate": [round(v, 2) for v in r["rate"]],
+        "screened": [int(v) for v in screened],
+        "g6pd": per_k(r["cases"][0]),
+        "ch": per_k(r["cases"][1]),
+        "total": [int(v) for v in r["total"]],
+        "diseases": diseases,
+    }
+    y, n, rate = years[-1], int(screened[-1]), r["rate"][-1]
+    g6pd, ch, total = int(r["cases"][0][-1]), int(r["cases"][1][-1]), int(r["total"][-1])
+    over = next(year for year, v in zip(years, r["rate"]) if v >= 90)
+    notes = {
+        "diseases": (
+            f"國健署的成果表：{y} 年篩檢 {n:,} 人（篩檢率 {rate:.1f}%），異常個案 {total:,} 例，最多的是蠶豆症 {g6pd:,} 例、"
+            f"先天性甲狀腺低能症 {ch} 例。國健署的成果表列了 21 種（1984 年 5 種、2006 年 7 月加 6 種、2019 年 10 月加 10 種），"
+            "跟論文的 30 種分法不同。側欄有 1984 年以來的歷年成果。",
+            f"Health Promotion Administration figures: {n:,} newborns screened in {y} ({rate:.1f}% coverage), with {total:,} abnormal "
+            f"cases, mostly G6PD deficiency ({g6pd:,}) and congenital hypothyroidism ({ch}). The administration’s table covers 21 "
+            "conditions (5 from 1984, 6 more from July 2006 and 10 more from October 2019), grouped differently "
+            "from the paper’s 30. The side panel shows results since 1984.",
+        ),
+        "start": (
+            f"論文寫 1981 年開始；國健署的歷年成果表從 1984 年開始（篩檢率 {r['rate'][0]:.1f}%），{over} 年起超過九成。",
+            f"The paper gives 1981; the Health Promotion Administration’s results start in 1984 ({r['rate'][0]:.1f}% coverage) "
+            f"and exceed 90% from {over}.",
+        ),
+        "g6pd": (
+            f"國健署的成果表：{y} 年篩出蠶豆症 {g6pd:,} 例，每千名篩檢 {g6pd / n * 1000:.1f} 例，是最常見的異常。",
+            f"Health Promotion Administration figures: {g6pd:,} cases of G6PD deficiency in {y}, {g6pd / n * 1000:.1f} per 1,000 "
+            "screened, the most common abnormal finding.",
+        ),
+    }
+    return out, notes
+
+
 def build() -> None:
     root = ET.parse(download(XML, "newborn-screening", "therrell-2024.xml")).getroot()
+    tw, tw_notes = taiwan()
+    write_json(OUT / "taiwan.json", tw)
+    note = lambda key: {"notes": {"TWN": tw_notes[key][0]}, "notesEn": {"TWN": tw_notes[key][1]}}
     data = regional(root) | north_america(root)
     counts = {c: sum(1 for v in d["s"] if v == 3) for c, d in data.items() if d["s"] is not None}
-    write_json(OUT / "diseases.json", indicator_file("diseases", "種", [YEAR], {c: [n] for c, n in sorted(counts.items())}))
+    write_json(OUT / "diseases.json", indicator_file("diseases", "種", [YEAR], {c: [n] for c, n in sorted(counts.items())}, **note("diseases")))
     # 開始年份：每一年畫已經開辦的國家（值是開辦的年份，時間軸播放時一國一國亮起來）
     years = list(range(FIRST_YEAR, YEAR + 1))
     starts = {c: d["y"] for c, d in data.items() if d.get("y")}
     write_json(OUT / "start.json", indicator_file(
-        "start", "年", years, {c: [y if t >= y else None for t in years] for c, y in sorted(starts.items())}))
+        "start", "年", years, {c: [y if t >= y else None for t in years] for c, y in sorted(starts.items())}, **note("start")))
     # 蠶豆症：G6PD 的等級（0–3）
     g = CODES.index("G6PD")
     write_json(OUT / "g6pd.json", indicator_file(
-        "g6pd", "", [YEAR], {c: [d["s"][g]] for c, d in sorted(data.items()) if d["s"] is not None}))
+        "g6pd", "", [YEAR], {c: [d["s"][g]] for c, d in sorted(data.items()) if d["s"] is not None}, **note("g6pd")))
     # 側欄：每國 30 種疾病的等級（一個字一種）、開始年份、實驗室數、採血時間、Other 的編號
     write_json(OUT / "panel.json", {
         "diseases": [{"code": c, "zh": zh, "en": en, "group": grp} for c, zh, en, grp in DISEASES],
@@ -231,6 +284,8 @@ def build() -> None:
     })
     with_program = [c for c, n in counts.items() if n > 0]
     print(f"  {len(data)} 個國家與地區；至少篩一種（國家計畫、涵蓋過半）的 {len(with_program)} 個；開始年份 {len(starts)} 個")
+    print(f"  台灣（國健署）：{tw['years'][0]}–{tw['years'][-1]} 年，{tw['years'][-1]} 年篩檢率 {tw['rate'][-1]}%、蠶豆症每千名 {tw['g6pd'][-1]}、"
+          f"先天性甲狀腺低能症每千名 {tw['ch'][-1]}；21 種疾病累計 {sum(d['total'] for d in tw['diseases']):,} 例")
     for c in ("TWN", "SGP", "PHL", "JPN", "CHN", "USA", "CAN", "GBR", "DEU", "IND"):
         d = data.get(c)
         if d:
@@ -238,7 +293,9 @@ def build() -> None:
 
     write_json(OUT / "manifest.json", {
         "topic": "newborn-screening", "generatedAt": now_iso(),
-        "source": "Therrell et al. 2024, International Journal of Neonatal Screening 10(2):38 (PMC11203842)", "license": "CC BY 4.0",
+        "source": "Therrell et al. 2024, International Journal of Neonatal Screening 10(2):38 (PMC11203842); "
+                  "Health Promotion Administration, Taiwan, newborn screening results 1984–2024",
+        "license": "CC BY 4.0; Open Government Data License, Taiwan 1.0",
     })
 
 if __name__ == "__main__":
