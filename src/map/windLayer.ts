@@ -360,7 +360,8 @@ class WindLayer implements CustomLayerInterface {
     const h = canvas?.clientHeight ?? 0;
     this.frame = (this.frame + 1) % 8;
     // 每 m/s 每秒 SPEED_PX 像素換成度：縮放 z 時整個世界寬 512 × 2^z 像素
-    const k = (SPEED_PX * dt * 360) / (512 * 2 ** zoom);
+    // 高空的風場有自己的速度倍數（field.pace，噴流 70 m/s 照地面的速度走會看不清楚）
+    const k = (SPEED_PX * field.pace * dt * 360) / (512 * 2 ** zoom);
     for (let i = 0; i < this.n; i++) {
       let lon = this.lon[i];
       let lat = this.lat[i];

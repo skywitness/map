@@ -28,6 +28,13 @@ export const airQuality: TopicDefinition = {
   shortTitle: { zh: '空氣品質', en: 'Air quality' },
   defaultIndicator: 'pm25',
   defaultYear: 2023,
+  // 2026-11-03（製作手冊第十七批 282）：「二氧化氮（衛星影像）」指標鋪那一年 1 月中旬前兩週合成的 OMI 對流層二氧化氮
+  // （NASA GIBS，2005 年起）；其他指標的國家有顏色，影像在國家的面下面看不到，所以只在這個指標畫
+  satellite: {
+    product: 'no2',
+    label: { zh: '二氧化氮（1 月中旬兩週合成，NASA OMI；淡黃到暗紅，越紅越多）', en: 'Nitrogen dioxide (two-week composite in mid-January, NASA OMI; pale yellow to dark red, redder is more)' },
+    date: ({ year, indicator }) => (indicator === 'no2' && year >= 2005 ? `${year}-01-15` : null),
+  },
   sources: [
     {
       name: {
@@ -56,6 +63,19 @@ export const airQuality: TopicDefinition = {
         en: 'Ministry of Environment (Taiwan), air pollutant concentrations (national PM2.5 annual mean, for cross-checking)',
       },
       url: 'https://data.gov.tw/dataset/89030',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
+        zh: 'NASA GIBS：OMI 對流層二氧化氮每日影像（Aura）。We acknowledge the use of imagery provided by services from NASA’s Global Imagery Browse Services (GIBS), part of NASA’s Earth Science Data and Information System (ESDIS).',
+        en: 'NASA GIBS: OMI tropospheric nitrogen dioxide daily imagery (Aura). We acknowledge the use of imagery provided by services from NASA’s Global Imagery Browse Services (GIBS), part of NASA’s Earth Science Data and Information System (ESDIS).',
+      },
+      url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+      license: { zh: 'NASA 開放資料（CC0，依要求標示 GIBS）', en: 'NASA open data (CC0; GIBS acknowledged as requested)' },
+    },
+    {
+      name: { zh: '環境部 空氣品質監測月值（台灣測站的二氧化氮）', en: 'Ministry of Environment (Taiwan), monthly air quality monitoring values (NO₂ at Taiwan’s stations)' },
+      url: 'https://data.gov.tw/dataset/28202',
       license: OPEN_DATA_TW,
     },
   ],
@@ -101,6 +121,22 @@ export const airQuality: TopicDefinition = {
       format: (v) => `${fixed(v, v >= 99.95 ? 0 : 1)}%`,
       formatTick: (v) => `${v}%`,
       compareWorld: true,
+    },
+    {
+      id: 'no2',
+      label: { zh: '二氧化氮（衛星影像）', en: 'Nitrogen dioxide (satellite image)' },
+      description: {
+        zh: '那一年 1 月中旬前兩週，NASA Aura 衛星的 OMI 測到的對流層二氧化氮（主要來自汽機車、電廠與工廠的燃燒）：淡黃到暗紅，越紅越多，看得到大城市、工業區與航道。每天的軌道之間、雲多的地方沒有資料，用前幾天的補（顯示的是最近一天有值的，不是平均），兩週都被雲擋住的地方（例如冬天的華南）是空的。只有圖、沒有數值，國家不上色；台灣的附註是環境部測站的年平均。',
+        en: 'Tropospheric nitrogen dioxide measured by OMI on NASA’s Aura satellite over the two weeks before mid-January of the selected year (mostly from vehicles, power plants and factories): pale yellow to dark red, redder is more, showing big cities, industrial areas and shipping lanes. Gaps between orbits and under clouds are filled from earlier days (the latest day with data is shown, not an average); places cloudy for the whole two weeks (such as southern China in winter) stay blank. Image only, with no values, so countries are not coloured; Taiwan’s note gives the annual mean at its monitoring stations.',
+      },
+      unit: '',
+      file: 'no2-years.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      missing: { zh: '國家不上色，看衛星影像', en: 'Countries are not coloured; see the satellite image' },
     },
     deathRate(
       'ambient-deaths',

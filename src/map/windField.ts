@@ -9,6 +9,8 @@ export interface WindField {
   deg: number;
   u: Float32Array;
   v: Float32Array;
+  /** 粒子的速度倍數（2026-11-03，高空的噴流太快，250 hPa 走慢一點才看得清楚；沒寫是 1） */
+  pace: number;
 }
 
 /** pipeline 寫的檔：u、v 是 int8 的 base64，乘 scale 是 m/s */
@@ -17,6 +19,7 @@ export interface WindFieldFile {
   height: number;
   deg: number;
   scale: number;
+  pace?: number;
   u: string;
   v: string;
 }
@@ -35,7 +38,7 @@ export function decodeWindField(file: WindFieldFile): WindField {
       }
       return out;
     };
-    field = { width: file.width, height: file.height, deg: file.deg, u: unpack(file.u), v: unpack(file.v) };
+    field = { width: file.width, height: file.height, deg: file.deg, u: unpack(file.u), v: unpack(file.v), pace: file.pace ?? 1 };
     decoded.set(file, field);
   }
   return field;

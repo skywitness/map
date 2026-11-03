@@ -318,7 +318,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
 export interface LayerKey {
   key: Exclude<keyof LayerVisibility, 'extra'>;
   /** relief：只有地形圖（海拔主題的 kind 'terrain' 指標）才有的 */
-  source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite' | 'isobaths';
+  source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite' | 'satelliteExtra' | 'isobaths';
   label: Text;
   /** 線（鐵路）、圓點（機場）或陰影色塊（地形陰影），size 是線寬或半徑（px） */
   shape: 'line' | 'dot' | 'shade';
@@ -354,6 +354,7 @@ export const LAYER_KEYS: LayerKey[] = [
     color: ISOBATH_COLOR,
   },
   { key: 'satellite', source: 'satellite', label: { zh: '那一天的衛星照片（NASA）', en: 'Satellite image of the day (NASA)' }, shape: 'shade', size: 5 },
+  { key: 'satelliteExtra', source: 'satelliteExtra', label: { zh: '同一天的另一種影像（NASA）', en: 'Another image of the same day (NASA)' }, shape: 'shade', size: 5 },
 ];
 
 /** 圖層開關是不是開著：舊的記錄沒有的項目（contours）照預設 */
@@ -419,6 +420,8 @@ interface LayerControlsProps {
   satelliteDate?: string | null;
   /** 那一天的影像的名稱（主題的 satellite.label，臭氧、葉綠素、夜間影像） */
   satelliteLabel?: Text;
+  /** 同一天另外疊的一層（主題的 satellite.extra）的名稱；沒有是 undefined */
+  satelliteExtraLabel?: Text;
   /** 播放一季的影像（主題的 satellite.season）：按鈕的狀態與切換 */
   season?: { playing: boolean; toggle: () => void } | null;
   /** 主題有等深線（TopicDefinition.isobaths） */
@@ -445,6 +448,7 @@ export function LayerControls({
   hasRelief = false,
   satelliteDate = null,
   satelliteLabel,
+  satelliteExtraLabel,
   season = null,
   hasIsobaths = false,
   overlays = [],
@@ -455,7 +459,7 @@ export function LayerControls({
   const lang = useLang();
   const toggle = (key: LayerKey['key']) => onChange({ ...layers, [key]: !isOn(layers, key) });
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
-  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief, satellite: Boolean(satelliteDate), isobaths: hasIsobaths };
+  const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief, satellite: Boolean(satelliteDate), satelliteExtra: Boolean(satelliteDate && satelliteExtraLabel), isobaths: hasIsobaths };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   // 分級說明顯示到哪裡：none（手機預設）、own（主題自己的圖層，桌機預設）、all（含從圖層選單加上的別的主題的圖層，
@@ -476,7 +480,7 @@ export function LayerControls({
         <label key={k.key}>
           <input type="checkbox" checked={isOn(layers, k.key)} onChange={() => toggle(k.key)} />
           <Swatch swatch={{ shape: k.shape, size: k.size, color: layerKeyColor(k, tokens) }} />
-          {tr(k.key === 'satellite' && satelliteLabel ? satelliteLabel : k.label, lang)}
+          {tr(k.key === 'satellite' && satelliteLabel ? satelliteLabel : k.key === 'satelliteExtra' && satelliteExtraLabel ? satelliteExtraLabel : k.label, lang)}
           {k.key === 'satellite' && satelliteDate ? ` · ${satelliteDate}` : ''}
           {k.key === 'satellite' && season && (
             <button

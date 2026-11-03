@@ -235,10 +235,13 @@ def track_lines(tracks: list[Track]) -> tuple[list, list, list]:
         lines.append([(xs[i], ys[i]) for i in idx])
         vtypes.append([codes[i] for i in idx])
         t0, t1 = tr.storm.fixes[0].time, tr.storm.fixes[-1].time
+        # 最強的那一天（2026-11-03，製作手冊第十七批 281：清單點颱風時看那一天的衛星影像）：熱帶階段風速最大的第一個時間點，UTC
+        peak_fix = next((f for f in tr.storm.fixes if tr.peak is not None and f.wind == tr.peak and tropical(f)), None)
         records.append({
             "year": tr.year, "md0": ymd(t0) % 10000, "md1": ymd(t1) % 10000,
             "name": tr.name, "zh": tr.zh, "basin": tr.storm.basin,
             "wind": tr.peak, "pres": tr.pres, "cat": tr.peak_class, "prov": 1 if tr.storm.provisional else None,
+            "pk": ymd(peak_fix.time) % 10000 if peak_fix else None,
         })
     return lines, vtypes, records
 
@@ -479,8 +482,8 @@ def build() -> None:
     lines, vtypes, records = track_lines(tracks)
     data = lines_file(
         lines, QUANTUM, vertex_types=vtypes, records=records,
-        record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov"],
-        record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1},
+        record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov", "pk"],
+        record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1, "pk": 1},
         record_delta=("year",))
     add_columns(data)  # 清單用的 id 與台灣的警報（topics/typhoon_list.py，2026-10-31）
     # 量化後不到兩個點的路徑（幾乎原地不動、只有一兩筆紀錄的颱風）lines_file 會連同紀錄一起拿掉，國家統計照樣算
@@ -626,8 +629,8 @@ def build_jma(storms: list[Storm], cwa_all: list[dict], index: NearIndex, years:
         lines, vtypes, records = track_lines(tracks)
         data = lines_file(
             lines, QUANTUM, vertex_types=vtypes, records=records,
-            record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov"],
-            record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1},
+            record_fields=["year", "md0", "md1", "name", "zh", "basin", "wind", "pres", "cat", "prov", "pk"],
+            record_scale={"year": 1, "md0": 1, "md1": 1, "wind": 1, "pres": 1, "cat": 1, "prov": 1, "pk": 1},
             record_delta=("year",))
         add_columns(data)
         write_json(OUT / "tracks-jma.json", data)

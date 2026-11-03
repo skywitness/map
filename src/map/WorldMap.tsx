@@ -103,7 +103,7 @@ import { NARROW_QUERY, useMediaQuery } from '../lib/useMediaQuery';
 import { useMapTokens } from './palettes';
 import { ExitFullscreenIcon, FlatIcon, FullscreenIcon, GlobeIcon, LocateIcon, MinusIcon, PlusIcon, ResetIcon } from './MapIcons';
 import { Pins, type PinConfig } from './pins';
-import { loadDayTile, SATELLITE_PROTOCOL, syncSatelliteDay, validDay } from './satelliteDay';
+import { loadDayTile, SATELLITE_EXTRA, SATELLITE_PROTOCOL, syncSatelliteDay, validDay } from './satelliteDay';
 import {
   BARE_SEA,
   CALM_SEA,
@@ -1450,6 +1450,13 @@ export function WorldMap(props: WorldMapProps) {
     if (!ready || !map || !installedRef.current) return;
     syncSatelliteDay(map, satelliteDate && isOn(layers, 'satellite') ? satelliteDate : null, 'data-fill', satellite?.product ?? 'truecolor');
   }, [ready, revision, satelliteDate, layers.satellite, satellite?.product]);
+  // 同一天另外疊的一層（satellite.extra，颱風的降雨）：在主要影像上面、資料圖層下面，預設關閉
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !installedRef.current) return;
+    const extra = satellite?.extra;
+    syncSatelliteDay(map, extra && satelliteDate && isOn(layers, 'satelliteExtra') ? satelliteDate : null, 'data-fill', extra?.product ?? 'rain', SATELLITE_EXTRA);
+  }, [ready, revision, satelliteDate, layers.satelliteExtra, satellite?.extra?.product]);
 
   /* ── 沿路線移動的點（線圖層的 animate，routeAnimation.ts）：清單側欄點一組線時走一次；換一組、換主題、換底圖時停 ── */
   useEffect(() => {
@@ -2129,7 +2136,7 @@ export function WorldMap(props: WorldMapProps) {
           : valueLegend;
         const layerKeys = onLayersChange
           ? exportLayerKeys(
-              LAYER_KEYS.filter((k) => ({ railways, airports, terrain: shadeable, relief: terrain && indicator.layer.kind === 'terrain', satellite: Boolean(satelliteDate), isobaths: hasIsobaths })[k.source] && isOn(layers, k.key)).map((key) => ({
+              LAYER_KEYS.filter((k) => ({ railways, airports, terrain: shadeable, relief: terrain && indicator.layer.kind === 'terrain', satellite: Boolean(satelliteDate), satelliteExtra: Boolean(satelliteDate && satellite?.extra), isobaths: hasIsobaths })[k.source] && isOn(layers, k.key)).map((key) => ({
                 key,
                 color: layerKeyColor(key, tokens),
               })),
@@ -2336,6 +2343,7 @@ export function WorldMap(props: WorldMapProps) {
             hasRelief={terrain && indicator.layer.kind === 'terrain'}
             satelliteDate={satelliteDate}
             satelliteLabel={satellite?.label}
+            satelliteExtraLabel={satellite?.extra?.label}
             season={seasonControl}
             hasIsobaths={hasIsobaths}
             overlays={overlays}

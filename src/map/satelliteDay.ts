@@ -18,6 +18,8 @@ import type { AddProtocolResponseData, GetResourceResponse, Map as MaplibreMap, 
 import { GIBS_ATTRIBUTION } from './style';
 
 export const SATELLITE_DAY = 'satellite-day';
+/** 同一天另外疊的一層（主題的 satellite.extra，2026-11-03，颱風的降雨） */
+export const SATELLITE_EXTRA = 'satellite-day-extra';
 export const SATELLITE_PROTOCOL = 'gibsday';
 const FIRST_DAY = '2000-02-24';
 
@@ -30,7 +32,7 @@ export const DAY_LAYERS: { id: string; from: string }[] = [
 ];
 
 /** 每日影像的種類（TopicDefinition.satellite.product） */
-export type SatelliteProduct = 'truecolor' | 'ozone' | 'chlorophyll' | 'night';
+export type SatelliteProduct = 'truecolor' | 'ozone' | 'chlorophyll' | 'night' | 'no2' | 'rain';
 
 interface Product {
   /** 依優先順序的 GIBS 圖層（from–to：有資料的日子） */
@@ -81,6 +83,25 @@ export const PRODUCTS: Record<SatelliteProduct, Product> = {
     extraDays: [],
     // 夜間影像是整個地球的灰階（雲在月光下也看得到），淡一點，底圖與極光預報才看得到
     opacity: 0.6,
+  },
+  // 2026-11-03（製作手冊第十七批 282）：OMI 的對流層二氧化氮（Aura，2004-10-01 起每天，PNG，6 級）。每天的軌道之間、
+  // 雲多的地方是空的，往前補 13 天，等於兩週的合成（顯示的是最近一天有值的，不是平均）
+  no2: {
+    layers: [{ id: 'OMI_Nitrogen_Dioxide_Tropo_Column', from: '2004-10-01' }],
+    ext: 'png',
+    level: 6,
+    gap: 'transparent',
+    extraDays: [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13],
+    opacity: 0.75,
+  },
+  // 2026-11-03（第十七批 281）：IMERG 的降雨率（GPM，2000-06-01 起每天，PNG，6 級），颱風那一天疊在真彩影像上面
+  rain: {
+    layers: [{ id: 'IMERG_Precipitation_Rate', from: '2000-06-01' }],
+    ext: 'png',
+    level: 6,
+    gap: 'transparent',
+    extraDays: [],
+    opacity: 0.8,
   },
 };
 
@@ -248,29 +269,35 @@ export function validDay(date: string | null, today = new Date().toISOString().s
   return date && /^\d{4}-\d{2}-\d{2}$/.test(date) && date >= FIRST_DAY && date <= today ? date : null;
 }
 
-/** 依日期加上、換掉或藏起影像；before 是要插在哪個圖層前面（資料圖層的第一層）。換產品時 source 重建（最大縮放不同） */
-export function syncSatelliteDay(map: MaplibreMap, date: string | null, before?: string, productId: SatelliteProduct = 'truecolor'): void {
-  let source = map.getSource(SATELLITE_DAY) as RasterTileSource | undefined;
+/** 依日期加上、換掉或藏起影像（id 是圖層與 source 的名稱，同一天另外疊的一層用 SATELLITE_EXTRA）；before 是要插在哪個圖層前面（資料圖層的第一層）。換產品時 source 重建（最大縮放不同） */
+export function syncSatelliteDay(
+  map: MaplibreMap,
+  date: string | null,
+  before?: string,
+  productId: SatelliteProduct = 'truecolor',
+  id: string = SATELLITE_DAY,
+): void {
+  let source = map.getSource(id) as RasterTileSource | undefined;
   if (!date) {
-    if (map.getLayer(SATELLITE_DAY)) map.setLayoutProperty(SATELLITE_DAY, 'visibility', 'none');
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
     return;
   }
   const product = PRODUCTS[productId];
   const tiles = tilesFor(productId, date);
   if (source && source.maxzoom !== product.level) {
-    if (map.getLayer(SATELLITE_DAY)) map.removeLayer(SATELLITE_DAY);
-    map.removeSource(SATELLITE_DAY);
+    if (map.getLayer(id)) map.removeLayer(id);
+    map.removeSource(id);
     source = undefined;
   }
   if (!source) {
-    map.addSource(SATELLITE_DAY, { type: 'raster', tiles: [tiles], tileSize: 256, maxzoom: product.level, attribution: GIBS_ATTRIBUTION });
+    map.addSource(id, { type: 'raster', tiles: [tiles], tileSize: 256, maxzoom: product.level, attribution: GIBS_ATTRIBUTION });
     map.addLayer(
-      { id: SATELLITE_DAY, type: 'raster', source: SATELLITE_DAY, paint: { 'raster-opacity': product.opacity, 'raster-fade-duration': 200 } },
+      { id: id, type: 'raster', source: id, paint: { 'raster-opacity': product.opacity, 'raster-fade-duration': 200 } },
       before && map.getLayer(before) ? before : undefined,
     );
     return;
   }
   if (source.tiles?.[0] !== tiles) source.setTiles([tiles]);
-  map.setPaintProperty(SATELLITE_DAY, 'raster-opacity', product.opacity);
-  map.setLayoutProperty(SATELLITE_DAY, 'visibility', 'visible');
+  map.setPaintProperty(id, 'raster-opacity', product.opacity);
+  map.setLayoutProperty(id, 'visibility', 'visible');
 }

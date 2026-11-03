@@ -119,6 +119,7 @@ STEPS = {
     # 臭氧洞：NASA Ozone Watch 的年表與每年臭氧洞最大那一天的 1° 網格（46 個檔，約 9 MB）；約 1 分鐘
     "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
+    "air-quality-no2": "topics.air_quality_no2",  # 二氧化氮衛星影像的時間軸與台灣附註（環境部空氣品質監測月值，第十七批 282）
     "water-forest": "topics.water_forest",
     # 缺水壓力的推估（水資源與森林主題）：WRI Aqueduct 4.0 的各國排名（約 13 MB）；幾秒
     "aqueduct": "topics.aqueduct",

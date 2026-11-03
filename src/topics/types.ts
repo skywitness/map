@@ -1245,9 +1245,10 @@ export interface TopicDefinition {
   satellite?: {
     date: (ctx: { year: number; indicator: string; picked: PointRecord | null }) => string | null;
     /**
-     * 哪一種每日影像（2026-11-02，新22、新35）：真彩（預設）、臭氧總量、葉綠素（幾天合成）、夜間影像（VIIRS Day/Night Band）
+     * 哪一種每日影像（2026-11-02，新22、新35）：真彩（預設）、臭氧總量、葉綠素（幾天合成）、夜間影像（VIIRS Day/Night Band）、
+     * 二氧化氮（2026-11-03，OMI，兩週合成）、降雨率（IMERG）
      */
-    product?: 'truecolor' | 'ozone' | 'chlorophyll' | 'night';
+    product?: 'truecolor' | 'ozone' | 'chlorophyll' | 'night' | 'no2' | 'rain';
     /** 圖層卡片上的名稱（沒寫是「那一天的衛星照片（NASA）」） */
     label?: Text;
     /**
@@ -1255,6 +1256,10 @@ export interface TopicDefinition {
      * 每張停 ms 毫秒
      */
     season?: { from: string; to: string; step: number; ms: number };
+    /**
+     * 同一天另外疊一層（2026-11-03，製作手冊第十七批 281，颱風的 IMERG 降雨）：畫在主要影像上面，圖層卡片另一個開關，預設關閉
+     */
+    extra?: { product: 'no2' | 'rain' | 'ozone' | 'chlorophyll' | 'night'; label: Text };
   };
   /**
    * 等深線（2026-11-02，新13，海洋與漁業；map/contours.ts 的 syncIsobaths）：這幾個深度（公尺，正數）的線，

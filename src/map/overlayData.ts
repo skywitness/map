@@ -16,6 +16,8 @@ export interface LayerVisibility {
   contours?: boolean;
   /** 那一天的衛星照片（主題的 satellite，2026-11-01；舊的記錄沒有這一項，當成開著） */
   satellite?: boolean;
+  /** 那一天的影像上面另外疊的一層（主題的 satellite.extra，2026-11-03，颱風的降雨；預設關閉） */
+  satelliteExtra?: boolean;
   /** 等深線（主題的 isobaths，2026-11-02；舊的記錄沒有這一項，當成開著） */
   isobaths?: boolean;
   /** 一般疊加圖層（主題 overlays 裡 kind 為 points、lines 的），key 是 overlay 的 id；沒有記錄的看 overlay 的 hidden */
@@ -30,6 +32,7 @@ export const DEFAULT_LAYERS: LayerVisibility = {
   hillshade: true,
   contours: true,
   satellite: true,
+  satelliteExtra: false,
   isobaths: true,
   extra: {},
 };

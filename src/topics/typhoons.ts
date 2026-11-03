@@ -80,11 +80,17 @@ function stormAt(p: PointRecord, fraction: number): string {
 }
 
 /**
- * 那一天的衛星照片（TopicDefinition.satellite，2026-11-01）：清單點了一個颱風時，看它生命中段那一天（起訖日的中間，
- * 多半接近最強的時候）的 MODIS 真彩影像，看得到颱風的雲。沒點的時候不畫
+ * 那一天的衛星照片（TopicDefinition.satellite，2026-11-01）：清單點了一個颱風時，看它的 MODIS／VIIRS 真彩影像，看得到颱風的雲。
+ * 2026-11-03（製作手冊第十七批 281，使用者決定）起看風速最大的那一天（pipeline 的 pk，UTC 的月日）；沒有 pk 的（沒有風速的早年颱風）
+ * 照舊用生命中段那一天（起訖日的中間）。沒點的時候不畫
  */
-function stormMidDay(p: PointRecord | null): string | null {
+function stormPeakDay(p: PointRecord | null): string | null {
   if (!p || typeof p.year !== 'number' || typeof p.md0 !== 'number' || typeof p.md1 !== 'number') return null;
+  if (typeof p.pk === 'number') {
+    // 跨年的颱風（南半球 12 月到 1 月）：月日比開始的早就是隔年
+    const y = p.pk < p.md0 ? p.year + 1 : p.year;
+    return new Date(Date.UTC(y, Math.floor(p.pk / 100) - 1, p.pk % 100)).toISOString().slice(0, 10);
+  }
   const start = Date.UTC(p.year, Math.floor(p.md0 / 100) - 1, p.md0 % 100);
   const end = Date.UTC(p.md1 < p.md0 ? p.year + 1 : p.year, Math.floor(p.md1 / 100) - 1, p.md1 % 100);
   return new Date((start + end) / 2).toISOString().slice(0, 10);
@@ -328,7 +334,7 @@ export const typhoons: TopicDefinition = {
   },
   sources: [
     {
-      name: { zh: 'NASA GIBS：VIIRS、MODIS 每日真彩影像（那一天的衛星照片）', en: 'NASA GIBS: VIIRS and MODIS daily true colour (satellite image of the day)' },
+      name: { zh: 'NASA GIBS：VIIRS、MODIS 每日真彩影像（颱風最強那一天的衛星照片）、IMERG 每日降雨率', en: 'NASA GIBS: VIIRS and MODIS daily true colour (satellite image on the day of peak intensity) and IMERG daily precipitation rate' },
       url: 'https://nasa-gibs.github.io/gibs-api-docs/',
       license: { zh: 'NASA 開放資料（依要求標示 GIBS）', en: 'NASA open data (GIBS acknowledged as requested)' },
     },
@@ -388,6 +394,11 @@ export const typhoons: TopicDefinition = {
       items: ['jma'],
     },
   ],
-  satellite: { date: ({ picked }) => stormMidDay(picked) },
+  satellite: {
+    date: ({ picked }) => stormPeakDay(picked),
+    label: { zh: '最強那一天的衛星照片（NASA）', en: 'Satellite image on the day of peak intensity (NASA)' },
+    // 2026-11-03（第十七批 281）：同一天的 IMERG 降雨率疊在上面（圖層卡片的開關，預設關閉）
+    extra: { product: 'rain', label: { zh: '同一天的降雨（NASA IMERG；綠到暗紅，越紅雨越大，藍紫色是雪）', en: 'Rain on the same day (NASA IMERG; green to dark red, redder is heavier; blue–purple is snow)' } },
+  },
   indicators,
 };
