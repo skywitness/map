@@ -7,7 +7,7 @@ import type { IndicatorDef, TopicDefinition } from './types';
  * 95 無鉛汽油、柴油（每公升），都含稅、用當年的平均匯率換成美元，一年一個值。
  * 官方長序列（Eurostat、EU Weekly Oil Bulletin、美國 EIA、台電）照年平均；其他國家是政府、主管機關或新聞的價格，
  * 只有某一天的就用那一天（附註寫出處與日期），各國用 3 年內最新的一年（指標檔的 latestWithin）。
- * 沒選國家時的側欄是世界銀行 1960 年起的國際能源價格（panels/EnergyPricesWorld.tsx）。
+ * 左側欄是世界銀行 1960 年起的國際能源價格（worldPanel，panels/EnergyPricesWorld.tsx；2026-11-03 以前是沒選國家時的右側欄）。
  */
 
 const PER_KWH = { zh: '美元/度', en: 'US$/kWh' };

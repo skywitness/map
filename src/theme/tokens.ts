@@ -146,6 +146,9 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
  * 2026-11-03（第十九批）加醫藥，排在社會與經濟之間：用驗證工具在 OKLCH 搜尋跟兩旁（玫瑰紅、琥珀）分得開、又跟其他 6 類
  * 盡量遠的冷色，淺色 #2b8eba（相鄰一般視覺 ≥ 23.8、紅綠色盲 ≥ 15.9；跟所有分類 ≥ 10.9、≥ 9.9），
  * 深色 #3e81b0（相鄰 ≥ 25.5、≥ 8.6；跟所有分類 ≥ 11.0、≥ 7.5）。青色（#00819f）跟地理青綠太近（淺色 8.7、深色 6.3），不用。
+ * 2026-11-03 加休閒（景點、獎項與運動），排在最後、只跟地理相鄰：橘紅，淺色 #c8461a（跟地理一般視覺 26.4、紅綠色盲 12.1，
+ * 白色圖示的底對比 4.8），深色 #e0582a（跟地理 28.2、15.0）。跟不相鄰的社會玫瑰紅、經濟琥珀一般視覺約 10（淺色）、9.5–11.4（深色），
+ * 跟環境綠↔地理青綠同一級；洋紅跟地理在綠色盲下只有 6.7，不用。
  */
 export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
   // 環境、交通 2026-10-30 加（第七批 124）；同一天第十一批 187 能源併進科技，環境改用原本能源的綠（不再用橄欖綠）
@@ -158,6 +161,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
     tech: '#6130b1',
     transport: '#4b5a92',
     geo: '#088f77',
+    leisure: '#c8461a',
   },
   dark: {
     society: '#ee5377',
@@ -168,6 +172,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
     tech: '#8e57d8',
     transport: '#8796d6',
     geo: '#04a19b',
+    leisure: '#e0582a',
   },
 };
 

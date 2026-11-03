@@ -40,11 +40,10 @@ import type { PersonalMenu } from './map/BasemapMenu';
 import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
 import { loadBaseStyle } from './map/style';
 import type { MapView, WorldMapHandle } from './map/WorldMap';
-import { CloseIcon } from './map/MapIcons';
 import { BoxResult } from './panels/BoxResult';
 import { coreBox } from './lib/coreBox';
-import { FloatResize } from './panels/FloatResize';
 import { ListSide } from './panels/ListSide';
+import { WorldSide } from './panels/WorldSide';
 import { DivisionList, DivisionPath, DivisionTooltip, useDivisionsData } from './panels/Divisions';
 import { divisionBounds, divisionCountry, divisionLevel, divisionParent, divisionView } from './map/divisions';
 import { PanelSheet } from './panels/PanelSheet';
@@ -184,8 +183,6 @@ export function App() {
   // 共用疊加圖層（topics/shared-layers.ts）：圖層選單打開的接在主題自己的疊加圖層後面（主題自己就有的不重複）
   // 也存別的主題的圖層（圖層選單的「更多主題的圖層…」，key 是 `<主題>/<圖層 id>`，topics/foreign-layers.ts）；換主題也留著
   const [sharedOn, setSharedOn] = useState<string[]>([]);
-  // 沒選國家時的側欄（主題的 worldPanel）：關掉的主題記在這裡，這次不再出現
-  const [worldClosed, setWorldClosed] = useState<string | null>(null);
   // 資料屬於目前主題的不載入（它自己就有那個圖層）；換回別的主題時再畫
   const sharedActive = useMemo(() => sharedOn.filter((id) => sharedSourceTopic(id) !== definition.id), [sharedOn, definition.id]);
   const sharedDefs = useSharedOverlays(sharedActive);
@@ -348,14 +345,13 @@ export function App() {
   const years = data?.years ?? [defaultYear];
   // 時刻主題的「年份」是那一刻的日期（YYYYMMDD），算出來的資料只有這一筆
   const year = at ? at.day : pickYear(years, state.year, defaultYear, yearBin(indicator));
-  // 沒選國家時的側欄（主題的 worldPanel，2026-10-31 起）：每個主題的元件各自動態載入
+  // 不分國家的資料（主題的 worldPanel，2026-10-31 起）：每個主題的元件各自動態載入
   const worldLoad = topic.worldPanel?.load;
-  // 主題側欄區塊的樣式在 panels.css（跟著國家側欄載入）；沒選國家時的側欄也要一起載入
+  // 主題側欄區塊的樣式在 panels.css（跟著國家側欄載入）；不分國家的側欄也要一起載入
   const WorldPanel = useMemo(
     () => (worldLoad ? lazy(() => Promise.all([worldLoad(), import('./panels/panels.css')]).then(([m]) => m)) : null),
     [worldLoad],
   );
-  const showWorld = Boolean(WorldPanel) && !state.country && !pure && worldClosed !== topic.id;
   const yearIndex = data ? (at ? 0 : data.years.indexOf(year)) : -1;
   // 年份零散的指標（latestWithin）會用之前最近一年的值，valueYears 記下那些國家實際的資料年份
   const { values, years: valueYears } = useMemo(
@@ -527,6 +523,9 @@ export function App() {
   const [listTab, setListTab] = useState(0);
   useEffect(() => setListTab(0), [topic.id, indicator.id]);
   const listDef = listDefs[Math.min(listTab, listDefs.length - 1)] ?? null;
+  // 不分國家的資料（worldPanel：各遺傳族群的頻率、國際能源價格）放左側欄（2026-11-03 使用者要求；原本是沒選國家時的右側欄）：
+  // 跟清單側欄同一個位置，只在地圖檢視；主題同時有清單時清單優先（目前沒有這種主題）。選了國家時照樣留著
+  const worldSide = Boolean(WorldPanel && topic.worldPanel) && !pure && !state.embed && view === 'map' && !listDef;
   const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
   // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
   const fitLayer = overlays.find((o) => o.kind === 'points' && o.visible && o.def.fitOnEpoch && o.def.epochs && o.def.minValue);
@@ -1105,7 +1104,7 @@ export function App() {
         <div
           ref={stageRef}
           // is-map：地圖檢視（寬螢幕時側欄浮在地圖上只在地圖檢視，排名表、分析照舊排成幾欄，styles.css 的 .stage.is-map）
-          className={`stage${(state.country || showWorld) && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef || div ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
+          className={`stage${state.country && !pure ? ' has-panel' : ''}${pure ? ' is-pure' : ''}${listDef || div || worldSide ? ` has-list${layout.list ? '' : ' list-closed'}` : ''}${view === 'map' ? ' is-map' : ''}`}
         >
           {div && !state.embed && (
             <DivisionList
@@ -1138,6 +1137,13 @@ export function App() {
               onHover={hoverListRow}
               live={liveData}
             />
+          )}
+          {worldSide && WorldPanel && topic.worldPanel && (
+            <WorldSide title={topic.worldPanel.title} open={layout.list} onOpenChange={(open) => setLayout({ list: open })}>
+              <Suspense fallback={<PanelSkeleton />}>
+                <WorldPanel topic={topic} indicator={indicator} year={year} item={item} tokens={tokens} />
+              </Suspense>
+            </WorldSide>
           )}
           <div className="stage-main">
             {div && view === 'map' && (
@@ -1305,24 +1311,6 @@ export function App() {
               </Suspense>
             )}
           </div>
-          {showWorld && WorldPanel && topic.worldPanel && (
-            <PanelSheet onClose={() => setWorldClosed(topic.id)}>
-              <aside className="panel" aria-label={topic.worldPanel.title}>
-                <header className="panel-header">
-                  <div>
-                    <h2>{topic.worldPanel.title}</h2>
-                  </div>
-                  <button type="button" className="icon-button" onClick={() => setWorldClosed(topic.id)} aria-label={t.close}>
-                    <CloseIcon />
-                  </button>
-                </header>
-                <Suspense fallback={<PanelSkeleton />}>
-                  <WorldPanel topic={topic} indicator={indicator} year={year} item={item} tokens={tokens} />
-                </Suspense>
-                <FloatResize which="panel" />
-              </aside>
-            </PanelSheet>
-          )}
           {state.country && !pure && (
             <PanelSheet onClose={() => selectCountry(null)}>
               <Suspense

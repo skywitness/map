@@ -22,7 +22,7 @@ export interface TopicGroupSpec {
 
 /**
  * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。2026-10-30（第七批 124）起 8 類，選單依小標題分段；
- * 同一天第十一批 187 把能源併進科技，變成 7 類；2026-11-03（第十九批）加醫藥，又是 8 類。
+ * 同一天第十一批 187 把能源併進科技，變成 7 類；2026-11-03（第十九批）加醫藥，又是 8 類；同一天景點與獎項與運動獨立成「休閒」，9 類。
  * 新增主題時加進最接近的分類與小標題，也在下面的 TOPIC_MODULES 加一行，再跑 npm run catalog（dev、build 會自動跑）。
  * 分類名稱要短，中文 1024px、英文 1280px 寬的螢幕要放得下整列（DESIGN.md 第 11 節）。
  */
@@ -31,15 +31,15 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'society',
     label: { zh: '社會', en: 'People' },
     sections: [
-      { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing'] },
-      { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
+      // 夜間燈光 2026-11-03 從地理的「景點」搬過來（使用者要求）
+      { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing', 'night-lights'] },
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
       // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）
       { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet'] },
-      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
+      { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
     ],
-    // 左：人口與家庭、平等與法律；中：教育、生活與文化；右：獎項與運動
-    columns: [2, 2, 1],
+    // 左：人口與家庭；中：教育、生活與文化；右：平等與法律（2026-11-03 使用者要求從左欄搬到右欄；原本右欄的獎項與運動搬到「休閒」）
+    columns: [1, 2, 1],
   },
   {
     // 2026-11-03（製作手冊第十九批，使用者選 A）：社會分類原本的「健康」那一組與血型搬過來，加上基因與藥物的主題
@@ -119,12 +119,22 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '地理', en: 'Geography' },
     sections: [
       { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'travel', 'taipei-view'] },
-      { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
       { label: { zh: '地形與地質', en: 'Land & geology' }, topics: ['elevation', 'rivers', 'oceans', 'lithology', 'special-landforms', 'plates', 'earthquakes', 'reclamation', 'antarctica'] },
-      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers', 'night-lights'] },
+      { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
     ],
-    // 左：國家、天空；中：地形與地質；右：景點
-    columns: [2, 1, 1],
+    // 左：國家；中：地形與地質；右：天空（2026-11-03 使用者要求從左欄搬到右欄；原本右欄的景點搬到「休閒」）
+    columns: [1, 1, 1],
+  },
+  {
+    // 2026-11-03 使用者要求：地理的「景點」與社會的「獎項與運動」獨立成一類（景點原本的夜間燈光搬到社會的人口與家庭）
+    id: 'leisure',
+    label: { zh: '休閒', en: 'Leisure' },
+    sections: [
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers'] },
+      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
+    ],
+    // 左：景點；右：獎項與運動
+    columns: [1, 1],
   },
 ];
 

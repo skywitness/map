@@ -94,7 +94,7 @@ export const tobaccoAlcohol: TopicDefinition = {
     en: "Smoking rates are WHO model estimates based on national surveys (ages 15+, age-standardised); 2025 and 2030 are projections. Alcohol consumption is litres of pure alcohol per person aged 15+ per year, including unrecorded home-made and smuggled drinks; the main beverage and the beverage breakdown count recorded sales only. Taiwan is not in the WHO data: its smoking rates come from the Health Promotion Administration's survey (ages 18+, not fully comparable with WHO's), and there are no official figures for its alcohol consumption in pure alcohol, so it is left blank. Smoke-free places are WHO MPOWER assessments of national law; e-cigarette rules come from English Wikipedia's compilation (CC BY-SA 4.0), and that data file is shared under CC BY-SA 4.0 as well.",
   },
   panelExtra: () => import('./panels/TobaccoAlcoholPanel'),
-  // 沒選國家時的側欄：喝酒臉紅的基因（2026-11-03，製作手冊第十九批 303；依族群，不是各國地圖）
+  // 左側欄（不分國家的資料，2026-11-03 起；原本是沒選國家時的右側欄）：喝酒臉紅的基因（2026-11-03，製作手冊第十九批 303；依族群，不是各國地圖）
   worldPanel: { title: { zh: '喝酒臉紅的基因', en: 'Alcohol flush gene' }, load: () => import('./panels/Aldh2Panel') },
   indicators: [
     {

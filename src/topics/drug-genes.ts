@@ -3,8 +3,8 @@ import type { TopicDefinition } from './types';
 
 /**
  * 藥物過敏與藥效的基因（2026-11-03，製作手冊第十九批 291；pipeline/topics/drug_genes.py）：
- * CPIC 依 9 個生物地理群的等位基因頻率（CC0）。依遺傳族群、不是國家，所以地圖不上色，內容在沒選國家時的側欄
- * （worldPanel，panels/DrugGenesPanel.tsx）。各國版等 Allele Frequency Net Database 的授權確認後再補。
+ * CPIC 依 9 個生物地理群的等位基因頻率（CC0）。依遺傳族群、不是國家，所以地圖不上色，內容在左側欄
+ * （worldPanel，panels/DrugGenesPanel.tsx；2026-11-03 以前是沒選國家時的右側欄）。各國版等 Allele Frequency Net Database 的授權確認後再補。
  */
 
 /** 子項目：等位基因與相關的藥（側欄的說明在 DrugGenesPanel） */
@@ -51,8 +51,8 @@ export const drugGenes: TopicDefinition = {
       id: 'allele',
       label: { zh: '等位基因的頻率（依遺傳族群）', en: 'Allele frequency (by ancestry group)' },
       description: {
-        zh: '同一顆藥在不同人身上的風險不同：例如抗癲癇藥 carbamazepine，帶 HLA-B*15:02 的人可能發生致命的嚴重皮膚過敏，這個基因在東亞、東南亞與南亞較多，所以台灣健保 2010 年起給付用藥前的基因檢測。選一個基因，右邊的側欄是它在 9 個遺傳族群的頻率（依族群，不是國家，地圖不上色）。',
-        en: 'The same drug carries different risks for different people: with the epilepsy drug carbamazepine, carriers of HLA-B*15:02 can develop a life-threatening skin reaction, and the gene is more common in East, Southeast and South Asia, which is why Taiwan’s national health insurance has paid for testing before treatment since 2010. Pick a gene; the panel on the right shows its frequency in nine ancestry groups (by group, not by country, so the map is not coloured).',
+        zh: '同一顆藥在不同人身上的風險不同：例如抗癲癇藥 carbamazepine，帶 HLA-B*15:02 的人可能發生致命的嚴重皮膚過敏，這個基因在東亞、東南亞與南亞較多，所以台灣健保 2010 年起給付用藥前的基因檢測。選一個基因，左邊的側欄是它在 9 個遺傳族群的頻率（依族群，不是國家，地圖不上色）。',
+        en: 'The same drug carries different risks for different people: with the epilepsy drug carbamazepine, carriers of HLA-B*15:02 can develop a life-threatening skin reaction, and the gene is more common in East, Southeast and South Asia, which is why Taiwan’s national health insurance has paid for testing before treatment since 2010. Pick a gene; the panel on the left shows its frequency in nine ancestry groups (by group, not by country, so the map is not coloured).',
       },
       unit: '',
       file: 'allele/{item}.json',
@@ -62,7 +62,7 @@ export const drugGenes: TopicDefinition = {
       rankingBars: false,
       panelChart: false,
       format: () => '',
-      missing: { zh: '依遺傳族群、不是國家，國家不上色，看右邊的側欄', en: 'By ancestry group, not country; countries are not coloured (see the panel on the right)' },
+      missing: { zh: '依遺傳族群、不是國家，國家不上色，看左邊的側欄', en: 'By ancestry group, not country; countries are not coloured (see the panel on the left)' },
     },
   ],
 };
