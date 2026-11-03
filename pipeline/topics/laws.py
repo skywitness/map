@@ -12,13 +12,15 @@
   台灣依食藥署的許可證。
 - 娛樂用大麻、迷幻蘑菇的持有（2026-11-03，「大麻」階段，使用者決定做）：`sources/recreational_drugs.py` 依同一個條目的
   Recreational 欄與「Legal status of psilocybin mushrooms」的 Possession 欄分類，只有 2026 年，資料檔依 CC BY-SA 4.0 分享。
+- 徵兵制、強制投票（2026-11-03，「之後」階段的另外兩項，使用者決定做）：`sources/conscription.py` 依 CIA World Factbook
+  （JSON 鏡像，CC0）的兵役欄逐國分類；`sources/compulsory_voting.py` 依英文維基「Compulsory voting」的兩張表（CC BY-SA 4.0）。
 """
 from __future__ import annotations
 
 import json
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json
-from sources import death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs
+from sources import compulsory_voting, conscription, death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs
 
 
 def build() -> None:
@@ -56,11 +58,16 @@ def build() -> None:
     ))
     counts = {k: sum(1 for v in cannabis.values() if v == k) for k in (1, 2, 3, 4)}
     print(f"  醫療用大麻 {len(cannabis)} 國：合法 {counts[1]}、有條件 {counts[2]}、只准特定藥品 {counts[3]}、非法 {counts[4]}")
-    for name, values, notes in (("cannabis", *recreational_drugs.cannabis(known)), ("psilocybin", *recreational_drugs.psilocybin(known))):
+    for name, (values, notes), license in (
+        ("cannabis", recreational_drugs.cannabis(known), "CC BY-SA 4.0"),
+        ("psilocybin", recreational_drugs.psilocybin(known), "CC BY-SA 4.0"),
+        ("conscription", conscription.status(known), "Public domain (CIA World Factbook); CC0 1.0 (factbook.json)"),
+        ("compulsory-voting", compulsory_voting.status(known), "CC BY-SA 4.0"),
+    ):
         write_json(out / f"{name}.json", indicator_file(
             name, "", [legal_ages.YEAR], {c: [v] for c, v in sorted(values.items())},
             notes={c: n[0] for c, n in notes.items()}, notesEn={c: n[1] for c, n in notes.items()},
-            license="CC BY-SA 4.0",
+            license=license,
         ))
         counts = sorted({v: sum(1 for x in values.values() if x == v) for v in values.values()}.items())
         print(f"  {name} {len(values)} 國：{counts}")

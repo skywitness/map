@@ -56,6 +56,23 @@ const PSILOCYBIN: CategoryDef[] = [
 ];
 const labelOf = (categories: CategoryDef[]) => (v: number) => tr(categories.find((c) => c.value === v)?.label ?? '');
 
+/** 徵兵制（pipeline/sources/conscription.py，2026-11-03）：從嚴到寬，越嚴越深 */
+const CONSCRIPTION: CategoryDef[] = [
+  { value: 1, label: { zh: '徵兵，男女都要', en: 'Conscription for men and women' } },
+  { value: 2, label: { zh: '徵兵', en: 'Conscription' } },
+  { value: 3, label: { zh: '法律上有，但暫停或不實施', en: 'In law, but suspended or not applied' } },
+  { value: 4, label: { zh: '只有志願役', en: 'Volunteers only' } },
+  { value: 5, label: { zh: '沒有軍隊', en: 'No army' } },
+];
+/** 強制投票（pipeline/sources/compulsory_voting.py，2026-11-03）：從嚴到寬，「各地不同」是灰色 */
+const COMPULSORY_VOTING: CategoryDef[] = [
+  { value: 1, label: { zh: '強制投票，有執行', en: 'Compulsory and enforced' } },
+  { value: 2, label: { zh: '強制投票，不執行或不明', en: 'Compulsory, not enforced or unclear' } },
+  { value: 3, label: { zh: '曾經強制，已廢除', en: 'Formerly compulsory' } },
+  { value: 4, label: { zh: '沒有強制投票', en: 'Not compulsory' } },
+  { value: 5, label: { zh: '各地不同', en: 'Varies by region' }, color: VARIES_COLOR },
+];
+
 /**
  * 法定年齡（pipeline/sources/legal_ages.py）：值是歲數，0 是沒有規定、1 是禁止。
  * 類別圖、循序色，年齡越大越深；「禁止」「沒有規定」不在年齡的順序上，用灰色（categories.ts 不讓它們占色階）
@@ -150,6 +167,19 @@ export const laws: TopicDefinition = {
     },
     {
       name: {
+        zh: 'CIA, The World Factbook：Military service age and obligation（徵兵制；factbook.json 鏡像 2026-09-11 的版本）',
+        en: 'CIA, The World Factbook: Military service age and obligation (conscription; factbook.json mirror as of 11 September 2026)',
+      },
+      url: 'https://github.com/factbook/factbook.json',
+      license: { zh: '公有領域（美國政府作品）；鏡像 CC0 1.0', en: 'Public domain (US government work); mirror CC0 1.0' },
+    },
+    {
+      name: { zh: '英文維基百科「Compulsory voting」（強制投票，2026 年 11 月）', en: 'Wikipedia, “Compulsory voting” (November 2026)' },
+      url: 'https://en.wikipedia.org/w/index.php?title=Compulsory_voting&oldid=1383198941',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
         zh: '衛生福利部食品藥物管理署：未註銷藥品許可證資料集（台灣的大麻二酚藥品）',
         en: 'Taiwan Food and Drug Administration: unrevoked drug licences (cannabidiol medicine in Taiwan)',
       },
@@ -235,6 +265,32 @@ export const laws: TopicDefinition = {
       file: 'psilocybin.json',
       layer: { kind: 'categorical', categories: PSILOCYBIN, ordinal: true },
       format: labelOf(PSILOCYBIN),
+      defaultYear: 2026,
+    },
+    {
+      id: 'conscription',
+      label: { zh: '徵兵制', en: 'Conscription' },
+      description: {
+        zh: '各國有沒有義務役，依 CIA《世界概況》（World Factbook，多數是 2025 年的狀態）的「兵役年齡與義務」逐國分類：徵兵而且男女都要（以色列、北韓、挪威、瑞典、丹麥、緬甸等 16 國）、徵兵（多數只徵男性，選擇性徵兵、抽籤也算，例如南韓、新加坡、泰國、土耳其、俄羅斯）、法律上有但暫停或不實施（德國、荷蘭、阿根廷、印尼等）、只有志願役（日本、美國、英國、法國等 88 國）、沒有軍隊（冰島、哥斯大黎加、巴拿馬等 20 國）。台灣 2024 年起 2005 年以後出生的男性要服 12 個月的義務役。《世界概況》2026 年 2 月停刊，2026 年才開始或恢復的（克羅埃西亞、約旦、柬埔寨）依它寫的計畫，附註有寫明。',
+        en: 'Whether countries have compulsory military service, classified country by country from “Military service age and obligation” in the CIA World Factbook (mostly as of 2025): conscription for men and women (16 countries, including Israel, North Korea, Norway, Sweden, Denmark and Myanmar), conscription (mostly men only; selective service and lotteries count, as in South Korea, Singapore, Thailand, Türkiye and Russia), in law but suspended or not applied (Germany, the Netherlands, Argentina, Indonesia and others), volunteers only (88 countries, including Japan, the US, the UK and France), or no army (20, including Iceland, Costa Rica and Panama). In Taiwan men born in 2005 or later have served 12 months since 2024. The Factbook ceased publication in February 2026; changes due in 2026 (Croatia, Jordan, Cambodia) follow its stated plans, as noted.',
+      },
+      unit: '',
+      file: 'conscription.json',
+      layer: { kind: 'categorical', categories: CONSCRIPTION, ordinal: true },
+      format: labelOf(CONSCRIPTION),
+      defaultYear: 2026,
+    },
+    {
+      id: 'compulsory-voting',
+      label: { zh: '強制投票', en: 'Compulsory voting' },
+      description: {
+        zh: '法律有沒有規定一定要投票：有執行（澳洲、巴西、阿根廷、新加坡、祕魯、北韓等 13 個）、有規定但不執行或執行情況不明（比利時、希臘、墨西哥、泰國、土耳其、智利等 12 國）、曾經有、已經廢除（義大利、荷蘭、奧地利、委內瑞拉等 14 國）、沒有（台灣與其他國家）；瑞士只有沙夫豪森邦，算各地不同。依英文維基「Compulsory voting」的列表，不在列表上的國家算沒有強制投票。',
+        en: 'Whether the law requires people to vote: compulsory and enforced (13, including Australia, Brazil, Argentina, Singapore, Peru and North Korea), compulsory but not enforced or unclear (12, including Belgium, Greece, Mexico, Thailand, Türkiye and Chile), formerly compulsory (14, including Italy, the Netherlands, Austria and Venezuela), or not compulsory (Taiwan and everywhere else); in Switzerland only the canton of Schaffhausen has it. From the English Wikipedia list “Compulsory voting”; countries not on the list count as not compulsory.',
+      },
+      unit: '',
+      file: 'compulsory-voting.json',
+      layer: { kind: 'categorical', categories: COMPULSORY_VOTING, ordinal: true },
+      format: labelOf(COMPULSORY_VOTING),
       defaultYear: 2026,
     },
     ageIndicator(
