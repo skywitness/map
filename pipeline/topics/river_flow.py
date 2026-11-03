@@ -15,7 +15,8 @@ cloud 的容器被回收、快取不見時，已經在 flow.json（同樣的年�
 加上流域大或有名但流量排不進前 40 的 10 條（EXTRA），再加台灣流域面積前 10 大的河（rivers.TAIWAN 的前 10 條）。
 **位置**：河口附近 GloFAS 的格點不一定落在主流上（文件建議把座標挪 0.1° 試試；高屏溪河口那一格只有 6 m³/s，
 主流在西邊約 4 公里）：河口周圍 ±0.1° 每 0.05° 一點（25 點）與河口往上游 50 km 內的幾個點各抓兩週，
-取平均流量最大的格點，再抓那一格的 10 年。
+取平均流量最大、離河口（或往上游的點）0.06° 以內的格點（API 會挑 5 km 內最大的河，烏溪河口北邊的點會跳到大甲溪），
+再抓那一格的 10 年。兩條河用到同一個格點時停下來。
 """
 from __future__ import annotations
 
@@ -170,10 +171,13 @@ def locate(river: dict) -> dict:
         "latitude": ",".join(f"{c[1]:.3f}" for c in cands), "longitude": ",".join(f"{c[0]:.3f}" for c in cands),
         "daily": "river_discharge", "models": MODEL, "start_date": PROBE[0], "end_date": PROBE[1],
     })
+    # 回傳的格點要離河口（或往上游的點）0.06° 以內：API 會挑 5 km 內最大的河，烏溪河口北邊那幾點會跳到大甲溪的出海口
+    centres = [(lon, lat), *river["near"]]
     best = None
     for res in result if isinstance(result, list) else [result]:
         values = [v for v in res["daily"]["river_discharge"] if v is not None]
-        if values:
+        cell = (res["longitude"], res["latitude"])
+        if values and min(_km(cell, c) for c in centres) <= 0.06 * 111.2:
             mean = sum(values) / len(values)
             if best is None or mean > best["probe"]:
                 best = {"lat": res["latitude"], "lon": res["longitude"], "probe": round(mean, 1)}
@@ -255,6 +259,11 @@ def build() -> None:
               f"差 {months[peak] / max(months[low], 0.01):.1f} 倍")
         if fetched and river is not todo[-1]:
             time.sleep(PAUSE)
+    cells: dict[tuple[float, float], str] = {}
+    for r in rows:
+        other = cells.setdefault((round(r["lat"], 3), round(r["lon"], 3)), r["z"])
+        if other != r["z"]:
+            raise RuntimeError(f"{r['z']} 跟 {other} 用了同一個格點 {r['lat']}, {r['lon']}")
     if missing:
         print(f"  今天的 Open-Meteo 額度用完了，還有 {len(missing)} 條沒抓：{'、'.join(r['zh'] for r in missing)}；明天（UTC）再跑一次")
     if not rows:
