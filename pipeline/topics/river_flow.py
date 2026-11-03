@@ -12,7 +12,7 @@
 所以一天抓不完。每條河的結果存在 pipeline/.cache/open-meteo-flood/，遇到每天的上限就停，隔天再跑會從快取接著抓；
 cloud 的容器被回收、快取不見時，已經在 flow.json（同樣的年份）的河沿用它的值，不重抓。
 **挑哪些河**：河流主題（topics/rivers.py 已經輸出的 rivers.json）裡 HydroRIVERS 長期平均流量前 40 名、有名稱的河流系統，
-加上流域大或有名但流量排不進前 40 的 10 條（EXTRA），再加台灣流域面積前 10 大的河（rivers.TAIWAN 的前 10 條）。
+加上流域大或有名但流量排不進前 40 的 8 條（EXTRA；尼羅河、科羅拉多河模式值差太多，不放），再加台灣流域面積前 10 大的河（rivers.TAIWAN 的前 10 條）。
 **位置**：河口附近 GloFAS 的格點不一定落在主流上（文件建議把座標挪 0.1° 試試；高屏溪河口那一格只有 6 m³/s，
 主流在西邊約 4 公里）：河口周圍 ±0.1° 每 0.05° 一點（25 點）與河口往上游 50 km 內的幾個點各抓兩週，
 取平均流量最大、離河口（或往上游的點）0.06° 以內的格點（API 會挑 5 km 內最大的河，烏溪河口北邊的點會跳到大甲溪），
@@ -43,7 +43,9 @@ FIRST, LAST = 2015, 2024
 PROBE = ("2020-07-01", "2020-07-14")  # 找格點用的兩週（一次算 1 次）
 TOP = 40
 # 流量排不進前 40，但流域大或有名的河（rivers.json 的英文名）
-EXTRA = ["Nile", "Yellow", "Shatt al-Arab", "Murray", "Colorado", "Grande", "Orange", "Rhine", "Dnieper", "Chao Phraya"]
+# 尼羅河、科羅拉多河原本也在這裡，但 GloFAS 沒有算水庫與取水：尼羅河三角洲那一格 10,639 m³/s、科羅拉多河 469 m³/s，
+# 是 HydroRIVERS 長期平均的 5.5、5.3 倍（實際到海的水很少），做出來會誤導，不放（2026-11-03，比照手冊 278 的原則）
+EXTRA = ["Yellow", "Shatt al-Arab", "Murray", "Grande", "Orange", "Rhine", "Dnieper", "Chao Phraya"]
 TAIWAN_N = 10
 PAUSE = 200  # 每抓一條河（約 261 次）停幾秒：每小時 5,000 次以內
 
