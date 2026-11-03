@@ -274,6 +274,8 @@ STEPS = {
     "red-cell-traits": "topics.red_cell_traits",
     # 乳糖不耐（製作手冊第十九批 290）：Itan 等 2010 的附件 1（Europe PMC 的附件 zip，讀 .xls 要 xlrd）
     "lactase": "topics.lactase",
+    # 藥物過敏與藥效的基因（製作手冊第十九批 291）：CPIC API 的 population_frequency_view（CC0，依 9 個生物地理群）
+    "drug-genes": "topics.drug_genes",
     # 航運與港口的商船隊（新27 的圓餅）：只跑 shipping 的 merchant_fleet（UNCTADstat），不下載港口與航港局的資料
     "shipping-fleet": "topics.shipping_fleet",
     # 要先有 geo 的國界與晝夜與季節的首都（daylight）；第一次會下載 Marine Regions 的 IHO 海域與 Global Oceans and Seas

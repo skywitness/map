@@ -992,6 +992,8 @@ export interface WorldPanelProps {
   topic: Topic;
   indicator: Indicator;
   year: number;
+  /** 目前選的子項目（有 dimension 的指標才有；2026-11-03 起，藥物過敏的基因依等位基因換內容） */
+  item: string | null;
   tokens: Tokens;
 }
 

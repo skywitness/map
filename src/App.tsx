@@ -1316,7 +1316,7 @@ export function App() {
                   </button>
                 </header>
                 <Suspense fallback={<PanelSkeleton />}>
-                  <WorldPanel topic={topic} indicator={indicator} year={year} tokens={tokens} />
+                  <WorldPanel topic={topic} indicator={indicator} year={year} item={item} tokens={tokens} />
                 </Suspense>
                 <FloatResize which="panel" />
               </aside>

@@ -59,6 +59,7 @@ const TOPIC_ICONS = {
   'newborn-screening': 'test-tube-diagonal',
   'red-cell-traits': 'dna',
   lactase: 'milk',
+  'drug-genes': 'pill-bottle',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
   pisa: 'book-open-check',
