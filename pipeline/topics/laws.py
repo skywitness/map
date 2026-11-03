@@ -10,13 +10,15 @@
 - 醫療用大麻（2026-11-03，製作手冊第十九批 299）：`sources/medical_cannabis.py` 依英文維基百科「Legality of cannabis」的
   Medical 欄分類（合法、有條件或各地不同、只准特定藥品或 CBD、非法），只有 2026 年，資料檔依 CC BY-SA 4.0 分享；
   台灣依食藥署的許可證。
+- 娛樂用大麻、迷幻蘑菇的持有（2026-11-03，「大麻」階段，使用者決定做）：`sources/recreational_drugs.py` 依同一個條目的
+  Recreational 欄與「Legal status of psilocybin mushrooms」的 Possession 欄分類，只有 2026 年，資料檔依 CC BY-SA 4.0 分享。
 """
 from __future__ import annotations
 
 import json
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json
-from sources import death_penalty, gambling, legal_ages, medical_cannabis
+from sources import death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs
 
 
 def build() -> None:
@@ -54,6 +56,14 @@ def build() -> None:
     ))
     counts = {k: sum(1 for v in cannabis.values() if v == k) for k in (1, 2, 3, 4)}
     print(f"  醫療用大麻 {len(cannabis)} 國：合法 {counts[1]}、有條件 {counts[2]}、只准特定藥品 {counts[3]}、非法 {counts[4]}")
+    for name, values, notes in (("cannabis", *recreational_drugs.cannabis(known)), ("psilocybin", *recreational_drugs.psilocybin(known))):
+        write_json(out / f"{name}.json", indicator_file(
+            name, "", [legal_ages.YEAR], {c: [v] for c, v in sorted(values.items())},
+            notes={c: n[0] for c, n in notes.items()}, notesEn={c: n[1] for c, n in notes.items()},
+            license="CC BY-SA 4.0",
+        ))
+        counts = sorted({v: sum(1 for x in values.values() if x == v) for v in values.values()}.items())
+        print(f"  {name} {len(values)} 國：{counts}")
     write_json(out / "manifest.json", {
         "topic": "laws", "generatedAt": now_iso(),
         "source": "Wikipedia (CC BY-SA 4.0); 法務部",

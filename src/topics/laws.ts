@@ -35,6 +35,28 @@ const MEDICAL_CANNABIS: CategoryDef[] = [
 const medicalCannabisLabel = (v: number) => tr(MEDICAL_CANNABIS.find((c) => c.value === v)?.label ?? '');
 
 /**
+ * 娛樂用大麻、迷幻蘑菇的持有（pipeline/sources/recreational_drugs.py，2026-11-03，「大麻」階段）：從寬到嚴是循序的，
+ * 「各地不同」不在順序上，用灰色（跟博弈一樣）
+ */
+const VARIES_COLOR = '#7a776f';
+const CANNABIS: CategoryDef[] = [
+  { value: 1, label: { zh: '合法，可以合法取得', en: 'Legal, with legal supply' } },
+  { value: 2, label: { zh: '可以持有、自種，不准販賣', en: 'Possession and home growing legal, no sale' } },
+  { value: 3, label: { zh: '除罪化', en: 'Decriminalised' } },
+  { value: 4, label: { zh: '違法，但常不取締或有例外', en: 'Illegal, but often unenforced or with exceptions' } },
+  { value: 5, label: { zh: '違法', en: 'Illegal' } },
+  { value: 6, label: { zh: '各地不同', en: 'Varies by region' }, color: VARIES_COLOR },
+];
+const PSILOCYBIN: CategoryDef[] = [
+  { value: 1, label: { zh: '合法', en: 'Legal' } },
+  { value: 2, label: { zh: '除罪化', en: 'Decriminalised' } },
+  { value: 3, label: { zh: '違法，但常不取締', en: 'Illegal, but often unenforced' } },
+  { value: 4, label: { zh: '違法', en: 'Illegal' } },
+  { value: 5, label: { zh: '各地不同或不明確', en: 'Varies or unclear' }, color: VARIES_COLOR },
+];
+const labelOf = (categories: CategoryDef[]) => (v: number) => tr(categories.find((c) => c.value === v)?.label ?? '');
+
+/**
  * 法定年齡（pipeline/sources/legal_ages.py）：值是歲數，0 是沒有規定、1 是禁止。
  * 類別圖、循序色，年齡越大越深；「禁止」「沒有規定」不在年齡的順序上，用灰色（categories.ts 不讓它們占色階）
  */
@@ -120,8 +142,8 @@ export const laws: TopicDefinition = {
     },
     {
       name: {
-        zh: '英文維基百科「Legality of cannabis」的 Medical 欄（醫療用大麻，2026 年 10 月）、「Legal status of psilocybin mushrooms」（迷幻蘑菇）',
-        en: 'Wikipedia, “Legality of cannabis”, Medical column (medical cannabis, October 2026) and “Legal status of psilocybin mushrooms”',
+        zh: '英文維基百科「Legality of cannabis」的 Recreational、Medical 欄（娛樂用與醫療用大麻，2026 年 10 月）、「Legal status of psilocybin mushrooms」（迷幻蘑菇，2026 年 11 月）',
+        en: 'Wikipedia, “Legality of cannabis”, Recreational and Medical columns (October 2026) and “Legal status of psilocybin mushrooms” (November 2026)',
       },
       url: 'https://en.wikipedia.org/w/index.php?title=Legality_of_cannabis&oldid=1378590397',
       license: 'CC BY-SA 4.0',
@@ -187,6 +209,32 @@ export const laws: TopicDefinition = {
       file: 'medical-cannabis.json',
       layer: { kind: 'categorical', categories: MEDICAL_CANNABIS, ordinal: true },
       format: medicalCannabisLabel,
+      defaultYear: 2026,
+    },
+    {
+      id: 'cannabis',
+      label: { zh: '娛樂用大麻', en: 'Recreational cannabis' },
+      description: {
+        zh: '2026 年非醫療用途的大麻合不合法：合法而且可以合法取得（加拿大、烏拉圭的販售，德國、馬爾他的非營利大麻俱樂部）、可以持有與自種但不准販賣（捷克、盧森堡、南非、墨西哥、喬治亞）、除罪化（持有少量不是刑事罪，例如葡萄牙、西班牙、荷蘭的咖啡店是容許、不是合法）、違法但常不取締或有例外、違法，美國、澳洲依州而定。泰國 2022 年開放，2025 年沒有處方的產品又列為違法。台灣的大麻是第二級毒品，施用、持有都有刑責；201 個國家或地區裡 144 個違法。',
+        en: 'Whether non-medical cannabis is legal in 2026: legal with a legal supply (sales in Canada and Uruguay, non-profit cannabis clubs in Germany and Malta), possession and home growing legal but no sale (Czechia, Luxembourg, South Africa, Mexico, Georgia), decriminalised (possessing small amounts is not a crime, as in Portugal and Spain; Dutch coffeeshops are tolerated rather than legal), illegal but often unenforced or with exceptions, or illegal; it varies by state in the US and Australia. Thailand opened up in 2022 and recriminalised unprescribed products in 2025. In Taiwan cannabis is a Schedule 2 narcotic, and use and possession are criminal offences; it is illegal in 144 of the 201 countries and territories.',
+      },
+      unit: '',
+      file: 'cannabis.json',
+      layer: { kind: 'categorical', categories: CANNABIS, ordinal: true },
+      format: labelOf(CANNABIS),
+      defaultYear: 2026,
+    },
+    {
+      id: 'psilocybin',
+      label: { zh: '迷幻蘑菇的持有', en: 'Magic mushroom possession' },
+      description: {
+        zh: '2026 年持有迷幻蘑菇（含 psilocybin 的蕈類）合不合法，只收英文維基表上的 63 個國家或地區（其他國家沒有資料，不代表合法）：合法（奧地利、巴西、牙買加、尼泊爾、巴哈馬；荷蘭 2008 年起禁止迷幻蘑菇，但「迷幻松露」合法）、除罪化（葡萄牙、西班牙、瑞士、捷克等）、違法但常不取締（印尼、泰國、越南、加拿大等）、違法；美國依州、市而定。醫療用途見「醫療用大麻」的說明。台灣的 psilocybin 是第二級毒品。',
+        en: 'Whether possessing magic mushrooms (fungi containing psilocybin) is legal in 2026, for the 63 countries and territories in the English Wikipedia table only (no data elsewhere, which does not mean legal): legal (Austria, Brazil, Jamaica, Nepal, the Bahamas; the Netherlands banned the mushrooms in 2008 but “magic truffles” are legal), decriminalised (Portugal, Spain, Switzerland, Czechia and others), illegal but often unenforced (Indonesia, Thailand, Vietnam, Canada and others), or illegal; in the US it varies by state and city. For medical use, see “Medical cannabis”. In Taiwan psilocybin is a Schedule 2 narcotic.',
+      },
+      unit: '',
+      file: 'psilocybin.json',
+      layer: { kind: 'categorical', categories: PSILOCYBIN, ordinal: true },
+      format: labelOf(PSILOCYBIN),
       defaultYear: 2026,
     },
     ageIndicator(
