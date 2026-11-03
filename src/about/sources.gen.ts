@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 131;
-export const INDICATOR_COUNT = 773;
+export const INDICATOR_COUNT = 774;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","diet","festivals","reads","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -69,6 +69,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"CLIWOC 2.1（Climatological Database for the World’s Oceans 1750–1854；García-Herrera 等 2007，PANGAEA）","en":"CLIWOC 2.1 (Climatological Database for the World’s Oceans 1750–1854; García-Herrera et al. 2007, PANGAEA)"},"url":"https://doi.org/10.1594/PANGAEA.743343","licenses":[{"zh":"CC BY 3.0","en":"CC BY 3.0"}],"topics":["logbooks"]},
   {"name":{"zh":"COLDAT 殖民時期資料集（Becker）","en":"COLDAT Colonial Dates Dataset (Becker)"},"url":"https://doi.org/10.7910/DVN/T9SDEW","licenses":["CC0"],"topics":["empires"]},
   {"name":{"zh":"COMNAP Antarctic Facilities（2024 年 11 月版，只用來核對哪些站還在運作）","en":"COMNAP Antarctic Facilities (November 2024, used only to check which stations still operate)"},"url":"https://www.comnap.aq/antarctic-facilities-information","licenses":[{"zh":"只引用核對結果與總數","en":"check results and totals cited only"}],"topics":["antarctica"]},
+  {"name":{"zh":"Copernicus 緊急管理服務 Global Flood Awareness System（GloFAS）：Contains modified Copernicus Emergency Management Service information 2026","en":"Copernicus Emergency Management Service, Global Flood Awareness System (GloFAS): contains modified Copernicus Emergency Management Service information 2026"},"url":"https://ecds.ecmwf.int/licences/cems-floods","licenses":[{"zh":"CEMS-FLOODS datasets licence","en":"CEMS-FLOODS datasets licence"}],"topics":["rivers"]},
   {"name":"Coppedge, Michael, John Gerring, Carl Henrik Knutsen, Staffan I. Lindberg, Jan Teorell, David Altman, et al. 2026. \"V-Dem Country-Year Dataset v16\". Varieties of Democracy (V-Dem) Project","url":"https://doi.org/10.23696/vdemds26","licenses":["CC BY-SA 4.0"],"topics":["democracy"]},
   {"name":{"zh":"Cottom 等人（2024），Nature 633（SPOT 模型）","en":"Cottom et al. (2024), Nature 633 (SPOT model)"},"url":"https://doi.org/10.5061/dryad.8cz8w9gxb","licenses":["CC0 1.0"],"topics":["plastic"]},
   {"name":{"zh":"CRU CL v2.0（日照百分比，1961–1990 年平均；New et al. 2002, Climate Research）","en":"CRU CL v2.0 (sunshine percentage, 1961–1990 average; New et al. 2002, Climate Research)"},"url":"https://crudata.uea.ac.uk/cru/data/hrg/tmc/","licenses":["Open Database License (ODbL)"],"topics":["temperature"]},
@@ -177,6 +178,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD.AI（OpenRouter 資料）","en":"OECD.AI (OpenRouter data)"},"url":"https://oecd.ai/en/data?selectedArea=ai-model-usage","licenses":[{"zh":"未明示授權","en":"licence not stated"}],"topics":["ai"]},
   {"name":{"zh":"OECD《Consumption Tax Trends 2024》附錄表 2.A.1（加值型營業稅標準稅率）","en":"OECD, Consumption Tax Trends 2024, Annex Table 2.A.1 (standard VAT/GST rates)"},"url":"https://doi.org/10.1787/dcd4dd36-en","licenses":["CC BY 4.0"],"topics":["taxes"]},
   {"name":{"zh":"OECD《Tax Policy Reforms 2025》《Tax Policy Reforms 2026》（2025、2026 年的加值型營業稅調整）","en":"OECD, Tax Policy Reforms 2025 and 2026 (VAT rate changes for 2025 and 2026)"},"url":"https://doi.org/10.1787/43d18a55-en","licenses":["CC BY 4.0"],"topics":["taxes"]},
+  {"name":{"zh":"Open-Meteo Flood API（GloFAS v4 再分析，2015–2024 年的每日流量，算成月平均）","en":"Open-Meteo Flood API (GloFAS v4 reanalysis, daily flow 2015–2024, averaged by month)"},"url":"https://open-meteo.com/","licenses":[{"zh":"CC BY 4.0（免費 API 只准非商業使用）","en":"CC BY 4.0 (free API for non-commercial use only)"}],"topics":["rivers"]},
   {"name":{"zh":"OpenAlex（Priem, Piwowar & Orr 2022）","en":"OpenAlex (Priem, Piwowar & Orr 2022)"},"url":"https://openalex.org/","licenses":["CC0 1.0"],"topics":["publications"]},
   {"name":"OpenFreeMap","url":"https://openfreemap.org/","licenses":[{"zh":"免費使用","en":"free to use"}],"topics":["map"]},
   {"name":{"zh":"OpenHistoricalMap 貢獻者（國家層級的疆界，1800 年以後的殖民地與帝國；簡化到約 3–8 公里，台灣民主國依史實補）","en":"OpenHistoricalMap contributors (country-level boundaries: colonies and empires after 1800; simplified to about 3–8 km, Republic of Formosa added from historical sources)"},"url":"https://www.openhistoricalmap.org/copyright","licenses":["CC0 1.0"],"topics":["empires"]},

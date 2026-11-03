@@ -264,6 +264,10 @@ STEPS = {
     "eclipse-elements": "topics.eclipse_elements",
     # 河流與流域的國土面積（新17 的圓餅）：讀 rivers 已經輸出的檔與 FAOSTAT 的陸地面積（海洋與漁業同一份快取），不重算河道
     "rivers-land": "topics.rivers_land",
+    # 大河一年中的流量（製作手冊第十七批 277）：Open-Meteo Flood API（GloFAS 再分析）2015–2024 年的每日流量算月平均；
+    # 讀 rivers 已經輸出的 rivers.json 挑河。免費額度每天 1 萬次，60 條河要分兩天抓（快取在 .cache/open-meteo-flood/，
+    # 額度用完就停，隔天再跑接著抓）；每條河之間停 200 秒，一天約 2–3 小時
+    "river-flow": "topics.river_flow",
     # 航運與港口的商船隊（新27 的圓餅）：只跑 shipping 的 merchant_fleet（UNCTADstat），不下載港口與航港局的資料
     "shipping-fleet": "topics.shipping_fleet",
     # 要先有 geo 的國界與晝夜與季節的首都（daylight）；第一次會下載 Marine Regions 的 IHO 海域與 Global Oceans and Seas

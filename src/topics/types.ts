@@ -1115,6 +1115,11 @@ export interface ListRow {
   /** 列底下的外部連結（另開分頁，例如新聞熱點的原始新聞）；label 是不翻譯的原文 */
   link?: { href: string; label: string };
   /**
+   * 列裡的小長條圖（2026-11-03，第十七批 277 大河一年中的流量的 12 個月）：values 依序畫（從 0 起、依最大值縮放），
+   * highlight 的索引畫成強調色，labels 是頭尾的刻度，aria 是給螢幕報讀的完整說明
+   */
+  bars?: { values: number[]; highlight?: number[]; labels?: [string, string]; aria: string };
+  /**
    * 分組（第十二批 202）：跟上一列不同時，這一列上面加一行組名（館處的洲、南極研究站的國家）。rows 要先依組排好
    */
   group?: string;

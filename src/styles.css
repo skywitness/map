@@ -1551,6 +1551,30 @@ kbd {
   font-size: 12px;
 }
 
+/* 列裡的小長條圖（ListRow.bars，大河一年中的流量的 12 個月）：一般的長條是淡的墨色，最多的那幾根是強調色 */
+.list-row-bars {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.list-row-bars rect {
+  fill: var(--axis);
+}
+
+.list-row-bars rect.is-high {
+  fill: var(--accent);
+}
+
+.list-row-bars-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
 /* 分組的組名（ListRow.group）：跟列的文字對齊的小標題，捲動時黏在清單上方 */
 .list-side-group {
   position: sticky;

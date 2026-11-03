@@ -1,6 +1,8 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatPercent } from '../lib/format';
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
+import { withParts } from './parts';
+import { riverFlowPart } from './river-flow';
 import type { IndicatorDef, LinesOverlayDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
@@ -418,7 +420,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const rivers: TopicDefinition = {
+export const rivers: TopicDefinition = withParts({
   id: 'rivers',
   title: { zh: '河流與流域', en: 'Rivers and drainage basins' },
   shortTitle: { zh: '河流與流域', en: 'Rivers' },
@@ -486,4 +488,4 @@ export const rivers: TopicDefinition = {
     { ...DAMS, id: 'dams-map', hidden: true, indicators: ['map'], shareable: false },
   ],
   indicators,
-};
+}, riverFlowPart);

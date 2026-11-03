@@ -256,6 +256,7 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
                     {line}
                   </span>
                 ))}
+                {r.bars && <MiniBars {...r.bars} />}
               </button>
               {r.link && (
                 <a className="list-row-link" href={r.link.href} target="_blank" rel="noopener noreferrer" translate="no">
@@ -269,5 +270,40 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
       {/* 寬螢幕時浮在地圖上：下緣拖動改高度（窄螢幕不顯示） */}
       <FloatResize which="list" />
     </aside>
+  );
+}
+
+/** 列裡的小長條圖（ListRow.bars）：每根 7 px 寬、間隔 2 px，高 22 px，從 0 起依最大值縮放 */
+function MiniBars({ values, highlight, labels, aria }: NonNullable<ListRow['bars']>) {
+  const max = Math.max(...values, 0) || 1;
+  const w = 7;
+  const gap = 2;
+  const h = 22;
+  const width = values.length * (w + gap) - gap;
+  return (
+    <span className="list-row-bars">
+      <svg width={width} height={h} viewBox={`0 0 ${width} ${h}`} role="img" aria-label={aria}>
+        {values.map((v, i) => {
+          const bh = Math.max(1, (v / max) * h);
+          return (
+            <rect
+              key={i}
+              x={i * (w + gap)}
+              y={h - bh}
+              width={w}
+              height={bh}
+              rx={1.5}
+              className={highlight?.includes(i) ? 'is-high' : undefined}
+            />
+          );
+        })}
+      </svg>
+      {labels && (
+        <span className="list-row-bars-labels" style={{ width }} aria-hidden="true">
+          <span>{labels[0]}</span>
+          <span>{labels[1]}</span>
+        </span>
+      )}
+    </span>
   );
 }
