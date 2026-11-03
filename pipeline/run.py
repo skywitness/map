@@ -270,6 +270,8 @@ STEPS = {
     "river-flow": "topics.river_flow",
     # 新生兒篩檢（製作手冊第十九批 288）：Therrell 等 2024 的全文 XML（Europe PMC，CC BY 4.0）的七張表
     "newborn-screening": "topics.newborn_screening",
+    # 紅血球的遺傳性狀（製作手冊第十九批 289）：Howes 2012、Piel 2013 的國家表（PDF）與 Malaria Atlas Project 的網格（約 32 MB）
+    "red-cell-traits": "topics.red_cell_traits",
     # 航運與港口的商船隊（新27 的圓餅）：只跑 shipping 的 merchant_fleet（UNCTADstat），不下載港口與航港局的資料
     "shipping-fleet": "topics.shipping_fleet",
     # 要先有 geo 的國界與晝夜與季節的首都（daylight）；第一次會下載 Marine Regions 的 IHO 海域與 Global Oceans and Seas
