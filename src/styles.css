@@ -411,12 +411,65 @@ button {
   white-space: nowrap;
 }
 
+/* 主題列（TopicNav.tsx）與放不下時左右的按鈕 */
+.topics-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
 .topics {
   display: flex;
   gap: 4px;
   overflow-x: auto;
   flex: 1;
+  min-width: 0;
   scrollbar-width: none;
+}
+
+.topics::-webkit-scrollbar {
+  display: none;
+}
+
+.topics-arrow {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.topics-arrow:hover:not(:disabled) {
+  background: var(--grid);
+  color: var(--ink);
+}
+
+.topics-arrow:disabled {
+  color: var(--ink-muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 還有沒看到的分類的那一邊淡出（TopicNav.tsx 的 FADE） */
+.topics.can-left {
+  mask-image: linear-gradient(to right, transparent, #000 24px);
+}
+
+.topics.can-right {
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+
+.topics.can-left.can-right {
+  mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
 }
 
 .topic {
@@ -449,47 +502,7 @@ button {
   opacity: 0.6;
 }
 
-/* 主題列放不下時一級一級收緊（TopicNav.tsx 的 compact）：間距 → 沒展開的分類的箭頭 → 它們的圖示 → 目前分類的名稱 */
-.topics.is-compact-1,
-.topics.is-compact-2,
-.topics.is-compact-3,
-.topics.is-compact-4 {
-  gap: 1px;
-}
-
-:is(.is-compact-1, .is-compact-2, .is-compact-3, .is-compact-4) > .topic {
-  padding-inline: 7px;
-  gap: 4px;
-}
-
-:is(.is-compact-2, .is-compact-3, .is-compact-4) > .topic:not(.is-active) .topic-caret,
-:is(.is-compact-3, .is-compact-4) > .topic:not(.is-active) .topic-group-icon {
-  display: none;
-}
-
-/* 第 4 級（2026-11-03，加了醫藥分類之後英文 1280px 放不下 12 個主題名稱長的）：目前的分類只留圖示與主題名稱，
-   分類名稱只給螢幕報讀（同 .visually-hidden） */
-.is-compact-4 > .topic.is-active .topic-group-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-.is-compact-4 > .topic.is-active .topic-current::before {
-  content: none;
-}
-
-/* 主題列放不下時可以橫向捲動：右緣淡出，看得出後面還有 */
-.topics.is-overflowing {
-  padding-right: 24px;
-  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-}
-
-/* 主題分類按鈕（TopicNav.tsx）：目前主題所在的分類顯示「分類 · 主題」 */
+/* 主題分類按鈕（TopicNav.tsx）：圖示、分類名稱、箭頭，寬度不隨目前的主題改變 */
 .topic-group {
   display: inline-flex;
   align-items: center;
@@ -509,16 +522,6 @@ button {
 
 .topic.is-active .topic-group-icon {
   color: inherit;
-}
-
-.topic-current::before {
-  content: '·';
-  margin-right: 6px;
-  opacity: 0.6;
-}
-
-.topic-current {
-  font-weight: 600;
 }
 
 .topic-caret {
@@ -759,10 +762,12 @@ button {
   gap: 8px;
 }
 
+/* 控制列最前面的主題名稱（2026-11-03 從頂列的分類按鈕搬來）；純地圖寫頁面標題 */
 .page-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 650;
+  margin: 0 4px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .controls-left {
@@ -4142,6 +4147,7 @@ kbd {
 }
 
 .is-embed .topbar,
+.is-embed .page-title,
 .is-embed .controls-right,
 .is-embed .indicator-desc-row,
 .is-embed .footer > :not(.footer-sources) {
@@ -4386,7 +4392,7 @@ kbd {
     gap: 12px;
   }
 
-  .topbar .topics {
+  .topbar .topics-bar {
     order: 1;
     flex-basis: 100%;
   }

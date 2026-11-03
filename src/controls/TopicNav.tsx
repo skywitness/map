@@ -20,9 +20,6 @@ import { categoryStyle, Glyph, GroupGlyph, loadTopicIcons, useTopicIcons } from 
 // 主題總覽（全部主題的縮圖與搜尋）第一次打開才下載（2026-10-30）
 const TopicsOverview = lazy(() => import('./TopicsOverview').then((m) => ({ default: m.TopicsOverview })));
 
-/** 主題列放不下時收緊的級數（styles.css 的 .is-compact-1…4；第 4 級 2026-11-03 加醫藥分類時加） */
-const COMPACT_STEPS = 4;
-
 interface TopicNavProps {
   current: Pick<TopicSummary, 'id' | 'shortTitle'>;
   onSelect: (topicId: string) => void;
@@ -57,17 +54,39 @@ function estimateHeights(group: TopicGroup): number[] {
 }
 
 
-/** 只捲動主題列本身（scrollIntoView 可能連整頁一起捲）；右邊留出淡出的寬度 */
+/** 主題列兩端淡出的寬度（styles.css 的 .topics.can-left、.can-right） */
+const FADE = 24;
+/** 左右按鈕一次捲動主題列可見寬度的多少 */
+const SCROLL_PAGE = 0.7;
+
+/** 只捲動主題列本身（scrollIntoView 可能連整頁一起捲）；兩端留出淡出的寬度 */
 function reveal(nav: HTMLElement, button: HTMLElement): void {
   const n = nav.getBoundingClientRect();
   const b = button.getBoundingClientRect();
-  if (b.left < n.left) nav.scrollLeft -= n.left - b.left + 8;
-  else if (b.right > n.right - 28) nav.scrollLeft += b.right - (n.right - 28) + 8;
+  if (b.left < n.left + FADE) nav.scrollLeft -= n.left + FADE - b.left;
+  else if (b.right > n.right - FADE) nav.scrollLeft += b.right - (n.right - FADE);
+}
+
+function Chevron({ dir }: { dir: 'left' | 'right' }) {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path
+        d={dir === 'left' ? 'M10 3 5 8l5 5' : 'M6 3l5 5-5 5'}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 /**
  * 頂列的主題選單：純地圖一顆按鈕，其他主題依 TOPIC_GROUPS 分類，每類一個下拉選單。
- * 目前主題所在的分類按鈕會亮起，並顯示「分類 · 主題」。
+ * 目前主題所在的分類按鈕會亮起；主題名稱寫在控制列的最前面（App.tsx 的 .page-title），分類按鈕的寬度不隨主題改變，
+ * 換主題時其他分類不會移動（使用者 2026-11-03）。
+ * 放不下所有分類時（窄視窗）主題列可以橫向捲動，左右另有按鈕；圖示與箭頭一律顯示，不依寬度增減。
  *
  * 鍵盤依 WAI-ARIA 的 menu button 模式：↓↑ 開啟、↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉。
  * 主題列在手機上可以橫向捲動（overflow 會裁掉往下長的選單），所以選單用 portal 放到 body、
@@ -79,13 +98,15 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   const [open, setOpen] = useState<string | null>(null);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const navRef = useRef<HTMLElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const focusOnOpen = useRef<Focus>('current');
   const menuId = useId();
 
-  const [overflowing, setOverflowing] = useState(false);
+  /** 放不下所有分類（顯示左右按鈕）、左邊或右邊還有沒看到的分類 */
+  const [scroll, setScroll] = useState({ overflow: false, left: false, right: false });
   /** 選單裡每一段（小標題與它的主題）量到的高度，分欄用（packColumns）；換分類、換語言時重量 */
   const [measured, setMeasured] = useState<{ key: string; heights: number[] } | null>(null);
   /** 主題總覽打開過了（之後留著，關上時有對話框的關閉動畫、再開不必等） */
@@ -137,45 +158,37 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
     if (refocus && id) buttonRefs.current.get(id)?.focus();
   };
 
-  // 主題列放不下時先一級一級收緊（COMPACT_STEPS：按鈕的間距、沒展開的分類的箭頭、圖示），
-  // 收到最緊還放不下（手機）就照原樣、可以橫向捲動，右緣淡出提示後面還有（2026-10-30；原本英文在 1280px 寬時「Geography」被切掉）
-  const [compact, setCompact] = useState(0);
-  /** 每一級需要的寬度（量過才有）；換語言、換主題時按鈕的寬度會變，重量 */
-  const needed = useRef<number[]>([]);
-  const measuredFor = useRef('');
+  // 放不下所有分類時顯示左右按鈕（2026-11-03 使用者決定；原本是一級一級收緊間距、拿掉箭頭與圖示，已拿掉）。
+  // 按鈕不換行、不縮，主題列的 scrollWidth 就是全部分類要的寬度；跟整條（含左右按鈕的位置）比，
+  // 左右按鈕出現前後用同一個基準，不會來回切換。量的時機：整條或任何一個分類按鈕的大小變了（換語言、字型載入）、捲動
   useLayoutEffect(() => {
     const nav = navRef.current;
-    if (!nav) return;
-    const key = `${lang}|${current.id}`;
-    if (measuredFor.current !== key) {
-      measuredFor.current = key;
-      needed.current = [];
-      if (compact !== 0) {
-        setCompact(0);
-        return;
-      }
-    }
+    const bar = barRef.current;
+    if (!nav || !bar) return;
     const check = () => {
-      // 按鈕本身的寬度不受主題列的寬度影響（不換行、不縮），量第一個到最後一個看得見的按鈕
-      const rects = [...nav.children].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0);
-      if (!rects.length) return;
-      const style = getComputedStyle(nav);
-      const room = nav.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-      const width = Math.max(...rects.map((r) => r.right)) - rects[0].left;
-      needed.current[compact] = width;
-      const fits = (level: number) => needed.current[level] !== undefined && needed.current[level] <= room + 1;
-      const looser = [...Array(compact).keys()].find(fits);
-      const hopeless = needed.current[COMPACT_STEPS] !== undefined && !fits(COMPACT_STEPS);
-      const next =
-        looser !== undefined ? looser : width > room + 1 ? (hopeless ? 0 : Math.min(compact + 1, COMPACT_STEPS)) : compact;
-      if (next !== compact) setCompact(next);
-      else setOverflowing(nav.scrollWidth > nav.clientWidth + 1);
+      const overflow = nav.scrollWidth > bar.clientWidth + 1;
+      const left = overflow && nav.scrollLeft > 1;
+      const right = overflow && nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1;
+      setScroll((s) => (s.overflow === overflow && s.left === left && s.right === right ? s : { overflow, left, right }));
     };
     const observer = new ResizeObserver(check);
+    observer.observe(bar);
     observer.observe(nav);
+    for (const el of nav.children) observer.observe(el);
+    nav.addEventListener('scroll', check, { passive: true });
     check();
-    return () => observer.disconnect();
-  }, [lang, current.id, compact]);
+    return () => {
+      observer.disconnect();
+      nav.removeEventListener('scroll', check);
+    };
+  }, [lang]);
+
+  const page = (dir: 1 | -1) => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    nav.scrollBy({ left: dir * nav.clientWidth * SCROLL_PAGE, behavior: reduce ? 'auto' : 'smooth' });
+  };
 
   // 量每一段的實際高度（摘要可能一行或兩行），跟估計的不同就重新分欄；欄寬都一樣，換欄高度不變，量一次就穩定。
   // 在畫面更新之前做完，看不到跳動
@@ -304,152 +317,180 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
   };
 
   return (
-    <nav
-      className={`topics${overflowing ? ' is-overflowing' : ''}${compact ? ` is-compact-${compact}` : ''}`}
-      aria-label={t.topicsNav}
-      ref={navRef}
-      onPointerEnter={warmIcons}
-      onFocus={warmIcons}
-    >
-      <button
-        type="button"
-        className={`topic topic-group${isPure ? ' is-active' : ''}`}
-        style={categoryStyle(null)}
-        aria-current={isPure ? 'page' : undefined}
-        onClick={() => onSelect(pureMap.id)}
+    <div className={`topics-bar${scroll.overflow ? ' is-overflowing' : ''}`} ref={barRef}>
+      {/* 左右按鈕：滑鼠用的捷徑（鍵盤用 Tab 移到分類時主題列會自己捲過去），不進 Tab 順序 */}
+      {scroll.overflow && (
+        <button
+          type="button"
+          className="topics-arrow"
+          tabIndex={-1}
+          disabled={!scroll.left}
+          aria-label={t.topicsScrollLeft}
+          title={t.topicsScrollLeft}
+          onClick={() => page(-1)}
+        >
+          <Chevron dir="left" />
+        </button>
+      )}
+      <nav
+        className={`topics${scroll.left ? ' can-left' : ''}${scroll.right ? ' can-right' : ''}`}
+        aria-label={t.topicsNav}
+        ref={navRef}
+        onPointerEnter={warmIcons}
+        onFocus={warmIcons}
       >
-        <GroupGlyph group="map" size={15} className="topic-group-icon" />
-        {tr(pureMap.shortTitle, lang)}
-      </button>
-      {TOPIC_GROUPS.map((group) => {
-        const active = group === activeGroup;
-        const expanded = open === group.id;
-        return (
-          <button
-            key={group.id}
-            ref={(el) => {
-              if (el) buttonRefs.current.set(group.id, el);
-              else buttonRefs.current.delete(group.id);
-            }}
-            type="button"
-            className={`topic topic-group${active ? ' is-active' : ''}`}
-            style={categoryStyle(group.id)}
-            aria-haspopup="menu"
-            aria-expanded={expanded}
-            aria-controls={expanded ? menuId : undefined}
-            onClick={() => (expanded ? close(false) : show(group.id, 'current'))}
-            onKeyDown={onButtonKeyDown(group)}
-            onPointerEnter={onButtonPointerEnter(group)}
-          >
-            <GroupGlyph group={group.id} size={15} className="topic-group-icon" />
-            <span className="topic-group-label">{tr(group.label, lang)}</span>
-            {active && <span className="topic-current">{tr(current.shortTitle, lang)}</span>}
-            <svg className="topic-caret" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-              <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-        );
-      })}
-      {openGroup &&
-        position &&
-        createPortal(
-          <div
-            ref={menuRef}
-            className="topic-menu"
-            id={menuId}
-            role="menu"
-            aria-label={tr(openGroup.label, lang)}
-            style={
-              {
-                left: position.left,
-                top: position.top,
-                '--menu-columns': menuColumns.length,
-                ...categoryStyle(openGroup.id),
-              } as CSSProperties
-            }
-            onKeyDown={onMenuKeyDown}
-          >
-            {/* 主題依小標題分段排成幾欄（packColumns，左邊的欄最滿），「看全部主題」在下面另起一行 */}
-            <div className="topic-menu-items" role="none">
-              {menuColumns.map((column, ci) => (
-                <div key={ci} className="topic-menu-column" role="none">
-                  {column.map((si) => {
-                    const section = openGroup.sections[si];
-                    // 這一段第一個主題在 itemRefs 的位置（↑↓ 依畫面的順序，跨過小標題）
-                    const offset = openGroup.sections.slice(0, si).reduce((n, s) => n + s.topics.length, 0);
-                    const heading = section.label ? tr(section.label, lang) : undefined;
-                    return (
-                      <div
-                        key={si}
-                        className="topic-menu-section"
-                        data-section={si}
-                        role={heading ? 'group' : 'none'}
-                        aria-label={heading}
-                      >
-                        {heading && (
-                          <div className="topic-menu-heading" aria-hidden="true">
-                            {heading}
-                          </div>
-                        )}
-                        {section.topics.map((topic, j) => (
-                          <button
-                            key={topic.id}
-                            ref={(el) => {
-                              itemRefs.current[offset + j] = el;
-                            }}
-                            type="button"
-                            role="menuitemradio"
-                            aria-checked={topic.id === current.id}
-                            tabIndex={-1}
-                            className="topic-item"
-                            // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
-                            onPointerEnter={() => prefetchTopic(topic.id)}
-                            onFocus={() => prefetchTopic(topic.id)}
-                            onClick={() => select(topic)}
-                          >
-                            {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
-                            <span className="topic-tile" aria-hidden="true">
-                              <Glyph d={icons?.[topic.id]} size={18} />
-                            </span>
-                            <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
-                            <span className="topic-item-summary">{summary(topic)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+        <button
+          type="button"
+          className={`topic topic-group${isPure ? ' is-active' : ''}`}
+          style={categoryStyle(null)}
+          aria-current={isPure ? 'page' : undefined}
+          onClick={() => onSelect(pureMap.id)}
+        >
+          <GroupGlyph group="map" size={15} className="topic-group-icon" />
+          {tr(pureMap.shortTitle, lang)}
+        </button>
+        {TOPIC_GROUPS.map((group) => {
+          const active = group === activeGroup;
+          const expanded = open === group.id;
+          return (
             <button
+              key={group.id}
               ref={(el) => {
-                itemRefs.current[openGroup.topics.length] = el;
+                if (el) buttonRefs.current.set(group.id, el);
+                else buttonRefs.current.delete(group.id);
               }}
               type="button"
-              role="menuitem"
-              tabIndex={-1}
-              className="topic-menu-all"
-              onClick={openOverview}
+              className={`topic topic-group${active ? ' is-active' : ''}`}
+              style={categoryStyle(group.id)}
+              aria-haspopup="menu"
+              aria-expanded={expanded}
+              aria-controls={expanded ? menuId : undefined}
+              onClick={() => (expanded ? close(false) : show(group.id, 'current'))}
+              onKeyDown={onButtonKeyDown(group)}
+              onPointerEnter={onButtonPointerEnter(group)}
             >
-              {t.allTopicsMenu}
-              <span aria-hidden="true"> →</span>
+              <GroupGlyph group={group.id} size={15} className="topic-group-icon" />
+              <span className="topic-group-label">{tr(group.label, lang)}</span>
+              <svg className="topic-caret" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+                <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
             </button>
-          </div>,
-          document.body,
+          );
+        })}
+        {openGroup &&
+          position &&
+          createPortal(
+            <div
+              ref={menuRef}
+              className="topic-menu"
+              id={menuId}
+              role="menu"
+              aria-label={tr(openGroup.label, lang)}
+              style={
+                {
+                  left: position.left,
+                  top: position.top,
+                  '--menu-columns': menuColumns.length,
+                  ...categoryStyle(openGroup.id),
+                } as CSSProperties
+              }
+              onKeyDown={onMenuKeyDown}
+            >
+              {/* 主題依小標題分段排成幾欄（packColumns，左邊的欄最滿），「看全部主題」在下面另起一行 */}
+              <div className="topic-menu-items" role="none">
+                {menuColumns.map((column, ci) => (
+                  <div key={ci} className="topic-menu-column" role="none">
+                    {column.map((si) => {
+                      const section = openGroup.sections[si];
+                      // 這一段第一個主題在 itemRefs 的位置（↑↓ 依畫面的順序，跨過小標題）
+                      const offset = openGroup.sections.slice(0, si).reduce((n, s) => n + s.topics.length, 0);
+                      const heading = section.label ? tr(section.label, lang) : undefined;
+                      return (
+                        <div
+                          key={si}
+                          className="topic-menu-section"
+                          data-section={si}
+                          role={heading ? 'group' : 'none'}
+                          aria-label={heading}
+                        >
+                          {heading && (
+                            <div className="topic-menu-heading" aria-hidden="true">
+                              {heading}
+                            </div>
+                          )}
+                          {section.topics.map((topic, j) => (
+                            <button
+                              key={topic.id}
+                              ref={(el) => {
+                                itemRefs.current[offset + j] = el;
+                              }}
+                              type="button"
+                              role="menuitemradio"
+                              aria-checked={topic.id === current.id}
+                              tabIndex={-1}
+                              className="topic-item"
+                              // 滑到、移到選項上就先下載主題的定義（各自一個 chunk），點下去不必等
+                              onPointerEnter={() => prefetchTopic(topic.id)}
+                              onFocus={() => prefetchTopic(topic.id)}
+                              onClick={() => select(topic)}
+                            >
+                              {/* 主題的圖示，分類代表色的底（2026-10-29 以前是縮圖，打開一個分類要下載約 300 KB） */}
+                              <span className="topic-tile" aria-hidden="true">
+                                <Glyph d={icons?.[topic.id]} size={18} />
+                              </span>
+                              <span className="topic-item-title">{tr(topic.shortTitle, lang)}</span>
+                              <span className="topic-item-summary">{summary(topic)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+              <button
+                ref={(el) => {
+                  itemRefs.current[openGroup.topics.length] = el;
+                }}
+                type="button"
+                role="menuitem"
+                tabIndex={-1}
+                className="topic-menu-all"
+                onClick={openOverview}
+              >
+                {t.allTopicsMenu}
+                <span aria-hidden="true"> →</span>
+              </button>
+            </div>,
+            document.body,
+          )}
+        {overviewUsed.current && (
+          <Suspense fallback={null}>
+            <TopicsOverview
+              open={overviewOpen}
+              current={current}
+              onClose={() => onOverviewChange(false)}
+              onSelect={(target) => {
+                onOverviewChange(false);
+                if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
+              }}
+            />
+          </Suspense>
         )}
-      {overviewUsed.current && (
-        <Suspense fallback={null}>
-          <TopicsOverview
-            open={overviewOpen}
-            current={current}
-            onClose={() => onOverviewChange(false)}
-            onSelect={(target) => {
-              onOverviewChange(false);
-              if (target.indicator || target.item || target.topic !== current.id) onSelectTarget(target);
-            }}
-          />
-        </Suspense>
+      </nav>
+      {scroll.overflow && (
+        <button
+          type="button"
+          className="topics-arrow"
+          tabIndex={-1}
+          disabled={!scroll.right}
+          aria-label={t.topicsScrollRight}
+          title={t.topicsScrollRight}
+          onClick={() => page(1)}
+        >
+          <Chevron dir="right" />
+        </button>
       )}
-    </nav>
+    </div>
   );
 }

@@ -14,6 +14,8 @@ export const en: Messages = {
   crashReload: 'Reload',
   brand: 'World Data Map',
   topicsNav: 'Topics',
+  topicsScrollLeft: 'Show categories to the left',
+  topicsScrollRight: 'Show categories to the right',
   topicSummary: (indicators, more) => `${indicators.join(', ')}${more ? '…' : ''}`,
   allTopics: 'All topics',
   palette: 'Colours',

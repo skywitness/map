@@ -15,6 +15,9 @@ export const zh = {
   crashReload: '重新整理',
   brand: '世界資料地圖',
   topicsNav: '主題',
+  /** 頂列放不下所有分類時左右的按鈕（TopicNav.tsx） */
+  topicsScrollLeft: '看左邊的分類',
+  topicsScrollRight: '看右邊的分類',
   /** 主題選單裡每個主題下方的說明：列出前幾個指標 */
   topicSummary: (indicators: string[], more: boolean) => `${indicators.join('、')}${more ? '等' : ''}`,
   /** 主題總覽（TopicsOverview.tsx）：每個分類選單最下面的連結與對話框 */

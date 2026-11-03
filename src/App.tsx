@@ -985,7 +985,8 @@ export function App() {
       <main className="app-main">
         <div className="controls">
           <div className="controls-left">
-            {pure && <h2 className="page-title">{topic.title}</h2>}
+            {/* 主題名稱（2026-11-03 從頂列的分類按鈕搬來，換主題時分類按鈕不會移動）；純地圖寫頁面標題 */}
+            <h2 className="page-title">{pure ? topic.title : topic.shortTitle}</h2>
             {!pure && dimension && usesDimension(indicator) && (
               <label className="select-field">
                 <span>{dimension.label}</span>

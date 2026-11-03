@@ -95,7 +95,7 @@ try {
       .catch(() => {});
     // 畫出資料之後再留一點時間給延後的工作（1:50m 國界、預先下載其他指標）
     await new Promise((r) => setTimeout(r, 1500));
-    const title = await page.$eval('.topic-current, .topic-pure', (el) => el.textContent?.trim()).catch(() => '');
+    const title = await page.$eval('.controls .page-title', (el) => el.textContent?.trim()).catch(() => '');
     console.log(`${id}（${title || '?'}）${Date.now() - started} ms`);
   }
 } finally {
