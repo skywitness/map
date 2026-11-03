@@ -22,7 +22,7 @@ export interface TopicGroupSpec {
 
 /**
  * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。2026-10-30（第七批 124）起 8 類，選單依小標題分段；
- * 同一天第十一批 187 把能源併進科技，變成 7 類。
+ * 同一天第十一批 187 把能源併進科技，變成 7 類；2026-11-03（第十九批）加醫藥，又是 8 類。
  * 新增主題時加進最接近的分類與小標題，也在下面的 TOPIC_MODULES 加一行，再跑 npm run catalog（dev、build 會自動跑）。
  * 分類名稱要短，中文 1024px、英文 1280px 寬的螢幕要放得下整列（DESIGN.md 第 11 節）。
  */
@@ -33,13 +33,24 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
-      { label: { zh: '健康', en: 'Health' }, topics: ['health', 'disease', 'vaccination', 'height', 'blood-types', 'tobacco-alcohol', 'diet'] },
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness'] },
+      // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet'] },
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
     ],
-    // 左：人口與家庭、平等與法律；中：健康、教育；右：生活與文化、獎項與運動
-    columns: [2, 2, 2],
+    // 左：人口與家庭、平等與法律；中：教育、生活與文化；右：獎項與運動
+    columns: [2, 2, 1],
+  },
+  {
+    // 2026-11-03（製作手冊第十九批，使用者選 A）：社會分類原本的「健康」那一組與血型搬過來，加上基因與藥物的主題
+    id: 'medicine',
+    label: { zh: '醫藥', en: 'Health' },
+    sections: [
+      { label: { zh: '健康與疾病', en: 'Health & disease' }, topics: ['health', 'disease', 'vaccination', 'height', 'tobacco-alcohol'] },
+      { label: { zh: '基因', en: 'Genes' }, topics: ['blood-types', 'newborn-screening'] },
+    ],
+    // 左：健康與疾病；右：基因（藥物那一組做好時加在右邊）
+    columns: [1, 1],
   },
   {
     id: 'economy',
@@ -132,6 +143,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   vaccination: () => import('./vaccination'),
   height: () => import('./height'),
   'blood-types': () => import('./blood-types'),
+  'newborn-screening': () => import('./newborn-screening'),
   'tobacco-alcohol': () => import('./tobacco-alcohol'),
   education: () => import('./education'),
   pisa: () => import('./pisa'),

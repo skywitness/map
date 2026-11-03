@@ -22,6 +22,8 @@ const check = process.argv.includes('--check');
 const GROUP_ICONS = {
   map: 'map',
   society: 'person-standing',
+  // 2026-11-03（第十九批）
+  medicine: 'pill',
   economy: 'coins',
   global: 'earth',
   // 能源 2026-10-30（第十一批 187）併進科技，環境改用原本能源的葉子
@@ -54,6 +56,7 @@ const TOPIC_ICONS = {
   vaccination: 'syringe',
   height: 'ruler',
   'blood-types': 'droplet',
+  'newborn-screening': 'test-tube-diagonal',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
   pisa: 'book-open-check',

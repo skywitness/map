@@ -20,8 +20,8 @@ import { categoryStyle, Glyph, GroupGlyph, loadTopicIcons, useTopicIcons } from 
 // 主題總覽（全部主題的縮圖與搜尋）第一次打開才下載（2026-10-30）
 const TopicsOverview = lazy(() => import('./TopicsOverview').then((m) => ({ default: m.TopicsOverview })));
 
-/** 主題列放不下時收緊的級數（styles.css 的 .is-compact-1…3） */
-const COMPACT_STEPS = 3;
+/** 主題列放不下時收緊的級數（styles.css 的 .is-compact-1…4；第 4 級 2026-11-03 加醫藥分類時加） */
+const COMPACT_STEPS = 4;
 
 interface TopicNavProps {
   current: Pick<TopicSummary, 'id' | 'shortTitle'>;

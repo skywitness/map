@@ -17,8 +17,8 @@ cloud 的容器被回收、快取不見時，已經在 flow.json（同樣的年�
 主流在西邊約 4 公里）：河口周圍 ±0.1° 每 0.05° 一點（25 點）與河口往上游 50 km 內的幾個點各抓兩週，
 取平均流量最大、離河口（或往上游的點）0.06° 以內的格點（API 會挑 5 km 內最大的河，烏溪河口北邊的點會跳到大甲溪），
 再抓那一格的 10 年。兩條河用到同一個格點時停下來。
-河口附近兩週的平均不到 HydroRIVERS 長期平均的十分之一時（三角洲的河口格點落在支流上：奧里諾科河只有 159 m³/s），
-改沿主流往上游 20–400 km 的 16 個點再找。
+主流往上游 20–400 km 的 16 個點也一起試：河口附近最大的格點不到上游的一半時（三角洲的支流、河口旁邊的小河：
+奧里諾科河的河口只有 159 m³/s、薩爾溫江的河口格點只有 653），改用上游的格點。
 """
 from __future__ import annotations
 
@@ -198,11 +198,12 @@ def locate(river: dict) -> dict:
     # 河口周圍 ±0.1° 每 0.05° 一點（5×5，GloFAS 的高屏溪在河口西邊約 4 公里那一列）與往上游的幾個點
     grid = [(lon + dx * 0.05, lat + dy * 0.05) for dy in range(-2, 3) for dx in range(-2, 3)]
     best = _probe([*grid, *river["near"]], [(lon, lat), *river["near"]])
-    # 兩週的平均不到 HydroRIVERS 長期平均的十分之一：格點不在主流（三角洲的支流），沿主流往上游再找
-    if river["far"] and (best is None or best["probe"] < river["Q"] / 10):
-        print(f"  {river['zh']}：河口附近最大只有 {best['probe'] if best else 0} m³/s，往上游找")
+    # 同時試主流往上游的點：河口的流量應該比上游大，河口附近最大的格點不到上游的一半時，那一格是三角洲的支流或
+    # 河口旁邊的小河（奧里諾科河的河口只有 159 m³/s、薩爾溫江的河口格點是旁邊的 Gyaing 河），改用上游的格點
+    if river["far"]:
         far = _probe(river["far"], river["far"])
-        if far and (best is None or far["probe"] > best["probe"]):
+        if far and (best is None or best["probe"] < far["probe"] / 2):
+            print(f"  {river['zh']}：河口附近最大只有 {best['probe'] if best else 0} m³/s，上游 {far['probe']} m³/s，改用上游的格點")
             best = far
     if best is None:
         raise RuntimeError(f"{river['zh']} 的候選格點都沒有流量")

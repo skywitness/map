@@ -143,11 +143,15 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
  * 拿掉了原本最接近的一對（環境橄欖綠↔能源綠，綠色盲 ΔE 1.8）。第七批 124 加的交通灰藍彩度偏低，
  * 跟相鄰的科技紫（淺色：綠色盲 7.9、一般視覺 11.7）、地理青綠（深色：一般視覺 14.5）比較接近，靠分類名稱與圖示區分；
  * 環境綠與地理青綠不相鄰（淺色一般視覺 10.2、深色 13.9）。
+ * 2026-11-03（第十九批）加醫藥，排在社會與經濟之間：用驗證工具在 OKLCH 搜尋跟兩旁（玫瑰紅、琥珀）分得開、又跟其他 6 類
+ * 盡量遠的冷色，淺色 #2b8eba（相鄰一般視覺 ≥ 23.8、紅綠色盲 ≥ 15.9；跟所有分類 ≥ 10.9、≥ 9.9），
+ * 深色 #3e81b0（相鄰 ≥ 25.5、≥ 8.6；跟所有分類 ≥ 11.0、≥ 7.5）。青色（#00819f）跟地理青綠太近（淺色 8.7、深色 6.3），不用。
  */
 export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
   // 環境、交通 2026-10-30 加（第七批 124）；同一天第十一批 187 能源併進科技，環境改用原本能源的綠（不再用橄欖綠）
   light: {
     society: '#bc1f4f',
+    medicine: '#2b8eba',
     economy: '#b17000',
     global: '#006fd8',
     environment: '#008a22',
@@ -157,6 +161,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
   },
   dark: {
     society: '#ee5377',
+    medicine: '#3e81b0',
     economy: '#c78600',
     global: '#3e95fe',
     environment: '#2aaf3d',

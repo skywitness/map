@@ -449,21 +449,38 @@ button {
   opacity: 0.6;
 }
 
-/* 主題列放不下時一級一級收緊（TopicNav.tsx 的 compact）：間距 → 沒展開的分類的箭頭 → 它們的圖示 */
+/* 主題列放不下時一級一級收緊（TopicNav.tsx 的 compact）：間距 → 沒展開的分類的箭頭 → 它們的圖示 → 目前分類的名稱 */
 .topics.is-compact-1,
 .topics.is-compact-2,
-.topics.is-compact-3 {
+.topics.is-compact-3,
+.topics.is-compact-4 {
   gap: 1px;
 }
 
-:is(.is-compact-1, .is-compact-2, .is-compact-3) > .topic {
+:is(.is-compact-1, .is-compact-2, .is-compact-3, .is-compact-4) > .topic {
   padding-inline: 7px;
   gap: 4px;
 }
 
-:is(.is-compact-2, .is-compact-3) > .topic:not(.is-active) .topic-caret,
-.is-compact-3 > .topic:not(.is-active) .topic-group-icon {
+:is(.is-compact-2, .is-compact-3, .is-compact-4) > .topic:not(.is-active) .topic-caret,
+:is(.is-compact-3, .is-compact-4) > .topic:not(.is-active) .topic-group-icon {
   display: none;
+}
+
+/* 第 4 級（2026-11-03，加了醫藥分類之後英文 1280px 放不下 12 個主題名稱長的）：目前的分類只留圖示與主題名稱，
+   分類名稱只給螢幕報讀（同 .visually-hidden） */
+.is-compact-4 > .topic.is-active .topic-group-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.is-compact-4 > .topic.is-active .topic-current::before {
+  content: none;
 }
 
 /* 主題列放不下時可以橫向捲動：右緣淡出，看得出後面還有 */
@@ -1549,6 +1566,46 @@ kbd {
 .list-row-line {
   color: var(--ink-muted);
   font-size: 12px;
+}
+
+/* 新生兒篩檢的側欄（NewbornScreeningPanel.tsx）：疾病名稱在左、篩檢狀態在右；沒有篩的淡，涵蓋過半的粗體（不只靠顏色） */
+.screening-list {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.screening-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--grid);
+  font-size: 12px;
+}
+
+.screening-code {
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.screening-level {
+  flex: none;
+  color: var(--ink-secondary);
+  text-align: right;
+}
+
+.screening-list li.is-level-0 {
+  color: var(--ink-muted);
+}
+
+.screening-list li.is-level-0 .screening-level {
+  color: var(--ink-muted);
+}
+
+.screening-list li.is-level-3 .screening-level {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 /* 列裡的小長條圖（ListRow.bars，大河一年中的流量的 12 個月）：一般的長條是淡的墨色，最多的那幾根是強調色 */
