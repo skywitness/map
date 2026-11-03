@@ -80,12 +80,22 @@ export const tobaccoAlcohol: TopicDefinition = {
       url: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=L0070021',
       license: OPEN_DATA_TW,
     },
+    {
+      name: {
+        zh: 'Ensembl REST（rs671 在 gnomAD v4、1000 Genomes 各族群的頻率）、NCBI dbSNP（日本、韓國、越南的研究；喝酒臉紅的基因）',
+        en: 'Ensembl REST (rs671 frequencies in gnomAD v4 and 1000 Genomes) and NCBI dbSNP (Japanese, Korean and Vietnamese studies; the alcohol flush gene)',
+      },
+      url: 'https://rest.ensembl.org/variation/human/rs671?pops=1',
+      license: { zh: '使用不受限制', en: 'No restrictions on use' },
+    },
   ],
   note: {
     zh: '吸菸率是 WHO 依各國調查做的模型估計（15 歲以上、年齡標準化），2025、2030 年是推估。飲酒量是平均每個 15 歲以上的人一年喝下的純酒精公升數，含沒有登記的自釀、走私酒；主要酒類與酒類組成只算有登記的銷售量。台灣不在 WHO 的資料中：吸菸率改用國健署的調查（18 歲以上，跟 WHO 不完全可比），飲酒量沒有換算成純酒精的官方統計，所以留空。室內全面禁菸的場所是 WHO MPOWER 的全國法律評估；電子菸的規範取自英文維基百科的整理（CC BY-SA 4.0），這個資料檔也依 CC BY-SA 4.0 分享。',
     en: "Smoking rates are WHO model estimates based on national surveys (ages 15+, age-standardised); 2025 and 2030 are projections. Alcohol consumption is litres of pure alcohol per person aged 15+ per year, including unrecorded home-made and smuggled drinks; the main beverage and the beverage breakdown count recorded sales only. Taiwan is not in the WHO data: its smoking rates come from the Health Promotion Administration's survey (ages 18+, not fully comparable with WHO's), and there are no official figures for its alcohol consumption in pure alcohol, so it is left blank. Smoke-free places are WHO MPOWER assessments of national law; e-cigarette rules come from English Wikipedia's compilation (CC BY-SA 4.0), and that data file is shared under CC BY-SA 4.0 as well.",
   },
   panelExtra: () => import('./panels/TobaccoAlcoholPanel'),
+  // 沒選國家時的側欄：喝酒臉紅的基因（2026-11-03，製作手冊第十九批 303；依族群，不是各國地圖）
+  worldPanel: { title: { zh: '喝酒臉紅的基因', en: 'Alcohol flush gene' }, load: () => import('./panels/Aldh2Panel') },
   indicators: [
     {
       id: 'smoking',

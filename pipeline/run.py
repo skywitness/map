@@ -283,6 +283,7 @@ STEPS = {
     "taiwan-medicines": "topics.taiwan_medicines",
     "clinical-trials": "topics.clinical_trials",
     "pharma-companies": "topics.pharma_companies",
+    "aldh2": "topics.aldh2",
     # 航運與港口的商船隊（新27 的圓餅）：只跑 shipping 的 merchant_fleet（UNCTADstat），不下載港口與航港局的資料
     "shipping-fleet": "topics.shipping_fleet",
     # 要先有 geo 的國界與晝夜與季節的首都（daylight）；第一次會下載 Marine Regions 的 IHO 海域與 Global Oceans and Seas
