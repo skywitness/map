@@ -424,7 +424,7 @@ button {
 
 .topics {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   overflow-x: auto;
   flex: 1;
   min-width: 0;
@@ -504,11 +504,13 @@ button {
   opacity: 0.6;
 }
 
-/* 主題分類按鈕（TopicNav.tsx）：圖示、分類名稱、箭頭，寬度不隨目前的主題改變 */
+/* 主題分類按鈕（TopicNav.tsx）：圖示與分類名稱，寬度不隨目前的主題改變。
+   不畫下拉箭頭、左右留白 8px（2026-11-03 使用者選的：中文 1280px 放得下純地圖加 9 類） */
 .topic-group {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding-inline: 8px;
 }
 
 .topic-group[aria-expanded='true']:not(.is-active) {
@@ -524,16 +526,6 @@ button {
 
 .topic.is-active .topic-group-icon {
   color: inherit;
-}
-
-.topic-caret {
-  flex: none;
-  opacity: 0.7;
-  transition: transform var(--motion-fast) var(--ease-out);
-}
-
-.topic-group[aria-expanded='true'] .topic-caret {
-  transform: rotate(180deg);
 }
 
 /* 分類的下拉選單：portal 到 body，fixed 定位，才不會被可以橫向捲動的主題列裁掉 */

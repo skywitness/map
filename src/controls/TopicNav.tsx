@@ -86,7 +86,8 @@ function Chevron({ dir }: { dir: 'left' | 'right' }) {
  * 頂列的主題選單：純地圖一顆按鈕，其他主題依 TOPIC_GROUPS 分類，每類一個下拉選單。
  * 目前主題所在的分類按鈕會亮起；主題名稱寫在控制列的最前面（App.tsx 的 .page-title），分類按鈕的寬度不隨主題改變，
  * 換主題時其他分類不會移動（使用者 2026-11-03）。
- * 放不下所有分類時（窄視窗）主題列可以橫向捲動，左右另有按鈕；圖示與箭頭一律顯示，不依寬度增減。
+ * 放不下所有分類時（窄視窗）主題列可以橫向捲動，左右另有按鈕；圖示一律顯示，不依寬度增減。
+ * 分類按鈕不畫下拉箭頭、間距比較緊（2026-11-03 使用者選的，中文 1280px 才放得下 9 類）。
  *
  * 鍵盤依 WAI-ARIA 的 menu button 模式：↓↑ 開啟、↑↓ Home End 移動、←→ 換到相鄰的分類、Esc 關閉。
  * 主題列在手機上可以橫向捲動（overflow 會裁掉往下長的選單），所以選單用 portal 放到 body、
@@ -371,9 +372,6 @@ export function TopicNav({ current, onSelect, onSelectTarget, overviewOpen, onOv
             >
               <GroupGlyph group={group.id} size={15} className="topic-group-icon" />
               <span className="topic-group-label">{tr(group.label, lang)}</span>
-              <svg className="topic-caret" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-                <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
             </button>
           );
         })}
