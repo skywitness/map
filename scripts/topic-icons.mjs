@@ -31,6 +31,8 @@ const GROUP_ICONS = {
   tech: 'monitor-smartphone',
   transport: 'bus',
   geo: 'mountain-snow',
+  // 2026-11-03（景點、獎項與運動獨立成一類）
+  leisure: 'ticket',
 };
 
 /** 介面用的圖示：指令面板（CommandPalette.tsx）的國家、地點與指令、狀態畫面（StatusCard.tsx）的離線、錯誤、沒有資料 */

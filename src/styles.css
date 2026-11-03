@@ -18,12 +18,14 @@
   --cat-environment: #008a22;
   --cat-tech: #6130b1;
   --cat-geo: #088f77;
+  --cat-leisure: #c8461a;
   --cat-solid-society: #bc1f4f;
   --cat-solid-economy: #b17000;
   --cat-solid-global: #006fd8;
   --cat-solid-environment: #008a22;
   --cat-solid-tech: #6130b1;
   --cat-solid-geo: #088f77;
+  --cat-solid-leisure: #c8461a;
   --radius: 8px;
   --gutter: 16px;
   /* 動畫的時間與曲線（2026-10-30 統一）：按鈕、箭頭、淡入淡出用 --motion-fast，
@@ -1444,6 +1446,24 @@ kbd {
 .list-side-head h2 {
   margin: 0;
   font-size: 15px;
+}
+
+/* 不分國家的資料（panels/WorldSide.tsx，2026-11-03）：清單側欄的外框，裡面是主題的側欄區塊（panel-section） */
+.world-side .list-side-head h2 {
+  flex: 1;
+}
+
+.world-side-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 14px 14px;
+}
+
+.world-side-body > .panel-section:first-child {
+  margin-top: 0;
+  padding-top: 12px;
+  border-top: 0;
 }
 
 .list-side-count {

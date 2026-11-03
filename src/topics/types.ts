@@ -987,7 +987,7 @@ export interface AirportsData {
   rows: [number, number, number, string, string, string, string][];
 }
 
-/** 沒選國家時的側欄（TopicDefinition.worldPanel）的 props */
+/** 不分國家的資料（TopicDefinition.worldPanel，左側欄）的 props */
 export interface WorldPanelProps {
   topic: Topic;
   indicator: Indicator;
@@ -1173,8 +1173,10 @@ export interface TopicDefinition {
    */
   panelExtra?: () => Promise<{ default: React.ComponentType<PanelExtraProps> }>;
   /**
-   * 沒選國家時的側欄（2026-10-31 起，電價與油價的國際能源價格）：桌機在地圖右邊（跟國家側欄同一欄），窄螢幕是底部抽屜；
-   * 可以關掉（同一個主題這次不再出現），選了國家就換成國家側欄
+   * 不分國家的資料（2026-10-31 起，電價與油價的國際能源價格；藥物基因的各遺傳族群頻率、喝酒臉紅的基因）：
+   * 2026-11-03 起放在左側欄（panels/WorldSide.tsx，使用者要求），外框跟清單側欄一樣：桌機在地圖左邊、可以收成一條窄邊，
+   * 窄螢幕在地圖下面、預設收起來；只在地圖檢視，選了國家時照樣留著（國家在右側欄）。主題同時有 listPanel 時清單優先。
+   * 原本是沒選國家時的右側欄（選了國家就換成國家側欄）
    */
   worldPanel?: { title: Text; load: () => Promise<{ default: React.ComponentType<WorldPanelProps> }> };
   /**
