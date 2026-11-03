@@ -6,6 +6,12 @@ const RESEARCHERS = { zh: '人/百萬人', en: 'per million people' };
 const PATENTS_PER_MILLION = { zh: '件/百萬人', en: 'per million people' };
 const APPLICATIONS = { zh: '件', en: 'applications' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
+const APPLICATIONS_STUDIES = { zh: '件', en: 'studies' };
+/** ClinicalTrials.gov 的條款：要寫來源、處理日期與怎麼改動（pipeline/topics/clinical_trials.py 重跑時會檢查這個日期） */
+const CT_CAVEAT = {
+  zh: '資料取自 ClinicalTrials.gov（美國國家醫學圖書館），2026-11-02 處理；依試驗地點的國家數研究，多國試驗在每個國家各算一次，每百萬人用聯合國的人口自己算。只算 ClinicalTrials.gov 的登記：日本（jRCT、UMIN）、中國（ChiCTR）、印度（CTRI）多半登記在本國的平台，在這裡偏少，不代表試驗比較少。',
+  en: 'Data from ClinicalTrials.gov (US National Library of Medicine), processed 2026-11-02; studies are counted by the countries of their sites, so a multinational trial counts once in each country, and per-million rates use UN population. Only ClinicalTrials.gov registrations are counted: Japan (jRCT, UMIN), China (ChiCTR) and India (CTRI) mostly register on national platforms, so they look low here without necessarily running fewer trials.',
+};
 
 // 中文的 formatLargeNumber 萬位取整數（台灣 19,586 件會變成「2 萬」），一百萬件以下直接寫出件數，跟英文介面一樣
 const applications = (v: number) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber(v)} ${tr(APPLICATIONS)}`;
@@ -55,6 +61,14 @@ export const innovation: TopicDefinition = {
       },
       url: 'https://www.imf.org/external/datamapper/',
       license: { zh: '註明來源即可使用', en: 'free to use with attribution' },
+    },
+    {
+      name: {
+        zh: 'ClinicalTrials.gov API v2（各國有試驗地點的研究數，2026-11-02 處理）',
+        en: 'ClinicalTrials.gov API v2 (studies with sites in each country, processed 2026-11-02)',
+      },
+      url: 'https://clinicaltrials.gov/',
+      license: { zh: 'ClinicalTrials.gov 條款（註明來源、處理日期與改動）', en: 'ClinicalTrials.gov terms (attribution, processing date and modifications)' },
     },
     {
       name: {
@@ -196,6 +210,34 @@ export const innovation: TopicDefinition = {
       format: applications,
       formatTick: formatLargeTick,
       shareOfWorld: true,
+    },
+    {
+      id: 'clinical-trials-per-million',
+      label: { zh: '臨床試驗（每百萬人）', en: 'Clinical trials per million people' },
+      description: {
+        zh: `在這個國家至少有一個試驗地點、登記在 ClinicalTrials.gov 的臨床研究數（歷年累計、不分狀態），除以現在的人口（人口不到 100 萬的國家不算）。丹麥 2,130、比利時 1,301、瑞士 1,193、以色列 1,113 最多；台灣 568、美國約 560，比南韓 346、英國 416 高。${CT_CAVEAT.zh}`,
+        en: `Clinical studies registered on ClinicalTrials.gov with at least one site in the country (all years and statuses, cumulative), divided by today’s population (countries under 1 million people are left out). Denmark 2,130, Belgium 1,301, Switzerland 1,193 and Israel 1,113 lead; Taiwan (568) and the US (about 560) are above South Korea (346) and the UK (416). ${CT_CAVEAT.en}`,
+      },
+      unit: { zh: '件/百萬人', en: 'per million people' },
+      file: 'clinical-trials-per-million.json',
+      timeless: true,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 50, 100, 250, 500, 1000] } },
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, 0)} 件`, en: `${fixed(v, 0)} per million` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'clinical-trials',
+      label: { zh: '臨床試驗件數', en: 'Clinical trials' },
+      description: {
+        zh: `登記在 ClinicalTrials.gov、在這個國家至少有一個試驗地點的臨床研究數（歷年累計）。美國 196,667 件最多，其次是中國 54,832、法國 43,237、加拿大 32,725、英國 29,098、德國 28,709；南韓 17,853、台灣 13,061、日本 9,407、印度 6,686。${CT_CAVEAT.zh}`,
+        en: `Clinical studies registered on ClinicalTrials.gov with at least one site in the country (cumulative). The US has the most, 196,667, followed by China 54,832, France 43,237, Canada 32,725, the UK 29,098 and Germany 28,709; South Korea 17,853, Taiwan 13,061, Japan 9,407, India 6,686. ${CT_CAVEAT.en}`,
+      },
+      unit: APPLICATIONS_STUDIES,
+      file: 'clinical-trials.json',
+      timeless: true,
+      layer: { kind: 'bubble', legendValues: [1e3, 1e4, 1e5] },
+      format: (v) => `${fixed(v, 0)} ${tr(APPLICATIONS_STUDIES)}`,
+      formatTick: formatLargeTick,
     },
   ],
 };

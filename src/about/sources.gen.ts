@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 139;
-export const INDICATOR_COUNT = 806;
+export const INDICATOR_COUNT = 808;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -66,6 +66,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Boston University Global Development Policy Center，Chinese Overseas Development Finance Database（CODF，2025 Release）","en":"Boston University Global Development Policy Center, Chinese Overseas Development Finance Database (CODF, 2025 Release)"},"url":"https://osf.io/7wuxv/","licenses":["CC BY 4.0"],"topics":["china-lending"]},
   {"name":{"zh":"CEDS v_2025_03_18（PNNL）：燃料燃燒的二氧化碳用途（側欄）、交通運輸的二氧化碳","en":"CEDS v_2025_03_18 (PNNL): CO₂ from fuel combustion by use (side panel) and from transport"},"url":"https://doi.org/10.5281/zenodo.15059443","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"Climate TRACE Emissions Inventory（Zenodo 每月一版，用的版本與資料到哪個月寫在國家側欄）","en":"Climate TRACE Emissions Inventory (monthly releases on Zenodo; the version used and the latest month are shown in the country panel)"},"url":"https://doi.org/10.5281/zenodo.15014790","licenses":["CC BY 4.0"],"topics":["climate"]},
+  {"name":{"zh":"ClinicalTrials.gov API v2（各國有試驗地點的研究數，2026-11-02 處理）","en":"ClinicalTrials.gov API v2 (studies with sites in each country, processed 2026-11-02)"},"url":"https://clinicaltrials.gov/","licenses":[{"zh":"ClinicalTrials.gov 條款（註明來源、處理日期與改動）","en":"ClinicalTrials.gov terms (attribution, processing date and modifications)"}],"topics":["innovation"]},
   {"name":{"zh":"Cliopatria v0.2.1（Seshat 全球歷史資料庫；Bennett 等 2025，Scientific Data）","en":"Cliopatria v0.2.1 (Seshat Global History Databank; Bennett et al. 2025, Scientific Data)"},"url":"https://doi.org/10.5281/zenodo.23128623","licenses":["CC BY 4.0"],"topics":["empires"]},
   {"name":{"zh":"CLIWOC 2.1（Climatological Database for the World’s Oceans 1750–1854；García-Herrera 等 2007，PANGAEA）","en":"CLIWOC 2.1 (Climatological Database for the World’s Oceans 1750–1854; García-Herrera et al. 2007, PANGAEA)"},"url":"https://doi.org/10.1594/PANGAEA.743343","licenses":[{"zh":"CC BY 3.0","en":"CC BY 3.0"}],"topics":["logbooks"]},
   {"name":{"zh":"COLDAT 殖民時期資料集（Becker）","en":"COLDAT Colonial Dates Dataset (Becker)"},"url":"https://doi.org/10.7910/DVN/T9SDEW","licenses":["CC0"],"topics":["empires"]},
