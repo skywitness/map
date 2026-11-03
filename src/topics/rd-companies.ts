@@ -67,6 +67,35 @@ const HQ: PointsOverlayDef = {
   }),
 };
 
+/** 十億美元 → 「941.9 億美元」「$94.2bn」 */
+const usdBn = (v: number) => tr({ zh: `${fixed(v * 10, 0)} 億美元`, en: `$${fixed(v, 1)}bn` });
+
+/**
+ * 大藥廠的總部（2026-11-03，製作手冊第十九批 302；pipeline/topics/pharma_companies.py）：英文維基「List of largest
+ * biomedical companies by revenue」固定版本的 34 家（營收 100 億美元以上的製藥、生技與醫材公司），總部座標用 Wikidata。
+ * 預設關閉（跟研發前 300 大的總部有很多重疊），點的大小依最近一年的營收
+ */
+const PHARMA: PointsOverlayDef = {
+  kind: 'points',
+  id: 'pharma-hq',
+  file: 'pharma-hq.json',
+  label: { zh: '大藥廠的總部（營收 100 億美元以上的製藥、生技與醫材公司）', en: 'Big pharma headquarters (pharma, biotech and medtech firms with revenue over $10bn)' },
+  hidden: true,
+  radius: { field: 'rev', stops: [[10, 4], [30, 7], [60, 10], [95, 13]] },
+  color: MAP_TOKENS.categorical[2],
+  sortField: 'rev',
+  sizeLegend: { title: { zh: '營收', en: 'Revenue' }, values: [10, 30, 90], format: usdBn },
+  tooltip: (p, ctx) => ({
+    title: String(p.name ?? ''),
+    detail: [typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null, typeof p.city === 'string' ? p.city : null].filter(Boolean).join(' · '),
+    extra: [
+      tr({ zh: `營收第 ${p.rank} 名 · ${p.y} 年 ${usdBn(p.rev as number)}`, en: `Revenue rank ${p.rank} · ${usdBn(p.rev as number)} in ${p.y}` }),
+      typeof p.rev16 === 'number' ? tr({ zh: `2016 年 ${usdBn(p.rev16)}`, en: `${usdBn(p.rev16)} in 2016` }) : '',
+    ].filter(Boolean),
+    properNoun: String(p.name ?? ''),
+  }),
+};
+
 /** 左邊的清單（使用者 2026-10-30 決定）：前 50 大公司（依研發金額），點了移到總部；跟選取的國家連動要等第十二批的 L23 */
 const LIST: ListPanelDef = {
   label: { zh: '研發前 50 大', en: 'Top 50 R&D investors' },
@@ -102,13 +131,21 @@ export const rdCompanies: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     { name: { zh: 'Wikidata（總部的位置）', en: 'Wikidata (headquarters locations)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    {
+      name: {
+        zh: '英文維基百科：List of largest biomedical companies by revenue（2026-10-03 的版本，大藥廠的營收）',
+        en: 'English Wikipedia: List of largest biomedical companies by revenue (revision of 3 October 2026; big pharma revenue)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?oldid=1378116944',
+      license: 'CC BY-SA 4.0',
+    },
   ],
   note: {
-    zh: '每年研發投入最多的前 2,000 家上市公司（各版收錄 2,000 或 2,500 家，這裡一律用前 2,000 大），資料是承包商從公司年報整理的。年份是會計年度（2025 年版是 2024 會計年度），金額換成歐元。研發算在總部登記的國家，不是研發實際發生的地方（例如台積電的研發算台灣、蘋果算美國）。總部的點只畫研發前 300 大與台灣的公司裡、在 Wikidata 對得到總部座標的 264 家。英文維基的科技公司營收表整份來自 Fortune Global 500，Fortune 不准轉載，所以不用。',
-    en: 'The 2,000 listed companies that invest the most in R&D each year (editions cover 2,000 or 2,500 companies; the top 2,000 are used throughout), compiled by a contractor from annual reports. Years are financial years (the 2025 edition covers FY2024), with amounts in euros. R&D is counted in the country of the registered headquarters, not where the research is done (TSMC’s counts for Taiwan, Apple’s for the US). Headquarters points are drawn only for the 264 of the top 300 and Taiwanese companies whose headquarters could be located in Wikidata. The English Wikipedia table of tech companies by revenue comes entirely from the Fortune Global 500, whose terms forbid reuse, so it is not used.',
+    zh: '每年研發投入最多的前 2,000 家上市公司（各版收錄 2,000 或 2,500 家，這裡一律用前 2,000 大），資料是承包商從公司年報整理的。年份是會計年度（2025 年版是 2024 會計年度），金額換成歐元。研發算在總部登記的國家，不是研發實際發生的地方（例如台積電的研發算台灣、蘋果算美國）。總部的點只畫研發前 300 大與台灣的公司裡、在 Wikidata 對得到總部座標的 264 家。英文維基的科技公司營收表整份來自 Fortune Global 500，Fortune 不准轉載，所以不用。圖層「大藥廠的總部」（預設關閉）是英文維基生醫公司營收表的 34 家（營收 100 億美元以上，數字取自各公司的年報），美國 15 家、德國與日本各 4 家，沒有台灣的公司。',
+    en: 'The 2,000 listed companies that invest the most in R&D each year (editions cover 2,000 or 2,500 companies; the top 2,000 are used throughout), compiled by a contractor from annual reports. Years are financial years (the 2025 edition covers FY2024), with amounts in euros. R&D is counted in the country of the registered headquarters, not where the research is done (TSMC’s counts for Taiwan, Apple’s for the US). Headquarters points are drawn only for the 264 of the top 300 and Taiwanese companies whose headquarters could be located in Wikidata. The English Wikipedia table of tech companies by revenue comes entirely from the Fortune Global 500, whose terms forbid reuse, so it is not used. The “Big pharma headquarters” layer (off by default) shows the 34 companies with revenue over $10 billion in the English Wikipedia table of biomedical companies (figures from company reports): 15 in the US and 4 each in Germany and Japan; none is Taiwanese.',
   },
   listPanel: LIST,
-  overlays: [HQ],
+  overlays: [HQ, PHARMA],
   indicators: [
     {
       id: 'companies',
