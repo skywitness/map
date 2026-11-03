@@ -62,6 +62,10 @@ def _query(query: str, filename: str) -> Path:
             # 查詢服務逾時的時候會先送出一部分結果、再接 Java 的錯誤訊息（HTTP 200），不能存成快取
             if b"java.util.concurrent.TimeoutException" in data or b"\tat org.eclipse.jetty" in data:
                 raise TimeoutError("查詢服務逾時，回傳的結果不完整")
+            # 連線在中途斷掉時（2026-11-03：19,719 行、最後一行斷在網址中間）沒有錯誤訊息：最後一行的欄數要跟標題一樣
+            lines = data.rstrip(b"\n").split(b"\n")
+            if not data.endswith(b"\n") or lines[-1].count(b"\t") != lines[0].count(b"\t"):
+                raise TimeoutError("回應在中途斷掉，結果不完整")
             break
         except (urllib.error.URLError, TimeoutError) as e:
             if attempt == 3:
