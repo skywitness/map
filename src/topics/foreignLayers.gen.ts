@@ -12,6 +12,7 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"festivals","layers":[{"id":"festivals","label":{"zh":"有月份的節慶（依月份）","en":"Festivals with a month (by month)"},"kind":"points"},{"id":"festivals-undated","label":{"zh":"月份不詳的節慶","en":"Festivals, month unknown"},"kind":"points"}]},
   {"topic":"sports","layers":[{"id":"venues-summer","label":{"zh":"夏季奧運的比賽場館","en":"Summer Games venues"},"kind":"points"},{"id":"venues-winter","label":{"zh":"冬季奧運的比賽場館","en":"Winter Games venues"},"kind":"points"}]},
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
+  {"topic":"lactase","layers":[{"id":"lactase-surveys","label":{"zh":"調查點（Itan 等 2010 彙整的 233 筆）","en":"Surveys (233 compiled by Itan et al. 2010)"},"kind":"points"}]},
   {"topic":"industry","layers":[{"id":"steel-plants","label":{"zh":"鋼鐵廠（Global Energy Monitor）","en":"Iron and steel plants (Global Energy Monitor)"},"kind":"points"},{"id":"cement-plants","label":{"zh":"水泥廠（Global Energy Monitor）","en":"Cement plants (Global Energy Monitor)"},"kind":"points"}]},
   {"topic":"companies","layers":[{"id":"companies","label":{"zh":"公司（有 Wikidata 座標的）","en":"Companies (with Wikidata locations)"},"kind":"points"}]},
   {"topic":"company-sites","layers":[{"id":"all-sites","label":{"zh":"營運中的據點","en":"Operating sites"},"kind":"points"}]},

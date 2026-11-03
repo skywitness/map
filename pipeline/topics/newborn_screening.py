@@ -21,7 +21,7 @@ from __future__ import annotations
 import re
 import xml.etree.ElementTree as ET
 
-from common import OUT_DIR, download, indicator_file, write_json
+from common import OUT_DIR, download, indicator_file, now_iso, write_json
 from sources import countries
 
 OUT = OUT_DIR / "topics" / "newborn-screening"
@@ -236,6 +236,10 @@ def build() -> None:
         if d:
             print(f"  {c}：{counts.get(c)} 種，{d.get('y')} 年，G6PD {d['s'][g] if d['s'] else None}")
 
+    write_json(OUT / "manifest.json", {
+        "topic": "newborn-screening", "generatedAt": now_iso(),
+        "source": "Therrell et al. 2024, International Journal of Neonatal Screening 10(2):38 (PMC11203842)", "license": "CC BY 4.0",
+    })
 
 if __name__ == "__main__":
     build()

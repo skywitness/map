@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 133;
-export const INDICATOR_COUNT = 782;
+export const TOPIC_COUNT = 134;
+export const INDICATOR_COUNT = 783;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -132,6 +132,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"IMF, World Economic Outlook (October 2026)（人均 GDP、國民儲蓄）","en":"IMF, World Economic Outlook (October 2026) (GDP per capita, national saving)"},"url":"https://data.imf.org/en/datasets/IMF.RES:WEO","licenses":[{"zh":"註明出處即可使用","en":"free to use with attribution"}],"topics":["wealth"]},
   {"name":{"zh":"IMF, World Revenue Longitudinal Data（WoRLD，OECD 沒有的國家的稅收）","en":"IMF, World Revenue Longitudinal Data (WoRLD; tax revenue for countries the OECD does not cover)"},"url":"https://data.imf.org/en/datasets/IMF.FAD:WORLD","licenses":[{"zh":"註明來源即可使用","en":"free to use with attribution"}],"topics":["fiscal"]},
   {"name":"Information from the Stockholm International Peace Research Institute (SIPRI), Military Expenditure Database","url":"https://doi.org/10.55163/CQGC9685","licenses":[{"zh":"依 SIPRI 條款非商業使用，只收錄 2011–2025 年","en":"non-commercial use under SIPRI terms; 2011–2025 only"}],"topics":["military"]},
+  {"name":{"zh":"Itan 等 2010〈A worldwide correlation of lactase persistence phenotype and genotypes〉，BMC Evolutionary Biology 10:36，附件 1","en":"Itan et al. 2010, “A worldwide correlation of lactase persistence phenotype and genotypes”, BMC Evolutionary Biology 10:36, additional file 1"},"url":"https://doi.org/10.1186/1471-2148-10-36","licenses":["CC BY 2.0"],"topics":["lactase"]},
   {"name":{"zh":"ITU DataHub（世界銀行 Data360 轉載）：4G／5G 人口涵蓋率、每位網路使用者的國際頻寬、家戶上網率、家戶電腦擁有率","en":"ITU DataHub (via World Bank Data360): 4G/5G population coverage, international bandwidth per internet user, households with internet and with a computer"},"url":"https://datahub.itu.int/","licenses":[{"zh":"CC BY-NC-SA 3.0 IGO（只准非商業使用；4G／5G、國際頻寬、家戶、資安指數的資料檔同樣用這個授權）","en":"CC BY-NC-SA 3.0 IGO (non-commercial only; the coverage, bandwidth, household and cybersecurity data files are shared under the same licence)"}],"topics":["digital"]},
   {"name":{"zh":"ITU：Global Cybersecurity Index 2024","en":"ITU, Global Cybersecurity Index 2024"},"url":"https://www.itu.int/epublications/publication/global-cybersecurity-index-2024","licenses":[{"zh":"CC BY-NC-SA 3.0 IGO（只准非商業使用；4G／5G、國際頻寬、家戶、資安指數的資料檔同樣用這個授權）","en":"CC BY-NC-SA 3.0 IGO (non-commercial only; the coverage, bandwidth, household and cybersecurity data files are shared under the same licence)"}],"topics":["digital"]},
   {"name":{"zh":"Johns Hopkins University CSSE, COVID-19 Data Repository（OWID 轉載；台灣到 2023 年 2 月的確診死亡與 WHO「中國」的對照）","en":"Johns Hopkins University CSSE, COVID-19 Data Repository (via OWID; Taiwan confirmed deaths to February 2023 and the check of WHO’s China figure)"},"url":"https://github.com/owid/covid-19-data/tree/master/public/data/jhu","licenses":["CC BY 4.0"],"topics":["vaccination"]},

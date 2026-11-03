@@ -28,7 +28,7 @@ import numpy as np
 import rasterio
 
 import geoindex
-from common import CACHE_DIR, OUT_DIR, download, indicator_file, write_json
+from common import OUT_DIR, download, indicator_file, now_iso, write_json
 from sources import countries, pdfreader
 from topics.koppen import png_gray
 
@@ -233,6 +233,10 @@ def build() -> None:
         print(f"  {c}：蠶豆症 {g6pd.get(c)}%、SCA {rate.get(c)}‰（{births.get(c)} 人）")
     print(f"  鐮刀型血球症：{len(rate)} 國，2010 年新生兒 {sum(births.values()):,.0f} 人")
 
+    write_json(OUT / "manifest.json", {
+        "topic": "red-cell-traits", "generatedAt": now_iso(),
+        "source": "Howes et al. 2012 (PLoS Med 9:e1001339, Table S1); Piel et al. 2013 (PLoS Med 10:e1001484, Table S2); Malaria Atlas Project blood disorder grids", "license": "CC BY 4.0; CC BY 3.0 (MAP grids)",
+    })
 
 if __name__ == "__main__":
     build()

@@ -24,3 +24,4 @@ pygplates>=1.0
 # 人工林：SDPT 的向量圖磚（Mapbox Vector Tile）、林型分布圖的 shapefile
 mapbox-vector-tile>=2.1
 pyshp>=2.3
+xlrd>=2.0

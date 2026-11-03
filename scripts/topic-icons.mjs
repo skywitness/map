@@ -58,6 +58,7 @@ const TOPIC_ICONS = {
   'blood-types': 'droplet',
   'newborn-screening': 'test-tube-diagonal',
   'red-cell-traits': 'dna',
+  lactase: 'milk',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
   pisa: 'book-open-check',
