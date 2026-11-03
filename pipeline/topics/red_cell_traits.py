@@ -16,6 +16,8 @@ CC BY-NC-SA）不用，只用 MAP 的網格。
 - 蠶豆症：Howes 的表；表上沒有的國家（不是 2010 年的瘧疾流行國，例如台灣）用 MAP 網格在國內的面積平均（附註寫明）。
 - 鐮刀型血球症：Piel 的表（每 1,000 名新生兒）。
 - HbC、Duffy 陰性：MAP 網格在國內的面積平均（每格的中心點歸國家，依緯度的餘弦加權；不是人口加權）。
+**台灣的蠶豆症**（2026-11-03 補）：附註另寫國健署新生兒篩檢的個案數（`sources/hpa_newborn.py`，政府資料開放授權條款第 1 版）；
+篩檢的是男女新生兒的酵素活性，跟等位基因頻率不是同一個量，地圖上的值仍是網格推估。
 **地圖的網格**：四張網格依指標的門檻分級，存成 8 位元灰階 PNG（代碼 1–N，0 不畫），前端的類別網格圖層照原始解析度畫。
 """
 from __future__ import annotations
@@ -28,8 +30,8 @@ import numpy as np
 import rasterio
 
 import geoindex
-from common import OUT_DIR, download, indicator_file, now_iso, write_json
-from sources import countries, pdfreader
+from common import OUT_DIR, append_note, download, indicator_file, now_iso, write_json
+from sources import countries, hpa_newborn, pdfreader
 from topics.koppen import png_gray
 
 OUT = OUT_DIR / "topics" / "red-cell-traits"
@@ -220,8 +222,19 @@ def build() -> None:
     skipped = sorted(c for c in grid_g6pd if c not in g6pd and c not in extra)
     note = "Howes 等 2012 的國家表只收 2010 年的瘧疾流行國，{name}不在表上；這個值是 Malaria Atlas Project 網格在國內的面積平均（模型外插，不是調查）。"
     note_en = "Howes et al. 2012’s national table covers only malaria-endemic countries as of 2010; this value is the area average of the Malaria Atlas Project grid within the country (a model extrapolation, not a survey)."
-    _write("g6pd", "%", {**g6pd, **extra}, 1,
-           notes={c: note.format(name="這一國") for c in extra}, notesEn={c: note_en for c in extra})
+    notes = {c: note.format(name="這一國") for c in extra}
+    notes_en = {c: note_en for c in extra}
+    nbs = hpa_newborn.results()
+    y, n, cases = nbs["years"][-1], nbs["screened"][-1], nbs["cases"][0][-1]
+    since = [c / s * 1000 for yy, c, s in zip(nbs["years"], nbs["cases"][0], nbs["screened"]) if yy >= 1995]
+    append_note(notes, notes_en, "TWN", (
+        f"國健署的新生兒篩檢 {y} 年篩出蠶豆症 {cases:,.0f} 例，每千名篩檢 {cases / n * 1000:.1f} 例"
+        f"（男女合計；1995 年以後每千名 {min(since):.1f}–{max(since):.1f} 例），量的是新生兒的酵素活性，不是等位基因頻率",
+        f"Taiwan’s newborn screening found {cases:,.0f} cases of G6PD deficiency in {y}, {cases / n * 1000:.1f} per 1,000 screened "
+        f"(both sexes; {min(since):.1f}–{max(since):.1f} per 1,000 since 1995); it measures enzyme activity in newborns, "
+        "not allele frequency",
+    ))
+    _write("g6pd", "%", {**g6pd, **extra}, 1, notes=notes, notesEn=notes_en)
     rate, births = piel()
     _write("sca", "‰", rate, 1)
     _write("sca-births", "人", births, 0)
@@ -235,7 +248,7 @@ def build() -> None:
 
     write_json(OUT / "manifest.json", {
         "topic": "red-cell-traits", "generatedAt": now_iso(),
-        "source": "Howes et al. 2012 (PLoS Med 9:e1001339, Table S1); Piel et al. 2013 (PLoS Med 10:e1001484, Table S2); Malaria Atlas Project blood disorder grids", "license": "CC BY 4.0; CC BY 3.0 (MAP grids)",
+        "source": "Howes et al. 2012 (PLoS Med 9:e1001339, Table S1); Piel et al. 2013 (PLoS Med 10:e1001484, Table S2); Malaria Atlas Project blood disorder grids; Health Promotion Administration, Taiwan (newborn screening, note only)", "license": "CC BY 4.0; CC BY 3.0 (MAP grids); Open Government Data License, Taiwan 1.0",
     })
 
 if __name__ == "__main__":

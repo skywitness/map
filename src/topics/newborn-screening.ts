@@ -7,6 +7,7 @@ import type { CategoryDef, TopicDefinition } from './types';
  * 新生兒篩檢（2026-11-03，製作手冊第十九批 288；pipeline/topics/newborn_screening.py）：
  * Therrell 等 2024《Int J Neonatal Screening》的七張表（各國篩哪些病、哪一年開始），CC BY 4.0。
  * 篩檢的疾病數是 30 種常見疾病裡「國家計畫、涵蓋過半」的；側欄列出 30 種的狀態。
+ * 台灣另有國健署 1984–2024 年的歷年成果（側欄的 taiwan.json，政府資料開放授權條款第 1 版）。
  */
 
 /** 蠶豆症（G6PD 缺乏）的篩檢：有強弱之分（試辦 → 部分 → 全面），沒有篩的用中性色 */
@@ -37,10 +38,18 @@ export const newbornScreening: TopicDefinition = {
       url: 'https://doi.org/10.3390/ijns10020038',
       license: 'CC BY 4.0',
     },
+    {
+      name: {
+        zh: '衛生福利部國民健康署「新生兒先天性代謝異常疾病篩檢歷年成果表」（台灣，1984–2024 年）',
+        en: 'Health Promotion Administration, Ministry of Health and Welfare, newborn screening results (Taiwan, 1984–2024)',
+      },
+      url: 'https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=4083&pid=401',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
   note: {
-    zh: `${SOURCE_NOTE.zh}論文的表依地區用 ●（國家計畫或法規、涵蓋一半以上）、🞇（涵蓋不到一半）、§ 或 †（試辦、只有部分醫院）標示，這裡歸成四級；「篩檢的疾病數」只數 30 種常見疾病裡涵蓋過半的，表上「其他」欄的疾病不算（側欄有原文）。撒哈拉以南非洲的表只列了 5 種病，也沒有開始年份；歐洲以外有些國家表上寫「沒有資料」，畫成無資料。開始年份是表上第一次開始篩檢的年份（有的是試辦），時間軸播放時看得到各國陸續開辦。國健署的台灣歷年篩檢成果（篩檢率、異常個案數）網站從國外連不上，這次沒有放。`,
-    en: `${SOURCE_NOTE.en} The paper’s regional tables mark each condition ● (national plan or law, over half covered), 🞇 (under half covered) or § / † (pilot or a few hospitals only), grouped here into four levels; “conditions screened” counts only the 30 common conditions covered for over half of newborns, not the “other” column (shown in the original wording in the side panel). The sub-Saharan Africa table lists only five conditions and no start years; countries marked “no information” are shown as no data. The start year is the first year screening began (sometimes as a pilot); play the time slider to watch countries start one by one.`,
+    zh: `${SOURCE_NOTE.zh}論文的表依地區用 ●（國家計畫或法規、涵蓋一半以上）、🞇（涵蓋不到一半）、§ 或 †（試辦、只有部分醫院）標示，這裡歸成四級；「篩檢的疾病數」只數 30 種常見疾病裡涵蓋過半的，表上「其他」欄的疾病不算（側欄有原文）。撒哈拉以南非洲的表只列了 5 種病，也沒有開始年份；歐洲以外有些國家表上寫「沒有資料」，畫成無資料。開始年份是表上第一次開始篩檢的年份（有的是試辦），時間軸播放時看得到各國陸續開辦。點台灣，側欄另有國健署 1984 年以來的歷年成果：篩檢率、每千名的異常個案與 21 種疾病的個案數。`,
+    en: `${SOURCE_NOTE.en} The paper’s regional tables mark each condition ● (national plan or law, over half covered), 🞇 (under half covered) or § / † (pilot or a few hospitals only), grouped here into four levels; “conditions screened” counts only the 30 common conditions covered for over half of newborns, not the “other” column (shown in the original wording in the side panel). The sub-Saharan Africa table lists only five conditions and no start years; countries marked “no information” are shown as no data. The start year is the first year screening began (sometimes as a pilot); play the time slider to watch countries start one by one. Select Taiwan for the Health Promotion Administration’s results since 1984: coverage, abnormal cases per 1,000 and case counts for 21 conditions.`,
   },
   panelExtra: () => import('./panels/NewbornScreeningPanel'),
   indicators: [
@@ -78,8 +87,8 @@ export const newbornScreening: TopicDefinition = {
       id: 'g6pd',
       label: { zh: '有沒有篩蠶豆症', en: 'G6PD deficiency screening' },
       description: {
-        zh: '蠶豆症（G6PD 缺乏症）的新生兒篩檢。台灣、中國、香港、澳門、新加坡、菲律賓、馬來西亞全面篩；日本、韓國、歐洲多半不篩（帶因率低）。蠶豆症是台灣新生兒篩檢最常見的異常，各國的帶因率見「紅血球的遺傳性狀」主題。',
-        en: 'Newborn screening for G6PD deficiency. Taiwan, China, Hong Kong, Macau, Singapore, the Philippines and Malaysia screen all newborns; Japan, South Korea and most of Europe do not (the deficiency is rare there). It is the most common abnormal finding in Taiwan’s newborn screening; see the “Inherited red blood cell traits” topic for how common it is.',
+        zh: '蠶豆症（G6PD 缺乏症）的新生兒篩檢。台灣、中國、香港、澳門、新加坡、菲律賓、馬來西亞全面篩；日本、韓國、歐洲多半不篩（帶因率低）。蠶豆症是台灣新生兒篩檢最常見的異常：國健署的成果表 2024 年 2,958 例，每千名篩檢 22.0 例。各國的帶因率見「紅血球的遺傳性狀」主題。',
+        en: 'Newborn screening for G6PD deficiency. Taiwan, China, Hong Kong, Macau, Singapore, the Philippines and Malaysia screen all newborns; Japan, South Korea and most of Europe do not (the deficiency is rare there). It is the most common abnormal finding in Taiwan’s newborn screening: 2,958 cases in 2024, 22.0 per 1,000 screened, according to the Health Promotion Administration; see the “Inherited red blood cell traits” topic for how common it is.',
       },
       unit: '',
       file: 'g6pd.json',
