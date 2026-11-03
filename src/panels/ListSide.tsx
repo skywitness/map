@@ -105,7 +105,8 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const [narrowOpen, setNarrowOpen] = useState(false);
   const shown = narrow ? narrowOpen : open;
   const setShown = (v: boolean) => (narrow ? setNarrowOpen(v) : onOpenChange(v));
-  const path = `topics/${topicId}/${(item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '')}`;
+  // 檔名的 {year} 換成時間軸的年份（2026-11-03，移民路上的死亡與失蹤：一年一個點檔）
+  const path = `topics/${topicId}/${(item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '').replace('{year}', String(year))}`;
   const { data, error: fileError } = useJson<PointsData | LinesData>(shown && !def.fromLive && !def.layered ? path : null);
   // 分層的點檔（城市）：選了國家時兩個檔都讀（那一國的小城市在其餘的裡）；沒選國家時全世界的前幾名都在 file 裡
   const layered = useAllPoints(shown && !def.fromLive && def.layered ? path : null, Boolean(country && def.countryField));

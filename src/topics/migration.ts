@@ -2,6 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { withParts } from './parts';
 import { chinatownsPart } from './chinatowns';
+import { missingMigrantsPart } from './missing-migrants';
 import type { FlowLabels, FlowLayer, IndicatorDef, Text, TopicDefinition } from './types';
 
 /**
@@ -238,4 +239,4 @@ export const migration: TopicDefinition = withParts({
       },
     ),
   ],
-}, chinatownsPart);
+}, chinatownsPart, missingMigrantsPart);

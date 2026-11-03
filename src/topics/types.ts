@@ -1009,7 +1009,7 @@ export interface ListPanelDef {
   tabLabel?: Text;
   /** 只在這些指標顯示；沒寫是所有指標 */
   indicators?: string[];
-  /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}；有 lines 時是線檔（LinesData） */
+  /** 點的資料檔（PointsData），相對於這個主題的資料夾，可以含 {item}、{year}（時間軸的年份）；有 lines 時是線檔（LinesData） */
   file: string;
   /**
    * 檔是分層的（PointsOverlayDef.more：file 加上 <file>-more.json）：選了國家（countryField）時兩個都讀；沒選國家時

@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 131;
-export const INDICATOR_COUNT = 771;
+export const INDICATOR_COUNT = 772;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","diet","festivals","reads","nobel","sports","racing","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","daylight","aurora","magnetic","antipodes","elevation","special-landforms","antarctica","world-heritage","national-parks","attractions","oldest-universities","skyscrapers"]},
@@ -317,6 +317,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"國民健康署，癌症發生統計（台灣的附註）","en":"Health Promotion Administration (Taiwan), cancer incidence statistics (notes on Taiwan)"},"url":"https://data.gov.tw/dataset/6399","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["disease"]},
   {"name":{"zh":"國際勞工組織 ILOSTAT（ILO 模型估計 2025 年 11 月版、非正式就業比例）","en":"International Labour Organization, ILOSTAT (ILO modelled estimates, November 2025; informal employment rate)"},"url":"https://ilostat.ilo.org/data/","licenses":["CC BY 4.0"],"topics":["employment"]},
   {"name":{"zh":"國際勞工組織 ILOSTAT（平均月薪、最低工資、每週工時）","en":"International Labour Organization, ILOSTAT (earnings, minimum wages, weekly hours)"},"url":"https://ilostat.ilo.org/","licenses":["CC BY 4.0"],"topics":["wages"]},
+  {"name":{"zh":"國際移民組織（IOM）Missing Migrants Project（IOM's Missing Migrants Project；台灣附近的 2 起依座標改歸台灣）","en":"IOM's Missing Migrants Project (International Organization for Migration; the 2 incidents near Taiwan are moved to Taiwan by their coordinates)"},"url":"https://missingmigrants.iom.int/downloads","licenses":["CC BY 4.0"],"topics":["migration"]},
   {"name":{"zh":"外交部駐外館處通訊錄（data.gov.tw 6119）","en":"MOFA overseas missions (data.gov.tw 6119)"},"url":"https://data.gov.tw/dataset/6119","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License 1.0"}],"topics":["taiwan-diplomacy"]},
   {"name":{"zh":"大學入學考試中心（台灣的學測與分科測驗）","en":"College Entrance Examination Center (Taiwan’s GSAT and Advanced Subjects Test)"},"url":"https://www.ceec.edu.tw/","licenses":[{"zh":"只引用考試名稱與月份","en":"only exam names and months are cited"}],"topics":["education"]},
   {"name":{"zh":"所得稅法（全國法規資料庫）","en":"Income Tax Act (Laws & Regulations Database of Taiwan)"},"url":"https://law.moj.gov.tw/LawClass/LawHistory.aspx?pcode=G0340003","licenses":[{"zh":"法律條文（不受著作權保護）","en":"Statute (not subject to copyright)"}],"topics":["taxes"]},
