@@ -17,6 +17,8 @@ cloud 的容器被回收、快取不見時，已經在 flow.json（同樣的年�
 主流在西邊約 4 公里）：河口周圍 ±0.1° 每 0.05° 一點（25 點）與河口往上游 50 km 內的幾個點各抓兩週，
 取平均流量最大、離河口（或往上游的點）0.06° 以內的格點（API 會挑 5 km 內最大的河，烏溪河口北邊的點會跳到大甲溪），
 再抓那一格的 10 年。兩條河用到同一個格點時停下來。
+河口附近兩週的平均不到 HydroRIVERS 長期平均的十分之一時（三角洲的河口格點落在支流上：奧里諾科河只有 159 m³/s），
+改沿主流往上游 20–400 km 的 16 個點再找。
 """
 from __future__ import annotations
 
@@ -135,6 +137,16 @@ def rivers() -> list[dict]:
         m = pts[-1]
         return m, [p for p in pts[::-1][1:] if _km(p, m) <= 50][:4]
 
+    def upstream(g: int, m: tuple[float, float]) -> list[tuple[float, float]]:
+        """主流往上游 400 km 內的點（集水面積至少是河口一半的線的頂點，依離河口的距離平均挑 16 個）：
+        三角洲的河口格點常落在支流上（奧里諾科河），找不到主流時用"""
+        ids = by_group[g]
+        top_u = max(records[i]["u"] for i in ids)
+        pts = sorted({p for i in ids if records[i]["u"] >= top_u / 2 for p in lines[i]}, key=lambda p: _km(p, m))
+        pts = [p for p in pts if 20 <= _km(p, m) <= 400]
+        step = max(1, len(pts) // 16)
+        return pts[::step][:16]
+
     named = [g for g in groups.values() if g.get("se")]
     top = sorted(named, key=lambda g: -g["Q"])[:TOP]
     by_en: dict[str, dict] = {}
@@ -147,15 +159,34 @@ def rivers() -> list[dict]:
         g = by_zh.get(zh)
         if g is None:
             raise RuntimeError(f"rivers.json 沒有台灣的 {zh}")
-        out.append({"g": g["g"], "zh": zh, "en": en, "Q": g["Q"], "mouth": (lon, lat), "near": [], "tw": True})
+        out.append({"g": g["g"], "zh": zh, "en": en, "Q": g["Q"], "mouth": (lon, lat), "near": [], "far": [], "tw": True})
     for g in chosen:
         m, near = mouth(g["g"])
-        out.append({"g": g["g"], "zh": g["sz"], "en": g["se"], "Q": g["Q"], "mouth": m, "near": near, "tw": False})
+        out.append({"g": g["g"], "zh": g["sz"], "en": g["se"], "Q": g["Q"], "mouth": m, "near": near,
+                    "far": upstream(g["g"], m), "tw": False})
     return out
 
 
 def _slug(river: dict) -> str:
     return f"{river['g']}-{''.join(c if c.isalnum() else '-' for c in river['en']).strip('-').lower()}"
+
+
+def _probe(cands: list[tuple[float, float]], centres: list[tuple[float, float]]) -> dict | None:
+    """候選點各抓兩週（一次請求，每點算 1 次），回傳平均流量最大、離 centres 0.06° 以內的格點"""
+    result = _get({
+        "latitude": ",".join(f"{c[1]:.3f}" for c in cands), "longitude": ",".join(f"{c[0]:.3f}" for c in cands),
+        "daily": "river_discharge", "models": MODEL, "start_date": PROBE[0], "end_date": PROBE[1],
+    })
+    best = None
+    for res in result if isinstance(result, list) else [result]:
+        values = [v for v in res["daily"]["river_discharge"] if v is not None]
+        cell = (res["longitude"], res["latitude"])
+        # API 會挑 5 km 內最大的河：沒有距離限制時，烏溪河口北邊那幾點會跳到大甲溪的出海口
+        if values and min(_km(cell, c) for c in centres) <= 0.06 * 111.2:
+            mean = sum(values) / len(values)
+            if best is None or mean > best["probe"]:
+                best = {"lat": res["latitude"], "lon": res["longitude"], "probe": round(mean, 1)}
+    return best
 
 
 def locate(river: dict) -> dict:
@@ -166,21 +197,13 @@ def locate(river: dict) -> dict:
     lon, lat = river["mouth"]
     # 河口周圍 ±0.1° 每 0.05° 一點（5×5，GloFAS 的高屏溪在河口西邊約 4 公里那一列）與往上游的幾個點
     grid = [(lon + dx * 0.05, lat + dy * 0.05) for dy in range(-2, 3) for dx in range(-2, 3)]
-    cands = [*grid, *river["near"]]
-    result = _get({
-        "latitude": ",".join(f"{c[1]:.3f}" for c in cands), "longitude": ",".join(f"{c[0]:.3f}" for c in cands),
-        "daily": "river_discharge", "models": MODEL, "start_date": PROBE[0], "end_date": PROBE[1],
-    })
-    # 回傳的格點要離河口（或往上游的點）0.06° 以內：API 會挑 5 km 內最大的河，烏溪河口北邊那幾點會跳到大甲溪的出海口
-    centres = [(lon, lat), *river["near"]]
-    best = None
-    for res in result if isinstance(result, list) else [result]:
-        values = [v for v in res["daily"]["river_discharge"] if v is not None]
-        cell = (res["longitude"], res["latitude"])
-        if values and min(_km(cell, c) for c in centres) <= 0.06 * 111.2:
-            mean = sum(values) / len(values)
-            if best is None or mean > best["probe"]:
-                best = {"lat": res["latitude"], "lon": res["longitude"], "probe": round(mean, 1)}
+    best = _probe([*grid, *river["near"]], [(lon, lat), *river["near"]])
+    # 兩週的平均不到 HydroRIVERS 長期平均的十分之一：格點不在主流（三角洲的支流），沿主流往上游再找
+    if river["far"] and (best is None or best["probe"] < river["Q"] / 10):
+        print(f"  {river['zh']}：河口附近最大只有 {best['probe'] if best else 0} m³/s，往上游找")
+        far = _probe(river["far"], river["far"])
+        if far and (best is None or far["probe"] > best["probe"]):
+            best = far
     if best is None:
         raise RuntimeError(f"{river['zh']} 的候選格點都沒有流量")
     CACHE.mkdir(parents=True, exist_ok=True)
