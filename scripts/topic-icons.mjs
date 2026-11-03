@@ -60,6 +60,7 @@ const TOPIC_ICONS = {
   'red-cell-traits': 'dna',
   lactase: 'milk',
   'drug-genes': 'pill-bottle',
+  'antimicrobial-resistance': 'bug',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
   pisa: 'book-open-check',

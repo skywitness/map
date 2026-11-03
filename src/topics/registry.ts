@@ -48,9 +48,10 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '健康與疾病', en: 'Health & disease' }, topics: ['health', 'disease', 'vaccination', 'height', 'tobacco-alcohol'] },
       { label: { zh: '基因', en: 'Genes' }, topics: ['blood-types', 'newborn-screening', 'red-cell-traits', 'lactase', 'drug-genes'] },
+      { label: { zh: '藥物', en: 'Medicines' }, topics: ['antimicrobial-resistance'] },
     ],
-    // 左：健康與疾病；右：基因（藥物那一組做好時加在右邊）
-    columns: [1, 1],
+    // 左：健康與疾病；中：基因；右：藥物
+    columns: [1, 1, 1],
   },
   {
     id: 'economy',
@@ -147,6 +148,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'red-cell-traits': () => import('./red-cell-traits'),
   lactase: () => import('./lactase'),
   'drug-genes': () => import('./drug-genes'),
+  'antimicrobial-resistance': () => import('./antimicrobial-resistance'),
   'tobacco-alcohol': () => import('./tobacco-alcohol'),
   education: () => import('./education'),
   pisa: () => import('./pisa'),
