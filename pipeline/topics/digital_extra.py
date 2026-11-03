@@ -9,7 +9,9 @@
     4,547,918 若是 kbit/s 等於每位使用者 4.5 Gbit/s，不合理；照 ITU 原站當作 bit/s。
 - 男女的網路使用率：World Bank WDI 的 IT.NET.USER.FE.ZS、IT.NET.USER.MA.ZS（ITU 資料，CC BY 4.0）；台灣用數位發展部
   「數位近用調查」（使用者決定）。
-- 家戶上網、家戶電腦：台灣用數位部的值（家戶電腦只調查到 2016 年），ITU 的台灣值寫附註（使用者決定）。
+- 家戶上網：台灣用數位部的值，ITU 的台灣值寫附註（使用者決定）。
+- 家戶電腦：台灣用主計總處家庭收支調查的「家庭主要設備普及率」（家用電腦，到最新一年；2026-11-03 製作手冊第十七批 284，
+  使用者決定）。數位部的家戶電腦擁有率只調查到 2016 年，而且比主計總處高約 15 個百分點（定義不同），寫附註、不接在一起。
 - 數位支付、手機持有：World Bank Global Findex Database 2025（CC BY 4.0）的 g20_any、con1、con9a，15 歲以上；
   各國用自己最新的一年（latestWithin，使用者決定），高所得國的數位支付多半只有 2021 年。
 - 國家資安指數：ITU Global Cybersecurity Index 2024 的五級（pipeline/data/digital/gci-2024.json，CC BY-NC-SA 3.0 IGO），
@@ -22,8 +24,8 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from common import download, indicator_file, to_series, write_json, year_span
-from sources import moda, worldbank
+from common import download, indicator_file, latest_year_span, to_series, write_json, year_span
+from sources import fies, moda, worldbank
 
 DATA360 = "https://data360files.worldbank.org/data360-data/data/ITU_DH/{code}.csv"
 FINDEX = ("https://thedocs.worldbank.org/en/doc/be6615202d1f08a25855c8ac2d615122-0050012025/related/"
@@ -53,7 +55,11 @@ def _fmt_years_en(series: dict[int, float], fmt) -> str:
 
 
 def _write(out: Path, name: str, unit: str, data: dict[str, dict[int, float]], first: int, digits: int = 2, **extra) -> list[int]:
-    years = [y for y in year_span(data) if y >= first]
+    # 有 latestWithin 的指標，年份依「within 年內有資料的國家數」決定（ITU 的家戶電腦 2021 年以後只有少數國家，
+    # 用 year_span 會停在 2020 年，台灣主計總處到最新一年的值就畫不出來）
+    within = extra.get("latestWithin")
+    span = latest_year_span(data, within) if within else year_span(data)
+    years = [y for y in span if y >= first]
     write_json(out / f"{name}.json", indicator_file(
         name, unit, years, {c: to_series(s, years, digits) for c, s in sorted(data.items()) if s}, **extra))
     return years
@@ -87,22 +93,35 @@ def build(out: Path) -> None:
     years = _write(out, "bandwidth-per-user", "bit/s", band, 2005, digits=0, **NC)
     print(f"  國際頻寬：{len(band)} 個經濟體；台灣 2023 年 {band['TWN'].get(2023):,.0f} bit/s")
 
-    # 家戶上網、家戶電腦：台灣用數位部，ITU 的台灣值寫附註
+    # 家戶上網：台灣用數位部；家戶電腦：台灣用主計總處（數位部的值寫附註）；ITU 的台灣值都寫附註
     pct = lambda v: f"{v:.1f}%"  # noqa: E731
-    for name, code, moda_col, label in (("household-internet", "IT_HH_INT", "家戶連網率", ("家戶上網率", "household internet access")),
-                                        ("household-computer", "IT_HH_COMP", "家戶電腦擁有率", ("家戶電腦擁有率", "household computer ownership"))):
+    for name, code, label in (("household-internet", "IT_HH_INT", ("家戶上網率", "household internet access")),
+                              ("household-computer", "IT_HH_COMP", ("家戶電腦擁有率", "household computer ownership"))):
         data = _itu(code)
         itu_tw = data.pop("TWN", {})
-        data["TWN"] = moda.column(moda_col)
-        zh = f"台灣用數位發展部「數位近用調查」的{label[0]}"
-        en = f"Taiwan uses the {label[1]} rate from the Ministry of Digital Affairs' Digital Access Survey"
-        if name == "household-computer":
-            zh += "（2016 年以後不再調查）"
-            en += " (not surveyed after 2016)"
+        if name == "household-internet":
+            data["TWN"] = moda.column("家戶連網率")
+            zh = f"台灣用數位發展部「數位近用調查」的{label[0]}"
+            en = f"Taiwan uses the {label[1]} rate from the Ministry of Digital Affairs' Digital Access Survey"
+        else:
+            data["TWN"] = fies.equipment("家用電腦")
+            old = moda.column("家戶電腦擁有率")
+            last = max(old)
+            dgbas = data["TWN"]
+            zh = (f"台灣用主計總處「家庭收支調查」的家庭主要設備普及率（家用電腦，{min(dgbas)} 年起每年；主計總處沒有寫明含不含平板）。"
+                  f"數位發展部「數位近用調查」的家戶電腦擁有率 {min(old)}–{last} 年比它高約 "
+                  f"{sum(old[y] - dgbas[y] for y in old) / len(old):.0f} 個百分點（{last} 年 {pct(old[last])}，主計總處 "
+                  f"{pct(dgbas[last])}），{last} 年以後不再調查；兩個調查的定義不同，不能接在一起")
+            en = (f"Taiwan uses the share of households with a home computer from the Directorate-General of Budget, Accounting and "
+                  f"Statistics' Survey of Family Income and Expenditure (every year from {min(dgbas)}; it does not say whether "
+                  f"tablets count). The Ministry of Digital Affairs' Digital Access Survey put household computer ownership about "
+                  f"{sum(old[y] - dgbas[y] for y in old) / len(old):.0f} percentage points higher in {min(old)}–{last} "
+                  f"({pct(old[last])} in {last}, against {pct(dgbas[last])} in the income survey) and stopped asking after {last}; the two surveys "
+                  "define it differently, so they are not joined")
         zh += f"；ITU 的台灣值：{_fmt_years(itu_tw, pct)}"
         en += f"; ITU's figures for Taiwan: {_fmt_years_en(itu_tw, pct)}"
         years = _write(out, name, "%", data, 2000, notes={"TWN": zh}, notesEn={"TWN": en}, latestWithin=4, **NC)
-        print(f"  {name}：{len(data)} 個經濟體；台灣（數位部）{sorted(data['TWN'].items())[-1]}，ITU {sorted(itu_tw.items())[-1]}")
+        print(f"  {name}：{len(data)} 個經濟體；台灣 {sorted(data['TWN'].items())[-1]}，ITU {sorted(itu_tw.items())[-1]}")
 
     # Findex：數位支付、手機持有、主要用智慧型手機（15 歲以上，各國用自己最新的一年）
     path = download(FINDEX, "worldbank", "GlobalFindexDatabase2025.csv")

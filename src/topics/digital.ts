@@ -74,6 +74,11 @@ export const digital: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
+      name: { zh: '主計總處 家庭收支調查：家庭主要設備普及率（家用電腦）', en: 'DGBAS (Taiwan), Survey of Family Income and Expenditure: household equipment (home computers)' },
+      url: 'https://www.stat.gov.tw/News.aspx?n=3908&sms=11530',
+      license: OPEN_DATA_TW,
+    },
+    {
       name: { zh: '國家通訊傳播委員會 電信統計', en: 'National Communications Commission (Taiwan), telecom statistics' },
       url: 'https://data.gov.tw/dataset/22589',
       license: OPEN_DATA_TW,
@@ -106,8 +111,8 @@ export const digital: TopicDefinition = {
     },
   ],
   note: {
-    zh: '網路使用率、門號與寬頻的台灣不在 ITU 的資料庫中，改用數位發展部的調查與 NCC 的用戶數，定義與 ITU 大致相同，細節見台灣側欄的附註；ITU DataHub（4G／5G、國際頻寬、家戶）有台灣，家戶的兩個指標仍用數位部的值（ITU 的寫附註）。4G／5G、國際頻寬、家戶、資安指數是 ITU 的資料，只准非商業使用（CC BY-NC-SA 3.0 IGO），這幾個資料檔也用同一種授權。數位支付、手機持有是 15 歲以上的調查，各國用自己最新的一年。固網與行動網路的速度見「網路速度」主題，GitHub 上的開發者見「開發者與開源」主題。',
-    en: "For internet use, subscriptions and broadband, Taiwan is not in the ITU database, so the Ministry of Digital Affairs survey and NCC subscription counts are used instead; their definitions are broadly the same as the ITU's (see the note in Taiwan's panel). ITU DataHub (4G/5G, bandwidth, households) does include Taiwan, but the two household indicators still use the ministry's figures, with ITU's in the note. The coverage, bandwidth, household and cybersecurity indicators are ITU data licensed for non-commercial use only (CC BY-NC-SA 3.0 IGO), and their data files are shared under the same licence. Digital payments and phone ownership come from surveys of people aged 15 and over, using each country's latest year. For fixed and mobile connection speeds, see the Internet speed topic; for developers on GitHub, the Developers topic.",
+    zh: '網路使用率、門號與寬頻的台灣不在 ITU 的資料庫中，改用數位發展部的調查與 NCC 的用戶數，定義與 ITU 大致相同，細節見台灣側欄的附註；ITU DataHub（4G／5G、國際頻寬、家戶）有台灣，家戶上網率仍用數位部的值，家戶電腦擁有率用主計總處家庭收支調查的值（ITU 與數位部的寫附註）。4G／5G、國際頻寬、家戶、資安指數是 ITU 的資料，只准非商業使用（CC BY-NC-SA 3.0 IGO），這幾個資料檔也用同一種授權。數位支付、手機持有是 15 歲以上的調查，各國用自己最新的一年。固網與行動網路的速度見「網路速度」主題，GitHub 上的開發者見「開發者與開源」主題。',
+    en: "For internet use, subscriptions and broadband, Taiwan is not in the ITU database, so the Ministry of Digital Affairs survey and NCC subscription counts are used instead; their definitions are broadly the same as the ITU's (see the note in Taiwan's panel). ITU DataHub (4G/5G, bandwidth, households) does include Taiwan, but household internet access still uses the ministry's figure and household computer ownership the DGBAS Survey of Family Income and Expenditure, with the other figures in the note. The coverage, bandwidth, household and cybersecurity indicators are ITU data licensed for non-commercial use only (CC BY-NC-SA 3.0 IGO), and their data files are shared under the same licence. Digital payments and phone ownership come from surveys of people aged 15 and over, using each country's latest year. For fixed and mobile connection speeds, see the Internet speed topic; for developers on GitHub, the Developers topic.",
   },
   indicators: [
     {
@@ -220,10 +225,12 @@ export const digital: TopicDefinition = {
       'household-computer',
       { zh: '家戶電腦擁有率', en: 'Households with a computer' },
       {
-        zh: '家裡有電腦（桌機、筆電或平板）的家戶比例（ITU），各國最新年份很分散。沙烏地、阿聯 2023 年 99.5%，馬拉威、莫三比克 3.3%。台灣用數位部的值，只調查到 2016 年（83.1%）；ITU 的台灣 2023 年 76.8%。',
-        en: 'Share of households with a computer (desktop, laptop or tablet; ITU); the latest year varies widely by country. Saudi Arabia and the UAE: 99.5% in 2023; Malawi and Mozambique 3.3%. Taiwan uses the Ministry of Digital Affairs figure, surveyed only until 2016 (83.1%); ITU’s figure for Taiwan is 76.8% in 2023.',
+        zh: '家裡有電腦（桌機、筆電或平板）的家戶比例（ITU），各國最新年份很分散。沙烏地、阿聯 2023 年 99.5%，馬拉威、莫三比克 3.3%。台灣用主計總處家庭收支調查的家庭主要設備普及率：2025 年 68.1%，2012 年最高（72.3%）以後沒有再超過。數位部的調查只到 2016 年（83.1%，同年主計總處 68.8%），兩個調查的定義不同；ITU 的台灣 2023 年 76.8%。',
+        en: 'Share of households with a computer (desktop, laptop or tablet; ITU); the latest year varies widely by country. Saudi Arabia and the UAE: 99.5% in 2023; Malawi and Mozambique 3.3%. Taiwan uses the DGBAS Survey of Family Income and Expenditure: 68.1% in 2025, never higher since its 2012 peak (72.3%). The Ministry of Digital Affairs survey ended in 2016 (83.1%, against 68.8% in the DGBAS survey that year); the two define it differently. ITU’s figure for Taiwan is 76.8% in 2023.',
       },
       [10, 25, 50, 75, 90],
+      // 年份到 2025 年（台灣主計總處），但 ITU 2021 年以後只有少數國家：預設 2021 年（197 國在 4 年內有資料，2024 年只有 82 國）
+      { defaultYear: 2021 },
     ),
     percent(
       'digital-payments',

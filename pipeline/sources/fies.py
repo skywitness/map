@@ -26,6 +26,10 @@ EDITION = 114
 TYPES_URL = "https://ws.dgbas.gov.tw/001/Upload/461/relfile/11525/232214/" + urllib.parse.quote(
     "046-性別統計指標-家戶狀況按家庭組織型態分.csv"
 )
+# 家庭主要設備普及率（同一組開放資料，1976 年起每年；家用電腦 1983 年起、家用汽車、機車……的百分比）
+EQUIPMENT_URL = "https://ws.dgbas.gov.tw/001/Upload/461/relfile/11525/232214/" + urllib.parse.quote(
+    "016-家庭主要設備普及率.csv"
+)
 TYPES = {"單人": "單人家庭戶數", "單親": "單親家庭戶數", "三代": "三代家庭戶數", "祖孫": "祖孫家庭戶數"}
 OWNERSHIP_FROM = 2010  # 自有住宅率改定義的那一年
 
@@ -121,4 +125,20 @@ def household_types() -> dict[str, dict[int, float]]:
         total = float(row["總計戶數"])
         for key, col in TYPES.items():
             out[key][int(row["年"])] = float(row[col]) / total * 100
+    return out
+
+
+def equipment(name: str) -> dict[int, float]:
+    """家庭主要設備普及率的一欄（「家用電腦」「家用汽車」「機車」……）：{西元年: 有這項設備的家庭 %}，沒有調查的年份（「－」）不放"""
+    path = download(EQUIPMENT_URL, "fies", "equipment.csv")
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.DictReader(f))
+    col = f"{name}-百分比"
+    if not rows or "年" not in rows[0] or col not in rows[0]:
+        raise RuntimeError(f"家庭主要設備普及率的欄位變了：{list(rows[0]) if rows else []}")
+    out = {}
+    for row in rows:
+        value = row[col].strip()
+        if row["年"].strip().isdigit() and value not in ("", "－", "-"):
+            out[int(row["年"])] = float(value)
     return out

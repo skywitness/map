@@ -47,6 +47,14 @@ export const vehicles: TopicDefinition = {
     },
     {
       name: {
+        zh: '主計總處 家庭收支調查：家庭主要設備普及率（有家用汽車、機車的家庭，台灣的附註）',
+        en: 'DGBAS (Taiwan), Survey of Family Income and Expenditure: household equipment (households with a car or motorcycle, in Taiwan’s note)',
+      },
+      url: 'https://www.stat.gov.tw/News.aspx?n=3908&sms=11530',
+      license: { zh: '主計總處政府網站資料開放宣告（政府資料開放授權條款）', en: 'DGBAS open data declaration (Open Government Data License)' },
+    },
+    {
+      name: {
         zh: 'United Nations, World Population Prospects 2024（每千人的人口）',
         en: 'United Nations, World Population Prospects 2024 (population for the per-1,000 figures)',
       },

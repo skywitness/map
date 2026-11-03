@@ -21,7 +21,7 @@
 from __future__ import annotations
 
 from common import OUT_DIR, indicator_file, latest_year_span, now_iso, to_series, write_json
-from sources import eurostat, motc, who_road, wpp
+from sources import eurostat, fies, motc, who_road, wpp
 
 OUT = OUT_DIR / "topics" / "road-safety"
 FIRST_YEAR = 2000
@@ -87,6 +87,9 @@ def build_motorcycles() -> None:
     note_en = (f"Taiwan: motorcycles registered at year end in table 101 of the Ministry of Transportation and Communications "
                f"statistics database ({moto_tw[y] / 1e6:.1f} million at the end of {y}, heavy and light motorcycles) divided by "
                f"UN mid-year population; the share is motorcycles divided by all registered motor vehicles ({total_tw[y] / 1e6:.1f} million).")
+    hh_year, hh = _households("機車")
+    note += f"以家庭來算，主計總處家庭收支調查 {hh_year} 年 {hh:.1f}% 的家庭有機車。"
+    note_en += f" Counted by household, {hh:.1f}% of households had a motorcycle in {hh_year} (DGBAS Survey of Family Income and Expenditure)."
     for name, unit, data in (("motorcycles-per-1000", "輛/千人", per_1000), ("motorcycle-share", "%", share)):
         write_json(OUT / f"{name}.json", indicator_file(
             name, unit, years, {k: to_series(s, years) for k, s in sorted(data.items())},
@@ -95,6 +98,13 @@ def build_motorcycles() -> None:
     top = sorted(((next(iter(s.values())), k) for k, s in per_1000.items() if k != "TWN"), reverse=True)
     print(f"  機車：{len(per_1000) - 1} 國＋台灣；不用（機車多於車輛總數或沒有人口）：{dropped}")
     print(f"  每千人最多 {top[:8]}；台灣 {y} 年 {per_1000['TWN'][y]}（占 {share['TWN'][y]}%）")
+
+
+def _households(name: str) -> tuple[int, float]:
+    """主計總處家庭主要設備普及率的最新一年（2026-11-03，製作手冊第十七批 284）：(年, 有這項設備的家庭 %)"""
+    series = fies.equipment(name)
+    year = max(series)
+    return year, series[year]
 
 
 # GSRRS 2023 的汽車數明顯填錯的：每千人不到 3 輛（喬治亞 1 輛、賽普勒斯 701 輛、肯亞 7 萬輛…）、
@@ -134,6 +144,9 @@ def build_cars() -> None:
                f"statistics database ({cars_tw[y] / 1e6:.2f} million at the end of {y}, Highway Bureau registration data) divided by "
                f"UN mid-year population, excluding light trucks; with light trucks ({vans_tw[y] / 1e6:.2f} million) it is "
                f"{with_vans:,.0f} per 1,000 people, closer to WHO’s definition that includes 4-wheeled light vehicles.")
+    hh_year, hh = _households("家用汽車")
+    note += f"以家庭來算，主計總處家庭收支調查 {hh_year} 年 {hh:.1f}% 的家庭有家用汽車。"
+    note_en += f" Counted by household, {hh:.1f}% of households had a car in {hh_year} (DGBAS Survey of Family Income and Expenditure)."
     years = list(range(min(cars_tw), TWN_LAST + 1))
     write_json(OUT / "cars-per-1000.json", indicator_file(
         "cars-per-1000", "輛/千人", years, {k: to_series(s, years) for k, s in sorted(who_cars.items())},
