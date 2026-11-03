@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { openPersonalDb, ROUTES_STORE, txDone } from './personalDb';
 import { unzipAll } from './unzip';
 
 /**
@@ -30,33 +31,13 @@ export interface ImportResult {
   skipped: string[];
 }
 
-const DB_NAME = 'world-map-personal';
-const STORE = 'routes';
+const STORE = ROUTES_STORE;
 // 簡化：相距不到約 2 m 的點拿掉（手錶記錄的 GPX 一秒一點，一條賽段十幾萬點）
 const TOLERANCE = 0.00002;
 
-let dbPromise: Promise<IDBDatabase> | null = null;
-function openDb(): Promise<IDBDatabase> {
-  dbPromise ??= new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const store = req.result.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-      store.createIndex('topic', 'topic');
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  dbPromise.catch(() => (dbPromise = null));
-  return dbPromise;
-}
-
-function done(tx: IDBTransaction): Promise<void> {
-  return new Promise((resolve, reject) => {
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
-  });
-}
+// 資料庫與本機匯入共用（lib/personalDb.ts，版本號只寫在那裡）
+const openDb = openPersonalDb;
+const done = txDone;
 
 export async function loadRoutes(topic: string): Promise<PersonalRoute[]> {
   const db = await openDb();
@@ -141,9 +122,11 @@ export async function importRouteFiles(files: File[], topic: string): Promise<Im
   const skipped: string[] = [];
   let count = 0;
   const added = Date.now();
+  // 本機匯入的來源資料夾（有 about.json 的，lib/localData.ts）裡的 GeoJSON 不是路線（採礦區、保護區…）：不收
+  const localDirs = new Set(files.filter((f) => /(^|\/)about\.json$/.test(f.webkitRelativePath)).map((f) => f.webkitRelativePath.replace(/about\.json$/, '')));
   for (const file of files) {
     const name = file.webkitRelativePath || file.name;
-    if (!ROUTE_FILE.test(file.name)) {
+    if (!ROUTE_FILE.test(file.name) || [...localDirs].some((dir) => name.startsWith(dir))) {
       skipped.push(name);
       continue;
     }

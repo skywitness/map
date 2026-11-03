@@ -27,6 +27,20 @@ export const TOPIC_GROUPS: TopicGroup[] = TOPIC_GROUP_SPECS.map((g) => {
 
 const GROUP_OF = new Map(TOPIC_GROUPS.flatMap((g) => g.topics.map((t) => [t.id, g.id] as const)));
 
+/**
+ * 本機匯入的新主題（topics/localTopics.ts，只有這個瀏覽器匯入過才會呼叫）：放進分類的最後一段、主題清單。
+ * 主題目錄（CATALOG）由呼叫的人先加好
+ */
+export function addLocalTopic(id: string, groupId: string): void {
+  const group = TOPIC_GROUPS.find((g) => g.id === groupId) ?? TOPIC_GROUPS[TOPIC_GROUPS.length - 1];
+  const summary = CATALOG.topics[id];
+  if (!summary || GROUP_OF.has(id)) return;
+  group.sections[group.sections.length - 1].topics.push(summary);
+  group.topics.push(summary);
+  GROUP_OF.set(id, group.id);
+  TOPICS.push(summary);
+}
+
 /** 主題所在的分類 id（分類代表色、圖示）；純地圖不屬於任何分類，是 null */
 export function groupOfTopic(id: string): string | null {
   return GROUP_OF.get(id) ?? null;
@@ -50,6 +64,16 @@ const loaded = new Map<string, TopicDefinition>([
 ]);
 const loading = new Map<string, Promise<TopicDefinition>>();
 
+/**
+ * 主題定義讀到後再加工（本機匯入的指標、圖層，topics/localTopics.ts 的 installLocal）：沒有匯入過的瀏覽器是 null。
+ * 設定時已經在記憶體裡的主題（人口、純地圖）也一起加工
+ */
+let augmenter: ((topic: TopicDefinition) => TopicDefinition) | null = null;
+export function setTopicAugmenter(fn: (topic: TopicDefinition) => TopicDefinition): void {
+  augmenter = fn;
+  for (const [key, topic] of loaded) loaded.set(key, fn(topic));
+}
+
 /** 主題的定義；還沒下載時是 null（先 loadTopic） */
 export function loadedTopic(id: string | null): TopicDefinition | null {
   return loaded.get(topicIdOf(id)) ?? null;
@@ -63,7 +87,8 @@ export function loadTopic(id: string | null): Promise<TopicDefinition> {
   let promise = loading.get(key);
   if (!promise) {
     promise = TOPIC_MODULES[key]().then((module) => {
-      const topic = topicOf(module, key);
+      const own = topicOf(module, key);
+      const topic = augmenter ? augmenter(own) : own;
       loaded.set(key, topic);
       return topic;
     });

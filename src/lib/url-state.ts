@@ -3,6 +3,7 @@ import { langParam, URL_PARAM } from '../i18n/lang';
 import { boxFromLegacyRaw, type Box } from '../map/boxEstimate';
 import { formatTimeParam, parseTimeParam } from './clock';
 import { setHistoryUrl } from './history';
+import { isLocalId } from './localRegistry';
 import { redirectTopic } from '../topics/redirects';
 
 /** 畫面狀態全部放在網址參數，任何畫面都能直接複製網址分享。 */
@@ -99,7 +100,7 @@ function writeAnalysis(p: URLSearchParams, a: AnalysisState): void {
   if (a.changeMode) p.set('chm', a.changeMode);
   if (a.filters.length) p.set('flt', a.filters.map((f) => `${f.indicator}:${f.op}:${f.value}`).join(','));
   if (a.multiples !== 'years') p.set('mul', a.multiples);
-  if (a.swipe) p.set('swp', a.swipe.kind === 'year' ? `y:${a.swipe.year}` : `i:${a.swipe.indicator}`);
+  if (a.swipe && !(a.swipe.kind === 'ind' && isLocalId(a.swipe.indicator))) p.set('swp', a.swipe.kind === 'year' ? `y:${a.swipe.year}` : `i:${a.swipe.indicator}`);
 }
 
 export const COMPARE_MAX = 3;
@@ -113,9 +114,22 @@ const TOPIC_PATH = /\/t\/([\w-]+)\/?$/;
 /** 關於頁的路徑 about/（製作手冊第十五批 262，2026-11-01；建置時有自己的 HTML，vite.config.ts 的 topicPages） */
 const ABOUT_PATH = /\/about\/?$/;
 
-/** 網站的根目錄（/map/）：在 t/<主題>/ 或 about/ 底下時去掉這一段 */
+/** 本機匯入頁的路徑 mine/（製作手冊第十三批 209，2026-11-03；建置時有自己的 HTML，不進 sitemap） */
+const MINE_PATH = /\/mine\/?$/;
+
+/** 網站的根目錄（/map/）：在 t/<主題>/、about/ 或 mine/ 底下時去掉這一段 */
 export function siteRoot(): string {
-  return window.location.pathname.replace(TOPIC_PATH, '/').replace(ABOUT_PATH, '/').replace(/index\.html$/, '');
+  return window.location.pathname.replace(TOPIC_PATH, '/').replace(ABOUT_PATH, '/').replace(MINE_PATH, '/').replace(/index\.html$/, '');
+}
+
+/** 目前是不是本機匯入頁 */
+export function isMinePage(): boolean {
+  return MINE_PATH.test(window.location.pathname);
+}
+
+/** 本機匯入頁的網址 */
+export function minePath(lang: string | null = null): string {
+  return `${siteRoot()}mine/${lang ? `?lang=${lang}` : ''}`;
 }
 
 /** 目前是不是關於頁（main.tsx 依這個決定畫關於頁還是地圖） */
@@ -231,7 +245,9 @@ export function hrefWithEmbed(embed: boolean): string {
 
 function buildUrl(state: ViewState): string {
   const p = new URLSearchParams();
-  if (state.indicator) p.set('ind', state.indicator);
+  // 本機匯入的主題、指標不寫進網址（使用者 2026-10-30 選 7B）：分享出去、重新整理後是那個主題原本的第一個指標
+  const localTopic = isLocalId(state.topic);
+  if (state.indicator && !localTopic && !isLocalId(state.indicator)) p.set('ind', state.indicator);
   if (state.item) p.set('item', state.item);
   if (state.year !== null) p.set('year', String(state.year));
   if (state.country) p.set('country', state.country);
@@ -252,7 +268,7 @@ function buildUrl(state: ViewState): string {
   const lang = langParam();
   if (lang) p.set(URL_PARAM, lang);
   const query = p.toString();
-  return `${topicPath(state.topic)}${query ? `?${query}` : ''}${window.location.hash}`;
+  return `${topicPath(localTopic ? null : state.topic)}${query ? `?${query}` : ''}${window.location.hash}`;
 }
 
 export type UpdateUrlState = (patch: Partial<ViewState>, options?: { replace?: boolean }) => void;

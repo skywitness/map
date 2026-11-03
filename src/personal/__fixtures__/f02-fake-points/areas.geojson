@@ -1,0 +1,4 @@
+{"type":"FeatureCollection","features":[
+ {"type":"Feature","properties":{"name":"Box","kind":"a"},"geometry":{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]],[[0.2,0.2],[0.4,0.2],[0.4,0.4],[0.2,0.2]]]}},
+ {"type":"Feature","properties":{"name":"Line","kind":"c"},"geometry":{"type":"LineString","coordinates":[[10,10],[10.5,10.25]]}}
+]}

@@ -1,6 +1,6 @@
 import { ClampedText } from '../controls/ClampedText';
 import { langParam, useT } from '../i18n';
-import { aboutPath } from '../lib/url-state';
+import { aboutPath, minePath } from '../lib/url-state';
 import type { Topic } from '../topics/types';
 
 /** 頁尾：主題的資料來源與授權、國界、資料更新日期、主題的說明、免責聲明（App.tsx，2026-10-29 拆出來） */
@@ -11,11 +11,16 @@ export function Footer({ topic, generatedAt }: { topic: Topic; generatedAt: stri
       <p className="footer-sources">
         {t.sources}
         {topic.sources.map((s, i) => (
-          <span key={s.url}>
+          <span key={`${i}-${s.url}`}>
             {i > 0 && t.listSeparator}
-            <a href={s.url} target="_blank" rel="noreferrer">
-              {s.name}
-            </a>
+            {/* 本機匯入的來源可能沒有下載頁的網址 */}
+            {s.url ? (
+              <a href={s.url} target="_blank" rel="noreferrer">
+                {s.name}
+              </a>
+            ) : (
+              s.name
+            )}
             {t.sourceLicense(s.license)}
           </span>
         ))}
@@ -30,6 +35,8 @@ export function Footer({ topic, generatedAt }: { topic: Topic; generatedAt: stri
       {topic.note && <ClampedText key={topic.note} text={topic.note} className="footer-note" />}
       <p className="footer-disclaimer">
         {t.disclaimer} <a href={aboutPath(langParam())}>{t.aboutSite}</a>
+        {t.listSeparator}
+        <a href={minePath(langParam())}>{t.localImport}</a>
       </p>
     </footer>
   );

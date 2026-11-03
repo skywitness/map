@@ -4778,3 +4778,69 @@ kbd {
 .div-sources a {
   color: inherit;
 }
+
+/* 本機匯入頁 mine/（製作手冊第十三批 209，src/personal/MinePage.tsx）：版面沿用關於頁 */
+.mine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+
+.mine-button {
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mine-button.is-secondary {
+  background: var(--surface);
+  color: var(--accent-text);
+}
+
+.mine-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.mine-error {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.mine-result,
+.mine-list {
+  overflow-wrap: anywhere;
+}
+
+.mine-main .mine-list {
+  padding: 0;
+  list-style: none;
+}
+
+.mine-item {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.mine-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mine-id {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+  color: var(--ink-muted);
+}

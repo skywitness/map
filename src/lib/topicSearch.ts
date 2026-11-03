@@ -43,11 +43,24 @@ let topicIndicators: TopicIndicators | null = null;
 let itemsLoading: Promise<void> | null = null;
 const itemListeners = new Set<() => void>();
 
+/** 本機匯入的指標（topics/localTopics.ts）：主題 id → 指標，接在主題目錄的指標後面 */
+let extraIndicators: TopicIndicators = {};
+export function addSearchIndicators(extra: TopicIndicators): void {
+  extraIndicators = extra;
+  index = null;
+}
+
+function withExtra(base: TopicIndicators): TopicIndicators {
+  const out = { ...base };
+  for (const [topic, list] of Object.entries(extraIndicators)) out[topic] = [...(out[topic] ?? []), ...list];
+  return out;
+}
+
 export function loadSearchItems(): Promise<void> {
   itemsLoading ??= import('../topics/catalogItems.gen').then(
     (m) => {
       searchItems = m.SEARCH_ITEMS;
-      topicIndicators = m.TOPIC_INDICATORS;
+      topicIndicators = withExtra(m.TOPIC_INDICATORS);
       index = null;
       itemListeners.forEach((listener) => listener());
     },

@@ -109,6 +109,8 @@ export const zh = {
   disclaimer: '國界與名稱僅為資料呈現，不代表任何政治立場。',
   /** 頁尾、主題總覽連到關於頁（about/） */
   aboutSite: '關於這個網站',
+  /** 頁尾的本機匯入頁連結（製作手冊第十三批 209，personal/MinePage.tsx） */
+  localImport: '本機匯入',
   // 匯出圖片底下的來源標示、分享面板的標題
   basemapCredit: (attribution: string) => `底圖：${attribution}`,
   bordersCredit: '國界：Natural Earth（公有領域）。國界與名稱僅為資料呈現，不代表任何政治立場。',

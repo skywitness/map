@@ -188,6 +188,15 @@ function topicPages(): Plugin {
         this.emitFile({ type: 'asset', fileName: 'about/index.html', source: page });
         urls.push(url);
       }
+      // 本機匯入頁 mine/（製作手冊第十三批 209，2026-11-03）：同一份首頁的 HTML，main.tsx 依路徑畫匯入頁。
+      // 只給這個瀏覽器自己用，不進 sitemap、不給搜尋引擎收錄
+      {
+        const title = '本機匯入';
+        let page = html.replace(/<title>[^<]*<\/title>/, `<title>${title} · 世界資料地圖</title>\n    <meta name="robots" content="noindex" />`);
+        page = setMeta(page, 'property', 'og:title', `${title} · 世界資料地圖`);
+        page = setMeta(page, 'property', 'og:url', `${SITE}mine/`);
+        this.emitFile({ type: 'asset', fileName: 'mine/index.html', source: page });
+      }
       // 合併掉的舊主題（src/topics/redirects.ts）：舊路徑照樣有 HTML（分享出去的連結、嵌入碼不會 404），內容與預覽圖
       // 是新主題的，canonical 指到新主題；頁面打開後 url-state.ts 把網址換成新主題。sitemap 不列
       for (const [from, to] of Object.entries(redirectedTopicIds())) {

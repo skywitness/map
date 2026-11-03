@@ -90,6 +90,7 @@ export const en: Messages = {
   generatedAt: (date) => ` · Data generated on ${date}`,
   disclaimer: 'Borders and names are shown for data presentation only and do not imply any political position.',
   aboutSite: 'About this site',
+  localImport: 'Local import',
   basemapCredit: (attribution) => `Basemap: ${attribution}`,
   bordersCredit:
     'Borders: Natural Earth (public domain). Borders and names are shown for data presentation only and do not imply any political position.',

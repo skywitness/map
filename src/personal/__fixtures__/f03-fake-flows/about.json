@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "title": { "zh": "假的流向", "en": "Fake flows" },
+  "source": { "name": "Fake Source", "notice": { "zh": "假的警語", "en": "Fake notice" } },
+  "newTopic": { "id": "fake-network", "title": { "zh": "假的網絡", "en": "Fake network" }, "group": "global" },
+  "flows": [
+    { "file": "links.csv", "label": { "zh": "假的連線", "en": "Fake links" }, "presence": true, "direction": "export",
+      "types": [ { "value": "d", "label": { "zh": "防禦", "en": "Defence" } } ] }
+  ]
+}

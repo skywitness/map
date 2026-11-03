@@ -36,6 +36,7 @@
   - `Esc`：取消選取
 - **手機**：國家資料從底部抽屜拉起，可以拖到收合、半開、全開三段，往下拖到底就關閉。
 - **關於這個網站**（`/map/about/`，頁尾、主題總覽與 Ctrl+K 都連得到）：網站的原則、台灣與爭議領土的做法、方法與限制、AI 的角色、怎麼回報錯誤，以及從各主題自動產生的資料來源一覽（可以依授權篩選）。
+- **本機匯入**（`/map/mine/`，頁尾有連結）：因為授權不能放上網站的資料，自己下載原檔、用本機的轉換程式轉成通用格式（about.json 加上表格、點、流向、線面）後在這裡匯入；匯入的指標、圖層與主題標「（本機）」，資料只存在這個瀏覽器、不上傳，分享的網址不帶匯入的指標（格式見 DESIGN.md 第 11 節「本機匯入」）。
 - **語言**：「中文 / EN」切換，選擇記在瀏覽器裡；英文版的數字用 K、M、B、T（中文用萬、億、兆），國名與地圖上的地名也換成英文。
 
 看過一次之後，再開啟會直接從瀏覽器的快取載入，沒有網路也能開（標題旁會顯示「離線中」，資料與地圖是上次看過的部分）。手機與桌機的瀏覽器都可以把它安裝成 App。載入速度的量測與做法見 DESIGN.md 第 13 節。
@@ -253,6 +254,7 @@ Live site: https://skywitness.github.io/map/?lang=en
 - **Area estimate**: on the population topic, draw a box on the map to estimate how many people live inside it.
 - **Layers from other topics**: the map’s layers menu can lay earthquakes and volcanoes, plate boundaries, power plants, submarine cables, cyclone tracks, railways or cities over any topic (for example power plants over night lights), loaded only when first switched on.
 - **About this site** (`/map/about/?lang=en`, linked from every footer, the topic overview and Ctrl+K): principles, how Taiwan and disputed territories are handled, methods and limitations, the role of AI, how to report mistakes, and a list of all sources generated from the topics, filterable by licence.
+- **Local import** (`/map/mine/`, linked from every footer): data that cannot be published because of its licence can be downloaded by yourself, converted with local scripts into a common format (about.json plus tables, points, flows and shapes) and imported here. Imported indicators, layers and topics are tagged “(local)”; the data stays in this browser, is never uploaded, and shared links never carry it (format in DESIGN.md section 11, “Local import”).
 - **Related topics**: the country panel ends with two to four related topics (road safety ↔ transport, EVs ↔ electricity…), opening them for the same country.
 - **1 km grid**: population density can switch from country averages to a grid of cells about 1 km across (JRC GHS-POP, every 5 years from 1975 to 2030, following the time slider). Warming (on the temperature topic) can likewise switch to a 0.5° grid (CRU TS, one map per year), solar and wind potential to a ~2 km grid (Global Solar Atlas, Global Wind Atlas), and download speed to a ~2 km grid of Speedtest by Ookla tests (the latest quarter). Night lights open on a ~500 m grid (EOG annual VIIRS composites for 2013, 2016, 2020 and 2024) drawn over a dark night backdrop, so it reads as a night view on any basemap. The grid tiles are not in the repository; the deploy workflow builds and caches them.
 

@@ -1,0 +1,5 @@
+from,to,year,value,type
+USA,JPN,1990,1,d
+USA,KOR,1990,1,
+JPN,USA,1990,1,d
+USA,JPN,1991,1,d

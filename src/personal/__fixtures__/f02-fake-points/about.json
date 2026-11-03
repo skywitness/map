@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "title": "Fake points",
+  "source": { "name": "Fake Source", "downloaded": "2026-11-03" },
+  "topic": "oceans",
+  "points": [
+    { "file": "stations.csv", "label": { "zh": "假的站", "en": "Fake stations" }, "country": "iso3",
+      "fields": [ { "field": "trend", "label": { "zh": "速度", "en": "Trend" }, "unit": "mm/yr", "decimals": 1 } ],
+      "size": { "field": "people" }, "color": { "field": "trend", "scale": [0, 2], "diverging": false },
+      "time": { "field": "opened", "mode": "cumulative" },
+      "list": { "label": { "zh": "假的清單", "en": "Fake list" }, "sorts": [ { "field": "trend", "label": "Trend", "order": "desc" } ], "group": "country" },
+      "series": { "file": "series.csv", "key": "id", "label": "Level", "unit": "mm" } }
+  ],
+  "shapes": [
+    { "file": "areas.geojson", "label": { "zh": "假的範圍", "en": "Fake areas" },
+      "color": { "field": "kind", "categories": [ { "value": "a", "label": "A" }, { "value": "b", "label": "B" } ] } }
+  ]
+}

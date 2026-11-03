@@ -5090,6 +5090,152 @@ pipeline/
   - 驗證（2026-10-30）：匯入合輯（192 條）後點超級雪崩阿爾普迪埃的比賽路線：21.3 km、爬升 191 m、下降 2,746 m、海拔 727–3,282 m（OpenRunner 的官方路線），滑過 8.60 km 處寫 2,011 m、−7.6%、34 m，地圖上的點跟著移動；沒有海拔的路線（阿爾普迪埃到 Allemond 的測試線）從圖磚取到起點 1,821 m。測試資料已刪。
 - **驗證**（2026-10-30）：開發伺服器上用 DataTransfer 塞一個 GPX、一個兩條線的 GeoJSON、一個 .txt：「匯入 2 個檔、3 條路線；略過 1 個檔」，地圖上有標賽事的是那一類的顏色、GPX 是灰色，滑到線上的 tooltip 正確；測試資料刪掉。
 
+### 本機匯入：只給自己看的資料（2026-11-03，製作手冊第十三批 209、210）
+
+- **使用者決定**（2026-10-30，map-plan 的 local-import.md 與製作手冊第一百三十六節）：因為授權沒用到的資料，由使用者自己下載原檔、本機的轉換程式轉成通用格式，在網站上匯入，資料只存在這個瀏覽器、不上傳、不進 repo。只由本機 session 開發。網站只認通用格式（5C），不寫各來源的配方；匯入後才出現（6A）；網址不記匯入的指標與圖層（7B）；來源沒有台灣就灰色，tooltip 寫「這份資料沒有台灣」（8B）；網站不加讀檔套件（9A）；repo 只放假資料（10A）；轉換程式放在使用者電腦（12A）；通用格式有表格、點、流向、線面四種（13A）。
+- **資料夾**：`C:\dev\map\private\local-data\`（`private/` 在 `.gitignore`）。`downloads\<代號>\` 放官方原檔，`convert\` 放轉換程式（`convert\<代號>.py`，共用的 `convert\common.py`，`convert\run_all.py` 依序跑全部），`import\<代號>\` 是轉好的通用格式。網站上「匯入整個資料夾」選 `import\`：每個有 `about.json` 的子資料夾是一個來源；`import\` 最上層的 GeoJSON（`racing-routes.geojson`）照舊是我的路線。代號是製作手冊第十三批的編號加英文小寫名稱，只用小寫英文、數字與 `-`（例如 `p01-un-tourism`）。
+
+#### 通用格式（第 1 版）
+
+一個來源一個資料夾，裡面一個 `about.json` 加上它列出的檔。檔都是 UTF-8（CSV 可以有 BOM），CSV 用逗號分隔、第一列是欄名、有逗號或引號的欄位用雙引號包起來（RFC 4180）。
+
+**`about.json`**（文字欄位都可以寫成字串或 `{ "zh": "…", "en": "…" }`，下面的 `Text`）：
+
+```jsonc
+{
+  "format": 1,
+  "title": { "zh": "國際觀光（UN Tourism）", "en": "International tourism (UN Tourism)" },
+  "source": {
+    "name": "UN Tourism",                        // 出處，寫在頁尾與圖例
+    "page": "https://…",                         // 下載頁
+    "terms": { "zh": "只允許個人非商業使用…", "en": "…" },   // 條款摘要
+    "files": ["UN_Tourism_bulk_data_download_12_2025.zip"],  // 原檔名
+    "downloaded": "2026-11-03",                  // 下載日期
+    "notice": { "zh": "…", "en": "…" }           // 選填：條款要求跟著資料一起出現的警語（GODT），寫在頁尾與側欄
+  },
+  "topic": "tourism",                            // 放在已有的主題（主題 id）……
+  "newTopic": {                                  // ……或匯入後才出現的新主題（兩個擇一）
+    "id": "diplomatic-network", "title": Text, "shortTitle": Text, "description": Text,
+    "group": "international",                    // 頂列的分類（registry.ts 的 TOPIC_GROUP_SPECS 的 id）
+    "defaultYear": 2023,
+    "focus": [西, 南, 東, 北]                     // 選填
+  },
+  "tables": [ … ], "points": [ … ], "flows": [ … ], "shapes": [ … ]
+}
+```
+
+- 新主題要有至少一個 `tables` 或 `flows`（主題要有指標）；只有點的資料（隕石）另外輸出一個各國筆數的表格。
+- 網站裡的 id 是 `local-<代號>-<id>`，不會跟網站本身的指標、圖層、主題撞名；`id` 沒寫時用檔名去掉副檔名。
+
+**表格**（`tables`，國家 × 年份）：CSV 的欄位 `iso3,year,value`，可以多一欄 `label`。
+
+```jsonc
+{
+  "file": "arrivals.csv", "id": "arrivals",
+  "label": Text, "description": Text, "unit": Text,
+  "decimals": 0,                       // 顯示幾位小數
+  "map": "choropleth",                 // "choropleth" 面量圖（預設）、"bubble" 比例圓（總量）、"categorical" 類別圖（value 是文字時一定是這個）
+  "scale": "auto",                     // 面量圖的門檻：[門檻…]（由小到大，最多 6 個）或 "auto"（依全部年份的分位數）
+  "diverging": false, "reverse": false,// 發散色（門檻要對稱）；reverse 是正值橘色
+  "categories": [ { "value": "Freely floating", "label": Text } ],  // 類別圖：圖例的順序；資料裡沒列的值歸「其他」
+  "ordinal": false,                    // 類別有強弱（第一類最深）
+  "latestWithin": 10,                  // 選填：沒有那一年的國家用幾年內最近一年的值（選舉這類零散的年份）
+  "lowerIsBetter": false, "unranked": false, "integer": false, "shareOfWorld": false
+}
+```
+
+- `iso3`：ISO 3166-1 alpha-3，科索沃是 `XKX`；網站地圖上沒有的代碼（區域合計、已經不存在的國家）匯入時略過並列出。
+- `year`：西元年（整數，可以是負的）或 `2024-03`（月）。一個檔裡全部是月時，時間軸以月為單位（刻度寫「2024/3」）。
+- `value`：數字（小數點用 `.`，不要千分位）；不是數字的整欄當成類別。空白的列不放。
+- `label`：選填，tooltip 在數值下面多寫一行（例如那一年在位的領導人）。
+- 同一個國家、同一年只能有一列。
+
+**點**（`points`）：CSV 的欄位要有 `name,lat,lon`（其他欄位隨意），或 GeoJSON 的 Point（`properties` 是欄位，`name` 是名稱）。
+
+```jsonc
+{
+  "file": "stations.csv", "id": "stations",
+  "label": Text, "description": Text,
+  "name": "name",                      // 名稱的欄位（預設 name）
+  "country": "iso3",                   // 選填：ISO3 的欄位（逗號分隔可以多國）：點了選那一國、清單跟選取的國家連動
+  "fields": [ { "field": "summer", "label": Text, "unit": Text, "decimals": 0 } ],  // tooltip 與清單寫的欄位（依序）
+  "size": { "field": "summer" },       // 選填：點的面積跟這個數值成正比（依資料的最大值）；沒寫是固定大小
+  "color": { "field": "kind", "categories": [ { "value": "beach", "label": Text } ] },  // 選填：依類別上色……
+  //       { "field": "trend", "scale": [門檻…] | "auto", "diverging": true }          // ……或依數值分級
+  "time": { "field": "year", "mode": "cumulative", "end": "closed" },  // 選填：跟著時間軸；mode 是 "year"（只有那一年）、"cumulative"（累積到那一年）或數字 n（那一年起 n 年）；end 是結束年份的欄位
+  "list": {                            // 選填：左側欄的清單
+    "label": Text,
+    "sorts": [ { "field": "summer", "label": Text, "order": "desc" } ],  // 第一個是預設；沒寫依名稱
+    "group": "country"                 // 選填：分組的欄位（"country" 是 country 欄位的國名）
+  },
+  "series": { "file": "series.csv", "key": "id", "label": Text, "unit": Text, "decimals": 0 },  // 選填：每個點好幾年的值，點了在清單畫折線
+  "labels": false,                     // 放大後在點旁邊寫名稱
+  "hidden": false                      // 預設關閉
+}
+```
+
+- 序列檔 `series.csv` 的欄位是 `id,year,value`，`id` 對到點的 `key` 欄位。
+
+**流向**（`flows`，國與國之間）：CSV 的欄位 `from,to,year,value`，可以多一欄 `type`。
+
+```jsonc
+{
+  "file": "remittances.csv", "id": "remittances",
+  "label": Text, "description": Text, "unit": Text, "decimals": 0,
+  "direction": "export",               // 點一國時畫它當起點（"export"）、終點（"import"），或兩邊比較大的那一邊（"larger"）
+  "presence": false,                   // true：只有有沒有（同盟、互設使館），線一樣粗、value 不用（寫 1）
+  "words": {                           // 選填：兩個方向的說法，{a} 是選取的國家、{b} 是對方
+    "export": { "partners": Text, "main": Text, "verb": { "zh": "{a}的移工匯款到{b}", "en": "{a} → {b}" } },
+    "import": { "partners": Text, "main": Text, "verb": Text }
+  },
+  "types": [ { "value": "defense", "label": Text } ]  // 選填：type 欄的值，tooltip 寫出來
+}
+```
+
+- 網站另外依流向算出各國的指標：每年以起點加總（`presence` 時是對方的國家數），地圖、排名表、側欄用它。
+- 期間（同盟的起訖年）由轉換程式展開成每年一列。
+
+**線面**（`shapes`）：GeoJSON 的 LineString、MultiLineString、Polygon、MultiPolygon（`properties` 是欄位）。面畫成半透明的面加外框。
+
+```jsonc
+{
+  "file": "areas.geojson", "id": "areas",
+  "label": Text, "description": Text,
+  "name": "name", "fields": [ … ], "color": { … }, "time": { … }, "labels": false, "hidden": false   // 同點
+}
+```
+
+- 座標是 WGS84 經緯度，轉換程式先簡化到網站畫得動的大小（一個檔最好在 20 MB 以下）。
+
+#### 網站的做法
+
+- **本機匯入頁**（`src/personal/MinePage.tsx`，網址 `mine/`，建置時 `vite.config.ts` 另外產生 `mine/index.html`，`noindex`、不進 sitemap；頁尾「關於這個網站」旁邊有連結）：
+  - 「匯入整個資料夾」（`webkitdirectory`）與「匯入檔案」（about.json 連同它的檔一起選，或裝來源資料夾的 zip）。
+  - 每個有 `about.json` 的資料夾是一個來源，代號是資料夾名稱；同一個來源再匯入一次就整個取代。
+  - 選的資料夾最上層的 GeoJSON、GPX、KML 交給我的路線（`importRouteFiles`，預設主題賽車），`webkitRelativePath` 跟以前一樣，不會變兩倍。
+  - 匯入結果逐一列出：筆數、地圖上沒有而略過的代碼、失敗的原因（找不到欄位、年份格式不對、同一國同一年兩列…）。
+  - 已經匯入的來源：名稱、代號、匯入時間、原檔下載日期、檔數與大小、放在哪個主題、每個檔的名稱與年份範圍、有沒有台灣、出處與條款摘要；可以刪除單一來源或全部（先確認）。
+  - 寫明資料只在這個瀏覽器、不上傳，截圖或匯出的檔公開分享就是轉載；私密瀏覽、封鎖網站資料時寫明存不了。
+- **匯入時轉換**（`lib/localData.ts`，只在匯入頁與讀匯入的資料時載入）：讀 CSV（RFC 4180）與 GeoJSON，轉成網站本來的格式存進 IndexedDB（`world-map-personal` 第 2 版，`lib/personalDb.ts` 跟我的路線共用連線；store `local-sources` 是清單、`local-files` 是資料，key 是 `<來源>/<id>`）：
+  - 表格 → 指標檔（`IndicatorData`，加一個 `labels` 放 label 欄）；文字的值換成類別代碼（about 列的依序，資料裡多的接在後面）；月是「西元年 × 12 + 月 − 1」。
+  - 點 → `PointsData`（數值依小數位數量化；類別色的代碼放 `_c`；序列併成 `_s` 字串「年:值;年:值」）。
+  - 線面 → `LinesData`（量化 1e-5 度；面的每個環一條線，`_poly`、`_hole` 標面與洞，`_f` 是第幾個 feature，滑過標出整個；顏色的代碼放 `types`）。
+  - 流向 → 每年一個 `FlowFile`（`<來源>/<id>/<年>`），加上各國的指標（`<來源>/<id>#totals`）。
+  - 依資料算好的東西（`auto` 的門檻：循序依全部年份的 7 分位、發散依 |值| 的第 90 百分位取對稱的 6 個；類別；年份範圍；有沒有台灣；點的大小的最大值）跟 about.json 一起存在清單裡。
+- **一打開網站**（`lib/localRegistry.ts`）：清單另外抄一份在 localStorage（`world-map-local-sources`，不含資料），`main.tsx` 同步讀它：
+  - 沒有匯入過的瀏覽器只多讀這個鍵，不多載任何程式。
+  - 有的話在第一個畫面之前載入 `topics/localTopics.ts`（自己一個 chunk）的 `installLocal()`：新主題放進主題目錄（`CATALOG`）、頂列分類的最後一段（`topics/index.ts` 的 `addLocalTopic`）、`TOPIC_MODULES` 與搜尋（`lib/topicSearch.ts` 的 `addSearchIndicators`）；已有的主題在 `loadTopic()` 讀到定義後接上（`setTopicAugmenter`）。
+  - 嵌入模式（`embed=1`）不載入。localStorage 被清掉、IndexedDB 還在時，打開匯入頁就補回。
+  - `lib/data.ts` 的 `fetchJson()` 遇到路徑裡有 `local:` 就從 IndexedDB 讀（`localJson()`，不放進一般的快取，匯入、刪除後才拿得到新的）；匯入後才出現的主題沒有 `manifest.json`，給空的。
+- **接到主題**（`topics/localTopics.ts`）：
+  - 表格、流向是指標（`local-<來源>-<id>`，`file` 是 `local:<來源>/<id>`），名稱後面加「（本機）」，說明後面寫出處與「只在這個瀏覽器，沒有上傳」。預設年份是資料的最後一年；月的資料 `timeAxis` 寫「2024/3」、標題寫「2024 年 3 月」；類別圖超過 8 類的併「其他」、側欄不畫歷年圖、排名表不寫名次。來源沒有台灣時 `noValue` 寫「這份資料沒有台灣」（8B）。label 欄由主題的 `tooltipLines` 在 tooltip 多寫一行。
+  - 點、線面是疊加圖層（`shareable: false`，不列進「更多主題的圖層」），預設打開；點的面積跟 size 欄成正比（半徑依平方根在 6 個點之間內插）；有 `time` 的跟著時間軸（圖層自己的 `overlayTime`，`timeRange: 'data'`）。面畫半透明的面（`fill.hover`，滑到面裡就有 tooltip）。
+  - 點的 `list` 是清單側欄（`listPanel`，已有清單的主題多一個分頁）：依時間軸篩選、依 `sorts` 排、依國家或欄位分組，`series` 畫成列裡的小長條圖（最近 60 筆）。
+  - 頁尾的資料來源多一筆「出處（本機匯入，下載日期，只在這個瀏覽器）（只供自己使用）」；`source.notice` 接在主題的說明後面。
+- **網址**（7B，`lib/url-state.ts` 的 `buildUrl`）：本機的指標不寫 `ind`；本機的新主題寫成網站的根目錄（`?topic=local-…` 讀得懂，但寫回網址時拿掉）。重新整理、分享、收藏的畫面都回到那個主題原本的指標。
+- **我的路線**：賽車圖層選單的「匯入整個資料夾」不收有 `about.json` 的子資料夾裡的檔（`lib/personalRoutes.ts`），免得把採礦區、保護區當成路線。
+- **測試**：`src/lib/localData.test.ts` 用 `src/personal/__fixtures__/` 的假資料（10A：欄位照格式、數字是編的）測 CSV、表格（含月、類別、label、重複列）、點與序列、線面（洞、顏色代碼）、流向（兩個方向、附註、各國指標）與變成主題零件的結果。2026-11-03 在開發伺服器上匯入假資料：觀光主題多兩個「（本機）」指標，選了以後網址沒有 `ind`、門檻自動、tooltip 多一行 label、月的時間軸寫 2024/1–2024/2；新主題「假的網絡（本機）」出現在「國際」、點美國畫出流向；海洋主題多點、線面圖層與分國家的清單。也用真檔（`import\n22-coups`，政變）試過民主與自由主題：累計次數的面量圖、那一年每一次政變的清單與點都正常（數字不寫在這裡）。測試資料已刪。
+
 ### 指令面板搜尋地圖上的地點（2026-10-31）
 
 使用者選的第四輪 一、2：Ctrl+K 可以搜目前主題地圖上的點（賽道、博物館、火山、港口…），選了地圖飛過去並打開那一點的小卡片。

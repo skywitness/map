@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "title": { "zh": "假的表格", "en": "Fake tables" },
+  "source": { "name": "Fake Source", "page": "https://example.com/", "terms": "test only", "files": ["fake.xlsx"], "downloaded": "2026-11-03" },
+  "topic": "tourism",
+  "tables": [
+    { "file": "values.csv", "label": { "zh": "假的數值", "en": "Fake values" }, "unit": "%", "decimals": 1, "scale": "auto" },
+    { "file": "regime.csv", "id": "regime", "label": { "zh": "假的類別", "en": "Fake classes" },
+      "categories": [ { "value": "Fixed", "label": { "zh": "固定", "en": "Fixed" } }, { "value": "Float", "label": { "zh": "浮動", "en": "Floating" } } ] }
+  ]
+}

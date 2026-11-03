@@ -47,8 +47,28 @@ export function decode(json: unknown): unknown {
   };
 }
 
+/**
+ * 本機匯入的資料（DESIGN.md 第 11 節「本機匯入」）：路徑裡有 `local:`（主題資料夾接上指標的 file，例如
+ * `topics/tourism/local:p01-un-tourism/arrivals`）就從這個瀏覽器的 IndexedDB 讀（lib/localData.ts，用到才載入）；
+ * 匯入後才出現的主題沒有 manifest.json，給匯入的時間
+ */
+const LOCAL_PATH = /local:(.+)$/;
+const LOCAL_MANIFEST = /^topics\/local-[\w-]+\/manifest\.json$/;
+
+function fetchLocal(path: string): Promise<unknown> | null {
+  const m = LOCAL_PATH.exec(path);
+  if (m) return import('./localData').then((local) => local.localJson(m[1]));
+  if (LOCAL_MANIFEST.test(path)) return Promise.resolve({ generatedAt: '' });
+  return null;
+}
+
 export function fetchJson<T>(path: string, priority?: RequestPriority): Promise<T> {
   let promise = cache.get(path) as Promise<T> | undefined;
+  const local = promise ? null : fetchLocal(path);
+  if (local) {
+    // 匯入、刪除後內容會變：不放進記憶體快取（localData.ts 自己有快取，匯入時清掉）
+    return local as Promise<T>;
+  }
   if (!promise) {
     promise = fetch(dataUrl(path), priority ? { priority } : undefined).then((res) => {
       // 訊息不帶語言，畫面上的「資料載入失敗」由呼叫端依介面語言加上
