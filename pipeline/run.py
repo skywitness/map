@@ -215,6 +215,8 @@ STEPS = {
     "vaccination-flu": "topics.vaccination_flu",
     # COVID-19 疫苗的總劑次與加強劑（併進疫苗與防疫，第二十批 326）：OWID 的 compact.csv（已快取）
     "vaccination-doses": "topics.vaccination_doses",
+    # WHO 預認證的疫苗與品管實驗室、mRNA 技術移轉的夥伴國（併進疫苗與防疫，第二十批 333）：WHO 預認證站的 CSV 匯出與計畫頁
+    "vaccine-production": "topics.vaccine_production",
     # 人工生殖（新主題，第二十批 312）：ESHRE EIM 2019 與 HROpen 2026 兩篇 PMC 全文 XML（CC BY 4.0）
     "ivf": "topics.ivf",
     # 疫情期間的防疫管制（新主題，第二十批 313）：OxCGRT 的 compact national CSV（43.8 MB），每 7 天取一天

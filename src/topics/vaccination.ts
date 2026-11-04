@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
-import type { ScaleSpec, TopicDefinition } from './types';
+import type { CategoryDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
  * 疫苗與防疫（pipeline/topics/vaccination.py）：WHO/UNICEF 的兒童常規疫苗接種率與零劑兒童，
@@ -21,6 +21,12 @@ const COVERAGE_SCALE: ScaleSpec = { type: 'sequential', thresholds: [50, 70, 80,
 const DEATHS_SCALE: ScaleSpec = { type: 'sequential', thresholds: [10, 50, 100, 200, 300, 500] };
 const NOT_WHO = { zh: '不在 WHO/UNICEF 的估計裡', en: 'Not in WHO/UNICEF estimates' };
 const IN_CHINA = { zh: 'WHO 算在「中國」裡', en: 'Counted under China by WHO' };
+
+/** mRNA 技術移轉（pipeline/topics/vaccine_production.py） */
+const MRNA_HUB: CategoryDef[] = [
+  { value: 1, label: { zh: '樞紐（南非）', en: 'Hub (South Africa)' } },
+  { value: 2, label: { zh: '夥伴國', en: 'Partner country' } },
+];
 
 export const vaccination: TopicDefinition = {
   id: 'vaccination',
@@ -115,6 +121,14 @@ export const vaccination: TopicDefinition = {
       name: { zh: 'OECD Health Statistics：Immunisation（65 歲以上的流感疫苗接種率）', en: 'OECD Health Statistics: Immunisation (influenza vaccination, aged 65+)' },
       url: 'https://data-explorer.oecd.org/',
       license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
+        zh: 'WHO Prequalification：預認證疫苗、品管實驗室清單；WHO mRNA Technology Transfer Programme（事實自行整理）',
+        en: 'WHO Prequalification: prequalified vaccines and quality control labs; WHO mRNA Technology Transfer Programme (facts compiled)',
+      },
+      url: 'https://extranet.who.int/prequal/vaccines/prequalified/export?page&_format=csv',
+      license: { zh: '事實自行整理', en: 'facts compiled by hand' },
     },
   ],
   note: {
@@ -225,6 +239,48 @@ export const vaccination: TopicDefinition = {
       formatTick: formatLargeTick,
       shareOfWorld: true,
       noValue: { TWN: NOT_WHO },
+    },
+    {
+      id: 'pq-vaccines',
+      label: { zh: 'WHO 預認證的疫苗', en: 'WHO-prequalified vaccines' },
+      description: {
+        zh: '聯合國兒童基金會等聯合國機構只採購經過 WHO「預認證」的疫苗。287 項預認證疫苗依負責監管的機關所在國算（不是工廠所在地）：印度 131 項（血清研究所等），南韓 24、比利時 21（葛蘭素史克）、印尼 17、中國 14、美國 12、保加利亞 8、法國 6；歐盟 EMA 監管的 23 項不屬於單一國家，沒有畫。台灣不在預認證體系裡。清單是 2026 年 11 月的現況，退出的產品不會留下。',
+        en: 'UNICEF and other UN agencies buy only vaccines prequalified by WHO. The 287 prequalified vaccines are counted by the country of the responsible regulator (not the factory): India 131 (Serum Institute of India and others), South Korea 24, Belgium 21 (GSK), Indonesia 17, China 14, the US 12, Bulgaria 8, France 6; the 23 regulated by the EU’s EMA belong to no single country and are not shown. Taiwan is not part of prequalification. The list is the status as of November 2026; withdrawn products are not kept.',
+      },
+      unit: { zh: '項', en: 'vaccines' },
+      file: 'pq-vaccines.json',
+      timeless: true,
+      layer: { kind: 'bubble', legendValues: [1, 10, 100] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 項`, en: `${fixed(v, 0)}` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'pq-labs',
+      label: { zh: 'WHO 預認證的藥品品管實驗室', en: 'WHO-prequalified quality control labs' },
+      description: {
+        zh: '通過 WHO 預認證、可以替聯合國採購檢驗藥品品質的實驗室，68 間、37 國：巴基斯坦 8 間最多，印度 6、中國 5，俄羅斯、南非、烏克蘭、比利時、巴西各 3。滑過國家看實驗室名稱。',
+        en: 'Laboratories prequalified by WHO to test the quality of medicines for UN procurement: 68 in 37 countries. Pakistan has the most (8), then India 6, China 5, and Russia, South Africa, Ukraine, Belgium and Brazil 3 each. Hover over a country for lab names.',
+      },
+      unit: { zh: '間', en: 'labs' },
+      file: 'pq-labs.json',
+      timeless: true,
+      layer: { kind: 'bubble', legendValues: [1, 3, 8] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 間`, en: `${fixed(v, 0)}` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'mrna-hub',
+      label: { zh: 'mRNA 疫苗技術移轉', en: 'mRNA vaccine technology transfer' },
+      description: {
+        zh: 'COVID-19 時全球南方很難拿到 mRNA 疫苗，WHO 2021 年在南非成立 mRNA 技術移轉樞紐（Afrigen Biologics、南非醫學研究理事會、Biovac），把製造技術傳給 6 個 WHO 區域的 14 個夥伴國：阿根廷、孟加拉、巴西、埃及、印度、印尼、肯亞、奈及利亞、巴基斯坦、塞內加爾、塞爾維亞、突尼西亞、烏克蘭、越南。各國的進度差很多，這裡只畫是不是夥伴。',
+        en: 'With mRNA vaccines hard to obtain in the Global South during COVID-19, WHO set up an mRNA technology transfer hub in South Africa in 2021 (Afrigen Biologics, the South African Medical Research Council and Biovac) to pass manufacturing know-how to 14 partner countries across the six WHO regions: Argentina, Bangladesh, Brazil, Egypt, India, Indonesia, Kenya, Nigeria, Pakistan, Senegal, Serbia, Tunisia, Ukraine and Viet Nam. Progress varies widely; the map shows only who is a partner.',
+      },
+      unit: '',
+      file: 'mrna-hub.json',
+      timeless: true,
+      layer: { kind: 'categorical', categories: MRNA_HUB },
+      format: (v) => tr(MRNA_HUB.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
     },
     {
       id: 'covid-deaths',

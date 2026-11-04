@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 864;
+export const INDICATOR_COUNT = 867;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -245,6 +245,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WashU Atmospheric Composition Analysis Group, SatPM2.5 V6.GL.02 各國人口加權統計（Shen et al., 2024）","en":"WashU Atmospheric Composition Analysis Group, SatPM2.5 V6.GL.02 country-level population-weighted statistics (Shen et al., 2024)"},"url":"https://sites.wustl.edu/acag/datasets/surface-pm2-5/","licenses":["CC BY 4.0"],"topics":["air-quality"]},
   {"name":{"zh":"WGMS（2026）冰河年質量變化 AMCE（Dussaillant 等 2025）","en":"WGMS (2026) Annual mass-change estimates for the world’s glaciers (AMCE; Dussaillant et al. 2025)"},"url":"https://doi.org/10.5904/wgms-amce-2026-02-10","licenses":["CC BY 4.0"],"topics":["ice"]},
   {"name":{"zh":"WHO Global Health Observatory：道路交通死亡率估計值（RS_198）、2016 年的死亡組成與登記車輛數（RS_246、RS_194）","en":"WHO Global Health Observatory: estimated road traffic death rates (RS_198); 2016 deaths by road user and registered vehicles (RS_246, RS_194)"},"url":"https://www.who.int/data/gho/data/themes/road-safety","licenses":["CC BY 4.0"],"topics":["road-safety"]},
+  {"name":{"zh":"WHO Prequalification：預認證疫苗、品管實驗室清單；WHO mRNA Technology Transfer Programme（事實自行整理）","en":"WHO Prequalification: prequalified vaccines and quality control labs; WHO mRNA Technology Transfer Programme (facts compiled)"},"url":"https://extranet.who.int/prequal/vaccines/prequalified/export?page&_format=csv","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["vaccination"]},
   {"name":{"zh":"WHO 健康平均餘命與平均壽命（Global Health Estimates 2023）","en":"WHO healthy life expectancy and life expectancy (Global Health Estimates 2023)"},"url":"https://data.who.int/indicators/i/C64284D","licenses":["CC BY 4.0"],"topics":["health"]},
   {"name":{"zh":"WHO 官網「Countries」的 194 個會員國與各國家頁的區域（WHO 的國家參照資料，事實自行整理）","en":"WHO, “Countries” (194 Member States) and the region on each country page (WHO country reference data; facts compiled)"},"url":"https://www.who.int/countries","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO 資料平臺：PCV3 immunization coverage（age 1）（WHO/UNICEF 的估計，2008–2024）","en":"WHO data: PCV3 immunization coverage (age 1) (WHO/UNICEF estimates, 2008–2024)"},"url":"https://data.who.int/indicators/i/4B4DAF2/D45F91C","licenses":[{"zh":"CC BY 4.0（另有 WHO 的附加條款）","en":"CC BY 4.0 (with WHO’s additional terms)"}],"topics":["vaccination"]},
