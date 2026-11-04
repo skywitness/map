@@ -84,6 +84,7 @@ const TOPIC_ICONS = {
   diving: 'shell',
   climbing: 'hand-grab',
   cycling: 'bike',
+  gambling: 'dices',
   'box-office-tw': 'clapperboard',
   esports: 'gamepad-2',
   'road-races': 'timer',

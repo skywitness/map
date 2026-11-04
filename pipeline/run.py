@@ -164,6 +164,7 @@ STEPS = {
     "holidays": "topics.holidays",  # Python 套件 holidays（MIT），離線計算
     # OSM 經 QLever（一個標籤一支查詢、不併發，結果存在 .cache/osm-qlever/）；覆蓋度名單見 sources/osm_coverage.py
     "dining": "topics.dining",
+    "michelin": "topics.michelin",  # 外食的米其林三星（英文維基 CC BY-SA 4.0、Wikidata 座標）
     "diving": "topics.diving",  # OSM 經 QLever：潛水中心與潛水場域
     "box-office-tw": "topics.box_office_tw",  # 國家影視聽中心的全國電影票房（政府資料開放授權條款）
     "esports": "topics.esports",  # Esports Earnings 的國家頁（只抓一頁）
@@ -184,6 +185,7 @@ STEPS = {
     "crime": "topics.crime",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "breweries": "topics.breweries",  # 菸酒的啤酒廠：OSM craft=brewery（經 QLever，ODbL）與 Open Brewery DB（MIT）
+    "gambling": "topics.gambling",  # 博弈：賭場、彩券行、投注站（OSM 經 QLever，ODbL）
     "happiness": "topics.happiness",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",

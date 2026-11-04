@@ -9,9 +9,10 @@ import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef
  * 2026-10-31（第十二批 190）：左邊「這個月的節慶」清單，跟時間軸的月份連動。
  */
 
-/** 種類（pipeline 的 KIND_WORDS 的代碼；2 沒有用） */
+/** 種類（pipeline 的 KIND_WORDS 的代碼；2 是音樂節，2026-11-04 起） */
 export const KINDS: { value: number; label: Text }[] = [
   { value: 1, label: { zh: '傳統、宗教與民俗節慶', en: 'Traditional, religious and folk' } },
+  { value: 2, label: { zh: '音樂節', en: 'Music festival' } },
   { value: 3, label: { zh: '電影節', en: 'Film festival' } },
   { value: 4, label: { zh: '藝術節', en: 'Arts festival' } },
   { value: 5, label: { zh: '嘉年華', en: 'Carnival' } },
@@ -23,14 +24,15 @@ export const kindLabel = (k: unknown) => tr(KINDS.find((x) => x.value === k)?.la
 const KIND_COLORS: ColorClasses = {
   field: 'k',
   title: { zh: '種類', en: 'Type' },
-  thresholds: [2, 3.5, 4.5, 5.5, 6.5],
+  thresholds: [1.5, 2.5, 3.5, 4.5, 5.5, 6.5],
   classes: [
     { color: MAP_TOKENS.categorical[7], label: KINDS[0].label },
-    { color: MAP_TOKENS.categorical[1], label: KINDS[1].label },
-    { color: MAP_TOKENS.categorical[0], label: KINDS[2].label },
-    { color: MAP_TOKENS.categorical[2], label: KINDS[3].label },
-    { color: MAP_TOKENS.categorical[3], label: KINDS[4].label },
-    { color: MAP_TOKENS.context, label: KINDS[5].label },
+    { color: MAP_TOKENS.categorical[5], label: KINDS[1].label },
+    { color: MAP_TOKENS.categorical[1], label: KINDS[2].label },
+    { color: MAP_TOKENS.categorical[0], label: KINDS[3].label },
+    { color: MAP_TOKENS.categorical[2], label: KINDS[4].label },
+    { color: MAP_TOKENS.categorical[3], label: KINDS[5].label },
+    { color: MAP_TOKENS.context, label: KINDS[6].label },
   ],
 };
 
@@ -53,6 +55,35 @@ export function festivalFacts(p: PointRecord): string {
   if (p.src === 2) parts.push(p.imp === 1 ? tr({ zh: '重要民俗', en: 'important folk custom' }) : tr({ zh: '登錄的民俗', en: 'registered folk custom' }));
   return parts.join(' · ');
 }
+
+/** 萬人場館（2026-11-04，製作手冊第二十一批 373）：Wikidata 的 arena 類別、容納 1 萬人以上，台灣補台北小巨蛋與臺北大巨蛋 */
+const ARENAS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'arenas',
+  file: 'arenas.json',
+  label: { zh: '萬人場館（多半同時是體育館）', en: 'Arenas for 10,000+ (mostly also sports venues)' },
+  hidden: true,
+  radius: { field: 'cap', stops: [[10000, 3], [20000, 4.5], [60000, 7]] },
+  color: MAP_TOKENS.categorical[6],
+  sortField: 'cap',
+  tooltip: (p, ctx) => {
+    const name = String((getLang() === 'zh' ? p.zh : null) ?? p.en ?? p.zh ?? '');
+    return {
+      title: name,
+      detail: [
+        tr({ zh: `容納 ${fixed(Number(p.cap), 0)} 人（Wikidata）`, en: `Capacity ${fixed(Number(p.cap), 0)} (Wikidata)` }),
+        typeof p.iso3 === 'string' && p.iso3 ? ctx.countryName(p.iso3) : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      extra:
+        p.x === 1
+          ? [tr({ zh: '補充：Wikidata 沒有歸在場館（arena）類別', en: 'Added: not classed as an arena on Wikidata' })]
+          : undefined,
+      properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== name ? p.en : undefined,
+    };
+  },
+};
 
 function layer(id: string, file: string, label: Text, dated: boolean): PointsOverlayDef {
   return {
@@ -136,12 +167,14 @@ export const festivals: TopicDefinition = {
   ],
   note: {
     zh:
-      '節慶是 Wikidata 直接標成節慶或它的子類別（電影節、藝術節、嘉年華、美食節、民俗節慶…）、有位置的約 1,760 個，加上文化資產局登錄的台灣民俗裡「儀式、祭典、節慶」類的 226 項。Wikidata 的節慶以歐美為主、電影節占三分之一，各國收得多少不一。' +
+      '節慶是 Wikidata 直接標成節慶或它的子類別（電影節、藝術節、嘉年華、美食節、民俗節慶…）、有位置的約 1,730 個，2026-11-04 加上標成音樂節或它的子類別（搖滾、爵士音樂節…）的 1,092 個，再加上文化資產局登錄的台灣民俗裡「儀式、祭典、節慶」類的 226 項。Wikidata 的節慶以歐美為主，音樂節九成在歐洲與北美（台灣只有春天吶喊），反映的是維基的編輯社群，不是真實的分布。' +
+      '圖層選單裡有「萬人場館」（預設關閉）：Wikidata 的場館（arena）類別、容納 1 萬人以上的 431 個，多半同時是體育館；容納人數照 Wikidata，演唱會與球賽的配置可能不同。台灣的台北小巨蛋、臺北大巨蛋在 Wikidata 不屬於場館類別，另外補上。' +
       '月份用 Wikidata 的「每年發生的日子」，只有約 40 個有，多數畫在「月份不詳」的圖層（不隨時間軸變）；文資局的民俗有舉辦月份的照月份出現，農曆的月份加一個月當成大約的國曆月份。' +
       '文資局的地址只到鄉鎮市區，點在鄉鎮市區的位置（Wikidata 的座標；只寫縣市的在縣市的中間）。' +
       '左邊的清單列出那個月有月份的節慶：有固定日子的依日子排（文資局農曆的照農曆寫，依農曆的日排），其他依名稱；城市用 Wikidata 的所在行政區與文資局的地址。',
     en:
-      'Festivals are about 1,760 Wikidata items classed as festivals or a subclass (film, arts, carnival, food, folk festivals and so on) with a location, plus the 226 registered folk customs in the “rituals, ceremonies and festivals” class of Taiwan’s Bureau of Cultural Heritage. Wikidata’s festivals are mostly in Europe and the Americas, a third are film festivals, and coverage varies by country. ' +
+      'Festivals are about 1,730 Wikidata items classed as festivals or a subclass (film, arts, carnival, food, folk festivals and so on) with a location, plus, from 4 November 2026, 1,092 classed as music festivals or a subclass (rock, jazz and so on), and the 226 registered folk customs in the “rituals, ceremonies and festivals” class of Taiwan’s Bureau of Cultural Heritage. Wikidata’s festivals are mostly in Europe and the Americas, and nine in ten music festivals are in Europe and North America (Taiwan has only Spring Scream), reflecting Wikipedia’s editors rather than where festivals really happen. ' +
+      'The layer menu has “Arenas for 10,000+” (off by default): 431 Wikidata arenas with a capacity of at least 10,000, mostly also sports venues; capacities follow Wikidata and may differ between concert and sports layouts. Taipei Arena and the Taipei Dome are not classed as arenas on Wikidata and are added separately. ' +
       'Months come from Wikidata’s “day in year for periodic occurrence”, which only about 40 have, so most are in the “month unknown” layer (which does not change with the slider); Taiwan’s folk customs appear in their month where it is given, with lunar months shifted by one as an approximate calendar month. ' +
       'The bureau gives only the township, so Taiwanese customs are placed at the township (Wikidata coordinates; those giving only a county at its centre). ' +
       'The list on the left shows the festivals with a known month: those with a fixed day come first in date order (Taiwanese lunar dates are written as lunar dates and ordered by the lunar day), the rest by name; places come from Wikidata’s administrative location and the bureau’s addresses.',
@@ -151,14 +184,15 @@ export const festivals: TopicDefinition = {
   overlays: [
     layer('festivals', 'festivals.json', { zh: '有月份的節慶（依月份）', en: 'Festivals with a month (by month)' }, true),
     layer('festivals-undated', 'festivals-undated.json', { zh: '月份不詳的節慶', en: 'Festivals, month unknown' }, false),
+    ARENAS,
   ],
   indicators: [
     {
       id: 'map',
       label: { zh: '節慶地圖', en: 'Festival map' },
       description: {
-        zh: '世界的節慶，依種類上色：傳統與民俗節慶、電影節、藝術節、嘉年華、美食節。拖動月份看那個月舉辦的（只有有月份的會跟著變，台灣的民俗大多有）；小點是月份不詳的。台灣有大甲媽祖遶境進香、鷄籠中元祭、東港迎王平安祭典、鄒族戰祭等文化資產局登錄的民俗。滑過看名稱，點國家列出它的節慶；左邊的清單列出那個月的節慶與日期。',
-        en: 'Festivals around the world, coloured by type: traditional and folk festivals, film and arts festivals, carnivals and food festivals. Move the month slider to see what happens in each month (only festivals with a known month change, which includes most of Taiwan’s folk customs); small dots have no known month. Taiwan’s registered folk customs include the Dajia Mazu pilgrimage, the Keelung Ghost Festival, the Donggang King Boat Festival and the Tsou Mayasvi. Hover for names; select a country for its list. The list on the left shows that month’s festivals and their dates.',
+        zh: '世界的節慶，依種類上色：傳統與民俗節慶、音樂節、電影節、藝術節、嘉年華、美食節。拖動月份看那個月舉辦的（只有有月份的會跟著變，台灣的民俗大多有）；小點是月份不詳的。台灣有大甲媽祖遶境進香、鷄籠中元祭、東港迎王平安祭典、鄒族戰祭等文化資產局登錄的民俗。滑過看名稱，點國家列出它的節慶；左邊的清單列出那個月的節慶與日期。',
+        en: 'Festivals around the world, coloured by type: traditional and folk festivals, music, film and arts festivals, carnivals and food festivals. Move the month slider to see what happens in each month (only festivals with a known month change, which includes most of Taiwan’s folk customs); small dots have no known month. Taiwan’s registered folk customs include the Dajia Mazu pilgrimage, the Keelung Ghost Festival, the Donggang King Boat Festival and the Tsou Mayasvi. Hover for names; select a country for its list. The list on the left shows that month’s festivals and their dates.',
       },
       unit: { zh: '個', en: 'festivals' },
       file: 'count.json',

@@ -9,7 +9,7 @@ import type { ForeignTopicEntry } from './foreign-layers';
 export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"cities","layers":[{"id":"city-extent","label":{"zh":"城市的範圍（放大才畫）","en":"City extents (when zoomed in)"},"kind":"lines"},{"id":"areas","label":{"zh":"城區（夏季白天的熱島）","en":"Urban areas (summer daytime)"},"kind":"points"}]},
   {"topic":"religion","layers":[{"id":"religious-buildings","label":{"zh":"各宗教最大的建築","en":"Largest religious buildings"},"kind":"points"},{"id":"pilgrimage-routes","label":{"zh":"朝聖之路（OpenStreetMap）","en":"Pilgrimage routes (OpenStreetMap)"},"kind":"lines"},{"id":"pilgrimage-sites","label":{"zh":"朝聖地（Wikidata）","en":"Pilgrimage sites (Wikidata)"},"kind":"points"}]},
-  {"topic":"festivals","layers":[{"id":"festivals","label":{"zh":"有月份的節慶（依月份）","en":"Festivals with a month (by month)"},"kind":"points"},{"id":"festivals-undated","label":{"zh":"月份不詳的節慶","en":"Festivals, month unknown"},"kind":"points"}]},
+  {"topic":"festivals","layers":[{"id":"festivals","label":{"zh":"有月份的節慶（依月份）","en":"Festivals with a month (by month)"},"kind":"points"},{"id":"festivals-undated","label":{"zh":"月份不詳的節慶","en":"Festivals, month unknown"},"kind":"points"},{"id":"arenas","label":{"zh":"萬人場館（多半同時是體育館）","en":"Arenas for 10,000+ (mostly also sports venues)"},"kind":"points"}]},
   {"topic":"tobacco-alcohol","layers":[{"id":"breweries","label":{"zh":"啤酒廠","en":"Breweries"},"kind":"points"}]},
   {"topic":"lactase","layers":[{"id":"lactase-surveys","label":{"zh":"調查點（Itan 等 2010 彙整的 233 筆）","en":"Surveys (233 compiled by Itan et al. 2010)"},"kind":"points"}]},
   {"topic":"industry","layers":[{"id":"steel-plants","label":{"zh":"鋼鐵廠（Global Energy Monitor）","en":"Iron and steel plants (Global Energy Monitor)"},"kind":"points"},{"id":"cement-plants","label":{"zh":"水泥廠（Global Energy Monitor）","en":"Cement plants (Global Energy Monitor)"},"kind":"points"}]},
@@ -67,7 +67,9 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"sports","layers":[{"id":"venues-summer","label":{"zh":"夏季奧運的比賽場館","en":"Summer Games venues"},"kind":"points"},{"id":"venues-winter","label":{"zh":"冬季奧運的比賽場館","en":"Winter Games venues"},"kind":"points"}]},
   {"topic":"road-races","layers":[{"id":"races-now","label":{"zh":"賽事（有座標的）","en":"Races (with coordinates)"},"kind":"points"},{"id":"races-founded","label":{"zh":"賽事（有座標的）","en":"Races (with coordinates)"},"kind":"points"}]},
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
+  {"topic":"dining","layers":[{"id":"michelin","label":{"zh":"米其林三星餐廳","en":"Michelin three-star restaurants"},"kind":"points"}]},
   {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"}]},
   {"topic":"climbing","layers":[{"id":"crags","label":{"zh":"岩場","en":"Crags"},"kind":"points"}]},
   {"topic":"cycling","layers":[{"id":"routes","label":{"zh":"自行車路線","en":"Cycle routes"},"kind":"lines"},{"id":"cities","label":{"zh":"騎自行車上班的比例（城市）","en":"Share cycling to work (cities)"},"kind":"points"}]},
+  {"topic":"gambling","layers":[{"id":"casinos","label":{"zh":"賭場","en":"Casinos"},"kind":"points"}]},
 ];

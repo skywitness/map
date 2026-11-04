@@ -15,6 +15,12 @@
   d 是有固定日子的那一天（排序用；文資局農曆的用農曆的日，跟月份一樣當成大約的國曆），dz、de 是中英文的日期
   （Wikidata 的「每年發生的日子」照原文翻，例如「7 月第三個星期六」；文資局的寫「農曆 7 月 15 日」），
   pz、pe 是中英文的城市（Wikidata 的所在行政區 P131；文資局的縣市與鄉鎮市區，英文只寫縣市）。
+- 2026-11-04（製作手冊第二十一批 373）：加音樂節與萬人場館。
+  音樂節（Q868557）不是節慶的直接子類別，原本查不到（種類 2 沒有用）；另查 P31 是音樂節或它的子類別（搖滾音樂節、
+  爵士音樂節…，P279*）的，種類 2。同時是節慶的也算音樂節。
+  萬人場館（arenas.json，預設關閉的點圖層）：P31 是 arena（Q641226）或它的子類別、容納人數（P1083）1 萬以上、有座標的；
+  很多是體育館，說明寫明。台灣的台北小巨蛋（Q710183）、臺北大巨蛋（Q858333）在 Wikidata 不屬於 arena 類別，
+  用條目編號補（TAIWAN_VENUES，容納人數照 Wikidata），點上標「補充」。
 """
 from __future__ import annotations
 
@@ -33,6 +39,13 @@ from topics.house_prices import CITY_EN
 OUT = OUT_DIR / "topics" / "festivals"
 BOCH_URL = "https://data.boch.gov.tw/opendata/v2/assetsCase/5.1.json"
 FESTIVAL = "Q132241"
+MUSIC_FESTIVAL = "Q868557"
+MUSIC = 2
+ARENA = "Q641226"
+ARENA_MIN = 10000
+TAIWAN_VENUES = ("Q710183", "Q858333")  # 台北小巨蛋、臺北大巨蛋：Wikidata 沒有歸在 arena 類別
+# Wikidata 的中文標籤是整個園區（臺北文化體育園區），用場館本身的名稱
+ZH_NAMES = {"Q858333": "臺北大巨蛋"}
 MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
           "november", "december"]
 MONTHS_EN = [m.capitalize() for m in MONTHS]
@@ -71,6 +84,17 @@ def kind_of(cls: str, label: str | None) -> int:
 # 直接標成節慶的與子類別的分兩次查（合在一起常逾時）
 WHERE_DIRECT = "?item wdt:P31 wd:{festival} . BIND(wd:{festival} AS ?cls)"
 WHERE_SUB = "?cls wdt:P279 wd:{festival} . ?item wdt:P31 ?cls ."
+WHERE_MUSIC = "?cls wdt:P279* wd:{music} . ?item wdt:P31 ?cls ."
+ARENA_QUERY = """SELECT ?item ?cap ?coord ?en ?mul ?zhtw ?zhhant ?zh ?cc WHERE {{
+  {where}
+  ?item wdt:P625 ?coord .
+  OPTIONAL {{ ?item wdt:P17 ?c . ?c wdt:P297 ?cc }}
+  OPTIONAL {{ ?item rdfs:label ?en FILTER(LANG(?en) = "en") }}
+  OPTIONAL {{ ?item rdfs:label ?mul FILTER(LANG(?mul) = "mul") }}
+  OPTIONAL {{ ?item rdfs:label ?zhtw FILTER(LANG(?zhtw) = "zh-tw") }}
+  OPTIONAL {{ ?item rdfs:label ?zhhant FILTER(LANG(?zhhant) = "zh-hant") }}
+  OPTIONAL {{ ?item rdfs:label ?zh FILTER(LANG(?zh) = "zh") }}
+}}"""
 QUERY = """SELECT ?item ?cls ?clsLabel ?coord ?whenLabel ?sl ?en ?mul ?zhtw ?zhhant ?zh ?cc WHERE {{
   {where}
   ?item wdt:P625 ?coord ; wikibase:sitelinks ?sl .
@@ -197,11 +221,13 @@ def build() -> None:
     items: dict[str, dict] = {}
     rows_direct = _cached("festivals-direct", QUERY.format(where=WHERE_DIRECT.format(festival=FESTIVAL)))
     rows_sub = _cached("festivals-subclasses", QUERY.format(where=WHERE_SUB.format(festival=FESTIVAL)))
-    for r in rows_direct + rows_sub:
+    rows_music = _cached("festivals-music", QUERY.format(where=WHERE_MUSIC.format(music=MUSIC_FESTIVAL)))
+    music_rows = {id(r) for r in rows_music}
+    for r in rows_direct + rows_sub + rows_music:
         v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
         q = v("item").rsplit("/", 1)[1]
         d = items.setdefault(q, {"q": q, "kinds": set(), "months": set(), "cc": set(), "sl": int(v("sl"))})
-        d["kinds"].add(kind_of(v("cls").rsplit("/", 1)[1], v("clsLabel")))
+        d["kinds"].add(MUSIC if id(r) in music_rows else kind_of(v("cls").rsplit("/", 1)[1], v("clsLabel")))
         if "coord" not in d and (p := _point(v("coord"))):
             d["coord"] = p
         if (m := _month(v("whenLabel"))) is not None:
@@ -223,7 +249,8 @@ def build() -> None:
             s2twp.convert(d["zh"]) if d.get("zh") else None)
         if not (en or zh):
             continue
-        kind = min(k for k in d["kinds"] if k != OTHER) if d["kinds"] - {OTHER} else OTHER
+        # 音樂節優先（同時標成節慶的也算音樂節），其次依 KIND_WORDS 的順序
+        kind = MUSIC if MUSIC in d["kinds"] else min(k for k in d["kinds"] if k != OTHER) if d["kinds"] - {OTHER} else OTHER
         month = min(d["months"]) if d["months"] else None
         day, dz, de = wikidata_date(d.get("whens", set()), month) if month else (None, None, None)
         rows.append({"lon": round(d["coord"][0], 3), "lat": round(d["coord"][1], 3), "k": kind,
@@ -232,7 +259,9 @@ def build() -> None:
     # 有月份的：所在行政區（清單的城市）
     dated_q = sorted(r["q"] for r in rows if r["m"])
     places: dict[str, tuple[str | None, str | None]] = {}
-    for r in _cached("festivals-places", PLACE_QUERY.format(items=" ".join(f"wd:{q}" for q in dated_q))):
+    import hashlib
+    key = hashlib.sha1(" ".join(dated_q).encode()).hexdigest()[:10]
+    for r in _cached(f"festivals-places-{key}", PLACE_QUERY.format(items=" ".join(f"wd:{q}" for q in dated_q))):
         v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
         q = v("item").rsplit("/", 1)[1]
         zh = s2tw.convert(v("zhtw") or v("zhhant")) if v("zhtw") or v("zhhant") else (s2twp.convert(v("zh")) if v("zh") else None)
@@ -295,12 +324,57 @@ def build() -> None:
         if r["iso3"]:
             totals[r["iso3"]] += 1
     write_json(OUT / "count.json", indicator_file("count", "個", months, {k: [n] * 12 for k, n in sorted(totals.items())}))
+    _arenas(s2tw, s2twp)
     write_json(OUT / "manifest.json", {"topic": "festivals", "generatedAt": now_iso(),
                                        "sources": ["Wikidata (CC0)", f"文化部文化資產局 文資局民俗 {BOCH_URL}（政府資料開放授權條款第 1 版）"]})
     from collections import Counter
     print(f"  節慶 {len(rows)} 個（Wikidata {len(rows) - tw}、文資局 {tw}）；有月份 {len(dated)}、不詳 {len(undated)}")
     print(f"  種類：{Counter(r['k'] for r in rows)}；月份：{Counter(r['m'] for r in dated)}")
     print(f"  文資局對不到鄉鎮的 {len(missing_town)}：{missing_town[:8]}")
+
+
+def _arenas(s2tw, s2twp) -> None:
+    """萬人場館：arena 類別、容納 1 萬人以上，加上台灣的補充"""
+    main = _cached("festival-arenas", ARENA_QUERY.format(
+        where=f"?item wdt:P31/wdt:P279* wd:{ARENA} ; wdt:P1083 ?cap . FILTER(?cap >= {ARENA_MIN})"))
+    extra = _cached("festival-arenas-taiwan", ARENA_QUERY.format(
+        where=f"VALUES ?item {{ {' '.join(f'wd:{q}' for q in TAIWAN_VENUES)} }} ?item wdt:P1083 ?cap ."))
+    items: dict[str, dict] = {}
+    for r in [{**r, "extra": {"value": "0"}} for r in main] + [{**r, "extra": {"value": "1"}} for r in extra]:
+        v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
+        q = v("item").rsplit("/", 1)[1]
+        p = _point(v("coord"))
+        if not p:
+            continue
+        d = items.setdefault(q, {"q": q, "cap": 0, "coord": p, "extra": int(v("extra"))})
+        try:
+            d["cap"] = max(d["cap"], int(float(v("cap"))))
+        except (TypeError, ValueError):
+            continue
+        for k in ("en", "mul", "zhtw", "zhhant", "zh", "cc"):
+            if v(k) and not d.get(k):
+                d[k] = v(k)
+    rows = []
+    for d in items.values():
+        if d["cap"] < ARENA_MIN or d["cap"] > 200000:  # 20 萬以上多半是填錯（例如賽車場的總人數）
+            continue
+        en = d.get("en") or d.get("mul")
+        zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (
+            s2twp.convert(d["zh"]) if d.get("zh") else None)
+        if not (en or zh):
+            continue
+        zh = ZH_NAMES.get(d["q"], zh)
+        rows.append({"lon": round(d["coord"][0], 4), "lat": round(d["coord"][1], 4), "cap": d["cap"], "x": d["extra"],
+                     "iso3": from_alpha2(d.get("cc")) or "", "en": en, "zh": zh if zh and zh != en else None})
+    missing = [r for r in rows if not r["iso3"]]
+    for r, iso3 in zip(missing, countries_at([r["lon"] for r in missing], [r["lat"] for r in missing])):
+        r["iso3"] = iso3 or ""
+    rows.sort(key=lambda r: -r["cap"])
+    write_json(OUT / "arenas.json", points_file(rows, ["lon", "lat", "cap", "x", "iso3", "en", "zh"],
+                                                {"lon": 0.0001, "lat": 0.0001, "cap": 1, "x": 1}, strings=("iso3",)))
+    from collections import Counter
+    print(f"  萬人場館 {len(rows)} 個；{Counter(r['iso3'] for r in rows).most_common(10)}；"
+          f"台灣 {[(r['zh'] or r['en'], r['cap'], r['x']) for r in rows if r['iso3'] == 'TWN']}")
 
 
 if __name__ == "__main__":

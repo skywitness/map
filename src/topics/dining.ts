@@ -1,6 +1,34 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, IndicatorDef, TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { CategoryDef, IndicatorDef, PointsOverlayDef, TopicDefinition } from './types';
+
+/** 米其林三星餐廳（2026-11-04，製作手冊第二十一批 368；pipeline/topics/michelin.py）：英文維基的清單，位置用 Wikidata */
+const MICHELIN: PointsOverlayDef = {
+  kind: 'points',
+  id: 'michelin',
+  file: 'michelin.json',
+  indicators: ['michelin-3', 'michelin-3-per-10m'],
+  label: { zh: '米其林三星餐廳', en: 'Michelin three-star restaurants' },
+  radius: 4,
+  color: MAP_TOKENS.categorical[7],
+  tooltip: (p, { countryName }) => ({
+    title: String(p.n ?? ''),
+    extra: [
+      [String(p.p ?? ''), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '),
+      [p.chef ? tr({ zh: `主廚：${p.chef}`, en: `Chef: ${p.chef}` }) : null, p.y ? tr({ zh: `${p.y} 年起三星`, en: `Three stars since ${p.y}` }) : null]
+        .filter(Boolean)
+        .join(' · '),
+      p.e === 1 ? '' : tr({ zh: '位置是所在城市', en: 'Placed at its city' }),
+    ].filter(Boolean),
+    properNoun: String(p.n ?? ''),
+  }),
+};
+
+const MICHELIN_NOTE = {
+  zh: '米其林只在有出版指南的地方評星，沒有顏色的國家是沒有三星餐廳或沒有被評，不是 0。',
+  en: 'Michelin only rates places where it publishes a guide; uncoloured countries have no three-star restaurant or are not rated, which is not the same as zero.',
+};
 
 /**
  * 外食與喝一杯（2026-11-04，製作手冊第二十一批 342；pipeline/topics/dining.py）：
@@ -48,6 +76,15 @@ export const dining: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    {
+      name: {
+        zh: '英文維基百科「List of Michelin 3-star restaurants」（revid 1377608286，2026-09-30；米其林三星）',
+        en: 'English Wikipedia, “List of Michelin 3-star restaurants” (revision 1377608286, 30 September 2026; Michelin three stars)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=List_of_Michelin_3-star_restaurants&oldid=1377608286',
+      license: 'CC BY-SA 4.0',
+    },
+    { name: { zh: 'Wikidata（米其林三星餐廳與城市的位置）', en: 'Wikidata (locations of three-star restaurants and their cities)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
     {
       name: { zh: 'ILOSTAT：依行業的就業人數（判斷 OSM 的完整度）', en: 'ILOSTAT: employment by economic activity (to judge OSM completeness)' },
       url: 'https://ilostat.ilo.org/',
@@ -145,5 +182,32 @@ export const dining: TopicDefinition = {
       format: (v) => tr(DRINK_TYPES.find((c) => c.value === v)?.label ?? ''),
       unranked: true,
     },
+    {
+      id: 'michelin-3',
+      label: { zh: '米其林三星餐廳', en: 'Michelin three-star restaurants' },
+      description: {
+        zh: `米其林三星餐廳的家數（英文維基百科的清單，2025 年版指南，共 161 家）。法國 30 家最多（加上摩納哥 1 家），日本 20、西班牙與美國 16、義大利 14、德國 12、英國 10、香港 7、中國 4、瑞士 4，台灣 3 家（JL Studio、頤宮、態芮），跟新加坡、丹麥一樣多。點是餐廳（沒有自己位置的畫在城市）。${MICHELIN_NOTE.zh}`,
+        en: `Number of Michelin three-star restaurants (English Wikipedia’s list, 2025 guides, 161 in total). France has the most at 30 (plus 1 in Monaco), followed by Japan 20, Spain and the US 16, Italy 14, Germany 12, the UK 10, Hong Kong 7, China 4 and Switzerland 4; Taiwan has 3 (JL Studio, Le Palais and Taïrroir), as many as Singapore and Denmark. Dots are the restaurants (those without their own location are placed at their city). ${MICHELIN_NOTE.en}`,
+      },
+      unit: { zh: '家', en: 'restaurants' },
+      file: 'michelin-3.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 30] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: fixed(v, 0) }),
+      integer: true,
+    },
+    {
+      id: 'michelin-3-per-10m',
+      label: { zh: '每千萬人的米其林三星', en: 'Michelin three stars per 10 million people' },
+      description: {
+        zh: `米其林三星餐廳除以人口，每千萬人。摩納哥（1 家、人口不到 4 萬）與澳門、香港這類城市特別高；國家裡法國 4.5、西班牙 3.3、義大利 2.4、日本 1.6、德國與英國 1.4、台灣 1.3、美國 0.5、南韓 0.2、中國 0.03。${MICHELIN_NOTE.zh}`,
+        en: `Michelin three-star restaurants per 10 million people. Monaco (1 restaurant, under 40,000 people), Macau and Hong Kong are extreme because they are cities; among countries France has 4.5, Spain 3.3, Italy 2.4, Japan 1.6, Germany and the UK 1.4, Taiwan 1.3, the US 0.5, South Korea 0.2 and China 0.03. ${MICHELIN_NOTE.en}`,
+      },
+      unit: { zh: '家／千萬人', en: 'per 10 million' },
+      file: 'michelin-3-per-10m.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 4, 8] } },
+      format: (v) => tr({ zh: `每千萬人 ${fixed(v, 2)} 家`, en: `${fixed(v, 2)} per 10 million` }),
+      formatTick: (v) => `${v}`,
+    },
   ],
+  overlays: [MICHELIN],
 };
