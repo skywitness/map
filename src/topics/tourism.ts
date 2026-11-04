@@ -2,6 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import type { FlowLabels, TopicDefinition } from './types';
 import { COVID } from './events';
+import { MONTHS, monthLabel } from './months';
 
 const ARRIVALS = { zh: '人次', en: 'arrivals' };
 const PER_PERSON = { zh: '人次/人', en: 'arrivals per resident' };
@@ -69,6 +70,16 @@ export const tourism: TopicDefinition = {
       },
       url: 'https://ec.europa.eu/eurostat/web/tourism/database',
       license: EUROSTAT,
+    },
+    {
+      name: { zh: 'Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）', en: 'Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table',
+      license: EUROSTAT,
+    },
+    {
+      name: { zh: 'World Bank, World Development Indicators（陸地面積）', en: 'World Bank, World Development Indicators (land area)' },
+      url: 'https://data.worldbank.org/indicator/AG.LND.TOTL.K2',
+      license: 'CC BY 4.0',
     },
     {
       name: { zh: '交通部觀光署 觀光統計資料庫：來臺旅客按居住地、國人出國按首站抵達地', en: 'Tourism Administration (Taiwan): arrivals by residence, departures by first destination' },
@@ -234,6 +245,62 @@ export const tourism: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 30, 40, 50, 60, 75] } },
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'peak-month',
+      label: { zh: '旅遊最旺的月份', en: 'Peak tourist month' },
+      description: {
+        zh: '旅宿業住宿夜數最多的月份（Eurostat，歐洲 38 國）。27 國是 8 月；北歐五國、愛沙尼亞、拉脫維亞、捷克、比利時、瑞士是 7 月。滑過國家看第二旺與最淡的月份。拉時間軸看 2020、2021 年疫情怎麼打亂季節。台灣的月別資料還在整理。',
+        en: 'The month with the most nights at tourist accommodation (Eurostat, 38 European countries). 27 countries peak in August; the five Nordic countries, Estonia, Latvia, Czechia, Belgium and Switzerland peak in July. Hover to see the second-busiest and quietest months. Drag the timeline to see how the pandemic upset the seasons in 2020 and 2021. Taiwan’s monthly data has not been added yet.',
+      },
+      unit: '',
+      file: 'peak-month.json',
+      defaultYear: 2024,
+      layer: { kind: 'categorical', categories: MONTHS.map(({ value, label, color }) => ({ value, label, color })) },
+      format: monthLabel,
+      unranked: true,
+    },
+    {
+      id: 'peak-share',
+      label: { zh: '最旺月占全年住宿夜數', en: 'Peak month’s share of nights' },
+      description: {
+        zh: '最旺的那個月占全年住宿夜數的比例，越高表示旅客越集中在旺季（12 個月平均是 8.3%）。2024 年克羅埃西亞 8 月占 29.0% 最集中，保加利亞、阿爾巴尼亞、希臘、蒙特內哥羅都超過兩成；德國 12.3%、馬爾他 11.7%、科索沃 10.7% 最平均。',
+        en: 'The busiest month’s share of the year’s accommodation nights; higher means visitors are more concentrated in high season (an even spread would be 8.3%). In 2024 Croatia is most seasonal with 29.0% in August, and Bulgaria, Albania, Greece and Montenegro all exceed 20%; Germany 12.3%, Malta 11.7% and Kosovo 10.7% are most even.',
+      },
+      unit: '%',
+      file: 'peak-share.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [12, 14, 16, 18, 20, 25] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'nights-per-resident',
+      label: { zh: '每個居民一年幾個觀光客夜', en: 'Tourist nights per resident' },
+      description: {
+        zh: '一年旅宿業的住宿夜數除以人口：平均每個居民一年要「分擔」幾個觀光客夜，過度觀光的一種量法。2024 年克羅埃西亞 24.2、冰島 23.7、馬爾他 21.0 最高，希臘 15.2、奧地利 14.4、賽普勒斯 13.2、西班牙 10.5；羅馬尼亞 1.6、北馬其頓 1.2 最低。台灣沒有可比的住宿夜數。',
+        en: 'A year’s nights at tourist accommodation divided by population: how many tourist nights each resident “hosts”, one measure of overtourism. In 2024 Croatia 24.2, Iceland 23.7 and Malta 21.0 are highest, followed by Greece 15.2, Austria 14.4, Cyprus 13.2 and Spain 10.5; Romania 1.6 and North Macedonia 1.2 are lowest. No comparable figure for Taiwan.',
+      },
+      unit: { zh: '夜／人', en: 'nights per resident' },
+      file: 'nights-per-resident.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 4, 6, 8, 12, 20] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 夜／人`, en: `${fixed(v, 1)} nights per resident` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'nights-per-km2',
+      label: { zh: '每平方公里的觀光客夜', en: 'Tourist nights per km²' },
+      description: {
+        zh: '一年旅宿業的住宿夜數除以陸地面積，看「擠不擠」：2024 年馬爾他每平方公里 35,921 夜遠高於其他國家，荷蘭 4,317、賽普勒斯 1,938、克羅埃西亞 1,673、奧地利、義大利、瑞士約 1,500；冰島地廣人稀，按人算很高、按面積算很低。',
+        en: 'A year’s accommodation nights divided by land area, a measure of crowding: in 2024 Malta has 35,921 nights per km², far above everyone else, followed by the Netherlands 4,317, Cyprus 1,938 and Croatia 1,673, with Austria, Italy and Switzerland around 1,500; sparsely populated Iceland ranks high per resident but low per km².',
+      },
+      unit: { zh: '夜／平方公里', en: 'nights per km²' },
+      file: 'nights-per-km2.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [100, 250, 500, 1000, 1500, 3000] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 夜／平方公里`, en: `${fixed(v, 0)} nights per km²` }),
+      formatTick: (v) => `${v}`,
     },
   ],
 };

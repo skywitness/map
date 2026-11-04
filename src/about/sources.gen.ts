@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 151;
-export const INDICATOR_COUNT = 906;
+export const INDICATOR_COUNT = 910;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -102,6 +102,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：家庭與非家庭電價（nrg_pc_204、nrg_pc_205）","en":"Eurostat: electricity prices for household and non-household consumers (nrg_pc_204, nrg_pc_205)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
   {"name":{"zh":"Eurostat：旅宿業的到達人次依居住國（tour_occ_arnraw）、居民的旅次依目的地（tour_dem_ttw）","en":"Eurostat: arrivals at tourist accommodation by country of residence (tour_occ_arnraw); trips by destination (tour_dem_ttw)"},"url":"https://ec.europa.eu/eurostat/web/tourism/database","licenses":["CC BY 4.0"],"topics":["tourism"]},
+  {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["vehicles"]},
   {"name":{"zh":"Eurostat（demo_nind、demo_ndivind、demo_find、lfst_hhnhtych）","en":"Eurostat (demo_nind, demo_ndivind, demo_find, lfst_hhnhtych)"},"url":"https://ec.europa.eu/eurostat/web/population-demography/demography-population-stock-balance/database","licenses":["CC BY 4.0"],"topics":["marriage"]},
   {"name":{"zh":"FAO, AQUASTAT（總可再生水資源、世界的水資源壓力）","en":"FAO, AQUASTAT (total renewable water resources, world water stress)"},"url":"https://www.fao.org/aquastat/en/","licenses":["CC BY 4.0"],"topics":["water-forest"]},
@@ -288,6 +289,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"World Bank, World Development Indicators（WUENIC 的 DTP3、麻疹 1980–1999 年）","en":"World Bank, World Development Indicators (WUENIC DTP3 and measles, 1980–1999)"},"url":"https://data.worldbank.org/indicator/SH.IMM.IDPT","licenses":["CC BY 4.0"],"topics":["vaccination"]},
   {"name":{"zh":"World Bank, World Development Indicators（世界交易所聯合會 WFE 的資料）","en":"World Bank, World Development Indicators (World Federation of Exchanges data)"},"url":"https://data.worldbank.org/indicator/CM.MKT.LCAP.GD.ZS","licenses":["CC BY 4.0"],"topics":["stock-market"]},
   {"name":{"zh":"World Bank, World Development Indicators（個人匯款：世界銀行依 IMF 國際收支統計的估計）","en":"World Bank, World Development Indicators (personal remittances: World Bank estimates based on IMF balance of payments data)"},"url":"https://data.worldbank.org/indicator/BX.TRF.PWKR.CD.DT","licenses":["CC BY 4.0"],"topics":["aid"]},
+  {"name":{"zh":"World Bank, World Development Indicators（陸地面積）","en":"World Bank, World Development Indicators (land area)"},"url":"https://data.worldbank.org/indicator/AG.LND.TOTL.K2","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"World Bank：Global Findex Database 2025（數位支付、手機持有）","en":"World Bank, Global Findex Database 2025 (digital payments, mobile phone ownership)"},"url":"https://www.worldbank.org/en/publication/globalfindex","licenses":["CC BY 4.0"],"topics":["digital"]},
   {"name":{"zh":"World Bank/IMF, Quarterly External Debt Statistics（QEDS，不在 IDS 裡的國家的外債）","en":"World Bank/IMF, Quarterly External Debt Statistics (QEDS; external debt of countries not in the IDS)"},"url":"https://datacatalog.worldbank.org/search/dataset/0037740","licenses":["CC BY 4.0"],"topics":["reserves"]},
   {"name":{"zh":"WRI Aqueduct 4.0 各國排名（缺水壓力的推估；Kuzma et al. 2023）","en":"WRI Aqueduct 4.0 country rankings (projected water stress; Kuzma et al. 2023)"},"url":"https://www.wri.org/data/aqueduct-40-country-rankings","licenses":["CC BY 4.0"],"topics":["water-forest"]},
