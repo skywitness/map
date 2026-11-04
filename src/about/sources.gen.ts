@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 868;
+export const INDICATOR_COUNT = 869;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -249,6 +249,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WHO Prequalification：預認證疫苗、品管實驗室清單；WHO mRNA Technology Transfer Programme（事實自行整理）","en":"WHO Prequalification: prequalified vaccines and quality control labs; WHO mRNA Technology Transfer Programme (facts compiled)"},"url":"https://extranet.who.int/prequal/vaccines/prequalified/export?page&_format=csv","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["vaccination"]},
   {"name":{"zh":"WHO 健康平均餘命與平均壽命（Global Health Estimates 2023）","en":"WHO healthy life expectancy and life expectancy (Global Health Estimates 2023)"},"url":"https://data.who.int/indicators/i/C64284D","licenses":["CC BY 4.0"],"topics":["health"]},
   {"name":{"zh":"WHO 官網「Countries」的 194 個會員國與各國家頁的區域（WHO 的國家參照資料，事實自行整理）","en":"WHO, “Countries” (194 Member States) and the region on each country page (WHO country reference data; facts compiled)"},"url":"https://www.who.int/countries","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
+  {"name":{"zh":"WHO 資料平臺：Family planning satisfied with modern methods（SDG 3.7.1）","en":"WHO data platform: Family planning satisfied with modern methods (SDG 3.7.1)"},"url":"https://data.who.int/indicators/i/F2772F7/8074BD9","licenses":["CC BY 4.0"],"topics":["fertility"]},
   {"name":{"zh":"WHO 資料平臺：PCV3 immunization coverage（age 1）（WHO/UNICEF 的估計，2008–2024）","en":"WHO data: PCV3 immunization coverage (age 1) (WHO/UNICEF estimates, 2008–2024)"},"url":"https://data.who.int/indicators/i/4B4DAF2/D45F91C","licenses":[{"zh":"CC BY 4.0（另有 WHO 的附加條款）","en":"CC BY 4.0 (with WHO’s additional terms)"}],"topics":["vaccination"]},
   {"name":{"zh":"WHO 資料平臺（data.who.int）：野生型小兒麻痺的病例數","en":"WHO data platform (data.who.int): wild poliovirus cases"},"url":"https://data.who.int/indicators/i/495C2F7/7B2BFA6","licenses":["CC BY 4.0"],"topics":["disease"]},
   {"name":{"zh":"WHO, Global Health Estimates 2023（死因）、Global Health Observatory（NCD-RisC 糖尿病與肥胖估計）","en":"WHO, Global Health Estimates 2023 (causes of death) and Global Health Observatory (NCD-RisC diabetes and obesity estimates)"},"url":"https://www.who.int/data/global-health-estimates","licenses":["CC BY 4.0"],"topics":["disease"]},

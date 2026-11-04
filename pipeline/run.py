@@ -153,6 +153,8 @@ STEPS = {
     "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh
     "fertility": "topics.fertility",
+    # 避孕需求被現代方法滿足的比例（併進生育率與高齡化，第二十批 335）：data.who.int 的 8074BD9（CC BY 4.0）
+    "fertility-family-planning": "topics.fertility_family_planning",
     # UN World Marriage Data（約 26 MB）、UNdata 的結婚與離婚對數（第一次約 220 頁網頁，每頁間隔 0.3 秒，約 4 分鐘）、
     # Eurostat、OECD Family Database、內政部戶政司、主計總處
     "marriage": "topics.marriage",

@@ -66,6 +66,11 @@ export const fertility: TopicDefinition = withParts({
       license: 'CC BY 4.0',
     },
     LONG_RUN_SOURCE,
+    {
+      name: { zh: 'WHO 資料平臺：Family planning satisfied with modern methods（SDG 3.7.1）', en: 'WHO data platform: Family planning satisfied with modern methods (SDG 3.7.1)' },
+      url: 'https://data.who.int/indicators/i/F2772F7/8074BD9',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '沒有小孩的女性比例以外，所有國家都是聯合國 WPP 2024 用同一套方法的估計，2024 年起是推估（中推估）。沒有小孩的女性比例依 Human Fertility Database（CC BY 4.0）與 OECD Family Database，時間軸是出生年。台灣也用 WPP：2023 年以前跟內政部的統計很接近（總生育率 0.87 對 0.865），但 2025 年台灣實際的總生育率掉到 0.695、出生 107,812 人，WPP 的推估是 0.86、12.5 萬人；國發會 2026 年的人口推估也比 WPP 悲觀（2075 年 65 歲以上占 52.9%，WPP 是 43%）。點台灣可以看到對照。「總生育率（1800 年起）」是另外整理的長期資料（來源見頁尾），1950 年起跟 WPP 2024 相同，只到 2023 年。',
@@ -158,6 +163,20 @@ export const fertility: TopicDefinition = withParts({
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [27, 28, 29, 30, 31, 32] } },
       format: (v) => tr({ zh: `${fixed(v, 1)} 歲`, en: `${fixed(v, 1)} years` }),
       formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'family-planning',
+      label: { zh: '避孕需求被現代方法滿足的比例', en: 'Family planning needs met with modern methods' },
+      description: {
+        zh: '15–49 歲想避孕或延後生育的女性裡，用現代避孕方法（避孕藥、子宮內避孕器、保險套、結紮等）的比例（聯合國永續發展目標 3.7.1，WHO 的資料）。世界約 77%（2023 年）；北韓 89.6%、泰國 87.0%、古巴 86.9%、瑞典 86.7% 最高，查德 17.5%、葛摩 17.2%、阿爾巴尼亞 6.3%、索馬利亞 2.1% 最低。國家值多半來自各國的人口與健康調查，不是每年都有，各國用 10 年內最近的一年；台灣不在 WHO 的資料裡。',
+        en: 'Share of women aged 15–49 who want to avoid or delay pregnancy and use a modern method (pill, IUD, condoms, sterilisation and so on), SDG indicator 3.7.1 (WHO data). The world is about 77% (2023); highest in North Korea (89.6%), Thailand (87.0%), Cuba (86.9%) and Sweden (86.7%), lowest in Chad (17.5%), Comoros (17.2%), Albania (6.3%) and Somalia (2.1%). Country values mostly come from national demographic and health surveys, not every year; each country shows its latest year within ten. Taiwan is not in WHO’s data.',
+      },
+      unit: '%',
+      file: 'family-planning.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 45, 60, 70, 78, 85] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
       compareWorld: true,
     },
     {
