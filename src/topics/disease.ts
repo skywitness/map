@@ -55,6 +55,16 @@ const CANCER_SEX: DimensionDef = {
   defaultOption: 'total',
 };
 
+/** 糖尿病盛行率（pipeline/topics/disease_diabetes.py）：NCD-RisC 只有男女分開 */
+const DIABETES_SEX: DimensionDef = {
+  label: { zh: '性別', en: 'Sex' },
+  options: [
+    { id: 'female', label: { zh: '女性', en: 'Women' } },
+    { id: 'male', label: { zh: '男性', en: 'Men' } },
+  ],
+  defaultOption: 'female',
+};
+
 /** USRDS 的透析人數只有次國家的地區：畫成點（鍵跟 pipeline/topics/dialysis.py 的 NAMES 一致） */
 const PLACES: PlaceDef[] = [
   { id: '_MX-AGU', name: { zh: '阿瓜斯卡連特斯州（墨西哥）', en: 'Aguascalientes (Mexico)' }, lon: -102.29, lat: 21.88 },
@@ -90,6 +100,14 @@ export const disease: TopicDefinition = {
     },
     {
       name: {
+        zh: 'NCD Risk Factor Collaboration (NCD-RisC), Worldwide trends in diabetes prevalence and treatment from 1990 to 2022（Lancet 2024）的各國年齡標準化估計',
+        en: 'NCD Risk Factor Collaboration (NCD-RisC), Worldwide trends in diabetes prevalence and treatment from 1990 to 2022 (Lancet 2024), age-standardised country estimates',
+      },
+      url: 'https://ncdrisc.org/data-downloads-diabetes.html',
+      license: { zh: '論文 CC BY 4.0，資料檔未另外標示授權', en: 'paper CC BY 4.0; the data files carry no separate licence' },
+    },
+    {
+      name: {
         zh: 'World Bank, World Development Indicators（UNAIDS 愛滋、WHO 結核病與瘧疾資料）',
         en: 'World Bank, World Development Indicators (UNAIDS HIV and WHO tuberculosis and malaria data)',
       },
@@ -111,8 +129,8 @@ export const disease: TopicDefinition = {
     },
   ],
   note: {
-    zh: '死因的數字是 WHO 用同一套方法估計的，已經把不明原因的死亡依比例分到各類，可能跟各國官方統計不同。台灣不在 WHO 資料庫中：死因結構、首要死因與 30–70 歲死亡機率用衛福部死因統計依 WHO 的分類自己計算（2008 年起），癌症死亡率與結核病用衛福部的統計；肥胖、愛滋、瘧疾沒有跟國際定義一致的數字，側欄附上官方數字。死因（首要死因、死因結構、癌症死亡率、死亡最多的癌症）取自 WHO Global Health Estimates，授權是 CC BY-NC-SA 3.0 IGO：不能商業使用，這幾個資料檔也依同一授權分享。糖尿病盛行率與公立醫療能不能洗腎只在 WHO GHO 資料庫，2026 年 11 月拿掉。癌症發生率沒有放：GLOBOCAN（IARC）大量轉載要書面授權，IHME 只限非商業使用。',
-    en: "Cause-of-death figures are WHO estimates made with one method for every country, with ill-defined deaths redistributed across causes, so they may differ from official national figures. Taiwan is not in the WHO database: its cause-of-death structure, leading cause and probability of dying at 30–70 are calculated here from the Ministry of Health and Welfare's death statistics using WHO's categories (from 2008), and its cancer death rate and tuberculosis figures come from the Ministry's statistics. For obesity, HIV and malaria there are no Taiwanese figures with the international definitions; the official figures are given in the side panel. The cause-of-death figures (leading cause, cause structure, cancer death rate and deadliest cancer) come from WHO's Global Health Estimates under CC BY-NC-SA 3.0 IGO: no commercial use, and these data files are shared under the same licence. Diabetes prevalence and public dialysis availability, which were only in WHO's Global Health Observatory, were removed in November 2026. Cancer incidence is not included: GLOBOCAN (IARC) requires written permission for large-scale reproduction, and IHME data are for non-commercial use only.",
+    zh: '死因的數字是 WHO 用同一套方法估計的，已經把不明原因的死亡依比例分到各類，可能跟各國官方統計不同。台灣不在 WHO 資料庫中：死因結構、首要死因與 30–70 歲死亡機率用衛福部死因統計依 WHO 的分類自己計算（2008 年起），癌症死亡率與結核病用衛福部的統計；肥胖、愛滋、瘧疾沒有跟國際定義一致的數字，側欄附上官方數字。死因（首要死因、死因結構、癌症死亡率、死亡最多的癌症）取自 WHO Global Health Estimates，授權是 CC BY-NC-SA 3.0 IGO：不能商業使用，這幾個資料檔也依同一授權分享。公立醫療能不能洗腎只在 WHO GHO 資料庫，2026 年 11 月拿掉；糖尿病盛行率同時改用 NCD-RisC 自己公布的估計（男女分開，論文是 CC BY 4.0，資料檔沒有另外標示授權，本站非商業使用、NCD-RisC 要求就撤下）。癌症發生率沒有放：GLOBOCAN（IARC）大量轉載要書面授權，IHME 只限非商業使用。',
+    en: "Cause-of-death figures are WHO estimates made with one method for every country, with ill-defined deaths redistributed across causes, so they may differ from official national figures. Taiwan is not in the WHO database: its cause-of-death structure, leading cause and probability of dying at 30–70 are calculated here from the Ministry of Health and Welfare's death statistics using WHO's categories (from 2008), and its cancer death rate and tuberculosis figures come from the Ministry's statistics. For obesity, HIV and malaria there are no Taiwanese figures with the international definitions; the official figures are given in the side panel. The cause-of-death figures (leading cause, cause structure, cancer death rate and deadliest cancer) come from WHO's Global Health Estimates under CC BY-NC-SA 3.0 IGO: no commercial use, and these data files are shared under the same licence. Public dialysis availability, which was only in WHO's Global Health Observatory, was removed in November 2026; diabetes prevalence now uses NCD-RisC's own estimates (men and women separately; the paper is CC BY 4.0 and the data files carry no separate licence, used here non-commercially and to be withdrawn if NCD-RisC asks). Cancer incidence is not included: GLOBOCAN (IARC) requires written permission for large-scale reproduction, and IHME data are for non-commercial use only.",
   },
   panelExtra: () => import('./panels/DiseasePanel'),
   indicators: [
@@ -189,6 +207,21 @@ export const disease: TopicDefinition = {
         BEL: { zh: '分成荷語區與法語區（見地圖上的點）', en: 'Reported for the Dutch- and French-speaking regions (see the dots)' },
         GBR: { zh: '分成英格蘭威爾斯北愛爾蘭與蘇格蘭（見地圖上的點）', en: 'Reported for England, Wales and Northern Ireland, and for Scotland (see the dots)' },
       },
+    },
+    {
+      id: 'diabetes',
+      label: { zh: '糖尿病盛行率', en: 'Diabetes prevalence' },
+      description: {
+        zh: '18 歲以上有糖尿病的比例（空腹血糖 7.0 mmol/L 以上、糖化血色素 6.5% 以上，或正在服藥），年齡標準化，選上方的「性別」切換；NCD-RisC 依各國健康調查估計（2024 年《刺胳針》），只有男女分開。2022 年全球男性 14.3%、女性 13.9%；台灣男性 12.2%、女性 8.3%，日本 8.5%、4.3%，美國 13.6%、11.4%，印度 21.4%、23.7%。最高是太平洋島國（托克勞男性 34.1%、密克羅尼西亞女性 32.7%），最低是丹麥男性 2.8%、法國女性 1.8%。滑過國家看 95% 不確定區間。',
+        en: 'The share of adults (18+) with diabetes (fasting glucose of 7.0 mmol/L or more, HbA1c of 6.5% or more, or on medication), age-standardised; switch with “Sex” above. NCD-RisC estimates from national health surveys (Lancet 2024), for men and women separately. In 2022 the world was 14.3% for men and 13.9% for women; Taiwan 12.2% and 8.3%, Japan 8.5% and 4.3%, the US 13.6% and 11.4%, India 21.4% and 23.7%. Pacific islands are highest (Tokelau men 34.1%, Micronesia women 32.7%), Denmark’s men (2.8%) and France’s women (1.8%) lowest. Hover for the 95% uncertainty interval.',
+      },
+      unit: '%',
+      file: 'diabetes/{item}.json',
+      dimension: DIABETES_SEX,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [6, 8, 10, 14, 18, 24] } },
+      format: percent,
+      formatTick: percentTick,
+      compareWorld: true,
     },
     {
       id: 'obesity',
