@@ -159,7 +159,8 @@ STEPS = {
     # OSM 經 QLever（一個標籤一支查詢、不併發，結果存在 .cache/osm-qlever/）；覆蓋度名單見 sources/osm_coverage.py
     "dining": "topics.dining",
     "diving": "topics.diving",  # OSM 經 QLever：潛水中心與潛水場域
-    "box-office-tw": "topics.box_office_tw",  # 國家影視聽中心的全國電影票房（政府資料開放授權條款）
+    "box-office-tw": "topics.box_office_tw",
+    "esports": "topics.esports",  # Esports Earnings 的國家頁（只抓一頁）  # 國家影視聽中心的全國電影票房（政府資料開放授權條款）
     "retirement": "topics.retirement",  # OECD Pensions at a Glance（CC BY 4.0）；台灣依勞工保險條例
     "time-use": "topics.time_use",  # OECD 時間運用、How's Life 與 Eurostat HETUS 2020（CC BY 4.0）
     # UN World Marriage Data（約 26 MB）、UNdata 的結婚與離婚對數（第一次約 220 頁網頁，每頁間隔 0.3 秒，約 4 分鐘）、

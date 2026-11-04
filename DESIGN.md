@@ -845,6 +845,7 @@ pipeline/
 | 潛水（2026-11-04，第 8 節第 345 點；休閒的「日常休閒」） | 潛水中心（預設）、潛水場域（含內陸訓練水域）（面量圖，各國個數，只畫 OSM 覆蓋良好的國家）；疊加圖層：潛水中心與潛水場域的點（依種類上色，全部畫） | 左邊的清單：有名稱的潛水中心與潛水場域，依國家（點了移到那個點） | OpenStreetMap（經 QLever，ODbL） | 2026 年 11 月的快照 |
 | 退休（2026-11-04，第 8 節第 346 點；經濟的「所得與財富」） | 現在的退休年齡（預設）、未來的退休年齡（2024 年）、實際退出勞動市場的年齡、退出後的預期年數（1970 年起，最近一年太舊的用 latestWithin 5 年），都可以切換男女 | — | OECD Pensions at a Glance 的資料庫（CC BY 4.0）；台灣依勞工保險條例第 58 條 | 2024 年；退出年齡 1970–2024 年 |
 | 台灣的電影票房（2026-11-04，第 8 節第 347 點；休閒的「日常休閒」） | 占台灣票房的比例（預設）、票數、票房金額（比例圓）、上映的片數，依出品國與上映年（2016 年起） | 左邊的清單：票數 1 萬張以上的片（1,959 部，點了框住出品國、時間軸換到上映年） | 國家電影及視聽文化中心「全國電影票房統計數據」（政府資料開放平臺 94224，政府資料開放授權條款） | 2016–2026 年（依上映年） |
+| 電競（2026-11-04，第 8 節第 348 點；休閒的「獎項與運動」） | 累計獎金（預設，比例圓）、每百萬人的獎金、選手人數（比例圓）、賺最多獎金的遊戲（類別圖：Dota 2、Counter-Strike、Fortnite、PUBG、League of Legends、Rocket League、手機 MOBA 等、其他） | 選手數與主力遊戲的占比（tooltip） | Esports Earnings 國家頁（准許個人與商業使用，保留版權聲明）；UN WPP 2024 | 累計到 2026 年 11 月，不分年份 |
 | 國定假日（2026-11-04，第 8 節第 342 點；休閒的「日常休閒」） | 一年幾天國定假日（含補假，預設）、不含補假的天數（面量圖，天）、假日最多的月份（類別圖，月份的四季色；同樣多取較早的月份） | 那一國 2026 年的假日清單（附註）；聯邦制國家各地另有地方假日的範圍（tooltip） | Python 套件 holidays 0.108（MIT，離線計算，只算 public 類） | 2017–2027 年 |
 | 時間運用（2026-11-04，第 8 節第 344 點；休閒的「日常休閒」） | 休閒（預設）、睡覺吃飯與盥洗、無酬家務、無酬家務的男女差距（OECD，35 國，分鐘／天）；睡覺、上下班通勤、看電視（Eurostat HETUS 2020，11 國）；自己的時間（小時／天）、時間運用滿意度（0–10 分）、一週的社交時間（OECD How’s Life，各國最近一年） | 一天 1,440 分鐘的 5 大類（附註）；男女各做多少家務（tooltip） | OECD Gender Data Portal、OECD How’s Life、Eurostat HETUS（都是 CC BY 4.0） | 不分年份（各國調查年份不同） |
 
@@ -976,6 +977,7 @@ pipeline/
     - **ESHRE 的 EIM 2019 與 HROpen 2026 是 CC BY 4.0**（人工生殖，第 321 點，2026-11-04）：兩篇的 `<permissions>` 都是「This is an Open Access article distributed under the terms of the Creative Commons Attribution License (https://creativecommons.org/licenses/by/4.0/), which permits unrestricted reuse, distribution, and reproduction in any medium, provided the original work is properly cited.」；從 Europe PMC 的全文 XML 取（不必登入）。ICMART 的世界報告沒有 PMC 版本、要付費，不用。
     - **Itan 等 2010 的乳糖酶持續性表是 CC BY 2.0**（乳糖不耐，第 297 點，2026-11-03）：`<permissions>`：「This is an Open Access article distributed under the terms of the Creative Commons Attribution License (http://creativecommons.org/licenses/by/2.0)」；附件從 Europe PMC 的 `supplementaryFiles` zip 取（不必登入）。Storhaug 等 2017（Lancet Gastroenterology & Hepatology）的 89 國統合分析 Elsevier 只准文字探勘，不用。
     - **CPIC 是 CC0**（藥物過敏與藥效的基因，第 298 點，2026-11-03）：`raw.githubusercontent.com/cpicpgx/cpic-data/main/LICENSE.md`：「All curated content published by CPIC is available free of restriction under the CC0 1.0 Universal (CC0 1.0) Public Domain Dedication」，並請寫網址與下載日期（manifest.json 有日期）；不能用 CPIC 的標誌。CPIC 底層 `population` 表的台灣研究多半轉引自 Allele Frequency Net Database（AFND，授權頁沒有條款、待確認），所以只用 CPIC 自己算的群平均，不列各研究。
+    - **Esports Earnings**（電競，第 348 點，2026-11-04）：條款原文「You are granted permission to use the site's materials for both personal and commercial use」，不得使用不屬於它的圖片、標誌與商標，要保留「Copyright © 2012-2026 Esports Earnings. All Rights Reserved.」（主題來源的授權欄照寫）。robots.txt 轉址到自己、讀不到規則，照手冊只抓國家頁一頁（`.cache/esports/countries.html`），不抓選手頁；API 與 Liquipedia 都要金鑰，不用。
     - **Python 套件 holidays**（國定假日，第 342 點，2026-11-04）：MIT 授權（Open World Holidays Framework，vacanza），假日規則寫在程式碼裡，用套件算出的天數與日期依 MIT 標示著作權與授權；版本固定在 0.108（`requirements.txt`），換版會改到天數。
     - **英文維基「Surrogacy laws by country」**（法律與制度的代理孕母，第 341 點，2026-11-04）：CC BY-SA 4.0，固定 oldid 1382714270，資料檔 `surrogacy.json` 依 CC BY-SA 4.0 分享，主題附註寫明；條目是逐國的散文段落，分類是自己讀的。台灣的人工生殖法取自全國法規資料庫（法律條文不是著作權的標的）。
     - **英文維基「Abortion law」「Legality of euthanasia」**（法律與制度的墮胎、安樂死，第 313 點，2026-11-03）：CC BY-SA 4.0，資料檔 `abortion.json`、`euthanasia.json` 依 CC BY-SA 4.0 分享；台灣的優生保健法、病人自主權利法、刑法取自全國法規資料庫（法律條文不是著作權的標的）。WHO 全球墮胎政策資料庫（All Rights Reserved）不用。
@@ -4839,6 +4841,12 @@ pipeline/
     - **出品國**：中文字串，用 `re.split(r"##|/|、|,|，")` 切開只取第一個，`NAMES` 對照表（107 個寫法，含「中華民國」「台灣」→TWN、「大陸」「中國大陸」→CHN、「南斯拉夫」→SRB、「西德」「德」→DEU、英文的 Australia、France）；表是用 Node 的 Intl.DisplayNames（zh-Hant-TW）加別名產生後寫死的，對不到的名稱報錯。
     - **結果**：2016 年起 3.29 億張，美國片 64.8%、國片 11.8%、日本片 11.8%、韓國片 5.5%、香港片 1.8%；2019 年美國片 76.6%，2025 年 48.1%（日本 22.9%、國片 21.0%）。
     - 片數的指標檔叫 `film-count.json`（`films.json` 是清單的點檔）。休閒的新段原本叫「生活與文化」，跟社會的「生活與文化」重複，這時改名「日常休閒」。
+
+348. **電競獎金與選手**（2026-11-04，製作手冊第二十一批 348；`pipeline/topics/esports.py`〔步驟 `esports`〕、`src/topics/esports.ts`，休閒的「獎項與運動」）：
+    - **資料**：`https://www.esportsearnings.com/countries` 一頁（178,774 bytes，183 列），每列的國碼取連結 `/countries/xx`（alpha-2），國名不用對照；「Netherlands Antilles」（an）已不存在，不收，182 國。累計獎金、選手數、賺最多的遊戲與占比，累計到抓取那天，沒有年份（timeless）。
+    - **類別**：賺最多的遊戲合成 8 類（`GAMES`）：Dota 2（含 32 國）、Counter-Strike（CS:GO、CS2）、Fortnite、PUBG（含手機版）、League of Legends、Rocket League、手機 MOBA 等（傳說對決、Mobile Legends、Free Fire、Pokémon Unite），其他（53 國，Rainbow Six Siege、VALORANT、格鬥遊戲、西洋棋網站…）。
+    - **每百萬人**：WPP 2024 的 2026 年推估人口，人口不到 10 萬的不算；丹麥 1,096 萬美元最多。台灣 2,318 萬美元、1,762 人、第 20 名，主力 League of Legends（25.78%）。
+    - 站方是網路公開消息的彙整、選手國籍自報、被 The International 這類超大獎金賽事拉偏，主題說明寫明。
 
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。
