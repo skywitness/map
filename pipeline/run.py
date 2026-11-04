@@ -103,6 +103,7 @@ STEPS = {
     "inequality": "topics.inequality",  # 第一次會下載 WID 整包（約 890 MB），抽出變數要幾分鐘
     "gender": "topics.gender",
     "wages": "topics.wages",
+    "annual-leave": "topics.annual_leave",  # 法定最低年假（英文維基，CC BY-SA 4.0；台灣依勞基法第 38 條）
     "fiscal": "topics.fiscal",
     # 物價與財政的擴充：政府支出的用途（IMF COFOG）、稅收的組成（OECD）、公共債務兩百年（IMF HPD）
     "fiscal-structure": "topics.fiscal_structure",

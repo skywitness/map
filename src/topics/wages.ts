@@ -18,6 +18,16 @@ export const wages: TopicDefinition = {
   defaultYear: 2023,
   sources: [
     {
+      name: { zh: '英文維基百科「List of minimum annual leave by country」（法定年假，2026 年 10 月的版本）', en: 'Wikipedia, “List of minimum annual leave by country” (October 2026 revision)' },
+      url: 'https://en.wikipedia.org/w/index.php?title=List_of_minimum_annual_leave_by_country&oldid=1380870617',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: '全國法規資料庫：勞動基準法第 38 條（台灣的特別休假）', en: 'Laws & Regulations Database of Taiwan: Labour Standards Act Art. 38' },
+      url: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=N0030001',
+      license: { zh: '法律條文不是著作權的標的（著作權法第 9 條）', en: 'Statutes are not subject to copyright (Copyright Act, Article 9)' },
+    },
+    {
       name: {
         zh: '國際勞工組織 ILOSTAT（平均月薪、最低工資、每週工時）',
         en: 'International Labour Organization, ILOSTAT (earnings, minimum wages, weekly hours)',
@@ -164,6 +174,34 @@ export const wages: TopicDefinition = {
       file: 'annual-hours.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1500, 1700, 1900, 2100, 2300, 2500] } },
       format: (v) => hours(v, 0),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'annual-leave',
+      label: { zh: '法定最低年假', en: 'Statutory minimum annual leave' },
+      description: {
+        zh: '法律規定一年至少要給幾天有薪年假（換算成一週工作 5 天；有年資級距的取剛滿資格的天數，滑過國家看範圍）。美國 0 天（聯邦與各州都沒有規定），中國、菲律賓、奈及利亞 5 天、台灣 7 天（勞基法第 38 條，滿一年）、日本 10 天、南韓 15 天、德國 20 天、法國 25 天、英國 28 天，安道爾 31 天最多。依英文維基百科的列表，主要引 ILO 2012 年的報告，有些國家已經修法。不含國定假日（看「國定假日」主題）。',
+        en: 'The minimum paid annual leave required by law (converted to a five-day week; where it rises with seniority, the entry-level figure; hover for the range). The US has none (no federal or state minimum); China, the Philippines and Nigeria 5 days, Taiwan 7 (Labour Standards Act Art. 38, after one year), Japan 10, South Korea 15, Germany 20, France 25, the UK 28 and Andorra the most at 31. From the English Wikipedia list, which mostly cites a 2012 ILO report, so some countries have since changed their laws. Public holidays are not included (see the Public holidays topic).',
+      },
+      unit: { zh: '天', en: 'days' },
+      file: 'annual-leave.json',
+      defaultYear: 2026,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 天`, en: `${fixed(v, 0)} days` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'annual-leave-max',
+      label: { zh: '年資最長的法定年假', en: 'Statutory annual leave at longest seniority' },
+      description: {
+        zh: '年假隨年資增加的國家，年資最長時一年的法定年假（沒有級距的國家跟上一個指標一樣）。台灣 30 天（年資十年以上每年加一天，加到 30 天）、日本 20 天、南韓 25 天、中國 15 天。',
+        en: 'For countries where leave rises with seniority, the statutory leave at the longest seniority (otherwise the same as the previous indicator). Taiwan 30 days (one more day per year from ten years, up to 30), Japan 20, South Korea 25 and China 15.',
+      },
+      unit: { zh: '天', en: 'days' },
+      file: 'annual-leave-max.json',
+      defaultYear: 2026,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 天`, en: `${fixed(v, 0)} days` }),
       formatTick: (v) => fixed(v, 0),
     },
   ],
