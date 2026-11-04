@@ -55,12 +55,14 @@ export function categoryScale(layer: CategoricalLayer, tokens: MapTokens): Categ
   if (layer.diverging) {
     colors = divergingColors(n, tokens.diverging);
   } else if (layer.ordinal) {
-    // 有自己顏色的類別（例如法定年齡的「禁止」「沒有規定」）不占色階
+    // 有自己顏色的類別（例如法定年齡的「禁止」「沒有規定」）與變形的類別（hatch，用 base 那一類的顏色，
+    // 2026-11-04 起，防疫管制的「只在部分地區」）不占色階
     const ramp = tokens.sequential;
-    const m = layer.categories.filter((c) => !c.color).length;
+    const m = layer.categories.filter((c) => !c.color && !c.hatch).length;
     let k = 0;
     colors = layer.categories.map((c) => {
       if (c.color) return c.color;
+      if (c.hatch) return '';
       const i = k++;
       return ramp[m === 1 ? ramp.length - 1 : Math.round(((m - 1 - i) * (ramp.length - 1)) / (m - 1))];
     });

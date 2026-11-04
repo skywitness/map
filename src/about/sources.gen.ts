@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 140;
-export const INDICATOR_COUNT = 828;
+export const TOPIC_COUNT = 141;
+export const INDICATOR_COUNT = 838;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -196,6 +196,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OpenHistoricalMap 貢獻者（國家層級的疆界，1800 年以後的殖民地與帝國；簡化到約 3–8 公里，台灣民主國依史實補）","en":"OpenHistoricalMap contributors (country-level boundaries: colonies and empires after 1800; simplified to about 3–8 km, Republic of Formosa added from historical sources)"},"url":"https://www.openhistoricalmap.org/copyright","licenses":["CC0 1.0"],"topics":["empires"]},
   {"name":"OpenMapTiles","url":"https://openmaptiles.org/","licenses":["CC BY 4.0"],"topics":["map"]},
   {"name":{"zh":"Our World in Data, COVID-19 dataset（確診死亡來自 WHO COVID-19 dashboard；疫苗接種是 OWID 整理各國官方的數字）","en":"Our World in Data, COVID-19 dataset (confirmed deaths from the WHO COVID-19 dashboard; vaccinations compiled by OWID from official sources)"},"url":"https://ourworldindata.org/coronavirus","licenses":["CC BY 4.0"],"topics":["vaccination"]},
+  {"name":{"zh":"Oxford COVID-19 Government Response Tracker（OxCGRT），牛津大學 Blavatnik 政府學院；Hale 等 2021，Nature Human Behaviour 5:529–538","en":"Oxford COVID-19 Government Response Tracker (OxCGRT), Blavatnik School of Government, University of Oxford; Hale et al. 2021, Nature Human Behaviour 5:529–538"},"url":"https://github.com/OxCGRT/covid-policy-dataset","licenses":["CC BY 4.0"],"topics":["covid-policy"]},
   {"name":{"zh":"Passport Index 資料集（imorte/passport-index-data，2026-02-17）","en":"Passport Index data (imorte/passport-index-data, 2026-02-17)"},"url":"https://github.com/imorte/passport-index-data","licenses":["MIT"],"topics":["passport"]},
   {"name":{"zh":"Passport Index（Arton Capital，資料集整理自這個網站）","en":"Passport Index by Arton Capital (source of the dataset)"},"url":"https://www.passportindex.org/","licenses":[{"zh":"見網站","en":"see website"}],"topics":["passport"]},
   {"name":{"zh":"Penn World Table 11.0（每年工時；Feenstra, Inklaar & Timmer, 2015, American Economic Review）","en":"Penn World Table 11.0 (annual hours; Feenstra, Inklaar & Timmer, 2015, American Economic Review)"},"url":"https://www.rug.nl/ggdc/productivity/pwt/","licenses":["CC BY 4.0"],"topics":["wages"]},

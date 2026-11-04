@@ -190,6 +190,8 @@ STEPS = {
     "excess-wmd": "topics.excess_wmd",
     # 人工生殖（新主題，第二十批 312）：ESHRE EIM 2019 與 HROpen 2026 兩篇 PMC 全文 XML（CC BY 4.0）
     "ivf": "topics.ivf",
+    # 疫情期間的防疫管制（新主題，第二十批 313）：OxCGRT 的 compact national CSV（43.8 MB），每 7 天取一天
+    "covid-policy": "topics.covid_policy",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     "ferry-routes": "topics.ferry_routes",

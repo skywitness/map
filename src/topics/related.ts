@@ -19,6 +19,7 @@ export const RELATED: Record<string, string[]> = {
   'red-cell-traits': ['newborn-screening', 'blood-types', 'disease'],
   lactase: ['diet', 'red-cell-traits', 'blood-types'],
   ivf: ['fertility', 'health', 'newborn-screening'],
+  'covid-policy': ['vaccination', 'disease', 'laws'],
   'drug-genes': ['red-cell-traits', 'newborn-screening', 'health'],
   medicines: ['drug-consumption', 'health', 'antimicrobial-resistance'],
   'drug-consumption': ['medicines', 'antimicrobial-resistance', 'drug-genes'],

@@ -62,6 +62,7 @@ const TOPIC_ICONS = {
   'red-cell-traits': 'dna',
   lactase: 'milk',
   ivf: 'test-tubes',
+  'covid-policy': 'door-closed',
   'drug-genes': 'pill-bottle',
   medicines: 'tablets',
   'drug-consumption': 'clipboard-plus',

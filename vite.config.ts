@@ -96,8 +96,10 @@ function dataYears(file: string): unknown[] {
     const path = `public/data/${file}`;
     years = [];
     if (existsSync(path)) {
-      const data = JSON.parse(readFileSync(path, 'utf8')) as { years?: unknown };
-      if (Array.isArray(data.years)) years = data.years;
+      // 年份欄位存的不是西元年（防疫管制存日期的編號）時，資料檔另寫 coverage（真正的起訖年，2026-11-04 起）
+      const data = JSON.parse(readFileSync(path, 'utf8')) as { years?: unknown; coverage?: unknown };
+      if (Array.isArray(data.coverage)) years = data.coverage;
+      else if (Array.isArray(data.years)) years = data.years;
     }
     yearsCache.set(file, years);
   }
