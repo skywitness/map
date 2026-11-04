@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 861;
+export const INDICATOR_COUNT = 864;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -85,6 +85,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Descals 等，Global oil palm extent and planting year from 1990 to 2021（v1.2，Zenodo 13379129）","en":"Descals et al., Global oil palm extent and planting year from 1990 to 2021 (v1.2, Zenodo 13379129)"},"url":"https://doi.org/10.5281/zenodo.13379129","licenses":["CC BY 4.0"],"topics":["oil-palm"]},
   {"name":{"zh":"ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023，附錄 2 國家摘要表（資料由各國公共衛生機關提供）","en":"ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023, annex 2 country summary sheets (dataset provided by ECDC based on data provided by public health authorities)"},"url":"https://www.ecdc.europa.eu/en/publications-data/PPS-HAI-AMR-acute-care-europe-2022-2023","licenses":["CC BY 4.0"],"topics":["antimicrobial-resistance"]},
   {"name":{"zh":"EDGAR 2026（歐盟執委會聯合研究中心 JRC，EDGAR_2026_GHG）：甲烷、氧化亞氮、含氟氣體","en":"EDGAR 2026 (European Commission JRC, EDGAR_2026_GHG): methane, nitrous oxide, F-gases"},"url":"https://edgar.jrc.ec.europa.eu/dataset_ghg2026","licenses":["CC BY 4.0"],"topics":["climate"]},
+  {"name":{"zh":"EMA，medicines 與 orphan designations 資料表","en":"EMA, medicines and orphan designations data tables"},"url":"https://www.ema.europa.eu/en/documents/report/medicines-output-medicines-report_en.xlsx","licenses":[{"zh":"EMA 條款（可轉載，需註明 EMA）","en":"EMA terms (reuse with acknowledgement of EMA)"}],"topics":["medicines"]},
   {"name":{"zh":"EMA，Public information on medicine shortages（各國的缺藥登錄一覽）","en":"EMA, Public information on medicine shortages (national registers)"},"url":"https://www.ema.europa.eu/en/human-regulatory-overview/post-authorisation/medicine-shortages-availability-issues/public-information-medicine-shortages","licenses":[{"zh":"EMA 條款（可轉載，需註明 EMA）","en":"EMA terms (reuse with acknowledgement of EMA)"}],"topics":["medicines"]},
   {"name":"Ember, Global Renewable Power Sector Targets 2030","url":"https://ember-energy.org/data/global-renewable-power-sector-targets-2030/","licenses":["CC BY 4.0"],"topics":["electricity"]},
   {"name":"Ember, Yearly Electricity Data","url":"https://ember-energy.org/data/yearly-electricity-data/","licenses":["CC BY 4.0"],"topics":["electricity"]},
@@ -103,6 +104,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAO, FAOSTAT（詳細貿易矩陣）","en":"FAO, FAOSTAT (detailed trade matrix)"},"url":"https://www.fao.org/faostat/en/#data/TM","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":"FAO, Global Forest Resources Assessment 2025","url":"https://fra-data.fao.org/","licenses":["CC BY 4.0"],"topics":["water-forest"]},
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},
+  {"name":{"zh":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025","en":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025"},"url":"https://www.fda.gov/media/177921/download?attachment","licenses":[{"zh":"公有領域","en":"Public domain"}],"topics":["medicines"]},
   {"name":{"zh":"FIPS 10-4 與 ISO 國家代碼對照：GeoNames","en":"FIPS 10-4 to ISO country codes: GeoNames"},"url":"https://www.geonames.org/","licenses":["CC BY 4.0"],"topics":["news"]},
   {"name":"Flanders Marine Institute (2023). Maritime Boundaries Geodatabase v12, MarineRegions.org","url":"https://doi.org/10.14284/632","licenses":["CC BY 4.0"],"topics":["oceans"]},
   {"name":{"zh":"Garner, G. G. 等（2021）IPCC AR6 Sea Level Projections，版本 20210809（海平面上升推估）","en":"Garner, G. G. et al. (2021), IPCC AR6 Sea Level Projections, version 20210809 (projected sea-level rise)"},"url":"https://doi.org/10.5281/zenodo.5914709","licenses":["CC BY 4.0"],"topics":["ice"]},

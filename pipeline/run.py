@@ -205,6 +205,8 @@ STEPS = {
     "drug-recalls": "topics.drug_recalls",
     # 有沒有國家級的線上缺藥登錄（併進藥品支出與取得，第二十批 329）：EMA 的一覽頁、openFDA drug/shortages（0.4 MB）、食藥署開放資料 104–106
     "drug-shortages": "topics.drug_shortages",
+    # 每年核准幾個新藥、孤兒藥（併進藥品支出與取得，第二十批 330、331）：FDA 的新藥整檔、EMA 的 medicines 與 orphan designations 表
+    "new-drugs": "topics.new_drugs",
     # COVID-19 超額死亡與官方少報倍數（併進疫苗與防疫，第二十批 311）：World Mortality Dataset（1.1 MB）、OWID 與 JHU 的通報死亡
     "excess-wmd": "topics.excess_wmd",
     # 65 歲以上的流感疫苗接種率（併進疫苗與防疫，第二十批 325）：OECD DF_IMMUN（2.9 MB）
