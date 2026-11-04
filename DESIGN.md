@@ -2506,6 +2506,7 @@ pipeline/
 
 62. **世界遺產**（`pipeline/topics/world_heritage.py`、`pipeline/sources/unesco_whc.py`、`src/topics/panels/WorldHeritagePanel.tsx`）：
     - **來源**：UNESCO DataHub（data.unesco.org，Opendatasoft）的「World Heritage List」資料集 `whc001`，用匯出 API（`exports/json?select=…`）只取事實性的欄位：編號 `id_no`、英文名稱、登錄年份、類型（Cultural／Natural／Mixed）、是否瀕危與列入的年份（`danger_list` 是「Y 2023」這種寫法）、締約國的 ISO alpha-2（`iso_codes`，跨國遺產有好幾個）、座標。不取說明文字與照片（各有著作權）。整個資料集匯出約 12 MB，`select` 之後約 0.5 MB。2026-10 的版本有 1,273 處（文化 991、自然 240、複合 42、瀕危 58），含 2026 年世界遺產委員會新登錄的 25 處；沒有已經除名的遺產（德勒斯登易北河谷等）。
+    - **中文名稱**（2026-11-04 起）：使用者決定不再向 Wikidata 查，沿用現有檔裡的中文名稱，沒有的顯示英文（第 368 點）。
     - **世界遺產中心的網站與 DataHub 都會擋程式常用的 User-Agent**（whc.unesco.org 回 403），以前 `unesco_whc.py` 用一般瀏覽器的 User-Agent 自己下載；**2026-11-04 拿掉**（第 368 點）：whc.unesco.org 的 robots.txt 明列禁止 ClaudeBot，改由本機下載，放在 map-plan 的 `data/unesco/`，重跑前複製到 `pipeline/.cache/unesco/`。
     - **國家**：跨國遺產照 UNESCO 的算法，每個締約國都算一次（義大利 62、中國 61、法國 56、德國 55、西班牙 50），所以各國加起來比世界的總數多；世界的值是不重複的遺產數。「耶路撒冷舊城及其城牆」（編號 148）由約旦提名，名錄上沒有締約國，只算進世界的總數，地圖上照樣有點。屬地的遺產算在所屬的國家（UNESCO 的寫法），屬地本身沒有值。
     - **締約國**：世界遺產中心的締約國清單（https://whc.unesco.org/en/statesparties/ ，196 國）只拿 ISO alpha-2 代碼，沒有遺產的締約國是 0，不是締約國的是無資料；有遺產的國家都要在清單裡，不在就報錯。**台灣不是《世界遺產公約》的締約國**，不能提名，用主題的 `noValue` 寫原因；側欄寫文化部（前身文建會）2003、2009、2010 年遴選的「臺灣世界遺產潛力點」目前 18 處（中央社 2024-10-04 引述行政院長的說法），列出幾處例子，不列完整名單（文化資產局的開放資料集已下架）。
@@ -4993,7 +4994,7 @@ pipeline/
       - `motc.py`：`data/motc/display-<表號>.json`（表 100、101、127，使用者用瀏覽器打開 `https://statis.motc.gov.tw/motc/Statistics/Display.json?Seq=<表號>` 存檔），複製到 `pipeline/.cache/motc/`。檢查是 JSON、有 `nameMapping`、`columns`、`data`。
       - `unesco_whc.py`：`data/unesco/whc001.json`（DataHub 的匯出網址，`datahub_url()`）與 `statesparties.html`（締約國清單那一頁；瀏覽器另存的網頁可能把連結改成絕對網址，解析時兩種都認），複製到 `pipeline/.cache/unesco/`。
       - 資料會更新，所以不鎖 SHA-256；map-plan 的 README 寫網址與下載日期。
-    - **換成本機的檔**（2026-11-04）：使用者用瀏覽器存的交通部三個 JSON 跟以前的快取逐位元組相同（SHA-256 一樣），交通安全、汽機車的資料不變。UNESCO 的 `whc001.json` 是新的匯出（1,273 筆，含 2026 年登錄的），`iso_codes` 從 JSON 字串改成陣列，`unesco_whc.py` 兩種都接受；重跑 `world-heritage` 更新到 2026 年。
+    - **換成本機的檔**（2026-11-04）：使用者用瀏覽器存的交通部三個 JSON 跟以前的快取逐位元組相同（SHA-256 一樣），交通安全、汽機車的資料不變。UNESCO 的 `whc001.json` 是新的匯出（1,273 筆，到 2026 年），`iso_codes` 從 JSON 字串改成陣列，`unesco_whc.py` 兩種都接受；締約國清單裡諾魯的連結是大寫 `NR`，比對改成不分大小寫（196 國）。重跑 `world-heritage` 後各國數字不變，3 處遺產的座標微調。重跑時 Wikidata 回 429，**使用者決定不再查中文名稱**：`world_heritage.py` 沿用現有 `sites.json` 裡的中文名稱（942 處），沒有的顯示英文（331 處）；manifest 改成保留別的步驟寫的 `parts`。
 369. **本機 session 第二批的檔接進來**（2026-11-04，製作手冊第二十批 312、316、320、321、325、326、330、331 與第二十一批 350、371 的台灣與美國資料；本機 session 放在 map-plan 的 `data/hpa/`、`fda-us/`、`fda-tw/`、`cdc/`、`nhi/`、`moc/`、`taiwan-net/`，各有 README 寫網址、下載方式、授權與核對；重跑前把要用的檔複製到 `pipeline/.cache/` 同名的資料夾，程式檢查 SHA-256）：
     - **312 人工生殖**（`ivf.py` 的 `_hpa_table12()`）：國健署《112 年人工生殖施行結果分析報告》Table 12（PDF 第 101 頁，用 pypdf 讀英文的表，三欄合計要等於 Total 列）。地圖的台灣療程數用**全部個案** 2023 年 58,557 個（每百萬人 2,511；ESHRE、HROpen 的其他國家也是在那個國家做的全部療程），夫妻至少一方是本國人的 55,119 個寫在提示；活產依治療年份算，不是出生年份，所以占出生數照舊用 HROpen 的 11.9%。
     - **330、331 新藥與孤兒藥**（`new_drugs.py`）：

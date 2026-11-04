@@ -5,19 +5,17 @@
   沒有遺產的締約國是 0，不是締約國的（台灣）沒有值。「耶路撒冷舊城及其城牆」由約旦提名、UNESCO 沒有寫締約國，
   只算進世界的總數，地圖上照樣有點。
 - 瀕危名錄只有「目前在名錄上」與列入的年份，沒有移出的紀錄，所以只做目前的快照，不做歷年。
-- 中文名稱：Wikidata（CC0）以 P757（世界遺產編號）對到的項目，依序用 zh-tw、zh-hant、zh-hk，沒有時用伺服器從簡體轉成的台灣用字
-  （`sources/nobel.py` 的 `_pick_zh`）；對不到的顯示英文名稱。
+- 中文名稱：原本向 Wikidata（CC0）查 P757（世界遺產編號）對到的項目的 zh-tw、zh-hant、zh-hk 名稱。2026-11-04 重跑時
+  Wikidata 回 429，**使用者決定不再查中文名稱**：沿用現有 `sites.json` 裡已有的中文名稱（以前從 Wikidata 查到的），
+  新登錄、還沒有中文名稱的遺產顯示英文名稱（`_existing_zh()`）。
 """
 from __future__ import annotations
 
-import hashlib
 import json
-import urllib.parse
 
-from common import OUT_DIR, download, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
 from sources import unesco_whc
 from sources.countries import from_alpha2
-from sources.nobel import BATCH, WIKIDATA_API, ZH_ORDER, _pick_zh
 
 OUT = OUT_DIR / "topics" / "world-heritage"
 FIRST_YEAR = 1978
@@ -26,55 +24,15 @@ ITEMS = {"all": None, "cultural": "Cultural", "natural": "Natural", "mixed": "Mi
 CULTURAL, NATURAL, MIXED, IN_DANGER = 1, 2, 3, 4
 CLASS = {"Cultural": CULTURAL, "Natural": NATURAL, "Mixed": MIXED}
 
-# Wikidata 的 zh-tw 名稱偶爾是簡體（sources/nobel.py 的 S2T 沒有收的字，2026-10 實際出現的）
-EXTRA_S2T = str.maketrans("态样观难来厅阇迹綫羣", "態樣觀難來廳闍跡線群")
-
-QID_QUERY = """
-SELECT ?item ?id ?whs WHERE {
-  ?item wdt:P757 ?id .
-  FILTER(REGEX(?id, "^[0-9]+$"))
-  OPTIONAL { ?item wdt:P1435 ?whs . FILTER(?whs = wd:Q9259) }
-}
-"""
-
-
-def _qids(ids: set[str]) -> dict[str, str]:
-    """UNESCO 編號 → Wikidata QID。同一個編號有好幾個項目時（2026-10 有 87 個），取標了「世界遺產」（P1435 = Q9259）的、
-    再取 QID 數字小的（通常是整個遺產，不是其中一部分）"""
-    url = f"https://query.wikidata.org/sparql?{urllib.parse.urlencode({'query': QID_QUERY, 'format': 'json'})}"
-    path = download(url, "wikidata", "whs-qids.json")
+def _existing_zh() -> dict[str, str]:
+    """現有 sites.json 裡的中文名稱：{UNESCO 編號: 中文名稱}（使用者 2026-11-04 決定不再向 Wikidata 查）"""
+    path = OUT / "sites.json"
+    if not path.exists():
+        return {}
     with open(path, encoding="utf-8") as f:
-        rows = json.load(f)["results"]["bindings"]
-    best: dict[str, tuple[int, int, str]] = {}
-    for r in rows:
-        wid = r["id"]["value"]
-        if wid not in ids:
-            continue
-        qid = r["item"]["value"].rsplit("/", 1)[1]
-        key = (0 if "whs" in r else 1, int(qid[1:]), qid)
-        if wid not in best or key < best[wid]:
-            best[wid] = key
-    return {k: v[2] for k, v in best.items()}
-
-
-def _zh_names(qids: list[str]) -> dict[str, str]:
-    ids = sorted(set(qids), key=lambda q: int(q[1:]))
-    out: dict[str, str] = {}
-    for start in range(0, len(ids), BATCH):
-        batch = ids[start:start + BATCH]
-        params = {
-            "action": "wbgetentities", "ids": "|".join(batch), "props": "labels",
-            "languages": "|".join(ZH_ORDER), "languagefallback": "1", "format": "json",
-        }
-        digest = hashlib.sha1(",".join(batch).encode()).hexdigest()[:12]
-        path = download(f"{WIKIDATA_API}?{urllib.parse.urlencode(params)}", "wikidata", f"whs-labels-{digest}.json")
-        with open(path, encoding="utf-8") as f:
-            entities = json.load(f)["entities"]
-        for qid in batch:
-            name, _ = _pick_zh(entities.get(qid, {}).get("labels", {}))
-            if name:
-                out[qid] = name.translate(EXTRA_S2T)
-    return out
+        data = json.load(f)
+    cols = dict(zip(data["fields"], data["columns"]))
+    return {str(i): zh for i, zh in zip(cols["id"], cols["zh"]) if zh}
 
 
 def build() -> None:
@@ -116,8 +74,7 @@ def build() -> None:
     write_json(OUT / "danger.json", indicator_file("danger", "處", [last], danger_values, aggregates={"WLD": [len(danger)]}))
 
     # ── 每個遺產一個點 ──
-    qids = _qids({s.id for s in sites})
-    zh = _zh_names(list(qids.values()))
+    zh = _existing_zh()
     rows = []
     for s in sorted(sites, key=lambda s: (s.year, int(s.id))):
         states = iso3s(s)
@@ -131,13 +88,18 @@ def build() -> None:
             "more": ",".join(states[1:]) or None,
             "id": int(s.id),
             "name": s.name,
-            "zh": zh.get(qids.get(s.id, ""), None),
+            "zh": zh.get(s.id),
         })
     write_json(OUT / "sites.json", points_file(
         rows, ["lon", "lat", "year", "cls", "type", "danger", "iso3", "more", "id", "name", "zh"],
         {"lon": 0.01, "lat": 0.01, "year": 1, "cls": 1, "type": 1, "danger": 1, "id": 1}, delta=("year",),
     ))
-    write_json(OUT / "manifest.json", {"generatedAt": now_iso(), "lastSession": last, "counts": summary, "inDanger": len(danger)})
+    # 別的步驟寫的部分（世界遺產的擴充，manifest 的 parts）留著
+    old = json.loads((OUT / "manifest.json").read_text(encoding="utf-8")) if (OUT / "manifest.json").exists() else {}
+    write_json(OUT / "manifest.json", {
+        "topic": "world-heritage", "generatedAt": now_iso(), "lastSession": last, "counts": summary, "inDanger": len(danger),
+        **({"parts": old["parts"]} if old.get("parts") else {}),
+    })
 
     missing_zh = sum(1 for r in rows if not r["zh"])
     print(f"  全部 {summary['all']}、文化 {summary['cultural']}、自然 {summary['natural']}、複合 {summary['mixed']}、瀕危 {len(danger)}；"
