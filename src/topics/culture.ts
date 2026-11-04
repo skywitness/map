@@ -35,7 +35,7 @@ export const culture: TopicDefinition = {
     {
       name: { zh: '文化部文化統計網：電影院概況（2008–2024 年）與電影片映演業統計（2026 年 5 月，2025 年的家數）', en: 'Ministry of Culture (Taiwan) cultural statistics: cinemas, 2008–2024, and film exhibition statistics (May 2026, for 2025)' },
       url: 'https://stat.moc.gov.tw/HS_UserCatalogView.aspx',
-      license: { zh: '逐年的家數（事實），註明文化部', en: 'Annual counts (facts), credited to the Ministry of Culture' },
+      license: { zh: '文化部網站著作權聲明（以文化部名義發表的著作，合理範圍內可重製、公開傳輸，需註明出處）；只用逐年的家數', en: 'Ministry of Culture website copyright notice (its own works may be reproduced within reasonable limits with attribution); only annual counts are used' },
     },
     { name: { zh: 'UN World Population Prospects 2024（人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],

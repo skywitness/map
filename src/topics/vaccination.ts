@@ -122,6 +122,11 @@ export const vaccination: TopicDefinition = {
       license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
     },
     {
+      name: { zh: '衛生福利部疾病管制署，109–114 年度流感疫苗接種計畫成果（台灣 65 歲以上的接種率）', en: 'Taiwan Centers for Disease Control, influenza vaccination programme results 2020–21 to 2025–26 (Taiwan, aged 65+)' },
+      url: 'https://www.cdc.gov.tw/Category/MPage/JNTC9qza3F_rgt9sRHqV2Q',
+      license: OPEN_DATA_TW,
+    },
+    {
       name: {
         zh: 'WHO Prequalification：預認證疫苗、品管實驗室清單；WHO mRNA Technology Transfer Programme（事實自行整理）',
         en: 'WHO Prequalification: prequalified vaccines and quality control labs; WHO mRNA Technology Transfer Programme (facts compiled)',
@@ -213,8 +218,8 @@ export const vaccination: TopicDefinition = {
       id: 'flu-elderly',
       label: { zh: '65 歲以上打流感疫苗的比例', en: 'Flu vaccination, people aged 65+' },
       description: {
-        zh: '65 歲以上長者一年打流感疫苗的比例（OECD，60 國含幾個非會員）。2024 年 44 國的中位數約 51%：墨西哥 85.9%、南韓 83.4%、愛爾蘭 75.7%、丹麥 75.6%、英國 74.9%；拉脫維亞 16.7%、塞爾維亞 14.1%、波蘭 12.2%、斯洛伐克 11.0%、烏克蘭 0.2%。歐盟的目標是 75%。拉時間軸看 2020–2021 年 COVID-19 期間普遍上升、之後回落。流感季跨年，有的國家報「2024/25 季」有的報曆年；超過 95% 的多半是分母用公費配額，不是全部 65 歲以上的人。各國用 3 年內最近的一年；台灣不在 OECD 的資料裡。',
-        en: 'Share of people aged 65 and over vaccinated against influenza in a year (OECD, 60 countries including a few non-members). In 2024 the median of 44 countries was about 51%: Mexico 85.9%, South Korea 83.4%, Ireland 75.7%, Denmark 75.6%, the UK 74.9%; Latvia 16.7%, Serbia 14.1%, Poland 12.2%, Slovakia 11.0%, Ukraine 0.2%. The EU target is 75%. Drag the timeline to see the general rise during COVID-19 in 2020–2021 and the fall afterwards. Flu seasons span two years, and some countries report seasons while others report calendar years; values above 95% usually use the publicly funded allocation, not all people aged 65+, as the denominator. Each country shows its latest year within three; Taiwan is not in OECD data.',
+        zh: '65 歲以上長者一年打流感疫苗的比例（OECD，60 國含幾個非會員）。2024 年 44 國的中位數約 51%：墨西哥 85.9%、南韓 83.4%、愛爾蘭 75.7%、丹麥 75.6%、英國 74.9%；拉脫維亞 16.7%、塞爾維亞 14.1%、波蘭 12.2%、斯洛伐克 11.0%、烏克蘭 0.2%。歐盟的目標是 75%。拉時間軸看 2020–2021 年 COVID-19 期間普遍上升、之後回落。流感季跨年，有的國家報「2024/25 季」有的報曆年；超過 95% 的多半是分母用公費配額，不是全部 65 歲以上的人。各國用 3 年內最近的一年。台灣用疾管署的流感疫苗接種計畫成果（年份是接種季開始的年）：2024–25 年季 48.1%、2025–26 年季 51.6%。',
+        en: 'Share of people aged 65 and over vaccinated against influenza in a year (OECD, 60 countries including a few non-members). In 2024 the median of 44 countries was about 51%: Mexico 85.9%, South Korea 83.4%, Ireland 75.7%, Denmark 75.6%, the UK 74.9%; Latvia 16.7%, Serbia 14.1%, Poland 12.2%, Slovakia 11.0%, Ukraine 0.2%. The EU target is 75%. Drag the timeline to see the general rise during COVID-19 in 2020–2021 and the fall afterwards. Flu seasons span two years, and some countries report seasons while others report calendar years; values above 95% usually use the publicly funded allocation, not all people aged 65+, as the denominator. Each country shows its latest year within three. Taiwan uses Taiwan CDC’s influenza vaccination programme results (the year is when the season starts): 48.1% in 2024–25 and 51.6% in 2025–26.',
       },
       unit: '%',
       file: 'flu-elderly.json',

@@ -72,7 +72,8 @@ def sites() -> list[Site]:
                 year=int(str(r["date_inscribed"])[:4]),
                 category=r["category"],
                 danger_since=danger,
-                states=json.loads(r["iso_codes"] or "[]"),
+                # 舊的匯出是 JSON 字串，2026-11 的匯出是陣列
+                states=r["iso_codes"] if isinstance(r["iso_codes"], list) else json.loads(r["iso_codes"] or "[]"),
                 lon=point.get("lon"),
                 lat=point.get("lat"),
             )
@@ -85,8 +86,8 @@ def sites() -> list[Site]:
 def states_parties() -> set[str]:
     """締約國的 ISO alpha-2（大寫）"""
     html = _load(STATES_PARTIES, "statesparties.html").decode("utf-8", "replace")
-    # 瀏覽器另存的網頁可能把連結改成絕對網址
-    codes = {c.upper() for c in re.findall(r'href="(?:https?://whc\.unesco\.org)?/en/statesparties/([a-z]{2})/?"', html)}
+    # 瀏覽器另存的網頁可能把連結改成絕對網址；諾魯的連結是大寫的 /en/statesparties/NR/，要不分大小寫
+    codes = {c.upper() for c in re.findall(r'href="(?:https?://whc\.unesco\.org)?/en/statesparties/([a-z]{2})/?"', html, re.IGNORECASE)}
     if not 190 <= len(codes) <= 200:
         raise RuntimeError(f"締約國清單讀到 {len(codes)} 國，網頁格式可能改了")
     return codes
