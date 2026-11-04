@@ -77,8 +77,6 @@ export function absorb(def: TopicDefinition, opts: AbsorbOptions = {}): Absorbed
       const shown = indicatorsOf(o.indicators);
       // 讀資料檔的圖層：記下原本的資料夾（OverlayBase.topic）；不讀檔的（圖磚、夜色、月亮、即時網格）只改顯示的指標
       if (o.kind === 'tiles' || o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid') return { ...o, id, indicators: shown } as OverlayDef;
-      // 類別網格的檔固定讀主題自己的資料夾（app/overlays.ts 的 genericPath），還不能拼到別的主題
-      if (o.kind === 'classGrid') throw new Error(`${def.id}：類別網格的疊加圖層 ${o.id} 不能拼到別的主題`); // i18n-ignore（開發時的錯誤）
       return { ...o, id, indicators: shown, topic: o.topic ?? folder } as OverlayDef;
     });
 

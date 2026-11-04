@@ -70,6 +70,21 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   retirement: { topic: 'employment', indicator: 'retirement-age' }, // 併16 就業、失業與退休
   climbing: { topic: 'diving', indicator: 'crag-count' }, // 併11 戶外運動場地：潛水與攀岩
   'box-office-tw': { topic: 'culture', indicator: 'share' }, // 併10 文化
+  // 併1 核能：能源政策（核能政策；燃煤退場的兩個指標見 INDICATOR_MOVES）、核子事故、核廢料（指標原本都叫 map）
+  'energy-policy': { topic: 'nuclear', indicator: 'nuclear-policy' },
+  'nuclear-accidents': { topic: 'nuclear', indicator: 'accidents', indicators: { map: { indicator: 'accidents' } } },
+  'nuclear-waste': { topic: 'nuclear', indicator: 'repositories', indicators: { map: { indicator: 'repositories' } } },
+  // 併2 觀光鐵道與纜車（纜車的 map 改名 cable-cars）
+  'cable-cars': { topic: 'heritage-railways', indicator: 'cable-cars', indicators: { map: { indicator: 'cable-cars' } } },
+  // 併3 森林（森林覆蓋率、年變化率見 INDICATOR_MOVES 的 water-forest）
+  'oil-palm': { topic: 'forest', indicator: 'area' },
+  'planted-forests': { topic: 'forest', indicator: 'planted-share' },
+  // 併4 企業與品牌（據點的 companies 改名 site-companies）
+  'company-sites': { topic: 'companies', indicator: 'sites', indicators: { companies: { indicator: 'site-companies' } } },
+  pandas: { topic: 'china-lending', indicator: 'received' }, // 併7 中國的海外影響力
+  sectors: { topic: 'industry', indicator: 'services' }, // 併13 產業結構與工業
+  // 併15 步道與自行車路線（自行車的 map 改名 cycle-map）
+  cycling: { topic: 'trails', indicator: 'cycle-map', indicators: { map: { indicator: 'cycle-map' } } },
 };
 
 /**
@@ -95,6 +110,9 @@ export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
   // 2026-11-04 主題整併：薪資與工時的法定年假搬到國定假日與年假（併9），法律與制度的博弈的合法性搬到博弈（併8，改名 legality）
   wages: { 'annual-leave': { topic: 'holidays' }, 'annual-leave-max': { topic: 'holidays' } },
   laws: { gambling: { topic: 'gambling', indicators: { gambling: { indicator: 'legality' } } } },
+  // 併1 能源政策的燃煤退場到石油、天然氣與煤（能源政策整個併掉，這兩個指標優先於 TOPIC_REDIRECTS）；併3 森林的兩個指標到森林
+  'energy-policy': { 'coal-phaseout': { topic: 'fossil-fuels' }, ppca: { topic: 'fossil-fuels' } },
+  'water-forest': { 'forest-cover': { topic: 'forest' }, 'forest-change': { topic: 'forest' } },
   // 賽車（第九批 160）：運動的 F1 指標搬到賽車，指標 id 不變
   sports: Object.fromEntries(['races', 'champions'].map((id) => [id, { topic: 'racing' }])),
 };

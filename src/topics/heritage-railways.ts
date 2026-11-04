@@ -3,6 +3,9 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { cableCars } from './cable-cars';
 
 /**
  * 觀光鐵道與登山鐵路（pipeline/topics/heritage_railways.py）：Wikidata 的保存鐵路、齒軌鐵路、登山鐵路、森林鐵路的點，
@@ -70,7 +73,7 @@ function layer(id: string, file: string, label: Text, dated: boolean): PointsOve
 
 const lines = (v: number) => tr({ zh: `${fixed(v, 0)} 條`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'railway' : 'railways'}` });
 
-export const heritageRailways: TopicDefinition = {
+const heritageRailwaysOwn: TopicDefinition = {
   id: 'heritage-railways',
   title: { zh: '觀光鐵道與登山鐵路', en: 'Heritage and mountain railways' },
   shortTitle: { zh: '觀光鐵道', en: 'Heritage rail' },
@@ -142,3 +145,16 @@ export const heritageRailways: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 觀光鐵道、登山鐵路與纜車（2026-11-04，主題整併 併2）：「纜車與索道」併進來，資料照舊在 cable-cars/（topics/merge.ts）；
+ * 兩個主題的指標都叫 map、線圖層都叫 lines，纜車的改名 cable-cars、cable-lines。舊網址 t/cable-cars/ 轉到這裡（redirects.ts）
+ */
+export const heritageRailways: TopicDefinition = withParts(
+  {
+    ...hostOnly(heritageRailwaysOwn),
+    title: { zh: '觀光鐵道、登山鐵路與纜車', en: 'Heritage railways, mountain railways and cable cars' },
+    shortTitle: { zh: '觀光鐵道與纜車', en: 'Heritage rail' },
+  },
+  topicPart(cableCars, { rename: { map: 'cable-cars' }, overlayPrefix: 'cable-' }),
+);

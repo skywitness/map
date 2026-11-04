@@ -520,6 +520,8 @@ export interface ClassGridOverlayDef {
   label: Text;
   /** 資料檔（相對於這個主題的資料夾），依時間軸的年份與子項目 */
   file: (year: number, item: string | null) => string;
+  /** 資料檔屬於另一個主題（2026-11-04 主題整併：人工林併進森林，網格照舊在 planted-forests/） */
+  topic?: string;
   /** 代碼、顏色、圖例上的短名稱（例如 Cfa）與全名；group 是 groups 的索引 */
   classes: { value: number; color: string; short: string | Text; label: Text; group: number }[];
   /** 圖例的分組標題（例如 A 熱帶） */

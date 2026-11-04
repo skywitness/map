@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, TopicDefinition } from './types';
+import { topicPart } from './merge';
 
 /**
  * 能源政策（2026-10-31，製作手冊第十批 167；pipeline/topics/energy_policy.py）：各國的核能政策、燃煤發電的退場年份、
@@ -158,3 +159,26 @@ export const energyPolicy: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 2026-11-04 主題整併（併1）：能源政策拆開，核能政策併進「核能」（nuclear.ts），燃煤退場的兩個指標併進「石油、天然氣與煤」。
+ * 資料照舊在 energy-policy/，舊網址由 redirects.ts 轉過去；資料來源與說明依內容分給兩邊
+ */
+const noteText = (lang: 'zh' | 'en') => (typeof energyPolicy.note === 'object' ? energyPolicy.note[lang] : '');
+const NOTE_SPLIT = { zh: '煤電退場的年份', en: 'Coal phase-out years' };
+const splitNote = (part: 0 | 1) => ({
+  zh: part === 0 ? noteText('zh').split(NOTE_SPLIT.zh)[0] : NOTE_SPLIT.zh + noteText('zh').split(NOTE_SPLIT.zh)[1],
+  en: (part === 0 ? noteText('en').split(NOTE_SPLIT.en)[0] : NOTE_SPLIT.en + noteText('en').split(NOTE_SPLIT.en)[1]).trim(),
+});
+/** 資料來源的順序：GEM、維基的廢核條目、維基的煤電退場、Ember、PPCA、國發會（台灣減煤）、中央社（台灣的核電重啟） */
+const NUCLEAR_SOURCES = [0, 1, 6];
+
+export const nuclearPolicyPart = topicPart(
+  { ...energyPolicy, sources: energyPolicy.sources.filter((_, i) => NUCLEAR_SOURCES.includes(i)), note: splitNote(0) },
+  { only: ['nuclear-policy'], name: { zh: '核能政策', en: 'Nuclear policy' } },
+);
+
+export const coalPhaseoutPart = topicPart(
+  { ...energyPolicy, sources: energyPolicy.sources.filter((_, i) => !NUCLEAR_SOURCES.includes(i)), note: splitNote(1) },
+  { only: ['coal-phaseout', 'ppca'], name: { zh: '煤電退場', en: 'Coal phase-out' } },
+);

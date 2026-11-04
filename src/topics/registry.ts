@@ -57,8 +57,8 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'economy',
     label: { zh: '經濟', en: 'Economy' },
     sections: [
-      { label: { zh: '產業', en: 'Industries' }, topics: ['sectors', 'industry', 'agriculture', 'minerals'] },
-      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies', 'company-sites'] },
+      { label: { zh: '產業', en: 'Industries' }, topics: ['industry', 'agriculture', 'minerals'] },
+      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
       { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
       { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
     ],
@@ -71,7 +71,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '往來', en: 'Flows' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport'] },
       { label: { zh: '政治', en: 'Politics' }, topics: ['empires', 'democracy', 'governance'] },
-      { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy', 'pandas'] },
+      { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy'] },
       { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
     ],
     // 左：往來；中：政治、外交；右：安全
@@ -84,7 +84,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic'] },
-      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'oil-palm', 'planted-forests', 'wildfires'] },
+      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires'] },
     ],
   },
   {
@@ -95,7 +95,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'digital', 'internet-speed', 'starlink', 'developers', 'submarine-cables'] },
       { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'space'] },
-      { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'energy-prices', 'energy-policy', 'nuclear-accidents', 'nuclear-waste'] },
+      { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'energy-prices', 'nuclear'] },
     ],
     // 左：數位；中：研發與太空；右：能源
     columns: [1, 1, 1],
@@ -106,7 +106,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 2026-10-30（第十一批 186）交通拆成鐵路（id 照舊 transport）、高鐵、地鐵與城市軌道，航空拆成機場與旅客（id 照舊 aviation）、
     // 航線與航空公司，交通安全拆出汽機車，電動車從能源搬過來；187 排成三欄（使用者要水運放中欄）
     sections: [
-      { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways', 'cable-cars'] },
+      { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways'] },
       { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
       { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
       { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'ride-hailing'] },
@@ -133,7 +133,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers'] },
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'esports'] },
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）
-      { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'cycling', 'gambling', 'holidays', 'time-use', 'culture'] },
+      { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'gambling', 'holidays', 'time-use', 'culture'] },
     ],
     // 左：景點；右：獎項與運動、日常休閒
     columns: [1, 2],
@@ -154,7 +154,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   culture: () => import('./culture'),
   esports: () => import('./esports'),
   diving: () => import('./diving'),
-  cycling: () => import('./cycling'),
   gambling: () => import('./gambling'),
   'time-use': () => import('./time-use'),
   marriage: () => import('./marriage'),
@@ -198,12 +197,10 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   taxes: () => import('./taxes'),
   reserves: () => import('./reserves'),
   'stock-market': () => import('./stock-market'),
-  sectors: () => import('./sectors'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),
   'chain-stores': () => import('./chain-stores'),
-  'company-sites': () => import('./company-sites'),
   trade: () => import('./trade'),
   migration: () => import('./migration'),
   aid: () => import('./aid'),
@@ -221,8 +218,9 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   electricity: () => import('./electricity'),
   'power-plants': () => import('./power-plants'),
   'fossil-fuels': () => import('./fossil-fuels'),
+  nuclear: () => import('./nuclear'),
+  forest: () => import('./forest'),
   'energy-prices': () => import('./energy-prices'),
-  'energy-policy': () => import('./energy-policy'),
   'science-facilities': () => import('./science-facilities'),
   starlink: () => import('./starlink'),
   'wafer-fabs': () => import('./wafer-fabs'),
@@ -232,8 +230,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   temperature: () => import('./temperature'),
   'air-quality': () => import('./air-quality'),
   'water-forest': () => import('./water-forest'),
-  'oil-palm': () => import('./oil-palm'),
-  'planted-forests': () => import('./planted-forests'),
   plastic: () => import('./plastic'),
   ev: () => import('./ev'),
   ai: () => import('./ai'),
@@ -260,7 +256,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   daylight: () => import('./daylight'),
   eclipses: () => import('./eclipses'),
   antipodes: () => import('./antipodes'),
-  pandas: () => import('./pandas'),
   attractions: () => import('./attractions'),
   'oldest-universities': () => import('./oldest-universities'),
   antarctica: () => import('./antarctica'),
@@ -269,7 +264,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   festivals: () => import('./festivals'),
   companies: () => import('./companies'),
   aviation: () => import('./aviation'),
-  'cable-cars': () => import('./cable-cars'),
   'ride-hailing': () => import('./ride-hailing'),
   'heritage-railways': () => import('./heritage-railways'),
   airspace: () => import('./airspace'),
@@ -282,8 +276,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   reads: () => import('./reads'),
   empires: () => import('./empires'),
   plates: () => import('./plates'),
-  'nuclear-accidents': () => import('./nuclear-accidents'),
-  'nuclear-waste': () => import('./nuclear-waste'),
   lithology: () => import('./lithology'),
   'special-landforms': () => import('./special-landforms'),
   reclamation: () => import('./reclamation'),

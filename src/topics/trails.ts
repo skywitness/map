@@ -2,6 +2,9 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, LinesOverlayDef, ListPanelDef, PointRecord, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { cycling } from './cycling';
 
 /**
  * 長途步道（pipeline/topics/trails.py，DESIGN.md 第 8 節第 149 點）：OpenStreetMap 的國際級、國家級步道路線
@@ -124,7 +127,7 @@ const LIST: ListPanelDef = {
       }),
 };
 
-export const trails: TopicDefinition = {
+const trailsOwn: TopicDefinition = {
   id: 'trails',
   title: { zh: '長途步道', en: 'Long-distance trails' },
   shortTitle: { zh: '長途步道', en: 'Trails' },
@@ -152,3 +155,16 @@ export const trails: TopicDefinition = {
   overlays: [TRAILS],
   indicators,
 };
+
+/**
+ * 步道與自行車路線（2026-11-04，主題整併 併15）：「自行車路線與騎車通勤」併進來，資料照舊在 cycling/（topics/merge.ts）；
+ * 兩個主題的路線地圖都叫 map，自行車的改名 cycle-map。舊網址 t/cycling/ 轉到這裡（redirects.ts）
+ */
+export const trails: TopicDefinition = withParts(
+  {
+    ...hostOnly(trailsOwn),
+    title: { zh: '長途步道與自行車路線', en: 'Long-distance trails and cycle routes' },
+    shortTitle: { zh: '步道與自行車路線', en: 'Trails & cycling' },
+  },
+  topicPart(cycling, { rename: { map: 'cycle-map' } }),
+);
