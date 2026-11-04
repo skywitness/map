@@ -126,6 +126,11 @@ export const health: TopicDefinition = {
       license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
     },
     {
+      name: { zh: 'OECD Health Statistics：Doctors consultations（遠距問診）', en: 'OECD Health Statistics: Doctors consultations (teleconsultations)' },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
       name: {
         zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
         en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
@@ -468,6 +473,32 @@ export const health: TopicDefinition = {
       },
       format: (v) => tr({ zh: `每 100 次 ${fixed(v, 1)} 次`, en: `${fixed(v, 1)} per 100` }),
       formatTick: (v) => fixed(v, v < 2 ? 1 : 0),
+    },
+    {
+      id: 'teleconsult-share',
+      label: { zh: '遠距問診的比例', en: 'Share of doctor consultations held remotely' },
+      description: {
+        zh: '看醫師的次數裡，用電話或視訊（遠距）的占幾 %（OECD，遠距問診 ÷ 全部問診）。愛沙尼亞 36.2%（2024 年，2015 年才 5.9%）、以色列 30.7%（2025 年）、葡萄牙 25.9%、瑞典 25.0%、丹麥 24.2%、芬蘭 23.8%；德國 1.0%，南韓、盧森堡、羅馬尼亞是 0。拉時間軸看 2020 年 COVID-19 的跳升與之後回落：加拿大 2020 年 27.7%、2023 年 10.0%，法國 2019 年 0、2020 年 5.7%。「什麼算遠距問診」各國不同（電話算不算、有沒有給付），只有 OECD 的 25 國算得出來，各國用 3 年內最近的一年；台灣健保有通訊診察治療的申報，但沒有可下載的全國數字。',
+        en: 'Share of doctor consultations held by phone or video (OECD; teleconsultations ÷ all consultations). Estonia 36.2% (2024, up from 5.9% in 2015), Israel 30.7% (2025), Portugal 25.9%, Sweden 25.0%, Denmark 24.2%, Finland 23.8%; Germany 1.0%, and zero in South Korea, Luxembourg and Romania. Drag the timeline to see the COVID-19 jump in 2020 and the fall after: Canada 27.7% in 2020 and 10.0% in 2023; France from zero in 2019 to 5.7% in 2020. Countries count teleconsultations differently (whether phone calls count, whether they are billed); only 25 OECD countries can be computed, each showing its latest year within three. Taiwan’s insurer reports telemedicine claims, but no downloadable national figures were found.',
+      },
+      unit: '%',
+      file: 'teleconsult-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 10, 15, 20, 30] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'teleconsult-per-person',
+      label: { zh: '每人每年遠距問診次數', en: 'Teleconsultations per person a year' },
+      description: {
+        zh: '平均每人一年跟醫師遠距問診幾次（OECD，27 國）。以色列 3.1 次（2025 年）、愛沙尼亞 2.1、克羅埃西亞與丹麥 1.6、西班牙 1.5、葡萄牙 1.4；南韓、盧森堡、羅馬尼亞、希臘是 0。OECD 只到小數一位，不到 0.05 次的寫成 0。',
+        en: 'Average teleconsultations with a doctor per person a year (OECD, 27 countries). Israel 3.1 (2025), Estonia 2.1, Croatia and Denmark 1.6, Spain 1.5, Portugal 1.4; zero in South Korea, Luxembourg, Romania and Greece. The OECD reports one decimal place, so anything under 0.05 shows as zero.',
+      },
+      unit: { zh: '次', en: 'consultations' },
+      file: 'teleconsult-per-person.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.3, 0.6, 1, 1.5, 2] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 次`, en: `${fixed(v, 1)}` }),
+      formatTick: (v) => fixed(v, 1),
     },
     {
       id: 'ltc-beds',
