@@ -269,6 +269,39 @@ const PART_OF: Record<string, Text> = {
   ...Object.fromEntries('GUF GLP MTQ REU MYT'.split(' ').map((id) => [id, FRANCE])),
 };
 
+/**
+ * WHO 的六大區域（pipeline/topics/who_regions.py 的 REGIONS，2026-11-04，製作手冊第二十批 305）：
+ * 會員國（194）、準會員與屬地依 WHO 官網國家頁的區域上色；區域不是地理區域。
+ */
+const WHO_REGIONS: CategoryDef[] = [
+  { value: 1, label: { zh: '非洲區（AFRO，47 國）', en: 'African Region (AFRO, 47)' } },
+  { value: 2, label: { zh: '美洲區（AMRO／泛美衛生組織 PAHO，35 國）', en: 'Region of the Americas (AMRO/PAHO, 35)' } },
+  { value: 3, label: { zh: '東南亞區（SEARO，10 國）', en: 'South-East Asia Region (SEARO, 10)' } },
+  { value: 4, label: { zh: '歐洲區（EURO，53 國）', en: 'European Region (EURO, 53)' } },
+  { value: 5, label: { zh: '東地中海區（EMRO，21 國）', en: 'Eastern Mediterranean Region (EMRO, 21)' } },
+  { value: 6, label: { zh: '西太平洋區（WPRO，28 國）', en: 'Western Pacific Region (WPRO, 28)' } },
+];
+const WHO_PART_OF: Text = {
+  zh: 'WHO 的資料把它當成主權國家的一部分，沒有另外歸區域',
+  en: 'WHO counts it as part of its sovereign state, without a region of its own',
+};
+const WHO_NO_VALUE: Record<string, Text> = {
+  TWN: {
+    zh: '台灣不是 WHO 會員國，不屬於任何 WHO 區域辦事處；WHO 的資料寫成「Taiwan, China」，並排除在 WHO 的出版品之外',
+    en: 'Taiwan is not a WHO Member State and belongs to no WHO regional office; WHO lists it as “Taiwan, China” and excludes it from WHO publications',
+  },
+  LIE: {
+    zh: '列支敦斯登是聯合國會員國，但不是 WHO 會員國（WHO 的 194 個會員國比聯合國多了庫克群島、紐埃，少了列支敦斯登）',
+    en: 'Liechtenstein is a UN member but not a WHO Member State (WHO’s 194 members add the Cook Islands and Niue and leave out Liechtenstein)',
+  },
+  VAT: { zh: '教廷不是 WHO 會員國', en: 'The Holy See is not a WHO Member State' },
+  ESH: { zh: '西撒哈拉：主權有爭議，不是 WHO 會員國，WHO 的資料不列入出版品', en: 'Western Sahara: sovereignty disputed; not a WHO Member State and excluded from WHO publications' },
+  XKX: { zh: '科索沃不是 WHO 會員國，WHO 的資料沒有歸區域', en: 'Kosovo is not a WHO Member State and has no WHO region' },
+  HKG: { zh: '香港：WHO 的資料當成中國的一部分（中國在西太平洋區），沒有另外歸區域', en: 'Hong Kong: WHO counts it as part of China (Western Pacific Region), without a region of its own' },
+  MAC: { zh: '澳門：WHO 的資料當成中國的一部分（中國在西太平洋區），沒有另外歸區域', en: 'Macao: WHO counts it as part of China (Western Pacific Region), without a region of its own' },
+  ...Object.fromEntries('ALA ATF IOT _IOT SGS UMI BVT HMD'.split(' ').map((id) => [id, WHO_PART_OF])),
+};
+
 export const organizations: TopicDefinition = {
   id: 'organizations',
   title: { zh: '國際組織', en: 'International organisations' },
@@ -289,6 +322,14 @@ export const organizations: TopicDefinition = {
       name: { zh: '維基百科各組織的成員國條目（交叉比對）', en: 'Wikipedia member-state articles (cross-checking)' },
       url: 'https://en.wikipedia.org/wiki/Member_states_of_the_African_Union',
       license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
+        zh: 'WHO 官網「Countries」的 194 個會員國與各國家頁的區域（WHO 的國家參照資料，事實自行整理）',
+        en: 'WHO, “Countries” (194 Member States) and the region on each country page (WHO country reference data; facts compiled)',
+      },
+      url: 'https://www.who.int/countries',
+      license: { zh: '事實自行整理', en: 'facts compiled by hand' },
     },
   ],
   // 頁尾要短：英文版在 1280×800 太長會把地圖擠扁（細節在指標說明、側欄與 DESIGN.md）
@@ -360,6 +401,20 @@ export const organizations: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 3, 4, 5, 6] } },
       format: count,
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'who-region',
+      label: { zh: 'WHO 的區域', en: 'WHO regions' },
+      description: {
+        zh: '世界衛生組織（WHO）把 194 個會員國分給六個區域辦事處。區域不是地理區域：巴基斯坦、阿富汗、摩洛哥、索馬利亞在東地中海區，以色列在歐洲區，北韓、印度在東南亞區，印尼 2025 年從東南亞區改到西太平洋區，馬來西亞、新加坡、菲律賓、中國也在西太平洋區；格陵蘭隨丹麥在歐洲區。WHO 的 194 個會員國比聯合國多了庫克群島、紐埃，少了列支敦斯登；波多黎各、托克勞、法羅群島是準會員。台灣不是會員國，不屬於任何區域。2026 年 11 月的狀態。',
+        en: 'The World Health Organization (WHO) assigns its 194 Member States to six regional offices. The regions are not geographic: Pakistan, Afghanistan, Morocco and Somalia are in the Eastern Mediterranean Region, Israel in the European Region, North Korea and India in South-East Asia; Indonesia moved from South-East Asia to the Western Pacific in 2025, where Malaysia, Singapore, the Philippines and China also are; Greenland is in the European Region with Denmark. WHO’s 194 members add the Cook Islands and Niue to the UN membership and leave out Liechtenstein; Puerto Rico, Tokelau and the Faroe Islands are Associate Members. Taiwan is not a member and belongs to no region. Status as of November 2026.',
+      },
+      unit: '',
+      file: 'who-region.json',
+      layer: { kind: 'categorical', categories: WHO_REGIONS },
+      format: (v) => tr(WHO_REGIONS.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+      noValue: WHO_NO_VALUE,
     },
   ],
 };

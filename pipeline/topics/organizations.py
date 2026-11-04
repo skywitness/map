@@ -164,7 +164,10 @@ def build() -> None:
         "notes": notes_all,
     })
 
+    # 別的步驟寫的部分（WHO 的區域，topics/who_regions.py）留著
+    old = json.loads((OUT / "manifest.json").read_text(encoding="utf-8")) if (OUT / "manifest.json").exists() else {}
     write_json(OUT / "manifest.json", {
+        **({"parts": old["parts"]} if old.get("parts") else {}),
         "topic": "organizations",
         "generatedAt": now_iso(),
         "source": "Member lists on each organisation's website, compiled by hand (pipeline/sources/igo_members.py)",

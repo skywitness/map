@@ -146,6 +146,7 @@ STEPS = {
     "wildfires": "topics.wildfires",
     "passport": "topics.passport",
     "organizations": "topics.organizations",
+    "who-regions": "topics.who_regions",  # 國際組織的 WHO 區域（WHO 官網的會員國名單與國家參照資料，第二十批 305）
     "un-votes": "topics.un_votes",
     "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh

@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 139;
-export const INDICATOR_COUNT = 818;
+export const INDICATOR_COUNT = 819;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -236,6 +236,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WGMS（2026）冰河年質量變化 AMCE（Dussaillant 等 2025）","en":"WGMS (2026) Annual mass-change estimates for the world’s glaciers (AMCE; Dussaillant et al. 2025)"},"url":"https://doi.org/10.5904/wgms-amce-2026-02-10","licenses":["CC BY 4.0"],"topics":["ice"]},
   {"name":{"zh":"WHO Global Health Observatory：道路交通死亡率估計值（RS_198）、2016 年的死亡組成與登記車輛數（RS_246、RS_194）","en":"WHO Global Health Observatory: estimated road traffic death rates (RS_198); 2016 deaths by road user and registered vehicles (RS_246, RS_194)"},"url":"https://www.who.int/data/gho/data/themes/road-safety","licenses":["CC BY 4.0"],"topics":["road-safety"]},
   {"name":{"zh":"WHO 健康平均餘命與平均壽命（Global Health Estimates 2023）","en":"WHO healthy life expectancy and life expectancy (Global Health Estimates 2023)"},"url":"https://data.who.int/indicators/i/C64284D","licenses":["CC BY 4.0"],"topics":["health"]},
+  {"name":{"zh":"WHO 官網「Countries」的 194 個會員國與各國家頁的區域（WHO 的國家參照資料，事實自行整理）","en":"WHO, “Countries” (194 Member States) and the region on each country page (WHO country reference data; facts compiled)"},"url":"https://www.who.int/countries","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO 資料平臺：PCV3 immunization coverage（age 1）（WHO/UNICEF 的估計，2008–2024）","en":"WHO data: PCV3 immunization coverage (age 1) (WHO/UNICEF estimates, 2008–2024)"},"url":"https://data.who.int/indicators/i/4B4DAF2/D45F91C","licenses":[{"zh":"CC BY 4.0（另有 WHO 的附加條款）","en":"CC BY 4.0 (with WHO’s additional terms)"}],"topics":["vaccination"]},
   {"name":{"zh":"WHO, Global Health Estimates 2023（死因）、Global Health Observatory（NCD-RisC 糖尿病與肥胖估計）","en":"WHO, Global Health Estimates 2023 (causes of death) and Global Health Observatory (NCD-RisC diabetes and obesity estimates)"},"url":"https://www.who.int/data/global-health-estimates","licenses":["CC BY 4.0"],"topics":["disease"]},
   {"name":{"zh":"WHO, Global Health Observatory：Tobacco MPOWER Protect people: P1 smoke-free places（室內全面禁菸的場所）","en":"WHO, Global Health Observatory: Tobacco MPOWER Protect people: P1 smoke-free places"},"url":"https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/tobacco-control-protect","licenses":["CC BY 4.0"],"topics":["tobacco-alcohol"]},
