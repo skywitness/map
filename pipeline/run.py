@@ -183,6 +183,7 @@ STEPS = {
     "urban-definitions": "topics.urban_definitions",
     "crime": "topics.crime",
     "tobacco-alcohol": "topics.tobacco_alcohol",
+    "breweries": "topics.breweries",  # 菸酒的啤酒廠：OSM craft=brewery（經 QLever，ODbL）與 Open Brewery DB（MIT）
     "happiness": "topics.happiness",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
