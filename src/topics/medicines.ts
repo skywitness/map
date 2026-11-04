@@ -137,6 +137,14 @@ export const medicines: TopicDefinition = {
       license: { zh: '食藥署網站著作權聲明（以食藥署名義發表的著作，合理範圍內可重製、公開傳輸，需註明出處）', en: 'Taiwan FDA website copyright notice (its own works may be reproduced within reasonable limits with attribution)' },
     },
     {
+      name: {
+        zh: '獨立行政法人醫藥品醫療機器總合機構（PMDA）網站，List of Approved Products（New Drugs），2004 年 4 月到 2026 年 2 月（本站依備註計算每年含新成分的件數與其中的孤兒藥，屬加工）',
+        en: 'Pharmaceuticals and Medical Devices Agency (PMDA) website, List of Approved Products (New Drugs), April 2004 to February 2026 (counts of new-active-ingredient approvals and orphan drugs per year computed by this site from the notes, i.e. processed)',
+      },
+      url: 'https://www.pmda.go.jp/english/review-services/reviews/approved-information/drugs/0002.html',
+      license: { zh: '公共資料利用規約 PDL 1.0（註明出處，加工要說明）', en: 'Public Data License 1.0 (attribution; processing must be stated)' },
+    },
+    {
       name: { zh: 'EMA，medicines 與 orphan designations 資料表', en: 'EMA, medicines and orphan designations data tables' },
       url: 'https://www.ema.europa.eu/en/documents/report/medicines-output-medicines-report_en.xlsx',
       license: { zh: 'EMA 條款（可轉載，需註明 EMA）', en: 'EMA terms (reuse with acknowledgement of EMA)' },
@@ -224,8 +232,8 @@ export const medicines: TopicDefinition = {
       id: 'new-drugs',
       label: { zh: '每年核准的新藥', en: 'New medicines approved each year' },
       description: {
-        zh: '一年核准上市的新藥有幾個。美國是 FDA 的新分子實體與新生物製劑：1996、2018 年 59 個最多，2007 年 18 個最少，2023 年 55、2024 年 50、2025 年 46。歐盟是 EMA 的中央核准（去掉學名藥與生物相似藥）：2022 年 74 個、2025 年 54 個；中央核准在歐盟 27 國與冰島、列支敦斯登、挪威都有效，所以這 30 國同一個顏色，各國自己核准的不算。兩邊的「新藥」定義不同（EMA 的還含新劑型、同成分不同商品名），不能直接比大小，看各自的趨勢。台灣是食藥署年報的新藥加孤兒藥許可證張數（2010–2024 年；許可證張數不是新成分數，含新劑型、新含量）：2017 年 158 張最多、2024 年 50 張。日本（PMDA）還沒有。',
-        en: 'New medicines approved for marketing in a year. The US counts FDA new molecular entities and new biologics: most in 1996 and 2018 (59), fewest in 2007 (18); 55 in 2023, 50 in 2024 and 46 in 2025. The EU counts central EMA authorisations (excluding generics and biosimilars): 74 in 2022 and 54 in 2025; a central authorisation is valid in all 27 EU countries plus Iceland, Liechtenstein and Norway, so these 30 share one colour, and national authorisations are not included. The two definitions of a “new medicine” differ (EMA’s also includes new formulations and duplicate brands of one substance), so compare trends, not sizes. Taiwan shows Taiwan FDA licences for new drugs plus orphan drugs (2010–2024; licences rather than new active ingredients, including new dosage forms and strengths): most in 2017 (158) and 50 in 2024. Japan (PMDA) is not yet included.',
+        zh: '一年核准上市的新藥有幾個。美國是 FDA 的新分子實體與新生物製劑：1996、2018 年 59 個最多，2007 年 18 個最少，2023 年 55、2024 年 50、2025 年 46。歐盟是 EMA 的中央核准（去掉學名藥與生物相似藥）：2022 年 74 個、2025 年 54 個；中央核准在歐盟 27 國與冰島、列支敦斯登、挪威都有效，所以這 30 國同一個顏色，各國自己核准的不算。兩邊的「新藥」定義不同（EMA 的還含新劑型、同成分不同商品名），不能直接比大小，看各自的趨勢。台灣是食藥署年報的新藥加孤兒藥許可證張數（2010–2024 年；許可證張數不是新成分數，含新劑型、新含量）：2017 年 158 張最多、2024 年 50 張。日本是 PMDA 核准的新藥裡含新成分的件數（2009 年起；同一成分不同公司申請的各算一件）：2024 年 64 件最多、2025 年 44 件。',
+        en: 'New medicines approved for marketing in a year. The US counts FDA new molecular entities and new biologics: most in 1996 and 2018 (59), fewest in 2007 (18); 55 in 2023, 50 in 2024 and 46 in 2025. The EU counts central EMA authorisations (excluding generics and biosimilars): 74 in 2022 and 54 in 2025; a central authorisation is valid in all 27 EU countries plus Iceland, Liechtenstein and Norway, so these 30 share one colour, and national authorisations are not included. The two definitions of a “new medicine” differ (EMA’s also includes new formulations and duplicate brands of one substance), so compare trends, not sizes. Taiwan shows Taiwan FDA licences for new drugs plus orphan drugs (2010–2024; licences rather than new active ingredients, including new dosage forms and strengths): most in 2017 (158) and 50 in 2024. Japan shows PMDA approvals of drugs with a new active ingredient (from 2009; the same ingredient filed by different companies counts separately): most in 2024 (64) and 44 in 2025.',
       },
       unit: { zh: '個', en: 'medicines' },
       file: 'new-drugs.json',
@@ -239,8 +247,8 @@ export const medicines: TopicDefinition = {
       id: 'orphan-approvals',
       label: { zh: '其中的孤兒藥（罕病藥）', en: 'Of which orphan medicines' },
       description: {
-        zh: '每年核准的新藥裡，治療罕見疾病的孤兒藥有幾個。美國是有孤兒藥指定的 FDA 新藥：2023 年 28 個、2024 年 25、2025 年 23，約占一半。歐盟依 EMA 表上的孤兒藥標記（孤兒藥身分十年到期或撤回後就不算，越早的年份越少）：2024 年 18 個、2025 年 15 個。台灣是食藥署核准的孤兒藥許可證張數（大多是輸入的）：2017 年 18 張、2024 年 9 張。',
-        en: 'How many of the new medicines approved each year treat rare diseases (orphan medicines). In the US, FDA new medicines with an orphan designation: 28 in 2023, 25 in 2024 and 23 in 2025, about half. In the EU, per the orphan flag in EMA’s table (orphan status lapses after ten years or on withdrawal, so earlier years show fewer): 18 in 2024 and 15 in 2025. Taiwan shows Taiwan FDA licences for orphan drugs (mostly imported): 18 in 2017 and 9 in 2024.',
+        zh: '每年核准的新藥裡，治療罕見疾病的孤兒藥有幾個。美國是有孤兒藥指定的 FDA 新藥：2023 年 28 個、2024 年 25、2025 年 23，約占一半。歐盟依 EMA 表上的孤兒藥標記（孤兒藥身分十年到期或撤回後就不算，越早的年份越少）：2024 年 18 個、2025 年 15 個。台灣是食藥署核准的孤兒藥許可證張數（大多是輸入的）：2017 年 18 張、2024 年 9 張。日本是 PMDA 的新成分裡標孤兒藥的：2014 年 21 件、2025 年 20 件。',
+        en: 'How many of the new medicines approved each year treat rare diseases (orphan medicines). In the US, FDA new medicines with an orphan designation: 28 in 2023, 25 in 2024 and 23 in 2025, about half. In the EU, per the orphan flag in EMA’s table (orphan status lapses after ten years or on withdrawal, so earlier years show fewer): 18 in 2024 and 15 in 2025. Taiwan shows Taiwan FDA licences for orphan drugs (mostly imported): 18 in 2017 and 9 in 2024. Japan shows PMDA new-active-ingredient approvals that are orphan drugs: 21 in 2014 and 20 in 2025.',
       },
       unit: { zh: '個', en: 'medicines' },
       file: 'orphan-approvals.json',

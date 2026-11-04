@@ -17,8 +17,14 @@
   `pipeline/.cache/fda-tw/`。授權：食藥署網站著作權聲明（以食藥署名義發表的著作，合理範圍內可重製、公開傳輸，註明出處），
   只用表裡的逐年數字。**台灣的「孤兒藥」是新藥以外的另一類**，所以台灣的「新藥」用新藥加孤兒藥（「其中的孤兒藥」才說得通）；
   都是許可證張數，不是新成分數，生物藥品另一類、沒有算進去。
+- 日本：PMDA「List of Approved Products（New Drugs）」英文 PDF（2004 年 4 月到 2026 年 2 月，207 頁，網站政策是公共資料利用規約
+  PDL 1.0：註明出處、加工要說明；網站不准自動巡迴下載，這裡只抓這一個檔並存快取）。每筆核准是「審查類別 日期 編號 商品名
+  （申請公司）核准／部分變更 有效成分 備註」，依會計年度、審查類別排列，所以用每筆自己的日期分年。備註寫「new active
+  ingredient(s)」的算新成分（PDF 用成分名底線標新成分，跟備註核對過：底線區塊比備註多的是一筆含兩種新成分或同一行的底線
+  分成兩段，只有一筆 Nirsevimab 有備註沒底線），其中有「[Orphan drug]」的算孤兒藥。每頁頁首的「underlined: new active
+  ingredient」先去掉。2008 年 7 月以前的頁面是另一種版面、抽不出逐筆日期，所以只用 2009–2025 年（完整的曆年）。
+  一筆可能含同成分的好幾個品項；不同公司各自申請的同一成分會各算一筆。
 - 「新藥」的定義各國不同（FDA 只算新成分，EMA 去掉學名藥與生物相似藥後還含新劑型、同成分不同商品名），不能直接比大小。
-  日本（PMDA 的 PDF）之後再做。
 """
 from __future__ import annotations
 
@@ -39,6 +45,8 @@ EMA_URL = "https://www.ema.europa.eu/en/documents/report/medicines-output-medici
 EMA_ORPHAN_URL = "https://www.ema.europa.eu/en/documents/report/medicines-output-orphan_designations-report_en.xlsx"
 FDA_OOPD = CACHE_DIR / "fda-us" / "oopd-search-results-2026-11-04.xls"
 FDA_OOPD_SHA256 = "d80083a7c3cb037700e6e63f17c2ed51d7d70829b46b418444a82b7a601412c6"
+PMDA_URL = "https://www.pmda.go.jp/files/000281190.pdf"  # 2004 年 4 月到 2026 年 2 月
+PMDA_FIRST = 2009  # 2008 年 7 月以前是另一種版面
 TFDA_PDF = CACHE_DIR / "fda-tw" / "tfda-annual-report-2025-en.pdf"
 TFDA_SHA256 = "8f6ee6d7accc323aa541c64e2333f01c5031299c910a76cba405c297b7167d79"
 FIRST = 1995
@@ -115,6 +123,27 @@ def _tfda_table5() -> dict[int, tuple[int, int]]:
     return out
 
 
+def _pmda() -> tuple[Counter, Counter]:
+    """PMDA：每年核准含新成分的件數與其中的孤兒藥，{年: 件數}"""
+    path = download(PMDA_URL, "pmda", "approved-new-drugs-000281190.pdf")
+    header = re.compile(r"underlined:\s*new\s*active\s*ingredients?", re.I)
+    text = "\n".join(header.sub(" ", pg.extract_text()) for pg in PdfReader(path).pages)
+    mon = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?"
+    starts = list(re.finditer(rf"\b{mon} ?\d{{1,2}}, ?(\d{{4}})", text))
+    new, orphan = Counter(), Counter()
+    for i, m in enumerate(starts):
+        year = int(m.group(1))
+        seg = text[m.start(): starts[i + 1].start() if i + 1 < len(starts) else len(text)]
+        if year < PMDA_FIRST or not re.search(r"new\s+active\s+ingredient", seg, re.I):
+            continue
+        new[year] += 1
+        if "[Orphan drug]" in seg:
+            orphan[year] += 1
+    if not 30 <= new[2024] <= 100:
+        raise RuntimeError(f"PMDA 2024 年的新成分 {new[2024]} 件，PDF 的版面可能改了")
+    return new, orphan
+
+
 def _year(cell: object) -> int | None:
     if isinstance(cell, (dt.date, dt.datetime)):
         return cell.year
@@ -148,6 +177,7 @@ def build() -> None:
     tfda = _tfda_table5()
     tw_new = {y: new + orphan for y, (new, orphan) in tfda.items()}
     tw_orphan = {y: orphan for y, (_, orphan) in tfda.items()}
+    jp_new, jp_orphan = _pmda()
     eu_note = "歐盟中央核准（EMA），歐盟 27 國與冰島、列支敦斯登、挪威共用同一個數字；各國自己核准的不算"
     eu_note_en = "Central EU authorisation (EMA), shared by the 27 EU countries plus Iceland, Liechtenstein and Norway; national authorisations are not included"
     for name, us, eu, unit in (("new-drugs", us_new, eu_new, "個"), ("orphan-approvals", us_orphan, eu_orphan, "個"),
@@ -165,8 +195,18 @@ def build() -> None:
         else:
             hints["USA"] = "FDA 的新分子實體與新生物製劑" + ("，其中有孤兒藥指定的" if name == "orphan-approvals" else "")
             hints_en["USA"] = "FDA new molecular entities and new biologics" + (" with orphan drug designation" if name == "orphan-approvals" else "")
-        no_value = {"JPN": "日本的 PMDA 清單是 PDF，還沒有做"}
-        no_value_en = {"JPN": "Japan’s PMDA list is a PDF and has not been processed yet"}
+        no_value, no_value_en = {}, {}
+        if name == "orphan-designations":
+            no_value["JPN"] = "日本的孤兒藥指定沒有整理"
+            no_value_en["JPN"] = "Japan’s orphan designations have not been compiled"
+        else:
+            jp = jp_new if name == "new-drugs" else jp_orphan
+            values["JPN"] = [jp.get(y, 0) if y >= PMDA_FIRST else None for y in years]
+            hints["JPN"] = ("PMDA 核准的新藥裡含新成分的件數（依備註）" + ("，其中標孤兒藥的" if name == "orphan-approvals" else "")
+                            + "；同一成分不同公司申請的各算一件")
+            hints_en["JPN"] = ("PMDA approvals of drugs with a new active ingredient (per the notes)"
+                               + (" that are orphan drugs" if name == "orphan-approvals" else "")
+                               + "; the same ingredient filed by different companies counts separately")
         if name == "orphan-designations":
             no_value["TWN"] = "台灣沒有可以跟美國、歐盟比的孤兒藥指定統計"
             no_value_en["TWN"] = "Taiwan has no orphan designation statistics comparable with the US and EU"
@@ -185,6 +225,7 @@ def build() -> None:
             **({} if name == "orphan-designations" else {"latestWithin": 1})))
     print(f"  美國新藥：{ {y: us_new[y] for y in (2018, 2023, 2024, 2025)} }，孤兒藥 { {y: us_orphan[y] for y in (2023, 2024, 2025)} }")
     print(f"  歐盟新藥（不含學名藥、生物相似藥）：{ {y: eu_new[y] for y in (2009, 2018, 2022, 2025)} }，孤兒藥 { {y: eu_orphan[y] for y in (2023, 2024, 2025)} }")
+    print(f"  日本（新成分, 其中孤兒藥）：{ {y: (jp_new[y], jp_orphan[y]) for y in (2009, 2014, 2020, 2024, 2025)} }")
     print(f"  美國孤兒藥指定：{ {y: us_designations[y] for y in (2016, 2022, 2024, 2025)} }；"
           f"台灣（新藥＋孤兒藥, 孤兒藥）：{ {y: (tw_new[y], tw_orphan[y]) for y in (2010, 2016, 2023, 2024)} }")
     print(f"  歐盟孤兒藥指定：{ {y: eu_designations[y] for y in (2015, 2016, 2022, 2025)} }（{date_col}，共 {sum(eu_designations.values())}）")
