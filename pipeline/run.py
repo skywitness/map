@@ -173,6 +173,8 @@ STEPS = {
     "dialysis": "topics.dialysis",
     # 野生型小兒麻痺的病例數（併進疾病主題，第二十批 327）：WHO 資料平臺 data.who.int 的整份 CSV；幾秒
     "disease-polio": "topics.disease_polio",
+    # 可避免的死亡（併進疾病與死因，第二十批 318）：OECD DF_AM（6 MB）
+    "disease-avoidable": "topics.disease_avoidable",
     # 長期照顧（併進健康主題，輸出到 topics/health/）：OECD 長照床數與使用者（約 7 MB）、衛福部兩個 xlsx、WPP 年齡別人口
     "long-term-care": "topics.long_term_care",
     # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒

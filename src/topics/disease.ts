@@ -129,6 +129,11 @@ export const disease: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/6399',
       license: OPEN_DATA_TW,
     },
+    {
+      name: { zh: 'OECD Health Statistics：Avoidable mortality（可避免的死亡）', en: 'OECD Health Statistics: Avoidable mortality' },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
   ],
   note: {
     zh: '死因的數字是 WHO 用同一套方法估計的，已經把不明原因的死亡依比例分到各類，可能跟各國官方統計不同。台灣不在 WHO 資料庫中：死因結構、首要死因與 30–70 歲死亡機率用衛福部死因統計依 WHO 的分類自己計算（2008 年起），癌症死亡率與結核病用衛福部的統計；糖尿病、肥胖、愛滋、瘧疾沒有跟國際定義一致的數字，側欄附上官方數字。癌症發生率沒有放：GLOBOCAN（IARC）大量轉載要書面授權，IHME 只限非商業使用。',
@@ -306,6 +311,35 @@ export const disease: TopicDefinition = {
       file: 'polio-wild.json',
       layer: { kind: 'bubble', legendValues: [1, 10, 100] },
       format: (v) => tr({ zh: `${fixed(v, 0)} 例`, en: `${fixed(v, 0)} cases` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'avoidable-mortality',
+      label: { zh: '可避免的死亡', en: 'Avoidable mortality' },
+      description: {
+        zh: '75 歲以下、本來可以避免的死亡，每十萬人（OECD，年齡標準化），選上方的「類別」切換。可治療：及時、有效的醫療本來救得回來（例如乳癌、大腸直腸癌、闌尾炎、肺炎）：南非 260（2020 年，又是 COVID-19 那年）、墨西哥 170、羅馬尼亞 166、保加利亞 152；美國 92、英國 73、日本 51、法國 46、南韓 44、瑞士 35。可預防：公共衛生與預防本來可以避免（例如肺癌、酒精、交通事故、自殺）：南非 365、匈牙利 243、拉脫維亞 233；美國 193、日本 87、以色列 69。缺血性心臟病這類死因兩邊各算一半。這是「醫療與公衛本來救得回來的」，跟本主題的「慢性病過早死亡率」切法不同。只有 OECD 的 46 國，各國用 5 年內最近的一年；台灣不在 OECD 的資料裡。',
+        en: 'Deaths under 75 that should not have occurred, per 100,000 people (OECD, age-standardised); switch with “Category” above. Treatable: deaths that timely, effective health care could have prevented (such as breast and colorectal cancer, appendicitis, pneumonia): South Africa 260 (2020, also a COVID-19 year), Mexico 170, Romania 166, Bulgaria 152; the US 92, the UK 73, Japan 51, France 46, South Korea 44, Switzerland 35. Preventable: deaths that public health and prevention could have avoided (such as lung cancer, alcohol, road injuries, suicide): South Africa 365, Hungary 243, Latvia 233; the US 193, Japan 87, Israel 69. Causes such as ischaemic heart disease are split half and half. This captures what health care and public health could have saved, a different cut from this topic’s premature NCD mortality. Only the 46 OECD-reporting countries; each shows its latest year within five. Taiwan is not in OECD data.',
+      },
+      unit: { zh: '每十萬人', en: 'per 100,000' },
+      file: 'avoidable-{item}.json',
+      dimension: {
+        label: { zh: '類別', en: 'Category' },
+        options: [
+          { id: 'treatable', label: { zh: '可治療', en: 'Treatable' } },
+          { id: 'preventable', label: { zh: '可預防', en: 'Preventable' } },
+          { id: 'avoidable', label: { zh: '可避免（兩者合計）', en: 'Avoidable (both)' } },
+        ],
+        defaultOption: 'treatable',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [50, 60, 75, 100, 125, 150] },
+        itemScales: {
+          preventable: { type: 'sequential', thresholds: [90, 110, 130, 160, 200, 240] },
+          avoidable: { type: 'sequential', thresholds: [140, 170, 200, 250, 300, 380] },
+        },
+      },
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, 0)} 人`, en: `${fixed(v, 0)} per 100,000` }),
       formatTick: (v) => fixed(v, 0),
     },
     {
