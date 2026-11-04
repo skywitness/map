@@ -22,6 +22,13 @@ const SURVEY = {
   en: 'These are yes-or-no answers from each health ministry, which judges “generally” for itself; they are not actual consumption. Taiwan is not a WHO member, is not in the survey and has no official answer to the same question.',
 };
 
+/** 缺藥登錄（pipeline/topics/drug_shortages.py 的 YES、PARTIAL、NO） */
+const SHORTAGE_REGISTER: CategoryDef[] = [
+  { value: 1, label: { zh: '有線上缺藥登錄', en: 'Online shortage register' } },
+  { value: 2, label: { zh: '只登錄部分藥品', en: 'Selected medicines only' } },
+  { value: 3, label: { zh: '沒有線上登錄', en: 'No online register' } },
+];
+
 export const medicines: TopicDefinition = {
   id: 'medicines',
   title: { zh: '藥品支出與取得', en: 'Spending on and access to medicines' },
@@ -75,6 +82,21 @@ export const medicines: TopicDefinition = {
       name: { zh: '食藥署「藥品回收」「未註銷藥品許可證」開放資料（台灣的附註）', en: 'Taiwan FDA open data: drug recalls and drug licences (Taiwan note)' },
       url: 'https://data.fda.gov.tw/',
       license: OPEN_DATA_TW,
+    },
+    {
+      name: { zh: 'EMA，Public information on medicine shortages（各國的缺藥登錄一覽）', en: 'EMA, Public information on medicine shortages (national registers)' },
+      url: 'https://www.ema.europa.eu/en/human-regulatory-overview/post-authorisation/medicine-shortages-availability-issues/public-information-medicine-shortages',
+      license: { zh: 'EMA 條款（可轉載，需註明 EMA）', en: 'EMA terms (reuse with acknowledgement of EMA)' },
+    },
+    {
+      name: { zh: 'openFDA drug/shortages（美國 FDA 的缺藥資料庫）', en: 'openFDA drug/shortages (US FDA drug shortages)' },
+      url: 'https://open.fda.gov/apis/drug/drugshortages/',
+      license: 'CC0 1.0',
+    },
+    {
+      name: { zh: '食藥署開放資料：藥品供應通報（有替代、無替代、已解除）', en: 'Taiwan FDA open data: medicine supply reports (with/without alternatives, resolved)' },
+      url: 'https://data.fda.gov.tw/',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
   note: {
@@ -178,6 +200,20 @@ export const medicines: TopicDefinition = {
       layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
       format: (v) => tr({ zh: `${formatLargeNumber(v)} 次`, en: `${formatLargeNumber(v)} recalls` }),
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'shortage-register',
+      label: { zh: '有沒有國家級的線上缺藥登錄', en: 'National online medicine shortage register' },
+      description: {
+        zh: '政府有沒有公開的線上缺藥登錄，讓醫師、藥師與民眾查現在缺哪些藥、多久會恢復。歐盟與 EEA 30 國照歐洲藥品管理局（EMA）的一覽：25 國有（荷蘭只登錄部分藥品），賽普勒斯、盧森堡、馬爾他、列支敦斯登、波蘭沒有人用藥的線上登錄；美國 FDA 與台灣（衛福部藥品供應通報處理中心）也有。各國登錄的品項數不能互相比（美國依包裝、台灣依許可證算，EMA 自己只收影響一個以上會員國的短缺），數字寫在滑過的說明裡。其他國家沒有整理，顯示無資料。openFDA 的說明：不要依這些資料做醫療決定，所有結果都應視為未經驗證。',
+        en: 'Whether the government runs a public online register of medicine shortages where doctors, pharmacists and the public can check what is short and when it should be back. For the 30 EU/EEA countries, per the European Medicines Agency (EMA): 25 have one (the Netherlands lists selected medicines only), while Cyprus, Luxembourg, Malta, Liechtenstein and Poland have no online register for human medicines; the US FDA and Taiwan (the Ministry of Health and Welfare’s supply reporting centre) have one too. Item counts are not comparable between registers (the US counts packages, Taiwan licences, and EMA lists only shortages affecting more than one member state), so they appear only in the hover text. Other countries were not compiled and show no data. openFDA: do not rely on these data to make decisions regarding medical care; assume all results are unvalidated.',
+      },
+      unit: '',
+      file: 'shortage-register.json',
+      timeless: true,
+      layer: { kind: 'categorical', categories: SHORTAGE_REGISTER },
+      format: (v) => tr(SHORTAGE_REGISTER.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
     },
   ],
 };
