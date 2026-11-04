@@ -198,6 +198,8 @@ STEPS = {
     "medical-imaging": "topics.medical_imaging",
     # 醫院的表現（新主題，第二十批 317）：OECD 急性照護品質 DF_AC（12 MB）與等待時間 DF_WAITING（3.7 MB）
     "hospital-quality": "topics.hospital_quality",
+    # 血漿製劑能不能自給（新主題，第二十批 322）：WHO 血液安全報告 2025 的 PDF（3.9 MB）附錄 9
+    "plasma": "topics.plasma",
     # 被美國 FDA 回收的藥品（併進藥品支出與取得，第二十批 308）：openFDA 整批檔（3.8 MB）、食藥署的藥品回收與許可證
     "drug-recalls": "topics.drug_recalls",
     # COVID-19 超額死亡與官方少報倍數（併進疫苗與防疫，第二十批 311）：World Mortality Dataset（1.1 MB）、OWID 與 JHU 的通報死亡

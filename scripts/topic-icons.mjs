@@ -65,6 +65,7 @@ const TOPIC_ICONS = {
   'covid-policy': 'door-closed',
   'medical-imaging': 'scan-line',
   'hospital-quality': 'hospital',
+  plasma: 'flask-round',
   'drug-genes': 'pill-bottle',
   medicines: 'tablets',
   'drug-consumption': 'clipboard-plus',
