@@ -150,6 +150,11 @@ export const medicines: TopicDefinition = {
       url: 'https://www.ema.europa.eu/en/documents/report/medicines-output-medicines-report_en.xlsx',
       license: { zh: 'EMA 條款（可轉載，需註明 EMA）', en: 'EMA terms (reuse with acknowledgement of EMA)' },
     },
+    {
+      name: { zh: 'Medicines Patent Pool 各授權頁的國家清單（事實自行整理）', en: 'Medicines Patent Pool licence pages, country lists (facts compiled)' },
+      url: 'https://medicinespatentpool.org/progress-achievements/licences',
+      license: { zh: '事實自行整理', en: 'facts compiled by hand' },
+    },
   ],
   note: {
     zh: '藥費是 OECD 的醫療支出帳（SHA）裡的「藥品與其他醫療非耐久財」（HC.5.1），也就是門診拿的處方藥與成藥；住院用的藥算在住院醫療裡，不在這裡。台灣不在 OECD 裡，用衛生福利部國民醫療保健支出統計（同樣的口徑），每人藥費再用 IMF 的購買力平價換算。學名藥只有十幾個 OECD 國家，台灣沒有同樣口徑的統計。止痛藥與胰島素、基本藥物清單都沒有台灣：台灣不是 WHO 會員，也沒有「國家基本藥物清單」（健保的給付清單性質不同）。依 OECD 的資料條款註明：OECD (2026), Health expenditure and financing、Generic market, OECD Data Explorer（2026-11-03 查閱）。',
@@ -298,6 +303,20 @@ export const medicines: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 0)} 件`, en: `${fixed(v, 0)}` }),
       formatTick: (v) => fixed(v, 0),
       unranked: true,
+    },
+    {
+      id: 'mpp-licences',
+      label: { zh: '藥品專利池的授權涵蓋幾份', en: 'Medicines Patent Pool licences covering the country' },
+      description: {
+        zh: '聯合國支持的藥品專利池（MPP）跟原廠簽自願授權，讓學名藥廠在指定的國家生產、銷售便宜的版本（愛滋的 dolutegravir、C 肝、結核、癌症的 nilotinib、COVID-19 的 nirmatrelvir 等）。26 份限定地區的授權裡，衣索比亞被 25 份涵蓋最多，尚比亞、葉門、烏干達、坦尚尼亞、盧安達等 24 份；中國、俄羅斯、保加利亞 4 份，智利 2、羅馬尼亞 1，美日歐韓澳等高所得國家是 0。另有 19 份全球授權（多半是 COVID-19 的技術授權）涵蓋 250 個地區，寫在滑過的說明。台灣不在任何限定地區的授權裡；反過來，高端疫苗的 MVC-COV1901 是 MPP 的授權，台灣是技術提供方。「涵蓋」不等於買得到。',
+        en: 'The UN-backed Medicines Patent Pool (MPP) signs voluntary licences with originators so that generic makers can produce and sell cheaper versions in named countries (HIV’s dolutegravir, hepatitis C, TB, the cancer drug nilotinib, COVID-19’s nirmatrelvir and others). Of the 26 licences limited to named territories, Ethiopia is covered by the most (25), then Zambia, Yemen, Uganda, Tanzania, Rwanda and others with 24; China, Russia and Bulgaria 4, Chile 2, Romania 1, and high-income countries such as the US, Japan, Western Europe, South Korea and Australia none. Another 19 worldwide licences (mostly COVID-19 technologies) cover 250 territories, noted in the hover text. Taiwan is in no territorial licence; conversely, Medigen’s MVC-COV1901 vaccine is an MPP licence, with Taiwan as the technology provider. Coverage does not mean availability.',
+      },
+      unit: { zh: '份', en: 'licences' },
+      file: 'mpp-licences.json',
+      timeless: true,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 10, 15, 20, 24] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 份`, en: `${fixed(v, 0)}` }),
+      formatTick: (v) => fixed(v, 0),
     },
     {
       id: 'shortage-register',

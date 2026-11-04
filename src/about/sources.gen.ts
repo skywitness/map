@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 867;
+export const INDICATOR_COUNT = 868;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -152,6 +152,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Karlinsky & Kobak 2021, World Mortality Dataset（各國每週或每月死亡數，超額死亡與少報倍數自己算）","en":"Karlinsky & Kobak 2021, World Mortality Dataset (weekly or monthly deaths; excess deaths and undercount computed here)"},"url":"https://github.com/akarlinsky/world_mortality","licenses":["MIT License, Copyright (c) 2021 Ariel Karlinsky"],"topics":["vaccination"]},
   {"name":{"zh":"Livingstone 等，Compiled global database of subglacial lakes（雪菲爾大學 ORDA，2025；Livingstone 等 2022，Nature Reviews Earth & Environment）","en":"Livingstone et al., Compiled global database of subglacial lakes (University of Sheffield ORDA, 2025; Livingstone et al. 2022, Nature Reviews Earth & Environment)"},"url":"https://doi.org/10.15131/shef.data.18094037.v1","licenses":["CC BY 4.0"],"topics":["antarctica"]},
   {"name":{"zh":"Malaria Atlas Project：血液疾病的 5 公里網格（G6PD、HbS、HbC、Duffy，2010 年左右的模型），抽稀成約 0.17°","en":"Malaria Atlas Project: 5 km blood disorder grids (G6PD, HbS, HbC and Duffy; models for around 2010), thinned to about 0.17°"},"url":"https://malariaatlas.org/","licenses":["CC BY 3.0"],"topics":["red-cell-traits"]},
+  {"name":{"zh":"Medicines Patent Pool 各授權頁的國家清單（事實自行整理）","en":"Medicines Patent Pool licence pages, country lists (facts compiled)"},"url":"https://medicinespatentpool.org/progress-achievements/licences","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["medicines"]},
   {"name":{"zh":"Meijer 等人（2021），Science Advances 7","en":"Meijer et al. (2021), Science Advances 7"},"url":"https://doi.org/10.6084/m9.figshare.14515590.v1","licenses":["CC BY 4.0"],"topics":["plastic"]},
   {"name":{"zh":"Merdith 等 2021，10 億年來的全板塊重建模型 v1.2.4（Earth-Science Reviews；Zenodo）","en":"Merdith et al. 2021, full-plate reconstruction model since 1 Ga, v1.2.4 (Earth-Science Reviews; Zenodo)"},"url":"https://doi.org/10.5281/zenodo.13635864","licenses":["CC BY 4.0"],"topics":["plates"]},
   {"name":"Microsoft AI Economy Institute, AI Diffusion Report","url":"https://github.com/microsoft/ai-diffusion-report","licenses":["MIT"],"topics":["ai"]},
