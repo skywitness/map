@@ -46,7 +46,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'medicine',
     label: { zh: '醫藥', en: 'Health' },
     sections: [
-      { label: { zh: '健康與疾病', en: 'Health & disease' }, topics: ['health', 'disease', 'vaccination', 'height', 'tobacco-alcohol'] },
+      { label: { zh: '健康與疾病', en: 'Health & disease' }, topics: ['health', 'disease', 'vaccination', 'ivf', 'height', 'tobacco-alcohol'] },
       { label: { zh: '基因', en: 'Genes' }, topics: ['blood-types', 'newborn-screening', 'red-cell-traits', 'lactase', 'drug-genes'] },
       { label: { zh: '藥物', en: 'Medicines' }, topics: ['medicines', 'drug-consumption', 'taiwan-medicines', 'antimicrobial-resistance'] },
     ],
@@ -157,6 +157,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'newborn-screening': () => import('./newborn-screening'),
   'red-cell-traits': () => import('./red-cell-traits'),
   lactase: () => import('./lactase'),
+  ivf: () => import('./ivf'),
   'drug-genes': () => import('./drug-genes'),
   medicines: () => import('./medicines'),
   'drug-consumption': () => import('./drug-consumption'),

@@ -188,6 +188,8 @@ STEPS = {
     "drug-recalls": "topics.drug_recalls",
     # COVID-19 超額死亡與官方少報倍數（併進疫苗與防疫，第二十批 311）：World Mortality Dataset（1.1 MB）、OWID 與 JHU 的通報死亡
     "excess-wmd": "topics.excess_wmd",
+    # 人工生殖（新主題，第二十批 312）：ESHRE EIM 2019 與 HROpen 2026 兩篇 PMC 全文 XML（CC BY 4.0）
+    "ivf": "topics.ivf",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     "ferry-routes": "topics.ferry_routes",

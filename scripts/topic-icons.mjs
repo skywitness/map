@@ -61,6 +61,7 @@ const TOPIC_ICONS = {
   'newborn-screening': 'test-tube-diagonal',
   'red-cell-traits': 'dna',
   lactase: 'milk',
+  ivf: 'test-tubes',
   'drug-genes': 'pill-bottle',
   medicines: 'tablets',
   'drug-consumption': 'clipboard-plus',
