@@ -58,6 +58,41 @@ def query(sparql: str, name: str) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))["results"]["bindings"]
 
 
+def export(sparql: str, name: str):
+    """大的查詢（幾十 MB 以上，例如路線的幾何）：結果用 TSV 串流存到快取，回傳快取檔的路徑；重試同 query()"""
+    path = CACHE_DIR / "osm-qlever" / f"{name}.tsv"
+    if path.exists():
+        return path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".part")
+    req = urllib.request.Request(
+        ENDPOINT, data=urllib.parse.urlencode({"query": PREFIXES + sparql}).encode(),
+        headers={"User-Agent": USER_AGENT, "Accept": "text/tab-separated-values"})
+    for attempt in range(6):
+        try:
+            print(f"  QLever：{name}（TSV）", flush=True)
+            with urllib.request.urlopen(req, timeout=1200) as r, open(tmp, "wb") as f:
+                while chunk := r.read(1 << 20):
+                    f.write(chunk)
+            tmp.replace(path)
+            return path
+        except (urllib.error.HTTPError, urllib.error.URLError, ConnectionError, TimeoutError) as err:
+            wait = 60 * (attempt + 1)
+            print(f"    QLever：{err}，等 {wait} 秒", flush=True)
+            time.sleep(wait)
+    raise RuntimeError(f"QLever 一直失敗（{name}），稍後再跑")
+
+
+def tsv_value(cell: str) -> str:
+    """TSV 的格子 → 字串：去掉 RDF 字面值的引號與型別、語言標記；網址去掉角括號"""
+    if cell.startswith("<") and cell.endswith(">"):
+        return cell[1:-1]
+    m = re.match(r'^"(.*)"(?:\^\^<[^>]*>|@[\w-]+)?$', cell, re.S)
+    if not m:
+        return cell
+    return m.group(1).replace('\\"', '"').replace("\\t", "\t").replace("\\n", "\n").replace("\\\\", "\\")
+
+
 def counts(key: str, value: str) -> dict[str, int]:
     """每個國家有幾個 key=value 的物件（node、way、relation 都算）"""
     rows = query(f"""SELECT ?iso (COUNT(DISTINCT ?x) AS ?n) WHERE {{

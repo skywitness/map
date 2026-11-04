@@ -288,6 +288,7 @@ STEPS = {
     "sports-attendance": "topics.sports_attendance",  # 去現場看運動比賽（Eurostat ilc_scp04，CC BY 4.0）
     "road-races": "topics.road_races",  # 馬拉松、超馬與鐵人賽事（Wikidata，CC0）
     "climbing": "topics.climbing",  # 攀岩場（OpenStreetMap 經 QLever，ODbL）
+    "cycling": "topics.cycling",  # 自行車路線（OSM 經 QLever，ODbL）與歐洲城市的騎車通勤（Eurostat，CC BY 4.0）
     # 要先有 geo 的國界；第一次會從 Zenodo 下載 2013–2024 年的 VIIRS 夜間燈光（12 個檔、共約 800 MB，
     # Zenodo 每條連線很慢，平行下載約 20 分鐘），GHS-POP 用人口網格的快取（2015、2020、2025 三期）
     "night-lights": "topics.night_lights",

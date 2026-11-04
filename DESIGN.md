@@ -844,6 +844,7 @@ pipeline/
 | 外食與喝一杯（2026-11-04，第 8 節第 343 點；休閒的「日常休閒」） | 餐廳與速食店（預設）、餐廳、速食店、咖啡館、酒吧與酒館、冰淇淋店（面量圖，每十萬人幾家；只畫 OSM 覆蓋良好的國家，其他寫原因）；夜店；在哪裡喝一杯（類別圖：酒吧為主、酒館為主、啤酒花園、喝酒的店很少；第 8 節第 357 點） | 各國的店數（tooltip） | OpenStreetMap（經 QLever，ODbL）；UN WPP 2024 的 2026 年人口；判斷完整度用 ILO、加拿大統計局、主計總處的住宿及餐飲業就業人數 | 2026 年 11 月的快照 |
 | 潛水（2026-11-04，第 8 節第 345 點；休閒的「日常休閒」） | 潛水中心（預設）、潛水場域（含內陸訓練水域）（面量圖，各國個數，只畫 OSM 覆蓋良好的國家）；疊加圖層：潛水中心與潛水場域的點（依種類上色，全部畫） | 左邊的清單：有名稱的潛水中心與潛水場域，依國家（點了移到那個點） | OpenStreetMap（經 QLever，ODbL） | 2026 年 11 月的快照 |
 | 攀岩場（2026-11-04，第 8 節第 361 點；休閒的「日常休閒」） | 岩場（預設，各國個數的面量圖只替 OSM 覆蓋良好的國家上色）；點是岩場與台灣標成攀岩的地點，左邊的清單依國家 | — | OpenStreetMap 經 QLever（ODbL 1.0） | 2026 年 11 月的快照（timeless） |
+| 自行車路線與騎車通勤（2026-11-04，第 8 節第 362 點；休閒的「日常休閒」） | 自行車路線地圖（預設，線：國際級、國家級、台灣觀光署的自行車道）、國家級路線總長、國際級路線總長（只替 OSM 覆蓋良好的國家上色）、騎自行車上班的比例（歐洲城市的點）；左邊的清單：最長的 150 條路線、城市依比例 | — | OpenStreetMap 經 QLever（ODbL 1.0）；觀光署自行車道（政府資料開放授權）；Eurostat urb_ctran（CC BY 4.0）；Wikidata（CC0，城市位置） | 路線是 2026 年 11 月的快照（timeless）；城市各用最近一年（2003–2024） |
 | 退休（2026-11-04，第 8 節第 346 點；經濟的「所得與財富」） | 現在的退休年齡（預設）、未來的退休年齡（2024 年）、實際退出勞動市場的年齡、退出後的預期年數（1970 年起，最近一年太舊的用 latestWithin 5 年），都可以切換男女 | — | OECD Pensions at a Glance 的資料庫（CC BY 4.0）；台灣依勞工保險條例第 58 條 | 2024 年；退出年齡 1970–2024 年 |
 | 台灣的電影票房（2026-11-04，第 8 節第 347 點；休閒的「日常休閒」） | 占台灣票房的比例（預設）、票數、票房金額（比例圓）、上映的片數，依出品國與上映年（2016 年起） | 左邊的清單：票數 1 萬張以上的片（1,959 部，點了框住出品國、時間軸換到上映年） | 國家電影及視聽文化中心「全國電影票房統計數據」（政府資料開放平臺 94224，政府資料開放授權條款） | 2016–2026 年（依上映年） |
 | 電競（2026-11-04，第 8 節第 348 點；休閒的「獎項與運動」） | 累計獎金（預設，比例圓）、每百萬人的獎金、選手人數（比例圓）、賺最多獎金的遊戲（類別圖：Dota 2、Counter-Strike、Fortnite、PUBG、League of Legends、Rocket League、手機 MOBA 等、其他） | 選手數與主力遊戲的占比（tooltip） | Esports Earnings 國家頁（准許個人與商業使用，保留版權聲明）；UN WPP 2024 | 累計到 2026 年 11 月，不分年份 |
@@ -986,6 +987,8 @@ pipeline/
     - **英文維基「List of minimum annual leave by country」**（薪資與工時的法定年假，第 354 點，2026-11-04）：CC BY-SA 4.0，固定 oldid 1380870617（2026-10-18），資料檔 `annual-leave.json`、`annual-leave-max.json` 依 CC BY-SA 4.0 分享。
     - **WIPO《The Global Publishing Industry in 2022》**（文化的法定送存，第 359 點，2026-11-04）：出版品是 CC BY 4.0（版權頁：可以重製、散布、改作、翻譯，含商業用途），署名 WIPO、寫明有改作、不帶 WIPO 標誌，衍生作品加上 WIPO 指定的免責聲明「The Secretariat of WIPO assumes no liability or responsibility with regard to the transformation or translation of the original content」（主題附註有中英文）。這跟 WIPO 統計資料庫「不准轉載資料集」的條款（第 33 點）不同，只用這份出版品裡的表。
     - **國家圖書館 ISBN 中心「臺灣出版新書預告書訊」**（文化的法定送存補台灣，第 359 點，2026-11-04）：政府資料開放平臺 6730，政府資料開放授權條款第 1 版；逐月 CSV（`isbn.ncl.edu.tw/NEW_ISBNNet/opendata/YYYYMM_isbn.csv`），只用筆數。
+    - **交通部觀光署「自行車道」**（自行車的台灣補充，第 362 點，2026-11-04）：政府資料開放平臺 41652，政府資料開放授權條款第 1 版；`media.taiwan.net.tw` 的 `CyclingRoute-json.zip`。
+    - **Eurostat Urban Audit（urb_ctran）**（自行車的城市騎車通勤，第 362 點，2026-11-04）：CC BY 4.0（Eurostat 的著作權公告，現行頁面 `ec.europa.eu/eurostat/web/main/help/copyright-notice`）；城市的位置用 Wikidata（CC0）。
     - **英文維基「Surrogacy laws by country」**（法律與制度的代理孕母，第 341 點，2026-11-04）：CC BY-SA 4.0，固定 oldid 1382714270，資料檔 `surrogacy.json` 依 CC BY-SA 4.0 分享，主題附註寫明；條目是逐國的散文段落，分類是自己讀的。台灣的人工生殖法取自全國法規資料庫（法律條文不是著作權的標的）。
     - **英文維基「Abortion law」「Legality of euthanasia」**（法律與制度的墮胎、安樂死，第 313 點，2026-11-03）：CC BY-SA 4.0，資料檔 `abortion.json`、`euthanasia.json` 依 CC BY-SA 4.0 分享；台灣的優生保健法、病人自主權利法、刑法取自全國法規資料庫（法律條文不是著作權的標的）。WHO 全球墮胎政策資料庫（All Rights Reserved）不用。
     - **CIA World Factbook、英文維基「Compulsory voting」**（法律與制度的徵兵、強制投票，第 312 點，2026-11-03）：Factbook 是美國政府作品，公有領域；用的鏡像 factbook/factbook.json 的 LICENSE.md 是 CC0 1.0 → 可用，資料檔寫 `Public domain (CIA World Factbook); CC0 1.0 (factbook.json)`。「Compulsory voting」CC BY-SA 4.0，資料檔 `compulsory-voting.json` 依 CC BY-SA 4.0 分享。
@@ -4925,6 +4928,13 @@ pipeline/
     - **台灣**：沒有任何 `climbing=crag`；另外畫台灣的 52 個 `sport=climbing`（龍洞的岩區、山上的個別路線與攀岩館混在一起），點的顏色不同、說明寫明口徑不同，面量圖的台灣寫原因不上色。
     - **面量圖**：只替 OSM 覆蓋良好的國家上色（`osm_coverage.well_covered()`，第 343 點），覆蓋良好但沒有岩場的寫 0（南韓）；其他國家寫原因。點全部畫，資料檔依 ODbL 1.0 分享。
     - **跟手冊不同**：手冊的寬版 sport=climbing 點圖層（26.7 MB）沒有做，只在 tooltip 寫個數；左側欄只列有名稱的岩場（11,231 個）。
+
+362. **自行車路線與騎車通勤**（2026-11-04，製作手冊第二十一批 364、365；`pipeline/topics/cycling.py`〔步驟 `cycling`〕、`pipeline/sources/urban_audit.py`、`src/topics/cycling.ts`，新主題放「日常休閒」）：
+    - **路線**：OpenStreetMap 經 QLever 的 `route=bicycle` 路線，`network=icn`（860 條）與 `ncn`（4,021 條）。QLever 的 relation 幾何只有直接由 way 組成的路線有，EuroVelo 這類由各國分段組成的上層路線沒有幾何，所以畫各國分段、不會重複。幾何很大（icn 66 MB、ncn 193 MB 的 WKT），一個網路一支查詢，`osm_qlever.export()` 用 TSV 串流存進快取；shapely 接線、簡化（0.005°）後輸出 `routes.json`（約 2 MB）。手冊提的 Waymarked Trails（條款頁 404）與 OSM 主 API 都沒用。
+    - **總長**：依每一段（簡化前）的中點分到國家；同一級網路裡中點相同（四捨五入到約 10 公尺）的路段只算一次，台灣環島 1 號線的順時針、逆時針兩條關係因此不重算（台灣 4,996 → 3,845 公里）。只替 OSM 覆蓋良好的國家上色（第 343 點的共用名單）。區域級 `rcn` 不畫：德國、荷蘭是兩萬多條節點路網，跟其他國家不是同一回事（手冊的陷阱）。
+    - **台灣**：OSM 的國家級路線照常畫；另外畫觀光署「自行車道」（data.gov.tw 41652，`CyclingRoute-json.zip`）的 59 條路線，只有國家風景區轄內、`CyclingLength` 單位混亂，所以另一種顏色、不算進總長。OSM 上台灣唯一的國際級是「台灣自行車登山王挑戰 東進武嶺」（98 公里），說明寫明。
+    - **城市（365）**：Eurostat Urban Audit 的 `urb_ctran` TT1007V（騎自行車上班的比例），每個城市用最近一次有資料的年份（571 個城市，2003–2024，2024 年只有 10 個），點上寫年份。Eurostat 的城市沒有座標，`urban_audit.locate()` 依名稱（當地語言與英文）查 Wikidata：有座標也有人口（P1082）的同名條目取人口最多的，同名時優先取歐洲本土（法國的 Saint-Louis 不配到留尼旺）；WDQS 的查詢要加 `hint:Query hint:optimizer "None"` 照寫的順序查（先依名稱再看國家），否則先掃整個國家的條目而逾時；荷蘭的國家常是荷蘭王國（Q29999）；名稱寫法對不上的 16 個城市寫在 `ALIASES`。571 個全部定位到。
+    - **跟手冊不同**：TT1079V（自行車道長度）各國混用公里與公尺（柏林寫 1,073,473 公里，阿姆斯特丹 1,154），對不出單位，沒有用；公共泳池、綠地等 Urban Audit 的其他指標沒有做。自行車通勤的台灣沒有可以比的城市統計。
 
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。

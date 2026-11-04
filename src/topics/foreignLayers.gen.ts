@@ -68,4 +68,5 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
   {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"}]},
   {"topic":"climbing","layers":[{"id":"crags","label":{"zh":"岩場","en":"Crags"},"kind":"points"}]},
+  {"topic":"cycling","layers":[{"id":"routes","label":{"zh":"自行車路線","en":"Cycle routes"},"kind":"lines"},{"id":"cities","label":{"zh":"騎自行車上班的比例（城市）","en":"Share cycling to work (cities)"},"kind":"points"}]},
 ];

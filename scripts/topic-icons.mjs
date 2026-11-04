@@ -83,6 +83,7 @@ const TOPIC_ICONS = {
   dining: 'utensils-crossed',
   diving: 'shell',
   climbing: 'hand-grab',
+  cycling: 'bike',
   'box-office-tw': 'clapperboard',
   esports: 'gamepad-2',
   'road-races': 'timer',
