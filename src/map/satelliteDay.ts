@@ -260,7 +260,9 @@ export async function loadDayTile(params: RequestParameters, abort: AbortControl
     if (share < DONE_SHARE) break;
   }
   const canvas = new OffscreenCanvas(SIZE, SIZE);
-  if (base) canvas.getContext('2d')!.putImageData(new ImageData(base as Uint8ClampedArray<ArrayBuffer>, SIZE, SIZE), 0, 0);
+  // 一定要先取得 context：一張影像都沒載到（base 是空的）時，沒有 context 的 transferToImageBitmap() 會丟出 InvalidStateError
+  const ctx = canvas.getContext('2d')!;
+  if (base) ctx.putImageData(new ImageData(base as Uint8ClampedArray<ArrayBuffer>, SIZE, SIZE), 0, 0);
   return { data: canvas.transferToImageBitmap() };
 }
 
