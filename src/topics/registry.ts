@@ -132,10 +132,10 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers'] },
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing'] },
-      // 2026-11-04 製作手冊第二十一批（休閒的追加主題）
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['dining', 'diving', 'holidays', 'time-use'] },
+      // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）
+      { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'holidays', 'time-use', 'box-office-tw'] },
     ],
-    // 左：景點；右：獎項與運動、生活與文化
+    // 左：景點；右：獎項與運動、日常休閒
     columns: [1, 2],
   },
 ];
@@ -151,6 +151,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   fertility: () => import('./fertility'),
   holidays: () => import('./holidays'),
   dining: () => import('./dining'),
+  'box-office-tw': () => import('./box-office-tw'),
   retirement: () => import('./retirement'),
   diving: () => import('./diving'),
   'time-use': () => import('./time-use'),

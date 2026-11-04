@@ -82,6 +82,7 @@ const TOPIC_ICONS = {
   holidays: 'calendar-days',
   dining: 'utensils-crossed',
   diving: 'shell',
+  'box-office-tw': 'clapperboard',
   'time-use': 'hourglass',
   retirement: 'armchair',
   inequality: 'scale',

@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 149;
-export const INDICATOR_COUNT = 895;
+export const TOPIC_COUNT = 150;
+export const INDICATOR_COUNT = 899;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -356,6 +356,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"國家科學及技術委員會《科學技術統計要覽》2025 年版，表 II-9（台灣的 SCIE 論文對照）","en":"National Science and Technology Council, Indicators of Science and Technology 2025, table II-9 (Taiwan’s SCIE papers for comparison)"},"url":"https://wsts.nstc.gov.tw/stsweb/technology/TechnologyDataIndex.aspx?language=C","licenses":[{"zh":"引用統計數字並註明出處","en":"figures cited with source"}],"topics":["publications"]},
   {"name":{"zh":"國家通訊傳播委員會 4G 上網速率量測（台灣的對照）","en":"National Communications Commission (Taiwan), 4G speed measurement (comparison)"},"url":"https://www.ncc.gov.tw/chinese/news_detail.aspx?site_content_sn=8&sn_f=47460","licenses":[{"zh":"政府網站資料開放宣告（引用數字）","en":"Government website open data declaration (figures cited)"}],"topics":["internet-speed"]},
   {"name":{"zh":"國家通訊傳播委員會 電信統計","en":"National Communications Commission (Taiwan), telecom statistics"},"url":"https://data.gov.tw/dataset/22589","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["digital"]},
+  {"name":{"zh":"國家電影及視聽文化中心：全國電影票房統計數據（政府資料開放平臺 94224）","en":"Taiwan Film and Audiovisual Institute: national box office statistics (data.gov.tw 94224)"},"url":"https://data.gov.tw/dataset/94224","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["box-office-tw"]},
   {"name":{"zh":"國民健康署，癌症發生統計（台灣的附註）","en":"Health Promotion Administration (Taiwan), cancer incidence statistics (notes on Taiwan)"},"url":"https://data.gov.tw/dataset/6399","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["disease"]},
   {"name":{"zh":"國際勞工組織 ILOSTAT（ILO 模型估計 2025 年 11 月版、非正式就業比例）","en":"International Labour Organization, ILOSTAT (ILO modelled estimates, November 2025; informal employment rate)"},"url":"https://ilostat.ilo.org/data/","licenses":["CC BY 4.0"],"topics":["employment"]},
   {"name":{"zh":"國際移民組織（IOM）Missing Migrants Project（IOM's Missing Migrants Project；台灣附近的 2 起依座標改歸台灣）","en":"IOM's Missing Migrants Project (International Organization for Migration; the 2 incidents near Taiwan are moved to Taiwan by their coordinates)"},"url":"https://missingmigrants.iom.int/downloads","licenses":["CC BY 4.0"],"topics":["migration"]},
