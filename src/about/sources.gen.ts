@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 151;
-export const INDICATOR_COUNT = 932;
+export const INDICATOR_COUNT = 933;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -102,6 +102,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat, EU-SILC 住宅統計（ilc_lvho01、ilc_lvho02、ilc_lvph01、ilc_lvho05a、ilc_lvho07a）","en":"Eurostat, EU-SILC housing statistics (ilc_lvho01, ilc_lvho02, ilc_lvph01, ilc_lvho05a, ilc_lvho07a)"},"url":"https://ec.europa.eu/eurostat/web/income-and-living-conditions/database","licenses":["CC BY 4.0"],"topics":["housing"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：家庭與非家庭電價（nrg_pc_204、nrg_pc_205）","en":"Eurostat: electricity prices for household and non-household consumers (nrg_pc_204, nrg_pc_205)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
+  {"name":{"zh":"Eurostat：文化與運動活動的參與（ilc_scp04，運動比賽）","en":"Eurostat: participation in cultural and sport activities (ilc_scp04, sports events)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_scp04/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：旅宿業的到達人次依居住國（tour_occ_arnraw）、居民的旅次依目的地（tour_dem_ttw）","en":"Eurostat: arrivals at tourist accommodation by country of residence (tour_occ_arnraw); trips by destination (tour_dem_ttw)"},"url":"https://ec.europa.eu/eurostat/web/tourism/database","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["vehicles"]},

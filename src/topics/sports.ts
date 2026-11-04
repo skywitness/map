@@ -1,4 +1,5 @@
-import type { TopicDefinition } from './types';
+import { fixed } from '../lib/format';
+import type { IndicatorDef, TopicDefinition } from './types';
 import { VENUE_INDICATOR, VENUE_LIST, VENUE_OVERLAYS } from './olympic-venues';
 import { olympicsPart, PLACES } from './olympics';
 
@@ -9,6 +10,22 @@ import { olympicsPart, PLACES } from './olympics';
  * 資料在 public/data/topics/sports/。舊網址 t/olympics/ 轉到這裡、t/f1/ 與這裡的 F1 指標轉到賽車（redirects.ts）。
  * 之後如果做足球（使用者 2026-10-29 決定先不做）也放這裡。
  */
+/** 去現場看運動比賽（2026-11-04，製作手冊第二十一批 361；pipeline/topics/sports_attendance.py）：Eurostat ilc_scp04 */
+const ATTEND_SPORTS: IndicatorDef = {
+  id: 'attend-sports',
+  label: { zh: '去現場看運動比賽的人', en: 'People who attended sports events' },
+  description: {
+    zh: '16 歲以上的人過去 12 個月至少去現場看過一次運動比賽的比例（Eurostat 的歐盟所得與生活狀況調查，2015、2022 年）。2022 年愛爾蘭 39.9%、盧森堡 37.4%、荷蘭 36.9%、挪威 36.7%、瑞士 35.0% 最高；立陶宛 12.7%、拉脫維亞 12.4%、阿爾巴尼亞 10.8%、保加利亞 7.1%、羅馬尼亞 7.0% 最低，差 5.7 倍。只有歐洲 30 國；台灣沒有同一題的調查。',
+    en: 'Share of people aged 16+ who attended at least one live sports event in the past 12 months (Eurostat EU-SILC, 2015 and 2022). In 2022 Ireland 39.9%, Luxembourg 37.4%, the Netherlands 36.9%, Norway 36.7% and Switzerland 35.0% are highest; Lithuania 12.7%, Latvia 12.4%, Albania 10.8%, Bulgaria 7.1% and Romania 7.0% lowest, a 5.7-fold gap. Only 30 European countries; Taiwan has no matching survey.',
+  },
+  unit: '%',
+  file: 'attend-sports.json',
+  defaultYear: 2022,
+  layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 25, 30, 35] } },
+  format: (v) => `${fixed(v, 1)}%`,
+  formatTick: (v) => `${v}%`,
+};
+
 export const sports: TopicDefinition = {
   id: 'sports',
   title: { zh: '運動', en: 'Sports' },
@@ -26,6 +43,11 @@ export const sports: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
     { name: { zh: 'Wikidata（場館的座標）', en: 'Wikidata (venue coordinates)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    {
+      name: { zh: 'Eurostat：文化與運動活動的參與（ilc_scp04，運動比賽）', en: 'Eurostat: participation in cultural and sport activities (ilc_scp04, sports events)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/ilc_scp04/default/table',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: `奧運：${olympicsPart.note.zh} 比賽場館：照各屆維基百科條目的場館表，場館是表上連結的條目、座標用 Wikidata；條目沒有連結或查不到座標的 57 個場館與路線（早期的場館、馬拉松等路線）不畫，少數沒有座標的用所在行政區的位置（tooltip 寫明）。不收帕運、青年奧運；台灣沒有辦過奧運（高雄世運、台北世大運不是奧運）。資料檔依 CC BY-SA 4.0 分享。F1 在「賽車」主題。`,
@@ -36,5 +58,5 @@ export const sports: TopicDefinition = {
   panelExtra: () => import('./panels/SportsPanel'),
   overlays: VENUE_OVERLAYS,
   listPanel: VENUE_LIST,
-  indicators: [...olympicsPart.indicators, VENUE_INDICATOR],
+  indicators: [...olympicsPart.indicators, VENUE_INDICATOR, ATTEND_SPORTS],
 };
