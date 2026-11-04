@@ -5481,7 +5481,7 @@ pipeline/
 ### 本機匯入：只給自己看的資料（2026-11-03，製作手冊第十三批 209、210）
 
 - **使用者決定**（2026-10-30，map-plan 的 local-import.md 與製作手冊第一百三十六節）：因為授權沒用到的資料，由使用者自己下載原檔、本機的轉換程式轉成通用格式，在網站上匯入，資料只存在這個瀏覽器、不上傳、不進 repo。只由本機 session 開發。網站只認通用格式（5C），不寫各來源的配方；匯入後才出現（6A）；網址不記匯入的指標與圖層（7B）；來源沒有台灣就灰色，tooltip 寫「這份資料沒有台灣」（8B）；網站不加讀檔套件（9A）；repo 只放假資料（10A）；轉換程式放在使用者電腦（12A）；通用格式有表格、點、流向、線面四種（13A）。
-- **資料夾**：`C:\dev\map\private\local-data\`（`private/` 在 `.gitignore`）。`downloads\<代號>\` 放官方原檔，`convert\` 放轉換程式（`convert\<代號>.py`，共用的 `convert\common.py`，`convert\run_all.py` 依序跑全部），`import\<代號>\` 是轉好的通用格式。網站上「匯入整個資料夾」選 `import\`：每個有 `about.json` 的子資料夾是一個來源；`import\` 最上層的 GeoJSON（`racing-routes.geojson`）照舊是我的路線。代號是製作手冊第十三批的編號加英文小寫名稱，只用小寫英文、數字與 `-`（例如 `p01-un-tourism`）。
+- **資料夾**：`C:\dev\map\private\local-data\`（`private/` 在 `.gitignore`）。`downloads\<代號>\` 放官方原檔，`convert\` 放轉換程式（`convert\<代號>.py`，共用的 `convert\common.py`，`convert\run_all.py` 依序跑全部），`import\<代號>\` 是轉好的通用格式。網站上「匯入整個資料夾」選 `import\`：每個有 `about.json` 的子資料夾是一個來源。賽車的路線合輯 2026-11-04 起也是一個來源（`import\racing-routes\`，`convert\racing-routes.py`，about.json 的 `routes`；使用者：「跟其他主題一樣的匯入方式」），以前是 `import\` 最上層的 `racing-routes.geojson`、匯入成我的路線。代號是製作手冊第十三批的編號加英文小寫名稱，只用小寫英文、數字與 `-`（例如 `p01-un-tourism`）。
 
 #### 通用格式（第 1 版）
 
@@ -5508,7 +5508,7 @@ pipeline/
     "defaultYear": 2023,
     "focus": [西, 南, 東, 北]                     // 選填
   },
-  "tables": [ … ], "points": [ … ], "flows": [ … ], "shapes": [ … ]
+  "tables": [ … ], "points": [ … ], "flows": [ … ], "shapes": [ … ], "routes": [ … ]
 }
 ```
 
@@ -5596,6 +5596,15 @@ pipeline/
 
 - 座標是 WGS84 經緯度，轉換程式先簡化到網站畫得動的大小（一個檔最好在 20 MB 以下）。
 
+**路線**（`routes`，2026-11-04 起）：GeoJSON 的 LineString、MultiLineString（座標可以有第三個值海拔），一個 feature 是一條路線；`properties` 的 `name`、`series`（主題的分類，賽車是賽事代號）、`place`、`source`（那一條的原始出處）。只能放進已有的主題（`topic`），而且那個主題要有我的路線（`TopicDefinition.personalRoutes`，目前只有賽車）。
+
+```jsonc
+{ "file": "routes.geojson", "id": "routes", "label": Text, "description": Text }
+```
+
+- 不是一般的線圖層：畫在主題的「我的路線」，所以照樣依賽事上色、選了某個賽事只畫那個賽事的、點一條看高度剖面（見上面「我的路線」）。
+- 路線歸這個來源：重新匯入就取代，在本機匯入頁刪除來源就一起刪。地圖上「我的路線」選單的匯出備份、刪除全部只管在那裡匯入的，選單另外寫「另有 N 條來自本機匯入的來源」。
+
 #### 網站的做法
 
 - **本機匯入頁**（`src/personal/MinePage.tsx`，網址 `mine/`，建置時 `vite.config.ts` 另外產生 `mine/index.html`，`noindex`、不進 sitemap；頁尾「關於這個網站」旁邊有連結）：
@@ -5610,6 +5619,7 @@ pipeline/
   - 點 → `PointsData`（數值依小數位數量化；類別色的代碼放 `_c`；序列併成 `_s` 字串「年:值;年:值」）。
   - 線面 → `LinesData`（量化 1e-5 度；面的每個環一條線，`_poly`、`_hole` 標面與洞，`_f` 是第幾個 feature，滑過標出整個；顏色的代碼放 `types`）。
   - 流向 → 每年一個 `FlowFile`（`<來源>/<id>/<年>`），加上各國的指標（`<來源>/<id>#totals`）。
+  - 路線 → 照我的路線的方式解析（`lib/personalRoutes.ts` 的 `routesFromText`：Douglas–Peucker 約 2 m、海拔一整段都有才留），整份存成 `PersonalRoute` 的陣列（`local` 是來源代號，主題用來源的 `topic`，`source` 用 `properties.source`）。
   - 依資料算好的東西（`auto` 的門檻：循序依全部年份的 7 分位、發散依 |值| 的第 90 百分位取對稱的 6 個；類別；年份範圍；有沒有台灣；點的大小的最大值）跟 about.json 一起存在清單裡。
 - **一打開網站**（`lib/localRegistry.ts`）：清單另外抄一份在 localStorage（`world-map-local-sources`，不含資料），`main.tsx` 同步讀它：
   - 沒有匯入過的瀏覽器只多讀這個鍵，不多載任何程式。
@@ -5622,8 +5632,8 @@ pipeline/
   - 點的 `list` 是清單側欄（`listPanel`，已有清單的主題多一個分頁）：依時間軸篩選、依 `sorts` 排、依國家或欄位分組，`series` 畫成列裡的小長條圖（最近 60 筆）。
   - 頁尾的資料來源多一筆「出處（本機匯入，下載日期，只在這個瀏覽器）（只供自己使用）」；`source.notice` 接在主題的說明後面。
 - **網址**（7B，`lib/url-state.ts` 的 `buildUrl`）：本機的指標不寫 `ind`；本機的新主題寫成網站的根目錄（`?topic=local-…` 讀得懂，但寫回網址時拿掉）。重新整理、分享、收藏的畫面都回到那個主題原本的指標。
-- **我的路線**：賽車圖層選單的「匯入整個資料夾」不收有 `about.json` 的子資料夾裡的檔（`lib/personalRoutes.ts`），免得把採礦區、保護區當成路線。
-- **測試**：`src/lib/localData.test.ts` 用 `src/personal/__fixtures__/` 的假資料（10A：欄位照格式、數字是編的）測 CSV、表格（含月、類別、label、重複列）、點與序列、線面（洞、顏色代碼）、流向（兩個方向、附註、各國指標）與變成主題零件的結果。2026-11-03 在開發伺服器上匯入假資料：觀光主題多兩個「（本機）」指標，選了以後網址沒有 `ind`、門檻自動、tooltip 多一行 label、月的時間軸寫 2024/1–2024/2；新主題「假的網絡（本機）」出現在「國際」、點美國畫出流向；海洋主題多點、線面圖層與分國家的清單。也用真檔（`import\n22-coups`，政變）試過民主與自由主題：累計次數的面量圖、那一年每一次政變的清單與點都正常（數字不寫在這裡）。同一天第十三批的轉換程式做完後，把整個 `import\`（41 個來源、162 個檔、約 43 MB）一次匯入：全部成功，約 2 秒，localStorage 的清單約 150 KB；看過隕石與火球（新主題，三萬多個點與清單）、冰河與海平面（潮位站的發散色與序列的小長條圖）。因此改了兩處：點的發散色可以 `reverse`，年份欄位不加千分位。測試資料已刪。
+- **我的路線**：賽車圖層選單的「匯入整個資料夾」不收有 `about.json` 的子資料夾裡的檔（`lib/personalRoutes.ts`），免得把採礦區、保護區當成路線。來源帶的路線（`routes`）由 `loadRoutes()` 依 localStorage 的清單找出有路線的來源、再從 `local-files` 讀，接在我的路線後面一起畫；tooltip 最後一行寫「本機匯入：原始出處」（我的路線匯入的寫「我的路線：檔名」）。匯入、刪除來源後通知重讀（`notifyRoutes`）。
+- **測試**：`src/lib/localData.test.ts` 用 `src/personal/__fixtures__/` 的假資料（10A：欄位照格式、數字是編的）測 CSV、表格（含月、類別、label、重複列）、點與序列、線面（洞、顏色代碼）、流向（兩個方向、附註、各國指標）與變成主題零件的結果。2026-11-03 在開發伺服器上匯入假資料：觀光主題多兩個「（本機）」指標，選了以後網址沒有 `ind`、門檻自動、tooltip 多一行 label、月的時間軸寫 2024/1–2024/2；新主題「假的網絡（本機）」出現在「國際」、點美國畫出流向；海洋主題多點、線面圖層與分國家的清單。也用真檔（`import\n22-coups`，政變）試過民主與自由主題：累計次數的面量圖、那一年每一次政變的清單與點都正常（數字不寫在這裡）。2026-11-04 在開發伺服器上匯入 `import\racing-routes`（268 條，`f04-fake-routes` 是它的假資料測試）：賽車主題選環法只畫環法的賽段、tooltip 寫「本機匯入：cyclingstage.com/…」、點一條打開高度剖面（海拔來自路線檔）、選單寫「另有 268 條來自本機匯入的來源」、頁尾多一筆出處；刪除來源後路線也沒了。11-03 第十三批的轉換程式做完後，把整個 `import\`（41 個來源、162 個檔、約 43 MB）一次匯入：全部成功，約 2 秒，localStorage 的清單約 150 KB；看過隕石與火球（新主題，三萬多個點與清單）、冰河與海平面（潮位站的發散色與序列的小長條圖）。因此改了兩處：點的發散色可以 `reverse`，年份欄位不加千分位。測試資料已刪。
 
 ### 指令面板搜尋地圖上的地點（2026-10-31）
 

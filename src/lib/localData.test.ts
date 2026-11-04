@@ -4,6 +4,7 @@ import { decodeLines, decodePoints } from '../map/overlayData';
 import type { FlowFile, IndicatorData, LinesData, PointsData } from '../topics/types';
 import { _convert, autoThresholds, monthIndex, parseCsv, validateAbout } from './localData';
 import type { LocalAbout, LocalSourceMeta } from './localRegistry';
+import type { PersonalRoute } from './personalRoutes';
 
 /** 本機匯入的轉換（製作手冊第十三批 209）：src/personal/__fixtures__/ 的假資料（10A） */
 const FIX = 'src/personal/__fixtures__';
@@ -116,6 +117,33 @@ describe('線面', () => {
 
   it('顏色的代碼放在 types', () => {
     expect(data.types).toEqual([0, 0, 2]);
+  });
+});
+
+describe('路線', () => {
+  const a = about('f04-fake-routes');
+  const routes = _convert.routes('f04', a.routes![0], read('f04-fake-routes/routes.geojson'), a.topic!, 1);
+  const list = routes.payloads[0][1] as PersonalRoute[];
+
+  it('一個 feature 一條路線，點略過；主題用來源的、出處用 properties.source，歸這個來源', () => {
+    expect(routes.payloads[0][0]).toBe('f04/routes');
+    expect(routes.derived).toEqual({ kind: 'routes', count: 2 });
+    expect(list.map((r) => [r.name, r.series, r.topic, r.source, r.local])).toEqual([
+      ['Fake stage 1', 'tdf', 'racing', 'example.com/stage-1.gpx', 'f04'],
+      ['Fake circuit', 'f1', 'racing', 'routes.geojson', 'f04'],
+    ]);
+  });
+
+  it('海拔一整段都有才留；MultiLineString 是同一條路線的好幾段', () => {
+    expect(list[0].ele).toEqual([[100, 300, 200]]);
+    expect(list[1].lines).toHaveLength(2);
+    expect(list[1].ele).toBeNull();
+  });
+
+  it('新主題不能帶路線', () => {
+    expect(() =>
+      validateAbout({ format: 1, title: 'x', source: { name: 's' }, newTopic: { id: 'n', title: 'n' }, tables: [{ file: 'a.csv', label: 'a' }], routes: [{ file: 'r.geojson', label: 'r' }] }),
+    ).toThrow(/routes/);
   });
 });
 

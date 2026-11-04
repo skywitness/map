@@ -76,6 +76,19 @@ export interface LocalPointSpec {
 
 export type LocalShapeSpec = Omit<LocalPointSpec, 'size' | 'series' | 'country'>;
 
+/**
+ * 路線（2026-11-04 起）：GeoJSON 的線（LineString、MultiLineString，座標可以有海拔），一個 feature 是一條路線，
+ * properties 可以寫 name、series（主題的分類，賽車是賽事代號）、place、source（那一條的原始出處）。
+ * 不畫成一般的線圖層，而是放進主題的「我的路線」（TopicDefinition.personalRoutes，目前只有賽車）：依分類上色、
+ * 選了某個子項目只畫那一類、點一條看高度剖面。路線歸這個來源：重新匯入就取代，刪除來源就一起刪
+ */
+export interface LocalRouteSpec {
+  file: string;
+  id?: string;
+  label: Text;
+  description?: Text;
+}
+
 export interface LocalFlowWords {
   partners: Text;
   main: Text;
@@ -113,6 +126,7 @@ export interface LocalAbout {
   points?: LocalPointSpec[];
   flows?: LocalFlowSpec[];
   shapes?: LocalShapeSpec[];
+  routes?: LocalRouteSpec[];
 }
 
 /** 匯入時依資料算好的東西（網站一打開就要用、不想先讀整份資料的） */
@@ -142,14 +156,15 @@ export type LocalDerived =
       /** size 欄位的最大值 */
       sizeMax?: number;
       polygons?: boolean;
-    };
+    }
+  | { kind: 'routes'; count: number };
 
 export interface LocalSourceMeta {
   /** 資料夾名稱（製作手冊的代號，例如 p01-un-tourism） */
   id: string;
   importedAt: number;
   about: LocalAbout;
-  /** key 是各檔的 id（tables、points、flows、shapes 的 id） */
+  /** key 是各檔的 id（tables、points、flows、shapes、routes 的 id） */
   derived: Record<string, LocalDerived>;
   files: { name: string; bytes: number }[];
   warnings: string[];

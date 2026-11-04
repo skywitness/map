@@ -226,11 +226,16 @@ export function App() {
     () =>
       personalCfg
         ? {
-            count: personalRoutes.length,
+            // 本機匯入的來源帶的路線（r.local）一起畫，但匯出、刪除全部只管在這裡匯入的
+            count: personalRoutes.filter((r) => !r.local).length,
+            local: personalRoutes.filter((r) => r.local).length,
             unavailable: personalError,
             onImport: (files) => importRouteFiles(files, definition.id),
             onExport: () =>
-              downloadBlob(new Blob([routesToGeoJson(personalRoutes)], { type: 'application/geo+json' }), `my-routes-${definition.id}.geojson`),
+              downloadBlob(
+                new Blob([routesToGeoJson(personalRoutes.filter((r) => !r.local))], { type: 'application/geo+json' }),
+                `my-routes-${definition.id}.geojson`,
+              ),
             onClear: () => clearRoutes(definition.id),
           }
         : undefined,

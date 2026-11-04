@@ -32,7 +32,7 @@ const TEXT = defineMessages({
       '資料只在這個瀏覽器裡讀、存在這個瀏覽器，不會上傳；換瀏覽器或清除網站資料要重新匯入。分享的網址不會帶匯入的指標，別人打開看到的是那個主題原本的指標。',
       '把匯入後的截圖或匯出的檔案公開分享，就是轉載原始資料：多數來源的條款不允許，請只給自己看。',
     ],
-    formatNote: '格式：一個來源一個資料夾，裡面有 about.json 與它列出的 CSV、GeoJSON（DESIGN.md 第 11 節「本機匯入」）。選整個 import 資料夾時，裡面的 racing-routes.geojson 照舊匯入成賽車的我的路線。',
+    formatNote: '格式：一個來源一個資料夾，裡面有 about.json 與它列出的 CSV、GeoJSON（DESIGN.md 第 11 節「本機匯入」）。來源也可以帶路線（about.json 的 routes），畫在那個主題的我的路線（目前是賽車）。資料夾最上層、不在來源裡的路線檔（GPX、KML、GeoJSON）照舊匯入成賽車的我的路線。',
     importFolder: '匯入整個資料夾…',
     importFiles: '匯入檔案…',
     importing: '匯入中…',
@@ -58,12 +58,13 @@ const TEXT = defineMessages({
     page: '下載頁',
     remove: '刪除',
     removeAll: '刪除全部',
-    confirmAll: '確定刪除全部匯入的資料？我的路線不受影響。',
+    confirmAll: '確定刪除全部匯入的資料？用地圖上「我的路線」選單匯入的路線不受影響。',
     confirmOne: (name: string) => `確定刪除「${name}」？`,
-    kinds: { table: '指標', flow: '流向', points: '點', shapes: '線面' } as Record<string, string>,
+    kinds: { table: '指標', flow: '流向', points: '點', shapes: '線面', routes: '我的路線' } as Record<string, string>,
     colon: '：',
     listSep: '、',
     warnSep: '；',
+    detailSep: '，',
     entry: (label: string, detail: string) => `${label}（${detail}）`,
     count: (n: number) => `${n.toLocaleString('zh-TW')} 筆`,
   },
@@ -80,7 +81,7 @@ const TEXT = defineMessages({
       'Posting screenshots or exported files of imported data republishes the original data, which most sources do not allow. Keep it to yourself.',
     ],
     formatNote:
-      'Format: one folder per source with an about.json and the CSV and GeoJSON files it lists (DESIGN.md section 11, “Local import”). When you pick the whole import folder, racing-routes.geojson in it is imported as My routes for racing, as before.',
+      'Format: one folder per source with an about.json and the CSV and GeoJSON files it lists (DESIGN.md section 11, “Local import”). A source can also carry routes (routes in about.json), drawn as the topic’s My routes (currently racing). Route files at the top of the folder, outside any source (GPX, KML, GeoJSON), are still imported as My routes for racing.',
     importFolder: 'Import a folder…',
     importFiles: 'Import files…',
     importing: 'Importing…',
@@ -106,12 +107,13 @@ const TEXT = defineMessages({
     page: 'Download page',
     remove: 'Delete',
     removeAll: 'Delete all',
-    confirmAll: 'Delete all imported data? My routes are not affected.',
+    confirmAll: 'Delete all imported data? Routes imported from the map’s My routes menu are not affected.',
     confirmOne: (name: string) => `Delete “${name}”?`,
-    kinds: { table: 'indicator', flow: 'flows', points: 'points', shapes: 'shapes' } as Record<string, string>,
+    kinds: { table: 'indicator', flow: 'flows', points: 'points', shapes: 'shapes', routes: 'My routes' } as Record<string, string>,
     colon: ': ',
     listSep: ', ',
     warnSep: '; ',
+    detailSep: ', ',
     entry: (label: string, detail: string) => `${label} (${detail})`,
     count: (n: number) => `${n.toLocaleString('en-US')} rows`,
   },
@@ -122,15 +124,16 @@ function entryList(meta: LocalSourceMeta, text: (typeof TEXT)['zh'], lang: 'zh' 
   const out: string[] = [];
   const add = (kind: string, spec: { file: string; id?: string; label: Text }) => {
     const d = meta.derived[entryId(spec)];
-    const tw = d && 'taiwan' in d && !d.taiwan ? `, ${text.noTaiwan}` : '';
+    const tw = d && 'taiwan' in d && !d.taiwan ? `${text.detailSep}${text.noTaiwan}` : '';
     const years = d && 'years' in d && d.years ? ` ${d.years[0] === d.years[1] ? d.years[0] : `${yearText(d.years[0], d)}–${yearText(d.years[1], d)}`}` : '';
     const n = !d ? null : 'rows' in d ? d.rows : d.count;
-    out.push(text.entry(tr(spec.label, lang), `${text.kinds[kind]}${years}${n === null ? '' : `, ${text.count(n)}`}${tw}`));
+    out.push(text.entry(tr(spec.label, lang), `${text.kinds[kind]}${years}${n === null ? '' : `${text.detailSep}${text.count(n)}`}${tw}`));
   };
   for (const s of a.tables ?? []) add('table', s);
   for (const s of a.flows ?? []) add('flow', s);
   for (const s of a.points ?? []) add('points', s);
   for (const s of a.shapes ?? []) add('shapes', s);
+  for (const s of a.routes ?? []) add('routes', s);
   return out;
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { openPersonalDb, ROUTES_STORE, txDone } from './personalDb';
+import { entryId, readLocalRegistry } from './localRegistry';
+import { LOCAL_FILES, openPersonalDb, request, ROUTES_STORE, txDone } from './personalDb';
 import { unzipAll } from './unzip';
 
 /**
@@ -8,6 +9,9 @@ import { unzipAll } from './unzip';
  * （三大環賽的賽段、WRC 的特殊賽段、大眾速降的路線…），見 DESIGN.md 第 11 節「我的路線」。
  *
  * 同一個檔（檔名相同）再匯入一次會取代舊的；GeoJSON 的 properties 可以寫 name、series（賽事代號，例如 tdf）、place、topic。
+ *
+ * 本機匯入的來源也可以帶路線（about.json 的 routes，2026-11-04 起，lib/localData.ts）：存在那個來源底下（local-files 表），
+ * 讀的時候跟這裡匯入的合在一起畫；「刪除全部路線」只刪這裡匯入的，來源的路線在本機匯入頁跟著來源刪。
  */
 export interface PersonalRoute {
   id?: number;
@@ -17,8 +21,10 @@ export interface PersonalRoute {
   /** 主題自己的分類（賽車是賽事代號 f1、tdf…），決定顏色 */
   series?: string;
   place?: string;
-  /** 匯入的檔名（zip 裡的檔是「zip 檔名/裡面的檔名」） */
+  /** 匯入的檔名（zip 裡的檔是「zip 檔名/裡面的檔名」）；本機匯入的來源是那一條的原始出處（properties.source），沒寫才是檔名 */
   source: string;
+  /** 本機匯入的來源代號：有的話這條路線歸那個來源管，不在我的路線的表裡 */
+  local?: string;
   lines: [number, number][][];
   /** 每個點的海拔（m），跟 lines 對齊；原檔沒有高度（KML 的 0、OpenStreetMap）的是 null，選取時再從地形圖磚取（lib/routeProfile.ts） */
   ele?: (number | null)[][] | null;
@@ -39,13 +45,22 @@ const TOLERANCE = 0.00002;
 const openDb = openPersonalDb;
 const done = txDone;
 
+/** 這個主題的路線：我的路線匯入的在前，本機匯入的來源帶的在後 */
 export async function loadRoutes(topic: string): Promise<PersonalRoute[]> {
   const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE).objectStore(STORE).index('topic').getAll(topic);
-    req.onsuccess = () => resolve(req.result as PersonalRoute[]);
-    req.onerror = () => reject(req.error);
-  });
+  const own = await request(db.transaction(STORE).objectStore(STORE).index('topic').getAll(topic) as IDBRequest<PersonalRoute[]>);
+  return [...own, ...(await localRoutes(db, topic))];
+}
+
+/** 本機匯入的來源裡的路線：哪些來源有路線看 localStorage 的清單（lib/localRegistry.ts），路線本身在 local-files 表 */
+async function localRoutes(db: IDBDatabase, topic: string): Promise<PersonalRoute[]> {
+  const keys = readLocalRegistry()
+    .filter((m) => m.about.topic === topic)
+    .flatMap((m) => (m.about.routes ?? []).map((s) => `${m.id}/${entryId(s)}`));
+  if (!keys.length) return [];
+  const store = db.transaction(LOCAL_FILES).objectStore(LOCAL_FILES);
+  const lists = await Promise.all(keys.map((k) => request(store.get(k) as IDBRequest<PersonalRoute[] | undefined>)));
+  return lists.flatMap((l) => (Array.isArray(l) ? l : []));
 }
 
 async function saveRoutes(topic: string, routes: PersonalRoute[]): Promise<void> {
@@ -86,6 +101,8 @@ const listeners = new Set<() => void>();
 function notify() {
   for (const l of listeners) l();
 }
+/** 本機匯入、刪除來源之後重讀（lib/localData.ts） */
+export const notifyRoutes = notify;
 
 /** 這個主題的我的路線（topic 是 null 時不讀）；匯入、刪除後自動更新 */
 export function usePersonalRoutes(topic: string | null): { routes: PersonalRoute[]; error: boolean } {
@@ -112,7 +129,7 @@ export function usePersonalRoutes(topic: string | null): { routes: PersonalRoute
 // ── 解析 ──────────────────────────────────────────────────────────────
 /** 解析出來的一條路線：每段是 [經度, 緯度, 海拔或 null] */
 type Pt = [number, number, number | null];
-type Parsed = { name: string; series?: string; place?: string; topic?: string; lines: Pt[][] };
+type Parsed = { name: string; series?: string; place?: string; topic?: string; source?: string; lines: Pt[][] };
 
 const ROUTE_FILE = /\.(gpx|kml|kmz|geojson|json|zip)$/i;
 
@@ -136,24 +153,9 @@ export async function importRouteFiles(files: File[], topic: string): Promise<Im
         : [{ name, text: await file.text() }];
       let found = 0;
       for (const entry of entries) {
-        const parsed = parseRouteText(entry.text, entry.name);
-        for (const p of parsed) {
-          const kept = p.lines.map(simplify).filter((l) => l.length >= 2);
-          if (!kept.length) continue;
-          // 海拔：一整段都有高度才留（KML 寫 0 的當成沒有）
-          const ele = kept.map((l) => (l.every((q) => q[2] !== null) && l.some((q) => q[2] !== 0) ? l.map((q) => q[2]) : null));
-          routes.push({
-            name: p.name,
-            series: p.series,
-            place: p.place,
-            topic: p.topic ?? topic,
-            lines: kept.map((l) => l.map((q) => [q[0], q[1]] as [number, number])),
-            ele: ele.some(Boolean) ? ele.map((e, i) => e ?? kept[i].map(() => null)) : null,
-            source: entry.name,
-            added,
-          });
-          found++;
-        }
+        const parsed = routesFromText(entry.text, entry.name, topic, added);
+        routes.push(...parsed);
+        found += parsed.length;
       }
       if (found) count++;
       else skipped.push(name);
@@ -165,6 +167,32 @@ export async function importRouteFiles(files: File[], topic: string): Promise<Im
   for (const r of routes) byTopic.set(r.topic, [...(byTopic.get(r.topic) ?? []), r]);
   for (const [t, list] of byTopic) await saveRoutes(t, list);
   return { routes: routes.length, files: count, skipped };
+}
+
+/**
+ * 一個檔的文字 → 路線（簡化、海拔一整段都有才留）。我的路線與本機匯入共用：
+ * local 是本機匯入的來源代號，那時主題固定用來源的 topic（不看 properties.topic），source 用 properties.source
+ */
+export function routesFromText(text: string, fileName: string, topic: string, added: number, local?: string): PersonalRoute[] {
+  return parseRouteText(text, fileName).flatMap((p) => {
+    const kept = p.lines.map(simplify).filter((l) => l.length >= 2);
+    if (!kept.length) return [];
+    // 海拔：一整段都有高度才留（KML 寫 0 的當成沒有）
+    const ele = kept.map((l) => (l.every((q) => q[2] !== null) && l.some((q) => q[2] !== 0) ? l.map((q) => q[2]) : null));
+    return [
+      {
+        name: p.name,
+        series: p.series,
+        place: p.place,
+        topic: local ? topic : (p.topic ?? topic),
+        lines: kept.map((l) => l.map((q) => [q[0], q[1]] as [number, number])),
+        ele: ele.some(Boolean) ? ele.map((e, i) => e ?? kept[i].map(() => null)) : null,
+        source: (local && p.source) || fileName,
+        ...(local && { local }),
+        added,
+      },
+    ];
+  });
 }
 
 function baseName(path: string): string {
@@ -266,7 +294,7 @@ function parseGeoJson(json: unknown, fallback: string): Parsed[] {
     const lines = geoLines(f.geometry);
     if (!lines.length) return [];
     const p = f.properties ?? {};
-    return [{ name: str(p.name) ?? str(p.title) ?? fallback, series: str(p.series), place: str(p.place), topic: str(p.topic), lines }];
+    return [{ name: str(p.name) ?? str(p.title) ?? fallback, series: str(p.series), place: str(p.place), topic: str(p.topic), source: str(p.source), lines }];
   });
 }
 
