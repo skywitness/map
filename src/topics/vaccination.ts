@@ -111,6 +111,11 @@ export const vaccination: TopicDefinition = {
       url: 'https://dep.mohw.gov.tw/DOS/np-6602-113.html',
       license: OPEN_DATA_TW,
     },
+    {
+      name: { zh: 'OECD Health Statistics：Immunisation（65 歲以上的流感疫苗接種率）', en: 'OECD Health Statistics: Immunisation (influenza vaccination, aged 65+)' },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
   ],
   note: {
     zh: '兒童常規疫苗的接種率是 WHO 與 UNICEF 依各國通報與調查做的估計（WUENIC），每年改版都會修訂整個序列；零劑兒童是沒有打過任何一劑白喉、破傷風、百日咳疫苗（DTP1）的嬰兒，這裡用聯合國的存活嬰兒數乘上沒有打 DTP1 的比例算的，各國加總跟 WHO/UNICEF 公布的全球數字（2025 年 1,350 萬人）差 1% 以內。COVID-19 的確診死亡是各國向 WHO 通報的人數，會受檢驗量、死因認定與通報方式影響，各國不完全可比；超額死亡是 The Economist 的模型估計的死亡人數比沒有疫情時多出多少，沒有全死因死亡統計的國家完全靠模型推估，誤差很大。WHO 的「中國」含香港、澳門與台灣通報的確診死亡。COVID-19 的資料都已停止更新：確診死亡到 2026 年 8 月、疫苗接種到 2024 年 8 月、超額死亡到 2024 年 6 月。超額死亡的資料依 MIT 授權使用：Copyright (c) 2021 The Economist Newspaper.',
@@ -190,6 +195,20 @@ export const vaccination: TopicDefinition = {
       formatTick: pctTick,
       compareWorld: true,
       noValue: { TWN: { zh: '定義不同（只公布完成兩劑）', en: 'Different definition (two doses)' } },
+    },
+    {
+      id: 'flu-elderly',
+      label: { zh: '65 歲以上打流感疫苗的比例', en: 'Flu vaccination, people aged 65+' },
+      description: {
+        zh: '65 歲以上長者一年打流感疫苗的比例（OECD，60 國含幾個非會員）。2024 年 44 國的中位數約 51%：墨西哥 85.9%、南韓 83.4%、愛爾蘭 75.7%、丹麥 75.6%、英國 74.9%；拉脫維亞 16.7%、塞爾維亞 14.1%、波蘭 12.2%、斯洛伐克 11.0%、烏克蘭 0.2%。歐盟的目標是 75%。拉時間軸看 2020–2021 年 COVID-19 期間普遍上升、之後回落。流感季跨年，有的國家報「2024/25 季」有的報曆年；超過 95% 的多半是分母用公費配額，不是全部 65 歲以上的人。各國用 3 年內最近的一年；台灣不在 OECD 的資料裡。',
+        en: 'Share of people aged 65 and over vaccinated against influenza in a year (OECD, 60 countries including a few non-members). In 2024 the median of 44 countries was about 51%: Mexico 85.9%, South Korea 83.4%, Ireland 75.7%, Denmark 75.6%, the UK 74.9%; Latvia 16.7%, Serbia 14.1%, Poland 12.2%, Slovakia 11.0%, Ukraine 0.2%. The EU target is 75%. Drag the timeline to see the general rise during COVID-19 in 2020–2021 and the fall afterwards. Flu seasons span two years, and some countries report seasons while others report calendar years; values above 95% usually use the publicly funded allocation, not all people aged 65+, as the denominator. Each country shows its latest year within three; Taiwan is not in OECD data.',
+      },
+      unit: '%',
+      file: 'flu-elderly.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 35, 50, 60, 70, 75] } },
+      format: pct,
+      formatTick: pctTick,
+      noValue: { TWN: { zh: '不在 OECD 的資料裡', en: 'Not in OECD data' } },
     },
     {
       id: 'zero-dose',
