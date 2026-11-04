@@ -305,6 +305,8 @@ STEPS = {
     "drug-genes": "topics.drug_genes",
     # 抗藥性（製作手冊第十九批 293）：WHO GHO 的 GLASS 指標與抗藥性結核（xmart）、UN WPP 的人口
     "antimicrobial-resistance": "topics.antimicrobial_resistance",
+    # 醫療照護相關感染與住院病人用抗生素（併進抗藥性，第二十批 320）：ECDC 點盛行率調查 2022–2023 的國家摘要表（35.9 MB）
+    "amr-hai": "topics.amr_hai",
     "medicines": "topics.medicines",
     "drug-consumption": "topics.drug_consumption",
     "taiwan-medicines": "topics.taiwan_medicines",
