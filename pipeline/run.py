@@ -286,6 +286,7 @@ STEPS = {
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
     "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）
     "sports-attendance": "topics.sports_attendance",  # 去現場看運動比賽（Eurostat ilc_scp04，CC BY 4.0）
+    "road-races": "topics.road_races",  # 馬拉松、超馬與鐵人賽事（Wikidata，CC0）
     # 要先有 geo 的國界；第一次會從 Zenodo 下載 2013–2024 年的 VIIRS 夜間燈光（12 個檔、共約 800 MB，
     # Zenodo 每條連線很慢，平行下載約 20 分鐘），GHS-POP 用人口網格的快取（2015、2020、2025 三期）
     "night-lights": "topics.night_lights",

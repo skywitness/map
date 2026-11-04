@@ -5,11 +5,11 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 152;
-export const INDICATOR_COUNT = 942;
+export const TOPIC_COUNT = 153;
+export const INDICATOR_COUNT = 944;
 
 export const SOURCES: AboutSource[] = [
-  {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
+  {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","road-races","racing"]},
   {"name":{"zh":"UN WPP 2024（人口）","en":"UN World Population Prospects 2024 (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","crime","health","medical-imaging","disease","vaccination","ivf","height","antimicrobial-resistance","chain-stores","migration","china-lending","tourism","conflict","climate","water-forest","digital","developers","innovation","publications","fossil-fuels","aviation","road-safety","vehicles","profiles","oceans","nobel","sports","esports","dining","culture"]},
   {"name":{"zh":"World Bank WDI（資料源自 UNIDO）","en":"World Bank WDI (data from UNIDO)"},"url":"https://data.worldbank.org/","licenses":["CC BY 4.0"],"topics":["education","gender","health","disease","sectors","industry","income","fiscal","reserves","tourism","military","water-forest","digital","innovation"]},
   {"name":{"zh":"ITF（OECD 國際運輸論壇）：Annual freight transport","en":"ITF (OECD International Transport Forum), Annual freight transport"},"url":"https://data-explorer.oecd.org/","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["education","health","medical-imaging","hospital-quality","disease","vaccination","medicines","drug-consumption","space","transport"]},

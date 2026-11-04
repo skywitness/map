@@ -84,6 +84,7 @@ const TOPIC_ICONS = {
   diving: 'shell',
   'box-office-tw': 'clapperboard',
   esports: 'gamepad-2',
+  'road-races': 'timer',
   culture: 'drama',
   'time-use': 'hourglass',
   retirement: 'armchair',
