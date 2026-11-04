@@ -5,7 +5,7 @@ import { useJson } from '../lib/data';
 import { useAllPoints } from '../lib/points';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { decodeLines, decodePoints } from '../map/overlayData';
-import type { LinesData, ListPanelDef, ListRow, PointRecord, PointsData, Text } from '../topics/types';
+import { topicFile, type LinesData, type ListPanelDef, type ListRow, type PointRecord, type PointsData, type Text } from '../topics/types';
 
 const TEXT = defineMessages({
   zh: {
@@ -106,7 +106,8 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const shown = narrow ? narrowOpen : open;
   const setShown = (v: boolean) => (narrow ? setNarrowOpen(v) : onOpenChange(v));
   // 檔名的 {year} 換成時間軸的年份（2026-11-03，移民路上的死亡與失蹤：一年一個點檔）
-  const path = `topics/${topicId}/${(item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '').replace('{year}', String(year))}`;
+  // 檔名是 ../<主題>/… 時讀另一個主題的資料夾（整併進來的清單，topics/merge.ts）
+  const path = topicFile({ id: topicId }, (item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '').replace('{year}', String(year)));
   const { data, error: fileError } = useJson<PointsData | LinesData>(shown && !def.fromLive && !def.layered ? path : null);
   // 分層的點檔（城市）：選了國家時兩個檔都讀（那一國的小城市在其餘的裡）；沒選國家時全世界的前幾名都在 file 裡
   const layered = useAllPoints(shown && !def.fromLive && def.layered ? path : null, Boolean(country && def.countryField));

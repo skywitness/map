@@ -1,6 +1,9 @@
 import { tr } from '../i18n/lang';
 import { MONTHS, monthLabel } from './months';
 import type { TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly } from './merge';
+import { wagesLeavePart } from './wages';
 
 /**
  * 國定假日（2026-11-04，製作手冊第二十一批 344，合併 888；pipeline/topics/holidays.py）：
@@ -10,7 +13,7 @@ import type { TopicDefinition } from './types';
 
 const days = (v: number) => tr({ zh: `${v} 天`, en: `${v} days` });
 
-export const holidays: TopicDefinition = {
+const holidaysOwn: TopicDefinition = {
   id: 'holidays',
   title: { zh: '國定假日：一年放幾天、哪個月最多', en: 'Public holidays: how many, and which month has the most' },
   shortTitle: { zh: '國定假日', en: 'Public holidays' },
@@ -72,3 +75,16 @@ export const holidays: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 國定假日與年假（2026-11-04，主題整併 併9）：「薪資與工時」的法定年假兩個指標搬過來，資料照舊在 wages/
+ * （topics/merge.ts），舊網址 t/wages/?ind=annual-leave 轉到這裡（redirects.ts 的 INDICATOR_MOVES）
+ */
+export const holidays: TopicDefinition = withParts(
+  {
+    ...hostOnly(holidaysOwn),
+    title: { zh: '國定假日與年假：一年放幾天', en: 'Public holidays and annual leave: days off each year' },
+    shortTitle: { zh: '國定假日與年假', en: 'Holidays & leave' },
+  },
+  wagesLeavePart,
+);

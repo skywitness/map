@@ -2,6 +2,9 @@ import { fixed } from '../lib/format';
 import type { IndicatorDef, TopicDefinition } from './types';
 import { VENUE_INDICATOR, VENUE_LIST, VENUE_OVERLAYS } from './olympic-venues';
 import { olympicsPart, PLACES } from './olympics';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { roadRaces } from './road-races';
 
 /**
  * 運動（2026-10-30，製作手冊第七批 121）：原本是「奧運獎牌」與「F1 賽道與冠軍」合成的主題；
@@ -26,7 +29,7 @@ const ATTEND_SPORTS: IndicatorDef = {
   formatTick: (v) => `${v}%`,
 };
 
-export const sports: TopicDefinition = {
+const sportsOwn: TopicDefinition = {
   id: 'sports',
   title: { zh: '運動', en: 'Sports' },
   shortTitle: { zh: '運動', en: 'Sports' },
@@ -60,3 +63,12 @@ export const sports: TopicDefinition = {
   listPanel: VENUE_LIST,
   indicators: [...olympicsPart.indicators, VENUE_INDICATOR, ATTEND_SPORTS],
 };
+
+/** 路跑賽事的指標併進來以後的 id（races 以前是運動主題的 F1 指標、已經轉到賽車，所以改名） */
+export const ROAD_RACE_IDS: Record<string, string> = { races: 'road-races', founded: 'road-races-founded' };
+
+/**
+ * 運動（2026-11-04，主題整併 併12）：「馬拉松、超馬與鐵人賽事」併進來，資料照舊在 road-races/（topics/merge.ts），
+ * 舊網址 t/road-races/ 轉到這裡（redirects.ts）
+ */
+export const sports: TopicDefinition = withParts(hostOnly(sportsOwn), topicPart(roadRaces, { rename: ROAD_RACE_IDS }));

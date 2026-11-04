@@ -47,6 +47,29 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   'cloud-regions': { topic: 'ai', indicator: 'regions' },
   // 唐人街變成移民與難民的疊加圖層：打開僑民人數，並打開唐人街的圖層
   chinatowns: { topic: 'migration', indicator: 'emigrants', indicators: { map: { indicator: 'emigrants' } }, layer: 'chinatowns' },
+  // 2026-11-04 主題整併（使用者看過盤點後選「都做」；topics/merge.ts）：小主題併進相關的大主題，資料照舊在原本的資料夾
+  vehicles: { topic: 'ev', indicator: 'motorcycles-per-1000' }, // 併5 汽機車與電動車
+  ewaste: {
+    // 併6 廢棄物與回收：電子垃圾的指標加 ewaste- 前綴（塑膠也有 per-capita）
+    topic: 'plastic',
+    indicator: 'ewaste-per-capita',
+    indicators: {
+      'per-capita': { indicator: 'ewaste-per-capita' },
+      generated: { indicator: 'ewaste-generated' },
+      'recycling-rate': { indicator: 'ewaste-recycling-rate' },
+      recycled: { indicator: 'ewaste-recycled' },
+    },
+  },
+  'road-races': {
+    // 併12 運動：races 以前是運動的 F1 指標（轉到賽車），路跑的改名 road-races
+    topic: 'sports',
+    indicator: 'road-races',
+    indicators: { races: { indicator: 'road-races' }, founded: { indicator: 'road-races-founded' } },
+  },
+  ivf: { topic: 'fertility', indicator: 'births-share' }, // 併14 生育率與高齡化
+  retirement: { topic: 'employment', indicator: 'retirement-age' }, // 併16 就業、失業與退休
+  climbing: { topic: 'diving', indicator: 'crag-count' }, // 併11 戶外運動場地：潛水與攀岩
+  'box-office-tw': { topic: 'culture', indicator: 'share' }, // 併10 文化
 };
 
 /**
@@ -65,10 +88,13 @@ export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
   },
   // 航空（id aviation，第十一批 186 起叫機場與旅客）：航空公司、最長航線的指標搬到航線與航空公司，指標 id 不變
   aviation: Object.fromEntries(['airlines', 'routes-count', 'longest', 'discontinued'].map((id) => [id, { topic: 'air-routes' }])),
-  // 交通安全：機車、汽車的指標搬到汽機車（第十一批 186），指標 id 不變
+  // 交通安全：機車、汽車的指標搬到汽機車（第十一批 186），2026-11-04 汽機車再併進電動車（汽機車與電動車），指標 id 不變
   'road-safety': Object.fromEntries(
-    ['motorcycles-per-1000', 'motorcycle-share', 'cars-per-1000', 'passenger-cars'].map((id) => [id, { topic: 'vehicles' }]),
+    ['motorcycles-per-1000', 'motorcycle-share', 'cars-per-1000', 'passenger-cars'].map((id) => [id, { topic: 'ev' }]),
   ),
+  // 2026-11-04 主題整併：薪資與工時的法定年假搬到國定假日與年假（併9），法律與制度的博弈的合法性搬到博弈（併8，改名 legality）
+  wages: { 'annual-leave': { topic: 'holidays' }, 'annual-leave-max': { topic: 'holidays' } },
+  laws: { gambling: { topic: 'gambling', indicators: { gambling: { indicator: 'legality' } } } },
   // 賽車（第九批 160）：運動的 F1 指標搬到賽車，指標 id 不變
   sports: Object.fromEntries(['races', 'champions'].map((id) => [id, { topic: 'racing' }])),
 };
@@ -85,7 +111,8 @@ export function redirectTopic(topic: string | null, indicator: string | null, it
   if (!topic) return null;
   const whole = TOPIC_REDIRECTS[topic];
   const moved = indicator ? INDICATOR_MOVES[topic]?.[indicator] : undefined;
-  const target = whole ?? moved;
+  // 整個主題併掉、但其中幾個指標搬到另一個主題時（2026-11-04 能源政策：核能政策到核能、燃煤退場到石油天然氣與煤），指標的優先
+  const target = moved ?? whole;
   if (!target) return null;
   const renamed = indicator ? target.indicators?.[indicator] : undefined;
   return {

@@ -2,6 +2,9 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { climbing } from './climbing';
 
 /**
  * 潛水中心與潛點（2026-11-04，製作手冊第二十一批 343；pipeline/topics/diving.py）：
@@ -48,7 +51,7 @@ const LIST: ListPanelDef = {
 
 const count = (v: number) => tr({ zh: `${fixed(v, 0)} 個`, en: fixed(v, 0) });
 
-export const diving: TopicDefinition = {
+const divingOwn: TopicDefinition = {
   id: 'diving',
   title: { zh: '潛水中心與潛點', en: 'Dive centres and diving sites' },
   shortTitle: { zh: '潛水', en: 'Diving' },
@@ -110,3 +113,16 @@ export const diving: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 戶外運動場地：潛水與攀岩（2026-11-04，主題整併 併11）：「攀岩場」併進來，資料照舊在 climbing/（topics/merge.ts），
+ * 舊網址 t/climbing/ 轉到這裡（redirects.ts）
+ */
+export const diving: TopicDefinition = withParts(
+  {
+    ...hostOnly(divingOwn),
+    title: { zh: '戶外運動場地：潛水與攀岩', en: 'Outdoor sports: diving and climbing' },
+    shortTitle: { zh: '潛水與攀岩', en: 'Diving & climbing' },
+  },
+  topicPart(climbing),
+);

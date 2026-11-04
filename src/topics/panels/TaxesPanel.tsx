@@ -146,9 +146,9 @@ export default function TaxesPanel({ topic, iso3, year, countryName, tokens }: P
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const files = useMemo(() => IDS.map((id) => `topics/${topic.id}/${id}.json`), [topic.id]);
+  const files = useMemo(() => IDS.map((id) => `topics/taxes/${id}.json`), []);
   const loaded = useJsonMany<IndicatorData>(files);
-  const taiwan = useJson<TaiwanFile>(iso3 === 'TWN' ? `topics/${topic.id}/taiwan.json` : null).data;
+  const taiwan = useJson<TaiwanFile>(iso3 === 'TWN' ? `topics/taxes/taiwan.json` : null).data;
 
   const view = useMemo(() => {
     if (!loaded.every(Boolean)) return null;

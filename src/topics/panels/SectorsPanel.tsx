@@ -50,8 +50,9 @@ export default function SectorsPanel({ topic, iso3, year, countryName, tokens }:
   const t = useT();
   const text = TEXT[lang];
   const files = useMemo(
-    () => SECTORS.flatMap((s) => [`topics/${topic.id}/${s.id}.json`, `topics/${topic.id}/employment-${s.id}.json`]),
-    [topic.id],
+    // 資料在產業結構原本的資料夾（2026-11-04 併進工業以後主題 id 是 industry）
+    () => SECTORS.flatMap((s) => [`topics/sectors/${s.id}.json`, `topics/sectors/employment-${s.id}.json`]),
+    [],
   );
   const loaded = useJsonMany<IndicatorData>(files);
 

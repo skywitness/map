@@ -2,6 +2,8 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { withParts } from './parts';
 import { birthSeasonPart } from './birth-season';
+import { ivf } from './ivf';
+import { hostOnly, topicPart } from './merge';
 import type { IndicatorDef, TopicDefinition } from './types';
 import { CHINA_BIRTH_POLICY } from './events';
 import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
@@ -24,7 +26,7 @@ const BORN: NonNullable<IndicatorDef['timeAxis']> = {
   year: (y) => tr({ zh: `${y} 年出生`, en: `${y} birth cohort` }),
 };
 
-export const fertility: TopicDefinition = withParts({
+export const fertility: TopicDefinition = withParts(hostOnly({
   id: 'fertility',
   title: { zh: '各國生育率與高齡化', en: 'Fertility and ageing by country' },
   shortTitle: { zh: '生育與高齡', en: 'Fertility' },
@@ -242,4 +244,6 @@ export const fertility: TopicDefinition = withParts({
       shareOfWorld: true,
     },
   ],
-}, birthSeasonPart);
+  // 2026-11-04（主題整併 併14）：「人工生殖：試管嬰兒有多普遍」從醫藥分類併進來，資料照舊在 ivf/（topics/merge.ts），
+  // 舊網址 t/ivf/ 轉到這裡（redirects.ts）
+}), birthSeasonPart, topicPart(ivf));

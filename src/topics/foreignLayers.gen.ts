@@ -65,11 +65,9 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"oldest-universities","layers":[{"id":"universities","label":{"zh":"最古老的大學（依成為大學的年份）","en":"Oldest universities (by year of university status)"},"kind":"points"}]},
   {"topic":"skyscrapers","layers":[{"id":"buildings","label":{"zh":"150 m 以上的大樓（縮小時只畫高的）","en":"Buildings 150 m+ (only the tallest when zoomed out)"},"kind":"points"},{"id":"towers","label":{"zh":"150 m 以上的電視塔與觀景塔","en":"TV and observation towers 150 m+"},"kind":"points"}]},
   {"topic":"sports","layers":[{"id":"venues-summer","label":{"zh":"夏季奧運的比賽場館","en":"Summer Games venues"},"kind":"points"},{"id":"venues-winter","label":{"zh":"冬季奧運的比賽場館","en":"Winter Games venues"},"kind":"points"}]},
-  {"topic":"road-races","layers":[{"id":"races-now","label":{"zh":"賽事（有座標的）","en":"Races (with coordinates)"},"kind":"points"},{"id":"races-founded","label":{"zh":"賽事（有座標的）","en":"Races (with coordinates)"},"kind":"points"}]},
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
   {"topic":"dining","layers":[{"id":"michelin","label":{"zh":"米其林三星餐廳","en":"Michelin three-star restaurants"},"kind":"points"}]},
   {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"}]},
-  {"topic":"climbing","layers":[{"id":"crags","label":{"zh":"岩場","en":"Crags"},"kind":"points"}]},
   {"topic":"cycling","layers":[{"id":"routes","label":{"zh":"自行車路線","en":"Cycle routes"},"kind":"lines"},{"id":"cities","label":{"zh":"騎自行車上班的比例（城市）","en":"Share cycling to work (cities)"},"kind":"points"}]},
   {"topic":"gambling","layers":[{"id":"casinos","label":{"zh":"賭場","en":"Casinos"},"kind":"points"}]},
 ];

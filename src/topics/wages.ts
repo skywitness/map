@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { topicPart } from './merge';
 
 const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
@@ -10,7 +11,11 @@ const INTL_MONTH = { zh: '國際元/月', en: 'Int$/month' };
 const money = (v: number) => fixed(v, v < 10 ? 1 : 0);
 const hours = (v: number, digits: number) => tr({ zh: `${fixed(v, digits)} 小時`, en: `${fixed(v, digits)} hours` });
 
-export const wages: TopicDefinition = {
+/** 法定年假的兩個指標（2026-11-04 主題整併 併9 搬到國定假日主題，用下面的 wagesLeavePart） */
+const LEAVE_INDICATORS = ['annual-leave', 'annual-leave-max'];
+
+/** 薪資與工時原本的定義（含法定年假） */
+const wagesWithLeave: TopicDefinition = {
   id: 'wages',
   title: { zh: '各國薪資與工時', en: 'Wages and working hours by country' },
   shortTitle: { zh: '薪資與工時', en: 'Wages & hours' },
@@ -205,4 +210,20 @@ export const wages: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
     },
   ],
+};
+
+/**
+ * 薪資與工時（2026-11-04 起不含法定年假：搬到「國定假日與年假」，舊網址的 ind=annual-leave 由 redirects.ts 轉過去）。
+ * 法定年假的兩個資料來源（英文維基百科的表、勞動基準法）也跟著搬
+ */
+/** 法定年假（國定假日與年假主題的 withParts 接上；不匯出成主題，registry 的 topicOf 才不會拿錯） */
+export const wagesLeavePart = topicPart(
+  { ...wagesWithLeave, sources: wagesWithLeave.sources.slice(0, 2), note: undefined },
+  { only: LEAVE_INDICATORS, name: { zh: '法定年假', en: 'Statutory annual leave' } },
+);
+
+export const wages: TopicDefinition = {
+  ...wagesWithLeave,
+  sources: wagesWithLeave.sources.slice(2),
+  indicators: wagesWithLeave.indicators.filter((i) => !LEAVE_INDICATORS.includes(i.id)),
 };

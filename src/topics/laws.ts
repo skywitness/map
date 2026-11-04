@@ -1,6 +1,7 @@
 import { tr, type Text } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { CategoryDef, IndicatorDef, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, SourceDef, TopicDefinition } from './types';
+import { topicPart } from './merge';
 
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 
@@ -145,7 +146,18 @@ function tooltipLines(iso3: string, { indicator, source }: { indicator: string; 
   return varies?.includes(iso3) ? [tr({ zh: '各地不同，這裡是住最多人的那個值（見附註）', en: 'Varies by region; the value for most of the population (see notes)' })] : [];
 }
 
-export const laws: TopicDefinition = {
+/** 博弈的合法性的資料來源與說明（2026-11-04 主題整併 併8：這個指標搬到博弈主題，用檔尾的 lawsGamblingPart） */
+const GAMBLING_SOURCE: SourceDef = {
+  name: { zh: '英文維基百科「Gambling age」（博弈的合法性，2026 年 10 月）', en: 'Wikipedia, “Gambling age” (legality of gambling, October 2026)' },
+  url: 'https://en.wikipedia.org/w/index.php?oldid=1379514800',
+  license: 'CC BY-SA 4.0',
+};
+const GAMBLING_NOTE = {
+  zh: '博弈的合法性依英文維基百科「Gambling age」的年齡欄分類（2026 年 10 月，CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）：寫「全部禁止（賭場）、彩券 18 歲」這類的算只准彩券等特許，只寫年齡的算賭場合法（條目沒有分賭場與彩券，沒有逐國查證賭場是否真的存在），非營利的賓果、摸彩不算；台灣、香港、日本、印度、馬來西亞、美國、澳門依法條或條目的說明另外判斷，寫在附註。',
+  en: 'The legality of gambling is classified from the age column of the Wikipedia article “Gambling age” (October 2026, CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well): entries such as “illegal for all ages (casinos), 18 (lotteries)” count as lotteries or licensed betting only, and entries giving only an age count as casinos legal (the article does not separate casinos from lotteries, and whether casinos actually operate was not checked country by country); non-profit bingo and raffles are ignored. Taiwan, Hong Kong, Japan, India, Malaysia, the US and Macao are classified from their laws or the article’s notes, as given in the panel notes. ',
+};
+
+const lawsOwn: TopicDefinition = {
   id: 'laws',
   title: { zh: '法律與制度', en: 'Laws and institutions' },
   shortTitle: { zh: '法律與制度', en: 'Laws' },
@@ -181,11 +193,7 @@ export const laws: TopicDefinition = {
       url: 'https://law.moj.gov.tw/',
       license: { zh: '法律條文不是著作權的標的（著作權法第 9 條）', en: 'Statutes are not subject to copyright (Copyright Act, Article 9)' },
     },
-    {
-      name: { zh: '英文維基百科「Gambling age」（博弈的合法性，2026 年 10 月）', en: 'Wikipedia, “Gambling age” (legality of gambling, October 2026)' },
-      url: 'https://en.wikipedia.org/w/index.php?oldid=1379514800',
-      license: 'CC BY-SA 4.0',
-    },
+    GAMBLING_SOURCE,
     {
       name: {
         zh: '英文維基百科「Legality of cannabis」的 Recreational、Medical 欄（娛樂用與醫療用大麻，2026 年 10 月）、「Legal status of psilocybin mushrooms」（迷幻蘑菇，2026 年 11 月）',
@@ -239,14 +247,12 @@ export const laws: TopicDefinition = {
       '「事實上廢除」是法律上還有死刑、但那一年與之前 9 年都沒有執行，依各國最後一次執行的年份判斷：只知道最後一次執行的國家，之前的年份當成有在執行，中間另有 10 年以上空檔的（例如緬甸 1988–2022 年、甘比亞 1981–2012 年）只算進條目寫明的。' +
       '「只廢除普通犯罪」是戰時、軍法等例外仍有死刑。國家畫在今天的國界上，獨立以前用那個地方當時的法律與執行紀錄；德國 1949–1990 年是西德。' +
       '法定年齡是 2026 年的現況，依英文維基百科的條目自行整理（CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享），台灣用法條核對：取不需父母同意、法院許可的一般年齡，例外寫在附註；各地不同的取住最多人的那個值；結婚取女性的年齡（女性一律要監護人同意的國家取男性的）；飲酒取購買年齡，酒類不同時取最低的；汽車駕照不算有人陪同、學習駕照；刑事責任取可以負刑事責任的最低年齡。' +
-      '博弈的合法性依英文維基百科「Gambling age」的年齡欄分類（2026 年 10 月，CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）：寫「全部禁止（賭場）、彩券 18 歲」這類的算只准彩券等特許，只寫年齡的算賭場合法（條目沒有分賭場與彩券，沒有逐國查證賭場是否真的存在），非營利的賓果、摸彩不算；台灣、香港、日本、印度、馬來西亞、美國、澳門依法條或條目的說明另外判斷，寫在附註。' +
       '代理孕母依英文維基百科「Surrogacy laws by country」2026 年 11 月的版本（CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）逐國的段落自己分類，只分代孕本身合不合法，親權怎麼登記寫在附註：歐盟不准商業代孕，條目寫希臘「完全合法」的算只准無償；泰國條目寫泰國夫妻可以商業代孕，跟 2015 年的法律不符，依法條算只准無償；以色列可以補償費用以外的時間與收入損失，算商業代孕合法；葡萄牙的法律被判違憲、暫停，不畫；台灣依人工生殖法。',
     en:
       'The death penalty is compiled from Wikipedia articles (October 2026, CC BY-SA 4.0) and shows the situation at the end of each year, with the years of abolition and the last execution in the panel notes; the data file of this indicator is shared under CC BY-SA 4.0 as well. ' +
       '“Abolished in practice” means the death penalty is still in law but there were no executions in that year or the 9 years before, judged from the year of each country’s last execution: earlier years count as having executions unless the articles record a gap of 10 years or more (such as Myanmar in 1988–2022 and the Gambia in 1981–2012). ' +
       '“Abolished for ordinary crimes only” keeps it for exceptions such as wartime or military law. Countries are shown within today’s borders, with the law and executions of the area before independence; Germany in 1949–1990 is West Germany. ' +
       'Legal ages are as of 2026, compiled from Wikipedia articles (CC BY-SA 4.0, and the data files are shared under CC BY-SA 4.0 as well), with Taiwan checked against its statutes: the general age without parental or judicial consent is shown and exceptions are in the notes; where it varies by region, the value for most of the population; for marriage, the age for women (for men where women always need a guardian’s consent); for alcohol, the purchase age, and the lowest where it differs by drink; for driving, not counting accompanied or learner driving; for criminal responsibility, the minimum age. ' +
-      'The legality of gambling is classified from the age column of the Wikipedia article “Gambling age” (October 2026, CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well): entries such as “illegal for all ages (casinos), 18 (lotteries)” count as lotteries or licensed betting only, and entries giving only an age count as casinos legal (the article does not separate casinos from lotteries, and whether casinos actually operate was not checked country by country); non-profit bingo and raffles are ignored. Taiwan, Hong Kong, Japan, India, Malaysia, the US and Macao are classified from their laws or the article’s notes, as given in the panel notes. ' +
       'Surrogacy is classified from the country sections of the November 2026 revision of the Wikipedia article “Surrogacy laws by country” (CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well), covering only whether surrogacy itself is legal, with how parentage is registered in the notes: commercial surrogacy is not allowed in the EU, so Greece, described as “fully legal”, counts as altruistic only; the article says Thai couples may use commercial contracts, which does not match the 2015 Act, so Thailand counts as altruistic only under the Act; Israel allows compensation beyond expenses for time and lost earnings, so it counts as commercial; Portugal’s law was struck down as unconstitutional and suspended, so it is left blank; Taiwan follows the Assisted Reproduction Act.',
   },
   indicators: [
@@ -426,3 +432,16 @@ export const laws: TopicDefinition = {
     ),
   ],
 };
+
+/** 法律與制度（2026-11-04 起不含博弈的合法性：搬到博弈主題，舊網址的 ind=gambling 由 redirects.ts 轉過去） */
+export const laws: TopicDefinition = {
+  ...lawsOwn,
+  sources: lawsOwn.sources.filter((s) => s !== GAMBLING_SOURCE),
+  indicators: lawsOwn.indicators.filter((i) => i.id !== 'gambling'),
+};
+
+/** 博弈的合法性（博弈主題的 withParts 接上，指標改名 legality；不匯出成主題，registry 的 topicOf 才不會拿錯） */
+export const lawsGamblingPart = topicPart(
+  { ...lawsOwn, sources: [GAMBLING_SOURCE], note: GAMBLING_NOTE },
+  { only: ['gambling'], rename: { gambling: 'legality' }, name: { zh: '博弈的合法性', en: 'Legality of gambling' } },
+);

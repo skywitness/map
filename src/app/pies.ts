@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { useJsonMany } from '../lib/data';
 import type { PieData } from '../map/pies';
 import { latestAt } from '../panels/stats';
-import { dataFolder, indicatorPath, type Indicator, type IndicatorData, type Topic } from '../topics/types';
+import { indicatorPath, topicFile, type Indicator, type IndicatorData, type Topic } from '../topics/types';
 
 const NONE: string[] = [];
 
@@ -22,7 +22,7 @@ export function usePies(topic: Topic, indicator: Indicator, item: string | null,
     () =>
       parts.length
         ? parts.flatMap((p) =>
-            p.file ? [`topics/${dataFolder(topic)}/${p.file}`] : p.def ? [indicatorPath(topic, p.def, p.item ?? item)] : [],
+            p.file ? [topicFile(topic, p.file)] : p.def ? [indicatorPath(topic, p.def, p.item ?? item)] : [],
           )
         : NONE,
     [parts, topic, item],

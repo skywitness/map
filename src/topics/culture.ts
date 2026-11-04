@@ -1,6 +1,9 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { boxOfficeTw } from './box-office-tw';
 
 /**
  * 文化：電影院、出版、文化工作者、遺產保存的公共支出（2026-11-04，製作手冊第二十一批 371、372、374、375；pipeline/topics/culture.py）：
@@ -14,7 +17,7 @@ const UIS = {
   license: 'CC BY-SA 4.0',
 };
 
-export const culture: TopicDefinition = {
+const cultureOwn: TopicDefinition = {
   id: 'culture',
   title: { zh: '文化：電影院、出版、文化工作者與遺產保存', en: 'Culture: cinemas, books, cultural jobs and heritage' },
   shortTitle: { zh: '文化', en: 'Culture' },
@@ -140,3 +143,15 @@ export const culture: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 文化（2026-11-04，主題整併 併10）：「台灣人看哪一國的電影」併進來（電影院已經在這裡），資料照舊在 box-office-tw/
+ * （topics/merge.ts），舊網址 t/box-office-tw/ 轉到這裡（redirects.ts）
+ */
+export const culture: TopicDefinition = withParts(
+  {
+    ...hostOnly(cultureOwn),
+    title: { zh: '文化：電影院與台灣的票房、出版、文化工作者與遺產保存', en: 'Culture: cinemas and Taiwan’s box office, books, cultural jobs and heritage' },
+  },
+  topicPart(boxOfficeTw),
+);

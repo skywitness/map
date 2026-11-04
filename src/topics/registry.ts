@@ -46,7 +46,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'medicine',
     label: { zh: '醫藥', en: 'Health' },
     sections: [
-      { label: { zh: '健康與疾病', en: 'Health & disease' }, topics: ['health', 'medical-imaging', 'hospital-quality', 'disease', 'vaccination', 'covid-policy', 'ivf', 'plasma', 'height', 'tobacco-alcohol'] },
+      { label: { zh: '健康與疾病', en: 'Health & disease' }, topics: ['health', 'medical-imaging', 'hospital-quality', 'disease', 'vaccination', 'covid-policy', 'plasma', 'height', 'tobacco-alcohol'] },
       { label: { zh: '基因', en: 'Genes' }, topics: ['blood-types', 'newborn-screening', 'red-cell-traits', 'lactase', 'drug-genes'] },
       { label: { zh: '藥物', en: 'Medicines' }, topics: ['medicines', 'drug-consumption', 'taiwan-medicines', 'antimicrobial-resistance'] },
     ],
@@ -59,7 +59,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '產業', en: 'Industries' }, topics: ['sectors', 'industry', 'agriculture', 'minerals'] },
       { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies', 'company-sites'] },
-      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'retirement', 'wealth'] },
+      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
       { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
     ],
     // 左：產業、企業；中：所得與財富；右：財政與金融
@@ -83,7 +83,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '環境', en: 'Environment' },
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
-      { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'ewaste'] },
+      { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic'] },
       { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'oil-palm', 'planted-forests', 'wildfires'] },
     ],
   },
@@ -109,7 +109,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways', 'cable-cars'] },
       { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
       { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
-      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'vehicles', 'ev', 'ride-hailing'] },
+      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'ride-hailing'] },
     ],
     // 左：鐵道；中：航空、水運；右：道路
     columns: [1, 2, 1],
@@ -131,9 +131,9 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '休閒', en: 'Leisure' },
     sections: [
       { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers'] },
-      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'road-races', 'racing', 'esports'] },
+      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'esports'] },
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）
-      { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'climbing', 'cycling', 'gambling', 'holidays', 'time-use', 'box-office-tw', 'culture'] },
+      { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'cycling', 'gambling', 'holidays', 'time-use', 'culture'] },
     ],
     // 左：景點；右：獎項與運動、日常休閒
     columns: [1, 2],
@@ -153,11 +153,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   dining: () => import('./dining'),
   culture: () => import('./culture'),
   esports: () => import('./esports'),
-  'road-races': () => import('./road-races'),
-  'box-office-tw': () => import('./box-office-tw'),
-  retirement: () => import('./retirement'),
   diving: () => import('./diving'),
-  climbing: () => import('./climbing'),
   cycling: () => import('./cycling'),
   gambling: () => import('./gambling'),
   'time-use': () => import('./time-use'),
@@ -171,7 +167,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'newborn-screening': () => import('./newborn-screening'),
   'red-cell-traits': () => import('./red-cell-traits'),
   lactase: () => import('./lactase'),
-  ivf: () => import('./ivf'),
   'covid-policy': () => import('./covid-policy'),
   'medical-imaging': () => import('./medical-imaging'),
   'hospital-quality': () => import('./hospital-quality'),
@@ -253,7 +248,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   transport: () => import('./transport'),
   shipping: () => import('./shipping'),
   'road-safety': () => import('./road-safety'),
-  vehicles: () => import('./vehicles'),
   'high-speed-rail': () => import('./high-speed-rail'),
   metro: () => import('./metro'),
   'air-routes': () => import('./air-routes'),
@@ -279,7 +273,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'ride-hailing': () => import('./ride-hailing'),
   'heritage-railways': () => import('./heritage-railways'),
   airspace: () => import('./airspace'),
-  ewaste: () => import('./ewaste'),
   'taipei-view': () => import('./taipei-view'),
   magnetic: () => import('./magnetic'),
   aurora: () => import('./aurora'),

@@ -2,6 +2,9 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { PointRecord, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly } from './merge';
+import { lawsGamblingPart } from './laws';
 
 /**
  * 博弈：賭場、彩券行與投注站（2026-11-04，製作手冊第二十一批 369；pipeline/topics/gambling.py）：
@@ -20,7 +23,7 @@ function casinoName(p: PointRecord): { title: string; proper?: string } {
 
 const per100k = (v: number) => tr({ zh: `每十萬人 ${fixed(v, 2)} 家`, en: `${fixed(v, 2)} per 100,000` });
 
-export const gambling: TopicDefinition = {
+const gamblingOwn: TopicDefinition = {
   id: 'gambling',
   title: { zh: '博弈：賭場、彩券行與投注站', en: 'Gambling: casinos, lottery shops and betting shops' },
   shortTitle: { zh: '博弈', en: 'Gambling' },
@@ -43,7 +46,8 @@ export const gambling: TopicDefinition = {
       kind: 'points',
       id: 'casinos',
       file: 'casinos.json',
-      indicators: ['casinos-count'],
+      // 博弈的合法性（2026-11-04 從法律與制度搬來）的面量圖上也畫賭場的點
+      indicators: ['casinos-count', 'legality'],
       label: { zh: '賭場', en: 'Casinos' },
       radius: 3,
       color: MAP_TOKENS.categorical[6],
@@ -94,3 +98,9 @@ export const gambling: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 博弈（2026-11-04，主題整併 併8）：「法律與制度」的博弈的合法性搬過來（指標改名 legality，資料照舊在 laws/，
+ * topics/merge.ts），面量圖上疊賭場的點；舊網址 t/laws/?ind=gambling 轉到這裡（redirects.ts 的 INDICATOR_MOVES）
+ */
+export const gambling: TopicDefinition = withParts(hostOnly(gamblingOwn), lawsGamblingPart);
