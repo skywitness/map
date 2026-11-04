@@ -111,6 +111,14 @@ export const health: TopicDefinition = {
     },
     {
       name: {
+        zh: 'OECD Health Statistics：Surgical procedures（腹腔鏡手術的比例）',
+        en: 'OECD Health Statistics: Surgical procedures (laparoscopic share)',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
         zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
         en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
       },
@@ -398,6 +406,35 @@ export const health: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 20, 50, 100] } },
       format: (v) => tr({ zh: `每十萬人 ${fixed(v, 1)} 位`, en: `${fixed(v, 1)} per 100,000` }),
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'laparoscopic',
+      label: { zh: '微創（腹腔鏡）手術的比例', en: 'Laparoscopic (keyhole) surgery share' },
+      description: {
+        zh: '常見手術裡，用腹腔鏡（微創、開小洞）做的占幾 %，選上方的「手術」切換（OECD，同一年的腹腔鏡手術數 ÷ 全部手術數，住院加當日手術）。疝氣修補：挪威 76.9%、盧森堡 71.7%、丹麥 70.8%、瑞士 65.1%；瑞典 10.3%、克羅埃西亞 9.9%、義大利 7.8%、塞爾維亞 5.0%、北馬其頓 2.0%。闌尾切除：加拿大 96.3%、荷蘭、以色列 95.8%；羅馬尼亞 39.4%、哥倫比亞 28.5%、保加利亞 25.6%。膽囊切除幾乎都是腹腔鏡（冰島 98.4%、挪威 97.8%），墨西哥 55.0% 最低。只有 OECD 的約 40 國，各國用 5 年內最近的一年；台灣沒有可下載的全國統計。',
+        en: 'Share of common operations done laparoscopically (keyhole surgery); switch with “Operation” above (OECD; laparoscopic procedures ÷ all procedures in the same year, inpatient plus day cases). Hernia repair: Norway 76.9%, Luxembourg 71.7%, Denmark 70.8%, Switzerland 65.1%; Sweden 10.3%, Croatia 9.9%, Italy 7.8%, Serbia 5.0%, North Macedonia 2.0%. Appendectomy: Canada 96.3%, the Netherlands and Israel 95.8%; Romania 39.4%, Colombia 28.5%, Bulgaria 25.6%. Gallbladder removal is almost always laparoscopic (Iceland 98.4%, Norway 97.8%), with Mexico lowest at 55.0%. Only about 40 OECD-reporting countries; each shows its latest year within five. No downloadable national statistics for Taiwan.',
+      },
+      unit: '%',
+      file: 'laparoscopic-{item}.json',
+      dimension: {
+        label: { zh: '手術', en: 'Operation' },
+        options: [
+          { id: 'hernia', label: { zh: '腹股溝疝氣修補', en: 'Inguinal hernia repair' } },
+          { id: 'appendix', label: { zh: '闌尾切除', en: 'Appendectomy' } },
+          { id: 'gallbladder', label: { zh: '膽囊切除', en: 'Cholecystectomy' } },
+        ],
+        defaultOption: 'hernia',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [10, 20, 30, 45, 60, 70] },
+        itemScales: {
+          appendix: { type: 'sequential', thresholds: [40, 60, 75, 85, 90, 95] },
+          gallbladder: { type: 'sequential', thresholds: [70, 85, 90, 93, 95, 97] },
+        },
+      },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
     },
     {
       id: 'ltc-beds',

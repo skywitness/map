@@ -186,6 +186,8 @@ STEPS = {
     "health-surgery": "topics.health_surgery",
     # 加護病床（併進健康主題，第二十批 314）：OECD DF_BEDS_ICU（1 MB）、衛福部醫療服務量年報表 3
     "health-icu": "topics.health_icu",
+    # 腹腔鏡手術的比例（併進健康主題，第二十批 316）：OECD DF_SURG_PROC 只抓 6 個手術代碼（17 MB）
+    "health-laparoscopy": "topics.health_laparoscopy",
     # 醫學影像與放射治療設備（新主題，第二十批 315）：OECD DF_MED_TECH（7.8 MB）與 DF_DIAG_EXAM（6.1 MB）、衛福部年報表 14、15
     "medical-imaging": "topics.medical_imaging",
     # 被美國 FDA 回收的藥品（併進藥品支出與取得，第二十批 308）：openFDA 整批檔（3.8 MB）、食藥署的藥品回收與許可證
