@@ -72,14 +72,16 @@ def counts(key: str, value: str) -> dict[str, int]:
     return out
 
 
-def features(key: str, value: str, extra: tuple[str, ...] = ("name",)) -> list[dict[str, str]]:
-    """key=value 的每個物件：osm（網址）、iso3、wkt（幾何）與 extra 列的標籤（沒有的是空字串）"""
+def features(key: str, value: str, extra: tuple[str, ...] = ("name",), iso2: str | None = None) -> list[dict[str, str]]:
+    """key=value 的每個物件：osm（網址）、iso3、wkt（幾何）與 extra 列的標籤（沒有的是空字串）；iso2 只查一個國家"""
     optional = "\n  ".join(f"OPTIONAL {{ ?x osmkey:{k} ?{k.replace(':', '_')} }}" for k in extra)
+    only = f'FILTER(?iso = "{iso2}")' if iso2 else ""
     rows = query(f"""SELECT ?x ?iso ?wkt {' '.join('?' + k.replace(':', '_') for k in extra)} WHERE {{
   {COUNTRIES}
+  {only}
   ?x osmkey:{key} "{value}" ; geo:hasGeometry/geo:asWKT ?wkt .
   {optional}
-}}""", f"features-{key}-{value}")
+}}""", f"features-{key}-{value}" + (f"-{iso2}" if iso2 else ""))
     out = []
     for r in rows:
         iso3 = from_alpha2(r["iso"]["value"])

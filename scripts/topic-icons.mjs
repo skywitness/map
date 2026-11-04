@@ -82,6 +82,7 @@ const TOPIC_ICONS = {
   holidays: 'calendar-days',
   dining: 'utensils-crossed',
   diving: 'shell',
+  climbing: 'hand-grab',
   'box-office-tw': 'clapperboard',
   esports: 'gamepad-2',
   'road-races': 'timer',

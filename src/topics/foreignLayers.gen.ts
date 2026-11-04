@@ -67,4 +67,5 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"road-races","layers":[{"id":"races-now","label":{"zh":"賽事（有座標的）","en":"Races (with coordinates)"},"kind":"points"},{"id":"races-founded","label":{"zh":"賽事（有座標的）","en":"Races (with coordinates)"},"kind":"points"}]},
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
   {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"}]},
+  {"topic":"climbing","layers":[{"id":"crags","label":{"zh":"岩場","en":"Crags"},"kind":"points"}]},
 ];
