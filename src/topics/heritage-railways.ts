@@ -89,11 +89,11 @@ const heritageRailwaysOwn: TopicDefinition = {
   ],
   note: {
     zh:
-      '點是 Wikidata 收錄、有座標的保存鐵路（含觀光鐵道、蒸汽火車保存線）、齒軌鐵路、登山鐵路與森林鐵路，含各類的子類別；纜索鐵道在「纜車與索道」主題。同一條鐵路常同時屬於好幾類，點的顏色依齒軌、登山、森林、保存的順序取一類，滑過列出全部。' +
+      '點是 Wikidata 收錄、有座標的保存鐵路（含觀光鐵道、蒸汽火車保存線）、齒軌鐵路、登山鐵路與森林鐵路，含各類的子類別；纜索鐵道在這個主題的「纜車地圖」。同一條鐵路常同時屬於好幾類，點的顏色依齒軌、登山、森林、保存的順序取一類，滑過列出全部。' +
       '年份依序用正式啟用日期、啟用日期、成立時間；保存鐵路的年份常是原本那條鐵路的通車年份，不是開始觀光營運的年份。停用日期也常是原本那條線停駛的年份（之後才改成保存鐵路），所以不依它拿掉。沒有年份的放在「開通年份不詳」的圖層（預設關閉）。' +
       'Wikidata 的 691 條裡只有 466 條有座標（森林鐵路 95 條只有 25 條），各國的數量反映 Wikidata 的收錄，英國收得特別多。台灣有阿里山林業鐵路（Wikidata 沒有年份，依林業及自然保育署寫 1912 年通車）、羅東森林鐵道與太平山森林鐵路。',
     en:
-      'Dots are heritage railways (including tourist and preserved steam lines), rack railways, mountain railways and forest railways in Wikidata with coordinates, including their subclasses; funiculars are in the Cable cars topic. A railway often belongs to several types; dots take one colour in the order rack, mountain, forest, heritage, and the tooltip lists all of them. ' +
+      'Dots are heritage railways (including tourist and preserved steam lines), rack railways, mountain railways and forest railways in Wikidata with coordinates, including their subclasses; funiculars are on this topic’s cable car map. A railway often belongs to several types; dots take one colour in the order rack, mountain, forest, heritage, and the tooltip lists all of them. ' +
       'Years come from the official opening date, service entry or inception, in that order; for heritage railways this is often when the original line opened, not when tourist service began. Closing dates often refer to the original line before it was preserved, so they are not used to remove dots. Railways without a year are in the “year unknown” layer (off by default). ' +
       'Only 466 of Wikidata’s 691 entries have coordinates (25 of 95 forest railways), and counts reflect Wikidata’s coverage, which is especially thorough for the UK. Taiwan has the Alishan Forest Railway (no year in Wikidata; opened in 1912 according to Taiwan’s Forestry and Nature Conservation Agency), the Luodong Forest Railway and the Taiping Mountain Forest Railway.',
   },

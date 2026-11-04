@@ -85,6 +85,12 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   sectors: { topic: 'industry', indicator: 'services' }, // 併13 產業結構與工業
   // 併15 步道與自行車路線（自行車的 map 改名 cycle-map）
   cycling: { topic: 'trails', indicator: 'cycle-map', indicators: { map: { indicator: 'cycle-map' } } },
+  // 整1 醫學影像、醫院的表現併進醫療人力與設備，血漿製劑併進藥品支出與取得
+  'medical-imaging': { topic: 'health-care', indicator: 'devices' },
+  'hospital-quality': { topic: 'health-care', indicator: 'mortality' },
+  plasma: { topic: 'medicines', indicator: 'fractionation' },
+  'covid-policy': { topic: 'covid', indicator: 'stringency' }, // 整2 COVID-19
+  taxes: { topic: 'fiscal', indicator: 'cit' }, // 整3 政府財政與稅
 };
 
 /**
@@ -113,6 +119,67 @@ export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
   // 併1 能源政策的燃煤退場到石油、天然氣與煤（能源政策整個併掉，這兩個指標優先於 TOPIC_REDIRECTS）；併3 森林的兩個指標到森林
   'energy-policy': { 'coal-phaseout': { topic: 'fossil-fuels' }, ppca: { topic: 'fossil-fuels' } },
   'water-forest': { 'forest-cover': { topic: 'forest' }, 'forest-change': { topic: 'forest' } },
+  // 整1 健康與醫療拆成三個（壽命與死亡留在 health）
+  health: {
+    ...Object.fromEntries(
+      [
+        'health-spending-per-capita',
+        'health-spending-gdp',
+        'oop-share',
+        'oop-per-capita',
+        'government-share',
+        'health-system',
+        'health-financing',
+        'uhc-start',
+      ].map((id) => [id, { topic: 'health-spending' }]),
+    ),
+    ...Object.fromEntries(
+      [
+        'physicians',
+        'nurses',
+        'hospital-beds',
+        'icu-beds',
+        'icu-beds-adult',
+        'surgery',
+        'surgical-workforce',
+        'laparoscopic',
+        'obstetric-trauma',
+        'teleconsult-share',
+        'teleconsult-per-person',
+        'ltc-beds',
+        'ltc-recipients',
+      ].map((id) => [id, { topic: 'health-care' }]),
+    ),
+  },
+  // 整2 疫苗與防疫的 COVID-19 指標到 COVID-19
+  vaccination: Object.fromEntries(
+    ['covid-deaths', 'covid-vaccinated', 'covid-doses', 'covid-boosters', 'excess-deaths', 'excess-wmd', 'undercount'].map((id) => [
+      id,
+      { topic: 'covid' },
+    ]),
+  ),
+  // 整3 物價與財政的物價、消費指標到物價與消費
+  fiscal: Object.fromEntries(['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'].map((id) => [id, { topic: 'prices' }])),
+  // 整4 國際觀光的旅遊習慣指標到旅遊習慣
+  tourism: Object.fromEntries(
+    [
+      'main-accommodation',
+      'hotel-share',
+      'free-accommodation-share',
+      'long-trips-domestic',
+      'long-trips-abroad',
+      'no-trip',
+      'no-trip-reason',
+      'air-share-abroad',
+      'package-share-abroad',
+      'web-booked-abroad',
+      'trips-per-resident',
+      'trips-abroad-per-resident',
+      'participation',
+      'nights-per-trip-abroad',
+      'spend-per-trip-abroad',
+    ].map((id) => [id, { topic: 'travel-habits' }]),
+  ),
   // 賽車（第九批 160）：運動的 F1 指標搬到賽車，指標 id 不變
   sports: Object.fromEntries(['races', 'champions'].map((id) => [id, { topic: 'racing' }])),
 };

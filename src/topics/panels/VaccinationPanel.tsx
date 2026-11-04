@@ -176,16 +176,19 @@ export default function VaccinationPanel({ topic, iso3, year, countryName, token
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const files = useMemo(() => COVERAGE.map((id) => `topics/${topic.id}/${id}.json`), [topic.id]);
+  // 2026-11-04（主題整併 整2）：COVID-19 的指標拆到 COVID-19 主題，這個區塊在那裡只畫 COVID-19 的圖表、在疫苗與防疫只畫常規疫苗；
+  // 資料都在 vaccination/
+  const covidMode = topic.id !== 'vaccination';
+  const files = useMemo(() => (covidMode ? [] : COVERAGE.map((id) => `topics/vaccination/${id}.json`)), [covidMode]);
   const coverage = useJsonMany<IndicatorData>(files);
   const covidFiles = useMemo(
-    () => ['covid-deaths', 'excess-deaths', 'covid-vaccinated'].map((id) => `topics/${topic.id}/${id}.json`),
-    [topic.id],
+    () => (covidMode ? ['covid-deaths', 'excess-deaths', 'covid-vaccinated'].map((id) => `topics/vaccination/${id}.json`) : []),
+    [covidMode],
   );
   const covidData = useJsonMany<IndicatorData>(covidFiles);
   // 只有指標檔裡有 COVID-19 資料的國家才有時間線檔，沒有的不去要（避免 404）
   const hasCovid = covidData.some((d) => d?.values[iso3]?.some((v) => v != null));
-  const timeline = useJson<Timeline>(hasCovid ? `topics/${topic.id}/covid/${iso3}.json` : null).data;
+  const timeline = useJson<Timeline>(hasCovid ? `topics/vaccination/covid/${iso3}.json` : null).data;
 
   const coverageChart = useMemo(() => {
     const base = coverage[0];

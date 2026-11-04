@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import type { CategoryDef, FlowLabels, IndicatorDef, Text, TopicDefinition } from './types';
 import { COVID } from './events';
 import { MONTHS, monthLabel } from './months';
+import { topicPart } from './merge';
 
 const ARRIVALS = { zh: '人次', en: 'arrivals' };
 const PER_PERSON = { zh: '人次/人', en: 'arrivals per resident' };
@@ -65,7 +66,7 @@ const pctIndicator = (id: string, label: Text, description: Text, thresholds: nu
   formatTick: (v) => `${v}%`,
 });
 
-export const tourism: TopicDefinition = {
+const tourismOwn: TopicDefinition = {
   id: 'tourism',
   title: { zh: '各國國際觀光', en: 'International tourism by country' },
   shortTitle: { zh: '觀光', en: 'Tourism' },
@@ -557,3 +558,47 @@ export const tourism: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 2026-11-04 主題整併（整4）：國際觀光原本 30 個指標，其中 15 個是居民的旅遊習慣（Eurostat 的觀光需求調查、觀光署的國人旅遊
+ * 狀況調查），拆成「旅遊習慣」主題（travel-habits.ts，放休閒的日常休閒）。資料照舊在 tourism/，舊網址的指標由 redirects.ts
+ * 的 INDICATOR_MOVES 轉過去；這兩個調查的資料來源跟著搬
+ */
+const HABIT_INDICATORS = [
+  'main-accommodation',
+  'hotel-share',
+  'free-accommodation-share',
+  'long-trips-domestic',
+  'long-trips-abroad',
+  'no-trip',
+  'no-trip-reason',
+  'air-share-abroad',
+  'package-share-abroad',
+  'web-booked-abroad',
+  'trips-per-resident',
+  'trips-abroad-per-resident',
+  'participation',
+  'nights-per-trip-abroad',
+  'spend-per-trip-abroad',
+];
+/** 資料來源的第 6、7 個：Eurostat 的居民觀光需求調查、觀光署的國人旅遊狀況調查 */
+const HABIT_SOURCES = [6, 7];
+
+export const tourism: TopicDefinition = {
+  ...tourismOwn,
+  sources: tourismOwn.sources.filter((_, i) => !HABIT_SOURCES.includes(i)),
+  indicators: tourismOwn.indicators.filter((i) => !HABIT_INDICATORS.includes(i.id)),
+};
+
+/** 旅遊習慣（travel-habits.ts 的 withParts 接上；不匯出成主題，registry 的 topicOf 才不會拿錯） */
+export const travelHabitsPart = topicPart(
+  {
+    ...tourismOwn,
+    sources: tourismOwn.sources.filter((_, i) => HABIT_SOURCES.includes(i)),
+    note: {
+      zh: '旅遊習慣主要是歐盟各國的居民觀光需求調查（Eurostat），台灣用交通部觀光署的國人旅遊狀況調查；各國調查的問法與年份不同，跨國比較時要留意。',
+      en: "Travel habits come mainly from the EU's survey of residents' tourism demand (Eurostat); Taiwan uses the Tourism Administration's survey of domestic travel. Survey questions and years differ between countries, so compare with care.",
+    },
+  },
+  { only: HABIT_INDICATORS, name: { zh: '旅遊習慣', en: 'Travel habits' } },
+);

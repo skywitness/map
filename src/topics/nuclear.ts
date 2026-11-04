@@ -24,7 +24,11 @@ export const nuclear: TopicDefinition = withParts(
     sources: [],
     indicators: [],
   }),
-  topicPart(powerPlants, { only: ['nuclear-units', 'nuclear-capacity'], name: { zh: '核電廠', en: 'Nuclear plants' } }),
+  // 發電廠地圖的資料來源只帶核電用得到的：GEM、能源署的裝置容量、維基的核電廠條目（抽蓄水力、電池儲能的不帶）
+  topicPart(
+    { ...powerPlants, sources: powerPlants.sources.filter((_, i) => [0, 1, 3].includes(i)) },
+    { only: ['nuclear-units', 'nuclear-capacity'], name: { zh: '核電廠', en: 'Nuclear plants' } },
+  ),
   nuclearPolicyPart,
   topicPart(nuclearAccidents, { rename: { map: 'accidents' } }),
   topicPart(nuclearWaste, { rename: { map: 'repositories' } }),

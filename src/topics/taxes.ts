@@ -94,12 +94,12 @@ export const taxes: TopicDefinition = {
   ],
   note: {
     zh:
-      '都是法律規定的稅率，不是實際繳了多少：各國有很多減免、扣除與優惠，實際收到多少稅（稅收占 GDP）見「物價與財政」主題。' +
+      '都是法律規定的稅率，不是實際繳了多少：各國有很多減免、扣除與優惠，實際收到多少稅（稅收占 GDP）見這個主題的「稅收占 GDP」。' +
       '公司稅有 146 個國家與地區（OECD Corporate Tax Statistics）；個人所得稅、加值型營業稅與勞動稅負只有 OECD 38 個會員國，' +
       'OECD 以外的國家沒有開放授權、又有逐國出處的資料（PwC、KPMG、EY 的稅務摘要是商業內容，Tax Foundation 限非商業使用），留灰色。' +
       '台灣不在 OECD 的資料裡，依所得稅法、加值型及非加值型營業稅法與財政部的公告；起徵點用主計總處的平均薪資換算。',
     en:
-      'These are statutory rates set by law, not what is actually paid: countries have many exemptions, deductions and incentives. For tax actually collected (tax revenue as a share of GDP), see the Prices & debt topic. ' +
+      'These are statutory rates set by law, not what is actually paid: countries have many exemptions, deductions and incentives. For tax actually collected, see this topic’s tax revenue as a share of GDP. ' +
       'Corporate rates cover 146 countries and territories (OECD Corporate Tax Statistics); personal income tax, VAT and the tax wedge cover only the 38 OECD members, ' +
       'since there are no openly licensed data with country-by-country sources for the rest (the PwC, KPMG and EY tax summaries are proprietary, and Tax Foundation data are for non-commercial use only), so they are left grey. ' +
       "Taiwan is not in the OECD data; its rates follow its Income Tax Act, its Business Tax Act and Ministry of Finance notices, and the threshold is converted using DGBAS average earnings.",

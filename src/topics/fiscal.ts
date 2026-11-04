@@ -1,5 +1,8 @@
 import { fixed, formatSignedPercent } from '../lib/format';
 import type { DimensionDef, TopicDefinition } from './types';
+import { hostOnly, topicPart } from './merge';
+import { withParts } from './parts';
+import { taxes } from './taxes';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
@@ -36,7 +39,7 @@ const TAX_MIX: DimensionDef = {
   ],
 };
 
-export const fiscal: TopicDefinition = {
+const fiscalOwn: TopicDefinition = {
   id: 'fiscal',
   title: { zh: '各國物價與財政', en: 'Prices and public finances by country' },
   shortTitle: { zh: '物價與財政', en: 'Prices & debt' },
@@ -269,3 +272,49 @@ export const fiscal: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 2026-11-04 主題整併（整3）：「各國物價與財政」原本混了物價、政府財政、家庭消費三種東西，拆成兩個主題：
+ * - 物價與消費（prices.ts）：通膨率、物價水準、吃／休閒與文化／餐廳與旅館占消費；
+ * - 這個主題改名「政府財政與稅」：政府債務、財政收支、稅收、支出與稅收的組成、1800 年起的政府債務，「稅率」主題也併進來
+ *   （資料照舊在 taxes/，topics/merge.ts）。
+ * 舊網址 t/taxes/、t/fiscal/?ind=inflation 等由 redirects.ts 轉過去；資料來源與說明依內容分兩邊
+ */
+const PRICE_INDICATORS = ['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'];
+/** 資料來源的順序：IMF WEO、OECD 稅收、IMF WoRLD、WDI、ICP 2021、財政部、IMF COFOG、IMF 歷史公共債務、主計總處 */
+const sourcesAt = (idx: number[]) => fiscalOwn.sources.filter((_, i) => idx.includes(i));
+
+export const fiscal: TopicDefinition = withParts(
+  hostOnly({
+    ...fiscalOwn,
+    title: { zh: '政府財政與稅', en: 'Public finance and taxes' },
+    shortTitle: { zh: '財政與稅', en: 'Public finance' },
+    defaultIndicator: 'government-debt',
+    sources: sourcesAt([0, 1, 2, 3, 5, 6, 7, 8]),
+    note: {
+      zh:
+        '政府債務與財政收支 2026 年起為 IMF 推估值；開曼群島、古拉索等 IMF 未涵蓋的地區改用世界銀行資料。' +
+        '稅收用 OECD 全球稅收統計，印度、俄羅斯、沙烏地阿拉伯等 OECD 沒有的國家用 IMF 世界稅收資料庫補；日本等最新一年還沒公布的國家顯示前一年。台灣的稅收用財政部的賦稅負擔率（含社會安全捐）；IMF 的台灣債務與財政收支就是財政部的數字，範圍比其他國家窄，見台灣側欄的附註。' +
+        '政府支出的用途用 IMF 的 COFOG 分類（一般政府，約 90 國），教育、醫療兩項在 IMF 沒有或比較舊的國家用世界銀行 WDI（UNESCO、WHO）補；台灣用財政部各級政府歲出的政事別對到最接近的類別。稅收的組成是 OECD 全球稅收統計占稅收總額的比例，台灣用財政部依 OECD 分類編的賦稅收入結構。1800 年起的政府債務是 IMF 的歷史公共債務資料庫（到 2015 年，早年多半只有中央政府），跟現在的「政府債務占 GDP」分開。',
+      en:
+        'Government debt and budget balance figures from 2026 onward are IMF projections; places the IMF does not cover, such as the Cayman Islands and Curaçao, use World Bank data. ' +
+        "Tax revenue is from the OECD Global Revenue Statistics, with the IMF's World Revenue Longitudinal Data filling in countries the OECD does not cover, such as India, Russia and Saudi Arabia; countries that have not yet reported the latest year, such as Japan, show the previous year. Taiwan's tax revenue is the Ministry of Finance's tax burden ratio including social security contributions. The IMF's debt and budget balance figures for Taiwan are the Ministry of Finance's own, with a narrower scope than other countries' figures; see the notes in Taiwan's panel. " +
+        "Spending by function uses the IMF's COFOG classification (general government, about 90 countries); for education and health, countries the IMF lacks or has only older data for use World Bank WDI figures (UNESCO, WHO); Taiwan's figures map the Ministry of Finance's functional classification of all levels of government to the closest categories. The tax mix is each category's share of total tax revenue from the OECD Global Revenue Statistics; Taiwan uses the Ministry of Finance's tax revenue structure under the OECD classification. Government debt since 1800 comes from the IMF Historical Public Debt Database (to 2015; early years are mostly central government only) and is kept separate from the current government debt indicator.",
+    },
+    indicators: fiscalOwn.indicators.filter((i) => !PRICE_INDICATORS.includes(i.id)),
+  }),
+  topicPart(taxes),
+);
+
+/** 物價與消費（prices.ts 的 withParts 接上；不匯出成主題，registry 的 topicOf 才不會拿錯） */
+export const pricesPart = topicPart(
+  {
+    ...fiscalOwn,
+    sources: sourcesAt([0, 3, 4]),
+    note: {
+      zh: '通膨率與物價水準 2026 年起為 IMF 推估值；開曼群島、古拉索等 IMF 未涵蓋的地區改用世界銀行資料。食物支出占消費是世界銀行國際比較計畫（ICP）2021 年的數字。',
+      en: "Inflation and price level figures from 2026 onward are IMF projections; places the IMF does not cover, such as the Cayman Islands and Curaçao, use World Bank data. The share of consumption spent on food is from the World Bank's International Comparison Program 2021.",
+    },
+  },
+  { only: PRICE_INDICATORS, name: { zh: '物價與消費', en: 'Prices and spending' } },
+);
