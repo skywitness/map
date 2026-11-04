@@ -285,6 +285,14 @@ const WHO_PART_OF: Text = {
   zh: 'WHO 的資料把它當成主權國家的一部分，沒有另外歸區域',
   en: 'WHO counts it as part of its sovereign state, without a region of its own',
 };
+/** WHO 的藥政成熟度（pipeline/topics/who_wla.py 的 ML4、ML3、ML3_VACCINES、TWLA_ONLY） */
+const WHO_MATURITY: CategoryDef[] = [
+  { value: 1, label: { zh: 'ML4（最高級）', en: 'ML4 (highest)' } },
+  { value: 2, label: { zh: 'ML3（藥品）', en: 'ML3 (medicines)' } },
+  { value: 3, label: { zh: 'ML3（只有疫苗）', en: 'ML3 (vaccines only)' } },
+  { value: 4, label: { zh: '過渡期的 WHO 認可機關', en: 'Transitional WHO-Listed Authority' } },
+];
+
 const WHO_NO_VALUE: Record<string, Text> = {
   TWN: {
     zh: '台灣不是 WHO 會員國，不屬於任何 WHO 區域辦事處；WHO 的資料寫成「Taiwan, China」，並排除在 WHO 的出版品之外',
@@ -329,6 +337,14 @@ export const organizations: TopicDefinition = {
         en: 'WHO, “Countries” (194 Member States) and the region on each country page (WHO country reference data; facts compiled)',
       },
       url: 'https://www.who.int/countries',
+      license: { zh: '事實自行整理', en: 'facts compiled by hand' },
+    },
+    {
+      name: {
+        zh: 'WHO, List of NRAs operating at ML3 and ML4（2026 年 8 月）、List of transitional WLAs（事實自行整理）',
+        en: 'WHO, List of NRAs operating at ML3 and ML4 (August 2026) and List of transitional WLAs (facts compiled)',
+      },
+      url: 'https://cdn.who.int/media/docs/default-source/medicines/regulatory-systems/wla/list-of-nras-operating-at-ml3-and-ml4.pdf',
       license: { zh: '事實自行整理', en: 'facts compiled by hand' },
     },
   ],
@@ -415,6 +431,20 @@ export const organizations: TopicDefinition = {
       format: (v) => tr(WHO_REGIONS.find((c) => c.value === v)?.label ?? ''),
       unranked: true,
       noValue: WHO_NO_VALUE,
+    },
+    {
+      id: 'who-maturity',
+      label: { zh: 'WHO 評的藥政機關成熟度', en: 'WHO maturity level of medicines regulators' },
+      description: {
+        zh: 'WHO 用「全球評比工具」（Global Benchmarking Tool）評各國藥政機關，ML3 是穩定、運作良好，ML4 是進階、持續改善。2026 年 8 月只有 21 國到 ML3 以上：ML4 只有南韓食品醫藥品安全處、沙烏地 SFDA、新加坡 HSA；ML3 有埃及、迦納、奈及利亞、土耳其、坦尚尼亞等；中國、印度、印尼、泰國、越南、塞爾維亞、南非只有疫苗到 ML3，藥品沒有。另外 WHO 有一份「過渡期的 WHO 認可機關」名單（56 國加歐盟，有效到 2027 年 3 月），收原本的嚴格監管機關與表現優良的疫苗監管機關，美國 FDA、日本 PMDA、英國 MHRA、歐洲各國、瑞士、加拿大、澳洲、巴西、墨西哥、古巴都在這份名單上，但還沒有用新工具評等級。滑過國家看機關、範圍與公布年份。其他國家不在任何一份名單上，不代表監管不好。跟「成員身分」裡的 PIC/S（藥廠查核的國際協定）不同。台灣不是 WHO 會員，不在名單上。',
+        en: 'WHO rates national medicines regulators with its Global Benchmarking Tool: ML3 means stable, well-functioning regulation and ML4 an advanced, continuously improving system. As of August 2026 only 21 countries are at ML3 or above: ML4 only South Korea’s MFDS, Saudi Arabia’s SFDA and Singapore’s HSA; ML3 includes Egypt, Ghana, Nigeria, Türkiye and Tanzania; China, India, Indonesia, Thailand, Viet Nam, Serbia and South Africa are at ML3 for vaccines only, not medicines. WHO also keeps a list of transitional WHO-Listed Authorities (56 countries plus the EU, valid to March 2027), covering former stringent regulators and high-performing vaccine regulators: the US FDA, Japan’s PMDA, the UK’s MHRA, European countries, Switzerland, Canada, Australia, Brazil, Mexico and Cuba are on it but have not yet been rated with the new tool. Hover over a country for the regulator, scope and year announced. Other countries are on neither list, which does not mean their regulation is poor. This differs from PIC/S under “Membership” (a pharmaceutical inspection agreement). Taiwan is not a WHO member and is not listed.',
+      },
+      unit: '',
+      file: 'who-maturity.json',
+      layer: { kind: 'categorical', categories: WHO_MATURITY },
+      format: (v) => tr(WHO_MATURITY.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+      noValue: { TWN: { zh: '台灣不是 WHO 會員，不在 WHO 的名單上', en: 'Taiwan is not a WHO member and is not on WHO’s lists' } },
     },
   ],
 };

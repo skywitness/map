@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 859;
+export const INDICATOR_COUNT = 860;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -249,6 +249,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WHO, Global Health Observatory：Tobacco MPOWER Protect people: P1 smoke-free places（室內全面禁菸的場所）","en":"WHO, Global Health Observatory: Tobacco MPOWER Protect people: P1 smoke-free places"},"url":"https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/tobacco-control-protect","licenses":["CC BY 4.0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"WHO, Global Health Observatory（SDG 11.6.2 PM2.5 濃度、SDG 3.9.1 空氣污染死亡率）","en":"WHO, Global Health Observatory (SDG 11.6.2 PM2.5 concentrations, SDG 3.9.1 air pollution mortality)"},"url":"https://www.who.int/data/gho/data/themes/air-pollution","licenses":["CC BY 4.0"],"topics":["air-quality"]},
   {"name":{"zh":"WHO, Global status report on blood safety and availability 2025，附錄 9（各國以本國血漿分餾的血漿製劑，2014–2023）","en":"WHO, Global status report on blood safety and availability 2025, annex 9 (plasma-derived medicinal products from domestic plasma, 2014–2023)"},"url":"https://iris.who.int/server/api/core/bitstreams/aa36bd85-6947-4097-adf6-f734922c8026/content","licenses":[{"zh":"CC BY-NC-SA 3.0 IGO（非商業；資料檔也是）","en":"CC BY-NC-SA 3.0 IGO (non-commercial; data files too)"}],"topics":["plasma"]},
+  {"name":{"zh":"WHO, List of NRAs operating at ML3 and ML4（2026 年 8 月）、List of transitional WLAs（事實自行整理）","en":"WHO, List of NRAs operating at ML3 and ML4 (August 2026) and List of transitional WLAs (facts compiled)"},"url":"https://cdn.who.int/media/docs/default-source/medicines/regulatory-systems/wla/list-of-nras-operating-at-ml3-and-ml4.pdf","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO/UNICEF Estimates of National Immunization Coverage（WUENIC）2025 年版、WHO HPV 疫苗涵蓋率估計（WHO Global Health Observatory，2000 年起）","en":"WHO/UNICEF Estimates of National Immunization Coverage (WUENIC), 2025 revision, and WHO HPV coverage estimates (WHO Global Health Observatory, from 2000)"},"url":"https://www.who.int/data/gho/data/themes/topics/immunization","licenses":["CC BY 4.0"],"topics":["vaccination"]},
   {"name":{"zh":"Wikidata：電池儲能系統","en":"Wikidata: battery energy storage systems"},"url":"https://www.wikidata.org/wiki/Q810924","licenses":["CC0"],"topics":["power-plants"]},
   {"name":{"zh":"Wikidata（150 m 以上的電視塔、觀景塔、電信塔）","en":"Wikidata (TV, observation and communication towers 150 m+)"},"url":"https://www.wikidata.org/wiki/Q11166728","licenses":["CC0"],"topics":["skyscrapers"]},
