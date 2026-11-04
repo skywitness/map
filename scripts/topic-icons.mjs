@@ -64,6 +64,7 @@ const TOPIC_ICONS = {
   ivf: 'test-tubes',
   'covid-policy': 'door-closed',
   'medical-imaging': 'scan-line',
+  'hospital-quality': 'hospital',
   'drug-genes': 'pill-bottle',
   medicines: 'tablets',
   'drug-consumption': 'clipboard-plus',
