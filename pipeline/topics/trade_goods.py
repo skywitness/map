@@ -33,6 +33,8 @@ GOODS: list[tuple[str, str, str, tuple[str, ...], bool]] = [
     ("phones", "手機（HS17 851712；2022 年起 HS22 851713＋851714）", "HS17", ("851712",), False),
     ("lithium-batteries", "鋰離子電池（HS 850760）", "HS17", ("850760",), False),
     ("pharma", "藥品（HS 3004）", "HS92", ("3004",), False),
+    # 第二十批 307（2026-11-04）：藥用、香料、殺蟲用的植物（含古柯葉、罌粟稈；不等於中藥材）
+    ("medicinal-plants", "藥用植物（HS 1211）", "HS92", ("1211",), False),
     ("toys", "玩具（HS 9501–9503）", "HS92", ("9501", "9502", "9503"), False),
     ("apparel", "成衣（第 61、62 章）", "HS92", ("61", "62"), False),
     ("footwear", "鞋（第 64 章）", "HS92", ("64",), False),
@@ -134,3 +136,18 @@ def _summary(gid: str, by_year: dict[int, dict]) -> None:
     top = lambda d: [(c, round(v / world * 100, 1)) for c, v in sorted(d.items(), key=lambda kv: -kv[1])[:5]]  # noqa: E731
     print(f"  {gid} {last} 年：全球 {world / 1e5:,.1f} 億美元；出口 {top(exports)}；進口 {top(imports)}；"
           f"台灣出口 {exports.get('TWN', 0) / 10:,.0f} 萬、進口 {imports.get('TWN', 0) / 10:,.0f} 萬美元")
+
+
+def build_medicinal_plants() -> None:
+    """只做藥用植物（HS 1211，第二十批 307）：讀一次 BACI HS92，寫流向檔，manifest 的 items 補上這一項"""
+    gid = "medicinal-plants"
+    label, hs, codes = next((l, h, c) for g, l, h, c, _ in GOODS if g == gid)
+    print(f"  讀取 BACI {hs}（HS 1211）…")
+    by_year = _read(hs, [(gid, codes, False)])[gid]
+    _write_item(OUT, gid, {y: _from_pairs({p: c[0] for p, c in pairs.items()}) for y, pairs in by_year.items()})
+    _summary(gid, by_year)
+    path = OUT / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["items"] = [i for i in manifest.get("items", []) if i["id"] != gid] + [{"id": gid, "label": label, "source": f"BACI {hs}"}]
+    manifest["generatedAt"] = now_iso()
+    write_json(path, manifest)

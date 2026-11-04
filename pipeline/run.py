@@ -77,6 +77,7 @@ STEPS = {
     "trade-dependence": "topics.trade_dependence",
     # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
     "trade-goods": "topics.trade_goods",
+    "trade-medicinal-plants": "topics.trade_medicinal_plants",  # 只更新藥用植物（HS 1211，BACI HS92 約 2.4 GB，幾分鐘）
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",
     "services-trade": "topics.services_trade",  # 服務出口的組成（WDI、央行國際收支），輸出到 topics/trade/
@@ -170,6 +171,8 @@ STEPS = {
     "road-safety": "topics.road_safety",  # WHO（GHO、GSRRS 2023）與交通部統計查詢網
     # 洗腎大國（併進疾病主題，輸出到 topics/disease/）：USRDS 年報第 11 章（GraphQL 一次 30 KB）、WHO NCD CCS（xmart）；幾秒
     "dialysis": "topics.dialysis",
+    # 野生型小兒麻痺的病例數（併進疾病主題，第二十批 327）：WHO 資料平臺 data.who.int 的整份 CSV；幾秒
+    "disease-polio": "topics.disease_polio",
     # 長期照顧（併進健康主題，輸出到 topics/health/）：OECD 長照床數與使用者（約 7 MB）、衛福部兩個 xlsx、WPP 年齡別人口
     "long-term-care": "topics.long_term_care",
     # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
@@ -181,6 +184,8 @@ STEPS = {
     "health-systems": "topics.health_systems",
     # 每十萬人手術量（併進健康主題，第二十批 306）：世界銀行 WDI 兩個指標、衛福部醫療服務量年報 xlsx（1.7 MB）
     "health-surgery": "topics.health_surgery",
+    # 被美國 FDA 回收的藥品（併進藥品支出與取得，第二十批 308）：openFDA 整批檔（3.8 MB）、食藥署的藥品回收與許可證
+    "drug-recalls": "topics.drug_recalls",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     "ferry-routes": "topics.ferry_routes",

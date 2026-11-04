@@ -120,6 +120,11 @@ export const disease: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
     {
+      name: { zh: 'WHO 資料平臺（data.who.int）：野生型小兒麻痺的病例數', en: 'WHO data platform (data.who.int): wild poliovirus cases' },
+      url: 'https://data.who.int/indicators/i/495C2F7/7B2BFA6',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '國民健康署，癌症發生統計（台灣的附註）', en: 'Health Promotion Administration (Taiwan), cancer incidence statistics (notes on Taiwan)' },
       url: 'https://data.gov.tw/dataset/6399',
       license: OPEN_DATA_TW,
@@ -289,6 +294,19 @@ export const disease: TopicDefinition = {
       format: (v) => tr({ zh: `每千人 ${fixed(v, v < 10 ? 1 : 0)} 人`, en: `${fixed(v, v < 10 ? 1 : 0)} per 1,000` }),
       formatTick: (v) => fixed(v, 0),
       compareWorld: true,
+    },
+    {
+      id: 'polio-wild',
+      label: { zh: '野生型小兒麻痺', en: 'Wild polio cases' },
+      description: {
+        zh: '野生型小兒麻痺病毒造成的病例數（WHO，2016–2023 年）。全球根除計畫讓病例從 1988 年的約 35 萬例降到 2023 年的 12 例，只剩阿富汗、巴基斯坦還有本土傳播；2019 年巴基斯坦 147 例是近年的高峰，2021–2022 年馬拉威、莫三比克也出現病例（病毒株跟巴基斯坦的相關）。疫苗衍生型（cVDPV）的病例近年比野生型多，但分型的資料只有 GPEI 有、條款不准轉載，這裡沒有。台灣不在 WHO 的資料裡。',
+        en: 'Cases of poliomyelitis caused by wild poliovirus (WHO, 2016–2023). The global eradication initiative has cut cases from about 350,000 in 1988 to 12 in 2023, and only Afghanistan and Pakistan still have endemic transmission; Pakistan’s 147 cases in 2019 were the recent peak, and Malawi and Mozambique also had cases in 2021–2022 (with strains related to Pakistan’s). Vaccine-derived cases (cVDPV) have recently outnumbered wild ones, but typed data come only from GPEI, whose terms do not allow republication, so they are not shown. Taiwan is not in WHO’s data.',
+      },
+      unit: { zh: '例', en: 'cases' },
+      file: 'polio-wild.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 100] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 例`, en: `${fixed(v, 0)} cases` }),
+      formatTick: (v) => fixed(v, 0),
     },
     {
       id: 'ncd-deaths-share',

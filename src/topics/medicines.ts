@@ -1,5 +1,5 @@
 import { tr } from '../i18n/lang';
-import { fixed, intlDollars } from '../lib/format';
+import { fixed, formatLargeNumber, intlDollars } from '../lib/format';
 import type { CategoryDef, TopicDefinition } from './types';
 
 /**
@@ -65,6 +65,16 @@ export const medicines: TopicDefinition = {
       },
       url: 'https://doi.org/10.2471/BLT.18.222448',
       license: 'CC BY 3.0 IGO',
+    },
+    {
+      name: { zh: 'openFDA drug/enforcement（美國 FDA 的藥品回收，2012 年起）', en: 'openFDA drug/enforcement (US FDA drug recalls, from 2012)' },
+      url: 'https://open.fda.gov/apis/drug/enforcement/',
+      license: 'CC0 1.0',
+    },
+    {
+      name: { zh: '食藥署「藥品回收」「未註銷藥品許可證」開放資料（台灣的附註）', en: 'Taiwan FDA open data: drug recalls and drug licences (Taiwan note)' },
+      url: 'https://data.fda.gov.tw/',
+      license: OPEN_DATA_TW,
     },
   ],
   note: {
@@ -153,6 +163,20 @@ export const medicines: TopicDefinition = {
       timeless: true,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [200, 300, 400, 600, 800] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} medicines` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'fda-recalls',
+      label: { zh: '被美國 FDA 回收的藥品', en: 'US FDA drug recalls by firm country' },
+      description: {
+        zh: '美國 FDA 2012 年起要求回收的藥品，依回收廠商所在國算回收次數（同一次回收的好幾個產品、批號算一次）。這是美國的紀錄，九成五的廠商在美國（4,477 次），其次是印度 102、加拿大 50、中國 18、墨西哥 18，台灣 2；畫的是「有幾次是這一國廠商的藥被美國 FDA 回收」，不是各國的藥品品質。一級回收是可能造成嚴重健康危害的（滑過國家看件數）。台灣食藥署自己公告的藥品回收寫在台灣的附註。openFDA 的說明：不要依這些資料做醫療決定，所有結果都應視為未經驗證。',
+        en: 'Drug recalls requested by the US FDA since 2012, counted by the recalling firm’s country (several products and lots in one recall count once). This is a US record: 95% of firms are in the US (4,477 recalls), followed by India 102, Canada 50, China 18, Mexico 18 and Taiwan 2. It shows how often a country’s firms had drugs recalled by the US FDA, not the quality of each country’s medicines. Class I recalls are those that could cause serious harm (hover over a country). Recalls announced by Taiwan’s own Food and Drug Administration are in Taiwan’s note. openFDA: do not rely on these data to make decisions regarding medical care; assume all results are unvalidated.',
+      },
+      unit: { zh: '次', en: 'recalls' },
+      file: 'fda-recalls.json',
+      timeless: true,
+      layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v)} 次`, en: `${formatLargeNumber(v)} recalls` }),
       formatTick: (v) => fixed(v, 0),
     },
   ],

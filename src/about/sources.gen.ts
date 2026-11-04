@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 139;
-export const INDICATOR_COUNT = 821;
+export const INDICATOR_COUNT = 823;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -189,6 +189,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD《Tax Policy Reforms 2025》《Tax Policy Reforms 2026》（2025、2026 年的加值型營業稅調整）","en":"OECD, Tax Policy Reforms 2025 and 2026 (VAT rate changes for 2025 and 2026)"},"url":"https://doi.org/10.1787/43d18a55-en","licenses":["CC BY 4.0"],"topics":["taxes"]},
   {"name":{"zh":"Open-Meteo Flood API（GloFAS v4 再分析，2015–2024 年的每日流量，算成月平均）","en":"Open-Meteo Flood API (GloFAS v4 reanalysis, daily flow 2015–2024, averaged by month)"},"url":"https://open-meteo.com/","licenses":[{"zh":"CC BY 4.0（免費 API 只准非商業使用）","en":"CC BY 4.0 (free API for non-commercial use only)"}],"topics":["rivers"]},
   {"name":{"zh":"OpenAlex（Priem, Piwowar & Orr 2022）","en":"OpenAlex (Priem, Piwowar & Orr 2022)"},"url":"https://openalex.org/","licenses":["CC0 1.0"],"topics":["publications"]},
+  {"name":{"zh":"openFDA drug/enforcement（美國 FDA 的藥品回收，2012 年起）","en":"openFDA drug/enforcement (US FDA drug recalls, from 2012)"},"url":"https://open.fda.gov/apis/drug/enforcement/","licenses":["CC0 1.0"],"topics":["medicines"]},
   {"name":"OpenFreeMap","url":"https://openfreemap.org/","licenses":[{"zh":"免費使用","en":"free to use"}],"topics":["map"]},
   {"name":{"zh":"OpenHistoricalMap 貢獻者（國家層級的疆界，1800 年以後的殖民地與帝國；簡化到約 3–8 公里，台灣民主國依史實補）","en":"OpenHistoricalMap contributors (country-level boundaries: colonies and empires after 1800; simplified to about 3–8 km, Republic of Formosa added from historical sources)"},"url":"https://www.openhistoricalmap.org/copyright","licenses":["CC0 1.0"],"topics":["empires"]},
   {"name":"OpenMapTiles","url":"https://openmaptiles.org/","licenses":["CC BY 4.0"],"topics":["map"]},
@@ -238,6 +239,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WHO 健康平均餘命與平均壽命（Global Health Estimates 2023）","en":"WHO healthy life expectancy and life expectancy (Global Health Estimates 2023)"},"url":"https://data.who.int/indicators/i/C64284D","licenses":["CC BY 4.0"],"topics":["health"]},
   {"name":{"zh":"WHO 官網「Countries」的 194 個會員國與各國家頁的區域（WHO 的國家參照資料，事實自行整理）","en":"WHO, “Countries” (194 Member States) and the region on each country page (WHO country reference data; facts compiled)"},"url":"https://www.who.int/countries","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO 資料平臺：PCV3 immunization coverage（age 1）（WHO/UNICEF 的估計，2008–2024）","en":"WHO data: PCV3 immunization coverage (age 1) (WHO/UNICEF estimates, 2008–2024)"},"url":"https://data.who.int/indicators/i/4B4DAF2/D45F91C","licenses":[{"zh":"CC BY 4.0（另有 WHO 的附加條款）","en":"CC BY 4.0 (with WHO’s additional terms)"}],"topics":["vaccination"]},
+  {"name":{"zh":"WHO 資料平臺（data.who.int）：野生型小兒麻痺的病例數","en":"WHO data platform (data.who.int): wild poliovirus cases"},"url":"https://data.who.int/indicators/i/495C2F7/7B2BFA6","licenses":["CC BY 4.0"],"topics":["disease"]},
   {"name":{"zh":"WHO, Global Health Estimates 2023（死因）、Global Health Observatory（NCD-RisC 糖尿病與肥胖估計）","en":"WHO, Global Health Estimates 2023 (causes of death) and Global Health Observatory (NCD-RisC diabetes and obesity estimates)"},"url":"https://www.who.int/data/global-health-estimates","licenses":["CC BY 4.0"],"topics":["disease"]},
   {"name":{"zh":"WHO, Global Health Observatory：Tobacco MPOWER Protect people: P1 smoke-free places（室內全面禁菸的場所）","en":"WHO, Global Health Observatory: Tobacco MPOWER Protect people: P1 smoke-free places"},"url":"https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/tobacco-control-protect","licenses":["CC BY 4.0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"WHO, Global Health Observatory（SDG 11.6.2 PM2.5 濃度、SDG 3.9.1 空氣污染死亡率）","en":"WHO, Global Health Observatory (SDG 11.6.2 PM2.5 concentrations, SDG 3.9.1 air pollution mortality)"},"url":"https://www.who.int/data/gho/data/themes/air-pollution","licenses":["CC BY 4.0"],"topics":["air-quality"]},
@@ -452,4 +454,5 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"金融監督管理委員會證券期貨局 公開發行公司股票發行概況統計表、證券暨期貨市場重要指標","en":"Financial Supervisory Commission (Taiwan), Securities and Futures Bureau: equity issuance statistics and key securities market indicators"},"url":"https://data.gov.tw/dataset/103533","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["stock-market"]},
   {"name":{"zh":"防空識別區：日本防衛省訓令第 36 號、中國政府 2013-11-23 聲明、大韓民國國防部告示第 2013-449 號（座標見韓國 AIP ENR 5.2，國土交通部）、交通部民用航空局 AIP ENR 5.2.3","en":"ADIZs: Japan Ministry of Defense directive No. 36; Chinese government statement of 23 November 2013; Republic of Korea Ministry of National Defense notice 2013-449 (coordinates from the Korean AIP, ENR 5.2, MOLIT); Taiwan CAA AIP, ENR 5.2.3"},"url":"https://ais.caa.gov.tw/eaip/","licenses":[{"zh":"政府公告（不受著作權保護）","en":"Government announcements (not subject to copyright)"}],"topics":["airspace"]},
   {"name":{"zh":"領事事務局各國資訊（兼轄館處）","en":"BOCA country pages"},"url":"https://www.boca.gov.tw/sp-foof-countrylp-03-1.html","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License 1.0"}],"topics":["taiwan-diplomacy"]},
+  {"name":{"zh":"食藥署「藥品回收」「未註銷藥品許可證」開放資料（台灣的附註）","en":"Taiwan FDA open data: drug recalls and drug licences (Taiwan note)"},"url":"https://data.fda.gov.tw/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["medicines"]},
 ];

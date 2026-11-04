@@ -21,6 +21,8 @@
 """
 from __future__ import annotations
 
+import json
+
 import re
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -178,7 +180,10 @@ def build() -> None:
     _availability("oral-morphine", "NCD_CCS_OralMorph")
     _availability("insulin", "NCD_CCS_Insulin")
     _essential_medicines()
+    # 別的步驟寫的部分（被美國 FDA 回收的藥品，topics/drug_recalls.py）留著
+    old = json.loads((OUT / "manifest.json").read_text(encoding="utf-8")) if (OUT / "manifest.json").exists() else {}
     write_json(OUT / "manifest.json", {
+        **({"parts": old["parts"]} if old.get("parts") else {}),
         "topic": "medicines", "generatedAt": now_iso(),
         "source": ("OECD Health expenditure and financing (SHA, HC.5.1); OECD Generic market; Ministry of Health and "
                    "Welfare (Taiwan) National Health Expenditure; IMF WEO (PPPEX); WHO NCD Country Capacity Survey "
