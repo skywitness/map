@@ -1,10 +1,13 @@
-"""疾病主題：慢性病（糖尿病、肥胖、四大慢性病過早死亡、癌症死亡率）、傳染病（愛滋、結核病、瘧疾）、
+"""疾病主題：慢性病（肥胖、四大慢性病過早死亡、癌症死亡率）、傳染病（愛滋、結核病、瘧疾）、
 死因結構（三大類的占比）與各國的首要死因類別。
 
-- 糖尿病、肥胖、30–70 歲死於四大慢性病的機率：WHO GHO（糖尿病與肥胖是 NCD-RisC 的年齡標準化估計）。
-  GHO 的 OData 2026-10-30 起壞了，改讀 xmart；xmart 沒有糖尿病，糖尿病的檔不重新產生（KEEP_EXISTING）。
+- 肥胖、30–70 歲死於四大慢性病的機率：WHO GHO（肥胖是 NCD-RisC 的年齡標準化估計），兩個在 data.who.int 都有指標頁
+  （CC BY 4.0）。GHO 的 OData 2026-10-30 起壞了，改讀 xmart。
+  糖尿病盛行率（NCD_DIABETES_PREVALENCE_AGESTD）只在 GHO、data.who.int 沒有，使用者 2026-11-04 決定只在 GHO 的指標不用，拿掉。
 - 死因結構、首要死因、癌症標準化死亡率：WHO Global Health Estimates 2023 版的死因別死亡數（2000–2023 年）。
   癌症死亡率用 GHE 的年齡別死亡數與人口，以 WHO 世界標準人口自己算年齡標準化死亡率。
+  **GHE 的授權是 CC BY-NC-SA 3.0 IGO**（data.who.int 國家頁上 GHE 死因表的授權欄，2026-11-04 查；GHE 沒有 CC BY 4.0 的
+  指標頁）：使用者 2026-11-04 決定保留，GHE 衍生的資料檔標 CC BY-NC-SA 3.0 IGO（GHE_LICENSE），不能商業使用、要同授權分享。
 - 愛滋（UNAIDS）、結核病、瘧疾（WHO）：World Bank WDI 轉載的版本（CC BY 4.0）。
 - 癌症發生率沒有放：GLOBOCAN（IARC）大量轉載要書面授權，IHME GBD 只限非商業使用（見 DESIGN.md）。
 
@@ -13,7 +16,7 @@
   30–70 歲的人口用 WPP（跟內政部年中人口差不到 0.2%）。
 - 癌症標準化死亡率：衛福部統計指標表7（同樣用 WHO 2000 年世界標準人口）。
 - 結核病：衛福部統計指標表5 的確定病例（新案）÷ 內政部年中人口。
-- 糖尿病、肥胖、愛滋、瘧疾：沒有跟國際定義一致的數字，地圖上留空，側欄附註寫官方數字與差異。
+- 肥胖、愛滋、瘧疾：沒有跟國際定義一致的數字，地圖上留空，側欄附註寫官方數字與差異。
 
 2026-10-29 擴充（製作手冊第五批 44，使用者決定；build_cancer_sites() 可以單獨跑）：各國死亡數最多的癌症（GHE 第三層的
 癌症部位，不算「其他惡性腫瘤」780），男女合計、男性、女性三個子項目。台灣用衛福部死因統計的 ICD-10 碼依 GHE 的對照自己歸
@@ -42,13 +45,6 @@ TAIWAN_FROM_DEATHS_EN = (
 )
 
 NOTES = {
-    "diabetes": (
-        "台灣不在 WHO 資料庫中，也沒有同樣定義的年齡標準化數字，所以地圖上留空。國健署 2017–2020 年國民營養健康調查："
-        "18 歲以上糖尿病盛行率 11.1%（空腹血糖 ≥ 126 mg/dL 或服藥，沒有年齡標準化）",
-        "Taiwan is not in the WHO database and has no age-standardised figure with the same definition, so it is left "
-        "blank. The Health Promotion Administration's 2017–2020 Nutrition and Health Survey found 11.1% of adults "
-        "(18+) had diabetes (fasting glucose ≥ 126 mg/dL or on medication, not age-standardised)",
-    ),
     "obesity": (
         "台灣不在 WHO 資料庫中，地圖上留空。台灣的成人肥胖標準是 BMI ≥ 27（WHO 是 ≥ 30），"
         "國健署 2017–2020 年國民營養健康調查：18 歲以上男性 28.1%、女性 19.6%",
@@ -98,15 +94,14 @@ WB_INDICATORS = {
     "tb-incidence": ("SH.TBS.INCD", "人/十萬人", 1),
     "malaria": ("SH.MLR.INCD.P3", "人/千人", 1),
 }
-# 輸出檔名 -> (GHO 代碼, 篩選條件, 單位)。GHO 的 OData 2026-10-30 起壞了，改讀 xmart（who.py）；
-# xmart 沒有糖尿病的代碼，糖尿病照舊用 OData 壞掉以前產生的檔（KEEP_EXISTING，製作手冊第八批 146）
-KEEP_EXISTING = {"diabetes"}
+# 輸出檔名 -> (GHO 代碼, 篩選條件, 單位)。GHO 的 OData 2026-10-30 起壞了，改讀 xmart（who.py）。
+# 兩個在 data.who.int 都有指標頁（CC BY 4.0）；糖尿病只在 GHO，2026-11-04 拿掉
 GHO_INDICATORS = {
-    "diabetes": ("NCD_DIABETES_PREVALENCE_AGESTD", {"Dim1": "SEX_BTSX", "Dim2": "AGEGROUP_YEARS18-PLUS"}, "%"),
     "obesity": ("NCD_BMI_30A", {"Dim1": "SEX_BTSX"}, "%"),
     "ncd-mortality": ("NCDMORT3070", {"Dim1": "SEX_BTSX"}, "%"),
 }
 # 死因占比：輸出檔名 -> GHE 第一大類
+GHE_LICENSE = "CC BY-NC-SA 3.0 IGO"
 SHARES = {
     "ncd-deaths-share": who.NONCOMMUNICABLE,
     "communicable-deaths-share": who.COMMUNICABLE,
@@ -186,7 +181,7 @@ def build() -> None:
     taiwan = taiwan_series()
 
     def write(key: str, unit: str, countries: dict[str, dict[int, float]], world: dict[int, float], digits: int,
-              min_share: float = 0.3) -> None:
+              min_share: float = 0.3, license: str | None = None) -> None:
         if key in taiwan:
             countries["TWN"] = taiwan[key]
         years = year_span(countries, min_share)
@@ -197,13 +192,11 @@ def build() -> None:
                 key, unit, years, {iso3: to_series(s, years, digits) for iso3, s in countries.items() if s},
                 **({"aggregates": {"WLD": to_series(world, years, digits)}} if world else {}),
                 **({"notes": {"TWN": zh}, "notesEn": {"TWN": en}} if zh else {}),
+                **({"license": license} if license else {}),
             ),
         )
 
     for key, (code, dims, unit) in GHO_INDICATORS.items():
-        if key in KEEP_EXISTING and (out / f"{key}.json").exists():
-            print(f"  {key}：xmart 沒有 {code}，保留現有的檔")
-            continue
         countries, world = who.gho(code, dims)
         write(key, unit, countries, world, 2)
     for key, (code, unit, digits) in WB_INDICATORS.items():
@@ -211,15 +204,16 @@ def build() -> None:
         write(key, unit, countries, world, digits)
     for key, (countries, world) in ghe_series().items():
         if key == "top-cause":
-            write(key, "GHE 死因代碼", countries, {}, 0)
+            write(key, "GHE 死因代碼", countries, {}, 0, license=GHE_LICENSE)
         else:
-            write(key, "%" if key in SHARES else "人/十萬人", countries, world, 2)
+            write(key, "%" if key in SHARES else "人/十萬人", countries, world, 2, license=GHE_LICENSE)
     write_json(
         out / "manifest.json",
         {
             "topic": "disease",
             "generatedAt": now_iso(),
-            "source": "WHO GHO, WHO Global Health Estimates 2023; World Bank WDI (UNAIDS, WHO); 衛生福利部; UN WPP 2024",
+            "source": "WHO GHO (data.who.int, CC BY 4.0); WHO Global Health Estimates 2023 (CC BY-NC-SA 3.0 IGO); "
+                      "World Bank WDI (UNAIDS, WHO); 衛生福利部; UN WPP 2024",
         },
     )
 
@@ -303,7 +297,7 @@ def build_cancer_sites() -> None:
     for sex in CANCER_SEXES:
         write_json(out / f"{sex}.json", indicator_file(
             "top-cancer", "", years, {c: to_series(v, years, 0) for c, v in series[sex].items() if v},
-            notes={"TWN": zh}, notesEn={"TWN": en},
+            notes={"TWN": zh}, notesEn={"TWN": en}, license=GHE_LICENSE,
         ))
         last = {c: v.get(years[-1]) for c, v in series[sex].items() if v.get(years[-1])}
         from collections import Counter

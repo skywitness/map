@@ -5,9 +5,9 @@
   （圖 11.15 的 2023 年，沒有的再用圖 11.16a 的最後一年：南韓 2022 年），使用者 2026-10-30 決定；附註寫明。
   墨西哥只有阿瓜斯卡連特斯州、比利時分成荷語區與法語區、英國分成英格蘭威爾斯北愛爾蘭與蘇格蘭，
   都畫成地圖上的點（前端 disease.ts 的 PLACES，鍵跟這裡的 PLACES 一致），國家本身不上色。
-- 公立醫療體系能不能洗腎：WHO 非傳染病國家能力調查（NCD CCS）的 NCD_CCS_dialysis「General availability of
-  dialysis in the public health system」，2015、2017、2019、2021 年，194 國（xmart，CC BY 4.0，`sources/who_xmart.py`）。
-- 台灣：USRDS 有台灣（第一）；WHO 的調查沒有台灣，全民健保給付透析（健保署），編成「可以」，附註寫明。
+- 公立醫療體系能不能洗腎（WHO 非傳染病國家能力調查的 NCD_CCS_dialysis）：只在 GHO、data.who.int 沒有，
+  使用者 2026-11-04 決定只在 GHO 的指標不用，拿掉（build_public() 留著不跑）。
+- 台灣：USRDS 有台灣（第一）。
 """
 from __future__ import annotations
 
@@ -98,4 +98,3 @@ def build_public() -> None:
 
 def build() -> None:
     build_prevalence()
-    build_public()

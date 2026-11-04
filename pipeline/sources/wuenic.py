@@ -1,8 +1,10 @@
 """WHO/UNICEF 各國預防接種涵蓋率估計（WUENIC）與 WHO 的 HPV 疫苗涵蓋率估計。
 
-- **2000 年起用 WHO Global Health Observatory（GHO）**（data.who.int 的資料集條款是 CC BY 4.0，跟 `sources/who.py` 一樣）：
-  DTP3 `WHS4_100`、DTP1 `VACCINECOVERAGE_DTP1`、麻疹第一劑 `WHS8_110`、麻疹第二劑 `MCV2`、
-  HPV `SDGHPVRECEIVED`（9–14 歲女孩這個主要目標世代打了第一劑的比例，WHO 的 HPV 估計）。
+- **2000 年起用 WHO Global Health Observatory（GHO）**，只用 data.who.int 也有指標頁的（CC BY 4.0）：
+  DTP3 `WHS4_100`、麻疹第二劑 `MCV2`、HPV `SDGHPVRECEIVED`（9–14 歲女孩這個主要目標世代打了第一劑的比例，WHO 的 HPV 估計）。
+  使用者 2026-11-04 決定只在 GHO 的指標不用：DTP1 `VACCINECOVERAGE_DTP1` 與麻疹第一劑 `WHS8_110` data.who.int 沒有，
+  麻疹第一劑整段改用世界銀行 WDI 轉載的 WUENIC（`SH.IMM.MEAS`，1980–2024，CC BY 4.0；WDI 還是 2024 年版），
+  DTP1（零劑兒童用的）不再用。
   2026-10 的版本是 WUENIC 2025 年版（2026-07-15 完成），2000–2025 年、195 個 WHO 會員國；沒有台灣。
 - **1980–1999 年用世界銀行 WDI 轉載的 WUENIC**（`SH.IMM.IDPT`、`SH.IMM.MEAS`，序列中繼資料標 CC BY-4.0）：
   GHO 只有 2000 年起。WDI（2026-10-08 更新）還是 2024 年版的 WUENIC，2000 年以後各國有 150 個值跟 2025 年版不同
@@ -25,19 +27,22 @@ GHO_FROM = 2000
 
 GHO_CODES = {
     "dtp3": "WHS4_100",
-    "dtp1": "VACCINECOVERAGE_DTP1",
-    "mcv1": "WHS8_110",
     "mcv2": "MCV2",
     "hpv": "SDGHPVRECEIVED",
 }
 # 2000 年以前接 WDI 的序列
-WDI_BEFORE_2000 = {"dtp3": "SH.IMM.IDPT", "mcv1": "SH.IMM.MEAS"}
+WDI_BEFORE_2000 = {"dtp3": "SH.IMM.IDPT"}
+# 整段都用 WDI 的（GHO 的版本 data.who.int 沒有）
+WDI_ONLY = {"mcv1": "SH.IMM.MEAS"}
 
 Series = dict[str, dict[int, float]]
 
 
 def coverage(antigen: str) -> tuple[Series, dict[int, float]]:
-    """{iso3: {年: %}} 與世界值 {年: %}（世界值只有 GHO 的 2000 年起）"""
+    """{iso3: {年: %}} 與世界值 {年: %}（世界值只有 GHO 的 2000 年起；WDI_ONLY 的用 WDI 的世界值）"""
+    if code := WDI_ONLY.get(antigen):
+        countries, world = worldbank.fetch(code, FIRST_YEAR)
+        return countries, world
     countries, world = who.gho(GHO_CODES[antigen], {})
     countries = {k: {y: v for y, v in s.items() if y >= GHO_FROM} for k, s in countries.items()}
     if code := WDI_BEFORE_2000.get(antigen):

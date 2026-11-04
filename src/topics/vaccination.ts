@@ -1,9 +1,9 @@
 import { tr } from '../i18n/lang';
-import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { fixed } from '../lib/format';
 import type { CategoryDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
- * 疫苗與防疫（pipeline/topics/vaccination.py）：WHO/UNICEF 的兒童常規疫苗接種率與零劑兒童，
+ * 疫苗與防疫（pipeline/topics/vaccination.py）：WHO/UNICEF 的兒童常規疫苗接種率（零劑兒童 2026-11-04 拿掉：DTP1 只在 WHO GHO），
  * 以及 COVID-19 的確診死亡、疫苗接種與超額死亡。台灣不在 WHO 的資料裡：常規疫苗用疾管署的完成率，
  * COVID-19 死亡用衛福部死因統計（附註、側欄另外對照疾管署通報的確診死亡）。
  */
@@ -19,7 +19,6 @@ const PER_100K = { zh: '每 10 萬人', en: 'per 100,000' };
 const COVERAGE_SCALE: ScaleSpec = { type: 'sequential', thresholds: [50, 70, 80, 85, 90, 95] };
 /** 確診死亡與超額死亡用同一組門檻，兩張圖可以對照 */
 const DEATHS_SCALE: ScaleSpec = { type: 'sequential', thresholds: [10, 50, 100, 200, 300, 500] };
-const NOT_WHO = { zh: '不在 WHO/UNICEF 的估計裡', en: 'Not in WHO/UNICEF estimates' };
 const IN_CHINA = { zh: 'WHO 算在「中國」裡', en: 'Counted under China by WHO' };
 
 /** mRNA 技術移轉（pipeline/topics/vaccine_production.py） */
@@ -37,10 +36,10 @@ export const vaccination: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: 'WHO/UNICEF Estimates of National Immunization Coverage（WUENIC）2025 年版、WHO HPV 疫苗涵蓋率估計（WHO Global Health Observatory，2000 年起）',
-        en: 'WHO/UNICEF Estimates of National Immunization Coverage (WUENIC), 2025 revision, and WHO HPV coverage estimates (WHO Global Health Observatory, from 2000)',
+        zh: 'WHO/UNICEF Estimates of National Immunization Coverage（WUENIC）2025 年版的 DTP3、麻疹第二劑，WHO HPV 疫苗涵蓋率估計（2000 年起；data.who.int 有指標頁）',
+        en: 'WHO/UNICEF Estimates of National Immunization Coverage (WUENIC), 2025 revision, for DTP3 and the second measles dose, and WHO HPV coverage estimates (from 2000; indicator pages on data.who.int)',
       },
-      url: 'https://www.who.int/data/gho/data/themes/topics/immunization',
+      url: 'https://data.who.int/indicators/i/48D7D19/F8E084C',
       license: 'CC BY 4.0',
     },
     {
@@ -50,8 +49,8 @@ export const vaccination: TopicDefinition = {
     },
     {
       name: {
-        zh: 'World Bank, World Development Indicators（WUENIC 的 DTP3、麻疹 1980–1999 年）',
-        en: 'World Bank, World Development Indicators (WUENIC DTP3 and measles, 1980–1999)',
+        zh: 'World Bank, World Development Indicators（WUENIC 的 DTP3 1980–1999 年、麻疹第一劑 1980–2024 年）',
+        en: 'World Bank, World Development Indicators (WUENIC DTP3, 1980–1999, and first measles dose, 1980–2024)',
       },
       url: 'https://data.worldbank.org/indicator/SH.IMM.IDPT',
       license: 'CC BY 4.0',
@@ -132,8 +131,8 @@ export const vaccination: TopicDefinition = {
     },
   ],
   note: {
-    zh: '兒童常規疫苗的接種率是 WHO 與 UNICEF 依各國通報與調查做的估計（WUENIC），每年改版都會修訂整個序列；零劑兒童是沒有打過任何一劑白喉、破傷風、百日咳疫苗（DTP1）的嬰兒，這裡用聯合國的存活嬰兒數乘上沒有打 DTP1 的比例算的，各國加總跟 WHO/UNICEF 公布的全球數字（2025 年 1,350 萬人）差 1% 以內。COVID-19 的確診死亡是各國向 WHO 通報的人數，會受檢驗量、死因認定與通報方式影響，各國不完全可比；超額死亡是 The Economist 的模型估計的死亡人數比沒有疫情時多出多少，沒有全死因死亡統計的國家完全靠模型推估，誤差很大。WHO 的「中國」含香港、澳門與台灣通報的確診死亡。COVID-19 的資料都已停止更新：確診死亡到 2026 年 8 月、疫苗接種到 2024 年 8 月、超額死亡到 2024 年 6 月。超額死亡的資料依 MIT 授權使用：Copyright (c) 2021 The Economist Newspaper.',
-    en: 'Childhood vaccine coverage figures are WHO and UNICEF estimates (WUENIC) based on country reports and surveys; each revision updates the whole series. Zero-dose children are infants who received no dose of diphtheria-tetanus-pertussis vaccine (DTP1); they are computed here as UN surviving infants times the share without DTP1, and the country total is within 1% of the global figure published by WHO/UNICEF (13.5 million in 2025). Confirmed COVID-19 deaths are the numbers countries reported to WHO and depend on testing, cause-of-death rules and reporting, so they are not fully comparable; excess deaths are The Economist’s model estimates of deaths above what would have been expected without the pandemic, and in countries without all-cause death statistics they rest entirely on the model and are very uncertain. WHO’s figure for China includes confirmed deaths reported by Hong Kong, Macao and Taiwan. The COVID-19 data are no longer updated: confirmed deaths run to August 2026, vaccinations to August 2024 and excess deaths to June 2024. Excess death data used under the MIT License: Copyright (c) 2021 The Economist Newspaper.',
+    zh: '兒童常規疫苗的接種率是 WHO 與 UNICEF 依各國通報與調查做的估計（WUENIC），每年改版都會修訂整個序列；麻疹第一劑用世界銀行轉載的 2024 年版（到 2024 年，2025 年顯示 2024 年的值），WHO 自己的 2025 年版只在 WHO GHO 資料庫，2026 年 11 月起不用，零劑兒童（要用 DTP1 算）也因此拿掉。COVID-19 的確診死亡是各國向 WHO 通報的人數，會受檢驗量、死因認定與通報方式影響，各國不完全可比；超額死亡是 The Economist 的模型估計的死亡人數比沒有疫情時多出多少，沒有全死因死亡統計的國家完全靠模型推估，誤差很大。WHO 的「中國」含香港、澳門與台灣通報的確診死亡。COVID-19 的資料都已停止更新：確診死亡到 2026 年 8 月、疫苗接種到 2024 年 8 月、超額死亡到 2024 年 6 月。超額死亡的資料依 MIT 授權使用：Copyright (c) 2021 The Economist Newspaper.',
+    en: 'Childhood vaccine coverage figures are WHO and UNICEF estimates (WUENIC) based on country reports and surveys; each revision updates the whole series. The first measles dose uses the 2024 revision republished by the World Bank (to 2024; 2025 shows the 2024 value), because WHO’s 2025 revision is only in its Global Health Observatory, which this site stopped using in November 2026; zero-dose children, which need DTP1, were removed for the same reason. Confirmed COVID-19 deaths are the numbers countries reported to WHO and depend on testing, cause-of-death rules and reporting, so they are not fully comparable; excess deaths are The Economist’s model estimates of deaths above what would have been expected without the pandemic, and in countries without all-cause death statistics they rest entirely on the model and are very uncertain. WHO’s figure for China includes confirmed deaths reported by Hong Kong, Macao and Taiwan. The COVID-19 data are no longer updated: confirmed deaths run to August 2026, vaccinations to August 2024 and excess deaths to June 2024. Excess death data used under the MIT License: Copyright (c) 2021 The Economist Newspaper.',
   },
   panelExtra: () => import('./panels/VaccinationPanel'),
   indicators: [
@@ -155,8 +154,8 @@ export const vaccination: TopicDefinition = {
       id: 'mcv1',
       label: { zh: '麻疹疫苗第一劑', en: 'Measles, 1st dose' },
       description: {
-        zh: '滿 1 歲的嬰兒打了第一劑含麻疹成分疫苗（MCV1）的比例；兩劑都要 95% 以上才擋得住麻疹流行。WHO/UNICEF 的估計；台灣是疾管署公布的 MMR 第一劑完成率。',
-        en: 'Share of one-year-olds who received a first dose of measles-containing vaccine (MCV1); stopping measles outbreaks takes 95% coverage with both doses. WHO/UNICEF estimates; Taiwan uses Taiwan CDC’s completion rate for the first MMR dose.',
+        zh: '滿 1 歲的嬰兒打了第一劑含麻疹成分疫苗（MCV1）的比例；兩劑都要 95% 以上才擋得住麻疹流行。WHO/UNICEF 的估計（世界銀行轉載的 2024 年版，到 2024 年）；台灣是疾管署公布的 MMR 第一劑完成率。',
+        en: 'Share of one-year-olds who received a first dose of measles-containing vaccine (MCV1); stopping measles outbreaks takes 95% coverage with both doses. WHO/UNICEF estimates (2024 revision as republished by the World Bank, to 2024); Taiwan uses Taiwan CDC’s completion rate for the first MMR dose.',
       },
       unit: '%',
       file: 'mcv1.json',
@@ -223,22 +222,6 @@ export const vaccination: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
       noValue: { TWN: { zh: '不在 OECD 的資料裡', en: 'Not in OECD data' } },
-    },
-    {
-      id: 'zero-dose',
-      label: { zh: '零劑兒童', en: 'Zero-dose children' },
-      description: {
-        zh: '一年裡沒有打過任何一劑白喉、破傷風、百日咳疫苗（DTP1）的嬰兒人數，通常也錯過其他常規疫苗。用聯合國的存活嬰兒數乘上 WHO/UNICEF 估計的沒有打 DTP1 的比例。圓的面積與人數成正比。',
-        en: 'Infants in a year who received no dose of diphtheria-tetanus-pertussis vaccine (DTP1) and usually miss other routine vaccines too. UN surviving infants times the share without DTP1 estimated by WHO/UNICEF. Circle area is proportional to the number.',
-      },
-      unit: { zh: '人', en: 'children' },
-      file: 'zero-dose.json',
-      layer: { kind: 'bubble', legendValues: [10000, 100000, 1000000] },
-      // 中文的「萬」只取整數，10 萬以下寫出完整的數字（6,720 人，不是 1 萬人）
-      format: (v) => tr({ zh: `${v < 1e5 ? fixed(v, 0) : formatLargeNumber(v)} 人`, en: `${formatLargeNumber(v)} children` }),
-      formatTick: formatLargeTick,
-      shareOfWorld: true,
-      noValue: { TWN: NOT_WHO },
     },
     {
       id: 'pq-vaccines',

@@ -3,9 +3,11 @@
 **資料**：WHO Global Health Observatory 的後端（xmart，`sources/who_xmart.py`）：
 - `AMR_INFECT_ECOLI`：血流感染的大腸桿菌對第三代頭孢菌素有抗藥性的比例（%），GLASS 通報，2016–2023 年。
 - `AMR_INFECT_MRSA`：血流感染的金黃色葡萄球菌裡抗甲氧西林（MRSA）的比例（%）。
-- `TB_e_inc_rr_num`：抗藥性結核（rifampicin 抗藥或多重抗藥，RR/MDR-TB）的估計新病例數；每 10 萬人自己用聯合國
-  《世界人口展望 2024》的年中人口算（WHO 結核 CSV 裡的比例欄適用 WHO 網站的條款，不用）。
-**授權**：GHO 的資料 CC BY 4.0。
+- 抗藥性結核（rifampicin 抗藥或多重抗藥，RR/MDR-TB）的估計新病例數：2026-11-04 起改讀 data.who.int 的版本
+  （指標頁 https://data.who.int/indicators/i/A38EC3D/A18C32A ，`TB_e_rr_num`，頁面的圖表讀後端 RELAY_TB，
+  `sources/who_datadot.relay()`；數字跟原本 GHO 的 `TB_e_inc_rr_num` 一樣）。使用者 2026-11-04 決定只在 GHO 的指標不用。
+  每 10 萬人自己用聯合國《世界人口展望 2024》的年中人口算（WHO 結核 CSV 裡的比例欄適用 WHO 網站的條款，不用）。
+**授權**：大腸桿菌與 MRSA 在 data.who.int 有指標頁（CC BY 4.0，加附加條款）；抗藥性結核同上。
 **台灣**：WHO 沒有台灣。用疾管署「抗藥性監測通報之抗生素敏感性統計資料分析」（data.gov.tw 43600，`sources/cdc_antibiogram.py`，
 本機 session 2026-11-03 下載到 map-plan 的 data/cdc/）的全國統計：大腸桿菌對 ceftriaxone（第三代頭孢菌素裡檢測最多的兩種之一，
 cefotaxime 的比例幾乎一樣）、金黃色葡萄球菌對 oxacillin（MRSA）的非敏感比例。定義跟 WHO 不同（所有檢體、不只血流感染；
@@ -14,7 +16,7 @@ cefotaxime 的比例幾乎一樣）、金黃色葡萄球菌對 oxacillin（MRSA�
 from __future__ import annotations
 
 from common import OUT_DIR, append_note, indicator_file, later_years_note, latest_year_span, now_iso, to_series, write_json
-from sources import cdc_antibiogram, who_xmart, wpp
+from sources import cdc_antibiogram, who_datadot, who_xmart, wpp
 
 OUT = OUT_DIR / "topics" / "antimicrobial-resistance"
 WITHIN = 2  # GLASS 每年通報的國家不一樣，用 2 年內最近的一年
@@ -76,7 +78,9 @@ def build() -> None:
         top = sorted(latest.items(), key=lambda kv: -kv[1])
         print(f"  {name}：{len(data)} 國，{years[0]}–{years[-1]}；最高 {top[:4]}，最低 {top[-3:]}")
         print(f"  台灣 {name}：{ {y: round(v, 1) for y, v in tw.items()} }")
-    tb = _series("TB_e_inc_rr_num")
+    tb: dict[str, dict[int, float]] = {}
+    for r in who_datadot.relay("RELAY_TB", "TB_e_rr_num"):
+        tb.setdefault(r["iso3"], {})[int(r["DIM_TIME"])] = float(r["VALUE_NUMERIC"])
     pop = wpp.demographic(["TPopulation1July"], last_year=max(max(s) for s in tb.values()))["TPopulation1July"]
     rate = {c: {y: v / pop[c][y] * 100 for y, v in s.items() if pop.get(c, {}).get(y)} for c, s in tb.items()}
     rate = {c: s for c, s in rate.items() if s}
@@ -84,7 +88,7 @@ def build() -> None:
     _write("mdr-tb-cases", "人", tb, 0, None)
     write_json(OUT / "manifest.json", {
         "topic": "antimicrobial-resistance", "generatedAt": now_iso(),
-        "source": "WHO Global Health Observatory (AMR_INFECT_ECOLI, AMR_INFECT_MRSA, TB_e_inc_rr_num); UN WPP 2024; "
+        "source": "WHO data.who.int (AMR_INFECT_ECOLI, AMR_INFECT_MRSA, TB_e_rr_num); UN WPP 2024; "
                   "Taiwan CDC antimicrobial susceptibility statistics (data.gov.tw 43600)",
         "license": "CC BY 4.0; Open Government Data License, Taiwan 1.0",
     })

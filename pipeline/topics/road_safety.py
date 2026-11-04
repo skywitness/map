@@ -1,11 +1,12 @@
 """交通安全主題：道路交通死亡率、死亡人數、行人與機車騎士的死亡占比、每萬輛機動車死亡數。
 
 - 死亡率：WHO 估計值（GHO `RS_198`，2000–2023），30 天定義（事故後 30 天內死亡）。
-- 死亡人數：WHO 的死亡率 × 聯合國 WPP 2024 的年中人口（WHO 的死亡人數 `RS_196` 只有 2021 年；
-  兩者在 2021 年的中位數差約 1.5%，見 _check_deaths()）。
-- 行人、機車騎士的死亡占比：各國向 WHO 通報的死亡人數依道路使用者分（Global Status Report on Road Safety
-  2018 與 2023 兩輪調查，大多是 2016、2021 年的資料）；不是 WHO 的估計值，通報不完整的國家可能有偏差。
-- 每萬輛機動車死亡數：WHO 估計的死亡人數 ÷ 各國通報的登記機動車輛數 × 1 萬（兩輪調查各一次）。
+- 死亡人數：WHO 的死亡率 × 聯合國 WPP 2024 的年中人口（WHO 自己的死亡人數 `RS_196` 只在 GHO、只有 2021 年，
+  2026-11-04 起不再拿來核對）。
+- 行人、機車騎士的死亡占比：各國向 WHO 通報的死亡人數依道路使用者分（Global Status Report on Road Safety 2023，
+  大多是 2021 年的資料）；不是 WHO 的估計值，通報不完整的國家可能有偏差。2016 年前後的那一輪（GHO 的 RS_246、RS_194）
+  只在 GHO，使用者 2026-11-04 決定不用，拿掉。
+- 每萬輛機動車死亡數：WHO 估計的死亡人數 ÷ 各國通報的登記機動車輛數 × 1 萬（GSRRS 2023 一次）。
 - 機車大國（build_motorcycles，2026-10-29，製作手冊第五批 58）：GSRRS 2023 的登記機車數（二、三輪機動車，CP_39，
   2020 或 2021 年）÷ WPP 人口 × 1,000，與占登記機動車輛（CP_36a）的比例。機車數比車輛總數還多的（菲律賓、喬治亞、
   賽普勒斯、查德、南蘇丹：單位填錯）兩個指標都不用；台灣用交通部表 101 的年底登記機車數（使用者 2026-10-29 決定）。
@@ -191,7 +192,6 @@ def build() -> None:
     }
     deaths["TWN"] = {y: v for y, v in tw["total"].items()}
     world_deaths = {y: round(v / 1e5 * world_pop[y] * 1000) for y, v in world_rate.items() if y in world_pop}
-    _check_deaths(deaths)
 
     tw_note_rate = (
         "台灣不在 WHO 的資料裡，這裡用交通部統計查詢網的道路交通事故 30 日內死亡人數（事故後 30 天內死亡，2008 年起，"
@@ -226,7 +226,7 @@ def build() -> None:
     )
 
     # ── 行人、機車騎士的死亡占比；組成（側欄） ──
-    rounds = [who_road.gsrrs_2016(), who_road.gsrrs_2023()]
+    rounds = [who_road.gsrrs_2023()]
     shares: dict[str, dict[str, dict[int, float]]] = {u: {} for u in who_road.USERS}
     composition: dict[str, dict[int, list[float | None]]] = {}
     for survey in rounds:
@@ -284,7 +284,7 @@ def build() -> None:
 
     # ── 每萬輛機動車死亡數 ──
     per_vehicle: dict[str, dict[int, float]] = {}
-    for survey, death_year in zip(rounds, (2016, 2021)):
+    for survey, death_year in zip(rounds, (2021,)):
         for iso3, s in survey.items():
             d = deaths.get(iso3, {}).get(death_year)
             if not s.vehicles or not s.vehicles_year or d is None or abs(s.vehicles_year - death_year) > VEHICLE_GAP:
@@ -333,22 +333,3 @@ def build() -> None:
     tw23 = tw_rate[2023]
     print(f"  台灣 2023 年：30 日內死亡 {tw['total'][2023]:,.0f} 人、每 10 萬人 {tw23:.1f}；行人 {ped[2023]:.1f}%、機車 {tw_share['moto'][2023]:.1f}%")
     print(f"  占比的年份 {share_years[0]}–{share_years[-1]}，{len(shares['pedestrian'])} 國；每萬輛 {len(per_vehicle)} 國")
-
-
-def _check_deaths(deaths: dict[str, dict[int, float]]) -> None:
-    """WHO 的死亡率 × WPP 人口，跟 WHO 自己的 2021 年死亡人數（RS_196，GSRRS 2023 的估計）比。
-    死亡率是 2026 年更新的估計（Global Health Estimates），個別國家改過（阿根廷、葉門約差 15%），
-    所以只看中位數：差太多表示人口或單位算錯了。"""
-    from sources import who
-
-    reported, _ = who.gho("RS_196", {})
-    worst = []
-    for iso3, s in reported.items():
-        mine = deaths.get(iso3, {}).get(2021)
-        if mine and s.get(2021) and s[2021] > 500:
-            worst.append((abs(mine / s[2021] - 1), iso3, mine, s[2021]))
-    worst.sort(reverse=True)
-    median = sorted(w[0] for w in worst)[len(worst) // 2]
-    print(f"  死亡率 × 人口 vs WHO 2021 死亡人數：中位數差 {median:.1%}，差最多的 {[(i, round(m), round(r)) for _, i, m, r in worst[:3]]}")
-    if median > 0.03:
-        raise RuntimeError(f"死亡人數跟 WHO 的差太多（中位數 {median:.1%}）")

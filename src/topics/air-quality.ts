@@ -139,19 +139,11 @@ export const airQuality: TopicDefinition = {
       missing: { zh: '國家不上色，看衛星影像', en: 'Countries are not coloured; see the satellite image' },
     },
     deathRate(
-      'ambient-deaths',
-      { zh: '戶外空氣污染死亡率', en: 'Outdoor air pollution deaths' },
-      {
-        zh: '每十萬人一年有幾人的死亡可歸因於戶外空氣污染（PM2.5），年齡標準化（用同一個年齡結構比較，老年人口多的國家不會因此偏高）。WHO 依各國的 PM2.5 暴露量，以及缺血性心臟病、中風、肺癌、慢性阻塞性肺病、下呼吸道感染的暴露—反應關係推估，只有 2021 年。',
-        en: 'Deaths per 100,000 people a year attributable to outdoor (ambient) air pollution, age-standardised (compared using the same age structure, so countries with older populations do not come out higher just for that). WHO estimates from each country’s PM2.5 exposure and exposure–response relationships for ischaemic heart disease, stroke, lung cancer, COPD and lower respiratory infections; 2021 only.',
-      },
-    ),
-    deathRate(
       'air-pollution-deaths',
       { zh: '戶外與室內空氣污染死亡率', en: 'All air pollution deaths' },
       {
-        zh: '聯合國永續發展目標 SDG 3.9.1：戶外空氣污染，加上家裡用柴火、木炭、煤炭等固體燃料煮飯取暖造成的室內空氣污染，每十萬人一年的歸因死亡，年齡標準化，只有 2021 年。撒哈拉以南非洲、南亞很多家庭還在用固體燃料，所以比只算戶外高很多；WHO 算的是兩者的合併效果，不是直接相加。',
-        en: 'Outdoor plus household air pollution (UN Sustainable Development Goal indicator 3.9.1): deaths per 100,000 people a year attributable to outdoor air pollution and to household air pollution from cooking and heating with solid fuels such as wood, charcoal and coal, age-standardised; 2021 only. Much higher than outdoor pollution alone in sub-Saharan Africa and South Asia, where many households still use solid fuels; WHO estimates the joint effect, not a simple sum.',
+        zh: '聯合國永續發展目標 SDG 3.9.1：戶外空氣污染，加上家裡用柴火、木炭、煤炭等固體燃料煮飯取暖造成的室內空氣污染，每十萬人一年的歸因死亡，年齡標準化，只有 2021 年。撒哈拉以南非洲、南亞很多家庭還在用固體燃料，所以特別高；WHO 算的是兩者的合併效果，不是直接相加。',
+        en: 'Outdoor plus household air pollution (UN Sustainable Development Goal indicator 3.9.1): deaths per 100,000 people a year attributable to outdoor air pollution and to household air pollution from cooking and heating with solid fuels such as wood, charcoal and coal, age-standardised; 2021 only. Especially high in sub-Saharan Africa and South Asia, where many households still use solid fuels; WHO estimates the joint effect, not a simple sum.',
       },
     ),
   ],

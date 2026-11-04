@@ -8,7 +8,8 @@
   表裡的州、省、屬地不算國家（OVERRIDES 逐一寫明），授權 CC BY-SA 4.0，資料檔同樣 CC BY-SA 4.0。
   台灣表上是 banned，用《菸害防制法》（民國 112 年 2 月 15 日修正，同年 3 月 22 日施行）第 15 條核對：
   「任何人不得製造、輸入、販賣、供應、展示或廣告……類菸品或其組合元件」「任何人不得使用類菸品」。
-- 室內全面禁菸的場所數（候選 502）：WHO GHO「Tobacco MPOWER Protect people: P1 smoke-free places」
+- 室內全面禁菸的場所數（候選 502）：2026-11-04 拿掉（使用者決定只在 WHO GHO 的指標不用，data.who.int 沒有這一項；
+  build_smokefree() 留著不跑）。原本是 WHO GHO「Tobacco MPOWER Protect people: P1 smoke-free places」
   （TOBACCO_MPOWER_P1_SMOKEFREEPLACES，經 xmart 讀，CC BY 4.0），8 類場所（醫療、學校、大學、政府機關、辦公室、
   餐廳、酒吧、大眾運輸）全國法律規定全面禁菸的有幾類，2007–2024 年。「. . .」（沒有資料）那一類當成沒有值，
   8 類都要有答案才算。WHO 把准設吸菸室算成不是全面禁菸。
@@ -194,4 +195,3 @@ def build_smokefree() -> None:
 
 def build() -> None:
     build_ecig()
-    build_smokefree()

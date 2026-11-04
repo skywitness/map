@@ -10,9 +10,8 @@
 - 學名藥（296）：OECD Generic market（`OECD.ELS.HD,HEALTH_PHMC@DF_GEN_MRKT,1.0`），學名藥占藥品市場的**數量**
   比例（`PT_SL_VOL_M`），**全部市場**（`_T`）。分數量／金額、全部／健保給付／社區藥局／醫院四種市場，同一種口徑
   只有十幾國；製作手冊要「選一種並寫明」，選有日本、加拿大的全部市場數量（13 國）。台灣沒有。
-- 止痛藥與胰島素（295）：WHO 非傳染病國家能力調查（NCD CCS）的 `NCD_CCS_OralMorph`（公立醫療體系是不是普遍
-  拿得到口服嗎啡）與 `NCD_CCS_Insulin`（胰島素），2013–2021 年，194 國，各國衛生部自填（xmart，CC BY 4.0）。
-  Yes／No 兩類，Don't know、No response、No data received 不畫。台灣沒有（不是 WHO 會員），也沒有同樣問法的官方答案。
+- 止痛藥與胰島素（295）：WHO 非傳染病國家能力調查（NCD CCS）的 `NCD_CCS_OralMorph`、`NCD_CCS_Insulin` 只在 GHO、
+  data.who.int 沒有，使用者 2026-11-04 決定只在 GHO 的指標不用，拿掉（_availability() 留著不跑）。
   INCB 的鴉片類止痛藥用量不能用（條款只准個人、非商業）。
 - 基本藥物清單（301）：Persaud 等 2019〈Comparison of essential medicines lists in 137 countries〉（Bull World
   Health Organ 97(6):394–404C）的表1：各國清單的年份、收的藥數、跟 WHO 示範清單（2017 年第 20 版）相同的藥數。
@@ -177,8 +176,6 @@ def build() -> None:
            lambda v: f"{v:,.0f} 國際元")
     print(f"  台灣：藥費占 {max(twn_share)} 年 {twn_share[max(twn_share)]}%，每人 {max(twn_ppp)} 年 {twn_ppp[max(twn_ppp)]:,.0f} 美元")
     _write("generics", "%", _generics(), 1, None, None, None)
-    _availability("oral-morphine", "NCD_CCS_OralMorph")
-    _availability("insulin", "NCD_CCS_Insulin")
     _essential_medicines()
     # 別的步驟寫的部分（被美國 FDA 回收的藥品，topics/drug_recalls.py）留著
     old = json.loads((OUT / "manifest.json").read_text(encoding="utf-8")) if (OUT / "manifest.json").exists() else {}
@@ -186,9 +183,9 @@ def build() -> None:
         **({"parts": old["parts"]} if old.get("parts") else {}),
         "topic": "medicines", "generatedAt": now_iso(),
         "source": ("OECD Health expenditure and financing (SHA, HC.5.1); OECD Generic market; Ministry of Health and "
-                   "Welfare (Taiwan) National Health Expenditure; IMF WEO (PPPEX); WHO NCD Country Capacity Survey "
-                   "(NCD_CCS_OralMorph, NCD_CCS_Insulin); Persaud et al. 2019, Bull World Health Organ 97:394, Table 1"),
-        "license": "OECD terms; Taiwan Open Government Data License 1.0; CC BY 4.0; CC BY 3.0 IGO",
+                   "Welfare (Taiwan) National Health Expenditure; IMF WEO (PPPEX); Persaud et al. 2019, Bull World Health Organ "
+                   "97:394, Table 1"),
+        "license": "OECD terms; Taiwan Open Government Data License 1.0; CC BY 3.0 IGO",
     })
 
 

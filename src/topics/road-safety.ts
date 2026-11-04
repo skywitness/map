@@ -25,10 +25,10 @@ export const roadSafety: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: 'WHO Global Health Observatory：道路交通死亡率估計值（RS_198）、2016 年的死亡組成與登記車輛數（RS_246、RS_194）',
-        en: 'WHO Global Health Observatory: estimated road traffic death rates (RS_198); 2016 deaths by road user and registered vehicles (RS_246, RS_194)',
+        zh: 'WHO 資料平臺 data.who.int：道路交通死亡率估計值（RS_198）',
+        en: 'WHO data platform (data.who.int): estimated road traffic death rates (RS_198)',
       },
-      url: 'https://www.who.int/data/gho/data/themes/road-safety',
+      url: 'https://data.who.int/indicators/i/B9D9E6A/D6176E2',
       license: WHO_LICENSE,
     },
     {
@@ -57,8 +57,8 @@ export const roadSafety: TopicDefinition = {
     },
   ],
   note: {
-    zh: '死亡率是 WHO 的估計值，用 30 天的定義（事故後 30 天內死亡），各國可以比較；死亡人數是 WHO 的死亡率乘上聯合國的人口。行人、機車騎士占比與登記車輛數是各國向 WHO 通報的資料（2016、2021 年前後兩輪調查），通報不完整的國家可能有偏差。台灣不在 WHO 的資料裡，用交通部的 30 日內死亡人數；警察機關常見的 A1 類事故只算 24 小時內死亡，數字少很多，不能拿來跟其他國家比。2021 年的死亡組成與登記車輛數取自《Global status report on road safety 2023》（WHO，CC BY-NC-SA 3.0 IGO），行人與機車騎士占比、每萬輛機動車死亡數的資料檔也依 CC BY-NC-SA 3.0 IGO 分享。每千人機車數、汽車數見「汽機車」主題。',
-    en: 'Death rates are WHO estimates using the 30-day definition (death within 30 days of the crash), so countries can be compared; death counts are the WHO rate times the UN population. Pedestrian and motorcyclist shares and registered vehicles are figures countries reported to WHO (two survey rounds, around 2016 and 2021) and may be biased where reporting is incomplete. Taiwan is not in the WHO data and uses Ministry of Transportation and Communications deaths within 30 days; the police A1 figures often quoted count only deaths within 24 hours, which are much lower and not comparable. The 2021 road-user and vehicle data come from the WHO Global status report on road safety 2023 (CC BY-NC-SA 3.0 IGO), and the pedestrian, motorcyclist and per-vehicle data files are shared under CC BY-NC-SA 3.0 IGO as well. For motorcycles and cars per 1,000 people, see the Cars and motorcycles topic.',
+    zh: '死亡率是 WHO 的估計值，用 30 天的定義（事故後 30 天內死亡），各國可以比較；死亡人數是 WHO 的死亡率乘上聯合國的人口。行人、機車騎士占比與登記車輛數是各國向 WHO 通報的資料（2021 年前後；2016 年前後的那一輪只在 WHO GHO 資料庫，2026 年 11 月拿掉），通報不完整的國家可能有偏差。台灣不在 WHO 的資料裡，用交通部的 30 日內死亡人數；警察機關常見的 A1 類事故只算 24 小時內死亡，數字少很多，不能拿來跟其他國家比。2021 年的死亡組成與登記車輛數取自《Global status report on road safety 2023》（WHO，CC BY-NC-SA 3.0 IGO），行人與機車騎士占比、每萬輛機動車死亡數的資料檔也依 CC BY-NC-SA 3.0 IGO 分享。每千人機車數、汽車數見「汽機車」主題。',
+    en: 'Death rates are WHO estimates using the 30-day definition (death within 30 days of the crash), so countries can be compared; death counts are the WHO rate times the UN population. Pedestrian and motorcyclist shares and registered vehicles are figures countries reported to WHO (around 2021; the earlier round around 2016 is only in WHO’s Global Health Observatory and was removed in November 2026) and may be biased where reporting is incomplete. Taiwan is not in the WHO data and uses Ministry of Transportation and Communications deaths within 30 days; the police A1 figures often quoted count only deaths within 24 hours, which are much lower and not comparable. The 2021 road-user and vehicle data come from the WHO Global status report on road safety 2023 (CC BY-NC-SA 3.0 IGO), and the pedestrian, motorcyclist and per-vehicle data files are shared under CC BY-NC-SA 3.0 IGO as well. For motorcycles and cars per 1,000 people, see the Cars and motorcycles topic.',
   },
   panelExtra: () => import('./panels/RoadSafetyPanel'),
   indicators: [
@@ -95,8 +95,8 @@ export const roadSafety: TopicDefinition = {
       id: 'pedestrians',
       label: { zh: '行人死亡占比', en: 'Pedestrian share' },
       description: {
-        zh: '道路交通死亡者裡行人的比例，各國向 WHO 通報的數字（2016、2021 年前後兩輪調查，地圖用 5 年內最近一次）。台灣是交通部的 30 日內死亡人數。',
-        en: 'Share of road deaths who were pedestrians, as reported by countries to WHO (survey rounds around 2016 and 2021; the map uses the latest within 5 years). Taiwan uses Ministry of Transportation and Communications deaths within 30 days.',
+        zh: '道路交通死亡者裡行人的比例，各國向 WHO 通報的數字（2021 年前後，地圖用 5 年內最近一次）。台灣是交通部的 30 日內死亡人數。',
+        en: 'Share of road deaths who were pedestrians, as reported by countries to WHO (around 2021; the map uses the latest within 5 years). Taiwan uses Ministry of Transportation and Communications deaths within 30 days.',
       },
       unit: '%',
       file: 'pedestrians.json',

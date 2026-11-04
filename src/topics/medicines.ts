@@ -4,23 +4,12 @@ import type { CategoryDef, ListPanelDef, ListRow, PointRecord, TopicDefinition }
 
 /**
  * 藥品支出與取得（2026-11-03，製作手冊第十九批 295、296、301；pipeline/topics/medicines.py）：
- * OECD 的藥費與學名藥、WHO 國家能力調查的口服嗎啡與胰島素、Persaud 等 2019 年的各國基本藥物清單。
+ * OECD 的藥費與學名藥、Persaud 等 2019 年的各國基本藥物清單。WHO 國家能力調查的口服嗎啡與胰島素只在 WHO GHO，2026-11-04 拿掉。
  */
 
 const OECD_TERMS = { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 const pct = (v: number) => `${fixed(v, 1)}%`;
-
-const AVAILABLE: CategoryDef[] = [
-  { value: 1, label: { zh: '普遍拿得到', en: 'Generally available' } },
-  { value: 0, label: { zh: '沒有普遍拿得到', en: 'Not generally available' } },
-];
-const availableLabel = (v: number) => tr(AVAILABLE.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
-
-const SURVEY = {
-  zh: '是各國衛生部自己回答的有或沒有，「普遍」的門檻由各國自己判斷，不是實際的用量。台灣不是 WHO 會員，不在調查裡，也沒有同樣問法的官方答案。',
-  en: 'These are yes-or-no answers from each health ministry, which judges “generally” for itself; they are not actual consumption. Taiwan is not a WHO member, is not in the survey and has no official answer to the same question.',
-};
 
 /** 缺藥登錄（pipeline/topics/drug_shortages.py 的 YES、PARTIAL、NO） */
 const SHORTAGE_REGISTER: CategoryDef[] = [
@@ -101,14 +90,6 @@ export const medicines: TopicDefinition = {
     },
     {
       name: {
-        zh: 'WHO, Noncommunicable Disease Country Capacity Survey（公立醫療體系的口服嗎啡與胰島素，GHO NCD_CCS_OralMorph、NCD_CCS_Insulin）',
-        en: 'WHO, Noncommunicable Disease Country Capacity Survey (oral morphine and insulin in the public health system, GHO NCD_CCS_OralMorph and NCD_CCS_Insulin)',
-      },
-      url: 'https://www.who.int/data/gho/data/indicators',
-      license: 'CC BY 4.0',
-    },
-    {
-      name: {
         zh: 'Persaud N, et al. Comparison of essential medicines lists in 137 countries. Bull World Health Organ 2019;97:394–404C，表1',
         en: 'Persaud N, et al. Comparison of essential medicines lists in 137 countries. Bull World Health Organ 2019;97:394–404C, Table 1',
       },
@@ -157,8 +138,8 @@ export const medicines: TopicDefinition = {
     },
   ],
   note: {
-    zh: '藥費是 OECD 的醫療支出帳（SHA）裡的「藥品與其他醫療非耐久財」（HC.5.1），也就是門診拿的處方藥與成藥；住院用的藥算在住院醫療裡，不在這裡。台灣不在 OECD 裡，用衛生福利部國民醫療保健支出統計（同樣的口徑），每人藥費再用 IMF 的購買力平價換算。學名藥只有十幾個 OECD 國家，台灣沒有同樣口徑的統計。止痛藥與胰島素、基本藥物清單都沒有台灣：台灣不是 WHO 會員，也沒有「國家基本藥物清單」（健保的給付清單性質不同）。依 OECD 的資料條款註明：OECD (2026), Health expenditure and financing、Generic market, OECD Data Explorer（2026-11-03 查閱）。',
-    en: 'Pharmaceutical spending is “pharmaceuticals and other medical non-durable goods” (HC.5.1) in the OECD System of Health Accounts: prescription and over-the-counter medicines dispensed to outpatients; medicines used in hospital count as inpatient care. Taiwan is not in the OECD; its figures come from the Ministry of Health and Welfare’s National Health Expenditure statistics on the same basis, with per-capita amounts converted at the IMF’s PPP rate. Generic shares cover only a dozen or so OECD countries. Taiwan is not in the pain relief, insulin or essential medicines data: it is not a WHO member and has no national essential medicines list (its insurance reimbursement list is a different thing). Source per OECD terms: OECD (2026), Health expenditure and financing and Generic market, OECD Data Explorer (accessed 2026-11-03).',
+    zh: '藥費是 OECD 的醫療支出帳（SHA）裡的「藥品與其他醫療非耐久財」（HC.5.1），也就是門診拿的處方藥與成藥；住院用的藥算在住院醫療裡，不在這裡。台灣不在 OECD 裡，用衛生福利部國民醫療保健支出統計（同樣的口徑），每人藥費再用 IMF 的購買力平價換算。學名藥只有十幾個 OECD 國家，台灣沒有同樣口徑的統計。基本藥物清單沒有台灣：台灣不是 WHO 會員，也沒有「國家基本藥物清單」（健保的給付清單性質不同）。依 OECD 的資料條款註明：OECD (2026), Health expenditure and financing、Generic market, OECD Data Explorer（2026-11-03 查閱）。',
+    en: 'Pharmaceutical spending is “pharmaceuticals and other medical non-durable goods” (HC.5.1) in the OECD System of Health Accounts: prescription and over-the-counter medicines dispensed to outpatients; medicines used in hospital count as inpatient care. Taiwan is not in the OECD; its figures come from the Ministry of Health and Welfare’s National Health Expenditure statistics on the same basis, with per-capita amounts converted at the IMF’s PPP rate. Generic shares cover only a dozen or so OECD countries. Taiwan is not in the essential medicines data: it is not a WHO member and has no national essential medicines list (its insurance reimbursement list is a different thing). Source per OECD terms: OECD (2026), Health expenditure and financing and Generic market, OECD Data Explorer (accessed 2026-11-03).',
   },
   listPanel: APPROVAL_LAG,
   indicators: [
@@ -200,36 +181,6 @@ export const medicines: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70] } },
       format: pct,
       formatTick: (v) => `${v}%`,
-    },
-    {
-      id: 'oral-morphine',
-      label: { zh: '口服嗎啡拿得到嗎', en: 'Oral morphine available?' },
-      description: {
-        zh: `各國衛生部回答 WHO 的非傳染病國家能力調查：公立醫療體系是不是普遍拿得到口服嗎啡（癌症末期與重度疼痛用的止痛藥），2013–2021 年。2021 年 97 國回答有、80 國沒有、17 國不知道或沒回答。美國、英國、巴西、印度、奈及利亞回答有；中國、泰國、越南、菲律賓、印尼、巴基斯坦回答沒有。${SURVEY.zh}`,
-        en: `Answers from health ministries to the WHO Noncommunicable Disease Country Capacity Survey: is oral morphine (for pain in terminal cancer and other severe pain) generally available in the public health system? 2013–2021. In 2021, 97 countries said yes, 80 no and 17 did not know or did not answer. The US, the UK, Brazil, India and Nigeria said yes; China, Thailand, Vietnam, the Philippines, Indonesia and Pakistan said no. ${SURVEY.en}`,
-      },
-      unit: '',
-      file: 'oral-morphine.json',
-      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
-      format: availableLabel,
-      unranked: true,
-      rankingBars: false,
-      panelChart: false,
-    },
-    {
-      id: 'insulin',
-      label: { zh: '胰島素拿得到嗎', en: 'Insulin available?' },
-      description: {
-        zh: `同一份 WHO 調查：公立醫療體系是不是普遍拿得到胰島素（第 1 型糖尿病一定要用）。2021 年 154 國回答有、33 國沒有、7 國不知道或沒回答；中國、越南、印尼、巴基斯坦回答沒有，奈及利亞 2021 年第一次回答有。${SURVEY.zh}`,
-        en: `The same WHO survey: is insulin (essential for type 1 diabetes) generally available in the public health system? In 2021, 154 countries said yes, 33 no and 7 did not know or did not answer; China, Vietnam, Indonesia and Pakistan said no, and Nigeria said yes for the first time. ${SURVEY.en}`,
-      },
-      unit: '',
-      file: 'insulin.json',
-      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
-      format: availableLabel,
-      unranked: true,
-      rankingBars: false,
-      panelChart: false,
     },
     {
       id: 'essential-medicines',

@@ -4,7 +4,7 @@ import type { TopicDefinition } from './types';
 
 /**
  * 抗藥性（2026-11-03，製作手冊第十九批 293；pipeline/topics/antimicrobial_resistance.py）：
- * WHO GLASS 的大腸桿菌、MRSA 抗藥比例與抗藥性結核（GHO，CC BY 4.0）；台灣用疾管署的抗生素敏感性統計（data.gov.tw 43600）。
+ * WHO GLASS 的大腸桿菌、MRSA 抗藥比例與抗藥性結核（data.who.int，CC BY 4.0）；台灣用疾管署的抗生素敏感性統計（data.gov.tw 43600）。
  */
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -23,10 +23,10 @@ export const antimicrobialResistance: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: 'WHO Global Health Observatory：GLASS 抗藥性監測（AMR_INFECT_ECOLI、AMR_INFECT_MRSA）、抗藥性結核的估計新病例數（TB_e_inc_rr_num）',
-        en: 'WHO Global Health Observatory: GLASS surveillance (AMR_INFECT_ECOLI, AMR_INFECT_MRSA) and estimated new cases of drug-resistant TB (TB_e_inc_rr_num)',
+        zh: 'WHO 資料平臺 data.who.int：GLASS 抗藥性監測（AMR_INFECT_ECOLI、AMR_INFECT_MRSA）、抗藥性結核的估計新病例數（TB_e_rr_num）',
+        en: 'WHO data platform (data.who.int): GLASS surveillance (AMR_INFECT_ECOLI, AMR_INFECT_MRSA) and estimated new cases of drug-resistant TB (TB_e_rr_num)',
       },
-      url: 'https://www.who.int/data/gho',
+      url: 'https://data.who.int/indicators/i/918081E/745F475',
       license: 'CC BY 4.0',
     },
     {

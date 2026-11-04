@@ -1,10 +1,9 @@
-"""疫苗與防疫主題：兒童常規疫苗的接種率、零劑兒童，與 COVID-19 的確診死亡、疫苗接種、超額死亡。
+"""疫苗與防疫主題：兒童常規疫苗的接種率，與 COVID-19 的確診死亡、疫苗接種、超額死亡。
 
-- 兒童常規疫苗：WHO/UNICEF 的 WUENIC 2025 年版（`sources/wuenic.py`：2000 年起 WHO GHO、1980–1999 年世界銀行轉載，
-  都是 CC BY 4.0）。DTP3、麻疹第一劑 1980–2025，麻疹第二劑 2000–2025，HPV（女孩第一劑）2010–2025。
-- 零劑兒童：沒有打過任何一劑 DTP 的嬰兒人數 = 存活嬰兒（WPP 2024 的出生數 − 嬰兒死亡數）×（100% − DTP1）。
-  WHO/UNICEF 的國家估計是用沒有四捨五入的接種率算的，這裡用公布的整數接種率，所以單一國家可能差幾個百分比；
-  195 國加總跟 WHO 公布的全球數字差 1% 以內（_check_zero_dose()）。
+- 兒童常規疫苗：WHO/UNICEF 的 WUENIC（`sources/wuenic.py`：2000 年起 WHO GHO、1980–1999 年世界銀行轉載，
+  都是 CC BY 4.0）。DTP3 1980–2025，麻疹第二劑 2000–2025，HPV（女孩第一劑）2010–2025；麻疹第一劑 2026-11-04 起整段用
+  世界銀行轉載的 2024 年版（1980–2024；GHO 的版本 data.who.int 沒有，使用者決定只在 GHO 的指標不用）。
+- 零劑兒童（用 DTP1 算）2026-11-04 拿掉：DTP1 只在 GHO，data.who.int 沒有。
 - COVID-19 確診死亡（累計，每 10 萬人）：Our World in Data 轉載的 WHO 各國通報數（`sources/owid_covid.py`），每年年底的值，
   2020–2025。各國的檢驗量、死因認定與通報方式差很多，指標說明有寫。
   台灣不在 WHO 的資料裡：用衛福部死因統計裡死因是 COVID-19（ICD-10 U07）的人數累計（2020–2025 每年都有），
@@ -15,7 +14,7 @@
   側欄另外列 95% 區間與到 2024 年 6 月的變化。
 - 台灣的常規疫苗：疾管署「預防接種統計」各年的完成率（`sources/cdc_tw.py`）：五合一第三劑 → DTP3、MMR 第一劑 → 麻疹第一劑，
   2015–2025。麻疹第二劑只有 2024 年，用疾管署的縣市別完成率依各縣市 5 歲人口加權自算（97.41%，製作手冊第八批 145）。
-  HPV、零劑兒童沒有可以比的數字，附註寫官方公布的說法。
+  HPV 沒有可以比的數字，附註寫官方公布的說法。
 """
 from __future__ import annotations
 
@@ -34,7 +33,6 @@ FIRST_MONTH = "2020-01"
 CECC_VACCINATION = ("2022-03-24", 83.35, 78.15)
 CECC_VACCINATION_URL = "https://www.cdc.gov.tw/Uploads/e18e290d-fb96-4056-80ce-bed073c69b42.pdf"
 # WHO/UNICEF 2026-07-15 公布：2025 年全球 1,350 萬名零劑兒童（沒有打過任何一劑 DTP）
-WHO_ZERO_DOSE_2025 = 13.5e6
 
 Series = dict[str, dict[int, float]]
 
@@ -45,7 +43,6 @@ def build() -> None:
     tw = cdc_tw.coverage()
 
     # ── 兒童常規疫苗 ──
-    dtp1, _ = wuenic.coverage("dtp1")
     for antigen, first in (("dtp3", 1980), ("mcv1", 1980), ("mcv2", 2000), ("hpv", 2010)):
         countries, world = wuenic.coverage(antigen)
         years = list(range(first, LAST_YEAR + 1))
@@ -59,23 +56,11 @@ def build() -> None:
             indicator_file(
                 antigen, "%", years, values,
                 aggregates={"WLD": to_series(world, years, 0)}, notes=notes, notesEn=notes_en,
+                # 麻疹第一劑用世界銀行轉載的 2024 年版（到 2024 年）：2025 年顯示 2024 年的值
+                **({"latestWithin": 1} if antigen in wuenic.WDI_ONLY else {}),
             ),
         )
         print(f"  {antigen}：{len(values)} 國，{years[0]}–{years[-1]}，{LAST_YEAR} 年世界 {world.get(LAST_YEAR)}%")
-
-    # ── 零劑兒童 ──
-    zero = _zero_dose(dtp1, demo["Births"], demo["InfantDeaths"])
-    zero_years = list(range(wuenic.GHO_FROM, LAST_YEAR + 1))
-    world_zero = {y: sum(s.get(y, 0) for s in zero.values()) for y in zero_years}
-    _check_zero_dose(world_zero)
-    write_json(
-        OUT / "zero-dose.json",
-        indicator_file(
-            "zero-dose", "人", zero_years, {k: to_series(s, zero_years, 0) for k, s in zero.items()},
-            aggregates={"WLD": to_series(world_zero, zero_years, 0)},
-            notes={"TWN": TW_ZERO_DOSE_NOTE}, notesEn={"TWN": TW_ZERO_DOSE_NOTE_EN},
-        ),
-    )
 
     # ── COVID-19 ──
     covid = owid_covid.compact()
@@ -239,11 +224,7 @@ TW_COVERAGE_NOTE = {
         + ". The WHO indicator counts the first dose, so the map has no value. Boys have been eligible since September 2025.",
     ),
 }
-TW_ZERO_DOSE_NOTE = "台灣不在 WHO/UNICEF 的估計裡；疾管署公布的完成率只有五合一疫苗的第三、四劑，沒有第一劑，所以算不出零劑兒童。"
-TW_ZERO_DOSE_NOTE_EN = (
-    "Taiwan is not in the WHO/UNICEF estimates, and Taiwan CDC publishes completion rates only for the third and fourth "
-    "doses of the five-in-one vaccine, not the first, so zero-dose children cannot be estimated."
-)
+
 
 
 def _coverage_notes(antigen: str, tw: Series) -> tuple[dict[str, str], dict[str, str]]:
@@ -314,26 +295,6 @@ def _taiwan_vaccination_note(tw: owid_covid.Covid, last: str) -> tuple[str, str]
 
 
 # ── 計算 ──────────────────────────────────────────────
-
-
-def _zero_dose(dtp1: Series, births: Series, infant_deaths: Series) -> Series:
-    """沒有打過任何一劑 DTP 的嬰兒人數：存活嬰兒 ×（100 − DTP1）÷ 100"""
-    out: Series = {}
-    for iso3, s in dtp1.items():
-        for y, cov in s.items():
-            b, d = births.get(iso3, {}).get(y), infant_deaths.get(iso3, {}).get(y)
-            if b is None or d is None:
-                continue
-            # 接種率是整數，算出來的人數只有前兩三位有意義，四捨五入到百位
-            out.setdefault(iso3, {})[y] = round((b - d) * 1000 * (100 - cov) / 100, -2)
-    return out
-
-
-def _check_zero_dose(world: dict[int, float]) -> None:
-    v = world[LAST_YEAR]
-    print(f"  零劑兒童：{LAST_YEAR} 年 195 國加總 {v / 1e6:.2f} 百萬（WHO/UNICEF 公布 {WHO_ZERO_DOSE_2025 / 1e6:.1f} 百萬）")
-    if abs(v / WHO_ZERO_DOSE_2025 - 1) > 0.03:
-        raise RuntimeError("零劑兒童的加總跟 WHO/UNICEF 公布的差太多，人口或接種率可能讀錯了")
 
 
 def _check_taiwan_vaccination(tw: owid_covid.Covid) -> None:

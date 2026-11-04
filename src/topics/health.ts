@@ -24,11 +24,6 @@ const SEX: DimensionDef = {
   defaultOption: 'total',
 };
 
-/** 安寧緩和醫療（pipeline/topics/palliative.py）：WHO 國家能力調查的有／沒有 */
-const AVAILABLE: CategoryDef[] = [
-  { value: 1, label: { zh: '普遍提供', en: 'Generally available' } },
-  { value: 0, label: { zh: '沒有普遍提供', en: 'Not generally available' } },
-];
 /** 健保制度（pipeline/topics/health_systems.py）：OECD 的四類、英文維基的五類，不互相對應 */
 const OECD_SYSTEMS: CategoryDef[] = [
   { value: 1, label: { zh: '國家衛生服務', en: 'National health system' } },
@@ -45,8 +40,6 @@ const FINANCING: CategoryDef[] = [
 ];
 const categoryLabel = (cats: CategoryDef[]) => (v: number) =>
   tr(cats.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
-
-const availableLabel = (v: number) => tr(AVAILABLE.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
 
 export const health: TopicDefinition = {
   id: 'health',
@@ -137,14 +130,6 @@ export const health: TopicDefinition = {
       },
       url: 'https://dep.mohw.gov.tw/DOS/np-5308-113.html',
       license: OPEN_DATA_TW,
-    },
-    {
-      name: {
-        zh: 'WHO, Noncommunicable Disease Country Capacity Survey（公立體系的安寧緩和醫療，GHO NCD_CCS_palliative_prim、NCD_CCS_palliative_home）',
-        en: 'WHO, Noncommunicable Disease Country Capacity Survey (palliative care in the public health system, GHO NCD_CCS_palliative_prim and NCD_CCS_palliative_home)',
-      },
-      url: 'https://www.who.int/data/gho/data/indicators',
-      license: 'CC BY 4.0',
     },
     {
       name: { zh: 'OECD, Health System Characteristics Survey 2023（基本醫療保障的主要來源）', en: 'OECD, Health System Characteristics Survey 2023 (main source of basic coverage)' },
@@ -526,36 +511,6 @@ export const health: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 1)}% 使用長照`, en: `${fixed(v, 1)}% receiving care` }),
       formatTick: percentTick,
       noValue: { TWN: { zh: '沒有可以跟 OECD 比的數字', en: 'No figure comparable with the OECD data' } },
-    },
-    {
-      id: 'palliative-primary',
-      label: { zh: '安寧緩和醫療：基層醫療', en: 'Palliative care in primary care' },
-      description: {
-        zh: '各國政府回答 WHO 的非傳染病國家能力調查：公立醫療體系的基層醫療（診所、衛生所）是不是普遍提供安寧緩和醫療（2015–2021 年，每兩年）。2021 年 81 國普遍提供、105 國沒有，8 國沒有回答或不知道。是政府自己回答的有或沒有，不是服務量，也不代表品質：法國、韓國回答沒有，印度回答有。台灣不在調查裡，全民健保給付安寧住院、居家與社區安寧照護，編成「普遍提供」。',
-        en: 'Government answers to the WHO Noncommunicable Disease Country Capacity Survey: is palliative care generally available in primary care (clinics, health centres) in the public health system (2015–2021, every two years)? In 2021, 81 countries said yes and 105 no; 8 did not answer or did not know. It is a self-reported yes or no, not the amount or quality of care: France and South Korea answered no, India yes. Taiwan is not in the survey; National Health Insurance covers inpatient, home and community palliative care, so it is coded as available.',
-      },
-      unit: '',
-      file: 'palliative-primary.json',
-      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
-      format: availableLabel,
-      unranked: true,
-      rankingBars: false,
-      panelChart: false,
-    },
-    {
-      id: 'palliative-home',
-      label: { zh: '安寧緩和醫療：社區或居家', en: 'Palliative care at home' },
-      description: {
-        zh: '同一份 WHO 調查：公立醫療體系是不是普遍提供社區或居家的安寧緩和醫療（2015–2021 年）。2021 年 84 國普遍提供、97 國沒有，13 國沒有回答或不知道。台灣不在調查裡，全民健保給付安寧居家療護，編成「普遍提供」。',
-        en: 'The same WHO survey: is community or home-based palliative care generally available in the public health system (2015–2021)? In 2021, 84 countries said yes and 97 no; 13 did not answer or did not know. Taiwan is not in the survey; National Health Insurance covers home hospice care, so it is coded as available.',
-      },
-      unit: '',
-      file: 'palliative-home.json',
-      layer: { kind: 'categorical', categories: AVAILABLE, ordinal: true },
-      format: availableLabel,
-      unranked: true,
-      rankingBars: false,
-      panelChart: false,
     },
     {
       id: 'health-system',

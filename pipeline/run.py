@@ -56,7 +56,7 @@ STEPS = {
     "digital": "topics.digital",
     "health": "topics.health",
     "disease": "topics.disease",  # 第一次會向 WHO 查 24 年的死因資料（約 15 分鐘、40 MB）
-    # WHO GHO 的 WUENIC、世界銀行、OWID 的 COVID-19 資料（約 180 MB）、The Economist 的超額死亡（約 11 MB）、
+    # WHO 的 WUENIC（xmart）、世界銀行、OWID 的 COVID-19 資料（約 180 MB）、The Economist 的超額死亡（約 11 MB）、
     # 衛福部死因統計（疾病主題的同一個檔，約 9 MB）
     "vaccination": "topics.vaccination",
     "vaccination-pcv3": "topics.vaccination_pcv3",  # WHO 的 PCV3（data.who.int，CC BY 4.0），台灣用疾管署的縣市完成率加權
@@ -189,8 +189,8 @@ STEPS = {
     "happiness": "topics.happiness",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
-    "road-safety": "topics.road_safety",  # WHO（GHO、GSRRS 2023）與交通部統計查詢網
-    # 洗腎大國（併進疾病主題，輸出到 topics/disease/）：USRDS 年報第 11 章（GraphQL 一次 30 KB）、WHO NCD CCS（xmart）；幾秒
+    "road-safety": "topics.road_safety",  # WHO（RS_198、GSRRS 2023）與交通部統計查詢網
+    # 洗腎大國（併進疾病主題，輸出到 topics/disease/）：USRDS 年報第 11 章（GraphQL 一次 30 KB）；幾秒
     "dialysis": "topics.dialysis",
     # 野生型小兒麻痺的病例數（併進疾病主題，第二十批 327）：WHO 資料平臺 data.who.int 的整份 CSV；幾秒
     "disease-polio": "topics.disease_polio",
@@ -198,10 +198,7 @@ STEPS = {
     "disease-avoidable": "topics.disease_avoidable",
     # 長期照顧（併進健康主題，輸出到 topics/health/）：OECD 長照床數與使用者（約 7 MB）、衛福部兩個 xlsx、WPP 年齡別人口
     "long-term-care": "topics.long_term_care",
-    # 安寧緩和醫療（併進健康主題，輸出到 topics/health/）：WHO NCD CCS 的兩題（xmart）；幾秒
-    "palliative": "topics.palliative",
-    # 菸酒的擴充（輸出到 topics/tobacco-alcohol/）：英文維基「Regulation of electronic cigarettes」固定版本（230 KB）、WHO MPOWER 的
-    # 室內禁菸場所（xmart，6 MB）；幾秒
+    # 菸酒的擴充（輸出到 topics/tobacco-alcohol/）：英文維基「Regulation of electronic cigarettes」固定版本（230 KB）；幾秒
     "tobacco-policy": "topics.tobacco_policy",
     # 各國的健保制度（併進健康主題，輸出到 topics/health/）：OECD HSCS 2023 的 Q2（SDMX-JSON，32 KB）、英文維基兩個固定版本的表；幾秒
     "health-systems": "topics.health_systems",
@@ -346,7 +343,7 @@ STEPS = {
     "lactase": "topics.lactase",
     # 藥物過敏與藥效的基因（製作手冊第十九批 291）：CPIC API 的 population_frequency_view（CC0，依 9 個生物地理群）
     "drug-genes": "topics.drug_genes",
-    # 抗藥性（製作手冊第十九批 293）：WHO GHO 的 GLASS 指標與抗藥性結核（xmart）、UN WPP 的人口
+    # 抗藥性（製作手冊第十九批 293）：WHO GHO 的 GLASS 指標（xmart）、data.who.int 的抗藥性結核（RELAY_TB）、UN WPP 的人口
     "antimicrobial-resistance": "topics.antimicrobial_resistance",
     # 醫療照護相關感染與住院病人用抗生素（併進抗藥性，第二十批 320）：ECDC 點盛行率調查 2022–2023 的國家摘要表（35.9 MB）
     "amr-hai": "topics.amr_hai",

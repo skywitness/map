@@ -1,14 +1,13 @@
 """WHO 的道路安全資料：死亡率（GHO）、各類道路使用者的死亡占比與登記車輛數（Global Status Report on Road Safety）。
 
 - 死亡率：GHO 的 `RS_198`（Estimated road traffic death rate per 100 000 population，兩性合計），2000–2023 年，
-  WHO 的估計值（30 天定義：事故後 30 天內死亡），所有會員國都有、沒有台灣。GHO 是 CC BY 4.0（data.who.int 的條款）。
-- 各類道路使用者的死亡占比（各國通報的死亡人數，依道路使用者分）：
-  - 2016 年前後：GHO 的 `RS_246`（Global Status Report on Road Safety 2018 的調查），CC BY 4.0。
-  - 2021 年前後：Global Status Report on Road Safety 2023 的指標檔（GSRRS 2023，`CP_18a`–`CP_18e`），
-    檔案的 Notes 寫明引用《Global status report on road safety 2023: country and territory profiles》，
-    授權 CC BY-NC-SA 3.0 IGO（WHO 出版品的授權）。
-- 登記的機動車輛數：2016 年前後用 GHO 的 `RS_194`（CC BY 4.0），2021 年前後用 GSRRS 2023 的 `CP_36a`（CC BY-NC-SA 3.0 IGO）；
-  其中的二、三輪機動車（機車，含三輪車）是 `CP_39`（gsrrs_2023_motorcycles()）。
+  WHO 的估計值（30 天定義：事故後 30 天內死亡），所有會員國都有、沒有台灣。data.who.int 有這個指標的頁面
+  （https://data.who.int/indicators/i/B9D9E6A/D6176E2 ，CC BY 4.0）。
+- 各類道路使用者的死亡占比（各國通報的死亡人數，依道路使用者分）與登記的機動車輛數：
+  Global Status Report on Road Safety 2023 的指標檔（GSRRS 2023，`CP_18a`–`CP_18e`、`CP_36a`，2021 年前後），
+  檔案的 Notes 寫明引用《Global status report on road safety 2023: country and territory profiles》，
+  授權 CC BY-NC-SA 3.0 IGO（WHO 出版品的授權）。其中的二、三輪機動車（機車，含三輪車）是 `CP_39`（gsrrs_2023_motorcycles()）。
+  2016 年前後的那一輪（GHO 的 `RS_246`、`RS_194`）只在 GHO、data.who.int 沒有，使用者 2026-11-04 決定只在 GHO 的指標不用，拿掉。
 """
 from __future__ import annotations
 
@@ -25,15 +24,8 @@ GSRRS_URL = (
     "gsrrs23-indicators-for-participating-countries-or-territories.xlsx?sfvrsn=88035adb_3"
 )
 
-# 道路使用者的分類（WHO 的五類），跟 RS_246 的 Dim1、GSRRS 2023 的 CP_18a–e 對應
+# 道路使用者的分類（WHO 的五類），跟 GSRRS 2023 的 CP_18a–e 對應
 USERS = ["car", "moto", "pedestrian", "cyclist", "other"]
-RS_246_USERS = {
-    "ROADUSERTYPE_RS-DDC-4WHEELS": "car",
-    "ROADUSERTYPE_RS-DDC-2OR3WHEELS": "moto",
-    "ROADUSERTYPE_RS-DDC-PEDESTRIANS": "pedestrian",
-    "ROADUSERTYPE_RS-DDC-CYCLISTS": "cyclist",
-    "ROADUSERTYPE_RS-DDC-OTHER": "other",
-}
 GSRRS_USERS = {"CP_18a": "car", "CP_18b": "moto", "CP_18c": "pedestrian", "CP_18d": "cyclist", "CP_18e": "other"}
 
 
@@ -59,31 +51,6 @@ def _num(v: object) -> float | None:
         return float(str(v).replace(",", "").strip())
     except ValueError:
         return None
-
-
-def gsrrs_2016() -> dict[str, Survey]:
-    """GSRRS 2018 那一輪（GHO 的 RS_246 與 RS_194，CC BY 4.0）"""
-    out: dict[str, Survey] = {}
-    rows = [r for r in who.gho_rows("RS_246") if r["NumericValue"] is not None]
-    # 少數國家有兩個年份（史瓦帝尼 2013、2016），只用最新的一年，不同年份的占比不混在一起
-    latest: dict[str, int] = {}
-    for row in rows:
-        if row["SpatialDimType"] == "COUNTRY" and (iso3 := to_iso3(row["SpatialDim"])):
-            latest[iso3] = max(latest.get(iso3, 0), row["TimeDim"])
-    for row in rows:
-        iso3 = to_iso3(row["SpatialDim"]) if row["SpatialDimType"] == "COUNTRY" else None
-        user = RS_246_USERS.get(row["Dim1"] or "")
-        if not iso3 or not user or row["TimeDim"] != latest[iso3]:
-            continue
-        s = out.setdefault(iso3, Survey(row["TimeDim"], {}))
-        s.shares[user] = float(row["NumericValue"])
-    for row in who.gho_rows("RS_194"):
-        iso3 = to_iso3(row["SpatialDim"]) if row["SpatialDimType"] == "COUNTRY" else None
-        if not iso3 or row["NumericValue"] is None:
-            continue
-        s = out.setdefault(iso3, Survey(None, {}))
-        s.vehicles, s.vehicles_year = float(row["NumericValue"]), row["TimeDim"]
-    return out
 
 
 def gsrrs_2023() -> dict[str, Survey]:

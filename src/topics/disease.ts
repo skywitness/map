@@ -64,11 +64,6 @@ const PLACES: PlaceDef[] = [
   { id: '_GB-SCT', name: { zh: '蘇格蘭', en: 'Scotland' }, lon: -4.2, lat: 56.6 },
 ];
 
-const DIALYSIS_PUBLIC: CategoryDef[] = [
-  { value: 1, label: { zh: '可以', en: 'Generally available' } },
-  { value: 0, label: { zh: '不行', en: 'Not generally available' } },
-];
-
 export const disease: TopicDefinition = {
   id: 'disease',
   title: { zh: '各國疾病與死因', en: 'Disease and causes of death' },
@@ -79,10 +74,18 @@ export const disease: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: 'WHO, Global Health Estimates 2023（死因）、Global Health Observatory（NCD-RisC 糖尿病與肥胖估計）',
-        en: 'WHO, Global Health Estimates 2023 (causes of death) and Global Health Observatory (NCD-RisC diabetes and obesity estimates)',
+        zh: 'WHO, Global Health Estimates 2023（死因：首要死因、死因結構、癌症死亡率、死亡最多的癌症）',
+        en: 'WHO, Global Health Estimates 2023 (causes of death: leading cause, cause structure, cancer death rate, deadliest cancer)',
       },
       url: 'https://www.who.int/data/global-health-estimates',
+      license: { zh: 'CC BY-NC-SA 3.0 IGO（不能商業使用；資料檔同樣授權）', en: 'CC BY-NC-SA 3.0 IGO (non-commercial; data files under the same licence)' },
+    },
+    {
+      name: {
+        zh: 'WHO 資料平臺 data.who.int：30–70 歲死於四大慢性病的機率（NCDMORT3070）、成人肥胖率（NCD-RisC 估計，NCD_BMI_30A）',
+        en: 'WHO data platform (data.who.int): probability of dying at 30–70 from four major NCDs (NCDMORT3070) and adult obesity (NCD-RisC estimates, NCD_BMI_30A)',
+      },
+      url: 'https://data.who.int/indicators/i/C540135/1F96863',
       license: 'CC BY 4.0',
     },
     {
@@ -106,38 +109,10 @@ export const disease: TopicDefinition = {
       url: 'https://usrds-adr.niddk.nih.gov/2026/end-stage-renal-disease/11-international-comparisons',
       license: { zh: 'NIDDK：大部分沒有著作權，可以自由轉載，註明 NIDDK', en: 'NIDDK: mostly copyright free, may be reproduced with acknowledgement of NIDDK' },
     },
-    {
-      name: {
-        zh: 'WHO, Noncommunicable Disease Country Capacity Survey（公立體系的透析，GHO NCD_CCS_dialysis）',
-        en: 'WHO, Noncommunicable Disease Country Capacity Survey (dialysis in the public health system, GHO NCD_CCS_dialysis)',
-      },
-      url: 'https://www.who.int/data/gho/data/indicators',
-      license: 'CC BY 4.0',
-    },
-    {
-      name: 'United Nations, World Population Prospects 2024',
-      url: 'https://population.un.org/wpp/',
-      license: 'CC BY 3.0 IGO',
-    },
-    {
-      name: { zh: 'WHO 資料平臺（data.who.int）：野生型小兒麻痺的病例數', en: 'WHO data platform (data.who.int): wild poliovirus cases' },
-      url: 'https://data.who.int/indicators/i/495C2F7/7B2BFA6',
-      license: 'CC BY 4.0',
-    },
-    {
-      name: { zh: '國民健康署，癌症發生統計（台灣的附註）', en: 'Health Promotion Administration (Taiwan), cancer incidence statistics (notes on Taiwan)' },
-      url: 'https://data.gov.tw/dataset/6399',
-      license: OPEN_DATA_TW,
-    },
-    {
-      name: { zh: 'OECD Health Statistics：Avoidable mortality（可避免的死亡）', en: 'OECD Health Statistics: Avoidable mortality' },
-      url: 'https://data-explorer.oecd.org/',
-      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
-    },
   ],
   note: {
-    zh: '死因的數字是 WHO 用同一套方法估計的，已經把不明原因的死亡依比例分到各類，可能跟各國官方統計不同。台灣不在 WHO 資料庫中：死因結構、首要死因與 30–70 歲死亡機率用衛福部死因統計依 WHO 的分類自己計算（2008 年起），癌症死亡率與結核病用衛福部的統計；糖尿病、肥胖、愛滋、瘧疾沒有跟國際定義一致的數字，側欄附上官方數字。癌症發生率沒有放：GLOBOCAN（IARC）大量轉載要書面授權，IHME 只限非商業使用。',
-    en: "Cause-of-death figures are WHO estimates made with one method for every country, with ill-defined deaths redistributed across causes, so they may differ from official national figures. Taiwan is not in the WHO database: its cause-of-death structure, leading cause and probability of dying at 30–70 are calculated here from the Ministry of Health and Welfare's death statistics using WHO's categories (from 2008), and its cancer death rate and tuberculosis figures come from the Ministry's statistics. For diabetes, obesity, HIV and malaria there are no Taiwanese figures with the international definitions; the official figures are given in the side panel. Cancer incidence is not included: GLOBOCAN (IARC) requires written permission for large-scale reproduction, and IHME data are for non-commercial use only.",
+    zh: '死因的數字是 WHO 用同一套方法估計的，已經把不明原因的死亡依比例分到各類，可能跟各國官方統計不同。台灣不在 WHO 資料庫中：死因結構、首要死因與 30–70 歲死亡機率用衛福部死因統計依 WHO 的分類自己計算（2008 年起），癌症死亡率與結核病用衛福部的統計；肥胖、愛滋、瘧疾沒有跟國際定義一致的數字，側欄附上官方數字。死因（首要死因、死因結構、癌症死亡率、死亡最多的癌症）取自 WHO Global Health Estimates，授權是 CC BY-NC-SA 3.0 IGO：不能商業使用，這幾個資料檔也依同一授權分享。糖尿病盛行率與公立醫療能不能洗腎只在 WHO GHO 資料庫，2026 年 11 月拿掉。癌症發生率沒有放：GLOBOCAN（IARC）大量轉載要書面授權，IHME 只限非商業使用。',
+    en: "Cause-of-death figures are WHO estimates made with one method for every country, with ill-defined deaths redistributed across causes, so they may differ from official national figures. Taiwan is not in the WHO database: its cause-of-death structure, leading cause and probability of dying at 30–70 are calculated here from the Ministry of Health and Welfare's death statistics using WHO's categories (from 2008), and its cancer death rate and tuberculosis figures come from the Ministry's statistics. For obesity, HIV and malaria there are no Taiwanese figures with the international definitions; the official figures are given in the side panel. The cause-of-death figures (leading cause, cause structure, cancer death rate and deadliest cancer) come from WHO's Global Health Estimates under CC BY-NC-SA 3.0 IGO: no commercial use, and these data files are shared under the same licence. Diabetes prevalence and public dialysis availability, which were only in WHO's Global Health Observatory, were removed in November 2026. Cancer incidence is not included: GLOBOCAN (IARC) requires written permission for large-scale reproduction, and IHME data are for non-commercial use only.",
   },
   panelExtra: () => import('./panels/DiseasePanel'),
   indicators: [
@@ -214,35 +189,6 @@ export const disease: TopicDefinition = {
         BEL: { zh: '分成荷語區與法語區（見地圖上的點）', en: 'Reported for the Dutch- and French-speaking regions (see the dots)' },
         GBR: { zh: '分成英格蘭威爾斯北愛爾蘭與蘇格蘭（見地圖上的點）', en: 'Reported for England, Wales and Northern Ireland, and for Scotland (see the dots)' },
       },
-    },
-    {
-      id: 'dialysis-public',
-      label: { zh: '公立醫療能不能洗腎', en: 'Dialysis in public health care' },
-      description: {
-        zh: '各國政府回答 WHO 的非傳染病國家能力調查：公立醫療體系是不是普遍提供透析（2015–2021 年，每兩年）。2021 年 137 國可以、47 國不行（多在非洲與太平洋島國），10 國沒有回答或不知道。是政府自己回答的「有沒有普遍提供」，不是有多少人洗得到。台灣不在調查裡，全民健保給付透析，編成「可以」。',
-        en: 'Government answers to the WHO Noncommunicable Disease Country Capacity Survey: is dialysis generally available in the public health system (2015–2021, every two years)? In 2021, 137 countries said yes and 47 no (mostly in Africa and the Pacific islands); 10 did not answer or did not know. It is a self-reported yes or no, not how many people get treatment. Taiwan is not in the survey; National Health Insurance covers dialysis, so it is coded as available.',
-      },
-      unit: '',
-      file: 'dialysis-public.json',
-      layer: { kind: 'categorical', categories: DIALYSIS_PUBLIC, ordinal: true },
-      format: (v) => tr(DIALYSIS_PUBLIC.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' }),
-      unranked: true,
-      rankingBars: false,
-      panelChart: false,
-    },
-    {
-      id: 'diabetes',
-      label: { zh: '糖尿病盛行率', en: 'Diabetes prevalence' },
-      description: {
-        zh: '18 歲以上有糖尿病的比例（空腹血糖或糖化血色素過高，或正在服藥），年齡標準化；NCD-RisC 依各國健康調查估計。',
-        en: 'The share of adults (18+) with diabetes (high fasting glucose or HbA1c, or on medication), age-standardised; NCD-RisC estimates from national health surveys.',
-      },
-      unit: '%',
-      file: 'diabetes.json',
-      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [6, 8, 10, 14, 18, 24] } },
-      format: percent,
-      formatTick: percentTick,
-      compareWorld: true,
     },
     {
       id: 'obesity',
