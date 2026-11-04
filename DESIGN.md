@@ -846,7 +846,7 @@ pipeline/
 | 退休（2026-11-04，第 8 節第 346 點；經濟的「所得與財富」） | 現在的退休年齡（預設）、未來的退休年齡（2024 年）、實際退出勞動市場的年齡、退出後的預期年數（1970 年起，最近一年太舊的用 latestWithin 5 年），都可以切換男女 | — | OECD Pensions at a Glance 的資料庫（CC BY 4.0）；台灣依勞工保險條例第 58 條 | 2024 年；退出年齡 1970–2024 年 |
 | 台灣的電影票房（2026-11-04，第 8 節第 347 點；休閒的「日常休閒」） | 占台灣票房的比例（預設）、票數、票房金額（比例圓）、上映的片數，依出品國與上映年（2016 年起） | 左邊的清單：票數 1 萬張以上的片（1,959 部，點了框住出品國、時間軸換到上映年） | 國家電影及視聽文化中心「全國電影票房統計數據」（政府資料開放平臺 94224，政府資料開放授權條款） | 2016–2026 年（依上映年） |
 | 電競（2026-11-04，第 8 節第 348 點；休閒的「獎項與運動」） | 累計獎金（預設，比例圓）、每百萬人的獎金、選手人數（比例圓）、賺最多獎金的遊戲（類別圖：Dota 2、Counter-Strike、Fortnite、PUBG、League of Legends、Rocket League、手機 MOBA 等、其他） | 選手數與主力遊戲的占比（tooltip） | Esports Earnings 國家頁（准許個人與商業使用，保留版權聲明）；UN WPP 2024 | 累計到 2026 年 11 月，不分年份 |
-| 文化（2026-11-04，第 8 節第 358 點；休閒的「日常休閒」） | 每十萬人的電影院（預設）、電影院家數（比例圓）、文化工作者占就業、每人的遺產保存公共支出 | — | UNESCO UIS（CC BY-SA 4.0）；UN WPP | 電影院 1995–2017、文化工作者 2010–2016、遺產支出 2017–2024（latestWithin） |
+| 文化（2026-11-04，第 8 節第 358 點；休閒的「日常休閒」） | 每十萬人的電影院（預設）、電影院家數（比例圓）、文化工作者占就業、每人的遺產保存公共支出；2026-11-04 加每百萬人送存幾本書、一年送存幾本書（比例圓）、送存的書有多少是電子書（第 359 點） | — | UNESCO UIS（CC BY-SA 4.0）；WIPO 出版業報告表 3（CC BY 4.0）；台灣用國家圖書館 ISBN 中心的新書預告書訊（政府資料開放授權）；UN WPP | 電影院 1995–2017、文化工作者 2010–2016、遺產支出 2017–2024、送存 2022、台灣 ISBN 2024–2025（latestWithin） |
 | 國定假日（2026-11-04，第 8 節第 342 點；休閒的「日常休閒」） | 一年幾天國定假日（含補假，預設）、不含補假的天數（面量圖，天）、假日最多的月份（類別圖，月份的四季色；同樣多取較早的月份） | 那一國 2026 年的假日清單（附註）；聯邦制國家各地另有地方假日的範圍（tooltip） | Python 套件 holidays 0.108（MIT，離線計算，只算 public 類） | 2017–2027 年 |
 | 時間運用（2026-11-04，第 8 節第 344 點；休閒的「日常休閒」） | 休閒（預設）、睡覺吃飯與盥洗、無酬家務、無酬家務的男女差距（OECD，35 國，分鐘／天）；睡覺、上下班通勤、看電視（Eurostat HETUS 2020，11 國）；自己的時間（小時／天）、時間運用滿意度（0–10 分）、一週的社交時間（OECD How’s Life，各國最近一年） | 一天 1,440 分鐘的 5 大類（附註）；男女各做多少家務（tooltip） | OECD Gender Data Portal、OECD How’s Life、Eurostat HETUS（都是 CC BY 4.0） | 不分年份（各國調查年份不同） |
 
@@ -982,6 +982,8 @@ pipeline/
     - **Eurostat 的觀光統計**（觀光的追加，第 349 點起，2026-11-04）：CC BY 4.0（「Reuse of statistical data … for commercial or non-commercial purposes is authorised provided the source is acknowledged」）；非 EU／EFTA／候選國的部分只准非商業，用到的 tour_occ_*、tour_dem_* 的 geo 都在 EU、EFTA 與候選國之內，沒有英國。交通部觀光署觀光統計資料庫的 `/data/opendata/1`、`/7` 是政府資料開放授權條款。
     - **Python 套件 holidays**（國定假日，第 342 點，2026-11-04）：MIT 授權（Open World Holidays Framework，vacanza），假日規則寫在程式碼裡，用套件算出的天數與日期依 MIT 標示著作權與授權；版本固定在 0.108（`requirements.txt`），換版會改到天數。
     - **英文維基「List of minimum annual leave by country」**（薪資與工時的法定年假，第 354 點，2026-11-04）：CC BY-SA 4.0，固定 oldid 1380870617（2026-10-18），資料檔 `annual-leave.json`、`annual-leave-max.json` 依 CC BY-SA 4.0 分享。
+    - **WIPO《The Global Publishing Industry in 2022》**（文化的法定送存，第 359 點，2026-11-04）：出版品是 CC BY 4.0（版權頁：可以重製、散布、改作、翻譯，含商業用途），署名 WIPO、寫明有改作、不帶 WIPO 標誌，衍生作品加上 WIPO 指定的免責聲明「The Secretariat of WIPO assumes no liability or responsibility with regard to the transformation or translation of the original content」（主題附註有中英文）。這跟 WIPO 統計資料庫「不准轉載資料集」的條款（第 33 點）不同，只用這份出版品裡的表。
+    - **國家圖書館 ISBN 中心「臺灣出版新書預告書訊」**（文化的法定送存補台灣，第 359 點，2026-11-04）：政府資料開放平臺 6730，政府資料開放授權條款第 1 版；逐月 CSV（`isbn.ncl.edu.tw/NEW_ISBNNet/opendata/YYYYMM_isbn.csv`），只用筆數。
     - **英文維基「Surrogacy laws by country」**（法律與制度的代理孕母，第 341 點，2026-11-04）：CC BY-SA 4.0，固定 oldid 1382714270，資料檔 `surrogacy.json` 依 CC BY-SA 4.0 分享，主題附註寫明；條目是逐國的散文段落，分類是自己讀的。台灣的人工生殖法取自全國法規資料庫（法律條文不是著作權的標的）。
     - **英文維基「Abortion law」「Legality of euthanasia」**（法律與制度的墮胎、安樂死，第 313 點，2026-11-03）：CC BY-SA 4.0，資料檔 `abortion.json`、`euthanasia.json` 依 CC BY-SA 4.0 分享；台灣的優生保健法、病人自主權利法、刑法取自全國法規資料庫（法律條文不是著作權的標的）。WHO 全球墮胎政策資料庫（All Rights Reserved）不用。
     - **CIA World Factbook、英文維基「Compulsory voting」**（法律與制度的徵兵、強制投票，第 312 點，2026-11-03）：Factbook 是美國政府作品，公有領域；用的鏡像 factbook/factbook.json 的 LICENSE.md 是 CC0 1.0 → 可用，資料檔寫 `Public domain (CIA World Factbook); CC0 1.0 (factbook.json)`。「Compulsory voting」CC BY-SA 4.0，資料檔 `compulsory-voting.json` 依 CC BY-SA 4.0 分享。
@@ -4899,6 +4901,14 @@ pipeline/
     - **跟手冊不同**：手冊把 371（新主題）、374（新主題或擴充就業）、375（擴充世界遺產或新主題）分開放；三個都是 UIS 的文化統計，合成一個新主題「文化」。
     - **台灣**：都不在 UIS 裡。電影院等本機 session 下載文化部《文化統計》的電影院家數（`data/moc/`，stat.moc.gov.tw 從 cloud 403），`noValue` 寫還在整理；文化工作者與遺產支出寫沒有。
     - 數字的問題寫在說明：電影院是家數不是銀幕數（日本、南韓、中國低），文化工作者的低所得國家偏高（多哥 9.6%），遺產支出伊朗、敘利亞是 0。
+
+359. **文化：一年出版幾本書（法定送存）**（2026-11-04，製作手冊第二十一批 372；`pipeline/topics/culture.py` 的 `_books()`、`src/topics/culture.ts` 的 `books-per-million`、`books-deposited`、`books-digital-share`）：
+    - **資料**：WIPO《The Global Publishing Industry in 2022》（2023 年出版，最新的一版；2023 年以後資料版的檔名都 404）表 3「Number of books deposited at recognized repositories, 2022」，82 個國家或地區的國家圖書館收到的書，分紙本、數位、其他形式。PDF 沒有 CSV 附件，用 pypdf 的 layout 模式抽表（第 18、19 頁；`requirements.txt` 已有 pypdf），抽到的列數、德國總數與美國數位件數對不上就停下來。國名用 `from_name()`，順手補了聯合國體系的寫法（`Republic of Korea` 原本會被 pycountry 的模糊比對配到北韓，香港、澳門、荷蘭的寫法也對不到）。
+    - **台灣**：不在表裡，用國家圖書館 ISBN 中心的「臺灣出版新書預告書訊」（data.gov.tw 6730）逐月 CSV 補：一年申請的 ISBN 裡資料類型是「圖書」與「數位平台電子書」「電子出版品」的筆數（有聲出版品、地圖、點字不算）。網站只留 2024 年 1 月以後的檔（2023 年 12 月以前 404），所以台灣是 2024、2025 年：2025 年紙本 35,256、電子書 24,528 個 ISBN，每百萬人 2,587。這是 ISBN 申請數不是送存件數（電子書的 PDF、EPUB 各一個 ISBN），tooltip 寫明。`isbn.ncl.edu.tw` 的憑證缺 Subject Key Identifier，加進 `RELAXED_X509_HOSTS`（仍然驗證憑證鏈）。
+    - **年份**：資料檔是 2022、2024、2025 三年，`latestWithin` 3，預設 2025 年：台灣是 2025 年的值，其他國家是 2022 年（tooltip 寫資料年份）。
+    - **跟手冊不同**：手冊建議新主題（生活與文化），併進第 358 點的「文化」主題（都是文化統計）；樂譜與錄音的送存（圖 13）是長條圖不是表，抽不出可靠的數字，沒有做；全球 2018–2022 的時間序列只有全球合計，沒有做；左側欄用通用的排名表，沒有另做紙本／數位的占比條（改成第三個指標「送存的書有多少是電子書」）。
+    - **授權**：出版品本身是 CC BY 4.0（跟第 33 點「WIPO 統計資料庫不准轉載資料集」是不同的條款：這份報告的版權頁寫明可以重製、改作），照它的要求署名、寫明有改作、不用 WIPO 的標誌，主題附註加上 WIPO 指定的免責聲明（「WIPO 秘書處不對改作或翻譯負任何責任」）。
+    - 比較的問題寫在說明：有沒有強制送存電子書差很多（丹麥 82%、美國 92% 是電子書，法國、日本只收紙本），中國、義大利不在表裡，非洲與拉美回覆的機構少。
 
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。

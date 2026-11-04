@@ -3,8 +3,9 @@ import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
 
 /**
- * 文化：電影院、文化工作者、遺產保存的公共支出（2026-11-04，製作手冊第二十一批 371、374、375；pipeline/topics/culture.py）：
+ * 文化：電影院、出版、文化工作者、遺產保存的公共支出（2026-11-04，製作手冊第二十一批 371、372、374、375；pipeline/topics/culture.py）：
  * UNESCO 統計研究所（UIS）的公開 API，年份零散（資料檔設 latestWithin）。台灣不在 UIS 裡。
+ * 出版（372）是 WIPO 出版業報告的法定送存表（2022 年，CC BY 4.0），台灣用國家圖書館 ISBN 中心的新書 ISBN 數補（2024、2025 年）。
  */
 
 const UIS = {
@@ -15,17 +16,27 @@ const UIS = {
 
 export const culture: TopicDefinition = {
   id: 'culture',
-  title: { zh: '文化：電影院、文化工作者與遺產保存', en: 'Culture: cinemas, cultural jobs and heritage' },
+  title: { zh: '文化：電影院、出版、文化工作者與遺產保存', en: 'Culture: cinemas, books, cultural jobs and heritage' },
   shortTitle: { zh: '文化', en: 'Culture' },
   defaultIndicator: 'cinemas-per-100k',
   defaultYear: 2017,
   sources: [
     UIS,
-    { name: { zh: 'UN World Population Prospects 2024（每十萬人用的人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
+    {
+      name: { zh: 'WIPO《The Global Publishing Industry in 2022》表 3（法定送存）', en: 'WIPO, The Global Publishing Industry in 2022, table 3 (legal deposits)' },
+      url: 'https://www.wipo.int/edocs/pubdocs/en/wipo-pub-1064-2023-2-en-the-global-publishing-industry-in-2022.pdf',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '國家圖書館 ISBN 中心：臺灣出版新書預告書訊（政府資料開放平臺 6730）', en: 'National Central Library ISBN Center: forthcoming new books in Taiwan (data.gov.tw 6730)' },
+      url: 'https://data.gov.tw/dataset/6730',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    { name: { zh: 'UN World Population Prospects 2024（人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],
   note: {
-    zh: '都是 UNESCO 統計研究所的資料（CC BY-SA 4.0，資料檔同樣授權），各國回報的年份差很多：電影院到 2017 年（之後 UIS 沒有再收），文化工作者 2010–2016 年，遺產保存支出 2017–2024 年；某一年沒有資料時用前幾年最近的值（滑過國家看年份）。電影院是「室內電影院」的家數，一家影城算一家、不是銀幕數。文化工作者是文化職業（藝術家、設計師、圖書館員、手工藝師等）占全部就業的比例，各國的職業分類細度不同、低所得國家的數字可能偏高。遺產保存支出是政府花在文化與自然遺產（博物館、古蹟、自然保護區等）的錢，每人、購買力平價美元。台灣不在 UNESCO 的資料裡。',
-    en: 'All from the UNESCO Institute for Statistics (CC BY-SA 4.0; data files are shared under the same licence). Reporting years vary a lot: cinemas up to 2017 (UIS stopped collecting them), cultural employment 2010–2016 and heritage spending 2017–2024; where a year is missing, the most recent earlier value is used (hover for the year). Cinemas are indoor cinema venues, each multiplex counting once, not screens. Cultural employment is the share of jobs in cultural occupations (artists, designers, librarians, craftspeople and so on); occupational detail differs by country, and figures for low-income countries may be high. Heritage spending is government spending on cultural and natural heritage (museums, monuments, nature reserves and so on), per person in PPP dollars. Taiwan is not in the UNESCO data.',
+    zh: '都是 UNESCO 統計研究所的資料（CC BY-SA 4.0，資料檔同樣授權），各國回報的年份差很多：電影院到 2017 年（之後 UIS 沒有再收），文化工作者 2010–2016 年，遺產保存支出 2017–2024 年；某一年沒有資料時用前幾年最近的值（滑過國家看年份）。出版是世界智慧財產權組織（WIPO）出版業報告裡各國國家圖書館（法定送存機構）2022 年收到的書（CC BY 4.0），有沒有強制送存電子書差很多，只能看大概；中國、義大利不在表裡；這是改作過的內容，WIPO 秘書處不對改作或翻譯負任何責任。台灣用國家圖書館 ISBN 中心一年登記的新書 ISBN 數（2024、2025 年），不是送存件數。電影院是「室內電影院」的家數，一家影城算一家、不是銀幕數。文化工作者是文化職業（藝術家、設計師、圖書館員、手工藝師等）占全部就業的比例，各國的職業分類細度不同、低所得國家的數字可能偏高。遺產保存支出是政府花在文化與自然遺產（博物館、古蹟、自然保護區等）的錢，每人、購買力平價美元。台灣不在 UNESCO 的資料裡。',
+    en: 'All from the UNESCO Institute for Statistics (CC BY-SA 4.0; data files are shared under the same licence). Reporting years vary a lot: cinemas up to 2017 (UIS stopped collecting them), cultural employment 2010–2016 and heritage spending 2017–2024; where a year is missing, the most recent earlier value is used (hover for the year). Books are those received in 2022 by national libraries (legal deposit repositories), from the World Intellectual Property Organization’s publishing report (CC BY 4.0); whether e-books must be deposited varies a lot, so treat comparisons as approximate; China and Italy are not in the table. This is an adaptation: the Secretariat of WIPO assumes no liability or responsibility with regard to the transformation or translation of the original content. Taiwan’s figure is new-book ISBNs registered with the National Central Library in 2024 and 2025, not deposits. Cinemas are indoor cinema venues, each multiplex counting once, not screens. Cultural employment is the share of jobs in cultural occupations (artists, designers, librarians, craftspeople and so on); occupational detail differs by country, and figures for low-income countries may be high. Heritage spending is government spending on cultural and natural heritage (museums, monuments, nature reserves and so on), per person in PPP dollars. Taiwan is not in the UNESCO data.',
   },
   indicators: [
     {
@@ -80,6 +91,47 @@ export const culture: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 50, 100, 200] } },
       format: (v) => tr({ zh: `每人 ${fixed(v, 1)} 美元（購買力平價）`, en: `PPP$${fixed(v, 1)} per person` }),
       formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'books-per-million',
+      label: { zh: '每百萬人送存幾本書', en: 'Books deposited per million people' },
+      description: {
+        zh: '國家圖書館（法定送存機構）一年收到的書除以人口（WIPO，2022 年，82 個國家或地區）。丹麥 15,260 件最多（八成是電子書），列支敦斯登 12,946、冰島 12,404、阿爾巴尼亞 5,333、芬蘭 5,324、德國 4,771；新加坡 3,778、英國 2,449、西班牙 2,055、南韓 1,721、荷蘭 1,307、法國 1,236 與日本 906（只收紙本）、美國 775；巴西 100、墨西哥 52。台灣 2025 年 2,587（新書 ISBN 數，不是送存件數）。',
+        en: 'Books received in a year by national libraries (legal deposit repositories) divided by population (WIPO, 2022, 82 countries and territories). Denmark is highest at 15,260 (80% e-books), followed by Liechtenstein 12,946, Iceland 12,404, Albania 5,333, Finland 5,324 and Germany 4,771; Singapore 3,778, the UK 2,449, Spain 2,055, South Korea 1,721, the Netherlands 1,307, France 1,236 and Japan 906 (print only) and the US 775; Brazil 100 and Mexico 52. Taiwan: 2,587 in 2025 (new-book ISBNs, not deposits).',
+      },
+      unit: { zh: '件／百萬人', en: 'per million' },
+      file: 'books-per-million.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [100, 500, 1000, 2000, 4000, 8000] } },
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, 0)} 件`, en: `${fixed(v, 0)} per million` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'books-deposited',
+      label: { zh: '一年送存幾本書', en: 'Books deposited' },
+      description: {
+        zh: '國家圖書館一年收到的書（紙本、電子書與其他形式合計，WIPO，2022 年）。德國 401,197 件最多（其中電子書 286,633），美國 264,722（電子書 242,828）、英國 167,000、日本 113,296、西班牙 98,289、土耳其 91,145、丹麥 90,080、南韓 89,110。中國、義大利不在表裡。台灣 2025 年登記新書 ISBN 59,784 個（紙本 35,256、電子書 24,528）。',
+        en: 'Books received in a year by national libraries (print, e-books and other formats, WIPO, 2022). Germany has the most at 401,197 (286,633 of them e-books), followed by the US 264,722 (242,828 e-books), the UK 167,000, Japan 113,296, Spain 98,289, Türkiye 91,145, Denmark 90,080 and South Korea 89,110. China and Italy are not in the table. Taiwan registered 59,784 new-book ISBNs in 2025 (35,256 print, 24,528 e-book).',
+      },
+      unit: { zh: '件', en: 'items' },
+      file: 'books-deposited.json',
+      defaultYear: 2025,
+      layer: { kind: 'bubble', legendValues: [1000, 20000, 200000] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 件`, en: fixed(v, 0) }),
+    },
+    {
+      id: 'books-digital-share',
+      label: { zh: '送存的書有多少是電子書', en: 'Digital share of books deposited' },
+      description: {
+        zh: '送存的書裡電子書（數位形式）的比例（WIPO，2022 年）；只收紙本或沒有回報數位件數的國家不上色。美國 92%、丹麥 82%、德國 71%、紐西蘭與芬蘭 61% 最高，英國 45%、荷蘭 43%、西班牙 27%、南韓 22%；越南 5.4%、瑞典 1.5% 幾乎都是紙本。台灣 2025 年新書 ISBN 有 41% 是電子書（PDF、EPUB 各一個 ISBN）。',
+        en: 'Share of deposited books that are digital (WIPO, 2022); countries whose library collects print only, or that did not report digital deposits, are left blank. The US 92%, Denmark 82%, Germany 71%, New Zealand and Finland 61% are highest; the UK 45%, the Netherlands 43%, Spain 27% and South Korea 22%; Vietnam 5.4% and Sweden 1.5% are almost all print. In Taiwan 41% of new-book ISBNs in 2025 were e-books (PDF and EPUB each get an ISBN).',
+      },
+      unit: '%',
+      file: 'books-digital-share.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 40, 60, 80] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
     },
   ],
 };

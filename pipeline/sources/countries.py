@@ -48,6 +48,9 @@ NAME_ALIASES = {
     "United States of America": "USA", "United States": "USA", "US": "USA",
     "United Kingdom": "GBR", "UK": "GBR",
     "South Korea": "KOR", "Korea": "KOR", "North Korea": "PRK",
+    # 聯合國體系的寫法（WIPO 等）；pycountry 的模糊比對會把「Republic of Korea」配到北韓（2026-11-04）
+    "Republic of Korea": "KOR", "Democratic People's Republic of Korea": "PRK", "China, Hong Kong SAR": "HKG",
+    "China, Macao SAR": "MAC", "Netherlands (Kingdom of the)": "NLD",
     "Russia": "RUS", "Taiwan": "TWN", "Hong Kong": "HKG", "Macau": "MAC", "Macao": "MAC",
     "Vietnam": "VNM", "Iran": "IRN", "Syria": "SYR", "Laos": "LAO", "Brunei": "BRN",
     "Turkey": "TUR", "Türkiye": "TUR", "Czech Republic": "CZE", "Czechia": "CZE",
