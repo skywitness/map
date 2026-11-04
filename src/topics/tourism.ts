@@ -108,6 +108,14 @@ export const tourism: TopicDefinition = {
     },
     {
       name: {
+        zh: '交通部觀光署：每月「觀光市場概況摘要」的月表 1-2 來臺旅客按居住地（台灣的旺季，2024 年起；年資料 data.gov.tw 15453）',
+        en: 'Tourism Administration (Taiwan): monthly market summaries, table 1-2 visitor arrivals by residence (Taiwan’s peak month, from 2024; annual data on data.gov.tw 15453)',
+      },
+      url: 'https://admin.taiwan.net.tw/businessinfo/News?a=119',
+      license: { zh: '政府資料開放授權條款第 1 版（年資料）；月別數字註明觀光署', en: 'Open Government Data License 1.0 (annual data); monthly figures credited to the Tourism Administration' },
+    },
+    {
+      name: {
         zh: 'Eurostat：居民的觀光需求調查（tour_dem_ttac、ttls、npsex、tttr、ttpw、tttot、tntot、tosex、extot）',
         en: 'Eurostat: tourism demand survey of residents (tour_dem_ttac, ttls, npsex, tttr, ttpw, tttot, tntot, tosex, extot)',
       },
@@ -303,8 +311,8 @@ export const tourism: TopicDefinition = {
       id: 'peak-month',
       label: { zh: '旅遊最旺的月份', en: 'Peak tourist month' },
       description: {
-        zh: '旅宿業住宿夜數最多的月份（Eurostat，歐洲 38 國）。27 國是 8 月；北歐五國、愛沙尼亞、拉脫維亞、捷克、比利時、瑞士是 7 月。滑過國家看第二旺與最淡的月份。拉時間軸看 2020、2021 年疫情怎麼打亂季節。台灣的月別資料還在整理。',
-        en: 'The month with the most nights at tourist accommodation (Eurostat, 38 European countries). 27 countries peak in August; the five Nordic countries, Estonia, Latvia, Czechia, Belgium and Switzerland peak in July. Hover to see the second-busiest and quietest months. Drag the timeline to see how the pandemic upset the seasons in 2020 and 2021. Taiwan’s monthly data has not been added yet.',
+        zh: '旅宿業住宿夜數最多的月份（Eurostat，歐洲 38 國）。27 國是 8 月；北歐五國、愛沙尼亞、拉脫維亞、捷克、比利時、瑞士是 7 月。滑過國家看第二旺與最淡的月份。拉時間軸看 2020、2021 年疫情怎麼打亂季節。台灣是交通部觀光署的來臺旅客人次（入境旅客，不含國內旅遊，口徑跟歐洲不同），2024、2025 年都是 12 月最旺。',
+        en: 'The month with the most nights at tourist accommodation (Eurostat, 38 European countries). 27 countries peak in August; the five Nordic countries, Estonia, Latvia, Czechia, Belgium and Switzerland peak in July. Hover to see the second-busiest and quietest months. Drag the timeline to see how the pandemic upset the seasons in 2020 and 2021. Taiwan uses Tourism Administration visitor arrivals (inbound only, no domestic tourism, so not the same measure as Europe); December was busiest in both 2024 and 2025.',
       },
       unit: '',
       file: 'peak-month.json',
@@ -317,8 +325,8 @@ export const tourism: TopicDefinition = {
       id: 'peak-share',
       label: { zh: '最旺月占全年住宿夜數', en: 'Peak month’s share of nights' },
       description: {
-        zh: '最旺的那個月占全年住宿夜數的比例，越高表示旅客越集中在旺季（12 個月平均是 8.3%）。2024 年克羅埃西亞 8 月占 29.0% 最集中，保加利亞、阿爾巴尼亞、希臘、蒙特內哥羅都超過兩成；德國 12.3%、馬爾他 11.7%、科索沃 10.7% 最平均。',
-        en: 'The busiest month’s share of the year’s accommodation nights; higher means visitors are more concentrated in high season (an even spread would be 8.3%). In 2024 Croatia is most seasonal with 29.0% in August, and Bulgaria, Albania, Greece and Montenegro all exceed 20%; Germany 12.3%, Malta 11.7% and Kosovo 10.7% are most even.',
+        zh: '最旺的那個月占全年住宿夜數的比例，越高表示旅客越集中在旺季（12 個月平均是 8.3%）。2024 年克羅埃西亞 8 月占 29.0% 最集中，保加利亞、阿爾巴尼亞、希臘、蒙特內哥羅都超過兩成；德國 12.3%、馬爾他 11.7%、科索沃 10.7% 最平均。台灣（來臺旅客人次）2024 年 12 月占 11.5%。',
+        en: 'The busiest month’s share of the year’s accommodation nights; higher means visitors are more concentrated in high season (an even spread would be 8.3%). In 2024 Croatia is most seasonal with 29.0% in August, and Bulgaria, Albania, Greece and Montenegro all exceed 20%; Germany 12.3%, Malta 11.7% and Kosovo 10.7% are most even. Taiwan (visitor arrivals) had 11.5% in December 2024.',
       },
       unit: '%',
       file: 'peak-share.json',

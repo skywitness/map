@@ -44,6 +44,14 @@ export const antimicrobialResistance: TopicDefinition = {
     },
     {
       name: {
+        zh: '衛生福利部疾病管制署「加護病房醫療照護相關感染部位別感染密度資料」（台灣的說明，2008–2024 年）',
+        en: 'Taiwan Centers for Disease Control, intensive-care healthcare-associated infection density by site (Taiwan notes, 2008–2024)',
+      },
+      url: 'https://data.gov.tw/dataset/26324',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
+      name: {
         zh: 'ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023，附錄 2 國家摘要表（資料由各國公共衛生機關提供）',
         en: 'ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023, annex 2 country summary sheets (dataset provided by ECDC based on data provided by public health authorities)',
       },
@@ -112,8 +120,8 @@ export const antimicrobialResistance: TopicDefinition = {
       id: 'hai-prevalence',
       label: { zh: '醫院裡的醫療照護相關感染（歐洲）', en: 'Healthcare-associated infections in hospitals (Europe)' },
       description: {
-        zh: '急性照護醫院的住院病人裡，調查當天有至少一項「在醫院或醫療過程中得到的感染」（醫療照護相關感染，例如肺炎、手術部位感染、泌尿道感染、血流感染）的比例。歐洲疾病預防管制中心（ECDC）2022–2023 年的點盛行率調查，31 國：賽普勒斯 13.8%、希臘 12.2%、葡萄牙 11.6%、瑞典 10.4%、義大利 9.8%；德國 4.2%、羅馬尼亞 3.1%、拉脫維亞 3.0%。這是一天的切面，不是一年的發生率；病人組成（加護病房多不多、住院多久）影響很大，低的國家也可能是沒找出來，不等於感染控制比較好。滑過國家看調查期間與信賴區間。這跟上面的「抗藥比例」不同：那是細菌的抗藥性，這是病人在醫院得到感染的比例。台灣不在這份調查裡。',
-        en: 'Share of patients in acute-care hospitals who, on the survey day, had at least one infection acquired in hospital or through health care (such as pneumonia, surgical-site, urinary-tract or bloodstream infections). From the European Centre for Disease Prevention and Control (ECDC) point prevalence survey 2022–2023, 31 countries: Cyprus 13.8%, Greece 12.2%, Portugal 11.6%, Sweden 10.4%, Italy 9.8%; Germany 4.2%, Romania 3.1%, Latvia 3.0%. It is a one-day snapshot, not an annual incidence; case mix (share of intensive care, length of stay) matters a lot, and low values may reflect missed infections rather than better infection control. Hover over a country for the survey period and confidence interval. Unlike the resistance shares above (how resistant bacteria are), this is how many patients picked up an infection in hospital. Taiwan is not in this survey.',
+        zh: '急性照護醫院的住院病人裡，調查當天有至少一項「在醫院或醫療過程中得到的感染」（醫療照護相關感染，例如肺炎、手術部位感染、泌尿道感染、血流感染）的比例。歐洲疾病預防管制中心（ECDC）2022–2023 年的點盛行率調查，31 國：賽普勒斯 13.8%、希臘 12.2%、葡萄牙 11.6%、瑞典 10.4%、義大利 9.8%；德國 4.2%、羅馬尼亞 3.1%、拉脫維亞 3.0%。這是一天的切面，不是一年的發生率；病人組成（加護病房多不多、住院多久）影響很大，低的國家也可能是沒找出來，不等於感染控制比較好。滑過國家看調查期間與信賴區間。這跟上面的「抗藥比例」不同：那是細菌的抗藥性，這是病人在醫院得到感染的比例。台灣不在這份調查裡，疾管署只有加護病房的感染密度（滑過台灣看）。',
+        en: 'Share of patients in acute-care hospitals who, on the survey day, had at least one infection acquired in hospital or through health care (such as pneumonia, surgical-site, urinary-tract or bloodstream infections). From the European Centre for Disease Prevention and Control (ECDC) point prevalence survey 2022–2023, 31 countries: Cyprus 13.8%, Greece 12.2%, Portugal 11.6%, Sweden 10.4%, Italy 9.8%; Germany 4.2%, Romania 3.1%, Latvia 3.0%. It is a one-day snapshot, not an annual incidence; case mix (share of intensive care, length of stay) matters a lot, and low values may reflect missed infections rather than better infection control. Hover over a country for the survey period and confidence interval. Unlike the resistance shares above (how resistant bacteria are), this is how many patients picked up an infection in hospital. Taiwan is not in this survey; Taiwan CDC only publishes intensive-care infection density (hover over Taiwan).',
       },
       unit: '%',
       file: 'hai-prevalence.json',

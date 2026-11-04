@@ -112,6 +112,14 @@ export const health: TopicDefinition = {
     },
     {
       name: {
+        zh: '衛生福利部中央健康保險署「診療項目醫令申報量(年)」（台灣的腹腔鏡手術比例，2016–2025 年）',
+        en: 'National Health Insurance Administration (Taiwan), annual claims by procedure code (Taiwan laparoscopic shares, 2016–2025)',
+      },
+      url: 'https://data.gov.tw/dataset/175960',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: {
         zh: 'OECD Health Care Quality Indicators：Patient safety（產道撕裂傷）',
         en: 'OECD Health Care Quality Indicators: Patient safety (obstetric trauma)',
       },
@@ -409,8 +417,8 @@ export const health: TopicDefinition = {
       id: 'laparoscopic',
       label: { zh: '微創（腹腔鏡）手術的比例', en: 'Laparoscopic (keyhole) surgery share' },
       description: {
-        zh: '常見手術裡，用腹腔鏡（微創、開小洞）做的占幾 %，選上方的「手術」切換（OECD，同一年的腹腔鏡手術數 ÷ 全部手術數，住院加當日手術）。疝氣修補：挪威 76.9%、盧森堡 71.7%、丹麥 70.8%、瑞士 65.1%；瑞典 10.3%、克羅埃西亞 9.9%、義大利 7.8%、塞爾維亞 5.0%、北馬其頓 2.0%。闌尾切除：加拿大 96.3%、荷蘭、以色列 95.8%；羅馬尼亞 39.4%、哥倫比亞 28.5%、保加利亞 25.6%。膽囊切除幾乎都是腹腔鏡（冰島 98.4%、挪威 97.8%），墨西哥 55.0% 最低。只有 OECD 的約 40 國，各國用 5 年內最近的一年；台灣沒有可下載的全國統計。',
-        en: 'Share of common operations done laparoscopically (keyhole surgery); switch with “Operation” above (OECD; laparoscopic procedures ÷ all procedures in the same year, inpatient plus day cases). Hernia repair: Norway 76.9%, Luxembourg 71.7%, Denmark 70.8%, Switzerland 65.1%; Sweden 10.3%, Croatia 9.9%, Italy 7.8%, Serbia 5.0%, North Macedonia 2.0%. Appendectomy: Canada 96.3%, the Netherlands and Israel 95.8%; Romania 39.4%, Colombia 28.5%, Bulgaria 25.6%. Gallbladder removal is almost always laparoscopic (Iceland 98.4%, Norway 97.8%), with Mexico lowest at 55.0%. Only about 40 OECD-reporting countries; each shows its latest year within five. No downloadable national statistics for Taiwan.',
+        zh: '常見手術裡，用腹腔鏡（微創、開小洞）做的占幾 %，選上方的「手術」切換（OECD，同一年的腹腔鏡手術數 ÷ 全部手術數，住院加當日手術）。疝氣修補：挪威 76.9%、盧森堡 71.7%、丹麥 70.8%、瑞士 65.1%；瑞典 10.3%、克羅埃西亞 9.9%、義大利 7.8%、塞爾維亞 5.0%、北馬其頓 2.0%。闌尾切除：加拿大 96.3%、荷蘭、以色列 95.8%；羅馬尼亞 39.4%、哥倫比亞 28.5%、保加利亞 25.6%。膽囊切除幾乎都是腹腔鏡（冰島 98.4%、挪威 97.8%），墨西哥 55.0% 最低。只有 OECD 的約 40 國，各國用 5 年內最近的一年。台灣用健保署的醫令申報量（申報量不是病人數，疝氣是鼠蹊加股疝氣）：2024 年闌尾切除 91.9%、膽囊切除 91.5%、疝氣修補 48.4%（2016 年只有 13.7%；2022 年新的腹腔鏡代碼上路後跳了一階）。',
+        en: 'Share of common operations done laparoscopically (keyhole surgery); switch with “Operation” above (OECD; laparoscopic procedures ÷ all procedures in the same year, inpatient plus day cases). Hernia repair: Norway 76.9%, Luxembourg 71.7%, Denmark 70.8%, Switzerland 65.1%; Sweden 10.3%, Croatia 9.9%, Italy 7.8%, Serbia 5.0%, North Macedonia 2.0%. Appendectomy: Canada 96.3%, the Netherlands and Israel 95.8%; Romania 39.4%, Colombia 28.5%, Bulgaria 25.6%. Gallbladder removal is almost always laparoscopic (Iceland 98.4%, Norway 97.8%), with Mexico lowest at 55.0%. Only about 40 OECD-reporting countries; each shows its latest year within five. Taiwan uses National Health Insurance claims (claims rather than patients; hernia is inguinal plus femoral): in 2024 appendectomy 91.9%, gallbladder removal 91.5% and hernia repair 48.4% (only 13.7% in 2016, with a jump in 2022 after new laparoscopic codes took effect).',
       },
       unit: '%',
       file: 'laparoscopic-{item}.json',

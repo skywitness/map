@@ -1003,6 +1003,7 @@ pipeline/
     - **ClinicalTrials.gov**（研發與創新的臨床試驗，第 301 點，2026-11-03）：Terms and Conditions（網頁由 JS 產生，原文在網站的程式檔）：「In any publication or distribution of these data, you should: Attribute the source of the data as ClinicalTrials.gov / Update the data such that they are current at all times / Clearly display the date the data were processed by ClinicalTrials.gov / State any modifications made to the content of the data」→ 有條件：說明與資料來源寫來源、處理日期與計算方式；美國以外有國際著作權，不主張任何權利。
     - **藥品支出與取得、各國吃多少藥、台灣的藥從哪裡來**（第 302、304、305 點，2026-11-03）：OECD 的 SHA、Generic market、Pharmaceutical consumption 同 OECD 資料條款（可轉載、改作，需註明出處；說明寫「OECD (2026), …, OECD Data Explorer（2026-11-03 查閱）」）；WHO NCD CCS 的 NCD_CCS_OralMorph、NCD_CCS_Insulin 只在 GHO，2026-11-04 拿掉（第 367 點）；Persaud 等 2019（Bull World Health Organ 97:394）CC BY 3.0 IGO（Europe PMC 全文的 permissions），只用論文的表1，global.essentialmeds.org 的資料庫沒有授權文字、不用；衛福部國民醫療保健支出統計表、健保署「抗憂鬱藥物使用人數」（data.gov.tw 146577）、食藥署「未註銷藥品許可證資料集」（data.gov.tw 9123）都是政府資料開放授權條款第 1 版。INCB 的鴉片類止痛藥用量不能用（Legal Notice 只准個人、非商業）。
     - **國健署的新生兒篩檢歷年成果表、疾管署的抗生素敏感性統計**（新生兒篩檢、紅血球的遺傳性狀、抗藥性的台灣數字，第 295、296、300 點，2026-11-03）：成果表是國健署網站上的附件，依國健署的「政府網站資料開放宣告」（見上面平均身高那一條）採政府資料開放授權條款第 1 版，註明出處即可；map-plan 的 data/hpa/README.md 抄了宣告原文。疾管署 data.gov.tw 43600 的 `license` 是 "1"（政府資料開放授權條款第 1 版）。兩個原始檔都不放進這個 repo（在 map-plan 的 data/），網站只放算出來的比例與個案數。
+    - **本機 session 第二批的檔**（第 369 點，2026-11-04）：國健署《人工生殖施行結果分析報告》（國健署政府網站資料開放宣告，政府資料開放授權條款第 1 版）；美國 FDA 孤兒藥指定資料庫（公共領域，FDA 網站政策）；食藥署《2025 年報》英文版（食藥署網站著作權聲明：以食藥署名義發表的著作，合理範圍內可重製、公開傳輸，註明出處；只用表裡的逐年數字）；疾管署 THAS 加護病房感染（data.gov.tw 26324，政府資料開放授權條款第 1 版）；健保署診療項目醫令申報量（data.gov.tw 175960，同上）；文化部文化統計網的電影院家數（文化部著作權聲明頁 www.moc.gov.tw/content_353.html 被 Cloudflare 擋，沒有讀到；只用逐年家數這種事實數字，註明文化部，廳數跟政府資料開放授權的 data.gov.tw 22213 對得上；**待使用者用瀏覽器確認聲明原文**）；觀光署的月表 1-2（行政資訊網沒有找到資料開放宣告；12 個月加總跟 data.gov.tw 15453 的年資料〔政府資料開放授權條款第 1 版〕完全一樣，月別數字註明觀光署）。
     - **WHO GHO 的抗藥性指標**（抗藥性，第 300 點，2026-11-03）：GLASS 的 AMR_INFECT_ECOLI、AMR_INFECT_MRSA 是 GHO 的指標，data.who.int 有指標頁，CC BY 4.0（同第 12 點前面的 WHO）；抗藥性結核 2026-11-04 從只在 GHO 的 TB_e_inc_rr_num 換成 data.who.int 的 TB_e_rr_num（第 367 點）；WHO 結核 CSV 裡的比例欄適用 WHO 網站的資料條款（有條件），所以每 10 萬人自己用病例數與聯合國人口算。
     - **Open-Meteo Flood API 與 GloFAS**（河流與流域，第 284 點，2026-11-03 讀）：Open-Meteo 的 Licence 頁（open-meteo.com/en/licence）寫「API data are offered under Attribution 4.0 International (CC BY 4.0)」「You must include a link next to any location Open-Meteo data are displayed」，Terms 頁寫「You may only use the free API services for non-commercial purposes」，非商業的例子是「Private or non-profit websites or apps that do not have subscriptions or advertising」（網站沒有訂閱與廣告，符合）；額度「Less than 10'000 API calls per day, 5'000 per hour and 600 per minute」，Pricing 頁寫超過 10 個變數或超過兩週的請求算多次、用分數計（10 年約 261 次）。資料來源 GloFAS 的 CEMS-FLOODS datasets licence（ecds.ecmwf.int/licences/cems-floods，rev. 1）准許重製、散布、向公眾傳播、改作與結合，沒有商業限制；改作過的要標「Contains modified Copernicus Emergency Management Service information [Year]」（月平均是改作，資料來源照寫，年份寫 2026）。資料來源的 Open-Meteo 連結在頁尾的資料來源裡，跟地圖同一個畫面。
     - **主計總處的家庭主要設備普及率**（網路普及、汽機車，第 291 點，2026-11-03）：`ws.dgbas.gov.tw/001/Upload/461/relfile/11525/232214/016-家庭主要設備普及率.csv`（家庭收支調查，1976 年起每年），主計總處〈政府網站資料開放宣告〉（stat.gov.tw/cp.aspx?n=3164）寫「行政院主計總處網站上刊載之所有資料與素材，其得受著作權保護之範圍，採政府資料開放授權條款-第1版發布」，跟第 8 節第 12 點前面的家庭收支調查（住宅、家庭）同一個依據。
@@ -4710,7 +4711,7 @@ pipeline/
 321. **人工生殖（新主題）**（2026-11-04，製作手冊第二十批 312；`pipeline/topics/ivf.py`〔步驟 `ivf`〕、`src/topics/ivf.ts`，放在醫藥分類的「健康與疾病」，疫苗與防疫的後面）：
     - **資料**：ESHRE 的 EIM「ART in Europe, 2019」（Smeenk 等 2023，PMC10694409）表 1（40 個國家或地區的療程數，分 IVF、ICSI、冷凍胚胎植入、PGT、卵子捐贈、IVM、冷凍卵；診所總數與回報的家數；每百萬人的療程數只有回報完整的國家有）與表 4（新鮮週期植入幾個胚胎、雙胞胎與三胞胎占分娩）；《Human Reproduction Open》2026 的 cost-to-baby 研究（PMC13671746）表 1（15 個國家與 6 個區域的年療程數、試管嬰兒占出生數、每千名 15–49 歲女性的療程數、來源與資料品質；區域不用，「AUS and NZ」兩國都填同一個值並在說明寫合計）。都從 Europe PMC 的全文 XML 讀（手冊寫的 eutils 也可以，Europe PMC 不會 429）。
     - **指標**：試管嬰兒占出生數（預設，17 國：台灣 11.9%、南韓 11.8%、西班牙 11.7%、日本 9.3%、以色列 8.7%…印度 0.2%）；每百萬人口的療程數（49 國：歐洲用 ESHRE 2019，表上沒有每百萬人的 14 國用 WPP 2024 的 2019 年人口自己算並寫在說明；回報的診所不到一半的阿爾巴尼亞、波士尼亞〔只有聯邦〕、愛爾蘭、塞爾維亞、土耳其不畫，原因寫在「無資料」；歐洲以外用 HROpen 的年療程數 ÷ WPP 2023 年人口；以色列 7,519 最多）；雙胞胎與三胞胎占分娩的比例（歐洲 29 國，分娩不到 50 次的不畫；滑過看只植入一個胚胎的比例）。滑過國家看技術組成、回報的診所數、來源與資料品質。年份各國不同，主題 `timeless`。
-    - **台灣**：國健署《112 年人工生殖施行結果分析報告》PDF（hpa.gov.tw 的 robots.txt 禁止程式抓 GetFile.ashx，已請本機 session 請使用者用瀏覽器下載），到了再補台灣的療程數與民國 87–112 年的歷年側欄；占出生數先用 HROpen 的 11.9%（來源寫衛福部 2024）。HROpen 的台灣年療程 84,205 跟國健署 112 年的 58,557 不同，附註有寫。
+    - **台灣**（**2026-11-04 補上，第 369 點**：療程數用國健署 Table 12 的 2023 年全部個案 58,557 個，每百萬人 2,511；歷年側欄沒有做，1998、2013 年的數字寫在提示）：國健署《112 年人工生殖施行結果分析報告》PDF（hpa.gov.tw 的 robots.txt 禁止程式抓 GetFile.ashx，已請本機 session 請使用者用瀏覽器下載），到了再補台灣的療程數與民國 87–112 年的歷年側欄；占出生數先用 HROpen 的 11.9%（來源寫衛福部 2024）。HROpen 的台灣年療程 84,205 跟國健署 112 年的 58,557 不同，附註有寫。
     - **跟手冊不同**：多加了歐洲的多胞胎比例（手冊放在側欄）；回報不到一半的國家不畫（手冊說放涵蓋率進 tooltip，但每百萬人會差好幾倍）；左側欄（歷年折線）等台灣的資料到了再做；手冊選用的歐洲法規與公費（PMC11373472，CC BY-NC 4.0）這次不做。
 
 322. **疫情期間的防疫管制（新主題）**（2026-11-04，製作手冊第二十批 313；`pipeline/topics/covid_policy.py`〔步驟 `covid-policy`〕、`src/topics/covid-policy.ts`，醫藥分類的「健康與疾病」，疫苗與防疫的後面）：
@@ -4733,7 +4734,7 @@ pipeline/
 
 325. **各國健康與醫療：微創（腹腔鏡）手術的比例**（2026-11-04，製作手冊第二十批 316；`pipeline/topics/health_laparoscopy.py`〔步驟 `health-laparoscopy`〕、`src/topics/health.ts` 的 `laparoscopic`，子項目 `hernia`〔預設〕、`appendix`、`gallbladder`）：
     - **資料**：OECD `DSD_HEALTH_PROC@DF_SURG_PROC,1.2`。整份 62.6 MB，SDMX key 只抓 6 個手術代碼（`...CM4701_4711+CM470_471+CM5123+CM5122_5123+CM_LPR+CM530_531` 加 14 個空維度，共 18 個維度，約 17 MB）。比例＝同國同年的腹腔鏡每十萬人手術數 ÷ 全部（`PRC_10P5PS`、`MODE_PROVISION=_T` 住院加當日手術）；超過 100% 會報錯（目前沒有）。資料集的「Percentage of procedures」（`PT_PRC`）是住院的占比，不用。疝氣 39 國、闌尾 40 國、膽囊 43 國，2005 年起、各國用 5 年內最近的一年；數字跟手冊一樣（挪威 76.9%、加拿大 96.3%、冰島 98.4%）。
-    - **台灣**：沒有可下載的全國統計，「無資料」寫健保的處置代碼分得出腹腔鏡與開腹；已請本機 session 找健保署的開放資料（data.nhi.gov.tw 從 cloud 連不上），到了再補。子宮切除算不出來（只有百分比，手冊也這樣說），沒做。
+    - **台灣**（**2026-11-04 補上，第 369 點**：健保署「診療項目醫令申報量(年)」2016–2025 年，2024 年闌尾 91.9%、膽囊 91.5%、疝氣 48.4%）：原本沒有可下載的全國統計，「無資料」寫健保的處置代碼分得出腹腔鏡與開腹；已請本機 session 找健保署的開放資料（data.nhi.gov.tw 從 cloud 連不上），到了再補。子宮切除算不出來（只有百分比，手冊也這樣說），沒做。
 
 326. **醫院的表現（新主題）**（2026-11-04，製作手冊第二十批 317，合併候選 819、817；`pipeline/topics/hospital_quality.py`〔步驟 `hospital-quality`〕、`src/topics/hospital-quality.ts`，醫藥分類的「健康與疾病」，醫學影像設備的後面）：
     - **急性照護**：OECD `DSD_HCQO@DF_AC,2.1`，住院後 30 天死亡率（45 歲以上、每 100 次住院、年齡與性別標準化 `AGE_SEX_STANDARD`、`STATISTICAL_OPERATION=OBS`，不取信賴區間）：缺血性腦中風 `MORTISTI`、急性心肌梗塞 `MORTAMII`、出血性腦中風 `MORTHSTI`，都是 unlinked（同一次住院內，約 40 國）；linked（`MORT*O`，含出院後）不混用。髖骨折 2 天內開刀 `IHWTHIPS`（65 歲以上，30 國）。數字跟手冊差一點（捷克缺血性腦中風 26.2，手冊 24.8），這裡用的是年齡與性別標準化的總數。
@@ -4753,12 +4754,12 @@ pipeline/
 329. **抗藥性：醫院裡的醫療照護相關感染與住院病人用抗生素的比例（歐洲）**（2026-11-04，製作手冊第二十批 320；`pipeline/topics/amr_hai.py`〔步驟 `amr-hai`〕、`src/topics/antimicrobial-resistance.ts` 的 `hai-prevalence`、`hospital-antibiotic-use`，都是 `timeless`）：
     - **資料**：ECDC 2022–2023 年點盛行率調查的附錄 2 國家摘要表（xlsx，35.9 MB，cloud 直接下載得到，robots.txt 沒有擋），31 國各一個工作表；讀「Table 3」的「HAI prevalence % (95%CI)」與「Table 7」的「AU prevalence % (95%CI)」（觀察值，非驗證校正、非 PPS2 調整；手冊說的 AC7 格是各醫院盛行率的平均，不是全國的病人比例，不用），第 2 列的調查期間（2021 年 2 月拉脫維亞到 2023 年）與信賴區間寫進滑過的說明。科索沃用 XKX。
     - **結果**：醫療照護相關感染 賽普勒斯 13.8%（信賴區間 8.3–22.1，樣本小）、希臘 12.2%、葡萄牙 11.6%；拉脫維亞 3.0%、羅馬尼亞 3.1%。住院病人用抗生素 科索沃 62.8%、賽普勒斯 56.5%、希臘 55.3%；匈牙利 20.8%。
-    - **說明**寫一天的切面、不是年發生率，病人組成影響大、低值不等於感染控制好，與上面「抗藥比例」的差別（手冊提醒命名要避開）。台灣不在調查裡（「無資料」寫原因；疾管署的 THAS 年報已請本機 session 找，cloud 連不上）。前兩輪（2011–2012、2016–2017）沒有做時間軸。
+    - **說明**寫一天的切面、不是年發生率，病人組成影響大、低值不等於感染控制好，與上面「抗藥比例」的差別（手冊提醒命名要避開）。台灣不在調查裡（「無資料」寫原因；**2026-11-04 起**寫疾管署 THAS 的全國加護病房感染密度：2024 年每千住院人日 5.24，定義不同，第 369 點）。前兩輪（2011–2012、2016–2017）沒有做時間軸。
 
 330. **各國健康與醫療：遠距醫療**（2026-11-04，製作手冊第二十批 321；`pipeline/topics/health_telehealth.py`〔步驟 `health-telehealth`〕、`src/topics/health.ts` 的 `teleconsult-share`、`teleconsult-per-person`）：
     - **資料**：OECD `DSD_HEALTH_PROC@DF_CONSULT,1.2`，醫師（`OC221`）的每人每年問診次數（`CN_PS`），遠距 `CTC`（27 國）、合計 `_T`；比例＝遠距 ÷ 合計（25 國），2015–2025 年，各國用 3 年內最近的一年（看得到 COVID-19 的跳升與回落，用 3 年不用 5 年）。OECD 的每人次數只到小數一位，不到 0.05 的是 0，說明有寫。
     - **說明**只寫資料看得到的（加拿大 2020 年 27.7%、2023 年 10.0%；法國 2019 年 0、2020 年 5.7%；南韓幾乎是 0）；手冊說的「南韓法規長期禁止遠距診療」這次沒有查證來源，沒寫。WHO eHealth 的政策調查（GOE_*）只在 GHO、2015 年，照使用者的決定不用。
-    - **台灣**：健保署 2024 年起有通訊診察治療的申報統計，但沒有可下載的全國數字（data.nhi.gov.tw 從 cloud 連不上，已請本機 session 找），「無資料」寫原因。
+    - **台灣**：健保署 2024 年起有通訊診察治療的申報統計，但沒有可下載的全國數字（data.nhi.gov.tw 從 cloud 連不上，已請本機 session 找），「無資料」寫原因。**2026-11-04 本機查過**：data.gov.tw 與健保署資料開放平台都沒有，遠距醫療給付計畫的代碼不在醫令申報量裡，只有報告裡的零星累計數字（第 369 點）。
 
 331. **血漿製劑能不能自給（新主題）**（2026-11-04，製作手冊第二十批 322；`sources/who_blood.py`（新）、`pipeline/topics/plasma.py`〔步驟 `plasma`〕、`src/topics/plasma.ts`，醫藥分類的「健康與疾病」，人工生殖的後面，`timeless`）：
     - **資料**：WHO《Global status report on blood safety and availability 2025》（2026，147 頁）附錄 9「Provision of plasma-derived medicinal products through the fractionation of plasma collected in the country, 2014–2023」（PDF 第 141–147 頁），只有 PDF。手冊說要半手抄，這裡用 `sources.pdfreader`（標準函式庫）讀文字座標：同一條基線上相連的片段接起來（只接往右的，不然名稱欄會黏到上一格的值），每頁從表頭的字定出 15 欄的中心，資料格歸到最近的欄；國名依 y 歸到最近的資料列，年份比上一列小就換下一國；「…」「—」「..」與空白都當成沒有值；上標的註腳數字拿掉。57 國，抽查南韓、墨西哥、丹麥跟 PDF 一樣。
@@ -4768,7 +4769,7 @@ pipeline/
 332. **疫苗與防疫：65 歲以上打流感疫苗的比例**（2026-11-04，製作手冊第二十批 325；`pipeline/topics/vaccination_flu.py`〔步驟 `vaccination-flu`〕、`src/topics/vaccination.ts` 的 `flu-elderly`）：
     - **資料**：OECD `DSD_HEALTH_PROC@DF_IMMUN`（流感 `IFLU`、`PT_POP_Y_GE65`），49 國有 2000 年起的值（含幾個非會員），各國用 3 年內最近的一年。2024 年 44 國、中位數約 51%（墨西哥 85.9%、南韓 83.4%…烏克蘭 0.2%），跟手冊一樣。
     - **授權**：手冊寫「待確認」（OECD 條款頁被 Cloudflare 擋），使用者 2026-11-04 決定沿用 2026-10-17 已查證的 OECD 資料條款。WHO 的 FLU_ELDERLY 只在 GHO，照使用者的決定不用（也不跟 OECD 混：同一國對不上）。
-    - **台灣**：不在 OECD 的資料裡（「無資料」寫原因）；疾管署的公費流感疫苗接種統計已請本機 session 找，od.cdc.gov.tw 從 cloud 連不上。
+    - **台灣**：不在 OECD 的資料裡（「無資料」寫原因）；疾管署的公費流感疫苗接種統計已請本機 session 找，od.cdc.gov.tw 從 cloud 連不上。**2026-11-04**：只有每年度的「流感疫苗接種計畫成果」PDF（www.cdc.gov.tw 的 /File/ robots.txt 不准程式抓），請使用者用瀏覽器下載，還沒到（第 369 點）。
 
 333. **疫苗與防疫：COVID-19 疫苗的總劑次與加強劑**（2026-11-04，製作手冊第二十批 326；`pipeline/topics/vaccination_doses.py`〔步驟 `vaccination-doses`〕、`sources/owid_covid.py` 多讀 `total_vaccinations_per_hundred`、`total_boosters_per_hundred`、`src/topics/vaccination.ts` 的 `covid-doses`、`covid-boosters`）：
     - **使用者決定**（2026-11-04）：用 Our World in Data（跟「完成 COVID-19 基礎劑」同一份 compact.csv，CC BY 4.0，含台灣：疾管署的數字到 2023-09-24），不用手冊建議的 WHO 儀表板 COV_VAC_UPTAKE_2021_2023.csv（從舊的 covid19.who.int 搬來，data.who.int 條款的涵蓋範圍有疑義；台灣那一列全是空的）。
@@ -4787,7 +4788,7 @@ pipeline/
 336. **藥品支出與取得：每年核准幾個新藥、孤兒藥**（2026-11-04，製作手冊第二十批 330、331；`pipeline/topics/new_drugs.py`〔步驟 `new-drugs`〕、`src/topics/medicines.ts` 的 `new-drugs`、`orphan-approvals`、`orphan-designations`，1995–2025 年，`unranked`）：
     - **資料**：FDA《Compilation of CDER NME and New Biologic Approvals 1985–2025》（www.fda.gov/media/177921，副檔名寫 CSV 其實是 xlsx，公共領域；`Approval Year` 與 `Orphan Drug Designation`）；EMA 的 medicines 表（表頭第 9 列；人用藥、有上市許可日、去掉 Generic 與 Biosimilar，依上市許可年份；`Orphan medicine` 是表上目前的標記）與 orphan designations 表（依 `Date of designation / refusal` 的年份，去掉 Status = Negative 的拒絕，共 3,260 件）。EMA 條款要註明 EMA（第 12 點）。
     - **畫法**：管轄區只有美國與歐盟，歐盟的中央核准在 EU 27 國與冰島、列支敦斯登、挪威都有效，這 30 國畫同一個數字（說明與滑過都寫）；說明寫兩邊的「新藥」定義不同、看各自的趨勢。數字跟手冊一樣（FDA 2018 年 59、2025 年 46；EMA 指定 2015 年 188、2016 年 206，手冊含被拒絕的是 189、208）。
-    - **還沒做**：台灣（食藥署 2025 年報英文版 Table 5，www.fda.gov.tw 的 robots.txt 禁止 ClaudeBot，已請本機 session 請使用者用瀏覽器下載）、日本（PMDA 的 207 頁 PDF，要另外寫解析）、美國的孤兒藥指定（accessdata.fda.gov 從 cloud 被擋，已請本機 session 下載），「無資料」都寫原因。順序 332（美國與歐盟上市的時間差）是左側欄，見第 337 點。
+    - **還沒做**：日本（PMDA 的 207 頁 PDF，要另外寫解析），「無資料」寫原因。**2026-11-04 補上**（第 369 點）：台灣（食藥署 2025 年報英文版 Table 5 的新藥加孤兒藥、孤兒藥許可證張數，2010–2024 年）、美國的孤兒藥指定（FDA 指定資料庫的全部匯出，依指定日，2024 年 481 件）。順序 332（美國與歐盟上市的時間差）是左側欄，見第 337 點。
 
 337. **藥品支出與取得的左側欄：同一個新藥在美國與歐盟上市的時間差**（2026-11-04，製作手冊第二十批 332；`pipeline/topics/approval_lag.py`〔步驟 `approval-lag`〕、`src/topics/medicines.ts` 的 `APPROVAL_LAG`，只在新藥與孤兒藥的指標顯示；三個指標的 `focus` 是北大西洋）：
     - **自己算**（EFPIA W.A.I.T.〔IQVIA〕、Mo 等 2026〔CC BY-NC-ND〕都不能用）：FDA 新藥整檔與 EMA 的 medicines 表（去掉學名藥、生物相似藥）依成分名比對：小寫、去掉括號、鹽類與水合物（hydrochloride、acetate、sodium、maleate…約 60 個字）與生物製劑的四碼後綴，完全相同才算；EMA 同一成分好幾個商品名用最早的上市許可日。EMA 的日期字串是日/月/年，FDA 少數字串是月/日/年。
@@ -4872,7 +4873,7 @@ pipeline/
 
 350. **觀光：旅遊的季節性與過度觀光**（2026-11-04，製作手冊第二十一批 350、351；`pipeline/topics/tourism_season.py`〔步驟 `tourism-season`〕、`src/topics/tourism.ts` 的 `peak-month`、`peak-share`、`nights-per-resident`、`nights-per-km2`）：
     - **資料**：Eurostat `tour_occ_nim`（月別住宿夜數），`unit=NR`、`nace_r2=I551-I553`（旅館、度假住宿、露營地合計；露營地的季節性比旅館強很多）、`c_resid=TOTAL`，2010 年起、12 個月都有值的年份才算，38 國。
-    - **350**：最旺月（同樣多取較早的）與它占全年的比例；2024 年克羅埃西亞 8 月 29.0% 最集中，科索沃 10.7% 最平均；27 國 8 月、10 國 7 月。tooltip 寫第二旺與最淡的月份（只看最旺月看不出雙峰）。指標的 `defaultYear` 是 2024（主題預設的 2019 也有值，但 2020–2021 疫情打亂季節）。**台灣**：手冊建議的移民署入出境人次含國人，只是代理指標；觀光署的月別來臺旅客已請本機 session 下載（`data/taiwan-net/`），還沒到，`noValue` 寫還在整理。
+    - **350**：最旺月（同樣多取較早的）與它占全年的比例；2024 年克羅埃西亞 8 月 29.0% 最集中，科索沃 10.7% 最平均；27 國 8 月、10 國 7 月。tooltip 寫第二旺與最淡的月份（只看最旺月看不出雙峰）。指標的 `defaultYear` 是 2024（主題預設的 2019 也有值，但 2020–2021 疫情打亂季節）。**台灣**：手冊建議的移民署入出境人次含國人，只是代理指標；觀光署的月別來臺旅客已請本機 session 下載（`data/taiwan-net/`）。**2026-11-04 補上**（第 369 點）：2024、2025 年都是 12 月最旺（11.5%、11.0%），是入境旅客人次，口徑跟歐洲的住宿夜數不同。
     - **351**：一年的住宿夜數（12 個月加總）÷ 人口（UN WPP 2024）與 ÷ 陸地面積（World Bank AG.LND.TOTL.K2，沒有那一年的用最近一年）；2024 年每個居民克羅埃西亞 24.2、冰島 23.7、馬爾他 21.0，每平方公里馬爾他 35,921。**台灣**（跟手冊不同）：手冊建議用觀光署的旅宿業住宿人次或來臺旅客人次，但人次不是夜數、口徑不同，這裡不畫，`noValue` 寫明。
 
 351. **觀光：歐洲人怎麼旅遊（住哪裡、待幾天、不旅遊的原因、怎麼去怎麼訂、一年幾趟花多少）**（2026-11-04，製作手冊第二十一批 352–356；`pipeline/topics/tourism_demand.py`〔步驟 `tourism-demand`〕、`src/topics/tourism.ts`）：
@@ -4910,7 +4911,7 @@ pipeline/
 358. **文化：電影院、文化工作者與遺產保存**（2026-11-04，製作手冊第二十一批 371、374、375；`pipeline/topics/culture.py`〔步驟 `culture`〕、`src/topics/culture.ts`，新主題放「日常休閒」）：
     - **資料**：UIS 公開 API（`api.uis.unesco.org/api/public/data/indicators?indicator=…`，免登入免金鑰，CC BY-SA 4.0，資料檔同樣授權）：220174 室內電影院家數（123 國，1995–2017）、CE.RA.CULOCC1.1.OV.ILOSTAT.1 文化職業占就業（74 國，2010–2016）、HEXPCSTPPPCAP.HER.PU 每人的遺產保存公共支出（77 國，2017–2024，購買力平價美元）。年份零散，資料檔設 `latestWithin`（10、7、8 年）；每十萬人用 UN WPP。
     - **跟手冊不同**：手冊把 371（新主題）、374（新主題或擴充就業）、375（擴充世界遺產或新主題）分開放；三個都是 UIS 的文化統計，合成一個新主題「文化」。
-    - **台灣**：都不在 UIS 裡。電影院等本機 session 下載文化部《文化統計》的電影院家數（`data/moc/`，stat.moc.gov.tw 從 cloud 403），`noValue` 寫還在整理；文化工作者與遺產支出寫沒有。
+    - **台灣**：都不在 UIS 裡。電影院用文化部《文化統計》的電影院家數（`data/moc/`，stat.moc.gov.tw 從 cloud 403；**2026-11-04 補上**，2008–2025 年，時間軸延到 2025 年，第 369 點）；文化工作者與遺產支出寫沒有。
     - 數字的問題寫在說明：電影院是家數不是銀幕數（日本、南韓、中國低），文化工作者的低所得國家偏高（多哥 9.6%），遺產支出伊朗、敘利亞是 0。
 
 359. **文化：一年出版幾本書（法定送存）**（2026-11-04，製作手冊第二十一批 372；`pipeline/topics/culture.py` 的 `_books()`、`src/topics/culture.ts` 的 `books-per-million`、`books-deposited`、`books-digital-share`）：
@@ -4993,6 +4994,19 @@ pipeline/
       - `unesco_whc.py`：`data/unesco/whc001.json`（DataHub 的匯出網址，`datahub_url()`）與 `statesparties.html`（締約國清單那一頁；瀏覽器另存的網頁可能把連結改成絕對網址，解析時兩種都認），複製到 `pipeline/.cache/unesco/`。
       - 資料會更新，所以不鎖 SHA-256；map-plan 的 README 寫網址與下載日期。
     - **現有的資料檔**：交通安全、汽機車的台灣數字與世界遺產的資料檔，是以前用偽裝的 User-Agent 下載的檔產生的。本機的檔到了以後重跑 `road-safety`、`world-heritage`，比對數字後換掉。
+369. **本機 session 第二批的檔接進來**（2026-11-04，製作手冊第二十批 312、316、320、321、325、326、330、331 與第二十一批 350、371 的台灣與美國資料；本機 session 放在 map-plan 的 `data/hpa/`、`fda-us/`、`fda-tw/`、`cdc/`、`nhi/`、`moc/`、`taiwan-net/`，各有 README 寫網址、下載方式、授權與核對；重跑前把要用的檔複製到 `pipeline/.cache/` 同名的資料夾，程式檢查 SHA-256）：
+    - **312 人工生殖**（`ivf.py` 的 `_hpa_table12()`）：國健署《112 年人工生殖施行結果分析報告》Table 12（PDF 第 101 頁，用 pypdf 讀英文的表，三欄合計要等於 Total 列）。地圖的台灣療程數用**全部個案** 2023 年 58,557 個（每百萬人 2,511；ESHRE、HROpen 的其他國家也是在那個國家做的全部療程），夫妻至少一方是本國人的 55,119 個寫在提示；活產依治療年份算，不是出生年份，所以占出生數照舊用 HROpen 的 11.9%。
+    - **330、331 新藥與孤兒藥**（`new_drugs.py`）：
+      - 美國的孤兒藥指定：FDA 指定資料庫的全部匯出（.xls 其實是 cp1252 的 HTML 表，8,282 列），以「Generic Name + Date Designated + Orphan Designation」去重成 7,934 個指定，依指定日的年份算，後來撤銷的也算（跟歐盟一樣）：2016 年 334、2024 年 481、2025 年 400 件。指標名稱改成「孤兒藥的指定（美國、歐盟）」，門檻改成 50、100、150、200、300、400。
+      - 台灣：食藥署年報附錄 Table 5（PDF 第 134 頁）每年核准的許可證張數，五類各分本國、輸入、合計，程式逐列核對加總。**台灣的「孤兒藥」是新藥以外的另一類**，所以「新藥」用新藥加孤兒藥（2017 年 158 張最多、2024 年 50 張），「其中的孤兒藥」用孤兒藥（2017 年 18 張、2024 年 9 張）；許可證張數不是新成分數，生物藥品另一類、沒有算。年報只到 2024 年，兩個指標加 `latestWithin: 1`。孤兒藥的指定台灣寫沒有可以比的統計。
+    - **320 醫療照護相關感染**（`amr_hai.py`）：疾管署 THAS 只有加護病房的感染密度（data.gov.tw 26324，2008–2024 年）。全國＝三個層級的感染人次加總 ÷ 住院人日加總 × 1000：2024 年每千住院人日 5.24（2008 年 9.46）。跟 ECDC 的點盛行率定義不同，只寫在台灣的「無資料」說明，資料來源加疾管署。全院的值只在年報 PDF（www.cdc.gov.tw 的 /File/，robots.txt 不准程式抓），沒有用。
+    - **316 腹腔鏡手術**（`health_laparoscopy.py`）：健保署「診療項目醫令申報量(年)」（data.gov.tw 175960，2016–2025 年）。比例＝腹腔鏡代碼 ÷（腹腔鏡＋開腹）：闌尾 74004B／74002B、膽囊 75215B／75203B、疝氣用鼠蹊加股疝氣（開腹 75606B、75607C、75613C、75614C、75615C；腹腔鏡 75618B、75619C、75623C、75624C、75625C、75610B），代碼本機用支付標準檔核對過。2024 年闌尾 91.9%、膽囊 91.5%、疝氣 48.4%（2016 年 13.7%）。陷阱：是醫令申報量不是病人數；分部位的腹腔鏡疝氣代碼 2021 年 11 月上路，2022 年跳了一階；機械手臂手術比照腹腔鏡代碼申報。
+    - **321 遠距問診**：本機查過，data.gov.tw 與健保署資料開放平台都沒有通訊診察治療的申報統計，遠距醫療給付計畫的代碼不在醫令申報量裡，台灣照舊不畫，說明改寫。
+    - **325 長者流感疫苗**：疾管署只有每年度「流感疫苗接種計畫成果」PDF（robots.txt 不准程式抓），請使用者用瀏覽器下載，還沒到。
+    - **326 COVID-19 疫苗劑次**：本機下載的是 OWID 的台灣檔（疾管署 PDF 整理的數字，2021-03 到 2023-09），跟主題已用的 OWID compact.csv 是同一份；2023-09-24 累計 68,158,988 劑，換算每百人 291.0，跟地圖上的值一致，不用改。
+    - **371 電影院**（`culture.py` 的 `_taiwan_cinemas()`）：文化部文化統計網「電影院概況」Excel（2008–2024 年）加「電影片映演業統計」PDF（2026 年 5 月，2025 年 104 家、932 廳，暫時性數字），重疊的年份兩邊要一樣。2016 年 7 月起算實際營業的家數，2015 年以前是許可證家數（125→109 是定義改了）。時間軸延到 2025 年，其他國家照 `latestWithin: 10` 顯示 UIS 最近的值；預設年份照舊是 2017（台灣 111 家，每十萬人 0.47）。
+    - **350 旅遊的季節性**（`tourism_season.py` 的 `_taiwan_monthly()`）：觀光署每月「觀光市場概況摘要」的月表 1-2（2024 年 1 月到 2026 年 9 月 33 個檔），用「當月」的總計合計欄，12 個月加總要等於 data.gov.tw 15453 的年資料。只用 2024 年起的完整年份（2023 年疫後剛開放）。2024、2025 年都是 12 月最旺（11.5%、11.0%），最淡是 7 月。口徑不同：台灣是入境旅客人次（不含國內旅遊），歐洲是旅宿業住宿夜數（含本國旅客）；351 的過度觀光不用台灣的數字。
+    - **授權**記在第 12 點（「本機 session 第二批的檔」）。**文化部的著作權聲明頁沒有讀到**（Cloudflare 擋本機的程式），只用事實數字，待使用者確認。
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。
     - **畫法**：成員是藥政機關，一國有好幾個的（捷克、法國、義大利、英國各 2 個）取最早加入的；57 個機關、53 個國家或地區（香港 2016 年起另外上色）。1995 年 11 月 PIC Scheme 成立起算，不畫 1970 年的 PIC 公約。台灣 2013 年 1 月，名稱「中華台北（衛生福利部食品藥物管理署）」。`CHECK_COUNTS` 1995 年 8、2013 年 41、2026 年 53。

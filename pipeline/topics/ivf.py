@@ -7,15 +7,25 @@
 - 全球：《Human Reproduction Open》2026「cost-to-baby」（PMC13671746，CC BY 4.0）表 1：每年的療程數、試管嬰兒占出生數的比例、
   每千名育齡女性的療程數，15 個國家（澳洲與紐西蘭合在一列）加幾個區域（區域不用）。年份各國不同（表上寫的是來源的出版年），
   所以這個主題不分年份。
-- 台灣：國健署《人工生殖施行結果分析報告》（等本機 session 下載）；HROpen 的台灣（84,205 個療程）跟國健署 112 年的
-  58,557 個不一樣，療程數等國健署的報告，占出生數的比例先用 HROpen 的 11.9%（來源寫衛福部 2024）。
+- 台灣：國健署《112 年人工生殖施行結果分析報告》雙語版 Table 12（PDF 第 101 頁，1998–2023 年的治療週期、活產週期、
+  活產數，2008 年起另列夫妻至少一方是本國人的）。hpa.gov.tw 的 robots.txt 不准程式抓 GetFile.ashx，使用者用瀏覽器下載、
+  本機 session 放在 map-plan 的 `data/hpa/art-report-2023-bilingual.pdf`（README 有表與檢查）；重跑前複製到
+  `pipeline/.cache/hpa/`，`_hpa_table12()` 檢查 SHA-256 後用 pypdf 讀英文的表，三欄合計要跟表上的 Total 一樣。
+  授權：國健署的政府網站資料開放宣告（政府資料開放授權條款第 1 版）。
+  - 地圖用**全部個案**（2023 年 58,557 個療程）：其他國家的療程數也是在那個國家做的全部療程（ESHRE、HROpen），
+    夫妻都是外國人的也算；本國人的 55,119 個寫在說明。HROpen 的台灣（84,205 個）定義不同，不用。
+  - 占出生數的比例照舊用 HROpen 的 11.9%（引用衛福部 2024）；國健署的活產數是依治療年份算的，不是出生年份，只寫在說明。
 """
 from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
 
-from common import OUT_DIR, download, indicator_file, now_iso, write_json
+import hashlib
+
+from pypdf import PdfReader
+
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, now_iso, write_json
 from sources import countries, wpp
 
 OUT = OUT_DIR / "topics" / "ivf"
@@ -23,6 +33,10 @@ ESHRE = "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10694409/fullTextXM
 HROPEN = "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC13671746/fullTextXML"
 ESHRE_YEAR = 2019
 HROPEN_POP_YEAR = 2023
+HPA_PDF = CACHE_DIR / "hpa" / "art-report-2023-bilingual.pdf"
+HPA_SHA256 = "5c3136126afc5699f87a43dce36c362270d83e34dcdc043e79f2b4f9a3a12e9a"
+HPA_YEAR = 2023
+HPA_TOTALS = (560_453, 117_681, 149_727)  # Table 12 的 Total 列
 
 NAMES = {
     "Bosnia-Herzegovina, Federation part": "BIH", "Czech Republic": "CZE", "The Netherlands": "NLD", "UK": "GBR",
@@ -32,6 +46,27 @@ NAMES = {
 QUALITY = {"High": ("官方或醫學會的登錄", "official or professional-society registries"),
            "Mod": ("灰色文獻與少數診所資料", "grey literature and a few clinic fee schedules"),
            "Estim": ("專家估計", "expert estimate")}
+
+
+def _hpa_table12() -> dict[int, tuple[int, ...]]:
+    """國健署 Table 12：{年: (治療週期, 活產週期, 活產數[, 本國人的三欄])}"""
+    if not HPA_PDF.exists():
+        raise RuntimeError(f"沒有 {HPA_PDF}：請把 map-plan 的 data/hpa/art-report-2023-bilingual.pdf 複製到這裡")
+    if hashlib.sha256(HPA_PDF.read_bytes()).hexdigest() != HPA_SHA256:
+        raise RuntimeError(f"{HPA_PDF} 的 SHA-256 跟 map-plan 的 README 不一樣，報告可能換了版本，先看過再改 HPA_SHA256")
+    page = next(t for t in (pg.extract_text() for pg in PdfReader(HPA_PDF).pages)
+                if "Table 12" in t and "Total" in t and "1998" in t)
+    rows: dict[int, tuple[int, ...]] = {}
+    for line in page.splitlines():
+        m = re.match(r"\s*((?:19|20)\d\d)((?:\s+[\d,]+){3,6})\s*-?\s*$", line)
+        if m:
+            rows[int(m.group(1))] = tuple(int(x.replace(",", "")) for x in m.group(2).split())
+    if sorted(rows) != list(range(1998, HPA_YEAR + 1)):
+        raise RuntimeError(f"國健署 Table 12 的年份不對：{sorted(rows)}")
+    sums = tuple(sum(r[i] for r in rows.values()) for i in range(3))
+    if sums != HPA_TOTALS:
+        raise RuntimeError(f"國健署 Table 12 的合計 {sums} 跟表上的 {HPA_TOTALS} 不一樣")
+    return rows
 
 
 def _text(el: ET.Element) -> str:
@@ -163,10 +198,19 @@ def build() -> None:
         m_hints[iso3] = f"雙胞胎 {r['twin']:g}%、三胞胎 {r['triplet']:g}%（{_fmt(r['deliveries'])} 次分娩）{single}"
         m_hints_en[iso3] = f"Twins {r['twin']:g}%, triplets {r['triplet']:g}% ({_fmt(r['deliveries'])} deliveries){single_en}"
 
-    tw_note = ("台灣的療程數等國健署《人工生殖施行結果分析報告》補上（HROpen 寫每年 84,205 個療程，國健署 112 年是 58,557 個，定義不同）；"
+    hpa = _hpa_table12()
+    tw, tw_nat = hpa[HPA_YEAR], hpa[HPA_YEAR][3:]
+    cycles["TWN"] = round(tw[0] / pop["TWN"][HPA_YEAR] * 1000)
+    hints["TWN"] = (f"國健署 {HPA_YEAR} 年 {_fmt(tw[0])} 個療程（夫妻至少一方是本國人的 {_fmt(tw_nat[0])} 個），用聯合國的人口換算；"
+                    f"1998 年 {_fmt(hpa[1998][0])} 個、2013 年 {_fmt(hpa[2013][0])} 個，2021 年 7 月擴大試管嬰兒補助後再增加")
+    hints_en["TWN"] = (f"Health Promotion Administration: {_fmt(tw[0])} cycles in {HPA_YEAR} ({_fmt(tw_nat[0])} where at least one partner is a national), "
+                       f"per million with UN population; {_fmt(hpa[1998][0])} in 1998 and {_fmt(hpa[2013][0])} in 2013, rising further after IVF subsidies were expanded in July 2021")
+    tw_note = (f"台灣的療程數用國健署《112 年人工生殖施行結果分析報告》：{HPA_YEAR} 年 {_fmt(tw[0])} 個療程、{_fmt(tw[2])} 個活產嬰兒"
+               f"（活產依治療的年份算，不是出生的年份）；HROpen 寫的每年 84,205 個療程定義不同，沒有用。"
                "占出生數的 11.9% 是 HROpen 引用衛福部 2024 年的數字。")
-    tw_note_en = ("Taiwan’s cycle count will come from the Health Promotion Administration’s annual ART report (HROpen lists 84,205 cycles a year; "
-                  "the HPA reports 58,557 in 2023, with a different definition). The 11.9% share of births is HROpen’s figure citing the Ministry of Health and Welfare (2024).")
+    tw_note_en = (f"Taiwan’s cycle count is from the Health Promotion Administration’s 2023 ART report: {_fmt(tw[0])} cycles and {_fmt(tw[2])} live-born babies in {HPA_YEAR} "
+                  "(live births are counted by treatment year, not year of birth); HROpen’s 84,205 cycles a year uses a different definition and is not used. "
+                  "The 11.9% share of births is HROpen’s figure citing the Ministry of Health and Welfare (2024).")
     notes, notes_en = {"TWN": tw_note}, {"TWN": tw_note_en}
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -182,8 +226,9 @@ def build() -> None:
     write_json(OUT / "manifest.json", {
         "topic": "ivf", "generatedAt": now_iso(),
         "source": "ESHRE EIM, ART in Europe 2019 (Smeenk et al. 2023, Hum Reprod, PMC10694409, CC BY 4.0); "
-                  "Human Reproduction Open 2026 cost-to-baby study (PMC13671746, CC BY 4.0); UN WPP 2024",
-        "license": "CC BY 4.0",
+                  "Human Reproduction Open 2026 cost-to-baby study (PMC13671746, CC BY 4.0); UN WPP 2024; "
+                  "Health Promotion Administration (Taiwan), ART Summary 2023 National Report, Table 12",
+        "license": "CC BY 4.0; Taiwan Open Government Data License 1.0",
     })
     top = sorted(((v, c) for c, v in cycles.items()), reverse=True)
     print(f"  人工生殖：療程 {len(cycles)} 國（自己算每百萬人的 {computed}；回報不到一半不畫的 {sorted(no_value)}）；最高 {[(c, v) for v, c in top[:8]]}，最低 {[(c, v) for v, c in top[-5:]]}")
