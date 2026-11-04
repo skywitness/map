@@ -8,14 +8,17 @@
     DESIGN.md 第 8 節寫明；世界遺產中心網站的 XML／XLS 本身沒有用。
 - **締約國**：世界遺產中心網站的締約國清單（https://whc.unesco.org/en/statesparties/ ，196 個），只拿各國的 ISO alpha-2
   代碼（「是不是締約國」這個事實），用來把沒有遺產的締約國寫成 0、非締約國寫成無資料。
-- 網站與 DataHub 對程式常用的 User-Agent 會擋（世界遺產中心回 403），所以用一般瀏覽器的 User-Agent。
+- **pipeline 不從網站下載**（2026-11-04 起，DESIGN.md 第 8 節第 368 點）：whc.unesco.org 的 robots.txt 明列
+  `User-agent: ClaudeBot` / `Disallow: /`，data.unesco.org 從 cloud 連線被重設；以前這裡偽裝成瀏覽器的 User-Agent
+  下載，違反使用者的規則，拿掉了。改由本機 session（或使用者用瀏覽器）下載，放在 skywitness/map-plan 的
+  `data/unesco/`：`whc001.json`（下面 DATAHUB 加 `select` 的匯出網址，見 `datahub_url()`）與 `statesparties.html`
+  （STATES_PARTIES 那一頁的 HTML）；重跑前複製到 `pipeline/.cache/unesco/`。名錄會更新，所以不鎖 SHA-256。
 """
 from __future__ import annotations
 
 import json
 import re
 import urllib.parse
-import urllib.request
 from dataclasses import dataclass
 
 import common
@@ -23,18 +26,19 @@ import common
 DATAHUB = "https://data.unesco.org/api/explore/v2.1/catalog/datasets/whc001/exports/json"
 FIELDS = ["id_no", "name_en", "date_inscribed", "danger", "danger_list", "category", "iso_codes", "transboundary", "geo_point_2d"]
 STATES_PARTIES = "https://whc.unesco.org/en/statesparties/"
-BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 
 
-def _download(url: str, filename: str) -> bytes:
+def datahub_url() -> str:
+    """DataHub 匯出名錄的網址（本機 session 照這個網址下載 whc001.json）"""
+    return f"{DATAHUB}?{urllib.parse.urlencode({'select': ','.join(FIELDS)})}"
+
+
+def _load(url: str, filename: str) -> bytes:
     target = common.CACHE_DIR / "unesco" / filename
-    if not target.exists() or common.REFRESH:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        print(f"  下載 {url}")
-        request = urllib.request.Request(url, headers={"User-Agent": BROWSER_UA})
-        with urllib.request.urlopen(request, timeout=180) as resp:
-            body = resp.read()
-        target.write_bytes(body)
+    if not target.exists():
+        raise RuntimeError(
+            f"沒有 {target}：UNESCO 的網站不讓 cloud 用程式抓，請把 map-plan 的 data/unesco/{filename}"
+            f"（本機下載的 {url}）複製到這裡")
     return target.read_bytes()
 
 
@@ -51,8 +55,7 @@ class Site:
 
 
 def sites() -> list[Site]:
-    url = f"{DATAHUB}?{urllib.parse.urlencode({'select': ','.join(FIELDS)})}"
-    rows = json.loads(_download(url, "whc001.json"))
+    rows = json.loads(_load(datahub_url(), "whc001.json").decode("utf-8-sig"))
     out: list[Site] = []
     for r in rows:
         danger = None
@@ -81,8 +84,9 @@ def sites() -> list[Site]:
 
 def states_parties() -> set[str]:
     """締約國的 ISO alpha-2（大寫）"""
-    html = _download(STATES_PARTIES, "statesparties.html").decode("utf-8", "replace")
-    codes = {c.upper() for c in re.findall(r'href="/en/statesparties/([a-z]{2})/?"', html)}
+    html = _load(STATES_PARTIES, "statesparties.html").decode("utf-8", "replace")
+    # 瀏覽器另存的網頁可能把連結改成絕對網址
+    codes = {c.upper() for c in re.findall(r'href="(?:https?://whc\.unesco\.org)?/en/statesparties/([a-z]{2})/?"', html)}
     if not 190 <= len(codes) <= 200:
         raise RuntimeError(f"締約國清單讀到 {len(codes)} 國，網頁格式可能改了")
     return codes

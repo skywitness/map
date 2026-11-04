@@ -2232,7 +2232,7 @@ pipeline/
       - 五類沒填齊、或加起來不在 95–105% 的國家不用。地圖用 `latestWithin: 5`，時間軸 2016–2021，147 國。泰國通報的行人只有 2.1%、英屬維京群島的機車 100%（死亡人數很少）照原樣呈現。
     - **每萬輛機動車死亡數**：死亡人數（上面的估計）÷ 各國通報的登記機動車輛數（含機車；2016 年用 GHO `RS_194`，2021 年用 GSRRS 2023 的 `CP_36a` 與 `CP_118` 年份）× 1 萬，車輛數的年份跟死亡人數差 2 年以內才算。**每千人不到 1 輛的通報值當成填錯**：菲律賓 2021 年填 13 輛、喬治亞 1 輛、賽普勒斯 941 輛，不用（建置時會印出來）。車輛很少的國家數字很高（幾內亞 2016 年超過 100）。門檻 0.5、1、2、5、10、30。
     - **台灣**（WHO 沒有）：交通部統計查詢網（statis.motc.gov.tw）的表：
-      - 網頁用 `Statistics/Display.json?Seq=<表號>` 取資料（JSON，`date` 是「民國年-月-00」，年資料的月是 00；數字有千分位，「-」是 0），`sources/motc.py` 直接讀。**網站的防火牆會擋程式常用的 User-Agent**（連線被重設，`Python-urllib` 與 `curl` 都是），要用一般瀏覽器的；`common.download()` 的 User-Agent 不行，所以 `motc.py` 自己下載，回的不是 JSON 時不存快取。
+      - 網頁用 `Statistics/Display.json?Seq=<表號>` 取資料（JSON，`date` 是「民國年-月-00」，年資料的月是 00；數字有千分位，「-」是 0），`sources/motc.py` 直接讀。**網站的防火牆會擋程式常用的 User-Agent**（連線被重設，`Python-urllib` 與 `curl` 都是），以前 `motc.py` 改用一般瀏覽器的 User-Agent 自己下載；**2026-11-04 拿掉**（第 368 點）：robots.txt 是 `Disallow: /`，改由使用者用瀏覽器存 JSON，放在 map-plan 的 `data/motc/`，重跑前複製到 `pipeline/.cache/motc/`。
       - 表 127「道路交通事故(30日內)─按駕乘車種分」：30 日內死亡人數依死者的駕乘車種（大客車、大貨車、小客車、小貨車、特種車、機車、自行車、行人、乘客、其他、不明），2008 年起；各類加起來要等於「總計」，對不上會報錯。2022 年 3,064、2023 年 3,023、2024 年 2,950、2025 年 2,858 人，跟行政院人權指標（子指標 48「道路交通事故整體30日死亡人數」）一致。
       - 「機車」只算騎士，乘客不分車種另外一類（2025 年 156 人），所以機車占比比 WHO 的定義（含乘客）略低；側欄台灣多列一類「乘客（不分車種）」。「自行車」含腳踏自行車、電動輔助自行車、微型電動二輪車。
       - 死亡率 = 30 日內死亡人數 ÷ WPP 年中人口（跟其他國家同一個人口來源）：2023 年 13.0（世界 15.2、日本 2.7、美國 18.4）。WHO 的資料只到 2023 年，台灣 2024、2025 年的數字寫在附註。
@@ -2505,7 +2505,7 @@ pipeline/
 
 62. **世界遺產**（`pipeline/topics/world_heritage.py`、`pipeline/sources/unesco_whc.py`、`src/topics/panels/WorldHeritagePanel.tsx`）：
     - **來源**：UNESCO DataHub（data.unesco.org，Opendatasoft）的「World Heritage List」資料集 `whc001`，用匯出 API（`exports/json?select=…`）只取事實性的欄位：編號 `id_no`、英文名稱、登錄年份、類型（Cultural／Natural／Mixed）、是否瀕危與列入的年份（`danger_list` 是「Y 2023」這種寫法）、締約國的 ISO alpha-2（`iso_codes`，跨國遺產有好幾個）、座標。不取說明文字與照片（各有著作權）。整個資料集匯出約 12 MB，`select` 之後約 0.5 MB。2026-10 的版本有 1,273 處（文化 991、自然 240、複合 42、瀕危 58），含 2026 年世界遺產委員會新登錄的 25 處；沒有已經除名的遺產（德勒斯登易北河谷等）。
-    - **世界遺產中心的網站與 DataHub 都會擋程式常用的 User-Agent**（whc.unesco.org 回 403），`unesco_whc.py` 用一般瀏覽器的 User-Agent 自己下載。
+    - **世界遺產中心的網站與 DataHub 都會擋程式常用的 User-Agent**（whc.unesco.org 回 403），以前 `unesco_whc.py` 用一般瀏覽器的 User-Agent 自己下載；**2026-11-04 拿掉**（第 368 點）：whc.unesco.org 的 robots.txt 明列禁止 ClaudeBot，改由本機下載，放在 map-plan 的 `data/unesco/`，重跑前複製到 `pipeline/.cache/unesco/`。
     - **國家**：跨國遺產照 UNESCO 的算法，每個締約國都算一次（義大利 62、中國 61、法國 56、德國 55、西班牙 50），所以各國加起來比世界的總數多；世界的值是不重複的遺產數。「耶路撒冷舊城及其城牆」（編號 148）由約旦提名，名錄上沒有締約國，只算進世界的總數，地圖上照樣有點。屬地的遺產算在所屬的國家（UNESCO 的寫法），屬地本身沒有值。
     - **締約國**：世界遺產中心的締約國清單（https://whc.unesco.org/en/statesparties/ ，196 國）只拿 ISO alpha-2 代碼，沒有遺產的締約國是 0，不是締約國的是無資料；有遺產的國家都要在清單裡，不在就報錯。**台灣不是《世界遺產公約》的締約國**，不能提名，用主題的 `noValue` 寫原因；側欄寫文化部（前身文建會）2003、2009、2010 年遴選的「臺灣世界遺產潛力點」目前 18 處（中央社 2024-10-04 引述行政院長的說法），列出幾處例子，不列完整名單（文化資產局的開放資料集已下架）。
     - **時間**：各國的遺產數依登錄年份累計（1978 年第一批 12 處起）；點也依登錄年份（`timeField: 'year'`、`overlayTime: 'cumulative'`）。瀕危名錄只有「目前在名錄上」與列入的年份，沒有移出的紀錄（例如曾經瀕危、後來移出的），所以瀕危只做目前的快照（年份只有 2026）。
@@ -4985,6 +4985,14 @@ pipeline/
     - **GHE 的授權**：data.who.int 國家頁（例如 https://data.who.int/countries/840 ）的 GHE 死因表授權欄寫 CC BY-NC-SA 3.0 IGO，GHE 的死因沒有 CC BY 4.0 的指標頁；第 12 點原本寫 GHE 是 CC BY 4.0，已更正。首要死因、死因結構的三個占比、癌症死亡率、死亡最多的癌症（三個性別）的資料檔加上 `"license": "CC BY-NC-SA 3.0 IGO"`：GHE 的原始資料沒有快取，重跑要重查 24 年（約 15 分鐘、40 MB），所以這次直接在現有的檔加欄位，`disease.py` 的 `GHE_LICENSE` 讓下次重跑時一樣。疾病主題的資料來源分成 GHE（CC BY-NC-SA 3.0 IGO，寫明不能商業使用、資料檔同樣授權）與 data.who.int（CC BY 4.0）兩條，說明也寫了。健康平均餘命、平均壽命、道路交通死亡率、SDG 3.9.1 也是 GHE 算的，但 data.who.int 有各自的指標頁、標 CC BY 4.0，照舊。
     - **國健署的 CSV**：`sources/hpa.py` 原本在快取沒有 data.gov.tw 14462 的 CSV 時，會從 hpa.gov.tw 的 GetFile.ashx 下載（robots.txt 不准程式抓）。這次重跑菸酒時快取不在，下載了一次；發現後改成只用手抄的 `KNOWN`（CSV 有的年份以前已經核對過，數字一致），刪掉下載的檔。
     - **重跑的附帶更新**：重跑疫苗步驟時 Our World in Data 的 COVID-19 資料多了兩個月（美國等國的每月序列到 2026 年 10 月），英國 2024、2025 年的累計確診死亡也小幅增加。
+368. **交通部統計查詢網、UNESCO 不再用程式下載（拿掉偽裝的瀏覽器 User-Agent）**（2026-11-04，使用者決定；`pipeline/sources/motc.py`、`unesco_whc.py`）：
+    - **問題**：使用者的規則是用誠實的 User-Agent（`world-map-viz-pipeline/0.1 (+https://github.com/skywitness/map)`）、不繞過防機器人的檢查、遵守 robots.txt。這兩個來源以前為了避開防火牆，用一般瀏覽器的 User-Agent 自己下載（第 51、62 點原本的寫法），違反規則；2026-11-04 盤點時發現，使用者決定改由本機下載。
+    - **robots.txt**（2026-11-04 用誠實的 User-Agent 查）：statis.motc.gov.tw 是 `User-agent: *` / `Disallow: /`（整站不准程式抓，`Crawl-delay: 30`）；whc.unesco.org 對所有程式 `Allow: /`，但明列 `User-agent: ClaudeBot` / `Disallow: /`；data.unesco.org 從 cloud 連線被重設，查不到。
+    - **改法**：兩個檔都拿掉下載與 `BROWSER_UA`，只讀 `pipeline/.cache/` 裡的檔，沒有就報錯並寫出要從 map-plan 複製哪個檔：
+      - `motc.py`：`data/motc/display-<表號>.json`（表 100、101、127，使用者用瀏覽器打開 `https://statis.motc.gov.tw/motc/Statistics/Display.json?Seq=<表號>` 存檔），複製到 `pipeline/.cache/motc/`。檢查是 JSON、有 `nameMapping`、`columns`、`data`。
+      - `unesco_whc.py`：`data/unesco/whc001.json`（DataHub 的匯出網址，`datahub_url()`）與 `statesparties.html`（締約國清單那一頁；瀏覽器另存的網頁可能把連結改成絕對網址，解析時兩種都認），複製到 `pipeline/.cache/unesco/`。
+      - 資料會更新，所以不鎖 SHA-256；map-plan 的 README 寫網址與下載日期。
+    - **現有的資料檔**：交通安全、汽機車的台灣數字與世界遺產的資料檔，是以前用偽裝的 User-Agent 下載的檔產生的。本機的檔到了以後重跑 `road-safety`、`world-heritage`，比對數字後換掉。
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。
     - **畫法**：成員是藥政機關，一國有好幾個的（捷克、法國、義大利、英國各 2 個）取最早加入的；57 個機關、53 個國家或地區（香港 2016 年起另外上色）。1995 年 11 月 PIC Scheme 成立起算，不畫 1970 年的 PIC 公約。台灣 2013 年 1 月，名稱「中華台北（衛生福利部食品藥物管理署）」。`CHECK_COUNTS` 1995 年 8、2013 年 41、2026 年 53。
