@@ -241,5 +241,31 @@ export const fiscal: TopicDefinition = {
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${fixed(v, 0)}%`,
     },
+    {
+      id: 'recreation-share',
+      label: { zh: '休閒與文化占消費', en: 'Recreation and culture, share of consumption' },
+      description: {
+        zh: '休閒與文化（娛樂、運動、書報、套裝旅遊、寵物、園藝等）占個人實際消費的比例（世界銀行國際比較計畫，2017、2021 兩期）。2021 年卡達 13.5%、克羅埃西亞 11.3%、冰島 10.3%、英國 9.5%、美國 9.1%；台灣 5.9%、日本 5.9%、中國 2.9%；衣索比亞、南蘇丹、蓋亞那不到 0.3%。低所得國家的數字很不可靠，最低一級是「小於 1%」。分母含政府提供的公共服務（公立博物館、圖書館的補貼也算進休閒與文化），跟只算家庭支出的比例不同。',
+        en: 'Recreation and culture (entertainment, sport, books and newspapers, package holidays, pets, gardening and so on) as a share of individual actual consumption (World Bank International Comparison Program, 2017 and 2021). In 2021 Qatar 13.5%, Croatia 11.3%, Iceland 10.3%, the UK 9.5% and the US 9.1%; Taiwan 5.9%, Japan 5.9% and China 2.9%; Ethiopia, South Sudan and Guyana below 0.3%. Figures for low-income countries are unreliable, so the lowest class is “under 1%”. The denominator includes publicly provided services (subsidies to public museums and libraries also count as recreation and culture), unlike household-spending shares.',
+      },
+      unit: '%',
+      file: 'recreation-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 3, 5, 7, 9, 11] } },
+      format: (v) => `${fixed(v, v < 1 ? 2 : 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+    },
+    {
+      id: 'restaurants-share',
+      label: { zh: '餐廳與旅館占消費', en: 'Restaurants and hotels, share of consumption' },
+      description: {
+        zh: '在餐廳、小吃店與旅館的花費占個人實際消費的比例（世界銀行國際比較計畫）。2021 年賴比瑞亞 15.1%、蒙特內哥羅 13.7%、賽普勒斯 13.3%、克羅埃西亞 12.9%；台灣 8.0%、美國 6.0%、中國 5.5%、日本 4.1%。辛巴威、索馬利亞接近 0，低所得國家的數字很不可靠。',
+        en: 'Spending at restaurants, cafés and hotels as a share of individual actual consumption (World Bank International Comparison Program). In 2021 Liberia 15.1%, Montenegro 13.7%, Cyprus 13.3% and Croatia 12.9%; Taiwan 8.0%, the US 6.0%, China 5.5% and Japan 4.1%. Zimbabwe and Somalia are near zero; figures for low-income countries are unreliable.',
+      },
+      unit: '%',
+      file: 'restaurants-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 3, 5, 7, 9, 11] } },
+      format: (v) => `${fixed(v, v < 1 ? 2 : 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+    },
   ],
 };

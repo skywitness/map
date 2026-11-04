@@ -310,13 +310,24 @@ ICP_FOOD = ("https://api.worldbank.org/v2/sources/90/country/all/series/1101000/
             "?format=json&per_page=5000")
 
 
+ICP_SERIES = "https://api.worldbank.org/v2/sources/90/country/all/series/{code}/classification/AICZS/time/all?format=json&per_page=5000"
+# 2026-11-04 製作手冊第二十一批 360：休閒與文化（9110000）、餐廳與旅館（1111000），跟食物同一支 API、同一個分類
+ICP_SHARES = {"recreation-share": ("9110000", "休閒與文化"), "restaurants-share": ("1111000", "餐廳與旅館")}
+
+
 def build_food_share() -> None:
-    """食物與非酒精飲料占個人實際消費的比例（%），ICP 2017、2021"""
+    """食物與非酒精飲料占個人實際消費的比例（%），ICP 2017、2021；另外寫休閒與文化、餐廳與旅館（第二十一批 360）"""
+    _icp_share("food-share", ICP_FOOD, "icp-food-share.json", "食物支出")
+    for ind, (code, name) in ICP_SHARES.items():
+        _icp_share(ind, ICP_SERIES.format(code=code), f"icp-{code}.json", name)
+
+
+def _icp_share(ind: str, url: str, cache: str, name: str) -> None:
     out = OUT_DIR / "topics" / "fiscal"
-    with open(download(ICP_FOOD, "worldbank", "icp-food-share.json"), encoding="utf-8") as f:
+    with open(download(url, "worldbank", cache), encoding="utf-8") as f:
         data = json.load(f)
     if data.get("pages", 1) > 1:
-        raise RuntimeError("ICP 的食物支出超過一頁，需要分頁下載")
+        raise RuntimeError(f"ICP 的{name}超過一頁，需要分頁下載")
     series: dict[str, dict[int, float]] = {}
     for row in data["source"]["data"]:
         if row["value"] is None:
@@ -325,10 +336,11 @@ def build_food_share() -> None:
         if iso3 := to_iso3(var["Country"]):
             series.setdefault(iso3, {})[int(var["Time"][2:])] = float(row["value"])
     years = sorted({y for v in series.values() for y in v})
-    write_json(out / "food-share.json", indicator_file(
-        "food-share", "%", years, {c: to_series(v, years, 1) for c, v in series.items()},
+    write_json(out / f"{ind}.json", indicator_file(
+        ind, "%", years, {c: to_series(v, years, 2 if ind != "food-share" else 1) for c, v in series.items()},
     ))
     last = years[-1]
-    ranked = sorted((round(v[last], 1), c) for c, v in series.items() if last in v)
-    print(f"  食物支出占消費 {years}：{len(ranked)} 國，最高 {ranked[-4:]}，最低 {ranked[:3]}，台灣 {series.get('TWN', {}).get(last)}")
+    ranked = sorted((round(v[last], 2), c) for c, v in series.items() if last in v)
+    print(f"  {name}占消費 {years}：{len(ranked)} 國，最高 {ranked[-5:]}，最低 {ranked[:4]}，台灣 {series.get('TWN', {}).get(last)}；"
+          f"日本 {series.get('JPN', {}).get(last)}、美國 {series.get('USA', {}).get(last)}、中國 {series.get('CHN', {}).get(last)}")
 
