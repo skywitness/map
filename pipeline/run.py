@@ -190,6 +190,8 @@ STEPS = {
     "health-icu": "topics.health_icu",
     # 腹腔鏡手術的比例（併進健康主題，第二十批 316）：OECD DF_SURG_PROC 只抓 6 個手術代碼（17 MB）
     "health-laparoscopy": "topics.health_laparoscopy",
+    # 產道嚴重撕裂傷（併進健康主題，第二十批 319）：OECD 病人安全 DF_PS（0.5 MB）
+    "health-obstetric": "topics.health_obstetric",
     # 醫學影像與放射治療設備（新主題，第二十批 315）：OECD DF_MED_TECH（7.8 MB）與 DF_DIAG_EXAM（6.1 MB）、衛福部年報表 14、15
     "medical-imaging": "topics.medical_imaging",
     # 醫院的表現（新主題，第二十批 317）：OECD 急性照護品質 DF_AC（12 MB）與等待時間 DF_WAITING（3.7 MB）

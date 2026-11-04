@@ -119,6 +119,14 @@ export const health: TopicDefinition = {
     },
     {
       name: {
+        zh: 'OECD Health Care Quality Indicators：Patient safety（產道撕裂傷）',
+        en: 'OECD Health Care Quality Indicators: Patient safety (obstetric trauma)',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
         zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
         en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
       },
@@ -435,6 +443,31 @@ export const health: TopicDefinition = {
       },
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'obstetric-trauma',
+      label: { zh: '生產造成的產道嚴重撕裂傷', en: 'Obstetric trauma in childbirth' },
+      description: {
+        zh: '每 100 次陰道生產，發生三度、四度產道撕裂傷（傷到肛門括約肌）的次數，選上方的「生產方式」切換（OECD 的病人安全指標）。器械助產（真空吸引或產鉗）：加拿大 16.1（2023 年）、美國 11.7、丹麥 11.6、瑞典 9.4；以色列 1.8、立陶宛 1.4、波蘭 1.2。非器械助產：加拿大 4.0、冰島 3.1、丹麥 3.0；波蘭 0.3。注意：高的國家多半是記錄得完整（產後有仔細檢查、照實編碼），低的國家可能是漏記，OECD 自己也提醒這點，這張圖主要看通報文化，不是照護好壞。只有 32 國，各國用 5 年內最近的一年；台灣沒有向 OECD 回報。',
+        en: 'Third- and fourth-degree perineal tears (reaching the anal sphincter) per 100 vaginal deliveries; switch with “Delivery” above (an OECD patient-safety indicator). With instruments (vacuum or forceps): Canada 16.1 (2023), the US 11.7, Denmark 11.6, Sweden 9.4; Israel 1.8, Lithuania 1.4, Poland 1.2. Without instruments: Canada 4.0, Iceland 3.1, Denmark 3.0; Poland 0.3. Note that high rates mostly reflect thorough recording (careful post-birth checks and accurate coding), while low rates may mean under-recording, as the OECD itself warns: this map mainly shows reporting culture, not quality of care. Only 32 countries; each shows its latest year within five. Taiwan does not report to the OECD.',
+      },
+      unit: { zh: '每 100 次生產', en: 'per 100 deliveries' },
+      file: 'obstetric-trauma-{item}.json',
+      dimension: {
+        label: { zh: '生產方式', en: 'Delivery' },
+        options: [
+          { id: 'instrument', label: { zh: '器械助產（真空吸引、產鉗）', en: 'With instruments (vacuum, forceps)' } },
+          { id: 'spontaneous', label: { zh: '非器械助產', en: 'Without instruments' } },
+        ],
+        defaultOption: 'instrument',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [2, 4, 5, 6, 8, 10] },
+        itemScales: { spontaneous: { type: 'sequential', thresholds: [0.5, 1, 1.5, 2, 2.5, 3] } },
+      },
+      format: (v) => tr({ zh: `每 100 次 ${fixed(v, 1)} 次`, en: `${fixed(v, 1)} per 100` }),
+      formatTick: (v) => fixed(v, v < 2 ? 1 : 0),
     },
     {
       id: 'ltc-beds',
