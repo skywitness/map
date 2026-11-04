@@ -1,7 +1,7 @@
 import type { FlowFile, IndicatorData, LinesData, PointsData } from '../topics/types';
 import { fetchJson } from './data';
 import { LOCAL_FILES, LOCAL_SOURCES, openPersonalDb, request, txDone } from './personalDb';
-import { importRouteFiles, type ImportResult } from './personalRoutes';
+import { importRouteFiles, notifyRoutes, routesFromText, type ImportResult } from './personalRoutes';
 import {
   entryId,
   readLocalRegistry,
@@ -11,6 +11,7 @@ import {
   type LocalDerived,
   type LocalFlowSpec,
   type LocalPointSpec,
+  type LocalRouteSpec,
   type LocalShapeSpec,
   type LocalSourceMeta,
   type LocalTableSpec,
@@ -517,6 +518,20 @@ function convertShapes(source: string, spec: LocalShapeSpec, text: string, file:
   };
 }
 
+/**
+ * 路線（about.json 的 routes）：照我的路線的方式解析（lib/personalRoutes.ts，簡化、留海拔），整份存成 PersonalRoute 的陣列；
+ * 網站在主題的我的路線圖層畫（loadRoutes 把各來源的路線接在後面），不是一般的線圖層
+ */
+function convertRoutes(source: string, spec: LocalRouteSpec, text: string, topic: string, added: number): Converted {
+  const routes = routesFromText(text, spec.file, topic, added, source);
+  if (!routes.length) throw new Error(`${spec.file}: no routes (lines)`);
+  return {
+    payloads: [[`${source}/${entryId(spec)}`, routes]],
+    derived: { kind: 'routes', count: routes.length },
+    counts: `${spec.file}: ${routes.length} routes`,
+  };
+}
+
 // ---------------------------------------------------------------- about.json
 
 const isText = (v: unknown): boolean =>
@@ -532,8 +547,9 @@ export function validateAbout(json: unknown): LocalAbout {
   if (a.newTopic && (!/^[a-z0-9-]+$/.test(a.newTopic.id ?? '') || !isText(a.newTopic.title)))
     throw new Error('about.json: "newTopic" needs "id" (a-z, 0-9, -) and "title"');
   if (a.newTopic && !a.tables?.length && !a.flows?.length) throw new Error('about.json: a new topic needs at least one table or flow');
+  if (a.newTopic && a.routes?.length) throw new Error('about.json: "routes" go into an existing topic’s My routes; use "topic"');
   const ids = new Set<string>();
-  for (const kind of ['tables', 'points', 'flows', 'shapes'] as const) {
+  for (const kind of ['tables', 'points', 'flows', 'shapes', 'routes'] as const) {
     const list = a[kind];
     if (list === undefined) continue;
     if (!Array.isArray(list)) throw new Error(`about.json: "${kind}" must be a list`);
@@ -545,7 +561,7 @@ export function validateAbout(json: unknown): LocalAbout {
       ids.add(id);
     }
   }
-  if (!ids.size) throw new Error('about.json: no tables, points, flows or shapes');
+  if (!ids.size) throw new Error('about.json: no tables, points, flows, shapes or routes');
   return a;
 }
 
@@ -620,6 +636,8 @@ export async function importLocalFiles(files: File[]): Promise<LocalImportResult
       for (const spec of about.points ?? [])
         converted.push([entryId(spec), convertPoints(id, spec, await read(spec.file), spec.series ? await read(spec.series.file) : null, spec.file)]);
       for (const spec of about.shapes ?? []) converted.push([entryId(spec), convertShapes(id, spec, await read(spec.file), spec.file)]);
+      for (const spec of about.routes ?? [])
+        converted.push([entryId(spec), convertRoutes(id, spec, await read(spec.file), about.topic!, Date.now())]);
       const meta: LocalSourceMeta = {
         id,
         importedAt: Date.now(),
@@ -637,6 +655,7 @@ export async function importLocalFiles(files: File[]): Promise<LocalImportResult
   }
   const routes = loose.length ? await importRouteFiles(loose, 'racing') : null;
   await syncLocalRegistry();
+  notifyRoutes();
   return { sources: reports, routes, skipped };
 }
 
@@ -680,6 +699,7 @@ export async function deleteLocalSource(id: string | null): Promise<void> {
   await txDone(tx);
   memory.clear();
   await syncLocalRegistry();
+  notifyRoutes();
 }
 
 // ---------------------------------------------------------------- 網站讀資料
@@ -717,4 +737,4 @@ export function registryOutOfSync(list: LocalSourceMeta[]): boolean {
 }
 
 /** 測試用（localData.test.ts）：各種檔的轉換 */
-export const _convert = { table: convertTable, flow: convertFlow, points: convertPoints, shapes: convertShapes };
+export const _convert = { table: convertTable, flow: convertFlow, points: convertPoints, shapes: convertShapes, routes: convertRoutes };

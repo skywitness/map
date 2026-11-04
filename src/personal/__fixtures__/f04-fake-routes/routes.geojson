@@ -1,0 +1,12 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature",
+      "properties": { "name": "Fake stage 1", "series": "tdf", "place": "A → B", "topic": "elsewhere", "source": "example.com/stage-1.gpx" },
+      "geometry": { "type": "LineString", "coordinates": [[2.0, 45.0, 100], [2.1, 45.1, 300], [2.2, 45.0, 200]] } },
+    { "type": "Feature",
+      "properties": { "name": "Fake circuit", "series": "f1" },
+      "geometry": { "type": "MultiLineString", "coordinates": [[[10.0, 50.0], [10.01, 50.0], [10.01, 50.01]], [[10.0, 50.0], [10.0, 50.01]]] } },
+    { "type": "Feature", "properties": { "name": "Point, not a route" }, "geometry": { "type": "Point", "coordinates": [0, 0] } }
+  ]
+}

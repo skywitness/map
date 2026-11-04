@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "title": { "zh": "假的路線", "en": "Fake routes" },
+  "source": { "name": "Fake Source", "terms": "test only", "downloaded": "2026-11-04" },
+  "topic": "racing",
+  "routes": [
+    { "file": "routes.geojson", "label": { "zh": "假的路線", "en": "Fake routes" } }
+  ]
+}

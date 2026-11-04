@@ -29,7 +29,12 @@ export function personalOverlay(cfg: Config): LinesOverlayDef {
       return {
         title: String(p.name ?? ''),
         detail: [series ? tr(series) : '', typeof p.place === 'string' ? p.place : ''].filter(Boolean).join(' · ') || undefined,
-        extra: [tr({ zh: `我的路線：${String(p.source ?? '')}`, en: `My routes: ${String(p.source ?? '')}` })],
+        // 本機匯入的來源帶的路線（lib/localData.ts）：寫那一條的原始出處，不是我的路線的檔名
+        extra: [
+          p.local
+            ? tr({ zh: `本機匯入：${String(p.source ?? '')}`, en: `Local import: ${String(p.source ?? '')}` })
+            : tr({ zh: `我的路線：${String(p.source ?? '')}`, en: `My routes: ${String(p.source ?? '')}` }),
+        ],
       };
     },
   };
@@ -49,7 +54,7 @@ export function personalDecoded(routes: PersonalRoute[], cfg: Config, shows?: (r
     for (const line of r.lines) {
       lines.push(line);
       types.push(type);
-      records.push({ name: r.name, series: r.series ?? null, place: r.place ?? null, source: r.source, g });
+      records.push({ name: r.name, series: r.series ?? null, place: r.place ?? null, source: r.source, local: r.local ?? null, g });
     }
   });
   return { lines, types, records, vertexTypes: null };

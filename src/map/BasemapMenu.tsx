@@ -16,10 +16,12 @@ export interface SharedLayerChoice {
 
 /**
  * 我的路線（TopicDefinition.personalRoutes，lib/personalRoutes.ts）：匯入使用者自己下載的路線檔，只存在這個瀏覽器。
- * count 是這個主題已經匯入的路線數；unavailable 是瀏覽器不能存（私密瀏覽、封鎖網站資料）
+ * count 是這個主題在這裡匯入的路線數（匯出、刪除全部只管這些）；local 是本機匯入的來源帶的路線數（在本機匯入頁管理）；
+ * unavailable 是瀏覽器不能存（私密瀏覽、封鎖網站資料）
  */
 export interface PersonalMenu {
   count: number;
+  local: number;
   unavailable: boolean;
   onImport: (files: File[]) => Promise<ImportResult>;
   onExport: () => void;
@@ -47,6 +49,7 @@ const TEXT = defineMessages({
     personal: '我的路線',
     personalHint: '匯入自己下載的路線檔（GPX、KML、KMZ、GeoJSON、zip），只存在這個瀏覽器，不會上傳。',
     personalCount: (n: number) => (n ? `已經匯入 ${n} 條路線` : '還沒有匯入路線'),
+    localCount: (n: number) => `另有 ${n} 條來自本機匯入的來源（在本機匯入頁刪除）`,
     importFiles: '匯入檔案…',
     importFolder: '匯入整個資料夾…',
     exportRoutes: '匯出備份（GeoJSON）',
@@ -62,6 +65,7 @@ const TEXT = defineMessages({
     personal: 'My routes',
     personalHint: 'Import route files you downloaded yourself (GPX, KML, KMZ, GeoJSON, zip). They stay in this browser and are never uploaded.',
     personalCount: (n: number) => (n ? `${n} ${n === 1 ? 'route' : 'routes'} imported` : 'No routes imported yet'),
+    localCount: (n: number) => `Plus ${n} ${n === 1 ? 'route' : 'routes'} from local-import sources (delete them on the Local import page)`,
     importFiles: 'Import files…',
     importFolder: 'Import a whole folder…',
     exportRoutes: 'Export a backup (GeoJSON)',
@@ -261,6 +265,7 @@ export function BasemapMenu({ basemap, onChange, shared = [], onSharedToggle, mo
               <p className="personal-routes-count" aria-live="polite">
                 {status ?? TEXT[lang].personalCount(personal.count)}
               </p>
+              {personal.local > 0 && <p className="personal-routes-count">{TEXT[lang].localCount(personal.local)}</p>}
               {/* 選單項目的鍵盤移動照舊（itemRefs 接在底圖與其他主題的圖層後面） */}
               {[
                 { key: 'files', label: TEXT[lang].importFiles, run: () => fileRef.current?.click(), off: personal.unavailable },
