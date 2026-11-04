@@ -90,6 +90,19 @@ const EUTHANASIA: CategoryDef[] = [
 ];
 
 /**
+ * 代理孕母（pipeline/sources/surrogacy.py，2026-11-04，製作手冊第二十批 340）：從寬到嚴，
+ * 「沒有法律規範」（中灰）「各地不同」（深灰，跟其他指標同色）不在順序上
+ */
+const SURROGACY: CategoryDef[] = [
+  { value: 1, label: { zh: '商業代孕合法', en: 'Commercial surrogacy legal' } },
+  { value: 2, label: { zh: '只准無償代孕', en: 'Altruistic surrogacy only' } },
+  { value: 3, label: { zh: '全面禁止', en: 'Prohibited' } },
+  // 用中灰：categoricalOther 的淡灰跟色階最淡的「全面禁止」太像
+  { value: 4, label: { zh: '沒有法律規範', en: 'Not regulated' }, color: '#a9a69c' },
+  { value: 5, label: { zh: '各地不同', en: 'Varies by region' }, color: VARIES_COLOR },
+];
+
+/**
  * 法定年齡（pipeline/sources/legal_ages.py）：值是歲數，0 是沒有規定、1 是禁止。
  * 類別圖、循序色，年齡越大越深；「禁止」「沒有規定」不在年齡的順序上，用灰色（categories.ts 不讓它們占色階）
  */
@@ -162,7 +175,7 @@ export const laws: TopicDefinition = {
     },
     {
       name: {
-        zh: '全國法規資料庫（台灣的法定年齡：憲法、公民投票法、民法、兒童及少年福利與權益保障法、道路交通安全規則、刑法；墮胎、安樂死：優生保健法與施行細則、病人自主權利法）',
+        zh: '全國法規資料庫（台灣的法定年齡：憲法、公民投票法、民法、兒童及少年福利與權益保障法、道路交通安全規則、刑法；墮胎、安樂死：優生保健法與施行細則、病人自主權利法；代理孕母：人工生殖法）',
         en: 'Laws & Regulations Database of Taiwan (legal ages in Taiwan)',
       },
       url: 'https://law.moj.gov.tw/',
@@ -204,6 +217,14 @@ export const laws: TopicDefinition = {
     },
     {
       name: {
+        zh: '英文維基百科「Surrogacy laws by country」（代理孕母，2026 年 11 月的版本）',
+        en: 'Wikipedia, “Surrogacy laws by country” (surrogacy, November 2026 revision)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=Surrogacy_laws_by_country&oldid=1382714270',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
         zh: '衛生福利部食品藥物管理署：未註銷藥品許可證資料集（台灣的大麻二酚藥品）',
         en: 'Taiwan Food and Drug Administration: unrevoked drug licences (cannabidiol medicine in Taiwan)',
       },
@@ -218,13 +239,15 @@ export const laws: TopicDefinition = {
       '「事實上廢除」是法律上還有死刑、但那一年與之前 9 年都沒有執行，依各國最後一次執行的年份判斷：只知道最後一次執行的國家，之前的年份當成有在執行，中間另有 10 年以上空檔的（例如緬甸 1988–2022 年、甘比亞 1981–2012 年）只算進條目寫明的。' +
       '「只廢除普通犯罪」是戰時、軍法等例外仍有死刑。國家畫在今天的國界上，獨立以前用那個地方當時的法律與執行紀錄；德國 1949–1990 年是西德。' +
       '法定年齡是 2026 年的現況，依英文維基百科的條目自行整理（CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享），台灣用法條核對：取不需父母同意、法院許可的一般年齡，例外寫在附註；各地不同的取住最多人的那個值；結婚取女性的年齡（女性一律要監護人同意的國家取男性的）；飲酒取購買年齡，酒類不同時取最低的；汽車駕照不算有人陪同、學習駕照；刑事責任取可以負刑事責任的最低年齡。' +
-      '博弈的合法性依英文維基百科「Gambling age」的年齡欄分類（2026 年 10 月，CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）：寫「全部禁止（賭場）、彩券 18 歲」這類的算只准彩券等特許，只寫年齡的算賭場合法（條目沒有分賭場與彩券，沒有逐國查證賭場是否真的存在），非營利的賓果、摸彩不算；台灣、香港、日本、印度、馬來西亞、美國、澳門依法條或條目的說明另外判斷，寫在附註。',
+      '博弈的合法性依英文維基百科「Gambling age」的年齡欄分類（2026 年 10 月，CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）：寫「全部禁止（賭場）、彩券 18 歲」這類的算只准彩券等特許，只寫年齡的算賭場合法（條目沒有分賭場與彩券，沒有逐國查證賭場是否真的存在），非營利的賓果、摸彩不算；台灣、香港、日本、印度、馬來西亞、美國、澳門依法條或條目的說明另外判斷，寫在附註。' +
+      '代理孕母依英文維基百科「Surrogacy laws by country」2026 年 11 月的版本（CC BY-SA 4.0，資料檔也依 CC BY-SA 4.0 分享）逐國的段落自己分類，只分代孕本身合不合法，親權怎麼登記寫在附註：歐盟不准商業代孕，條目寫希臘「完全合法」的算只准無償；泰國條目寫泰國夫妻可以商業代孕，跟 2015 年的法律不符，依法條算只准無償；以色列可以補償費用以外的時間與收入損失，算商業代孕合法；葡萄牙的法律被判違憲、暫停，不畫；台灣依人工生殖法。',
     en:
       'The death penalty is compiled from Wikipedia articles (October 2026, CC BY-SA 4.0) and shows the situation at the end of each year, with the years of abolition and the last execution in the panel notes; the data file of this indicator is shared under CC BY-SA 4.0 as well. ' +
       '“Abolished in practice” means the death penalty is still in law but there were no executions in that year or the 9 years before, judged from the year of each country’s last execution: earlier years count as having executions unless the articles record a gap of 10 years or more (such as Myanmar in 1988–2022 and the Gambia in 1981–2012). ' +
       '“Abolished for ordinary crimes only” keeps it for exceptions such as wartime or military law. Countries are shown within today’s borders, with the law and executions of the area before independence; Germany in 1949–1990 is West Germany. ' +
       'Legal ages are as of 2026, compiled from Wikipedia articles (CC BY-SA 4.0, and the data files are shared under CC BY-SA 4.0 as well), with Taiwan checked against its statutes: the general age without parental or judicial consent is shown and exceptions are in the notes; where it varies by region, the value for most of the population; for marriage, the age for women (for men where women always need a guardian’s consent); for alcohol, the purchase age, and the lowest where it differs by drink; for driving, not counting accompanied or learner driving; for criminal responsibility, the minimum age. ' +
-      'The legality of gambling is classified from the age column of the Wikipedia article “Gambling age” (October 2026, CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well): entries such as “illegal for all ages (casinos), 18 (lotteries)” count as lotteries or licensed betting only, and entries giving only an age count as casinos legal (the article does not separate casinos from lotteries, and whether casinos actually operate was not checked country by country); non-profit bingo and raffles are ignored. Taiwan, Hong Kong, Japan, India, Malaysia, the US and Macao are classified from their laws or the article’s notes, as given in the panel notes.',
+      'The legality of gambling is classified from the age column of the Wikipedia article “Gambling age” (October 2026, CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well): entries such as “illegal for all ages (casinos), 18 (lotteries)” count as lotteries or licensed betting only, and entries giving only an age count as casinos legal (the article does not separate casinos from lotteries, and whether casinos actually operate was not checked country by country); non-profit bingo and raffles are ignored. Taiwan, Hong Kong, Japan, India, Malaysia, the US and Macao are classified from their laws or the article’s notes, as given in the panel notes. ' +
+      'Surrogacy is classified from the country sections of the November 2026 revision of the Wikipedia article “Surrogacy laws by country” (CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well), covering only whether surrogacy itself is legal, with how parentage is registered in the notes: commercial surrogacy is not allowed in the EU, so Greece, described as “fully legal”, counts as altruistic only; the article says Thai couples may use commercial contracts, which does not match the 2015 Act, so Thailand counts as altruistic only under the Act; Israel allows compensation beyond expenses for time and lost earnings, so it counts as commercial; Portugal’s law was struck down as unconstitutional and suspended, so it is left blank; Taiwan follows the Assisted Reproduction Act.',
   },
   indicators: [
     {
@@ -341,6 +364,19 @@ export const laws: TopicDefinition = {
       file: 'euthanasia.json',
       layer: { kind: 'categorical', categories: EUTHANASIA, ordinal: true },
       format: labelOf(EUTHANASIA),
+      defaultYear: 2026,
+    },
+    {
+      id: 'surrogacy',
+      label: { zh: '代理孕母', en: 'Surrogacy' },
+      description: {
+        zh: '代理孕母（替別人懷孕生子）合不合法：商業代孕也合法（俄羅斯、烏克蘭、喬治亞、伊朗、以色列、吉爾吉斯）、只准無償代孕、只能補償費用（英國、加拿大、澳洲、印度、荷蘭、希臘、泰國、越南等 13 個）、全面禁止（法國、德國、義大利、西班牙、中國、台灣等 15 個）、沒有法律規範（日本、南韓、比利時、愛爾蘭等 10 國）；美國、墨西哥各州不同。台灣依人工生殖法只能為妻子能自己懷孕的夫妻施行，不能做代孕。依英文維基「Surrogacy laws by country」2026 年 11 月的版本逐國分類，條目沒寫到的國家不畫；這幾年變動很快（義大利 2024 年把在國外代孕也入罪）。游標移到國家上看細節。',
+        en: 'Whether surrogacy (carrying a child for someone else) is legal: commercial surrogacy legal too (Russia, Ukraine, Georgia, Iran, Israel, Kyrgyzstan), altruistic surrogacy only, with expenses reimbursed (13, including the UK, Canada, Australia, India, the Netherlands, Greece, Thailand and Vietnam), prohibited (15, including France, Germany, Italy, Spain, China and Taiwan), or not regulated (10, including Japan, South Korea, Belgium and Ireland); it varies by state in the US and Mexico. In Taiwan the Assisted Reproduction Act only allows treatment for couples where the wife can carry the pregnancy, so surrogacy cannot be performed. Classified country by country from the November 2026 revision of the English Wikipedia article “Surrogacy laws by country”; countries the article does not cover are left blank. The law is changing fast (in 2024 Italy made surrogacy abroad a crime too). Hover over a country for details.',
+      },
+      unit: '',
+      file: 'surrogacy.json',
+      layer: { kind: 'categorical', categories: SURROGACY, ordinal: true },
+      format: labelOf(SURROGACY),
       defaultYear: 2026,
     },
     ageIndicator(

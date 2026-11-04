@@ -16,13 +16,16 @@
   （JSON 鏡像，CC0）的兵役欄逐國分類；`sources/compulsory_voting.py` 依英文維基「Compulsory voting」的兩張表（CC BY-SA 4.0）。
 - 墮胎、安樂死（2026-11-03，第二階段，使用者決定做）：`sources/abortion.py` 依英文維基「Abortion law」的各國表與
   「Legality of euthanasia」的表（CC BY-SA 4.0），台灣依優生保健法、病人自主權利法與刑法。
+- 代理孕母的法規（2026-11-04，製作手冊第二十批 340）：`sources/surrogacy.py` 依英文維基「Surrogacy laws by country」的
+  逐國段落自己分類（CC BY-SA 4.0），台灣依人工生殖法；條目沒寫到的國家不畫。
 """
 from __future__ import annotations
 
 import json
 
 from common import OUT_DIR, indicator_file, now_iso, to_series, write_json
-from sources import abortion, compulsory_voting, conscription, death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs
+from sources import (abortion, compulsory_voting, conscription, death_penalty, gambling, legal_ages, medical_cannabis, recreational_drugs,
+                     surrogacy)
 
 
 def build() -> None:
@@ -75,6 +78,15 @@ def build() -> None:
         ))
         counts = sorted({v: sum(1 for x in values.values() if x == v) for v in values.values()}.items())
         print(f"  {name} {len(values)} 國：{counts}")
+    values, notes, no_value = surrogacy.status(known)
+    write_json(out / "surrogacy.json", indicator_file(
+        "surrogacy", "", [legal_ages.YEAR], {c: [v] for c, v in sorted(values.items())},
+        notes={c: n[0] for c, n in notes.items()}, notesEn={c: n[1] for c, n in notes.items()},
+        noValue={c: n[0] for c, n in no_value.items()}, noValueEn={c: n[1] for c, n in no_value.items()},
+        license="CC BY-SA 4.0",
+    ))
+    counts = sorted({v: sum(1 for x in values.values() if x == v) for v in values.values()}.items())
+    print(f"  surrogacy {len(values)} 國：{counts}，不畫 {sorted(no_value)}")
     write_json(out / "manifest.json", {
         "topic": "laws", "generatedAt": now_iso(),
         "source": "Wikipedia (CC BY-SA 4.0); 法務部",
