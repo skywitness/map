@@ -257,6 +257,34 @@ export const vaccination: TopicDefinition = {
       compareWorld: true,
     },
     {
+      id: 'covid-doses',
+      label: { zh: 'COVID-19 疫苗總劑次', en: 'COVID-19 vaccine doses' },
+      description: {
+        zh: '每 100 人累計打了幾劑 COVID-19 疫苗（含基礎劑與加強劑），每年最後一次公布的數字。2023 年底古巴 412 劑、日本 347、智利 342、台灣 291、汶萊 284；世界 172；蒲隆地 0.3、葉門 3.4、海地 5.9、巴布亞紐幾內亞 7.2。Our World in Data 整理各國官方的數字，多數國家 2023 年就停止公布（滑過國家看最後一次公布的日期）；台灣是疾管署的數字，到 2023 年 9 月。',
+        en: 'Cumulative COVID-19 vaccine doses (primary and booster) per 100 people, as of the last update each year. End of 2023: Cuba 412, Japan 347, Chile 342, Taiwan 291, Brunei 284; world 172; Burundi 0.3, Yemen 3.4, Haiti 5.9, Papua New Guinea 7.2. Official figures compiled by Our World in Data; most countries stopped reporting in 2023 (hover to see the last report date). Taiwan’s figures are from Taiwan CDC, to September 2023.',
+      },
+      unit: { zh: '劑/百人', en: 'doses per 100' },
+      file: 'covid-doses.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [25, 50, 100, 150, 200, 250] } },
+      format: (v) => tr({ zh: `每百人 ${fixed(v, 0)} 劑`, en: `${fixed(v, 0)} per 100` }),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'covid-boosters',
+      label: { zh: 'COVID-19 加強劑', en: 'COVID-19 booster doses' },
+      description: {
+        zh: '每 100 人累計打了幾劑 COVID-19 加強劑。這是劑次：一個人打兩次加強劑算兩劑，所以可能超過 100，不是「打過加強劑的人」的比例。2023 年底日本、智利 141 劑、比利時 116、台灣 109；世界 36；非洲多數國家不到 15 劑（奈及利亞 7.5、肯亞 3.7、烏干達 1.6），蒲隆地、布吉納法索幾乎是 0。基礎劑的貧富差距到 2023 年縮小不少，加強劑沒有。Our World in Data 整理各國官方的數字（滑過國家看最後一次公布的日期）。',
+        en: 'Cumulative COVID-19 booster doses per 100 people. These are doses: someone with two boosters counts twice, so values can exceed 100; it is not the share of people who had a booster. End of 2023: Japan and Chile 141, Belgium 116, Taiwan 109; world 36; most African countries under 15 (Nigeria 7.5, Kenya 3.7, Uganda 1.6), and Burundi and Burkina Faso almost zero. The rich–poor gap in primary doses had narrowed by 2023, but not for boosters. Official figures compiled by Our World in Data (hover to see the last report date).',
+      },
+      unit: { zh: '劑/百人', en: 'doses per 100' },
+      file: 'covid-boosters.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 15, 30, 50, 75, 100] } },
+      format: (v) => tr({ zh: `每百人 ${fixed(v, 1)} 劑`, en: `${fixed(v, 1)} per 100` }),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
       id: 'excess-deaths',
       label: { zh: '超額死亡（累計，估計）', en: 'Excess deaths (estimate)' },
       description: {

@@ -4,7 +4,8 @@
   OWID 的 ETL 在 GitHub 的 covid-19-data 封存（2024-08-19 最後更新）以後接手更新的版本，2026-10 下載的檔案是 2026-10-02。
   - 確診死亡（`total_deaths_per_million`）：WHO COVID-19 dashboard 的各國通報數（data.who.int 的資料集是 CC BY 4.0），
     每週一筆，到 2026-08-30。WHO 的 dashboard 沒有台灣。
-  - 疫苗接種（`people_vaccinated_per_hundred` 至少打了一劑、`people_fully_vaccinated_per_hundred` 完成基礎劑）：
+  - 疫苗接種（`people_vaccinated_per_hundred` 至少打了一劑、`people_fully_vaccinated_per_hundred` 完成基礎劑、
+    `total_vaccinations_per_hundred` 每百人累計劑次、`total_boosters_per_hundred` 每百人累計加強劑劑次）：
     OWID 自己從各國官方公布的數字整理的，最後一筆是 2024-08-12（多數國家 2023 年就停止公布）。含台灣（到 2023-09-24，
     來源是疾管署）。分母是聯合國 WPP 2024 的人口。
 - **JHU CSSE 的累計死亡**（OWID 封存的 covid-19-data 裡的 `public/data/jhu/total_deaths.csv`，CC BY 4.0）：只用台灣。
@@ -32,6 +33,8 @@ FIELDS = {
     "death_count": "total_deaths",
     "vaccinated": "people_vaccinated_per_hundred",
     "fully": "people_fully_vaccinated_per_hundred",
+    "doses": "total_vaccinations_per_hundred",
+    "boosters": "total_boosters_per_hundred",
 }
 
 
@@ -43,6 +46,8 @@ class Covid:
     death_count: dict[str, float] = field(default_factory=dict)  # 累計確診死亡，人
     vaccinated: dict[str, float] = field(default_factory=dict)  # 至少打了一劑，占人口 %
     fully: dict[str, float] = field(default_factory=dict)  # 完成基礎劑，占人口 %
+    doses: dict[str, float] = field(default_factory=dict)  # 累計劑次，每百人（2026-11-04 起，第二十批 326）
+    boosters: dict[str, float] = field(default_factory=dict)  # 累計加強劑劑次，每百人（不是打過加強劑的人的比例）
 
 
 def compact() -> dict[str, Covid]:

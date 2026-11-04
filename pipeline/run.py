@@ -206,6 +206,8 @@ STEPS = {
     "excess-wmd": "topics.excess_wmd",
     # 65 歲以上的流感疫苗接種率（併進疫苗與防疫，第二十批 325）：OECD DF_IMMUN（2.9 MB）
     "vaccination-flu": "topics.vaccination_flu",
+    # COVID-19 疫苗的總劑次與加強劑（併進疫苗與防疫，第二十批 326）：OWID 的 compact.csv（已快取）
+    "vaccination-doses": "topics.vaccination_doses",
     # 人工生殖（新主題，第二十批 312）：ESHRE EIM 2019 與 HROpen 2026 兩篇 PMC 全文 XML（CC BY 4.0）
     "ivf": "topics.ivf",
     # 疫情期間的防疫管制（新主題，第二十批 313）：OxCGRT 的 compact national CSV（43.8 MB），每 7 天取一天
