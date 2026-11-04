@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 139;
-export const INDICATOR_COUNT = 823;
+export const INDICATOR_COUNT = 825;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -144,6 +144,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Johns Hopkins University CSSE, COVID-19 Data Repository（OWID 轉載；台灣到 2023 年 2 月的確診死亡與 WHO「中國」的對照）","en":"Johns Hopkins University CSSE, COVID-19 Data Repository (via OWID; Taiwan confirmed deaths to February 2023 and the check of WHO’s China figure)"},"url":"https://github.com/owid/covid-19-data/tree/master/public/data/jhu","licenses":["CC BY 4.0"],"topics":["vaccination"]},
   {"name":{"zh":"Jolpica-F1（Ergast 的接手者）資料庫匯出，2026-10-13 的延遲版本；只准非商業使用","en":"Jolpica-F1 (successor to Ergast) database dump of 13 October 2026 (delayed release); non-commercial use only"},"url":"https://github.com/jolpica/jolpica-f1","licenses":["CC BY-NC-SA 4.0"],"topics":["racing"]},
   {"name":{"zh":"Jonathan McDowell, General Catalog of Artificial Space Objects（GCAT）Release 1.8.8","en":"Jonathan McDowell, General Catalog of Artificial Space Objects (GCAT), Release 1.8.8"},"url":"https://planet4589.org/space/gcat/","licenses":["CC BY 4.0"],"topics":["space"]},
+  {"name":{"zh":"Karlinsky & Kobak 2021, World Mortality Dataset（各國每週或每月死亡數，超額死亡與少報倍數自己算）","en":"Karlinsky & Kobak 2021, World Mortality Dataset (weekly or monthly deaths; excess deaths and undercount computed here)"},"url":"https://github.com/akarlinsky/world_mortality","licenses":["MIT License, Copyright (c) 2021 Ariel Karlinsky"],"topics":["vaccination"]},
   {"name":{"zh":"Livingstone 等，Compiled global database of subglacial lakes（雪菲爾大學 ORDA，2025；Livingstone 等 2022，Nature Reviews Earth & Environment）","en":"Livingstone et al., Compiled global database of subglacial lakes (University of Sheffield ORDA, 2025; Livingstone et al. 2022, Nature Reviews Earth & Environment)"},"url":"https://doi.org/10.15131/shef.data.18094037.v1","licenses":["CC BY 4.0"],"topics":["antarctica"]},
   {"name":{"zh":"Malaria Atlas Project：血液疾病的 5 公里網格（G6PD、HbS、HbC、Duffy，2010 年左右的模型），抽稀成約 0.17°","en":"Malaria Atlas Project: 5 km blood disorder grids (G6PD, HbS, HbC and Duffy; models for around 2010), thinned to about 0.17°"},"url":"https://malariaatlas.org/","licenses":["CC BY 3.0"],"topics":["red-cell-traits"]},
   {"name":{"zh":"Meijer 等人（2021），Science Advances 7","en":"Meijer et al. (2021), Science Advances 7"},"url":"https://doi.org/10.6084/m9.figshare.14515590.v1","licenses":["CC BY 4.0"],"topics":["plastic"]},

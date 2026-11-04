@@ -186,6 +186,8 @@ STEPS = {
     "health-surgery": "topics.health_surgery",
     # 被美國 FDA 回收的藥品（併進藥品支出與取得，第二十批 308）：openFDA 整批檔（3.8 MB）、食藥署的藥品回收與許可證
     "drug-recalls": "topics.drug_recalls",
+    # COVID-19 超額死亡與官方少報倍數（併進疫苗與防疫，第二十批 311）：World Mortality Dataset（1.1 MB）、OWID 與 JHU 的通報死亡
+    "excess-wmd": "topics.excess_wmd",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     "ferry-routes": "topics.ferry_routes",

@@ -81,6 +81,14 @@ export const vaccination: TopicDefinition = {
     },
     {
       name: {
+        zh: 'Karlinsky & Kobak 2021, World Mortality Dataset（各國每週或每月死亡數，超額死亡與少報倍數自己算）',
+        en: 'Karlinsky & Kobak 2021, World Mortality Dataset (weekly or monthly deaths; excess deaths and undercount computed here)',
+      },
+      url: 'https://github.com/akarlinsky/world_mortality',
+      license: 'MIT License, Copyright (c) 2021 Ariel Karlinsky',
+    },
+    {
+      name: {
         zh: '衛生福利部疾病管制署「預防接種統計」各年幼兒常規疫苗接種完成率、COVID-19 疫苗接種統計（台灣）',
         en: 'Taiwan Centers for Disease Control: annual routine childhood vaccination completion rates and COVID-19 vaccination statistics',
       },
@@ -242,6 +250,34 @@ export const vaccination: TopicDefinition = {
       format: per100k,
       formatTick: per100kTick,
       compareWorld: true,
+      unranked: true,
+    },
+    {
+      id: 'excess-wmd',
+      label: { zh: '超額死亡（實際死亡統計）', en: 'Excess deaths (registered deaths)' },
+      description: {
+        zh: '2020 年起到那一年年底，全部死亡比照 2015–2019 年的趨勢與季節預期的多出多少（每 10 萬人），用各國實際登記的每週或每月死亡數自己算（World Mortality Dataset，122 國，跟 Karlinsky 與 Kobak 的方法一樣）。2023 年底白俄羅斯 986、俄羅斯 928、保加利亞 919 最高；紐西蘭、日本、台灣到 2021 年底還是負的（比預期少死）。台灣 2023 年底每 10 萬人 166（3.9 萬人），2022 年 Omicron 以後才變正。只有死亡登記完整的國家有資料，非洲幾乎全是空白；跟上面 The Economist 的模型估計是不同的方法，不能混著比。',
+        en: 'Deaths from all causes above the 2015–2019 trend and seasonal pattern, from 2020 to the end of each year, per 100,000 people, computed here from each country’s registered weekly or monthly deaths (World Mortality Dataset, 122 countries, following Karlinsky and Kobak). By the end of 2023 Belarus (986), Russia (928) and Bulgaria (919) were highest; New Zealand, Japan and Taiwan were still negative at the end of 2021 (fewer deaths than expected). Taiwan reached 166 per 100,000 (39,000 deaths) by the end of 2023, turning positive only after Omicron in 2022. Only countries with complete death registration are covered, so Africa is almost blank; this is a different method from The Economist’s model above, so the two should not be compared directly.',
+      },
+      unit: PER_100K,
+      file: 'excess-wmd.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-100, -25, 25, 100, 300, 600] } },
+      format: per100k,
+      formatTick: per100kTick,
+      unranked: true,
+    },
+    {
+      id: 'undercount',
+      label: { zh: '官方少報的倍數', en: 'Undercount of COVID-19 deaths' },
+      description: {
+        zh: '上面自己算的超額死亡，是同一天以前官方通報的 COVID-19 死亡的幾倍（通報不到 50 人或超額死亡不是正的不算）。1 倍左右代表通報跟實際差不多；遠大於 1 代表很多 COVID-19 死亡沒有被算到，或疫情的間接影響很大。2023 年底塔吉克 122 倍、尼加拉瓜 73 倍、烏茲別克 63 倍、埃及 15 倍；台灣 2.2 倍（疾管署的通報只到 2023 年 2 月，偏高）。',
+        en: 'How many times the excess deaths above exceed the COVID-19 deaths officially reported by the same date (not computed when fewer than 50 deaths were reported or excess deaths were not positive). Around 1 means the reports match reality; far above 1 means many COVID-19 deaths went uncounted or the pandemic had large indirect effects. By the end of 2023: Tajikistan 122 times, Nicaragua 73, Uzbekistan 63, Egypt 15; Taiwan 2.2 (Taiwan CDC’s daily reports stop in February 2023, so this is too high).',
+      },
+      unit: { zh: '倍', en: 'times' },
+      file: 'undercount.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 1.5, 2, 3, 5, 10] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 倍`, en: `${fixed(v, 1)}×` }),
+      formatTick: (v) => fixed(v, v < 2 ? 1 : 0),
       unranked: true,
     },
   ],
