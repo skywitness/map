@@ -340,6 +340,32 @@ export const health: TopicDefinition = {
       compareWorld: true,
     },
     {
+      id: 'surgery',
+      label: { zh: '每十萬人手術量', en: 'Surgical procedures per 100,000' },
+      description: {
+        zh: '一年在開刀房、要全身或區域麻醉的手術，每十萬人幾次（世界銀行，原始來源是 Lancet 全球外科委員會）。哥倫比亞 2015 年 27,385、瑞士 2012 年 25,923、丹麥 21,197 最多；孟加拉、葉門、烏干達不到 200，查德、剛果共和國約 50，差了 500 倍。台灣用衛福部的醫院手術人次，2025 年每十萬人約 1 萬次（含門診小手術，定義比較寬）。年份很零散，2015 年以前全球幾乎沒有手術統計，各國用 10 年內最近的一年；哥倫比亞第一可能是把門診小手術也算進去，不代表醫療最發達。',
+        en: 'Surgical procedures in an operating theatre under general or regional anaesthesia per 100,000 people per year (World Bank, from the Lancet Commission on Global Surgery). Colombia (27,385 in 2015), Switzerland (25,923 in 2012) and Denmark (21,197) are highest; Bangladesh, Yemen and Uganda are below 200, and Chad and the Republic of the Congo about 50, a 500-fold gap. Taiwan uses hospital operations from the Ministry of Health and Welfare, about 10,000 per 100,000 in 2025 (including minor outpatient procedures, a broader definition). Years are scattered, since there were almost no surgical statistics before 2015; each country shows its latest year within ten. Colombia may rank first because minor outpatient procedures are included, not because its care is the most advanced.',
+      },
+      unit: { zh: '每十萬人', en: 'per 100,000' },
+      file: 'surgery.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1000, 3000, 5000, 10000, 15000] } },
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, 0)} 次`, en: `${fixed(v, 0)} per 100,000` }),
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'surgical-workforce',
+      label: { zh: '外科、麻醉、婦產科醫師', en: 'Surgical, anaesthesia and obstetric specialists' },
+      description: {
+        zh: '每十萬人有幾位外科、麻醉科與婦產科專科醫師（世界銀行，2013–2018 年，各國用 10 年內最近的一年）。摩納哥 195.6、希臘 163.5、義大利 142.4 最多；索馬利亞、獅子山不到 0.2，阿富汗 0.03。Lancet 全球外科委員會建議至少每十萬人 20 位。台灣沒有這項統計。',
+        en: 'Surgical, anaesthesia and obstetric specialists per 100,000 people (World Bank, 2013–2018; each country shows its latest year within ten). Monaco (195.6), Greece (163.5) and Italy (142.4) are highest; Somalia and Sierra Leone are below 0.2 and Afghanistan 0.03. The Lancet Commission on Global Surgery recommends at least 20 per 100,000. Taiwan has no matching statistic.',
+      },
+      unit: { zh: '每十萬人', en: 'per 100,000' },
+      file: 'surgical-workforce.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 20, 50, 100] } },
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, 1)} 位`, en: `${fixed(v, 1)} per 100,000` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
       id: 'ltc-beds',
       label: { zh: '長照機構床數（每千名 65 歲以上）', en: 'Long-term care beds per 1,000 aged 65+' },
       description: {

@@ -25,6 +25,9 @@ BEDS_URL = "https://www.mohw.gov.tw/dl-63138-6c554eda-c839-4443-b334-e8e7c4321b2
 WORKFORCE_URL = "https://www.mohw.gov.tw/dl-63141-3fdaa1b6-5654-4605-8abb-f6c00614d0a4.html"
 NOTIFIABLE_URL = "https://www.mohw.gov.tw/dl-63144-9e3c90eb-a7d4-4391-b20a-61c84d006d5a.html"
 DEATHS_URL = "https://www.mohw.gov.tw/dl-63150-a5f26a9e-9059-4f3c-ab48-f597d4b2b600.html"
+# 《醫療機構現況及醫院醫療服務量統計年報》114 年版（2026 年出版，91 個工作表：表 11 服務量、表 14／15 設備與使用人次、
+# 表 25 病床按權屬、表 79 設備按權屬…）；每年新版的 dl 編號會變
+SERVICES_URL = "https://www.mohw.gov.tw/dl-101451-edb3ead7-5658-4ec3-bdd8-38b891082abc.html"
 
 # 國民醫療保健支出表1 的欄位（0 起算）
 NHE_COLUMNS = {
@@ -184,3 +187,21 @@ def health_series() -> dict[str, dict[int, float]]:
         "nurses": _workforce_per_1000("護理人員"),
         "hospital-beds": hospital_beds_per_1000(),
     }
+
+
+def surgeries() -> dict[str, dict[int, float]]:
+    """表 11 歷年醫院醫療服務量統計的手術人次：{total, outpatient, inpatient: {西元年: 人次}}（2001 年起）"""
+    rows = _rows(SERVICES_URL, "medical-services-114.xlsx", "11")
+    head = next(r for r in rows if r and any(isinstance(c, str) and c.startswith("手") and "Operations" in c for c in r if c))
+    col = next(i for i, c in enumerate(head) if isinstance(c, str) and c.startswith("手") and "Operations" in c)
+    out: dict[str, dict[int, float]] = {"total": {}, "outpatient": {}, "inpatient": {}}
+    for r in rows:
+        if not r or not isinstance(r[1], int) or not 1990 < r[1] < 2100:
+            continue
+        for k, offset in (("total", 0), ("outpatient", 1), ("inpatient", 2)):
+            v = _number(r[col + offset])  # 表頭「手術人次」那一格跟資料的合計同一欄，後面兩欄是門診、住院
+            if v is not None:
+                out[k][r[1]] = v
+    if out["total"].get(2025) != 2308673:
+        raise RuntimeError(f"衛福部表 11 的 2025 年手術人次不是 2,308,673：{out['total'].get(2025)}，版面可能換了")
+    return out

@@ -179,6 +179,8 @@ STEPS = {
     "tobacco-policy": "topics.tobacco_policy",
     # 各國的健保制度（併進健康主題，輸出到 topics/health/）：OECD HSCS 2023 的 Q2（SDMX-JSON，32 KB）、英文維基兩個固定版本的表；幾秒
     "health-systems": "topics.health_systems",
+    # 每十萬人手術量（併進健康主題，第二十批 306）：世界銀行 WDI 兩個指標、衛福部醫療服務量年報 xlsx（1.7 MB）
+    "health-surgery": "topics.health_surgery",
     # UNCTAD Data Hub 的 6 個整包下載（7z 的 CSV，共約 2.5 MB）、NGA World Port Index（3.5 MB）、臺灣港務公司的貨櫃裝卸量
     "shipping": "topics.shipping",
     "ferry-routes": "topics.ferry_routes",
