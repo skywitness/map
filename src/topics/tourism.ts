@@ -1,11 +1,38 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
-import type { TopicDefinition } from './types';
+import type { FlowLabels, TopicDefinition } from './types';
 import { COVID } from './events';
 
 const ARRIVALS = { zh: '人次', en: 'arrivals' };
 const PER_PERSON = { zh: '人次/人', en: 'arrivals per resident' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
+
+/** 旅客的來源與去向（2026-11-04，製作手冊第二十一批 349；pipeline/topics/tourism_flows.py） */
+const VISITOR_LABELS: Record<'export' | 'import', FlowLabels> = {
+  import: {
+    partners: { zh: '旅客來源', en: 'visitor origins' },
+    main: { zh: '旅客從哪裡來', en: 'Where visitors come from' },
+    verb: (origin, partner) => tr({ zh: `從${partner}來${origin}的旅客`, en: `Visitors from ${partner} to ${origin}` }),
+  },
+  export: {
+    partners: { zh: '旅客來源', en: 'visitor origins' },
+    main: { zh: '旅客從哪裡來', en: 'Where visitors come from' },
+    verb: (origin, partner) => tr({ zh: `從${origin}去${partner}的旅客`, en: `Visitors from ${origin} to ${partner}` }),
+  },
+};
+const TRIP_LABELS: Record<'export' | 'import', FlowLabels> = {
+  import: {
+    partners: { zh: '出國目的地', en: 'trip destinations' },
+    main: { zh: '出國去哪裡', en: 'Where residents travel abroad' },
+    verb: (origin, partner) => tr({ zh: `${partner}的人去${origin}的旅次`, en: `Trips from ${partner} to ${origin}` }),
+  },
+  export: {
+    partners: { zh: '出國目的地', en: 'trip destinations' },
+    main: { zh: '出國去哪裡', en: 'Where residents travel abroad' },
+    verb: (origin, partner) => tr({ zh: `${origin}的人去${partner}的旅次`, en: `Trips from ${origin} to ${partner}` }),
+  },
+};
+const EUROSTAT = 'CC BY 4.0';
 
 export const tourism: TopicDefinition = {
   id: 'tourism',
@@ -36,6 +63,19 @@ export const tourism: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
+      name: {
+        zh: 'Eurostat：旅宿業的到達人次依居住國（tour_occ_arnraw）、居民的旅次依目的地（tour_dem_ttw）',
+        en: 'Eurostat: arrivals at tourist accommodation by country of residence (tour_occ_arnraw); trips by destination (tour_dem_ttw)',
+      },
+      url: 'https://ec.europa.eu/eurostat/web/tourism/database',
+      license: EUROSTAT,
+    },
+    {
+      name: { zh: '交通部觀光署 觀光統計資料庫：來臺旅客按居住地、國人出國按首站抵達地', en: 'Tourism Administration (Taiwan): arrivals by residence, departures by first destination' },
+      url: 'https://stat.taiwan.net.tw/',
+      license: OPEN_DATA_TW,
+    },
+    {
       name: { zh: '中央銀行 國際收支統計', en: 'Central Bank of the Republic of China (Taiwan), balance of payments' },
       url: 'https://cpx.cbc.gov.tw/',
       license: OPEN_DATA_TW,
@@ -50,8 +90,8 @@ export const tourism: TopicDefinition = {
     },
   ],
   note: {
-    zh: '國際旅客、觀光收入與觀光收入占出口只到 2020 年：UN Tourism 之後的資料不開放轉載。旅行收入與旅行收入占出口是世界銀行轉載的 IMF 國際收支，到最新一年；IMF 的「旅行」不含國際客運（觀光收入含付給本國航空公司的機票錢），兩者不能直接接起來比。旅客人次有些國家只算過夜旅客、有些含當日來回的旅客，跨國比較時要留意。2020 年起受疫情影響大幅減少。',
-    en: 'International arrivals, tourism receipts and their share of exports end in 2020 because later UN Tourism data may not be republished. Travel receipts and their share of exports come from IMF balance-of-payments data republished by the World Bank and run to the latest year; IMF "travel" excludes international passenger transport (tourism receipts include fares paid to national carriers), so the two series cannot be joined directly. Some countries count only overnight visitors and others include same-day visitors, so compare with care. Figures drop sharply from 2020 because of the pandemic.',
+    zh: '國際旅客、觀光收入與觀光收入占出口只到 2020 年：UN Tourism 之後的資料不開放轉載。旅行收入與旅行收入占出口是世界銀行轉載的 IMF 國際收支，到最新一年；IMF 的「旅行」不含國際客運（觀光收入含付給本國航空公司的機票錢），兩者不能直接接起來比。旅客人次有些國家只算過夜旅客、有些含當日來回的旅客，跨國比較時要留意。2020 年起受疫情影響大幅減少。旅客的來源與去向（2026-11 加）：歐洲是 Eurostat 的旅宿業到達人次（一個人住兩家旅館算兩次，跟入境人次不同）與居民一夜以上的出國旅次，只有有名字的 42 個來源國、29 個出發國；台灣是觀光署的來臺旅客（依居住地，港澳合在一起）與國人出國的首站抵達地（轉機的算第一站）。',
+    en: 'International arrivals, tourism receipts and their share of exports end in 2020 because later UN Tourism data may not be republished. Travel receipts and their share of exports come from IMF balance-of-payments data republished by the World Bank and run to the latest year; IMF "travel" excludes international passenger transport (tourism receipts include fares paid to national carriers), so the two series cannot be joined directly. Some countries count only overnight visitors and others include same-day visitors, so compare with care. Figures drop sharply from 2020 because of the pandemic. Visitor origins and destinations (added November 2026): for Europe, Eurostat arrivals at tourist accommodation (someone staying at two hotels counts twice, unlike border arrivals) and residents’ trips abroad of one night or more, with only the 42 named source countries and 29 reporting countries; for Taiwan, Tourism Administration arrivals by country of residence (Hong Kong and Macao combined) and the first destination of departures (a connecting stop counts as the destination).',
   },
   indicators: [
     {
@@ -141,6 +181,59 @@ export const tourism: TopicDefinition = {
       // 0.05、0.1、0.25、0.5、1、2：小數位數跟著刻度走
       formatTick: (v) => fixed(v, Number.isInteger(v) ? 0 : Number.isInteger(Math.round(v * 1e6) / 1e5) ? 1 : 2),
       compareWorld: true,
+    },
+    {
+      id: 'visitors-from',
+      label: { zh: '流向：旅客從哪裡來', en: 'Flows: where visitors come from' },
+      description: {
+        zh: '點選國家，弧線連到它前 15 大的旅客來源國（歐洲 36 國用旅宿業的到達人次、台灣用來臺旅客人次，依居住地）。2024 年西班牙的國外旅客英國人 1,442 萬人次最多、德國 983 萬、法國 861 萬、美國 512 萬；克羅埃西亞以德國人 307 萬最多；台灣是日本 132 萬、港澳 131 萬、南韓 100 萬、美國 65 萬。顏色是國外客人次。',
+        en: 'Click a country to draw arcs to its top 15 source countries of visitors (accommodation arrivals for 36 European countries, border arrivals for Taiwan, by country of residence). In 2024 Spain’s foreign guests were led by the UK with 14.42 million arrivals, then Germany 9.83 million, France 8.61 million and the US 5.12 million; Croatia’s by Germany with 3.07 million; Taiwan’s by Japan 1.32 million, Hong Kong and Macao 1.31 million, South Korea 1.00 million and the US 0.65 million. Colour shows foreign arrivals.',
+      },
+      unit: ARRIVALS,
+      file: 'foreign-arrivals.json',
+      layer: {
+        kind: 'flow',
+        file: 'flows/visitors/{year}.json',
+        direction: 'import',
+        labels: VISITOR_LABELS,
+        pickPartners: { zh: '點選國家（歐洲 36 國或台灣），查看它的旅客從哪裡來', en: 'Click a country (36 in Europe, or Taiwan) to see where its visitors come from' },
+        legendKey: { zh: '由來源國（淺）到目的地（深）', en: 'From origin (light) to destination (dark)' },
+      },
+      format: (v) => `${formatLargeNumber(v)} ${tr(ARRIVALS)}`,
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'trips-to',
+      label: { zh: '流向：出國去哪裡', en: 'Flows: where residents travel abroad' },
+      description: {
+        zh: '點選國家，弧線連到它的居民出國最常去的 15 個國家（歐洲 29 國是一夜以上的出國旅次、台灣是出國的首站抵達地）。2024 年德國人去義大利 1,575 萬趟、奧地利 1,444 萬、西班牙 1,118 萬、法國 863 萬；台灣人的首站是日本 601 萬人次最多，其次中國 277 萬、南韓 143 萬、越南 126 萬。顏色是出國的旅次。',
+        en: 'Click a country to draw arcs to the 15 countries its residents visit most (trips abroad of one night or more for 29 European countries; first destination of departures for Taiwan). In 2024 Germans made 15.75 million trips to Italy, 14.44 million to Austria, 11.18 million to Spain and 8.63 million to France; Taiwanese departures went first to Japan (6.01 million), then China 2.77 million, South Korea 1.43 million and Vietnam 1.26 million. Colour shows trips abroad.',
+      },
+      unit: ARRIVALS,
+      file: 'outbound-trips.json',
+      layer: {
+        kind: 'flow',
+        file: 'flows/trips/{year}.json',
+        direction: 'export',
+        labels: TRIP_LABELS,
+        pickPartners: { zh: '點選國家（歐洲 29 國或台灣），查看它的居民出國去哪裡', en: 'Click a country (29 in Europe, or Taiwan) to see where its residents travel' },
+        legendKey: { zh: '由出發國（淺）到目的地（深）', en: 'From home country (light) to destination (dark)' },
+      },
+      format: (v) => `${formatLargeNumber(v)} ${tr(ARRIVALS)}`,
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'foreign-share',
+      label: { zh: '國外客占旅宿房客的比例', en: 'Foreign share of accommodation guests' },
+      description: {
+        zh: '旅館、度假住宿與露營地的到達人次裡，國外客占幾成（Eurostat）。2024 年馬爾他 89.4%、盧森堡 87.0%、克羅埃西亞 85.9%、賽普勒斯 81.5%、希臘 73.7% 最高；德國、波蘭 20.3%、羅馬尼亞 16.7% 最低，國內旅遊為主。',
+        en: 'Share of foreign guests among arrivals at hotels, holiday accommodation and campsites (Eurostat). In 2024 Malta 89.4%, Luxembourg 87.0%, Croatia 85.9%, Cyprus 81.5% and Greece 73.7% are highest; Germany and Poland 20.3% and Romania 16.7% lowest, where domestic tourism dominates.',
+      },
+      unit: '%',
+      file: 'foreign-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 30, 40, 50, 60, 75] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
     },
   ],
 };
