@@ -25,3 +25,4 @@ pygplates>=1.0
 mapbox-vector-tile>=2.1
 pyshp>=2.3
 xlrd>=2.0
+holidays==0.108  # 國定假日（MIT，假日規則寫在程式碼裡；版本固定，換版會改到天數）

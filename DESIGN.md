@@ -841,6 +841,7 @@ pipeline/
 | 賽車（2026-10-30，第 8 節第 242 點；F1 從「運動」搬過來） | 今年的賽程（預設，不上色，畫 2026 年每一站：顏色是 7 類賽事，實心是到 10 月 30 日已經比完、空心是還沒比；三大環賽是每個賽段的終點與起點到終點的直線）、每月賽程（時間軸是 2025 年 12 月到 2026 年 12 月，同樣的點只畫那個月）、歷年辦過的地點（不上色，點的大小是辦過的次數）；今年、每月的指標左邊有賽程清單（點一站移過去）；子項目「賽事」：全部或 14 種之一；F1：舉辦的分站數（比例圓）、車手冠軍（依國籍，比例圓），都是累計，賽道的點照舊 | 今年的指標：這國今年的各站（日期、名稱、場地、比完沒有，環賽併成一行）；歷年：這國辦過的地點與次數；F1 的指標：這國籍的車手冠軍、這國的賽道 | 英文維基百科 12 個賽季條目、8 個歷年列表（固定版本，CC BY-SA 4.0）、Wikidata 的座標（CC0）；地獄山、超級雪崩的日期依主辦單位公布的事實；Jolpica-F1（CC BY-NC-SA 4.0，只准非商業） | 2026 年（Formula E 是 2025–26 季）；歷年依各列表（F1 1950–2026、MotoGP 1949 起、WRC 1973 起、Formula E 2014 起、WEC 2012 起、IndyCar 1996 起、環法 1903 起、環義 1909 起、環西 1935 起、超級雪崩 1995 起、地獄山 2000 起、Maxiavalanche 2002 起、Bike Attack 1998–2017、薩斯費冰河速降 2004–2018、Transvésubienne 1988 起、TransRiviera 2021 起） |
 | 各國在讀什麼 | 讀最多的條目（預設，不上色：那個月每個國家讀最多的維基百科條目，各語言的維基百科合在一起排，名稱寫在地圖上〔點圖層的 `pointLabel`〕；國家的值是第一名的瀏覽次數，給 tooltip）、讀英文維基百科的比例（面量圖）；時間軸是月份 | 那個月的前 10 名（原文標題、中文或英文名稱、哪一種語言的維基百科、瀏覽次數），第一名在最近 24 個月的變化（每個月的第一名，點一下換到那個月） | Wikimedia 基金會的差分隱私每日瀏覽量（country_project_page，CC0）、Wikidata 的中文與英文名稱（CC0）、Natural Earth 1:50m 國界（標籤的位置） | 最近 24 個完整的月份（2024 年 10 月到 2026 年 9 月） |
 | 帝國與疆界 | 各時期的疆域（預設，不上色：那一年世界各政體的範圍，Cliopatria，依帝國上色〔10 種顏色只是讓相鄰的分得開，圖例不列，`keyClasses: false`〕、政體名稱寫在地圖上，滑過看名稱與這個範圍的年份；國家的 tooltip 寫今天的國土那時屬於誰）、殖民帝國（類別圖：COLDAT 8 個歐洲殖民國，用平均的起訖年份；只補了台灣：荷蘭、西班牙、日本）；「殖民帝國」另畫依日期的殖民地與帝國疆界（OpenHistoricalMap，那一年年底，左側欄列出那一年的變動或依政體，第 286 點）；日治行政區界的圖磚（1901 年的廳、1930 年的州廳與郡市，中研院，第 287 點） | 今天的國土歷代屬於誰（取樣年份連續相同的合成一段，占國土 3% 以上，點一段換到那一年）、殖民時期（各殖民國的平均與最寬的起訖年份、只有部分地區、自己補的） | Cliopatria v0.2.1（Seshat，Zenodo，CC BY 4.0）、COLDAT（Becker，Harvard Dataverse，CC0）、Wikidata 的中文名稱（CC0）、Natural Earth 1:10m／1:50m（台灣的範圍、今天的國土） | 西元前 3400 年到 2024 年：西元前每 100 年、1800 年以前每 50 年、之後每 5 年（加 1625、1640、1670 年）；殖民 1462–2024 年每年 |
+| 國定假日（2026-11-04，第 8 節第 342 點；休閒的「生活與文化」） | 一年幾天國定假日（含補假，預設）、不含補假的天數（面量圖，天）、假日最多的月份（類別圖，月份的四季色；同樣多取較早的月份） | 那一國 2026 年的假日清單（附註）；聯邦制國家各地另有地方假日的範圍（tooltip） | Python 套件 holidays 0.108（MIT，離線計算，只算 public 類） | 2017–2027 年 |
 
 ## 8. 資料陷阱（重要）
 
@@ -968,6 +969,7 @@ pipeline/
     - **ESHRE 的 EIM 2019 與 HROpen 2026 是 CC BY 4.0**（人工生殖，第 321 點，2026-11-04）：兩篇的 `<permissions>` 都是「This is an Open Access article distributed under the terms of the Creative Commons Attribution License (https://creativecommons.org/licenses/by/4.0/), which permits unrestricted reuse, distribution, and reproduction in any medium, provided the original work is properly cited.」；從 Europe PMC 的全文 XML 取（不必登入）。ICMART 的世界報告沒有 PMC 版本、要付費，不用。
     - **Itan 等 2010 的乳糖酶持續性表是 CC BY 2.0**（乳糖不耐，第 297 點，2026-11-03）：`<permissions>`：「This is an Open Access article distributed under the terms of the Creative Commons Attribution License (http://creativecommons.org/licenses/by/2.0)」；附件從 Europe PMC 的 `supplementaryFiles` zip 取（不必登入）。Storhaug 等 2017（Lancet Gastroenterology & Hepatology）的 89 國統合分析 Elsevier 只准文字探勘，不用。
     - **CPIC 是 CC0**（藥物過敏與藥效的基因，第 298 點，2026-11-03）：`raw.githubusercontent.com/cpicpgx/cpic-data/main/LICENSE.md`：「All curated content published by CPIC is available free of restriction under the CC0 1.0 Universal (CC0 1.0) Public Domain Dedication」，並請寫網址與下載日期（manifest.json 有日期）；不能用 CPIC 的標誌。CPIC 底層 `population` 表的台灣研究多半轉引自 Allele Frequency Net Database（AFND，授權頁沒有條款、待確認），所以只用 CPIC 自己算的群平均，不列各研究。
+    - **Python 套件 holidays**（國定假日，第 342 點，2026-11-04）：MIT 授權（Open World Holidays Framework，vacanza），假日規則寫在程式碼裡，用套件算出的天數與日期依 MIT 標示著作權與授權；版本固定在 0.108（`requirements.txt`），換版會改到天數。
     - **英文維基「Surrogacy laws by country」**（法律與制度的代理孕母，第 341 點，2026-11-04）：CC BY-SA 4.0，固定 oldid 1382714270，資料檔 `surrogacy.json` 依 CC BY-SA 4.0 分享，主題附註寫明；條目是逐國的散文段落，分類是自己讀的。台灣的人工生殖法取自全國法規資料庫（法律條文不是著作權的標的）。
     - **英文維基「Abortion law」「Legality of euthanasia」**（法律與制度的墮胎、安樂死，第 313 點，2026-11-03）：CC BY-SA 4.0，資料檔 `abortion.json`、`euthanasia.json` 依 CC BY-SA 4.0 分享；台灣的優生保健法、病人自主權利法、刑法取自全國法規資料庫（法律條文不是著作權的標的）。WHO 全球墮胎政策資料庫（All Rights Reserved）不用。
     - **CIA World Factbook、英文維基「Compulsory voting」**（法律與制度的徵兵、強制投票，第 312 點，2026-11-03）：Factbook 是美國政府作品，公有領域；用的鏡像 factbook/factbook.json 的 LICENSE.md 是 CC0 1.0 → 可用，資料檔寫 `Public domain (CIA World Factbook); CC0 1.0 (factbook.json)`。「Compulsory voting」CC BY-SA 4.0，資料檔 `compulsory-voting.json` 依 CC BY-SA 4.0 分享。
@@ -4790,6 +4792,14 @@ pipeline/
     - **跟條目字面不同的判斷**（寫在主題附註）：澳洲各州與領地都只准無償，所以不是手冊例子寫的「各地不同」；希臘條目寫「完全合法」，但條目開頭寫歐盟不准以人體牟利、商業代孕在歐盟不合法，算只准無償；泰國條目寫泰國的已婚夫妻可以有商業代孕契約，跟 2015 年《人工生殖兒童保護法》第 24 條禁止商業代孕不符（Bangkok Post 與法律評論核對），依法條算只准無償；以色列條目只寫國家委員會核准，依法可以補償費用以外的時間、痛苦與收入損失，算商業代孕合法；比利時條目寫「沒有法律規範、實務上只做無償」，算沒有法律規範；瑞典寫「醫療體系裡不合法、此外沒有規範」，跟台灣一樣是醫療機構不能做，算全面禁止。葡萄牙 2016 年的法律 2018、2019 年兩度被判部分違憲、暫停，不畫，`noValue` 寫原因。
     - **台灣**：條目沒有台灣。人工生殖法第 2 條第 3 款把受術夫妻限於「妻能以其子宮孕育生產胎兒」，醫療機構不能為代理孕母施行，算全面禁止；代孕專法草案多次送立法院沒有通過（手冊的查證）。
     - 條目沒寫到的國家（例如丹麥、阿根廷、哈薩克）不畫，說明寫明。
+
+342. **國定假日：一年幾天、假日最多的月份**（2026-11-04，製作手冊第二十一批 344，合併 888；`pipeline/topics/holidays.py`〔步驟 `holidays`〕、`src/topics/holidays.ts`，休閒新的一段「生活與文化」）：
+    - **資料**：Python 套件 holidays 0.108（`pip install holidays==0.108`，MIT），離線算 2017–2027 年，只取 `categories=(PUBLIC,)`。套件的 501 個代碼裡 alpha-2 的國家與屬地對到網站的國家清單 247 個（南極洲不收）。
+    - **天數**：同一天兩個假日算一天，落在週末的也算（法定的天數，不是多放幾天）。「含補假」是套件列出的全部；「不含補假」是 `observed=False` 的版本，再拿掉英文名稱以「Day off (substituted」開頭的調休日（中國、越南；套件有 en_US 的 429 個地區才分得出），而且只算含補假的版本也有的日子——西班牙的假日落在週日時，含補假的版本是移到週一、週日那天不算，直接用 `observed=False` 會比含補假還多。
+    - **台灣**：2026 年 22 天（補假 6 天，不含補假 16 天），2025 年起多了孔子誕辰、臺灣光復暨金門古寧頭大捷紀念日、行憲紀念日；製作手冊查證過跟人事行政總處的辦公日曆表一致（2026-02-15 套件叫「農曆除夕」、官方叫小年夜）。中國 22 天裡 9 天是調休或補假。
+    - **最多的月份**：含補假的天數，同樣多取較早的月份，並列的寫在 tooltip。2026 年 5 月 72 國、4 月 63 國；伊斯蘭國家跟著伊斯蘭曆每年往前約 11 天。顏色沿用出生的季節（`months.ts`）。
+    - **聯邦制**：只算全國層級；套件有第一級行政區的，算各區 2026 年的天數範圍寫在 tooltip（例如德國 10–14、美國 11–19、印度 18–30）。
+    - 假日清單（附註）只放在含補假與月份兩個指標的資料檔（各約 200 KB），不含補假的不放。
 
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。

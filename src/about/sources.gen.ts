@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 870;
+export const TOPIC_COUNT = 145;
+export const INDICATOR_COUNT = 873;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -128,6 +128,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Hartmann & Moosdorf 2012，全球岩性圖資料庫 GLiM v1.0（0.5° 網格版，PANGAEA）","en":"Hartmann & Moosdorf 2012, Global Lithological Map Database GLiM v1.0 (gridded to 0.5°, PANGAEA)"},"url":"https://doi.org/10.1594/PANGAEA.788537","licenses":["CC BY 3.0"],"topics":["lithology"]},
   {"name":"Harvard Growth Lab, Atlas of Economic Complexity","url":"https://atlas.hks.harvard.edu/","licenses":["CC0"],"topics":["industry"]},
   {"name":{"zh":"Helliwell, J. F., Layard, R., Sachs, J. D., De Neve, J.-E., Aknin, L. B., & Wang, S. (Eds.). (2026). World Happiness Report 2026（Figure 2.1 的資料；資料來自 Gallup World Poll）","en":"Helliwell, J. F., Layard, R., Sachs, J. D., De Neve, J.-E., Aknin, L. B., & Wang, S. (Eds.). (2026). World Happiness Report 2026 (data for Figure 2.1; data from the Gallup World Poll)"},"url":"https://worldhappiness.report/data-sharing/","licenses":[{"zh":"註明出處後可以轉載（WHR 的資料分享說明）","en":"May be reproduced with the reference (WHR data sharing policy)"}],"topics":["happiness"]},
+  {"name":{"zh":"holidays 0.108（Open World Holidays Framework，vacanza）的 Python 套件，離線計算","en":"holidays 0.108 (Open World Holidays Framework, vacanza), Python package, computed offline"},"url":"https://github.com/vacanza/holidays","licenses":[{"zh":"MIT 授權（© vacanza 與貢獻者）","en":"MIT License (© vacanza and contributors)"}],"topics":["holidays"]},
   {"name":{"zh":"Howes 等 2012〈G6PD Deficiency Prevalence and Estimates of Affected Populations in Malaria Endemic Countries〉，PLoS Medicine 9(11):e1001339，Table S1","en":"Howes et al. 2012, “G6PD Deficiency Prevalence and Estimates of Affected Populations in Malaria Endemic Countries”, PLoS Medicine 9(11):e1001339, Table S1"},"url":"https://doi.org/10.1371/journal.pmed.1001339","licenses":["CC BY 4.0"],"topics":["red-cell-traits"]},
   {"name":{"zh":"Human Fertility Database（Max Planck Institute for Demographic Research、Vienna Institute of Demography），HFD Lite「Cohort childlessness」","en":"Human Fertility Database (Max Planck Institute for Demographic Research and Vienna Institute of Demography), HFD Lite “Cohort childlessness”"},"url":"https://www.humanfertility.org/","licenses":["CC BY 4.0"],"topics":["fertility"]},
   {"name":{"zh":"Human Reproduction Open 2026，各國試管嬰兒的「cost-to-baby」研究，表 1","en":"Human Reproduction Open 2026, cost-to-baby study of ART by country, table 1"},"url":"https://pmc.ncbi.nlm.nih.gov/articles/PMC13671746/","licenses":["CC BY 4.0"],"topics":["ivf"]},

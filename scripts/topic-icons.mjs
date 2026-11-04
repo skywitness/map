@@ -79,6 +79,7 @@ const TOPIC_ICONS = {
   // 不用特定宗教的符號（教堂、清真寺…）
   religion: 'book-heart',
   festivals: 'party-popper',
+  holidays: 'calendar-days',
   inequality: 'scale',
   gender: 'venus-and-mars',
   crime: 'gavel',

@@ -33,6 +33,7 @@ export const RELATED: Record<string, string[]> = {
   education: ['pisa', 'gender', 'innovation'],
   pisa: ['education', 'publications'],
   religion: ['festivals', 'language'],
+  holidays: ['festivals', 'wages', 'religion'],
   festivals: ['religion', 'daylight'],
   reads: ['language', 'digital'],
   happiness: ['income', 'inequality', 'governance'],
