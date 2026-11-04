@@ -4759,7 +4759,12 @@ pipeline/
 336. **藥品支出與取得：每年核准幾個新藥、孤兒藥**（2026-11-04，製作手冊第二十批 330、331；`pipeline/topics/new_drugs.py`〔步驟 `new-drugs`〕、`src/topics/medicines.ts` 的 `new-drugs`、`orphan-approvals`、`orphan-designations`，1995–2025 年，`unranked`）：
     - **資料**：FDA《Compilation of CDER NME and New Biologic Approvals 1985–2025》（www.fda.gov/media/177921，副檔名寫 CSV 其實是 xlsx，公共領域；`Approval Year` 與 `Orphan Drug Designation`）；EMA 的 medicines 表（表頭第 9 列；人用藥、有上市許可日、去掉 Generic 與 Biosimilar，依上市許可年份；`Orphan medicine` 是表上目前的標記）與 orphan designations 表（依 `Date of designation / refusal` 的年份，去掉 Status = Negative 的拒絕，共 3,260 件）。EMA 條款要註明 EMA（第 12 點）。
     - **畫法**：管轄區只有美國與歐盟，歐盟的中央核准在 EU 27 國與冰島、列支敦斯登、挪威都有效，這 30 國畫同一個數字（說明與滑過都寫）；說明寫兩邊的「新藥」定義不同、看各自的趨勢。數字跟手冊一樣（FDA 2018 年 59、2025 年 46；EMA 指定 2015 年 188、2016 年 206，手冊含被拒絕的是 189、208）。
-    - **還沒做**：台灣（食藥署 2025 年報英文版 Table 5，www.fda.gov.tw 的 robots.txt 禁止 ClaudeBot，已請本機 session 請使用者用瀏覽器下載）、日本（PMDA 的 207 頁 PDF，要另外寫解析）、美國的孤兒藥指定（accessdata.fda.gov 從 cloud 被擋，已請本機 session 下載），「無資料」都寫原因。順序 332（美國與歐盟上市的時間差，側欄）這次沒做。
+    - **還沒做**：台灣（食藥署 2025 年報英文版 Table 5，www.fda.gov.tw 的 robots.txt 禁止 ClaudeBot，已請本機 session 請使用者用瀏覽器下載）、日本（PMDA 的 207 頁 PDF，要另外寫解析）、美國的孤兒藥指定（accessdata.fda.gov 從 cloud 被擋，已請本機 session 下載），「無資料」都寫原因。順序 332（美國與歐盟上市的時間差）是左側欄，見第 337 點。
+
+337. **藥品支出與取得的左側欄：同一個新藥在美國與歐盟上市的時間差**（2026-11-04，製作手冊第二十批 332；`pipeline/topics/approval_lag.py`〔步驟 `approval-lag`〕、`src/topics/medicines.ts` 的 `APPROVAL_LAG`，只在新藥與孤兒藥的指標顯示；三個指標的 `focus` 是北大西洋）：
+    - **自己算**（EFPIA W.A.I.T.〔IQVIA〕、Mo 等 2026〔CC BY-NC-ND〕都不能用）：FDA 新藥整檔與 EMA 的 medicines 表（去掉學名藥、生物相似藥）依成分名比對：小寫、去掉括號、鹽類與水合物（hydrochloride、acetate、sodium、maleate…約 60 個字）與生物製劑的四碼後綴，完全相同才算；EMA 同一成分好幾個商品名用最早的上市許可日。EMA 的日期字串是日/月/年，FDA 少數字串是月/日/年。
+    - **範圍**：只列 2005 年起 FDA 核准的（2005 年 11 月起癌症、糖尿病、愛滋等新成分一定走中央程序），差超過 10 年的不列（多半是歐洲早就由各國核准，例如 latanoprost 1996 對 EMA 2023 年的新產品）。比對到 513 個（2005 年起 FDA 780 個），中位數美國早 181 天，79% 美國先；歐盟先的例子 ivabradine、prucalopride、trabectedin。
+    - **清單**：依 FDA 核准日（依年份分組，預設）、美國早最多、歐盟早最多；每列寫兩邊的日期與商品名，標籤寫誰早幾天。量的是法規核准，不是病人拿得到（說明有寫的是新藥指標；清單本身只列日期）。日本 PMDA、台灣沒有接（手冊建議的 PMDA 比對要另外解析 207 頁 PDF）。
 
 307. **國際組織：國際醫藥品稽查協約組織（PIC/S）**（2026-11-03，製作手冊第十九批 300；`pipeline/sources/igo_members.py` 的 `PICS`、`NOT_COUNTED`、`ACCESSED_BY`，`src/topics/organizations.ts` 的 `pics`〔新的分組「專業合作」〕）：
     - **資料**：PIC/S 網站的成員頁（`picscheme.org/en/members`，2026-11-03 查閱）每個參與機關的「Accession to PIC Scheme」年月；網站條款只准個人、非商業的單份副本，所以只把加入年月當事實整理成表（同第 47 點的做法），不轉載內容。用每個機關地址前的國碼對應國家（用國名標題對會錯位：新加坡、英國那兩筆其實是斯洛伐克與美國）。

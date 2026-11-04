@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, intlDollars } from '../lib/format';
-import type { CategoryDef, TopicDefinition } from './types';
+import type { CategoryDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 藥品支出與取得（2026-11-03，製作手冊第十九批 295、296、301；pipeline/topics/medicines.py）：
@@ -28,6 +28,48 @@ const SHORTAGE_REGISTER: CategoryDef[] = [
   { value: 2, label: { zh: '只登錄部分藥品', en: 'Selected medicines only' } },
   { value: 3, label: { zh: '沒有線上登錄', en: 'No online register' } },
 ];
+
+/** 美國與歐盟上市的時間差（第二十批 332，pipeline/topics/approval_lag.py）：清單的列 */
+const ATLANTIC: [number, number, number, number] = [-130, 15, 45, 72];
+
+function lagRow(p: PointRecord, group?: string): ListRow {
+  const lag = Number(p.lag);
+  const gap =
+    lag > 0
+      ? tr({ zh: `美國早 ${fixed(lag, 0)} 天`, en: `US first by ${fixed(lag, 0)} days` })
+      : lag < 0
+        ? tr({ zh: `歐盟早 ${fixed(-lag, 0)} 天`, en: `EU first by ${fixed(-lag, 0)} days` })
+        : tr({ zh: '同一天', en: 'Same day' });
+  return {
+    key: `${p.n}-${p.fd}`,
+    title: String(p.n),
+    titleProper: true,
+    badge: gap,
+    lines: [
+      tr({ zh: `美國 FDA ${p.fd}（${p.b}）`, en: `US FDA ${p.fd} (${p.b})` }),
+      tr({ zh: `歐盟 EMA ${p.ed}（${p.e}）`, en: `EU EMA ${p.ed} (${p.e})` }),
+    ],
+    target: { box: ATLANTIC },
+    ...(group ? { group } : {}),
+  };
+}
+
+const APPROVAL_LAG: ListPanelDef = {
+  label: { zh: '美國與歐盟上市的時間差', en: 'US vs EU approval gap' },
+  indicators: ['new-drugs', 'orphan-approvals'],
+  file: 'approval-lag.json',
+  scrollToBadge: false,
+  sorts: [
+    { id: 'date', label: { zh: '依 FDA 核准日', en: 'By FDA date' } },
+    { id: 'us', label: { zh: '美國早最多', en: 'US first, longest' } },
+    { id: 'eu', label: { zh: '歐盟早最多', en: 'EU first, longest' } },
+  ],
+  rows: (records, { sort }) => {
+    if (sort === 'us') return [...records].sort((a, b) => Number(b.lag) - Number(a.lag)).map((p) => lagRow(p));
+    if (sort === 'eu') return [...records].sort((a, b) => Number(a.lag) - Number(b.lag)).map((p) => lagRow(p));
+    return records.map((p) => lagRow(p, String(p.fd).slice(0, 4)));
+  },
+};
 
 export const medicines: TopicDefinition = {
   id: 'medicines',
@@ -113,6 +155,7 @@ export const medicines: TopicDefinition = {
     zh: '藥費是 OECD 的醫療支出帳（SHA）裡的「藥品與其他醫療非耐久財」（HC.5.1），也就是門診拿的處方藥與成藥；住院用的藥算在住院醫療裡，不在這裡。台灣不在 OECD 裡，用衛生福利部國民醫療保健支出統計（同樣的口徑），每人藥費再用 IMF 的購買力平價換算。學名藥只有十幾個 OECD 國家，台灣沒有同樣口徑的統計。止痛藥與胰島素、基本藥物清單都沒有台灣：台灣不是 WHO 會員，也沒有「國家基本藥物清單」（健保的給付清單性質不同）。依 OECD 的資料條款註明：OECD (2026), Health expenditure and financing、Generic market, OECD Data Explorer（2026-11-03 查閱）。',
     en: 'Pharmaceutical spending is “pharmaceuticals and other medical non-durable goods” (HC.5.1) in the OECD System of Health Accounts: prescription and over-the-counter medicines dispensed to outpatients; medicines used in hospital count as inpatient care. Taiwan is not in the OECD; its figures come from the Ministry of Health and Welfare’s National Health Expenditure statistics on the same basis, with per-capita amounts converted at the IMF’s PPP rate. Generic shares cover only a dozen or so OECD countries. Taiwan is not in the pain relief, insulin or essential medicines data: it is not a WHO member and has no national essential medicines list (its insurance reimbursement list is a different thing). Source per OECD terms: OECD (2026), Health expenditure and financing and Generic market, OECD Data Explorer (accessed 2026-11-03).',
   },
+  listPanel: APPROVAL_LAG,
   indicators: [
     {
       id: 'pharma-share',
@@ -220,6 +263,7 @@ export const medicines: TopicDefinition = {
       },
       unit: { zh: '個', en: 'medicines' },
       file: 'new-drugs.json',
+      focus: ATLANTIC,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 30, 40, 50, 60, 80] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 個`, en: `${fixed(v, 0)}` }),
       formatTick: (v) => fixed(v, 0),
@@ -234,6 +278,7 @@ export const medicines: TopicDefinition = {
       },
       unit: { zh: '個', en: 'medicines' },
       file: 'orphan-approvals.json',
+      focus: ATLANTIC,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 個`, en: `${fixed(v, 0)}` }),
       formatTick: (v) => fixed(v, 0),
@@ -248,6 +293,7 @@ export const medicines: TopicDefinition = {
       },
       unit: { zh: '件', en: 'designations' },
       file: 'orphan-designations.json',
+      focus: ATLANTIC,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 100, 125, 150, 175, 200] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 件`, en: `${fixed(v, 0)}` }),
       formatTick: (v) => fixed(v, 0),
