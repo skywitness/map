@@ -7,6 +7,7 @@
 - 行車方向：Wikidata 的 P1622（CC0），改過方向的國家附註寫出年份。
 - 插頭、電壓、頻率：英文維基百科「Mains electricity by country」的表格（CC BY-SA 4.0，`sources/wiki_mains.py`），
   地圖上歸成幾類；側欄列出全部的插頭字母、電壓與頻率。衍生的資料檔依 CC BY-SA 4.0 分享。
+- 緊急電話（2026-11-04，第二十批 304）：英文維基百科「List of emergency telephone numbers」（`topics/travel_emergency.py`）。
 - 生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法）：Unicode CLDR 49
   （`sources/cldr.py`，Unicode License v3）。依地區給的直接讀 supplementalData.xml；日期寫法與小數點依語言，
   用人口比例最高的官方語言（DESIGN.md 第 8 節第 94 點）。
@@ -20,6 +21,7 @@ import pycountry
 
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
 from sources import cldr, iana_tz, wiki_mains, wikidata_driving
+from topics import travel_emergency
 from sources.countries import NAME_ALIASES
 
 OUT = OUT_DIR / "topics" / "travel"
@@ -502,6 +504,7 @@ def build() -> None:
             details[iso3]["drive"] = d.side
     for iso3, d in formats.items():
         details.setdefault(iso3, {})["fmt"] = d
+    travel_emergency.write(map_ids, details)  # 緊急電話（第二十批 304），也寫 details 的 sos
     capital_names = {k: v[0] for k, v in capitals.items()}
     for iso3 in details:
         if iso3 in capital_names:

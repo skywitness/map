@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, IndicatorDef, Text, TopicDefinition } from './types';
 
 /**
@@ -38,6 +39,54 @@ export const DRIVING: CategoryDef[] = [
   { value: 1, label: { zh: '靠左行駛', en: 'Drive on the left' } },
   { value: 2, label: { zh: '靠右行駛（跟台灣一樣）', en: 'Drive on the right (like Taiwan)' } },
 ];
+
+/**
+ * 緊急電話（pipeline/topics/travel_emergency.py 的 CATEGORIES，2026-11-04，製作手冊第二十批 304）：
+ * 依每格的第一個號碼歸類，112、911、999 三大陣營加上各服務常見的號碼，其餘是「其他號碼」（值 9）。
+ */
+const SOS_OTHER: CategoryDef = { value: 9, label: { zh: '其他號碼（滑過看號碼）', en: 'Other numbers (hover to see)' }, color: MAP_TOKENS.categoricalOther };
+const SOS_COMMON: CategoryDef[] = [
+  { value: 1, label: { zh: '112（歐盟與許多國家）', en: '112 (EU and many others)' } },
+  { value: 2, label: { zh: '911（美洲）', en: '911 (the Americas)' } },
+  { value: 3, label: { zh: '999（英國與前英國屬地）', en: '999 (UK and former British territories)' } },
+];
+export const EMERGENCY_AMBULANCE: CategoryDef[] = [
+  ...SOS_COMMON,
+  { value: 4, label: { zh: '119（台灣、日本、南韓、柬埔寨）', en: '119 (Taiwan, Japan, South Korea, Cambodia)' } },
+  SOS_OTHER,
+];
+export const EMERGENCY_POLICE: CategoryDef[] = [
+  ...SOS_COMMON,
+  { value: 4, label: { zh: '110（台灣、中國、日本、德國等）', en: '110 (Taiwan, China, Japan, Germany…)' } },
+  { value: 5, label: { zh: '117（瑞士與西非、中非幾國）', en: '117 (Switzerland, parts of West and Central Africa)' } },
+  { value: 6, label: { zh: '17（法國與西非法語國家）', en: '17 (France and francophone West Africa)' } },
+  SOS_OTHER,
+];
+export const EMERGENCY_FIRE: CategoryDef[] = [
+  ...SOS_COMMON,
+  { value: 4, label: { zh: '119（台灣、中國、日本、南韓等）', en: '119 (Taiwan, China, Japan, South Korea…)' } },
+  { value: 5, label: { zh: '118（瑞士與西非、中非幾國）', en: '118 (Switzerland, parts of West and Central Africa)' } },
+  { value: 6, label: { zh: '18（法國與西非法語國家）', en: '18 (France and francophone West Africa)' } },
+  SOS_OTHER,
+];
+const SOS_NOTE = {
+  zh: '依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0）的各國表格，取每格的第一個號碼歸類；滑過國家看警察、救護、消防三個號碼，一格有好幾個號碼的寫「999／112」。條目的出處很雜（各國官方、大使館、旅遊指南），部分號碼可能過時，出發前請再查最新的官方資訊。',
+  en: 'From the country tables in the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), grouped by the first number in each cell; hover over a country for the police, ambulance and fire numbers, with alternatives written “999 / 112”. The article cites a mix of sources (governments, embassies, travel guides) and some numbers may be out of date; check current official information before you travel.',
+};
+
+function sosIndicator(id: string, label: Text, lead: { zh: string; en: string }, categories: CategoryDef[]): IndicatorDef {
+  return {
+    id,
+    label,
+    description: { zh: `${lead.zh}${SOS_NOTE.zh}`, en: `${lead.en} ${SOS_NOTE.en}` },
+    unit: '',
+    file: `${id}.json`,
+    layer: { kind: 'categorical', categories },
+    format: (v) => categoryLabel(categories, v),
+    unranked: true,
+    missing: { zh: '表上沒有這一國的號碼，或沒有全國統一的號碼', en: 'No number in the table, or no single national number' },
+  };
+}
 
 /** 插頭的分類（pipeline 的 plug_group() 依序判斷）；字母是 IEC 的插頭類型 */
 export const PLUG_GROUPS: CategoryDef[] = [
@@ -143,7 +192,7 @@ const TIME_THRESHOLDS = [-10.5, -4.5, -0.5, 0.5, 2.5, 4.5];
 
 export const travel: TopicDefinition = {
   id: 'travel',
-  title: { zh: '旅行實用與生活格式（時差、插頭、日期寫法、度量衡）', en: 'Travel essentials and local formats' },
+  title: { zh: '旅行實用與生活格式（時差、插頭、緊急電話、日期寫法、度量衡）', en: 'Travel essentials and local formats' },
   shortTitle: { zh: '旅行實用', en: 'Travel' },
   defaultIndicator: 'time-difference',
   defaultYear: 2026,
@@ -170,10 +219,15 @@ export const travel: TopicDefinition = {
       url: 'https://en.wikipedia.org/w/index.php?oldid=1380969207',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: { zh: '英文維基百科「List of emergency telephone numbers」（緊急電話）', en: 'Wikipedia, “List of emergency telephone numbers” (emergency numbers)' },
+      url: 'https://en.wikipedia.org/w/index.php?title=List_of_emergency_telephone_numbers&oldid=1380606668',
+      license: 'CC BY-SA 4.0',
+    },
   ],
   note: {
-    zh: '時差是標準時間（不含夏令時間）跟台灣（UTC+8）差幾小時，用首都所在的時區；跨好幾個時區、或有夏令時間的國家，側欄與附註會寫出來。插頭與電壓依英文維基百科「Mains electricity by country」的表格（2026 年 10 月 19 日的版本，CC BY-SA 4.0），地圖用表格列出的第一個電壓；這個主題的插頭、電壓資料檔也依 CC BY-SA 4.0 分享。生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法）依 Unicode CLDR 49，是軟體顯示日期、數字時用的慣例；日期寫法與小數點依人口比例最高的官方語言，多語國家（瑞士、比利時、加拿大、印度…）只代表其中一種語言。出發前請再查最新的官方資訊。',
-    en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size and calendars) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Check current official information before you travel.',
+    zh: '時差是標準時間（不含夏令時間）跟台灣（UTC+8）差幾小時，用首都所在的時區；跨好幾個時區、或有夏令時間的國家，側欄與附註會寫出來。插頭與電壓依英文維基百科「Mains electricity by country」的表格（2026 年 10 月 19 日的版本，CC BY-SA 4.0），地圖用表格列出的第一個電壓；這個主題的插頭、電壓資料檔也依 CC BY-SA 4.0 分享。緊急電話依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0），資料檔同樣依 CC BY-SA 4.0 分享。生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法）依 Unicode CLDR 49，是軟體顯示日期、數字時用的慣例；日期寫法與小數點依人口比例最高的官方語言，多語國家（瑞士、比利時、加拿大、印度…）只代表其中一種語言。出發前請再查最新的官方資訊。',
+    en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size and calendars) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Check current official information before you travel.',
   },
   panelExtra: () => import('./panels/TravelPanel'),
   indicators: [
@@ -227,6 +281,33 @@ export const travel: TopicDefinition = {
       layer: { kind: 'categorical', categories: POWER_GROUPS },
       format: (v) => categoryLabel(POWER_GROUPS, v),
     },
+    sosIndicator(
+      'emergency-ambulance',
+      { zh: '叫救護車打幾號', en: 'Ambulance number' },
+      {
+        zh: '叫救護車撥的號碼。歐盟與許多國家是 112，美洲 911，英國與前英國屬地（香港、新加坡…）999；台灣、日本、南韓救護與消防同一個號碼 119，警察是另一個號碼（台灣、日本 110，南韓 112）。',
+        en: 'The number to call for an ambulance. The EU and many other countries use 112, the Americas 911, the UK and former British territories (Hong Kong, Singapore…) 999; Taiwan, Japan and South Korea share 119 for ambulance and fire, with a separate police number (110 in Taiwan and Japan, 112 in South Korea).',
+      },
+      EMERGENCY_AMBULANCE,
+    ),
+    sosIndicator(
+      'emergency-police',
+      { zh: '報警打幾號', en: 'Police number' },
+      {
+        zh: '報警撥的號碼。台灣、中國、日本、德國是 110，法國與西非法語國家 17，瑞士 117，其他多數是 112、911 或 999。',
+        en: 'The number to call the police. Taiwan, China, Japan and Germany use 110, France and francophone West Africa 17, Switzerland 117; most others use 112, 911 or 999.',
+      },
+      EMERGENCY_POLICE,
+    ),
+    sosIndicator(
+      'emergency-fire',
+      { zh: '火警打幾號', en: 'Fire number' },
+      {
+        zh: '報火警撥的號碼。台灣、中國、日本、南韓是 119，法國與西非法語國家 18，瑞士 118，其他多數是 112、911 或 999。',
+        en: 'The number to call the fire brigade. Taiwan, China, Japan and South Korea use 119, France and francophone West Africa 18, Switzerland 118; most others use 112, 911 or 999.',
+      },
+      EMERGENCY_FIRE,
+    ),
     formatIndicator(
       'week-start',
       { zh: '一週從星期幾開始', en: 'First day of the week' },

@@ -15,6 +15,8 @@ interface Detail {
   capital?: string;
   /** 生活格式（CLDR）：北賽普勒斯沒有 */
   fmt?: Formats;
+  /** 緊急電話：[警察, 救護, 消防]，每格的號碼（最多三個；pipeline/topics/travel_emergency.py） */
+  sos?: [string[], string[], string[]];
 }
 
 /** details.json 的 fmt（pipeline/topics/travel.py 的 _formats()） */
@@ -117,6 +119,12 @@ const TEXT = defineMessages({
     drive: '行車方向',
     plugs: '插頭',
     power: '電壓與頻率',
+    sos: '緊急電話',
+    sosAll: (n: string) => `警察、救護、消防都是 ${n}。`,
+    sosEach: (p: string, a: string, f: string) => `警察 ${p}、救護 ${a}、消防 ${f}。`,
+    sosNone: '—',
+    sosTaiwan: '警察 110、救護與消防 119；手機可以撥 112，接通後按 0 轉 110、按 9 轉 119。',
+    sosSource: '依英文維基百科的表格，部分號碼可能過時。',
     std: (utc: string, vs: string) => `標準時間 ${utc}，${vs}。`,
     taiwanTime: '標準時間 UTC+8，沒有夏令時間。',
     dst: (utc: string, vs: string) => `有夏令時間：${utc}，${vs}。`,
@@ -174,6 +182,12 @@ const TEXT = defineMessages({
     drive: 'Driving side',
     plugs: 'Plugs',
     power: 'Voltage and frequency',
+    sos: 'Emergency numbers',
+    sosAll: (n) => `Police, ambulance and fire: ${n}.`,
+    sosEach: (p, a, f) => `Police ${p}, ambulance ${a}, fire ${f}.`,
+    sosNone: '—',
+    sosTaiwan: 'Police 110, ambulance and fire 119; mobile phones can dial 112, then press 0 for 110 or 9 for 119.',
+    sosSource: 'From a Wikipedia table; some numbers may be out of date.',
     std: (utc, vs) => `Standard time ${utc}, ${vs}.`,
     taiwanTime: 'Standard time UTC+8, no daylight saving time.',
     dst: (utc, vs) => `Daylight saving time: ${utc}, ${vs}.`,
@@ -266,12 +280,20 @@ export default function TravelPanel({ topic, iso3 }: PanelExtraProps) {
     return lines;
   })();
 
+  const sos = (() => {
+    if (taiwan) return [text.sosTaiwan];
+    if (!d?.sos) return null;
+    const [p, a, f] = d.sos.map((list) => (list.length ? list.join(tr(SLASH, lang)) : text.sosNone));
+    return [p === a && a === f ? text.sosAll(p) : text.sosEach(p, a, f), text.sosSource];
+  })();
+
   const rows: [string, string[]][] = [
     [text.time, time],
     [text.drive, [drive]],
     [text.plugs, plugs],
     [text.power, power],
   ];
+  if (sos) rows.push([text.sos, sos]);
 
   // 生活格式（CLDR）：跟台灣比
   const f = d?.fmt;

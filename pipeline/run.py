@@ -219,6 +219,7 @@ STEPS = {
     # OECD 的房價指標（約 17 MB）、BIS 的住宅價格、內政部不動產資訊平台、主計總處的消費者物價（約 27 MB）
     "house-prices": "topics.house_prices",
     "travel": "topics.travel",  # IANA 時區（tzdata 套件）、Wikidata、維基百科
+    "travel-emergency": "topics.travel_emergency",  # 旅行實用的緊急電話（維基百科固定版本的網頁），補進現有的 details.json
     "world-heritage": "topics.world_heritage",  # UNESCO DataHub、Wikidata 的中文名稱（約 30 次查詢）
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
     "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）
