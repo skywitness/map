@@ -224,3 +224,37 @@ def icu_beds() -> dict[str, dict[int, float]]:
     if out["icu"].get(2025) != 7431:
         raise RuntimeError(f"衛福部表 3 的 2025 年加護病床不是 7,431：{out['icu'].get(2025)}，版面可能換了")
     return out
+
+
+# 表 14、15 的特定醫療儀器（表頭的中文開頭 → 代碼）
+DEVICE_COLUMNS = {"電腦斷層": "ct", "磁振造影": "mri", "高能遠距": "teletherapy", "近接式": "brachytherapy",
+                  "單光子": "spect", "正子": "pet"}
+
+
+def medical_devices() -> dict[str, dict[str, dict[int, float]]]:
+    """表 14 歷年醫療設備數（年底台數）與表 15 歷年特定醫療儀器使用人次，醫院合計：
+    {devices: {代碼: {西元年: 台}}, uses: {代碼: {西元年: 人次}}}（2004 年起，只算醫院）"""
+    out: dict[str, dict[str, dict[int, float]]] = {}
+    for key, sheet in (("devices", "14"), ("uses", "15")):
+        rows = _rows(SERVICES_URL, "medical-services-114.xlsx", sheet)
+        head = next(r for r in rows if r and any(isinstance(c, str) and c.startswith("電腦斷層") for c in r if c))
+        cols = {}
+        for i, c in enumerate(head):
+            for prefix, code in DEVICE_COLUMNS.items():
+                if isinstance(c, str) and c.strip().startswith(prefix):
+                    cols[code] = i
+        if len(cols) != len(DEVICE_COLUMNS):
+            raise RuntimeError(f"衛福部表 {sheet} 找不到全部的儀器欄位：{cols}")
+        series: dict[str, dict[int, float]] = {k: {} for k in cols}
+        for r in rows:
+            if not r or r[2] != "合計" or not str(r[1] or "").isdigit():
+                continue
+            year = int(r[1])
+            for code, i in cols.items():
+                v = _number(r[i])
+                if v is not None:
+                    series[code][year] = v
+        out[key] = series
+    if out["devices"]["ct"].get(2025) != 492 or out["uses"]["ct"].get(2025) != 3827676:
+        raise RuntimeError("衛福部表 14／15 的 2025 年 CT 不是 492 台、3,827,676 人次，版面可能換了")
+    return out

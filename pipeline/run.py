@@ -186,6 +186,8 @@ STEPS = {
     "health-surgery": "topics.health_surgery",
     # 加護病床（併進健康主題，第二十批 314）：OECD DF_BEDS_ICU（1 MB）、衛福部醫療服務量年報表 3
     "health-icu": "topics.health_icu",
+    # 醫學影像與放射治療設備（新主題，第二十批 315）：OECD DF_MED_TECH（7.8 MB）與 DF_DIAG_EXAM（6.1 MB）、衛福部年報表 14、15
+    "medical-imaging": "topics.medical_imaging",
     # 被美國 FDA 回收的藥品（併進藥品支出與取得，第二十批 308）：openFDA 整批檔（3.8 MB）、食藥署的藥品回收與許可證
     "drug-recalls": "topics.drug_recalls",
     # COVID-19 超額死亡與官方少報倍數（併進疫苗與防疫，第二十批 311）：World Mortality Dataset（1.1 MB）、OWID 與 JHU 的通報死亡

@@ -63,6 +63,7 @@ const TOPIC_ICONS = {
   lactase: 'milk',
   ivf: 'test-tubes',
   'covid-policy': 'door-closed',
+  'medical-imaging': 'scan-line',
   'drug-genes': 'pill-bottle',
   medicines: 'tablets',
   'drug-consumption': 'clipboard-plus',
