@@ -26,7 +26,13 @@ INDICATORS = {
     "cafes": (("cafe",), "咖啡館", "cafés"),
     "bars": (("bar", "pub"), "酒吧與酒館", "bars and pubs"),
     "ice-cream": (("ice_cream",), "冰淇淋店", "ice-cream shops"),
+    "nightclubs": (("nightclub",), "夜店", "nightclubs"),
 }
+# 各國的「喝一杯」場所類型（第二十一批 367）：bar、pub、biergarten 每十萬人合計不到 LOW_DRINK 算低密度；
+# 啤酒花園占三者 BEER_GARDEN_SHARE 以上算啤酒花園；其他看 pub 與 bar 哪個多
+DRINK_TYPES = {"bar": 1, "pub": 2, "biergarten": 3, "low": 4}
+LOW_DRINK = 10
+BEER_GARDEN_SHARE = 0.15
 
 
 def build() -> None:
@@ -57,5 +63,37 @@ def build() -> None:
         top = sorted(((v[0], c) for c, v in values.items()), reverse=True)
         print(f"  {ind}：{len(values)} 國；最多 {top[:6]}；台灣 {values.get('TWN')}（{n.get('TWN')} 家）；"
               f"美國 {values.get('USA')}、日本 {values.get('JPN')}、南韓 {values.get('KOR')}")
+    _drink_types(counts, pop, cov, covered)
     write_json(OUT / "manifest.json", {"topic": "dining", "generatedAt": now_iso(),
                                        "source": "© OpenStreetMap contributors (ODbL 1.0), via QLever"})
+
+
+def _drink_types(counts: dict, pop: dict, cov: dict, covered: set) -> None:
+    """367：各國最典型的喝一杯場所（類別）"""
+    biergarten = osm_qlever.counts("amenity", "biergarten")
+    values, hints, hints_en, no_value, no_value_en = {}, {}, {}, {}, {}
+    for c in sorted(set(counts["bar"]) | set(counts["pub"]) | covered):
+        if c not in pop:
+            continue
+        if c not in covered:
+            no_value[c], no_value_en[c] = osm_coverage.reason(c, cov.get(c))
+            continue
+        if pop[c] < MIN_POPULATION:
+            continue
+        d = {k: src.get(c, 0) / pop[c] * 100 for k, src in (("bar", counts["bar"]), ("pub", counts["pub"]), ("biergarten", biergarten))}
+        total = sum(d.values())
+        if total < LOW_DRINK:
+            kind = DRINK_TYPES["low"]
+        elif d["biergarten"] >= total * BEER_GARDEN_SHARE:
+            kind = DRINK_TYPES["biergarten"]
+        else:
+            kind = DRINK_TYPES["pub"] if d["pub"] > d["bar"] else DRINK_TYPES["bar"]
+        values[c] = [kind]
+        hints[c] = f"每十萬人：酒吧 {d['bar']:.1f}、酒館 {d['pub']:.1f}、啤酒花園 {d['biergarten']:.2f} 家"
+        hints_en[c] = f"Per 100,000: bars {d['bar']:.1f}, pubs {d['pub']:.1f}, beer gardens {d['biergarten']:.2f}"
+    write_json(OUT / "drink-type.json", indicator_file(
+        "drink-type", "類別", [YEAR], values, hints=hints, hintsEn=hints_en, noValue=no_value, noValueEn=no_value_en,
+        license="ODbL 1.0"))
+    from collections import Counter
+    print(f"  喝一杯類型：{len(values)} 國 {Counter(v[0] for v in values.values())}；"
+          f"啤酒花園 {sorted(c for c, v in values.items() if v[0] == 3)}；台灣 {values.get('TWN')}、日本 {values.get('JPN')}、美國 {values.get('USA')}")

@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { IndicatorDef, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, TopicDefinition } from './types';
 
 /**
  * 外食與喝一杯（2026-11-04，製作手冊第二十一批 342；pipeline/topics/dining.py）：
@@ -21,6 +21,14 @@ const indicator = (id: string, label: IndicatorDef['label'], description: Indica
   format: per100k,
   formatTick: (v) => `${v}`,
 });
+
+/** 各國的「喝一杯」場所類型（第二十一批 367；pipeline/topics/dining.py 的 _drink_types） */
+const DRINK_TYPES: CategoryDef[] = [
+  { value: 1, label: { zh: '酒吧（bar）為主', en: 'Mostly bars' } },
+  { value: 2, label: { zh: '酒館（pub）為主', en: 'Mostly pubs' } },
+  { value: 3, label: { zh: '啤酒花園', en: 'Beer gardens' } },
+  { value: 4, label: { zh: '喝酒的店很少', en: 'Few drinking places' } },
+];
 
 export const dining: TopicDefinition = {
   id: 'dining',
@@ -115,5 +123,27 @@ export const dining: TopicDefinition = {
       },
       [0.5, 1, 2, 4, 8],
     ),
+    indicator(
+      'nightclubs',
+      { zh: '夜店', en: 'Nightclubs' },
+      {
+        zh: '每十萬人有幾家夜店（OpenStreetMap 的 nightclub；有些國家把 live house、KTV 也標進去，對應很鬆）。賽普勒斯 5.9、蒙特內哥羅 4.8、克羅埃西亞 4.3 多；美國 0.5、日本 0.4、台灣、南韓 0.2。',
+        en: 'Nightclubs per 100,000 people (OpenStreetMap’s nightclub; some countries also tag live houses or karaoke, so the match to nightlife is loose). Cyprus 5.9, Montenegro 4.8 and Croatia 4.3 are high; the US 0.5, Japan 0.4, Taiwan and South Korea 0.2.',
+      },
+      [0.25, 0.5, 1, 2, 3],
+    ),
+    {
+      id: 'drink-type',
+      label: { zh: '在哪裡喝一杯', en: 'Where people go for a drink' },
+      description: {
+        zh: '依 OpenStreetMap 上每十萬人的酒吧（bar）、酒館（pub）、啤酒花園（biergarten）分類：三者合計不到 10 家算「喝酒的店很少」；啤酒花園占一成五以上的只有德國；其他看酒館與酒吧哪個多。酒館為主的有英國、愛爾蘭、捷克、比利時、匈牙利、荷蘭、瑞典、挪威、芬蘭與日本（居酒屋常標成 pub）；南歐、法國、瑞士、奧地利、美國是酒吧為主；台灣、南韓、新加坡、以色列與伊斯蘭國家是喝酒的店很少（台灣喝酒多在餐廳、熱炒店）。這是 OSM 標籤的文化分布，不是設施普查：啤酒花園幾乎只有德語區在用這個標籤。只畫 OSM 覆蓋良好的國家。',
+        en: 'Classified from OpenStreetMap bars, pubs and beer gardens per 100,000 people: under 10 in total counts as “few drinking places”; beer gardens at 15% or more of the three applies only to Germany; otherwise whichever of pubs or bars is more common. Pubs dominate in the UK, Ireland, Czechia, Belgium, Hungary, the Netherlands, Sweden, Norway, Finland and Japan (izakaya are often tagged as pubs); bars in southern Europe, France, Switzerland, Austria and the US; few drinking places in Taiwan, South Korea, Singapore, Israel and Muslim-majority countries (in Taiwan people mostly drink in restaurants). This reflects how OSM tags are used, not a census of venues: the beer-garden tag is used almost only in German-speaking countries. Only countries where OSM is reasonably complete are shown.',
+      },
+      unit: '',
+      file: 'drink-type.json',
+      layer: { kind: 'categorical', categories: DRINK_TYPES },
+      format: (v) => tr(DRINK_TYPES.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+    },
   ],
 };
