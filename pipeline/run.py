@@ -73,6 +73,7 @@ STEPS = {
     "tourism-flows": "topics.tourism_flows",
     "tourism-season": "topics.tourism_season",
     "tourism-demand": "topics.tourism_demand",
+    "tourism-jobs": "topics.tourism_jobs",
     "housing": "topics.housing",
     # 住宅與房價的平均每戶人數（housing 的一部分）：內政部不動產資訊平台從 cloud 被擋時單獨更新這一項
     "housing-household-size": "topics.housing_household_size",

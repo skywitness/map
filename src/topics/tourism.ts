@@ -120,6 +120,16 @@ export const tourism: TopicDefinition = {
       license: OPEN_DATA_TW,
     },
     {
+      name: { zh: 'ILOSTAT：依行業的就業人數（住宿及餐飲業）', en: 'ILOSTAT: employment by economic activity (accommodation and food services)' },
+      url: 'https://ilostat.ilo.org/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '行政院主計總處 人力資源調查（台灣 2021 年起的住宿及餐飲業就業人數）', en: 'DGBAS Manpower Survey (Taiwan, from 2021)' },
+      url: 'https://nstatdb.dgbas.gov.tw/dgbasall/webMain.aspx?sys=100&funid=dgbasall',
+      license: OPEN_DATA_TW,
+    },
+    {
       name: { zh: 'World Bank, World Development Indicators（陸地面積）', en: 'World Bank, World Development Indicators (land area)' },
       url: 'https://data.worldbank.org/indicator/AG.LND.TOTL.K2',
       license: 'CC BY 4.0',
@@ -509,6 +519,33 @@ export const tourism: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [600, 800, 1000, 1200] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 歐元`, en: `€${fixed(v, 0)}` }),
       formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'hospitality-jobs-share',
+      label: { zh: '住宿及餐飲業的就業比例', en: 'Employment in accommodation and food services' },
+      description: {
+        zh: '住宿及餐飲業（ISIC Rev.4 的 I 類）的就業人數占全部就業的比例（ILOSTAT，2000 年起；最近一年太舊的國家用 5 年內的值）。觀光島國最高：巴哈馬 19.2%、聖露西亞 16.2%、塞席爾 13.1%、巴貝多 12.5%；希臘 9.2%、泰國 8.7%、台灣 7.9%、美國 6.1%、日本 5.9%（2023 年）。住宿及餐飲業不等於觀光業：在地人的外食也在裡面，航空與旅行社不在。',
+        en: 'Employment in accommodation and food services (ISIC Rev.4 section I) as a share of total employment (ILOSTAT, from 2000; values up to 5 years old fill in recent gaps). Tourist islands lead: the Bahamas 19.2%, Saint Lucia 16.2%, Seychelles 13.1% and Barbados 12.5%; Greece 9.2%, Thailand 8.7%, Taiwan 7.9%, the US 6.1% and Japan 5.9% (2023). This is not the same as tourism: locals eating out are included, while airlines and travel agencies are not.',
+      },
+      unit: '%',
+      file: 'hospitality-jobs-share.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 3, 4, 5, 7, 10] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'hospitality-jobs',
+      label: { zh: '住宿及餐飲業的就業人數', en: 'Jobs in accommodation and food services' },
+      description: {
+        zh: '住宿及餐飲業的就業人數（ILOSTAT；台灣 2021 年起用主計總處的人力資源調查）。圓的面積與人數成正比。',
+        en: 'Number of people employed in accommodation and food services (ILOSTAT; Taiwan from 2021 uses the DGBAS Manpower Survey). Circle area is proportional to employment.',
+      },
+      unit: { zh: '人', en: 'people' },
+      file: 'hospitality-jobs.json',
+      defaultYear: 2025,
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v * 1000)} 人`, en: `${formatLargeNumber(v * 1000)} people` }),
     },
   ],
 };
