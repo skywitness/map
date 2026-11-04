@@ -80,6 +80,7 @@ const TOPIC_ICONS = {
   religion: 'book-heart',
   festivals: 'party-popper',
   holidays: 'calendar-days',
+  dining: 'utensils-crossed',
   inequality: 'scale',
   gender: 'venus-and-mars',
   crime: 'gavel',
