@@ -83,6 +83,7 @@ const TOPIC_ICONS = {
   dining: 'utensils-crossed',
   diving: 'shell',
   'time-use': 'hourglass',
+  retirement: 'armchair',
   inequality: 'scale',
   gender: 'venus-and-mars',
   crime: 'gavel',

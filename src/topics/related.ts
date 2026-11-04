@@ -37,6 +37,7 @@ export const RELATED: Record<string, string[]> = {
   dining: ['diet', 'chain-stores', 'tobacco-alcohol'],
   diving: ['oceans', 'tourism', 'attractions'],
   'time-use': ['wages', 'gender', 'happiness'],
+  retirement: ['employment', 'wages', 'fertility'],
   festivals: ['religion', 'daylight'],
   reads: ['language', 'digital'],
   happiness: ['income', 'inequality', 'governance'],

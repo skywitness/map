@@ -59,7 +59,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '產業', en: 'Industries' }, topics: ['sectors', 'industry', 'agriculture', 'minerals'] },
       { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies', 'company-sites'] },
-      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
+      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'retirement', 'wealth'] },
       { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['fiscal', 'taxes', 'reserves', 'stock-market'] },
     ],
     // 左：產業、企業；中：所得與財富；右：財政與金融
@@ -151,6 +151,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   fertility: () => import('./fertility'),
   holidays: () => import('./holidays'),
   dining: () => import('./dining'),
+  retirement: () => import('./retirement'),
   diving: () => import('./diving'),
   'time-use': () => import('./time-use'),
   marriage: () => import('./marriage'),
