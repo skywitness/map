@@ -103,6 +103,14 @@ export const health: TopicDefinition = {
     },
     {
       name: {
+        zh: 'OECD Health Statistics：Intensive care unit beds（加護病床）',
+        en: 'OECD Health Statistics: Intensive care unit beds',
+      },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
+      name: {
         zh: '衛生福利部：醫事機構服務量統計年報表 18（一般護理之家）、社會福利公務統計 2.4.6（老人長期照顧、安養機構概況）、4.1（長照 2.0 照顧服務，附註）',
         en: 'Ministry of Health and Welfare (Taiwan): health facility service statistics table 18 (nursing homes), social welfare statistics 2.4.6 (long-term care institutions for the elderly) and 4.1 (Long-term Care 2.0 care services, in the notes)',
       },
@@ -338,6 +346,32 @@ export const health: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 1,000` }),
       formatTick: perThousandTick,
       compareWorld: true,
+    },
+    {
+      id: 'icu-beds',
+      label: { zh: '加護病床', en: 'Intensive care beds' },
+      description: {
+        zh: '每十萬人有幾張加護病床（ICU，含成人、兒科、新生兒加護），是重症的承載力，跟「每千人病床數」算的是全部病床不同。土耳其 57.3、捷克 52.5、阿根廷 41.7、愛沙尼亞 40.1 最多，台灣 32.8（2025 年，衛福部的加護病床加燒傷加護病床），法國 31.6、德國 31.1、美國 29.4，南韓 23.2、日本 20.8；愛爾蘭 6.6、瑞典 5.6、冰島 5.2、哥斯大黎加 4.3 最少。各國的定義差很多：捷克、土耳其、愛沙尼亞把高依賴病床也算進去，瑞典、荷蘭只算真正的加護病床，OECD 自己也說只能大略比較。只有 OECD 的 35 國與台灣，各國用 5 年內最近的一年。',
+        en: 'Intensive care (ICU) beds per 100,000 people, including adult, paediatric and neonatal ICUs: capacity for critical care, unlike “hospital beds per 1,000”, which counts all beds. Türkiye (57.3), Czechia (52.5), Argentina (41.7) and Estonia (40.1) have the most; Taiwan 32.8 (2025, intensive care plus burn intensive care beds from the Ministry of Health and Welfare), France 31.6, Germany 31.1, the US 29.4, South Korea 23.2, Japan 20.8; Ireland (6.6), Sweden (5.6), Iceland (5.2) and Costa Rica (4.3) the fewest. Definitions differ widely: Czechia, Türkiye and Estonia include high-dependency beds while Sweden and the Netherlands count only true ICU beds, and the OECD itself says comparisons are limited. Only the 35 OECD-reporting countries and Taiwan; each shows its latest year within five.',
+      },
+      unit: { zh: '每十萬人', en: 'per 100,000' },
+      file: 'icu-beds.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [8, 12, 18, 25, 32, 40] } },
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 100,000` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'icu-beds-adult',
+      label: { zh: '成人加護病床', en: 'Adult intensive care beds' },
+      description: {
+        zh: '每十萬人有幾張成人加護病床（OECD 的 33 國）。捷克 44.5、愛沙尼亞 40.1、土耳其 38.3、德國 27.7、法國 26.4 最多；南韓 19.3、日本 15.5；愛爾蘭 6.2、荷蘭 5.6、瑞典 4.4、哥斯大黎加 2.5 最少。台灣的統計不分成人、兒科，見「加護病床」。定義各國不同，只能大略比較。',
+        en: 'Adult intensive care beds per 100,000 people (33 OECD-reporting countries). Czechia (44.5), Estonia (40.1), Türkiye (38.3), Germany (27.7) and France (26.4) have the most; South Korea 19.3, Japan 15.5; Ireland (6.2), the Netherlands (5.6), Sweden (4.4) and Costa Rica (2.5) the fewest. Taiwan does not separate adult and paediatric beds; see “Intensive care beds”. Definitions differ between countries, so comparisons are approximate.',
+      },
+      unit: { zh: '每十萬人', en: 'per 100,000' },
+      file: 'icu-beds-adult.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [8, 12, 18, 25, 32, 40] } },
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, 1)} 床`, en: `${fixed(v, 1)} per 100,000` }),
+      formatTick: (v) => fixed(v, 0),
     },
     {
       id: 'surgery',

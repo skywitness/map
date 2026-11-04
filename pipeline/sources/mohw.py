@@ -205,3 +205,22 @@ def surgeries() -> dict[str, dict[int, float]]:
     if out["total"].get(2025) != 2308673:
         raise RuntimeError(f"衛福部表 11 的 2025 年手術人次不是 2,308,673：{out['total'].get(2025)}，版面可能換了")
     return out
+
+
+def icu_beds() -> dict[str, dict[int, float]]:
+    """表 3 歷年醫療院所病床數的特殊病床：{icu: 加護病床, burn-icu: 燒傷加護病床}（年底，2001 年起；燒傷加護 2013 年起）"""
+    rows = _rows(SERVICES_URL, "medical-services-114.xlsx", "03")
+    head = next(r for r in rows if r and any(isinstance(c, str) and c.startswith("加護病床") for c in r if c))
+    cols = {"icu": next(i for i, c in enumerate(head) if isinstance(c, str) and c.startswith("加護病床")),
+            "burn-icu": next(i for i, c in enumerate(head) if isinstance(c, str) and c.startswith("燒傷加護病床"))}
+    out: dict[str, dict[int, float]] = {k: {} for k in cols}
+    for r in rows:
+        if not r or not isinstance(r[1], int) or not 1990 < r[1] < 2100:
+            continue
+        for k, col in cols.items():
+            v = _number(r[col])
+            if v is not None:
+                out[k][r[1]] = v
+    if out["icu"].get(2025) != 7431:
+        raise RuntimeError(f"衛福部表 3 的 2025 年加護病床不是 7,431：{out['icu'].get(2025)}，版面可能換了")
+    return out
