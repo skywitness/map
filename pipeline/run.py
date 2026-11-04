@@ -72,6 +72,7 @@ STEPS = {
     # 觀光的追加（第二十一批 349–357）：Eurostat 的觀光統計（CC BY 4.0）與交通部觀光署的開放資料
     "tourism-flows": "topics.tourism_flows",
     "tourism-season": "topics.tourism_season",
+    "tourism-demand": "topics.tourism_demand",
     "housing": "topics.housing",
     # 住宅與房價的平均每戶人數（housing 的一部分）：內政部不動產資訊平台從 cloud 被擋時單獨更新這一項
     "housing-household-size": "topics.housing_household_size",

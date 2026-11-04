@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 151;
-export const INDICATOR_COUNT = 910;
+export const INDICATOR_COUNT = 925;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","company-sites","empires","pandas","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear-accidents","nuclear-waste","high-speed-rail","metro","heritage-railways","cable-cars","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","attractions","oldest-universities","skyscrapers","nobel","sports","racing"]},
@@ -319,6 +319,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"交通部航港局：國內固定航班資訊（2026 年 7–8 月）","en":"Maritime and Port Bureau (Taiwan): domestic scheduled ferry timetable (July–August 2026)"},"url":"https://data.gov.tw/dataset/8236","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["shipping"]},
   {"name":{"zh":"交通部觀光署 來臺旅客人次","en":"Tourism Administration (Taiwan), visitor arrivals"},"url":"https://data.gov.tw/dataset/7322","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["tourism"]},
   {"name":{"zh":"交通部觀光署 觀光統計資料庫：來臺旅客按居住地、國人出國按首站抵達地","en":"Tourism Administration (Taiwan): arrivals by residence, departures by first destination"},"url":"https://stat.taiwan.net.tw/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["tourism"]},
+  {"name":{"zh":"交通部觀光署：歷年國人旅遊狀況調查（逐筆樣本）、國人出國旅遊重要指標統計表","en":"Tourism Administration (Taiwan): travel survey microdata; key outbound indicators"},"url":"https://data.gov.tw/dataset/94140","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["tourism"]},
   {"name":{"zh":"交通部觀光署：歷年國內主要觀光遊憩據點遊客人數（台灣的博物館與樂園）","en":"Tourism Administration (Taiwan): visitors to major attractions (Taiwan’s museums and parks)"},"url":"https://data.gov.tw/dataset/8116","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["attractions"]},
   {"name":{"zh":"交通部運輸研究所：運輸部門歷年二氧化碳排放量推估（台灣的交通運輸附註）","en":"Institute of Transportation (Taiwan): transport-sector CO₂ estimates (Taiwan transport note)"},"url":"https://data.gov.tw/dataset/8331","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["climate"]},
   {"name":{"zh":"內政部 100 公尺數值高程模型（台灣交叉比對）","en":"Ministry of the Interior 100 m DEM (Taiwan cross-check)"},"url":"https://data.gov.tw/dataset/7507","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["elevation"]},

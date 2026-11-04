@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
-import type { FlowLabels, TopicDefinition } from './types';
+import type { CategoryDef, FlowLabels, IndicatorDef, Text, TopicDefinition } from './types';
 import { COVID } from './events';
 import { MONTHS, monthLabel } from './months';
 
@@ -34,6 +34,36 @@ const TRIP_LABELS: Record<'export' | 'import', FlowLabels> = {
   },
 };
 const EUROSTAT = 'CC BY 4.0';
+
+/** 歐洲人怎麼旅遊（2026-11-04，製作手冊第二十一批 352–356；pipeline/topics/tourism_demand.py）：Eurostat 的觀光需求調查 */
+const ACCOMMODATION: CategoryDef[] = [
+  { value: 1, label: { zh: '旅館', en: 'Hotels' } },
+  { value: 2, label: { zh: '租的房子或公寓', en: 'Rented flats or houses' } },
+  { value: 3, label: { zh: '營地', en: 'Campsites' } },
+  { value: 4, label: { zh: '自有度假住宅', en: 'Own holiday home' } },
+  { value: 5, label: { zh: '住親友家', en: 'With friends or relatives' } },
+  { value: 6, label: { zh: '其他', en: 'Other' } },
+];
+const NO_TRIP_REASONS: CategoryDef[] = [
+  { value: 1, label: { zh: '錢不夠', en: 'Financial reasons' } },
+  { value: 2, label: { zh: '健康', en: 'Health' } },
+  { value: 3, label: { zh: '工作或求學沒時間', en: 'No time (work or study)' } },
+  { value: 4, label: { zh: '家庭因素', en: 'Family commitments' } },
+  { value: 5, label: { zh: '沒興趣', en: 'No interest' } },
+  { value: 6, label: { zh: '安全考量', en: 'Safety concerns' } },
+];
+const labelOf = (categories: CategoryDef[]) => (v: number) => tr(categories.find((c) => c.value === v)?.label ?? '');
+const pctIndicator = (id: string, label: Text, description: Text, thresholds: number[]): IndicatorDef => ({
+  id,
+  label,
+  description,
+  unit: '%',
+  file: `${id}.json`,
+  defaultYear: 2025,
+  layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds } },
+  format: (v) => `${fixed(v, 1)}%`,
+  formatTick: (v) => `${v}%`,
+});
 
 export const tourism: TopicDefinition = {
   id: 'tourism',
@@ -75,6 +105,19 @@ export const tourism: TopicDefinition = {
       name: { zh: 'Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）', en: 'Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)' },
       url: 'https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table',
       license: EUROSTAT,
+    },
+    {
+      name: {
+        zh: 'Eurostat：居民的觀光需求調查（tour_dem_ttac、ttls、npsex、tttr、ttpw、tttot、tntot、tosex、extot）',
+        en: 'Eurostat: tourism demand survey of residents (tour_dem_ttac, ttls, npsex, tttr, ttpw, tttot, tntot, tosex, extot)',
+      },
+      url: 'https://ec.europa.eu/eurostat/web/tourism/database',
+      license: EUROSTAT,
+    },
+    {
+      name: { zh: '交通部觀光署：歷年國人旅遊狀況調查（逐筆樣本）、國人出國旅遊重要指標統計表', en: 'Tourism Administration (Taiwan): travel survey microdata; key outbound indicators' },
+      url: 'https://data.gov.tw/dataset/94140',
+      license: OPEN_DATA_TW,
     },
     {
       name: { zh: 'World Bank, World Development Indicators（陸地面積）', en: 'World Bank, World Development Indicators (land area)' },
@@ -300,6 +343,171 @@ export const tourism: TopicDefinition = {
       defaultYear: 2024,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [100, 250, 500, 1000, 1500, 3000] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 夜／平方公里`, en: `${fixed(v, 0)} nights per km²` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'main-accommodation',
+      label: { zh: '旅遊最常住哪裡', en: 'Most common accommodation' },
+      description: {
+        zh: '居民一夜以上的旅次（國內加出國）最常用的住宿方式（Eurostat 的旅遊調查）。2025 年多數國家是旅館（德國 46.1%、奧地利 55.9%），西班牙、法國、芬蘭、波蘭、葡萄牙、羅馬尼亞、斯洛維尼亞、拉脫維亞是住親友家最多。台灣的調查有問，但開放資料沒有選項代碼的說明。',
+        en: 'The accommodation most used on residents’ overnight trips, domestic and abroad (Eurostat tourism survey). In 2025 hotels lead in most countries (Germany 46.1%, Austria 55.9%), while staying with friends or relatives leads in Spain, France, Finland, Poland, Portugal, Romania, Slovenia and Latvia. Taiwan’s survey asks this, but the open data lacks the code labels.',
+      },
+      unit: '',
+      file: 'main-accommodation.json',
+      defaultYear: 2025,
+      layer: { kind: 'categorical', categories: ACCOMMODATION },
+      format: labelOf(ACCOMMODATION),
+      unranked: true,
+    },
+    pctIndicator(
+      'hotel-share',
+      { zh: '旅次住旅館的比例', en: 'Share of trips staying in hotels' },
+      {
+        zh: '一夜以上的旅次裡主要住旅館的比例。2025 年奧地利 55.9% 最高，德國 46.1%、瑞典 42.4%、義大利 39.0%；法國 24.4%、葡萄牙 24.9%、西班牙 28.1% 低，親友家與自有度假住宅多。',
+        en: 'Share of overnight trips staying mainly in hotels. In 2025 Austria is highest at 55.9%, Germany 46.1%, Sweden 42.4% and Italy 39.0%; France 24.4%, Portugal 24.9% and Spain 28.1% are low, with more stays with friends, relatives or in own holiday homes.',
+      },
+      [25, 30, 35, 40, 45, 50],
+    ),
+    pctIndicator(
+      'free-accommodation-share',
+      { zh: '不用付錢的住宿', en: 'Non-rented accommodation' },
+      {
+        zh: '一夜以上的旅次裡住自己的度假屋或親友家（不用付住宿費）的比例。2025 年西班牙 55.0%、法國 53.5%、芬蘭 52.2%（夏季小屋）、羅馬尼亞 51.5% 超過一半；荷蘭 24.9%、奧地利 28.6%、德國 29.3% 最低。',
+        en: 'Share of overnight trips staying in one’s own holiday home or with friends or relatives (no accommodation paid). In 2025 Spain 55.0%, France 53.5%, Finland 52.2% (summer cottages) and Romania 51.5% exceed half; the Netherlands 24.9%, Austria 28.6% and Germany 29.3% are lowest.',
+      },
+      [25, 30, 35, 40, 45, 50],
+    ),
+    pctIndicator(
+      'long-trips-domestic',
+      { zh: '國內旅遊 4 夜以上的比例', en: 'Domestic trips of 4+ nights' },
+      {
+        zh: '國內一夜以上的旅次裡，住 4 夜以上的比例。2025 年義大利 56.1% 最高（夏天到海邊住一兩週），波蘭 40.5%、羅馬尼亞 37.7%、法國 36.9%；荷蘭、芬蘭、瑞典、奧地利、盧森堡在 23–28% 之間，多是週末短程。台灣的國內旅遊多是一日遊，沒有算。',
+        en: 'Share of domestic overnight trips lasting 4 nights or more. In 2025 Italy is highest at 56.1%, followed by Poland 40.5%, Romania 37.7% and France 36.9%; the Netherlands, Finland, Sweden, Austria and Luxembourg are between 23% and 28%, mostly short weekend trips. Not computed for Taiwan, where domestic travel is mostly day trips.',
+      },
+      [25, 30, 35, 40, 50],
+    ),
+    pctIndicator(
+      'long-trips-abroad',
+      { zh: '出國 4 夜以上的比例', en: 'Trips abroad of 4+ nights' },
+      {
+        zh: '出國一夜以上的旅次裡，住 4 夜以上的比例。2025 年羅馬尼亞 91.3% 最高，波蘭 79.4%、德國 77.3%；盧森堡 60.0%、奧地利 62.7% 低（鄰國近，短程多）。台灣 2024 年 82.5%（交通部觀光署國人旅遊狀況調查的出國樣本旅次加權）。',
+        en: 'Share of overnight trips abroad lasting 4 nights or more. In 2025 Romania is highest at 91.3%, Poland 79.4% and Germany 77.3%; Luxembourg 60.0% and Austria 62.7% are low (neighbours are close, so short trips are common). Taiwan was 82.5% in 2024 (weighted outbound trips in the Tourism Administration’s travel survey).',
+      },
+      [60, 65, 70, 75, 80, 85],
+    ),
+    pctIndicator(
+      'no-trip',
+      { zh: '一年沒有去旅遊的人', en: 'People who did not travel' },
+      {
+        zh: '一年都沒有一夜以上個人旅遊的人口比例（Eurostat，2013、2015、2019、2022、2025 年）。2025 年羅馬尼亞 71.7%、保加利亞 70.8%、義大利 59.8%、愛沙尼亞 54.4%、葡萄牙 51.9% 超過一半；瑞典 11.6%、芬蘭 16.7%、盧森堡 17.1%、荷蘭 17.3%、德國 19.7% 最低。台灣的調查沒有問沒去旅遊的人。',
+        en: 'Share of people who made no personal overnight trip in the year (Eurostat; 2013, 2015, 2019, 2022 and 2025). In 2025 Romania 71.7%, Bulgaria 70.8%, Italy 59.8%, Estonia 54.4% and Portugal 51.9% exceed half; Sweden 11.6%, Finland 16.7%, Luxembourg 17.1%, the Netherlands 17.3% and Germany 19.7% are lowest. Taiwan’s survey does not ask people who did not travel.',
+      },
+      [15, 20, 30, 40, 50, 60],
+    ),
+    {
+      id: 'no-trip-reason',
+      label: { zh: '沒去旅遊最主要的原因', en: 'Main reason for not travelling' },
+      description: {
+        zh: '沒有去旅遊的人最常說的原因（「其他」不算）。2025 年多數國家是錢不夠（羅馬尼亞、保加利亞、義大利、西班牙、法國…）；德國、捷克、拉脫維亞是健康，瑞典、芬蘭、荷蘭、丹麥、奧地利、葡萄牙是沒興趣，匈牙利是工作或求學沒時間。',
+        en: 'The reason most often given by people who did not travel (“other” excluded). In 2025 money is the main reason in most countries (Romania, Bulgaria, Italy, Spain, France and others); health in Germany, Czechia and Latvia; no interest in Sweden, Finland, the Netherlands, Denmark, Austria and Portugal; and lack of time for work or study in Hungary.',
+      },
+      unit: '',
+      file: 'no-trip-reason.json',
+      defaultYear: 2025,
+      layer: { kind: 'categorical', categories: NO_TRIP_REASONS },
+      format: labelOf(NO_TRIP_REASONS),
+      unranked: true,
+    },
+    pctIndicator(
+      'air-share-abroad',
+      { zh: '出國搭飛機的比例', en: 'Trips abroad by air' },
+      {
+        zh: '出國一夜以上的旅次裡主要搭飛機的比例。2025 年賽普勒斯 99.3%、馬爾他 91.1%（島國）、愛爾蘭 82.9%、希臘 78.0% 最高；斯洛維尼亞 15.3%、克羅埃西亞 29.3%、斯洛伐克 35.5%、奧地利 37.1% 低，開車就能出國。台灣 2024 年 95.8%（國人旅遊狀況調查的出國樣本旅次加權）。',
+        en: 'Share of overnight trips abroad made mainly by air. In 2025 Cyprus 99.3%, Malta 91.1% (islands), Ireland 82.9% and Greece 78.0% are highest; Slovenia 15.3%, Croatia 29.3%, Slovakia 35.5% and Austria 37.1% are low, as neighbours are a drive away. Taiwan was 95.8% in 2024 (weighted outbound trips in the travel survey).',
+      },
+      [30, 40, 50, 60, 75, 90],
+    ),
+    pctIndicator(
+      'package-share-abroad',
+      { zh: '出國跟團的比例', en: 'Package trips abroad' },
+      {
+        zh: '出國一夜以上的旅次裡買包套行程（交通加住宿一起訂）的比例，2020 年起。2025 年羅馬尼亞 40.1% 最高，瑞典 25.9%、法國 24.8%、丹麥 21.1%；盧森堡 7.6% 最低。台灣的調查有問，但開放資料沒有選項代碼的說明。',
+        en: 'Share of overnight trips abroad booked as package trips (transport and accommodation together), from 2020. In 2025 Romania is highest at 40.1%, Sweden 25.9%, France 24.8% and Denmark 21.1%; Luxembourg is lowest at 7.6%. Taiwan’s survey asks this, but the open data lacks the code labels.',
+      },
+      [10, 15, 20, 25, 30, 40],
+    ),
+    pctIndicator(
+      'web-booked-abroad',
+      { zh: '出國行程在網路上訂的比例', en: 'Trips abroad booked online' },
+      {
+        zh: '出國一夜以上的旅次裡在網路上訂主要服務的比例（Eurostat 的定義，2020 年起，很多國家沒有回報）。2025 年丹麥 17.7%、法國 15.8%、羅馬尼亞 15.6%、荷蘭 10.5%。',
+        en: 'Share of overnight trips abroad with main services booked online (Eurostat definition, from 2020; many countries do not report). In 2025 Denmark 17.7%, France 15.8%, Romania 15.6% and the Netherlands 10.5%.',
+      },
+      [5, 10, 15, 20, 25],
+    ),
+    {
+      id: 'trips-per-resident',
+      label: { zh: '每人一年旅遊幾趟', en: 'Trips per resident' },
+      description: {
+        zh: '居民一年一夜以上的旅次（國內加出國）除以人口。2025 年瑞典 9.9 趟最多，芬蘭 5.2、盧森堡、愛爾蘭 4.9；德國 3.3、法國 3.5、西班牙 3.0；義大利、希臘、保加利亞只有 0.8 趟。台灣的國內旅遊含一日遊，不能比。',
+        en: 'Residents’ overnight trips (domestic and abroad) in a year divided by population. In 2025 Sweden leads with 9.9, Finland 5.2, Luxembourg and Ireland 4.9; Germany 3.3, France 3.5 and Spain 3.0; Italy, Greece and Bulgaria only 0.8. Taiwan’s domestic trips include day trips, so they are not comparable.',
+      },
+      unit: { zh: '趟／人', en: 'trips per resident' },
+      file: 'trips-per-resident.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 3, 4, 6] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 趟／人`, en: `${fixed(v, 1)} trips per resident` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'trips-abroad-per-resident',
+      label: { zh: '每人一年出國幾趟', en: 'Trips abroad per resident' },
+      description: {
+        zh: '一年的出國旅次除以人口。2025 年盧森堡 4.6 趟最多，瑞典 3.2、愛爾蘭 2.5；德國 1.3、法國 0.5、西班牙 0.4、義大利 0.2、羅馬尼亞 0.1。台灣用觀光署的出國人次（含一日來回）。',
+        en: 'Trips abroad in a year divided by population. In 2025 Luxembourg leads with 4.6, Sweden 3.2 and Ireland 2.5; Germany 1.3, France 0.5, Spain 0.4, Italy 0.2 and Romania 0.1. Taiwan uses the Tourism Administration’s departures (including same-day trips).',
+      },
+      unit: { zh: '趟／人', en: 'trips per resident' },
+      file: 'trips-abroad-per-resident.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.25, 0.5, 0.75, 1, 1.5, 2.5] } },
+      format: (v) => tr({ zh: `${fixed(v, 2)} 趟／人`, en: `${fixed(v, 2)} trips per resident` }),
+      formatTick: (v) => `${v}`,
+    },
+    pctIndicator(
+      'participation',
+      { zh: '一年至少旅遊一次的人', en: 'People who travelled' },
+      {
+        zh: '一年至少有一次一夜以上旅遊的人口比例。2025 年瑞典 88.4%、芬蘭 83.3%、盧森堡 82.9%、荷蘭 82.7% 最高；義大利 40.2%、保加利亞 29.2%、羅馬尼亞 28.3% 最低。台灣的「國人國內旅遊比率」含一日遊，不能比。',
+        en: 'Share of people who made at least one overnight trip in the year. In 2025 Sweden 88.4%, Finland 83.3%, Luxembourg 82.9% and the Netherlands 82.7% are highest; Italy 40.2%, Bulgaria 29.2% and Romania 28.3% lowest. Taiwan’s travel rate includes day trips, so it is not comparable.',
+      },
+      [40, 50, 60, 70, 80],
+    ),
+    {
+      id: 'nights-per-trip-abroad',
+      label: { zh: '出國每趟住幾夜', en: 'Nights per trip abroad' },
+      description: {
+        zh: '出國旅次的平均夜數。2025 年瑞典 9.2、荷蘭 8.8、芬蘭 8.7、德國 8.5 夜最長；克羅埃西亞 4.8、匈牙利、斯洛維尼亞 5.0 夜最短。台灣 2023 年 7.84 夜（2019 年 7.87 夜，觀光署「國人出國旅遊重要指標」，是全部出國人次的平均）。',
+        en: 'Average nights per trip abroad. In 2025 Sweden 9.2, the Netherlands 8.8, Finland 8.7 and Germany 8.5 nights are longest; Croatia 4.8, Hungary and Slovenia 5.0 shortest. Taiwan was 7.84 nights in 2023 (7.87 in 2019; Tourism Administration key indicators, averaged over all departures).',
+      },
+      unit: { zh: '夜', en: 'nights' },
+      file: 'nights-per-trip-abroad.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 6, 7, 8, 9] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 夜`, en: `${fixed(v, 1)} nights` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'spend-per-trip-abroad',
+      label: { zh: '出國每趟花多少', en: 'Spending per trip abroad' },
+      description: {
+        zh: '出國一夜以上的旅次平均每趟花費（歐元，不含耐久財）。2025 年盧森堡 1,340 歐元最多，奧地利、德國、荷蘭、芬蘭、法國約 1,200；匈牙利、立陶宛、斯洛維尼亞約 525 歐元。台灣的出國花費含國際機票、算法不同，沒有放。',
+        en: 'Average spending per overnight trip abroad (euros, excluding durables). In 2025 Luxembourg spends most at €1,340, with Austria, Germany, the Netherlands, Finland and France around €1,200; Hungary, Lithuania and Slovenia around €525. Taiwan’s outbound spending is defined differently and is not shown.',
+      },
+      unit: { zh: '歐元', en: 'EUR' },
+      file: 'spend-per-trip-abroad.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [600, 800, 1000, 1200] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 歐元`, en: `€${fixed(v, 0)}` }),
       formatTick: (v) => `${v}`,
     },
   ],
