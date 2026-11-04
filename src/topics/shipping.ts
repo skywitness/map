@@ -65,6 +65,22 @@ const quarterText = (q: string) => {
 /** PLSCI 的那一季（ports.json 的 plsciQuarter）；tooltip 只寫指數與名次，季別寫在圖層說明與側欄 */
 export const PLSCI_QUARTER = '2026Q03';
 
+/** 郵輪登記的母港（2026-11-04，製作手冊第二十一批 358；pipeline/topics/cruise.py）：Wikidata 的 P504，多半是船籍港 */
+const CRUISE_PORTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'cruise-ports',
+  file: 'cruise-ports.json',
+  label: { zh: '郵輪登記的母港（Wikidata）', en: 'Cruise ships’ home ports (Wikidata)' },
+  radius: { field: 'n', stops: [[1, 2.5], [10, 5], [50, 9]] },
+  color: MAP_TOKENS.categorical[4],
+  sortField: 'n',
+  tooltip: (p) => ({
+    title: getLang() === 'zh' && p.zh ? String(p.zh) : String(p.en),
+    extra: [tr({ zh: `Wikidata 上登記在這裡的郵輪 ${p.n} 艘`, en: `${p.n} cruise ships with this home port on Wikidata` })],
+    properNoun: getLang() === 'zh' && p.zh ? String(p.en) : undefined,
+  }),
+};
+
 const PORTS: PointsOverlayDef = {
   kind: 'points',
   id: 'ports',
@@ -291,6 +307,16 @@ export const shipping: TopicDefinition = {
   defaultYear: 2025,
   sources: [
     {
+      name: { zh: 'Wikidata（郵輪的船籍與母港，經 QLever 查詢）', en: 'Wikidata (cruise ships’ flags and home ports, via QLever)' },
+      url: 'https://www.wikidata.org/',
+      license: 'CC0',
+    },
+    {
+      name: { zh: '臺灣港務股份有限公司：臺灣地區國際商港旅客人數', en: 'Taiwan International Ports Corporation: passengers at international ports' },
+      url: 'https://data.gov.tw/dataset/8366',
+      license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+    },
+    {
       name: {
         zh: 'UNCTAD Data Hub（貨櫃吞吐量、班輪航運連結指數、商船隊、造船）',
         en: 'UNCTAD Data Hub (container throughput, liner shipping connectivity, merchant fleet, shipbuilding)',
@@ -331,7 +357,7 @@ export const shipping: TopicDefinition = {
     en: `Source: United Nations Trade and Development Data Hub (UNCTADstat). ${UNCTAD_NOTE.en} Port points are the US National Geospatial-Intelligence Agency’s World Port Index, with its size and type classes; the port liner shipping connectivity index (PLSCI) on the points is also UNCTAD’s (matched to the World Port Index by UN/LOCODE and name: about 780 of 900-odd container ports). The 2025 throughput of major container ports is each port’s own published figure (port authority, port company or government statistics, cited as facts); no proprietary rankings such as Lloyd’s List or Alphaliner are used. Shipping chokepoints are IMF PortWatch’s 28 canals and straits, with daily cargo ship transits (container ships, dry bulk carriers, general cargo ships, ro-ro ships and tankers) estimated from AIS positions (a ship is not counted twice within 48 hours, and transits are not weighted by ship size), summed here over a full year: in 2025 the Taiwan Strait led with 87,000, followed by the Strait of Malacca and the Korea Strait; the Suez Canal fell from 27,000 in 2023 to 14,000 (ships rerouted round the Cape of Good Hope after the Red Sea crisis, which rose from 18,000 to 33,000). Canal and strait dots are Wikidata items classed directly as canals or straits that have an English Wikipedia article (the world view shows only those with many articles; zoom in for all); Wikidata has a single point for each, so canals cannot be drawn as lines, and some items classed as canals are irrigation channels. Ferry routes are OpenStreetMap’s route=ferry, keeping only scheduled passenger services (no sightseeing boats or river ferries), with sailings from Taiwan’s Maritime and Port Bureau timetable for Taiwan; the ferry data files are a derived database of OSM, available under the ODbL. For trade flows between countries see the International trade flows topic; for railways and airports, Transport by country; for exclusive economic zones and fisheries, Oceans and fisheries.`,
   },
   panelExtra: () => import('./panels/ShippingPanel'),
-  overlays: [PORTS, WATERWAYS, CHOKEPOINTS, ...ferriesExtra.overlays],
+  overlays: [PORTS, WATERWAYS, CHOKEPOINTS, CRUISE_PORTS, ...ferriesExtra.overlays],
   listPanel: [PORT_LIST, ferriesExtra.listPanel],
   indicators: [
     {
@@ -377,6 +403,19 @@ export const shipping: TopicDefinition = {
       format: dwt,
       formatTick: formatLargeTick,
       shareOfWorld: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'cruise-flag',
+      label: { zh: '郵輪（船旗國）', en: 'Cruise ships by flag' },
+      description: {
+        zh: '掛這個國家國旗的郵輪艘數（Wikidata 有寫船籍的 528 艘；換過旗的每個船籍都算）。巴哈馬 149 艘最多，馬爾他 60、巴拿馬 48、義大利 35、挪威 32、百慕達 27、厄瓜多 27、英國 25。跟貨船一樣多掛權宜船籍。疊加圖層「郵輪登記的母港」多半是船籍港（拿索、瓦勒他），不是郵輪出發的港口。台灣沒有掛國旗的郵輪；2025 年國際商港的郵輪旅客母港 83.2 萬人次、掛靠港 30.8 萬人次（臺灣港務公司）。只算 Wikidata 有的，不是完整的名冊。',
+        en: 'Cruise ships flying each country’s flag (528 ships with a registry on Wikidata; ships that changed flag count under each). The Bahamas has the most at 149, followed by Malta 60, Panama 48, Italy 35, Norway 32, Bermuda 27, Ecuador 27 and the UK 25. As with cargo ships, flags of convenience dominate. The “Cruise ships’ home ports” overlay mostly shows ports of registry (Nassau, Valletta), not where cruises depart. No cruise ships fly Taiwan’s flag; in 2025 its international ports handled 832,000 home-port and 308,000 port-of-call cruise passenger movements (Taiwan International Ports Corporation). Only ships on Wikidata are counted, so this is not a complete register.',
+      },
+      unit: { zh: '艘', en: 'ships' },
+      file: 'cruise-flag.json',
+      layer: { kind: 'bubble', legendValues: [5, 25, 100] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 艘`, en: `${fixed(v, 0)} ships` }),
       defaultYear: 2026,
     },
     {

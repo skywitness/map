@@ -349,6 +349,7 @@ STEPS = {
     "aldh2": "topics.aldh2",
     # 航運與港口的商船隊（新27 的圓餅）：只跑 shipping 的 merchant_fleet（UNCTADstat），不下載港口與航港局的資料
     "shipping-fleet": "topics.shipping_fleet",
+    "cruise": "topics.cruise",  # 郵輪的船籍與母港（Wikidata 經 QLever，CC0；台灣用臺灣港務的國際商港旅客）
     # 要先有 geo 的國界與晝夜與季節的首都（daylight）；第一次會下載 Marine Regions 的 IHO 海域與 Global Oceans and Seas
     # （河流主題的同一份快取，畫成網格約 5 分鐘）與 Natural Earth 的 populated places（旅行實用的同一份）；
     # 之後約 30 秒（全球每 3 km 一點的取樣網格約 5,700 萬點，判斷國家與海約 15 秒）
