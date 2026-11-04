@@ -81,6 +81,7 @@ const TOPIC_ICONS = {
   festivals: 'party-popper',
   holidays: 'calendar-days',
   dining: 'utensils-crossed',
+  'time-use': 'hourglass',
   inequality: 'scale',
   gender: 'venus-and-mars',
   crime: 'gavel',
