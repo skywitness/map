@@ -248,7 +248,11 @@ export interface IndicatorDef {
    * 陰影可以在左下角的圖層關掉（「地形陰影」）。海拔主題（terrain）照舊
    */
   shade?: 'land' | 'land-sea';
-  /** 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖） */
+  /**
+   * 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖）。
+   * false 是反過來：主題是 timeless，只有這個指標有時間軸（2026-11-05 起，國家小檔案的「國會幾院」1900–2025 年）。
+   * 判斷一律用 isTimeless()
+   */
   timeless?: boolean;
   /**
    * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
@@ -1442,6 +1446,11 @@ export const dataFolder = (topic: Pick<Topic, 'id' | 'dataTopic'>): string => to
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');
+}
+
+/** 這個指標有沒有時間軸：指標自己寫的 timeless（true 或 false）優先，沒寫就照主題的 */
+export function isTimeless(topic: { timeless?: boolean }, indicator: { timeless?: boolean }): boolean {
+  return indicator.timeless ?? topic.timeless ?? false;
 }
 
 /** 指標用的子項目選擇器：指標自己的 dimension 優先，沒有就是主題的 */

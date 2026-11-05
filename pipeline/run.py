@@ -141,6 +141,8 @@ STEPS = {
     # V-Dem 的其他指數（第二十二批 377、378，共用 democracy 的下載與國家對照）：政府治理的行政權制衡、性別平等的女性政治賦權
     "governance-vdem": "topics.governance_vdem",
     "gender-vdem": "topics.gender_vdem",
+    # 國家小檔案的國會幾院（V-Dem）、席次與每席人口（英文維基固定版本，要先有 population 的 total.json）
+    "profiles-legislature": "topics.profiles_legislature",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄

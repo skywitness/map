@@ -32,6 +32,11 @@ interface Head {
   p: [string | null, string | null, string | null][];
 }
 
+/** legislature.json：[議會名稱（英文）, 1 一院、2 兩院, 下議院席次, 上議院席次或 null] */
+interface LegislatureFile {
+  countries: Record<string, [string, number, number, number | null]>;
+}
+
 /** profiles.json 裡一個國家的小檔案；鍵很短是為了檔案小 */
 interface Profile {
   q?: string;
@@ -97,6 +102,11 @@ const TEXT = defineMessages({
     since: (date: string) => `${date}起`,
     government: '政體形式',
     currency: '貨幣',
+    parliament: '國會',
+    chambers: (n: number): string => (n === 1 ? '一院制' : '兩院制'),
+    seats: (lower: number, upper: number | null) => (upper == null ? `${lower} 席` : `下議院 ${lower} 席、上議院 ${upper} 席`),
+    perSeat: (people: string) => `每席約代表 ${people}人`,
+    parliamentNote: '席次依英文維基百科的列表（2026 年 11 月），每席人口用聯合國 WPP 的 2026 年推估。',
     population: (year: number) => `人口（${year} 年推估）`,
     area: '陸地面積',
     areaYear: (year: number) => `${year} 年，不含內陸水域`,
@@ -139,6 +149,12 @@ const TEXT = defineMessages({
     since: (date: string) => `since ${date}`,
     government: 'System of government',
     currency: 'Currency',
+    parliament: 'Parliament',
+    chambers: (n: number) => (n === 1 ? 'unicameral' : 'bicameral'),
+    seats: (lower: number, upper: number | null) =>
+      upper == null ? `${lower} seats` : `${lower} seats in the lower house, ${upper} in the upper`,
+    perSeat: (people: string) => `about ${people} people per seat`,
+    parliamentNote: ' Seats from the English Wikipedia list (November 2026); people per seat from the UN WPP 2026 projection.',
     population: (year: number) => `Population (${year} projection)`,
     area: 'Land area',
     areaYear: (year: number) => `${year}, excluding inland water`,
@@ -265,6 +281,9 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const countries = useJson<CountryTable>('countries.json').data;
   const government = useJson<IndicatorData>(`topics/${topic.id}/government.json`).data;
   const neighbours = useJson<IndicatorData>(`topics/${topic.id}/neighbours.json`).data;
+  // 國會（2026-11-05）：議會名稱與席次（pipeline/topics/profiles_legislature.py 的 legislature.json）、每席人口
+  const legislature = useJson<LegislatureFile>(`topics/${topic.id}/legislature.json`).data;
+  const perSeat = useJson<IndicatorData>(`topics/${topic.id}/seat-population.json`).data;
   const flagEntry = useFlags()?.units[iso3];
   if (!data || loading) return <p className="empty">{t.loading}</p>;
   const p: Profile | undefined = part ?? undefined;
@@ -328,6 +347,22 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
       return code ? `${n ?? code}${text.paren(code)}` : (n ?? '');
     };
     rows.push([text.currency, text.list(p.cur.map(currency))]);
+  }
+  const leg = legislature?.countries[iso3];
+  if (leg) {
+    const [legName, kind, lower, upper] = leg;
+    const people = perSeat?.values[iso3]?.[0];
+    rows.push([
+      text.parliament,
+      <>
+        {legName}
+        <span className="profile-muted">{text.paren(text.chambers(kind))}</span>
+        <span className="profile-sub">
+          {text.seats(lower, upper)}
+          {people != null && text.paren(text.perSeat(formatLargeNumber(people)))}
+        </span>
+      </>,
+    ]);
   }
   // 10 萬人以下寫完整的數字（格陵蘭 55,629 人，不寫「6 萬」）
   if (p.pop) rows.push([text.population(data.popYear), p.pop < 1e5 ? fixed(p.pop, 0) : formatLargeNumber(p.pop)]);
@@ -431,6 +466,7 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
       <p className="note">
         {text.dataDate(dateText(data.date, lang))}
         {text.dataNote}
+        {leg && text.parliamentNote}
       </p>
     </section>
   );
