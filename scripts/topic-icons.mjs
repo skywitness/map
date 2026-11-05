@@ -73,6 +73,7 @@ const TOPIC_ICONS = {
   education: 'graduation-cap',
   pisa: 'book-open-check',
   diet: 'utensils',
+  banknotes: 'wallet-cards',
   housing: 'house',
   // 不用特定宗教的符號（教堂、清真寺…）
   religion: 'book-heart',

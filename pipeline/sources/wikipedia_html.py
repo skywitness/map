@@ -64,7 +64,8 @@ class _Tables(HTMLParser):
             elif self._skip:
                 if tag in ("sup", "style", "script"):
                     self._skip += 1
-            elif tag == "a" and (href := a.get("href", "")).startswith("/wiki/"):
+            elif tag == "a" and (href := a.get("href", "").removeprefix("https://en.wikipedia.org")).startswith("/wiki/"):
+                # 有的版本（Parsoid 產生的 HTML）連結是完整網址
                 self._links.append(urllib.parse.unquote(href[6:].split("#")[0]).replace("_", " "))
             elif tag == "i":
                 self._italic = True

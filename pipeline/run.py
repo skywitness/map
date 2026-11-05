@@ -167,6 +167,12 @@ STEPS = {
     "profiles-anthems": "topics.profiles_anthems",
     # 付現金時湊整到多少（第二十二批 395）：英文維基「Cash rounding」固定版本的網頁，散文逐國整理（CC BY-SA 4.0），輸出 fiscal/
     "prices-cash-rounding": "topics.prices_cash_rounding",
+    # 鈔票上是誰（第二十二批 397）：英文維基「List of people on banknotes」固定版本的網頁（CC BY-SA 4.0），新主題 banknotes
+    "banknote-people": "topics.banknote_people",
+    # 最大面額的鈔票（候選 681）：約 166 篇英文維基貨幣條目的資訊框（每篇間隔 2 秒），世界銀行官方匯率換成美元
+    "banknote-largest": "topics.banknote_largest",
+    # 大型哺乳類還剩下幾種（第二十二批 398）：PHYLACINE 1.2（Zenodo，CC0），國界柵格化到 96.5 km 網格
+    "megafauna": "topics.megafauna",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄

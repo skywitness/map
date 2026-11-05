@@ -34,7 +34,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       // 夜間燈光 2026-11-03 從地理的「景點」搬過來（使用者要求）
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing', 'night-lights'] },
       // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet'] },
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet', 'banknotes'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
       // 2026-11-05 使用者要求每個小類各占一欄、教育放最右邊
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
@@ -178,6 +178,8 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   education: () => import('./education'),
   pisa: () => import('./pisa'),
   diet: () => import('./diet'),
+  // 2026-11-05 第二十二批 397（加上候選 681）：鈔票上是誰、最大面額
+  banknotes: () => import('./banknotes'),
   housing: () => import('./housing'),
   religion: () => import('./religion'),
   inequality: () => import('./inequality'),

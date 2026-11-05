@@ -28,6 +28,7 @@ export const RELATED: Record<string, string[]> = {
   'antimicrobial-resistance': ['medicines', 'disease', 'vaccination'],
   'tobacco-alcohol': ['health', 'disease'],
   diet: ['agriculture', 'health', 'lactase'],
+  banknotes: ['profiles', 'prices', 'democracy'],
   education: ['pisa', 'gender', 'innovation'],
   pisa: ['education', 'publications'],
   religion: ['festivals', 'language'],
