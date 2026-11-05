@@ -76,10 +76,10 @@ export const cableCars: TopicDefinition = {
   note: {
     zh:
       '點是 Wikidata 收錄、有座標的往復式空中纜車、吊廂纜車（含單線、雙線、三線式與都市的纜車路線）與纜索鐵道；滑雪場的吊椅、滑索、貨運索道不算。開通年份依序用正式啟用日期、啟用日期、成立時間，停用的畫到那一年為止；沒有年份的放在「開通年份不詳」的圖層（約 390 條，預設關閉）。' +
-      'Wikidata 只收比較有名的，各國的數量不能直接比（例如阿爾卑斯山區收得多）。國家依座標判斷。台灣有貓空纜車（Wikidata 寫成立 2006 年，改成通車的 2007 年）與烏來空中纜車；日月潭纜車在 Wikidata 沒有座標，沒有畫。',
+      'Wikidata 只收比較有名的，各國的數量不能直接比（例如阿爾卑斯山區收得多）。國家依座標判斷。台灣有貓空纜車（Wikidata 寫成立 2006 年，改成通車的 2007 年）與烏來空中纜車；日月潭纜車等 321 條在 Wikidata 沒有座標，沒有畫（2026-11-05 查）。',
     en:
       'Dots are aerial tramways, gondola lifts (mono-, bi- and tricable lifts and urban cable car lines) and funiculars in Wikidata with coordinates; ski chairlifts, zip lines and material ropeways are left out. The opening year comes from the official opening date, service entry or inception, in that order, and closed lines are drawn up to their closing year; lines without a year are in the “year unknown” layer (about 390, off by default). ' +
-      'Wikidata covers mainly well-known lines, so counts are not comparable between countries (the Alps are well covered). Countries are assigned by location. Taiwan has the Maokong Gondola (Wikidata gives 2006 as its inception; the 2007 opening is used) and the Wulai Aerial Tramway; the Sun Moon Lake Ropeway has no coordinates in Wikidata and is not shown.',
+      'Wikidata covers mainly well-known lines, so counts are not comparable between countries (the Alps are well covered). Countries are assigned by location. Taiwan has the Maokong Gondola (Wikidata gives 2006 as its inception; the 2007 opening is used) and the Wulai Aerial Tramway; the Sun Moon Lake Ropeway and 320 other lines have no coordinates in Wikidata and are not shown (checked 2026-11-05).',
   },
   panelExtra: () => import('./panels/CableCarsPanel'),
   overlays: [

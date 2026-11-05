@@ -64,11 +64,11 @@ export const brandsPart = {
     zh:
       '品牌是 Wikidata 裡的時尚品牌（fashion label、fashion house、clothing brand，或產業是時尚、成衣、高級訂製服的公司）與汽車品牌（汽車製造商、汽車品牌），只收沒有停業日期、至少一種語言的維基百科有條目的。' +
       'Wikidata 常常沒有填停業日期，早年的小車廠（美國、英國 1900 年代的很多）會被當成還在；也收了子公司與副牌。收錄偏歐美，各國的數字只能大概比較。' +
-      '國家以創立地為準：創立地有座標的用座標所在的國家，沒有的用原產國、所屬國家或總部的位置；點畫在創立地，沒有的畫在總部（Burberry 的創立地是 Basingstoke，不是倫敦）。',
+      '國家以創立地為準：創立地有座標的用座標所在的國家，沒有的用原產國、所屬國家或總部的位置；點畫在創立地，沒有的畫在總部（Burberry 的創立地是 Basingstoke，不是倫敦）；畫出的點時尚有 496 個、汽車有 1,172 個是總部的位置。創立地與總部在 Wikidata 都沒有座標的不畫：時尚 363 個、汽車 2,051 個，有國家的照樣算進各國的數量（2026-11-05 查）。',
     en:
       'Brands are Wikidata items for fashion brands (fashion labels, fashion houses, clothing brands, or companies in the fashion, clothing or haute couture industries) and car brands (automobile manufacturers and brands) with no dissolution date and an article in at least one Wikipedia. ' +
       'Wikidata often lacks dissolution dates, so many early small car makers (especially American and British ones from the 1900s) are counted as current, and subsidiaries and sub-brands are included. Coverage leans towards Europe and North America, so country counts are only roughly comparable. ' +
-      'Countries follow the place of founding: its coordinates where available, otherwise the country of origin, the country or the headquarters. Dots mark the place of founding, or the headquarters when that is missing (Burberry was founded in Basingstoke, not London).',
+      'Countries follow the place of founding: its coordinates where available, otherwise the country of origin, the country or the headquarters. Dots mark the place of founding, or the headquarters when that is missing (Burberry was founded in Basingstoke, not London); 496 fashion and 1,172 car dots are at the headquarters. Brands with coordinates for neither in Wikidata are not drawn: 363 fashion and 2,051 car brands, which still count towards their country’s total if they have one (checked 2026-11-05).',
   },
   overlays: [POINTS],
   indicators: [

@@ -41,10 +41,10 @@ export const chinatownsPart: TopicPart = {
   ],
   note: {
     zh:
-      'Wikidata 收錄、有座標的唐人街 87 處，加上依英文維基百科的歐洲、亞洲、非洲、大洋洲、拉丁美洲條目補的 48 處（條目寫明有唐人街、華人商店街的地方；寫「沒有正式的唐人街」、已經消失或只是計畫的不收）。補的點的座標取街區或城市在 Wikidata 的座標，只有城市座標的 tooltip 寫明。' +
+      'Wikidata 收錄、有座標的唐人街 87 處，加上依英文維基百科的歐洲、亞洲、非洲、大洋洲、拉丁美洲條目補的 48 處（條目寫明有唐人街、華人商店街的地方；寫「沒有正式的唐人街」、已經消失或只是計畫的不收）。Wikidata 上另有 10 處沒有座標：納卯、鹿特丹、普拉托 3 處依維基條目補在城市的位置，其他 7 處沒畫（2026-11-05 查）。補的點的座標取街區或城市在 Wikidata 的座標，只有城市座標的 tooltip 寫明。' +
       '美國、加拿大的條目列了上百處（多半是歷史上的），沒有另外補。「唐人街」的定義各地不同：有歷史街區、新的華人商圈，也有只剩牌樓的；收錄多寡反映的是資料的範圍，各國的數目不能直接比。台灣沒有唐人街（維基的亞洲條目也不含中國、港澳與台灣）。',
     en:
-      'The 87 Chinatowns in Wikidata with coordinates, plus 48 added from the English Wikipedia articles on Chinatowns in Europe, Asia, Africa, Oceania and Latin America (places the articles say have a Chinatown or Chinese shopping street; places described as having no official Chinatown, gone or only planned are left out). Added points use the Wikidata coordinates of the neighbourhood or the city; the tooltip says when only the city is known. ' +
+      'The 87 Chinatowns in Wikidata with coordinates, plus 48 added from the English Wikipedia articles on Chinatowns in Europe, Asia, Africa, Oceania and Latin America (places the articles say have a Chinatown or Chinese shopping street; places described as having no official Chinatown, gone or only planned are left out). Another 10 Chinatowns in Wikidata have no coordinates: Davao, Rotterdam and Prato are shown at the city from the Wikipedia articles, and the other 7 are not on the map (checked 2026-11-05). Added points use the Wikidata coordinates of the neighbourhood or the city; the tooltip says when only the city is known. ' +
       'The articles on the United States and Canada list hundreds of places, mostly historical, and are not added. What counts as a Chinatown varies, from historic districts to new Chinese business areas or just a gate, and coverage reflects the data, so country counts are not comparable. Taiwan has no Chinatown (the Asia article also excludes China, Hong Kong, Macau and Taiwan).',
   },
   overlays: [

@@ -90,11 +90,11 @@ export const stationsPart = {
   ],
   note: {
     zh:
-      `點是 Wikidata 收錄、南緯 50 度以南的南極研究站（含南喬治亞、布韋島這類亞南極島嶼）。經營國依 Wikidata 的經營者（兩國合營的兩國都算，例如法國與義大利的康宏站），沒寫的用項目的國家或說明文字；蘇聯的站算俄羅斯。` +
+      `點是 Wikidata 收錄、南緯 50 度以南的南極研究站（含南喬治亞、布韋島這類亞南極島嶼）；Wikidata 上另有 3 站沒有座標（2 站已關閉、1 站還在規劃），沒畫（2026-11-05 查）。經營國依 Wikidata 的經營者（兩國合營的兩國都算，例如法國與義大利的康宏站），沒寫的用項目的國家或說明文字；蘇聯的站算俄羅斯。` +
       `Wikidata 常沒標關閉，所以沒標關閉的再跟 COMNAP（國家南極計畫管理者理事會）2024 年 11 月的設施名單核對位置：名單上 ${COMNAP_TOTAL} 處設施各自對到 15 公里內最近的一站，對到的 ${COMNAP_MATCHED} 處算「運作中」，其他的是「不在 COMNAP 名單」，多半是已關閉的歷史站（例如阿蒙森的 Framheim）或臨時營地。國家的值只算運作中的站。` +
       `COMNAP 的資料只能用於教育與非商業用途，這裡只用核對的結果，不轉載它的內容。台灣不是《南極條約》的締約方，沒有南極研究站。`,
     en:
-      `Dots are the Antarctic research stations in Wikidata south of 50°S, including sub-Antarctic islands such as South Georgia and Bouvet Island. The operating country comes from Wikidata’s operator (both countries count for joint stations such as French–Italian Concordia), otherwise from the item’s country or description; Soviet stations count for Russia. ` +
+      `Dots are the Antarctic research stations in Wikidata south of 50°S, including sub-Antarctic islands such as South Georgia and Bouvet Island; another 3 stations in Wikidata (two closed, one proposed) have no coordinates and are not shown (checked 2026-11-05). The operating country comes from Wikidata’s operator (both countries count for joint stations such as French–Italian Concordia), otherwise from the item’s country or description; Soviet stations count for Russia. ` +
       `Wikidata often lacks closing dates, so stations without one were checked by position against COMNAP’s (Council of Managers of National Antarctic Programs) facilities list of November 2024: each of its ${COMNAP_TOTAL} facilities was matched to the nearest station within 15 km, and the ${COMNAP_MATCHED} matched stations count as operating; the rest are “not on the COMNAP list”, mostly closed historic bases (such as Amundsen’s Framheim) or temporary camps. Country values count operating stations only. ` +
       `COMNAP’s data may be used for educational and non-commercial purposes only; only the check results are used here, not its contents. Taiwan is not a party to the Antarctic Treaty and has no Antarctic station.`,
   },

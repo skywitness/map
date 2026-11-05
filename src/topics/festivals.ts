@@ -167,13 +167,13 @@ export const festivals: TopicDefinition = {
   ],
   note: {
     zh:
-      '節慶是 Wikidata 直接標成節慶或它的子類別（電影節、藝術節、嘉年華、美食節、民俗節慶…）、有位置的約 1,730 個，2026-11-04 加上標成音樂節或它的子類別（搖滾、爵士音樂節…）的 1,092 個，再加上文化資產局登錄的台灣民俗裡「儀式、祭典、節慶」類的 226 項。Wikidata 的節慶以歐美為主，音樂節九成在歐洲與北美（台灣只有春天吶喊），反映的是維基的編輯社群，不是真實的分布。' +
+      '節慶是 Wikidata 直接標成節慶或它的子類別（電影節、藝術節、嘉年華、美食節、民俗節慶…）、有位置的約 1,730 個，2026-11-04 加上標成音樂節或它的子類別（搖滾、爵士音樂節…）的 1,092 個，再加上文化資產局登錄的台灣民俗裡「儀式、祭典、節慶」類的 226 項。Wikidata 的節慶以歐美為主，音樂節九成在歐洲與北美（台灣只有春天吶喊），反映的是維基的編輯社群，不是真實的分布。Wikidata 上另有 30,110 個節慶（一半以上是電影節）與 2 個萬人場館沒有座標，沒畫在地圖上（2026-11-05 查）。' +
       '圖層選單裡有「萬人場館」（預設關閉）：Wikidata 的場館（arena）類別、容納 1 萬人以上的 431 個，多半同時是體育館；容納人數照 Wikidata，演唱會與球賽的配置可能不同。台灣的台北小巨蛋、臺北大巨蛋在 Wikidata 不屬於場館類別，另外補上。' +
       '月份用 Wikidata 的「每年發生的日子」，只有約 40 個有，多數畫在「月份不詳」的圖層（不隨時間軸變）；文資局的民俗有舉辦月份的照月份出現，農曆的月份加一個月當成大約的國曆月份。' +
       '文資局的地址只到鄉鎮市區，點在鄉鎮市區的位置（Wikidata 的座標；只寫縣市的在縣市的中間）。' +
       '左邊的清單列出那個月有月份的節慶：有固定日子的依日子排（文資局農曆的照農曆寫，依農曆的日排），其他依名稱；城市用 Wikidata 的所在行政區與文資局的地址。',
     en:
-      'Festivals are about 1,730 Wikidata items classed as festivals or a subclass (film, arts, carnival, food, folk festivals and so on) with a location, plus, from 4 November 2026, 1,092 classed as music festivals or a subclass (rock, jazz and so on), and the 226 registered folk customs in the “rituals, ceremonies and festivals” class of Taiwan’s Bureau of Cultural Heritage. Wikidata’s festivals are mostly in Europe and the Americas, and nine in ten music festivals are in Europe and North America (Taiwan has only Spring Scream), reflecting Wikipedia’s editors rather than where festivals really happen. ' +
+      'Festivals are about 1,730 Wikidata items classed as festivals or a subclass (film, arts, carnival, food, folk festivals and so on) with a location, plus, from 4 November 2026, 1,092 classed as music festivals or a subclass (rock, jazz and so on), and the 226 registered folk customs in the “rituals, ceremonies and festivals” class of Taiwan’s Bureau of Cultural Heritage. Wikidata’s festivals are mostly in Europe and the Americas, and nine in ten music festivals are in Europe and North America (Taiwan has only Spring Scream), reflecting Wikipedia’s editors rather than where festivals really happen. Another 30,110 festivals in Wikidata (over half of them film festivals) and 2 arenas have no coordinates and are not on the map (checked 2026-11-05). ' +
       'The layer menu has “Arenas for 10,000+” (off by default): 431 Wikidata arenas with a capacity of at least 10,000, mostly also sports venues; capacities follow Wikidata and may differ between concert and sports layouts. Taipei Arena and the Taipei Dome are not classed as arenas on Wikidata and are added separately. ' +
       'Months come from Wikidata’s “day in year for periodic occurrence”, which only about 40 have, so most are in the “month unknown” layer (which does not change with the slider); Taiwan’s folk customs appear in their month where it is given, with lunar months shifted by one as an approximate calendar month. ' +
       'The bureau gives only the township, so Taiwanese customs are placed at the township (Wikidata coordinates; those giving only a county at its centre). ' +
