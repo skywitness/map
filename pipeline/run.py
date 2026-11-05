@@ -105,6 +105,8 @@ STEPS = {
     "wages": "topics.wages",
     "annual-leave": "topics.annual_leave",  # 法定最低年假（英文維基，CC BY-SA 4.0；台灣依勞基法第 38 條）
     "fiscal": "topics.fiscal",
+    # 政府的利息負擔（第二十二批 380）：WDI 的利息占收入、占支出，台灣用財政部的各級政府債務支出
+    "fiscal-interest": "topics.fiscal_interest",
     # 物價與財政的擴充：政府支出的用途（IMF COFOG）、稅收的組成（OECD）、公共債務兩百年（IMF HPD）
     "fiscal-structure": "topics.fiscal_structure",
     # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
