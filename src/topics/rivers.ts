@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick, formatPercent } from '../lib
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
 import { withParts } from './parts';
 import { riverFlowPart } from './river-flow';
+import { waterwaysPart } from './inland-waterways';
 import type { IndicatorDef, LinesOverlayDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
@@ -488,4 +489,4 @@ export const rivers: TopicDefinition = withParts({
     { ...DAMS, id: 'dams-map', hidden: true, indicators: ['map'], shareable: false },
   ],
   indicators,
-}, riverFlowPart);
+}, riverFlowPart, waterwaysPart);

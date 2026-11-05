@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
-import type { FlowDirection, IndicatorDef, Text, TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { FlowDirection, IndicatorDef, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 const BATTERY = { zh: '電池材料', en: 'Battery materials' };
 const ELECTRONICS = { zh: '稀土與電子', en: 'Rare earths and electronics' };
@@ -8,6 +9,8 @@ const ALLOYS = { zh: '合金與特殊用途', en: 'Alloys and special uses' };
 const PRECIOUS = { zh: '貴金屬', en: 'Precious metals' };
 const BASE = { zh: '基本金屬', en: 'Base metals' };
 const INDUSTRIAL = { zh: '工業礦物', en: 'Industrial minerals' };
+/** 2026-11-05（製作手冊第二十二批 382）：精煉與冶煉，是加工廠的產量，不是礦場 */
+const PROCESSED = { zh: '精煉與冶煉', en: 'Refining and smelting' };
 
 /**
  * 地圖上可選的礦種（與 pipeline/topics/minerals.py 的 MINERALS 對應）。
@@ -33,6 +36,8 @@ export const MINERALS: { id: string; label: Text; group: Text }[] = [
   { id: 'copper', label: { zh: '銅（銅含量）', en: 'Copper (Cu content)' }, group: BASE },
   { id: 'bauxite', label: { zh: '鋁土礦（乾重）', en: 'Bauxite (dry weight)' }, group: BASE },
   { id: 'salt', label: { zh: '鹽', en: 'Salt' }, group: INDUSTRIAL },
+  { id: 'refined-copper', label: { zh: '精煉銅', en: 'Refined copper' }, group: PROCESSED },
+  { id: 'aluminum', label: { zh: '原鋁（冶煉）', en: 'Primary aluminium (smelted)' }, group: PROCESSED },
 ];
 
 const TONNES = { zh: '公噸', en: 'tonnes' };
@@ -111,6 +116,49 @@ function share(id: string, label: Text, description: Text): IndicatorDef {
   };
 }
 
+/**
+ * 全世界的礦場（2026-11-05，製作手冊第二十二批 382 的後半；pipeline/topics/minerals_mines.py）：USGS MRDS 的生產中、曾生產與加工廠，
+ * 不含煤、砂石與石材。類別跟 pipeline 的 GROUPS 一致。2011 年起 USGS 不再更新，「生產中」是當時的紀錄
+ */
+const MINE_GROUPS: { label: Text; color: string }[] = [
+  { label: { zh: '貴金屬（金、銀、鉑族）', en: 'Precious metals (gold, silver, PGMs)' }, color: MAP_TOKENS.categorical[2] },
+  { label: { zh: '基本金屬（銅、鉛、鋅、錫、鋁）', en: 'Base metals (copper, lead, zinc, tin, aluminium)' }, color: MAP_TOKENS.categorical[0] },
+  { label: { zh: '鐵與鋼鐵合金（鐵、錳、鉻、鎢、鉬…）', en: 'Iron and steel alloys (iron, manganese, chromium, tungsten, molybdenum…)' }, color: MAP_TOKENS.categorical[3] },
+  { label: { zh: '電池與科技礦產（鋰、鈷、鎳、石墨、稀土…）', en: 'Battery and tech minerals (lithium, cobalt, nickel, graphite, rare earths…)' }, color: MAP_TOKENS.categorical[1] },
+  { label: { zh: '鈾', en: 'Uranium' }, color: MAP_TOKENS.categorical[5] },
+  { label: { zh: '其他金屬（汞、銻…）', en: 'Other metals (mercury, antimony…)' }, color: MAP_TOKENS.categorical[4] },
+  { label: { zh: '工業礦物（磷、重晶石、螢石、滑石…）', en: 'Industrial minerals (phosphate, barite, fluorite, talc…)' }, color: MAP_TOKENS.categorical[6] },
+];
+const MINE_STATUS: Record<number, Text> = {
+  1: { zh: '生產中（MRDS 建檔時）', en: 'Producer (when recorded in MRDS)' },
+  2: { zh: '曾經生產', en: 'Past producer' },
+  3: { zh: '加工廠（選礦、冶煉、精煉）', en: 'Plant (processing, smelting, refining)' },
+};
+
+const MINES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'mines',
+  file: 'mines.json',
+  label: { zh: '礦場與加工廠（USGS MRDS，2011 年停止更新）', en: 'Mines and plants (USGS MRDS, not updated since 2011)' },
+  // 近 10 萬個點，預設關閉；縮小時只畫生產中、加工廠與美國以外的曾生產
+  hidden: true,
+  radius: 2.4,
+  color: { field: 'g', title: { zh: '主要礦種', en: 'Main commodity' }, thresholds: [1.5, 2.5, 3.5, 4.5, 5.5, 6.5], classes: MINE_GROUPS },
+  more: { minZoom: 6 },
+  tooltip: (p, { countryName }) => {
+    const years = [p.y0, p.y1].filter((y) => typeof y === 'number');
+    return {
+      title: String(p.n ?? ''),
+      properNoun: String(p.n ?? ''),
+      detail: [typeof p.iso3 === 'string' ? countryName(p.iso3) : null, tr(MINE_STATUS[Number(p.s)] ?? '')].filter(Boolean).join(' · '),
+      extra: [
+        String(p.c ?? ''),
+        years.length ? tr({ zh: `生產 ${years.join('–')} 年`, en: `Produced ${years.join('–')}` }) : '',
+      ].filter(Boolean),
+    };
+  },
+};
+
 export const minerals: TopicDefinition = {
   id: 'minerals',
   title: { zh: '各國關鍵礦產', en: 'Critical minerals by country' },
@@ -131,10 +179,16 @@ export const minerals: TopicDefinition = {
       url: 'https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37',
       license: 'Etalab 2.0',
     },
+    {
+      name: { zh: 'U.S. Geological Survey, Mineral Resources Data System（MRDS，礦場與加工廠的位置）', en: 'U.S. Geological Survey, Mineral Resources Data System (MRDS; mine and plant locations)' },
+      url: 'https://mrdata.usgs.gov/mrds/',
+      license: { zh: '公有領域（美國政府著作）', en: 'public domain (U.S. Government work)' },
+    },
   ],
+  overlays: [MINES],
   note: {
-    zh: '每一年用最新一版 MCS 的數字（2024 年是 2026 版的修正值），2025 年是 USGS 的初估。USGS 只列出主要生產國，其餘併入「其他國家」，地圖上是灰色；占全球比例的分母是表上的世界總計（含其他國家）。W（為保護公司資料不公布）與 NA 當作缺值，美國的鋰、鋁土礦（與 2025 年的銻）是 W，世界總計也不含美國。USGS 從 2023 年版起不再公布各國的鍺產量，所以鍺只到 2020 年。黃金是礦場產量；鹽的產量各國的定義不同（岩鹽、海鹽、滷水），USGS 表上很多是估計值，沒有蘊藏量。台灣不是這些礦產的生產國，USGS 的表上沒有台灣（台灣的曬鹽 2002 年停止），所需的礦產原料幾乎全部仰賴進口。貿易流向（稀土金屬與化合物、永久磁鐵、鈾，2000–2024 年）用 CEPII BACI 的 HS 1992 版：台灣沒有自己的申報，數字來自貿易夥伴（BACI 的「Other Asia, nes」）；中國大陸 2025 年 4 月起管制中重稀土與磁鐵的出口，BACI 2027 年才會有 2025 年。鈾的產量（OECD NEA 與 IAEA 的《Uranium》紅皮書）授權還沒確認，先只畫貿易；濃縮鈾（核燃料）不在這裡。',
-    en: 'Each year uses the latest edition of the MCS (2024 figures are the revised ones from the 2026 edition); 2025 is a preliminary USGS estimate. USGS lists only the main producers and groups the rest as "Other countries", shown in grey; shares of world output use the world total in the table, which includes other countries. W (withheld to protect company data) and NA are treated as missing; US lithium and bauxite (and antimony in 2025) are W, and the world totals exclude US output. Germanium data end in 2020 because USGS stopped publishing country-level output from its 2023 edition. Gold is mine production; salt output is defined differently from country to country (rock salt, solar salt, brine), many USGS figures are estimates, and there are no reserves figures. Taiwan does not produce any of these minerals and does not appear in the USGS tables (its solar salt works closed in 2002); it relies almost entirely on imports. Trade flows (rare-earth metals and compounds, permanent magnets and uranium, 2000–2024) come from the HS 1992 edition of CEPII BACI: Taiwan does not report its own trade, so its figures come from its partners (BACI’s “Other Asia, nes”). Mainland China has restricted exports of medium and heavy rare earths and magnets since April 2025, which BACI will cover only from 2027. Uranium production (the OECD NEA–IAEA “Red Book”) awaits a licence check, so only trade is shown; enriched uranium (nuclear fuel) is not included.',
+    zh: '每一年用最新一版 MCS 的數字（2024 年是 2026 版的修正值），2025 年是 USGS 的初估。USGS 只列出主要生產國，其餘併入「其他國家」，地圖上是灰色；占全球比例的分母是表上的世界總計（含其他國家）。W（為保護公司資料不公布）與 NA 當作缺值，美國的鋰、鋁土礦（與 2025 年的銻）是 W，世界總計也不含美國。USGS 從 2023 年版起不再公布各國的鍺產量，所以鍺只到 2020 年。黃金是礦場產量；鹽的產量各國的定義不同（岩鹽、海鹽、滷水），USGS 表上很多是估計值，沒有蘊藏量。台灣不是這些礦產的生產國，USGS 的表上沒有台灣（台灣的曬鹽 2002 年停止），所需的礦產原料幾乎全部仰賴進口。貿易流向（稀土金屬與化合物、永久磁鐵、鈾，2000–2024 年）用 CEPII BACI 的 HS 1992 版：台灣沒有自己的申報，數字來自貿易夥伴（BACI 的「Other Asia, nes」）；中國大陸 2025 年 4 月起管制中重稀土與磁鐵的出口，BACI 2027 年才會有 2025 年。鈾的產量（OECD NEA 與 IAEA 的《Uranium》紅皮書）授權還沒確認，先只畫貿易；濃縮鈾（核燃料）不在這裡。礦場與加工廠的點（圖層開關裡打開）是 USGS 的 Mineral Resources Data System：只收生產中、曾生產與加工廠，不含煤（見「石油、天然氣與煤」）、砂石與石材；2011 年起 USGS 不再有系統地更新，「生產中」是當時的紀錄（金瓜石 1987 年就停了），而且八成在美國，點的多寡也在量建檔完不完整，所以不算各國的礦場數。台灣有 24 筆，包括金瓜石、豐田的滑石與石棉、基隆的煉銅廠。',
+    en: 'Each year uses the latest edition of the MCS (2024 figures are the revised ones from the 2026 edition); 2025 is a preliminary USGS estimate. USGS lists only the main producers and groups the rest as "Other countries", shown in grey; shares of world output use the world total in the table, which includes other countries. W (withheld to protect company data) and NA are treated as missing; US lithium and bauxite (and antimony in 2025) are W, and the world totals exclude US output. Germanium data end in 2020 because USGS stopped publishing country-level output from its 2023 edition. Gold is mine production; salt output is defined differently from country to country (rock salt, solar salt, brine), many USGS figures are estimates, and there are no reserves figures. Taiwan does not produce any of these minerals and does not appear in the USGS tables (its solar salt works closed in 2002); it relies almost entirely on imports. Trade flows (rare-earth metals and compounds, permanent magnets and uranium, 2000–2024) come from the HS 1992 edition of CEPII BACI: Taiwan does not report its own trade, so its figures come from its partners (BACI’s “Other Asia, nes”). Mainland China has restricted exports of medium and heavy rare earths and magnets since April 2025, which BACI will cover only from 2027. Uranium production (the OECD NEA–IAEA “Red Book”) awaits a licence check, so only trade is shown; enriched uranium (nuclear fuel) is not included. The mine and plant dots (switch them on under Layers) come from the USGS Mineral Resources Data System, keeping producers, past producers and processing plants and leaving out coal (see Oil, gas and coal), sand, gravel and stone. USGS stopped systematic updates in 2011, so “producer” describes the record at the time (Taiwan’s Jinguashi closed in 1987), and over 80% of the records are in the US, so the number of dots also reflects how complete the records are and no per-country count is given. Taiwan has 24, including Jinguashi, the Fengtian talc and asbestos mine and the Keelung copper refinery.',
   },
   // tooltip 與側欄的數值卡片取代「無資料」，要短；完整的說明在側欄的「主要生產的礦產」與頁尾
   noValue: {
@@ -151,8 +205,8 @@ export const minerals: TopicDefinition = {
       'production',
       { zh: '產量', en: 'Production' },
       {
-        zh: '一年的礦場產量（公噸），圓的面積與產量成正比。多數礦種是金屬含量（黃金是金含量），稀土是稀土氧化物（REO）當量，石墨與鋁土礦是礦石重量，鹽是各種鹽（岩鹽、海鹽、滷水、真空鹽）合計，鎵是初級（低純度）產量，鍺是精煉產量（只到 2020 年）。2025 年是 USGS 的初估。',
-        en: 'Mine production in a year (tonnes); circle area is proportional to output. Most minerals are metal content (gold is gold content), rare earths are rare-earth-oxide (REO) equivalent, graphite and bauxite are ore weight, salt is all types combined (rock salt, solar salt, brine and vacuum-pan salt), gallium is primary (low-purity) output and germanium is refinery output (to 2020 only). 2025 figures are preliminary USGS estimates.',
+        zh: '一年的礦場產量（公噸），圓的面積與產量成正比。多數礦種是金屬含量（黃金是金含量），稀土是稀土氧化物（REO）當量，石墨與鋁土礦是礦石重量，鹽是各種鹽（岩鹽、海鹽、滷水、真空鹽）合計，鎵是初級（低純度）產量，鍺是精煉產量（只到 2020 年）。「精煉與冶煉」那一組是加工廠的產量：精煉銅是精煉金屬（2019 年起），原鋁是冶煉廠的產量，原料多半進口，跟礦場在不同的國家（日本、南韓、德國沒有銅礦卻精煉六十萬到一百五十萬公噸）。2025 年是 USGS 的初估。',
+        en: 'Mine production in a year (tonnes); circle area is proportional to output. Most minerals are metal content (gold is gold content), rare earths are rare-earth-oxide (REO) equivalent, graphite and bauxite are ore weight, salt is all types combined (rock salt, solar salt, brine and vacuum-pan salt), gallium is primary (low-purity) output and germanium is refinery output (to 2020 only). The “Refining and smelting” group is plant output rather than mining: refined copper is refined metal (from 2019) and primary aluminium is smelter output; their feedstock is largely imported and they sit in different countries from the mines (Japan, South Korea and Germany mine no copper but refine 0.6–1.5 million tonnes). 2025 figures are preliminary USGS estimates.',
       },
     ),
     share(
@@ -179,6 +233,34 @@ export const minerals: TopicDefinition = {
         en: "The country's reserves as a share of the world total. Where USGS gives the world total only as a lower bound (\">\"), the larger of that bound and the sum of listed countries is used, so shares may be overstated.",
       },
     ),
+    {
+      id: 'refining-ratio',
+      label: { zh: '銅的精煉÷開採比', en: 'Copper refining-to-mining ratio' },
+      description: {
+        zh: '精煉銅產量除以銅礦產量（含銅量）：大於 1 是精煉得比自己挖的多（原料進口），小於 1 是挖出來的礦多半出口去別國精煉。2024 年中國 6.7 倍（礦 184 萬公噸、精煉 1,240 萬公噸），智利 0.35 倍（礦 551 萬、精煉 194 萬），秘魯 0.14 倍；世界 1.2 倍（精煉也用回收的廢銅）。日本、南韓、德國沒有銅礦，精煉的原料全部進口，地圖上是灰色。口徑不同：礦產量是精礦裡的含銅量，精煉是精煉金屬。',
+        en: 'Refined copper output divided by mine output (copper content): above 1 means a country refines more than it mines (importing feed); below 1 means most of its ore is exported to be refined elsewhere. In 2024 China was 6.7 (1.84 million tonnes mined, 12.4 million refined), Chile 0.35 (5.51 million mined, 1.94 million refined) and Peru 0.14; the world 1.2 (refining also uses scrap). Japan, South Korea and Germany have no copper mines and import all their feed, so they are grey. The measures differ: mine output is copper content in concentrate, refinery output is refined metal.',
+      },
+      unit: { zh: '倍', en: '×' },
+      file: 'refining-ratio.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [0.25, 0.5, 0.8, 1.25, 2, 4], reverse: true } },
+      format: (v) => tr({ zh: `${fixed(v, v < 1 ? 2 : 1)} 倍`, en: `${fixed(v, v < 1 ? 2 : 1)}×` }),
+      formatTick: (v) => fixed(v, v < 1 ? 2 : 0),
+      compareWorld: true,
+    },
+    {
+      id: 'aluminum-capacity',
+      label: { zh: '原鋁冶煉產能', en: 'Aluminium smelter capacity' },
+      description: {
+        zh: '原鋁冶煉廠的年底產能（公噸），跟實際的冶煉產量分開（礦種選「原鋁」看產量）。2025 年世界 7,970 萬公噸，中國 4,500 萬，其次是印度、俄羅斯、加拿大、阿聯。',
+        en: 'Year-end capacity of primary aluminium smelters (tonnes), separate from actual smelter output (choose “Primary aluminium” as the mineral for output). In 2025 world capacity was 79.7 million tonnes and China’s 45 million, followed by India, Russia, Canada and the UAE.',
+      },
+      unit: TONNES,
+      file: 'aluminum-capacity.json',
+      layer: { kind: 'bubble', legendValues: [1e6, 5e6, 2e7] },
+      format: tonnes,
+      formatTick: tonnesTick,
+      shareOfWorld: true,
+    },
     flow(
       'export',
       { zh: '出口（流向）', en: 'Exports (flows)' },

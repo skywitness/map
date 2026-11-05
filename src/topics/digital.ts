@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, IndicatorDef, Text, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, IndicatorDef, Text, TopicDefinition } from './types';
 
 const PER_100 = { zh: '門/百人', en: 'per 100 people' };
 
@@ -56,6 +56,17 @@ const GCI_TIERS: CategoryDef[] = [
   { value: 5, label: { zh: '第 5 級：起步（0–20 分）', en: 'Tier 5: Building (0–20)' } },
 ];
 
+/** 只用現金的子項目（pipeline/topics/digital_cash.py 的 CASH；網購貨到付現另外一個指標） */
+const CASH_USE: DimensionDef = {
+  label: { zh: '哪一件事', en: 'Which transaction' },
+  options: [
+    { id: 'utilities', label: { zh: '付水電費', en: 'Utility bills' } },
+    { id: 'wages', label: { zh: '領薪水', en: 'Wages' } },
+    { id: 'agriculture', label: { zh: '賣農產品收款', en: 'Farm sales' } },
+  ],
+  defaultOption: 'utilities',
+};
+
 export const digital: TopicDefinition = {
   id: 'digital',
   title: { zh: '各國網路與通訊普及', en: 'Internet and telecoms by country' },
@@ -97,9 +108,14 @@ export const digital: TopicDefinition = {
       license: ITU_NC,
     },
     {
-      name: { zh: 'World Bank：Global Findex Database 2025（數位支付、手機持有）', en: 'World Bank, Global Findex Database 2025 (digital payments, mobile phone ownership)' },
+      name: { zh: 'World Bank：Global Findex Database 2025（數位支付、手機持有、現金）', en: 'World Bank, Global Findex Database 2025 (digital payments, mobile phone ownership, cash use)' },
       url: 'https://www.worldbank.org/en/publication/globalfindex',
       license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '數位發展部 國內各場域行動支付滲透率（台灣的側欄）', en: 'Ministry of Digital Affairs (Taiwan), mobile payment use by venue (Taiwan panel)' },
+      url: 'https://data.gov.tw/dataset/128268',
+      license: OPEN_DATA_TW,
     },
     {
       name: {
@@ -110,6 +126,7 @@ export const digital: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
   ],
+  panelExtra: () => import('./panels/CashPanel'),
   note: {
     zh: '網路使用率、門號與寬頻的台灣不在 ITU 的資料庫中，改用數位發展部的調查與 NCC 的用戶數，定義與 ITU 大致相同，細節見台灣側欄的附註；ITU DataHub（4G／5G、國際頻寬、家戶）有台灣，家戶上網率仍用數位部的值，家戶電腦擁有率用主計總處家庭收支調查的值（ITU 與數位部的寫附註）。4G／5G、國際頻寬、家戶、資安指數是 ITU 的資料，只准非商業使用（CC BY-NC-SA 3.0 IGO），這幾個資料檔也用同一種授權。數位支付、手機持有是 15 歲以上的調查，各國用自己最新的一年。固網與行動網路的速度見「網路速度」主題，GitHub 上的開發者見「開發者與開源」主題。',
     en: "For internet use, subscriptions and broadband, Taiwan is not in the ITU database, so the Ministry of Digital Affairs survey and NCC subscription counts are used instead; their definitions are broadly the same as the ITU's (see the note in Taiwan's panel). ITU DataHub (4G/5G, bandwidth, households) does include Taiwan, but household internet access still uses the ministry's figure and household computer ownership the DGBAS Survey of Family Income and Expenditure, with the other figures in the note. The coverage, bandwidth, household and cybersecurity indicators are ITU data licensed for non-commercial use only (CC BY-NC-SA 3.0 IGO), and their data files are shared under the same licence. Digital payments and phone ownership come from surveys of people aged 15 and over, using each country's latest year. For fixed and mobile connection speeds, see the Internet speed topic; for developers on GitHub, the Developers topic.",
@@ -258,6 +275,40 @@ export const digital: TopicDefinition = {
         en: 'Share of people aged 15 and over whose main mobile phone is a smartphone (World Bank Global Findex 2025; 2024 only); Taiwan 89.2%.',
       },
       [25, 50, 70, 85, 95],
+    ),
+    // 2026-11-05（製作手冊第二十二批 381）：離不開現金的人，Findex 2025 的現金題組；側欄 CashPanel
+    {
+      ...percent(
+        'cash-only',
+        { zh: '只用現金', en: 'Paid only in cash' },
+        {
+          zh: '15 歲以上過去一年只用現金做這件事的人占全部成年人的比例，選上方的「哪一件事」切換（世界銀行 Global Findex 2025，各國用 2021–2024 年最新的一年）。付水電費只用現金：阿爾巴尼亞 65.2%、菲律賓 62.5%、柬埔寨 59.6%、印尼 54.9% 最高，肯亞只有 1.4%、蒙古 2.2%、馬拉威 3.0%（行動支付普及的非洲國家反而最低，肯亞是因為 M-Pesa 手機錢包）。領薪水只領現金：埃及 26.5%、尼加拉瓜 24.7%，克羅埃西亞 0.7%。分母是全部成年人，不是有付水電費或有領薪水的人。Findex 以中低所得國家為主，高所得國家多半沒有問這幾題；台灣的現金題組是空的，點台灣看數位部的各場域行動支付滲透率。',
+          en: 'Share of all adults (15+) who did this only in cash in the past year; switch with “Which transaction” above (World Bank Global Findex 2025, each country’s latest year in 2021–2024). Utility bills paid only in cash: Albania 65.2%, the Philippines 62.5%, Cambodia 59.6% and Indonesia 54.9% are highest; Kenya only 1.4%, Mongolia 2.2%, Malawi 3.0% (African countries with widespread mobile money are lowest; in Kenya that means M-Pesa). Wages received only in cash: Egypt 26.5%, Nicaragua 24.7%; Croatia 0.7%. The denominator is all adults, not just those who paid bills or received wages. Findex focuses on low and middle-income economies, and most high-income countries were not asked these questions; Taiwan’s cash questions are blank, so click Taiwan for the Ministry of Digital Affairs survey of mobile payment use by venue.',
+        },
+        [2, 5, 10, 20, 35, 50],
+      ),
+      file: 'cash/{item}.json',
+      dimension: CASH_USE,
+    },
+    percent(
+      'cash-on-delivery',
+      { zh: '網購貨到付現的人', en: 'Cash on delivery for online purchases' },
+      {
+        zh: '15 歲以上過去一年網購時貨到用現金付款的比例（世界銀行 Global Findex，2021 年起）。菲律賓 21.6%、印尼 20.3%、泰國 19.0%、波士尼亞 18.8% 最高；衣索比亞 0.1%、坦尚尼亞 0.7%（很少人網購）。',
+        en: 'Share of people aged 15 and over who paid cash on delivery for an online purchase in the past year (World Bank Global Findex, from 2021). The Philippines 21.6%, Indonesia 20.3%, Thailand 19.0% and Bosnia and Herzegovina 18.8% are highest; Ethiopia 0.1% and Tanzania 0.7% (few people shop online).',
+      },
+      [2, 5, 10, 15, 20],
+      { file: 'cash/cod.json' },
+    ),
+    percent(
+      'cash-habit',
+      { zh: '習慣付現金的人', en: 'Pay cash out of habit' },
+      {
+        zh: '15 歲以上在店裡付現金、主要原因是「習慣付現金」的比例（世界銀行 Global Findex 2025 新增的題目，只有 2024 年）。斯里蘭卡 56.4%、印度 55.9%、加彭 50.7%、坦尚尼亞 50.5% 最高；波蘭只有 5.5%、蒙古 2.2%。另外四個原因（商家只收現金、用卡或手機比較貴、不信任卡或手機付款、其他）在側欄；「商家只收現金」孟加拉 22.8%、塞內加爾 17.2% 最高。',
+        en: 'Share of people aged 15 and over who paid cash in shops mainly because they are used to paying in cash (a new question in the World Bank Global Findex 2025; 2024 only). Sri Lanka 56.4%, India 55.9%, Gabon 50.7% and Tanzania 50.5% are highest; Poland only 5.5% and Mongolia 2.2%. The other four reasons (the merchant only accepts cash, cards or phones cost more, distrust of card or phone payments, other) are in the side panel; “merchant only accepts cash” is highest in Bangladesh (22.8%) and Senegal (17.2%).',
+      },
+      [10, 20, 30, 40, 50],
+      { file: 'cash-reason/habit.json' },
     ),
     {
       id: 'cybersecurity',

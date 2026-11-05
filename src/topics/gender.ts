@@ -62,6 +62,11 @@ export const gender: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/7563',
       license: GOV,
     },
+    {
+      name: 'Coppedge, Michael, John Gerring, Carl Henrik Knutsen, Staffan I. Lindberg, Jan Teorell, David Altman, et al. 2026. "V-Dem Country-Year Dataset v16". Varieties of Democracy (V-Dem) Project',
+      url: 'https://doi.org/10.23696/vdemds26',
+      license: { zh: 'CC BY-SA 4.0（女性政治賦權指數；衍生的資料檔也用 CC BY-SA 4.0）', en: 'CC BY-SA 4.0 (women’s political empowerment index; derived data files are shared under CC BY-SA 4.0 too)' },
+    },
   ],
   note: {
     zh:
@@ -114,6 +119,21 @@ export const gender: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 25, 30, 40, 50] } },
       format: pct,
       formatTick: (v) => `${fixed(v, 0)}%`,
+      compareWorld: true,
+    },
+    {
+      // 2026-11-05（製作手冊第二十二批 378）：V-Dem 的女性政治賦權指數，側欄畫三個子指數
+      id: 'women-political-empowerment',
+      label: { zh: '女性政治賦權指數', en: 'Women’s political empowerment index' },
+      description: {
+        zh: 'V-Dem 的指數，同等權重合成三個子指數：女性的公民自由（國內遷徙、財產權、不受強迫勞動、訴諸司法）、女性的公民社會參與（公開討論政治、參加公民團體、女性記者）與女性的政治參與（國會女性比例、權力分配）。0–1，越高越好（跟 GII 相反）。量的是政治上的權力與自由，不是健康、教育或勞動的結果；時間軸從 1900 年起，看得到女性參政權怎麼擴散。2025 年丹麥 0.95、比利時 0.95、拉脫維亞 0.95 最高，阿富汗 0.03、厄利垂亞 0.15、葉門 0.16 最低；台灣 0.90。',
+        en: 'V-Dem index combining three equally weighted sub-indices: women’s civil liberties (freedom of movement, property rights, freedom from forced labour, access to justice), women’s civil society participation (open discussion of politics, civil society organisations, women journalists) and women’s political participation (share of seats in the legislature, distribution of power). 0–1, higher is better (the opposite of the GII). It measures political power and freedom, not outcomes in health, education or work; the timeline goes back to 1900 and shows women’s suffrage spreading. In 2025 Denmark, Belgium and Latvia (0.95) were highest and Afghanistan (0.03), Eritrea (0.15) and Yemen (0.16) lowest; Taiwan 0.90.',
+      },
+      unit: '0–1',
+      file: 'women-political-empowerment.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.4, 0.5, 0.6, 0.7, 0.8, 0.9] } },
+      format: (v) => fixed(v, 2),
+      formatTick: (v) => fixed(v, 1),
       compareWorld: true,
     },
     {

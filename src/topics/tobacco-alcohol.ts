@@ -1,5 +1,5 @@
 import { getLang, tr } from '../i18n/lang';
-import { fixed } from '../lib/format';
+import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
 
@@ -64,6 +64,11 @@ export const tobaccoAlcohol: TopicDefinition = {
   defaultIndicator: 'smoking',
   defaultYear: 2024,
   sources: [
+    {
+      name: { zh: 'FAOSTAT：Crops and livestock products（啤酒產量，Item 51；外部機構提供的數字不用）', en: 'FAOSTAT: Crops and livestock products (beer production, item 51; figures from external organisations not used)' },
+      url: 'https://www.fao.org/faostat/en/#data/QCL',
+      license: 'CC BY 4.0',
+    },
     {
       name: {
         zh: 'WHO 資料平臺 data.who.int：菸草使用率（M_Est_tob_curr_std）、人均飲酒量（SA_0000001688）',
@@ -199,6 +204,35 @@ export const tobaccoAlcohol: TopicDefinition = {
       defaultYear: 2026,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 3, 6, 10, 15, 20] } },
       format: (v) => tr({ zh: `每百萬人 ${fixed(v, 1)} 處`, en: `${fixed(v, 1)} per million` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      // 2026-11-05（製作手冊第二十二批 385）：FAOSTAT 的啤酒產量，Flag X（外部機構提供）不畫
+      id: 'beer-production',
+      label: { zh: '啤酒產量', en: 'Beer production' },
+      description: {
+        zh: '一年生產的大麥麥芽啤酒（公噸，約等於千公升；FAOSTAT）。FAO 很多國家的數字是外部機構提供的（2023 年 166 國裡 126 國），FAO 條款寫這類第三方資料要原提供者同意才能再散布，授權待確認，所以沒有用，地圖只畫官方申報與 FAO 自己估計的國家，美國、德國、台灣等近年都是灰色（滑過寫原因）。2023 年中國 3,641 萬公噸、巴西 1,789 萬、墨西哥 1,227 萬、日本 200 萬。拖時間軸回到早年，很多國家還是官方申報；台灣 1961 年 1 萬公噸。',
+        en: 'Malt beer produced in a year (tonnes, roughly thousand litres; FAOSTAT). For many countries FAO’s figures come from external organisations (126 of 166 in 2023), and FAO’s terms say such third-party data need the original provider’s consent to be redistributed; with the licence unconfirmed they are not used, so the map shows only countries with official or FAO-estimated figures, and the US, Germany, Taiwan and others are grey in recent years (hover for the reason). In 2023 China produced 36.4 million tonnes, Brazil 17.9 million, Mexico 12.3 million and Japan 2.0 million. Drag the timeline back and many more countries have official figures; Taiwan produced 10,000 tonnes in 1961.',
+      },
+      unit: { zh: '公噸', en: 'tonnes' },
+      file: 'beer-production.json',
+      defaultYear: 2023,
+      layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v)} 公噸`, en: `${formatLargeNumber(v)} t` }),
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'beer-per-capita',
+      label: { zh: '每人每年的啤酒產量', en: 'Beer production per person' },
+      description: {
+        zh: '啤酒產量換算成公升（密度 1.01）除以人口（聯合國 WPP）。這是產量不是喝了多少：出口多的國家會偏高，喝多少見「人均飲酒量」。2023 年奧地利 110 公升、墨西哥 94 公升、塞爾維亞 85 公升、巴西 84 公升。跟產量一樣，FAO 標成外部機構提供的數字沒有用。',
+        en: 'Beer production converted to litres (density 1.01) divided by population (UN WPP). This is production, not consumption: exporters score high; see alcohol consumption for drinking. In 2023 Austria produced 110 litres per person, Mexico 94, Serbia 85 and Brazil 84. As with production, figures FAO marks as supplied by external organisations are not used.',
+      },
+      unit: { zh: '公升', en: 'litres' },
+      file: 'beer-per-capita.json',
+      defaultYear: 2023,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 15, 30, 50, 70, 90] } },
+      format: (v) => tr({ zh: `每人 ${fixed(v, 1)} 公升`, en: `${fixed(v, 1)} litres per person` }),
       formatTick: (v) => `${v}`,
     },
   ],

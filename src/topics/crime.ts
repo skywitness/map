@@ -1,6 +1,8 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { withParts } from './parts';
+import { justiceStaffPart } from './justice-staff';
 
 const PER_100K = { zh: '人/十萬人', en: 'per 100,000 people' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
@@ -18,7 +20,7 @@ const tick = (v: number) => fixed(v, v % 1 === 0 ? 0 : 1);
  */
 const PRISON_COVERAGE = 'ALB AUS AUT BEL BGR BIH CAN CHE CYP CZE DEU DNK ESP EST FIN FRA GBR GRC HRV HUN IRL ISL ITA JPN LIE LTU LUX LVA MKD MLT MNE NLD NOR POL PRT ROU SRB SVK SVN SWE TUR TWN USA XKX';
 
-export const crime: TopicDefinition = {
+const crimeOwn: TopicDefinition = {
   id: 'crime',
   title: { zh: '各國治安與司法', en: 'Crime and justice by country' },
   shortTitle: { zh: '治安與司法', en: 'Crime' },
@@ -179,3 +181,6 @@ export const crime: TopicDefinition = {
     },
   ],
 };
+
+// 2026-11-05（第二十二批 390）：警察、法官與監所管理員（Eurostat crim_just_job），資料在 crime/staff/
+export const crime: TopicDefinition = withParts(crimeOwn, justiceStaffPart);

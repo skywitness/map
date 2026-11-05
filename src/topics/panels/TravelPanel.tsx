@@ -1,6 +1,6 @@
 import { defineMessages, tr, useLang } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { letters, TAIWAN_OFFSET, utcText, versusTaiwan } from '../travel';
+import { letters, TAIWAN_OFFSET, UNIT_INDICATORS, utcText, versusTaiwan } from '../travel';
 import type { PanelExtraProps } from '../types';
 
 /** details.json（pipeline/topics/travel.py）：每個國家的時區、行車方向、插頭、電壓與頻率 */
@@ -36,7 +36,13 @@ interface Formats {
   number?: [string, string, string];
   /** 語言名稱 [中文, 英文] */
   lang?: [string, string];
+  /** 單位的偏好（pipeline/topics/travel_units.py）：順序跟 travel.ts 的 UNIT_INDICATORS 一樣，1 是世界通用值 */
+  units?: number[];
 }
+
+/** details.json 的 addr、phone（pipeline/topics/travel_address_phone.py） */
+type Address = [order: number, example: string | null, postcode: number];
+type Phone = [countryCode: string, intl: string | null, national: string | null, mobile: number[]];
 
 type Day = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
 type Measure = 'metric' | 'US' | 'UK';
@@ -171,6 +177,21 @@ const TEXT = defineMessages({
     taiwanClock: '慣用 12 小時制（下午 3:00），日期寫 2026/3/28（年月日）。',
     taiwanNumbers: '1,234,567.89（小數點「.」）。',
     taiwanMeasure: '公制；影印紙是 A4。',
+    units: '單位怎麼說',
+    unitsSame: '都是世界通用的單位（公斤、公分、公里、攝氏、公里／小時、百帕、公升／100 公里、平方公尺），跟 CLDR 給台灣的一樣。',
+    unitsLine: (what: string, unit: string) => `${what}用${unit}`,
+    unitsRest: '其他是世界通用的單位。',
+    taiwanUnits: 'CLDR 給台灣世界通用的單位；日常還常用台斤（600 公克）與坪（約 3.3058 平方公尺）。',
+    addressPhone: '地址與電話',
+    addrBig: '地址從郵遞區號、縣市寫起，跟台灣一樣',
+    addrSmall: '地址從姓名、街道寫起，城市與郵遞區號在後（跟台灣相反）',
+    noPostcode: '沒有郵遞區號',
+    postcode: (ex: string) => `郵遞區號例：${ex}`,
+    phone: (cc: string, intl: string | null, national: string | null, mobile: string | null) =>
+      [`國碼 +${cc}`, intl ? `國際冠碼 ${intl}` : '國際冠碼依電信業者', national ? `國內冠碼 ${national}` : '沒有國內冠碼', mobile && `手機 ${mobile} 碼`]
+        .filter(Boolean)
+        .join('，'),
+    taiwanAddressPhone: '地址從郵遞區號、縣市寫起；郵遞區號 3+3 六碼。國碼 +886，國際冠碼 002、005、006、007、009、019，國內冠碼 0，手機 9 碼（加 0 是 09 開頭的 10 碼）。',
     taiwanCalendar: '西曆、民國紀年、農曆。',
     celsius: '攝氏',
     fahrenheit: '華氏',
@@ -235,6 +256,21 @@ const TEXT = defineMessages({
     taiwanClock: 'Usually the 12-hour clock (3:00 PM); dates are written 2026/3/28 (year-month-day).',
     taiwanNumbers: '1,234,567.89 (decimal point “.”).',
     taiwanMeasure: 'Metric; printer paper is A4.',
+    units: 'Units in use',
+    unitsSame: 'Worldwide default units throughout (kg, cm, km, °C, km/h, hPa, L/100 km, m²), as CLDR gives Taiwan.',
+    unitsLine: (what, unit) => `${what}: ${unit.charAt(0).toLowerCase()}${unit.slice(1)}`,
+    unitsRest: 'Otherwise the worldwide default units.',
+    taiwanUnits: 'CLDR gives Taiwan the worldwide default units; the catty (600 g) and ping (about 3.3058 m²) are still common in daily life.',
+    addressPhone: 'Addresses and phones',
+    addrBig: 'Addresses start with the postcode and region, like Taiwan',
+    addrSmall: 'Addresses start with the name and street, city and postcode last (the reverse of Taiwan)',
+    noPostcode: 'No postcodes',
+    postcode: (ex: string) => `Postcode e.g. ${ex}`,
+    phone: (cc: string, intl: string | null, national: string | null, mobile: string | null) =>
+      [`Country code +${cc}`, intl ? `international prefix ${intl}` : 'international prefix depends on the carrier', national ? `trunk prefix ${national}` : 'no trunk prefix', mobile && `mobiles ${mobile} digits`]
+        .filter(Boolean)
+        .join(', '),
+    taiwanAddressPhone: 'Addresses start with the postcode and region; postcodes are 3+3 digits. Country code +886, international prefixes 002, 005, 006, 007, 009, 019, trunk prefix 0, mobiles 9 digits (10 starting 09 with the 0).',
     taiwanCalendar: 'Gregorian, Minguo (ROC) era, Chinese lunisolar.',
     celsius: 'Celsius',
     fahrenheit: 'Fahrenheit',
@@ -303,6 +339,8 @@ export default function TravelPanel({ topic, iso3 }: PanelExtraProps) {
       [text.clockDate, [text.taiwanClock]],
       [text.numbers, [text.taiwanNumbers]],
       [text.measure, [text.taiwanMeasure]],
+      [text.units, [text.taiwanUnits]],
+      [text.addressPhone, [text.taiwanAddressPhone]],
       [text.calendar, [text.taiwanCalendar]],
     );
   } else if (f) {
@@ -329,6 +367,30 @@ export default function TravelPanel({ topic, iso3 }: PanelExtraProps) {
     if (temp && temp !== system) measure.push(text.temperature(temp === 'metric' ? text.celsius : text.fahrenheit));
     measure.push(f.paper === TAIWAN_FMT.paper ? text.paperA4 : text.paperLetter);
     rows.push([text.measure, measure]);
+
+    const addr = (d as { addr?: Address } | undefined)?.addr;
+    const phone = (d as { phone?: Phone } | undefined)?.phone;
+    if (addr || phone) {
+      const lines: string[] = [];
+      if (addr) {
+        lines.push(addr[0] === 1 ? text.addrBig : text.addrSmall);
+        lines.push(addr[2] === 1 ? text.noPostcode : addr[1] ? text.postcode(addr[1]) : '');
+      }
+      if (phone) {
+        const [cc, intl, national, mobile] = phone;
+        const len = mobile.length ? (mobile.length === 1 ? String(mobile[0]) : `${mobile[0]}–${mobile[mobile.length - 1]}`) : null;
+        lines.push(text.phone(cc, intl, national, len));
+      }
+      rows.push([text.addressPhone, lines.filter(Boolean)]);
+    }
+
+    if (f.units) {
+      const own = UNIT_INDICATORS.flatMap((u, i) => {
+        const v = f.units![i];
+        return v && v !== 1 ? [text.unitsLine(tr(u.short, lang), tr(u.categories.find((c) => c.value === v)?.label ?? '', lang))] : [];
+      });
+      rows.push([text.units, own.length ? [...own, text.unitsRest] : [text.unitsSame]]);
+    }
 
     const cals = calendarNames(f.calendar).map((n) => n[lang]);
     rows.push([text.calendar, [cals.length === 1 ? text.calendarOnly : text.calendarText(cals.join(tr(LIST_SEP, lang)))]]);

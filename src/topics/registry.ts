@@ -33,13 +33,14 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       // 夜間燈光 2026-11-03 從地理的「景點」搬過來（使用者要求）
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing', 'night-lights'] },
-      { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
       // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet'] },
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet', 'banknotes'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
+      // 2026-11-05 使用者要求每個小類各占一欄、教育放最右邊
+      { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
     ],
-    // 左：人口與家庭；中：教育、生活與文化；右：平等與法律（2026-11-03 使用者要求從左欄搬到右欄；原本右欄的獎項與運動搬到「休閒」）
-    columns: [1, 2, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求）：人口與家庭；生活與文化；平等與法律；教育
+    columns: [1, 1, 1, 1],
   },
   {
     // 2026-11-03（製作手冊第十九批，使用者選 A）：社會分類原本的「健康」那一組與血型搬過來，加上基因與藥物的主題
@@ -58,12 +59,12 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '經濟', en: 'Economy' },
     sections: [
       { label: { zh: '產業', en: 'Industries' }, topics: ['industry', 'agriculture', 'minerals'] },
-      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
       { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
       { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['prices', 'fiscal', 'reserves', 'stock-market'] },
+      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
     ],
-    // 左：產業、企業；中：所得與財富；右：財政與金融
-    columns: [2, 1, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求，企業放最右邊）：產業；所得與財富；財政與金融；企業
+    columns: [1, 1, 1, 1],
   },
   {
     id: 'global',
@@ -74,8 +75,8 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy'] },
       { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
     ],
-    // 左：往來；中：政治、外交；右：安全
-    columns: [1, 2, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求，外交在政治右邊、安全左邊）：往來；政治；外交；安全
+    columns: [1, 1, 1, 1],
   },
   {
     id: 'environment',
@@ -84,8 +85,10 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic'] },
-      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires'] },
+      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires', 'megafauna'] },
     ],
+    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染；土地與水
+    columns: [1, 1, 1],
   },
   {
     id: 'tech',
@@ -108,11 +111,11 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways'] },
       { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
-      { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
       { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'ride-hailing'] },
+      { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
     ],
-    // 左：鐵道；中：航空、水運；右：道路
-    columns: [1, 2, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求，水運放最右邊）：鐵道；航空；道路；水運
+    columns: [1, 1, 1, 1],
   },
   {
     id: 'geo',
@@ -135,8 +138,8 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）
       { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'gambling', 'holidays', 'travel-habits', 'time-use', 'culture'] },
     ],
-    // 左：景點；右：獎項與運動、日常休閒
-    columns: [1, 2],
+    // 左：景點；中：獎項與運動；右：日常休閒（2026-11-05 使用者要求分成三欄）
+    columns: [1, 1, 1],
   },
 ];
 
@@ -175,6 +178,10 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   education: () => import('./education'),
   pisa: () => import('./pisa'),
   diet: () => import('./diet'),
+  // 2026-11-05 第二十二批 397（加上候選 681）：鈔票上是誰、最大面額
+  banknotes: () => import('./banknotes'),
+  // 2026-11-05 第二十二批 398：大型哺乳類還剩下幾種（PHYLACINE）
+  megafauna: () => import('./megafauna'),
   housing: () => import('./housing'),
   religion: () => import('./religion'),
   inequality: () => import('./inequality'),

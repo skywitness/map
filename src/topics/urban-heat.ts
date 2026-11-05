@@ -78,6 +78,8 @@ export const urbanHeatPart: TopicPart = {
       kind: 'points',
       id: 'areas',
       file: 'uhi-areas.json',
+      // 併進「城市」後只畫在熱島的指標上（2026-11-05 起；沒限定時通勤、低排放區等指標也疊著這層）
+      indicators: ['uhi'],
       label: { zh: '城區（夏季白天的熱島）', en: 'Urban areas (summer daytime)' },
       radius: { field: 'area', stops: [[10, 1.6], [100, 2.8], [1000, 5.5], [10000, 11]] },
       color: UHI_COLORS,

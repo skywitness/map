@@ -1,8 +1,14 @@
-import { defineMessages, useLang, useT } from '../../i18n';
-import { useJson } from '../../lib/data';
+import { useMemo } from 'react';
+import { Chart } from '../../charts/Chart';
+import type { ChartSpec } from '../../charts/spec';
+import { latestIndexAtOrBefore } from '../../charts/stackedArea';
+import { timeSeriesOption } from '../../charts/timeSeries';
+import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
+import { useJson, useJsonMany } from '../../lib/data';
 import { fixed } from '../../lib/format';
+import type { Hue } from '../../theme/tokens';
 import { LEAVE_INDICATORS } from '../gender';
-import type { PanelExtraProps } from '../types';
+import type { IndicatorData, PanelExtraProps } from '../types';
 
 /** leave-detail.json（pipeline/topics/gender.py 的 build_leave()） */
 interface LeaveDetail {
@@ -39,7 +45,12 @@ const TEXT = defineMessages({
 
 const n = (v: number | null | undefined, digits = 0) => (v === null || v === undefined ? '—' : fixed(v, digits));
 
-export default function GenderPanel({ topic, indicator, iso3 }: PanelExtraProps) {
+export default function GenderPanel(props: PanelExtraProps) {
+  if (props.indicator.id === 'women-political-empowerment') return <Empowerment {...props} />;
+  return <Leave {...props} />;
+}
+
+function Leave({ topic, indicator, iso3 }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
@@ -64,6 +75,78 @@ export default function GenderPanel({ topic, indicator, iso3 }: PanelExtraProps)
           <p className="note">{text.note}</p>
         </>
       )}
+    </section>
+  );
+}
+
+/** V-Dem 女性政治賦權指數的三個子指數（pipeline/topics/gender_vdem.py 的 SUBINDICES，檔在 vdem/），線的顏色依類別色的順序 */
+const SUBINDICES: { id: string; label: Text; hue: Hue }[] = [
+  { id: 'civil-liberties', label: { zh: '公民自由', en: 'Civil liberties' }, hue: 'blue' },
+  { id: 'civil-society', label: { zh: '公民社會參與', en: 'Civil society participation' }, hue: 'orange' },
+  { id: 'political-participation', label: { zh: '政治參與', en: 'Political participation' }, hue: 'aqua' },
+];
+
+const EMPOWERMENT_TEXT = defineMessages({
+  zh: {
+    title: '三個子指數',
+    chartAria: (country: string) => `${country}歷年的女性公民自由、公民社會參與與政治參與指數`,
+    interval: (year: number, value: string, low: string, high: string) =>
+      `${year} 年的女性政治賦權指數 ${value}（68% 可信區間 ${low}–${high}）。`,
+    note: '總指數是三個子指數的平均（同等權重）。公民自由看國內遷徙、財產權、不受強迫勞動與訴諸司法；公民社會參與看公開討論政治、參加公民團體與女性記者；政治參與看國會女性比例與權力分配。',
+  },
+  en: {
+    title: 'The three sub-indices',
+    chartAria: (country) => `Women’s civil liberties, civil society participation and political participation indices in ${country} over time`,
+    interval: (year, value, low, high) => `Women’s political empowerment index in ${year}: ${value} (68% credible interval ${low}–${high}).`,
+    note: 'The overall index is the average of the three sub-indices (equal weights). Civil liberties covers freedom of movement, property rights, freedom from forced labour and access to justice; civil society participation covers open discussion of politics, civil society organisations and women journalists; political participation covers women’s share of legislative seats and the distribution of power.',
+  },
+});
+
+function Empowerment({ topic, indicator, iso3, year, countryName, tokens }: PanelExtraProps) {
+  const lang = useLang();
+  const text = EMPOWERMENT_TEXT[lang];
+  const files = useMemo(
+    () => [
+      ...SUBINDICES.map((d) => `topics/${topic.id}/vdem/${d.id}.json`),
+      `topics/${topic.id}/${indicator.id}.json`,
+      `topics/${topic.id}/intervals/${indicator.id}-low.json`,
+      `topics/${topic.id}/intervals/${indicator.id}-high.json`,
+    ],
+    [topic.id, indicator.id],
+  );
+  const loaded = useJsonMany<IndicatorData>(files);
+  const view = useMemo(() => {
+    const subs = loaded.slice(0, SUBINDICES.length);
+    if (!subs.every(Boolean)) return null;
+    const own = subs.map((d) => d!.values[iso3]);
+    if (!own.every(Boolean)) return null;
+    const years = subs[0]!.years;
+    const base = timeSeriesOption({
+      years,
+      lines: SUBINDICES.map((d, i) => ({ name: tr(d.label, lang), values: own[i]!, color: tokens.hues[d.hue] })),
+      year,
+      indicator,
+      tokens,
+    });
+    const option: ChartSpec = { ...base, y: { ...base.y, min: 0, max: 1 } };
+    const [main, low, high] = loaded.slice(SUBINDICES.length);
+    let interval: string | null = null;
+    const series = main?.values[iso3];
+    if (series && low && high) {
+      const at = latestIndexAtOrBefore(main!.years, year, (i) => series[i] != null);
+      const lo = low.values[iso3]?.[at];
+      const hi = high.values[iso3]?.[at];
+      if (at >= 0 && lo != null && hi != null) interval = text.interval(main!.years[at], fixed(series[at]!, 2), fixed(lo, 2), fixed(hi, 2));
+    }
+    return { option, interval };
+  }, [loaded, iso3, year, indicator, tokens, lang, text]);
+  if (!view) return null;
+  return (
+    <section className="panel-section">
+      <h3>{text.title}</h3>
+      {view.interval && <p>{view.interval}</p>}
+      <Chart spec={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
+      <p className="note">{text.note}</p>
     </section>
   );
 }

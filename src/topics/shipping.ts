@@ -2,6 +2,8 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { ferriesExtra } from './ferries';
+import { withParts } from './parts';
+import { shippingEfficiencyPart } from './shipping-efficiency';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
@@ -56,7 +58,7 @@ export function portName(p: PointRecord, lang: 'zh' | 'en'): string {
 }
 
 /** 港口、運河與海峽、航運咽喉畫在這些指標（渡輪航線不畫：點的顏色跟渡輪的線混在一起） */
-const POINT_INDICATORS = ['container', 'lsci', 'fleet-flag', 'fleet-owner', 'shipbuilding', 'traffic'];
+const POINT_INDICATORS = ['container', 'lsci', 'fleet-flag', 'fleet-owner', 'shipbuilding', 'traffic', 'chokepoint-transits'];
 
 const quarterText = (q: string) => {
   const [y, n] = [q.slice(0, 4), Number(q.slice(5))];
@@ -299,7 +301,7 @@ const FLEET_PIE = (
   ] as const
 ).map(([id, hue, label]) => ({ indicator: `fleet-${id}`, file: `fleet-type/${id}.json`, color: MAP_TOKENS.hues[hue], label }));
 
-export const shipping: TopicDefinition = {
+export const shipping: TopicDefinition = withParts({
   id: 'shipping',
   title: { zh: '航運與港口', en: 'Shipping and ports' },
   shortTitle: { zh: '航運', en: 'Shipping' },
@@ -357,6 +359,12 @@ export const shipping: TopicDefinition = {
     en: `Source: United Nations Trade and Development Data Hub (UNCTADstat). ${UNCTAD_NOTE.en} Port points are the US National Geospatial-Intelligence Agency’s World Port Index, with its size and type classes; the port liner shipping connectivity index (PLSCI) on the points is also UNCTAD’s (matched to the World Port Index by UN/LOCODE and name: about 780 of 900-odd container ports). The 2025 throughput of major container ports is each port’s own published figure (port authority, port company or government statistics, cited as facts); no proprietary rankings such as Lloyd’s List or Alphaliner are used. Shipping chokepoints are IMF PortWatch’s 28 canals and straits, with daily cargo ship transits (container ships, dry bulk carriers, general cargo ships, ro-ro ships and tankers) estimated from AIS positions (a ship is not counted twice within 48 hours, and transits are not weighted by ship size), summed here over a full year: in 2025 the Taiwan Strait led with 87,000, followed by the Strait of Malacca and the Korea Strait; the Suez Canal fell from 27,000 in 2023 to 14,000 (ships rerouted round the Cape of Good Hope after the Red Sea crisis, which rose from 18,000 to 33,000). Canal and strait dots are Wikidata items classed directly as canals or straits that have an English Wikipedia article (the world view shows only those with many articles; zoom in for all); Wikidata has a single point for each, so canals cannot be drawn as lines, and some items classed as canals are irrigation channels. Ferry routes are OpenStreetMap’s route=ferry, keeping only scheduled passenger services (no sightseeing boats or river ferries), with sailings from Taiwan’s Maritime and Port Bureau timetable for Taiwan; the ferry data files are a derived database of OSM, available under the ODbL. For trade flows between countries see the International trade flows topic; for railways and airports, Transport by country; for exclusive economic zones and fisheries, Oceans and fisheries.`,
   },
   panelExtra: () => import('./panels/ShippingPanel'),
+  // 運河與海峽每月通過的貨船（2026-11-05，製作手冊第二十三批 402）：左側欄的折線，只在這個指標
+  worldPanel: {
+    title: { zh: '運河與海峽每月通過的貨船', en: 'Monthly cargo ship transits through chokepoints' },
+    load: () => import('./panels/ChokepointsPanel'),
+    indicators: ['chokepoint-transits'],
+  },
   overlays: [PORTS, WATERWAYS, CHOKEPOINTS, CRUISE_PORTS, ...ferriesExtra.overlays],
   listPanel: [PORT_LIST, ferriesExtra.listPanel],
   indicators: [
@@ -450,6 +458,20 @@ export const shipping: TopicDefinition = {
     },
     ...ferriesExtra.indicators,
     {
+      id: 'chokepoint-transits',
+      label: { zh: '運河與海峽每月通過幾艘船', en: 'Monthly transits through canals and straits' },
+      description: {
+        zh: 'IMF PortWatch 用 AIS 推算的 28 個運河與海峽每個月通過的貨船與油輪，看左邊的折線（選一個咽喉），地圖上的點是最近一整年的通過數。蘇伊士運河 2023 年 26,895 艘，2023 年底紅海遇襲後船改繞好望角，2024 年剩 14,498 艘、2025 年 14,070 艘；巴拿馬運河 2023 年加通湖水位太低、減少預約艙位，從 2023 年 3 月 1,021 艘降到 2024 年 1、2 月各約 605 艘，2024 年底回到 972 艘。台灣海峽一年約 8.7 萬艘最多。運河管理局自己的統計不能轉載，跟這裡的數字也對不上（會計年度、船種不同）。國家沒有上色，排名表是貨櫃吞吐量。',
+        en: 'Monthly cargo ship and tanker transits through 28 canals and straits, estimated by IMF PortWatch from AIS: see the line chart on the left (pick a chokepoint); the dots on the map show the latest full year. The Suez Canal had 26,895 transits in 2023; after attacks in the Red Sea in late 2023 ships diverted round the Cape of Good Hope, leaving 14,498 in 2024 and 14,070 in 2025. Low water in Gatun Lake cut Panama Canal bookings in 2023, from 1,021 transits in March 2023 to about 605 in each of January and February 2024, recovering to 972 by December 2024. The Taiwan Strait is the busiest at about 87,000 a year. The canal authorities’ own statistics may not be republished and differ from these (fiscal years and vessel types). Countries are not shaded; the ranking shows container throughput.',
+      },
+      unit: TEU,
+      file: 'container.json',
+      layer: { kind: 'none' },
+      format: (v) => tr({ zh: `貨櫃吞吐量 ${teu(v)}`, en: `Container throughput: ${teu(v)}` }),
+      formatTick: (v) => formatLargeNumber(v),
+      timeless: true,
+    },
+    {
       id: 'traffic',
       label: { zh: '航運密度', en: 'Ship traffic' },
       description: TRAFFIC_TEXT,
@@ -476,4 +498,4 @@ export const shipping: TopicDefinition = {
       },
     },
   ],
-};
+}, shippingEfficiencyPart);

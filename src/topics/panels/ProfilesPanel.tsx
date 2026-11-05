@@ -32,6 +32,11 @@ interface Head {
   p: [string | null, string | null, string | null][];
 }
 
+/** legislature.json：[議會名稱（英文）, 1 一院、2 兩院, 下議院席次, 上議院席次或 null] */
+interface LegislatureFile {
+  countries: Record<string, [string, number, number, number | null]>;
+}
+
 /** profiles.json 裡一個國家的小檔案；鍵很短是為了檔案小 */
 interface Profile {
   q?: string;
@@ -97,6 +102,12 @@ const TEXT = defineMessages({
     since: (date: string) => `${date}起`,
     government: '政體形式',
     currency: '貨幣',
+    currencyFormat: (lang: string, ex: string, symbols: string) => `依${lang}寫成 ${ex}；符號 ${symbols}`,
+    parliament: '國會',
+    chambers: (n: number): string => (n === 1 ? '一院制' : '兩院制'),
+    seats: (lower: number, upper: number | null) => (upper == null ? `${lower} 席` : `下議院 ${lower} 席、上議院 ${upper} 席`),
+    perSeat: (people: string) => `每席約代表 ${people}人`,
+    parliamentNote: '席次依英文維基百科的列表（2026 年 11 月），每席人口用聯合國 WPP 的 2026 年推估。',
     population: (year: number) => `人口（${year} 年推估）`,
     area: '陸地面積',
     areaYear: (year: number) => `${year} 年，不含內陸水域`,
@@ -106,6 +117,10 @@ const TEXT = defineMessages({
     tld: '網域',
     iso: 'ISO 3166-1 代碼',
     anthem: '國歌',
+    anthemTitle: (title: string) => `${title}：`,
+    anthemFacts: (adopted: string, length: string | null, lyricist: string, composer: string) =>
+      [`採用：${adopted}`, length && `長 ${length}`, lyricist && `作詞 ${lyricist}`, composer && `作曲 ${composer}`].filter(Boolean).join(' · '),
+    anthemLength: (s: number) => `${Math.floor(s / 60)} 分 ${s % 60} 秒`,
     inception: '成立時間',
     inceptionNote: '（Wikidata）',
     sovereign: (rel: string, sov: string) => `${rel}，主權屬於${sov}。`,
@@ -139,6 +154,13 @@ const TEXT = defineMessages({
     since: (date: string) => `since ${date}`,
     government: 'System of government',
     currency: 'Currency',
+    currencyFormat: (lang: string, ex: string, symbols: string) => `Written ${ex} in ${lang}; symbol ${symbols}`,
+    parliament: 'Parliament',
+    chambers: (n: number) => (n === 1 ? 'unicameral' : 'bicameral'),
+    seats: (lower: number, upper: number | null) =>
+      upper == null ? `${lower} seats` : `${lower} seats in the lower house, ${upper} in the upper`,
+    perSeat: (people: string) => `about ${people} people per seat`,
+    parliamentNote: ' Seats from the English Wikipedia list (November 2026); people per seat from the UN WPP 2026 projection.',
     population: (year: number) => `Population (${year} projection)`,
     area: 'Land area',
     areaYear: (year: number) => `${year}, excluding inland water`,
@@ -148,6 +170,10 @@ const TEXT = defineMessages({
     tld: 'Internet domain',
     iso: 'ISO 3166-1 codes',
     anthem: 'Anthem',
+    anthemTitle: (title: string) => `${title}: `,
+    anthemFacts: (adopted: string, length: string | null, lyricist: string, composer: string) =>
+      [`adopted ${adopted}`, length && `${length} long`, lyricist && `lyrics ${lyricist}`, composer && `music ${composer}`].filter(Boolean).join(' · '),
+    anthemLength: (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`,
     inception: 'Inception',
     inceptionNote: ' (Wikidata)',
     sovereign: (rel: string, sov: string) => `${rel}; sovereignty: ${sov}.`,
@@ -257,6 +283,14 @@ function ProfileHero({ status, flag }: { status: ReactNode[]; flag?: ReactNode }
   );
 }
 
+/** currency-format-detail.json：依哪一種語言、金額的寫法、各貨幣的 [代碼, 符號, 窄符號, 繁體中文名稱] */
+interface CurrencyFormat {
+  lang: [string, string];
+  pattern: string;
+  ex: string;
+  sym: [string, string, string | null, string | null][];
+}
+
 export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
@@ -265,6 +299,15 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const countries = useJson<CountryTable>('countries.json').data;
   const government = useJson<IndicatorData>(`topics/${topic.id}/government.json`).data;
   const neighbours = useJson<IndicatorData>(`topics/${topic.id}/neighbours.json`).data;
+  // 國會（2026-11-05）：議會名稱與席次（pipeline/topics/profiles_legislature.py 的 legislature.json）、每席人口
+  const legislature = useJson<LegislatureFile>(`topics/${topic.id}/legislature.json`).data;
+  const perSeat = useJson<IndicatorData>(`topics/${topic.id}/seat-population.json`).data;
+  // 金額怎麼寫（2026-11-05，第二十二批 392；pipeline/topics/profiles_currency.py）
+  const currencyFormat = useJson<Record<string, CurrencyFormat>>(`topics/${topic.id}/currency-format-detail.json`).data;
+  // 國歌的採用年份與長度（2026-11-05，第二十二批 394；英文維基，pipeline/topics/profiles_anthems.py）
+  const anthems = useJson<{ countries: Record<string, [string, string, number | null, string, string][]> }>(
+    `topics/${topic.id}/anthem-detail.json`,
+  ).data?.countries[iso3];
   const flagEntry = useFlags()?.units[iso3];
   if (!data || loading) return <p className="empty">{t.loading}</p>;
   const p: Profile | undefined = part ?? undefined;
@@ -327,7 +370,34 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
       const n = pick([zh, en], lang)?.text;
       return code ? `${n ?? code}${text.paren(code)}` : (n ?? '');
     };
-    rows.push([text.currency, text.list(p.cur.map(currency))]);
+    const fmt = currencyFormat?.[iso3];
+    rows.push([
+      text.currency,
+      <>
+        {text.list(p.cur.map(currency))}
+        {fmt && (
+          <span className="profile-sub">
+            {text.currencyFormat(fmt.lang[lang === 'zh' ? 0 : 1], fmt.ex, text.list(fmt.sym.map(([, symbol]) => symbol)))}
+          </span>
+        )}
+      </>,
+    ]);
+  }
+  const leg = legislature?.countries[iso3];
+  if (leg) {
+    const [legName, kind, lower, upper] = leg;
+    const people = perSeat?.values[iso3]?.[0];
+    rows.push([
+      text.parliament,
+      <>
+        {legName}
+        <span className="profile-muted">{text.paren(text.chambers(kind))}</span>
+        <span className="profile-sub">
+          {text.seats(lower, upper)}
+          {people != null && text.paren(text.perSeat(formatLargeNumber(people)))}
+        </span>
+      </>,
+    ]);
   }
   // 10 萬人以下寫完整的數字（格陵蘭 55,629 人，不寫「6 萬」）
   if (p.pop) rows.push([text.population(data.popYear), p.pop < 1e5 ? fixed(p.pop, 0) : formatLargeNumber(p.pop)]);
@@ -362,6 +432,12 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
         {p.anthem.map((a, i) => (
           <span key={i} className="profile-person">
             <NameText name={a} lang={lang} />
+          </span>
+        ))}
+        {anthems?.map(([title, adopted, seconds, lyricist, composer], i) => (
+          <span key={`w${i}`} className="profile-sub">
+            {anthems.length > 1 && text.anthemTitle(title)}
+            {text.anthemFacts(adopted, seconds == null ? null : text.anthemLength(seconds), lyricist, composer)}
           </span>
         ))}
       </>,
@@ -431,6 +507,7 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
       <p className="note">
         {text.dataDate(dateText(data.date, lang))}
         {text.dataNote}
+        {leg && text.parliamentNote}
       </p>
     </section>
   );

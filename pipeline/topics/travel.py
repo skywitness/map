@@ -21,7 +21,7 @@ import pycountry
 
 from common import OUT_DIR, download, indicator_file, now_iso, write_json
 from sources import cldr, iana_tz, wiki_mains, wikidata_driving
-from topics import travel_emergency
+from topics import travel_address_phone, travel_emergency, travel_units
 from sources.countries import NAME_ALIASES
 
 OUT = OUT_DIR / "topics" / "travel"
@@ -505,6 +505,8 @@ def build() -> None:
     for iso3, d in formats.items():
         details.setdefault(iso3, {})["fmt"] = d
     travel_emergency.write(map_ids, details)  # 緊急電話（第二十批 304），也寫 details 的 sos
+    travel_units.write(map_ids, countries, details)  # 單位的偏好（第二十二批 391），也寫 details 的 fmt.units
+    travel_address_phone.write(map_ids, countries, details)  # 地址與電話（候選 679、680），也寫 details 的 addr、phone
     capital_names = {k: v[0] for k, v in capitals.items()}
     for iso3 in details:
         if iso3 in capital_names:

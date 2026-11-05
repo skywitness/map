@@ -44,6 +44,10 @@ STEPS = {
     "planted-forests": "topics.planted_forests",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
+    # 化肥的產量與自給率（第二十二批 384）：FAOSTAT 的 Fertilizers by Nutrient，Flag X 不用
+    "industry-fertilizer": "topics.industry_fertilizer",
+    # 企業的機器人使用率（第二十二批 386）：Eurostat isoc_eb_p3d
+    "industry-robots": "topics.industry_robots",
     # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
     "steel-cement": "topics.steel_cement",
     "ai": "topics.ai",
@@ -54,6 +58,8 @@ STEPS = {
     "climate-trace": "topics.climate_trace",
     "military": "topics.military",
     "digital": "topics.digital",
+    # 離不開現金的人（第二十二批 381）：Findex 2025 的現金題組，台灣側欄用數位部的各場域行動支付滲透率
+    "digital-cash": "topics.digital_cash",
     "health": "topics.health",
     "disease": "topics.disease",  # 第一次會向 WHO 查 24 年的死因資料（約 15 分鐘、40 MB）
     # WHO 的 WUENIC（xmart）、世界銀行、OWID 的 COVID-19 資料（約 180 MB）、The Economist 的超額死亡（約 11 MB）、
@@ -82,11 +88,15 @@ STEPS = {
     "trade-dependence": "topics.trade_dependence",
     # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
     "trade-goods": "topics.trade_goods",
+    # 工業機器人（HS 847950）的流向（第二十二批 386）：只讀 BACI HS17
+    "trade-robots": "topics.trade_robots",
     "trade-medicinal-plants": "topics.trade_medicinal_plants",  # 只更新藥用植物（HS 1211，BACI HS92 約 2.4 GB，幾分鐘）
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",
     "services-trade": "topics.services_trade",  # 服務出口的組成（WDI、央行國際收支），輸出到 topics/trade/
     "language": "topics.language",
+    # 官方語言有幾種（第二十二批 393）：CLDR territoryInfo 與 Wikidata P37（經 QLever；query.wikidata.org 的 /sparql robots 不允許）
+    "language-official": "topics.language_official",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "ruggedness": "topics.ruggedness",  # Nunn & Puga 的地形崎嶇指數（Harvard Dataverse，CC0）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）
@@ -105,6 +115,8 @@ STEPS = {
     "wages": "topics.wages",
     "annual-leave": "topics.annual_leave",  # 法定最低年假（英文維基，CC BY-SA 4.0；台灣依勞基法第 38 條）
     "fiscal": "topics.fiscal",
+    # 政府的利息負擔（第二十二批 380）：WDI 的利息占收入、占支出，台灣用財政部的各級政府債務支出
+    "fiscal-interest": "topics.fiscal_interest",
     # 物價與財政的擴充：政府支出的用途（IMF COFOG）、稅收的組成（OECD）、公共債務兩百年（IMF HPD）
     "fiscal-structure": "topics.fiscal_structure",
     # OECD 的公司稅、個人所得稅最高稅率、勞動稅負（SDMX，約 16 MB）；VAT 與台灣的稅率寫在 sources/oecd_tax.py、tw_tax_law.py
@@ -113,6 +125,8 @@ STEPS = {
     # 約 72 MB，公用伺服器忙的時候要兩三個小時）
     "chain-stores": "topics.chain_stores",
     "innovation": "topics.innovation",
+    # 專利的技術領域與受理局（WIPO 批次檔）、創業投資（OECD）：第二十二批 383
+    "innovation-fields": "topics.innovation_fields",
     "wealth": "topics.wealth",
     "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
     # 暖化（近 10 年平均與 1951–1980 年的差）的網格圖磚（不進版本控制，部署時產生）
@@ -130,6 +144,10 @@ STEPS = {
     "air-quality": "topics.air_quality",
     "air-quality-no2": "topics.air_quality_no2",  # 二氧化氮衛星影像的時間軸與台灣附註（環境部空氣品質監測月值，第十七批 282）
     "water-forest": "topics.water_forest",
+    # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
+    "water-use": "topics.water_use",
+    # 都市汙水處理與汙水處理廠（第二十二批 388）：Eurostat、AQUASTAT、OSM（QLever，一支查詢約 2 分鐘）、國土管理署
+    "water-wastewater": "topics.water_wastewater",
     # 缺水壓力的推估（水資源與森林主題）：WRI Aqueduct 4.0 的各國排名（約 13 MB）；幾秒
     "aqueduct": "topics.aqueduct",
     "ev": "topics.ev",
@@ -138,6 +156,52 @@ STEPS = {
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "landslides": "topics.landslides",  # NASA 全球山崩目錄（GLC），分 8 頁下載
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
+    # V-Dem 的其他指數（第二十二批 377、378，共用 democracy 的下載與國家對照）：政府治理的行政權制衡、性別平等的女性政治賦權
+    "governance-vdem": "topics.governance_vdem",
+    "gender-vdem": "topics.gender_vdem",
+    # 國家小檔案的國會幾院（V-Dem）、席次與每席人口（英文維基固定版本，要先有 population 的 total.json）
+    "profiles-legislature": "topics.profiles_legislature",
+    # 國家小檔案的貨幣怎麼寫（第二十二批 392）：CLDR 49 的貨幣格式與符號，讀現有的 profiles/<ISO3>.json 的貨幣代碼
+    "profiles-currency": "topics.profiles_currency",
+    # 國歌哪一年採用、唱多久（第二十二批 394）：英文維基「List of national anthems」固定版本的網頁（CC BY-SA 4.0）
+    "profiles-anthems": "topics.profiles_anthems",
+    # 付現金時湊整到多少（第二十二批 395）：英文維基「Cash rounding」固定版本的網頁，散文逐國整理（CC BY-SA 4.0），輸出 fiscal/
+    "prices-cash-rounding": "topics.prices_cash_rounding",
+    # 鈔票上是誰（第二十二批 397）：英文維基「List of people on banknotes」固定版本的網頁（CC BY-SA 4.0），新主題 banknotes
+    "banknote-people": "topics.banknote_people",
+    # 最大面額的鈔票（候選 681）：約 166 篇英文維基貨幣條目的資訊框（每篇間隔 2 秒），世界銀行官方匯率換成美元
+    "banknote-largest": "topics.banknote_largest",
+    # 大型哺乳類還剩下幾種（第二十二批 398）：PHYLACINE 1.2（Zenodo，CC0），國界柵格化到 96.5 km 網格
+    "megafauna": "topics.megafauna",
+    # 跑道（第二十三批 399）：OurAirports 的 runways.csv、Factbook 2022 年版的鋪面機場、民航局的機場設施表，擴充機場與旅客
+    "airport-runways": "topics.airport_runways",
+    # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
+    "air-fleet": "topics.air_fleet",
+    # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
+    "shipping-efficiency": "topics.shipping_efficiency",
+    # 運河與海峽每月通過幾艘船（第二十三批 402）：IMF PortWatch 每天的通過數（用咽喉圖層的快取）加總成每個月
+    "chokepoints-monthly": "topics.chokepoints_monthly",
+    # 小客車的車齡（第二十三批 403）：Eurostat road_eqs_carage，輸出到 road-safety 的資料夾（汽機車主題）
+    "car-age": "topics.car_age",
+    # 全世界的礦場（第二十二批 382 的後半）：USGS MRDS（使用者用瀏覽器下載，map-plan 的 data/usgs-mrds/，先複製到 .cache/usgs-mrds/）
+    "minerals-mines": "topics.minerals_mines",
+    # 燃料稅占油價的比例（第二十三批 404）：Weekly Oil Bulletin 的含稅、未稅價（同電價與油價的 xlsx），輸出到 energy-prices
+    "fuel-tax": "topics.fuel_tax",
+    # 死亡車禍發生在哪一種道路（第二十三批 405）：Eurostat tran_sf_roadro 與 road_tf_vehmov，台灣用高速公路局的國道 30 日內死亡
+    "road-type": "topics.road_type",
+    # 服務區與休息區（第二十三批 406）：OSM highway=services、rest_area 經 QLever，台灣加高速公路局的國道服務區
+    "travel-rest-areas": "topics.travel_rest_areas",
+    # 歐洲鐵路（第二十三批 407）：RMMS 第 9 次報告的 xlsx（準點率、員工、市占）與 Eurostat 的單雙線、速度分級，臺鐵準點率放側欄
+    "rail-europe": "topics.rail_europe",
+    # 歐洲城市的通勤與市民對大眾運輸的評價（第二十三批 408）：Eurostat Urban Audit urb_ctran、urb_percep，城市位置用自行車主題的快取
+    "cities-transport": "topics.cities_transport",
+    # 大眾運輸的月票與計程車車資（第二十三批 409）：Eurostat Urban Audit TT1080V、TT1081V，分別輸出到地鐵與叫車服務的資料夾
+    "transit-fares": "topics.transit_fares",
+    # 城市的低排放區與塞車費（第二十三批 410）：QLever 查 OSM 的 boundary=low_emission_zone、英文維基 Congestion pricing 的固定版本、桃園市 CSV
+    "city-traffic": "topics.city_traffic",
+    # 河流與流域的內河航道（第二十三批 411）：CIA 世界概況 2022 版的 Waterways、Eurostat iww_if_infrastr、iww_go_atygo、GDW 的船閘
+    # （topics/waterways.py 是航運與港口的運河與海峽，由 shipping 步驟呼叫，跟這個無關）
+    "inland-waterways": "topics.inland_waterways",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
@@ -183,14 +247,20 @@ STEPS = {
     # 城市的都市化率（各國自己的定義，聯合國 WUP 2025 的 File 15），對照 GHS-WUP 的統一定義
     "urban-definitions": "topics.urban_definitions",
     "crime": "topics.crime",
+    # 警察、法官與監所管理員（第二十二批 390）：Eurostat crim_just_job（英國各地區、科索沃不收）
+    "crime-staff": "topics.crime_staff",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "breweries": "topics.breweries",  # 菸酒的啤酒廠：OSM craft=brewery（經 QLever，ODbL）與 Open Brewery DB（MIT）
+    # 啤酒產量（第二十二批 385）：FAOSTAT QCL Item 51，Flag X（外部機構提供）不畫，使用者決定
+    "beer-production": "topics.beer_production",
     "gambling": "topics.gambling",  # 博弈：賭場、彩券行、投注站（OSM 經 QLever，ODbL）
     "happiness": "topics.happiness",
     # 2026-11-04 主題盤點的擴3：留學生的流向（UIS），教育程度主題讀 ../student-mobility/
     "student-mobility": "topics.student_mobility",
     # 2026-11-04 主題盤點的擴4：都市垃圾（世界銀行 What a Waste 3.0，CC BY 4.0），廢棄物與回收主題讀 ../waste/
     "waste": "topics.waste",
+    # 都市垃圾的去處（第二十二批 389）：Eurostat env_wasmun（科索沃不收）、環境部、OSM 掩埋場（QLever），輸出 ../waste/
+    "waste-europe": "topics.waste_europe",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
     "road-safety": "topics.road_safety",  # WHO（RS_198、GSRRS 2023）與交通部統計查詢網
@@ -288,6 +358,10 @@ STEPS = {
     "house-prices": "topics.house_prices",
     "travel": "topics.travel",  # IANA 時區（tzdata 套件）、Wikidata、維基百科
     "travel-emergency": "topics.travel_emergency",  # 旅行實用的緊急電話（維基百科固定版本的網頁），補進現有的 details.json
+    "travel-units": "topics.travel_units",  # 旅行實用的單位偏好（第二十二批 391，CLDR units.xml），補進現有的 details.json
+    "travel-address-phone": "topics.travel_address_phone",  # 地址與電話的寫法（候選 679、680，Google libaddressinput、libphonenumber），補進 details.json
+    # 樓層怎麼數（第二十二批 396）：維基共享資源的地圖（本機 session 下載，map-plan 的 data/wikimedia/，先複製到 .cache/wikimedia/）
+    "travel-floors": "topics.travel_floors",
     "world-heritage": "topics.world_heritage",  # UNESCO DataHub（map-plan 的 data/unesco/）；中文名稱沿用現有的檔，不再查 Wikidata
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
     "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）

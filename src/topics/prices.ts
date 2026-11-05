@@ -1,3 +1,4 @@
+import { cashRoundingPart } from './cash-rounding';
 import { pricesPart } from './fiscal';
 import { hostOnly } from './merge';
 import { withParts } from './parts';
@@ -19,4 +20,6 @@ export const prices: TopicDefinition = withParts(
     indicators: [],
   }),
   pricesPart,
+  // 2026-11-05（第二十二批 395）：付現金時湊整到多少（英文維基「Cash rounding」），資料在 fiscal/
+  cashRoundingPart,
 );

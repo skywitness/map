@@ -12,6 +12,8 @@ import {
   type TopicDefinition,
 } from './types';
 import { withParts } from './parts';
+import { cityTrafficPart } from './cities-traffic';
+import { cityTransportPart } from './cities-transport';
 import { urbanHeatPart } from './urban-heat';
 
 /**
@@ -448,4 +450,4 @@ export const cities: TopicDefinition = withParts({
   listPanel: TOP_LIST,
   overlays: [EXTENT_LAYER, CITY_LAYER],
   indicators,
-}, urbanHeatPart);
+}, urbanHeatPart, cityTransportPart, cityTrafficPart);

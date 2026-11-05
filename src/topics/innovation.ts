@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
-import { fixed, formatLargeNumber, formatLargeTick, intlDollars } from '../lib/format';
-import type { TopicDefinition } from './types';
+import { fixed, formatLargeNumber, formatLargeTick, intlDollars, usd } from '../lib/format';
+import type { DimensionDef, TopicDefinition } from './types';
 
 const RESEARCHERS = { zh: '人/百萬人', en: 'per million people' };
 const PATENTS_PER_MILLION = { zh: '件/百萬人', en: 'per million people' };
@@ -14,6 +14,60 @@ const CT_CAVEAT = {
 };
 
 // 中文的 formatLargeNumber 萬位取整數（台灣 19,586 件會變成「2 萬」），一百萬件以下直接寫出件數，跟英文介面一樣
+/**
+ * WIPO 的 35 個技術領域（pipeline/topics/innovation_fields.py 的 FIELDS），依 WIPO 的五大類分組；中文是自己寫的繁體
+ * （WIPO 檔裡的 field_zh 是簡體）。2026-11-05，製作手冊第二十二批 383
+ */
+const ELECTRICAL = { zh: '電機工程', en: 'Electrical engineering' };
+const INSTRUMENTS = { zh: '儀器', en: 'Instruments' };
+const CHEMISTRY = { zh: '化學', en: 'Chemistry' };
+const MECHANICAL = { zh: '機械工程', en: 'Mechanical engineering' };
+const OTHER_FIELDS = { zh: '其他領域', en: 'Other fields' };
+export const PATENT_FIELDS = [
+  { id: 'electrical-machinery', label: { zh: '電機、電氣裝置與能源', en: 'Electrical machinery, apparatus, energy' }, group: ELECTRICAL },
+  { id: 'audio-visual', label: { zh: '影音技術', en: 'Audio-visual technology' }, group: ELECTRICAL },
+  { id: 'telecommunications', label: { zh: '電信', en: 'Telecommunications' }, group: ELECTRICAL },
+  { id: 'digital-communication', label: { zh: '數位通訊', en: 'Digital communication' }, group: ELECTRICAL },
+  { id: 'basic-communication', label: { zh: '基礎通訊程序', en: 'Basic communication processes' }, group: ELECTRICAL },
+  { id: 'computer-technology', label: { zh: '電腦技術', en: 'Computer technology' }, group: ELECTRICAL },
+  { id: 'it-management', label: { zh: '管理用的資訊技術方法', en: 'IT methods for management' }, group: ELECTRICAL },
+  { id: 'semiconductors', label: { zh: '半導體', en: 'Semiconductors' }, group: ELECTRICAL },
+  { id: 'optics', label: { zh: '光學', en: 'Optics' }, group: INSTRUMENTS },
+  { id: 'measurement', label: { zh: '量測', en: 'Measurement' }, group: INSTRUMENTS },
+  { id: 'biological-analysis', label: { zh: '生物材料分析', en: 'Analysis of biological materials' }, group: INSTRUMENTS },
+  { id: 'control', label: { zh: '控制', en: 'Control' }, group: INSTRUMENTS },
+  { id: 'medical-technology', label: { zh: '醫療技術', en: 'Medical technology' }, group: INSTRUMENTS },
+  { id: 'organic-chemistry', label: { zh: '有機精細化學', en: 'Organic fine chemistry' }, group: CHEMISTRY },
+  { id: 'biotechnology', label: { zh: '生物技術', en: 'Biotechnology' }, group: CHEMISTRY },
+  { id: 'pharmaceuticals', label: { zh: '藥品', en: 'Pharmaceuticals' }, group: CHEMISTRY },
+  { id: 'polymers', label: { zh: '高分子化學、聚合物', en: 'Macromolecular chemistry, polymers' }, group: CHEMISTRY },
+  { id: 'food-chemistry', label: { zh: '食品化學', en: 'Food chemistry' }, group: CHEMISTRY },
+  { id: 'basic-materials', label: { zh: '基礎材料化學', en: 'Basic materials chemistry' }, group: CHEMISTRY },
+  { id: 'materials-metallurgy', label: { zh: '材料、冶金', en: 'Materials, metallurgy' }, group: CHEMISTRY },
+  { id: 'surface-technology', label: { zh: '表面技術、塗層', en: 'Surface technology, coating' }, group: CHEMISTRY },
+  { id: 'nanotechnology', label: { zh: '微結構與奈米技術', en: 'Micro-structural and nano-technology' }, group: CHEMISTRY },
+  { id: 'chemical-engineering', label: { zh: '化學工程', en: 'Chemical engineering' }, group: CHEMISTRY },
+  { id: 'environmental-technology', label: { zh: '環境技術', en: 'Environmental technology' }, group: CHEMISTRY },
+  { id: 'handling', label: { zh: '搬運', en: 'Handling' }, group: MECHANICAL },
+  { id: 'machine-tools', label: { zh: '工具機', en: 'Machine tools' }, group: MECHANICAL },
+  { id: 'engines', label: { zh: '引擎、泵、渦輪機', en: 'Engines, pumps, turbines' }, group: MECHANICAL },
+  { id: 'textile-paper-machines', label: { zh: '紡織與造紙機械', en: 'Textile and paper machines' }, group: MECHANICAL },
+  { id: 'other-machines', label: { zh: '其他專用機械', en: 'Other special machines' }, group: MECHANICAL },
+  { id: 'thermal', label: { zh: '熱處理程序與設備', en: 'Thermal processes and apparatus' }, group: MECHANICAL },
+  { id: 'mechanical-elements', label: { zh: '機械元件', en: 'Mechanical elements' }, group: MECHANICAL },
+  { id: 'transport', label: { zh: '運輸', en: 'Transport' }, group: MECHANICAL },
+  { id: 'furniture-games', label: { zh: '家具、遊戲', en: 'Furniture, games' }, group: OTHER_FIELDS },
+  { id: 'other-consumer-goods', label: { zh: '其他消費品', en: 'Other consumer goods' }, group: OTHER_FIELDS },
+  { id: 'civil-engineering', label: { zh: '土木工程', en: 'Civil engineering' }, group: OTHER_FIELDS },
+];
+const PATENT_FIELD: DimensionDef = {
+  label: { zh: '技術領域', en: 'Technology field' },
+  options: PATENT_FIELDS,
+  defaultOption: 'computer-technology',
+};
+const PUBLICATIONS = { zh: '件', en: 'publications' };
+const publications = (v: number) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber(v)} ${tr(PUBLICATIONS)}`;
+
 const applications = (v: number) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber(v)} ${tr(APPLICATIONS)}`;
 
 export const innovation: TopicDefinition = {
@@ -78,7 +132,23 @@ export const innovation: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    {
+      name: { zh: 'WIPO IP Statistics：依技術領域的專利公告（批次檔，2000–2022 年）', en: 'WIPO IP Statistics: patent publications by technology field (bulk files, 2000–2022)' },
+      url: 'https://www.wipo.int/en/web/ip-statistics',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '智慧財產局 發明專利新申請案件數依國際專利分類排行（台灣的側欄）', en: 'Taiwan Intellectual Property Office, new invention patent applications by IPC subclass (Taiwan panel)' },
+      url: 'https://data.gov.tw/dataset/94266',
+      license: OPEN_DATA_TW,
+    },
+    {
+      name: { zh: 'OECD Data Explorer：Venture capital investments（創業投資）', en: 'OECD Data Explorer: Venture capital investments' },
+      url: 'https://data-explorer.oecd.org/',
+      license: 'CC BY 4.0',
+    },
   ],
+  panelExtra: () => import('./panels/PatentFieldsPanel'),
   note: {
     zh: '研發經費與研究人員來自 UNESCO 統計研究所，專利來自世界智慧財產權組織（WIPO），都是世界銀行轉載的版本（WIPO 國際局不對轉換後的資料負責）。台灣不在這些資料庫中，改用國科會「全國科技動態調查」與智慧局的本國人發明專利申請件數，細節見台灣側欄的附註。很多國家隔幾年才做一次研發調查。世界值是有資料國家的合計，研發經費占 GDP 依購買力平價的 GDP 加權。GitHub 上的開發者與開源活動見「開發者與開源」主題，各國的學術論文、國際合著與開放取用見「學術論文」主題。',
     en: "R&D spending and researchers come from the UNESCO Institute for Statistics and patents from the World Intellectual Property Organization (WIPO), both as republished by the World Bank (the International Bureau of WIPO assumes no responsibility for the transformed data). Taiwan is not in these databases, so the National Science and Technology Council's national R&D survey and the Intellectual Property Office's invention patent applications by Taiwanese applicants are used instead; see the notes in Taiwan's panel. Many countries survey R&D only every few years. World figures are totals for the countries with data, with R&D as a share of GDP weighted by GDP at purchasing power parity. For developers and open-source activity on GitHub, see the Developers topic; for scientific papers, international co-authorship and open access, the Papers topic.",
@@ -154,6 +224,62 @@ export const innovation: TopicDefinition = {
       format: applications,
       formatTick: formatLargeTick,
       shareOfWorld: true,
+    },
+    {
+      // 2026-11-05（製作手冊第二十二批 383）：專利的技術領域（WIPO 的 35 個領域），側欄 PatentFieldsPanel
+      id: 'patent-field',
+      label: { zh: '占專利公告的比例', en: 'share of patent publications' },
+      description: {
+        zh: '這個國家的申請人在世界各國專利局公告的發明專利裡，屬於這個技術領域的比例（WIPO 的 35 個領域，選上方的「技術領域」切換；一年不到 100 件的國家不算）。2022 年瑞典 18,262 件裡數位通訊占 23.9%、芬蘭 24.6%（Ericsson 與 Nokia），以色列的醫療技術 22.7%，丹麥的引擎、泵、渦輪機 11.5%（風機），瑞士的醫療技術 12.2%、藥品 9.5%，德國的運輸 11.3%，南韓的半導體 7.2%，中國、美國、新加坡最多的都是電腦技術（15.6%、15.1%、16.7%）。是公告不是申請，跟上面的「專利申請件數」口徑不同，資料只到 2022 年。點國家看它前 10 大領域與相對專長（跟世界的比例相比）。台灣不在 WIPO 的資料裡，側欄列智慧局發明專利申請最多的國際專利分類。',
+        en: 'Share of the invention patents published for applicants from this country, at patent offices worldwide, that fall in this technology field (WIPO’s 35 fields; switch with “Technology field” above; countries with fewer than 100 publications in a year are left out). In 2022 digital communication made up 23.9% of Sweden’s 18,262 publications and 24.6% of Finland’s (Ericsson and Nokia); medical technology 22.7% of Israel’s; engines, pumps and turbines 11.5% of Denmark’s (wind turbines); medical technology 12.2% and pharmaceuticals 9.5% of Switzerland’s; transport 11.3% of Germany’s; semiconductors 7.2% of South Korea’s; and computer technology led in China, the US and Singapore (15.6%, 15.1%, 16.7%). These are publications, not applications, unlike the patent applications indicator above, and the data end in 2022. Click a country for its top 10 fields and relative specialisation (compared with the world mix). Taiwan is not in the WIPO data; its panel lists the IPC classes with the most invention patent applications at the Intellectual Property Office.',
+      },
+      unit: '%',
+      file: 'patent-field/{item}.json',
+      dimension: PATENT_FIELD,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 4, 6, 8, 12, 18] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+      compareWorld: true,
+    },
+    {
+      id: 'patent-office',
+      label: { zh: '專利局一年公告的專利', en: 'Patents published by national offices' },
+      description: {
+        zh: '各國專利局一年公告的發明專利件數（不分申請人國籍）。2022 年中國國家知識產權局 167.0 萬件最多，美國 42.3 萬、日本 24.4 萬、南韓 20.3 萬；歐洲專利局（EPO）17.7 萬件不在地圖上（區域局）。WIPO 的資料只到 2022 年。',
+        en: 'Invention patents published by each national patent office in a year (applicants of any nationality). In 2022 China’s office published the most, 1.67 million, followed by the US (423,000), Japan (244,000) and South Korea (203,000); the European Patent Office (177,000), a regional office, is not on the map. WIPO data end in 2022.',
+      },
+      unit: PUBLICATIONS,
+      file: 'patent-office.json',
+      layer: { kind: 'bubble', legendValues: [1e4, 1e5, 1e6] },
+      format: publications,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'vc-gdp',
+      label: { zh: '創業投資占 GDP', en: 'Venture capital, % of GDP' },
+      description: {
+        zh: '一年投入新創公司的創業投資（種子、早期與後期）占 GDP 的比例，OECD 依市場資料彙整，37 個經濟體。以色列 2024 年 1.81% 遠高於其他國家，美國 2025 年 0.62%、愛沙尼亞 0.34%、瑞典 0.21%；日本 2024 年 0.06%、南韓 2025 年 0.14%。台灣不在 OECD 的資料裡，也沒有可以比較的官方總量。',
+        en: 'Venture capital invested in start-ups in a year (seed, early and later stage) as a share of GDP, compiled by the OECD from market data for 37 economies. Israel (1.81% in 2024) is far ahead, followed by the US (0.62% in 2025), Estonia (0.34%) and Sweden (0.21%); Japan 0.06% (2024), South Korea 0.14% (2025). Taiwan is not in the OECD data and has no comparable official total.',
+      },
+      unit: '%',
+      file: 'vc-gdp.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.02, 0.05, 0.1, 0.2, 0.4, 1] } },
+      format: (v) => `${fixed(v, v < 0.1 ? 3 : 2)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'vc-usd',
+      label: { zh: '創業投資金額', en: 'Venture capital investment' },
+      description: {
+        zh: '一年投入新創公司的創業投資金額（美元，依當年匯率換算），OECD 的 37 個經濟體。美國 2025 年 1,921 億美元，遠多於以色列（2024 年 98 億）、英國（65 億）、加拿大（43 億）、德國（28 億）、南韓（26 億）。',
+        en: 'Venture capital invested in start-ups in a year (US dollars at current exchange rates), for the OECD’s 37 economies. The US invested $192.1 billion in 2025, far more than Israel ($9.8 billion in 2024), the UK ($6.5 billion), Canada ($4.3 billion), Germany ($2.8 billion) and South Korea ($2.6 billion).',
+      },
+      unit: { zh: '美元', en: 'US$' },
+      file: 'vc-usd.json',
+      layer: { kind: 'bubble', legendValues: [1e9, 1e10, 1e11] },
+      format: (v) => usd(formatLargeNumber(v)),
+      formatTick: formatLargeTick,
     },
     {
       id: 'trademarks-per-million',

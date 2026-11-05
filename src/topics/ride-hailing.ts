@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
 import { robotaxiExtra } from './robotaxi';
+import { taxiFare } from './transit-fares';
 import type { CategoryDef, TopicDefinition } from './types';
 
 /**
@@ -24,14 +25,15 @@ export const rideHailing: TopicDefinition = {
   defaultIndicator: 'platforms',
   defaultYear: 2026,
   sources: [
+    taxiFare.source,
     { name: { zh: 'Uber：Uber Cities（各國的城市）', en: 'Uber: Uber Cities' }, url: 'https://www.uber.com/global/en/cities/', license: { zh: '事實，自行整理', en: 'facts, compiled here' } },
     { name: { zh: 'Grab：Locations', en: 'Grab: Locations' }, url: 'https://www.grab.com/sg/locations/', license: { zh: '事實，自行整理', en: 'facts, compiled here' } },
     { name: { zh: '滴滴：DiDi Global 的國家選單', en: 'DiDi: DiDi Global country list' }, url: 'https://web.didiglobal.com/', license: { zh: '事實，自行整理', en: 'facts, compiled here' } },
  
     ...robotaxiExtra.sources,
   ],
-  overlays: robotaxiExtra.overlays,
-  listPanel: robotaxiExtra.listPanel,
+  overlays: [...robotaxiExtra.overlays, taxiFare.overlay],
+  listPanel: [robotaxiExtra.listPanel, taxiFare.listPanel],
   note: {
     zh:
       '各公司網站 2026 年 10 月底列出有營運的國家：Uber 74 個國家或地區、Grab 東南亞 8 國、滴滴 15 國（含中國）。只看有沒有營運，不看在幾個城市，也不分合法、受限或禁止：被禁止的國家看起來跟沒有營運一樣，台灣、日本、南韓的法規限制寫在附註。' +
@@ -57,5 +59,6 @@ export const rideHailing: TopicDefinition = {
       timeless: true,
     },
     ...robotaxiExtra.indicators,
+    taxiFare.indicator,
   ],
 };

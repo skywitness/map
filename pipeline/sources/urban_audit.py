@@ -3,7 +3,7 @@
 - 資料：`https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/<資料集>?format=JSON&lang=en&indic_ur=<指標>`，
   JSON-stat，維度 freq、indic_ur、cities、time；城市代碼像 DE001C（國家代碼 + 編號 + C），標籤是當地名稱，
   有的寫「(greater city)」（大城市的範圍），同一個代碼不會重複。
-- 位置：Eurostat 的城市沒有座標。用 Wikidata（CC0）依名稱查：當地語言與英文的名稱、在這個國家（P17）、
+- 位置：Eurostat 的城市沒有座標。用 Wikidata（CC0，2026-11-05 起經 QLever，query.wikidata.org 的 robots.txt 不准 /sparql）依名稱查：當地語言與英文的名稱、在這個國家（P17）、
   有座標也有人口（P1082，車站、球隊這類同名的條目沒有）的條目，取人口最多的（城市與同名的行政區位置相近）。一個國家一支查詢，結果快取。
   查不到的回傳 None（呼叫的地方決定怎麼寫）。
 """
@@ -20,7 +20,8 @@ from common import CACHE_DIR, USER_AGENT, download
 from sources.countries import from_alpha2
 
 DATA_URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/{}?format=JSON&lang=en&indic_ur={}"
-WDQS = "https://query.wikidata.org/sparql"
+# 2026-11-05 起改用 QLever：query.wikidata.org 的 robots.txt 不准程式抓 /sparql（之前的快取是 WDQS 查的，照用）
+WDQS = "https://qlever.dev/api/wikidata"
 EUROSTAT_ISO2 = {"EL": "GR", "UK": "GB"}
 # 各國查 Wikidata 名稱用的語言（英文一定加）；保加利亞、希臘的 Eurostat 名稱是拉丁字母轉寫，靠英文名稱
 LANGS = {
@@ -101,10 +102,11 @@ def locate(labels: dict[str, str]) -> dict[str, tuple[float, float, str] | None]
         langs = (*LANGS.get(cc, ()), "en", "mul")
         values = sorted({f'"{n.replace(chr(34), "")}"@{lang}' for code, label in cities.items() for n in _names(label, code) for lang in langs})
         iso2 = EUROSTAT_ISO2.get(cc, cc)
-        # 照寫的順序查（hint:optimizer "None"）：先依名稱找條目再看國家；WDQS 自己排的順序會先掃整個國家的條目，逾時
-        rows = _wdqs(f"""SELECT ?name ?item ?coord ?pop ?c ?cc WHERE {{
+        # 2026-11-05 起查 QLever（不支援 WDQS 的 hint:optimizer）；之前的快取是 WDQS 照寫的順序查的
+        rows = _wdqs(f"""PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?name ?item ?coord ?pop ?c ?cc WHERE {{
   VALUES ?name {{ {' '.join(values)} }}
-  hint:Query hint:optimizer "None" .
   ?item rdfs:label ?name .
   ?item wdt:P1082 ?pop ; wdt:P625 ?coord ; wdt:P17 ?c . OPTIONAL {{ ?c wdt:P297 ?cc }}
 }}""", cc)

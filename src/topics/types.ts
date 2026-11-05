@@ -248,7 +248,11 @@ export interface IndicatorDef {
    * 陰影可以在左下角的圖層關掉（「地形陰影」）。海拔主題（terrain）照舊
    */
   shade?: 'land' | 'land-sea';
-  /** 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖） */
+  /**
+   * 只有這個指標不隨時間變化（同主題的 timeless：沒有時間軸、標題不寫年份；2026-10-30 起，南極的冰下湖）。
+   * false 是反過來：主題是 timeless，只有這個指標有時間軸（2026-11-05 起，國家小檔案的「國會幾院」1900–2025 年）。
+   * 判斷一律用 isTimeless()
+   */
   timeless?: boolean;
   /**
    * 只在這個指標沒有值的原因（key 是 ISO alpha-3），優先於主題的 noValue：
@@ -1186,7 +1190,12 @@ export interface TopicDefinition {
    * 窄螢幕在地圖下面、預設收起來；只在地圖檢視，選了國家時照樣留著（國家在右側欄）。主題同時有 listPanel 時清單優先。
    * 原本是沒選國家時的右側欄（選了國家就換成國家側欄）
    */
-  worldPanel?: { title: Text; load: () => Promise<{ default: React.ComponentType<WorldPanelProps> }> };
+  worldPanel?: {
+    title: Text;
+    load: () => Promise<{ default: React.ComponentType<WorldPanelProps> }>;
+    /** 只在這些指標顯示（2026-11-05，航運與港口的咽喉每月通過數）；沒寫是所有指標 */
+    indicators?: string[];
+  };
   /**
    * 清單側欄（2026-10-30 起，賽車的賽程）：地圖左邊列出主題的點（依日期或名稱排），點一列地圖移到那裡並標出來。
    * 桌機在地圖左邊、可以收成一條窄邊；窄螢幕在地圖下面、預設收起來（收合記在版面偏好，lib/layoutPrefs.ts 的 list）。
@@ -1448,6 +1457,11 @@ export const dataFolder = (topic: Pick<Topic, 'id' | 'dataTopic'>): string => to
 
 export function usesDimension(indicator: Pick<Indicator, 'file'>): boolean {
   return indicator.file.includes('{item}');
+}
+
+/** 這個指標有沒有時間軸：指標自己寫的 timeless（true 或 false）優先，沒寫就照主題的 */
+export function isTimeless(topic: { timeless?: boolean }, indicator: { timeless?: boolean }): boolean {
+  return indicator.timeless ?? topic.timeless ?? false;
 }
 
 /** 指標用的子項目選擇器：指標自己的 dimension 優先，沒有就是主題的 */

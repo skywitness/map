@@ -39,6 +39,16 @@ const TAX_MIX: DimensionDef = {
   ],
 };
 
+/** 政府的利息負擔的分母（pipeline/topics/fiscal_interest.py 的 CODES） */
+const INTEREST_BASE: DimensionDef = {
+  label: { zh: '占', en: 'Share of' },
+  options: [
+    { id: 'revenue', label: { zh: '政府收入', en: 'Government revenue' } },
+    { id: 'expense', label: { zh: '政府支出', en: 'Government spending' } },
+  ],
+  defaultOption: 'revenue',
+};
+
 const fiscalOwn: TopicDefinition = {
   id: 'fiscal',
   title: { zh: '各國物價與財政', en: 'Prices and public finances by country' },
@@ -157,6 +167,24 @@ const fiscalOwn: TopicDefinition = {
       format: (v) => formatSignedPercent(v, 1),
       formatTick: (v) => formatSignedPercent(v, 0),
       compareWorld: true,
+    },
+    {
+      // 2026-11-05（製作手冊第二十二批 380）：政府的利息負擔，跟「政府債務占 GDP」對照
+      id: 'interest',
+      // 側欄與標題是「子項目＋指標」：政府收入花在利息的比例、Government revenue going to interest
+      label: { zh: '花在利息的比例', en: 'Going to interest' },
+      description: {
+        zh: '政府付的利息占政府收入（或支出）的比例，也就是政府的利息負擔，選上方的「占」切換：債務高不等於還不起，要看利息吃掉多少收入。斯里蘭卡 2023 年把 79.9% 的收入拿去付利息，馬拉威 2024 年 35.8%、印度 2022 年 34.0%、巴西 2024 年 30.1%；新加坡 0.5%、東帝汶 0.1%、諾魯 0.0%。World Bank WDI 轉載 IMF 的政府財政統計，是中央政府的數字（美國、德國這類聯邦國家的州政府利息不在內）；各國最新的年份不同，滑過看是哪一年。台灣用財政部各級政府的債務支出（公債利息與手續費），2025 年占收入 2.3%。',
+        en: 'Interest paid by the government as a share of its revenue (or spending), the government’s interest burden; switch with “Share of” above. High debt does not mean a country cannot pay; what matters is how much of its revenue goes on interest. Sri Lanka spent 79.9% of its revenue on interest in 2023, Malawi 35.8% in 2024, India 34.0% in 2022 and Brazil 30.1% in 2024; Singapore 0.5%, Timor-Leste 0.1%, Nauru 0.0%. World Bank WDI figures from the IMF Government Finance Statistics, for central government (state-level interest in federal countries such as the US and Germany is not included); the latest year differs by country, so hover to see which. Taiwan uses the Ministry of Finance’s debt expenditure (interest and fees on public debt) of all levels of government: 2.3% of revenue in 2025.',
+      },
+      unit: '%',
+      file: 'interest/{item}.json',
+      dimension: INTEREST_BASE,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 15, 20, 30] } },
+      format: percent,
+      formatTick: percentTick,
+      compareWorld: true,
+      lowerIsBetter: true,
     },
     {
       id: 'tax-revenue',
@@ -295,11 +323,11 @@ export const fiscal: TopicDefinition = withParts(
       zh:
         '政府債務與財政收支 2026 年起為 IMF 推估值；開曼群島、古拉索等 IMF 未涵蓋的地區改用世界銀行資料。' +
         '稅收用 OECD 全球稅收統計，印度、俄羅斯、沙烏地阿拉伯等 OECD 沒有的國家用 IMF 世界稅收資料庫補；日本等最新一年還沒公布的國家顯示前一年。台灣的稅收用財政部的賦稅負擔率（含社會安全捐）；IMF 的台灣債務與財政收支就是財政部的數字，範圍比其他國家窄，見台灣側欄的附註。' +
-        '政府支出的用途用 IMF 的 COFOG 分類（一般政府，約 90 國），教育、醫療兩項在 IMF 沒有或比較舊的國家用世界銀行 WDI（UNESCO、WHO）補；台灣用財政部各級政府歲出的政事別對到最接近的類別。稅收的組成是 OECD 全球稅收統計占稅收總額的比例，台灣用財政部依 OECD 分類編的賦稅收入結構。1800 年起的政府債務是 IMF 的歷史公共債務資料庫（到 2015 年，早年多半只有中央政府），跟現在的「政府債務占 GDP」分開。',
+        '政府支出的用途用 IMF 的 COFOG 分類（一般政府，約 90 國），教育、醫療兩項在 IMF 沒有或比較舊的國家用世界銀行 WDI（UNESCO、WHO）補；台灣用財政部各級政府歲出的政事別對到最接近的類別。稅收的組成是 OECD 全球稅收統計占稅收總額的比例，台灣用財政部依 OECD 分類編的賦稅收入結構。1800 年起的政府債務是 IMF 的歷史公共債務資料庫（到 2015 年，早年多半只有中央政府），跟現在的「政府債務占 GDP」分開。政府的利息負擔是世界銀行 WDI 轉載 IMF 的中央政府數字（各國最新年份不同），台灣用財政部各級政府的債務支出，範圍比較寬。',
       en:
         'Government debt and budget balance figures from 2026 onward are IMF projections; places the IMF does not cover, such as the Cayman Islands and Curaçao, use World Bank data. ' +
         "Tax revenue is from the OECD Global Revenue Statistics, with the IMF's World Revenue Longitudinal Data filling in countries the OECD does not cover, such as India, Russia and Saudi Arabia; countries that have not yet reported the latest year, such as Japan, show the previous year. Taiwan's tax revenue is the Ministry of Finance's tax burden ratio including social security contributions. The IMF's debt and budget balance figures for Taiwan are the Ministry of Finance's own, with a narrower scope than other countries' figures; see the notes in Taiwan's panel. " +
-        "Spending by function uses the IMF's COFOG classification (general government, about 90 countries); for education and health, countries the IMF lacks or has only older data for use World Bank WDI figures (UNESCO, WHO); Taiwan's figures map the Ministry of Finance's functional classification of all levels of government to the closest categories. The tax mix is each category's share of total tax revenue from the OECD Global Revenue Statistics; Taiwan uses the Ministry of Finance's tax revenue structure under the OECD classification. Government debt since 1800 comes from the IMF Historical Public Debt Database (to 2015; early years are mostly central government only) and is kept separate from the current government debt indicator.",
+        "Spending by function uses the IMF's COFOG classification (general government, about 90 countries); for education and health, countries the IMF lacks or has only older data for use World Bank WDI figures (UNESCO, WHO); Taiwan's figures map the Ministry of Finance's functional classification of all levels of government to the closest categories. The tax mix is each category's share of total tax revenue from the OECD Global Revenue Statistics; Taiwan uses the Ministry of Finance's tax revenue structure under the OECD classification. Government debt since 1800 comes from the IMF Historical Public Debt Database (to 2015; early years are mostly central government only) and is kept separate from the current government debt indicator. Interest payments are World Bank WDI figures from the IMF for central government (the latest year differs by country); Taiwan uses the Ministry of Finance's debt expenditure for all levels of government, a wider scope.",
     },
     indicators: fiscalOwn.indicators.filter((i) => !PRICE_INDICATORS.includes(i.id)),
   }),

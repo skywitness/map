@@ -37,6 +37,7 @@ class Mineral(NamedTuple):
     name: str
     name_en: str
     last_edition: int = max(EDITIONS)  # 最後一版有表格的 MCS（鍺 2024 版起沒有各國的數字）
+    first_edition: int = min(EDITIONS)  # 第一版有這一欄的 MCS（精煉銅 2021 版起）
 
 
 MINERALS = [
@@ -60,7 +61,13 @@ MINERALS = [
     # 2026-10-30 加（製作手冊第六批 73）：黃金是礦場產量（金含量），鹽的產量是千公噸、沒有蘊藏量（USGS 只寫「Large」）
     Mineral("gold", "gold", "Mine", 1, 1, "黃金", "Gold"),
     Mineral("salt", "salt", "production", 1000, None, "鹽", "Salt"),
+    # 2026-11-05 加（製作手冊第二十二批 382）：精煉與冶煉，是加工的產量不是礦場產量。精煉銅是精煉金屬（2021 版起才有這欄），
+    # 原鋁是冶煉廠的產量（2020、2021 版的欄名是 Production，2022 版起是 Smelter production，都含 production）
+    Mineral("refined-copper", "copper", "Refinery", 1000, None, "精煉銅", "Refined copper", first_edition=2021),
+    Mineral("aluminum", "aluminum", "production", 1000, None, "原鋁", "Primary aluminium"),
 ]
+# 精煉 ÷ 開採比（銅）：同一年、同一版的精煉產量 ÷ 礦場產量（含銅量）；礦場產量是 0 的國家（日本、南韓、德國）寫附註
+RATIO = ("refined-copper", "copper")
 
 # MCS 表上的註腳（PDF 的註腳沒有解析，重要的手動抄在這裡）：{(礦種, 國家): (中文, 英文)}
 NOTES = {
@@ -111,7 +118,7 @@ def _tables(m: Mineral) -> tuple[dict[int, YearTable], dict[int, YearTable]]:
     """{年: 那一年的產量表}、{年: 蘊藏量表}；每一年取最新一版。"""
     production: dict[int, YearTable] = {}
     reserves: dict[int, YearTable] = {}
-    for edition in range(min(EDITIONS), m.last_edition + 1):
+    for edition in range(m.first_edition, m.last_edition + 1):
         table = usgs_mcs.world_table(edition, m.slug)
         cols = {i: c for i, c in enumerate(table.columns) if not c.reserves and m.group.lower() in c.group.lower()}
         years = sorted({c.year for c in cols.values()})
@@ -260,6 +267,9 @@ def build() -> None:
             f"最多 {lead[0]} {shares[lead[0]].get(latest, 0):.1f}%"
         )
 
+    _refining_ratio(out)
+    _aluminum_capacity(out)
+
     # 側欄的彙整：{年: {國家: [[礦種, 名次, 占比, 產量（公噸）], …]}}，依占比由大到小
     by_year = {
         str(y): {a: sorted(rows, key=lambda r: -r[2]) for a, rows in sorted(countries.items())}
@@ -286,3 +296,60 @@ def build() -> None:
     )
     for line in summary:
         print("  " + line)
+
+
+def _refining_ratio(out) -> None:
+    """銅的精煉 ÷ 開採比：中國礦產量不到兩百萬噸卻精煉一千多萬噸，智利相反"""
+    by_id = {m.id: m for m in MINERALS}
+    refined, _ = _tables(by_id[RATIO[0]])
+    mined, _ = _tables(by_id[RATIO[1]])
+    years = sorted(set(refined) & set(mined))
+    series: dict[str, dict[int, float]] = defaultdict(dict)
+    refine_only: dict[str, tuple[int, float]] = {}
+    for y in years:
+        for a, r in refined[y].values.items():
+            mine = mined[y].values.get(a)
+            if r is None or mine is None:
+                continue
+            if mine > 0:
+                series[a][y] = round(r / mine, 3)
+            elif r > 0:
+                refine_only[a] = (y, r)
+    notes = {a: f"沒有礦場產量，精煉的原料全部進口（{y} 年精煉 {r / 1e4:,.0f} 萬公噸）" for a, (y, r) in refine_only.items()}
+    notes_en = {a: f"No mine production; all feed is imported ({r / 1e3:,.0f} thousand tonnes refined in {y})" for a, (y, r) in refine_only.items()}
+    world = {y: round(refined[y].world / mined[y].world, 3) for y in years if refined[y].world and mined[y].world}
+    write_json(out / "refining-ratio.json", indicator_file(
+        "refining-ratio", "倍", years, {a: to_series(s, years) for a, s in sorted(series.items())},
+        aggregates={"WLD": to_series(world, years)}, noValue=notes, noValueEn=notes_en,
+    ))
+    last = years[-2]
+    print(f"  銅的精煉÷開採比 {years[0]}–{years[-1]}：{last} 年 中國 {series['CHN'].get(last)}、智利 {series['CHL'].get(last)}、"
+          f"世界 {world.get(last)}；只精煉 {sorted(refine_only)}")
+
+
+def _aluminum_capacity(out) -> None:
+    """原鋁冶煉廠的年底產能（Yearend capacity，千公噸 → 公噸），跟冶煉產量分開"""
+    values: dict[str, dict[int, float]] = defaultdict(dict)
+    world: dict[int, float] = {}
+    for edition in EDITIONS:
+        table = usgs_mcs.world_table(edition, "aluminum")
+        for i, c in enumerate(table.columns):
+            if "capacity" not in c.group.lower():
+                continue
+            for label, row in table.rows:
+                code = usgs_mcs.area_code(label)
+                v = row.get(i)
+                if code is None:
+                    raise ValueError(f"MCS {edition} aluminum：認不得的國名「{label}」")
+                if v is None or v.value is None or code == usgs_mcs.OTHER:
+                    continue
+                if code == usgs_mcs.WORLD:
+                    world[c.year] = v.value * 1000  # 新的版本蓋掉舊的
+                else:
+                    values[code][c.year] = v.value * 1000
+    years = sorted(world)
+    write_json(out / "aluminum-capacity.json", indicator_file(
+        "aluminum-capacity", "公噸", years, {a: to_series(s, years) for a, s in sorted(values.items())},
+        aggregates={"WLD": to_series(world, years)},
+    ))
+    print(f"  原鋁冶煉產能 {years[0]}–{years[-1]}：世界 {world[years[-1]]:,.0f} 公噸、中國 {values['CHN'][years[-1]]:,.0f}")

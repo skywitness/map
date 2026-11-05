@@ -6,6 +6,7 @@ import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { ewaste } from './ewaste';
 import { wastePart } from './waste';
+import { wasteRoutesPart } from './waste-routes';
 
 /**
  * 塑膠污染（pipeline/topics/plastic.py）：
@@ -283,4 +284,6 @@ export const plastic: TopicDefinition = withParts(
   topicPart(ewaste, { rename: EWASTE_IDS }),
   // 2026-11-04（主題盤點的擴4）：都市垃圾的量與處理方式（世界銀行 What a Waste 3.0），資料在 waste/
   wastePart,
+  // 2026-11-05（第二十二批 389）：都市垃圾的去處（Eurostat 1995–2024、環境部）、台灣的焚化廠與 OSM 的掩埋場，資料在 waste/
+  wasteRoutesPart,
 );

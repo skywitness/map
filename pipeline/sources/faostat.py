@@ -30,6 +30,7 @@ DATASETS = {
     "FBSH": "FoodBalanceSheetsHistoric_E_All_Data_(Normalized).zip",  # 舊方法，1961–2013
     "FS": "Food_Security_Data_E_All_Data_(Normalized).zip",  # 糧食安全指標（營養不足盛行率等）
     "RL": "Inputs_LandUse_E_All_Data_(Normalized).zip",  # 土地利用（陸地面積，海洋與漁業主題的「海域是陸地的幾倍」）
+    "RFN": "Inputs_FertilizersNutrient_E_All_Data_(Normalized).zip",  # 化肥（養分量：產量、施用、進出口；第二十二批 384）
 }
 # 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
 ENCODINGS = {"FBSH": "latin-1"}
@@ -44,6 +45,8 @@ class Row(NamedTuple):
     element: int
     year: int
     value: float
+    # 資料來源的旗標（A 官方、E 估計、I 推算、X 外部機構提供、M 缺值…）；2026-11-05 加，給要排除第三方資料的主題用
+    flag: str = ""
 
 
 def _area(area_code: str, m49: str, cache: dict[str, str | None]) -> str | None:
@@ -75,6 +78,7 @@ def rows(dataset: str, elements: set[int], items: set[int] | None = None) -> Ite
     i_area, i_m49 = col["Area Code"], col["Area Code (M49)"]
     i_item, i_name, i_elem = col["Item Code"], col["Item"], col["Element Code"]
     i_year, i_value = col["Year"], col["Value"]
+    i_flag = col.get("Flag")
     for r in reader:
         element = int(r[i_elem])
         if element not in elements or not r[i_value]:
@@ -85,7 +89,7 @@ def rows(dataset: str, elements: set[int], items: set[int] | None = None) -> Ite
         area = _area(r[i_area], r[i_m49], m49_cache)
         if area is None:
             continue  # 區域合計或已解體的國家（蘇聯、南斯拉夫等）
-        yield Row(area, item, r[i_name], element, int(r[i_year]), float(r[i_value]))
+        yield Row(area, item, r[i_name], element, int(r[i_year]), float(r[i_value]), r[i_flag] if i_flag is not None else "")
 
 
 class SuiteRow(NamedTuple):

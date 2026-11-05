@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, ScaleSpec, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, ScaleSpec, TopicDefinition } from './types';
 
 /** 指數的值（0–1）寫到小數兩位，跟 V-Dem 自己的寫法一樣 */
 const index = (v: number) => fixed(v, 2);
@@ -31,6 +31,30 @@ const DEMOCRACY_SCALE: ScaleSpec = { type: 'diverging', thresholds: [0.2, 0.35, 
 /** 政治貪腐指數：越高越貪腐，門檻一樣、顏色反過來（橘色是貪腐多），跟其他指數同一個讀法 */
 const CORRUPTION_SCALE: ScaleSpec = { ...DEMOCRACY_SCALE, reverse: true };
 
+/**
+ * 下議院（或單一議院）的選舉制度：V-Dem 的 v2elparlel，代碼就是 V-Dem 的 0–3（pipeline/topics/democracy.py 的 ELECTORAL_SYSTEM_NAMES）。
+ * 沒有強弱之分，用一般的類別色；滑過國家看實際的制度名稱（v2elloelsy 的 13 類，hints）。
+ */
+export const ELECTORAL_SYSTEMS: CategoryDef[] = [
+  { value: 0, label: { zh: '多數制', en: 'Majoritarian' } },
+  { value: 1, label: { zh: '比例代表制', en: 'Proportional representation' } },
+  { value: 2, label: { zh: '混合制', en: 'Mixed' } },
+  { value: 3, label: { zh: '其他', en: 'Other' } },
+];
+const systemLabel = new Map(ELECTORAL_SYSTEMS.map((r) => [r.value, r.label]));
+
+/** 投票率的分母：登記選舉人（各國官方公布的投票率）或投票年齡人口（不管有沒有登記） */
+const TURNOUT_BASE: DimensionDef = {
+  label: { zh: '分母', en: 'Out of' },
+  options: [
+    { id: 'registered', label: { zh: '登記選舉人', en: 'Registered voters' } },
+    { id: 'vap', label: { zh: '投票年齡人口', en: 'Voting-age population' } },
+  ],
+  defaultOption: 'registered',
+};
+const turnout = (v: number) => `${fixed(v, 1)}%`;
+const turnoutTick = (v: number) => `${fixed(v, 0)}%`;
+
 export const democracy: TopicDefinition = {
   id: 'democracy',
   title: { zh: '民主與自由', en: 'Democracy and freedom' },
@@ -45,8 +69,8 @@ export const democracy: TopicDefinition = {
     },
   ],
   note: {
-    zh: 'V-Dem 的指數是各國專家逐年評分、再用統計模型合成的估計值，有不確定範圍（側欄列出 68% 可信區間），分數接近的國家高低不一定有意義。殖民地與被占領的時期也有評分（例如日本統治下的台灣），是當時統治者的分數。國家依 V-Dem 自己的接續方式對到今天的國界：德國 1949–1990 年是西德、俄羅斯 1918–1990 年是蘇聯、塞爾維亞 1918–2005 年是南斯拉夫；東德、南越、南葉門、加薩走廊等在今天的地圖上沒有形狀的政體沒有放，巴勒斯坦用約旦河西岸的值。世界值是有資料國家的簡單平均（每國一樣重，不依人口加權）。V-Dem 資料是 CC BY-SA 4.0 授權，這個主題的衍生資料檔也依 CC BY-SA 4.0 分享。世界銀行的全球治理指標（發聲與課責、法治、貪腐控制等六個面向，V-Dem 是它的來源之一）在「政府治理」主題。',
-    en: "V-Dem indices are estimates: country experts rate each country every year and a statistical model combines their ratings, so every score has an uncertainty range (the side panel shows the 68% credible interval) and countries with close scores may not really differ. Colonies and occupied territories are scored too (for example Taiwan under Japanese rule), reflecting whoever governed them at the time. Countries follow V-Dem's own continuity onto today's borders: Germany in 1949–1990 is West Germany, Russia in 1918–1990 the Soviet Union, Serbia in 1918–2005 Yugoslavia; polities with no shape on today's map (East Germany, South Vietnam, South Yemen, the Gaza Strip and others) are not shown, and Palestine shows the West Bank. The world value is the simple average of countries with data (each country counts equally, not weighted by population). V-Dem data are licensed under CC BY-SA 4.0, and the derived data files for this topic are shared under CC BY-SA 4.0 as well. The World Bank Worldwide Governance Indicators (six dimensions including voice and accountability, rule of law and control of corruption; V-Dem is one of their sources) are in the Governance topic.",
+    zh: 'V-Dem 的指數是各國專家逐年評分、再用統計模型合成的估計值，有不確定範圍（側欄列出 68% 可信區間），分數接近的國家高低不一定有意義。殖民地與被占領的時期也有評分（例如日本統治下的台灣），是當時統治者的分數。國家依 V-Dem 自己的接續方式對到今天的國界：德國 1949–1990 年是西德、俄羅斯 1918–1990 年是蘇聯、塞爾維亞 1918–2005 年是南斯拉夫；東德、南越、南葉門、加薩走廊等在今天的地圖上沒有形狀的政體沒有放，巴勒斯坦用約旦河西岸的值。世界值是有資料國家的簡單平均（每國一樣重，不依人口加權）。V-Dem 資料是 CC BY-SA 4.0 授權，這個主題的衍生資料檔也依 CC BY-SA 4.0 分享。世界銀行的全球治理指標（發聲與課責、法治、貪腐控制等六個面向，V-Dem 是它的來源之一）在「政府治理」主題。投票率與選舉制度只在選舉那一年有值，地圖用 6 年內最近一次選舉，滑過國家看是哪一年、哪一種選舉；專制國家的投票率接近 100% 不代表參與熱烈，而是沒有競爭。',
+    en: "V-Dem indices are estimates: country experts rate each country every year and a statistical model combines their ratings, so every score has an uncertainty range (the side panel shows the 68% credible interval) and countries with close scores may not really differ. Colonies and occupied territories are scored too (for example Taiwan under Japanese rule), reflecting whoever governed them at the time. Countries follow V-Dem's own continuity onto today's borders: Germany in 1949–1990 is West Germany, Russia in 1918–1990 the Soviet Union, Serbia in 1918–2005 Yugoslavia; polities with no shape on today's map (East Germany, South Vietnam, South Yemen, the Gaza Strip and others) are not shown, and Palestine shows the West Bank. The world value is the simple average of countries with data (each country counts equally, not weighted by population). V-Dem data are licensed under CC BY-SA 4.0, and the derived data files for this topic are shared under CC BY-SA 4.0 as well. The World Bank Worldwide Governance Indicators (six dimensions including voice and accountability, rule of law and control of corruption; V-Dem is one of their sources) are in the Governance topic. Turnout and electoral systems only have values in election years; the map uses the most recent election within six years, and hovering over a country shows which year and which election. Turnout close to 100% in autocracies reflects a lack of competition, not enthusiastic participation.",
   },
   panelExtra: () => import('./panels/DemocracyPanel'),
   indicators: [
@@ -174,6 +198,32 @@ export const democracy: TopicDefinition = {
       formatTick: indexTick,
       compareWorld: true,
       lowerIsBetter: true,
+    },
+    {
+      id: 'turnout',
+      label: { zh: '投票率', en: 'Voter turnout' },
+      description: {
+        zh: '最近一次全國選舉（國會或總統）的投票率，選上方的「分母」切換：登記選舉人是各國官方公布的投票率；投票年齡人口不管有沒有登記，看得出登記制度的差別（新加坡 2025 年登記選舉人 92.8%、占投票年齡人口只有 51.0%，美國 2020 年 70.8% 對 62.4%）。國會與總統同一天選、投票率不同時寫的是總統選舉的；同一年有兩場時是比較高的那場。台灣 2024 年 71.9%（總統與立委選舉），澳洲、比利時強制投票約九成，瑞士因為公投太頻繁只有四成多。專制國家的 100% 不是參與熱烈，而是沒有競爭。',
+        en: 'Turnout in the most recent national (legislative or presidential) election; switch the denominator with “Out of” above. Registered voters is the official turnout; voting-age population counts everyone of voting age whether registered or not, which reveals differences in registration (Singapore in 2025: 92.8% of registered voters but only 51.0% of the voting-age population; the US in 2020: 70.8% against 62.4%). When legislative and presidential elections fall on the same day with different turnouts, the presidential one is used; when there were two elections in a year, the higher. Taiwan 71.9% in 2024 (presidential and legislative); Australia and Belgium, with compulsory voting, around 90%; Switzerland, with its frequent referendums, just over 40%. 100% in an autocracy means no competition, not enthusiasm.',
+      },
+      unit: '%',
+      file: 'turnout/{item}.json',
+      dimension: TURNOUT_BASE,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 50, 60, 70, 80, 90] } },
+      format: turnout,
+      formatTick: turnoutTick,
+    },
+    {
+      id: 'electoral-system',
+      label: { zh: '國會選舉制度', en: 'Electoral system' },
+      description: {
+        zh: '下議院（或單一議院）最近一次選舉用的制度。多數制：單一選區（相對多數或兩輪投票，法國算這一類）；比例代表制：依政黨得票分配席次；混合制：一部分單一選區、一部分比例代表，德國的聯立制與日本、台灣的並立制（區域 73 席、原住民 6 席加不分區 34 席）都算這一類；其他：單記非讓渡投票等。V-Dem 的四類很粗，滑過國家看實際的制度名稱。時間軸可以看比例代表制在 20 世紀怎麼擴散。',
+        en: 'The system used in the most recent election to the lower (or only) chamber. Majoritarian: single-member districts (plurality or two-round; France counts here). Proportional representation: seats allocated by party vote share. Mixed: some seats in single-member districts and some by PR, covering both Germany’s mixed-member proportional system and the parallel systems of Japan and Taiwan (73 district seats and 6 indigenous seats plus 34 party-list seats). Other: single non-transferable vote and the like. V-Dem’s four categories are coarse; hover over a country for the actual system. Play the timeline to see proportional representation spread through the 20th century.',
+      },
+      unit: '',
+      file: 'electoral-system.json',
+      layer: { kind: 'categorical', categories: ELECTORAL_SYSTEMS },
+      format: (v) => tr(systemLabel.get(v) ?? { zh: '其他', en: 'Other' }),
     },
   ],
 };

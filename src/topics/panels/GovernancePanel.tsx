@@ -72,6 +72,14 @@ const TEXT = defineMessages({
 });
 
 const score = (v: number) => fixed(v, 1);
+
+/** 分數的範圍與寫法：WGI 是 0–100、小數一位；V-Dem 的指數是 0–1、小數兩位（2026-11-05 加的行政權制衡） */
+interface Scale {
+  max: number;
+  format: (v: number) => string;
+}
+const WGI: Scale = { max: 100, format: score };
+const VDEM: Scale = { max: 1, format: (v) => fixed(v, 2) };
 /** 估計值寫正負號：+1.20、−0.35 */
 const signed = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fixed(Math.abs(v), 2)}`;
 
@@ -110,7 +118,9 @@ function trendOption(
   year: number,
   tokens: Tokens,
   names: { country: string; interval: string; median: string; range: (low: string, high: string) => string },
+  scale: Scale = WGI,
 ): ChartSpec {
+  const score = scale.format;
   const idx = own.map((v, i) => (v == null ? -1 : i)).filter((i) => i >= 0);
   // 從這個國家第一筆畫到最後一筆；中間沒有資料的年份是 null，線在那裡斷開（不會把空白的年份連起來）
   const span = years.map((_y, i) => i).filter((i) => i >= idx[0] && i <= idx[idx.length - 1]);
@@ -124,7 +134,7 @@ function trendOption(
   const byYear = new Map(idx.map((i) => [years[i], i]));
   return {
     x: { type: 'value', min: first, max: last, ticks },
-    y: { format: (v) => String(v), min: 0, max: 100, ticks: [0, 50, 100] },
+    y: { format: (v) => String(v), min: 0, max: scale.max, ticks: [0, scale.max / 2, scale.max] },
     series: [
       { type: 'band', name: names.interval, low: pick(low), high: pick(high), xs, color: tokens.accent, opacity: bandOpacity(tokens), legend: false },
       { type: 'line', name: names.median, values: pick(median), xs, color: tokens.context, width: 1.5, dashed: true, legend: false },
@@ -147,10 +157,12 @@ function trendOption(
   };
 }
 
-/** 分數在 0–100 的位置（%） */
-const pct = (v: number) => `${Math.min(100, Math.max(0, v))}%`;
+/** 分數在 0–max 的位置（%） */
+const pctOf = (v: number, max: number) => `${Math.min(100, Math.max(0, (v / max) * 100))}%`;
+const pct = (v: number) => pctOf(v, 100);
 
-function DimensionTrack({ row, tokens }: { row: Row; tokens: Tokens }) {
+function DimensionTrack({ row, tokens, max = 100 }: { row: Row; tokens: Tokens; max?: number }) {
+  const pct = (v: number) => pctOf(v, max);
   return (
     <div className="gov-track" aria-hidden="true">
       <span className="gov-track-line" />
@@ -166,7 +178,11 @@ function DimensionTrack({ row, tokens }: { row: Row; tokens: Tokens }) {
   );
 }
 
-export default function GovernancePanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+export default function GovernancePanel(props: PanelExtraProps) {
+  return VDEM_INDICES.some((d) => d.id === props.indicator.id) ? <VdemConstraints {...props} /> : <WgiPanel {...props} />;
+}
+
+function WgiPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
@@ -312,7 +328,20 @@ export default function GovernancePanel({ topic, iso3, year, countryName, tokens
 }
 
 /** 點圖與小圖共用的圖例：分數（點）或國家（實線）、90% 信賴區間（色帶）、世界中位數（短線或虛線） */
-function Legend({ tokens, lang, first, line = false }: { tokens: Tokens; lang: Lang; first: string; line?: boolean }) {
+function Legend({
+  tokens,
+  lang,
+  first,
+  line = false,
+  interval,
+}: {
+  tokens: Tokens;
+  lang: Lang;
+  first: string;
+  line?: boolean;
+  /** 區間的名稱（預設是 WGI 的 90% 信賴區間） */
+  interval?: string;
+}) {
   const text = TEXT[lang];
   return (
     <div className="gov-legend" aria-hidden="true">
@@ -322,7 +351,7 @@ function Legend({ tokens, lang, first, line = false }: { tokens: Tokens; lang: L
       </span>
       <span>
         <span className="gov-key-band" style={{ background: tokens.accent, opacity: bandOpacity(tokens) }} />
-        {text.keyInterval}
+        {interval ?? text.keyInterval}
       </span>
       <span>
         <span
@@ -332,5 +361,163 @@ function Legend({ tokens, lang, first, line = false }: { tokens: Tokens; lang: L
         {text.keyMedian}
       </span>
     </div>
+  );
+}
+
+/** V-Dem 的行政權制衡（id 跟 governance.ts、pipeline/topics/governance_vdem.py 一致）；地方分權沒有可信區間 */
+const VDEM_INDICES: { id: string; label: Text; interval: boolean }[] = [
+  { id: 'judicial-constraints', label: { zh: '司法的制衡', en: 'Judicial constraints' }, interval: true },
+  { id: 'legislative-constraints', label: { zh: '立法的制衡', en: 'Legislative constraints' }, interval: true },
+  { id: 'division-of-power', label: { zh: '地方分權', en: 'Division of power' }, interval: false },
+];
+
+const VDEM_TEXT = defineMessages({
+  zh: {
+    title: (year: number) => `行政權受到的制衡（${year} 年）`,
+    interval: '68% 可信區間',
+    note: 'V-Dem 的專家評分合成的估計值，0–1，越高制衡越強；區間重疊的國家，高低不一定有意義。地方分權 V-Dem 沒有給可信區間。世界中位數是當年有資料的國家的中位數。',
+    chartAria: (country: string, label: string) => `${country}歷年的 V-Dem ${label}指數、68% 可信區間與世界中位數`,
+    rowAria: (label: string, value: string, low: string, high: string, median: string) =>
+      `${label} ${value}，68% 可信區間 ${low} 到 ${high}，世界中位數 ${median}`,
+  },
+  en: {
+    title: (year) => `Constraints on the executive (${year})`,
+    interval: '68% credible interval',
+    note: 'Estimates combining V-Dem expert ratings, 0–1, higher means stronger constraints; where intervals overlap, countries may not really differ. V-Dem gives no credible interval for division of power. The world median is the median of countries with data that year.',
+    chartAria: (country, label) => `V-Dem ${label.toLowerCase()} index for ${country} over time, with the 68% credible interval and the world median`,
+    rowAria: (label, value, low, high, median) =>
+      `${label}: ${value}, 68% credible interval ${low} to ${high}, world median ${median}`,
+  },
+});
+
+/** 三項 V-Dem 指數：點圖（這一年的值、可信區間、世界中位數）加歷年的小圖，照 WGI 的做法、刻度改成 0–1 */
+function VdemConstraints({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+  const lang = useLang();
+  const t = useT();
+  const text = VDEM_TEXT[lang];
+  const files = useMemo(
+    () =>
+      VDEM_INDICES.flatMap((d) =>
+        d.interval
+          ? [`topics/${topic.id}/${d.id}.json`, `topics/${topic.id}/intervals/${d.id}-low.json`, `topics/${topic.id}/intervals/${d.id}-high.json`]
+          : [`topics/${topic.id}/${d.id}.json`],
+      ),
+    [topic.id],
+  );
+  const loaded = useJsonMany<IndicatorData>(files);
+  const ready = loaded.every(Boolean);
+
+  const view = useMemo(() => {
+    if (!ready) return null;
+    // 每項指數在 loaded 裡的位置：估計值，有區間的再接下限、上限
+    let k = 0;
+    const sets = VDEM_INDICES.map((d) => {
+      const main = loaded[k++]!;
+      const low = d.interval ? loaded[k++]! : null;
+      const high = d.interval ? loaded[k++]! : null;
+      return { d, main, low, high };
+    });
+    const years = sets[0].main.years;
+    const at = latestIndexAtOrBefore(years, year, (i) => sets.some((x) => x.main.values[iso3]?.[i] != null));
+    if (at < 0) return null;
+    const empty = years.map(() => null);
+    const rows: Row[] = sets.flatMap(({ d, main, low, high }) => {
+      const v = main.values[iso3]?.[at];
+      if (v == null) return [];
+      return [
+        {
+          id: d.id,
+          label: tr(d.label, lang),
+          score: v,
+          low: low?.values[iso3]?.[at] ?? null,
+          high: high?.values[iso3]?.[at] ?? null,
+          median: main.aggregates?.MEDIAN?.[at] ?? null,
+          estimate: null,
+          se: null,
+          sources: null,
+        },
+      ];
+    });
+    const trends: Trend[] = sets.flatMap(({ d, main, low, high }) => {
+      const own = main.values[iso3];
+      if (!own?.some((v) => v != null)) return [];
+      const label = tr(d.label, lang);
+      return [
+        {
+          id: d.id,
+          label,
+          option: trendOption(
+            years,
+            own,
+            low?.values[iso3] ?? empty,
+            high?.values[iso3] ?? empty,
+            main.aggregates?.MEDIAN ?? [],
+            year,
+            tokens,
+            { country: countryName, interval: text.interval, median: TEXT[lang].keyMedian, range: TEXT[lang].interval },
+            VDEM,
+          ),
+        },
+      ];
+    });
+    return { shown: years[at], rows, trends };
+  }, [ready, loaded, iso3, year, lang, tokens, countryName, text]);
+
+  if (!ready) return <p className="empty">{t.loading}</p>;
+  if (!view) return null;
+  const f = VDEM.format;
+  return (
+    <section className="panel-section">
+      <h3>{text.title(view.shown)}</h3>
+      {view.shown !== year && <p className="note">{TEXT[lang].shownInstead(year, view.shown)}</p>}
+      <ul className="gov-dims">
+        {view.rows.map((r) => (
+          <li
+            key={r.id}
+            className="gov-dim"
+            aria-label={text.rowAria(
+              r.label,
+              f(r.score),
+              r.low == null ? '—' : f(r.low),
+              r.high == null ? '—' : f(r.high),
+              r.median == null ? '—' : f(r.median),
+            )}
+          >
+            <div className="gov-dim-head">
+              <span>{r.label}</span>
+              <span>
+                <strong>{f(r.score)}</strong>
+                {r.low != null && r.high != null && <span className="gov-muted">{TEXT[lang].interval(f(r.low), f(r.high))}</span>}
+              </span>
+            </div>
+            <DimensionTrack row={r} tokens={tokens} max={VDEM.max} />
+            {r.median != null && <div className="gov-median-text">{TEXT[lang].median(f(r.median))}</div>}
+          </li>
+        ))}
+      </ul>
+      <div className="gov-scale" aria-hidden="true">
+        {[0, 0.5, 1].map((v) => (
+          <span key={v} style={{ left: pctOf(v, VDEM.max) }}>
+            {v}
+          </span>
+        ))}
+      </div>
+      <Legend tokens={tokens} lang={lang} first={TEXT[lang].keyScore} interval={text.interval} />
+      {view.trends.length > 0 && (
+        <>
+          <h4>{TEXT[lang].trendTitle}</h4>
+          <Legend tokens={tokens} lang={lang} first={countryName} line interval={text.interval} />
+          <div className="gov-multiples">
+            {view.trends.map((trend) => (
+              <div key={trend.id}>
+                <h5>{trend.label}</h5>
+                <Chart spec={trend.option} height={110} ariaLabel={text.chartAria(countryName, trend.label)} />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <p className="note">{text.note}</p>
+    </section>
   );
 }
