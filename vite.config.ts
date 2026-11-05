@@ -88,22 +88,51 @@ function readDatasets(): Record<string, DatasetEntry> {
   return JSON.parse(readFileSync('src/topics/datasets.gen.json', 'utf8'));
 }
 
-/** 指標資料檔的 years（public/data/ 底下；沒有這個檔或沒有 years 時是空的），同一個檔只讀一次 */
-const yearsCache = new Map<string, unknown[]>();
-function dataYears(file: string): unknown[] {
-  let years = yearsCache.get(file);
-  if (!years) {
+/** 指標資料檔的年份、國家數（values 裡的 ISO 代碼，不含 _ 開頭的地區）與推估的起始年 */
+interface DataInfo {
+  years: unknown[];
+  countries: number;
+  projectionFrom: number | null;
+}
+
+/** 指標資料檔的資訊（public/data/ 底下；沒有這個檔時是空的），同一個檔只讀一次 */
+const infoCache = new Map<string, DataInfo>();
+function dataInfo(file: string): DataInfo {
+  let info = infoCache.get(file);
+  if (!info) {
     const path = `public/data/${file}`;
-    years = [];
+    info = { years: [], countries: 0, projectionFrom: null };
     if (existsSync(path)) {
+      const data = JSON.parse(readFileSync(path, 'utf8')) as { years?: unknown; coverage?: unknown; values?: unknown; projectionFrom?: unknown };
       // 年份欄位存的不是西元年（防疫管制存日期的編號）時，資料檔另寫 coverage（真正的起訖年，2026-11-04 起）
-      const data = JSON.parse(readFileSync(path, 'utf8')) as { years?: unknown; coverage?: unknown };
-      if (Array.isArray(data.coverage)) years = data.coverage;
-      else if (Array.isArray(data.years)) years = data.years;
+      if (Array.isArray(data.coverage)) info.years = data.coverage;
+      else if (Array.isArray(data.years)) info.years = data.years;
+      if (data.values && typeof data.values === 'object') info.countries = Object.keys(data.values).filter((k) => /^[A-Z]{3}$/.test(k)).length;
+      if (typeof data.projectionFrom === 'number') info.projectionFrom = data.projectionFrom;
     }
-    yearsCache.set(file, years);
+    infoCache.set(file, info);
   }
-  return years;
+  return info;
+}
+
+const dataYears = (file: string): unknown[] => dataInfo(file).years;
+
+/**
+ * 主題頁說明裡的資料範圍（2026-11-05，參8，參考 tickerkarte 的說明帶最新的資料）：「資料 1950–2100 年（2024 年起是推估）、
+ * 237 個國家與地區。」只有一年的不寫年份（不分年份的指標檔存的是佔位的年份）；國家數是指標檔裡最多的那一個，不到 10 國不寫
+ */
+function coverageText(files: string[]): string {
+  const range = temporalCoverage(files.flatMap(dataYears));
+  const infos = files.map(dataInfo);
+  const parts: string[] = [];
+  const [from, to] = (range ?? '').split('/').map(Number);
+  if (from && to) {
+    const projections = infos.map((i) => i.projectionFrom).filter((y): y is number => y !== null && y > from && y <= to);
+    parts.push(`資料 ${from}–${to} 年${projections.length ? `（${Math.min(...projections)} 年起是推估）` : ''}`);
+  }
+  const countries = Math.max(0, ...infos.map((i) => i.countries));
+  if (countries >= 10) parts.push(`${countries} 個國家與地區`);
+  return parts.length ? `${parts.join('、')}。` : '';
 }
 
 /**
@@ -145,7 +174,7 @@ function topicPages(): Plugin {
         const labels = topic.firstIndicators.map((i) => i.label.zh);
         const description = topic.pure
           ? '用地球儀看世界地圖，可以換底圖、搜尋國家；網站另有近百個主題的各國資料。'
-          : `${title}：${labels.slice(0, 4).join('、')}${labels.length > 4 || topic.more ? '等' : ''}。互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。`;
+          : `${title}：${labels.slice(0, 4).join('、')}${labels.length > 4 || topic.more ? '等' : ''}。${coverageText(datasets[topic.id]?.files ?? [])}互動世界地圖，拖時間軸看歷年變化，還有排名表與各國比較。`;
         const image = existsSync(`public/og/${topic.id}.jpg`) ? `${SITE}og/${topic.id}.jpg` : `${SITE}og-image.jpg`;
         let page = html.replace(
           /<title>[^<]*<\/title>/,

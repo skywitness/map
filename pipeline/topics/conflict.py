@@ -50,6 +50,14 @@ TYPE_FILES = {ucdp.STATE_BASED: "battle-deaths", ucdp.NON_STATE: "non-state-deat
 EVENT_FILES = {ucdp.STATE_BASED: "events-state", ucdp.NON_STATE: "events-nonstate", ucdp.ONE_SIDED: "events-onesided"}
 CELL_DEG = 0.1  # 事件點的合併範圍（約 11 公里）
 MIN_POINT_DEATHS = 25  # 合併後不到 25 人的不畫（跟 UCDP 一年 25 人的門檻同一個數字），國家的合計仍然算
+# GED 的定位精度（where_prec，GED 26.1 codebook）：1 確切地點、2 已知地點 25 公里內、3 只知道第二級行政區（點在它的中心）、
+# 4 只知道第一級行政區（點在它的中心）、5 只知道沿著河流、邊界、道路或一個大概的區域（取一個代表點）、6 只知道國家、
+# 7 公海或國際空域。
+# 2026-11-05（參考 tickerkarte 的做法，使用者選「參1」）：6 只知道國家的事件座標都在國家的中心（例如烏克蘭 1989–2025 年
+# 17.3 萬人疊在北緯 49 度、東經 32 度一點，離前線約 400 公里），畫成點、算進熱度會在沒有戰事的地方畫出一個熱點，
+# 所以不畫點、不算熱度；國家的合計照算。3、4、5 照舊畫，點上記精度（prec），滑過時寫出來；不同精度的事件不併成同一點。
+COUNTRY_ONLY = 6
+PREC_SHOWN = {3, 4, 5}
 
 # GED 的國家 → [(今天地圖上分開畫的地區, 這一天以前的事件才改算；None 是一律改算)]
 # 日期是 UCDP 開始把那個地區當成獨立國家的日子（之後 GED 會直接記成那一國，記在原本國家的是國界附近的事件，照 GED）。
@@ -164,12 +172,14 @@ def split_country(events: list[ucdp.Event], shapes: dict[str, dict]) -> tuple[li
 
 # ── 事件點 ────────────────────────────────────────────────────────
 def event_points(events: list[ucdp.Event], iso3: list[str], kind: int) -> list[dict]:
-    """同一年、同一國、同一個 0.1° 網格的事件併成一點：位置是依死亡人數加權的平均，地名與衝突名稱取死亡最多的那起。"""
+    """同一年、同一國、同一個 0.1° 網格、同一種定位精度的事件併成一點：位置是依死亡人數加權的平均，地名與衝突名稱取死亡
+    最多的那起。只知道國家的事件不畫（COUNTRY_ONLY）。"""
     groups: dict[tuple, dict] = {}
     for e, c in zip(events, iso3):
-        if e.type != kind:
+        if e.type != kind or e.where_prec == COUNTRY_ONLY:
             continue
-        key = (e.year, c, math.floor(e.lat / CELL_DEG), math.floor(e.lon / CELL_DEG))
+        prec = e.where_prec if e.where_prec in PREC_SHOWN else None
+        key = (e.year, c, math.floor(e.lat / CELL_DEG), math.floor(e.lon / CELL_DEG), prec)
         g = groups.get(key)
         if g is None:
             g = groups[key] = {"deaths": 0, "n": 0, "wx": 0.0, "wy": 0.0, "w": 0.0, "top": -1, "place": None, "name": None}
@@ -182,12 +192,12 @@ def event_points(events: list[ucdp.Event], iso3: list[str], kind: int) -> list[d
         if e.deaths > g["top"]:
             g["top"], g["place"], g["name"] = e.deaths, e.place or e.adm_1 or None, e.conflict_name or None
     rows = []
-    for (year, c, _cy, _cx), g in groups.items():
+    for (year, c, _cy, _cx, prec), g in groups.items():
         if g["deaths"] < MIN_POINT_DEATHS:
             continue
         rows.append({
             "lon": round(g["wx"] / g["w"], 2), "lat": round(g["wy"] / g["w"], 2), "year": year,
-            "deaths": g["deaths"], "n": g["n"], "iso3": c, "place": g["place"], "name": g["name"],
+            "deaths": g["deaths"], "n": g["n"], "iso3": c, "place": g["place"], "name": g["name"], "prec": prec,
         })
     # 依年份排（年份差分），同一年大的排後面（畫在上面）
     rows.sort(key=lambda r: (r["year"], r["deaths"]))
@@ -415,12 +425,14 @@ def build() -> None:
     # ── 事件點 ──
     for t, name in EVENT_FILES.items():
         rows = event_points(events, iso3, t)
-        data = points_file(rows, ["lon", "lat", "year", "deaths", "n", "iso3", "place", "name"],
+        data = points_file(rows, ["lon", "lat", "year", "deaths", "n", "iso3", "place", "name", "prec"],
                            {"lon": 0.01, "lat": 0.01, "year": 1, "deaths": 1, "n": 1}, delta=("year",))
         write_json(OUT / f"{name}.json", data)
         shown = sum(r["deaths"] for r in rows)
         all_deaths = sum(world[t].values())
-        print(f"    {name}：{len(rows):,} 點，涵蓋 {shown / all_deaths:.1%} 的死亡（{_size(data)}）")
+        country_only = sum(e.deaths for e in events if e.type == t and e.where_prec == COUNTRY_ONLY)
+        print(f"    {name}：{len(rows):,} 點，涵蓋 {shown / all_deaths:.1%} 的死亡（{_size(data)}）；"
+              f"只知道國家、不畫點的 {country_only:,} 人（{country_only / all_deaths:.1%}）")
 
     # ── ACD：以國家為一方的武裝衝突 ──
     acd = ucdp.armed_conflicts()

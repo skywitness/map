@@ -1177,6 +1177,25 @@ function inTime(p: Record<string, unknown>, def: { timeField?: string; endField?
   return t === year;
 }
 
+/**
+ * 圖層開關旁的件數（2026-11-05，參3）：時間軸這一年畫出來的點數（或 count.field 的合計），年份與篩選方式跟
+ * applyTimeFilters 一樣；不是點圖層、還沒讀到資料、軌跡、依期變的點與 count: false 是 null
+ */
+export function overlayCount(o: OverlayLayer, shownYear: number, indicatorMode: IndicatorDef['overlayTime']): number | null {
+  if (o.kind !== 'points' || !o.points || o.def.count === false || o.def.trail || o.def.epochs) return null;
+  const mode = o.def.overlayTime ?? indicatorMode;
+  const range = o.def.timeRange === 'data' ? dataYears(o) : o.def.timeRange;
+  const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
+  const field = o.def.count?.field;
+  let total = 0;
+  for (const p of o.points) {
+    if (!inTime(p, o.def, year, mode)) continue;
+    const v = field ? p[field] : 1;
+    if (typeof v === 'number') total += v;
+  }
+  return total;
+}
+
 /** 聚合 source 上次送的資料（同一份點、同一年、同一個 source 就不必再送） */
 const clusterSent = new WeakMap<MaplibreMap, Map<string, { source: unknown; points: unknown; year: number; mode: unknown }>>();
 

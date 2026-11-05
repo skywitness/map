@@ -34,7 +34,7 @@ import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, sto
 import { flowText, useFlowSelection } from './map/flows';
 import { DEFAULT_LAYERS, type LayerVisibility, type OverlayLayer } from './map/overlayData';
 import { buildPlaceIndex, searchPlaces as findPlaces, type PlaceEntry, type PlaceLayer } from './lib/placeSearch';
-import type { PlaceOption } from './controls/CommandPaletteDialog';
+import type { ComboTarget, PlaceOption } from './controls/CommandPaletteDialog';
 import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes, type PersonalRoute } from './lib/personalRoutes';
 import type { PersonalMenu } from './map/BasemapMenu';
 import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
@@ -641,6 +641,17 @@ export function App() {
       // 時刻主題選的那一刻只留在同一個主題
       ...(target.topic !== topic.id ? { time: null } : {}),
     });
+  // 指令面板的組合搜尋（參5，lib/comboSearch.ts）：主題、國家、年份一次改好（網址只多一筆），選了國家就移過去
+  const selectCombo = (combo: ComboTarget) => {
+    const target = combo.target;
+    update({
+      ...(target ? { topic: target.topic, indicator: target.indicator, item: target.item, grid: null } : {}),
+      ...(target && target.topic !== topic.id ? { time: null } : {}),
+      ...(combo.iso3 ? { country: combo.iso3 } : {}),
+      ...(combo.year !== null ? { year: combo.year } : {}),
+    });
+    if (combo.iso3) setFocusRequest({ iso3: combo.iso3, key: Date.now() });
+  };
   useHotkeys({
     Escape: () => {
       // 世界地圖主題：回上一層行政區（第二級 → 第一級 → 國家 → 世界）
@@ -978,6 +989,7 @@ export function App() {
         onSelectCountry={selectFromSearch}
         paletteActions={paletteActions}
         searchPlaces={searchPlaces}
+        onSelectCombo={selectCombo}
         themeMode={tokens.mode}
         onToggleTheme={toggleTheme}
         layout={layout}

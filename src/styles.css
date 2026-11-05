@@ -2230,6 +2230,15 @@ kbd {
   accent-color: var(--accent);
 }
 
+/* 圖層名稱後面的件數（參3）：時間軸這一年畫出來的點數，淡一點、靠右、數字等寬 */
+.map-layer-count {
+  margin-left: auto;
+  padding-left: 8px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* 那一天的影像播放一季（主題的 satellite.season，臭氧洞）：名稱後面的小按鈕 */
 .map-layer-play {
   margin-left: auto;
