@@ -173,6 +173,8 @@ STEPS = {
     "banknote-largest": "topics.banknote_largest",
     # 大型哺乳類還剩下幾種（第二十二批 398）：PHYLACINE 1.2（Zenodo，CC0），國界柵格化到 96.5 km 網格
     "megafauna": "topics.megafauna",
+    # 跑道（第二十三批 399）：OurAirports 的 runways.csv、Factbook 2022 年版的鋪面機場、民航局的機場設施表，擴充機場與旅客
+    "airport-runways": "topics.airport_runways",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄

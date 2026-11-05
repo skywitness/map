@@ -2,6 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { aviationExtra } from './aviation-extra';
+import { aviationRunways } from './aviation-runways';
 import { AIRPORTS_ZH } from './longest-flights-names';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
@@ -131,6 +132,7 @@ export const aviation: TopicDefinition = {
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
     ...aviationExtra.sources,
+    ...aviationRunways.sources,
   ],
   note: {
     zh:
@@ -139,6 +141,7 @@ export const aviation: TopicDefinition = {
       '瑞安航空註冊在愛爾蘭、威茲航空在匈牙利，所以這兩國特別高；一趟轉機算兩次，轉機樞紐的航空公司也偏高。多數國家到 2023 年。' +
       '台灣沒有這項資料，民航局統計的機場旅客寫在台灣的附註（口徑不同，地圖上留白）。' +
       '最繁忙的機場依英文維基百科 2026 年 10 月 20 日的版本，數字是國際機場協會（ACI）的初步統計，各機場自己公布的可能不同；每年只有前 50 名，2019 年以前在別的條目，沒有收。資料檔依維基百科的 CC BY-SA 4.0 分享。' +
+      '跑道總長與 3,000 公尺以上的跑道只算有定期航班的機場（OurAirports），長度是 OurAirports 的登記，不一定是最新（桃園 05R 記 3,350 公尺，民航局是 3,800 公尺），台灣的側欄列民航局的官方數字；鋪面機場的比例是 CIA World Factbook 2022 年版（全部機場，多數 2021 年），口徑跟跑道不同。' +
       '航空公司、最長的直飛航線見「航線與航空公司」主題，鐵路見「鐵路」主題。',
     en:
       'Airports include only large airports and medium airports with scheduled flights (OurAirports). ' +
@@ -146,10 +149,11 @@ export const aviation: TopicDefinition = {
       'Ryanair is registered in Ireland and Wizz Air in Hungary, so both countries stand out; a journey with a connection counts twice, which also lifts hub carriers. Most countries have data to 2023. ' +
       'There is no figure for Taiwan; passengers counted at Taiwan’s airports by its Civil Aeronautics Administration are given in Taiwan’s note (a different measure, so the map leaves Taiwan blank). ' +
       'The busiest airports follow English Wikipedia as of 20 October 2026, whose figures are Airports Council International (ACI) preliminary statistics and may differ from the airports’ own; only the top 50 of each year are listed, and years before 2020 are in other articles and not included. The data files are shared under Wikipedia’s CC BY-SA 4.0. ' +
+      'Total runway length and runways of 3,000 m or more count only airports with scheduled flights (OurAirports); lengths are as recorded by OurAirports and may be out of date (Taoyuan’s 05R is listed at 3,350 m, against 3,800 m from Taiwan’s Civil Aeronautics Administration), and Taiwan’s side panel shows the official figures. The share of paved airports comes from the December 2022 CIA World Factbook (all airports, mostly 2021), a different basis from the runway figures. ' +
       'For airlines and the longest flights see the Air routes and airlines topic; for railways, the Railways topic.',
   },
   panelExtra: () => import('./panels/AviationPanel'),
-  listPanel: [PAX_LIST, CARGO_LIST],
+  listPanel: [PAX_LIST, CARGO_LIST, aviationRunways.listPanel],
   overlays: [
     // 交通主題搬過來的機場（鐵路、機場是舊的寫法，app/overlays.ts 依 id 認得 airports）
     { id: 'airports', file: 'airports.json', indicators: ['airports-count', 'large-airports'] },
@@ -240,5 +244,6 @@ export const aviation: TopicDefinition = {
       missing: { zh: '沒有機場在前 50 名', en: 'No airport in the top 50' },
     },
     ...aviationExtra.indicators,
+    ...aviationRunways.indicators,
   ],
 };
