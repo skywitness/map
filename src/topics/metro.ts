@@ -2,6 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { metroExtra } from './rail-extra';
+import { monthlyPass } from './transit-fares';
 import type { ColorClasses, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -57,6 +58,7 @@ export const metro: TopicDefinition = {
   defaultIndicator: 'metro-stations',
   defaultYear: 2026,
   sources: [
+    monthlyPass.source,
     {
       name: { zh: 'Wikidata（地鐵站、地鐵路網與開通日期）', en: 'Wikidata (metro stations, metro systems and opening dates)' },
       url: 'https://www.wikidata.org/',
@@ -64,7 +66,7 @@ export const metro: TopicDefinition = {
     },
     ...metroExtra.sources,
   ],
-  listPanel: metroExtra.listPanel,
+  listPanel: [metroExtra.listPanel, monthlyPass.listPanel].flat(),
   note: {
     zh:
       '地鐵站取自 Wikidata：只收地鐵（Wikidata 標成地鐵站、或所屬路網是地鐵的車站），不收輕軌、電車、單軌、機場的旅客捷運與通勤鐵路；興建中、規劃中的不算。' +
@@ -91,6 +93,7 @@ export const metro: TopicDefinition = {
       tooltip: stationTooltip,
     },
     ...metroExtra.overlays,
+    monthlyPass.overlay,
   ],
   panelExtra: () => import('./panels/MetroPanel'),
   indicators: [
@@ -111,5 +114,6 @@ export const metro: TopicDefinition = {
       shareOfWorld: true,
     },
     ...metroExtra.indicators,
+    monthlyPass.indicator,
   ],
 };

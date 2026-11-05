@@ -195,6 +195,8 @@ STEPS = {
     "rail-europe": "topics.rail_europe",
     # 歐洲城市的通勤與市民對大眾運輸的評價（第二十三批 408）：Eurostat Urban Audit urb_ctran、urb_percep，城市位置用自行車主題的快取
     "cities-transport": "topics.cities_transport",
+    # 大眾運輸的月票與計程車車資（第二十三批 409）：Eurostat Urban Audit TT1080V、TT1081V，分別輸出到地鐵與叫車服務的資料夾
+    "transit-fares": "topics.transit_fares",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
