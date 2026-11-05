@@ -47,6 +47,50 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   'cloud-regions': { topic: 'ai', indicator: 'regions' },
   // 唐人街變成移民與難民的疊加圖層：打開僑民人數，並打開唐人街的圖層
   chinatowns: { topic: 'migration', indicator: 'emigrants', indicators: { map: { indicator: 'emigrants' } }, layer: 'chinatowns' },
+  // 2026-11-04 主題整併（使用者看過盤點後選「都做」；topics/merge.ts）：小主題併進相關的大主題，資料照舊在原本的資料夾
+  vehicles: { topic: 'ev', indicator: 'motorcycles-per-1000' }, // 併5 汽機車與電動車
+  ewaste: {
+    // 併6 廢棄物與回收：電子垃圾的指標加 ewaste- 前綴（塑膠也有 per-capita）
+    topic: 'plastic',
+    indicator: 'ewaste-per-capita',
+    indicators: {
+      'per-capita': { indicator: 'ewaste-per-capita' },
+      generated: { indicator: 'ewaste-generated' },
+      'recycling-rate': { indicator: 'ewaste-recycling-rate' },
+      recycled: { indicator: 'ewaste-recycled' },
+    },
+  },
+  'road-races': {
+    // 併12 運動：races 以前是運動的 F1 指標（轉到賽車），路跑的改名 road-races
+    topic: 'sports',
+    indicator: 'road-races',
+    indicators: { races: { indicator: 'road-races' }, founded: { indicator: 'road-races-founded' } },
+  },
+  ivf: { topic: 'fertility', indicator: 'births-share' }, // 併14 生育率與高齡化
+  retirement: { topic: 'employment', indicator: 'retirement-age' }, // 併16 就業、失業與退休
+  climbing: { topic: 'diving', indicator: 'crag-count' }, // 併11 戶外運動場地：潛水與攀岩
+  'box-office-tw': { topic: 'culture', indicator: 'share' }, // 併10 文化
+  // 併1 核能：能源政策（核能政策；燃煤退場的兩個指標見 INDICATOR_MOVES）、核子事故、核廢料（指標原本都叫 map）
+  'energy-policy': { topic: 'nuclear', indicator: 'nuclear-policy' },
+  'nuclear-accidents': { topic: 'nuclear', indicator: 'accidents', indicators: { map: { indicator: 'accidents' } } },
+  'nuclear-waste': { topic: 'nuclear', indicator: 'repositories', indicators: { map: { indicator: 'repositories' } } },
+  // 併2 觀光鐵道與纜車（纜車的 map 改名 cable-cars）
+  'cable-cars': { topic: 'heritage-railways', indicator: 'cable-cars', indicators: { map: { indicator: 'cable-cars' } } },
+  // 併3 森林（森林覆蓋率、年變化率見 INDICATOR_MOVES 的 water-forest）
+  'oil-palm': { topic: 'forest', indicator: 'area' },
+  'planted-forests': { topic: 'forest', indicator: 'planted-share' },
+  // 併4 企業與品牌（據點的 companies 改名 site-companies）
+  'company-sites': { topic: 'companies', indicator: 'sites', indicators: { companies: { indicator: 'site-companies' } } },
+  pandas: { topic: 'china-lending', indicator: 'received' }, // 併7 中國的海外影響力
+  sectors: { topic: 'industry', indicator: 'services' }, // 併13 產業結構與工業
+  // 併15 步道與自行車路線（自行車的 map 改名 cycle-map）
+  cycling: { topic: 'trails', indicator: 'cycle-map', indicators: { map: { indicator: 'cycle-map' } } },
+  // 整1 醫學影像、醫院的表現併進醫療人力與設備，血漿製劑併進藥品支出與取得
+  'medical-imaging': { topic: 'health-care', indicator: 'devices' },
+  'hospital-quality': { topic: 'health-care', indicator: 'mortality' },
+  plasma: { topic: 'medicines', indicator: 'fractionation' },
+  'covid-policy': { topic: 'covid', indicator: 'stringency' }, // 整2 COVID-19
+  taxes: { topic: 'fiscal', indicator: 'cit' }, // 整3 政府財政與稅
 };
 
 /**
@@ -65,9 +109,76 @@ export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
   },
   // 航空（id aviation，第十一批 186 起叫機場與旅客）：航空公司、最長航線的指標搬到航線與航空公司，指標 id 不變
   aviation: Object.fromEntries(['airlines', 'routes-count', 'longest', 'discontinued'].map((id) => [id, { topic: 'air-routes' }])),
-  // 交通安全：機車、汽車的指標搬到汽機車（第十一批 186），指標 id 不變
+  // 交通安全：機車、汽車的指標搬到汽機車（第十一批 186），2026-11-04 汽機車再併進電動車（汽機車與電動車），指標 id 不變
   'road-safety': Object.fromEntries(
-    ['motorcycles-per-1000', 'motorcycle-share', 'cars-per-1000', 'passenger-cars'].map((id) => [id, { topic: 'vehicles' }]),
+    ['motorcycles-per-1000', 'motorcycle-share', 'cars-per-1000', 'passenger-cars'].map((id) => [id, { topic: 'ev' }]),
+  ),
+  // 2026-11-04 主題整併：薪資與工時的法定年假搬到國定假日與年假（併9），法律與制度的博弈的合法性搬到博弈（併8，改名 legality）
+  wages: { 'annual-leave': { topic: 'holidays' }, 'annual-leave-max': { topic: 'holidays' } },
+  laws: { gambling: { topic: 'gambling', indicators: { gambling: { indicator: 'legality' } } } },
+  // 併1 能源政策的燃煤退場到石油、天然氣與煤（能源政策整個併掉，這兩個指標優先於 TOPIC_REDIRECTS）；併3 森林的兩個指標到森林
+  'energy-policy': { 'coal-phaseout': { topic: 'fossil-fuels' }, ppca: { topic: 'fossil-fuels' } },
+  'water-forest': { 'forest-cover': { topic: 'forest' }, 'forest-change': { topic: 'forest' } },
+  // 整1 健康與醫療拆成三個（壽命與死亡留在 health）
+  health: {
+    ...Object.fromEntries(
+      [
+        'health-spending-per-capita',
+        'health-spending-gdp',
+        'oop-share',
+        'oop-per-capita',
+        'government-share',
+        'health-system',
+        'health-financing',
+        'uhc-start',
+      ].map((id) => [id, { topic: 'health-spending' }]),
+    ),
+    ...Object.fromEntries(
+      [
+        'physicians',
+        'nurses',
+        'hospital-beds',
+        'icu-beds',
+        'icu-beds-adult',
+        'surgery',
+        'surgical-workforce',
+        'laparoscopic',
+        'obstetric-trauma',
+        'teleconsult-share',
+        'teleconsult-per-person',
+        'ltc-beds',
+        'ltc-recipients',
+      ].map((id) => [id, { topic: 'health-care' }]),
+    ),
+  },
+  // 整2 疫苗與防疫的 COVID-19 指標到 COVID-19
+  vaccination: Object.fromEntries(
+    ['covid-deaths', 'covid-vaccinated', 'covid-doses', 'covid-boosters', 'excess-deaths', 'excess-wmd', 'undercount'].map((id) => [
+      id,
+      { topic: 'covid' },
+    ]),
+  ),
+  // 整3 物價與財政的物價、消費指標到物價與消費
+  fiscal: Object.fromEntries(['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'].map((id) => [id, { topic: 'prices' }])),
+  // 整4 國際觀光的旅遊習慣指標到旅遊習慣
+  tourism: Object.fromEntries(
+    [
+      'main-accommodation',
+      'hotel-share',
+      'free-accommodation-share',
+      'long-trips-domestic',
+      'long-trips-abroad',
+      'no-trip',
+      'no-trip-reason',
+      'air-share-abroad',
+      'package-share-abroad',
+      'web-booked-abroad',
+      'trips-per-resident',
+      'trips-abroad-per-resident',
+      'participation',
+      'nights-per-trip-abroad',
+      'spend-per-trip-abroad',
+    ].map((id) => [id, { topic: 'travel-habits' }]),
   ),
   // 賽車（第九批 160）：運動的 F1 指標搬到賽車，指標 id 不變
   sports: Object.fromEntries(['races', 'champions'].map((id) => [id, { topic: 'racing' }])),
@@ -85,7 +196,8 @@ export function redirectTopic(topic: string | null, indicator: string | null, it
   if (!topic) return null;
   const whole = TOPIC_REDIRECTS[topic];
   const moved = indicator ? INDICATOR_MOVES[topic]?.[indicator] : undefined;
-  const target = whole ?? moved;
+  // 整個主題併掉、但其中幾個指標搬到另一個主題時（2026-11-04 能源政策：核能政策到核能、燃煤退場到石油天然氣與煤），指標的優先
+  const target = moved ?? whole;
   if (!target) return null;
   const renamed = indicator ? target.indicators?.[indicator] : undefined;
   return {

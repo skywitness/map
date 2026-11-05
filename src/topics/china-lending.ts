@@ -1,5 +1,8 @@
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import type { IndicatorDef, Text, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { pandas } from './pandas';
 
 /**
  * 中國的海外貸款：AidData 的 China's Global Loans and Grants Dataset 1.0（CLG-Global 1.0，pipeline/topics/china_lending.py）。
@@ -72,7 +75,7 @@ const codfIndicator = (id: 'codf-cumulative' | 'codf-annual', label: Text, descr
   missing: CODF_MISSING,
 });
 
-export const chinaLending: TopicDefinition = {
+const chinaLendingOwn: TopicDefinition = {
   id: 'china-lending',
   title: { zh: '中國的海外貸款', en: 'Chinese development finance' },
   shortTitle: { zh: '中國貸款', en: 'China lending' },
@@ -217,3 +220,16 @@ export const chinaLending: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 中國的海外影響力：貸款與熊貓外交（2026-11-04，主題整併 併7）：「熊貓外交」併進來，資料照舊在 pandas/（topics/merge.ts），
+ * 熊貓的弧線、動物園與清單只在熊貓的指標；「類型」的子項目只有貸款的指標用。舊網址 t/pandas/ 轉到這裡（redirects.ts）
+ */
+export const chinaLending: TopicDefinition = withParts(
+  {
+    ...hostOnly(chinaLendingOwn),
+    title: { zh: '中國的海外影響力：貸款與熊貓外交', en: 'China abroad: lending and panda diplomacy' },
+    shortTitle: { zh: '中國的海外影響力', en: 'China abroad' },
+  },
+  topicPart(pandas),
+);

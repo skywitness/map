@@ -20,11 +20,11 @@ const TEXT = defineMessages({
   },
 });
 
-export default function NuclearAccidentsPanel({ topic, iso3, countryName }: PanelExtraProps) {
+export default function NuclearAccidentsPanel({ iso3, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data } = useJson<PointsData>(`topics/${topic.id}/points.json`);
+  const { data } = useJson<PointsData>(`topics/nuclear-accidents/points.json`);
   const rows = useMemo(() => (data ? decodePoints(data).filter((p) => p.iso3 === iso3) : null), [data, iso3]);
   if (!rows) return <p className="empty">{t.loading}</p>;
   return (

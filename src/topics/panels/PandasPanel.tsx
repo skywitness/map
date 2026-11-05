@@ -20,11 +20,11 @@ const TEXT = defineMessages({
   },
 });
 
-export default function PandasPanel({ topic, iso3, countryName }: PanelExtraProps) {
+export default function PandasPanel({ iso3, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data, error } = useJson<PointsData>(`topics/${topic.id}/zoos.json`);
+  const { data, error } = useJson<PointsData>(`topics/pandas/zoos.json`);
   const rows = useMemo(
     () => (data ? decodePoints(data).filter((p) => p.iso3 === iso3).sort((a, b) => Number(a.a) - Number(b.a)) : null),
     [data, iso3],

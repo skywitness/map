@@ -3,6 +3,7 @@ import { fixed, formatLargeTick } from '../lib/format';
 import { monthLabel, MONTHS } from './months';
 import { withParts } from './parts';
 import { universityEntrancePart } from './university-entrance';
+import { studentMobilityPart } from './student-mobility';
 import type { CategoryDef, TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -359,4 +360,5 @@ export const education: TopicDefinition = withParts({
       panelChart: false,
     },
   ],
-}, universityEntrancePart);
+  // 2026-11-04（主題盤點的擴3）：留學生的流向（UIS），資料在 student-mobility/
+}, universityEntrancePart, studentMobilityPart);

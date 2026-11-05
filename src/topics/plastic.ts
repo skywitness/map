@@ -2,6 +2,10 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { FlowLabels, IndicatorDef, PointsOverlayDef, Text, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { ewaste } from './ewaste';
+import { wastePart } from './waste';
 
 /**
  * 塑膠污染（pipeline/topics/plastic.py）：
@@ -205,7 +209,7 @@ const indicators: IndicatorDef[] = [
   ),
 ];
 
-export const plastic: TopicDefinition = {
+const plasticOwn: TopicDefinition = {
   id: 'plastic',
   title: { zh: '塑膠污染', en: 'Plastic pollution' },
   shortTitle: { zh: '塑膠污染', en: 'Plastics' },
@@ -257,3 +261,26 @@ export const plastic: TopicDefinition = {
   overlays: [RIVERS],
   indicators,
 };
+
+/** 電子垃圾的指標併進來以後的 id（塑膠也有 per-capita，所以加前綴；舊網址由 redirects.ts 改名） */
+export const EWASTE_IDS: Record<string, string> = {
+  'per-capita': 'ewaste-per-capita',
+  generated: 'ewaste-generated',
+  'recycling-rate': 'ewaste-recycling-rate',
+  recycled: 'ewaste-recycled',
+};
+
+/**
+ * 廢棄物與回收（2026-11-04，主題整併 併6）：「電子垃圾」併進來，資料照舊在 ewaste/（topics/merge.ts），
+ * 舊網址 t/ewaste/ 轉到這裡（redirects.ts）。「排放形式」的子項目只有塑膠的指標用
+ */
+export const plastic: TopicDefinition = withParts(
+  {
+    ...hostOnly(plasticOwn),
+    title: { zh: '廢棄物與回收：都市垃圾、塑膠與電子垃圾', en: 'Waste and recycling: municipal waste, plastic and e-waste' },
+    shortTitle: { zh: '廢棄物與回收', en: 'Waste' },
+  },
+  topicPart(ewaste, { rename: EWASTE_IDS }),
+  // 2026-11-04（主題盤點的擴4）：都市垃圾的量與處理方式（世界銀行 What a Waste 3.0），資料在 waste/
+  wastePart,
+);

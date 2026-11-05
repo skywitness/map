@@ -58,11 +58,11 @@ const TEXT = defineMessages({
 
 const fromMw = (v: number) => gw(v / 1000);
 
-export default function PowerPlantsPanel({ topic, iso3, countryName }: PanelExtraProps) {
+export default function PowerPlantsPanel({ iso3, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const { data, error } = useJson<CountryFile>(`topics/${topic.id}/countries/${iso3}.json`);
+  const { data, error } = useJson<CountryFile>(`topics/power-plants/countries/${iso3}.json`);
 
   const lists = useMemo(() => {
     if (!data) return null;

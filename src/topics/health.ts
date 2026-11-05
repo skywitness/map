@@ -3,6 +3,7 @@ import { fixed, formatLargeTick, intlDollars, usd } from '../lib/format';
 import { LONG_RUN_CAVEAT, LONG_RUN_SOURCE } from './longRun';
 import type { CategoryDef, DimensionDef, TopicDefinition } from './types';
 import { COVID, FLU_1918 } from './events';
+import { topicPart } from './merge';
 
 const perThousand = (v: number) => `${fixed(v, v < 10 ? 1 : 0)}‰`;
 const YEARS = { zh: '歲', en: 'years' };
@@ -41,7 +42,7 @@ const FINANCING: CategoryDef[] = [
 const categoryLabel = (cats: CategoryDef[]) => (v: number) =>
   tr(cats.find((c) => c.value === v)?.label ?? { zh: '其他', en: 'Other' });
 
-export const health: TopicDefinition = {
+const healthOwn: TopicDefinition = {
   id: 'health',
   title: { zh: '各國健康與醫療', en: 'Health by country' },
   shortTitle: { zh: '健康', en: 'Health' },
@@ -604,3 +605,65 @@ export const health: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 2026-11-04 主題整併（整1）：健康與醫療原本 31 個指標，拆成三個主題（資料都照舊在 health/，topics/merge.ts）：
+ * - 這個主題只留壽命與死亡（平均壽命、健康平均餘命、嬰幼兒與孕產婦死亡、1800 年起的長期序列），改名「各國壽命與死亡率」；
+ * - 醫療支出與健保（health-spending.ts）；
+ * - 醫療人力與設備（health-care.ts，醫學影像、醫院的表現也併進去）。
+ * 舊網址的指標由 redirects.ts 的 INDICATOR_MOVES 轉過去。資料來源依內容分到三個主題（WDI、衛福部統計處三邊都用）；
+ * 原本的說明都在講壽命與死亡，留在這裡；側欄的男女平均壽命也只在這裡
+ */
+const SPENDING_INDICATORS = [
+  'health-spending-per-capita',
+  'health-spending-gdp',
+  'oop-share',
+  'oop-per-capita',
+  'government-share',
+  'health-system',
+  'health-financing',
+  'uhc-start',
+];
+const CARE_INDICATORS = [
+  'physicians',
+  'nurses',
+  'hospital-beds',
+  'icu-beds',
+  'icu-beds-adult',
+  'surgery',
+  'surgical-workforce',
+  'laparoscopic',
+  'obstetric-trauma',
+  'teleconsult-share',
+  'teleconsult-per-person',
+  'ltc-beds',
+  'ltc-recipients',
+];
+/**
+ * 資料來源的順序：WPP、內政部生命表、WDI、衛福部統計處、戶政司出生數、WHO GHE、IMF、OECD 長照、OECD 加護病床、
+ * OECD 手術、健保署醫令、OECD 病人安全、OECD 遠距問診、衛福部長照統計、OECD 健保制度、維基的健保表、全民健康保險法
+ */
+const sourcesAt = (idx: number[]) => healthOwn.sources.filter((_, i) => idx.includes(i));
+const LIFE_SOURCES = [0, 1, 2, 3, 4, 5];
+const SPENDING_SOURCES = [2, 3, 6, 14, 15, 16];
+const CARE_SOURCES = [2, 3, 7, 8, 9, 10, 11, 12, 13];
+
+export const health: TopicDefinition = {
+  ...healthOwn,
+  title: { zh: '各國壽命與死亡率', en: 'Life expectancy and mortality by country' },
+  shortTitle: { zh: '壽命與死亡', en: 'Life expectancy' },
+  sources: sourcesAt(LIFE_SOURCES),
+  indicators: healthOwn.indicators.filter((i) => !SPENDING_INDICATORS.includes(i.id) && !CARE_INDICATORS.includes(i.id)),
+};
+
+/** 醫療支出與健保（health-spending.ts 的 withParts 接上；不匯出成主題，registry 的 topicOf 才不會拿錯） */
+export const healthSpendingPart = topicPart(
+  { ...healthOwn, sources: sourcesAt(SPENDING_SOURCES), note: undefined, panelExtra: undefined },
+  { only: SPENDING_INDICATORS, name: { zh: '醫療支出與健保', en: 'Health spending and insurance' } },
+);
+
+/** 醫療人力與設備（health-care.ts 的 withParts 接上） */
+export const healthCarePart = topicPart(
+  { ...healthOwn, sources: sourcesAt(CARE_SOURCES), note: undefined, panelExtra: undefined },
+  { only: CARE_INDICATORS, name: { zh: '醫療人力與設備', en: 'Health workforce and facilities' } },
+);

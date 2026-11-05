@@ -2,6 +2,9 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { vehicles } from './vehicles';
 
 const CARS = { zh: '輛', en: 'cars' };
 const CHARGERS = { zh: '個', en: 'chargers' };
@@ -46,7 +49,7 @@ const categoryText = (list: CategoryDef[], v: number) =>
   tr(list.find((c) => v >= c.value && v <= (c.max ?? c.value))?.label ?? { zh: '', en: '' });
 const WIKI_PHASEOUT = 'https://en.wikipedia.org/w/index.php?title=Phase-out_of_fossil_fuel_vehicles&oldid=1380317959';
 
-export const ev: TopicDefinition = {
+const evOwn: TopicDefinition = {
   id: 'ev',
   title: { zh: '各國電動車', en: 'Electric cars by country' },
   shortTitle: { zh: '電動車', en: 'EVs' },
@@ -203,3 +206,16 @@ export const ev: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 汽機車與電動車（2026-11-04，主題整併 併5）：「汽機車」併進來（指標 id 不變，資料照舊在 road-safety/，topics/merge.ts），
+ * 舊網址 t/vehicles/ 轉到這裡（redirects.ts）。汽機車的指標不畫電動車的側欄區塊
+ */
+export const ev: TopicDefinition = withParts(
+  {
+    ...hostOnly(evOwn),
+    title: { zh: '汽機車與電動車', en: 'Cars, motorcycles and EVs' },
+    shortTitle: { zh: '汽機車與電動車', en: 'Vehicles & EVs' },
+  },
+  topicPart(vehicles),
+);

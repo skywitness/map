@@ -6,6 +6,10 @@ import type { TopicDefinition } from './types';
 const PEOPLE = { zh: '人', en: 'people' };
 const PER_KM2 = { zh: '人/km²', en: 'people/km²' };
 const YEARS = { zh: '歲', en: 'years' };
+const BOYS_PER_100_GIRLS = { zh: '男嬰/每百名女嬰', en: 'boys per 100 girls' };
+const PER_1000 = { zh: '‰', en: 'per 1,000' };
+/** 每千人：正的寫 +（自然增加率、淨遷移率） */
+const perThousand = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fixed(Math.abs(v), Math.abs(v) < 10 ? 2 : 1)}‰`;
 
 export const population: TopicDefinition = {
   id: 'population',
@@ -94,6 +98,49 @@ export const population: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 25, 30, 35, 40, 45] } },
       format: (v) => `${fixed(v, 1)} ${tr(YEARS)}`,
       formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    // 2026-11-04（主題盤點的擴1）：出生性別比、自然增加率、淨遷移率，同一個 WPP 2024 的檔（pipeline/topics/population.py）
+    {
+      id: 'sex-ratio-birth',
+      label: { zh: '出生性別比', en: 'Sex ratio at birth' },
+      description: {
+        zh: '每 100 名女嬰對應幾名男嬰。自然的比例約 105；明顯更高通常反映性別選擇（產前檢查後選擇墮胎）。2023 年世界 105.5，越南 110.9、中國 110.8、亞塞拜然 111.8 偏高，台灣 106.8、印度 107.3、日本 105.1。',
+        en: 'Boys born for every 100 girls. The natural ratio is about 105; much higher figures usually reflect sex selection (prenatal screening followed by abortion). In 2023 the world figure was 105.5, with Vietnam at 110.9, China 110.8 and Azerbaijan 111.8; Taiwan 106.8, India 107.3, Japan 105.1.',
+      },
+      unit: BOYS_PER_100_GIRLS,
+      file: 'sex-ratio-birth.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [103, 104, 105, 106, 107, 109] } },
+      format: (v) => fixed(v, 1),
+      formatTick: (v) => fixed(v, 0),
+      compareWorld: true,
+    },
+    {
+      id: 'natural-change',
+      label: { zh: '自然增加率', en: 'Rate of natural increase' },
+      description: {
+        zh: '每 1,000 人一年的出生數減死亡數（不含移民）。負的表示死亡比出生多。2023 年世界 +8.7‰；台灣 −3.1‰、日本 −6.2‰、德國 −3.7‰、中國 −2.0‰、南韓 −2.1‰，奈及利亞 +21.2‰、中非 +36.9‰。',
+        en: 'Births minus deaths per 1,000 people in a year (excluding migration). Negative means more deaths than births. In 2023 the world figure was +8.7‰; Taiwan −3.1‰, Japan −6.2‰, Germany −3.7‰, China −2.0‰, South Korea −2.1‰, Nigeria +21.2‰, Central African Republic +36.9‰.',
+      },
+      unit: PER_1000,
+      file: 'natural-change.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-5, -2, -0.5, 0.5, 10, 20] } },
+      format: perThousand,
+      formatTick: (v) => `${fixed(v, 0)}‰`,
+      compareWorld: true,
+    },
+    {
+      id: 'net-migration',
+      label: { zh: '淨遷移率', en: 'Net migration rate' },
+      description: {
+        zh: '每 1,000 人一年移入減移出的人數。正的是移入比移出多。2023 年德國 +7.2‰、美國 +3.9‰、南韓 +1.7‰、日本 +1.4‰，台灣 −1.4‰；戰爭與災難會造成很大的負值（烏克蘭、蘇丹）。小國家人少，幾百人就是很大的比率。',
+        en: 'Immigrants minus emigrants per 1,000 people in a year. Positive means more people arriving than leaving. In 2023 Germany was +7.2‰, the US +3.9‰, South Korea +1.7‰, Japan +1.4‰ and Taiwan −1.4‰; wars and disasters cause large negative values (Ukraine, Sudan). Small countries can show large rates from a few hundred people.',
+      },
+      unit: PER_1000,
+      file: 'net-migration.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-10, -3, -0.5, 0.5, 3, 10] } },
+      format: perThousand,
+      formatTick: (v) => `${fixed(v, 0)}‰`,
       compareWorld: true,
     },
     {

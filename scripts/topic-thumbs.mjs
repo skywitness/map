@@ -55,7 +55,6 @@ const ISOLATE = `
  */
 const VIEWS = {
   antarctica: { center: [-5, -72], zoom: 0.6 },
-  'oil-palm': { center: [108, 1], zoom: 2.3 },
   'ozone-hole': { center: [0, -62], zoom: 0.5 },
   trails: { center: [8, 49], zoom: 2.4 },
 };

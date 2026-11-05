@@ -520,6 +520,8 @@ export interface ClassGridOverlayDef {
   label: Text;
   /** 資料檔（相對於這個主題的資料夾），依時間軸的年份與子項目 */
   file: (year: number, item: string | null) => string;
+  /** 資料檔屬於另一個主題（2026-11-04 主題整併：人工林併進森林，網格照舊在 planted-forests/） */
+  topic?: string;
   /** 代碼、顏色、圖例上的短名稱（例如 Cfa）與全名；group 是 groups 的索引 */
   classes: { value: number; color: string; short: string | Text; label: Text; group: number }[];
   /** 圖例的分組標題（例如 A 熱帶） */
@@ -1424,8 +1426,14 @@ export function indicatorPath(
   indicator: Pick<Indicator, 'file' | 'dimension'>,
   item: string | null,
 ): string {
-  const file = indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? '');
-  // ../<主題>/<檔名>：讀另一個主題的檔（2026-10-30，治安與司法的法治分數讀政府治理的，兩邊不另外存一份）
+  return topicFile(topic, indicator.file.replace('{item}', itemFor(topic, indicator, item) ?? ''));
+}
+
+/**
+ * 主題的資料檔路徑（data/ 底下）：`../<主題>/<檔名>` 讀另一個主題的資料夾（2026-10-30，治安與司法的法治分數讀政府治理的，
+ * 兩邊不另外存一份；2026-11-04 起主題整併時，併進來的指標、清單、流向檔都這樣讀原本的資料夾，見 merge.ts），其他的在這個主題的資料夾
+ */
+export function topicFile(topic: Pick<Topic, 'id' | 'dataTopic'>, file: string): string {
   return file.startsWith('../') ? `topics/${file.slice(3)}` : `topics/${dataFolder(topic)}/${file}`;
 }
 
@@ -1503,7 +1511,7 @@ export function forItem(indicator: Indicator, item: string | null): Indicator {
 
 /** 流向圖指標的流向檔路徑；不是流向圖時回傳 null */
 export function flowPath(
-  topic: Pick<Topic, 'id' | 'dimension'>,
+  topic: Pick<Topic, 'id' | 'dimension' | 'dataTopic'>,
   indicator: Pick<Indicator, 'layer'>,
   item: string | null,
   year: number,
@@ -1512,7 +1520,7 @@ export function flowPath(
   const file = indicator.layer.file
     .replace('{item}', item ?? topic.dimension?.defaultOption ?? '')
     .replace('{year}', String(year));
-  return `topics/${topic.id}/${file}`;
+  return topicFile(topic, file);
 }
 
 /** pipeline 輸出的指標檔格式（見 pipeline/common.py indicator_file） */

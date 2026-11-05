@@ -1,6 +1,9 @@
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
 import { COVID, FINANCIAL_CRISIS } from './events';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { retirement } from './retirement';
 
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
 // 失業率、勞參率跟主計總處公布的一樣留兩位小數（台灣 2024 年 3.38%）；非正式就業是調查的調和值，一位就好
@@ -8,7 +11,7 @@ const pct2 = (v: number) => `${fixed(v, 2)}%`;
 const pct1 = (v: number) => `${fixed(v, 1)}%`;
 const tick = (v: number) => `${fixed(v, Number.isInteger(v) ? 0 : 1)}%`;
 
-export const employment: TopicDefinition = {
+const employmentOwn: TopicDefinition = {
   id: 'employment',
   title: { zh: '就業與失業', en: 'Employment and unemployment' },
   shortTitle: { zh: '就業與失業', en: 'Jobs' },
@@ -106,3 +109,16 @@ export const employment: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 就業、失業與退休（2026-11-04，主題整併 併16）：「退休年齡與退休後的日子」併進來，資料照舊在 retirement/
+ * （topics/merge.ts），舊網址 t/retirement/ 轉到這裡（redirects.ts）。退休的指標各自有「性別」的子項目
+ */
+export const employment: TopicDefinition = withParts(
+  {
+    ...hostOnly(employmentOwn),
+    title: { zh: '就業、失業與退休', en: 'Employment, unemployment and retirement' },
+    shortTitle: { zh: '就業與退休', en: 'Jobs & retirement' },
+  },
+  topicPart(retirement),
+);

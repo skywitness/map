@@ -23,11 +23,11 @@ const TEXT = defineMessages({
   },
 });
 
-export default function CableCarsPanel({ topic, iso3, countryName }: PanelExtraProps) {
+export default function CableCarsPanel({ iso3, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];
-  const files = useJsonMany<PointsData>([`topics/${topic.id}/lines.json`, `topics/${topic.id}/lines-undated.json`]);
+  const files = useJsonMany<PointsData>([`topics/cable-cars/lines.json`, `topics/cable-cars/lines-undated.json`]);
   const rows = useMemo(() => {
     if (files.some((f) => !f)) return null;
     return files

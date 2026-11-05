@@ -3,6 +3,9 @@ import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { DGBAS_SOURCE } from './sectors';
 import type { CategoryDef, ColorClasses, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { sectors } from './sectors';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
 const pctTick = (v: number) => `${v}%`;
@@ -151,7 +154,7 @@ function plantLayer(kind: 'steel' | 'cement'): PointsOverlayDef {
   };
 }
 
-export const industry: TopicDefinition = {
+const industryOwn: TopicDefinition = {
   id: 'industry',
   title: { zh: '各國工業', en: 'Industry by country' },
   shortTitle: { zh: '工業', en: 'Industry' },
@@ -348,3 +351,16 @@ export const industry: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 產業結構與工業（2026-11-04，主題整併 併13）：「各國產業結構」（農工服務業占 GDP 與就業）併進來，資料照舊在 sectors/
+ * （topics/merge.ts），產業結構的指標用原本的側欄區塊。舊網址 t/sectors/ 轉到這裡（redirects.ts）
+ */
+export const industry: TopicDefinition = withParts(
+  {
+    ...hostOnly(industryOwn),
+    title: { zh: '產業結構與工業', en: 'Economic structure and industry' },
+    shortTitle: { zh: '產業與工業', en: 'Industry' },
+  },
+  topicPart(sectors),
+);

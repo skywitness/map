@@ -190,6 +190,10 @@ STEPS = {
     "breweries": "topics.breweries",  # 菸酒的啤酒廠：OSM craft=brewery（經 QLever，ODbL）與 Open Brewery DB（MIT）
     "gambling": "topics.gambling",  # 博弈：賭場、彩券行、投注站（OSM 經 QLever，ODbL）
     "happiness": "topics.happiness",
+    # 2026-11-04 主題盤點的擴3：留學生的流向（UIS），教育程度主題讀 ../student-mobility/
+    "student-mobility": "topics.student_mobility",
+    # 2026-11-04 主題盤點的擴4：都市垃圾（世界銀行 What a Waste 3.0，CC BY 4.0），廢棄物與回收主題讀 ../waste/
+    "waste": "topics.waste",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
     "road-safety": "topics.road_safety",  # WHO（RS_198、GSRRS 2023）與交通部統計查詢網

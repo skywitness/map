@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { CategoryDef, ScaleSpec, TopicDefinition } from './types';
+import { topicPart } from './merge';
 
 /**
  * 疫苗與防疫（pipeline/topics/vaccination.py）：WHO/UNICEF 的兒童常規疫苗接種率（零劑兒童 2026-11-04 拿掉：DTP1 只在 WHO GHO），
@@ -27,7 +28,7 @@ const MRNA_HUB: CategoryDef[] = [
   { value: 2, label: { zh: '夥伴國', en: 'Partner country' } },
 ];
 
-export const vaccination: TopicDefinition = {
+const vaccinationOwn: TopicDefinition = {
   id: 'vaccination',
   title: { zh: '疫苗與防疫', en: 'Vaccination and COVID-19' },
   shortTitle: { zh: '疫苗與防疫', en: 'Vaccines' },
@@ -373,3 +374,38 @@ export const vaccination: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 2026-11-04 主題整併（整2）：COVID-19 的 7 個指標（確診死亡、基礎劑、總劑次、加強劑、兩種超額死亡、少報的倍數）跟
+ * 「疫情期間的防疫管制」合成「COVID-19」主題（covid.ts），這個主題只留常規疫苗與 WHO 預認證。資料照舊在 vaccination/，
+ * 舊網址的 ind=covid-deaths 等由 redirects.ts 的 INDICATOR_MOVES 轉過去；資料來源與說明依內容分兩邊
+ */
+const COVID_INDICATORS = ['covid-deaths', 'covid-vaccinated', 'covid-doses', 'covid-boosters', 'excess-deaths', 'excess-wmd', 'undercount'];
+/**
+ * 資料來源的順序：WUENIC、WHO PCV3、WDI、WPP、OWID、JHU、The Economist、World Mortality Dataset、疾管署預防接種與 COVID-19
+ * 疫苗、疾管署 2024 年完成率與內政部人口、衛福部死因統計與國健署 HPV、OECD 流感疫苗、疾管署流感疫苗、WHO 預認證
+ */
+const COVID_SOURCES = [3, 4, 5, 6, 7, 8, 10];
+const ROUTINE_SOURCES = [0, 1, 2, 3, 8, 9, 10, 11, 12, 13];
+const sourcesAt = (idx: number[]) => vaccinationOwn.sources.filter((_, i) => idx.includes(i));
+const NOTE_SPLIT = { zh: 'COVID-19 的確診死亡是', en: 'Confirmed COVID-19 deaths are' };
+const noteText = (lang: 'zh' | 'en') => (typeof vaccinationOwn.note === 'object' ? vaccinationOwn.note[lang] : '');
+const notePart = (lang: 'zh' | 'en', covid: boolean) => {
+  const [routine, rest] = noteText(lang).split(NOTE_SPLIT[lang]);
+  return (covid ? NOTE_SPLIT[lang] + rest : routine).trim();
+};
+
+export const vaccination: TopicDefinition = {
+  ...vaccinationOwn,
+  title: { zh: '疫苗接種', en: 'Vaccination' },
+  shortTitle: { zh: '疫苗接種', en: 'Vaccines' },
+  sources: sourcesAt(ROUTINE_SOURCES),
+  note: { zh: notePart('zh', false), en: notePart('en', false) },
+  indicators: vaccinationOwn.indicators.filter((i) => !COVID_INDICATORS.includes(i.id)),
+};
+
+/** COVID-19 的指標（covid.ts 的 withParts 接上；側欄區塊在 COVID-19 主題只畫 COVID-19 的圖表） */
+export const covidVaccinationPart = topicPart(
+  { ...vaccinationOwn, sources: sourcesAt(COVID_SOURCES), note: { zh: notePart('zh', true), en: notePart('en', true) } },
+  { only: COVID_INDICATORS, name: { zh: 'COVID-19 的死亡與疫苗', en: 'COVID-19 deaths and vaccines' } },
+);

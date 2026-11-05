@@ -1,6 +1,9 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, intlDollars } from '../lib/format';
 import type { CategoryDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { hostOnly, topicPart } from './merge';
+import { plasma } from './plasma';
 
 /**
  * 藥品支出與取得（2026-11-03，製作手冊第十九批 295、296、301；pipeline/topics/medicines.py）：
@@ -60,7 +63,7 @@ const APPROVAL_LAG: ListPanelDef = {
   },
 };
 
-export const medicines: TopicDefinition = {
+const medicinesOwn: TopicDefinition = {
   id: 'medicines',
   title: { zh: '藥品支出與取得', en: 'Spending on and access to medicines' },
   shortTitle: { zh: '藥品支出', en: 'Medicines' },
@@ -303,3 +306,9 @@ export const medicines: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 藥品支出與取得（2026-11-04，主題整併 整1）：「血漿製劑能不能自給」併進來，資料照舊在 plasma/（topics/merge.ts），
+ * 舊網址 t/plasma/ 轉到這裡（redirects.ts）
+ */
+export const medicines: TopicDefinition = withParts(hostOnly(medicinesOwn), topicPart(plasma));

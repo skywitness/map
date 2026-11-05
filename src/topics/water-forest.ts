@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, formatSignedPercent } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { topicPart } from './merge';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
@@ -19,7 +20,7 @@ const aqueductText = (v: number) => {
   return tr({ zh: `${fixed(v, 1)}（${level.zh}）`, en: `${fixed(v, 1)} (${level.en})` });
 };
 
-export const waterForest: TopicDefinition = {
+const waterForestOwn: TopicDefinition = {
   id: 'water-forest',
   title: { zh: '各國水資源與森林', en: 'Water and forests by country' },
   shortTitle: { zh: '水資源與森林', en: 'Water & forests' },
@@ -85,17 +86,15 @@ export const waterForest: TopicDefinition = {
     zh:
       '人均水資源是 FAO AQUASTAT 的總可再生水資源（長期平均）除以聯合國的年中人口；水資源壓力用世界銀行轉載的 AQUASTAT（到 2022 年），' +
       '取用量很多國家隔幾年才更新，中間的年份是 FAO 的推估，明顯的錯值已經排除（見各國附註）。' +
-      '森林用 FAO 全球森林資源評估 FRA 2025，只有 1990、2000、2010、2015、2020、2025 年。' +
-      '台灣不在 FAO 與 JMP 的資料中，改用經濟部水利署、林業及自然保育署的數字，口徑見台灣側欄的附註；' +
+      '台灣不在 FAO 與 JMP 的資料中，改用經濟部水利署的數字，口徑見台灣側欄的附註；' +
       '水資源壓力沒有官方的環境流量數字，所以台灣從缺。' +
       '缺水壓力的推估是 WRI Aqueduct 4.0（CC BY 4.0，Kuzma et al. 2023）：用 PCR-GLOBWB 2 水文模型依流域算取水量占可用水量，再依各國用水加權成 0–5 分，有 1979–2019 年的基準與 2030、2050、2080 年三種情境（CMIP6）的推估；跟 SDG 6.4.2 的定義不同，數字不會一致，排名裡也沒有台灣。',
     en:
       "Water per person is FAO AQUASTAT's total renewable water resources (a long-term average) divided by UN " +
       "mid-year population; water stress is AQUASTAT data via the World Bank (to 2022). Many countries report " +
       'withdrawals only every few years, so the years in between are FAO estimates; obvious errors have been ' +
-      "removed (see each country's notes). Forest data are from the FAO " +
-      'Global Forest Resources Assessment 2025 and cover only 1990, 2000, 2010, 2015, 2020 and 2025. Taiwan is not ' +
-      "in the FAO or JMP data, so figures from its Water Resources Agency and Forestry and Nature Conservation Agency " +
+      "removed (see each country's notes). Taiwan is not " +
+      "in the FAO or JMP data, so figures from its Water Resources Agency " +
       "are used instead (see the notes in Taiwan's panel); Taiwan has no official environmental flow figure, so its " +
       'water stress is left blank. ' +
       'Projected water stress is from WRI Aqueduct 4.0 (CC BY 4.0, Kuzma et al. 2023): the PCR-GLOBWB 2 hydrological model ' +
@@ -204,4 +203,32 @@ export const waterForest: TopicDefinition = {
       compareWorld: true,
     },
   ],
+};
+
+/**
+ * 2026-11-04 主題整併（併3）：森林的兩個指標（森林覆蓋率、森林面積年變化率）搬到「森林」主題（forest.ts，跟人工林、油棕園一起），
+ * 這個主題只留水資源。資料照舊在 water-forest/，舊網址的 ind=forest-cover 由 redirects.ts 轉過去
+ */
+const FOREST_INDICATORS = ['forest-cover', 'forest-change'];
+/** 資料來源的順序：AQUASTAT、WDI、FRA 2025、水利署、林保署、WPP、Aqueduct；森林用 FRA 與林保署 */
+const FOREST_SOURCES = [2, 4];
+
+export const forestCoverPart = topicPart(
+  {
+    ...waterForestOwn,
+    sources: waterForestOwn.sources.filter((_, i) => FOREST_SOURCES.includes(i)),
+    note: {
+      zh: '森林用 FAO 全球森林資源評估 FRA 2025，只有 1990、2000、2010、2015、2020、2025 年。台灣不在 FAO 的資料中，改用林業及自然保育署的全國森林資源調查，口徑見台灣側欄的附註。',
+      en: "Forest data are from the FAO Global Forest Resources Assessment 2025 and cover only 1990, 2000, 2010, 2015, 2020 and 2025. Taiwan is not in the FAO data, so the national forest inventory of its Forestry and Nature Conservation Agency is used instead (see the notes in Taiwan's panel).",
+    },
+  },
+  { only: FOREST_INDICATORS, name: { zh: '森林覆蓋', en: 'Forest cover' } },
+);
+
+export const waterForest: TopicDefinition = {
+  ...waterForestOwn,
+  title: { zh: '各國水資源', en: 'Water resources by country' },
+  shortTitle: { zh: '水資源', en: 'Water' },
+  sources: waterForestOwn.sources.filter((_, i) => !FOREST_SOURCES.includes(i)),
+  indicators: waterForestOwn.indicators.filter((i) => !FOREST_INDICATORS.includes(i.id)),
 };
