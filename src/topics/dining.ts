@@ -186,8 +186,8 @@ export const dining: TopicDefinition = {
       id: 'michelin-3',
       label: { zh: '米其林三星餐廳', en: 'Michelin three-star restaurants' },
       description: {
-        zh: `米其林三星餐廳的家數（英文維基百科的清單，2025 年版指南，共 161 家）。法國 30 家最多（加上摩納哥 1 家），日本 20、西班牙與美國 16、義大利 14、德國 12、英國 10、香港 7、中國 4、瑞士 4，台灣 3 家（JL Studio、頤宮、態芮），跟新加坡、丹麥一樣多。點是餐廳（沒有自己位置的畫在城市，145 個點裡 104 個）；另有 16 家對不到位置，算在家數裡、沒畫（2026-11-05 查）。${MICHELIN_NOTE.zh}`,
-        en: `Number of Michelin three-star restaurants (English Wikipedia’s list, 2025 guides, 161 in total). France has the most at 30 (plus 1 in Monaco), followed by Japan 20, Spain and the US 16, Italy 14, Germany 12, the UK 10, Hong Kong 7, China 4 and Switzerland 4; Taiwan has 3 (JL Studio, Le Palais and Taïrroir), as many as Singapore and Denmark. Dots are the restaurants (those without their own location are placed at their city: 104 of the 145 dots); another 16 restaurants could not be located and are counted but not drawn (checked 2026-11-05). ${MICHELIN_NOTE.en}`,
+        zh: `米其林三星餐廳的家數（英文維基百科的清單，2025 年版指南，共 161 家）。法國 30 家最多（加上摩納哥 1 家），日本 20、西班牙與美國 16、義大利 14、德國 12、英國 10、香港 7、中國 4、瑞士 4，台灣 3 家（JL Studio、頤宮、態芮），跟新加坡、丹麥一樣多。點是餐廳（沒有自己位置的畫在城市，157 個點裡 92 個）；另有 4 家在英文維基沒有條目、清單也沒連到城市，算在家數裡、沒畫。${MICHELIN_NOTE.zh}`,
+        en: `Number of Michelin three-star restaurants (English Wikipedia’s list, 2025 guides, 161 in total). France has the most at 30 (plus 1 in Monaco), followed by Japan 20, Spain and the US 16, Italy 14, Germany 12, the UK 10, Hong Kong 7, China 4 and Switzerland 4; Taiwan has 3 (JL Studio, Le Palais and Taïrroir), as many as Singapore and Denmark. Dots are the restaurants (those without their own location are placed at their city: 92 of the 157 dots); another 4 have no English Wikipedia article and no linked city, so they are counted but not drawn. ${MICHELIN_NOTE.en}`,
       },
       unit: { zh: '家', en: 'restaurants' },
       file: 'michelin-3.json',

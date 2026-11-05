@@ -4,7 +4,7 @@
   頁面寫 2025 年版指南）：依國家一節一表，四欄「餐廳、主廚、地點、獲得三星的年份」。米其林官網的條款禁止抓取與轉載，不用。
 - 國家：章節名稱；「France & Monaco」依地點分法國、摩納哥；中國那節的香港、澳門依地點分開（地圖上是不同的區塊）。
 - 位置：餐廳本身有維基條目而 Wikidata 有座標的用它，其次用地點欄連到的城市條目；都沒有的不畫點（照樣算家數）。
-  一支 WDQS 查詢（維基條目 → Wikidata 的座標），CC0。
+  條目先用維基百科的 API 解開重新導向，再用一支 WDQS 查詢依條目名稱找 Wikidata 的座標，CC0。
 - 米其林只在有出版指南的地方評星，沒有三星餐廳的國家不是 0，是沒有評或沒有三星，說明寫明，不畫 0。
 - 輸出的清單（名稱、主廚、城市、年份）是維基的整理，依 CC BY-SA 4.0 分享。
 """
@@ -17,7 +17,7 @@ import urllib.parse
 import urllib.request
 
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, points_file, write_json
-from sources import wikitable, wpp
+from sources import wiki_racing, wikitable, wpp
 from sources.countries import from_name
 
 OUT = OUT_DIR / "topics" / "dining"
@@ -31,13 +31,17 @@ WDQS = "https://query.wikidata.org/sparql"
 
 
 def _coords(titles: list[str]) -> dict[str, tuple[float, float]]:
-    """英文維基條目名稱 → (經度, 緯度)，Wikidata 的 P625"""
-    path = CACHE_DIR / "wikidata" / f"michelin-{OLDID}.json"
+    """英文維基條目名稱 → (經度, 緯度)，Wikidata 的 P625。先解開重新導向，再依條目名稱（schema:name）比對。
+    2026-11-05 改：之前用 urllib.parse.quote(safe='') 組條目的 IRI，逗號、括號被編碼，Wikidata 的 IRI 不編碼，
+    「Le Castellet, Var」「Enclos (restaurant)」這類對不到；也沒跟著重新導向（DESIGN.md 第 5 節「點的精確度與沒畫的項目」）"""
+    resolved = wiki_racing.resolve_redirects(titles, cache_prefix="michelin-redirects")
+    targets = sorted(set(resolved.values()))
+    path = CACHE_DIR / "wikidata" / f"michelin-{OLDID}-v2.json"
     if not path.exists():
-        values = " ".join(f"<https://en.wikipedia.org/wiki/{urllib.parse.quote(t.replace(' ', '_'), safe='')}>" for t in titles)
-        query = f"""SELECT ?article ?coord WHERE {{
-  VALUES ?article {{ {values} }}
-  ?article schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> .
+        values = " ".join(json.dumps(t, ensure_ascii=False) + "@en" for t in targets)
+        query = f"""SELECT ?title ?coord WHERE {{
+  VALUES ?title {{ {values} }}
+  ?article schema:name ?title ; schema:isPartOf <https://en.wikipedia.org/> ; schema:about ?item .
   ?item wdt:P625 ?coord .
 }}"""
         req = urllib.request.Request(WDQS, data=urllib.parse.urlencode({"query": query}).encode(),
@@ -54,13 +58,12 @@ def _coords(titles: list[str]) -> dict[str, tuple[float, float]]:
             raise RuntimeError("Wikidata 一直失敗")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-    out = {}
+    found: dict[str, tuple[float, float]] = {}
     for b in json.loads(path.read_text(encoding="utf-8"))["results"]["bindings"]:
         m = re.search(r"Point\(\s*(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s*\)", b["coord"]["value"], re.I)
         if m:
-            title = urllib.parse.unquote(b["article"]["value"].rsplit("/wiki/", 1)[1]).replace("_", " ")
-            out.setdefault(title, (float(m.group(1)), float(m.group(2))))
-    return out
+            found.setdefault(b["title"]["value"], (float(m.group(1)), float(m.group(2))))
+    return {t: found[resolved[t]] for t in titles if resolved.get(t) in found}
 
 
 def build() -> None:

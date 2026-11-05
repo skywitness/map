@@ -451,11 +451,10 @@ def _get_json(url: str, cache: str) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def coordinates(titles: list[str], wiki: str = "en") -> dict[str, tuple[float, float, str]]:
-    """維基百科條目名稱 → (經度, 緯度, Wikidata QID)。先用維基百科的 API 解開重新導向（一次 50 個），
-    再用 Wikidata 的 SPARQL 依條目名稱（schema:name）找到項目的座標（P625）。沒有座標的不回傳"""
+def resolve_redirects(titles: list[str], wiki: str = "en", cache_prefix: str = "racing-redirects") -> dict[str, str]:
+    """維基百科條目名稱 → 解開重新導向（與大小寫、底線的正規化）後的名稱，用維基百科的 API 一次 50 個（快取）。
+    2026-11-05 起米其林三星、最古老的公司也用（之前沒跟著重新導向，導向的條目對不到 Wikidata）"""
     import hashlib
-    import json
     import urllib.parse
 
     titles = sorted(set(titles))
@@ -464,12 +463,24 @@ def coordinates(titles: list[str], wiki: str = "en") -> dict[str, tuple[float, f
         batch = titles[i:i + 50]
         key = hashlib.sha1("|".join(batch).encode()).hexdigest()[:12]
         q = urllib.parse.urlencode({"action": "query", "titles": "|".join(batch), "redirects": 1, "format": "json", "formatversion": 2})
-        data = _get_json(f"https://{wiki}.wikipedia.org/w/api.php?{q}", f"racing-redirects-{wiki}-{key}.json")["query"]
+        data = _get_json(f"https://{wiki}.wikipedia.org/w/api.php?{q}", f"{cache_prefix}-{wiki}-{key}.json")["query"]
         norm = {n["from"]: n["to"] for n in data.get("normalized", [])}
         redir = {r["from"]: r["to"] for r in data.get("redirects", [])}
         for t in batch:
             n = norm.get(t, t)
             resolved[t] = redir.get(n, n)
+    return resolved
+
+
+def coordinates(titles: list[str], wiki: str = "en") -> dict[str, tuple[float, float, str]]:
+    """維基百科條目名稱 → (經度, 緯度, Wikidata QID)。先用維基百科的 API 解開重新導向（一次 50 個），
+    再用 Wikidata 的 SPARQL 依條目名稱（schema:name）找到項目的座標（P625）。沒有座標的不回傳"""
+    import hashlib
+    import json
+    import urllib.parse
+
+    titles = sorted(set(titles))
+    resolved = resolve_redirects(titles, wiki)
     targets = sorted(set(resolved.values()))
     found: dict[str, tuple[float, float, str]] = {}
     # 一批的網址不能太長（Wikidata 的 SPARQL 端點回 431）：名稱合計約 4,000 字一批
