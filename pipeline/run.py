@@ -197,6 +197,8 @@ STEPS = {
     "cities-transport": "topics.cities_transport",
     # 大眾運輸的月票與計程車車資（第二十三批 409）：Eurostat Urban Audit TT1080V、TT1081V，分別輸出到地鐵與叫車服務的資料夾
     "transit-fares": "topics.transit_fares",
+    # 城市的低排放區與塞車費（第二十三批 410）：QLever 查 OSM 的 boundary=low_emission_zone、英文維基 Congestion pricing 的固定版本、桃園市 CSV
+    "city-traffic": "topics.city_traffic",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
