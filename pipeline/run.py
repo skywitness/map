@@ -193,6 +193,8 @@ STEPS = {
     "travel-rest-areas": "topics.travel_rest_areas",
     # 歐洲鐵路（第二十三批 407）：RMMS 第 9 次報告的 xlsx（準點率、員工、市占）與 Eurostat 的單雙線、速度分級，臺鐵準點率放側欄
     "rail-europe": "topics.rail_europe",
+    # 歐洲城市的通勤與市民對大眾運輸的評價（第二十三批 408）：Eurostat Urban Audit urb_ctran、urb_percep，城市位置用自行車主題的快取
+    "cities-transport": "topics.cities_transport",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄

@@ -7,7 +7,7 @@
 import type { ForeignTopicEntry } from './foreign-layers';
 
 export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
-  {"topic":"cities","layers":[{"id":"city-extent","label":{"zh":"城市的範圍（放大才畫）","en":"City extents (when zoomed in)"},"kind":"lines"},{"id":"areas","label":{"zh":"城區（夏季白天的熱島）","en":"Urban areas (summer daytime)"},"kind":"points"}]},
+  {"topic":"cities","layers":[{"id":"city-extent","label":{"zh":"城市的範圍（放大才畫）","en":"City extents (when zoomed in)"},"kind":"lines"},{"id":"areas","label":{"zh":"城區（夏季白天的熱島）","en":"Urban areas (summer daytime)"},"kind":"points"},{"id":"commute-mode","label":{"zh":"搭大眾運輸上班的比例（歐洲城市）","en":"Share commuting by public transport (European cities)"},"kind":"points"},{"id":"commute-time","label":{"zh":"平均單程通勤時間（歐洲城市）","en":"Average one-way commute time (European cities)"},"kind":"points"}]},
   {"topic":"religion","layers":[{"id":"religious-buildings","label":{"zh":"各宗教最大的建築","en":"Largest religious buildings"},"kind":"points"},{"id":"pilgrimage-routes","label":{"zh":"朝聖之路（OpenStreetMap）","en":"Pilgrimage routes (OpenStreetMap)"},"kind":"lines"},{"id":"pilgrimage-sites","label":{"zh":"朝聖地（Wikidata）","en":"Pilgrimage sites (Wikidata)"},"kind":"points"}]},
   {"topic":"festivals","layers":[{"id":"festivals","label":{"zh":"有月份的節慶（依月份）","en":"Festivals with a month (by month)"},"kind":"points"},{"id":"festivals-undated","label":{"zh":"月份不詳的節慶","en":"Festivals, month unknown"},"kind":"points"},{"id":"arenas","label":{"zh":"萬人場館（多半同時是體育館）","en":"Arenas for 10,000+ (mostly also sports venues)"},"kind":"points"}]},
   {"topic":"tobacco-alcohol","layers":[{"id":"breweries","label":{"zh":"啤酒廠","en":"Breweries"},"kind":"points"}]},

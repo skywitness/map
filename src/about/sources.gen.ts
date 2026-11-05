@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 143;
-export const INDICATOR_COUNT = 1045;
+export const INDICATOR_COUNT = 1048;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -102,6 +102,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Esports Earnings：Countries（2026 年 11 月 4 日）","en":"Esports Earnings: Countries (4 November 2026)"},"url":"https://www.esportsearnings.com/countries","licenses":[{"zh":"准許個人與商業使用；Copyright © 2012-2026 Esports Earnings. All Rights Reserved.","en":"Personal and commercial use permitted; Copyright © 2012-2026 Esports Earnings. All Rights Reserved."}],"topics":["esports"]},
   {"name":{"zh":"European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A（各國依城鄉程度的人口、建物面積）","en":"European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A (population by Degree of Urbanisation, built-up surface)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_wup_country_stats_r2025a.php","licenses":["CC BY 4.0"],"topics":["cities"]},
   {"name":{"zh":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1（每個城市 1950–2100 年的人口與面積，聯合國《World Urbanization Prospects 2025》用的那一份）","en":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1 (population and area of every city, 1950–2100, as used in the UN World Urbanization Prospects 2025)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_wup_mtuc_r2025a.php","licenses":["CC BY 4.0"],"topics":["cities"]},
+  {"name":{"zh":"Eurostat Urban Audit：城市的交通（urb_ctran）與市民的看法（urb_percep）","en":"Eurostat Urban Audit: city transport (urb_ctran) and perception survey (urb_percep)"},"url":"https://ec.europa.eu/eurostat/web/cities/database","licenses":["CC BY 4.0"],"topics":["cities"]},
   {"name":{"zh":"Eurostat 監獄統計（歐洲）","en":"Eurostat prison statistics"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_pris_cap/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
   {"name":{"zh":"Eurostat, EU-SILC 住宅統計（ilc_lvho01、ilc_lvho02、ilc_lvph01、ilc_lvho05a、ilc_lvho07a）","en":"Eurostat, EU-SILC housing statistics (ilc_lvho01, ilc_lvho02, ilc_lvph01, ilc_lvho05a, ilc_lvho07a)"},"url":"https://ec.europa.eu/eurostat/web/income-and-living-conditions/database","licenses":["CC BY 4.0"],"topics":["housing"]},
   {"name":{"zh":"Eurostat，警察、法官與監所人員（crim_just_job）","en":"Eurostat, Police officers, professional judges and prison staff (crim_just_job)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_just_job/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
