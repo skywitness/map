@@ -209,6 +209,14 @@ export const profiles: TopicDefinition = {
   timeless: true,
   sources: [
     {
+      name: {
+        zh: '英文維基百科「List of national anthems」（國歌的採用年份與長度，2026 年 10 月 27 日的版本）',
+        en: 'Wikipedia, “List of national anthems” (anthem adoption years and lengths, revision of 27 October 2026)',
+      },
+      url: 'https://en.wikipedia.org/w/index.php?title=List_of_national_anthems&oldid=1382197461',
+      license: 'CC BY-SA 4.0',
+    },
+    {
       name: { zh: 'Wikidata（首都、元首與政府首長、貨幣、區號、網域、ISO 代碼、國歌、成立時間）', en: 'Wikidata (capitals, heads of state and government, currencies, calling codes, domains, ISO codes, anthems, inception)' },
       url: 'https://www.wikidata.org/',
       license: 'CC0',
@@ -311,6 +319,33 @@ export const profiles: TopicDefinition = {
       file: 'currency-format.json',
       layer: { kind: 'categorical', categories: CURRENCY_FORMAT },
       format: (v) => categoryLabel(CURRENCY_FORMAT, v),
+    },
+    {
+      // 2026-11-05（第二十二批 394）：英文維基「List of national anthems」（pipeline/topics/profiles_anthems.py，資料檔 CC BY-SA 4.0）
+      id: 'anthem-year',
+      label: { zh: '國歌哪一年採用', en: 'Year the anthem was adopted' },
+      description: {
+        zh: '現在的國歌最早在哪一年成為國歌（英文維基「List of national anthems」；有事實上與法律上兩個年份、或改過歌詞的，取最早的一年，滑過國家看原文），顏色越深越新。英國 1745 年（事實上，從來沒有立法）最早，西班牙 1770、丹麥 1780、法國 1795、阿根廷 1813、秘魯 1821；200 國裡 114 國在 1950–1999 年採用，看得出非洲與亞洲的獨立潮；最新的是索馬利亞 2012、茅利塔尼亞 2017、尼日 2023、聖馬利諾 2025。台灣的國歌 1937 年事實上採用、1943 年正式。這個指標的資料檔依 CC BY-SA 4.0 分享。',
+        en: 'The year the current anthem first became the national anthem (Wikipedia, “List of national anthems”; where there are de facto and de jure dates, or new lyrics, the earliest year is used — hover for the original text); darker is newer. The UK’s dates from 1745 (de facto, never legislated), then Spain 1770, Denmark 1780, France 1795, Argentina 1813 and Peru 1821; 114 of 200 countries adopted theirs in 1950–1999, reflecting independence in Africa and Asia; the newest are Somalia 2012, Mauritania 2017, Niger 2023 and San Marino 2025. Taiwan’s was adopted de facto in 1937 and de jure in 1943. This data file is shared under CC BY-SA 4.0.',
+      },
+      unit: '',
+      file: 'anthem-year.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1850, 1900, 1950, 1975, 2000] } },
+      format: (v) => tr({ zh: `${Math.round(v)} 年`, en: String(Math.round(v)) }),
+      formatTick: (v) => String(Math.round(v)),
+    },
+    {
+      id: 'anthem-length',
+      label: { zh: '國歌唱多久', en: 'Anthem length' },
+      description: {
+        zh: '國歌唱一次多長（英文維基表上某一個錄音版本的長度，不是法定長度，很多國家只唱第一段）。195 國的中位數 73 秒；最短的波士尼亞與赫塞哥維納 25 秒（沒有歌詞）、亞美尼亞 28 秒、愛沙尼亞 32 秒、科威特 35 秒；最長的烏拉圭 4 分 30 秒、薩爾瓦多 4 分 14 秒、阿根廷 3 分 33 秒、白俄羅斯 3 分 32 秒、巴西 3 分 21 秒。台灣等部分承認的國家那張表沒有長度。這個指標的資料檔依 CC BY-SA 4.0 分享。',
+        en: 'How long the anthem lasts (the length of one recording in the Wikipedia table, not an official length; many countries sing only the first verse). The median of 195 countries is 73 seconds; the shortest are Bosnia and Herzegovina at 25 seconds (it has no official lyrics), Armenia 28, Estonia 32 and Kuwait 35; the longest Uruguay at 4 min 30 s, El Salvador 4:14, Argentina 3:33, Belarus 3:32 and Brazil 3:21. The table of partially recognised states, including Taiwan, gives no length. This data file is shared under CC BY-SA 4.0.',
+      },
+      unit: { zh: '秒', en: 's' },
+      file: 'anthem-length.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 55, 70, 90, 120, 180] } },
+      format: (v) => tr({ zh: `${Math.floor(v / 60)} 分 ${fixed(v % 60, 0)} 秒`, en: `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, '0')}` }),
+      formatTick: (v) => fixed(v, 0),
     },
     {
       id: 'exchange-regime',

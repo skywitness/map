@@ -117,6 +117,10 @@ const TEXT = defineMessages({
     tld: '網域',
     iso: 'ISO 3166-1 代碼',
     anthem: '國歌',
+    anthemTitle: (title: string) => `${title}：`,
+    anthemFacts: (adopted: string, length: string | null, lyricist: string, composer: string) =>
+      [`採用：${adopted}`, length && `長 ${length}`, lyricist && `作詞 ${lyricist}`, composer && `作曲 ${composer}`].filter(Boolean).join(' · '),
+    anthemLength: (s: number) => `${Math.floor(s / 60)} 分 ${s % 60} 秒`,
     inception: '成立時間',
     inceptionNote: '（Wikidata）',
     sovereign: (rel: string, sov: string) => `${rel}，主權屬於${sov}。`,
@@ -166,6 +170,10 @@ const TEXT = defineMessages({
     tld: 'Internet domain',
     iso: 'ISO 3166-1 codes',
     anthem: 'Anthem',
+    anthemTitle: (title: string) => `${title}: `,
+    anthemFacts: (adopted: string, length: string | null, lyricist: string, composer: string) =>
+      [`adopted ${adopted}`, length && `${length} long`, lyricist && `lyrics ${lyricist}`, composer && `music ${composer}`].filter(Boolean).join(' · '),
+    anthemLength: (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`,
     inception: 'Inception',
     inceptionNote: ' (Wikidata)',
     sovereign: (rel: string, sov: string) => `${rel}; sovereignty: ${sov}.`,
@@ -296,6 +304,10 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const perSeat = useJson<IndicatorData>(`topics/${topic.id}/seat-population.json`).data;
   // 金額怎麼寫（2026-11-05，第二十二批 392；pipeline/topics/profiles_currency.py）
   const currencyFormat = useJson<Record<string, CurrencyFormat>>(`topics/${topic.id}/currency-format-detail.json`).data;
+  // 國歌的採用年份與長度（2026-11-05，第二十二批 394；英文維基，pipeline/topics/profiles_anthems.py）
+  const anthems = useJson<{ countries: Record<string, [string, string, number | null, string, string][]> }>(
+    `topics/${topic.id}/anthem-detail.json`,
+  ).data?.countries[iso3];
   const flagEntry = useFlags()?.units[iso3];
   if (!data || loading) return <p className="empty">{t.loading}</p>;
   const p: Profile | undefined = part ?? undefined;
@@ -420,6 +432,12 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
         {p.anthem.map((a, i) => (
           <span key={i} className="profile-person">
             <NameText name={a} lang={lang} />
+          </span>
+        ))}
+        {anthems?.map(([title, adopted, seconds, lyricist, composer], i) => (
+          <span key={`w${i}`} className="profile-sub">
+            {anthems.length > 1 && text.anthemTitle(title)}
+            {text.anthemFacts(adopted, seconds == null ? null : text.anthemLength(seconds), lyricist, composer)}
           </span>
         ))}
       </>,

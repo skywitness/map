@@ -163,6 +163,8 @@ STEPS = {
     "profiles-legislature": "topics.profiles_legislature",
     # 國家小檔案的貨幣怎麼寫（第二十二批 392）：CLDR 49 的貨幣格式與符號，讀現有的 profiles/<ISO3>.json 的貨幣代碼
     "profiles-currency": "topics.profiles_currency",
+    # 國歌哪一年採用、唱多久（第二十二批 394）：英文維基「List of national anthems」固定版本的網頁（CC BY-SA 4.0）
+    "profiles-anthems": "topics.profiles_anthems",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
