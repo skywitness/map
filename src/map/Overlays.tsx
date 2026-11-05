@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { heatRamp } from './heatRamps';
 import { ISOBATH_COLOR } from './isobathStyle';
 import { tr, useLang, useT, type Text } from '../i18n';
+import { fixed } from '../lib/format';
 import type { PointsOverlay } from '../topics/types';
 import { setClassGridOnly } from './classGridHighlight';
 import { LIGHTS_LOOK, MOON_COLOR, MOON_LOOK, NIGHT_LOOK, nightAlphas, SUN_COLOR } from './nightLook';
@@ -436,6 +437,8 @@ interface LayerControlsProps {
   hasIsobaths?: boolean;
   /** 主題的一般疊加圖層（地震、火山、板塊邊界…） */
   overlays?: OverlayLayer[];
+  /** 圖層開關旁的件數（圖層 id → 時間軸這一年的點數，overlayLayers.ts 的 overlayCount；參3） */
+  counts?: Map<string, number>;
   tokens: Tokens;
   /** 底圖是深色的（分類有深色底圖用的顏色時，圖例跟地圖一樣） */
   darkMap?: boolean;
@@ -460,6 +463,7 @@ export function LayerControls({
   season = null,
   hasIsobaths = false,
   overlays = [],
+  counts,
   tokens,
   darkMap = false,
 }: LayerControlsProps) {
@@ -507,12 +511,15 @@ export function LayerControls({
       ))}
       {overlays.map((o) => {
         const key = extraKeys.get(o)!;
+        const count = counts?.get(o.def.id);
+        const unit = o.kind === 'points' && o.def.count ? o.def.count.unit : undefined;
         return (
           <div key={o.def.id} className="map-layer">
             <label>
               <input type="checkbox" checked={o.visible} onChange={() => toggleOverlay(o)} />
               <Swatch swatch={key.swatch} />
               {key.label}
+              {count !== undefined && <span className="map-layer-count">{unit ? `${fixed(count, 0)} ${unit}` : fixed(count, 0)}</span>}
             </label>
             {o.visible &&
               showsDetails(o) &&

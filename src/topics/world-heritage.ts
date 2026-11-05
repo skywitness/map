@@ -210,8 +210,8 @@ export const worldHeritage: TopicDefinition = {
       id: 'biosphere',
       label: { zh: '生物圈保護區', en: 'Biosphere reserves' },
       description: {
-        zh: 'UNESCO「人與生物圈計畫」的生物圈保護區：核心區保護生態、外圍讓人居住與利用，試著兼顧兩者。點是 Wikidata 收錄、有座標的 679 處（UNESCO 公布 797 處，Wikidata 不完整，也有已除名沒標的），所以不算各國的處數。台灣不是 UNESCO 會員，沒有。',
-        en: 'Biosphere reserves of UNESCO’s Man and the Biosphere Programme, which pair a protected core with surrounding zones where people live and work. Dots show the 679 reserves with coordinates in Wikidata (UNESCO lists 797; Wikidata is incomplete and includes some withdrawn reserves), so countries are not counted. Taiwan, not a UNESCO member, has none.',
+        zh: 'UNESCO「人與生物圈計畫」的生物圈保護區：核心區保護生態、外圍讓人居住與利用，試著兼顧兩者。點是 Wikidata 收錄、有座標的 679 處（UNESCO 公布 797 處，Wikidata 不完整，也有已除名沒標的），所以不算各國的處數；另有 30 處在 Wikidata 沒有座標，沒畫（2026-11-05 查）。台灣不是 UNESCO 會員，沒有。',
+        en: 'Biosphere reserves of UNESCO’s Man and the Biosphere Programme, which pair a protected core with surrounding zones where people live and work. Dots show the 679 reserves with coordinates in Wikidata (UNESCO lists 797; Wikidata is incomplete and includes some withdrawn reserves), so countries are not counted; another 30 reserves in Wikidata have no coordinates and are not shown (checked 2026-11-05). Taiwan, not a UNESCO member, has none.',
       },
       unit: '',
       file: 'biosphere.json',

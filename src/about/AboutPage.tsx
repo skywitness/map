@@ -54,6 +54,7 @@ const TEXT = defineMessages({
       '資料不定期更新，各來源的週期不同。每個主題的頁尾寫資料產生的日期，來源的版本寫在來源名稱或說明裡；詳細的版本與下載方式在 GitHub 上的 DESIGN.md。',
       '用台灣官方資料補的值、自己換算的值（例如人均、加權平均）都寫在附註。',
       '有些資料不是依國家：例如依遺傳族群的基因頻率、國際能源價格。這類資料地圖不上色，放在地圖左邊的側欄；依遺傳族群的資料多半沒有台灣自己的一組，側欄會寫明台灣算在哪一群或為什麼沒有。',
+      '地圖上的點只畫到來源寫的精確度：只知道發生在哪一國的事件（武裝衝突、新聞熱點）不畫成點，免得在國家的中心畫出不存在的熱點，國家的合計照算；只知道在哪一省、哪個縣市的，滑到點上會寫出來。用 Wikidata 的點，沒有座標的項目不畫，說明寫出有幾個。',
     ],
     sourcesTitle: '資料來源一覽',
     sourcesIntro: (n: number) =>
@@ -135,6 +136,7 @@ const TEXT = defineMessages({
       'Data are updated irregularly and each source has its own cycle. The footer of each topic gives the date the data were generated, and the source version is in the source name or description; full details of versions and downloads are in DESIGN.md on GitHub.',
       'Figures filled in from Taiwan’s official data and figures calculated here (per capita, weighted averages and the like) are explained in notes.',
       'Some data are not by country, such as gene frequencies by ancestry group or international energy prices. These are not coloured on the map but shown in the panel to the left of the map; data by ancestry group rarely have a group of their own for Taiwan, and the panel says which group Taiwan falls in or why it is missing.',
+      'Points are drawn only as precisely as the source locates them: events known only by country (armed conflict, news hotspots) are not drawn as points, so they do not create false hotspots at country centres, but they still count towards country totals; points located only to a province or district say so when you hover over them. Wikidata items without coordinates are not drawn, and the notes say how many there are.',
     ],
     sourcesTitle: 'List of sources',
     sourcesIntro: (n) =>

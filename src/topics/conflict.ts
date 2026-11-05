@@ -7,8 +7,8 @@ import type { IndicatorDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefin
  * 武裝衝突（pipeline/topics/conflict.py）：UCDP（Uppsala Conflict Data Program）26.1 版。
  * - 死亡人數：UCDP GED 的事件依發生地點加總（1989–2025），三類組織性暴力各一個指標，加上合計與每十萬人。
  * - 衝突數與強度：UCDP/PRIO 武裝衝突資料集（1946–2025），依 UCDP 的「所在國」（被挑戰的國家）。
- * - 地圖上的點：GED 的事件（同一年、同一國、約 10 公里內合計 25 人以上的併成一點），依時間軸只顯示那一年，
- *   顏色是暴力類型（三類各一個圖層，可以分別開關）。
+ * - 地圖上的點：GED 的事件（同一年、同一國、約 10 公里內、同一種定位精度合計 25 人以上的併成一點），依時間軸只顯示那一年，
+ *   顏色是暴力類型（三類各一個圖層，可以分別開關）。只知道國家的事件不畫（POINT_NOTE）。
  * 用語照 UCDP 的定義：以國家為一方的武裝衝突（state-based）、非國家衝突（non-state）、單方面暴力（one-sided）。
  */
 
@@ -43,6 +43,25 @@ export const VIOLENCE_TYPES: { id: 'state' | 'nonstate' | 'onesided'; label: Tex
 const ESTIMATE_NOTE: Text = {
   zh: '死亡人數是 UCDP 的最佳估計，只算有可靠來源記錄的死亡，數字偏保守。',
   en: 'Deaths are UCDP best estimates, counting only deaths documented by reliable sources, so the figures are conservative.',
+};
+
+/**
+ * 2026-11-05（參1）：只知道國家的事件座標都在國家的中心，畫成點會在沒有戰事的地方畫出熱點（烏克蘭 17 萬人疊在中部一點），
+ * 所以不畫點、不算熱度（pipeline/topics/conflict.py 的 COUNTRY_ONLY）；國家的合計照算
+ */
+const POINT_NOTE: Text = {
+  zh: '只知道國家的事件（座標在國家的中心；1989 年起約 38 萬人，17 萬在烏克蘭）不畫點、不算熱度，國家的合計照算。',
+  en: 'Events known only by country (placed at its centre; about 380,000 deaths since 1989, 170,000 in Ukraine) are left off the dots and heat layer but counted in country totals.',
+};
+
+/** GED 的定位精度（where_prec）3–5：點只是代表位置，滑過時寫出來 */
+const PRECISION: Record<number, Text> = {
+  3: { zh: '位置只知道在哪個縣市（點在它的中心）', en: 'located only to a district (placed at its centre)' },
+  4: { zh: '位置只知道在哪一省（點在省的中心）', en: 'located only to a province (placed at its centre)' },
+  5: {
+    zh: '位置只知道沿著一條河流、邊界、道路或在一個大概的區域',
+    en: 'located only along a river, border or road, or within a loose region',
+  },
 };
 
 // ── 每十萬人死亡率 ──
@@ -84,8 +103,8 @@ const indicators: IndicatorDef[] = [
     id: 'battle-deaths',
     label: { zh: '戰鬥死亡（以國家為一方的衝突）', en: 'Battle deaths (state-based conflict)' },
     description: {
-      zh: `以國家為一方的武裝衝突（政府與政府、或政府與反抗團體之間，為了政府或領土使用武力，一年至少 25 人戰鬥死亡）造成的戰鬥死亡，含交戰雙方與被波及的平民，依事件發生的國家加總（${GED_YEARS.zh}）。圓的面積與人數成正比；地圖上的紅點是當年的事件。${ESTIMATE_NOTE.zh}`,
-      en: `Battle-related deaths in state-based armed conflict (armed force between two parties over government or territory, at least one of them a state government, with at least 25 battle-related deaths in a year), including combatants and civilians caught in the fighting, summed by the country where each event took place (${GED_YEARS.en}). Circle area is proportional to deaths; red dots are that year's events. ${ESTIMATE_NOTE.en}`,
+      zh: `以國家為一方的武裝衝突（政府與政府、或政府與反抗團體之間，為了政府或領土使用武力，一年至少 25 人戰鬥死亡）造成的戰鬥死亡，含交戰雙方與被波及的平民，依事件發生的國家加總（${GED_YEARS.zh}）。圓的面積與人數成正比；地圖上的紅點是當年的事件。${ESTIMATE_NOTE.zh}${POINT_NOTE.zh}`,
+      en: `Battle-related deaths in state-based armed conflict (armed force between two parties over government or territory, at least one of them a state government, with at least 25 battle-related deaths in a year), including combatants and civilians caught in the fighting, summed by the country where each event took place (${GED_YEARS.en}). Circle area is proportional to deaths; red dots are that year's events. ${ESTIMATE_NOTE.en} ${POINT_NOTE.en}`,
     },
     unit: DEATHS_UNIT,
     file: 'battle-deaths.json',
@@ -98,8 +117,8 @@ const indicators: IndicatorDef[] = [
     id: 'non-state-deaths',
     label: { zh: '非國家衝突死亡', en: 'Non-state conflict deaths' },
     description: {
-      zh: `非國家衝突（雙方都不是國家政府的有組織武裝團體之間使用武力，一年至少 25 人死亡，例如販毒集團、民兵或族群之間）造成的死亡，依事件發生的國家加總（${GED_YEARS.zh}）。地圖上的琥珀色點是當年的事件。${ESTIMATE_NOTE.zh}`,
-      en: `Deaths in non-state conflict (armed force between two organized armed groups, neither of them a state government, with at least 25 deaths in a year, such as between cartels, militias or communal groups), summed by the country where each event took place (${GED_YEARS.en}). Amber dots are that year's events. ${ESTIMATE_NOTE.en}`,
+      zh: `非國家衝突（雙方都不是國家政府的有組織武裝團體之間使用武力，一年至少 25 人死亡，例如販毒集團、民兵或族群之間）造成的死亡，依事件發生的國家加總（${GED_YEARS.zh}）。地圖上的琥珀色點是當年的事件。${ESTIMATE_NOTE.zh}${POINT_NOTE.zh}`,
+      en: `Deaths in non-state conflict (armed force between two organized armed groups, neither of them a state government, with at least 25 deaths in a year, such as between cartels, militias or communal groups), summed by the country where each event took place (${GED_YEARS.en}). Amber dots are that year's events. ${ESTIMATE_NOTE.en} ${POINT_NOTE.en}`,
     },
     unit: DEATHS_UNIT,
     file: 'non-state-deaths.json',
@@ -112,8 +131,8 @@ const indicators: IndicatorDef[] = [
     id: 'one-sided-deaths',
     label: { zh: '單方面暴力死亡', en: 'One-sided violence deaths' },
     description: {
-      zh: `單方面暴力（國家政府或有正式組織的團體刻意對平民使用武力，一年至少 25 人死亡；不含被拘押時的法外處決）造成的死亡，依事件發生的國家加總（${GED_YEARS.zh}）。1994 年盧安達種族滅絕的死亡人數遠高於其他年份。地圖上的紫色點是當年的事件。${ESTIMATE_NOTE.zh}`,
-      en: `Deaths from one-sided violence (the deliberate use of armed force against civilians by a state government or a formally organized group, with at least 25 deaths in a year; extrajudicial killings in custody are excluded), summed by the country where each event took place (${GED_YEARS.en}). Deaths in the 1994 Rwandan genocide far exceed any other year. Purple dots are that year's events. ${ESTIMATE_NOTE.en}`,
+      zh: `單方面暴力（國家政府或有正式組織的團體刻意對平民使用武力，一年至少 25 人死亡；不含被拘押時的法外處決）造成的死亡，依事件發生的國家加總（${GED_YEARS.zh}）。1994 年盧安達種族滅絕的死亡人數遠高於其他年份。地圖上的紫色點是當年的事件。${ESTIMATE_NOTE.zh}${POINT_NOTE.zh}`,
+      en: `Deaths from one-sided violence (the deliberate use of armed force against civilians by a state government or a formally organized group, with at least 25 deaths in a year; extrajudicial killings in custody are excluded), summed by the country where each event took place (${GED_YEARS.en}). Deaths in the 1994 Rwandan genocide far exceed any other year. Purple dots are that year's events. ${ESTIMATE_NOTE.en} ${POINT_NOTE.en}`,
     },
     unit: DEATHS_UNIT,
     file: 'one-sided-deaths.json',
@@ -126,8 +145,8 @@ const indicators: IndicatorDef[] = [
     id: 'organized-violence-deaths',
     label: { zh: '組織性暴力死亡（三類合計）', en: 'Organized violence deaths (all three types)' },
     description: {
-      zh: `以國家為一方的武裝衝突、非國家衝突與單方面暴力三類合計的死亡人數，依事件發生的國家加總（${GED_YEARS.zh}）。地圖上的點是當年的事件，顏色是暴力類型。${ESTIMATE_NOTE.zh}`,
-      en: `Deaths from state-based armed conflict, non-state conflict and one-sided violence combined, summed by the country where each event took place (${GED_YEARS.en}). Dots are that year's events, coloured by type of violence. ${ESTIMATE_NOTE.en}`,
+      zh: `以國家為一方的武裝衝突、非國家衝突與單方面暴力三類合計的死亡人數，依事件發生的國家加總（${GED_YEARS.zh}）。地圖上的點是當年的事件，顏色是暴力類型。${ESTIMATE_NOTE.zh}${POINT_NOTE.zh}`,
+      en: `Deaths from state-based armed conflict, non-state conflict and one-sided violence combined, summed by the country where each event took place (${GED_YEARS.en}). Dots are that year's events, coloured by type of violence. ${ESTIMATE_NOTE.en} ${POINT_NOTE.en}`,
     },
     unit: DEATHS_UNIT,
     file: 'organized-violence-deaths.json',
@@ -195,6 +214,8 @@ function eventTooltip(type: (typeof VIOLENCE_TYPES)[number]) {
     if (typeof p.deaths === 'number') parts.push(deaths(p.deaths));
     if (typeof p.n === 'number' && p.n > 1) parts.push(tr({ zh: `${n0(p.n)} 起事件`, en: `${n0(p.n)} events` }));
     if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
+    const precision = typeof p.prec === 'number' ? PRECISION[p.prec] : undefined;
+    if (precision) parts.push(tr(precision));
     const names = [p.place, p.name].filter((s): s is string => typeof s === 'string' && s !== '');
     return {
       title: `${tr(type.label)} · ${p.year}`,
@@ -214,6 +235,8 @@ const overlays: PointsOverlayDef[] = VIOLENCE_TYPES.map((type) => ({
   color: type.color,
   sortField: 'deaths',
   timeField: 'year',
+  // 圖層開關旁的件數（參3）：好幾起併成一點，加總起數
+  count: { field: 'n', unit: { zh: '起', en: 'events' } },
   // 三個圖層同一組大小說明，圖例只列在第一個打開的圖層下面
   sizeLegend: { title: { zh: '死亡人數', en: 'Deaths' }, values: [100, 1000, 10000], format: formatLargeTick },
   tooltip: eventTooltip(type),

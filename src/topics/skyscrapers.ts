@@ -141,14 +141,14 @@ export const skyscrapers: TopicDefinition = {
       `大樓是 Wikidata 收錄、有高度的 150 m 以上的建築：摩天大樓、辦公、住宅、旅館大樓等給人使用的樓；電視塔、觀景塔、煙囪、教堂的尖塔不算（跟 CTBUH 一樣）。` +
       `高度是建築高度（含尖塔、不含天線），Wikidata 有標「建築高度」的用它，沒有的用一般寫的高度。完工年份依序用 Wikidata 的建造結束、啟用日期、成立時間；沒有年份的不算。` +
       `Wikidata 的收錄很不完整：跟 CTBUH 統計的 2025 年底總數比，200 m 以上只有約 ${COVERAGE_WORLD_200}%（全世界 ${fixed(CTBUH_WORLD_200, 0)} 棟；中國 ${fixed(CTBUH_CHINA_200, 0)} 棟，這裡約 ${COVERAGE_CHINA_200}%），` +
-      `300 m 以上約 ${COVERAGE_WORLD_300}%（${CTBUH_WORLD_300} 棟），所以國家的棟數只做 300 m 以上，150、200 m 以上的只畫成點、在側欄列出，不拿來比較國家。各國最高的建築也可能漏收。` +
+      `300 m 以上約 ${COVERAGE_WORLD_300}%（${CTBUH_WORLD_300} 棟），所以國家的棟數只做 300 m 以上，150、200 m 以上的只畫成點、在側欄列出，不拿來比較國家。另有 15 棟在 Wikidata 沒有座標，算進國家的棟數、列在側欄，但沒畫在地圖上（2026-11-05 查）。各國最高的建築也可能漏收。` +
       `300 m 以上的每一棟、各國最高的建築都逐一看過，修正了幾個明顯錯誤的高度與年份（例如帝國大廈、高雄 85 大樓），排除了電視塔與還沒完工的。` +
       `名稱用 Wikidata 的中文名稱，沒有的用英文。`,
     en:
       `Buildings are those in Wikidata with a height of 150 m or more that are made for people to use – skyscrapers and office, residential and hotel towers; TV and observation towers, chimneys and church spires are excluded, as by the CTBUH. ` +
       `Heights are architectural heights (including spires, not antennas): Wikidata’s “architectural height” where given, otherwise the plain height. Completion years come from Wikidata’s end of construction, opening date or inception, in that order; buildings without one are not counted. ` +
       `Wikidata’s coverage is far from complete: compared with the CTBUH’s totals at the end of 2025, it has only about ${COVERAGE_WORLD_200}% of buildings of 200 m or more (${fixed(CTBUH_WORLD_200, 0)} worldwide; about ${COVERAGE_CHINA_200}% of China’s ${fixed(CTBUH_CHINA_200, 0)}) ` +
-      `and about ${COVERAGE_WORLD_300}% of those of 300 m or more (${CTBUH_WORLD_300}). Country counts therefore cover only 300 m+; buildings of 150 and 200 m+ are shown as dots and listed in the side panel, not compared between countries. A country’s tallest building may also be missing. ` +
+      `and about ${COVERAGE_WORLD_300}% of those of 300 m or more (${CTBUH_WORLD_300}). Country counts therefore cover only 300 m+; buildings of 150 and 200 m+ are shown as dots and listed in the side panel, not compared between countries. Another 15 buildings have no coordinates in Wikidata; they are counted and listed in the side panel but not drawn (checked 2026-11-05). A country’s tallest building may also be missing. ` +
       `Every building of 300 m or more and every country’s tallest were checked by hand, fixing a few clearly wrong heights and years (such as the Empire State Building and Kaohsiung’s 85 Sky Tower) and removing TV towers and unfinished buildings.`,
   },
   panelExtra: () => import('./panels/SkyscrapersPanel'),

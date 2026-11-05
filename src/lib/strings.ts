@@ -49,6 +49,9 @@ const UI_TEXT = defineMessages({
       recent: '最近看過',
       commands: '指令',
       places: '這個主題地圖上的地點',
+      combo: '直接打開',
+      currentTopic: '目前的主題',
+      year: (y: number) => `${y} 年`,
       noResults: '找不到符合的主題、國家或指令',
       hint: '↑↓ 選擇　Enter 開啟　Esc 關閉',
       actions: {
@@ -129,6 +132,9 @@ const UI_TEXT = defineMessages({
       recent: 'Recently viewed',
       commands: 'Commands',
       places: 'Places on this map',
+      combo: 'Open directly',
+      currentTopic: 'Current topic',
+      year: (y: number) => String(y),
       noResults: 'No matching topics, countries or commands',
       hint: '↑↓ to choose · Enter to open · Esc to close',
       actions: {

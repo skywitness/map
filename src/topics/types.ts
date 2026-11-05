@@ -641,6 +641,12 @@ export interface PointsOverlayDef extends OverlayBase {
   /** 年份欄位：依時間軸篩選要顯示的點，篩選方式看指標的 overlayTime */
   timeField?: string;
   /**
+   * 圖層開關旁寫的件數（2026-11-05，參3，參考 tickerkarte 篩選按鈕上的件數）：預設是時間軸這一年畫出來的點數
+   * （跟地圖的時間篩選同一套規則，overlayLayers.ts 的 overlayCount）；field 是改加總這個欄位（好幾起併成一點的事件數），
+   * unit 是單位（「起事件」）；false 不寫。連成線的軌跡（trail）、依期變的點（epochs）不寫
+   */
+  count?: false | { field?: string; unit?: Text };
+  /**
    * 結束年份欄位（例如大樓拆除、毀損的年份）：overlayTime 是 'cumulative' 時，這一年（含）以後不畫；
    * 沒有這個欄位的點一直畫。跟 timeField 一起用
    */

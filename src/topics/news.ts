@@ -191,8 +191,10 @@ function livePoints(live: unknown): PointRecord[] | null {
   if (!isNews(live)) return null;
   latest = live;
   // 2026-11-02（新29）：一個地點的每一種事件各一點（同一個位置，n 是那一種的件數），縮小時聚成甜甜圈（各片是各種事件的件數），
-  // 放大後同一個地點是一圈圈同心的圓（小的畫在上面，o = −n）
-  return placesOf(live).flatMap((p) =>
+  // 放大後同一個地點是一圈圈同心的圓（小的畫在上面，o = −n）。
+  // 2026-11-05（參2，參考 tickerkarte）：只寫到國家的事件座標都在國家的中心（美國的在堪薩斯州），畫成圓會在那裡畫出不存在的
+  // 熱點，所以不畫，只列在左邊清單的最後一組；國家的事件數照算
+  return placesOf(live).filter((p) => !p.countryOnly).flatMap((p) =>
     [...p.kinds.entries()].map(([kind, count]) => ({
       lon: p.lon,
       lat: p.lat,
@@ -203,6 +205,12 @@ function livePoints(live: unknown): PointRecord[] | null {
       iso3: isoOf(p.fips),
     })),
   );
+}
+
+/** 國家中心附近約 10° 的範圍（只寫到國家的清單列點了移過去用，不標點） */
+function aroundBox(lon: number, lat: number): [number, number, number, number] {
+  const dLon = Math.min(20, 5 / Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
+  return [Math.max(-180, lon - dLon), Math.max(-85, lat - 5), Math.min(180, lon + dLon), Math.min(85, lat + 5)];
 }
 
 /** 新聞網址的網域：「www.reuters.com/world/…」→「reuters.com」 */
@@ -261,6 +269,8 @@ const EVENTS: PointsOverlayDef = {
   radius: { field: 'n', stops: [[1, 3], [5, 5], [20, 8], [100, 13]] },
   color: KIND_COLORS,
   sortField: 'o',
+  // 圖層開關旁的件數（參3）：一個地點的一種事件一點，加總事件數（只寫到國家的不畫，不算）
+  count: { field: 'n', unit: { zh: '個', en: 'events' } },
   indicators: ['map'],
   cluster: {
     maxZoom: 4,
@@ -279,9 +289,7 @@ const EVENTS: PointsOverlayDef = {
     const more = place.urls.length - links.length;
     return {
       title: `${eventsText(place.events.length)}${tr({ zh: '：', en: ': ' })}${kindsText(place.kinds)}`,
-      detail: [country, place.countryOnly ? tr({ zh: '只寫到國家，點在國家中心', en: 'country only, placed at its centre' }) : null]
-        .filter(Boolean)
-        .join(' · '),
+      detail: country ?? undefined,
       extra: [
         ...links.map((u) => shortUrl(u)),
         ...(more > 0 ? [tr({ zh: `還有 ${more} 則新聞，點國家看側欄`, en: `${more} more articles: click the country for the side panel` })] : []),
@@ -310,7 +318,11 @@ const LIST: ListPanelDef = {
   rows: (points, { countryName }) => {
     const all = latest ? placesOf(latest) : [];
     const byKey = new Map(all.map((p) => [p.key, p]));
-    return points.flatMap((r): ListRow[] => {
+    // 只寫到國家的（地圖上不畫）排在最後一組，組名寫出有幾個
+    const ordered = [...points].sort((a, b) => Number(byKey.get(String(a.key))?.countryOnly ?? 0) - Number(byKey.get(String(b.key))?.countryOnly ?? 0));
+    const countryOnly = ordered.filter((r) => byKey.get(String(r.key))?.countryOnly).length;
+    const group = tr({ zh: `只寫到國家、沒畫在地圖上的 ${countryOnly} 處`, en: `${countryOnly} naming only a country (not on the map)` });
+    return ordered.flatMap((r): ListRow[] => {
       const place = byKey.get(String(r.key));
       if (!place) return [];
       const time = new Date(Number(r.t));
@@ -323,12 +335,12 @@ const LIST: ListPanelDef = {
           titleProper: true,
           lines: [
             `${eventsText(place.events.length)}${tr({ zh: '：', en: ': ' })}${kindsText(place.kinds)}`,
-            [typeof r.iso3 === 'string' ? countryName(r.iso3) : null, place.countryOnly ? tr({ zh: '只寫到國家', en: 'country only' }) : null, hhmm]
-              .filter(Boolean)
-              .join(' · '),
+            [typeof r.iso3 === 'string' ? countryName(r.iso3) : null, hhmm].filter(Boolean).join(' · '),
           ],
           link: url ? { href: url, label: linkText(url) } : undefined,
-          target: { lon: place.lon, lat: place.lat, zoom: place.countryOnly ? 4 : 8 },
+          // 只寫到國家的：移到國家一帶（範圍不標點，地圖上沒有這一點）
+          target: place.countryOnly ? { box: aroundBox(place.lon, place.lat) } : { lon: place.lon, lat: place.lat, zoom: 8 },
+          group: place.countryOnly ? group : undefined,
         },
       ];
     });
@@ -350,8 +362,8 @@ const indicators: IndicatorDef[] = [
     id: 'map',
     label: { zh: '新聞熱點地圖', en: 'News hotspots' },
     description: {
-      zh: `最近 15 分鐘的新聞裡，事件發生在哪裡：同一個地點的同一種事件併成一個圓，越大事件越多，顏色是事件的種類（發言與會談、合作與援助、調查要求與批評、威脅與施壓、抗議、攻擊與戰鬥），一個地點有好幾種時同心疊在一起；縮小時附近的事件聚成甜甜圈，各片是各種事件的件數，中間寫總數，點一下放大。只寫到國家的新聞點在國家中心。滑到點上看事件的種類與原始新聞的網址，點國家看側欄的新聞連結；左邊的清單依地點列出這一批的事件與新聞連結。${ABOUT.zh}`,
-      en: `Where events in the last 15 minutes of news took place: events of the same type at the same place are merged into one circle, bigger for more events and coloured by type (statements and talks; cooperation and aid; probes, demands and criticism; threats and coercion; protests; assaults and fighting), stacked concentrically when a place has several types; zoomed out, nearby events gather into donuts whose slices are the counts of each type, with the total in the middle (click to zoom in). News naming only a country is placed at its centre. Hover over a dot for the types of event and the original article addresses; click a country for links in the side panel. The list on the left shows this batch’s events by place, with article links. ${ABOUT.en}`,
+      zh: `最近 15 分鐘的新聞裡，事件發生在哪裡：同一個地點的同一種事件併成一個圓，越大事件越多，顏色是事件的種類（發言與會談、合作與援助、調查要求與批評、威脅與施壓、抗議、攻擊與戰鬥），一個地點有好幾種時同心疊在一起；縮小時附近的事件聚成甜甜圈，各片是各種事件的件數，中間寫總數，點一下放大。只寫到國家的新聞不畫在地圖上，列在左邊清單的最後一組。滑到點上看事件的種類與原始新聞的網址，點國家看側欄的新聞連結；左邊的清單依地點列出這一批的事件與新聞連結。${ABOUT.zh}`,
+      en: `Where events in the last 15 minutes of news took place: events of the same type at the same place are merged into one circle, bigger for more events and coloured by type (statements and talks; cooperation and aid; probes, demands and criticism; threats and coercion; protests; assaults and fighting), stacked concentrically when a place has several types; zoomed out, nearby events gather into donuts whose slices are the counts of each type, with the total in the middle (click to zoom in). News naming only a country is not drawn on the map; it is listed at the end of the list on the left. Hover over a dot for the types of event and the original article addresses; click a country for links in the side panel. The list on the left shows this batch’s events by place, with article links. ${ABOUT.en}`,
     },
     unit: EVENTS_UNIT,
     file: 'fips.json',

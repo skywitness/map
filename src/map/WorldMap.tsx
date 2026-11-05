@@ -69,7 +69,7 @@ import {
 } from './Overlays';
 import { syncContours, syncIsobaths } from './contours';
 import { pieTier, syncPieImages, type PieData } from './pies';
-import { applyTimeFilters, groupPath, highlightLine, labelFont, syncOverlays, type OverlayDataCache } from './overlayLayers';
+import { applyTimeFilters, groupPath, highlightLine, labelFont, overlayCount, syncOverlays, type OverlayDataCache } from './overlayLayers';
 import { playRoute, playScript, ROUTE_SOURCE, routeLayers } from './routeAnimation';
 import { syncLiveGrid } from './liveGridLayer';
 import { syncClassGrid } from './classGridLayer';
@@ -1263,6 +1263,15 @@ export function WorldMap(props: WorldMapProps) {
     if (shown) highlightLine(map, null, shown);
     lineHoverRef.current = shown;
   }, [revision, overlays, year, indicator.overlayTime]);
+  // 圖層開關旁的件數（參3）：跟上面的時間篩選同一年、同一種方式
+  const overlayCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const o of overlays) {
+      const n = overlayCount(o, year, indicator.overlayTime);
+      if (n !== null) counts.set(o.def.id, n);
+    }
+    return counts;
+  }, [overlays, year, indicator.overlayTime]);
 
   /* ── 晝夜（時刻主題，nightLayer.ts）：換時刻只換太陽的方向與直射點，換底圖後重新加上 ── */
   const night = overlays.find((o) => o.kind === 'night');
@@ -2360,6 +2369,7 @@ export function WorldMap(props: WorldMapProps) {
             season={seasonControl}
             hasIsobaths={hasIsobaths}
             overlays={overlays}
+            counts={overlayCounts}
             tokens={tokens}
             darkMap={basemap.dark}
           />
