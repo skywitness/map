@@ -198,6 +198,8 @@ STEPS = {
     "crime": "topics.crime",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "breweries": "topics.breweries",  # 菸酒的啤酒廠：OSM craft=brewery（經 QLever，ODbL）與 Open Brewery DB（MIT）
+    # 啤酒產量（第二十二批 385）：FAOSTAT QCL Item 51，Flag X（外部機構提供）不畫，使用者決定
+    "beer-production": "topics.beer_production",
     "gambling": "topics.gambling",  # 博弈：賭場、彩券行、投注站（OSM 經 QLever，ODbL）
     "happiness": "topics.happiness",
     # 2026-11-04 主題盤點的擴3：留學生的流向（UIS），教育程度主題讀 ../student-mobility/
