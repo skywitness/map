@@ -183,6 +183,8 @@ STEPS = {
     "chokepoints-monthly": "topics.chokepoints_monthly",
     # 小客車的車齡（第二十三批 403）：Eurostat road_eqs_carage，輸出到 road-safety 的資料夾（汽機車主題）
     "car-age": "topics.car_age",
+    # 全世界的礦場（第二十二批 382 的後半）：USGS MRDS（使用者用瀏覽器下載，map-plan 的 data/usgs-mrds/，先複製到 .cache/usgs-mrds/）
+    "minerals-mines": "topics.minerals_mines",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
