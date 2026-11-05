@@ -1,7 +1,7 @@
 import { getLang, tr, type Lang } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { CategoryDef, ColorClasses, PointsOverlayDef, Text, TopicDefinition } from './types';
+import type { CategoryDef, ColorClasses, IndicatorDef, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
  * 語言代碼 ↔ 類別圖的數值：主要官方語言的指標檔存的是語言代碼的 36 進位數（en → 527），
@@ -184,6 +184,20 @@ const LANGUAGE_POINTS: PointsOverlayDef = {
   },
 };
 
+/** 官方語言數的兩個指標（CLDR、Wikidata）共用一組門檻，才能互相比較 */
+function officialCount(id: string, label: Text, description: Text): IndicatorDef {
+  return {
+    id,
+    label,
+    description,
+    unit: { zh: '種', en: 'languages' },
+    file: `${id}.json`,
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 3, 4, 6, 10] } },
+    format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'language' : 'languages'}` }),
+    formatTick: (v) => fixed(v, 0),
+  };
+}
+
 export const language: TopicDefinition = {
   id: 'language',
   title: { zh: '各國語言', en: 'Languages by country' },
@@ -197,6 +211,11 @@ export const language: TopicDefinition = {
       license: 'Unicode License v3',
     },
     { name: 'Glottolog 5.3', url: 'https://glottolog.org/', license: 'CC BY 4.0' },
+    {
+      name: { zh: 'Wikidata 的官方語言（P37，經 QLever 查詢）', en: 'Wikidata official languages (P37, queried via QLever)' },
+      url: 'https://www.wikidata.org/wiki/Property:P37',
+      license: 'CC0',
+    },
     {
       name: { zh: '行政院主計總處，109 年人口及住宅普查', en: 'DGBAS (Taiwan), 2020 Population and Housing Census' },
       url: 'https://www.dgbas.gov.tw/News_Content.aspx?n=3602&s=230162',
@@ -297,5 +316,22 @@ export const language: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'language' : 'languages'}` }),
       formatTick: (v) => fixed(v, 0),
     },
+    // 官方語言有幾種（2026-11-05，第二十二批 393；pipeline/topics/language_official.py）：兩個來源的定義不同，並列
+    officialCount(
+      'official-cldr',
+      { zh: '官方語言有幾種（CLDR）', en: 'Official languages (CLDR)' },
+      {
+        zh: '依 Unicode CLDR 49：官方或事實上官方的語言有幾種（同一種語言的不同文字只算一次，例如波士尼亞語的拉丁與西里爾字母；「部分地區官方」不算，滑過國家看）。246 個地區裡 1 種的 166、2 種 60、3 種 17，最多是瑞士（德、法、義大利語加上事實官方的瑞士德語）、葛摩、新加坡 4 種。台灣 3 種（華語、台語、客語）；南非只算英語 1 種，另有 10 種部分地區官方；印度 2 種（印地語、英語）。「官方語言」沒有統一的定義，跟 Wikidata 的數字差很多，可以切換比較。',
+        en: 'From Unicode CLDR 49: the number of official or de facto official languages (different scripts of one language count once, such as Bosnian in Latin and Cyrillic; languages official only in some regions are not counted but appear on hover). Of 246 territories, 166 have one, 60 two and 17 three; Switzerland (German, French, Italian plus de facto Swiss German), the Comoros and Singapore have four. Taiwan has 3 (Mandarin, Taiwanese, Hakka); South Africa counts only English, with 10 more official in some regions; India 2 (Hindi, English). There is no single definition of an official language, and the counts differ greatly from Wikidata’s; switch to compare.',
+      },
+    ),
+    officialCount(
+      'official-wikidata',
+      { zh: '官方語言有幾種（Wikidata）', en: 'Official languages (Wikidata)' },
+      {
+        zh: '依 Wikidata 各國項目的「官方語言」（P37）有幾種，是 Wikidata 編輯者認定的清單，各國的慣例不一致。240 個地區裡 1 種的 137、2 種 65、3 種 24；最多是台灣 22 種（《國家語言發展法》的國家語言，含 15 種原住民族語與臺灣手語）、辛巴威 16、馬利 13、南非 12、阿富汗 9；美國 5 種是西班牙語與各屬地的語言（沒有英語）。跟 CLDR 的數字差很多，可以切換比較。',
+        en: 'The number of official languages (P37) on each country’s Wikidata item: a list decided by Wikidata editors, with inconsistent conventions. Of 240 territories, 137 have one, 65 two and 24 three; Taiwan has the most with 22 (the national languages under its Development of National Languages Act, including 15 indigenous languages and Taiwan Sign Language), then Zimbabwe 16, Mali 13, South Africa 12 and Afghanistan 9; the US has 5, Spanish and the languages of its territories (not English). The counts differ greatly from CLDR’s; switch to compare.',
+      },
+    ),
   ],
 };

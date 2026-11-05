@@ -95,6 +95,8 @@ STEPS = {
     "atlas-sitc": "topics.atlas_sitc",
     "services-trade": "topics.services_trade",  # 服務出口的組成（WDI、央行國際收支），輸出到 topics/trade/
     "language": "topics.language",
+    # 官方語言有幾種（第二十二批 393）：CLDR territoryInfo 與 Wikidata P37（經 QLever；query.wikidata.org 的 /sparql robots 不允許）
+    "language-official": "topics.language_official",
     "elevation": "topics.elevation",  # 要先有 geo 的國界；第一次會下載約 760 MB（GMTED2010）
     "ruggedness": "topics.ruggedness",  # Nunn & Puga 的地形崎嶇指數（Harvard Dataverse，CC0）
     "migration": "topics.migration",  # 第一次會向 UNHCR 查 36 年的難民資料（約 2 分鐘）

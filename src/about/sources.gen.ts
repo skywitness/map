@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 1010;
+export const INDICATOR_COUNT = 1012;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -280,6 +280,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WHO, Global status report on blood safety and availability 2025，附錄 9（各國以本國血漿分餾的血漿製劑，2014–2023）","en":"WHO, Global status report on blood safety and availability 2025, annex 9 (plasma-derived medicinal products from domestic plasma, 2014–2023)"},"url":"https://iris.who.int/server/api/core/bitstreams/aa36bd85-6947-4097-adf6-f734922c8026/content","licenses":[{"zh":"CC BY-NC-SA 3.0 IGO（非商業；資料檔也是）","en":"CC BY-NC-SA 3.0 IGO (non-commercial; data files too)"}],"topics":["medicines"]},
   {"name":{"zh":"WHO, List of NRAs operating at ML3 and ML4（2026 年 8 月）、List of transitional WLAs（事實自行整理）","en":"WHO, List of NRAs operating at ML3 and ML4 (August 2026) and List of transitional WLAs (facts compiled)"},"url":"https://cdn.who.int/media/docs/default-source/medicines/regulatory-systems/wla/list-of-nras-operating-at-ml3-and-ml4.pdf","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO/UNICEF Estimates of National Immunization Coverage（WUENIC）2025 年版的 DTP3、麻疹第二劑，WHO HPV 疫苗涵蓋率估計（2000 年起；data.who.int 有指標頁）","en":"WHO/UNICEF Estimates of National Immunization Coverage (WUENIC), 2025 revision, for DTP3 and the second measles dose, and WHO HPV coverage estimates (from 2000; indicator pages on data.who.int)"},"url":"https://data.who.int/indicators/i/48D7D19/F8E084C","licenses":["CC BY 4.0"],"topics":["vaccination"]},
+  {"name":{"zh":"Wikidata 的官方語言（P37，經 QLever 查詢）","en":"Wikidata official languages (P37, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Property:P37","licenses":["CC0"],"topics":["language"]},
   {"name":{"zh":"Wikidata：電池儲能系統","en":"Wikidata: battery energy storage systems"},"url":"https://www.wikidata.org/wiki/Q810924","licenses":["CC0"],"topics":["power-plants"]},
   {"name":{"zh":"Wikidata（150 m 以上的電視塔、觀景塔、電信塔）","en":"Wikidata (TV, observation and communication towers 150 m+)"},"url":"https://www.wikidata.org/wiki/Q11166728","licenses":["CC0"],"topics":["skyscrapers"]},
   {"name":{"zh":"Wikidata（世界遺產預備名單 P4171、世界地質公園、台灣的地質公園）","en":"Wikidata (Tentative List P4171, UNESCO Global Geoparks, geoparks in Taiwan)"},"url":"https://www.wikidata.org/wiki/Property:P4171","licenses":["CC0"],"topics":["world-heritage"]},
