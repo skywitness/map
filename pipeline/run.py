@@ -214,6 +214,8 @@ STEPS = {
     "student-mobility": "topics.student_mobility",
     # 2026-11-04 主題盤點的擴4：都市垃圾（世界銀行 What a Waste 3.0，CC BY 4.0），廢棄物與回收主題讀 ../waste/
     "waste": "topics.waste",
+    # 都市垃圾的去處（第二十二批 389）：Eurostat env_wasmun（科索沃不收）、環境部、OSM 掩埋場（QLever），輸出 ../waste/
+    "waste-europe": "topics.waste_europe",
     # 第一次會向 TeleGeography 一條一條抓 713 條電纜的明細（每次間隔 0.4 秒，約 18 分鐘）
     "submarine-cables": "topics.submarine_cables",
     "road-safety": "topics.road_safety",  # WHO（RS_198、GSRRS 2023）與交通部統計查詢網
