@@ -9,11 +9,12 @@
   **只准非商業使用**；使用者 2026-11-05 決定照 WHO 死因資料的方式標示後使用）。426 個貨櫃港，分數是標準化後的值、
   不是小時數，只能跟同年的其他港比；國家的值是那一國分數最高的港。港口座標用 World Port Index（UN/LOCODE、
   shipping.py 的對照表、名稱，同 PLSCI 的做法）。
-- **船舶在港時間**：UNCTADstat US.PortCalls 的「Median time in port (days)」全船型，2018–2023，只有 22 個經濟體
+- **船舶在港時間**：UNCTADstat US.PortCalls 的「Median time in port (days)」全船型，2018–2023，只有 18 個經濟體
   （沒有台灣）。原始資料是 AIS，UNCTAD 只公布彙總值，這裡也只用彙總值。
 """
 from __future__ import annotations
 
+import urllib.error
 from collections import defaultdict
 
 import openpyxl
@@ -145,15 +146,6 @@ def build() -> None:
     detail["WLD"] = {"year": last, "types": {t: [ships["WLD"].get(t, {}).get(last), age["WLD"].get(t, {}).get(last)] for t in ["all", *SHIP_TYPES.values()]},
                      "age": [age["WLD"]["all"].get(y) for y in years]}
 
-    ports = wpi.load()
-    points, best = _cppi(ports)
-    write_json(OUT / "cppi-ports.json", points_file(
-        points, ["lon", "lat", "name", "code", "iso3", "cppi", "rank", "calls"], {"lon": 0.001, "lat": 0.001, "cppi": 0.1},
-        strings=["iso3"]))
-    write_json(OUT / "cppi.json", indicator_file(
-        "cppi", "", [CPPI_YEAR], {c: [v] for c, (v, _) in best.items()},
-        hints={c: n for c, (_, n) in best.items()}, hintsEn={c: n for c, (_, n) in best.items()}, license="CC BY-NC 3.0 IGO"))
-
     port_time, pt_years = _port_time()
     world = port_time.pop("WLD", None)
     write_json(OUT / "port-time.json", indicator_file(
@@ -165,5 +157,19 @@ def build() -> None:
     print(f"  船齡 {years[0]}–{years[-1]}：{len(values)} 個經濟體有 {MIN_SHIPS} 艘以上；世界 {age['WLD']['all'].get(last)} 年、{ships['WLD']['all'].get(last):,.0f} 艘")
     print(f"  最新 {rk[:8]}；最老 {rk[-8:]}")
     print(f"  台灣 {detail.get('TWN')}")
-    print(f"  CPPI 國家最高分 {sorted(best.items(), key=lambda kv: -kv[1][0])[:8]}；台灣 {best.get('TWN')}")
     print(f"  在港時間 {pt_years}：{len(port_time)} 國；{sorted(((v[-1], c) for c, v in port_time.items() if v[-1] is not None))}；世界 {world}")
+
+    # CPPI 要 World Port Index 的港口座標；NGA 的網站 2026-11-05 一整天回 503，下載不到時先不做 CPPI（其他照常輸出）
+    try:
+        ports = wpi.load()
+    except (urllib.error.URLError, ConnectionError, TimeoutError) as err:
+        print(f"  World Port Index 下載不到（{err}），CPPI 這次沒有輸出")
+        return
+    points, best = _cppi(ports)
+    write_json(OUT / "cppi-ports.json", points_file(
+        points, ["lon", "lat", "name", "code", "iso3", "cppi", "rank", "calls"], {"lon": 0.001, "lat": 0.001, "cppi": 0.1},
+        strings=["iso3"]))
+    write_json(OUT / "cppi.json", indicator_file(
+        "cppi", "", [CPPI_YEAR], {c: [v] for c, (v, _) in best.items()},
+        hints={c: n for c, (_, n) in best.items()}, hintsEn={c: n for c, (_, n) in best.items()}, license="CC BY-NC 3.0 IGO"))
+    print(f"  CPPI 國家最高分 {sorted(best.items(), key=lambda kv: -kv[1][0])[:8]}；台灣 {best.get('TWN')}")

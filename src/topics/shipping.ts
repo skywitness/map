@@ -2,6 +2,8 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { ferriesExtra } from './ferries';
+import { withParts } from './parts';
+import { shippingEfficiencyPart } from './shipping-efficiency';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
@@ -299,7 +301,7 @@ const FLEET_PIE = (
   ] as const
 ).map(([id, hue, label]) => ({ indicator: `fleet-${id}`, file: `fleet-type/${id}.json`, color: MAP_TOKENS.hues[hue], label }));
 
-export const shipping: TopicDefinition = {
+export const shipping: TopicDefinition = withParts({
   id: 'shipping',
   title: { zh: '航運與港口', en: 'Shipping and ports' },
   shortTitle: { zh: '航運', en: 'Shipping' },
@@ -496,4 +498,4 @@ export const shipping: TopicDefinition = {
       },
     },
   ],
-};
+}, shippingEfficiencyPart);
