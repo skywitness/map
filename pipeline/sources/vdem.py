@@ -36,6 +36,19 @@ INDEX_COLUMNS = [
     "v2x_civlib", "v2x_civlib_codelow", "v2x_civlib_codehigh",
     "v2x_corr", "v2x_corr_codelow", "v2x_corr_codehigh",
     "v2x_regime",
+    # 2026-11-05（製作手冊第二十二批 376）：全國選舉的投票率（登記選舉人、投票年齡人口）、下議院選舉制度（4 類、13 類）、
+    # 強制投票，以及選舉類型（v2eltype_0–7；8、9 V-Dem 還沒有編碼）。這幾欄只有選舉那一年有值
+    "v2eltrnout", "v2elvaptrn", "v2elparlel", "v2elloelsy", "v2elcomvot",
+    *(f"v2eltype_{i}" for i in range(8)),
+    # 377：行政權受到的制衡（司法、立法）與地方分權（地方分權沒有可信區間）
+    "v2x_jucon", "v2x_jucon_codelow", "v2x_jucon_codehigh",
+    "v2xlg_legcon", "v2xlg_legcon_codelow", "v2xlg_legcon_codehigh",
+    "v2x_feduni",
+    # 378：女性政治賦權指數與三個子指數（公民自由、公民社會參與、政治參與）
+    "v2x_gender", "v2x_gender_codelow", "v2x_gender_codehigh",
+    "v2x_gencl", "v2x_gencs", "v2x_genpp",
+    # 379：國會有幾院（0 沒有立法機關、1 一院、2 兩院以上）
+    "v2lgbicam",
 ]
 COLUMNS = ID_COLUMNS + INDEX_COLUMNS
 

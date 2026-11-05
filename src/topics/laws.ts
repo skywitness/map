@@ -65,7 +65,8 @@ const CONSCRIPTION: CategoryDef[] = [
   { value: 5, label: { zh: '沒有軍隊', en: 'No army' } },
 ];
 /** 強制投票（pipeline/sources/compulsory_voting.py，2026-11-03）：從嚴到寬，「各地不同」是灰色 */
-const COMPULSORY_VOTING: CategoryDef[] = [
+/** 民主與自由主題的投票率側欄也用（DemocracyPanel） */
+export const COMPULSORY_VOTING: CategoryDef[] = [
   { value: 1, label: { zh: '強制投票，有執行', en: 'Compulsory and enforced' } },
   { value: 2, label: { zh: '強制投票，不執行或不明', en: 'Compulsory, not enforced or unclear' } },
   { value: 3, label: { zh: '曾經強制，已廢除', en: 'Formerly compulsory' } },
