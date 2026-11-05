@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 143;
-export const INDICATOR_COUNT = 1032;
+export const INDICATOR_COUNT = 1034;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -109,6 +109,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：3D printing and robotics by size class of enterprise（isoc_eb_p3d，企業的機器人使用率）","en":"Eurostat: 3D printing and robotics by size class of enterprise (isoc_eb_p3d, robot use by enterprises)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_eb_p3d/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：Urban Audit 城市統計（urb_ctran，TT1007V 騎自行車上班的比例）","en":"Eurostat: Urban Audit (urb_ctran, TT1007V share of journeys to work by bicycle)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/urb_ctran/default/table","licenses":["CC BY 4.0"],"topics":["trails"]},
+  {"name":{"zh":"Eurostat：依車齡的小客車數（road_eqs_carage，歐洲 2013–2025 年）","en":"Eurostat: passenger cars by age (road_eqs_carage, Europe 2013–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carage/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat：家庭與非家庭電價（nrg_pc_204、nrg_pc_205）","en":"Eurostat: electricity prices for household and non-household consumers (nrg_pc_204, nrg_pc_205)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
   {"name":{"zh":"Eurostat：文化與運動活動的參與（ilc_scp04，運動比賽）","en":"Eurostat: participation in cultural and sport activities (ilc_scp04, sports events)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_scp04/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},

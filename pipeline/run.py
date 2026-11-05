@@ -181,6 +181,8 @@ STEPS = {
     "shipping-efficiency": "topics.shipping_efficiency",
     # 運河與海峽每月通過幾艘船（第二十三批 402）：IMF PortWatch 每天的通過數（用咽喉圖層的快取）加總成每個月
     "chokepoints-monthly": "topics.chokepoints_monthly",
+    # 小客車的車齡（第二十三批 403）：Eurostat road_eqs_carage，輸出到 road-safety 的資料夾（汽機車主題）
+    "car-age": "topics.car_age",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
