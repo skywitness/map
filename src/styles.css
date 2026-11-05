@@ -552,6 +552,8 @@ button {
   align-items: flex-start;
   gap: 4px;
   width: calc(var(--menu-columns, 1) * 264px);
+  /* 四欄（1056px）在 1024px 的螢幕放不下時，各欄一起變窄，不出現橫向捲軸 */
+  max-width: 100%;
 }
 
 .topic-menu-column {
