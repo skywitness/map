@@ -2,7 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { DGBAS_SOURCE } from './sectors';
-import type { CategoryDef, ColorClasses, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
+import type { CategoryDef, ColorClasses, DimensionDef, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { sectors } from './sectors';
@@ -154,6 +154,20 @@ function plantLayer(kind: 'steel' | 'cement'): PointsOverlayDef {
   };
 }
 
+/** 化肥的三種養分（pipeline/topics/industry_fertilizer.py 的 NUTRIENTS；2026-11-05，製作手冊第二十二批 384） */
+export const NUTRIENTS: DimensionDef = {
+  label: { zh: '養分', en: 'Nutrient' },
+  options: [
+    // 標題是「子項目＋指標」：氮化肥產量、Nitrogen fertilizer production
+    { id: 'nitrogen', label: { zh: '氮', en: 'Nitrogen' } },
+    { id: 'phosphate', label: { zh: '磷', en: 'Phosphate' } },
+    { id: 'potash', label: { zh: '鉀', en: 'Potash' } },
+  ],
+  defaultOption: 'nitrogen',
+};
+/** 化肥的指標（側欄的化肥表只在這兩個指標顯示） */
+export const FERTILIZER_INDICATORS = ['fertilizer-production', 'fertilizer-self-sufficiency'];
+
 const industryOwn: TopicDefinition = {
   id: 'industry',
   title: { zh: '各國工業', en: 'Industry by country' },
@@ -190,6 +204,11 @@ const industryOwn: TopicDefinition = {
         en: 'Global Energy Monitor: Global Iron and Steel Tracker (September 2026), Global Cement and Concrete Tracker (July 2026)',
       },
       url: 'https://globalenergymonitor.org/projects/global-iron-steel-tracker/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）', en: 'FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)' },
+      url: 'https://www.fao.org/faostat/en/#data/RFN',
       license: 'CC BY 4.0',
     },
   ],
@@ -302,6 +321,37 @@ const industryOwn: TopicDefinition = {
       formatTick: formatLargeTick,
       shareOfWorld: true,
       defaultYear: 2023,
+    },
+    {
+      id: 'fertilizer-production',
+      label: { zh: '化肥產量', en: 'Fertilizer production' },
+      description: {
+        zh: '一年生產的化學肥料，公噸「養分量」（氮肥算氮、磷肥算 P₂O₅、鉀肥算 K₂O，不是尿素、磷酸二銨的實物重量，差 2 到 5 倍），選上方的「養分」切換。2024 年氮肥中國 3,016 萬公噸、印度 1,700 萬、美國 1,382 萬、俄羅斯 1,240 萬；磷肥中國 1,322 萬、摩洛哥 620 萬；鉀肥很集中，加拿大 1,355 萬、俄羅斯 1,145 萬、白俄羅斯 756 萬，三國超過世界的一半。台灣氮肥 6.6 萬、磷肥 2.8 萬，不產鉀肥。FAO 標成「外部機構提供」的數字沒有用（第三方資料要原提供者同意才能再散布）。',
+        en: 'Chemical fertilizer produced in a year, in tonnes of nutrient (N for nitrogen, P₂O₅ for phosphate, K₂O for potash; not the weight of products such as urea or DAP, which is 2–5 times more); switch with “Nutrient” above. In 2024 China produced 30.2 million tonnes of nitrogen, India 17.0 million, the US 13.8 million and Russia 12.4 million; for phosphate China 13.2 million and Morocco 6.2 million; potash is highly concentrated, with Canada 13.6 million, Russia 11.5 million and Belarus 7.6 million together more than half the world. Taiwan produced 66,000 tonnes of nitrogen and 28,000 of phosphate and no potash. Figures FAO marks as supplied by external organisations are not used (third-party data need the original provider’s consent to be redistributed).',
+      },
+      unit: { zh: '公噸', en: 'tonnes' },
+      file: 'fertilizer/production/{item}.json',
+      dimension: NUTRIENTS,
+      layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7] },
+      format: tonnes,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'fertilizer-self-sufficiency',
+      label: { zh: '化肥自給率', en: 'Fertilizer self-sufficiency' },
+      description: {
+        zh: '化肥產量除以國內農業施用量：100% 以上是做得比用得多（出口），以下是要進口。2024 年台灣氮肥 54.9%、磷肥 28.3%、鉀肥 0%；加拿大的鉀肥 1,623%、氮肥 111%。化肥有庫存與轉口，自給率不能當糧食安全的指標；施用量是 0 的國家不算。',
+        en: 'Fertilizer production divided by domestic agricultural use: above 100% means a country makes more than it uses (and exports); below means it imports. In 2024 Taiwan was 54.9% for nitrogen, 28.3% for phosphate and 0% for potash; Canada 1,623% for potash and 111% for nitrogen. Fertilizer is stockpiled and re-exported, so self-sufficiency is not a food-security measure; countries with no recorded use are left out.',
+      },
+      unit: '%',
+      file: 'fertilizer/self-sufficiency/{item}.json',
+      dimension: NUTRIENTS,
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [25, 50, 80, 125, 200, 400] } },
+      format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
     },
     {
       id: 'exports',

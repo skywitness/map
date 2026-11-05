@@ -3,8 +3,9 @@ import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, usd } from '../../lib/format';
-import { EXPORT_GROUPS, SITC_INDICATORS } from '../industry';
+import { EXPORT_GROUPS, FERTILIZER_INDICATORS, SITC_INDICATORS } from '../industry';
 import type { PanelExtraProps } from '../types';
+import { FertilizerTable } from './FertilizerTable';
 import { IndustrySitc } from './IndustrySitc';
 
 interface Series {
@@ -96,7 +97,22 @@ const TEXT = defineMessages({
 
 const DETAIL_SHOWN = 12;
 
-export default function IndustryPanel({ topic, indicator, iso3, year, countryName }: PanelExtraProps) {
+export default function IndustryPanel(props: PanelExtraProps) {
+  // 化肥（2026-11-05）：先列這一國三種養分的產量、施用與進出口
+  if (FERTILIZER_INDICATORS.includes(props.indicator.id)) {
+    return (
+      <>
+        <section className="panel-section">
+          <FertilizerTable topicId={props.topic.id} iso3={props.iso3} countryName={props.countryName} />
+        </section>
+        <IndustryMain {...props} />
+      </>
+    );
+  }
+  return <IndustryMain {...props} />;
+}
+
+function IndustryMain({ topic, indicator, iso3, year, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];

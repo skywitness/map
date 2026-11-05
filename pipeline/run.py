@@ -44,6 +44,8 @@ STEPS = {
     "planted-forests": "topics.planted_forests",
     "electricity": "topics.electricity",
     "industry": "topics.industry",
+    # 化肥的產量與自給率（第二十二批 384）：FAOSTAT 的 Fertilizers by Nutrient，Flag X 不用
+    "industry-fertilizer": "topics.industry_fertilizer",
     # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
     "steel-cement": "topics.steel_cement",
     "ai": "topics.ai",

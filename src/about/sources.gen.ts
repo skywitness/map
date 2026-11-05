@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 986;
+export const INDICATOR_COUNT = 988;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -113,6 +113,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAO, FAOSTAT（詳細貿易矩陣）","en":"FAO, FAOSTAT (detailed trade matrix)"},"url":"https://www.fao.org/faostat/en/#data/TM","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":"FAO, Global Forest Resources Assessment 2025","url":"https://fra-data.fao.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},
+  {"name":{"zh":"FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）","en":"FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)"},"url":"https://www.fao.org/faostat/en/#data/RFN","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025","en":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025"},"url":"https://www.fda.gov/media/177921/download?attachment","licenses":[{"zh":"公有領域","en":"Public domain"}],"topics":["medicines"]},
   {"name":{"zh":"FDA, Search Orphan Drug Designations and Approvals（全部的孤兒藥指定，2026-11-04 匯出）","en":"FDA, Search Orphan Drug Designations and Approvals (all orphan designations, exported 2026-11-04)"},"url":"https://www.accessdata.fda.gov/scripts/opdlisting/oopd/","licenses":[{"zh":"公有領域","en":"Public domain"}],"topics":["medicines"]},
   {"name":{"zh":"FIPS 10-4 與 ISO 國家代碼對照：GeoNames","en":"FIPS 10-4 to ISO country codes: GeoNames"},"url":"https://www.geonames.org/","licenses":["CC BY 4.0"],"topics":["news"]},
