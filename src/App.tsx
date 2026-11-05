@@ -531,7 +531,9 @@ export function App() {
   const listDef = listDefs[Math.min(listTab, listDefs.length - 1)] ?? null;
   // 不分國家的資料（worldPanel：各遺傳族群的頻率、國際能源價格）放左側欄（2026-11-03 使用者要求；原本是沒選國家時的右側欄）：
   // 跟清單側欄同一個位置，只在地圖檢視；主題同時有清單時清單優先（目前沒有這種主題）。選了國家時照樣留著
-  const worldSide = Boolean(WorldPanel && topic.worldPanel) && !pure && !state.embed && view === 'map' && !listDef;
+  const worldForIndicator = !topic.worldPanel?.indicators || topic.worldPanel.indicators.includes(indicator.id);
+  const worldSide =
+    Boolean(WorldPanel && topic.worldPanel) && worldForIndicator && !pure && !state.embed && view === 'map' && !listDef;
   const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
   // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
   const fitLayer = overlays.find((o) => o.kind === 'points' && o.visible && o.def.fitOnEpoch && o.def.epochs && o.def.minValue);

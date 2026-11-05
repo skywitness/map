@@ -1184,7 +1184,12 @@ export interface TopicDefinition {
    * 窄螢幕在地圖下面、預設收起來；只在地圖檢視，選了國家時照樣留著（國家在右側欄）。主題同時有 listPanel 時清單優先。
    * 原本是沒選國家時的右側欄（選了國家就換成國家側欄）
    */
-  worldPanel?: { title: Text; load: () => Promise<{ default: React.ComponentType<WorldPanelProps> }> };
+  worldPanel?: {
+    title: Text;
+    load: () => Promise<{ default: React.ComponentType<WorldPanelProps> }>;
+    /** 只在這些指標顯示（2026-11-05，航運與港口的咽喉每月通過數）；沒寫是所有指標 */
+    indicators?: string[];
+  };
   /**
    * 清單側欄（2026-10-30 起，賽車的賽程）：地圖左邊列出主題的點（依日期或名稱排），點一列地圖移到那裡並標出來。
    * 桌機在地圖左邊、可以收成一條窄邊；窄螢幕在地圖下面、預設收起來（收合記在版面偏好，lib/layoutPrefs.ts 的 list）。

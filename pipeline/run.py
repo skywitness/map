@@ -177,6 +177,10 @@ STEPS = {
     "airport-runways": "topics.airport_runways",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
+    # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
+    "shipping-efficiency": "topics.shipping_efficiency",
+    # 運河與海峽每月通過幾艘船（第二十三批 402）：IMF PortWatch 每天的通過數（用咽喉圖層的快取）加總成每個月
+    "chokepoints-monthly": "topics.chokepoints_monthly",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
