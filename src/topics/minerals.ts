@@ -8,6 +8,8 @@ const ALLOYS = { zh: '合金與特殊用途', en: 'Alloys and special uses' };
 const PRECIOUS = { zh: '貴金屬', en: 'Precious metals' };
 const BASE = { zh: '基本金屬', en: 'Base metals' };
 const INDUSTRIAL = { zh: '工業礦物', en: 'Industrial minerals' };
+/** 2026-11-05（製作手冊第二十二批 382）：精煉與冶煉，是加工廠的產量，不是礦場 */
+const PROCESSED = { zh: '精煉與冶煉', en: 'Refining and smelting' };
 
 /**
  * 地圖上可選的礦種（與 pipeline/topics/minerals.py 的 MINERALS 對應）。
@@ -33,6 +35,8 @@ export const MINERALS: { id: string; label: Text; group: Text }[] = [
   { id: 'copper', label: { zh: '銅（銅含量）', en: 'Copper (Cu content)' }, group: BASE },
   { id: 'bauxite', label: { zh: '鋁土礦（乾重）', en: 'Bauxite (dry weight)' }, group: BASE },
   { id: 'salt', label: { zh: '鹽', en: 'Salt' }, group: INDUSTRIAL },
+  { id: 'refined-copper', label: { zh: '精煉銅', en: 'Refined copper' }, group: PROCESSED },
+  { id: 'aluminum', label: { zh: '原鋁（冶煉）', en: 'Primary aluminium (smelted)' }, group: PROCESSED },
 ];
 
 const TONNES = { zh: '公噸', en: 'tonnes' };
@@ -151,8 +155,8 @@ export const minerals: TopicDefinition = {
       'production',
       { zh: '產量', en: 'Production' },
       {
-        zh: '一年的礦場產量（公噸），圓的面積與產量成正比。多數礦種是金屬含量（黃金是金含量），稀土是稀土氧化物（REO）當量，石墨與鋁土礦是礦石重量，鹽是各種鹽（岩鹽、海鹽、滷水、真空鹽）合計，鎵是初級（低純度）產量，鍺是精煉產量（只到 2020 年）。2025 年是 USGS 的初估。',
-        en: 'Mine production in a year (tonnes); circle area is proportional to output. Most minerals are metal content (gold is gold content), rare earths are rare-earth-oxide (REO) equivalent, graphite and bauxite are ore weight, salt is all types combined (rock salt, solar salt, brine and vacuum-pan salt), gallium is primary (low-purity) output and germanium is refinery output (to 2020 only). 2025 figures are preliminary USGS estimates.',
+        zh: '一年的礦場產量（公噸），圓的面積與產量成正比。多數礦種是金屬含量（黃金是金含量），稀土是稀土氧化物（REO）當量，石墨與鋁土礦是礦石重量，鹽是各種鹽（岩鹽、海鹽、滷水、真空鹽）合計，鎵是初級（低純度）產量，鍺是精煉產量（只到 2020 年）。「精煉與冶煉」那一組是加工廠的產量：精煉銅是精煉金屬（2019 年起），原鋁是冶煉廠的產量，原料多半進口，跟礦場在不同的國家（日本、南韓、德國沒有銅礦卻精煉六十萬到一百五十萬公噸）。2025 年是 USGS 的初估。',
+        en: 'Mine production in a year (tonnes); circle area is proportional to output. Most minerals are metal content (gold is gold content), rare earths are rare-earth-oxide (REO) equivalent, graphite and bauxite are ore weight, salt is all types combined (rock salt, solar salt, brine and vacuum-pan salt), gallium is primary (low-purity) output and germanium is refinery output (to 2020 only). The “Refining and smelting” group is plant output rather than mining: refined copper is refined metal (from 2019) and primary aluminium is smelter output; their feedstock is largely imported and they sit in different countries from the mines (Japan, South Korea and Germany mine no copper but refine 0.6–1.5 million tonnes). 2025 figures are preliminary USGS estimates.',
       },
     ),
     share(
@@ -179,6 +183,34 @@ export const minerals: TopicDefinition = {
         en: "The country's reserves as a share of the world total. Where USGS gives the world total only as a lower bound (\">\"), the larger of that bound and the sum of listed countries is used, so shares may be overstated.",
       },
     ),
+    {
+      id: 'refining-ratio',
+      label: { zh: '銅的精煉÷開採比', en: 'Copper refining-to-mining ratio' },
+      description: {
+        zh: '精煉銅產量除以銅礦產量（含銅量）：大於 1 是精煉得比自己挖的多（原料進口），小於 1 是挖出來的礦多半出口去別國精煉。2024 年中國 6.7 倍（礦 184 萬公噸、精煉 1,240 萬公噸），智利 0.35 倍（礦 551 萬、精煉 194 萬），秘魯 0.14 倍；世界 1.2 倍（精煉也用回收的廢銅）。日本、南韓、德國沒有銅礦，精煉的原料全部進口，地圖上是灰色。口徑不同：礦產量是精礦裡的含銅量，精煉是精煉金屬。',
+        en: 'Refined copper output divided by mine output (copper content): above 1 means a country refines more than it mines (importing feed); below 1 means most of its ore is exported to be refined elsewhere. In 2024 China was 6.7 (1.84 million tonnes mined, 12.4 million refined), Chile 0.35 (5.51 million mined, 1.94 million refined) and Peru 0.14; the world 1.2 (refining also uses scrap). Japan, South Korea and Germany have no copper mines and import all their feed, so they are grey. The measures differ: mine output is copper content in concentrate, refinery output is refined metal.',
+      },
+      unit: { zh: '倍', en: '×' },
+      file: 'refining-ratio.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [0.25, 0.5, 0.8, 1.25, 2, 4], reverse: true } },
+      format: (v) => tr({ zh: `${fixed(v, v < 1 ? 2 : 1)} 倍`, en: `${fixed(v, v < 1 ? 2 : 1)}×` }),
+      formatTick: (v) => fixed(v, v < 1 ? 2 : 0),
+      compareWorld: true,
+    },
+    {
+      id: 'aluminum-capacity',
+      label: { zh: '原鋁冶煉產能', en: 'Aluminium smelter capacity' },
+      description: {
+        zh: '原鋁冶煉廠的年底產能（公噸），跟實際的冶煉產量分開（礦種選「原鋁」看產量）。2025 年世界 7,970 萬公噸，中國 4,500 萬，其次是印度、俄羅斯、加拿大、阿聯。',
+        en: 'Year-end capacity of primary aluminium smelters (tonnes), separate from actual smelter output (choose “Primary aluminium” as the mineral for output). In 2025 world capacity was 79.7 million tonnes and China’s 45 million, followed by India, Russia, Canada and the UAE.',
+      },
+      unit: TONNES,
+      file: 'aluminum-capacity.json',
+      layer: { kind: 'bubble', legendValues: [1e6, 5e6, 2e7] },
+      format: tonnes,
+      formatTick: tonnesTick,
+      shareOfWorld: true,
+    },
     flow(
       'export',
       { zh: '出口（流向）', en: 'Exports (flows)' },
