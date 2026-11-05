@@ -165,6 +165,8 @@ export const NUTRIENTS: DimensionDef = {
   ],
   defaultOption: 'nitrogen',
 };
+/** 企業的機器人使用率（側欄列用機器人的理由；2026-11-05，製作手冊第二十二批 386） */
+export const ROBOT_INDICATOR = 'robot-use';
 /** 化肥的指標（側欄的化肥表只在這兩個指標顯示） */
 export const FERTILIZER_INDICATORS = ['fertilizer-production', 'fertilizer-self-sufficiency'];
 
@@ -204,6 +206,11 @@ const industryOwn: TopicDefinition = {
         en: 'Global Energy Monitor: Global Iron and Steel Tracker (September 2026), Global Cement and Concrete Tracker (July 2026)',
       },
       url: 'https://globalenergymonitor.org/projects/global-iron-steel-tracker/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Eurostat：3D printing and robotics by size class of enterprise（isoc_eb_p3d，企業的機器人使用率）', en: 'Eurostat: 3D printing and robotics by size class of enterprise (isoc_eb_p3d, robot use by enterprises)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/isoc_eb_p3d/default/table',
       license: 'CC BY 4.0',
     },
     {
@@ -352,6 +359,20 @@ const industryOwn: TopicDefinition = {
       format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
       formatTick: (v) => `${v}%`,
       defaultYear: 2024,
+    },
+    {
+      id: 'robot-use',
+      label: { zh: '用機器人的企業', en: 'Enterprises using robots' },
+      description: {
+        zh: '10 人以上的企業（不含金融業）有用工業機器人或服務型機器人的比例，Eurostat 的企業 ICT 調查，2018、2020、2022 年，只有歐洲 33 國。2022 年丹麥 11.6%、比利時 10.2%、芬蘭 8.9%、義大利 8.7%、西班牙 8.6% 最高，賽普勒斯 1.7%、希臘 1.9% 最低。「機器人」含清掃、倉儲搬運這類服務型，不是純粹的製造業自動化；產業結構不同的國家不能直接比。點國家看企業用機器人的理由。國際機器人協會（IFR）的機器人密度不准轉載，沒有用；工業機器人的進出口見「貿易」主題的商品流向。',
+        en: 'Share of enterprises with 10 or more employees (excluding finance) that use industrial or service robots, from Eurostat’s survey of ICT use in enterprises (2018, 2020, 2022; 33 European countries only). In 2022 Denmark (11.6%), Belgium (10.2%), Finland (8.9%), Italy (8.7%) and Spain (8.6%) were highest, Cyprus (1.7%) and Greece (1.9%) lowest. “Robots” include service robots for cleaning and warehouse handling, so this is not purely manufacturing automation, and countries with different industry mixes are not directly comparable. Click a country for the reasons enterprises give. The International Federation of Robotics’ robot density cannot be republished; for trade in industrial robots, see the Trade topic’s product flows.',
+      },
+      unit: '%',
+      file: 'robot-use.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 3, 4, 6, 8, 10] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2022,
     },
     {
       id: 'exports',

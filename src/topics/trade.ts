@@ -29,6 +29,8 @@ const GOODS_MADE = [
   { id: 'computers', label: { zh: '電腦與伺服器（HS 8471）', en: 'Computers and servers (HS 8471)' }, group: MADE },
   { id: 'phones', label: { zh: '手機（2017 年起）', en: 'Mobile phones (from 2017)' }, group: MADE },
   { id: 'lithium-batteries', label: { zh: '鋰離子電池（2017 年起）', en: 'Lithium-ion batteries (from 2017)' }, group: MADE },
+  // 第二十二批 386（2026-11-05）：HS 847950 只是「其他未列名的工業機器人」，焊接、噴塗、搬運用的報在各自的稅號，是下限
+  { id: 'industrial-robots', label: { zh: '工業機器人（2017 年起，HS 847950）', en: 'Industrial robots (from 2017, HS 847950)' }, group: MADE },
   { id: 'pharma', label: { zh: '藥品（HS 3004）', en: 'Medicines (HS 3004)' }, group: MADE },
   { id: 'toys', label: { zh: '玩具（HS 9501–9503）', en: 'Toys (HS 9501–9503)' }, group: MADE },
   { id: 'apparel', label: { zh: '成衣（第 61、62 章）', en: 'Clothing (HS 61, 62)' }, group: MADE },

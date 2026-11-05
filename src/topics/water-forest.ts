@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick, formatSignedPercent } from '../lib/format';
-import type { TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { DimensionDef, PointsOverlayDef, TopicDefinition } from './types';
 import { topicPart } from './merge';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
@@ -20,6 +21,39 @@ const aqueductText = (v: number) => {
   return tr({ zh: `${fixed(v, 1)}（${level.zh}）`, en: `${fixed(v, 1)} (${level.en})` });
 };
 
+/** 取水量的用途（pipeline/topics/water_use.py 的 SECTORS；2026-11-05，製作手冊第二十二批 387） */
+const WATER_USE: DimensionDef = {
+  label: { zh: '用途', en: 'Use' },
+  options: [
+    { id: 'agriculture', label: { zh: '農業', en: 'Agriculture' } },
+    { id: 'industry', label: { zh: '工業（含電廠冷卻）', en: 'Industry (incl. power-plant cooling)' } },
+    { id: 'domestic', label: { zh: '家戶與都市', en: 'Municipal' } },
+  ],
+  defaultOption: 'agriculture',
+};
+const BILLION_M3 = { zh: '十億立方公尺', en: 'billion m³' };
+const billionM3 = (v: number) =>
+  tr({ zh: `${fixed(v, v < 1 ? 3 : v < 10 ? 2 : 1)} 十億立方公尺`, en: `${fixed(v, v < 1 ? 3 : v < 10 ? 2 : 1)} billion m³` });
+
+/** 汙水的指標（2026-11-05，製作手冊第二十二批 388）：汙水處理廠的點只在這三個指標畫 */
+const WASTEWATER_INDICATORS = ['wastewater-secondary', 'wastewater-treated', 'wastewater-facilities'];
+/** OpenStreetMap 的汙水處理廠（pipeline/topics/water_wastewater.py；ODbL）：縮小時只畫有名稱的，其餘放大到 6 級才載入 */
+const WASTEWATER_PLANTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'wastewater-plants',
+  file: 'wastewater-plants.json',
+  indicators: WASTEWATER_INDICATORS,
+  label: { zh: '汙水處理廠（OpenStreetMap）', en: 'Wastewater treatment plants (OpenStreetMap)' },
+  radius: 2.2,
+  color: MAP_TOKENS.hues.blue,
+  more: { minZoom: 6 },
+  tooltip: (p, { countryName }) => ({
+    title: typeof p.n === 'string' && p.n ? p.n : tr({ zh: '（沒有名稱的汙水處理廠）', en: '(unnamed wastewater plant)' }),
+    extra: [typeof p.iso3 === 'string' && p.iso3 ? countryName(p.iso3) : ''],
+    properNoun: typeof p.n === 'string' && p.n ? p.n : undefined,
+  }),
+};
+
 const waterForestOwn: TopicDefinition = {
   id: 'water-forest',
   title: { zh: '各國水資源與森林', en: 'Water and forests by country' },
@@ -30,8 +64,8 @@ const waterForestOwn: TopicDefinition = {
   sources: [
     {
       name: {
-        zh: 'FAO, AQUASTAT（總可再生水資源、世界的水資源壓力）',
-        en: 'FAO, AQUASTAT (total renewable water resources, world water stress)',
+        zh: 'FAO, AQUASTAT（總可再生水資源、世界的水資源壓力、海水淡化；取水量的用途與總量由世界銀行 WDI 轉載）',
+        en: 'FAO, AQUASTAT (total renewable water resources, world water stress, desalination; water withdrawal by use and in total via the World Bank WDI)',
       },
       url: 'https://www.fao.org/aquastat/en/',
       license: 'CC BY 4.0',
@@ -102,6 +136,7 @@ const waterForestOwn: TopicDefinition = {
       'score, for the 1979–2019 baseline and 2030, 2050 and 2080 under three CMIP6 scenarios. It is defined differently from ' +
       'SDG 6.4.2, so the numbers will not match, and Taiwan is not in its rankings.',
   },
+  overlays: [WASTEWATER_PLANTS],
   indicators: [
     {
       id: 'renewable-water',
@@ -130,6 +165,89 @@ const waterForestOwn: TopicDefinition = {
       format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
       formatTick: percentTick,
       compareWorld: true,
+    },
+    {
+      id: 'water-use',
+      label: { zh: '占取水量', en: 'share of water withdrawal' },
+      description: {
+        zh: '一年取用的淡水用在哪裡，選上方的「用途」切換（FAO AQUASTAT，世界銀行轉載；多數國家幾年才有一筆，用 10 年內最近一年）。農業：索馬利亞 99.5%、阿富汗 98.2%、印度 90.4%、日本 66.7%、中國 62.1%、美國 39.7%、德國 4.2%。工業含火力與核能電廠的冷卻水，所以蒙特內哥羅與愛沙尼亞 94.2%、奧地利 93.3%、比利時 84.1% 主要是發電，不代表製造業特別多；德國 54.3%、美國 47.2%、中國 17.7%。家戶與都市：德國 41.5%、中國 20.1%、日本 17.0%、美國 13.1%。三項加起來跟 100% 差太多的年份（北馬其頓、賽普勒斯、汶萊等）不用。台灣不在 AQUASTAT 裡，水利署的用水資料還沒接上。',
+        en: 'Where a country’s freshwater withdrawals go; switch with “Use” above (FAO AQUASTAT via the World Bank; most countries have a figure only every few years, so the latest within 10 years is used). Agriculture: Somalia 99.5%, Afghanistan 98.2%, India 90.4%, Japan 66.7%, China 62.1%, the US 39.7%, Germany 4.2%. Industry includes cooling water for thermal and nuclear power plants, so Montenegro and Estonia (94.2%), Austria (93.3%) and Belgium (84.1%) mostly reflect power generation rather than manufacturing; Germany 54.3%, the US 47.2%, China 17.7%. Municipal: Germany 41.5%, China 20.1%, Japan 17.0%, the US 13.1%. Years in which the three uses do not add up to about 100% (North Macedonia, Cyprus, Brunei and others) are left out. Taiwan is not in AQUASTAT, and the Water Resources Agency’s figures are not yet included.',
+      },
+      unit: '%',
+      file: 'water-use/{item}.json',
+      dimension: WATER_USE,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 15, 30, 50, 70, 90] } },
+      format: percent,
+      formatTick: percentTick,
+      compareWorld: true,
+    },
+    {
+      id: 'water-withdrawal',
+      label: { zh: '年取水量', en: 'Annual water withdrawal' },
+      description: {
+        zh: '一年從河川、湖泊、地下水等取用的淡水總量（十億立方公尺；FAO AQUASTAT，世界銀行轉載），不含海水淡化與回收水，也不扣蒸發與回歸水，取水不等於耗水。印度 647.5、中國 568.5、美國 444.3、印尼 222.6，世界約 3,853。',
+        en: 'Total freshwater withdrawn in a year from rivers, lakes and groundwater (billion m³; FAO AQUASTAT via the World Bank), excluding desalination and reused water and without deducting evaporation or return flows, so withdrawal is not consumption. India 647.5, China 568.5, the US 444.3, Indonesia 222.6; the world about 3,853.',
+      },
+      unit: BILLION_M3,
+      file: 'water-withdrawal.json',
+      layer: { kind: 'bubble', legendValues: [10, 100, 500] },
+      format: billionM3,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'desalination',
+      label: { zh: '海水淡化產量', en: 'Desalinated water produced' },
+      description: {
+        zh: '一年海水淡化產出的水（十億立方公尺；FAO AQUASTAT）。2023 年中國 12.81、伊朗 3.50、沙烏地阿拉伯 2.90、阿聯 2.13、科威特 0.76、卡達 0.67，世界 27.27。中國的數字遠高於波灣國家，可能含苦鹹水淡化與廢水回用，口徑可能不同。拖時間軸看波灣國家 1980 年代以後怎麼長起來。台灣（澎湖、金門的海淡廠）不在 AQUASTAT 裡。',
+        en: 'Desalinated water produced in a year (billion m³; FAO AQUASTAT). In 2023 China produced 12.81, Iran 3.50, Saudi Arabia 2.90, the UAE 2.13, Kuwait 0.76 and Qatar 0.67; the world 27.27. China’s figure is far above the Gulf states and may include brackish-water desalination and wastewater reuse, so it may not be comparable. Drag the timeline to see the Gulf states grow from the 1980s. Taiwan (plants on Penghu and Kinmen) is not in AQUASTAT.',
+      },
+      unit: BILLION_M3,
+      file: 'desalination.json',
+      layer: { kind: 'bubble', legendValues: [0.1, 1, 5] },
+      format: billionM3,
+      formatTick: (v) => fixed(v, v < 1 ? 1 : 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'wastewater-secondary',
+      label: { zh: '汙水接到二級處理的人口', en: 'Population connected to secondary wastewater treatment' },
+      description: {
+        zh: '家裡的汙水接到都市汙水處理廠、而且至少經過二級（生物）處理的人口比例，Eurostat，歐洲 36 國，10 年內最近一年。荷蘭 99.7%、奧地利 99.2%、丹麥 98.0%、瑞士 98.0%、德國 97.1%；克羅埃西亞 36.5%、塞爾維亞 15.5%、阿爾巴尼亞 12.6%。台灣用國土管理署 2024 年的公共污水下水道普及率 39.7%（另有專用下水道與建築物污水設施，合計 72.1%，點台灣看）。英國、科索沃不在 Eurostat 可商用的範圍，沒有放。藍點是 OpenStreetMap 上的汙水處理廠（全球約 9 萬個，法國比美國多，量的是各國畫得多完整，不能比數量）。',
+        en: 'Share of the population whose wastewater goes to an urban treatment plant with at least secondary (biological) treatment, from Eurostat for 36 European countries, latest year within 10 years. The Netherlands 99.7%, Austria 99.2%, Denmark and Switzerland 98.0%, Germany 97.1%; Croatia 36.5%, Serbia 15.5%, Albania 12.6%. Taiwan shows the National Land Management Agency’s public sewer connection rate for 2024, 39.7% (dedicated sewers and on-site facilities bring the total to 72.1%; click Taiwan). The UK and Kosovo fall outside the Eurostat data cleared for commercial reuse and are not shown. Blue dots are wastewater plants on OpenStreetMap (about 90,000 worldwide; France has more than the US, which reflects mapping completeness, so counts are not comparable).',
+      },
+      unit: '%',
+      file: 'wastewater-secondary.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 40, 60, 80, 90, 95] } },
+      format: percent,
+      formatTick: percentTick,
+    },
+    {
+      id: 'wastewater-treated',
+      label: { zh: '處理的都市汙水量', en: 'Municipal wastewater treated' },
+      description: {
+        zh: '一年經過處理的都市汙水量（十億立方公尺，FAO AQUASTAT，10 年內最近一年）。AQUASTAT 的產生、收集、處理量是不同年份與口徑拼起來的，互相除會得到幾千 % 的「處理率」，所以只畫量，不算比例。台灣不在 AQUASTAT 裡。',
+        en: 'Municipal wastewater treated in a year (billion m³, FAO AQUASTAT, latest year within 10 years). AQUASTAT’s produced, collected and treated volumes come from different years and definitions, and dividing them gives “treatment rates” of thousands of per cent, so only volumes are shown. Taiwan is not in AQUASTAT.',
+      },
+      unit: BILLION_M3,
+      file: 'wastewater-treated.json',
+      layer: { kind: 'bubble', legendValues: [0.1, 1, 10] },
+      format: billionM3,
+      formatTick: (v) => fixed(v, v < 1 ? 1 : 0),
+      shareOfWorld: false,
+    },
+    {
+      id: 'wastewater-facilities',
+      label: { zh: '都市汙水處理廠數', en: 'Municipal wastewater treatment plants' },
+      description: {
+        zh: '都市汙水處理廠的座數（FAO AQUASTAT，10 年內最近一年，各國申報的定義不同，大型與村落小廠都算一座）。台灣不在 AQUASTAT 裡，國土管理署的公共污水處理廠名冊有 82 座。',
+        en: 'Number of municipal wastewater treatment plants (FAO AQUASTAT, latest year within 10 years; countries report differently, and large plants and village works each count as one). Taiwan is not in AQUASTAT; the National Land Management Agency lists 82 public plants.',
+      },
+      unit: { zh: '座', en: 'plants' },
+      file: 'wastewater-facilities.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: `${fixed(v, 0)} plants` }),
+      formatTick: formatLargeTick,
     },
     {
       id: 'aqueduct',
@@ -216,6 +334,8 @@ const FOREST_SOURCES = [2, 4];
 export const forestCoverPart = topicPart(
   {
     ...waterForestOwn,
+    // 汙水處理廠的點只屬於水資源，不要跟著搬到森林
+    overlays: [],
     sources: waterForestOwn.sources.filter((_, i) => FOREST_SOURCES.includes(i)),
     note: {
       zh: '森林用 FAO 全球森林資源評估 FRA 2025，只有 1990、2000、2010、2015、2020、2025 年。台灣不在 FAO 的資料中，改用林業及自然保育署的全國森林資源調查，口徑見台灣側欄的附註。',

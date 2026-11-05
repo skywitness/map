@@ -23,6 +23,7 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"typhoons","layers":[{"id":"tracks-jma","label":{"zh":"颱風路徑（日本氣象廳）","en":"Storm tracks (JMA)"},"kind":"lines"}]},
   {"topic":"ozone-hole","layers":[{"id":"holes","label":{"zh":"臭氧洞最大的一天（220 DU）","en":"Ozone hole at its largest (220 DU)"},"kind":"lines"}]},
   {"topic":"plastic","layers":[{"id":"rivers","label":{"zh":"河口（Meijer 等人的模型）","en":"River mouths (Meijer et al. model)"},"kind":"points"}]},
+  {"topic":"water-forest","layers":[{"id":"wastewater-plants","label":{"zh":"汙水處理廠（OpenStreetMap）","en":"Wastewater treatment plants (OpenStreetMap)"},"kind":"points"}]},
   {"topic":"ai","layers":[{"id":"regions","label":{"zh":"雲端區域（依開放年份）","en":"Cloud regions (by opening year)"},"kind":"points"},{"id":"preview","label":{"zh":"預覽中的區域","en":"Regions in preview"},"kind":"points"}]},
   {"topic":"wafer-fabs","layers":[{"id":"fabs","label":{"zh":"運作中的廠區","en":"Operating fab sites"},"kind":"points"},{"id":"planned","label":{"zh":"興建中、規劃中（空心）","en":"Under construction or planned (hollow)"},"kind":"points"},{"id":"closed","label":{"zh":"已關閉（灰色）","en":"Closed (grey)"},"kind":"points"}]},
   {"topic":"submarine-cables","layers":[{"id":"landings","label":{"zh":"登陸點","en":"Landing points"},"kind":"points"}]},

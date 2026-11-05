@@ -3,10 +3,11 @@ import { latestIndexAtOrBefore } from '../../charts/stackedArea';
 import { defineMessages, tr, useLang, useT, type Text } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed, formatLargeNumber, usd } from '../../lib/format';
-import { EXPORT_GROUPS, FERTILIZER_INDICATORS, SITC_INDICATORS } from '../industry';
+import { EXPORT_GROUPS, FERTILIZER_INDICATORS, ROBOT_INDICATOR, SITC_INDICATORS } from '../industry';
 import type { PanelExtraProps } from '../types';
 import { FertilizerTable } from './FertilizerTable';
 import { IndustrySitc } from './IndustrySitc';
+import { RobotReasons } from './RobotReasons';
 
 interface Series {
   years: number[];
@@ -104,6 +105,16 @@ export default function IndustryPanel(props: PanelExtraProps) {
       <>
         <section className="panel-section">
           <FertilizerTable topicId={props.topic.id} iso3={props.iso3} countryName={props.countryName} />
+        </section>
+        <IndustryMain {...props} />
+      </>
+    );
+  }
+  if (props.indicator.id === ROBOT_INDICATOR) {
+    return (
+      <>
+        <section className="panel-section">
+          <RobotReasons topicId={props.topic.id} iso3={props.iso3} countryName={props.countryName} color={props.tokens.hues.blue} />
         </section>
         <IndustryMain {...props} />
       </>

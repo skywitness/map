@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 990;
+export const INDICATOR_COUNT = 997;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -102,6 +102,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1（每個城市 1950–2100 年的人口與面積，聯合國《World Urbanization Prospects 2025》用的那一份）","en":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1 (population and area of every city, 1950–2100, as used in the UN World Urbanization Prospects 2025)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_wup_mtuc_r2025a.php","licenses":["CC BY 4.0"],"topics":["cities"]},
   {"name":{"zh":"Eurostat 監獄統計（歐洲）","en":"Eurostat prison statistics"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_pris_cap/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
   {"name":{"zh":"Eurostat, EU-SILC 住宅統計（ilc_lvho01、ilc_lvho02、ilc_lvph01、ilc_lvho05a、ilc_lvho07a）","en":"Eurostat, EU-SILC housing statistics (ilc_lvho01, ilc_lvho02, ilc_lvph01, ilc_lvho05a, ilc_lvho07a)"},"url":"https://ec.europa.eu/eurostat/web/income-and-living-conditions/database","licenses":["CC BY 4.0"],"topics":["housing"]},
+  {"name":{"zh":"Eurostat：3D printing and robotics by size class of enterprise（isoc_eb_p3d，企業的機器人使用率）","en":"Eurostat: 3D printing and robotics by size class of enterprise (isoc_eb_p3d, robot use by enterprises)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_eb_p3d/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：Urban Audit 城市統計（urb_ctran，TT1007V 騎自行車上班的比例）","en":"Eurostat: Urban Audit (urb_ctran, TT1007V share of journeys to work by bicycle)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/urb_ctran/default/table","licenses":["CC BY 4.0"],"topics":["trails"]},
   {"name":{"zh":"Eurostat：家庭與非家庭電價（nrg_pc_204、nrg_pc_205）","en":"Eurostat: electricity prices for household and non-household consumers (nrg_pc_204, nrg_pc_205)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
@@ -109,7 +110,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat（demo_nind、demo_ndivind、demo_find、lfst_hhnhtych）","en":"Eurostat (demo_nind, demo_ndivind, demo_find, lfst_hhnhtych)"},"url":"https://ec.europa.eu/eurostat/web/population-demography/demography-population-stock-balance/database","licenses":["CC BY 4.0"],"topics":["marriage"]},
-  {"name":{"zh":"FAO, AQUASTAT（總可再生水資源、世界的水資源壓力）","en":"FAO, AQUASTAT (total renewable water resources, world water stress)"},"url":"https://www.fao.org/aquastat/en/","licenses":["CC BY 4.0"],"topics":["water-forest"]},
+  {"name":{"zh":"FAO, AQUASTAT（總可再生水資源、世界的水資源壓力、海水淡化；取水量的用途與總量由世界銀行 WDI 轉載）","en":"FAO, AQUASTAT (total renewable water resources, world water stress, desalination; water withdrawal by use and in total via the World Bank WDI)"},"url":"https://www.fao.org/aquastat/en/","licenses":["CC BY 4.0"],"topics":["water-forest"]},
   {"name":{"zh":"FAO, FAOSTAT（詳細貿易矩陣）","en":"FAO, FAOSTAT (detailed trade matrix)"},"url":"https://www.fao.org/faostat/en/#data/TM","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":"FAO, Global Forest Resources Assessment 2025","url":"https://fra-data.fao.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},

@@ -46,6 +46,8 @@ STEPS = {
     "industry": "topics.industry",
     # 化肥的產量與自給率（第二十二批 384）：FAOSTAT 的 Fertilizers by Nutrient，Flag X 不用
     "industry-fertilizer": "topics.industry_fertilizer",
+    # 企業的機器人使用率（第二十二批 386）：Eurostat isoc_eb_p3d
+    "industry-robots": "topics.industry_robots",
     # 工業主題的鋼鐵與水泥：USGS 年鑑的各國產量、GEM 公開地圖的鋼鐵廠與水泥廠（約 9 MB）
     "steel-cement": "topics.steel_cement",
     "ai": "topics.ai",
@@ -86,6 +88,8 @@ STEPS = {
     "trade-dependence": "topics.trade_dependence",
     # 貿易的商品流向（併進貿易主題）：BACI HS92（2.4 GB）與 HS17（0.8 GB）各讀一次，25 種商品，約 20 分鐘
     "trade-goods": "topics.trade_goods",
+    # 工業機器人（HS 847950）的流向（第二十二批 386）：只讀 BACI HS17
+    "trade-robots": "topics.trade_robots",
     "trade-medicinal-plants": "topics.trade_medicinal_plants",  # 只更新藥用植物（HS 1211，BACI HS92 約 2.4 GB，幾分鐘）
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",
@@ -138,6 +142,10 @@ STEPS = {
     "air-quality": "topics.air_quality",
     "air-quality-no2": "topics.air_quality_no2",  # 二氧化氮衛星影像的時間軸與台灣附註（環境部空氣品質監測月值，第十七批 282）
     "water-forest": "topics.water_forest",
+    # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
+    "water-use": "topics.water_use",
+    # 都市汙水處理與汙水處理廠（第二十二批 388）：Eurostat、AQUASTAT、OSM（QLever，一支查詢約 2 分鐘）、國土管理署
+    "water-wastewater": "topics.water_wastewater",
     # 缺水壓力的推估（水資源與森林主題）：WRI Aqueduct 4.0 的各國排名（約 13 MB）；幾秒
     "aqueduct": "topics.aqueduct",
     "ev": "topics.ev",
