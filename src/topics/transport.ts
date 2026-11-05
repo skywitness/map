@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { railEurope } from './rail-europe';
 import { transportExtra } from './rail-extra';
 import type { CategoryDef, TopicDefinition } from './types';
 
@@ -58,6 +59,7 @@ export const transport: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
     ...transportExtra.sources,
+    ...railEurope.sources,
   ],
   note: {
     zh:
@@ -143,5 +145,6 @@ export const transport: TopicDefinition = {
       panelChart: false,
     },
     ...transportExtra.indicators,
+    ...railEurope.indicators,
   ],
 };

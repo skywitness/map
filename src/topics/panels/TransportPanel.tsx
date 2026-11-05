@@ -3,6 +3,7 @@ import { defineMessages, tr, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { MAP_TOKENS } from '../../theme/tokens';
+import { RAIL_PUNCTUAL } from '../rail-europe';
 import { GAUGES, gaugeText } from '../transport';
 import { dataFolder, type PanelExtraProps } from '../types';
 
@@ -96,7 +97,54 @@ const GAUGE_INDICATORS = new Set(['gauge', 'standard-share']);
 
 export default function TransportPanel(props: PanelExtraProps) {
   if (GAUGE_INDICATORS.has(props.indicator.id)) return <GaugeSection {...props} />;
+  if (RAIL_PUNCTUAL.includes(props.indicator.id) && props.iso3 === 'TWN') return <TaiwanPunctuality {...props} />;
   return <RailSection {...props} />;
+}
+
+/** rail-punctual-tw.json（pipeline/topics/rail_europe.py）：臺鐵最近一個月各車種、線別的準點率 */
+interface TwPunctual {
+  month: string;
+  first: string;
+  rows: [string, string, number][];
+}
+
+const PUNCTUAL_TEXT = defineMessages({
+  zh: {
+    title: (m: string) => `臺鐵的準點率（${m.slice(0, 4)} 年 ${Number(m.slice(5))} 月）`,
+    aria: '臺鐵各車種、線別的準點率',
+    note: (first: string) =>
+      `臺灣鐵路的開放資料只有 ${first.slice(0, 4)} 年 ${Number(first.slice(5))} 月到這個月；臺鐵的準點是誤點 5 分鐘以內，跟歐洲各國的定義不同，地圖上沒有上色。高鐵沒有準點率的開放資料。`,
+  },
+  en: {
+    title: (m: string) => `Taiwan Railway punctuality (${m})`,
+    aria: 'Taiwan Railway punctuality by train type and line',
+    note: (first: string) =>
+      `Taiwan Railway’s open data cover only ${first} to this month; it counts trains within 5 minutes as punctual, a different definition from Europe’s, so Taiwan is not shaded. There are no open punctuality data for Taiwan High Speed Rail.`,
+  },
+});
+
+function TaiwanPunctuality({ topic }: PanelExtraProps) {
+  const text = PUNCTUAL_TEXT[useLang()];
+  const d = useJson<TwPunctual>(`topics/${topic.dataTopic ?? topic.id}/rail-punctual-tw.json`).data;
+  if (!d) return null;
+  return (
+    <section className="panel-section">
+      <h3>{text.title(d.month)}</h3>
+      <table className="mini-table" aria-label={text.aria}>
+        <tbody>
+          {d.rows.map(([kind, line, v]) => (
+            <tr key={`${kind}-${line}`}>
+              <th scope="row">
+                {kind} · {line}
+              </th>
+              <td className="num">{fixed(v, 1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="note">{text.note(d.first)}</p>
+    </section>
+  );
 }
 
 /** 各國的鐵路、機場、地鐵、高鐵（pipeline/topics/transport.py、metro.py）都在交通（鐵路）的資料夾 */
