@@ -175,6 +175,8 @@ STEPS = {
     "megafauna": "topics.megafauna",
     # 跑道（第二十三批 399）：OurAirports 的 runways.csv、Factbook 2022 年版的鋪面機場、民航局的機場設施表，擴充機場與旅客
     "airport-runways": "topics.airport_runways",
+    # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
+    "air-fleet": "topics.air_fleet",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄

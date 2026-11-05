@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { airFleet } from './air-fleet';
 import { airRoutesExtra } from './aviation-extra';
 import { longestFlightsPart } from './longest-flights';
 import type { TopicDefinition } from './types';
@@ -26,6 +27,7 @@ export const airRoutes: TopicDefinition = {
     },
     ...longestFlightsPart.sources,
     ...airRoutesExtra.sources,
+    ...airFleet.sources,
   ],
   note: {
     zh:
@@ -36,7 +38,8 @@ export const airRoutes: TopicDefinition = {
       '威航在 Wikidata 沒有停業日期，照它 2016 年 10 月停止營運改成 2016 年。' +
       ' 最長的直飛航線：' +
       longestFlightsPart.note.zh +
-      ' 最繁忙的航線、航空貨運、聯盟、廉價航空（2026-10-31 加）：最繁忙的航線用英文維基依 OAG 年度報告整理的 2025 年座位數（OAG 的條款不准轉載，維基轉載的事實數字照用、寫出原始出處），座位數是班表的座位，不是旅客。航空貨運量算在航空公司的註冊國。聯盟只算正式成員。廉價航空沒有公認的定義，依維基編者的清單。這些資料檔依維基百科的 CC BY-SA 4.0 分享。',
+      ' 最繁忙的航線、航空貨運、聯盟、廉價航空（2026-10-31 加）：最繁忙的航線用英文維基依 OAG 年度報告整理的 2025 年座位數（OAG 的條款不准轉載，維基轉載的事實數字照用、寫出原始出處），座位數是班表的座位，不是旅客。航空貨運量算在航空公司的註冊國。聯盟只算正式成員。廉價航空沒有公認的定義，依維基編者的清單。這些資料檔依維基百科的 CC BY-SA 4.0 分享。' +
+      ' 機隊（2026-11-05 加）：機隊架數與航空公司家數是 CIA World Factbook 2022 年版（多數 2020 年，之後的版本刪了這一節）；老飛機的比例只有 Eurostat 的歐洲國家（依營運的國家，英國與科索沃不收），全世界與台灣沒有公開、可用的機齡統計；台灣的側欄列民航局的國籍航空器登記。',
     en:
       'Airlines: ' +
       'Airlines are Wikidata items classed as airlines (including low-cost, flag, regional and charter airlines), plus items with an IATA or ICAO airline code classed as ordinary companies (such as Tigerair Taiwan); cargo-only and helicopter operators are left out. ' +
@@ -45,7 +48,8 @@ export const airRoutes: TopicDefinition = {
       'V Air has no closing date in Wikidata; it stopped flying in October 2016 and is treated as closed that year.' +
       ' Longest flights: ' +
       longestFlightsPart.note.en +
-      ' Busiest routes, air freight, alliances and low-cost airlines (added 31 October 2026): busiest routes use 2025 seat counts compiled on English Wikipedia from OAG’s annual reports (OAG’s terms forbid reuse; the facts as republished on Wikipedia are used and the original source is credited); seats are scheduled capacity, not passengers. Air freight counts by the airline’s country of registration. Alliances count full members only. There is no agreed definition of a low-cost airline; the list follows Wikipedia editors. These data files are shared under Wikipedia’s CC BY-SA 4.0.',
+      ' Busiest routes, air freight, alliances and low-cost airlines (added 31 October 2026): busiest routes use 2025 seat counts compiled on English Wikipedia from OAG’s annual reports (OAG’s terms forbid reuse; the facts as republished on Wikipedia are used and the original source is credited); seats are scheduled capacity, not passengers. Air freight counts by the airline’s country of registration. Alliances count full members only. There is no agreed definition of a low-cost airline; the list follows Wikipedia editors. These data files are shared under Wikipedia’s CC BY-SA 4.0.' +
+      ' Fleets (added 5 November 2026): aircraft and airline counts come from the December 2022 CIA World Factbook (mostly 2020; later editions dropped the section); the share of old aircraft covers only Eurostat’s European countries (by operating country; the UK and Kosovo are left out), as there are no open, usable aircraft-age statistics for the world or Taiwan; Taiwan’s side panel lists aircraft registered with its Civil Aeronautics Administration.',
   },
   panelExtra: () => import('./panels/AirRoutesPanel'),
   overlays: [...longestFlightsPart.overlays, ...airRoutesExtra.overlays],
@@ -69,5 +73,6 @@ export const airRoutes: TopicDefinition = {
     },
     ...longestFlightsPart.indicators,
     ...airRoutesExtra.indicators,
+    ...airFleet.indicators,
   ],
 };
