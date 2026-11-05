@@ -291,6 +291,48 @@ export const UNIT_INDICATORS: { id: string; short: Text; label: Text; categories
   },
 ];
 
+/**
+ * 地址怎麼寫、電話怎麼打（2026-11-05，使用者把已排除的候選 679、680 改成要做；pipeline/topics/travel_address_phone.py）：
+ * Google libaddressinput 的地址資料（CC BY 4.0）與 libphonenumber 的號碼資料（Apache 2.0）
+ */
+export const ADDRESS_ORDER: CategoryDef[] = [
+  { value: 1, label: { zh: '從大寫到小（郵遞區號、縣市在前，跟台灣一樣）', en: 'Largest to smallest (postcode and region first, like Taiwan)' } },
+  { value: 2, label: { zh: '從小寫到大（姓名、街道在前）', en: 'Smallest to largest (name and street first)' } },
+];
+export const POSTCODE: CategoryDef[] = [
+  { value: 1, label: { zh: '沒有郵遞區號', en: 'No postcodes' } },
+  { value: 2, label: { zh: '3 位數', en: '3 digits' } },
+  { value: 3, label: { zh: '4 位數', en: '4 digits' } },
+  { value: 4, label: { zh: '5 位數', en: '5 digits' } },
+  { value: 5, label: { zh: '6 位數', en: '6 digits' } },
+  { value: 6, label: { zh: '7 位數以上', en: '7 or more digits' } },
+  { value: 7, label: { zh: '含英文字母（SW1A 1AA）', en: 'Includes letters (SW1A 1AA)' } },
+];
+export const PHONE_INTL: CategoryDef[] = [
+  { value: 1, label: { zh: '00', en: '00' } },
+  { value: 2, label: { zh: '011（北美）', en: '011 (North America)' } },
+  { value: 3, label: { zh: '8~10（先撥 8 再撥 10）', en: '8~10 (dial 8, wait, then 10)' } },
+  { value: 4, label: { zh: '其他單一冠碼', en: 'Another single prefix' } },
+  { value: 5, label: { zh: '好幾家業者各有冠碼（跟台灣一樣）', en: 'Several carrier prefixes (like Taiwan)' } },
+];
+export const PHONE_NATIONAL: CategoryDef[] = [
+  { value: 1, label: { zh: '0（跟台灣一樣）', en: '0 (like Taiwan)' } },
+  { value: 2, label: { zh: '1', en: '1' } },
+  { value: 3, label: { zh: '8', en: '8' } },
+  { value: 4, label: { zh: '沒有冠碼（直接撥完整號碼）', en: 'None (dial the full number)' } },
+  { value: 5, label: { zh: '其他', en: 'Other' } },
+];
+export const PHONE_MOBILE: CategoryDef[] = [
+  { value: 5, label: { zh: '5 碼', en: '5 digits' } },
+  { value: 6, label: { zh: '6 碼', en: '6 digits' } },
+  { value: 7, label: { zh: '7 碼', en: '7 digits' } },
+  { value: 8, label: { zh: '8 碼', en: '8 digits' } },
+  { value: 9, label: { zh: '9 碼（跟台灣一樣）', en: '9 digits (like Taiwan)' } },
+  { value: 10, label: { zh: '10 碼', en: '10 digits' } },
+  { value: 11, label: { zh: '11 碼', en: '11 digits' } },
+  { value: 99, label: { zh: '不只一種長度', en: 'More than one length' } },
+];
+
 const UNIT_NOTE = {
   zh: '依 Unicode CLDR 49 的單位偏好：軟體顯示數字時選的單位，不是法定單位；CLDR 只列例外的地區，台灣跟大多數國家一樣是世界通用值，不一定是台灣實際的習慣。',
   en: 'From Unicode CLDR 49 unit preferences: the units software picks when displaying values, not legal units. CLDR lists only the exceptions; Taiwan, like most countries, gets the worldwide default, which may not match everyday local habits.',
@@ -339,6 +381,16 @@ export const travel: TopicDefinition = {
       name: { zh: 'Unicode CLDR 49（一週、時間、日期、數字、度量衡、紙張、曆法與單位的慣例）', en: 'Unicode CLDR 49 (week, time, date, number, measurement, paper, calendar and unit conventions)' },
       url: 'https://cldr.unicode.org/',
       license: 'Unicode License v3',
+    },
+    {
+      name: { zh: 'Google libaddressinput 地址資料（地址順序、郵遞區號）', en: 'Google libaddressinput address data (address order, postcodes)' },
+      url: 'https://github.com/google/libaddressinput',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Google libphonenumber 9.0.43（國際冠碼、國內冠碼、手機號碼長度）', en: 'Google libphonenumber 9.0.43 (international and trunk prefixes, mobile number lengths)' },
+      url: 'https://github.com/google/libphonenumber',
+      license: 'Apache 2.0',
     },
     {
       name: { zh: '英文維基百科「Mains electricity by country」（插頭、電壓與頻率）', en: 'Wikipedia, “Mains electricity by country” (plugs, voltage and frequency)' },
@@ -505,6 +557,52 @@ export const travel: TopicDefinition = {
         en: `Calendars in common use besides the Gregorian, in order of use: Taiwan has the Minguo era and the lunisolar calendar, Japan its era names, Muslim countries the Islamic calendar; Iran and Afghanistan mainly use the Persian calendar and Thailand the Buddhist one. Hover over a country for the full list. ${CLDR_SOURCE.en}`,
       },
       CALENDAR,
+    ),
+    // 地址與電話（2026-11-05，候選 679、680）
+    formatIndicator(
+      'address-order',
+      { zh: '地址從大寫到小還是從小寫到大', en: 'Address order' },
+      {
+        zh: '寫信封、填表的地址先寫什麼。台灣、中國、香港、日本、南韓、北韓、匈牙利、伊朗、哈薩克 9 個從大寫到小（郵遞區號、縣市在前，姓名最後），其他 232 個從姓名、街道寫起、城市與郵遞區號在後。依 Google libaddressinput 的當地語言格式，同一國用英文寫時常常反過來。',
+        en: 'Which comes first on an envelope or form. Taiwan, China, Hong Kong, Japan, South Korea, North Korea, Hungary, Iran and Kazakhstan (9) go from largest to smallest (postcode and region first, name last); the other 232 start with the name and street, with the city and postcode last. Based on Google libaddressinput’s local-language formats; addresses written in English often reverse the order.',
+      },
+      ADDRESS_ORDER,
+    ),
+    formatIndicator(
+      'postcode',
+      { zh: '郵遞區號幾位數', en: 'Postcode format' },
+      {
+        zh: '郵遞區號的寫法（Google libaddressinput 的第一個範例；滑過國家看例子）。5 位數 69 個（美國、德國、法國…）、4 位數 39、含英文字母 28（英國、加拿大、荷蘭、愛爾蘭…）、6 位數 20（中國、印度、俄羅斯、台灣…）、7 位數以上 9（日本、巴西、葡萄牙…）、3 位數 8，68 個沒有郵遞區號。有郵遞區號不等於大家都會寫。台灣照中華郵政 2020 年起的 3+3 六碼。',
+        en: 'How postcodes are written (the first example in Google libaddressinput; hover for one). 69 use 5 digits (the US, Germany, France…), 39 use 4, 28 include letters (the UK, Canada, the Netherlands, Ireland…), 20 use 6 digits (China, India, Russia, Taiwan…), 9 use 7 or more (Japan, Brazil, Portugal…) and 8 use 3; 68 have none. Having postcodes does not mean everyone uses them. Taiwan follows Chunghwa Post’s 3+3 six-digit codes introduced in 2020.',
+      },
+      POSTCODE,
+    ),
+    formatIndicator(
+      'phone-intl',
+      { zh: '打國際電話先撥什麼', en: 'International call prefix' },
+      {
+        zh: '從這個國家打到國外要先撥的國際冠碼（Google libphonenumber）。177 個是 00，美國、加拿大等北美 26 個是 011，俄羅斯、白俄羅斯、哈薩克等 5 個是先撥 8 再撥 10，日本 010、澳洲 0011 等 12 個用其他冠碼；台灣、南韓、巴西等 16 個好幾家業者各有冠碼（台灣 002、005、006、007、009、019）。滑過國家看國碼。',
+        en: 'The prefix for dialling abroad from the country (Google libphonenumber). 177 use 00, 26 in North America including the US and Canada use 011, Russia, Belarus, Kazakhstan and two others dial 8 then 10, 12 use another prefix (Japan 010, Australia 0011…), and 16 including Taiwan, South Korea and Brazil have several carrier prefixes (Taiwan 002, 005, 006, 007, 009, 019). Hover for the country code.',
+      },
+      PHONE_INTL,
+    ),
+    formatIndicator(
+      'phone-national',
+      { zh: '國內長途先撥什麼', en: 'Trunk prefix' },
+      {
+        zh: '在國內打長途或手機要先加的冠碼（Google libphonenumber）。台灣、日本、英國、德國等 108 個是 0，美國、加拿大等北美 26 個是 1，俄羅斯、白俄羅斯、哈薩克、土庫曼 4 個是 8，匈牙利是 06；97 個沒有冠碼，直接撥完整號碼（義大利、西班牙、丹麥、新加坡…）。從國外打進來時都不撥這個冠碼。',
+        en: 'The prefix dialled before a long-distance or mobile number within the country (Google libphonenumber). 108 use 0 (Taiwan, Japan, the UK, Germany…), 26 in North America use 1, Russia, Belarus, Kazakhstan and Turkmenistan use 8, and Hungary 06; 97 have none and dial the full number (Italy, Spain, Denmark, Singapore…). It is dropped when calling from abroad.',
+      },
+      PHONE_NATIONAL,
+    ),
+    formatIndicator(
+      'phone-mobile',
+      { zh: '手機號碼幾碼', en: 'Mobile number length' },
+      {
+        zh: '手機號碼不含國碼與國內冠碼有幾碼（Google libphonenumber）。9 碼 66 個（台灣、法國、西班牙…，台灣加上 0 就是 09 開頭的 10 碼）、8 碼 52、10 碼 49（美國、日本、英國、印度…）、7 碼 19，中國 11 碼最長；德國、奧地利等 41 個不只一種長度（奧地利 7–13 碼），滑過國家看範圍。',
+        en: 'Digits in a mobile number, without the country code or trunk prefix (Google libphonenumber). 66 use 9 (Taiwan, France, Spain…; Taiwan’s become 10 digits starting 09 with the trunk 0), 52 use 8, 49 use 10 (the US, Japan, the UK, India…), 19 use 7, and China is longest at 11; 41 including Germany and Austria have more than one length (Austria 7–13), shown on hover.',
+      },
+      PHONE_MOBILE,
     ),
     // 單位的偏好（第二十二批 391）
     ...UNIT_INDICATORS.map((u) =>
