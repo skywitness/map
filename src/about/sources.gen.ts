@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 999;
+export const INDICATOR_COUNT = 1001;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -102,6 +102,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1（每個城市 1950–2100 年的人口與面積，聯合國《World Urbanization Prospects 2025》用的那一份）","en":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1 (population and area of every city, 1950–2100, as used in the UN World Urbanization Prospects 2025)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_wup_mtuc_r2025a.php","licenses":["CC BY 4.0"],"topics":["cities"]},
   {"name":{"zh":"Eurostat 監獄統計（歐洲）","en":"Eurostat prison statistics"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_pris_cap/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
   {"name":{"zh":"Eurostat, EU-SILC 住宅統計（ilc_lvho01、ilc_lvho02、ilc_lvph01、ilc_lvho05a、ilc_lvho07a）","en":"Eurostat, EU-SILC housing statistics (ilc_lvho01, ilc_lvho02, ilc_lvph01, ilc_lvho05a, ilc_lvho07a)"},"url":"https://ec.europa.eu/eurostat/web/income-and-living-conditions/database","licenses":["CC BY 4.0"],"topics":["housing"]},
+  {"name":{"zh":"Eurostat，警察、法官與監所人員（crim_just_job）","en":"Eurostat, Police officers, professional judges and prison staff (crim_just_job)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_just_job/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
   {"name":{"zh":"Eurostat，都市垃圾依處理方式（env_wasmun）","en":"Eurostat, Municipal waste by waste management operations (env_wasmun)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/env_wasmun/default/table","licenses":["CC BY 4.0"],"topics":["plastic"]},
   {"name":{"zh":"Eurostat：3D printing and robotics by size class of enterprise（isoc_eb_p3d，企業的機器人使用率）","en":"Eurostat: 3D printing and robotics by size class of enterprise (isoc_eb_p3d, robot use by enterprises)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_eb_p3d/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},

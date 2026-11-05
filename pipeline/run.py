@@ -204,6 +204,8 @@ STEPS = {
     # 城市的都市化率（各國自己的定義，聯合國 WUP 2025 的 File 15），對照 GHS-WUP 的統一定義
     "urban-definitions": "topics.urban_definitions",
     "crime": "topics.crime",
+    # 警察、法官與監所管理員（第二十二批 390）：Eurostat crim_just_job（英國各地區、科索沃不收）
+    "crime-staff": "topics.crime_staff",
     "tobacco-alcohol": "topics.tobacco_alcohol",
     "breweries": "topics.breweries",  # 菸酒的啤酒廠：OSM craft=brewery（經 QLever，ODbL）與 Open Brewery DB（MIT）
     # 啤酒產量（第二十二批 385）：FAOSTAT QCL Item 51，Flag X（外部機構提供）不畫，使用者決定
