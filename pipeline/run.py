@@ -187,6 +187,8 @@ STEPS = {
     "minerals-mines": "topics.minerals_mines",
     # 燃料稅占油價的比例（第二十三批 404）：Weekly Oil Bulletin 的含稅、未稅價（同電價與油價的 xlsx），輸出到 energy-prices
     "fuel-tax": "topics.fuel_tax",
+    # 死亡車禍發生在哪一種道路（第二十三批 405）：Eurostat tran_sf_roadro 與 road_tf_vehmov，台灣用高速公路局的國道 30 日內死亡
+    "road-type": "topics.road_type",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
