@@ -5,6 +5,7 @@ import type { FlowLabels, IndicatorDef, PointsOverlayDef, Text, TopicDefinition 
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { ewaste } from './ewaste';
+import { wastePart } from './waste';
 
 /**
  * 塑膠污染（pipeline/topics/plastic.py）：
@@ -276,8 +277,10 @@ export const EWASTE_IDS: Record<string, string> = {
 export const plastic: TopicDefinition = withParts(
   {
     ...hostOnly(plasticOwn),
-    title: { zh: '廢棄物與回收：塑膠與電子垃圾', en: 'Waste and recycling: plastic and e-waste' },
+    title: { zh: '廢棄物與回收：都市垃圾、塑膠與電子垃圾', en: 'Waste and recycling: municipal waste, plastic and e-waste' },
     shortTitle: { zh: '廢棄物與回收', en: 'Waste' },
   },
   topicPart(ewaste, { rename: EWASTE_IDS }),
+  // 2026-11-04（主題盤點的擴4）：都市垃圾的量與處理方式（世界銀行 What a Waste 3.0），資料在 waste/
+  wastePart,
 );

@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 948;
+export const INDICATOR_COUNT = 967;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -289,6 +289,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"World Bank, International Comparison Program 2021（食物支出占消費）","en":"World Bank, International Comparison Program 2021 (food share of consumption)"},"url":"https://datacatalog.worldbank.org/search/dataset/0066092/international-comparison-program-2021","licenses":["CC BY 4.0"],"topics":["prices"]},
   {"name":{"zh":"World Bank, Poverty and Inequality Platform（WDI 與 PIP API）","en":"World Bank, Poverty and Inequality Platform (WDI and PIP API)"},"url":"https://pip.worldbank.org/","licenses":["CC BY 4.0"],"topics":["inequality"]},
   {"name":{"zh":"World Bank, WDI（陸域保護區占國土，UNEP-WCMC 的 WDPA 與 WD-OECM）","en":"World Bank, WDI (terrestrial protected areas, from UNEP-WCMC’s WDPA and WD-OECM)"},"url":"https://data.worldbank.org/indicator/ER.LND.PTLD.ZS","licenses":["CC BY 4.0"],"topics":["national-parks"]},
+  {"name":{"zh":"World Bank, What a Waste 3.0 國家資料（2026 年 3 月；Cook 等 2026）","en":"World Bank, What a Waste 3.0 country dataset (March 2026; Cook et al. 2026)"},"url":"https://datacatalog.worldbank.org/search/dataset/0039597","licenses":["CC BY 4.0"],"topics":["plastic"]},
   {"name":{"zh":"World Bank, Women, Business and the Law（1971–2024 歷史面板、2026 年版）","en":"World Bank, Women, Business and the Law (1971–2024 panel, 2026 edition)"},"url":"https://wbl.worldbank.org/en/data/download-data","licenses":[{"zh":"CC BY 4.0（依 WDI 轉載 WBL 的序列中繼資料）","en":"CC BY 4.0 (per the WDI metadata for WBL series)"}],"topics":["gender"]},
   {"name":{"zh":"World Bank, World Development Indicators（ICAO 的航空貨運量）","en":"World Bank, World Development Indicators (ICAO air freight)"},"url":"https://data.worldbank.org/indicator/IS.AIR.GOOD.MT.K1","licenses":["CC BY 4.0"],"topics":["air-routes"]},
   {"name":{"zh":"World Bank, World Development Indicators（IMF 國際收支：旅行收入）","en":"World Bank, World Development Indicators (IMF balance of payments: travel receipts)"},"url":"https://data.worldbank.org/indicator/BX.GSR.TRVL.ZS","licenses":["CC BY 4.0"],"topics":["tourism"]},

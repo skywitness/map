@@ -22,6 +22,10 @@ INDICATORS: dict[str, tuple[str, str, Callable[[float], float]]] = {
     "density": ("PopDensity", "人/km²", lambda v: round(v, 1)),
     "growth": ("PopGrowthRate", "%", lambda v: round(v, 2)),
     "median-age": ("MedianAgePop", "歲", lambda v: round(v, 1)),
+    # 2026-11-04（主題盤點的擴1）：出生時的性別比（每百名女嬰的男嬰數）、自然增加率與淨遷移率（每千人）
+    "sex-ratio-birth": ("SRB", "男嬰/百名女嬰", lambda v: round(v, 1)),
+    "natural-change": ("NatChangeRT", "‰", lambda v: round(v, 2)),
+    "net-migration": ("CNMR", "‰", lambda v: round(v, 2)),
 }
 
 COUNTRY = "4"  # LocTypeID：Country/Area
