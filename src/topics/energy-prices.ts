@@ -48,6 +48,21 @@ function price(
   };
 }
 
+/** 稅占油價的比例（第二十三批 404）：只有歐盟國家 */
+function taxShare(id: string, label: Text, description: Text): IndicatorDef {
+  return {
+    id,
+    label,
+    description,
+    unit: '%',
+    file: `${id}.json`,
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 45, 50, 55, 60] } },
+    format: (v) => `${fixed(v, 1)}%`,
+    formatTick: (v) => `${fixed(v, 0)}%`,
+    missing: { zh: '不在歐盟 Weekly Oil Bulletin 裡', en: 'Not in the EU Weekly Oil Bulletin' },
+  };
+}
+
 export const energyPrices: TopicDefinition = {
   id: 'energy-prices',
   title: { zh: '電價與油價', en: 'Electricity and fuel prices' },
@@ -61,7 +76,7 @@ export const energyPrices: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
-      name: { zh: '歐盟執委會 Weekly Oil Bulletin（含稅零售價的歷史檔）', en: 'European Commission, Weekly Oil Bulletin (price history with taxes)' },
+      name: { zh: '歐盟執委會 Weekly Oil Bulletin（含稅與未稅零售價的歷史檔）', en: 'European Commission, Weekly Oil Bulletin (price history with and without taxes)' },
       url: 'https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en',
       license: 'CC BY 4.0',
     },
@@ -156,6 +171,23 @@ export const energyPrices: TopicDefinition = {
       PER_LITRE,
       perLitre,
       [0.5, 0.8, 1.1, 1.4, 1.7, 2],
+    ),
+    // 燃料稅占油價的比例（2026-11-05，製作手冊第二十三批 404；pipeline/topics/fuel_tax.py）：Weekly Oil Bulletin 的含稅與未稅價
+    taxShare(
+      'gasoline-tax-share',
+      { zh: '汽油價格裡稅占幾成（歐盟）', en: 'Taxes as a share of the petrol price (EU)' },
+      {
+        zh: '95 無鉛汽油的零售價裡，貨物稅、加值稅與其他間接稅合計占幾成（歐盟 Weekly Oil Bulletin 每週的含稅價與未稅價，年平均，2005 年起，歐盟 27 國）。2025 年芬蘭 61.7%、德國 60.9%、希臘 60.0%、愛爾蘭 59.8%、義大利 59.5% 最高，保加利亞 46.0%、賽普勒斯 48.2%、匈牙利 48.7%、西班牙 49.0% 最低。稅多半是每公升定額，原油漲價時比例就下降：2026 年（到 10 月）德國降到 53.0%。滑過看含稅與未稅的每公升價格。台灣不在這份資料裡（貨物稅、營業稅、石油基金、空污費沒有現成的比例統計）。',
+        en: 'Share of the retail price of 95-octane petrol taken by excise duty, VAT and other indirect taxes (EU Weekly Oil Bulletin, weekly prices with and without taxes, annual averages from 2005, 27 EU countries). In 2025 Finland (61.7%), Germany (60.9%), Greece (60.0%), Ireland (59.8%) and Italy (59.5%) were highest and Bulgaria (46.0%), Cyprus (48.2%), Hungary (48.7%) and Spain (49.0%) lowest. Duties are mostly a fixed amount per litre, so the share falls when crude prices rise: Germany’s dropped to 53.0% in 2026 (to October). Hover for prices per litre with and without taxes. Taiwan is not covered (there is no ready-made share for its commodity tax, business tax, petroleum fund and air pollution fee).',
+      },
+    ),
+    taxShare(
+      'diesel-tax-share',
+      { zh: '柴油價格裡稅占幾成（歐盟）', en: 'Taxes as a share of the diesel price (EU)' },
+      {
+        zh: '柴油零售價裡稅占幾成（歐盟 Weekly Oil Bulletin，年平均，2005 年起，歐盟 27 國）。多數國家柴油的貨物稅比汽油低：2025 年義大利 56.0%、斯洛維尼亞 55.2%、愛爾蘭 55.1% 最高，保加利亞 43.4%、西班牙 44.0%、賽普勒斯 44.2% 最低；德國 53.8%（汽油 60.9%）。',
+        en: 'Share of the retail price of diesel taken by taxes (EU Weekly Oil Bulletin, annual averages from 2005, 27 EU countries). Most countries tax diesel less than petrol: in 2025 Italy (56.0%), Slovenia (55.2%) and Ireland (55.1%) were highest and Bulgaria (43.4%), Spain (44.0%) and Cyprus (44.2%) lowest; Germany 53.8% (petrol 60.9%).',
+      },
     ),
   ],
 };

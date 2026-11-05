@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 143;
-export const INDICATOR_COUNT = 1034;
+export const INDICATOR_COUNT = 1036;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -415,7 +415,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"核能安全委員會：核能電廠用過核子燃料貯存數量、低放射性廢棄物貯存現況（台灣附註）","en":"Nuclear Safety Commission: spent fuel and low-level waste in storage at nuclear plants (Taiwan note)"},"url":"https://data.gov.tw/dataset/119186","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["nuclear"]},
   {"name":{"zh":"棄用煤炭發電聯盟（Powering Past Coal Alliance）的國家會員與加入年份（2026-10-31 讀取，只用會籍這個事實）","en":"Powering Past Coal Alliance, national government members and joining years (read 31 Oct 2026; membership facts only)"},"url":"https://poweringpastcoal.org/members/","licenses":[{"zh":"引用事實並註明出處","en":"facts cited with sources"}],"topics":["fossil-fuels"]},
   {"name":{"zh":"歐盟執委會 JRC：EU Industrial R&D Investment Scoreboard（2013–2025 年版，世界前 2,000 大）","en":"European Commission JRC, EU Industrial R&D Investment Scoreboard (2013–2025 editions, world top 2,000)"},"url":"https://knowledge-for-policy.ec.europa.eu/economics-industrial-research-innovation-iri_en","licenses":["CC BY 4.0"],"topics":["rd-companies"]},
-  {"name":{"zh":"歐盟執委會 Weekly Oil Bulletin（含稅零售價的歷史檔）","en":"European Commission, Weekly Oil Bulletin (price history with taxes)"},"url":"https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
+  {"name":{"zh":"歐盟執委會 Weekly Oil Bulletin（含稅與未稅零售價的歷史檔）","en":"European Commission, Weekly Oil Bulletin (price history with and without taxes)"},"url":"https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
   {"name":{"zh":"法務部新聞稿（2025 年 1 月 16 日執行死刑）","en":"Ministry of Justice (Taiwan), press release on the execution of 16 January 2025"},"url":"https://www.moj.gov.tw/2204/2795/2796/231525/post","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["laws"]},
   {"name":{"zh":"法務部法務統計年報","en":"Ministry of Justice (Taiwan) statistical yearbook"},"url":"https://www.rjsd.moj.gov.tw/RJSDWeb/book/Book.aspx?category_id=4","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["crime"]},
   {"name":{"zh":"海外軍事基地：英文維基百科「List of countries with overseas military bases」（2026-10-23 的版本）","en":"Overseas military bases: English Wikipedia, “List of countries with overseas military bases” (revision of 2026-10-23)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1381583292","licenses":[{"zh":"CC BY-SA 4.0（資料檔也是）","en":"CC BY-SA 4.0 (so are the data files)"}],"topics":["military"]},

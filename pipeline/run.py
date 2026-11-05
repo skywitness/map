@@ -185,6 +185,8 @@ STEPS = {
     "car-age": "topics.car_age",
     # 全世界的礦場（第二十二批 382 的後半）：USGS MRDS（使用者用瀏覽器下載，map-plan 的 data/usgs-mrds/，先複製到 .cache/usgs-mrds/）
     "minerals-mines": "topics.minerals_mines",
+    # 燃料稅占油價的比例（第二十三批 404）：Weekly Oil Bulletin 的含稅、未稅價（同電價與油價的 xlsx），輸出到 energy-prices
+    "fuel-tax": "topics.fuel_tax",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
