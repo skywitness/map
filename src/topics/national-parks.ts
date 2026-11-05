@@ -90,11 +90,11 @@ export const nationalParks: TopicDefinition = {
   ],
   note: {
     zh:
-      '點是 Wikidata 收錄、有座標、沒有廢止的國家公園（含各國自己的子類別），依設立年份（成立時間）累積出現；1872 年黃石國家公園以前的年份是古蹟本身的年代，不是設立年份，跟沒有年份的一起放在「設立年份不詳」的圖層（約 400 處，預設關閉，打開後不隨時間軸變）。國家依座標判斷。' +
+      '點是 Wikidata 收錄、有座標、沒有廢止的國家公園（含各國自己的子類別），依設立年份（成立時間）累積出現；1872 年黃石國家公園以前的年份是古蹟本身的年代，不是設立年份，跟沒有年份的一起放在「設立年份不詳」的圖層（約 400 處，預設關閉，打開後不隨時間軸變）。Wikidata 上另有 91 處國家公園沒有座標，沒畫在地圖上（2026-11-05 查）。國家依座標判斷。' +
       '各國叫「國家公園」的意思不同：IUCN 第 II 類才是以保護生態為主的國家公園，英國的國家公園有城鎮住人（第 V 類），顏色依 Wikidata 標的 IUCN 類別。' +
       '陸域保護區占國土是世界銀行轉載 UNEP-WCMC 的資料（所有保護區，不只國家公園），沒有台灣；台灣用林業保育署的保護區面積統計表（扣掉範圍重複的部分，不含其他有效保育措施）除以內政部的土地面積，只有 2026 年 4 月的現況，放在資料最新的一年。保護區的範圍（Protected Planet 的 WDPA）不准轉載，所以只畫點。台灣 9 座國家公園都有，壽山國家自然公園不是這一類。',
     en:
-      'Dots are national parks in Wikidata (including each country’s own subclasses) with coordinates and no end date, appearing in the year they were established; years before Yellowstone (1872) are the age of a site itself, not of the park, and such parks go with those without a year into the “year unknown” layer (about 400, off by default and not tied to the timeline). Countries are assigned by location. ' +
+      'Dots are national parks in Wikidata (including each country’s own subclasses) with coordinates and no end date, appearing in the year they were established; years before Yellowstone (1872) are the age of a site itself, not of the park, and such parks go with those without a year into the “year unknown” layer (about 400, off by default and not tied to the timeline). Another 91 national parks in Wikidata have no coordinates and are not on the map (checked 2026-11-05). Countries are assigned by location. ' +
       '“National park” means different things in different countries: IUCN category II parks are run mainly to protect ecosystems, while the UK’s national parks include towns (category V); colours follow the IUCN category in Wikidata. ' +
       'Terrestrial protected areas as a share of land come from UNEP-WCMC via the World Bank (all protected areas, not only national parks) and do not include Taiwan; for Taiwan, the Forestry and Nature Conservation Agency’s protected area statistics (net of overlaps, excluding other effective conservation measures) are divided by the Ministry of the Interior’s land area. Only the situation in April 2026 is available, shown in the latest year. The boundaries of protected areas (Protected Planet’s WDPA) may not be redistributed, so only dots are drawn. All 9 of Taiwan’s national parks are included.',
   },
