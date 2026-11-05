@@ -29,6 +29,7 @@ export const RELATED: Record<string, string[]> = {
   'tobacco-alcohol': ['health', 'disease'],
   diet: ['agriculture', 'health', 'lactase'],
   banknotes: ['profiles', 'prices', 'democracy'],
+  megafauna: ['forest', 'water-forest', 'national-parks'],
   education: ['pisa', 'gender', 'innovation'],
   pisa: ['education', 'publications'],
   religion: ['festivals', 'language'],

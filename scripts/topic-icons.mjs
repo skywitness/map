@@ -190,6 +190,7 @@ const TOPIC_ICONS = {
   nuclear: 'radiation',
   typhoons: 'tornado',
   wildfires: 'flame',
+  megafauna: 'paw-print',
   'night-lights': 'moon-star',
   'world-heritage': 'castle',
   'national-parks': 'tree-pine',

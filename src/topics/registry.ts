@@ -85,7 +85,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic'] },
-      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires'] },
+      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires', 'megafauna'] },
     ],
     // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染；土地與水
     columns: [1, 1, 1],
@@ -180,6 +180,8 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   diet: () => import('./diet'),
   // 2026-11-05 第二十二批 397（加上候選 681）：鈔票上是誰、最大面額
   banknotes: () => import('./banknotes'),
+  // 2026-11-05 第二十二批 398：大型哺乳類還剩下幾種（PHYLACINE）
+  megafauna: () => import('./megafauna'),
   housing: () => import('./housing'),
   religion: () => import('./religion'),
   inequality: () => import('./inequality'),
