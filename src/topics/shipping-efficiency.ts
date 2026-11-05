@@ -5,7 +5,7 @@ import type { TopicPart } from './parts';
 /**
  * 航運與港口的擴充：商船隊的平均船齡、船舶在港時間（2026-11-05，製作手冊第二十三批 401；pipeline/topics/shipping_efficiency.py）。
  * UNCTADstat US.MerchantFleet 的艘數與平均船齡（只畫 100 艘以上的經濟體）、US.PortCalls 的在港時間中位數。
- * 世界銀行的貨櫃港效率指數（CPPI）要 World Port Index 的港口座標，NGA 的網站下載不到，這次沒有做。
+ * 世界銀行的貨櫃港效率指數（CPPI）要 World Port Index 的港口座標，NGA 的網站下載不到，使用者 2026-11-05 決定不做。
  */
 
 const days = (v: number) => tr({ zh: `${fixed(v, 2)} 天（約 ${fixed(v * 24, 0)} 小時）`, en: `${fixed(v, 2)} days (about ${fixed(v * 24, 0)} hours)` });
