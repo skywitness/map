@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 977;
+export const INDICATOR_COUNT = 980;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -300,7 +300,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"World Bank, World Development Indicators（世界交易所聯合會 WFE 的資料）","en":"World Bank, World Development Indicators (World Federation of Exchanges data)"},"url":"https://data.worldbank.org/indicator/CM.MKT.LCAP.GD.ZS","licenses":["CC BY 4.0"],"topics":["stock-market"]},
   {"name":{"zh":"World Bank, World Development Indicators（個人匯款：世界銀行依 IMF 國際收支統計的估計）","en":"World Bank, World Development Indicators (personal remittances: World Bank estimates based on IMF balance of payments data)"},"url":"https://data.worldbank.org/indicator/BX.TRF.PWKR.CD.DT","licenses":["CC BY 4.0"],"topics":["aid"]},
   {"name":{"zh":"World Bank, World Development Indicators（陸地面積）","en":"World Bank, World Development Indicators (land area)"},"url":"https://data.worldbank.org/indicator/AG.LND.TOTL.K2","licenses":["CC BY 4.0"],"topics":["tourism"]},
-  {"name":{"zh":"World Bank：Global Findex Database 2025（數位支付、手機持有）","en":"World Bank, Global Findex Database 2025 (digital payments, mobile phone ownership)"},"url":"https://www.worldbank.org/en/publication/globalfindex","licenses":["CC BY 4.0"],"topics":["digital"]},
+  {"name":{"zh":"World Bank：Global Findex Database 2025（數位支付、手機持有、現金）","en":"World Bank, Global Findex Database 2025 (digital payments, mobile phone ownership, cash use)"},"url":"https://www.worldbank.org/en/publication/globalfindex","licenses":["CC BY 4.0"],"topics":["digital"]},
   {"name":{"zh":"World Bank/IMF, Quarterly External Debt Statistics（QEDS，不在 IDS 裡的國家的外債）","en":"World Bank/IMF, Quarterly External Debt Statistics (QEDS; external debt of countries not in the IDS)"},"url":"https://datacatalog.worldbank.org/search/dataset/0037740","licenses":["CC BY 4.0"],"topics":["reserves"]},
   {"name":{"zh":"WRI Aqueduct 4.0 各國排名（缺水壓力的推估；Kuzma et al. 2023）","en":"WRI Aqueduct 4.0 country rankings (projected water stress; Kuzma et al. 2023)"},"url":"https://www.wri.org/data/aqueduct-40-country-rankings","licenses":["CC BY 4.0"],"topics":["water-forest"]},
   {"name":{"zh":"Yang 等人，Global Urban Heat Island Intensity Dataset（figshare 24821538 v3；Aqua MODIS 的地表溫度）","en":"Yang et al., Global Urban Heat Island Intensity Dataset (figshare 24821538 v3; Aqua MODIS land surface temperature)"},"url":"https://figshare.com/articles/dataset/Global_Urban_Heat_Island_Intensity_Dataset/24821538","licenses":["CC BY 4.0"],"topics":["cities"]},
@@ -385,6 +385,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"改作自加拿大統計局表 35-10-0154-01、35-10-0155-01（不代表該局背書）","en":"Adapted from Statistics Canada, Tables 35-10-0154-01, 35-10-0155-01 (not endorsed by Statistics Canada)"},"url":"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3510015401","licenses":["Statistics Canada Open Licence"],"topics":["crime"]},
   {"name":{"zh":"教育部統計處 教育統計","en":"Ministry of Education (Taiwan), education statistics"},"url":"https://stats.moe.gov.tw/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["education"]},
   {"name":{"zh":"教育部統計處 教育統計查詢網（幼兒(稚)園 2–5 歲粗在學率）","en":"Ministry of Education (Taiwan), education statistics query system (gross enrolment rate of kindergartens, ages 2–5)"},"url":"https://eds.moe.gov.tw/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["education"]},
+  {"name":{"zh":"數位發展部 國內各場域行動支付滲透率（台灣的側欄）","en":"Ministry of Digital Affairs (Taiwan), mobile payment use by venue (Taiwan panel)"},"url":"https://data.gov.tw/dataset/128268","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["digital"]},
   {"name":{"zh":"數位發展部 數位近用調查","en":"Ministry of Digital Affairs (Taiwan), Digital Access Survey"},"url":"https://data.gov.tw/dataset/5960","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["digital"]},
   {"name":{"zh":"數位發展部 行動通訊速率量測（台灣的對照）","en":"Ministry of Digital Affairs (Taiwan), mobile speed measurement (comparison)"},"url":"https://data.gov.tw/dataset/161791","licenses":["CC0 1.0"],"topics":["internet-speed"]},
   {"name":{"zh":"文化部「博物館」開放資料（台灣）","en":"Taiwan Ministry of Culture museum open data"},"url":"https://data.gov.tw/dataset/6242","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["attractions"]},

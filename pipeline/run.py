@@ -54,6 +54,8 @@ STEPS = {
     "climate-trace": "topics.climate_trace",
     "military": "topics.military",
     "digital": "topics.digital",
+    # 離不開現金的人（第二十二批 381）：Findex 2025 的現金題組，台灣側欄用數位部的各場域行動支付滲透率
+    "digital-cash": "topics.digital_cash",
     "health": "topics.health",
     "disease": "topics.disease",  # 第一次會向 WHO 查 24 年的死因資料（約 15 分鐘、40 MB）
     # WHO 的 WUENIC（xmart）、世界銀行、OWID 的 COVID-19 資料（約 180 MB）、The Economist 的超額死亡（約 11 MB）、
