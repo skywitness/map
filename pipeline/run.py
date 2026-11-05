@@ -117,6 +117,8 @@ STEPS = {
     # 約 72 MB，公用伺服器忙的時候要兩三個小時）
     "chain-stores": "topics.chain_stores",
     "innovation": "topics.innovation",
+    # 專利的技術領域與受理局（WIPO 批次檔）、創業投資（OECD）：第二十二批 383
+    "innovation-fields": "topics.innovation_fields",
     "wealth": "topics.wealth",
     "temperature": "topics.temperature",  # 第一次會下載 CRU TS 的月平均氣溫與降雨網格
     # 暖化（近 10 年平均與 1951–1980 年的差）的網格圖磚（不進版本控制，部署時產生）
