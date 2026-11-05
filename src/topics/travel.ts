@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { CategoryDef, IndicatorDef, Text, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, ListPanelDef, ListRow, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
  * 旅行實用（pipeline/topics/travel.py）：跟台灣的時差、行車方向、插頭類型、電壓與頻率，
@@ -368,6 +368,61 @@ const byLanguage = {
 
 const TIME_THRESHOLDS = [-10.5, -4.5, -0.5, 0.5, 2.5, 4.5];
 
+/**
+ * 服務區與休息區（2026-11-05，製作手冊第二十三批 406；pipeline/topics/travel_rest_areas.py）：OpenStreetMap 的
+ * highway=services 與 highway=rest_area（ODbL），只在「行車方向」畫；左側欄列高速公路局的台灣國道服務區
+ */
+const DRIVING_INDICATORS = ['driving'];
+const REST_AREAS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'rest-areas',
+  file: 'rest-areas.json',
+  label: { zh: '服務區與休息區（OpenStreetMap）', en: 'Service and rest areas (OpenStreetMap)' },
+  indicators: DRIVING_INDICATORS,
+  radius: 2.4,
+  color: {
+    field: 'k',
+    title: { zh: '種類', en: 'Type' },
+    thresholds: [1.5],
+    classes: [
+      { label: { zh: '服務區（加油、餐廳、廁所）', en: 'Service areas (fuel, food, toilets)' }, color: MAP_TOKENS.hues.orange },
+      { label: { zh: '休息區（停車、廁所）', en: 'Rest areas (parking, toilets)' }, color: MAP_TOKENS.hues.blue },
+    ],
+  },
+  // 休息區放大到 6 級才畫
+  more: { minZoom: 6 },
+  tooltip: (p, { countryName }) => {
+    const name = typeof p.n === 'string' && p.n ? p.n : '';
+    return {
+      title: name || (p.k === 1 ? tr({ zh: '（沒有名稱的服務區）', en: '(unnamed service area)' }) : tr({ zh: '（沒有名稱的休息區）', en: '(unnamed rest area)' })),
+      properNoun: name || undefined,
+      detail: [p.k === 1 ? tr({ zh: '服務區', en: 'Service area' }) : tr({ zh: '休息區', en: 'Rest area' }), typeof p.iso3 === 'string' ? countryName(p.iso3) : null]
+        .filter(Boolean)
+        .join(' · '),
+    };
+  },
+};
+
+const TW_SERVICE_AREAS: ListPanelDef = {
+  label: { zh: '台灣的國道服務區（高速公路局）', en: 'Taiwan’s freeway service areas (Freeway Bureau)' },
+  indicators: DRIVING_INDICATORS,
+  file: 'service-areas-tw.json',
+  rows: (points) =>
+    points.map((p): ListRow => {
+      const parking = [
+        typeof p.car === 'number' ? tr({ zh: `小型車 ${p.car} 格`, en: `${p.car} car spaces` }) : null,
+        typeof p.big === 'number' ? tr({ zh: `大型車 ${p.big} 格`, en: `${p.big} large-vehicle spaces` }) : null,
+        typeof p.acc === 'number' ? tr({ zh: `無障礙 ${p.acc} 格`, en: `${p.acc} accessible` }) : null,
+      ].filter(Boolean);
+      return {
+        key: `${p.n}-${p.dir}`,
+        title: tr({ zh: `${p.n}服務區（${p.dir}）`, en: `${p.n} service area (${p.dir})` }),
+        lines: [`${p.pos} · ${p.op}`, parking.join(tr({ zh: '、', en: ', ' })), String(p.theme ?? '')].filter(Boolean),
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+      };
+    }),
+};
+
 export const travel: TopicDefinition = {
   id: 'travel',
   title: { zh: '旅行實用與生活格式（時差、插頭、緊急電話、日期寫法、度量衡）', en: 'Travel essentials and local formats' },
@@ -416,6 +471,16 @@ export const travel: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
     {
+      name: { zh: 'OpenStreetMap 的服務區與休息區（highway=services、rest_area，經 QLever）', en: 'OpenStreetMap service and rest areas (highway=services, rest_area, via QLever)' },
+      url: 'https://www.openstreetmap.org/copyright',
+      license: 'ODbL 1.0',
+    },
+    {
+      name: { zh: '交通部高速公路局：國道服務區簡介一覽表、停車位設施數量', en: 'Freeway Bureau, MOTC (Taiwan): freeway service areas and parking spaces' },
+      url: 'https://data.gov.tw/dataset/8161',
+      license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
+    },
+    {
       name: { zh: '英文維基百科「Mains electricity by country」（插頭、電壓與頻率）', en: 'Wikipedia, “Mains electricity by country” (plugs, voltage and frequency)' },
       url: 'https://en.wikipedia.org/w/index.php?oldid=1380969207',
       license: 'CC BY-SA 4.0',
@@ -431,6 +496,8 @@ export const travel: TopicDefinition = {
     en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size, calendars, and the units used for body weight, height, road distance, air temperature, wind speed, air pressure, fuel economy and floor area) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Floor numbering follows a world map drawn by a Wikimedia Commons user (CC BY-SA 4.0, September 2023 version) and shows each country’s general practice; buildings within a country often differ, and Hong Kong is changed to the European scheme following Wikipedia’s “Storey”. That data file is shared under CC BY-SA 4.0. Check current official information before you travel.',
   },
   panelExtra: () => import('./panels/TravelPanel'),
+  overlays: [REST_AREAS],
+  listPanel: TW_SERVICE_AREAS,
   indicators: [
     {
       id: 'time-difference',
@@ -450,8 +517,8 @@ export const travel: TopicDefinition = {
       id: 'driving',
       label: { zh: '行車方向', en: 'Driving side' },
       description: {
-        zh: '車輛靠道路的哪一邊行駛。台灣靠右；日本、英國、香港、澳門、東南亞與南亞的許多國家、澳洲、紐西蘭、南部非洲靠左。',
-        en: 'Which side of the road traffic keeps to. Taiwan drives on the right; Japan, the UK, Hong Kong, Macau, much of South and Southeast Asia, Australia, New Zealand and southern Africa drive on the left.',
+        zh: '車輛靠道路的哪一邊行駛。台灣靠右；日本、英國、香港、澳門、東南亞與南亞的許多國家、澳洲、紐西蘭、南部非洲靠左。地圖上的點是 OpenStreetMap 的服務區（橘，3.3 萬個：中國 7,565、美國 3,113、義大利 3,085；台灣 37）與休息區（藍，放大才畫，4.2 萬個：德國 2,931、澳洲 2,669；台灣 45）。各國標法不同、同一個服務區兩個方向常畫成兩個點，點的多寡也在量各國畫得多完整，不要拿來排名；左邊的清單是高速公路局的台灣國道服務區。',
+        en: 'Which side of the road traffic keeps to. Taiwan drives on the right; Japan, the UK, Hong Kong, Macau, much of South and Southeast Asia, Australia, New Zealand and southern Africa drive on the left. The dots are OpenStreetMap service areas (orange, 33,000: China 7,565, the US 3,113, Italy 3,085; Taiwan 37) and rest areas (blue, drawn when zoomed in; 42,000: Germany 2,931, Australia 2,669; Taiwan 45). Countries tag them differently and the two directions of one service area are often mapped as two points, so the counts also reflect how completely each country is mapped and should not be ranked; the list on the left shows Taiwan’s freeway service areas from the Freeway Bureau.',
       },
       unit: '',
       file: 'driving.json',

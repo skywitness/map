@@ -189,6 +189,8 @@ STEPS = {
     "fuel-tax": "topics.fuel_tax",
     # 死亡車禍發生在哪一種道路（第二十三批 405）：Eurostat tran_sf_roadro 與 road_tf_vehmov，台灣用高速公路局的國道 30 日內死亡
     "road-type": "topics.road_type",
+    # 服務區與休息區（第二十三批 406）：OSM highway=services、rest_area 經 QLever，台灣加高速公路局的國道服務區
+    "travel-rest-areas": "topics.travel_rest_areas",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
