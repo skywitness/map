@@ -17,6 +17,7 @@ from collections import defaultdict
 from common import CACHE_DIR, OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
 from geoindex import countries_at
 from sources import wiki_oldest_companies as wiki
+from sources import wiki_racing
 from sources.countries import from_name
 from sources.wikidata_attractions import _sparql
 
@@ -48,12 +49,15 @@ def _point(v: str | None) -> tuple[float, float] | None:
 
 
 def wikidata(titles: list[str]) -> dict[str, dict]:
-    """英文維基條目 → {"coord": (lon, lat), "how": "own|hq|admin", "zh": 名稱}"""
-    path = CACHE_DIR / "wikidata" / "oldest-companies.json"
+    """英文維基條目 → {"coord": (lon, lat), "how": "own|hq|admin", "zh": 名稱}。
+    2026-11-05 起先解開重新導向再查（之前導向的條目對不到 Wikidata，54 家其實有座標）"""
+    resolved = wiki_racing.resolve_redirects(titles, cache_prefix="oldest-companies-redirects")
+    targets = sorted(set(resolved.values()))
+    path = CACHE_DIR / "wikidata" / "oldest-companies-v2.json"
     if not path.exists():
         rows: list[dict] = []
-        for i in range(0, len(titles), BATCH):
-            batch = titles[i : i + BATCH]
+        for i in range(0, len(targets), BATCH):
+            batch = targets[i : i + BATCH]
             values = " ".join(json.dumps(t, ensure_ascii=False) + "@en" for t in batch)
             rows.extend(_sparql(QUERY.format(titles=values)))
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -68,7 +72,7 @@ def wikidata(titles: list[str]) -> dict[str, dict]:
         for k in ("zhtw", "zhhant", "zh"):
             if v(k) and k not in d:
                 d[k] = v(k)
-    return out
+    return {t: out[resolved[t]] for t in titles if resolved.get(t) in out}
 
 
 def build() -> None:
