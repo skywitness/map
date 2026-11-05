@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 141;
-export const INDICATOR_COUNT = 1014;
+export const INDICATOR_COUNT = 1015;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -440,6 +440,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「Abortion law」「Legality of euthanasia」（墮胎、安樂死，2026 年 10–11 月）","en":"Wikipedia, “Abortion law” and “Legality of euthanasia” (October–November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Abortion_law&oldid=1383125224","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
   {"name":{"zh":"英文維基百科「Blood type distribution by country」（2026 年 10 月 4 日的版本，各國的數字引用的資料見側欄）","en":"Wikipedia, “Blood type distribution by country” (revision of 4 October 2026; the source each country’s row cites is in the side panel)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1378379911","licenses":["CC BY-SA 4.0"],"topics":["blood-types"]},
   {"name":{"zh":"英文維基百科「Capital punishment by country」與各國的死刑條目（2026 年 10 月）","en":"Wikipedia, “Capital punishment by country” and country articles on capital punishment (October 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1382474148","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
+  {"name":{"zh":"英文維基百科「Cash rounding」（2026 年 9 月 16 日的版本）","en":"Wikipedia, “Cash rounding” (revision of 16 September 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Cash_rounding&oldid=1375275378","licenses":["CC BY-SA 4.0"],"topics":["prices"]},
   {"name":{"zh":"英文維基百科「Chinatowns in Europe」「Chinatowns in Asia」「Chinatowns in Africa」「Chinatowns in Oceania」「Chinatowns in Latin America and the Caribbean」","en":"Wikipedia, “Chinatowns in Europe”, “Chinatowns in Asia”, “Chinatowns in Africa”, “Chinatowns in Oceania” and “Chinatowns in Latin America and the Caribbean”"},"url":"https://en.wikipedia.org/w/index.php?oldid=1381063693","licenses":[{"zh":"CC BY-SA 4.0（補的點與各國的數字同樣用 CC BY-SA 4.0 分享）","en":"CC BY-SA 4.0 (the added points and the counts are shared under CC BY-SA 4.0 too)"}],"topics":["migration"]},
   {"name":{"zh":"英文維基百科「Coal phase-out」的各國退場年份表（revid 1377174595，年份引 Ember）","en":"English Wikipedia, “Coal phase-out”, table of phase-out years by country (revision 1377174595, years from Ember)"},"url":"https://en.wikipedia.org/w/index.php?title=Coal_phase-out&oldid=1377174595","licenses":["CC BY-SA 4.0"],"topics":["fossil-fuels"]},
   {"name":{"zh":"英文維基百科「Compulsory voting」（強制投票，2026 年 11 月）","en":"Wikipedia, “Compulsory voting” (November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Compulsory_voting&oldid=1383198941","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
