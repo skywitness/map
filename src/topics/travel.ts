@@ -170,6 +170,132 @@ export const CALENDAR: CategoryDef[] = [
 
 export const categoryLabel = (list: CategoryDef[], v: number) => tr(list.find((c) => c.value === v)?.label ?? '');
 
+/**
+ * 單位的偏好（2026-11-05，製作手冊第二十二批 391；pipeline/topics/travel_units.py）：CLDR units.xml 的 unitPreferenceData，
+ * 類別 1 是世界通用值（001），其他是例外的地區。順序要跟 pipeline 的 UNIT_PREFS 一樣（details.json 的 fmt.units）
+ */
+export const UNIT_INDICATORS: { id: string; short: Text; label: Text; categories: CategoryDef[]; description: { zh: string; en: string } }[] = [
+  {
+    id: 'unit-weight',
+    short: { zh: '量體重', en: 'Body weight' },
+    label: { zh: '量體重用什麼單位', en: 'Units for body weight' },
+    categories: [
+      { value: 1, label: { zh: '公斤（世界通用）', en: 'Kilograms (worldwide default)' } },
+      { value: 2, label: { zh: '磅', en: 'Pounds' } },
+      { value: 3, label: { zh: '英石加磅（11 st 4 lb）', en: 'Stones and pounds (11 st 4 lb)' } },
+      { value: 4, label: { zh: '磅加英兩', en: 'Pounds and ounces' } },
+    ],
+    description: {
+      zh: '說一個人多重時用的單位。只有美國用磅、英國用英石加磅（1 英石 = 14 磅，小嬰兒用磅加英兩）、香港用磅加英兩，其他 238 個國家與地區用公斤。',
+      en: 'The unit for a person’s weight. Only the US uses pounds, the UK stones and pounds (1 stone = 14 lb; pounds and ounces for babies) and Hong Kong pounds and ounces; the other 238 countries and territories use kilograms.',
+    },
+  },
+  {
+    id: 'unit-height',
+    short: { zh: '報身高', en: 'Height' },
+    label: { zh: '報身高用什麼單位', en: 'Units for height' },
+    categories: [
+      { value: 1, label: { zh: '公分（世界通用）', en: 'Centimetres (worldwide default)' } },
+      { value: 2, label: { zh: '英尺加英寸（5′9″）', en: 'Feet and inches (5′9″)' } },
+      { value: 3, label: { zh: '公尺加公分（1 m 75）', en: 'Metres and centimetres (1 m 75)' } },
+    ],
+    description: {
+      zh: '說一個人多高時用的單位。美國、加拿大、英國、印度用英尺加英寸（3 英尺以上），法國、西班牙、義大利、瑞典、土耳其、埃及、印尼、越南、香港等 16 個說「1 公尺 75」，其他用公分。',
+      en: 'The unit for a person’s height. The US, Canada, the UK and India use feet and inches (from 3 feet); France, Spain, Italy, Sweden, Turkey, Egypt, Indonesia, Vietnam, Hong Kong and others (16 in all) say “1 m 75”; the rest use centimetres.',
+    },
+  },
+  {
+    id: 'unit-road',
+    short: { zh: '路程', en: 'Road distance' },
+    label: { zh: '路程用什麼單位', en: 'Units for road distance' },
+    categories: [
+      { value: 1, label: { zh: '公里（世界通用）', en: 'Kilometres (worldwide default)' } },
+      { value: 2, label: { zh: '英里，短距離用英尺', en: 'Miles, feet for short distances' } },
+      { value: 3, label: { zh: '英里，短距離用碼', en: 'Miles, yards for short distances' } },
+      { value: 4, label: { zh: '北歐里（10 公里）與公里', en: 'Scandinavian miles (10 km) and kilometres' } },
+    ],
+    description: {
+      zh: '開車、導航說還有多遠時用的單位。美國用英里（短距離用英尺），英國用英里（短距離用碼），瑞典另有北歐里（mil，10 公里），其他用公里與公尺。',
+      en: 'The unit for distances on the road, as in navigation. The US uses miles (feet for short distances), the UK miles (yards for short distances), Sweden also has the Scandinavian mile (mil, 10 km); everywhere else uses kilometres and metres.',
+    },
+  },
+  {
+    id: 'unit-temperature',
+    short: { zh: '氣溫', en: 'Air temperature' },
+    label: { zh: '氣溫用攝氏還是華氏', en: 'Celsius or Fahrenheit for the weather' },
+    categories: [
+      { value: 1, label: { zh: '攝氏（世界通用）', en: 'Celsius (worldwide default)' } },
+      { value: 2, label: { zh: '華氏', en: 'Fahrenheit' } },
+    ],
+    description: {
+      zh: '天氣預報的氣溫。美國、巴哈馬、貝里斯、開曼群島、波多黎各、帛琉 6 個用華氏，其他用攝氏。',
+      en: 'Temperatures in weather forecasts. The US, the Bahamas, Belize, the Cayman Islands, Puerto Rico and Palau use Fahrenheit; everywhere else uses Celsius.',
+    },
+  },
+  {
+    id: 'unit-wind',
+    short: { zh: '風速', en: 'Wind speed' },
+    label: { zh: '風速用什麼單位', en: 'Units for wind speed' },
+    categories: [
+      { value: 1, label: { zh: '公里／小時（世界通用）', en: 'km/h (worldwide default)' } },
+      { value: 2, label: { zh: '公尺／秒', en: 'm/s' } },
+      { value: 3, label: { zh: '英里／小時', en: 'mph' } },
+    ],
+    description: {
+      zh: '天氣預報的風速。中國、日本、南韓、俄羅斯、波蘭與北歐的丹麥、芬蘭、挪威、瑞典 9 國用公尺／秒，英國、美國用英里／小時，其他用公里／小時。',
+      en: 'Wind speed in weather forecasts. China, Japan, South Korea, Russia, Poland and the Nordic Denmark, Finland, Norway and Sweden (9 in all) use m/s, the UK and the US mph; everywhere else uses km/h.',
+    },
+  },
+  {
+    id: 'unit-pressure',
+    short: { zh: '氣壓', en: 'Air pressure' },
+    label: { zh: '氣壓用什麼單位', en: 'Units for air pressure' },
+    categories: [
+      { value: 1, label: { zh: '百帕（世界通用）', en: 'Hectopascals (worldwide default)' } },
+      { value: 2, label: { zh: '毫巴', en: 'Millibars' } },
+      { value: 3, label: { zh: '毫米汞柱', en: 'Millimetres of mercury' } },
+      { value: 4, label: { zh: '英寸汞柱', en: 'Inches of mercury' } },
+    ],
+    description: {
+      zh: '天氣預報的氣壓。美國用英寸汞柱，英國、巴西、埃及、以色列、泰國用毫巴（跟百帕一樣大，1 毫巴 = 1 百帕），墨西哥、俄羅斯用毫米汞柱，其他用百帕。',
+      en: 'Air pressure in weather forecasts. The US uses inches of mercury; the UK, Brazil, Egypt, Israel and Thailand millibars (equal in size to hectopascals); Mexico and Russia millimetres of mercury; everywhere else hectopascals.',
+    },
+  },
+  {
+    id: 'unit-fuel',
+    short: { zh: '油耗', en: 'Fuel economy' },
+    label: { zh: '油耗用什麼單位', en: 'Units for fuel economy' },
+    categories: [
+      { value: 1, label: { zh: '公升／100 公里（世界通用）', en: 'L/100 km (worldwide default)' } },
+      { value: 2, label: { zh: '公升／公里（CLDR 的寫法）', en: 'L/km (as recorded by CLDR)' } },
+      { value: 3, label: { zh: '英里／美制加侖', en: 'Miles per US gallon' } },
+      { value: 4, label: { zh: '英里／英制加侖', en: 'Miles per imperial gallon' } },
+    ],
+    description: {
+      zh: '汽車油耗的單位。美國用英里／加侖，加拿大、英國用英里／英制加侖；日本、南韓、巴西、墨西哥、義大利、荷蘭、土耳其、馬來西亞、泰國 9 國 CLDR 記成「公升／公里」，實際上多半寫成倒數的「公里／公升」（每公升跑幾公里）；其他用公升／100 公里。',
+      en: 'The unit for fuel economy. The US uses miles per gallon, Canada and the UK miles per imperial gallon; for Japan, South Korea, Brazil, Mexico, Italy, the Netherlands, Turkey, Malaysia and Thailand CLDR records litres per kilometre, though figures are mostly quoted the other way round, as kilometres per litre; everywhere else uses litres per 100 km.',
+    },
+  },
+  {
+    id: 'unit-floor',
+    short: { zh: '室內面積', en: 'Floor area' },
+    label: { zh: '室內面積用什麼單位', en: 'Units for floor area' },
+    categories: [
+      { value: 1, label: { zh: '平方公尺（世界通用）', en: 'Square metres (worldwide default)' } },
+      { value: 2, label: { zh: '平方英尺', en: 'Square feet' } },
+    ],
+    description: {
+      zh: '房屋、辦公室的室內面積。美國、加拿大、英國、緬甸用平方英尺，其他用平方公尺；台灣日常常用的「坪」（約 3.3058 平方公尺）不在 CLDR 裡。',
+      en: 'Floor area of homes and offices. The US, Canada, the UK and Myanmar use square feet; everywhere else square metres. Taiwan’s everyday ping (about 3.3058 m²) is not in CLDR.',
+    },
+  },
+];
+
+const UNIT_NOTE = {
+  zh: '依 Unicode CLDR 49 的單位偏好：軟體顯示數字時選的單位，不是法定單位；CLDR 只列例外的地區，台灣跟大多數國家一樣是世界通用值，不一定是台灣實際的習慣。',
+  en: 'From Unicode CLDR 49 unit preferences: the units software picks when displaying values, not legal units. CLDR lists only the exceptions; Taiwan, like most countries, gets the worldwide default, which may not match everyday local habits.',
+};
+
 /** 生活格式的指標都是類別圖、只差在檔名與類別 */
 const formatIndicator = (id: string, label: Text, description: Text, categories: CategoryDef[]): IndicatorDef => ({
   id,
@@ -210,7 +336,7 @@ export const travel: TopicDefinition = {
     },
     { name: { zh: 'Wikidata（行車方向，P1622）', en: 'Wikidata (driving side, P1622)' }, url: 'https://www.wikidata.org/wiki/Property:P1622', license: 'CC0' },
     {
-      name: { zh: 'Unicode CLDR 49（一週、時間、日期、數字、度量衡、紙張與曆法的慣例）', en: 'Unicode CLDR 49 (week, time, date, number, measurement, paper and calendar conventions)' },
+      name: { zh: 'Unicode CLDR 49（一週、時間、日期、數字、度量衡、紙張、曆法與單位的慣例）', en: 'Unicode CLDR 49 (week, time, date, number, measurement, paper, calendar and unit conventions)' },
       url: 'https://cldr.unicode.org/',
       license: 'Unicode License v3',
     },
@@ -226,8 +352,8 @@ export const travel: TopicDefinition = {
     },
   ],
   note: {
-    zh: '時差是標準時間（不含夏令時間）跟台灣（UTC+8）差幾小時，用首都所在的時區；跨好幾個時區、或有夏令時間的國家，側欄與附註會寫出來。插頭與電壓依英文維基百科「Mains electricity by country」的表格（2026 年 10 月 19 日的版本，CC BY-SA 4.0），地圖用表格列出的第一個電壓；這個主題的插頭、電壓資料檔也依 CC BY-SA 4.0 分享。緊急電話依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0），資料檔同樣依 CC BY-SA 4.0 分享。生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法）依 Unicode CLDR 49，是軟體顯示日期、數字時用的慣例；日期寫法與小數點依人口比例最高的官方語言，多語國家（瑞士、比利時、加拿大、印度…）只代表其中一種語言。出發前請再查最新的官方資訊。',
-    en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size and calendars) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Check current official information before you travel.',
+    zh: '時差是標準時間（不含夏令時間）跟台灣（UTC+8）差幾小時，用首都所在的時區；跨好幾個時區、或有夏令時間的國家，側欄與附註會寫出來。插頭與電壓依英文維基百科「Mains electricity by country」的表格（2026 年 10 月 19 日的版本，CC BY-SA 4.0），地圖用表格列出的第一個電壓；這個主題的插頭、電壓資料檔也依 CC BY-SA 4.0 分享。緊急電話依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0），資料檔同樣依 CC BY-SA 4.0 分享。生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法，以及量體重、報身高、路程、氣溫、風速、氣壓、油耗、室內面積用什麼單位）依 Unicode CLDR 49，是軟體顯示日期、數字時用的慣例；日期寫法與小數點依人口比例最高的官方語言，多語國家（瑞士、比利時、加拿大、印度…）只代表其中一種語言。出發前請再查最新的官方資訊。',
+    en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size, calendars, and the units used for body weight, height, road distance, air temperature, wind speed, air pressure, fuel economy and floor area) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Check current official information before you travel.',
   },
   panelExtra: () => import('./panels/TravelPanel'),
   indicators: [
@@ -379,6 +505,10 @@ export const travel: TopicDefinition = {
         en: `Calendars in common use besides the Gregorian, in order of use: Taiwan has the Minguo era and the lunisolar calendar, Japan its era names, Muslim countries the Islamic calendar; Iran and Afghanistan mainly use the Persian calendar and Thailand the Buddhist one. Hover over a country for the full list. ${CLDR_SOURCE.en}`,
       },
       CALENDAR,
+    ),
+    // 單位的偏好（第二十二批 391）
+    ...UNIT_INDICATORS.map((u) =>
+      formatIndicator(u.id, u.label, { zh: `${u.description.zh}${UNIT_NOTE.zh}`, en: `${u.description.en} ${UNIT_NOTE.en}` }, u.categories),
     ),
   ],
 };

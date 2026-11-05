@@ -127,6 +127,20 @@ def measurement_data() -> dict[str, dict[str, str]]:
     return out
 
 
+def unit_preferences(category: str, usage: str) -> dict[str, list[str]]:
+    """units.xml 的 unitPreferenceData（第二十二批 391）：地區（alpha-2 與 001）→ 這個場合偏好的單位，照檔案順序
+    （由大到小，例如英國量體重是 stone-and-pound、pound-and-ounce）。只列例外的地區，沒列到的用 001。
+    這是 ICU 格式化數字時該選哪個單位的偏好，不是法定單位。"""
+    data = _cached("supplemental/units.xml").find("unitPreferenceData")
+    group = next((g for g in data.findall("unitPreferences") if g.get("category") == category and g.get("usage") == usage), None)
+    if group is None:
+        raise KeyError(f"CLDR units.xml 沒有 {category}／{usage}")
+    out: dict[str, list[str]] = {}
+    for code, els in _by_territory(group.findall("unitPreference"), "regions").items():
+        out[code] = [e.text.strip() for e in els]
+    return out
+
+
 def time_data() -> dict[str, tuple[str, str]]:
     """地區或「語言_地區」→ (preferred, allowed)：preferred 的 h 是 12 小時制、H 是 24 小時制。"""
     t = _cached("supplemental/supplementalData.xml").find("timeData")

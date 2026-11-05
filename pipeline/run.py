@@ -315,6 +315,7 @@ STEPS = {
     "house-prices": "topics.house_prices",
     "travel": "topics.travel",  # IANA 時區（tzdata 套件）、Wikidata、維基百科
     "travel-emergency": "topics.travel_emergency",  # 旅行實用的緊急電話（維基百科固定版本的網頁），補進現有的 details.json
+    "travel-units": "topics.travel_units",  # 旅行實用的單位偏好（第二十二批 391，CLDR units.xml），補進現有的 details.json
     "world-heritage": "topics.world_heritage",  # UNESCO DataHub（map-plan 的 data/unesco/）；中文名稱沿用現有的檔，不再查 Wikidata
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
     "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）

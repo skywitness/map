@@ -1,6 +1,6 @@
 import { defineMessages, tr, useLang } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { letters, TAIWAN_OFFSET, utcText, versusTaiwan } from '../travel';
+import { letters, TAIWAN_OFFSET, UNIT_INDICATORS, utcText, versusTaiwan } from '../travel';
 import type { PanelExtraProps } from '../types';
 
 /** details.json（pipeline/topics/travel.py）：每個國家的時區、行車方向、插頭、電壓與頻率 */
@@ -36,6 +36,8 @@ interface Formats {
   number?: [string, string, string];
   /** 語言名稱 [中文, 英文] */
   lang?: [string, string];
+  /** 單位的偏好（pipeline/topics/travel_units.py）：順序跟 travel.ts 的 UNIT_INDICATORS 一樣，1 是世界通用值 */
+  units?: number[];
 }
 
 type Day = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
@@ -171,6 +173,11 @@ const TEXT = defineMessages({
     taiwanClock: '慣用 12 小時制（下午 3:00），日期寫 2026/3/28（年月日）。',
     taiwanNumbers: '1,234,567.89（小數點「.」）。',
     taiwanMeasure: '公制；影印紙是 A4。',
+    units: '單位怎麼說',
+    unitsSame: '都是世界通用的單位（公斤、公分、公里、攝氏、公里／小時、百帕、公升／100 公里、平方公尺），跟 CLDR 給台灣的一樣。',
+    unitsLine: (what: string, unit: string) => `${what}用${unit}`,
+    unitsRest: '其他是世界通用的單位。',
+    taiwanUnits: 'CLDR 給台灣世界通用的單位；日常還常用台斤（600 公克）與坪（約 3.3058 平方公尺）。',
     taiwanCalendar: '西曆、民國紀年、農曆。',
     celsius: '攝氏',
     fahrenheit: '華氏',
@@ -235,6 +242,11 @@ const TEXT = defineMessages({
     taiwanClock: 'Usually the 12-hour clock (3:00 PM); dates are written 2026/3/28 (year-month-day).',
     taiwanNumbers: '1,234,567.89 (decimal point “.”).',
     taiwanMeasure: 'Metric; printer paper is A4.',
+    units: 'Units in use',
+    unitsSame: 'Worldwide default units throughout (kg, cm, km, °C, km/h, hPa, L/100 km, m²), as CLDR gives Taiwan.',
+    unitsLine: (what, unit) => `${what}: ${unit.charAt(0).toLowerCase()}${unit.slice(1)}`,
+    unitsRest: 'Otherwise the worldwide default units.',
+    taiwanUnits: 'CLDR gives Taiwan the worldwide default units; the catty (600 g) and ping (about 3.3058 m²) are still common in daily life.',
     taiwanCalendar: 'Gregorian, Minguo (ROC) era, Chinese lunisolar.',
     celsius: 'Celsius',
     fahrenheit: 'Fahrenheit',
@@ -303,6 +315,7 @@ export default function TravelPanel({ topic, iso3 }: PanelExtraProps) {
       [text.clockDate, [text.taiwanClock]],
       [text.numbers, [text.taiwanNumbers]],
       [text.measure, [text.taiwanMeasure]],
+      [text.units, [text.taiwanUnits]],
       [text.calendar, [text.taiwanCalendar]],
     );
   } else if (f) {
@@ -329,6 +342,14 @@ export default function TravelPanel({ topic, iso3 }: PanelExtraProps) {
     if (temp && temp !== system) measure.push(text.temperature(temp === 'metric' ? text.celsius : text.fahrenheit));
     measure.push(f.paper === TAIWAN_FMT.paper ? text.paperA4 : text.paperLetter);
     rows.push([text.measure, measure]);
+
+    if (f.units) {
+      const own = UNIT_INDICATORS.flatMap((u, i) => {
+        const v = f.units![i];
+        return v && v !== 1 ? [text.unitsLine(tr(u.short, lang), tr(u.categories.find((c) => c.value === v)?.label ?? '', lang))] : [];
+      });
+      rows.push([text.units, own.length ? [...own, text.unitsRest] : [text.unitsSame]]);
+    }
 
     const cals = calendarNames(f.calendar).map((n) => n[lang]);
     rows.push([text.calendar, [cals.length === 1 ? text.calendarOnly : text.calendarText(cals.join(tr(LIST_SEP, lang)))]]);
