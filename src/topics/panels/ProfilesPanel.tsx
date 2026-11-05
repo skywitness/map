@@ -102,6 +102,7 @@ const TEXT = defineMessages({
     since: (date: string) => `${date}起`,
     government: '政體形式',
     currency: '貨幣',
+    currencyFormat: (lang: string, ex: string, symbols: string) => `依${lang}寫成 ${ex}；符號 ${symbols}`,
     parliament: '國會',
     chambers: (n: number): string => (n === 1 ? '一院制' : '兩院制'),
     seats: (lower: number, upper: number | null) => (upper == null ? `${lower} 席` : `下議院 ${lower} 席、上議院 ${upper} 席`),
@@ -149,6 +150,7 @@ const TEXT = defineMessages({
     since: (date: string) => `since ${date}`,
     government: 'System of government',
     currency: 'Currency',
+    currencyFormat: (lang: string, ex: string, symbols: string) => `Written ${ex} in ${lang}; symbol ${symbols}`,
     parliament: 'Parliament',
     chambers: (n: number) => (n === 1 ? 'unicameral' : 'bicameral'),
     seats: (lower: number, upper: number | null) =>
@@ -273,6 +275,14 @@ function ProfileHero({ status, flag }: { status: ReactNode[]; flag?: ReactNode }
   );
 }
 
+/** currency-format-detail.json：依哪一種語言、金額的寫法、各貨幣的 [代碼, 符號, 窄符號, 繁體中文名稱] */
+interface CurrencyFormat {
+  lang: [string, string];
+  pattern: string;
+  ex: string;
+  sym: [string, string, string | null, string | null][];
+}
+
 export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
@@ -284,6 +294,8 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
   // 國會（2026-11-05）：議會名稱與席次（pipeline/topics/profiles_legislature.py 的 legislature.json）、每席人口
   const legislature = useJson<LegislatureFile>(`topics/${topic.id}/legislature.json`).data;
   const perSeat = useJson<IndicatorData>(`topics/${topic.id}/seat-population.json`).data;
+  // 金額怎麼寫（2026-11-05，第二十二批 392；pipeline/topics/profiles_currency.py）
+  const currencyFormat = useJson<Record<string, CurrencyFormat>>(`topics/${topic.id}/currency-format-detail.json`).data;
   const flagEntry = useFlags()?.units[iso3];
   if (!data || loading) return <p className="empty">{t.loading}</p>;
   const p: Profile | undefined = part ?? undefined;
@@ -346,7 +358,18 @@ export default function ProfilesPanel({ topic, iso3 }: PanelExtraProps) {
       const n = pick([zh, en], lang)?.text;
       return code ? `${n ?? code}${text.paren(code)}` : (n ?? '');
     };
-    rows.push([text.currency, text.list(p.cur.map(currency))]);
+    const fmt = currencyFormat?.[iso3];
+    rows.push([
+      text.currency,
+      <>
+        {text.list(p.cur.map(currency))}
+        {fmt && (
+          <span className="profile-sub">
+            {text.currencyFormat(fmt.lang[lang === 'zh' ? 0 : 1], fmt.ex, text.list(fmt.sym.map(([, symbol]) => symbol)))}
+          </span>
+        )}
+      </>,
+    ]);
   }
   const leg = legislature?.countries[iso3];
   if (leg) {

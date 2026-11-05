@@ -30,6 +30,15 @@ export const CURRENCY: CategoryDef[] = [
 ];
 const OWN_CURRENCY: Text = { zh: '自己的貨幣', en: 'Own currency' };
 
+/** 金額怎麼寫（2026-11-05，第二十二批 392；pipeline/topics/profiles_currency.py 的類別） */
+export const CURRENCY_FORMAT: CategoryDef[] = [
+  { value: 1, label: { zh: '符號在前、沒有空格（$1,234.56，跟台灣一樣）', en: 'Symbol first, no space ($1,234.56, like Taiwan)' } },
+  { value: 2, label: { zh: "符號在前、有空格（CHF 1'234.56）", en: "Symbol first, with a space (CHF 1'234.56)" } },
+  { value: 3, label: { zh: '符號在後、有空格（1 234,56 €）', en: 'Symbol last, with a space (1 234,56 €)' } },
+  { value: 4, label: { zh: '符號在後、沒有空格（1,234.56៛）', en: 'Symbol last, no space (1,234.56៛)' } },
+  { value: 5, label: { zh: '符號在前、印度式分組（₹12,34,567.89）', en: 'Symbol first, Indian grouping (₹12,34,567.89)' } },
+];
+
 /**
  * 匯率制度（IMF 2023 年的事實分類，pipeline/topics/exchange_regime.py 的 ROWS）：從最硬的釘住排到自由浮動，
  * 循序色第一類最深。爬行釘住、類爬行安排、水平區間內的釘住併成一類（類別圖最多 8 色）
@@ -289,6 +298,19 @@ export const profiles: TopicDefinition = {
       file: 'currency.json',
       layer: { kind: 'categorical', categories: CURRENCY, other: OWN_CURRENCY },
       format: (v) => categoryLabel(CURRENCY, v, OWN_CURRENCY),
+    },
+    {
+      // 2026-11-05（第二十二批 392）：Unicode CLDR 49 的貨幣格式與符號（pipeline/topics/profiles_currency.py）
+      id: 'currency-format',
+      label: { zh: '金額怎麼寫', en: 'How prices are written' },
+      description: {
+        zh: '依人口比例最高的官方語言（Unicode CLDR 49；滑過國家看是哪一種語言與 1234567.89 的寫法）：貨幣符號寫在數字前面還是後面、中間有沒有空格。237 國裡符號在前沒空格 104（台灣 $1,234,567.89、美國、日本 ￥1,234,567、土耳其 ₺1.234.567,89），符號在後有空格 102（法國 1 234 567,89 €、德國 1.234.567,89 €），符號在前有空格 24（瑞士 CHF 1\'234\'567.89、荷蘭），印度、孟加拉、尼泊爾、不丹、馬爾地夫 5 國用印度式分組（₹12,34,567.89），柬埔寨、蒲隆地 2 國符號在後沒空格。CLDR 給新台幣的符號就是「$」，跟美元同形，NT$ 要自己加。日圓等沒有小數的貨幣，例子不寫小數。',
+        en: 'Based on the most widely spoken official language (Unicode CLDR 49; hover to see which language and how 1234567.89 is written): whether the currency symbol comes before or after the amount, and whether there is a space. Of 237 countries, 104 put the symbol first with no space (Taiwan $1,234,567.89, the US, Japan ￥1,234,567, Turkey ₺1.234.567,89), 102 put it last with a space (France 1 234 567,89 €, Germany 1.234.567,89 €), 24 put it first with a space (Switzerland CHF 1\'234\'567.89, the Netherlands), India, Bangladesh, Nepal, Bhutan and the Maldives use Indian grouping (₹12,34,567.89), and Cambodia and Burundi put the symbol last with no space. CLDR’s symbol for the New Taiwan dollar is plain “$”, the same as the US dollar; “NT$” has to be added by hand. Currencies without minor units, such as the yen, are shown without decimals.',
+      },
+      unit: '',
+      file: 'currency-format.json',
+      layer: { kind: 'categorical', categories: CURRENCY_FORMAT },
+      format: (v) => categoryLabel(CURRENCY_FORMAT, v),
     },
     {
       id: 'exchange-regime',

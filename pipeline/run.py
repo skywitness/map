@@ -159,6 +159,8 @@ STEPS = {
     "gender-vdem": "topics.gender_vdem",
     # 國家小檔案的國會幾院（V-Dem）、席次與每席人口（英文維基固定版本，要先有 population 的 total.json）
     "profiles-legislature": "topics.profiles_legislature",
+    # 國家小檔案的貨幣怎麼寫（第二十二批 392）：CLDR 49 的貨幣格式與符號，讀現有的 profiles/<ISO3>.json 的貨幣代碼
+    "profiles-currency": "topics.profiles_currency",
     "governance": "topics.governance",  # World Bank API 的 WGI，六個面向各 6 個序列（36 次查詢，約 1 分鐘）
     "taiwan-diplomacy": "topics.taiwan_diplomacy",
     "diplomacy-lists": "topics.diplomacy_lists",  # 台灣的外交的左側欄
