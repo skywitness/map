@@ -56,11 +56,11 @@ export const oldestCompaniesPart = {
   note: {
     zh:
       '公司是英文維基百科「List of oldest companies」裡 1700 年以前成立、到現在還在營業的 1,022 家（2026 年 10 月 15 日的版本）；「還在營業」與「同一家公司」照條目的認定，經過合併、改組的也算。國家照表格的所在地。' +
-      '點是表格連到的公司在 Wikidata 有位置的（公司本身、總部或所在行政區的座標），約四分之一（241 家，約一半用總部或所在行政區的座標）；沒有位置的約 780 家（大多在英文維基沒有條目）只算在國家的家數裡（2026-11-05 查）。條目引用韓國銀行 2008 年的統計：41 國有 5,586 家超過 200 年的公司，3,146 家在日本。' +
+      '點是表格連到的公司在 Wikidata 有位置的（公司本身、總部或所在行政區的座標），約三成（294 家，約一半用總部或所在行政區的座標）；沒有位置的 727 家（大多在英文維基沒有條目）只算在國家的家數裡。條目引用韓國銀行 2008 年的統計：41 國有 5,586 家超過 200 年的公司，3,146 家在日本。' +
       '條目是 CC BY-SA 4.0（姓名標示、相同方式分享），這個主題的資料檔也用 CC BY-SA 4.0。',
     en:
       'Companies are the 1,022 entries founded before 1700 and still in business in English Wikipedia’s “List of oldest companies” (revision of 15 October 2026); what counts as still in business and as the same company follows the article, so merged and reorganised firms are included. Countries follow the table’s location. ' +
-      'Dots are companies whose linked article has a location in Wikidata (the company itself, its headquarters or its administrative area), about a quarter (241, about half of them at the headquarters’ or administrative area’s coordinates); the other 780 or so (mostly without an English Wikipedia article) count only towards their country (checked 2026-11-05). The article cites a 2008 Bank of Korea study: 5,586 companies older than 200 years in 41 countries, 3,146 of them in Japan. ' +
+      'Dots are companies whose linked article has a location in Wikidata (the company itself, its headquarters or its administrative area), about three in ten (294, about half of them at the headquarters’ or administrative area’s coordinates); the other 727 (mostly without an English Wikipedia article) count only towards their country. The article cites a 2008 Bank of Korea study: 5,586 companies older than 200 years in 41 countries, 3,146 of them in Japan. ' +
       'The article is licensed CC BY-SA 4.0 (attribution, share-alike), and this topic’s data files are shared under CC BY-SA 4.0 as well.',
   },
   overlays: [POINTS],
