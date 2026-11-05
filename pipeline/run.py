@@ -333,6 +333,8 @@ STEPS = {
     "travel-emergency": "topics.travel_emergency",  # 旅行實用的緊急電話（維基百科固定版本的網頁），補進現有的 details.json
     "travel-units": "topics.travel_units",  # 旅行實用的單位偏好（第二十二批 391，CLDR units.xml），補進現有的 details.json
     "travel-address-phone": "topics.travel_address_phone",  # 地址與電話的寫法（候選 679、680，Google libaddressinput、libphonenumber），補進 details.json
+    # 樓層怎麼數（第二十二批 396）：維基共享資源的地圖（本機 session 下載，map-plan 的 data/wikimedia/，先複製到 .cache/wikimedia/）
+    "travel-floors": "topics.travel_floors",
     "world-heritage": "topics.world_heritage",  # UNESCO DataHub（map-plan 的 data/unesco/）；中文名稱沿用現有的檔，不再查 Wikidata
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
     "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）

@@ -70,7 +70,7 @@ export const EMERGENCY_FIRE: CategoryDef[] = [
   SOS_OTHER,
 ];
 const SOS_NOTE = {
-  zh: '依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0）的各國表格，取每格的第一個號碼歸類；滑過國家看警察、救護、消防三個號碼，一格有好幾個號碼的寫「999／112」。條目的出處很雜（各國官方、大使館、旅遊指南），部分號碼可能過時，出發前請再查最新的官方資訊。',
+  zh: '依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0）的各國表格，取每格的第一個號碼歸類；滑過國家看警察、救護、消防三個號碼，一格有好幾個號碼的寫「999／112」。條目的出處很雜（各國官方、大使館、旅遊指南），部分號碼可能過時，樓層怎麼數依維基共享資源上一位使用者畫的世界地圖（CC BY-SA 4.0，2023 年 9 月的版本），是各國的大致習慣，同一國的建築常常不一致；香港照英文維基「Storey」改成歐式；資料檔依 CC BY-SA 4.0 分享。出發前請再查最新的官方資訊。',
   en: 'From the country tables in the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), grouped by the first number in each cell; hover over a country for the police, ambulance and fire numbers, with alternatives written “999 / 112”. The article cites a mix of sources (governments, embassies, travel guides) and some numbers may be out of date; check current official information before you travel.',
 };
 
@@ -292,6 +292,16 @@ export const UNIT_INDICATORS: { id: string; short: Text; label: Text; categories
 ];
 
 /**
+ * 樓層怎麼數（2026-11-05，製作手冊第二十二批 396；pipeline/topics/travel_floors.py）：維基共享資源的各國樓層數法地圖
+ * （CC BY-SA 4.0）的填色，香港照英文維基「Storey」改成歐式；跳 4 樓、13 樓的忌諱只有幾國有敘述，寫在附註
+ */
+export const FLOOR_NUMBERING: CategoryDef[] = [
+  { value: 1, label: { zh: '地面層就是 1 樓（美式，跟台灣一樣）', en: 'Ground floor is the 1st floor (American scheme, as in Taiwan)' } },
+  { value: 2, label: { zh: '地面層是 G 或 0 樓，上一層才是 1 樓（歐式）', en: 'Ground floor is G or 0; the 1st floor is one up (European scheme)' } },
+  { value: 3, label: { zh: '兩種都用', en: 'Both schemes' } },
+];
+
+/**
  * 地址怎麼寫、電話怎麼打（2026-11-05，使用者把已排除的候選 679、680 改成要做；pipeline/topics/travel_address_phone.py）：
  * Google libaddressinput 的地址資料（CC BY 4.0）與 libphonenumber 的號碼資料（Apache 2.0）
  */
@@ -393,6 +403,19 @@ export const travel: TopicDefinition = {
       license: 'Apache 2.0',
     },
     {
+      name: {
+        zh: '維基共享資源「Countries numbering floors.svg」（Michael Peter Fustumum，2023-09-12 的版本；樓層怎麼數）',
+        en: 'Wikimedia Commons, “Countries numbering floors.svg” (Michael Peter Fustumum, version of 12 September 2023; floor numbering)',
+      },
+      url: 'https://commons.wikimedia.org/wiki/File:Countries_numbering_floors.svg',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: '英文維基百科「Storey」與「Tetraphobia」（樓層的叫法、跳過的樓層）', en: 'Wikipedia, “Storey” and “Tetraphobia” (floor names and skipped floors)' },
+      url: 'https://en.wikipedia.org/w/index.php?title=Storey&oldid=1376363313',
+      license: 'CC BY-SA 4.0',
+    },
+    {
       name: { zh: '英文維基百科「Mains electricity by country」（插頭、電壓與頻率）', en: 'Wikipedia, “Mains electricity by country” (plugs, voltage and frequency)' },
       url: 'https://en.wikipedia.org/w/index.php?oldid=1380969207',
       license: 'CC BY-SA 4.0',
@@ -405,7 +428,7 @@ export const travel: TopicDefinition = {
   ],
   note: {
     zh: '時差是標準時間（不含夏令時間）跟台灣（UTC+8）差幾小時，用首都所在的時區；跨好幾個時區、或有夏令時間的國家，側欄與附註會寫出來。插頭與電壓依英文維基百科「Mains electricity by country」的表格（2026 年 10 月 19 日的版本，CC BY-SA 4.0），地圖用表格列出的第一個電壓；這個主題的插頭、電壓資料檔也依 CC BY-SA 4.0 分享。緊急電話依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0），資料檔同樣依 CC BY-SA 4.0 分享。生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法，以及量體重、報身高、路程、氣溫、風速、氣壓、油耗、室內面積用什麼單位）依 Unicode CLDR 49，是軟體顯示日期、數字時用的慣例；日期寫法與小數點依人口比例最高的官方語言，多語國家（瑞士、比利時、加拿大、印度…）只代表其中一種語言。出發前請再查最新的官方資訊。',
-    en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size, calendars, and the units used for body weight, height, road distance, air temperature, wind speed, air pressure, fuel economy and floor area) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Check current official information before you travel.',
+    en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size, calendars, and the units used for body weight, height, road distance, air temperature, wind speed, air pressure, fuel economy and floor area) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Floor numbering follows a world map drawn by a Wikimedia Commons user (CC BY-SA 4.0, September 2023 version) and shows each country’s general practice; buildings within a country often differ, and Hong Kong is changed to the European scheme following Wikipedia’s “Storey”. That data file is shared under CC BY-SA 4.0. Check current official information before you travel.',
   },
   panelExtra: () => import('./panels/TravelPanel'),
   indicators: [
@@ -604,6 +627,20 @@ export const travel: TopicDefinition = {
       },
       PHONE_MOBILE,
     ),
+    // 樓層怎麼數（第二十二批 396）
+    {
+      id: 'floor-numbering',
+      label: { zh: '樓層怎麼數', en: 'Floor numbering' },
+      description: {
+        zh: '走進大門的那一層叫幾樓。台灣、中國、日本、南韓、美國、加拿大、俄羅斯與前蘇聯各國，加上歐洲的芬蘭、挪威、冰島，以及智利、哥倫比亞、厄瓜多、祕魯，地面層就是 1 樓（41 國）；英國、歐洲大部分、香港、墨西哥、阿根廷、巴西，與非洲、南亞、中東多數國家，地面層叫 ground floor（G）或 0 樓，上一層才是 1 樓，所以英國的 1 樓是台灣的 2 樓（167 國）；新加坡、越南、印尼、菲律賓兩種都用。電梯跳過 4 樓（香港、南韓的醫院、馬來西亞、印尼…）或 13 樓（美國、加拿大 12 層以上的建築大多沒有 13 樓）是建商的習慣，不是規定，寫在這幾國的附註。依維基共享資源的使用者繪製的地圖，同一國的建築常常不一致。',
+        en: 'What the floor you enter from the street is called. In Taiwan, China, Japan, South Korea, the US, Canada, Russia and the former Soviet states, plus Finland, Norway and Iceland in Europe and Chile, Colombia, Ecuador and Peru, the ground floor is the 1st floor (41 countries). In the UK, most of Europe, Hong Kong, Mexico, Argentina, Brazil and most of Africa, South Asia and the Middle East it is the ground floor (G) or floor 0 and the 1st floor is one up, so a British 1st floor is a Taiwanese 2nd (167 countries). Singapore, Vietnam, Indonesia and the Philippines use both. Skipping the 4th floor (Hong Kong, hospitals in South Korea, Malaysia, Indonesia…) or the 13th (most US and Canadian buildings over 12 floors have none) is a builders’ custom, not a rule, and is noted for those countries. Based on a map drawn by a Wikimedia Commons user; buildings within one country often differ.',
+      },
+      unit: '',
+      file: 'floor-numbering.json',
+      layer: { kind: 'categorical', categories: FLOOR_NUMBERING },
+      format: (v) => categoryLabel(FLOOR_NUMBERING, v),
+      missing: { zh: '地圖上沒有資料', en: 'No data on the map' },
+    },
     // 單位的偏好（第二十二批 391）
     ...UNIT_INDICATORS.map((u) =>
       formatIndicator(u.id, u.label, { zh: `${u.description.zh}${UNIT_NOTE.zh}`, en: `${u.description.en} ${UNIT_NOTE.en}` }, u.categories),
