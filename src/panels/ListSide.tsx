@@ -113,7 +113,14 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   // 檔名的 {year} 換成時間軸的年份（2026-11-03，移民路上的死亡與失蹤：一年一個點檔）
   // 檔名是 ../<主題>/… 時讀另一個主題的資料夾（整併進來的清單，topics/merge.ts）
   const path = topicFile({ id: topicId }, (item && def.itemFiles?.[item]) || def.file.replace('{item}', item ?? '').replace('{year}', String(year)));
-  const { data, error: fileError } = useJson<PointsData | LinesData>(shown && !def.fromLive && !def.layered ? path : null);
+  const file = useJson<PointsData | LinesData>(shown && !def.fromLive && !def.layered ? path : null);
+  const fileError = file.error;
+  // 新的檔還沒到時 useJson 給的是上一個檔：同一個清單換年份（{year}）照舊先畫上一份，播放時不閃；換了清單（換主題、換指標）時
+  // 不用（2026-11-06：清單開著從航運〔點的清單〕換到航海日誌〔線的清單〕，舊的點檔被當成線檔解析，整個畫面出錯）
+  const dataDef = useRef<ListPanelDef | null>(null);
+  if (file.data && !file.loading) dataDef.current = def;
+  const stale = file.loading && dataDef.current !== def;
+  const data = stale ? null : file.data;
   // 分層的點檔（城市）：選了國家時兩個檔都讀（那一國的小城市在其餘的裡）；沒選國家時全世界的前幾名都在 file 裡
   const [query, setQuery] = useState('');
   useEffect(() => setQuery(''), [def, topicId]);
@@ -128,9 +135,11 @@ export function ListSide({ def, topicId, item, year, country, countryName, sort,
   const extras = useJsonMany<PointsData>(extraPaths);
   const all = useMemo(() => {
     if (def.fromLive) return shown ? def.fromLive(live) : null;
+    // 檔的格式跟清單的設定對不上（線檔、點檔）時當成還沒讀到
+    const shapeOk = data && (def.lines ? Array.isArray((data as LinesData).lines) : Array.isArray((data as PointsData).columns));
     const main = def.layered
       ? layered.points
-      : data
+      : data && shapeOk
         ? def.lines
           ? lineGroups(data as LinesData, def.lines.groupField)
           : decodePoints(data as PointsData)
