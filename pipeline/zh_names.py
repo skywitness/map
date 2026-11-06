@@ -6,7 +6,9 @@
   只換掉夾在裡面的**純簡體字**（OpenCC 的 STCharacters 裡、候選沒有它自己的字，例如「千户站」的「户」、「国」）與
   台灣的異體字（TWVariants：「裏」→「裡」、「着」→「著」、「爲」→「為」），換成 s2tw 在同一個位置轉出來的字；
   繁體也用的字（里、克、托、夸、范、台、后…）不動。
-- 沒有繁中標籤時用簡中（zh）的標籤，OpenCC 的 s2twp 轉成台灣用字與用語。
+- 沒有繁中標籤時用簡中（zh）的標籤，OpenCC 的 s2twp 轉成台灣用字與用語。s2twp 也換電腦用語，音譯的地名會被換掉
+  （「凱布爾」→「凱布林」、「巴布爾花園」→「巴布林花園」、古羅馬城市「意大利迦」→「義大利迦」），原本就用 s2tw 轉簡中的
+  （世界遺產的預備名單與地質公園、景點的補充、高塔）照舊用 s2tw（terms=False，只換字、不換用語）。
 - 地名（景點、地形、場館、車站…，place=True）再修正音譯常見的錯字（TRANSLIT_FIX：剋→克、託→托、裡／裏→里、誇→夸）：
   簡中轉繁會轉錯，Wikidata 自己的繁中標籤也有這種錯字（多半是機器轉的，「瓦剋夫」「里奧誇爾托」）；
   地名裡幾乎不會用到前面那些字。品牌、公司、食物等一般文字不要用。
@@ -48,13 +50,14 @@ def hant(text: str) -> str:
     return "".join(t if c in convert else c for c, t in zip(text, converted))
 
 
-def wikidata_zh(hant_label: str | None, hans_label: str | None = None, *, place: bool = False) -> str | None:
-    """繁中的標籤（zh-tw、zh-hant…，已依序挑好的第一個）原樣用（hant()），沒有時把簡中（zh）用 s2twp 轉；
-    place=True 是地名，再修正音譯的錯字（TRANSLIT_FIX）"""
+def wikidata_zh(hant_label: str | None, hans_label: str | None = None, *, place: bool = False,
+                terms: bool = True) -> str | None:
+    """繁中的標籤（zh-tw、zh-hant…，已依序挑好的第一個）原樣用（hant()），沒有時把簡中（zh）用 s2twp 轉
+    （terms=False 用 s2tw，只換字、不換用語）；place=True 是地名，再修正音譯的錯字（TRANSLIT_FIX）"""
     if hant_label:
         name = hant(hant_label)
     elif hans_label:
-        name = _opencc()[1].convert(hans_label)
+        name = _opencc()[1 if terms else 0].convert(hans_label)
     else:
         return None
     return name.translate(TRANSLIT_FIX) if place else name

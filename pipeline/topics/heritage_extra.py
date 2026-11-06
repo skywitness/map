@@ -60,9 +60,9 @@ def _point(v: str | None) -> tuple[float, float] | None:
 
 
 def _zh(r: dict) -> str | None:
-    """中文名稱：zh-tw、zh-hant，沒有時把 zh 用 OpenCC 轉成台灣用字（跟「節慶」主題一樣）"""
+    """中文名稱：zh-tw、zh-hant，沒有時把 zh 用 OpenCC 轉成台灣用字；都修正音譯地名的錯字"""
     v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
-    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True)
+    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True, terms=False)  # 簡中照舊用 s2tw（zh_names.py）
 
 
 # ── 預備名單 ─────────────────────────────────────────────────────

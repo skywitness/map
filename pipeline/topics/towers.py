@@ -65,7 +65,7 @@ SELECT ?item (MAX(?h0) AS ?h) (SAMPLE(?coord0) AS ?coord) (GROUP_CONCAT(DISTINCT
 
 def _zh(r: dict) -> str | None:
     v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
-    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True)
+    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True, terms=False)  # 簡中照舊用 s2tw（zh_names.py）
 
 
 def build() -> None:
