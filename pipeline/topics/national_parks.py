@@ -156,8 +156,8 @@ def build() -> None:
     by_c = {k: sum(1 for r in rows if r["c"] == k) for k in (1, 2, 3)}
     print(f"  國家公園 {len(rows)} 處（有設立年份 {len(dated)}、不詳 {len(undated)}），不收 {skipped}；IUCN II {by_c[1]}、其他 {by_c[2]}、沒標 {by_c[3]}")
     print(f"  最早的：{[(r['y'], r['en']) for r in dated[:6]]}")
-    tw = [(r["y"], r["zh"] or r["en"]) for r in rows if r["iso3"] == "TWN"]
-    print(f"  台灣：{sorted(tw, key=lambda x: x[0] or 0)}")
+    tw_parks = [(r["y"], r["zh"] or r["en"]) for r in rows if r["iso3"] == "TWN"]  # 不要蓋掉上面台灣保護區的 tw
+    print(f"  台灣：{sorted(tw_parks, key=lambda x: x[0] or 0)}")
     last = years[-1]
     ranked = sorted((v.get(last), c) for c, v in land.items() if v.get(last) is not None)
     print(f"  陸域保護區 {years[0]}–{last}，{len(ranked)} 國；最高 {ranked[-4:]}，世界 {land_world.get(last)}，台灣 {tw['share']:.2f}%")
