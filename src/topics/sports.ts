@@ -6,6 +6,7 @@ import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { roadRaces } from './road-races';
 import { sportsEconomyPart } from './sports-economy';
+import { sportsLeaguesPart } from './sports-leagues';
 
 /**
  * 運動（2026-10-30，製作手冊第七批 121）：原本是「奧運獎牌」與「F1 賽道與冠軍」合成的主題；
@@ -77,4 +78,6 @@ export const sports: TopicDefinition = withParts(
   topicPart(roadRaces, { rename: ROAD_RACE_IDS }),
   // 2026-11-06（第二十四批 425）：運動業的就業與政府的運動與休閒支出
   sportsEconomyPart,
+  // 2026-11-06（第二十四批 426）：聯賽、俱樂部與進場人數
+  sportsLeaguesPart,
 );
