@@ -116,6 +116,7 @@ const TOPIC_ICONS = {
   tourism: 'luggage',
   'travel-habits': 'tickets-plane',
   passport: 'stamp',
+  'travel-advisories': 'shield-alert',
   military: 'shield',
   conflict: 'swords',
   news: 'newspaper',

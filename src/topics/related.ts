@@ -72,6 +72,7 @@ export const RELATED: Record<string, string[]> = {
   'travel-habits': ['tourism', 'holidays', 'time-use'],
   tourism: ['travel', 'world-heritage', 'aviation'],
   passport: ['travel', 'taiwan-diplomacy', 'tourism'],
+  'travel-advisories': ['taiwan-diplomacy', 'conflict', 'passport'],
   military: ['conflict', 'empires', 'space'],
   conflict: ['military', 'news', 'crime'],
   news: ['conflict', 'reads'],

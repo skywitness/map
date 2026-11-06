@@ -73,7 +73,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '往來', en: 'Flows' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport'] },
       { label: { zh: '政治', en: 'Politics' }, topics: ['empires', 'democracy', 'governance'] },
       { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy'] },
-      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
+      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news', 'travel-advisories'] },
     ],
     // 每個小類各占一欄（2026-11-05 使用者要求，外交在政治右邊、安全左邊）：往來；政治；外交；安全
     columns: [1, 1, 1, 1],
@@ -209,6 +209,8 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'china-lending': () => import('./china-lending'),
   tourism: () => import('./tourism'),
   passport: () => import('./passport'),
+  // 2026-11-06 第二十四批 420：美國、加拿大與台灣的旅遊警示
+  'travel-advisories': () => import('./travel-advisories'),
   military: () => import('./military'),
   conflict: () => import('./conflict'),
   news: () => import('./news'),
