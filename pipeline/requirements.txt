@@ -9,6 +9,8 @@ py7zr>=0.22
 pyarrow>=18
 # Climate TRACE：每一版資料說明 PDF 的授權例外（sources/climate_trace.py 的 release()）
 pypdf>=5
+# Reuters Institute 數位新聞報告的 PDF：沒有 fontTools 時部分字型的編碼抽不對
+fonttools>=4
 # 國旗主題：SVG 點陣化（resvg）、讀 PNG、svgo 的備援最佳化
 resvg-py>=0.5
 Pillow>=11

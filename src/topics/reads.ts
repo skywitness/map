@@ -4,6 +4,7 @@ import { fixed } from '../lib/format';
 import { decodePoints } from '../map/overlayData';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, PointRecord, PointsData, TopicDefinition } from './types';
+import { withParts, type TopicPart } from './parts';
 
 /**
  * 各國在讀什麼（pipeline/topics/reads.py）：Wikimedia 的差分隱私每日瀏覽量彙整成每國每月讀最多的維基百科條目。
@@ -169,7 +170,58 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const reads: TopicDefinition = {
+/**
+ * 從哪裡取得新聞（2026-11-06，製作手冊第二十四批 423；pipeline/topics/news_dnr.py）：Reuters Institute 數位新聞報告，
+ * 一年一次的問卷。年份是一般的年，不是「讀最多的條目」的月份，所以不用那個側欄（ReadsPanel 把年份當月份）
+ */
+const newsPart: TopicPart = {
+  name: { zh: '從哪裡取得新聞', en: 'Where people get news' },
+  sources: [
+    {
+      name: {
+        zh: 'Reuters Institute《Digital News Report 2026》（新聞 podcast、AI 聊天機器人；DOI 10.60625/risj-4vgf-s811）',
+        en: 'Reuters Institute, Digital News Report 2026 (news podcasts, AI chatbots; DOI 10.60625/risj-4vgf-s811)',
+      },
+      url: 'https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026',
+      license: 'CC BY 4.0',
+    },
+  ],
+  panelExtra: () => Promise.resolve({ default: () => null }),
+  indicators: [
+    {
+      id: 'news-podcasts',
+      label: { zh: '每週聽新聞 podcast 的人', en: 'Weekly news podcast use' },
+      description: {
+        zh: '上週用新聞 podcast 取得新聞的人的比例（Reuters Institute《Digital News Report 2026》，2026 年 1–2 月的線上問卷，43 個市場）。印尼 17% 最高，秘魯、香港 16%，羅馬尼亞、保加利亞 15%，美國 14%；台灣 8%；西班牙、比利時 6%，土耳其 5%，阿根廷 4%，日本 3% 最低。只算新聞類的 podcast，不是所有 podcast 的收聽率；樣本是上網的人。',
+        en: 'Share who used a news podcast in the last week (Reuters Institute Digital News Report 2026, online survey in January–February 2026, 43 markets). Indonesia is highest at 17%, then Peru and Hong Kong 16%, Romania and Bulgaria 15% and the US 14%; Taiwan 8%; Spain and Belgium 6%, Türkiye 5%, Argentina 4% and Japan 3% are lowest. Only news podcasts count, not podcast listening in general; the sample is online.',
+      },
+      unit: '%',
+      file: 'news-podcasts.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 7, 9, 11, 13, 15] } },
+      format: (v) => `${fixed(v, 0)}%`,
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2026,
+      missing: { zh: '不在數位新聞報告的市場裡', en: 'Not covered by the Digital News Report' },
+    },
+    {
+      id: 'news-ai-chatbots',
+      label: { zh: '每週用 AI 聊天機器人看新聞的人', en: 'Weekly news use via AI chatbots' },
+      description: {
+        zh: '上週用 ChatGPT 這類 AI 聊天機器人取得新聞的人的比例（Reuters Institute《Digital News Report 2026》，43 個市場）。土耳其、南韓 14% 最高，香港、巴西 13%，印尼、希臘 12%；台灣 7%；法國、芬蘭、丹麥、德國 5%，英國 4% 最低。',
+        en: 'Share who used an AI chatbot such as ChatGPT for news in the last week (Reuters Institute Digital News Report 2026, 43 markets). Türkiye and South Korea are highest at 14%, then Hong Kong and Brazil 13%, Indonesia and Greece 12%; Taiwan 7%; France, Finland, Denmark and Germany 5% and the UK 4% are lowest.',
+      },
+      unit: '%',
+      file: 'news-ai-chatbots.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 7, 9, 11, 13] } },
+      format: (v) => `${fixed(v, 0)}%`,
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2026,
+      missing: { zh: '不在數位新聞報告的市場裡', en: 'Not covered by the Digital News Report' },
+    },
+  ],
+};
+
+export const reads: TopicDefinition = withParts({
   id: 'reads',
   title: { zh: '各國在讀什麼', en: 'What each country is reading' },
   shortTitle: { zh: '在讀什麼', en: 'Reading' },
@@ -218,4 +270,4 @@ export const reads: TopicDefinition = {
     },
   ],
   indicators,
-};
+}, newsPart);

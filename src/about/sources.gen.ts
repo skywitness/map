@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 145;
-export const INDICATOR_COUNT = 1089;
+export const INDICATOR_COUNT = 1091;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -248,6 +248,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Pew Research Center，〈Polygamy is rare around the world and mostly confined to a few regions〉（2020，摘錄）","en":"Pew Research Center, “Polygamy is rare around the world and mostly confined to a few regions” (2020, excerpts)"},"url":"https://www.pewresearch.org/short-reads/2020/12/07/polygamy-is-rare-around-the-world-and-mostly-confined-to-a-few-regions/","licenses":[{"zh":"Pew 使用條款（只能摘錄）","en":"Pew Research Center terms of use (excerpts only)"}],"topics":["marriage"]},
   {"name":{"zh":"Piel 等 2013〈Global Burden of Sickle Cell Anaemia in Children under Five, 2010–2050〉，PLoS Medicine 10(7):e1001484，Table S2","en":"Piel et al. 2013, “Global Burden of Sickle Cell Anaemia in Children under Five, 2010–2050”, PLoS Medicine 10(7):e1001484, Table S2"},"url":"https://doi.org/10.1371/journal.pmed.1001484","licenses":["CC BY 4.0"],"topics":["red-cell-traits"]},
   {"name":{"zh":"Ramsar Sites Information Service（拉姆薩濕地的中心點）","en":"Ramsar Sites Information Service (site centroids)"},"url":"https://rsis.ramsar.org/","licenses":["CC BY 4.0"],"topics":["world-heritage"]},
+  {"name":{"zh":"Reuters Institute《Digital News Report 2026》（新聞 podcast、AI 聊天機器人；DOI 10.60625/risj-4vgf-s811）","en":"Reuters Institute, Digital News Report 2026 (news podcasts, AI chatbots; DOI 10.60625/risj-4vgf-s811)"},"url":"https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026","licenses":["CC BY 4.0"],"topics":["reads"]},
   {"name":{"zh":"Richter 等 2024，Spatial Database of Planted Trees（SDPT 2.0），World Resources Institute","en":"Richter et al. 2024, Spatial Database of Planted Trees (SDPT Version 2.0), World Resources Institute"},"url":"https://data.globalforestwatch.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"Sengupta et al. 2023，Mapping 21st Century global coastal land reclamation（Earth’s Future 11(2)；Zenodo 資料）","en":"Sengupta et al. 2023, Mapping 21st Century global coastal land reclamation (Earth’s Future 11(2); data on Zenodo)"},"url":"https://doi.org/10.5281/zenodo.7528236","licenses":["CC BY 4.0"],"topics":["reclamation"]},
   {"name":{"zh":"Smeenk 等 2023〈ART in Europe, 2019: results generated from European registries by ESHRE〉，Human Reproduction 38(12)，表 1、表 4","en":"Smeenk et al. 2023, “ART in Europe, 2019: results generated from European registries by ESHRE”, Human Reproduction 38(12), tables 1 and 4"},"url":"https://doi.org/10.1093/humrep/dead197","licenses":["CC BY 4.0"],"topics":["fertility"]},
