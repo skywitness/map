@@ -5,6 +5,7 @@ import { olympicsPart, PLACES } from './olympics';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { roadRaces } from './road-races';
+import { sportsEconomyPart } from './sports-economy';
 
 /**
  * 運動（2026-10-30，製作手冊第七批 121）：原本是「奧運獎牌」與「F1 賽道與冠軍」合成的主題；
@@ -71,4 +72,9 @@ export const ROAD_RACE_IDS: Record<string, string> = { races: 'road-races', foun
  * 運動（2026-11-04，主題整併 併12）：「馬拉松、超馬與鐵人賽事」併進來，資料照舊在 road-races/（topics/merge.ts），
  * 舊網址 t/road-races/ 轉到這裡（redirects.ts）
  */
-export const sports: TopicDefinition = withParts(hostOnly(sportsOwn), topicPart(roadRaces, { rename: ROAD_RACE_IDS }));
+export const sports: TopicDefinition = withParts(
+  hostOnly(sportsOwn),
+  topicPart(roadRaces, { rename: ROAD_RACE_IDS }),
+  // 2026-11-06（第二十四批 425）：運動業的就業與政府的運動與休閒支出
+  sportsEconomyPart,
+);
