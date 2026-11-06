@@ -53,6 +53,8 @@ export function commonsPhoto(path: unknown, by: unknown, lic: unknown): PointToo
     src: small,
     srcSet: `${small} ${WIDTHS[0]}w, ${large} ${WIDTHS[1]}w`,
     credit: photoCredit(typeof by === 'string' ? by : null, typeof lic === 'string' ? lic : null),
+    // 點一下固定的卡片裡，照片連到 Commons 的檔案頁（原圖、完整的授權）
+    page: commonsPage(path),
   };
 }
 

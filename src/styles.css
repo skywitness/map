@@ -2750,6 +2750,47 @@ kbd {
   white-space: normal;
 }
 
+/* 點一下固定的卡片（2026-11-06）：文字可以選取、複製（地圖本身不能選取）；右上角的 × 浮在照片上；
+   地圖比卡片矮時（手機橫放）卡片裡面捲動 */
+.map-place {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: auto;
+  max-height: calc(100% - 8px);
+  overflow-y: auto;
+}
+
+.map-place-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.map-place-close:hover {
+  color: var(--ink);
+}
+
+/* 卡片的標題不要被 × 蓋住 */
+.map-place > .tt-value:first-of-type {
+  padding-right: 22px;
+}
+
+.map-place .tt-photo a {
+  display: block;
+  cursor: zoom-in;
+}
+
 .map-place-coords {
   margin-top: 2px;
   color: var(--ink-secondary);

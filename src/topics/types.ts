@@ -954,7 +954,7 @@ export interface PointTooltip {
    * 照片（2026-11-06，城2，參考 thecastlemap.com 的照片卡）：Wikimedia Commons 的縮圖，滑過才載入（lib/commons.ts 的
    * commonsPhoto() 組出網址與出處）。credit 是攝影者與授權，寫在照片下面
    */
-  photo?: { src: string; srcSet?: string; credit: string };
+  photo?: { src: string; srcSet?: string; credit: string; page?: string };
   /** 外部連結（例如維基百科條目）：只在點一下（觸控長按）的小卡片裡出現，滑過的 tooltip 不顯示 */
   link?: { href: string; label: string };
 }

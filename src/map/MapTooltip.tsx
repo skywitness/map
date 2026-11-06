@@ -30,6 +30,17 @@ export function MarkTooltip({ marks, index }: { marks: MapMark[]; index: number 
   );
 }
 
+/**
+ * 卡片放在游標（或點下去的位置）旁邊的哪裡：右下，放不下往左、往上；上下都放不下時（有照片的卡片高約 330–420 px）
+ * 推到剛好放進地圖（卡片在點的旁邊，不會蓋住點）。gap 是跟游標的距離
+ */
+export function placeBox(x: number, y: number, [w, h]: [number, number], width: number, height: number, gap: number): { left: number; top: number } {
+  const m = 4;
+  const left = x + gap + w <= width - m ? x + gap : Math.max(m, x - gap - w);
+  const top = y + gap + h <= height - m ? y + gap : y - gap - h >= m ? y - gap - h : Math.max(m, height - m - h);
+  return { left, top };
+}
+
 export interface MapTooltipProps {
   x: number;
   y: number;
@@ -48,19 +59,9 @@ export function MapTooltip({ x, y, width, height, children }: MapTooltipProps) {
     const next: [number, number] = [el.offsetWidth, el.offsetHeight];
     if (next[0] !== size[0] || next[1] !== size[1]) setSize(next);
   });
-  const flipX = x > width - Math.max(size[0], 120) - 20;
-  const flipY = y > height - Math.max(size[1], 60) - 20 && y > size[1] + 20;
+  const { left, top } = placeBox(x, y, size, width, height, 14);
   return (
-    <div
-      ref={ref}
-      className="map-tooltip"
-      role="status"
-      style={{
-        left: x + (flipX ? -14 : 14),
-        top: y + (flipY ? -14 : 14),
-        transform: `translate(${flipX ? '-100%' : '0'}, ${flipY ? '-100%' : '0'})`,
-      }}
-    >
+    <div ref={ref} className="map-tooltip" role="status" style={{ left, top }}>
       {children}
     </div>
   );
