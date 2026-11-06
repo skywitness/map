@@ -2,7 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { metroExtra } from './rail-extra';
-import { monthlyPass } from './transit-fares';
+import { monthlyPass, nationalPass } from './transit-fares';
 import type { ColorClasses, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -59,6 +59,7 @@ export const metro: TopicDefinition = {
   defaultYear: 2026,
   sources: [
     monthlyPass.source,
+    ...nationalPass.sources,
     {
       name: { zh: 'Wikidata（地鐵站、地鐵路網與開通日期）', en: 'Wikidata (metro stations, metro systems and opening dates)' },
       url: 'https://www.wikidata.org/',
@@ -115,5 +116,6 @@ export const metro: TopicDefinition = {
     },
     ...metroExtra.indicators,
     monthlyPass.indicator,
+    nationalPass.indicator,
   ],
 };

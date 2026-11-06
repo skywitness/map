@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { IndicatorDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, SourceDef } from './types';
+import type { CategoryDef, IndicatorDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, SourceDef } from './types';
 
 /**
  * 大眾運輸的月票與計程車車資（2026-11-05，製作手冊第二十三批 409；pipeline/topics/transit_fares.py）：Eurostat Urban Audit
@@ -123,4 +123,41 @@ export const taxiFare = {
       },
     },
   }),
+};
+
+/**
+ * 全國通用的月票或免費大眾運輸（2026-11-06，製作手冊第二十三批 409 的後半；pipeline/topics/national_passes.py）：
+ * 使用者決定只收有方案的國家、逐國查官網；其他國家灰色寫「沒查到全國方案」，不判定沒有。台灣的 TPASS 算「區域」。
+ */
+const PASS_KINDS: CategoryDef[] = [
+  { value: 1, label: { zh: '全國大眾運輸免費', en: 'Free public transport nationwide' } },
+  { value: 2, label: { zh: '全國通用的月票或年票', en: 'Nationwide monthly or annual pass' } },
+  { value: 3, label: { zh: '區域或只限鐵路的通用票', en: 'Regional or rail-only pass' } },
+];
+
+export const nationalPass: { sources: SourceDef[]; indicator: IndicatorDef } = {
+  sources: [
+    {
+      name: {
+        zh: '各國政府與業者官網：盧森堡政府、Malta Public Transport、德國聯邦政府、奧地利交通部、Alliance SwissPass、MÁV、Renfe、葡萄牙政府、行政院',
+        en: 'Government and operator websites: Luxembourg government, Malta Public Transport, German Federal Government, Austrian transport ministry, Alliance SwissPass, MÁV, Renfe, Portuguese government, Executive Yuan (Taiwan)',
+      },
+      url: 'https://gouvernement.lu/fr/actualites/toutes_actualites/communiques/2020/02-fevrier/11-mobilite-gratuite.html',
+      license: { zh: '引用官網公告的事實', en: 'facts cited from official websites' },
+    },
+  ],
+  indicator: {
+    id: 'national-pass',
+    label: { zh: '全國通用的月票或免費大眾運輸', en: 'Nationwide passes and free public transport' },
+    description: {
+      zh: '一張票搭遍全國的大眾運輸，或乾脆全國免費（2026 年 11 月，逐國查官網，滑過看方案、開始日期與價格）。全國免費：盧森堡 2020 年 3 月 1 日起（火車頭等艙除外）、馬爾他 2022 年 10 月 1 日起（持記名卡的居民搭公車）。全國通用的月票或年票：瑞士的 GA 1898 年就有，奧地利 KlimaTicket 2021 年、德國 Deutschlandticket 與匈牙利的全國月票 2023 年、西班牙 Abono Único 2026 年 1 月；匈牙利、西班牙不含市內交通。只限鐵路或區域的：葡萄牙國鐵的 Passe Ferroviário Verde（2024 年），台灣的 TPASS 行政院通勤月票（2023 年 7 月 1 日起，各生活圈一種，例如基北北桃 1,200 元）。灰色是沒查到全國方案，不代表一定沒有；愛沙尼亞各郡的免費公車、南韓的 K-Pass（全國通用的退款回饋，不是月票）沒有收。',
+      en: 'One ticket for public transport across the whole country, or none needed at all (November 2026, checked against official websites; hover for the scheme, start date and price). Free nationwide: Luxembourg from 1 March 2020 (except first class on trains) and Malta from 1 October 2022 (buses, for residents with a personalised card). Nationwide monthly or annual passes: Switzerland’s GA dates from 1898, Austria’s KlimaTicket from 2021, Germany’s Deutschlandticket and Hungary’s national pass from 2023, and Spain’s Abono Único from January 2026; the Hungarian and Spanish passes exclude local transit. Rail-only or regional: Portugal’s Passe Ferroviário Verde for CP trains (2024) and Taiwan’s TPASS commuter passes (from 1 July 2023, one per metropolitan region, e.g. NT$1,200 for Keelung–Taipei–New Taipei–Taoyuan). Grey means no nationwide scheme was found, not that none exists; Estonia’s free county buses and South Korea’s K-Pass (a nationwide fare rebate, not a pass) are not included.',
+    },
+    unit: '',
+    file: 'national-pass.json',
+    layer: { kind: 'categorical', categories: PASS_KINDS },
+    format: (v) => tr(PASS_KINDS.find((k) => k.value === v)?.label ?? ''),
+    unranked: true,
+    missing: { zh: '沒查到全國方案', en: 'No nationwide scheme found' },
+  },
 };

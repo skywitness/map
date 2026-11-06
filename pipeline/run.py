@@ -197,6 +197,8 @@ STEPS = {
     "cities-transport": "topics.cities_transport",
     # 大眾運輸的月票與計程車車資（第二十三批 409）：Eurostat Urban Audit TT1080V、TT1081V，分別輸出到地鐵與叫車服務的資料夾
     "transit-fares": "topics.transit_fares",
+    # 全國通用的月票或免費大眾運輸（第二十三批 409 的後半，使用者 2026-11-06 決定）：逐國查官網的小表
+    "national-passes": "topics.national_passes",
     # 城市的低排放區與塞車費（第二十三批 410）：QLever 查 OSM 的 boundary=low_emission_zone、英文維基 Congestion pricing 的固定版本、桃園市 CSV
     "city-traffic": "topics.city_traffic",
     # 關鍵礦產的台灣側欄：地礦中心的現存礦業權清冊（data.gov.tw 126847）
