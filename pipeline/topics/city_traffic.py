@@ -41,7 +41,10 @@ TAOYUAN = "https://opendata.tycg.gov.tw/api/dataset/dc135329-332f-4182-a180-7ab4
 # 種類：1 進入市中心收費（塞車費、擁擠稅）、2 收費環與市區收費道路、3 古城中心、4 已經停收
 # 2026-11-06 補：瓦萊塔的 2007 年取自英文維基「Valletta」revid 1381541439（「In 2007, a congestion pricing scheme was
 # implemented」）；滕斯貝格、納姆索斯的收費環在「Toll roads in Norway」revid 1382299473 列在「Former toll roads」。
-# 其他沒寫年份的（茲諾伊莫、里加、克里斯蒂安桑、海于格松、斯塔萬格）城市條目也沒寫，留空
+# 其他沒寫年份的（茲諾伊莫、里加、克里斯蒂安桑、海于格松、斯塔萬格）城市條目也沒寫。使用者 2026-11-06 決定查官網補：
+# 挪威收費站的營運公司 Ferde（ferde.no，robots.txt 只禁 /studio、/api/、/login）寫了海于格松 Haugalandspakken 2008-07-01 起；
+# 斯塔萬格、克里斯蒂安桑只寫現行方案的年份（不是最初的），寫在說明、年份留空；挪威公路局網站地圖、里加市政府網站地圖
+# 找不到相關頁面，茲諾伊莫市政府網站從 cloud 連線被重設；滕斯貝格、納姆索斯也沒找到。查不到的年份不詳
 CONGESTION = [
     ("Singapore", "SG", 1, 1975, {"zh": "1975 年區域通行證（ALS），1998 年改成電子道路收費（ERP）", "en": "Area Licensing Scheme from 1975; Electronic Road Pricing from 1998"}),
     ("Rome", "IT", 1, 2001, {"zh": "限制通行區（ZTL）的電子門禁", "en": "Electronic access control for the limited traffic zone (ZTL)"}),
@@ -57,10 +60,10 @@ CONGESTION = [
     ("Bergen", "NO", 2, 1986, {"zh": "收費環，進市中心只能走收費道路", "en": "Toll ring; the centre can only be reached by toll roads"}),
     ("Oslo", "NO", 2, 1990, {"zh": "收費環，尖峰加價", "en": "Toll ring with peak-hour rates"}),
     ("Trondheim", "NO", 2, 1991, {"zh": "收費環，2010 年起依時段收費", "en": "Toll ring; time-of-day rates from 2010"}),
-    ("Kristiansand", "NO", 2, None, {"zh": "收費環，依時段收費", "en": "Toll ring with time-of-day rates"}),
-    ("Haugesund", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）", "en": "Urban charging (in place by 2015)"}),
+    ("Kristiansand", "NO", 2, None, {"zh": "收費環，依時段收費；營運公司 Ferde 只寫現在的第三期 2024-06-21 起，最初的年份沒寫", "en": "Toll ring with time-of-day rates; the operator Ferde gives only the current third phase (from 21 June 2024), not the first year"}),
+    ("Haugesund", "NO", 2, 2008, {"zh": "Haugalandspakken 2008-07-01 起收費，2026-03-30 起改成 Bypakke Haugesund（營運公司 Ferde）", "en": "Haugalandspakken from 1 July 2008, replaced by Bypakke Haugesund from 30 March 2026 (operator Ferde)"}),
     ("Namsos", "NO", 4, None, {"zh": "收費環，2015 年時已實施，後來停收", "en": "Toll ring, in place by 2015, since discontinued"}),
-    ("Stavanger", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）", "en": "Urban charging (in place by 2015)"}),
+    ("Stavanger", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）；現在的 Bymiljøpakken 2018-10-01 起、38 個收費站（營運公司 Ferde），之前的年份沒寫", "en": "Urban charging (in place by 2015); the current Bymiljøpakken since 1 October 2018 with 38 toll points (operator Ferde), earlier start not given"}),
     ("Tønsberg", "NO", 4, None, {"zh": "收費環，2015 年時已實施，後來停收", "en": "Toll ring, in place by 2015, since discontinued"}),
     ("Santiago", "CL", 2, 2004, {"zh": "穿過市中心的快速道路不停車收費（2004–2005 年），2007 年起尖峰加價", "en": "Free-flow tolls on urban freeways (2004–2005); peak-hour pricing from 2007"}),
 ]
