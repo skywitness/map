@@ -37,6 +37,15 @@ export const MISSION_TYPES: Record<number, Text> = {
  * 需事先申請、電子簽證是橘色，落地簽證是中間的中性色，免簽證（含要先上網申請旅行授權的）是青綠。
  * 用循序色的話 5 類會用到最深的兩階橘色（免簽證與需要旅行授權的免簽證），在地圖上分不太出來。
  */
+/** 打工度假：台灣青年每年的名額（pipeline/topics/working_holiday.py 的類別，由多到少，第一類最深色） */
+const WORKING_HOLIDAY: CategoryDef[] = [
+  { value: 1, label: { zh: '不限名額', en: 'No cap' } },
+  { value: 2, label: { zh: '1,000 名以上', en: '1,000 or more' } },
+  { value: 3, label: { zh: '400–999 名', en: '400–999' } },
+  { value: 4, label: { zh: '100–399 名', en: '100–399' } },
+  { value: 5, label: { zh: '不到 100 名', en: 'Under 100' } },
+];
+
 export const VISA: CategoryDef[] = [
   { value: 5, label: { zh: '需事先申請簽證', en: 'Visa required in advance' } },
   { value: 4, label: { zh: '電子簽證', en: 'E-visa' } },
@@ -171,6 +180,16 @@ export const diplomacy: TopicDefinition = {
       license: GOV_LICENSE,
     },
     {
+      name: { zh: '外交部 臺灣青年Fun眼世界：度假打工資訊（data.gov.tw 7651）', en: 'MOFA Taiwan Youth: working holiday information (data.gov.tw 7651)' },
+      url: 'https://data.gov.tw/dataset/7651',
+      license: GOV_LICENSE,
+    },
+    {
+      name: { zh: '領事事務局 度假打工（青年交流）（data.gov.tw 32894）', en: 'BOCA working holidays (youth exchange) (data.gov.tw 32894)' },
+      url: 'https://data.gov.tw/dataset/32894',
+      license: GOV_LICENSE,
+    },
+    {
       name: { zh: '領事事務局各國資訊（兼轄館處）', en: 'BOCA country pages' },
       url: 'https://www.boca.gov.tw/sp-foof-countrylp-03-1.html',
       license: GOV_LICENSE,
@@ -265,6 +284,38 @@ export const diplomacy: TopicDefinition = {
       file: 'visa.json',
       layer: { kind: 'categorical', categories: VISA, diverging: true },
       format: (v) => label(VISA, v),
+    },
+    // 2026-11-06（製作手冊第二十四批 419；pipeline/topics/working_holiday.py）：使用者決定只做台灣這一面
+    {
+      id: 'working-holiday',
+      label: { zh: '打工度假：每年的名額', en: 'Working holidays: annual places' },
+      description: {
+        zh: '台灣青年可以去打工度假的 18 個國家，依台灣青年每年有幾個名額上色（外交部「臺灣青年Fun眼世界」）：澳大利亞不限名額，日本每年 10,000 名最多，英國 1,000 名（臺英青年交流計畫，可以待 2 年）、加拿大約 1,000 名，韓國 800、紐西蘭 600、法國與德國 500、愛爾蘭 400，波蘭、比利時、以色列 200，奧地利、荷蘭、斯洛伐克、匈牙利、捷克 100，盧森堡 40 名。年齡上限多半是 30 歲，捷克 26 歲，韓國 34 歲，加拿大、斯洛伐克、匈牙利、盧森堡 35 歲；滑過國家看年齡、停留期限與開始實施的日期。名額是台灣青年去對方國家的名額，互惠不一定對等。',
+        en: 'The 18 countries where young Taiwanese can go on a working holiday, coloured by annual places for Taiwanese (Ministry of Foreign Affairs “Taiwan Youth” site): Australia has no cap, Japan offers the most at 10,000 a year, then the UK 1,000 (the Youth Mobility Scheme, up to 2 years) and Canada about 1,000, South Korea 800, New Zealand 600, France and Germany 500, Ireland 400, Poland, Belgium and Israel 200, Austria, the Netherlands, Slovakia, Hungary and Czechia 100, and Luxembourg 40. The age limit is mostly 30, but 26 for Czechia, 34 for South Korea and 35 for Canada, Slovakia, Hungary and Luxembourg; hover over a country for ages, length of stay and start date. Places are those for Taiwanese going abroad; the reciprocal numbers are not always equal.',
+      },
+      unit: '',
+      file: 'working-holiday.json',
+      layer: { kind: 'categorical', categories: WORKING_HOLIDAY, ordinal: true },
+      format: (v) => label(WORKING_HOLIDAY, v),
+      defaultYear: 2026,
+      missing: { zh: '沒有打工度假協定', en: 'No working holiday scheme' },
+      noValue: { TWN: { zh: '台灣', en: 'Taiwan' } },
+    },
+    {
+      id: 'working-holiday-since',
+      label: { zh: '打工度假：開始的年份', en: 'Working holidays: since' },
+      description: {
+        zh: '各國跟台灣的打工度假計畫從哪一年開始實施（外交部領事事務局的來臺說明）：紐西蘭 2004 年 6 月、澳大利亞 2004 年 11 月最早，日本 2009 年，加拿大、德國 2010 年，韓國 2011 年，英國 2012 年，荷蘭 2020 年最晚；以色列的說明沒有寫日期。',
+        en: 'The year each country’s working holiday scheme with Taiwan took effect (Bureau of Consular Affairs notes for visitors to Taiwan): New Zealand in June 2004 and Australia in November 2004 were first, then Japan 2009, Canada and Germany 2010, South Korea 2011 and the UK 2012, with the Netherlands latest in 2020; Israel’s notes give no date.',
+      },
+      unit: { zh: '年', en: '' },
+      file: 'working-holiday-since.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2008, 2011, 2013, 2015, 2018] } },
+      format: (v) => tr({ zh: `${v} 年起`, en: `since ${v}` }),
+      formatTick: (v) => `${v}`,
+      defaultYear: 2026,
+      missing: { zh: '沒有打工度假協定或沒寫日期', en: 'No scheme, or no date given' },
+      noValue: { TWN: { zh: '台灣', en: 'Taiwan' } },
     },
   ],
 };

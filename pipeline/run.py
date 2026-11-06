@@ -96,6 +96,7 @@ STEPS = {
     "huts": "topics.huts",
     "phenology-jp": "topics.phenology_jp",
     "travel-advisories": "topics.travel_advisories",
+    "working-holiday": "topics.working_holiday",
     "trade-medicinal-plants": "topics.trade_medicinal_plants",  # 只更新藥用植物（HS 1211，BACI HS92 約 2.4 GB，幾分鐘）
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",
