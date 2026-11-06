@@ -38,6 +38,11 @@ export const esports: TopicDefinition = {
       license: { zh: '准許個人與商業使用；Copyright © 2012-2026 Esports Earnings. All Rights Reserved.', en: 'Personal and commercial use permitted; Copyright © 2012-2026 Esports Earnings. All Rights Reserved.' },
     },
     {
+      name: { zh: 'Eurostat 上網活動（isoc_ci_ac_i）、網購的商品與服務（isoc_ec_ibgs）', en: 'Eurostat internet activities (isoc_ci_ac_i) and internet purchases (isoc_ec_ibgs)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_ac_i/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: 'UN World Population Prospects 2024（每百萬人用的人口）', en: 'UN World Population Prospects 2024 (population for per-million figures)' },
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
@@ -100,6 +105,35 @@ export const esports: TopicDefinition = {
         return typeof label === 'string' ? label : tr(label);
       },
       unranked: true,
+    },
+    // 2026-11-06（製作手冊第二十四批 424；pipeline/topics/gaming_eu.py）：一般人玩遊戲的比例，Eurostat，只有歐洲
+    {
+      id: 'gaming-online',
+      label: { zh: '上網玩遊戲的人（歐洲）', en: 'Playing games online (Europe)' },
+      description: {
+        zh: '16–74 歲的人裡，最近三個月上網玩或下載遊戲的比例（Eurostat，2024 年，歐洲 34 國；分母是全部人口，不是上網的人）。丹麥 51.7% 最高，荷蘭 50.1%、挪威 45.0%、瑞典 44.6%、愛爾蘭 44.4%、芬蘭 43.9%；法國 37.7%、西班牙 34.3%、義大利 29.9%、德國 28.3%；波蘭 16.6%、捷克 16.2%、保加利亞 15.8%、波赫 14.5% 最低。台灣與歐洲以外沒有可比的資料。',
+        en: 'Share of people aged 16–74 who played or downloaded games online in the last three months (Eurostat, 2024, 34 European countries; the denominator is the whole population, not internet users). Denmark is highest at 51.7%, then the Netherlands 50.1%, Norway 45.0%, Sweden 44.6%, Ireland 44.4% and Finland 43.9%; France 37.7%, Spain 34.3%, Italy 29.9% and Germany 28.3%; Poland 16.6%, Czechia 16.2%, Bulgaria 15.8% and Bosnia and Herzegovina 14.5% are lowest. Taiwan and countries outside Europe have no comparable data.',
+      },
+      unit: '%',
+      file: 'gaming-online.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 25, 30, 35, 40, 45] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    {
+      id: 'gaming-subscriptions',
+      label: { zh: '付費訂閱遊戲服務的人（歐洲）', en: 'Paying for game subscriptions (Europe)' },
+      description: {
+        zh: '16–74 歲的人裡，有付費的遊戲串流或遊戲訂閱服務的比例（Eurostat，2025 年，歐洲 35 國）。荷蘭 12.8% 最高，挪威 12.2%、愛爾蘭 12.0%、丹麥 10.1%、瑞士 9.9%、阿爾巴尼亞 9.5%；羅馬尼亞 2.5%、保加利亞 1.9%、斯洛維尼亞 1.8%、塞爾維亞 1.4% 最低。',
+        en: 'Share of people aged 16–74 paying for a game streaming or subscription service (Eurostat, 2025, 35 European countries). The Netherlands is highest at 12.8%, then Norway 12.2%, Ireland 12.0%, Denmark 10.1%, Switzerland 9.9% and Albania 9.5%; Romania 2.5%, Bulgaria 1.9%, Slovenia 1.8% and Serbia 1.4% are lowest.',
+      },
+      unit: '%',
+      file: 'gaming-subscriptions.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 4, 6, 8, 10, 12] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
     },
   ],
 };

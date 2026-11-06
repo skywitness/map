@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 145;
-export const INDICATOR_COUNT = 1091;
+export const INDICATOR_COUNT = 1093;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -104,6 +104,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Esports Earnings：Countries（2026 年 11 月 4 日）","en":"Esports Earnings: Countries (4 November 2026)"},"url":"https://www.esportsearnings.com/countries","licenses":[{"zh":"准許個人與商業使用；Copyright © 2012-2026 Esports Earnings. All Rights Reserved.","en":"Personal and commercial use permitted; Copyright © 2012-2026 Esports Earnings. All Rights Reserved."}],"topics":["esports"]},
   {"name":{"zh":"European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A（各國依城鄉程度的人口、建物面積）","en":"European Commission JRC, GHS-WUP-COUNTRY-STATS R2025A (population by Degree of Urbanisation, built-up surface)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_wup_country_stats_r2025a.php","licenses":["CC BY 4.0"],"topics":["cities"]},
   {"name":{"zh":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1（每個城市 1950–2100 年的人口與面積，聯合國《World Urbanization Prospects 2025》用的那一份）","en":"European Commission JRC, GHS-WUP-MTUC R2025A V1.1 (population and area of every city, 1950–2100, as used in the UN World Urbanization Prospects 2025)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_wup_mtuc_r2025a.php","licenses":["CC BY 4.0"],"topics":["cities"]},
+  {"name":{"zh":"Eurostat 上網活動（isoc_ci_ac_i）、網購的商品與服務（isoc_ec_ibgs）","en":"Eurostat internet activities (isoc_ci_ac_i) and internet purchases (isoc_ec_ibgs)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_ac_i/default/table","licenses":["CC BY 4.0"],"topics":["esports"]},
   {"name":{"zh":"Eurostat 各教育階段學各種外語的學生（educ_uoe_lang01）、平均學幾種外語（educ_uoe_lang03）","en":"Eurostat pupils by modern foreign language studied (educ_uoe_lang01) and average number of languages (educ_uoe_lang03)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/educ_uoe_lang01/default/table","licenses":["CC BY 4.0"],"topics":["language"]},
   {"name":{"zh":"Eurostat 家庭預算調查（hbs_str_t211，外食占家庭支出）","en":"Eurostat Household Budget Survey (hbs_str_t211, eating out)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/hbs_str_t211/default/table","licenses":["CC BY 4.0"],"topics":["diet"]},
   {"name":{"zh":"Eurostat 監獄統計（歐洲）","en":"Eurostat prison statistics"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_pris_cap/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
