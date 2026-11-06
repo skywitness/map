@@ -243,8 +243,9 @@ def build() -> None:
         if "coord" not in d:
             continue
         en = d.get("en") or d.get("mul") or names.get(d["q"])
-        # 繁中的標籤原樣用（再轉一次 OpenCC 會把「里」轉成「裡」，zh_names.py）；節慶的名稱不是地名，不修正音譯的字
-        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"))
+        # 繁中的標籤原樣用（再轉一次 OpenCC 會把「里」轉成「裡」，zh_names.py）；節慶的名稱多半是地名加上「音樂節」「狂歡節」，
+        # 也修正音譯的字（2026-11-06 查過：3 千多個名稱裡有這些字的只有「森伯裡」「胡士託」，都是音譯錯字）
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         if not (en or zh):
             continue
         # 音樂節優先（同時標成節慶的也算音樂節），其次依 KIND_WORDS 的順序
