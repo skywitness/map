@@ -90,6 +90,10 @@ STEPS = {
     "trade-goods": "topics.trade_goods",
     # 工業機器人（HS 847950）的流向（第二十二批 386）：只讀 BACI HS17
     "trade-robots": "topics.trade_robots",
+    "trade-leisure": "topics.trade_leisure",
+    "chain-bubble-tea": "topics.chain_bubble_tea",
+    "sugar-tax": "topics.sugar_tax",
+    "huts": "topics.huts",
     "trade-medicinal-plants": "topics.trade_medicinal_plants",  # 只更新藥用植物（HS 1211，BACI HS92 約 2.4 GB，幾分鐘）
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",

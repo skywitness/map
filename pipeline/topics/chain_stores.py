@@ -405,3 +405,6 @@ def build() -> None:
         "osmTimestamp": stamp,
     })
     print(f"  便利商店 {len(conv)} 家，{len(conv_counts)} 個國家")
+    # 手搖飲的品牌（第二十四批 415）：上面重寫了 countries/，把手搖飲品牌的店數再加回去
+    from topics import chain_bubble_tea
+    chain_bubble_tea.build()

@@ -38,6 +38,14 @@ GOODS: list[tuple[str, str, str, tuple[str, ...], bool]] = [
     # 第二十批 307（2026-11-04）：藥用、香料、殺蟲用的植物（含古柯葉、罌粟稈；不等於中藥材）
     ("medicinal-plants", "藥用植物（HS 1211）", "HS92", ("1211",), False),
     ("toys", "玩具（HS 9501–9503）", "HS92", ("9501", "9502", "9503"), False),
+    # 第二十四批 413（2026-11-06）：HS 第 95 章的鄰居，運動器材（不含運動服、運動鞋、自行車）與遊戲用品（實體的遊戲機、
+    # 牌、桌遊，數位下載的遊戲不在貿易統計裡）；步驟 trade-leisure
+    ("sports-goods", "運動器材（HS 9506）", "HS92", ("9506",), False),
+    ("fitness-equipment", "健身與田徑器材（HS 950691）", "HS92", ("950691",), False),
+    ("games", "遊戲機、撲克牌與桌遊（HS 9504）", "HS92", ("9504",), False),
+    # 電視遊戲機：HS92 版的 950410 在 BACI 近年幾乎是 0（新版 HS 的 950450 換算回 HS92 時沒有歸到這裡），用 HS17 版（2017 年起）
+    ("video-game-consoles", "電視遊戲機（HS 950450，2017 年起）", "HS17", ("950450",), False),
+    ("playing-cards", "撲克牌與集換式卡牌（HS 950440）", "HS92", ("950440",), False),
     ("apparel", "成衣（第 61、62 章）", "HS92", ("61", "62"), False),
     ("footwear", "鞋（第 64 章）", "HS92", ("64",), False),
     ("gold", "黃金（非貨幣用，HS 7108）", "HS92", ("7108",), False),
@@ -142,14 +150,25 @@ def _summary(gid: str, by_year: dict[int, dict]) -> None:
 
 def build_one(gid: str) -> None:
     """只做一種商品：讀一次它的 BACI 版本，寫流向檔，manifest 的 items 補上這一項（不必重讀其他商品）"""
-    label, hs, codes = next((l, h, c) for g, l, h, c, _ in GOODS if g == gid)
-    print(f"  讀取 BACI {hs}（{label}）…")
-    by_year = _read(hs, [(gid, codes, False)])[gid]
-    _write_item(OUT, gid, {y: _from_pairs({p: c[0] for p, c in pairs.items()}) for y, pairs in by_year.items()})
-    _summary(gid, by_year)
+    build_some([gid])
+
+
+def build_some(gids: list[str]) -> None:
+    """只做這幾種（只有金額的）商品：每個 BACI 版本讀一次，寫流向檔，manifest 的 items 換掉這幾項"""
+    rows = [(g, l, h, c) for g, l, h, c, _ in GOODS if g in gids]
+    for hs in sorted({h for _, _, h, _ in rows}):
+        goods = [(g, c, False) for g, _, h, c in rows if h == hs]
+        print(f"  讀取 BACI {hs}（{'、'.join(l for _, l, h, _ in rows if h == hs)}）…")
+        data = _read(hs, goods)
+        for gid, _, _ in goods:
+            by_year = data[gid]
+            _write_item(OUT, gid, {y: _from_pairs({p: c[0] for p, c in pairs.items()}) for y, pairs in by_year.items()})
+            _summary(gid, by_year)
+    added = [{"id": g, "label": l, "source": f"BACI {h}"} for g, l, h, _ in rows]
     path = OUT / "manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["items"] = [i for i in manifest.get("items", []) if i["id"] != gid] + [{"id": gid, "label": label, "source": f"BACI {hs}"}]
+    # 照 GOODS 的順序換掉這幾項
+    manifest["items"] = [i for i in manifest.get("items", []) if i["id"] not in gids] + added
     manifest["generatedAt"] = now_iso()
     write_json(path, manifest)
 

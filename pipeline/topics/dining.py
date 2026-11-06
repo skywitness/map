@@ -9,6 +9,9 @@
 - 餐廳與速食的界線各國的繪圖者判斷不一，所以另外有兩者合計（預設）；bar 與 pub 是文化性的標籤（日本的居酒屋
   常標成 pub），合在一起算「酒吧與酒館」。
 - 各國的店數寫在 tooltip；資料檔是 OSM 的衍生資料，依 ODbL 1.0 分享。
+- 第二十四批 414（2026-11-06）：不賣酒的飲料店依「賣什麼」分：手搖飲（cuisine=bubble_tea）、茶館（cuisine=tea）、
+  茶葉行（shop=tea）、咖啡豆與器材行（shop=coffee），每百萬人。cuisine 只算完全等於這個值的（「bubble_tea;coffee」
+  這種多值的不算）。中國的手搖飲實際上有十幾萬家，OSM 上標的只是很小一部分，而且中國不在覆蓋良好的名單裡。
 """
 from __future__ import annotations
 
@@ -27,7 +30,15 @@ INDICATORS = {
     "bars": (("bar", "pub"), "酒吧與酒館", "bars and pubs"),
     "ice-cream": (("ice_cream",), "冰淇淋店", "ice-cream shops"),
     "nightclubs": (("nightclub",), "夜店", "nightclubs"),
+    # 第二十四批 414（2026-11-06）：不賣酒的飲料店依「賣什麼」分，標籤寫成 key=value（沒寫 key 的是 amenity）。
+    # 同一家店可能同時是 amenity=cafe 與 cuisine=bubble_tea，跟咖啡館重複算，各指標的數字不能相加
+    "bubble-tea": (("cuisine=bubble_tea",), "手搖飲店", "bubble tea shops"),
+    "tea-houses": (("cuisine=tea",), "茶館", "tea houses"),
+    "tea-shops": (("shop=tea",), "茶葉行", "tea shops"),
+    "coffee-shops": (("shop=coffee",), "咖啡豆與器材行", "coffee bean and equipment shops"),
 }
+# 這幾種店比較少，用每百萬人（其他是每十萬人）
+PER_MILLION = {"bubble-tea", "tea-houses", "tea-shops", "coffee-shops"}
 # 各國的「喝一杯」場所類型（第二十一批 367）：bar、pub、biergarten 每十萬人合計不到 LOW_DRINK 算低密度；
 # 啤酒花園占三者 BEER_GARDEN_SHARE 以上算啤酒花園；其他看 pub 與 bar 哪個多
 DRINK_TYPES = {"bar": 1, "pub": 2, "biergarten": 3, "low": 4}
@@ -36,7 +47,8 @@ BEER_GARDEN_SHARE = 0.15
 
 
 def build() -> None:
-    counts = {tag: osm_qlever.counts("amenity", tag) for tags, *_ in INDICATORS.values() for tag in tags}
+    counts = {tag: osm_qlever.counts(*(tag.split("=") if "=" in tag else ("amenity", tag)))
+              for tags, *_ in INDICATORS.values() for tag in tags}
     pop = {c: s[YEAR] for c, s in wpp.demographic(["TPopulation1July"], last_year=YEAR)["TPopulation1July"].items()
            if c != "WLD" and YEAR in s}
     cov = osm_coverage.coverage()
@@ -56,9 +68,10 @@ def build() -> None:
                 no_value[c] = "人口不到 10 萬，一兩家店就差很多，不畫"
                 no_value_en[c] = "Population under 100,000, too small for a stable rate, so not shown"
             else:
-                values[c] = [round(count / pop[c] * 100, 1)]  # 人口是千人：每十萬人 = 店數 ÷ 千人 × 100
+                # 人口是千人：每十萬人 = 店數 ÷ 千人 × 100，每百萬人 × 1000
+                values[c] = [round(count / pop[c] * (1000 if ind in PER_MILLION else 100), 1)]
         write_json(OUT / f"{ind}.json", indicator_file(
-            ind, "家／十萬人", [YEAR], values, hints=hints, hintsEn=hints_en, noValue=no_value, noValueEn=no_value_en,
+            ind, "家／百萬人" if ind in PER_MILLION else "家／十萬人", [YEAR], values, hints=hints, hintsEn=hints_en, noValue=no_value, noValueEn=no_value_en,
             license="ODbL 1.0"))
         top = sorted(((v[0], c) for c, v in values.items()), reverse=True)
         print(f"  {ind}：{len(values)} 國；最多 {top[:6]}；台灣 {values.get('TWN')}（{n.get('TWN')} 家）；"

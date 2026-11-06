@@ -50,6 +50,14 @@ const indicator = (id: string, label: IndicatorDef['label'], description: Indica
   formatTick: (v) => `${v}`,
 });
 
+/** 不賣酒的飲料店（第二十四批 414，2026-11-06）：比較少，用每百萬人 */
+const perMillion = (v: number) => tr({ zh: `每百萬人 ${fixed(v, 1)} 家`, en: `${fixed(v, 1)} per million` });
+const indicatorPerMillion = (...args: Parameters<typeof indicator>): IndicatorDef => ({
+  ...indicator(...args),
+  unit: { zh: '家／百萬人', en: 'per million people' },
+  format: perMillion,
+});
+
 /** 各國的「喝一杯」場所類型（第二十一批 367；pipeline/topics/dining.py 的 _drink_types） */
 const DRINK_TYPES: CategoryDef[] = [
   { value: 1, label: { zh: '酒吧（bar）為主', en: 'Mostly bars' } },
@@ -102,8 +110,8 @@ export const dining: TopicDefinition = {
     },
   ],
   note: {
-    zh: '店數是 OpenStreetMap 上標成餐廳（restaurant）、速食（fast_food）、咖啡館（cafe）、酒吧（bar）、酒館（pub）、冰淇淋店（ice_cream）的地點，2026 年 11 月的快照（© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），不是官方的店家普查；只算固定店面，夜市與攤販不算。OSM 是志願者畫的，各國畫得完不完整差很多：印度、奈及利亞每十萬人只有個位數，不是現實。所以只替 OSM 覆蓋良好的國家上色：OSM 上的餐飲店除以那一國住宿及餐飲業的就業人數（ILO、加拿大統計局、主計總處），每千名就業者 20 家以上才畫（一家店大約對 10–20 名就業者），其他國家滑過去看原因。覆蓋良好的國家之間也還有差別，只能看大概。餐廳與速食的界線各國的繪圖者判斷不一，所以預設看兩者合計；酒吧（bar）與酒館（pub）是文化性的標籤（日本的居酒屋常標成 pub），合在一起算。人口不到 10 萬的地方不畫。',
-    en: 'Counts are places tagged on OpenStreetMap as restaurant, fast_food, cafe, bar, pub or ice_cream, as of November 2026 (© OpenStreetMap contributors; the data files are shared under ODbL 1.0), not an official business census; only fixed premises count, not night markets or street stalls. OpenStreetMap is mapped by volunteers and completeness varies a lot: India and Nigeria show single-digit figures per 100,000, which is not reality. So only countries where OSM is reasonably complete are coloured: OSM food and drink places divided by employment in accommodation and food services (ILO, Statistics Canada, DGBAS) must be at least 20 per 1,000 workers (a place typically has 10–20 workers); hover over other countries for the reason. Even among those countries completeness differs, so treat comparisons as approximate. Mappers draw the line between restaurants and fast food differently, so the default combines both; bar and pub are culturally loaded tags (Japanese izakaya are often tagged as pubs), so they are combined too. Places with fewer than 100,000 people are not shown.',
+    zh: '店數是 OpenStreetMap 上標成餐廳（restaurant）、速食（fast_food）、咖啡館（cafe）、酒吧（bar）、酒館（pub）、冰淇淋店（ice_cream）的地點（2026-11-06 加手搖飲、茶館、茶葉行、咖啡豆行），2026 年 11 月的快照（© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），不是官方的店家普查；只算固定店面，夜市與攤販不算。OSM 是志願者畫的，各國畫得完不完整差很多：印度、奈及利亞每十萬人只有個位數，不是現實。所以只替 OSM 覆蓋良好的國家上色：OSM 上的餐飲店除以那一國住宿及餐飲業的就業人數（ILO、加拿大統計局、主計總處），每千名就業者 20 家以上才畫（一家店大約對 10–20 名就業者），其他國家滑過去看原因。覆蓋良好的國家之間也還有差別，只能看大概。餐廳與速食的界線各國的繪圖者判斷不一，所以預設看兩者合計；酒吧（bar）與酒館（pub）是文化性的標籤（日本的居酒屋常標成 pub），合在一起算。人口不到 10 萬的地方不畫。',
+    en: 'Counts are places tagged on OpenStreetMap as restaurant, fast_food, cafe, bar, pub or ice_cream (plus bubble tea, tea houses, tea shops and coffee bean shops since 6 November 2026), as of November 2026 (© OpenStreetMap contributors; the data files are shared under ODbL 1.0), not an official business census; only fixed premises count, not night markets or street stalls. OpenStreetMap is mapped by volunteers and completeness varies a lot: India and Nigeria show single-digit figures per 100,000, which is not reality. So only countries where OSM is reasonably complete are coloured: OSM food and drink places divided by employment in accommodation and food services (ILO, Statistics Canada, DGBAS) must be at least 20 per 1,000 workers (a place typically has 10–20 workers); hover over other countries for the reason. Even among those countries completeness differs, so treat comparisons as approximate. Mappers draw the line between restaurants and fast food differently, so the default combines both; bar and pub are culturally loaded tags (Japanese izakaya are often tagged as pubs), so they are combined too. Places with fewer than 100,000 people are not shown.',
   },
   indicators: [
     indicator(
@@ -168,6 +176,43 @@ export const dining: TopicDefinition = {
         en: 'Nightclubs per 100,000 people (OpenStreetMap’s nightclub; some countries also tag live houses or karaoke, so the match to nightlife is loose). Cyprus 5.9, Montenegro 4.8 and Croatia 4.3 are high; the US 0.5, Japan 0.4, Taiwan and South Korea 0.2.',
       },
       [0.25, 0.5, 1, 2, 3],
+    ),
+    // 第二十四批 414（2026-11-06）：不賣酒的飲料店依「賣什麼」分，每百萬人
+    indicatorPerMillion(
+      'bubble-tea',
+      { zh: '手搖飲店', en: 'Bubble tea shops' },
+      {
+        zh: '每百萬人有幾家手搖飲店（OpenStreetMap 的 cuisine=bubble_tea）。台灣 104.1 家（2,395 家）世界第一，是第二名新加坡 33.5 的三倍，汶萊 31.9、加拿大 19.1、紐西蘭 15.5、澳洲 14.7；美國 7.3、南韓 3.3、日本 0.7。台灣第一同時反映台灣真的多，跟台灣的 OSM 志願者愛標手搖飲。中國實際上有十幾萬家，但 OSM 上標的很少，也不在覆蓋良好的名單裡，沒有上色。有些手搖飲同時標成咖啡館，跟「咖啡館」會重複算。',
+        en: 'Bubble tea shops per million people (OpenStreetMap’s cuisine=bubble_tea). Taiwan leads with 104.1 (2,395 shops), three times second-placed Singapore at 33.5, followed by Brunei 31.9, Canada 19.1, New Zealand 15.5 and Australia 14.7; the US 7.3, South Korea 3.3 and Japan 0.7. Taiwan’s lead reflects both how many shops there are and how keen Taiwan’s OSM volunteers are to map them. China has well over a hundred thousand in reality but few are mapped, and it is not among the well-covered countries, so it is not shaded. Some shops are also tagged as cafés and so counted under Cafés as well.',
+      },
+      [1, 2, 5, 10, 20],
+    ),
+    indicatorPerMillion(
+      'tea-houses',
+      { zh: '茶館', en: 'Tea houses' },
+      {
+        zh: '每百萬人有幾家坐下來喝茶的茶館（OpenStreetMap 的 cuisine=tea）。法國 3.3、斯洛伐克 2.2、汶萊 2.1、捷克 1.9、台灣 1.8（42 家）；美國 0.7、日本 0.5。數量都很少，只能看大概。',
+        en: 'Sit-down tea houses per million people (OpenStreetMap’s cuisine=tea). France 3.3, Slovakia 2.2, Brunei 2.1, Czechia 1.9 and Taiwan 1.8 (42); the US 0.7 and Japan 0.5. Numbers are small, so treat them as approximate.',
+      },
+      [0.25, 0.5, 1, 1.5, 2.5],
+    ),
+    indicatorPerMillion(
+      'tea-shops',
+      { zh: '茶葉行', en: 'Tea shops' },
+      {
+        zh: '每百萬人有幾家賣茶葉的店（OpenStreetMap 的 shop=tea）。台灣 19.3 家（444 家）最多，科威特 17.0、德國 9.9、瑞士 9.5、法國與奧地利 9.4；日本 7.4、美國 2.1。',
+        en: 'Shops selling tea leaves per million people (OpenStreetMap’s shop=tea). Taiwan leads with 19.3 (444 shops), then Kuwait 17.0, Germany 9.9, Switzerland 9.5, and France and Austria 9.4; Japan 7.4 and the US 2.1.',
+      },
+      [1, 2, 5, 8, 12],
+    ),
+    indicatorPerMillion(
+      'coffee-shops',
+      { zh: '咖啡豆與器材行', en: 'Coffee bean shops' },
+      {
+        zh: '每百萬人有幾家賣咖啡豆與咖啡器材的店（OpenStreetMap 的 shop=coffee，不是坐下來喝的咖啡館）。阿爾巴尼亞 49.8、希臘 26.4、科威特 25.7、阿曼 21.2、賽普勒斯 21.0、奧地利 19.2 多；台灣 7.9（181 家）、美國 5.2、日本 4.8。',
+        en: 'Shops selling coffee beans and equipment per million people (OpenStreetMap’s shop=coffee, not sit-down cafés). Albania 49.8, Greece 26.4, Kuwait 25.7, Oman 21.2, Cyprus 21.0 and Austria 19.2 are high; Taiwan 7.9 (181 shops), the US 5.2 and Japan 4.8.',
+      },
+      [2, 5, 10, 15, 20],
     ),
     {
       id: 'drink-type',

@@ -32,9 +32,19 @@ const GOODS_MADE = [
   // 第二十二批 386（2026-11-05）：HS 847950 只是「其他未列名的工業機器人」，焊接、噴塗、搬運用的報在各自的稅號，是下限
   { id: 'industrial-robots', label: { zh: '工業機器人（2017 年起，HS 847950）', en: 'Industrial robots (from 2017, HS 847950)' }, group: MADE },
   { id: 'pharma', label: { zh: '藥品（HS 3004）', en: 'Medicines (HS 3004)' }, group: MADE },
-  { id: 'toys', label: { zh: '玩具（HS 9501–9503）', en: 'Toys (HS 9501–9503)' }, group: MADE },
   { id: 'apparel', label: { zh: '成衣（第 61、62 章）', en: 'Clothing (HS 61, 62)' }, group: MADE },
   { id: 'footwear', label: { zh: '鞋（第 64 章）', en: 'Footwear (HS 64)' }, group: MADE },
+];
+// 第二十四批 413（2026-11-06，pipeline/topics/trade_leisure.py）：HS 第 95 章的運動器材與遊戲用品（玩具從工業製品搬過來），BACI HS92（1995 年起）。
+// 運動器材不含運動服、運動鞋、自行車；遊戲用品是實體的遊戲機、牌與桌遊，數位下載的遊戲不在貿易統計裡
+const LEISURE = { zh: '玩具、遊戲與運動用品（第 95 章）', en: 'Toys, games and sports goods (HS 95)' };
+const GOODS_LEISURE = [
+  { id: 'toys', label: { zh: '玩具（HS 9501–9503）', en: 'Toys (HS 9501–9503)' }, group: LEISURE },
+  { id: 'sports-goods', label: { zh: '運動器材（HS 9506）', en: 'Sports equipment (HS 9506)' }, group: LEISURE },
+  { id: 'fitness-equipment', label: { zh: '健身與田徑器材（HS 950691）', en: 'Gym and athletics equipment (HS 950691)' }, group: LEISURE },
+  { id: 'games', label: { zh: '遊戲機、撲克牌與桌遊（HS 9504）', en: 'Game consoles, cards and board games (HS 9504)' }, group: LEISURE },
+  { id: 'video-game-consoles', label: { zh: '電視遊戲機（2017 年起，HS 950450）', en: 'Video game consoles (from 2017, HS 950450)' }, group: LEISURE },
+  { id: 'playing-cards', label: { zh: '撲克牌與集換式卡牌（HS 950440）', en: 'Playing and trading cards (HS 950440)' }, group: LEISURE },
 ];
 const GOODS_LUXURY = [
   { id: 'gold', label: { zh: '黃金（HS 7108）', en: 'Gold (HS 7108)' }, group: LUXURY },
@@ -73,6 +83,7 @@ const ITEMS = [
   { id: 'used-clothing', label: { zh: '二手衣（舊衣，HS 6309）', en: 'Used clothing (HS 6309)' }, group: { zh: '其他商品', en: 'Other goods' } },
   // 貿易的商品流向（2026-10-30 擴充，pipeline/topics/trade_goods.py）：BACI HS92（1995 年起）；純電車、手機、鋰電池用 HS17（2017 年起）
   ...GOODS_MADE,
+  ...GOODS_LEISURE,
   ...GOODS_LUXURY,
   ...GOODS_RAW,
 ];
@@ -199,7 +210,8 @@ export const trade: TopicDefinition = {
       '農產品為 FAOSTAT 詳細貿易矩陣（2000 年起），出口以出口國、進口以進口國的申報為準，該年沒有申報的國家改用貿易夥伴的申報。' +
       '每個國家只列前 15 大夥伴，占比以對所有夥伴的總額計算。' +
       '二手衣是 BACI HS92 版的舊衣（HS 6309，1995 年起，以金額計，不含碎布 6310）：2024 年全球約 47 億美元，美國、中國、英國、德國、韓國出口最多；阿聯、巴基斯坦這類是分類與轉口中心，衣服最後去哪裡要再看它們的出口。' +
-      '汽車、手機、藥品、黃金、鑽石、回收物、化肥等 26 種商品是 BACI HS92 版（1995 年起，以金額計；回收物與化肥另有公噸）；HS92 分不開的純電車（870380）、手機（851712）、鋰電池（850760）用 HS17 版，2017 年起。' +
+      '汽車、手機、藥品、黃金、鑽石、回收物、化肥、運動器材、遊戲用品等 31 種商品是 BACI HS92 版（1995 年起，以金額計；回收物與化肥另有公噸）；HS92 分不開的純電車（870380）、手機（851712）、鋰電池（850760）、電視遊戲機（950450）用 HS17 版，2017 年起。' +
+      '運動器材（HS 9506）不含運動服、運動鞋與自行車；健身與田徑器材（950691）是跑步機、重訓器材、瑜珈墊都在內的大項。遊戲用品（HS 9504）是實體的遊戲機、投幣式遊戲機、撲克牌與桌遊（也含撞球用品），數位下載的遊戲不在貿易統計裡；撲克牌（950440）含寶可夢、遊戲王這類集換式卡牌。' +
       '藥用植物是 HS 1211「主要供香料、藥用、殺蟲、殺菌用的植物」（甘草、人參、古柯葉、罌粟稈與其他，九成以上是「其他」），也含薰衣草這類香料植物；中藥材還散在別的章節（植物萃取物 1302、紅棗枸杞 0813、薑黃 0910…），所以不等於中藥材。全球一年約幾十億美元，跟藥品（HS 3004）差兩個數量級。' +
       '瑞士、阿聯、香港、比利時、新加坡、荷蘭這類精煉、轉口與物流中心的進出口很大，不代表在那裡生產或使用；品牌國也不是產地。黃金不含央行之間的貨幣用黃金；鑽石的工業用鑽石不列；化肥的磷酸銨在 3105。' +
       '貿易依存度是世界銀行 WDI 的商品與服務出口加進口占 GDP（1960 年起），台灣用主計總處的國民所得統計自行計算；香港、新加坡、盧森堡超過 300% 是轉口貿易與跨國企業的帳，不代表「依賴」；世界合計的最新一年國家數不全，只畫到 2024 年。' +
@@ -211,7 +223,8 @@ export const trade: TopicDefinition = {
       "Agricultural products: FAOSTAT detailed trade matrix (from 2000), using the exporter's reports for exports and the importer's for imports; when a country did not report for a year, its partners' reports are used. " +
       'Only the top 15 partners of each country are listed; shares are of the total with all partners. ' +
       'Used clothing is HS 6309 worn clothing from the HS92 version of BACI (from 1995, by value, excluding rags under 6310): about US$4.7 billion in 2024, with the US, China, the UK, Germany and South Korea exporting the most; the UAE and Pakistan are sorting and re-export hubs, so follow their exports to see where the clothes end up. ' +
-      'The 26 goods such as cars, phones, medicines, gold, diamonds, scrap and fertilisers come from the HS92 version of BACI (from 1995, by value; scrap and fertilisers also in tonnes); battery-electric cars (870380), mobile phones (851712) and lithium-ion batteries (850760), which HS92 cannot separate, use the HS17 version from 2017. ' +
+      'The 31 goods such as cars, phones, medicines, gold, diamonds, scrap, fertilisers, sports equipment and games come from the HS92 version of BACI (from 1995, by value; scrap and fertilisers also in tonnes); battery-electric cars (870380), mobile phones (851712), lithium-ion batteries (850760) and video game consoles (950450), which HS92 cannot separate, use the HS17 version from 2017. ' +
+      'Sports equipment (HS 9506) excludes sportswear, sports shoes and bicycles; gym and athletics equipment (950691) is a broad heading covering treadmills, weights and yoga mats. Games (HS 9504) are physical consoles, coin-operated machines, playing cards and board games (billiards equipment too); downloaded games are not in trade statistics. Playing cards (950440) include trading cards such as Pokémon and Yu-Gi-Oh!. ' +
       'Medicinal plants are HS 1211, plants used mainly in perfumery, pharmacy or as insecticides and fungicides (liquorice, ginseng, coca leaf, poppy straw and others, over 90% in the "other" line), including aromatic plants such as lavender; traditional Chinese medicine ingredients are also spread across other headings (plant extracts 1302, jujubes and goji 0813, turmeric 0910…), so this is not the same as TCM. World trade is a few billion US dollars a year, two orders of magnitude below medicines (HS 3004). ' +
       'Refining, re-export and logistics hubs such as Switzerland, the UAE, Hong Kong, Belgium, Singapore and the Netherlands trade large amounts without producing or using them, and brand countries are not where goods are made. Gold excludes monetary gold traded between central banks; industrial diamonds are not listed; ammonium phosphates are under 3105. ' +
       'Trade openness is exports plus imports of goods and services as a share of GDP from the World Bank WDI (from 1960); Taiwan is computed from DGBAS national accounts. Hong Kong, Singapore and Luxembourg exceed 300% because of re-exports and multinational accounting, not "dependence"; the world total stops at 2024 because the latest year covers too few countries. ' +

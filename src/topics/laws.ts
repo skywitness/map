@@ -95,6 +95,18 @@ const EUTHANASIA: CategoryDef[] = [
  * 代理孕母（pipeline/sources/surrogacy.py，2026-11-04，製作手冊第二十批 340）：從寬到嚴，
  * 「沒有法律規範」（中灰）「各地不同」（深灰，跟其他指標同色）不在順序上
  */
+/**
+ * 含糖飲料稅（pipeline/topics/sugar_tax.py，2026-11-06，製作手冊第二十四批 416）：世界銀行 Global SSB Tax Database
+ * （2023 年 8 月）。稅率不能直接比，只畫稅的形式；資料庫沒有收錄的國家（台灣也是）是「沒有全國的含糖飲料稅」，不留灰色
+ */
+const SUGAR_TAX: CategoryDef[] = [
+  { value: 1, label: { zh: '依含糖量分級', en: 'Tiered by sugar content' } },
+  { value: 2, label: { zh: '從量（每公升固定金額）', en: 'Specific (per litre)' } },
+  { value: 3, label: { zh: '從量加從價', en: 'Specific plus ad valorem' } },
+  { value: 4, label: { zh: '從價（售價的百分比）', en: 'Ad valorem (share of price)' } },
+  { value: 5, label: { zh: '沒有全國的含糖飲料稅', en: 'No national tax' }, color: '#a9a69c' },
+];
+
 const SURROGACY: CategoryDef[] = [
   { value: 1, label: { zh: '商業代孕合法', en: 'Commercial surrogacy legal' } },
   { value: 2, label: { zh: '只准無償代孕', en: 'Altruistic surrogacy only' } },
@@ -231,6 +243,14 @@ const lawsOwn: TopicDefinition = {
       },
       url: 'https://en.wikipedia.org/w/index.php?title=Surrogacy_laws_by_country&oldid=1382714270',
       license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
+        zh: '世界銀行 Global SSB Tax Database（含糖飲料稅，2023 年 8 月）',
+        en: 'World Bank, Global SSB Tax Database (sugar-sweetened beverage taxes, August 2023)',
+      },
+      url: 'https://datacatalog.worldbank.org/search/dataset/0063310/Global-SSB-Tax-Database',
+      license: 'CC BY 4.0',
     },
     {
       name: {
@@ -385,6 +405,34 @@ const lawsOwn: TopicDefinition = {
       layer: { kind: 'categorical', categories: SURROGACY, ordinal: true },
       format: labelOf(SURROGACY),
       defaultYear: 2026,
+    },
+    {
+      id: 'sugar-tax',
+      label: { zh: '含糖飲料稅', en: 'Sugary drink tax' },
+      description: {
+        zh: '全國課不課含糖飲料稅、用什麼方式課（世界銀行 Global SSB Tax Database，2023 年 8 月）。117 個國家與屬地有：依含糖量分級 17 個（英國 2018 年起、法國、愛爾蘭、葡萄牙、泰國、智利、秘魯等），每公升固定金額 39 個（菲律賓、南非等），從量加從價 13 個（墨西哥 2014 年起），售價的百分比 48 個（沙烏地阿拉伯等）；119 筆稅裡 40 筆連無糖的水也課，其實是所有飲料的稅。台灣、日本、南韓、中國、美國沒有全國的含糖飲料稅；美國的柏克萊、費城、西雅圖等 7 個城市與加拿大卑詩省、西班牙加泰隆尼亞等 6 個州省有地方稅，地圖上沒畫。稅率各國的算法、幣別不同，不能直接比，滑過國家看課哪些飲料、是不是以健康為目的。資料庫 2023 年 8 月以後不再更新，之後才開始課的國家仍算沒有。',
+        en: 'Whether a country taxes sugar-sweetened beverages nationwide, and how (World Bank Global SSB Tax Database, August 2023). 117 countries and territories do: tiered by sugar content in 17 (the UK since 2018, France, Ireland, Portugal, Thailand, Chile, Peru and others), a fixed amount per litre in 39 (such as the Philippines and South Africa), specific plus ad valorem in 13 (Mexico since 2014), and a percentage of price in 48 (such as Saudi Arabia); 40 of the 119 taxes also cover unsweetened water, so they are really taxes on all drinks. Taiwan, Japan, South Korea, China and the US have no national tax; 7 US cities such as Berkeley, Philadelphia and Seattle and 6 states or provinces such as British Columbia and Catalonia have local taxes, not shown on the map. Rates are set in different ways and currencies and cannot be compared directly; hover over a country to see which drinks are taxed and whether the aim is health. The database has not been updated since August 2023, so later taxes count as none.',
+      },
+      unit: '',
+      file: 'sugar-tax.json',
+      layer: { kind: 'categorical', categories: SUGAR_TAX },
+      format: labelOf(SUGAR_TAX),
+      defaultYear: 2023,
+    },
+    {
+      id: 'sugar-tax-year',
+      label: { zh: '含糖飲料稅開始的年份', en: 'Sugary drink tax since' },
+      description: {
+        zh: '全國的含糖飲料稅從哪一年開始課（世界銀行，2023 年 8 月；同一國有兩種稅取比較早的）。巴西 1965 年最早，紐埃 1969、聖多美普林西比 1976、斐濟 1986；117 國裡 37 個是 2018 年以後才開始。灰色的是沒有全國的含糖飲料稅（台灣也是）。',
+        en: 'The year a national sugary drink tax began (World Bank, August 2023; the earlier one where a country has two). Brazil was first in 1965, then Niue 1969, São Tomé and Príncipe 1976 and Fiji 1986; 37 of the 117 started in 2018 or later. Grey means no national tax (Taiwan included).',
+      },
+      unit: { zh: '年', en: '' },
+      file: 'sugar-tax-year.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1990, 2000, 2010, 2015, 2018, 2020] } },
+      format: (v) => tr({ zh: `${v} 年起`, en: `since ${v}` }),
+      formatTick: (v) => `${v}`,
+      defaultYear: 2023,
+      missing: { zh: '沒有全國的含糖飲料稅', en: 'No national tax' },
     },
     ageIndicator(
       'voting',

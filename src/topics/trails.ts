@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, LinesOverlayDef, ListPanelDef, PointRecord, TopicDefinition } from './types';
+import type { IndicatorDef, LinesOverlayDef, ListPanelDef, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { cycling } from './cycling';
@@ -62,6 +62,38 @@ const TRAILS: LinesOverlayDef = {
   indicators: ['map'],
 };
 
+/**
+ * 山屋與避難小屋（2026-11-06，製作手冊第二十四批 417；pipeline/topics/huts.py）：OSM 的 tourism=alpine_hut 與
+ * wilderness_hut，經 QLever。點全部畫，各國的個數與密度只替 OSM 覆蓋良好的國家上色
+ */
+const HUT_KINDS = [
+  { value: 1, label: { zh: '山屋（有人管理）', en: 'Alpine hut (staffed)' }, color: MAP_TOKENS.categorical[2] },
+  { value: 2, label: { zh: '避難小屋（沒有人管理）', en: 'Wilderness hut (unstaffed)' }, color: MAP_TOKENS.categorical[4] },
+];
+const HUTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'huts',
+  file: 'huts.json',
+  label: { zh: '山屋與避難小屋', en: 'Mountain huts' },
+  radius: 2.2,
+  color: { field: 'k', title: { zh: '種類', en: 'Type' }, thresholds: [2], classes: HUT_KINDS },
+  indicators: ['map', 'huts-count', 'huts-density'],
+  tooltip: (p, { countryName }) => {
+    const zhName = getLang() === 'zh' && typeof p.nz === 'string' && p.nz ? p.nz : null;
+    const name = zhName ?? (typeof p.n === 'string' && p.n ? p.n : tr(HUT_KINDS.find((k) => k.value === p.k)?.label ?? HUT_KINDS[0].label));
+    const facts = [
+      tr(HUT_KINDS.find((k) => k.value === p.k)?.label ?? HUT_KINDS[0].label),
+      typeof p.ele === 'number' ? tr({ zh: `海拔 ${fixed(p.ele, 0)} 公尺`, en: `${fixed(p.ele, 0)} m` }) : null,
+      typeof p.iso3 === 'string' ? countryName(p.iso3) : null,
+    ];
+    return {
+      title: name,
+      detail: facts.filter(Boolean).join(' · '),
+      properNoun: zhName && typeof p.n === 'string' && p.n && p.n !== zhName ? p.n : undefined,
+    };
+  },
+};
+
 const ABOUT: Text = {
   zh: 'OSM 的「國際級」「國家級」由各國的社群標記，用法不一：歐洲標得多、路線密，其他地方少；美國國家步道系統的佛羅里達步道、日本的九州自然步道等沒有標成國際級或國家級，沒有算進來。阿帕拉契山徑、大陸分水嶺步道跟更長的國際級路線（東部大陸步道、北美分水嶺步道）重疊，算在國際級那條。',
   en: 'OSM’s “international” and “national” levels are tagged by each country’s mappers, and usage varies: Europe has many, densely tagged routes and elsewhere there are few; some trails, such as the Florida Trail of the US National Trails System and Japan’s Kyushu Nature Trail, are not tagged as international or national and are not included. The Appalachian and Continental Divide trails overlap longer international routes (the Eastern Continental Trail and the Divide Trails) and are counted under those.',
@@ -102,6 +134,33 @@ const indicators: IndicatorDef[] = [
     integer: true,
     missing: { zh: 'OSM 沒有標成國際級、國家級的步道', en: 'No international or national routes in OSM' },
   },
+  {
+    id: 'huts-count',
+    label: { zh: '山屋與避難小屋', en: 'Mountain huts' },
+    description: {
+      zh: 'OpenStreetMap 上的山屋（tourism=alpine_hut，有人管理、多半可以過夜用餐）加避難小屋（wilderness_hut，沒有人管理），全球 30,925 處。山屋 13,995 處：義大利 1,900、奧地利 1,440、法國 700、瑞士 653、日本 525、紐西蘭 484；避難小屋 16,930 處：俄羅斯 2,452、義大利 1,491、紐西蘭 1,470、法國 1,191。台灣山屋 97 處（排雲山莊、嘉明湖避難山屋都在裡面，也混了幾個民宿與涼亭）、避難小屋 17 處。兩類的界線各國畫法不同（阿爾卑斯有些山屋是山上的餐廳，北歐有些避難小屋是沒人管的空屋），所以個數用兩類合計，點分兩色。面量圖只替 OSM 覆蓋良好的 82 國上色，點全部畫。',
+      en: 'Alpine huts (tourism=alpine_hut, staffed and usually offering beds and meals) plus wilderness huts (wilderness_hut, unstaffed) on OpenStreetMap: 30,925 worldwide. Alpine huts number 13,995: Italy 1,900, Austria 1,440, France 700, Switzerland 653, Japan 525 and New Zealand 484; wilderness huts 16,930: Russia 2,452, Italy 1,491, New Zealand 1,470 and France 1,191. Taiwan has 97 alpine huts (including Paiyun Lodge and the Jiaming Lake cabin, plus a few guesthouses and pavilions) and 17 wilderness huts. Mappers draw the line between the two differently (some Alpine huts are mountain restaurants, some Nordic wilderness huts are empty cabins), so counts combine both and the dots use two colours. The choropleth covers only the 82 countries where OSM is reasonably complete; all dots are shown.',
+    },
+    unit: { zh: '處', en: 'huts' },
+    file: 'huts-count.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 50, 100, 300, 1000] } },
+    format: (v) => tr({ zh: `${fixed(v, 0)} 處`, en: `${fixed(v, 0)} huts` }),
+    formatTick: (v) => fixed(v, 0),
+    integer: true,
+  },
+  {
+    id: 'huts-density',
+    label: { zh: '山屋的密度', en: 'Hut density' },
+    description: {
+      zh: '每萬平方公里陸地有幾處山屋與避難小屋（陸地面積用 FAOSTAT）。瑞士 225.8 處最多，奧地利 192.0、斯洛維尼亞 121.7、義大利 114.7、斯洛伐克 76.3、紐西蘭 74.2；台灣 32.2 處，在上色的 82 國裡排第 12，比挪威 26.9、德國 20.0、日本 19.0 多；美國 1.2。',
+      en: 'Alpine and wilderness huts per 10,000 km² of land (land area from FAOSTAT). Switzerland leads with 225.8, followed by Austria 192.0, Slovenia 121.7, Italy 114.7, Slovakia 76.3 and New Zealand 74.2; Taiwan has 32.2, 12th of the 82 countries shaded, ahead of Norway 26.9, Germany 20.0 and Japan 19.0; the US 1.2.',
+    },
+    unit: { zh: '處／萬平方公里', en: 'per 10,000 km²' },
+    file: 'huts-density.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 10, 25, 50, 100] } },
+    format: (v) => tr({ zh: `每萬平方公里 ${fixed(v, 1)} 處`, en: `${fixed(v, 1)} per 10,000 km²` }),
+    formatTick: (v) => fixed(v, 0),
+  },
 ];
 
 /** 左邊的清單：最長的 100 條路線（list.json），點了移到那條路線的範圍 */
@@ -141,6 +200,16 @@ const trailsOwn: TopicDefinition = {
       license: { zh: 'ODbL 1.0（© OpenStreetMap 貢獻者；資料檔也是）', en: 'ODbL 1.0 (© OpenStreetMap contributors; so are the data files)' },
     },
     {
+      name: { zh: 'OpenStreetMap 的山屋與避難小屋（tourism=alpine_hut、wilderness_hut），經 QLever，2026 年 11 月', en: 'OpenStreetMap alpine and wilderness huts (tourism=alpine_hut, wilderness_hut), via QLever, November 2026' },
+      url: 'https://www.openstreetmap.org/copyright',
+      license: { zh: 'ODbL 1.0（© OpenStreetMap 貢獻者；資料檔也是）', en: 'ODbL 1.0 (© OpenStreetMap contributors; so are the data files)' },
+    },
+    {
+      name: { zh: 'FAOSTAT 土地利用（陸地面積，算山屋的密度）', en: 'FAOSTAT Land Use (land area, for hut density)' },
+      url: 'https://www.fao.org/faostat/en/#data/RL',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '台灣：交通部觀光署「步道」開放資料（OSM 沒有的國家步道）', en: 'Taiwan: Tourism Administration, “Trails” open data (national trails missing from OSM)' },
       url: 'https://data.gov.tw/dataset/41653',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
@@ -152,7 +221,7 @@ const trailsOwn: TopicDefinition = {
   },
   panelExtra: () => import('./panels/TrailsPanel'),
   listPanel: LIST,
-  overlays: [TRAILS],
+  overlays: [TRAILS, HUTS],
   indicators,
 };
 

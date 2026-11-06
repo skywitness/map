@@ -6,6 +6,9 @@ import type { PointsOverlayDef, ScaleSpec, Text, TopicDefinition } from './types
 const CONVENIENCE = { zh: '便利商店', en: 'Convenience stores' };
 const RESTAURANTS = { zh: '速食與咖啡', en: 'Fast food and coffee' };
 const BIG_BOX = { zh: '大型賣場', en: 'Big-box stores' };
+const BUBBLE_TEA = { zh: '手搖飲', en: 'Bubble tea' };
+/** 手搖飲品牌（第二十四批 415，pipeline/topics/chain_bubble_tea.py）：密度都低，同一組門檻；台灣的 50嵐、清心福全每百萬人十幾家 */
+const BUBBLE_THRESHOLDS = [0.1, 0.25, 0.5, 1, 2.5, 10];
 
 /**
  * 地圖上可選的品牌（與 pipeline/topics/chain_stores.py 的 BRANDS 對應）。
@@ -27,6 +30,13 @@ export const BRANDS: { id: string; label: Text; group: Text; thresholds: number[
   { id: 'subway', label: 'Subway', group: RESTAURANTS, thresholds: [0.5, 1, 3, 5, 10, 30] },
   { id: 'ikea', label: 'IKEA', group: BIG_BOX, thresholds: [0.05, 0.1, 0.2, 0.4, 0.8, 1.5] },
   { id: 'costco', label: 'Costco', group: BIG_BOX, thresholds: [0.05, 0.1, 0.2, 0.4, 0.8, 1.5] },
+  { id: 'coco', label: { zh: 'CoCo都可', en: 'CoCo Fresh Tea & Juice' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: 'gong-cha', label: { zh: '貢茶（Gong Cha）', en: 'Gong Cha' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: 'heytea', label: { zh: '喜茶（HEYTEA）', en: 'HEYTEA' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: '50-lan', label: { zh: '50嵐', en: '50 Lan' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: 'ching-shin', label: { zh: '清心福全', en: 'Ching Shin' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: 'chagee', label: { zh: '霸王茶姬（Chagee）', en: 'Chagee' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: 'chatime', label: { zh: '日出茶太（Chatime）', en: 'Chatime' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
 ];
 
 /**
@@ -135,8 +145,8 @@ export const chainStores: TopicDefinition = {
     },
   ],
   note: {
-    zh: `${OSM_CAVEAT.zh} 品牌依店家的 brand:wikidata 認（name-suggestion-index 的標法），沒有標的店只在名稱以品牌名稱開頭、店型對（便利商店、速食店、咖啡店、量販店），而且在品牌有開店的國家時才算（IKEA 只認 brand:wikidata）；同一個品牌 25 公尺內（IKEA、Costco 400 公尺內）的兩個點當成同一家店。IKEA 不含餐廳、規劃訂購點與取貨點，Costco 不含加油站與美食區。已經退出俄羅斯的麥當勞、星巴克、肯德基與退出俄羅斯、白俄羅斯的 IKEA，OSM 上留著的舊標示不算；人口不到 10 萬的地方不算每百萬人的店數。「所有便利商店」是 OSM 上所有的 shop=convenience（不分品牌，含獨立的小店與加油站附設的），各國對便利商店的標法不一。這個主題的資料檔是 OpenStreetMap 的衍生資料庫，以 ODbL 提供。`,
-    en: `${OSM_CAVEAT.en} Brands are identified by the brand:wikidata tag (as used by the name-suggestion-index); untagged shops count only if their name starts with the brand name, the shop type matches (convenience store, fast food, café, warehouse club) and the brand operates in that country (IKEA is matched by brand:wikidata only). Two points of the same brand within 25 m (400 m for IKEA and Costco) count as one store. IKEA excludes restaurants, planning studios and pick-up points; Costco excludes fuel stations and food courts. Outdated entries for McDonald’s, Starbucks and KFC in Russia and IKEA in Russia and Belarus, which these brands have left, are not counted, and places with fewer than 100,000 people have no per-million figure. “All convenience stores” is every shop=convenience on OSM (any brand, including independent shops and those at fuel stations); what gets tagged as a convenience store varies by country. The data files of this topic are a derived database of OpenStreetMap, available under the ODbL.`,
+    zh: `${OSM_CAVEAT.zh} 品牌依店家的 brand:wikidata 認（name-suggestion-index 的標法），沒有標的店只在名稱以品牌名稱開頭、店型對（便利商店、速食店、咖啡店、量販店），而且在品牌有開店的國家時才算（IKEA 只認 brand:wikidata）；同一個品牌 25 公尺內（IKEA、Costco 400 公尺內）的兩個點當成同一家店。IKEA 不含餐廳、規劃訂購點與取貨點，Costco 不含加油站與美食區。已經退出俄羅斯的麥當勞、星巴克、肯德基與退出俄羅斯、白俄羅斯的 IKEA，OSM 上留著的舊標示不算；人口不到 10 萬的地方不算每百萬人的店數。「所有便利商店」是 OSM 上所有的 shop=convenience（不分品牌，含獨立的小店與加油站附設的），各國對便利商店的標法不一。手搖飲的 7 個品牌（2026-11-06 加）是 2026 年 11 月的快照，經 QLever 查 OSM，只依 brand:wikidata 認，沒有公司公布的店數可以比：OSM 上 CoCo都可 624 家、貢茶 506、喜茶 399、50嵐 380、清心福全 337、霸王茶姬 323、日出茶太 286，前五大有四個是台灣的品牌（CoCo都可、貢茶、50嵐、清心福全；日出茶太也是），霸王茶姬是中國的（Wikidata 的國家）；實際的店數多很多，中國的手搖飲店 OSM 上標得很少。50嵐在中國的 83 家是 OSM 上名稱「1点点」「一点点」、品牌標成 50嵐 的店。這個主題的資料檔是 OpenStreetMap 的衍生資料庫，以 ODbL 提供。`,
+    en: `${OSM_CAVEAT.en} Brands are identified by the brand:wikidata tag (as used by the name-suggestion-index); untagged shops count only if their name starts with the brand name, the shop type matches (convenience store, fast food, café, warehouse club) and the brand operates in that country (IKEA is matched by brand:wikidata only). Two points of the same brand within 25 m (400 m for IKEA and Costco) count as one store. IKEA excludes restaurants, planning studios and pick-up points; Costco excludes fuel stations and food courts. Outdated entries for McDonald’s, Starbucks and KFC in Russia and IKEA in Russia and Belarus, which these brands have left, are not counted, and places with fewer than 100,000 people have no per-million figure. “All convenience stores” is every shop=convenience on OSM (any brand, including independent shops and those at fuel stations); what gets tagged as a convenience store varies by country. The seven bubble tea brands (added 6 November 2026) are a November 2026 snapshot queried from OSM via QLever and matched by brand:wikidata only, with no company counts to compare: CoCo Fresh Tea & Juice 624 stores, Gong Cha 506, HEYTEA 399, 50 Lan 380, Ching Shin 337, Chagee 323 and Chatime 286 on OSM. Four of the top five are Taiwanese brands (CoCo, Gong Cha, 50 Lan and Ching Shin; Chatime too) and Chagee is from China (country per Wikidata). Real store counts are much higher, and bubble tea shops in China are sparsely mapped. The 83 50 Lan stores in China are shops named Yidiandian whose brand is tagged as 50 Lan on OSM. The data files of this topic are a derived database of OpenStreetMap, available under the ODbL.`,
   },
   panelExtra: () => import('./panels/ChainStoresPanel'),
   overlays: [STORE_POINTS],
