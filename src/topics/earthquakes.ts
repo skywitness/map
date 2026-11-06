@@ -2,6 +2,16 @@ import { tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { landslidesPart } from './landslides';
+import {
+  liveQuakesOverlay,
+  PLATE_AREAS,
+  PLATE_BOUNDARIES,
+  PLATE_LABELS,
+  platePin,
+  platePointer,
+  PLATES_INDICATOR,
+  PLATES_WORLD_PANEL,
+} from './plates-pb2002';
 import type { ColorClasses, IndicatorDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -77,9 +87,6 @@ function tectonicSetting(p: PointRecord): string | null {
   const crust = typeof p.crust === 'number' ? CRUST[p.crust] : undefined;
   return crust ? tr({ zh: `${zone.zh}・${crust.zh}`, en: `${zone.en}, ${crust.en}` }) : tr(zone);
 }
-/** 板塊邊界用中性色，不跟地震的顏色搶；三類用實線、虛線與淺灰分開 */
-const PLATE_DARK = MAP_TOKENS.inkSecondary;
-const PLATE_LIGHT = MAP_TOKENS.inkMuted;
 
 /** 半徑（px，縮放 2 時）：規模每大 1 級，半徑約加倍（面積約 4 倍） */
 const MAG_STOPS: [number, number][] = [
@@ -317,6 +324,22 @@ export const earthquakes: TopicDefinition = {
       url: 'https://github.com/fraxen/tectonicplates',
       license: 'ODC-By 1.0',
     },
+    {
+      name: {
+        zh: 'USGS 即時地震資料（最近 7 天規模 4.5 以上，瀏覽器直接讀）',
+        en: 'USGS real-time earthquake feed (M4.5+ in the last 7 days, read by your browser)',
+      },
+      url: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php',
+      license: { zh: '公有領域', en: 'public domain' },
+    },
+    {
+      name: {
+        zh: 'JRC GHS-POP R2023A（各板塊的人口、各國跨幾塊板塊）',
+        en: 'JRC GHS-POP R2023A (population by plate; plates per country)',
+      },
+      url: 'https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE',
+      license: 'CC BY 4.0',
+    },
     ...landslidesPart.sources,
     {
       name: { zh: 'Terrain Tiles（陸地與海底的地形陰影，Mapzen、AWS Open Data）', en: 'Terrain Tiles (land and sea-floor hillshade; Mapzen, AWS Open Data)' },
@@ -334,22 +357,10 @@ export const earthquakes: TopicDefinition = {
   listPanel: [YEAR_LIST, landslidesPart.listPanel],
   overlays: [
     ...landslidesPart.overlays,
-    {
-      kind: 'lines',
-      id: 'plates',
-      file: 'plates.json',
-      label: { zh: '板塊邊界', en: 'Plate boundaries' },
-      width: 1.1,
-      // 代碼跟 pipeline/sources/plates.py 的 CONVERGENT、DIVERGENT、TRANSFORM 一致
-      color: {
-        title: { zh: '邊界類型', en: 'Boundary type' },
-        classes: [
-          { value: 1, color: PLATE_DARK, label: { zh: '聚合（隱沒帶、碰撞）', en: 'Convergent (subduction, collision)' } },
-          { value: 2, color: PLATE_DARK, dash: true, label: { zh: '張裂（中洋脊、裂谷）', en: 'Divergent (ridges, rifts)' } },
-          { value: 3, color: PLATE_LIGHT, label: { zh: '轉形斷層', en: 'Transform faults' } },
-        ],
-      },
-    },
+    // 板塊邊界（2026-11-06 起依相對速度變粗、加上地質圖的符號）與「板塊」指標的面、名稱（plates-pb2002.ts）
+    PLATE_AREAS,
+    PLATE_BOUNDARIES,
+    PLATE_LABELS,
     {
       kind: 'points',
       id: 'volcanoes',
@@ -399,6 +410,12 @@ export const earthquakes: TopicDefinition = {
       sizeLegend: { title: { zh: '規模', en: 'Magnitude' }, values: [6, 7, 8, 9], format: magnitude },
       tooltip: quakeTooltip,
     },
+    // 2026-11-06（板6）：USGS 最近 7 天規模 4.5 以上的地震，瀏覽器直接讀，每 5 分鐘重讀（預設關閉）
+    liveQuakesOverlay([...QUAKE_INDICATORS, 'plates'], DEPTH, MAG_STOPS),
   ],
-  indicators: [...indicators, ...landslidesPart.indicators],
+  indicators: [...indicators, PLATES_INDICATOR, ...landslidesPart.indicators],
+  // 2026-11-06（板4、板5）：「板塊」指標滑到任一點寫在哪一塊板塊、離最近的邊界多遠；「定位我」放的觀察點也寫；左側欄是各板塊的人口
+  pointer: platePointer,
+  pin: platePin,
+  worldPanel: PLATES_WORLD_PANEL,
 };

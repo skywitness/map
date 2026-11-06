@@ -16,6 +16,8 @@ from common import download
 
 # 固定在這個 commit，資料不會在背後改變（版本庫 2014 年之後沒有更新）
 URL = "https://raw.githubusercontent.com/fraxen/tectonicplates/339b0c56563c118307b1f4542703047f5f698fae/GeoJSON/PB2002_steps.json"
+# 52 塊板塊的面（2026-11-06 起，topics/plates_pb2002.py）
+PLATES_URL = "https://raw.githubusercontent.com/fraxen/tectonicplates/339b0c56563c118307b1f4542703047f5f698fae/GeoJSON/PB2002_plates.json"
 
 # STEPCLASS → 地圖上的三類（跟 src/topics/earthquakes.ts 的 PLATE_TYPES 一致）
 CONVERGENT, DIVERGENT, TRANSFORM = 1, 2, 3

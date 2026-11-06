@@ -871,6 +871,18 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 各板塊的人口（PlatesWorld.tsx）：名稱、人口下面的第二行（大小與國家、占全世界的比例） */
+.mini-table-sub {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.mini-table th + td.num,
+.mini-table td.num + td.num {
+  padding-left: 8px;
+}
+
 /* 便利商店與連鎖品牌的側欄：目前地圖上的品牌那一列 */
 .mini-table tr.is-current th,
 .mini-table tr.is-current td {

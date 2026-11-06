@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatPercent, usd } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { TRENCHES } from './craters-trenches';
 import type { FlowDirection, IndicatorDef, LinesOverlayDef, PointRecord, Text, TopicDefinition } from './types';
 
 /**
@@ -374,10 +375,11 @@ export const oceans: TopicDefinition = {
   ],
   // 頁尾要短：英文版太長會把地圖擠扁（細節寫在指標說明、附註、側欄與 DESIGN.md）
   note: {
-    zh: 'Marine Regions 對任何國家、領土的法律地位與界線不表示意見；這裡照它的分類呈現重疊主張與共同管理區（未解決的界線畫虛線），不代表本站的立場。界線簡化到約 500 公尺。漁業只算水生動物（不含海藻），活體重量；FAO 的「Taiwan Province of China」照其他主題寫台灣。海鮮的貿易是 BACI HS92 版（1995 年起），台灣是夥伴國的申報。每人吃多少水產見「各國飲食」主題，港口與船隊見「航運與港口」主題，河川帶進海洋的塑膠見「塑膠污染」主題。',
-    en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. Seafood trade is from the HS92 version of BACI (from 1995), with Taiwan based on partner reports. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports; for plastic carried to the sea by rivers see Plastic pollution.',
+    zh: 'Marine Regions 對任何國家、領土的法律地位與界線不表示意見；這裡照它的分類呈現重疊主張與共同管理區（未解決的界線畫虛線），不代表本站的立場。界線簡化到約 500 公尺。海溝是 Wikidata 的 45 條（馬里亞納海溝在 Wikidata 的類別有誤，手工補上）。漁業只算水生動物（不含海藻），活體重量；FAO 的「Taiwan Province of China」照其他主題寫台灣。海鮮的貿易是 BACI HS92 版（1995 年起），台灣是夥伴國的申報。每人吃多少水產見「各國飲食」主題，港口與船隊見「航運與港口」主題，河川帶進海洋的塑膠見「塑膠污染」主題。',
+    en: 'Marine Regions expresses no opinion on the legal status of any country or territory or on boundaries; overlapping claims and joint regimes are shown as it classifies them (unsettled boundaries dashed), implying no position of this site. Boundaries simplified to about 500 m. The 45 ocean trenches come from Wikidata (the Mariana Trench, misclassified there, is added by hand). Fisheries cover aquatic animals only (no seaweed), live weight; FAO’s “Taiwan Province of China” is shown as Taiwan. Seafood trade is from the HS92 version of BACI (from 1995), with Taiwan based on partner reports. For seafood eaten per person see Diet by country; for ports and fleets see Shipping and ports; for plastic carried to the sea by rivers see Plastic pollution.',
   },
   panelExtra: () => import('./panels/OceansPanel'),
-  overlays: [EEZ_FILL, EEZ_LINES],
+  // 2026-11-06（板7）：海溝的名稱與最深處（Wikidata，pipeline/topics/craters_trenches.py）
+  overlays: [EEZ_FILL, EEZ_LINES, TRENCHES],
   indicators,
 };

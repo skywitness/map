@@ -1,5 +1,6 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
+import { CRATERS } from './craters-trenches';
 import type { ColorClasses, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -46,9 +47,9 @@ export const specialLandforms: TopicDefinition = {
   ],
   note: {
     zh:
-      '點是 Wikidata 收錄、有座標的七類地形：綠洲、峽灣、天然拱門與奇岩（天然拱門、海蝕柱、岩柱）、環礁與珊瑚島、泥火山、天坑與滲穴（含墨西哥猶加敦的天然井）、間歇泉，包括這些類別的子類別；Wikidata 上另有 130 處沒有座標，沒畫（2026-11-05 查）。Wikidata 是志願者編輯的，收得多不多跟各國有沒有人整理有關，數量不能直接比：挪威的峽灣占了一半以上（縮小時只畫有英文或中文維基百科條目的）；泥火山只有二十多個（亞塞拜然、義大利最多，學術彙編沒有開放資料）；中文說的「天坑」集中在中國西南，Wikidata 沒有這個類別，重慶小寨天坑等幾乎沒收；間歇泉約八成在美國黃石公園一帶，俄羅斯堪察加的間歇泉谷、智利的 El Tatio 都沒有收。「岩石地形」這個類別太廣（3 萬多筆，多半是地名匯入），不收。台灣有小門鯨魚洞、石門洞、深澳象鼻岩，野柳女王頭、烏山頂泥火山在 Wikidata 歸為岩石地形與自然保留區，這裡手工補上。國家依座標判斷，遠洋的小島用 Wikidata 的所屬國家；南海等地 Wikidata 列了好幾個國家的，滑過寫「主權有爭議」。',
+      '點是 Wikidata 收錄、有座標的七類地形：綠洲、峽灣、天然拱門與奇岩（天然拱門、海蝕柱、岩柱）、環礁與珊瑚島、泥火山、天坑與滲穴（含墨西哥猶加敦的天然井）、間歇泉，包括這些類別的子類別；Wikidata 上另有 130 處沒有座標，沒畫（2026-11-05 查）。Wikidata 是志願者編輯的，收得多不多跟各國有沒有人整理有關，數量不能直接比：挪威的峽灣占了一半以上（縮小時只畫有英文或中文維基百科條目的）；泥火山只有二十多個（亞塞拜然、義大利最多，學術彙編沒有開放資料）；中文說的「天坑」集中在中國西南，Wikidata 沒有這個類別，重慶小寨天坑等幾乎沒收；間歇泉約八成在美國黃石公園一帶，俄羅斯堪察加的間歇泉谷、智利的 El Tatio 都沒有收。「岩石地形」這個類別太廣（3 萬多筆，多半是地名匯入），不收。另一個圖層是 Wikidata 有座標的隕石撞擊坑 195 處（2026-11-06 起），依直徑畫大小，只有 60 處寫了直徑；Wikidata 不分確認與推測的，南極冰下的威爾克斯地撞擊坑（500 公里）只是推測。台灣有小門鯨魚洞、石門洞、深澳象鼻岩，野柳女王頭、烏山頂泥火山在 Wikidata 歸為岩石地形與自然保留區，這裡手工補上。國家依座標判斷，遠洋的小島用 Wikidata 的所屬國家；南海等地 Wikidata 列了好幾個國家的，滑過寫「主權有爭議」。',
     en:
-      'Dots are seven kinds of landform recorded in Wikidata with coordinates, including their subclasses: oases, fjords, natural arches and rock pillars (arches, sea stacks and hoodoos), atolls and coral islands, mud volcanoes, sinkholes (including the cenotes of Yucatán) and geysers; another 130 in Wikidata have no coordinates and are not drawn (checked 2026-11-05). Wikidata is edited by volunteers, so coverage depends on who has catalogued what and counts are not comparable between countries: Norway accounts for over half of the fjords (zoomed out, only those with an English or Chinese Wikipedia article are drawn); there are only about twenty mud volcanoes (most in Azerbaijan and Italy; scholarly inventories are not openly licensed); the giant tiankeng of south-west China have no class of their own and are almost all missing; about 80% of geysers are around Yellowstone, while Kamchatka’s Valley of Geysers and Chile’s El Tatio are absent. The broad “rock formation” class (over 30,000 items, mostly imported place names) is left out. Taiwan has three arches (Xiaomen Whale Cave, Shimen Cave and the Shen’ao Elephant Trunk Rock); the Queen’s Head at Yehliu and the Wushanding mud volcano, classed in Wikidata as a rock formation and a nature reserve, are added by hand. Countries are assigned by location, with Wikidata’s country used for remote islands; where Wikidata lists several countries (as in the South China Sea), the tooltip says sovereignty is disputed.',
+      'Dots are seven kinds of landform recorded in Wikidata with coordinates, including their subclasses: oases, fjords, natural arches and rock pillars (arches, sea stacks and hoodoos), atolls and coral islands, mud volcanoes, sinkholes (including the cenotes of Yucatán) and geysers; another 130 in Wikidata have no coordinates and are not drawn (checked 2026-11-05). Wikidata is edited by volunteers, so coverage depends on who has catalogued what and counts are not comparable between countries: Norway accounts for over half of the fjords (zoomed out, only those with an English or Chinese Wikipedia article are drawn); there are only about twenty mud volcanoes (most in Azerbaijan and Italy; scholarly inventories are not openly licensed); the giant tiankeng of south-west China have no class of their own and are almost all missing; about 80% of geysers are around Yellowstone, while Kamchatka’s Valley of Geysers and Chile’s El Tatio are absent. The broad “rock formation” class (over 30,000 items, mostly imported place names) is left out. Another layer shows the 195 impact craters with coordinates in Wikidata (added 6 November 2026), sized by diameter where given (60 of them); Wikidata does not separate confirmed from suspected ones, and the 500 km Wilkes Land crater under the Antarctic ice is only suspected. Taiwan has three arches (Xiaomen Whale Cave, Shimen Cave and the Shen’ao Elephant Trunk Rock); the Queen’s Head at Yehliu and the Wushanding mud volcano, classed in Wikidata as a rock formation and a nature reserve, are added by hand. Countries are assigned by location, with Wikidata’s country used for remote islands; where Wikidata lists several countries (as in the South China Sea), the tooltip says sovereignty is disputed.',
   },
   panelExtra: () => import('./panels/SpecialLandformsPanel'),
   overlays: [
@@ -76,6 +77,8 @@ export const specialLandforms: TopicDefinition = {
         };
       },
     },
+    // 2026-11-06（板7）：隕石撞擊坑，空心圓、依直徑變大（pipeline/topics/craters_trenches.py）
+    CRATERS,
   ],
   indicators: [
     {

@@ -727,6 +727,13 @@ export interface PointsOverlayDef extends OverlayBase {
    * 彼此碰到時只留一個（有 sortField 時留數值大的），在呼叫當下讀目前的語言（tr()、getLang()）
    */
   pointLabel?: (p: PointRecord) => string;
+  /** 點旁邊的文字改成置中寫在點的位置（2026-11-06，板塊的名稱；radius 是 0 時只有字） */
+  pointLabelCenter?: boolean;
+  /**
+   * 圖層自己讀的即時資料（2026-11-06，板6，USGS 最近 7 天的地震）：瀏覽器直接讀 url（要允許跨網域讀取），每 minutes 分鐘重讀，
+   * points(資料) 換成點（file 寫 ''）。跟主題的 live 不同：不會把主題變成時刻主題，時間軸照舊；圖層關著時不讀
+   */
+  liveFeed?: { url: string; minutes: number; points: (data: unknown) => PointRecord[] | null };
   /**
    * tooltip：title 是第一行（粗體），detail 是第二行。
    * countryName 由 App 提供（目前語言的國名），原文專有名詞（地名、館處英文名）可以放在 properNoun，畫面上不翻譯。
@@ -868,6 +875,12 @@ export interface LinesOverlayDef extends OverlayBase {
      */
     hover?: boolean;
   };
+  /**
+   * 沿線的地質圖符號（2026-11-06，板3，參考 tectonicplatemap.org）：紀錄的 field 是符號的代碼，icons 對應到內建的符號：
+   * 'teeth' 隱沒帶的三角形（畫在行進方向的左邊：資料要先把上覆的板塊轉到線的左邊）、'diverge' 張裂（往兩側的箭頭）、
+   * 'dextral' 右移、'sinistral' 左移（轉形斷層的一對半箭頭）。顏色跟線一樣，三角形排得密、箭頭排得疏
+   */
+  marks?: { field: string; icons: Record<number, 'teeth' | 'diverge' | 'dextral' | 'sinistral'> };
   /** 線的不透明度，取代預設的淺色底圖 0.8、深色底圖 0.9（日食其他年份的中心線畫得很淡，2026-10-28 起） */
   opacity?: number;
   /**

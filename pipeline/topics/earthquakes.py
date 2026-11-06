@@ -3,7 +3,7 @@
 地圖上的點：
 - quakes.json：規模 6 以上（1900 年起，約 1.4 萬筆），依時間排序，年份差分編碼。
 - quakes-m5.json：規模 5–6（1973 年起，約 8 萬筆），預設關閉，打開才下載。
-- volcanoes.json：全新世火山（約 1,200 座）；plates.json：板塊邊界（依聚合、張裂、轉形分類）。
+- volcanoes.json：全新世火山（約 1,200 座）。板塊邊界 plates.json 2026-11-06 起由 topics/plates_pb2002.py 寫。
 
 國家統計（`indicator_file()`）：
 - 規模 6 以上的地震次數：逐年（count-year.json）、累積（count-cumulative.json）、每十年（count-decade.json）。
@@ -30,8 +30,8 @@ from datetime import date
 
 import numpy as np
 
-from common import OUT_DIR, indicator_file, lines_file, now_iso, points_file, write_json
-from sources import gvp, ncei, plates, usgs
+from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
+from sources import gvp, ncei, usgs
 from sources.countries import ISO3, from_name
 from topics.population_grid import country_shapes
 
@@ -466,11 +466,7 @@ def build() -> None:
         "volcanoes-count", "座", [this_year], {c: [v_count.get(c, 0)] for c in sorted(codes)},
         aggregates={"WLD": [len(volcanoes)]}))
 
-    # ── 板塊邊界 ──
-    lines, types = plates.boundaries()
-    pdata = lines_file(lines, 0.01, types)
-    write_json(OUT / "plates.json", pdata)
-    print(f"  板塊邊界 {len(pdata['lines'])} 條、{sum(len(l) // 2 for l in pdata['lines'])} 個頂點（{_size(pdata)}）")
+    # 板塊邊界（plates.json）2026-11-06 起在 topics/plates_pb2002.py（步驟 plates-pb2002），加上相對速度與地質圖的符號
 
     # ── 檢查：台灣 ──
     for q, code in zip(m6, m6_iso3):

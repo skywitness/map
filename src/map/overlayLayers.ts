@@ -59,6 +59,9 @@ const HATCH_SUFFIX = '-hatch';
 const IS_POLYGON: FilterSpecification = ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]];
 const NOT_POLYGON: FilterSpecification = ['!', IS_POLYGON];
 const LABEL_SUFFIX = '-label';
+/** 沿線的地質圖符號（LinesOverlayDef.marks）：隱沒帶的三角形一層、箭頭一層（間距不同） */
+const TEETH_SUFFIX = '-teeth';
+const ARROWS_SUFFIX = '-arrows';
 /** 沿線文字的字型：底圖地名的字型（每個底圖的字型名稱不同）；找不到時用 OpenFreeMap 的 Noto Sans */
 const DEFAULT_FONT = ['Noto Sans Regular'];
 /** 滑到線上時查詢的寬度（px），細線也滑得到 */
@@ -275,6 +278,69 @@ export function drawHatch(color: string, angle: HatchAngle, ratio: number): Imag
   return ctx.getImageData(0, 0, size, size);
 }
 
+/** 沿線符號的圖片（SDF，顏色由 icon-color 給）：線沿著圖片的橫軸走，圖片的上半部是行進方向的左邊 */
+const MARK_IMAGES = { teeth: 'mark-teeth', diverge: 'mark-diverge', dextral: 'mark-dextral', sinistral: 'mark-sinistral' } as const;
+const MARK_SIZE = 24;
+
+function drawMark(kind: keyof typeof MARK_IMAGES, ratio: number): ImageData | null {
+  const size = Math.round(MARK_SIZE * ratio);
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.scale(ratio, ratio);
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  const c = MARK_SIZE / 2;
+  if (kind === 'teeth') {
+    // 隱沒帶：底邊在線上的三角形，尖端指向左邊（上覆的板塊）
+    ctx.beginPath();
+    ctx.moveTo(c - 4.5, c);
+    ctx.lineTo(c + 4.5, c);
+    ctx.lineTo(c, c - 7);
+    ctx.closePath();
+    ctx.fill();
+  } else if (kind === 'diverge') {
+    // 張裂：垂直於線、往兩側的箭頭
+    for (const dir of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(c, c + dir * 2);
+      ctx.lineTo(c, c + dir * 9);
+      ctx.moveTo(c - 3, c + dir * 6);
+      ctx.lineTo(c, c + dir * 9);
+      ctx.lineTo(c + 3, c + dir * 6);
+      ctx.stroke();
+    }
+  } else {
+    // 轉形斷層：線兩側各一個半箭頭，右移是左邊（上）往前、右邊（下）往後
+    const sign = kind === 'dextral' ? 1 : -1;
+    for (const side of [-1, 1]) {
+      const y = c + side * 4;
+      const dir = -side * sign;
+      ctx.beginPath();
+      ctx.moveTo(c - dir * 7, y);
+      ctx.lineTo(c + dir * 7, y);
+      ctx.lineTo(c + dir * 4, y + side * 3);
+      ctx.stroke();
+    }
+  }
+  return ctx.getImageData(0, 0, size, size);
+}
+
+/** 沿線符號的圖片（換底圖後樣式是新的，重新加） */
+function addMarkImages(map: MaplibreMap, def: LinesOverlay) {
+  if (!def.marks) return;
+  const ratio = Math.min(2, Math.max(1, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1));
+  for (const kind of new Set(Object.values(def.marks.icons))) {
+    const id = MARK_IMAGES[kind];
+    if (map.hasImage(id)) continue;
+    const image = drawMark(kind, ratio);
+    if (image) map.addImage(id, image, { pixelRatio: ratio, sdf: true });
+  }
+}
+
 /** 線圖層的斜線面要用的圖片（換底圖後樣式是新的，重新加） */
 function addHatchImages(map: MaplibreMap, def: LinesOverlay, dark: boolean) {
   const hatch = def.fill?.hatch;
@@ -378,8 +444,8 @@ function pointLabelLayer(def: PointsOverlay, dark: boolean, font: DataDrivenProp
       'text-field': ['get', '_label'],
       'text-font': font,
       'text-size': ['interpolate', ['linear'], ['zoom'], 1, 10.5, 5, 13],
-      'text-anchor': 'left',
-      'text-offset': [0.5, 0],
+      'text-anchor': def.pointLabelCenter ? 'center' : 'left',
+      'text-offset': def.pointLabelCenter ? [0, 0] : [0.5, 0],
       'text-max-width': 9,
       'text-padding': 3,
       ...(def.sortField ? { 'symbol-sort-key': ['-', 0, ['coalesce', ['get', def.sortField], 0]] as ExpressionSpecification } : {}),
@@ -607,6 +673,40 @@ function lineLayers(def: LinesOverlay, dark: boolean, font: DataDrivenPropertyVa
         hover: false,
       });
     }
+    if (def.marks) {
+      // 沿線的地質圖符號（板3）：三角形排得密、箭頭排得疏，兩層；圖片沿著線轉，上半部在行進方向的左邊
+      const { field, icons } = def.marks;
+      const groups: [string, number, ('teeth' | 'diverge' | 'dextral' | 'sinistral')[]][] = [
+        [TEETH_SUFFIX, 22, ['teeth']],
+        [ARROWS_SUFFIX, 140, ['diverge', 'dextral', 'sinistral']],
+      ];
+      for (const [suffix, spacing, kinds] of groups) {
+        const codes = Object.entries(icons).filter(([, k]) => kinds.includes(k));
+        if (!codes.length) continue;
+        const filter = ['in', ['coalesce', ['get', field], -1], ['literal', codes.map(([code]) => Number(code))]] as FilterSpecification;
+        out.push({
+          layer: {
+            id: source + suffix,
+            type: 'symbol',
+            source,
+            filter,
+            layout: {
+              'symbol-placement': 'line',
+              'symbol-spacing': spacing,
+              'icon-image': ['match', ['get', field], ...codes.flatMap(([code, k]) => [Number(code), MARK_IMAGES[k]]), ''] as unknown as ExpressionSpecification,
+              'icon-rotation-alignment': 'map',
+              'icon-keep-upright': false,
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true,
+              'icon-size': ['interpolate', ['linear'], ['zoom'], 1, 0.6, 4, 0.9, 7, 1.2],
+            },
+            paint: { 'icon-color': color, 'icon-opacity': lineOpacity(def, 1) },
+          },
+          base: filter,
+          hover: false,
+        });
+      }
+    }
     if (def.tooltip) {
       // 看不見的寬線：queryRenderedFeatures 依線寬判斷有沒有滑到，跟不透明度無關
       out.push({
@@ -720,7 +820,7 @@ function partFeatures(def: LinesOverlay, part: DecodedLines, offset: number): Ge
   const { lines, types, records, vertexTypes } = part;
   const { timeField, groupField } = def;
   // 畫圖、篩選要用的紀錄欄位（時間、結束年份、線寬、依縮放的篩選）
-  const fields = [timeField, def.endField, typeof def.width === 'number' ? undefined : def.width.field, def.minValue?.field].filter(
+  const fields = [timeField, def.endField, typeof def.width === 'number' ? undefined : def.width.field, def.minValue?.field, def.marks?.field].filter(
     (f): f is string => Boolean(f),
   );
   const groups = new Map<string, number>();
@@ -1026,6 +1126,7 @@ export function syncOverlays(
         if (o.def.heatmap) map.addLayer(heatLayer(o.def), id);
       } else {
         addHatchImages(map, o.def, dark);
+        addMarkImages(map, o.def);
         // under：面畫在國家的面下面（專屬經濟海域：海岸那一側很粗略，由陸地蓋住）
         const at = o.def.under ? before('data-fill') : before(LINES_BEFORE);
         for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, at);

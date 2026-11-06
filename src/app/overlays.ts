@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { loadClassGrid, type ClassGrid } from '../map/classGridData';
 import { decodeWindField, type WindField, type WindFieldFile } from '../map/windField';
 import { dataUrl, fetchJson, useJsonMany } from '../lib/data';
+import { useLive } from '../lib/live';
 import {
   concatLines,
   decodeLines,
@@ -77,6 +78,12 @@ export function useOverlays(
     [generic],
   );
   const grids = useClassGrids(gridPaths);
+  // 圖層自己讀的即時資料（PointsOverlayDef.liveFeed，2026-11-06，USGS 最近 7 天的地震）：打開的第一個這種圖層才讀
+  const feedDef = useMemo(() => {
+    const g = generic.find((x) => x.visible && x.def.kind === 'points' && x.def.liveFeed);
+    return g && g.def.kind === 'points' ? g.def.liveFeed : undefined;
+  }, [generic]);
+  const feed = useLive(feedDef ? { url: feedDef.url, minutes: feedDef.minutes } : undefined);
   const raw = useJsonEach(wanted);
   // 線圖層放大後的分區（LinesOverlayDef.detail）：放大到 minZoom 以上時下載跟畫面重疊的分區，下載過的留著
   const tilePaths = useMemo(
@@ -128,6 +135,7 @@ export function useOverlays(
       if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
       // 即時資料的點（PointsOverlayDef.fromLive，此刻世界的新聞熱點）：每份即時資料算一次
       if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live) };
+      if (def.kind === 'points' && def.liveFeed) return { kind: 'points', def, visible, points: feedPoints(def, def.liveFeed === feedDef ? feed.data : null) };
       if (def.kind === 'points') {
         const base = data ? decodedPoints(data as PointsData) : null;
         const rest = def.more ? (more.get(moreFile(path)) as PointsData | undefined) : undefined;
@@ -146,7 +154,7 @@ export function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center]);
+  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center, feedDef, feed.data]);
   return { railways, airports, overlays: result };
 }
 
@@ -165,7 +173,7 @@ function generatedLines(def: LinesOverlay, data: unknown, center: [number, numbe
 /** 一般疊加圖層的資料檔路徑：晝夜、即時網格沒有檔；類別網格、風依年份與子項目 */
 function genericPath(topic: Topic, o: Exclude<Topic['overlays'], undefined>[number], item: string | null, year: number): string {
   if (o.kind === 'night' || o.kind === 'moon' || o.kind === 'liveGrid' || o.kind === 'tiles' || o.kind === undefined) return '';
-  if (o.kind === 'points' && o.fromLive) return '';
+  if (o.kind === 'points' && (o.fromLive || o.liveFeed)) return '';
   if (o.kind === 'lines' && o.local) return '';
   // 共用疊加圖層的季風（shared-layers.ts）：風場在風與季風主題的資料夾，月份固定（file 不看時間軸）
   if (o.kind === 'wind' && o.topic) return `topics/${o.topic}/${o.file(year, null)}`;
@@ -214,6 +222,17 @@ function livePoints(def: { id: string; fromLive?: (live: unknown) => PointRecord
   let byId = livePointsCache.get(live);
   if (!byId) livePointsCache.set(live, (byId = new Map()));
   if (!byId.has(def.id)) byId.set(def.id, def.fromLive(live));
+  return byId.get(def.id)!;
+}
+
+/** 圖層自己讀的即時資料換成的點：依資料（重讀一次就是新的物件）與圖層 id 快取 */
+const feedCache = new WeakMap<object, Map<string, PointRecord[] | null>>();
+
+function feedPoints(def: { id: string; liveFeed?: { points: (data: unknown) => PointRecord[] | null } }, data: unknown): PointRecord[] | null {
+  if (!def.liveFeed || !data || typeof data !== 'object') return null;
+  let byId = feedCache.get(data);
+  if (!byId) feedCache.set(data, (byId = new Map()));
+  if (!byId.has(def.id)) byId.set(def.id, def.liveFeed.points(data));
   return byId.get(def.id)!;
 }
 

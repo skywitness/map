@@ -154,6 +154,8 @@ STEPS = {
     # 電動車主題的燃油車禁售年份與狀態（英文維基百科的表；要先有 profiles 的 government.json）
     "ev-phaseout": "topics.ev_phaseout",
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
+    # 板塊（PB2002）：邊界加上相對速度與地質圖的符號、52 塊板塊的面、各板塊的人口（要先有 population-grid 的 grid.json）
+    "plates-pb2002": "topics.plates_pb2002",
     "landslides": "topics.landslides",  # NASA 全球山崩目錄（GLC），分 8 頁下載
     "democracy": "topics.democracy",  # 第一次會下載約 34 MB（V-Dem v16 的 RData）
     # V-Dem 的其他指數（第二十二批 377、378，共用 democracy 的下載與國家對照）：政府治理的行政權制衡、性別平等的女性政治賦權
@@ -577,6 +579,8 @@ STEPS = {
     # 飛航情報區：VATSpy 的範圍（CC BY-SA 4.0，依 FIR 合併扇區）、OurAirports 的代碼字首對國家；約 1 分鐘（聯集面積）
     "airspace": "topics.airspace",
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
+    # 隕石撞擊坑（特殊地形的圖層）與海溝（海洋與漁業的圖層）：Wikidata（CC0），兩支 SPARQL；幾秒
+    "craters-trenches": "topics.craters_trenches",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 
