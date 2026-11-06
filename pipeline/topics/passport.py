@@ -4,6 +4,8 @@
 - visa/<護照>.json：持這本護照前往各目的地的類別（類別圖，代碼見 sources/passport_index.py），另外附
   days（免簽證可停留的天數）與 recoded（改列為「另用通行證」的目的地，原本資料集的類別），側欄用。
   自己的護照不收（前端寫主題的 selfLabel「本國護照」）。
+- days/<護照>.json：免簽證可以待幾天（2026-11-06，製作手冊第二十四批 412），沒寫天數的免簽證目的地寫在 noValue。
+- e-entry.json：目的地有沒有電子簽證、旅行授權（從整份資料反算，2026-11-06，第二十四批 412 的候選 1028）。
 - power.json：護照實力，免簽證、需要旅行授權（eTA）的免簽證、落地簽證加起來的目的地數（最多 198）。
   跟 Henley Passport Index 的算法一樣：出發前不必等政府核准的都算；電子簽證不算。
   Passport Index 網站自己的 Mobility Score 另外把「3 天內核發」的電子簽證也算進去，資料集沒有核發天數，沒辦法照算。
@@ -70,6 +72,8 @@ NOTES: dict[str, tuple[str, str]] = {
 TOPIC_TS = ROOT / "src" / "topics" / "passport.ts"
 BOCA_VISA = OUT_DIR / "topics" / "taiwan-diplomacy" / "visa.json"
 BOCA_MANIFEST = OUT_DIR / "topics" / "taiwan-diplomacy" / "manifest.json"
+# 電子簽證與旅行授權的類別（e-entry.json，src/topics/passport.ts 的 E_ENTRY）
+E_ENTRY_EVISA, E_ENTRY_ETA, E_ENTRY_BOTH = 1, 2, 3
 NAMES = {1: "免簽證", 2: "免簽證（旅行授權）", 3: "落地簽證", 4: "電子簽證", 5: "需事先申請", 6: "不准入境", 7: "另用通行證"}
 
 
@@ -154,7 +158,14 @@ def build() -> None:
             extra["notesEn"] = {p: notes_en[p]}
         values = {d: [c] for d, c in sorted(codes[p].items())}
         write_json(OUT / "visa" / f"{p}.json", indicator_file("visa", "類別", [YEAR], values, **extra), quiet=True)
-    print(f"  輸出 visa/*.json（{len(passports)} 本護照）")
+        # 免簽證可以待幾天（2026-11-06，製作手冊第二十四批 412）：只有免簽證而且資料集寫了天數的目的地有值；
+        # 免簽證但沒寫天數的（歐盟境內自由移動、塞席爾的旅客登記等）寫 noValue，其他類別由前端的 missing 說明
+        no_days = sorted(d for d, c in codes[p].items() if c == pi.VISA_FREE and d not in days)
+        write_json(OUT / "days" / f"{p}.json", indicator_file(
+            "visa-days", "天", [YEAR], {d: [v] for d, v in sorted(days.items())},
+            noValue={d: "免簽證，資料集沒寫天數" for d in no_days},
+            noValueEn={d: "Visa-free, number of days not stated" for d in no_days}), quiet=True)
+    print(f"  輸出 visa/*.json、days/*.json（{len(passports)} 本護照）")
 
     # ── 護照實力、開放程度 ──
     power = {p: sum(c in EASY for c in codes[p].values()) for p in passports}
@@ -166,6 +177,31 @@ def build() -> None:
     write_json(OUT / "openness.json", indicator_file(
         "openness", "本護照", [YEAR], {d: [v] for d, v in sorted(openness.items())}, notes=four, notesEn=four_en))
 
+    # ── 電子簽證與旅行授權（2026-11-06，製作手冊第二十四批 412 的候選 1028）──
+    # 使用者 2026-11-06 決定從這份資料反算，不用英文維基百科「Electronic visa」的總表（那張表沒有美國 ESTA、加拿大 eTA、
+    # 南韓 K-ETA）：目的地對至少一本護照要求旅行授權（eta）或發電子簽證（e-visa），就算有那一套系統。
+    eta = Counter(d for p in passports for d, c in codes[p].items() if c == pi.ETA)
+    evisa = Counter(d for p in passports for d, c in codes[p].items() if c == pi.E_VISA)
+    entry: dict[str, list[int]] = {}
+    hints: dict[str, str] = {}
+    hints_en: dict[str, str] = {}
+    for d in sorted(set(eta) | set(evisa)):
+        entry[d] = [E_ENTRY_BOTH if d in eta and d in evisa else E_ENTRY_ETA if d in eta else E_ENTRY_EVISA]
+        zh, en = [], []
+        if d in eta:
+            zh.append(f"對 {eta[d]} 本護照要求旅行授權")
+            en.append(f"travel authorisation for {eta[d]} passport{'s' if eta[d] > 1 else ''}")
+        if d in evisa:
+            zh.append(f"對 {evisa[d]} 本護照發電子簽證")
+            en.append(f"e-visa for {evisa[d]} passport{'s' if evisa[d] > 1 else ''}")
+        hints[d] = "、".join(zh)
+        hints_en[d] = "; ".join(en).capitalize()
+    write_json(OUT / "e-entry.json", indicator_file("e-entry", "類別", [YEAR], entry, hints=hints, hintsEn=hints_en))
+    kinds = Counter(v[0] for v in entry.values())
+    print(f"  電子簽證與旅行授權：兩種都有 {kinds[E_ENTRY_BOTH]}（{sorted(d for d, v in entry.items() if v[0] == E_ENTRY_BOTH)}）、"
+          f"只有旅行授權 {kinds[E_ENTRY_ETA]}（{sorted(d for d, v in entry.items() if v[0] == E_ENTRY_ETA)}）、"
+          f"只有電子簽證 {kinds[E_ENTRY_EVISA]}、都沒有 {len(passports) - len(entry)}")
+
     ranked = sorted(power.items(), key=lambda x: (-x[1], x[0]))
     rank = {p: 1 + sum(v > power[p] for v in power.values()) for p in passports}
     print(f"  護照實力：最高 {ranked[:5]}，最低 {ranked[-3:]}，台灣 {power['TWN']}（第 {rank['TWN']} 名）")
@@ -175,6 +211,9 @@ def build() -> None:
     print("  全部：" + "、".join(f"{NAMES[c]} {overall[c]}" for c in sorted(overall)))
     twn = Counter(codes["TWN"].values())
     print("  台灣護照：" + "、".join(f"{NAMES[c]} {twn[c]}" for c in sorted(twn)))
+    all_days = Counter(r.days for p in passports for d, r in table[p].items() if r.days is not None and codes[p][d] == pi.VISA_FREE)
+    twn_days = Counter(r.days for d, r in table["TWN"].items() if r.days is not None and codes["TWN"][d] == pi.VISA_FREE)
+    print(f"  免簽證天數：全部 {sorted(all_days.items(), key=lambda x: -x[1])[:10]}；台灣護照 {sorted(twn_days.items(), key=lambda x: -x[1])}")
     _cross_check(codes["TWN"])
 
     write_json(OUT / "manifest.json", {

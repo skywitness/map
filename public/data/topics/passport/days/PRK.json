@@ -1,0 +1,1 @@
+{"indicator":"visa-days","unit":"天","years":[2026],"noValue":{"KGZ":"免簽證，資料集沒寫天數","PSE":"免簽證，資料集沒寫天數"},"noValueEn":{"KGZ":"Visa-free, number of days not stated","PSE":"Visa-free, number of days not stated"},"encoding":"delta","values":{"DMA":[0,21],"FSM":[0,30],"GUY":[0,90],"HTI":[0,90],"SYC":[0,90],"VCT":[0,90]}}

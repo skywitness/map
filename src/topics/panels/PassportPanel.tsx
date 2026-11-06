@@ -47,6 +47,8 @@ const TEXT = defineMessages({
       '差異多半來自：資料日期不同（Passport Index 是 2026 年 2 月）；分類方式不同（例如領事事務局把澳洲的 ETA、肯亞的 eTA 列為電子簽證，Passport Index 列為旅行授權；同一國有好幾種方式時，領事事務局這邊取最方便的一種）；Passport Index 把領事事務局列為需事先申請的一些國家列成電子簽證、落地簽證或不准入境。只有 Passport Index 有的是中國大陸、香港（由陸委會主管）與巴勒斯坦；只有領事事務局有的是關島、波多黎各等屬地。',
     compareMissing: '台灣的外交主題的簽證資料載入失敗，沒辦法比對。',
     caveat: '各國規定時常變動，出發前請以各國公告為準。',
+    daysTitle: '免簽證可以待幾天',
+    noDays: '沒寫天數',
   },
   en: {
     title: (country) => `With a ${country} passport`,
@@ -70,6 +72,8 @@ const TEXT = defineMessages({
       'Most differences come from different dates (Passport Index is from February 2026), different classifications (the Bureau of Consular Affairs lists the Australian ETA and the Kenyan eTA as e-visas, Passport Index as travel authorisations; where a country offers several options, the Bureau side shows the most convenient), and Passport Index listing some countries as e-visa, visa on arrival or no admission where the Bureau says a visa is required. Only Passport Index covers mainland China, Hong Kong (both under the Mainland Affairs Council) and Palestine; only the Bureau covers territories such as Guam and Puerto Rico.',
     compareMissing: 'The visa data of the Taiwan foreign relations topic failed to load, so no comparison is shown.',
     caveat: "Rules change often; check the destination's own announcements before travelling.",
+    daysTitle: 'Visa-free stay',
+    noDays: 'Not stated',
   },
 });
 
@@ -129,6 +133,15 @@ export default function PassportPanel({ topic, iso3, item, countryName: name }: 
     for (const list of byCode.values()) list.sort((a, b) => collator.compare(nameOf(a), nameOf(b)));
     return byCode;
   }, [data, lang, nameOf]);
+
+  // 免簽證的目的地依天數分組（2026-11-06，製作手冊第二十四批 412），0 是資料集沒寫天數
+  const dayCounts = useMemo(() => {
+    const free = groups?.get(1);
+    if (!data || !free?.length) return null;
+    const counts = new Map<number, number>();
+    for (const dest of free) counts.set(data.days?.[dest] ?? 0, (counts.get(data.days?.[dest] ?? 0) ?? 0) + 1);
+    return [...counts].sort((a, b) => (a[0] || Infinity) - (b[0] || Infinity));
+  }, [data, groups]);
 
   // 台灣護照 vs 領事事務局（代碼相同：1 免簽證 … 5 需事先申請）
   const comparison = useMemo(() => {
@@ -223,6 +236,17 @@ export default function PassportPanel({ topic, iso3, item, countryName: name }: 
             total={Object.keys(data.values).length}
             ariaLabel={text.title(name)}
           />
+          {dayCounts && (
+            <>
+              <h4>{text.daysTitle}</h4>
+              <BarList
+                items={dayCounts.map(([d, n]) => ({ key: String(d), label: d ? text.days(d) : text.noDays, value: n }))}
+                format={text.count}
+                total={groups.get(1)?.length ?? 0}
+                ariaLabel={text.daysTitle}
+              />
+            </>
+          )}
           {ORDER.filter((c) => groups.has(c)).map((code) => {
             const list = groups.get(code)!;
             return (

@@ -28,6 +28,16 @@ export const PERMIT: Text = { zh: '另用通行證（兩岸、港澳）', en: 'T
 export const EASY = new Set([1, 2, 3]);
 export const DATA_DATE = '2026-02-17';
 
+/**
+ * 電子簽證與旅行授權（pipeline/topics/passport.py 的 e-entry.json，2026-11-06，製作手冊第二十四批 412）：
+ * 目的地對至少一本護照要求旅行授權或發電子簽證，就算有那一套。兩種都有的是電子簽證的顏色加旅行授權顏色的斜線。
+ */
+const E_ENTRY: CategoryDef[] = [
+  { value: 1, label: { zh: '電子簽證', en: 'E-visa' } },
+  { value: 2, label: { zh: '旅行授權', en: 'Travel authorisation' } },
+  { value: 3, label: { zh: '兩種都有', en: 'Both' }, hatch: { base: 1, stripes: 2 } },
+];
+
 const visaLabel = (v: number) => tr(PASSPORT_VISA.find((c) => c.value === v)?.label ?? PERMIT);
 
 /**
@@ -158,6 +168,34 @@ export const passport: TopicDefinition = {
       file: 'visa/{item}.json',
       layer: { kind: 'categorical', categories: PASSPORT_VISA, other: PERMIT, diverging: true },
       format: visaLabel,
+    },
+    {
+      // 2026-11-06（製作手冊第二十四批 412）：免簽證可以待幾天，同一份資料集的天數欄，原本只在側欄
+      id: 'visa-days',
+      label: { zh: '免簽證可以待幾天', en: 'Visa-free stay' },
+      description: {
+        zh: '持這本護照免簽證入境，最多可以待幾天（2026 年 2 月）。同樣是免簽證，天數從 7 天到 360 天都有：全部 39,000 多組護照與目的地裡最常見的是 90 天，其次是 30 天、180 天。台灣護照免簽證的目的地裡 90 天的有 55 個、30 天 8 個，180 天與 120 天各 2 個。歐盟境內自由移動這類資料集沒寫天數的另外註明；灰色的是要簽證、電子簽證、落地簽證或旅行授權（看「護照的簽證待遇」）。各國算法不同：有的是每次入境可以待幾天，有的像申根區是「180 天內最多 90 天」，資料集分不出來。',
+        en: 'How many days this passport can stay visa-free (February 2026). Visa-free stays range from 7 to 360 days: across the 39,000-plus passport–destination pairs the most common is 90 days, then 30 and 180. For the Taiwan passport, 55 visa-free destinations allow 90 days, 8 allow 30, and 2 each allow 180 and 120. Visa-free entries without a stated length (such as free movement within the EU) are noted; grey means a visa, e-visa, visa on arrival or travel authorisation is needed (see Visa access). Rules differ: some count days per entry, others (such as the Schengen area) 90 days within any 180, which the dataset does not distinguish.',
+      },
+      unit: { zh: '天', en: 'days' },
+      file: 'days/{item}.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [15, 30, 60, 90, 180] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 天`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'day' : 'days'}` }),
+      formatTick: (v) => fixed(v, 0),
+      missing: { zh: '不是免簽證（看「護照的簽證待遇」）', en: 'Not visa-free (see Visa access)' },
+    },
+    {
+      id: 'e-entry',
+      label: { zh: '電子簽證與旅行授權', en: 'E-visas and travel authorisations' },
+      description: {
+        zh: '這個國家有沒有自己的線上入境系統：電子簽證是上網申請、核准後才拿到簽證；旅行授權是免簽證的旅客出發前上網登記（美國 ESTA、加拿大 eTA、英國 ETA、南韓 K-ETA 這類）。從 Passport Index 整份資料反過來算：對至少一本護照要求旅行授權或發電子簽證就算有。2026 年 2 月有 81 個國家發電子簽證、16 個要求旅行授權，其中澳洲、以色列、日本、南韓、台灣等 9 國兩種都有；台灣對柬埔寨、寮國、緬甸、越南 4 本護照要求旅行授權。歐盟的 ETIAS 還沒上線。滑過國家看各對幾本護照。',
+        en: 'Whether a country runs its own online entry system: an e-visa is applied for online and issued before travel; a travel authorisation is an online pre-registration for visa-exempt visitors (such as the US ESTA, Canadian eTA, UK ETA or Korean K-ETA). Worked out from the whole Passport Index dataset: a country counts if it requires a travel authorisation or issues an e-visa for at least one passport. In February 2026, 81 countries issued e-visas and 16 required travel authorisations; 9 had both, including Australia, Israel, Japan, South Korea and Taiwan (Taiwan requires one from 4 passports: Cambodia, Laos, Myanmar and Vietnam). The EU’s ETIAS had not started yet. Hover over a country to see how many passports each applies to.',
+      },
+      unit: '',
+      file: 'e-entry.json',
+      layer: { kind: 'categorical', categories: E_ENTRY },
+      format: (v) => tr(E_ENTRY.find((c) => c.value === v)?.label ?? ''),
+      missing: { zh: '對所有護照都沒有電子簽證或旅行授權', en: 'No e-visa or travel authorisation for any passport' },
     },
     {
       id: 'power',
