@@ -17,6 +17,7 @@ from collections import defaultdict
 
 from common import OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
 from sources.wikidata_profiles import _rows, _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "skyscrapers"
 MIN_HEIGHT = 150
@@ -63,12 +64,8 @@ SELECT ?item (MAX(?h0) AS ?h) (SAMPLE(?coord0) AS ?coord) (GROUP_CONCAT(DISTINCT
 
 
 def _zh(r: dict) -> str | None:
-    from opencc import OpenCC
-
-    for k in ("zhtw", "zhhant"):
-        if k in r:
-            return r[k]["value"]
-    return OpenCC("s2tw").convert(r["zh"]["value"]) if "zh" in r else None
+    v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
+    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True)
 
 
 def build() -> None:

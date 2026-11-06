@@ -26,6 +26,7 @@ from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, write_json, writ
 from sources import wikidata_attractions
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "aviation"  # 航空主題（2026-10-30 航空公司、最長的直飛航線、交通的航空指標合併）
 FIRST_YEAR, LAST_YEAR = 1909, 2026
@@ -88,9 +89,6 @@ def hq_countries(qids: list[str]) -> dict[str, set[str]]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items: dict[str, dict] = {}
     for r in fetch():
         v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
@@ -156,8 +154,7 @@ def build() -> None:
         start, stop = d["start"], d["stop"]
         first = LAST_YEAR if start is None else max(start, FIRST_YEAR)
         last = LAST_YEAR if stop is None else stop - 1  # 停業那一年不算
-        zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (
-            s2twp.convert(d["zh"]) if d.get("zh") else None)
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"))  # 航空公司的名稱不是地名，不修正音譯的字
         en = d.get("en") or d.get("mul") or names.get(d["q"]) or d["q"]
         entry = [zh if zh != en else None, en, start, stop, sorted(d["iata"])[0] if d["iata"] else None,
                  sorted(d["icao"])[0] if d["icao"] else None, 1 if FLAG_CARRIER in d["cls"] else 0]

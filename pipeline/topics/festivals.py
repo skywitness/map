@@ -35,6 +35,7 @@ from sources import wikidata_attractions
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _sparql
 from topics.house_prices import CITY_EN
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "festivals"
 BOCH_URL = "https://data.boch.gov.tw/opendata/v2/assetsCase/5.1.json"
@@ -215,9 +216,6 @@ def boch() -> list[dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items: dict[str, dict] = {}
     rows_direct = _cached("festivals-direct", QUERY.format(where=WHERE_DIRECT.format(festival=FESTIVAL)))
     rows_sub = _cached("festivals-subclasses", QUERY.format(where=WHERE_SUB.format(festival=FESTIVAL)))
@@ -245,8 +243,8 @@ def build() -> None:
         if "coord" not in d:
             continue
         en = d.get("en") or d.get("mul") or names.get(d["q"])
-        zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (
-            s2twp.convert(d["zh"]) if d.get("zh") else None)
+        # 繁中的標籤原樣用（再轉一次 OpenCC 會把「里」轉成「裡」，zh_names.py）；節慶的名稱不是地名，不修正音譯的字
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"))
         if not (en or zh):
             continue
         # 音樂節優先（同時標成節慶的也算音樂節），其次依 KIND_WORDS 的順序
@@ -264,7 +262,7 @@ def build() -> None:
     for r in _cached(f"festivals-places-{key}", PLACE_QUERY.format(items=" ".join(f"wd:{q}" for q in dated_q))):
         v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
         q = v("item").rsplit("/", 1)[1]
-        zh = s2tw.convert(v("zhtw") or v("zhhant")) if v("zhtw") or v("zhhant") else (s2twp.convert(v("zh")) if v("zh") else None)
+        zh = wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True)
         old = places.get(q)
         if not old or (not old[0] and zh):
             places[q] = (zh, v("en"))
@@ -324,7 +322,7 @@ def build() -> None:
         if r["iso3"]:
             totals[r["iso3"]] += 1
     write_json(OUT / "count.json", indicator_file("count", "個", months, {k: [n] * 12 for k, n in sorted(totals.items())}))
-    _arenas(s2tw, s2twp)
+    _arenas()
     write_json(OUT / "manifest.json", {"topic": "festivals", "generatedAt": now_iso(),
                                        "sources": ["Wikidata (CC0)", f"文化部文化資產局 文資局民俗 {BOCH_URL}（政府資料開放授權條款第 1 版）"]})
     from collections import Counter
@@ -333,7 +331,7 @@ def build() -> None:
     print(f"  文資局對不到鄉鎮的 {len(missing_town)}：{missing_town[:8]}")
 
 
-def _arenas(s2tw, s2twp) -> None:
+def _arenas() -> None:
     """萬人場館：arena 類別、容納 1 萬人以上，加上台灣的補充"""
     main = _cached("festival-arenas", ARENA_QUERY.format(
         where=f"?item wdt:P31/wdt:P279* wd:{ARENA} ; wdt:P1083 ?cap . FILTER(?cap >= {ARENA_MIN})"))
@@ -359,8 +357,7 @@ def _arenas(s2tw, s2twp) -> None:
         if d["cap"] < ARENA_MIN or d["cap"] > 200000:  # 20 萬以上多半是填錯（例如賽車場的總人數）
             continue
         en = d.get("en") or d.get("mul")
-        zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (
-            s2twp.convert(d["zh"]) if d.get("zh") else None)
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         if not (en or zh):
             continue
         zh = ZH_NAMES.get(d["q"], zh)

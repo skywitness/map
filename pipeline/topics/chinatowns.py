@@ -22,6 +22,7 @@ from collections import Counter
 
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, now_iso, points_file, write_json
 from geoindex import countries_at
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "migration"  # 2026-10-30 唐人街變成移民與難民的疊加圖層（第七批 122）
 SPARQL = "https://query.wikidata.org/sparql"
@@ -128,9 +129,6 @@ def _km(a: tuple[float, float], b: tuple[float, float]) -> float:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw = OpenCC("s2tw")
     items: dict[str, dict] = {}
     for r in fetch():
         q = r["item"]["value"].rsplit("/", 1)[1]
@@ -146,9 +144,9 @@ def build() -> None:
         en = d["itemLabel"] if d["itemLabel"] != d["q"] else None
         if en == "Chinatown" and d.get("cityLabel"):
             en = f"Chinatown, {d['cityLabel']}"
-        zh = d.get("zht") or d.get("zh")
+        zh = wikidata_zh(d.get("zht") or d.get("zh"), place=True)  # zht 是 zh-tw、zh 是 zh-hant 的標籤
         rows.append({"lon": round(lon, 4), "lat": round(lat, 4), "s": WIKIDATA, "c": 0, "en": en,
-                     "zh": s2tw.convert(zh) if zh else None, "q": d["q"]})
+                     "zh": zh, "q": d["q"]})
     wikidata_points = [(r["lon"], r["lat"]) for r in rows]
     added, near = 0, []
     for zh, en, qid, lon, lat, city in SUPPLEMENT:

@@ -19,6 +19,7 @@ from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, write_json
 from sources import wikidata_attractions
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "diet"  # 2026-10-30 併進飲食（第七批 122）
 YEAR = 2026
@@ -46,9 +47,6 @@ def fetch(kind: str) -> list[dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items: dict[str, dict[str, dict]] = {}
     for kind in KINDS:
         found: dict[str, dict] = {}
@@ -75,8 +73,7 @@ def build() -> None:
             countries = sorted({iso for cc in d["cc"] if (iso := from_alpha2(cc))})
             if not countries:
                 continue
-            zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (
-                s2twp.convert(d["zh"]) if d.get("zh") else None)
+            zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"))  # 食物不是地名，不修正音譯的字
             en = d.get("en") or d.get("mul") or names.get(d["q"]) or d["q"]
             # 中文標籤後面的括號說明（「切達乳酪（英國）」）拿掉
             zh = re.sub(r"\s*[（(][^）)]*[）)]$", "", zh) if zh else None

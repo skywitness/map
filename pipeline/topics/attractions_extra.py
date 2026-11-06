@@ -34,6 +34,7 @@ from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, wr
 from sources import wikitable as W
 from sources.countries import from_name
 from sources.wikidata_profiles import _rows, _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "attractions"
 TW_CSV_URL = "https://media.taiwan.net.tw/od/01_PRD/" + urllib.parse.quote("歷年國內主要觀光遊憩據點遊客人數月別統計.csv")
@@ -59,12 +60,8 @@ def _link(cell: str) -> str | None:
 
 
 def _zh(r: dict) -> str | None:
-    from opencc import OpenCC
-
-    for k in ("zhtw", "zhhant"):
-        if k in r:
-            return r[k]["value"]
-    return OpenCC("s2tw").convert(r["zh"]["value"]) if "zh" in r else None
+    v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
+    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True)
 
 
 def wiki_items(titles: list[str]) -> dict[str, dict]:

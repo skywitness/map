@@ -15,11 +15,10 @@ import re
 from common import OUT_DIR, points_file, write_json
 from geoindex import countries_at
 from sources.wikidata_attractions import _cached
+from zh_names import wikidata_zh
 
 CRATERS_OUT = OUT_DIR / "topics" / "special-landforms" / "craters.json"
 TRENCHES_OUT = OUT_DIR / "topics" / "oceans" / "trenches.json"
-
-TRANSLIT_FIX = str.maketrans({"剋": "克", "託": "托", "裡": "里", "裏": "里", "誇": "夸"})
 
 LABELS = """
   OPTIONAL {{ ?item rdfs:label ?en FILTER(LANG(?en) = "en") }}
@@ -50,9 +49,6 @@ TRENCHES = """SELECT ?item ?lat ?lon ?sl ?depth ?elev ?len ?en ?zhtw ?zhhant ?zh
 
 def _rows(bindings: list[dict], extra: tuple[str, ...]) -> list[dict]:
     """同一個項目可能有好幾列（好幾個座標、直徑）：取第一個座標、每個欄位第一個有的值"""
-    from opencc import OpenCC
-
-    s2twp = OpenCC("s2twp")
     items: dict[str, dict] = {}
     for b in bindings:
         v = lambda k: b[k]["value"] if k in b else None  # noqa: E731
@@ -63,11 +59,9 @@ def _rows(bindings: list[dict], extra: tuple[str, ...]) -> list[dict]:
                 d[k] = v(k)
     out = []
     for d in items.values():
-        # 繁中的標籤原樣用（再轉一次 OpenCC 會把「里亞尚」轉成「裡亞尚」、「瓦克夫」轉成「瓦剋夫」）；
-        # 只有簡中的才轉，轉完修正音譯地名常見的錯字（剋→克、託→托、裡→里、誇→夸，地名裡幾乎不會用到前面那些字）
-        # Wikidata 的繁中標籤本身也有這種錯字（「瓦剋夫」「里奧誇爾托」，多半是機器轉的），一樣修正
-        zh = d.get("zhtw") or d.get("zhhant") or (s2twp.convert(d["zh"]) if d.get("zh") else None)
-        zh = zh.translate(TRANSLIT_FIX) if zh else None
+        # 繁中的標籤原樣用（再轉一次 OpenCC 會把「里亞尚」轉成「裡亞尚」、「瓦克夫」轉成「瓦剋夫」）；只有簡中的才轉，
+        # 兩種都修正音譯地名常見的錯字（Wikidata 的繁中標籤本身也有「瓦剋夫」「里奧誇爾托」，多半是機器轉的；zh_names.py）
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         en = d.get("en")
         if not (en or zh):
             continue

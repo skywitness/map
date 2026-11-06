@@ -48,11 +48,8 @@ def fetch() -> list[dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
     from topics.attractions import zh_name
 
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items: dict[str, dict] = {}
     for r in fetch():
         q = r["item"]["value"].rsplit("/", 1)[1]
@@ -82,7 +79,7 @@ def build() -> None:
         else:
             lon, lat = d["coord"]
             rows.append({"lon": round(lon, 3), "lat": round(lat, 3), "sl": d["sl"], "q": q, "en": d.get("en"),
-                         "zh": zh_name(d, s2tw, s2twp), "t": ARBORETUM if d["arb"] else GARDEN, "y": d["inc"]})
+                         "zh": zh_name(d), "t": ARBORETUM if d["arb"] else GARDEN, "y": d["inc"]})
     names = wd.fallback_names(sorted(r["q"] for r in rows if not r["en"]))
     for r in rows:
         r["en"] = r["en"] or names.get(r["q"])

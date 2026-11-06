@@ -29,6 +29,7 @@ from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, wr
 from sources import wikitable as W
 from sources.countries import from_name
 from sources.wikidata_profiles import _rows, _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "world-heritage"
 YEAR = 2026
@@ -60,12 +61,8 @@ def _point(v: str | None) -> tuple[float, float] | None:
 
 def _zh(r: dict) -> str | None:
     """中文名稱：zh-tw、zh-hant，沒有時把 zh 用 OpenCC 轉成台灣用字（跟「節慶」主題一樣）"""
-    from opencc import OpenCC
-
-    for k in ("zhtw", "zhhant"):
-        if k in r:
-            return r[k]["value"]
-    return OpenCC("s2tw").convert(r["zh"]["value"]) if "zh" in r else None
+    v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
+    return wikidata_zh(v("zhtw") or v("zhhant"), v("zh"), place=True)
 
 
 # ── 預備名單 ─────────────────────────────────────────────────────

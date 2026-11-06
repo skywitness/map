@@ -27,6 +27,7 @@ from collections import Counter, defaultdict
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, now_iso, points_file, write_json
 from geoindex import countries_at
 from sources import wikidata_attractions
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "special-landforms"
 SPARQL = "https://query.wikidata.org/sparql"
@@ -89,9 +90,6 @@ def fetch() -> list[dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     kind_of = {q: k for k, qs in KINDS.items() for q in qs}
     items: dict[str, dict] = {}
     for r in fetch():
@@ -116,8 +114,7 @@ def build() -> None:
     for d in items.values():
         if "coord" not in d:
             continue
-        zh_raw = d.get("zhtw") or d.get("zhhant")
-        zh = s2tw.convert(zh_raw) if zh_raw else (s2twp.convert(d["zh"]) if d.get("zh") else None)
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         en = d.get("en") or d.get("mul") or names.get(d["q"])
         if not (en or zh):
             no_name += 1

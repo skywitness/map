@@ -23,6 +23,7 @@ import urllib.request
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, now_iso, points_file, to_series, write_json, year_span
 from geoindex import countries_at
 from sources import tw_protected_areas, worldbank
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "national-parks"
 SPARQL = "https://query.wikidata.org/sparql"
@@ -69,9 +70,6 @@ def fetch() -> list[dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items: dict[str, dict] = {}
     for r in fetch():
         q = r["item"]["value"].rsplit("/", 1)[1]
@@ -106,7 +104,7 @@ def build() -> None:
         years = sorted(y for y in d["inc"] if MIN_YEAR <= y <= LAST_YEAR)
         if d["inc"] and not years:
             skipped["old-year"] += 1
-        zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (s2twp.convert(d["zh"]) if d.get("zh") else None)
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         en = d.get("en") or d.get("mul")
         if not (en or zh):
             continue

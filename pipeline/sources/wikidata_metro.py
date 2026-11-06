@@ -11,7 +11,7 @@
   失敗時 wikidata_profiles._sparql 會等一下再試。共 16 次，約 17 分鐘。
 - User-Agent 寫專案網址（common.USER_AGENT），不帶個人資料；不用帳號、不用金鑰。
 - 回應存在 .cache/wikidata/metro-*.json，要更新加 --refresh；資料日期用快取檔的修改時間。
-- 中文名稱用 SPARQL 拿到的 zh-* 名稱，在本機用 OpenCC 轉成繁體（zh_name()）。
+- 中文名稱用 SPARQL 拿到的 zh-* 名稱，在本機轉成繁體（zh_name()；繁中的標籤只換夾在裡面的簡體字，zh_names.py）。
 - 只取結構化的事實（日期、座標、名稱、所屬路網），不取維基百科條目的文字。
 """
 from __future__ import annotations
@@ -25,6 +25,7 @@ import common
 from opencc import OpenCC
 from common import CACHE_DIR
 from sources.wikidata_profiles import _sparql
+from zh_names import TRANSLIT_FIX, hant
 
 E = "http://www.wikidata.org/entity/"
 _S2TW = OpenCC("s2tw")
@@ -171,12 +172,17 @@ def fetched_date() -> str:
 
 
 def zh_name(p: dict) -> str | None:
-    """繁體中文名稱：依序用 zh-tw、zh-hant、zh-hk，都沒有時用 zh、zh-hans、zh-cn，一律經過 OpenCC 的 s2tw（只換字、不換用語）。
-    SPARQL 拿到的 zh-tw 名稱常常是直接複製的簡體（例如韓國的「千户站」），所以台灣、香港的名稱也轉一次（繁體轉了不會變）。
+    """繁體中文名稱：依序用 zh-tw、zh-hant、zh-hk，都沒有時用 zh、zh-hans、zh-cn 經過 OpenCC 的 s2tw（只換字、不換用語）。
+    SPARQL 拿到的 zh-tw 名稱常常是直接複製的簡體（例如韓國的「千户站」），但不能整串再轉一次 s2tw（「繁體轉了不會變」不對：
+    「里」會變成「裡」、「台」變成「臺」、「范」變成「範」），只換夾在裡面的純簡體字（zh_names.hant()）；
+    車站、路網、路線的名稱都是地名，再修正音譯的錯字（zh_names.TRANSLIT_FIX，2026-11-06）。
     其他主題用 wbgetentities 的 languagefallback（伺服器端轉換），但 2026-10 Wikidata 的 API 也在限流，
     1 萬多個車站要查一個多小時，所以改在本機轉換。"""
     labels = dict(l for l in p.get("label", []))
-    for lang in ("zh-tw", "zh-hant", "zh-hk", "zh", "zh-hans", "zh-cn"):
+    for lang in ("zh-tw", "zh-hant", "zh-hk"):
         if labels.get(lang):
-            return _S2TW.convert(labels[lang])
+            return hant(labels[lang]).translate(TRANSLIT_FIX)
+    for lang in ("zh", "zh-hans", "zh-cn"):
+        if labels.get(lang):
+            return _S2TW.convert(labels[lang]).translate(TRANSLIT_FIX)
     return None

@@ -20,6 +20,7 @@ from sources import wiki_oldest_companies as wiki
 from sources import wiki_racing
 from sources.countries import from_name
 from sources.wikidata_attractions import _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "companies"  # 企業與品牌（2026-10-30 最古老的公司、品牌的發源地合併）
 LICENSE = "CC BY-SA 4.0"
@@ -76,14 +77,9 @@ def wikidata(titles: list[str]) -> dict[str, dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
-
     def zh_name(d: dict, en: str) -> str | None:
-        """中文標籤（繁體），跟英文名一樣或中英夾雜的（「千年之湯 古Man」）不用"""
-        zh = d.get("zhtw") or d.get("zhhant")
-        zh = s2tw.convert(zh) if zh else (s2twp.convert(d["zh"]) if d.get("zh") else None)
+        """中文標籤（繁體），跟英文名一樣或中英夾雜的（「千年之湯 古Man」）不用；公司名稱不是地名，不修正音譯的字"""
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"))
         return zh if zh and zh != en and not re.search(r"[A-Za-z]", zh) else None
 
     companies = wiki.companies()

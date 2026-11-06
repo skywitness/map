@@ -18,6 +18,7 @@ from common import CACHE_DIR, OUT_DIR, points_file, write_json
 from geoindex import countries_at
 from sources import portwatch
 from sources.wikidata_attractions import _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "shipping"
 CANAL, STRAIT = 1, 2
@@ -78,9 +79,6 @@ def chokepoints() -> None:
 
 
 def waterways() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     path = CACHE_DIR / "wikidata" / "waterways.json"
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -107,8 +105,7 @@ def waterways() -> None:
     for q, d in items.items():
         if "coord" not in d:
             continue
-        zh = d.get("zhtw") or d.get("zhhant")
-        zh = s2tw.convert(zh) if zh else (s2twp.convert(d["zh"]) if d.get("zh") else None)
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         kind = STRAIT if STRAIT in d["kinds"] and CANAL not in d["kinds"] else (CANAL if CANAL in d["kinds"] else STRAIT)
         opened = min(d["open"]) if d["open"] else (min(d["inc"]) if d["inc"] else None)
         rows.append({

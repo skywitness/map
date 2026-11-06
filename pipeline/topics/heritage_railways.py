@@ -28,6 +28,7 @@ from collections import Counter
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, now_iso, points_file, write_json
 from geoindex import countries_at
 from sources import wikidata_attractions
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "heritage-railways"
 ENDPOINT = "https://qlever.dev/api/wikidata"
@@ -83,9 +84,6 @@ def year(v: str | None) -> int | None:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items: dict[str, dict] = {}
     for r in fetch():
         q = r["item"]["value"].rsplit("/", 1)[1]
@@ -110,7 +108,7 @@ def build() -> None:
         opened = HAND_YEAR.get(d["q"]) or (min(d["open"]) if d["open"] else (min(d["inc"]) if d["inc"] else None))
         if opened is not None and not FIRST_YEAR <= opened <= LAST_YEAR:
             opened = None
-        zh = s2tw.convert(d.get("zhtw") or d.get("zhhant")) if d.get("zhtw") or d.get("zhhant") else (s2twp.convert(d["zh"]) if d.get("zh") else None)
+        zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         en = d.get("en") or d.get("mul") or names.get(d["q"])
         if not (en or zh):
             continue

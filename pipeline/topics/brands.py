@@ -24,6 +24,7 @@ from collections import defaultdict
 from common import CACHE_DIR, OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
 from geoindex import countries_at
 from sources.wikidata_attractions import _sparql
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "companies"  # 企業與品牌（2026-10-30 最古老的公司、品牌的發源地合併）
 YEAR = 2026
@@ -70,13 +71,9 @@ def _items(kind: str) -> dict[str, dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
-
     def zh_name(d: dict, en: str) -> str | None:
-        zh = (d.get("zhtw") or d.get("zhhant") or [None])[0]
-        zh = s2tw.convert(zh) if zh else (s2twp.convert(d["zh"][0]) if d.get("zh") else None)
+        # 繁中的標籤原樣用（zh_names.py）；品牌名稱不是地名，不修正音譯的字
+        zh = wikidata_zh((d.get("zhtw") or d.get("zhhant") or [None])[0], (d.get("zh") or [None])[0])
         return zh if zh and zh != en else None
 
     manifest = {}

@@ -27,6 +27,7 @@ import urllib.parse
 import urllib.request
 
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, download, indicator_file, now_iso, points_file, write_json, write_manifest_part
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "antarctica"  # 南極主題（2026-10-30 研究站、企鵝、冰下湖合併）
 SPARQL = "https://query.wikidata.org/sparql"
@@ -108,9 +109,6 @@ def year(v: str) -> int | None:
 
 
 def stations() -> dict[str, dict]:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     out: dict[str, dict] = {}
     for r in fetch():
         q = r["item"]["value"].rsplit("/", 1)[1]
@@ -138,12 +136,7 @@ def stations() -> dict[str, dict]:
             if v(k) and not d.get(k):
                 d[k] = v(k)
     for d in out.values():
-        if d.get("zhtw") or d.get("zhhant"):
-            d["zhName"] = s2tw.convert(d.get("zhtw") or d.get("zhhant"))
-        elif d.get("zh"):
-            d["zhName"] = s2twp.convert(d["zh"])
-        else:
-            d["zhName"] = None
+        d["zhName"] = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         d["enName"] = d.get("en") or d.get("mul")
     return out
 

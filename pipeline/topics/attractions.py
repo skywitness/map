@@ -24,6 +24,7 @@ import re
 from common import CACHE_DIR, OUT_DIR, download, indicator_file, now_iso, points_file, write_json, write_layered_points
 from geoindex import countries_at
 from sources import wikidata_attractions as wd
+from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "attractions"
 # museums.json 收的博物館：維基百科條目語言數這麼多以上（src/topics/attractions.ts 的 overlay() 在 7 級以下只畫這些），其餘的在 -more.json
@@ -67,16 +68,11 @@ def similar(a: str | None, b: str) -> bool:
     return a in b or b in a or len((set(a) & set(b)) - GENERIC) >= 2
 
 
-def zh_name(d: dict, s2tw, s2twp) -> str | None:
-    """台灣用字的中文名稱：zh-tw、zh-hant 的標籤（有些夾著簡體字，逐字轉繁體），沒有的用 zh 轉成台灣用語；
-    去掉維基百科條目名稱式的消歧義括號（例如「高爾基公園 (莫斯科)」）"""
-    if d.get("zhtw") or d.get("zhhant"):
-        name = s2tw.convert(d.get("zhtw") or d.get("zhhant"))
-    elif d.get("zh"):
-        name = s2twp.convert(d["zh"])
-    else:
-        return None
-    return re.sub(r"\s\([^)]*\)$", "", name)
+def zh_name(d: dict) -> str | None:
+    """台灣用字的中文名稱：zh-tw、zh-hant 的標籤（有些夾著簡體字，只換那些純簡體字；整串再轉一次 OpenCC 會把「里」轉成「裡」），
+    沒有的用 zh 轉成台灣用語，再修正音譯地名的錯字（zh_names.py）；去掉維基百科條目名稱式的消歧義括號（例如「高爾基公園 (莫斯科)」）"""
+    name = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
+    return re.sub(r"\s\([^)]*\)$", "", name) if name else None
 
 
 def moc_museums() -> list[dict]:
@@ -93,9 +89,6 @@ def moc_museums() -> list[dict]:
 
 
 def build() -> None:
-    from opencc import OpenCC
-
-    s2tw, s2twp = OpenCC("s2tw"), OpenCC("s2twp")
     items = wd.fetch()
     types = wd.museum_types()
     museums, zoos, parks = [], [], []
@@ -108,7 +101,7 @@ def build() -> None:
             dropped["coord"] += 1
             continue
         lon, lat = d["coord"]
-        row = {"lon": lon, "lat": lat, "sl": d["sl"], "en": d.get("en"), "zh": zh_name(d, s2tw, s2twp), "q": q}
+        row = {"lon": lon, "lat": lat, "sl": d["sl"], "en": d.get("en"), "zh": zh_name(d), "q": q}
         roots = d["roots"] | ({TAIWAN_ROLES[q][0]} if q in TAIWAN_ROLES else set())
         if "zoo" in roots or "aquarium" in roots:
             zoos.append({**row, "t": AQUARIUM if "aquarium" in roots else ZOO})
