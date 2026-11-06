@@ -865,6 +865,12 @@ button {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
 }
 
+/* 搜尋框在畫面左半邊時清單靠左對齊（CountrySearch.tsx 的 alignLeft） */
+.search-results.is-left {
+  right: auto;
+  left: 0;
+}
+
 .search-results ul {
   margin: 0;
   padding: 0;

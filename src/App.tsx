@@ -34,7 +34,7 @@ import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, sto
 import { flowText, useFlowSelection } from './map/flows';
 import { DEFAULT_LAYERS, type LayerVisibility, type OverlayLayer } from './map/overlayData';
 import { buildPlaceIndex, searchPlaces as findPlaces, type PlaceEntry, type PlaceLayer } from './lib/placeSearch';
-import type { ComboTarget, PlaceOption } from './controls/CommandPaletteDialog';
+import type { ComboTarget, PlaceOption } from './controls/searchGroups';
 import { clearRoutes, importRouteFiles, routesToGeoJson, usePersonalRoutes, type PersonalRoute } from './lib/personalRoutes';
 import type { PersonalMenu } from './map/BasemapMenu';
 import { PERSONAL_ID, personalDecoded, personalOverlay } from './app/personalOverlay';
@@ -1082,6 +1082,10 @@ export function App() {
               index={searchIndex}
               onSelect={selectFromSearch}
               onSelectTopic={selectTopic}
+              currentTopic={topic.id}
+              actions={paletteActions}
+              places={searchPlaces}
+              onSelectCombo={selectCombo}
               valueOf={
                 pure
                   ? undefined

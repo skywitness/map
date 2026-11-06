@@ -1,5 +1,5 @@
 import { CommandPalette, type PaletteAction } from '../controls/CommandPalette';
-import type { ComboTarget, PlaceOption } from '../controls/CommandPaletteDialog';
+import type { ComboTarget, PlaceOption } from '../controls/searchGroups';
 import { LangSwitch } from '../controls/LangSwitch';
 import { LayoutMenu } from '../controls/LayoutMenu';
 import { ShortcutHelp } from '../controls/ShortcutHelp';

@@ -1,19 +1,20 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
-import { tr, useLang } from '../i18n';
-import { parseCombo } from '../lib/comboSearch';
-import { makeKey, normalize, scoreKey, searchCountries, type SearchEntry } from '../lib/countrySearch';
+import { useLang } from '../i18n';
+import type { SearchEntry } from '../lib/countrySearch';
 import { readRecentTopics } from '../lib/recentTopics';
 import { useUI } from '../lib/strings';
-import { searchTopics, useTopicSearchItems, type TopicTarget } from '../lib/topicSearch';
+import { useTopicSearchItems, type TopicTarget } from '../lib/topicSearch';
 import { SearchIcon } from '../map/MapIcons';
-import { groupOfTopic, TOPIC_GROUPS } from '../topics';
-import { CATALOG } from '../topics/catalog.gen';
+import { groupOfTopic } from '../topics';
 import { UI_ICONS } from '../topics/groupIcons.gen';
+import { optionTopic, searchGroups, type ComboTarget, type PlaceOption, type SearchOption } from './searchGroups';
 import { categoryStyle, Glyph, topicGlyph, useTopicIcons } from './TopicIcon';
 
 import type { PaletteAction } from './CommandPalette';
 // 只有這個元件（與它載入的）用到的樣式，跟著程式延後下載（2026-10-31 從 styles.css 搬出來）
 import './CommandPaletteDialog.css';
+
+export type { ComboTarget, PlaceOption } from './searchGroups';
 
 export interface CommandPaletteProps {
   /** 國家搜尋的範圍（跟搜尋框一樣，App.tsx 的 searchIndex） */
@@ -28,42 +29,12 @@ export interface CommandPaletteProps {
   onSelectCombo?: (combo: ComboTarget) => void;
 }
 
-/** 組合搜尋選到的：主題（null 是目前的主題）、國家、年份，沒有的是 null */
-export interface ComboTarget {
-  target: TopicTarget | null;
-  iso3: string | null;
-  year: number | null;
-}
-
-/** 搜尋到的地圖上的一點：選了地圖飛過去、打開那一點的小卡片 */
-export interface PlaceOption {
-  key: string;
-  name: string;
-  meta: string;
-  score: number;
-  run: () => void;
-}
-
 interface DialogProps extends CommandPaletteProps {
   open: boolean;
   setOpen: (open: boolean | ((open: boolean) => boolean)) => void;
 }
 
-/** 空白時列出的最近看過的主題數 */
-const RECENT_COUNT = 6;
-
-type Option =
-  | { kind: 'topic'; key: string; target: TopicTarget; name: string; meta: string; tag?: string }
-  | { kind: 'country'; key: string; iso3: string; name: string; meta: string }
-  | { kind: 'place'; key: string; name: string; meta: string; run: () => void }
-  | { kind: 'combo'; key: string; combo: ComboTarget; name: string; meta: string }
-  | { kind: 'action'; key: string; action: PaletteAction };
-
-interface Group {
-  heading: string;
-  options: Option[];
-  best: number;
-}
+type Option = SearchOption;
 
 /**
  * 指令面板（2026-10-29）：Ctrl+K（Mac 是 ⌘K）從任何地方打開，一個輸入框找主題、指標、子項目、國家與指令，
@@ -98,91 +69,14 @@ export default function CommandPaletteDialog({ open, setOpen, index, currentTopi
   }, [open]);
 
   const itemsReady = useTopicSearchItems();
-  const groups = useMemo<Group[]>(() => {
-    if (!open) return [];
-    const topicOption = (topicId: string): Option => {
-      const topic = CATALOG.topics[topicId];
-      const group = groupOfTopic(topicId);
-      return {
-        kind: 'topic',
-        key: `recent/${topicId}`,
-        target: { topic: topicId, indicator: null, item: null },
-        name: tr(topic.title, lang),
-        meta: group ? tr(TOPIC_GROUP_LABELS.get(group)!, lang) : '',
-      };
-    };
-    const actionOption = (action: PaletteAction): Option => ({ kind: 'action', key: `action/${action.id}`, action });
-    const q = normalize(query).replace(/ /g, '');
-    if (!q) {
-      const recentTopics = recent.filter((t) => t !== currentTopic).slice(0, RECENT_COUNT);
-      return [
-        { heading: P.recent, options: recentTopics.map(topicOption), best: 2 },
-        { heading: P.commands, options: actions.map(actionOption), best: 1 },
-      ].filter((g) => g.options.length);
-    }
-    const topics = searchTopics(query, 6);
-    const countries = searchCountries(index, query, lang, 5);
-    const placeHits = places?.(query, 6) ?? [];
-    const matched = actions
-      .map((action) => {
-        const key = makeKey(action.label, 3);
-        return { action, score: key ? scoreKey(q, key) : 0 };
-      })
-      .filter((a) => a.score >= 500)
-      .sort((a, b) => b.score - a.score);
-    // 組合搜尋：拆得出年份、國家、主題時最上面多一個（主題名稱完全比對到時排在主題後面，分數 900 > 850）
-    const combo = onSelectCombo ? parseCombo(query, index) : null;
-    const comboOptions: Option[] = [];
-    if (combo) {
-      const entry = combo.topic?.entry;
-      const country = combo.iso3 ? index.find((e) => e.iso3 === combo.iso3) : undefined;
-      const parts = [
-        entry ? tr(entry.label, lang) : tr(CATALOG.topics[currentTopic]?.title ?? '', lang),
-        country ? (lang === 'en' ? country.en : country.zh) : null,
-        combo.year !== null ? P.year(combo.year) : null,
-      ].filter(Boolean);
-      comboOptions.push({
-        kind: 'combo',
-        key: `combo/${entry?.target.topic ?? currentTopic}/${entry?.target.indicator}/${entry?.target.item}/${combo.iso3}/${combo.year}`,
-        combo: { target: entry?.target ?? null, iso3: combo.iso3, year: combo.year },
-        name: parts.join(' · '),
-        meta: !entry ? P.currentTopic : entry.kind === 'topic' ? tr(entry.groupLabel, lang) : tr(entry.topicTitle, lang),
-      });
-    }
-    const list: Group[] = [
-      { heading: P.combo, best: 850, options: comboOptions },
-      {
-        heading: UI.search.topics,
-        best: topics[0]?.score ?? 0,
-        options: topics.map(({ entry }) => ({
-          kind: 'topic',
-          key: `${entry.target.topic}/${entry.target.indicator}/${entry.target.item}`,
-          target: entry.target,
-          name: tr(entry.label, lang),
-          meta: entry.kind === 'topic' ? tr(entry.groupLabel, lang) : tr(entry.topicTitle, lang),
-          tag: UI.search.kinds[entry.kind],
-        })),
-      },
-      {
-        heading: UI.search.countries,
-        best: countries[0]?.score ?? 0,
-        options: countries.map(({ entry }) => ({
-          kind: 'country',
-          key: entry.iso3,
-          iso3: entry.iso3,
-          name: lang === 'en' ? entry.en : entry.zh,
-          meta: lang === 'en' ? entry.iso3 : `${entry.en} · ${entry.iso3}`,
-        })),
-      },
-      {
-        heading: P.places,
-        best: placeHits[0]?.score ?? 0,
-        options: placeHits.map((p) => ({ kind: 'place', key: `place/${p.key}`, name: p.name, meta: p.meta, run: p.run })),
-      },
-      { heading: P.commands, best: matched[0]?.score ?? 0, options: matched.map((a) => actionOption(a.action)) },
-    ];
-    return list.filter((g) => g.options.length).sort((a, b) => b.best - a.best);
-  }, [open, query, recent, currentTopic, actions, index, lang, P, UI, itemsReady, places, onSelectCombo]);
+  const groups = useMemo(
+    () =>
+      open
+        ? searchGroups(query, { index, currentTopic, actions, places, topics: true, combo: Boolean(onSelectCombo), recent }, lang, UI)
+        : [],
+    // itemsReady：主題搜尋的子項目第一次搜尋時才下載，到了重算一次結果
+    [open, query, recent, currentTopic, actions, index, lang, UI, itemsReady, places, onSelectCombo],
+  );
   const options = groups.flatMap((g) => g.options);
   const optionId = (i: number) => `${id}-option-${i}`;
 
@@ -302,13 +196,3 @@ export default function CommandPaletteDialog({ open, setOpen, index, currentTopi
     </dialog>
   );
 }
-
-/** 選項的圖示與分類色依哪個主題：主題、組合（沒寫主題的是目前的主題）；國家、地點、指令沒有 */
-function optionTopic(option: Option, currentTopic: string): string | null {
-  if (option.kind === 'topic') return option.target.topic;
-  if (option.kind === 'combo') return option.combo.target?.topic ?? currentTopic;
-  return null;
-}
-
-/** 分類的名稱（最近看過的主題寫在第二行） */
-const TOPIC_GROUP_LABELS = new Map(TOPIC_GROUPS.map((g) => [g.id, g.label]));
