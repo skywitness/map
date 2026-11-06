@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 import math
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -64,9 +66,19 @@ def download(url: str, source: str, filename: str) -> Path:
     tmp = target.with_suffix(target.suffix + ".part")
     # 有些網站（Harvard Dataverse）會擋 Python 預設的 User-Agent
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, context=_ssl_context(url)) as resp, open(tmp, "wb") as f:
-        while chunk := resp.read(1 << 20):
-            f.write(chunk)
+    # 429（維基百科連續下載幾頁就會限流，2026-11-06）：照 Retry-After 等，沒寫的等 30 秒，最多再試 4 次
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(request, context=_ssl_context(url)) as resp, open(tmp, "wb") as f:
+                while chunk := resp.read(1 << 20):
+                    f.write(chunk)
+            break
+        except urllib.error.HTTPError as err:
+            if err.code != 429 or attempt == 4:
+                raise
+            wait = int(err.headers.get("Retry-After") or 30)
+            print(f"    429，等 {wait} 秒", flush=True)
+            time.sleep(wait + 1)
     tmp.replace(target)
     return target
 
