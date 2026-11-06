@@ -16,6 +16,15 @@ from common import download
 
 URL = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/{dataset}/?format=TSV&compressed=true"
 ALPHA2_ALIASES = {"EL": "GRC", "UK": "GBR", "XK": "XKX"}
+# 網站的 Eurostat 規則（DESIGN.md 第 8 節第 12 點）：歐盟、EFTA、正式候選國以外的資料只准非商業使用，
+# 所以英國（含 UKC-L 這類分區）與科索沃（潛在候選國）一律不收。2026-11-06 起在這裡統一排除
+NONCOMMERCIAL = {"GBR", "XKX"}
+
+
+def noncommercial(geo: str) -> bool:
+    """Eurostat 的 geo 代碼（UK、UKC-L、UKM、XK…）是不是只准非商業使用的地區。只給 Eurostat 的代碼用：
+    ISO3 的烏克蘭 UKR 也是 UK 開頭（Eurostat 的烏克蘭是 UA），ISO3 要用 NONCOMMERCIAL 判斷"""
+    return geo.startswith("UK") or geo == "XK"
 
 
 def _iso3(geo: str) -> str | None:
@@ -45,7 +54,7 @@ def series(dataset: str, extra_geos: tuple[str, ...] = (), **filters: str) -> di
             if any(key[k] != v for k, v in filters.items()):
                 continue
             iso3 = key["geo"] if key["geo"] in extra_geos else _iso3(key["geo"])
-            if not iso3:
+            if not iso3 or noncommercial(key["geo"]) or iso3 in NONCOMMERCIAL:
                 continue
             if iso3 in out:
                 raise RuntimeError(f"{dataset} 的 {iso3} 有好幾列，filters 要指定 geo 以外的所有維度")

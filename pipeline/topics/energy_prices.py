@@ -31,7 +31,7 @@ from pathlib import Path
 import common
 from common import download, indicator_file, now_iso, write_json
 from sources import cbc_fx
-from sources.eurostat import URL as EUROSTAT_URL, _iso3 as eurostat_iso3
+from sources.eurostat import URL as EUROSTAT_URL, _iso3 as eurostat_iso3, noncommercial as eurostat_noncommercial
 
 OUT = Path(__file__).resolve().parent.parent.parent / "public" / "data" / "topics" / "energy-prices"
 RESEARCH = Path(__file__).resolve().parent.parent / "data" / "energy-prices" / "research.jsonl"
@@ -94,7 +94,7 @@ def eurostat_annual(dataset: str, band: str) -> dict[str, dict[int, float]]:
             if any(key.get(k) != v for k, v in want.items()):
                 continue
             iso3 = eurostat_iso3(key["geo"])
-            if not iso3:
+            if not iso3 or eurostat_noncommercial(key["geo"]):  # 英國、科索沃只准非商業（網站的 Eurostat 規則）
                 continue
             halves: dict[int, list[float]] = defaultdict(list)
             for period, cell in zip(periods, cells[1:]):

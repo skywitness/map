@@ -38,7 +38,10 @@ HONG_KONG = (113.8, 22.13, 114.5, 22.57)
 TAOYUAN = "https://opendata.tycg.gov.tw/api/dataset/dc135329-332f-4182-a180-7ab4c3d87bf1/resource/f265fa4e-dce9-4841-9c6f-bcf592bfe703/download"
 
 # 英文維基百科「Congestion pricing」revid 1380197393 寫到已經實施的（城市、ISO2、種類、開始年份、後來的改變）。
-# 種類：1 進入市中心收費（塞車費、擁擠稅）、2 收費環與市區收費道路、3 古城中心
+# 種類：1 進入市中心收費（塞車費、擁擠稅）、2 收費環與市區收費道路、3 古城中心、4 已經停收
+# 2026-11-06 補：瓦萊塔的 2007 年取自英文維基「Valletta」revid 1381541439（「In 2007, a congestion pricing scheme was
+# implemented」）；滕斯貝格、納姆索斯的收費環在「Toll roads in Norway」revid 1382299473 列在「Former toll roads」。
+# 其他沒寫年份的（茲諾伊莫、里加、克里斯蒂安桑、海于格松、斯塔萬格）城市條目也沒寫，留空
 CONGESTION = [
     ("Singapore", "SG", 1, 1975, {"zh": "1975 年區域通行證（ALS），1998 年改成電子道路收費（ERP）", "en": "Area Licensing Scheme from 1975; Electronic Road Pricing from 1998"}),
     ("Rome", "IT", 1, 2001, {"zh": "限制通行區（ZTL）的電子門禁", "en": "Electronic access control for the limited traffic zone (ZTL)"}),
@@ -50,15 +53,15 @@ CONGESTION = [
     ("Durham", "GB", 3, 2002, {"zh": "古城中心收費，一年後車流少了 85%", "en": "Old-town charge; traffic fell 85% within a year"}),
     ("Znojmo", "CZ", 3, None, {"zh": "古城中心收費", "en": "Old-town charge"}),
     ("Riga", "LV", 3, None, {"zh": "古城中心收費", "en": "Old-town charge"}),
-    ("Valletta", "MT", 3, None, {"zh": "古城中心收費，每天進城的車從 1 萬輛降到 7,900 輛", "en": "Old-town charge; daily vehicles fell from 10,000 to 7,900"}),
+    ("Valletta", "MT", 3, 2007, {"zh": "古城中心收費（車牌辨識），每天進城的車從 1 萬輛降到 7,900 輛", "en": "Old-town charge (number-plate cameras); daily vehicles fell from 10,000 to 7,900"}),
     ("Bergen", "NO", 2, 1986, {"zh": "收費環，進市中心只能走收費道路", "en": "Toll ring; the centre can only be reached by toll roads"}),
     ("Oslo", "NO", 2, 1990, {"zh": "收費環，尖峰加價", "en": "Toll ring with peak-hour rates"}),
     ("Trondheim", "NO", 2, 1991, {"zh": "收費環，2010 年起依時段收費", "en": "Toll ring; time-of-day rates from 2010"}),
     ("Kristiansand", "NO", 2, None, {"zh": "收費環，依時段收費", "en": "Toll ring with time-of-day rates"}),
     ("Haugesund", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）", "en": "Urban charging (in place by 2015)"}),
-    ("Namsos", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）", "en": "Urban charging (in place by 2015)"}),
+    ("Namsos", "NO", 4, None, {"zh": "收費環，2015 年時已實施，後來停收", "en": "Toll ring, in place by 2015, since discontinued"}),
     ("Stavanger", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）", "en": "Urban charging (in place by 2015)"}),
-    ("Tønsberg", "NO", 2, None, {"zh": "市區收費（2015 年時已實施）", "en": "Urban charging (in place by 2015)"}),
+    ("Tønsberg", "NO", 4, None, {"zh": "收費環，2015 年時已實施，後來停收", "en": "Toll ring, in place by 2015, since discontinued"}),
     ("Santiago", "CL", 2, 2004, {"zh": "穿過市中心的快速道路不停車收費（2004–2005 年），2007 年起尖峰加價", "en": "Free-flow tolls on urban freeways (2004–2005); peak-hour pricing from 2007"}),
 ]
 COORD = re.compile(r"Point\(([-\d.]+) ([-\d.]+)\)", re.I)

@@ -184,6 +184,11 @@ export const minerals: TopicDefinition = {
       url: 'https://mrdata.usgs.gov/mrds/',
       license: { zh: '公有領域（美國政府著作）', en: 'public domain (U.S. Government work)' },
     },
+    {
+      name: { zh: '經濟部地質調查及礦業管理中心：現存礦業權清冊（台灣的側欄）', en: 'Geological Survey and Mining Management Agency: register of current mining rights (Taiwan’s side panel)' },
+      url: 'https://data.gov.tw/dataset/126847',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
   overlays: [MINES],
   note: {

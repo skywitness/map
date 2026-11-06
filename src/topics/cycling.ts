@@ -205,8 +205,8 @@ export const cycling: TopicDefinition = {
       id: 'commute',
       label: { zh: '騎自行車上班的比例（歐洲城市）', en: 'Share cycling to work (European cities)' },
       description: {
-        zh: '歐洲 571 個城市騎自行車上班的比例（Eurostat，每個城市最近一次有資料的年份）。德國的格來斯瓦德 38.1%（2016 年）最高，荷蘭的格羅寧根 37.0%（2003 年）、德國的明斯特 36.6%（2016 年）、芬蘭的庫奧皮奧 35.6%（2011 年）；柏林 12.8%（2016 年）、巴黎 3.4%（2020 年）。年份差很多（2011 年 261 個城市、2016 年 127 個、2020 年 76 個，2024 年只有 10 個），點上寫年份。台灣沒有可以比的城市統計。',
-        en: 'Share of commuters cycling to work in 571 European cities (Eurostat, each city’s most recent year with data). Greifswald in Germany is highest at 38.1% (2016), followed by Groningen in the Netherlands 37.0% (2003), Münster in Germany 36.6% (2016) and Kuopio in Finland 35.6% (2011); Berlin 12.8% (2016) and Paris 3.4% (2020). Years vary a lot (261 cities in 2011, 127 in 2016, 76 in 2020 and only 10 in 2024); each dot shows its year. Taiwan has no comparable city statistics.',
+        zh: '歐洲 447 個城市騎自行車上班的比例（Eurostat，每個城市最近一次有資料的年份）。德國的格來斯瓦德 38.1%（2016 年）最高，荷蘭的格羅寧根 37.0%（2003 年）、德國的明斯特 36.6%（2016 年）、芬蘭的庫奧皮奧 35.6%（2011 年）；柏林 12.8%（2016 年）、巴黎 3.4%（2020 年）。年份差很多（2011 年 137 個城市、2016 年 127 個、2020 年 76 個，2024 年只有 10 個），點上寫年份。台灣沒有可以比的城市統計。',
+        en: 'Share of commuters cycling to work in 447 European cities (Eurostat, each city’s most recent year with data). Greifswald in Germany is highest at 38.1% (2016), followed by Groningen in the Netherlands 37.0% (2003), Münster in Germany 36.6% (2016) and Kuopio in Finland 35.6% (2011); Berlin 12.8% (2016) and Paris 3.4% (2020). Years vary a lot (137 cities in 2011, 127 in 2016, 76 in 2020 and only 10 in 2024); each dot shows its year. Taiwan has no comparable city statistics.',
       },
       unit: { zh: '個城市', en: 'cities' },
       file: 'cities-count.json',

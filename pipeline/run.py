@@ -199,6 +199,8 @@ STEPS = {
     "transit-fares": "topics.transit_fares",
     # 城市的低排放區與塞車費（第二十三批 410）：QLever 查 OSM 的 boundary=low_emission_zone、英文維基 Congestion pricing 的固定版本、桃園市 CSV
     "city-traffic": "topics.city_traffic",
+    # 關鍵礦產的台灣側欄：地礦中心的現存礦業權清冊（data.gov.tw 126847）
+    "minerals-rights-tw": "topics.minerals_rights_tw",
     # 河流與流域的內河航道（第二十三批 411）：CIA 世界概況 2022 版的 Waterways、Eurostat iww_if_infrastr、iww_go_atygo、GDW 的船閘
     # （topics/waterways.py 是航運與港口的運河與海峽，由 shipping 步驟呼叫，跟這個無關）
     "inland-waterways": "topics.inland_waterways",

@@ -20,7 +20,7 @@ import re
 from collections import defaultdict
 
 from common import OUT_DIR, download, indicator_file, to_series, write_json
-from sources.eurostat import _iso3
+from sources.eurostat import _iso3, noncommercial
 
 OUT = OUT_DIR / "topics" / "tourism"
 URL = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/{}/?format=TSV&compressed=true"
@@ -49,6 +49,8 @@ def eurostat(ds: str) -> tuple[list[str], list[int], list[tuple[dict[str, str], 
         for line in f:
             cells = line.rstrip("\n").split("\t")
             key = dict(zip(dims, cells[0].split(",")))
+            if "geo" in key and noncommercial(key["geo"]):  # 英國、科索沃只准非商業（網站的 Eurostat 規則）
+                continue
             vals = {}
             for p, c in zip(periods, cells[1:]):
                 v = c.strip().split(" ")[0]

@@ -48,7 +48,6 @@ PRISON_WITHIN = 3  # 每年都有的資料，偶爾缺一兩年：顯示 3 年�
 FRONTEND = ROOT / "src" / "topics" / "crime.ts"  # PRISON_COVERAGE 要跟這裡算出來的國家一致
 # 法國的監獄人數含海外省，WPP 的法國不含，分母加上這五個海外省
 FRANCE_OVERSEAS = ("GLP", "MTQ", "REU", "GUF", "MYT")
-UK_PARTS = ("UKC-L", "UKM", "UKN")  # 英格蘭與威爾斯、蘇格蘭、北愛爾蘭
 # 法務部公布的監禁人口率（÷ 年底戶籍人口；行政院人權指標「每十萬人中收容於矯正機關之人數」），寫在台灣的附註對照
 MOJ_RATE = (2025, 271.7)
 # Eurostat 中繼資料（crim_sims）列出的例外：一般是 12 月 31 日
@@ -99,17 +98,15 @@ def _taiwan_homicide_deaths() -> dict[str | None, dict[int, float]]:
 
 
 def _eurostat_prisoners() -> dict[str, dict[int, float]]:
-    """Eurostat 的在監人數 {iso3: {年: 人}}：1993–2007 年 crim_pris_pop，2008 年起 crim_pris_cap 的實際收容人數；
-    英國是三個司法轄區加起來（三個都有的年份才算）"""
-    old = eurostat.series("crim_pris_pop", extra_geos=UK_PARTS, freq="A", unit="NR")
-    new = eurostat.series("crim_pris_cap", extra_geos=UK_PARTS, freq="A", indic_cr="PRIS_ACT_CAP", unit="NR")
+    """Eurostat 的在監人數 {iso3: {年: 人}}：1993–2007 年 crim_pris_pop，2008 年起 crim_pris_cap 的實際收容人數。
+    英國（三個司法轄區 UKC-L、UKM、UKN）照網站的 Eurostat 規則只准非商業使用，2026-11-06 起不收（eurostat.series() 會排除）"""
+    old = eurostat.series("crim_pris_pop", freq="A", unit="NR")
+    new = eurostat.series("crim_pris_cap", freq="A", indic_cr="PRIS_ACT_CAP", unit="NR")
     merged: dict[str, dict[int, float]] = {}
     for geo in set(old) | set(new):
         s = {y: v for y, v in old.get(geo, {}).items() if y < 2008}
         s.update(new.get(geo, {}))
         merged[geo] = s
-    parts = [merged.pop(p) for p in UK_PARTS]
-    merged["GBR"] = {y: sum(p[y] for p in parts) for y in parts[0] if all(y in p for p in parts)}
     return merged
 
 
@@ -130,9 +127,6 @@ def _prison_notes(iso3: str, source: str, persons: dict[int, float], extra: dict
             f"(crim_pris_cap) from 2008, the older crim_pris_pop series before that, not fully comparable; ÷ UN WPP "
             f"mid-year population. {n:,.0f} persons in {y}"
         )
-        if iso3 == "GBR":
-            zh += f"。英國是英格蘭與威爾斯、蘇格蘭、北愛爾蘭三個司法轄區加起來，Eurostat 只到 {y} 年"
-            en += f". The UK is the sum of England and Wales, Scotland and Northern Ireland; Eurostat stops in {y}"
         if iso3 == "FRA":
             zh += "。法國的人數含海外省，分母也加上瓜地洛普、馬丁尼克、留尼旺、法屬圭亞那、馬約特的人口（WPP 分開算）"
             en += ". France includes its overseas departments, so the denominator adds Guadeloupe, Martinique, Réunion, French Guiana and Mayotte (separate in WPP)"

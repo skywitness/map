@@ -28,6 +28,7 @@ const KINDS: { value: number; color: string; label: Text }[] = [
   { value: 1, color: MAP_TOKENS.categorical[7], label: { zh: '進入市中心收費（塞車費、擁擠稅）', en: 'Charge to enter the centre (congestion charge or tax)' } },
   { value: 2, color: MAP_TOKENS.categorical[1], label: { zh: '收費環與市區收費道路', en: 'Toll rings and urban toll roads' } },
   { value: 3, color: MAP_TOKENS.categorical[2], label: { zh: '古城中心進城收費', en: 'Old-town entry charge' } },
+  { value: 4, color: '#8a867c', label: { zh: '已經停收', en: 'Discontinued' } },
 ];
 
 /** 區名：中文介面用 OSM 的 name:zh、英文介面用 name:en，沒有的用當地的 name */
@@ -86,7 +87,7 @@ const CHARGES: PointsOverlayDef = {
   indicators: ['low-emission-zones'],
   label: { zh: '收塞車費的城市（英文維基百科）', en: 'Cities with congestion charges (English Wikipedia)' },
   radius: 6,
-  color: { field: 'k', title: { zh: '種類', en: 'Type' }, thresholds: [1.5, 2.5], classes: KINDS.map(({ color, label }) => ({ color, label })) },
+  color: { field: 'k', title: { zh: '種類', en: 'Type' }, thresholds: [1.5, 2.5, 3.5], classes: KINDS.map(({ color, label }) => ({ color, label })) },
   tooltip: (p, { countryName }) => ({
     title: String(p.n ?? ''),
     properNoun: String(p.n ?? ''),
@@ -166,6 +167,11 @@ export const cityTrafficPart: TopicPart = {
       license: 'CC BY-SA 4.0',
     },
     {
+      name: { zh: '英文維基百科「Valletta」「Toll roads in Norway」（瓦萊塔的開始年份、已經停收的收費環）', en: 'English Wikipedia, “Valletta” and “Toll roads in Norway” (Valletta’s start year, discontinued toll rings)' },
+      url: 'https://en.wikipedia.org/wiki/Toll_roads_in_Norway?oldid=1382299473',
+      license: 'CC BY-SA 4.0',
+    },
+    {
       name: { zh: '桃園市政府環境保護局：桃園市空氣品質維護區（政府資料開放平台 149351）', en: 'Taoyuan Environmental Protection Bureau: air quality maintenance zones (data.gov.tw 149351)' },
       url: 'https://data.gov.tw/dataset/149351',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
@@ -182,8 +188,8 @@ export const cityTrafficPart: TopicPart = {
       id: 'low-emission-zones',
       label: { zh: '低排放區與塞車費', en: 'Low-emission zones and congestion charges' },
       description: {
-        zh: `OpenStreetMap 上畫成面的低排放區共 223 個（2026-11-05），國家的顏色是個數：西班牙 44、德國 43、法國 42、英國 27、荷蘭 24、義大利 8、希臘 6。最大的是倫敦的低排放區（約 1,523 平方公里）、德國魯爾區（867）、曼谷的甘乍那披色環路（752）、法國里爾（671）。只有 70 個寫了開始日期，最早是倫敦（2008-02-04），2025 年開始的有 26 個。點是收塞車費的 20 個城市：新加坡 1975 年最早、1998 年改成電子收費，挪威卑爾根 1986 年的收費環、倫敦 2003 年、斯德哥爾摩 2006 年試辦、米蘭 2008 年、哥德堡 2013 年、紐約 2025 年。數字是 OSM 上畫出來的，不是官方清單。${TAIWAN.zh}`,
-        en: `OpenStreetMap has 223 low-emission zones mapped as areas (5 Nov 2026); countries are shaded by the count: Spain 44, Germany 43, France 42, the UK 27, the Netherlands 24, Italy 8 and Greece 6. The largest are London’s Low Emission Zone (about 1,523 km²), Germany’s Ruhr (867), Bangkok’s Kanchanaphisek ring (752) and Lille (671). Only 70 have a start date, the earliest London (4 Feb 2008); 26 began in 2025. Dots mark 20 cities with congestion charges: Singapore first in 1975 (electronic since 1998), then Bergen’s toll ring in 1986, London in 2003, Stockholm’s trial in 2006, Milan in 2008, Gothenburg in 2013 and New York in 2025. The counts are what OSM contributors have mapped, not an official list. ${TAIWAN.en}`,
+        zh: `OpenStreetMap 上畫成面的低排放區共 223 個（2026-11-05），國家的顏色是個數：西班牙 44、德國 43、法國 42、英國 27、荷蘭 24、義大利 8、希臘 6。最大的是倫敦的低排放區（約 1,523 平方公里）、德國魯爾區（867）、曼谷的甘乍那披色環路（752）、法國里爾（671）。只有 70 個寫了開始日期，最早是倫敦（2008-02-04），2025 年開始的有 26 個。點是收塞車費的 20 個城市：新加坡 1975 年最早、1998 年改成電子收費，挪威卑爾根 1986 年的收費環、倫敦 2003 年、斯德哥爾摩 2006 年試辦、米蘭 2008 年、哥德堡 2013 年、紐約 2025 年；瓦萊塔 2007 年，挪威的滕斯貝格、納姆索斯的收費環已經停收（灰色）。數字是 OSM 上畫出來的，不是官方清單。${TAIWAN.zh}`,
+        en: `OpenStreetMap has 223 low-emission zones mapped as areas (5 Nov 2026); countries are shaded by the count: Spain 44, Germany 43, France 42, the UK 27, the Netherlands 24, Italy 8 and Greece 6. The largest are London’s Low Emission Zone (about 1,523 km²), Germany’s Ruhr (867), Bangkok’s Kanchanaphisek ring (752) and Lille (671). Only 70 have a start date, the earliest London (4 Feb 2008); 26 began in 2025. Dots mark 20 cities with congestion charges: Singapore first in 1975 (electronic since 1998), then Bergen’s toll ring in 1986, London in 2003, Stockholm’s trial in 2006, Milan in 2008, Gothenburg in 2013 and New York in 2025; Valletta followed in 2007, and the toll rings in Tønsberg and Namsos in Norway have since been discontinued (grey). The counts are what OSM contributors have mapped, not an official list. ${TAIWAN.en}`,
       },
       unit: { zh: '個', en: 'zones' },
       file: 'low-emission-zones.json',

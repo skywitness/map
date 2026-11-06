@@ -153,6 +153,28 @@ def compact_series(series: list[float | None]) -> list[int | None]:
     return out
 
 
+def expand_series(compact: list[int | None]) -> list[float | None]:
+    """compact_series() 的反向：讀回已經輸出的指標檔（例如來源暫時下載不到、沿用上次的值）"""
+    e, acc, out = compact[0], 0, []
+    for d in compact[1:]:
+        if d is None:
+            out.append(None)
+            continue
+        acc += d
+        out.append(acc * 10**e if e >= 0 else acc / 10**-e)
+    return out
+
+
+def read_indicator(path: Path) -> tuple[list[int], dict[str, dict[int, float]]]:
+    """已經輸出的指標檔 → (年份, {iso3 或子項: {年: 值}})"""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    years = data["years"]
+    series = data["values"]
+    if data.get("encoding") == "delta":
+        series = {k: expand_series(v) for k, v in series.items()}
+    return years, {k: {y: v for y, v in zip(years, s) if v is not None} for k, s in series.items()}
+
+
 def compact_indicator(data: dict) -> dict:
     """把指標檔的 values、aggregates 換成差分編碼；已經壓縮過的原樣回傳。"""
     if data.get("encoding") == "delta":

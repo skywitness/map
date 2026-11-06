@@ -9,7 +9,9 @@
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, latest_year_span, to_series, write_json, write_manifest_part
+import urllib.error
+
+from common import OUT_DIR, indicator_file, latest_year_span, read_indicator, to_series, write_json, write_manifest_part
 from sources import eurostat, fies, moi_realestate, oecd_ahd, un_households, worldbank
 
 Series = dict[str, dict[int, float]]
@@ -131,7 +133,15 @@ def dwelling_types() -> tuple[dict[str, Series], set[str], Series, Series]:
                 types[kind].setdefault(iso3, {}).update(later)
                 used.add(iso3)
 
-    floors = moi_realestate.dwellings_by_floors()
+    try:
+        floors = moi_realestate.dwellings_by_floors()
+    except (urllib.error.URLError, ConnectionError, TimeoutError, RuntimeError) as err:
+        # 內政部不動產資訊平台從 cloud 常回「Request Rejected」或空檔：台灣的樓層組成沿用上次輸出的檔，其他國家照常重算
+        print(f"  內政部不動產資訊平台下載不到（{err}），台灣沿用上次輸出的 dwelling-taiwan.json 與公寓比例")
+        out = OUT_DIR / "topics" / "housing"
+        _, taiwan = read_indicator(out / "dwelling-taiwan.json")
+        types["flat"]["TWN"] = read_indicator(out / "apartment-share.json")[1]["TWN"]
+        return types, used, taiwan, last_eu
     taiwan = {kind: {y: sum(c[k] for k in keys) / c["total"] * 100 for y, c in floors.items()}
               for kind, keys in TAIWAN_FLOORS.items()}
     types["flat"]["TWN"] = {y: sum(c[k] for k in TAIWAN_FLAT_FLOORS) / c["total"] * 100 for y, c in floors.items()}

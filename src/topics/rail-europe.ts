@@ -18,7 +18,7 @@ const PUNCTUAL_NOTE = {
 export const railEurope: { sources: SourceDef[]; indicators: IndicatorDef[] } = {
   sources: [
     {
-      name: { zh: '歐盟執委會第 9 次鐵路市場監測報告（RMMS，2025 年；準點率、員工、競爭業者市占）', en: 'European Commission, 9th Rail Market Monitoring report (RMMS, 2025; punctuality, staff, competitors’ market share)' },
+      name: { zh: '歐盟執委會第 9 次鐵路市場監測報告（RMMS，2025 年；準點率、員工、競爭業者市占、軌道使用費）', en: 'European Commission, 9th Rail Market Monitoring report (RMMS, 2025; punctuality, staff, competitors’ market share, track access charges)' },
       url: 'https://transport.ec.europa.eu/transport-modes/rail/market/rail-market-monitoring-rmms_en',
       license: 'CC BY 4.0',
     },
@@ -124,6 +124,49 @@ export const railEurope: { sources: SourceDef[]; indicators: IndicatorDef[] } = 
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 40, 60, 90] } },
       format: pct,
       formatTick: pctTick,
+    },
+    // 2026-11-06 加：RMMS 的軌道使用費（工作表 57、61）與貨運準點率（119）
+    {
+      id: 'rail-access-regional',
+      label: { zh: '區域客運列車的軌道使用費（歐洲）', en: 'Track access charges for regional passenger trains (Europe)' },
+      description: {
+        zh: `鐵路業者為了讓區域與近郊客運列車上路，付給軌道管理者的使用費（RMMS，每列車公里歐元，不含加價，2018 與 2022 年）。2022 年西班牙 3.88、希臘 2.89、義大利 2.60、葡萄牙 1.97 歐元最高，保加利亞 0.22、芬蘭 0.27、立陶宛 0.27、挪威 0.36 最低；比利時從 2018 年的 8.15 降到 1.79。只算「不含加價」的部分，德國 0.76、法國 1.66 這類主要靠加價（mark-ups）收費的國家看起來偏低，實際付的比這個多。`,
+        en: `Charges railway undertakings pay infrastructure managers to run regional and suburban passenger trains (RMMS, euros per train-km, excluding mark-ups, 2018 and 2022). In 2022 Spain (3.88), Greece (2.89), Italy (2.60) and Portugal (1.97) were highest and Bulgaria (0.22), Finland (0.27), Lithuania (0.27) and Norway (0.36) lowest; Belgium fell from 8.15 in 2018 to 1.79. Mark-ups are excluded, so countries that charge mainly through mark-ups, such as Germany (0.76) and France (1.66), look low; operators actually pay more.`,
+      },
+      unit: { zh: '歐元/列車公里', en: '€/train-km' },
+      file: 'rail-access-regional.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 1.5, 2.5] } },
+      format: (v) => tr({ zh: `每列車公里 ${fixed(v, 2)} 歐元`, en: `€${fixed(v, 2)} per train-km` }),
+      formatTick: (v) => fixed(v, 1),
+      defaultYear: 2022,
+    },
+    {
+      id: 'rail-access-freight',
+      label: { zh: '貨運列車的軌道使用費（歐洲）', en: 'Track access charges for freight trains (Europe)' },
+      description: {
+        zh: `1,000 總噸的貨運列車付的軌道使用費（RMMS，每列車公里歐元，不含加價，2018 與 2022 年）。2022 年拉脫維亞 12.82 歐元遠高於其他國家，愛爾蘭 5.03、希臘 3.16、羅馬尼亞 3.04、荷蘭 2.90；西班牙 0.21、斯洛維尼亞 0.62、保加利亞 0.68、丹麥 0.70 最低，德國 1.42。`,
+        en: `Track access charges for a 1,000 gross-tonne freight train (RMMS, euros per train-km, excluding mark-ups, 2018 and 2022). In 2022 Latvia (12.82) was far above the rest, followed by Ireland (5.03), Greece (3.16), Romania (3.04) and the Netherlands (2.90); Spain (0.21), Slovenia (0.62), Bulgaria (0.68) and Denmark (0.70) were lowest, Germany 1.42.`,
+      },
+      unit: { zh: '歐元/列車公里', en: '€/train-km' },
+      file: 'rail-access-freight.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 1.5, 2, 3] } },
+      format: (v) => tr({ zh: `每列車公里 ${fixed(v, 2)} 歐元`, en: `€${fixed(v, 2)} per train-km` }),
+      formatTick: (v) => fixed(v, 1),
+      defaultYear: 2022,
+    },
+    {
+      id: 'rail-punctual-freight',
+      label: { zh: '鐵路貨運準點率（歐洲）', en: 'Rail freight punctuality (Europe)' },
+      description: {
+        zh: `國內鐵路貨運準時到達的比例（RMMS，2022 年），滑過看國際貨運。愛沙尼亞 100%、愛爾蘭 97.2%、拉脫維亞 90.1%、荷蘭 89.5%、西班牙 88.3%；希臘 10.0%、捷克 15.8%、克羅埃西亞 18.2% 最低，德國 59.8%（國際 39.4%）；希臘、比利時、克羅埃西亞則是國際比國內準。${PUNCTUAL_NOTE.zh}`,
+        en: `Share of domestic rail freight services arriving on time (RMMS, 2022); hover for international services. Estonia 100%, Ireland 97.2%, Latvia 90.1%, the Netherlands 89.5% and Spain 88.3%; Greece 10.0%, Czechia 15.8% and Croatia 18.2% were lowest, Germany 59.8% (international 39.4%). In Greece, Belgium and Croatia international services are more punctual than domestic ones. ${PUNCTUAL_NOTE.en}`,
+      },
+      unit: '%',
+      file: 'rail-punctual-freight.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 60, 75, 90] } },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2022,
     },
   ],
 };

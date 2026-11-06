@@ -56,9 +56,9 @@ def series(dataset: str, indicator: str) -> tuple[dict[str, str], dict[str, dict
     out: dict[str, dict[int, float]] = {}
     for k, v in d["value"].items():
         code = code_at[int(k) // nt]
-        if len(code) > 2 and v is not None:
+        if len(code) > 2 and v is not None and not code.startswith(("UK", "XK")):  # 英國、科索沃只准非商業（網站的 Eurostat 規則）
             out.setdefault(code, {})[year_at[int(k) % nt]] = float(v)
-    return {c: l for c, l in cat["label"].items() if len(c) > 2}, out
+    return {c: l for c, l in cat["label"].items() if len(c) > 2 and not c.startswith(("UK", "XK"))}, out
 
 
 def iso3(code: str) -> str | None:

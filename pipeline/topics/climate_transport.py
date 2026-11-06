@@ -7,18 +7,41 @@
 CEDS 的總量比 Global Carbon Project 高（台灣 2023 年 CEDS 2.95 億公噸、GCP 2.67 億公噸），所以只用比例與 CEDS 自己的運輸量，
 不跟 GCP 的總量混在一起。國際航空與海運的燃料（bunkers）CEDS 只有全球，不算在任何國家。
 台灣另外對照交通部運輸研究所「運輸部門歷年二氧化碳排放量推估」（data.gov.tw 8331，政府資料開放授權條款第 1 版）：
-CSV（www.motc.gov.tw/uploaddowndoc?file=datagov/1227894820517711872.csv）2026-10-31 從 cloud 兩次都是 HTTP 502（HiNetCDN），
-數字用規劃 session 2026-10-30 讀到的 CSV（IOT_2021）：2021 年國內運輸 34,614 千公噸，其中公路 33,458 千公噸。
+CSV（www.motc.gov.tw/uploaddowndoc?file=datagov/1227894820517711872.csv）2026-10-31 從 cloud 都是 HTTP 502（HiNetCDN）；
+2026-11-05 本機 session 拿到了，放在 map-plan 的 data/motc/transport-co2-8331.csv（README 有 SHA-256）。重跑前複製到
+pipeline/.cache/motc/。1990–2021 年，千公噸，依運具分（小客車、小貨車、大客車、大貨車、機車、臺鐵、高鐵、各捷運、國內航空、
+國內水運）；「 - 」是那時還沒有這個運具。2026-11-06 起從這個檔讀，原本寫死的 2021 年數字（IOT_2021）拿掉。
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, write_json
+import csv
+import hashlib
+
+from common import CACHE_DIR, OUT_DIR, indicator_file, write_json
 from sources import ceds, wpp
 
 OUT = OUT_DIR / "topics" / "climate"
 FIRST_YEAR = 1970
 SHARE_MIN = 1e6  # 燃料燃燒的二氧化碳不到 100 萬公噸的國家不算比例
-IOT_2021 = {"transport": 34614e3, "road": 33458e3}  # 公噸
+IOT_CSV = CACHE_DIR / "motc" / "transport-co2-8331.csv"
+IOT_SHA256 = "49fef442d34a9e4a7f301aba9cd8ff2f895930e7886cedf13e7f3008bdff6d80"
+IOT_MODES = {"小客車": ("小客車", "cars"), "機車": ("機車", "motorcycles"), "大貨車": ("大貨車", "heavy trucks"),
+             "小貨車": ("小貨車", "light trucks"), "大客車": ("大客車", "buses")}
+
+
+def iot() -> dict[int, dict[str, float]]:
+    """運研所的運輸部門二氧化碳 {年: {欄名（去掉單位）: 公噸}}"""
+    if hashlib.sha256(IOT_CSV.read_bytes()).hexdigest() != IOT_SHA256:
+        raise RuntimeError(f"{IOT_CSV} 的 SHA-256 跟 map-plan 的 README 不一樣，先從 map-plan 的 data/motc/ 複製過來")
+    with open(IOT_CSV, encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.reader(f))
+    head = [h.split("（")[0] for h in rows[0]]
+    out = {}
+    for r in rows[1:]:
+        if not r or not r[0].strip().isdigit():
+            continue  # 最後一列是備註
+        out[int(r[0])] = {h: float(v.replace(",", "")) * 1000 for h, v in zip(head[1:], r[1:]) if v.strip() not in ("-", "")}
+    return out
 
 
 def build() -> None:
@@ -44,12 +67,22 @@ def build() -> None:
     last = years[-1]
     tw = uses["TWN"]["transport"]
     tw_total = sum(series.get(last, 0.0) for series in uses["TWN"].values())
-    diff = tw[2021] / IOT_2021["transport"] - 1
-    note = (f"運研所推估 2021 年國內運輸排放 3,461 萬公噸（公路 3,346 萬），CEDS 是 {tw[2021] / 1e6:,.1f} 百萬公噸"
-            f"（{'多' if diff > 0 else '少'} {abs(diff) * 100:.0f}%）。CEDS {last} 年台灣運輸 {tw[last] / 1e6:,.1f} 百萬公噸，"
-            f"占燃料燃燒二氧化碳的 {100 * tw[last] / tw_total:.1f}%。")
-    note_en = (f"Taiwan’s Institute of Transportation estimates domestic transport emissions at 34.6 million tonnes in 2021 "
-               f"(road 33.5 million); CEDS has {tw[2021] / 1e6:,.1f} million ({abs(diff) * 100:.0f}% {'higher' if diff > 0 else 'lower'}). "
+    official = iot()
+    oy = max(official)
+    o = official[oy]
+    diff = tw[oy] / o["國內小計"] - 1
+    parts = sorted(((o[k], zh, en) for k, (zh, en) in IOT_MODES.items()), reverse=True)
+    rail = o["軌道小計"]
+    note = (f"運研所推估 {oy} 年國內運輸排放 {o['國內小計'] / 1e6:,.1f} 百萬公噸（{official[min(official)]['國內小計'] / 1e6:,.1f} 百萬公噸，"
+            f"{min(official)} 年）：" + "、".join(f"{zh} {100 * v / o['國內小計']:.1f}%" for v, zh, _ in parts)
+            + f"，軌道 {100 * rail / o['國內小計']:.1f}%、國內航空與水運 {100 * (o['國內航空'] + o['國內水運']) / o['國內小計']:.1f}%；"
+            f"CEDS 的 {oy} 年是 {tw[oy] / 1e6:,.1f} 百萬公噸（{'多' if diff > 0 else '少'} {abs(diff) * 100:.0f}%）。"
+            f"CEDS {last} 年台灣運輸 {tw[last] / 1e6:,.1f} 百萬公噸，占燃料燃燒二氧化碳的 {100 * tw[last] / tw_total:.1f}%。")
+    note_en = (f"Taiwan’s Institute of Transportation estimates domestic transport emissions at {o['國內小計'] / 1e6:,.1f} million tonnes in {oy} "
+               f"({official[min(official)]['國內小計'] / 1e6:,.1f} million in {min(official)}): "
+               + ", ".join(f"{en} {100 * v / o['國內小計']:.1f}%" for v, _, en in parts)
+               + f", rail {100 * rail / o['國內小計']:.1f}%, domestic aviation and shipping {100 * (o['國內航空'] + o['國內水運']) / o['國內小計']:.1f}%; "
+               f"CEDS has {tw[oy] / 1e6:,.1f} million for {oy} ({abs(diff) * 100:.0f}% {'higher' if diff > 0 else 'lower'}). "
                f"In {last}, CEDS puts Taiwan’s transport emissions at {tw[last] / 1e6:,.1f} million tonnes, "
                f"{100 * tw[last] / tw_total:.1f}% of fuel-combustion CO₂.")
     extra = {"notes": {"TWN": note}, "notesEn": {"TWN": note_en}}

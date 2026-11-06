@@ -18,7 +18,7 @@ const tick = (v: number) => fixed(v, v % 1 === 0 ? 0 : 1);
  * 監禁人口率只收有開放授權資料的國家（Eurostat 的歐洲各國、台灣、美國、加拿大、澳洲、日本）。
  * 要跟 pipeline/topics/crime.py 算出來的國家一致（pipeline 會檢查，不一致就報錯並印出正確的清單）。
  */
-const PRISON_COVERAGE = 'ALB AUS AUT BEL BGR BIH CAN CHE CYP CZE DEU DNK ESP EST FIN FRA GBR GRC HRV HUN IRL ISL ITA JPN LIE LTU LUX LVA MKD MLT MNE NLD NOR POL PRT ROU SRB SVK SVN SWE TUR TWN USA XKX';
+const PRISON_COVERAGE = 'ALB AUS AUT BEL BGR BIH CAN CHE CYP CZE DEU DNK ESP EST FIN FRA GRC HRV HUN IRL ISL ITA JPN LIE LTU LUX LVA MKD MLT MNE NLD NOR POL PRT ROU SRB SVK SVN SWE TUR TWN USA';
 
 const crimeOwn: TopicDefinition = {
   id: 'crime',
