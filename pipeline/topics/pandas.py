@@ -59,16 +59,15 @@ def zoos(titles: set[str]) -> dict[str, dict]:
                 if err.code not in (429, 500, 502, 503, 504):
                     raise
                 time.sleep(15 * (attempt + 1))
-    from opencc import OpenCC
+    from zh_names import hans
 
-    s2twp = OpenCC("s2twp")
     out: dict[str, dict] = {}
     for r in json.loads(path.read_text(encoding="utf-8"))["results"]["bindings"]:
         title = r["title"]["value"]
         if title in out:
             continue
         lon, lat = r["coord"]["value"][6:-1].split()
-        zh = (r.get("zhtw") or r.get("zhhant") or {}).get("value") or (s2twp.convert(r["zh"]["value"]) if "zh" in r else None)
+        zh = (r.get("zhtw") or r.get("zhhant") or {}).get("value") or (hans(r["zh"]["value"], place=True) if "zh" in r else None)
         out[title] = {"lon": float(lon), "lat": float(lat), "zh": zh}
     return out
 

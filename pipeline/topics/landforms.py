@@ -7,7 +7,7 @@
   GMTED2010 的 1 km 網格，公有領域）。
 - landforms.json：Natural Earth 1:10m geography regions（公有領域）裡 FEATURECLA 是 Desert、Plateau、Basin、Plain、
   Lowland、Depression 的面（線圖層的 fill，每個環一筆紀錄 r＝編號、k＝是不是洞；名稱與種類放 groups）。
-  這是製圖用的示意範圍（給標籤定位用），邊界很粗、彼此重疊。中文名稱用 NAME_ZHT（混了簡體，OpenCC 轉台灣用語），
+  這是製圖用的示意範圍（給標籤定位用），邊界很粗、彼此重疊。中文名稱用 NAME_ZHT（混了簡體，轉台灣用語：地名版的 s2twp，zh_names.hans），
   錯譯與中國大陸的譯名在 ZH_FIX 改掉；分類明顯不對的（旁遮普歸在沙漠）在 SKIP 拿掉。
 - landform-labels.json：名稱標在哪裡（polylabel），依 SCALERANK 排序，縮小時只標大的。
 """
@@ -60,13 +60,12 @@ def below_sea() -> None:
 
 
 def landforms() -> None:
-    from opencc import OpenCC
     from shapely.geometry import shape
     from shapely.ops import polylabel
 
     from topics.mountains import rings_of
+    from zh_names import hans
 
-    s2twp = OpenCC("s2twp")
     with open(download(URL, "natural-earth", "ne_10m_geography_regions_polys-5.1.2.geojson"), encoding="utf-8") as f:
         features = json.load(f)["features"]
     lines, types, records, groups, labels = [], [], [], [], []
@@ -77,7 +76,7 @@ def landforms() -> None:
         if not kind or pr["NAME"] in SKIP:
             continue
         en = pr.get("NAME_EN") or pr["NAME"].title()
-        zh = ZH_FIX.get(pr["NAME"]) or (s2twp.convert(pr["NAME_ZHT"]) if pr.get("NAME_ZHT") else None)
+        zh = ZH_FIX.get(pr["NAME"]) or (hans(pr["NAME_ZHT"], place=True) if pr.get("NAME_ZHT") else None)
         if not zh:
             no_zh.append(pr["NAME"])
         g = shape(feat["geometry"]).buffer(0).simplify(SIMPLIFY_DEG, preserve_topology=True)

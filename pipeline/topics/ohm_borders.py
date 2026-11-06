@@ -30,12 +30,12 @@ import time
 import urllib.parse
 import urllib.request
 
-import opencc
 from shapely import wkb
 from shapely.geometry import LineString, MultiPolygon, Polygon
 from shapely.ops import polygonize, unary_union
 
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, lines_file, write_json, write_manifest_part
+from zh_names import hans, undo_terms
 
 OUT = OUT_DIR / "topics" / "empires"
 API = "https://overpass-api.openhistoricalmap.org/api/interpreter"
@@ -81,9 +81,6 @@ FORMOSA = {
     "se": "Proclaimed in Taipei after the Treaty of Shimonoseki", "ee": "Fall of Tainan to Japanese forces",
     "sez": "馬關條約後在臺北成立", "eez": "臺南被日軍占領",
 }
-
-_s2t = opencc.OpenCC("s2twp")
-
 
 def _post(query: str, name: str) -> dict:
     path = CACHE / name
@@ -148,8 +145,9 @@ def _colonizer(tags: dict) -> int:
 def _zh(tags: dict) -> str | None:
     for k in ("name:zh-Hant", "name:zh-TW", "name:zh_TW"):
         if tags.get(k):
-            return tags[k]
-    return _s2t.convert(tags["name:zh"]) if tags.get("name:zh") else None
+            # 繁中標籤是機器用 s2twp 轉的時候，把「布爾→布林」這種地名不該換的詞改回來（zh_names.undo_terms）
+            return undo_terms(tags[k], tags["name:zh"]) if tags.get("name:zh") else tags[k]
+    return hans(tags["name:zh"], place=True) if tags.get("name:zh") else None
 
 
 def select(elements: list[dict]) -> tuple[list[dict], dict]:

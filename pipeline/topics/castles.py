@@ -30,6 +30,7 @@ from geoindex import countries_at
 from sources import commons_photos, wpp
 from sources.countries import from_alpha2
 from sources.wikidata_attractions import _cached
+from zh_names import hans, translit_fix, undo_terms
 
 OUT = OUT_DIR / "topics" / "castles"
 SNAPSHOT = "2026-11-06"
@@ -48,8 +49,6 @@ TIERS = [(100, 4), (400, 3), (1100, 2)]
 
 # 英國的四個構成國（資料用 ISO 3166-2）
 SUBDIVISIONS = {"GB-ENG": "GBR", "GB-SCT": "GBR", "GB-WLS": "GBR", "GB-NIR": "GBR"}
-
-TRANSLIT_FIX = str.maketrans({"剋": "克", "託": "托", "裡": "里", "裏": "里", "誇": "夸"})
 
 ENRICH = """SELECT ?item ?zhtw ?zhhant ?zh ?zhwiki ?whs ?part ?vis ?visy WHERE {{
   VALUES ?item {{ {items} }}
@@ -80,12 +79,17 @@ def _zh_name(d: dict, en: str) -> str | None:
     from opencc import OpenCC
 
     # 有繁體字的標籤原樣用（再轉一次會把「大武崙砲台」轉成「砲臺」、音譯的「里」「克」轉成「裡」「剋」）；
-    # Wikidata 的 zh-tw、zh-hant 標籤有些其實是簡體（「新天鹅堡」），跟只有簡中的一樣轉繁，轉完修正音譯地名常見的錯字
+    # Wikidata 的 zh-tw、zh-hant 標籤有些其實是簡體（「新天鹅堡」），跟只有簡中的一樣轉繁（地名用的 s2twp，不套「布爾→布林」這種
+    # 會打到音譯的詞條，zh_names.place_s2twp），轉完修正音譯地名常見的錯字；繁中標籤有些是機器用 s2twp 轉的（「布林戈斯城堡」），
+    # 跟簡中標籤對照改回來（zh_names.undo_terms）
     raw = d.get("zhtw") or d.get("zhhant") or d.get("zh") or d.get("zhwiki")
     if not raw:
         return None
     traditional = OpenCC("t2s").convert(raw) != raw
-    zh = (raw if traditional else OpenCC("s2twp").convert(raw)).translate(TRANSLIT_FIX)
+    if traditional:
+        zh = translit_fix(undo_terms(raw, d["zh"]) if d.get("zh") else raw)
+    else:
+        zh = hans(raw, place=True)
     # 維基條目名稱的消歧義括號（「XX城 (某地)」）拿掉
     zh = re.sub(r"\s*[（(][^）)]*[）)]$", "", zh)
     return zh if zh != en else None

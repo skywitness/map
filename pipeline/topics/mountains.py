@@ -8,7 +8,7 @@
 讀法：標準函式庫讀 .shp、.dbf（不需要 GDAL 的 OGR），shapely 組成多邊形、簡化。
 
 **中文名稱**：Wikidata 的 zh-tw、zh-hant 標籤（沒有時用中文維基百科的條目名稱或 zh 標籤，OpenCC 轉繁體，
-topics.reads.wikidata_labels），再來是 GMBA 的 Name_ZH（簡體，OpenCC s2twp 轉台灣用語），都沒有的寫在 ZH_NAMES；
+topics.reads.wikidata_labels），再來是 GMBA 的 Name_ZH（簡體，轉台灣用字與用語：地名版的 s2twp，zh_names.hans），都沒有的寫在 ZH_NAMES；
 ZH_FIX 改掉中國大陸的譯名或不通順的。
 
 **輸出**（public/data/topics/elevation/）：
@@ -276,11 +276,9 @@ def read() -> list[dict]:
 
 
 def zh_names(recs: list[dict]) -> dict[int, str | None]:
-    from opencc import OpenCC
-
     from topics.reads import wikidata_labels
+    from zh_names import hans
 
-    s2twp = OpenCC("s2twp")
     labels = wikidata_labels({r["qid"] for r in recs if r["qid"]})
     out: dict[int, str | None] = {}
     sources = defaultdict(int)
@@ -294,7 +292,7 @@ def zh_names(recs: list[dict]) -> dict[int, str | None]:
         if not zh and r["qid"]:
             zh, src = (labels.get(r["qid"]) or [None])[0], "wikidata"
         if not zh and r["Name_ZH"]:
-            zh, src = s2twp.convert(r["Name_ZH"]), "gmba"
+            zh, src = hans(r["Name_ZH"], place=True), "gmba"
         if not zh and i in ZH_NAMES:
             zh, src = ZH_NAMES[i][1], "manual"
         # Wikidata 的「海岸山脈 (北美)」改成全形括號
