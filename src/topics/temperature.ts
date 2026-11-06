@@ -1,6 +1,8 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { TopicDefinition } from './types';
+import { withParts } from './parts';
+import { phenologyPart } from './phenology';
 
 const CELSIUS = '°C';
 const MM = { zh: '毫米', en: 'mm' };
@@ -15,7 +17,8 @@ const plusMinus = (v: number, digits: number) => `${v > 0 ? '+' : ''}${signed(v,
  */
 const WARMING_THRESHOLDS = [-2, -1, -0.3, 0.3, 1, 2];
 
-export const temperature: TopicDefinition = {
+/** 2026-11-06（第二十四批 418）：接上日本的櫻花與紅葉（phenology.ts） */
+export const temperature: TopicDefinition = withParts({
   id: 'temperature',
   title: { zh: '各國氣溫與降雨', en: 'Temperature and rainfall by country' },
   shortTitle: { zh: '氣溫與降雨', en: 'Temperature' },
@@ -141,4 +144,4 @@ export const temperature: TopicDefinition = {
       },
     },
   ],
-};
+}, phenologyPart);

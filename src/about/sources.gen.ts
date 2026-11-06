@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 144;
-export const INDICATOR_COUNT = 1075;
+export const INDICATOR_COUNT = 1079;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -421,6 +421,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"文化部「博物館」開放資料（台灣）","en":"Taiwan Ministry of Culture museum open data"},"url":"https://data.gov.tw/dataset/6242","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["attractions"]},
   {"name":{"zh":"文化部文化統計網：電影院概況（2008–2024 年）與電影片映演業統計（2026 年 5 月，2025 年的家數）","en":"Ministry of Culture (Taiwan) cultural statistics: cinemas, 2008–2024, and film exhibition statistics (May 2026, for 2025)"},"url":"https://stat.moc.gov.tw/HS_UserCatalogView.aspx","licenses":[{"zh":"文化部網站著作權聲明（以文化部名義發表的著作，合理範圍內可重製、公開傳輸，需註明出處）；只用逐年的家數","en":"Ministry of Culture website copyright notice (its own works may be reproduced within reasonable limits with attribution); only annual counts are used"}],"topics":["culture"]},
   {"name":{"zh":"文化部文化資產局「文資局民俗」（台灣登錄的民俗）","en":"Bureau of Cultural Heritage (Taiwan): registered folk customs"},"url":"https://data.gov.tw/dataset/114143","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["festivals"]},
+  {"name":{"zh":"日本氣象廳 生物季節觀測累年值（さくら開花・満開、かえで紅葉、いちょう黄葉）","en":"Japan Meteorological Agency, phenological observations (cherry blossom, maple and ginkgo colour)"},"url":"https://www.data.jma.go.jp/sakura/data/download_ruinenchi.html","licenses":[{"zh":"公共データ利用規約（第 1.0 版），依規定加工並註明出處","en":"Public Data License (Japan) 1.0, processed and credited as required"}],"topics":["temperature"]},
   {"name":{"zh":"日本法務省《令和 7 年版 犯罪白書》（加工）","en":"Ministry of Justice (Japan), White Paper on Crime 2025 (adapted)"},"url":"https://hakusyo1.moj.go.jp/jp/72/nfm/n72_2_2_4_2_1.html","licenses":["PDL 1.0"],"topics":["crime"]},
   {"name":{"zh":"日本資源能源廳：石油製品價格調查、能源動向第 14-1-8 表（電氣料金的推移），本網站換算成美元","en":"Agency for Natural Resources and Energy (Japan): petroleum product price survey; Energy Trends table 14-1-8 (electricity prices), converted to US dollars by this site"},"url":"https://www.enecho.meti.go.jp/statistics/petroleum_and_lpgas/pl007/results.html","licenses":[{"zh":"公共資料利用規約 1.0 版（PDL1.0，與 CC BY 4.0 相容）","en":"Public Data License 1.0 (PDL1.0, compatible with CC BY 4.0)"}],"topics":["energy-prices"]},
   {"name":{"zh":"智慧財產局 發明專利新申請案件數依國際專利分類排行（台灣的側欄）","en":"Taiwan Intellectual Property Office, new invention patent applications by IPC subclass (Taiwan panel)"},"url":"https://data.gov.tw/dataset/94266","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["innovation"]},
