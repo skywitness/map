@@ -1522,6 +1522,41 @@ kbd {
   font-size: 13px;
 }
 
+/* 附近的清單的說明（城4）、「隨機看一個」（城7） */
+.list-side-hint {
+  margin: 6px 12px 2px 14px;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.list-side-random {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  align-self: flex-start;
+  margin: 8px 12px 2px 14px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface, transparent);
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.list-side-random:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.list-side-random:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .list-side-all {
   padding: 0;
   border: 0;
@@ -2287,6 +2322,35 @@ kbd {
   color: var(--ink-secondary);
 }
 
+/* 點圖層的一類（城3）：按一下隱藏、再按一下顯示；關掉的淡掉、名稱加刪除線 */
+.map-layer-class {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 -4px;
+  padding: 1px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-layer-class:hover {
+  background: var(--grid);
+}
+
+.map-layer-class.is-off {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+}
+
+.map-layer-class.is-off svg {
+  opacity: 0.3;
+}
+
 .map-layer-detail.is-sizes .map-layer-rows {
   display: flex;
   align-items: flex-end;
@@ -2686,6 +2750,47 @@ kbd {
   white-space: normal;
 }
 
+/* 點一下固定的卡片（2026-11-06）：文字可以選取、複製（地圖本身不能選取）；右上角的 × 浮在照片上；
+   地圖比卡片矮時（手機橫放）卡片裡面捲動 */
+.map-place {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: auto;
+  max-height: calc(100% - 8px);
+  overflow-y: auto;
+}
+
+.map-place-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.map-place-close:hover {
+  color: var(--ink);
+}
+
+/* 卡片的標題不要被 × 蓋住 */
+.map-place > .tt-value:first-of-type {
+  padding-right: 22px;
+}
+
+.map-place .tt-photo a {
+  display: block;
+  cursor: zoom-in;
+}
+
 .map-place-coords {
   margin-top: 2px;
   color: var(--ink-secondary);
@@ -2713,6 +2818,44 @@ kbd {
 .tt-value {
   font-weight: 650;
   font-size: 15px;
+}
+
+/* tooltip 的照片（2026-11-06，城2；map/TooltipPhoto.tsx）：固定 16:9 的框，照片到之前留著灰底，tooltip 不會跳 */
+.tt-photo {
+  margin: -2px -4px 6px;
+  width: 240px;
+  max-width: calc(100% + 8px);
+}
+
+.tt-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--grid);
+}
+
+.tt-photo figcaption {
+  margin-top: 3px;
+  color: var(--ink-muted);
+  font-size: 11px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* 外部連結（維基百科）只在點一下的小卡片裡；滑過的 tooltip 點不到，不顯示 */
+.tt-link {
+  justify-self: start;
+  margin-top: 4px;
+  color: var(--accent-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.map-tooltip .tt-link {
+  display: none;
 }
 
 .tt-label {

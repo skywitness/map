@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { FloatResize } from './FloatResize';
-import { defineMessages, useLang } from '../i18n';
+import { defineMessages, tr, useLang } from '../i18n';
+import type { Text } from '../topics/types';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
 const TEXT = defineMessages({
@@ -24,6 +25,10 @@ interface WorldSideProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
+  /** 主題也有清單側欄時（2026-11-06，城堡）：跟清單一起排成分頁，這是最後一頁 */
+  tabs?: Text[];
+  tab?: number;
+  onTabChange?: (tab: number) => void;
 }
 
 /**
@@ -31,7 +36,7 @@ interface WorldSideProps {
  * （2026-11-03 使用者要求；原本是沒選國家時的右側欄，選了國家就被國家側欄換掉）。外框跟清單側欄（ListSide）一樣：
  * 桌機在地圖左邊，收起來剩一條窄邊與打開的按鈕；窄螢幕在地圖與時間軸下面，預設收起來。選了國家時照樣留著，國家在右側欄。
  */
-export function WorldSide({ title, open, onOpenChange, children }: WorldSideProps) {
+export function WorldSide({ title, open, onOpenChange, children, tabs, tab = 0, onTabChange }: WorldSideProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const narrow = useMediaQuery(NARROW_QUERY);
@@ -68,6 +73,22 @@ export function WorldSide({ title, open, onOpenChange, children }: WorldSideProp
           </svg>
         </button>
       </div>
+      {tabs && tabs.length > 1 && (
+        <div className="list-side-sorts list-side-tabs" role="tablist">
+          {tabs.map((label, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              className={`list-side-sort${i === tab ? ' is-active' : ''}`}
+              aria-selected={i === tab}
+              onClick={() => onTabChange?.(i)}
+            >
+              {tr(label, lang)}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="world-side-body">{children}</div>
       {/* 寬螢幕時浮在地圖上：下緣拖動改高度（窄螢幕不顯示） */}
       <FloatResize which="list" />

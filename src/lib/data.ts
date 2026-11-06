@@ -62,6 +62,54 @@ function fetchLocal(path: string): Promise<unknown> | null {
   return null;
 }
 
+/**
+ * 點檔的文字欄位另外一個檔（2026-11-06，城6，參考 thecastlemap.com 先送畫點要的、照片與介紹隨後到）：pipeline 的
+ * write_points(text=…) 把名稱、照片路徑這些只有 tooltip 與清單用的欄位放在 textFile（同一個資料夾），主檔只有畫圖要的。
+ * 主檔一到就回傳（地圖先畫），同時讀文字檔；到了以後合併成完整的資料，取代快取，通知用這個檔的畫面（onJsonUpdate）。
+ * 文字檔讀不到時隔 5 秒再試一次，還是不行就只有畫圖用的（tooltip 沒有名稱）
+ */
+const updates = new Map<string, Set<(data: unknown) => void>>();
+
+/** 這個檔合併好文字欄位時通知（useJson、useJsonManyStatus、疊加圖層的 useJsonEach 用）；回傳取消函式 */
+export function onJsonUpdate(path: string, callback: (data: unknown) => void): () => void {
+  let set = updates.get(path);
+  if (!set) updates.set(path, (set = new Set()));
+  set.add(callback);
+  return () => {
+    set!.delete(callback);
+  };
+}
+
+interface WithText {
+  fields: string[];
+  columns: unknown[][];
+  textFile?: string;
+}
+
+function loadText(path: string, data: WithText, attempt = 0) {
+  const textPath = path.slice(0, path.lastIndexOf('/') + 1) + data.textFile;
+  fetch(dataUrl(textPath), { priority: 'low' })
+    .then((res) => {
+      if (!res.ok) throw new Error(`${textPath} (HTTP ${res.status})`);
+      return res.json() as Promise<{ fields: string[]; columns: unknown[][] }>;
+    })
+    .then((text) => {
+      const { textFile: _file, ...rest } = data;
+      const merged = { ...rest, fields: [...data.fields, ...text.fields], columns: [...data.columns, ...text.columns] };
+      cache.set(path, Promise.resolve(merged));
+      updates.get(path)?.forEach((callback) => callback(merged));
+    })
+    .catch(() => {
+      if (attempt === 0) setTimeout(() => loadText(path, data, 1), 5000);
+    });
+}
+
+function withText<T>(path: string, data: T): T {
+  const d = data as unknown as WithText | null;
+  if (d && typeof d === 'object' && typeof d.textFile === 'string' && Array.isArray(d.fields)) loadText(path, d);
+  return data;
+}
+
 export function fetchJson<T>(path: string, priority?: RequestPriority): Promise<T> {
   let promise = cache.get(path) as Promise<T> | undefined;
   const local = promise ? null : fetchLocal(path);
@@ -73,7 +121,7 @@ export function fetchJson<T>(path: string, priority?: RequestPriority): Promise<
     promise = fetch(dataUrl(path), priority ? { priority } : undefined).then((res) => {
       // 訊息不帶語言，畫面上的「資料載入失敗」由呼叫端依介面語言加上
       if (!res.ok) throw new Error(`${path} (HTTP ${res.status})`);
-      return res.json().then(decode) as Promise<T>;
+      return res.json().then((json) => withText(path, decode(json))) as Promise<T>;
     });
     promise.catch(() => cache.delete(path)); // 失敗不快取，下次重試
     cache.set(path, promise);
@@ -118,12 +166,15 @@ export function useJson<T>(path: string | null): { data: T | null; loading: bool
   useEffect(() => {
     if (!path) return;
     let cancelled = false;
+    // 點檔的文字欄位到了（城6）：換成合併好的
+    const off = onJsonUpdate(path, (data) => !cancelled && setState({ path, data: data as T, error: null }));
     fetchJson<T>(path).then(
       (data) => !cancelled && setState({ path, data, error: null }),
       (error: Error) => !cancelled && setState((s) => ({ ...s, path, error })),
     );
     return () => {
       cancelled = true;
+      off();
     };
   }, [path]);
 
@@ -169,6 +220,13 @@ export function useJsonManyStatus<T>(paths: string[]): { data: (T | null)[]; fai
     failed: [],
   });
 
+  // 點檔的文字欄位到了（城6）：重讀一次（快取已經是合併好的）
+  const [merged, setMerged] = useState(0);
+  useEffect(() => {
+    const list = key ? key.split('|') : [];
+    const offs = list.map((p) => onJsonUpdate(p, () => setMerged((n) => n + 1)));
+    return () => offs.forEach((off) => off());
+  }, [key]);
   useEffect(() => {
     let cancelled = false;
     const list = key ? key.split('|') : [];
@@ -185,7 +243,7 @@ export function useJsonManyStatus<T>(paths: string[]): { data: (T | null)[]; fai
     return () => {
       cancelled = true;
     };
-  }, [key, attempt]);
+  }, [key, attempt, merged]);
 
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
   // 重試中：照舊是 null、還不算失敗（畫面回到載入中）

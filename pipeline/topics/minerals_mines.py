@@ -87,7 +87,8 @@ def build() -> None:
     fields = ["lon", "lat", "n", "c", "g", "s", "iso3", "y0", "y1"]
     important = lambda r: r["s"] != 2 or r["iso3"] != "USA"  # noqa: E731
     write_layered_points(OUT / "mines.json", rows, important, fields,
-                         {"lon": 0.001, "lat": 0.001, "g": 1, "s": 1, "y0": 1, "y1": 1}, delta=["lon"], strings=["c", "iso3"])
+                         {"lon": 0.001, "lat": 0.001, "g": 1, "s": 1, "y0": 1, "y1": 1}, delta=["lon"], strings=["c", "iso3"],
+                         text=["n"])  # 名稱另外放（2026-11-06，城6）
     by_country = Counter(r["iso3"] for r in rows)
     print(f"  MRDS：收 {len(rows)} 個（生產中 {sum(r['s'] == 1 for r in rows)}、曾生產 {sum(r['s'] == 2 for r in rows)}、加工廠 {sum(r['s'] == 3 for r in rows)}）")
     print(f"  類別 {sorted(Counter(r['g'] for r in rows).items())}；國家最多 {by_country.most_common(10)}")

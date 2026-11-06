@@ -1,5 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
+import { commonsPhoto } from '../lib/commons';
 import { fixed } from '../lib/format';
+import { nearText } from '../lib/near';
 import { MAP_TOKENS } from '../theme/tokens';
 import { heritageExtra } from './heritage-extra';
 import type { ColorClasses, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
@@ -68,8 +70,38 @@ function siteTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
     detail: parts.join(' · '),
     // 中文介面另外寫英文原名
     properNoun: zhName ? String(p.name ?? '') : undefined,
+    // Wikidata 的照片（2026-11-06，城2；pipeline 的 world-heritage-photos），滑過時從 Commons 讀
+    photo: commonsPhoto(p.img, p.by, p.lic),
   };
 }
+
+/** 這一點 300 公里內的世界遺產（2026-11-06，城4，參考 thecastlemap.com 的「100 公里內的城堡」；世界遺產比較稀，範圍放大） */
+const NEAR_LIST: ListPanelDef = {
+  label: { zh: '這一點 300 公里內的世界遺產', en: 'World Heritage sites within 300 km' },
+  tabLabel: { zh: '附近', en: 'Nearby' },
+  indicators: ['sites'],
+  file: 'sites.json',
+  near: { km: 300 },
+  empty: {
+    zh: '這一點 300 公里內沒有世界遺產（台灣不是《世界遺產公約》的締約國，沒有世界遺產）',
+    en: 'No World Heritage sites within 300 km of this spot (Taiwan is not a State Party and has none)',
+  },
+  rows: (points, { countryName }) =>
+    points.map((p): ListRow => {
+      const zhName = getLang() === 'zh' && typeof p.zh === 'string';
+      const states = [p.iso3, ...(typeof p.more === 'string' ? p.more.split(',') : [])].filter((s): s is string => typeof s === 'string' && s !== '');
+      return {
+        key: String(p.id),
+        title: siteName(p),
+        properNoun: zhName ? String(p.name ?? '') : undefined,
+        lines: [
+          [nearText(p), tr(SITE_TYPES[p.type as number] ?? '')].join(' · '),
+          [states.map(countryName).join(tr({ zh: '、', en: ', ' })), tr({ zh: `${p.year} 年登錄`, en: `inscribed ${p.year}` })].join(' · '),
+        ],
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+      };
+    }),
+};
 
 /**
  * 瀕危的世界遺產（第十二批 204）：「瀕危的世界遺產」指標，時間軸那一年已經列為瀕危的，依列入瀕危的年份（新的在上面）；
@@ -140,7 +172,7 @@ export const worldHeritage: TopicDefinition = {
     defaultOption: 'all',
   },
   panelExtra: () => import('./panels/WorldHeritagePanel'),
-  listPanel: [DANGER_LIST, ...heritageExtra.listPanel],
+  listPanel: [NEAR_LIST, DANGER_LIST, ...heritageExtra.listPanel],
   overlays: [
     {
       kind: 'points',

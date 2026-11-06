@@ -1,5 +1,5 @@
 /** 地圖的 tooltip（WorldMap.tsx，2026-10-29 拆出來） */
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../i18n';
 import type { MapMark, PointerInfo } from '../topics/types';
 
@@ -30,6 +30,17 @@ export function MarkTooltip({ marks, index }: { marks: MapMark[]; index: number 
   );
 }
 
+/**
+ * 卡片放在游標（或點下去的位置）旁邊的哪裡：右下，放不下往左、往上；上下都放不下時（有照片的卡片高約 330–420 px）
+ * 推到剛好放進地圖（卡片在點的旁邊，不會蓋住點）。gap 是跟游標的距離
+ */
+export function placeBox(x: number, y: number, [w, h]: [number, number], width: number, height: number, gap: number): { left: number; top: number } {
+  const m = 4;
+  const left = x + gap + w <= width - m ? x + gap : Math.max(m, x - gap - w);
+  const top = y + gap + h <= height - m ? y + gap : y - gap - h >= m ? y - gap - h : Math.max(m, height - m - h);
+  return { left, top };
+}
+
 export interface MapTooltipProps {
   x: number;
   y: number;
@@ -39,18 +50,18 @@ export interface MapTooltipProps {
 }
 
 export function MapTooltip({ x, y, width, height, children }: MapTooltipProps) {
-  const flipX = x > width - 260;
-  const flipY = y > height - 140;
+  // 往右下開，放不下時往左、往上；依實際的大小判斷（2026-11-06 起有照片的 tooltip 高約 260 px），量到之前用預估的
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState<[number, number]>([260, 140]);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const next: [number, number] = [el.offsetWidth, el.offsetHeight];
+    if (next[0] !== size[0] || next[1] !== size[1]) setSize(next);
+  });
+  const { left, top } = placeBox(x, y, size, width, height, 14);
   return (
-    <div
-      className="map-tooltip"
-      role="status"
-      style={{
-        left: x + (flipX ? -14 : 14),
-        top: y + (flipY ? -14 : 14),
-        transform: `translate(${flipX ? '-100%' : '0'}, ${flipY ? '-100%' : '0'})`,
-      }}
-    >
+    <div ref={ref} className="map-tooltip" role="status" style={{ left, top }}>
       {children}
     </div>
   );

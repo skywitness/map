@@ -8,6 +8,7 @@ import type { RefObject } from 'react';
 import type { MapMark } from '../topics/types';
 import { boxFromCorners, type Box } from './boxEstimate';
 import { highlightLine, lineOverlayAt, OVERLAY_PREFIX, pointOverlayId } from './overlayLayers';
+import { NARROW_QUERY } from '../lib/useMediaQuery';
 import { trailAt } from './trails';
 import { HOVER_LAYERS, HOVER_SOURCES, MARK_LABEL_LAYER, MARK_LAYER, MIN_BOX_PX } from './worldMapLayers';
 
@@ -78,7 +79,7 @@ export interface MapEventRefs {
   latest: RefObject<LatestProps>;
   setHover: (hover: MapHover | null) => void;
   setBoxMode: (on: boolean) => void;
-  setPlace: (place: MapPlace | null) => void;
+  setPlace: (place: MapPlace | null | ((prev: MapPlace | null) => MapPlace | null)) => void;
 }
 
 export function bindMapEvents(
@@ -158,8 +159,13 @@ export function bindMapEvents(
       setHover({ iso3: null, x: e.point.x, y: e.point.y, division });
       return;
     }
-    const mark = markAt(e.point);
-    const f = mark === null ? featureAt(e.point) : null;
+    // 側欄放的標記蓋在點圖層的點上時（清單點了、「隨機看一個」移過去的那一點，2026-11-06）滑過照樣看點的 tooltip（照片、介紹）；
+    // 會連到另一個標記的（首都 ↔ 對蹠點）照舊是標記
+    const markHit = markAt(e.point);
+    const under = featureAt(e.point);
+    const pointUnder = Boolean(under && under.layer.id.startsWith(OVERLAY_PREFIX) && !lineOverlayAt(under.layer.id));
+    const mark = markHit !== null && !(pointUnder && latest.current.marks?.[markHit]?.link === undefined) ? markHit : null;
+    const f = mark === null ? under : null;
     const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
     // 海上的地震沒有國家，照樣顯示 tooltip；線（海底電纜）也是
     const line = f ? lineOverlayAt(f.layer.id) : null;
@@ -229,14 +235,17 @@ export function bindMapEvents(
       suppressClickRef.current = false;
       return;
     }
-    // 點側欄放的標記：移到它連到的那一個（首都 ↔ 對蹠點），選取的國家不變
+    // 點側欄放的標記：移到它連到的那一個（首都 ↔ 對蹠點），選取的國家不變。沒有連到別處的標記（清單點了、隨機看一個
+    // 移過去的那一點）照常往下：底下的點固定卡片、選取國家（2026-11-06）
     const mark = markAt(e.point);
     if (mark !== null) {
       const marksNow = latest.current.marks;
       const link = marksNow?.[mark]?.link;
       const target = link !== undefined ? marksNow?.[link] : undefined;
-      if (target) map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
-      return;
+      if (target) {
+        map.flyTo({ center: [target.lon, target.lat], zoom: Math.max(map.getZoom(), 3), duration: 1600 });
+        return;
+      }
     }
     // 世界地圖主題的行政區：點了跳到那一區，不選國家
     const division = latest.current.divisionAt?.(e.point) ?? null;
@@ -257,6 +266,14 @@ export function bindMapEvents(
     // 點的是點圖層的點（賽道、景點…）就用那一點的位置，否則用點下去的位置
     const exact = f?.layer.id.startsWith(OVERLAY_PREFIX) && f.geometry.type === 'Point' ? (f.geometry.coordinates as [number, number]) : null;
     const { lng, lat } = exact ? new LngLat(exact[0], exact[1]).wrap() : e.lngLat.wrap();
+    // 點圖層的點：滑過的那張卡片（照片、名稱、介紹）固定在那裡，可以選取文字、點照片開 Commons（2026-11-06 使用者要求；
+    // 跟右鍵的小卡片同一個，也有經緯度與 Google 地圖）。國家照樣選取。聚成甜甜圈的那一圈、連成線的軌跡不算
+    if (exact && f && !lineOverlayAt(f.layer.id) && f.properties?.cluster == null && Number.isFinite(Number(f.properties?.i))) {
+      setHover(null);
+      setPlace({ x: e.point.x, y: e.point.y, lng, lat, iso3, point: { overlay: pointOverlayId(f.layer.id), index: Number(f.properties.i) } });
+      // 手機（國家側欄是底部的抽屜）只開卡片、不選國家：抽屜會蓋住卡片的下半截；要選國家點點以外的地方
+      if (typeof matchMedia === 'function' && matchMedia(NARROW_QUERY).matches) return;
+    }
     clickedRef.current = iso3 ? { iso3, at: [lng, lat] } : null;
     latest.current.onSelect(iso3);
   });
@@ -321,6 +338,21 @@ export function bindMapEvents(
   });
   map.on('touchend', cancelPress);
   map.on('touchcancel', cancelPress);
-  // 地圖移動（拖曳、縮放、飛到別處）時卡片的位置就不對了：關掉
-  map.on('movestart', () => setPlace(null));
+  // 使用者自己拖曳、縮放時卡片的位置就不對了：關掉。程式移動地圖時（手機上選了國家讓出底部的抽屜、清單點了移過去）
+  // 卡片跟著那一點移到新的位置，那一點離開畫面（或轉到地球背面）才關（2026-11-06，點一下固定的卡片在手機上一打開就被關掉）
+  map.on('movestart', (e) => {
+    if ((e as { originalEvent?: Event }).originalEvent) setPlace(null);
+  });
+  map.on('moveend', (e) => {
+    if ((e as { originalEvent?: Event }).originalEvent) return;
+    setPlace((prev) => {
+      if (!prev) return prev;
+      const at = map.project([prev.lng, prev.lat]);
+      const back = map.unproject(at);
+      const canvas = map.getCanvas();
+      const inView = at.x >= 0 && at.y >= 0 && at.x <= canvas.clientWidth && at.y <= canvas.clientHeight;
+      const front = Math.abs(back.lat - prev.lat) < 0.01;
+      return inView && front ? { ...prev, x: at.x, y: at.y } : null;
+    });
+  });
 }

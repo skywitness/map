@@ -205,17 +205,58 @@ def more_path(path: Path) -> Path:
     return path.with_name(f"{path.stem}-more.json")
 
 
-def write_layered_points(path: Path, rows: list[dict[str, object]], important, *args, **kwargs) -> tuple[dict, dict]:
+def text_path(path: Path) -> Path:
+    """點檔的文字欄位（2026-11-06，城6）：castles.json → castles-text.json"""
+    return path.with_name(f"{path.stem}-text.json")
+
+
+def split_text(data: dict, text: tuple[str, ...] | list[str], name: str) -> tuple[dict, dict]:
+    """點檔（points_file() 的輸出）的文字欄位分出去（2026-11-06，城6，DESIGN.md 第 13 節；前端 lib/data.ts 的 textFile）：
+    主檔只留畫圖要的欄位（位置、大小、顏色、時間），加上 textFile（同一個資料夾的檔名）；文字檔是 {fields, columns}，
+    列的順序跟主檔一樣。文字欄位只能是原樣存的字串（不能在 scale、delta、字串表裡）"""
+    text = [f for f in data["fields"] if f in text]
+    for f in text:
+        if f in data.get("scale", {}) or f in data.get("delta", []) or f in (data.get("strings") or {}).get("fields", []):
+            raise ValueError(f"文字欄位 {f} 不能是數值、差分或字串表的欄位")
+    keep = [i for i, f in enumerate(data["fields"]) if f not in text]
+    moved = [i for i, f in enumerate(data["fields"]) if f in text]
+    main = {**data, "fields": [data["fields"][i] for i in keep], "columns": [data["columns"][i] for i in keep], "textFile": name}
+    return main, {"fields": [data["fields"][i] for i in moved], "columns": [data["columns"][i] for i in moved]}
+
+
+def write_points(path: Path, data: dict, text: tuple[str, ...] | list[str] = (), quiet: bool = False) -> None:
+    """寫點檔；text 有欄位時分成兩個檔（split_text），沒有時跟 write_json 一樣"""
+    if not text:
+        write_json(path, data, quiet=quiet)
+        return
+    main, words = split_text(data, text, text_path(path).name)
+    write_json(path, main, quiet=quiet)
+    write_json(text_path(path), words, quiet=quiet)
+
+
+def load_points_json(path: Path) -> dict:
+    """讀回點檔（給其他主題用）：文字欄位分出去的（textFile）合併回來"""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    name = data.pop("textFile", None)
+    if name:
+        words = json.loads((Path(path).parent / name).read_text(encoding="utf-8"))
+        data["fields"] = data["fields"] + words["fields"]
+        data["columns"] = data["columns"] + words["columns"]
+    return data
+
+
+def write_layered_points(path: Path, rows: list[dict[str, object]], important, *args, text: tuple[str, ...] | list[str] = (), **kwargs) -> tuple[dict, dict]:
     """大型點檔分層（2026-10-31，DESIGN.md 第 13 節；前端 PointsOverlayDef.more）：path 只有重要的點
     （important(row) 為真，地圖縮小時會畫的那些），<name>-more.json 是其餘的，放大到 more.minZoom 才下載、接在後面。
-    兩份各自照 rows 的順序（rows 依 delta 欄位排序過的話，兩份也是排序的）；其他參數照 points_file()"""
+    兩份各自照 rows 的順序（rows 依 delta 欄位排序過的話，兩份也是排序的）；其他參數照 points_file()。
+    text：文字欄位另外放（write_points，兩份各自一個 -text.json）"""
     base = [r for r in rows if important(r)]
     rest = [r for r in rows if not important(r)]
     first = points_file(base, *args, **kwargs)
     more = points_file(rest, *args, **kwargs)
-    write_json(path, first, quiet=True)
-    write_json(more_path(path), more, quiet=True)
-    print(f"  {path.name}：重要的 {len(base)} 個點，其餘 {len(rest)} 個在 {more_path(path).name}")
+    write_points(path, first, text, quiet=True)
+    write_points(more_path(path), more, text, quiet=True)
+    print(f"  {path.name}：重要的 {len(base)} 個點，其餘 {len(rest)} 個在 {more_path(path).name}" + (f"（文字欄位 {list(text)} 另外放）" if text else ""))
     return first, more
 
 

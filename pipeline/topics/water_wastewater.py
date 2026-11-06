@@ -82,7 +82,7 @@ def build() -> None:
     rows.sort(key=lambda p: (p["iso3"], p["lon"]))
     first, _more = write_layered_points(
         OUT / "wastewater-plants.json", rows, lambda r: bool(r["n"]), ["lon", "lat", "iso3", "n"],
-        {"lon": 0.0001, "lat": 0.0001}, strings=("iso3",),
+        {"lon": 0.0001, "lat": 0.0001}, strings=("iso3",), text=("n",),  # 名稱另外放（2026-11-06，城6）
     )
     by_country: dict[str, int] = {}
     for r in rows:

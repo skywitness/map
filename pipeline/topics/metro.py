@@ -31,7 +31,7 @@ from collections import Counter, defaultdict
 from datetime import date
 
 import geoindex
-from common import OUT_DIR, indicator_file, points_file, write_json
+from common import OUT_DIR, indicator_file, points_file, write_json, write_points
 from sources import wikidata_metro as wm
 
 OUT = OUT_DIR / "topics" / "transport"
@@ -354,10 +354,11 @@ def build(units: list[str]) -> dict[str, dict]:
             "iso3": r["iso3"], "name": r["en"] or name_zh, "zh": name_zh if name_zh and name_zh != r["en"] else None,
             "sys": net[0] if net else None, "sysZh": net[1] if net and net[1] != net[0] else None,
         })
-    write_json(OUT / "metro.json", points_file(
+    # 站名另外放（2026-11-06，城6：gzip 後 334 KB 裡站名占一半以上）
+    write_points(OUT / "metro.json", points_file(
         out_rows, ["lon", "lat", "y", "d", "e", "iso3", "name", "zh", "sys", "sysZh"],
         {"lon": 0.0001, "lat": 0.0001, "y": 1, "d": 1, "e": 1}, delta=("y",), strings=("iso3", "sys", "sysZh"),
-    ))
+    ), text=("name", "zh"))
 
     # ── 高鐵 ──
     hsr = _hsr(unit_set, log)

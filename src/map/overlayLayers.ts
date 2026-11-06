@@ -1033,11 +1033,36 @@ function valueFilter(def: { minValue?: { field: string; stops: [number, number][
 
 /** 點、線圖層的篩選：時間篩選與依縮放的篩選合併 */
 function pointFilter(
-  def: Pick<PointsOverlay, 'timeField' | 'endField' | 'minValue'>,
+  def: Pick<PointsOverlay, 'timeField' | 'endField' | 'minValue' | 'color'>,
   year: number | ExpressionSpecification,
   mode: IndicatorDef['overlayTime'],
+  hidden?: number[],
 ): FilterSpecification | null {
-  return allOf([timeFilter(def, year, mode), valueFilter(def)]);
+  return allOf([timeFilter(def, year, mode), valueFilter(def), classFilter(def, hidden)]);
+}
+
+/** 點的類別（color 的 ColorClasses 裡第幾類，0 起；第 i 類是 thresholds[i-1] ≤ 值 < thresholds[i]）；沒有分類或沒有值是 null */
+export function pointClass(def: Pick<PointsOverlay, 'color'>, p: Record<string, unknown>): number | null {
+  if (typeof def.color === 'string') return null;
+  const v = p[def.color.field];
+  if (typeof v !== 'number') return null;
+  let i = 0;
+  for (const t of def.color.thresholds) if (v >= t) i++;
+  return i;
+}
+
+/** 圖例裡關掉的類別（2026-11-06，城3）不畫；沒有那個欄位的點照畫 */
+function classFilter(def: Pick<PointsOverlay, 'color'>, hidden?: number[]): FilterSpecification | null {
+  if (!hidden?.length || typeof def.color === 'string') return null;
+  const { field, thresholds } = def.color;
+  const v: ExpressionSpecification = ['to-number', ['get', field], 0];
+  const ranges = hidden.map((i) => {
+    const parts: FilterSpecification[] = [['has', field]];
+    if (i > 0) parts.push(['>=', v, thresholds[i - 1]]);
+    if (i < thresholds.length) parts.push(['<', v, thresholds[i]]);
+    return ['all', ...parts] as FilterSpecification;
+  });
+  return ['!', ['any', ...ranges]] as FilterSpecification;
 }
 
 function allOf(parts: (FilterSpecification | null)[]): FilterSpecification | null {
@@ -1245,14 +1270,15 @@ export function applyTimeFilters(
         // allYears：熱度是全部年份累計（武裝衝突 1989 年起），不跟時間軸篩選，點照舊畫那一年的（keepPoints）
         const all = Boolean(o.def.heatmap.allYears);
         const heat = Boolean(o.visible && o.points) && (all || manyPoints(o.def, mode)) && forIndicator;
-        setFilterOnce(map, id + HEAT_SUFFIX, all ? valueFilter(o.def) : pointFilter(o.def, y, mode));
+        setFilterOnce(map, id + HEAT_SUFFIX, all ? allOf([valueFilter(o.def), classFilter(o.def, o.hidden)]) : pointFilter(o.def, y, mode, o.hidden));
         map.setLayoutProperty(id + HEAT_SUFFIX, 'visibility', heat ? 'visible' : 'none');
         const minZoom = o.def.minZoom ?? 0;
         if (!o.def.heatmap.keepPoints) map.setLayerZoomRange(id, heat ? Math.max(o.def.heatmap.maxZoom, minZoom) : minZoom, 24);
       }
-      if (!o.def.timeField && !o.def.minValue) continue;
-      setFilterOnce(map, id, pointFilter(o.def, y, mode));
-      setFilterOnce(map, id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, y, mode) ?? null]));
+      // 有分類的點：圖例可以關掉某幾類（城3），關掉再打開時篩選要拿掉，所以照樣設
+      if (!o.def.timeField && !o.def.minValue && typeof o.def.color === 'string') continue;
+      setFilterOnce(map, id, pointFilter(o.def, y, mode, o.hidden));
+      setFilterOnce(map, id + LABEL_SUFFIX, allOf([['has', '_label'], pointFilter(o.def, y, mode, o.hidden) ?? null]));
       continue;
     }
     if (!o.def.timeField && !o.def.minValue) continue;
@@ -1283,22 +1309,44 @@ function inTime(p: Record<string, unknown>, def: { timeField?: string; endField?
  * applyTimeFilters 一樣；不是點圖層、還沒讀到資料、軌跡、依期變的點與 count: false 是 null
  */
 export function overlayCount(o: OverlayLayer, shownYear: number, indicatorMode: IndicatorDef['overlayTime']): number | null {
-  if (o.kind !== 'points' || !o.points || o.def.count === false || o.def.trail || o.def.epochs) return null;
+  if (o.kind !== 'points' || !o.points || o.partial || o.def.count === false || o.def.trail || o.def.epochs) return null;
   const mode = o.def.overlayTime ?? indicatorMode;
   const range = o.def.timeRange === 'data' ? dataYears(o) : o.def.timeRange;
   const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
   const field = o.def.count?.field;
+  const hidden = o.hidden?.length ? new Set(o.hidden) : null;
   let total = 0;
   for (const p of o.points) {
     if (!inTime(p, o.def, year, mode)) continue;
+    if (hidden && hidden.has(pointClass(o.def, p) ?? -1)) continue;
     const v = field ? p[field] : 1;
     if (typeof v === 'number') total += v;
   }
   return total;
 }
 
+/**
+ * 圖例每一類旁的件數（2026-11-06，城3）：時間軸這一年畫得出來的點（跟 overlayCount 一樣的年份規則，不管那一類關了沒有），
+ * 依 color 的分類算；不是分類的點圖層、還沒讀到資料是 null
+ */
+export function overlayClassCounts(o: OverlayLayer, shownYear: number, indicatorMode: IndicatorDef['overlayTime']): number[] | null {
+  if (o.kind !== 'points' || !o.points || o.partial || typeof o.def.color === 'string' || o.def.trail || o.def.epochs || o.def.count === false) return null;
+  const mode = o.def.overlayTime ?? indicatorMode;
+  const range = o.def.timeRange === 'data' ? dataYears(o) : o.def.timeRange;
+  const year = range ? Math.min(Math.max(shownYear, range[0]), range[1]) : shownYear;
+  const counts = o.def.color.classes.map(() => 0);
+  const field = o.def.count?.field;
+  for (const p of o.points) {
+    if (!inTime(p, o.def, year, mode)) continue;
+    const c = pointClass(o.def, p);
+    const v = field ? p[field] : 1;
+    if (c !== null && c < counts.length && typeof v === 'number') counts[c] += v;
+  }
+  return counts;
+}
+
 /** 聚合 source 上次送的資料（同一份點、同一年、同一個 source 就不必再送） */
-const clusterSent = new WeakMap<MaplibreMap, Map<string, { source: unknown; points: unknown; year: number; mode: unknown }>>();
+const clusterSent = new WeakMap<MaplibreMap, Map<string, { source: unknown; points: unknown; year: number; mode: unknown; hidden: string }>>();
 
 /** 聚合的 source：時間軸這一年的點（聚合是 source 層級的，不能用圖層的 filter 篩） */
 function sendClustered(map: MaplibreMap, o: Extract<DataOverlay, { kind: 'points' }>, year: number, mode: IndicatorDef['overlayTime']) {
@@ -1308,12 +1356,17 @@ function sendClustered(map: MaplibreMap, o: Extract<DataOverlay, { kind: 'points
   let sent = clusterSent.get(map);
   if (!sent) clusterSent.set(map, (sent = new Map()));
   const timeYear = o.def.timeField ? year : 0;
+  const hiddenKey = o.hidden?.join(',') ?? '';
   const prev = sent.get(id);
-  if (prev && prev.source === source && prev.points === o.points && prev.year === timeYear && prev.mode === mode) return;
+  if (prev && prev.source === source && prev.points === o.points && prev.year === timeYear && prev.mode === mode && prev.hidden === hiddenKey) return;
   const all = pointFeatures(o, overlayEpoch(o.def, year));
-  const features = o.def.timeField ? all.features.filter((f) => inTime(f.properties ?? {}, o.def, year, mode)) : all.features;
+  // 圖例裡關掉的類別（城3）也在這裡先拿掉：聚合是 source 層級的，圖層的篩選管不到甜甜圈
+  const hidden = o.hidden?.length ? new Set(o.hidden) : null;
+  const features = all.features.filter(
+    (f) => (!o.def.timeField || inTime(f.properties ?? {}, o.def, year, mode)) && !(hidden && hidden.has(pointClass(o.def, f.properties ?? {}) ?? -1)),
+  );
   source.setData({ type: 'FeatureCollection', features });
-  sent.set(id, { source, points: o.points, year: timeYear, mode });
+  sent.set(id, { source, points: o.points, year: timeYear, mode, hidden: hiddenKey });
   resetDonuts(map, id);
 }
 

@@ -22,6 +22,11 @@ export interface LayerVisibility {
   isobaths?: boolean;
   /** 一般疊加圖層（主題 overlays 裡 kind 為 points、lines 的），key 是 overlay 的 id；沒有記錄的看 overlay 的 hidden */
   extra: Record<string, boolean>;
+  /**
+   * 點圖層在圖例裡關掉的類別（2026-11-06，城3，參考 thecastlemap.com 的類型按鈕）：key 是 overlay 的 id，值是 color 的
+   * ColorClasses 裡第幾類（0 起）；沒有記錄是全部都畫
+   */
+  hiddenClasses?: Record<string, number[]>;
 }
 
 // 中型機場有兩千多座，世界全圖時會蓋住鐵路，預設關閉
@@ -144,7 +149,11 @@ function roundTo(value: number, scale: number): number {
 
 /** 一般疊加圖層目前的狀態：解析過的設定、有沒有打開、資料（還沒下載或關著沒下載時是 null） */
 export type OverlayLayer =
-  | { kind: 'points'; def: PointsOverlay; visible: boolean; points: PointRecord[] | null }
+  /**
+   * hidden：圖例裡關掉的類別（LayerVisibility.hiddenClasses）；partial：分層的點檔（more）還只讀了重要的那一份，
+   * 圖層開關旁不寫件數（寫了會比實際少，城堡在世界全圖時只有前 1,100 座）
+   */
+  | { kind: 'points'; def: PointsOverlay; visible: boolean; points: PointRecord[] | null; hidden?: number[]; partial?: boolean }
   | { kind: 'lines'; def: LinesOverlay; visible: boolean; lines: DecodedLines | null }
   /** 晝夜（時刻主題）：沒有資料檔，依時刻畫（nightLayer.ts） */
   | { kind: 'night'; def: NightOverlay; visible: boolean }

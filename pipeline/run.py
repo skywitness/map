@@ -369,6 +369,7 @@ STEPS = {
     # 樓層怎麼數（第二十二批 396）：維基共享資源的地圖（本機 session 下載，map-plan 的 data/wikimedia/，先複製到 .cache/wikimedia/）
     "travel-floors": "topics.travel_floors",
     "world-heritage": "topics.world_heritage",  # UNESCO DataHub（map-plan 的 data/unesco/）；中文名稱沿用現有的檔，不再查 Wikidata
+    "world-heritage-photos": "topics.world_heritage_photos",  # 現有的 sites.json 補照片（Wikidata P18、Commons 的攝影者）
     "space": "topics.space",  # 第一次會下載 GCAT 的 satcat 與 launch（約 33 MB）
     "olympics": "topics.olympics",  # 第一次會向維基百科查 56 屆的獎牌榜（約 1 分鐘）
     "sports-attendance": "topics.sports_attendance",  # 去現場看運動比賽（Eurostat ilc_scp04，CC BY 4.0）
@@ -581,6 +582,7 @@ STEPS = {
     "long-run": "topics.long_run",  # Gapminder 1800 年起的人口、人均 GDP、平均壽命（人口、人均收入、健康主題）
     # 隕石撞擊坑（特殊地形的圖層）與海溝（海洋與漁業的圖層）：Wikidata（CC0），兩支 SPARQL；幾秒
     "craters-trenches": "topics.craters_trenches",
+    "castles": "topics.castles",
     "compact": "compact",  # 把還沒壓縮的舊指標檔改成差分編碼（各主題輸出時已經會壓縮）
 }
 
