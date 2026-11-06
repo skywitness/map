@@ -158,8 +158,13 @@ export function bindMapEvents(
       setHover({ iso3: null, x: e.point.x, y: e.point.y, division });
       return;
     }
-    const mark = markAt(e.point);
-    const f = mark === null ? featureAt(e.point) : null;
+    // 側欄放的標記蓋在點圖層的點上時（清單點了、「隨機看一個」移過去的那一點，2026-11-06）滑過照樣看點的 tooltip（照片、介紹）；
+    // 會連到另一個標記的（首都 ↔ 對蹠點）照舊是標記
+    const markHit = markAt(e.point);
+    const under = featureAt(e.point);
+    const pointUnder = Boolean(under && under.layer.id.startsWith(OVERLAY_PREFIX) && !lineOverlayAt(under.layer.id));
+    const mark = markHit !== null && !(pointUnder && latest.current.marks?.[markHit]?.link === undefined) ? markHit : null;
+    const f = mark === null ? under : null;
     const iso3 = (f?.properties?.iso3 as string | undefined) ?? null;
     // 海上的地震沒有國家，照樣顯示 tooltip；線（海底電纜）也是
     const line = f ? lineOverlayAt(f.layer.id) : null;

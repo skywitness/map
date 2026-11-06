@@ -126,7 +126,7 @@ export interface OverlayKey {
   details: {
     title?: string;
     layout: 'rows' | 'sizes' | 'chips';
-    rows: (OverlaySwatch & { label: string; hint?: string; classValue?: number })[];
+    rows: (OverlaySwatch & { label: string; hint?: string; classValue?: number; pointClass?: number })[];
   }[];
 }
 
@@ -296,7 +296,8 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
     details.push({
       title: classes.title,
       layout: 'rows',
-      rows: classes.classes.map((c) => ({ shape, size: 4, color: c.color, label: c.label })),
+      // pointClass：圖例上可以點來關掉、打開這一類（城3）
+      rows: classes.classes.map((c, i) => ({ shape, size: 4, color: c.color, label: c.label, pointClass: i })),
     });
   }
   if (def.heatmap) {
@@ -325,7 +326,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
 
 /** 圖層的圖例：畫面上的開關與匯出的圖片共用 */
 export interface LayerKey {
-  key: Exclude<keyof LayerVisibility, 'extra'>;
+  key: Exclude<keyof LayerVisibility, 'extra' | 'hiddenClasses'>;
   /** relief：只有地形圖（海拔主題的 kind 'terrain' 指標）才有的 */
   source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite' | 'satelliteExtra' | 'isobaths';
   label: Text;
@@ -439,6 +440,8 @@ interface LayerControlsProps {
   overlays?: OverlayLayer[];
   /** 圖層開關旁的件數（圖層 id → 時間軸這一年的點數，overlayLayers.ts 的 overlayCount；參3） */
   counts?: Map<string, number>;
+  /** 分類的點圖層每一類的件數（圖層 id → 各類的點數，overlayClassCounts；城3） */
+  classCounts?: Map<string, number[]>;
   tokens: Tokens;
   /** 底圖是深色的（分類有深色底圖用的顏色時，圖例跟地圖一樣） */
   darkMap?: boolean;
@@ -464,6 +467,7 @@ export function LayerControls({
   hasIsobaths = false,
   overlays = [],
   counts,
+  classCounts,
   tokens,
   darkMap = false,
 }: LayerControlsProps) {
@@ -471,6 +475,14 @@ export function LayerControls({
   const lang = useLang();
   const toggle = (key: LayerKey['key']) => onChange({ ...layers, [key]: !isOn(layers, key) });
   const toggleOverlay = (o: OverlayLayer) => onChange({ ...layers, extra: { ...layers.extra, [o.def.id]: !o.visible } });
+  // 點圖層的某一類關掉或打開（城3）；全部都關掉時等於整個圖層關掉，所以最後一類不能關（按了改成只留這一類以外的全部打開）
+  const toggleClass = (o: OverlayLayer, i: number, total: number) => {
+    const hidden = new Set(layers.hiddenClasses?.[o.def.id] ?? []);
+    if (hidden.has(i)) hidden.delete(i);
+    else if (hidden.size < total - 1) hidden.add(i);
+    else hidden.clear();
+    onChange({ ...layers, hiddenClasses: { ...layers.hiddenClasses, [o.def.id]: [...hidden].sort((a, b) => a - b) } });
+  };
   const has = { railways: hasRailways, airports: hasAirports, terrain: hasTerrain, relief: hasRelief, satellite: Boolean(satelliteDate), satelliteExtra: Boolean(satelliteDate && satelliteExtraLabel), isobaths: hasIsobaths };
   const keys = LAYER_KEYS.filter((k) => has[k.source]);
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
@@ -530,7 +542,16 @@ export function LayerControls({
                 >
                   {d.title && <div className="legend-note">{d.title}</div>}
                   <div className="map-layer-rows">
-                    {d.rows.map((r) => (
+                    {d.rows.map((r) =>
+                      r.pointClass !== undefined && o.kind === 'points' ? (
+                        <ClassToggle
+                          key={r.label}
+                          row={r}
+                          count={classCounts?.get(o.def.id)?.[r.pointClass]}
+                          hidden={Boolean(o.hidden?.includes(r.pointClass))}
+                          onToggle={() => toggleClass(o, r.pointClass!, d.rows.length)}
+                        />
+                      ) : (
                       <span
                         key={r.label}
                         title={r.hint}
@@ -540,7 +561,8 @@ export function LayerControls({
                         <Swatch swatch={r} />
                         {r.label}
                       </span>
-                    ))}
+                      ),
+                    )}
                   </div>
                 </div>
               ))}
@@ -553,6 +575,21 @@ export function LayerControls({
         </button>
       )}
     </fieldset>
+  );
+}
+
+const SHOW_CLASS: Text = { zh: '按一下在地圖上顯示這一類', en: 'Click to show this type on the map' };
+const HIDE_CLASS: Text = { zh: '按一下在地圖上隱藏這一類', en: 'Click to hide this type on the map' };
+
+/** 點圖層的一類（城3）：按一下隱藏、再按一下顯示，旁邊寫時間軸這一年的件數 */
+function ClassToggle({ row, count, hidden, onToggle }: { row: OverlayKey['details'][number]['rows'][number]; count?: number; hidden: boolean; onToggle: () => void }) {
+  const lang = useLang();
+  return (
+    <button type="button" className={`map-layer-class${hidden ? ' is-off' : ''}`} aria-pressed={!hidden} title={tr(hidden ? SHOW_CLASS : HIDE_CLASS, lang)} onClick={onToggle}>
+      <Swatch swatch={row} />
+      {row.label}
+      {count !== undefined && <span className="map-layer-count">{fixed(count, 0)}</span>}
+    </button>
   );
 }
 

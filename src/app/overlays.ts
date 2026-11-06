@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { loadClassGrid, type ClassGrid } from '../map/classGridData';
 import { decodeWindField, type WindField, type WindFieldFile } from '../map/windField';
-import { dataUrl, fetchJson, useJsonMany } from '../lib/data';
+import { dataUrl, fetchJson, onJsonUpdate, useJsonMany } from '../lib/data';
 import { useLive } from '../lib/live';
 import {
   concatLines,
@@ -134,12 +134,13 @@ export function useOverlays(
       const data = raw.get(path) ?? (yearly ? (lastYearly.get(key) ?? null) : null);
       if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
       // 即時資料的點（PointsOverlayDef.fromLive，此刻世界的新聞熱點）：每份即時資料算一次
-      if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live) };
-      if (def.kind === 'points' && def.liveFeed) return { kind: 'points', def, visible, points: feedPoints(def, def.liveFeed === feedDef ? feed.data : null) };
+      const hidden = def.kind === 'points' ? layers.hiddenClasses?.[def.id] : undefined;
+      if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live), hidden };
+      if (def.kind === 'points' && def.liveFeed) return { kind: 'points', def, visible, points: feedPoints(def, def.liveFeed === feedDef ? feed.data : null), hidden };
       if (def.kind === 'points') {
         const base = data ? decodedPoints(data as PointsData) : null;
         const rest = def.more ? (more.get(moreFile(path)) as PointsData | undefined) : undefined;
-        return { kind: 'points', def, visible, points: base && rest ? joinedPoints(base, decodedPoints(rest)) : base };
+        return { kind: 'points', def, visible, points: base && rest ? joinedPoints(base, decodedPoints(rest)) : base, hidden, partial: Boolean(def.more && !rest) };
       }
       if (def.local) return { kind: 'lines', def, visible, lines: localLines?.get(def.id) ?? null };
       // 在瀏覽器裡算的線（從台北看世界的航線、距離圈）：依中心與讀到的材料，同一個中心、同一份材料不重算
@@ -154,7 +155,7 @@ export function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center, feedDef, feed.data]);
+  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center, feedDef, feed.data, layers.hiddenClasses]);
   return { railways, airports, overlays: result };
 }
 
@@ -308,12 +309,17 @@ function useJsonEach(paths: string[]): Map<string, unknown> {
   const [loaded, setLoaded] = useState<Map<string, unknown>>(() => new Map());
   const key = paths.join('|');
   useEffect(() => {
-    for (const path of key ? key.split('|') : []) {
+    const list = key ? key.split('|') : [];
+    const put = (path: string, data: unknown) => setLoaded((m) => (m.get(path) === data ? m : new Map(m).set(path, data)));
+    // 點檔的文字欄位到了（城6，lib/data.ts 的 textFile）：換成合併好的
+    const offs = list.map((path) => onJsonUpdate(path, (data) => put(path, data)));
+    for (const path of list) {
       if (loaded.has(path)) continue;
       fetchJson<unknown>(path)
-        .then((data) => setLoaded((m) => (m.get(path) === data ? m : new Map(m).set(path, data))))
+        .then((data) => put(path, data))
         .catch(() => {});
     }
+    return () => offs.forEach((off) => off());
   }, [key]);
   return loaded;
 }

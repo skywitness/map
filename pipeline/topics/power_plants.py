@@ -261,7 +261,7 @@ def build() -> None:
             # （src/topics/power-plants.ts 的 minValue），其餘的在 plants-operating-more.json，放大才下載（2026-10-31）。
             # rows 依容量由大到小排，兩份各自照樣排好
             data, _more = write_layered_points(OUT / f"plants-{name}.json", rows, lambda r: r["mw"] >= PLANT_IMPORTANT_MW,
-                                               fields, scale, delta=("mw",))
+                                               fields, scale, delta=("mw",), text=("name",))  # 名稱另外放（2026-11-06，城6）
         else:
             data = points_file(rows, fields, scale, delta=("mw",))
             write_json(OUT / f"plants-{name}.json", data, quiet=True)

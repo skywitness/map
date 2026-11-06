@@ -1,5 +1,5 @@
 /** 地圖的 tooltip（WorldMap.tsx，2026-10-29 拆出來） */
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../i18n';
 import type { MapMark, PointerInfo } from '../topics/types';
 
@@ -39,10 +39,20 @@ export interface MapTooltipProps {
 }
 
 export function MapTooltip({ x, y, width, height, children }: MapTooltipProps) {
-  const flipX = x > width - 260;
-  const flipY = y > height - 140;
+  // 往右下開，放不下時往左、往上；依實際的大小判斷（2026-11-06 起有照片的 tooltip 高約 260 px），量到之前用預估的
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState<[number, number]>([260, 140]);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const next: [number, number] = [el.offsetWidth, el.offsetHeight];
+    if (next[0] !== size[0] || next[1] !== size[1]) setSize(next);
+  });
+  const flipX = x > width - Math.max(size[0], 120) - 20;
+  const flipY = y > height - Math.max(size[1], 60) - 20 && y > size[1] + 20;
   return (
     <div
+      ref={ref}
       className="map-tooltip"
       role="status"
       style={{

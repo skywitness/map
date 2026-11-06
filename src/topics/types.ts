@@ -950,6 +950,13 @@ export interface PointTooltip {
   detail?: string;
   extra?: string[];
   properNoun?: string;
+  /**
+   * 照片（2026-11-06，城2，參考 thecastlemap.com 的照片卡）：Wikimedia Commons 的縮圖，滑過才載入（lib/commons.ts 的
+   * commonsPhoto() 組出網址與出處）。credit 是攝影者與授權，寫在照片下面
+   */
+  photo?: { src: string; srcSet?: string; credit: string };
+  /** 外部連結（例如維基百科條目）：只在點一下（觸控長按）的小卡片裡出現，滑過的 tooltip 不顯示 */
+  link?: { href: string; label: string };
 }
 
 /** decodePoints() 還原後的一個點：數值欄位是數字，字串欄位是字串，缺值為 null */
@@ -1114,6 +1121,23 @@ export interface ListPanelDef {
    * 清單標題前面加國名，旁邊一個「看全部」；那一國一筆也沒有時照樣列全部
    */
   countryField?: string;
+  /**
+   * 這一點附近的清單（2026-11-06，城4，參考 thecastlemap.com 的「100 公里內的城堡」）：只列離觀察點 km 公里以內的點，
+   * 由近到遠；每個點多兩個欄位 _km（距離）、_brg（方位角，0° 是正北），rows 用 lib/near.ts 的 nearText() 寫成
+   * 「西北 20 公里」。這個清單打開時地圖上有可以拖的觀察點（主題沒有 pin 時用預設的台北，「定位我」放到使用者的位置）；
+   * 分層的點檔（layered）兩個都讀
+   */
+  near?: { km: number };
+  /**
+   * 另外一起讀的點檔（2026-11-06，景點地圖的附近清單：博物館、動物園、樂園、植物園四個檔）：接在 file 的點後面，
+   * 每個點多一個 _f 欄位（file 的點是 0，extraFiles 的第 i 個是 i + 1），rows 用它分辨是哪一種
+   */
+  extraFiles?: string[];
+  /**
+   * 「隨機看一個」（2026-11-06，城7，參考 thecastlemap.com 的 Surprise me）：清單上面一顆按鈕，從清單的點（選了國家時是那一國的）
+   * 依 weight 加權隨機挑一個，跟點那一列一樣移過去、標出來，清單捲到那一列
+   */
+  random?: { label: Text; weight?: (p: PointRecord) => number };
 }
 
 /** 清單側欄的一列 */

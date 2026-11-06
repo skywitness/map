@@ -165,7 +165,9 @@ def build() -> None:
             # 6 萬多座博物館：維基百科條目語言數 MUSEUM_IMPORTANT_SL 以上的（約 6.5%）在 museums.json，縮放 7 級以下只畫它們
             # （src/topics/attractions.ts 的 overlay() 的 stops），其餘的在 museums-more.json，放大到 6.5 級才下載（2026-10-31）
             write_layered_points(OUT / "museums.json", rows, lambda r: (r.get("sl") or 0) >= MUSEUM_IMPORTANT_SL,
-                                 fields + ["moc"], scale, delta=("lon",), strings=("iso3",))
+                                 fields + ["moc"], scale, delta=("lon",), strings=("iso3",),
+                                 # 名稱另外放（2026-11-06，城6：museums-more.json gzip 後 927 KB 裡名稱占 696 KB）
+                                 text=("en", "zh"))
         else:
             write_json(OUT / f"{name}.json", points_file(rows, fields, scale, delta=("lon",), strings=("iso3",)))
     write_json(OUT / "attractions.json", indicator_file("attractions", "", [2026], {}))

@@ -30,7 +30,7 @@ import urllib.error
 import urllib.parse
 from collections import Counter, defaultdict
 
-from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, write_json, write_manifest_part, more_path
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, load_points_json, more_path, points_file, write_json, write_manifest_part
 from sources import wikitable as W
 from sources.countries import from_name
 from sources.wikidata_profiles import _rows, _sparql
@@ -216,9 +216,8 @@ def _read_points(path) -> list[dict]:
 
 
 def _read_points_one(path) -> list[dict]:
-    import json
-
-    data = json.loads(path.read_text(encoding="utf-8"))
+    # 名稱另外放的（2026-11-06 起博物館的 textFile）合併回來
+    data = load_points_json(path)
     fields, columns, scale, delta = data["fields"], data["columns"], data["scale"], set(data.get("delta", []))
     strings = set(data.get("strings", {}).get("fields", []))
     table = data.get("strings", {}).get("table", [])

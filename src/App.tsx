@@ -26,6 +26,7 @@ import { formatPercent } from './lib/format';
 import { useOnline } from './lib/useOnline';
 import { FLOAT_QUERY, NARROW_QUERY, useMediaQuery } from './lib/useMediaQuery';
 import { recolourText, usePalette } from './map/palettes';
+import { TooltipPhoto } from './map/TooltipPhoto';
 import { aboutPath, currentHref, read as readUrlState, takeRedirectLayer, useUrlState } from './lib/url-state';
 import type { Box } from './map/boxEstimate';
 import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } from './map/densityGrid';
@@ -72,6 +73,7 @@ import {
   type ListRow,
   type MapMark,
   type PointRecord,
+  type Topic,
   type TopicDefinition,
 } from './topics/types';
 import { initialThemeMode, useTheme } from './theme/useTheme';
@@ -151,6 +153,20 @@ const MAX_SEGMENTS = 5;
 interface Manifest {
   generatedAt: string;
 }
+
+/**
+ * 附近的清單（ListPanelDef.near，城4）用的觀察點：主題自己沒有 pin 時，清單打開就在地圖上放一個可以拖的藍點，
+ * 預設在台北（跟從台北看世界的 TAIPEI 一樣），「定位我」放到使用者的位置
+ */
+const NEAR_PIN: NonNullable<Topic['pin']> = {
+  draggable: true,
+  center: true,
+  default: [121.5625, 25.0375],
+  label: (_ll, ctx) => [
+    ctx.iso3 ? ctx.countryName(ctx.iso3) : tr({ zh: '海上', en: 'At sea' }),
+    tr({ zh: '附近的列在左邊的清單', en: 'Nearby places are listed on the left' }),
+  ],
+};
 
 export function App() {
   const { tokens, toggle: toggleTheme } = useTheme();
@@ -298,8 +314,25 @@ export function App() {
   const liveData = liveDef ? live.data : undefined;
   // 即時資料讀不到、手上也沒有上一份時才算載入失敗（有上一份就照舊畫，下一輪再試）
   const error = source.error ?? (liveDef && !live.data ? live.error : null);
+  // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
+  // 同一個指標有幾個清單時（景點的博物館、主題樂園人次）清單上面一排分頁切換，換主題或指標時回到第一個。
+  // 主題也有 worldPanel 時（2026-11-06，城堡的統計）它是最後一個分頁（listTab 等於清單的數量）
+  const listDefs =
+    !pure && !state.embed && view === 'map'
+      ? [topic.listPanel ?? []].flat().filter((l) => !l.indicators || l.indicators.includes(indicator.id))
+      : [];
+  const worldForIndicator = !topic.worldPanel?.indicators || topic.worldPanel.indicators.includes(indicator.id);
+  const worldAvailable = Boolean(topic.worldPanel) && worldForIndicator && !pure && !state.embed && view === 'map';
+  const [listTab, setListTab] = useState(0);
+  useEffect(() => setListTab(0), [topic.id, indicator.id]);
+  const sideTabCount = listDefs.length + (worldAvailable && listDefs.length ? 1 : 0);
+  const sideTab = Math.min(listTab, Math.max(sideTabCount - 1, 0));
+  const listDef = sideTab < listDefs.length ? listDefs[sideTab] : null;
+  const sideTabs = sideTabCount > 1 ? [...listDefs.map((d) => d.tabLabel ?? d.label), ...(worldAvailable ? [topic.worldPanel!.title] : [])] : undefined;
+  // 附近的清單（ListPanelDef.near，城4）打開時：主題沒有觀察點的話用一個可以拖的，預設在台北
+  const nearPin = listDef?.near && !topic.pin ? NEAR_PIN : undefined;
   // 地圖上的觀察點（主題的 pin，map/pins.ts）：網址的 pin=、主題的預設，或「定位我」的位置（localPin，不寫進網址）
-  const topicPin = pure ? undefined : topic.pin;
+  const topicPin = pure ? undefined : (topic.pin ?? nearPin);
   const [localPin, setLocalPin] = useState<{ topic: string; at: [number, number] } | null>(null);
   const pinAt = (localPin?.topic === topic.id ? localPin.at : null) ?? state.pin ?? topicPin?.default ?? null;
   // 觀察點是主題的中心（pin.center，從台北看世界）：跟著中心算的指標（derive.per 'center'）、線圖層與側欄用它
@@ -520,20 +553,20 @@ export function App() {
     setRouteMark(null);
     highlightLine(PERSONAL_ID, null);
   }, [highlightLine]);
-  // 主題的清單側欄（賽車的賽程，TopicDefinition.listPanel）：點一列移過去、標出來，需要時換年份
-  // 同一個指標有幾個清單時（景點的博物館、主題樂園人次）清單上面一排分頁切換，換主題或指標時回到第一個
-  const listDefs =
-    !pure && !state.embed && view === 'map'
-      ? [topic.listPanel ?? []].flat().filter((l) => !l.indicators || l.indicators.includes(indicator.id))
-      : [];
-  const [listTab, setListTab] = useState(0);
-  useEffect(() => setListTab(0), [topic.id, indicator.id]);
-  const listDef = listDefs[Math.min(listTab, listDefs.length - 1)] ?? null;
   // 不分國家的資料（worldPanel：各遺傳族群的頻率、國際能源價格）放左側欄（2026-11-03 使用者要求；原本是沒選國家時的右側欄）：
-  // 跟清單側欄同一個位置，只在地圖檢視；主題同時有清單時清單優先（目前沒有這種主題）。選了國家時照樣留著
-  const worldForIndicator = !topic.worldPanel?.indicators || topic.worldPanel.indicators.includes(indicator.id);
-  const worldSide =
-    Boolean(WorldPanel && topic.worldPanel) && worldForIndicator && !pure && !state.embed && view === 'map' && !listDef;
+  // 跟清單側欄同一個位置，只在地圖檢視；選了國家時照樣留著。主題同時有清單時（2026-11-06 起，城堡）是分頁的最後一頁
+  const worldSide = worldAvailable && Boolean(WorldPanel) && !listDef;
+  // 使用者點分頁換到附近的清單（城4）時，地圖移到觀察點周圍 near.km 的範圍；打開主題時（世界遺產、景點的附近清單是第一頁）
+  // 與之後拖動藍點都不移動地圖
+  const changeSideTab = (tab: number) => {
+    setListTab(tab);
+    const km = listDefs[tab]?.near?.km;
+    const at = pinAt ?? NEAR_PIN.default;
+    if (!km || !at) return;
+    const dLat = km / 111;
+    const dLon = dLat / Math.max(0.2, Math.cos((at[1] * Math.PI) / 180));
+    moveToBox([at[0] - dLon, at[1] - dLat, at[0] + dLon, at[1] + dLat]);
+  };
   const listCountryName = useCallback((iso3: string) => countryName(iso3, countries), [countries]);
   // 點圖層的 fitOnEpoch（奧運場館）：換到另一期（另一屆）時框住這一期的點
   const fitLayer = overlays.find((o) => o.kind === 'points' && o.visible && o.def.fitOnEpoch && o.def.epochs && o.def.minValue);
@@ -618,7 +651,7 @@ export function App() {
   const onLocate = useMemo(() => (topicPin ? (at: [number, number]) => setLocalPin({ topic: topic.id, at }) : undefined), [topicPin, topic.id]);
   // 換到沒有觀察點的主題：網址的 pin= 拿掉
   useEffect(() => {
-    if (state.pin && !topic.pin) update({ pin: null }, { replace: true });
+    if (state.pin && !topic.pin && !topic.listPanel) update({ pin: null }, { replace: true });
   }, [topic.id]);
   const flows = useFlowSelection(topic, indicator, item, year, pure ? null : state.country);
   const flagSpecs = useFlagSpecs(topic, indicator, !pure && view === 'map');
@@ -844,6 +877,7 @@ export function App() {
     const tip = tooltip(p, { countryName: (iso3) => countryName(iso3, countries), year, item });
     return (
       <>
+        {tip.photo && <TooltipPhoto photo={tip.photo} />}
         <div className="tt-value">{tip.title}</div>
         {tip.detail && <div className="tt-label">{tip.detail}</div>}
         {tip.extra?.map((line) => (
@@ -855,6 +889,13 @@ export function App() {
           <div className="tt-label" translate="no">
             {tip.properNoun}
           </div>
+        )}
+        {/* 只在點一下的小卡片裡看得到（滑過的 tooltip 用 CSS 藏起來，點不到） */}
+        {tip.link && (
+          <a className="tt-link" href={tip.link.href} target="_blank" rel="noopener noreferrer">
+            {tip.link.label}
+            <span aria-hidden="true"> ↗</span>
+          </a>
         )}
       </>
     );
@@ -1145,9 +1186,10 @@ export function App() {
           {listDef && (
             <ListSide
               def={listDef}
-              tabs={listDefs.length > 1 ? listDefs.map((d) => d.tabLabel ?? d.label) : undefined}
-              tab={listTab}
-              onTabChange={setListTab}
+              tabs={sideTabs}
+              tab={sideTab}
+              onTabChange={changeSideTab}
+              center={center}
               topicId={dataFolder(topic)}
               item={item}
               year={year}
@@ -1163,7 +1205,14 @@ export function App() {
             />
           )}
           {worldSide && WorldPanel && topic.worldPanel && (
-            <WorldSide title={topic.worldPanel.title} open={layout.list} onOpenChange={(open) => setLayout({ list: open })}>
+            <WorldSide
+              title={topic.worldPanel.title}
+              open={layout.list}
+              onOpenChange={(open) => setLayout({ list: open })}
+              tabs={sideTabs}
+              tab={sideTab}
+              onTabChange={changeSideTab}
+            >
               <Suspense fallback={<PanelSkeleton />}>
                 <WorldPanel topic={topic} indicator={indicator} year={year} item={item} tokens={tokens} />
               </Suspense>

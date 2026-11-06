@@ -76,7 +76,7 @@ def build() -> None:
                 rows.append({"lon": c[0], "lat": c[1], "k": code, "n": r["name"], "iso3": r["iso3"]})
     rows.sort(key=lambda p: (p["iso3"], p["lon"]))
     write_layered_points(OUT / "rest-areas.json", rows, lambda r: r["k"] == 1, ["lon", "lat", "k", "n", "iso3"],
-                         {"lon": 0.0001, "lat": 0.0001, "k": 1}, strings=("iso3",))
+                         {"lon": 0.0001, "lat": 0.0001, "k": 1}, strings=("iso3",), text=("n",))  # 名稱另外放（城6）
     tw = taiwan()
     fields = ["lon", "lat", "n", "road", "pos", "dir", "op", "term", "theme", "car", "big", "acc", "iso3"]
     write_json(OUT / "service-areas-tw.json", points_file(tw, fields, {"lon": 0.00001, "lat": 0.00001, "car": 1, "big": 1, "acc": 1}))

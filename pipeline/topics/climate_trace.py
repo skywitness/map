@@ -321,7 +321,7 @@ def build() -> None:
     write_layered_points(
         OUT / "trace-sources.json", points,
         lambda p: max((p[f"e{y}"] or 0) for y in source_years) >= POINT_IMPORTANT,
-        fields, scale, strings=["t", "iso3", "twn"],
+        fields, scale, strings=["t", "iso3", "twn"], text=["name"],  # 名稱另外放（2026-11-06，城6）
     )
     totals: dict[str, dict[int, float]] = defaultdict(lambda: defaultdict(float))
     for p in points:

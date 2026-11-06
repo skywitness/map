@@ -1,8 +1,9 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { nearText } from '../lib/near';
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
 import { attractionsExtra } from './attractions-extra';
-import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 景點地圖（pipeline/topics/attractions.py）：世界的博物館、動物園與水族館、主題樂園與雲霄飛車，每一處一個點，三個圖層；
@@ -111,6 +112,39 @@ function overlay(layer: LayerKinds, minValue: [number, number][]): PointsOverlay
   };
 }
 
+/** 附近最多列幾處（歐洲的城市 30 公里內博物館上千座） */
+const NEAR_MAX = 300;
+
+/**
+ * 這一點 30 公里內的景點（2026-11-06，城4，參考 thecastlemap.com 的「100 公里內的城堡」）：博物館、動物園、樂園、植物園
+ * 四個檔一起讀（extraFiles），由近到遠最多 300 處；景點比城堡密很多，範圍縮小。博物館只讀 museums.json（條目語言數 8 以上，
+ * 地圖本來就讀的）：其餘的 6 萬座在 museums-more.json（gzip 後約 930 KB），清單是預設打開的，不為它多下載
+ */
+const NEAR_LIST: ListPanelDef = {
+  label: { zh: '這一點 30 公里內的景點（博物館只列有名的）', en: 'Attractions within 30 km (best-known museums only)' },
+  tabLabel: { zh: '附近', en: 'Nearby' },
+  indicators: ['attractions'],
+  file: 'museums.json',
+  extraFiles: ['zoos.json', 'parks.json', 'gardens.json'],
+  near: { km: 30 },
+  empty: { zh: '這一點 30 公里內沒有地圖上的景點', en: 'No attractions on the map within 30 km of this spot' },
+  rows: (points, { countryName }) =>
+    points.slice(0, NEAR_MAX).map((p, i): ListRow => {
+      const layer = LAYERS[Number(p._f) || 0];
+      const name = placeName(p);
+      return {
+        key: `${p._f}-${i}-${p.lon},${p.lat}`,
+        title: name,
+        properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== name ? p.en : undefined,
+        lines: [
+          [nearText(p), kindLabel(layer, p.t)].filter(Boolean).join(' · '),
+          typeof p.iso3 === 'string' ? countryName(p.iso3) : '',
+        ].filter(Boolean),
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 15 },
+      };
+    }),
+};
+
 export const attractions: TopicDefinition = {
   id: 'attractions',
   title: { zh: '景點地圖', en: 'Attractions' },
@@ -151,7 +185,7 @@ export const attractions: TopicDefinition = {
     overlay(LAYERS[3], [[0, 10], [3, 3], [5, 0]]),
     ...attractionsExtra.overlays,
   ],
-  listPanel: attractionsExtra.listPanel,
+  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat()],
   indicators: [
     {
       id: 'attractions',
