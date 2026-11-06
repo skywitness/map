@@ -84,6 +84,11 @@ export const diet: TopicDefinition = withParts({
   defaultYear: 2023,
   sources: [
     {
+      name: { zh: 'Eurostat 家庭預算調查（hbs_str_t211，外食占家庭支出）', en: 'Eurostat Household Budget Survey (hbs_str_t211, eating out)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/hbs_str_t211/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
       name: {
         zh: 'FAO, FAOSTAT（糧食平衡表、糧食安全指標）',
         en: 'FAO, FAOSTAT (Food Balance Sheets, Suite of Food Security Indicators)',
@@ -213,6 +218,21 @@ export const diet: TopicDefinition = withParts({
       format: (v) => (v < 2.5 ? '< 2.5%' : `${fixed(v, 1)}%`),
       formatTick: (v) => `${v}%`,
       compareWorld: true,
+    },
+    // 2026-11-06（製作手冊第二十四批 421；pipeline/topics/eating_out_share.py）：Eurostat 家庭預算調查的餐廳支出比重
+    {
+      id: 'eating-out-share',
+      label: { zh: '外食占家庭支出', en: 'Eating out in household spending' },
+      description: {
+        zh: '餐廳、咖啡館這類地方的花費占家庭消費支出的比例（Eurostat 家庭預算調查，COICOP「Restaurants, cafés and the like」，大約五年一次，1988–2020 年）。2015 年西班牙 8.3% 最高，賽普勒斯 8.0%、希臘 7.8%、馬爾他 7.6%、葡萄牙 7.5%；德國 3.4%、法國 3.2%，波蘭 1.5%、匈牙利 1.3%、羅馬尼亞 0.7% 最低。2020 年是疫情年，兩波都有的 27 國裡 12 國比 2015 年低（西班牙 8.3% → 5.5%、希臘 7.8% → 6.0%），各國的調查期不同，要小心比較。只有歐洲；台灣的家庭收支調查把外食放在食品類下，分類對不上，沒有畫。比例也受分母影響：住房花費高的國家，外食的比例會被壓低。',
+        en: 'Spending at restaurants, cafés and the like as a share of household consumption (Eurostat Household Budget Survey, COICOP “Restaurants, cafés and the like”, roughly every five years, 1988–2020). In 2015 Spain was highest at 8.3%, then Cyprus 8.0%, Greece 7.8%, Malta 7.6% and Portugal 7.5%; Germany 3.4% and France 3.2%; Poland 1.5%, Hungary 1.3% and Romania 0.7% were lowest. 2020 was the pandemic year: of the 27 countries in both waves, 12 were lower than in 2015 (Spain 8.3% → 5.5%, Greece 7.8% → 6.0%); survey periods differ by country, so compare with care. Europe only; Taiwan’s household survey files eating out under food, which does not match the classification, so it is not shown. The share also depends on the denominator: where housing costs are high, eating out looks smaller.',
+      },
+      unit: '%',
+      file: 'eating-out-share.json',
+      layer: { kind: 'choropleth', scale: sequential([1.5, 2.5, 3.5, 5, 6.5, 8]) },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2015,
     },
   ],
 }, foodsPart);

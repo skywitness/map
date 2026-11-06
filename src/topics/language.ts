@@ -2,6 +2,8 @@ import { getLang, tr, type Lang } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, ColorClasses, IndicatorDef, PointsOverlayDef, Text, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { languageSchoolPart } from './language-school';
 
 /**
  * 語言代碼 ↔ 類別圖的數值：主要官方語言的指標檔存的是語言代碼的 36 進位數（en → 527），
@@ -198,7 +200,8 @@ function officialCount(id: string, label: Text, description: Text): IndicatorDef
   };
 }
 
-export const language: TopicDefinition = {
+/** 2026-11-06（第二十四批 422）：接上學校裡學哪些外語（language-school.ts） */
+export const language: TopicDefinition = withParts({
   id: 'language',
   title: { zh: '各國語言', en: 'Languages by country' },
   shortTitle: { zh: '語言', en: 'Languages' },
@@ -334,4 +337,4 @@ export const language: TopicDefinition = {
       },
     ),
   ],
-};
+}, languageSchoolPart);
