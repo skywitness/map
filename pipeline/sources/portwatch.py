@@ -60,15 +60,16 @@ def chokepoints() -> list[dict]:
                   key=lambda r: int(r["id"].removeprefix("chokepoint")))
 
 
-def daily() -> list[dict]:
-    """每天每個咽喉一列：{"portid", "date", "n_total", "n_container", …}。"""
-    folder = CACHE_DIR / "portwatch" / "daily"
+def daily(capacity: bool = False) -> list[dict]:
+    """每天每個咽喉一列：{"portid", "date", "n_total", "n_container", …}。capacity 時多讀載重噸（capacity，公噸），
+    另一個快取資料夾（2026-11-06 起，運河與海峽每月的載重噸；原本的快取沒有這一欄）"""
+    folder = CACHE_DIR / "portwatch" / ("daily-capacity" if capacity else "daily")
     count_path = folder / "count.json"
     folder.mkdir(parents=True, exist_ok=True)
     if not count_path.exists():
         count_path.write_text(json.dumps(_query(DAILY_URL, {"where": "1=1", "returnCountOnly": "true"})), encoding="utf-8")
     total = json.loads(count_path.read_text(encoding="utf-8"))["count"]
-    fields = ",".join(["portid", "date", "n_total"] + [f"n_{t}" for t in TYPES])
+    fields = ",".join(["portid", "date", "n_total"] + [f"n_{t}" for t in TYPES] + (["capacity"] if capacity else []))
     rows: list[dict] = []
     for offset in range(0, total, PAGE):
         page = folder / f"{offset:06d}.json"

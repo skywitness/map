@@ -4,7 +4,8 @@
   通過數加總成每個月：全部與貨櫃、乾散貨、雜貨、滾裝、油輪五類。資料到最後一天的那個月不完整，標 partial。
 - 巴拿馬與蘇伊士運河管理局自己的統計不能用（條款只准引用事實），所以只用 PortWatch。PortWatch 是 AIS 推算的貨船與油輪
   通過數，跟運河管理局的會計年度、船種不同，數字對不上（2023 年巴拿馬 PortWatch 11,028 艘、管理局 FY2023 12,638 艘）。
-- 載重噸（capacity）現有的快取沒有存，要整份重新下載（約 80 頁、伺服器不穩），這裡只做艘數。
+- 2026-11-06 起多讀載重噸（capacity，通過的船的載重噸合計，公噸；另一個快取資料夾，整份重新下載約 80 頁），
+  每月存成千載重噸，側欄可以切換艘數與載重噸。
 """
 from __future__ import annotations
 
@@ -23,12 +24,13 @@ def build() -> None:
     sums: dict[str, dict[str, dict[str, int]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     days: dict[str, set[str]] = defaultdict(set)
     last = ""
-    for r in portwatch.daily():
+    for r in portwatch.daily(capacity=True):
         month = r["date"][:7]
         days[month].add(r["date"][:10])
         last = max(last, r["date"][:10])
         s = sums[r["portid"]][month]
         s["total"] += r["n_total"] or 0
+        s["cap"] += r.get("capacity") or 0
         for t in portwatch.TYPES:
             s[t] += r[f"n_{t}"] or 0
     months = sorted(days)
@@ -39,6 +41,7 @@ def build() -> None:
         out[p["id"]] = {
             "zh": CHOKEPOINT_ZH[p["id"]], "en": p["name"], "lon": round(p["lon"], 3), "lat": round(p["lat"], 3),
             **{k: [s.get(m, {}).get(k, 0) for m in months] for k in ("total", *portwatch.TYPES)},
+            "cap": [round(s.get(m, {}).get("cap", 0) / 1000) for m in months],  # 千載重噸
         }
     write_json(OUT / "chokepoints-monthly.json", {"months": months, "partial": partial, "last": last, "points": out})
 
@@ -47,5 +50,8 @@ def build() -> None:
     print(f"  {len(out)} 個咽喉，{months[0]}–{months[-1]}（資料到 {last}，不完整的月份 {partial}）")
     for pid in ("chokepoint1", "chokepoint2", "chokepoint11"):
         print(f"  {out[pid]['zh']}：" + "、".join(f"{y} {year(pid, y):,}" for y in ("2019", "2022", "2023", "2024", "2025")))
+    for pid in ("chokepoint1", "chokepoint2", "chokepoint11"):
+        cap = {y: sum(v for m, v in zip(months, out[pid]["cap"]) if m.startswith(y)) for y in ("2023", "2024", "2025")}
+        print(f"  {out[pid]['zh']} 載重噸（百萬）：" + "、".join(f"{y} {v / 1000:,.0f}" for y, v in cap.items()))
     pan = out["chokepoint2"]["total"]
     print("  巴拿馬每月：" + "、".join(f"{m} {v}" for m, v in zip(months, pan) if m[:4] in ("2023", "2024")))

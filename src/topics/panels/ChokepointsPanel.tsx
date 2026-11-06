@@ -11,7 +11,8 @@ interface MonthlyFile {
   months: string[];
   partial: string[];
   last: string;
-  points: Record<string, { zh: string; en: string; total: number[] } & Record<string, unknown>>;
+  /** total 是艘數；cap 是載重噸合計（千公噸，2026-11-06 起） */
+  points: Record<string, { zh: string; en: string; total: number[]; cap?: number[] } & Record<string, unknown>>;
 }
 
 /** 事件（只標在相關的咽喉）：巴拿馬 2023 年乾旱減少預約艙位、紅海攻擊後繞道好望角 */
@@ -31,6 +32,12 @@ const TEXT = defineMessages({
     ships: '艘',
     partial: '（不完整）',
     unit: (v: number) => `${fixed(v, 0)} 艘`,
+    metric: '單位',
+    metricShips: '艘數',
+    metricCap: '載重噸',
+    capUnit: (v: number) => `${fixed(v / 1000, 1)} 百萬載重噸`,
+    capCol: '百萬載重噸',
+    capAria: (name: string) => `${name}每個月通過的貨船載重噸`,
   },
   en: {
     intro: (last: string) =>
@@ -42,6 +49,12 @@ const TEXT = defineMessages({
     ships: 'Ships',
     partial: ' (incomplete)',
     unit: (v: number) => `${fixed(v, 0)} ships`,
+    metric: 'Measure',
+    metricShips: 'Ships',
+    metricCap: 'Deadweight',
+    capUnit: (v: number) => `${fixed(v / 1000, 1)} million dwt`,
+    capCol: 'Million dwt',
+    capAria: (name: string) => `Monthly deadweight tonnage of cargo ships through ${name}`,
   },
 });
 
@@ -51,37 +64,41 @@ export default function ChokepointsPanel({ topic, tokens }: WorldPanelProps) {
   const text = TEXT[lang];
   const { data } = useJson<MonthlyFile>(`topics/${topic.id}/chokepoints-monthly.json`);
   const [id, setId] = useState('chokepoint1');
+  const [metric, setMetric] = useState<'ships' | 'cap'>('ships');
 
   const view = useMemo(() => {
     if (!data) return null;
     const p = data.points[id];
     if (!p) return null;
     const name = lang === 'zh' ? p.zh : p.en;
+    const useCap = metric === 'cap' && Array.isArray(p.cap);
+    const values = useCap ? (p.cap as number[]) : p.total;
     const spec: ChartSpec = {
       x: {
         type: 'category',
         labels: data.months,
         showLabel: (i) => data.months[i].endsWith('-01') && Number(data.months[i].slice(0, 4)) % 2 === 1,
       },
-      y: { format: (v) => fixed(v, 0), integer: true },
-      series: [{ type: 'line', name, color: tokens.hues.blue, values: p.total, legend: false }],
+      y: useCap ? { format: (v) => fixed(v / 1000, 0) } : { format: (v) => fixed(v, 0), integer: true },
+      series: [{ type: 'line', name, color: tokens.hues.blue, values, legend: false }],
       events: EVENTS.filter((e) => e.ids.includes(id)).map((e) => ({ x: data.months.indexOf(e.month), label: lang === 'zh' ? e.label.zh : e.label.en })),
       tooltip: (i) => ({
         head: data.months[i] + (data.partial.includes(data.months[i]) ? text.partial : ''),
-        rows: [{ color: tokens.hues.blue, value: text.unit(p.total[i]), name }],
+        rows: [{ color: tokens.hues.blue, value: useCap ? text.capUnit(values[i]) : text.unit(values[i]), name }],
       }),
     };
     const years = [...new Set(data.months.map((m) => m.slice(0, 4)))];
     const rows = years.map((y) => ({
       y,
       n: data.months.reduce((s, m, i) => (m.startsWith(y) ? s + p.total[i] : s), 0),
+      cap: p.cap ? data.months.reduce((s, m, i) => (m.startsWith(y) ? s + (p.cap as number[])[i] : s), 0) : null,
       partial: data.partial.some((m) => m.startsWith(y)),
     }));
     const options = Object.entries(data.points)
       .map(([k, v]) => ({ k, name: lang === 'zh' ? v.zh : v.en }))
       .sort((a, b) => Number(a.k.replace('chokepoint', '')) - Number(b.k.replace('chokepoint', '')));
-    return { spec, name, rows, options };
-  }, [data, id, lang, tokens, text]);
+    return { spec, name, rows, options, useCap, hasCap: Array.isArray(p.cap) };
+  }, [data, id, lang, tokens, text, metric]);
 
   if (!data || !view) return <p className="empty">{t.loading}</p>;
   return (
@@ -97,7 +114,16 @@ export default function ChokepointsPanel({ topic, tokens }: WorldPanelProps) {
           ))}
         </select>
       </label>
-      <Chart spec={view.spec} height={180} ariaLabel={text.chartAria(view.name)} />
+      {view.hasCap && (
+        <label className="inline-select">
+          {text.metric}{' '}
+          <select value={metric} onChange={(e) => setMetric(e.target.value === 'cap' ? 'cap' : 'ships')}>
+            <option value="ships">{text.metricShips}</option>
+            <option value="cap">{text.metricCap}</option>
+          </select>
+        </label>
+      )}
+      <Chart spec={view.spec} height={180} ariaLabel={view.useCap ? text.capAria(view.name) : text.chartAria(view.name)} />
       <h3>{text.yearTitle}</h3>
       <table className="mini-table" aria-label={text.yearTitle}>
         <thead>
@@ -106,6 +132,11 @@ export default function ChokepointsPanel({ topic, tokens }: WorldPanelProps) {
             <th scope="col" className="num">
               {text.ships}
             </th>
+            {view.hasCap && (
+              <th scope="col" className="num">
+                {text.capCol}
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -116,6 +147,7 @@ export default function ChokepointsPanel({ topic, tokens }: WorldPanelProps) {
                 {r.partial ? text.partial : ''}
               </th>
               <td className="num">{fixed(r.n, 0)}</td>
+              {view.hasCap && <td className="num">{r.cap != null ? fixed(r.cap / 1000, 1) : '–'}</td>}
             </tr>
           ))}
         </tbody>
