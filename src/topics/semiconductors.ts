@@ -1,4 +1,6 @@
 import { formatLargeNumber, formatLargeTick, formatPercent, usd } from '../lib/format';
+import { electronicsHs92Part } from './electronics-hs92';
+import { withParts } from './parts';
 import type { FlowDirection, IndicatorDef, Text, TopicDefinition } from './types';
 
 /**
@@ -68,7 +70,7 @@ function shareOfWorld(direction: FlowDirection, label: Text, description: Text):
   };
 }
 
-export const semiconductors: TopicDefinition = {
+export const semiconductors: TopicDefinition = withParts({
   id: 'semiconductors',
   title: { zh: '各國半導體貿易', en: 'Semiconductor trade by country' },
   shortTitle: { zh: '半導體', en: 'Chips' },
@@ -205,4 +207,4 @@ export const semiconductors: TopicDefinition = {
       formatTick: formatLargeTick,
     },
   ],
-};
+}, electronicsHs92Part);
