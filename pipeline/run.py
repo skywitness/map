@@ -65,6 +65,8 @@ STEPS = {
     "climate-action": "topics.climate_action",
     # 氣候資金：綠色氣候基金的公開 API（3 MB，只准非商業、要附署名句與連結）
     "climate-finance": "topics.climate_finance",
+    # 碳邊境調整機制（CBAM）會課到誰：Eurostat Comext DS-045409 歐盟從各國進口的 CBAM 產品（HS 近似）
+    "cbam": "topics.cbam",
     # Climate TRACE 5.12.0（Zenodo，用 HTTP Range 只讀需要的檔，第一次約 400 MB、10 分鐘）
     "climate-trace": "topics.climate_trace",
     "military": "topics.military",

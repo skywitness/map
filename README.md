@@ -167,6 +167,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `climate-finance` 是氣候資金：綠色氣候基金的公開 API `https://api.gcfund.org/v1/projects`（3 MB，不必金鑰）。只准非商業使用，轉載要附「First published by the Green Climate Fund」與 https://greenclimate.fund 的連結。
 
+`cbam` 是碳邊境調整機制（CBAM）會課到誰：Eurostat Comext API 的 DS-045409，一支查詢抓 2015–2025 年歐盟從全部夥伴進口的 CBAM 產品（HS 近似）與總額，約 1 MB。幾秒鐘。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

@@ -78,6 +78,7 @@ export const RELATED: Record<string, string[]> = {
   retail: ['chain-stores', 'prices', 'digital'],
   'climate-action': ['climate-finance', 'climate', 'electricity'],
   'climate-finance': ['climate-action', 'aid', 'climate'],
+  cbam: ['climate-action', 'trade', 'industry'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],

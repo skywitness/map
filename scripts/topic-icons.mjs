@@ -124,6 +124,7 @@ const TOPIC_ICONS = {
   retail: 'shopping-cart',
   'climate-action': 'clipboard-check',
   'climate-finance': 'circle-dollar-sign',
+  cbam: 'badge-euro',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
