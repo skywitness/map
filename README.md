@@ -165,6 +165,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `climate-action` 是各國的氣候目標夠不夠：Climate Action Tracker 的 Country ratings 頁（130 KB，評等是嵌在頁面裡的 JSON），一次讀完。只准非商業使用。
 
+`climate-finance` 是氣候資金：綠色氣候基金的公開 API `https://api.gcfund.org/v1/projects`（3 MB，不必金鑰）。只准非商業使用，轉載要附「First published by the Green Climate Fund」與 https://greenclimate.fund 的連結。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

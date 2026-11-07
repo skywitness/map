@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 163;
-export const INDICATOR_COUNT = 1228;
+export const TOPIC_COUNT = 164;
+export const INDICATOR_COUNT = 1230;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -174,6 +174,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Google libaddressinput 地址資料（地址順序、郵遞區號）","en":"Google libaddressinput address data (address order, postcodes)"},"url":"https://github.com/google/libaddressinput","licenses":["CC BY 4.0"],"topics":["travel"]},
   {"name":{"zh":"Google libphonenumber 9.0.43（國際冠碼、國內冠碼、手機號碼長度）","en":"Google libphonenumber 9.0.43 (international and trunk prefixes, mobile number lengths)"},"url":"https://github.com/google/libphonenumber","licenses":["Apache 2.0"],"topics":["travel"]},
   {"name":{"zh":"Grab：Locations","en":"Grab: Locations"},"url":"https://www.grab.com/sg/locations/","licenses":[{"zh":"事實，自行整理","en":"facts, compiled here"}],"topics":["ride-hailing"]},
+  {"name":{"zh":"Green Climate Fund 公開 API（v1/projects）——First published by the Green Climate Fund","en":"Green Climate Fund open API (v1/projects) — First published by the Green Climate Fund"},"url":"https://greenclimate.fund","licenses":[{"zh":"只准非商業使用，要附署名句與連結","en":"Non-commercial use only, with the attribution statement and link"}],"topics":["climate-finance"]},
   {"name":{"zh":"GWIS 全球野火資訊系統（歐盟執委會 JRC、Copernicus）, MODIS Global Monthly Burned Area","en":"Global Wildfire Information System (GWIS; European Commission JRC, Copernicus), MODIS Global Monthly Burned Area"},"url":"https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads","licenses":["CC BY 4.0"],"topics":["wildfires"]},
   {"name":{"zh":"Hartmann & Moosdorf 2012，全球岩性圖資料庫 GLiM v1.0（0.5° 網格版，PANGAEA）","en":"Hartmann & Moosdorf 2012, Global Lithological Map Database GLiM v1.0 (gridded to 0.5°, PANGAEA)"},"url":"https://doi.org/10.1594/PANGAEA.788537","licenses":["CC BY 3.0"],"topics":["lithology"]},
   {"name":"Harvard Growth Lab, Atlas of Economic Complexity","url":"https://atlas.hks.harvard.edu/","licenses":["CC0"],"topics":["industry"]},

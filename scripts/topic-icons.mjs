@@ -123,6 +123,7 @@ const TOPIC_ICONS = {
   'property-costs': 'brick-wall',
   retail: 'shopping-cart',
   'climate-action': 'clipboard-check',
+  'climate-finance': 'circle-dollar-sign',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

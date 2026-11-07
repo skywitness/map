@@ -63,6 +63,8 @@ STEPS = {
     "climate-agrifood": "topics.climate_agrifood",
     # 各國氣候目標與政策的評等（新主題，碳與氣候政策）：Climate Action Tracker 的評等頁（嵌在頁面的 JSON，只准非商業）
     "climate-action": "topics.climate_action",
+    # 氣候資金：綠色氣候基金的公開 API（3 MB，只准非商業、要附署名句與連結）
+    "climate-finance": "topics.climate_finance",
     # Climate TRACE 5.12.0（Zenodo，用 HTTP Range 只讀需要的檔，第一次約 400 MB、10 分鐘）
     "climate-trace": "topics.climate_trace",
     "military": "topics.military",
