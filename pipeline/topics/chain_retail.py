@@ -9,8 +9,8 @@
   同一家（chain_stores.dedupe，CVS 常常同一家店標了 chemist 與 pharmacy 兩個點）；國家在本地用國界判斷。
 - FEATURED 的品牌輸出跟原本的品牌同一種格式（stores/、density/、points/<品牌>.json），店數加進 countries/<國家>.json
   的 brands（側欄）。
-- largest/<supermarket|drugstore>.json：這一國 OSM 上店最多的超市（藥妝與藥局）品牌是本國（1）、外國（2）還是跨國加盟或
-  不明（3）；品牌的國籍用 Wikidata 總部所在地（P159）的國家，沒有的用品牌的國家（P17），只有一個值才用；P159 在香港的
+- largest/<supermarket|drugstore|fuel|bank|mobile|car>.json：這一國 OSM 上店最多的品牌是本地（1）、外來（2）還是跨國加盟或
+  不明（3）（第二十五批 467 加加油站、銀行分行、電信門市、汽車經銷）；品牌的國籍用 Wikidata 總部所在地（P159）的國家，沒有的用品牌的國家（P17），只有一個值才用；P159 在香港的
   Wikidata 會給中國，ORIGIN 手動改成香港，加上幾個 Wikidata 沒寫的（家樂福、Albert Heijn…）。最大的品牌 10 家以上的國家才畫，
   hints 寫前三名。
 - OSM 不是官方店數，各國標得完不完整差很多（說明寫明）。資料檔是 OSM 的衍生資料庫，以 ODbL 提供。
@@ -40,6 +40,11 @@ QUERIES = {
     "drugstore": GEOF + f'SELECT ?x ?c ?bw ?k WHERE {{ {{ ?x osmkey:shop "chemist" . BIND("chemist" AS ?k) }} UNION '
                         f'{{ ?x osmkey:amenity "pharmacy" . BIND("pharmacy" AS ?k) }} ?x {WD} ?bw ; '
                         'geo:hasGeometry/geo:asWKT ?w . BIND(geof:centroid(?w) AS ?c) }',
+    # 第二十五批 467：加油站、銀行分行、電信門市、汽車經銷（同一種查詢）
+    **{kind: GEOF + f'SELECT ?x ?c ?bw WHERE {{ ?x osmkey:{key} "{value}" ; {WD} ?bw ; '
+                    'geo:hasGeometry/geo:asWKT ?w . BIND(geof:centroid(?w) AS ?c) }'
+       for kind, key, value in (("fuel", "amenity", "fuel"), ("bank", "amenity", "bank"),
+                                ("mobile", "shop", "mobile_phone"), ("car", "shop", "car"))},
 }
 
 # (id, 種類, brand:wikidata, 中文, 英文)；id 跟前端 chain-stores.ts 的 BRANDS 一樣
@@ -61,6 +66,13 @@ FEATURED = [
     ("matsukiyo", "drugstore", ("Q8014776",), "松本清", "Matsumoto Kiyoshi"),
     ("cosmed", "drugstore", ("Q11063876",), "康是美", "Cosmed"),
     ("poya", "drugstore", ("Q15927734",), "寶雅", "Poya"),
+    # 第二十五批 467：加油站。Shell 有品牌與公司兩個 QID；ExxonMobil 的 Esso、Exxon、Mobil 三個招牌合在一起（母公司）
+    ("shell", "fuel", ("Q110716465", "Q154950"), "殼牌（Shell）", "Shell"),
+    ("bp", "fuel", ("Q152057",), "BP", "BP"),
+    ("exxonmobil", "fuel", ("Q867662", "Q109675651", "Q109676002"), "埃克森美孚（Esso、Exxon、Mobil）", "ExxonMobil (Esso, Exxon, Mobil)"),
+    ("totalenergies", "fuel", ("Q154037",), "道達爾（TotalEnergies）", "TotalEnergies"),
+    ("cpc", "fuel", ("Q698024",), "台灣中油", "CPC Corporation, Taiwan"),
+    ("formosa", "fuel", ("Q1437742",), "台塑石化", "Formosa Petrochemical"),
 ]
 # 品牌的國籍：Wikidata 沒寫、或寫的是中國但總部在香港的（2026-11-07 逐一確認）
 ORIGIN = {
@@ -74,7 +86,19 @@ ORIGIN = {
     "Q18379067": "KEN",  # Naivas
     "Q6818610": "PHL",  # Mercury Drug
     "Q1958759": "DEU",  # Müller：烏爾姆
+    # 第二十五批 467
+    "Q110716465": "GBR",  # Shell（品牌）：Shell plc，總部倫敦
+    "Q111604705": "GRC", "Q111604689": "GRC",  # EKO（賽普勒斯、蒙特內哥羅）：希臘 HELLENiQ ENERGY 的品牌
+    "Q2882627": "MAR",  # Bank of Africa：卡薩布蘭加
+    "Q806197": "AGO",  # Banco de Fomento Angola
+    "Q2084143": "NLD",  # ASN Bank
+    "Q4943790": "USA",  # Boost Mobile
+    "Q1770208": "MEX",  # Claro：América Móvil，墨西哥
+    "Q407009": "HKG",  # 3：長江和記（CK Hutchison），香港
+    "Q62393564": "NLD",  # Optie1
 }
+# Wikidata 標籤怪的（Circle K 在 QLever 的快照只有中文標籤「OK便利店」，那是香港的名字）
+NAMES = {"Q3268010": ("Circle K", "Circle K")}
 # 跨國加盟（各國由獨立公司經營，不分本國外國）
 FRANCHISE = {"Q610492", "Q62562792"}  # SPAR、BENU
 
@@ -129,8 +153,8 @@ def _meta(qids: list[str]) -> dict[str, dict]:
         origin = ORIGIN.get(q) or (next(iter(m["hq"])) if len(m["hq"]) == 1 else next(iter(m["p17"])) if len(m["p17"]) == 1 else None)
         # 中文名只用在台灣、港澳、中國的品牌（Wikidata 其他品牌的中文標籤常常是直譯，例如 Family Pantry 寫成「家庭餐具室」）
         zh = (m["zhtw"] or m["zh"]) if origin in ("TWN", "HKG", "MAC", "CHN") else None
-        out[q] = {"name": zh or m["en"] or m["zhtw"] or m["zh"] or q, "nameEn": m["en"] or m["zhtw"] or m["zh"] or q,
-                  "origin": None if q in FRANCHISE else origin}
+        name, name_en = NAMES.get(q, (zh or m["en"] or m["zhtw"] or m["zh"] or q, m["en"] or m["zhtw"] or m["zh"] or q))
+        out[q] = {"name": name, "nameEn": name_en, "origin": None if q in FRANCHISE else origin}
     return out
 
 

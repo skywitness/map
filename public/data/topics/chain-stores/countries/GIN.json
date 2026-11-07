@@ -1,1 +1,1 @@
-{"snapshot":"2026-10-26","population":15441992,"brands":{},"official":[],"convenience":{"count":521,"brands":[["Shell",1],["Total",1],["TotalEnergies",1]],"unbranded":518}}
+{"snapshot":"2026-10-26","population":15441992,"brands":{"shell":29,"totalenergies":32},"official":[],"convenience":{"count":521,"brands":[["Shell",1],["Total",1],["TotalEnergies",1]],"unbranded":518}}
