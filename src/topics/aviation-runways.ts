@@ -9,7 +9,7 @@ import type { IndicatorDef, ListPanelDef, ListRow, PointRecord, SourceDef } from
  * （全部機場，多數 2021 年）。左側欄列有定期航班的機場與最長的跑道；台灣的側欄另列民航局的機場設施表。
  */
 
-export const RUNWAY_INDICATORS = ['runway-km', 'runways-3000', 'paved-share'];
+export const RUNWAY_INDICATORS = ['runway-km', 'runways-3000', 'paved-share', 'runway-lit'];
 const LIST_LIMIT = 100;
 
 /** OurAirports 的 surface 欄常見的寫法（不是控制詞彙，其他的照原文） */

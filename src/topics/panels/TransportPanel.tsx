@@ -4,8 +4,11 @@ import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { MAP_TOKENS } from '../../theme/tokens';
 import { RAIL_PUNCTUAL } from '../rail-europe';
+import { RAIL_GOODS_IDS } from '../rail-goods';
+import { RAIL_ACCIDENT_IDS } from '../rail-safety';
 import { GAUGES, gaugeText } from '../transport';
 import { dataFolder, type PanelExtraProps } from '../types';
+import { RailAccidentsSection, RailGoodsSection, RailNamesSection } from './RailHistoryPanel';
 
 interface TransportFile {
   railKm: number;
@@ -98,6 +101,9 @@ const GAUGE_INDICATORS = new Set(['gauge', 'standard-share']);
 export default function TransportPanel(props: PanelExtraProps) {
   if (GAUGE_INDICATORS.has(props.indicator.id)) return <GaugeSection {...props} />;
   if (RAIL_PUNCTUAL.includes(props.indicator.id) && props.iso3 === 'TWN') return <TaiwanPunctuality {...props} />;
+  if (props.indicator.id === 'rail-abandoned' || props.indicator.id === 'rail-disused') return <RailNamesSection {...props} />;
+  if (RAIL_ACCIDENT_IDS.includes(props.indicator.id)) return <RailAccidentsSection {...props} />;
+  if (RAIL_GOODS_IDS.includes(props.indicator.id)) return <RailGoodsSection {...props} />;
   return <RailSection {...props} />;
 }
 

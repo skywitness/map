@@ -1,7 +1,10 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { railEurope } from './rail-europe';
+import { railGoods } from './rail-goods';
 import { railPower } from './rail-power';
+import { railSafety } from './rail-safety';
+import { railStations } from './rail-stations';
 import { transportExtra } from './rail-extra';
 import type { CategoryDef, TopicDefinition } from './types';
 
@@ -62,6 +65,9 @@ export const transport: TopicDefinition = {
     ...transportExtra.sources,
     ...railEurope.sources,
     ...railPower.sources,
+    ...railStations.sources,
+    ...railSafety.sources,
+    ...railGoods.sources,
   ],
   note: {
     zh:
@@ -150,5 +156,9 @@ export const transport: TopicDefinition = {
     ...railEurope.indicators,
     // 2026-11-07（製作手冊第二十七批 564）：供電制度與車輛
     ...railPower.indicators,
+    // 2026-11-07（製作手冊第二十七批 565–568）：火車站、廢線、鐵路事故、貨類與國際貨運
+    ...railStations.indicators,
+    ...railSafety.indicators,
+    ...railGoods.indicators,
   ],
 };

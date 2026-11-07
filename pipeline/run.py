@@ -264,6 +264,10 @@ STEPS = {
     "diet-security": "topics.diet_security",
     "birth-registration": "topics.birth_registration",
     "rail-power": "topics.rail_power",
+    "rail-stations": "topics.rail_stations",
+    "rail-abandoned": "topics.rail_abandoned",
+    "rail-accidents": "topics.rail_accidents",
+    "rail-goods": "topics.rail_goods",
     "gender-vdem": "topics.gender_vdem",
     # 國家小檔案的國會幾院（V-Dem）、席次與每席人口（英文維基固定版本，要先有 population 的 total.json）
     "profiles-legislature": "topics.profiles_legislature",
@@ -281,6 +285,8 @@ STEPS = {
     "megafauna": "topics.megafauna",
     # 跑道（第二十三批 399）：OurAirports 的 runways.csv、Factbook 2022 年版的鋪面機場、民航局的機場設施表，擴充機場與旅客
     "airport-runways": "topics.airport_runways",
+    "airport-navaids": "topics.airport_navaids",
+    "airport-facilities": "topics.airport_facilities",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
