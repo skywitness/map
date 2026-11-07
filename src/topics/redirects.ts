@@ -100,6 +100,12 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
  * 例如交通的航空旅客量搬到航空：t/transport/?ind=air-passengers 轉到 t/aviation/?ind=air-passengers
  */
 export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
+  // 交通政策與投資（2026-11-07，第二十七批 585 開小類）：電價與油價的 4 個燃料稅指標搬到「油價裡的燃料稅」，
+  // 城市的低排放區與塞車費搬到「都市的低排放區與塞車費」，指標 id 都不變
+  'energy-prices': Object.fromEntries(
+    ['gasoline-tax-share', 'diesel-tax-share', 'gasoline-excise-share', 'diesel-excise-share'].map((id) => [id, { topic: 'fuel-tax' }]),
+  ),
+  cities: { 'low-emission-zones': { topic: 'city-traffic' } },
   // 住宅（2026-11-07，第二十五批 470）：房價的 5 個指標搬到經濟類「不動產」的「房價與房租」，指標 id 不變
   housing: Object.fromEntries(
     ['real-price-10y', 'real-price-5y', 'price-income', 'price-rent', 'real-rent-5y'].map((id) => [id, { topic: 'real-estate' }]),

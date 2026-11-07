@@ -1,4 +1,4 @@
-"""城市：低排放區與塞車費（2026-11-05，製作手冊第二十三批 410〔候選 1016〕；步驟 city-traffic，輸出 topics/cities/，擴充「城市」）。
+"""都市的低排放區與塞車費（2026-11-05，製作手冊第二十三批 410〔候選 1016〕；步驟 city-traffic，輸出 topics/city-traffic/；原本擴充「城市」，2026-11-07 搬出來）。
 
 - **低排放區**：OpenStreetMap（ODbL 1.0）經 QLever（sources/osm_qlever.py）：`boundary=low_emission_zone` 共 543 個物件
   （2026-11-05 快取）。其中 229 個是面（way 109、relation 120）；306 條線裡 284 條就是 relation 的邊（中點落在某個面的
@@ -29,7 +29,7 @@ from common import OUT_DIR, download, indicator_file, lines_file, points_file, w
 from sources import osm_qlever, urban_audit
 from topics.airspace import _area_km2
 
-OUT = OUT_DIR / "topics" / "cities"
+OUT = OUT_DIR / "topics" / "city-traffic"  # 2026-11-07（第二十七批 585）從城市搬出來，獨立成交通政策與投資的主題
 YEAR = 2026
 SIMPLIFY = 0.0002  # 度，約 20 公尺
 QUANTUM = 0.0001

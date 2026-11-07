@@ -2,12 +2,14 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { TopicPart } from './parts';
-import type { LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef } from './types';
+import type { LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 城市的低排放區與塞車費（2026-11-05，製作手冊第二十三批 410；pipeline/topics/city_traffic.py）：
  * OpenStreetMap 上畫成面的低排放區（boundary=low_emission_zone，線圖層的封閉環加半透明的面），各國的個數上色；
  * 英文維基百科整理的塞車費城市畫成點（依種類上色）。兩件事分圖層、分顏色，不併成一個數字。
+ * 2026-11-07（第二十七批 585）從「城市」搬出來，成為交通的小類「交通政策與投資」的獨立主題 city-traffic（資料檔也搬到
+ * topics/city-traffic/）；舊網址 cities 的 low-emission-zones 由 redirects.ts 的 INDICATOR_MOVES 轉過來。
  */
 
 const LEZ_FILE = 'low-emission-zones-map.json';
@@ -153,7 +155,7 @@ const TAIWAN = {
   en: 'Taiwan has no low-emission zones and no congestion charges; the closest equivalent is the air quality maintenance zone under Article 40 of the Air Pollution Control Act. The open-data portal lists only Taoyuan’s three: Taoyuan International Airport (announced 17 Aug 2021), Linkou Chang Gung Memorial Hospital with the postal logistics and Hwa Ya technology parks (15 Jul 2022) and Neili (19 Oct 2023), each closed at all times to diesel buses and lorries made before 30 June 1999 (30 Sep 2006 in Neili).',
 };
 
-export const cityTrafficPart: TopicPart = {
+const cityTrafficPart: TopicPart = {
   name: { zh: '低排放區與塞車費', en: 'Low-emission zones and congestion charges' },
   sources: [
     {
@@ -205,4 +207,17 @@ export const cityTrafficPart: TopicPart = {
       noValue: { TWN: { zh: '沒有低排放區；對應的是空氣品質維護區（桃園市 3 區）', en: 'No low-emission zones; the closest equivalent is the air quality maintenance zone (three in Taoyuan)' } },
     },
   ],
+};
+
+export const cityTraffic: TopicDefinition = {
+  id: 'city-traffic',
+  title: { zh: '都市的低排放區與塞車費', en: 'Low-emission zones and congestion charges' },
+  shortTitle: { zh: '低排放區', en: 'Low-emission zones' },
+  defaultIndicator: 'low-emission-zones',
+  defaultYear: 2026,
+  sources: cityTrafficPart.sources,
+  note: cityTrafficPart.note,
+  overlays: cityTrafficPart.overlays,
+  listPanel: cityTrafficPart.listPanel,
+  indicators: cityTrafficPart.indicators,
 };

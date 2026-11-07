@@ -1,4 +1,4 @@
-"""電價與油價：燃料稅占油價的比例（2026-11-05，製作手冊第二十三批 404〔候選 1019〕；步驟 fuel-tax，輸出 topics/energy-prices/）。
+"""油價裡的燃料稅（2026-11-05，製作手冊第二十三批 404〔候選 1019〕；步驟 fuel-tax，輸出 topics/fuel-tax/；原本在電價與油價，2026-11-07 搬出來）。
 
 - 歐盟 Weekly Oil Bulletin 的歷史檔（topics/energy_prices.py 已經在讀同一個 xlsx 的含稅價；檔內寫「Reproduction is authorised
   provided the source is acknowledged」，執委會網站是 CC BY 4.0）。同一國同一週的「Prices with taxes」與「Prices wo taxes」：
@@ -18,7 +18,7 @@ from collections import defaultdict
 from common import OUT_DIR, download, indicator_file, write_json
 from topics.energy_prices import WOB_URL, eurostat_iso3
 
-OUT = OUT_DIR / "topics" / "energy-prices"
+OUT = OUT_DIR / "topics" / "fuel-tax"  # 2026-11-07（第二十七批 585）從電價與油價搬出來，獨立成交通政策與投資的主題
 FUELS = {"euro95": "gasoline", "diesel": "diesel"}
 MIN_WEEKS = 40
 

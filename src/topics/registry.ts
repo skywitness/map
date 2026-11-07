@@ -150,9 +150,15 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
       { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'bus-stations', 'cabotage', 'ride-hailing'] },
       { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
+      // 2026-11-07（第二十七批 585）：交通基礎建設投資、家庭交通支出、運輸業就業三個新主題，加上從電價與油價搬來的燃料稅、
+      // 從城市搬來的低排放區與塞車費
+      {
+        label: { zh: '交通政策與投資', en: 'Policy and investment' },
+        topics: ['transport-investment', 'household-transport', 'transport-jobs', 'fuel-tax', 'city-traffic'],
+      },
     ],
-    // 每個小類各占一欄（2026-11-05 使用者要求，水運放最右邊）：鐵道；航空；道路；水運
-    columns: [1, 1, 1, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求，水運放最右邊；2026-11-07 交通政策與投資再放在水運右邊）
+    columns: [1, 1, 1, 1, 1],
   },
   {
     id: 'geo',
@@ -232,6 +238,11 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   funeral: () => import('./funeral'),
   independence: () => import('./independence'),
   cabotage: () => import('./cabotage'),
+  'transport-investment': () => import('./transport-investment'),
+  'household-transport': () => import('./household-transport'),
+  'transport-jobs': () => import('./transport-jobs'),
+  'fuel-tax': () => import('./fuel-tax'),
+  'city-traffic': () => import('./cities-traffic'),
   'bus-stations': () => import('./bus-stations'),
   'time-use': () => import('./time-use'),
   marriage: () => import('./marriage'),
