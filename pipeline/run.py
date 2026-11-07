@@ -578,6 +578,7 @@ STEPS = {
     "mountain-passes": "topics.mountain_passes",
     "mountain-people": "topics.mountain_people",
     "wetlands": "topics.wetlands",
+    "fish-jobs": "topics.fish_jobs",
     # 大河一年中的流量（製作手冊第十七批 277）：Open-Meteo Flood API（GloFAS 再分析）2015–2024 年的每日流量算月平均；
     # 讀 rivers 已經輸出的 rivers.json 挑河。免費額度每天 1 萬次，60 條河要分兩天抓（快取在 .cache/open-meteo-flood/，
     # 額度用完就停，隔天再跑接著抓）；每條河之間停 200 秒，一天約 2–3 小時

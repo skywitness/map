@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 181;
-export const INDICATOR_COUNT = 1379;
+export const INDICATOR_COUNT = 1382;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -158,6 +158,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAO, AQUASTAT（總可再生水資源、世界的水資源壓力、海水淡化；取水量的用途與總量由世界銀行 WDI 轉載）","en":"FAO, AQUASTAT (total renewable water resources, world water stress, desalination; water withdrawal by use and in total via the World Bank WDI)"},"url":"https://www.fao.org/aquastat/en/","licenses":["CC BY 4.0"],"topics":["water-forest"]},
   {"name":{"zh":"FAO, FAOSTAT（詳細貿易矩陣）","en":"FAO, FAOSTAT (detailed trade matrix)"},"url":"https://www.fao.org/faostat/en/#data/TM","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":"FAO, Global Forest Resources Assessment 2025","url":"https://fra-data.fao.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
+  {"name":{"zh":"FAO. 2026. FishStat: Fisheries and aquaculture employment 1995–2024（FI_Employment，2026-11-07 查閱）","en":"FAO. 2026. FishStat: Fisheries and aquaculture employment 1995–2024 (FI_Employment, accessed 7 November 2026)"},"url":"https://www.fao.org/fishery/static/Data/FI_Employment_2026.1.0.zip","licenses":["CC BY 4.0"],"topics":["oceans"]},
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},
   {"name":{"zh":"FAOSTAT：Climate Change, Agrifood systems emissions, Emissions totals（GT）：農糧系統的溫室氣體","en":"FAOSTAT: Climate Change, Agrifood systems emissions, Emissions totals (GT): agrifood system emissions"},"url":"https://www.fao.org/faostat/en/#data/GT","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"FAOSTAT：Consumer Price Indices（食物與總消費者物價指數，月資料）","en":"FAOSTAT: Consumer Price Indices (food and general CPI, monthly)"},"url":"https://www.fao.org/faostat/en/#data/CP","licenses":["CC BY 4.0"],"topics":["prices"]},

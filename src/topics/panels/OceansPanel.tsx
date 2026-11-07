@@ -224,7 +224,73 @@ const km2Exact = (v: number) => `${fixed(v, 0)} km²`;
 
 /** 海鮮的貿易（2026-10-30 擴充）是流向圖：側欄改成貿易主題的主要出口對象、進口來源 */
 export default function OceansPanel(props: PanelExtraProps) {
-  return props.indicator.layer.kind === 'flow' ? <TradePanel {...props} /> : <FisheriesPanel {...props} />;
+  if (props.indicator.layer.kind === 'flow') return <TradePanel {...props} />;
+  // 2026-11-07（製作手冊 550）：就業的三個指標把「靠漁業吃飯的人」放最前面，其他指標放最後
+  const jobsFirst = props.indicator.id.startsWith('fish-');
+  return (
+    <>
+      {jobsFirst && <FishJobs {...props} />}
+      <FisheriesPanel {...props} />
+      {!jobsFirst && <FishJobs {...props} />}
+    </>
+  );
+}
+
+/** pipeline/topics/fish_jobs.py 的 fish-jobs-detail.json：最新一年各工作場域 [代碼, 人, 女, 男]、全職／兼職／臨時／不明 */
+interface FishJobsDetail {
+  countries: Record<string, { year: number; areas: [string, number, number, number][]; occ: [number, number, number, number] }>;
+}
+const WORK_AREAS: Record<string, Text> = {
+  A: { zh: '養殖', en: 'Aquaculture' },
+  I: { zh: '內陸捕撈', en: 'Inland fishing' },
+  C: { zh: '海洋沿岸捕撈', en: 'Marine coastal fishing' },
+  D: { zh: '遠洋捕撈', en: 'Deep-sea fishing' },
+  M: { zh: '海洋捕撈（未分）', en: 'Marine fishing, unspecified' },
+  U: { zh: '沒有分場域', en: 'Unspecified' },
+};
+const JOBS_TEXT = defineMessages({
+  zh: {
+    title: (year: number) => `靠漁業與養殖吃飯的人（${year} 年）`,
+    aria: (country: string) => `${country}漁業與養殖的就業人數，依工作場域`,
+    people: (v: number) => `${fixed(v, 0)} 人`,
+    gender: (f: string, m: string, u: string) => `女性 ${f}、男性 ${m}、沒有分性別 ${u}。`,
+    noGender: '沒有分性別。',
+    occ: (a: string, b: string, c: string, d: string) => `全職 ${a}、兼職 ${b}、臨時 ${c}、沒有分 ${d}。`,
+    note: 'FAO FishStat 的就業統計，各國自報；不含水產加工與販售。',
+  },
+  en: {
+    title: (year) => `People working in fisheries and aquaculture (${year})`,
+    aria: (country) => `Fisheries and aquaculture jobs in ${country} by work area`,
+    people: (v) => `${fixed(v, 0)} people`,
+    gender: (f, m, u) => `Women ${f}, men ${m}, gender not recorded ${u}.`,
+    noGender: 'No breakdown by gender. ',
+    occ: (a, b, c, d) => `Full-time ${a}, part-time ${b}, occasional ${c}, unspecified ${d}.`,
+    note: 'FAO FishStat employment statistics as reported by countries; processing and trade are not included.',
+  },
+});
+
+function FishJobs({ topic, iso3, countryName }: PanelExtraProps) {
+  const lang = useLang();
+  const text = JOBS_TEXT[lang];
+  const data = useJson<FishJobsDetail>(`topics/${topic.id}/fish-jobs-detail.json`).data;
+  const row = data?.countries[iso3];
+  if (!row) return null;
+  const items: BarListItem[] = row.areas.map(([a, n]) => ({ key: a, label: tr(WORK_AREAS[a] ?? { zh: a, en: a }, lang), value: n }));
+  const total = row.areas.reduce((s, [, n]) => s + n, 0);
+  const f = row.areas.reduce((s, [, , w]) => s + w, 0);
+  const m = row.areas.reduce((s, [, , , men]) => s + men, 0);
+  const p = (v: number) => text.people(v);
+  return (
+    <section className="panel-section">
+      <h3>{text.title(row.year)}</h3>
+      <BarList items={items} format={p} total={total} ariaLabel={text.aria(countryName)} />
+      <p className="note">
+        {f + m > 0 ? text.gender(p(f), p(m), p(Math.max(0, total - f - m))) : text.noGender}
+        {text.occ(p(row.occ[0]), p(row.occ[1]), p(row.occ[2]), p(row.occ[3]))}
+        {text.note}
+      </p>
+    </section>
+  );
 }
 
 function FisheriesPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {

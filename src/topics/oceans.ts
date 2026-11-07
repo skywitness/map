@@ -178,6 +178,11 @@ function seafoodFlow(direction: FlowDirection, label: Text, description: Text): 
   };
 }
 
+const JOBS_TEXT = {
+  zh: '資料是 FAO FishStat 的漁業與養殖就業統計（1995–2024，各國自報；缺報的年份 FAO 自己估了值，例如印度 2022–2024 年都是同一個數）。口徑各國差很多：有的含兼職、臨時與自給漁民，有的只報全職；不含水產加工與販售。',
+  en: 'Data are FAO FishStat employment statistics for fisheries and aquaculture (1995–2024, reported by countries; FAO estimates missing years itself, so India has the same figure for 2022–2024). Definitions vary widely: some countries include part-time, occasional and subsistence fishers, others only full-time workers; processing and trade are not included.',
+};
+
 const SEAFOOD_TEXT = {
   zh: '魚、蝦、蟹、貝類等（HS 第 03 章：活的、生鮮、冷凍、乾燥、燻製），不含罐頭與調製品（1604、1605）、魚粉與魚油；CEPII BACI，以金額計。',
   en: 'Fish, shrimp, crabs, shellfish and the like (HS chapter 03: live, fresh, frozen, dried or smoked), excluding canned and prepared seafood (1604, 1605), fishmeal and fish oil; CEPII BACI, by value.',
@@ -296,6 +301,58 @@ const indicators: IndicatorDef[] = [
     formatTick: (v) => fixed(v, 0),
     compareWorld: true,
   },
+  // 2026-11-07（製作手冊第二十七批 550，候選 1238）：漁業與養殖的就業人數（pipeline/topics/fish_jobs.py）
+  {
+    id: 'fish-jobs',
+    label: { zh: '漁業與養殖的就業人數', en: 'Fisheries and aquaculture jobs' },
+    description: {
+      zh: `${JOBS_TEXT.zh}2024 年全世界 6,535 萬人：養殖 2,314 萬、內陸捕撈 1,930 萬、海洋捕撈 1,694 萬，其餘沒有分場域。印度 1,687 萬、中國大陸 1,098 萬、孟加拉 806 萬、印尼 521 萬、越南 277 萬、緬甸 254 萬、菲律賓 215 萬、柬埔寨 214 萬、巴西 183 萬、泰國 155 萬；台灣 32.7 萬、北韓 15.0 萬、日本 12.7 萬、南韓 9.8 萬。子項目切換養殖、內陸捕撈、海洋捕撈（沿岸、遠洋與其他）。`,
+      en: `${JOBS_TEXT.en} In 2024, 65.4 million people worldwide: 23.1 million in aquaculture, 19.3 million in inland fishing and 16.9 million in marine fishing, the rest unspecified. India 16.9 million, mainland China 11.0 million, Bangladesh 8.06 million, Indonesia 5.21 million, Vietnam 2.77 million, Myanmar 2.54 million, the Philippines 2.15 million, Cambodia 2.14 million, Brazil 1.83 million and Thailand 1.55 million; Taiwan 327,000, North Korea 150,000, Japan 127,000 and South Korea 98,000. Switch between aquaculture, inland fishing and marine fishing (coastal, deep-sea and other).`,
+    },
+    unit: { zh: '人', en: 'people' },
+    file: 'fish-jobs/{item}.json',
+    dimension: {
+      label: { zh: '工作場域', en: 'Work area' },
+      options: [
+        { id: 'total', label: { zh: '合計', en: 'All' } },
+        { id: 'aquaculture', label: { zh: '養殖', en: 'Aquaculture' } },
+        { id: 'inland', label: { zh: '內陸捕撈', en: 'Inland fishing' } },
+        { id: 'marine', label: { zh: '海洋捕撈', en: 'Marine fishing' } },
+      ],
+      defaultOption: 'total',
+    },
+    layer: { kind: 'bubble', legendValues: [1e4, 1e5, 1e6, 1e7] },
+    format: (v) => tr({ zh: `${formatLargeNumber(v)} 人`, en: `${formatLargeNumber(v)} people` }),
+    formatTick: formatLargeTick,
+    integer: true,
+    shareOfWorld: true,
+  },
+  {
+    id: 'fish-jobs-per-1000',
+    label: { zh: '每千人有幾人靠漁業與養殖', en: 'Fisheries jobs per 1,000 people' },
+    description: {
+      zh: `漁業與養殖的就業人數除以人口（每千人，人口是聯合國 WPP 2024）。2024 年福克蘭群島 297、馬紹爾群島 135、柬埔寨 121、格陵蘭 103 最多（小島的分母很小，福克蘭的漁船上多是外籍船員），緬甸 46.6、孟加拉 46.5、法羅群島 45.2；台灣 14.1、冰島 10.4、北韓 5.7、挪威 3.8、南韓 1.9、日本 1.0、美國 0.6。${JOBS_TEXT.zh}`,
+      en: `Fisheries and aquaculture jobs per 1,000 people (population from UN WPP 2024). In 2024 the Falkland Islands (297), the Marshall Islands (135), Cambodia (121) and Greenland (103) are highest (small islands have small denominators, and the Falklands’ fishing crews are mostly foreign), followed by Myanmar 46.6, Bangladesh 46.5 and the Faroe Islands 45.2; Taiwan 14.1, Iceland 10.4, North Korea 5.7, Norway 3.8, South Korea 1.9, Japan 1.0 and the US 0.6. ${JOBS_TEXT.en}`,
+    },
+    unit: { zh: '人／千人', en: 'per 1,000' },
+    file: 'fish-jobs-per-1000.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 5, 10, 20, 50] } },
+    format: (v) => tr({ zh: `每千人 ${fixed(v, v < 10 ? 1 : 0)} 人`, en: `${fixed(v, v < 10 ? 1 : 0)} per 1,000` }),
+    formatTick: (v) => fixed(v, 0),
+  },
+  {
+    id: 'fish-women',
+    label: { zh: '漁業與養殖就業的女性比例', en: 'Women in fisheries and aquaculture' },
+    description: {
+      zh: `漁業與養殖的就業者裡女性的比例，只算有寫性別的人（全世界約四成的人數沒有分性別，有寫性別的不到全國一半的國家不放；台灣、南韓、美國沒有分）。2024 年 168 國有值：紐埃 78.5%、尼泊爾 53.4%、東加 51.2%、巴西 48.9%、查德 46.0%、波札那 44.2%、泰國 41.5%、哈薩克 40.7%、印度 38.4%；挪威 14.7%、日本 11.8%、埃及 9.0%、北韓 5.0%。加工與販售的女性很多，但這份資料沒有加工的部分。${JOBS_TEXT.zh}`,
+      en: `Share of women among fisheries and aquaculture workers, counting only those whose gender is recorded (about four in ten workers worldwide have no gender recorded, and countries where under half do are left out; Taiwan, South Korea and the US give no breakdown). 168 countries have a 2024 value: Niue 78.5%, Nepal 53.4%, Tonga 51.2%, Brazil 48.9%, Chad 46.0%, Botswana 44.2%, Thailand 41.5%, Kazakhstan 40.7% and India 38.4%; Norway 14.7%, Japan 11.8%, Egypt 9.0% and North Korea 5.0%. Many women work in processing and trade, which this dataset does not cover. ${JOBS_TEXT.en}`,
+    },
+    unit: '%',
+    file: 'fish-women.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 30, 40, 50] } },
+    format: (v) => formatPercent(v, 1),
+    formatTick: (v) => `${fixed(v, 0)}%`,
+  },
   seafoodFlow(
     'export',
     { zh: '海鮮出口', en: 'Seafood exports' },
@@ -340,6 +397,14 @@ export const oceans: TopicDefinition = {
         en: 'FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)',
       },
       url: 'https://www.fao.org/fishery/en/collection/global_production',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'FAO. 2026. FishStat: Fisheries and aquaculture employment 1995–2024（FI_Employment，2026-11-07 查閱）',
+        en: 'FAO. 2026. FishStat: Fisheries and aquaculture employment 1995–2024 (FI_Employment, accessed 7 November 2026)',
+      },
+      url: 'https://www.fao.org/fishery/static/Data/FI_Employment_2026.1.0.zip',
       license: 'CC BY 4.0',
     },
     {
