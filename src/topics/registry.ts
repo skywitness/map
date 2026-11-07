@@ -93,7 +93,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       // 2026-11-07（製作手冊第二十五批 490）「污染」改名「污染與廢棄物」
-      { label: { zh: '污染與廢棄物', en: 'Pollution & waste' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'nutrients', 'noise', 'industrial-releases', 'contaminated-sites', 'materials'] },
+      { label: { zh: '污染與廢棄物', en: 'Pollution & waste' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'nutrients', 'noise', 'light-pollution', 'industrial-releases', 'contaminated-sites', 'materials'] },
       // 2026-11-07（製作手冊第二十五批 491）「土地與水」拆成「土地」與「水」，兩個小類疊在同一欄
       { label: { zh: '土地', en: 'Land' }, topics: ['land-use', 'forest', 'wildfires', 'megafauna'] },
       { label: { zh: '水', en: 'Water' }, topics: ['water-forest'] },
@@ -254,6 +254,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   cbam: () => import('./cbam'),
   nutrients: () => import('./nutrients'),
   noise: () => import('./noise'),
+  'light-pollution': () => import('./light-pollution'),
   'industrial-releases': () => import('./industrial-releases'),
   'contaminated-sites': () => import('./contaminated-sites'),
   materials: () => import('./materials'),

@@ -127,6 +127,7 @@ const TOPIC_ICONS = {
   cbam: 'badge-euro',
   nutrients: 'leafy-green',
   noise: 'volume-2',
+  'light-pollution': 'star-off',
   'industrial-releases': 'cloud-fog',
   'contaminated-sites': 'shovel',
   materials: 'repeat-2',

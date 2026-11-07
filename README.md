@@ -179,6 +179,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `noise` 是歐盟環境噪音指令的暴露人口：EEA datashare 的 WebDAV 抓單一個彙整表 `Summary_END_2022_cutoff241118_v4.xlsx`（約 400 KB，使用者名稱是公開分享代碼、密碼空白；不要用不帶 `?path=` 的 `/download`，會打包整個 EEA 公開 datastore），快取在 `.cache/eea-noise/`。不到一秒。
 
+`light-pollution` 是光害：先把 map-plan 的 `data/gfz/light-pollution-classes-30ss.tif`（Falchi 等人 2016 地圖集在原始 30 角秒網格上分成 6 級，5.4 MB；原始 zip 684 MB 不在 git，由使用者用瀏覽器下載、本機 session 分級）複製到 `pipeline/.cache/gfz/`，SHA-256 不對會停下來；第一次會下載 GHS-POP 2015 年的 30 角秒人口（480 MB，解壓 380 MB）。統計約 2 分鐘，存在 `.cache/gfz/stats-<版本>.npz`，之後只改輸出時幾秒鐘（改了統計的程式要加 `--refresh`）。
+
 `plastic-microplastics` 是塑膠污染主題的「海裡量到的微塑膠」：NOAA NCEI 地圖用的 ArcGIS 圖徵服務 Marine_Microplastics_WGS84，一頁 2,000 筆、12 頁共 22,530 筆（不用金鑰），快取在 `.cache/ncei-microplastics/`。約 10 秒。
 
 `industrial-releases` 是歐洲的工業污染排放設施：EEA datashare 的 WebDAV 抓 E-PRTR ver. 16.0 的「User friendly .csv files.zip」（147,626,010 bytes，使用者名稱是公開分享代碼、密碼空白），快取在 `.cache/eea-industry/csv.zip`；只讀 F1_1（各國）與 F1_4（設施）兩個 CSV。第一次下載幾分鐘，之後幾秒鐘。

@@ -474,6 +474,9 @@ STEPS = {
     "reserves-debt-currency": "topics.debt_currency",
     # 外匯存底與外債：OECD 國家風險等級（0–7 級；PDF 由使用者用瀏覽器下載到 map-plan 的 data/oecd/，先複製到 .cache/oecd/）
     "reserves-country-risk": "topics.country_risk",
+    # 光害（新主題）：Falchi 等人 2016 的人工夜空亮度（本機在原始 30 角秒網格上分成 6 級，map-plan data/gfz/ 複製到 .cache/gfz/）
+    # ＋ GHS-POP 2015 年 30 角秒人口（第一次會下載 480 MB）
+    "light-pollution": "topics.light_pollution",
     # 物價與消費：實質利率（WDI FR.INR.RINR）、食物價格通膨（FAOSTAT CP 月資料＋主計總處食物類），輸出 fiscal/
     "prices-food-rates": "topics.prices_food_rates",
     # 保險（新主題，金融服務）：OECD Global Insurance Statistics（含台灣，15 個維度的 key 要補滿）、保發中心的投保率
