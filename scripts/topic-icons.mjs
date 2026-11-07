@@ -96,6 +96,7 @@ const TOPIC_ICONS = {
   horses: 'trophy',
   'origin-names': 'certificate',
   cuisines: 'chef-hat',
+  'show-caves': 'flashlight',
   reads: 'book-open',
   // 經濟
   income: 'banknote',
