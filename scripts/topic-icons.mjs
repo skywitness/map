@@ -222,6 +222,7 @@ const TOPIC_ICONS = {
   aurora: 'sparkles',
   earthquakes: 'activity',
   plates: 'puzzle',
+  gssp: 'pin',
   lithology: 'layers',
   'special-landforms': 'tree-palm',
   reclamation: 'land-plot',

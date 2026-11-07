@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1370;
+export const TOPIC_COUNT = 179;
+export const INDICATOR_COUNT = 1371;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -368,6 +368,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WHO, List of NRAs operating at ML3 and ML4（2026 年 8 月）、List of transitional WLAs（事實自行整理）","en":"WHO, List of NRAs operating at ML3 and ML4 (August 2026) and List of transitional WLAs (facts compiled)"},"url":"https://cdn.who.int/media/docs/default-source/medicines/regulatory-systems/wla/list-of-nras-operating-at-ml3-and-ml4.pdf","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO《International Travel and Health》Country list（2021-05-12）","en":"WHO, International Travel and Health: Country list (12 May 2021)"},"url":"https://cdn.who.int/media/docs/default-source/documents/emergencies/travel-advice/ith2021_countrylist.pdf","licenses":[{"zh":"CC BY-NC-SA 3.0 IGO（只准非商業使用；黃熱病與瘧疾的資料檔同樣用這個授權分享）","en":"CC BY-NC-SA 3.0 IGO (non-commercial only; the yellow fever and malaria data files are shared under the same licence)"}],"topics":["travel"]},
   {"name":{"zh":"WHO/UNICEF Estimates of National Immunization Coverage（WUENIC）2025 年版的 DTP3、麻疹第二劑，WHO HPV 疫苗涵蓋率估計（2000 年起；data.who.int 有指標頁）","en":"WHO/UNICEF Estimates of National Immunization Coverage (WUENIC), 2025 revision, for DTP3 and the second measles dose, and WHO HPV coverage estimates (from 2000; indicator pages on data.who.int)"},"url":"https://data.who.int/indicators/i/48D7D19/F8E084C","licenses":["CC BY 4.0"],"topics":["vaccination"]},
+  {"name":{"zh":"Wikidata 的全球界線層型剖面和點（Q37402）與各階的起訖，經 QLever","en":"Wikidata Global Boundary Stratotype Sections and Points (Q37402) and stage dates, via QLever"},"url":"https://www.wikidata.org/wiki/Q37402","licenses":["CC0"],"topics":["gssp"]},
   {"name":{"zh":"Wikidata 的威士忌蒸餾廠與清酒酒藏（用 QLever 查詢）","en":"Wikidata whisky distilleries and sake breweries (queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q10373548","licenses":["CC0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Wikidata 的官方語言（P37，經 QLever 查詢）","en":"Wikidata official languages (P37, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Property:P37","licenses":["CC0"],"topics":["language"]},
   {"name":{"zh":"Wikidata 的觀光洞穴（Q2232001）與觀光礦坑（Q1506469），經 QLever","en":"Wikidata show caves (Q2232001) and show mines (Q1506469), via QLever"},"url":"https://www.wikidata.org/wiki/Q2232001","licenses":[{"zh":"CC0","en":"CC0"}],"topics":["show-caves"]},
@@ -582,6 +583,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科：各屆夏季、冬季奧運獎牌榜（1896–2026）與「All-time Olympic Games medal table」","en":"Wikipedia: Summer and Winter Olympics medal tables (1896–2026) and “All-time Olympic Games medal table”"},"url":"https://en.wikipedia.org/wiki/All-time_Olympic_Games_medal_table","licenses":["CC BY-SA 4.0"],"topics":["sports"]},
   {"name":{"zh":"英文維基百科（亞美尼亞、南蘇丹的軌距）","en":"English Wikipedia (track gauges of Armenia and South Sudan)"},"url":"https://en.wikipedia.org/","licenses":["CC BY-SA 4.0"],"topics":["transport"]},
   {"name":{"zh":"英文維基百科「Abortion law」「Legality of euthanasia」（墮胎、安樂死，2026 年 10–11 月）","en":"Wikipedia, “Abortion law” and “Legality of euthanasia” (October–November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Abortion_law&oldid=1383125224","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
+  {"name":{"zh":"英文維基百科「Aeronian」（revid 1318292949，2024 年埃隆階與特列奇階的金釘子搬家）","en":"English Wikipedia, “Aeronian” (revid 1318292949; the 2024 relocation of the Aeronian and Telychian GSSPs)"},"url":"https://en.wikipedia.org/wiki/Aeronian?oldid=1318292949","licenses":["CC BY-SA 4.0"],"topics":["gssp"]},
   {"name":{"zh":"英文維基百科「Blood type distribution by country」（2026 年 10 月 4 日的版本，各國的數字引用的資料見側欄）","en":"Wikipedia, “Blood type distribution by country” (revision of 4 October 2026; the source each country’s row cites is in the side panel)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1378379911","licenses":["CC BY-SA 4.0"],"topics":["blood-types"]},
   {"name":{"zh":"英文維基百科「Capital punishment by country」與各國的死刑條目（2026 年 10 月）","en":"Wikipedia, “Capital punishment by country” and country articles on capital punishment (October 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1382474148","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
   {"name":{"zh":"英文維基百科「Cash rounding」（2026 年 9 月 16 日的版本）","en":"Wikipedia, “Cash rounding” (revision of 16 September 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Cash_rounding&oldid=1375275378","licenses":["CC BY-SA 4.0"],"topics":["prices"]},
