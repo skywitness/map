@@ -239,6 +239,11 @@ export interface IndicatorDef {
      * 沒寫時寫數字本身
      */
     tick?: (year: number) => string;
+    /**
+     * 側欄折線圖的 x 軸每隔幾個值標一個刻度（2026-11-07，第二十七批 571 的每月航班：24 是每兩年的 1 月）；
+     * 沒寫照年份的規則（yearTickStep）。折線圖的刻度與 tooltip 也用 tick、year 的寫法，不寫月份編號
+     */
+    tickStep?: number;
   };
   /**
    * 這個指標的預設年份（網址沒指定年份時），沒寫用主題的 defaultYear。'latest' 是資料的最後一年（2026-11-02 起，

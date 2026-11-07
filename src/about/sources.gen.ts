@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 183;
-export const INDICATOR_COUNT = 1437;
+export const INDICATOR_COUNT = 1439;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -149,6 +149,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：可通航內河水道的長度（iww_if_infrastr）、內河貨運（iww_go_atygo）","en":"Eurostat: navigable inland waterways (iww_if_infrastr), inland waterway freight (iww_go_atygo)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/iww_if_infrastr/default/table","licenses":["CC BY 4.0"],"topics":["rivers"]},
   {"name":{"zh":"Eurostat：各機場的基礎設施（avia_if_typ）","en":"Eurostat: airport infrastructure by airport (avia_if_typ)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_if_typ/default/table","licenses":["CC BY 4.0"],"topics":["aviation"]},
   {"name":{"zh":"Eurostat：各產業的附加價值（nama_10_a10，NACE A*10）","en":"Eurostat: gross value added by industry (nama_10_a10, NACE A*10)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nama_10_a10/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
+  {"name":{"zh":"Eurostat：各申報國每月的商業航班（avia_tf_cm）","en":"Eurostat: commercial flights by reporting country, monthly (avia_tf_cm)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_tf_cm/default/table","licenses":["CC BY 4.0"],"topics":["aviation"]},
   {"name":{"zh":"Eurostat：家庭與非家庭電價（nrg_pc_204、nrg_pc_205）","en":"Eurostat: electricity prices for household and non-household consumers (nrg_pc_204, nrg_pc_205)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
   {"name":{"zh":"Eurostat：家戶的最終能源消費依用途與燃料（nrg_d_hhq，2010–2024）","en":"Eurostat, disaggregated final energy consumption in households (nrg_d_hhq, 2010–2024)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_d_hhq/default/table","licenses":["CC BY 4.0"],"topics":["household-energy"]},
   {"name":{"zh":"Eurostat：對別人的信任（ilc_pw03）、有沒有人可以依靠（ilc_pw06）","en":"Eurostat: trust in others (ilc_pw03) and having someone to rely on (ilc_pw06)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_pw03/default/table","licenses":["CC BY 4.0"],"topics":["happiness"]},
@@ -456,6 +457,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"交通部民用航空局（台灣各機場的旅客，附註用）","en":"Taiwan Civil Aeronautics Administration (passengers at Taiwan’s airports, for the note)"},"url":"https://data.gov.tw/dataset/33238","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["aviation"]},
   {"name":{"zh":"交通部民用航空局「國籍航空器登記架數及機型」（台灣的側欄）","en":"Taiwan Civil Aeronautics Administration, registered aircraft by operator and type (Taiwan’s side panel)"},"url":"https://data.gov.tw/dataset/19797","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["air-routes"]},
   {"name":{"zh":"交通部民用航空局「民航機場設施與能量（年資料）」（台灣的側欄）","en":"Taiwan Civil Aeronautics Administration, airport facilities and capacity (annual; Taiwan’s side panel)"},"url":"https://data.gov.tw/dataset/47490","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["aviation"]},
+  {"name":{"zh":"交通部民用航空局「民航運輸各機場營運量－按機場分」（data.gov.tw 31915；台灣的起降架次）","en":"Taiwan Civil Aeronautics Administration, traffic by airport (data.gov.tw 31915; Taiwan’s aircraft movements)"},"url":"https://data.gov.tw/dataset/31915","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["aviation"]},
   {"name":{"zh":"交通部航港局：國內固定航班資訊（2026 年 7–8 月）","en":"Maritime and Port Bureau (Taiwan): domestic scheduled ferry timetable (July–August 2026)"},"url":"https://data.gov.tw/dataset/8236","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["shipping"]},
   {"name":{"zh":"交通部觀光署 來臺旅客人次","en":"Tourism Administration (Taiwan), visitor arrivals"},"url":"https://data.gov.tw/dataset/7322","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["tourism"]},
   {"name":{"zh":"交通部觀光署 具海洋遊憩活動之景點設施","en":"Taiwan Tourism Administration, marine recreation sites"},"url":"https://data.gov.tw/dataset/135722","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["diving"]},

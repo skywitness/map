@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { aviationExtra } from './aviation-extra';
 import { aviationFacilities } from './aviation-facilities';
+import { aviationFlights } from './aviation-flights';
 import { aviationNavaids } from './aviation-navaids';
 import { aviationRunways } from './aviation-runways';
 import { AIRPORTS_ZH } from './longest-flights-names';
@@ -137,6 +138,7 @@ export const aviation: TopicDefinition = {
     ...aviationRunways.sources,
     ...aviationNavaids.sources,
     ...aviationFacilities.sources,
+    ...aviationFlights.sources,
   ],
   note: {
     zh:
@@ -255,5 +257,6 @@ export const aviation: TopicDefinition = {
     ...aviationRunways.indicators,
     ...aviationNavaids.indicators,
     ...aviationFacilities.indicators,
+    ...aviationFlights.indicators,
   ],
 };

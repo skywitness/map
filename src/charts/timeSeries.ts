@@ -64,7 +64,10 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartSpec {
   // tokens 不用了（參考線、格線用 CSS 變數），參數留著，呼叫的地方不必改
   const { projectionFrom, methodBreak, estimatesBefore, year, indicator } = input;
   const { years, lines, sparse } = consecutiveYears(input);
-  const tickStep = yearTickStep(years);
+  // 時間軸不是年份的指標（月份編號）：刻度寫 timeAxis.tick、tooltip 寫 timeAxis.year
+  const axis = indicator.timeAxis;
+  const tickStep = axis?.tickStep ?? yearTickStep(years);
+  const xLabel = (y: number) => (axis?.tick ? axis.tick(y) : String(y));
   const tick = indicator.formatTick ?? indicator.format;
   const indexOf = (y: number) => years.indexOf(y);
 
@@ -92,7 +95,7 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartSpec {
     .map((e) => ({ x: indexOf(e.year), label: e.label }));
 
   return {
-    x: { type: 'category', labels: years.map(String), showLabel: (i) => years[i] % tickStep === 0 },
+    x: { type: 'category', labels: years.map(xLabel), showLabel: (i) => years[i] % tickStep === 0 },
     y: { format: (v) => tick(v), integer: indicator.integer },
     series,
     refs,
@@ -108,7 +111,7 @@ export function timeSeriesOption(input: TimeSeriesInput): ChartSpec {
       const projected = projectionFrom !== undefined && y >= projectionFrom;
       const estimated = estimatesBefore !== undefined && y < estimatesBefore;
       const tag = projected ? messages().projected : estimated ? messages().estimated : null;
-      return { head: `${y}${tag ? ` · ${tag}` : ''}`, rows };
+      return { head: `${axis ? axis.year(y) : y}${tag ? ` · ${tag}` : ''}`, rows };
     },
   };
 }

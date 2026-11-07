@@ -5,9 +5,11 @@ import { defineMessages, useLang } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { FACILITY_IDS } from '../aviation-facilities';
+import { FLIGHT_IDS } from '../aviation-flights';
 import { RUNWAY_INDICATORS } from '../aviation-runways';
 import type { PanelExtraProps } from '../types';
 import { AirportFacilitiesSection } from './AirportFacilitiesPanel';
+import { FlightsTwSection } from './FlightsTwPanel';
 import { AirportsSection } from './TransportPanel';
 
 /** runways-tw.json（pipeline/topics/airport_runways.py）：[機場, 性質, [[跑道代號, 長, 寬, 起降容量], …], 最大機型, 進場燈光] */
@@ -93,6 +95,7 @@ export default function AviationPanel(props: PanelExtraProps) {
     <>
       {runway && props.iso3 === 'TWN' && <TaiwanRunways {...props} />}
       {FACILITY_IDS.includes(props.indicator.id) && <AirportFacilitiesSection {...props} />}
+      {FLIGHT_IDS.includes(props.indicator.id) && props.iso3 === 'TWN' && <FlightsTwSection {...props} />}
       <AirportsSection {...props} />
     </>
   );
