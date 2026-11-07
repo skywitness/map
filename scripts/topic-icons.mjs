@@ -86,6 +86,7 @@ const TOPIC_ICONS = {
   independence: 'milestone',
   cabotage: 'truck',
   'digital-trade': 'globe-lock',
+  'ip-addresses': 'network',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
