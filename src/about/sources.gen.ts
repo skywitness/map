@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 175;
-export const INDICATOR_COUNT = 1325;
+export const TOPIC_COUNT = 176;
+export const INDICATOR_COUNT = 1328;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -280,6 +280,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD, 每年實際工時（墨西哥、哥倫比亞）","en":"OECD, average annual hours actually worked (Mexico and Colombia)"},"url":"https://www.oecd.org/en/data/indicators/hours-worked.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["wages"]},
   {"name":{"zh":"OECD：Environmentally related tax revenue（DF_ERTR）","en":"OECD: Environmentally related tax revenue (DF_ERTR)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_ERTR%40DF_ERTR&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["env-taxes"]},
   {"name":{"zh":"OECD：Material flow accounts（DF_MATERIAL_RESOURCES）","en":"OECD: Material flow accounts (DF_MATERIAL_RESOURCES)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_MATERIAL_RESOURCES%40DF_MATERIAL_RESOURCES&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["materials"]},
+  {"name":{"zh":"OECD：Net Effective Energy Rates（Taxing Energy Use，2018、2021、2023 年）","en":"OECD, Net Effective Energy Rates (Taxing Energy Use, 2018, 2021 and 2023)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_NEER%40DF_NEERS&df[ag]=OECD.CTP.TPS","licenses":["CC BY 4.0"],"topics":["energy-taxes"]},
   {"name":{"zh":"OECD：Subnational government recurrent property tax revenue（DSD_DASHBOARD@PROP_TAX_REV）","en":"OECD: Subnational government recurrent property tax revenue (DSD_DASHBOARD@PROP_TAX_REV)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_DASHBOARD%40PROP_TAX_REV&df[ag]=OECD.CFE.RDG","licenses":["CC BY 4.0"],"topics":["property-costs"]},
   {"name":{"zh":"OECD：環境政策嚴格度指數（EPS，1990–2020）","en":"OECD, Environmental Policy Stringency Index (EPS, 1990–2020)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_EPS%40DF_EPS&df[ag]=OECD.ECO.MAD","licenses":["CC BY 4.0"],"topics":["energy-market"]},
   {"name":{"zh":"OECD.AI（OpenRouter 資料）","en":"OECD.AI (OpenRouter data)"},"url":"https://oecd.ai/en/data?selectedArea=ai-model-usage","licenses":[{"zh":"未明示授權","en":"licence not stated"}],"topics":["ai"]},

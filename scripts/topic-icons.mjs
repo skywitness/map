@@ -135,6 +135,7 @@ const TOPIC_ICONS = {
   cctld: 'at-sign',
   'energy-use': 'chart-pie',
   'energy-market': 'sliders-horizontal',
+  'energy-taxes': 'receipt-euro',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

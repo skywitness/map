@@ -241,6 +241,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `energy-market` 是「電力市場的管制與再生能源的補貼」：OECD EPS 的太陽能、風力支持分數與能源署的躉購費率（台灣側欄），幾秒；PMR 的電力、天然氣分項讀 `market-regulation` 的輸出。
 
+`energy-taxes` 是「能源稅與補貼」：OECD Net Effective Energy Rates 用 key 只取六個部門、三個量（整個資料流 85 MB，取的部分約 2 MB），幾秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。
