@@ -9,13 +9,22 @@
   Comic World Taiwan、台北國際電玩展、台北國際動漫節在 Wikidata 都沒有地點，放在台北市（Q1867 的座標，點上標「位置是城市」）。
 - 創辦年（P571）做時間軸（依創辦年累計）；參觀人次（P1132）幾乎都沒有，有的寫在 tooltip。國家用 P17，沒有的依座標判斷。
 - Wikidata 的這幾類嚴重偏美國與歐洲，只畫點；國家的值是「到那一年創辦了幾個」，給 tooltip 與排名表，不上色。
+- 2026-11-07 補（手冊 436 的補強）：英文維基（CC BY-SA 4.0，只引用事實；讀 /wiki/<條目>，robots.txt 禁止 /w/）
+  - 舉辦月份：「List of anime and manga conventions」revid 1381313355 的表（Month held 欄；最後一張是停辦的，不用），
+    依條目連結對到 Wikidata（QLever 的 sitelink）。漫畫展、電玩展、綜合同好大會三份清單是條列、沒有月份。
+  - 人次：每個活動的英文條目 infobox 的 Attendance（第一個數字與括號裡的年份；寫「per day」「daily」的不算），
+    Wikidata 的 P1132 多半是單一屆，有 infobox 的用 infobox。條目第一次抓間隔 1 秒，快取在 .cache/wikipedia/con-*.html。
 """
 from __future__ import annotations
 
+import hashlib
+import html
 import re
+import time
+import urllib.parse
 from collections import Counter, defaultdict
 
-from common import OUT_DIR, indicator_file, points_file, write_json
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, write_json
 from geoindex import countries_at
 from sources import qlever_wikidata
 from sources.countries import to_iso3
@@ -70,6 +79,72 @@ QUERY = """SELECT ?item ?top ?coord ?lcoord ?acoord ?iso ?inc ?att ?attDate ?sl 
   OPTIONAL { ?item rdfs:label ?zh FILTER(LANG(?zh) = "zh") }
 }""" % (" ".join(f"wd:{q}" for q in CLASSES), " ".join(f"wd:{q}" for q in EXTRA))
 PLACE_QUERY = "SELECT ?item ?coord WHERE { VALUES ?item { wd:%s } ?item wdt:P625 ?coord }"
+ANIME_LIST = "https://en.wikipedia.org/wiki/List_of_anime_and_manga_conventions?oldid=1381313355"
+ENWIKI_QUERY = """SELECT ?item ?article WHERE { VALUES ?item { %s }
+  ?article schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> }"""
+TITLE_QUERY = """SELECT ?item ?article WHERE { VALUES ?article { %s } ?article schema:about ?item }"""
+MONTHS = {m: i + 1 for i, m in enumerate(["january", "february", "march", "april", "may", "june", "july", "august",
+                                          "september", "october", "november", "december"])}
+
+
+def _text(s: str) -> str:
+    s = re.sub(r"<sup.*?</sup>", "", s, flags=re.S)
+    return html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", s))).strip()
+
+
+def _title(href: str) -> str | None:
+    """Parsoid HTML 的連結（./Title 或 https://en.wikipedia.org/wiki/Title）→ 條目名稱"""
+    m = re.match(r"(?:\./|https://en\.wikipedia\.org/wiki/|/wiki/)([^#?]+)", href)
+    return urllib.parse.unquote(m.group(1)).replace("_", " ") if m else None
+
+
+def _article_url(title: str) -> str:
+    return "https://en.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_"), safe="")
+
+
+def _months() -> dict[str, int]:
+    """動漫展清單：條目名稱 → 月份（「July/August」取第一個）"""
+    page = download(ANIME_LIST, "wikipedia", "conventions-anime.html").read_text(encoding="utf-8")
+    out: dict[str, int] = {}
+    for table in re.findall(r'<table class="wikitable.*?</table>', page, re.S):
+        rows = re.findall(r"<tr.*?</tr>", table, re.S)
+        head = [_text(h) for h in re.findall(r"<th[^>]*>(.*?)</th>", rows[0], re.S)]
+        if "Month held" not in head:
+            continue  # 停辦的表
+        col = head.index("Month held")
+        for tr in rows[1:]:
+            cells = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)
+            if len(cells) <= col:
+                continue
+            link = re.search(r'<a[^>]*href="([^"]+)"', cells[0])
+            title = _title(link.group(1)) if link and "class=\"new\"" not in cells[0] else None
+            m = re.search(r"[A-Za-z]+", _text(cells[col]))
+            if title and m and m.group(0).lower() in MONTHS:
+                out[title] = MONTHS[m.group(0).lower()]
+    return out
+
+
+def _attendance(title: str) -> tuple[int, int | None] | None:
+    """條目 infobox 的 Attendance：（人次, 年份）"""
+    path = CACHE_DIR / "wikipedia" / f"con-{hashlib.sha1(title.encode()).hexdigest()[:12]}.html"
+    if not path.exists():
+        time.sleep(1)
+    page = download(_article_url(title), "wikipedia", path.name).read_text(encoding="utf-8")
+    box = re.search(r'<table class="infobox.*?</table>', page, re.S)
+    if not box:
+        return None
+    m = re.search(r'<th[^>]*>\s*Attendance\s*</th>\s*<td[^>]*>(.*?)</td>', box.group(0), re.S)
+    if not m:
+        return None
+    text = _text(m.group(1))
+    if re.search(r"per day|daily|a day|/day", text, re.I):
+        return None
+    num = re.search(r"(\d{1,3}(?:,\d{3})+|\d{4,})", text)
+    if not num:
+        return None
+    # 年份：數字後面的「(2018)」「in 2022」「in December 2021」；「on average」的（安古蘭）不寫年份
+    year = None if re.search(r"average", text, re.I) else re.search(r"\b((?:19|20)\d{2})\b", text[num.end():num.end() + 25])
+    return int(num.group(1).replace(",", "")), int(year.group(1)) if year else None
 
 
 def _point(v: str | None) -> tuple[float, float] | None:
@@ -134,10 +209,25 @@ def build() -> None:
                     "x": hand, "q": q})
     for r, iso3 in zip(out, countries_at([r["lon"] for r in out], [r["lat"] for r in out])):
         r["iso3"] = r["iso3"] or iso3
+
+    # 英文維基：舉辦月份（動漫展清單）與 infobox 的人次（as：1 = 英文維基 infobox、2 = Wikidata）
+    articles = {}
+    for row in qlever_wikidata.cached("festival-conventions-enwiki", ENWIKI_QUERY % " ".join(f"wd:{r['q']}" for r in out)):
+        articles[row["item"]["value"].rsplit("/", 1)[1]] = urllib.parse.unquote(row["article"]["value"].rsplit("/wiki/", 1)[1]).replace("_", " ")
+    months = _months()
+    listed = qlever_wikidata.cached("festival-conventions-anime-list", TITLE_QUERY % " ".join(
+        f"<{_article_url(t)}>" for t in sorted(months)))
+    month_q = {row["item"]["value"].rsplit("/", 1)[1]: months[urllib.parse.unquote(row["article"]["value"].rsplit("/wiki/", 1)[1]).replace("_", " ")]
+               for row in listed}
+    for r in out:
+        r["m"] = month_q.get(r["q"])
+        r["as"] = 2 if r["att"] else None
+        if r["q"] in articles and (a := _attendance(articles[r["q"]])):
+            r["att"], r["ay"], r["as"] = a[0], a[1], 1
     out.sort(key=lambda r: r["sl"])
-    fields = ["lon", "lat", "k", "y", "sl", "att", "ay", "x", "iso3", "en", "zh"]
-    write_json(OUT / "conventions.json", points_file(out, fields, {"lon": 0.001, "lat": 0.001, "k": 1, "y": 1, "sl": 1, "att": 1,
-                                                                  "ay": 1, "x": 1}, strings=("iso3",)))
+    fields = ["lon", "lat", "k", "y", "m", "sl", "att", "ay", "as", "x", "iso3", "en", "zh"]
+    write_json(OUT / "conventions.json", points_file(out, fields, {"lon": 0.001, "lat": 0.001, "k": 1, "y": 1, "m": 1, "sl": 1,
+                                                                  "att": 1, "ay": 1, "as": 1, "x": 1}, strings=("iso3",)))
     # 國家的值：到那一年創辦了幾個（創辦年不詳的算在每一年）
     years = list(range(FIRST, LAST + 1))
     by_country: dict[str, list[int | None]] = defaultdict(list)
@@ -152,5 +242,8 @@ def build() -> None:
     print(f"    種類：{Counter(r['k'] for r in out)}；國家：{Counter(r['iso3'] for r in out).most_common(12)}；台灣 "
           f"{[(r['zh'] or r['en'], r['k'], r['y']) for r in out if r['iso3'] == 'TWN']}")
     print(f"    有創辦年 {sum(1 for r in out if r['y'])}，最早 {sorted((r['y'], r['en']) for r in out if r['y'])[:6]}")
-    print(f"    有人次 {[(r['en'], r['att'], r['ay']) for r in out if r['att']]}")
+    print(f"    英文條目 {sum(1 for r in out if r['q'] in articles)}；動漫展清單的月份 {len(months)} 列、對到 {sum(1 for r in out if r['m'])}："
+          f"{Counter(r['m'] for r in out if r['m'])}")
+    print(f"    有人次 {sum(1 for r in out if r['att'])}（英文維基 {sum(1 for r in out if r['as'] == 1)}）："
+          f"{sorted(((r['att'], r['en'], r['ay']) for r in out if r['att']), reverse=True)[:25]}")
     print(f"    最多語言：{[(r['zh'] or r['en'], r['sl'], r['k']) for r in sorted(out, key=lambda r: -r['sl'])[:15]]}")

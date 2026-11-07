@@ -153,6 +153,7 @@ const MONTH_LIST: ListPanelDef = {
 /**
  * 動漫展、同人誌販售會、漫畫展與電玩展（2026-11-07，製作手冊第二十四批 436 的候選 1032；pipeline/topics/festival_conventions.py）：
  * Wikidata 的這幾類活動，時間軸是創辦年（依創辦年累計，創辦年不詳的一直畫），點的大小是維基百科的語言數。
+ * 舉辦月份（m，英文維基的動漫展清單）與人次（att、ay；as 1 = 英文維基 infobox、2 = Wikidata）寫在說明與清單。
  */
 const CON_KINDS: { value: number; label: Text; color: string }[] = [
   { value: 1, label: { zh: '動漫展', en: 'Anime convention' }, color: MAP_TOKENS.categorical[5] },
@@ -165,9 +166,23 @@ const conKind = (p: PointRecord) => tr(CON_KINDS.find((k) => k.value === p.k)?.l
 const CON_FIRST = 1960;
 const CON_LAST = 2026;
 const conFacts = (p: PointRecord, countryName: (iso3: string) => string) =>
-  [conKind(p), typeof p.iso3 === 'string' ? countryName(p.iso3) : null, typeof p.y === 'number' ? tr({ zh: `${p.y} 年創辦`, en: `since ${p.y}` }) : null]
+  [
+    conKind(p),
+    typeof p.iso3 === 'string' ? countryName(p.iso3) : null,
+    typeof p.y === 'number' ? tr({ zh: `${p.y} 年創辦`, en: `since ${p.y}` }) : null,
+    typeof p.m === 'number' ? tr({ zh: `每年 ${p.m} 月`, en: `held in ${MONTHS_EN[p.m - 1]}` }) : null,
+  ]
     .filter(Boolean)
     .join(' · ');
+/** 人次：英文維基 infobox 的（多半有年份）或 Wikidata 的 */
+const conAttendance = (p: PointRecord): string | null => {
+  if (typeof p.att !== 'number') return null;
+  const n = fixed(p.att, 0);
+  const src = p.as === 1 ? tr({ zh: '英文維基', en: 'English Wikipedia' }) : 'Wikidata';
+  return typeof p.ay === 'number'
+    ? tr({ zh: `${p.ay} 年參觀 ${n} 人次（${src}）`, en: `${n} visitors in ${p.ay} (${src})` })
+    : tr({ zh: `參觀 ${n} 人次（${src}，沒寫年份）`, en: `${n} visitors (${src}, year not given)` });
+};
 
 const CONVENTIONS: PointsOverlayDef = {
   kind: 'points',
@@ -186,7 +201,7 @@ const CONVENTIONS: PointsOverlayDef = {
   tooltip: (p, ctx) => {
     const name = festivalName(p);
     const extra = [
-      typeof p.att === 'number' ? tr({ zh: `參觀 ${fixed(p.att, 0)} 人次（Wikidata）`, en: `${fixed(p.att, 0)} visitors (Wikidata)` }) : null,
+      conAttendance(p),
       p.x === 1 ? tr({ zh: 'Wikidata 沒有地點，畫在台北市', en: 'No venue on Wikidata; placed at Taipei' }) : null,
     ].filter((x): x is string => !!x);
     return {
@@ -200,6 +215,7 @@ const CONVENTIONS: PointsOverlayDef = {
 
 const CON_LIST: ListPanelDef = {
   label: { zh: '動漫展與電玩展', en: 'Anime, comic and game conventions' },
+  tabLabel: { zh: '依維基語言數', en: 'By Wikipedia editions' },
   indicators: ['conventions'],
   file: 'conventions.json',
   countryField: 'iso3',
@@ -215,6 +231,28 @@ const CON_LIST: ListPanelDef = {
           title: name,
           properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== name ? p.en : undefined,
           lines: [conFacts(p, countryName)],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        };
+      }),
+};
+
+const CON_ATT_LIST: ListPanelDef = {
+  label: { zh: '動漫展與電玩展的人次', en: 'Convention attendance' },
+  tabLabel: { zh: '依人次', en: 'By attendance' },
+  indicators: ['conventions'],
+  file: 'conventions.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    points
+      .filter((p) => typeof p.att === 'number')
+      .sort((a, b) => Number(b.att) - Number(a.att))
+      .map((p, i): ListRow => {
+        const name = festivalName(p);
+        return {
+          key: `ca${i}-${name}`,
+          title: `${i + 1}. ${name}`,
+          properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== name ? p.en : undefined,
+          lines: [conFacts(p, countryName), conAttendance(p)].filter((x): x is string => !!x),
           target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
         };
       }),
@@ -323,6 +361,14 @@ export const festivals: TopicDefinition = {
       url: 'https://en.wikipedia.org/wiki/List_of_highest-grossing_concert_tours?oldid=1383993933',
       license: { zh: 'CC BY-SA 4.0（引用事實；票房原始數字來自 Pollstar、Billboard）', en: 'CC BY-SA 4.0 (facts cited; grosses originally from Pollstar and Billboard)' },
     },
+    {
+      name: {
+        zh: '英文維基百科「List of anime and manga conventions」（revid 1381313355，舉辦月份）與各動漫展、電玩展條目資訊框的人次',
+        en: 'English Wikipedia, “List of anime and manga conventions” (revision 1381313355, months held) and attendance from each convention article’s infobox',
+      },
+      url: 'https://en.wikipedia.org/wiki/List_of_anime_and_manga_conventions?oldid=1381313355',
+      license: { zh: 'CC BY-SA 4.0（引用事實）', en: 'CC BY-SA 4.0 (facts cited)' },
+    },
   ],
   note: {
     zh:
@@ -341,7 +387,7 @@ export const festivals: TopicDefinition = {
       'Added on 7 November 2026: subclasses of food festival (beer and wine festivals and so on), previously missed, now coloured as “food and drink festivals” (93; Munich’s Oktoberfest is not classed as a beer festival on Wikidata, and Taiwan has none); anime, comic and game conventions (Wikidata, whole events only rather than single editions; heavily skewed to the US and Europe – Japan has only 8 – and unrelated to the size of the events); and the highest-grossing concert tours (English Wikipedia’s list and each tour’s date table, with city coordinates from Wikidata, using the city and country names where the link is a redirect; show totals differ from the list where there are extra shows, shows not yet played or different table layouts – Metallica’s and BTS’s tours are still running and list announced future dates).',
   },
   panelExtra: () => import('./panels/FestivalsPanel'),
-  listPanel: [MONTH_LIST, CON_LIST, TOUR_LIST],
+  listPanel: [MONTH_LIST, CON_LIST, CON_ATT_LIST, TOUR_LIST],
   overlays: [
     layer('festivals', 'festivals.json', { zh: '有月份的節慶（依月份）', en: 'Festivals with a month (by month)' }, true),
     layer('festivals-undated', 'festivals-undated.json', { zh: '月份不詳的節慶', en: 'Festivals, month unknown' }, false),
@@ -372,8 +418,8 @@ export const festivals: TopicDefinition = {
       id: 'conventions',
       label: { zh: '動漫展與電玩展', en: 'Anime, comic and game conventions' },
       description: {
-        zh: 'Wikidata 收錄、找得到地點的 233 個動漫展、同人誌販售會、漫畫展、電玩展與其他同好大會，依種類上色，拖時間軸看它們依創辦年一個一個出現：盧卡國際漫畫節 1965 年、Gen Con 1968 年、聖地牙哥國際動漫展 1969 年最早。美國 77 個最多，德國 18、義大利 17、法國 17、西班牙 15；維基百科條目最多的是聖地牙哥國際動漫展、東京電玩展、安古蘭國際漫畫節、Comic Market、Gamescom。台灣有台北國際電玩展（2003 年起）、開拓動漫祭、台灣同人誌販售會、台北國際動漫節（Wikidata 沒有地點，畫在台北市）。左邊的清單依維基百科的語言數。',
-        en: 'The 233 anime conventions, dōjinshi fairs, comic conventions, game conventions and other fan conventions in Wikidata with a known location, coloured by type; drag the time slider to watch them appear by founding year – Lucca Comics & Games in 1965, Gen Con in 1968 and San Diego Comic-Con in 1969 are the oldest. The US has the most with 77, then Germany 18, Italy 17, France 17 and Spain 15; those with the most Wikipedia editions are San Diego Comic-Con, Tokyo Game Show, the Angoulême International Comics Festival, Comic Market and Gamescom. Taiwan has the Taipei Game Show (since 2003), Fancy Frontier, Comic World Taiwan and the Taipei International Comics & Animation Festival (no venue on Wikidata, so placed at Taipei). The list on the left ranks them by Wikipedia editions.',
+        zh: 'Wikidata 收錄、找得到地點的 233 個動漫展、同人誌販售會、漫畫展、電玩展與其他同好大會，依種類上色，拖時間軸看它們依創辦年一個一個出現：盧卡國際漫畫節 1965 年、Gen Con 1968 年、聖地牙哥國際動漫展 1969 年最早。美國 77 個最多，德國 18、義大利 17、法國 17、西班牙 15；維基百科條目最多的是聖地牙哥國際動漫展、東京電玩展、安古蘭國際漫畫節、Comic Market、Gamescom。台灣有台北國際電玩展（2003 年起）、開拓動漫祭、台灣同人誌販售會、台北國際動漫節（Wikidata 沒有地點，畫在台北市）。左邊的清單依維基百科的語言數，另一頁依人次：78 個有人次（多半是英文維基各條目資訊框寫的，年份不一），羅馬的 Romics 寫 40 萬（沒寫年份），台北國際電玩展 2025 年 37 萬、Gamescom 2025 年 35.7 萬、東京電玩展 2025 年 26.3 萬；Comic Market 條目寫的是疫情期間 2021 年 12 月的 11 萬。舉辦月份只有英文維基的動漫展清單有寫，40 個對得到，寫在說明。',
+        en: 'The 233 anime conventions, dōjinshi fairs, comic conventions, game conventions and other fan conventions in Wikidata with a known location, coloured by type; drag the time slider to watch them appear by founding year – Lucca Comics & Games in 1965, Gen Con in 1968 and San Diego Comic-Con in 1969 are the oldest. The US has the most with 77, then Germany 18, Italy 17, France 17 and Spain 15; those with the most Wikipedia editions are San Diego Comic-Con, Tokyo Game Show, the Angoulême International Comics Festival, Comic Market and Gamescom. Taiwan has the Taipei Game Show (since 2003), Fancy Frontier, Comic World Taiwan and the Taipei International Comics & Animation Festival (no venue on Wikidata, so placed at Taipei). The list on the left ranks them by Wikipedia editions, and a second tab by attendance: 78 have a figure (mostly from the infoboxes of English Wikipedia articles, for varying years). Rome’s Romics gives 400,000 (no year), the Taipei Game Show 370,000 in 2025, Gamescom 357,000 in 2025 and the Tokyo Game Show 263,000 in 2025; the Comic Market article gives 110,000 for the pandemic-era December 2021 edition. Months held are only given in English Wikipedia’s list of anime conventions; 40 are matched and shown in the tooltip.',
       },
       unit: { zh: '個', en: '' },
       file: 'conventions-count.json',
