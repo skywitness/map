@@ -96,6 +96,7 @@ const TOPIC_ICONS = {
   hvdc: 'unplug',
   'power-reliability': 'zap-off',
   'district-heating': 'heater',
+  'web-platforms': 'app-window',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

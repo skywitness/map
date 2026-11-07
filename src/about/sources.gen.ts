@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 202;
-export const INDICATOR_COUNT = 1537;
+export const TOPIC_COUNT = 203;
+export const INDICATOR_COUNT = 1541;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","digital","ip-addresses","developers","innovation","publications","research-orgs","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","tourism","nobel","sports","esports","dining","culture"]},
@@ -361,6 +361,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"showcaves.com（Jochen Duckeck）的統計表，2026-11-07","en":"showcaves.com (Jochen Duckeck), statistics table, 7 November 2026"},"url":"https://www.showcaves.com/english/explain/Index/Statistics.php","licenses":[{"zh":"CC0（站長自己做的內容是公有領域或 CC0）","en":"CC0 (the site author’s own content is public domain or CC0)"}],"topics":["show-caves"]},
   {"name":{"zh":"Smeenk 等 2023〈ART in Europe, 2019: results generated from European registries by ESHRE〉，Human Reproduction 38(12)，表 1、表 4","en":"Smeenk et al. 2023, “ART in Europe, 2019: results generated from European registries by ESHRE”, Human Reproduction 38(12), tables 1 and 4"},"url":"https://doi.org/10.1093/humrep/dead197","licenses":["CC BY 4.0"],"topics":["fertility"]},
   {"name":"Speedtest® by Ookla® Global Fixed and Mobile Network Performance Maps (AWS Open Data)","url":"https://github.com/teamookla/ookla-open-data","licenses":["CC BY-NC-SA 4.0"],"topics":["internet-speed"]},
+  {"name":"StatCounter Global Stats","url":"https://gs.statcounter.com/","licenses":["CC BY-SA 3.0"],"topics":["web-platforms"]},
   {"name":{"zh":"TeleGeography：Submarine Cable Map 的資料（2022-11-14 最後公開的版本，GitHub 儲存庫已刪除，連到 Wayback Machine 的存檔）","en":"TeleGeography, Submarine Cable Map data (last public version, 14 November 2022; the GitHub repository has been deleted, so this links to the Wayback Machine copy)"},"url":"https://web.archive.org/web/20221110120103/https://github.com/telegeography/www.submarinecablemap.com","licenses":["CC BY-NC-SA 3.0"],"topics":["submarine-cables"]},
   {"name":{"zh":"The Economist and Solstad, S., 2021, “The pandemic’s true death toll”（超額死亡模型，到 2024 年 6 月）","en":"The Economist and Solstad, S., 2021, “The pandemic’s true death toll” (excess deaths model, to June 2024)"},"url":"https://github.com/TheEconomist/covid-19-the-economist-global-excess-deaths-model","licenses":["MIT License, Copyright (c) 2021 The Economist Newspaper"],"topics":["covid"]},
   {"name":{"zh":"Therrell 等 2024〈Current Status of Newborn Bloodspot Screening Worldwide 2024〉，International Journal of Neonatal Screening 10(2):38","en":"Therrell et al. 2024, “Current Status of Newborn Bloodspot Screening Worldwide 2024”, International Journal of Neonatal Screening 10(2):38"},"url":"https://doi.org/10.3390/ijns10020038","licenses":["CC BY 4.0"],"topics":["newborn-screening"]},
