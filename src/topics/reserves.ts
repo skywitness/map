@@ -63,6 +63,11 @@ export const reserves: TopicDefinition = {
       url: 'https://nstatdb.dgbas.gov.tw/',
       license: OPEN_DATA_TW,
     },
+    {
+      name: { zh: 'World Bank, International Debt Statistics（公共外債的幣別組成，DT.CUR.*）', en: 'World Bank, International Debt Statistics (currency composition of public external debt, DT.CUR.*)' },
+      url: 'https://www.worldbank.org/en/programs/debt-statistics/ids',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '外匯存底含黃金，黃金以年底市價計。外債占 GDP：中低所得國家用世界銀行國際債務統計（IDS；世界銀行公布的是占 GNI，這裡改成除以 GDP），其他國家用 QEDS 的外債總額，都除以 IMF 的名目 GDP（美元）；2003 年以前 QEDS 只有少數國家，所以從 2003 年開始。經常帳 2026 年起為 IMF 推估值。最新一年還沒公布的國家（例如香港的外匯存底）顯示前一年的值。世界的進口月數是各國的外匯存底合計除以進口合計。台灣不在世界銀行與 QEDS 的資料中，改用中央銀行的外匯存底（加上黃金的市值）、國際收支與國際投資部位統計，細節見台灣側欄的附註。',
@@ -123,6 +128,49 @@ export const reserves: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-10, -5, -2, 2, 5, 10] } },
       format: (v) => formatSignedPercent(v, 1),
       formatTick: (v) => formatSignedPercent(v, 0),
+    },
+    {
+      id: 'debt-currency',
+      label: { zh: '外債用什麼貨幣借的', en: 'Currency of external debt' },
+      description: {
+        zh: '中低所得國家的公共與公共保證長期外債裡，用各種貨幣計價的比例（世界銀行國際債務統計，1970 年起，約 120 國）。美元：2024 年聖露西亞 99.3%、巴拉圭 99.1%、瓜地馬拉 98.8%、薩爾瓦多 98.2%、厄瓜多 97.9%、巴西 96.4%，拉丁美洲幾乎全是美元；北馬其頓 22.9%、索馬利亞 18.3%、阿爾及利亞 0%。歐元：北馬其頓 76.8%、波士尼亞 66.5%、阿爾巴尼亞 61.7%、象牙海岸 57.2%。日圓：緬甸 41.6%、伊拉克 37.7%、越南 25.0%。美元計價的比例越高，美國升息、美元升值時，還債的負擔就越重。只算政府借或保證的長期外債，不含民間外債與短期債；高所得國家（台灣、日本、美國等）不向世界銀行報告，沒有資料。',
+        en: 'Shares of the public and publicly guaranteed long-term external debt of low- and middle-income countries by currency (World Bank International Debt Statistics, from 1970, about 120 countries). US dollars: in 2024 Saint Lucia 99.3%, Paraguay 99.1%, Guatemala 98.8%, El Salvador 98.2%, Ecuador 97.9% and Brazil 96.4%, Latin America almost entirely in dollars; North Macedonia 22.9%, Somalia 18.3% and Algeria 0%. Euros: North Macedonia 76.8%, Bosnia 66.5%, Albania 61.7% and Côte d’Ivoire 57.2%. Yen: Myanmar 41.6%, Iraq 37.7% and Vietnam 25.0%. The larger the dollar share, the heavier the burden when US rates rise and the dollar strengthens. Only long-term debt borrowed or guaranteed by the government, not private or short-term debt; high-income countries (Taiwan, Japan, the US and others) do not report to the World Bank.',
+      },
+      unit: '%',
+      file: 'debt-currency/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [30, 50, 65, 80, 90, 95] },
+        itemScales: {
+          eur: { type: 'sequential', thresholds: [1, 5, 15, 30, 45, 60] },
+          jpy: { type: 'sequential', thresholds: [0.5, 2, 5, 10, 20, 35] },
+          gbp: { type: 'sequential', thresholds: [0.01, 0.1, 0.3, 0.6, 1, 2] },
+          chf: { type: 'sequential', thresholds: [0.01, 0.1, 0.5, 1, 5, 10] },
+          sdr: { type: 'sequential', thresholds: [0.5, 2, 4, 7, 10, 15] },
+          multi: { type: 'sequential', thresholds: [0.1, 0.5, 1, 2, 4, 6] },
+          other: { type: 'sequential', thresholds: [2, 5, 10, 20, 35, 50] },
+        },
+      },
+      dimension: {
+        label: { zh: '貨幣', en: 'Currency' },
+        options: [
+          { id: 'usd', label: { zh: '美元', en: 'US dollar' } },
+          { id: 'eur', label: { zh: '歐元', en: 'Euro' } },
+          { id: 'jpy', label: { zh: '日圓', en: 'Japanese yen' } },
+          { id: 'gbp', label: { zh: '英鎊', en: 'Pound sterling' } },
+          { id: 'chf', label: { zh: '瑞士法郎', en: 'Swiss franc' } },
+          { id: 'sdr', label: { zh: '特別提款權（SDR）', en: 'Special drawing rights (SDR)' } },
+          { id: 'multi', label: { zh: '多種貨幣', en: 'Multiple currencies' } },
+          { id: 'other', label: { zh: '其他貨幣', en: 'Other currencies' } },
+        ],
+        defaultOption: 'usd',
+      },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
+      noValue: {
+        TWN: { zh: '只有向世界銀行報告債務的中低所得國家', en: 'Only low- and middle-income countries reporting to the World Bank' },
+      },
     },
   ],
 };

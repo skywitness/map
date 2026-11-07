@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 154;
-export const INDICATOR_COUNT = 1183;
+export const INDICATOR_COUNT = 1184;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -342,6 +342,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wittgenstein Centre／IIASA, SSP Population and Human-Capital Projections, 2025-Rebased（zen2025V01，大專以上的成人比例推估）","en":"Wittgenstein Centre / IIASA, SSP Population and Human-Capital Projections, 2025-Rebased (zen2025V01; projected tertiary attainment)"},"url":"https://doi.org/10.5281/zenodo.21738149","licenses":["CC BY 4.0"],"topics":["education"]},
   {"name":{"zh":"World Bank WDI：每位就業者的附加價值（NV.IND.EMPL.KD、NV.SRV.EMPL.KD）","en":"World Bank WDI: value added per worker (NV.IND.EMPL.KD, NV.SRV.EMPL.KD)"},"url":"https://data.worldbank.org/indicator/NV.IND.EMPL.KD","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"World Bank, International Comparison Program 2021（食物支出占消費）","en":"World Bank, International Comparison Program 2021 (food share of consumption)"},"url":"https://datacatalog.worldbank.org/search/dataset/0066092/international-comparison-program-2021","licenses":["CC BY 4.0"],"topics":["prices"]},
+  {"name":{"zh":"World Bank, International Debt Statistics（公共外債的幣別組成，DT.CUR.*）","en":"World Bank, International Debt Statistics (currency composition of public external debt, DT.CUR.*)"},"url":"https://www.worldbank.org/en/programs/debt-statistics/ids","licenses":["CC BY 4.0"],"topics":["reserves"]},
   {"name":{"zh":"World Bank, Poverty and Inequality Platform（WDI 與 PIP API）","en":"World Bank, Poverty and Inequality Platform (WDI and PIP API)"},"url":"https://pip.worldbank.org/","licenses":["CC BY 4.0"],"topics":["inequality"]},
   {"name":{"zh":"World Bank, WDI（陸域保護區占國土，UNEP-WCMC 的 WDPA 與 WD-OECM）","en":"World Bank, WDI (terrestrial protected areas, from UNEP-WCMC’s WDPA and WD-OECM)"},"url":"https://data.worldbank.org/indicator/ER.LND.PTLD.ZS","licenses":["CC BY 4.0"],"topics":["national-parks"]},
   {"name":{"zh":"World Bank, What a Waste 3.0 國家資料（2026 年 3 月；Cook 等 2026）","en":"World Bank, What a Waste 3.0 country dataset (March 2026; Cook et al. 2026)"},"url":"https://datacatalog.worldbank.org/search/dataset/0039597","licenses":["CC BY 4.0"],"topics":["plastic"]},

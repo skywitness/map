@@ -409,6 +409,8 @@ STEPS = {
     "labour-rights": "topics.labour_rights",
     # 稅率：企業新投資的有效平均稅率（OECD ETR）、遺產及贈與稅占 GDP（OECD 全球稅收統計＋財政部稅目別）
     "taxes-effective": "topics.taxes_effective",
+    # 外匯存底與外債：外債的幣別組成（World Bank IDS，source 6 的 series 網址）
+    "reserves-debt-currency": "topics.debt_currency",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
