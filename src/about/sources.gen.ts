@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 171;
-export const INDICATOR_COUNT = 1256;
+export const INDICATOR_COUNT = 1258;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -433,6 +433,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"內政部 歷年土地筆數面積公告地價統計（data.gov.tw 25074）","en":"Ministry of the Interior (Taiwan), land parcels, area and announced land value (data.gov.tw 25074)"},"url":"https://data.gov.tw/dataset/25074","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["property-costs"]},
   {"name":{"zh":"內政部不動產資訊平台 住宅價格指數、房價負擔能力指標","en":"Ministry of the Interior (Taiwan): housing price index and affordability indicators"},"url":"https://pip.moi.gov.tw/Publicize/Info/E2010","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["real-estate"]},
   {"name":{"zh":"內政部不動產資訊平台 房屋稅籍住宅類數量依總樓層區分","en":"Ministry of the Interior (Taiwan), real estate information platform: dwellings on the property tax register by number of floors"},"url":"https://pip.moi.gov.tw/Publicize/Info/E4040","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["housing"]},
+  {"name":{"zh":"內政部國土測繪中心：國土利用現況調查（鄉鎮市區統計，109–110 年、113–114 年）","en":"National Land Surveying and Mapping Center, Taiwan: land use survey by township (2020–21, 2024–25)"},"url":"https://data.gov.tw/dataset/178038","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, Taiwan, v1.0"}],"topics":["land-use"]},
   {"name":{"zh":"內政部國土測繪中心：直轄市、縣市界線與鄉鎮市區界線","en":"NLSC, Ministry of the Interior (Taiwan): county and township boundaries"},"url":"https://data.gov.tw/dataset/7441","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["map"]},
   {"name":{"zh":"內政部國家公園署「國家重要濕地」重要濕地範圍圖（data.gov.tw 25659）","en":"National Park Service (Taiwan), wetlands of importance: boundaries (data.gov.tw 25659)"},"url":"https://data.gov.tw/dataset/25659","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["world-heritage"]},
   {"name":{"zh":"內政部移民署（外僑居留人數）、僑務委員會（海外臺灣僑民人數）","en":"National Immigration Agency and Overseas Community Affairs Council (Taiwan)"},"url":"https://data.gov.tw/dataset/13506","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["migration"]},

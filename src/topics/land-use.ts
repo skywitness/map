@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
-import type { ScaleSpec, TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
  * 土地利用（新主題，2026-11-07，製作手冊第二十五批 491，候選 1154、1155；環境的「土地」）：
@@ -53,6 +54,90 @@ const pct = (v: number) => fixed(v, v < 10 ? 2 : 1) + '%';
 const ha = (v: number) => tr({ zh: formatLargeNumber(v) + ' 公頃', en: formatLargeNumber(v) + ' ha' });
 const NO_PASTURE_TW = { zh: '台灣沒有永久草地與牧地的資料', en: 'No permanent meadow and pasture data for Taiwan' };
 
+/**
+ * 台灣的土地利用現況調查（2026-11-07，第二十五批 493）：368 個鄉鎮市區的代表點（pipeline/topics/land_use_tw.py），
+ * 9 大類的占比（s01…s09，113–114 年）與兩期相差的百分點（c01…c09，比 109–110 年）
+ */
+const TW_CLASSES = [
+  { id: '01', label: { zh: '農業使用', en: 'Agriculture' } },
+  { id: '02', label: { zh: '森林使用', en: 'Forest' } },
+  { id: '03', label: { zh: '交通使用', en: 'Transport' } },
+  { id: '04', label: { zh: '水利使用', en: 'Water conservancy' } },
+  { id: '05', label: { zh: '建築使用', en: 'Buildings' } },
+  { id: '06', label: { zh: '公共使用', en: 'Public facilities' } },
+  { id: '07', label: { zh: '遊憩使用', en: 'Recreation' } },
+  { id: '08', label: { zh: '礦鹽使用', en: 'Mining and salt' } },
+  { id: '09', label: { zh: '其他使用', en: 'Other' } },
+];
+const TW_DIM = { label: { zh: '土地利用', en: 'Land use' }, options: TW_CLASSES, defaultOption: '05' };
+const TAIWAN: [number, number, number, number] = [119.3, 21.8, 122.1, 25.4];
+const SHARE_T = [1, 5, 10, 20, 40, 60];
+const CHANGE_T = [-5, -2, -0.5, 0.5, 2, 5];
+const townRadius = { field: 't', stops: [[300, 2.2], [3000, 3.4], [30000, 6], [100000, 9]] as [number, number][] };
+const townTooltip = (c: (typeof TW_CLASSES)[number]) => (p: Record<string, unknown>) => {
+  const share = p['s' + c.id];
+  const change = p['c' + c.id];
+  return {
+    title: typeof p.n === 'string' ? p.n : '',
+    detail: tr({
+      zh: `${c.label.zh} ${share == null ? '—' : fixed(Number(share), 1) + '%'}`,
+      en: `${c.label.en} ${share == null ? '—' : fixed(Number(share), 1) + '%'}`,
+    }),
+    extra: [
+      ...(change == null
+        ? []
+        : [tr({ zh: `比 109–110 年 ${Number(change) >= 0 ? '+' : ''}${fixed(Number(change), 1)} 個百分點`, en: `${Number(change) >= 0 ? '+' : ''}${fixed(Number(change), 1)} points vs 2020–21` })]),
+      tr({ zh: `鄉鎮市區面積 ${formatLargeNumber(Number(p.t))} 公頃`, en: `Township area ${formatLargeNumber(Number(p.t))} ha` }),
+    ],
+  };
+};
+function twShareOverlay(c: (typeof TW_CLASSES)[number]): PointsOverlayDef {
+  return {
+    kind: 'points',
+    id: 'tw-share-' + c.id,
+    file: 'tw-towns.json',
+    label: { zh: '鄉鎮市區（113–114 年調查）', en: 'Townships (2024–25 survey)' },
+    indicators: ['tw-share'],
+    items: [c.id],
+    radius: townRadius,
+    color: {
+      field: 's' + c.id,
+      title: { zh: `${c.label.zh}占鄉鎮市區面積`, en: `${c.label.en} share of township area` },
+      thresholds: SHARE_T,
+      classes: MAP_TOKENS.sequential.map((color, i) => ({
+        color,
+        label: i === 0 ? `< ${SHARE_T[0]}%` : i === SHARE_T.length ? `≥ ${SHARE_T[i - 1]}%` : `${SHARE_T[i - 1]}–${SHARE_T[i]}%`,
+      })),
+    },
+    tooltip: townTooltip(c),
+  };
+}
+function twChangeOverlay(c: (typeof TW_CLASSES)[number]): PointsOverlayDef {
+  return {
+    kind: 'points',
+    id: 'tw-change-' + c.id,
+    file: 'tw-towns.json',
+    label: { zh: '鄉鎮市區（兩期相比）', en: 'Townships (two surveys compared)' },
+    indicators: ['tw-change'],
+    items: [c.id],
+    radius: townRadius,
+    color: {
+      field: 'c' + c.id,
+      title: { zh: `${c.label.zh}占比的變化（百分點）`, en: `Change in ${c.label.en} share (points)` },
+      thresholds: CHANGE_T,
+      classes: MAP_TOKENS.diverging.map((color, i) => ({
+        color,
+        label: i === 0 ? `< ${CHANGE_T[0]}` : i === CHANGE_T.length ? `≥ +${CHANGE_T[i - 1]}` : `${CHANGE_T[i - 1]} – ${CHANGE_T[i]}`,
+      })),
+    },
+    tooltip: townTooltip(c),
+  };
+}
+const TW_SOURCE_NOTE = {
+  zh: '國家不上色，只有台灣的鄉鎮市區',
+  en: 'Countries are not coloured; Taiwan’s townships only',
+};
+
 export const landUse: TopicDefinition = {
   id: 'land-use',
   title: { zh: '土地利用', en: 'Land use' },
@@ -71,6 +156,11 @@ export const landUse: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: { zh: '內政部國土測繪中心：國土利用現況調查（鄉鎮市區統計，109–110 年、113–114 年）', en: 'National Land Surveying and Mapping Center, Taiwan: land use survey by township (2020–21, 2024–25)' },
+      url: 'https://data.gov.tw/dataset/178038',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1.0' },
+    },
+    {
       name: { zh: 'FAOSTAT：SDG Indicators（SDG 15.4.2 山地綠覆蓋）', en: 'FAOSTAT: SDG Indicators (SDG 15.4.2 mountain green cover)' },
       url: 'https://www.fao.org/faostat/en/#data/SDGB',
       license: 'CC BY 4.0',
@@ -81,6 +171,7 @@ export const landUse: TopicDefinition = {
     en: 'Land use (cropland, pasture and so on) is statistics reported by countries to the UN Food and Agriculture Organization (FAO) or estimated by FAO, from 1961; land cover is FAO’s national totals of the European Space Agency’s satellite classification (ESA CCI Land Cover, 300 m), 1992–2022. They measure different things: statistical “cropland” is not the same as the “crops” a satellite sees, nor is FAO forest the same as tree cover. FAO also publishes land cover from MODIS, Copernicus and two other sources, which can differ several-fold for the same country and year; only CCI is used here. Satellite classes flip between grassland and bare land in dry regions, and some of the growth in artificial surfaces comes from better sensors and algorithms, so read only the broad trends. Figures from external organisations (flag X) are not used. Population is from UN WPP 2024.',
   },
   panelExtra: () => import('./panels/LandUsePanel'),
+  overlays: [...TW_CLASSES.map(twShareOverlay), ...TW_CLASSES.map(twChangeOverlay)],
   indicators: [
     {
       id: 'share',
@@ -167,6 +258,44 @@ export const landUse: TopicDefinition = {
       format: (v) => fixed(v, 1) + '%',
       formatTick: (v) => v + '%',
       missing: { zh: '沒有資料（山地不到 1,000 平方公里，或不在 FAO 的資料裡）', en: 'No data (under 1,000 km² of mountains, or not in FAO’s data)' },
+    },
+    {
+      id: 'tw-share',
+      label: { zh: '台灣鄉鎮市區的土地利用', en: 'Land use in Taiwan’s townships' },
+      description: {
+        zh: '內政部國土測繪中心的國土利用現況調查（113–114 年），368 個鄉鎮市區各類土地占面積的比例，每個點是一個鄉鎮市區。全台合計約 368 萬公頃：森林使用 58.7%、農業使用 18.9%、建築使用 5.4%、水利使用 5.3%、交通使用 3.5%、公共使用 1.3%、遊憩使用 0.7%、其他使用（草生地、濕地、灘地、崩塌地、未使用地等）6.1%。建築最密的是臺中市中區 55.4%；農業最多的是雲林縣褒忠鄉 80.2%；森林最多的是新北市烏來區 95.9%。這是實地判釋的土地利用，跟 FAO 申報的耕地口徑不同。',
+        en: 'The national land use survey by the Ministry of the Interior’s National Land Surveying and Mapping Center (2024–25): each type of use as a share of each of Taiwan’s 368 townships; each dot is a township. Of about 3.68 million hectares in total, forest covers 58.7%, agriculture 18.9%, buildings 5.4%, water conservancy 5.3%, transport 3.5%, public facilities 1.3%, recreation 0.7% and other uses (grassland, wetland, beaches, landslides, unused land, etc.) 6.1%. Buildings are densest in Taichung’s Central District (55.4%), agriculture highest in Baozhong, Yunlin (80.2%) and forest in Wulai, New Taipei (95.9%). This is surveyed land use, defined differently from the cropland Taiwan reports to FAO.',
+      },
+      unit: '',
+      file: 'tw-share/{item}.json',
+      dimension: TW_DIM,
+      layer: { kind: 'none' },
+      focus: TAIWAN,
+      timeless: true,
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      missing: TW_SOURCE_NOTE,
+    },
+    {
+      id: 'tw-change',
+      label: { zh: '台灣鄉鎮市區的土地利用變化', en: 'Change in land use in Taiwan’s townships' },
+      description: {
+        zh: '113–114 年跟 109–110 年兩期國土利用現況調查相比，各類土地占鄉鎮市區面積的比例差了幾個百分點。全台農業使用少了約 2.76 萬公頃（72.6 萬 → 69.8 萬），建築使用多了約 7,300 公頃，森林使用多了約 1.8 萬公頃。農業占比降最多的是桃園市大園區（−11.6）、屏東縣林邊鄉（−11.1）、高雄市彌陀區（−10.1）、永安區（−9.1）。兩期的判讀準則有微調，幾個百分點以內的變化與少數反常的減少（例如建地變少）可能是分類調整，不一定是土地真的改變。',
+        en: 'Change in each type of use as a share of township area between the 2020–21 and 2024–25 land use surveys (percentage points). Nationwide, agricultural use fell by about 27,600 ha (726,000 → 698,000), buildings grew by about 7,300 ha and forest by about 18,000 ha. Agriculture’s share fell most in Dayuan, Taoyuan (−11.6), Linbian, Pingtung (−11.1), and Mituo (−10.1) and Yong’an (−9.1) in Kaohsiung. Interpretation rules were adjusted slightly between surveys, so changes of a few points and odd decreases (such as less built-up land) may reflect reclassification rather than real change.',
+      },
+      unit: '',
+      file: 'tw-change/{item}.json',
+      dimension: TW_DIM,
+      layer: { kind: 'none' },
+      focus: TAIWAN,
+      timeless: true,
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      missing: TW_SOURCE_NOTE,
     },
     {
       id: 'built-change',
