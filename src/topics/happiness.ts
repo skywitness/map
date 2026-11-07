@@ -42,6 +42,11 @@ export const happiness: TopicDefinition = {
         en: 'May be reproduced with the reference (WHR data sharing policy)',
       },
     },
+    {
+      name: { zh: 'Eurostat：對別人的信任（ilc_pw03）、有沒有人可以依靠（ilc_pw06）', en: 'Eurostat: trust in others (ilc_pw03) and having someone to rely on (ilc_pw06)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/ilc_pw03/default/table',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '分數是蓋洛普世界民調（每國每年約 1,000 人）的近三年平均，有抽樣誤差：差距在 0.1–0.2 分以內的國家，名次前後不一定有意義（點國家可以看到 95% 信賴區間）。台灣在《世界幸福報告》裡寫成「Taiwan Province of China」。排名表的名次依分數計算（同分同名次），跟報告公布的名次偶爾差 1（報告用沒有四捨五入的分數），側欄另外列出報告公布的名次。',
@@ -87,5 +92,32 @@ export const happiness: TopicDefinition = {
       zh: '覺得政府與企業貪腐的人越少分數越高。2025 年新加坡 0.51、芬蘭 0.49、丹麥 0.47 分最多，日本 0.20、台灣 0.18、南韓 0.15。',
       en: 'The fewer people who see corruption in government and business, the higher the score. In 2025 Singapore (0.51), Finland (0.49) and Denmark (0.47) score highest; Japan 0.20, Taiwan 0.18, South Korea 0.15.',
     }, [0.05, 0.1, 0.15, 0.25, 0.35]),
+    // 2026-11-07（製作手冊第二十七批 561，候選 1266、1267）：Eurostat 的信任與依靠（pipeline/topics/happiness_eu.py）
+    {
+      id: 'trust-others',
+      label: { zh: '對別人的信任（0–10 分）', en: 'Trust in others (0–10)' },
+      description: {
+        zh: 'Eurostat 的歐盟所得與生活條件調查（EU-SILC）問 16 歲以上的人「一般來說你信得過別人嗎」，0 分完全不信、10 分完全信得過，這是平均分數；只有歐洲，不含英國。2025 年 31 國：羅馬尼亞 7.5、芬蘭 7.0、波蘭 6.9、荷蘭 6.7、愛爾蘭 6.7、克羅埃西亞 6.6 最高，德國 5.6、瑞典 5.6，土耳其 3.3、賽普勒斯 3.5、法國 4.0、立陶宛 4.4 最低。各國對 0–10 量尺的作答習慣不同（羅馬尼亞第一、法國倒數不完全是真的比較信任），不適合排名次；2013、2018 年是福祉專題模組，2021 年起每年問，兩段不一定能直接比（丹麥 2013 年 8.3、2025 年 5.7）。跟世界幸福報告的「社會支持」是不同的調查與題目。台灣沒有對得起來的資料。',
+        en: 'The EU Survey on Income and Living Conditions (EU-SILC) asks people aged 16 and over “in general, how much do you trust others?”, from 0 (not at all) to 10 (completely); this is the average. Europe only, not the UK. In 2025, of 31 countries, Romania (7.5), Finland (7.0), Poland (6.9), the Netherlands and Ireland (6.7) and Croatia (6.6) are highest, Germany and Sweden 5.6, and Türkiye (3.3), Cyprus (3.5), France (4.0) and Lithuania (4.4) lowest. Countries use the 0–10 scale differently (Romania first and France near the bottom does not simply mean more trust), so it is not suited to ranking; 2013 and 2018 come from a well-being module and the question has been asked yearly since 2021, so the two periods may not be directly comparable (Denmark 8.3 in 2013, 5.7 in 2025). It is a different survey and question from social support in the World Happiness Report. There are no comparable data for Taiwan.',
+      },
+      unit: { zh: '分', en: 'score' },
+      file: 'trust-others.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [4.5, 5, 5.5, 6, 6.5, 7] } },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 分`, en: fixed(v, 1) }),
+      formatTick: (v) => fixed(v, 1),
+    },
+    {
+      id: 'someone-to-rely-on',
+      label: { zh: '有人可以依靠的比例', en: 'Having someone to rely on' },
+      description: {
+        zh: 'Eurostat 的 EU-SILC：16 歲以上說「需要幫忙時有親友、鄰居可以依靠」的比例；2013、2018、2022 年，只有歐洲，不含英國。2022 年 33 國：挪威 97.6%、葡萄牙 97.0%、賽普勒斯 96.5%、芬蘭 96.4%、瑞典 96.3% 最高，法國 90.6%，羅馬尼亞 70.7%、德國 79.8%、義大利 81.8%、阿爾巴尼亞 85.9% 最低，歐盟 27 國 88.8%。羅馬尼亞的信任分數最高、這裡卻最低。2015 年以前另外兩個表問的是不同的題目，沒有接。跟世界幸福報告的「社會支持」是同一個概念、不同的調查。台灣沒有對得起來的資料。',
+        en: 'EU-SILC: share of people aged 16 and over who say they have relatives, friends or neighbours to rely on when they need help; 2013, 2018 and 2022, Europe only, not the UK. In 2022, of 33 countries, Norway (97.6%), Portugal (97.0%), Cyprus (96.5%), Finland (96.4%) and Sweden (96.3%) are highest, France 90.6%, and Romania (70.7%), Germany (79.8%), Italy (81.8%) and Albania (85.9%) lowest; EU27 88.8%. Romania has the highest trust score yet the lowest share here. Two earlier tables before 2015 asked different questions and are not joined. It is the same idea as social support in the World Happiness Report, from a different survey. There are no comparable data for Taiwan.',
+      },
+      unit: '%',
+      file: 'someone-to-rely-on.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [80, 85, 90, 93, 95, 97] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
   ],
 };

@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 183;
-export const INDICATOR_COUNT = 1410;
+export const INDICATOR_COUNT = 1412;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -150,6 +150,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：各產業的附加價值（nama_10_a10，NACE A*10）","en":"Eurostat: gross value added by industry (nama_10_a10, NACE A*10)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nama_10_a10/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Eurostat：家庭與非家庭電價（nrg_pc_204、nrg_pc_205）","en":"Eurostat: electricity prices for household and non-household consumers (nrg_pc_204, nrg_pc_205)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
   {"name":{"zh":"Eurostat：家戶的最終能源消費依用途與燃料（nrg_d_hhq，2010–2024）","en":"Eurostat, disaggregated final energy consumption in households (nrg_d_hhq, 2010–2024)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_d_hhq/default/table","licenses":["CC BY 4.0"],"topics":["household-energy"]},
+  {"name":{"zh":"Eurostat：對別人的信任（ilc_pw03）、有沒有人可以依靠（ilc_pw06）","en":"Eurostat: trust in others (ilc_pw03) and having someone to rely on (ilc_pw06)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_pw03/default/table","licenses":["CC BY 4.0"],"topics":["happiness"]},
   {"name":{"zh":"Eurostat：文化與運動活動的參與（ilc_scp04，運動比賽）","en":"Eurostat: participation in cultural and sport activities (ilc_scp04, sports events)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_scp04/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
