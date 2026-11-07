@@ -40,6 +40,7 @@ export const RELATED: Record<string, string[]> = {
   'time-use': ['wages', 'gender', 'happiness'],
   esports: ['sports', 'internet-speed', 'digital'],
   horses: ['agriculture', 'sports', 'gambling'],
+  'origin-names': ['diet', 'agriculture', 'tobacco-alcohol'],
   culture: ['world-heritage', 'time-use', 'taiwan-diplomacy'],
   festivals: ['religion', 'daylight'],
   reads: ['language', 'digital'],

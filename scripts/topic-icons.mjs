@@ -94,6 +94,7 @@ const TOPIC_ICONS = {
   sports: 'medal',
   racing: 'flag-triangle-right',
   horses: 'trophy',
+  'origin-names': 'certificate',
   reads: 'book-open',
   // 經濟
   income: 'banknote',
