@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1362;
+export const INDICATOR_COUNT = 1363;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -590,6 +590,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「Country code top-level domain」（revid 1383901539，2026-11-05）","en":"English Wikipedia, “Country code top-level domain” (revid 1383901539, 5 November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Country_code_top-level_domain&oldid=1383901539","licenses":["CC BY-SA 4.0"],"topics":["cctld"]},
   {"name":{"zh":"英文維基百科「Deep geological repository」的處置場表（revid 1381499099），狀態對照相關條目與官方消息（2026-10-31）","en":"English Wikipedia, “Deep geological repository”, table of repository sites (revision 1381499099), statuses checked against linked articles and official sources (31 Oct 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1381499099","licenses":["CC BY-SA 4.0"],"topics":["nuclear"]},
   {"name":{"zh":"英文維基百科「Departure tax」的表（revid 1371947177）","en":"English Wikipedia, “Departure tax” table (revision 1371947177)"},"url":"https://en.wikipedia.org/wiki/Departure_tax?oldid=1371947177","licenses":[{"zh":"CC BY-SA 4.0（引用事實）","en":"CC BY-SA 4.0 (facts cited)"}],"topics":["travel"]},
+  {"name":{"zh":"英文維基百科「Earthquake early warning system」（revid 1383802141，地震預警）","en":"English Wikipedia, “Earthquake early warning system” (revision 1383802141; early warning)"},"url":"https://en.wikipedia.org/wiki/Earthquake_early_warning_system?oldid=1383802141","licenses":[{"zh":"CC BY-SA 4.0（只引用事實）","en":"CC BY-SA 4.0 (facts only)"}],"topics":["earthquakes"]},
   {"name":{"zh":"英文維基百科「Forbes Global 2000」（轉引 Forbes，2026 年 11 月 5 日的版本）","en":"Wikipedia, “Forbes Global 2000” (citing Forbes; revision of 5 November 2026)"},"url":"https://en.wikipedia.org/wiki/Forbes_Global_2000?oldid=1383885674","licenses":["CC BY-SA 4.0"],"topics":["companies"]},
   {"name":{"zh":"英文維基百科「Gambling age」（博弈的合法性，2026 年 10 月）","en":"Wikipedia, “Gambling age” (legality of gambling, October 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1379514800","licenses":["CC BY-SA 4.0"],"topics":["gambling"]},
   {"name":{"zh":"英文維基百科「Health care systems by country」（revid 1379352169）與「Universal health care」（revid 1382403456）的表（醫療的主要財源、全民健保的開辦年份）","en":"English Wikipedia, “Health care systems by country” (revid 1379352169) and “Universal health care” (revid 1382403456) tables (financing, start of universal coverage)"},"url":"https://en.wikipedia.org/w/index.php?title=Health_care_systems_by_country&oldid=1379352169","licenses":["CC BY-SA 4.0"],"topics":["health-spending"]},

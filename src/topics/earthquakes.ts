@@ -402,6 +402,28 @@ const quakeExtraIndicators: IndicatorDef[] = [
   },
 ];
 
+// ── 地震預警（2026-11-07，製作手冊第二十七批 541；pipeline/topics/eew.py）──
+const EEW_CATEGORIES: CategoryDef[] = [
+  { value: 1, label: { zh: '全國系統', en: 'Nationwide system' } },
+  { value: 2, label: { zh: '只蓋部分地區的官方系統', en: 'Official system covering part of the country' } },
+  { value: 3, label: { zh: '試辦、要裝 App 或只給特定設施', en: 'Pilot, opt-in app or facilities only' } },
+  { value: 4, label: { zh: '只有 Android 手機的警報', en: 'Android phone alerts only' } },
+];
+const eewIndicator: IndicatorDef = {
+  id: 'eew',
+  label: { zh: '收得到地震預警嗎', en: 'Earthquake early warning' },
+  description: {
+    zh: '地震發生後、搖晃到達前幾秒到幾十秒發出的預警，哪些國家收得到（英文維基「Earthquake early warning system」2026-11-04 的版本，分級照條目的四類，滑過看各國的系統）。全國系統只有日本（2007 年第一個）、台灣、南韓、以色列、中國，另外摩爾多瓦境內不被承認的聶斯特里亞 2025 年也有；墨西哥、美國西岸、加拿大、印度北阿坎德邦、祕魯是只蓋部分地區的官方系統；中美洲四國、羅馬尼亞、義大利（羅馬–那不勒斯高鐵）、印尼、土耳其是試辦、要自己裝 App 或只給特定設施。Google 的 Android 手機警報條目點名的有希臘、紐西蘭、菲律賓、中亞五國與委內瑞拉；Google 說 2025 年另有 98 國收得到，但沒有公布名單，這些國家沒有上色。',
+    en: 'Which countries get warnings in the seconds to tens of seconds between an earthquake and the shaking (English Wikipedia’s “Earthquake early warning system”, revision of 4 November 2026, grouped by the article’s four kinds; hover for each country’s system). Only Japan (the first, in 2007), Taiwan, South Korea, Israel and China have nationwide systems, as does Transnistria, the unrecognised territory within Moldova, since 2025; Mexico, the US West Coast, Canada, India’s Uttarakhand and Peru have official systems covering part of the country; the four Central American countries, Romania, Italy (the Rome–Naples high-speed line), Indonesia and Türkiye have pilots, opt-in apps or systems for particular facilities. The article names Greece, New Zealand, the Philippines, five Central Asian countries and Venezuela for Google’s Android phone alerts; Google says 98 more countries could receive them in 2025 but publishes no list, so those are not shaded.',
+  },
+  unit: '',
+  file: 'eew.json',
+  layer: { kind: 'categorical', ordinal: true, categories: EEW_CATEGORIES },
+  timeless: true,
+  format: (v) => tr(EEW_CATEGORIES.find((c) => c.value === v)?.label ?? ''),
+  missing: { zh: '條目沒有提到', en: 'Not mentioned in the article' },
+};
+
 // ── 火山的類型、岩性、噴發史（2026-11-07，製作手冊第二十七批 538；pipeline/topics/volcano_extra.py）──
 
 /** 有火山點的指標：更新世的火山只畫在這些指標上 */
@@ -603,6 +625,14 @@ export const earthquakes: TopicDefinition = {
       license: { zh: '公有領域', en: 'public domain' },
     },
     {
+      name: {
+        zh: '英文維基百科「Earthquake early warning system」（revid 1383802141，地震預警）',
+        en: 'English Wikipedia, “Earthquake early warning system” (revision 1383802141; early warning)',
+      },
+      url: 'https://en.wikipedia.org/wiki/Earthquake_early_warning_system?oldid=1383802141',
+      license: { zh: 'CC BY-SA 4.0（只引用事實）', en: 'CC BY-SA 4.0 (facts only)' },
+    },
+    {
       name: { zh: 'NOAA NCEI 全球重大火山噴發資料庫（死亡人數）', en: 'NOAA NCEI Global Significant Volcanic Eruptions Database (deaths)' },
       url: 'https://doi.org/10.7289/V5JW8BSH',
       license: { zh: '公有領域', en: 'public domain' },
@@ -728,7 +758,7 @@ export const earthquakes: TopicDefinition = {
     // 2026-11-06（板6）：USGS 最近 7 天規模 4.5 以上的地震，瀏覽器直接讀，每 5 分鐘重讀（預設關閉）
     liveQuakesOverlay([...QUAKE_INDICATORS, 'plates'], DEPTH, MAG_STOPS),
   ],
-  indicators: [...indicators, ...quakeExtraIndicators, ...volcanoIndicators, PLATES_INDICATOR, ...landslidesPart.indicators],
+  indicators: [...indicators, ...quakeExtraIndicators, eewIndicator, ...volcanoIndicators, PLATES_INDICATOR, ...landslidesPart.indicators],
   // 2026-11-06（板4、板5）：「板塊」指標滑到任一點寫在哪一塊板塊、離最近的邊界多遠；「定位我」放的觀察點也寫；左側欄是各板塊的人口
   pointer: platePointer,
   pin: platePin,
