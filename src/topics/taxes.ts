@@ -91,6 +91,21 @@ export const taxes: TopicDefinition = {
       url: 'https://nstatdb.dgbas.gov.tw/',
       license: OPEN_DATA_TW,
     },
+    {
+      name: { zh: 'OECD, Corporate Tax Statistics：前瞻性有效稅率（DF_ETR_BASELINE）', en: 'OECD, Corporate Tax Statistics: forward-looking effective tax rates (DF_ETR_BASELINE)' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_ETR%40DF_ETR_BASELINE&df[ag]=OECD.CTP.TPS',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'OECD 全球稅收統計（遺產、繼承與贈與稅 T_4300）', en: 'OECD Global Revenue Statistics (estate, inheritance and gift taxes, T_4300)' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_REV_COMP_GLOBAL%40DF_RSGLOBAL&df[ag]=OECD.CTP.TPS',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '財政部 財政統計資料庫：稅目別實徵淨額（台灣的遺產及贈與稅）', en: 'Ministry of Finance (Taiwan), fiscal statistics: net tax collections by tax (estate and gift tax)' },
+      url: 'https://web02.mof.gov.tw/njswww/WebMain.aspx?sys=100&funid=defjspf2',
+      license: OPEN_DATA_TW,
+    },
   ],
   note: {
     zh:
@@ -188,6 +203,36 @@ export const taxes: TopicDefinition = {
         TWN: { zh: 'OECD 沒有算台灣的', en: 'Not computed for Taiwan by the OECD' },
       },
       coverage: { countries: OECD_AND_TAIWAN, reason: OECD_ONLY },
+    },
+    {
+      id: 'eatr',
+      label: { zh: '企業新投資實際負擔的稅率', en: 'Effective average tax rate on new investment' },
+      description: {
+        zh: '上面的營所稅是法定稅率；這裡把折舊攤提、資產類別、通膨與利率都算進去，一筆有利可圖的新投資實際負擔的平均稅率（OECD 的前瞻性有效平均稅率 EATR，固定的利率與通膨情境，各類資產合計）。2025 年喀麥隆 46.6%、尚比亞 42.1%、哥倫比亞 32.9%、巴西 32.5%、阿根廷 32.4% 最高；日本 28.4%、德國 26.8%、南韓 24.9%、印度 24.0%、中國大陸 23.0%、英國 22.5%、美國 22.1%、新加坡 16.1%、香港 14.3%、愛爾蘭 12.4%；開曼群島、巴哈馬、澤西等沒有企業所得稅的轄區是 0。法定稅率高但折舊優惠大的國家，實際稅率會低很多。這是模型算的稅率，不是企業實際繳的稅除以利潤。台灣不在 OECD 的資料裡（法定營所稅率 20%）。',
+        en: 'The corporate tax above is the statutory rate; this folds in depreciation allowances, asset types, inflation and interest rates to give the average tax rate a profitable new investment actually bears (the OECD’s forward-looking effective average tax rate, EATR, fixed interest and inflation scenario, all asset types combined). In 2025 Cameroon (46.6%), Zambia (42.1%), Colombia (32.9%), Brazil (32.5%) and Argentina (32.4%) were highest; Japan 28.4%, Germany 26.8%, South Korea 24.9%, India 24.0%, mainland China 23.0%, the UK 22.5%, the US 22.1%, Singapore 16.1%, Hong Kong 14.3% and Ireland 12.4%; jurisdictions with no corporate income tax such as the Cayman Islands, the Bahamas and Jersey are 0. Countries with high statutory rates but generous depreciation have much lower effective rates. It is a modelled rate, not taxes actually paid divided by profits. Taiwan is not in the OECD data (statutory rate 20%).',
+      },
+      unit: '%',
+      file: 'eatr.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      format: rate,
+      formatTick: rateTick,
+      noValue: {
+        TWN: { zh: 'OECD 沒有算台灣的（法定 20%）', en: 'Not computed for Taiwan by the OECD (statutory 20%)' },
+      },
+    },
+    {
+      id: 'inheritance-tax',
+      label: { zh: '遺產及贈與稅占 GDP', en: 'Estate, inheritance and gift taxes (% of GDP)' },
+      description: {
+        zh: '遺產稅、繼承稅與贈與稅一年的稅收占 GDP（OECD 全球稅收統計的 4300 類，1990 年起；台灣用財政部的遺產及贈與稅實徵淨額，含撥入長照基金的部分）。2024 年法國 0.734%、比利時 0.618%、南韓 0.600%、日本 0.550%、芬蘭 0.461% 最高，英國 0.286%、台灣 0.284%、丹麥 0.283%、德國 0.231%、瑞士 0.176%、美國 0.130%；瑞典、奧地利等是 0（瑞典 2004 年、奧地利 2008 年廢除）。0 可能是沒有這種稅，也可能是有稅但收得很少；加拿大這類在死亡時視同出售、對資本利得課稅的國家不算在這一類。',
+        en: 'Revenue from estate, inheritance and gift taxes as a share of GDP (OECD Global Revenue Statistics category 4300, from 1990; Taiwan uses the Ministry of Finance’s net estate and gift tax collections, including the part earmarked for long-term care). In 2024 France (0.734%), Belgium (0.618%), South Korea (0.600%), Japan (0.550%) and Finland (0.461%) were highest; the UK 0.286%, Taiwan 0.284%, Denmark 0.283%, Germany 0.231%, Switzerland 0.176% and the US 0.130%; Sweden and Austria are 0 (abolished in 2004 and 2008). Zero may mean no such tax or a tax that raises very little; countries such as Canada that treat death as a sale and tax the capital gains are not counted here.',
+      },
+      unit: '%',
+      file: 'inheritance-tax.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.01, 0.05, 0.1, 0.2, 0.3, 0.5] } },
+      format: (v) => `${fixed(v, v === 0 ? 0 : 3)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
     },
   ],
 };

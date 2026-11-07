@@ -407,6 +407,8 @@ STEPS = {
     "wealth-debt": "topics.wealth_debt",
     # 勞動權利與解僱保護（新主題）：OECD EPL（VERSION1）、ILOSTAT SDG 8.8.2
     "labour-rights": "topics.labour_rights",
+    # 稅率：企業新投資的有效平均稅率（OECD ETR）、遺產及贈與稅占 GDP（OECD 全球稅收統計＋財政部稅目別）
+    "taxes-effective": "topics.taxes_effective",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

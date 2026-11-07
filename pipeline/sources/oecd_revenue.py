@@ -55,3 +55,8 @@ def social_security_contributions() -> dict[str, dict[int, float]]:
 def tax_structure(categories: list[str]) -> dict[str, dict[str, dict[int, float]]]:
     """稅收的組成：{OECD 類別（T_1100）: {iso3: {year: 占稅收總額 %}}}（稅收總額含社會安全捐）"""
     return _by_category("+".join(categories), "tax-structure.csv", "PT_OTR_SECTOR")
+
+
+def inheritance_tax() -> dict[str, dict[int, float]]:
+    """遺產稅、繼承稅與贈與稅（T_4300）占 GDP %（第二十五批 458）。"""
+    return _series("T_4300", "inheritance-tax.csv")
