@@ -95,6 +95,7 @@ const TOPIC_ICONS = {
   'scientist-mobility': 'arrow-right-left',
   hvdc: 'unplug',
   'power-reliability': 'zap-off',
+  'district-heating': 'heater',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
