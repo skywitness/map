@@ -209,11 +209,13 @@ def with_gaza(gaza: dict[str, tuple[int, float]], variable: str) -> tuple[dict[s
 
 def index_files(
     out, key: str, variable: str, rows: list[dict[str, str]], years: list[int], *,
-    intervals: bool = True, aggregate: str = "WLD",
+    intervals: bool = True, aggregate: str = "WLD", unit: str = "0–1",
+    extra_notes: dict[str, tuple[str, str]] | None = None,
 ) -> dict[str, list]:
     """一個 V-Dem 指數（0–1）的指標檔，加 68% 可信區間（intervals/<key>-low、-high.json）。
     aggregate 是 WLD（每年有資料的國家的簡單平均）或 MEDIAN（中位數，政府治理主題的側欄跟 WGI 一樣畫中位數）。
-    政府治理（377）、性別平等（378）主題的 V-Dem 指標用它，國家的接續方式跟這個主題一樣。"""
+    政府治理（377）、性別平等（378）主題的 V-Dem 指標用它，國家的接續方式跟這個主題一樣。
+    unit、extra_notes（取代或補上 NOTES 的各國附註）給量表不是 0–1、年份不是從 1900 年起的變數用（宗教主題，554）。"""
     bounds = [f"{variable}_codelow", f"{variable}_codehigh"] if intervals else []
     series, gaza = country_series(rows, [variable, *bounds], years[0])
     values = {c: to_series(s, years) for c, s in sorted(series[variable].items())}
@@ -228,12 +230,14 @@ def index_files(
         else:
             agg.append(round(sum(present) / len(present), 3))
     zh_notes, en_notes = with_gaza(gaza, variable)
+    for c, (zh, en) in (extra_notes or {}).items():
+        zh_notes[c], en_notes[c] = zh, en
     write_json(out / f"{key}.json", indicator_file(
-        key, "0–1", years, values, aggregates={aggregate: agg}, notes=zh_notes, notesEn=en_notes,
+        key, unit, years, values, aggregates={aggregate: agg}, notes=zh_notes, notesEn=en_notes,
     ))
     for bound, suffix in zip(bounds, ("low", "high")):
         write_json(out / "intervals" / f"{key}-{suffix}.json", indicator_file(
-            f"{key}-{suffix}", "0–1", years, {c: to_series(s, years) for c, s in sorted(series[bound].items())},
+            f"{key}-{suffix}", unit, years, {c: to_series(s, years) for c, s in sorted(series[bound].items())},
         ))
     return values
 

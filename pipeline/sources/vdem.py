@@ -49,6 +49,8 @@ INDEX_COLUMNS = [
     "v2x_gencl", "v2x_gencs", "v2x_genpp",
     # 379：國會有幾院（0 沒有立法機關、1 一院、2 兩院以上）
     "v2lgbicam",
+    # 2026-11-07（製作手冊第二十七批 554）：宗教自由、宗教組織受壓迫的程度、政府徵詢宗教組織的程度（量表，約 −3 到 +3）
+    *(f"{v}{s}" for v in ("v2clrelig", "v2csrlgrep", "v2csrlgcon") for s in ("", "_codelow", "_codehigh")),
 ]
 COLUMNS = ID_COLUMNS + INDEX_COLUMNS
 

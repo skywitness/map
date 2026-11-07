@@ -73,11 +73,18 @@ const TEXT = defineMessages({
 
 const score = (v: number) => fixed(v, 1);
 
-/** 分數的範圍與寫法：WGI 是 0–100、小數一位；V-Dem 的指數是 0–1、小數兩位（2026-11-05 加的行政權制衡） */
-interface Scale {
+/**
+ * 分數的範圍與寫法：WGI 是 0–100、小數一位；V-Dem 的指數是 0–1、小數兩位（2026-11-05 加的行政權制衡）；
+ * 宗教主題的 V-Dem 估計值（2026-11-07）是 −4 到 +4 的區間尺度，min、ticks 另外給
+ */
+export interface Scale {
+  min?: number;
   max: number;
   format: (v: number) => string;
+  /** y 軸與點圖下方的刻度，沒寫是 0、一半、max */
+  ticks?: number[];
 }
+const scaleTicks = (scale: Scale) => scale.ticks ?? [0, scale.max / 2, scale.max];
 const WGI: Scale = { max: 100, format: score };
 const VDEM: Scale = { max: 1, format: (v) => fixed(v, 2) };
 /** 估計值寫正負號：+1.20、−0.35 */
@@ -128,13 +135,14 @@ function trendOption(
   const pick = (series: (number | null)[]) => span.map((i) => (own[i] == null ? null : (series[i] ?? null)));
   const first = years[idx[0]];
   const last = years[idx[idx.length - 1]];
-  // 只在 10 的倍數寫字（跨度短的國家改成每 5 年或 2 年：南蘇丹 2011 年起、法屬玻里尼西亞只有近幾年），頭尾不寫
-  const step = last - first > 15 ? 10 : last - first > 6 ? 5 : 2;
+  // 只在 10 的倍數寫字（跨度短的國家改成每 5 年或 2 年：南蘇丹 2011 年起、法屬玻里尼西亞只有近幾年），頭尾不寫；
+  // 宗教主題從 1789 年起，超過 150 年的改成每 50 年
+  const step = last - first > 150 ? 50 : last - first > 15 ? 10 : last - first > 6 ? 5 : 2;
   const ticks = xs.filter((y) => y % step === 0 && y !== first && y !== last);
   const byYear = new Map(idx.map((i) => [years[i], i]));
   return {
     x: { type: 'value', min: first, max: last, ticks },
-    y: { format: (v) => String(v), min: 0, max: scale.max, ticks: [0, scale.max / 2, scale.max] },
+    y: { format: (v) => (v < 0 ? `−${-v}` : String(v)), min: scale.min ?? 0, max: scale.max, ticks: scaleTicks(scale) },
     series: [
       { type: 'band', name: names.interval, low: pick(low), high: pick(high), xs, color: tokens.accent, opacity: bandOpacity(tokens), legend: false },
       { type: 'line', name: names.median, values: pick(median), xs, color: tokens.context, width: 1.5, dashed: true, legend: false },
@@ -157,19 +165,19 @@ function trendOption(
   };
 }
 
-/** 分數在 0–max 的位置（%） */
-const pctOf = (v: number, max: number) => `${Math.min(100, Math.max(0, (v / max) * 100))}%`;
+/** 分數在 min–max 的位置（%） */
+const pctOf = (v: number, max: number, min = 0) => `${Math.min(100, Math.max(0, ((v - min) / (max - min)) * 100))}%`;
 const pct = (v: number) => pctOf(v, 100);
 
-function DimensionTrack({ row, tokens, max = 100 }: { row: Row; tokens: Tokens; max?: number }) {
-  const pct = (v: number) => pctOf(v, max);
+function DimensionTrack({ row, tokens, max = 100, min = 0 }: { row: Row; tokens: Tokens; max?: number; min?: number }) {
+  const pct = (v: number) => pctOf(v, max, min);
   return (
     <div className="gov-track" aria-hidden="true">
       <span className="gov-track-line" />
       {row.low != null && row.high != null && (
         <span
           className="gov-ci"
-          style={{ left: pct(row.low), width: pct(row.high - row.low), background: tokens.accent, opacity: bandOpacity(tokens) }}
+          style={{ left: pct(row.low), width: pctOf(row.high - row.low + min, max, min), background: tokens.accent, opacity: bandOpacity(tokens) }}
         />
       )}
       {row.median != null && <span className="gov-median" style={{ left: pct(row.median), background: tokens.context }} />}
@@ -179,7 +187,11 @@ function DimensionTrack({ row, tokens, max = 100 }: { row: Row; tokens: Tokens; 
 }
 
 export default function GovernancePanel(props: PanelExtraProps) {
-  return VDEM_INDICES.some((d) => d.id === props.indicator.id) ? <VdemConstraints {...props} /> : <WgiPanel {...props} />;
+  return VDEM_INDICES.some((d) => d.id === props.indicator.id) ? (
+    <VdemIndices {...props} indices={VDEM_INDICES} text={VDEM_TEXT} scale={VDEM} />
+  ) : (
+    <WgiPanel {...props} />
+  );
 }
 
 function WgiPanel({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
@@ -364,14 +376,33 @@ function Legend({
   );
 }
 
+/** 一項 V-Dem 指標：id 是指標檔的名稱（topics/<主題>/<id>.json，有區間的另有 intervals/<id>-low、-high.json） */
+export interface VdemIndex {
+  id: string;
+  label: Text;
+  interval: boolean;
+}
+
+/** V-Dem 區段的文字（行政權制衡、宗教自由各一組） */
+export type VdemText = Record<
+  Lang,
+  {
+    title: (year: number) => string;
+    interval: string;
+    note: string;
+    chartAria: (country: string, label: string) => string;
+    rowAria: (label: string, value: string, low: string, high: string, median: string) => string;
+  }
+>;
+
 /** V-Dem 的行政權制衡（id 跟 governance.ts、pipeline/topics/governance_vdem.py 一致）；地方分權沒有可信區間 */
-const VDEM_INDICES: { id: string; label: Text; interval: boolean }[] = [
+const VDEM_INDICES: VdemIndex[] = [
   { id: 'judicial-constraints', label: { zh: '司法的制衡', en: 'Judicial constraints' }, interval: true },
   { id: 'legislative-constraints', label: { zh: '立法的制衡', en: 'Legislative constraints' }, interval: true },
   { id: 'division-of-power', label: { zh: '地方分權', en: 'Division of power' }, interval: false },
 ];
 
-const VDEM_TEXT = defineMessages({
+const VDEM_TEXT: VdemText = defineMessages({
   zh: {
     title: (year: number) => `行政權受到的制衡（${year} 年）`,
     interval: '68% 可信區間',
@@ -390,19 +421,31 @@ const VDEM_TEXT = defineMessages({
   },
 });
 
-/** 三項 V-Dem 指數：點圖（這一年的值、可信區間、世界中位數）加歷年的小圖，照 WGI 的做法、刻度改成 0–1 */
-function VdemConstraints({ topic, iso3, year, countryName, tokens }: PanelExtraProps) {
+/**
+ * 幾項 V-Dem 指數：點圖（這一年的值、可信區間、世界中位數）加歷年的小圖，照 WGI 的做法、刻度照 scale。
+ * 政府治理的行政權制衡（0–1）與宗教主題的宗教自由（−4 到 +4，ReligionPanel）共用
+ */
+export function VdemIndices({
+  topic,
+  iso3,
+  year,
+  countryName,
+  tokens,
+  indices,
+  text: messages,
+  scale,
+}: PanelExtraProps & { indices: VdemIndex[]; text: VdemText; scale: Scale }) {
   const lang = useLang();
   const t = useT();
-  const text = VDEM_TEXT[lang];
+  const text = messages[lang];
   const files = useMemo(
     () =>
-      VDEM_INDICES.flatMap((d) =>
+      indices.flatMap((d) =>
         d.interval
           ? [`topics/${topic.id}/${d.id}.json`, `topics/${topic.id}/intervals/${d.id}-low.json`, `topics/${topic.id}/intervals/${d.id}-high.json`]
           : [`topics/${topic.id}/${d.id}.json`],
       ),
-    [topic.id],
+    [topic.id, indices],
   );
   const loaded = useJsonMany<IndicatorData>(files);
   const ready = loaded.every(Boolean);
@@ -411,7 +454,7 @@ function VdemConstraints({ topic, iso3, year, countryName, tokens }: PanelExtraP
     if (!ready) return null;
     // 每項指數在 loaded 裡的位置：估計值，有區間的再接下限、上限
     let k = 0;
-    const sets = VDEM_INDICES.map((d) => {
+    const sets = indices.map((d) => {
       const main = loaded[k++]!;
       const low = d.interval ? loaded[k++]! : null;
       const high = d.interval ? loaded[k++]! : null;
@@ -455,17 +498,17 @@ function VdemConstraints({ topic, iso3, year, countryName, tokens }: PanelExtraP
             year,
             tokens,
             { country: countryName, interval: text.interval, median: TEXT[lang].keyMedian, range: TEXT[lang].interval },
-            VDEM,
+            scale,
           ),
         },
       ];
     });
     return { shown: years[at], rows, trends };
-  }, [ready, loaded, iso3, year, lang, tokens, countryName, text]);
+  }, [ready, loaded, indices, iso3, year, lang, tokens, countryName, text, scale]);
 
   if (!ready) return <p className="empty">{t.loading}</p>;
   if (!view) return null;
-  const f = VDEM.format;
+  const f = scale.format;
   return (
     <section className="panel-section">
       <h3>{text.title(view.shown)}</h3>
@@ -490,15 +533,15 @@ function VdemConstraints({ topic, iso3, year, countryName, tokens }: PanelExtraP
                 {r.low != null && r.high != null && <span className="gov-muted">{TEXT[lang].interval(f(r.low), f(r.high))}</span>}
               </span>
             </div>
-            <DimensionTrack row={r} tokens={tokens} max={VDEM.max} />
+            <DimensionTrack row={r} tokens={tokens} max={scale.max} min={scale.min} />
             {r.median != null && <div className="gov-median-text">{TEXT[lang].median(f(r.median))}</div>}
           </li>
         ))}
       </ul>
       <div className="gov-scale" aria-hidden="true">
-        {[0, 0.5, 1].map((v) => (
-          <span key={v} style={{ left: pctOf(v, VDEM.max) }}>
-            {v}
+        {scaleTicks(scale).map((v) => (
+          <span key={v} style={{ left: pctOf(v, scale.max, scale.min) }}>
+            {v < 0 ? `−${-v}` : v}
           </span>
         ))}
       </div>
