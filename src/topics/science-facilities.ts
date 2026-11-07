@@ -186,6 +186,11 @@ export const scienceFacilities: TopicDefinition = {
       url: 'https://en.wikipedia.org/wiki/List_of_radio_telescopes?oldid=1371673085',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: { zh: '英文維基百科「TOP500」（revid 1379703900，超級電腦的國別分布）', en: 'English Wikipedia, “TOP500” (revision 1379703900; supercomputers by country)' },
+      url: 'https://en.wikipedia.org/wiki/TOP500?oldid=1379703900',
+      license: 'CC BY-SA 4.0',
+    },
     { name: { zh: 'Wikidata（位置；天文設施另用啟用與關閉年份）', en: 'Wikidata (locations; start and end years for astronomy)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
   ],
   note: {
@@ -278,6 +283,22 @@ export const scienceFacilities: TopicDefinition = {
       integer: true,
       format: count,
       missing: { zh: '清單裡沒有這個國家運作中的天文設施', en: 'No operating astronomy facility in the lists' },
+    },
+    // 2026-11-07（製作手冊第二十五批 513）TOP500 的國別分布（英文維基 TOP500 條目，pipeline/topics/top500.py）
+    {
+      id: 'supercomputers',
+      label: { zh: '超級電腦（TOP500 的系統數）', en: 'Supercomputers (TOP500 systems)' },
+      description: {
+        zh: 'TOP500 是自願申報的榜：美國國家安全局 1998 年後就不再申報，中國青島 2021 年完成的 exaflops 機器 OceanLight 也沒有送榜，所以數量不等於實力。每年 6 月榜上各國的系統數（英文維基「TOP500」條目的歷年表，2007–2026 年；TOP500 官網沒有資料授權，不用）。2026 年 6 月：美國 161 台、日本 44、德國 41、中國 31、法國 21、南韓 19、義大利 18、加拿大 17、英國與台灣各 11、巴西 10。台灣 2007 年有 10 台，2010、2016、2017 年是 0 台，2024 年 6 台、2025 年 8 台、2026 年 11 台；最快的是國網中心的 Nano 4（第 33 名，Rmax 81.55 PFlop/s）。點國家看它在榜上最快的機器。',
+        en: 'TOP500 relies on voluntary submissions: the US National Security Agency stopped submitting after 1998, and OceanLight, the exaflops machine completed in Qingdao, China, in 2021, was never submitted, so counts do not equal capability. Systems per country on each June list (the history table in the English Wikipedia article “TOP500”, 2007–2026; the TOP500 website has no data licence and is not used). June 2026: the US 161, Japan 44, Germany 41, China 31, France 21, South Korea 19, Italy 18, Canada 17, the UK and Taiwan 11 each, Brazil 10. Taiwan had 10 in 2007, none in 2010, 2016 and 2017, then 6 in 2024, 8 in 2025 and 11 in 2026; its fastest is Nano 4 at NCHC (rank 33, Rmax 81.55 PFlop/s). Click a country to see its fastest system on the list.',
+      },
+      unit: { zh: '台', en: 'systems' },
+      file: 'supercomputers.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 3, 6, 10, 20, 40] } },
+      integer: true,
+      format: (v) => tr({ zh: `${v} 台`, en: v === 1 ? '1 system' : `${v} systems` }),
+      timeAxis: { label: { zh: '每年 6 月的榜', en: 'June list of each year' }, year: (y: number) => tr({ zh: `${y} 年 6 月`, en: `June ${y}` }) },
+      missing: { zh: '這一年的榜上沒有這個國家的系統', en: 'No system on that year’s list' },
     },
   ],
 };

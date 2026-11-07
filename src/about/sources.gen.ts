@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 173;
-export const INDICATOR_COUNT = 1300;
+export const INDICATOR_COUNT = 1301;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -620,6 +620,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「Starlink」的服務與核准一節（revid 1382130179，附註）","en":"English Wikipedia, “Starlink”, section on availability and regulatory approval (revision 1382130179; notes)"},"url":"https://en.wikipedia.org/w/index.php?title=Starlink&oldid=1382130179","licenses":["CC BY-SA 4.0"],"topics":["starlink"]},
   {"name":{"zh":"英文維基百科「Storey」與「Tetraphobia」（樓層的叫法、跳過的樓層）","en":"Wikipedia, “Storey” and “Tetraphobia” (floor names and skipped floors)"},"url":"https://en.wikipedia.org/w/index.php?title=Storey&oldid=1376363313","licenses":["CC BY-SA 4.0"],"topics":["travel"]},
   {"name":{"zh":"英文維基百科「Surrogacy laws by country」（代理孕母，2026 年 11 月的版本）","en":"Wikipedia, “Surrogacy laws by country” (surrogacy, November 2026 revision)"},"url":"https://en.wikipedia.org/w/index.php?title=Surrogacy_laws_by_country&oldid=1382714270","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
+  {"name":{"zh":"英文維基百科「TOP500」（revid 1379703900，超級電腦的國別分布）","en":"English Wikipedia, “TOP500” (revision 1379703900; supercomputers by country)"},"url":"https://en.wikipedia.org/wiki/TOP500?oldid=1379703900","licenses":["CC BY-SA 4.0"],"topics":["science-facilities"]},
   {"name":{"zh":"英文維基百科「UNESCO Global Geoparks」與各洲的地質公園列表（revid 1380702708 等）","en":"English Wikipedia, “UNESCO Global Geoparks” and the continental lists (revision 1380702708 and others)"},"url":"https://en.wikipedia.org/w/index.php?title=UNESCO_Global_Geoparks&oldid=1380702708","licenses":["CC BY-SA 4.0"],"topics":["world-heritage"]},
   {"name":{"zh":"英文維基百科「Valletta」「Toll roads in Norway」（瓦萊塔的開始年份、已經停收的收費環）","en":"English Wikipedia, “Valletta” and “Toll roads in Norway” (Valletta’s start year, discontinued toll rings)"},"url":"https://en.wikipedia.org/wiki/Toll_roads_in_Norway?oldid=1382299473","licenses":["CC BY-SA 4.0"],"topics":["cities"]},
   {"name":{"zh":"英文維基百科「Voting age」「Legal drinking age」「Marriageable age」「List of minimum driving ages」「Age of criminal responsibility」（2026 年 10 月）","en":"Wikipedia, “Voting age”, “Legal drinking age”, “Marriageable age”, “List of minimum driving ages” and “Age of criminal responsibility” (October 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1382143687","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
