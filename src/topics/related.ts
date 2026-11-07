@@ -138,7 +138,7 @@ export const RELATED: Record<string, string[]> = {
   profiles: ['flags', 'language', 'travel'],
   flags: ['profiles', 'empires'],
   language: ['profiles', 'religion', 'reads'],
-  travel: ['tourism', 'passport', 'taipei-view'],
+  travel: ['tourism', 'passport', 'vaccination', 'taipei-view'],
   'taipei-view': ['travel', 'antipodes', 'aviation'],
   elevation: ['rivers', 'special-landforms', 'lithology'],
   rivers: ['water-forest', 'elevation', 'oceans'],
