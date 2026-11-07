@@ -5,6 +5,7 @@ import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './type
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { climbing } from './climbing';
+import { leisureVenuesPart } from './leisure-venues';
 
 /**
  * 潛水中心與潛點（2026-11-04，製作手冊第二十一批 343；pipeline/topics/diving.py）：
@@ -116,13 +117,16 @@ const divingOwn: TopicDefinition = {
 
 /**
  * 戶外運動場地：潛水與攀岩（2026-11-04，主題整併 併11）：「攀岩場」併進來，資料照舊在 climbing/（topics/merge.ts），
- * 舊網址 t/climbing/ 轉到這裡（redirects.ts）
+ * 舊網址 t/climbing/ 轉到這裡（redirects.ts）。
+ * 2026-11-07（製作手冊第二十四批 428）：接上三溫暖、滑冰場、保齡球館、飛行傘與跳傘、海水浴場與獨木舟（leisure-venues.ts），
+ * 標題改成「休閒運動場地」
  */
 export const diving: TopicDefinition = withParts(
   {
     ...hostOnly(divingOwn),
-    title: { zh: '戶外運動場地：潛水與攀岩', en: 'Outdoor sports: diving and climbing' },
-    shortTitle: { zh: '潛水與攀岩', en: 'Diving & climbing' },
+    title: { zh: '休閒運動場地：潛水、攀岩、三溫暖、滑冰與海水浴場', en: 'Leisure venues: diving, climbing, saunas, ice rinks and beaches' },
+    shortTitle: { zh: '休閒運動場地', en: 'Leisure venues' },
   },
   topicPart(climbing),
+  leisureVenuesPart,
 );

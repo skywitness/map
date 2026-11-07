@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 146;
-export const INDICATOR_COUNT = 1102;
+export const INDICATOR_COUNT = 1110;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -362,6 +362,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"交通部民用航空局「民航機場設施與能量（年資料）」（台灣的側欄）","en":"Taiwan Civil Aeronautics Administration, airport facilities and capacity (annual; Taiwan’s side panel)"},"url":"https://data.gov.tw/dataset/47490","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["aviation"]},
   {"name":{"zh":"交通部航港局：國內固定航班資訊（2026 年 7–8 月）","en":"Maritime and Port Bureau (Taiwan): domestic scheduled ferry timetable (July–August 2026)"},"url":"https://data.gov.tw/dataset/8236","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["shipping"]},
   {"name":{"zh":"交通部觀光署 來臺旅客人次","en":"Tourism Administration (Taiwan), visitor arrivals"},"url":"https://data.gov.tw/dataset/7322","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["tourism"]},
+  {"name":{"zh":"交通部觀光署 具海洋遊憩活動之景點設施","en":"Taiwan Tourism Administration, marine recreation sites"},"url":"https://data.gov.tw/dataset/135722","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["diving"]},
   {"name":{"zh":"交通部觀光署 觀光統計資料庫：來臺旅客按居住地、國人出國按首站抵達地","en":"Tourism Administration (Taiwan): arrivals by residence, departures by first destination"},"url":"https://stat.taiwan.net.tw/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["tourism"]},
   {"name":{"zh":"交通部觀光署：歷年國人旅遊狀況調查（逐筆樣本）、國人出國旅遊重要指標統計表","en":"Tourism Administration (Taiwan): travel survey microdata; key outbound indicators"},"url":"https://data.gov.tw/dataset/94140","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["travel-habits"]},
   {"name":{"zh":"交通部觀光署：歷年國內主要觀光遊憩據點遊客人數（台灣的博物館與樂園）","en":"Tourism Administration (Taiwan): visitors to major attractions (Taiwan’s museums and parks)"},"url":"https://data.gov.tw/dataset/8116","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["attractions"]},

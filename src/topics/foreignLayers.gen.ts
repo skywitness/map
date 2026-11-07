@@ -69,6 +69,6 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
   {"topic":"horses","layers":[{"id":"racecourses","label":{"zh":"賽馬場（Wikidata）","en":"Racecourses (Wikidata)"},"kind":"points"}]},
   {"topic":"dining","layers":[{"id":"michelin","label":{"zh":"米其林三星餐廳","en":"Michelin three-star restaurants"},"kind":"points"}]},
-  {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"}]},
+  {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"},{"id":"saunas","label":{"zh":"三溫暖","en":"Saunas"},"kind":"points"},{"id":"ice-rinks","label":{"zh":"滑冰場","en":"Ice rinks"},"kind":"points"},{"id":"bowling","label":{"zh":"保齡球館","en":"Bowling alleys"},"kind":"points"},{"id":"flying","label":{"zh":"飛行傘與跳傘","en":"Paragliding and skydiving"},"kind":"points"},{"id":"beaches","label":{"zh":"海水浴場與公共泳區","en":"Beach resorts and swimming areas"},"kind":"points"},{"id":"canoe","label":{"zh":"獨木舟與輕艇","en":"Canoeing and kayaking"},"kind":"points"}]},
   {"topic":"gambling","layers":[{"id":"casinos","label":{"zh":"賭場","en":"Casinos"},"kind":"points"}]},
 ];
