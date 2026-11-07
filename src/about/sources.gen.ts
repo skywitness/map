@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 156;
-export const INDICATOR_COUNT = 1200;
+export const TOPIC_COUNT = 157;
+export const INDICATOR_COUNT = 1203;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -116,6 +116,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat，警察、法官與監所人員（crim_just_job）","en":"Eurostat, Police officers, professional judges and prison staff (crim_just_job)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_just_job/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
   {"name":{"zh":"Eurostat，都市垃圾依處理方式（env_wasmun）","en":"Eurostat, Municipal waste by waste management operations (env_wasmun)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/env_wasmun/default/table","licenses":["CC BY 4.0"],"topics":["plastic"]},
   {"name":{"zh":"Eurostat：3D printing and robotics by size class of enterprise（isoc_eb_p3d，企業的機器人使用率）","en":"Eurostat: 3D printing and robotics by size class of enterprise (isoc_eb_p3d, robot use by enterprises)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_eb_p3d/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
+  {"name":{"zh":"Eurostat：Business demography（bd_size 2021 年起、bd_9bd_sz_cl_r2 2020 年以前）","en":"Eurostat: Business demography (bd_size from 2021, bd_9bd_sz_cl_r2 up to 2020)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/bd_size/default/table","licenses":["CC BY 4.0"],"topics":["business-demography"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：Urban Audit 城市統計（urb_ctran，TT1007V 騎自行車上班的比例）","en":"Eurostat: Urban Audit (urb_ctran, TT1007V share of journeys to work by bicycle)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/urb_ctran/default/table","licenses":["CC BY 4.0"],"topics":["trails"]},
   {"name":{"zh":"Eurostat：企業調查的產能利用率（ei_bsin_q_r2，歐盟執委會 DG ECFIN）","en":"Eurostat: capacity utilisation from the business survey (ei_bsin_q_r2, European Commission DG ECFIN)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ei_bsin_q_r2/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
@@ -491,6 +492,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"環境部（台灣的對照）","en":"Ministry of Environment, Taiwan (comparison)"},"url":"https://data.moenv.gov.tw/dataset/detail/STAT_P_45","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["plastic"]},
   {"name":{"zh":"環境部「溫室氣體年排放量」（事業依法登錄、查驗的年排放量，data.gov.tw 16059）：台灣排放源的對照","en":"Taiwan Ministry of Environment, annual GHG emissions reported by regulated facilities (data.gov.tw 16059): Taiwan comparison"},"url":"https://data.gov.tw/dataset/16059","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["climate"]},
   {"name":{"zh":"環境部氣候變遷署《2026 年中華民國國家溫室氣體排放清冊報告》：台灣的對照","en":"Taiwan Ministry of Environment, 2026 National Greenhouse Gas Inventory Report: Taiwan's comparison"},"url":"https://data.gov.tw/dataset/16024","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["climate"]},
+  {"name":{"zh":"經濟部商業發展署 新設立、現有、解散撤銷及廢止的公司登記家數（台灣）","en":"Administration of Commerce (Taiwan), company registrations, dissolutions and companies on the register"},"url":"https://data.gov.tw/dataset/29260","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["business-demography"]},
   {"name":{"zh":"經濟部地質調查及礦業管理中心：主要礦產品產銷量值表、徵收礦業權費及礦產權利金情形（台灣的側欄）","en":"Geological Survey and Mining Management Agency: output and sales of main mineral products; mining-right fees and royalties collected (Taiwan’s side panel)"},"url":"https://data.gov.tw/dataset/6850","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["minerals"]},
   {"name":{"zh":"經濟部地質調查及礦業管理中心：現存礦業權清冊（台灣的側欄）","en":"Geological Survey and Mining Management Agency: register of current mining rights (Taiwan’s side panel)"},"url":"https://data.gov.tw/dataset/126847","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["minerals"]},
   {"name":{"zh":"經濟部智慧財產局 商標案件統計季報","en":"Intellectual Property Office (Taiwan), quarterly trademark statistics"},"url":"https://data.gov.tw/dataset/35459","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["innovation"]},

@@ -423,6 +423,8 @@ STEPS = {
     "companies-rankings": "topics.company_rankings",
     # 便利商店與連鎖品牌：超市、藥妝店與藥局（OSM 經 QLever 的 brand:wikidata，兩支 TSV 匯出）
     "chain-retail": "topics.chain_retail",
+    # 企業的誕生、死亡與存活（新主題）：Eurostat bd_size（20 MB），台灣用商業發展署的公司登記統計
+    "business-demography": "topics.business_demography",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

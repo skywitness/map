@@ -70,6 +70,7 @@ export const RELATED: Record<string, string[]> = {
   'stock-market': ['wealth', 'companies', 'insurance'],
   insurance: ['stock-market', 'banking', 'wealth'],
   banking: ['stock-market', 'reserves', 'wealth'],
+  'business-demography': ['companies', 'banking', 'employment'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],
