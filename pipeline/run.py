@@ -546,6 +546,7 @@ STEPS = {
     "antarctic-stations": "topics.antarctic_stations",
     "antarctic-tourism": "topics.antarctic_tourism",
     "show-caves": "topics.show_caves",
+    "hunting-fishing": "topics.hunting_fishing",
     # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒
     "penguins": "topics.penguins",
     # 南極的冰下湖：Wilson 等 2025 的 Zenodo 資料（560 KB，不必登入）；不到 1 秒
