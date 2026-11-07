@@ -7,19 +7,24 @@
   indicated」，同頁標 CC BY 4.0。www.ats.aq 的 robots.txt 對一般程式是 Disallow: /，所以這裡不讀 www.ats.aq
   （場址指引的 PDF 也不讀）。
 - 場址沒有座標：用 Wikidata（CC0，經 QLever，南緯 60 度以南、有座標的地名的英文、西班牙文、法文標籤與別名）比對名稱，
-  另比對 EIES 給的別名（ChildrenNames，西班牙文或法文的地名）；「X/Y」「X (Y)」拆開各試一次。對不到的不畫，列在清單。
+  另比對 EIES 給的別名（ChildrenNames，西班牙文或法文的地名）；「X/Y」「X (Y)」拆開各試一次，西班牙文的「Isla X」「Punta X」
+  也試英文的寫法。還對不到的再查美國地質調查所的 GNIS Antarctica（公有領域，2026-11-07 補；見 _gnis()）。對不到的不畫，列在清單。
 - 場址以 GuidelineId 識別（各季同一個），名稱用最近一季的寫法。海峽、水道（Strait、Channel、Passage、Sound）多半是
   船上巡遊、不上岸，標出來（w）。
 - 季：2007 是 2007/08 季（南半球的夏天）。
 """
 from __future__ import annotations
 
+import csv
+import io
 import json
+import math
 import re
 import unicodedata
+import zipfile
 from collections import defaultdict
 
-from common import CACHE_DIR, OUT_DIR, indicator_file, points_file, write_json, write_manifest_part
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, points_file, write_json, write_manifest_part
 
 OUT = OUT_DIR / "topics" / "antarctica"
 EIES = CACHE_DIR / "eies"
@@ -49,10 +54,24 @@ ALIASES = {
     "Base Argentina San Martin": "San Martín Base",
     "Mawson’s Huts and Cape Denison": "Cape Denison",
     "Mawson's Huts and Cape Denison": "Cape Denison",
+    # 2026-11-07 補（手冊 435 的補強；每個目標名稱都查過在 Wikidata 的南極地名裡、EIES 的地區也對得上）
+    "Mendel Station (Czechia)": "Mendel Polar Station",
+    "Base Bernardo O'Higgins del Ejército de Chile": "Base General Bernardo O'Higgins Riquelme",
+    "Decepción Antarctic Base": "Base Antártica Decepción",
+    "Sven Foyn, puerto": "Foyn Harbor",  # 西班牙文的 Puerto Foyn
+    "Stancomb Wills Rookery": "Stancomb-Wills Glacier Tongue",  # 皇帝企鵝的繁殖地在冰舌
+    "Snow Hill Island- Ice Edge Landing": "Snow Hill Island",  # 冰緣登陸，位置每年不同
+    "Northeast beach of Ardley Island": "Ardley Island",
+    "Cape Crozier Camp": "Cape Crozier",
 }
 # 不在南極條約區（南緯 60 度以南）或不是一個點的：南喬治亞、福克蘭群島、德雷克海峽、「南極大陸」、海
 OUTSIDE = re.compile(r"south georgia|west point island|falkland|drake passage|antarctic continent|durville sea", re.I)
 WATER = re.compile(r"\b(strait|channel|passage|sound)\b", re.I)
+# Wikidata 對不到的，再查美國地質調查所的南極地名（GNIS Antarctica，公有領域；正式名稱與別名）。別名常常是別的地方的舊名，
+# 所以只收在同一個 EIES 地區、已經對到的場址 NEAR_KM 公里以內的（例如 Stony Point 在 GNIS 是喬治王島 Lapidary Point 的
+# 別名，EIES 寫在半島西北側，不收）。
+GNIS_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/GeographicNames/Antarctica/Gazetteer_Antarctica_Text.zip"
+NEAR_KM = 75
 
 
 def _norm(s: str) -> str:
@@ -77,6 +96,14 @@ def _variants(name: str) -> list[str]:
         out += [f"{core} Station", f"{core} Base", f"{core} Antarctic Base", f"Base {core}"]
         if re.search(r"\bHarbor\b", v):
             out.append(re.sub(r"\bHarbor\b", "Harbour", v))
+        if re.search(r"\bHarbour\b", v):
+            out.append(re.sub(r"\bHarbour\b", "Harbor", v))
+        # 西班牙文的地名 → 英文（「Isla Guepratte」→ Guepratte Island）
+        m = re.match(r"^(Isla|Islas|Punta|Cabo|Bahía|Bahia|Caleta|Puerto)\s+(.+)$", v, re.I)
+        if m:
+            kind = {"isla": "Island", "islas": "Islands", "punta": "Point", "cabo": "Cape", "bahía": "Bay", "bahia": "Bay",
+                    "caleta": "Cove", "puerto": "Harbor"}[m.group(1).lower()]
+            out.append(f"Cape {m.group(2)}" if kind == "Cape" else f"{m.group(2)} {kind}")
     return [v for v in dict.fromkeys(out) if len(v) > 2]
 
 
@@ -106,6 +133,31 @@ def _gazetteer() -> dict[str, list[tuple[float, float, str]]]:
             continue
         out[_norm(r["name"]["value"])].append((float(m.group(2)), float(m.group(1)), r["item"]["value"].rsplit("/", 1)[1]))
     return out
+
+
+def _gnis() -> dict[str, list[tuple[float, float, str]]]:
+    path = download(GNIS_URL, "usgs-gnis", "Gazetteer_Antarctica_Text.zip")
+    with zipfile.ZipFile(path) as z:
+        def read(name: str) -> list[dict]:
+            return list(csv.DictReader(io.TextIOWrapper(z.open(f"Text/{name}"), encoding="utf-8-sig"), delimiter="|",
+                                       quoting=csv.QUOTE_NONE))
+        main = {r["feature_id"]: r for r in read("AntarcticaNames_Antarctica.txt")}
+        alt = read("AntarcticaAllNames_Antarctica.txt")
+    out: dict[str, list[tuple[float, float, str]]] = defaultdict(list)
+    for fid, name in [(f, r["feature_name"]) for f, r in main.items()] + [(r["feature_id"], r["feature_name"]) for r in alt]:
+        r = main.get(fid)
+        if not r or not r["prim_lat_dec"] or not r["prim_long_dec"]:
+            continue
+        hit = (float(r["prim_lat_dec"]), float(r["prim_long_dec"]), f"GNIS {fid}")
+        if hit not in out[_norm(name)]:
+            out[_norm(name)].append(hit)
+    return out
+
+
+def _km(a: tuple[float, float], b: tuple[float, float]) -> float:
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
 
 
 def _locate(names: list[str], gaz) -> tuple[float, float, str] | None:
@@ -141,7 +193,7 @@ def build() -> None:
             s["t"][y] = s["t"].get(y, 0) + r["NumberOfVisits"]
             s["v"][y] = s["v"].get(y, 0) + r["NumberOfVisitors"]
 
-    points, missing, outside = [], [], []
+    points, missing, outside, sites_by_name = [], [], [], {}
     for key, s in sites.items():
         if OUTSIDE.search(s["names"][0]):
             outside.append(s["names"][0])
@@ -154,11 +206,29 @@ def build() -> None:
         for y in range(FIRST, LAST + 1):
             row[f"t{y}"] = s["t"].get(y) or None
             row[f"v{y}"] = (s["v"].get(y) or None) if y >= VISITORS_FROM else None
+        sites_by_name[s["names"][0]] = s
         if hit:
             row["lat"], row["lon"], row["q"] = hit
             points.append(row)
         else:
             missing.append(row)
+
+    # 第二輪：GNIS，只收同一地區已對到的場址附近的
+    gnis, by_region, from_gnis = _gnis(), defaultdict(list), []
+    for p in points:
+        by_region[p["r"]].append((p["lat"], p["lon"]))
+    for row in list(missing):
+        s = sites_by_name[row["name"]]
+        for name in [ALIASES.get(n.strip(), n) for n in s["names"] + s["alt"]]:
+            cands = [h for v in _variants(name) for h in gnis.get(_norm(v), [])]
+            near = [h for h in cands if by_region[row["r"]] and min(_km(h[:2], q) for q in by_region[row["r"]]) <= NEAR_KM]
+            if near:
+                row["lat"], row["lon"], row["q"] = near[0]
+                points.append(row)
+                missing.remove(row)
+                from_gnis.append((row["name"], near[0][2]))
+                break
+    print(f"  GNIS 補到 {len(from_gnis)} 個：{from_gnis}")
 
     fields = ["lon", "lat", "name", "r", "g", "w", "gl", "q"] + [f"t{y}" for y in range(FIRST, LAST + 1)] + \
              [f"v{y}" for y in range(VISITORS_FROM, LAST + 1)]
@@ -176,7 +246,7 @@ def build() -> None:
                                                              noValue=nv, noValueEn=nv_en, license="CC BY 4.0"), quiet=True)
     write_manifest_part(OUT, "antarctica", "antarctic-tourism", {"sources": [
         "Antarctic Treaty Secretariat, EIES Most Visited Sites (https://eies.ats.aq/) (CC BY 4.0)",
-        "Wikidata (CC0) via QLever"]})
+        "Wikidata (CC0) via QLever", GNIS_URL + " (USGS, public domain)"]})
 
     print(f"  場址 {len(sites)}：對到座標 {len(points)}、對不到 {len(missing)}、條約區以外或不是一個點 {len(outside)}：{outside}")
     for y in years:

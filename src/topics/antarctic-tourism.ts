@@ -134,18 +134,33 @@ export const tourismPart = {
       url: 'https://eies.ats.aq/',
       license: { zh: 'CC BY 4.0（註明出處即可使用）', en: 'CC BY 4.0 (may be used with the source indicated)' },
     },
+    {
+      name: { zh: '美國地質調查所，南極地名（GNIS Antarctica，2026 年 11 月 2 日版）', en: 'US Geological Survey, Antarctic geographic names (GNIS Antarctica, 2 November 2026)' },
+      url: 'https://www.usgs.gov/us-board-on-geographic-names/download-gnis-data',
+      license: { zh: '公有領域（美國政府著作）', en: 'Public domain (US Government work)' },
+    },
+    {
+      name: {
+        zh: 'IAATO，ATCM 48（2026）IP 200 rev.1（2025/26 季的人數）',
+        en: 'IAATO, ATCM 48 (2026) IP 200 rev.1 (2025/26 passenger numbers)',
+      },
+      url: 'https://iaato.org/system/files?file=2026-05/ATCM48_ip200_rev1_e.pdf',
+      license: { zh: '只引用數字（IAATO 沒有使用條款頁）', en: 'Figures cited only (IAATO publishes no terms of use)' },
+    },
   ],
   note: {
     zh:
       '南極條約秘書處的電子資訊交換系統（EIES）收各締約國通報的船載觀光：每個場址一季被造訪幾趟（2007/08 季起）、幾人次（2012/13 季才開始填）。' +
       '「人次」不是人數：一個旅客一趟航程會造訪十幾個場址，每個場址各算一次。海峽與水道（傑拉許海峽、勒梅爾水道）多半是船上巡遊、沒有上岸，點上有標。' +
       'EIES 是官方通報，只收通報了的；國際南極旅遊業者協會（IAATO）的會員統計是另一套，兩邊的數字對不起來，跨季的變化也有一部分是通報多寡的差別（2019/20、2020/21 季受 COVID-19 影響）。' +
-      'EIES 沒有座標，場址的位置用 Wikidata 的地名比對（名稱、西班牙文或法文別名），826 個場址裡 766 個對得到，55 個對不到的（例如 Stony Point、Punta Vidt）不畫；南喬治亞、福克蘭這類條約區以外的不畫。南極不屬於任何國家，國家不上色。',
+      'IAATO 提交第 48 屆南極條約協商會議的資料（IP 200 rev.1）算的是人數：2025/26 季 51 家業者、68 艘船與遊艇、579 個航次，上岸的旅客 85,195 人（2024/25 季 80,455 人），只在船上看、沒有上岸的 27,217 人；IAATO 的十年表沒有 2020/21 季（COVID-19）。' +
+      'EIES 沒有座標，場址的位置用 Wikidata 的地名比對（名稱、西班牙文或法文別名），再用美國地質調查所的南極地名補（只收同一地區已對到的場址附近的），826 個場址裡 788 個對得到，33 個對不到的（例如 Stony Point、Punta Vidt）不畫；南喬治亞、福克蘭這類條約區以外的不畫。南極不屬於任何國家，國家不上色。',
     en:
       'The Antarctic Treaty Secretariat’s Electronic Information Exchange System (EIES) collects the ship-based tourism reported by treaty parties: how many visits each site received in a season (from 2007/08) and how many visitors (only filled in from 2012/13). ' +
       'Visitors are counted per site, not per person: one traveller on one voyage may visit a dozen sites, each counted once. Straits and channels (the Gerlache Strait, the Lemaire Channel) are mostly cruised through without landing, and are marked as such. ' +
       'EIES holds only what parties report; the International Association of Antarctica Tour Operators (IAATO) counts its members separately and the two do not match, and some changes between seasons reflect reporting (the 2019/20 and 2020/21 seasons were hit by COVID-19). ' +
-      'EIES has no coordinates, so sites are located by matching names (and Spanish or French alternatives) against Wikidata: 766 of 826 sites were matched; the 55 that were not (such as Stony Point and Punta Vidt) are not drawn, nor are sites outside the treaty area such as South Georgia and the Falklands. Antarctica belongs to no country, so countries are not coloured.',
+      'IAATO’s paper to the 48th Antarctic Treaty Consultative Meeting (IP 200 rev.1) counts people: in 2025/26, 51 operators ran 68 ships and yachts on 579 voyages, landing 85,195 passengers (80,455 in 2024/25), while 27,217 stayed aboard on cruise-only voyages; IAATO’s ten-year table omits 2020/21 (COVID-19). ' +
+      'EIES has no coordinates, so sites are located by matching names (and Spanish or French alternatives) against Wikidata, then against the US Geological Survey’s Antarctic gazetteer (accepted only near already-matched sites in the same region): 788 of 826 sites were matched; the 33 that were not (such as Stony Point and Punta Vidt) are not drawn, nor are sites outside the treaty area such as South Georgia and the Falklands. Antarctica belongs to no country, so countries are not coloured.',
   },
   overlays: [overlay('tourism-visitors', 'tourism-visitors', 'v', VISITORS_FROM), overlay('tourism-visits', 'tourism-visits', 't', FIRST)],
   listPanel: [list('tv', 'tourism-visitors', 'v', VISITORS_FROM), list('tt', 'tourism-visits', 't', FIRST)],
