@@ -465,15 +465,25 @@ const waterForestOwn: TopicDefinition = {
  * 這個主題只留水資源。資料照舊在 water-forest/，舊網址的 ind=forest-cover 由 redirects.ts 轉過去
  */
 const FOREST_INDICATORS = ['forest-cover', 'forest-change'];
-/** 資料來源的順序：AQUASTAT、WDI、FRA 2025、水利署、林保署、WPP、Aqueduct；森林用 FRA 與林保署 */
-const FOREST_SOURCES = [2, 4];
+/** 森林用 FRA 與林保署的來源（2026-11-07 起依網址挑，水資源加了來源以後順序會變） */
+const FOREST_SOURCES = ['https://fra-data.fao.org/', 'https://www.forest.gov.tw/0000052'];
+const isForestSource = (src: { url?: string }) => FOREST_SOURCES.includes(src.url ?? '');
 
 export const forestCoverPart = topicPart(
   {
     ...waterForestOwn,
     // 汙水處理廠的點只屬於水資源，不要跟著搬到森林
     overlays: [],
-    sources: waterForestOwn.sources.filter((_, i) => FOREST_SOURCES.includes(i)),
+    // 2026-11-07（第二十五批 498）：水資源的台灣自來水側欄不要跟著搬到森林，森林用自己的台灣側欄（崩塌、風災與森林被害）
+    panelExtra: () => import('./panels/ForestTwPanel'),
+    sources: [
+      ...waterForestOwn.sources.filter(isForestSource),
+      {
+        name: { zh: '農業部：因崩塌或風災減少森林覆蓋面積、森林被害統計（台灣側欄）', en: 'Ministry of Agriculture, Taiwan: forest lost to landslides and wind, forest damage statistics (Taiwan panel)' },
+        url: 'https://data.gov.tw/dataset/169451',
+        license: OPEN_DATA_TW,
+      },
+    ],
     note: {
       zh: '森林用 FAO 全球森林資源評估 FRA 2025，只有 1990、2000、2010、2015、2020、2025 年。台灣不在 FAO 的資料中，改用林業及自然保育署的全國森林資源調查，口徑見台灣側欄的附註。',
       en: "Forest data are from the FAO Global Forest Resources Assessment 2025 and cover only 1990, 2000, 2010, 2015, 2020 and 2025. Taiwan is not in the FAO data, so the national forest inventory of its Forestry and Nature Conservation Agency is used instead (see the notes in Taiwan's panel).",
@@ -486,6 +496,6 @@ export const waterForest: TopicDefinition = {
   ...waterForestOwn,
   title: { zh: '各國水資源', en: 'Water resources by country' },
   shortTitle: { zh: '水資源', en: 'Water' },
-  sources: waterForestOwn.sources.filter((_, i) => !FOREST_SOURCES.includes(i)),
+  sources: waterForestOwn.sources.filter((src) => !isForestSource(src)),
   indicators: waterForestOwn.indicators.filter((i) => !FOREST_INDICATORS.includes(i.id)),
 };
