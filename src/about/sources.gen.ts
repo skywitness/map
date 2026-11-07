@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 176;
-export const INDICATOR_COUNT = 1332;
+export const INDICATOR_COUNT = 1333;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -614,6 +614,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「List of people on banknotes」（2026 年 10 月的版本）","en":"Wikipedia, “List of people on banknotes” (October 2026 revision)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_people_on_banknotes&oldid=1381887954","licenses":["CC BY-SA 4.0"],"topics":["banknotes"]},
   {"name":{"zh":"英文維基百科「List of quantum processors」（revid 1380988323）","en":"English Wikipedia, “List of quantum processors” (revision 1380988323)"},"url":"https://en.wikipedia.org/wiki/List_of_quantum_processors?oldid=1380988323","licenses":["CC BY-SA 4.0"],"topics":["science-facilities"]},
   {"name":{"zh":"英文維基百科「List of semiconductor fabrication plants」（revid 1379416921，2026-10-09）","en":"English Wikipedia, “List of semiconductor fabrication plants” (revision 1379416921, 9 Oct 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_semiconductor_fabrication_plants&oldid=1379416921","licenses":["CC BY-SA 4.0"],"topics":["wafer-fabs"]},
+  {"name":{"zh":"英文維基百科「List of small modular reactor designs」（revid 1382956151，2026-11-07）","en":"English Wikipedia, “List of small modular reactor designs” (revision 1382956151, 7 November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_small_modular_reactor_designs&oldid=1382956151","licenses":["CC BY-SA 4.0"],"topics":["nuclear"]},
   {"name":{"zh":"英文維基百科「List of Solar System probes」（revid 1382377257）、「List of government space agencies」（revid 1382533503，中國、印度的附註）","en":"English Wikipedia, “List of Solar System probes” (revision 1382377257) and “List of government space agencies” (revision 1382533503; notes for China and India)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_Solar_System_probes&oldid=1382377257","licenses":["CC BY-SA 4.0"],"topics":["space"]},
   {"name":{"zh":"英文維基百科「List of unicorn startup companies」（轉引 CB Insights）","en":"Wikipedia, “List of unicorn startup companies” (citing CB Insights)"},"url":"https://en.wikipedia.org/wiki/List_of_unicorn_startup_companies?oldid=1383886104","licenses":["CC BY-SA 4.0"],"topics":["companies"]},
   {"name":{"zh":"英文維基百科「Longest flights」（2026-10-15 的版本：現行與停飛的直飛航線前 30 名）","en":"English Wikipedia, “Longest flights” (revision of 15 October 2026: current and discontinued non-stop top 30)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1380354690","licenses":["CC BY-SA 4.0"],"topics":["air-routes"]},

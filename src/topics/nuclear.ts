@@ -4,13 +4,14 @@ import { nuclearAccidents } from './nuclear-accidents';
 import { nuclearWaste } from './nuclear-waste';
 import { withParts } from './parts';
 import { powerPlants } from './power-plants';
+import { smrPart } from './smr';
 import type { TopicDefinition } from './types';
 
 /**
  * 核能（2026-11-04，主題整併 併1）：能源政策的「核能政策」、發電廠地圖的核電機組數與核電裝置容量（發電廠地圖照樣保留）、
  * 核子事故、核廢料的最終處置場合成一個主題，取代能源政策、核子事故、核廢料三個主題（燃煤退場的兩個指標併進石油、天然氣與煤）。
  * 資料都照舊在原本的資料夾（topics/merge.ts）；核子事故與核廢料的指標原本都叫 map，改名 accidents、repositories。
- * 舊網址 t/energy-policy/、t/nuclear-accidents/、t/nuclear-waste/ 轉到這裡（redirects.ts）
+ * 舊網址 t/energy-policy/、t/nuclear-accidents/、t/nuclear-waste/ 轉到這裡（redirects.ts）。2026-11-07 加小型模組化反應爐（smr.ts）
  */
 export const nuclear: TopicDefinition = withParts(
   hostOnly({
@@ -32,4 +33,6 @@ export const nuclear: TopicDefinition = withParts(
   nuclearPolicyPart,
   topicPart(nuclearAccidents, { rename: { map: 'accidents' } }),
   topicPart(nuclearWaste, { rename: { map: 'repositories' } }),
+  // 2026-11-07（製作手冊第二十五批 532）小型模組化反應爐的設計案
+  smrPart,
 );
