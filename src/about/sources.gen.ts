@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 153;
-export const INDICATOR_COUNT = 1170;
+export const INDICATOR_COUNT = 1173;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -224,6 +224,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD (2026), DAC2A: Aid (ODA) disbursements to countries and regions, OECD Data Explorer（2026-10-26 查閱；受援國與流向）","en":"OECD (2026), DAC2A: Aid (ODA) disbursements to countries and regions, OECD Data Explorer (accessed on 2026-10-26; recipients and flows)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalCloud&df[id]=DSD_DAC2%40DF_DAC2A&df[ag]=OECD.DCD.FSD","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["aid"]},
   {"name":{"zh":"OECD (2026), PISA 2025 Results (Volume I): Future-Ready Students（附錄 B1 的表）","en":"OECD (2026), PISA 2025 Results (Volume I): Future-Ready Students (Annex B1 tables)"},"url":"https://doi.org/10.1787/73451bc5-en","licenses":["CC BY 4.0"],"topics":["pisa"]},
   {"name":{"zh":"OECD Affordable Housing Database（HM1.5 住宅類型、HM1.3 住宅權屬）","en":"OECD Affordable Housing Database (HM1.5 dwelling types, HM1.3 housing tenures)"},"url":"https://oe.cd/ahd","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["housing"]},
+  {"name":{"zh":"OECD Earnings Distribution Database（薪資的十分位比、低薪比例、最低工資占中位數與平均薪資）","en":"OECD Earnings Distribution Database (decile ratios, incidence of low pay, minimum relative to median and mean wages)"},"url":"https://www.oecd.org/en/data/datasets/earnings-database.html","licenses":["CC BY 4.0"],"topics":["wages"]},
   {"name":{"zh":"OECD Gender Data Portal：Time use（時間運用）","en":"OECD Gender Data Portal: Time use"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TIME_USE%40DF_TIME_USE&df[ag]=OECD.WISE.INE","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"OECD How’s Life?：Current well-being（自己的時間、時間運用滿意度、社交時間）","en":"OECD How’s Life?: Current well-being (time off, satisfaction with time use, social interactions)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_HSL%40DF_HSL_CWB&df[ag]=OECD.WISE.WDP","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"OECD Income Distribution Database（IDD，所得分配資料庫）","en":"OECD Income Distribution Database (IDD)"},"url":"https://www.oecd.org/en/data/datasets/income-and-wealth-distribution-database.html","licenses":["CC BY 4.0"],"topics":["redistribution"]},

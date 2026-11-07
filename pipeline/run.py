@@ -399,6 +399,8 @@ STEPS = {
     "social-protection": "topics.social_protection",
     # 政府財政：公共社會支出占 GDP（OECD SOCX，加 key 只下載公共、占 GDP 的部分）
     "fiscal-social-spending": "topics.social_spending",
+    # 薪資與工時：十分位差距、低薪比例、最低工資占薪資（OECD Earnings Distribution，台灣自算最低工資占平均薪資）
+    "wages-distribution": "topics.wages_distribution",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

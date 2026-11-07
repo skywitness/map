@@ -85,6 +85,11 @@ const wagesWithLeave: TopicDefinition = {
       url: 'https://www.imf.org/external/datamapper/',
       license: { zh: '註明出處', en: 'Attribution' },
     },
+    {
+      name: { zh: 'OECD Earnings Distribution Database（薪資的十分位比、低薪比例、最低工資占中位數與平均薪資）', en: 'OECD Earnings Distribution Database (decile ratios, incidence of low pay, minimum relative to median and mean wages)' },
+      url: 'https://www.oecd.org/en/data/datasets/earnings-database.html',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh:
@@ -180,6 +185,72 @@ const wagesWithLeave: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1500, 1700, 1900, 2100, 2300, 2500] } },
       format: (v) => hours(v, 0),
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'earnings-ratio',
+      label: { zh: '高薪與低薪差幾倍', en: 'Earnings ratio, high vs low paid' },
+      description: {
+        zh: '全時受僱者的毛薪資，第 9 十分位（比 90% 的人高）是第 1 十分位（比 10% 的人高）的幾倍（OECD，各國最近一次的調查）。印度 6.08 倍、阿根廷 6.00、以色列 5.61、美國 4.69 最高；瑞典 2.20、挪威 2.32、西班牙 2.37、義大利 2.38 最低。子項目另有第 9 比第 5（上面拉得多開）、第 5 比第 1（下面壓得多低）：葡萄牙的第 5 比第 1 只有 1.07，最低工資幾乎就是中位數。不含自營作業者與部分工時；台灣沒有開放的薪資十分位資料。',
+        en: 'Gross earnings of full-time employees: the 9th decile (higher than 90% of workers) as a multiple of the 1st decile (higher than 10%) (OECD, each country’s latest survey). India is 6.08, Argentina 6.00, Israel 5.61 and the US 4.69, the highest; Sweden 2.20, Norway 2.32, Spain 2.37 and Italy 2.38 the lowest. Options also show the 9th to 5th decile (how far the top stretches) and the 5th to 1st (how far the bottom falls): Portugal’s 5th-to-1st ratio is only 1.07, its minimum wage being close to the median. Excludes the self-employed and part-time workers; there are no open decile data for Taiwan.',
+      },
+      unit: { zh: '倍', en: '×' },
+      file: 'earnings-ratio/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [2.5, 3, 3.5, 4, 4.5, 5] },
+        itemScales: {
+          d9d5: { type: 'sequential', thresholds: [1.7, 1.8, 1.9, 2, 2.2, 2.5] },
+          d5d1: { type: 'sequential', thresholds: [1.4, 1.6, 1.7, 1.8, 1.9, 2.1] },
+        },
+      },
+      dimension: {
+        label: { zh: '比較', en: 'Ratio' },
+        options: [
+          { id: 'd9d1', label: { zh: '第 9 ÷ 第 1 十分位', en: '9th ÷ 1st decile' } },
+          { id: 'd9d5', label: { zh: '第 9 ÷ 第 5 十分位（中位數）', en: '9th ÷ 5th decile (median)' } },
+          { id: 'd5d1', label: { zh: '第 5（中位數）÷ 第 1 十分位', en: '5th decile (median) ÷ 1st' } },
+        ],
+        defaultOption: 'd9d1',
+      },
+      format: (v) => tr({ zh: `${fixed(v, 2)} 倍`, en: `${fixed(v, 2)}×` }),
+      formatTick: (v) => fixed(v, 1),
+      defaultYear: 2024,
+    },
+    {
+      id: 'low-pay',
+      label: { zh: '低薪比例', en: 'Incidence of low pay' },
+      description: {
+        zh: '全時受僱者裡，薪資低於中位數三分之二的比例（OECD，各國最近一次的調查）。阿根廷 27.6%、保加利亞 26.3%、以色列 25.4%、拉脫維亞 24.9%、英國 23.5%、美國 22.5% 最高；葡萄牙 1.4%、紐西蘭 5.0%、義大利 5.6%、挪威 6.7% 最低。這是相對標準：最低工資接近中位數的國家（葡萄牙）會趨近 0，不代表薪水高。台灣沒有開放的薪資分布資料。',
+        en: 'Share of full-time employees earning less than two-thirds of the median (OECD, each country’s latest survey). Argentina is 27.6%, Bulgaria 26.3%, Israel 25.4%, Latvia 24.9%, the UK 23.5% and the US 22.5%, the highest; Portugal 1.4%, New Zealand 5.0%, Italy 5.6% and Norway 6.7% the lowest. It is a relative measure: where the minimum wage is close to the median (Portugal) it approaches zero, which does not mean pay is high. There are no open earnings distribution data for Taiwan.',
+      },
+      unit: '%',
+      file: 'low-pay.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [8, 11, 14, 17, 20, 23] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
+    },
+    {
+      id: 'minimum-to-wage',
+      label: { zh: '最低工資占薪資中位數（Kaitz 指數）', en: 'Minimum wage relative to wages (Kaitz index)' },
+      description: {
+        zh: '法定最低工資是全時受僱者薪資中位數（或平均）的幾成（OECD，2025 年 33 國）。占中位數：哥倫比亞 90.5%、哥斯大黎加 84.7%、墨西哥 74.9%、紐西蘭 64.0%、法國 62.5%、英國 61.9% 最高，日本 46.4%、愛沙尼亞 42.7%，美國只有 24.1%（OECD 用聯邦最低工資，2009 年以後沒調過，多數州自己訂得更高）。哥倫比亞、墨西哥的高比例是薪資本身低、非正式就業不在分母裡。子項目「占平均薪資」有台灣：勞動部的基本工資除以主計總處工業及服務業每月總薪資，2025 年 45.1%（分母含部分工時與年終獎金，口徑跟 OECD 的全時受僱者不完全一樣）。比「最低工資多少美元」更能看出制度把底線訂得多高。',
+        en: 'The statutory minimum wage as a share of the median (or mean) wage of full-time employees (OECD, 33 countries in 2025). Against the median, Colombia is 90.5%, Costa Rica 84.7%, Mexico 74.9%, New Zealand 64.0%, France 62.5% and the UK 61.9%, the highest; Japan 46.4%, Estonia 42.7% and the US only 24.1% (the OECD uses the federal minimum, unchanged since 2009, while most states set higher ones). Colombia’s and Mexico’s high ratios reflect low wages and informal jobs outside the denominator. The “share of mean wage” option includes Taiwan: the Ministry of Labor’s minimum wage over DGBAS average monthly total earnings in industry and services, 45.1% in 2025 (the denominator includes part-time workers and bonuses, so it is not quite the OECD’s full-time basis). This shows how high the floor is set better than the minimum wage in dollars.',
+      },
+      unit: '%',
+      file: 'minimum-to-wage/{item}.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 45, 50, 55, 60, 70] } },
+      dimension: {
+        label: { zh: '對照', en: 'Relative to' },
+        options: [
+          { id: 'median', label: { zh: '占薪資中位數', en: 'Median wage' } },
+          { id: 'mean', label: { zh: '占平均薪資（含台灣）', en: 'Mean wage (incl. Taiwan)' } },
+        ],
+        defaultOption: 'median',
+      },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2025,
     },
     {
       id: 'annual-leave',
