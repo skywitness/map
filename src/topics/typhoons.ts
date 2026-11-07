@@ -315,6 +315,21 @@ const indicators: IndicatorDef[] = [
     overlayTime: 10,
     format: (v) => className(v),
   },
+  {
+    // 2026-11-07（製作手冊第二十五批 479，候選 1144）：pipeline/topics/typhoon_ace.py
+    id: 'ace-year',
+    label: { zh: '累積氣旋能量（ACE）', en: 'Accumulated cyclone energy (ACE)' },
+    description: {
+      zh: `這一年經過這一國的颱風（${RULE.zh}），各自整個生命期的累積氣旋能量（ACE）加總，單位是 10⁴ 節²：每 6 小時的最大持續風速（節）平方相加，只算熱帶風暴以上的熱帶階段，強又持久的颱風數字大。次數看不出一季有多猛，ACE 看得出來：北大西洋 1998 年只有 14 個命名風暴，ACE 181.2，是 1991–2020 年平均 121.0 的一倍半。2025 年澳洲 107.8、菲律賓 88.0、中國 60.2、日本 59.7、越南 40.9 最多，台灣 27.9；1991–2020 年平均日本 129.8、中國 74.1、菲律賓 72.0、美國 48.0、墨西哥 46.3、台灣 38.5。同一個颱風可以算好幾國，數字是那些颱風的總能量，不是它們在這一國附近的能量。側欄有六個海域每年的 ACE。只用美國機構的 1 分鐘風速；${PARTIAL.zh}`,
+      en: `The total accumulated cyclone energy (ACE) over the whole lifetime of each storm that affected the country that year (${RULE.en}), in units of 10⁴ kt²: the squares of the maximum sustained wind (knots) every 6 hours, summed over tropical stages of tropical-storm strength or more, so strong, long-lived storms score high. Counts miss how violent a season was; ACE shows it: the 1998 North Atlantic season had only 14 named storms but an ACE of 181.2, one and a half times the 1991–2020 average of 121.0. In 2025 Australia (107.8), the Philippines (88.0), China (60.2), Japan (59.7) and Viet Nam (40.9) were highest, with Taiwan at 27.9; the 1991–2020 averages were Japan 129.8, China 74.1, the Philippines 72.0, the US 48.0, Mexico 46.3 and Taiwan 38.5. One storm can count for several countries, and the figure is those storms’ total energy, not the energy they had near the country. The side panel shows each basin’s ACE by year. US 1-minute winds only; ${PARTIAL.en}`,
+    },
+    unit: { zh: '10⁴ 節²', en: '10⁴ kt²' },
+    file: 'ace-year/{item}.json',
+    layer: { kind: 'bubble', legendValues: [10, 50, 150] },
+    overlayTime: 'year',
+    format: (v) => fixed(v, 1),
+    formatTick: n0,
+  },
 ];
 
 export const typhoons: TopicDefinition = {
