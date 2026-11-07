@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { railEurope } from './rail-europe';
+import { railPower } from './rail-power';
 import { transportExtra } from './rail-extra';
 import type { CategoryDef, TopicDefinition } from './types';
 
@@ -60,6 +61,7 @@ export const transport: TopicDefinition = {
     },
     ...transportExtra.sources,
     ...railEurope.sources,
+    ...railPower.sources,
   ],
   note: {
     zh:
@@ -146,5 +148,7 @@ export const transport: TopicDefinition = {
     },
     ...transportExtra.indicators,
     ...railEurope.indicators,
+    // 2026-11-07（製作手冊第二十七批 564）：供電制度與車輛
+    ...railPower.indicators,
   ],
 };
