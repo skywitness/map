@@ -229,6 +229,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `space-more` 是太空主題的發射失敗率、民間業者比例、酬載用途與聯合國登記率：GCAT 的 launch、satcat（約 19 MB）、psatcat（約 5 MB），幾秒。
 
+`electricity-capacity` 是發電量主題的裝置容量、容量因數（Ember 新檔，跟 `electricity` 同一個快取）與輸配電損失率（EIA INTL.zip，跟化石燃料同一個快取），幾秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

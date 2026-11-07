@@ -215,6 +215,7 @@ STEPS = {
     "sequencing": "topics.sequencing",
     "quantum": "topics.quantum",
     "space-more": "topics.space_more",
+    "electricity-capacity": "topics.electricity_capacity",
     "water-forest": "topics.water_forest",
     # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
     "water-use": "topics.water_use",
