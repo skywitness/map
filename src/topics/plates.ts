@@ -167,13 +167,25 @@ export const DIRECTIONS: { zh: string; en: string }[] = [
 export const directionOf = (azimuth: number) => DIRECTIONS[Math.floor((((azimuth + 22.5) % 360) + 360) % 360 / 45)];
 const DIRECTION_CATEGORIES: CategoryDef[] = DIRECTIONS.map((d, i) => ({ value: i + 1, label: { zh: `往${d.zh}`, en: `Towards the ${d.en}` } }));
 
+/** 5 億年前的古大陸（plates_past.py 的類別代碼） */
+const PALEO_CATEGORIES: CategoryDef[] = [
+  { value: 1, label: { zh: '岡瓦納', en: 'Gondwana' } },
+  { value: 2, label: { zh: '勞倫西亞', en: 'Laurentia' } },
+  { value: 3, label: { zh: '波羅地', en: 'Baltica' } },
+  { value: 4, label: { zh: '西伯利亞', en: 'Siberia' } },
+  { value: 5, label: { zh: '華北（岡瓦納邊緣）', en: 'North China (off Gondwana)' } },
+  { value: 6, label: { zh: '華南（岡瓦納邊緣）', en: 'South China (off Gondwana)' } },
+  { value: 7, label: { zh: '阿瓦隆尼亞（岡瓦納邊緣）', en: 'Avalonia (off Gondwana)' } },
+  { value: 8, label: { zh: '那時還沒有這塊地殼', en: 'Crust not yet formed' }, color: MAP_TOKENS.categoricalOther },
+];
+
 const indicators: IndicatorDef[] = [
   {
     id: 'paleolat',
     label: { zh: '那時在哪個緯度', en: 'Latitude then' },
     description: {
-      zh: '把今天的國界跟著板塊帶回過去（Merdith 等 2021 的板塊重建模型），每 500 萬年一格，顏色是今天所在的大洲；線是那時的板塊邊界。2 億多年前大部分的陸地連成盤古大陸。滑到陸地上看是今天的哪一國；搜尋國家看它的國土那時在哪個緯度。',
-      en: 'Today’s borders carried back through time on their plates (the Merdith et al. 2021 plate reconstruction), every 5 million years, coloured by today’s continent; lines are the plate boundaries of the time. Over 200 million years ago most land was joined in Pangaea. Hover over land to see which country it is today; search for a country to see the latitude of its territory through time.',
+      zh: '把今天的國界跟著板塊帶回過去（Merdith 等 2021 的板塊重建模型），每 500 萬年一格，顏色是今天所在的大洲；線是那時的板塊邊界。2 億多年前大部分的陸地連成盤古大陸。滑到陸地上看是今天的哪一國；搜尋國家看它的國土那時在哪個緯度，側欄列出那時靠在一起、今天卻相隔很遠的國家：例如印度 1 億年前緊鄰馬達加斯加，巴西 1.5 億年前貼著加彭、貝南、迦納，美國 2 億年前靠著摩洛哥與茅利塔尼亞。',
+      en: 'Today’s borders carried back through time on their plates (the Merdith et al. 2021 plate reconstruction), every 5 million years, coloured by today’s continent; lines are the plate boundaries of the time. Over 200 million years ago most land was joined in Pangaea. Hover over land to see which country it is today; search for a country to see the latitude of its territory through time, with the countries that were close then but are far apart today listed in the side panel: India sat next to Madagascar 100 million years ago, Brazil was joined to Gabon, Benin and Ghana 150 million years ago, and the US lay beside Morocco and Mauritania 200 million years ago.',
     },
     unit: '°',
     file: 'paleolat.json',
@@ -199,6 +211,21 @@ const indicators: IndicatorDef[] = [
     bareMap: false,
     format: (v) => `${fixed(v, 1)}%`,
     formatTick: (v) => `${v}%`,
+  },
+  // 2026-11-07（製作手冊 543，候選 1227）：5 億年前屬於哪個古大陸（pipeline/topics/plates_past.py）
+  {
+    id: 'paleocontinent',
+    label: { zh: '5 億年前在哪個古大陸', en: 'Continent 500 million years ago' },
+    description: {
+      zh: '這一國今天的國土，5 億年前（寒武紀）在哪一塊古大陸上（Merdith 等 2021 的板塊模型：5 億年前各自移動的大陸只有 4 塊——岡瓦納、勞倫西亞、波羅地、西伯利亞，岡瓦納邊緣的阿瓦隆尼亞、華北、華南另外標出）。89 國在岡瓦納（非洲、南美洲、印度、澳洲、阿拉伯，以及西班牙、法國、瑞士等），美國、加拿大、格陵蘭、愛爾蘭在勞倫西亞，北歐與東歐 12 國在波羅地，俄羅斯與蒙古以西伯利亞為主；英國、德國、比荷盧屬阿瓦隆尼亞，兩韓屬華北，中國以華南最多。台灣、日本、菲律賓、紐西蘭、印尼、中美洲、巴爾幹等 61 國或地區的地殼在模型裡比 5 億年年輕，標「那時還沒有這塊地殼」。國界是今天的，一國可以跨兩塊古大陸（英格蘭在阿瓦隆尼亞、蘇格蘭在勞倫西亞），這裡取面積最大的；古大陸的劃分各家模型不同，這裡照 Merdith 的旋轉樹。南極洲包著極點、面積算不準，不上色。',
+      en: 'Which ancient continent each country’s present territory sat on 500 million years ago, in the Cambrian (Merdith et al. 2021 plate model: only four continents moved independently then, Gondwana, Laurentia, Baltica and Siberia, with Avalonia, North China and South China on Gondwana’s margins shown separately). 89 countries lie on Gondwana (Africa, South America, India, Australia, Arabia, plus Spain, France, Switzerland and others); the US, Canada, Greenland and Ireland on Laurentia; 12 northern and eastern European countries on Baltica; Russia and Mongolia mostly on Siberia; the UK, Germany and the Benelux on Avalonia; the two Koreas on North China; and China mostly on South China. In 61 countries and territories, including Taiwan, Japan, the Philippines, New Zealand, Indonesia, Central America and the Balkans, the model’s crust is younger than 500 million years, shown as not yet formed. Borders are today’s and a country can straddle two continents (England on Avalonia, Scotland on Laurentia); the largest share is shown. Models divide the ancient continents differently; this follows Merdith’s rotation tree. Antarctica, which surrounds the pole, is not shaded because its area cannot be computed reliably.',
+    },
+    unit: '',
+    file: 'paleocontinent.json',
+    layer: { kind: 'categorical', categories: PALEO_CATEGORIES },
+    timeless: true,
+    bareMap: false,
+    format: (v) => tr(PALEO_CATEGORIES.find((c) => c.value === v)?.label ?? ''),
   },
   // 候選 1225：板塊現在的速度（使用者 2026-11-07 選 NNR-MORVEL56，手冊建議的 Merdith 模型不適合算現在的運動）
   {
