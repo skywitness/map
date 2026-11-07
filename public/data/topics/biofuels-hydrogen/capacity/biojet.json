@@ -1,0 +1,1 @@
+{"indicator":"capacity/biojet","unit":"千公噸/年","years":[2011,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024],"license":"CC BY 4.0","attribution":"Eurostat","encoding":"delta","values":{"AUT":[0,null,null,null,null,null,null,null,4,0,0,0],"FIN":[0,1,0,0,0,6,17,20,45,111,100,0],"FRA":[-1,null,null,null,null,null,null,null,null,70,15,null]}}

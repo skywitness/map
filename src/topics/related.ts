@@ -151,6 +151,7 @@ export const RELATED: Record<string, string[]> = {
   'rd-companies': ['innovation', 'semiconductors', 'companies'],
   renewables: ['electricity', 'wind', 'climate'],
   'renewable-heat': ['renewables', 'district-heating', 'energy-prices'],
+  'biofuels-hydrogen': ['renewables', 'fossil-fuels', 'agriculture'],
   ev: ['electricity', 'road-safety', 'minerals'],
   // 環境
   climate: ['temperature', 'fossil-fuels', 'electricity'],

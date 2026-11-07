@@ -98,6 +98,7 @@ const TOPIC_ICONS = {
   'district-heating': 'heater',
   'web-platforms': 'app-window',
   'renewable-heat': 'sun-medium',
+  'biofuels-hydrogen': 'flask-round',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

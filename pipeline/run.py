@@ -343,6 +343,7 @@ STEPS = {
     "battery-storage": "topics.battery_storage",
     "bio-hydro": "topics.bio_hydro",
     "renewable-heat": "topics.renewable_heat",
+    "biofuels-hydrogen": "topics.biofuels_hydrogen",
     "fossil-infrastructure": "topics.fossil_infrastructure",
     "coal-types": "topics.coal_types",
     "fuel-uses": "topics.fuel_uses",
