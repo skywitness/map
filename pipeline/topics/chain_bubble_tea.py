@@ -24,7 +24,7 @@ from common import OUT_DIR, indicator_file, write_json
 from geoindex import countries_at
 from sources import osm_qlever, wpp
 from sources.countries import ISO3
-from topics.chain_stores import MIN_POPULATION, dedupe, store_points
+from topics.chain_stores import MIN_POPULATION, dedupe, official_notes, store_points
 
 OUT = OUT_DIR / "topics" / "chain-stores"
 YEAR = 2026
@@ -93,11 +93,14 @@ def build() -> None:
     rated = {a: p for a, p in population.items() if p >= MIN_POPULATION}
 
     counts: dict[str, Counter] = {}
+    tables: dict[str, list[dict]] = {}
     for b, _, zh, _ in BRANDS:
         c = Counter(located[s.osm_id] for s in stores[b] if located[s.osm_id])
         counts[b] = c
         world = sum(c.values())
-        extra = {"snapshot": SNAPSHOT}
+        # 公司公布的店數（sources/chain_official.py，2026-11-07 補）：附註、hints 與側欄的對照表
+        notes, notes_en, hints, hints_en, tables[b] = official_notes(b, c)
+        extra = {"snapshot": SNAPSHOT, "notes": notes, "notesEn": notes_en, "hints": hints, "hintsEn": hints_en}
         write_json(OUT / "stores" / f"{b}.json", indicator_file(
             "stores", "家", [YEAR], {a: [c.get(a, 0)] for a in population}, aggregates={"WLD": [world]}, **extra,
         ), quiet=True)
@@ -137,7 +140,10 @@ def build() -> None:
                 continue
             detail = {"snapshot": SNAPSHOT, "population": round(population[iso3]), "brands": {}, "official": []}
         brands = {k: v for k, v in detail.get("brands", {}).items() if k not in ids}
-        if brands == detail.get("brands", {}) and not mine:
+        official = [r for r in detail.get("official", []) if r["brand"] not in ids]
+        mine_official = [r for b in ids for r in tables.get(b, []) if iso3 in r["iso3"]]
+        if brands == detail.get("brands", {}) and not mine and official == detail.get("official", []) and not mine_official:
             continue
         detail["brands"] = brands | mine
+        detail["official"] = official + mine_official
         write_json(path, detail, quiet=True)

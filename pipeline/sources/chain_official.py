@@ -38,6 +38,15 @@ COSTCO = ("Costco 2026 年 9 月營收新聞稿", "Costco, September 2026 sales 
 SBUX_10K = ("Starbucks FY2025 10-K", "Starbucks FY2025 Form 10-K",
             "https://www.sec.gov/Archives/edgar/data/829224/000082922425000114/sbux-20250928.htm")
 LAWSON = ("Lawson 店舗數", "Lawson, store counts", "https://www.lawson.co.jp/company/corporate/data/sales/")
+COCO_BENELUX = ("CoCo 2026 年 4 月 20 日新聞稿（比利時合作）", "CoCo press release, 20 April 2026 (Belgian partnership)",
+                "https://www.prnewswire.com/news-releases/coco-announces-strategic-partnership-in-belgium-to-accelerate-european-expansion-302741556.html")
+GONG_CHA_US = ("貢茶 2026 年 10 月 2 日新聞稿（美國 24 州、華府與波多黎各）", "Gong cha press release, 2 October 2026 (24 US states, DC and Puerto Rico)",
+               "https://www.prnewswire.com/news-releases/gong-cha-rises-to-no-129-on-franchise-times-top-400-with-sales-growth-double-the-lists-pace-302897246.html")
+HEYTEA_US = ("喜茶 2026 年 10 月 16 日新聞稿", "HEYTEA press release, 16 October 2026",
+             "https://www.prnewswire.com/news-releases/heytea-opens-its-first-us-gelato-lab-in-new-york-302911630.html")
+HEYTEA_HK = ("喜茶 2026 年 1 月 13 日新聞稿", "HEYTEA press release, 13 January 2026",
+             "https://www.prnewswire.com/apac/news-releases/twins-appear-at-heytea-k11-art-mall-hong-kong-to-co-create-limited-edition-beverage-black-truffle-scrambled-eggs-milk-tea-302659806.html")
+CHING_SHIN = ("清心福全官網門市查詢", "Ching Shin official store finder", "https://www.chingshin.tw/store.php")
 
 
 def _o(brand, iso3, count, asof, source, scope=("", ""), qualifier="") -> Official:
@@ -122,4 +131,12 @@ OFFICIAL: list[Official] = [
         for iso3, n in [("CAN", 115), ("MEX", 43), ("GBR", 29), ("KOR", 20), ("AUS", 15), ("CHN", 7),
                         ("ESP", 5), ("FRA", 3), ("SWE", 2), ("ISL", 1), ("NZL", 1)]
     ],
+    # 手搖飲（2026-11-07，製作手冊 415 的補強；公司自己發的新聞稿與官網，2026-11-07 查）。公司只公布全球的約數
+    # （CoCo 5,000 家以上、喜茶 3,500 家以上、貢茶將近 2,200 家、日出茶太 1,000 家以上），寫在前端的說明；這裡只列有一國數字的
+    *[_o("coco", iso3, n, "2026-04-20", COCO_BENELUX) for iso3, n in [("NLD", 5), ("BEL", 3)]],
+    _o("gong-cha", ("USA", "PRI"), 240, "2026-10-02", GONG_CHA_US, qualifier="over"),
+    _o("heytea", "USA", 45, "2026-10-16", HEYTEA_US, qualifier="over"),
+    _o("heytea", "HKG", 11, "2026-01-13", HEYTEA_HK),
+    # 清心福全沒有公布店數：官網門市查詢逐縣市數出來的（全部在台灣）
+    _o("ching-shin", "TWN", 875, "2026-11-07", CHING_SHIN, ("官網門市查詢逐筆數", "counted from the official store finder")),
 ]
