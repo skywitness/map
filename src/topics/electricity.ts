@@ -54,6 +54,33 @@ export const electricity: TopicDefinition = {
   defaultYear: 2024,
   sources: [
     { name: 'Ember, Yearly Electricity Data', url: 'https://ember-energy.org/data/yearly-electricity-data/', license: 'CC BY 4.0' },
+    // 2026-11-07（第二十五批 520–522、531）輸配電損失、地熱與海洋能、離岸風電、再生能源占最終能源消費、台灣尖峰負載
+    {
+      name: {
+        zh: '美國能源資訊署（EIA）International Energy Statistics：輸配電損失、淨發電量、地熱與海洋能的裝置容量',
+        en: 'US Energy Information Administration (EIA), International Energy Statistics: distribution losses, net generation, geothermal and ocean capacity',
+      },
+      url: 'https://www.eia.gov/international/data/world',
+      license: { zh: '公有領域（美國政府著作）', en: 'Public domain (US government work)' },
+    },
+    {
+      name: { zh: 'Global Energy Monitor：Global Integrated Power Tracker（離岸風電機組，2026 年 9 月版）', en: 'Global Energy Monitor, Global Integrated Power Tracker (offshore wind units, September 2026)' },
+      url: 'https://globalenergymonitor.org/projects/global-integrated-power-tracker/',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: '世界銀行 WDI：再生能源占最終能源消費（EG.FEC.RNEW.ZS，原始資料 IEA）；Eurostat：再生能源占比（nrg_ind_ren）',
+        en: 'World Bank WDI: renewable energy share of final energy consumption (EG.FEC.RNEW.ZS, from the IEA); Eurostat: share of renewable energy (nrg_ind_ren)',
+      },
+      url: 'https://data.worldbank.org/indicator/EG.FEC.RNEW.ZS',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '台灣電力公司：歷年尖峰負載及備用容量率', en: 'Taipower: peak load and reserve margin by year' },
+      url: 'https://data.gov.tw/dataset/8307',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
+    },
     {
       name: 'Ember, Global Renewable Power Sector Targets 2030',
       url: 'https://ember-energy.org/data/global-renewable-power-sector-targets-2030/',

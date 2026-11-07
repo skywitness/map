@@ -7,6 +7,7 @@ import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import type { Hue } from '../../theme/tokens';
 import type { PanelExtraProps } from '../types';
+import { TaiwanPeak } from './TaiwanPeak';
 
 interface MixFile {
   years: number[];
@@ -76,6 +77,7 @@ export default function ElectricityPanel({ topic, iso3, year, countryName, token
 
   const total = view.items.reduce((sum, i) => sum + i.value, 0);
   return (
+    <>
     <section className="panel-section">
       <h3>{text.title}</h3>
       <Chart spec={view.option} height={220} ariaLabel={text.chartAria(countryName)} />
@@ -89,5 +91,7 @@ export default function ElectricityPanel({ topic, iso3, year, countryName, token
         </>
       )}
     </section>
+    {iso3 === 'TWN' && <TaiwanPeak topicId={topic.id} year={year} tokens={tokens} />}
+    </>
   );
 }

@@ -247,6 +247,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `power-fleet` 是發電廠地圖的機組平均年齡與最大母公司占比：GEM 的 CSV（跟發電廠地圖同一個快取），幾秒。
 
+`taiwan-peak` 是發電量主題台灣側欄的尖峰負載與備用容量率：台電的 CSV（service.taipower.com.tw 時通時斷，失敗時用 `.cache/taipower/` 的檔），一秒內。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

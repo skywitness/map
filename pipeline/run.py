@@ -224,6 +224,7 @@ STEPS = {
     "energy-taxes": "topics.energy_taxes",
     "oil-stocks": "topics.oil_stocks",
     "power-fleet": "topics.power_fleet",
+    "taiwan-peak": "topics.taiwan_peak",
     "water-forest": "topics.water_forest",
     # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
     "water-use": "topics.water_use",
