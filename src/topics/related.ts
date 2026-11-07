@@ -39,6 +39,7 @@ export const RELATED: Record<string, string[]> = {
   'digital-trade': ['digital', 'trade', 'submarine-cables'],
   'ip-addresses': ['digital', 'cctld', 'submarine-cables'],
   'cell-towers': ['internet-speed', 'digital', 'starlink'],
+  'internet-freedom': ['democracy', 'digital-trade', 'news'],
   'transport-investment': ['household-transport', 'transport', 'road-safety'],
   'household-transport': ['transport-investment', 'fuel-tax', 'prices'],
   'transport-jobs': ['transport-investment', 'employment', 'shipping'],

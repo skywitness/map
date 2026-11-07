@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 193;
-export const INDICATOR_COUNT = 1478;
+export const TOPIC_COUNT = 194;
+export const INDICATOR_COUNT = 1482;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -191,6 +191,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Ferde AS（挪威收費站的營運公司）：海于格松、斯塔萬格、克里斯蒂安桑的收費方案","en":"Ferde AS (Norwegian toll operator): schemes in Haugesund, Stavanger and Kristiansand"},"url":"https://ferde.no/bomanlegg-og-priser","licenses":[{"zh":"引用官網公告的事實","en":"facts cited from the operator’s website"}],"topics":["city-traffic"]},
   {"name":{"zh":"FIPS 10-4 與 ISO 國家代碼對照：GeoNames","en":"FIPS 10-4 to ISO country codes: GeoNames"},"url":"https://www.geonames.org/","licenses":["CC BY 4.0"],"topics":["news"]},
   {"name":"Flanders Marine Institute (2023). Maritime Boundaries Geodatabase v12, MarineRegions.org","url":"https://doi.org/10.14284/632","licenses":["CC BY 4.0"],"topics":["oceans"]},
+  {"name":{"zh":"Freedom House《Freedom on the Net 2026》（國家分數頁與各國頁面）","en":"Freedom House, Freedom on the Net 2026 (country scores and country pages)"},"url":"https://freedomhouse.org/report/freedom-net","licenses":[{"zh":"Freedom House 內容使用規定（非商業使用、註明出處）","en":"Freedom House content permissions (noncommercial use with citation)"}],"topics":["internet-freedom"]},
   {"name":{"zh":"Garner, G. G. 等（2021）IPCC AR6 Sea Level Projections，版本 20210809（海平面上升推估）","en":"Garner, G. G. et al. (2021), IPCC AR6 Sea Level Projections, version 20210809 (projected sea-level rise)"},"url":"https://doi.org/10.5281/zenodo.5914709","licenses":["CC BY 4.0"],"topics":["ice"]},
   {"name":{"zh":"GDELT 2.0 事件資料庫（每 15 分鐘）","en":"GDELT 2.0 Event Database (every 15 minutes)"},"url":"https://www.gdeltproject.org/","licenses":[{"zh":"可自由使用、轉載，需註明 GDELT Project 並連結","en":"free to use and redistribute with a citation and link to the GDELT Project"}],"topics":["news"]},
   {"name":{"zh":"geoBoundaries（第二級行政區）","en":"geoBoundaries (second-level divisions)"},"url":"https://www.geoboundaries.org/","licenses":[{"zh":"依各國授權","en":"licence varies by country"}],"topics":["map"]},

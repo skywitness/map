@@ -88,6 +88,7 @@ const TOPIC_ICONS = {
   'digital-trade': 'globe-lock',
   'ip-addresses': 'network',
   'cell-towers': 'radio-tower',
+  'internet-freedom': 'shield-ban',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

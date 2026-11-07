@@ -311,6 +311,8 @@ STEPS = {
     "ip-addresses": "topics.ip_addresses",
     # 通訊塔與行動基地台的密度（第二十七批 589）：OSM 經 QLever，三支查詢
     "cell-towers": "topics.cell_towers",
+    # 網路自由度（第二十七批 590）：Freedom House 的分數頁與 72 國的國家頁（間隔 3 秒）
+    "internet-freedom": "topics.internet_freedom",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
