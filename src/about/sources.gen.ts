@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 151;
-export const INDICATOR_COUNT = 1151;
+export const INDICATOR_COUNT = 1153;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -223,6 +223,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD How’s Life?：Current well-being（自己的時間、時間運用滿意度、社交時間）","en":"OECD How’s Life?: Current well-being (time off, satisfaction with time use, social interactions)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_HSL%40DF_HSL_CWB&df[ag]=OECD.WISE.WDP","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"OECD Pensions at a Glance 的資料庫（退休年齡、實際退出勞動市場的年齡）","en":"OECD Pensions at a Glance database (retirement ages, effective labour market exit age)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_PAG%40DF_DPS&df[ag]=OECD.ELS.SPD","licenses":["CC BY 4.0"],"topics":["employment"]},
   {"name":{"zh":"OECD Tax Database 表 I.7（個人所得稅最高稅率與起徵點）","en":"OECD Tax Database, Table I.7 (top statutory personal income tax rate and threshold)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_PIT%40DF_PIT_TOP_EARN_THRESH&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
+  {"name":{"zh":"OECD 農業政策監測：生產者支持估計（%PSE）","en":"OECD, Agricultural Policy Monitoring: Producer Support Estimate (%PSE)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AGR_POLIND%40DF_PSE&df[ag]=OECD.TAD.ARP","licenses":["CC BY 4.0"],"topics":["agriculture"]},
   {"name":"OECD, Analytical house price indicators","url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AN_HOUSE_PRICES%40DF_HOUSE_PRICES&df[ag]=OECD.ECO.MPD","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["housing"]},
   {"name":{"zh":"OECD, Corporate Tax Statistics（法定公司稅率）","en":"OECD, Corporate Tax Statistics (statutory corporate tax rates)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_CIT%40DF_CIT&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD, Global Revenue Statistics Database（稅收）","en":"OECD, Global Revenue Statistics Database (tax revenue)"},"url":"https://www.oecd.org/en/data/dashboards/global-revenue-statistics.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["fiscal"]},

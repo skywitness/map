@@ -81,7 +81,14 @@ export const agriculture: TopicDefinition = {
   shortTitle: { zh: '農業', en: 'Agriculture' },
   defaultIndicator: 'production',
   defaultYear: 2022,
-  sources: [{ name: 'FAO, FAOSTAT', url: 'https://www.fao.org/faostat/', license: 'CC BY 4.0' }],
+  sources: [
+    { name: 'FAO, FAOSTAT', url: 'https://www.fao.org/faostat/', license: 'CC BY 4.0' },
+    {
+      name: { zh: 'OECD 農業政策監測：生產者支持估計（%PSE）', en: 'OECD, Agricultural Policy Monitoring: Producer Support Estimate (%PSE)' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AGR_POLIND%40DF_PSE&df[ag]=OECD.TAD.ARP',
+      license: 'CC BY 4.0',
+    },
+  ],
   note: {
     zh:
       '稻米產量為稻穀重量，貿易與自給率以白米當量計算。農業總產值為 2014–2016 年固定價格的國際元。' +
@@ -286,6 +293,34 @@ export const agriculture: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [100, 300, 1000, 2500, 5000, 8000] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 國際元／公頃`, en: `Int$${fixed(v, 0)}/ha` }),
       formatTick: (v) => formatLargeTick(v),
+    },
+    {
+      id: 'pse',
+      label: { zh: '農業補貼（%PSE）', en: 'Farm support (%PSE)' },
+      description: {
+        zh: 'OECD 的生產者支持估計：農民的收入裡有多少來自政策（價格支持、直接給付等，含關稅與價格管制造成的隱含移轉），1986 年起，29 國加歐盟。2025 年冰島 51.0%、挪威 49.7%、瑞士 49.2%、日本 45.0%（2024 年 31.2%）、韓國 42.7%、菲律賓 24.5%、歐盟 18.2%、埃及 16.7%、中國 14.3%、英國 12.6%、美國 9.7%、加拿大 6.6%、巴西 1.2%、澳洲 1.2%、紐西蘭 0.5%；OECD 平均 15.4%。負值是出口限制與價格管制在向農民抽稅：印度 −7.1%、越南 −10.7%、阿根廷 −15.0%。歐盟只有一個合計，成員國都畫歐盟的值（加入以後的年份）；台灣不在 OECD 的監測裡。',
+        en: 'The OECD’s Producer Support Estimate: the share of farm receipts that comes from policy (price support, direct payments and so on, including the implicit transfers from tariffs and price controls), from 1986, for 29 countries and the EU. In 2025: Iceland 51.0%, Norway 49.7%, Switzerland 49.2%, Japan 45.0% (31.2% in 2024), South Korea 42.7%, the Philippines 24.5%, the EU 18.2%, Egypt 16.7%, China 14.3%, the UK 12.6%, the US 9.7%, Canada 6.6%, Brazil 1.2%, Australia 1.2%, New Zealand 0.5%; OECD average 15.4%. Negative values mean export restrictions and price controls tax farmers: India −7.1%, Vietnam −10.7%, Argentina −15.0%. The EU is reported only as a whole, so member states show the EU value (from the year they joined); Taiwan is not covered by OECD monitoring.',
+      },
+      unit: '%',
+      file: 'pse.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-30, -15, -1, 1, 15, 30] } },
+      format: (v) => `${v < 0 ? '−' : ''}${fixed(Math.abs(v), 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'aoi',
+      label: { zh: '政府對農業的偏重（農業導向指數）', en: 'Government spending bias to farming (AOI)' },
+      description: {
+        zh: 'SDG 2.a.1 的農業導向指數：農林漁業支出占政府支出的比例 ÷ 農業占 GDP 的比例，大於 1 是政府花在農業的錢比農業在經濟裡的份量還多。2023 年瑞士 3.08、韓國 2.28、日本 2.04、英國 0.97、中國 0.87、泰國 0.68、挪威 0.59、德國 0.50、印度 0.42、越南 0.40、美國 0.36、澳洲 0.34、法國 0.23、荷蘭 0.21、印尼 0.20、巴西 0.15；世界 0.44；迦納、獅子山 0.02 最低。只看預算支出，不含 %PSE 裡關稅與價格支持的隱含移轉。新加坡 5.74、香港 3.67、盧森堡 3.35 這類農業不到 GDP 0.5% 的地方分母很小、指數容易放大（馬爾他 2023 年是 25.3），滑過有寫；台灣不在 FAOSTAT 的這份資料裡。',
+        en: 'The SDG 2.a.1 Agriculture Orientation Index: agriculture, forestry and fishing’s share of government spending divided by agriculture’s share of GDP; above 1 means governments spend more on farming than its weight in the economy. In 2023: Switzerland 3.08, South Korea 2.28, Japan 2.04, the UK 0.97, China 0.87, Thailand 0.68, Norway 0.59, Germany 0.50, India 0.42, Vietnam 0.40, the US 0.36, Australia 0.34, France 0.23, the Netherlands 0.21, Indonesia 0.20, Brazil 0.15; the world 0.44; Ghana and Sierra Leone are lowest at 0.02. It counts budget spending only, not the implicit transfers from tariffs and price support in %PSE. Places where farming is under 0.5% of GDP, such as Singapore (5.74), Hong Kong (3.67) and Luxembourg (3.35), have tiny denominators that inflate the index (Malta was 25.3 in 2023), as noted on hover; Taiwan is not in this FAOSTAT dataset.',
+      },
+      unit: '',
+      file: 'aoi.json',
+      defaultYear: 2023,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.2, 0.4, 0.7, 1, 2] } },
+      format: (v) => fixed(v, 2),
+      formatTick: (v) => String(v),
     },
   ],
 };

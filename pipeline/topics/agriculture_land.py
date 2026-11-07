@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from common import OUT_DIR, indicator_file, to_series, write_json
+from common import OUT_DIR, indicator_file, to_series, write_json, write_manifest_part
 from sources import faostat
 from topics.agriculture_names import ZH_NAMES
 
@@ -181,3 +181,5 @@ def build() -> None:
     farmland = _land()
     _livestock(farmland)
     _value_per_ha(farmland)
+    write_manifest_part(OUT, "agriculture", "agriculture-land", {"sources": [
+        "FAOSTAT QCL, RL, EK (CC BY 4.0; Flag X not used)"]})
