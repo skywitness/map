@@ -33,6 +33,7 @@ DATASETS = {
     "RFN": "Inputs_FertilizersNutrient_E_All_Data_(Normalized).zip",  # 化肥（養分量：產量、施用、進出口；第二十二批 384）
     "EK": "Environment_LivestockPatterns_E_All_Data_(Normalized).zip",  # 家畜型態（牲畜密度；第二十五批 440）
     "IG": "Investment_GovernmentExpenditure_E_All_Data_(Normalized).zip",  # 政府支出（農業導向指數；第二十五批 442）
+    "PP": "Prices_E_All_Data_(Normalized).zip",  # 產地價格（第二十五批 443）
 }
 # 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
 ENCODINGS = {"FBSH": "latin-1"}
