@@ -6,6 +6,7 @@ import { withParts } from './parts';
 import { portCallsPart, portCargoTypesPart } from './port-activity';
 import { seaPassengersPart } from './sea-passengers';
 import { shippingEfficiencyPart } from './shipping-efficiency';
+import { shipyardsPart } from './shipyards';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
 /**
@@ -500,4 +501,4 @@ export const shipping: TopicDefinition = withParts({
       },
     },
   ],
-}, shippingEfficiencyPart, portCallsPart, portCargoTypesPart, seaPassengersPart);
+}, shippingEfficiencyPart, portCallsPart, portCargoTypesPart, seaPassengersPart, shipyardsPart);

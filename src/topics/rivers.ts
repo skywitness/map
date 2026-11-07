@@ -4,6 +4,7 @@ import { MAP_TOKENS, TOKENS } from '../theme/tokens';
 import { withParts } from './parts';
 import { riverFlowPart } from './river-flow';
 import { waterwaysPart } from './inland-waterways';
+import { inlandFleetPart } from './inland-fleet';
 import type { IndicatorDef, LinesOverlayDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
@@ -596,4 +597,4 @@ export const rivers: TopicDefinition = withParts({
     { ...DAMS, id: 'dams-map', hidden: true, indicators: ['map'], shareable: false },
   ],
   indicators,
-}, riverFlowPart, waterwaysPart);
+}, riverFlowPart, waterwaysPart, inlandFleetPart);

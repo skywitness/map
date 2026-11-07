@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 185;
-export const INDICATOR_COUNT = 1460;
+export const INDICATOR_COUNT = 1464;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -148,6 +148,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：依車齡的小客車數（road_eqs_carage，歐洲 2013–2025 年）","en":"Eurostat: passenger cars by age (road_eqs_carage, Europe 2013–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carage/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat：依軌道數（rail_if_line_tr）與最高速度（rail_if_line_sp）的鐵路長度","en":"Eurostat: railway lines by number of tracks (rail_if_line_tr) and maximum speed (rail_if_line_sp)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/rail_if_line_tr/default/table","licenses":["CC BY 4.0"],"topics":["transport"]},
   {"name":{"zh":"Eurostat：依道路類別的道路交通死亡（tran_sf_roadro）與車公里（road_tf_vehmov）","en":"Eurostat: road deaths by type of road (tran_sf_roadro) and vehicle-km (road_tf_vehmov)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tran_sf_roadro/default/table","licenses":["CC BY 4.0"],"topics":["road-safety"]},
+  {"name":{"zh":"Eurostat：內河船舶依建造年份（iww_eq_age）","en":"Eurostat: inland waterway vessels by year of construction (iww_eq_age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/iww_eq_age/default/table","licenses":["CC BY 4.0"],"topics":["rivers"]},
   {"name":{"zh":"Eurostat：可通航內河水道的長度（iww_if_infrastr）、內河貨運（iww_go_atygo）","en":"Eurostat: navigable inland waterways (iww_if_infrastr), inland waterway freight (iww_go_atygo)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/iww_if_infrastr/default/table","licenses":["CC BY 4.0"],"topics":["rivers"]},
   {"name":{"zh":"Eurostat：各機場的基礎設施（avia_if_typ）","en":"Eurostat: airport infrastructure by airport (avia_if_typ)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_if_typ/default/table","licenses":["CC BY 4.0"],"topics":["aviation"]},
   {"name":{"zh":"Eurostat：各產業的附加價值（nama_10_a10，NACE A*10）","en":"Eurostat: gross value added by industry (nama_10_a10, NACE A*10)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nama_10_a10/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
@@ -400,6 +401,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（建築的座標、朝聖地）","en":"Wikidata (building locations, pilgrimage sites)"},"url":"https://www.wikidata.org/wiki/Q15135589","licenses":["CC0"],"topics":["religion"]},
   {"name":{"zh":"Wikidata（機場的命名由來 P138，經 QLever 查詢，2026 年 11 月）","en":"Wikidata (what airports are named after, P138; queried via QLever, November 2026)"},"url":"https://www.wikidata.org/wiki/Property:P138","licenses":["CC0"],"topics":["aviation"]},
   {"name":{"zh":"Wikidata（行車方向，P1622）","en":"Wikidata (driving side, P1622)"},"url":"https://www.wikidata.org/wiki/Property:P1622","licenses":["CC0"],"topics":["travel"]},
+  {"name":{"zh":"Wikidata（造船廠 Q190928 與子類別的國家、座標、創立與關閉年份，經 QLever 查詢）","en":"Wikidata (shipyards, Q190928 and subclasses: country, coordinates, founding and closing years; via QLever)"},"url":"https://www.wikidata.org/wiki/Q190928","licenses":["CC0"],"topics":["shipping"]},
   {"name":{"zh":"Wikidata（運動聯賽與俱樂部，經 QLever 查詢）","en":"Wikidata (sports leagues and clubs, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q623109","licenses":["CC0"],"topics":["sports"]},
   {"name":{"zh":"Wikimedia Commons（國旗的 SVG，逐檔核對授權）","en":"Wikimedia Commons (flag SVGs, licence checked file by file)"},"url":"https://commons.wikimedia.org/wiki/Category:SVG_flags_by_country","licenses":[{"zh":"公有領域 228 個、CC0 5 個、阿曼政府開放授權 1 個；國徽、國旗的使用可能受各國法律限制","en":"228 public domain, 5 CC0, 1 Open Government Licence – Oman; use of national insignia may be restricted by national law"}],"topics":["flags"]},
   {"name":{"zh":"Wikimedia Commons（照片，滑過時從 Commons 讀；攝影者與授權寫在照片下面）","en":"Wikimedia Commons (photos, loaded from Commons on hover; photographer and licence under each photo)"},"url":"https://commons.wikimedia.org/","licenses":[{"zh":"各張照片自己的授權（多半是 CC BY-SA）","en":"Each photo’s own licence (mostly CC BY-SA)"}],"topics":["castles"]},
