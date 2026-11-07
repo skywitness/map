@@ -341,6 +341,7 @@ STEPS = {
     "power-reliability": "topics.power_reliability",
     "district-heating": "topics.district_heating",
     "battery-storage": "topics.battery_storage",
+    "fossil-infrastructure": "topics.fossil_infrastructure",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）

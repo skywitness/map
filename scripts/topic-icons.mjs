@@ -188,6 +188,7 @@ const TOPIC_ICONS = {
   electricity: 'zap',
   'power-plants': 'utility-pole',
   'fossil-fuels': 'fuel',
+  'fossil-infrastructure': 'drill',
   'energy-prices': 'badge-dollar-sign',
   'science-facilities': 'atom',
   starlink: 'satellite-dish',

@@ -132,7 +132,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '能源', en: 'Energy' },
     sections: [
       { label: { zh: '電力', en: 'Electricity' }, topics: ['electricity', 'power-plants', 'energy-prices', 'nuclear', 'hvdc', 'power-reliability', 'district-heating'] },
-      { label: { zh: '化石燃料', en: 'Fossil fuels' }, topics: ['fossil-fuels'] },
+      { label: { zh: '化石燃料', en: 'Fossil fuels' }, topics: ['fossil-fuels', 'fossil-infrastructure'] },
       { label: { zh: '再生能源', en: 'Renewables' }, topics: ['renewables'] },
       // 2026-11-07（第二十五批 523）：第一個主題「各部門的最終能源消費」做好，開這個小類
       { label: { zh: '能源的使用與政策', en: 'Energy use & policy' }, topics: ['energy-use', 'household-energy', 'energy-poverty', 'energy-market', 'energy-taxes'] },
@@ -348,6 +348,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   electricity: () => import('./electricity'),
   'power-plants': () => import('./power-plants'),
   'fossil-fuels': () => import('./fossil-fuels'),
+  'fossil-infrastructure': () => import('./fossil-infrastructure'),
   nuclear: () => import('./nuclear'),
   'health-spending': () => import('./health-spending'),
   'health-care': () => import('./health-care'),

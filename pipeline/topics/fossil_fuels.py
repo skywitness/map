@@ -894,14 +894,9 @@ def coal_mines(features: list[dict], mojibake: list[int]) -> dict[str, list[dict
             "py": _year(p["prod-year-coal"]) if prod else None, "type": {"Surface": 1, "Underground": 2}.get(p["mine-type"].strip()),
             "start": _year(p["start-year"]),
         })
-    fields = ["lon", "lat", "name", "iso3", "st", "cap", "prod", "py", "type", "start"]
-    scale = {"lon": 0.01, "lat": 0.01, "st": 1, "cap": 0.01, "prod": 0.01, "py": 1, "type": 1, "start": 1}
-    files = {1: "mines-operating.json", 2: "mines-proposed.json"}
+    # 2026-11-07（製作手冊第二十七批 613）煤礦的點圖層搬到「化石燃料的基礎建設」，由 topics/fossil_infrastructure.py 寫
+    # （多帶煤種、僱用人數、所屬煤田）；這裡只留國家側欄要用的運轉中煤礦
     closed = layers.get(3, []) + layers.get(4, [])
-    for status, filename in files.items():
-        rows = sorted(layers[status], key=lambda r: -(r["cap"] or r["prod"] or 0))
-        write_json(OUT / filename, points_file(rows, fields, scale))
-    write_json(OUT / "mines-closed.json", points_file(sorted(closed, key=lambda r: -(r["cap"] or r["prod"] or 0)), fields, scale))
     print(f"  GEM 煤礦：運轉中 {len(layers[1])}、規劃中 {len(layers[2])}、關閉或封存 {len(closed)}；不畫的 {dict(skipped)}")
     by_country: dict[str, list[dict]] = defaultdict(list)
     for r in layers[1]:

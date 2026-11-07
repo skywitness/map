@@ -9,6 +9,7 @@ import type {
   ItemFormat,
   PlaceDef,
   PointRecord,
+  OverlayDef,
   PointsOverlayDef,
   TopicDefinition,
 } from './types';
@@ -385,21 +386,6 @@ const indicators: IndicatorDef[] = [
     formatTick: (v) => `${v}%`,
     compareWorld: true,
   },
-  {
-    id: 'refining-capacity',
-    label: { zh: '煉油能力', en: 'Refining capacity' },
-    description: {
-      zh: '運轉中的煉油廠一天能處理的原油合計（萬桶），圓的面積與它成正比；地圖上的點是 Wikidata 有座標的煉油廠（不到三成），大小是能力，顏色是狀態。依英文維基百科「List of oil refineries」2026-10-18 的版本：美國 1,857 萬桶/日最多，俄羅斯 511、印度 467、中國 388、日本 381、沙烏地阿拉伯 319、南韓 308；最大的煉油廠是印度 Jamnagar 140 萬桶/日。台灣 74 萬（麥寮 54、桃園 20、大林 10）。清單不完整：中國的地方煉油廠多半沒有列、印度有的只寫年處理噸數，合計明顯偏低。',
-      en: 'Total crude oil that operating refineries can process per day (10,000 barrels); circle area is proportional to it. Dots are the refineries that have coordinates in Wikidata (under 30%), sized by capacity and coloured by status. Based on English Wikipedia’s “List of oil refineries” as of 18 October 2026: the US leads with 18.6 million barrels a day, then Russia 5.1, India 4.7, China 3.9, Japan 3.8, Saudi Arabia 3.2 and South Korea 3.1 million; the largest refinery is India’s Jamnagar at 1.4 million. Taiwan 0.74 million (Mailiao 0.54, Taoyuan 0.20, Dalin 0.10). The list is incomplete: most of China’s independent refineries are missing and some Indian ones give only tonnes a year, so totals are clearly too low.',
-    },
-    unit: { zh: '萬桶/日', en: '10,000 b/d' },
-    file: 'refining-capacity.json',
-    layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
-    format: (v) => tr({ zh: `${num(v)} 萬桶/日`, en: `${fixed(v * 10, 0)} thousand b/d` }),
-    formatTick: tick,
-    timeless: true,
-    shareOfWorld: true,
-  },
   // 2026-11-07（製作手冊第二十五批 529）石油庫存（pipeline/topics/oil_stocks.py）：原本只用 EIA（8 國），同一天使用者決定
   // 照 NCD-RisC 的前例改用 JODI（條款只寫 all rights reserved：註明出處、標只准非商業、只放算好的數值），品質燈號白色也畫
   {
@@ -462,8 +448,6 @@ const indicators: IndicatorDef[] = [
     },
   ),
 ];
-/** 分燃料的指標（檔名有 {item}）：GEM 的管線、油氣田與煤礦只在這些指標畫，全部能源的兩個指標不畫 */
-const FUEL_INDICATORS = indicators.filter((i) => i.file.includes('{item}') && i.id !== 'primary-mix').map((i) => i.id);
 
 // ── 煉油廠（第十批 163，pipeline/topics/refineries.py）─────────────────
 
@@ -589,6 +573,14 @@ function fieldTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => stri
   };
 }
 
+/** GEM 的煤種（coal-grade）：動力煤、冶金煤（焦煤）、兩者都有、化工用煤 */
+const MINE_GRADES: Record<number, Text> = {
+  1: { zh: '動力煤', en: 'thermal coal' },
+  2: { zh: '冶金煤（焦煤）', en: 'metallurgical coal' },
+  3: { zh: '動力煤與冶金煤', en: 'thermal and metallurgical coal' },
+  4: { zh: '化工用煤', en: 'chemical coal' },
+};
+
 function mineTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
   const st = typeof p.st === 'number' ? p.st : 1;
   const type = p.type === 1 ? { zh: '露天', en: 'surface' } : p.type === 2 ? { zh: '地下', en: 'underground' } : null;
@@ -602,6 +594,9 @@ function mineTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => strin
           en: `output ${num(p.prod)} Mt${typeof p.py === 'number' ? ` (${p.py})` : ''}`,
         })
       : null,
+    typeof p.grade === 'number' && MINE_GRADES[p.grade] ? tr(MINE_GRADES[p.grade]) : null,
+    typeof p.work === 'number' ? tr({ zh: `僱用約 ${num(p.work)} 人`, en: `about ${num(p.work)} workers` }) : null,
+    typeof p.field === 'string' && p.field ? tr({ zh: `煤田：${p.field}`, en: `coalfield: ${p.field}` }) : null,
     typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
   ];
   return {
@@ -647,13 +642,13 @@ const FIELD_COLORS: ColorClasses = {
 };
 const MINE_SIZES = { title: { zh: '產能（百萬公噸/年）', en: 'Capacity (Mt/y)' }, values: [1, 10, 50], format: tick };
 
+const MINE_INDICATORS = ['coal-mine-capacity', 'coal-mine-workforce'];
 const mineLayer = (id: string, file: string, label: Text, color: string, hidden: boolean): PointsOverlayDef => ({
   kind: 'points',
   id,
   file,
   label,
-  indicators: FUEL_INDICATORS,
-  items: [COAL],
+  indicators: MINE_INDICATORS,
   ...(hidden ? { hidden: true } : {}),
   radius: {
     field: 'cap',
@@ -669,6 +664,140 @@ const mineLayer = (id: string, file: string, label: Text, color: string, hidden:
   sizeLegend: MINE_SIZES,
   tooltip: mineTooltip,
 });
+
+/**
+ * 管線、LNG、油氣田、煤礦與煉油廠的圖層（2026-11-07，製作手冊第二十七批 613）：使用者核准把「石油、天然氣與煤」拆成兩個主題，
+ * 這些「東西在哪裡」的圖層搬到「化石燃料的基礎建設」（fossil-infrastructure.ts），資料照舊在 fossil-fuels/（煤礦的點改在
+ * fossil-infrastructure/，多帶煤種、僱用人數、所屬煤田）。
+ */
+const LNG_INDICATORS = ['lng-import', 'lng-export'];
+const FIELD_INDICATORS = ['field-output'];
+/** 煉油能力（搬到化石燃料的基礎建設，資料照舊在 fossil-fuels/） */
+export const REFINING_CAPACITY: IndicatorDef = {
+  id: 'refining-capacity',
+  label: { zh: '煉油能力', en: 'Refining capacity' },
+  description: {
+    zh: '運轉中的煉油廠一天能處理的原油合計（萬桶），圓的面積與它成正比；地圖上的點是 Wikidata 有座標的煉油廠（不到三成），大小是能力，顏色是狀態。依英文維基百科「List of oil refineries」2026-10-18 的版本：美國 1,857 萬桶/日最多，俄羅斯 511、印度 467、中國 388、日本 381、沙烏地阿拉伯 319、南韓 308；最大的煉油廠是印度 Jamnagar 140 萬桶/日。台灣 74 萬（麥寮 54、桃園 20、大林 10）。清單不完整：中國的地方煉油廠多半沒有列、印度有的只寫年處理噸數，合計明顯偏低。',
+    en: 'Total crude oil that operating refineries can process per day (10,000 barrels); circle area is proportional to it. Dots are the refineries that have coordinates in Wikidata (under 30%), sized by capacity and coloured by status. Based on English Wikipedia’s “List of oil refineries” as of 18 October 2026: the US leads with 18.6 million barrels a day, then Russia 5.1, India 4.7, China 3.9, Japan 3.8, Saudi Arabia 3.2 and South Korea 3.1 million; the largest refinery is India’s Jamnagar at 1.4 million. Taiwan 0.74 million (Mailiao 0.54, Taoyuan 0.20, Dalin 0.10). The list is incomplete: most of China’s independent refineries are missing and some Indian ones give only tonnes a year, so totals are clearly too low.',
+  },
+  unit: { zh: '萬桶/日', en: '10,000 b/d' },
+  file: '../fossil-fuels/refining-capacity.json',
+  layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+  format: (v) => tr({ zh: `${num(v)} 萬桶/日`, en: `${fixed(v * 10, 0)} thousand b/d` }),
+  formatTick: tick,
+  timeless: true,
+  shareOfWorld: true,
+};
+
+export const INFRA_OVERLAYS: OverlayDef[] = [
+  {
+    kind: 'lines',
+    id: 'gas-pipelines',
+    file: '../fossil-fuels/gas-pipelines.json',
+    label: { zh: '天然氣管線', en: 'Gas pipelines' },
+    indicators: LNG_INDICATORS,
+    width: 1,
+    color: {
+      title: { zh: '狀態', en: 'Status' },
+      classes: [
+        { value: 1, color: GAS_COLOR, label: LINE_STATUS[1] },
+        { value: 2, color: C[6], dash: true, label: LINE_STATUS[2] },
+        { value: 3, color: PLANNED_COLOR, dash: true, label: LINE_STATUS[3] },
+      ],
+    },
+    tooltip: pipelineTooltip('gas'),
+  },
+  {
+    kind: 'points',
+    id: 'lng',
+    file: '../fossil-fuels/lng-operating.json',
+    label: { zh: 'LNG 接收站（運轉中）', en: 'LNG terminals (operating)' },
+    indicators: LNG_INDICATORS,
+    radius: { field: 'op', stops: LNG_RADIUS },
+    color: LNG_COLORS,
+    sizeLegend: LNG_SIZES,
+    tooltip: lngTooltip,
+  },
+  {
+    kind: 'points',
+    id: 'lng-planned',
+    file: '../fossil-fuels/lng-planned.json',
+    label: { zh: 'LNG 接收站（只有興建中或規劃中）', en: 'LNG terminals (under construction or proposed only)' },
+    indicators: LNG_INDICATORS,
+    hidden: true,
+    radius: { field: 'plan', stops: LNG_RADIUS },
+    color: LNG_COLORS,
+    sizeLegend: LNG_SIZES,
+    tooltip: lngTooltip,
+  },
+  {
+    kind: 'lines',
+    id: 'oil-pipelines',
+    file: '../fossil-fuels/oil-pipelines.json',
+    label: { zh: '油管', en: 'Oil pipelines' },
+    indicators: FIELD_INDICATORS,
+    width: 1,
+    color: {
+      title: { zh: '種類與狀態', en: 'Type and status' },
+      classes: [
+        { value: 1, color: C[5], label: { zh: '原油（運轉中）', en: 'Crude oil (operating)' } },
+        { value: 2, color: C[5], dash: true, label: { zh: '原油（興建中、規劃中）', en: 'Crude oil (under construction, proposed)' } },
+        { value: 3, color: C[7], label: { zh: '天然氣液（運轉中）', en: 'Natural gas liquids (operating)' } },
+        { value: 4, color: C[7], dash: true, label: { zh: '天然氣液（興建中、規劃中）', en: 'Natural gas liquids (under construction, proposed)' } },
+      ],
+    },
+    tooltip: pipelineTooltip('oil'),
+  },
+  {
+    kind: 'points',
+    id: 'fields',
+    file: '../fossil-fuels/fields.json',
+    label: { zh: '油氣田', en: 'Oil and gas fields' },
+    indicators: FIELD_INDICATORS,
+    radius: {
+      field: 'prod',
+      stops: [
+        [0, 1.2],
+        [10, 2],
+        [100, 4.5],
+        [500, 9],
+        [1500, 15],
+      ],
+    },
+    color: FIELD_COLORS,
+    sizeLegend: { title: { zh: '產量（百萬桶油當量/年）', en: 'Output (million boe/y)' }, values: [10, 100, 500], format: tick },
+    tooltip: fieldTooltip,
+  },
+  mineLayer('mines', 'mines-operating.json', { zh: '煤礦（運轉中）', en: 'Coal mines (operating)' }, C[5], false),
+  mineLayer('mines-proposed', 'mines-proposed.json', { zh: '煤礦（規劃中）', en: 'Coal mines (proposed)' }, PLANNED_COLOR, true),
+  mineLayer(
+    'mines-closed',
+    'mines-closed.json',
+    { zh: '煤礦（已關閉或封存）', en: 'Coal mines (closed or mothballed)' },
+    MAP_TOKENS.inkSecondary,
+    true,
+  ),
+  {
+    kind: 'points',
+    id: 'refineries',
+    file: '../fossil-fuels/refineries.json',
+    label: { zh: '煉油廠（Wikidata 有座標的）', en: 'Refineries (with coordinates in Wikidata)' },
+    indicators: ['refining-capacity'],
+    radius: {
+      field: 'cap',
+      stops: [
+        [0, 2],
+        [10, 4],
+        [50, 9],
+        [140, 15],
+      ],
+    },
+    color: REFINERY_COLORS,
+    sortField: 'cap',
+    sizeLegend: { title: { zh: '能力（萬桶/日）', en: 'Capacity (10,000 b/d)' }, values: [10, 50, 140], format: tick },
+    tooltip: refineryTooltip,
+  },
+];
 
 const fossilFuelsOwn: TopicDefinition = {
   id: 'fossil-fuels',
@@ -755,124 +884,10 @@ const fossilFuelsOwn: TopicDefinition = {
     },
   ],
   note: {
-    zh: '產量、消費量與自給率是 EIA 的估計，各國同一套方法；全部能源的消費是 EIA 的初級能源消費（核能與再生能源依 EIA 的方法換算，跟 IEA 的數字不同）；1992 年以前的蘇聯、南斯拉夫等畫在當時的首都，1990 年以前的德國是東西德合計。流向是 CEPII BACI 的貿易數量，台灣在 BACI 列為「Other Asia, nes」，數字來自貿易夥伴。管線、接收站、油氣田與煤礦是 GEM 的 2026 年資料，不跟時間軸變；管線簡化到約 1 公里。',
-    en: 'Production, consumption and self-sufficiency are EIA estimates made the same way for every country; energy use across all sources is EIA primary energy consumption (nuclear and renewables are converted by EIA’s method, so figures differ from the IEA’s); before 1992 the Soviet Union, Yugoslavia and others are drawn at their former capitals, and Germany before 1991 is East and West combined. Flows are trade quantities from CEPII BACI, where Taiwan appears as "Other Asia, nes" and its figures come from trading partners. Pipelines, terminals, fields and mines are 2026 data from GEM and do not change with the time slider; pipelines are simplified to about 1 km.',
+    zh: '產量、消費量與自給率是 EIA 的估計，各國同一套方法；全部能源的消費是 EIA 的初級能源消費（核能與再生能源依 EIA 的方法換算，跟 IEA 的數字不同）；1992 年以前的蘇聯、南斯拉夫等畫在當時的首都，1990 年以前的德國是東西德合計。流向是 CEPII BACI 的貿易數量，台灣在 BACI 列為「Other Asia, nes」，數字來自貿易夥伴。管線、LNG 接收站、油氣田、煤礦與煉油廠的地圖在「化石燃料的基礎建設」主題（2026-11-07 拆出去）。',
+    en: 'Production, consumption and self-sufficiency are EIA estimates made the same way for every country; energy use across all sources is EIA primary energy consumption (nuclear and renewables are converted by EIA’s method, so figures differ from the IEA’s); before 1992 the Soviet Union, Yugoslavia and others are drawn at their former capitals, and Germany before 1991 is East and West combined. Flows are trade quantities from CEPII BACI, where Taiwan appears as "Other Asia, nes" and its figures come from trading partners. Maps of pipelines, LNG terminals, fields, coal mines and refineries are in the Fossil fuel infrastructure topic (split off on 7 November 2026).',
   },
   panelExtra: () => import('./panels/FossilFuelsPanel'),
-  overlays: [
-    {
-      kind: 'lines',
-      id: 'gas-pipelines',
-      file: 'gas-pipelines.json',
-      label: { zh: '天然氣管線', en: 'Gas pipelines' },
-      indicators: FUEL_INDICATORS,
-      items: [GAS, PIPELINE],
-      width: 1,
-      color: {
-        title: { zh: '狀態', en: 'Status' },
-        classes: [
-          { value: 1, color: GAS_COLOR, label: LINE_STATUS[1] },
-          { value: 2, color: C[6], dash: true, label: LINE_STATUS[2] },
-          { value: 3, color: PLANNED_COLOR, dash: true, label: LINE_STATUS[3] },
-        ],
-      },
-      tooltip: pipelineTooltip('gas'),
-    },
-    {
-      kind: 'points',
-      id: 'lng',
-      file: 'lng-operating.json',
-      label: { zh: 'LNG 接收站（運轉中）', en: 'LNG terminals (operating)' },
-      indicators: FUEL_INDICATORS,
-      items: [GAS, PIPELINE],
-      radius: { field: 'op', stops: LNG_RADIUS },
-      color: LNG_COLORS,
-      sizeLegend: LNG_SIZES,
-      tooltip: lngTooltip,
-    },
-    {
-      kind: 'points',
-      id: 'lng-planned',
-      file: 'lng-planned.json',
-      label: { zh: 'LNG 接收站（只有興建中或規劃中）', en: 'LNG terminals (under construction or proposed only)' },
-      indicators: FUEL_INDICATORS,
-      items: [GAS, PIPELINE],
-      hidden: true,
-      radius: { field: 'plan', stops: LNG_RADIUS },
-      color: LNG_COLORS,
-      sizeLegend: LNG_SIZES,
-      tooltip: lngTooltip,
-    },
-    {
-      kind: 'lines',
-      id: 'oil-pipelines',
-      file: 'oil-pipelines.json',
-      label: { zh: '油管', en: 'Oil pipelines' },
-      indicators: FUEL_INDICATORS,
-      items: [OIL],
-      width: 1,
-      color: {
-        title: { zh: '種類與狀態', en: 'Type and status' },
-        classes: [
-          { value: 1, color: C[5], label: { zh: '原油（運轉中）', en: 'Crude oil (operating)' } },
-          { value: 2, color: C[5], dash: true, label: { zh: '原油（興建中、規劃中）', en: 'Crude oil (under construction, proposed)' } },
-          { value: 3, color: C[7], label: { zh: '天然氣液（運轉中）', en: 'Natural gas liquids (operating)' } },
-          { value: 4, color: C[7], dash: true, label: { zh: '天然氣液（興建中、規劃中）', en: 'Natural gas liquids (under construction, proposed)' } },
-        ],
-      },
-      tooltip: pipelineTooltip('oil'),
-    },
-    {
-      kind: 'points',
-      id: 'fields',
-      file: 'fields.json',
-      label: { zh: '油氣田', en: 'Oil and gas fields' },
-      indicators: FUEL_INDICATORS,
-      items: [OIL, GAS],
-      radius: {
-        field: 'prod',
-        stops: [
-          [0, 1.2],
-          [10, 2],
-          [100, 4.5],
-          [500, 9],
-          [1500, 15],
-        ],
-      },
-      color: FIELD_COLORS,
-      sizeLegend: { title: { zh: '產量（百萬桶油當量/年）', en: 'Output (million boe/y)' }, values: [10, 100, 500], format: tick },
-      tooltip: fieldTooltip,
-    },
-    mineLayer('mines', 'mines-operating.json', { zh: '煤礦（運轉中）', en: 'Coal mines (operating)' }, C[5], false),
-    mineLayer('mines-proposed', 'mines-proposed.json', { zh: '煤礦（規劃中）', en: 'Coal mines (proposed)' }, PLANNED_COLOR, true),
-    mineLayer(
-      'mines-closed',
-      'mines-closed.json',
-      { zh: '煤礦（已關閉或封存）', en: 'Coal mines (closed or mothballed)' },
-      MAP_TOKENS.inkSecondary,
-      true,
-    ),
-    {
-      kind: 'points',
-      id: 'refineries',
-      file: 'refineries.json',
-      label: { zh: '煉油廠（Wikidata 有座標的）', en: 'Refineries (with coordinates in Wikidata)' },
-      indicators: ['refining-capacity'],
-      radius: {
-        field: 'cap',
-        stops: [
-          [0, 2],
-          [10, 4],
-          [50, 9],
-          [140, 15],
-        ],
-      },
-      color: REFINERY_COLORS,
-      sortField: 'cap',
-      sizeLegend: { title: { zh: '能力（萬桶/日）', en: 'Capacity (10,000 b/d)' }, values: [10, 50, 140], format: tick },
-      tooltip: refineryTooltip,
-    },
-  ],
   indicators,
 };
 
