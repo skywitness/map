@@ -127,6 +127,7 @@ const TOPIC_ICONS = {
   cbam: 'badge-euro',
   nutrients: 'leafy-green',
   noise: 'volume-2',
+  'industrial-releases': 'cloud-fog',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

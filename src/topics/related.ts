@@ -81,6 +81,7 @@ export const RELATED: Record<string, string[]> = {
   cbam: ['climate-action', 'trade', 'industry'],
   nutrients: ['agriculture', 'water-forest', 'air-quality'],
   noise: ['air-quality', 'road-safety', 'aviation'],
+  'industrial-releases': ['air-quality', 'power-plants', 'industry'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],
