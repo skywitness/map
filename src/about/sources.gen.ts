@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 183;
-export const INDICATOR_COUNT = 1441;
+export const INDICATOR_COUNT = 1444;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -306,6 +306,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD.AI（OpenRouter 資料）","en":"OECD.AI (OpenRouter data)"},"url":"https://oecd.ai/en/data?selectedArea=ai-model-usage","licenses":[{"zh":"未明示授權","en":"licence not stated"}],"topics":["ai"]},
   {"name":{"zh":"OECD《Consumption Tax Trends 2024》附錄表 2.A.1（加值型營業稅標準稅率）","en":"OECD, Consumption Tax Trends 2024, Annex Table 2.A.1 (standard VAT/GST rates)"},"url":"https://doi.org/10.1787/dcd4dd36-en","licenses":["CC BY 4.0"],"topics":["taxes"]},
   {"name":{"zh":"OECD《Tax Policy Reforms 2025》《Tax Policy Reforms 2026》（2025、2026 年的加值型營業稅調整）","en":"OECD, Tax Policy Reforms 2025 and 2026 (VAT rate changes for 2025 and 2026)"},"url":"https://doi.org/10.1787/43d18a55-en","licenses":["CC BY 4.0"],"topics":["taxes"]},
+  {"name":{"zh":"OECD／國際運輸論壇（ITF）：年度道路死亡、受傷與受傷事故（DSD_TRENDS@DF_TRENDSSAFETY）","en":"OECD / International Transport Forum: annual road fatalities, injured and injury crashes (DSD_TRENDS@DF_TRENDSSAFETY)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TRENDS%40DF_TRENDSSAFETY&df[ag]=OECD.ITF","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD terms (reuse and adaptation allowed with attribution)"}],"topics":["road-safety"]},
   {"name":{"zh":"Oliveira Aguiar 等（2022）歐洲葡萄酒 PDO 的地理與法規資料，Scientific Data 9, 394","en":"Oliveira Aguiar et al. (2022), a geospatial inventory of regulatory information for wine PDOs in Europe, Scientific Data 9, 394"},"url":"https://doi.org/10.6084/m9.figshare.c.5877659","licenses":["CC0 1.0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Open Brewery DB（啤酒廠清冊；Copyright (c) 2025 Open Brewery DB）","en":"Open Brewery DB (brewery list; Copyright (c) 2025 Open Brewery DB)"},"url":"https://github.com/openbrewerydb/openbrewerydb","licenses":["MIT"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Open-Meteo Flood API（GloFAS v4 再分析，2015–2024 年的每日流量，算成月平均）","en":"Open-Meteo Flood API (GloFAS v4 reanalysis, daily flow 2015–2024, averaged by month)"},"url":"https://open-meteo.com/","licenses":[{"zh":"CC BY 4.0（免費 API 只准非商業使用）","en":"CC BY 4.0 (free API for non-commercial use only)"}],"topics":["rivers"]},

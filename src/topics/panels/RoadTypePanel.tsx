@@ -2,6 +2,8 @@ import { defineMessages, useLang } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import type { PanelExtraProps } from '../types';
+import { ROAD_INJURY_IDS } from '../road-injuries';
+import { RoadInjuriesSection } from './RoadInjuriesPanel';
 import RoadSafetyPanel from './RoadSafetyPanel';
 
 /** road-type-detail.json（pipeline/topics/road_type.py）：最近一年高速公路、市區、郊區、不詳四類道路的死亡人數 */
@@ -58,5 +60,13 @@ function RoadTypeSection({ topic, iso3 }: PanelExtraProps) {
 
 /** 交通安全的側欄（2026-11-05 起）：道路類別的兩個指標（第二十三批 405）先列四類道路，其他照舊列死者的組成 */
 export default function RoadSafetyPanels(props: PanelExtraProps) {
+  // 受傷與事故件數的指標（第二十七批 575）：死亡、受傷、事故件數三條線，下面照舊列死者的組成
+  if (ROAD_INJURY_IDS.includes(props.indicator.id))
+    return (
+      <>
+        <RoadInjuriesSection {...props} />
+        <RoadSafetyPanel {...props} />
+      </>
+    );
   return ROAD_TYPE_INDICATORS.includes(props.indicator.id) ? <RoadTypeSection {...props} /> : <RoadSafetyPanel {...props} />;
 }

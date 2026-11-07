@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { roadInjuries } from './road-injuries';
 import type { TopicDefinition } from './types';
 
 /**
@@ -65,6 +66,7 @@ export const roadSafety: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    ...roadInjuries.sources,
   ],
   note: {
     zh: '死亡率是 WHO 的估計值，用 30 天的定義（事故後 30 天內死亡），各國可以比較；死亡人數是 WHO 的死亡率乘上聯合國的人口。行人、機車騎士占比與登記車輛數是各國向 WHO 通報的資料（2021 年前後；2016 年前後的那一輪只在 WHO GHO 資料庫，2026 年 11 月拿掉），通報不完整的國家可能有偏差。台灣不在 WHO 的資料裡，用交通部的 30 日內死亡人數；警察機關常見的 A1 類事故只算 24 小時內死亡，數字少很多，不能拿來跟其他國家比。2021 年的死亡組成與登記車輛數取自《Global status report on road safety 2023》（WHO，CC BY-NC-SA 3.0 IGO），行人與機車騎士占比、每萬輛機動車死亡數的資料檔也依 CC BY-NC-SA 3.0 IGO 分享。每千人機車數、汽車數見「汽機車與電動車」主題。',
@@ -169,5 +171,7 @@ export const roadSafety: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       lowerIsBetter: true,
     },
+    // 2026-11-07（製作手冊第二十七批 575）：受傷人數、事故件數
+    ...roadInjuries.indicators,
   ],
 };
