@@ -46,6 +46,14 @@ export const temperature: TopicDefinition = withParts({
       url: 'https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
+    {
+      name: {
+        zh: '世界銀行氣候變遷知識入口網（CCKP）：CMIP6 0.25° 降尺度的年平均氣溫推估（多模式中位數）',
+        en: 'World Bank Climate Change Knowledge Portal (CCKP): CMIP6 0.25° downscaled annual mean temperature projections (multi-model median)',
+      },
+      url: 'https://climateknowledgeportal.worldbank.org/',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: 'CRU TS 由各地測站的逐月觀測內插成 0.5° 的陸地網格（不含南極洲），各國的值是國界內格子依面積加權的平均，含高山與沙漠，跟首都或平地測站的數字可能差很多（例如台灣含中央山脈，比平地測站低約 4 °C）。離測站太遠的格子直接填 1961–1990 年的平均值，所以測站很少的地方變化看起來偏小：20 世紀初的非洲、南美內陸、北極，以及到現在都是如此的太平洋小島與新幾內亞。暖化的基準期因此用測站較多的 1951–1980 年。一年下雨幾天是 CRU TS 的雨日（wet，日雨量 0.1 毫米以上），雨日觀測少的地方由測站的雨量與 1961–1990 年的氣候值推算（Harris et al. 2020），台灣的格子比中央氣象署測站的平均多約 90 天。日照時數只有 CRU CL v2.0 的 1961–1990 年平均（10′ 網格，測站少的地方是內插的），由日照百分比乘上每個月中旬的天文可照時數換算成小時；太平洋與印度洋的一些小島國在這個網格上沒有格子，從缺。國土比一個格子還小、或網格上沒有陸地的小島國，用涵蓋它或最近的陸地格子，附註會說明。各國平均與 0.5° 網格是 CRU TS 的衍生資料庫，跟 CRU TS 一樣以 Open Database License（ODbL）提供。造成暖化的溫室氣體見「各國溫室氣體排放」主題。',
@@ -141,6 +149,36 @@ export const temperature: TopicDefinition = withParts({
             en: `${epoch - 9}–${epoch} average vs 1951–1980 · averaged when zoomed out`,
           }),
         empty: { zh: '海洋、南極洲（沒有資料）', en: 'Ocean and Antarctica (no data)' },
+      },
+    },
+    // 2026-11-07（製作手冊第二十五批 478）CMIP6 的升溫推估（pipeline/topics/warming_projection.py）
+    {
+      id: 'warming-projection',
+      label: { zh: '未來會熱幾度（CMIP6 推估）', en: 'Projected warming (CMIP6)' },
+      description: {
+        zh: '氣候模式推估的年平均氣溫比 1995–2014 年高多少（世界銀行氣候變遷知識入口網 CCKP，CMIP6 多模式中位數，0.25° 降尺度，陸地面積平均），四個排放情境 × 四個 20 年時期。SSP5-8.5（高排放）的 2080–2099 年：台灣 +3.53 °C、日本 +4.93、美國 +5.38、中國 +5.44、俄羅斯 +6.86、加拿大 +7.04，北極的斯瓦巴群島 +8.95；SSP2-4.5（中間）：台灣 +1.82、日本 +2.38、中國 +2.75、美國 +2.88；SSP1-2.6（大幅減排）台灣 +1.07。高緯度升得最多（北極放大），海島升得少。基期跟「暖化」指標（1951–1980 年、CRU TS）不同，不能直接相加。',
+        en: 'How much warmer the annual mean temperature is projected to be than in 1995–2014 (World Bank Climate Change Knowledge Portal, CMIP6 multi-model median, 0.25° downscaled, land-area average), for four emission scenarios and four 20-year periods. Under SSP5-8.5 (high emissions) in 2080–2099: Taiwan +3.53 °C, Japan +4.93, the US +5.38, China +5.44, Russia +6.86, Canada +7.04, and Arctic Svalbard +8.95; under SSP2-4.5 (middle of the road): Taiwan +1.82, Japan +2.38, China +2.75, the US +2.88; under SSP1-2.6 (deep cuts) Taiwan +1.07. High latitudes warm most (Arctic amplification) and islands least. The baseline differs from “Warming” (1951–1980, CRU TS), so the two cannot simply be added.',
+      },
+      unit: CELSIUS,
+      file: 'warming-projection/{item}.json',
+      dimension: {
+        label: { zh: '排放情境', en: 'Scenario' },
+        options: [
+          { id: 'ssp126', label: { zh: 'SSP1-2.6（大幅減排）', en: 'SSP1-2.6 (deep cuts)' } },
+          { id: 'ssp245', label: { zh: 'SSP2-4.5（中間）', en: 'SSP2-4.5 (middle of the road)' } },
+          { id: 'ssp370', label: { zh: 'SSP3-7.0（偏高）', en: 'SSP3-7.0 (high)' } },
+          { id: 'ssp585', label: { zh: 'SSP5-8.5（高排放）', en: 'SSP5-8.5 (very high)' } },
+        ],
+        defaultOption: 'ssp245',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 1.5, 2, 3, 4, 5] } },
+      format: (v) => `${plusMinus(v, 2)} °C`,
+      formatTick: (v) => plusMinus(v, Number.isInteger(v) ? 0 : 1),
+      defaultYear: 2090,
+      timeAxis: {
+        label: { zh: '時期', en: 'Period' },
+        year: (y) => `${y - 10}–${y + 9}`,
+        tick: (y) => `${y - 10}–${y + 9}`,
       },
     },
   ],

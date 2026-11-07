@@ -243,6 +243,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `calorie-self-sufficiency` 是農業主題的熱量自給率：FAOSTAT 糧食平衡表（FBS，跟飲食主題同一個快取）自算，台灣的官方值讀農業部 data.moa.gov.tw（時通時斷，失敗時用 `.cache/moa/` 的檔），十秒左右。
 
+`warming-projection` 是氣溫與降雨主題的 CMIP6 升溫推估：世界銀行 CCKP API 的 17 支查詢（每支約 6 KB，間隔 1 秒），半分鐘內。
+
 `energy-wholesale` 是電價與油價主題的批售電價與負電價：Ember 歐洲批售電價的月檔與每小時檔（約 42 MB 的 zip），幾秒。
 
 `energy-market` 是「電力市場的管制與再生能源的補貼」：OECD EPS 的太陽能、風力支持分數與能源署的躉購費率（台灣側欄），幾秒；PMR 的電力、天然氣分項讀 `market-regulation` 的輸出。

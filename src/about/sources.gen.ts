@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1340;
+export const INDICATOR_COUNT = 1341;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -417,6 +417,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"世界銀行 WDI（航空旅客量，來源 ICAO）","en":"World Bank WDI (air passengers carried, from ICAO)"},"url":"https://data.worldbank.org/indicator/IS.AIR.PSGR","licenses":["CC BY 4.0"],"topics":["aviation"]},
   {"name":{"zh":"世界銀行 WDI（貿易占 GDP）","en":"World Bank, WDI (trade, % of GDP)"},"url":"https://data.worldbank.org/indicator/NE.TRD.GNFS.ZS","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":{"zh":"世界銀行／IMF Global Shipping Traffic Density（航運密度）","en":"World Bank / IMF, Global Shipping Traffic Density"},"url":"https://datacatalog.worldbank.org/search/dataset/0037580","licenses":["CC BY 4.0"],"topics":["shipping"]},
+  {"name":{"zh":"世界銀行氣候變遷知識入口網（CCKP）：CMIP6 0.25° 降尺度的年平均氣溫推估（多模式中位數）","en":"World Bank Climate Change Knowledge Portal (CCKP): CMIP6 0.25° downscaled annual mean temperature projections (multi-model median)"},"url":"https://climateknowledgeportal.worldbank.org/","licenses":["CC BY 4.0"],"topics":["temperature"]},
   {"name":{"zh":"中央氣象署（台灣交叉比對；雨日與日照用開放資料「過去氣象觀測」的測站逐月資料 C-B0026-002）","en":"Central Weather Administration, Taiwan (cross-check; wet days and sunshine from the monthly station data C-B0026-002 on its open data platform)"},"url":"https://www.cwa.gov.tw/V8/C/C/Statistics/monthlymean.html","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["temperature"]},
   {"name":{"zh":"中央氣象署颱風資料庫（中文名稱、侵台颱風對照）","en":"Central Weather Administration, Taiwan: Typhoon Database (Chinese names, Taiwan comparison)"},"url":"https://rdc28.cwa.gov.tw/TDB/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["typhoons"]},
   {"name":{"zh":"中央銀行 2011-09-04 新聞稿（台灣的匯率制度）","en":"Central Bank of the Republic of China (Taiwan), press release of 4 Sep 2011 (Taiwan)"},"url":"https://www.cbc.gov.tw/tw/cp-302-39220-C6D22-1.html","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["profiles"]},

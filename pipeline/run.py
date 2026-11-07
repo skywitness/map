@@ -37,6 +37,7 @@ STEPS = {
     "agriculture": "topics.agriculture",
     "agriculture-land": "topics.agriculture_land",
     "calorie-self-sufficiency": "topics.calorie_self_sufficiency",
+    "warming-projection": "topics.warming_projection",
     "agriculture-support": "topics.agriculture_support",
     "agriculture-prices": "topics.agriculture_prices",
     "crop-yield": "topics.crop_yield",  # 農業主題的每公頃產量（FAOSTAT QCL 的 Yield，只讀產量那個檔）
