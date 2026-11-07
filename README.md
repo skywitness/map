@@ -257,7 +257,7 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `energy-taxes` 是「能源稅與補貼」：OECD Net Effective Energy Rates 用 key 只取六個部門、三個量（整個資料流 85 MB，取的部分約 2 MB），幾秒。
 
-`oil-stocks` 是石油、天然氣與煤主題的石油庫存與撐得了幾天：EIA INTL.zip（跟化石燃料同一個快取），一秒內。
+`oil-stocks` 是石油、天然氣與煤主題的石油庫存、每月的石油庫存與撐得了幾天：JODI-Oil World Database 的年度 CSV（`sources/jodi.py`，2002 年到今年，原油與油品各一個檔，共約 900 MB），下載後只留用得到的三種數列（`.cache/jodi/<種類>-<年>-slim.csv`，共 4.4 MB），原檔刪掉；下載之間停 3 秒，第一次約 5 分鐘，之後一秒內。今年的檔每個月 20 日前後更新，要用 `--refresh` 重抓（只重抓今年的）。
 
 `power-fleet` 是發電廠地圖的機組平均年齡與最大母公司占比：GEM 的 CSV（跟發電廠地圖同一個快取），幾秒。
 

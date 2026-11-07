@@ -1,4 +1,4 @@
-import { tr, type Text } from '../i18n/lang';
+import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type {
@@ -93,6 +93,20 @@ const PLACES: PlaceDef[] = [
 
 // ── 數字格式 ──────────────────────────────────────
 
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** 每月的石油庫存：「年份」是月份的編號（2000 年 1 月是 0，同電價的月價） */
+const monthOf = (i: number) => ({ year: 2000 + Math.floor(i / 12), month: (i % 12) + 1 });
+const MONTH_AXIS = {
+  label: { zh: '月份', en: 'Month' },
+  year: (i: number) => {
+    const { year, month } = monthOf(i);
+    return tr({ zh: `${year} 年 ${month} 月`, en: `${MONTHS_EN[month - 1]} ${year}` });
+  },
+  tick: (i: number) => {
+    const { year, month } = monthOf(i);
+    return getLang() === 'en' ? `${MONTHS_EN[month - 1]} ${year}` : `${year}/${month}`;
+  },
+};
 /** 依大小決定小數位：100 以上整數、10 以上 1 位、1 以上 2 位，更小的留 3 位有效數字 */
 function num(v: number): string {
   const a = Math.abs(v);
@@ -386,28 +400,43 @@ const indicators: IndicatorDef[] = [
     timeless: true,
     shareOfWorld: true,
   },
-  // 2026-11-07（製作手冊第二十五批 529，使用者決定只用 EIA）石油庫存（pipeline/topics/oil_stocks.py）
+  // 2026-11-07（製作手冊第二十五批 529）石油庫存（pipeline/topics/oil_stocks.py）：原本只用 EIA（8 國），同一天使用者決定
+  // 照 NCD-RisC 的前例改用 JODI（條款只寫 all rights reserved：註明出處、標只准非商業、只放算好的數值），品質燈號白色也畫
   {
     id: 'oil-stocks',
     label: { zh: '石油庫存', en: 'Oil stocks' },
     description: {
-      zh: '年底油槽裡的原油加油品（政府的戰略儲備與業者的商業庫存都算，百萬桶），EIA，1973–2025。EIA 這個系列多數國家標為不公開，只有 8 國有數字：2025 年美國 1,702 百萬桶、日本 513、德國 249、加拿大 195、南韓 186、法國 148、義大利 122、英國 69.1。台灣不在 EIA 的資料裡。',
-      en: 'Crude oil and products held in tanks at the end of the year (government strategic reserves and commercial stocks, million barrels), EIA, 1973–2025. Most countries are withheld in this EIA series and only 8 have figures: in 2025 the US held 1,702 million barrels, Japan 513, Germany 249, Canada 195, South Korea 186, France 148, Italy 122 and the UK 69.1. Taiwan is not in the EIA data.',
+      zh: '每年 12 月底油槽裡的原油加油品（各國向 JODI 申報的期末庫存，百萬桶），2002–2025。政府的戰略儲備算不算進去，各國的申報方式不同。2025 年美國 1,258 百萬桶、日本 452、德國 249、沙烏地 223、南韓 174、印度 151、法國 140；台灣 56.2。美國 2021 年底 1,447、2022 年底 1,226，那一年釋出了戰略石油儲備。JODI 沒有中國的庫存數字。JODI 還沒評估過的數字（品質燈號白色，例如台灣、沙烏地、印度）照樣畫，滑過時會提示。',
+      en: 'Crude oil plus products in tanks at the end of December each year (closing stocks reported by each country to JODI, million barrels), 2002–2025. Countries differ in whether government strategic reserves are included. In 2025 the US held 1,258 million barrels, Japan 452, Germany 249, Saudi Arabia 223, South Korea 174, India 151 and France 140; Taiwan 56.2. US stocks fell from 1,447 at the end of 2021 to 1,226 at the end of 2022, the year it released oil from its Strategic Petroleum Reserve. JODI has no stock figures for China. Figures JODI has not yet assessed (a white quality flag, e.g. Taiwan, Saudi Arabia and India) are still shown, with a note on hover.',
     },
     unit: { zh: '百萬桶', en: 'million barrels' },
     file: 'oil-stocks.json',
-    layer: { kind: 'bubble', legendValues: [100, 500, 1500] },
+    layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
     format: (v) => tr({ zh: `${num(v)} 百萬桶`, en: `${num(v)} million barrels` }),
     formatTick: tick,
     defaultYear: 2025,
-    noValue: { TWN: { zh: '不在 EIA 的資料裡', en: 'Not in the EIA data' } },
+  },
+  {
+    id: 'oil-stocks-monthly',
+    label: { zh: '石油庫存（每月）', en: 'Oil stocks (monthly)' },
+    description: {
+      zh: '每個月底油槽裡的原油加油品（JODI，百萬桶），2002 年 1 月到 2026 年 8 月（最新一個月有 42 國）。播放時間軸看得到美國從 2020 年 3 月的 1,589 百萬桶降到 2022 年 12 月的 1,226。',
+      en: 'Crude oil plus products in tanks at the end of each month (JODI, million barrels), January 2002 to August 2026 (42 countries for the latest month). Play the timeline to see US stocks fall from 1,589 million barrels in March 2020 to 1,226 in December 2022.',
+    },
+    unit: { zh: '百萬桶', en: 'million barrels' },
+    file: 'oil-stocks-monthly.json',
+    layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+    format: (v) => tr({ zh: `${num(v)} 百萬桶`, en: `${num(v)} million barrels` }),
+    formatTick: tick,
+    timeAxis: MONTH_AXIS,
+    defaultYear: 'latest',
   },
   {
     id: 'oil-stock-days',
     label: { zh: '石油庫存撐得了幾天', en: 'Days of oil consumption in stock' },
     description: {
-      zh: '年底的石油庫存 ÷ 那一年平均每天的石油消費量（EIA，8 國）。2025 年日本 166 天、德國 123、義大利 99.7、法國 96.1、美國 82.1、加拿大 76.4、南韓 75.3、英國 48.9。日本從 1973 年石油危機時的 61.2 天一路加到現在；美國 2021 年 90.1 天，2022 年釋出戰略石油儲備後是 79.7 天。國際能源署（IEA）要求會員國持有 90 天的「淨進口量」，這裡除的是消費量，所以不能直接對照（美國、加拿大是淨出口國）。',
-      en: 'End-of-year oil stocks ÷ average daily oil consumption that year (EIA, 8 countries). In 2025 Japan had 166 days, Germany 123, Italy 99.7, France 96.1, the US 82.1, Canada 76.4, South Korea 75.3 and the UK 48.9. Japan has built up from 61.2 days at the time of the 1973 oil crisis; the US had 90.1 days in 2021 and 79.7 in 2022 after releasing oil from its Strategic Petroleum Reserve. The International Energy Agency requires members to hold 90 days of net imports, while this divides by consumption, so the two cannot be compared directly (the US and Canada are net exporters).',
+      zh: '12 月底的石油庫存 ÷ 那一年平均每天的油品需求（JODI，2002–2025）。2025 年芬蘭 191 天、巴林 162、愛沙尼亞 160、汶萊 157、丹麥 156；日本 139、德國 114、沙烏地 93.7、義大利 92.9、法國 92.6；台灣 68.2、南韓 61.6、美國 60.7、英國 46.6、加拿大 44.8、印度 27.6、盧森堡 10.3。國際能源署（IEA）要求會員國持有 90 天的「淨進口量」，這裡除的是消費量，所以不能直接對照（美國、加拿大是淨出口國）。',
+      en: 'Oil stocks at the end of December ÷ average daily demand for oil products that year (JODI, 2002–2025). In 2025 Finland had 191 days, Bahrain 162, Estonia 160, Brunei 157 and Denmark 156; Japan 139, Germany 114, Saudi Arabia 93.7, Italy 92.9 and France 92.6; Taiwan 68.2, South Korea 61.6, the US 60.7, the UK 46.6, Canada 44.8, India 27.6 and Luxembourg 10.3. The International Energy Agency requires members to hold 90 days of net imports, while this divides by consumption, so the two cannot be compared directly (the US and Canada are net exporters).',
     },
     unit: { zh: '天', en: 'days' },
     file: 'oil-stock-days.json',
@@ -415,7 +444,6 @@ const indicators: IndicatorDef[] = [
     format: (v) => tr({ zh: `${num(v)} 天`, en: `${num(v)} days` }),
     formatTick: tick,
     defaultYear: 2025,
-    noValue: { TWN: { zh: '不在 EIA 的資料裡', en: 'Not in the EIA data' } },
   },
   flow(
     'export',
@@ -658,6 +686,17 @@ const fossilFuelsOwn: TopicDefinition = {
       },
       url: 'https://www.eia.gov/international/data/world',
       license: { zh: '公有領域', en: 'Public domain' },
+    },
+    {
+      name: {
+        zh: 'International Energy Forum (IEF)：Joint Organizations Data Initiative (JODI) Database，JODI Oil World Database（石油庫存，2026 年 11 月 7 日取得）',
+        en: 'International Energy Forum (IEF). Joint Organizations Data Initiative (JODI) Database. JODI Oil World Database (oil stocks, accessed 7 November 2026)',
+      },
+      url: 'https://www.jodidata.org/',
+      license: {
+        zh: 'JODI 使用條款（保留所有權利；本站只放算好的數值、只供非商業使用，照 JODI 的引用說明註明出處）',
+        en: 'JODI terms of use (all rights reserved; this site shows only derived figures, for non-commercial use, credited as JODI asks)',
+      },
     },
     {
       name: {
