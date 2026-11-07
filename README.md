@@ -131,6 +131,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `reserves-debt-currency` 是外匯存底與外債的外債幣別組成（World Bank IDS，`sources/worldbank_ids.py`：source 6 的 series 網址要加 `counterpart-area/WLD` 才會列出各國，WDI 的一般網址查不到 DT.CUR.*）。幾秒鐘。
 
+`reserves-country-risk` 是外匯存底與外債的 OECD 國家風險等級：先把 map-plan 的 `data/oecd/cre-crc-current-english.pdf`（使用者用瀏覽器下載的 2026-10-16 版；www.oecd.org 的 robots.txt 不准 `/content/dam/oecd/`）複製到 `pipeline/.cache/oecd/`，用 `sources/pdfreader.py` 讀，不必裝 pdftotext。OECD 換新版時要請使用者重新下載，序號不是連續的 201 列就會停下來。不到一秒。
+
 `prices-food-rates` 是物價與消費的實質利率（WDI FR.INR.RINR、放款利率、GDP 平減指數）與食物價格通膨（FAOSTAT 消費者物價月資料的批次 zip，2 MB；台灣用主計總處消費者物價基本分類的 XML，27 MB，跟 `house-prices` 共用快取），輸出 fiscal/。幾秒鐘。
 
 `insurance` 是保險主題：OECD Global Insurance Statistics（`DSD_INS@DF_IND`，15 個維度的 key 要補滿 15 段，不然回 403）的滲透度、密度、壽險占比，加保險事業發展中心的 CSV（`openapi.tii.org.tw`，TableID=I03）。幾秒鐘。

@@ -1,10 +1,35 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent, usd } from '../lib/format';
-import type { TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { CategoryDef, TopicDefinition } from './types';
 
 const MONTHS = { zh: '個月', en: 'months' };
 const IMF_LICENSE = { zh: '註明來源即可使用', en: 'free to use with attribution' };
 const OPEN_DATA_TW = { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' };
+
+/**
+ * OECD 國家風險等級（pipeline/topics/country_risk.py）：0–7 是等級，8 是高所得 OECD、歐元區與用歐元的歐洲小國（不評級），
+ * 9 是未評級。類別圖、循序色，7 級最深；0 級只有新加坡、1 級目前沒有國家，併成一類，才不會超過循序色的 7 階。
+ * 「不評級」不是「風險為零」，用藍色另外標（不在等級的色階上），「未評級」用淺的中性色。
+ */
+const RISK_NOT_CLASSIFIED = 8;
+const RISK_NOT_REVIEWED = 9;
+const grade = (n: number) => ({ zh: `${n} 級`, en: `${n}` });
+const RISK_CATEGORIES: CategoryDef[] = [
+  { value: 7, label: { zh: '7 級（風險最高）', en: '7 (highest risk)' } },
+  ...[6, 5, 4, 3, 2].map((n) => ({ value: n, label: grade(n) })),
+  { value: 0, max: 1, label: { zh: '0–1 級（風險最低）', en: '0–1 (lowest risk)' } },
+  {
+    value: RISK_NOT_CLASSIFIED,
+    label: { zh: '不評級（高所得 OECD 會員國、歐元區）', en: 'Not classified (high-income OECD, euro area)' },
+    color: MAP_TOKENS.hues.blue,
+  },
+  { value: RISK_NOT_REVIEWED, label: { zh: '未評級', en: 'Not reviewed' }, color: MAP_TOKENS.categoricalOther },
+];
+const riskLabel = (v: number) =>
+  v === RISK_NOT_CLASSIFIED || v === RISK_NOT_REVIEWED
+    ? tr(RISK_CATEGORIES.find((c) => c.value === v)?.label ?? '')
+    : tr(grade(v));
 
 export const reserves: TopicDefinition = {
   id: 'reserves',
@@ -67,6 +92,14 @@ export const reserves: TopicDefinition = {
       name: { zh: 'World Bank, International Debt Statistics（公共外債的幣別組成，DT.CUR.*）', en: 'World Bank, International Debt Statistics (currency composition of public external debt, DT.CUR.*)' },
       url: 'https://www.worldbank.org/en/programs/debt-statistics/ids',
       license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'OECD, Country Risk Classifications of the Participants to the Arrangement on Officially Supported Export Credits（2026 年 10 月 16 日起適用）',
+        en: 'OECD, Country Risk Classifications of the Participants to the Arrangement on Officially Supported Export Credits (valid as of 16 October 2026)',
+      },
+      url: 'https://www.oecd.org/en/topics/sub-issues/country-risk-classification.html',
+      license: { zh: 'OECD 使用條款（資料可轉載、改作，註明出處）', en: 'OECD Terms and Conditions (data may be reused and adapted with attribution)' },
     },
   ],
   note: {
@@ -171,6 +204,19 @@ export const reserves: TopicDefinition = {
       noValue: {
         TWN: { zh: '只有向世界銀行報告債務的中低所得國家', en: 'Only low- and middle-income countries reporting to the World Bank' },
       },
+    },
+    {
+      id: 'country-risk',
+      label: { zh: '國家風險等級（OECD）', en: 'Country risk classification (OECD)' },
+      description: {
+        zh: 'OECD《官方支持出口信用安排》的參加國共同評定的國家風險等級，從 0 到 7，數字越大，這一國的債務人因為外匯管制、戰亂或天災這類國家層級的原因還不起錢的風險越高；參加國的出口信用機構照這個等級收最低保費。2026 年 10 月 16 日起適用的版本列了 201 國：新加坡是唯一的 0 級；台灣 2 級，跟保加利亞、中國、香港、科威特、馬來西亞、卡達、沙烏地阿拉伯、阿聯同級；印度、印尼、墨西哥、菲律賓、泰國、越南 3 級；俄羅斯、阿根廷、烏克蘭、委內瑞拉等 58 國 7 級。前次跟這次不同的只有喀麥隆（6 → 7）、幾內亞（7 → 6）、蓋亞那（5 → 4）。美國、日本、南韓、德國這類高所得的 OECD 會員國與歐元區國家照規則不評級（藍色），不代表沒有風險；另有 24 個小國與地區未評級。這不是主權信用評等：衡量的是出口信用的國家風險，OECD 也提醒不要跟信評機構的評等比較。OECD 只公布最新一版，沒有歷年的資料。',
+        en: 'The country risk classification agreed by the Participants to the OECD Arrangement on Officially Supported Export Credits, from 0 to 7: the higher the number, the greater the risk that borrowers in the country cannot pay because of country-level causes such as transfer restrictions, war or natural disasters. The Participants’ export credit agencies charge minimum premiums based on it. The version valid from 16 October 2026 lists 201 countries: Singapore is the only one at 0; Taiwan is at 2, alongside Bulgaria, China, Hong Kong, Kuwait, Malaysia, Qatar, Saudi Arabia and the UAE; India, Indonesia, Mexico, the Philippines, Thailand and Vietnam are at 3; and 58 countries including Russia, Argentina, Ukraine and Venezuela are at 7. Only Cameroon (6 → 7), Guinea (7 → 6) and Guyana (5 → 4) changed from the previous classification. High-income OECD members and euro area countries such as the US, Japan, South Korea and Germany are not classified under the rules (blue), which does not mean they are risk-free; another 24 small countries and territories are not reviewed. This is not a sovereign credit rating: it measures country risk for export credits, and the OECD cautions against comparing it with credit agencies’ ratings. The OECD publishes only the latest version, with no history.',
+      },
+      unit: { zh: '級', en: 'grade' },
+      file: 'country-risk.json',
+      timeless: true,
+      layer: { kind: 'categorical', ordinal: true, categories: RISK_CATEGORIES },
+      format: riskLabel,
     },
   ],
 };
