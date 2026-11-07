@@ -163,6 +163,11 @@ export interface IndicatorDef {
   menuGroup?: Text;
   /** 一句話說明這個指標，顯示在指標選單下方 */
   description: Text;
+  /**
+   * 蓋過主題的 bareMap（2026-11-07，製作手冊 542）：板塊漂移主題的底圖只留海，但「今天」的指標（造山帶、板塊組成）
+   * 要畫今天的國家，寫 false
+   */
+  bareMap?: boolean;
   unit: Text;
   /**
    * 資料檔，相對於 data/topics/<topicId>/。

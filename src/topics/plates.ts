@@ -135,6 +135,23 @@ function landFocus(year: number): [number, number, number, number] {
 
 const AXIS = { label: { zh: '時間', en: 'Time' }, year: maText, tick: maTick };
 
+/** PB2002 的 13 個造山帶（plates_today.py；側欄 PlatesPanel 用） */
+export const OROGENS: Record<string, { zh: string; en: string }> = {
+  'Alaska-Yukon': { zh: '阿拉斯加–育空', en: 'Alaska–Yukon' },
+  Alps: { zh: '阿爾卑斯', en: 'Alps' },
+  'Gorda-California-Nevada': { zh: '戈爾達–加州–內華達', en: 'Gorda–California–Nevada' },
+  'Laptev Sea': { zh: '拉普帖夫海', en: 'Laptev Sea' },
+  'New Hebrides-Fiji': { zh: '新赫布里底–斐濟', en: 'New Hebrides–Fiji' },
+  'Ninety East-Sumatra': { zh: '東經九十度海嶺–蘇門答臘', en: 'Ninety East–Sumatra' },
+  'Persia-Tibet-Burma': { zh: '波斯–西藏–緬甸', en: 'Persia–Tibet–Burma' },
+  Peru: { zh: '祕魯', en: 'Peru' },
+  Philippines: { zh: '菲律賓', en: 'Philippines' },
+  'Puna-Sierras Pampeanas': { zh: '普納–潘帕斯山脈', en: 'Puna–Sierras Pampeanas' },
+  'Rivera-Cocos': { zh: '里韋拉–科科斯', en: 'Rivera–Cocos' },
+  'west central Atlantic': { zh: '中大西洋西部', en: 'West central Atlantic' },
+  'western Aleutians': { zh: '阿留申群島西段', en: 'Western Aleutians' },
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'paleolat',
@@ -151,6 +168,22 @@ const indicators: IndicatorDef[] = [
     format: (v) => latText(v),
     formatTick: (v) => fixed(v, 0),
     timeAxis: AXIS,
+  },
+  // 2026-11-07（製作手冊第二十七批 542）：今天的板塊與造山帶（pipeline/topics/plates_today.py），畫今天的國家（bareMap: false）
+  {
+    id: 'orogen-share',
+    label: { zh: '國土在造山帶裡的比例', en: 'Land in orogens' },
+    description: {
+      zh: '國土有多少在 PB2002 的造山帶裡：Bird 2003 劃的 13 個「瀰散變形帶」，是地殼被擠壓或拉扯得很分散、不能當成一塊剛體板塊的地方，意思不是「有山」。70 個國家或地區有一部分在造山帶，24 個整個都在，多半在阿爾卑斯（義大利、瑞士、巴爾幹諸國）與波斯–西藏–緬甸造山帶（阿富汗、塔吉克、吉爾吉斯、亞美尼亞、亞塞拜然、喬治亞）；伊朗 98.8%、緬甸 93.6%、尼泊爾 85.7%、中國 69.2%，菲律賓 95.4% 在菲律賓造山帶、斐濟 98.2% 在新赫布里底–斐濟造山帶，美國 22.9%（加州–內華達與阿拉斯加–育空）。台灣、日本、紐西蘭不在造山帶裡，PB2002 把它們切成幾塊板塊：台灣 70.8% 在菲律賓海板塊、27.2% 在揚子板塊、2.0% 在沖繩板塊。點國家看國土在哪些板塊與造山帶上。',
+      en: 'How much of a country lies in one of the 13 PB2002 orogens: zones Bird (2003) drew where the crust deforms diffusely and cannot be treated as a rigid plate (not simply “mountains”). Seventy countries and territories are partly in an orogen and 24 lie entirely within one, mostly in the Alps (Italy, Switzerland and the Balkans) and Persia–Tibet–Burma (Afghanistan, Tajikistan, Kyrgyzstan, Armenia, Azerbaijan and Georgia); Iran 98.8%, Myanmar 93.6%, Nepal 85.7% and China 69.2%, the Philippines 95.4% in the Philippines orogen, Fiji 98.2% in New Hebrides–Fiji, and the US 22.9% (California–Nevada and Alaska–Yukon). Taiwan, Japan and New Zealand are in no orogen; PB2002 splits them between plates instead: 70.8% of Taiwan is on the Philippine Sea Plate, 27.2% on the Yangtze Plate and 2.0% on the Okinawa Plate. Select a country to see its plates and orogens.',
+    },
+    unit: '%',
+    file: 'orogen-share.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 10, 25, 50, 75, 99] } },
+    timeless: true,
+    bareMap: false,
+    format: (v) => `${fixed(v, 1)}%`,
+    formatTick: (v) => `${v}%`,
   },
 ];
 
@@ -179,12 +212,21 @@ export const plates: TopicDefinition = {
       url: 'https://github.com/fraxen/tectonicplates',
       license: 'ODC-By 1.0',
     },
+    {
+      name: {
+        zh: '今天的板塊與造山帶：PB2002 的板塊面與 13 個造山帶（Bird 2003；Hugo Ahlenius、Nordpil 整理）',
+        en: 'Today’s plates and orogens: PB2002 plate areas and 13 orogens (Bird 2003; compiled by Hugo Ahlenius, Nordpil)',
+      },
+      url: 'https://github.com/fraxen/tectonicplates',
+      license: 'ODC-By 1.0',
+    },
   ],
   note: {
     zh: '板塊的位置來自 Merdith 等 2021 年的全板塊重建模型（v1.2.4），用 pyGPlates 計算：今天的國界（Natural Earth 1:50m，簡化到約 40 公里）先依模型的靜態多邊形切到各塊板塊上，再跟著板塊轉回過去，同一國的各塊轉回去後合併。那塊地殼還沒形成的年代不畫。國界是今天的，過去當然沒有這些國家；陸地的形狀也是今天的海岸線，不是當時的海岸（那時的海平面、被擠壓或拉開的地殼都不同）。緯度依古地磁定出比較可靠，經度是模型推算的參考框架。國家的緯度是國土各塊依面積加權的重心。板塊邊界是模型解出的那時的邊界（隱沒帶、中洋脊與張裂、轉形斷層）；圖層裡可以另外打開今天的板塊邊界（PB2002，地震與火山主題的同一份）對照，它是今天的位置，不跟著時間移動。打開時地圖轉到那個年代陸地的重心。',
     en: 'Plate positions come from the full-plate reconstruction model of Merdith et al. (2021), v1.2.4, computed with pyGPlates: today’s borders (Natural Earth 1:50m, simplified to about 40 km) are first split onto plates using the model’s static polygons, then rotated back with their plates, and each country’s pieces are merged again. Crust that did not yet exist is not drawn. The borders are today’s, and these countries of course did not exist; the shapes are today’s coastlines, not those of the time (sea levels and stretched or compressed crust were different). Latitudes are better constrained (by palaeomagnetism) than longitudes, which depend on the model’s reference frame. A country’s latitude is the area-weighted centroid of its pieces. Plate boundaries are those resolved by the model for that time (subduction zones, mid-ocean ridges and rifts, transform faults); today’s boundaries (PB2002, the same file as in Earthquakes) can be switched on in the layers for comparison and stay in today’s positions. The map opens centred on the land of the chosen time.',
   },
-  pointer: ([lon, lat], { year, countryName }) => {
+  pointer: ([lon, lat], { year, countryName, indicator }) => {
+    if (indicator !== 'paleolat') return null;
     const code = countryThen(year, lon, lat);
     if (!code) return null;
     return {
@@ -197,11 +239,13 @@ export const plates: TopicDefinition = {
       ],
     };
   },
+  panelExtra: () => import('./panels/PlatesPanel'),
   overlays: [
     {
       kind: 'lines',
       id: 'drift-countries',
       file: 'countries/{year}.json',
+      indicators: ['paleolat'],
       label: { zh: '今天的國界', en: 'Today’s borders' },
       width: 0.7,
       color: {
@@ -215,6 +259,7 @@ export const plates: TopicDefinition = {
       kind: 'lines',
       id: 'plate-boundaries',
       file: 'boundaries/{year}.json',
+      indicators: ['paleolat'],
       label: { zh: '那時的板塊邊界', en: 'Plate boundaries then' },
       width: 1.3,
       color: { title: { zh: '邊界的種類', en: 'Boundary type' }, classes: BOUNDARIES },

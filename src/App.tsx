@@ -1311,7 +1311,7 @@ export function App() {
                   valueLabels={state.labels}
                   onValueLabelsChange={(on) => update({ labels: on })}
                   terrain={topic.terrain}
-                  bareMap={topic.bareMap}
+                  bareMap={indicator.bareMap ?? topic.bareMap}
                   focus={focusRequest}
                   grid={grid}
                   gridFailed={gridWanted && gridMeta.error !== null}

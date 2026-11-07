@@ -245,6 +245,7 @@ STEPS = {
     "volcano-people": "topics.volcano_people",  # 住在活火山旁邊的人（GHS-POP 2020，製作手冊 539）
     "quake-extra": "topics.quake_extra",  # 地震的損失、房屋、受傷，史上最大的規模與地震密度（製作手冊 540）
     "eew": "topics.eew",  # 哪些國家收得到地震預警（英文維基，製作手冊 541）
+    "plates-today": "topics.plates_today",  # 國土的板塊與造山帶、板塊現在的速度（製作手冊 542）
     # 板塊（PB2002）：邊界加上相對速度與地質圖的符號、52 塊板塊的面、各板塊的人口（要先有 population-grid 的 grid.json）
     "plates-pb2002": "topics.plates_pb2002",
     "landslides": "topics.landslides",  # NASA 全球山崩目錄（GLC），分 8 頁下載
