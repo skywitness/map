@@ -125,6 +125,7 @@ const TOPIC_ICONS = {
   'climate-action': 'clipboard-check',
   'climate-finance': 'circle-dollar-sign',
   cbam: 'badge-euro',
+  nutrients: 'leafy-green',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

@@ -36,6 +36,7 @@ DATASETS = {
     "PP": "Prices_E_All_Data_(Normalized).zip",  # 產地價格（第二十五批 443）
     "CP": "ConsumerPriceIndices_E_All_Data_(Normalized).zip",  # 消費者物價（月資料，食物價格通膨；第二十五批 461）
     "GT": "Emissions_Totals_E_All_Data_(Normalized).zip",  # 農糧系統的溫室氣體排放（第二十五批 476）
+    "ESB": "Environment_Cropland_nutrient_budget_E_All_Data_(Normalized).zip",  # 耕地的養分收支（第二十五批 484）
 }
 # 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
 ENCODINGS = {"FBSH": "latin-1"}

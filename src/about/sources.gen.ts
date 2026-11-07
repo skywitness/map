@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 165;
-export const INDICATOR_COUNT = 1235;
+export const TOPIC_COUNT = 166;
+export const INDICATOR_COUNT = 1239;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -149,6 +149,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},
   {"name":{"zh":"FAOSTAT：Climate Change, Agrifood systems emissions, Emissions totals（GT）：農糧系統的溫室氣體","en":"FAOSTAT: Climate Change, Agrifood systems emissions, Emissions totals (GT): agrifood system emissions"},"url":"https://www.fao.org/faostat/en/#data/GT","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"FAOSTAT：Consumer Price Indices（食物與總消費者物價指數，月資料）","en":"FAOSTAT: Consumer Price Indices (food and general CPI, monthly)"},"url":"https://www.fao.org/faostat/en/#data/CP","licenses":["CC BY 4.0"],"topics":["prices"]},
+  {"name":{"zh":"FAOSTAT：Cropland Nutrient Balance（ESB）","en":"FAOSTAT: Cropland Nutrient Balance (ESB)"},"url":"https://www.fao.org/faostat/en/#data/ESB","licenses":["CC BY 4.0"],"topics":["nutrients"]},
   {"name":{"zh":"FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）","en":"FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)"},"url":"https://www.fao.org/faostat/en/#data/RFN","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Faurby 等（2018），PHYLACINE 1.2：The Phylogenetic Atlas of Mammal Macroecology（Zenodo）","en":"Faurby et al. (2018), PHYLACINE 1.2: The Phylogenetic Atlas of Mammal Macroecology (Zenodo)"},"url":"https://zenodo.org/records/4954990","licenses":["CC0 1.0"],"topics":["megafauna"]},
   {"name":{"zh":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025","en":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025"},"url":"https://www.fda.gov/media/177921/download?attachment","licenses":[{"zh":"公有領域","en":"Public domain"}],"topics":["medicines"]},

@@ -185,6 +185,7 @@ STEPS = {
     "air-emissions": "topics.air_emissions",
     # 台灣的空氣污染物排放清冊 1 公里網格（環境部 AQX_P_24，平台預覽用的免金鑰查詢，分 4 頁）
     "air-teds": "topics.air_teds",
+    "nutrients": "topics.nutrients",
     "water-forest": "topics.water_forest",
     # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
     "water-use": "topics.water_use",
