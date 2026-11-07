@@ -56,6 +56,7 @@ const reactorLayer = (id: string, label: PointsOverlayDef['label'], hidden: bool
   radius: { field: 'mw', stops: MW_STOPS },
   color: TYPE_CLASSES,
   sizeLegend: SIZE_LEGEND,
+  indicators: ['main-type', 'fleet-age', 'type-capacity'],
   tooltip: (p, ctx) => {
     const st = typeof p.st === 'number' ? p.st : 1;
     const units = typeof p.units === 'number' ? p.units : 1;
@@ -82,6 +83,34 @@ const reactorLayer = (id: string, label: PointsOverlayDef['label'], hidden: bool
 const OPERATING = reactorLayer('operating', { zh: '運轉中的機組', en: 'Operating reactors' }, false);
 const CONSTRUCTION = reactorLayer('construction', { zh: '興建中的機組', en: 'Reactors under construction' }, false, 'hollow');
 const PLANNED = reactorLayer('planned', { zh: '規劃中的機組', en: 'Planned reactors' }, true, 'faint');
+
+/** 已退役的機組（第二十七批 623）：依退役年份累計出現 */
+const RETIRED: PointsOverlayDef = {
+  kind: 'points',
+  id: 'reactors-retired',
+  file: 'reactors-retired.json',
+  label: { zh: '已退役的機組', en: 'Retired reactors' },
+  indicators: ['retired-capacity', 'retired-count'],
+  radius: { field: 'mw', stops: MW_STOPS },
+  color: TYPE_CLASSES,
+  sizeLegend: SIZE_LEGEND,
+  timeField: 'end',
+  tooltip: (p, ctx) => {
+    const units = typeof p.units === 'number' ? p.units : 1;
+    return {
+      title: `${typeLabel(typeof p.type === 'number' ? p.type : 8)} · ${typeof p.mw === 'number' ? mw(p.mw) : ''}`,
+      detail: [
+        typeof p.end === 'number' ? tr({ zh: `${p.end} 年退役`, en: `retired ${p.end}` }) : null,
+        units > 1 ? tr({ zh: `${units} 部機組`, en: `${units} units` }) : null,
+        typeof p.start === 'number' ? tr({ zh: `${p.start} 年併網`, en: `connected ${p.start}` }) : null,
+        typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      properNoun: typeof p.name === 'string' ? p.name : undefined,
+    };
+  },
+};
 
 const TYPE_DIM: DimensionDef = {
   label: { zh: '機型', en: 'Reactor type' },
@@ -113,12 +142,17 @@ export const nuclearReactors: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/109454',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
     },
+    {
+      name: { zh: 'Eurostat：核能設施與核熱（nrg_inf_nuc）、各燃料的毛發電量（nrg_bal_peh）', en: 'Eurostat: nuclear infrastructure and heat (nrg_inf_nuc), gross electricity production by fuel (nrg_bal_peh)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/nrg_inf_nuc/default/table',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
-    zh: '機型與型號是 GEM 的核電追蹤資料（2026 年 8 月），只有一個時間點；機齡是 2026 年減掉 GIPT 記的併網年份（不是第一次臨界），各國用容量加權平均。點是運轉中、興建中與規劃中的機組，同一座電廠同一狀態同一機型併成一點；已退役的不畫。核融合裝置不算。台灣的資料用核能安全委員會的核能電廠基本資料。',
-    en: 'Reactor types and models come from GEM’s nuclear power tracker (August 2026), a single snapshot; age is 2026 minus the grid connection year recorded in GIPT (not first criticality), averaged by capacity for each country. Points show operating, under-construction and planned reactors, with units of the same type and status at one plant merged; retired units are not shown. Fusion devices are excluded. Taiwan details come from the Nuclear Safety Commission’s basic data on nuclear plants.',
+    zh: '機型與型號是 GEM 的核電追蹤資料（2026 年 8 月），只有一個時間點；機齡是 2026 年減掉 GIPT 記的併網年份（不是第一次臨界），各國用容量加權平均。點是運轉中、興建中與規劃中的機組，同一座電廠同一狀態同一機型併成一點；已退役的機組在退役的兩個指標另有圖層，依退役年份累計。熱效率只有 Eurostat 的歐洲。核融合裝置不算。台灣的資料用核能安全委員會的核能電廠基本資料。',
+    en: 'Reactor types and models come from GEM’s nuclear power tracker (August 2026), a single snapshot; age is 2026 minus the grid connection year recorded in GIPT (not first criticality), averaged by capacity for each country. Points show operating, under-construction and planned reactors, with units of the same type and status at one plant merged; retired reactors have their own layer on the two retirement indicators, appearing by retirement year. Thermal efficiency covers Europe only (Eurostat). Fusion devices are excluded. Taiwan details come from the Nuclear Safety Commission’s basic data on nuclear plants.',
   },
-  overlays: [OPERATING, CONSTRUCTION, PLANNED],
+  overlays: [OPERATING, CONSTRUCTION, PLANNED, RETIRED],
   indicators: [
     {
       id: 'main-type',
@@ -166,6 +200,55 @@ export const nuclearReactors: TopicDefinition = {
       timeless: true,
       shareOfWorld: true,
       missing: { zh: '沒有這種機型的運轉中機組', en: 'No operating reactors of this type' },
+    },
+    // 第二十七批 623：已退役的機組（GIPT 的退役年份，依年份累計）與核電廠的熱效率（Eurostat）
+    {
+      id: 'retired-capacity',
+      label: { zh: '已退役的核電容量（累計）', en: 'Retired nuclear capacity (cumulative)' },
+      description: {
+        zh: '到這一年為止退役的核電機組容量合計（MW，依退役年份累計）。到 2026 年全世界退役 230 部、115,932 MW：德國 27,862 MW（36 部）最多，美國 21,077（45 部）、日本 17,881（27 部）、英國 9,163（36 部）、法國 6,087（15 部）、俄羅斯 5,915（19 部）、台灣 5,144（6 部，2018–2025 年）。依退役年代：1960 年代 11 部、1970 年代 20、1980 年代 28、1990 年代 42、2000 年代 37、2010 年代 60 最多、2020 年代到目前 32。GEM 的「退役」不分永久關閉、等待除役與除役完成；封存的不算。拉時間軸看退役的機組一部一部出現。',
+        en: 'Total capacity of nuclear reactors retired up to the year (MW, cumulative by retirement year). By 2026 the world had retired 230 reactors with 115,932 MW: Germany the most at 27,862 MW (36 reactors), then the US 21,077 (45), Japan 17,881 (27), the UK 9,163 (36), France 6,087 (15), Russia 5,915 (19) and Taiwan 5,144 (6, in 2018–2025). By decade: 11 in the 1960s, 20 in the 1970s, 28 in the 1980s, 42 in the 1990s, 37 in the 2000s, a peak of 60 in the 2010s and 32 so far in the 2020s. GEM’s “retired” does not distinguish permanent shutdown, awaiting decommissioning and decommissioned; mothballed reactors are excluded. Move the time slider to watch retired reactors appear.',
+      },
+      unit: 'MW',
+      file: 'retired-capacity.json',
+      layer: { kind: 'bubble', legendValues: [1000, 10000, 25000] },
+      format: mw,
+      formatTick: formatLargeTick,
+      overlayTime: 'cumulative',
+      shareOfWorld: true,
+      missing: { zh: '還沒有退役的核電機組', en: 'No retired nuclear reactors' },
+    },
+    {
+      id: 'retired-count',
+      label: { zh: '已退役的核電機組數（累計）', en: 'Retired nuclear reactors (cumulative)' },
+      description: {
+        zh: '到這一年為止退役的核電機組部數（依退役年份累計）。到 2026 年美國 45 部最多，德國、英國各 36 部（英國多是小型的早期氣冷式，容量只有德國的三分之一），日本 27、俄羅斯 19、法國 15、瑞典 7，台灣、加拿大各 6，烏克蘭、義大利、保加利亞各 4。',
+        en: 'Number of nuclear reactors retired up to the year (cumulative by retirement year). By 2026 the US had retired the most, 45, then Germany and the UK 36 each (the UK’s mostly small early gas-cooled reactors, with a third of Germany’s capacity), Japan 27, Russia 19, France 15, Sweden 7, Taiwan and Canada 6 each, and Ukraine, Italy and Bulgaria 4 each.',
+      },
+      unit: { zh: '部', en: 'reactors' },
+      file: 'retired-count.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 40] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 部`, en: `${fixed(v, 0)} reactors` }),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      overlayTime: 'cumulative',
+      shareOfWorld: true,
+      missing: { zh: '還沒有退役的核電機組', en: 'No retired nuclear reactors' },
+    },
+    {
+      id: 'thermal-efficiency',
+      label: { zh: '核電廠的熱效率', en: 'Thermal efficiency of nuclear plants' },
+      description: {
+        zh: '反應爐產生的熱有多少變成電（Eurostat 的核熱與核能毛發電量，只有歐洲）。2024 年法國核熱 88,138 千公噸油當量＝1,025.0 TWh 的熱、毛發電 380.5 TWh，熱效率 37.1%；荷蘭 37.1%、芬蘭 36.6%、斯洛維尼亞 36.6%、瑞典 36.0%、比利時 35.8%、捷克 34.5%、匈牙利 34.0%、西班牙 33.0%。其餘三分之二變成廢熱排到河、海或大氣，這是蒸汽循環的物理上限，不是浪費。台灣的設計值（核安會）：核一廠 34.6%、核二廠 32.8%、核三廠 33.7%。',
+        en: 'How much of the heat produced by reactors becomes electricity (Eurostat nuclear heat and gross nuclear generation, Europe only). In 2024 France produced 88,138 ktoe of nuclear heat (1,025.0 TWh) and 380.5 TWh of gross electricity, an efficiency of 37.1%; the Netherlands 37.1%, Finland 36.6%, Slovenia 36.6%, Sweden 36.0%, Belgium 35.8%, Czechia 34.5%, Hungary 34.0% and Spain 33.0%. The other two-thirds becomes waste heat released to rivers, the sea or the air, a physical limit of the steam cycle rather than waste. Taiwan’s design values (Nuclear Safety Commission): Jinshan 34.6%, Kuosheng 32.8%, Maanshan 33.7%.',
+      },
+      unit: '%',
+      file: 'thermal-efficiency.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [32, 33, 34, 35, 36] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${fixed(v, 0)}%`,
+      defaultYear: 2024,
+      missing: { zh: 'Eurostat 只有歐洲；沒有核電', en: 'Eurostat covers Europe only; no nuclear power' },
     },
   ],
 };

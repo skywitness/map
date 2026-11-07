@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 206;
-export const INDICATOR_COUNT = 1555;
+export const INDICATOR_COUNT = 1558;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","digital","ip-addresses","developers","innovation","publications","research-orgs","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","tourism","nobel","sports","esports","dining","culture"]},
@@ -169,6 +169,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：對別人的信任（ilc_pw03）、有沒有人可以依靠（ilc_pw06）","en":"Eurostat: trust in others (ilc_pw03) and having someone to rely on (ilc_pw06)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_pw03/default/table","licenses":["CC BY 4.0"],"topics":["happiness"]},
   {"name":{"zh":"Eurostat：文化與運動活動的參與（ilc_scp04，運動比賽）","en":"Eurostat: participation in cultural and sport activities (ilc_scp04, sports events)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_scp04/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
+  {"name":{"zh":"Eurostat：核能設施與核熱（nrg_inf_nuc）、各燃料的毛發電量（nrg_bal_peh）","en":"Eurostat: nuclear infrastructure and heat (nrg_inf_nuc), gross electricity production by fuel (nrg_bal_peh)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nrg_inf_nuc/default/table","licenses":["CC BY 4.0"],"topics":["nuclear-reactors"]},
   {"name":{"zh":"Eurostat：機上旅客依航程與機型（avia_paodis）","en":"Eurostat: passengers on board by distance band and aircraft type (avia_paodis)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_paodis/default/table","licenses":["CC BY 4.0"],"topics":["air-routes"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat：海運旅客（mar_mp_aa_cphd）、靠港船舶依船種（mar_mt_am_csvi，郵輪）","en":"Eurostat: seaborne passengers (mar_mp_aa_cphd), vessels in main ports by type (mar_mt_am_csvi, cruise ships)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/mar_mp_aa_cphd/default/table","licenses":["CC BY 4.0"],"topics":["shipping"]},
