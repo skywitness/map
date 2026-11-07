@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 172;
-export const INDICATOR_COUNT = 1282;
+export const INDICATOR_COUNT = 1284;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -380,6 +380,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"World Bank, Women, Business and the Law（1971–2024 歷史面板、2026 年版）","en":"World Bank, Women, Business and the Law (1971–2024 panel, 2026 edition)"},"url":"https://wbl.worldbank.org/en/data/download-data","licenses":[{"zh":"CC BY 4.0（依 WDI 轉載 WBL 的序列中繼資料）","en":"CC BY 4.0 (per the WDI metadata for WBL series)"}],"topics":["gender"]},
   {"name":{"zh":"World Bank, World Development Indicators：Adjusted savings: carbon dioxide damage (% of GNI)（NY.ADJ.DCO2.GN.ZS）","en":"World Bank, World Development Indicators: Adjusted savings: carbon dioxide damage (% of GNI) (NY.ADJ.DCO2.GN.ZS)"},"url":"https://data.worldbank.org/indicator/NY.ADJ.DCO2.GN.ZS","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"World Bank, World Development Indicators（ICAO 的航空貨運量）","en":"World Bank, World Development Indicators (ICAO air freight)"},"url":"https://data.worldbank.org/indicator/IS.AIR.GOOD.MT.K1","licenses":["CC BY 4.0"],"topics":["air-routes"]},
+  {"name":{"zh":"World Bank, World Development Indicators（ICT 貨品與服務占出口：UNCTAD、IMF）","en":"World Bank, World Development Indicators (ICT goods and services exports: UNCTAD, IMF)"},"url":"https://data.worldbank.org/indicator/TX.VAL.ICTG.ZS.UN","licenses":["CC BY 4.0"],"topics":["semiconductors"]},
   {"name":{"zh":"World Bank, World Development Indicators（IMF 國際收支：旅行收入）","en":"World Bank, World Development Indicators (IMF balance of payments: travel receipts)"},"url":"https://data.worldbank.org/indicator/BX.GSR.TRVL.ZS","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"World Bank, World Development Indicators（UIC、OECD 的鐵路貨運量）","en":"World Bank, World Development Indicators (rail freight from UIC and OECD)"},"url":"https://data.worldbank.org/indicator/IS.RRS.GOOD.MT.K6","licenses":["CC BY 4.0"],"topics":["transport"]},
   {"name":{"zh":"World Bank, World Development Indicators（UN-Habitat 貧民窟人口估計）","en":"World Bank, World Development Indicators (UN-Habitat slum population estimates)"},"url":"https://data.worldbank.org/indicator/EN.POP.SLUM.UR.ZS","licenses":["CC BY 4.0"],"topics":["housing"]},
