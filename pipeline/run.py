@@ -411,6 +411,8 @@ STEPS = {
     "taxes-effective": "topics.taxes_effective",
     # 外匯存底與外債：外債的幣別組成（World Bank IDS，source 6 的 series 網址）
     "reserves-debt-currency": "topics.debt_currency",
+    # 物價與消費：實質利率（WDI FR.INR.RINR）、食物價格通膨（FAOSTAT CP 月資料＋主計總處食物類），輸出 fiscal/
+    "prices-food-rates": "topics.prices_food_rates",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

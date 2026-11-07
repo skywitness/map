@@ -1,5 +1,6 @@
 import { cashRoundingPart } from './cash-rounding';
 import { pricesPart } from './fiscal';
+import { pricesRatesPart } from './prices-rates';
 import { hostOnly } from './merge';
 import { withParts } from './parts';
 import type { TopicDefinition } from './types';
@@ -22,4 +23,6 @@ export const prices: TopicDefinition = withParts(
   pricesPart,
   // 2026-11-05（第二十二批 395）：付現金時湊整到多少（英文維基「Cash rounding」），資料在 fiscal/
   cashRoundingPart,
+  // 2026-11-07（第二十五批 461）：實質利率（WDI）、食物價格通膨（FAOSTAT＋主計總處），資料在 fiscal/
+  pricesRatesPart,
 );
