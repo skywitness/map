@@ -93,6 +93,7 @@ const TOPIC_ICONS = {
   'research-orgs': 'library-big',
   'oa-journals': 'lock-open',
   'scientist-mobility': 'arrow-right-left',
+  hvdc: 'unplug',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
