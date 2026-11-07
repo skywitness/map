@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { BarList, type BarListItem } from '../../charts/BarList';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { fixed, formatPercent } from '../../lib/format';
+import { fixed, formatLargeNumber, formatPercent } from '../../lib/format';
 import { reliefColor } from '../../map/terrain';
 import type { PanelExtraProps } from '../types';
 
@@ -60,6 +60,10 @@ const TEXT = defineMessages({
     km2: (v: number) => `${n0(v)} 平方公里`,
     noRanges: '境內沒有 GMBA 的山區。',
     rangesNote: 'GMBA 山脈名錄 v2 的主要山系在境內的面積；以島嶼命名的只算島上的山區。',
+    rangesPop: '人口最多的山系',
+    rangesPopAria: (country: string) => `${country}人口最多的山系`,
+    people: (v: number) => `${formatLargeNumber(v)} 人`,
+    rangesPopNote: '住在各山系裡的人數（2020 年，JRC GHS-POP 的人口網格）。',
   },
   en: {
     profile: 'Elevation profile',
@@ -79,6 +83,10 @@ const TEXT = defineMessages({
     km2: (v) => `${n0(v)} km²`,
     noRanges: 'No GMBA mountain areas in this country.',
     rangesNote: 'Area within the country of the major systems in the GMBA Mountain Inventory v2; systems named after islands count only their mountainous parts.',
+    rangesPop: 'Most populous mountain systems',
+    rangesPopAria: (country) => `Most populous mountain systems in ${country}`,
+    people: (v) => `${formatLargeNumber(v)} people`,
+    rangesPopNote: 'People living in each system (2020, JRC GHS-POP population grid).',
   },
 });
 
@@ -149,11 +157,15 @@ function MountainRanges({ topic, iso3, countryName }: { topic: string; iso3: str
   const lang = useLang();
   const text = TEXT[lang];
   const { data } = useJson<Ranges>(`topics/${topic}/mountain-ranges.json`);
+  // 2026-11-07（製作手冊第二十七批 547）：pipeline/topics/mountain_people.py 的 mountain-range-pop.json
+  const { data: pop } = useJson<{ countries: Record<string, [number, number][]> }>(`topics/${topic}/mountain-range-pop.json`);
   if (!data) return null;
-  const items = (data.countries[iso3] ?? []).map(([i, area]) => {
+  const label = (i: number) => {
     const [en, zh] = data.ranges[i];
-    return { key: String(i), label: lang === 'zh' && zh ? zh : en, value: area };
-  });
+    return lang === 'zh' && zh ? zh : en;
+  };
+  const items = (data.countries[iso3] ?? []).map(([i, area]) => ({ key: String(i), label: label(i), value: area }));
+  const popItems = (pop?.countries[iso3] ?? []).map(([i, people]) => ({ key: `p${i}`, label: label(i), value: people }));
   return (
     <>
       <h3>{text.ranges}</h3>
@@ -163,6 +175,13 @@ function MountainRanges({ topic, iso3, countryName }: { topic: string; iso3: str
         <p className="empty">{text.noRanges}</p>
       )}
       <p className="note">{text.rangesNote}</p>
+      {popItems.length > 0 && (
+        <>
+          <h3>{text.rangesPop}</h3>
+          <BarList items={popItems} format={text.people} ariaLabel={text.rangesPopAria(countryName)} />
+          <p className="note">{text.rangesPopNote}</p>
+        </>
+      )}
     </>
   );
 }

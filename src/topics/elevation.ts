@@ -1,5 +1,5 @@
 import { getLang, tr } from '../i18n/lang';
-import { fixed, formatPercent } from '../lib/format';
+import { fixed, formatLargeNumber, formatPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ColorClasses, IndicatorDef, PointRecord, Text, TopicDefinition } from './types';
 
@@ -91,6 +91,14 @@ export const elevation: TopicDefinition = {
     {
       name: { zh: 'GMBA 山脈名錄 v2（291 個主要山系）', en: 'GMBA Mountain Inventory v2 (291 major mountain systems)' },
       url: 'https://www.earthenv.org/mountains',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'JRC GHS-POP R2023A 2020 年 30 角秒人口網格（住在山區的人、人口加權平均海拔）',
+        en: 'JRC GHS-POP R2023A, 2020, 30 arc-second population grid (mountain population and population-weighted elevation)',
+      },
+      url: 'https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE',
       license: 'CC BY 4.0',
     },
     {
@@ -215,6 +223,48 @@ export const elevation: TopicDefinition = {
       file: 'mountain.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 60, 80] } },
       format: share,
+      formatTick: (v) => fixed(v, 0),
+    },
+    // 2026-11-07（製作手冊第二十七批 547，候選 1233）：住在山上的人（pipeline/topics/mountain_people.py）
+    {
+      id: 'mountain-pop-share',
+      label: { zh: '住在山區的人口比例', en: 'People living in mountains' },
+      description: {
+        zh: '全國人口住在 GMBA 山區裡的比例（2020 年，JRC GHS-POP 的 1 公里人口網格）。安道爾 100%、摩納哥 99.6% 幾乎全國都在山系裡；人口百萬以上的國家裡東帝汶 68.0% 最高，其次葉門 62.9%、瓜地馬拉 61.3%、宏都拉斯 59.3%、賴索托 50.6%、盧安達 48.8%、巴布亞紐幾內亞 48.0%、海地 46.8%、黎巴嫩與衣索比亞 44.4%、秘魯 43.4%；不丹 91.2%、蒙特內哥羅 58.0%、尼泊爾 36.2%、瑞士 27.0%、中國大陸 12.7%、日本 7.6%、台灣 5.9%、美國 2.3%，荷蘭 0。全世界約 7.5 億人、9.6%。「山區」各家定義不同：GMBA 依地形起伏劃，高原上平坦的地方不算（賴索托全國都在 1,400 公尺以上，也只有一半的人住在「山區」）；FAO 用另一種定義，算出 2017 年全球山區人口近 11 億、15%。一些小島整個被畫進山系（法屬玻里尼西亞 73.0%、葛摩 72.4%），比例偏高。點國家看人口最多的山系。',
+        en: 'Share of the population living inside GMBA mountain areas (2020, from the JRC GHS-POP 1 km population grid). Andorra (100%) and Monaco (99.6%) lie almost entirely within mountain systems; among countries of over a million people Timor-Leste is highest at 68.0%, followed by Yemen 62.9%, Guatemala 61.3%, Honduras 59.3%, Lesotho 50.6%, Rwanda 48.8%, Papua New Guinea 48.0%, Haiti 46.8%, Lebanon and Ethiopia 44.4% and Peru 43.4%; Bhutan 91.2%, Montenegro 58.0%, Nepal 36.2%, Switzerland 27.0%, mainland China 12.7%, Japan 7.6%, Taiwan 5.9%, the US 2.3% and the Netherlands 0. Worldwide about 750 million people, 9.6%. Definitions of “mountain” differ: GMBA uses ruggedness, so flat plateaus are excluded (all of Lesotho lies above 1,400 m, yet only half its people live in “mountains”); FAO, with another definition, counted nearly 1.1 billion mountain people (15%) in 2017. Some small islands fall entirely within a mountain system (French Polynesia 73.0%, Comoros 72.4%), which inflates their shares. Select a country for its most populous mountain systems.',
+      },
+      unit: PERCENT,
+      file: 'mountain-pop-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 10, 20, 40, 60] } },
+      format: share,
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'mountain-pop',
+      label: { zh: '住在山區的人數', en: 'Mountain population' },
+      description: {
+        zh: '住在 GMBA 山區裡的人數（2020 年，GHS-POP；比例圓）。中國大陸 1.81 億（雲貴高原 6,280 萬最多）、衣索比亞 5,166 萬、印度 3,736 萬、印尼 3,210 萬、墨西哥 2,628 萬、巴基斯坦 2,066 萬、葉門 2,032 萬、土耳其 1,771 萬、哥倫比亞 1,771 萬、秘魯 1,444 萬、義大利 1,408 萬；台灣 139 萬。',
+        en: 'Number of people living inside GMBA mountain areas (2020, GHS-POP; proportional circles). Mainland China 181 million (62.8 million on the Yunnan–Guizhou Plateau alone), Ethiopia 51.7 million, India 37.4 million, Indonesia 32.1 million, Mexico 26.3 million, Pakistan 20.7 million, Yemen 20.3 million, Turkey 17.7 million, Colombia 17.7 million, Peru 14.4 million and Italy 14.1 million; Taiwan 1.39 million.',
+      },
+      unit: { zh: '人', en: 'people' },
+      file: 'mountain-pop.json',
+      layer: { kind: 'bubble', legendValues: [1e6, 1e7, 1e8] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v)} 人`, en: `${formatLargeNumber(v)} people` }),
+      formatTick: (v) => formatLargeNumber(v),
+      integer: true,
+      shareOfWorld: true,
+    },
+    {
+      id: 'pop-elevation',
+      label: { zh: '人住在多高（人口加權平均海拔）', en: 'Population-weighted elevation' },
+      description: {
+        zh: '一國的人平均住在幾公尺高：GHS-POP 2020 年每一格的人口乘上 GMTED2010 的海拔再平均。玻利維亞 2,172 公尺最高，衣索比亞 1,966、賴索托 1,803、盧安達 1,685、蒲隆地 1,484、阿富汗 1,385、肯亞 1,365、葉門 1,351、蒙古 1,343、墨西哥 1,289；全世界平均 378 公尺。人口百萬以上的國家裡最低的是巴林 8、荷蘭 9、孟加拉 16、卡達 19 公尺。台灣 61 公尺、日本 62 公尺：國土的平均海拔是 785 與 393 公尺，人卻幾乎都住在平原與盆地。尼泊爾 652 公尺（一半的人住在南部的特萊平原）、瑞士 539 公尺。群島與城邦的數字只代表那幾個市鎮。',
+        en: 'How high, on average, a country’s people live: each GHS-POP 2020 grid cell’s population times its GMTED2010 elevation, averaged. Bolivia is highest at 2,172 m, followed by Ethiopia 1,966, Lesotho 1,803, Rwanda 1,685, Burundi 1,484, Afghanistan 1,385, Kenya 1,365, Yemen 1,351, Mongolia 1,343 and Mexico 1,289; the world average is 378 m. Among countries of over a million people the lowest are Bahrain 8, the Netherlands 9, Bangladesh 16 and Qatar 19 m. Taiwan is 61 m and Japan 62 m: their land averages 785 and 393 m, but almost everyone lives on plains and in basins. Nepal is 652 m (half its people live on the southern Terai plains) and Switzerland 539 m. For archipelagos and city-states the figure only reflects a few towns.',
+      },
+      unit: M,
+      file: 'pop-elevation.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 100, 200, 500, 1000, 1500] } },
+      format: metres,
       formatTick: (v) => fixed(v, 0),
     },
     {
