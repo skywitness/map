@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 177;
-export const INDICATOR_COUNT = 1335;
+export const TOPIC_COUNT = 178;
+export const INDICATOR_COUNT = 1337;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -131,6 +131,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：Business demography（bd_size 2021 年起、bd_9bd_sz_cl_r2 2020 年以前）","en":"Eurostat: Business demography (bd_size from 2021, bd_9bd_sz_cl_r2 up to 2020)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/bd_size/default/table","licenses":["CC BY 4.0"],"topics":["business-demography"]},
   {"name":{"zh":"Eurostat：Construction producer prices or costs, new residential buildings - annual data（sts_copi_a）","en":"Eurostat: Construction producer prices or costs, new residential buildings - annual data (sts_copi_a)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sts_copi_a/default/table","licenses":["CC BY 4.0"],"topics":["property-costs"]},
   {"name":{"zh":"Eurostat：Enterprises by detailed NACE Rev. 2 activity and special aggregates（sbs_ovw_act，G47 零售業）","en":"Eurostat: Enterprises by detailed NACE Rev. 2 activity and special aggregates (sbs_ovw_act, G47 retail trade)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sbs_ovw_act/default/table","licenses":["CC BY 4.0"],"topics":["retail"]},
+  {"name":{"zh":"Eurostat：EU-SILC 家裡沒辦法保持足夠溫暖的人口（sdg_07_60）、欠繳水電瓦斯帳單的人口（ilc_mdes07）","en":"Eurostat, EU-SILC: population unable to keep home adequately warm (sdg_07_60) and in arrears on utility bills (ilc_mdes07)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sdg_07_60/default/table","licenses":["CC BY 4.0"],"topics":["energy-poverty"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：House sales - number and index（prc_hpi_hsna）","en":"Eurostat: House sales - number and index (prc_hpi_hsna)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/prc_hpi_hsna/default/table","licenses":["CC BY 4.0"],"topics":["housing-market"]},
   {"name":{"zh":"Eurostat：National expenditure on environmental protection（env_epea_neep）","en":"Eurostat: National expenditure on environmental protection (env_epea_neep)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/env_epea_neep/default/table","licenses":["CC BY 4.0"],"topics":["env-taxes"]},

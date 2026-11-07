@@ -89,6 +89,7 @@ export const RELATED: Record<string, string[]> = {
   cctld: ['digital', 'internet-speed', 'submarine-cables'],
   'energy-use': ['electricity', 'fossil-fuels', 'renewables'],
   'household-energy': ['energy-use', 'energy-prices', 'climate'],
+  'energy-poverty': ['energy-prices', 'household-energy', 'inequality'],
   'energy-market': ['market-regulation', 'energy-prices', 'renewables'],
   'energy-taxes': ['taxes', 'energy-prices', 'env-taxes'],
   industry: ['minerals', 'semiconductors'],

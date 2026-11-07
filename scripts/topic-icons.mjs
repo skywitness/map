@@ -135,6 +135,7 @@ const TOPIC_ICONS = {
   cctld: 'at-sign',
   'energy-use': 'chart-pie',
   'household-energy': 'house-plug',
+  'energy-poverty': 'thermometer-snowflake',
   'energy-market': 'sliders-horizontal',
   'energy-taxes': 'receipt-euro',
   industry: 'factory',

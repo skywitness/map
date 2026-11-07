@@ -220,6 +220,7 @@ STEPS = {
     "renewables-final": "topics.renewables_final",
     "energy-use": "topics.energy_use",
     "household-energy": "topics.household_energy",
+    "energy-poverty": "topics.energy_poverty",
     "energy-wholesale": "topics.energy_wholesale",
     "energy-market": "topics.energy_policy_tools",
     "energy-taxes": "topics.energy_taxes",

@@ -239,6 +239,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `household-energy` 是「家裡的能源花在哪」：Eurostat `nrg_d_hhq` 的 TSV（約 160 KB），幾秒。
 
+`energy-poverty` 是「能源貧窮」：Eurostat 的 `sdg_07_60` 與 `ilc_mdes07`（EU-SILC），幾秒。
+
 `energy-wholesale` 是電價與油價主題的批售電價與負電價：Ember 歐洲批售電價的月檔與每小時檔（約 42 MB 的 zip），幾秒。
 
 `energy-market` 是「電力市場的管制與再生能源的補貼」：OECD EPS 的太陽能、風力支持分數與能源署的躉購費率（台灣側欄），幾秒；PMR 的電力、天然氣分項讀 `market-regulation` 的輸出。
