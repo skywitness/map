@@ -2,6 +2,8 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { FUELS, OPERATING_PLANTS, powerPlants } from './power-plants';
 import type { IndicatorDef, Text, TopicDefinition } from './types';
+import { electricityPeakPart } from './electricity-peak';
+import { withParts } from './parts';
 
 const twh = (v: number) => `${fixed(v, v < 10 ? 2 : v < 1000 ? 1 : 0)} TWh`;
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -46,7 +48,7 @@ const GENERATION_MIX = [
   { indicator: 'other-renewables-share', color: fuel('geothermal'), label: { zh: '地熱等其他再生', en: 'Geothermal and other renewables' } },
 ];
 
-export const electricity: TopicDefinition = {
+export const electricity: TopicDefinition = withParts({
   id: 'electricity',
   title: { zh: '各國發電量', en: 'Electricity by country' },
   shortTitle: { zh: '發電量', en: 'Electricity' },
@@ -484,4 +486,4 @@ export const electricity: TopicDefinition = {
       defaultYear: 2024,
     },
   ],
-};
+}, electricityPeakPart);
