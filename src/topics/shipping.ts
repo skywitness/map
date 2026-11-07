@@ -4,6 +4,7 @@ import { MAP_TOKENS } from '../theme/tokens';
 import { ferriesExtra } from './ferries';
 import { withParts } from './parts';
 import { portCallsPart, portCargoTypesPart } from './port-activity';
+import { seaPassengersPart } from './sea-passengers';
 import { shippingEfficiencyPart } from './shipping-efficiency';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 
@@ -499,4 +500,4 @@ export const shipping: TopicDefinition = withParts({
       },
     },
   ],
-}, shippingEfficiencyPart, portCallsPart, portCargoTypesPart);
+}, shippingEfficiencyPart, portCallsPart, portCargoTypesPart, seaPassengersPart);

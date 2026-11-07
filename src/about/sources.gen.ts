@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 185;
-export const INDICATOR_COUNT = 1458;
+export const INDICATOR_COUNT = 1460;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -159,6 +159,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：機上旅客依航程與機型（avia_paodis）","en":"Eurostat: passengers on board by distance band and aircraft type (avia_paodis)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_paodis/default/table","licenses":["CC BY 4.0"],"topics":["air-routes"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
+  {"name":{"zh":"Eurostat：海運旅客（mar_mp_aa_cphd）、靠港船舶依船種（mar_mt_am_csvi，郵輪）","en":"Eurostat: seaborne passengers (mar_mp_aa_cphd), vessels in main ports by type (mar_mt_am_csvi, cruise ships)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/mar_mp_aa_cphd/default/table","licenses":["CC BY 4.0"],"topics":["shipping"]},
   {"name":{"zh":"Eurostat：貨車依載重與動力（road_eqs_lormot）、大客車與遊覽車（road_eqs_busveh）","en":"Eurostat: lorries by load capacity and motor energy (road_eqs_lormot), motor coaches and buses (road_eqs_busveh)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_lormot/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat：運動業的就業（sprt_emp_sex）、政府支出依功能別（gov_10a_exp，COFOG 08.1）","en":"Eurostat: employment in sport (sprt_emp_sex) and government expenditure by function (gov_10a_exp, COFOG 08.1)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sprt_emp_sex/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：重大鐵路事故的死傷人數（rail_ac_catvict）與件數（rail_ac_catnmbr）","en":"Eurostat: victims of significant railway accidents (rail_ac_catvict) and number of accidents (rail_ac_catnmbr)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/rail_ac_catvict/default/table","licenses":["CC BY 4.0"],"topics":["transport"]},
