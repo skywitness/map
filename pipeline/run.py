@@ -309,6 +309,8 @@ STEPS = {
     "digital-trade": "topics.digital_trade",
     # 網路位址分給了誰（第二十七批 588）：APNIC 的 delegated-apnic-latest（只做 APNIC 區）
     "ip-addresses": "topics.ip_addresses",
+    # 通訊塔與行動基地台的密度（第二十七批 589）：OSM 經 QLever，三支查詢
+    "cell-towers": "topics.cell_towers",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）

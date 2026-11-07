@@ -87,6 +87,7 @@ const TOPIC_ICONS = {
   cabotage: 'truck',
   'digital-trade': 'globe-lock',
   'ip-addresses': 'network',
+  'cell-towers': 'radio-tower',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
