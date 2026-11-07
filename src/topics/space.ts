@@ -4,6 +4,7 @@ import { MAP_TOKENS } from '../theme/tokens';
 import { landingsPart } from './landings';
 import { withParts } from './parts';
 import { spaceAgenciesPart } from './space-agencies';
+import { spaceMassPart } from './space-mass';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -338,4 +339,4 @@ export const space: TopicDefinition = withParts({
       formatTick: (v) => v + '%',
     },
   ],
-}, spaceAgenciesPart);
+}, spaceAgenciesPart, spaceMassPart);
