@@ -35,13 +35,17 @@ export function ShareStack({
   const ready = files.every(Boolean);
   const option = useMemo(() => {
     if (!ready) return null;
-    const years = files[0]!.years;
-    const series = groups.map((g, i) => ({
+    const all = files[0]!.years;
+    const full = groups.map((g, i) => ({
       name: tr(g.label, lang),
-      values: files[i]!.values[iso3] ?? years.map(() => null),
+      values: files[i]!.values[iso3] ?? all.map(() => null),
       color: MAP_TOKENS.categorical[i],
     }));
-    if (series.every((s) => s.values.every((v) => v === null))) return null;
+    // 前面各類都沒有值的年份不畫（2026-11-07，各部門的最終能源消費：台灣 2005 年才有，前面會畫成從 0 爬上來的斜坡）
+    const start = all.findIndex((_, y) => full.some((s) => s.values[y] !== null));
+    if (start < 0) return null;
+    const years = all.slice(start);
+    const series = full.map((s) => ({ ...s, values: s.values.slice(start) }));
     const spec = stackedAreaOption({ years, series, year, format: (v) => `${fixed(v, 1)}%`, formatTick: (v) => `${v}%` });
     return { ...spec, y: { ...spec.y, min: 0, max: 100, ticks: [0, 25, 50, 75, 100] } };
   }, [ready, files, groups, iso3, year, lang]);

@@ -235,6 +235,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `renewables-final` 是發電量主題的再生能源占最終能源消費：世界銀行 WDI 的 `EG.FEC.RNEW.ZS` 與 Eurostat 的 `nrg_ind_ren`（四個部門），幾秒。
 
+`energy-use` 是「能源用在哪裡」：聯合國統計司能源平衡表的 SDMX（`data.un.org/legacy/ws`，`format=csv`，約 8 MB）與能源署的國內能源消費（台灣），幾秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

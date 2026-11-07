@@ -133,6 +133,7 @@ const TOPIC_ICONS = {
   'land-use': 'tractor',
   'env-taxes': 'badge-percent',
   cctld: 'at-sign',
+  'energy-use': 'chart-pie',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
