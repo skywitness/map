@@ -93,6 +93,7 @@ const TOPIC_ICONS = {
   nobel: 'award',
   sports: 'medal',
   racing: 'flag-triangle-right',
+  horses: 'trophy',
   reads: 'book-open',
   // 經濟
   income: 'banknote',

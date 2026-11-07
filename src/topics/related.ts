@@ -39,6 +39,7 @@ export const RELATED: Record<string, string[]> = {
   gambling: ['laws', 'tobacco-alcohol', 'tourism'],
   'time-use': ['wages', 'gender', 'happiness'],
   esports: ['sports', 'internet-speed', 'digital'],
+  horses: ['agriculture', 'sports', 'gambling'],
   culture: ['world-heritage', 'time-use', 'taiwan-diplomacy'],
   festivals: ['religion', 'daylight'],
   reads: ['language', 'digital'],

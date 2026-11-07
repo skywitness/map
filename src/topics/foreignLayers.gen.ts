@@ -67,6 +67,7 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"skyscrapers","layers":[{"id":"buildings","label":{"zh":"150 m 以上的大樓（縮小時只畫高的）","en":"Buildings 150 m+ (only the tallest when zoomed out)"},"kind":"points"},{"id":"towers","label":{"zh":"150 m 以上的電視塔與觀景塔","en":"TV and observation towers 150 m+"},"kind":"points"}]},
   {"topic":"sports","layers":[{"id":"venues-summer","label":{"zh":"夏季奧運的比賽場館","en":"Summer Games venues"},"kind":"points"},{"id":"venues-winter","label":{"zh":"冬季奧運的比賽場館","en":"Winter Games venues"},"kind":"points"}]},
   {"topic":"racing","layers":[{"id":"circuits","label":{"zh":"賽道（依第一站的年份）","en":"Circuits (by first race)"},"kind":"points"}]},
+  {"topic":"horses","layers":[{"id":"racecourses","label":{"zh":"賽馬場（Wikidata）","en":"Racecourses (Wikidata)"},"kind":"points"}]},
   {"topic":"dining","layers":[{"id":"michelin","label":{"zh":"米其林三星餐廳","en":"Michelin three-star restaurants"},"kind":"points"}]},
   {"topic":"diving","layers":[{"id":"places","label":{"zh":"潛水中心與潛水場域","en":"Dive centres and diving sites"},"kind":"points"}]},
   {"topic":"gambling","layers":[{"id":"casinos","label":{"zh":"賭場","en":"Casinos"},"kind":"points"}]},
