@@ -92,7 +92,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '環境', en: 'Environment' },
     sections: [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
-      { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'nutrients'] },
+      { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'nutrients', 'noise'] },
       { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires', 'megafauna'] },
       // 2026-11-07（製作手冊第二十五批 480）新開
       { label: { zh: '碳與氣候政策', en: 'Climate policy' }, topics: ['climate-action', 'climate-finance', 'cbam'] },
@@ -244,6 +244,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'climate-finance': () => import('./climate-finance'),
   cbam: () => import('./cbam'),
   nutrients: () => import('./nutrients'),
+  noise: () => import('./noise'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),

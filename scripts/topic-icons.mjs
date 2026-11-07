@@ -126,6 +126,7 @@ const TOPIC_ICONS = {
   'climate-finance': 'circle-dollar-sign',
   cbam: 'badge-euro',
   nutrients: 'leafy-green',
+  noise: 'volume-2',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

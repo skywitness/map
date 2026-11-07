@@ -173,6 +173,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `nutrients` 是農田的養分流失：FAOSTAT 的耕地養分收支（ESB，約 8 MB 的 zip），輸出每公頃的氮、磷盈餘、氮肥利用效率、氮的淋溶與揮發量，以及側欄用的各國每公頃氮收支（`budget/{iso3}.json`，182 國）。幾秒鐘。
 
+`noise` 是歐盟環境噪音指令的暴露人口：EEA datashare 的 WebDAV 抓單一個彙整表 `Summary_END_2022_cutoff241118_v4.xlsx`（約 400 KB，使用者名稱是公開分享代碼、密碼空白；不要用不帶 `?path=` 的 `/download`，會打包整個 EEA 公開 datastore），快取在 `.cache/eea-noise/`。不到一秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

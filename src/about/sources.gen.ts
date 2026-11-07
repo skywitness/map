@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 166;
-export const INDICATOR_COUNT = 1239;
+export const TOPIC_COUNT = 167;
+export const INDICATOR_COUNT = 1242;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -100,6 +100,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Descals 等，Global oil palm extent and planting year from 1990 to 2021（v1.2，Zenodo 13379129）","en":"Descals et al., Global oil palm extent and planting year from 1990 to 2021 (v1.2, Zenodo 13379129)"},"url":"https://doi.org/10.5281/zenodo.13379129","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023，附錄 2 國家摘要表（資料由各國公共衛生機關提供）","en":"ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023, annex 2 country summary sheets (dataset provided by ECDC based on data provided by public health authorities)"},"url":"https://www.ecdc.europa.eu/en/publications-data/PPS-HAI-AMR-acute-care-europe-2022-2023","licenses":["CC BY 4.0"],"topics":["antimicrobial-resistance"]},
   {"name":{"zh":"EDGAR 2026（歐盟執委會聯合研究中心 JRC，EDGAR_2026_GHG）：甲烷、氧化亞氮、含氟氣體","en":"EDGAR 2026 (European Commission JRC, EDGAR_2026_GHG): methane, nitrous oxide, F-gases"},"url":"https://edgar.jrc.ec.europa.eu/dataset_ghg2026","licenses":["CC BY 4.0"],"topics":["climate"]},
+  {"name":{"zh":"EEA：Noise data reported under Environmental Noise Directive (END)（2022 年那一輪的彙整表）","en":"EEA: Noise data reported under the Environmental Noise Directive (END) (summary of the 2022 round)"},"url":"https://www.eea.europa.eu/en/datahub/datahubitem-view/c952f520-8d71-42c9-b74c-b7eb002f939b","licenses":["CC BY 4.0"],"topics":["noise"]},
   {"name":{"zh":"EMA，medicines 與 orphan designations 資料表","en":"EMA, medicines and orphan designations data tables"},"url":"https://www.ema.europa.eu/en/documents/report/medicines-output-medicines-report_en.xlsx","licenses":[{"zh":"EMA 條款（可轉載，需註明 EMA）","en":"EMA terms (reuse with acknowledgement of EMA)"}],"topics":["medicines"]},
   {"name":{"zh":"EMA，Public information on medicine shortages（各國的缺藥登錄一覽）","en":"EMA, Public information on medicine shortages (national registers)"},"url":"https://www.ema.europa.eu/en/human-regulatory-overview/post-authorisation/medicine-shortages-availability-issues/public-information-medicine-shortages","licenses":[{"zh":"EMA 條款（可轉載，需註明 EMA）","en":"EMA terms (reuse with acknowledgement of EMA)"}],"topics":["medicines"]},
   {"name":"Ember, Global Renewable Power Sector Targets 2030","url":"https://ember-energy.org/data/global-renewable-power-sector-targets-2030/","licenses":["CC BY 4.0"],"topics":["electricity"]},
