@@ -91,6 +91,7 @@ const TOPIC_ICONS = {
   'internet-freedom': 'shield-ban',
   'chip-materials': 'gem',
   'research-orgs': 'library-big',
+  'oa-journals': 'lock-open',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

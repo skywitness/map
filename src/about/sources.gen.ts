@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 196;
-export const INDICATOR_COUNT = 1496;
+export const TOPIC_COUNT = 197;
+export const INDICATOR_COUNT = 1498;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -107,6 +107,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"CWTS 核心來源（Van Eck & Waltman 2024）","en":"CWTS core sources (Van Eck & Waltman 2024)"},"url":"https://doi.org/10.5281/zenodo.13879947","licenses":[{"zh":"CC0 1.0（清單）、CC BY 4.0（方法報告）","en":"CC0 1.0 (list); CC BY 4.0 (method report)"}],"topics":["publications"]},
   {"name":{"zh":"Davies, Pettersson & Öberg (2026), Organized violence 1989–2025, and violent political protests, Journal of Peace Research","en":"Davies, Pettersson & Öberg (2026), Organized violence 1989–2025, and violent political protests, Journal of Peace Research"},"url":"https://doi.org/10.1093/jopres/xjag046","licenses":[{"zh":"UCDP 要求引用的文獻","en":"citation required by UCDP"}],"topics":["conflict"]},
   {"name":{"zh":"Descals 等，Global oil palm extent and planting year from 1990 to 2021（v1.2，Zenodo 13379129）","en":"Descals et al., Global oil palm extent and planting year from 1990 to 2021 (v1.2, Zenodo 13379129)"},"url":"https://doi.org/10.5281/zenodo.13379129","licenses":["CC BY 4.0"],"topics":["forest"]},
+  {"name":{"zh":"DOAJ（Directory of Open Access Journals）期刊清單 CSV，2026-11-07 下載","en":"DOAJ (Directory of Open Access Journals) journal CSV, downloaded 7 Nov 2026"},"url":"https://doaj.org/","licenses":["CC0"],"topics":["oa-journals"]},
   {"name":{"zh":"ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023，附錄 2 國家摘要表（資料由各國公共衛生機關提供）","en":"ECDC, Point prevalence survey of healthcare-associated infections and antimicrobial use in European acute care hospitals 2022–2023, annex 2 country summary sheets (dataset provided by ECDC based on data provided by public health authorities)"},"url":"https://www.ecdc.europa.eu/en/publications-data/PPS-HAI-AMR-acute-care-europe-2022-2023","licenses":["CC BY 4.0"],"topics":["antimicrobial-resistance"]},
   {"name":{"zh":"EDGAR 2026（歐盟執委會聯合研究中心 JRC，EDGAR_2026_GHG）：甲烷、氧化亞氮、含氟氣體","en":"EDGAR 2026 (European Commission JRC, EDGAR_2026_GHG): methane, nitrous oxide, F-gases"},"url":"https://edgar.jrc.ec.europa.eu/dataset_ghg2026","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"EEA：Industrial Reporting under the IED and E-PRTR（ver. 16.0，2026 年 2 月）","en":"EEA: Industrial Reporting under the IED and E-PRTR (ver. 16.0, February 2026)"},"url":"https://www.eea.europa.eu/en/datahub/datahubitem-view/9405f714-8015-4b5b-a63c-280b82861b3d","licenses":["CC BY 4.0"],"topics":["industrial-releases"]},
