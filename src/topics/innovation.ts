@@ -1,6 +1,8 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, intlDollars, usd } from '../lib/format';
 import type { DimensionDef, Text, TopicDefinition } from './types';
+import { coinventionPart } from './coinvention';
+import { withParts } from './parts';
 
 const RESEARCHERS = { zh: '人/百萬人', en: 'per million people' };
 const PATENTS_PER_MILLION = { zh: '件/百萬人', en: 'per million people' };
@@ -72,7 +74,7 @@ const applications = (v: number) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber
 
 const MISSING_MSTI: Text = { zh: '沒有資料（只有 OECD 的 MSTI 收錄的約 47 國，含台灣）', en: 'No data (only about 47 economies in the OECD MSTI, including Taiwan)' };
 
-export const innovation: TopicDefinition = {
+export const innovation: TopicDefinition = withParts({
   id: 'innovation',
   title: { zh: '各國研發與創新', en: 'R&D and innovation by country' },
   shortTitle: { zh: '研發與創新', en: 'R&D' },
@@ -603,4 +605,4 @@ export const innovation: TopicDefinition = {
       missing: { zh: '沒有資料（OECD 的 GBARD 有 39 國，含台灣）', en: 'No data (39 economies in the OECD GBARD, including Taiwan)' },
     },
   ],
-};
+}, coinventionPart);
