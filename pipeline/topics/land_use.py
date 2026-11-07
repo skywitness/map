@@ -8,8 +8,12 @@
   四個來源（CCI、MODIS、CGLS、WorldCover）同一國同一年可以差好幾倍，不混接。14 類的占比用 14 類合計當分母。
 - 每人耕地用聯合國 WPP 2024 的年中人口。
 
+- 山地（2026-11-07，第二十五批 492，候選 1156）：FAOSTAT「SDG Indicators」批次檔（SDGB，CC BY 4.0；不是聯合國 SDG 全球
+  資料庫）的 SDG 15.4.2：24041-_T_MGCI 山地綠覆蓋指數（%）、240103-_T 退化山地比例（%）、24048-_T 山地面積（km²）；
+  年份 2000、2005、2010、2015、2018、2021（退化從 2015 起）。山地不到 1,000 km² 的地區比例不穩定，不畫。台灣不在 SDGB。
+
 輸出 public/data/topics/land-use/：share/{item}.json（%）、area/{item}.json（公頃）、cropland-pc.json（公頃/人）、
-cover/{item}.json（土地覆蓋占比 %）、built-change.json（人工地表比 1992 年增加幾 %）、structure/{iso3}.json（側欄：
+cover/{item}.json（土地覆蓋占比 %）、mgci.json、mountain-degraded.json（%）、built-change.json（人工地表比 1992 年增加幾 %）、structure/{iso3}.json（側欄：
 可耕地、永久作物、牧地、森林、其他土地的千公頃，依年份）。
 """
 
@@ -105,6 +109,33 @@ def build() -> None:
             continue
         change[k] = [round((s[y] / base - 1) * 100, 1) if y in s else None for y in cyears]
     write_json(OUT / "built-change.json", indicator_file("built-change", "%", cyears, change, license=lic))
+    _mountains()
     tw = art["TWN"]
     print(f"  RL {years[0]}–{years[-1]}（耕地 {len(crop)} 區）、LC CCI {cyears[0]}–{cyears[-1]}；側欄 {count} 國；"
           f"台灣耕地 {crop['TWN'].get(1961)}→{crop['TWN'].get(years[-1])} 千公頃、人工地表 {tw[cyears[0]]}→{tw[cyears[-1]]} 千公頃")
+
+
+MIN_MOUNTAIN_KM2 = 1000
+
+
+def _mountains() -> None:
+    items = {"24041-_T_MGCI": "mgci", "240103-_T": "degraded", "24048-_T": "area"}
+    data: dict[str, dict[str, dict[int, float]]] = {k: defaultdict(dict) for k in items.values()}
+    for r in faostat.suite_rows("SDGB", set(items)):
+        if r.value:
+            data[items[r.item]][r.area][int(r.year)] = float(r.value)
+    area = data["area"]
+    for key, name in (("mgci", "mgci"), ("degraded", "mountain-degraded")):
+        series = data[key]
+        years = sorted({y for s in series.values() for y in s})
+        values = {}
+        for k, s in series.items():
+            if k == "WLD":
+                continue
+            row = [round(s[y], 2) if y in s and area.get(k, {}).get(y, 0) >= MIN_MOUNTAIN_KM2 else None for y in years]
+            if any(x is not None for x in row):
+                values[k] = row
+        world = series.get("WLD", {})
+        write_json(OUT / f"{name}.json", indicator_file(
+            name, "%", years, values, aggregates={"WLD": [world.get(y) for y in years]}, license="CC BY 4.0"))
+        print(f"  SDG 15.4.2 {name}：{len(values)} 區，{years[0]}–{years[-1]}")

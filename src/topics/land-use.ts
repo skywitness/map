@@ -70,6 +70,11 @@ export const landUse: TopicDefinition = {
       url: 'https://www.fao.org/faostat/en/#data/LC',
       license: 'CC BY 4.0',
     },
+    {
+      name: { zh: 'FAOSTAT：SDG Indicators（SDG 15.4.2 山地綠覆蓋）', en: 'FAOSTAT: SDG Indicators (SDG 15.4.2 mountain green cover)' },
+      url: 'https://www.fao.org/faostat/en/#data/SDGB',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '土地利用（耕地、牧地等）是各國向聯合國糧農組織（FAO）申報或 FAO 估計的統計，1961 年起；土地覆蓋是 FAO 把歐洲太空總署的衛星分類（ESA CCI Land Cover，300 公尺）加總到國家，1992–2022 年。兩者口徑不同：統計說的「耕地」與衛星看到的「作物」不一樣，FAO 的森林與衛星的樹冠覆蓋也不一樣。土地覆蓋 FAO 還有 MODIS、Copernicus 等另外三個來源，同一國同一年可以差好幾倍，這裡只用 CCI 一個。衛星分類在乾旱地區草地與裸地之間會來回跳，人工地表的成長也有一部分是感測器與演算法變好，只能看大趨勢。外部機構提供的數字（Flag X）沒有用。人口用聯合國 WPP 2024。',
@@ -133,6 +138,35 @@ export const landUse: TopicDefinition = {
       layer: { kind: 'choropleth', scale: COVER_SCALE, itemScales: { ...Object.fromEntries(COVER_DIM.options.map((o) => [o.id, COVER_SCALE])), ...COVER_SCALES } },
       format: pct,
       formatTick: (v) => v + '%',
+    },
+    {
+      id: 'mgci',
+      label: { zh: '山地綠覆蓋指數', en: 'Mountain Green Cover Index' },
+      description: {
+        zh: '山地裡被樹、灌叢、草地或作物覆蓋的比例（SDG 15.4.2a，FAO 用 ESA CCI 土地覆蓋算），2000–2021 年。2021 年全世界 82.2%；蘇利南 99.99%、薩摩亞 99.86%、蓋亞那 99.78%；南韓 91.0%、美國 90.7%、日本 89.1%、尼泊爾 83.1%、瑞士 71.7%、中國 70.7%；最低的埃及 0.13%、阿聯 1.35%、尼日 6.05%、利比亞 10.1%（多是裸岩與沙漠）。2000 年以來降最多的是吉布地 49.0→40.7%、巴勒斯坦 75.3→67.2%、黎巴嫩 88.5→81.1%、斯里蘭卡 94.4→87.3%。山地不到 1,000 平方公里的地區不畫；台灣不在 FAO 的資料裡。',
+        en: 'Share of mountain area covered by trees, shrubs, grassland or crops (SDG 15.4.2a, computed by FAO from ESA CCI land cover), 2000–2021. The 2021 world figure was 82.2%; Suriname 99.99%, Samoa 99.86%, Guyana 99.78%; South Korea 91.0%, the US 90.7%, Japan 89.1%, Nepal 83.1%, Switzerland 71.7%, China 70.7%; lowest are Egypt (0.13%), the UAE (1.35%), Niger (6.05%) and Libya (10.1%), mostly bare rock and desert. The largest falls since 2000 were in Djibouti (49.0 → 40.7%), Palestine (75.3 → 67.2%), Lebanon (88.5 → 81.1%) and Sri Lanka (94.4 → 87.3%). Areas with under 1,000 km² of mountains are not shown; Taiwan is not in FAO’s data.',
+      },
+      unit: '%',
+      file: 'mgci.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 50, 70, 80, 90, 97] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+      compareWorld: true,
+      missing: { zh: '沒有資料（山地不到 1,000 平方公里，或不在 FAO 的資料裡）', en: 'No data (under 1,000 km² of mountains, or not in FAO’s data)' },
+    },
+    {
+      id: 'mountain-degraded',
+      label: { zh: '退化的山地比例', en: 'Degraded mountain land' },
+      description: {
+        zh: '山地裡土地覆蓋往不好的方向變化（例如森林變成農地、植被變裸地）的面積比例（SDG 15.4.2b），2015–2021 年。2021 年愛爾蘭 23.3%、巴拉圭 15.0%、烏干達 13.5%、西班牙 12.4%、盧安達 12.3%、英國 12.1%、莫三比克 11.9%、南非 11.0%；南韓 3.9%、美國 3.6%、中國 3.0%、日本 2.2%。',
+        en: 'Share of mountain area whose land cover has changed for the worse, such as forest turned to farmland or vegetation to bare ground (SDG 15.4.2b), 2015–2021. In 2021 Ireland had 23.3%, Paraguay 15.0%, Uganda 13.5%, Spain 12.4%, Rwanda 12.3%, the UK 12.1%, Mozambique 11.9% and South Africa 11.0%; South Korea 3.9%, the US 3.6%, China 3.0%, Japan 2.2%.',
+      },
+      unit: '%',
+      file: 'mountain-degraded.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 4, 6, 10, 15] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+      missing: { zh: '沒有資料（山地不到 1,000 平方公里，或不在 FAO 的資料裡）', en: 'No data (under 1,000 km² of mountains, or not in FAO’s data)' },
     },
     {
       id: 'built-change',

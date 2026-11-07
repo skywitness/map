@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 171;
-export const INDICATOR_COUNT = 1254;
+export const INDICATOR_COUNT = 1256;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -154,6 +154,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAOSTAT：Cropland Nutrient Balance（ESB）","en":"FAOSTAT: Cropland Nutrient Balance (ESB)"},"url":"https://www.fao.org/faostat/en/#data/ESB","licenses":["CC BY 4.0"],"topics":["nutrients"]},
   {"name":{"zh":"FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）","en":"FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)"},"url":"https://www.fao.org/faostat/en/#data/RFN","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"FAOSTAT：Land Cover（LC，ESA CCI Land Cover）","en":"FAOSTAT: Land Cover (LC, ESA CCI Land Cover)"},"url":"https://www.fao.org/faostat/en/#data/LC","licenses":["CC BY 4.0"],"topics":["land-use"]},
+  {"name":{"zh":"FAOSTAT：SDG Indicators（SDG 15.4.2 山地綠覆蓋）","en":"FAOSTAT: SDG Indicators (SDG 15.4.2 mountain green cover)"},"url":"https://www.fao.org/faostat/en/#data/SDGB","licenses":["CC BY 4.0"],"topics":["land-use"]},
   {"name":{"zh":"Faurby 等（2018），PHYLACINE 1.2：The Phylogenetic Atlas of Mammal Macroecology（Zenodo）","en":"Faurby et al. (2018), PHYLACINE 1.2: The Phylogenetic Atlas of Mammal Macroecology (Zenodo)"},"url":"https://zenodo.org/records/4954990","licenses":["CC0 1.0"],"topics":["megafauna"]},
   {"name":{"zh":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025","en":"FDA, Compilation of CDER NME and New Biologic Approvals 1985–2025"},"url":"https://www.fda.gov/media/177921/download?attachment","licenses":[{"zh":"公有領域","en":"Public domain"}],"topics":["medicines"]},
   {"name":{"zh":"FDA, Search Orphan Drug Designations and Approvals（全部的孤兒藥指定，2026-11-04 匯出）","en":"FDA, Search Orphan Drug Designations and Approvals (all orphan designations, exported 2026-11-04)"},"url":"https://www.accessdata.fda.gov/scripts/opdlisting/oopd/","licenses":[{"zh":"公有領域","en":"Public domain"}],"topics":["medicines"]},

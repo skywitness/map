@@ -183,7 +183,7 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `materials` 是物質流與循環經濟：OECD SDMX 的物質流帳只抓 DMC 與物質足跡的每人公噸、五個物質群（key 篩過，約 10 萬列；全量 305 MB 不抓），加上 Eurostat 的 cei_srm030（statistics 1.0 API）。幾秒鐘。
 
-`land-use` 是土地利用：FAOSTAT 的 RL（約 3 MB，農業主題也在用）與 LC（土地覆蓋，約 1.6 MB），人口用 WPP；另外寫 219 個 `structure/{iso3}.json` 給側欄。幾秒鐘。
+`land-use` 是土地利用：FAOSTAT 的 RL（約 3 MB，農業主題也在用）與 LC（土地覆蓋，約 1.6 MB），人口用 WPP；另外寫 219 個 `structure/{iso3}.json` 給側欄；山地綠覆蓋讀 FAOSTAT 的 SDG 批次檔（SDGB，約 4.7 MB 的 zip）。幾秒鐘。
 
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
