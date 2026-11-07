@@ -5,6 +5,10 @@
   CC BY 4.0），MEASURE=EATR、ETR_SCENARIO=FIXED（固定的利率與通膨，手冊建議；CS 是各國實際的利率與通膨，高通膨國家會跳）、
   ETR_TAX_TYPE=COMPOSITE（各類資產合計），105 個轄區，2017–2025。EMTR（邊際稅率）有 −55% 到 185% 的極端值，沒做。
   台灣跟法定公司稅一樣不在 OECD Corporate Tax Statistics。
+- 淨有效碳稅率（net-carbon-tax.json，第二十五批 459，候選 1103）：OECD Net Effective Carbon Rates（DSD_NECR@DF_NECRS，1.1 版）
+  的 NETECR（碳稅＋排放交易許可價格＋燃料貨物稅－化石燃料補貼，每噸 CO2 當量歐元，現價），STATISTICAL_OPERATION=MEANW
+  （依排放量加權的平均），全部部門與排放源；**一定加 key**（整個資料流 308 MB）。只有 2018、2021、2023 三期，85 個經濟體；
+  部門別沒有 NETECR（試過回 404）。台灣不在資料裡。
 - 遺產及贈與稅占 GDP（inheritance-tax.json）：OECD 全球稅收統計的 T_4300（遺產、繼承與贈與稅），sources/oecd_revenue.py，
   1990 年起；台灣用財政部財政統計資料庫的稅目別實徵淨額（i0401 的「遺產及贈與稅」，含撥入長照基金的部分，不重複加）
   ÷ 主計總處的名目 GDP（sources/dgbas.py）。
@@ -16,6 +20,7 @@ from sources import dgbas, mof, oecd, oecd_revenue
 
 OUT = OUT_DIR / "topics" / "taxes"
 ETR_FLOW = "OECD.CTP.TPS,DSD_ETR@DF_ETR_BASELINE,2.1"
+NECR_FLOW, NECR_KEY = "OECD.CTP.TPS,DSD_NECR@DF_NECRS,1.1", "._T._T.NETECR._Z.EUR_TCO2E.MEANW.V.A"
 INHERITANCE_FIRST = 1990
 
 
@@ -30,6 +35,17 @@ def build() -> None:
     top = sorted(((round(s[last], 1), c) for c, s in eatr.items() if last in s), reverse=True)
     print(f"  EATR {last}：{len(top)} 轄區；最高 {top[:8]}；最低 {top[-9:]}")
     print(f"    {[(c, round(eatr[c][last], 1)) for c in ('USA', 'JPN', 'KOR', 'DEU', 'FRA', 'GBR', 'CHN', 'IND', 'SGP', 'HKG', 'IRL') if last in eatr.get(c, {})]}")
+
+    necr, groups = oecd.series(NECR_FLOW, NECR_KEY)
+    years = sorted({y for s in necr.values() for y in s})
+    values = {c: to_series(s, years, 1) for c, s in sorted(necr.items())}
+    no = {"TWN": "台灣不在 OECD 的有效碳稅率資料裡"}
+    no_en = {"TWN": "Taiwan is not in the OECD effective carbon rates data"}
+    write_json(OUT / "net-carbon-tax.json", indicator_file("net-carbon-tax", "歐元/噸 CO2e", years, values, noValue=no, noValueEn=no_en,
+                                                           license="CC BY 4.0"))
+    top = sorted(((round(s[years[-1]], 1), c) for c, s in necr.items() if years[-1] in s), reverse=True)
+    print(f"  淨有效碳稅率 {years}：{len(top)} 國；最高 {top[:10]}；最低 {top[-8:]}；負的 {sum(1 for v, _ in top if v < 0)} 國")
+    print(f"    {[(c, round(necr.get(c, {}).get(years[-1], -999), 1)) for c in ('USA', 'JPN', 'KOR', 'CHN', 'IND', 'GBR', 'FRA', 'CAN', 'AUS', 'IDN')]}；合計 {groups.keys()}")
 
     inh = oecd_revenue.inheritance_tax()
     tax = mof.table("i0401")

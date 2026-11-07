@@ -102,6 +102,11 @@ export const taxes: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: { zh: 'OECD Net Effective Carbon Rates（淨有效碳稅率，DF_NECRS）', en: 'OECD Net Effective Carbon Rates (DF_NECRS)' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_NECR%40DF_NECRS&df[ag]=OECD.CTP.TPS',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '財政部 財政統計資料庫：稅目別實徵淨額（台灣的遺產及贈與稅）', en: 'Ministry of Finance (Taiwan), fiscal statistics: net tax collections by tax (estate and gift tax)' },
       url: 'https://web02.mof.gov.tw/njswww/WebMain.aspx?sys=100&funid=defjspf2',
       license: OPEN_DATA_TW,
@@ -233,6 +238,21 @@ export const taxes: TopicDefinition = {
       format: (v) => `${fixed(v, v === 0 ? 0 : 3)}%`,
       formatTick: (v) => `${v}%`,
       defaultYear: 2024,
+    },
+    {
+      id: 'net-carbon-tax',
+      label: { zh: '一噸碳實際被課多少稅', en: 'Net effective carbon rate' },
+      description: {
+        zh: '把碳稅、排放交易的許可價格、汽柴油等燃料的貨物稅加起來，減掉化石燃料補貼，換算成每排一噸二氧化碳當量平均要付多少歐元（OECD 的淨有效碳稅率，依排放量加權，2018、2021、2023 三期）。2023 年瑞士 168.8、盧森堡 125.1、義大利 110.8、荷蘭 110.7、丹麥 108.1 歐元最高；法國 47.1、加拿大 42.0、英國 35.2、南韓 27.4、澳洲 20.4、中國大陸 8.6、日本 5.7；14 國是負的，斯里蘭卡 −49.4、厄瓜多 −44.0、馬來西亞 −26.5：補貼比碳相關的稅還多，等於政府付錢讓人排碳。把汽柴油稅算成碳價是 OECD 的方法，不一定是各國立法的用意。跟「碳定價」不同：這裡算的是淨稅負，美國在這份資料裡沒有值；台灣不在資料裡（環境部對大排放源 2025 年的排放量起計收碳費，每噸 300 元，2026 年起繳）。',
+        en: 'Carbon taxes, emissions-trading permit prices and fuel excise taxes (on petrol, diesel and so on), minus fossil fuel subsidies, expressed as euros per tonne of CO2-equivalent emitted on average (the OECD’s net effective carbon rate, emissions-weighted; 2018, 2021 and 2023). In 2023 Switzerland (€168.8), Luxembourg (125.1), Italy (110.8), the Netherlands (110.7) and Denmark (108.1) were highest; France 47.1, Canada 42.0, the UK 35.2, South Korea 27.4, Australia 20.4, mainland China 8.6 and Japan 5.7; 14 countries were negative, Sri Lanka −49.4, Ecuador −44.0 and Malaysia −26.5: subsidies exceed carbon-related taxes, in effect paying people to emit. Counting fuel excise as a carbon price is the OECD’s method, not necessarily the lawmakers’ intent. Unlike carbon pricing alone, this is the net burden; the US has no value in this dataset, and Taiwan is not covered (its Ministry of Environment charges large emitters a carbon fee of NT$300 a tonne on emissions from 2025, payable from 2026).',
+      },
+      unit: { zh: '歐元／噸 CO2e', en: '€/tCO2e' },
+      file: 'net-carbon-tax.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [-80, -30, -1, 1, 30, 80] } },
+      format: (v) => tr({ zh: `${v < 0 ? '−' : ''}${fixed(Math.abs(v), 1)} 歐元`, en: `${v < 0 ? '−' : ''}€${fixed(Math.abs(v), 1)}` }),
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2023,
+      noValue: { TWN: { zh: '台灣不在 OECD 的資料裡', en: 'Taiwan is not in the OECD data' } },
     },
   ],
 };
