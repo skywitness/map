@@ -1,6 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { religionExtra } from './religion-extra';
+import { TW_TEMPLE_LIST, TW_TEMPLES, TW_TEMPLES_INDICATOR } from './religion-tw';
 import type { CategoryDef, IndicatorDef, ScaleSpec, TopicDefinition } from './types';
 
 /**
@@ -101,14 +102,27 @@ export const religion: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: {
+        zh: '內政部全國宗教資訊系統資料：寺廟（政府資料開放平臺 8203）、法人教會（8204）',
+        en: 'Ministry of the Interior (Taiwan) national religion information system: temples (data.gov.tw 8203) and incorporated churches (8204)',
+      },
+      url: 'https://data.gov.tw/dataset/8203',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
+      name: { zh: '內政部戶政司：村里戶數、人口數（2025 年底，縣市的每十萬人）', en: 'Ministry of the Interior (Taiwan) Department of Household Registration: population by village, end of 2025 (county rates)' },
+      url: 'https://www.ris.gov.tw/app/portal/3053',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
       name: { zh: '內政部宗教統計（寺廟、教會登記）', en: 'Ministry of the Interior (Taiwan), religious statistics' },
       url: 'https://statis.moi.gov.tw/micst/webMain.aspx?sys=100&funid=defjsp',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
     ...religionExtra.sources,
   ],
-  overlays: religionExtra.overlays,
-  listPanel: religionExtra.listPanel,
+  overlays: [...religionExtra.overlays, TW_TEMPLES],
+  listPanel: [...religionExtra.listPanel, TW_TEMPLE_LIST],
   panelExtra: () => import('./panels/ReligionPanel'),
   note: {
     zh:
@@ -244,6 +258,8 @@ export const religion: TopicDefinition = {
       formatTick: (v) => `${v}%`,
       defaultYear: 2024,
     },
+    // 2026-11-07（製作手冊第二十七批 557，候選 1253）：台灣的寺廟與法人教會（pipeline/topics/temples_tw.py）
+    TW_TEMPLES_INDICATOR,
     ...religionExtra.indicators,
   ],
 };

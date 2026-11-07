@@ -1,5 +1,9 @@
-import { defineMessages } from '../../i18n';
+import { useMemo } from 'react';
+import { BarList, type BarListItem } from '../../charts/BarList';
+import { defineMessages, tr, useLang, useT } from '../../i18n';
+import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
+import { countyName, TW_GROUPS } from '../religion-tw';
 import type { PanelExtraProps } from '../types';
 import { Cofog08 } from './Cofog08Panel';
 import { VdemIndices, type Scale, type VdemIndex, type VdemText } from './GovernancePanel';
@@ -44,9 +48,77 @@ const TEXT: VdemText = defineMessages({
   },
 });
 
+/** pipeline/topics/temples_tw.py 的 tw-temples-summary.json */
+interface TwSummary {
+  popYear: number;
+  total: { temples: number; churches: number };
+  national: Record<string, number>;
+  topDeities: [string, number][];
+  counties: Record<string, { temples: number; churches: number; pop: number; groups: Record<string, number> }>;
+}
+
+const TW_TEXT = defineMessages({
+  zh: {
+    groups: (temples: string, churches: string) => `登記的寺廟 ${temples} 座、法人教會 ${churches} 個：寺廟的主祀神祇`,
+    groupsAria: '台灣登記寺廟的主祀神祇分類',
+    deities: '寫得最多的主祀神祇',
+    deitiesAria: '台灣登記寺廟最常見的主祀神祇寫法',
+    counties: (year: number) => `各縣市每十萬人幾座寺廟（${year} 年底的戶籍人口）`,
+    countiesAria: '台灣各縣市每十萬人的登記寺廟數',
+    county: (name: string, temples: number, churches: number) => `${name}（寺廟 ${fixed(temples, 0)} 座、法人教會 ${fixed(churches, 0)} 個）`,
+    note: '主祀神祇是自由填寫的文字，依關鍵字歸類；只有向政府登記的寺廟與財團法人教會。',
+  },
+  en: {
+    groups: (temples, churches) => `${temples} registered temples and ${churches} incorporated churches: temples by main deity`,
+    groupsAria: 'Registered temples in Taiwan by main deity',
+    deities: 'Most common main deities as written',
+    deitiesAria: 'Most common main deity entries of registered temples in Taiwan',
+    counties: (year) => `Temples per 100,000 people by county (registered population, end of ${year})`,
+    countiesAria: 'Registered temples per 100,000 people in Taiwan’s counties',
+    county: (name, temples, churches) => `${name} (${fixed(temples, 0)} temples, ${fixed(churches, 0)} churches)`,
+    note: 'The main deity is free text, grouped by keyword; only temples registered with the government and churches incorporated as foundations are included.',
+  },
+});
+
+/** 選了台灣時：主祀神祇的 8 類、寫得最多的神明、各縣市每十萬人幾座寺廟（2026-11-07，製作手冊 557） */
+function TwTemples({ topic }: PanelExtraProps) {
+  const lang = useLang();
+  const t = useT();
+  const text = TW_TEXT[lang];
+  const { data } = useJson<TwSummary>(`topics/${topic.id}/tw-temples-summary.json`);
+  const view = useMemo(() => {
+    if (!data) return null;
+    const groups: BarListItem[] = TW_GROUPS.filter((g) => g.value !== 9).map((g) => ({
+      key: String(g.value),
+      label: tr(g.label, lang),
+      value: data.national[String(g.value)] ?? 0,
+      color: g.color,
+    }));
+    const deities: BarListItem[] = data.topDeities.slice(0, 10).map(([d, n]) => ({ key: d, label: d, value: n }));
+    const counties: BarListItem[] = Object.entries(data.counties)
+      .map(([c, v]) => ({ key: c, label: text.county(countyName(c), v.temples, v.churches), value: (v.temples / v.pop) * 1e5 }))
+      .sort((a, b) => b.value - a.value);
+    return { groups, deities, counties };
+  }, [data, lang, text]);
+  if (!data || !view) return <p className="empty">{t.loading}</p>;
+  return (
+    <section className="panel-section">
+      <h3>{text.groups(fixed(data.total.temples, 0), fixed(data.total.churches, 0))}</h3>
+      <BarList items={view.groups} format={(v) => fixed(v, 0)} total={data.total.temples} ariaLabel={text.groupsAria} />
+      <h4>{text.deities}</h4>
+      <BarList items={view.deities} format={(v) => fixed(v, 0)} ariaLabel={text.deitiesAria} properNouns />
+      <h4>{text.counties(data.popYear)}</h4>
+      <BarList items={view.counties} format={(v) => fixed(v, v >= 100 ? 0 : 1)} ariaLabel={text.countiesAria} />
+      <p className="note">{text.note}</p>
+    </section>
+  );
+}
+
 export default function ReligionPanel(props: PanelExtraProps) {
   // 政府的宗教支出（556）：COFOG 08 的分項長條，跟文化主題共用
   if (props.indicator.id === 'gov-religion') return <Cofog08 {...props} />;
+  // 台灣的寺廟（557）：只有台灣
+  if (props.indicator.id === 'tw-temples') return props.iso3 === 'TWN' ? <TwTemples {...props} /> : null;
   if (!INDICES.some((d) => d.id === props.indicator.id)) return null;
   return <VdemIndices {...props} indices={INDICES} text={TEXT} scale={SCALE} />;
 }

@@ -23,11 +23,9 @@ FIRST_YEAR = 1995
 GROUPS = ["GF0801", "GF0802", "GF0803", "GF0804", "GF0805", "GF0806"]
 EU = "EU27_2020"
 TAIWAN = {
-    "gov-religion": ("台灣的歲出政事別沒有單獨的宗教科目，也沒有 COFOG 分類的資料",
-                     "Taiwan’s budget by function has no separate item for religion and no COFOG breakdown"),
-    "culture": ("Eurostat 只有歐洲；台灣的文化部預算與公視的政府捐贈要從總預算自己整理，這裡沒有做",
-                "Eurostat covers Europe only; Taiwan’s culture ministry budget and government grants to its public broadcaster "
-                "would have to be compiled from the central budget, which is not done here"),
+    # 側欄的格子會把這段字放大顯示，寫短；完整的原因在指標說明
+    "gov-religion": ("台灣的歲出沒有宗教科目", "Taiwan’s budget has no item for religion"),
+    "culture": ("Eurostat 只有歐洲", "Eurostat covers Europe only"),
 }
 
 

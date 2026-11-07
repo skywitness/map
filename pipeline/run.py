@@ -256,6 +256,7 @@ STEPS = {
     "religion-vdem": "topics.religion_vdem",
     "funeral": "topics.funeral",
     "culture-spending": "topics.culture_spending",
+    "temples-tw": "topics.temples_tw",
     "gender-vdem": "topics.gender_vdem",
     # 國家小檔案的國會幾院（V-Dem）、席次與每席人口（英文維基固定版本，要先有 population 的 total.json）
     "profiles-legislature": "topics.profiles_legislature",

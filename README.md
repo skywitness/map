@@ -304,6 +304,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `shipping` 是航運與港口主題：下載 UNCTAD Data Hub 的 6 個整包檔（7z 壓縮的 CSV，共約 2.5 MB，用 `py7zr` 解開，`pipeline/requirements.txt` 已列）、NGA 的 World Port Index（3.5 MB，NGA 的 CDN 常隨機回 503，會等一下再試）與臺灣港務公司的貨櫃裝卸量，約 5 秒。主要港口自己公布的吞吐量寫在 `pipeline/sources/port_teu.py`（出處見 DESIGN.md 第 8 節第 76 點），台灣四港會跟臺灣港務公司的開放資料比對，對不上時報錯。`shipping-density-tiles` 產生航運密度的約 5 km 網格圖磚（`public/tiles/ship-density/`，234 張、約 4.4 MB，部署時產生）：第一次下載世界銀行的 Global Shipping Traffic Density（535 MB），先解壓成 9.8 GB 的 GeoTIFF（讀完就刪）再平均成 0.02°（本機約 2 分鐘，結果存在快取），之後約 12 秒。`ferry-routes` 是渡輪航線（輸出到航運與港口的資料夾）：cloud 連不上 Overpass，OpenStreetMap 的 route=ferry 由本機 session 下載，放在 map-plan 的 `data/osm/ferry-routes.json`，航港局的國內固定航班時刻表（ODS）放在 `data/mpb/`；重跑前把它們複製到 `pipeline/.cache/osm/`、`pipeline/.cache/mpb/`，另外下載 Natural Earth 1:10m 的湖泊（3.6 MB）判斷湖上的航線，約 10 秒。
 
+`temples-tw` 是宗教主題的台灣寺廟與法人教會：讀內政部的 temple.xml、church.xml（map-plan 的 `data/moi/`，先複製到 `pipeline/.cache/moi-religion/`）與戶政司的縣市人口，不到 1 秒。
+
 `culture-spending` 是政府的文化服務、廣播與出版（文化主題）與宗教（宗教主題）支出：Eurostat `gov_10a_exp` 的 COFOG 08 與 `nama_10_gdp`，幾秒。
 
 `funeral` 是喪葬與墓地主題：經 QLever 查 OSM 的墓地、墓園、殯葬業者各國個數與火葬場的點（約 5 分鐘），覆蓋度名單用 `sources/osm_coverage.py`。
