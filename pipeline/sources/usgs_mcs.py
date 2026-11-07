@@ -151,18 +151,20 @@ def world_table(edition: int, slug: str) -> Table:
     title = region[0][2][0].text.split(":")[0]
 
     # 年份那一行：兩個以上的年份，其他只有「(thousand metric tons)」這類單位說明
-    year_row = next(
-        (
-            i
-            for i, (_, _, cells) in enumerate(region)
-            if sum(1 for c in cells if YEAR_RE.match(c.text)) >= 2
-            and all(YEAR_RE.match(c.text) or c.text.startswith("(") for c in cells)
-        ),
-        None,
-    )
+    # 2026-11-07（第二十五批 444）：鐵礦、鉀鹽、鉻的蘊藏量有兩欄（原礦、金屬含量），年份那一行的右邊有那兩欄的標題
+    def _is_year_row(cells: list[Cell]) -> bool:
+        years = [c for c in cells if YEAR_RE.match(c.text)]
+        if len(years) < 2:
+            return False
+        last = max(c.x1 for c in years)
+        return all(YEAR_RE.match(c.text) or c.text.startswith("(") or c.x0 > last for c in cells)
+
+    year_row = next((i for i, (_, _, cells) in enumerate(region) if _is_year_row(cells)), None)
     if year_row is None:  # 例如鍺 2024 版起只剩文字說明
         raise ValueError(f"MCS {edition} {slug}：「{title}」底下沒有表格")
     year_cells = [c for c in region[year_row][2] if YEAR_RE.match(c.text)]
+    last_year_x1 = max(c.x1 for c in year_cells)
+    reserve_labels = [c for c in region[year_row][2] if not YEAR_RE.match(c.text) and not c.text.startswith("(") and c.x0 > last_year_x1]
     # 年份正上方那一行欄位標題（PGM、氧化鋁與鋁土礦有兩層，取最靠近年份的一層）
     header_cells: list[Cell] = []
     for _, _, cells in reversed(region[1:year_row]):
@@ -200,8 +202,10 @@ def world_table(edition: int, slug: str) -> Table:
             center = (near.x0 + near.x1) / 2
             head = min(header_cells, key=lambda h: abs((h.x0 + h.x1) / 2 - center)) if header_cells else None
             columns.append(Column(x, head.text if head else "", int(near.text), False))
-        elif has_reserves and x > max(c.x1 for c in year_cells):
-            columns.append(Column(x, "Reserves", None, True))
+        elif has_reserves and x > last_year_x1:
+            # 兩欄蘊藏量時用年份那一行右邊的標題（「Crude ore」「Iron content」）區分；只有一欄時是「Reserves」
+            label = min(reserve_labels, key=lambda c: abs(c.x1 - x)).text if len(reserve_labels) >= 2 else "Reserves"
+            columns.append(Column(x, label, None, True))
         else:
             raise ValueError(f"MCS {edition} {slug}：x={x:.0f} 的欄位對不到年份")
 

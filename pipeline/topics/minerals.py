@@ -38,6 +38,7 @@ class Mineral(NamedTuple):
     name_en: str
     last_edition: int = max(EDITIONS)  # 最後一版有表格的 MCS（鍺 2024 版起沒有各國的數字）
     first_edition: int = min(EDITIONS)  # 第一版有這一欄的 MCS（精煉銅 2021 版起）
+    reserves_group: str | None = None  # 蘊藏量有兩欄時（原礦、金屬含量）用哪一欄（欄位標題要含這個字）
 
 
 MINERALS = [
@@ -65,7 +66,48 @@ MINERALS = [
     # 原鋁是冶煉廠的產量（2020、2021 版的欄名是 Production，2022 版起是 Smelter production，都含 production）
     Mineral("refined-copper", "copper", "Refinery", 1000, None, "精煉銅", "Refined copper", first_edition=2021),
     Mineral("aluminum", "aluminum", "production", 1000, None, "原鋁", "Primary aluminium"),
+    # 2026-11-07 加（製作手冊第二十五批 444）：MCS 2024–2026 版（2022–2025 年），單位照各章的「Data in …」與表頭；
+    # 硼（表上的列是產品名稱不是國名）、天然蘇打灰（有天然、合成好幾列世界總計）、鉻（產量的單位跟章首寫的不一致）不加
+    *[Mineral(*args, first_edition=2024) for args in [
+        ("iron-ore", "iron-ore", "Usable ore", 1000, 1e6, "鐵礦（可用礦）", "Iron ore (usable ore)"),
+        ("potash", "potash", "Mine production", 1000, 1000, "鉀鹽（K₂O 當量）", "Potash (K₂O equivalent)"),
+        ("silver", "silver", "Mine production", 1, 1, "銀", "Silver"),
+        ("lead", "lead", "Mine production", 1000, 1000, "鉛", "Lead"),
+        ("zinc", "zinc", "Mine production", 1000, 1000, "鋅", "Zinc"),
+        ("molybdenum", "molybdenum", "Mine production", 1, 1000, "鉬", "Molybdenum"),
+        ("phosphate", "phosphate", "Mine production", 1000, 1000, "磷礦", "Phosphate rock"),
+        ("magnesite", "magnesium-compounds", "Mine production", 1000, 1000, "菱鎂礦（毛重）", "Magnesite (gross weight)"),
+        ("fluorspar", "fluorspar", "Mine production", 1000, 1000, "螢石", "Fluorspar"),
+        ("barite", "barite", "Mine production", 1000, 1000, "重晶石", "Barite"),
+        ("gypsum", "gypsum", "Mine production", 1000, 1000, "石膏", "Gypsum"),
+        ("feldspar", "feldspar", "Mine production", 1000, 1000, "長石", "Feldspar"),
+        ("diatomite", "diatomite", "Mine production", 1000, 1000, "矽藻土", "Diatomite"),
+        ("talc", "talc", "Mine production", 1000, 1000, "滑石", "Talc"),
+        ("perlite", "perlite", "Production", 1000, 1000, "珍珠岩", "Perlite"),
+        ("vermiculite", "vermiculite", "Mine production", 1000, 1000, "蛭石", "Vermiculite"),
+        ("peat", "peat", "Mine production", 1000, 1000, "泥炭", "Peat"),
+        ("sulfur", "sulfur", "Production", 1000, None, "硫（各種來源）", "Sulfur (all forms)"),
+        ("lime", "lime", "Production", 1000, None, "石灰", "Lime"),
+        ("industrial-sand", "sand-industrial", "Mine production", 1000, None, "工業用砂", "Industrial sand and gravel"),
+        ("ammonia", "nitrogen", "Plant production", 1000, None, "氨（氮含量）", "Ammonia (nitrogen content)"),
+        ("asbestos", "asbestos", "Mine production", 1, 1, "石棉", "Asbestos"),
+        ("beryllium", "beryllium", "Mine production", 1, None, "鈹", "Beryllium"),
+        ("bromine", "bromine", "Production", 1, 1, "溴", "Bromine"),
+        ("cadmium", "cadmium", "Refinery production", 1, None, "鎘（精煉）", "Cadmium (refined)"),
+        ("garnet", "garnet", "Mine production", 1, 1, "石榴石（工業用）", "Garnet (industrial)"),
+        ("indium", "indium", "Refinery production", 1, None, "銦（精煉）", "Indium (refined)"),
+        ("iodine", "iodine", "Mine production", 1, 1, "碘", "Iodine"),
+        ("mercury", "mercury", "Mine production", 1, None, "汞", "Mercury"),
+        ("rhenium", "rhenium", "Mine production", 0.001, 0.001, "錸", "Rhenium"),
+        ("strontium", "strontium", "Mine production", 1, 1, "鍶", "Strontium"),
+        ("tantalum", "tantalum", "Mine production", 1, 1, "鉭", "Tantalum"),
+        ("wollastonite", "wollastonite", "Mine production", 1, None, "矽灰石", "Wollastonite"),
+        ("zeolites", "zeolites", "Mine production", 1, None, "沸石", "Zeolites"),
+    ]],
 ]
+# 蘊藏量有兩欄的：鐵礦用原礦（Crude ore），鉀鹽用 K₂O 當量
+RESERVES_GROUP = {"iron-ore": "Crude ore", "potash": "O equivalent"}
+MINERALS = [m._replace(reserves_group=RESERVES_GROUP.get(m.id)) for m in MINERALS]
 # 精煉 ÷ 開採比（銅）：同一年、同一版的精煉產量 ÷ 礦場產量（含銅量）；礦場產量是 0 的國家（日本、南韓、德國）寫附註
 RATIO = ("refined-copper", "copper")
 
@@ -124,7 +166,8 @@ def _tables(m: Mineral) -> tuple[dict[int, YearTable], dict[int, YearTable]]:
         years = sorted({c.year for c in cols.values()})
         if years != [edition - 2, edition - 1]:
             raise ValueError(f"MCS {edition} {m.slug}：{m.group} 的年份是 {years}，應該是 {edition - 2}、{edition - 1}")
-        res_cols = [i for i, c in enumerate(table.columns) if c.reserves]
+        res_cols = [i for i, c in enumerate(table.columns)
+                    if c.reserves and (m.reserves_group is None or m.reserves_group.lower() in c.group.lower())]
         targets = [(i, cols[i].year, production, m.factor) for i in cols]
         if m.reserves_factor is not None:
             if len(res_cols) != 1:

@@ -1,0 +1,1 @@
+{"indicator":"production/indium","unit":"公噸","years":[2022,2023,2024,2025],"notes":{},"notesEn":{},"encoding":"delta","aggregates":{"WLD":[0,999,21,70,10]},"values":{"BEL":[0,19,0,0,0],"CAN":[0,39,1,0,0],"CHN":[0,670,20,70,0],"FRA":[0,19,2,0,0],"JPN":[0,66,-1,0,0],"KOR":[0,180,0,0,0],"PER":[0,null,0,null,null],"RUS":[0,5,0,0,0],"USA":[0,0,0,0,0],"UZB":[0,1,0,0,0]}}

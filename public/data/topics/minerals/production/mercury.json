@@ -1,0 +1,1 @@
+{"indicator":"production/mercury","unit":"公噸","years":[2022,2023,2024,2025],"notes":{},"notesEn":{},"encoding":"delta","aggregates":{"WLD":[0,1160,-30,-918,-2]},"values":{"CHN":[0,1000,0,-800,0],"KGZ":[0,6,0,-1,0],"MAR":[0,2,0,0,0],"NOR":[0,20,0,-19,0],"PER":[0,30,null,null,null],"TJK":[0,100,0,-96,0]}}

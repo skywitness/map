@@ -9,6 +9,8 @@ const ALLOYS = { zh: '合金與特殊用途', en: 'Alloys and special uses' };
 const PRECIOUS = { zh: '貴金屬', en: 'Precious metals' };
 const BASE = { zh: '基本金屬', en: 'Base metals' };
 const INDUSTRIAL = { zh: '工業礦物', en: 'Industrial minerals' };
+/** 2026-11-07（第二十五批 444）：肥料與化工原料（鉀鹽、磷礦、氨、硫、碘、溴、鍶） */
+const FERTILIZER = { zh: '肥料與化工原料', en: 'Fertilizer and chemical raw materials' };
 /** 2026-11-05（製作手冊第二十二批 382）：精煉與冶煉，是加工廠的產量，不是礦場 */
 const PROCESSED = { zh: '精煉與冶煉', en: 'Refining and smelting' };
 
@@ -35,7 +37,42 @@ export const MINERALS: { id: string; label: Text; group: Text }[] = [
   { id: 'palladium', label: { zh: '鈀', en: 'Palladium' }, group: PRECIOUS },
   { id: 'copper', label: { zh: '銅（銅含量）', en: 'Copper (Cu content)' }, group: BASE },
   { id: 'bauxite', label: { zh: '鋁土礦（乾重）', en: 'Bauxite (dry weight)' }, group: BASE },
+  // 2026-11-07（製作手冊第二十五批 444）：MCS 2024–2026 版，2022 年起
+  { id: 'iron-ore', label: { zh: '鐵礦（可用礦）', en: 'Iron ore (usable ore)' }, group: BASE },
+  { id: 'zinc', label: { zh: '鋅（鋅含量）', en: 'Zinc (Zn content)' }, group: BASE },
+  { id: 'lead', label: { zh: '鉛（鉛含量）', en: 'Lead (Pb content)' }, group: BASE },
+  { id: 'silver', label: { zh: '銀（銀含量）', en: 'Silver (Ag content)' }, group: PRECIOUS },
+  { id: 'molybdenum', label: { zh: '鉬（鉬含量）', en: 'Molybdenum (Mo content)' }, group: ALLOYS },
+  { id: 'tantalum', label: { zh: '鉭（鉭含量）', en: 'Tantalum (Ta content)' }, group: ALLOYS },
+  { id: 'rhenium', label: { zh: '錸（錸含量）', en: 'Rhenium (Re content)' }, group: ALLOYS },
+  { id: 'beryllium', label: { zh: '鈹（鈹含量）', en: 'Beryllium (Be content)' }, group: ALLOYS },
+  { id: 'mercury', label: { zh: '汞（汞含量）', en: 'Mercury (Hg content)' }, group: ALLOYS },
+  { id: 'indium', label: { zh: '銦（精煉產量）', en: 'Indium (refined)' }, group: ELECTRONICS },
+  { id: 'cadmium', label: { zh: '鎘（精煉產量）', en: 'Cadmium (refined)' }, group: ELECTRONICS },
+  { id: 'potash', label: { zh: '鉀鹽（K₂O 當量）', en: 'Potash (K₂O equivalent)' }, group: FERTILIZER },
+  { id: 'phosphate', label: { zh: '磷礦（可銷售礦石）', en: 'Phosphate rock (marketable)' }, group: FERTILIZER },
+  { id: 'ammonia', label: { zh: '氨（氮含量）', en: 'Ammonia (N content)' }, group: FERTILIZER },
+  { id: 'sulfur', label: { zh: '硫（各種來源）', en: 'Sulfur (all forms)' }, group: FERTILIZER },
+  { id: 'iodine', label: { zh: '碘（元素碘）', en: 'Iodine (elemental)' }, group: FERTILIZER },
+  { id: 'bromine', label: { zh: '溴（溴含量）', en: 'Bromine (Br content)' }, group: FERTILIZER },
+  { id: 'strontium', label: { zh: '鍶（鍶含量）', en: 'Strontium (Sr content)' }, group: FERTILIZER },
   { id: 'salt', label: { zh: '鹽', en: 'Salt' }, group: INDUSTRIAL },
+  { id: 'magnesite', label: { zh: '菱鎂礦（毛重）', en: 'Magnesite (gross weight)' }, group: INDUSTRIAL },
+  { id: 'fluorspar', label: { zh: '螢石', en: 'Fluorspar' }, group: INDUSTRIAL },
+  { id: 'barite', label: { zh: '重晶石', en: 'Barite' }, group: INDUSTRIAL },
+  { id: 'gypsum', label: { zh: '石膏', en: 'Gypsum' }, group: INDUSTRIAL },
+  { id: 'lime', label: { zh: '石灰', en: 'Lime' }, group: INDUSTRIAL },
+  { id: 'industrial-sand', label: { zh: '工業用砂', en: 'Industrial sand and gravel' }, group: INDUSTRIAL },
+  { id: 'feldspar', label: { zh: '長石', en: 'Feldspar' }, group: INDUSTRIAL },
+  { id: 'talc', label: { zh: '滑石', en: 'Talc' }, group: INDUSTRIAL },
+  { id: 'diatomite', label: { zh: '矽藻土', en: 'Diatomite' }, group: INDUSTRIAL },
+  { id: 'perlite', label: { zh: '珍珠岩', en: 'Perlite' }, group: INDUSTRIAL },
+  { id: 'vermiculite', label: { zh: '蛭石', en: 'Vermiculite' }, group: INDUSTRIAL },
+  { id: 'wollastonite', label: { zh: '矽灰石', en: 'Wollastonite' }, group: INDUSTRIAL },
+  { id: 'zeolites', label: { zh: '沸石', en: 'Zeolites' }, group: INDUSTRIAL },
+  { id: 'garnet', label: { zh: '石榴石（工業用）', en: 'Garnet (industrial)' }, group: INDUSTRIAL },
+  { id: 'asbestos', label: { zh: '石棉', en: 'Asbestos' }, group: INDUSTRIAL },
+  { id: 'peat', label: { zh: '泥炭', en: 'Peat' }, group: INDUSTRIAL },
   { id: 'refined-copper', label: { zh: '精煉銅', en: 'Refined copper' }, group: PROCESSED },
   { id: 'aluminum', label: { zh: '原鋁（冶煉）', en: 'Primary aluminium (smelted)' }, group: PROCESSED },
 ];
@@ -210,8 +247,8 @@ export const minerals: TopicDefinition = {
       'production',
       { zh: '產量', en: 'Production' },
       {
-        zh: '一年的礦場產量（公噸），圓的面積與產量成正比。多數礦種是金屬含量（黃金是金含量），稀土是稀土氧化物（REO）當量，石墨與鋁土礦是礦石重量，鹽是各種鹽（岩鹽、海鹽、滷水、真空鹽）合計，鎵是初級（低純度）產量，鍺是精煉產量（只到 2020 年）。「精煉與冶煉」那一組是加工廠的產量：精煉銅是精煉金屬（2019 年起），原鋁是冶煉廠的產量，原料多半進口，跟礦場在不同的國家（日本、南韓、德國沒有銅礦卻精煉六十萬到一百五十萬公噸）。2025 年是 USGS 的初估。',
-        en: 'Mine production in a year (tonnes); circle area is proportional to output. Most minerals are metal content (gold is gold content), rare earths are rare-earth-oxide (REO) equivalent, graphite and bauxite are ore weight, salt is all types combined (rock salt, solar salt, brine and vacuum-pan salt), gallium is primary (low-purity) output and germanium is refinery output (to 2020 only). The “Refining and smelting” group is plant output rather than mining: refined copper is refined metal (from 2019) and primary aluminium is smelter output; their feedstock is largely imported and they sit in different countries from the mines (Japan, South Korea and Germany mine no copper but refine 0.6–1.5 million tonnes). 2025 figures are preliminary USGS estimates.',
+        zh: '一年的礦場產量（公噸），圓的面積與產量成正比。多數礦種是金屬含量（黃金是金含量），稀土是稀土氧化物（REO）當量，石墨與鋁土礦是礦石重量，鹽是各種鹽（岩鹽、海鹽、滷水、真空鹽）合計，鎵是初級（低純度）產量，鍺是精煉產量（只到 2020 年）。「精煉與冶煉」那一組是加工廠的產量：精煉銅是精煉金屬（2019 年起），原鋁是冶煉廠的產量，原料多半進口，跟礦場在不同的國家（日本、南韓、德國沒有銅礦卻精煉六十萬到一百五十萬公噸）。2026 年 11 月加的 34 種（鐵礦、鋅、鉛、銀、鉬、鉀鹽、磷礦、氨、螢石、石膏…）從 2022 年開始，口徑寫在礦種名稱的括號裡：鐵礦是可用礦的重量、鉀鹽是氧化鉀（K₂O）當量、磷礦是可銷售的礦石、氨是氮含量、銦與鎘是精煉產量、工業礦物多半是礦石重量。2025 年是 USGS 的初估。',
+        en: 'Mine production in a year (tonnes); circle area is proportional to output. Most minerals are metal content (gold is gold content), rare earths are rare-earth-oxide (REO) equivalent, graphite and bauxite are ore weight, salt is all types combined (rock salt, solar salt, brine and vacuum-pan salt), gallium is primary (low-purity) output and germanium is refinery output (to 2020 only). The “Refining and smelting” group is plant output rather than mining: refined copper is refined metal (from 2019) and primary aluminium is smelter output; their feedstock is largely imported and they sit in different countries from the mines (Japan, South Korea and Germany mine no copper but refine 0.6–1.5 million tonnes). The 34 minerals added in November 2026 (iron ore, zinc, lead, silver, molybdenum, potash, phosphate rock, ammonia, fluorspar, gypsum…) start in 2022, with the basis in brackets after each name: iron ore is usable-ore weight, potash is K₂O equivalent, phosphate rock is marketable rock, ammonia is nitrogen content, indium and cadmium are refinery output, and most industrial minerals are ore weight. 2025 figures are preliminary USGS estimates.',
       },
     ),
     share(
