@@ -134,6 +134,7 @@ const TOPIC_ICONS = {
   'env-taxes': 'badge-percent',
   cctld: 'at-sign',
   'energy-use': 'chart-pie',
+  'energy-market': 'sliders-horizontal',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
