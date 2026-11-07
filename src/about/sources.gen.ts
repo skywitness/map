@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 199;
-export const INDICATOR_COUNT = 1518;
+export const TOPIC_COUNT = 200;
+export const INDICATOR_COUNT = 1520;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -612,6 +612,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"經濟部能源署 能源供給年資料、能源指標年資料、原油／液化天然氣／煤炭進口來源年資料（台灣的對照）","en":"Energy Administration, Ministry of Economic Affairs (Taiwan): energy supply, energy indicators and crude oil, LNG and coal import sources (for comparison)"},"url":"https://data.gov.tw/dataset/163714","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["fossil-fuels"]},
   {"name":{"zh":"經濟部能源署：再生能源電能躉購費率及其計算公式（台灣，2010–2023）","en":"Energy Administration, Ministry of Economic Affairs (Taiwan): feed-in tariffs for renewable electricity, 2010–2023"},"url":"https://data.gov.tw/dataset/6031","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, Taiwan, v1"}],"topics":["energy-market"]},
   {"name":{"zh":"經濟部能源署：國內能源消費年資料（台灣，2005–2025）","en":"Energy Administration, Ministry of Economic Affairs (Taiwan): annual domestic energy consumption, 2005–2025"},"url":"https://data.gov.tw/dataset/11158","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, Taiwan, v1"}],"topics":["energy-use"]},
+  {"name":{"zh":"經濟部能源署：電力系統可靠度資料統計（data.gov.tw 25549）","en":"Energy Administration, Ministry of Economic Affairs (Taiwan): power system reliability statistics (data.gov.tw 25549)"},"url":"https://data.gov.tw/dataset/25549","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["power-reliability"]},
   {"name":{"zh":"維基共享資源「Countries numbering floors.svg」（Michael Peter Fustumum，2023-09-12 的版本；樓層怎麼數）","en":"Wikimedia Commons, “Countries numbering floors.svg” (Michael Peter Fustumum, version of 12 September 2023; floor numbering)"},"url":"https://commons.wikimedia.org/wiki/File:Countries_numbering_floors.svg","licenses":["CC BY-SA 4.0"],"topics":["travel"]},
   {"name":{"zh":"維基共享資源「Starlink availability map by country.svg」（2026-10-08 版）","en":"Wikimedia Commons, “Starlink availability map by country.svg” (version of 8 October 2026)"},"url":"https://commons.wikimedia.org/wiki/File:Starlink_availability_map_by_country.svg","licenses":["CC BY-SA 4.0"],"topics":["starlink"]},
   {"name":{"zh":"維基百科各組織的成員國條目（交叉比對）","en":"Wikipedia member-state articles (cross-checking)"},"url":"https://en.wikipedia.org/wiki/Member_states_of_the_African_Union","licenses":["CC BY-SA 4.0"],"topics":["organizations"]},

@@ -131,7 +131,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'energy',
     label: { zh: '能源', en: 'Energy' },
     sections: [
-      { label: { zh: '電力', en: 'Electricity' }, topics: ['electricity', 'power-plants', 'energy-prices', 'nuclear', 'hvdc'] },
+      { label: { zh: '電力', en: 'Electricity' }, topics: ['electricity', 'power-plants', 'energy-prices', 'nuclear', 'hvdc', 'power-reliability'] },
       { label: { zh: '化石燃料', en: 'Fossil fuels' }, topics: ['fossil-fuels'] },
       { label: { zh: '再生能源', en: 'Renewables' }, topics: ['renewables'] },
       // 2026-11-07（第二十五批 523）：第一個主題「各部門的最終能源消費」做好，開這個小類
@@ -247,6 +247,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'oa-journals': () => import('./oa-journals'),
   'scientist-mobility': () => import('./scientist-mobility'),
   hvdc: () => import('./hvdc'),
+  'power-reliability': () => import('./power-reliability'),
   'transport-investment': () => import('./transport-investment'),
   'household-transport': () => import('./household-transport'),
   'transport-jobs': () => import('./transport-jobs'),

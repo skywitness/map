@@ -45,6 +45,7 @@ export const RELATED: Record<string, string[]> = {
   'oa-journals': ['publications', 'research-orgs', 'reads'],
   'scientist-mobility': ['publications', 'education', 'migration'],
   hvdc: ['electricity', 'power-plants', 'submarine-cables'],
+  'power-reliability': ['electricity', 'energy-prices', 'hvdc'],
   'transport-investment': ['household-transport', 'transport', 'road-safety'],
   'household-transport': ['transport-investment', 'fuel-tax', 'prices'],
   'transport-jobs': ['transport-investment', 'employment', 'shipping'],

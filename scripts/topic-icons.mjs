@@ -94,6 +94,7 @@ const TOPIC_ICONS = {
   'oa-journals': 'lock-open',
   'scientist-mobility': 'arrow-right-left',
   hvdc: 'unplug',
+  'power-reliability': 'zap-off',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
