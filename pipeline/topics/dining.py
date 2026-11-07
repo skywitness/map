@@ -12,10 +12,17 @@
 - 第二十四批 414（2026-11-06）：不賣酒的飲料店依「賣什麼」分：手搖飲（cuisine=bubble_tea）、茶館（cuisine=tea）、
   茶葉行（shop=tea）、咖啡豆與器材行（shop=coffee），每百萬人。cuisine 只算完全等於這個值的（「bubble_tea;coffee」
   這種多值的不算）。中國的手搖飲實際上有十幾萬家，OSM 上標的只是很小一部分，而且中國不在覆蓋良好的名單裡。
+- 414 的台灣官方對照（2026-11-07 補）：經濟部商業發展署「商業登記（依營業項目別）－飲料店業」（data.gov.tw 32685，
+  政府資料開放授權條款第 1 版），data.gcis.nat.gov.tw 從 cloud 只回「系統忙碌中」，由本機 session 下載放在 map-plan 的
+  data/gcis/beverage-shops-32685.csv；重跑時複製到 pipeline/.cache/gcis/（沒有就略過這段）。只算登記狀態「核准設立」，
+  依地址的前 3 個字分縣市（台→臺）。只有商業登記（獨資、合夥），沒有公司登記；所有飲料店業都算，不只手搖飲。
+  寫在手搖飲指標台灣的滑過說明。
 """
 from __future__ import annotations
 
-from common import OUT_DIR, indicator_file, now_iso, write_json
+import csv
+
+from common import CACHE_DIR, OUT_DIR, indicator_file, now_iso, write_json
 from sources import osm_coverage, osm_qlever, wpp
 
 OUT = OUT_DIR / "topics" / "dining"
@@ -46,6 +53,36 @@ LOW_DRINK = 10
 BEER_GARDEN_SHARE = 0.15
 
 
+GCIS_FILE = CACHE_DIR / "gcis" / "beverage-shops-32685.csv"
+COUNTY_EN = {"臺北市": "Taipei", "新北市": "New Taipei", "桃園市": "Taoyuan", "臺中市": "Taichung", "臺南市": "Tainan",
+             "高雄市": "Kaohsiung", "基隆市": "Keelung", "新竹市": "Hsinchu City", "嘉義市": "Chiayi City",
+             "新竹縣": "Hsinchu County", "苗栗縣": "Miaoli", "彰化縣": "Changhua", "南投縣": "Nantou", "雲林縣": "Yunlin",
+             "嘉義縣": "Chiayi County", "屏東縣": "Pingtung", "宜蘭縣": "Yilan", "花蓮縣": "Hualien", "臺東縣": "Taitung",
+             "澎湖縣": "Penghu", "金門縣": "Kinmen", "連江縣": "Lienchiang"}
+
+
+def _taiwan_beverage_shops() -> tuple[str, str] | None:
+    """商業登記的飲料店業：核准設立的家數與前三大縣市（台灣滑過說明用）"""
+    if not GCIS_FILE.exists():
+        print(f"  沒有 {GCIS_FILE}（map-plan 的 data/gcis/），台灣的官方對照略過")
+        return None
+    by: dict[str, int] = {}
+    with open(GCIS_FILE, encoding="utf-8-sig", newline="") as f:
+        for r in csv.DictReader(f):
+            if r["登記狀態"].strip() == "核准設立":
+                county = r["商業地址"].strip()[:3].replace("台", "臺")
+                by[county] = by.get(county, 0) + 1
+    total = sum(by.values())
+    top = sorted(by.items(), key=lambda kv: -kv[1])[:3]
+    print(f"  台灣商業登記的飲料店業：核准設立 {total:,} 家；{top}")
+    zh = (f"經濟部商業登記的「飲料店業」核准設立 {total:,} 家（{'、'.join(f'{c} {n:,}' for c, n in top)} 最多；"
+          "只含獨資、合夥商號，不含公司登記；所有飲料店都算，不只手搖飲）")
+    en = (f"Taiwan's business registry lists {total:,} beverage shops in operation (most in "
+          f"{', '.join(f'{COUNTY_EN.get(c, c)} {n:,}' for c, n in top)}; sole proprietorships and partnerships only, "
+          "not companies; all beverage shops, not only bubble tea)")
+    return zh, en
+
+
 def build() -> None:
     counts = {tag: osm_qlever.counts(*(tag.split("=") if "=" in tag else ("amenity", tag)))
               for tags, *_ in INDICATORS.values() for tag in tags}
@@ -53,6 +90,7 @@ def build() -> None:
            if c != "WLD" and YEAR in s}
     cov = osm_coverage.coverage()
     covered = osm_coverage.well_covered()
+    tw_official = _taiwan_beverage_shops()
     for ind, (tags, zh, en) in INDICATORS.items():
         n = {c: sum(counts[t].get(c, 0) for t in tags) for c in set().union(*(counts[t] for t in tags)) | covered}
         values, hints, hints_en, no_value, no_value_en = {}, {}, {}, {}, {}
@@ -62,6 +100,9 @@ def build() -> None:
             count = n.get(c, 0)
             hints[c] = f"OpenStreetMap 上有 {count:,} 家{zh}"
             hints_en[c] = f"{count:,} {en} on OpenStreetMap"
+            if c == "TWN" and ind == "bubble-tea" and tw_official:
+                hints[c] += f"；{tw_official[0]}"
+                hints_en[c] += f"; {tw_official[1]}"
             if c not in covered:
                 no_value[c], no_value_en[c] = osm_coverage.reason(c, cov.get(c))
             elif pop[c] < MIN_POPULATION:

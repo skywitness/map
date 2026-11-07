@@ -75,6 +75,14 @@ export const dining: TopicDefinition = {
   timeless: true,
   sources: [
     {
+      name: {
+        zh: '經濟部商業發展署：商業登記（依營業項目別）－飲料店業（台灣的官方對照）',
+        en: 'Administration of Commerce, Ministry of Economic Affairs (Taiwan): business registrations, beverage shops (official comparison for Taiwan)',
+      },
+      url: 'https://data.gov.tw/dataset/32685',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
+    },
+    {
       name: { zh: 'OpenStreetMap 貢獻者（經 QLever 查詢，2026 年 11 月）', en: 'OpenStreetMap contributors (queried via QLever, November 2026)' },
       url: 'https://www.openstreetmap.org/copyright',
       license: 'ODbL',
@@ -182,8 +190,8 @@ export const dining: TopicDefinition = {
       'bubble-tea',
       { zh: '手搖飲店', en: 'Bubble tea shops' },
       {
-        zh: '每百萬人有幾家手搖飲店（OpenStreetMap 的 cuisine=bubble_tea）。台灣 104.1 家（2,395 家）世界第一，是第二名新加坡 33.5 的三倍，汶萊 31.9、加拿大 19.1、紐西蘭 15.5、澳洲 14.7；美國 7.3、南韓 3.3、日本 0.7。台灣第一同時反映台灣真的多，跟台灣的 OSM 志願者愛標手搖飲。中國實際上有十幾萬家，但 OSM 上標的很少，也不在覆蓋良好的名單裡，沒有上色。有些手搖飲同時標成咖啡館，跟「咖啡館」會重複算。',
-        en: 'Bubble tea shops per million people (OpenStreetMap’s cuisine=bubble_tea). Taiwan leads with 104.1 (2,395 shops), three times second-placed Singapore at 33.5, followed by Brunei 31.9, Canada 19.1, New Zealand 15.5 and Australia 14.7; the US 7.3, South Korea 3.3 and Japan 0.7. Taiwan’s lead reflects both how many shops there are and how keen Taiwan’s OSM volunteers are to map them. China has well over a hundred thousand in reality but few are mapped, and it is not among the well-covered countries, so it is not shaded. Some shops are also tagged as cafés and so counted under Cafés as well.',
+        zh: '每百萬人有幾家手搖飲店（OpenStreetMap 的 cuisine=bubble_tea）。台灣 104.1 家（2,395 家）世界第一，是第二名新加坡 33.5 的三倍，汶萊 31.9、加拿大 19.1、紐西蘭 15.5、澳洲 14.7；美國 7.3、南韓 3.3、日本 0.7。台灣第一同時反映台灣真的多，跟台灣的 OSM 志願者愛標手搖飲。中國實際上有十幾萬家，但 OSM 上標的很少，也不在覆蓋良好的名單裡，沒有上色。有些手搖飲同時標成咖啡館，跟「咖啡館」會重複算。台灣的官方對照：經濟部商業登記的「飲料店業」核准設立 48,779 家（只含獨資、合夥商號、不含公司，所有飲料店都算），OSM 標到的只是一部分，滑過台灣看縣市。',
+        en: 'Bubble tea shops per million people (OpenStreetMap’s cuisine=bubble_tea). Taiwan leads with 104.1 (2,395 shops), three times second-placed Singapore at 33.5, followed by Brunei 31.9, Canada 19.1, New Zealand 15.5 and Australia 14.7; the US 7.3, South Korea 3.3 and Japan 0.7. Taiwan’s lead reflects both how many shops there are and how keen Taiwan’s OSM volunteers are to map them. China has well over a hundred thousand in reality but few are mapped, and it is not among the well-covered countries, so it is not shaded. Some shops are also tagged as cafés and so counted under Cafés as well. For an official comparison, Taiwan’s business registry lists 48,779 beverage shops in operation (sole proprietorships and partnerships only, not companies, and all kinds of beverage shop), so OSM captures only part of them; hover over Taiwan for the largest municipalities.',
       },
       [1, 2, 5, 10, 20],
     ),

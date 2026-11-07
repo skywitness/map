@@ -145,6 +145,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `business-demography` 是企業的誕生、死亡與存活：Eurostat 的 `bd_size`（20 MB，2021 年起）與舊的 `bd_9bd_sz_cl_r2`（39 MB，2020 年以前），台灣用商業發展署 data.gcis.nat.gov.tw 的三個 CSV（新設立、現有、解散撤銷及廢止的公司家數）。十幾秒。
 
+`dining` 的手搖飲台灣官方對照要先把 map-plan 的 `data/gcis/beverage-shops-32685.csv`（商業發展署商業登記的飲料店業，14 MB；data.gcis.nat.gov.tw 常常回「系統忙碌中」，由本機 session 下載）複製到 `pipeline/.cache/gcis/`；沒有這個檔時照樣跑，只是少了那段提示。
+
 `market-regulation` 是開公司有多麻煩、國家持股有多深：OECD 產品市場管制指標（`DSD_PMR@DF_PMR,1.4`，1 MB，2018、2023，含台灣），28 個 MEASURE 分四個指標。幾秒鐘。
 
 `real-estate-rents` 是房價與房租的城市房租：Eurostat `prc_colc_rents`（倫敦、Culham、普里斯提納不收）、Natural Earth 的城市位置（瓦雷澤用 Wikidata）、內政部實價登錄的季資料 zip（2026 年第 3 季，16 MB，plvr.land.moi.gov.tw 沒有 robots.txt）算六都的月租中位數，用 Eurostat 的歐元兌新台幣年平均匯率換算，輸出 housing/rents.json。幾秒鐘。
