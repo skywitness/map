@@ -417,6 +417,8 @@ STEPS = {
     "insurance": "topics.insurance",
     # 銀行與信貸（新主題，金融服務）：WDI 私部門信貸、廣義貨幣、不良貸款、銀行資本；台灣用央行 LOAN-S 與金管會 banking12
     "banking": "topics.banking",
+    # 股市規模：周轉率、成交值占 GDP（WDI 轉載 WFE；台灣用證期局重要指標的表 12、13、35）
+    "stock-market-turnover": "topics.stock_turnover",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
