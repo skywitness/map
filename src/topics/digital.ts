@@ -498,5 +498,38 @@ export const digital: TopicDefinition = {
       format: (v) => tr(GCI_TIERS.find((c) => c.value === v)?.label ?? { zh: '', en: '' }),
       timeless: true,
     },
+    // 2026-11-07（製作手冊第二十五批 509）GCI 2024 國別頁的五個支柱分數（pipeline/topics/gci_pillars.py；國別頁是圖片，OCR 加人工判讀）
+    {
+      id: 'cyber-pillars',
+      label: { zh: '國家資安指數的分數（五個支柱）', en: 'Cybersecurity index scores (five pillars)' },
+      description: {
+        zh: 'ITU Global Cybersecurity Index 2024 國別頁的分數：法律、技術、組織、能力建構、合作五個支柱各 0–20 分，合計 0–100。合計 100 分的有 12 國：阿聯、丹麥、埃及、芬蘭、英國、印尼、義大利、南韓、模里西斯、卡達、沙烏地、土耳其；美國與新加坡 99.86、法國 98.98、印度 98.49、日本 97.58、德國 93.84、俄羅斯 92.13、中國 91.64；最低厄利垂亞 2.21、中非 4.76、北韓 6.18。各支柱的中位數：法律 18.2 最高、能力建構 12.16 最低；技術有 27 國是 0 分。分數是各國填的問卷，量的是制度，不是實際的資安能力。國別頁是圖片，本站用 OCR 讀取、有疑義的格子逐一人工核對；德國（93.84 分卻列第 1 級）與薩爾瓦多（56.46 分卻列第 4 級）跟 ITU 的分級對不上，照國別頁的數字。台灣不是 ITU 會員，沒有評比。',
+        en: 'Scores from the country profiles of the ITU Global Cybersecurity Index 2024: five pillars (legal, technical, organisational, capacity development and cooperation) of 0–20 each, 0–100 in total. Twelve countries score the full 100: the UAE, Denmark, Egypt, Finland, the UK, Indonesia, Italy, South Korea, Mauritius, Qatar, Saudi Arabia and Türkiye; the US and Singapore 99.86, France 98.98, India 98.49, Japan 97.58, Germany 93.84, Russia 92.13, China 91.64; lowest Eritrea 2.21, the Central African Republic 4.76, North Korea 6.18. Median by pillar: legal highest at 18.2, capacity development lowest at 12.16; 27 countries score 0 on technical measures. Scores come from questionnaires and measure institutions, not actual security capability. The profiles are images, so this site read them by OCR and checked doubtful cells by hand; Germany (93.84 yet Tier 1) and El Salvador (56.46 yet Tier 4) do not match ITU’s tiers, and the profile figures are used. Taiwan is not an ITU member and is not assessed.',
+      },
+      unit: { zh: '分', en: 'points' },
+      file: 'gci/{item}.json',
+      dimension: {
+        label: { zh: '支柱', en: 'Pillar' },
+        options: [
+          { id: 'total', label: { zh: '合計（0–100）', en: 'Total (0–100)' } },
+          { id: 'legal', label: { zh: '法律', en: 'Legal' } },
+          { id: 'technical', label: { zh: '技術', en: 'Technical' } },
+          { id: 'organizational', label: { zh: '組織', en: 'Organisational' } },
+          { id: 'capacity', label: { zh: '能力建構', en: 'Capacity development' } },
+          { id: 'cooperation', label: { zh: '合作', en: 'Cooperation' } },
+        ],
+        defaultOption: 'total',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [20, 40, 55, 70, 85, 95] },
+        itemScales: Object.fromEntries(
+          ['legal', 'technical', 'organizational', 'capacity', 'cooperation'].map((k) => [k, { type: 'sequential', thresholds: [4, 8, 11, 14, 17, 19.99] }]),
+        ),
+      },
+      format: (v) => fixed(v, 2),
+      formatTick: (v) => fixed(v, 0),
+      timeless: true,
+    },
   ],
 };

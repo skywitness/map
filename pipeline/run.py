@@ -209,6 +209,7 @@ STEPS = {
     "cctld": "topics.cctld",
     "rd-structure": "topics.rd_structure",
     "rd-policy": "topics.rd_policy",
+    "gci-pillars": "topics.gci_pillars",
     "water-forest": "topics.water_forest",
     # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
     "water-use": "topics.water_use",
