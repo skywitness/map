@@ -81,6 +81,8 @@ const TOPIC_ICONS = {
   housing: 'house',
   // 不用特定宗教的符號（教堂、清真寺…）
   religion: 'book-heart',
+  // 2026-11-07（第二十七批 555）
+  funeral: 'flower-2',
   festivals: 'party-popper',
   holidays: 'calendar-days',
   dining: 'utensils-crossed',
