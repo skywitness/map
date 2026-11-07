@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { airDistance } from './air-distance';
 import { airFleet } from './air-fleet';
 import { airRoutesExtra } from './aviation-extra';
 import { longestFlightsPart } from './longest-flights';
@@ -28,6 +29,7 @@ export const airRoutes: TopicDefinition = {
     ...longestFlightsPart.sources,
     ...airRoutesExtra.sources,
     ...airFleet.sources,
+    ...airDistance.sources,
   ],
   note: {
     zh:
@@ -74,5 +76,7 @@ export const airRoutes: TopicDefinition = {
     ...longestFlightsPart.indicators,
     ...airRoutesExtra.indicators,
     ...airFleet.indicators,
+    // 2026-11-07（製作手冊第二十七批 572）：飛多遠、搭什麼機型
+    ...airDistance.indicators,
   ],
 };

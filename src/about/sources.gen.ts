@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 183;
-export const INDICATOR_COUNT = 1439;
+export const INDICATOR_COUNT = 1441;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -155,6 +155,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：對別人的信任（ilc_pw03）、有沒有人可以依靠（ilc_pw06）","en":"Eurostat: trust in others (ilc_pw03) and having someone to rely on (ilc_pw06)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_pw03/default/table","licenses":["CC BY 4.0"],"topics":["happiness"]},
   {"name":{"zh":"Eurostat：文化與運動活動的參與（ilc_scp04，運動比賽）","en":"Eurostat: participation in cultural and sport activities (ilc_scp04, sports events)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_scp04/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
+  {"name":{"zh":"Eurostat：機上旅客依航程與機型（avia_paodis）","en":"Eurostat: passengers on board by distance band and aircraft type (avia_paodis)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_paodis/default/table","licenses":["CC BY 4.0"],"topics":["air-routes"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat：運動業的就業（sprt_emp_sex）、政府支出依功能別（gov_10a_exp，COFOG 08.1）","en":"Eurostat: employment in sport (sprt_emp_sex) and government expenditure by function (gov_10a_exp, COFOG 08.1)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sprt_emp_sex/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：重大鐵路事故的死傷人數（rail_ac_catvict）與件數（rail_ac_catnmbr）","en":"Eurostat: victims of significant railway accidents (rail_ac_catvict) and number of accidents (rail_ac_catnmbr)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/rail_ac_catvict/default/table","licenses":["CC BY 4.0"],"topics":["transport"]},
