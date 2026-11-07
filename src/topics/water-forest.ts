@@ -225,6 +225,78 @@ const waterForestOwn: TopicDefinition = {
       formatTick: formatLargeTick,
     },
     {
+      id: 'groundwater-share',
+      label: { zh: '地下水占淡水取水量', en: 'Groundwater share of freshwater withdrawal' },
+      description: {
+        zh: '取用的淡水有多少比例是抽地下水（FAO AQUASTAT），2023 年。卡達、科威特、巴林、阿聯 100%（地表幾乎沒有淡水，海水淡化不算在淡水取水裡）、利比亞 97.0%、沙烏地 96.0%、維德角 95.4%、吉布地 94.7%、阿曼 93.8%、尼日 92.0%；巴基斯坦 39.2%、印度 38.2%、美國 29.4%、德國 24.4%、中國 14.4%、南韓 12.7%、日本 10.9%、埃及 10.5%。取水量比例超過 100% 的錯值不收。',
+        en: 'Share of freshwater withdrawals taken from groundwater (FAO AQUASTAT), 2023. Qatar, Kuwait, Bahrain and the UAE 100% (almost no surface freshwater; desalinated water is not counted as freshwater withdrawal), Libya 97.0%, Saudi Arabia 96.0%, Cabo Verde 95.4%, Djibouti 94.7%, Oman 93.8%, Niger 92.0%; Pakistan 39.2%, India 38.2%, the US 29.4%, Germany 24.4%, China 14.4%, South Korea 12.7%, Japan 10.9%, Egypt 10.5%. Erroneous values above 100% are excluded.',
+      },
+      unit: '%',
+      file: 'groundwater-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 15, 30, 50, 75, 95] } },
+      format: percent,
+      formatTick: percentTick,
+    },
+    {
+      id: 'salinized',
+      label: { zh: '灌溉地鹽化的比例', en: 'Irrigated land salinized' },
+      description: {
+        zh: '有灌溉設施的土地裡，因為灌溉而鹽化的比例（FAO AQUASTAT，各國申報，多數國家只有一兩次真正的調查，其他年份沿用），2023 年。哥倫比亞 96.2%、土庫曼 68.0%、古巴 62.6%、阿根廷 53.3%、哈薩克 50.4%、利比亞 47.5%、巴基斯坦 35.0%、奈及利亞 30.2%、巴林 28.6%、烏茲別克 27.3%；埃及 23.5%、美國 17.9%、中國 8.9%、印度 4.0%。伊拉克、喬治亞、羅馬尼亞的鹽化面積跟灌溉面積來自不同年份的調查、比例超過 100%，不畫。',
+        en: 'Share of land equipped for irrigation that has become salinized by irrigation (FAO AQUASTAT, as reported by countries; most have only one or two real surveys, with values carried forward), 2023. Colombia 96.2%, Turkmenistan 68.0%, Cuba 62.6%, Argentina 53.3%, Kazakhstan 50.4%, Libya 47.5%, Pakistan 35.0%, Nigeria 30.2%, Bahrain 28.6%, Uzbekistan 27.3%; Egypt 23.5%, the US 17.9%, China 8.9%, India 4.0%. Iraq, Georgia and Romania are not shown because their salinized and irrigated areas come from surveys in different years and the share exceeds 100%.',
+      },
+      unit: '%',
+      file: 'salinized.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 10, 20, 35, 50] } },
+      format: percent,
+      formatTick: percentTick,
+    },
+    {
+      id: 'salinized-area',
+      label: { zh: '灌溉造成鹽化的面積', en: 'Area salinized by irrigation' },
+      description: {
+        zh: '因為灌溉而鹽化的土地面積（公頃，FAO AQUASTAT），2023 年。巴基斯坦 700 萬公頃、中國 670 萬、美國 420 萬、印度 330 萬、伊拉克 267 萬、伊朗 210 萬、土庫曼 135 萬、烏茲別克 118 萬、埃及 90 萬。台灣不在 AQUASTAT，也沒有灌溉地鹽化的開放資料。',
+        en: 'Land salinized by irrigation (hectares, FAO AQUASTAT), 2023. Pakistan 7.0 million ha, China 6.7 million, the US 4.2 million, India 3.3 million, Iraq 2.67 million, Iran 2.1 million, Turkmenistan 1.35 million, Uzbekistan 1.18 million, Egypt 0.9 million. Taiwan is not in AQUASTAT and has no open data on salinized irrigated land.',
+      },
+      unit: { zh: '公頃', en: 'ha' },
+      file: 'salinized-area.json',
+      layer: { kind: 'bubble', legendValues: [1e5, 1e6, 5e6] },
+      format: (v) => tr({ zh: formatLargeNumber(v) + ' 公頃', en: formatLargeNumber(v) + ' ha' }),
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'water-efficiency',
+      label: { zh: '水資源使用效率', en: 'Water use efficiency' },
+      description: {
+        zh: '每用一立方公尺的水創造多少美元的附加價值（SDG 6.4.1，FAO AQUASTAT；名目美元，沒有扣通膨），2023 年。盧森堡 1,378、新加坡 1,013、瑞士 448、英國 337、丹麥 326、馬爾他 265、瑞典 246；德國 146、南韓 63.9、日本 59.3、美國 49.3、沙烏地 28.2、中國 27.6、巴西 25.0、埃及 5.6、印度 3.8、巴基斯坦 1.9；最低的馬達加斯加 0.38、阿富汗 0.61，最高與最低差 3,600 倍。分數高多半是以金融與服務業為主、幾乎不取水的經濟，不全是技術效率；子項目可以看農業（灌溉）、工業、服務業各自的效率。',
+        en: 'Value added in US dollars per cubic metre of water used (SDG 6.4.1, FAO AQUASTAT; nominal dollars, not adjusted for inflation), 2023. Luxembourg 1,378, Singapore 1,013, Switzerland 448, the UK 337, Denmark 326, Malta 265, Sweden 246; Germany 146, South Korea 63.9, Japan 59.3, the US 49.3, Saudi Arabia 28.2, China 27.6, Brazil 25.0, Egypt 5.6, India 3.8, Pakistan 1.9; lowest are Madagascar (0.38) and Afghanistan (0.61), a 3,600-fold gap. High scores mostly reflect finance- and service-based economies that withdraw little water, not just technical efficiency; the sub-items show irrigated agriculture, industry and services separately.',
+      },
+      unit: { zh: '美元/立方公尺', en: 'US$/m³' },
+      file: 'water-efficiency/{item}.json',
+      dimension: {
+        label: { zh: '部門', en: 'Sector' },
+        options: [
+          { id: 'all', label: { zh: '全部', en: 'All sectors' } },
+          { id: 'agriculture', label: { zh: '灌溉農業', en: 'Irrigated agriculture' } },
+          { id: 'industry', label: { zh: '工業', en: 'Industry' } },
+          { id: 'services', label: { zh: '服務業', en: 'Services' } },
+        ],
+        defaultOption: 'all',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [2, 5, 10, 25, 50, 150] },
+        itemScales: {
+          all: { type: 'sequential', thresholds: [2, 5, 10, 25, 50, 150] },
+          agriculture: { type: 'sequential', thresholds: [0.1, 0.25, 0.5, 1, 2, 5] },
+          industry: { type: 'sequential', thresholds: [5, 15, 30, 60, 150, 400] },
+          services: { type: 'sequential', thresholds: [10, 50, 100, 250, 500, 1500] },
+        },
+      },
+      format: (v) => tr({ zh: `${fixed(v, v < 10 ? 2 : 1)} 美元/立方公尺`, en: `US$${fixed(v, v < 10 ? 2 : 1)}/m³` }),
+      formatTick: formatLargeTick,
+      compareWorld: true,
+    },
+    {
       id: 'water-use',
       label: { zh: '占取水量', en: 'share of water withdrawal' },
       description: {
