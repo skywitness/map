@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 198;
-export const INDICATOR_COUNT = 1506;
+export const INDICATOR_COUNT = 1507;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -418,6 +418,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（行車方向，P1622）","en":"Wikidata (driving side, P1622)"},"url":"https://www.wikidata.org/wiki/Property:P1622","licenses":["CC0"],"topics":["travel"]},
   {"name":{"zh":"Wikidata（造船廠 Q190928 與子類別的國家、座標、創立與關閉年份，經 QLever 查詢）","en":"Wikidata (shipyards, Q190928 and subclasses: country, coordinates, founding and closing years; via QLever)"},"url":"https://www.wikidata.org/wiki/Q190928","licenses":["CC0"],"topics":["shipping"]},
   {"name":{"zh":"Wikidata（運動聯賽與俱樂部，經 QLever 查詢）","en":"Wikidata (sports leagues and clubs, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q623109","licenses":["CC0"],"topics":["sports"]},
+  {"name":{"zh":"Wikidata「太空機構」（Q17505024）與機構的成立日期、總部","en":"Wikidata “space agency” (Q17505024), founding dates and headquarters"},"url":"https://www.wikidata.org/wiki/Q17505024","licenses":["CC0"],"topics":["space"]},
   {"name":{"zh":"Wikimedia Commons（國旗的 SVG，逐檔核對授權）","en":"Wikimedia Commons (flag SVGs, licence checked file by file)"},"url":"https://commons.wikimedia.org/wiki/Category:SVG_flags_by_country","licenses":[{"zh":"公有領域 228 個、CC0 5 個、阿曼政府開放授權 1 個；國徽、國旗的使用可能受各國法律限制","en":"228 public domain, 5 CC0, 1 Open Government Licence – Oman; use of national insignia may be restricted by national law"}],"topics":["flags"]},
   {"name":{"zh":"Wikimedia Commons（照片，滑過時從 Commons 讀；攝影者與授權寫在照片下面）","en":"Wikimedia Commons (photos, loaded from Commons on hover; photographer and licence under each photo)"},"url":"https://commons.wikimedia.org/","licenses":[{"zh":"各張照片自己的授權（多半是 CC BY-SA）","en":"Each photo’s own licence (mostly CC BY-SA)"}],"topics":["castles"]},
   {"name":{"zh":"Wikimedia 基金會：各國每日瀏覽量（差分隱私，country_project_page）","en":"Wikimedia Foundation: daily pageviews per country (differentially private, country_project_page)"},"url":"https://analytics.wikimedia.org/published/datasets/country_project_page/00_README.html","licenses":["CC0"],"topics":["reads"]},

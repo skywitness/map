@@ -2,6 +2,8 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { landingsPart } from './landings';
+import { withParts } from './parts';
+import { spaceAgenciesPart } from './space-agencies';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -78,7 +80,7 @@ const LAUNCH_LIST: ListPanelDef = {
 
 const NO_LAUNCH = { TWN: { zh: '沒有自主入軌發射能力（福衛系列委託國外發射）', en: 'No indigenous orbital launch capability (its FORMOSAT satellites launch abroad)' } };
 
-export const space: TopicDefinition = {
+export const space: TopicDefinition = withParts({
   id: 'space',
   title: { zh: '太空：衛星與發射', en: 'Space: satellites and launches' },
   shortTitle: { zh: '太空', en: 'Space' },
@@ -336,4 +338,4 @@ export const space: TopicDefinition = {
       formatTick: (v) => v + '%',
     },
   ],
-};
+}, spaceAgenciesPart);
