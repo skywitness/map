@@ -85,6 +85,7 @@ const TOPIC_ICONS = {
   funeral: 'flower-2',
   independence: 'milestone',
   cabotage: 'truck',
+  'bus-stations': 'bus-front',
   festivals: 'party-popper',
   holidays: 'calendar-days',
   dining: 'utensils-crossed',
