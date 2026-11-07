@@ -4,6 +4,7 @@ import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, ColorClasses, IndicatorDef, PointsOverlayDef, Text, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { languageSchoolPart } from './language-school';
+import { languageWalsPart } from './language-wals';
 
 /**
  * 語言代碼 ↔ 類別圖的數值：主要官方語言的指標檔存的是語言代碼的 36 進位數（en → 527），
@@ -337,4 +338,4 @@ export const language: TopicDefinition = withParts({
       },
     ),
   ],
-}, languageSchoolPart);
+}, languageSchoolPart, languageWalsPart);

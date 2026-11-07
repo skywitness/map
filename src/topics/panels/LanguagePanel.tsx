@@ -2,6 +2,9 @@ import { BarList } from '../../charts/BarList';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { languageName, pct } from '../language';
+import { ARTICLES, CASES, TONE, WORD_ORDER } from '../language-wals';
+import { tr } from '../../i18n/lang';
+import type { CategoryDef } from '../types';
 import type { PanelExtraProps } from '../types';
 
 type Status = 'official' | 'de_facto_official' | 'official_regional' | null;
@@ -134,6 +137,56 @@ export default function LanguagePanel({ topic, iso3, countryName }: PanelExtraPr
           <p className="note">{text.officialNote}</p>
         </>
       )}
+      <WalsLanguages topic={topic.id} iso3={iso3} />
     </section>
+  );
+}
+
+/** pipeline/topics/language_wals.py 的 wals-languages.json（2026-11-07，製作手冊 552）：[名稱, 語序, 聲調, 格, 冠詞]，0 是沒有值 */
+const WALS_SHOWN = 8;
+const WALS_TEXT = defineMessages({
+  zh: {
+    title: (n: number) => `WALS 收的這一國的語言（${n} 種）`,
+    more: (n: number) => `還有 ${n} 種`,
+    note: 'WALS（世界語言結構地圖集）的語序、聲調、名詞的格與冠詞；沒寫的是 WALS 沒有那一項。',
+    sep: '・',
+  },
+  en: {
+    title: (n: number) => `Languages of this country in WALS (${n})`,
+    more: (n: number) => `${n} more`,
+    note: 'Word order, tone, case and articles from WALS (World Atlas of Language Structures); features not shown have no WALS value.',
+    sep: ' · ',
+  },
+});
+
+function WalsLanguages({ topic, iso3 }: { topic: string; iso3: string }) {
+  const lang = useLang();
+  const text = WALS_TEXT[lang];
+  const rows = useJson<{ countries: Record<string, [string, number, number, number, number][]> }>(`topics/${topic}/wals-languages.json`).data
+    ?.countries[iso3];
+  if (!rows?.length) return null;
+  const label = (cats: CategoryDef[], v: number) => (v ? tr(cats.find((c) => c.value === v)?.label ?? '', lang) : null);
+  const item = ([name, order, tone, cases, articles]: [string, number, number, number, number]) => (
+    <li key={name}>
+      <span className="plain-title" translate="no">
+        {name}
+      </span>
+      <span className="plain-meta">
+        {[label(WORD_ORDER, order), label(TONE, tone), label(CASES, cases), label(ARTICLES, articles)].filter(Boolean).join(text.sep)}
+      </span>
+    </li>
+  );
+  return (
+    <>
+      <h4>{text.title(rows.length)}</h4>
+      <ul className="plain-list">{rows.slice(0, WALS_SHOWN).map(item)}</ul>
+      {rows.length > WALS_SHOWN && (
+        <details>
+          <summary className="note">{text.more(rows.length - WALS_SHOWN)}</summary>
+          <ul className="plain-list">{rows.slice(WALS_SHOWN).map(item)}</ul>
+        </details>
+      )}
+      <p className="note">{text.note}</p>
+    </>
   );
 }

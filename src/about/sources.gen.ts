@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 181;
-export const INDICATOR_COUNT = 1382;
+export const INDICATOR_COUNT = 1387;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -124,6 +124,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat 上網活動（isoc_ci_ac_i）、網購的商品與服務（isoc_ec_ibgs）","en":"Eurostat internet activities (isoc_ci_ac_i) and internet purchases (isoc_ec_ibgs)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_ac_i/default/table","licenses":["CC BY 4.0"],"topics":["esports"]},
   {"name":{"zh":"Eurostat 各教育階段學各種外語的學生（educ_uoe_lang01）、平均學幾種外語（educ_uoe_lang03）","en":"Eurostat pupils by modern foreign language studied (educ_uoe_lang01) and average number of languages (educ_uoe_lang03)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/educ_uoe_lang01/default/table","licenses":["CC BY 4.0"],"topics":["language"]},
   {"name":{"zh":"Eurostat 家庭預算調查（hbs_str_t211，外食占家庭支出）","en":"Eurostat Household Budget Survey (hbs_str_t211, eating out)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/hbs_str_t211/default/table","licenses":["CC BY 4.0"],"topics":["diet"]},
+  {"name":{"zh":"Eurostat 成人教育調查：會幾種外語（edat_aes_l21）","en":"Eurostat Adult Education Survey: number of foreign languages known (edat_aes_l21)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/edat_aes_l21/default/table","licenses":["CC BY 4.0"],"topics":["language"]},
   {"name":{"zh":"Eurostat 監獄統計（歐洲）","en":"Eurostat prison statistics"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_pris_cap/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
   {"name":{"zh":"Eurostat, EU-SILC 住宅統計（ilc_lvho01、ilc_lvho02、ilc_lvph01、ilc_lvho05a、ilc_lvho07a）","en":"Eurostat, EU-SILC housing statistics (ilc_lvho01, ilc_lvho02, ilc_lvph01, ilc_lvho05a, ilc_lvho07a)"},"url":"https://ec.europa.eu/eurostat/web/income-and-living-conditions/database","licenses":["CC BY 4.0"],"topics":["housing"]},
   {"name":{"zh":"Eurostat，警察、法官與監所人員（crim_just_job）","en":"Eurostat, Police officers, professional judges and prison staff (crim_just_job)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/crim_just_job/default/table","licenses":["CC BY 4.0"],"topics":["crime"]},
@@ -353,6 +354,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"USGS 即時地震資料（最近 7 天規模 4.5 以上，瀏覽器直接讀）","en":"USGS real-time earthquake feed (M4.5+ in the last 7 days, read by your browser)"},"url":"https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php","licenses":[{"zh":"公有領域","en":"public domain"}],"topics":["earthquakes"]},
   {"name":{"zh":"USGS 地震目錄（ComCat）","en":"USGS Earthquake Catalog (ComCat)"},"url":"https://earthquake.usgs.gov/fdsnws/event/1/","licenses":[{"zh":"公有領域","en":"public domain"}],"topics":["earthquakes"]},
   {"name":{"zh":"VATSpy 資料專案（VATSIM 模擬飛行社群整理的管制範圍，非官方）","en":"VATSpy Data Project (control boundaries compiled by the VATSIM flight-simulation community; unofficial)"},"url":"https://github.com/vatsimnetwork/vatspy-data-project","licenses":["CC BY-SA 4.0"],"topics":["airspace"]},
+  {"name":{"zh":"WALS Online（Dryer & Haspelmath 編，CLDF 版）","en":"WALS Online (eds. Dryer & Haspelmath, CLDF edition)"},"url":"https://wals.info/","licenses":["CC BY 4.0"],"topics":["language"]},
   {"name":{"zh":"WashU Atmospheric Composition Analysis Group, SatPM2.5 V6.GL.02 各國人口加權統計（Shen et al., 2024）","en":"WashU Atmospheric Composition Analysis Group, SatPM2.5 V6.GL.02 country-level population-weighted statistics (Shen et al., 2024)"},"url":"https://sites.wustl.edu/acag/datasets/surface-pm2-5/","licenses":["CC BY 4.0"],"topics":["air-quality"]},
   {"name":{"zh":"WGMS（2026）冰河年質量變化 AMCE（Dussaillant 等 2025）","en":"WGMS (2026) Annual mass-change estimates for the world’s glaciers (AMCE; Dussaillant et al. 2025)"},"url":"https://doi.org/10.5904/wgms-amce-2026-02-10","licenses":["CC BY 4.0"],"topics":["ice"]},
   {"name":{"zh":"WHO Prequalification：預認證疫苗、品管實驗室清單；WHO mRNA Technology Transfer Programme（事實自行整理）","en":"WHO Prequalification: prequalified vaccines and quality control labs; WHO mRNA Technology Transfer Programme (facts compiled)"},"url":"https://extranet.who.int/prequal/vaccines/prequalified/export?page&_format=csv","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["vaccination"]},
