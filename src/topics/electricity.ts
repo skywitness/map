@@ -410,5 +410,51 @@ export const electricity: TopicDefinition = {
       formatTick: formatLargeTick,
       defaultYear: 2024,
     },
+    // 2026-11-07（製作手冊第二十五批 522）再生能源占最終能源消費：WDI（IEA）與 Eurostat 的部門別（pipeline/topics/renewables_final.py）
+    {
+      id: 'renewable-final',
+      label: { zh: '再生能源占最終能源消費（不只電力）', en: 'Renewables in final energy consumption (not just power)' },
+      description: {
+        zh: '分母是整個最終能源消費（工廠的蒸汽、家裡的暖氣、車子的油都算），所以比「再生能源發電占比」低很多（世界銀行 WDI，原始資料是 IEA；2022 年只有 71 國，其他各國用 2021 年）。最高的國家幾乎都是燒柴與木炭的傳統生質能，不是綠能模範生：2022 年索馬利亞 95.4%、賴比瑞亞 92.8%、烏干達與中非共和國 90.9%、幾內亞比索 87.4%、馬達加斯加 83.1%。2021 年冰島 82.4%、挪威 61.4%、巴西 46.5%、印度 34.9%、德國 17.6%、中國 15.2%、美國 10.9%、日本 8.8%、南韓 3.6%；世界 2020 年 19.7%。',
+        en: 'The denominator is all final energy consumption (factory steam, home heating and vehicle fuel included), so the share is far lower than the renewable share of electricity (World Bank WDI, originally from the IEA; only 71 countries have 2022, the rest use 2021). The highest values are almost all traditional biomass, wood and charcoal, not green leaders: in 2022 Somalia 95.4%, Liberia 92.8%, Uganda and the Central African Republic 90.9%, Guinea-Bissau 87.4%, Madagascar 83.1%. In 2021 Iceland 82.4%, Norway 61.4%, Brazil 46.5%, India 34.9%, Germany 17.6%, China 15.2%, the US 10.9%, Japan 8.8%, South Korea 3.6%; the world 19.7% in 2020.',
+      },
+      unit: '%',
+      file: 'renewable-final.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 60, 80] } },
+      format: pct,
+      formatTick: pctTick,
+      compareWorld: true,
+      defaultYear: 2022,
+      noValue: {
+        TWN: {
+          zh: '沒有：台灣不在 IEA 與世界銀行的資料裡；能源署只有「再生能源供給占初級能源總供給」（2025 年 5.2%），分母不同',
+          en: 'None: Taiwan is not in the IEA or World Bank data; the Energy Administration only publishes renewables as a share of total primary energy supply (5.2% in 2025), a different denominator',
+        },
+      },
+    },
+    {
+      id: 'renewable-final-eu',
+      label: { zh: '歐洲的再生能源占比：電力、暖氣、運輸', en: 'Renewable share in Europe: power, heating, transport' },
+      description: {
+        zh: '歐盟再生能源指令的算法（Eurostat，2004 年起，36 國；英國與科索沃的 Eurostat 資料只准非商業使用，不收），分成整體、電力、暖氣與冷氣、運輸，看得出「電力綠了，運輸還沒」。2024 年整體：冰島 79.3%、挪威 77.9%、瑞典 62.8%、芬蘭 52.1%、丹麥 46.5%；最低比利時 14.3%、盧森堡 14.7%、愛爾蘭 16.1%。電力會超過 100%：分子的水力與風力用常態化的發電量、分母是國內的用電，挪威 115.1%、阿爾巴尼亞 105.2%、冰島 102.4%。暖氣與冷氣：冰島 79.5%、蒙特內哥羅 68.3%、瑞典 67.8%。運輸：挪威 33.6%、瑞典 26.4%、芬蘭 20.3%、荷蘭 19.7%，北馬其頓 0.0%。2025 年目前只有 30 國。',
+        en: 'Calculated under the EU Renewable Energy Directive (Eurostat, from 2004, 36 countries; Eurostat data for the UK and Kosovo are for non-commercial use only and are left out), split into overall, electricity, heating and cooling, and transport, which shows how power went green while transport did not. 2024 overall: Iceland 79.3%, Norway 77.9%, Sweden 62.8%, Finland 52.1%, Denmark 46.5%; lowest Belgium 14.3%, Luxembourg 14.7%, Ireland 16.1%. Electricity can exceed 100% because hydro and wind use normalised output against domestic consumption: Norway 115.1%, Albania 105.2%, Iceland 102.4%. Heating and cooling: Iceland 79.5%, Montenegro 68.3%, Sweden 67.8%. Transport: Norway 33.6%, Sweden 26.4%, Finland 20.3%, the Netherlands 19.7%, North Macedonia 0.0%. 2025 has only 30 countries so far.',
+      },
+      unit: '%',
+      file: 'renewable-final-eu/{item}.json',
+      dimension: {
+        label: { zh: '部門', en: 'Sector' },
+        options: [
+          { id: 'total', label: { zh: '整體', en: 'Overall' } },
+          { id: 'electricity', label: { zh: '電力', en: 'Electricity' } },
+          { id: 'heating', label: { zh: '暖氣與冷氣', en: 'Heating and cooling' } },
+          { id: 'transport', label: { zh: '運輸', en: 'Transport' } },
+        ],
+        defaultOption: 'total',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 35, 50, 75, 100] } },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2024,
+    },
   ],
 };
