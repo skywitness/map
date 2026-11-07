@@ -242,6 +242,7 @@ STEPS = {
     "ev-phaseout": "topics.ev_phaseout",
     "earthquakes": "topics.earthquakes",  # 要先有 geo 的國界
     "volcano-extra": "topics.volcano_extra",  # 火山的類型、岩性、噴發史、更新世的火山（製作手冊 538）
+    "volcano-people": "topics.volcano_people",  # 住在活火山旁邊的人（GHS-POP 2020，製作手冊 539）
     # 板塊（PB2002）：邊界加上相對速度與地質圖的符號、52 塊板塊的面、各板塊的人口（要先有 population-grid 的 grid.json）
     "plates-pb2002": "topics.plates_pb2002",
     "landslides": "topics.landslides",  # NASA 全球山崩目錄（GLC），分 8 頁下載

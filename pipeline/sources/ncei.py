@@ -66,3 +66,42 @@ def earthquakes(start_year: int) -> list[Event]:
             country=(r.get("country") or "").strip(), location=(r.get("locationName") or "").strip(),
         ))
     return out
+
+
+# ── 重大火山噴發（2026-11-07，製作手冊 539）──────────────────────────
+# NCEI/WDS Global Significant Volcanic Eruptions Database（doi:10.7289/V5JW8BSH）：中介資料的 Access Constraints 原文
+# 「Access to this dataset is unrestricted.」，Other Constraints 要求照 doi 引用。收錄條件是造成死亡、約 100 萬美元以上的損失、
+# VEI 6 以上，或引發海嘯、地震。死亡人數用 deathsTotal（含引發的海嘯、泥流等），沒有的才用 deaths；只有數量級的不算。
+VOLCANO_BASE = "https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/volcanoes"
+
+
+@dataclass
+class VolcanoEvent:
+    id: int
+    year: int
+    volcano: int | None  # GVP 的火山編號（volcanoLocationNewNum）
+    name: str
+    country: str  # NOAA 的國名（例如 Indonesia、Martinique）
+    vei: int | None
+    deaths: int | None
+    agent: str  # 死因代碼，逗號分隔（T 火山灰、P 火山碎屑流、M 泥流…）
+
+
+def volcano_events() -> list[VolcanoEvent]:
+    items: list[dict] = []
+    page, total = 1, 1
+    while page <= total:
+        url = f"{VOLCANO_BASE}?itemsPerPage={PER_PAGE}&page={page}"
+        with open(download(url, "ncei", f"volcanoes_p{page:02d}.json"), encoding="utf-8") as f:
+            data = json.load(f)
+        items += data["items"]
+        total = data["totalPages"]
+        page += 1
+    return [
+        VolcanoEvent(
+            id=it["id"], year=it["year"], volcano=it.get("volcanoLocationNewNum"), name=(it.get("name") or "").strip(),
+            country=(it.get("country") or "").strip(), vei=it.get("vei"),
+            deaths=it.get("deathsTotal", it.get("deaths")), agent=(it.get("agent") or "").replace(" ", ""),
+        )
+        for it in items
+    ]

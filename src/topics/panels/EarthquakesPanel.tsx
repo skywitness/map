@@ -12,6 +12,28 @@ interface Deadliest {
   countries: Record<string, [number, number, number | null, number, string][]>;
 }
 
+/** volcano_extra.py 輸出的 volcano-deadliest.json：每個國家死亡最多的 8 次火山噴發（NOAA，2026-11-07 製作手冊 539） */
+interface DeadliestEruptions {
+  fields: ['year', 'volcano', 'vei', 'deaths', 'agent'];
+  countries: Record<string, [number, string, number | null, number, string | null][]>;
+}
+
+/** NOAA 的死因代碼（agent），沒列的照原文 */
+const AGENTS: Record<string, { zh: string; en: string }> = {
+  A: { zh: '岩屑崩落', en: 'debris avalanche' },
+  E: { zh: '雷擊', en: 'lightning' },
+  F: { zh: '洪水', en: 'floods' },
+  G: { zh: '火山氣體', en: 'gas' },
+  I: { zh: '饑荒與疾病', en: 'famine and disease' },
+  L: { zh: '熔岩流', en: 'lava flows' },
+  M: { zh: '泥流', en: 'lahars' },
+  m: { zh: '二次泥流', en: 'secondary lahars' },
+  P: { zh: '火山碎屑流', en: 'pyroclastic flows' },
+  S: { zh: '地震', en: 'earthquakes' },
+  T: { zh: '火山灰與火山彈', en: 'tephra' },
+  W: { zh: '海嘯', en: 'tsunami' },
+};
+
 const LARGEST = 8;
 const DEADLIEST = 8;
 const VOLCANOES = 12;
@@ -31,7 +53,12 @@ const TEXT = defineMessages({
     volcanoes: (n: number) => `全新世火山（${n} 座）`,
     noVolcanoes: '沒有全新世火山。',
     more: (n: number) => `還有 ${n} 座，地圖上都看得到。`,
-    note: '日期是世界標準時間（UTC）。地名是 USGS、NOAA 與 Smithsonian 全球火山計畫的英文原名；死亡人數是 NOAA 的紀錄，含地震引發的海嘯與山崩。',
+    eruptions: '死亡最多的火山噴發',
+    noEruptions: 'NOAA 的重大火山噴發資料庫沒有這個國家的死亡紀錄。',
+    year: (y: number) => (y < 0 ? `西元前 ${-y} 年` : `${y} 年`),
+    causes: (list: string) => `死因：${list}`,
+    listSep: '、',
+    note: '日期是世界標準時間（UTC）。地名是 USGS、NOAA 與 Smithsonian 全球火山計畫的英文原名；死亡人數是 NOAA 的紀錄，地震含引發的海嘯與山崩，火山噴發含海嘯、泥流與事後的饑荒，古代的人數是推估。',
   },
   en: {
     largest: 'Largest earthquakes',
@@ -44,7 +71,12 @@ const TEXT = defineMessages({
     volcanoes: (n) => `Holocene volcanoes (${n})`,
     noVolcanoes: 'No Holocene volcanoes.',
     more: (n) => `${n} more, all shown on the map.`,
-    note: 'Dates are UTC. Place names are the original English names from USGS, NOAA and the Smithsonian Global Volcanism Program; deaths are NOAA records and include tsunamis and landslides the quake set off.',
+    eruptions: 'Deadliest volcanic eruptions',
+    noEruptions: 'The NOAA Significant Volcanic Eruptions Database records no deaths in this country.',
+    year: (y) => (y < 0 ? `${-y} BCE` : String(y)),
+    causes: (list) => `Causes: ${list}`,
+    listSep: ', ',
+    note: 'Dates are UTC. Place names are the original English names from USGS, NOAA and the Smithsonian Global Volcanism Program; deaths are NOAA records: for earthquakes they include tsunamis and landslides the quake set off, for eruptions tsunamis, lahars and later famine, and ancient tolls are estimates.',
   },
 });
 
@@ -64,6 +96,7 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
   const quakes = useCountryPoints(`${base}/quakes.json`, iso3);
   const volcanoes = useCountryPoints(`${base}/volcanoes.json`, iso3);
   const { data: deadly, error: deadlyError } = useJson<Deadliest>(`${base}/deadliest.json`);
+  const { data: eruptionData, error: eruptionError } = useJson<DeadliestEruptions>(`${base}/volcano-deadliest.json`);
 
   const largest = useMemo(
     () =>
@@ -83,10 +116,19 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
     [volcanoes.points],
   );
 
-  const error = quakes.error ?? volcanoes.error ?? deadlyError;
+  const error = quakes.error ?? volcanoes.error ?? deadlyError ?? eruptionError;
   if (error) return <p className="empty">{t.loadFailed(error.message)}</p>;
-  if (!largest || !recentVolcanoes || !deadly) return <p className="empty">{t.loading}</p>;
+  if (!largest || !recentVolcanoes || !deadly || !eruptionData) return <p className="empty">{t.loading}</p>;
   const deadliest = (deadly.countries[iso3] ?? []).slice(0, DEADLIEST);
+  const deadlyEruptions = eruptionData.countries[iso3] ?? [];
+  const causes = (agent: string | null) =>
+    agent
+      ? text.causes(
+          [...new Set(agent.split(','))]
+            .map((a) => (AGENTS[a] ? AGENTS[a][lang] : a))
+            .join(text.listSep),
+        )
+      : null;
 
   return (
     <section className="panel-section">
@@ -142,6 +184,28 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
         </ul>
       ) : (
         <p className="empty">{text.noDeaths}</p>
+      )}
+
+      <h3>{text.eruptions}</h3>
+      {deadlyEruptions.length > 0 ? (
+        <ul className="plain-list">
+          {deadlyEruptions.map(([year, volcano, vei, deaths, agent], i) => (
+            <li key={i}>
+              <span className="plain-title">
+                {vei !== null && <span className="iata">VEI {vei}</span>}
+                {text.year(year)}
+              </span>
+              <span className="plain-meta">{[text.deaths(deaths), causes(agent)].filter(Boolean).join(' · ')}</span>
+              {volcano && (
+                <span className="plain-meta" translate="no">
+                  {volcano}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty">{text.noEruptions}</p>
       )}
 
       <h3>{text.volcanoes(recentVolcanoes.length)}</h3>

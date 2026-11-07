@@ -12,6 +12,9 @@ webservices.volcano.si.edu）。授權同現有的全新世火山（美國政府
 - 最大的噴發（max-vei.json，順序類別）：這一國全新世確認噴發的最大火山爆發指數（VEI 0–7），沒有估 VEI 的不算。
 - 更新世的火山（pleistocene-volcanoes.json，點）：全新世以前噴發、現在不算活火山。國家歸屬跟全新世的火山同一套
   （earthquakes.volcano_countries）。
+- 火山噴發的死亡人數（volcano-deaths.json，2026-11-07，製作手冊 539，候選 1218）：NOAA NCEI 重大火山噴發資料庫
+  （sources/ncei.volcano_events，公有領域）903 筆的死亡人數依國家加總；國家用 NOAA 的國名（留尼旺、馬提尼克是自己的）。
+  側欄的「死亡最多的火山噴發」用 volcano-deadliest.json（每國前 8 筆）。
 """
 from __future__ import annotations
 
@@ -19,8 +22,14 @@ from collections import Counter, defaultdict
 from datetime import date
 
 from common import indicator_file, points_file, write_json
-from sources import gvp
-from topics.earthquakes import OUT, OffshoreIndex, volcano_countries
+from sources import gvp, ncei
+from sources.countries import from_name
+from topics.earthquakes import NOAA_COUNTRY, OUT, OffshoreIndex, volcano_countries
+
+# NOAA 火山資料庫的國名裡 from_name 查不到的（Pacific Ocean 是海底火山，不算任何國家）
+VOLCANO_COUNTRY = {
+    "Congo, DRC": "COD", "Solomon Is.": "SLB", "St. Vincent & the Grenadines": "VCT", "Trinidad": "TTO", "Pacific Ocean": None,
+}
 
 FIRST_YEAR = 1500
 RECENT_YEAR = 2000
@@ -142,3 +151,31 @@ def build() -> None:
     pc = Counter(c for c in p_iso3 if c)
     print(f"  更新世火山 {len(pleisto)} 座，不屬於任何國家 {sum(1 for c in p_iso3 if not c)} 座；{pc.most_common(12)}")
     print(f"  台灣：{[(v.name, v.type) for v, c in zip(pleisto, p_iso3) if c == 'TWN']}")
+
+    # ── 火山噴發的死亡人數（NOAA，製作手冊 539）──
+    events = ncei.volcano_events()
+    deaths: Counter = Counter()
+    events_n: Counter = Counter()
+    deadliest: dict[str, list[list]] = defaultdict(list)
+    unknown: Counter = Counter()
+    for e in events:
+        name = e.country.upper()
+        c = VOLCANO_COUNTRY[e.country] if e.country in VOLCANO_COUNTRY else NOAA_COUNTRY[name] if name in NOAA_COUNTRY else from_name(e.country)
+        if not c:
+            unknown[e.country] += 1
+            continue
+        events_n[c] += 1
+        if e.deaths:
+            deaths[c] += e.deaths
+            deadliest[c].append([e.year, e.name, e.vei, e.deaths, e.agent or None])
+    if unknown:
+        print(f"  NOAA 的火山國名對不到：{dict(unknown)}")
+    write_json(OUT / "volcano-deaths.json", indicator_file(
+        "volcano-deaths", "deaths", [this_year], {c: [deaths.get(c, 0)] for c in sorted(events_n)},
+        aggregates={"WLD": [sum(e.deaths or 0 for e in events)]}))
+    write_json(OUT / "volcano-deadliest.json", {
+        "fields": ["year", "volcano", "vei", "deaths", "agent"],
+        "countries": {c: sorted(rows, key=lambda r: -r[3])[:8] for c, rows in sorted(deadliest.items())},
+    })
+    print(f"  NOAA 火山噴發 {len(events)} 筆，死亡 {sum(e.deaths or 0 for e in events):,} 人（{sum(1 for e in events if e.deaths)} 筆有人數）："
+          f"{deaths.most_common(12)}；事件數 {events_n.most_common(6)}；台灣 {events_n.get('TWN', 0)} 筆、{deaths.get('TWN', 0)} 人")

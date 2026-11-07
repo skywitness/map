@@ -1,5 +1,5 @@
 import { tr, type Text } from '../i18n/lang';
-import { fixed, formatLargeTick } from '../lib/format';
+import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { landslidesPart } from './landslides';
 import {
@@ -326,7 +326,27 @@ const indicators: IndicatorDef[] = [
 // ── 火山的類型、岩性、噴發史（2026-11-07，製作手冊第二十七批 538；pipeline/topics/volcano_extra.py）──
 
 /** 有火山點的指標：更新世的火山只畫在這些指標上 */
-const VOLCANO_INDICATORS = ['volcanoes', 'volcano-type', 'volcano-rock', 'eruptions', 'eruptions-2000', 'max-vei'];
+const VOLCANO_INDICATORS = [
+  'volcanoes',
+  'volcano-type',
+  'volcano-rock',
+  'eruptions',
+  'eruptions-2000',
+  'max-vei',
+  'volcano-deaths',
+  'volcano-pop',
+  'volcano-pop-share',
+];
+/** 住在火山旁邊的人：半徑（volcano_people.py 的 RADII） */
+const RADIUS_DIMENSION = {
+  label: { zh: '離火山', en: 'Distance' },
+  options: [
+    { id: '10', label: { zh: '10 公里內', en: 'Within 10 km' } },
+    { id: '30', label: { zh: '30 公里內', en: 'Within 30 km' } },
+    { id: '100', label: { zh: '100 公里內', en: 'Within 100 km' } },
+  ],
+  defaultOption: '30',
+};
 
 /** 主要火山類型的 9 類：代碼跟 volcano_extra.py 的 TYPE_GROUPS 一致，依全世界的座數排 */
 const TYPE_CATEGORIES: CategoryDef[] = [
@@ -360,6 +380,7 @@ const categoryLabel = (categories: CategoryDef[], other?: Text) => (v: number) =
   const c = categories.find((x) => v >= x.value && v <= (x.max ?? x.value));
   return c ? tr(c.label) : other ? tr(other) : String(v);
 };
+const formatPeople = (v: number) => tr({ zh: `${formatLargeNumber(v)} 人`, en: `${formatLargeNumber(v)} people` });
 const eruptions = (v: number) => tr({ zh: `${n0(v)} 次噴發`, en: `${n0(v)} ${Math.round(v) === 1 ? 'eruption' : 'eruptions'}` });
 
 const volcanoIndicators: IndicatorDef[] = [
@@ -435,6 +456,53 @@ const volcanoIndicators: IndicatorDef[] = [
     format: categoryLabel(VEI_CATEGORIES),
     missing: { zh: '沒有全新世火山，或沒有估 VEI 的噴發', en: 'No Holocene volcanoes, or no eruptions with a VEI estimate' },
   },
+  // 2026-11-07（製作手冊 539）：NOAA 重大火山噴發的死亡人數、住在火山旁邊的人（pipeline/topics/volcano_people.py）
+  {
+    id: 'volcano-deaths',
+    label: { zh: '火山噴發的死亡人數', en: 'Deaths from volcanic eruptions' },
+    description: {
+      zh: 'NOAA 重大火山噴發資料庫裡，火山噴發造成的死亡人數（有紀錄以來的總和，含引發的海嘯、泥流與事後的饑荒、疾病；國家照 NOAA 寫的國名，馬提尼克、留尼旺等屬地另外算）。903 筆噴發合計 335,760 人：印尼 143,504 人最多，薩爾瓦多 30,327、馬提尼克 29,523、哥倫比亞 25,475、義大利 23,072、日本 22,680、瓜地馬拉 11,725、冰島 10,188、菲律賓 7,930、美國 5,568。最慘的五次：印尼的坦博拉 1815 年 60,000 人、喀拉喀托 1883 年 36,417 人，薩爾瓦多的 Ilopango 450 年前後 30,000 人，馬提尼克的培雷火山 1902 年 28,000 人，哥倫比亞的內瓦多德魯伊斯 1985 年 23,080 人。古代的人數是推估。台灣有 1 筆（1853 年，VEI 2），沒有死亡紀錄。點國家看這一國死亡最多的噴發與死因。',
+      en: 'Deaths caused by volcanic eruptions in NOAA’s Significant Volcanic Eruptions Database (all recorded eruptions combined, including resulting tsunamis, lahars and later famine and disease; countries follow NOAA’s names, so territories such as Martinique and Réunion count separately). Its 903 eruptions killed 335,760 people: Indonesia leads with 143,504, then El Salvador 30,327, Martinique 29,523, Colombia 25,475, Italy 23,072, Japan 22,680, Guatemala 11,725, Iceland 10,188, the Philippines 7,930 and the US 5,568. The five worst: Tambora in Indonesia in 1815 (60,000) and Krakatau in 1883 (36,417), Ilopango in El Salvador around 450 (30,000), Mount Pelée on Martinique in 1902 (28,000) and Nevado del Ruiz in Colombia in 1985 (23,080). Ancient tolls are estimates. Taiwan has one entry (1853, VEI 2) with no recorded deaths. Select a country for its deadliest eruptions and their causes.',
+    },
+    unit: { zh: '人', en: 'deaths' },
+    file: 'volcano-deaths.json',
+    layer: { kind: 'bubble', legendValues: [100, 5000, 50000] },
+    timeless: true,
+    format: deaths,
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+  },
+  {
+    id: 'volcano-pop',
+    label: { zh: '住在活火山旁邊的人', en: 'People living near active volcanoes' },
+    description: {
+      zh: '住在陸上的全新世火山 10、30 或 100 公里內的人數（JRC GHS-POP 2020 年的 1 公里人口網格；海面下的火山不算；離兩座火山都近的人只算一次）。100 公里內全世界 8.03 億人（10.2%），跟 Brown 等人用 LandScan 2011 算的 8.02 億差不多；30 公里內 2.15 億、10 公里內 2,740 萬。100 公里內人數最多的是印尼 1.93 億，其次菲律賓 8,798 萬、日本 8,570 萬、墨西哥 6,020 萬、衣索比亞 4,925 萬。台灣 30 公里內有 792 萬人（大屯火山群就在台北盆地北邊）。半徑不等於危險範圍：火山碎屑流十幾公里，火山灰可以飄幾百公里。',
+      en: 'People living within 10, 30 or 100 km of a Holocene volcano on land (JRC GHS-POP 1 km population grid for 2020; submarine volcanoes are excluded, and anyone near two volcanoes is counted once). Within 100 km live 803 million people worldwide (10.2%), close to the 802 million that Brown and colleagues estimated with LandScan 2011; within 30 km, 215 million, and within 10 km, 27.4 million. Indonesia has the most within 100 km at 193 million, followed by the Philippines 88.0 million, Japan 85.7 million, Mexico 60.2 million and Ethiopia 49.3 million. In Taiwan, 7.92 million people live within 30 km (the Tatun volcano group sits just north of the Taipei Basin). The radius is not a hazard zone: pyroclastic flows reach a dozen or so kilometres, while ash can drift hundreds.',
+    },
+    unit: { zh: '人', en: 'people' },
+    file: 'volcano-pop/{item}.json',
+    dimension: RADIUS_DIMENSION,
+    layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7] },
+    timeless: true,
+    format: formatPeople,
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+  },
+  {
+    id: 'volcano-pop-share',
+    label: { zh: '住在活火山旁邊的人口比例', en: 'Share of people near active volcanoes' },
+    description: {
+      zh: '住在陸上全新世火山 10、30 或 100 公里內的人占全國人口的比例（GHS-POP 2020 年）。加勒比海與太平洋的火山小島幾乎全國都在：蒙哲臘 10 公里內就有 99.9%（蘇弗里耶爾丘火山），30 公里內多米尼克、格瑞那達、聖克里斯多福、美屬薩摩亞、馬約特都是 100%，梵蒂岡也在羅馬東南方 Colli Albani 火山的 30 公里內。人口百萬以上的國家，30 公里內薩爾瓦多 90.9% 最高，哥斯大黎加 71.5%、瓜地馬拉 48.4%、尼加拉瓜 45.7%、赤道幾內亞 42.9%、紐西蘭 36.6%、台灣 33.4%、厄瓜多 27.4%、印尼 27.0%，日本 10.6%。100 公里內的話，薩爾瓦多、吉布地、亞美尼亞、哥斯大黎加幾乎全國都在，印尼 71.3%、日本 68.5%、台灣 50.1%。',
+      en: 'Share of each country’s population living within 10, 30 or 100 km of a Holocene volcano on land (GHS-POP 2020). Volcanic islands in the Caribbean and Pacific are almost entirely covered: 99.9% of Montserrat lies within 10 km (of Soufrière Hills), and Dominica, Grenada, Saint Kitts and Nevis, American Samoa and Mayotte are at 100% within 30 km, as is the Vatican, within 30 km of the Colli Albani volcano south-east of Rome. Among countries of a million or more, El Salvador is highest within 30 km at 90.9%, then Costa Rica 71.5%, Guatemala 48.4%, Nicaragua 45.7%, Equatorial Guinea 42.9%, New Zealand 36.6%, Taiwan 33.4%, Ecuador 27.4% and Indonesia 27.0%; Japan 10.6%. Within 100 km, nearly everyone in El Salvador, Djibouti, Armenia and Costa Rica is included, as are 71.3% in Indonesia, 68.5% in Japan and 50.1% in Taiwan.',
+    },
+    unit: '%',
+    file: 'volcano-pop-share/{item}.json',
+    dimension: RADIUS_DIMENSION,
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 5, 10, 25, 50, 75] } },
+    timeless: true,
+    format: (v) => `${fixed(v, 1)}%`,
+    formatTick: (v) => `${v}%`,
+  },
 ];
 
 export const earthquakes: TopicDefinition = {
@@ -453,6 +521,11 @@ export const earthquakes: TopicDefinition = {
     {
       name: { zh: 'NOAA NCEI 全球重大地震資料庫（死亡人數）', en: 'NOAA NCEI Global Significant Earthquake Database (deaths)' },
       url: 'https://doi.org/10.7289/V5TD9V7K',
+      license: { zh: '公有領域', en: 'public domain' },
+    },
+    {
+      name: { zh: 'NOAA NCEI 全球重大火山噴發資料庫（死亡人數）', en: 'NOAA NCEI Global Significant Volcanic Eruptions Database (deaths)' },
+      url: 'https://doi.org/10.7289/V5JW8BSH',
       license: { zh: '公有領域', en: 'public domain' },
     },
     {
@@ -484,8 +557,8 @@ export const earthquakes: TopicDefinition = {
     },
     {
       name: {
-        zh: 'JRC GHS-POP R2023A（各板塊的人口、各國跨幾塊板塊）',
-        en: 'JRC GHS-POP R2023A (population by plate; plates per country)',
+        zh: 'JRC GHS-POP R2023A（各板塊的人口、各國跨幾塊板塊、住在火山旁邊的人）',
+        en: 'JRC GHS-POP R2023A (population by plate; plates per country; people near volcanoes)',
       },
       url: 'https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE',
       license: 'CC BY 4.0',
