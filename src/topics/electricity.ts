@@ -359,5 +359,56 @@ export const electricity: TopicDefinition = {
       lowerIsBetter: true,
       defaultYear: 2024,
     },
+    // 2026-11-07（製作手冊第二十五批 521）離岸風電（GEM）、地熱與海洋能（EIA）（pipeline/topics/electricity_renewables_extra.py）
+    {
+      id: 'offshore-wind',
+      label: { zh: '離岸風電的裝置容量', en: 'Offshore wind capacity' },
+      description: {
+        zh: '運轉中的離岸風電容量（GEM 全球電力追蹤 2026 年 9 月版，依機組的啟用與退役年份累計；固定式、浮動式與基礎型式不明的都算）。2026 年 20 國合計約 91.4 GW：中國 45,807 MW、英國 15,974、德國 9,026、荷蘭 6,836、台灣 3,585 MW 世界第 5，丹麥 2,653、比利時 2,256、法國 1,995、越南 1,835、日本 421。浮動式只有 5 國約 248 MW：挪威 98、英國 79.5、葡萄牙與法國各 25、西班牙 20。',
+        en: 'Operating offshore wind capacity (GEM Global Integrated Power Tracker, September 2026, accumulated by unit start and retirement years; fixed, floating and unknown foundations all count). About 91.4 GW in 20 countries in 2026: China 45,807 MW, the UK 15,974, Germany 9,026, the Netherlands 6,836, Taiwan 3,585 MW (fifth in the world), Denmark 2,653, Belgium 2,256, France 1,995, Vietnam 1,835, Japan 421. Floating wind is only about 248 MW in 5 countries: Norway 98, the UK 79.5, Portugal and France 25 each, Spain 20.',
+      },
+      unit: 'MW',
+      file: 'offshore-wind/{item}.json',
+      dimension: {
+        label: { zh: '型式', en: 'Type' },
+        options: [
+          { id: 'all', label: { zh: '全部離岸', en: 'All offshore' } },
+          { id: 'floating', label: { zh: '浮動式', en: 'Floating' } },
+        ],
+        defaultOption: 'all',
+      },
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      format: (v) => `${fixed(v, v < 100 ? 1 : 0)} MW`,
+      formatTick: formatLargeTick,
+      defaultYear: 2026,
+    },
+    {
+      id: 'geothermal',
+      label: { zh: '地熱發電的裝置容量', en: 'Geothermal power capacity' },
+      description: {
+        zh: '地熱發電的裝置容量（EIA，1980–2024）。2024 年 29 國合計約 15.36 GW：美國 2,696 MW、印尼 2,639、菲律賓 1,952、土耳其 1,734、紐西蘭 1,275、墨西哥 999、肯亞 940、冰島 788、義大利 772、日本 461；台灣 7.49 MW。跟發電廠地圖（GEM）的統計方式不同，數字不完全一樣。',
+        en: 'Installed geothermal generating capacity (EIA, 1980–2024). About 15.36 GW in 29 countries in 2024: the US 2,696 MW, Indonesia 2,639, the Philippines 1,952, Türkiye 1,734, New Zealand 1,275, Mexico 999, Kenya 940, Iceland 788, Italy 772, Japan 461; Taiwan 7.49 MW. The counting differs from GEM in the power plant map, so figures do not match exactly.',
+      },
+      unit: 'MW',
+      file: 'geothermal.json',
+      layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+      format: (v) => `${fixed(v, v < 10 ? 2 : 0)} MW`,
+      formatTick: formatLargeTick,
+      defaultYear: 2024,
+    },
+    {
+      id: 'ocean',
+      label: { zh: '海洋能（潮汐與波浪）的裝置容量', en: 'Ocean power (tidal and wave) capacity' },
+      description: {
+        zh: '一張「沒長大的能源」的圖：潮汐與波浪發電的裝置容量（EIA 把兩者合在一起，1980–2024）。2024 年全世界只有約 495 MW，幾乎都是兩座潮汐電廠：南韓 255.6 MW（始華湖）、法國 212 MW（朗斯，1966 年啟用）；英國 10 MW，其他都在 5 MW 以下。台灣沒有商轉的海洋能電廠。',
+        en: 'A map of an energy source that never took off: installed tidal and wave capacity (EIA combines the two, 1980–2024). Only about 495 MW worldwide in 2024, almost all in two tidal plants: South Korea 255.6 MW (Sihwa Lake) and France 212 MW (La Rance, opened 1966); the UK 10 MW and everyone else under 5 MW. Taiwan has no commercial ocean power plant.',
+      },
+      unit: 'MW',
+      file: 'ocean.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 100] },
+      format: (v) => `${fixed(v, v < 10 ? 2 : 1)} MW`,
+      formatTick: formatLargeTick,
+      defaultYear: 2024,
+    },
   ],
 };
