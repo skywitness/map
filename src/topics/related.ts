@@ -43,7 +43,6 @@ export const RELATED: Record<string, string[]> = {
   'origin-names': ['diet', 'agriculture', 'tobacco-alcohol'],
   cuisines: ['diet', 'dining', 'origin-names'],
   'show-caves': ['attractions', 'special-landforms', 'minerals'],
-  'hunting-fishing': ['water-forest', 'oceans', 'trails'],
   culture: ['world-heritage', 'time-use', 'taiwan-diplomacy'],
   festivals: ['religion', 'daylight'],
   reads: ['language', 'digital'],

@@ -153,6 +153,11 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
  * 跟其他 8 類盡量遠的顏色，淺色 #803103 焦褐（相鄰一般視覺 ≥ 20.4、紅綠色盲 ≥ 18.7；跟所有分類 ≥ 15.1、≥ 9.8；
  * 白色圖示的底對比 ≥ 4.5），深色 #954d05（相鄰 ≥ 27.8、≥ 26.2；跟所有分類 ≥ 15.3、≥ 9.4）。深色模式比較亮的褐色
  * （L 0.58 以上）跟經濟琥珀、休閒橘紅在色盲下只有 5 左右，不用。
+ * 2026-11-07（第二十七批 536）休閒拆出旅遊，排在地理與休閒之間：同樣在 OKLCH 搜尋（scratchpad 的 catcolor.mjs，Machado 2009
+ * 紅綠色盲取 protan、deutan 較小的那個），淺色 #74065c 深梅紫（跟兩旁地理、休閒一般視覺 ≥ 24.8、紅綠色盲 ≥ 20.1；
+ * 跟所有分類 ≥ 15.5、≥ 10.4，最近的是科技紫 15.5 與交通灰藍的色盲 10.4；白色圖示的底對比 10.9）。L 0.43 以上的顏色
+ * 都過不了「跟所有分類 ≥ 15、≥ 9.8」，所以比其他分類暗一點。深色 #aa3f72 莓紅（跟兩旁 ≥ 16.3、≥ 10.2；跟所有分類
+ * ≥ 14.4、≥ 9.7；跟深色底的對比 3.04）；深色模式能用的空間更小，現有的交通↔地理也只有 14.5、8.2。
  */
 export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
   // 環境、交通 2026-10-30 加（第七批 124）；同一天第十一批 187 能源併進科技，環境改用原本能源的綠（不再用橄欖綠）
@@ -166,6 +171,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
     energy: '#803103',
     transport: '#4b5a92',
     geo: '#088f77',
+    trips: '#74065c',
     leisure: '#c8461a',
   },
   dark: {
@@ -178,6 +184,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
     energy: '#954d05',
     transport: '#8796d6',
     geo: '#04a19b',
+    trips: '#aa3f72',
     leisure: '#e0582a',
   },
 };

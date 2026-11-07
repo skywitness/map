@@ -6,6 +6,7 @@ import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { climbing } from './climbing';
 import { leisureVenuesPart } from './leisure-venues';
+import { huntingFishing } from './hunting-fishing';
 
 /**
  * 潛水中心與潛點（2026-11-04，製作手冊第二十一批 343；pipeline/topics/diving.py）：
@@ -119,14 +120,17 @@ const divingOwn: TopicDefinition = {
  * 戶外運動場地：潛水與攀岩（2026-11-04，主題整併 併11）：「攀岩場」併進來，資料照舊在 climbing/（topics/merge.ts），
  * 舊網址 t/climbing/ 轉到這裡（redirects.ts）。
  * 2026-11-07（製作手冊第二十四批 428）：接上三溫暖、滑冰場、保齡球館、飛行傘與跳傘、海水浴場與獨木舟（leisure-venues.ts），
- * 標題改成「休閒運動場地」
+ * 標題改成「休閒運動場地」。
+ * 2026-11-07（製作手冊第二十七批 536，使用者照研究報告 P2 的建議決定）：獵人高台與釣魚點併進來，資料照舊在 hunting-fishing/，
+ * 舊網址 t/hunting-fishing/ 轉到這裡（redirects.ts）
  */
 export const diving: TopicDefinition = withParts(
   {
     ...hostOnly(divingOwn),
-    title: { zh: '休閒運動場地：潛水、攀岩、三溫暖、滑冰與海水浴場', en: 'Leisure venues: diving, climbing, saunas, ice rinks and beaches' },
+    title: { zh: '休閒運動場地：潛水、攀岩、三溫暖、滑冰、海水浴場與狩獵釣魚', en: 'Leisure venues: diving, climbing, saunas, ice rinks, beaches, hunting and fishing' },
     shortTitle: { zh: '休閒運動場地', en: 'Leisure venues' },
   },
   topicPart(climbing),
   leisureVenuesPart,
+  topicPart(huntingFishing),
 );

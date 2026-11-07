@@ -69,6 +69,8 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   ivf: { topic: 'fertility', indicator: 'births-share' }, // 併14 生育率與高齡化
   retirement: { topic: 'employment', indicator: 'retirement-age' }, // 併16 就業、失業與退休
   climbing: { topic: 'diving', indicator: 'crag-count' }, // 併11 戶外運動場地：潛水與攀岩
+  // 2026-11-07 製作手冊第二十七批 536：獵人高台與釣魚點併進休閒運動場地，指標 id 不變
+  'hunting-fishing': { topic: 'diving', indicator: 'hunting-density' },
   'box-office-tw': { topic: 'culture', indicator: 'share' }, // 併10 文化
   // 併1 核能：能源政策（核能政策；燃煤退場的兩個指標見 INDICATOR_MOVES）、核子事故、核廢料（指標原本都叫 map）
   'energy-policy': { topic: 'nuclear', indicator: 'nuclear-policy' },

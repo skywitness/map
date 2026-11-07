@@ -33,6 +33,8 @@ const GROUP_ICONS = {
   energy: 'plug',
   transport: 'bus',
   geo: 'mountain-snow',
+  // 2026-11-07（第二十七批 536）休閒拆出旅遊
+  trips: 'backpack',
   // 2026-11-03（景點、獎項與運動獨立成一類）
   leisure: 'ticket',
 };
@@ -99,7 +101,6 @@ const TOPIC_ICONS = {
   'origin-names': 'certificate',
   cuisines: 'chef-hat',
   'show-caves': 'flashlight',
-  'hunting-fishing': 'binoculars',
   reads: 'book-open',
   // 經濟
   income: 'banknote',

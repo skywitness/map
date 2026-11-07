@@ -22,7 +22,8 @@ export interface TopicGroupSpec {
 
 /**
  * 頂列的主題分類，每一類是一個下拉選單；順序就是畫面上的順序。2026-10-30（第七批 124）起 8 類，選單依小標題分段；
- * 同一天第十一批 187 把能源併進科技，變成 7 類；2026-11-03（第十九批）加醫藥，又是 8 類；同一天景點與獎項與運動獨立成「休閒」，9 類。
+ * 同一天第十一批 187 把能源併進科技，變成 7 類；2026-11-03（第十九批）加醫藥，又是 8 類；同一天景點與獎項與運動獨立成「休閒」，9 類；
+ * 2026-11-07 第二十五批 439 能源從科技分出來，10 類；同一天第二十七批 536 休閒拆出「旅遊」，11 類。
  * 新增主題時加進最接近的分類與小標題，也在下面的 TOPIC_MODULES 加一行，再跑 npm run catalog（dev、build 會自動跑）。
  * 分類名稱要短，中文 1024px、英文 1280px 寬的螢幕要放得下整列（DESIGN.md 第 11 節）。
  */
@@ -79,10 +80,12 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'global',
     label: { zh: '國際', en: 'Global' },
     sections: [
-      { label: { zh: '往來', en: 'Flows' }, topics: ['trade', 'migration', 'aid', 'china-lending', 'tourism', 'passport'] },
+      // 觀光、護照與簽證 2026-11-07 搬到旅遊（製作手冊第二十七批 536）
+      { label: { zh: '往來', en: 'Flows' }, topics: ['trade', 'migration', 'aid', 'china-lending'] },
       { label: { zh: '政治', en: 'Politics' }, topics: ['empires', 'democracy', 'governance'] },
       { label: { zh: '外交', en: 'Diplomacy' }, topics: ['organizations', 'un-votes', 'taiwan-diplomacy'] },
-      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news', 'travel-advisories'] },
+      // 旅遊警示 2026-11-07 搬到旅遊（製作手冊第二十七批 536）
+      { label: { zh: '安全', en: 'Security' }, topics: ['military', 'conflict', 'news'] },
     ],
     // 每個小類各占一欄（2026-11-05 使用者要求，外交在政治右邊、安全左邊）：往來；政治；外交；安全
     columns: [1, 1, 1, 1],
@@ -155,7 +158,8 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'geo',
     label: { zh: '地理', en: 'Geography' },
     sections: [
-      { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'travel', 'taipei-view'] },
+      // 旅行實用 2026-11-07 搬到旅遊（製作手冊第二十七批 536）
+      { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'taipei-view'] },
       // 2026-11-07 製作手冊第二十七批 535：原本的「地形與地質」（9 個主題）拆成地形、地質與地震、水與冰三個小類，主題 id 都沒改。
       // 「水與冰」不是使用者 2026-11-05 否決的「海洋」小類：主軸是河川與內陸水域，海洋與漁業仍留在地理類，南極是因為冰才放這裡
       { label: { zh: '地形', en: 'Landforms' }, topics: ['elevation', 'special-landforms', 'reclamation'] },
@@ -168,23 +172,38 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     columns: [1, 2, 2],
   },
   {
-    // 2026-11-03 使用者要求：地理的「景點」與社會的「獎項與運動」獨立成一類（景點原本的夜間燈光搬到社會的人口與家庭）
-    id: 'leisure',
-    label: { zh: '休閒', en: 'Leisure' },
+    // 2026-11-07 製作手冊第二十七批 536：休閒（24 個主題、只有 3 個小類）拆成旅遊與休閒兩類，旅遊排在地理與休閒之間。
+    // 景點整組搬過來；觀光從國際・往來、旅行實用從地理・國家、旅遊警示從國際・安全、護照與簽證從國際・往來、
+    // 鈔票從休閒・日常休閒搬過來（主題 id 都沒改）。樂園小類等順序 630–636 的樂園主題做出來再開（順序 637）
+    id: 'trips',
+    label: { zh: '旅遊', en: 'Travel' },
     sections: [
       // 地下觀光 2026-11-07 從社會的「生活與文化」搬過來（製作手冊第二十六批 534），跟景點地圖一組
       { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'show-caves', 'oldest-universities', 'skyscrapers'] },
+      { label: { zh: '觀光', en: 'Tourism' }, topics: ['tourism', 'travel-habits'] },
+      // 鈔票：使用者 2026-11-07 指定放這裡（跟插頭、電壓、紙張大小同一類「出國會遇到的東西」）
+      { label: { zh: '旅行實用', en: 'Travel basics' }, topics: ['travel', 'travel-advisories', 'passport', 'banknotes'] },
+    ],
+    // 左：景點；右：觀光、旅行實用
+    columns: [1, 2],
+  },
+  {
+    // 2026-11-03 使用者要求：地理的「景點」與社會的「獎項與運動」獨立成一類（景點原本的夜間燈光搬到社會的人口與家庭）；
+    // 2026-11-07 景點、觀光、旅行實用拆到旅遊（製作手冊第二十七批 536），id、名稱、顏色、圖示不變
+    id: 'leisure',
+    label: { zh: '休閒', en: 'Leisure' },
+    sections: [
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'esports', 'horses'] },
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）。
-      // 2026-11-07 從社會的「生活與文化」搬過來四個（製作手冊第二十六批 534）：菜系走到哪裡、原產地名稱接在外食後面，
-      // 狩獵與釣魚接在潛水與攀岩後面，鈔票最不像休閒，暫時放最後
+      // 2026-11-07 從社會的「生活與文化」搬過來的菜系走到哪裡、原產地名稱接在外食後面（製作手冊第二十六批 534）；
+      // 同一天第二十七批 536：狩獵與釣魚併進休閒運動場地（diving）、旅遊習慣搬到旅遊・觀光、鈔票搬到旅遊・旅行實用
       {
         label: { zh: '日常休閒', en: 'Everyday leisure' },
-        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'hunting-fishing', 'gambling', 'holidays', 'travel-habits', 'time-use', 'culture', 'banknotes'],
+        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'gambling', 'holidays', 'time-use', 'culture'],
       },
     ],
-    // 左：景點；中：獎項與運動；右：日常休閒（2026-11-05 使用者要求分成三欄）
-    columns: [1, 1, 1],
+    // 左：獎項與運動；右：日常休閒
+    columns: [1, 1],
   },
 ];
 
@@ -205,7 +224,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'origin-names': () => import('./origin-names'),
   cuisines: () => import('./cuisines'),
   'show-caves': () => import('./show-caves'),
-  'hunting-fishing': () => import('./hunting-fishing'),
   diving: () => import('./diving'),
   gambling: () => import('./gambling'),
   'time-use': () => import('./time-use'),
