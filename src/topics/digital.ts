@@ -88,6 +88,11 @@ export const digital: TopicDefinition = {
   defaultYear: 2024,
   sources: [
     {
+      name: { zh: 'OECD Government at a Glance 2025：Digital Government Index、OURdata Index', en: 'OECD Government at a Glance 2025: Digital Government Index, OURdata Index' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_GOV%40DF_GOV_DGOGD_2025&df[ag]=OECD.GOV.GIP',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
+    {
       name: { zh: 'ITU：ICT Price Baskets（世界銀行 Data360 轉載的 ITU DataHub）', en: 'ITU: ICT Price Baskets (ITU DataHub via World Bank Data360)' },
       url: 'https://data360.worldbank.org/en/dataset/ITU_DH',
       license: { zh: 'CC BY-NC-SA 3.0 IGO（只准非商業使用）', en: 'CC BY-NC-SA 3.0 IGO (non-commercial use only)' },
@@ -366,6 +371,58 @@ export const digital: TopicDefinition = {
       format: (v) => fixed(v, 2) + '%',
       formatTick: (v) => v + '%',
       lowerIsBetter: true,
+    },
+    // 2026-11-07（製作手冊第二十五批 508）OECD 的數位政府指數與開放資料指數，pipeline/topics/digital_gov.py
+    {
+      id: 'digital-government',
+      label: { zh: '數位政府指數（OECD）', en: 'Digital Government Index (OECD)' },
+      description: {
+        zh: 'OECD 的數位政府指數（DGI，0–1 分，Government at a Glance 2025；政府填問卷、OECD 查核，不是客觀量測）。這是候選「數位政府指數」的替代來源：聯合國的 EGDI 條款禁止轉載與改作，改用 OECD 自己的指數，只有 OECD 會員與少數夥伴。2025 年：南韓 0.948、澳洲 0.883、葡萄牙 0.857、英國 0.843、挪威 0.830、愛沙尼亞 0.828、丹麥與愛爾蘭 0.827、法國 0.803、日本 0.670；最低羅馬尼亞 0.237、克羅埃西亞 0.348、保加利亞 0.366、哥斯大黎加 0.451。子項目是六個面向。2022 與 2025 兩版題目有調整，OECD 提醒不要直接比名次。美國、德國、台灣沒有參加。',
+        en: 'The OECD Digital Government Index (DGI, 0–1, Government at a Glance 2025; based on government questionnaires checked by the OECD, not objective measurement). This replaces the UN E-Government Development Index, whose terms prohibit republication and adaptation, and covers only OECD members and a few partners. 2025: South Korea 0.948, Australia 0.883, Portugal 0.857, the UK 0.843, Norway 0.830, Estonia 0.828, Denmark and Ireland 0.827, France 0.803, Japan 0.670; lowest Romania 0.237, Croatia 0.348, Bulgaria 0.366, Costa Rica 0.451. The sub-items are its six dimensions. The 2022 and 2025 questionnaires differ, and the OECD advises against comparing ranks directly. The US, Germany and Taiwan did not take part.',
+      },
+      unit: { zh: '分（0–1）', en: 'score (0–1)' },
+      file: 'gov/dgi/{item}.json',
+      dimension: {
+        label: { zh: '面向', en: 'Dimension' },
+        options: [
+          { id: 'total', label: { zh: '總分', en: 'Overall' } },
+          { id: 'design', label: { zh: '從設計就數位化', en: 'Digital by design' } },
+          { id: 'data', label: { zh: '用資料驅動的公部門', en: 'Data-driven public sector' } },
+          { id: 'platform', label: { zh: '政府即平台', en: 'Government as a platform' } },
+          { id: 'open', label: { zh: '預設開放', en: 'Open by default' } },
+          { id: 'user', label: { zh: '以使用者為中心', en: 'User-driven' } },
+          { id: 'proactive', label: { zh: '主動提供服務', en: 'Proactiveness' } },
+        ],
+        defaultOption: 'total',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8] } },
+      format: (v) => fixed(v, 3),
+      formatTick: (v) => fixed(v, 1),
+      missing: { zh: '沒有資料（只有參加 OECD 調查的約 40 國，沒有台灣）', en: 'No data (only about 40 countries in the OECD survey; Taiwan is not included)' },
+    },
+    {
+      id: 'open-data',
+      label: { zh: '開放資料指數（OECD OURdata）', en: 'Open data index (OECD OURdata)' },
+      description: {
+        zh: 'OECD 的開放政府資料指數（OURdata：open, useful, reusable government data，0–1 分，Government at a Glance 2025），看政府資料開了多少、好不好取用、有沒有推動再利用。2025 年：法國 0.960、南韓 0.951、波蘭 0.821、愛沙尼亞 0.762、西班牙 0.756、捷克 0.721、挪威 0.720、巴西 0.696、日本 0.657；英國 0.499、德國 0.469；最低土耳其 0.060、哥斯大黎加 0.136、泰國 0.142、印尼 0.143。子項目是三個面向。2022 與 2025 兩版題目有調整。台灣不在 OECD 的調查裡。',
+        en: 'The OECD Open, Useful and Reusable Government Data index (OURdata, 0–1, Government at a Glance 2025): how much government data is open, how accessible it is and whether re-use is supported. 2025: France 0.960, South Korea 0.951, Poland 0.821, Estonia 0.762, Spain 0.756, Czechia 0.721, Norway 0.720, Brazil 0.696, Japan 0.657; the UK 0.499, Germany 0.469; lowest Türkiye 0.060, Costa Rica 0.136, Thailand 0.142, Indonesia 0.143. The sub-items are its three dimensions. The 2022 and 2025 questionnaires differ. Taiwan is not in the OECD survey.',
+      },
+      unit: { zh: '分（0–1）', en: 'score (0–1)' },
+      file: 'gov/ourdata/{item}.json',
+      dimension: {
+        label: { zh: '面向', en: 'Dimension' },
+        options: [
+          { id: 'total', label: { zh: '總分', en: 'Overall' } },
+          { id: 'availability', label: { zh: '資料有沒有開', en: 'Data availability' } },
+          { id: 'accessibility', label: { zh: '好不好取用', en: 'Data accessibility' } },
+          { id: 'reuse', label: { zh: '政府推動再利用', en: 'Government support for data re-use' } },
+        ],
+        defaultOption: 'total',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.2, 0.3, 0.4, 0.5, 0.6, 0.8] } },
+      format: (v) => fixed(v, 3),
+      formatTick: (v) => fixed(v, 1),
+      missing: { zh: '沒有資料（只有參加 OECD 調查的約 40 國，沒有台灣）', en: 'No data (only about 40 countries in the OECD survey; Taiwan is not included)' },
     },
     {
       id: 'online-activity',
