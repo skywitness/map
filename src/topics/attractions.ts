@@ -5,6 +5,7 @@ import { MAP_TOKENS, TOKENS } from '../theme/tokens';
 import { attractionsExtra } from './attractions-extra';
 import { attractionsVisitors } from './attractions-visitors';
 import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withMenuGroups, type MenuGroup } from './menu-groups';
 
 /**
  * 景點地圖（pipeline/topics/attractions.py）：世界的博物館、動物園與水族館、主題樂園與雲霄飛車，每一處一個點，三個圖層；
@@ -146,7 +147,18 @@ const NEAR_LIST: ListPanelDef = {
     }),
 };
 
-export const attractions: TopicDefinition = {
+/**
+ * 指標選單的分組（2026-11-07，製作手冊第二十七批 537）：景點地圖改定位成「其他景點與世界的紀錄」的總覽，
+ * 十件不相干的事分組。博物館的指標在順序 638 搬到「博物館與美術館」、樂園的在順序 630–636 搬到樂園的主題；
+ * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組
+ */
+const MENU_GROUPS: MenuGroup[] = [
+  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'visitors', 'water-parks', 'taiwan-sites']],
+  [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
+  [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos']],
+];
+
+const attractionsBase: TopicDefinition = {
   id: 'attractions',
   title: { zh: '景點地圖', en: 'Attractions' },
   shortTitle: { zh: '景點地圖', en: 'Attractions' },
@@ -210,3 +222,5 @@ export const attractions: TopicDefinition = {
     ...attractionsVisitors.indicators,
   ],
 };
+
+export const attractions: TopicDefinition = withMenuGroups(attractionsBase, MENU_GROUPS);

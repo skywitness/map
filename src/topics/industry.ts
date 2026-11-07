@@ -5,6 +5,7 @@ import { DGBAS_SOURCE } from './sectors';
 import type { CategoryDef, ColorClasses, DimensionDef, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
+import { withMenuGroups, type MenuGroup } from './menu-groups';
 import { sectors } from './sectors';
 
 const pct = (v: number) => `${fixed(v, 1)}%`;
@@ -602,8 +603,8 @@ const industryOwn: TopicDefinition = {
   ],
 };
 
-/** 指標選單的分組（2026-11-07，第二十五批 446）：依這個順序排，同一組的排在一起 */
-const MENU_GROUPS: [Text, string[]][] = [
+/** 指標選單的分組（2026-11-07，第二十五批 446）：依這個順序排，同一組的排在一起（menu-groups.ts） */
+const MENU_GROUPS: MenuGroup[] = [
   [
     { zh: '產業結構', en: 'Economic structure' },
     ['agriculture', 'industry', 'manufacturing', 'services', 'employment-agriculture', 'employment-industry', 'employment-services', 'gva-share'],
@@ -632,19 +633,6 @@ const MENU_GROUPS: [Text, string[]][] = [
   [{ zh: '生產力', en: 'Productivity' }, ['labour-productivity', 'capacity-utilization']],
 ];
 
-function withMenuGroups(topic: TopicDefinition): TopicDefinition {
-  const order = new Map(MENU_GROUPS.flatMap(([, ids], g) => ids.map((id, i) => [id, [g, i] as const])));
-  const missing = topic.indicators.filter((i) => !order.has(i.id)).map((i) => i.id);
-  if (missing.length) throw new Error(`產業結構與工業的指標沒有分組：${missing.join(', ')}`); // i18n-ignore 開發時的錯誤訊息
-  const indicators = [...topic.indicators]
-    .sort((a, b) => {
-      const [ga, ia] = order.get(a.id)!;
-      const [gb, ib] = order.get(b.id)!;
-      return ga - gb || ia - ib;
-    })
-    .map((i) => ({ ...i, menuGroup: MENU_GROUPS[order.get(i.id)![0]][0] }));
-  return { ...topic, indicators };
-}
 
 /**
  * 產業結構與工業（2026-11-04，主題整併 併13）：「各國產業結構」（農工服務業占 GDP 與就業）併進來，資料照舊在 sectors/
@@ -659,4 +647,5 @@ export const industry: TopicDefinition = withMenuGroups(
     },
     topicPart(sectors),
   ),
+  MENU_GROUPS,
 );
