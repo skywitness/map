@@ -14,7 +14,7 @@ const indexTick = (v: number) => fixed(v, 0);
 const INDEX_SCALE: ScaleSpec = { type: 'diverging', thresholds: [70, 85, 95, 105, 115, 130], reverse: true };
 
 /**
- * 住宅與房價（housing.ts）的房價部分：2026-10-30（第七批 119）起「房價與居住負擔」併進住宅主題，
+ * 房價（2026-10-30 第七批 119 併進住宅主題；2026-11-07 第二十五批 470 起在經濟類「不動產」的「房價與房租」，real-estate.ts）：
  * 這裡只匯出指標、資料來源與說明
  */
 export const housePricesPart = {

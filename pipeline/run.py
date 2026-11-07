@@ -427,6 +427,8 @@ STEPS = {
     "business-demography": "topics.business_demography",
     # 開公司有多麻煩、國家持股有多深（新主題）：OECD 產品市場管制指標 PMR（2018、2023，含台灣）
     "market-regulation": "topics.market_regulation",
+    # 房價與房租（新主題，不動產）：Eurostat 派駐地城市的房租、台灣六都的實價登錄租金，輸出 housing/rents.json
+    "real-estate-rents": "topics.real_estate_rents",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

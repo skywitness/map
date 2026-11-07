@@ -18,6 +18,7 @@ export const FOREIGN_LAYERS: ForeignTopicEntry[] = [
   {"topic":"industry","layers":[{"id":"steel-plants","label":{"zh":"鋼鐵廠（Global Energy Monitor）","en":"Iron and steel plants (Global Energy Monitor)"},"kind":"points"},{"id":"cement-plants","label":{"zh":"水泥廠（Global Energy Monitor）","en":"Cement plants (Global Energy Monitor)"},"kind":"points"}]},
   {"topic":"minerals","layers":[{"id":"mines","label":{"zh":"礦場與加工廠（USGS MRDS，2011 年停止更新）","en":"Mines and plants (USGS MRDS, not updated since 2011)"},"kind":"points"}]},
   {"topic":"companies","layers":[{"id":"companies","label":{"zh":"公司（有 Wikidata 座標的）","en":"Companies (with Wikidata locations)"},"kind":"points"}]},
+  {"topic":"real-estate","layers":[{"id":"rent-flat1","label":{"zh":"城市的房租","en":"City rents"},"kind":"points"},{"id":"rent-flat2","label":{"zh":"城市的房租","en":"City rents"},"kind":"points"},{"id":"rent-flat3","label":{"zh":"城市的房租","en":"City rents"},"kind":"points"},{"id":"rent-house-d","label":{"zh":"城市的房租","en":"City rents"},"kind":"points"},{"id":"rent-house-nd","label":{"zh":"城市的房租","en":"City rents"},"kind":"points"}]},
   {"topic":"migration","layers":[{"id":"chinatowns","label":{"zh":"唐人街","en":"Chinatowns"},"kind":"points"}]},
   {"topic":"empires","layers":[{"id":"polities","label":{"zh":"政體的範圍","en":"Polities"},"kind":"lines"},{"id":"polity-names","label":{"zh":"政體的名稱","en":"Polity names"},"kind":"points"}]},
   {"topic":"taiwan-diplomacy","layers":[{"id":"missions","label":{"zh":"駐外館處","en":"Taiwan missions"},"kind":"points"}]},

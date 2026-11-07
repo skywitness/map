@@ -30,7 +30,7 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   // 月球與火星的登陸併進太空（第七批 118），指標 id 不變
   landings: { topic: 'space', indicator: 'moon' },
   // 房價與居住負擔併進住宅（第七批 119，住宅與房價保留 housing 的 id），指標 id 不變
-  'house-prices': { topic: 'housing', indicator: 'real-price-10y' },
+  'house-prices': { topic: 'real-estate', indicator: 'real-price-10y' }, // 2026-11-07 起房價在「房價與房租」
   // 企業與品牌（第七批 120）：最古老的公司、品牌的發源地，指標 id 不變
   'oldest-companies': { topic: 'companies', indicator: 'companies' },
   brands: { topic: 'companies', indicator: 'brands' },
@@ -98,6 +98,10 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
  * 例如交通的航空旅客量搬到航空：t/transport/?ind=air-passengers 轉到 t/aviation/?ind=air-passengers
  */
 export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
+  // 住宅（2026-11-07，第二十五批 470）：房價的 5 個指標搬到經濟類「不動產」的「房價與房租」，指標 id 不變
+  housing: Object.fromEntries(
+    ['real-price-10y', 'real-price-5y', 'price-income', 'price-rent', 'real-rent-5y'].map((id) => [id, { topic: 'real-estate' }]),
+  ),
   // 交通（id transport，第十一批 186 起叫鐵路）：機場與航空旅客指標搬到航空（第七批 117，第十一批起叫機場與旅客），
   // 地鐵站、第一條高鐵搬到地鐵與城市軌道、高鐵（第十一批 186），指標 id 都不變
   transport: {

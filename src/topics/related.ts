@@ -72,6 +72,7 @@ export const RELATED: Record<string, string[]> = {
   banking: ['stock-market', 'reserves', 'wealth'],
   'business-demography': ['companies', 'market-regulation', 'employment'],
   'market-regulation': ['business-demography', 'governance', 'taxes'],
+  'real-estate': ['housing', 'wealth', 'banking'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],

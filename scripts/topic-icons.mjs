@@ -118,6 +118,7 @@ const TOPIC_ICONS = {
   banking: 'banknote-arrow-up',
   'business-demography': 'sprout',
   'market-regulation': 'file-stack',
+  'real-estate': 'key-round',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
