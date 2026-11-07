@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 180;
-export const INDICATOR_COUNT = 1376;
+export const TOPIC_COUNT = 181;
+export const INDICATOR_COUNT = 1379;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -188,6 +188,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Global Wind Atlas 4.0（丹麥技術大學 DTU 與世界銀行，ESMAP 出資，中尺度模擬由 Vortex 製作）","en":"Global Wind Atlas 4.0 (Technical University of Denmark and the World Bank Group, funded by ESMAP, mesoscale data by Vortex)"},"url":"https://globalwindatlas.info/","licenses":["CC BY 4.0"],"topics":["renewables"]},
   {"name":{"zh":"GloRiC 1.0 版（Ouellet Dallaire、Lehner、Sayre、Thieme 2019，Environ. Res. Lett. 14: 024003；HydroSHEDS）","en":"GloRiC v1.0 (Ouellet Dallaire, Lehner, Sayre & Thieme 2019, Environ. Res. Lett. 14: 024003; HydroSHEDS)"},"url":"https://www.hydrosheds.org/products/gloric","licenses":[{"zh":"HydroSHEDS 授權協議","en":"HydroSHEDS License Agreement"}],"topics":["rivers"]},
   {"name":"Glottolog 5.3","url":"https://glottolog.org/","licenses":["CC BY 4.0"],"topics":["language"]},
+  {"name":{"zh":"GLWD 全球湖泊與濕地資料庫第 2 版（Lehner 等 2025，Earth System Science Data；figshare 28519994）","en":"Global Lakes and Wetlands Database (GLWD) version 2 (Lehner et al. 2025, Earth System Science Data; figshare 28519994)"},"url":"https://doi.org/10.6084/m9.figshare.28519994.v1","licenses":["CC BY 4.0"],"topics":["wetlands"]},
   {"name":{"zh":"GMBA 山脈名錄 v2（291 個主要山系）","en":"GMBA Mountain Inventory v2 (291 major mountain systems)"},"url":"https://www.earthenv.org/mountains","licenses":["CC BY 4.0"],"topics":["elevation"]},
   {"name":{"zh":"Google libaddressinput 地址資料（地址順序、郵遞區號）","en":"Google libaddressinput address data (address order, postcodes)"},"url":"https://github.com/google/libaddressinput","licenses":["CC BY 4.0"],"topics":["travel"]},
   {"name":{"zh":"Google libphonenumber 9.0.43（國際冠碼、國內冠碼、手機號碼長度）","en":"Google libphonenumber 9.0.43 (international and trunk prefixes, mobile number lengths)"},"url":"https://github.com/google/libphonenumber","licenses":["Apache 2.0"],"topics":["travel"]},

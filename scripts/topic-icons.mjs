@@ -224,6 +224,7 @@ const TOPIC_ICONS = {
   plates: 'puzzle',
   gssp: 'pin',
   'mountain-passes': 'signpost-big',
+  wetlands: 'bird',
   lithology: 'layers',
   'special-landforms': 'tree-palm',
   reclamation: 'land-plot',
