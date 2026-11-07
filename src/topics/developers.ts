@@ -1,5 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent } from '../lib/format';
+import { developerChoicesPart } from './developer-choices';
+import { withParts } from './parts';
 import type { FlowLabels, FlowLayer, IndicatorDef, Text, TopicDefinition } from './types';
 
 /**
@@ -160,7 +162,7 @@ const indicators: IndicatorDef[] = [
   ),
 ];
 
-export const developers: TopicDefinition = {
+export const developers: TopicDefinition = withParts({
   id: 'developers',
   title: { zh: '開發者與開源', en: 'Developers and open source' },
   shortTitle: { zh: '開發者', en: 'Developers' },
@@ -184,4 +186,4 @@ export const developers: TopicDefinition = {
   },
   panelExtra: () => import('./panels/DevelopersPanel'),
   indicators,
-};
+}, developerChoicesPart);
