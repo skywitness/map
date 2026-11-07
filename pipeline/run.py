@@ -415,6 +415,8 @@ STEPS = {
     "prices-food-rates": "topics.prices_food_rates",
     # 保險（新主題，金融服務）：OECD Global Insurance Statistics（含台灣，15 個維度的 key 要補滿）、保發中心的投保率
     "insurance": "topics.insurance",
+    # 銀行與信貸（新主題，金融服務）：WDI 私部門信貸、廣義貨幣、不良貸款、銀行資本；台灣用央行 LOAN-S 與金管會 banking12
+    "banking": "topics.banking",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

@@ -115,6 +115,7 @@ const TOPIC_ICONS = {
   reserves: 'vault',
   'stock-market': 'chart-candlestick',
   insurance: 'shield-plus',
+  banking: 'banknote-arrow-up',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
