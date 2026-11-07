@@ -1,5 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { metroSpeedPart } from './metro-speed';
+import { withParts } from './parts';
 import type { GridSpec, IndicatorDef, ScaleSpec, Text, TopicDefinition } from './types';
 
 /**
@@ -220,7 +222,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const internetSpeed: TopicDefinition = {
+export const internetSpeed: TopicDefinition = withParts({
   id: 'internet-speed',
   title: { zh: '網路速度', en: 'Internet speed' },
   shortTitle: { zh: '網速', en: 'Net speed' },
@@ -265,4 +267,4 @@ export const internetSpeed: TopicDefinition = {
   // 2026-11-07 起包一層：選 OECD 寬頻資料庫的指標時先畫固網技術的折線
   panelExtra: () => import('./panels/BroadbandPanel'),
   indicators,
-};
+}, metroSpeedPart);
