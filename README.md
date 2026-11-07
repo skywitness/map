@@ -223,6 +223,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `top500` 是大型科學設施主題的超級電腦國別分布：英文維基「TOP500」固定版本的 HTML（約 0.7 MB），一秒內。
 
+`printers3d` 是半導體主題的 3D 列印機（HS 8485）貿易：Harvard Atlas GraphQL 一次查詢（2022–2024），快取在 `.cache/atlas/hs22-8485.json`。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

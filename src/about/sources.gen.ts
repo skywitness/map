@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 173;
-export const INDICATOR_COUNT = 1301;
+export const INDICATOR_COUNT = 1302;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -50,6 +50,7 @@ export const SOURCES: AboutSource[] = [
   {"name":"FAO, FAOSTAT","url":"https://www.fao.org/faostat/","licenses":["CC BY 4.0"],"topics":["diet","agriculture"]},
   {"name":{"zh":"FAO, FAOSTAT 農作物與畜產品生產（QCL）：馬的在養頭數","en":"FAO, FAOSTAT Crops and livestock products (QCL): horse stocks"},"url":"https://www.fao.org/faostat/en/#data/QCL","licenses":["CC BY 4.0"],"topics":["tobacco-alcohol","horses"]},
   {"name":{"zh":"GHSL Urban Centre Database（部分大樓的城市名稱，同城市主題）","en":"GHSL Urban Centre Database (city names for some buildings, as in the Cities topic)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_ucdb_2024.php","licenses":["CC BY 4.0 / CC0","CC BY 4.0"],"topics":["cities","skyscrapers"]},
+  {"name":"Harvard Growth Lab, Atlas of Economic Complexity","url":"https://atlas.hks.harvard.edu/","licenses":["CC0"],"topics":["industry","semiconductors"]},
   {"name":{"zh":"IANA 時區資料庫（tzdata 2026f）","en":"IANA Time Zone Database (tzdata 2026f)"},"url":"https://www.iana.org/time-zones","licenses":[{"zh":"公有領域","en":"public domain"}],"topics":["travel","daylight"]},
   {"name":{"zh":"Natural Earth 1:10m 第一級行政區","en":"Natural Earth 1:10m Admin 1"},"url":"https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/","licenses":[{"zh":"公有領域","en":"public domain"},{"zh":"公有領域","en":"Public domain"}],"topics":["map","night-lights"]},
   {"name":{"zh":"PB2002 板塊邊界（Bird 2003；Hugo Ahlenius、Nordpil 整理）","en":"PB2002 plate boundaries (Bird 2003; compiled by Hugo Ahlenius, Nordpil)"},"url":"https://github.com/fraxen/tectonicplates","licenses":["ODC-By 1.0"],"topics":["plates","earthquakes"]},
@@ -185,7 +186,6 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Green Climate Fund 公開 API（v1/projects）——First published by the Green Climate Fund","en":"Green Climate Fund open API (v1/projects) — First published by the Green Climate Fund"},"url":"https://greenclimate.fund","licenses":[{"zh":"只准非商業使用，要附署名句與連結","en":"Non-commercial use only, with the attribution statement and link"}],"topics":["climate-finance"]},
   {"name":{"zh":"GWIS 全球野火資訊系統（歐盟執委會 JRC、Copernicus）, MODIS Global Monthly Burned Area","en":"Global Wildfire Information System (GWIS; European Commission JRC, Copernicus), MODIS Global Monthly Burned Area"},"url":"https://gwis.jrc.ec.europa.eu/apps/country.profile/downloads","licenses":["CC BY 4.0"],"topics":["wildfires"]},
   {"name":{"zh":"Hartmann & Moosdorf 2012，全球岩性圖資料庫 GLiM v1.0（0.5° 網格版，PANGAEA）","en":"Hartmann & Moosdorf 2012, Global Lithological Map Database GLiM v1.0 (gridded to 0.5°, PANGAEA)"},"url":"https://doi.org/10.1594/PANGAEA.788537","licenses":["CC BY 3.0"],"topics":["lithology"]},
-  {"name":"Harvard Growth Lab, Atlas of Economic Complexity","url":"https://atlas.hks.harvard.edu/","licenses":["CC0"],"topics":["industry"]},
   {"name":{"zh":"Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (HS92)（四位碼品項的世界出口市占與世界第一的品項數）","en":"Harvard Growth Lab, Atlas of Economic Complexity: International Trade Data (HS92) (world export shares by four-digit heading; products led)"},"url":"https://doi.org/10.7910/DVN/T4CHWJ","licenses":["CC0 1.0"],"topics":["industry"]},
   {"name":{"zh":"Helliwell, J. F., Layard, R., Sachs, J. D., De Neve, J.-E., Aknin, L. B., & Wang, S. (Eds.). (2026). World Happiness Report 2026（Figure 2.1 的資料；資料來自 Gallup World Poll）","en":"Helliwell, J. F., Layard, R., Sachs, J. D., De Neve, J.-E., Aknin, L. B., & Wang, S. (Eds.). (2026). World Happiness Report 2026 (data for Figure 2.1; data from the Gallup World Poll)"},"url":"https://worldhappiness.report/data-sharing/","licenses":[{"zh":"註明出處後可以轉載（WHR 的資料分享說明）","en":"May be reproduced with the reference (WHR data sharing policy)"}],"topics":["happiness"]},
   {"name":{"zh":"holidays 0.108（Open World Holidays Framework，vacanza）的 Python 套件，離線計算","en":"holidays 0.108 (Open World Holidays Framework, vacanza), Python package, computed offline"},"url":"https://github.com/vacanza/holidays","licenses":[{"zh":"MIT 授權（© vacanza 與貢獻者）","en":"MIT License (© vacanza and contributors)"}],"topics":["holidays"]},

@@ -76,6 +76,11 @@ export const semiconductors: TopicDefinition = {
   defaultYear: 2024,
   sources: [
     {
+      name: { zh: 'The Growth Lab at Harvard University, Atlas of Economic Complexity（3D 列印機 HS 8485）', en: 'The Growth Lab at Harvard University, Atlas of Economic Complexity (3D printers, HS 8485)' },
+      url: 'https://atlas.hks.harvard.edu/',
+      license: 'CC0',
+    },
+    {
       name: { zh: 'World Bank, World Development Indicators（ICT 貨品與服務占出口：UNCTAD、IMF）', en: 'World Bank, World Development Indicators (ICT goods and services exports: UNCTAD, IMF)' },
       url: 'https://data.worldbank.org/indicator/TX.VAL.ICTG.ZS.UN',
       license: 'CC BY 4.0',
@@ -176,6 +181,28 @@ export const semiconductors: TopicDefinition = {
       format: (v) => formatPercent(v, 1),
       formatTick: (v) => v + '%',
       missing: NO_TAIWAN_WDI,
+    },
+    // 2026-11-07（製作手冊第二十五批 514）3D 列印機（HS 8485）的貿易，Harvard Atlas（pipeline/topics/printers3d.py）：不用子項目「商品」
+    {
+      id: 'printers3d',
+      label: { zh: '3D 列印機的出口與進口', en: '3D printer exports and imports' },
+      description: {
+        zh: 'HS 2022 新設的 8485「積層製造機器」（3D 列印機）的出口與進口金額（Harvard Growth Lab Atlas，2022–2024 年；2022 年以前散在別的稅號，不能往前接）。2024 年全球出口只有約 28.3 億美元：中國 12.7 億、德國 5.48 億、美國 2.07 億、以色列 1.22 億、捷克 9,020 萬、荷蘭 8,620 萬；台灣出口 749 萬、進口 1,516 萬美元。進口最多的是美國 8.77 億、德國 4.95 億。2022 年是新稅號的第一年，新加坡（6.6 億）、台灣（2.1 億）的金額特別大，可能是歸類還沒穩定。金額小，少數大訂單就會讓排名跳動。',
+        en: 'Exports and imports of HS 2022 heading 8485, additive manufacturing machines (3D printers) (Harvard Growth Lab Atlas, 2022–2024; before 2022 they were spread over other headings, so there is no longer series). World exports in 2024 were only about US$2.83 billion: China 1.27 billion, Germany 548 million, the US 207 million, Israel 122 million, Czechia 90.2 million, the Netherlands 86.2 million; Taiwan exported 7.49 million and imported 15.16 million. The largest importers are the US (877 million) and Germany (495 million). 2022 was the heading’s first year, and Singapore (662 million) and Taiwan (213 million) are unusually large, perhaps because classification had not settled. Values are small, so a few large orders can reshuffle the ranking.',
+      },
+      unit: { zh: '美元', en: 'US$' },
+      file: 'printers3d/{item}.json',
+      dimension: {
+        label: { zh: '方向', en: 'Direction' },
+        options: [
+          { id: 'exports', label: { zh: '出口', en: 'Exports' } },
+          { id: 'imports', label: { zh: '進口', en: 'Imports' } },
+        ],
+        defaultOption: 'exports',
+      },
+      layer: { kind: 'bubble', legendValues: [1e7, 1e8, 1e9] },
+      format: (v) => usd(formatLargeNumber(v)),
+      formatTick: formatLargeTick,
     },
   ],
 };
