@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { fixed } from '../../lib/format';
+import { fixed, formatLargeNumber } from '../../lib/format';
 import { decodePoints } from '../../map/overlayData';
 import { elevation, lastEruption, magnitude, quakeDate, volcanoRock, volcanoType } from '../earthquakes';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';
@@ -16,6 +16,12 @@ interface Deadliest {
 interface DeadliestEruptions {
   fields: ['year', 'volcano', 'vei', 'deaths', 'agent'];
   countries: Record<string, [number, string, number | null, number, string | null][]>;
+}
+
+/** quake_extra.py 輸出的 quake-costliest.json：每個國家損失最大的 8 次地震（NOAA，2026-11-07 製作手冊 540） */
+interface Costliest {
+  fields: ['year', 'md', 'mag', 'damage', 'houses', 'place'];
+  countries: Record<string, [number, number, number | null, number, number | null, string][]>;
 }
 
 /** NOAA 的死因代碼（agent），沒列的照原文 */
@@ -53,6 +59,9 @@ const TEXT = defineMessages({
     volcanoes: (n: number) => `全新世火山（${n} 座）`,
     noVolcanoes: '沒有全新世火山。',
     more: (n: number) => `還有 ${n} 座，地圖上都看得到。`,
+    costliest: '損失最大的地震',
+    damage: (millions: number) => `損失 ${formatLargeNumber(millions * 1e6)} 美元（當年）`,
+    houses: (n: number) => `全毀 ${n0(n)} 棟`,
     eruptions: '死亡最多的火山噴發',
     noEruptions: 'NOAA 的重大火山噴發資料庫沒有這個國家的死亡紀錄。',
     year: (y: number) => (y < 0 ? `西元前 ${-y} 年` : `${y} 年`),
@@ -71,6 +80,9 @@ const TEXT = defineMessages({
     volcanoes: (n) => `Holocene volcanoes (${n})`,
     noVolcanoes: 'No Holocene volcanoes.',
     more: (n) => `${n} more, all shown on the map.`,
+    costliest: 'Costliest earthquakes',
+    damage: (millions) => `US$${formatLargeNumber(millions * 1e6)} in damage (current)`,
+    houses: (n) => `${n0(n)} houses destroyed`,
     eruptions: 'Deadliest volcanic eruptions',
     noEruptions: 'The NOAA Significant Volcanic Eruptions Database records no deaths in this country.',
     year: (y) => (y < 0 ? `${-y} BCE` : String(y)),
@@ -97,6 +109,7 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
   const volcanoes = useCountryPoints(`${base}/volcanoes.json`, iso3);
   const { data: deadly, error: deadlyError } = useJson<Deadliest>(`${base}/deadliest.json`);
   const { data: eruptionData, error: eruptionError } = useJson<DeadliestEruptions>(`${base}/volcano-deadliest.json`);
+  const { data: costData, error: costError } = useJson<Costliest>(`${base}/quake-costliest.json`);
 
   const largest = useMemo(
     () =>
@@ -116,9 +129,10 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
     [volcanoes.points],
   );
 
-  const error = quakes.error ?? volcanoes.error ?? deadlyError ?? eruptionError;
+  const error = quakes.error ?? volcanoes.error ?? deadlyError ?? eruptionError ?? costError;
   if (error) return <p className="empty">{t.loadFailed(error.message)}</p>;
-  if (!largest || !recentVolcanoes || !deadly || !eruptionData) return <p className="empty">{t.loading}</p>;
+  if (!largest || !recentVolcanoes || !deadly || !eruptionData || !costData) return <p className="empty">{t.loading}</p>;
+  const costliest = costData.countries[iso3] ?? [];
   const deadliest = (deadly.countries[iso3] ?? []).slice(0, DEADLIEST);
   const deadlyEruptions = eruptionData.countries[iso3] ?? [];
   const causes = (agent: string | null) =>
@@ -184,6 +198,28 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
         </ul>
       ) : (
         <p className="empty">{text.noDeaths}</p>
+      )}
+
+      {costliest.length > 0 && (
+        <>
+          <h3>{text.costliest}</h3>
+          <ul className="plain-list">
+            {costliest.map(([year, md, mag, damage, houses, place], i) => (
+              <li key={i}>
+                <span className="plain-title">
+                  {mag !== null && <span className="iata">{magnitude(mag)}</span>}
+                  {quakeDate(year, md)}
+                </span>
+                <span className="plain-meta">{[text.damage(damage), houses ? text.houses(houses) : null].filter(Boolean).join(' · ')}</span>
+                {place && (
+                  <span className="plain-meta" translate="no">
+                    {place}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <h3>{text.eruptions}</h3>

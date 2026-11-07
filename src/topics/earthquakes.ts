@@ -323,6 +323,85 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
+// ── 地震的損失、房屋、受傷，史上最大的規模與密度（2026-11-07，製作手冊第二十七批 540；pipeline/topics/quake_extra.py）──
+
+const usdMillions = (v: number) => tr({ zh: `${formatLargeNumber(v * 1e6)} 美元`, en: `US$${formatLargeNumber(v * 1e6)}` });
+const quakeExtraIndicators: IndicatorDef[] = [
+  {
+    id: 'quake-damage',
+    label: { zh: '地震的經濟損失', en: 'Earthquake damage' },
+    description: {
+      zh: 'NOAA 重大地震資料庫 1900 年起地震造成的經濟損失（美元，當年的名目金額，沒有通膨調整；只算有確切金額的 667 次，含引發的海嘯與火災；記在受災的國家）。日本 4,324 億美元最多，約一半是 2011 年東北地震（2,201 億），其次中國 1,176 億、土耳其 676 億、美國 598 億、義大利 551 億、智利 353 億、紐西蘭 287 億、委內瑞拉 198 億，台灣 196 億第 9（1999 年集集地震 140 億），墨西哥、印尼各 189 億。點國家看損失最大的幾次。',
+      en: 'Economic losses from earthquakes since 1900 in NOAA’s Significant Earthquake Database (US dollars at the time, not adjusted for inflation; only the 667 events with an exact figure, including resulting tsunamis and fires; counted in the country affected). Japan leads with US$432.4 billion, about half of it from the 2011 Tōhoku earthquake (US$220.1 billion), followed by China 117.6 billion, Türkiye 67.6 billion, the US 59.8 billion, Italy 55.1 billion, Chile 35.3 billion, New Zealand 28.7 billion and Venezuela 19.8 billion; Taiwan is ninth with 19.6 billion (14.0 billion from the 1999 Chi-Chi earthquake), and Mexico and Indonesia have 18.9 billion each. Select a country for its costliest earthquakes.',
+    },
+    unit: { zh: '美元（當年）', en: 'US$ (current)' },
+    file: 'quake-damage.json',
+    layer: { kind: 'bubble', legendValues: [100, 10000, 100000] },
+    timeless: true,
+    format: usdMillions,
+    formatTick: (v) => formatLargeTick(v * 1e6),
+    shareOfWorld: true,
+  },
+  {
+    id: 'quake-houses',
+    label: { zh: '地震全毀的房屋', en: 'Houses destroyed by earthquakes' },
+    description: {
+      zh: 'NOAA 重大地震資料庫 1900 年起地震全毀的房屋棟數（只算有確切棟數的 820 次，含海嘯）。中國 935 萬棟最多，日本 127 萬、土耳其 95 萬、尼泊爾 53 萬、印度 48 萬、印尼 42 萬；台灣 75,607 棟（第 19）。各國對「全毀」的認定不同，棟數也不分大小。',
+      en: 'Houses destroyed by earthquakes since 1900 in NOAA’s Significant Earthquake Database (only the 820 events with an exact count, including tsunamis). China leads with 9.35 million, then Japan 1.27 million, Türkiye 952,000, Nepal 532,000, India 479,000 and Indonesia 425,000; Taiwan has 75,607 (19th). What counts as destroyed differs between countries, and a house is a house regardless of size.',
+    },
+    unit: { zh: '棟', en: 'houses' },
+    file: 'quake-houses.json',
+    layer: { kind: 'bubble', legendValues: [1000, 100000, 1000000] },
+    timeless: true,
+    format: (v) => tr({ zh: `${formatLargeNumber(v)} 棟`, en: `${formatLargeNumber(v)} houses` }),
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+  },
+  {
+    id: 'quake-injuries',
+    label: { zh: '地震受傷人數', en: 'Earthquake injuries' },
+    description: {
+      zh: 'NOAA 重大地震資料庫 1900 年起地震造成的受傷人數（只算有確切人數的）。中國 131 萬人最多，土耳其 31.8 萬、海地 31.3 萬、伊朗 20.7 萬、印度 20.2 萬、巴基斯坦 16.9 萬、日本 15.1 萬；台灣 32,852 人（第 13）。',
+      en: 'People injured by earthquakes since 1900 in NOAA’s Significant Earthquake Database (only events with an exact count). China leads with 1.31 million, then Türkiye 318,000, Haiti 313,000, Iran 207,000, India 202,000, Pakistan 169,000 and Japan 151,000; Taiwan has 32,852 (13th).',
+    },
+    unit: { zh: '人', en: 'people' },
+    file: 'quake-injuries.json',
+    layer: { kind: 'bubble', legendValues: [1000, 100000, 1000000] },
+    timeless: true,
+    format: (v) => tr({ zh: `${formatLargeNumber(v)} 人受傷`, en: `${formatLargeNumber(v)} injured` }),
+    formatTick: formatLargeTick,
+    shareOfWorld: true,
+  },
+  {
+    id: 'max-magnitude',
+    label: { zh: '史上最大的地震規模', en: 'Largest earthquake on record' },
+    description: {
+      zh: '1900 年起這一國最大的地震規模（USGS；震央在國界內或離岸 50 公里以內，更遠但有人死亡的照 NOAA 記的國家）。智利 1960 年的 9.5 最大，美國阿拉斯加 1964 年 9.2、日本 2011 年東北地震 9.1、印尼 2004 年蘇門答臘 9.1、俄羅斯堪察加 1952 年 9.0、厄瓜多 1906 年 8.8。台灣是 1920 年 6 月花蓮外海的 8.2，1999 年集集地震是 7.7。1970 年代以前的規模是後來重新估的，1960 年以前的誤差比較大。',
+      en: 'The largest earthquake since 1900 in each country (USGS; epicentre on land or within 50 km of the coast, or farther out if NOAA records deaths in that country). Chile’s 1960 M9.5 is the largest, followed by Alaska (US) 1964 M9.2, Japan’s 2011 Tōhoku M9.1, Sumatra (Indonesia) 2004 M9.1, Kamchatka (Russia) 1952 M9.0 and Ecuador 1906 M8.8. Taiwan’s is the M8.2 off Hualien in June 1920; the 1999 Chi-Chi earthquake was M7.7. Magnitudes before the 1970s were re-estimated later, and those before 1960 are less certain.',
+    },
+    unit: { zh: '規模', en: 'magnitude' },
+    file: 'max-magnitude.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [6.5, 7, 7.5, 8, 8.5, 9] } },
+    timeless: true,
+    format: magnitude,
+    formatTick: (v) => fixed(v, 1),
+  },
+  {
+    id: 'quake-density',
+    label: { zh: '地震的密度', en: 'Earthquake density' },
+    description: {
+      zh: '1900 年起規模 6 以上的地震，平均每萬平方公里陸地有幾次（國家歸屬同「歷年地震」，含離岸 50 公里內的海域地震，所以小島國特別高；陸地面積用 FAOSTAT）。北馬里亞納 613 次、瓦利斯和富圖納 352、萬那杜 252、東加 250、關島 240、索羅門群島 97.2，台灣 52.5（186 次）、斐濟 50.4、巴布亞紐幾內亞 14.6、哥斯大黎加 13.7、菲律賓 13.6、日本 11.1。',
+      en: 'M6+ earthquakes since 1900 per 10,000 km² of land (countries assigned as in the cumulative earthquake view, including quakes within 50 km offshore, which is why small island states rank high; land area from FAOSTAT). The Northern Mariana Islands lead with 613, then Wallis and Futuna 352, Vanuatu 252, Tonga 250, Guam 240 and the Solomon Islands 97.2; Taiwan has 52.5 (186 quakes), Fiji 50.4, Papua New Guinea 14.6, Costa Rica 13.7, the Philippines 13.6 and Japan 11.1.',
+    },
+    unit: { zh: '次／萬平方公里', en: 'per 10,000 km²' },
+    file: 'quake-density.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 5, 10, 25] } },
+    timeless: true,
+    format: (v) => tr({ zh: `每萬平方公里 ${fixed(v, v >= 100 ? 0 : 1)} 次`, en: `${fixed(v, v >= 100 ? 0 : 1)} per 10,000 km²` }),
+    formatTick: (v) => fixed(v, v < 1 ? 1 : 0),
+  },
+];
+
 // ── 火山的類型、岩性、噴發史（2026-11-07，製作手冊第二十七批 538；pipeline/topics/volcano_extra.py）──
 
 /** 有火山點的指標：更新世的火山只畫在這些指標上 */
@@ -649,7 +728,7 @@ export const earthquakes: TopicDefinition = {
     // 2026-11-06（板6）：USGS 最近 7 天規模 4.5 以上的地震，瀏覽器直接讀，每 5 分鐘重讀（預設關閉）
     liveQuakesOverlay([...QUAKE_INDICATORS, 'plates'], DEPTH, MAG_STOPS),
   ],
-  indicators: [...indicators, ...volcanoIndicators, PLATES_INDICATOR, ...landslidesPart.indicators],
+  indicators: [...indicators, ...quakeExtraIndicators, ...volcanoIndicators, PLATES_INDICATOR, ...landslidesPart.indicators],
   // 2026-11-06（板4、板5）：「板塊」指標滑到任一點寫在哪一塊板塊、離最近的邊界多遠；「定位我」放的觀察點也寫；左側欄是各板塊的人口
   pointer: platePointer,
   pin: platePin,
