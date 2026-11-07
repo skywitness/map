@@ -391,6 +391,8 @@ STEPS = {
     "industry-products": "topics.industry_products",
     # 產業與工業：產能利用率（Eurostat 季資料）、工業與服務業的勞動生產力（WDI）、GDP 的十大產業（Eurostat＋主計總處）
     "industry-productivity": "topics.industry_productivity",
+    # 人均收入：勞動報酬占 GDP（ILOSTAT SDG 10.4.1，ILO 模型估計，含台灣）
+    "income-labour-share": "topics.labour_share",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

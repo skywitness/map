@@ -17,6 +17,11 @@ export const income: TopicDefinition = {
     },
     { name: 'World Bank, World Development Indicators', url: 'https://data.worldbank.org/', license: 'CC BY 4.0' },
     LONG_RUN_SOURCE,
+    {
+      name: { zh: 'ILOSTAT：SDG 10.4.1 勞動報酬占 GDP（DF_SDG_1041_NOC_RT，ILO 模型估計）', en: 'ILOSTAT: SDG 10.4.1 labour share of GDP (DF_SDG_1041_NOC_RT, ILO modelled estimates)' },
+      url: 'https://ilostat.ilo.org/data/',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '2026 年起為 IMF 推估值。古巴、格陵蘭等 IMF 未涵蓋的地區改用世界銀行資料。',
@@ -92,6 +97,21 @@ export const income: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1000, 2500, 5000, 10000, 25000, 50000] } },
       format: (v) => intlDollars(fixed(v, 0)),
       formatTick: formatLargeTick,
+      compareWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'labour-share',
+      label: { zh: '勞動報酬占 GDP', en: 'Labour share of GDP' },
+      description: {
+        zh: '一年產出的所得裡有幾成付給勞動（受僱者的薪資與雇主負擔的保費，加上自僱者所得裡推估屬於勞動的部分），聯合國永續發展目標 10.4.1（ILO 的模型估計，2004 年起；2025 年以後是推估）。2024 年德國 62.0%、法國 60.0%、南韓 58.1%、美國 55.5%、日本 54.8%、台灣 51.9%、中國大陸 51.2%、新加坡 42.8%，世界 52.5%；瑞士 71.3% 最高之一，石油國卡達 27.8%、巴林 27.5% 偏低。奈及利亞 75.1% 這類極端值是非正式就業多、自僱所得多半算成勞動報酬，不代表勞工分得多。跟人均 GDP 一起看：經濟成長了，薪水有沒有跟上。',
+        en: 'The share of the income an economy produces in a year that goes to labour (employees’ pay and employers’ social contributions, plus the part of self-employment income estimated to be labour), UN Sustainable Development Goal indicator 10.4.1 (ILO modelled estimates from 2004; projections from 2025). In 2024 Germany was 62.0%, France 60.0%, South Korea 58.1%, the US 55.5%, Japan 54.8%, Taiwan 51.9%, mainland China 51.2% and Singapore 42.8%, against a world 52.5%; Switzerland’s 71.3% is among the highest, while oil states such as Qatar (27.8%) and Bahrain (27.5%) are low. Extremes like Nigeria’s 75.1% reflect widespread informal work, with self-employment income counted largely as labour, not a better deal for workers. Read it alongside GDP per capita: has pay kept up with growth?',
+      },
+      unit: '%',
+      file: 'labour-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [35, 42, 48, 53, 58, 63] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
       compareWorld: true,
       defaultYear: 2024,
     },
