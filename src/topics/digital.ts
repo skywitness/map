@@ -75,6 +75,11 @@ export const digital: TopicDefinition = {
   defaultYear: 2024,
   sources: [
     {
+      name: { zh: 'UNESCO UIS：ICT skills（ITU 家戶調查，上網活動與 SDG 4.4.1 數位技能）', en: 'UNESCO UIS: ICT skills (ITU household surveys; online activities and SDG 4.4.1 digital skills)' },
+      url: 'https://databrowser.uis.unesco.org/',
+      license: 'CC BY-SA 4.0',
+    },
+    {
       name: { zh: 'World Bank, World Development Indicators（ITU 資料）', en: 'World Bank, World Development Indicators (ITU data)' },
       url: 'https://data.worldbank.org/',
       license: 'CC BY 4.0',
@@ -310,6 +315,67 @@ export const digital: TopicDefinition = {
       [10, 20, 30, 40, 50],
       { file: 'cash-reason/habit.json' },
     ),
+    {
+      id: 'online-activity',
+      label: { zh: '上網都在做什麼', en: 'What people do online' },
+      description: {
+        zh: '過去三個月有上網的人裡，做過這件事的比例（UNESCO UIS 轉載的 ITU 家戶調查；分母是網路使用者，不是全人口，網路普及率低的國家會偏高）。資料到 2024 年，各國最近一次調查在 2020–2024 年（超過 4 年的不畫）。社群網路：馬來西亞 97.1%、香港 94.3%、丹麥 90.0%、挪威 88.0%；中國 73.5%、日本 69.1%、南韓 66.7%、德國 58.0%、法國 40.1%。網路銀行：丹麥 97.7%、挪威 96.0%、芬蘭 90.0%、南韓 79.5%、德國 66.9%、日本 20.0%、中國 13.1%。網購：丹麥 81.7%、英國 78.9%（2020）、挪威 76.0%、瑞典 75.2%、南韓 73.4%、中國 59.9%、日本 51.4%。寫過程式：汶萊 31.9%、沙烏地 31.8%、阿聯 26.0%、馬來西亞 19.2%；中國 9.4%、南韓 7.5%、日本 5.8%。台灣與印度不在這份資料裡；美國只有 2015 年的調查，不畫。',
+        en: 'Share of people who used the internet in the last three months who did each activity (ITU household surveys via UNESCO UIS; the denominator is internet users, not the whole population, so countries with low internet use can score high). Data run to 2024; each country’s latest survey is from 2020–2024 (surveys more than 4 years old are not shown). Social networks: Malaysia 97.1%, Hong Kong 94.3%, Denmark 90.0%, Norway 88.0%; China 73.5%, Japan 69.1%, South Korea 66.7%, Germany 58.0%, France 40.1%. Internet banking: Denmark 97.7%, Norway 96.0%, Finland 90.0%, South Korea 79.5%, Germany 66.9%, Japan 20.0%, China 13.1%. Online shopping: Denmark 81.7%, the UK 78.9% (2020), Norway 76.0%, Sweden 75.2%, South Korea 73.4%, China 59.9%, Japan 51.4%. Programming: Brunei 31.9%, Saudi Arabia 31.8%, the UAE 26.0%, Malaysia 19.2%; China 9.4%, South Korea 7.5%, Japan 5.8%. Taiwan and India are not in this dataset; the US has only a 2015 survey, which is not shown.',
+      },
+      unit: '%',
+      file: 'activity/{item}.json',
+      dimension: {
+        label: { zh: '活動', en: 'Activity' },
+        options: [
+          { id: 'social', label: { zh: '社群網路', en: 'Social networks' } },
+          { id: 'banking', label: { zh: '網路銀行', en: 'Internet banking' } },
+          { id: 'shopping', label: { zh: '網購', en: 'Online shopping' } },
+          { id: 'calls', label: { zh: '網路通話', en: 'Internet calls' } },
+          { id: 'health', label: { zh: '找健康資訊', en: 'Health information' } },
+          { id: 'course', label: { zh: '線上課程', en: 'Online courses' } },
+          { id: 'civic', label: { zh: '線上參與公共事務', en: 'Online civic consultation or voting' } },
+          { id: 'coding', label: { zh: '寫程式', en: 'Programming' } },
+        ],
+        defaultOption: 'social',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [20, 40, 60, 70, 80, 90] },
+        itemScales: {
+          course: { type: 'sequential', thresholds: [5, 10, 15, 20, 30, 50] },
+          civic: { type: 'sequential', thresholds: [2, 5, 10, 15, 20, 30] },
+          coding: { type: 'sequential', thresholds: [2, 4, 6, 10, 15, 25] },
+          banking: { type: 'sequential', thresholds: [10, 20, 40, 60, 80, 90] },
+          shopping: { type: 'sequential', thresholds: [10, 20, 40, 50, 60, 75] },
+        },
+      },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+    },
+    {
+      id: 'digital-skills',
+      label: { zh: '數位技能達到進階以上的比例', en: 'Above-basic digital skills' },
+      description: {
+        zh: '成人在 SDG 4.4.1 定義的五個數位能力領域裡，達到「進階以上」的比例（UNESCO UIS，各國家戶調查的自陳，不是測驗；最近一次在 2022–2024 年，只有 24–40 國）。資訊與資料素養：南韓 90.1%、瑞士 83.3%、瑞典 83.2%、馬爾他 80.7%、西班牙 79.0%；俄羅斯 36.8%、多明尼加 21.6%、馬拉威 1.5%。數位內容創作：汶萊 87.1%、南韓 79.4%、阿曼 76.0%、日本 56.7%。安全：瑞典 91.8%、瑞士 65.5%、西班牙 62.9%、南韓 25.1%。「進階以上」跟只到「基本」的人是不同的兩群，這裡只畫進階以上。',
+        en: 'Share of adults with above-basic skills in the five digital competence areas defined for SDG 4.4.1 (UNESCO UIS; self-reported in household surveys, not tested; latest survey 2022–2024, only 24–40 countries). Information and data literacy: South Korea 90.1%, Switzerland 83.3%, Sweden 83.2%, Malta 80.7%, Spain 79.0%; Russia 36.8%, the Dominican Republic 21.6%, Malawi 1.5%. Digital content creation: Brunei 87.1%, South Korea 79.4%, Oman 76.0%, Japan 56.7%. Safety: Sweden 91.8%, Switzerland 65.5%, Spain 62.9%, South Korea 25.1%. People at the above-basic level and those only at the basic level are separate groups; only above-basic is shown.',
+      },
+      unit: '%',
+      file: 'skills/{item}.json',
+      dimension: {
+        label: { zh: '能力領域', en: 'Competence area' },
+        options: [
+          { id: 'information', label: { zh: '資訊與資料素養', en: 'Information and data literacy' } },
+          { id: 'communication', label: { zh: '溝通與協作', en: 'Communication and collaboration' } },
+          { id: 'content', label: { zh: '數位內容創作', en: 'Digital content creation' } },
+          { id: 'safety', label: { zh: '安全', en: 'Safety' } },
+          { id: 'problem', label: { zh: '問題解決', en: 'Problem solving' } },
+        ],
+        defaultOption: 'information',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 40, 55, 70, 85] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+    },
     {
       id: 'cybersecurity',
       label: { zh: '國家資安指數', en: 'Cybersecurity index' },

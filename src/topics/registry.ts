@@ -112,12 +112,14 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 電價與油價、能源政策、核廢料做好時照手冊的表放進對應的欄
     // 2026-11-07（第二十五批 439）：能源升成自己的大類；「研發與太空」拆出太空（太空、Starlink），原小類改名「研發與創新」
     sections: [
-      { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'digital', 'internet-speed', 'developers', 'submarine-cables'] },
+      // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」，兩個小類疊在左欄
+      { label: { zh: '網路與連線', en: 'Internet & connectivity' }, topics: ['digital', 'internet-speed', 'submarine-cables'] },
+      { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'developers'] },
       { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities'] },
       { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
     ],
-    // 左：數位；中：研發與創新；右：太空
-    columns: [1, 1, 1],
+    // 左：網路與連線＋運算與晶片；中：研發與創新；右：太空
+    columns: [2, 1, 1],
   },
   {
     // 2026-11-07（製作手冊第二十五批 439，使用者 2026-11-05 核准）：能源從科技分出來成為大類。手冊的五個小類裡核能只有一個主題，
