@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 148;
-export const INDICATOR_COUNT = 1125;
+export const INDICATOR_COUNT = 1126;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -493,6 +493,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「Compulsory voting」（強制投票，2026 年 11 月）","en":"Wikipedia, “Compulsory voting” (November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Compulsory_voting&oldid=1383198941","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
   {"name":{"zh":"英文維基百科「Congestion pricing」（2026-10-14 的版本）","en":"English Wikipedia, “Congestion pricing” (revision of 14 Oct 2026)"},"url":"https://en.wikipedia.org/wiki/Congestion_pricing?oldid=1380197393","licenses":["CC BY-SA 4.0"],"topics":["cities"]},
   {"name":{"zh":"英文維基百科「Deep geological repository」的處置場表（revid 1381499099），狀態對照相關條目與官方消息（2026-10-31）","en":"English Wikipedia, “Deep geological repository”, table of repository sites (revision 1381499099), statuses checked against linked articles and official sources (31 Oct 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1381499099","licenses":["CC BY-SA 4.0"],"topics":["nuclear"]},
+  {"name":{"zh":"英文維基百科「Departure tax」的表（revid 1371947177）","en":"English Wikipedia, “Departure tax” table (revision 1371947177)"},"url":"https://en.wikipedia.org/wiki/Departure_tax?oldid=1371947177","licenses":[{"zh":"CC BY-SA 4.0（引用事實）","en":"CC BY-SA 4.0 (facts cited)"}],"topics":["travel"]},
   {"name":{"zh":"英文維基百科「Gambling age」（博弈的合法性，2026 年 10 月）","en":"Wikipedia, “Gambling age” (legality of gambling, October 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1379514800","licenses":["CC BY-SA 4.0"],"topics":["gambling"]},
   {"name":{"zh":"英文維基百科「Health care systems by country」（revid 1379352169）與「Universal health care」（revid 1382403456）的表（醫療的主要財源、全民健保的開辦年份）","en":"English Wikipedia, “Health care systems by country” (revid 1379352169) and “Universal health care” (revid 1382403456) tables (financing, start of universal coverage)"},"url":"https://en.wikipedia.org/w/index.php?title=Health_care_systems_by_country&oldid=1379352169","licenses":["CC BY-SA 4.0"],"topics":["health-spending"]},
   {"name":{"zh":"英文維基百科「Legality of cannabis」的 Recreational、Medical 欄（娛樂用與醫療用大麻，2026 年 10 月）、「Legal status of psilocybin mushrooms」（迷幻蘑菇，2026 年 11 月）","en":"Wikipedia, “Legality of cannabis”, Recreational and Medical columns (October 2026) and “Legal status of psilocybin mushrooms” (November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Legality_of_cannabis&oldid=1378590397","licenses":["CC BY-SA 4.0"],"topics":["laws"]},

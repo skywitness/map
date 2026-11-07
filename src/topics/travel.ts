@@ -2,6 +2,8 @@ import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, IndicatorDef, ListPanelDef, ListRow, PointsOverlayDef, Text, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { travelFeesPart } from './travel-fees';
 
 /**
  * 旅行實用（pipeline/topics/travel.py）：跟台灣的時差、行車方向、插頭類型、電壓與頻率，
@@ -423,7 +425,7 @@ const TW_SERVICE_AREAS: ListPanelDef = {
     }),
 };
 
-export const travel: TopicDefinition = {
+const travelOwn: TopicDefinition = {
   id: 'travel',
   title: { zh: '旅行實用與生活格式（時差、插頭、緊急電話、日期寫法、度量衡）', en: 'Travel essentials and local formats' },
   shortTitle: { zh: '旅行實用', en: 'Travel' },
@@ -719,3 +721,6 @@ export const travel: TopicDefinition = {
 export function letters(s: string): string {
   return [...s].join(tr({ zh: '、', en: ', ' }));
 }
+
+/** 2026-11-07（製作手冊第二十四批 433）：接上出境要繳的錢（travel-fees.ts） */
+export const travel: TopicDefinition = withParts(travelOwn, travelFeesPart);
