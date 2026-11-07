@@ -8,6 +8,7 @@ import { fixed } from '../../lib/format';
 import type { Hue } from '../../theme/tokens';
 import type { PanelExtraProps } from '../types';
 import { TaiwanPeak } from './TaiwanPeak';
+import { TaiwanRec } from './TaiwanRec';
 
 interface MixFile {
   years: number[];
@@ -92,6 +93,7 @@ export default function ElectricityPanel({ topic, iso3, year, countryName, token
       )}
     </section>
     {iso3 === 'TWN' && <TaiwanPeak topicId={topic.id} year={year} tokens={tokens} />}
+    {iso3 === 'TWN' && <TaiwanRec topicId={topic.id} year={year} tokens={tokens} />}
     </>
   );
 }

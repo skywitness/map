@@ -84,6 +84,11 @@ export const electricity: TopicDefinition = withParts({
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
     },
     {
+      name: { zh: '經濟部標準檢驗局：再生能源憑證發放統計', en: 'Bureau of Standards, Metrology and Inspection (Taiwan): renewable energy certificates issued' },
+      url: 'https://data.gov.tw/dataset/162931',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
+    },
+    {
       name: 'Ember, Global Renewable Power Sector Targets 2030',
       url: 'https://ember-energy.org/data/global-renewable-power-sector-targets-2030/',
       license: 'CC BY 4.0',
