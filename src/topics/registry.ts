@@ -131,14 +131,16 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'energy',
     label: { zh: '能源', en: 'Energy' },
     sections: [
-      { label: { zh: '電力', en: 'Electricity' }, topics: ['electricity', 'power-plants', 'energy-prices', 'nuclear', 'hvdc', 'power-reliability', 'district-heating'] },
+      { label: { zh: '電力', en: 'Electricity' }, topics: ['electricity', 'power-plants', 'energy-prices', 'hvdc', 'power-reliability', 'district-heating'] },
+      // 2026-11-07（第二十七批 622）：核電機組做好，核能有兩個主題，從電力獨立出來（核融合 719 做好時加進來）
+      { label: { zh: '核能', en: 'Nuclear' }, topics: ['nuclear', 'nuclear-reactors'] },
       { label: { zh: '化石燃料', en: 'Fossil fuels' }, topics: ['fossil-fuels', 'fossil-infrastructure'] },
       { label: { zh: '再生能源', en: 'Renewables' }, topics: ['renewables', 'renewable-heat', 'biofuels-hydrogen'] },
       // 2026-11-07（第二十五批 523）：第一個主題「各部門的最終能源消費」做好，開這個小類
       { label: { zh: '能源的使用與政策', en: 'Energy use & policy' }, topics: ['energy-use', 'household-energy', 'energy-poverty', 'energy-market', 'energy-taxes'] },
     ],
-    // 左：電力；中：化石燃料、再生能源；右：能源的使用與政策
-    columns: [1, 2, 1],
+    // 左：電力、核能；中：化石燃料、再生能源；右：能源的使用與政策
+    columns: [2, 2, 1],
   },
   {
     id: 'transport',
@@ -351,6 +353,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'fossil-fuels': () => import('./fossil-fuels'),
   'fossil-infrastructure': () => import('./fossil-infrastructure'),
   nuclear: () => import('./nuclear'),
+  'nuclear-reactors': () => import('./nuclear-reactors'),
   'health-spending': () => import('./health-spending'),
   'health-care': () => import('./health-care'),
   covid: () => import('./covid'),

@@ -99,6 +99,7 @@ const TOPIC_ICONS = {
   'web-platforms': 'app-window',
   'renewable-heat': 'sun-medium',
   'biofuels-hydrogen': 'flask-round',
+  'nuclear-reactors': 'orbit',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

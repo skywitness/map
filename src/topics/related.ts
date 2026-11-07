@@ -138,7 +138,8 @@ export const RELATED: Record<string, string[]> = {
   'taiwan-diplomacy': ['organizations', 'passport', 'china-lending'],
   // 能源
   electricity: ['power-plants', 'renewables', 'ev'],
-  nuclear: ['power-plants', 'electricity', 'earthquakes'],
+  nuclear: ['nuclear-reactors', 'power-plants', 'earthquakes'],
+  'nuclear-reactors': ['nuclear', 'power-plants', 'electricity'],
   'power-plants': ['electricity', 'nuclear', 'night-lights'],
   'fossil-fuels': ['fossil-infrastructure', 'electricity', 'climate'],
   'fossil-infrastructure': ['fossil-fuels', 'power-plants', 'shipping'],
