@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
+import { businessAiPart } from './business-ai';
 import { withParts } from './parts';
 import { cloudRegionsPart } from './cloud-regions';
 import type { TopicDefinition } from './types';
@@ -135,4 +136,4 @@ export const ai: TopicDefinition = withParts({
       formatTick: (v) => `${v}%`,
     },
   ],
-}, cloudRegionsPart);
+}, cloudRegionsPart, businessAiPart);

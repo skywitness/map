@@ -321,6 +321,8 @@ STEPS = {
     "electronics-hs92": "topics.electronics_hs92",
     # 晶片的原料被誰扣住了（第二十七批 594）：OECD 原料出口管制清冊，只抓晶片相關的 HS 碼
     "chip-materials": "topics.chip_materials",
+    # AI 發展的擴充：企業用了多少 AI 與雲端（第二十七批 595）：OECD 企業 ICT 調查
+    "business-ai": "topics.business_ai",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
