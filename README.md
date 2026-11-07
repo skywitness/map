@@ -215,6 +215,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `rd-structure` 是研發與創新主題的研發經費依執行部門、資金來源與研發人力：OECD MSTI 的三支 key 查詢（年值），幾秒。
 
+`rd-policy` 是研發與創新主題的國際專利（MSTI）、智慧財產權使用費（WDI 與央行）、研發租稅補貼率（OECD RDSUB）、政府研發預算依目標（OECD GBARD，約 14 MB），十秒左右。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。
