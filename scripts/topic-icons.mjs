@@ -90,6 +90,7 @@ const TOPIC_ICONS = {
   'cell-towers': 'radio-tower',
   'internet-freedom': 'shield-ban',
   'chip-materials': 'gem',
+  'research-orgs': 'library-big',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

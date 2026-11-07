@@ -41,6 +41,7 @@ export const RELATED: Record<string, string[]> = {
   'cell-towers': ['internet-speed', 'digital', 'starlink'],
   'internet-freedom': ['democracy', 'digital-trade', 'news'],
   'chip-materials': ['semiconductors', 'minerals', 'wafer-fabs'],
+  'research-orgs': ['publications', 'innovation', 'oldest-universities'],
   'transport-investment': ['household-transport', 'transport', 'road-safety'],
   'household-transport': ['transport-investment', 'fuel-tax', 'prices'],
   'transport-jobs': ['transport-investment', 'employment', 'shipping'],

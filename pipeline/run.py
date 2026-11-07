@@ -325,6 +325,8 @@ STEPS = {
     "business-ai": "topics.business_ai",
     # 產業結構與工業的擴充：ICT 產業（第二十七批 596）：Eurostat isoc_bde15ag、isoc_bde15ap
     "ict-sector": "topics.ict_sector",
+    # 全世界的研究機構在哪裡（第二十七批 597）：ROR v2.15 的 Zenodo 傾印
+    "research-orgs": "topics.research_orgs",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
