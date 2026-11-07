@@ -170,6 +170,32 @@ export const ROBOT_INDICATOR = 'robot-use';
 /** 化肥的指標（側欄的化肥表只在這兩個指標顯示） */
 export const FERTILIZER_INDICATORS = ['fertilizer-production', 'fertilizer-self-sufficiency'];
 
+/**
+ * 世界出口市占的商品（2026-11-07，第二十五批 446，pipeline/topics/industry_products.py 的 PRODUCTS）：手冊挑的台灣排得上名的品項，
+ * 加兩個對照組。括號是 HS 1992 的四位碼
+ */
+export const PRODUCT_DIMENSION: DimensionDef = {
+  label: { zh: '商品', en: 'Product' },
+  options: [
+    { id: 'wrenches', label: { zh: '扳手（8204）', en: 'Wrenches (8204)' }, group: { zh: '工具與扣件', en: 'Tools and fasteners' } },
+    { id: 'hand-tools', label: { zh: '手工具（8201–8207 合計）', en: 'Hand tools (8201–8207)' }, group: { zh: '工具與扣件', en: 'Tools and fasteners' } },
+    { id: 'fasteners', label: { zh: '鋼鐵製螺絲、螺栓與扣件（7318）', en: 'Steel screws, bolts and fasteners (7318)' }, group: { zh: '工具與扣件', en: 'Tools and fasteners' } },
+    { id: 'bicycles', label: { zh: '自行車（8712）', en: 'Bicycles (8712)' }, group: { zh: '自行車', en: 'Bicycles' } },
+    { id: 'bicycle-parts', label: { zh: '自行車、機車與輪椅的零件（8714）', en: 'Bicycle, motorcycle and wheelchair parts (8714)' }, group: { zh: '自行車', en: 'Bicycles' } },
+    { id: 'machining-centres', label: { zh: '綜合加工機（8457）', en: 'Machining centres (8457)' }, group: { zh: '工具機', en: 'Machine tools' } },
+    { id: 'lathes', label: { zh: '金屬車床（8458）', en: 'Metal lathes (8458)' }, group: { zh: '工具機', en: 'Machine tools' } },
+    { id: 'woodworking', label: { zh: '木工機械（8465）', en: 'Woodworking machines (8465)' }, group: { zh: '工具機', en: 'Machine tools' } },
+    { id: 'machine-tools', label: { zh: '金屬加工工具機（8457–8463 合計）', en: 'Metalworking machine tools (8457–8463)' }, group: { zh: '工具機', en: 'Machine tools' } },
+    { id: 'pcb', label: { zh: '印刷電路板（8534）', en: 'Printed circuits (8534)' }, group: { zh: '電子零組件', en: 'Electronic components' } },
+    { id: 'lcd', label: { zh: '液晶裝置、雷射與光學器具（9013）', en: 'Liquid-crystal devices, lasers and optical appliances (9013)' }, group: { zh: '電子零組件', en: 'Electronic components' } },
+    { id: 'capacitors', label: { zh: '電容器（8532）', en: 'Capacitors (8532)' }, group: { zh: '電子零組件', en: 'Electronic components' } },
+    { id: 'synthetic-fabric', label: { zh: '合成纖維長絲梭織布（5407）', en: 'Woven synthetic filament fabrics (5407)' }, group: { zh: '紡織', en: 'Textiles' } },
+    { id: 'auto-parts', label: { zh: '汽車零件（8708）', en: 'Car parts (8708)' }, group: { zh: '對照組', en: 'For comparison' } },
+    { id: 'bearings', label: { zh: '滾珠與滾子軸承（8482）', en: 'Ball and roller bearings (8482)' }, group: { zh: '對照組', en: 'For comparison' } },
+  ],
+  defaultOption: 'wrenches',
+};
+
 const industryOwn: TopicDefinition = {
   id: 'industry',
   title: { zh: '各國工業', en: 'Industry by country' },
@@ -183,6 +209,14 @@ const industryOwn: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     { name: 'Harvard Growth Lab, Atlas of Economic Complexity', url: 'https://atlas.hks.harvard.edu/', license: 'CC0' },
+    {
+      name: {
+        zh: 'Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (HS92)（四位碼品項的世界出口市占與世界第一的品項數）',
+        en: 'Harvard Growth Lab, Atlas of Economic Complexity: International Trade Data (HS92) (world export shares by four-digit heading; products led)',
+      },
+      url: 'https://doi.org/10.7910/DVN/T4CHWJ',
+      license: 'CC0 1.0',
+    },
     {
       name: {
         zh: 'Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (SITC, Rev. 2)（1962 年起的出口組成）',
@@ -420,18 +454,108 @@ const industryOwn: TopicDefinition = {
       format: (v) => tr(SITC_CATEGORIES.find((c) => c.value === v)?.label ?? ''),
       defaultYear: 'latest',
     },
+    {
+      id: 'product-share',
+      label: { zh: '商品的世界出口市占', en: 'World export share of a product' },
+      description: {
+        zh: '這一國這項商品的出口占全世界出口的比例（Harvard Atlas 的 HS 1992 四位碼，1995–2024 年）。2024 年台灣的扳手 18.2%、自行車 12.3%、自行車與機車零件 11.0%、印刷電路板 10.4%，都是世界第 2（第 1 都是中國大陸）；液晶裝置 13.5% 第 3、螺絲與扣件 9.1% 第 4、綜合加工機 7.7% 第 5、金屬加工工具機（8457–8463 合計）5.6% 第 7；對照組的汽車零件 1.0% 第 23、軸承 0.7% 第 22。工具機不含 8456（雷射等加工機）：HS 1992 把半導體曝光機也歸在那裡。台灣沒有向聯合國申報，數字來自貿易夥伴的申報，金額比財政部的統計低、名次大致可信；電動輔助自行車在 HS 1992 歸機車（8711），不在自行車裡。',
+        en: 'A country’s exports of the product as a share of world exports (Harvard Atlas, HS 1992 four-digit headings, 1995–2024). In 2024 Taiwan had 18.2% of world wrench exports, 12.3% of bicycles, 11.0% of bicycle and motorcycle parts and 10.4% of printed circuits, second each time to mainland China; 13.5% of liquid-crystal devices (3rd), 9.1% of screws and fasteners (4th), 7.7% of machining centres (5th) and 5.6% of metalworking machine tools (8457–8463 combined, 7th), against 1.0% of car parts (23rd) and 0.7% of bearings (22nd). Machine tools exclude 8456 (laser and similar machines), where HS 1992 also puts semiconductor lithography equipment. Taiwan does not report to the UN, so its figures come from partners’ reports: values are lower than Taiwan’s own statistics, but ranks are broadly reliable. E-bikes fall under motorcycles (8711) in HS 1992, not bicycles.',
+      },
+      unit: '%',
+      file: 'product-share/{item}.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.5, 1, 3, 10, 25] } },
+      dimension: PRODUCT_DIMENSION,
+      format: (v) => `${fixed(v, v < 1 ? 2 : 1)}%`,
+      formatTick: pctTick,
+      defaultYear: 2024,
+    },
+    {
+      id: 'product-leads',
+      label: { zh: '世界出口第一的品項數', en: 'Products where a country leads world exports' },
+      description: {
+        zh: '在 HS 1992 的 1,240 個四位碼品項裡，這一國是世界最大出口國的項數；子項目可換成市占 10% 或 5% 以上的項數（Harvard Atlas，1995–2024 年）。2024 年中國大陸 544 項、德國 121 項、美國 119 項、義大利 35 項、印度 32 項、日本 27 項，南韓 15 項，台灣 6 項（市占 10% 以上 27 項、5% 以上 82 項）。不算 Atlas 的「貿易資料差異」與「未依種類分的商品」兩個殘差項（台灣 2024 年有 991 億美元在差異項裡）。項數受分類粗細影響：農產品分得細、電子產品分得粗。',
+        en: 'Of the 1,240 four-digit headings in HS 1992, the number in which the country is the world’s largest exporter; switch to the number with a world share of 10% or 5% or more (Harvard Atlas, 1995–2024). In 2024 mainland China led in 544, Germany 121, the US 119, Italy 35, India 32, Japan 27, South Korea 15 and Taiwan 6 (27 with 10% or more, 82 with 5% or more). Atlas’s two residual codes, “trade data discrepancies” and “commodities not specified according to kind”, are excluded (Taiwan had US$99.1 billion under discrepancies in 2024). Counts depend on how finely goods are classified: farm products are split finely, electronics coarsely.',
+      },
+      unit: { zh: '項', en: 'products' },
+      file: 'product-leads/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [1, 3, 10, 25, 50, 150] },
+        itemScales: {
+          share10: { type: 'sequential', thresholds: [1, 10, 25, 50, 100, 300] },
+          share5: { type: 'sequential', thresholds: [1, 10, 50, 100, 200, 500] },
+        },
+      },
+      dimension: {
+        label: { zh: '門檻', en: 'Threshold' },
+        options: [
+          { id: 'first', label: { zh: '世界第一', en: 'World’s largest exporter' } },
+          { id: 'share10', label: { zh: '市占 10% 以上', en: 'World share 10% or more' } },
+          { id: 'share5', label: { zh: '市占 5% 以上', en: 'World share 5% or more' } },
+        ],
+        defaultOption: 'first',
+      },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 項`, en: `${fixed(v, 0)}` }),
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2024,
+    },
   ],
 };
+
+/** 指標選單的分組（2026-11-07，第二十五批 446）：依這個順序排，同一組的排在一起 */
+const MENU_GROUPS: [Text, string[]][] = [
+  [
+    { zh: '產業結構', en: 'Economic structure' },
+    ['agriculture', 'industry', 'manufacturing', 'services', 'employment-agriculture', 'employment-industry', 'employment-services'],
+  ],
+  [
+    { zh: '製造業', en: 'Manufacturing' },
+    [
+      'mva',
+      'share-machinery',
+      'share-chemicals',
+      'share-food',
+      'share-textiles',
+      'share-other',
+      'tech-share',
+      'steel',
+      'cement',
+      'fertilizer-production',
+      'fertilizer-self-sufficiency',
+      'robot-use',
+    ],
+  ],
+  [
+    { zh: '出口競爭力', en: 'Export competitiveness' },
+    ['exports', 'exports-sitc', 'top-export-sitc', 'product-share', 'product-leads'],
+  ],
+];
+
+function withMenuGroups(topic: TopicDefinition): TopicDefinition {
+  const order = new Map(MENU_GROUPS.flatMap(([, ids], g) => ids.map((id, i) => [id, [g, i] as const])));
+  const missing = topic.indicators.filter((i) => !order.has(i.id)).map((i) => i.id);
+  if (missing.length) throw new Error(`產業結構與工業的指標沒有分組：${missing.join(', ')}`); // i18n-ignore 開發時的錯誤訊息
+  const indicators = [...topic.indicators]
+    .sort((a, b) => {
+      const [ga, ia] = order.get(a.id)!;
+      const [gb, ib] = order.get(b.id)!;
+      return ga - gb || ia - ib;
+    })
+    .map((i) => ({ ...i, menuGroup: MENU_GROUPS[order.get(i.id)![0]][0] }));
+  return { ...topic, indicators };
+}
 
 /**
  * 產業結構與工業（2026-11-04，主題整併 併13）：「各國產業結構」（農工服務業占 GDP 與就業）併進來，資料照舊在 sectors/
  * （topics/merge.ts），產業結構的指標用原本的側欄區塊。舊網址 t/sectors/ 轉到這裡（redirects.ts）
  */
-export const industry: TopicDefinition = withParts(
-  {
-    ...hostOnly(industryOwn),
-    title: { zh: '產業結構與工業', en: 'Economic structure and industry' },
-    shortTitle: { zh: '產業與工業', en: 'Industry' },
-  },
-  topicPart(sectors),
+export const industry: TopicDefinition = withMenuGroups(
+  withParts(
+    {
+      ...hostOnly(industryOwn),
+      title: { zh: '產業結構與工業', en: 'Economic structure and industry' },
+      shortTitle: { zh: '產業與工業', en: 'Industry' },
+    },
+    topicPart(sectors),
+  ),
 );

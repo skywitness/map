@@ -156,6 +156,11 @@ export interface ChartEvent {
 export interface IndicatorDef {
   id: string;
   label: Text;
+  /**
+   * 指標選單（下拉）裡的分組標題（2026-11-07，第二十五批 446：產業結構與工業的指標超過 20 個，分成產業結構、製造業、
+   * 出口競爭力、生產力）。同一組的指標要排在一起；沒寫的不分組
+   */
+  menuGroup?: Text;
   /** 一句話說明這個指標，顯示在指標選單下方 */
   description: Text;
   unit: Text;

@@ -7,6 +7,7 @@ import { EXPORT_GROUPS, FERTILIZER_INDICATORS, ROBOT_INDICATOR, SITC_INDICATORS 
 import type { PanelExtraProps } from '../types';
 import { FertilizerTable } from './FertilizerTable';
 import { IndustrySitc } from './IndustrySitc';
+import { ProductLeadsSections, ProductShareTop } from './ProductLeads';
 import { RobotReasons } from './RobotReasons';
 
 interface Series {
@@ -106,6 +107,15 @@ export default function IndustryPanel(props: PanelExtraProps) {
         <section className="panel-section">
           <FertilizerTable topicId={props.topic.id} iso3={props.iso3} countryName={props.countryName} />
         </section>
+        <IndustryMain {...props} />
+      </>
+    );
+  }
+  // 商品的世界出口市占、世界出口第一的品項數（2026-11-07，第二十五批 446）
+  if (props.indicator.id === 'product-share' || props.indicator.id === 'product-leads') {
+    return (
+      <>
+        {props.indicator.id === 'product-share' ? <ProductShareTop {...props} /> : <ProductLeadsSections {...props} />}
         <IndustryMain {...props} />
       </>
     );

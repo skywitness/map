@@ -387,6 +387,8 @@ STEPS = {
     "minerals-trade": "topics.minerals_trade",
     # 關鍵礦產（二）：礦石與金屬出口占比（WDI＋Atlas 自算台灣；Atlas 四位碼 547 MB 邊下載邊篩）、資源租金、循環物料、台灣的礦產
     "minerals-economy": "topics.minerals_economy",
+    # 產業與工業：台灣是世界第幾、各國稱霸幾項產品（Atlas HS92 四位碼 452 MB 邊下載邊篩，快取約 98 MB；約 1 分鐘）
+    "industry-products": "topics.industry_products",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

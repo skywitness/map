@@ -1075,11 +1075,24 @@ export function App() {
               <label className="select-field is-indicator">
                 <span>{t.indicator}</span>
                 <select value={indicator.id} onChange={(e) => chooseIndicator(e.target.value)}>
-                  {topic.indicators.map((ind) => (
-                    <option key={ind.id} value={ind.id}>
-                      {ind.label}
-                    </option>
-                  ))}
+                  {/* 指標有 menuGroup 時分組（optgroup），例如產業結構與工業的四組 */}
+                  {groupOptions(
+                    topic.indicators.map((ind) => ({ id: ind.id, label: ind.label, group: ind.menuGroup })),
+                    null,
+                  ).map(([group, options]) => {
+                    const items = options.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.label}
+                      </option>
+                    ));
+                    return group ? (
+                      <optgroup key={group} label={group}>
+                        {items}
+                      </optgroup>
+                    ) : (
+                      items
+                    );
+                  })}
                 </select>
               </label>
             ) : (

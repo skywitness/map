@@ -25,7 +25,8 @@ FILE = "hs92_country_product_year_2"
 SITC_DOI = "doi:10.7910/DVN/H8SFD2"
 SITC_BILATERAL = "sitc_country_country_year"
 SITC_SECTIONS = "sitc_country_product_year_1"
-SITC_4 = "sitc_country_product_year_4"  # 四位碼，547 MB：邊下載邊篩，只留要的代碼（sitc4_exports()）
+SITC_4 = "sitc_country_product_year_4"
+HS92_4 = "hs92_country_product_year_4"  # 四位碼，452 MB：邊下載邊只留國家、品項、年、出口額（hs92_4digit()）  # 四位碼，547 MB：邊下載邊篩，只留要的代碼（sitc4_exports()）
 # 資料集的快取檔名（HS92 沿用原本的 dataset.json）
 _DATASET_CACHE = {HS92_DOI: "dataset.json", SITC_DOI: "dataset-sitc.json"}
 
@@ -126,3 +127,27 @@ def sitc4_exports(prefixes: tuple[str, ...], cache_name: str) -> dict[str, dict[
 def sitc_totals() -> dict[str, dict[int, float]]:
     """{iso3: {年: 商品出口總額（美元）}}：一位碼十大類的加總"""
     return {c: {y: sum(v.values()) for y, v in years.items()} for c, years in sitc_sections().items()}
+
+
+def hs92_4digit() -> dict[int, dict[str, dict[str, float]]]:
+    """{年: {品項 HS92 四位碼: {Atlas 的國家代碼（含 ANS 這類非國家）: 出口額（美元）}}}，1995 年起（第 446 項：台灣是世界第幾）。
+    原檔 452 MB，邊下載邊只留四欄存成 .cache/atlas/hs92-4digit-exports.csv；國家代碼不轉 ISO3，世界總額要含所有列"""
+    target = CACHE_DIR / "atlas" / "hs92-4digit-exports.csv"
+    if not target.exists() or common.REFRESH:
+        url = f"{DATAVERSE}/access/datafile/{_file_id(HS92_DOI, HS92_4)}?format=original"
+        print(f"  下載並篩選 {url}")
+        tmp = target.with_suffix(".csv.part")
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(request, context=_ssl_context(url)) as resp, open(tmp, "w", encoding="utf-8", newline="") as out:
+            reader = csv.DictReader(io.TextIOWrapper(resp, encoding="utf-8-sig", newline=""))
+            writer = csv.writer(out)
+            writer.writerow(["country_iso3_code", "product_hs92_code", "year", "export_value"])
+            for row in reader:
+                if row["export_value"] not in ("", "0"):
+                    writer.writerow([row["country_iso3_code"], row["product_hs92_code"], row["year"], row["export_value"]])
+        tmp.replace(target)
+    out: dict[int, dict[str, dict[str, float]]] = defaultdict(lambda: defaultdict(dict))
+    with open(target, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            out[int(row["year"])][row["product_hs92_code"]][row["country_iso3_code"]] = float(row["export_value"])
+    return out
