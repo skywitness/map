@@ -403,6 +403,8 @@ STEPS = {
     "wages-distribution": "topics.wages_distribution",
     # 就業失業與退休：尼特族（ILO，含台灣）、年金所得替代率（OECD PAG）、工作貧窮（ILO SDG 1.1.1）
     "employment-extra": "topics.employment_extra",
+    # 存款與財產：有負債的家庭比例、財富撐不過半年貧窮線的人（OECD Wealth Distribution Database）
+    "wealth-debt": "topics.wealth_debt",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

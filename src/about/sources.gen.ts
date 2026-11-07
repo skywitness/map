@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 153;
-export const INDICATOR_COUNT = 1176;
+export const INDICATOR_COUNT = 1178;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -233,6 +233,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD Social Expenditure Database（SOCX，公共社會支出）","en":"OECD Social Expenditure Database (SOCX, public social spending)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_SOCX_AGG%40DF_SOCX_AGG&df[ag]=OECD.ELS.SPD","licenses":["CC BY 4.0"],"topics":["fiscal"]},
   {"name":{"zh":"OECD Tax Database 表 I.7（個人所得稅最高稅率與起徵點）","en":"OECD Tax Database, Table I.7 (top statutory personal income tax rate and threshold)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_PIT%40DF_PIT_TOP_EARN_THRESH&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD Tax-Benefit Model（TaxBEN）：低收入給付的適足性、脫離貧窮所需的工時","en":"OECD Tax-Benefit Model (TaxBEN): adequacy of minimum-income benefits; hours needed to escape poverty"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAXBEN_IA%40DF_IA&df[ag]=OECD.ELS.JAI","licenses":["CC BY 4.0"],"topics":["redistribution"]},
+  {"name":{"zh":"OECD Wealth Distribution Database（有負債的家庭、財富撐不過半年貧窮線的人）","en":"OECD Wealth Distribution Database (indebted households; people with net wealth below half a year at the poverty line)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_WEALTH%40DF_WEALTH&df[ag]=OECD.WISE.INE","licenses":["CC BY 4.0"],"topics":["wealth"]},
   {"name":{"zh":"OECD 農業政策監測：生產者支持估計（%PSE）","en":"OECD, Agricultural Policy Monitoring: Producer Support Estimate (%PSE)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AGR_POLIND%40DF_PSE&df[ag]=OECD.TAD.ARP","licenses":["CC BY 4.0"],"topics":["agriculture"]},
   {"name":"OECD, Analytical house price indicators","url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AN_HOUSE_PRICES%40DF_HOUSE_PRICES&df[ag]=OECD.ECO.MPD","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["housing"]},
   {"name":{"zh":"OECD, Corporate Tax Statistics（法定公司稅率）","en":"OECD, Corporate Tax Statistics (statutory corporate tax rates)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_CIT%40DF_CIT&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},

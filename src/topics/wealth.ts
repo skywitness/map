@@ -66,6 +66,11 @@ export const wealth: TopicDefinition = {
       license: OECD_TERMS,
     },
     {
+      name: { zh: 'OECD Wealth Distribution Database（有負債的家庭、財富撐不過半年貧窮線的人）', en: 'OECD Wealth Distribution Database (indebted households; people with net wealth below half a year at the poverty line)' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_WEALTH%40DF_WEALTH&df[ag]=OECD.WISE.INE',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '中央銀行 金融統計', en: 'Central Bank of the Republic of China (Taiwan), financial statistics' },
       url: 'https://cpx.cbc.gov.tw/',
       license: OPEN_DATA_TW,
@@ -203,6 +208,46 @@ export const wealth: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
       compareWorld: true,
+    },
+    {
+      id: 'indebted',
+      label: { zh: '有負債的家庭比例', en: 'Indebted households' },
+      description: {
+        zh: '有任何負債（房貸、車貸、信用貸款等）的家庭比例；子項目「負債超過年所得 3 倍」是有負債的家庭裡負債特別重的比例（OECD 財富分配資料庫，31 國，各國最近一次的調查）。挪威 85.5%、澳洲 77.9%、美國 77.5%、丹麥 77.2%、紐西蘭 76.8%、荷蘭 73.3% 最高；希臘 20.6%、立陶宛 23.7%、捷克 24.1%、義大利 27.7% 最低。負債超過 3 倍：挪威 36.4%、荷蘭 34.5%、加拿大 33.1%、日本 31.1%。北歐的高負債多半是房貸普及，加上社會安全網讓人比較不需要存錢。台灣不在資料裡。',
+        en: 'Share of households with any debt (mortgages, car loans, personal loans and so on); the “debt over 3× income” option shows the share of indebted households owing more than three times their annual income (OECD Wealth Distribution Database, 31 countries, each country’s latest survey). Norway (85.5%), Australia (77.9%), the US (77.5%), Denmark (77.2%), New Zealand (76.8%) and the Netherlands (73.3%) are highest; Greece (20.6%), Lithuania (23.7%), Czechia (24.1%) and Italy (27.7%) lowest. Debt over 3× income: Norway 36.4%, the Netherlands 34.5%, Canada 33.1% and Japan 31.1%. High debt in the Nordics mostly reflects widespread mortgages and a safety net that makes saving less necessary. Taiwan is not covered.',
+      },
+      unit: '%',
+      file: 'indebted/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70, 80] },
+        itemScales: { over3x: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] } },
+      },
+      dimension: {
+        label: { zh: '負債', en: 'Debt' },
+        options: [
+          { id: 'share', label: { zh: '有負債的家庭（占所有家庭）', en: 'Households with debt (share of all)' } },
+          { id: 'over3x', label: { zh: '負債超過年所得 3 倍（占有負債的家庭）', en: 'Debt over 3× income (share of indebted)' } },
+        ],
+        defaultOption: 'share',
+      },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2023,
+    },
+    {
+      id: 'asset-poor',
+      label: { zh: '財富撐不過半年的人', en: 'People without a wealth buffer' },
+      description: {
+        zh: '淨財富（資產減負債，依家戶人數等值化）不到「所得貧窮線一年所得的一半」的人口比例，也就是沒有收入時，財富不夠在貧窮線上生活半年（OECD 財富分配資料庫，31 國，各國最近一次的調查）。丹麥 29.5%、德國 24.2%、挪威 23.7%、美國與愛爾蘭 21.9%、芬蘭 21.1% 最高；斯洛伐克 5.2%、立陶宛 5.9%、南韓 6.8%、加拿大與匈牙利 8.0% 最低。北歐比例高，跟「北歐很平等」的印象相反：房貸讓很多人淨財富接近零，失業、年金保障好也比較不需要存錢。財富調查普遍低估最富有的人。台灣不在資料裡。',
+        en: 'Share of people whose net wealth (assets minus debts, equivalised for household size) is below half a year’s income at the poverty line, i.e. who could not live at the poverty line for six months on their wealth alone (OECD Wealth Distribution Database, 31 countries, each country’s latest survey). Denmark (29.5%), Germany (24.2%), Norway (23.7%), the US and Ireland (21.9%) and Finland (21.1%) are highest; Slovakia (5.2%), Lithuania (5.9%), South Korea (6.8%) and Canada and Hungary (8.0%) lowest. High Nordic shares run against their egalitarian image: mortgages leave many with near-zero net wealth, and good unemployment and pension protection reduces the need to save. Wealth surveys generally understate the very rich. Taiwan is not covered.',
+      },
+      unit: '%',
+      file: 'asset-poor.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [8, 11, 14, 17, 20, 24] } },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2023,
     },
     {
       id: 'household-saving',
