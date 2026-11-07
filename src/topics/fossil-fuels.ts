@@ -386,6 +386,37 @@ const indicators: IndicatorDef[] = [
     timeless: true,
     shareOfWorld: true,
   },
+  // 2026-11-07（製作手冊第二十五批 529，使用者決定只用 EIA）石油庫存（pipeline/topics/oil_stocks.py）
+  {
+    id: 'oil-stocks',
+    label: { zh: '石油庫存', en: 'Oil stocks' },
+    description: {
+      zh: '年底油槽裡的原油加油品（政府的戰略儲備與業者的商業庫存都算，百萬桶），EIA，1973–2025。EIA 這個系列多數國家標為不公開，只有 8 國有數字：2025 年美國 1,702 百萬桶、日本 513、德國 249、加拿大 195、南韓 186、法國 148、義大利 122、英國 69.1。台灣不在 EIA 的資料裡。',
+      en: 'Crude oil and products held in tanks at the end of the year (government strategic reserves and commercial stocks, million barrels), EIA, 1973–2025. Most countries are withheld in this EIA series and only 8 have figures: in 2025 the US held 1,702 million barrels, Japan 513, Germany 249, Canada 195, South Korea 186, France 148, Italy 122 and the UK 69.1. Taiwan is not in the EIA data.',
+    },
+    unit: { zh: '百萬桶', en: 'million barrels' },
+    file: 'oil-stocks.json',
+    layer: { kind: 'bubble', legendValues: [100, 500, 1500] },
+    format: (v) => tr({ zh: `${num(v)} 百萬桶`, en: `${num(v)} million barrels` }),
+    formatTick: tick,
+    defaultYear: 2025,
+    noValue: { TWN: { zh: '不在 EIA 的資料裡', en: 'Not in the EIA data' } },
+  },
+  {
+    id: 'oil-stock-days',
+    label: { zh: '石油庫存撐得了幾天', en: 'Days of oil consumption in stock' },
+    description: {
+      zh: '年底的石油庫存 ÷ 那一年平均每天的石油消費量（EIA，8 國）。2025 年日本 166 天、德國 123、義大利 99.7、法國 96.1、美國 82.1、加拿大 76.4、南韓 75.3、英國 48.9。日本從 1973 年石油危機時的 61.2 天一路加到現在；美國 2021 年 90.1 天，2022 年釋出戰略石油儲備後是 79.7 天。國際能源署（IEA）要求會員國持有 90 天的「淨進口量」，這裡除的是消費量，所以不能直接對照（美國、加拿大是淨出口國）。',
+      en: 'End-of-year oil stocks ÷ average daily oil consumption that year (EIA, 8 countries). In 2025 Japan had 166 days, Germany 123, Italy 99.7, France 96.1, the US 82.1, Canada 76.4, South Korea 75.3 and the UK 48.9. Japan has built up from 61.2 days at the time of the 1973 oil crisis; the US had 90.1 days in 2021 and 79.7 in 2022 after releasing oil from its Strategic Petroleum Reserve. The International Energy Agency requires members to hold 90 days of net imports, while this divides by consumption, so the two cannot be compared directly (the US and Canada are net exporters).',
+    },
+    unit: { zh: '天', en: 'days' },
+    file: 'oil-stock-days.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [30, 60, 75, 90, 120, 150] } },
+    format: (v) => tr({ zh: `${num(v)} 天`, en: `${num(v)} days` }),
+    formatTick: tick,
+    defaultYear: 2025,
+    noValue: { TWN: { zh: '不在 EIA 的資料裡', en: 'Not in the EIA data' } },
+  },
   flow(
     'export',
     { zh: '流向：出口對象', en: 'Flows: export destinations' },

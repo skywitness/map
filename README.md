@@ -243,6 +243,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `energy-taxes` 是「能源稅與補貼」：OECD Net Effective Energy Rates 用 key 只取六個部門、三個量（整個資料流 85 MB，取的部分約 2 MB），幾秒。
 
+`oil-stocks` 是石油、天然氣與煤主題的石油庫存與撐得了幾天：EIA INTL.zip（跟化石燃料同一個快取），一秒內。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。
