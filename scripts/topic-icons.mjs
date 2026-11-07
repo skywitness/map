@@ -95,6 +95,7 @@ const TOPIC_ICONS = {
   racing: 'flag-triangle-right',
   horses: 'trophy',
   'origin-names': 'certificate',
+  cuisines: 'chef-hat',
   reads: 'book-open',
   // 經濟
   income: 'banknote',

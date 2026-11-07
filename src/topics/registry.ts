@@ -34,7 +34,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       // 夜間燈光 2026-11-03 從地理的「景點」搬過來（使用者要求）
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing', 'night-lights'] },
       // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet', 'banknotes', 'origin-names'] },
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet', 'cuisines', 'banknotes', 'origin-names'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
       // 2026-11-05 使用者要求每個小類各占一欄、教育放最右邊
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
@@ -158,6 +158,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   esports: () => import('./esports'),
   horses: () => import('./horses'),
   'origin-names': () => import('./origin-names'),
+  cuisines: () => import('./cuisines'),
   diving: () => import('./diving'),
   gambling: () => import('./gambling'),
   'time-use': () => import('./time-use'),
