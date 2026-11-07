@@ -248,6 +248,21 @@ const industryOwn: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: { zh: 'World Bank WDI：每位就業者的附加價值（NV.IND.EMPL.KD、NV.SRV.EMPL.KD）', en: 'World Bank WDI: value added per worker (NV.IND.EMPL.KD, NV.SRV.EMPL.KD)' },
+      url: 'https://data.worldbank.org/indicator/NV.IND.EMPL.KD',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Eurostat：企業調查的產能利用率（ei_bsin_q_r2，歐盟執委會 DG ECFIN）', en: 'Eurostat: capacity utilisation from the business survey (ei_bsin_q_r2, European Commission DG ECFIN)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/ei_bsin_q_r2/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Eurostat：各產業的附加價值（nama_10_a10，NACE A*10）', en: 'Eurostat: gross value added by industry (nama_10_a10, NACE A*10)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/nama_10_a10/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: 'FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）', en: 'FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)' },
       url: 'https://www.fao.org/faostat/en/#data/RFN',
       license: 'CC BY 4.0',
@@ -499,6 +514,91 @@ const industryOwn: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       defaultYear: 2024,
     },
+    {
+      id: 'gva-share',
+      label: { zh: 'GDP 的十大產業', en: 'GDP by industry (ten sectors)' },
+      description: {
+        zh: '各產業的附加價值占全部附加價值的比例，把「服務業」拆開看（Eurostat 的 NACE A*10，歐洲約 40 國，1995 年起；台灣用主計總處的各業 GDP）。「礦業與公用事業」是採礦、電力燃氣、用水與廢棄物，不含製造業。2024 年台灣的製造業 36.8% 是這張圖最高，德國 19.9%、法國 11.4%；愛爾蘭的資通訊 21.1%（跨國科技公司）、盧森堡的金融保險 25.9%、挪威的礦業與公用事業 28.0%（石油天然氣）。多數國家製造業以外最大的是批發零售、運輸與住宿餐飲，其次是公共行政、教育與醫療。',
+        en: 'Each industry’s share of total gross value added, breaking “services” apart (Eurostat NACE A*10, about 40 European countries from 1995; Taiwan from DGBAS GDP by industry). “Mining and utilities” covers mining, electricity and gas, water and waste, excluding manufacturing. In 2024 Taiwan’s manufacturing share of 36.8% was the highest on the map, against 19.9% in Germany and 11.4% in France; ICT was 21.1% in Ireland (multinational tech firms), finance 25.9% in Luxembourg and mining and utilities 28.0% in Norway (oil and gas). Outside manufacturing, the largest sector in most countries is trade, transport and hospitality, followed by public administration, education and health.',
+      },
+      unit: '%',
+      file: 'gva-share/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [5, 10, 15, 20, 25, 30] },
+        itemScales: {
+          agriculture: { type: 'sequential', thresholds: [1, 1.5, 2, 3, 5, 8] },
+          'mining-utilities': { type: 'sequential', thresholds: [2, 3, 4, 5, 8, 15] },
+          manufacturing: { type: 'sequential', thresholds: [8, 12, 15, 18, 22, 30] },
+          construction: { type: 'sequential', thresholds: [4, 5, 5.5, 6, 7, 9] },
+          trade: { type: 'sequential', thresholds: [15, 18, 20, 22, 25, 28] },
+          ict: { type: 'sequential', thresholds: [3.5, 4.5, 5, 6, 8, 12] },
+          finance: { type: 'sequential', thresholds: [3, 4, 5, 6, 8, 15] },
+          'real-estate': { type: 'sequential', thresholds: [6, 8, 9, 10, 12, 14] },
+          business: { type: 'sequential', thresholds: [5, 7, 9, 10, 12, 15] },
+          public: { type: 'sequential', thresholds: [12, 15, 17, 19, 21, 25] },
+          other: { type: 'sequential', thresholds: [1.5, 2, 2.5, 3, 3.5, 5] },
+        },
+      },
+      dimension: {
+        label: { zh: '產業', en: 'Industry' },
+        options: [
+          { id: 'agriculture', label: { zh: '農林漁牧業（A）', en: 'Agriculture, forestry and fishing (A)' } },
+          { id: 'mining-utilities', label: { zh: '礦業與公用事業（B、D、E）', en: 'Mining and utilities (B, D, E)' } },
+          { id: 'manufacturing', label: { zh: '製造業（C）', en: 'Manufacturing (C)' } },
+          { id: 'construction', label: { zh: '營造業（F）', en: 'Construction (F)' } },
+          { id: 'trade', label: { zh: '批發零售、運輸倉儲、住宿餐飲（G–I）', en: 'Trade, transport and hospitality (G–I)' } },
+          { id: 'ict', label: { zh: '資訊與通訊（J）', en: 'Information and communication (J)' } },
+          { id: 'finance', label: { zh: '金融保險（K）', en: 'Finance and insurance (K)' } },
+          { id: 'real-estate', label: { zh: '不動產（L）', en: 'Real estate (L)' } },
+          { id: 'business', label: { zh: '專業、科學、技術與支援服務（M–N）', en: 'Professional, scientific and support services (M–N)' } },
+          { id: 'public', label: { zh: '公共行政、教育、醫療與社福（O–Q）', en: 'Public administration, education and health (O–Q)' } },
+          { id: 'other', label: { zh: '藝術娛樂與其他服務（R–U）', en: 'Arts, recreation and other services (R–U)' } },
+        ],
+        defaultOption: 'manufacturing',
+      },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2024,
+    },
+    {
+      id: 'capacity-utilization',
+      label: { zh: '製造業的產能利用率', en: 'Manufacturing capacity utilisation' },
+      description: {
+        zh: '工廠的產能用了幾成：歐盟執委會每季問製造業者「目前的產能利用率」，季節調整後取當年各季的平均（Eurostat，32 個歐洲國家，多數 1990 年代起）。2026 年奧地利 83.9%、瑞典 83.2%、德國 78.2%、義大利 75.2%，歐盟 78.1%；2009 年（71.8%）與 2020 年（74.8%）的大跌在時間軸上看得到。這是業者的自評，跨國比較水準要小心（馬爾他、丹麥偏低可能是樣本或產業結構），看變化比較有意義。側欄是逐季的線。台灣：經濟部沒有開放產能利用率的資料。',
+        en: 'How much of their capacity factories are using: each quarter the European Commission asks manufacturers for their current capacity utilisation; the map shows the annual average of the seasonally adjusted quarters (Eurostat, 32 European countries, mostly from the 1990s). In 2026 Austria averaged 83.9%, Sweden 83.2%, Germany 78.2% and Italy 75.2%, with the EU at 78.1%; the slumps of 2009 (71.8%) and 2020 (74.8%) show on the timeline. These are self-assessments, so compare levels across countries with care (Malta’s and Denmark’s low figures may reflect small samples or industry mix); changes are more telling. The side panel plots each quarter. Taiwan: the Ministry of Economic Affairs publishes no open data on capacity utilisation.',
+      },
+      unit: '%',
+      file: 'capacity-utilization.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [65, 70, 74, 77, 80, 83] } },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 'latest',
+      noValue: { TWN: { zh: '經濟部沒有開放這項資料', en: 'No open data from the Ministry of Economic Affairs' } },
+    },
+    {
+      id: 'labour-productivity',
+      label: { zh: '每位就業者創造的附加價值', en: 'Value added per worker' },
+      description: {
+        zh: '工業（含營造）或服務業一年的附加價值除以就業人數（2015 年固定價美元，世界銀行 WDI，1991 年起）。2025 年工業：愛爾蘭 47.5 萬、盧森堡 26.3 萬、瑞士 24.2 萬、南韓 9.7 萬、德國 7.8 萬、中國大陸 3.1 萬、印度 6,670，世界 2.6 萬；服務業：盧森堡 18.7 萬、瑞士 15.4 萬、德國 7.9 萬、南韓 5.4 萬、印度 9,536。愛爾蘭、盧森堡這類高得不合理的數字是跨國企業的利潤移轉造成的；蓋亞那是石油。美國只到 2015 年（工業 11.2 萬），地圖用 10 年內最近一年的值並標年份。就業者含自營作業者。台灣不在世界銀行的資料裡。',
+        en: 'A year’s value added in industry (including construction) or services divided by the number employed (constant 2015 US$, World Bank WDI, from 1991). In 2025 industry was US$475,000 in Ireland, 263,000 in Luxembourg, 242,000 in Switzerland, 97,000 in South Korea, 78,000 in Germany, 31,000 in mainland China and 6,670 in India, against a world 26,000; services were 187,000 in Luxembourg, 154,000 in Switzerland, 79,000 in Germany, 54,000 in South Korea and 9,536 in India. Implausibly high figures in Ireland and Luxembourg come from multinational profit shifting; Guyana’s from oil. US data end in 2015 (industry 112,000), so the map uses each country’s latest value within 10 years and labels the year. Workers include the self-employed. Taiwan is not in World Bank data.',
+      },
+      unit: { zh: '2015 年美元', en: '2015 US$' },
+      file: 'labour-productivity/{item}.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5000, 10000, 20000, 40000, 80000, 150000] } },
+      dimension: {
+        label: { zh: '產業', en: 'Sector' },
+        options: [
+          { id: 'industry', label: { zh: '工業（含營造）', en: 'Industry (incl. construction)' } },
+          { id: 'services', label: { zh: '服務業', en: 'Services' } },
+        ],
+        defaultOption: 'industry',
+      },
+      format: (v) => usd(formatLargeNumber(v)),
+      formatTick: formatLargeTick,
+      compareWorld: true,
+      defaultYear: 2025,
+    },
   ],
 };
 
@@ -506,7 +606,7 @@ const industryOwn: TopicDefinition = {
 const MENU_GROUPS: [Text, string[]][] = [
   [
     { zh: '產業結構', en: 'Economic structure' },
-    ['agriculture', 'industry', 'manufacturing', 'services', 'employment-agriculture', 'employment-industry', 'employment-services'],
+    ['agriculture', 'industry', 'manufacturing', 'services', 'employment-agriculture', 'employment-industry', 'employment-services', 'gva-share'],
   ],
   [
     { zh: '製造業', en: 'Manufacturing' },
@@ -529,6 +629,7 @@ const MENU_GROUPS: [Text, string[]][] = [
     { zh: '出口競爭力', en: 'Export competitiveness' },
     ['exports', 'exports-sitc', 'top-export-sitc', 'product-share', 'product-leads'],
   ],
+  [{ zh: '生產力', en: 'Productivity' }, ['labour-productivity', 'capacity-utilization']],
 ];
 
 function withMenuGroups(topic: TopicDefinition): TopicDefinition {

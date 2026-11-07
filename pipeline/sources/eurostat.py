@@ -66,3 +66,36 @@ def series(dataset: str, extra_geos: tuple[str, ...] = (), **filters: str) -> di
             if values:
                 out[iso3] = values
     return out
+
+
+def quarterly(dataset: str, extra_geos: tuple[str, ...] = (), **filters: str) -> dict[str, dict[str, float]]:
+    """季資料：{iso3: {"2026-Q4": 值}}，其他規則同 series()（第二十五批 447 的產能利用率）。"""
+    path = download(URL.format(dataset=dataset), "eurostat", f"{dataset}.tsv.gz")
+    out: dict[str, dict[str, float]] = {}
+    with gzip.open(path, "rt", encoding="utf-8") as f:
+        header = f.readline().rstrip("\n").split("\t")
+        dims = header[0].split("\\")[0].split(",")
+        unknown = set(filters) - set(dims)
+        if unknown:
+            raise RuntimeError(f"{dataset} 沒有維度 {unknown}（有 {dims}）")
+        periods = [h.strip() for h in header[1:]]
+        if not all(len(p) == 7 and p[4:6] == "-Q" for p in periods):
+            raise RuntimeError(f"{dataset} 不是季資料：{periods[:3]}")
+        for line in f:
+            cells = line.rstrip("\n").split("\t")
+            key = dict(zip(dims, cells[0].split(",")))
+            if any(key[k] != v for k, v in filters.items()):
+                continue
+            iso3 = key["geo"] if key["geo"] in extra_geos else _iso3(key["geo"])
+            if not iso3 or noncommercial(key["geo"]) or iso3 in NONCOMMERCIAL:
+                continue
+            if iso3 in out:
+                raise RuntimeError(f"{dataset} 的 {iso3} 有好幾列，filters 要指定 geo 以外的所有維度")
+            values = {}
+            for period, cell in zip(periods, cells[1:]):
+                number = cell.strip().split(" ")[0]
+                if number not in (":", ""):
+                    values[period] = float(number)
+            if values:
+                out[iso3] = values
+    return out

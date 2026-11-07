@@ -7,6 +7,7 @@ import { EXPORT_GROUPS, FERTILIZER_INDICATORS, ROBOT_INDICATOR, SITC_INDICATORS 
 import type { PanelExtraProps } from '../types';
 import { FertilizerTable } from './FertilizerTable';
 import { IndustrySitc } from './IndustrySitc';
+import { CapacityQuarterly } from './CapacityQuarterly';
 import { ProductLeadsSections, ProductShareTop } from './ProductLeads';
 import { RobotReasons } from './RobotReasons';
 
@@ -116,6 +117,15 @@ export default function IndustryPanel(props: PanelExtraProps) {
     return (
       <>
         {props.indicator.id === 'product-share' ? <ProductShareTop {...props} /> : <ProductLeadsSections {...props} />}
+        <IndustryMain {...props} />
+      </>
+    );
+  }
+  // 製造業的產能利用率（2026-11-07，第二十五批 447）：逐季的線
+  if (props.indicator.id === 'capacity-utilization') {
+    return (
+      <>
+        <CapacityQuarterly {...props} />
         <IndustryMain {...props} />
       </>
     );

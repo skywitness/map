@@ -389,6 +389,8 @@ STEPS = {
     "minerals-economy": "topics.minerals_economy",
     # 產業與工業：台灣是世界第幾、各國稱霸幾項產品（Atlas HS92 四位碼 452 MB 邊下載邊篩，快取約 98 MB；約 1 分鐘）
     "industry-products": "topics.industry_products",
+    # 產業與工業：產能利用率（Eurostat 季資料）、工業與服務業的勞動生產力（WDI）、GDP 的十大產業（Eurostat＋主計總處）
+    "industry-productivity": "topics.industry_productivity",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
