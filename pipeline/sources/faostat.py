@@ -39,6 +39,7 @@ DATASETS = {
     "ESB": "Environment_Cropland_nutrient_budget_E_All_Data_(Normalized).zip",  # 耕地的養分收支（第二十五批 484）
     "LC": "Environment_LandCover_E_All_Data_(Normalized).zip",  # 土地覆蓋（ESA CCI 等；第二十五批 491）
     "SDGB": "SDG_BulkDownloads_E_All_Data_(Normalized).zip",  # FAO 負責的 SDG 指標（山地綠覆蓋等；第二十五批 492）
+    "GI": "Emissions_Land_Use_Fires_E_All_Data_(Normalized).zip",  # 火災的排放與燒毀面積（第二十五批 499；檔名不是 Emissions_Fires）
 }
 # 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
 ENCODINGS = {"FBSH": "latin-1"}

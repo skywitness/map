@@ -1,5 +1,5 @@
 import { tr } from '../i18n/lang';
-import { fixed, formatLargeTick } from '../lib/format';
+import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { TopicDefinition } from './types';
 
@@ -37,6 +37,11 @@ export const wildfires: TopicDefinition = {
   defaultIndicator: 'burned-share',
   defaultYear: 2025,
   sources: [
+    {
+      name: { zh: 'FAOSTAT：Emissions from Fires（GI，FAO TIER 1；NASA MODIS MCD64A1 與 GFED 的係數）', en: 'FAOSTAT: Emissions from Fires (GI, FAO Tier 1; NASA MODIS MCD64A1 and GFED factors)' },
+      url: 'https://www.fao.org/faostat/en/#data/GI',
+      license: 'CC BY 4.0',
+    },
     {
       name: {
         zh: 'GWIS 全球野火資訊系統（歐盟執委會 JRC、Copernicus）, MODIS Global Monthly Burned Area',
@@ -105,6 +110,42 @@ export const wildfires: TopicDefinition = {
       // 2026-11-02（新28）：圓畫成燒到的土地覆蓋的圓餅（森林、疏林草原、灌叢與草地、農地、其他），顏色跟側欄的堆疊圖一樣
       layer: { kind: 'bubble', legendValues: [1000, 10000, 100000], pie: { parts: LANDCOVER_PIE } },
       format: km2,
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'fire-co2',
+      label: { zh: '森林火災的二氧化碳排放', en: 'CO₂ from forest fires' },
+      description: {
+        zh: '森林火災一年排出的二氧化碳（公噸，FAOSTAT 用 NASA MODIS 燒毀面積與係數推估），1996 年起。2025 年全世界約 20.6 億公噸：尚比亞 2.99 億、剛果民主共和國 2.97 億、緬甸 2.47 億、中非 2.26 億、莫三比克 1.83 億、安哥拉 1.73 億、印度 8,369 萬、坦尚尼亞 7,000 萬、加拿大 6,839 萬、巴西 5,282 萬。2024 年全世界 28.3 億公噸，玻利維亞 5.16 億、巴西 4.60 億最多。草原火災的二氧化碳依 IPCC 的算法當年就被植物吸收回去，不算。台灣是 0：MODIS 看不到台灣這種小面積的火，不是沒有森林火災。',
+        en: 'Carbon dioxide released by forest fires in a year (tonnes, estimated by FAOSTAT from NASA MODIS burned area and emission factors), from 1996. The 2025 world total was about 2.06 billion tonnes: Zambia 299 million, DR Congo 297 million, Myanmar 247 million, Central African Republic 226 million, Mozambique 183 million, Angola 173 million, India 83.7 million, Tanzania 70.0 million, Canada 68.4 million, Brazil 52.8 million. In 2024 the world total was 2.83 billion, led by Bolivia (516 million) and Brazil (460 million). CO₂ from savanna fires is counted as reabsorbed by vegetation within the year under IPCC rules and is excluded. Taiwan shows 0 because MODIS cannot see fires that small, not because there are none.',
+      },
+      unit: { zh: '公噸', en: 'tonnes' },
+      file: 'fire-co2.json',
+      layer: { kind: 'bubble', legendValues: [1e6, 1e7, 1e8] },
+      format: (v) => tr({ zh: formatLargeNumber(v) + ' 公噸', en: formatLargeNumber(v) + ' t' }),
+      formatTick: formatLargeTick,
+      shareOfWorld: true,
+    },
+    {
+      id: 'fao-burned',
+      label: { zh: '森林與草原火災的燒毀面積（1996 年起）', en: 'Forest and savanna burned area (since 1996)' },
+      description: {
+        zh: 'FAOSTAT 依 IPCC 分類的燒毀面積（公頃），比上面的 GWIS 早到 1996 年，但分類與數字跟 GWIS 不同、不能接起來。全世界的森林火災 1996 年 1,526 萬公頃、2010 年 4,046 萬、2024 年 3,312 萬、2025 年 2,432 萬；草原火災 2025 年 2.77 億公頃，是森林的 11 倍。1996–1999 年平均到 2015–2024 年平均，森林火災變多的有尚比亞 60 萬 → 352 萬公頃、莫三比克 17 萬 → 335 萬、中非 48 萬 → 312 萬；變少的有印尼 176 萬 → 16 萬、奈及利亞 90 萬 → 5 萬。1990–1995 年是同一個回推的數字，不畫。',
+        en: 'Burned area by IPCC class from FAOSTAT (hectares), reaching back to 1996, earlier than GWIS above, but with different classes and figures, so the two cannot be joined. Forest fires burned 15.3 million ha worldwide in 1996, 40.5 million in 2010, 33.1 million in 2024 and 24.3 million in 2025; savanna fires burned 277 million ha in 2025, 11 times as much. From the 1996–1999 average to the 2015–2024 average, forest fires grew in Zambia (0.60 → 3.52 million ha), Mozambique (0.17 → 3.35 million) and the Central African Republic (0.48 → 3.12 million) and shrank in Indonesia (1.76 → 0.16 million) and Nigeria (0.90 → 0.05 million). 1990–1995 are a single back-cast figure and are not shown.',
+      },
+      unit: { zh: '公頃', en: 'ha' },
+      file: 'fao-burned/{item}.json',
+      dimension: {
+        label: { zh: '火災', en: 'Fire type' },
+        options: [
+          { id: 'forest', label: { zh: '森林火災', en: 'Forest fires' } },
+          { id: 'savanna', label: { zh: '草原火災', en: 'Savanna fires' } },
+        ],
+        defaultOption: 'forest',
+      },
+      layer: { kind: 'bubble', legendValues: [1e5, 1e6, 1e7] },
+      format: (v) => tr({ zh: formatLargeNumber(v) + ' 公頃', en: formatLargeNumber(v) + ' ha' }),
       formatTick: formatLargeTick,
       shareOfWorld: true,
     },

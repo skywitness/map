@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 171;
-export const INDICATOR_COUNT = 1266;
+export const INDICATOR_COUNT = 1268;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -152,6 +152,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAOSTAT：Climate Change, Agrifood systems emissions, Emissions totals（GT）：農糧系統的溫室氣體","en":"FAOSTAT: Climate Change, Agrifood systems emissions, Emissions totals (GT): agrifood system emissions"},"url":"https://www.fao.org/faostat/en/#data/GT","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"FAOSTAT：Consumer Price Indices（食物與總消費者物價指數，月資料）","en":"FAOSTAT: Consumer Price Indices (food and general CPI, monthly)"},"url":"https://www.fao.org/faostat/en/#data/CP","licenses":["CC BY 4.0"],"topics":["prices"]},
   {"name":{"zh":"FAOSTAT：Cropland Nutrient Balance（ESB）","en":"FAOSTAT: Cropland Nutrient Balance (ESB)"},"url":"https://www.fao.org/faostat/en/#data/ESB","licenses":["CC BY 4.0"],"topics":["nutrients"]},
+  {"name":{"zh":"FAOSTAT：Emissions from Fires（GI，FAO TIER 1；NASA MODIS MCD64A1 與 GFED 的係數）","en":"FAOSTAT: Emissions from Fires (GI, FAO Tier 1; NASA MODIS MCD64A1 and GFED factors)"},"url":"https://www.fao.org/faostat/en/#data/GI","licenses":["CC BY 4.0"],"topics":["wildfires"]},
   {"name":{"zh":"FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）","en":"FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)"},"url":"https://www.fao.org/faostat/en/#data/RFN","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"FAOSTAT：Land Cover（LC，ESA CCI Land Cover）","en":"FAOSTAT: Land Cover (LC, ESA CCI Land Cover)"},"url":"https://www.fao.org/faostat/en/#data/LC","licenses":["CC BY 4.0"],"topics":["land-use"]},
   {"name":{"zh":"FAOSTAT：SDG Indicators（SDG 15.4.2 山地綠覆蓋）","en":"FAOSTAT: SDG Indicators (SDG 15.4.2 mountain green cover)"},"url":"https://www.fao.org/faostat/en/#data/SDGB","licenses":["CC BY 4.0"],"topics":["land-use"]},
