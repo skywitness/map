@@ -151,6 +151,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `housing-market` 是沒人住的房子與買賣量：Eurostat 2011、2021 年普查的 `cens_11dwob_r3`、`cens_21dwob_r3` 與住宅買賣 `prc_hpi_hsna`，主計總處 2020 年普查的住宅使用情形（mp06234a109.xml），內政部實價登錄 110S1–115S3 共 23 季的季資料 zip（`pipeline/sources/lvr.py`，一季 8–16 MB，抽出住宅買賣的編號、縣市、交易年月、扣車位單價與有沒有特殊交易後存成 `.cache/moi-lvr/sales/<季>.json.gz`、zip 刪掉；第一次跑約 10 分鐘，之後幾秒鐘）。
 
+`property-costs` 是營建成本、地價與房屋稅：Eurostat `sts_copi_a`（14 KB）、世界銀行 WDI 的消費者物價指數、OECD `DSD_DASHBOARD@PROP_TAX_REV`（2.6 MB）、財政部 i0421（稅目別實徵淨額）、主計總處的名目 GDP、內政部公告地價統計（data.gov.tw 25074，2 KB）。幾秒鐘。
+
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。
 
 `education-projection` 讀 Wittgenstein Centre／IIASA 在 Zenodo 的推估（zen2025V01 的 SSP2，約 130 MB，CC BY 4.0），輸出教育主題 25 歲以上大專以上的比例（2025–2100 年）。做法見 DESIGN.md 第 8 節第 281 點。

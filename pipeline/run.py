@@ -432,6 +432,9 @@ STEPS = {
     # 沒人住的房子與買賣量（新主題，不動產）：Eurostat 2011、2021 年普查與住宅買賣件數，台灣用 2020 年普查與實價登錄
     # 2021–2026 年各季的成屋買賣（一季一個 8–16 MB 的 zip，抽出要用的欄位後刪掉，第一次跑約 10 分鐘）
     "housing-market": "topics.housing_market",
+    # 營建成本、地價與房屋稅（新主題，不動產）：Eurostat sts_copi_a、WDI 消費者物價、OECD 地方政府的經常性財產稅，
+    # 台灣用財政部的稅目別實徵淨額與內政部的公告地價統計
+    "property-costs": "topics.property_costs",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

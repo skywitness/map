@@ -120,6 +120,7 @@ const TOPIC_ICONS = {
   'market-regulation': 'file-stack',
   'real-estate': 'key-round',
   'housing-market': 'door-open',
+  'property-costs': 'brick-wall',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
