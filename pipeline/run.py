@@ -59,6 +59,8 @@ STEPS = {
     "climate-transport": "topics.climate_transport",
     # 排放達峰了嗎：讀 climate 步驟輸出的 co2.json 算最高的那一年（要在 climate 之後跑）
     "climate-peak": "topics.climate_peak",
+    # 農糧系統的溫室氣體（FAOSTAT Emissions Totals，20 MB）與碳排放的經濟損害（WDI）
+    "climate-agrifood": "topics.climate_agrifood",
     # Climate TRACE 5.12.0（Zenodo，用 HTTP Range 只讀需要的檔，第一次約 400 MB、10 分鐘）
     "climate-trace": "topics.climate_trace",
     "military": "topics.military",

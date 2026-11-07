@@ -152,6 +152,22 @@ export const climate: TopicDefinition = withParts({
       url: 'https://data.gov.tw/dataset/8331',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
+    {
+      name: {
+        zh: 'FAOSTAT：Climate Change, Agrifood systems emissions, Emissions totals（GT）：農糧系統的溫室氣體',
+        en: 'FAOSTAT: Climate Change, Agrifood systems emissions, Emissions totals (GT): agrifood system emissions',
+      },
+      url: 'https://www.fao.org/faostat/en/#data/GT',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'World Bank, World Development Indicators：Adjusted savings: carbon dioxide damage (% of GNI)（NY.ADJ.DCO2.GN.ZS）',
+        en: 'World Bank, World Development Indicators: Adjusted savings: carbon dioxide damage (% of GNI) (NY.ADJ.DCO2.GN.ZS)',
+      },
+      url: 'https://data.worldbank.org/indicator/NY.ADJ.DCO2.GN.ZS',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh:
@@ -268,6 +284,61 @@ export const climate: TopicDefinition = withParts({
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [-60, -45, -30, -20, -10, -0.05] } },
       format: (v) => (v === 0 ? tr({ zh: '2024 年是最高', en: '2024 was the peak' }) : `${fixed(v, 1)}%`),
       formatTick: (v) => `${fixed(v, 0)}%`,
+    },
+    {
+      // 2026-11-07（製作手冊第二十五批 476，候選 1137、1145）：pipeline/topics/climate_agrifood.py
+      id: 'agrifood-ghg',
+      label: { zh: '農糧系統的溫室氣體', en: 'Agrifood system emissions' },
+      description: {
+        zh: '從農場到餐桌的溫室氣體（二氧化碳當量，FAOSTAT，1990–2024 年）：農場內（牲畜的腸道發酵與糞肥、稻田、肥料、農場用能、排乾的泥炭地與火災）、毀林等土地利用變化，加上農場前後（肥料與農藥製造、加工、包裝、運輸、零售、家裡煮食與廚餘）。2024 年全世界 184.7 億公噸，中國 24.1 億、巴西 23.4 億（三分之二是毀林）、印度 15.7 億、美國 10.7 億、印尼 6.3 億；台灣 3,350 萬公噸，四分之三在農場前後。子項目分三段：農場內印度 10.4 億最多，毀林等土地利用巴西 15.4 億最多，農場前後中國 15.2 億最多。',
+        en: 'Greenhouse gases from farm to table (CO₂ equivalent, FAOSTAT, 1990–2024): on the farm (livestock digestion and manure, rice paddies, fertiliser, farm energy, drained peatland and fires), land-use change such as deforestation, and before and after the farm (fertiliser and pesticide manufacturing, processing, packaging, transport, retail, home cooking and food waste). In 2024 the world total was 18.47 billion tonnes: China 2.41 billion, Brazil 2.34 billion (two-thirds from deforestation), India 1.57 billion, the US 1.07 billion and Indonesia 0.63 billion; Taiwan 33.5 million tonnes, three-quarters of it before and after the farm. The options split the three stages: India leads on the farm (1.04 billion), Brazil in land-use change (1.54 billion) and China before and after the farm (1.52 billion).',
+      },
+      unit: TONNES,
+      file: 'agrifood/{item}.json',
+      dimension: {
+        label: { zh: '哪一段', en: 'Stage' },
+        options: [
+          { id: 'all', label: { zh: '全部', en: 'All' } },
+          { id: 'farm', label: { zh: '農場內', en: 'On the farm' } },
+          { id: 'luc', label: { zh: '毀林等土地利用變化', en: 'Land-use change' } },
+          { id: 'prepost', label: { zh: '農場前後（加工、運輸、零售、家戶）', en: 'Before and after the farm' } },
+        ],
+        defaultOption: 'all',
+      },
+      layer: { kind: 'bubble', legendValues: [1e7, 1e8, 1e9] },
+      format: tonnes,
+      formatTick: tonnesTick,
+      shareOfWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'agrifood-share',
+      label: { zh: '農糧系統占全國排放', en: 'Agrifood share of emissions' },
+      description: {
+        zh: '農糧系統的排放占全國溫室氣體排放的比例；分子分母都不含毀林、泥炭地、火災這類土地利用的排放（含的話巴西會超過 100%）。2024 年全世界 25.1%；南蘇丹 97.5%、查德 93.2%、尼日 92.4% 這類以畜牧為主的國家最高，烏拉圭 74.9%、巴西 64.0%、紐西蘭 62.8%、阿根廷 54.1%、愛爾蘭 50.8%；印度 33.0%、德國與法國 28.6%、美國 16.7%、中國 15.5%、日本 14.1%、南韓 12.4%、台灣 10.9%；新加坡 8.3% 最低之一。',
+        en: 'Agrifood system emissions as a share of national greenhouse gas emissions, with land-use emissions such as deforestation, peatland and fires left out of both sides (including them would put Brazil above 100%). In 2024 the world figure was 25.1%; livestock-based economies such as South Sudan (97.5%), Chad (93.2%) and Niger (92.4%) were highest, followed by Uruguay 74.9%, Brazil 64.0%, New Zealand 62.8%, Argentina 54.1% and Ireland 50.8%; India 33.0%, Germany and France 28.6%, the US 16.7%, China 15.5%, Japan 14.1%, South Korea 12.4%, Taiwan 10.9%; Singapore, at 8.3%, is among the lowest.',
+      },
+      unit: '%',
+      file: 'agrifood-share.json',
+      layer: { kind: 'choropleth', scale: sequential([10, 15, 25, 35, 50, 70]) },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'co2-damage',
+      label: { zh: '碳排放的經濟損害占國民所得', en: 'CO₂ damage, % of GNI' },
+      description: {
+        zh: '世界銀行把每噸二氧化碳造成的損害（社會成本）當成 40 美元（2017 年幣值），乘上排放量、除以國民所得毛額，換算成「相當於幾 % 的國民所得」。2021 年敘利亞 9.85%（2020 年）、伊朗 8.62%、蒙古 7.36%、寮國 7.23%、烏茲別克 7.16% 最高，窮而且燒煤、燒油的國家比例最高；俄羅斯 4.40%、印度 3.44%、中國 2.75%、南韓 1.49%、美國 0.89%、日本 0.88%、德國 0.63%、法國 0.42%。每噸 40 美元是世界銀行固定的假設，近年的研究多在 100–200 美元；只算化石燃料與水泥的二氧化碳，不含甲烷與土地利用。台灣不在世界銀行的資料庫。',
+        en: 'The World Bank values the damage (social cost) of each tonne of CO₂ at US$40 (2017 prices), multiplies by emissions and divides by gross national income, expressing it as a share of national income. In 2021 Syria (9.85%, 2020), Iran (8.62%), Mongolia (7.36%), Laos (7.23%) and Uzbekistan (7.16%) were highest: poor countries burning coal and oil come off worst; Russia 4.40%, India 3.44%, China 2.75%, South Korea 1.49%, the US 0.89%, Japan 0.88%, Germany 0.63%, France 0.42%. The US$40 per tonne is a fixed World Bank assumption, while recent studies mostly put it at US$100–200; only CO₂ from fossil fuels and cement is counted, not methane or land use. Taiwan is not in the World Bank database.',
+      },
+      unit: { zh: '% 國民所得', en: '% of GNI' },
+      file: 'co2-damage.json',
+      layer: { kind: 'choropleth', scale: sequential([0.5, 1, 1.5, 2.5, 4, 6]) },
+      format: (v) => `${fixed(v, 2)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2021,
     },
     {
       id: 'transport-co2-share',

@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 162;
-export const INDICATOR_COUNT = 1221;
+export const INDICATOR_COUNT = 1224;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -145,6 +145,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"FAO, FAOSTAT（詳細貿易矩陣）","en":"FAO, FAOSTAT (detailed trade matrix)"},"url":"https://www.fao.org/faostat/en/#data/TM","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":"FAO, Global Forest Resources Assessment 2025","url":"https://fra-data.fao.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"FAO. 2026. FishStat: Global production by production source 1950–2024（2026-10-26 查閱）","en":"FAO. 2026. FishStat: Global production by production source 1950–2024 (accessed 26 October 2026)"},"url":"https://www.fao.org/fishery/en/collection/global_production","licenses":["CC BY 4.0"],"topics":["oceans"]},
+  {"name":{"zh":"FAOSTAT：Climate Change, Agrifood systems emissions, Emissions totals（GT）：農糧系統的溫室氣體","en":"FAOSTAT: Climate Change, Agrifood systems emissions, Emissions totals (GT): agrifood system emissions"},"url":"https://www.fao.org/faostat/en/#data/GT","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"FAOSTAT：Consumer Price Indices（食物與總消費者物價指數，月資料）","en":"FAOSTAT: Consumer Price Indices (food and general CPI, monthly)"},"url":"https://www.fao.org/faostat/en/#data/CP","licenses":["CC BY 4.0"],"topics":["prices"]},
   {"name":{"zh":"FAOSTAT：Fertilizers by Nutrient（化肥的產量、施用量與進出口）","en":"FAOSTAT: Fertilizers by Nutrient (fertilizer production, use and trade)"},"url":"https://www.fao.org/faostat/en/#data/RFN","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Faurby 等（2018），PHYLACINE 1.2：The Phylogenetic Atlas of Mammal Macroecology（Zenodo）","en":"Faurby et al. (2018), PHYLACINE 1.2: The Phylogenetic Atlas of Mammal Macroecology (Zenodo)"},"url":"https://zenodo.org/records/4954990","licenses":["CC0 1.0"],"topics":["megafauna"]},
@@ -361,6 +362,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"World Bank, WDI（陸域保護區占國土，UNEP-WCMC 的 WDPA 與 WD-OECM）","en":"World Bank, WDI (terrestrial protected areas, from UNEP-WCMC’s WDPA and WD-OECM)"},"url":"https://data.worldbank.org/indicator/ER.LND.PTLD.ZS","licenses":["CC BY 4.0"],"topics":["national-parks"]},
   {"name":{"zh":"World Bank, What a Waste 3.0 國家資料（2026 年 3 月；Cook 等 2026）","en":"World Bank, What a Waste 3.0 country dataset (March 2026; Cook et al. 2026)"},"url":"https://datacatalog.worldbank.org/search/dataset/0039597","licenses":["CC BY 4.0"],"topics":["plastic"]},
   {"name":{"zh":"World Bank, Women, Business and the Law（1971–2024 歷史面板、2026 年版）","en":"World Bank, Women, Business and the Law (1971–2024 panel, 2026 edition)"},"url":"https://wbl.worldbank.org/en/data/download-data","licenses":[{"zh":"CC BY 4.0（依 WDI 轉載 WBL 的序列中繼資料）","en":"CC BY 4.0 (per the WDI metadata for WBL series)"}],"topics":["gender"]},
+  {"name":{"zh":"World Bank, World Development Indicators：Adjusted savings: carbon dioxide damage (% of GNI)（NY.ADJ.DCO2.GN.ZS）","en":"World Bank, World Development Indicators: Adjusted savings: carbon dioxide damage (% of GNI) (NY.ADJ.DCO2.GN.ZS)"},"url":"https://data.worldbank.org/indicator/NY.ADJ.DCO2.GN.ZS","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"World Bank, World Development Indicators（ICAO 的航空貨運量）","en":"World Bank, World Development Indicators (ICAO air freight)"},"url":"https://data.worldbank.org/indicator/IS.AIR.GOOD.MT.K1","licenses":["CC BY 4.0"],"topics":["air-routes"]},
   {"name":{"zh":"World Bank, World Development Indicators（IMF 國際收支：旅行收入）","en":"World Bank, World Development Indicators (IMF balance of payments: travel receipts)"},"url":"https://data.worldbank.org/indicator/BX.GSR.TRVL.ZS","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"World Bank, World Development Indicators（UIC、OECD 的鐵路貨運量）","en":"World Bank, World Development Indicators (rail freight from UIC and OECD)"},"url":"https://data.worldbank.org/indicator/IS.RRS.GOOD.MT.K6","licenses":["CC BY 4.0"],"topics":["transport"]},
