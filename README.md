@@ -169,6 +169,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `cbam` 是碳邊境調整機制（CBAM）會課到誰：Eurostat Comext API 的 DS-045409，一支查詢抓 2015–2025 年歐盟從全部夥伴進口的 CBAM 產品（HS 近似）與總額，約 1 MB。幾秒鐘。
 
+`air-emissions` 是空氣品質主題的七種污染物排放量：讀 `ceds` 已經在抓的 CEDS v_2025_03_18 彙總 zip（約 63 MB），多讀 SO₂、NOx、NH₃、BC、OC、CO、NMVOC 的國家總量與部門 CSV，人均用 WPP 2024 的年中人口。約半分鐘。`air-teds` 是台灣的 1 公里排放網格：環境部開放資料 AQX_P_24 用平台網頁預覽的 datastore.search（不用金鑰），一次 10,000 筆、分 4 頁，快取在 `.cache/moenv/AQX_P_24/`。約 1 分鐘。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

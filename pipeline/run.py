@@ -181,6 +181,10 @@ STEPS = {
     "ozone-hole": "topics.ozone_hole",
     "air-quality": "topics.air_quality",
     "air-quality-no2": "topics.air_quality_no2",  # 二氧化氮衛星影像的時間軸與台灣附註（環境部空氣品質監測月值，第十七批 282）
+    # 七種空氣污染物的排放量：CEDS 的同一個 zip（sources/ceds.py 的快取），國家總量與部門組成
+    "air-emissions": "topics.air_emissions",
+    # 台灣的空氣污染物排放清冊 1 公里網格（環境部 AQX_P_24，平台預覽用的免金鑰查詢，分 4 頁）
+    "air-teds": "topics.air_teds",
     "water-forest": "topics.water_forest",
     # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
     "water-use": "topics.water_use",
