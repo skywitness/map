@@ -121,6 +121,7 @@ const TOPIC_ICONS = {
   'real-estate': 'key-round',
   'housing-market': 'door-open',
   'property-costs': 'brick-wall',
+  retail: 'shopping-cart',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

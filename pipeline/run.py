@@ -435,6 +435,9 @@ STEPS = {
     # 營建成本、地價與房屋稅（新主題，不動產）：Eurostat sts_copi_a、WDI 消費者物價、OECD 地方政府的經常性財產稅，
     # 台灣用財政部的稅目別實徵淨額與內政部的公告地價統計
     "property-costs": "topics.property_costs",
+    # 零售業的規模與電子商務（新主題，消費與零售）：Eurostat isoc_ec_evaln2（1.2 MB）、sbs_ovw_act（篩選後的 JSON），
+    # 台灣用主計總處 110 年工商普查的零售業
+    "retail": "topics.retail",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

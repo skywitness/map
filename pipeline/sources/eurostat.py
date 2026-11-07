@@ -99,3 +99,37 @@ def quarterly(dataset: str, extra_geos: tuple[str, ...] = (), **filters: str) ->
             if values:
                 out[iso3] = values
     return out
+
+
+JSON_URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/{dataset}?format=JSON&lang=EN&{query}"
+
+
+def json_series(dataset: str, **filters: str) -> dict[str, dict[int, float]]:
+    """太大、不適合整個下載 TSV 的資料集（sbs_ovw_act 有 441 萬個值）：用 statistics 1.0 API（JSON-stat）篩選後下載。
+    filters 要把 geo 與 time 以外的維度都指定成一個代碼（例如 nace_r2="G47", indic_sbs="NETTUR_MEUR"）；
+    回傳 {iso3: {年: 值}}，其他規則同 series()（第二十五批 473 的零售業）"""
+    import json
+    import urllib.parse
+
+    query = urllib.parse.urlencode(filters)
+    name = "-".join([dataset, *(f"{k}={v}" for k, v in sorted(filters.items()))]) + ".json"
+    path = download(JSON_URL.format(dataset=dataset, query=query), "eurostat", name)
+    d = json.loads(path.read_text(encoding="utf-8"))
+    ids, sizes = d["id"], d["size"]
+    for dim, size in zip(ids, sizes):
+        if dim not in ("geo", "time") and size != 1:
+            raise RuntimeError(f"{dataset} 的 {dim} 有 {size} 個代碼，filters 要指定成一個")
+    geo = {i: code for code, i in d["dimension"]["geo"]["category"]["index"].items()}
+    time = {i: int(code) for code, i in d["dimension"]["time"]["category"]["index"].items()}
+    n_time = sizes[ids.index("time")]
+    if ids.index("time") != len(ids) - 1 or ids.index("geo") != len(ids) - 2:
+        raise RuntimeError(f"{dataset} 的維度順序不是 …, geo, time：{ids}")
+    out: dict[str, dict[int, float]] = {}
+    for flat, value in d["value"].items():
+        g, t = divmod(int(flat), n_time)
+        code = geo[g % sizes[ids.index("geo")]]
+        iso3 = _iso3(code)
+        if not iso3 or noncommercial(code) or iso3 in NONCOMMERCIAL or value is None:
+            continue
+        out.setdefault(iso3, {})[time[t]] = float(value)
+    return out

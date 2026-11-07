@@ -75,6 +75,7 @@ export const RELATED: Record<string, string[]> = {
   'real-estate': ['housing-market', 'housing', 'wealth'],
   'housing-market': ['real-estate', 'housing', 'tourism'],
   'property-costs': ['real-estate', 'taxes', 'prices'],
+  retail: ['chain-stores', 'prices', 'digital'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],
