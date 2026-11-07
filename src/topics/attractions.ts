@@ -3,6 +3,7 @@ import { fixed } from '../lib/format';
 import { nearText } from '../lib/near';
 import { MAP_TOKENS, TOKENS } from '../theme/tokens';
 import { attractionsExtra } from './attractions-extra';
+import { attractionsVisitors } from './attractions-visitors';
 import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
@@ -164,6 +165,7 @@ export const attractions: TopicDefinition = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     ...attractionsExtra.sources,
+    ...attractionsVisitors.sources,
   ],
   note: {
     zh:
@@ -184,8 +186,9 @@ export const attractions: TopicDefinition = {
     overlay(LAYERS[2], [[0, 15], [3, 5], [5, 0]]),
     overlay(LAYERS[3], [[0, 10], [3, 3], [5, 0]]),
     ...attractionsExtra.overlays,
+    ...attractionsVisitors.overlays,
   ],
-  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat()],
+  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel],
   indicators: [
     {
       id: 'attractions',
@@ -204,5 +207,6 @@ export const attractions: TopicDefinition = {
       missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
     },
     ...attractionsExtra.indicators,
+    ...attractionsVisitors.indicators,
   ],
 };
