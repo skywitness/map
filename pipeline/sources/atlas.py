@@ -10,10 +10,13 @@
 from __future__ import annotations
 
 import csv
+import io
 import json
+import urllib.request
 from collections import defaultdict
 
-from common import download
+import common
+from common import CACHE_DIR, USER_AGENT, _ssl_context, download
 from sources.countries import to_iso3
 
 DATAVERSE = "https://dataverse.harvard.edu/api"
@@ -22,6 +25,7 @@ FILE = "hs92_country_product_year_2"
 SITC_DOI = "doi:10.7910/DVN/H8SFD2"
 SITC_BILATERAL = "sitc_country_country_year"
 SITC_SECTIONS = "sitc_country_product_year_1"
+SITC_4 = "sitc_country_product_year_4"  # 四位碼，547 MB：邊下載邊篩，只留要的代碼（sitc4_exports()）
 # 資料集的快取檔名（HS92 沿用原本的 dataset.json）
 _DATASET_CACHE = {HS92_DOI: "dataset.json", SITC_DOI: "dataset-sitc.json"}
 
@@ -91,3 +95,34 @@ def sitc_sections() -> dict[str, dict[int, dict[str, float]]]:
             if iso3 and len(code) == 1 and code.isdigit() and row["export_value"]:
                 out[iso3][int(row["year"])][code] = float(row["export_value"])
     return out
+
+
+def sitc4_exports(prefixes: tuple[str, ...], cache_name: str) -> dict[str, dict[int, dict[str, float]]]:
+    """{iso3: {年: {SITC 四位碼: 出口額（美元）}}}，只含代碼開頭是 prefixes 之一的商品。四位碼的檔有 547 MB，
+    邊下載邊篩，篩完的小檔存在 .cache/atlas/<cache_name>.csv（第 445 項：礦石與金屬的出口）"""
+    target = CACHE_DIR / "atlas" / f"{cache_name}.csv"
+    if not target.exists() or common.REFRESH:
+        url = f"{DATAVERSE}/access/datafile/{_file_id(SITC_DOI, SITC_4)}?format=original"
+        print(f"  下載並篩選 {url}")
+        tmp = target.with_suffix(".csv.part")
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(request, context=_ssl_context(url)) as resp, open(tmp, "w", encoding="utf-8", newline="") as out:
+            reader = csv.DictReader(io.TextIOWrapper(resp, encoding="utf-8-sig", newline=""))
+            writer = csv.writer(out)
+            writer.writerow(["country_iso3_code", "product_sitc_code", "year", "export_value"])
+            for row in reader:
+                if row["product_sitc_code"].startswith(prefixes) and row["export_value"] not in ("", "0"):
+                    writer.writerow([row["country_iso3_code"], row["product_sitc_code"], row["year"], row["export_value"]])
+        tmp.replace(target)
+    out: dict[str, dict[int, dict[str, float]]] = defaultdict(lambda: defaultdict(dict))
+    with open(target, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            iso3 = to_iso3(row["country_iso3_code"])
+            if iso3 and row["product_sitc_code"].startswith(prefixes):
+                out[iso3][int(row["year"])][row["product_sitc_code"]] = float(row["export_value"])
+    return out
+
+
+def sitc_totals() -> dict[str, dict[int, float]]:
+    """{iso3: {年: 商品出口總額（美元）}}：一位碼十大類的加總"""
+    return {c: {y: sum(v.values()) for y, v in years.items()} for c, years in sitc_sections().items()}

@@ -385,6 +385,8 @@ STEPS = {
     "minerals": "topics.minerals",  # 第一次會下載 MCS 2020–2026 各礦種章節的 PDF（約 110 個、36 MB）
     # 關鍵礦產的貿易流向（稀土、永久磁鐵、鈾）：BACI HS92（2.4 GB，塑膠污染的同一份快取）；約 5 分鐘
     "minerals-trade": "topics.minerals_trade",
+    # 關鍵礦產（二）：礦石與金屬出口占比（WDI＋Atlas 自算台灣；Atlas 四位碼 547 MB 邊下載邊篩）、資源租金、循環物料、台灣的礦產
+    "minerals-economy": "topics.minerals_economy",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

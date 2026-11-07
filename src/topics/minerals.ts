@@ -226,15 +226,44 @@ export const minerals: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/126847',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
+    {
+      name: {
+        zh: '經濟部地質調查及礦業管理中心：主要礦產品產銷量值表、徵收礦業權費及礦產權利金情形（台灣的側欄）',
+        en: 'Geological Survey and Mining Management Agency: output and sales of main mineral products; mining-right fees and royalties collected (Taiwan’s side panel)',
+      },
+      url: 'https://data.gov.tw/dataset/6850',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
+      name: {
+        zh: 'World Bank, World Development Indicators（礦石與金屬出口占商品出口 TX.VAL.MMTL.ZS.UN、天然資源租金占 GDP）',
+        en: 'World Bank, World Development Indicators (ores and metals exports, % of merchandise exports, TX.VAL.MMTL.ZS.UN; natural resource rents, % of GDP)',
+      },
+      url: 'https://data.worldbank.org/indicator/TX.VAL.MMTL.ZS.UN',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: {
+        zh: 'Harvard Growth Lab, Atlas of Economic Complexity：International Trade Data (SITC, Rev. 2)（台灣的礦石與金屬出口占比、側欄的出口品項）',
+        en: 'Harvard Growth Lab, Atlas of Economic Complexity: International Trade Data (SITC, Rev. 2) (Taiwan’s ores and metals export share; export items in the side panel)',
+      },
+      url: 'https://doi.org/10.7910/DVN/H8SFD2',
+      license: 'CC0 1.0',
+    },
+    {
+      name: { zh: 'Eurostat（循環物料使用率，cei_srm030）', en: 'Eurostat (circular material use rate, cei_srm030)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/cei_srm030/default/table',
+      license: 'CC BY 4.0',
+    },
   ],
   overlays: [MINES],
   note: {
-    zh: '每一年用最新一版 MCS 的數字（2024 年是 2026 版的修正值），2025 年是 USGS 的初估。USGS 只列出主要生產國，其餘併入「其他國家」，地圖上是灰色；占全球比例的分母是表上的世界總計（含其他國家）。W（為保護公司資料不公布）與 NA 當作缺值，美國的鋰、鋁土礦（與 2025 年的銻）是 W，世界總計也不含美國。USGS 從 2023 年版起不再公布各國的鍺產量，所以鍺只到 2020 年。黃金是礦場產量；鹽的產量各國的定義不同（岩鹽、海鹽、滷水），USGS 表上很多是估計值，沒有蘊藏量。台灣不是這些礦產的生產國，USGS 的表上沒有台灣（台灣的曬鹽 2002 年停止），所需的礦產原料幾乎全部仰賴進口。貿易流向（稀土金屬與化合物、永久磁鐵、鈾，2000–2024 年）用 CEPII BACI 的 HS 1992 版：台灣沒有自己的申報，數字來自貿易夥伴（BACI 的「Other Asia, nes」）；中國大陸 2025 年 4 月起管制中重稀土與磁鐵的出口，BACI 2027 年才會有 2025 年。鈾的產量（OECD NEA 與 IAEA 的《Uranium》紅皮書）授權還沒確認，先只畫貿易；濃縮鈾（核燃料）不在這裡。礦場與加工廠的點（圖層開關裡打開）是 USGS 的 Mineral Resources Data System：只收生產中、曾生產與加工廠，不含煤（見「石油、天然氣與煤」）、砂石與石材；2011 年起 USGS 不再有系統地更新，「生產中」是當時的紀錄（金瓜石 1987 年就停了），而且八成在美國，點的多寡也在量建檔完不完整，所以不算各國的礦場數。台灣有 24 筆，包括金瓜石、豐田的滑石與石棉、基隆的煉銅廠。',
-    en: 'Each year uses the latest edition of the MCS (2024 figures are the revised ones from the 2026 edition); 2025 is a preliminary USGS estimate. USGS lists only the main producers and groups the rest as "Other countries", shown in grey; shares of world output use the world total in the table, which includes other countries. W (withheld to protect company data) and NA are treated as missing; US lithium and bauxite (and antimony in 2025) are W, and the world totals exclude US output. Germanium data end in 2020 because USGS stopped publishing country-level output from its 2023 edition. Gold is mine production; salt output is defined differently from country to country (rock salt, solar salt, brine), many USGS figures are estimates, and there are no reserves figures. Taiwan does not produce any of these minerals and does not appear in the USGS tables (its solar salt works closed in 2002); it relies almost entirely on imports. Trade flows (rare-earth metals and compounds, permanent magnets and uranium, 2000–2024) come from the HS 1992 edition of CEPII BACI: Taiwan does not report its own trade, so its figures come from its partners (BACI’s “Other Asia, nes”). Mainland China has restricted exports of medium and heavy rare earths and magnets since April 2025, which BACI will cover only from 2027. Uranium production (the OECD NEA–IAEA “Red Book”) awaits a licence check, so only trade is shown; enriched uranium (nuclear fuel) is not included. The mine and plant dots (switch them on under Layers) come from the USGS Mineral Resources Data System, keeping producers, past producers and processing plants and leaving out coal (see Oil, gas and coal), sand, gravel and stone. USGS stopped systematic updates in 2011, so “producer” describes the record at the time (Taiwan’s Jinguashi closed in 1987), and over 80% of the records are in the US, so the number of dots also reflects how complete the records are and no per-country count is given. Taiwan has 24, including Jinguashi, the Fengtian talc and asbestos mine and the Keelung copper refinery.',
+    zh: '每一年用最新一版 MCS 的數字（2024 年是 2026 版的修正值），2025 年是 USGS 的初估。USGS 只列出主要生產國，其餘併入「其他國家」，地圖上是灰色；占全球比例的分母是表上的世界總計（含其他國家）。W（為保護公司資料不公布）與 NA 當作缺值，美國的鋰、鋁土礦（與 2025 年的銻）是 W，世界總計也不含美國。USGS 從 2023 年版起不再公布各國的鍺產量，所以鍺只到 2020 年。黃金是礦場產量；鹽的產量各國的定義不同（岩鹽、海鹽、滷水），USGS 表上很多是估計值，沒有蘊藏量。USGS 的表上沒有台灣（台灣的曬鹽 2002 年停止），金屬礦產的原料幾乎全部仰賴進口；台灣自己挖的主要是水泥用的大理石，選台灣看側欄的礦務局統計。礦石與金屬出口占比、天然資源租金是世界銀行 WDI 的指標，WDI 沒有台灣：出口占比的台灣是用 Harvard Atlas 照同樣的定義自算，租金沒有台灣；循環物料使用率只有歐盟國家（Eurostat）。貿易流向（稀土金屬與化合物、永久磁鐵、鈾，2000–2024 年）用 CEPII BACI 的 HS 1992 版：台灣沒有自己的申報，數字來自貿易夥伴（BACI 的「Other Asia, nes」）；中國大陸 2025 年 4 月起管制中重稀土與磁鐵的出口，BACI 2027 年才會有 2025 年。鈾的產量（OECD NEA 與 IAEA 的《Uranium》紅皮書）授權還沒確認，先只畫貿易；濃縮鈾（核燃料）不在這裡。礦場與加工廠的點（圖層開關裡打開）是 USGS 的 Mineral Resources Data System：只收生產中、曾生產與加工廠，不含煤（見「石油、天然氣與煤」）、砂石與石材；2011 年起 USGS 不再有系統地更新，「生產中」是當時的紀錄（金瓜石 1987 年就停了），而且八成在美國，點的多寡也在量建檔完不完整，所以不算各國的礦場數。台灣有 24 筆，包括金瓜石、豐田的滑石與石棉、基隆的煉銅廠。',
+    en: 'Each year uses the latest edition of the MCS (2024 figures are the revised ones from the 2026 edition); 2025 is a preliminary USGS estimate. USGS lists only the main producers and groups the rest as "Other countries", shown in grey; shares of world output use the world total in the table, which includes other countries. W (withheld to protect company data) and NA are treated as missing; US lithium and bauxite (and antimony in 2025) are W, and the world totals exclude US output. Germanium data end in 2020 because USGS stopped publishing country-level output from its 2023 edition. Gold is mine production; salt output is defined differently from country to country (rock salt, solar salt, brine), many USGS figures are estimates, and there are no reserves figures. Taiwan does not appear in the USGS tables (its solar salt works closed in 2002) and imports almost all its metal ores; what it mines is mainly marble for cement — select Taiwan for the mining agency’s figures in the side panel. Ores and metals exports and natural resource rents are World Bank WDI indicators, which exclude Taiwan: its export share is computed from the Harvard Atlas with the same definition, and it has no rents figure. The circular material use rate covers EU countries only (Eurostat). Trade flows (rare-earth metals and compounds, permanent magnets and uranium, 2000–2024) come from the HS 1992 edition of CEPII BACI: Taiwan does not report its own trade, so its figures come from its partners (BACI’s “Other Asia, nes”). Mainland China has restricted exports of medium and heavy rare earths and magnets since April 2025, which BACI will cover only from 2027. Uranium production (the OECD NEA–IAEA “Red Book”) awaits a licence check, so only trade is shown; enriched uranium (nuclear fuel) is not included. The mine and plant dots (switch them on under Layers) come from the USGS Mineral Resources Data System, keeping producers, past producers and processing plants and leaving out coal (see Oil, gas and coal), sand, gravel and stone. USGS stopped systematic updates in 2011, so “producer” describes the record at the time (Taiwan’s Jinguashi closed in 1987), and over 80% of the records are in the US, so the number of dots also reflects how complete the records are and no per-country count is given. Taiwan has 24, including Jinguashi, the Fengtian talc and asbestos mine and the Keelung copper refinery.',
   },
   // tooltip 與側欄的數值卡片取代「無資料」，要短；完整的說明在側欄的「主要生產的礦產」與頁尾
   noValue: {
-    TWN: { zh: '台灣不是生產國，仰賴進口', en: 'Not a producer; relies on imports' },
+    TWN: { zh: 'USGS 沒有列出台灣', en: 'Not listed by USGS' },
   },
   dimension: {
     label: { zh: '礦種', en: 'Mineral' },
@@ -302,6 +331,73 @@ export const minerals: TopicDefinition = {
       format: tonnes,
       formatTick: tonnesTick,
       shareOfWorld: true,
+    },
+    {
+      id: 'ores-exports',
+      label: { zh: '礦石與金屬占出口', en: 'Ores and metals in exports' },
+      description: {
+        zh: '礦石與金屬（SITC 27 天然肥料與其他原礦物、28 金屬礦砂與廢料、68 非鐵金屬）的出口占商品出口的比例，分母不含非貨幣黃金（世界銀行 WDI）。不含燃料，所以沙烏地阿拉伯、卡達只有 2% 上下，也不含鋼鐵。2024 年剛果民主共和國 76.5%、尚比亞 73.0%、巴林 64.8%、智利 55.7%、祕魯 47.8%、澳洲 34.2%，世界 4.0%；日本 3.4%、美國 2.9%、德國 2.7%、南韓 2.4%、中國大陸 1.5%。巴林、冰島的高比例是煉鋁（進口氧化鋁、出口鋁），不是自己有礦，側欄列出這一國出口的是哪些礦與金屬。台灣（2024 年 1.8%）是用 Harvard Atlas 照同樣的定義自算：台灣沒有向聯合國申報，數字來自貿易夥伴。',
+        en: 'Exports of ores and metals (SITC 27 crude fertilizers and minerals, 28 metalliferous ores and scrap, 68 non-ferrous metals) as a share of merchandise exports excluding non-monetary gold (World Bank WDI). Fuels are excluded, so Saudi Arabia and Qatar are only around 2%, and so is iron and steel. In 2024 the DR Congo was 76.5%, Zambia 73.0%, Bahrain 64.8%, Chile 55.7%, Peru 47.8% and Australia 34.2%, against a world 4.0%; Japan 3.4%, the US 2.9%, Germany 2.7%, South Korea 2.4% and mainland China 1.5%. Bahrain’s and Iceland’s high shares come from aluminium smelting (imported alumina, exported metal), not their own mines; the side panel lists which ores and metals a country exports. Taiwan (1.8% in 2024) is computed from the Harvard Atlas with the same definition: Taiwan does not report to the UN, so its figures come from its partners.',
+      },
+      unit: '%',
+      file: 'ores-exports.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2.5, 5, 10, 25, 50] } },
+      format: percent,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'resource-rents',
+      label: { zh: '天然資源租金占 GDP', en: 'Natural resource rents (% of GDP)' },
+      description: {
+        zh: '開採天然資源的租金（以國際價格計的產值減掉平均的開採成本）占 GDP 的比例，世界銀行的估計，只到 2021 年。礦物只算錫、金、鉛、鋅、鐵、銅、鎳、銀、鋁土礦、磷礦 10 種，不含鋰、鈷、稀土，2022 年以後的鋰價大漲也看不到；子項目另有石油、天然氣、煤、森林與五項的合計。2021 年礦物租金剛果民主共和國 28.8%、尚比亞 28.2%、蒙古 26.6%、智利 16.2%、澳洲 10.5%，世界 0.77%；中國大陸 0.51%、美國 0.10%、日本 0.01%。台灣不在世界銀行的資料裡。',
+        en: 'Rents from extracting natural resources (output valued at world prices minus average extraction costs) as a share of GDP, World Bank estimates to 2021 only. Minerals cover just ten: tin, gold, lead, zinc, iron, copper, nickel, silver, bauxite and phosphate, not lithium, cobalt or rare earths, and the lithium price surge after 2021 is not covered; the other options are oil, natural gas, coal, forests and the total of all five. In 2021 mineral rents were 28.8% of GDP in the DR Congo, 28.2% in Zambia, 26.6% in Mongolia, 16.2% in Chile and 10.5% in Australia, against a world 0.77%; mainland China 0.51%, the US 0.10% and Japan 0.01%. Taiwan is not in World Bank data.',
+      },
+      unit: '%',
+      file: 'resource-rents/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [0.01, 0.1, 1, 3, 10, 20] },
+        itemScales: {
+          total: { type: 'sequential', thresholds: [0.5, 2, 5, 10, 20, 35] },
+          oil: { type: 'sequential', thresholds: [0.1, 1, 5, 10, 20, 35] },
+          gas: { type: 'sequential', thresholds: [0.01, 0.1, 1, 3, 8, 15] },
+          coal: { type: 'sequential', thresholds: [0.01, 0.1, 0.5, 1, 3, 5] },
+          forest: { type: 'sequential', thresholds: [0.1, 0.5, 1, 3, 8, 15] },
+        },
+      },
+      dimension: {
+        label: { zh: '資源', en: 'Resource' },
+        options: [
+          { id: 'minerals', label: { zh: '礦物（10 種）', en: 'Minerals (10)' } },
+          { id: 'total', label: { zh: '天然資源合計', en: 'All natural resources' } },
+          { id: 'oil', label: { zh: '石油', en: 'Oil' } },
+          { id: 'gas', label: { zh: '天然氣', en: 'Natural gas' } },
+          { id: 'coal', label: { zh: '煤', en: 'Coal' } },
+          { id: 'forest', label: { zh: '森林', en: 'Forests' } },
+        ],
+        defaultOption: 'minerals',
+      },
+      format: percent,
+      formatTick: (v) => `${v}%`,
+      compareWorld: true,
+      defaultYear: 2021,
+      noValue: { TWN: { zh: '台灣不在世界銀行的資料裡', en: 'Taiwan is not in World Bank data' } },
+    },
+    {
+      id: 'circular-use',
+      label: { zh: '循環物料使用率', en: 'Circular material use rate' },
+      description: {
+        zh: '經濟用掉的物料裡有幾成是回收再利用的料（Eurostat：回收物料 ÷（國內物料消費＋回收物料）），是少挖一點礦的另一面。只有歐盟 27 國。2024 年（Eurostat 的估計值）荷蘭 32.7%、比利時 22.7%、義大利 21.6%、法國 17.8%、德國 14.8%，歐盟合計 12.2%；愛爾蘭、芬蘭 2.0%、羅馬尼亞 1.3%。出口到國外回收的廢料也算回收物料；分母含整個經濟的物料消費，開採與營建用料多的國家比例容易偏低。台灣沒有對應的統計（環境部的資源回收率分母是垃圾量，不是物料使用量）。',
+        en: 'How much of the materials an economy uses are recycled materials fed back in (Eurostat: circular use ÷ (domestic material consumption + circular use)), the flip side of mining less. EU member states only. In 2024 (Eurostat estimates) the Netherlands was 32.7%, Belgium 22.7%, Italy 21.6%, France 17.8% and Germany 14.8%, with the EU at 12.2%; Ireland and Finland 2.0% and Romania 1.3%. Waste exported for recycling counts as circular use; because the denominator includes all material consumption, countries that extract or build a lot tend to have lower rates. Taiwan has no matching statistic (its recycling rate is measured against waste, not material use).',
+      },
+      unit: '%',
+      file: 'circular-use.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [3, 6, 9, 12, 18, 25] } },
+      format: percent,
+      formatTick: (v) => `${v}%`,
+      noValue: { TWN: { zh: '只有歐盟國家', en: 'EU countries only' } },
     },
     flow(
       'export',
