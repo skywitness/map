@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 148;
-export const INDICATOR_COUNT = 1131;
+export const INDICATOR_COUNT = 1133;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -401,6 +401,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"加拿大統計局 表 14-10-0023-01（加拿大的餐飲業就業人數）","en":"Statistics Canada, Table 14-10-0023-01 (Canadian food-service employment)"},"url":"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410002301","licenses":[{"zh":"加拿大開放政府授權","en":"Open Government Licence – Canada"}],"topics":["dining"]},
   {"name":{"zh":"勞動部 基本工資與最低工資","en":"Ministry of Labor (Taiwan), basic wage and minimum wage"},"url":"https://www.mol.gov.tw/1607/28162/28166/28180/99861/28184/29016/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["wages"]},
   {"name":{"zh":"勞動部（產業及社福移工人數）、主計總處（人力資源調查）","en":"Ministry of Labor (migrant workers) and DGBAS (Manpower Survey), Taiwan"},"url":"https://data.gov.tw/dataset/41881","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["migration"]},
+  {"name":{"zh":"南極條約秘書處，電子資訊交換系統（EIES）「Most Visited Sites」報表（船載觀光，2007/08–2025/26 季）","en":"Antarctic Treaty Secretariat, Electronic Information Exchange System (EIES) “Most Visited Sites” report (ship-based tourism, 2007/08–2025/26)"},"url":"https://eies.ats.aq/","licenses":[{"zh":"CC BY 4.0（註明出處即可使用）","en":"CC BY 4.0 (may be used with the source indicated)"}],"topics":["antarctica"]},
   {"name":{"zh":"台灣：交通部觀光署「步道」開放資料（OSM 沒有的國家步道）","en":"Taiwan: Tourism Administration, “Trails” open data (national trails missing from OSM)"},"url":"https://data.gov.tw/dataset/41653","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["trails"]},
   {"name":{"zh":"台灣的核電重啟：核能安全委員會、中央選舉委員會的公告（中央社 2026-08-28、08-31 報導）","en":"Taiwan’s nuclear restart: Nuclear Safety Commission and Central Election Commission announcements (as reported by CNA, 28 and 31 Aug 2026)"},"url":"https://www.cna.com.tw/news/afe/202608310275.aspx","licenses":[{"zh":"引用事實並註明出處","en":"facts cited with sources"}],"topics":["nuclear"]},
   {"name":{"zh":"台灣電力公司：歷年售電量及平均單價、各國電價比較","en":"Taipower: electricity sales and average prices by year; international electricity price comparison"},"url":"https://data.gov.tw/dataset/17080","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["energy-prices"]},

@@ -544,6 +544,7 @@ STEPS = {
     "botanical-gardens": "topics.botanical_gardens",
     # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒
     "antarctic-stations": "topics.antarctic_stations",
+    "antarctic-tourism": "topics.antarctic_tourism",
     # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒
     "penguins": "topics.penguins",
     # 南極的冰下湖：Wilson 等 2025 的 Zenodo 資料（560 KB，不必登入）；不到 1 秒
