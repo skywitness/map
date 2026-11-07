@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 179;
-export const INDICATOR_COUNT = 1372;
+export const TOPIC_COUNT = 180;
+export const INDICATOR_COUNT = 1373;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -372,6 +372,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata 的全球界線層型剖面和點（Q37402）與各階的起訖，經 QLever","en":"Wikidata Global Boundary Stratotype Sections and Points (Q37402) and stage dates, via QLever"},"url":"https://www.wikidata.org/wiki/Q37402","licenses":["CC0"],"topics":["gssp"]},
   {"name":{"zh":"Wikidata 的威士忌蒸餾廠與清酒酒藏（用 QLever 查詢）","en":"Wikidata whisky distilleries and sake breweries (queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q10373548","licenses":["CC0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Wikidata 的官方語言（P37，經 QLever 查詢）","en":"Wikidata official languages (P37, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Property:P37","licenses":["CC0"],"topics":["language"]},
+  {"name":{"zh":"Wikidata 的山口（Q133056 與子類別）與海拔，經 QLever","en":"Wikidata mountain passes (Q133056 and subclasses) and elevations, via QLever"},"url":"https://www.wikidata.org/wiki/Q133056","licenses":["CC0"],"topics":["mountain-passes"]},
   {"name":{"zh":"Wikidata 的觀光洞穴（Q2232001）與觀光礦坑（Q1506469），經 QLever","en":"Wikidata show caves (Q2232001) and show mines (Q1506469), via QLever"},"url":"https://www.wikidata.org/wiki/Q2232001","licenses":[{"zh":"CC0","en":"CC0"}],"topics":["show-caves"]},
   {"name":{"zh":"Wikidata 的賽馬場（horse racing venue 與子類別；用 QLever 查詢）","en":"Wikidata horse racing venues and subclasses (queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q11822917","licenses":["CC0"],"topics":["horses"]},
   {"name":{"zh":"Wikidata：ccTLD 的啟用日期（P571）","en":"Wikidata: ccTLD inception dates (P571)"},"url":"https://www.wikidata.org/wiki/Q42032","licenses":["CC0"],"topics":["cctld"]},

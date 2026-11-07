@@ -223,6 +223,7 @@ const TOPIC_ICONS = {
   earthquakes: 'activity',
   plates: 'puzzle',
   gssp: 'pin',
+  'mountain-passes': 'signpost-big',
   lithology: 'layers',
   'special-landforms': 'tree-palm',
   reclamation: 'land-plot',
