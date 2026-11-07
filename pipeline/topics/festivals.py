@@ -15,6 +15,9 @@
   d 是有固定日子的那一天（排序用；文資局農曆的用農曆的日，跟月份一樣當成大約的國曆），dz、de 是中英文的日期
   （Wikidata 的「每年發生的日子」照原文翻，例如「7 月第三個星期六」；文資局的寫「農曆 7 月 15 日」），
   pz、pe 是中英文的城市（Wikidata 的所在行政區 P131；文資局的縣市與鄉鎮市區，英文只寫縣市）。
+- 2026-11-07（製作手冊第二十四批 436）：美食節（Q1435951）與它的子類別（啤酒節、葡萄酒節…，P279*）另查一次，種類 6；
+  原本只收節慶的直接子類別，啤酒節、葡萄酒節（美食節的子類別）查不到。查詢改走 QLever（sources/qlever_wikidata.py；
+  query.wikidata.org 的 robots.txt 禁止 /sparql），沒有英文標籤的名稱也改用 QLever 查；舊的快取照用。
 - 2026-11-04（製作手冊第二十一批 373）：加音樂節與萬人場館。
   音樂節（Q868557）不是節慶的直接子類別，原本查不到（種類 2 沒有用）；另查 P31 是音樂節或它的子類別（搖滾音樂節、
   爵士音樂節…，P279*）的，種類 2。同時是節慶的也算音樂節。
@@ -26,14 +29,13 @@ from __future__ import annotations
 
 import json
 import re
-import time
 from collections import defaultdict
 
 from common import CACHE_DIR, OUT_DIR, download, indicator_file, now_iso, points_file, write_json
 from geoindex import countries_at
-from sources import wikidata_attractions
+from sources import qlever_wikidata
 from sources.countries import from_alpha2
-from sources.wikidata_attractions import _sparql
+from sources.qlever_wikidata import bindings as _sparql
 from topics.house_prices import CITY_EN
 from zh_names import wikidata_zh
 
@@ -42,6 +44,8 @@ BOCH_URL = "https://data.boch.gov.tw/opendata/v2/assetsCase/5.1.json"
 FESTIVAL = "Q132241"
 MUSIC_FESTIVAL = "Q868557"
 MUSIC = 2
+FOOD_FESTIVAL = "Q1435951"  # 美食節；啤酒節、葡萄酒節是它的子類別（不是節慶的直接子類別，原本查不到）
+FOOD = 6
 ARENA = "Q641226"
 ARENA_MIN = 10000
 TAIWAN_VENUES = ("Q710183", "Q858333")  # 台北小巨蛋、臺北大巨蛋：Wikidata 沒有歸在 arena 類別
@@ -86,6 +90,7 @@ def kind_of(cls: str, label: str | None) -> int:
 WHERE_DIRECT = "?item wdt:P31 wd:{festival} . BIND(wd:{festival} AS ?cls)"
 WHERE_SUB = "?cls wdt:P279 wd:{festival} . ?item wdt:P31 ?cls ."
 WHERE_MUSIC = "?cls wdt:P279* wd:{music} . ?item wdt:P31 ?cls ."
+WHERE_FOOD = "?cls wdt:P279* wd:{food} . ?item wdt:P31 ?cls ."
 ARENA_QUERY = """SELECT ?item ?cap ?coord ?en ?mul ?zhtw ?zhhant ?zh ?cc WHERE {{
   {where}
   ?item wdt:P625 ?coord .
@@ -123,12 +128,11 @@ def _cached(name: str, query: str) -> list[dict]:
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(_sparql(query)), encoding="utf-8")
-        time.sleep(61)  # 查詢服務限流時每分鐘只接受一次
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _point(v: str | None) -> tuple[float, float] | None:
-    if not v or not v.startswith("Point("):
+    if not v or not v.upper().startswith("POINT("):  # query.wikidata.org 寫 Point(、QLever 寫 POINT(
         return None
     lon, lat = v[6:-1].split()
     return float(lon), float(lat)
@@ -220,12 +224,14 @@ def build() -> None:
     rows_direct = _cached("festivals-direct", QUERY.format(where=WHERE_DIRECT.format(festival=FESTIVAL)))
     rows_sub = _cached("festivals-subclasses", QUERY.format(where=WHERE_SUB.format(festival=FESTIVAL)))
     rows_music = _cached("festivals-music", QUERY.format(where=WHERE_MUSIC.format(music=MUSIC_FESTIVAL)))
+    rows_food = _cached("festivals-food", QUERY.format(where=WHERE_FOOD.format(food=FOOD_FESTIVAL)))
     music_rows = {id(r) for r in rows_music}
-    for r in rows_direct + rows_sub + rows_music:
+    food_rows = {id(r) for r in rows_food}
+    for r in rows_direct + rows_sub + rows_music + rows_food:
         v = lambda k: r[k]["value"] if k in r else None  # noqa: E731
         q = v("item").rsplit("/", 1)[1]
         d = items.setdefault(q, {"q": q, "kinds": set(), "months": set(), "cc": set(), "sl": int(v("sl"))})
-        d["kinds"].add(MUSIC if id(r) in music_rows else kind_of(v("cls").rsplit("/", 1)[1], v("clsLabel")))
+        d["kinds"].add(MUSIC if id(r) in music_rows else FOOD if id(r) in food_rows else kind_of(v("cls").rsplit("/", 1)[1], v("clsLabel")))
         if "coord" not in d and (p := _point(v("coord"))):
             d["coord"] = p
         if (m := _month(v("whenLabel"))) is not None:
@@ -236,7 +242,7 @@ def build() -> None:
         for k in ("en", "mul", "zhtw", "zhhant", "zh"):
             if v(k) and not d.get(k):
                 d[k] = v(k)
-    names = wikidata_attractions.fallback_names(sorted(q for q, d in items.items() if not (d.get("en") or d.get("mul"))))
+    names = qlever_wikidata.fallback_names(sorted(q for q, d in items.items() if not (d.get("en") or d.get("mul"))), "festivals")
 
     rows = []
     for d in items.values():
@@ -248,8 +254,9 @@ def build() -> None:
         zh = wikidata_zh(d.get("zhtw") or d.get("zhhant"), d.get("zh"), place=True)
         if not (en or zh):
             continue
-        # 音樂節優先（同時標成節慶的也算音樂節），其次依 KIND_WORDS 的順序
-        kind = MUSIC if MUSIC in d["kinds"] else min(k for k in d["kinds"] if k != OTHER) if d["kinds"] - {OTHER} else OTHER
+        # 音樂節優先（同時標成節慶的也算音樂節），其次美食與飲酒節（2026-11-07），再依 KIND_WORDS 的順序
+        kind = (MUSIC if MUSIC in d["kinds"] else FOOD if FOOD in d["kinds"] else
+                min(k for k in d["kinds"] if k != OTHER) if d["kinds"] - {OTHER} else OTHER)
         month = min(d["months"]) if d["months"] else None
         day, dz, de = wikidata_date(d.get("whens", set()), month) if month else (None, None, None)
         rows.append({"lon": round(d["coord"][0], 3), "lat": round(d["coord"][1], 3), "k": kind,
