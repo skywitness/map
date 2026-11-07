@@ -419,6 +419,8 @@ STEPS = {
     "banking": "topics.banking",
     # 股市規模：周轉率、成交值占 GDP（WDI 轉載 WFE；台灣用證期局重要指標的表 12、13、35）
     "stock-market-turnover": "topics.stock_turnover",
+    # 企業與品牌：Forbes Global 2000、前 50 大營收企業、最有價值的品牌、獨角獸（英文維基固定版本的表，CC BY-SA 4.0）
+    "companies-rankings": "topics.company_rankings",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

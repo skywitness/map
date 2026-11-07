@@ -2,6 +2,7 @@ import type { TopicDefinition } from './types';
 import { brandsPart } from './brands';
 import { oldestCompaniesPart } from './oldest-companies';
 import { companySites } from './company-sites';
+import { companyRankingsPart } from './company-rankings';
 import { hostOnly, topicPart } from './merge';
 import { withParts } from './parts';
 
@@ -38,4 +39,6 @@ export const companies: TopicDefinition = withParts(
     title: { zh: '企業與品牌：最古老的公司、品牌與大企業的據點', en: 'Companies and brands: oldest companies, brands and big companies’ sites' },
   },
   topicPart(companySites, { rename: { companies: 'site-companies' } }),
+  // 2026-11-07（第二十五批 465）：Forbes 2000、前 50 大營收、最有價值的品牌、獨角獸（英文維基的轉引表），資料在 companies/
+  companyRankingsPart,
 );
