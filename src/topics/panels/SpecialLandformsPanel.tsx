@@ -31,9 +31,14 @@ export default function SpecialLandformsPanel({ topic, iso3, countryName }: Pane
   const t = useT();
   const text = TEXT[lang];
   const { data } = useJson<PointsData>(`topics/${topic.id}/points.json`);
+  // 2026-11-07 加的潟湖、沙丘、火山口湖、冰川漂礫在另一個檔
+  const { data: more } = useJson<PointsData>(`topics/${topic.id}/points-more.json`);
   const rows = useMemo(
-    () => (data ? decodePoints(data).filter((p) => p.iso3 === iso3).sort((a, b) => Number(b.sl) - Number(a.sl)) : null),
-    [data, iso3],
+    () =>
+      data && more
+        ? [...decodePoints(data), ...decodePoints(more)].filter((p) => p.iso3 === iso3).sort((a, b) => Number(b.sl) - Number(a.sl))
+        : null,
+    [data, more, iso3],
   );
   if (!rows) return <p className="empty">{t.loading}</p>;
   const name = (p: (typeof rows)[number]) => (lang === 'zh' && typeof p.zh === 'string' ? p.zh : String(p.en ?? p.zh ?? ''));

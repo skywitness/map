@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 179;
-export const INDICATOR_COUNT = 1371;
+export const INDICATOR_COUNT = 1372;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -368,6 +368,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WHO, List of NRAs operating at ML3 and ML4（2026 年 8 月）、List of transitional WLAs（事實自行整理）","en":"WHO, List of NRAs operating at ML3 and ML4 (August 2026) and List of transitional WLAs (facts compiled)"},"url":"https://cdn.who.int/media/docs/default-source/medicines/regulatory-systems/wla/list-of-nras-operating-at-ml3-and-ml4.pdf","licenses":[{"zh":"事實自行整理","en":"facts compiled by hand"}],"topics":["organizations"]},
   {"name":{"zh":"WHO《International Travel and Health》Country list（2021-05-12）","en":"WHO, International Travel and Health: Country list (12 May 2021)"},"url":"https://cdn.who.int/media/docs/default-source/documents/emergencies/travel-advice/ith2021_countrylist.pdf","licenses":[{"zh":"CC BY-NC-SA 3.0 IGO（只准非商業使用；黃熱病與瘧疾的資料檔同樣用這個授權分享）","en":"CC BY-NC-SA 3.0 IGO (non-commercial only; the yellow fever and malaria data files are shared under the same licence)"}],"topics":["travel"]},
   {"name":{"zh":"WHO/UNICEF Estimates of National Immunization Coverage（WUENIC）2025 年版的 DTP3、麻疹第二劑，WHO HPV 疫苗涵蓋率估計（2000 年起；data.who.int 有指標頁）","en":"WHO/UNICEF Estimates of National Immunization Coverage (WUENIC), 2025 revision, for DTP3 and the second measles dose, and WHO HPV coverage estimates (from 2000; indicator pages on data.who.int)"},"url":"https://data.who.int/indicators/i/48D7D19/F8E084C","licenses":["CC BY 4.0"],"topics":["vaccination"]},
+  {"name":{"zh":"Wikidata 的人工島（Q13691 與子類別），經 QLever","en":"Wikidata artificial islands (Q13691 and subclasses), via QLever"},"url":"https://www.wikidata.org/wiki/Q13691","licenses":["CC0"],"topics":["reclamation"]},
   {"name":{"zh":"Wikidata 的全球界線層型剖面和點（Q37402）與各階的起訖，經 QLever","en":"Wikidata Global Boundary Stratotype Sections and Points (Q37402) and stage dates, via QLever"},"url":"https://www.wikidata.org/wiki/Q37402","licenses":["CC0"],"topics":["gssp"]},
   {"name":{"zh":"Wikidata 的威士忌蒸餾廠與清酒酒藏（用 QLever 查詢）","en":"Wikidata whisky distilleries and sake breweries (queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q10373548","licenses":["CC0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Wikidata 的官方語言（P37，經 QLever 查詢）","en":"Wikidata official languages (P37, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Property:P37","licenses":["CC0"],"topics":["language"]},

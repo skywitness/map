@@ -2,7 +2,7 @@ import { SINICA_SOURCE, sinicaLayer } from './sinica';
 import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { PointRecord, TopicDefinition } from './types';
+import type { PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 填海造陸（pipeline/topics/reclamation.py）：Sengupta et al. 2023 人口百萬以上的 135 個沿海城市 2000–2020 年的填海面積。
@@ -32,6 +32,41 @@ export function cityArea(p: PointRecord): string {
   return `${hectares(p.a)}${err}`;
 }
 
+/**
+ * 2026-11-07（製作手冊第二十七批 545，候選 1232）：Wikidata 有名字的人工島（pipeline/topics/artificial_islands.py）。
+ * c：1 克蘭諾格、2 人工島機場，其他依建成年份 3 1900 年以前、4 1900–1999、5 2000 年以後、6 不知道
+ */
+const ISLAND_CLASSES = [
+  { color: MAP_TOKENS.categorical[3], label: { zh: '克蘭諾格（史前到中世紀的湖上人工島）', en: 'Crannogs (prehistoric to medieval lake islands)' } },
+  { color: MAP_TOKENS.categorical[1], label: { zh: '人工島機場', en: 'Airport islands' } },
+  { color: MAP_TOKENS.categorical[2], label: { zh: '1900 年以前建成', en: 'Built before 1900' } },
+  { color: MAP_TOKENS.categorical[5], label: { zh: '1900–1999 年建成', en: 'Built 1900–1999' } },
+  { color: MAP_TOKENS.categorical[7], label: { zh: '2000 年以後建成', en: 'Built 2000 or later' } },
+  { color: MAP_TOKENS.inkMuted, label: { zh: 'Wikidata 沒寫建成年份', en: 'Year not given in Wikidata' } },
+];
+const islandName = (p: PointRecord) => String((getLang() === 'zh' ? p.zh || p.en : p.en || p.zh) ?? '');
+const ISLANDS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'islands',
+  file: 'islands.json',
+  label: { zh: '有名字的人工島（Wikidata）', en: 'Named artificial islands (Wikidata)' },
+  radius: { field: 'sl', stops: [[0, 3], [10, 4.5], [40, 7]] },
+  color: { field: 'c', title: { zh: '人工島', en: 'Artificial island' }, thresholds: [2, 3, 4, 5, 6], classes: ISLAND_CLASSES },
+  sortField: 'sl',
+  indicators: ['islands-count'],
+  tooltip: (p, ctx) => {
+    const title = islandName(p);
+    const kind = tr(ISLAND_CLASSES[Number(p.c) - 1]?.label ?? { zh: '', en: '' });
+    const built = typeof p.y === 'number' ? tr({ zh: `${p.y} 年建成`, en: `built ${p.y}` }) : null;
+    return {
+      title,
+      detail: [typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null, Number(p.c) <= 2 ? kind : built].filter(Boolean).join(' · '),
+      extra: Number(p.c) <= 2 && built ? [built] : undefined,
+      properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== title ? p.en : undefined,
+    };
+  },
+};
+
 export const reclamation: TopicDefinition = {
   id: 'reclamation',
   title: { zh: '填海造陸', en: 'Coastal land reclamation' },
@@ -49,16 +84,23 @@ export const reclamation: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     SINICA_SOURCE,
+    {
+      name: { zh: 'Wikidata 的人工島（Q13691 與子類別），經 QLever', en: 'Wikidata artificial islands (Q13691 and subclasses), via QLever' },
+      url: 'https://www.wikidata.org/wiki/Q13691',
+      license: 'CC0',
+    },
   ],
   note: {
     zh:
-      '資料是 Sengupta 等人 2023 年發表在 Earth’s Future 的研究：用 Landsat 衛星影像比對 2000 與 2020 年，算出人口百萬以上的 135 個沿海城市在這 20 年間填海多出來的陸地（公頃，括號是誤差），合計 253,734 公頃（約 2,537 平方公里），其中 106 個城市有填海，前 10 名都在中國大陸。只算人口百萬以上的城市，小城市、港口與工業區（例如台灣的彰濱、雲林離島工業區）不在裡面；2000 年以前的填海（例如香港、新加坡、東京灣大部分的填海地）也不算。作者說之後會公布填海範圍的圖層，目前只有城市的點。原始檔有幾處修正：台中那一列的國家欄寫「China」（城市欄是「Taichung . Taiwan」）、新加坡的國家欄空白、香港寫「China SAR」，這裡分別改成台灣、新加坡、香港；Kochi、Thiruvananthapuram、Port-au-Prince 的經緯度寫反了，對調；填海可忽略的城市沒有座標，用 Natural Earth 的城市位置。另一個附檔（填海地上的土地用途）是從 OpenStreetMap 取的點，沒有用。',
+      '資料是 Sengupta 等人 2023 年發表在 Earth’s Future 的研究：用 Landsat 衛星影像比對 2000 與 2020 年，算出人口百萬以上的 135 個沿海城市在這 20 年間填海多出來的陸地（公頃，括號是誤差），合計 253,734 公頃（約 2,537 平方公里），其中 106 個城市有填海，前 10 名都在中國大陸。只算人口百萬以上的城市，小城市、港口與工業區（例如台灣的彰濱、雲林離島工業區）不在裡面；2000 年以前的填海（例如香港、新加坡、東京灣大部分的填海地）也不算。作者說之後會公布填海範圍的圖層，目前只有城市的點。原始檔有幾處修正：台中那一列的國家欄寫「China」（城市欄是「Taichung . Taiwan」）、新加坡的國家欄空白、香港寫「China SAR」，這裡分別改成台灣、新加坡、香港；Kochi、Thiruvananthapuram、Port-au-Prince 的經緯度寫反了，對調；填海可忽略的城市沒有座標，用 Natural Earth 的城市位置。另一個附檔（填海地上的土地用途）是從 OpenStreetMap 取的點，沒有用。「有名字的人工島」是 Wikidata 收錄、有座標的人工島與它的子類別（克蘭諾格、人工島機場、海堡、能源島等），回到幾百年前，跟上面 2000–2020 年的填海面積是不同的東西；Wikidata 志願者收得多不多跟各國有沒有人整理有關，有座標的 401 個裡只有 62 個寫了建成年份。',
     en:
-      'The data come from Sengupta et al. (2023) in Earth’s Future, who compared Landsat images from 2000 and 2020 to measure the land reclaimed from the sea over those 20 years in 135 coastal cities of over a million people (hectares, with the error in brackets): 253,734 ha in all (about 2,537 km²), in 106 of the cities, with the top 10 all in mainland China. Only cities of a million or more are covered, so smaller cities, ports and industrial zones (such as Taiwan’s Changhua and Yunlin offshore industrial parks) are not included, nor is reclamation before 2000 (most of the reclaimed land in Hong Kong, Singapore and Tokyo Bay). The authors plan to publish the reclaimed areas as a map layer; for now there are only city points. A few fixes were made to the original file: the Taichung row lists “China” as its country (with “Taichung . Taiwan” as the city), Singapore has no country and Hong Kong is “China SAR”, changed here to Taiwan, Singapore and Hong Kong; the latitude and longitude of Kochi, Thiruvananthapuram and Port-au-Prince were swapped and are corrected; cities with negligible reclamation have no coordinates and are placed with Natural Earth city locations. A second file (land use on reclaimed land) consists of points taken from OpenStreetMap and is not used.',
+      'The data come from Sengupta et al. (2023) in Earth’s Future, who compared Landsat images from 2000 and 2020 to measure the land reclaimed from the sea over those 20 years in 135 coastal cities of over a million people (hectares, with the error in brackets): 253,734 ha in all (about 2,537 km²), in 106 of the cities, with the top 10 all in mainland China. Only cities of a million or more are covered, so smaller cities, ports and industrial zones (such as Taiwan’s Changhua and Yunlin offshore industrial parks) are not included, nor is reclamation before 2000 (most of the reclaimed land in Hong Kong, Singapore and Tokyo Bay). The authors plan to publish the reclaimed areas as a map layer; for now there are only city points. A few fixes were made to the original file: the Taichung row lists “China” as its country (with “Taichung . Taiwan” as the city), Singapore has no country and Hong Kong is “China SAR”, changed here to Taiwan, Singapore and Hong Kong; the latitude and longitude of Kochi, Thiruvananthapuram and Port-au-Prince were swapped and are corrected; cities with negligible reclamation have no coordinates and are placed with Natural Earth city locations. A second file (land use on reclaimed land) consists of points taken from OpenStreetMap and is not used. “Named artificial islands” are the artificial islands with coordinates in Wikidata, including subclasses such as crannogs, airport islands, sea forts and energy islands, going back centuries; they are separate from the 2000–2020 reclamation above. Coverage depends on what Wikidata volunteers have catalogued, and only 62 of the 401 with coordinates give a construction year.',
   },
   panelExtra: () => import('./panels/ReclamationPanel'),
   // 2026-11-03（製作手冊第十七批 280）：放大到台灣時可以疊中研院的舊地圖、舊航照（預設關閉），看 2000 年以前的西海岸
   overlays: [
+    ISLANDS,
+    { ...ISLANDS, id: 'islands-map', hidden: true, indicators: ['map'], shareable: false },
     sinicaLayer('sinica-1904', 'JM20K_1904', 'jpg', { zh: '1904 年日治臺灣堡圖（1:20,000，中研院）', en: '1904 Taiwan Fort Maps (1:20,000, Academia Sinica)' }, {
       maxzoom: 17,
       note: { zh: '放大到台灣才看得到；跟今天的海岸線對照', en: 'Visible when zoomed in on Taiwan; compare with today’s coastline' },
@@ -136,6 +178,21 @@ export const reclamation: TopicDefinition = {
       format: hectares,
       formatTick: n0,
       shareOfWorld: true,
+    },
+    {
+      id: 'islands-count',
+      label: { zh: '有名字的人工島', en: 'Named artificial islands' },
+      description: {
+        zh: 'Wikidata 收錄、有座標的人工島 401 個（比例圓是各國有幾個，點依種類與建成年代上色）：英國 66（62 個是克蘭諾格，史前到中世紀在湖裡堆出來住人的小島）、日本 63（關西、中部、神戶、長崎等 5 座機場島，長崎的出島 1636 年建成）、荷蘭 55、索羅門群島 49（馬萊塔島沿岸潟湖裡用珊瑚石堆成的傳統聚落，跟杜拜的棕櫚島是完全不同的東西）、美國 33、阿聯 12（杜拜的棕櫚島與世界群島）、中國大陸 12、法國 11、丹麥 10。最早寫了年份的是日本鎌倉的和賀江島（1232 年）。台灣沒有收錄。',
+        en: 'The 401 artificial islands with coordinates in Wikidata (circles count them by country; dots are coloured by kind and construction date): the UK 66 (62 of them crannogs, small islands built in lakes for living on from prehistoric to medieval times), Japan 63 (including five airport islands such as Kansai, Chubu, Kobe and Nagasaki, and Dejima in Nagasaki, built in 1636), the Netherlands 55, the Solomon Islands 49 (traditional settlements built of coral stone in the lagoons off Malaita, nothing like Dubai’s Palm islands), the US 33, the UAE 12 (Dubai’s Palm and World islands), mainland China 12, France 11 and Denmark 10. The oldest with a recorded date is Wakae Island at Kamakura, Japan (1232). Taiwan has none in Wikidata.',
+      },
+      unit: { zh: '個', en: '' },
+      file: 'islands-count.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+      integer: true,
+      format: (v) => tr({ zh: `${n0(v)} 個`, en: n0(v) }),
+      formatTick: n0,
+      missing: { zh: 'Wikidata 沒有收錄這裡的人工島', en: 'No artificial islands recorded here in Wikidata' },
     },
     {
       id: 'cities-count',

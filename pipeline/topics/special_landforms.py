@@ -8,6 +8,9 @@
 1 綠洲 Q43742；2 峽灣 Q45776；3 天然拱門 Q954501、海蝕柱 Q747957、岩柱（hoodoo）Q854550（「岩石地形」Q631305 太廣，
 有 3 萬多筆，墨西哥 1.2 萬筆是 GeoNames 匯入的，不收）；4 環礁 Q42523、珊瑚島 Q1324426；5 泥火山 Q193457；
 6 滲穴 Q12807180（含天然井 cenote；中國的「天坑」沒有獨立的類別，幾乎沒收）；7 間歇泉 Q83471。
+2026-11-07（製作手冊第二十七批 545，候選 1229）加四類：8 潟湖 Q187223、9 沙丘 Q25391、10 火山口湖 Q100900880、
+11 冰川漂礫 Q372934。地圖上的顏色最多 8 類，新四類另外輸出 points-more.json，前端畫成三角形的另一個圖層。
+2026-11-07 起改走 QLever（query.wikidata.org 的 robots.txt 禁止 /sparql）。
 
 **欄位**：sl 是維基百科條目數（點的大小）；w 是有沒有英文或中文維基條目（縮小時只畫有的，挪威的小峽灣才不會蓋滿）；
 d 是 P17（國家）不只一個（南海的環礁，tooltip 寫「主權有爭議」）；國家依座標判斷（geoindex，0.3° 內最近的國界），
@@ -16,21 +19,14 @@ d 是 P17（國家）不只一個（南海的環礁，tooltip 寫「主權有爭
 """
 from __future__ import annotations
 
-import json
-import re
-import time
-import urllib.error
-import urllib.parse
-import urllib.request
 from collections import Counter, defaultdict
 
-from common import CACHE_DIR, OUT_DIR, USER_AGENT, indicator_file, now_iso, points_file, write_json
+from common import OUT_DIR, indicator_file, now_iso, points_file, write_json
 from geoindex import countries_at
-from sources import wikidata_attractions
+from sources import qlever_wikidata
 from zh_names import wikidata_zh
 
 OUT = OUT_DIR / "topics" / "special-landforms"
-SPARQL = "https://query.wikidata.org/sparql"
 YEAR = 2026
 # 類別代碼（src/topics/special-landforms.ts 的 KINDS 要一致）→ 根類別
 KINDS = {
@@ -41,17 +37,22 @@ KINDS = {
     5: ["Q193457"],
     6: ["Q12807180"],
     7: ["Q83471"],
+    8: ["Q187223"],
+    9: ["Q25391"],
+    10: ["Q100900880"],
+    11: ["Q372934"],
 }
+MORE = {8, 9, 10, 11}  # 另一個圖層（points-more.json）
 # 手工補的台灣（使用者決定）：QID → 類別。座標、名稱照 Wikidata
 HAND = {
     "Q10942787": 3,  # 野柳女王頭（Wikidata 歸為岩石地形）
     "Q16929098": 5,  # 烏山頂泥火山自然保留區（Wikidata 歸為自然保留區）
 }
-QUERY = """SELECT ?item ?root ?coord ?sl ?en ?mul ?zhtw ?zhhant ?zh ?enwiki ?zhwiki (COUNT(DISTINCT ?country) AS ?nc) (SAMPLE(?iso) AS ?iso3) WHERE {{
+QUERY = """SELECT ?item ?root ?wkt ?sl ?en ?mul ?zhtw ?zhhant ?zh ?enwiki ?zhwiki (COUNT(DISTINCT ?country) AS ?nc) (SAMPLE(?iso) AS ?iso3) WHERE {{
   {{ VALUES ?root {{ {roots} }} ?item wdt:P31/wdt:P279* ?root . }}
   UNION
   {{ VALUES (?item ?root) {{ {hand} }} }}
-  ?item wdt:P625 ?coord ; wikibase:sitelinks ?sl .
+  ?item wdt:P625 ?coord ; wikibase:sitelinks ?sl . BIND(STR(?coord) AS ?wkt)
   OPTIONAL {{ ?item wdt:P17 ?country . OPTIONAL {{ ?country wdt:P298 ?iso }} }}
   OPTIONAL {{ ?item rdfs:label ?en FILTER(LANG(?en) = "en") }}
   OPTIONAL {{ ?item rdfs:label ?mul FILTER(LANG(?mul) = "mul") }}
@@ -60,33 +61,16 @@ QUERY = """SELECT ?item ?root ?coord ?sl ?en ?mul ?zhtw ?zhhant ?zh ?enwiki ?zhw
   OPTIONAL {{ ?item rdfs:label ?zh FILTER(LANG(?zh) = "zh") }}
   OPTIONAL {{ ?enwiki schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> }}
   OPTIONAL {{ ?zhwiki schema:about ?item ; schema:isPartOf <https://zh.wikipedia.org/> }}
-}} GROUP BY ?item ?root ?coord ?sl ?en ?mul ?zhtw ?zhhant ?zh ?enwiki ?zhwiki"""
+}} GROUP BY ?item ?root ?wkt ?sl ?en ?mul ?zhtw ?zhhant ?zh ?enwiki ?zhwiki"""
 
 
 def fetch() -> list[dict]:
-    path = CACHE_DIR / "wikidata" / "special-landforms-v2.json"
-    if not path.exists():
-        kind_of = {q: k for k, qs in KINDS.items() for q in qs}
-        query = QUERY.format(
-            roots=" ".join(f"wd:{q}" for q in kind_of),
-            hand=" ".join(f"(wd:{q} wd:{KINDS[k][0]})" for q, k in HAND.items()),
-        )
-        req = urllib.request.Request(SPARQL, data=urllib.parse.urlencode({"query": query}).encode(),
-                                     headers={"User-Agent": USER_AGENT, "Accept": "application/sparql-results+json"})
-        for attempt in range(10):
-            try:
-                with urllib.request.urlopen(req, timeout=300) as r:
-                    data = r.read()
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(data)
-                break
-            except (urllib.error.HTTPError, urllib.error.URLError, ConnectionError, TimeoutError) as err:
-                wait = 60 * (attempt + 1)
-                print(f"    Wikidata：{err}，等 {wait} 秒", flush=True)
-                time.sleep(wait)
-        else:
-            raise RuntimeError("Wikidata 的 SPARQL 一直失敗，稍後再跑")
-    return json.loads(path.read_text(encoding="utf-8"))["results"]["bindings"]
+    kind_of = {q: k for k, qs in KINDS.items() for q in qs}
+    query = QUERY.format(
+        roots=" ".join(f"wd:{q}" for q in kind_of),
+        hand=" ".join(f"(wd:{q} wd:{KINDS[k][0]})" for q, k in HAND.items()),
+    )
+    return qlever_wikidata.cached("special-landforms-v3", query)
 
 
 def build() -> None:
@@ -103,13 +87,14 @@ def build() -> None:
         d["nc"] = max(d["nc"], int(v("nc") or 0))
         if v("enwiki") or v("zhwiki"):
             d["w"] = 1
-        if "coord" not in d and (v("coord") or "").startswith("Point("):
-            lon, lat = v("coord")[6:-1].split()
+        # QLever 的座標在 GROUP BY 裡要先轉成字串（STR），寫法是 POINT(經度 緯度)
+        if "coord" not in d and (v("wkt") or "").upper().startswith("POINT("):
+            lon, lat = v("wkt")[6:-1].split()
             d["coord"] = (float(lon), float(lat))
         for k in ("en", "mul", "zhtw", "zhhant", "zh"):
             if v(k) and not d.get(k):
                 d[k] = v(k)
-    names = wikidata_attractions.fallback_names(sorted(q for q, d in items.items() if not (d.get("en") or d.get("mul"))))
+    names = qlever_wikidata.fallback_names(sorted(q for q, d in items.items() if not (d.get("en") or d.get("mul"))), "special-landforms")
     rows, no_name = [], 0
     for d in items.values():
         if "coord" not in d:
@@ -140,7 +125,8 @@ def build() -> None:
     fields = ["lon", "lat", "k", "sl", "w", "d", "iso3", "en", "zh"]
     scale = {"lon": 0.0001, "lat": 0.0001, "k": 1, "sl": 1, "w": 1, "d": 1}
     OUT.mkdir(parents=True, exist_ok=True)
-    write_json(OUT / "points.json", points_file(rows, fields, scale, strings=("iso3",)))
+    write_json(OUT / "points.json", points_file([r for r in rows if r["k"] not in MORE], fields, scale, strings=("iso3",)))
+    write_json(OUT / "points-more.json", points_file([r for r in rows if r["k"] in MORE], fields, scale, strings=("iso3",)))
     write_json(OUT / "map.json", indicator_file("map", "", [YEAR], {}))
     counts: dict[str, Counter] = defaultdict(Counter)
     for r in rows:

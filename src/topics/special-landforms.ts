@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { MAP_TOKENS } from '../theme/tokens';
 import { CRATERS } from './craters-trenches';
-import type { ColorClasses, PointRecord, TopicDefinition } from './types';
+import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 特殊地形（pipeline/topics/special_landforms.py）：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁與珊瑚島、泥火山、天坑（滲穴）、
@@ -17,13 +17,30 @@ export const KINDS: { value: number; label: Text; plural: Text }[] = [
   { value: 5, label: { zh: '泥火山', en: 'Mud volcano' }, plural: { zh: '泥火山', en: 'Mud volcanoes' } },
   { value: 6, label: { zh: '天坑與滲穴', en: 'Sinkhole' }, plural: { zh: '天坑與滲穴', en: 'Sinkholes' } },
   { value: 7, label: { zh: '間歇泉', en: 'Geyser' }, plural: { zh: '間歇泉', en: 'Geysers' } },
+  // 2026-11-07（製作手冊第二十七批 545，候選 1229）：另一個圖層（三角形，points-more.json）
+  { value: 8, label: { zh: '潟湖', en: 'Lagoon' }, plural: { zh: '潟湖', en: 'Lagoons' } },
+  { value: 9, label: { zh: '沙丘', en: 'Dune' }, plural: { zh: '沙丘', en: 'Dunes' } },
+  { value: 10, label: { zh: '火山口湖', en: 'Crater lake' }, plural: { zh: '火山口湖', en: 'Crater lakes' } },
+  { value: 11, label: { zh: '冰川漂礫', en: 'Glacial erratic' }, plural: { zh: '冰川漂礫', en: 'Glacial erratics' } },
 ];
+/** 第一個圖層（圓點）的七類；地圖上的類別色最多 8 種，2026-11-07 加的四類另外畫成三角形 */
+const FIRST = KINDS.filter((k) => k.value <= 7);
+const MORE = KINDS.filter((k) => k.value > 7);
 
 const KIND_COLORS: ColorClasses = {
   field: 'k',
   title: { zh: '地形', en: 'Landform' },
   thresholds: [2, 3, 4, 5, 6, 7],
-  classes: KINDS.map((k, i) => ({ color: MAP_TOKENS.categorical[i], label: k.plural })),
+  classes: FIRST.map((k, i) => ({ color: MAP_TOKENS.categorical[i], label: k.plural })),
+};
+const MORE_COLORS: ColorClasses = {
+  field: 'k',
+  title: { zh: '地形（三角形）', en: 'Landform (triangles)' },
+  thresholds: [9, 10, 11],
+  classes: [MAP_TOKENS.diverging[6], MAP_TOKENS.diverging[1], MAP_TOKENS.categorical[7], MAP_TOKENS.categorical[6]].map((color, i) => ({
+    color,
+    label: MORE[i].plural,
+  })),
 };
 
 export const kindLabel = (k: unknown) => tr(KINDS.find((x) => x.value === k)?.label ?? '');
@@ -32,6 +49,20 @@ function placeName(p: PointRecord): string {
   if (getLang() === 'zh' && typeof p.zh === 'string') return p.zh;
   return String(p.en ?? p.zh ?? '');
 }
+
+const landformTooltip: PointsOverlayDef['tooltip'] = (p, ctx) => {
+  const name = placeName(p);
+  const parts = [kindLabel(p.k)];
+  if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
+  const extra: string[] = [];
+  if (p.d === 1) extra.push(tr({ zh: 'Wikidata 列了好幾個國家：主權有爭議', en: 'Wikidata lists several countries: sovereignty disputed' }));
+  return {
+    title: name,
+    detail: parts.join(' · '),
+    extra: extra.length ? extra : undefined,
+    properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== name ? p.en : undefined,
+  };
+};
 
 const n0 = (v: number) => Math.round(v).toLocaleString(getLang() === 'zh' ? 'zh-TW' : 'en-US');
 
@@ -47,9 +78,9 @@ export const specialLandforms: TopicDefinition = {
   ],
   note: {
     zh:
-      '點是 Wikidata 收錄、有座標的七類地形：綠洲、峽灣、天然拱門與奇岩（天然拱門、海蝕柱、岩柱）、環礁與珊瑚島、泥火山、天坑與滲穴（含墨西哥猶加敦的天然井）、間歇泉，包括這些類別的子類別；Wikidata 上另有 130 處沒有座標，沒畫（2026-11-05 查）。Wikidata 是志願者編輯的，收得多不多跟各國有沒有人整理有關，數量不能直接比：挪威的峽灣占了一半以上（縮小時只畫有英文或中文維基百科條目的）；泥火山只有二十多個（亞塞拜然、義大利最多，學術彙編沒有開放資料）；中文說的「天坑」集中在中國西南，Wikidata 沒有這個類別，重慶小寨天坑等幾乎沒收；間歇泉約八成在美國黃石公園一帶，俄羅斯堪察加的間歇泉谷、智利的 El Tatio 都沒有收。「岩石地形」這個類別太廣（3 萬多筆，多半是地名匯入），不收。另一個圖層是 Wikidata 有座標的隕石撞擊坑 195 處（2026-11-06 起），依直徑畫大小，只有 60 處寫了直徑；Wikidata 不分確認與推測的，南極冰下的威爾克斯地撞擊坑（500 公里）只是推測。台灣有小門鯨魚洞、石門洞、深澳象鼻岩，野柳女王頭、烏山頂泥火山在 Wikidata 歸為岩石地形與自然保留區，這裡手工補上。國家依座標判斷，遠洋的小島用 Wikidata 的所屬國家；南海等地 Wikidata 列了好幾個國家的，滑過寫「主權有爭議」。',
+      '點是 Wikidata 收錄、有座標的十一類地形：圓點是綠洲、峽灣、天然拱門與奇岩（天然拱門、海蝕柱、岩柱）、環礁與珊瑚島、泥火山、天坑與滲穴（含墨西哥猶加敦的天然井）、間歇泉，三角形是 2026-11-07 加的潟湖、沙丘、火山口湖、冰川漂礫，包括這些類別的子類別；Wikidata 上另有 130 處沒有座標，沒畫（2026-11-05 查）。Wikidata 是志願者編輯的，收得多不多跟各國有沒有人整理有關，數量不能直接比：挪威的峽灣占了一半以上（縮小時只畫有英文或中文維基百科條目的）；泥火山只有二十多個（亞塞拜然、義大利最多，學術彙編沒有開放資料）；中文說的「天坑」集中在中國西南，Wikidata 沒有這個類別，重慶小寨天坑等幾乎沒收；間歇泉約八成在美國黃石公園一帶，俄羅斯堪察加的間歇泉谷、智利的 El Tatio 都沒有收；潟湖有 6,427 處，美國 1,339、哥倫比亞 987、印度 704、愛爾蘭 526（當地編者勤勞）；沙丘 5,125 處，前幾名巴基斯坦 1,087、沙烏地 999、馬利 553 多半是 GeoNames 批次匯入的小地名；冰川漂礫 805 處，德國 284、愛沙尼亞 244。「岩石地形」這個類別太廣（3 萬多筆，多半是地名匯入），不收。另一個圖層是 Wikidata 有座標的隕石撞擊坑 195 處（2026-11-06 起），依直徑畫大小，只有 60 處寫了直徑；Wikidata 不分確認與推測的，南極冰下的威爾克斯地撞擊坑（500 公里）只是推測。台灣有小門鯨魚洞、石門洞、深澳象鼻岩，與七股潟湖、大鵬灣兩個潟湖；野柳女王頭、烏山頂泥火山在 Wikidata 歸為岩石地形與自然保留區，這裡手工補上。國家依座標判斷，遠洋的小島用 Wikidata 的所屬國家；南海等地 Wikidata 列了好幾個國家的，滑過寫「主權有爭議」。',
     en:
-      'Dots are seven kinds of landform recorded in Wikidata with coordinates, including their subclasses: oases, fjords, natural arches and rock pillars (arches, sea stacks and hoodoos), atolls and coral islands, mud volcanoes, sinkholes (including the cenotes of Yucatán) and geysers; another 130 in Wikidata have no coordinates and are not drawn (checked 2026-11-05). Wikidata is edited by volunteers, so coverage depends on who has catalogued what and counts are not comparable between countries: Norway accounts for over half of the fjords (zoomed out, only those with an English or Chinese Wikipedia article are drawn); there are only about twenty mud volcanoes (most in Azerbaijan and Italy; scholarly inventories are not openly licensed); the giant tiankeng of south-west China have no class of their own and are almost all missing; about 80% of geysers are around Yellowstone, while Kamchatka’s Valley of Geysers and Chile’s El Tatio are absent. The broad “rock formation” class (over 30,000 items, mostly imported place names) is left out. Another layer shows the 195 impact craters with coordinates in Wikidata (added 6 November 2026), sized by diameter where given (60 of them); Wikidata does not separate confirmed from suspected ones, and the 500 km Wilkes Land crater under the Antarctic ice is only suspected. Taiwan has three arches (Xiaomen Whale Cave, Shimen Cave and the Shen’ao Elephant Trunk Rock); the Queen’s Head at Yehliu and the Wushanding mud volcano, classed in Wikidata as a rock formation and a nature reserve, are added by hand. Countries are assigned by location, with Wikidata’s country used for remote islands; where Wikidata lists several countries (as in the South China Sea), the tooltip says sovereignty is disputed.',
+      'Dots are eleven kinds of landform recorded in Wikidata with coordinates, including their subclasses: circles are oases, fjords, natural arches and rock pillars (arches, sea stacks and hoodoos), atolls and coral islands, mud volcanoes, sinkholes (including the cenotes of Yucatán) and geysers, and triangles are the lagoons, dunes, crater lakes and glacial erratics added on 7 November 2026; another 130 in Wikidata have no coordinates and are not drawn (checked 2026-11-05). Wikidata is edited by volunteers, so coverage depends on who has catalogued what and counts are not comparable between countries: Norway accounts for over half of the fjords (zoomed out, only those with an English or Chinese Wikipedia article are drawn); there are only about twenty mud volcanoes (most in Azerbaijan and Italy; scholarly inventories are not openly licensed); the giant tiankeng of south-west China have no class of their own and are almost all missing; about 80% of geysers are around Yellowstone, while Kamchatka’s Valley of Geysers and Chile’s El Tatio are absent; of the 6,427 lagoons, the US has 1,339, Colombia 987, India 704 and Ireland 526 (thanks to diligent local editors); of the 5,125 dunes, the leaders Pakistan (1,087), Saudi Arabia (999) and Mali (553) are mostly small place names bulk-imported from GeoNames; of the 805 glacial erratics, Germany has 284 and Estonia 244. The broad “rock formation” class (over 30,000 items, mostly imported place names) is left out. Another layer shows the 195 impact craters with coordinates in Wikidata (added 6 November 2026), sized by diameter where given (60 of them); Wikidata does not separate confirmed from suspected ones, and the 500 km Wilkes Land crater under the Antarctic ice is only suspected. Taiwan has three arches (Xiaomen Whale Cave, Shimen Cave and the Shen’ao Elephant Trunk Rock) and two lagoons (Qigu Lagoon and Dapeng Bay); the Queen’s Head at Yehliu and the Wushanding mud volcano, classed in Wikidata as a rock formation and a nature reserve, are added by hand. Countries are assigned by location, with Wikidata’s country used for remote islands; where Wikidata lists several countries (as in the South China Sea), the tooltip says sovereignty is disputed.',
   },
   panelExtra: () => import('./panels/SpecialLandformsPanel'),
   overlays: [
@@ -63,19 +94,20 @@ export const specialLandforms: TopicDefinition = {
       sortField: 'sl',
       // 縮小時只畫有英文或中文維基條目的（挪威的小峽灣才不會蓋滿北歐）
       minValue: { field: 'w', stops: [[0, 1], [5, 0]] },
-      tooltip: (p, ctx) => {
-        const name = placeName(p);
-        const parts = [kindLabel(p.k)];
-        if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
-        const extra: string[] = [];
-        if (p.d === 1) extra.push(tr({ zh: 'Wikidata 列了好幾個國家：主權有爭議', en: 'Wikidata lists several countries: sovereignty disputed' }));
-        return {
-          title: name,
-          detail: parts.join(' · '),
-          extra: extra.length ? extra : undefined,
-          properNoun: getLang() === 'zh' && typeof p.en === 'string' && p.en !== name ? p.en : undefined,
-        };
-      },
+      tooltip: landformTooltip,
+    },
+    // 2026-11-07（製作手冊第二十七批 545）：潟湖、沙丘、火山口湖、冰川漂礫，三角形；縮小時同樣只畫有英文或中文條目的
+    {
+      kind: 'points',
+      id: 'landforms-more',
+      file: 'points-more.json',
+      label: { zh: '潟湖、沙丘、火山口湖、冰川漂礫', en: 'Lagoons, dunes, crater lakes and glacial erratics' },
+      shape: 'triangle',
+      radius: { field: 'sl', stops: [[0, 2.6], [5, 3.2], [20, 4.4], [60, 6]] },
+      color: MORE_COLORS,
+      sortField: 'sl',
+      minValue: { field: 'w', stops: [[0, 1], [6, 0]] },
+      tooltip: landformTooltip,
     },
     // 2026-11-06（板7）：隕石撞擊坑，空心圓、依直徑變大（pipeline/topics/craters_trenches.py）
     CRATERS,
@@ -85,8 +117,8 @@ export const specialLandforms: TopicDefinition = {
       id: 'map',
       label: { zh: '特殊地形地圖', en: 'Landform map' },
       description: {
-        zh: '沙漠裡的綠洲、冰河切出的峽灣、海浪與風化留下的天然拱門與海蝕柱、珊瑚礁圍成的環礁、噴出泥漿的泥火山、石灰岩崩塌的天坑、噴出熱水的間歇泉，七類地形的點（Wikidata）。點越大，維基百科條目越多；縮小時只畫有英文或中文條目的。滑過看名稱，點國家列出它的特殊地形。',
-        en: 'Oases in the desert, fjords carved by glaciers, arches and sea stacks left by waves and weathering, atolls ringed by coral reefs, mud volcanoes, sinkholes where limestone collapsed and geysers spouting hot water: seven kinds of landform from Wikidata. Bigger dots have more Wikipedia articles; zoomed out, only those with an English or Chinese article are drawn. Hover for the name, and select a country for its list.',
+        zh: '沙漠裡的綠洲、冰河切出的峽灣、海浪與風化留下的天然拱門與海蝕柱、珊瑚礁圍成的環礁、噴出泥漿的泥火山、石灰岩崩塌的天坑、噴出熱水的間歇泉（圓點），加上沙洲圍出的潟湖、風堆起的沙丘、火山口積水的火山口湖、冰河搬來的巨石冰川漂礫（三角形），十一類地形的點（Wikidata）。點越大，維基百科條目越多；縮小時只畫有英文或中文條目的。滑過看名稱，點國家列出它的特殊地形。',
+        en: 'Oases in the desert, fjords carved by glaciers, arches and sea stacks left by waves and weathering, atolls ringed by coral reefs, mud volcanoes, sinkholes where limestone collapsed and geysers spouting hot water (circles), plus lagoons behind sandbars, wind-built dunes, water-filled volcanic craters and boulders carried by glaciers (triangles): eleven kinds of landform from Wikidata. Bigger dots have more Wikipedia articles; zoomed out, only those with an English or Chinese article are drawn. Hover for the name, and select a country for its list.',
       },
       unit: '',
       file: 'map.json',
@@ -113,7 +145,7 @@ export const specialLandforms: TopicDefinition = {
       shareOfWorld: true,
       dimension: {
         label: { zh: '地形', en: 'Landform' },
-        options: [{ id: 'all', label: { zh: '七類合計', en: 'All seven kinds' } }, ...KINDS.map((k) => ({ id: String(k.value), label: k.plural }))],
+        options: [{ id: 'all', label: { zh: '十一類合計', en: 'All eleven kinds' } }, ...KINDS.map((k) => ({ id: String(k.value), label: k.plural }))],
         defaultOption: 'all',
       },
     },
