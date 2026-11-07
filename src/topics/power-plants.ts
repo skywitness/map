@@ -658,6 +658,42 @@ const indicators: IndicatorDef[] = [
     format: (v) => (fuelByCode(v) ? tr(fuelByCode(v)!.label) : ''),
     timeless: true,
   },
+  // 2026-11-07（製作手冊第二十五批 530）機組年齡、最大母公司（pipeline/topics/power_fleet.py）
+  {
+    id: 'fleet-age',
+    label: { zh: '發電機組的平均年齡', en: 'Average age of power plants' },
+    description: {
+      zh: '運轉中機組依容量加權的平均年齡（2026 年減啟用年，GEM；改建過的機組算原始啟用年；運轉中容量 300 MW 以上的國家）。燃煤（3 GW 以上的 31 國）：烏克蘭 54.6 歲、保加利亞 48.0、美國 45.1、哈薩克 43.8、俄羅斯 43.7 最老；孟加拉 3.6 歲、巴基斯坦 6.0、越南 9.5、荷蘭 10.7、印尼 11.0、中國 13.5 最新；台灣 22.7 歲。美國的煤電老到自然退場，孟加拉的才剛蓋好、還要用好幾十年。全部能源（5 GW 以上）：瑞士 52.6、北韓 48.0、挪威 45.5 最老（瑞士、挪威多半是老水力電廠），衣索比亞 8.0、孟加拉 9.0、寮國 9.2、中國 10.3 最新；台灣 18.3 歲。',
+        en: 'Capacity-weighted average age of operating units (2026 minus the start year, GEM; rebuilt units count from their original start; countries with at least 300 MW in operation). Coal (31 countries with 3 GW or more): Ukraine 54.6 years, Bulgaria 48.0, the US 45.1, Kazakhstan 43.8 and Russia 43.7 are oldest; Bangladesh 3.6, Pakistan 6.0, Vietnam 9.5, the Netherlands 10.7, Indonesia 11.0 and China 13.5 newest; Taiwan 22.7. US coal is old enough to retire on its own, while Bangladesh’s has only just been built and is meant to run for decades. All sources (5 GW or more): Switzerland 52.6, North Korea 48.0 and Norway 45.5 are oldest (much of it old hydro in Switzerland and Norway), Ethiopia 8.0, Bangladesh 9.0, Laos 9.2 and China 10.3 newest; Taiwan 18.3.',
+    },
+    unit: { zh: '歲', en: 'years' },
+    file: 'fleet-age/{item}.json',
+    dimension: {
+      label: { zh: '能源', en: 'Source' },
+      options: [
+        { id: 'coal', label: { zh: '燃煤', en: 'Coal' } },
+        { id: 'all', label: { zh: '全部能源', en: 'All sources' } },
+      ],
+      defaultOption: 'coal',
+    },
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 25, 30, 40] } },
+    format: (v) => tr({ zh: `${fixed(v, 1)} 歲`, en: `${fixed(v, 1)} years` }),
+    formatTick: (v) => fixed(v, 0),
+  },
+  {
+    id: 'largest-parent',
+    label: { zh: '最大的電力集團握有幾成發電容量', en: 'Share of capacity held by the largest power group' },
+    description: {
+      zh: '國內運轉中發電容量最多的母公司（依 GEM 的 parent 欄，合資的依持股比例分）占全國容量的比例，滑過看是哪一家。GEM 有將近一半（47.5%）的運轉中容量沒填母公司，中國、印度、美國、台灣（74%）尤其缺，所以只畫母公司有填的容量達 9 成以上的 14 國：土庫曼 97.9%、黎巴嫩 93.5%、利比亞 93.4%、科威特 91.8%、突尼西亞 91.7%、阿爾及利亞 80.6%，多半是國營電力公司；香港 48.8%（中電）、新加坡 27.3%、孟加拉 21.9%。',
+        en: 'The share of national operating capacity held by the parent company with the most capacity (from GEM’s parent field, with joint ventures split by stake); hover to see which. GEM lacks a parent company for nearly half (47.5%) of operating capacity, especially in China, India, the US and Taiwan (74% covered), so only the 14 countries with parents recorded for at least 90% of capacity are shown: Turkmenistan 97.9%, Lebanon 93.5%, Libya 93.4%, Kuwait 91.8%, Tunisia 91.7% and Algeria 80.6%, mostly state utilities; Hong Kong 48.8% (CLP), Singapore 27.3%, Bangladesh 21.9%.',
+    },
+    unit: '%',
+    file: 'largest-parent.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 35, 50, 65, 80, 90] } },
+    format: (v) => `${fixed(v, 1)}%`,
+    formatTick: (v) => `${v}%`,
+    missing: { zh: 'GEM 的母公司資料不到 9 成，不畫', en: 'Parent companies recorded for under 90% of capacity; not shown' },
+  },
 ];
 
 export const powerPlants: TopicDefinition = {
