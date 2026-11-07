@@ -1,7 +1,7 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { PointsOverlayDef, ScaleSpec, Text, TopicDefinition } from './types';
+import type { CategoryDef, PointsOverlayDef, ScaleSpec, Text, TopicDefinition } from './types';
 
 const CONVENIENCE = { zh: '便利商店', en: 'Convenience stores' };
 const RESTAURANTS = { zh: '速食與咖啡', en: 'Fast food and coffee' };
@@ -9,6 +9,17 @@ const BIG_BOX = { zh: '大型賣場', en: 'Big-box stores' };
 const BUBBLE_TEA = { zh: '手搖飲', en: 'Bubble tea' };
 /** 手搖飲品牌（第二十四批 415，pipeline/topics/chain_bubble_tea.py）：密度都低，同一組門檻；台灣的 50嵐、清心福全每百萬人十幾家 */
 const BUBBLE_THRESHOLDS = [0.1, 0.25, 0.5, 1, 2.5, 10];
+
+/** 這一國 OSM 上店最多的手搖飲品牌（2026-11-07，415 的補強）：值是 chain_bubble_tea.py 的 BRANDS 順序 */
+const TOP_BUBBLE_TEA: CategoryDef[] = [
+  { value: 1, label: { zh: 'CoCo都可（台灣）', en: 'CoCo Fresh Tea & Juice (Taiwan)' } },
+  { value: 2, label: { zh: '貢茶（台灣）', en: 'Gong Cha (Taiwan)' } },
+  { value: 7, label: { zh: '日出茶太（台灣）', en: 'Chatime (Taiwan)' } },
+  { value: 5, label: { zh: '清心福全（台灣）', en: 'Ching Shin (Taiwan)' } },
+  { value: 4, label: { zh: '50嵐（台灣）', en: '50 Lan (Taiwan)' } },
+  { value: 3, label: { zh: '喜茶（中國）', en: 'HEYTEA (China)' } },
+  { value: 6, label: { zh: '霸王茶姬（中國）', en: 'Chagee (China)' } },
+];
 
 /**
  * 地圖上可選的品牌（與 pipeline/topics/chain_stores.py 的 BRANDS 對應）。
@@ -182,6 +193,23 @@ export const chainStores: TopicDefinition = {
       format: storeCount,
       formatTick: formatLargeTick,
       shareOfWorld: true,
+    },
+    {
+      id: 'top-bubble-tea',
+      label: { zh: '店最多的手搖飲品牌', en: 'Leading bubble tea brand' },
+      description: {
+        zh: '七個手搖飲品牌裡，這一國在 OpenStreetMap 上店最多的是哪一個（七個合計 3 家以上的 33 國），滑過看各品牌的店數。CoCo都可在 15 國最多（美洲、歐洲大半），貢茶 9 國（日本、韓國、美國、香港、新加坡、越南…），日出茶太 5 國（澳洲、英國、愛爾蘭、印尼、菲律賓），喜茶是中國與澳門，霸王茶姬是馬來西亞；台灣是清心福全（OSM 上 337 家，50嵐 297 家）。七個品牌裡五個來自台灣。只算這七個品牌，各國 OSM 標得完不完整差很多，不是市占率。',
+        en: 'Which of the seven bubble tea brands has the most shops mapped on OpenStreetMap in each country (33 countries with at least 3 shops of the seven); hover for each brand’s count. CoCo leads in 15 countries (much of the Americas and Europe), Gong Cha in 9 (Japan, South Korea, the US, Hong Kong, Singapore, Vietnam…), Chatime in 5 (Australia, the UK, Ireland, Indonesia, the Philippines), HEYTEA in China and Macao, and Chagee in Malaysia; in Taiwan it is Ching Shin (337 shops on OSM, against 297 for 50 Lan). Five of the seven brands are Taiwanese. Only these seven brands count, and OSM completeness varies widely, so this is not market share.',
+      },
+      unit: '',
+      file: 'top-bubble-tea.json',
+      layer: { kind: 'categorical', categories: TOP_BUBBLE_TEA },
+      format: (v) => tr(TOP_BUBBLE_TEA.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      timeless: true,
+      missing: { zh: 'OSM 上這七個品牌合計不到 3 家', en: 'Fewer than 3 shops of the seven brands on OSM' },
     },
   ],
 };

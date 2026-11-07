@@ -94,6 +94,7 @@ STEPS = {
     "chain-bubble-tea": "topics.chain_bubble_tea",
     "sugar-tax": "topics.sugar_tax",
     "huts": "topics.huts",
+    "forest-recreation": "topics.forest_recreation",
     "phenology-jp": "topics.phenology_jp",
     "travel-advisories": "topics.travel_advisories",
     "working-holiday": "topics.working_holiday",

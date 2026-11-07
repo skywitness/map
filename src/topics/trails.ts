@@ -94,6 +94,49 @@ const HUTS: PointsOverlayDef = {
   },
 };
 
+/**
+ * 台灣的森林遊樂區（2026-11-07，417 的補強；pipeline/topics/forest_recreation.py）：林業保育署的範圍界（22 處）畫成半透明的面，
+ * 另在範圍裡畫一個點（縮小時也看得到）；海拔範圍、所在鄉鎮、管轄分署來自基本資料（19 處）
+ */
+const FOREST_GREEN = MAP_TOKENS.categorical[3];
+function forestTooltip(p: PointRecord) {
+  const name = getLang() === 'zh' || typeof p.e !== 'string' ? String(p.n ?? '') : p.e;
+  const facts = [
+    tr({ zh: '森林遊樂區', en: 'Forest recreation area' }),
+    typeof p.ha === 'number' ? tr({ zh: `${fixed(p.ha, 0)} 公頃`, en: `${fixed(p.ha, 0)} ha` }) : null,
+    typeof p.alt === 'string' ? tr({ zh: `海拔 ${p.alt} 公尺`, en: `${p.alt} m above sea level` }) : null,
+  ];
+  return {
+    title: name,
+    detail: facts.filter(Boolean).join(' · '),
+    extra: [typeof p.adm === 'string' ? p.adm : null, typeof p.mgr === 'string' ? tr({ zh: `管理：${p.mgr}`, en: `Managed by: ${p.mgr}` }) : null].filter(
+      (x): x is string => Boolean(x),
+    ),
+    properNoun: getLang() === 'zh' && typeof p.e === 'string' ? p.e : typeof p.n === 'string' ? p.n : undefined,
+  };
+}
+const FOREST_AREAS: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'forest-areas',
+  file: 'forest-areas.json',
+  label: { zh: '台灣的森林遊樂區（林業保育署）', en: 'Taiwan’s forest recreation areas (Forestry Agency)' },
+  width: 1,
+  color: FOREST_GREEN,
+  fill: { field: 'f', value: 1, opacity: 0.25, darkOpacity: 0.3 },
+  tooltip: forestTooltip,
+  indicators: ['map'],
+};
+const FOREST_POINTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'forest-area-points',
+  file: 'forest-area-points.json',
+  label: { zh: '森林遊樂區的位置', en: 'Forest recreation area locations' },
+  radius: 3.5,
+  color: FOREST_GREEN,
+  tooltip: forestTooltip,
+  indicators: ['map'],
+};
+
 const ABOUT: Text = {
   zh: 'OSM 的「國際級」「國家級」由各國的社群標記，用法不一：歐洲標得多、路線密，其他地方少；美國國家步道系統的佛羅里達步道、日本的九州自然步道等沒有標成國際級或國家級，沒有算進來。阿帕拉契山徑、大陸分水嶺步道跟更長的國際級路線（東部大陸步道、北美分水嶺步道）重疊，算在國際級那條。',
   en: 'OSM’s “international” and “national” levels are tagged by each country’s mappers, and usage varies: Europe has many, densely tagged routes and elsewhere there are few; some trails, such as the Florida Trail of the US National Trails System and Japan’s Kyushu Nature Trail, are not tagged as international or national and are not included. The Appalachian and Continental Divide trails overlap longer international routes (the Eastern Continental Trail and the Divide Trails) and are counted under those.',
@@ -205,6 +248,14 @@ const trailsOwn: TopicDefinition = {
       license: { zh: 'ODbL 1.0（© OpenStreetMap 貢獻者；資料檔也是）', en: 'ODbL 1.0 (© OpenStreetMap contributors; so are the data files)' },
     },
     {
+      name: {
+        zh: '農業部林業及自然保育署：森林遊樂區範圍界（data.gov.tw 9931）、所轄森林遊樂區基本資料（37675）',
+        en: 'Forestry and Nature Conservation Agency (Taiwan): forest recreation area boundaries (data.gov.tw 9931) and basic data (37675)',
+      },
+      url: 'https://data.gov.tw/dataset/9931',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
       name: { zh: 'FAOSTAT 土地利用（陸地面積，算山屋的密度）', en: 'FAOSTAT Land Use (land area, for hut density)' },
       url: 'https://www.fao.org/faostat/en/#data/RL',
       license: 'CC BY 4.0',
@@ -221,7 +272,7 @@ const trailsOwn: TopicDefinition = {
   },
   panelExtra: () => import('./panels/TrailsPanel'),
   listPanel: LIST,
-  overlays: [TRAILS, HUTS],
+  overlays: [TRAILS, HUTS, FOREST_AREAS, FOREST_POINTS],
   indicators,
 };
 

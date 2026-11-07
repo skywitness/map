@@ -29,6 +29,7 @@ from topics.chain_stores import MIN_POPULATION, dedupe, store_points
 OUT = OUT_DIR / "topics" / "chain-stores"
 YEAR = 2026
 SNAPSHOT = "2026-11-06"
+TOP_MIN = 3  # 「店最多的品牌」：七個品牌合計幾家以上才畫
 
 # (品牌 id, brand:wikidata, 中文名, 英文名)；id 跟前端 chain-stores.ts 的 BUBBLE_TEA 一樣
 BRANDS = [
@@ -107,6 +108,23 @@ def build() -> None:
         write_json(OUT / "points" / f"{b}.json", store_points(stores[b]))
         dens = sorted(((round(c[a] / rated[a] * 1e6, 1), a) for a in c if a in rated), reverse=True)[:6]
         print(f"  {zh}：{world} 家、{len(c)} 國；最多 {c.most_common(6)}；每百萬人 {dens}")
+
+    # 這一國 OSM 上店最多的品牌（2026-11-07，手冊 415 的補強）：七個品牌合計 TOP_MIN 家以上的國家才畫；
+    # 值是 BRANDS 的順序（1 起），hints 列各品牌的店數。同店數時取 BRANDS 前面的。
+    top, top_hints, top_hints_en = {}, {}, {}
+    for iso3 in sorted({a for c in counts.values() for a in c}):
+        per = [(counts[b].get(iso3, 0), -i, b, zh, en) for i, (b, _, zh, en) in enumerate(BRANDS)]
+        if sum(n for n, *_ in per) < TOP_MIN:
+            continue
+        n, neg, b, zh, en = max(per)
+        top[iso3] = [1 - neg]
+        listed = sorted((x for x in per if x[0]), reverse=True)
+        top_hints[iso3] = "、".join(f"{x[3]} {x[0]} 家" for x in listed)
+        top_hints_en[iso3] = ", ".join(f"{x[4]} {x[0]}" for x in listed)
+    write_json(OUT / "top-bubble-tea.json", indicator_file(
+        "top-bubble-tea", "類別", [YEAR], top, hints=top_hints, hintsEn=top_hints_en, snapshot=SNAPSHOT), quiet=True)
+    print(f"  店最多的品牌（合計 {TOP_MIN} 家以上的 {len(top)} 國）：{Counter(BRANDS[v[0] - 1][2] for v in top.values())}")
+    print(f"    {[(a, BRANDS[v[0] - 1][2]) for a, v in sorted(top.items())]}")
 
     # 側欄：把店數加進 countries/<國家>.json 的 brands（chain-stores 步驟寫的）；沒有那一國的檔就新建
     ids = {b for b, *_ in BRANDS}
