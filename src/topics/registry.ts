@@ -113,7 +113,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 2026-11-07（第二十五批 439）：能源升成自己的大類；「研發與太空」拆出太空（太空、Starlink），原小類改名「研發與創新」
     sections: [
       // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」，兩個小類疊在左欄
-      { label: { zh: '網路與連線', en: 'Internet & connectivity' }, topics: ['digital', 'internet-speed', 'submarine-cables'] },
+      { label: { zh: '網路與連線', en: 'Internet & connectivity' }, topics: ['digital', 'internet-speed', 'submarine-cables', 'cctld'] },
       { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'developers'] },
       { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities'] },
       { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
@@ -257,6 +257,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   materials: () => import('./materials'),
   'land-use': () => import('./land-use'),
   'env-taxes': () => import('./env-taxes'),
+  cctld: () => import('./cctld'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),

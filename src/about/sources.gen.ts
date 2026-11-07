@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 172;
-export const INDICATOR_COUNT = 1284;
+export const TOPIC_COUNT = 173;
+export const INDICATOR_COUNT = 1287;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -357,6 +357,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata 的官方語言（P37，經 QLever 查詢）","en":"Wikidata official languages (P37, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Property:P37","licenses":["CC0"],"topics":["language"]},
   {"name":{"zh":"Wikidata 的觀光洞穴（Q2232001）與觀光礦坑（Q1506469），經 QLever","en":"Wikidata show caves (Q2232001) and show mines (Q1506469), via QLever"},"url":"https://www.wikidata.org/wiki/Q2232001","licenses":[{"zh":"CC0","en":"CC0"}],"topics":["show-caves"]},
   {"name":{"zh":"Wikidata 的賽馬場（horse racing venue 與子類別；用 QLever 查詢）","en":"Wikidata horse racing venues and subclasses (queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q11822917","licenses":["CC0"],"topics":["horses"]},
+  {"name":{"zh":"Wikidata：ccTLD 的啟用日期（P571）","en":"Wikidata: ccTLD inception dates (P571)"},"url":"https://www.wikidata.org/wiki/Q42032","licenses":["CC0"],"topics":["cctld"]},
   {"name":{"zh":"Wikidata：電池儲能系統","en":"Wikidata: battery energy storage systems"},"url":"https://www.wikidata.org/wiki/Q810924","licenses":["CC0"],"topics":["power-plants"]},
   {"name":{"zh":"Wikidata（150 m 以上的電視塔、觀景塔、電信塔）","en":"Wikidata (TV, observation and communication towers 150 m+)"},"url":"https://www.wikidata.org/wiki/Q11166728","licenses":["CC0"],"topics":["skyscrapers"]},
   {"name":{"zh":"Wikidata（世界遺產預備名單 P4171、世界地質公園、台灣的地質公園）","en":"Wikidata (Tentative List P4171, UNESCO Global Geoparks, geoparks in Taiwan)"},"url":"https://www.wikidata.org/wiki/Property:P4171","licenses":["CC0"],"topics":["world-heritage"]},
@@ -497,6 +498,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"數位發展部 國內各場域行動支付滲透率（台灣的側欄）","en":"Ministry of Digital Affairs (Taiwan), mobile payment use by venue (Taiwan panel)"},"url":"https://data.gov.tw/dataset/128268","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["digital"]},
   {"name":{"zh":"數位發展部 數位近用調查","en":"Ministry of Digital Affairs (Taiwan), Digital Access Survey"},"url":"https://data.gov.tw/dataset/5960","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["digital"]},
   {"name":{"zh":"數位發展部 行動通訊速率量測（台灣的對照）","en":"Ministry of Digital Affairs (Taiwan), mobile speed measurement (comparison)"},"url":"https://data.gov.tw/dataset/161791","licenses":["CC0 1.0"],"topics":["internet-speed"]},
+  {"name":{"zh":"數位發展部：.tw、.台灣之網域名稱申請數量（TWNIC 統計資料）","en":"Ministry of Digital Affairs (Taiwan): .tw and .台灣 domain registrations (TWNIC)"},"url":"https://data.gov.tw/dataset/165202","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, Taiwan, v1"}],"topics":["cctld"]},
   {"name":{"zh":"文化部「博物館」開放資料（台灣）","en":"Taiwan Ministry of Culture museum open data"},"url":"https://data.gov.tw/dataset/6242","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["attractions"]},
   {"name":{"zh":"文化部文化統計網：電影院概況（2008–2024 年）與電影片映演業統計（2026 年 5 月，2025 年的家數）","en":"Ministry of Culture (Taiwan) cultural statistics: cinemas, 2008–2024, and film exhibition statistics (May 2026, for 2025)"},"url":"https://stat.moc.gov.tw/HS_UserCatalogView.aspx","licenses":[{"zh":"文化部網站著作權聲明（以文化部名義發表的著作，合理範圍內可重製、公開傳輸，需註明出處）；只用逐年的家數","en":"Ministry of Culture website copyright notice (its own works may be reproduced within reasonable limits with attribution); only annual counts are used"}],"topics":["culture"]},
   {"name":{"zh":"文化部文化資產局「文資局民俗」（台灣登錄的民俗）","en":"Bureau of Cultural Heritage (Taiwan): registered folk customs"},"url":"https://data.gov.tw/dataset/114143","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["festivals"]},
@@ -563,6 +565,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「Coal phase-out」的各國退場年份表（revid 1377174595，年份引 Ember）","en":"English Wikipedia, “Coal phase-out”, table of phase-out years by country (revision 1377174595, years from Ember)"},"url":"https://en.wikipedia.org/w/index.php?title=Coal_phase-out&oldid=1377174595","licenses":["CC BY-SA 4.0"],"topics":["fossil-fuels"]},
   {"name":{"zh":"英文維基百科「Compulsory voting」（強制投票，2026 年 11 月）","en":"Wikipedia, “Compulsory voting” (November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Compulsory_voting&oldid=1383198941","licenses":["CC BY-SA 4.0"],"topics":["laws"]},
   {"name":{"zh":"英文維基百科「Congestion pricing」（2026-10-14 的版本）","en":"English Wikipedia, “Congestion pricing” (revision of 14 Oct 2026)"},"url":"https://en.wikipedia.org/wiki/Congestion_pricing?oldid=1380197393","licenses":["CC BY-SA 4.0"],"topics":["cities"]},
+  {"name":{"zh":"英文維基百科「Country code top-level domain」（revid 1383901539，2026-11-05）","en":"English Wikipedia, “Country code top-level domain” (revid 1383901539, 5 November 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=Country_code_top-level_domain&oldid=1383901539","licenses":["CC BY-SA 4.0"],"topics":["cctld"]},
   {"name":{"zh":"英文維基百科「Deep geological repository」的處置場表（revid 1381499099），狀態對照相關條目與官方消息（2026-10-31）","en":"English Wikipedia, “Deep geological repository”, table of repository sites (revision 1381499099), statuses checked against linked articles and official sources (31 Oct 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1381499099","licenses":["CC BY-SA 4.0"],"topics":["nuclear"]},
   {"name":{"zh":"英文維基百科「Departure tax」的表（revid 1371947177）","en":"English Wikipedia, “Departure tax” table (revision 1371947177)"},"url":"https://en.wikipedia.org/wiki/Departure_tax?oldid=1371947177","licenses":[{"zh":"CC BY-SA 4.0（引用事實）","en":"CC BY-SA 4.0 (facts cited)"}],"topics":["travel"]},
   {"name":{"zh":"英文維基百科「Forbes Global 2000」（轉引 Forbes，2026 年 11 月 5 日的版本）","en":"Wikipedia, “Forbes Global 2000” (citing Forbes; revision of 5 November 2026)"},"url":"https://en.wikipedia.org/wiki/Forbes_Global_2000?oldid=1383885674","licenses":["CC BY-SA 4.0"],"topics":["companies"]},
