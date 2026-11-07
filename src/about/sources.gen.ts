@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 150;
-export const INDICATOR_COUNT = 1144;
+export const INDICATOR_COUNT = 1145;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","fossil-fuels","nuclear","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -576,6 +576,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"農業部漁業署《漁業統計年報》（台灣的對照數字）","en":"Fisheries Agency (Taiwan), Fisheries Statistical Yearbook (for comparison)"},"url":"https://www.fa.gov.tw/list.php?theme=FS_AR","licenses":[{"zh":"引用統計數字並註明出處","en":"figures cited with source"}],"topics":["oceans"]},
   {"name":{"zh":"運動部：中央與地方政府機關體育運動經費占 GDP 比例（data.gov.tw 104905）","en":"Sports Administration (Taiwan): central and local sports budgets as a share of GDP (data.gov.tw 104905)"},"url":"https://data.gov.tw/dataset/104905","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["sports"]},
   {"name":{"zh":"運動部：中華職棒大聯盟歷年現場觀眾總人次、平均單場人次（data.gov.tw 11284）","en":"Sports Administration (Taiwan): CPBL attendance (data.gov.tw 11284)"},"url":"https://data.gov.tw/dataset/11284","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["sports"]},
+  {"name":{"zh":"運動部：全國運動場館資訊（data.gov.tw 22849，2026 年 1 月版）","en":"Sports Administration (Taiwan): national sports facilities (data.gov.tw 22849, January 2026 edition)"},"url":"https://data.gov.tw/dataset/22849","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["sports"]},
   {"name":{"zh":"邦交國年表（外交部公告；與維基百科「中華民國外交關係年表」交叉比對）","en":"Allies chronology (MOFA announcements; cross-checked with Wikipedia)"},"url":"https://zh.wikipedia.org/zh-tw/%E4%B8%AD%E5%8D%8E%E6%B0%91%E5%9B%BD%E5%A4%96%E4%BA%A4%E5%85%B3%E7%B3%BB%E5%B9%B4%E8%A1%A8","licenses":[{"zh":"史實自行整理；維基百科為 CC BY-SA 4.0","en":"facts compiled by hand; Wikipedia is CC BY-SA 4.0"}],"topics":["taiwan-diplomacy"]},
   {"name":{"zh":"金融監督管理委員會證券期貨局 公開發行公司股票發行概況統計表、證券暨期貨市場重要指標","en":"Financial Supervisory Commission (Taiwan), Securities and Futures Bureau: equity issuance statistics and key securities market indicators"},"url":"https://data.gov.tw/dataset/103533","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["stock-market"]},
   {"name":{"zh":"防空識別區：日本防衛省訓令第 36 號、中國政府 2013-11-23 聲明、大韓民國國防部告示第 2013-449 號（座標見韓國 AIP ENR 5.2，國土交通部）、交通部民用航空局 AIP ENR 5.2.3","en":"ADIZs: Japan Ministry of Defense directive No. 36; Chinese government statement of 23 November 2013; Republic of Korea Ministry of National Defense notice 2013-449 (coordinates from the Korean AIP, ENR 5.2, MOLIT); Taiwan CAA AIP, ENR 5.2.3"},"url":"https://ais.caa.gov.tw/eaip/","licenses":[{"zh":"政府公告（不受著作權保護）","en":"Government announcements (not subject to copyright)"}],"topics":["airspace"]},

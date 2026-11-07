@@ -24,7 +24,7 @@ from collections import defaultdict
 
 import openpyxl
 
-from common import CACHE_DIR, OUT_DIR, indicator_file, to_series, write_json
+from common import CACHE_DIR, OUT_DIR, download, indicator_file, to_series, write_json
 from sources import worldbank, wpp
 from topics.tourism_flows import _geo, eurostat
 
@@ -35,6 +35,31 @@ TW_ANNUAL_SHA256 = "ba230c55c34d2a99ac91a586d7675ff63b58d0184261197b7695d72c1f75
 TW_FIRST = 2024  # 2023 年是疫後剛開放，看不出季節性
 MONTHS_ZH = [f"{m} 月" for m in range(1, 13)]
 MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def _taiwan_domestic() -> tuple[int, int, float, int, float] | None:
+    """觀光署主要觀光遊憩據點各月的人次加總，最近一年的最旺、最淡月份與占比"""
+    import csv
+
+    from topics.attractions_visitors import TW_CSV
+    with open(download(TW_CSV, "taiwan-net", "visitors-by-site.csv"), encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.DictReader(f))
+    totals: dict[int, list[float]] = {}
+    for r in rows:
+        if not r["年別"].isdigit():
+            continue
+        t = totals.setdefault(int(r["年別"]), [0.0] * 12)
+        for m in range(12):
+            v = (r[f"{m + 1}月"] or "").replace(",", "").strip()
+            if v.replace(".", "", 1).isdigit():
+                t[m] += float(v)
+    if not totals:
+        return None
+    y = max(totals)
+    t, total = totals[y], sum(totals[y])
+    hi = max(range(12), key=lambda i: t[i])
+    lo = min(range(12), key=lambda i: t[i])
+    return y, hi + 1, t[hi] / total * 100, lo + 1, t[lo] / total * 100
 
 
 def _taiwan_monthly() -> dict[int, dict[int, float]]:
@@ -116,6 +141,13 @@ def build() -> None:
     hints_en["TWN"] = "Taiwan: Tourism Administration visitor arrivals (inbound only, no domestic tourism); " + hints_en["TWN"]
     tw_note = "台灣是入境旅客人次（交通部觀光署，資料來源內政部移民署），歐洲是旅宿業的住宿夜數（含本國旅客），口徑不同"
     tw_note_en = "Taiwan uses inbound visitor arrivals (Tourism Administration, from the National Immigration Agency); Europe uses accommodation nights including domestic guests"
+    # 2026-11-07（手冊 432 的補強）：國內旅遊用觀光署「主要觀光遊憩據點」的月別人次（景點地圖主題同一份），寫在台灣的附註
+    dom = _taiwan_domestic()
+    if dom:
+        y, peak_m, peak_s, low_m, low_s = dom
+        tw_note += f"。國內旅遊另見觀光署主要觀光遊憩據點的人次：{y} 年 {peak_m} 月最多（占全年 {peak_s:.1f}%）、{low_m} 月最少（{low_s:.1f}%）"
+        tw_note_en += (f". For domestic travel, visits to the Tourism Administration’s major tourist sites peaked in {MONTHS_EN[peak_m - 1]} {y} "
+                       f"({peak_s:.1f}% of the year) and were lowest in {MONTHS_EN[low_m - 1]} ({low_s:.1f}%)")
     write_json(OUT / "peak-month.json", indicator_file(
         "peak-month", "月", years, {c: to_series(s, years, 0) for c, s in sorted(peak.items())},
         hints=hints, hintsEn=hints_en, notes={"TWN": tw_note}, notesEn={"TWN": tw_note_en}))

@@ -103,6 +103,7 @@ STEPS = {
     "gaming-eu": "topics.gaming_eu",
     "sports-economy": "topics.sports_economy",
     "sports-leagues": "topics.sports_leagues",
+    "sports-venues": "topics.sports_venues",
     "horses": "topics.horses",
     "leisure-venues": "topics.leisure_venues",
     "alcohol-makers": "topics.alcohol_makers",

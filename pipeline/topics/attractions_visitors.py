@@ -56,6 +56,11 @@ SITE_ALIASES = {
 # 水上樂園名稱跟 OSM 寫法不同的（2026-11-07 查過 OSM 上確實有這個名稱的 leisure=water_park）
 WATER_ALIASES = {"Therme Bucharest": "Therme București", "Wet'n'Wild Gold Coast": "Wet 'n' Wild Gold Coast",
                  "Magic City Water Park": "Parque Aquatico e Pousada Magic City"}
+# 2026-11-07 補：維基表上的名稱在 Wikidata 與 OSM 都對不到的，用所在的度假村、樂園的 Wikidata 項目（QLever 查座標）
+WATER_QIDS = {"Aquaventure World": "Q56071912", "Aquaventure at Atlantis Paradise Island": "Q2722966",
+              "Therme Bucharest": "Q131620158", "Hacienda Nápoles Theme Park": "Q2788637", "Magic City Water Park": "Q10323036",
+              "Sunway Lost World of Tambun": "Q21634292", "Legoland Malaysia Water Park": "Q3229105"}
+WATER_ALIASES.update({"The Jungle Water Adventure": "The Jungle Adventure Water Park", "Wuhu Fantawild Water Park": "方特水上乐园"})
 COUNTRY_FIX = {"UAE": "ARE", "United Arab Emirates": "ARE", "US": "USA", "U.S.": "USA"}
 
 
@@ -158,11 +163,20 @@ SELECT ?en ?coord ?zhtw ?zhhant ?zh WHERE { VALUES ?en { %s } ?item rdfs:label ?
         c = (exact or part or [None])[0]
         return (c[0], c[1], None) if c else None
 
+    from sources import qlever_wikidata
+    by_qid = {}
+    for r in qlever_wikidata.cached("water-park-hand-" + str(len(WATER_QIDS)),
+                                    "SELECT ?i ?coord WHERE { VALUES ?i { %s } ?i wdt:P625 ?coord }"
+                                    % " ".join(f"wd:{q}" for q in WATER_QIDS.values())):
+        m = re.match(r"Point\(([-\d.]+) ([-\d.]+)\)", r["coord"]["value"], re.I)
+        if m:
+            by_qid[r["i"]["value"].rsplit("/", 1)[1]] = (float(m.group(1)), float(m.group(2)), None)
     out, missing = [], []
     for p in parks.values():
         country = p["loc"].split(",")[-1].strip()
         iso3 = COUNTRY_FIX.get(country) or from_name(country)
-        hit = found.get(p["title"] or "") or by_label.get(p["en"]) or (osm_hit(p["en"], iso3) if iso3 else None)
+        hit = (found.get(p["title"] or "") or by_label.get(p["en"]) or by_qid.get(WATER_QIDS.get(p["en"], ""))
+               or (osm_hit(p["en"], iso3) if iso3 else None))
         if not hit or not iso3:
             missing.append((p["en"], p["loc"], bool(hit), iso3))
             continue
