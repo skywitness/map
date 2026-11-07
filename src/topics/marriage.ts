@@ -37,6 +37,11 @@ export const marriage: TopicDefinition = {
   defaultYear: 2024,
   sources: [
     {
+      name: { zh: 'World Bank WDI：出生有登記的比例（SP.REG.BRTH.ZS，UNICEF）', en: 'World Bank WDI: completeness of birth registration (SP.REG.BRTH.ZS, UNICEF)' },
+      url: 'https://data.worldbank.org/indicator/SP.REG.BRTH.ZS',
+      license: 'CC BY 4.0',
+    },
+    {
       name: 'UN DESA Population Division, World Marriage Data 2019',
       url: 'https://www.un.org/development/desa/pd/data/world-marriage-data',
       license: 'CC BY 3.0 IGO',
@@ -351,6 +356,21 @@ export const marriage: TopicDefinition = {
       layer: { kind: 'categorical', categories: POLYGAMY, ordinal: true },
       format: polygamyLabel,
       defaultYear: 2026,
+    },
+    // 2026-11-07（製作手冊第二十七批 563，候選 1265）：出生登記（pipeline/topics/birth_registration.py）
+    {
+      id: 'birth-registration',
+      label: { zh: '出生有登記的比例', en: 'Birth registration' },
+      description: {
+        zh: '5 歲以下兒童裡出生有向政府登記的比例（世界銀行轉載 UNICEF 的家戶調查與各國的戶政統計）。沒有登記的孩子在法律上不存在，上學、就醫、繼承都可能受阻。調查不是每年做，各國用 16 年內最近的一次，滑過看年份。最低的是衣索比亞 2.7%（2016 年）、索馬利亞 5.9%（2020 年）、巴布亞紐幾內亞 13.4%、尚比亞 14.0%（2018 年）、安哥拉 25.0%、查德 25.7%、坦尚尼亞 26.4%；巴基斯坦 42.2%、奈及利亞 42.6%、孟加拉 56.0%、印尼 77.0%、印度 89.1%。181 國裡 49 國是 100%，多半是高所得國家直接填的、不是調查，所以色階在 90% 以上切得比較細。台灣不在世界銀行的資料裡；依戶籍法出生後 60 日內須辦理登記，畫成 100%。',
+        en: 'Share of children under five whose birth has been registered with the authorities (World Bank, from UNICEF household surveys and national civil registration). Children without a registered birth do not exist in law and may be kept from school, health care or inheritance. Surveys are not annual, so each country shows its latest within 16 years; hover for the year. The lowest are Ethiopia 2.7% (2016), Somalia 5.9% (2020), Papua New Guinea 13.4% and Zambia 14.0% (2018), Angola 25.0%, Chad 25.7% and Tanzania 26.4%; Pakistan 42.2%, Nigeria 42.6%, Bangladesh 56.0%, Indonesia 77.0% and India 89.1%. Of 181 countries, 49 are at 100%, mostly high-income countries that report full coverage rather than survey it, so the scale is finer above 90%. Taiwan is not in World Bank data; births must be registered within 60 days under the Household Registration Act, so it is shown at 100%.',
+      },
+      unit: '%',
+      file: 'birth-registration.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [25, 50, 75, 90, 95, 99] } },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2022,
     },
   ],
 };

@@ -262,6 +262,7 @@ STEPS = {
     "independence": "topics.independence",
     "happiness-eu": "topics.happiness_eu",
     "diet-security": "topics.diet_security",
+    "birth-registration": "topics.birth_registration",
     "gender-vdem": "topics.gender_vdem",
     # 國家小檔案的國會幾院（V-Dem）、席次與每席人口（英文維基固定版本，要先有 population 的 total.json）
     "profiles-legislature": "topics.profiles_legislature",
