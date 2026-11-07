@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 169;
-export const INDICATOR_COUNT = 1246;
+export const TOPIC_COUNT = 170;
+export const INDICATOR_COUNT = 1249;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -46,6 +46,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"EIA International Energy Statistics：抽蓄水力裝置容量（2026 年 10 月）","en":"EIA International Energy Statistics: pumped-storage capacity (October 2026)"},"url":"https://www.eia.gov/international/data/world","licenses":[{"zh":"公有領域（美國政府著作）","en":"Public domain (US government work)"},{"zh":"公有領域","en":"Public domain"}],"topics":["power-plants","fossil-fuels"]},
   {"name":{"zh":"European Commission JRC, GHS-POP R2023A（住在沒有燈光地方的人口）","en":"European Commission JRC, GHS-POP R2023A (population in unlit areas)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_pop2023.php","licenses":["CC BY 4.0"],"topics":["population","night-lights"]},
   {"name":{"zh":"Eurostat：旅宿業的到達人次依居住國（tour_occ_arnraw）、居民的旅次依目的地（tour_dem_ttw）","en":"Eurostat: arrivals at tourist accommodation by country of residence (tour_occ_arnraw); trips by destination (tour_dem_ttw)"},"url":"https://ec.europa.eu/eurostat/web/tourism/database","licenses":["CC BY 4.0"],"topics":["tourism","travel-habits"]},
+  {"name":{"zh":"Eurostat（循環物料使用率，cei_srm030）","en":"Eurostat (circular material use rate, cei_srm030)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/cei_srm030/default/table","licenses":["CC BY 4.0"],"topics":["minerals","materials"]},
   {"name":"FAO, FAOSTAT","url":"https://www.fao.org/faostat/","licenses":["CC BY 4.0"],"topics":["diet","agriculture"]},
   {"name":{"zh":"FAO, FAOSTAT 農作物與畜產品生產（QCL）：馬的在養頭數","en":"FAO, FAOSTAT Crops and livestock products (QCL): horse stocks"},"url":"https://www.fao.org/faostat/en/#data/QCL","licenses":["CC BY 4.0"],"topics":["tobacco-alcohol","horses"]},
   {"name":{"zh":"GHSL Urban Centre Database（部分大樓的城市名稱，同城市主題）","en":"GHSL Urban Centre Database (city names for some buildings, as in the Cities topic)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_ucdb_2024.php","licenses":["CC BY 4.0 / CC0","CC BY 4.0"],"topics":["cities","skyscrapers"]},
@@ -144,7 +145,6 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：運動業的就業（sprt_emp_sex）、政府支出依功能別（gov_10a_exp，COFOG 08.1）","en":"Eurostat: employment in sport (sprt_emp_sex) and government expenditure by function (gov_10a_exp, COFOG 08.1)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sprt_emp_sex/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat（demo_nind、demo_ndivind、demo_find、lfst_hhnhtych）","en":"Eurostat (demo_nind, demo_ndivind, demo_find, lfst_hhnhtych)"},"url":"https://ec.europa.eu/eurostat/web/population-demography/demography-population-stock-balance/database","licenses":["CC BY 4.0"],"topics":["marriage"]},
   {"name":{"zh":"Eurostat（依營運國的商用飛機機齡，avia_eq_arc_age）","en":"Eurostat (commercial aircraft by age, by operating country, avia_eq_arc_age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_eq_arc_age/default/table","licenses":["CC BY 4.0"],"topics":["air-routes"]},
-  {"name":{"zh":"Eurostat（循環物料使用率，cei_srm030）","en":"Eurostat (circular material use rate, cei_srm030)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/cei_srm030/default/table","licenses":["CC BY 4.0"],"topics":["minerals"]},
   {"name":{"zh":"FAO, AQUASTAT（總可再生水資源、世界的水資源壓力、海水淡化；取水量的用途與總量由世界銀行 WDI 轉載）","en":"FAO, AQUASTAT (total renewable water resources, world water stress, desalination; water withdrawal by use and in total via the World Bank WDI)"},"url":"https://www.fao.org/aquastat/en/","licenses":["CC BY 4.0"],"topics":["water-forest"]},
   {"name":{"zh":"FAO, FAOSTAT（詳細貿易矩陣）","en":"FAO, FAOSTAT (detailed trade matrix)"},"url":"https://www.fao.org/faostat/en/#data/TM","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":"FAO, Global Forest Resources Assessment 2025","url":"https://fra-data.fao.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
@@ -268,6 +268,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD, Taxing Wages（勞動稅負）","en":"OECD, Taxing Wages (tax wedge)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_WAGES_COMP%40DF_TW_COMP&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD, 性別薪資差距","en":"OECD, Gender wage gap"},"url":"https://www.oecd.org/en/data/indicators/gender-wage-gap.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["gender"]},
   {"name":{"zh":"OECD, 每年實際工時（墨西哥、哥倫比亞）","en":"OECD, average annual hours actually worked (Mexico and Colombia)"},"url":"https://www.oecd.org/en/data/indicators/hours-worked.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["wages"]},
+  {"name":{"zh":"OECD：Material flow accounts（DF_MATERIAL_RESOURCES）","en":"OECD: Material flow accounts (DF_MATERIAL_RESOURCES)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_MATERIAL_RESOURCES%40DF_MATERIAL_RESOURCES&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["materials"]},
   {"name":{"zh":"OECD：Subnational government recurrent property tax revenue（DSD_DASHBOARD@PROP_TAX_REV）","en":"OECD: Subnational government recurrent property tax revenue (DSD_DASHBOARD@PROP_TAX_REV)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_DASHBOARD%40PROP_TAX_REV&df[ag]=OECD.CFE.RDG","licenses":["CC BY 4.0"],"topics":["property-costs"]},
   {"name":{"zh":"OECD.AI（OpenRouter 資料）","en":"OECD.AI (OpenRouter data)"},"url":"https://oecd.ai/en/data?selectedArea=ai-model-usage","licenses":[{"zh":"未明示授權","en":"licence not stated"}],"topics":["ai"]},
   {"name":{"zh":"OECD《Consumption Tax Trends 2024》附錄表 2.A.1（加值型營業稅標準稅率）","en":"OECD, Consumption Tax Trends 2024, Annex Table 2.A.1 (standard VAT/GST rates)"},"url":"https://doi.org/10.1787/dcd4dd36-en","licenses":["CC BY 4.0"],"topics":["taxes"]},

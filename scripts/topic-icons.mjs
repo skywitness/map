@@ -129,6 +129,7 @@ const TOPIC_ICONS = {
   noise: 'volume-2',
   'industrial-releases': 'cloud-fog',
   'contaminated-sites': 'shovel',
+  materials: 'repeat-2',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

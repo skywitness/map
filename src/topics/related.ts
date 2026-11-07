@@ -83,6 +83,7 @@ export const RELATED: Record<string, string[]> = {
   noise: ['air-quality', 'road-safety', 'aviation'],
   'industrial-releases': ['air-quality', 'power-plants', 'industry'],
   'contaminated-sites': ['nutrients', 'industrial-releases', 'water-forest'],
+  materials: ['plastic', 'minerals', 'trade'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],
