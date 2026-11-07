@@ -5,6 +5,7 @@ import { landingsPart } from './landings';
 import { withParts } from './parts';
 import { spaceAgenciesPart } from './space-agencies';
 import { spaceMassPart } from './space-mass';
+import { spaceOrbitsPart } from './space-orbits';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
@@ -339,4 +340,4 @@ export const space: TopicDefinition = withParts({
       formatTick: (v) => v + '%',
     },
   ],
-}, spaceAgenciesPart, spaceMassPart);
+}, spaceAgenciesPart, spaceMassPart, spaceOrbitsPart);
