@@ -9,6 +9,9 @@
   多年生作物（椰子、油棕、橄欖）的收穫面積跟一年生作物口徑不同，說明寫明。
 - 農地占國土：農地（6610）、耕地（6621）、永久草地（6655）÷ 陸地面積（6601），四個都不是 X 才算。
 - 牲畜密度：農地不到 MIN_FARMLAND（2 萬公頃）的不比（新加坡、香港的農地分母極小）。
+- 每公頃農地的農業產值（第二十五批 441，候選 1071）：RL 的 6610 × 7278（2014–2016 年固定價國際元／公頃，FAO 算的，旗標 E），
+  農地不到 MIN_FARMLAND_VALUE（1 萬公頃）的不比。手冊合併的 1072（每位農業就業者的附加價值、農業就業占比）在 FAOSTAT 的
+  OEA 全是 Flag X（ILO 提供），不用，等使用者決定要不要改用世界銀行 WDI。
 """
 from __future__ import annotations
 
@@ -22,6 +25,7 @@ OUT = OUT_DIR / "topics" / "agriculture"
 FIRST = 1961
 CROP_LAST, LAND_LAST, LSU_LAST = 2024, 2024, 2023
 MIN_FARMLAND = 20  # 千公頃
+MIN_FARMLAND_VALUE = 10  # 千公頃（每公頃產值）
 
 # 作物 → 上色的組（src/topics/agriculture.ts 的 TOP_CROP_GROUPS）；沒列的是 8「蔬菜、水果與其他」
 WHEAT, MAIZE, RICE, CEREALS, PULSES_OIL, ROOTS_CANE, TREE, OTHER = range(1, 9)
@@ -153,6 +157,27 @@ def _livestock(farmland: dict[str, dict[int, float]]) -> None:
     print(f"    {hints.get('TWN')}；紐西蘭 {hints.get('NZL')}；丹麥 {hints.get('DNK')}")
 
 
+def _value_per_ha(farmland: dict[str, dict[int, float]]) -> None:
+    series: dict[str, dict[int, float]] = defaultdict(dict)
+    for r in faostat.rows("RL", {7278}, {6610}):
+        if r.flag != "X" and r.year <= LAND_LAST:
+            series[r.area][r.year] = r.value
+    years = list(range(FIRST, LAND_LAST + 1))
+    small = sorted(a for a in series if a != "WLD" and farmland.get(a) and farmland[a].get(max(farmland[a])) < MIN_FARMLAND_VALUE)
+    values = {a: to_series(s, years, 0) for a, s in sorted(series.items()) if a not in small}
+    no = {a: "農地不到 1 萬公頃，分母太小，不比" for a in small}
+    no_en = {a: "Less than 10,000 ha of farmland: the denominator is too small to compare" for a in small}
+    write_json(OUT / "value-per-ha.json", indicator_file("value-per-ha", "國際元/公頃", years, values, noValue=no, noValueEn=no_en,
+                                                         license="CC BY 4.0"))
+    last = sorted(((s[LAND_LAST], a) for a, s in series.items() if LAND_LAST in s and a not in small and a != "WLD"), reverse=True)
+    rank = [a for _, a in last]
+    print(f"  每公頃產值 {LAND_LAST}：{len(last)} 國，不比 {len(small)} 個 {small[:12]}；最高 {last[:8]}；"
+          f"台灣 {series.get('TWN', {}).get(LAND_LAST)}（第 {rank.index('TWN') + 1 if 'TWN' in rank else '-'}）；世界 {series.get('WLD', {}).get(LAND_LAST)}；"
+          f"最低 {last[-4:]}")
+
+
 def build() -> None:
     _top_crops()
-    _livestock(_land())
+    farmland = _land()
+    _livestock(farmland)
+    _value_per_ha(farmland)

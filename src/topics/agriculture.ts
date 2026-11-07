@@ -273,5 +273,19 @@ export const agriculture: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 2)} 單位／公頃`, en: `${fixed(v, 2)} LSU/ha` }),
       formatTick: (v) => String(v),
     },
+    {
+      id: 'value-per-ha',
+      label: { zh: '每公頃農地的農業產值', en: 'Farm output per hectare' },
+      description: {
+        zh: '農業總產值（2014–2016 年固定價的國際元）÷ 農地面積，看一塊地產出多少；跟「農業總產值」同一個分子，那個看規模、這個看密集程度。2024 年韓國 9,980、埃及 9,789、荷蘭 9,559，台灣 9,017 在 177 國裡第 4，以色列 8,780、比利時 6,694、日本 5,856、孟加拉 5,394；越南 4,519、印度 3,006、德國 2,946、中國 2,591、法國 1,855、巴西 1,139；世界 921、美國 894、澳洲 144、蒙古 20、納米比亞 14 最低，相差七百倍。農地不到 1 萬公頃的 18 個地方（新加坡、香港、巴林、馬爾他…）分母太小，不比；放牧地多的國家（澳洲、蒙古）每公頃自然低。',
+        en: 'Gross agricultural production value (constant 2014–2016 international dollars) divided by agricultural land: how much a hectare produces. It shares a numerator with “Gross agricultural production value”, which shows size while this shows intensity. In 2024: South Korea 9,980, Egypt 9,789, the Netherlands 9,559, and Taiwan 9,017, 4th of 177; Israel 8,780, Belgium 6,694, Japan 5,856, Bangladesh 5,394; Vietnam 4,519, India 3,006, Germany 2,946, China 2,591, France 1,855, Brazil 1,139; the world 921, the US 894, Australia 144, Mongolia 20 and Namibia 14, the lowest – a 700-fold gap. The 18 places with less than 10,000 ha of farmland (Singapore, Hong Kong, Bahrain, Malta…) are not compared because the denominator is too small; countries with much grazing land (Australia, Mongolia) are naturally low per hectare.',
+      },
+      unit: { zh: '國際元／公頃', en: 'Int$/ha' },
+      file: 'value-per-ha.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [100, 300, 1000, 2500, 5000, 8000] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 國際元／公頃`, en: `Int$${fixed(v, 0)}/ha` }),
+      formatTick: (v) => formatLargeTick(v),
+    },
   ],
 };
