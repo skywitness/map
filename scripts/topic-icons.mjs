@@ -83,6 +83,7 @@ const TOPIC_ICONS = {
   religion: 'book-heart',
   // 2026-11-07（第二十七批 555）
   funeral: 'flower-2',
+  independence: 'milestone',
   festivals: 'party-popper',
   holidays: 'calendar-days',
   dining: 'utensils-crossed',

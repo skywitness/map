@@ -36,7 +36,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing', 'night-lights'] },
       // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）；菜系走到哪裡、鈔票、原產地名稱、地下觀光、狩獵與釣魚
       // 2026-11-07 使用者指定搬到休閒（製作手冊第二十六批 534）
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'funeral', 'festivals', 'reads', 'happiness', 'diet'] },
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'funeral', 'festivals', 'independence', 'reads', 'happiness', 'diet'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
       // 2026-11-05 使用者要求每個小類各占一欄、教育放最右邊
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
@@ -230,6 +230,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   diving: () => import('./diving'),
   gambling: () => import('./gambling'),
   funeral: () => import('./funeral'),
+  independence: () => import('./independence'),
   'time-use': () => import('./time-use'),
   marriage: () => import('./marriage'),
   cities: () => import('./cities'),

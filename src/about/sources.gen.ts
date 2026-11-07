@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 182;
-export const INDICATOR_COUNT = 1408;
+export const TOPIC_COUNT = 183;
+export const INDICATOR_COUNT = 1410;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -634,6 +634,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"英文維基百科「List of monorail systems」（revid 1381856722）、「Maglev」（revid 1380628600）","en":"English Wikipedia, “List of monorail systems” (revision 1381856722) and “Maglev” (revision 1380628600)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_monorail_systems&oldid=1381856722","licenses":["CC BY-SA 4.0"],"topics":["metro"]},
   {"name":{"zh":"英文維基百科「List of most valuable brands」（轉引 Kantar BrandZ、Brand Finance）","en":"Wikipedia, “List of most valuable brands” (citing Kantar BrandZ and Brand Finance)"},"url":"https://en.wikipedia.org/wiki/List_of_most_valuable_brands?oldid=1378647641","licenses":["CC BY-SA 4.0"],"topics":["companies"]},
   {"name":{"zh":"英文維基百科「List of national anthems」（國歌的採用年份與長度，2026 年 10 月 27 日的版本）","en":"Wikipedia, “List of national anthems” (anthem adoption years and lengths, revision of 27 October 2026)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_national_anthems&oldid=1382197461","licenses":["CC BY-SA 4.0"],"topics":["profiles"]},
+  {"name":{"zh":"英文維基百科「List of national independence days」（revid 1383739965）","en":"English Wikipedia, “List of national independence days” (revision 1383739965)"},"url":"https://en.wikipedia.org/wiki/List_of_national_independence_days?oldid=1383739965","licenses":[{"zh":"CC BY-SA 4.0（引用事實；這個主題的資料檔也用 CC BY-SA 4.0）","en":"CC BY-SA 4.0 (facts cited; this topic’s data files are shared under CC BY-SA 4.0 too)"}],"topics":["independence"]},
   {"name":{"zh":"英文維基百科「List of oil refineries」（2026-10-18 的版本，煉油廠與能力）","en":"English Wikipedia, “List of oil refineries” (revision of 18 October 2026, refineries and capacities)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1380836230","licenses":[{"zh":"CC BY-SA 4.0（煉油能力與煉油廠的資料檔也是）","en":"CC BY-SA 4.0 (so are the refining data files)"}],"topics":["fossil-fuels"]},
   {"name":{"zh":"英文維基百科「List of oldest companies」（2026-10-15 的版本）","en":"English Wikipedia, “List of oldest companies” (revision of 15 October 2026)"},"url":"https://en.wikipedia.org/w/index.php?oldid=1380332977","licenses":[{"zh":"CC BY-SA 4.0（這個主題的資料檔同樣用 CC BY-SA 4.0 分享）","en":"CC BY-SA 4.0 (this topic’s data files are shared under the same licence)"}],"topics":["companies"]},
   {"name":{"zh":"英文維基百科「List of oldest universities in continuous operation」（revid 1380111933）","en":"English Wikipedia, “List of oldest universities in continuous operation” (revision 1380111933)"},"url":"https://en.wikipedia.org/w/index.php?title=List_of_oldest_universities_in_continuous_operation&oldid=1380111933","licenses":[{"zh":"CC BY-SA 4.0（引用事實）","en":"CC BY-SA 4.0 (facts cited)"}],"topics":["oldest-universities"]},
