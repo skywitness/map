@@ -156,11 +156,16 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '地理', en: 'Geography' },
     sections: [
       { label: { zh: '國家', en: 'Countries' }, topics: ['profiles', 'flags', 'language', 'travel', 'taipei-view'] },
-      { label: { zh: '地形與地質', en: 'Land & geology' }, topics: ['elevation', 'rivers', 'oceans', 'lithology', 'special-landforms', 'plates', 'earthquakes', 'reclamation', 'antarctica'] },
+      // 2026-11-07 製作手冊第二十七批 535：原本的「地形與地質」（9 個主題）拆成地形、地質與地震、水與冰三個小類，主題 id 都沒改。
+      // 「水與冰」不是使用者 2026-11-05 否決的「海洋」小類：主軸是河川與內陸水域，海洋與漁業仍留在地理類，南極是因為冰才放這裡
+      { label: { zh: '地形', en: 'Landforms' }, topics: ['elevation', 'special-landforms', 'reclamation'] },
+      { label: { zh: '地質與地震', en: 'Geology & earthquakes' }, topics: ['lithology', 'plates', 'earthquakes'] },
+      { label: { zh: '水與冰', en: 'Water & ice' }, topics: ['rivers', 'oceans', 'antarctica'] },
       { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
     ],
-    // 左：國家；中：地形與地質；右：天空（2026-11-03 使用者要求從左欄搬到右欄；原本右欄的景點搬到「休閒」）
-    columns: [1, 1, 1],
+    // 左：國家；中：地形、地質與地震；右：水與冰、天空（天空留在最右欄：2026-11-03 使用者要求從左欄搬到右欄；
+    // 原本右欄的景點搬到「休閒」）
+    columns: [1, 2, 2],
   },
   {
     // 2026-11-03 使用者要求：地理的「景點」與社會的「獎項與運動」獨立成一類（景點原本的夜間燈光搬到社會的人口與家庭）
