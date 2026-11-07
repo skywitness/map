@@ -205,6 +205,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `broadband-oecd` 是網路速度主題的 OECD 寬頻資料庫（光纖、5G、數據量、電信投資與營收、1 Gbps 方案）：SDMX 資料流 DF_BB_TEL_DATABASE 用 key `.A.....` 只抓年值（約 18 MB），人口用 WPP 2024。幾秒。
 
+`ict-prices` 是數位主題的 ITU 資費籃子：世界銀行 Data360 的 ITU_DH CSV（5 個籃子，每個 2–4 MB），不到一秒（有快取時）。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

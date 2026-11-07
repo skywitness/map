@@ -67,6 +67,19 @@ const CASH_USE: DimensionDef = {
   defaultOption: 'utilities',
 };
 
+/** ITU 的資費籃子（2026-11-07，第二十五批 505）：低用量行動電話只到 2024 年 */
+const PRICE_BASKETS = {
+  label: { zh: '方案', en: 'Basket' },
+  options: [
+    { id: 'mobile-data', label: { zh: '只用數據的行動寬頻', en: 'Data-only mobile broadband' } },
+    { id: 'fixed', label: { zh: '固網寬頻 5 GB', en: 'Fixed broadband 5 GB' } },
+    { id: 'voice-low', label: { zh: '語音＋數據（低用量）', en: 'Voice and data (low usage)' } },
+    { id: 'voice-high', label: { zh: '語音＋數據（高用量）', en: 'Voice and data (high usage)' } },
+    { id: 'mobile-low', label: { zh: '行動電話（低用量，到 2024 年）', en: 'Mobile cellular (low usage, to 2024)' } },
+  ],
+  defaultOption: 'mobile-data',
+};
+
 export const digital: TopicDefinition = {
   id: 'digital',
   title: { zh: '各國網路與通訊普及', en: 'Internet and telecoms by country' },
@@ -74,6 +87,11 @@ export const digital: TopicDefinition = {
   defaultIndicator: 'internet-users',
   defaultYear: 2024,
   sources: [
+    {
+      name: { zh: 'ITU：ICT Price Baskets（世界銀行 Data360 轉載的 ITU DataHub）', en: 'ITU: ICT Price Baskets (ITU DataHub via World Bank Data360)' },
+      url: 'https://data360.worldbank.org/en/dataset/ITU_DH',
+      license: { zh: 'CC BY-NC-SA 3.0 IGO（只准非商業使用）', en: 'CC BY-NC-SA 3.0 IGO (non-commercial use only)' },
+    },
     {
       name: { zh: 'UNESCO UIS：ICT skills（ITU 家戶調查，上網活動與 SDG 4.4.1 數位技能）', en: 'UNESCO UIS: ICT skills (ITU household surveys; online activities and SDG 4.4.1 digital skills)' },
       url: 'https://databrowser.uis.unesco.org/',
@@ -315,6 +333,40 @@ export const digital: TopicDefinition = {
       [10, 20, 30, 40, 50],
       { file: 'cash-reason/habit.json' },
     ),
+    // 2026-11-07（製作手冊第二十五批 505）ITU 的資費籃子（Data360 轉載），pipeline/topics/ict_prices.py
+    {
+      id: 'ict-price',
+      label: { zh: '上網要花多少錢（每月美元）', en: 'Monthly price of mobile and fixed internet (USD)' },
+      description: {
+        zh: 'ITU 的資費籃子：在這一國買到符合規格的最便宜方案，每月要付多少美元（照各國當年匯率換算；ITU 經世界銀行 Data360 轉載）。2025 年只用數據的行動寬頻：伊朗 0.52、印尼 0.92、奈及利亞 0.99、印度 2.02、中國 2.75 美元最便宜，開曼群島 83.88、百慕達 80.00、福克蘭 62.96、諾魯 62.10、土庫曼 51.43 最貴；台灣 16.20、南韓 11.36、日本 18.54、美國 43.52。固網寬頻 5 GB：台灣 20.10、南韓 23.85、日本 28.85、美國 54.44、中國 4.12、印度 5.43，最貴英屬維京群島 121.00、開曼 108.00、卡達 100.27。小島貴是真的（靠衛星或海纜回傳）；價格 0（沒有商業服務）不畫。Data360 的標籤沒寫只用數據的籃子是幾 GB。',
+        en: 'ITU price baskets: the monthly price in US dollars of the cheapest plan meeting each basket’s specification (converted at each year’s exchange rate; ITU data via the World Bank’s Data360). Data-only mobile broadband in 2025: cheapest in Iran 0.52, Indonesia 0.92, Nigeria 0.99, India 2.02 and China 2.75; most expensive in the Cayman Islands 83.88, Bermuda 80.00, the Falklands 62.96, Nauru 62.10 and Turkmenistan 51.43; Taiwan 16.20, South Korea 11.36, Japan 18.54, the US 43.52. Fixed broadband 5 GB: Taiwan 20.10, South Korea 23.85, Japan 28.85, the US 54.44, China 4.12, India 5.43; most expensive in the British Virgin Islands 121.00, the Caymans 108.00 and Qatar 100.27. Small islands really are expensive (satellite or submarine-cable backhaul); prices of 0 (no commercial service) are not shown. Data360’s label does not state how many GB the data-only basket includes.',
+      },
+      unit: { zh: '美元／月', en: 'USD/month' },
+      file: 'prices/usd/{item}.json',
+      dimension: PRICE_BASKETS,
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [2, 5, 10, 15, 25, 40] },
+        itemScales: { fixed: { type: 'sequential', thresholds: [5, 10, 20, 30, 50, 80] } },
+      },
+      format: (v) => tr({ zh: `${fixed(v, 2)} 美元`, en: `$${fixed(v, 2)}` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'ict-price-gni',
+      label: { zh: '上網的月費占人均所得', en: 'Monthly internet price as a share of income' },
+      description: {
+        zh: '同一個資費籃子的月費占每人每月國民所得毛額（GNI）的比例，看的是負不負擔得起；聯合國寬頻委員會 2025 年的目標是中低所得國家的入門寬頻不超過 2%。2025 年只用數據的行動寬頻：列支敦斯登 0.07%、香港 0.09% 最低，中非 53.67%、古巴 26.64%、蒲隆地 25.18% 最高；南韓 0.45%、日本 0.65%、美國 0.61%、中國 0.25%、印度 0.93%。固網寬頻 5 GB：賴比瑞亞 146.84%、中非 76.58%、尼日 50.98%。台灣沒有這個比例（ITU 原檔的台灣 GNI 是空的），只看得到美元價格。',
+        en: 'The same baskets’ monthly price as a share of monthly gross national income (GNI) per person, i.e. how affordable they are; the UN Broadband Commission’s 2025 target is entry-level broadband below 2% in low- and middle-income countries. Data-only mobile broadband in 2025: lowest in Liechtenstein 0.07% and Hong Kong 0.09%, highest in the Central African Republic 53.67%, Cuba 26.64% and Burundi 25.18%; South Korea 0.45%, Japan 0.65%, the US 0.61%, China 0.25%, India 0.93%. Fixed broadband 5 GB: Liberia 146.84%, the Central African Republic 76.58%, Niger 50.98%. Taiwan has no share (its GNI is blank in the ITU data), only the dollar price.',
+      },
+      unit: '%',
+      file: 'prices/gni/{item}.json',
+      dimension: PRICE_BASKETS,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 5, 10, 20] } },
+      format: (v) => fixed(v, 2) + '%',
+      formatTick: (v) => v + '%',
+      lowerIsBetter: true,
+    },
     {
       id: 'online-activity',
       label: { zh: '上網都在做什麼', en: 'What people do online' },
