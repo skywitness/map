@@ -94,12 +94,14 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       // 2026-11-07（製作手冊第二十五批 490）「污染」改名「污染與廢棄物」
       { label: { zh: '污染與廢棄物', en: 'Pollution & waste' }, topics: ['air-quality', 'ozone-hole', 'plastic', 'nutrients', 'noise', 'industrial-releases', 'contaminated-sites', 'materials'] },
-      { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires', 'megafauna'] },
+      // 2026-11-07（製作手冊第二十五批 491）「土地與水」拆成「土地」與「水」，兩個小類疊在同一欄
+      { label: { zh: '土地', en: 'Land' }, topics: ['land-use', 'forest', 'wildfires', 'megafauna'] },
+      { label: { zh: '水', en: 'Water' }, topics: ['water-forest'] },
       // 2026-11-07（製作手冊第二十五批 480）新開
       { label: { zh: '碳與氣候政策', en: 'Climate policy' }, topics: ['climate-action', 'climate-finance', 'cbam'] },
     ],
-    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染；土地與水；碳與氣候政策
-    columns: [1, 1, 1, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染與廢棄物；土地＋水（2026-11-07 拆開後疊在同一欄）；碳與氣候政策
+    columns: [1, 1, 2, 1],
   },
   {
     id: 'tech',
@@ -249,6 +251,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'industrial-releases': () => import('./industrial-releases'),
   'contaminated-sites': () => import('./contaminated-sites'),
   materials: () => import('./materials'),
+  'land-use': () => import('./land-use'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),

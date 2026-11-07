@@ -130,6 +130,7 @@ const TOPIC_ICONS = {
   'industrial-releases': 'cloud-fog',
   'contaminated-sites': 'shovel',
   materials: 'repeat-2',
+  'land-use': 'tractor',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
