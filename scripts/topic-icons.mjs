@@ -128,6 +128,7 @@ const TOPIC_ICONS = {
   nutrients: 'leafy-green',
   noise: 'volume-2',
   'industrial-releases': 'cloud-fog',
+  'contaminated-sites': 'shovel',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

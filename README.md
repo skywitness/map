@@ -179,6 +179,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `industrial-releases` 是歐洲的工業污染排放設施：EEA datashare 的 WebDAV 抓 E-PRTR ver. 16.0 的「User friendly .csv files.zip」（147,626,010 bytes，使用者名稱是公開分享代碼、密碼空白），快取在 `.cache/eea-industry/csv.zip`；只讀 F1_1（各國）與 F1_4（設施）兩個 CSV。第一次下載幾分鐘，之後幾秒鐘。
 
+`contaminated-sites` 是台灣的土壤與地下水污染場址：環境部 EMS_S_07 用開放資料平台網頁預覽的 frontstage API（不用金鑰），依公告月份分成 272 個資源，一個一個讀、間隔 1 秒，快取在 `.cache/moenv/EMS_S_07/`；第一次約 10 分鐘，之後只重抓最近的那一個資源。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

@@ -82,6 +82,7 @@ export const RELATED: Record<string, string[]> = {
   nutrients: ['agriculture', 'water-forest', 'air-quality'],
   noise: ['air-quality', 'road-safety', 'aviation'],
   'industrial-releases': ['air-quality', 'power-plants', 'industry'],
+  'contaminated-sites': ['nutrients', 'industrial-releases', 'water-forest'],
   industry: ['minerals', 'semiconductors'],
   agriculture: ['diet', 'industry', 'water-forest'],
   minerals: ['industry', 'fossil-fuels', 'ev'],
