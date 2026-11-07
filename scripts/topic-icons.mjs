@@ -29,6 +29,8 @@ const GROUP_ICONS = {
   // 能源 2026-10-30（第十一批 187）併進科技，環境改用原本能源的葉子
   environment: 'leaf',
   tech: 'monitor-smartphone',
+  // 2026-11-07（第二十五批 439）能源又從科技分出來
+  energy: 'plug',
   transport: 'bus',
   geo: 'mountain-snow',
   // 2026-11-03（景點、獎項與運動獨立成一類）
@@ -105,6 +107,7 @@ const TOPIC_ICONS = {
   employment: 'briefcase',
   wealth: 'piggy-bank',
   fiscal: 'receipt',
+  taxes: 'percent',
   prices: 'tag',
   reserves: 'vault',
   'stock-market': 'chart-candlestick',

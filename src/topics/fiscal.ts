@@ -2,7 +2,6 @@ import { fixed, formatSignedPercent } from '../lib/format';
 import type { DimensionDef, TopicDefinition } from './types';
 import { hostOnly, topicPart } from './merge';
 import { withParts } from './parts';
-import { taxes } from './taxes';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
@@ -306,7 +305,9 @@ const fiscalOwn: TopicDefinition = {
  * - 物價與消費（prices.ts）：通膨率、物價水準、吃／休閒與文化／餐廳與旅館占消費；
  * - 這個主題改名「政府財政與稅」：政府債務、財政收支、稅收、支出與稅收的組成、1800 年起的政府債務，「稅率」主題也併進來
  *   （資料照舊在 taxes/，topics/merge.ts）。
- * 舊網址 t/taxes/、t/fiscal/?ind=inflation 等由 redirects.ts 轉過去；資料來源與說明依內容分兩邊
+ * 舊網址 t/fiscal/?ind=inflation 等由 redirects.ts 轉過去；資料來源與說明依內容分兩邊。
+ * 2026-11-07（製作手冊第二十五批 439，使用者 2026-11-05 核准經濟的「稅」小類）：「稅率」再拆回自己的主題 taxes（id 照舊，
+ * t/taxes/ 不再轉址；t/fiscal/?ind=cit 等由 redirects.ts 的 INDICATOR_MOVES 轉過去），這個主題改名「政府財政」
  */
 const PRICE_INDICATORS = ['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'];
 /** 資料來源的順序：IMF WEO、OECD 稅收、IMF WoRLD、WDI、ICP 2021、財政部、IMF COFOG、IMF 歷史公共債務、主計總處 */
@@ -315,8 +316,8 @@ const sourcesAt = (idx: number[]) => fiscalOwn.sources.filter((_, i) => idx.incl
 export const fiscal: TopicDefinition = withParts(
   hostOnly({
     ...fiscalOwn,
-    title: { zh: '政府財政與稅', en: 'Public finance and taxes' },
-    shortTitle: { zh: '財政與稅', en: 'Public finance' },
+    title: { zh: '政府財政', en: 'Public finance' },
+    shortTitle: { zh: '政府財政', en: 'Public finance' },
     defaultIndicator: 'government-debt',
     sources: sourcesAt([0, 1, 2, 3, 5, 6, 7, 8]),
     note: {
@@ -331,7 +332,6 @@ export const fiscal: TopicDefinition = withParts(
     },
     indicators: fiscalOwn.indicators.filter((i) => !PRICE_INDICATORS.includes(i.id)),
   }),
-  topicPart(taxes),
 );
 
 /** 物價與消費（prices.ts 的 withParts 接上；不匯出成主題，registry 的 topicOf 才不會拿錯） */

@@ -57,14 +57,21 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   {
     id: 'economy',
     label: { zh: '經濟', en: 'Economy' },
+    // 2026-11-07（製作手冊第二十五批 439，使用者 2026-11-05 核准）：新開農業與糧食、稅（「稅率」拆回自己的主題）、金融服務、
+    // 消費與零售四個小類，「財政與金融」剩下財政；「不動產」小類等第一個主題（470–472）做好時再加（空的小類在選單上只有標題）
     sections: [
-      { label: { zh: '產業', en: 'Industries' }, topics: ['industry', 'agriculture', 'minerals'] },
+      { label: { zh: '產業', en: 'Industries' }, topics: ['industry', 'minerals'] },
+      { label: { zh: '農業與糧食', en: 'Agriculture & food' }, topics: ['agriculture'] },
       { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth'] },
-      { label: { zh: '財政與金融', en: 'Public finance & markets' }, topics: ['prices', 'fiscal', 'reserves', 'stock-market'] },
-      { label: { zh: '企業', en: 'Companies' }, topics: ['chain-stores', 'companies'] },
+      { label: { zh: '財政', en: 'Public finance' }, topics: ['fiscal', 'reserves'] },
+      { label: { zh: '稅', en: 'Taxes' }, topics: ['taxes'] },
+      { label: { zh: '金融服務', en: 'Financial services' }, topics: ['stock-market'] },
+      { label: { zh: '消費與零售', en: 'Consumption & retail' }, topics: ['prices', 'chain-stores'] },
+      { label: { zh: '企業', en: 'Companies' }, topics: ['companies'] },
     ],
-    // 每個小類各占一欄（2026-11-05 使用者要求，企業放最右邊）：產業；所得與財富；財政與金融；企業
-    columns: [1, 1, 1, 1],
+    // 四欄（2026-11-05 使用者要求企業放最右邊；第二十五批小類變多，一欄放幾個小類）：
+    // 產業、農業與糧食；所得與財富；財政、稅、金融服務；消費與零售、企業
+    columns: [2, 1, 3, 2],
   },
   {
     id: 'global',
@@ -95,12 +102,26 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '科技', en: 'Tech' },
     // 2026-10-30（第十一批 187）「能源」分類併進科技的右欄；第十批的晶圓廠地圖、Starlink、研發投入最多的公司、大型科學設施、
     // 電價與油價、能源政策、核廢料做好時照手冊的表放進對應的欄
+    // 2026-11-07（第二十五批 439）：能源升成自己的大類；「研發與太空」拆出太空（太空、Starlink），原小類改名「研發與創新」
     sections: [
-      { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'digital', 'internet-speed', 'starlink', 'developers', 'submarine-cables'] },
-      { label: { zh: '研發與太空', en: 'Research & space' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'space'] },
-      { label: { zh: '能源', en: 'Energy' }, topics: ['electricity', 'power-plants', 'renewables', 'fossil-fuels', 'energy-prices', 'nuclear'] },
+      { label: { zh: '數位', en: 'Digital' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'digital', 'internet-speed', 'developers', 'submarine-cables'] },
+      { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities'] },
+      { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
     ],
-    // 左：數位；中：研發與太空；右：能源
+    // 左：數位；中：研發與創新；右：太空
+    columns: [1, 1, 1],
+  },
+  {
+    // 2026-11-07（製作手冊第二十五批 439，使用者 2026-11-05 核准）：能源從科技分出來成為大類。手冊的五個小類裡核能只有一個主題，
+    // 先跟電力併在一起（補到兩個再分開）；「能源的使用與政策」等第一個主題（523–528）做好時再加
+    id: 'energy',
+    label: { zh: '能源', en: 'Energy' },
+    sections: [
+      { label: { zh: '電力', en: 'Electricity' }, topics: ['electricity', 'power-plants', 'energy-prices', 'nuclear'] },
+      { label: { zh: '化石燃料', en: 'Fossil fuels' }, topics: ['fossil-fuels'] },
+      { label: { zh: '再生能源', en: 'Renewables' }, topics: ['renewables'] },
+    ],
+    // 左：電力；中：化石燃料；右：再生能源
     columns: [1, 1, 1],
   },
   {
@@ -202,6 +223,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   employment: () => import('./employment'),
   wealth: () => import('./wealth'),
   fiscal: () => import('./fiscal'),
+  taxes: () => import('./taxes'),
   reserves: () => import('./reserves'),
   'stock-market': () => import('./stock-market'),
   industry: () => import('./industry'),

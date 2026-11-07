@@ -90,7 +90,7 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
   'hospital-quality': { topic: 'health-care', indicator: 'mortality' },
   plasma: { topic: 'medicines', indicator: 'fractionation' },
   'covid-policy': { topic: 'covid', indicator: 'stringency' }, // 整2 COVID-19
-  taxes: { topic: 'fiscal', indicator: 'cit' }, // 整3 政府財政與稅
+  // 整3 的「稅率」併進政府財政（taxes → fiscal）2026-11-07 第二十五批 439 又拆回來，t/taxes/ 是主題本身，不轉址
 };
 
 /**
@@ -159,7 +159,11 @@ export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
     ]),
   ),
   // 整3 物價與財政的物價、消費指標到物價與消費
-  fiscal: Object.fromEntries(['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'].map((id) => [id, { topic: 'prices' }])),
+  // 第二十五批 439（2026-11-07）稅率拆回 taxes：t/fiscal/?ind=cit 等（11-04 到 11-07 分享出去的網址）轉到稅率
+  fiscal: Object.fromEntries([
+    ...['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'].map((id) => [id, { topic: 'prices' }]),
+    ...['cit', 'pit-top', 'pit-threshold', 'vat', 'tax-wedge'].map((id) => [id, { topic: 'taxes' }]),
+  ]),
   // 整4 國際觀光的旅遊習慣指標到旅遊習慣
   tourism: Object.fromEntries(
     [

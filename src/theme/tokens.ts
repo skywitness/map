@@ -149,6 +149,10 @@ const CSS_VARS: Partial<Record<keyof Tokens, string>> = {
  * 2026-11-03 加休閒（景點、獎項與運動），排在最後、只跟地理相鄰：橘紅，淺色 #c8461a（跟地理一般視覺 26.4、紅綠色盲 12.1，
  * 白色圖示的底對比 4.8），深色 #e0582a（跟地理 28.2、15.0）。跟不相鄰的社會玫瑰紅、經濟琥珀一般視覺約 10（淺色）、9.5–11.4（深色），
  * 跟環境綠↔地理青綠同一級；洋紅跟地理在綠色盲下只有 6.7，不用。
+ * 2026-11-07（第二十五批 439）能源從科技分出來，排在科技與交通之間：在 OKLCH 搜尋跟兩旁（科技紫、交通灰藍）分得開、
+ * 跟其他 8 類盡量遠的顏色，淺色 #803103 焦褐（相鄰一般視覺 ≥ 20.4、紅綠色盲 ≥ 18.7；跟所有分類 ≥ 15.1、≥ 9.8；
+ * 白色圖示的底對比 ≥ 4.5），深色 #954d05（相鄰 ≥ 27.8、≥ 26.2；跟所有分類 ≥ 15.3、≥ 9.4）。深色模式比較亮的褐色
+ * （L 0.58 以上）跟經濟琥珀、休閒橘紅在色盲下只有 5 左右，不用。
  */
 export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
   // 環境、交通 2026-10-30 加（第七批 124）；同一天第十一批 187 能源併進科技，環境改用原本能源的綠（不再用橄欖綠）
@@ -159,6 +163,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
     global: '#006fd8',
     environment: '#008a22',
     tech: '#6130b1',
+    energy: '#803103',
     transport: '#4b5a92',
     geo: '#088f77',
     leisure: '#c8461a',
@@ -170,6 +175,7 @@ export const CATEGORY_COLORS: Record<ThemeMode, Record<string, string>> = {
     global: '#3e95fe',
     environment: '#2aaf3d',
     tech: '#8e57d8',
+    energy: '#954d05',
     transport: '#8796d6',
     geo: '#04a19b',
     leisure: '#e0582a',
