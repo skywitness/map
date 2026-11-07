@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 203;
-export const INDICATOR_COUNT = 1541;
+export const INDICATOR_COUNT = 1543;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","digital","ip-addresses","developers","innovation","publications","research-orgs","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","tourism","nobel","sports","esports","dining","culture"]},
@@ -208,6 +208,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Global Carbon Project（Our World in Data, CO₂ and Greenhouse Gas Emissions）：二氧化碳","en":"Global Carbon Project (Our World in Data, CO₂ and Greenhouse Gas Emissions): CO₂"},"url":"https://github.com/owid/co2-data","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"Global Dam Watch database v1.0（Lehner 等人 2024，figshare）","en":"Global Dam Watch database v1.0 (Lehner et al. 2024, figshare)"},"url":"https://doi.org/10.6084/m9.figshare.25988293.v1","licenses":["CC BY 4.0"],"topics":["rivers"]},
   {"name":"Global Energy Monitor, Global Coal Mine Tracker, August 2026 release","url":"https://globalenergymonitor.org/projects/global-coal-mine-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
+  {"name":{"zh":"Global Energy Monitor：Global Bioenergy Power Tracker（2026 年 9 月版）","en":"Global Energy Monitor: Global Bioenergy Power Tracker (September 2026 release)"},"url":"https://globalenergymonitor.org/projects/global-bioenergy-power-tracker/","licenses":["CC BY 4.0"],"topics":["power-plants"]},
   {"name":{"zh":"Global Energy Monitor：Global Gas Infrastructure Tracker、Global Oil Infrastructure Tracker、Global Oil and Gas Extraction Tracker、Global Coal Mine Tracker、Global Integrated Power Tracker","en":"Global Energy Monitor: Global Gas Infrastructure Tracker, Global Oil Infrastructure Tracker, Global Oil and Gas Extraction Tracker, Global Coal Mine Tracker, Global Integrated Power Tracker"},"url":"https://globalenergymonitor.org/","licenses":["CC BY 4.0"],"topics":["fossil-infrastructure"]},
   {"name":{"zh":"Global Energy Monitor：Global Iron and Steel Tracker（2026 年 9 月版）、Global Cement and Concrete Tracker（2026 年 7 月版）","en":"Global Energy Monitor: Global Iron and Steel Tracker (September 2026), Global Cement and Concrete Tracker (July 2026)"},"url":"https://globalenergymonitor.org/projects/global-iron-steel-tracker/","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":"Global Gas Infrastructure Tracker, Global Energy Monitor, November 2025 (pipelines) and October 2026 (LNG terminals)","url":"https://globalenergymonitor.org/projects/global-gas-infrastructure-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},

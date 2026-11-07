@@ -12,6 +12,7 @@ import type {
   TopicDefinition,
 } from './types';
 import { batteryStoragePart } from './battery-storage';
+import { bioHydroPart } from './bio-hydro';
 import { withParts } from './parts';
 
 /**
@@ -779,4 +780,4 @@ export const powerPlants: TopicDefinition = withParts({
     },
   ],
   indicators,
-}, batteryStoragePart);
+}, batteryStoragePart, bioHydroPart);

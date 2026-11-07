@@ -341,6 +341,7 @@ STEPS = {
     "power-reliability": "topics.power_reliability",
     "district-heating": "topics.district_heating",
     "battery-storage": "topics.battery_storage",
+    "bio-hydro": "topics.bio_hydro",
     "fossil-infrastructure": "topics.fossil_infrastructure",
     "coal-types": "topics.coal_types",
     "fuel-uses": "topics.fuel_uses",
