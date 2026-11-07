@@ -3,7 +3,7 @@ import { fetchJson } from '../lib/data';
 import { fixed } from '../lib/format';
 import { decodePoints } from '../map/overlayData';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { IndicatorDef, PointRecord, PointsData, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, PointRecord, PointsData, TopicDefinition } from './types';
 import { withParts, type TopicPart } from './parts';
 
 /**
@@ -70,9 +70,41 @@ const LANGS: Record<string, { zh: string; en: string }> = {
   bn: { zh: '孟加拉文', en: 'Bengali' },
 };
 
+/** 語言代碼 → 名稱（沒有的照代碼） */
+export const langName = (lang: string) => (LANGS[lang] ? tr(LANGS[lang]) : lang);
+
+/** 姊妹計畫（2026-11-07，製作手冊 558 的編輯者側欄） */
+const SISTERS: Record<string, { zh: string; en: string }> = {
+  wiktionary: { zh: '維基詞典', en: 'Wiktionary' },
+  wikisource: { zh: '維基文庫', en: 'Wikisource' },
+  wikibooks: { zh: '維基教科書', en: 'Wikibooks' },
+  wikiversity: { zh: '維基學院', en: 'Wikiversity' },
+  wikivoyage: { zh: '維基導遊', en: 'Wikivoyage' },
+  wikiquote: { zh: '維基語錄', en: 'Wikiquote' },
+  wikinews: { zh: '維基新聞', en: 'Wikinews' },
+};
+/** 跨語言的計畫（geoeditors 的 project 寫成 en.wikidata、en.commons，不是英文） */
+const CROSS: Record<string, { zh: string; en: string }> = {
+  wikidata: { zh: 'Wikidata', en: 'Wikidata' },
+  commons: { zh: '維基共享資源', en: 'Wikimedia Commons' },
+  meta: { zh: '元維基', en: 'Meta-Wiki' },
+  mediawiki: { zh: 'MediaWiki', en: 'MediaWiki' },
+  species: { zh: '維基物種', en: 'Wikispecies' },
+  incubator: { zh: '維基孵育場', en: 'Wikimedia Incubator' },
+};
+
+/** geoeditors 的計畫名稱（zh.wikipedia、en.commons、ja.wiktionary）→ 顯示的名稱 */
+export function projectName(project: string): string {
+  const [lang, kind] = project.split('.');
+  if (kind === 'wikipedia') return wikiName(lang);
+  if (CROSS[kind]) return tr(CROSS[kind]);
+  if (SISTERS[kind]) return tr({ zh: `${langName(lang)}${SISTERS[kind].zh}`, en: `${langName(lang)} ${SISTERS[kind].en}` });
+  return project;
+}
+
 export function wikiName(lang: string | number | null): string {
   if (typeof lang !== 'string') return '';
-  const name = LANGS[lang] ? tr(LANGS[lang]) : lang;
+  const name = langName(lang);
   return tr({ zh: `${name}維基百科`, en: `${name} Wikipedia` });
 }
 
@@ -134,6 +166,30 @@ const NOTE_DP = {
   en: 'View counts include differential-privacy noise, and pages with fewer than about 90 views a day are not published',
 };
 
+/**
+ * 讀最多、編最多的語言版本（2026-11-07，製作手冊第二十七批 558；pipeline/topics/reads_languages.py 的 LANG_CLASSES）：
+ * 7 種常見的語言加其他（日文、中文、韓文等本國語言的大型維基百科都在「其他」，滑過看名稱）
+ */
+const LANG_CLASSES: CategoryDef[] = [
+  { value: 1, label: { zh: '英文', en: 'English' } },
+  { value: 2, label: { zh: '法文', en: 'French' } },
+  { value: 3, label: { zh: '西班牙文', en: 'Spanish' } },
+  { value: 4, label: { zh: '俄文', en: 'Russian' } },
+  { value: 5, label: { zh: '阿拉伯文', en: 'Arabic' } },
+  { value: 6, label: { zh: '德文', en: 'German' } },
+  { value: 7, label: { zh: '葡萄牙文', en: 'Portuguese' } },
+  { value: 8, label: { zh: '其他語言', en: 'Other languages' }, color: MAP_TOKENS.categoricalOther },
+];
+const langClass = (v: number) => tr(LANG_CLASSES.find((c) => c.value === v)?.label ?? '');
+const NOTE_PROTECTED = {
+  zh: 'Wikimedia 為了保護讀者與編輯者，中國、俄羅斯、伊朗、沙烏地阿拉伯、越南、緬甸、北韓、古巴等國的資料不公布',
+  en: 'To protect readers and editors, Wikimedia does not publish data for China, Russia, Iran, Saudi Arabia, Vietnam, Myanmar, North Korea, Cuba and some other countries',
+};
+const NOTE_GEO = {
+  zh: '編輯者是 Wikimedia 每月公布的各國編輯者數（geoeditors，2023 年 7 月起；更早的檔只有以十為一級的區間，接不起來），國家看 IP 位址，用 VPN 會歸錯國；數字加了差分隱私的雜訊，太小的格子不公布',
+  en: 'Editors are Wikimedia’s monthly counts by country (geoeditors, from July 2023; earlier files give only ranges in steps of ten and cannot be joined), located by IP address, so VPN users may be placed in the wrong country; counts include differential-privacy noise and small cells are suppressed',
+};
+
 const indicators: IndicatorDef[] = [
   {
     id: 'top',
@@ -167,6 +223,64 @@ const indicators: IndicatorDef[] = [
     format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
     formatTick: (v) => fixed(v, 0),
     timeAxis: MONTH_AXIS,
+  },
+  // 2026-11-07（製作手冊第二十七批 558，候選 1260、1258、1259）：讀與寫的語言、編輯者（pipeline/topics/reads_languages.py）
+  {
+    id: 'read-language',
+    label: { zh: '讀最多的維基百科語言版本', en: 'Most-read Wikipedia language edition' },
+    description: {
+      zh: `那個月公布的瀏覽次數裡，哪一種語言的維基百科最多（跟「讀英文維基百科的比例」同一份數字）；滑過看前三名的比例，點國家看前五名。2026 年 9 月 231 國有值：英文 137 國、法文 26、西班牙文 19、俄文 6、阿拉伯文 5、德文 4、葡萄牙文 4，其他 30 國讀自己語言的維基百科（日文、中文、韓文、波蘭文等）。台灣中文 99%、英文 1%；日本日文 99%；南韓韓文 89%、英文 11%；烏克蘭烏克蘭文 51%、俄文 45%；新加坡英文 93%、中文 6%。${NOTE_DP.zh}，小語言被拿掉的比較多；${NOTE_PROTECTED.zh}。`,
+      en: `Which language edition of Wikipedia got the most of the month's published views (the same figures as “Reading English Wikipedia”); hover for the top three shares and click a country for the top five. In September 2026, 231 countries have a value: English leads in 137, French in 26, Spanish in 19, Russian in 6, Arabic in 5, German in 4 and Portuguese in 4, while 30 read mainly in their own language (Japanese, Chinese, Korean, Polish and so on). Taiwan reads Chinese 99% and English 1%; Japan Japanese 99%; South Korea Korean 89% and English 11%; Ukraine Ukrainian 51% and Russian 45%; Singapore English 93% and Chinese 6%. ${NOTE_DP.en}, and small languages lose more; ${NOTE_PROTECTED.en}.`,
+    },
+    unit: '',
+    file: 'read-language.json',
+    layer: { kind: 'categorical', categories: LANG_CLASSES },
+    format: langClass,
+    timeAxis: MONTH_AXIS,
+  },
+  {
+    id: 'editors',
+    label: { zh: '每百萬人幾位維基百科編輯者', en: 'Wikipedia editors per million people' },
+    description: {
+      zh: `那個月在任何語言的維基百科編輯 5 次以上的人，每百萬人（各語言版本的人數相加，同一個人編兩種語言會算兩次；人口是聯合國 WPP 2024，人口不到 100 萬的不畫）。2026 年 10 月 113 國有值：愛沙尼亞 184、以色列 155、芬蘭 140、瑞典 103、瑞士 100 最多，法國 93、英國 85、德國 83、台灣 72、美國 65、日本 52、南韓 29、印度 2.3。台灣編中文維基的有 6,129 人（含 1–4 次），英文維基 724 人、Wikidata 414 人、日文維基 305 人。${NOTE_GEO.zh}；${NOTE_PROTECTED.zh}。`,
+      en: `People who made 5 or more edits that month to any language edition of Wikipedia, per million people (counts for each edition are added, so someone editing two languages counts twice; population is UN WPP 2024, and countries under 1 million are not shown). In October 2026, 113 countries have a value: Estonia (184), Israel (155), Finland (140), Sweden (103) and Switzerland (100) have the most, followed by France 93, the UK 85, Germany 83, Taiwan 72, the US 65, Japan 52, South Korea 29 and India 2.3. In Taiwan 6,129 people edited Chinese Wikipedia (including those with 1–4 edits), 724 English Wikipedia, 414 Wikidata and 305 Japanese Wikipedia. ${NOTE_GEO.en}; ${NOTE_PROTECTED.en}.`,
+    },
+    unit: { zh: '人／百萬人', en: 'per million' },
+    file: 'editors.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 25, 50, 75, 100] } },
+    format: (v) => tr({ zh: `每百萬人 ${fixed(v, v < 10 ? 1 : 0)} 人`, en: `${fixed(v, v < 10 ? 1 : 0)} per million` }),
+    formatTick: (v) => fixed(v, 0),
+    timeAxis: MONTH_AXIS,
+    defaultYear: 'latest',
+  },
+  {
+    id: 'editors-english',
+    label: { zh: '編英文維基百科的比例', en: 'Editing English Wikipedia' },
+    description: {
+      zh: `那個月這一國的維基百科編輯者（含只編 1–4 次的）有幾 % 編的是英文維基百科（各語言版本的人數相加；Wikidata、維基共享資源等跨語言的計畫不算），跟「讀英文維基百科的比例」對照：讀與寫不一定一樣。各語言版本合計不到 50 人的國家不畫。2026 年 10 月 128 國有值：美國 94%、英國 93%、印度 83%、新加坡 74%；南韓 19%、德國 17%、法國 12%、烏克蘭 11%、台灣 9.8%、日本 6.7%。${NOTE_GEO.zh}；${NOTE_PROTECTED.zh}。`,
+      en: `Share of the country's Wikipedia editors that month (including those with only 1–4 edits) who edited English Wikipedia (counts for each edition added up; cross-language projects such as Wikidata and Commons are not counted), to compare with “Reading English Wikipedia”: reading and writing need not match. Countries with fewer than 50 editors in all are not shown. In October 2026, 128 countries have a value: the US 94%, the UK 93%, India 83% and Singapore 74%; South Korea 19%, Germany 17%, France 12%, Ukraine 11%, Taiwan 9.8% and Japan 6.7%. ${NOTE_GEO.en}; ${NOTE_PROTECTED.en}.`,
+    },
+    unit: '%',
+    file: 'editors-english.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 50, 75, 90, 95] } },
+    format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
+    formatTick: (v) => fixed(v, 0),
+    timeAxis: MONTH_AXIS,
+    defaultYear: 'latest',
+  },
+  {
+    id: 'edit-language',
+    label: { zh: '編輯者最多的維基百科語言版本', en: 'Wikipedia language edition with the most editors' },
+    description: {
+      zh: `那個月這一國的編輯者（含只編 1–4 次的）最多人編的是哪一種語言的維基百科；各語言版本合計不到 50 人的國家不畫，點國家看編輯者最多的計畫（含 Wikidata、維基共享資源）。2026 年 10 月 128 國有值：英文 47 國、西班牙文 17、法文 13、阿拉伯文 7、德文 3、葡萄牙文 2、俄文 2，其他 37 國編自己語言的維基百科（台灣、日本、南韓、印尼、土耳其等）。${NOTE_GEO.zh}；${NOTE_PROTECTED.zh}。`,
+      en: `Which language edition of Wikipedia had the most editors from the country that month (including those with only 1–4 edits); countries with fewer than 50 editors in all are not shown, and clicking a country lists the projects with the most editors (including Wikidata and Commons). In October 2026, 128 countries have a value: English leads in 47, Spanish in 17, French in 13, Arabic in 7, German in 3, Portuguese in 2 and Russian in 2, while 37 edit mainly in their own language (Taiwan, Japan, South Korea, Indonesia, Türkiye and others). ${NOTE_GEO.en}; ${NOTE_PROTECTED.en}.`,
+    },
+    unit: '',
+    file: 'edit-language.json',
+    layer: { kind: 'categorical', categories: LANG_CLASSES },
+    format: langClass,
+    timeAxis: MONTH_AXIS,
+    defaultYear: 'latest',
   },
 ];
 
@@ -280,6 +394,16 @@ export const reads: TopicDefinition = withParts({
       },
       url: 'https://analytics.wikimedia.org/published/datasets/country_project_page/00_README.html',
       license: 'CC0',
+    },
+    {
+      name: { zh: 'Wikimedia 基金會：各國每月的編輯者（差分隱私，geoeditors_monthly）', en: 'Wikimedia Foundation: monthly editors per country (differentially private, geoeditors_monthly)' },
+      url: 'https://analytics.wikimedia.org/published/datasets/geoeditors_monthly/00_README.html',
+      license: 'CC0',
+    },
+    {
+      name: { zh: '聯合國《世界人口展望 2024》（每百萬人的編輯者）', en: 'UN World Population Prospects 2024 (editors per million)' },
+      url: 'https://population.un.org/wpp/',
+      license: 'CC BY 3.0 IGO',
     },
     {
       name: { zh: 'Wikidata（條目的中文、英文名稱）', en: 'Wikidata (article names in Chinese and English)' },

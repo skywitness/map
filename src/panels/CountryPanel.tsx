@@ -261,7 +261,13 @@ export function CountryPanel(props: CountryPanelProps) {
             <span className="stat-meta">
               {rank != null && t.rank(rank, total)}
               {share != null && t.shareOfWorld(formatPercent(share, share < 1 ? 2 : 1))}
-              {!isTimeless(topic, ind) && !at && shownYear !== null && shownYear !== year && value != null && t.shownYear(shownYear)}
+              {!isTimeless(topic, ind) &&
+                !at &&
+                shownYear !== null &&
+                shownYear !== year &&
+                value != null &&
+                // 時間軸不是年份的指標（各國在讀什麼的月份編號）用它自己的寫法（2026-11-07）
+                (ind.timeAxis ? t.shownPeriod(ind.timeAxis.year(shownYear)) : t.shownYear(shownYear))}
             </span>
             {loaded && others.length > 0 && (
               <span className="stat-compare">
@@ -375,7 +381,13 @@ function CategoryHistory({ indicator, data, iso3 }: { indicator: Indicator; data
       {periods.map((p) => (
         <li key={p.from}>
           <span className="legend-swatch" style={{ background: scale.color(p.value) ?? undefined }} />
-          <span className="category-period">{t.periodRange(p.from, p.to)}</span>
+          <span className="category-period">
+            {indicator.timeAxis
+              ? p.from === p.to
+                ? indicator.timeAxis.year(p.from)
+                : `${indicator.timeAxis.year(p.from)}–${indicator.timeAxis.year(p.to)}`
+              : t.periodRange(p.from, p.to)}
+          </span>
           {indicator.format(p.value)}
         </li>
       ))}

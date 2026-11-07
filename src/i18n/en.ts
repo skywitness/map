@@ -235,6 +235,7 @@ export const en: Messages = {
   compareNoResults: 'No country with data matches',
   shareOfWorld: (share) => ` · ${share} of world`,
   shownYear: (year) => ` (${year})`,
+  shownPeriod: (period) => ` (${period})`,
   overTime: (label) => `${label} over time`,
   lineChartAria: (name, label) => `Line chart of ${lowerFirst(label)} in ${name} over time`,
   singleSnapshotPanel: 'This dataset is a single snapshot with no time series.',

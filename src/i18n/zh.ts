@@ -262,6 +262,8 @@ export const zh = {
   compareNoResults: '找不到有資料的國家',
   shareOfWorld: (share: string) => ` · 占全球 ${share}`,
   shownYear: (year: number) => `（${year} 年）`,
+  /** 時間軸不是年份的指標（月份等）：已經寫好的時間 */
+  shownPeriod: (period: string) => `（${period}）`,
   overTime: (label: string) => spaced(`${label}的變化`),
   lineChartAria: (name: string, label: string) => spaced(`${name}歷年${label}折線圖`),
   singleSnapshotPanel: '這項資料只有單一時間點，沒有歷年變化。',

@@ -1,6 +1,8 @@
+import { BarList, type BarListItem } from '../../charts/BarList';
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
-import { monthShort, monthText, viewsText, wikiName } from '../reads';
+import { fixed } from '../../lib/format';
+import { monthShort, monthText, projectName, viewsText, wikiName } from '../reads';
 import type { PanelExtraProps } from '../types';
 
 /**
@@ -33,7 +35,84 @@ const TEXT = defineMessages({
   },
 });
 
-export default function ReadsPanel({ topic, iso3, year, selectYear }: PanelExtraProps) {
+/** pipeline/topics/reads_languages.py 的 langs/<ISO3>.json：每月讀的前 5 種語言 [代碼, %]、編輯者最多的前 8 個計畫 [計畫, 人] */
+interface CountryLangs {
+  read: Record<string, [string, number][]>;
+  edit: Record<string, [string, number][]>;
+}
+const LANG_INDICATORS = new Set(['read-language', 'editors', 'editors-english', 'edit-language']);
+
+const LANG_TEXT = defineMessages({
+  zh: {
+    read: (month: string) => `${month}讀哪幾種語言的維基百科`,
+    readAria: (country: string) => `${country}的維基百科瀏覽次數依語言版本的比例`,
+    edit: (month: string) => `${month}編輯者最多的計畫`,
+    editAria: (country: string) => `${country}的維基媒體計畫依編輯者人數`,
+    editNote: '各計畫的編輯者人數（含只編 1–4 次的），加了差分隱私的雜訊，太小的格子不公布；同一個人編好幾個計畫會各算一次。',
+    none: '沒有公布的資料（人少、差分隱私的門檻，或在 Wikimedia 的保護名單上）。',
+    shownInstead: (month: string) => `這個月沒有資料，顯示${month}。`,
+  },
+  en: {
+    read: (month) => `Wikipedia language editions read, ${month}`,
+    readAria: (country) => `Share of Wikipedia views in ${country} by language edition`,
+    edit: (month) => `Projects with the most editors, ${month}`,
+    editAria: (country) => `Wikimedia projects by number of editors in ${country}`,
+    editNote: 'Editors per project (including those with only 1–4 edits), with differential-privacy noise and small cells suppressed; someone editing several projects counts once for each.',
+    none: 'No published data (few users, the privacy threshold, or Wikimedia’s list of protected countries).',
+    shownInstead: (month) => `No data this month; showing ${month}.`,
+  },
+});
+
+/** 讀與寫的語言（2026-11-07，製作手冊第二十七批 558）：這一國讀哪些語言版本、編輯者在哪些計畫 */
+function ReadsLanguages({ topic, iso3, year, countryName }: PanelExtraProps) {
+  const lang = useLang();
+  const text = LANG_TEXT[lang];
+  const t = useT();
+  const { data, error } = useJson<CountryLangs>(`topics/${topic.id}/langs/${iso3}.json`);
+  if (error) return <p className="note">{text.none}</p>;
+  if (!data) return <p className="empty">{t.loading}</p>;
+  // 時間軸的月份沒有資料時用那之前最近的一個月（讀與寫的月份範圍不同）
+  const pick = (by: Record<string, [string, number][]>) => {
+    const months = Object.keys(by).map(Number).filter((m) => m <= year).sort((a, b) => b - a);
+    const m = months[0] ?? Object.keys(by).map(Number).sort((a, b) => a - b)[0];
+    return m === undefined ? null : { month: m, rows: by[String(m)] };
+  };
+  const read = pick(data.read);
+  const edit = pick(data.edit);
+  const readItems: BarListItem[] = (read?.rows ?? []).map(([code, share]) => ({ key: code, label: wikiName(code), value: share }));
+  const editItems: BarListItem[] = (edit?.rows ?? []).map(([project, n]) => ({ key: project, label: projectName(project), value: n }));
+  return (
+    <>
+      {read && (
+        <section className="panel-section">
+          <h3>{text.read(monthText(read.month))}</h3>
+          {read.month !== year && <p className="note">{text.shownInstead(monthText(read.month))}</p>}
+          <BarList
+            items={readItems}
+            format={(v) => `${fixed(v, v < 10 ? 1 : 0)}%`}
+            max={100}
+            ariaLabel={text.readAria(countryName)}
+          />
+        </section>
+      )}
+      {edit && (
+        <section className="panel-section">
+          <h3>{text.edit(monthText(edit.month))}</h3>
+          {edit.month !== year && <p className="note">{text.shownInstead(monthText(edit.month))}</p>}
+          <BarList items={editItems} format={(v) => fixed(v, 0)} ariaLabel={text.editAria(countryName)} />
+          <p className="note">{text.editNote}</p>
+        </section>
+      )}
+      {!read && !edit && <p className="note">{text.none}</p>}
+    </>
+  );
+}
+
+export default function ReadsPanel(props: PanelExtraProps) {
+  return LANG_INDICATORS.has(props.indicator.id) ? <ReadsLanguages {...props} /> : <TopArticles {...props} />;
+}
+
+function TopArticles({ topic, iso3, year, selectYear }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
