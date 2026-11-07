@@ -1,5 +1,5 @@
 import { tr } from '../i18n/lang';
-import { fixed, formatLargeTick, formatSignedPercent } from '../lib/format';
+import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { DimensionDef, PointsOverlayDef, TopicDefinition } from './types';
 import { topicPart } from './merge';
@@ -69,6 +69,11 @@ const waterForestOwn: TopicDefinition = {
       },
       url: 'https://www.fao.org/aquastat/en/',
       license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '經濟部水利署：水庫淤積量（民國 114 年）', en: 'Water Resources Agency, Taiwan: reservoir sedimentation (2025)' },
+      url: 'https://data.gov.tw/dataset/32727',
+      license: OPEN_DATA_TW,
     },
     {
       name: {
@@ -165,6 +170,59 @@ const waterForestOwn: TopicDefinition = {
       format: (v) => `${fixed(v, v < 10 ? 1 : 0)}%`,
       formatTick: percentTick,
       compareWorld: true,
+    },
+    {
+      id: 'dependency',
+      label: { zh: '水資源的對外依賴度', en: 'Water dependency ratio' },
+      description: {
+        zh: '可再生水資源有多少比例是從國外流進來的（FAO AQUASTAT），2023 年。科威特 100%（幾乎沒有境內的水）、埃及 98.3%、土庫曼 97.0%、巴林 96.6%、茅利塔尼亞 96.5%、蘇丹 96.1%、匈牙利 94.2%、孟加拉 91.4%、尼日 89.7%、荷蘭 87.9%；巴西 34.5%、印度 30.5%、美國 8.2%、南韓 7.0%、中國 1.0%；日本與台灣（島國，依定義）是 0。',
+        en: 'Share of renewable water resources that flow in from other countries (FAO AQUASTAT), 2023. Kuwait 100% (almost no internal water), Egypt 98.3%, Turkmenistan 97.0%, Bahrain 96.6%, Mauritania 96.5%, Sudan 96.1%, Hungary 94.2%, Bangladesh 91.4%, Niger 89.7%, the Netherlands 87.9%; Brazil 34.5%, India 30.5%, the US 8.2%, South Korea 7.0%, China 1.0%; Japan and Taiwan (islands, by definition) are 0.',
+      },
+      unit: '%',
+      file: 'dependency.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 10, 25, 50, 75, 90] } },
+      format: percent,
+      formatTick: percentTick,
+    },
+    {
+      id: 'treaty-inflow',
+      label: { zh: '流入水量有條約保障的比例', en: 'Inflow secured by treaties' },
+      description: {
+        zh: '從上游國家流進來的地表水，有多少比例由國際條約保障（FAO AQUASTAT，各國申報），2023 年。111 個有河水流入的國家裡，埃及 66.1%（尼羅河）、巴基斯坦與烏茲別克 64.2%、敘利亞 56.4%、土庫曼 55.0%、塔吉克 38.9%、喬治亞 37.7%、南非 33.5%、蘇丹 26.7%；其他 97 國是 0，包括流入量很大的巴西、孟加拉、印度、越南、阿根廷。0 不一定代表沒有條約，可能是沒有申報或條約沒有分配水量，所以 0 用最淺的一級、跟無資料分開。',
+        en: 'Share of surface water flowing in from upstream countries that is secured by international treaties (FAO AQUASTAT, as reported by countries), 2023. Of 111 countries with inflows, Egypt (Nile) has 66.1%, Pakistan and Uzbekistan 64.2%, Syria 56.4%, Turkmenistan 55.0%, Tajikistan 38.9%, Georgia 37.7%, South Africa 33.5% and Sudan 26.7%; the other 97 are at 0, including countries with large inflows such as Brazil, Bangladesh, India, Vietnam and Argentina. Zero does not necessarily mean no treaty – it may be unreported, or the treaty may not allocate water – so 0 gets the lightest class, distinct from no data.',
+      },
+      unit: '%',
+      file: 'treaty-inflow.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 5, 15, 30, 50, 65] } },
+      format: percent,
+      formatTick: percentTick,
+      missing: { zh: '沒有資料（沒有河水從國外流入，或不在 AQUASTAT）', en: 'No data (no river inflow from abroad, or not in AQUASTAT)' },
+    },
+    {
+      id: 'dam-capacity',
+      label: { zh: '水庫總容量', en: 'Total dam capacity' },
+      description: {
+        zh: '全國水庫的總容量（FAO AQUASTAT），2023 年。加拿大 8,415 億立方公尺、中國 8,305 億、俄羅斯 8,015 億、美國 7,359 億、巴西 6,223 億、印度 2,475 億、埃及 1,682 億（納瑟湖）；日本 315 億、南韓 188 億。台灣用水利署 2025 年各水庫最新施測的總容量合計約 20.2 億立方公尺（不含赤崁地下水庫）。',
+        en: 'Total capacity of a country’s reservoirs (FAO AQUASTAT), 2023. Canada 841.5 km³, China 830.5, Russia 801.5, the US 735.9, Brazil 622.3, India 247.5, Egypt 168.2 (Lake Nasser); Japan 31.5, South Korea 18.8. Taiwan’s figure is the Water Resources Agency’s latest surveyed total capacity of all reservoirs in 2025, about 2.02 km³ (excluding the Chihkan underground reservoir).',
+      },
+      unit: { zh: '立方公尺', en: 'm³' },
+      file: 'dam-capacity.json',
+      layer: { kind: 'bubble', legendValues: [1e9, 1e10, 1e11] },
+      format: (v) => tr({ zh: formatLargeNumber(v) + ' 立方公尺', en: formatLargeNumber(v) + ' m³' }),
+      formatTick: formatLargeTick,
+    },
+    {
+      id: 'dam-capacity-pc',
+      label: { zh: '每人的水庫容量', en: 'Dam capacity per person' },
+      description: {
+        zh: '水庫總容量除以人口（立方公尺／人，人口用聯合國 WPP），2023 年。蘇利南 31,802、加拿大 21,413、辛巴威 6,115、挪威 6,030；巴西 2,947、美國 2,142、埃及 1,469、中國 584、南韓 364、日本 253、印度 172、孟加拉 38。台灣 2025 年約 87 立方公尺。台灣的水庫也在淤積：水利署統計的 84 座水庫設計有效容量合計 25.95 億立方公尺，最新施測只剩 19.85 億，少了 23.5%；武界壩剩 4%、霧社水庫剩 17%、烏山頭水庫剩 51%，翡翠水庫還有 93%。',
+        en: 'Total dam capacity divided by population (m³ per person, UN WPP population), 2023. Suriname 31,802, Canada 21,413, Zimbabwe 6,115, Norway 6,030; Brazil 2,947, the US 2,142, Egypt 1,469, China 584, South Korea 364, Japan 253, India 172, Bangladesh 38. Taiwan had about 87 m³ in 2025. Taiwan’s reservoirs are also silting up: the 84 the Water Resources Agency tracks were designed for 2.595 km³ of effective storage but the latest surveys show 1.985 km³, 23.5% less; Wujie Dam retains 4%, Wushe Reservoir 17% and Wushantou 51%, while Feitsui still has 93%.',
+      },
+      unit: { zh: '立方公尺/人', en: 'm³/person' },
+      file: 'dam-capacity-pc.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 100, 250, 500, 1000, 3000] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 立方公尺/人`, en: `${fixed(v, 0)} m³/person` }),
+      formatTick: formatLargeTick,
     },
     {
       id: 'water-use',
