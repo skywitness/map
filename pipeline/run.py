@@ -401,6 +401,8 @@ STEPS = {
     "fiscal-social-spending": "topics.social_spending",
     # 薪資與工時：十分位差距、低薪比例、最低工資占薪資（OECD Earnings Distribution，台灣自算最低工資占平均薪資）
     "wages-distribution": "topics.wages_distribution",
+    # 就業失業與退休：尼特族（ILO，含台灣）、年金所得替代率（OECD PAG）、工作貧窮（ILO SDG 1.1.1）
+    "employment-extra": "topics.employment_extra",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

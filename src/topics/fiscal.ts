@@ -107,7 +107,7 @@ const fiscalOwn: TopicDefinition = {
     },
     {
       name: { zh: 'OECD Social Expenditure Database（SOCX，公共社會支出）', en: 'OECD Social Expenditure Database (SOCX, public social spending)' },
-      url: 'https://www.oecd.org/en/data/datasets/social-expenditure-database-socx.html',
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_SOCX_AGG%40DF_SOCX_AGG&df[ag]=OECD.ELS.SPD',
       license: 'CC BY 4.0',
     },
   ],

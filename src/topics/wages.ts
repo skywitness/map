@@ -87,7 +87,7 @@ const wagesWithLeave: TopicDefinition = {
     },
     {
       name: { zh: 'OECD Earnings Distribution Database（薪資的十分位比、低薪比例、最低工資占中位數與平均薪資）', en: 'OECD Earnings Distribution Database (decile ratios, incidence of low pay, minimum relative to median and mean wages)' },
-      url: 'https://www.oecd.org/en/data/datasets/earnings-database.html',
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_EARNINGS%40DEC_I&df[ag]=OECD.ELS.SAE',
       license: 'CC BY 4.0',
     },
   ],

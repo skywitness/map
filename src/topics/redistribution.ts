@@ -20,12 +20,12 @@ export const redistribution: TopicDefinition = {
   sources: [
     {
       name: { zh: 'OECD Income Distribution Database（IDD，所得分配資料庫）', en: 'OECD Income Distribution Database (IDD)' },
-      url: 'https://www.oecd.org/en/data/datasets/income-and-wealth-distribution-database.html',
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_WISE_IDD%40DF_IDD&df[ag]=OECD.WISE.INE',
       license: 'CC BY 4.0',
     },
     {
       name: { zh: 'OECD Tax-Benefit Model（TaxBEN）：低收入給付的適足性、脫離貧窮所需的工時', en: 'OECD Tax-Benefit Model (TaxBEN): adequacy of minimum-income benefits; hours needed to escape poverty' },
-      url: 'https://www.oecd.org/en/data/tools/oecd-tax-benefit-simulator.html',
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAXBEN_IA%40DF_IA&df[ag]=OECD.ELS.JAI',
       license: 'CC BY 4.0',
     },
   ],
