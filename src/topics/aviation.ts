@@ -2,6 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { aviationExtra } from './aviation-extra';
+import { aviationFacilities } from './aviation-facilities';
 import { aviationNavaids } from './aviation-navaids';
 import { aviationRunways } from './aviation-runways';
 import { AIRPORTS_ZH } from './longest-flights-names';
@@ -135,6 +136,7 @@ export const aviation: TopicDefinition = {
     ...aviationExtra.sources,
     ...aviationRunways.sources,
     ...aviationNavaids.sources,
+    ...aviationFacilities.sources,
   ],
   note: {
     zh:
@@ -176,6 +178,8 @@ export const aviation: TopicDefinition = {
     ...aviationExtra.overlays,
     // 2026-11-07（製作手冊第二十七批 569）：導航台、已關閉的機場
     ...aviationNavaids.overlays,
+    // 2026-11-07（製作手冊第二十七批 570）：Eurostat 申報設施的機場
+    ...aviationFacilities.overlays,
   ],
   indicators: [
     {
@@ -250,5 +254,6 @@ export const aviation: TopicDefinition = {
     ...aviationExtra.indicators,
     ...aviationRunways.indicators,
     ...aviationNavaids.indicators,
+    ...aviationFacilities.indicators,
   ],
 };

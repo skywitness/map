@@ -871,6 +871,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 欄位多的小表（機場的設施，AirportFacilitiesPanel.tsx）：側欄窄時左右捲動 */
+.mini-table-scroll {
+  overflow-x: auto;
+}
+
 /* 各板塊的人口（PlatesWorld.tsx）：名稱、人口下面的第二行（大小與國家、占全世界的比例） */
 .mini-table-sub {
   display: block;
