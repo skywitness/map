@@ -11,6 +11,8 @@ import type {
   ScaleSpec,
   TopicDefinition,
 } from './types';
+import { batteryStoragePart } from './battery-storage';
+import { withParts } from './parts';
 
 /**
  * 發電廠地圖（pipeline/topics/power_plants.py）：Global Energy Monitor 的 Global Integrated Power Tracker，2026 年 9 月版。
@@ -696,7 +698,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const powerPlants: TopicDefinition = {
+export const powerPlants: TopicDefinition = withParts({
   id: 'power-plants',
   title: { zh: '發電廠地圖', en: 'Power plants' },
   shortTitle: { zh: '發電廠', en: 'Power plants' },
@@ -777,4 +779,4 @@ export const powerPlants: TopicDefinition = {
     },
   ],
   indicators,
-};
+}, batteryStoragePart);
