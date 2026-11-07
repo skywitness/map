@@ -1,6 +1,7 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { airportNames } from './airport-names';
 import { aviationExtra } from './aviation-extra';
 import { aviationFacilities } from './aviation-facilities';
 import { aviationFlights } from './aviation-flights';
@@ -139,6 +140,7 @@ export const aviation: TopicDefinition = {
     ...aviationNavaids.sources,
     ...aviationFacilities.sources,
     ...aviationFlights.sources,
+    ...airportNames.sources,
   ],
   note: {
     zh:
@@ -159,7 +161,7 @@ export const aviation: TopicDefinition = {
       'For airlines and the longest flights see the Air routes and airlines topic; for railways, the Railways topic.',
   },
   panelExtra: () => import('./panels/AviationPanel'),
-  listPanel: [PAX_LIST, CARGO_LIST, aviationRunways.listPanel],
+  listPanel: [PAX_LIST, CARGO_LIST, aviationRunways.listPanel, airportNames.listPanel],
   overlays: [
     // 交通主題搬過來的機場（鐵路、機場是舊的寫法，app/overlays.ts 依 id 認得 airports）
     { id: 'airports', file: 'airports.json', indicators: ['airports-count', 'large-airports'] },
@@ -182,6 +184,8 @@ export const aviation: TopicDefinition = {
     ...aviationNavaids.overlays,
     // 2026-11-07（製作手冊第二十七批 570）：Eurostat 申報設施的機場
     ...aviationFacilities.overlays,
+    // 2026-11-07（製作手冊第二十七批 573）：以人命名的機場
+    ...airportNames.overlays,
   ],
   indicators: [
     {
@@ -258,5 +262,6 @@ export const aviation: TopicDefinition = {
     ...aviationNavaids.indicators,
     ...aviationFacilities.indicators,
     ...aviationFlights.indicators,
+    ...airportNames.indicators,
   ],
 };

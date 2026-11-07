@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 183;
-export const INDICATOR_COUNT = 1444;
+export const INDICATOR_COUNT = 1449;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -157,6 +157,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：旅宿業的月別住宿夜數（tour_occ_nim）","en":"Eurostat: monthly nights spent at tourist accommodation (tour_occ_nim)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table","licenses":["CC BY 4.0"],"topics":["tourism"]},
   {"name":{"zh":"Eurostat：機上旅客依航程與機型（avia_paodis）","en":"Eurostat: passengers on board by distance band and aircraft type (avia_paodis)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/avia_paodis/default/table","licenses":["CC BY 4.0"],"topics":["air-routes"]},
   {"name":{"zh":"Eurostat：每千人小客車數（road_eqs_carhab，歐洲 1990–2025 年）","en":"Eurostat: passenger cars per thousand inhabitants (road_eqs_carhab, Europe 1990–2025)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_carhab/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
+  {"name":{"zh":"Eurostat：貨車依載重與動力（road_eqs_lormot）、大客車與遊覽車（road_eqs_busveh）","en":"Eurostat: lorries by load capacity and motor energy (road_eqs_lormot), motor coaches and buses (road_eqs_busveh)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/road_eqs_lormot/default/table","licenses":["CC BY 4.0"],"topics":["ev"]},
   {"name":{"zh":"Eurostat：運動業的就業（sprt_emp_sex）、政府支出依功能別（gov_10a_exp，COFOG 08.1）","en":"Eurostat: employment in sport (sprt_emp_sex) and government expenditure by function (gov_10a_exp, COFOG 08.1)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sprt_emp_sex/default/table","licenses":["CC BY 4.0"],"topics":["sports"]},
   {"name":{"zh":"Eurostat：重大鐵路事故的死傷人數（rail_ac_catvict）與件數（rail_ac_catnmbr）","en":"Eurostat: victims of significant railway accidents (rail_ac_catvict) and number of accidents (rail_ac_catnmbr)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/rail_ac_catvict/default/table","licenses":["CC BY 4.0"],"topics":["transport"]},
   {"name":{"zh":"Eurostat：鐵路貨運依貨類（rail_go_grpgood）、危險品（rail_go_dnggood）、貨櫃（rail_go_contwgt）、國際鐵路貨運依卸車國（rail_go_intgong）","en":"Eurostat: rail freight by type of goods (rail_go_grpgood), dangerous goods (rail_go_dnggood), intermodal units (rail_go_contwgt) and international rail freight by country of unloading (rail_go_intgong)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/rail_go_grpgood/default/table","licenses":["CC BY 4.0"],"topics":["transport"]},
@@ -394,6 +395,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（世界遺產預備名單 P4171、世界地質公園、台灣的地質公園）","en":"Wikidata (Tentative List P4171, UNESCO Global Geoparks, geoparks in Taiwan)"},"url":"https://www.wikidata.org/wiki/Property:P4171","licenses":["CC0"],"topics":["world-heritage"]},
   {"name":{"zh":"Wikidata（唐人街 Q202509 的位置與名稱）","en":"Wikidata (locations and names of Chinatowns, Q202509)"},"url":"https://www.wikidata.org/wiki/Q202509","licenses":["CC0"],"topics":["migration"]},
   {"name":{"zh":"Wikidata（建築的座標、朝聖地）","en":"Wikidata (building locations, pilgrimage sites)"},"url":"https://www.wikidata.org/wiki/Q15135589","licenses":["CC0"],"topics":["religion"]},
+  {"name":{"zh":"Wikidata（機場的命名由來 P138，經 QLever 查詢，2026 年 11 月）","en":"Wikidata (what airports are named after, P138; queried via QLever, November 2026)"},"url":"https://www.wikidata.org/wiki/Property:P138","licenses":["CC0"],"topics":["aviation"]},
   {"name":{"zh":"Wikidata（行車方向，P1622）","en":"Wikidata (driving side, P1622)"},"url":"https://www.wikidata.org/wiki/Property:P1622","licenses":["CC0"],"topics":["travel"]},
   {"name":{"zh":"Wikidata（運動聯賽與俱樂部，經 QLever 查詢）","en":"Wikidata (sports leagues and clubs, queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q623109","licenses":["CC0"],"topics":["sports"]},
   {"name":{"zh":"Wikimedia Commons（國旗的 SVG，逐檔核對授權）","en":"Wikimedia Commons (flag SVGs, licence checked file by file)"},"url":"https://commons.wikimedia.org/wiki/Category:SVG_flags_by_country","licenses":[{"zh":"公有領域 228 個、CC0 5 個、阿曼政府開放授權 1 個；國徽、國旗的使用可能受各國法律限制","en":"228 public domain, 5 CC0, 1 Open Government Licence – Oman; use of national insignia may be restricted by national law"}],"topics":["flags"]},

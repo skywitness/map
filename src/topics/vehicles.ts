@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { trucks } from './trucks';
 import type { TopicDefinition } from './types';
 
 /**
@@ -66,6 +67,7 @@ export const vehicles: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    ...trucks.sources,
   ],
   note: {
     zh: '登記的機車、汽車數是各國 2020 或 2021 年向 WHO 通報的數字（《Global status report on road safety 2023》），通報不完整或單位填錯的國家可能有偏差，明顯填錯的沒有畫；歐洲的每千人小客車數是 Eurostat 的（定義不同，不能直接跟「每千人汽車數」比）。台灣用交通部的年底登記數。每千人機車數、機車比例與每千人汽車數的資料取自 WHO（CC BY-NC-SA 3.0 IGO），這幾個資料檔也依 CC BY-NC-SA 3.0 IGO 分享。機車騎士的死亡占比見「交通安全」主題。',
@@ -152,5 +154,7 @@ export const vehicles: TopicDefinition = {
       format: pct,
       formatTick: pctTick,
     },
+    // 2026-11-07（製作手冊第二十七批 577）：卡車、貨車與公車
+    ...trucks.indicators,
   ],
 };

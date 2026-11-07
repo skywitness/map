@@ -1,7 +1,9 @@
 import { defineMessages, useLang } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
+import { TRUCK_IDS } from '../trucks';
 import { dataFolder, type PanelExtraProps } from '../types';
+import { TrucksSection } from './TrucksPanel';
 
 /** car-age-detail.json（pipeline/topics/car_age.py）：每國每年五組車齡占小客車的 % */
 interface CarAgeDetail {
@@ -25,7 +27,13 @@ const TEXT = defineMessages({
 });
 
 /** 汽機車的側欄：車齡的兩個指標（第二十三批 403）列五組車齡；最近一年，或時間軸那一年有資料時用那一年 */
-export default function CarAgePanel({ topic, indicator, iso3, year }: PanelExtraProps) {
+export default function CarAgePanel(props: PanelExtraProps) {
+  // 卡車與公車（第二十七批 577）：依動力的組成
+  if (TRUCK_IDS.includes(props.indicator.id)) return <TrucksSection {...props} />;
+  return <CarAgeSection {...props} />;
+}
+
+function CarAgeSection({ topic, indicator, iso3, year }: PanelExtraProps) {
   const text = TEXT[useLang()];
   // 汽機車併進「汽機車與電動車」（ev）後，指標檔是 ../road-safety/…：側欄的檔跟著指標的資料夾
   const folder = indicator.file.startsWith('../') ? indicator.file.split('/')[1] : dataFolder(topic);
