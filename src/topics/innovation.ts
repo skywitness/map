@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, intlDollars, usd } from '../lib/format';
-import type { DimensionDef, TopicDefinition } from './types';
+import type { DimensionDef, Text, TopicDefinition } from './types';
 
 const RESEARCHERS = { zh: '人/百萬人', en: 'per million people' };
 const PATENTS_PER_MILLION = { zh: '件/百萬人', en: 'per million people' };
@@ -70,6 +70,8 @@ const publications = (v: number) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber
 
 const applications = (v: number) => `${v < 1e6 ? fixed(v, 0) : formatLargeNumber(v)} ${tr(APPLICATIONS)}`;
 
+const MISSING_MSTI: Text = { zh: '沒有資料（只有 OECD 的 MSTI 收錄的約 47 國，含台灣）', en: 'No data (only about 47 economies in the OECD MSTI, including Taiwan)' };
+
 export const innovation: TopicDefinition = {
   id: 'innovation',
   title: { zh: '各國研發與創新', en: 'R&D and innovation by country' },
@@ -77,6 +79,11 @@ export const innovation: TopicDefinition = {
   defaultIndicator: 'rd-spending',
   defaultYear: 2024,
   sources: [
+    {
+      name: { zh: 'OECD Main Science and Technology Indicators（研發經費依部門與資金來源、研發人力，含台灣）', en: 'OECD Main Science and Technology Indicators (R&D by sector and source of funds, R&D personnel; includes Taiwan)' },
+      url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_MSTI%40DF_MSTI&df[ag]=OECD.STI.STP',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
     {
       name: {
         zh: 'World Bank, World Development Indicators（UNESCO 統計研究所、WIPO 資料）',
@@ -364,6 +371,95 @@ export const innovation: TopicDefinition = {
       layer: { kind: 'bubble', legendValues: [1e3, 1e4, 1e5] },
       format: (v) => `${fixed(v, 0)} ${tr(APPLICATIONS_STUDIES)}`,
       formatTick: formatLargeTick,
+    },
+    // 2026-11-07（製作手冊第二十五批 510）OECD MSTI 的研發經費依執行部門、資金來源與研發人力（pipeline/topics/rd_structure.py）。MSTI 有台灣
+    {
+      id: 'rd-performer',
+      label: { zh: '研發經費是誰花的（執行部門）', en: 'Who performs R&D' },
+      description: {
+        zh: '研發經費依執行部門的比例（OECD MSTI，2024 年為主，有台灣）。企業：以色列 93.8%、台灣 85.6%、愛爾蘭 85.0%、南韓 81.4%、日本 78.9%、中國 77.7%、美國 77.4%，OECD 73.3%。高等教育：哥斯大黎加 54.4%、拉脫維亞 46.5%、立陶宛 43.5%、丹麥與加拿大 34.5%、德國 17.6%、美國 10.9%、日本 10.6%、南韓與中國 8.4%，台灣只有 6.0%、以色列 4.7%。政府：阿根廷 36.7%（2023）、保加利亞 27.0%、羅馬尼亞 26.8%、盧森堡 25.4%、中國 13.9%、日本 9.3%、台灣 8.3%、南韓與美國 8.2%，以色列 0.8%。',
+        en: 'Share of R&D spending by performing sector (OECD MSTI, mostly 2024, Taiwan included). Business: Israel 93.8%, Taiwan 85.6%, Ireland 85.0%, South Korea 81.4%, Japan 78.9%, China 77.7%, the US 77.4%, OECD 73.3%. Higher education: Costa Rica 54.4%, Latvia 46.5%, Lithuania 43.5%, Denmark and Canada 34.5%, Germany 17.6%, the US 10.9%, Japan 10.6%, South Korea and China 8.4%, Taiwan only 6.0%, Israel 4.7%. Government: Argentina 36.7% (2023), Bulgaria 27.0%, Romania 26.8%, Luxembourg 25.4%, China 13.9%, Japan 9.3%, Taiwan 8.3%, South Korea and the US 8.2%, Israel 0.8%.',
+      },
+      unit: '%',
+      file: 'rd/performer/{item}.json',
+      dimension: {
+        label: { zh: '執行部門', en: 'Sector' },
+        options: [
+          { id: 'business', label: { zh: '企業', en: 'Business' } },
+          { id: 'higher', label: { zh: '高等教育', en: 'Higher education' } },
+          { id: 'government', label: { zh: '政府', en: 'Government' } },
+          { id: 'nonprofit', label: { zh: '私人非營利', en: 'Private non-profit' } },
+        ],
+        defaultOption: 'business',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [40, 50, 60, 70, 80, 90] },
+        itemScales: {
+          higher: { type: 'sequential', thresholds: [5, 10, 15, 20, 30, 40] },
+          government: { type: 'sequential', thresholds: [2, 5, 10, 15, 20, 30] },
+          nonprofit: { type: 'sequential', thresholds: [0.1, 0.5, 1, 2, 3, 5] },
+        },
+      },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: MISSING_MSTI,
+    },
+    {
+      id: 'rd-funding',
+      label: { zh: '研發經費是誰出的錢（資金來源）', en: 'Who funds R&D' },
+      description: {
+        zh: '研發經費依資金來源的比例（OECD MSTI，2023–2024 年）。企業出錢：台灣 85.1% 最高，中國 79.5%、南韓 78.5%、日本 77.5%、美國 68.7%，OECD 64.4%（2023）；阿根廷 22.9%、南非 27.7%、哥斯大黎加 28.5% 最低。政府出錢：阿根廷 54.9%、南非 50.3%、盧森堡 50.0%、哥斯大黎加 45.1%、挪威 42.9%；台灣 14.2%、愛爾蘭 11.8%、以色列 9.8%。國外出錢：以色列 44.8%、愛爾蘭 42.4%、保加利亞 41.9%、冰島 33.2%、捷克 32.7%（跨國企業在當地的研發中心）；台灣 0.1% 最低，中國與南韓 0.3%、日本 0.5%。',
+        en: 'Share of R&D spending by source of funds (OECD MSTI, 2023–2024). Business-funded: Taiwan highest at 85.1%, China 79.5%, South Korea 78.5%, Japan 77.5%, the US 68.7%, OECD 64.4% (2023); lowest Argentina 22.9%, South Africa 27.7%, Costa Rica 28.5%. Government-funded: Argentina 54.9%, South Africa 50.3%, Luxembourg 50.0%, Costa Rica 45.1%, Norway 42.9%; Taiwan 14.2%, Ireland 11.8%, Israel 9.8%. Funded from abroad: Israel 44.8%, Ireland 42.4%, Bulgaria 41.9%, Iceland 33.2%, Czechia 32.7% (multinationals’ local R&D centres); Taiwan lowest at 0.1%, China and South Korea 0.3%, Japan 0.5%.',
+      },
+      unit: '%',
+      file: 'rd/funding/{item}.json',
+      dimension: {
+        label: { zh: '資金來源', en: 'Source of funds' },
+        options: [
+          { id: 'business', label: { zh: '企業', en: 'Business' } },
+          { id: 'government', label: { zh: '政府', en: 'Government' } },
+          { id: 'abroad', label: { zh: '國外', en: 'Abroad' } },
+        ],
+        defaultOption: 'business',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [30, 40, 50, 60, 70, 80] },
+        itemScales: {
+          government: { type: 'sequential', thresholds: [10, 20, 25, 30, 40, 50] },
+          abroad: { type: 'sequential', thresholds: [1, 5, 10, 15, 25, 35] },
+        },
+      },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: MISSING_MSTI,
+    },
+    {
+      id: 'rd-personnel',
+      label: { zh: '研發人力（每千名就業者）', en: 'R&D personnel per 1,000 employed' },
+      description: {
+        zh: '每千名就業者裡的研發人力與研究人員（全時約當數，OECD MSTI）。研發人力（研究人員加技術與支援人員）：台灣 26.8 最高，芬蘭 22.8、丹麥 22.3、南韓 21.9、比利時 21.3、奧地利 20.2、瑞典 19.4（2024）；智利 2.5（2022）、南非 2.7、羅馬尼亞 4.3 最低。研究人員：芬蘭 17.8、南韓 17.6、瑞典 17.2、丹麥 16.5、台灣 15.6；德國 11.2、美國 10.6（2023）、日本 10.2、中國 4.3；哥斯大黎加 1.0、智利 1.6、南非 1.7 最低。研究人員人數中國 318 萬最多。女性研究人員的比例在「性別平等」主題。',
+        en: 'R&D personnel and researchers per 1,000 employed (full-time equivalent, OECD MSTI). R&D personnel (researchers plus technicians and support staff): Taiwan highest at 26.8, Finland 22.8, Denmark 22.3, South Korea 21.9, Belgium 21.3, Austria 20.2, Sweden 19.4 (2024); lowest Chile 2.5 (2022), South Africa 2.7, Romania 4.3. Researchers: Finland 17.8, South Korea 17.6, Sweden 17.2, Denmark 16.5, Taiwan 15.6; Germany 11.2, the US 10.6 (2023), Japan 10.2, China 4.3; lowest Costa Rica 1.0, Chile 1.6, South Africa 1.7. China has the most researchers, 3.18 million. The share of women researchers is in the gender equality topic.',
+      },
+      unit: { zh: '每千名就業者', en: 'per 1,000 employed' },
+      file: 'rd/personnel/{item}.json',
+      dimension: {
+        label: { zh: '人力', en: 'Personnel' },
+        options: [
+          { id: 'total', label: { zh: '研發人力', en: 'All R&D personnel' } },
+          { id: 'researchers', label: { zh: '研究人員', en: 'Researchers' } },
+        ],
+        defaultOption: 'total',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [5, 10, 13, 16, 20, 24] },
+        itemScales: { researchers: { type: 'sequential', thresholds: [3, 6, 9, 12, 15, 17] } },
+      },
+      format: (v) => fixed(v, 1),
+      formatTick: (v) => fixed(v, 0),
+      missing: MISSING_MSTI,
     },
   ],
 };

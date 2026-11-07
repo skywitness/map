@@ -213,6 +213,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `digital-gov` 是數位主題的 OECD 數位政府指數與開放資料指數（SDMX 資料流 DF_GOV_DGOGD_2025，0.33 MB），一兩秒。
 
+`rd-structure` 是研發與創新主題的研發經費依執行部門、資金來源與研發人力：OECD MSTI 的三支 key 查詢（年值），幾秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。
