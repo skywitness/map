@@ -4,6 +4,7 @@ import { withParts } from './parts';
 import { plantedForests } from './planted-forests';
 import type { TopicDefinition } from './types';
 import { forestCoverPart } from './water-forest';
+import { forestDisturbance } from './forest-disturbance';
 
 /**
  * 森林（2026-11-04，主題整併 併3）：水資源與森林的森林覆蓋率、森林面積年變化率，加上人工林、油棕園合成一個主題
@@ -26,4 +27,6 @@ export const forest: TopicDefinition = withParts(
   forestCoverPart,
   topicPart(plantedForests),
   topicPart(oilPalm),
+  // 2026-11-07（製作手冊第二十五批 497）
+  topicPart(forestDisturbance),
 );

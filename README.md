@@ -195,6 +195,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `forest-tw-loss` 是森林主題的台灣側欄：農業部「因崩塌或風災減少森林覆蓋面積」CSV（data.moa.gov.tw）與「森林被害統計」最新一年的 ODS（agrstat.moa.gov.tw，先讀 data.moa.gov.tw 的年報清單）。不到一秒。
 
+`forest-disturbance` 是森林主題的歐洲森林擾動成因：Zenodo 8202241 的 34 個 GeoTIFF（合計約 1.08 GB），一國一國下載、用 rasterio 逐塊數像素、寫進 `.cache/forest-disturbance/counts.json` 後刪掉 GeoTIFF（使用者決定）；counts.json 有的國家不再下載。第一次約 11 分鐘。
+
 `wildfire-emissions` 是野火主題的森林火災排放與 1996 年起的燒毀面積：FAOSTAT 的 GI（檔名 `Emissions_Land_Use_Fires_…`，約 3 MB）。幾秒鐘。
 
 `env-taxes` 是環境稅收與環保支出：OECD SDMX 的 DF_ERTR 用 key 篩過（只抓稅收占 GDP 與占總稅收，全量 276 MB 不抓），加上 Eurostat env_epea_neep 的 9 支 statistics API 查詢（合計與 8 個用途）。十幾秒。

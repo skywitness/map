@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 172;
-export const INDICATOR_COUNT = 1271;
+export const INDICATOR_COUNT = 1273;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -299,6 +299,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Ramsar Sites Information Service（拉姆薩濕地的中心點）","en":"Ramsar Sites Information Service (site centroids)"},"url":"https://rsis.ramsar.org/","licenses":["CC BY 4.0"],"topics":["world-heritage"]},
   {"name":{"zh":"Reuters Institute《Digital News Report 2026》（新聞 podcast、AI 聊天機器人；DOI 10.60625/risj-4vgf-s811）","en":"Reuters Institute, Digital News Report 2026 (news podcasts, AI chatbots; DOI 10.60625/risj-4vgf-s811)"},"url":"https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026","licenses":["CC BY 4.0"],"topics":["reads"]},
   {"name":{"zh":"Richter 等 2024，Spatial Database of Planted Trees（SDPT 2.0），World Resources Institute","en":"Richter et al. 2024, Spatial Database of Planted Trees (SDPT Version 2.0), World Resources Institute"},"url":"https://data.globalforestwatch.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
+  {"name":{"zh":"Senf & Seidl：Attributing European forest disturbances to storm and fire（Zenodo 8202241）；Senf, C. and Seidl, R. (2021) Mapping the forest disturbance regimes of Europe. Nature Sustainability","en":"Senf & Seidl: Attributing European forest disturbances to storm and fire (Zenodo 8202241); Senf, C. and Seidl, R. (2021) Mapping the forest disturbance regimes of Europe. Nature Sustainability"},"url":"https://doi.org/10.5281/zenodo.8202241","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"Sengupta et al. 2023，Mapping 21st Century global coastal land reclamation（Earth’s Future 11(2)；Zenodo 資料）","en":"Sengupta et al. 2023, Mapping 21st Century global coastal land reclamation (Earth’s Future 11(2); data on Zenodo)"},"url":"https://doi.org/10.5281/zenodo.7528236","licenses":["CC BY 4.0"],"topics":["reclamation"]},
   {"name":{"zh":"showcaves.com（Jochen Duckeck）的統計表，2026-11-07","en":"showcaves.com (Jochen Duckeck), statistics table, 7 November 2026"},"url":"https://www.showcaves.com/english/explain/Index/Statistics.php","licenses":[{"zh":"CC0（站長自己做的內容是公有領域或 CC0）","en":"CC0 (the site author’s own content is public domain or CC0)"}],"topics":["show-caves"]},
   {"name":{"zh":"Smeenk 等 2023〈ART in Europe, 2019: results generated from European registries by ESHRE〉，Human Reproduction 38(12)，表 1、表 4","en":"Smeenk et al. 2023, “ART in Europe, 2019: results generated from European registries by ESHRE”, Human Reproduction 38(12), tables 1 and 4"},"url":"https://doi.org/10.1093/humrep/dead197","licenses":["CC BY 4.0"],"topics":["fertility"]},
