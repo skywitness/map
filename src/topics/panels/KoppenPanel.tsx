@@ -26,6 +26,8 @@ const GROUP_COLORS = MAP_TOKENS.categorical.slice(0, GROUPS.length);
 const TEXT = defineMessages({
   zh: {
     title: (period: string) => `${period} 年的氣候類型`,
+    count: (n: number, big: number, first: number) =>
+      `這一國有 ${n} 種氣候類型（占 1% 以上的 ${big} 種）；1901–1930 年是 ${first} 種。`,
     scenario: (name: string) => `推估，${name}`,
     delta: (pp: string) => `比 1991–2020 年 ${pp} 個百分點`,
     same: '跟 1991–2020 年一樣',
@@ -38,6 +40,8 @@ const TEXT = defineMessages({
   },
   en: {
     title: (period) => `Climate types, ${period}`,
+    count: (n, big, first) =>
+      `${n} climate ${n === 1 ? 'type' : 'types'} (${big} covering at least 1%); ${first} in 1901–1930.`,
     scenario: (name) => `projection, ${name}`,
     delta: (pp) => `${pp} points vs 1991–2020`,
     same: 'same as 1991–2020',
@@ -83,6 +87,10 @@ export default function KoppenPanel({ topic, iso3, year, item }: PanelExtraProps
       <section className="panel-section">
         <h3>{text.title(periodText(year))}</h3>
         {year > BASE_PERIOD + 29 && <p className="panel-year-note">{text.scenario(scenarioName)}</p>}
+        {/* 2026-11-07（第二十五批 477）：類型數，panel.json 只列面積至少 1‰ 的類型 */}
+        <p className="note">
+          {text.count(rows.length, rows.filter(([, v]) => v >= 10).length, (own['1901'] ?? []).length)}
+        </p>
         <ul className="bar-list">
           {shown.map(([code, v]) => {
             const c = CLASSES[code - 1];

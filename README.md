@@ -159,6 +159,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `climate-agrifood` 是溫室氣體排放的農糧系統排放與碳排放的經濟損害：FAOSTAT `Emissions_Totals_E_All_Data_(Normalized).zip`（20 MB）與世界銀行 WDI `NY.ADJ.DCO2.GN.ZS`。幾秒鐘。
 
+`koppen-diversity` 是氣候分區的「有幾種氣候類型」：只讀 `koppen` 步驟輸出的 `public/data/topics/koppen/panel.json` 數每國每期的類型，要在 `koppen` 之後跑。不下載。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

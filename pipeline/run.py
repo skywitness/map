@@ -540,6 +540,8 @@ STEPS = {
     "logbooks": "topics.logbooks",
     # 氣候分區（柯本）：Beck 2023 的 0.1° 網格（第一次下載 130 MB）；約 1 分鐘
     "koppen": "topics.koppen",
+    # 一國有幾種氣候類型：讀 koppen 步驟輸出的 panel.json 數類型（要在 koppen 之後跑）
+    "koppen-diversity": "topics.koppen_diversity",
     # 地表的岩石種類：GLiM 0.5° 網格（PANGAEA，38 KB 的 zip）；幾秒
     "lithology": "topics.lithology",
     # 特殊地形：Wikidata 的綠洲、峽灣、天然拱門與奇岩、環礁、泥火山、滲穴、間歇泉（一次 SPARQL）；幾秒（第一次查要等查詢服務）

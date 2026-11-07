@@ -204,6 +204,22 @@ const indicators: IndicatorDef[] = [
     timeAxis: PERIOD_AXIS,
     projectionLabel: PROJECTED,
   },
+  {
+    // 2026-11-07（製作手冊第二十五批 477，候選 1142）：pipeline/topics/koppen_diversity.py 數 panel.json 的類型
+    id: 'diversity',
+    label: { zh: '有幾種氣候類型', en: 'Number of climate types' },
+    description: {
+      zh: '國土裡有幾種柯本氣候類型（面積至少 1‰ 的才算，依 0.1° 網格）。1991–2020 年美國 22 種最多，中國與阿根廷 14、俄羅斯、巴基斯坦、墨西哥 13、印度 12，澳洲、加拿大、土耳其、南非等 11；台灣 7 種，日本 6；50 個國家或地區只有 1 種。高排放情境（SSP5-8.5）的 2071–2099 年，希臘從 8 種剩 3 種、阿爾巴尼亞從 7 種剩 3 種、匈牙利從 4 種剩 1 種，氣候變得比較一致；阿根廷從 14 種變 17、中國 14 變 16、芬蘭 2 變 5。小島國的格子少，類型天生就少，不代表氣候單調；推估期的類型變少也可能是模式解析度的關係。側欄另寫占 1% 以上的類型有幾種。',
+      en: 'How many Köppen climate types a country has (types covering at least 0.1% of its area, on the 0.1° grid). In 1991–2020 the US had the most, 22, followed by China and Argentina (14), Russia, Pakistan and Mexico (13), India (12), and Australia, Canada, Turkey, South Africa and others (11); Taiwan has 7 and Japan 6, while 50 countries and territories have just 1. Under very high emissions (SSP5-8.5) in 2071–2099, Greece drops from 8 types to 3, Albania from 7 to 3 and Hungary from 4 to 1 as climates become more uniform, while Argentina rises from 14 to 17, China from 14 to 16 and Finland from 2 to 5. Small islands cover few grid cells and naturally have few types, which does not mean a monotonous climate; fewer types in projections can also reflect model resolution. The side panel also gives the number of types covering at least 1%.',
+    },
+    unit: { zh: '種', en: 'types' },
+    file: 'diversity/{item}.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 3, 5, 7, 10, 13] } },
+    format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} ${v === 1 ? 'type' : 'types'}` }),
+    formatTick: (v) => fixed(v, 0),
+    timeAxis: PERIOD_AXIS,
+    projectionLabel: PROJECTED,
+  },
 ];
 
 /** 觀察點用的網格（1901–1930、1991–2020、2071–2099 兩種情境）：第一次放觀察點時才下載，下載完之前小卡是空的（pins.ts 會再寫一次） */
