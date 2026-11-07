@@ -33,8 +33,9 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       // 夜間燈光 2026-11-03 從地理的「景點」搬過來（使用者要求）
       { label: { zh: '人口與家庭', en: 'Population & family' }, topics: ['population', 'fertility', 'marriage', 'cities', 'housing', 'night-lights'] },
-      // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）
-      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet', 'cuisines', 'banknotes', 'origin-names', 'show-caves', 'hunting-fishing'] },
+      // 飲食 2026-11-03 從「健康」搬過來（健康那一組搬到醫藥分類）；菜系走到哪裡、鈔票、原產地名稱、地下觀光、狩獵與釣魚
+      // 2026-11-07 使用者指定搬到休閒（製作手冊第二十六批 534）
+      { label: { zh: '生活與文化', en: 'Life & culture' }, topics: ['religion', 'festivals', 'reads', 'happiness', 'diet'] },
       { label: { zh: '平等與法律', en: 'Equality & law' }, topics: ['inequality', 'gender', 'crime', 'laws'] },
       // 2026-11-05 使用者要求每個小類各占一欄、教育放最右邊
       { label: { zh: '教育', en: 'Education' }, topics: ['education', 'pisa'] },
@@ -60,6 +61,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 2026-11-07（製作手冊第二十五批 439，使用者 2026-11-05 核准）：新開農業與糧食、稅（「稅率」拆回自己的主題）、金融服務、
     // 消費與零售四個小類，「財政與金融」剩下財政；「不動產」小類在第一個主題「房價與房租」（第二十五批 470）做好時加上
     sections: [
+      { label: { zh: '企業', en: 'Companies' }, topics: ['companies', 'business-demography', 'market-regulation'] },
       { label: { zh: '產業', en: 'Industries' }, topics: ['industry', 'minerals'] },
       { label: { zh: '農業與糧食', en: 'Agriculture & food' }, topics: ['agriculture'] },
       { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth', 'redistribution', 'social-protection', 'labour-rights'] },
@@ -67,12 +69,11 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '稅', en: 'Taxes' }, topics: ['taxes'] },
       { label: { zh: '金融服務', en: 'Financial services' }, topics: ['banking', 'stock-market', 'insurance'] },
       { label: { zh: '消費與零售', en: 'Consumption & retail' }, topics: ['prices', 'chain-stores', 'retail'] },
-      { label: { zh: '企業', en: 'Companies' }, topics: ['companies', 'business-demography', 'market-regulation'] },
       { label: { zh: '不動產', en: 'Real estate' }, topics: ['real-estate', 'housing-market', 'property-costs'] },
     ],
-    // 四欄（2026-11-05 使用者要求企業放最右邊；第二十五批小類變多，一欄放幾個小類）：
-    // 產業、農業與糧食；所得與財富；財政、稅、金融服務；消費與零售、企業
-    columns: [2, 1, 3, 2],
+    // 四欄（2026-11-07 使用者要求企業放最左邊（11-05 原本是最右邊），製作手冊第二十六批 533；一欄放幾個小類）：
+    // 企業、產業、農業與糧食；所得與財富；財政、稅、金融服務；消費與零售、不動產
+    columns: [3, 1, 3, 2],
   },
   {
     id: 'global',
@@ -166,10 +167,16 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'leisure',
     label: { zh: '休閒', en: 'Leisure' },
     sections: [
-      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'oldest-universities', 'skyscrapers'] },
+      // 地下觀光 2026-11-07 從社會的「生活與文化」搬過來（製作手冊第二十六批 534），跟景點地圖一組
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'show-caves', 'oldest-universities', 'skyscrapers'] },
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'esports', 'horses'] },
-      // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）
-      { label: { zh: '日常休閒', en: 'Everyday leisure' }, topics: ['dining', 'diving', 'gambling', 'holidays', 'travel-habits', 'time-use', 'culture'] },
+      // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）。
+      // 2026-11-07 從社會的「生活與文化」搬過來四個（製作手冊第二十六批 534）：菜系走到哪裡、原產地名稱接在外食後面，
+      // 狩獵與釣魚接在潛水與攀岩後面，鈔票最不像休閒，暫時放最後
+      {
+        label: { zh: '日常休閒', en: 'Everyday leisure' },
+        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'hunting-fishing', 'gambling', 'holidays', 'travel-habits', 'time-use', 'culture', 'banknotes'],
+      },
     ],
     // 左：景點；中：獎項與運動；右：日常休閒（2026-11-05 使用者要求分成三欄）
     columns: [1, 1, 1],
