@@ -1,5 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
+import { energyBillsPart } from './energy-bills';
+import { withParts } from './parts';
 import type { IndicatorDef, TopicDefinition } from './types';
 
 /**
@@ -76,7 +78,7 @@ const WHOLESALE_SOURCE = {
   en: 'day-ahead market prices compiled by Ember from the ENTSO-E Transparency Platform, from 2015, 33 European countries',
 };
 
-export const energyPrices: TopicDefinition = {
+export const energyPrices: TopicDefinition = withParts({
   id: 'energy-prices',
   title: { zh: '電價與油價', en: 'Electricity and fuel prices' },
   shortTitle: { zh: '電價油價', en: 'Energy prices' },
@@ -238,4 +240,4 @@ export const energyPrices: TopicDefinition = {
       noValue: NO_MARKET,
     },
   ],
-};
+}, energyBillsPart);
