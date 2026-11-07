@@ -120,6 +120,80 @@ const RIVERS: PointsOverlayDef = {
   },
 };
 
+/**
+ * 海裡量到的微塑膠（2026-11-07，製作手冊第二十五批 487）：NOAA NCEI 微塑膠資料庫的 22,530 筆採樣
+ * （pipeline/topics/plastic_microplastics.py），依 NOAA 的濃度分級（0 極低 … 4 極高）上色；各介質的分級門檻不同
+ */
+const MICRO_MEDIA = [
+  {
+    id: 'water',
+    label: { zh: '海水', en: 'Ocean water' },
+    unit: { zh: '個/立方公尺', en: 'pieces/m³' },
+    ranges: ['< 0.0005', '0.0005–0.005', '0.005–1', '1–10', '≥ 10'],
+  },
+  {
+    id: 'sediment',
+    label: { zh: '海底沉積物', en: 'Ocean sediment' },
+    unit: { zh: '個/公斤（乾重）', en: 'pieces/kg dry weight' },
+    ranges: ['< 2', '2–20', '20–150', '150–200', '> 200'],
+  },
+  {
+    id: 'beach',
+    label: { zh: '沙灘', en: 'Beaches' },
+    unit: { zh: '個/立方公尺', en: 'pieces/m³' },
+    ranges: ['< 100', '100–500', '500–30,000', '30,000–40,000', '> 40,000'],
+  },
+  {
+    id: 'nurdle',
+    label: { zh: '沙灘上的塑膠粒（Nurdle Patrol 公民科學）', en: 'Beach nurdles (Nurdle Patrol citizen science)' },
+    unit: { zh: '粒/10 分鐘', en: 'nurdles per 10 minutes' },
+    ranges: ['0', '1–2', '2–40', '40–200', '> 200'],
+  },
+] as const;
+const MICRO_CLASS = [
+  { zh: '極低', en: 'Very low' },
+  { zh: '低', en: 'Low' },
+  { zh: '中', en: 'Medium' },
+  { zh: '高', en: 'High' },
+  { zh: '極高', en: 'Very high' },
+];
+// 7 級的連續色取 5 級（淺到深）
+const MICRO_COLORS = [1, 2, 4, 5, 6];
+
+function microOverlay(m: (typeof MICRO_MEDIA)[number]): PointsOverlayDef {
+  return {
+    kind: 'points',
+    id: 'micro-' + m.id,
+    file: `microplastics-${m.id}.json`,
+    label: { zh: '微塑膠採樣（NOAA NCEI）', en: 'Microplastic samples (NOAA NCEI)' },
+    indicators: ['microplastics'],
+    items: [m.id],
+    radius: 1.8,
+    color: {
+      field: 'c',
+      title: { zh: `濃度分級（${m.unit.zh}）`, en: `Concentration class (${m.unit.en})` },
+      thresholds: [1, 2, 3, 4],
+      classes: MICRO_CLASS.map((label, i) => ({
+        color: MAP_TOKENS.sequential[MICRO_COLORS[i]],
+        label: { zh: `${label.zh}（${m.ranges[i]}）`, en: `${label.en} (${m.ranges[i]})` },
+      })),
+    },
+    sortField: 'c',
+    tooltip: (p) => {
+      const c = Number(p.c);
+      const v = p.v == null ? null : Number(p.v);
+      return {
+        title: tr({ zh: `${m.label.zh}的微塑膠`, en: `Microplastics: ${m.label.en}` }),
+        detail: tr({
+          zh: `${MICRO_CLASS[c]?.zh ?? ''}${v == null ? '' : `（${v.toLocaleString('en-US')} ${m.unit.zh}）`}`,
+          en: `${MICRO_CLASS[c]?.en ?? ''}${v == null ? '' : ` (${v.toLocaleString('en-US')} ${m.unit.en})`}`,
+        }),
+        extra: [p.y ? String(p.y) : '', typeof p.ref === 'string' ? p.ref : ''].filter(Boolean),
+      };
+    },
+  };
+}
+
 const indicators: IndicatorDef[] = [
   {
     id: 'per-capita',
@@ -192,6 +266,28 @@ const indicators: IndicatorDef[] = [
     shareOfWorld: true,
     noValue: Object.fromEntries(LANDLOCKED.map((iso) => [iso, LANDLOCKED_REASON])),
   },
+  {
+    id: 'microplastics',
+    label: { zh: '海裡量到的微塑膠', en: 'Microplastics measured at sea' },
+    description: {
+      zh: 'NOAA NCEI 的海洋微塑膠資料庫，1972–2023 年 22,530 筆採樣：海水 15,534、海底沉積物 508、沙灘 671、沙灘上的塑膠粒（Nurdle Patrol 公民科學，2018 年起）5,817。各研究的採樣、萃取與分析方法不同，濃度不一定能互相比較，所以只用 NOAA 依介質訂的五級濃度上色。七成的採樣沒有標國家；有國家的以美國 5,654 筆最多，墨西哥 593、台灣 89（多是沙灘，Bancin 等人 2019 年的 80 筆）。點多的地方是研究做得多，不一定是污染最重。',
+      en: 'The NOAA NCEI marine microplastics database: 22,530 samples from 1972 to 2023 – ocean water 15,534, ocean sediment 508, beaches 671 and beach nurdles (Nurdle Patrol citizen science, since 2018) 5,817. Sampling, extraction and analysis methods differ between studies, so concentrations may not be comparable; dots are coloured only by NOAA’s five concentration classes for each medium. About 70% of samples have no country assigned; of those that do, the US has the most (5,654), then Mexico (593) and Taiwan (89, mostly beaches, 80 of them from Bancin et al. 2019). Dense dots show where research was done, not necessarily where pollution is worst.',
+    },
+    unit: '',
+    file: 'microplastics/{item}.json',
+    dimension: {
+      label: { zh: '介質', en: 'Medium' },
+      options: MICRO_MEDIA.map(({ id, label }) => ({ id, label })),
+      defaultOption: 'water',
+    },
+    layer: { kind: 'none' },
+    timeless: true,
+    unranked: true,
+    rankingBars: false,
+    panelChart: false,
+    format: () => '',
+    missing: { zh: '國家不上色，只畫採樣點', en: 'Countries are not coloured; sample points only' },
+  },
   flow(
     'export',
     { zh: '塑膠廢料出口', en: 'Plastic waste exports' },
@@ -229,6 +325,11 @@ const plasticOwn: TopicDefinition = {
       license: 'CC BY 4.0',
     },
     {
+      name: { zh: 'NOAA NCEI：Marine Microplastics（Nyadjro 等人 2018；2023 年 Scientific Data 10）', en: 'NOAA NCEI: Marine Microplastics (Nyadjro et al. 2018; Scientific Data 10, 2023)' },
+      url: 'https://www.ncei.noaa.gov/products/microplastics',
+      license: { zh: 'NOAA NCEI（免費取用，需引用）', en: 'NOAA NCEI (free to use, citation required)' },
+    },
+    {
       name: 'CEPII, BACI (HS 3915)',
       url: 'https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37',
       license: 'Etalab 2.0',
@@ -259,7 +360,7 @@ const plasticOwn: TopicDefinition = {
     defaultOption: 'all',
   },
   panelExtra: () => import('./panels/PlasticPanel'),
-  overlays: [RIVERS],
+  overlays: [RIVERS, ...MICRO_MEDIA.map(microOverlay)],
   indicators,
 };
 

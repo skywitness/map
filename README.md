@@ -175,6 +175,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `noise` 是歐盟環境噪音指令的暴露人口：EEA datashare 的 WebDAV 抓單一個彙整表 `Summary_END_2022_cutoff241118_v4.xlsx`（約 400 KB，使用者名稱是公開分享代碼、密碼空白；不要用不帶 `?path=` 的 `/download`，會打包整個 EEA 公開 datastore），快取在 `.cache/eea-noise/`。不到一秒。
 
+`plastic-microplastics` 是塑膠污染主題的「海裡量到的微塑膠」：NOAA NCEI 地圖用的 ArcGIS 圖徵服務 Marine_Microplastics_WGS84，一頁 2,000 筆、12 頁共 22,530 筆（不用金鑰），快取在 `.cache/ncei-microplastics/`。約 10 秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

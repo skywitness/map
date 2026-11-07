@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 167;
-export const INDICATOR_COUNT = 1242;
+export const INDICATOR_COUNT = 1243;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -229,6 +229,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"NOAA NCEI IBTrACS v04r01（國際熱帶氣旋最佳路徑；Knapp et al. 2010）","en":"NOAA NCEI IBTrACS v04r01 (International Best Track Archive for Climate Stewardship; Knapp et al. 2010)"},"url":"https://doi.org/10.25921/82ty-9e16","licenses":[{"zh":"公有領域（美國政府資料）","en":"public domain (US government data)"}],"topics":["typhoons"]},
   {"name":{"zh":"NOAA NCEI 全球重大地震資料庫（死亡人數）","en":"NOAA NCEI Global Significant Earthquake Database (deaths)"},"url":"https://doi.org/10.7289/V5TD9V7K","licenses":[{"zh":"公有領域","en":"public domain"}],"topics":["earthquakes"]},
   {"name":{"zh":"NOAA NCEI，Wandering of the Geomagnetic Poles（磁極位置 1590–2025）","en":"NOAA NCEI, Wandering of the Geomagnetic Poles (pole positions 1590–2025)"},"url":"https://www.ncei.noaa.gov/products/wandering-geomagnetic-poles","licenses":[{"zh":"美國政府資料（可自由使用）","en":"US Government data (free to use)"}],"topics":["magnetic"]},
+  {"name":{"zh":"NOAA NCEI：Marine Microplastics（Nyadjro 等人 2018；2023 年 Scientific Data 10）","en":"NOAA NCEI: Marine Microplastics (Nyadjro et al. 2018; Scientific Data 10, 2023)"},"url":"https://www.ncei.noaa.gov/products/microplastics","licenses":[{"zh":"NOAA NCEI（免費取用，需引用）","en":"NOAA NCEI (free to use, citation required)"}],"topics":["plastic"]},
   {"name":{"zh":"NOAA PSL：NCEP/NCAR 再分析，離地 10 公尺與 850、500、250 hPa 的風，1991–2020 年每月長期平均","en":"NOAA PSL: NCEP/NCAR Reanalysis, 10 m and 850, 500 and 250 hPa winds, monthly long-term means 1991–2020"},"url":"https://psl.noaa.gov/data/gridded/data.ncep.reanalysis.html","licenses":[{"zh":"公有領域（PSL 的免責聲明），要致謝","en":"Public domain (PSL disclaimer); acknowledgement requested"}],"topics":["wind"]},
   {"name":{"zh":"NOAA Solar Calculator 的公式（Meeus《Astronomical Algorithms》）","en":"NOAA Solar Calculator formulas (Meeus, Astronomical Algorithms)"},"url":"https://gml.noaa.gov/grad/solcalc/","licenses":[{"zh":"美國政府著作","en":"US Government work"}],"topics":["daylight"]},
   {"name":{"zh":"NOAA STAR 衛星測高的海平面趨勢（Altimetry data are provided by NOAA Laboratory for Satellite Altimetry）","en":"NOAA STAR sea-level trends (Altimetry data are provided by NOAA Laboratory for Satellite Altimetry)"},"url":"https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/","licenses":[{"zh":"美國政府著作","en":"US Government work"}],"topics":["ice"]},
