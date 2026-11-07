@@ -6,6 +6,8 @@
 - 每個市場頁有「Also / News podcasts x% (±n) / AI chatbots y% (±n)」：每週用新聞 podcast、用 AI 聊天機器人取得新聞
   的比例。抽字時字距會斷（「T aiwan」「AI cha tbots」），先把空白合併再比對。塞爾維亞的版面不同，數字寫在註腳
   「news podcasts (11%), and AI chatbots (9%)」；印度、肯亞、奈及利亞、南非、摩洛哥的頁面沒有這兩個數字，不畫。
+- 2026-11-07 補：整體信任新聞、有時或常常避開新聞、過去一年付費看線上新聞（同一頁的三個數字）。社群媒體看新聞的比例
+  在圖裡、抽字後分不出是哪一條線，沒做；歷年折線要讀 2015–2025 年的報告，沒做。
 - 只限「新聞」podcast，不是所有 podcast 的收聽率。樣本是上網的人，網路普及率低的地方偏向年輕、都市、高學歷。
 """
 from __future__ import annotations
@@ -27,6 +29,9 @@ def build() -> None:
     reader = PdfReader(str(download(URL, "reuters-dnr", "DNR-2026.pdf")))
     pods: dict[str, int] = {}
     bots: dict[str, int] = {}
+    trust: dict[str, int] = {}
+    avoid: dict[str, int] = {}
+    pay: dict[str, int] = {}
     for page in reader.pages[60:]:
         text = re.sub(r"\s+", " ", page.extract_text() or "")
         m = re.search(r"Digital News Report 2026 \| (.+?) (?=[A-Z]{2,}|TV|Trust|\d)", text)
@@ -40,13 +45,28 @@ def build() -> None:
         p = re.search(r"News podcasts\s*\(?\s*(\d+)\s*%", flat, re.I)
         # 「…news podcasts, and AI chatbots 0% 50% 100%」是圖的刻度（摩洛哥），不算；塞爾維亞是「AI chatbots (9%)」
         b = re.search(r"(?<!and )AI chatbots\s*(\d+)\s*%|AI chatbots\s*\((\d+)\s*%", flat, re.I)
+        # 2026-11-07 補：整體信任新聞（「25% (-5) GLOBAL AVERAGE 37% OVERALL TRUST」）、避開新聞與付費訂閱線上新聞
+        # （「19% (-2) 10% (-4) AVOID THE NEWS」：前一個是有時或常常避開新聞，後一個是過去一年付費；用希臘 60%／8%、
+        # 挪威 39%／40% 核對過順序。只有一個數字的〔土耳其〕是避開新聞，付費沒有寫）
+        t = re.search(r"(\d+)% \([^)]*\) GLOBAL AVERAGE \d+% OVERALL TRUST", flat)
+        if t:
+            trust.setdefault(iso3, int(t.group(1)))
+        # 塞爾維亞的版面不同：「Social media 64% (-3) 53% (+7) AVOID THE NEWS」前一個是社群媒體，只有避開新聞
+        two = re.search(r"(?<!media )\b(\d+)% \([^)]*\) (\d+)% \([^)]*\) AVOID THE NEWS", flat)
+        one = re.search(r"(\d+)% \([^)]*\) AVOID THE NEWS", flat)
+        if two:
+            avoid.setdefault(iso3, int(two.group(1)))
+            pay.setdefault(iso3, int(two.group(2)))
+        elif one:
+            avoid.setdefault(iso3, int(one.group(1)))
         if p:
             pods.setdefault(iso3, int(p.group(1)))
         if b:
             bots.setdefault(iso3, int(b.group(1) or b.group(2)))
     if not 40 <= len(pods) <= 48:
         raise RuntimeError(f"Digital News Report：新聞 podcast 只抽到 {len(pods)} 個市場，PDF 的版面可能改了")
-    for ind, values in (("news-podcasts", pods), ("news-ai-chatbots", bots)):
+    for ind, values in (("news-podcasts", pods), ("news-ai-chatbots", bots), ("news-trust", trust), ("news-avoid", avoid),
+                        ("news-pay", pay)):
         write_json(OUT / f"{ind}.json", indicator_file(ind, "%", [YEAR], {k: [v] for k, v in sorted(values.items())},
                                                        license="CC BY 4.0"))
         ranked = sorted(((v, k) for k, v in values.items()), reverse=True)

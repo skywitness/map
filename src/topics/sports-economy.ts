@@ -28,8 +28,8 @@ export const sportsEconomyPart: TopicPart = {
       id: 'sport-employment',
       label: { zh: '運動業的就業（歐洲）', en: 'Employment in sport (Europe)' },
       description: {
-        zh: '在運動業或做運動相關工作的人占總就業的比例（Eurostat，2011–2025）。2025 年冰島 2.46% 最高，瑞典 1.59%、丹麥 1.30%、芬蘭 1.25%、西班牙 1.20%、法國 1.16%；德國 0.68%、奧地利 0.63%、波蘭 0.52%；土耳其 0.38%、北馬其頓 0.34%、波赫 0.32%、羅馬尼亞 0.22% 最低，相差 11 倍。',
-        en: 'People working in the sport industry or in sport occupations as a share of total employment (Eurostat, 2011–2025). In 2025 Iceland was highest at 2.46%, then Sweden 1.59%, Denmark 1.30%, Finland 1.25%, Spain 1.20% and France 1.16%; Germany 0.68%, Austria 0.63% and Poland 0.52%; Türkiye 0.38%, North Macedonia 0.34%, Bosnia and Herzegovina 0.32% and Romania 0.22% were lowest, an elevenfold gap.',
+        zh: '在運動業或做運動相關工作的人占總就業的比例（Eurostat，2011–2025）。2025 年冰島 2.46% 最高，瑞典 1.59%、丹麥 1.30%、芬蘭 1.25%、西班牙 1.20%、法國 1.16%；德國 0.68%、奧地利 0.63%、波蘭 0.52%；土耳其 0.38%、北馬其頓 0.34%、波赫 0.32%、羅馬尼亞 0.22% 最低，相差 11 倍。滑過看那一國運動就業的年齡與教育程度組成（例如西班牙 15–29 歲占 44%、大專以上 51%）。',
+        en: 'People working in the sport industry or in sport occupations as a share of total employment (Eurostat, 2011–2025). In 2025 Iceland was highest at 2.46%, then Sweden 1.59%, Denmark 1.30%, Finland 1.25%, Spain 1.20% and France 1.16%; Germany 0.68%, Austria 0.63% and Poland 0.52%; Türkiye 0.38%, North Macedonia 0.34%, Bosnia and Herzegovina 0.32% and Romania 0.22% were lowest, an elevenfold gap. Hover for each country’s age and education mix of sport employment (in Spain, for example, 44% are aged 15–29 and 51% have tertiary education).',
       },
       unit: '%',
       file: 'sport-employment.json',

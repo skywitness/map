@@ -79,5 +79,28 @@ export const languageSchoolPart: TopicPart = {
       formatTick: (v) => fixed(v, 1),
       defaultYear: 2024,
     },
+    {
+      id: 'school-learners',
+      label: { zh: '學中文、日語的高中生', en: 'Pupils learning Chinese or Japanese' },
+      description: {
+        zh: '高中（ISCED 3）學中文或日語的學生人數（Eurostat，比例圓；子項目切換語言）。比例都很低，多半不到 1%，所以畫人數。中文：2024 年法國 22,604 人（1.0%）、義大利 17,447 人最多，土耳其 1,285、丹麥 1,202（2025）；日語：法國 4,371 人最多，芬蘭 1,181（2025）、義大利 661。德國、西班牙這類大國的人數很少，各國把中文、日語排進正式課程的程度差很多。',
+        en: 'Upper-secondary (ISCED 3) pupils learning Chinese or Japanese (Eurostat; bubbles, switch the language). Shares are tiny, mostly under 1%, so the map shows numbers. Chinese: France had the most with 22,604 in 2024 (1.0%), then Italy 17,447, Türkiye 1,285 and Denmark 1,202 (2025); Japanese: France 4,371, Finland 1,181 (2025) and Italy 661. Large countries such as Germany and Spain have very few, as schools differ widely in whether they offer these languages.',
+      },
+      unit: { zh: '人', en: 'pupils' },
+      file: 'school-learners-{item}.json',
+      dimension: {
+        label: { zh: '語言', en: 'Language' },
+        options: [
+          { id: 'chinese', label: { zh: '中文', en: 'Chinese' } },
+          { id: 'japanese', label: { zh: '日語', en: 'Japanese' } },
+        ],
+        defaultOption: 'chinese',
+      },
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 人`, en: `${fixed(v, 0)} pupils` }),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2024,
+    },
   ],
 };

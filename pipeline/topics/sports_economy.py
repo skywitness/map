@@ -7,6 +7,8 @@
 - 台灣：運動部「中央與地方政府機關體育運動經費相關國民所得毛額、國內生產毛額、中央政府總預算比例」（data.gov.tw
   104905，政府資料開放授權條款第 1 版；運動部網站從 cloud 403，但 ws.sports.gov.tw 的檔案直連可以，那個主機沒有
   robots.txt），「占GDP比例(%)」，民國 90–111 年。是中央與地方的體育運動組織預算，比 COFOG 08.1 窄，tooltip 寫明。
+- 2026-11-07：tooltip 加運動就業的年齡（`sprt_emp_age`）與教育程度（`sprt_emp_edu`）組成，用千人算占比；有些國家的小格子
+  因為樣本小被隱藏，加起來可能不到 100%。
 - CC BY 4.0（Eurostat）；英國、科索沃由 sources/eurostat.py 統一排除。
 """
 from __future__ import annotations
@@ -36,8 +38,25 @@ def _taiwan() -> dict[int, float]:
 def build() -> None:
     emp = eurostat.series("sprt_emp_sex", unit="PC_EMP", sex="T")
     years = sorted({y for s in emp.values() for y in s})
+    # 2026-11-07 補：運動就業的年齡、教育程度組成（sprt_emp_age、sprt_emp_edu 的千人，算占運動就業的比例），寫在 tooltip
+    ages = {a: eurostat.series("sprt_emp_age", unit="THS_PER", age=a) for a in ("TOTAL", "Y15-29", "Y30-64", "Y_GE65")}
+    edus = {e: eurostat.series("sprt_emp_edu", unit="THS_PER", isced11=e) for e in ("TOTAL", "ED0-2", "ED3_4", "ED5-8")}
+    hints, hints_en = {}, {}
+    for c, tot in ages["TOTAL"].items():
+        y = max(tot)
+        share = lambda d, k: round(d[k].get(c, {}).get(y, 0) / tot[y] * 100) if tot[y] else None  # noqa: E731
+        a = [share(ages, k) for k in ("Y15-29", "Y30-64", "Y_GE65")]
+        etot = edus["TOTAL"].get(c, {}).get(y)
+        e = [round(edus[k].get(c, {}).get(y, 0) / etot * 100) if etot else None for k in ("ED5-8", "ED3_4", "ED0-2")]
+        hints[c] = (f"{y} 年運動就業 {tot[y]:,.1f} 千人：15–29 歲 {a[0]}%、30–64 歲 {a[1]}%、65 歲以上 {a[2]}%"
+                    + (f"；大專以上 {e[0]}%、高中職 {e[1]}%、國中以下 {e[2]}%" if etot else ""))
+        hints_en[c] = (f"{tot[y]:,.1f} thousand in sport employment in {y}: aged 15–29 {a[0]}%, 30–64 {a[1]}%, 65+ {a[2]}%"
+                       + (f"; tertiary education {e[0]}%, upper secondary {e[1]}%, lower secondary or less {e[2]}%" if etot else ""))
     write_json(OUT / "sport-employment.json", indicator_file(
-        "sport-employment", "%", years, {k: [s.get(y) for y in years] for k, s in sorted(emp.items())}, license="CC BY 4.0"))
+        "sport-employment", "%", years, {k: [s.get(y) for y in years] for k, s in sorted(emp.items())}, license="CC BY 4.0",
+        hints=dict(sorted(hints.items())), hintsEn=dict(sorted(hints_en.items()))))
+    for c in ("DEU", "FRA", "SWE", "ITA", "ESP"):
+        print(f"    {c}：{hints.get(c)}")
 
     gov = eurostat.series("gov_10a_exp", unit="PC_GDP", sector="S13", cofog99="GF0801", na_item="TE")
     tw = _taiwan()

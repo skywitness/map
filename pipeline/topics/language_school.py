@@ -5,6 +5,7 @@
   （2012–2025）。CC BY 4.0；英國、科索沃由 sources/eurostat.py 統一排除（非商業）。只有歐洲 40 國左右，台灣沒有。
 - 預設看國中（ISCED 2，ED2）：高中混了普通科與技職，技職學外語的比例低很多。比例是各語言分開算，一個學生學兩種
   會各算一次，加起來會超過 100%。
+- 2026-11-07：學中文、學日語的高中生人數（ED3，NR）做成比例圓（school-learners-{chinese,japanese}.json）。
 - 「英語以外最多人學的外語」：芬蘭的瑞典語、比利時的法語與荷蘭語是本國語言，Eurostat 也算進去，照資料；
   愛爾蘭的英語是本國語言，不算外語，所以愛爾蘭最多人學的是法語。
 """
@@ -70,6 +71,21 @@ def build() -> None:
     write_json(OUT / "school-languages-per-pupil.json", indicator_file(
         "school-languages-per-pupil", "種", years3,
         {k: [round(d[y], 1) if y in d else None for y in years3] for k, d in sorted(per_pupil.items())}, license="CC BY 4.0"))
+
+    # 學中文、學日語的高中生人數（2026-11-07 補，手冊 422 的比例圓）：比例都不到 2%，畫人數比較看得出差別
+    for code, item in (("CHI", "chinese"), ("JPN", "japanese")):
+        nr = eurostat.series("educ_uoe_lang01", unit="NR", language=code, isced11="ED3")
+        ys = sorted({y for d in nr.values() for y in d})
+        pc = eurostat.series("educ_uoe_lang01", unit="PC", language=code, isced11="ED3")
+        lh = {k: f"{y} 年高中生 {int(v):,} 人學{NAMES[code][0]}" + (f"（{pc[k][y]:.1f}%）" if pc.get(k, {}).get(y) else "")
+                 for k, d in nr.items() if d for y, v in [max(d.items())]}
+        lh_en = {k: f"{int(v):,} upper-secondary pupils learning {NAMES[code][1]} in {y}" + (f" ({pc[k][y]:.1f}%)" if pc.get(k, {}).get(y) else "")
+                    for k, d in nr.items() if d for y, v in [max(d.items())]}
+        write_json(OUT / f"school-learners-{item}.json", indicator_file(
+            "school-learners", "人", ys, {k: [int(d[y]) if y in d else None for y in ys] for k, d in sorted(nr.items())},
+            hints=lh, hintsEn=lh_en, license="CC BY 4.0"))
+        last_nr = {k: max(d.items()) for k, d in nr.items() if d}
+        print(f"  學{NAMES[code][0]}的高中生：{sorted(((int(v[1]), k, v[0]) for k, v in last_nr.items()), reverse=True)[:10]}")
 
     last = years[-1]
     print(f"  學英語（{LEVEL}，{last}）：{sorted(((v[-1], k) for k, v in english.items() if v[-1] is not None), reverse=True)}")
