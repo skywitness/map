@@ -413,6 +413,8 @@ STEPS = {
     "reserves-debt-currency": "topics.debt_currency",
     # 物價與消費：實質利率（WDI FR.INR.RINR）、食物價格通膨（FAOSTAT CP 月資料＋主計總處食物類），輸出 fiscal/
     "prices-food-rates": "topics.prices_food_rates",
+    # 保險（新主題，金融服務）：OECD Global Insurance Statistics（含台灣，15 個維度的 key 要補滿）、保發中心的投保率
+    "insurance": "topics.insurance",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
