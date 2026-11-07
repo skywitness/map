@@ -117,6 +117,7 @@ const TOPIC_ICONS = {
   insurance: 'shield-plus',
   banking: 'banknote-arrow-up',
   'business-demography': 'sprout',
+  'market-regulation': 'file-stack',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

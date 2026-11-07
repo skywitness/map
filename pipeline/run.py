@@ -425,6 +425,8 @@ STEPS = {
     "chain-retail": "topics.chain_retail",
     # 企業的誕生、死亡與存活（新主題）：Eurostat bd_size（20 MB），台灣用商業發展署的公司登記統計
     "business-demography": "topics.business_demography",
+    # 開公司有多麻煩、國家持股有多深（新主題）：OECD 產品市場管制指標 PMR（2018、2023，含台灣）
+    "market-regulation": "topics.market_regulation",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

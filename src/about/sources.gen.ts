@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 157;
-export const INDICATOR_COUNT = 1203;
+export const TOPIC_COUNT = 158;
+export const INDICATOR_COUNT = 1207;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -237,6 +237,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD Net Effective Carbon Rates（淨有效碳稅率，DF_NECRS）","en":"OECD Net Effective Carbon Rates (DF_NECRS)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_NECR%40DF_NECRS&df[ag]=OECD.CTP.TPS","licenses":["CC BY 4.0"],"topics":["taxes"]},
   {"name":{"zh":"OECD Pensions at a Glance 的資料庫（退休年齡、實際退出勞動市場的年齡）","en":"OECD Pensions at a Glance database (retirement ages, effective labour market exit age)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_PAG%40DF_DPS&df[ag]=OECD.ELS.SPD","licenses":["CC BY 4.0"],"topics":["employment"]},
   {"name":{"zh":"OECD Pensions at a Glance：年金淨所得替代率（DF_PRR）","en":"OECD Pensions at a Glance: net pension replacement rates (DF_PRR)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_PAG%40DF_PRR&df[ag]=OECD.ELS.SPD","licenses":["CC BY 4.0"],"topics":["employment"]},
+  {"name":{"zh":"OECD Product Market Regulation（產品市場管制指標，DSD_PMR@DF_PMR）","en":"OECD Product Market Regulation indicators (DSD_PMR@DF_PMR)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_PMR%40DF_PMR&df[ag]=OECD.ECO.GCRD","licenses":["CC BY 4.0"],"topics":["market-regulation"]},
   {"name":{"zh":"OECD Social Expenditure Database（SOCX，公共社會支出）","en":"OECD Social Expenditure Database (SOCX, public social spending)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_SOCX_AGG%40DF_SOCX_AGG&df[ag]=OECD.ELS.SPD","licenses":["CC BY 4.0"],"topics":["fiscal"]},
   {"name":{"zh":"OECD Tax Database 表 I.7（個人所得稅最高稅率與起徵點）","en":"OECD Tax Database, Table I.7 (top statutory personal income tax rate and threshold)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_PIT%40DF_PIT_TOP_EARN_THRESH&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD Tax-Benefit Model（TaxBEN）：低收入給付的適足性、脫離貧窮所需的工時","en":"OECD Tax-Benefit Model (TaxBEN): adequacy of minimum-income benefits; hours needed to escape poverty"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAXBEN_IA%40DF_IA&df[ag]=OECD.ELS.JAI","licenses":["CC BY 4.0"],"topics":["redistribution"]},
