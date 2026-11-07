@@ -29,6 +29,20 @@ const tonnesTick = (v: number) => `${formatLargeTick(v)}${tr({ zh: '噸', en: ' 
 const perPerson = (v: number) => `${fixed(v, Math.abs(v) < 0.1 ? 3 : Math.abs(v) < 10 ? 2 : 1)} ${tr(PER_PERSON)}`;
 
 const sequential = (thresholds: number[]): ScaleSpec => ({ type: 'sequential', thresholds });
+/** 排放最高的那一年分 7 類（pipeline/topics/climate_peak.py 的類別代碼），最近的最深 */
+const PEAK_CLASSES = [
+  { value: 6, label: { zh: '2024 年還在創新高', en: 'Still rising (record in 2024)' } },
+  { value: 5, label: { zh: '2020–2023 年', en: '2020–2023' } },
+  { value: 4, label: { zh: '2010 年代', en: '2010s' } },
+  { value: 3, label: { zh: '2000 年代', en: '2000s' } },
+  { value: 2, label: { zh: '1990 年代', en: '1990s' } },
+  { value: 1, label: { zh: '1980 年代', en: '1980s' } },
+  { value: 0, label: { zh: '1980 年以前', en: 'Before 1980' } },
+];
+const peakLabel = (code: number) => {
+  const c = PEAK_CLASSES.find((p) => p.value === code);
+  return c ? tr(c.label) : String(code);
+};
 /** 圖例刻度：門檻寫幾位小數就顯示幾位（1.5、0.15、0.02） */
 const decimals = (v: number) => [0, 1, 2, 3].find((d) => Math.abs(Math.round(v * 10 ** d) - v * 10 ** d) < 1e-9) ?? 3;
 const thresholdTick = (v: number) => fixed(v, decimals(v));
@@ -226,6 +240,34 @@ export const climate: TopicDefinition = withParts({
       format: (v) => `${fixed(v, 3)} ${tr(KG_PER_DOLLAR)}`,
       formatTick: (v) => fixed(v, 2),
       compareWorld: true,
+    },
+    {
+      // 2026-11-07（製作手冊第二十五批 475，候選 1138）：pipeline/topics/climate_peak.py 用 co2.json 算的
+      id: 'co2-peak',
+      label: { zh: '二氧化碳排放最高的那一年', en: 'Year CO₂ emissions peaked' },
+      description: {
+        zh: '化石燃料與工業的二氧化碳排放，歷年最高的那一年（Global Carbon Project，1850–2024 年）。瑞典 1970 年、英國 1971、法國 1973、德國 1979 就到了高峰，俄羅斯 1990、美國與義大利 2005、日本 2013、台灣 2017、南韓 2018；中國、印度、印尼、伊朗、土耳其、越南等 53 國 2024 年還在創新高。下降不一定是減碳：蘇聯解體（俄羅斯、烏克蘭）、戰爭（敘利亞）、經濟崩潰（委內瑞拉）也會讓排放減少，2009 年金融危機、2020 年疫情之後也常回升，最近幾年的「高峰」可能只是暫時的。滑過國家看高峰與 2024 年的排放量；高峰不到 10 萬公噸的小島國不算。',
+        en: 'The year in which CO₂ emissions from fossil fuels and industry were highest (Global Carbon Project, 1850–2024). Sweden peaked in 1970, the UK in 1971, France in 1973 and Germany in 1979; Russia in 1990, the US and Italy in 2005, Japan in 2013, Taiwan in 2017 and South Korea in 2018. China, India, Indonesia, Iran, Turkey, Viet Nam and 47 other countries set new records in 2024. A decline is not always decarbonisation: the collapse of the Soviet Union (Russia, Ukraine), war (Syria) and economic collapse (Venezuela) also cut emissions, and emissions often rebounded after the 2009 financial crisis and the 2020 pandemic, so a recent peak may be temporary. Hover over a country for its peak and 2024 emissions; small islands whose peak was under 100,000 tonnes are left out.',
+      },
+      unit: '',
+      file: 'co2-peak.json',
+      timeless: true,
+      layer: { kind: 'categorical', ordinal: true, categories: PEAK_CLASSES },
+      format: peakLabel,
+    },
+    {
+      id: 'co2-from-peak',
+      label: { zh: '比排放高峰少了多少', en: 'CO₂ change from peak' },
+      description: {
+        zh: '2024 年的二氧化碳排放，比歷年最高的那一年少了多少（0 是 2024 年就是歷年最高）。烏克蘭 −80.8%（大半是蘇聯解體與戰爭）、瑞典 −58.7%、英國 −52.6%、法國 −51.3%、德國 −48.8%、波蘭 −41.2%、義大利 −39.8%、俄羅斯 −29.8%、日本 −26.7%、美國 −20.0%、南韓 −12.9%、台灣 −8.2%。',
+        en: 'How far 2024 CO₂ emissions were below the highest year on record (0 means 2024 was the record). Ukraine −80.8% (largely the collapse of the Soviet Union and war), Sweden −58.7%, the UK −52.6%, France −51.3%, Germany −48.8%, Poland −41.2%, Italy −39.8%, Russia −29.8%, Japan −26.7%, the US −20.0%, South Korea −12.9%, Taiwan −8.2%.',
+      },
+      unit: '%',
+      file: 'co2-from-peak.json',
+      timeless: true,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [-60, -45, -30, -20, -10, -0.05] } },
+      format: (v) => (v === 0 ? tr({ zh: '2024 年是最高', en: '2024 was the peak' }) : `${fixed(v, 1)}%`),
+      formatTick: (v) => `${fixed(v, 0)}%`,
     },
     {
       id: 'transport-co2-share',

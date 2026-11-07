@@ -5,6 +5,13 @@
 - 2030 年再生能源發電占比目標（Ember「Global Renewable Power Sector Targets 2030」，CC BY 4.0）與距離目標還差多少；
   使用者決定不做裝置容量目標（Ember 彙總表的容量跟它引用的文件對不起來）。台灣不在 Ember 的目標檔，手補官方目標；
 - 電力普及率與沒有電的人數（世界銀行 WDI EG.ELC.ACCS.ZS × SP.POP.TOTL，CC BY 4.0；WDI 沒有台灣，留白）。
+
+2026-11-07（製作手冊第二十五批 475）：Ember 舊的長表（storage.googleapis.com 的 yearly_full_release_long_format.csv）
+停止更新、只剩一個指向新網址的公告檔，改讀新檔 files.ember-energy.org 的 release_generation_yearly_global.csv
+（欄位全部改名：一列是一個地區、一年、一種「Electricity source」，數值分成 Generation (TWh)、Share of generation (%)、
+Emissions intensity (gCO2e/kWh) 等欄；1985 年起）。人均用電量新檔沒有，用 Demand 的 TWh 除以聯合國 WPP 2024 的
+年中人口（跟 Ember 舊檔的算法一樣：台灣 2024 年 288.56 TWh ÷ 2,321 萬人 = 12.43 MWh）；發電碳排強度新檔是 CO₂ 當量
+（gCO2e/kWh，含甲烷等），舊檔只有 CO₂。
 """
 from __future__ import annotations
 
@@ -12,49 +19,54 @@ import csv
 from collections import defaultdict
 
 from common import OUT_DIR, download, indicator_file, now_iso, to_series, write_json
+from sources import wpp
 from sources.countries import to_iso3
 
-URL = "https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/yearly_full_release_long_format.csv"
+URL = "https://files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv"
+GEN, SHARE, INTENSITY = "Generation (TWh)", "Share of generation (%)", "Emissions intensity (gCO2e/kWh)"
 
-# 輸出檔名 -> ((Category, Subcategory, Variable, Unit), 單位, 換算倍數, 小數位數)
+# 輸出檔名 -> ((Electricity source, 欄位), 單位, 換算倍數, 小數位數)；demand-per-capita 另外算（見 build）
 INDICATORS = {
-    "generation": (("Electricity generation", "Total", "Total Generation", "TWh"), "TWh", 1, 2),
-    "demand-per-capita": (("Electricity demand", "Demand per capita", "Demand per capita", "MWh"), "kWh", 1000, 0),
-    "renewables-share": (("Electricity generation", "Aggregate fuel", "Renewables", "%"), "%", 1, 1),
-    "clean-share": (("Electricity generation", "Aggregate fuel", "Clean", "%"), "%", 1, 1),
-    "coal-share": (("Electricity generation", "Fuel", "Coal", "%"), "%", 1, 1),
-    "nuclear-share": (("Electricity generation", "Fuel", "Nuclear", "%"), "%", 1, 1),
-    "gas-share": (("Electricity generation", "Fuel", "Gas", "%"), "%", 1, 1),
-    "hydro-share": (("Electricity generation", "Fuel", "Hydro", "%"), "%", 1, 1),
-    "wind-share": (("Electricity generation", "Fuel", "Wind", "%"), "%", 1, 1),
-    "solar-share": (("Electricity generation", "Fuel", "Solar", "%"), "%", 1, 1),
-    "bioenergy-share": (("Electricity generation", "Fuel", "Bioenergy", "%"), "%", 1, 1),
-    "other-fossil-share": (("Electricity generation", "Fuel", "Other Fossil", "%"), "%", 1, 1),
-    "other-renewables-share": (("Electricity generation", "Fuel", "Other Renewables", "%"), "%", 1, 1),
-    "carbon-intensity": (("Power sector emissions", "CO2 intensity", "CO2 intensity", "gCO2/kWh"), "gCO₂/kWh", 1, 0),
+    "generation": (("Total generation", GEN), "TWh", 1, 2),
+    "demand-per-capita": (("Demand", GEN), "kWh", 1, 0),
+    "renewables-share": (("Renewables", SHARE), "%", 1, 1),
+    "clean-share": (("Clean", SHARE), "%", 1, 1),
+    "coal-share": (("Coal", SHARE), "%", 1, 1),
+    "nuclear-share": (("Nuclear", SHARE), "%", 1, 1),
+    "gas-share": (("Gas", SHARE), "%", 1, 1),
+    "hydro-share": (("Hydro", SHARE), "%", 1, 1),
+    "wind-share": (("Wind", SHARE), "%", 1, 1),
+    "solar-share": (("Solar", SHARE), "%", 1, 1),
+    "bioenergy-share": (("Bioenergy", SHARE), "%", 1, 1),
+    "other-fossil-share": (("Other fossil", SHARE), "%", 1, 1),
+    "other-renewables-share": (("Other renewables", SHARE), "%", 1, 1),
+    "carbon-intensity": (("Total generation", INTENSITY), "gCO₂e/kWh", 1, 0),
 }
 
+# 2025 年只有約 90 國的：沒有的用 2024 年（碳排強度 2026-11-07 起也是，新檔 2025 年 94 國）
 FUEL_SHARES_LATEST = {"gas-share", "hydro-share", "wind-share", "solar-share", "bioenergy-share", "other-fossil-share",
-                      "other-renewables-share"}
+                      "other-renewables-share", "carbon-intensity"}
 
 # 側欄的發電結構：Ember 有 9 種能源，生質能與其他再生能源合併成一類（圖表最多 8 色）
 FUELS = {
     "Coal": "coal",
     "Gas": "gas",
-    "Other Fossil": "other-fossil",
+    "Other fossil": "other-fossil",
     "Nuclear": "nuclear",
     "Hydro": "hydro",
     "Wind": "wind",
     "Solar": "solar",
     "Bioenergy": "bio-other",
-    "Other Renewables": "bio-other",
+    "Other renewables": "bio-other",
 }
 FUEL_ORDER = ["coal", "gas", "other-fossil", "nuclear", "hydro", "wind", "solar", "bio-other"]
 
 
 def build() -> None:
-    path = download(URL, "ember", "yearly_full_release_long_format.csv")
-    wanted = {spec: key for key, (spec, *_rest) in INDICATORS.items()}
+    path = download(URL, "ember", "release_generation_yearly_global.csv")
+    by_source: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    for key, ((source, column), *_rest) in INDICATORS.items():
+        by_source[source].append((key, column))
     series: dict[str, dict[str, dict[int, float]]] = {key: defaultdict(dict) for key in INDICATORS}
     mix: dict[str, dict[str, dict[int, float]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 
@@ -66,14 +78,19 @@ def build() -> None:
                 area = iso3
             else:
                 continue
-            if not row["Value"]:
-                continue
-            year, value = int(row["Year"]), float(row["Value"])
-            spec = (row["Category"], row["Subcategory"], row["Variable"], row["Unit"])
-            if key := wanted.get(spec):
-                series[key][area][year] = value
-            if spec[0] == "Electricity generation" and spec[1] == "Fuel" and spec[3] == "TWh":
-                mix[area][FUELS[spec[2]]][year] += value
+            year, source = int(row["Year"]), row["Electricity source"]
+            for key, column in by_source.get(source, []):
+                if row[column]:
+                    series[key][area][year] = float(row[column])
+            if source in FUELS and row[GEN]:
+                mix[area][FUELS[source]][year] += float(row[GEN])
+
+    # 人均用電量：用電量（TWh）÷ WPP 年中人口（千人）→ 度（kWh）；跟 Ember 舊檔的 Demand per capita 同一個算法
+    population = wpp.demographic(["TPopulation1July"], max(y for s in series["generation"].values() for y in s))["TPopulation1July"]
+    series["demand-per-capita"] = defaultdict(dict, {
+        area: {y: twh * 1e6 / population[area][y] for y, twh in s.items() if population.get(area, {}).get(y)}
+        for area, s in series["demand-per-capita"].items()
+    })
 
     years = list(range(min(y for s in series["generation"].values() for y in s),
                        max(y for s in series["generation"].values() for y in s) + 1))

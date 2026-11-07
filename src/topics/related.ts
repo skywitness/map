@@ -114,7 +114,7 @@ export const RELATED: Record<string, string[]> = {
   renewables: ['electricity', 'wind', 'climate'],
   ev: ['electricity', 'road-safety', 'minerals'],
   // 環境
-  climate: ['temperature', 'fossil-fuels', 'ice'],
+  climate: ['temperature', 'fossil-fuels', 'electricity'],
   temperature: ['climate', 'koppen', 'typhoons'],
   koppen: ['temperature', 'elevation'],
   ice: ['climate', 'oceans', 'antarctica'],

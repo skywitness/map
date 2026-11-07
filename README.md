@@ -155,6 +155,10 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `retail` 是零售業的規模與電子商務：Eurostat `isoc_ec_evaln2`（1.2 MB）、`sbs_ovw_act`（441 萬個值，用 statistics 1.0 API 只抓 G47 的三個指標，`sources/eurostat.py` 的 `json_series()`）、世界銀行的人口、主計總處 110 年工商普查 mp02143a110.xml（300 KB）、戶政司 2021 年底人口。幾秒鐘。
 
+`climate-peak` 是溫室氣體排放的「排放達峰了嗎」：只讀 `climate` 步驟輸出的 `public/data/topics/climate/co2.json`，算每個國家二氧化碳排放最高的那一年與 2024 年比高峰少了多少，要在 `climate` 之後跑。不下載。
+
+`electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
+
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。
 
 `education-projection` 讀 Wittgenstein Centre／IIASA 在 Zenodo 的推估（zen2025V01 的 SSP2，約 130 MB，CC BY 4.0），輸出教育主題 25 歲以上大專以上的比例（2025–2100 年）。做法見 DESIGN.md 第 8 節第 281 點。
