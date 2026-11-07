@@ -109,6 +109,7 @@ const TOPIC_ICONS = {
   fiscal: 'receipt',
   taxes: 'percent',
   redistribution: 'arrow-down-wide-narrow',
+  'social-protection': 'umbrella',
   prices: 'tag',
   reserves: 'vault',
   'stock-market': 'chart-candlestick',

@@ -395,6 +395,8 @@ STEPS = {
     "income-labour-share": "topics.labour_share",
     # 重分配與貧窮（新主題）：OECD IDD 的市場與可支配所得吉尼、相對貧窮率，TaxBEN 的低收入給付與脫貧工時
     "redistribution": "topics.redistribution",
+    # 社會保障覆蓋率（新主題）：ILOSTAT SDG 1.3.1 的 9 項，含台灣
+    "social-protection": "topics.social_protection",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
