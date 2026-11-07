@@ -219,6 +219,7 @@ STEPS = {
     "electricity-renewables-extra": "topics.electricity_renewables_extra",
     "renewables-final": "topics.renewables_final",
     "energy-use": "topics.energy_use",
+    "energy-wholesale": "topics.energy_wholesale",
     "water-forest": "topics.water_forest",
     # 取水量的用途、海水淡化（第二十二批 387）：WDI 轉載 AQUASTAT、AQUASTAT 批次檔
     "water-use": "topics.water_use",

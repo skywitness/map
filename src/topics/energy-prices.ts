@@ -1,4 +1,4 @@
-import { tr, type Text } from '../i18n/lang';
+import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { IndicatorDef, TopicDefinition } from './types';
 
@@ -63,6 +63,34 @@ function taxShare(id: string, label: Text, description: Text): IndicatorDef {
   };
 }
 
+// ── 批售電價（2026-11-07，製作手冊第二十五批 526；pipeline/topics/energy_wholesale.py） ──
+const EUR_MWH = { zh: '歐元/MWh', en: '€/MWh' };
+const eurMwh = (v: number) => tr({ zh: `${fixed(v, 0)} 歐元/MWh`, en: `€${fixed(v, 0)}/MWh` });
+const NO_MARKET = {
+  TWN: {
+    zh: '沒有：台灣由台電單一買方收購電力，沒有電力批售市場的公開價格',
+    en: 'None: Taipower is the single buyer of electricity in Taiwan, so there is no public wholesale market price',
+  },
+};
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** 月價的時間軸：「年份」是月份的編號（2000 年 1 月是 0，同「各國在讀什麼」） */
+const monthOf = (i: number) => ({ year: 2000 + Math.floor(i / 12), month: (i % 12) + 1 });
+const MONTH_AXIS = {
+  label: { zh: '月份', en: 'Month' },
+  year: (i: number) => {
+    const { year, month } = monthOf(i);
+    return tr({ zh: `${year} 年 ${month} 月`, en: `${MONTHS_EN[month - 1]} ${year}` });
+  },
+  tick: (i: number) => {
+    const { year, month } = monthOf(i);
+    return getLang() === 'en' ? `${MONTHS_EN[month - 1]} ${year}` : `${year}/${month}`;
+  },
+};
+const WHOLESALE_SOURCE = {
+  zh: 'Ember 彙整 ENTSO-E 透明平台的日前市場價格，2015 年起，歐洲 33 國',
+  en: 'day-ahead market prices compiled by Ember from the ENTSO-E Transparency Platform, from 2015, 33 European countries',
+};
+
 export const energyPrices: TopicDefinition = {
   id: 'energy-prices',
   title: { zh: '電價與油價', en: 'Electricity and fuel prices' },
@@ -112,6 +140,14 @@ export const energyPrices: TopicDefinition = {
       name: { zh: '世界銀行 WDI：官方匯率（PA.NUS.FCRF）；中央銀行：新臺幣對美元匯率', en: 'World Bank WDI: official exchange rate (PA.NUS.FCRF); Central Bank of the Republic of China (Taiwan): NT$ per US$' },
       url: 'https://data.worldbank.org/indicator/PA.NUS.FCRF',
       license: { zh: 'CC BY 4.0；政府資料開放授權條款第 1 版', en: 'CC BY 4.0; Open Government Data License, version 1.0' },
+    },
+    {
+      name: {
+        zh: 'Ember：European Wholesale Electricity Price Data（原始資料是 ENTSO-E 透明平台的日前市場價格）',
+        en: 'Ember, European Wholesale Electricity Price Data (from day-ahead prices on the ENTSO-E Transparency Platform)',
+      },
+      url: 'https://ember-energy.org/data/european-wholesale-electricity-price-data/',
+      license: 'CC BY 4.0',
     },
     {
       name: { zh: '各國政府、能源主管機關與新聞（每個值的出處見各國附註）', en: 'National governments, energy regulators and news reports (the source of each value is in the country notes)' },
@@ -211,6 +247,50 @@ export const energyPrices: TopicDefinition = {
         },
       ),
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [25, 30, 35, 40, 45] } },
+    },
+    {
+      id: 'wholesale',
+      label: { zh: '批售電價（日前市場的年平均）', en: 'Wholesale electricity price (day-ahead, annual average)' },
+      description: {
+        zh: `電力公司與大用戶在電力交易所買電的價格，每年所有小時的平均（${WHOLESALE_SOURCE.zh}；一年要有 9 成以上的小時才算，2026 年只算到 10 月）。跟家庭電價是兩回事：不含輸配電費與稅，漲跌也比零售快。2022 年能源危機：義大利 304 歐元/MWh、瑞士 282、希臘 280、法國 276；德國從 2020 年的 30 漲到 236。2025 年：義大利 123、塞爾維亞 118、愛爾蘭 114 最高；芬蘭 40、瑞典 43、挪威 48 最低。`,
+        en: `The price utilities and large consumers pay on power exchanges, averaged over every hour of the year (${WHOLESALE_SOURCE.en}; a year needs at least 90% of its hours, and 2026 runs to October). It is not the household price: network charges and taxes are excluded, and it moves faster than retail prices. In the 2022 energy crisis Italy averaged €304/MWh, Switzerland 282, Greece 280 and France 276, while Germany went from 30 in 2020 to 236. In 2025 Italy (123), Serbia (118) and Ireland (114) were highest; Finland (40), Sweden (43) and Norway (48) lowest.`,
+      },
+      unit: EUR_MWH,
+      file: 'wholesale.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [40, 60, 80, 100, 150, 200] } },
+      format: eurMwh,
+      formatTick: (v) => fixed(v, 0),
+      noValue: NO_MARKET,
+    },
+    {
+      id: 'wholesale-monthly',
+      label: { zh: '批售電價（每月）', en: 'Wholesale electricity price (monthly)' },
+      description: {
+        zh: `日前市場每個月的平均價（${WHOLESALE_SOURCE.zh}；這個月還沒過完，不收）。播放時間軸看得到 2022 年夏天的高峰：2022 年 8 月義大利 544 歐元/MWh、匈牙利 496。2026 年 10 月：匈牙利 245、阿爾巴尼亞 242 最高；芬蘭 38、瑞典 76 最低。價格都用歐元，非歐元區國家的匯率變動也會混進來。`,
+        en: `Average day-ahead price for each month (${WHOLESALE_SOURCE.en}; the current, unfinished month is left out). Play the timeline to see the summer 2022 peak: Italy €544/MWh and Hungary 496 in August 2022. In October 2026 Hungary (245) and Albania (242) were highest; Finland (38) and Sweden (76) lowest. Prices are all in euros, so exchange-rate moves also show up for countries outside the euro area.`,
+      },
+      unit: EUR_MWH,
+      file: 'wholesale-monthly.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [50, 75, 100, 150, 200, 300] } },
+      format: eurMwh,
+      formatTick: (v) => fixed(v, 0),
+      timeAxis: MONTH_AXIS,
+      defaultYear: 'latest',
+      noValue: NO_MARKET,
+    },
+    {
+      id: 'negative-hours',
+      label: { zh: '負電價的小時數', en: 'Hours with negative power prices' },
+      description: {
+        zh: `一年裡日前市場價格低於 0 的小時數（${WHOLESALE_SOURCE.zh}；2026 年只算到 10 月）：風力、太陽能發電多而用電少的時段，賣電的一方反過來倒貼。德國 2015 年 110 小時，2025 年 511 小時（德國與盧森堡是同一個價區，數字一樣）。2024 年芬蘭 725、瑞典 609、荷蘭 458 最多；2025 年荷蘭 584、西班牙 553、比利時 519；2026 年到 10 月西班牙 678、葡萄牙 540、希臘 490。`,
+        en: `Hours in the year when the day-ahead price fell below zero (${WHOLESALE_SOURCE.en}; 2026 runs to October): at times of plentiful wind and solar output and low demand, sellers end up paying to deliver power. Germany had 110 such hours in 2015 and 511 in 2025 (Germany and Luxembourg share one bidding zone, so their figures match). Finland (725), Sweden (609) and the Netherlands (458) led in 2024; the Netherlands (584), Spain (553) and Belgium (519) in 2025; Spain (678), Portugal (540) and Greece (490) in 2026 through October.`,
+      },
+      unit: { zh: '小時', en: 'hours' },
+      file: 'negative-hours.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 50, 100, 200, 400, 600] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 小時`, en: `${fixed(v, 0)} hours` }),
+      formatTick: (v) => fixed(v, 0),
+      noValue: NO_MARKET,
     },
   ],
 };
