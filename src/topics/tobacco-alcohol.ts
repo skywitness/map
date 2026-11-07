@@ -2,6 +2,8 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, PointRecord, PointsOverlayDef, ScaleSpec, TopicDefinition } from './types';
+import { withParts } from './parts';
+import { wineMakersPart } from './wine-makers';
 
 /*
  * 2026-11-04（使用者決定只在 WHO GHO 的指標不用）：吸菸率換成 data.who.int 的菸草使用率（指標 id 不變），
@@ -57,7 +59,7 @@ const BREWERIES: PointsOverlayDef = {
   },
 };
 
-export const tobaccoAlcohol: TopicDefinition = {
+const tobaccoAlcoholOwn: TopicDefinition = {
   id: 'tobacco-alcohol',
   title: { zh: '各國菸酒', en: 'Tobacco and alcohol by country' },
   shortTitle: { zh: '菸酒', en: 'Tobacco' },
@@ -237,3 +239,6 @@ export const tobaccoAlcohol: TopicDefinition = {
     },
   ],
 };
+
+/** 2026-11-07（製作手冊第二十四批 429）：接上蒸餾廠、酒莊、威士忌蒸餾廠與歐盟葡萄酒產區（wine-makers.ts） */
+export const tobaccoAlcohol: TopicDefinition = withParts(tobaccoAlcoholOwn, wineMakersPart);
