@@ -76,6 +76,8 @@ const LAUNCH_LIST: ListPanelDef = {
       }),
 };
 
+const NO_LAUNCH = { TWN: { zh: '沒有自主入軌發射能力（福衛系列委託國外發射）', en: 'No indigenous orbital launch capability (its FORMOSAT satellites launch abroad)' } };
+
 export const space: TopicDefinition = {
   id: 'space',
   title: { zh: '太空：衛星與發射', en: 'Space: satellites and launches' },
@@ -253,6 +255,85 @@ export const space: TopicDefinition = {
       format: missions,
       formatTick: n0,
       shareOfWorld: true,
+    },
+    // 2026-11-07（製作手冊第二十五批 517、518）GCAT 的發射失敗率、民間業者比例、酬載用途、聯合國登記率（pipeline/topics/space_more.py）
+    {
+      id: 'launch-fail',
+      label: { zh: '入軌發射的失敗率', en: 'Orbital launch failure rate' },
+      description: {
+        zh: '入軌發射失敗的比例，依發射業者所屬國（GCAT；蘇聯算俄羅斯；Rocket Lab 在紐西蘭發射記成紐西蘭；部分成功依 GCAT 的成功或失敗碼）。子項目是「到那一年為止全部」與「近 5 年」，至少 5 次才畫。全部（到 2026 年）：北韓 66.7%（9 次）、伊朗 47.6%（21 次）、南韓 40.0%（10 次）、以色列 15.4%、日本 14.0%（136 次）、印度 12.0%（100 次）、美國 7.4%（2,341 次）、俄羅斯與蘇聯 6.4%（3,280 次）、中國 5.1%（798 次）。近 5 年（2022–2026）：美國 1.8%、紐西蘭 1.6%、中國 3.0%、俄羅斯 0、日本 33.3%、伊朗 25.0%、南韓 16.7%、印度 13.0%。',
+        en: 'Share of orbital launch attempts that failed, by the launch provider’s country (GCAT; the Soviet Union counts as Russia; Rocket Lab launches from New Zealand count as New Zealand; partial successes follow GCAT’s success or failure code). Sub-items are all launches up to that year and the last 5 years, shown with at least 5 launches. All launches to 2026: North Korea 66.7% (9), Iran 47.6% (21), South Korea 40.0% (10), Israel 15.4%, Japan 14.0% (136), India 12.0% (100), the US 7.4% (2,341), Russia and the Soviet Union 6.4% (3,280), China 5.1% (798). Last 5 years (2022–2026): the US 1.8%, New Zealand 1.6%, China 3.0%, Russia 0, Japan 33.3%, Iran 25.0%, South Korea 16.7%, India 13.0%.',
+      },
+      unit: '%',
+      file: 'launch-fail/{item}.json',
+      dimension: {
+        label: { zh: '期間', en: 'Period' },
+        options: [
+          { id: 'all', label: { zh: '到那一年為止全部', en: 'All up to that year' } },
+          { id: 'recent', label: { zh: '近 5 年', en: 'Last 5 years' } },
+        ],
+        defaultOption: 'all',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 15, 25, 40] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+      lowerIsBetter: true,
+      noValue: NO_LAUNCH,
+    },
+    {
+      id: 'private-share',
+      label: { zh: '民間業者發射的比例（近 5 年）', en: 'Launches by private companies (last 5 years)' },
+      description: {
+        zh: '近 5 年的入軌發射裡，發射業者是民間企業的比例（GCAT 的機構類別：民間企業、政府非軍事、國防、學術）。2022–2026 年全世界 1,224 次裡 958 次（78%）是民間企業；美國（SpaceX、Rocket Lab、ULA 等）、法國（Arianespace）、紐西蘭幾乎全是民間，中國 63.6%、日本 44.4%、印度 17.4%、南韓 16.7%，俄羅斯與伊朗是 0。',
+        en: 'Share of orbital launches in the last 5 years made by private companies (GCAT’s organisation classes: business, civil government, defence, academic). Of 1,224 launches worldwide in 2022–2026, 958 (78%) were by private companies; the US (SpaceX, Rocket Lab, ULA and others), France (Arianespace) and New Zealand are almost all private, China 63.6%, Japan 44.4%, India 17.4%, South Korea 16.7%, Russia and Iran 0.',
+      },
+      unit: '%',
+      file: 'private-share.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 40, 60, 80, 95] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+      noValue: NO_LAUNCH,
+    },
+    {
+      id: 'payload-use',
+      label: { zh: '衛星是做什麼用的', en: 'What satellites are for' },
+      description: {
+        zh: '到那一年為止發射的酬載（衛星、太空船）裡各種用途的比例，依擁有國（GCAT 的 Category；串了兩個的取第一個）。通訊被巨型星系主導：英國 91.9%（OneWeb）、美國 80.1%（Starlink 等）、盧森堡 78.9%；中國 33.3%、俄羅斯 24.6%。遙測（光學與雷達）：南韓 35.4%、印度 32.3%、德國 31.7%、中國 26.8%。軍事（訊號情報、飛彈預警、武器）：法國 20.3%、盧森堡 14.7%、中國 8.4%、俄羅斯 8.1%、美國 2.1%。台灣 49 個酬載：通訊 13、科學 12、技術驗證 12、遙測 6、氣象 6（福衛七號）。',
+        en: 'Share of payloads (satellites and spacecraft) launched up to that year by purpose, by owner country (GCAT Category; the first of two). Communications are dominated by megaconstellations: the UK 91.9% (OneWeb), the US 80.1% (Starlink and others), Luxembourg 78.9%; China 33.3%, Russia 24.6%. Imaging (optical and radar): South Korea 35.4%, India 32.3%, Germany 31.7%, China 26.8%. Military (signals intelligence, early warning, weapons): France 20.3%, Luxembourg 14.7%, China 8.4%, Russia 8.1%, the US 2.1%. Taiwan’s 49 payloads: communications 13, science 12, technology demonstration 12, imaging 6, weather 6 (FORMOSAT-7).',
+      },
+      unit: '%',
+      file: 'payload-use/{item}.json',
+      dimension: {
+        label: { zh: '用途', en: 'Purpose' },
+        options: [
+          { id: 'communications', label: { zh: '通訊', en: 'Communications' } },
+          { id: 'imaging', label: { zh: '遙測（光學、雷達）', en: 'Imaging (optical, radar)' } },
+          { id: 'navigation', label: { zh: '導航定位', en: 'Navigation' } },
+          { id: 'weather', label: { zh: '氣象', en: 'Weather' } },
+          { id: 'science', label: { zh: '科學與深空', en: 'Science and deep space' } },
+          { id: 'military', label: { zh: '軍事（訊號情報、預警、武器）', en: 'Military (SIGINT, early warning, weapons)' } },
+          { id: 'technology', label: { zh: '技術驗證', en: 'Technology demonstration' } },
+          { id: 'crewed', label: { zh: '載人與貨運太空船', en: 'Crewed and cargo spacecraft' } },
+          { id: 'other', label: { zh: '其他', en: 'Other' } },
+        ],
+        defaultOption: 'communications',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 30, 50, 75] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
+    },
+    {
+      id: 'un-registered',
+      label: { zh: '衛星有沒有向聯合國登記', en: 'Satellites registered with the UN' },
+      description: {
+        zh: '依《外太空物體登記公約》應該向聯合國登記的酬載裡，已經登記的比例（GCAT 的 UNState 欄：方括號是應登記沒登記，空白是不需要登記、不算；聯合國自己的登記簿條款禁止轉載，不用）。到 2026 年：俄羅斯與蘇聯 97.1%、英國 92.8%、日本 79.1%、印度 78.3%、盧森堡 78.0%、美國 75.4%（17,636 個）、南韓 66.7%、法國 66.5%、德國 65.8%、中國 44.2%、義大利 38.6%。台灣 49 個應登記的酬載只有成大的 PHOENIX 立方衛星由比利時登記，其他都沒有：台灣不是聯合國會員，沒有登記的管道。登記常在發射後數月到數年，最近一兩年偏低。',
+        en: 'Share of payloads that should be registered with the UN under the Registration Convention that actually are (GCAT’s UNState field: brackets mean should be but is not, blank means not required and is excluded; the UN’s own register prohibits republication and is not used). To 2026: Russia and the Soviet Union 97.1%, the UK 92.8%, Japan 79.1%, India 78.3%, Luxembourg 78.0%, the US 75.4% (17,636 payloads), South Korea 66.7%, France 66.5%, Germany 65.8%, China 44.2%, Italy 38.6%. Of Taiwan’s 49, only NCKU’s PHOENIX cubesat is registered, by Belgium; Taiwan is not a UN member and has no way to register. Registration often lags launch by months or years, so the latest years are low.',
+      },
+      unit: '%',
+      file: 'un-registered.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 30, 50, 70, 85, 95] } },
+      format: (v) => fixed(v, 1) + '%',
+      formatTick: (v) => v + '%',
     },
   ],
 };
