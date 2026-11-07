@@ -88,6 +88,7 @@ export const RELATED: Record<string, string[]> = {
   'env-taxes': ['taxes', 'energy-prices', 'climate-action'],
   cctld: ['digital', 'internet-speed', 'submarine-cables'],
   'energy-use': ['electricity', 'fossil-fuels', 'renewables'],
+  'household-energy': ['energy-use', 'energy-prices', 'climate'],
   'energy-market': ['market-regulation', 'energy-prices', 'renewables'],
   'energy-taxes': ['taxes', 'energy-prices', 'env-taxes'],
   industry: ['minerals', 'semiconductors'],

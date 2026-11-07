@@ -134,6 +134,7 @@ const TOPIC_ICONS = {
   'env-taxes': 'badge-percent',
   cctld: 'at-sign',
   'energy-use': 'chart-pie',
+  'household-energy': 'house-plug',
   'energy-market': 'sliders-horizontal',
   'energy-taxes': 'receipt-euro',
   industry: 'factory',
