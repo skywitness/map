@@ -3,7 +3,66 @@ import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { decodePoints } from '../../map/overlayData';
 import { festivalFacts, festivalName, nameIsOriginal } from '../festivals';
+import { calendarShort, HOLIDAY_INDICATOR_IDS, holidayFestivalLabel } from '../festivals-holidays';
 import type { PanelExtraProps, PointsData } from '../types';
+
+/** pipeline/topics/holiday_calendars.py 的 holiday-list/<ISO3>.json：[月-日, 原文名稱, 中文名稱, 英文名稱, 曆法類別, 節日] */
+type HolidayRow = [string, string, string | null, string | null, number, string[]];
+
+const HOLIDAY_TEXT = defineMessages({
+  zh: {
+    title: (country: string, n: number) => `${country} 2026 年的公共假日（${n} 天）`,
+    date: (md: string) => `${Number(md.slice(0, 2))} 月 ${Number(md.slice(3))} 日`,
+    none: 'holidays 套件沒有這個國家或地區的假日。',
+    note: '不含補假；聯邦制國家只列全國層級的假日。曆法依套件裡加假日的程式判斷，「一次性」是選舉日、臨時放假這類不是每年都有的假日。',
+  },
+  en: {
+    title: (country, n) => `Public holidays in ${country}, 2026 (${n} days)`,
+    date: (md) => new Date(Date.UTC(2026, Number(md.slice(0, 2)) - 1, Number(md.slice(3)))).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+    none: 'The holidays package has no holidays for this country or territory.',
+    note: 'Substitute days are left out; federal countries list national holidays only. The calendar is judged from the code in the package that adds each holiday; “one-off” marks holidays such as election days or ad hoc closures that do not recur every year.',
+  },
+});
+
+/** 節日與曆法的三個指標：這一國 2026 年的公共假日清單（2026-11-07，製作手冊 559） */
+function HolidayList({ topic, iso3, countryName }: PanelExtraProps) {
+  const lang = useLang();
+  const t = useT();
+  const text = HOLIDAY_TEXT[lang];
+  const { data, error } = useJson<HolidayRow[]>(`topics/${topic.id}/holiday-list/${iso3}.json`);
+  if (error) return <p className="empty">{text.none}</p>;
+  if (!data) return <p className="empty">{t.loading}</p>;
+  return (
+    <section className="panel-section">
+      <h3>{text.title(countryName, data.length)}</h3>
+      <ul className="plain-list">
+        {data.map(([md, name, zh, en, cls, fams], i) => {
+          // 中文介面沒有中文名稱時用英文名稱（比原文好讀），原文寫在下一行
+          const own = lang === 'zh' ? (zh ?? en) : en;
+          return (
+            <li key={i}>
+              <span className="plain-title">
+                {text.date(md)}{' '}
+                {own ?? (
+                  <span translate="no">{name}</span>
+                )}
+              </span>
+              {own && own !== name && (
+                <span className="plain-meta" translate="no">
+                  {name}
+                </span>
+              )}
+              <span className="plain-meta">
+                {[calendarShort(cls), ...fams.map(holidayFestivalLabel)].filter(Boolean).join(' · ')}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="note">{text.note}</p>
+    </section>
+  );
+}
 
 const TEXT = defineMessages({
   zh: {
@@ -18,7 +77,11 @@ const TEXT = defineMessages({
   },
 });
 
-export default function FestivalsPanel({ topic, iso3, countryName }: PanelExtraProps) {
+export default function FestivalsPanel(props: PanelExtraProps) {
+  return HOLIDAY_INDICATOR_IDS.has(props.indicator.id) ? <HolidayList {...props} /> : <FestivalList {...props} />;
+}
+
+function FestivalList({ topic, iso3, countryName }: PanelExtraProps) {
   const lang = useLang();
   const t = useT();
   const text = TEXT[lang];

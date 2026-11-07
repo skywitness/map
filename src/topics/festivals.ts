@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ColorClasses, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { HOLIDAY_INDICATORS, HOLIDAY_SOURCE } from './festivals-holidays';
 
 /**
  * 節慶（pipeline/topics/festivals.py）：Wikidata 的節慶點依月份篩選，台灣用文化資產局的民俗補。
@@ -369,6 +370,7 @@ export const festivals: TopicDefinition = {
       url: 'https://en.wikipedia.org/wiki/List_of_anime_and_manga_conventions?oldid=1381313355',
       license: { zh: 'CC BY-SA 4.0（引用事實）', en: 'CC BY-SA 4.0 (facts cited)' },
     },
+    HOLIDAY_SOURCE,
   ],
   note: {
     zh:
@@ -449,5 +451,7 @@ export const festivals: TopicDefinition = {
       panelChart: false,
       missing: { zh: '這個巡迴沒有來', en: 'The tour did not play here' },
     },
+    // 2026-11-07（製作手冊第二十七批 559）：節日在哪些國家放假、假日跟著哪一本曆走（festivals-holidays.ts）
+    ...HOLIDAY_INDICATORS,
   ],
 };
