@@ -70,7 +70,7 @@ def build() -> None:
                 if p["iso3"]:
                     mass[p["iso3"]][i] += p["mass"]
     values = {c: [round(v, 1) if v else None for v in s] for c, s in sorted(mass.items())}
-    write_json(OUT / "in-orbit-mass.json", indicator_file("in-orbit-mass", "公斤", years, values, world=[round(v, 1) for v in world], **lic))
+    write_json(OUT / "in-orbit-mass.json", indicator_file("in-orbit-mass", "公斤", years, values, aggregates={"WLD": [round(v, 1) for v in world]}, **lic))
     now = [p for p in pay if alive(p, last)]
     with_mass = sum(1 for p in now if p["mass"])
     est = sum(1 for p in now if p["mass"] and p["est"])
@@ -96,7 +96,7 @@ def build() -> None:
     ry = list(range(FIRST_YEAR, last + 1))
     write_json(OUT / "reentries.json", indicator_file(
         "reentries", "個", ry, {c: [cnt.get(y) or None for y in ry] for c, cnt in sorted(re_by.items())},
-        world=[re_world.get(y, 0) for y in ry], **lic))
+        aggregates={"WLD": [re_world.get(y, 0) for y in ry]}, **lic))
     print("  每年再入：" + "、".join(f"{y} {re_world[y]:,}" for y in range(2018, last + 1)))
     print(f"  {last - 1} 年依國家：" + "、".join(f"{c} {n:,}" for c, n in sorted(((c, cnt[last - 1]) for c, cnt in re_by.items()), key=lambda x: -x[1])[:6]))
 

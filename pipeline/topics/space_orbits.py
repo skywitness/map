@@ -96,7 +96,7 @@ def build() -> None:
                 mega[p["iso3"]][k][i] += 1
     total = {c: [sum(v[k][i] for k in CONSTELLATIONS) or None for i in range(len(myears))] for c, v in sorted(mega.items())}
     world = [sum(v[k][i] for v in mega.values() for k in CONSTELLATIONS) for i in range(len(myears))]
-    write_json(OUT / "megaconstellations.json", indicator_file("megaconstellations", "顆", myears, total, world=world, **lic))
+    write_json(OUT / "megaconstellations.json", indicator_file("megaconstellations", "顆", myears, total, aggregates={"WLD": world}, **lic))
     per = {k: sum(v[k][-1] for v in mega.values()) for k in CONSTELLATIONS}
     print(f"  巨型星座在軌（{last}）：{per}；依國家 " + "、".join(f"{c} {t[-1]}" for c, t in total.items()))
     print("  全世界逐年：" + "、".join(f"{y} {w:,}" for y, w in zip(myears, world)))
