@@ -405,6 +405,8 @@ STEPS = {
     "employment-extra": "topics.employment_extra",
     # 存款與財產：有負債的家庭比例、財富撐不過半年貧窮線的人（OECD Wealth Distribution Database）
     "wealth-debt": "topics.wealth_debt",
+    # 勞動權利與解僱保護（新主題）：OECD EPL（VERSION1）、ILOSTAT SDG 8.8.2
+    "labour-rights": "topics.labour_rights",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

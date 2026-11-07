@@ -62,7 +62,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '產業', en: 'Industries' }, topics: ['industry', 'minerals'] },
       { label: { zh: '農業與糧食', en: 'Agriculture & food' }, topics: ['agriculture'] },
-      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth', 'redistribution', 'social-protection'] },
+      { label: { zh: '所得與財富', en: 'Income & wealth' }, topics: ['income', 'wages', 'employment', 'wealth', 'redistribution', 'social-protection', 'labour-rights'] },
       { label: { zh: '財政', en: 'Public finance' }, topics: ['fiscal', 'reserves'] },
       { label: { zh: '稅', en: 'Taxes' }, topics: ['taxes'] },
       { label: { zh: '金融服務', en: 'Financial services' }, topics: ['stock-market'] },
@@ -226,6 +226,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   taxes: () => import('./taxes'),
   redistribution: () => import('./redistribution'),
   'social-protection': () => import('./social-protection'),
+  'labour-rights': () => import('./labour-rights'),
   reserves: () => import('./reserves'),
   'stock-market': () => import('./stock-market'),
   industry: () => import('./industry'),

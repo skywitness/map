@@ -110,6 +110,7 @@ const TOPIC_ICONS = {
   taxes: 'percent',
   redistribution: 'arrow-down-wide-narrow',
   'social-protection': 'umbrella',
+  'labour-rights': 'shield-check',
   prices: 'tag',
   reserves: 'vault',
   'stock-market': 'chart-candlestick',
