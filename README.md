@@ -197,6 +197,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `wildfire-emissions` 是野火主題的森林火災排放與 1996 年起的燒毀面積：FAOSTAT 的 GI（檔名 `Emissions_Land_Use_Fires_…`，約 3 MB）。幾秒鐘。
 
+`env-taxes` 是環境稅收與環保支出：OECD SDMX 的 DF_ERTR 用 key 篩過（只抓稅收占 GDP 與占總稅收，全量 276 MB 不抓），加上 Eurostat env_epea_neep 的 9 支 statistics API 查詢（合計與 8 個用途）。十幾秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

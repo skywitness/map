@@ -99,9 +99,11 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '水', en: 'Water' }, topics: ['water-forest'] },
       // 2026-11-07（製作手冊第二十五批 480）新開
       { label: { zh: '碳與氣候政策', en: 'Climate policy' }, topics: ['climate-action', 'climate-finance', 'cbam'] },
+      // 2026-11-07（製作手冊第二十五批 500）新開
+      { label: { zh: '環境治理', en: 'Environmental governance' }, topics: ['env-taxes'] },
     ],
-    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染與廢棄物；土地＋水（2026-11-07 拆開後疊在同一欄）；碳與氣候政策
-    columns: [1, 1, 2, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染與廢棄物；土地＋水（2026-11-07 拆開後疊在同一欄）；碳與氣候政策＋環境治理
+    columns: [1, 1, 2, 2],
   },
   {
     id: 'tech',
@@ -252,6 +254,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'contaminated-sites': () => import('./contaminated-sites'),
   materials: () => import('./materials'),
   'land-use': () => import('./land-use'),
+  'env-taxes': () => import('./env-taxes'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),

@@ -131,6 +131,7 @@ const TOPIC_ICONS = {
   'contaminated-sites': 'shovel',
   materials: 'repeat-2',
   'land-use': 'tractor',
+  'env-taxes': 'badge-percent',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

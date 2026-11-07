@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 171;
-export const INDICATOR_COUNT = 1268;
+export const TOPIC_COUNT = 172;
+export const INDICATOR_COUNT = 1271;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -130,6 +130,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：Enterprises by detailed NACE Rev. 2 activity and special aggregates（sbs_ovw_act，G47 零售業）","en":"Eurostat: Enterprises by detailed NACE Rev. 2 activity and special aggregates (sbs_ovw_act, G47 retail trade)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sbs_ovw_act/default/table","licenses":["CC BY 4.0"],"topics":["retail"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：House sales - number and index（prc_hpi_hsna）","en":"Eurostat: House sales - number and index (prc_hpi_hsna)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/prc_hpi_hsna/default/table","licenses":["CC BY 4.0"],"topics":["housing-market"]},
+  {"name":{"zh":"Eurostat：National expenditure on environmental protection（env_epea_neep）","en":"Eurostat: National expenditure on environmental protection (env_epea_neep)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/env_epea_neep/default/table","licenses":["CC BY 4.0"],"topics":["env-taxes"]},
   {"name":{"zh":"Eurostat：Urban Audit 城市統計（urb_ctran，TT1007V 騎自行車上班的比例）","en":"Eurostat: Urban Audit (urb_ctran, TT1007V share of journeys to work by bicycle)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/urb_ctran/default/table","licenses":["CC BY 4.0"],"topics":["trails"]},
   {"name":{"zh":"Eurostat：Value of e-commerce sales by NACE Rev. 2 activity（isoc_ec_evaln2）","en":"Eurostat: Value of e-commerce sales by NACE Rev. 2 activity (isoc_ec_evaln2)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_ec_evaln2/default/table","licenses":["CC BY 4.0"],"topics":["retail"]},
   {"name":{"zh":"Eurostat：企業調查的產能利用率（ei_bsin_q_r2，歐盟執委會 DG ECFIN）","en":"Eurostat: capacity utilisation from the business survey (ei_bsin_q_r2, European Commission DG ECFIN)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ei_bsin_q_r2/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
@@ -271,6 +272,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD, Taxing Wages（勞動稅負）","en":"OECD, Taxing Wages (tax wedge)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_WAGES_COMP%40DF_TW_COMP&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD, 性別薪資差距","en":"OECD, Gender wage gap"},"url":"https://www.oecd.org/en/data/indicators/gender-wage-gap.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["gender"]},
   {"name":{"zh":"OECD, 每年實際工時（墨西哥、哥倫比亞）","en":"OECD, average annual hours actually worked (Mexico and Colombia)"},"url":"https://www.oecd.org/en/data/indicators/hours-worked.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["wages"]},
+  {"name":{"zh":"OECD：Environmentally related tax revenue（DF_ERTR）","en":"OECD: Environmentally related tax revenue (DF_ERTR)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_ERTR%40DF_ERTR&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["env-taxes"]},
   {"name":{"zh":"OECD：Material flow accounts（DF_MATERIAL_RESOURCES）","en":"OECD: Material flow accounts (DF_MATERIAL_RESOURCES)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_MATERIAL_RESOURCES%40DF_MATERIAL_RESOURCES&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["materials"]},
   {"name":{"zh":"OECD：Subnational government recurrent property tax revenue（DSD_DASHBOARD@PROP_TAX_REV）","en":"OECD: Subnational government recurrent property tax revenue (DSD_DASHBOARD@PROP_TAX_REV)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_DASHBOARD%40PROP_TAX_REV&df[ag]=OECD.CFE.RDG","licenses":["CC BY 4.0"],"topics":["property-costs"]},
   {"name":{"zh":"OECD.AI（OpenRouter 資料）","en":"OECD.AI (OpenRouter data)"},"url":"https://oecd.ai/en/data?selectedArea=ai-model-usage","licenses":[{"zh":"未明示授權","en":"licence not stated"}],"topics":["ai"]},
