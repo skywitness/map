@@ -89,6 +89,7 @@ const TOPIC_ICONS = {
   'ip-addresses': 'network',
   'cell-towers': 'radio-tower',
   'internet-freedom': 'shield-ban',
+  'chip-materials': 'gem',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
