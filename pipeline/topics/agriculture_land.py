@@ -10,15 +10,17 @@
 - 農地占國土：農地（6610）、耕地（6621）、永久草地（6655）÷ 陸地面積（6601），四個都不是 X 才算。
 - 牲畜密度：農地不到 MIN_FARMLAND（2 萬公頃）的不比（新加坡、香港的農地分母極小）。
 - 每公頃農地的農業產值（第二十五批 441，候選 1071）：RL 的 6610 × 7278（2014–2016 年固定價國際元／公頃，FAO 算的，旗標 E），
-  農地不到 MIN_FARMLAND_VALUE（1 萬公頃）的不比。手冊合併的 1072（每位農業就業者的附加價值、農業就業占比）在 FAOSTAT 的
-  OEA 全是 Flag X（ILO 提供），不用，等使用者決定要不要改用世界銀行 WDI。
+  農地不到 MIN_FARMLAND_VALUE（1 萬公頃）的不比。
+- 每位農業就業者的附加價值（441 合併的候選 1072）：FAOSTAT 的 OEA 全是 Flag X（ILO 提供）不能用，使用者 2026-11-07 決定改用
+  世界銀行 WDI 的 NV.AGR.EMPL.KD（農林漁業每位就業者的附加價值，2015 年固定價美元；CC BY 4.0，來源寫 WDI 與 ILOSTAT），
+  1991 年起。農業就業占比「產業結構」主題已經有（sectors.py 的 SL.AGR.EMPL.ZS），不重複做。台灣不在 WDI。
 """
 from __future__ import annotations
 
 from collections import defaultdict
 
 from common import OUT_DIR, indicator_file, to_series, write_json, write_manifest_part
-from sources import faostat
+from sources import faostat, worldbank
 from topics.agriculture_names import ZH_NAMES
 
 OUT = OUT_DIR / "topics" / "agriculture"
@@ -176,10 +178,25 @@ def _value_per_ha(farmland: dict[str, dict[int, float]]) -> None:
           f"最低 {last[-4:]}")
 
 
+def _value_per_worker() -> None:
+    countries, world = worldbank.fetch("NV.AGR.EMPL.KD")
+    last = max(y for s in countries.values() for y in s)
+    years = list(range(1991, last + 1))
+    values = {a: to_series(s, years, 0) for a, s in sorted(countries.items()) if any(y in s for y in years)}
+    write_json(OUT / "value-per-worker.json", indicator_file(
+        "value-per-worker", "2015 年美元", years, values, latestWithin=2, aggregates={"WLD": to_series(world, years, 0)},
+        license="CC BY 4.0", attribution="World Bank, World Development Indicators (NV.AGR.EMPL.KD); ILOSTAT"))
+    y = max(yy for yy in years if sum(1 for s in countries.values() if yy in s) > 100)
+    top = sorted(((s[y], a) for a, s in countries.items() if y in s), reverse=True)
+    print(f"  每位農業就業者的附加價值 {y}：{len(top)} 國；最高 {top[:10]}；最低 {top[-6:]}；世界 {world.get(y)}；"
+          f"{[(k, round(countries.get(k, {}).get(y, 0))) for k in ('USA', 'DEU', 'FRA', 'JPN', 'KOR', 'BRA', 'CHN', 'IND', 'VNM', 'NGA', 'ETH')]}")
+
+
 def build() -> None:
     _top_crops()
     farmland = _land()
     _livestock(farmland)
     _value_per_ha(farmland)
+    _value_per_worker()
     write_manifest_part(OUT, "agriculture", "agriculture-land", {"sources": [
-        "FAOSTAT QCL, RL, EK (CC BY 4.0; Flag X not used)"]})
+        "FAOSTAT QCL, RL, EK (CC BY 4.0; Flag X not used)", "World Bank WDI NV.AGR.EMPL.KD (CC BY 4.0)"]})

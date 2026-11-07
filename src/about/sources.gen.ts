@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1338;
+export const INDICATOR_COUNT = 1339;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -411,6 +411,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"世界銀行 Commodity Price Data（Pink Sheet）","en":"World Bank, Commodity Price Data (Pink Sheet)"},"url":"https://www.worldbank.org/en/research/commodity-markets","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
   {"name":{"zh":"世界銀行 Global SSB Tax Database（含糖飲料稅，2023 年 8 月）","en":"World Bank, Global SSB Tax Database (sugar-sweetened beverage taxes, August 2023)"},"url":"https://datacatalog.worldbank.org/search/dataset/0063310/Global-SSB-Tax-Database","licenses":["CC BY 4.0"],"topics":["laws"]},
   {"name":{"zh":"世界銀行 WDI：再生能源占最終能源消費（EG.FEC.RNEW.ZS，原始資料 IEA）；Eurostat：再生能源占比（nrg_ind_ren）","en":"World Bank WDI: renewable energy share of final energy consumption (EG.FEC.RNEW.ZS, from the IEA); Eurostat: share of renewable energy (nrg_ind_ren)"},"url":"https://data.worldbank.org/indicator/EG.FEC.RNEW.ZS","licenses":["CC BY 4.0"],"topics":["electricity"]},
+  {"name":{"zh":"世界銀行 WDI：農林漁業每位就業者的附加價值（NV.AGR.EMPL.KD，就業人數來自 ILOSTAT）","en":"World Bank WDI: agriculture, forestry and fishing value added per worker (NV.AGR.EMPL.KD, employment from ILOSTAT)"},"url":"https://data.worldbank.org/indicator/NV.AGR.EMPL.KD","licenses":["CC BY 4.0"],"topics":["agriculture"]},
   {"name":{"zh":"世界銀行 WDI：電力普及率（EG.ELC.ACCS.ZS）、人口（SP.POP.TOTL）","en":"World Bank WDI: access to electricity (EG.ELC.ACCS.ZS), population (SP.POP.TOTL)"},"url":"https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS","licenses":["CC BY 4.0"],"topics":["electricity"]},
   {"name":{"zh":"世界銀行 WDI（服務出口與組成，轉載 IMF 國際收支）","en":"World Bank, WDI (service exports and their composition; IMF balance of payments)"},"url":"https://data.worldbank.org/indicator/BX.GSR.NFSV.CD","licenses":["CC BY 4.0"],"topics":["trade"]},
   {"name":{"zh":"世界銀行 WDI（航空旅客量，來源 ICAO）","en":"World Bank WDI (air passengers carried, from ICAO)"},"url":"https://data.worldbank.org/indicator/IS.AIR.PSGR","licenses":["CC BY 4.0"],"topics":["aviation"]},

@@ -88,6 +88,14 @@ export const agriculture: TopicDefinition = {
       url: 'https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_AGR_POLIND%40DF_PSE&df[ag]=OECD.TAD.ARP',
       license: 'CC BY 4.0',
     },
+    {
+      name: {
+        zh: '世界銀行 WDI：農林漁業每位就業者的附加價值（NV.AGR.EMPL.KD，就業人數來自 ILOSTAT）',
+        en: 'World Bank WDI: agriculture, forestry and fishing value added per worker (NV.AGR.EMPL.KD, employment from ILOSTAT)',
+      },
+      url: 'https://data.worldbank.org/indicator/NV.AGR.EMPL.KD',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh:
@@ -293,6 +301,23 @@ export const agriculture: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [100, 300, 1000, 2500, 5000, 8000] } },
       format: (v) => tr({ zh: `${fixed(v, 0)} 國際元／公頃`, en: `Int$${fixed(v, 0)}/ha` }),
       formatTick: (v) => formatLargeTick(v),
+    },
+    // 2026-11-07（製作手冊第二十五批 441 的候選 1072，使用者決定改用世界銀行 WDI）每位農業就業者的附加價值
+    {
+      id: 'value-per-worker',
+      label: { zh: '每位農民創造多少附加價值', en: 'Farm value added per worker' },
+      description: {
+        zh: '農林漁業的附加價值 ÷ 在農林漁業工作的人數（2015 年固定價美元；世界銀行 WDI，就業人數用國際勞工組織的估計），看一個人的勞動產出多少；跟「每公頃農地的農業產值」是土地與勞力兩個分母。2025 年加拿大 15.1 萬美元、澳洲 12.7 萬、冰島 11.8 萬、荷蘭 8.9 萬、挪威 7.6 萬、德國 6.0 萬；以色列 2024 年 11.8 萬、日本 2.0 萬；韓國 1.9 萬、巴西 1.4 萬、中國 8,631 美元、越南 3,418、印度 2,159；剛果民主共和國 286、蒲隆地 211 最低；世界 4,264。美國在 WDI 只有 2015 年的值，台灣不在 WDI；農業就業占總就業的比例見「產業結構與工業」主題。',
+        en: 'Value added in agriculture, forestry and fishing divided by the number of people working in them (constant 2015 US dollars; World Bank WDI, with ILO employment estimates): output per worker, the labour counterpart to “Farm output per hectare”. In 2025: Canada US$150,630, Australia 126,570, Iceland 118,430, the Netherlands 89,045, Norway 75,590, Germany 59,656; Israel 118,490 and Japan 20,324 in 2024; South Korea 18,552, Brazil 14,203, China 8,631, Vietnam 3,418, India 2,159; the DR Congo (286) and Burundi (211) are lowest; the world 4,264. The US has only a 2015 value in WDI and Taiwan is not in WDI; the share of employment in agriculture is in the Economic structure and industry topic.',
+      },
+      unit: { zh: '美元（2015 年價格）', en: 'US$ (2015 prices)' },
+      file: 'value-per-worker.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1000, 3000, 8000, 20000, 40000, 70000] } },
+      format: (v) => tr({ zh: v >= 10000 ? `${fixed(v / 10000, 1)} 萬美元` : `${fixed(v, 0)} 美元`, en: `US$${fixed(v, 0)}` }),
+      formatTick: (v) => formatLargeTick(v),
+      compareWorld: true,
+      noValue: { TWN: { zh: '世界銀行的資料沒有台灣', en: 'Taiwan is not in the World Bank data' } },
     },
     {
       id: 'pse',
