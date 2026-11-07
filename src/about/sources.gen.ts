@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1364;
+export const INDICATOR_COUNT = 1366;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -525,6 +525,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"日本資源能源廳：石油製品價格調查、能源動向第 14-1-8 表（電氣料金的推移），本網站換算成美元","en":"Agency for Natural Resources and Energy (Japan): petroleum product price survey; Energy Trends table 14-1-8 (electricity prices), converted to US dollars by this site"},"url":"https://www.enecho.meti.go.jp/statistics/petroleum_and_lpgas/pl007/results.html","licenses":[{"zh":"公共資料利用規約 1.0 版（PDL1.0，與 CC BY 4.0 相容）","en":"Public Data License 1.0 (PDL1.0, compatible with CC BY 4.0)"}],"topics":["energy-prices"]},
   {"name":{"zh":"智慧財產局 發明專利新申請案件數依國際專利分類排行（台灣的側欄）","en":"Taiwan Intellectual Property Office, new invention patent applications by IPC subclass (Taiwan panel)"},"url":"https://data.gov.tw/dataset/94266","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["innovation"]},
   {"name":{"zh":"月亮：Astronomy Engine 2.1.19（Don Cross）","en":"Moon: Astronomy Engine 2.1.19 (Don Cross)"},"url":"https://github.com/cosinekitty/astronomy","licenses":["MIT"],"topics":["daylight"]},
+  {"name":{"zh":"板塊現在的速度：NNR-MORVEL56（Argus、Gordon 與 DeMets 2011，Geochem. Geophys. Geosyst. 12, Q11001，Table 1）","en":"Current plate motion: NNR-MORVEL56 (Argus, Gordon & DeMets 2011, Geochem. Geophys. Geosyst. 12, Q11001, Table 1)"},"url":"https://doi.org/10.1029/2011GC003751","licenses":[{"zh":"論文表格裡的數值（事實）","en":"values from a published table (facts)"}],"topics":["plates"]},
   {"name":{"zh":"核能安全委員會：核能電廠用過核子燃料貯存數量、低放射性廢棄物貯存現況（台灣附註）","en":"Nuclear Safety Commission: spent fuel and low-level waste in storage at nuclear plants (Taiwan note)"},"url":"https://data.gov.tw/dataset/119186","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["nuclear"]},
   {"name":{"zh":"桃園市政府環境保護局：桃園市空氣品質維護區（政府資料開放平台 149351）","en":"Taoyuan Environmental Protection Bureau: air quality maintenance zones (data.gov.tw 149351)"},"url":"https://data.gov.tw/dataset/149351","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["cities"]},
   {"name":{"zh":"棄用煤炭發電聯盟（Powering Past Coal Alliance）的國家會員與加入年份（2026-10-31 讀取，只用會籍這個事實）","en":"Powering Past Coal Alliance, national government members and joining years (read 31 Oct 2026; membership facts only)"},"url":"https://poweringpastcoal.org/members/","licenses":[{"zh":"引用事實並註明出處","en":"facts cited with sources"}],"topics":["fossil-fuels"]},

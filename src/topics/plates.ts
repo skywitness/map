@@ -4,7 +4,7 @@ import { fixed } from '../lib/format';
 import { decodeLines } from '../map/overlayData';
 import { MAP_TOKENS } from '../theme/tokens';
 import { PLATES_TODAY } from './shared-layers';
-import type { IndicatorDef, LinesData, PointRecord, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, LinesData, PointRecord, TopicDefinition } from './types';
 
 /**
  * 板塊漂移（pipeline/topics/plates.py）：Merdith 等 2021 的全板塊重建模型，用 pyGPlates 把今天的國界帶回
@@ -152,6 +152,21 @@ export const OROGENS: Record<string, { zh: string; en: string }> = {
   'western Aleutians': { zh: '阿留申群島西段', en: 'Western Aleutians' },
 };
 
+/** 8 個方向（plates_today.py 的 plate-direction：1 北、2 東北…8 西北） */
+export const DIRECTIONS: { zh: string; en: string }[] = [
+  { zh: '北', en: 'north' },
+  { zh: '東北', en: 'north-east' },
+  { zh: '東', en: 'east' },
+  { zh: '東南', en: 'south-east' },
+  { zh: '南', en: 'south' },
+  { zh: '西南', en: 'south-west' },
+  { zh: '西', en: 'west' },
+  { zh: '西北', en: 'north-west' },
+];
+/** 方位角（北 0、東 90）→ 8 個方向 */
+export const directionOf = (azimuth: number) => DIRECTIONS[Math.floor((((azimuth + 22.5) % 360) + 360) % 360 / 45)];
+const DIRECTION_CATEGORIES: CategoryDef[] = DIRECTIONS.map((d, i) => ({ value: i + 1, label: { zh: `往${d.zh}`, en: `Towards the ${d.en}` } }));
+
 const indicators: IndicatorDef[] = [
   {
     id: 'paleolat',
@@ -185,6 +200,36 @@ const indicators: IndicatorDef[] = [
     format: (v) => `${fixed(v, 1)}%`,
     formatTick: (v) => `${v}%`,
   },
+  // 候選 1225：板塊現在的速度（使用者 2026-11-07 選 NNR-MORVEL56，手冊建議的 Merdith 模型不適合算現在的運動）
+  {
+    id: 'plate-speed',
+    label: { zh: '板塊一年走幾公分', en: 'Plate speed' },
+    description: {
+      zh: '國土所在的板塊現在一年移動幾公分（NNR-MORVEL56：Argus 等 2011 年用中洋脊擴張速率、轉形斷層方向與 GPS 算出 56 塊板塊的角速度，參考框架是「無淨旋轉」，也就是整個岩石圈加起來不轉）。國土跨好幾塊板塊的，依面積把各塊的速度平均成一個向量，往不同方向的會互相抵消（點國家看每一塊的速度）。東加 9.5 公分最快（東加微板塊），太平洋板塊上的島國約 7 公分，澳洲 6.6 公分往東北，印度 5.3、沙烏地阿拉伯 4.6 公分往東北；歐洲約 2 公分往東北（德國 2.3），美國 1.9 公分往西南，南美洲 1 公分上下（巴西 1.0、阿根廷 0.83）。台灣平均 2.6 公分往西北：國土 70.8% 在菲律賓海板塊（5.3 公分往西北）、27.2% 在揚子板塊（3.7 公分往東南），兩塊正在互相擠壓。',
+      en: 'How many centimetres a year the plates under each country move (NNR-MORVEL56: angular velocities of 56 plates estimated by Argus and colleagues in 2011 from spreading rates, transform-fault azimuths and GPS, in the no-net-rotation frame, in which the lithosphere as a whole does not rotate). For countries on several plates, the plates’ velocities are averaged into one vector by area, and plates moving in different directions cancel out (select a country for each plate’s speed). Tonga is fastest at 9.5 cm (the Tonga microplate), the Pacific island states move about 7 cm, Australia 6.6 cm north-east, India 5.3 cm and Saudi Arabia 4.6 cm north-east; Europe about 2 cm north-east (Germany 2.3), the US 1.9 cm south-west, and South America around 1 cm (Brazil 1.0, Argentina 0.83). Taiwan averages 2.6 cm north-west: 70.8% of it is on the Philippine Sea Plate (5.3 cm north-west) and 27.2% on the Yangtze Plate (3.7 cm south-east), which are pushing into each other.',
+    },
+    unit: { zh: '公分／年', en: 'cm/yr' },
+    file: 'plate-speed.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 3, 4, 5, 7] } },
+    timeless: true,
+    bareMap: false,
+    format: (v) => tr({ zh: `每年 ${fixed(v, 1)} 公分`, en: `${fixed(v, 1)} cm a year` }),
+    formatTick: (v) => fixed(v, 0),
+  },
+  {
+    id: 'plate-direction',
+    label: { zh: '板塊往哪裡走', en: 'Plate direction' },
+    description: {
+      zh: '國土所在的板塊現在往哪個方向走（NNR-MORVEL56，分 8 個方向；跨好幾塊板塊的是依面積平均的方向）。155 個國家或地區往東北：非洲、歐洲、阿拉伯、印度、澳洲板塊都往東北；中國、東南亞、中亞往東，日本與兩韓往東南，太平洋板塊上的島國往西北或西，美國與墨西哥往西南、加拿大往西，南美洲大多往北。台灣平均往西北，但國土 27.2% 在往東南的揚子板塊、70.8% 在往西北的菲律賓海板塊。',
+      en: 'Which way the plates under each country are moving now (NNR-MORVEL56, in eight directions; countries on several plates take the area-weighted average). 155 countries and territories move north-east: the African, European, Arabian, Indian and Australian plates all head north-east; China, South-East Asia and Central Asia move east, Japan and the two Koreas south-east, the Pacific island states north-west or west, the US and Mexico south-west, Canada west, and most of South America north. Taiwan averages north-west, but 27.2% of it is on the Yangtze Plate heading south-east and 70.8% on the Philippine Sea Plate heading north-west.',
+    },
+    unit: '',
+    file: 'plate-direction.json',
+    layer: { kind: 'categorical', categories: DIRECTION_CATEGORIES },
+    timeless: true,
+    bareMap: false,
+    format: (v) => tr(DIRECTION_CATEGORIES.find((c) => c.value === v)?.label ?? ''),
+  },
 ];
 
 export const plates: TopicDefinition = {
@@ -211,6 +256,14 @@ export const plates: TopicDefinition = {
       },
       url: 'https://github.com/fraxen/tectonicplates',
       license: 'ODC-By 1.0',
+    },
+    {
+      name: {
+        zh: '板塊現在的速度：NNR-MORVEL56（Argus、Gordon 與 DeMets 2011，Geochem. Geophys. Geosyst. 12, Q11001，Table 1）',
+        en: 'Current plate motion: NNR-MORVEL56 (Argus, Gordon & DeMets 2011, Geochem. Geophys. Geosyst. 12, Q11001, Table 1)',
+      },
+      url: 'https://doi.org/10.1029/2011GC003751',
+      license: { zh: '論文表格裡的數值（事實）', en: 'values from a published table (facts)' },
     },
     {
       name: {

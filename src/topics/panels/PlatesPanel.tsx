@@ -1,13 +1,14 @@
 import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { OROGENS } from '../plates';
+import { directionOf, OROGENS } from '../plates';
 import type { PanelExtraProps } from '../types';
 
 /** pipeline/topics/plates_today.py 輸出的 plate-shares.json（2026-11-07，製作手冊 542） */
 interface PlateShares {
   names: Record<string, [string, string]>;
-  countries: Record<string, { plates: [string, number][]; orogens: [string, number][] }>;
+  /** plates：[板塊, 占國土 %, 那部分的速度（公分／年，NNR-MORVEL56）, 方位角] */
+  countries: Record<string, { plates: [string, number, number, number][]; orogens: [string, number][] }>;
 }
 
 const TEXT = defineMessages({
@@ -17,7 +18,8 @@ const TEXT = defineMessages({
     noOrogens: '不在 PB2002 的造山帶裡。',
     noData: '沒有這一國的國土資料。',
     share: (v: number) => `${fixed(v, 1)}%`,
-    note: '面積比例，依 PB2002（Bird 2003）的板塊與造山帶，國土是 Natural Earth 1:50m 的國界。',
+    motion: (speed: number, dir: string) => `每年 ${fixed(speed, 1)} 公分往${dir}`,
+    note: '面積比例，依 PB2002（Bird 2003）的板塊與造山帶，國土是 Natural Earth 1:50m 的國界；速度是 NNR-MORVEL56（Argus 等 2011）。',
   },
   en: {
     plates: 'Plates under the country',
@@ -25,7 +27,8 @@ const TEXT = defineMessages({
     noOrogens: 'Not in any PB2002 orogen.',
     noData: 'No land data for this country.',
     share: (v) => `${fixed(v, 1)}%`,
-    note: 'Shares of land area, from the PB2002 plates and orogens (Bird 2003); borders are Natural Earth 1:50m.',
+    motion: (speed, dir) => `${fixed(speed, 1)} cm a year towards the ${dir}`,
+    note: 'Shares of land area, from the PB2002 plates and orogens (Bird 2003); borders are Natural Earth 1:50m; speeds are NNR-MORVEL56 (Argus et al. 2011).',
   },
 });
 
@@ -47,10 +50,12 @@ export default function PlatesPanel({ topic, iso3 }: PanelExtraProps) {
     <section className="panel-section">
       <h3>{text.plates}</h3>
       <ul className="plain-list">
-        {row.plates.map(([code, share]) => (
+        {row.plates.map(([code, share, speed, azimuth]) => (
           <li key={code}>
             <span className="plain-title">{name(code)}</span>
-            <span className="plain-meta">{text.share(share)}</span>
+            <span className="plain-meta">
+              {text.share(share)} · {text.motion(speed, directionOf(azimuth)[lang])}
+            </span>
           </li>
         ))}
       </ul>
