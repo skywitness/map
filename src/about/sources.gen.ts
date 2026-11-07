@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1339;
+export const INDICATOR_COUNT = 1340;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -666,6 +666,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"財政部財政資訊中心 綜合所得稅申報核定統計專冊、賦稅署公告、臺北國稅局（台灣的級距與扣除額）","en":"Ministry of Finance (Taiwan): Fiscal Information Agency income tax statistics, Taxation Administration notices, National Taxation Bureau of Taipei (brackets and deductions)"},"url":"https://www.dot.gov.tw/multiplehtml/ch26","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["taxes"]},
   {"name":{"zh":"財政部關務署：辦理旅客購買特定貨物退稅人次、筆數、金額統計表（data.gov.tw 17153、17154、17156）","en":"Customs Administration (Taiwan): tourist tax refund persons, cases and amounts (data.gov.tw 17153, 17154, 17156)"},"url":"https://data.gov.tw/dataset/17156","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["travel"]},
   {"name":{"zh":"農業部：因崩塌或風災減少森林覆蓋面積、森林被害統計（台灣側欄）","en":"Ministry of Agriculture, Taiwan: forest lost to landslides and wind, forest damage statistics (Taiwan panel)"},"url":"https://data.gov.tw/dataset/169451","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["forest"]},
+  {"name":{"zh":"農業部：糧食自給率_熱量（台灣的官方值）","en":"Ministry of Agriculture (Taiwan): calorie-based food self-sufficiency (official figures)"},"url":"https://data.gov.tw/dataset/87929","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, Taiwan, v1"}],"topics":["agriculture"]},
   {"name":{"zh":"農業部《糧食供需年報》（台灣的對照數字）","en":"Ministry of Agriculture (Taiwan), food balance sheet (for comparison)"},"url":"https://www.moa.gov.tw/ws.php?id=7256","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["diet"]},
   {"name":{"zh":"農業部「第四次森林資源調查全島森林林型分布圖」（台灣）","en":"Ministry of Agriculture, forest-type map of the fourth national forest inventory (Taiwan)"},"url":"https://data.gov.tw/dataset/57873","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["forest"]},
   {"name":{"zh":"農業部林業及自然保育署 全國森林資源調查","en":"Forestry and Nature Conservation Agency (Taiwan), national forest resource inventories"},"url":"https://www.forest.gov.tw/0000052","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["forest"]},

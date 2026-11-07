@@ -96,6 +96,11 @@ export const agriculture: TopicDefinition = {
       url: 'https://data.worldbank.org/indicator/NV.AGR.EMPL.KD',
       license: 'CC BY 4.0',
     },
+    {
+      name: { zh: '農業部：糧食自給率_熱量（台灣的官方值）', en: 'Ministry of Agriculture (Taiwan): calorie-based food self-sufficiency (official figures)' },
+      url: 'https://data.gov.tw/dataset/87929',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
+    },
   ],
   note: {
     zh:
@@ -318,6 +323,21 @@ export const agriculture: TopicDefinition = {
       formatTick: (v) => formatLargeTick(v),
       compareWorld: true,
       noValue: { TWN: { zh: '世界銀行的資料沒有台灣', en: 'Taiwan is not in the World Bank data' } },
+    },
+    // 2026-11-07（製作手冊第二十五批 443 的候選 1077，使用者決定做並附註台灣官方值）熱量自給率（pipeline/topics/calorie_self_sufficiency.py）
+    {
+      id: 'calorie-self-sufficiency',
+      label: { zh: '熱量自給率', en: 'Calorie self-sufficiency' },
+      description: {
+        zh: '吃的熱量有幾成是自己種、自己養的：用 FAO 糧食平衡表自算，每個品項的熱量供給乘上「生產量 ÷ 國內供給量」，肉、蛋、奶再乘飼料自給率，加起來除以總熱量（2010–2023 年；FAO 沒有直接公布這個數字）。出口國會超過 100%。2023 年：烏克蘭 285.9%、巴拉圭 208.0%、澳洲 184.7%、巴西 164.6%、加拿大 155.4%、法國 117.7%、印度 105.4%、美國 98.7%、中國 87.0%、德國 86.9%、英國 60.1%、韓國 38.3%；香港 3.1%、巴林 1.9%、澳門 0.4% 最低。台灣用同樣方法算是 44.8%，農業部公布的是 30.31%（2023 年；2025 年 30.36%），農業部另外算可食部分、飼料換算等，口徑不同。日本與新加坡不在 FAO 這份資料裡。跟「自給率」不同：那是 22 種農產品各自的數量，這是全部熱量加起來一個數字。',
+        en: 'How much of the calories people eat is grown or raised at home: computed from FAO food balance sheets by multiplying each item’s calorie supply by production ÷ domestic supply, further multiplying meat, eggs and milk by feed self-sufficiency, and dividing the sum by total calories (2010–2023; the FAO does not publish this figure itself). Exporters exceed 100%. In 2023: Ukraine 285.9%, Paraguay 208.0%, Australia 184.7%, Brazil 164.6%, Canada 155.4%, France 117.7%, India 105.4%, the US 98.7%, China 87.0%, Germany 86.9%, the UK 60.1%, South Korea 38.3%; Hong Kong 3.1%, Bahrain 1.9% and Macao 0.4% are lowest. Taiwan comes out at 44.8% this way, while the Ministry of Agriculture reports 30.31% (2023; 30.36% in 2025) using its own method (edible portions, feed conversion and so on). Japan and Singapore are not in this FAO dataset. Unlike “Self-sufficiency”, which covers 22 products one by one in quantities, this is a single figure for all calories.',
+      },
+      unit: '%',
+      file: 'calorie-self-sufficiency.json',
+      defaultYear: 2023,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [25, 50, 75, 100, 125, 150] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
     },
     {
       id: 'pse',
