@@ -35,6 +35,7 @@ STEPS = {
     "income": "topics.income",
     "sectors": "topics.sectors",
     "agriculture": "topics.agriculture",
+    "agriculture-land": "topics.agriculture_land",
     "crop-yield": "topics.crop_yield",  # 農業主題的每公頃產量（FAOSTAT QCL 的 Yield，只讀產量那個檔）
     # 油棕園：Zenodo 13379129 的範圍圖（156 MB）與種植年份圖（146 MB），各 609 個圖磚；第一次讀約 15 分鐘，
     # 之後用 .cache/oilpalm/aggregate.npz 幾秒；要先有 geo 的國界

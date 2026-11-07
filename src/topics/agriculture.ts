@@ -1,11 +1,23 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick, formatSignedLarge, intlDollars, usd } from '../lib/format';
-import type { IndicatorDef, Text, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, Text, TopicDefinition } from './types';
 
 const CEREALS = { zh: '穀物', en: 'Cereals' };
 const CASH_CROPS = { zh: '油料與經濟作物', en: 'Oil and cash crops' };
 const PRODUCE = { zh: '蔬菜水果', en: 'Fruit and vegetables' };
 const LIVESTOCK = { zh: '畜產品', en: 'Livestock products' };
+
+/** 收穫面積最大的作物併成八組（2026-11-07，製作手冊第二十五批 440；pipeline/topics/agriculture_land.py 的 GROUPS） */
+const TOP_CROP_GROUPS: CategoryDef[] = [
+  { value: 1, label: { zh: '小麥', en: 'Wheat' } },
+  { value: 2, label: { zh: '玉米', en: 'Maize' } },
+  { value: 3, label: { zh: '稻米', en: 'Rice' } },
+  { value: 4, label: { zh: '其他穀物（大麥、小米、高粱…）', en: 'Other cereals (barley, millet, sorghum…)' } },
+  { value: 5, label: { zh: '豆類與油料（大豆、乾豆、油菜籽、葵花籽…）', en: 'Pulses and oil crops (soybeans, beans, rapeseed, sunflower…)' } },
+  { value: 6, label: { zh: '根莖類與糖料（樹薯、馬鈴薯、甘蔗…）', en: 'Roots and sugar crops (cassava, potatoes, sugar cane…)' } },
+  { value: 7, label: { zh: '樹木作物（椰子、油棕、橄欖、椰棗、可可…）', en: 'Tree crops (coconuts, oil palm, olives, dates, cocoa…)' } },
+  { value: 8, label: { zh: '蔬菜、水果與其他', en: 'Vegetables, fruit and other' } },
+];
 
 /** 地圖上可選的農產品（與 pipeline/topics/agriculture.py 的 PRODUCTS 對應；貿易主題也共用） */
 export const PRODUCTS: { id: string; label: Text; group: Text }[] = [
@@ -207,6 +219,59 @@ export const agriculture: TopicDefinition = {
       format: (v) => tr({ zh: `${formatLargeNumber(v)} 公頃`, en: `${formatLargeNumber(v)} ha` }),
       formatTick: formatLargeTick,
       shareOfWorld: true,
+    },
+    {
+      id: 'top-crop',
+      label: { zh: '收穫面積最大的作物', en: 'Crop with the largest harvested area' },
+      description: {
+        zh: '這一國收穫面積最大的作物（FAOSTAT），併成八組上色，滑過看實際的作物與前五名的面積，拖時間軸看 1961 年起的變化。2024 年 179 國裡小麥 39 國、玉米 26、稻米 22、樹木作物 40（椰子是太平洋島國、椰棗是中東、橄欖是西班牙 264.6 萬公頃、油棕是馬來西亞 506.7 萬公頃、可可是象牙海岸 381.5 萬公頃）；美國、巴西、阿根廷是大豆，奈及利亞是樹薯 1,072 萬公頃，荷蘭是馬鈴薯 15.3 萬公頃。台灣 2024 年的稻米是外部機構提供的數字，所以預設看 2023 年：稻穀 22.2 萬公頃，其次蔬菜 6.5 萬、玉米 3.7 萬、檳榔 3.7 萬公頃。多年生作物（椰子、油棕、橄欖）的收穫面積跟一年生作物口徑不同；FAOSTAT 標成外部機構提供的數字不用，比最大的作物還大的那一年不畫（台灣、印尼 2024 年就是）。',
+        en: 'The crop with the largest harvested area in each country (FAOSTAT), grouped into eight colours; hover for the actual crop and the top five, and drag the time slider back to 1961. In 2024, of 179 countries, wheat led in 39, maize in 26 and rice in 22, and tree crops in 40 (coconuts in the Pacific islands, dates in the Middle East, olives in Spain with 2.65 million ha, oil palm in Malaysia with 5.07 million ha, cocoa in Côte d’Ivoire with 3.82 million ha); soybeans lead in the US, Brazil and Argentina, cassava in Nigeria (10.7 million ha) and potatoes in the Netherlands (153,000 ha). Taiwan’s 2024 rice figure was supplied by an outside organisation, so the map opens on 2023: rice, 222,000 ha, ahead of vegetables (65,000), maize (37,000) and areca nuts (37,000). Harvested areas of perennial crops (coconuts, oil palm, olives) are not measured like those of annual crops. Figures FAOSTAT marks as supplied by outside organisations are not used, and a year is left blank when such a figure is larger than the top crop (as for Taiwan and Indonesia in 2024).',
+      },
+      unit: '',
+      file: 'top-crop.json',
+      defaultYear: 2023,
+      layer: { kind: 'categorical', categories: TOP_CROP_GROUPS },
+      format: (v) => tr(TOP_CROP_GROUPS.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+    },
+    {
+      id: 'farmland-share',
+      label: { zh: '農地占國土的比例', en: 'Farmland as a share of land area' },
+      description: {
+        zh: '農地（耕地、永久作物與永久草地）占陸地面積的比例，可以切換只看耕地或永久草地。2024 年烏拉圭 87.4%、沙烏地阿拉伯 81.7%、孟加拉 72.2%、蒙古 68.8%、印度 59.9%、荷蘭 53.4%、法國 52.8%、美國 46.1%、中國 41.7%、巴西 28.4%；台灣 21.9%（耕地 16.8%）、韓國 16.0%、日本 12.6%、埃及 4.2%；全世界 36.0%。永久草地各國報法差很多：蒙古幾乎都是天然草原、沙烏地是沙漠的粗放牧地，都不是可以耕種的地；耕地比例最高的是孟加拉 60.5%、丹麥 58.9%、烏克蘭 56.8%。',
+        en: 'Agricultural land (arable land, permanent crops and permanent meadows and pastures) as a share of land area; switch to arable land or permanent pasture alone. In 2024: Uruguay 87.4%, Saudi Arabia 81.7%, Bangladesh 72.2%, Mongolia 68.8%, India 59.9%, the Netherlands 53.4%, France 52.8%, the US 46.1%, China 41.7%, Brazil 28.4%; Taiwan 21.9% (16.8% arable), South Korea 16.0%, Japan 12.6%, Egypt 4.2%; 36.0% worldwide. Countries report permanent pasture very differently: Mongolia’s is almost all natural grassland and Saudi Arabia’s is extensive desert grazing, neither of it farmable. The highest arable shares are Bangladesh (60.5%), Denmark (58.9%) and Ukraine (56.8%).',
+      },
+      unit: '%',
+      file: 'farmland-share/{item}.json',
+      dimension: {
+        label: { zh: '土地', en: 'Land' },
+        options: [
+          { id: 'agricultural', label: { zh: '全部農地', en: 'All farmland' } },
+          { id: 'arable', label: { zh: '耕地', en: 'Arable land' } },
+          { id: 'pasture', label: { zh: '永久草地與牧場', en: 'Permanent meadows and pastures' } },
+        ],
+        defaultOption: 'agricultural',
+      },
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 35, 50, 70] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'livestock-density',
+      label: { zh: '牲畜密度', en: 'Livestock density' },
+      description: {
+        zh: '每公頃農地有幾個家畜單位（FAO 依各畜種與地區的換算係數，把牛、豬、雞等換成同一個單位），看這塊地上擠了多少牲畜；滑過看各畜種的比例。2023 年千里達 8.28、卡達 7.45、科威特 4.88、韓國 4.63、荷蘭 3.92，台灣 3.11 在 176 國裡第 6（豬占 53%、雞 42%）；比利時 2.88、孟加拉 2.07、日本 1.96、丹麥 1.68（豬占 65%）、紐西蘭 1.17（牛 76%、綿羊 21%）、德國 1.03、中國 0.68、美國 0.31、蒙古 0.12、澳洲 0.10；全世界 0.43。農地不到 2 萬公頃的地方（新加坡、香港、汶萊等 32 個）分母太小，不比；換算係數依地區不同，跨區比較要小心。',
+        en: 'Livestock units per hectare of agricultural land (FAO converts cattle, pigs, chickens and other species into one unit with factors that vary by region), showing how crowded the land is with animals; hover for each species’ share. In 2023: Trinidad and Tobago 8.28, Qatar 7.45, Kuwait 4.88, South Korea 4.63, the Netherlands 3.92, and Taiwan 3.11, 6th of 176 (53% pigs, 42% chickens); Belgium 2.88, Bangladesh 2.07, Japan 1.96, Denmark 1.68 (65% pigs), New Zealand 1.17 (76% cattle, 21% sheep), Germany 1.03, China 0.68, the US 0.31, Mongolia 0.12, Australia 0.10; 0.43 worldwide. Places with less than 20,000 ha of farmland (32, including Singapore, Hong Kong and Brunei) are not compared because the denominator is too small; conversion factors differ by region, so compare across regions with care.',
+      },
+      unit: { zh: '家畜單位／公頃', en: 'LSU/ha' },
+      file: 'livestock-density.json',
+      defaultYear: 2023,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.25, 0.5, 1, 2, 4] } },
+      format: (v) => tr({ zh: `${fixed(v, 2)} 單位／公頃`, en: `${fixed(v, 2)} LSU/ha` }),
+      formatTick: (v) => String(v),
     },
   ],
 };
