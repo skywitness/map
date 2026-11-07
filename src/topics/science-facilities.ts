@@ -16,6 +16,8 @@ const GROUPS: { value: number; label: Text; color: string }[] = [
   { value: 1, label: { zh: '核融合研究裝置', en: 'Fusion experiments' }, color: MAP_TOKENS.categorical[5] },
   { value: 2, label: { zh: '同步輻射光源', en: 'Synchrotron light sources' }, color: MAP_TOKENS.categorical[1] },
   { value: 3, label: { zh: '粒子加速器與對撞機', en: 'Particle accelerators and colliders' }, color: MAP_TOKENS.categorical[0] },
+  // 2026-11-07（第二十五批 512，pipeline/topics/science_astro.py）
+  { value: 4, label: { zh: '天文設施（望遠鏡、天文台、微中子）', en: 'Astronomy (telescopes, observatories, neutrinos)' }, color: MAP_TOKENS.categorical[7] },
 ];
 /** 細類 t（左邊清單的分組） */
 const TYPES: Record<number, Text> = {
@@ -26,6 +28,10 @@ const TYPES: Record<number, Text> = {
   5: { zh: '早期的加速器', en: 'Early accelerators' },
   6: { zh: '固定靶加速器', en: 'Fixed-target accelerators' },
   7: { zh: '對撞機', en: 'Colliders' },
+  8: { zh: '大型光學望遠鏡', en: 'Large optical telescopes' },
+  9: { zh: '電波望遠鏡', en: 'Radio telescopes' },
+  10: { zh: '天文台', en: 'Observatories' },
+  11: { zh: '微中子實驗', en: 'Neutrino experiments' },
 };
 /** 狀態 st（pipeline 的 OPERATING〔1〕、CLOSED、CLOSED_UNKNOWN、PLANNED） */
 const CLOSED = 2;
@@ -35,7 +41,7 @@ const PLANNED = 4;
 const GROUP_COLORS: ColorClasses = {
   field: 'g',
   title: { zh: '設施', en: 'Facility' },
-  thresholds: [1.5, 2.5],
+  thresholds: [1.5, 2.5, 3.5],
   classes: GROUPS.map((g) => ({ color: g.color, label: g.label })),
 };
 
@@ -71,7 +77,8 @@ function lines(p: PointRecord, countryName: (iso3: string) => string): string[] 
   return [
     [tr(TYPES[p.t as number] ?? { zh: '', en: '' }), yearsText(p)].filter(Boolean).join(' · '),
     where,
-    str(p.gev) ? tr({ zh: `能量 ${p.gev} GeV`, en: `${p.gev} GeV` }) : '',
+    // 天文設施的 gev 欄放的是望遠鏡的口徑（例如「10.4 m」）
+    str(p.gev) ? (p.g === 4 ? tr({ zh: `口徑 ${p.gev}`, en: `Aperture ${p.gev}` }) : tr({ zh: `能量 ${p.gev} GeV`, en: `${p.gev} GeV` })) : '',
   ].filter(Boolean);
 }
 
@@ -158,7 +165,7 @@ const count = (v: number) => tr({ zh: `${v} 個`, en: v === 1 ? '1 facility' : `
 
 export const scienceFacilities: TopicDefinition = {
   id: 'science-facilities',
-  title: { zh: '大型科學設施（核融合、同步輻射、粒子加速器）', en: 'Big science facilities: fusion, light sources and accelerators' },
+  title: { zh: '大型科學設施（核融合、同步輻射、加速器、望遠鏡）', en: 'Big science facilities: fusion, light sources, accelerators and telescopes' },
   shortTitle: { zh: '大型科學設施', en: 'Big science' },
   defaultIndicator: 'map',
   defaultYear: LAST,
@@ -171,11 +178,19 @@ export const scienceFacilities: TopicDefinition = {
       url: 'https://en.wikipedia.org/w/index.php?title=List_of_fusion_experiments&oldid=1379837384',
       license: 'CC BY-SA 4.0',
     },
-    { name: { zh: 'Wikidata（位置）', en: 'Wikidata (locations)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    {
+      name: {
+        zh: '英文維基百科「List of largest optical reflecting telescopes」（revid 1380348596）、「List of radio telescopes」（revid 1371673085）、「List of astronomical observatories」（revid 1377735702）、「List of neutrino experiments」（revid 1379607454）',
+        en: 'English Wikipedia, “List of largest optical reflecting telescopes” (revision 1380348596), “List of radio telescopes” (revision 1371673085), “List of astronomical observatories” (revision 1377735702) and “List of neutrino experiments” (revision 1379607454)',
+      },
+      url: 'https://en.wikipedia.org/wiki/List_of_radio_telescopes?oldid=1371673085',
+      license: 'CC BY-SA 4.0',
+    },
+    { name: { zh: 'Wikidata（位置；天文設施另用啟用與關閉年份）', en: 'Wikidata (locations; start and end years for astronomy)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
   ],
   note: {
-    zh: '收英文維基三個清單的 381 個設施：核融合的托卡馬克、仿星器、雷射三個表（其他類型是條列、沒有年份，不收），同步輻射光源與自由電子雷射，粒子物理的加速器與對撞機（清單只收「輸出直接用在實驗」的加速器）。取消的與沒有地點的構想（DEMO、EFPP 等）不收。位置用表裡連結的條目在 Wikidata 的座標（裝置本身沒有座標的用所屬機構或城市：381 個設施裡只有 114 個用裝置本身的座標，2026-11-05 查）。同步輻射表的除役欄空白的當作還在運作；已關閉但停止年份不明的，從啟用那年起就畫成灰色。同一個機構的設施疊在同一點，看左邊的清單。',
-    en: 'The 381 facilities in three English Wikipedia lists: the tokamak, stellarator and laser tables of fusion experiments (other types are bullet lists without dates and are left out), synchrotron light sources and free-electron lasers, and particle physics accelerators and colliders (the list covers only accelerators whose output was used directly in experiments). Cancelled projects and unsited concepts (DEMO, EFPP and others) are left out. Locations are Wikidata coordinates of the articles linked in the tables (the host institution or city where the device itself has none: only 114 of the 381 facilities use the device’s own coordinates, checked 2026-11-05). Light sources with a blank decommissioning column are treated as still operating; closed facilities with an unknown end date are drawn in grey from their start year. Facilities at the same institution share one point; see the list on the left.',
+    zh: '收英文維基三個清單的 381 個設施：核融合的托卡馬克、仿星器、雷射三個表（其他類型是條列、沒有年份，不收），同步輻射光源與自由電子雷射，粒子物理的加速器與對撞機（清單只收「輸出直接用在實驗」的加速器）。取消的與沒有地點的構想（DEMO、EFPP 等）不收。位置用表裡連結的條目在 Wikidata 的座標（裝置本身沒有座標的用所屬機構或城市：381 個設施裡只有 114 個用裝置本身的座標，2026-11-05 查）。同步輻射表的除役欄空白的當作還在運作；已關閉但停止年份不明的，從啟用那年起就畫成灰色。同一個機構的設施疊在同一點，看左邊的清單。2026-11-07 加天文設施（英文維基另外四個清單）：大型光學望遠鏡 49 個、電波望遠鏡 168 個、天文台 516 個（只收有啟用年份、在 Wikidata 有座標的；也在望遠鏡或微中子清單裡的不重複）、微中子實驗 48 個；地點是設施所在地，不是出資國（日本的昴星團望遠鏡畫在夏威夷）。電波望遠鏡清單沒有年份，用 Wikidata 的啟用與關閉年份，沒有的只在 2026 年出現。',
+    en: 'The 381 facilities in three English Wikipedia lists: the tokamak, stellarator and laser tables of fusion experiments (other types are bullet lists without dates and are left out), synchrotron light sources and free-electron lasers, and particle physics accelerators and colliders (the list covers only accelerators whose output was used directly in experiments). Cancelled projects and unsited concepts (DEMO, EFPP and others) are left out. Locations are Wikidata coordinates of the articles linked in the tables (the host institution or city where the device itself has none: only 114 of the 381 facilities use the device’s own coordinates, checked 2026-11-05). Light sources with a blank decommissioning column are treated as still operating; closed facilities with an unknown end date are drawn in grey from their start year. Facilities at the same institution share one point; see the list on the left. Astronomy facilities were added on 7 November 2026 from four more English Wikipedia lists: 49 large optical telescopes, 168 radio telescopes, 516 observatories (only those with a founding year and Wikidata coordinates, without duplicating the telescope and neutrino lists) and 48 neutrino experiments; they are placed where they stand, not by funding country (Japan’s Subaru Telescope is in Hawaii). The radio telescope list has no dates, so Wikidata start and end years are used, and those without appear only in 2026.',
   },
   listPanel: LIST,
   overlays: [RUNNING, CLOSED_LAYER, PLANNED_LAYER],
@@ -184,8 +199,8 @@ export const scienceFacilities: TopicDefinition = {
       id: 'map',
       label: { zh: '設施地圖', en: 'Facility map' },
       description: {
-        zh: '世界的核融合研究裝置、同步輻射光源與粒子加速器，依啟用年份出現，顏色是種類，已關閉的變灰。2026 年運作中的約 175 個，美國 44、日本 22、德國與俄羅斯各 17、中國與瑞士（CERN）各 12。最早的是 1928 年亞琛的直線加速器與 1931 年柏克萊的 9 吋迴旋加速器；第一台托卡馬克是 1958 年莫斯科的 T-1。興建中的有 ITER（法國，預定 2034 年）、SPARC 等。台灣有新竹的台灣光源（1993）與台灣光子源（2015）。',
-        en: 'Fusion experiments, synchrotron light sources and particle accelerators around the world, appearing in the year they started, coloured by type and turning grey once closed. About 175 were operating in 2026: 44 in the US, 22 in Japan, 17 each in Germany and Russia, and 12 each in China and Switzerland (CERN). The earliest are the 1928 linear accelerator in Aachen and Berkeley’s 9-inch cyclotron of 1931; the first tokamak was T-1 in Moscow in 1958. ITER (France, planned for 2034) and SPARC are among those under construction. Taiwan has the Taiwan Light Source (1993) and Taiwan Photon Source (2015) in Hsinchu.',
+        zh: '世界的核融合研究裝置、同步輻射光源與粒子加速器，依啟用年份出現，顏色是種類，已關閉的變灰。2026 年運作中的約 175 個，美國 44、日本 22、德國與俄羅斯各 17、中國與瑞士（CERN）各 12。最早的是 1928 年亞琛的直線加速器與 1931 年柏克萊的 9 吋迴旋加速器；第一台托卡馬克是 1958 年莫斯科的 T-1。興建中的有 ITER（法國，預定 2034 年）、SPARC 等。台灣有新竹的台灣光源（1993）與台灣光子源（2015），天文設施有鹿林天文台（1999）。天文設施另外算在「天文設施」指標，不算進運作中的設施數。',
+        en: 'Fusion experiments, synchrotron light sources and particle accelerators around the world, appearing in the year they started, coloured by type and turning grey once closed. About 175 were operating in 2026: 44 in the US, 22 in Japan, 17 each in Germany and Russia, and 12 each in China and Switzerland (CERN). The earliest are the 1928 linear accelerator in Aachen and Berkeley’s 9-inch cyclotron of 1931; the first tokamak was T-1 in Moscow in 1958. ITER (France, planned for 2034) and SPARC are among those under construction. Taiwan has the Taiwan Light Source (1993) and Taiwan Photon Source (2015) in Hsinchu, and Lulin Observatory (1999) among the astronomy facilities. Astronomy facilities are counted in their own indicator, not in operating facilities.',
       },
       unit: { zh: '個', en: 'facilities' },
       file: 'operating.json',
@@ -249,6 +264,20 @@ export const scienceFacilities: TopicDefinition = {
       integer: true,
       format: count,
       missing: { zh: '清單裡沒有這個國家運作中的加速器', en: 'No operating accelerator in the list' },
+    },
+    {
+      id: 'astronomy',
+      label: { zh: '天文設施', en: 'Astronomy facilities' },
+      description: {
+        zh: '那一年運作中的大型光學望遠鏡、電波望遠鏡、天文台與微中子實驗（英文維基四個清單，2026-11-07 加）。2026 年共 729 個：美國 267 個最多，其次英國 49、智利 34（阿塔卡瑪沙漠的大型天文台）、澳洲與西班牙各 27、法國 21、加拿大與德國各 20；台灣是鹿林天文台。最大的光學望遠鏡是大雙筒望遠鏡（LBT，口徑合計 11.9 m，2005）、加那利大型望遠鏡（10.4 m，2006）、凱克一號與二號（各 10 m）；阿雷西博望遠鏡 2020 年倒塌。天文台清單有很多大學的小天文台，數量不代表研究規模。',
+        en: 'Large optical telescopes, radio telescopes, observatories and neutrino experiments operating that year (four English Wikipedia lists, added 7 November 2026). 729 in 2026: the US has the most (267), then the UK 49, Chile 34 (the large observatories of the Atacama), Australia and Spain 27 each, France 21, Canada and Germany 20 each; Taiwan has Lulin Observatory. The largest optical telescopes are the Large Binocular Telescope (11.9 m combined, 2005), the Gran Telescopio Canarias (10.4 m, 2006) and Keck 1 and 2 (10 m each); the Arecibo Telescope collapsed in 2020. The observatory list includes many small university observatories, so counts do not reflect research scale.',
+      },
+      unit: { zh: '個', en: 'facilities' },
+      file: 'astronomy.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 3, 6, 12, 25, 50] } },
+      integer: true,
+      format: count,
+      missing: { zh: '清單裡沒有這個國家運作中的天文設施', en: 'No operating astronomy facility in the lists' },
     },
   ],
 };

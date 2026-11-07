@@ -37,6 +37,7 @@ from pathlib import Path
 from common import CACHE_DIR, OUT_DIR, USER_AGENT, download, indicator_file, now_iso, points_file, write_json
 from sources.countries import from_name
 from sources.wikidata_profiles import _rows, _sparql
+from topics import science_astro
 
 OUT = OUT_DIR / "topics" / "science-facilities"
 LAST = 2026
@@ -374,6 +375,8 @@ def build() -> None:
             "s": start, "e": end, "en": r["name"], "zh": ZH.get(r["name"]), "org": r["org"][:120] or None, "iso3": iso3,
             "gev": energy or None, "yr": LAST,
         })
+    # 天文設施（2026-11-07，第二十五批 512，science_astro.py）：群組 4
+    rows += science_astro.rows()
     if no_country:
         raise RuntimeError("大型科學設施：對不到國家的（在 LOCATION_TITLES 補地點）：" + "；".join(no_country))
     print(f"  收 {len(rows)} 個（不收：取消 {len(skipped)} 個；沒有地點的構想 {len(unlocated)} 個：{'、'.join(unlocated)}）")
@@ -386,7 +389,7 @@ def build() -> None:
     fields = ["lon", "lat", "g", "t", "st", "s", "e", "yr", "en", "zh", "org", "iso3", "gev"]
     scale = {"lon": 0.0001, "lat": 0.0001, "g": 1, "t": 1, "st": 1, "s": 1, "e": 1, "yr": 1}
     strings = ("org", "iso3", "gev")
-    title_rev = "; ".join(f"“{t.replace('_', ' ')}” (revision {rev})" for t, rev in ARTICLES.values())
+    title_rev = "; ".join(f"“{t.replace('_', ' ')}” (revision {rev})" for t, rev in [*ARTICLES.values(), *science_astro.ARTICLES.values()])
     attribution = {"license": "CC BY-SA 4.0",
                    "attribution": f"Wikipedia contributors, {title_rev}, https://en.wikipedia.org/; coordinates from Wikidata (CC0)"}
     built = [x for x in rows if x["st"] != PLANNED]
@@ -397,15 +400,17 @@ def build() -> None:
 
     # 各國每年運作中的設施數（年份不明的不算）
     years = list(range(FIRST, LAST + 1))
-    series: dict[str, dict[str, list[int]]] = {k: defaultdict(lambda: [0] * len(years)) for k in ("operating", "fusion", "light", "accelerators")}
-    group_key = {1: "fusion", 2: "light", 3: "accelerators"}
+    series: dict[str, dict[str, list[int]]] = {k: defaultdict(lambda: [0] * len(years)) for k in ("operating", "fusion", "light", "accelerators", "astronomy")}
+    group_key = {1: "fusion", 2: "light", 3: "accelerators", 4: "astronomy"}
     for x in built:
         if x["st"] == CLOSED_UNKNOWN:
             continue
         start = x["s"] if x["s"] is not None else LAST
         for i, y in enumerate(years):
             if start <= y and (x["e"] is None or y <= x["e"]):
-                series["operating"][x["iso3"]][i] += 1
+                # 「運作中的設施數」維持原本的三類；天文設施（多半是大學的小天文台）另外算，不混進來
+                if x["g"] != 4:
+                    series["operating"][x["iso3"]][i] += 1
                 series[group_key[x["g"]]][x["iso3"]][i] += 1
     for name, data in series.items():
         world = [sum(v[i] for v in data.values()) for i in range(len(years))]
