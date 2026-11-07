@@ -191,6 +191,8 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `water-irrigation` 是各國水資源的灌溉鹽化、地下水占取水量與 SDG 6.4.1 用水效率，同一個 AQUASTAT 批次檔。幾秒鐘。
 
+`water-tw-utility` 是各國水資源側欄的台灣自來水：台水開放資料的 prot2.csv（漏水率）與 prop8.csv（水價），各約 1 KB；台水網站常第一次連線失敗，程式會重試。不到一秒。
+
 `electricity`（2026-11-07 起）讀 Ember 的新檔 `files.ember-energy.org/public-downloads/generation/outputs/release_generation_yearly_global.csv`（16 MB，1985 年起；舊的長表已停止更新），人均用電量用聯合國 WPP 的人口自己算。
 
 `sea-level-rise` 從 Zenodo 的 IPCC AR6 海平面推估（9.2 GB 的 zip）用 HTTP Range 只讀三個情境的 netCDF（各約 72 MB，要 h5py），輸出冰河、海冰與海平面主題的海平面上升推估（國家與潮位站）。做法見 DESIGN.md 第 8 節第 282 點。

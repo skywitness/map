@@ -61,6 +61,8 @@ const waterForestOwn: TopicDefinition = {
   defaultIndicator: 'renewable-water',
   // 各指標的最新年份不同（人均水資源 2023、水資源壓力 2022、飲用水 2024、森林 2025），沒有這一年時用最接近的一年
   defaultYear: 2025,
+  // 2026-11-07（第二十五批 496）：點台灣時列台灣自來水公司的漏水率與水價
+  panelExtra: () => import('./panels/WaterForestPanel'),
   sources: [
     {
       name: {
@@ -69,6 +71,11 @@ const waterForestOwn: TopicDefinition = {
       },
       url: 'https://www.fao.org/aquastat/en/',
       license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '台灣自來水公司：近年漏水率、近年水價資料表', en: 'Taiwan Water Corporation: leakage rates and water prices' },
+      url: 'https://data.gov.tw/dataset/22263',
+      license: OPEN_DATA_TW,
     },
     {
       name: { zh: '經濟部水利署：水庫淤積量（民國 114 年）', en: 'Water Resources Agency, Taiwan: reservoir sedimentation (2025)' },
