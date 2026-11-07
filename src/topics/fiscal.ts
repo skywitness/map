@@ -105,6 +105,11 @@ const fiscalOwn: TopicDefinition = {
       url: 'https://nstatdb.dgbas.gov.tw/',
       license: OPEN_DATA_TW,
     },
+    {
+      name: { zh: 'OECD Social Expenditure Database（SOCX，公共社會支出）', en: 'OECD Social Expenditure Database (SOCX, public social spending)' },
+      url: 'https://www.oecd.org/en/data/datasets/social-expenditure-database-socx.html',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
     zh: '通膨率、政府債務、財政收支與物價水準 2026 年起為 IMF 推估值；開曼群島、古拉索等 IMF 未涵蓋的地區改用世界銀行資料。稅收用 OECD 全球稅收統計，印度、俄羅斯、沙烏地阿拉伯等 OECD 沒有的國家用 IMF 世界稅收資料庫補；日本等最新一年還沒公布的國家顯示前一年。台灣的稅收用財政部的賦稅負擔率（含社會安全捐）；IMF 的台灣債務與財政收支就是財政部的數字，範圍比其他國家窄，見台灣側欄的附註。法定的稅率（營所稅、所得稅最高稅率、營業稅）見「稅率」主題。政府支出的用途用 IMF 的 COFOG 分類（一般政府，約 90 國），教育、醫療兩項在 IMF 沒有或比較舊的國家用世界銀行 WDI（UNESCO、WHO）補；台灣用財政部各級政府歲出的政事別對到最接近的類別。稅收的組成是 OECD 全球稅收統計占稅收總額的比例，台灣用財政部依 OECD 分類編的賦稅收入結構。1800 年起的政府債務是 IMF 的歷史公共債務資料庫（到 2015 年，早年多半只有中央政府），跟現在的「政府債務占 GDP」分開。',
@@ -297,6 +302,50 @@ const fiscalOwn: TopicDefinition = {
       format: (v) => `${fixed(v, v < 1 ? 2 : 1)}%`,
       formatTick: (v) => `${fixed(v, 0)}%`,
     },
+    {
+      id: 'social-spending',
+      label: { zh: '公共社會支出占 GDP', en: 'Public social spending (% of GDP)' },
+      description: {
+        zh: '政府（含強制性社會保險）花在年金、醫療、家庭、失業、身心障礙、住宅與就業促進的錢占 GDP 的比例（OECD SOCX，1980 年起），子項目可以拆成 8 個用途。2024 年奧地利 31.6%、芬蘭 31.4%、法國 30.6%、比利時 28.6%、德國 27.9%、義大利 27.6% 最高，美國 19.8%、南韓 15.3%、愛爾蘭 14.4%、土耳其 10.4%，OECD 平均 21.2%。跟上面「政府支出的用途」（IMF COFOG，占政府總支出）不同：這裡占 GDP、用途分得比較細，而且只算公共，美國雇主提供的醫療保險這類民營支出不算，所以會低估美國。各用途的細項 2021 年以後只有少數國家，地圖用 3 年內最近一年。台灣不在 SOCX 裡。',
+        en: 'Government spending (including compulsory social insurance) on pensions, health, families, unemployment, disability, housing and employment programmes as a share of GDP (OECD SOCX, from 1980), with eight spending areas as options. In 2024 Austria spent 31.6%, Finland 31.4%, France 30.6%, Belgium 28.6%, Germany 27.9% and Italy 27.6%, the highest; the US 19.8%, South Korea 15.3%, Ireland 14.4% and Turkey 10.4%, against an OECD average of 21.2%. Unlike “Government spending by function” above (IMF COFOG, share of total spending), this is a share of GDP with finer categories and public spending only: private spending such as US employer health insurance is excluded, which understates the US. Breakdowns by area cover few countries after 2021, so the map uses each country’s latest year within 3 years. Taiwan is not in SOCX.',
+      },
+      unit: '%',
+      file: 'social-spending/{item}.json',
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [12, 16, 19, 22, 25, 28] },
+        itemScales: {
+          'old-age': { type: 'sequential', thresholds: [4, 6, 8, 10, 12, 14] },
+          incapacity: { type: 'sequential', thresholds: [0.5, 1, 1.5, 2, 3, 4] },
+          health: { type: 'sequential', thresholds: [4, 5, 6, 7, 8, 9] },
+          family: { type: 'sequential', thresholds: [1, 1.5, 2, 2.5, 3, 3.5] },
+          almp: { type: 'sequential', thresholds: [0.1, 0.2, 0.4, 0.6, 0.8, 1.2] },
+          unemployment: { type: 'sequential', thresholds: [0.2, 0.5, 0.8, 1.2, 1.6, 2.2] },
+          housing: { type: 'sequential', thresholds: [0.1, 0.2, 0.4, 0.6, 0.8, 1.2] },
+          other: { type: 'sequential', thresholds: [0.2, 0.4, 0.6, 0.8, 1.2, 1.8] },
+        },
+      },
+      dimension: {
+        label: { zh: '用途', en: 'Spending area' },
+        options: [
+          { id: 'total', label: { zh: '合計', en: 'Total' } },
+          { id: 'old-age', label: { zh: '老年與遺屬（年金）', en: 'Old age and survivors (pensions)' } },
+          { id: 'health', label: { zh: '醫療', en: 'Health' } },
+          { id: 'incapacity', label: { zh: '身心障礙、職災與病假', en: 'Incapacity (disability, injury, sickness)' } },
+          { id: 'family', label: { zh: '家庭', en: 'Family' } },
+          { id: 'unemployment', label: { zh: '失業給付', en: 'Unemployment' } },
+          { id: 'almp', label: { zh: '就業促進（積極勞動市場政策）', en: 'Active labour market programmes' } },
+          { id: 'housing', label: { zh: '住宅', en: 'Housing' } },
+          { id: 'other', label: { zh: '其他（社會救助等）', en: 'Other (social assistance etc.)' } },
+        ],
+        defaultOption: 'total',
+      },
+      format: (v) => `${fixed(v, v < 1 ? 2 : 1)}%`,
+      formatTick: (v) => `${v}%`,
+      compareWorld: false,
+      defaultYear: 2024,
+      noValue: { TWN: { zh: '台灣不在 OECD 的社會支出資料庫裡', en: 'Taiwan is not in the OECD Social Expenditure Database' } },
+    },
   ],
 };
 
@@ -310,7 +359,7 @@ const fiscalOwn: TopicDefinition = {
  * t/taxes/ 不再轉址；t/fiscal/?ind=cit 等由 redirects.ts 的 INDICATOR_MOVES 轉過去），這個主題改名「政府財政」
  */
 const PRICE_INDICATORS = ['inflation', 'price-level', 'food-share', 'recreation-share', 'restaurants-share'];
-/** 資料來源的順序：IMF WEO、OECD 稅收、IMF WoRLD、WDI、ICP 2021、財政部、IMF COFOG、IMF 歷史公共債務、主計總處 */
+/** 資料來源的順序：IMF WEO、OECD 稅收、IMF WoRLD、WDI、ICP 2021、財政部、IMF COFOG、IMF 歷史公共債務、主計總處、OECD SOCX */
 const sourcesAt = (idx: number[]) => fiscalOwn.sources.filter((_, i) => idx.includes(i));
 
 export const fiscal: TopicDefinition = withParts(
@@ -319,7 +368,7 @@ export const fiscal: TopicDefinition = withParts(
     title: { zh: '政府財政', en: 'Public finance' },
     shortTitle: { zh: '政府財政', en: 'Public finance' },
     defaultIndicator: 'government-debt',
-    sources: sourcesAt([0, 1, 2, 3, 5, 6, 7, 8]),
+    sources: sourcesAt([0, 1, 2, 3, 5, 6, 7, 8, 9]),
     note: {
       zh:
         '政府債務與財政收支 2026 年起為 IMF 推估值；開曼群島、古拉索等 IMF 未涵蓋的地區改用世界銀行資料。' +

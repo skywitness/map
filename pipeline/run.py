@@ -397,6 +397,8 @@ STEPS = {
     "redistribution": "topics.redistribution",
     # 社會保障覆蓋率（新主題）：ILOSTAT SDG 1.3.1 的 9 項，含台灣
     "social-protection": "topics.social_protection",
+    # 政府財政：公共社會支出占 GDP（OECD SOCX，加 key 只下載公共、占 GDP 的部分）
+    "fiscal-social-spending": "topics.social_spending",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
