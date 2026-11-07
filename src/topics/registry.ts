@@ -148,7 +148,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways'] },
       { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
-      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'ride-hailing'] },
+      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'cabotage', 'ride-hailing'] },
       { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
     ],
     // 每個小類各占一欄（2026-11-05 使用者要求，水運放最右邊）：鐵道；航空；道路；水運
@@ -231,6 +231,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   gambling: () => import('./gambling'),
   funeral: () => import('./funeral'),
   independence: () => import('./independence'),
+  cabotage: () => import('./cabotage'),
   'time-use': () => import('./time-use'),
   marriage: () => import('./marriage'),
   cities: () => import('./cities'),

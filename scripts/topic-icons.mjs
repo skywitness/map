@@ -84,6 +84,7 @@ const TOPIC_ICONS = {
   // 2026-11-07（第二十七批 555）
   funeral: 'flower-2',
   independence: 'milestone',
+  cabotage: 'truck',
   festivals: 'party-popper',
   holidays: 'calendar-days',
   dining: 'utensils-crossed',
