@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 190;
-export const INDICATOR_COUNT = 1471;
+export const TOPIC_COUNT = 191;
+export const INDICATOR_COUNT = 1472;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -305,6 +305,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD, Taxing Wages（勞動稅負）","en":"OECD, Taxing Wages (tax wedge)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_WAGES_COMP%40DF_TW_COMP&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD, 性別薪資差距","en":"OECD, Gender wage gap"},"url":"https://www.oecd.org/en/data/indicators/gender-wage-gap.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["gender"]},
   {"name":{"zh":"OECD, 每年實際工時（墨西哥、哥倫比亞）","en":"OECD, average annual hours actually worked (Mexico and Colombia)"},"url":"https://www.oecd.org/en/data/indicators/hours-worked.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["wages"]},
+  {"name":{"zh":"OECD：Digital Services Trade Restrictiveness Index（DF_STRI_DIGITAL）","en":"OECD: Digital Services Trade Restrictiveness Index (DF_STRI_DIGITAL)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_STRI%40DF_STRI_DIGITAL&df[ag]=OECD.TAD.TPD","licenses":["CC BY 4.0"],"topics":["digital-trade"]},
   {"name":{"zh":"OECD：Environmentally related tax revenue（DF_ERTR）","en":"OECD: Environmentally related tax revenue (DF_ERTR)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_ERTR%40DF_ERTR&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["env-taxes"]},
   {"name":{"zh":"OECD：Material flow accounts（DF_MATERIAL_RESOURCES）","en":"OECD: Material flow accounts (DF_MATERIAL_RESOURCES)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_MATERIAL_RESOURCES%40DF_MATERIAL_RESOURCES&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["materials"]},
   {"name":{"zh":"OECD：Net Effective Energy Rates（Taxing Energy Use，2018、2021、2023 年）","en":"OECD, Net Effective Energy Rates (Taxing Energy Use, 2018, 2021 and 2023)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_NEER%40DF_NEERS&df[ag]=OECD.CTP.TPS","licenses":["CC BY 4.0"],"topics":["energy-taxes"]},

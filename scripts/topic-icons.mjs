@@ -85,6 +85,7 @@ const TOPIC_ICONS = {
   funeral: 'flower-2',
   independence: 'milestone',
   cabotage: 'truck',
+  'digital-trade': 'globe-lock',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

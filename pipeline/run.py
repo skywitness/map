@@ -305,6 +305,8 @@ STEPS = {
     # 家庭花在交通上的錢、運輸與倉儲業的就業（第二十七批 585）：Eurostat nama_10_co3_p3、主計總處 6588；ILOSTAT、主計總處
     "household-transport": "topics.household_transport",
     "transport-jobs": "topics.transport_jobs",
+    # 資料能不能出國：數位貿易的壁壘（第二十七批 586）：OECD Digital STRI
+    "digital-trade": "topics.digital_trade",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
     # 商船隊的船齡與艘數、港口的效率（第二十三批 401）：UNCTADstat 的 MerchantFleet 與 PortCalls、世界銀行 CPPI 2025（CC BY-NC 3.0 IGO）
