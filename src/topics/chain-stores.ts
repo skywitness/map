@@ -7,6 +7,17 @@ const CONVENIENCE = { zh: '便利商店', en: 'Convenience stores' };
 const RESTAURANTS = { zh: '速食與咖啡', en: 'Fast food and coffee' };
 const BIG_BOX = { zh: '大型賣場', en: 'Big-box stores' };
 const BUBBLE_TEA = { zh: '手搖飲', en: 'Bubble tea' };
+const SUPERMARKET = { zh: '超市', en: 'Supermarkets' };
+const DRUGSTORE = { zh: '藥妝店與藥局', en: 'Drugstores and pharmacies' };
+/** 超市、藥妝與藥局（第二十五批 466，pipeline/topics/chain_retail.py）：全聯每百萬人 45 家、奧地利的 SPAR 112 家 */
+const RETAIL_THRESHOLDS = [0.5, 2, 5, 10, 25, 50];
+
+/** 這一國 OSM 上店最多的超市（藥妝與藥局）品牌是本國、外國還是跨國加盟（chain_retail.py 的 largest/） */
+const LARGEST: CategoryDef[] = [
+  { value: 1, label: { zh: '本國品牌', en: 'Domestic brand' } },
+  { value: 2, label: { zh: '外國品牌', en: 'Foreign brand' } },
+  { value: 3, label: { zh: '跨國加盟（SPAR、BENU）或國籍不明', en: 'International franchise (SPAR, BENU) or unknown' } },
+];
 /** 手搖飲品牌（第二十四批 415，pipeline/topics/chain_bubble_tea.py）：密度都低，同一組門檻；台灣的 50嵐、清心福全每百萬人十幾家 */
 const BUBBLE_THRESHOLDS = [0.1, 0.25, 0.5, 1, 2.5, 10];
 
@@ -48,6 +59,23 @@ export const BRANDS: { id: string; label: Text; group: Text; thresholds: number[
   { id: 'ching-shin', label: { zh: '清心福全', en: 'Ching Shin' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
   { id: 'chagee', label: { zh: '霸王茶姬（Chagee）', en: 'Chagee' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
   { id: 'chatime', label: { zh: '日出茶太（Chatime）', en: 'Chatime' }, group: BUBBLE_TEA, thresholds: BUBBLE_THRESHOLDS },
+  { id: 'lidl', label: 'Lidl', group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'aldi', label: { zh: 'Aldi（南、北兩家）', en: 'Aldi (Süd and Nord)' }, group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'pyaterochka', label: 'Pyaterochka', group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'walmart', label: { zh: '沃爾瑪（Walmart）', en: 'Walmart' }, group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'carrefour', label: { zh: '家樂福（Carrefour）', en: 'Carrefour' }, group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'spar', label: 'SPAR', group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'pxmart', label: { zh: '全聯福利中心', en: 'PX Mart' }, group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'simple-mart', label: { zh: '美廉社', en: 'Simple Mart' }, group: SUPERMARKET, thresholds: RETAIL_THRESHOLDS },
+  { id: 'watsons', label: { zh: '屈臣氏（Watsons）', en: 'Watsons' }, group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'walgreens', label: 'Walgreens', group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'cvs', label: 'CVS', group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'rossmann', label: 'Rossmann', group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'dm', label: 'dm', group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'boots', label: 'Boots', group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'matsukiyo', label: { zh: '松本清（Matsumoto Kiyoshi）', en: 'Matsumoto Kiyoshi' }, group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'cosmed', label: { zh: '康是美', en: 'Cosmed' }, group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
+  { id: 'poya', label: { zh: '寶雅', en: 'Poya' }, group: DRUGSTORE, thresholds: RETAIL_THRESHOLDS },
 ];
 
 /**
@@ -156,8 +184,8 @@ export const chainStores: TopicDefinition = {
     },
   ],
   note: {
-    zh: `${OSM_CAVEAT.zh} 品牌依店家的 brand:wikidata 認（name-suggestion-index 的標法），沒有標的店只在名稱以品牌名稱開頭、店型對（便利商店、速食店、咖啡店、量販店），而且在品牌有開店的國家時才算（IKEA 只認 brand:wikidata）；同一個品牌 25 公尺內（IKEA、Costco 400 公尺內）的兩個點當成同一家店。IKEA 不含餐廳、規劃訂購點與取貨點，Costco 不含加油站與美食區。已經退出俄羅斯的麥當勞、星巴克、肯德基與退出俄羅斯、白俄羅斯的 IKEA，OSM 上留著的舊標示不算；人口不到 10 萬的地方不算每百萬人的店數。「所有便利商店」是 OSM 上所有的 shop=convenience（不分品牌，含獨立的小店與加油站附設的），各國對便利商店的標法不一。手搖飲的 7 個品牌（2026-11-06 加）是 2026 年 11 月的快照，經 QLever 查 OSM，只依 brand:wikidata 認：OSM 上 CoCo都可 624 家、貢茶 506、喜茶 399、50嵐 380、清心福全 337、霸王茶姬 323、日出茶太 286，前五大有四個是台灣的品牌（CoCo都可、貢茶、50嵐、清心福全；日出茶太也是），霸王茶姬是中國的（Wikidata 的國家）；實際的店數多很多，中國的手搖飲店 OSM 上標得很少：公司自己公布的全球店數是 CoCo都可 5,000 家以上、喜茶 3,500 家以上、貢茶將近 2,200 家（33 個市場）、日出茶太 1,000 家以上（63 個國家與地區），霸王茶姬、50嵐的最新店數沒有核對到（2026-11-07 查官網、新聞稿與年報）；有一國數字的（貢茶美國 240 家以上、喜茶美國 45 家以上與香港 11 家、CoCo都可荷蘭 5 家與比利時 3 家，清心福全官網門市查詢逐筆數出台灣 875 家）在滑過的說明與側欄比涵蓋率。50嵐在中國的 83 家是 OSM 上名稱「1点点」「一点点」、品牌標成 50嵐 的店。這個主題的資料檔是 OpenStreetMap 的衍生資料庫，以 ODbL 提供。`,
-    en: `${OSM_CAVEAT.en} Brands are identified by the brand:wikidata tag (as used by the name-suggestion-index); untagged shops count only if their name starts with the brand name, the shop type matches (convenience store, fast food, café, warehouse club) and the brand operates in that country (IKEA is matched by brand:wikidata only). Two points of the same brand within 25 m (400 m for IKEA and Costco) count as one store. IKEA excludes restaurants, planning studios and pick-up points; Costco excludes fuel stations and food courts. Outdated entries for McDonald’s, Starbucks and KFC in Russia and IKEA in Russia and Belarus, which these brands have left, are not counted, and places with fewer than 100,000 people have no per-million figure. “All convenience stores” is every shop=convenience on OSM (any brand, including independent shops and those at fuel stations); what gets tagged as a convenience store varies by country. The seven bubble tea brands (added 6 November 2026) are a November 2026 snapshot queried from OSM via QLever and matched by brand:wikidata only: CoCo Fresh Tea & Juice 624 stores, Gong Cha 506, HEYTEA 399, 50 Lan 380, Ching Shin 337, Chagee 323 and Chatime 286 on OSM. Four of the top five are Taiwanese brands (CoCo, Gong Cha, 50 Lan and Ching Shin; Chatime too) and Chagee is from China (country per Wikidata). Real store counts are much higher, and bubble tea shops in China are sparsely mapped: the companies’ own global counts are more than 5,000 for CoCo, more than 3,500 for HEYTEA, nearly 2,200 for Gong Cha (33 markets) and more than 1,000 for Chatime (63 countries and territories), while recent counts for Chagee and 50 Lan could not be verified (company websites, press releases and annual reports checked on 7 November 2026). Where a country figure exists (Gong Cha more than 240 in the US, HEYTEA more than 45 in the US and 11 in Hong Kong, CoCo 5 in the Netherlands and 3 in Belgium, and 875 Ching Shin shops in Taiwan counted from its store finder), the hover text and side panel compare OSM coverage. The 83 50 Lan stores in China are shops named Yidiandian whose brand is tagged as 50 Lan on OSM. The data files of this topic are a derived database of OpenStreetMap, available under the ODbL.`,
+    zh: `${OSM_CAVEAT.zh} 品牌依店家的 brand:wikidata 認（name-suggestion-index 的標法），沒有標的店只在名稱以品牌名稱開頭、店型對（便利商店、速食店、咖啡店、量販店），而且在品牌有開店的國家時才算（IKEA 只認 brand:wikidata）；同一個品牌 25 公尺內（IKEA、Costco 400 公尺內）的兩個點當成同一家店。IKEA 不含餐廳、規劃訂購點與取貨點，Costco 不含加油站與美食區。已經退出俄羅斯的麥當勞、星巴克、肯德基與退出俄羅斯、白俄羅斯的 IKEA，OSM 上留著的舊標示不算；人口不到 10 萬的地方不算每百萬人的店數。「所有便利商店」是 OSM 上所有的 shop=convenience（不分品牌，含獨立的小店與加油站附設的），各國對便利商店的標法不一。手搖飲的 7 個品牌（2026-11-06 加）是 2026 年 11 月的快照，經 QLever 查 OSM，只依 brand:wikidata 認：OSM 上 CoCo都可 624 家、貢茶 506、喜茶 399、50嵐 380、清心福全 337、霸王茶姬 323、日出茶太 286，前五大有四個是台灣的品牌（CoCo都可、貢茶、50嵐、清心福全；日出茶太也是），霸王茶姬是中國的（Wikidata 的國家）；實際的店數多很多，中國的手搖飲店 OSM 上標得很少：公司自己公布的全球店數是 CoCo都可 5,000 家以上、喜茶 3,500 家以上、貢茶將近 2,200 家（33 個市場）、日出茶太 1,000 家以上（63 個國家與地區），霸王茶姬、50嵐的最新店數沒有核對到（2026-11-07 查官網、新聞稿與年報）；有一國數字的（貢茶美國 240 家以上、喜茶美國 45 家以上與香港 11 家、CoCo都可荷蘭 5 家與比利時 3 家，清心福全官網門市查詢逐筆數出台灣 875 家）在滑過的說明與側欄比涵蓋率。50嵐在中國的 83 家是 OSM 上名稱「1点点」「一点点」、品牌標成 50嵐 的店。超市與藥妝店、藥局（2026-11-07 加）也是經 QLever 查 OSM 2026 年 11 月的快照，只依 brand:wikidata 認：所有有品牌的 shop=supermarket（23 萬個物件），與有品牌的 shop=chemist、amenity=pharmacy（10 萬個；日本的松本清標成藥局、台灣的屈臣氏標成藥妝店，各國用法不一，所以兩個一起算），沒有跟公司公布的店數比。Aldi 是南、北兩家各自經營的公司，合在一起畫；家樂福含家樂福超市；SPAR 是各國獨立經營的加盟招牌。「這一國最大的超市（藥妝）品牌」的國籍用 Wikidata 的總部所在地，屈臣氏、萬寧、惠康改成香港。這個主題的資料檔是 OpenStreetMap 的衍生資料庫，以 ODbL 提供。`,
+    en: `${OSM_CAVEAT.en} Brands are identified by the brand:wikidata tag (as used by the name-suggestion-index); untagged shops count only if their name starts with the brand name, the shop type matches (convenience store, fast food, café, warehouse club) and the brand operates in that country (IKEA is matched by brand:wikidata only). Two points of the same brand within 25 m (400 m for IKEA and Costco) count as one store. IKEA excludes restaurants, planning studios and pick-up points; Costco excludes fuel stations and food courts. Outdated entries for McDonald’s, Starbucks and KFC in Russia and IKEA in Russia and Belarus, which these brands have left, are not counted, and places with fewer than 100,000 people have no per-million figure. “All convenience stores” is every shop=convenience on OSM (any brand, including independent shops and those at fuel stations); what gets tagged as a convenience store varies by country. The seven bubble tea brands (added 6 November 2026) are a November 2026 snapshot queried from OSM via QLever and matched by brand:wikidata only: CoCo Fresh Tea & Juice 624 stores, Gong Cha 506, HEYTEA 399, 50 Lan 380, Ching Shin 337, Chagee 323 and Chatime 286 on OSM. Four of the top five are Taiwanese brands (CoCo, Gong Cha, 50 Lan and Ching Shin; Chatime too) and Chagee is from China (country per Wikidata). Real store counts are much higher, and bubble tea shops in China are sparsely mapped: the companies’ own global counts are more than 5,000 for CoCo, more than 3,500 for HEYTEA, nearly 2,200 for Gong Cha (33 markets) and more than 1,000 for Chatime (63 countries and territories), while recent counts for Chagee and 50 Lan could not be verified (company websites, press releases and annual reports checked on 7 November 2026). Where a country figure exists (Gong Cha more than 240 in the US, HEYTEA more than 45 in the US and 11 in Hong Kong, CoCo 5 in the Netherlands and 3 in Belgium, and 875 Ching Shin shops in Taiwan counted from its store finder), the hover text and side panel compare OSM coverage. The 83 50 Lan stores in China are shops named Yidiandian whose brand is tagged as 50 Lan on OSM. Supermarkets, drugstores and pharmacies (added 7 November 2026) are also a November 2026 OSM snapshot via QLever, matched by brand:wikidata only: every branded shop=supermarket (230,000 objects) and every branded shop=chemist or amenity=pharmacy (100,000; usage varies, with Matsumoto Kiyoshi tagged as pharmacies in Japan and Watsons as chemists in Taiwan, so both are counted together); they are not compared with company counts. Aldi’s two separately run companies, Süd and Nord, are shown together; Carrefour includes Carrefour Market; SPAR is a franchise run by independent companies in each country. For “largest brand”, nationality is the brand’s headquarters country on Wikidata, with Watsons, Mannings and Wellcome set to Hong Kong. The data files of this topic are a derived database of OpenStreetMap, available under the ODbL.`,
   },
   panelExtra: () => import('./panels/ChainStoresPanel'),
   overlays: [STORE_POINTS],
@@ -210,6 +238,31 @@ export const chainStores: TopicDefinition = {
       panelChart: false,
       timeless: true,
       missing: { zh: 'OSM 上這七個品牌合計不到 3 家', en: 'Fewer than 3 shops of the seven brands on OSM' },
+    },
+    {
+      id: 'largest',
+      label: { zh: '最大的品牌是本國的嗎', en: 'Is the largest chain domestic?' },
+      description: {
+        zh: '這一國在 OpenStreetMap 上店最多的超市（或藥妝店與藥局）品牌，總部在本國還是外國，滑過看前三名。超市：94 國裡 68 國是本國品牌，24 國是外國的，例如法國最多的是德國的 Lidl、美國是沃爾瑪但第二是德國的 Aldi、中國大陸是沃爾瑪；台灣是全聯（1,050 家），美廉社第二。藥妝與藥局：71 國裡 22 國是外國品牌，台灣、中國大陸、馬來西亞、泰國、土耳其都是香港的屈臣氏（台灣 386 家，康是美 315、寶雅 236），波蘭、匈牙利是德國的 Rossmann。只算 OSM 上有 brand:wikidata、最大的品牌 10 家以上的國家，不是市占率。',
+        en: 'Whether the supermarket (or drugstore and pharmacy) brand with the most shops mapped on OpenStreetMap in each country is headquartered at home or abroad; hover for the top three. For supermarkets, 68 of 94 countries are led by a domestic brand and 24 by a foreign one: France’s largest is Germany’s Lidl, the US has Walmart with Germany’s Aldi second, and mainland China has Walmart; Taiwan’s is PX Mart (1,050 shops), with Simple Mart second. For drugstores and pharmacies, 22 of 71 are led by a foreign brand: Hong Kong’s Watsons in Taiwan (386, against 315 for Cosmed and 236 for Poya), mainland China, Malaysia, Thailand and Turkey, and Germany’s Rossmann in Poland and Hungary. Only shops with brand:wikidata count, in countries where the largest brand has at least 10; this is not market share.',
+      },
+      unit: '',
+      file: 'largest/{item}.json',
+      dimension: {
+        label: { zh: '業態', en: 'Type' },
+        options: [
+          { id: 'supermarket', label: SUPERMARKET },
+          { id: 'drugstore', label: DRUGSTORE },
+        ],
+        defaultOption: 'supermarket',
+      },
+      layer: { kind: 'categorical', categories: LARGEST },
+      format: (v) => tr(LARGEST.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      timeless: true,
+      missing: { zh: 'OSM 上最大的品牌不到 10 家', en: 'The largest brand has fewer than 10 shops on OSM' },
     },
   ],
 };

@@ -406,5 +406,6 @@ def build() -> None:
     })
     print(f"  便利商店 {len(conv)} 家，{len(conv_counts)} 個國家")
     # 手搖飲的品牌（第二十四批 415）：上面重寫了 countries/，把手搖飲品牌的店數再加回去
-    from topics import chain_bubble_tea
+    from topics import chain_bubble_tea, chain_retail
     chain_bubble_tea.build()
+    chain_retail.build()  # 超市、藥妝與藥局（第二十五批 466）也把店數加進 countries/

@@ -1,1 +1,1 @@
-{"snapshot":"2026-10-26","population":55629,"brands":{},"official":[],"convenience":{"count":26,"brands":[["Spar",1]],"unbranded":25}}
+{"snapshot":"2026-10-26","population":55629,"brands":{"spar":5},"official":[],"convenience":{"count":26,"brands":[["Spar",1]],"unbranded":25}}

@@ -1,1 +1,1 @@
-{"snapshot":"2026-10-26","population":30640817,"brands":{},"official":[],"convenience":{"count":3106,"brands":[["Spar",1],["Shell Shop",1],["Bonjour",1],["Total",1],["TotalEnergies",1]],"unbranded":3101}}
+{"snapshot":"2026-10-26","population":30640817,"brands":{"spar":2,"carrefour":4},"official":[],"convenience":{"count":3106,"brands":[["Spar",1],["Shell Shop",1],["Bonjour",1],["Total",1],["TotalEnergies",1]],"unbranded":3101}}

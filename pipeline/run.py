@@ -421,6 +421,8 @@ STEPS = {
     "stock-market-turnover": "topics.stock_turnover",
     # 企業與品牌：Forbes Global 2000、前 50 大營收企業、最有價值的品牌、獨角獸（英文維基固定版本的表，CC BY-SA 4.0）
     "companies-rankings": "topics.company_rankings",
+    # 便利商店與連鎖品牌：超市、藥妝店與藥局（OSM 經 QLever 的 brand:wikidata，兩支 TSV 匯出）
+    "chain-retail": "topics.chain_retail",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",
