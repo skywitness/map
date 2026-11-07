@@ -393,6 +393,8 @@ STEPS = {
     "industry-productivity": "topics.industry_productivity",
     # 人均收入：勞動報酬占 GDP（ILOSTAT SDG 10.4.1，ILO 模型估計，含台灣）
     "income-labour-share": "topics.labour_share",
+    # 重分配與貧窮（新主題）：OECD IDD 的市場與可支配所得吉尼、相對貧窮率，TaxBEN 的低收入給付與脫貧工時
+    "redistribution": "topics.redistribution",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

@@ -108,6 +108,7 @@ const TOPIC_ICONS = {
   wealth: 'piggy-bank',
   fiscal: 'receipt',
   taxes: 'percent',
+  redistribution: 'arrow-down-wide-narrow',
   prices: 'tag',
   reserves: 'vault',
   'stock-market': 'chart-candlestick',

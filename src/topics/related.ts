@@ -63,6 +63,7 @@ export const RELATED: Record<string, string[]> = {
   prices: ['fiscal', 'income', 'wages'],
   fiscal: ['taxes', 'reserves', 'aid'],
   taxes: ['fiscal', 'income', 'wages'],
+  redistribution: ['inequality', 'taxes', 'wealth'],
   reserves: ['fiscal', 'trade', 'stock-market'],
   'stock-market': ['wealth', 'companies', 'reserves'],
   industry: ['minerals', 'semiconductors'],
