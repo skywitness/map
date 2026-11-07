@@ -191,6 +191,11 @@ export const scienceFacilities: TopicDefinition = {
       url: 'https://en.wikipedia.org/wiki/TOP500?oldid=1379703900',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: { zh: '英文維基百科「List of quantum processors」（revid 1380988323）', en: 'English Wikipedia, “List of quantum processors” (revision 1380988323)' },
+      url: 'https://en.wikipedia.org/wiki/List_of_quantum_processors?oldid=1380988323',
+      license: 'CC BY-SA 4.0',
+    },
     { name: { zh: 'Wikidata（位置；天文設施另用啟用與關閉年份）', en: 'Wikidata (locations; start and end years for astronomy)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
   ],
   note: {
@@ -299,6 +304,35 @@ export const scienceFacilities: TopicDefinition = {
       format: (v) => tr({ zh: `${v} 台`, en: v === 1 ? '1 system' : `${v} systems` }),
       timeAxis: { label: { zh: '每年 6 月的榜', en: 'June list of each year' }, year: (y: number) => tr({ zh: `${y} 年 6 月`, en: `June ${y}` }) },
       missing: { zh: '這一年的榜上沒有這個國家的系統', en: 'No system on that year’s list' },
+    },
+    // 2026-11-07（製作手冊第二十五批 516）量子處理器（英文維基「List of quantum processors」，pipeline/topics/quantum.py）
+    {
+      id: 'quantum-processors',
+      label: { zh: '量子處理器（累計發表數）', en: 'Quantum processors announced (cumulative)' },
+      description: {
+        zh: '到那一年為止，這一國的製造商發表的量子處理器數（英文維基「List of quantum processors」，2011 年的 D-Wave One 起；國家是製造商總部所在國）。2026 年累計：美國 49 個（IBM 最多）、加拿大 10（D-Wave、Xanadu）、英國 7（Quantinuum 等）、中國與荷蘭各 6、奧地利、德國、芬蘭各 2、法國與日本各 1。條目自己說有些只在記者會發表、沒有實際展示；「發表」不等於「做得出來」。清單裡沒有台灣的製造商。',
+        en: 'Quantum processors announced by manufacturers in each country up to that year (English Wikipedia’s “List of quantum processors”, from D-Wave One in 2011; country of the manufacturer’s headquarters). Cumulative to 2026: the US 49 (IBM the most), Canada 10 (D-Wave, Xanadu), the UK 7 (Quantinuum and others), China and the Netherlands 6 each, Austria, Germany and Finland 2 each, France and Japan 1 each. The article notes that some were only announced at press conferences without demonstrations, so “announced” does not mean “working”. The list has no manufacturer in Taiwan.',
+      },
+      unit: { zh: '個', en: 'processors' },
+      file: 'quantum/processors.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 4, 8, 20, 40] } },
+      integer: true,
+      format: (v) => tr({ zh: `${v} 個`, en: `${v}` }),
+      missing: { zh: '清單裡沒有這一國的製造商', en: 'No manufacturer from this country in the list' },
+    },
+    {
+      id: 'quantum-qubits',
+      label: { zh: '量子處理器最多的量子位元數', en: 'Most qubits in a quantum processor' },
+      description: {
+        zh: '到那一年為止，這一國的製造商發表過最多量子位元的處理器。2026 年：加拿大 5,000（D-Wave 的量子退火機，跟閘道型的位元不能直接比）、美國 1,180、中國 504、英國 200、荷蘭 64、日本 53、奧地利 24、芬蘭 20。各家的「量子位元」定義不一（物理或邏輯、退火或閘道），只能當大致的規模。',
+        en: 'The most qubits in a processor announced by the country’s manufacturers up to that year. 2026: Canada 5,000 (D-Wave’s quantum annealer, not comparable with gate-based qubits), the US 1,180, China 504, the UK 200, the Netherlands 64, Japan 53, Austria 24, Finland 20. Makers define qubits differently (physical or logical, annealing or gate-based), so treat this as rough scale only.',
+      },
+      unit: { zh: '量子位元', en: 'qubits' },
+      file: 'quantum/qubits.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 30, 60, 150, 500, 1000] } },
+      integer: true,
+      format: (v) => tr({ zh: `${v.toLocaleString()} 個量子位元`, en: `${v.toLocaleString()} qubits` }),
+      missing: { zh: '清單裡沒有這一國的製造商', en: 'No manufacturer from this country in the list' },
     },
   ],
 };
