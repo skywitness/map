@@ -92,6 +92,7 @@ const TOPIC_ICONS = {
   'chip-materials': 'gem',
   'research-orgs': 'library-big',
   'oa-journals': 'lock-open',
+  'scientist-mobility': 'arrow-right-left',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',

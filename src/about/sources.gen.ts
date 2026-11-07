@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 197;
-export const INDICATOR_COUNT = 1498;
+export const TOPIC_COUNT = 198;
+export const INDICATOR_COUNT = 1502;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -309,6 +309,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"OECD, Taxing Wages（勞動稅負）","en":"OECD, Taxing Wages (tax wedge)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_TAX_WAGES_COMP%40DF_TW_COMP&df[ag]=OECD.CTP.TPS","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["taxes"]},
   {"name":{"zh":"OECD, 性別薪資差距","en":"OECD, Gender wage gap"},"url":"https://www.oecd.org/en/data/indicators/gender-wage-gap.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["gender"]},
   {"name":{"zh":"OECD, 每年實際工時（墨西哥、哥倫比亞）","en":"OECD, average annual hours actually worked (Mexico and Colombia)"},"url":"https://www.oecd.org/en/data/indicators/hours-worked.html","licenses":[{"zh":"OECD 資料條款（可轉載、改作，需註明出處）","en":"OECD Terms and Conditions (reuse with attribution)"}],"topics":["wages"]},
+  {"name":{"zh":"OECD：Bibliometric indicators of implied bilateral mobility flows（DF_BIBLIO_F；OECD 依 Elsevier 的 Scopus Custom Data 1.2026 計算）","en":"OECD: Bibliometric indicators of implied bilateral mobility flows (DF_BIBLIO_F; OECD calculations based on Elsevier’s Scopus Custom Data, version 1.2026)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_BIBLIO_F%40DF_BIBLIO_F&df[ag]=OECD.STI.STP","licenses":["CC BY 4.0"],"topics":["scientist-mobility"]},
   {"name":{"zh":"OECD：Digital Services Trade Restrictiveness Index（DF_STRI_DIGITAL）","en":"OECD: Digital Services Trade Restrictiveness Index (DF_STRI_DIGITAL)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_STRI%40DF_STRI_DIGITAL&df[ag]=OECD.TAD.TPD","licenses":["CC BY 4.0"],"topics":["digital-trade"]},
   {"name":{"zh":"OECD：Environmentally related tax revenue（DF_ERTR）","en":"OECD: Environmentally related tax revenue (DF_ERTR)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_ERTR%40DF_ERTR&df[ag]=OECD.ENV.EPI","licenses":["CC BY 4.0"],"topics":["env-taxes"]},
   {"name":{"zh":"OECD：ICT Access and Usage by Businesses（DF_BUSINESSES）","en":"OECD: ICT Access and Usage by Businesses (DF_BUSINESSES)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_ICT_B%40DF_BUSINESSES&df[ag]=OECD.STI.DEP","licenses":["CC BY 4.0"],"topics":["ai"]},

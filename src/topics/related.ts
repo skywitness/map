@@ -43,6 +43,7 @@ export const RELATED: Record<string, string[]> = {
   'chip-materials': ['semiconductors', 'minerals', 'wafer-fabs'],
   'research-orgs': ['publications', 'innovation', 'oldest-universities'],
   'oa-journals': ['publications', 'research-orgs', 'reads'],
+  'scientist-mobility': ['publications', 'education', 'migration'],
   'transport-investment': ['household-transport', 'transport', 'road-safety'],
   'household-transport': ['transport-investment', 'fuel-tax', 'prices'],
   'transport-jobs': ['transport-investment', 'employment', 'shipping'],

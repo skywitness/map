@@ -119,7 +119,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」，兩個小類疊在左欄
       { label: { zh: '網路與連線', en: 'Internet & connectivity' }, topics: ['digital', 'internet-speed', 'submarine-cables', 'cctld', 'digital-trade', 'ip-addresses', 'cell-towers', 'internet-freedom'] },
       { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'developers', 'chip-materials'] },
-      { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'research-orgs', 'oa-journals'] },
+      { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'research-orgs', 'oa-journals', 'scientist-mobility'] },
       { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
     ],
     // 左：網路與連線＋運算與晶片；中：研發與創新；右：太空
@@ -245,6 +245,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'chip-materials': () => import('./chip-materials'),
   'research-orgs': () => import('./research-orgs'),
   'oa-journals': () => import('./oa-journals'),
+  'scientist-mobility': () => import('./scientist-mobility'),
   'transport-investment': () => import('./transport-investment'),
   'household-transport': () => import('./household-transport'),
   'transport-jobs': () => import('./transport-jobs'),
