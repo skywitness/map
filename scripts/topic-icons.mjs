@@ -97,6 +97,7 @@ const TOPIC_ICONS = {
   'power-reliability': 'zap-off',
   'district-heating': 'heater',
   'web-platforms': 'app-window',
+  'renewable-heat': 'sun-medium',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
   'transport-jobs': 'hard-hat',
