@@ -3,8 +3,10 @@
 歐洲核苷酸檔案庫（ENA）Portal API 的 read_run 筆數，依樣本的採集國（`country` 欄，INSDC 的國名字彙，可能接「: 地區」）。
 EMBL-EBI Terms of Use：別人產生的資料不加額外限制、要署名。www.ebi.ac.uk 的 robots.txt 沒有禁止 /ena/portal/api，
 但要求 Crawl-delay 10，所以每支查詢間隔 10 秒（約 300 支、約 50 分鐘；結果快取在 .cache/ena/counts.json，有的不再查）。
-- 每個國名查 `country="<國名>*"`（含「國名: 地區」）；國名是別的國名的開頭的（Niger 與 Nigeria、India 與 Indian Ocean、
-  Dominica 與 Dominican Republic、Guinea 與 Guinea-Bissau），減掉長的那個。
+- 單字的國名查 `country="<國名>*"`（含「國名: 地區」）；**有空格的國名萬用字元會失效（`"United Kingdom*"` 回 0，2026-11-07 實測），
+  只能精確查 `country="<國名>"`**（「國名: 地區」的寫法很少：United Kingdom 362 萬筆、United Kingdom: England 1.3 萬筆，漏掉的不多）。
+  國名是別的國名的開頭的（Niger 與 Nigeria、India 與 Indian Ocean、Dominica 與 Dominican Republic、Guinea 與 Guinea-Bissau），
+  減掉長的那個（長的那個照同樣的規則查）。
 - 很多 run 沒有填 country，各國加起來遠小於全部；country 是採集地，不是定序實驗室所在地。
 輸出 public/data/topics/publications/sequencing.json（筆數，只有 2026 年 11 月的累計，沒有時間軸）。
 """
@@ -63,20 +65,23 @@ def _count(query: str, cache: dict[str, int]) -> int:
     return cache[query]
 
 
+def _query(name: str) -> str:
+    return f'country="{name}"' if " " in name else f'country="{name}*"'
+
+
 def build() -> None:
     cache = json.loads(CACHE.read_text(encoding="utf-8")) if CACHE.exists() else {}
-    total = _count("", cache) if "" in cache else None
     values: dict[str, float] = {}
     for iso3, names in sorted(_names().items()):
         n = 0
         for name in names:
-            n += _count(f'country="{name}*"', cache)
+            n += _count(_query(name), cache)
             for other in OVERLAP.get(name, []):
-                n -= _count(f'country="{other}*"', cache)
+                n -= _count(_query(other), cache)
         if n > 0:
             values[iso3] = n
     write_json(OUT / "sequencing.json", indicator_file(
         "sequencing", "runs", [YEAR], {k: [v] for k, v in values.items()},
         attribution="European Nucleotide Archive (ENA), EMBL-EBI"))
     top = sorted(values.items(), key=lambda kv: -kv[1])[:10]
-    print(f"  ENA：{len(values)} 國有值，合計 {sum(values.values()):,}（全部 run {total}）；{top}；台灣 {values.get('TWN')}")
+    print(f"  ENA：{len(values)} 國有值，合計 {sum(values.values()):,}；{top}；台灣 {values.get('TWN')}")

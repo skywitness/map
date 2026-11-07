@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1337;
+export const INDICATOR_COUNT = 1338;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -111,6 +111,7 @@ export const SOURCES: AboutSource[] = [
   {"name":"Ember, Yearly Electricity Data","url":"https://ember-energy.org/data/yearly-electricity-data/","licenses":["CC BY 4.0"],"topics":["electricity"]},
   {"name":{"zh":"Ember：Coal generation in OECD countries falls below half of its peak","en":"Ember, Coal generation in OECD countries falls below half of its peak"},"url":"https://ember-energy.org/latest-insights/coal-generation-in-oecd-countries-falls-below-half-of-its-peak/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
   {"name":{"zh":"Ember：European Wholesale Electricity Price Data（原始資料是 ENTSO-E 透明平台的日前市場價格）","en":"Ember, European Wholesale Electricity Price Data (from day-ahead prices on the ENTSO-E Transparency Platform)"},"url":"https://ember-energy.org/data/european-wholesale-electricity-price-data/","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
+  {"name":{"zh":"EMBL-EBI：歐洲核苷酸檔案庫（ENA）Portal API，依採集國的定序筆數（2026-11-07）","en":"EMBL-EBI, European Nucleotide Archive (ENA) Portal API: sequencing runs by country of collection (7 Nov 2026)"},"url":"https://www.ebi.ac.uk/ena/browser/","licenses":[{"zh":"EMBL-EBI 使用條款（資料不加額外限制，註明出處）","en":"EMBL-EBI Terms of Use (no additional restrictions on data, with attribution)"}],"topics":["publications"]},
   {"name":{"zh":"Ensembl REST（rs671 在 gnomAD v4、1000 Genomes 各族群的頻率）、NCBI dbSNP（日本、韓國、越南的研究；喝酒臉紅的基因）","en":"Ensembl REST (rs671 frequencies in gnomAD v4 and 1000 Genomes) and NCBI dbSNP (Japanese, Korean and Vietnamese studies; the alcohol flush gene)"},"url":"https://rest.ensembl.org/variation/human/rs671?pops=1","licenses":[{"zh":"使用不受限制","en":"No restrictions on use"}],"topics":["tobacco-alcohol"]},
   {"name":"Epoch AI (GPU clusters, Notable AI models)","url":"https://epoch.ai/data","licenses":["CC BY 4.0"],"topics":["ai"]},
   {"name":{"zh":"Erik Voeten, United Nations General Assembly Ideal Points（Harvard Dataverse 第 39 版，2026-07-30）；理想點的方法：Bailey, Strezhnev & Voeten (2017), Journal of Conflict Resolution 61(2)；原始表決：Fjelstul, Hug & Kilby (2025), UNGA-DM, The Review of International Organizations","en":"Erik Voeten, United Nations General Assembly Ideal Points (Harvard Dataverse, version 39, 2026-07-30); method: Bailey, Strezhnev & Voeten (2017), Journal of Conflict Resolution 61(2); raw votes: Fjelstul, Hug & Kilby (2025), UNGA-DM, The Review of International Organizations"},"url":"https://doi.org/10.7910/DVN/LEJUQZ","licenses":["CC0 1.0"],"topics":["un-votes"]},

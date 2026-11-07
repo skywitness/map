@@ -225,7 +225,7 @@ npm run data -- --refresh      # 忽略快取，重新下載原始資料
 
 `printers3d` 是半導體主題的 3D 列印機（HS 8485）貿易：Harvard Atlas GraphQL 一次查詢（2022–2024），快取在 `.cache/atlas/hs22-8485.json`。
 
-`quantum` 是大型科學設施主題的量子處理器：英文維基「List of quantum processors」固定版本的 HTML，一秒內。`sequencing` 是學術論文主題的基因定序：ENA Portal API 每國一支計數查詢，robots.txt 要求間隔 10 秒，第一次約 45 分鐘（快取在 `.cache/ena/counts.json`）。
+`quantum` 是大型科學設施主題的量子處理器：英文維基「List of quantum processors」固定版本的 HTML，一秒內。`sequencing` 是學術論文主題的基因定序：ENA Portal API 每國一支計數查詢（有空格的國名要精確查詢，萬用字元會失效），robots.txt 要求間隔 10 秒，第一次約 50 分鐘（快取在 `.cache/ena/counts.json`）。
 
 `space-more` 是太空主題的發射失敗率、民間業者比例、酬載用途與聯合國登記率：GCAT 的 launch、satcat（約 19 MB）、psatcat（約 5 MB），幾秒。
 

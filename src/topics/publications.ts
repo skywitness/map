@@ -146,6 +146,22 @@ const indicators: IndicatorDef[] = [
     formatTick: formatLargeTick,
     shareOfWorld: true,
   },
+  // 2026-11-07（製作手冊第二十五批 515）基因定序的產出（pipeline/topics/sequencing.py）
+  {
+    id: 'sequencing',
+    label: { zh: '基因定序資料（依樣本的採集國）', en: 'Genome sequencing data by sample origin' },
+    description: {
+      zh: '歐洲核苷酸檔案庫（ENA）裡的定序資料筆數（read run，一次定序實驗上傳的原始資料），依樣本的採集國（INSDC 的 country 欄），到 2026 年 11 月的累計；國家是樣本從哪裡採的，不是哪裡的實驗室定序的，很多 run 沒填採集國。有填的合計約 2,586 萬筆：美國 908 萬、英國 365 萬、中國 325 萬、加拿大與丹麥各 71 萬、德國 60 萬、日本 52 萬、澳洲 50 萬；台灣 66,131 筆。',
+      en: 'Number of sequencing runs (raw data from one sequencing experiment) in the European Nucleotide Archive (ENA), by the country where the sample was collected (the INSDC country field), cumulative to November 2026; the country is where the sample came from, not where it was sequenced, and many runs give no country. Runs with a country add up to about 25.9 million: the US 9.08 million, the UK 3.65 million, China 3.25 million, Canada and Denmark 0.71 million each, Germany 0.60 million, Japan 0.52 million, Australia 0.50 million; Taiwan 66,131.',
+    },
+    unit: { zh: '筆', en: 'runs' },
+    file: 'sequencing.json',
+    layer: { kind: 'bubble', legendValues: [10000, 100000, 1000000] },
+    format: (v) => (v >= 100000 ? tr({ zh: `${formatLargeNumber(v)} 筆`, en: `${formatLargeNumber(v)} runs` }) : tr({ zh: `${fixed(v, 0)} 筆`, en: `${fixed(v, 0)} runs` })),
+    formatTick: formatLargeTick,
+    timeless: true,
+    shareOfWorld: true,
+  },
 ];
 
 export const publications: TopicDefinition = {
@@ -155,6 +171,11 @@ export const publications: TopicDefinition = {
   defaultIndicator: 'per-million',
   defaultYear: 2025,
   sources: [
+    {
+      name: { zh: 'EMBL-EBI：歐洲核苷酸檔案庫（ENA）Portal API，依採集國的定序筆數（2026-11-07）', en: 'EMBL-EBI, European Nucleotide Archive (ENA) Portal API: sequencing runs by country of collection (7 Nov 2026)' },
+      url: 'https://www.ebi.ac.uk/ena/browser/',
+      license: { zh: 'EMBL-EBI 使用條款（資料不加額外限制，註明出處）', en: 'EMBL-EBI Terms of Use (no additional restrictions on data, with attribution)' },
+    },
     {
       name: { zh: 'OpenAlex（Priem, Piwowar & Orr 2022）', en: 'OpenAlex (Priem, Piwowar & Orr 2022)' },
       url: 'https://openalex.org/',
