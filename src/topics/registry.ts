@@ -68,7 +68,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '金融服務', en: 'Financial services' }, topics: ['banking', 'stock-market', 'insurance'] },
       { label: { zh: '消費與零售', en: 'Consumption & retail' }, topics: ['prices', 'chain-stores'] },
       { label: { zh: '企業', en: 'Companies' }, topics: ['companies', 'business-demography', 'market-regulation'] },
-      { label: { zh: '不動產', en: 'Real estate' }, topics: ['real-estate'] },
+      { label: { zh: '不動產', en: 'Real estate' }, topics: ['real-estate', 'housing-market'] },
     ],
     // 四欄（2026-11-05 使用者要求企業放最右邊；第二十五批小類變多，一欄放幾個小類）：
     // 產業、農業與糧食；所得與財富；財政、稅、金融服務；消費與零售、企業
@@ -235,6 +235,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'business-demography': () => import('./business-demography'),
   'market-regulation': () => import('./market-regulation'),
   'real-estate': () => import('./real-estate'),
+  'housing-market': () => import('./housing-market'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),

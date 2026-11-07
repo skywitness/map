@@ -429,6 +429,9 @@ STEPS = {
     "market-regulation": "topics.market_regulation",
     # 房價與房租（新主題，不動產）：Eurostat 派駐地城市的房租、台灣六都的實價登錄租金，輸出 housing/rents.json
     "real-estate-rents": "topics.real_estate_rents",
+    # 沒人住的房子與買賣量（新主題，不動產）：Eurostat 2011、2021 年普查與住宅買賣件數，台灣用 2020 年普查與實價登錄
+    # 2021–2026 年各季的成屋買賣（一季一個 8–16 MB 的 zip，抽出要用的欄位後刪掉，第一次跑約 10 分鐘）
+    "housing-market": "topics.housing_market",
     "employment": "topics.employment",
     "reserves": "topics.reserves",
     "stock-market": "topics.stock_market",

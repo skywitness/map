@@ -119,6 +119,7 @@ const TOPIC_ICONS = {
   'business-demography': 'sprout',
   'market-regulation': 'file-stack',
   'real-estate': 'key-round',
+  'housing-market': 'door-open',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',
