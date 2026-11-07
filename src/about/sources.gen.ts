@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 195;
-export const INDICATOR_COUNT = 1492;
+export const INDICATOR_COUNT = 1494;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -144,6 +144,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：House sales - number and index（prc_hpi_hsna）","en":"Eurostat: House sales - number and index (prc_hpi_hsna)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/prc_hpi_hsna/default/table","licenses":["CC BY 4.0"],"topics":["housing-market"]},
   {"name":{"zh":"Eurostat：National expenditure on environmental protection（env_epea_neep）","en":"Eurostat: National expenditure on environmental protection (env_epea_neep)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/env_epea_neep/default/table","licenses":["CC BY 4.0"],"topics":["env-taxes"]},
+  {"name":{"zh":"Eurostat：Percentage of the ICT sector in GVA（isoc_bde15ag）、in total employment（isoc_bde15ap）","en":"Eurostat: Percentage of the ICT sector in GVA (isoc_bde15ag) and in total employment (isoc_bde15ap)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_bde15ag/default/table","licenses":["CC BY 4.0"],"topics":["industry"]},
   {"name":{"zh":"Eurostat：Urban Audit 城市統計（urb_ctran，TT1007V 騎自行車上班的比例）","en":"Eurostat: Urban Audit (urb_ctran, TT1007V share of journeys to work by bicycle)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/urb_ctran/default/table","licenses":["CC BY 4.0"],"topics":["trails"]},
   {"name":{"zh":"Eurostat：Value of e-commerce sales by NACE Rev. 2 activity（isoc_ec_evaln2）","en":"Eurostat: Value of e-commerce sales by NACE Rev. 2 activity (isoc_ec_evaln2)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/isoc_ec_evaln2/default/table","licenses":["CC BY 4.0"],"topics":["retail"]},
   {"name":{"zh":"Eurostat：主要港口的海運貨物依貨型（mar_mg_am_cwhc）","en":"Eurostat: seaborne goods in main ports by type of cargo (mar_mg_am_cwhc)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/mar_mg_am_cwhc/default/table","licenses":["CC BY 4.0"],"topics":["shipping"]},

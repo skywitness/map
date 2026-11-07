@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick, usd } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { DGBAS_SOURCE } from './sectors';
 import type { CategoryDef, ColorClasses, DimensionDef, IndicatorDef, PointRecord, PointsOverlayDef, Text, TopicDefinition } from './types';
+import { ictSectorPart } from './ict-sector';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { withMenuGroups, type MenuGroup } from './menu-groups';
@@ -607,7 +608,7 @@ const industryOwn: TopicDefinition = {
 const MENU_GROUPS: MenuGroup[] = [
   [
     { zh: '產業結構', en: 'Economic structure' },
-    ['agriculture', 'industry', 'manufacturing', 'services', 'employment-agriculture', 'employment-industry', 'employment-services', 'gva-share'],
+    ['agriculture', 'industry', 'manufacturing', 'services', 'employment-agriculture', 'employment-industry', 'employment-services', 'gva-share', 'ict-gva', 'ict-employment'],
   ],
   [
     { zh: '製造業', en: 'Manufacturing' },
@@ -646,6 +647,7 @@ export const industry: TopicDefinition = withMenuGroups(
       shortTitle: { zh: '產業與工業', en: 'Industry' },
     },
     topicPart(sectors),
+    ictSectorPart,
   ),
   MENU_GROUPS,
 );
