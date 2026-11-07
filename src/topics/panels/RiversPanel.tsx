@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { defineMessages, tr, useLang, useT } from '../../i18n';
-import { useCountryPart } from '../../lib/data';
+import { useCountryPart, useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
-import { discharge, km, km2, OCEAN, OCEAN_FILLS, OCEAN_NAMES, RIVERS } from '../rivers';
+import { discharge, km, km2, OCEAN, OCEAN_FILLS, OCEAN_NAMES, reachTypeName, RIVERS } from '../rivers';
 import type { PanelExtraProps } from '../types';
 
 /**
@@ -39,6 +39,11 @@ interface RiverSystem {
   box: [number, number, number, number];
 }
 
+/** pipeline/topics/river_types.py 輸出的 reach-top.json（2026-11-07，製作手冊 548）：國內最長的河段類型 [代碼, %] */
+interface ReachTop {
+  countries: Record<string, { n: number; km: number; top: [number, number][] }>;
+}
+
 const SHARE_ORDER = [OCEAN.pacific, OCEAN.atlantic, OCEAN.indian, OCEAN.arctic, OCEAN.endorheic];
 
 const pct = (v: number) => `${fixed(v, v > 0 && v < 1 ? 1 : 0)}%`;
@@ -57,6 +62,9 @@ const TEXT = defineMessages({
     drains: (ocean: string, sea: string | null) => (sea ? `流入${ocean}・${sea}` : `流入${ocean}`),
     inland: '內流區',
     sep: '・',
+    reachTitle: '最長的河段類型',
+    reachNote: (n: number, length: string) =>
+      `GloRiC 把河段依氣候區、河的大小與水流力分成 127 種，這裡有 ${fixed(n, 0)} 種（國內合計 10 公里以上的才算）；比例是占有分類的河道 ${length}的長度。分類是模型算的，不是實測。`,
   },
   en: {
     shareTitle: 'Where the land drains',
@@ -71,20 +79,41 @@ const TEXT = defineMessages({
     drains: (ocean, sea) => (sea ? `To the ${ocean} · ${sea}` : `To the ${ocean}`),
     inland: 'Inland basin',
     sep: ' · ',
+    reachTitle: 'Longest river reach types',
+    reachNote: (n, length) =>
+      `GloRiC sorts reaches into 127 types by climate region, river size and stream power; ${fixed(n, 0)} occur here (with at least 10 km each). Shares are of the ${length} of classified rivers. The classes are modelled, not measured.`,
   },
 });
 
-export default function RiversPanel({ topic, iso3, countryName, highlightLine, focusBox }: PanelExtraProps) {
+export default function RiversPanel({ topic, iso3, indicator, countryName, highlightLine, focusBox }: PanelExtraProps) {
   const lang = useLang();
   const text = TEXT[lang];
   const t = useT();
   const { part: data, loading } = useCountryPart<RiversPanelData>(`topics/${topic.id}/panel`, iso3);
   const country = data?.country;
+  const reachData = useJson<ReachTop>(`topics/${topic.id}/reach-top.json`).data;
+  const reach = reachData?.countries[iso3];
   // 換國家、關掉側欄時取消標出的水系
   useEffect(() => () => highlightLine?.(RIVERS.id, null), [iso3, highlightLine]);
 
   if (loading) return <p className="empty">{t.loading}</p>;
-  if (!country) return null;
+  // 河段類型（GloRiC）：選的是河段的兩個指標時放最前面，其他指標放在最後
+  const reachFirst = indicator.id === 'reach-types' || indicator.id === 'reach-steep';
+  const reaches = reach && (
+    <>
+      <h3>{text.reachTitle}</h3>
+      <ul className="plain-list">
+        {reach.top.map(([code, share]) => (
+          <li key={code}>
+            <span className="plain-title">{reachTypeName(code, lang)}</span>
+            <span className="plain-meta">{`${fixed(share, 1)}%`}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="note">{text.reachNote(reach.n, km(reach.km))}</p>
+    </>
+  );
+  if (!country) return reaches ? <section className="panel-section">{reaches}</section> : null;
 
   const shares = SHARE_ORDER.map((code, i) => ({ code, value: country.share[i] ?? 0 })).filter((s) => s.value > 0);
   const where = (s: RiverSystem) =>
@@ -94,6 +123,7 @@ export default function RiversPanel({ topic, iso3, countryName, highlightLine, f
 
   return (
     <section className="panel-section">
+      {reachFirst && reaches}
       <h3>{text.shareTitle}</h3>
       <div
         className="river-share"
@@ -156,6 +186,7 @@ export default function RiversPanel({ topic, iso3, countryName, highlightLine, f
           <p className="note">{text.systemsNote(country.n)}</p>
         </>
       )}
+      {!reachFirst && reaches}
     </section>
   );
 }

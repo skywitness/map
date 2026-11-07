@@ -321,6 +321,54 @@ const BASIN_PIE = [
 
 const SHARE_SCALE: ScaleSpec = { type: 'sequential', thresholds: [1, 10, 30, 50, 70, 99] };
 
+/**
+ * 2026-11-07（製作手冊 548，候選 1237）：GloRiC 的 127 種河段類型＝氣候區（第 1 位，10 是兩位）× 河的大小（第 2 位）×
+ * 水流力（第 3 位，「很大的河」是 0、不分）。名稱照 zip 裡的 GloRiC_ClassNames_v10.xlsx 的 River Reach Types 表。
+ */
+const REACH_REGIONS: Record<number, Text> = {
+  1: { zh: '寒冷、乾燥到中等濕度', en: 'Cold, low to medium moisture' },
+  2: { zh: '寒冷潮濕', en: 'Cold, high moisture' },
+  3: { zh: '溫暖到炎熱、乾燥', en: 'Warm to hot, low moisture' },
+  4: { zh: '溫暖、中等濕度', en: 'Warm, medium moisture' },
+  5: { zh: '溫暖潮濕', en: 'Warm, high moisture' },
+  6: { zh: '炎熱潮濕', en: 'Hot, high moisture' },
+  7: { zh: '酷熱乾燥', en: 'Very hot, low moisture' },
+  8: { zh: '酷熱潮濕', en: 'Very hot, high moisture' },
+  9: { zh: '寒冷到溫暖的高地', en: 'Cold to warm highlands' },
+  10: { zh: '炎熱到酷熱的高地', en: 'Hot to very hot highlands' },
+};
+const REACH_SIZES: Record<number, Text> = {
+  1: { zh: '很小的河', en: 'very small river' },
+  2: { zh: '小河', en: 'small river' },
+  3: { zh: '中型河', en: 'medium river' },
+  4: { zh: '大河', en: 'large river' },
+  5: { zh: '很大的河', en: 'very large river' },
+};
+const REACH_POWER: Record<number, Text> = {
+  1: { zh: '水流力弱', en: 'low stream power' },
+  2: { zh: '水流力中到強', en: 'medium to high stream power' },
+  3: { zh: '受湖泊或濕地影響', en: 'lake or wetland influenced' },
+};
+/** 河段類型代碼 → 「溫暖潮濕・很小的河・水流力弱」 */
+export function reachTypeName(code: number, lang: 'zh' | 'en'): string {
+  const parts = [REACH_REGIONS[Math.floor(code / 100)], REACH_SIZES[Math.floor(code / 10) % 10], REACH_POWER[code % 10]];
+  return parts
+    .filter((p): p is Text => !!p)
+    .map((p) => tr(p, lang))
+    .join(lang === 'zh' ? '・' : ' · ');
+}
+const NO_REACHES: Text = {
+  zh: 'GloRiC 在這裡大多沒有分類（乾旱或冰河地區），或河道太少',
+  en: 'Mostly unclassified in GloRiC (arid or glacial), or too few rivers',
+};
+const REACH_HOW: Text = {
+  zh: 'GloRiC（Ouellet Dallaire 等 2019）把 HydroRIVERS 的 848 萬段河道依氣候區（10 區，依最冷月的低溫、濕潤程度與海拔）、河的大小（5 級，依平均流量）與水流力（弱、中到強、受湖泊或濕地影響）分成 127 種；分類是用環境變數算出來的模型結果，不是實測。每段河道依出口落在哪一國算那一國。38 萬段（全球河道長度的 8%）缺氣候資料或平均流量是 0、沒有分類，埃及、利比亞、格陵蘭、卡達、科威特、巴林這類一半以上的河道沒有分類的地方，與有分類的河道不到 100 公里的小島留白。',
+  en: 'GloRiC (Ouellet Dallaire et al. 2019) sorts the 8.48 million HydroRIVERS reaches into 127 types by climate region (10, from the coldest month’s minimum temperature, moisture and elevation), river size (5 classes by mean flow) and stream power (low, medium to high, or lake and wetland influenced); the classes are modelled from environmental variables, not measured. Each reach counts for the country its outlet lies in. 380,000 reaches (8% of river length worldwide) lack climate data or have zero mean flow and are unclassified; places where over half the rivers are unclassified, such as Egypt, Libya, Greenland, Qatar, Kuwait and Bahrain, and small islands with under 100 km of classified rivers are left blank.',
+};
+
+/** 2026-11-07（製作手冊 548）：FAOSTAT 沒有分出內陸水域的地區（沙漠國、小島與安哥拉、中非、格陵蘭等 71 個） */
+const NO_INLAND_WATER: Text = { zh: 'FAOSTAT 沒有分出這裡的內陸水域', en: 'FAOSTAT does not report inland water separately here' };
+
 const HOW = {
   zh: '每一段河道自己的集水面積依它所在的國家加總（HydroRIVERS 收錄集水面積 10 km² 或平均流量每秒 0.1 立方公尺以上的河），分母是有河道經過的面積；流進海的河依河口落在哪一片海算大洋，地中海、黑海、波羅的海、墨西哥灣算大西洋，哈德遜灣算北冰洋，紅海、波斯灣算印度洋。',
   en: 'Each reach’s own catchment is added to the country it lies in (HydroRIVERS covers rivers with a 10 km² catchment or 0.1 m³/s mean flow and above), out of the area those reaches drain; rivers reaching the sea count for the ocean of the sea at their mouth, so the Mediterranean, Black Sea, Baltic and Gulf of Mexico count as the Atlantic, Hudson Bay as the Arctic, and the Red Sea and Persian Gulf as the Indian Ocean.',
@@ -388,6 +436,54 @@ const indicators: IndicatorDef[] = [
     formatTick: (v) => `${n0(v)}%`,
     unranked: true,
   },
+  // 2026-11-07（製作手冊 548，候選 1235）：內陸水域占國土的比例（pipeline/topics/inland_water.py）
+  {
+    id: 'inland-water',
+    label: { zh: '內陸水域占國土的比例', en: 'Inland water share' },
+    description: {
+      zh: '湖泊、水庫與河流的水面占「陸地＋內陸水域」的比例（FAOSTAT 土地利用，2024 年）。巴哈馬 27.87% 最高，幾內亞比索 22.16%、馬拉威 20.43%（馬拉威湖）、烏干達 19.09%（維多利亞湖）、賴比瑞亞 13.51%、孟加拉 11.90%、加拿大 10.99%（108 萬 km²，內陸水域面積世界最大）；芬蘭 10.19%、荷蘭 9.95%、印度 9.55%、瑞典 8.98%、美國 6.96%、日本 3.55%，世界 3.29%，中國大陸 1.83%，台灣 1.53%（550 km²）。各國的報法差很多（有的含水庫、有的不含季節性的水面）；分母不是一般說的國土面積，因為 FAO 的國土面積在加拿大、荷蘭還含沿海的內水。沙烏地、利比亞這類沙漠國，以及安哥拉、中非、格陵蘭與許多小島共 71 個地區，FAOSTAT 沒有分出內陸水域，留白。各國的數字幾十年多半不變，會變的多是改了報法（美國在 2008 年從 4.88% 變成 6.96%），所以只放最新一年。',
+      en: 'Lakes, reservoirs and rivers as a share of land plus inland water (FAOSTAT Land Use, 2024). The Bahamas is highest at 27.87%, followed by Guinea-Bissau 22.16%, Malawi 20.43% (Lake Malawi), Uganda 19.09% (Lake Victoria), Liberia 13.51%, Bangladesh 11.90% and Canada 10.99% (1.08 million km², the largest inland water area in the world); Finland 10.19%, the Netherlands 9.95%, India 9.55%, Sweden 8.98%, the US 6.96%, Japan 3.55%, the world 3.29%, mainland China 1.83% and Taiwan 1.53% (550 km²). Countries report very differently (some include reservoirs, some leave out seasonal water). The denominator is not the usual country area, because FAO’s country area for Canada and the Netherlands also includes coastal internal waters. FAOSTAT does not report inland water separately for 71 places, desert countries such as Saudi Arabia and Libya as well as Angola, the Central African Republic, Greenland and many small islands, which are left blank. Most countries’ figures stay the same for decades and changes usually reflect new reporting (the US went from 4.88% to 6.96% in 2008), so only the latest year is shown.',
+    },
+    unit: '%',
+    file: 'inland-water.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 3, 5, 10, 20] } },
+    format: (v) => `${fixed(v, 2)}%`,
+    formatTick: (v) => `${v}%`,
+    noValue: Object.fromEntries(Object.keys(NO_VALUE).map((iso3) => [iso3, NO_INLAND_WATER])),
+    missing: NO_INLAND_WATER,
+  },
+  // 2026-11-07（製作手冊 548，候選 1237）：GloRiC 的河段類型（pipeline/topics/river_types.py）
+  {
+    id: 'reach-types',
+    label: { zh: '河段類型有幾種', en: 'River reach types' },
+    description: {
+      zh: `國內有 GloRiC 127 種河段類型裡的幾種（國內合計 10 公里以上的才算）。國土大、跨好幾個氣候帶又有高山的國家最多：中國大陸 87 種、印度與美國 80、俄羅斯 72、加拿大 71、巴西 58、緬甸 56、澳洲 50；日本 21、台灣 15、荷蘭 12。點國家看最長的 5 種。${REACH_HOW.zh}`,
+      en: `How many of GloRiC’s 127 river reach types occur in the country (counting types with at least 10 km in it). Large countries spanning several climate zones and high mountains have the most: mainland China 87, India and the US 80, Russia 72, Canada 71, Brazil 58, Myanmar 56 and Australia 50; Japan has 21, Taiwan 15 and the Netherlands 12. Select a country for its five longest types. ${REACH_HOW.en}`,
+    },
+    unit: { zh: '種', en: 'types' },
+    file: 'reach-types.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 60, 80] } },
+    format: (v) => tr({ zh: `${n0(v)} 種`, en: `${n0(v)} types` }),
+    formatTick: n0,
+    integer: true,
+    noValue: Object.fromEntries(Object.keys(NO_VALUE).map((iso3) => [iso3, NO_REACHES])),
+    missing: NO_REACHES,
+  },
+  {
+    id: 'reach-steep',
+    label: { zh: '水流力強的河段比例', en: 'High stream power reaches' },
+    description: {
+      zh: `GloRiC 分成「水流力中到強」的河段占河道長度的比例（水流力＝水的密度×重力×流量×坡度，有水量又陡的山區河段才會高）。不丹 44.2%、尼泊爾 40.3%、塔吉克 28.5%、瑞士 23.7%、喬治亞 23.5%、列支敦斯登 22.9%、台灣 22.4%，挪威 17.0%、奧地利 13.9%；日本 7.7%、中國大陸 7.0%、美國 4.6%、荷蘭 3.8%，全世界 5.5%。${REACH_HOW.zh}`,
+      en: `Share of river length that GloRiC rates as medium to high stream power (stream power is water density × gravity × discharge × slope, so it is high only where steep rivers carry plenty of water). Bhutan 44.2%, Nepal 40.3%, Tajikistan 28.5%, Switzerland 23.7%, Georgia 23.5%, Liechtenstein 22.9% and Taiwan 22.4%; Norway 17.0% and Austria 13.9%; Japan 7.7%, mainland China 7.0%, the US 4.6% and the Netherlands 3.8%; 5.5% worldwide. ${REACH_HOW.en}`,
+    },
+    unit: '%',
+    file: 'reach-steep.json',
+    layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 4, 6, 10, 15, 25] } },
+    format: (v) => `${fixed(v, 1)}%`,
+    formatTick: (v) => `${v}%`,
+    noValue: Object.fromEntries(Object.keys(NO_VALUE).map((iso3) => [iso3, NO_REACHES])),
+    missing: NO_REACHES,
+  },
   {
     id: 'dam-count',
     label: { zh: '水壩數', en: 'Dams' },
@@ -446,6 +542,14 @@ export const rivers: TopicDefinition = withParts({
       license: 'CC BY 4.0',
     },
     {
+      name: {
+        zh: 'GloRiC 1.0 版（Ouellet Dallaire、Lehner、Sayre、Thieme 2019，Environ. Res. Lett. 14: 024003；HydroSHEDS）',
+        en: 'GloRiC v1.0 (Ouellet Dallaire, Lehner, Sayre & Thieme 2019, Environ. Res. Lett. 14: 024003; HydroSHEDS)',
+      },
+      url: 'https://www.hydrosheds.org/products/gloric',
+      license: { zh: 'HydroSHEDS 授權協議', en: 'HydroSHEDS License Agreement' },
+    },
+    {
       name: { zh: 'Natural Earth 河流中心線、Wikidata（河名）', en: 'Natural Earth river centerlines and Wikidata (river names)' },
       url: 'https://www.naturalearthdata.com/',
       license: { zh: '公有領域、CC0', en: 'public domain, CC0' },
@@ -469,15 +573,18 @@ export const rivers: TopicDefinition = withParts({
       license: { zh: '依各資料來源標示', en: 'attribution per data source' },
     },
     {
-      name: { zh: 'FAOSTAT 土地利用（陸地面積，國土流向的圓的大小）', en: 'FAOSTAT Land Use (land area; circle size for where the land drains)' },
+      name: {
+        zh: 'FAOSTAT 土地利用（陸地面積，國土流向的圓的大小；內陸水域面積）',
+        en: 'FAOSTAT Land Use (land area, the circle size for where the land drains; inland water area)',
+      },
       url: 'https://www.fao.org/faostat/en/#data/RL',
       license: 'CC BY 4.0',
     },
   ],
   // 授權協議要求的聲明寫在最前面（頁尾先露兩行）；細節寫在指標說明、資料夾裡的 HYDROSHEDS-NOTICE.txt 與 DESIGN.md
   note: {
-    zh: '本主題的河道是 HydroSHEDS 第 1 版資料庫（© World Wildlife Fund, Inc. 2006–2022）的衍生資料，依其授權協議使用；WWF 沒有評估過這裡簡化、改作後的資料，對正確性不做任何保證，HydroSHEDS 的部分資料另屬 USGS、NASA、ESRI、CIAT、UNEP-WCMC、WWF、澳洲聯邦政府與英國王室所有（完整聲明見資料夾裡的 HYDROSHEDS-NOTICE.txt）。這些衍生檔只作為本地圖的一部分提供，不得單獨再散布。流量是 WaterGAP 模型 1971–2000 年的長期平均推算，乾燥地區與冰河、大型溼地一帶誤差較大；北緯 60° 以北的河道品質較差。線依流量或集水面積挑選、簡化到約 0.65–1.7 公里。河名來自 Natural Earth 與 Wikidata，台灣的主要河川依水利署的中央管河川對到河口；沒有名稱的河只寫流進哪裡。大洋依 IHO 的海域與 2002 年草案的分章（Marine Regions）：挪威海、格陵蘭海、哈德遜灣、巴芬灣算北冰洋，帝汶海、阿拉弗拉海算印度洋；草案另列一章的南海與印尼群島的海依位置分，麻六甲海峽、莎瓦海算印度洋，其餘算太平洋。水壩來自 Global Dam Watch 資料庫 1.0 版（Lehner 等人 2024，figshare，CC BY 4.0），不收船閘、已拆除與規劃中的壩；六成的壩不知道完工年份，畫成灰色；庫容是各來源的設計或報告容量，約 4,700 座不明。台灣用經濟部水利署 113 年的 40 座公告水庫（目前總容量），座標取自 Wikidata，完工年份取自水利署網站「主要水庫簡介」的興建時間（22 座）與 Wikidata（2 座），其餘不明。',
-    en: 'River data in this topic are derived from the HydroSHEDS version 1 database (© World Wildlife Fund, Inc. 2006–2022) and used under its license; WWF has not evaluated the data as simplified and altered here and gives no warranty regarding its accuracy, and portions of HydroSHEDS are the intellectual property of USGS, NASA, ESRI, CIAT, UNEP-WCMC, WWF, the Commonwealth of Australia and the British Crown (full statement in HYDROSHEDS-NOTICE.txt in the data folder). The derived files are provided only as part of this map and may not be redistributed on their own. Flows are long-term 1971–2000 averages downscaled from the WaterGAP model, less reliable in dry regions and around glaciers and large wetlands; reaches north of 60°N are of lower quality. Rivers are selected by flow or catchment area and simplified to about 0.65–1.7 km. Names come from Natural Earth and Wikidata, and Taiwan’s main rivers are matched to their mouths from the Water Resources Agency’s list of central rivers; unnamed rivers show only where they drain. Oceans follow the IHO sea areas and the chapters of its 2002 draft (Marine Regions): the Norwegian and Greenland seas, Hudson Bay and Baffin Bay count as Arctic, the Timor and Arafura seas as Indian; the South China Sea and Indonesian seas, a separate chapter in the draft, are split by location, with the Strait of Malacca and Savu Sea counted as Indian and the rest as Pacific. Dams are from the Global Dam Watch database version 1.0 (Lehner et al. 2024, figshare, CC BY 4.0), excluding navigation locks and removed or planned dams; six in ten have no known completion year and are drawn grey, and storage is the design or reported capacity from each source (unknown for about 4,700). Taiwan uses the Water Resources Agency’s 40 official reservoirs as of 2024 (latest surveyed storage), with coordinates from Wikidata and completion years from the agency’s reservoir profiles (22) and Wikidata (2); the rest are unknown.',
+    zh: '本主題的河道是 HydroSHEDS 第 1 版資料庫（© World Wildlife Fund, Inc. 2006–2022）的衍生資料，依其授權協議使用；WWF 沒有評估過這裡簡化、改作後的資料，對正確性不做任何保證，HydroSHEDS 的部分資料另屬 USGS、NASA、ESRI、CIAT、UNEP-WCMC、WWF、澳洲聯邦政府與英國王室所有（完整聲明見資料夾裡的 HYDROSHEDS-NOTICE.txt）。這些衍生檔只作為本地圖的一部分提供，不得單獨再散布。流量是 WaterGAP 模型 1971–2000 年的長期平均推算，乾燥地區與冰河、大型溼地一帶誤差較大；北緯 60° 以北的河道品質較差。線依流量或集水面積挑選、簡化到約 0.65–1.7 公里。河名來自 Natural Earth 與 Wikidata，台灣的主要河川依水利署的中央管河川對到河口；沒有名稱的河只寫流進哪裡。大洋依 IHO 的海域與 2002 年草案的分章（Marine Regions）：挪威海、格陵蘭海、哈德遜灣、巴芬灣算北冰洋，帝汶海、阿拉弗拉海算印度洋；草案另列一章的南海與印尼群島的海依位置分，麻六甲海峽、莎瓦海算印度洋，其餘算太平洋。水壩來自 Global Dam Watch 資料庫 1.0 版（Lehner 等人 2024，figshare，CC BY 4.0），不收船閘、已拆除與規劃中的壩；六成的壩不知道完工年份，畫成灰色；庫容是各來源的設計或報告容量，約 4,700 座不明。河段類型來自 GloRiC 1.0 版（Ouellet Dallaire 等 2019，HydroSHEDS 的附屬產品，版權屬作者，依同一份 HydroSHEDS 授權協議使用），這裡只有各國的統計。台灣用經濟部水利署 113 年的 40 座公告水庫（目前總容量），座標取自 Wikidata，完工年份取自水利署網站「主要水庫簡介」的興建時間（22 座）與 Wikidata（2 座），其餘不明。',
+    en: 'River data in this topic are derived from the HydroSHEDS version 1 database (© World Wildlife Fund, Inc. 2006–2022) and used under its license; WWF has not evaluated the data as simplified and altered here and gives no warranty regarding its accuracy, and portions of HydroSHEDS are the intellectual property of USGS, NASA, ESRI, CIAT, UNEP-WCMC, WWF, the Commonwealth of Australia and the British Crown (full statement in HYDROSHEDS-NOTICE.txt in the data folder). The derived files are provided only as part of this map and may not be redistributed on their own. Flows are long-term 1971–2000 averages downscaled from the WaterGAP model, less reliable in dry regions and around glaciers and large wetlands; reaches north of 60°N are of lower quality. Rivers are selected by flow or catchment area and simplified to about 0.65–1.7 km. Names come from Natural Earth and Wikidata, and Taiwan’s main rivers are matched to their mouths from the Water Resources Agency’s list of central rivers; unnamed rivers show only where they drain. Oceans follow the IHO sea areas and the chapters of its 2002 draft (Marine Regions): the Norwegian and Greenland seas, Hudson Bay and Baffin Bay count as Arctic, the Timor and Arafura seas as Indian; the South China Sea and Indonesian seas, a separate chapter in the draft, are split by location, with the Strait of Malacca and Savu Sea counted as Indian and the rest as Pacific. Dams are from the Global Dam Watch database version 1.0 (Lehner et al. 2024, figshare, CC BY 4.0), excluding navigation locks and removed or planned dams; six in ten have no known completion year and are drawn grey, and storage is the design or reported capacity from each source (unknown for about 4,700). River reach types are from GloRiC version 1.0 (Ouellet Dallaire et al. 2019, a HydroSHEDS companion product, © the authors, used under the same HydroSHEDS License Agreement); only country statistics are shown here. Taiwan uses the Water Resources Agency’s 40 official reservoirs as of 2024 (latest surveyed storage), with coordinates from Wikidata and completion years from the agency’s reservoir profiles (22) and Wikidata (2); the rest are unknown.',
   },
   panelExtra: () => import('./panels/RiversPanel'),
   noValue: NO_VALUE,
