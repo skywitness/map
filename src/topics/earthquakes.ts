@@ -12,7 +12,7 @@ import {
   PLATES_INDICATOR,
   PLATES_WORLD_PANEL,
 } from './plates-pb2002';
-import type { ColorClasses, IndicatorDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import type { CategoryDef, ColorClasses, IndicatorDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 
 /**
  * 地震與火山（pipeline/topics/earthquakes.py）。
@@ -136,6 +136,26 @@ export const VOLCANO_TYPES: Record<string, Text> = {
   'Explosion crater': { zh: '爆裂火山口', en: 'Explosion crater' },
 };
 
+/** 主要岩性（2026-11-07，製作手冊 538）：pipeline 的 gvp.ROCK_CODES */
+export const VOLCANO_ROCKS: Record<number, { zh: string; en: string }> = {
+  1: { zh: '安山岩與玄武安山岩', en: 'Andesite and basaltic andesite' },
+  2: { zh: '玄武岩與苦橄玄武岩', en: 'Basalt and picrobasalt' },
+  3: { zh: '英安岩', en: 'Dacite' },
+  4: { zh: '粗面玄武岩與碧玄岩', en: 'Trachybasalt and tephrite-basanite' },
+  5: { zh: '流紋岩', en: 'Rhyolite' },
+  6: { zh: '粗面岩與粗面英安岩', en: 'Trachyte and trachydacite' },
+  7: { zh: '粗面安山岩與玄武粗安岩', en: 'Trachyandesite and basaltic trachyandesite' },
+  8: { zh: '似長岩', en: 'Foidite' },
+  9: { zh: '響岩', en: 'Phonolite' },
+  10: { zh: '響岩質碧玄岩與碧玄質響岩', en: 'Phonotephrite and tephriphonolite' },
+};
+
+/** 「主要岩性：安山岩與玄武安山岩」；沒有資料是 null */
+export function volcanoRock(rock: unknown): string | null {
+  const label = typeof rock === 'number' ? VOLCANO_ROCKS[rock] : undefined;
+  return label ? tr({ zh: `主要岩性：${label.zh}`, en: `Main rock: ${label.en}` }) : null;
+}
+
 export function volcanoType(type: string | number | null): string {
   if (typeof type !== 'string' || !type) return tr({ zh: '火山', en: 'Volcano' });
   return VOLCANO_TYPES[type] ? tr(VOLCANO_TYPES[type]) : type;
@@ -158,11 +178,27 @@ function volcanoTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => st
   if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
   parts.push(lastEruption(p.last));
   const setting = tectonicSetting(p);
+  const extra = [setting ? tr({ zh: `構造環境：${setting}`, en: `Tectonic setting: ${setting}` }) : null, volcanoRock(p.rock)].filter(
+    (x): x is string => Boolean(x),
+  );
   return {
     title: volcanoType(p.type),
     detail: parts.join(' · '),
     properNoun: typeof p.name === 'string' ? p.name : undefined,
-    extra: setting ? [tr({ zh: `構造環境：${setting}`, en: `Tectonic setting: ${setting}` })] : undefined,
+    extra: extra.length ? extra : undefined,
+  };
+}
+
+/** 更新世的火山（2026-11-07，製作手冊 538）：類型、海拔、國家，一律註明不是活火山 */
+function pleistoceneTooltip(p: PointRecord, ctx: { countryName: (iso3: string) => string }) {
+  const parts: string[] = [];
+  if (typeof p.elev === 'number') parts.push(elevation(p.elev));
+  if (typeof p.iso3 === 'string') parts.push(ctx.countryName(p.iso3));
+  return {
+    title: tr({ zh: `${volcanoType(p.type)}（更新世）`, en: `${volcanoType(p.type)} (Pleistocene)` }),
+    detail: parts.join(' · '),
+    properNoun: typeof p.name === 'string' ? p.name : undefined,
+    extra: [tr({ zh: '最後一次噴發在約 1 萬 1,700 年前以前，現在不算活火山', en: 'Last erupted before about 11,700 years ago; not considered active' })],
   };
 }
 
@@ -275,8 +311,8 @@ const indicators: IndicatorDef[] = [
     id: 'volcanoes',
     label: { zh: '全新世火山數', en: 'Holocene volcanoes' },
     description: {
-      zh: '過去約 11,700 年（全新世）曾經噴發或有活動跡象的火山（Smithsonian 全球火山計畫），含離岸 50 公里以內的海底火山。地圖上青綠色的三角形是板塊內部的火山（GVP 的構造環境，149 座，例如夏威夷的基拉韋亞、冒納羅亞），其他是隱沒帶與裂谷的火山；板塊內部不等於熱點：冰島在 GVP 歸為裂谷，有的板塊內部火山跟地函熱點無關。',
-      en: 'Volcanoes that have erupted or shown signs of activity in the last 11,700 years or so (the Holocene), per the Smithsonian Global Volcanism Program, including submarine volcanoes within 50 km of the coast. Teal triangles on the map are intraplate volcanoes (the GVP tectonic setting; 149 of them, such as Kīlauea and Mauna Loa in Hawaii); the rest sit on subduction zones and rifts. Intraplate does not mean hotspot: GVP classes Iceland as a rift, and some intraplate volcanoes have nothing to do with mantle plumes.',
+      zh: '過去約 11,700 年（全新世）曾經噴發或有活動跡象的火山（Smithsonian 全球火山計畫），含離岸 50 公里以內的海底火山。地圖上青綠色的三角形是板塊內部的火山（GVP 的構造環境，149 座，例如夏威夷的基拉韋亞、冒納羅亞），其他是隱沒帶與裂谷的火山；板塊內部不等於熱點：冰島在 GVP 歸為裂谷，有的板塊內部火山跟地函熱點無關。灰色的小三角形是更新世的火山（GVP 另一份清單，1,452 座：全新世以前噴發、地形還看得出來，但現在不算活火山）；台灣因此多 7 座：草嶺山、基隆火山群、彭佳嶼、花瓶嶼、棉花嶼、小蘭嶼、綠島。',
+      en: 'Volcanoes that have erupted or shown signs of activity in the last 11,700 years or so (the Holocene), per the Smithsonian Global Volcanism Program, including submarine volcanoes within 50 km of the coast. Teal triangles on the map are intraplate volcanoes (the GVP tectonic setting; 149 of them, such as Kīlauea and Mauna Loa in Hawaii); the rest sit on subduction zones and rifts. Intraplate does not mean hotspot: GVP classes Iceland as a rift, and some intraplate volcanoes have nothing to do with mantle plumes. Small grey triangles are Pleistocene volcanoes (a separate GVP list of 1,452 that erupted before the Holocene and still show as landforms but are not considered active); they add seven in Taiwan: Tsaolingshan, the Chilung volcano group, Pengchiahsu, Huapinghsu, Mienhuayu, Hsiaolanyu and Lutao (Green Island).',
     },
     unit: { zh: '座', en: 'volcanoes' },
     file: 'volcanoes-count.json',
@@ -284,6 +320,120 @@ const indicators: IndicatorDef[] = [
     format: (v) => tr({ zh: `${n0(v)} 座`, en: `${n0(v)} ${Math.round(v) === 1 ? 'volcano' : 'volcanoes'}` }),
     formatTick: n0,
     shareOfWorld: true,
+  },
+];
+
+// ── 火山的類型、岩性、噴發史（2026-11-07，製作手冊第二十七批 538；pipeline/topics/volcano_extra.py）──
+
+/** 有火山點的指標：更新世的火山只畫在這些指標上 */
+const VOLCANO_INDICATORS = ['volcanoes', 'volcano-type', 'volcano-rock', 'eruptions', 'eruptions-2000', 'max-vei'];
+
+/** 主要火山類型的 9 類：代碼跟 volcano_extra.py 的 TYPE_GROUPS 一致，依全世界的座數排 */
+const TYPE_CATEGORIES: CategoryDef[] = [
+  { value: 1, label: { zh: '層狀火山', en: 'Stratovolcano' } },
+  { value: 4, label: { zh: '火山群', en: 'Volcanic field' } },
+  { value: 2, label: { zh: '盾狀火山', en: 'Shield volcano' } },
+  { value: 3, label: { zh: '破火山口', en: 'Caldera' } },
+  { value: 5, label: { zh: '複式與複合火山', en: 'Complex and compound volcano' } },
+  { value: 7, label: { zh: '火山錐與火口（火山碎屑錐、熔岩錐、瑪珥等）', en: 'Cones and craters (pyroclastic and lava cones, maars, etc.)' } },
+  { value: 6, label: { zh: '裂隙噴發口與火山口列', en: 'Fissure vents and crater rows' } },
+  { value: 8, label: { zh: '熔岩穹丘', en: 'Lava dome' } },
+];
+/** 代碼 9（冰下火山等其他類型）畫成類別圖的「其他」；2026-11-07 沒有一國以這一類最多 */
+const OTHER_TYPE: Text = { zh: '其他', en: 'Other' };
+/** 主要岩性的 7 類（volcano_extra.py 的 ROCK_GROUPS） */
+const ROCK_CATEGORIES: CategoryDef[] = [
+  { value: 1, label: { zh: '安山岩與玄武安山岩', en: 'Andesite and basaltic andesite' } },
+  { value: 2, label: { zh: '玄武岩', en: 'Basalt' } },
+  { value: 3, label: { zh: '英安岩', en: 'Dacite' } },
+  { value: 4, label: { zh: '粗面玄武岩與碧玄岩', en: 'Trachybasalt and tephrite-basanite' } },
+  { value: 5, label: { zh: '流紋岩', en: 'Rhyolite' } },
+  { value: 6, label: { zh: '粗面岩與粗面安山岩', en: 'Trachyte and trachyandesite' } },
+  { value: 7, label: { zh: '鹼性岩（似長岩、響岩）', en: 'Alkaline rocks (foidite, phonolite)' } },
+];
+/** 最大的噴發：VEI 7 到 0–1 的順序類別 */
+const VEI_CATEGORIES: CategoryDef[] = [
+  ...[7, 6, 5, 4, 3, 2].map((n) => ({ value: n, label: { zh: `VEI ${n}`, en: `VEI ${n}` } })),
+  { value: 0, max: 1, label: { zh: 'VEI 0–1', en: 'VEI 0–1' } },
+];
+const categoryLabel = (categories: CategoryDef[], other?: Text) => (v: number) => {
+  const c = categories.find((x) => v >= x.value && v <= (x.max ?? x.value));
+  return c ? tr(c.label) : other ? tr(other) : String(v);
+};
+const eruptions = (v: number) => tr({ zh: `${n0(v)} 次噴發`, en: `${n0(v)} ${Math.round(v) === 1 ? 'eruption' : 'eruptions'}` });
+
+const volcanoIndicators: IndicatorDef[] = [
+  {
+    id: 'volcano-type',
+    label: { zh: '最多的火山類型', en: 'Most common volcano type' },
+    description: {
+      zh: '這一國的全新世火山最多是哪一種（GVP 的主要類型，一樣多時取全世界比較多的那一類）。全世界 1,214 座：層狀火山 660 座最多，火山群 138、盾狀火山 113（含火山碎屑盾）、破火山口 85、複式與複合火山 66、火山錐與火口 63、裂隙噴發口與火山口列 57、熔岩穹丘 31。60 國以層狀火山最多（日本、印尼、美國、智利等環太平洋的國家）；以火山群最多的 16 國多在板塊內部，例如中國、澳洲、加拿大、墨西哥、德國、沙烏地阿拉伯；盾狀火山最多的有肯亞、南非、留尼旺、薩摩亞等 10 個；西班牙是裂隙噴發口、法國是熔岩穹丘。台灣的 2 座：龜山島是層狀火山、大屯火山群是熔岩穹丘。火山群與裂隙噴發口不是單一座山，座數不能跟層狀火山直接比。',
+      en: 'The most common kind of Holocene volcano in each country (GVP primary volcano type; ties go to the type that is more common worldwide). Of 1,214 volcanoes, 660 are stratovolcanoes, then volcanic fields 138, shield volcanoes 113 (including pyroclastic shields), calderas 85, complex and compound volcanoes 66, cones and craters 63, fissure vents and crater rows 57 and lava domes 31. Stratovolcanoes dominate in 60 countries (Japan, Indonesia, the US, Chile and others around the Pacific); the 16 where volcanic fields dominate lie mostly within plates, such as China, Australia, Canada, Mexico, Germany and Saudi Arabia; shield volcanoes lead in 10, including Kenya, South Africa, Réunion and Samoa; Spain’s are mostly fissure vents and France’s lava domes. Taiwan’s two are Kueishantao, a stratovolcano, and the Tatun volcano group, a lava dome. Volcanic fields and fissure vents are not single mountains, so their counts are not comparable with stratovolcanoes.',
+    },
+    unit: '',
+    file: 'volcano-type.json',
+    layer: { kind: 'categorical', categories: TYPE_CATEGORIES, other: OTHER_TYPE },
+    timeless: true,
+    format: categoryLabel(TYPE_CATEGORIES, OTHER_TYPE),
+    missing: { zh: '沒有全新世火山', en: 'No Holocene volcanoes' },
+  },
+  {
+    id: 'volcano-rock',
+    label: { zh: '火山最多的岩性', en: 'Most common volcanic rock' },
+    description: {
+      zh: '這一國的全新世火山最多是哪一種岩石（GVP 的主要岩性，沒有資料的 66 座不算，一樣多時取全世界比較多的那一類）。全世界安山岩與玄武安山岩 504 座最多，玄武岩 383、英安岩 79、粗面玄武岩與碧玄岩 56、粗面岩與粗面安山岩 55、流紋岩 53、鹼性岩（似長岩、響岩）18。安山岩跟玄武岩各是 36 國的第一：安山岩多在隱沒帶（日本、印尼、智利、美國、台灣），玄武岩多在裂谷與板塊內部（冰島、衣索比亞、中國、加拿大、肯亞）；義大利、澳洲、西班牙等 10 國是粗面玄武岩，德國、維德角、烏干達是鹼性岩。台灣的 2 座都是安山岩。',
+      en: 'The most common rock among each country’s Holocene volcanoes (GVP major rock type; the 66 without data are left out, and ties go to the rock that is more common worldwide). Worldwide, andesite and basaltic andesite lead with 504 volcanoes, then basalt 383, dacite 79, trachybasalt and tephrite-basanite 56, trachyte and trachyandesite 55, rhyolite 53 and alkaline rocks (foidite, phonolite) 18. Andesite and basalt each lead in 36 countries: andesite mostly along subduction zones (Japan, Indonesia, Chile, the US, Taiwan), basalt in rifts and plate interiors (Iceland, Ethiopia, China, Canada, Kenya); trachybasalt leads in 10 countries including Italy, Australia and Spain, and alkaline rocks in Germany, Cabo Verde and Uganda. Both of Taiwan’s volcanoes are andesitic.',
+    },
+    unit: '',
+    file: 'volcano-rock.json',
+    layer: { kind: 'categorical', categories: ROCK_CATEGORIES },
+    timeless: true,
+    format: categoryLabel(ROCK_CATEGORIES),
+    missing: { zh: '沒有全新世火山，或沒有岩性的資料', en: 'No Holocene volcanoes, or no rock data' },
+  },
+  {
+    id: 'eruptions',
+    label: { zh: '1500 年起的火山噴發', en: 'Volcanic eruptions since 1500' },
+    description: {
+      zh: '1500 年起到時間軸那一年 GVP 確認的火山噴發次數（不含「不確定」的噴發；一次噴發可能持續好幾年，算在開始那一年；海底火山不算任何國家）。到今年全世界有國家的 6,453 次：印尼 1,273 次最多，日本 862、俄羅斯 513、美國 489、智利 386、紐西蘭 237、巴布亞紐幾內亞 222、厄瓜多 219、尼加拉瓜 195、菲律賓 191、法屬留尼旺 189。台灣 2 次。越早的紀錄越不完整（偏向有文字紀錄的地方），次數一路往上爬，大半是紀錄變好，不是火山變活躍。',
+      en: 'Confirmed volcanic eruptions from 1500 up to the selected year, per GVP (excluding “uncertain” eruptions; an eruption lasting several years counts in the year it began; submarine volcanoes belong to no country). To date, countries account for 6,453: Indonesia leads with 1,273, then Japan 862, Russia 513, the US 489, Chile 386, New Zealand 237, Papua New Guinea 222, Ecuador 219, Nicaragua 195, the Philippines 191 and French Réunion 189. Taiwan has 2. Earlier records are less complete (biased towards places with written records), so most of the steady rise reflects better recording, not more active volcanoes.',
+    },
+    unit: { zh: '次', en: 'eruptions' },
+    file: 'eruptions.json',
+    layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+    defaultYear: 2026,
+    format: eruptions,
+    formatTick: n0,
+    shareOfWorld: true,
+  },
+  {
+    id: 'eruptions-2000',
+    label: { zh: '2000 年起的火山噴發', en: 'Volcanic eruptions since 2000' },
+    description: {
+      zh: '2000 年以後開始、GVP 確認的火山噴發次數：全世界有國家的 941 次，印尼 182 次最多，俄羅斯 91、日本 85、美國 58、巴布亞紐幾內亞 58、尼加拉瓜 57、菲律賓 40、智利 39。台灣 0 次。',
+      en: 'Confirmed eruptions that began in 2000 or later, per GVP: countries account for 941, led by Indonesia with 182, then Russia 91, Japan 85, the US 58, Papua New Guinea 58, Nicaragua 57, the Philippines 40 and Chile 39. Taiwan has none.',
+    },
+    unit: { zh: '次', en: 'eruptions' },
+    file: 'eruptions-2000.json',
+    layer: { kind: 'bubble', legendValues: [5, 25, 100] },
+    timeless: true,
+    format: eruptions,
+    formatTick: n0,
+    shareOfWorld: true,
+  },
+  {
+    id: 'max-vei',
+    label: { zh: '最大的火山噴發', en: 'Largest volcanic eruption' },
+    description: {
+      zh: '這一國全新世（約 1 萬 1,700 年來）確認的噴發裡，火山爆發指數（VEI）最大的一次；VEI 每多 1 級，噴出物大約多 10 倍，沒有估 VEI 的噴發不算。VEI 7 的 7 次在 6 國：印尼的坦博拉（GVP 記開始於 1812 年，1815 年最猛烈）與林賈尼（1257 年）、希臘的聖托里尼（西元前 1610 年）、阿根廷的 Cerro Blanco（西元前 2300 年）、日本的鬼界破火山口（西元前 4350 年）、美國的火山口湖（西元前 5680 年）、俄羅斯堪察加的庫里爾湖（西元前 6440 年）。VEI 6 的有 15 國。台灣最大的是 VEI 2。',
+      en: 'The largest confirmed Holocene eruption (the last 11,700 years or so) in each country, by Volcanic Explosivity Index; each step up in VEI means roughly ten times more erupted material, and eruptions without a VEI estimate are left out. The seven VEI 7 eruptions fall in six countries: Tambora (which GVP dates from 1812; it peaked in 1815) and Rinjani (1257) in Indonesia, Santorini in Greece (1610 BCE), Cerro Blanco in Argentina (2300 BCE), the Kikai caldera in Japan (4350 BCE), Crater Lake in the US (5680 BCE) and Kurile Lake in Kamchatka, Russia (6440 BCE). Fifteen countries have had a VEI 6. Taiwan’s largest is VEI 2.',
+    },
+    unit: 'VEI',
+    file: 'max-vei.json',
+    layer: { kind: 'categorical', ordinal: true, categories: VEI_CATEGORIES },
+    timeless: true,
+    format: categoryLabel(VEI_CATEGORIES),
+    missing: { zh: '沒有全新世火山，或沒有估 VEI 的噴發', en: 'No Holocene volcanoes, or no eruptions with a VEI estimate' },
   },
 ];
 
@@ -307,8 +457,8 @@ export const earthquakes: TopicDefinition = {
     },
     {
       name: {
-        zh: 'Global Volcanism Program, Smithsonian Institution：Volcanoes of the World（全新世火山）',
-        en: 'Global Volcanism Program, Smithsonian Institution: Volcanoes of the World (Holocene)',
+        zh: 'Global Volcanism Program, Smithsonian Institution：Volcanoes of the World（全新世火山與噴發、更新世火山）',
+        en: 'Global Volcanism Program, Smithsonian Institution: Volcanoes of the World (Holocene volcanoes and eruptions, Pleistocene volcanoes)',
       },
       url: 'https://volcano.si.edu/',
       license: {
@@ -361,6 +511,19 @@ export const earthquakes: TopicDefinition = {
     PLATE_AREAS,
     PLATE_BOUNDARIES,
     PLATE_LABELS,
+    // 2026-11-07（製作手冊 538）：更新世的火山，灰色、比全新世的小，只畫在火山的指標
+    {
+      kind: 'points',
+      id: 'pleistocene-volcanoes',
+      file: 'pleistocene-volcanoes.json',
+      label: { zh: '更新世的火山（不是活火山）', en: 'Pleistocene volcanoes (not active)' },
+      indicators: VOLCANO_INDICATORS,
+      shape: 'triangle',
+      radius: 2.5,
+      // 灰色（MAP_TOKENS.inkMuted）：跟全新世火山的深褐色、板塊內部的青綠色都分得開，看得出不是活火山
+      color: MAP_TOKENS.inkMuted,
+      tooltip: pleistoceneTooltip,
+    },
     {
       kind: 'points',
       id: 'volcanoes',
@@ -413,7 +576,7 @@ export const earthquakes: TopicDefinition = {
     // 2026-11-06（板6）：USGS 最近 7 天規模 4.5 以上的地震，瀏覽器直接讀，每 5 分鐘重讀（預設關閉）
     liveQuakesOverlay([...QUAKE_INDICATORS, 'plates'], DEPTH, MAG_STOPS),
   ],
-  indicators: [...indicators, PLATES_INDICATOR, ...landslidesPart.indicators],
+  indicators: [...indicators, ...volcanoIndicators, PLATES_INDICATOR, ...landslidesPart.indicators],
   // 2026-11-06（板4、板5）：「板塊」指標滑到任一點寫在哪一塊板塊、離最近的邊界多遠；「定位我」放的觀察點也寫；左側欄是各板塊的人口
   pointer: platePointer,
   pin: platePin,

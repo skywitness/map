@@ -3,7 +3,7 @@ import { defineMessages, useLang, useT } from '../../i18n';
 import { useJson } from '../../lib/data';
 import { fixed } from '../../lib/format';
 import { decodePoints } from '../../map/overlayData';
-import { elevation, lastEruption, magnitude, quakeDate, volcanoType } from '../earthquakes';
+import { elevation, lastEruption, magnitude, quakeDate, volcanoRock, volcanoType } from '../earthquakes';
 import type { PanelExtraProps, PointRecord, PointsData } from '../types';
 
 /** pipeline/topics/earthquakes.py 輸出的 deadliest.json：每個國家死亡最多的 10 次地震（NOAA，所有規模） */
@@ -154,7 +154,7 @@ export default function EarthquakesPanel({ topic, iso3 }: PanelExtraProps) {
                   {v.name}
                 </span>
                 <span className="plain-meta">
-                  {[volcanoType(v.type), typeof v.elev === 'number' ? elevation(v.elev) : null, lastEruption(v.last)]
+                  {[volcanoType(v.type), volcanoRock(v.rock), typeof v.elev === 'number' ? elevation(v.elev) : null, lastEruption(v.last)]
                     .filter(Boolean)
                     .join(' · ')}
                 </span>

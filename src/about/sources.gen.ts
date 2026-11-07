@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 178;
-export const INDICATOR_COUNT = 1349;
+export const INDICATOR_COUNT = 1354;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -183,7 +183,7 @@ export const SOURCES: AboutSource[] = [
   {"name":"Global Oil and Gas Extraction Tracker, Global Energy Monitor, March 2026 release","url":"https://globalenergymonitor.org/projects/global-oil-gas-extraction-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
   {"name":"Global Oil Infrastructure Tracker, Global Energy Monitor, June 2026 release","url":"https://globalenergymonitor.org/projects/global-oil-infrastructure-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
   {"name":{"zh":"Global Solar Atlas 2.0（Solargis 為世界銀行製作，ESMAP 出資）","en":"Global Solar Atlas 2.0 (Solargis for the World Bank Group, funded by ESMAP)"},"url":"https://globalsolaratlas.info/","licenses":["CC BY 4.0"],"topics":["renewables"]},
-  {"name":{"zh":"Global Volcanism Program, Smithsonian Institution：Volcanoes of the World（全新世火山）","en":"Global Volcanism Program, Smithsonian Institution: Volcanoes of the World (Holocene)"},"url":"https://volcano.si.edu/","licenses":[{"zh":"美國政府職務作品（無著作權）；Smithsonian 條款：非商業使用、註明出處","en":"US government work (no copyright); Smithsonian terms: non-commercial use with attribution"}],"topics":["earthquakes"]},
+  {"name":{"zh":"Global Volcanism Program, Smithsonian Institution：Volcanoes of the World（全新世火山與噴發、更新世火山）","en":"Global Volcanism Program, Smithsonian Institution: Volcanoes of the World (Holocene volcanoes and eruptions, Pleistocene volcanoes)"},"url":"https://volcano.si.edu/","licenses":[{"zh":"美國政府職務作品（無著作權）；Smithsonian 條款：非商業使用、註明出處","en":"US government work (no copyright); Smithsonian terms: non-commercial use with attribution"}],"topics":["earthquakes"]},
   {"name":{"zh":"Global Wind Atlas 4.0（丹麥技術大學 DTU 與世界銀行，ESMAP 出資，中尺度模擬由 Vortex 製作）","en":"Global Wind Atlas 4.0 (Technical University of Denmark and the World Bank Group, funded by ESMAP, mesoscale data by Vortex)"},"url":"https://globalwindatlas.info/","licenses":["CC BY 4.0"],"topics":["renewables"]},
   {"name":"Glottolog 5.3","url":"https://glottolog.org/","licenses":["CC BY 4.0"],"topics":["language"]},
   {"name":{"zh":"GMBA 山脈名錄 v2（291 個主要山系）","en":"GMBA Mountain Inventory v2 (291 major mountain systems)"},"url":"https://www.earthenv.org/mountains","licenses":["CC BY 4.0"],"topics":["elevation"]},

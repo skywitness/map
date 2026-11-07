@@ -235,6 +235,22 @@ def gvp_iso3(name: str) -> str | None:
     return from_name(name.split("-")[0])
 
 
+def volcano_countries(volcanoes: list[gvp.Volcano], index: OffshoreIndex) -> list[str | None]:
+    """火山的國家：國界內或 50 公里內的國家；50 公里內沒有國界的，多半是 1:50m 沒有形狀的小島（伊豆、小笠原、南三明治群島），
+    用 GVP 的國名；300 公里內最近的是那一國的屬地時改用屬地（南三明治群島算 SGS 而不是英國）。海底的 Undersea Features 不算任何國家。
+    2026-11-07 抽成函式，更新世的火山（volcano_extra.py）也用"""
+    def one(v: gvp.Volcano, code: str | None) -> str | None:
+        if code:
+            return code
+        if v.number in VOLCANO_TERRITORY:
+            return VOLCANO_TERRITORY[v.number]
+        own = gvp_iso3(v.country)
+        near = index.nearest(v.lon, v.lat, ISLAND_KM) if own else None
+        return near if near in TERRITORIES.get(own or "", ()) else own
+
+    return [one(v, c) for v, c in zip(volcanoes, index.assign([v.lon for v in volcanoes], [v.lat for v in volcanoes]))]
+
+
 def _km(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     p1, p2 = math.radians(lat1), math.radians(lat2)
     h = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2
@@ -434,22 +450,15 @@ def build() -> None:
     volcanoes = gvp.holocene_volcanoes()
     # 50 公里內沒有國界的：多半是 1:50m 沒有形狀的小島（伊豆、小笠原、南三明治群島），用 GVP 的國名；
     # 300 公里內最近的是那一國的屬地時改用屬地（南三明治群島算 SGS 而不是英國）。海底的 Undersea Features 不算任何國家
-    def volcano_country(v: gvp.Volcano, code: str | None) -> str | None:
-        if code:
-            return code
-        if v.number in VOLCANO_TERRITORY:
-            return VOLCANO_TERRITORY[v.number]
-        own = gvp_iso3(v.country)
-        near = index.nearest(v.lon, v.lat, ISLAND_KM) if own else None
-        return near if near in TERRITORIES.get(own or "", ()) else own
-
-    v_iso3 = [volcano_country(v, c) for v, c in zip(volcanoes, index.assign([v.lon for v in volcanoes], [v.lat for v in volcanoes]))]
+    v_iso3 = volcano_countries(volcanoes, index)
     vdata = points_file(
         [{
             "lon": v.lon, "lat": v.lat, "vn": v.number, "name": v.name, "type": v.type or None,
             "elev": v.elevation, "last": v.last_eruption, "iso3": c, **tectonic(v.tectonic),
+            # 主要岩性（2026-11-07，製作手冊 538；gvp.ROCK_CODES，沒有資料是 None）
+            "rock": gvp.ROCK_CODES.get(v.rock) if v.rock else None,
         } for v, c in zip(volcanoes, v_iso3)],
-        ["lon", "lat", "vn", "name", "type", "elev", "last", "iso3", "ts", "crust"],
+        ["lon", "lat", "vn", "name", "type", "elev", "last", "iso3", "ts", "crust", "rock"],
         {"lon": 0.001, "lat": 0.001, "vn": 1, "elev": 1, "last": 1}, delta=("vn",))
     write_json(OUT / "volcanoes.json", vdata)
     print(f"  GVP：全新世火山 {len(volcanoes)} 座（{_size(vdata)}），{sum(1 for c in v_iso3 if not c)} 座不屬於任何國家")
