@@ -61,6 +61,8 @@ STEPS = {
     "climate-peak": "topics.climate_peak",
     # 農糧系統的溫室氣體（FAOSTAT Emissions Totals，20 MB）與碳排放的經濟損害（WDI）
     "climate-agrifood": "topics.climate_agrifood",
+    # 各國氣候目標與政策的評等（新主題，碳與氣候政策）：Climate Action Tracker 的評等頁（嵌在頁面的 JSON，只准非商業）
+    "climate-action": "topics.climate_action",
     # Climate TRACE 5.12.0（Zenodo，用 HTTP Range 只讀需要的檔，第一次約 400 MB、10 分鐘）
     "climate-trace": "topics.climate_trace",
     "military": "topics.military",

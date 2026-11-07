@@ -122,6 +122,7 @@ const TOPIC_ICONS = {
   'housing-market': 'door-open',
   'property-costs': 'brick-wall',
   retail: 'shopping-cart',
+  'climate-action': 'clipboard-check',
   industry: 'factory',
   agriculture: 'wheat',
   minerals: 'pickaxe',

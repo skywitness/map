@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 162;
-export const INDICATOR_COUNT = 1226;
+export const TOPIC_COUNT = 163;
+export const INDICATOR_COUNT = 1228;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -82,6 +82,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Boston University Global Development Policy Center，Chinese Overseas Development Finance Database（CODF，2025 Release）","en":"Boston University Global Development Policy Center, Chinese Overseas Development Finance Database (CODF, 2025 Release)"},"url":"https://osf.io/7wuxv/","licenses":["CC BY 4.0"],"topics":["china-lending"]},
   {"name":{"zh":"Castle Map：9,040 座城堡、要塞、宮殿與遺址的資料集（2026-11-06 下載）","en":"Castle Map: dataset of 9,040 castles, fortresses, palaces and ruins (downloaded 2026-11-06)"},"url":"https://thecastlemap.com/data/","licenses":["CC0 1.0"],"topics":["castles"]},
   {"name":{"zh":"CEDS v_2025_03_18（PNNL）：燃料燃燒的二氧化碳用途（側欄）、交通運輸的二氧化碳","en":"CEDS v_2025_03_18 (PNNL): CO₂ from fuel combustion by use (side panel) and from transport"},"url":"https://doi.org/10.5281/zenodo.15059443","licenses":["CC BY 4.0"],"topics":["climate"]},
+  {"name":{"zh":"Climate Action Tracker（Climate Analytics、NewClimate Institute）：Country ratings","en":"Climate Action Tracker (Climate Analytics, NewClimate Institute): Country ratings"},"url":"https://climateactiontracker.org/cat-data-explorer/country-ratings/","licenses":[{"zh":"© Climate Analytics 與 NewClimate Institute，只准非商業使用","en":"© Climate Analytics and NewClimate Institute; non-commercial use only"}],"topics":["climate-action"]},
   {"name":{"zh":"Climate TRACE Emissions Inventory（Zenodo 每月一版，用的版本與資料到哪個月寫在國家側欄）","en":"Climate TRACE Emissions Inventory (monthly releases on Zenodo; the version used and the latest month are shown in the country panel)"},"url":"https://doi.org/10.5281/zenodo.15014790","licenses":["CC BY 4.0"],"topics":["climate"]},
   {"name":{"zh":"ClinicalTrials.gov API v2（各國有試驗地點的研究數，2026-11-02 處理）","en":"ClinicalTrials.gov API v2 (studies with sites in each country, processed 2026-11-02)"},"url":"https://clinicaltrials.gov/","licenses":[{"zh":"ClinicalTrials.gov 條款（註明來源、處理日期與改動）","en":"ClinicalTrials.gov terms (attribution, processing date and modifications)"}],"topics":["innovation"]},
   {"name":{"zh":"Cliopatria v0.2.1（Seshat 全球歷史資料庫；Bennett 等 2025，Scientific Data）","en":"Cliopatria v0.2.1 (Seshat Global History Databank; Bennett et al. 2025, Scientific Data)"},"url":"https://doi.org/10.5281/zenodo.23128623","licenses":["CC BY 4.0"],"topics":["empires"]},

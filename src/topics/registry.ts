@@ -94,9 +94,11 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '氣候', en: 'Climate' }, topics: ['climate', 'temperature', 'koppen', 'ice', 'wind', 'typhoons'] },
       { label: { zh: '污染', en: 'Pollution' }, topics: ['air-quality', 'ozone-hole', 'plastic'] },
       { label: { zh: '土地與水', en: 'Land & water' }, topics: ['water-forest', 'forest', 'wildfires', 'megafauna'] },
+      // 2026-11-07（製作手冊第二十五批 480）新開
+      { label: { zh: '碳與氣候政策', en: 'Climate policy' }, topics: ['climate-action'] },
     ],
-    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染；土地與水
-    columns: [1, 1, 1],
+    // 每個小類各占一欄（2026-11-05 使用者要求）：氣候；污染；土地與水；碳與氣候政策
+    columns: [1, 1, 1, 1],
   },
   {
     id: 'tech',
@@ -238,6 +240,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'housing-market': () => import('./housing-market'),
   'property-costs': () => import('./property-costs'),
   retail: () => import('./retail'),
+  'climate-action': () => import('./climate-action'),
   industry: () => import('./industry'),
   agriculture: () => import('./agriculture'),
   minerals: () => import('./minerals'),
