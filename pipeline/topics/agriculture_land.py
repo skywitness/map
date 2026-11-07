@@ -19,7 +19,6 @@ from sources import faostat
 from topics.agriculture_names import ZH_NAMES
 
 OUT = OUT_DIR / "topics" / "agriculture"
-faostat.DATASETS.setdefault("EK", "Environment_LivestockPatterns_E_All_Data_(Normalized).zip")
 FIRST = 1961
 CROP_LAST, LAND_LAST, LSU_LAST = 2024, 2024, 2023
 MIN_FARMLAND = 20  # 千公頃

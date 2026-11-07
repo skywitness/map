@@ -31,6 +31,7 @@ DATASETS = {
     "FS": "Food_Security_Data_E_All_Data_(Normalized).zip",  # 糧食安全指標（營養不足盛行率等）
     "RL": "Inputs_LandUse_E_All_Data_(Normalized).zip",  # 土地利用（陸地面積，海洋與漁業主題的「海域是陸地的幾倍」）
     "RFN": "Inputs_FertilizersNutrient_E_All_Data_(Normalized).zip",  # 化肥（養分量：產量、施用、進出口；第二十二批 384）
+    "EK": "Environment_LivestockPatterns_E_All_Data_(Normalized).zip",  # 家畜型態（牲畜密度；第二十五批 440）
 }
 # 舊版糧食平衡表的 CSV 不是 UTF-8（Côte d'Ivoire 的 ô 是單一位元組 0xF4）
 ENCODINGS = {"FBSH": "latin-1"}
