@@ -23,8 +23,15 @@ const cultureOwn: TopicDefinition = {
   shortTitle: { zh: '文化', en: 'Culture' },
   defaultIndicator: 'cinemas-per-100k',
   defaultYear: 2017,
+  // 2026-11-07（製作手冊 556）：政府的文化、廣播與出版支出的側欄（COFOG 08 的分項長條）
+  panelExtra: () => import('./panels/Cofog08Panel'),
   sources: [
     UIS,
+    {
+      name: { zh: 'Eurostat：一般政府依職能分類的支出（gov_10a_exp，COFOG 08）與 GDP（nama_10_gdp）', en: 'Eurostat: general government expenditure by function (gov_10a_exp, COFOG 08) and GDP (nama_10_gdp)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table',
+      license: 'CC BY 4.0',
+    },
     {
       name: { zh: 'WIPO《The Global Publishing Industry in 2022》表 3（法定送存）', en: 'WIPO, The Global Publishing Industry in 2022, table 3 (legal deposits)' },
       url: 'https://www.wipo.int/edocs/pubdocs/en/wipo-pub-1064-2023-2-en-the-global-publishing-industry-in-2022.pdf',
@@ -99,6 +106,36 @@ const cultureOwn: TopicDefinition = {
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 50, 100, 200] } },
       format: (v) => tr({ zh: `每人 ${fixed(v, 1)} 美元（購買力平價）`, en: `PPP$${fixed(v, 1)} per person` }),
       formatTick: (v) => `${v}`,
+    },
+    // 2026-11-07（製作手冊第二十七批 556，候選 1261）：政府的文化服務、廣播與出版支出（Eurostat COFOG 08.2、08.3，
+    // pipeline/topics/culture_spending.py）；手冊建議放「各國在讀什麼」，遺產保存的公共支出在這裡，放在一起
+    {
+      id: 'gov-culture',
+      label: { zh: '政府的文化服務支出', en: 'Government spending on cultural services' },
+      description: {
+        zh: '一般政府（中央、地方與社會安全基金）花在文化服務（聯合國政府職能分類 COFOG 08.2：圖書館、博物館、劇院、古蹟、文化活動等）的錢占 GDP，Eurostat 的金額除以 GDP，只有歐洲 30 國（不含英國），1995 年起。2024 年冰島 1.02%、愛沙尼亞 0.96%、馬爾他 0.94%、匈牙利 0.90%、拉脫維亞 0.88%、克羅埃西亞 0.79% 最高，法國 0.65%、德國 0.41%、義大利 0.34%，希臘、愛爾蘭、賽普勒斯 0.17% 最低；歐盟 27 國合計 0.48%（876.72 億歐元），法國 189.63 億、德國 180.77 億歐元最多。台灣沒有 COFOG 分類的資料。點國家看遊憩、文化、廣播出版與宗教各花多少。',
+        en: 'Spending by general government (central, local and social security funds) on cultural services (UN COFOG 08.2: libraries, museums, theatres, monuments, cultural events and so on) as a share of GDP: Eurostat’s euro amounts divided by GDP, for 30 European countries only (not the UK), from 1995. In 2024 Iceland (1.02%), Estonia (0.96%), Malta (0.94%), Hungary (0.90%), Latvia (0.88%) and Croatia (0.79%) were highest, with France 0.65%, Germany 0.41% and Italy 0.34%, and Greece, Ireland and Cyprus lowest at 0.17%; the EU27 total was 0.48% (€87.67 billion), led by France (€18.96 billion) and Germany (€18.08 billion). There are no COFOG data for Taiwan. Select a country for its spending on recreation, culture, broadcasting and religion.',
+      },
+      unit: { zh: '% GDP', en: '% of GDP' },
+      file: 'gov-culture.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.3, 0.4, 0.5, 0.6, 0.8] } },
+      format: (v) => `${fixed(v, 2)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'gov-broadcasting',
+      label: { zh: '政府的廣播與出版支出', en: 'Government spending on broadcasting and publishing' },
+      description: {
+        zh: '一般政府花在廣播與出版服務（COFOG 08.3，主要是公共廣播）的錢占 GDP，Eurostat，歐洲 30 國（不含英國），1995 年起。只算政府部門的支出：靠執照費或廣播費、由廣播機構自己收的國家可能不在裡面而偏低。2024 年匈牙利 0.32% 最高，奧地利、德國、克羅埃西亞、法國 0.26%，芬蘭 0.25%；歐盟 27 國合計 0.20%（366.28 億歐元），德國 114.98 億、法國 75.60 億、義大利 32.34 億、西班牙 31.44 億歐元；羅馬尼亞、馬爾他 0.06% 最低。台灣沒有 COFOG 分類的資料。',
+        en: 'Spending by general government on broadcasting and publishing services (COFOG 08.3, mostly public broadcasting) as a share of GDP, from Eurostat, for 30 European countries (not the UK), from 1995. Only government spending counts: where a licence fee or broadcasting levy is collected by the broadcaster itself, it may be left out and the figure understated. In 2024 Hungary was highest at 0.32%, followed by Austria, Germany, Croatia and France at 0.26% and Finland at 0.25%; the EU27 total was 0.20% (€36.63 billion), including €11.50 billion in Germany, €7.56 billion in France, €3.23 billion in Italy and €3.14 billion in Spain; Romania and Malta were lowest at 0.06%. There are no COFOG data for Taiwan.',
+      },
+      unit: { zh: '% GDP', en: '% of GDP' },
+      file: 'gov-broadcasting.json',
+      defaultYear: 2024,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.15, 0.2, 0.25, 0.3] } },
+      format: (v) => `${fixed(v, 2)}%`,
+      formatTick: (v) => `${v}%`,
     },
     {
       id: 'books-per-million',

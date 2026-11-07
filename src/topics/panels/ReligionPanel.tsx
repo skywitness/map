@@ -1,6 +1,7 @@
 import { defineMessages } from '../../i18n';
 import { fixed } from '../../lib/format';
 import type { PanelExtraProps } from '../types';
+import { Cofog08 } from './Cofog08Panel';
 import { VdemIndices, type Scale, type VdemIndex, type VdemText } from './GovernancePanel';
 
 /**
@@ -44,6 +45,8 @@ const TEXT: VdemText = defineMessages({
 });
 
 export default function ReligionPanel(props: PanelExtraProps) {
+  // 政府的宗教支出（556）：COFOG 08 的分項長條，跟文化主題共用
+  if (props.indicator.id === 'gov-religion') return <Cofog08 {...props} />;
   if (!INDICES.some((d) => d.id === props.indicator.id)) return null;
   return <VdemIndices {...props} indices={INDICES} text={TEXT} scale={SCALE} />;
 }

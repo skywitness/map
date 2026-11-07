@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 182;
-export const INDICATOR_COUNT = 1397;
+export const INDICATOR_COUNT = 1400;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","oldest-universities","skyscrapers","nobel","sports","racing","dining"]},
@@ -45,6 +45,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"財政部 財政統計資料庫","en":"Ministry of Finance (Taiwan), fiscal statistics database"},"url":"https://web02.mof.gov.tw/njswww/WebMain.aspx?sys=100&funid=defjspf2","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["fiscal","taxes","property-costs"]},
   {"name":{"zh":"AWS、Azure 的雲端區域（同「雲端機房的區域」）","en":"AWS and Azure cloud regions (as in Cloud regions)"},"url":"https://github.com/skywitness/map/blob/main/pipeline/sources/cloud_regions.py","licenses":[{"zh":"引用事實並註明出處","en":"facts cited with sources"}],"topics":["companies","ai"]},
   {"name":{"zh":"CEDS v_2025_03_18（PNNL）：燃料燃燒的二氧化碳用途（側欄）、交通運輸的二氧化碳","en":"CEDS v_2025_03_18 (PNNL): CO₂ from fuel combustion by use (side panel) and from transport"},"url":"https://doi.org/10.5281/zenodo.15059443","licenses":["CC BY 4.0"],"topics":["climate","air-quality"]},
+  {"name":{"zh":"Eurostat：一般政府依職能分類的支出（gov_10a_exp，COFOG 08）與 GDP（nama_10_gdp）","en":"Eurostat: general government expenditure by function (gov_10a_exp, COFOG 08) and GDP (nama_10_gdp)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table","licenses":["CC BY 4.0"],"topics":["religion","culture"]},
   {"name":{"zh":"Eurostat：旅宿業的到達人次依居住國（tour_occ_arnraw）、居民的旅次依目的地（tour_dem_ttw）","en":"Eurostat: arrivals at tourist accommodation by country of residence (tour_occ_arnraw); trips by destination (tour_dem_ttw)"},"url":"https://ec.europa.eu/eurostat/web/tourism/database","licenses":["CC BY 4.0"],"topics":["tourism","travel-habits"]},
   {"name":{"zh":"Eurostat（循環物料使用率，cei_srm030）","en":"Eurostat (circular material use rate, cei_srm030)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/cei_srm030/default/table","licenses":["CC BY 4.0"],"topics":["minerals","materials"]},
   {"name":"FAO, FAOSTAT","url":"https://www.fao.org/faostat/","licenses":["CC BY 4.0"],"topics":["diet","agriculture"]},

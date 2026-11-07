@@ -96,6 +96,11 @@ export const religion: TopicDefinition = {
       license: { zh: 'CC BY-SA 4.0（宗教自由與宗教組織三項；衍生的資料檔也用 CC BY-SA 4.0）', en: 'CC BY-SA 4.0 (the three religious freedom and religious organization indicators; derived data files are shared under CC BY-SA 4.0 too)' },
     },
     {
+      name: { zh: 'Eurostat：一般政府依職能分類的支出（gov_10a_exp，COFOG 08）與 GDP（nama_10_gdp）', en: 'Eurostat: general government expenditure by function (gov_10a_exp, COFOG 08) and GDP (nama_10_gdp)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
       name: { zh: '內政部宗教統計（寺廟、教會登記）', en: 'Ministry of the Interior (Taiwan), religious statistics' },
       url: 'https://statis.moi.gov.tw/micst/webMain.aspx?sys=100&funid=defjsp',
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
@@ -224,6 +229,21 @@ export const religion: TopicDefinition = {
       },
       { type: 'sequential', thresholds: [-1.5, -0.75, 0, 0.5, 1, 1.5] },
     ),
+    // 2026-11-07（製作手冊第二十七批 556，候選 1252）：政府的宗教支出（pipeline/topics/culture_spending.py）
+    {
+      id: 'gov-religion',
+      label: { zh: '政府的宗教與社區服務支出', en: 'Government spending on religious and community services' },
+      description: {
+        zh: '一般政府（中央、地方與社會安全基金）花在「宗教與其他社區服務」（聯合國政府職能分類 COFOG 08.4）的錢占 GDP，Eurostat 的金額除以 GDP，只有歐洲 30 國（不含英國），1995 年起。這一類也包括社區活動中心等，不是純宗教支出。2024 年丹麥 0.38% 最高（15.12 億歐元），匈牙利 0.34%、挪威 0.24%、冰島 0.22%、克羅埃西亞 0.19%、芬蘭 0.18%；歐盟 27 國合計 0.06%（100.64 億歐元），荷蘭 11.38 億、挪威 11.09 億、義大利 10.51 億歐元。德國 0.02%：教會稅由稅務機關代收、直接轉給教會，不算政府支出。瑞典 2000 年政教分離後幾乎是 0。台灣的歲出政事別沒有單獨的宗教科目，沒有資料。',
+        en: 'Spending by general government (central, local and social security funds) on “religious and other community services” (UN COFOG 08.4) as a share of GDP: Eurostat’s euro amounts divided by GDP, for 30 European countries only (not the UK), from 1995. The category also covers community centres and the like, so it is not purely religious spending. In 2024 Denmark was highest at 0.38% (€1.51 billion), followed by Hungary 0.34%, Norway 0.24%, Iceland 0.22%, Croatia 0.19% and Finland 0.18%; the EU27 total was 0.06% (€10.06 billion), with €1.14 billion in the Netherlands, €1.11 billion in Norway and €1.05 billion in Italy. Germany is 0.02%: church tax is collected by the tax offices and passed straight to the churches, so it is not government spending. Sweden has been close to zero since church and state separated in 2000. Taiwan’s budget has no separate item for religion, so there are no data.',
+      },
+      unit: { zh: '% GDP', en: '% of GDP' },
+      file: 'gov-religion.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.02, 0.05, 0.1, 0.2, 0.3] } },
+      format: (v) => `${fixed(v, 2)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
+    },
     ...religionExtra.indicators,
   ],
 };
