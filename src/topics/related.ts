@@ -26,6 +26,8 @@ export const RELATED: Record<string, string[]> = {
   'drug-consumption': ['medicines', 'antimicrobial-resistance', 'drug-genes'],
   'taiwan-medicines': ['medicines', 'trade', 'taiwan-diplomacy'],
   'antimicrobial-resistance': ['medicines', 'disease', 'vaccination'],
+  // 傳統醫學（2026-11-08，第二十九批）
+  'alt-medicine': ['health-care', 'medicines', 'taiwan-medicines'],
   'tobacco-alcohol': ['health', 'disease'],
   diet: ['agriculture', 'health', 'lactase'],
   banknotes: ['profiles', 'prices', 'democracy'],

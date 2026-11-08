@@ -72,6 +72,8 @@ const TOPIC_ICONS = {
   medicines: 'tablets',
   'drug-consumption': 'clipboard-plus',
   'taiwan-medicines': 'package-open',
+  // 2026-11-08 第二十九批 688（傳統醫學）
+  'alt-medicine': 'clover',
   'antimicrobial-resistance': 'bug',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
