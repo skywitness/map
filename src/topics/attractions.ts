@@ -137,6 +137,10 @@ export const museumsOverlay = (indicators: string[]): PointsOverlayDef => ({
  */
 const VP_T = [1, 5, 10, 25, 50, 100];
 const AR_T = [10, 25, 50, 100, 250, 500];
+const AT_T = [1, 5, 10, 20, 40, 80];
+const ML_T = [5, 10, 20, 40, 80, 160];
+const DS_T = [2, 5, 10, 20, 40, 80];
+const PK_T = [10, 20, 40, 60, 100, 150];
 
 const ZOO_FACTS: ListPanelDef = {
   label: { zh: '動物園的面積、物種數與人次（Wikidata）', en: 'Zoo areas, species and visitors (Wikidata)' },
@@ -228,6 +232,58 @@ const TW_ART_LIST: ListPanelDef = {
   },
 };
 
+/**
+ * 天文館、觀光景點的總量、購物中心與百貨公司（2026-11-08，製作手冊第二十七批 646，候選 1415–1417）、
+ * 都市公園（647，候選 1418；pipeline/topics/attractions_more.py）：都是 OSM 經 QLever。
+ */
+const ATTR_GRID = osmGrid(
+  'osm-attractions-grid',
+  'osm-attractions-grid.json',
+  { zh: '觀光景點（約 10 公里的網格）', en: 'Attractions (about 10 km grid)' },
+  ['osm-attractions-per', 'osm-attractions'],
+  { zh: '觀光景點', en: 'attractions' },
+);
+const planetName = (p: PointRecord) => String((getLang() === 'zh' ? p.nz || p.n : p.ne || p.n) ?? '') || tr({ zh: '天文館', en: 'Planetarium' });
+const PLANETARIUMS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'planetariums',
+  file: 'planetariums.json',
+  label: { zh: '天文館與星象館（OSM）', en: 'Planetariums (OSM)' },
+  indicators: ['planetariums'],
+  radius: 3.4,
+  color: C[2],
+  tooltip: (p, { countryName }) => {
+    const title = planetName(p);
+    return {
+      title,
+      detail: [tr({ zh: '天文館（OpenStreetMap）', en: 'Planetarium (OpenStreetMap)' }), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      properNoun: typeof p.n === 'string' && p.n !== title ? p.n : undefined,
+    };
+  },
+};
+const PLANET_LIST: ListPanelDef = {
+  label: { zh: '天文館與星象館', en: 'Planetariums' },
+  tabLabel: { zh: '天文館', en: 'Planetariums' },
+  indicators: ['planetariums'],
+  file: 'planetariums.json',
+  countryField: 'iso3',
+  empty: { zh: 'OSM 上這裡沒有有名稱的天文館', en: 'No named planetariums here in OSM' },
+  rows: (points, { countryName }) =>
+    points
+      .filter((p) => typeof p.n === 'string')
+      .map((p, i): ListRow => {
+        const title = planetName(p);
+        return {
+          key: `pl-${i}`,
+          title,
+          properNoun: typeof p.n === 'string' && p.n !== title ? p.n : undefined,
+          lines: [typeof p.iso3 === 'string' ? countryName(p.iso3) : ''],
+          group: typeof p.iso3 === 'string' ? countryName(p.iso3) : undefined,
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 15 },
+        };
+      }),
+};
+
 /** 附近最多列幾處（歐洲的城市 30 公里內博物館上千座） */
 const NEAR_MAX = 300;
 
@@ -267,11 +323,13 @@ const NEAR_LIST: ListPanelDef = {
  * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組（645 開始）
  */
 const MENU_GROUPS: MenuGroup[] = [
-  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'taiwan-sites']],
+  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'taiwan-sites', 'osm-attractions-per', 'osm-attractions', 'planetariums']],
   // 2026-11-08（製作手冊第二十七批 642）OSM 的動物園與水族館
   [{ zh: '動物園與水族館', en: 'Zoos and aquariums' }, ['zoos-osm', 'zoos-osm-per', 'aquariums-osm', 'aquariums-osm-per']],
   // 2026-11-08（製作手冊第二十七批 645）觀景點與公共藝術
-  [{ zh: '看風景與公共空間', en: 'Views and public spaces' }, ['viewpoints-per', 'viewpoints', 'artworks-osm-per', 'artworks-osm', 'taiwan-public-art']],
+  [{ zh: '看風景與公共空間', en: 'Views and public spaces' }, ['viewpoints-per', 'viewpoints', 'artworks-osm-per', 'artworks-osm', 'taiwan-public-art', 'urban-parks-per', 'urban-parks']],
+  // 2026-11-08（製作手冊第二十七批 646）OSM 的購物中心與百貨公司
+  [{ zh: '購物中心與百貨公司', en: 'Malls and department stores' }, ['malls-osm-per', 'malls-osm', 'department-stores-per', 'department-stores']],
   [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
   [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos']],
 ];
@@ -296,9 +354,12 @@ const attractionsBase: TopicDefinition = {
     },
     ...attractionsExtra.sources,
     ...attractionsVisitors.sources,
-    // 2026-11-08（製作手冊第二十七批 645）
+    // 2026-11-08（製作手冊第二十七批 645–647）
     {
-      name: { zh: 'OpenStreetMap（tourism=viewpoint、artwork，經 QLever 查詢）', en: 'OpenStreetMap (tourism=viewpoint and artwork, via QLever)' },
+      name: {
+        zh: 'OpenStreetMap（tourism=viewpoint、artwork、attraction，amenity=planetarium，shop=mall、department_store，leisure=park，經 QLever 查詢）',
+        en: 'OpenStreetMap (tourism=viewpoint, artwork and attraction, amenity=planetarium, shop=mall and department_store, leisure=park, via QLever)',
+      },
       url: 'https://www.openstreetmap.org/copyright',
       license: 'ODbL 1.0',
     },
@@ -332,8 +393,10 @@ const attractionsBase: TopicDefinition = {
     VIEW_GRID,
     ART_GRID,
     TW_ART,
+    ATTR_GRID,
+    PLANETARIUMS,
   ],
-  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST],
+  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST, PLANET_LIST],
   indicators: [
     {
       id: 'attractions',
@@ -466,6 +529,117 @@ const attractionsBase: TopicDefinition = {
       defaultYear: 2026,
       focus: [119.2, 21.8, 122.2, 25.4],
       missing: { zh: '國家不上色，只有台灣的公共藝術', en: 'Countries are not coloured; Taiwan’s public art only' },
+    },
+    // 2026-11-08（製作手冊第二十七批 646）天文館、OSM 的觀光景點、購物中心與百貨公司
+    {
+      id: 'planetariums',
+      label: { zh: '各國有幾座天文館（OSM）', en: 'Planetariums by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成天文館（amenity=planetarium）的地方：948 處、78 國。美國 201 處最多，德國 61、日本 55、俄羅斯 54、義大利 51、巴西 48、法國 43、印度 40、中國 31；台灣 8 處（臺北市立天文科學教育館、科博館墾丁天文台，也有幾所學校的天文臺）。這是給一般人看星星的天文館與星象館，不是「大型科學設施」裡研究用的天文台；數量少，只畫點與處數，左邊列出有名稱的。', en: 'Places tagged as planetariums (amenity=planetarium) in OpenStreetMap: 948 in 78 countries. The US has the most (201), followed by Germany (61), Japan (55), Russia (54), Italy (51), Brazil (48), France (43), India (40) and China (31); Taiwan has 8 (the Taipei Astronomical Museum, the National Museum of Natural Science’s Kenting observatory and a few school observatories). These are planetariums and public observatories for stargazing, not the research observatories in the science facilities topic; numbers are small, so only dots and counts are shown, and named ones are listed on the left.' },
+      unit: { zh: '座', en: 'planetariums' },
+      file: 'planetarium-count.json',
+      layer: { kind: 'bubble', legendValues: [5, 50, 200] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'osm-attractions-per',
+      label: { zh: '每千平方公里有幾處觀光景點（OSM）', en: 'Attractions per 1,000 km² (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成觀光景點（tourism=attraction）的處數 ÷ 陸地面積（FAOSTAT），只替覆蓋良好、陸地 1,000 平方公里以上的 87 國上色。台灣每千平方公里 84 處最多，荷蘭 76、德國 69、模里西斯 65、盧森堡 51；義大利 30、英國 25、日本 23、法國 22、南韓 17、美國 2.0。這個標籤是 OSM 社群自己認定「值得一看」的地方，定義很寬，不是官方認定的景點；密度也在量各地畫得多勤。地圖上是約 10 公里的網格。', en: 'Places tagged as tourist attractions (tourism=attraction) in OpenStreetMap divided by land area (FAOSTAT), shown only for the 87 countries well covered by OSM with at least 1,000 km² of land. Taiwan has the most per 1,000 km² (84), followed by the Netherlands (76), Germany (69), Mauritius (65) and Luxembourg (51); Italy has 30, the UK 25, Japan 23, France 22, South Korea 17 and the US 2.0. The tag marks what OSM mappers consider worth seeing, is broadly defined and is not an official designation, so densities also reflect how actively places are mapped. The map shows a grid of about 10 km.' },
+      unit: { zh: '處／千平方公里', en: 'per 1,000 km²' },
+      file: 'osm-attractions-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: AT_T } },
+      timeless: true,
+      format: (v) => tr({ zh: `每千平方公里 ${fixed(v, v < 10 ? 1 : 0)} 處`, en: `${fixed(v, v < 10 ? 1 : 0)} per 1,000 km²` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'osm-attractions',
+      label: { zh: '各國有幾處觀光景點（OSM）', en: 'Attractions by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成觀光景點的地方：254,964 處、215 國。德國 24,034 處最多，美國 18,606、俄羅斯 18,238、中國 15,637、法國 11,727、波蘭 10,545；台灣 2,966 處。地圖上是約 10 公里的網格。', en: 'Places tagged as tourist attractions in OpenStreetMap: 254,964 in 215 countries. Germany has the most (24,034), followed by the US (18,606), Russia (18,238), China (15,637), France (11,727) and Poland (10,545); Taiwan has 2,966. The map shows a grid of about 10 km.' },
+      unit: { zh: '處', en: 'attractions' },
+      file: 'osm-attractions.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 處`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'malls-osm-per',
+      label: { zh: '每百萬人有幾家購物中心（OSM）', en: 'Malls per million people (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成購物中心（shop=mall）的家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。巴貝多每百萬人 198 家最多，哥斯大黎加 125、聖露西亞 111、挪威 83、愛沙尼亞 76、俄羅斯 73；義大利 31、法國 23、德國 21、日本 21、美國 15、英國 12、台灣 9.7、南韓 5.8。各國把什麼標成購物中心的門檻不一。「人造的地標」裡的購物中心點是世界最大的幾座，跟這裡不同。', en: 'Places tagged as shopping malls (shop=mall) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Barbados has the most per million people (198), followed by Costa Rica (125), Saint Lucia (111), Norway (83), Estonia (76) and Russia (73); Italy has 31, France 23, Germany 21, Japan 21, the US 15, the UK 12, Taiwan 9.7 and South Korea 5.8. What counts as a mall varies by country. The mall dots under Built landmarks are the world’s largest few, a different list.' },
+      unit: { zh: '家／百萬人', en: 'per million people' },
+      file: 'malls-osm-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: ML_T } },
+      timeless: true,
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, v < 10 ? 1 : 0)} 家`, en: `${fixed(v, v < 10 ? 1 : 0)} per million` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'malls-osm',
+      label: { zh: '各國有幾家購物中心（OSM）', en: 'Malls by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成購物中心的地方：78,703 處、198 國。俄羅斯 10,505 處最多，中國 6,965、美國 5,204、巴西 4,232、日本 2,541、印度 2,418；台灣 225 處。', en: 'Places tagged as shopping malls in OpenStreetMap: 78,703 in 198 countries. Russia has the most (10,505), followed by China (6,965), the US (5,204), Brazil (4,232), Japan (2,541) and India (2,418); Taiwan has 225.' },
+      unit: { zh: '家', en: 'malls' },
+      file: 'malls-osm.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'department-stores-per',
+      label: { zh: '每百萬人有幾家百貨公司（OSM）', en: 'Department stores per million people (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成百貨公司（shop=department_store）的家數 ÷ 2024 年人口，只替覆蓋良好的 93 國上色。蓋亞那每百萬人 91 家最多，汶萊 76、聖露西亞 67、蘇利南 50、紐西蘭 50；美國 35、德國 21、英國 16、義大利 12、南韓 6.3、台灣 5.9、日本 4.7、法國 4.5。', en: 'Places tagged as department stores (shop=department_store) in OpenStreetMap divided by 2024 population, shown only for the 93 well-covered countries. Guyana has the most per million people (91), followed by Brunei (76), Saint Lucia (67), Suriname (50) and New Zealand (50); the US has 35, Germany 21, the UK 16, Italy 12, South Korea 6.3, Taiwan 5.9, Japan 4.7 and France 4.5.' },
+      unit: { zh: '家／百萬人', en: 'per million people' },
+      file: 'department-stores-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: DS_T } },
+      timeless: true,
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, v < 10 ? 1 : 0)} 家`, en: `${fixed(v, v < 10 ? 1 : 0)} per million` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'department-stores',
+      label: { zh: '各國有幾家百貨公司（OSM）', en: 'Department stores by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成百貨公司的地方：52,492 處、199 國。美國 12,240 處最多，俄羅斯 3,333、巴西 2,448、墨西哥 2,057、德國 1,766、加拿大 1,605；台灣 136 處。', en: 'Places tagged as department stores in OpenStreetMap: 52,492 in 199 countries. The US has the most (12,240), followed by Russia (3,333), Brazil (2,448), Mexico (2,057), Germany (1,766) and Canada (1,605); Taiwan has 136.' },
+      unit: { zh: '家', en: 'department stores' },
+      file: 'department-stores.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    // 2026-11-08（製作手冊第二十七批 647）都市公園
+    {
+      id: 'urban-parks-per',
+      label: { zh: '每十萬人有幾座公園（OSM）', en: 'Parks per 100,000 people (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成公園（leisure=park）的處數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。芬蘭每十萬人 206 座最多，澳洲 190、紐西蘭 190、以色列 179、西班牙 116、加拿大 111；日本 79、法國 58、德國 56、美國 55、英國 52、台灣 37、南韓 35。leisure=park 從國家公園的一部分、城市公園到社區的小綠地都有，大小差好幾個量級，只算座數會誤導。', en: 'Places tagged as parks (leisure=park) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Finland has the most per 100,000 people (206), followed by Australia (190), New Zealand (190), Israel (179), Spain (116) and Canada (111); Japan has 79, France 58, Germany 56, the US 55, the UK 52, Taiwan 37 and South Korea 35. The tag covers everything from parts of national parks and city parks to small neighbourhood greens, differing in size by orders of magnitude, so counts alone can mislead.' },
+      unit: { zh: '座／十萬人', en: 'per 100,000 people' },
+      file: 'urban-parks-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: PK_T } },
+      timeless: true,
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, v < 10 ? 1 : 0)} 座`, en: `${fixed(v, v < 10 ? 1 : 0)} per 100,000` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'urban-parks',
+      label: { zh: '各國有幾座公園（OSM）', en: 'Parks by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成公園的地方：1,299,675 處、214 國。美國 189,680 處最多，日本 98,253、巴西 93,031、中國 58,143、西班牙 55,793、澳洲 50,791；台灣 8,568 處。點太多，不畫。', en: 'Places tagged as parks in OpenStreetMap: 1,299,675 in 214 countries. The US has the most (189,680), followed by Japan (98,253), Brazil (93,031), China (58,143), Spain (55,793) and Australia (50,791); Taiwan has 8,568. There are too many to draw as dots.' },
+      unit: { zh: '座', en: 'parks' },
+      file: 'urban-parks.json',
+      layer: { kind: 'bubble', legendValues: [1000, 10000, 100000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
     },
   ],
 };
