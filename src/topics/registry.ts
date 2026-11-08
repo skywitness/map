@@ -208,9 +208,12 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '休閒', en: 'Leisure' },
     sections: [
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'horses'] },
+      // 2026-11-08 使用者要求：假期與時間放到第一欄獎項與運動的下面
+      { label: { zh: '假期與時間', en: 'Holidays & time' }, topics: ['holidays', 'time-use'] },
       // 2026-11-08 製作手冊第二十七批 652 開「遊戲與動漫」小類，653 把電競搬進來，654–655 加動畫、漫畫
-      // （656 電視劇同一天依使用者要求搬到影音與文化）
-      { label: { zh: '遊戲與動漫', en: 'Games & anime' }, topics: ['esports', 'game-companies', 'anime', 'comics'] },
+      // （656 電視劇同一天依使用者要求搬到影音與文化）；同一天使用者要求拆成遊戲、動漫兩個小類
+      { label: { zh: '遊戲', en: 'Games' }, topics: ['esports', 'game-companies'] },
+      { label: { zh: '動漫', en: 'Anime & comics' }, topics: ['anime', 'comics'] },
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）。
       // 2026-11-07 從社會的「生活與文化」搬過來的菜系走到哪裡、原產地名稱接在外食後面（製作手冊第二十六批 534）；
       // 同一天第二十七批 536：狩獵與釣魚併進休閒運動場地（diving）、旅遊習慣搬到旅遊・觀光、鈔票搬到旅遊・旅行實用
@@ -220,10 +223,10 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '影音與文化', en: 'Media & culture' }, topics: ['online-video', 'tv-series', 'record-labels', 'culture'] },
       { label: { zh: '飲食', en: 'Food & drink' }, topics: ['dining', 'cuisines', 'origin-names'] },
       { label: { zh: '休閒場所', en: 'Leisure venues' }, topics: ['diving', 'gambling'] },
-      { label: { zh: '假期與時間', en: 'Holidays & time' }, topics: ['holidays', 'time-use'] },
     ],
-    // 獎項與運動｜遊戲與動漫｜影音與文化｜飲食、休閒場所、假期與時間（2026-11-08 使用者要求排成四欄）
-    columns: [1, 1, 1, 3],
+    // 獎項與運動、假期與時間｜遊戲、動漫｜影音與文化｜飲食、休閒場所（2026-11-08 使用者要求排成四欄，
+    // 再要假期與時間放到第一欄、遊戲與動漫拆成兩個小類）
+    columns: [2, 2, 1, 2],
   },
 ];
 
