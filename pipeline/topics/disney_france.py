@@ -51,7 +51,8 @@ NO_VALUE = {
             "SEC filings could not be reached from here, and Disney reports only its whole parks segment, not individual parks"),
     "JPN": ("東京迪士尼的營運公司（東方樂園）是上市公司，但這次沒有取得財報",
             "Tokyo Disney Resort’s operator (Oriental Land) is listed, but its reports could not be retrieved this time"),
-    "TWN": ("台灣沒有迪士尼的樂園；公司登記的公開資料這次查不到迪士尼的公司", "Taiwan has no Disney park, and the company register returned no Disney companies"),
+    # 使用者 2026-11-08：台灣的商工登記不查（API 回空檔、findbiz 回 403，也不請人用瀏覽器查）
+    "TWN": ("台灣沒有迪士尼的樂園，也沒有查台灣的公司登記", "Taiwan has no Disney park, and Taiwan’s company register was not checked"),
 }
 
 
