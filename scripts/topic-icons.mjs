@@ -75,6 +75,7 @@ const TOPIC_ICONS = {
   // 2026-11-08 第二十九批 688（傳統醫學）
   'alt-medicine': 'clover',
   'taiwan-tcm': 'flower',
+  'tcm-systems': 'file-check',
   'antimicrobial-resistance': 'bug',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',

@@ -53,7 +53,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '基因', en: 'Genes' }, topics: ['blood-types', 'newborn-screening', 'red-cell-traits', 'lactase', 'drug-genes'] },
       { label: { zh: '藥物', en: 'Medicines' }, topics: ['medicines', 'drug-consumption', 'taiwan-medicines', 'antimicrobial-resistance'] },
       // 2026-11-08（製作手冊第二十九批 687，使用者決定現在就開）：中醫相關的五個主題（688–692）做好時依序加進來
-      { label: { zh: '傳統醫學', en: 'Traditional medicine' }, topics: ['alt-medicine', 'taiwan-tcm'] },
+      { label: { zh: '傳統醫學', en: 'Traditional medicine' }, topics: ['alt-medicine', 'taiwan-tcm', 'tcm-systems'] },
     ],
     // 一欄一個小類：健康與疾病；基因；藥物；傳統醫學
     columns: [1, 1, 1, 1],
@@ -291,6 +291,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'taiwan-medicines': () => import('./taiwan-medicines'),
   'alt-medicine': () => import('./alt-medicine'),
   'taiwan-tcm': () => import('./taiwan-tcm'),
+  'tcm-systems': () => import('./tcm-systems'),
   'antimicrobial-resistance': () => import('./antimicrobial-resistance'),
   'tobacco-alcohol': () => import('./tobacco-alcohol'),
   education: () => import('./education'),

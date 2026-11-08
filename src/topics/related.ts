@@ -29,6 +29,7 @@ export const RELATED: Record<string, string[]> = {
   // 傳統醫學（2026-11-08，第二十九批）
   'alt-medicine': ['taiwan-tcm', 'health-care', 'medicines'],
   'taiwan-tcm': ['alt-medicine', 'health-care', 'taiwan-medicines'],
+  'tcm-systems': ['alt-medicine', 'taiwan-tcm', 'organizations'],
   'tobacco-alcohol': ['health', 'disease'],
   diet: ['agriculture', 'health', 'lactase'],
   banknotes: ['profiles', 'prices', 'democracy'],
