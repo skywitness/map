@@ -101,6 +101,8 @@ const TOPIC_ICONS = {
   'theme-parks': 'roller-coaster',
   // 迪士尼：手冊的商標規則，不用城堡這類會讓人聯想到品牌標誌的圖示
   disney: 'balloon',
+  // 2026-11-08（第二十八批 680）：不用地球（環球的商標）
+  universal: 'popcorn',
   'amusement-industry': 'tickets',
   'roller-coasters': 'spline',
   'game-companies': 'joystick',

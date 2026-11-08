@@ -193,7 +193,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'museums', 'show-caves', 'oldest-universities', 'skyscrapers'] },
       // 2026-11-08 製作手冊第二十七批 637：樂園小類（使用者 2026-11-07 核准），四個樂園主題從景點搬過來，主題 id 不變
       // 2026-11-08 第二十八批 673：迪士尼（使用者決定等樂園小類建好再上線，放樂園）
-      { label: { zh: '樂園', en: 'Theme parks' }, topics: ['theme-parks', 'amusement-industry', 'roller-coasters', 'water-parks', 'disney'] },
+      { label: { zh: '樂園', en: 'Theme parks' }, topics: ['theme-parks', 'amusement-industry', 'roller-coasters', 'water-parks', 'disney', 'universal'] },
       // 2026-11-08 第二十七批 670、671：旅館、民宿與旅行社（新主題）
       { label: { zh: '觀光', en: 'Tourism' }, topics: ['tourism', 'travel-habits', 'lodging'] },
       // 鈔票：使用者 2026-11-07 指定放這裡（跟插頭、電壓、紙張大小同一類「出國會遇到的東西」）
@@ -414,6 +414,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   attractions: () => import('./attractions'),
   'theme-parks': () => import('./theme-parks'),
   disney: () => import('./disney'),
+  universal: () => import('./universal'),
   'amusement-industry': () => import('./amusement-industry'),
   'roller-coasters': () => import('./roller-coasters'),
   'game-companies': () => import('./game-companies'),
