@@ -11,15 +11,22 @@
 - **台灣的票房**（1540）：國家電影及視聽文化中心「全國電影票房統計數據」（data.gov.tw 94224，政府資料開放授權條款第 1 版），
   跟「台灣人看哪一國的電影」共用同一個下載（`.cache/tfai/since2016.json`）。發行單位是環球台灣分公司的兩個登記名稱合併算。
   **這是發行商口徑**：環球台灣分公司發行的片，不是「環球電影在台灣的票房」。
-- 候選 1539（新加坡 SingStat 的 SSIC 93）沒做：SingStat Table Builder 自己的使用條款讀不到（手冊寫待確認），兩個「Million
-  Dollars」指標也還分不出哪個是營業收入。
+- **新加坡的運動、遊樂與休閒業**（1539，2026-11-08 補上）：新加坡統計局 Table Builder 表 M601471（Key Indicators By Industry
+  Group In All Services Industries, Annual）的 SSIC 93「Sports, Amusement & Recreation Activities」營業收入（Operating
+  Revenue，百萬新加坡元），2009 年起（註腳寫 2009 年以後的資料跟更早的不能比）。使用條款與指標名稱由本機 session 用瀏覽器讀
+  （map-plan data/singstat/README.md）：資料集適用 Singapore Open Data Licence v1.0（准轉載、准商業使用，要寫出處並連到 ODL）；
+  條款第 25 條要求連到 SingStat 的頁面先取得書面許可，所以網站只寫名稱與表號、不連 singstat.gov.sg。API 的 robots.txt
+  全部允許，要帶 `Accept: application/json` 才回 JSON（不帶回 403，不是驗證頁）。**SSIC 93 比樂園大得多**（含運動設施、
+  俱樂部、健身房與各種休閒場所），不是新加坡環球影城的營收；633 用的 Eurostat R9321 只有遊樂園與主題樂園，兩者不能直接比。
 """
 from __future__ import annotations
 
 import json
 from collections import Counter
 
-from common import OUT_DIR, download, indicator_file, points_file, write_json
+import urllib.request
+
+from common import CACHE_DIR, OUT_DIR, USER_AGENT, download, indicator_file, points_file, write_json
 from sources import qlever_wikidata as wd
 from sources import rollout
 from sources.wikipedia_html import page, tables
@@ -118,6 +125,42 @@ def taiwan_box_office() -> None:
           f"前五 {[(r['name'], r['amount']) for r in rows[:5]]}")
 
 
+def _singstat(table: str) -> dict:
+    """SingStat Table Builder 的 API（有快取就用快取）"""
+    path = CACHE_DIR / "singstat" / f"{table}.json"
+    if not path.exists():
+        req = urllib.request.Request(f"https://tablebuilder.singstat.gov.sg/api/table/tabledata/{table}",
+                                     headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            data = r.read()
+        json.loads(data)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    return json.loads(path.read_text(encoding="utf-8"))["Data"]
+
+
+def singapore() -> None:
+    data = _singstat("M601471")
+    rows = {r["seriesNo"]: r for r in data["row"]}
+    # 指標的順序（本機 session 2026-11-08 讀 Table Builder 頁面）：1 家數、2 營業收入、3 營業支出、4 毛營業盈餘、5 附加價值
+    if not rows["1"]["rowText"].startswith("Establishments") or not rows["2"]["rowText"].startswith("Operating Revenue"):
+        raise RuntimeError(f"M601471 的指標順序變了：{rows['1']['rowText']}／{rows['2']['rowText']}")
+    rev, est = rows["2.8.6"], rows["1.8.6"]
+    if not rev["rowText"].startswith("SSIC 93") or rev["uoM"] != "Million Dollars" or not est["rowText"].startswith("SSIC 93"):
+        raise RuntimeError(f"M601471 的 SSIC 93 列變了：{rev['rowText']}（{rev['uoM']}）")
+    r = {int(c["key"]): float(c["value"]) for c in rev["columns"] if c["value"] not in ("", "na", "-")}
+    n = {int(c["key"]): int(float(c["value"])) for c in est["columns"] if c["value"] not in ("", "na", "-")}
+    years = [y for y in sorted(r) if y >= 2009]  # 註腳：2009 年以後的資料跟更早的不能比
+    last = years[-1]
+    write_json(OUT / "sg-amusement.json", indicator_file(
+        "sg-amusement", "新加坡元", years, {"SGP": [round(r[y] * 1e6) for y in years]},
+        hints={"SGP": f"{last} 年 {n[last]:,} 家；SSIC 93 運動、遊樂與休閒業的營業收入，不只是樂園"},
+        hintsEn={"SGP": f"{n[last]:,} establishments in {last}; operating revenue of SSIC 93 sports, amusement and recreation, not just theme parks"},
+        license="Singapore Open Data Licence v1.0（新加坡統計局 表 M601471）"))
+    print(f"  新加坡 SSIC 93：{years[0]}–{last}，{last} 年營業收入 {r[last]:,.1f} 百萬新幣、{n[last]:,} 家；"
+          f"2019 {r[2019]:,.1f}、2020 {r[2020]:,.1f}、2021 {r[2021]:,.1f}；表更新 {data.get('dataLastUpdated')}")
+
+
 def build() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     films_by_year()
@@ -125,3 +168,4 @@ def build() -> None:
                  lib_zh="環球影業", lib_en="Universal Pictures’ catalogue")
     peacock()
     taiwan_box_office()
+    singapore()

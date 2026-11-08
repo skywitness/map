@@ -568,6 +568,15 @@ export const universal: TopicDefinition = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     {
+      // 新加坡統計局條款第 25 條：連到 SingStat 的網頁要先取得書面同意，所以只寫名稱與表號，連結放開放資料授權（製作手冊 685，候選 1539）
+      name: {
+        zh: '新加坡統計局 Table Builder 表 M601471「Key Indicators By Industry Group In All Services Industries, Annual」（2026-11-08 取得）。Contains information from Key Indicators By Industry Group In All Services Industries, Annual accessed on 8 November 2026 from the Singapore Department of Statistics, which is made available under the terms of the Singapore Open Data Licence version 1.0',
+        en: 'Contains information from Key Indicators By Industry Group In All Services Industries, Annual (SingStat Table Builder table M601471) accessed on 8 November 2026 from the Singapore Department of Statistics, which is made available under the terms of the Singapore Open Data Licence version 1.0',
+      },
+      url: 'https://data.gov.sg/open-data-licence',
+      license: 'Singapore Open Data Licence v1.0',
+    },
+    {
       name: {
         zh: '英文維基百科「Universal Destinations & Experiences」（revid 1382726905，開幕與關閉的日期）',
         en: 'English Wikipedia, “Universal Destinations & Experiences” (revid 1382726905: opening and closing dates)',
@@ -672,6 +681,22 @@ export const universal: TopicDefinition = {
       missing: { zh: '只有台灣有開放授權的逐片票房', en: 'Only Taiwan has openly licensed film-by-film box office' },
       unranked: true,
       defaultYear: 2026,
+    },
+    {
+      id: 'sg-amusement',
+      label: { zh: '新加坡的運動、遊樂與休閒業營業收入', en: 'Singapore’s sports, amusement and recreation revenue' },
+      description: {
+        zh: '新加坡統計局的服務業統計（表 M601471）只分到 SSIC 93「運動、遊樂與休閒」這一行，沒有單獨的樂園業。2024 年營業收入 37.57 億新加坡元、3,708 家；2019 年 28.61 億，疫情時 2020 年掉到 16.30 億、2021 年 16.57 億，2023 年 34.16 億才超過疫情前。這一行除了遊樂園與主題樂園，還有運動場館、運動俱樂部與其他休閒活動；新加坡環球影城只是其中一家，它自己的營收沒有公開。博弈業（SSIC 92）另外算，不在這裡；自營作業者也不算。「樂園業」主題用的 Eurostat R9321 只有遊樂園與主題樂園，範圍小得多，兩者不能直接比。新加坡統計局註明 2009 年以前的資料跟之後的不一定能比，所以從 2009 年畫起；金額是當年的新加坡元，沒有扣物價。',
+        en: 'Singapore’s services statistics (table M601471) only go down to SSIC 93, “sports, amusement and recreation activities”, with no separate amusement park industry. Operating revenue was S$3.76 billion in 2024 across 3,708 establishments; it was S$2.86 billion in 2019, fell to S$1.63 billion in 2020 and S$1.66 billion in 2021 during the pandemic, and only passed the pre-pandemic level in 2023 (S$3.42 billion). Besides amusement and theme parks the industry includes sports venues, sports clubs and other recreation; Universal Studios Singapore is just one business in it and does not publish its own revenue. Gambling (SSIC 92) is counted separately and is not included, nor are own-account workers. The Eurostat R9321 data in the Amusement park industry topic cover only amusement and theme parks, a much narrower scope, so the two are not directly comparable. The Singapore Department of Statistics notes that data before 2009 may not be comparable with later years, so the series starts in 2009; amounts are in current Singapore dollars, not adjusted for inflation.',
+      },
+      unit: { zh: '新加坡元', en: 'S$' },
+      file: 'sg-amusement.json',
+      layer: { kind: 'bubble', legendValues: [3.76e9] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v)} 新加坡元`, en: `S$${formatLargeNumber(v)}` }),
+      formatTick: (v) => formatLargeNumber(v),
+      missing: { zh: '只有新加坡：其他國家的這一行沒有開放的統計，歐洲的樂園業在「樂園業」主題', en: 'Singapore only: other countries have no open statistics for this industry; European amusement parks are in the Amusement park industry topic' },
+      unranked: true,
+      defaultYear: 2024,
     },
   ],
 };
