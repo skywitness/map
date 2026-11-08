@@ -76,7 +76,7 @@ def _wdqs(query: str, name: str) -> list[dict]:
     if not path.exists():
         req = urllib.request.Request(WDQS, data=urllib.parse.urlencode({"query": query}).encode(),
                                      headers={"User-Agent": USER_AGENT, "Accept": "application/sparql-results+json"})
-        for attempt in range(5):
+        for attempt in range(8):  # 2026-11-08：QLever 忙的時候連回好幾次 429，多等幾輪
             try:
                 with urllib.request.urlopen(req, timeout=120) as r:
                     data = r.read()
