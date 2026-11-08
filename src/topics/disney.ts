@@ -286,6 +286,93 @@ const SHIP_LIST: ListPanelDef = {
       }),
 };
 
+// ── 飯店（2026-11-08，製作手冊第二十八批 675，候選 1480；pipeline/topics/disney_hotels.py） ──
+// 白名單的 QID（不用名稱比對）；房間數只有 4 家有（Wikidata P8733），只寫在說明，不做指標。迪士尼自己的分級只在官網上，
+// 類型改寫 Wikidata 的 P31。
+
+const HOTEL_INDICATORS = ['hotels'];
+/** 飯店的度假區：RESORTS 加「度假區以外」（pipeline 的 HOTEL_RESORTS） */
+const HOTEL_RESORTS: Text[] = [...RESORTS.map((r) => r.label), { zh: '度假區以外', en: 'Outside the resorts' }];
+const HOTEL_TYPES: [number, Text][] = [
+  [1, { zh: '飯店', en: 'hotel' }],
+  [2, { zh: '度假村', en: 'resort' }],
+  [4, { zh: '山林風格的飯店（lodge）', en: 'lodge' }],
+  [8, { zh: '會議中心', en: 'convention centre' }],
+];
+const typesText = (bits: number) =>
+  HOTEL_TYPES.filter(([b]) => bits & b)
+    .map(([, t]) => tr(t))
+    .join(tr({ zh: '、', en: ', ' }));
+
+function hotelFacts(p: PointRecord): string[] {
+  const out: string[] = [];
+  const y = num(p, 'y');
+  out.push(y ? tr({ zh: `${y} 年開幕`, en: `Opened ${y}` }) : tr({ zh: 'Wikidata 沒有開幕年', en: 'No opening year on Wikidata' }));
+  const types = num(p, 'types');
+  if (types) out.push(tr({ zh: `Wikidata 的類型：${typesText(types)}`, en: `Wikidata type: ${typesText(types)}` }));
+  const rooms = num(p, 'rooms');
+  if (rooms) out.push(tr({ zh: `${fixed(rooms, 0)} 間客房`, en: `${fixed(rooms, 0)} rooms` }));
+  if (p.op === 1) out.push(tr({ zh: '在華特迪士尼世界裡面，但由萬豪經營，不是迪士尼直營', en: 'Inside Walt Disney World but operated by Marriott, not by Disney' }));
+  return out;
+}
+
+const HOTEL_COLORS = {
+  field: 'resort',
+  title: { zh: '度假區', en: 'Resort' },
+  thresholds: [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5],
+  classes: HOTEL_RESORTS.map((label, i) => ({ label, color: i === 7 ? MAP_TOKENS.categoricalOther : C[i] })),
+};
+
+const HOTELS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-hotels',
+  file: 'hotels.json',
+  label: { zh: '迪士尼的飯店', en: 'Disney hotels' },
+  indicators: HOTEL_INDICATORS,
+  radius: 4,
+  color: HOTEL_COLORS,
+  tooltip: (p, { countryName }) => {
+    const { title, proper } = disneyName(p);
+    return {
+      title,
+      detail: [tr(at(HOTEL_RESORTS, p.resort)), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      extra: hotelFacts(p),
+      properNoun: proper,
+    };
+  },
+};
+
+const HOTEL_LIST: ListPanelDef = {
+  label: { zh: '迪士尼的飯店', en: 'Disney hotels' },
+  tabLabel: { zh: '飯店', en: 'Hotels' },
+  indicators: HOTEL_INDICATORS,
+  file: 'hotels-all.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) => {
+    const nameOf = new Map(points.map((p) => [String(p.qid), disneyName(p).title]));
+    const order = (p: PointRecord) => (p.role === 3 ? 99 : num(p, 'resort') ?? 50);
+    return points
+      .slice()
+      .sort((a, b) => order(a) - order(b) || (num(a, 'y') ?? 9999) - (num(b, 'y') ?? 9999) || String(a.en).localeCompare(String(b.en)))
+      .map((p): ListRow => {
+        const { title, proper } = disneyName(p);
+        const facts = hotelFacts(p);
+        if (p.role === 2) facts.push(tr({ zh: `迪士尼度假俱樂部（DVC）的別墅，跟 ${nameOf.get(String(p.base)) ?? ''} 同址`, en: `Disney Vacation Club villas, at the same site as ${nameOf.get(String(p.base)) ?? ''}` }));
+        if (p.role === 3) facts.push(tr({ zh: '沒有蓋成的計畫（Wikidata 標成未完工或放棄的計畫）', en: 'Never built (Wikidata marks it as unfinished or abandoned)' }));
+        return {
+          key: String(p.qid),
+          title,
+          properNoun: proper,
+          group: p.role === 3 ? tr({ zh: '沒有蓋成', en: 'Never built' }) : tr(at(HOTEL_RESORTS, p.resort)),
+          muted: p.role !== 1 || p.op === 1,
+          lines: [typeof p.iso3 === 'string' ? countryName(p.iso3) : '', facts.join(tr({ zh: '；', en: '; ' }))].filter(Boolean),
+          link: { href: `https://www.wikidata.org/wiki/${String(p.qid)}`, label: tr({ zh: `資料出處 Wikidata ${String(p.qid)}`, en: `Source: Wikidata ${String(p.qid)}` }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+        };
+      });
+  },
+};
+
 export const disney: TopicDefinition = {
   id: 'disney',
   title: { zh: '迪士尼在哪裡：樂園、郵輪、飯店與影視部門', en: 'Where Disney is: parks, cruise ships, hotels and studios' },
@@ -329,8 +416,8 @@ export const disney: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
   },
-  overlays: [RESORT_RINGS, SITES, PLANNED, CRUISE_LINES, CRUISE_PORTS],
-  listPanel: [PARK_LIST, SHIP_LIST],
+  overlays: [RESORT_RINGS, SITES, PLANNED, CRUISE_LINES, CRUISE_PORTS, HOTELS],
+  listPanel: [PARK_LIST, SHIP_LIST, HOTEL_LIST],
   indicators: [
     {
       id: 'parks',
@@ -360,6 +447,21 @@ export const disney: TopicDefinition = {
       dimension: CRUISE_ITEMS,
       layer: { kind: 'bubble', legendValues: [1, 5, 8] },
       format: (v) => tr({ zh: `${fixed(v, 0)} 艘`, en: `${fixed(v, 0)} ${v === 1 ? 'ship' : 'ships'}` }),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'hotels',
+      label: { zh: '迪士尼的飯店', en: 'Disney hotels' },
+      description: {
+        zh: '各國迪士尼直營的飯店數（比例圓；名單是 Wikidata 上逐一確認的 QID，不用名稱比對，因為會混進樂園旁邊的 Hilton、Four Seasons 這類別家的旅館）。共 43 家：美國 26 家（華特迪士尼世界 20 家、加州 3 家，加上度假區以外的夏威夷 Aulani 與佛州 Vero Beach、南卡 Hilton Head 的度假俱樂部）、法國 7 家（巴黎度假區，1991–1992 年一起開）、日本 5 家、香港 3 家、上海 2 家。華特迪士尼世界裡的 Swan 與 Dolphin 由萬豪經營，地圖上有畫但不算直營；迪士尼度假俱樂部（DVC）的別墅跟本體同址，併在清單裡、不另外算。左邊的清單依度假區分組、依開幕年排（1955 年加州的 Disneyland Hotel 最早，2017 年香港的迪士尼探索家度假酒店最新的有年份），另有 4 個沒蓋成的計畫。房間數只有 4 家在 Wikidata 上有（香港 3 家、上海的玩具總動員酒店），所以不做成指標；迪士尼自己分的等級只在官網上，類型照寫 Wikidata 的分類。台灣沒有迪士尼的飯店。',
+        en: 'Number of Disney-run hotels in each country (proportional circles; the list is a set of individually checked Wikidata items rather than a name search, which would sweep in other brands near the parks such as Hilton and Four Seasons). 43 in all: the US 26 (20 at Walt Disney World and 3 in California, plus Aulani in Hawaii and the Vacation Club resorts at Vero Beach, Florida, and Hilton Head, South Carolina), France 7 (the Paris resort, all opened in 1991–1992), Japan 5, Hong Kong 3 and Shanghai 2. The Swan and Dolphin at Walt Disney World are operated by Marriott: they are mapped but not counted. Disney Vacation Club villas sharing a site with a hotel are listed under it, not counted separately. The list on the left groups hotels by resort and opening year (Disneyland Hotel in California, 1955, is the earliest; Disney Explorers Lodge in Hong Kong, 2017, is the latest with a year on record), plus 4 projects that were never built. Only 4 hotels have a room count on Wikidata (3 in Hong Kong and the Toy Story Hotel in Shanghai), so rooms are not mapped; Disney’s own tiers are published only on its website, so types follow Wikidata’s classification. Taiwan has no Disney hotel.',
+      },
+      unit: { zh: '家', en: 'hotels' },
+      file: 'hotels-count.json',
+      layer: { kind: 'bubble', legendValues: [2, 7, 26] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: `${fixed(v, 0)} ${v === 1 ? 'hotel' : 'hotels'}` }),
       formatTick: (v) => fixed(v, 0),
       integer: true,
       defaultYear: 2026,
