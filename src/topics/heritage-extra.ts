@@ -224,8 +224,60 @@ const RAMSAR_LIST: ListPanelDef = {
       ),
 };
 
+/**
+ * UNESCO 世界記憶、遺產保存支出（2026-11-08，製作手冊第二十七批 649，候選 1420、1422；pipeline/topics/heritage_more.py）：
+ * 世界記憶是 Wikidata 的 P1435 = Q16024238，點是收藏地（檔案館、圖書館）；支出是 UIS 的 8 個指標，用子項目切換。
+ */
+const mowName = (p: PointRecord) => String((getLang() === 'zh' ? p.zh || p.en : p.en) ?? '');
+const MEMORY: PointsOverlayDef = {
+  kind: 'points',
+  id: 'memory-of-world',
+  file: 'memory-of-world.json',
+  label: { zh: '世界記憶的收藏地', en: 'Memory of the World holding institutions' },
+  indicators: ['memory-of-world'],
+  radius: 3.2,
+  color: MAP_TOKENS.categorical[5],
+  tooltip: (p, { countryName }) => ({
+    title: mowName(p),
+    detail: [typeof p.place === 'string' ? p.place : null, typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    properNoun: getLang() === 'zh' && typeof p.zh === 'string' && typeof p.en === 'string' && p.zh !== p.en ? p.en : undefined,
+  }),
+};
+const MEMORY_LIST: ListPanelDef = {
+  label: { zh: '世界記憶', en: 'Memory of the World' },
+  tabLabel: { zh: '世界記憶', en: 'Memory' },
+  indicators: ['memory-of-world'],
+  file: 'memory-of-world.json',
+  countryField: 'iso3',
+  empty: { zh: '這裡沒有世界記憶的收藏地', en: 'No Memory of the World holdings here' },
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => firstCountry(a, countryName).localeCompare(firstCountry(b, countryName)) || mowName(a).localeCompare(mowName(b)))
+      .map((p, i): ListRow => ({
+        key: `mow-${i}`,
+        title: mowName(p),
+        properNoun: getLang() === 'zh' && typeof p.zh === 'string' && typeof p.en === 'string' && p.zh !== p.en ? p.en : undefined,
+        lines: [typeof p.place === 'string' ? p.place : ''],
+        group: firstCountry(p, countryName),
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+      })),
+};
+const SPEND_T = [5, 10, 25, 50, 100, 200];
+const usdText = (v: number) => tr({ zh: `每人 ${fixed(v, v < 10 ? 1 : 0)} 美元（PPP）`, en: `$${fixed(v, v < 10 ? 1 : 0)} per person (PPP)` });
+const NO_UIS = { TWN: { zh: 'UIS 不收台灣，沒有可比的資料', en: 'UIS does not cover Taiwan; no comparable data' } };
+
 export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]; indicators: IndicatorDef[]; listPanel: ListPanelDef[] } = {
   sources: [
+    {
+      name: { zh: 'Wikidata：UNESCO 世界記憶國際名錄（P1435 = Q16024238）與收藏地', en: 'Wikidata: UNESCO Memory of the World International Register (P1435 = Q16024238) and holding institutions' },
+      url: 'https://www.wikidata.org/wiki/Q16024238',
+      license: 'CC0',
+    },
+    {
+      name: { zh: 'UNESCO 統計研究所（UIS）：文化與自然遺產保存支出（HEXPCSTPPPCAP）', en: 'UNESCO Institute for Statistics (UIS): heritage preservation spending (HEXPCSTPPPCAP)' },
+      url: 'https://databrowser.uis.unesco.org/',
+      license: 'CC BY-SA 4.0',
+    },
     {
       name: { zh: 'Wikidata（世界遺產預備名單 P4171、世界地質公園、台灣的地質公園）', en: 'Wikidata (Tentative List P4171, UNESCO Global Geoparks, geoparks in Taiwan)' },
       url: 'https://www.wikidata.org/wiki/Property:P4171',
@@ -255,8 +307,8 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
-  overlays: [TENTATIVE, GEOPARKS, TW_GEOPARKS, RAMSAR, TW_WETLANDS],
-  listPanel: [POTENTIAL_LIST, GEOPARK_LIST, RAMSAR_LIST],
+  overlays: [TENTATIVE, GEOPARKS, TW_GEOPARKS, RAMSAR, TW_WETLANDS, MEMORY],
+  listPanel: [POTENTIAL_LIST, GEOPARK_LIST, RAMSAR_LIST, MEMORY_LIST],
   indicators: [
     {
       id: 'tentative',
@@ -320,6 +372,71 @@ export const heritageExtra: { sources: SourceDef[]; overlays: PointsOverlayDef[]
       format: haText,
       formatTick: formatLargeTick,
       shareOfWorld: true,
+    },
+    // 2026-11-08（製作手冊第二十七批 649）世界記憶、遺產保存支出
+    {
+      id: 'memory-of-world',
+      label: { zh: '世界記憶（文件遺產）', en: 'Memory of the World (documentary heritage)' },
+      description: {
+        zh: 'UNESCO「世界記憶」國際名錄（文件遺產：手稿、檔案、典籍、影音紀錄）在 Wikidata 上的 569 件，依登錄國家數（跨國共同登錄每國各算一次，134 國合計 684）：德國 32 件最多，法國 27、英國 26、南韓 21，波蘭、中國、瑞士各 17。點是收藏地（檔案館、圖書館，486 件有收藏地座標、共 796 處），不是遺址。Wikidata 上沒有登錄年份，所以沒有時間軸。台灣不是 UNESCO 會員國，沒有。',
+        en: 'The 569 entries of UNESCO’s Memory of the World International Register (documentary heritage: manuscripts, archives, books and audiovisual records) in Wikidata, counted by inscribing country (joint inscriptions count once for each country, 684 in all across 134 countries): Germany has the most (32), followed by France (27), the UK (26) and South Korea (21), with Poland, China and Switzerland at 17 each. Dots are the holding institutions (archives and libraries; 486 entries have located holdings, 796 places in all), not sites. Wikidata has no inscription years, so there is no time slider. Taiwan is not a UNESCO member and has none.',
+      },
+      noValue: { TWN: { zh: '台灣不是 UNESCO 會員國', en: 'Taiwan is not a UNESCO member' } },
+      unit: { zh: '件', en: 'entries' },
+      file: 'memory-of-world-count.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 30] },
+      timeless: true,
+      format: itemsText,
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'heritage-spend',
+      label: { zh: '每人的遺產保存支出', en: 'Heritage spending per person' },
+      description: {
+        zh: 'UNESCO 統計研究所（UIS）的文化與自然遺產保存支出，每人多少（2017 年固定購買力平價美元），2017–2024 年；子項目可以看公私合計、公部門、私部門、只算文化遺產、只算自然遺產。回報的國家很少：公私合計 30 國、公部門 77 國、私部門 32 國、文化遺產 28 國、自然遺產 21 國。各國最近一年的公部門支出以安道爾 578 美元最高，比利時 369、馬爾他 351、玻利維亞 297、芬蘭 265；英國 132、法國 117、南韓 40、日本 7。「文化」主題的「每人的遺產保存公共支出」是同一個公部門指標。',
+        en: 'Spending on preserving cultural and natural heritage per person from the UNESCO Institute for Statistics (UIS), in constant 2017 PPP dollars, 2017–2024; sub-items show public and private combined, public, private, cultural heritage only and natural heritage only. Few countries report: 30 for the combined total, 77 for public, 32 for private, 28 for cultural and 21 for natural. In each country’s latest year, public spending is highest in Andorra ($578), followed by Belgium (369), Malta (351), Bolivia (297) and Finland (265); the UK spends 132, France 117, South Korea 40 and Japan 7. The heritage spending indicator in the Culture topic is the same public figure.',
+      },
+      noValue: NO_UIS,
+      unit: { zh: '美元（PPP）／人', en: 'PPP$ per person' },
+      file: 'heritage-spend/{item}.json',
+      dimension: {
+        label: { zh: '支出', en: 'Spending' },
+        options: [
+          { id: 'public', label: { zh: '公部門', en: 'Public' } },
+          { id: 'private', label: { zh: '私部門', en: 'Private' } },
+          { id: 'all', label: { zh: '公私合計', en: 'Public and private' } },
+          { id: 'cultural', label: { zh: '只算文化遺產（公私合計）', en: 'Cultural heritage only (public and private)' } },
+          { id: 'natural', label: { zh: '只算自然遺產（公私合計）', en: 'Natural heritage only (public and private)' } },
+        ],
+        defaultOption: 'public',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: SPEND_T } },
+      format: usdText,
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'heritage-gov',
+      label: { zh: '遺產保存支出：中央與地方', en: 'Heritage spending by level of government' },
+      description: {
+        zh: '公部門的遺產保存支出依政府層級分：中央（聯邦）71 國、區域（聯邦制的州、省）25 國、地方（鄉鎮市）38 國，每人多少（2017 年固定購買力平價美元），2017–2024 年。各國最近一年中央最高的是馬爾他 339 美元，克羅埃西亞 222、玻利維亞 220、安道爾 217；區域以比利時 160、加拿大 130、瑞士 93 最多；地方以安道爾 361、比利時 184、芬蘭 147 最多。各國層級的劃分不同，聯邦制國家的區域支出比較多。',
+        en: 'Public heritage spending split by level of government: national (federal) for 71 countries, regional (states or provinces in federations) for 25 and local (municipal) for 38, per person in constant 2017 PPP dollars, 2017–2024. In each country’s latest year, national spending is highest in Malta ($339), followed by Croatia (222), Bolivia (220) and Andorra (217); regional spending is highest in Belgium (160), Canada (130) and Switzerland (93); local spending in Andorra (361), Belgium (184) and Finland (147). Levels of government differ between countries, and federations spend more at the regional level.',
+      },
+      noValue: NO_UIS,
+      unit: { zh: '美元（PPP）／人', en: 'PPP$ per person' },
+      file: 'heritage-gov/{item}.json',
+      dimension: {
+        label: { zh: '政府層級', en: 'Level' },
+        options: [
+          { id: 'national', label: { zh: '中央（聯邦）', en: 'National (federal)' } },
+          { id: 'regional', label: { zh: '區域（州、省）', en: 'Regional (states, provinces)' } },
+          { id: 'local', label: { zh: '地方（鄉鎮市）', en: 'Local (municipal)' } },
+        ],
+        defaultOption: 'national',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: SPEND_T } },
+      format: usdText,
+      formatTick: (v) => fixed(v, 0),
     },
   ],
 };
