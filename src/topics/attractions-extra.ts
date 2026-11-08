@@ -43,10 +43,11 @@ const MUSEUM_VISITORS: PointsOverlayDef = {
   },
 };
 
-const PARK_VISITORS: PointsOverlayDef = {
+/** 2026-11-08（製作手冊第二十七批 630）搬到「樂園」主題（theme-parks.ts），資料照舊在景點地圖的資料夾 */
+export const PARK_VISITORS: PointsOverlayDef = {
   kind: 'points',
   id: 'park-visitors',
-  file: 'park-visitors.json',
+  file: '../attractions/park-visitors.json',
   label: { zh: '最多人造訪的主題樂園（一年人次）', en: 'Most-visited theme parks (visitors a year)' },
   indicators: ['visitors'],
   epochs: { years: PARK_YEARS, values: (p, y) => ({ vv: typeof p[`v${y}`] === 'number' ? (p[`v${y}`] as number) : null }) },
@@ -96,11 +97,11 @@ const MUSEUM_LIST: ListPanelDef = {
       }),
 };
 
-const PARK_LIST: ListPanelDef = {
+export const PARK_LIST: ListPanelDef = {
   label: { zh: '最多人造訪的主題樂園', en: 'Most-visited theme parks' },
   tabLabel: { zh: '主題樂園', en: 'Theme parks' },
   indicators: ['visitors'],
-  file: 'park-visitors.json',
+  file: '../attractions/park-visitors.json',
   countryField: 'iso3',
   rows: (points, { countryName, year }) => {
     const y = Math.max(PARK_YEARS[0], Math.min(PARK_YEARS[PARK_YEARS.length - 1], year));
@@ -283,15 +284,16 @@ export const attractionsExtra: { sources: SourceDef[]; overlays: PointsOverlayDe
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
-  overlays: [MUSEUM_VISITORS, PARK_VISITORS, FERRIS, MALLS, WONDERS, CREATIVE, EXPOS],
-  listPanel: [MUSEUM_LIST, PARK_LIST],
+  // 主題樂園的人次（PARK_VISITORS、PARK_LIST）2026-11-08 搬到「樂園」主題
+  overlays: [MUSEUM_VISITORS, FERRIS, MALLS, WONDERS, CREATIVE, EXPOS],
+  listPanel: [MUSEUM_LIST],
   indicators: [
     {
       id: 'visitors',
-      label: { zh: '博物館與樂園的人次', en: 'Museum and park visitors' },
+      label: { zh: '博物館與水上樂園的人次', en: 'Museum and water park visitors' },
       description: {
-        zh: '最多人造訪的博物館與主題樂園，點的大小是一年的人次。博物館是英文維基「最多人造訪的博物館」表上一年 125 萬人次以上的（各館自己公布的數字，年份不一），羅浮宮 2025 年 900 萬第一，中國國家博物館 703 萬、梵蒂岡博物館 693 萬；台灣的 4 館另附觀光署 2024 年的數字，並補上表上沒有的海科館、科教館。主題樂園是英文維基轉載 TEA／AECOM 的全世界前 25 與各區前 20（2009–2024 年，拖時間軸看 2020 年疫情的斷崖），2024 年魔法王國 1,784 萬人次第一；台灣的樂園沒有進亞太前 20，綠色的點是觀光署的人次（麗寶、義大含購物中心與飯店，跟 TEA 的估計不能直接比）。水上樂園（紫色）是英文維基轉載的 TEA／AECOM 各區排名，2024 年廣州長隆水上樂園 281 萬人次最多，杜拜 Aquaventure World 200 萬、德國 Therme Erding 191 萬、巴西 Thermas dos Laranjais 185 萬、迪士尼颱風灣 182 萬（TEA 沒有發 2021、2022 年的水上樂園排名；巴西 Thermas de São Pedro 等 4 座找不到座標，沒有畫）。左邊的清單依人次列出博物館、主題樂園與水上樂園（上面的分頁切換）。',
-        en: 'The most-visited museums and theme parks, sized by visitors a year. Museums are those in English Wikipedia’s list of most-visited museums with over 1.25 million visitors (each museum’s own figures, for varying years): the Louvre led with 9.0 million in 2025, ahead of the National Museum of China (7.03 million) and the Vatican Museums (6.93 million); Taiwan’s four also show the Tourism Administration’s 2024 figure, and two missing from the list (the National Museum of Marine Science and Technology and the National Taiwan Science Education Center) are added from it. Theme parks are the worldwide top 25 and regional top 20 from TEA/AECOM as reproduced on English Wikipedia (2009–2024; drag the time slider to see the 2020 pandemic drop), led by Magic Kingdom with 17.8 million in 2024; no Taiwanese park makes the Asia-Pacific top 20, so green dots show Tourism Administration counts (Lihpao and E-DA include their malls and hotels and are not directly comparable). Water parks (purple) are TEA/AECOM’s regional rankings as reproduced on English Wikipedia: Chimelong Water Park in Guangzhou led 2024 with 2.81 million visitors, ahead of Aquaventure World in Dubai (2.0 million), Therme Erding in Germany (1.91 million), Thermas dos Laranjais in Brazil (1.85 million) and Disney’s Typhoon Lagoon (1.82 million) (TEA published no water park rankings for 2021 and 2022; 4 parks, including Thermas de São Pedro in Brazil, could not be located and are not drawn). The list on the left ranks the museums, theme parks and water parks by visitors (switch with the tabs above it).',
+        zh: '最多人造訪的博物館與水上樂園，點的大小是一年的人次（主題樂園的人次 2026-11-08 搬到「樂園」主題）。博物館是英文維基「最多人造訪的博物館」表上一年 125 萬人次以上的（各館自己公布的數字，年份不一），羅浮宮 2025 年 900 萬第一，中國國家博物館 703 萬、梵蒂岡博物館 693 萬；台灣的 4 館另附觀光署 2024 年的數字，並補上表上沒有的海科館、科教館。水上樂園（紫色）是英文維基轉載的 TEA／AECOM 各區排名，2024 年廣州長隆水上樂園 281 萬人次最多，杜拜 Aquaventure World 200 萬、德國 Therme Erding 191 萬、巴西 Thermas dos Laranjais 185 萬、迪士尼颱風灣 182 萬（TEA 沒有發 2021、2022 年的水上樂園排名；巴西 Thermas de São Pedro 等 4 座找不到座標，沒有畫）。左邊的清單依人次列出博物館與水上樂園（上面的分頁切換）。',
+        en: 'The most-visited museums and water parks, sized by visitors a year (theme park visitors moved to the Theme parks topic on 8 November 2026). Museums are those in English Wikipedia’s list of most-visited museums with over 1.25 million visitors (each museum’s own figures, for varying years): the Louvre led with 9.0 million in 2025, ahead of the National Museum of China (7.03 million) and the Vatican Museums (6.93 million); Taiwan’s four also show the Tourism Administration’s 2024 figure, and two missing from the list (the National Museum of Marine Science and Technology and the National Taiwan Science Education Center) are added from it. Water parks (purple) are TEA/AECOM’s regional rankings as reproduced on English Wikipedia: Chimelong Water Park in Guangzhou led 2024 with 2.81 million visitors, ahead of Aquaventure World in Dubai (2.0 million), Therme Erding in Germany (1.91 million), Thermas dos Laranjais in Brazil (1.85 million) and Disney’s Typhoon Lagoon (1.82 million) (TEA published no water park rankings for 2021 and 2022; 4 parks, including Thermas de São Pedro in Brazil, could not be located and are not drawn). The list on the left ranks the museums and water parks by visitors (switch with the tabs above it).',
       },
       unit: '',
       file: 'visitors.json',

@@ -114,6 +114,14 @@ function overlay(layer: LayerKinds, minValue: [number, number][]): PointsOverlay
   };
 }
 
+/** 樂園的點給「樂園」主題用（2026-11-08，製作手冊第二十七批 630）：同一個檔，景點地圖的總覽照樣畫 */
+export const parksOverlay = (indicators: string[]): PointsOverlayDef => ({
+  ...overlay(LAYERS[2], [[0, 15], [3, 5], [5, 0]]),
+  id: 'theme-park-points',
+  file: '../attractions/parks.json',
+  indicators,
+});
+
 /** 附近最多列幾處（歐洲的城市 30 公里內博物館上千座） */
 const NEAR_MAX = 300;
 

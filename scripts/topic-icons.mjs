@@ -100,6 +100,7 @@ const TOPIC_ICONS = {
   'renewable-heat': 'sun-medium',
   'biofuels-hydrogen': 'flask-round',
   'nuclear-reactors': 'orbit',
+  'theme-parks': 'roller-coaster',
   'energy-jobs': 'id-card-lanyard',
   'transport-investment': 'construction',
   'household-transport': 'car-front',

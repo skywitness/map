@@ -218,6 +218,7 @@ export const RELATED: Record<string, string[]> = {
   trails: ['national-parks', 'elevation', 'world-heritage'],
   attractions: ['world-heritage', 'skyscrapers', 'china-lending'],
   skyscrapers: ['cities', 'attractions'],
+  'theme-parks': ['attractions', 'tourism', 'world-heritage'],
   'night-lights': ['cities', 'power-plants', 'population'],
 };
 

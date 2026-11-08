@@ -187,7 +187,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '旅遊', en: 'Travel' },
     sections: [
       // 地下觀光 2026-11-07 從社會的「生活與文化」搬過來（製作手冊第二十六批 534），跟景點地圖一組
-      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'show-caves', 'oldest-universities', 'skyscrapers'] },
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'theme-parks', 'show-caves', 'oldest-universities', 'skyscrapers'] },
       { label: { zh: '觀光', en: 'Tourism' }, topics: ['tourism', 'travel-habits'] },
       // 鈔票：使用者 2026-11-07 指定放這裡（跟插頭、電壓、紙張大小同一類「出國會遇到的東西」）
       { label: { zh: '旅行實用', en: 'Travel basics' }, topics: ['travel', 'travel-advisories', 'passport', 'banknotes'] },
@@ -400,6 +400,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   eclipses: () => import('./eclipses'),
   antipodes: () => import('./antipodes'),
   attractions: () => import('./attractions'),
+  'theme-parks': () => import('./theme-parks'),
   'oldest-universities': () => import('./oldest-universities'),
   antarctica: () => import('./antarctica'),
   'national-parks': () => import('./national-parks'),
