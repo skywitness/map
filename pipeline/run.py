@@ -383,6 +383,7 @@ STEPS = {
     "alt-medicine": "topics.alt_medicine",  # 2026-11-08 第二十九批 688：傳統與替代醫學的據點（OSM 經 QLever；台灣對照衛福部統計處表 1.6、2.2.2）
     "taiwan-tcm": "topics.taiwan_tcm",  # 2026-11-08 第二十九批 689：台灣的中醫（衛福部統計處表 1.6、1.7、2.2.2、3.3.8、3.2.8、3.2.6；縣市位置讀 divisions 的輸出）
     "tcm-systems": "topics.tcm_systems",  # 2026-11-08 第二十九批 691：傳統醫學的制度（WHO 2019、2024 年報告的 PDF，CC BY-NC-SA 3.0 IGO；分區對帳不對就報錯）
+    "tcm-herbs": "topics.tcm_herbs",  # 2026-11-08 第二十九批 692：中藥材從哪裡來（臺灣中藥典第四版英文版 × Kew WCVP 的原生分布，WCVP 約 88 MB）
     "park-twin-cities": "topics.park_twin_cities",  # 2026-11-08 第二十八批 686：同一座城市的兩家樂園（樂園主題的共用指標；要先有 disney-visits、universal-visits）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",

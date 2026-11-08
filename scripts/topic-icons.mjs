@@ -76,6 +76,7 @@ const TOPIC_ICONS = {
   'alt-medicine': 'clover',
   'taiwan-tcm': 'flower',
   'tcm-systems': 'file-check',
+  'tcm-herbs': 'shrub',
   'antimicrobial-resistance': 'bug',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',

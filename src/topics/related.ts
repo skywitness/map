@@ -30,6 +30,7 @@ export const RELATED: Record<string, string[]> = {
   'alt-medicine': ['taiwan-tcm', 'health-care', 'medicines'],
   'taiwan-tcm': ['alt-medicine', 'health-care', 'taiwan-medicines'],
   'tcm-systems': ['alt-medicine', 'taiwan-tcm', 'organizations'],
+  'tcm-herbs': ['taiwan-tcm', 'agriculture', 'trade'],
   'tobacco-alcohol': ['health', 'disease'],
   diet: ['agriculture', 'health', 'lactase'],
   banknotes: ['profiles', 'prices', 'democracy'],
