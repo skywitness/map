@@ -356,6 +356,7 @@ STEPS = {
     "nuclear-retired": "topics.nuclear_retired",
     "nuclear-fuel-cycle": "topics.nuclear_fuel_cycle",
     "fossil-infrastructure": "topics.fossil_infrastructure",
+    "gas-flaring": "topics.gas_flaring",
     "coal-types": "topics.coal_types",
     "fuel-uses": "topics.fuel_uses",
     "reserves-ratio": "topics.reserves_ratio",

@@ -1,7 +1,8 @@
-import { tr } from '../i18n/lang';
+import { tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeTick } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import { INFRA_OVERLAYS, REFINING_CAPACITY } from './fossil-fuels';
-import type { TopicDefinition } from './types';
+import type { PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 化石燃料的基礎建設（新主題，2026-11-07，製作手冊第二十七批 613，候選 1349、1351；能源・化石燃料）：
@@ -11,6 +12,31 @@ import type { TopicDefinition } from './types';
  */
 const mt = (v: number) => tr({ zh: `每年 ${fixed(v, v < 10 ? 1 : 0)} 百萬公噸`, en: `${fixed(v, v < 10 ? 1 : 0)} Mt/y` });
 const tick = (v: number) => fixed(v, 0);
+
+/** 油田燒掉的天然氣（2026-11-08，製作手冊第二十七批 617，候選 1350；pipeline/topics/gas_flaring.py）：世界銀行 Data Catalog 2017–2021 */
+const FLARE_KINDS: Text[] = [
+  { zh: '上游（油田、氣田）', en: 'Upstream (oil and gas fields)' },
+  { zh: '中游與下游（煉油廠、LNG、處理廠）', en: 'Mid- and downstream (refineries, LNG, processing plants)' },
+];
+const FLARES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'flares',
+  file: 'flares.json',
+  label: { zh: '燃除的火炬（2021 年）', en: 'Gas flares (2021)' },
+  indicators: ['flaring'],
+  radius: { field: 'v', stops: [[1, 1.5], [50, 3], [300, 6], [1300, 10]] },
+  color: {
+    field: 'k',
+    title: { zh: '位置', en: 'Location' },
+    thresholds: [1.5],
+    classes: FLARE_KINDS.map((label, i) => ({ color: [MAP_TOKENS.categorical[5], MAP_TOKENS.categorical[1]][i], label })),
+  },
+  sortField: 'v',
+  tooltip: (p, { countryName }) => ({
+    title: tr({ zh: `一年燒掉 ${fixed(Number(p.v), 1)} 百萬立方公尺`, en: `${fixed(Number(p.v), 1)} million m³ flared a year` }),
+    detail: [tr(FLARE_KINDS[(Number(p.k) || 1) - 1]), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+  }),
+};
 
 export const fossilInfrastructure: TopicDefinition = {
   id: 'fossil-infrastructure',
@@ -32,14 +58,43 @@ export const fossilInfrastructure: TopicDefinition = {
       url: 'https://en.wikipedia.org/wiki/List_of_oil_refineries',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: { zh: '世界銀行 Data Catalog：Global Gas Flaring Database（0037743，2017–2021 年）', en: 'World Bank Data Catalog: Global Gas Flaring Database (0037743, 2017–2021)' },
+      url: 'https://datacatalog.worldbank.org/search/dataset/0037743/global-gas-flaring-database',
+      license: 'CC BY 4.0',
+    },
   ],
   note: {
-    zh: '2026-11-07 從「石油、天然氣與煤」拆出來：這裡是「東西在哪裡」（管線、LNG 接收站、油氣田、煤礦、煉油廠與燃煤機組），產量、消費、貿易與價格留在原主題。資料是 Global Energy Monitor 2026 年的追蹤資料（管線與 LNG 2026 年 10 月、油氣田 3 月、煤礦 8 月、發電機組 9 月），只有一個時間點，不跟時間軸變；管線簡化到約 1 公里。煤礦的僱用人數是 GEM 從各種年報整理的，年份不一致，只當規模的參考。台灣沒有在開採的煤礦與油氣田，LNG 全靠進口。',
-    en: 'Split off from “Oil, gas and coal” on 7 November 2026: this topic shows where things are (pipelines, LNG terminals, oil and gas fields, coal mines, refineries and coal power units), while production, consumption, trade and prices remain in the original topic. Data are Global Energy Monitor trackers from 2026 (pipelines and LNG October, fields March, coal mines August, power units September), a single snapshot that does not change with the time slider; pipelines are simplified to about 1 km. Coal mine workforce figures are compiled by GEM from various reports of different years and are only a guide to scale. Taiwan has no working coal mines or oil and gas fields and imports all its LNG.',
+    zh: '2026-11-07 從「石油、天然氣與煤」拆出來：這裡是「東西在哪裡」（管線、LNG 接收站、油氣田、煤礦、煉油廠與燃煤機組），產量、消費、貿易與價格留在原主題。資料是 Global Energy Monitor 2026 年的追蹤資料（管線與 LNG 2026 年 10 月、油氣田 3 月、煤礦 8 月、發電機組 9 月），只有一個時間點，不跟時間軸變；管線簡化到約 1 公里。煤礦的僱用人數是 GEM 從各種年報整理的，年份不一致，只當規模的參考。台灣沒有在開採的煤礦與油氣田，LNG 全靠進口。燃除量（2026-11-08 加）是世界銀行 2017–2021 年的衛星估計，時間軸只對這個指標有作用。',
+    en: 'Split off from “Oil, gas and coal” on 7 November 2026: this topic shows where things are (pipelines, LNG terminals, oil and gas fields, coal mines, refineries and coal power units), while production, consumption, trade and prices remain in the original topic. Data are Global Energy Monitor trackers from 2026 (pipelines and LNG October, fields March, coal mines August, power units September), a single snapshot that does not change with the time slider; pipelines are simplified to about 1 km. Coal mine workforce figures are compiled by GEM from various reports of different years and are only a guide to scale. Taiwan has no working coal mines or oil and gas fields and imports all its LNG. Gas flaring (added 8 November 2026) is a World Bank satellite estimate for 2017–2021, and the time slider applies only to that indicator.',
   },
   panelExtra: () => import('./panels/FossilInfraPanel'),
-  overlays: INFRA_OVERLAYS,
+  overlays: [...INFRA_OVERLAYS, FLARES],
   indicators: [
+    {
+      id: 'flaring',
+      label: { zh: '油田燒掉的天然氣（燃除）', en: 'Gas flaring' },
+      description: {
+        zh: '衛星（VIIRS）看到的油氣田火炬一年燒掉多少天然氣，十億立方公尺（世界銀行 Global Gas Flaring Database，2017–2021 年，把每個火炬加總到國家），子項目切換上游（油田、氣田，一般說的燃除量）或全部（加煉油廠、LNG、處理廠）。2021 年上游俄羅斯 25.3 最多，伊拉克 17.8、伊朗 17.4、美國 8.7、委內瑞拉 8.2、阿爾及利亞 7.6、奈及利亞 6.6、墨西哥 6.5、利比亞 5.7、中國 2.5；全世界上游 141.0，五年都在 139–146 之間。俄羅斯從 2017 年的 19.9 增加、墨西哥從 3.8 增加。點是 2021 年的每一個火炬（大小是燒掉的量）。自己加總的數字可能跟世界銀行 GFMR 公布的國家數字略有出入；沙烏地與科威特的共管區算進世界合計、不算進國家。台灣沒有油氣田的燃除。',
+        en: 'Natural gas burned by oil and gas flares seen by satellite (VIIRS), in billion cubic metres (World Bank Global Gas Flaring Database, 2017–2021, with individual flares summed by country); sub-items switch between upstream (oil and gas fields, the usual flaring figure) and all flares (adding refineries, LNG and processing plants). In 2021 upstream flaring was highest in Russia (25.3), followed by Iraq (17.8), Iran (17.4), the US (8.7), Venezuela (8.2), Algeria (7.6), Nigeria (6.6), Mexico (6.5), Libya (5.7) and China (2.5); the world upstream total was 141.0 and stayed between 139 and 146 over the five years. Russia rose from 19.9 in 2017 and Mexico from 3.8. Dots show every flare in 2021, sized by volume. These sums may differ slightly from the World Bank GFMR’s published country figures; the Saudi–Kuwaiti Neutral Zone counts towards the world total but not any country. Taiwan has no gas flaring.',
+      },
+      unit: { zh: '十億立方公尺', en: 'bcm' },
+      file: 'flaring/{item}.json',
+      dimension: {
+        label: { zh: '範圍', en: 'Scope' },
+        options: [
+          { id: 'upstream', label: { zh: '上游（油田、氣田）', en: 'Upstream (oil and gas fields)' } },
+          { id: 'all', label: { zh: '全部（含煉油廠、LNG、處理廠）', en: 'All (incl. refineries, LNG, processing)' } },
+        ],
+        defaultOption: 'upstream',
+      },
+      layer: { kind: 'bubble', legendValues: [0.5, 5, 25] },
+      defaultYear: 2021,
+      format: (v) => tr({ zh: `${fixed(v, v < 1 ? 2 : 1)} 十億立方公尺`, en: `${fixed(v, v < 1 ? 2 : 1)} bcm` }),
+      formatTick: (v) => fixed(v, 1),
+      shareOfWorld: true,
+      missing: { zh: '衛星沒有看到燃除', en: 'No flaring detected' },
+    },
     {
       id: 'coal-mine-capacity',
       label: { zh: '運轉中煤礦的產能', en: 'Capacity of operating coal mines' },

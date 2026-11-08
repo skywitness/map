@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 219;
-export const INDICATOR_COUNT = 1693;
+export const INDICATOR_COUNT = 1694;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","digital","ip-addresses","developers","innovation","publications","research-orgs","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","museums","roller-coasters","tourism","lodging","nobel","sports","esports","game-companies","anime","dining","online-video","record-labels","culture"]},
@@ -485,6 +485,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"WRI Aqueduct 4.0 各國排名（缺水壓力的推估；Kuzma et al. 2023）","en":"WRI Aqueduct 4.0 country rankings (projected water stress; Kuzma et al. 2023)"},"url":"https://www.wri.org/data/aqueduct-40-country-rankings","licenses":["CC BY 4.0"],"topics":["water-forest"]},
   {"name":{"zh":"Yang 等人，Global Urban Heat Island Intensity Dataset（figshare 24821538 v3；Aqua MODIS 的地表溫度）","en":"Yang et al., Global Urban Heat Island Intensity Dataset (figshare 24821538 v3; Aqua MODIS land surface temperature)"},"url":"https://figshare.com/articles/dataset/Global_Urban_Heat_Island_Intensity_Dataset/24821538","licenses":["CC BY 4.0"],"topics":["cities"]},
   {"name":{"zh":"世界銀行 Commodity Price Data（Pink Sheet）","en":"World Bank, Commodity Price Data (Pink Sheet)"},"url":"https://www.worldbank.org/en/research/commodity-markets","licenses":["CC BY 4.0"],"topics":["energy-prices"]},
+  {"name":{"zh":"世界銀行 Data Catalog：Global Gas Flaring Database（0037743，2017–2021 年）","en":"World Bank Data Catalog: Global Gas Flaring Database (0037743, 2017–2021)"},"url":"https://datacatalog.worldbank.org/search/dataset/0037743/global-gas-flaring-database","licenses":["CC BY 4.0"],"topics":["fossil-infrastructure"]},
   {"name":{"zh":"世界銀行 Global SSB Tax Database（含糖飲料稅，2023 年 8 月）","en":"World Bank, Global SSB Tax Database (sugar-sweetened beverage taxes, August 2023)"},"url":"https://datacatalog.worldbank.org/search/dataset/0063310/Global-SSB-Tax-Database","licenses":["CC BY 4.0"],"topics":["laws"]},
   {"name":{"zh":"世界銀行 WDI：再生能源占最終能源消費（EG.FEC.RNEW.ZS，原始資料 IEA）；Eurostat：再生能源占比（nrg_ind_ren）","en":"World Bank WDI: renewable energy share of final energy consumption (EG.FEC.RNEW.ZS, from the IEA); Eurostat: share of renewable energy (nrg_ind_ren)"},"url":"https://data.worldbank.org/indicator/EG.FEC.RNEW.ZS","licenses":["CC BY 4.0"],"topics":["electricity"]},
   {"name":{"zh":"世界銀行 WDI：燃料進口、出口占商品進出口（TM.VAL.FUEL.ZS.UN、TX.VAL.FUEL.ZS.UN）","en":"World Bank WDI: fuel imports and exports, % of merchandise trade (TM.VAL.FUEL.ZS.UN, TX.VAL.FUEL.ZS.UN)"},"url":"https://data.worldbank.org/indicator/TM.VAL.FUEL.ZS.UN","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
