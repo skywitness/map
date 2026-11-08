@@ -1,5 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, intlDollars } from '../lib/format';
+import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
@@ -20,6 +21,15 @@ const SHORTAGE_REGISTER: CategoryDef[] = [
   { value: 2, label: { zh: '只登錄部分藥品', en: 'Selected medicines only' } },
   { value: 3, label: { zh: '沒有線上登錄', en: 'No online register' } },
 ];
+
+/** 基本藥物清單收不收草藥：讀「傳統醫學的制度」的資料檔（src/topics/tcm-systems.ts 的 STATUS 同代碼） */
+const HERBAL_NEML: CategoryDef[] = [
+  { value: 1, label: { zh: '有', en: 'Yes' } },
+  { value: 2, label: { zh: '正在訂', en: 'In preparation' } },
+  { value: 3, label: { zh: '沒有', en: 'No' } },
+  { value: 4, label: { zh: '報告沒寫明', en: 'Not stated' }, color: MAP_TOKENS.categoricalOther },
+];
+const EUROPE: [number, number, number, number] = [-25, 34, 45, 71];
 
 /** 美國與歐盟上市的時間差（第二十批 332，pipeline/topics/approval_lag.py）：清單的列 */
 const ATLANTIC: [number, number, number, number] = [-130, 15, 45, 72];
@@ -70,6 +80,14 @@ const medicinesOwn: TopicDefinition = {
   defaultIndicator: 'pharma-share',
   defaultYear: 2023,
   sources: [
+    {
+      name: {
+        zh: 'EMA, Uptake of the traditional use registration scheme and implementation of the provisions of Directive 2004/24/EC in EU Member States（EMA/HMPC/322570/2011 Rev. 7，截至 2016-12-31）',
+        en: 'EMA, Uptake of the traditional use registration scheme and implementation of the provisions of Directive 2004/24/EC in EU Member States (EMA/HMPC/322570/2011 Rev. 7, to 31 December 2016)',
+      },
+      url: 'https://www.ema.europa.eu/en/documents/report/uptake-traditional-use-registration-scheme-and-implementation-provisions-directive-200424ec-european-union-member-states_en.pdf',
+      license: { zh: 'EMA 網站法律聲明（可重製，須註明 EMA）', en: 'EMA legal notice (reuse with acknowledgement of EMA)' },
+    },
     {
       name: {
         zh: 'OECD Health Statistics：Health expenditure and financing（SHA，HC.5.1 藥品與其他醫療非耐久財）、Generic market（學名藥市場）',
@@ -303,6 +321,35 @@ const medicinesOwn: TopicDefinition = {
       layer: { kind: 'categorical', categories: SHORTAGE_REGISTER },
       format: (v) => tr(SHORTAGE_REGISTER.find((c) => c.value === v)?.label ?? ''),
       unranked: true,
+    },
+    {
+      id: 'herbal-neml',
+      label: { zh: '基本藥物清單收不收草藥', en: 'Herbal medicines on the essential medicines list' },
+      description: {
+        zh: 'WHO 2019 年傳統醫學報告的國家段落怎麼寫國家基本藥物清單（NEML）收不收草藥或傳統藥物：寫明有的 26 國、寫明沒有的 26 國，其他沒寫明（報告正文的全球數是 2018 年 34 國）。逐國的值跟「傳統醫學的制度」主題同一份手工整理的資料（逐列附原文與頁碼，見那個主題）。2024 年報告（第三次調查，106 國回答）另外問了基本醫療服務包：82 國（77%）有，其中 31 國（29%）含傳統、輔助與整合醫學，3 國正在建立；國家健康促進計畫含傳統醫學的 43 國（41%）。分母是回答的國家，不是 194 國。台灣沒有對應的國家清單。',
+        en: 'How the country summaries of the WHO 2019 traditional medicine report describe whether the national essential medicines list (NEML) includes herbal or traditional medicines: yes for 26 countries, no for 26, not stated for the rest (the report’s global figure for 2018 is 34). Country values come from the same hand-compiled file as the traditional medicine policy topic (each row with its quotation and page). The 2024 report (third survey, 106 respondents) also asked about essential health services packages: 82 (77%) had one, 31 (29%) including traditional, complementary and integrative medicine, and 3 were setting one up; 43 (41%) had a national health promotion programme with a traditional medicine component. The base is the respondents, not all 194 countries. Taiwan has no equivalent national list.',
+      },
+      unit: '',
+      file: '../tcm-systems/items/neml.json',
+      timeless: true,
+      layer: { kind: 'categorical', categories: HERBAL_NEML, ordinal: true },
+      format: (v) => tr(HERBAL_NEML.find((c) => c.value === v)?.label ?? ''),
+      unranked: true,
+    },
+    {
+      id: 'herbal-tur',
+      label: { zh: '歐洲的傳統草藥藥品登記', en: 'Traditional herbal medicine registrations in Europe' },
+      description: {
+        zh: '歐盟 2004 年的傳統草藥藥品指令（Directive 2004/24/EC）讓有長期使用傳統、但沒有臨床試驗的草藥藥品走簡化的「傳統使用登記」（TUR）。到 2016 年底各國核准了幾件（EMA 的統計，之後沒有再出新版）：28 國加挪威、冰島、列支敦斯登共收到 2,730 件申請，核准 1,719、審查中 574、駁回 240、撤回 197。英國 348 件最多（當時還在歐盟），其次是德國 285、波蘭 215、奧地利 209、西班牙 100、瑞典 76、匈牙利 65、捷克 61；馬爾他、冰島、列支敦斯登 0 件（列支敦斯登承認奧地利核准的登記），盧森堡沒有回覆。件數反映各國的植物藥傳統與市場大小，不代表哪一國管得嚴。另一條路「完善醫學使用」上市許可（WEU）核准 803 件，跟登記不相加。台灣的中藥是向衛福部辦理查驗登記。',
+        en: 'The EU’s 2004 traditional herbal medicinal products directive (2004/24/EC) lets herbal medicines with a long tradition of use but no clinical trials go through a simplified traditional use registration (TUR). Registrations granted by the end of 2016 (EMA’s figures, not updated since): the 28 EU countries plus Norway, Iceland and Liechtenstein received 2,730 applications, with 1,719 granted, 574 under assessment, 240 refused and 197 withdrawn. The UK granted the most, 348 (it was still in the EU), followed by Germany 285, Poland 215, Austria 209, Spain 100, Sweden 76, Hungary 65 and Czechia 61; Malta, Iceland and Liechtenstein granted none (Liechtenstein recognises Austrian registrations), and Luxembourg did not respond. Counts reflect each country’s herbal tradition and market size, not how strict it is. The separate well-established use (WEU) route had 803 authorisations, which are not added. In Taiwan, Chinese medicinal products are registered with the Ministry of Health and Welfare.',
+      },
+      unit: { zh: '件', en: 'registrations' },
+      file: 'herbal-tur.json',
+      timeless: true,
+      focus: EUROPE,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 10, 25, 50, 100, 200] } },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 件`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'registration' : 'registrations'}` }),
+      formatTick: (v) => fixed(v, 0),
     },
   ],
 };

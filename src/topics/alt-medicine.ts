@@ -115,6 +115,64 @@ const HERBALIST_LIST: ListPanelDef = {
       })),
 };
 
+// 傳統醫學的大學、醫院與博物館（Wikidata，依名稱找；第二十九批 708，pipeline/topics/alt_medicine_landmarks.py）
+const LANDMARK_KINDS: Text[] = [
+  { zh: '大學與學院', en: 'Universities and colleges' },
+  { zh: '醫院', en: 'Hospitals' },
+  { zh: '博物館', en: 'Museums' },
+];
+const LANDMARK_SYSTEMS: Text[] = [
+  { zh: '中醫', en: 'Chinese medicine' },
+  { zh: '阿育吠陀', en: 'Ayurveda' },
+  { zh: '順勢療法', en: 'Homeopathy' },
+  { zh: '尤納尼', en: 'Unani' },
+  { zh: '悉達', en: 'Siddha' },
+  { zh: '韓醫或東洋醫學', en: 'Korean or Oriental medicine' },
+  { zh: '其他傳統醫學', en: 'Other traditional medicine' },
+];
+const landmarkName = (p: PointRecord) => String((getLang() === 'zh' ? p.name : p.nameEn) ?? '');
+const landmarkLine = (p: PointRecord) =>
+  [tr(LANDMARK_KINDS[Number(p.kind) - 1] ?? OTHER), tr(LANDMARK_SYSTEMS[Number(p.sys) - 1] ?? OTHER)].join(' · ');
+const LANDMARKS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'landmarks',
+  file: 'landmarks.json',
+  label: { zh: '傳統醫學的大學、醫院與博物館', en: 'Traditional medicine universities, hospitals and museums' },
+  indicators: ['landmarks'],
+  radius: 3.5,
+  color: {
+    field: 'kind',
+    title: { zh: '類型', en: 'Type' },
+    thresholds: [1.5, 2.5],
+    classes: LANDMARK_KINDS.map((label, i) => ({ color: C[i], label })),
+  },
+  sortField: 'kind',
+  tooltip: (p, { countryName }) => ({
+    title: landmarkName(p),
+    detail: [landmarkLine(p), typeof p.iso3 === 'string' && p.iso3 ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+  }),
+};
+const LANDMARK_LIST: ListPanelDef = {
+  label: { zh: '傳統醫學的大學、醫院與博物館', en: 'Traditional medicine universities, hospitals and museums' },
+  tabLabel: { zh: '地標', en: 'Landmarks' },
+  indicators: ['landmarks'],
+  file: 'landmarks.json',
+  countryField: 'iso3',
+  empty: { zh: 'Wikidata 上這裡沒有名稱看得出是傳統醫學的大學、醫院或博物館', en: 'No traditional medicine university, hospital or museum identifiable by name in Wikidata here' },
+  rows: (points) =>
+    [...points]
+      .sort((a, b) => Number(a.kind) - Number(b.kind) || landmarkName(a).localeCompare(landmarkName(b)))
+      .map((p, i): ListRow => ({
+        key: `lm-${i}`,
+        title: landmarkName(p),
+        titleProper: getLang() !== 'zh',
+        properNoun: getLang() === 'zh' && p.nameEn !== p.name ? String(p.nameEn ?? '') : undefined,
+        lines: [landmarkLine(p)],
+        group: tr(LANDMARK_KINDS[Number(p.kind) - 1] ?? OTHER),
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 13 },
+      })),
+};
+
 const countText = (v: number) => tr({ zh: `${fixed(v, 0)} 處`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'place' : 'places'}` });
 
 export const altMedicine: TopicDefinition = {
@@ -124,6 +182,11 @@ export const altMedicine: TopicDefinition = {
   defaultIndicator: 'tcm',
   defaultYear: 2026,
   sources: [
+    {
+      name: { zh: 'Wikidata（傳統醫學的大學、醫院與博物館，經 QLever 依名稱查詢）', en: 'Wikidata (traditional medicine universities, hospitals and museums, by name via QLever)' },
+      url: 'https://www.wikidata.org/',
+      license: 'CC0',
+    },
     {
       name: {
         zh: 'OpenStreetMap（healthcare=alternative、healthcare:speciality、shop=herbalist、amenity=pharmacy，經 QLever 查詢）',
@@ -145,8 +208,8 @@ export const altMedicine: TopicDefinition = {
     zh: '據點是 OpenStreetMap 上 healthcare=alternative 的物件，加上任何醫療物件的專科（healthcare:speciality）寫了中醫、韓醫、推拿、針灸、整脊、整骨、順勢療法、自然療法或阿育吠陀的：台灣、南韓、中國的中醫診所多半標成診所加專科，不是 alternative。寫了好幾種專科的，依中醫、針灸、整脊、整骨、順勢療法、自然療法、阿育吠陀的順序歸一類；國家依座標判斷。這些數字同時在量 OSM 畫得多完整：台灣的中醫只畫到官方家數的約 14%，中國大陸只有 102 處，所以不能當各國實際有幾家，比較適合看哪一種在哪裡多。標籤是各國志工自己選的：南韓的韓醫多半也標成 traditional_chinese_medicine（算在中醫），日本多用 acupuncture。地圖縮小時點聚成甜甜圈，看各類的比例。',
     en: 'Places are OpenStreetMap objects tagged healthcare=alternative, plus any healthcare object whose speciality (healthcare:speciality) is Chinese or Korean medicine, tuina, acupuncture, chiropractic, osteopathy, homeopathy, naturopathy or ayurveda: Chinese medicine clinics in Taiwan, South Korea and China are mostly tagged as clinics with a speciality rather than as alternative. Places with several specialities are put in one type, in the order Chinese medicine, acupuncture, chiropractic, osteopathy, homeopathy, naturopathy, ayurveda; countries come from the coordinates. The counts also measure how completely OSM is mapped: it has only about 14% of Taiwan’s official Chinese medicine clinics and just 102 places in mainland China, so they are not the real number of places in each country and are better read as which type is common where. Tags are chosen by local volunteers: Korean medicine in South Korea is mostly also tagged traditional_chinese_medicine (counted as Chinese medicine), while Japan mostly uses acupuncture. When zoomed out the dots group into rings showing the mix of types.',
   }),
-  overlays: [PLACES, HERBALISTS],
-  listPanel: [PLACE_LIST, HERBALIST_LIST],
+  overlays: [PLACES, HERBALISTS, LANDMARKS],
+  listPanel: [PLACE_LIST, HERBALIST_LIST, LANDMARK_LIST],
   indicators: [
     {
       id: 'tcm',
@@ -257,6 +320,22 @@ export const altMedicine: TopicDefinition = {
       timeless: true,
       format: (v) => tr({ zh: `每百家藥局 ${fixed(v, 1)} 家`, en: `${fixed(v, 1)} per 100 pharmacies` }),
       formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'landmarks',
+      label: { zh: '傳統醫學的大學、醫院與博物館', en: 'Traditional medicine universities, hospitals and museums' },
+      description: {
+        zh: 'Wikidata 上名稱看得出是傳統醫學的大學與學院、醫院與博物館，共 245 處。大學與學院 127 所：印度 100 所（多半是阿育吠陀、順勢療法、悉達、尤納尼的學院），中國 18 所中醫藥大學；醫院 114 家：中國 73 家中醫院、印度 28 家；博物館 4 座：廣東、雲南、騰衝的中醫藥博物館，與南韓大邱藥令市的韓醫藥博物館。點的顏色是類型，清單另寫體系。這是靠名稱找的，不是靠分類（Wikidata 很少標「專科是傳統醫學」）：名稱裡沒有中醫、阿育吠陀這些字的就找不到，例如台灣的中國醫藥大學與各醫院的中醫部，所以台灣這裡是 0；名稱剛好有「台中醫院」這種字的已經排除，但仍可能有誤判。只當地標，不做各國的比較；台灣的中醫醫院與診所家數見「台灣的中醫」主題。',
+        en: 'Universities and colleges, hospitals and museums in Wikidata whose names identify them as traditional medicine institutions: 245 in all. 127 universities and colleges: 100 in India (mostly Ayurveda, homeopathy, Siddha and Unani colleges) and 18 universities of Chinese medicine in China; 114 hospitals: 73 Chinese medicine hospitals in China and 28 in India; 4 museums: the Chinese medicine museums of Guangdong, Yunnan and Tengchong and the Korean medicine museum at Yangnyeongsi in Daegu, South Korea. Points are coloured by type and the list gives the system. These were found by name, not by classification (Wikidata rarely records traditional medicine as a health specialty), so institutions whose names lack words such as Chinese medicine or Ayurveda are missed, including Taiwan’s China Medical University and hospital Chinese medicine departments, which is why Taiwan shows none; names that merely contain a place name such as Taichung have been excluded, but misclassifications are still possible. These are landmarks only, not a comparison between countries; Taiwan’s official counts of Chinese medicine hospitals and clinics are in the Chinese medicine in Taiwan topic.',
+      },
+      unit: { zh: '處', en: 'places' },
+      file: 'landmark-count.json',
+      layer: { kind: 'none' },
+      timeless: true,
+      integer: true,
+      unranked: true,
+      format: countText,
+      formatTick: (v) => fixed(v, 0),
     },
   ],
 };

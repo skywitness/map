@@ -382,6 +382,7 @@ STEPS = {
     "universal-media": "topics.universal_media",  # 2026-11-08 第二十八批 684：環球母公司的影視據點（白名單 pipeline/data/universal/media.csv）
     "universal-film": "topics.universal_film",  # 2026-11-08 第二十八批 685：環球的片、拍攝地、Peacock、台灣的票房（要先有 disney-plus 的程式；票房跟 box-office-tw 共用下載）
     "alt-medicine": "topics.alt_medicine",  # 2026-11-08 第二十九批 688：傳統與替代醫學的據點（OSM 經 QLever；台灣對照衛福部統計處表 1.6、2.2.2）
+    "alt-medicine-landmarks": "topics.alt_medicine_landmarks",  # 傳統醫學的大學、醫院與博物館（QLever 查 Wikidata 三支，第二十九批 708）
     "taiwan-tcm": "topics.taiwan_tcm",  # 2026-11-08 第二十九批 689：台灣的中醫（衛福部統計處表 1.6、1.7、2.2.2、3.3.8、3.2.8、3.2.6；縣市位置讀 divisions 的輸出）
     "tcm-systems": "topics.tcm_systems",  # 2026-11-08 第二十九批 691：傳統醫學的制度（WHO 2019、2024 年報告的 PDF，CC BY-NC-SA 3.0 IGO；分區對帳不對就報錯）
     "tcm-herbs": "topics.tcm_herbs",  # 2026-11-08 第二十九批 692：中藥材從哪裡來（臺灣中藥典第四版英文版 × Kew WCVP 的原生分布，WCVP 約 88 MB）
@@ -746,6 +747,7 @@ STEPS = {
     # 醫療照護相關感染與住院病人用抗生素（併進抗藥性，第二十批 320）：ECDC 點盛行率調查 2022–2023 的國家摘要表（35.9 MB）
     "amr-hai": "topics.amr_hai",
     "medicines": "topics.medicines",
+    "herbal-tur": "topics.herbal_tur",  # 藥品支出與取得的歐洲傳統草藥藥品登記（EMA 一份 PDF，約 0.5 MB；第二十九批 706）
     "drug-consumption": "topics.drug_consumption",
     "taiwan-medicines": "topics.taiwan_medicines",
     "clinical-trials": "topics.clinical_trials",
