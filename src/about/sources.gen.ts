@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 221;
-export const INDICATOR_COUNT = 1744;
+export const INDICATOR_COUNT = 1745;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","developers","innovation","publications","research-orgs","eu-research","digital","submarine-cables","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","museums","roller-coasters","tourism","lodging","nobel","sports","esports","game-companies","anime","online-video","record-labels","culture","dining"]},

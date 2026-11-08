@@ -43,6 +43,8 @@ GOODS: list[tuple[str, str, str, tuple[str, ...], bool]] = [
     ("animal-pharma", "製藥用動物原料（HS 0510）", "HS92", ("0510",), False),
     ("bird-nests", "燕窩與其他可食動物產品（HS 0410）", "HS92", ("0410",), False),
     ("horns-antlers", "角、鹿茸與其他未加工動物材料（HS 050790）", "HS92", ("050790",), False),
+    # 第二十九批 703：乳香、沒藥、阿魏這類天然樹膠與樹脂（130190；不含阿拉伯膠 130120 與蟲膠 130110）
+    ("resins", "天然樹膠與樹脂（HS 130190）", "HS92", ("130190",), False),
     ("toys", "玩具（HS 9501–9503）", "HS92", ("9501", "9502", "9503"), False),
     # 第二十四批 413（2026-11-06）：HS 第 95 章的鄰居，運動器材（不含運動服、運動鞋、自行車）與遊戲用品（實體的遊戲機、
     # 牌、桌遊，數位下載的遊戲不在貿易統計裡）；步驟 trade-leisure
@@ -194,9 +196,73 @@ def build_medicinal_plants() -> None:
     write_json(path, manifest)
 
 
-TCM_GOODS = ["plant-extracts", "animal-pharma", "bird-nests", "horns-antlers"]
+TCM_GOODS = ["plant-extracts", "animal-pharma", "bird-nests", "horns-antlers", "resins"]
+# 「藥材類進口來自中國的比例」（第二十九批 703，候選 1595）：這幾種各自與合計；進口至少 50 萬美元（BACI 是千美元）才算
+TCM_SHARE = ["medicinal-plants", *TCM_GOODS]
+MIN_IMPORT = 500
 
 
 def build_tcm() -> None:
-    """只做第二十九批 693 的四種（讀一次 BACI HS92）"""
-    build_some(TCM_GOODS)
+    """第二十九批 693、703：讀一次 BACI HS92，寫五種商品的流向、各國藥材類進口來自中國的比例，並印出三層量級（說明用）"""
+    rows = [(g, l, h, c) for g, l, h, c, _ in GOODS if g in TCM_SHARE]
+    goods = [(g, c, False) for g, _, h, c in rows] + [("pharma-bulk", ("3003",), False), ("pharma", ("3004",), False)]
+    print("  讀取 BACI HS92（藥材類與藥品）…")
+    data = _read("HS92", goods)
+    for gid in TCM_GOODS:
+        by_year = data[gid]
+        _write_item(OUT, gid, {y: _from_pairs({p: c[0] for p, c in pairs.items()}) for y, pairs in by_year.items()})
+        _summary(gid, by_year)
+    added = [{"id": g, "label": l, "source": f"BACI {h}"} for g, l, h, _ in rows if g in TCM_GOODS]
+    path = OUT / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["items"] = [i for i in manifest.get("items", []) if i["id"] not in TCM_GOODS] + added
+    manifest["generatedAt"] = now_iso()
+    write_json(path, manifest)
+    _china_share(data)
+    last = max(data["pharma"])
+    world = {g: sum(c[0] for c in data[g][last].values()) / 1e5 for g in ("medicinal-plants", "plant-extracts", "pharma-bulk", "pharma")}
+    print(f"  三層量級 {last} 年（億美元）：" + "、".join(f"{g} {v:,.1f}" for g, v in world.items()))
+    for g in ("pharma-bulk",):
+        ex: dict[str, float] = defaultdict(float)
+        for (e, _i), (v, _q) in data[g][last].items():
+            if e:
+                ex[e] += v
+        print(f"    {g} 出口前五：" + "、".join(f"{c} {v / 1e5:,.2f} 億" for c, v in sorted(ex.items(), key=lambda kv: -kv[1])[:5]))
+
+
+def _china_share(data: dict) -> None:
+    from common import indicator_file
+    series = {g: data[g] for g in TCM_SHARE}
+    years = sorted(set().union(*(set(v) for v in series.values())))
+    combined: dict[int, dict] = {}
+    for y in years:
+        pairs: dict = defaultdict(lambda: [0.0, 0.0])
+        for g in TCM_SHARE:
+            for p, c in series[g].get(y, {}).items():
+                pairs[p][0] += c[0]
+        combined[y] = pairs
+    series = {"tcm-all": combined, **series}
+    for gid, by_year in series.items():
+        values: dict[str, list] = {}
+        hints: dict[str, str] = {}
+        hints_en: dict[str, str] = {}
+        for k, y in enumerate(years):
+            tot: dict[str, float] = defaultdict(float)
+            chn: dict[str, float] = defaultdict(float)
+            for (e, i), c in by_year.get(y, {}).items():
+                if not i or i == "CHN":
+                    continue
+                tot[i] += c[0]
+                if e == "CHN":
+                    chn[i] += c[0]
+            for i, t in tot.items():
+                if t >= MIN_IMPORT:
+                    values.setdefault(i, [None] * len(years))[k] = round(chn[i] / t * 100, 1)
+                    if y == years[-1]:
+                        hints[i] = f"{y} 年進口 {t / 100:,.0f} 萬美元，來自中國 {chn[i] / 100:,.0f} 萬"
+                        hints_en[i] = f"Imports in {y}: US${t / 1000:,.1f} million, of which US${chn[i] / 1000:,.1f} million from China"
+        write_json(OUT / "china-share" / f"{gid}.json", indicator_file(f"china-share-{gid}", "%", years, values, hints=hints, hintsEn=hints_en))
+        lastv = {c: v[-1] for c, v in values.items() if v[-1] is not None}
+        top = sorted(lastv.items(), key=lambda kv: -kv[1])
+        print(f"  來自中國的比例 {gid} {years[-1]}：{len(lastv)} 國；" + "、".join(f"{c} {v}" for c, v in top[:12]) + " … "
+              + "、".join(f"{c} {lastv[c]}" for c in ("TWN", "HKG", "KOR", "JPN", "USA", "DEU", "SGP", "MYS", "VNM") if c in lastv))

@@ -74,6 +74,7 @@ const GOODS_RAW = [
   { id: 'animal-pharma', label: { zh: '製藥用動物原料（HS 0510）', en: 'Animal materials for pharmaceuticals (HS 0510)' }, group: RAW },
   { id: 'bird-nests', label: { zh: '燕窩與其他可食動物產品（HS 0410）', en: 'Edible bird’s nests and other animal products (HS 0410)' }, group: RAW },
   { id: 'horns-antlers', label: { zh: '角、鹿茸與其他未加工動物材料（HS 050790）', en: 'Horns, antlers and other unworked animal materials (HS 050790)' }, group: RAW },
+  { id: 'resins', label: { zh: '天然樹膠與樹脂（乳香、沒藥等，HS 130190）', en: 'Natural gums and resins (frankincense, myrrh and others, HS 130190)' }, group: RAW },
   ...GOODS_TONNES,
 ];
 
@@ -215,10 +216,10 @@ export const trade: TopicDefinition = {
       '農產品為 FAOSTAT 詳細貿易矩陣（2000 年起），出口以出口國、進口以進口國的申報為準，該年沒有申報的國家改用貿易夥伴的申報。' +
       '每個國家只列前 15 大夥伴，占比以對所有夥伴的總額計算。' +
       '二手衣是 BACI HS92 版的舊衣（HS 6309，1995 年起，以金額計，不含碎布 6310）：2024 年全球約 47 億美元，美國、中國、英國、德國、韓國出口最多；阿聯、巴基斯坦這類是分類與轉口中心，衣服最後去哪裡要再看它們的出口。' +
-      '汽車、手機、藥品、黃金、鑽石、回收物、化肥、運動器材、遊戲用品、中藥材的原料等 35 種商品是 BACI HS92 版（1995 年起，以金額計；回收物與化肥另有公噸）；HS92 分不開的純電車（870380）、手機（851712）、鋰電池（850760）、電視遊戲機（950450）用 HS17 版，2017 年起。' +
+      '汽車、手機、藥品、黃金、鑽石、回收物、化肥、運動器材、遊戲用品、中藥材的原料等 36 種商品是 BACI HS92 版（1995 年起，以金額計；回收物與化肥另有公噸）；HS92 分不開的純電車（870380）、手機（851712）、鋰電池（850760）、電視遊戲機（950450）用 HS17 版，2017 年起。' +
       '運動器材（HS 9506）不含運動服、運動鞋與自行車；健身與田徑器材（950691）是跑步機、重訓器材、瑜珈墊都在內的大項。遊戲用品（HS 9504）是實體的遊戲機、投幣式遊戲機、撲克牌與桌遊（也含撞球用品），數位下載的遊戲不在貿易統計裡；撲克牌（950440）含寶可夢、遊戲王這類集換式卡牌。' +
       '藥用植物是 HS 1211「主要供香料、藥用、殺蟲、殺菌用的植物」（甘草、人參、古柯葉、罌粟稈與其他，九成以上是「其他」），也含薰衣草這類香料植物；中藥材還散在別的章節（植物萃取物 1302、紅棗枸杞 0813、薑黃 0910…），所以不等於中藥材。全球一年約幾十億美元，跟藥品（HS 3004）差兩個數量級。' +
-      '植物萃取物、製藥用動物原料、燕窩、角與鹿茸是中藥材散在的其他章節，跟藥用植物（1211）依 HS 的章節註解互斥，不會重複計算，但也都不等於中藥材：植物萃取物只取甘草萃取（130212）、蛇麻（130213）與其他植物液汁與萃取物（130219），不含鴉片汁（130211）與果膠、瓊脂這些食品添加物，2024 年全球 43.5 億美元，出口中國 24.6%、印度 14.0%，進口美國 26.3%；製藥用動物原料（HS 0510）是麝香、膽汁、腺體這類做藥用的動物產品，最大宗是生技與製藥用的腺體與膽汁，全球 6.4 億美元，出口巴西 40.7%，進口香港 46.3%、南韓 15.7%；燕窩歸在 HS 0410「其他可食動物產品」（也含蜂王乳、可食昆蟲），全球 9.4 億美元，出口印尼 63.1%、馬來西亞 22.2%，進口中國 66.8%；角與鹿茸是 050790（角、蹄、爪、龜甲等未加工動物材料，不含象牙），也含工藝用的角，全球 1.7 億美元，出口紐西蘭 41.8%，進口中國 40.6%、南韓 20.4%，台灣進口 596 萬美元。' +
+      '植物萃取物、製藥用動物原料、燕窩、角與鹿茸是中藥材散在的其他章節，跟藥用植物（1211）依 HS 的章節註解互斥，不會重複計算，但也都不等於中藥材：植物萃取物只取甘草萃取（130212）、蛇麻（130213）與其他植物液汁與萃取物（130219），不含鴉片汁（130211）與果膠、瓊脂這些食品添加物，2024 年全球 43.5 億美元，出口中國 24.6%、印度 14.0%，進口美國 26.3%；製藥用動物原料（HS 0510）是麝香、膽汁、腺體這類做藥用的動物產品，最大宗是生技與製藥用的腺體與膽汁，全球 6.4 億美元，出口巴西 40.7%，進口香港 46.3%、南韓 15.7%；燕窩歸在 HS 0410「其他可食動物產品」（也含蜂王乳、可食昆蟲），全球 9.4 億美元，出口印尼 63.1%、馬來西亞 22.2%，進口中國 66.8%；角與鹿茸是 050790（角、蹄、爪、龜甲等未加工動物材料，不含象牙），也含工藝用的角，全球 1.7 億美元，出口紐西蘭 41.8%，進口中國 40.6%、南韓 20.4%，台灣進口 596 萬美元。天然樹膠與樹脂只取 130190（乳香、沒藥、阿魏這一類，不含食品用的阿拉伯膠 130120 與蟲膠），全球 5.7 億美元，出口阿富汗 21.8%、印度 13.0%、印尼 10.3%。量級對照（2024 年）：藥用植物 46.4 億、植物萃取物 43.5 億、散裝藥品（HS 3003）169.0 億、包裝好的藥品（3004）4,849.8 億美元，原料差了約 100 倍；3003、3004 絕大部分是西藥，不是同一條產業鏈的上下游。' +
       '瑞士、阿聯、香港、比利時、新加坡、荷蘭這類精煉、轉口與物流中心的進出口很大，不代表在那裡生產或使用；品牌國也不是產地。黃金不含央行之間的貨幣用黃金；鑽石的工業用鑽石不列；化肥的磷酸銨在 3105。' +
       '貿易依存度是世界銀行 WDI 的商品與服務出口加進口占 GDP（1960 年起），台灣用主計總處的國民所得統計自行計算；香港、新加坡、盧森堡超過 300% 是轉口貿易與跨國企業的帳，不代表「依賴」；世界合計的最新一年國家數不全，只畫到 2024 年。' +
       '長期出口、長期進口是 Harvard Atlas 的 SITC Rev. 2（1962–2024 年），UN Comtrade 的申報由 Growth Lab 用雙邊申報互相調和；台灣沒有向聯合國申報，台灣的值來自貿易夥伴的申報。1991 年以前的蘇聯算在俄羅斯，捷克斯洛伐克、南斯拉夫、東德沒有資料（拆分後的國家從獨立那一年起才有）。調和方法跟 BACI 不同，1995 年以後兩份的數字不一樣（2024 年台灣出口 Atlas 4,625 億美元、BACI 5,313 億），所以分成兩組，不接成一條。' +
@@ -229,10 +230,10 @@ export const trade: TopicDefinition = {
       "Agricultural products: FAOSTAT detailed trade matrix (from 2000), using the exporter's reports for exports and the importer's for imports; when a country did not report for a year, its partners' reports are used. " +
       'Only the top 15 partners of each country are listed; shares are of the total with all partners. ' +
       'Used clothing is HS 6309 worn clothing from the HS92 version of BACI (from 1995, by value, excluding rags under 6310): about US$4.7 billion in 2024, with the US, China, the UK, Germany and South Korea exporting the most; the UAE and Pakistan are sorting and re-export hubs, so follow their exports to see where the clothes end up. ' +
-      'The 35 goods such as cars, phones, medicines, gold, diamonds, scrap, fertilisers, sports equipment, games and traditional medicine materials come from the HS92 version of BACI (from 1995, by value; scrap and fertilisers also in tonnes); battery-electric cars (870380), mobile phones (851712), lithium-ion batteries (850760) and video game consoles (950450), which HS92 cannot separate, use the HS17 version from 2017. ' +
+      'The 36 goods such as cars, phones, medicines, gold, diamonds, scrap, fertilisers, sports equipment, games and traditional medicine materials come from the HS92 version of BACI (from 1995, by value; scrap and fertilisers also in tonnes); battery-electric cars (870380), mobile phones (851712), lithium-ion batteries (850760) and video game consoles (950450), which HS92 cannot separate, use the HS17 version from 2017. ' +
       'Sports equipment (HS 9506) excludes sportswear, sports shoes and bicycles; gym and athletics equipment (950691) is a broad heading covering treadmills, weights and yoga mats. Games (HS 9504) are physical consoles, coin-operated machines, playing cards and board games (billiards equipment too); downloaded games are not in trade statistics. Playing cards (950440) include trading cards such as Pokémon and Yu-Gi-Oh!. ' +
       'Medicinal plants are HS 1211, plants used mainly in perfumery, pharmacy or as insecticides and fungicides (liquorice, ginseng, coca leaf, poppy straw and others, over 90% in the "other" line), including aromatic plants such as lavender; traditional Chinese medicine ingredients are also spread across other headings (plant extracts 1302, jujubes and goji 0813, turmeric 0910…), so this is not the same as TCM. World trade is a few billion US dollars a year, two orders of magnitude below medicines (HS 3004). ' +
-      'Plant extracts, animal materials for pharmaceuticals, bird’s nests and horns and antlers are other headings where traditional Chinese medicine ingredients are found; under the HS chapter notes they do not overlap with medicinal plants (1211), but none of them equals TCM: plant extracts take only liquorice extract (130212), hops (130213) and other vegetable saps and extracts (130219), excluding opium (130211) and food additives such as pectin and agar, US$4.35 billion in 2024, with China exporting 24.6% and India 14.0% and the US importing 26.3%; animal materials for pharmaceuticals (HS 0510) are musk, bile, glands and the like, mostly glands and bile for biotech and drug making, US$640 million, with Brazil exporting 40.7% and Hong Kong (46.3%) and South Korea (15.7%) importing; bird’s nests fall under HS 0410, other edible animal products (also royal jelly and edible insects), US$940 million, exported by Indonesia (63.1%) and Malaysia (22.2%) and imported by China (66.8%); horns and antlers are 050790 (unworked horns, hooves, claws, tortoiseshell and similar, excluding ivory), including horn for crafts, US$170 million, exported by New Zealand (41.8%) and imported by China (40.6%) and South Korea (20.4%), with Taiwan importing US$5.96 million. ' +
+      'Plant extracts, animal materials for pharmaceuticals, bird’s nests and horns and antlers are other headings where traditional Chinese medicine ingredients are found; under the HS chapter notes they do not overlap with medicinal plants (1211), but none of them equals TCM: plant extracts take only liquorice extract (130212), hops (130213) and other vegetable saps and extracts (130219), excluding opium (130211) and food additives such as pectin and agar, US$4.35 billion in 2024, with China exporting 24.6% and India 14.0% and the US importing 26.3%; animal materials for pharmaceuticals (HS 0510) are musk, bile, glands and the like, mostly glands and bile for biotech and drug making, US$640 million, with Brazil exporting 40.7% and Hong Kong (46.3%) and South Korea (15.7%) importing; bird’s nests fall under HS 0410, other edible animal products (also royal jelly and edible insects), US$940 million, exported by Indonesia (63.1%) and Malaysia (22.2%) and imported by China (66.8%); horns and antlers are 050790 (unworked horns, hooves, claws, tortoiseshell and similar, excluding ivory), including horn for crafts, US$170 million, exported by New Zealand (41.8%) and imported by China (40.6%) and South Korea (20.4%), with Taiwan importing US$5.96 million. Natural gums and resins take only 130190 (frankincense, myrrh, asafoetida and the like, excluding gum arabic 130120, used as a food additive, and lac), US$570 million, exported by Afghanistan (21.8%), India (13.0%) and Indonesia (10.3%). For scale in 2024: medicinal plants US$4.64 billion, plant extracts US$4.35 billion, medicines in bulk (HS 3003) US$16.9 billion and packaged medicines (3004) US$485 billion, about 100 times the raw materials; 3003 and 3004 are mostly Western medicines and not the same supply chain. ' +
       'Refining, re-export and logistics hubs such as Switzerland, the UAE, Hong Kong, Belgium, Singapore and the Netherlands trade large amounts without producing or using them, and brand countries are not where goods are made. Gold excludes monetary gold traded between central banks; industrial diamonds are not listed; ammonium phosphates are under 3105. ' +
       'Trade openness is exports plus imports of goods and services as a share of GDP from the World Bank WDI (from 1960); Taiwan is computed from DGBAS national accounts. Hong Kong, Singapore and Luxembourg exceed 300% because of re-exports and multinational accounting, not "dependence"; the world total stops at 2024 because the latest year covers too few countries. ' +
       'Long-run exports and imports come from the Harvard Atlas SITC Rev. 2 data (1962–2024): UN Comtrade reports reconciled by the Growth Lab using both sides of each flow; Taiwan does not report to the UN, so its figures come from its partners. The Soviet Union is counted as Russia before 1992; Czechoslovakia, Yugoslavia and East Germany have no data (successor states appear from independence). The reconciliation differs from BACI, so the two disagree after 1995 (Taiwan’s 2024 exports: US$462.5 billion in the Atlas, US$531.3 billion in BACI); they are kept as separate indicators rather than spliced. ' +
@@ -258,6 +259,31 @@ export const trade: TopicDefinition = {
         en: 'Click a country to draw arcs to its top 15 import sources; line width is proportional to the value of imports.',
       },
     ),
+    {
+      // 第二十九批 703（候選 1595）：pipeline/topics/trade_goods.py 的 _china_share()
+      id: 'china-share',
+      label: { zh: '藥材類進口來自中國的比例', en: 'Share of medicinal material imports from China' },
+      description: {
+        zh: '這一國的藥材類進口（金額）有多少比例來自中國，子項目切換：六種合計（藥用植物 1211、植物萃取物、製藥用動物原料 0510、燕窩所在的 0410、角與鹿茸 050790、天然樹膠與樹脂 130190）或其中一種；那一年進口至少 50 萬美元才上色，拖時間軸看 1995 年起的變化。2024 年六種合計 147 個國家或地區：蘇丹 81.9% 最高，日本 63.4%、台灣 62.5%、敘利亞 58.1%、越南 52.1%、馬來西亞 44.9%；南韓 29.7%、香港 29.5%、美國 21.2%、德國 6.8%。只看藥用植物（1211）更集中：越南 85.6%、台灣 83.2%、日本 82.9%、南韓 73.2%，美國只有 5.6%。香港轉口會讓「來自中國」看起來比較少（中國先出口到香港、香港再出口），各碼也都不等於中藥材。',
+        en: 'How much of each country’s imports of medicinal materials (by value) comes from China; sub-items switch between the six combined (medicinal plants 1211, plant extracts, animal materials for pharmaceuticals 0510, bird’s nests under 0410, horns and antlers 050790, natural gums and resins 130190) and each one. Only countries importing at least US$500,000 that year are coloured; drag the timeline back to 1995. In 2024, for the six combined across 147 countries and territories, Sudan is highest at 81.9%, followed by Japan (63.4%), Taiwan (62.5%), Syria (58.1%), Vietnam (52.1%) and Malaysia (44.9%); South Korea 29.7%, Hong Kong 29.5%, the US 21.2% and Germany 6.8%. Medicinal plants (1211) alone are more concentrated: Vietnam 85.6%, Taiwan 83.2%, Japan 82.9% and South Korea 73.2%, against 5.6% for the US. Re-exports through Hong Kong make the share from China look smaller (China exports to Hong Kong, which re-exports), and none of these headings equals traditional Chinese medicine.',
+      },
+      unit: '%',
+      file: 'china-share/{item}.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 35, 50, 70] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      dimension: {
+        label: { zh: '商品', en: 'Product' },
+        options: [
+          { id: 'tcm-all', label: { zh: '六種合計', en: 'All six combined' } },
+          ...['medicinal-plants', 'plant-extracts', 'animal-pharma', 'bird-nests', 'horns-antlers', 'resins'].map((id) => {
+            const item = GOODS_RAW.find((g) => g.id === id);
+            return { id, label: item ? item.label : { zh: id, en: id } };
+          }),
+        ],
+        defaultOption: 'tcm-all',
+      },
+    },
     flowTonnes(
       'export',
       { zh: '出口（公噸）', en: 'Exports (tonnes)' },
