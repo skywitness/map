@@ -371,6 +371,13 @@ STEPS = {
     "attractions-osm": "topics.attractions_osm",
     "castles-taiwan": "topics.castles_taiwan",
     "viewpoints-art": "topics.viewpoints_art",
+    "castles-osm": "topics.castles_osm",
+    "attractions-more": "topics.attractions_more",
+    "urban-parks": "topics.urban_parks",
+    "euro-culture": "topics.euro_culture",
+    "heritage-more": "topics.heritage_more",
+    "tw-factories": "topics.tw_factories",
+    "game-companies": "topics.game_companies",
     "web-platforms": "topics.web_platforms",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",
