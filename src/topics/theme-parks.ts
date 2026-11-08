@@ -4,7 +4,7 @@ import { MAP_TOKENS } from '../theme/tokens';
 import { parksOverlay } from './attractions';
 import { PARK_LIST, PARK_VISITORS } from './attractions-extra';
 import { BRAND_INDICATOR, BRAND_LIST, BRAND_OVERLAYS, BRAND_SOURCES } from './park-brands';
-import type { PointsOverlayDef, TopicDefinition } from './types';
+import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 樂園（新主題，2026-11-08，製作手冊第二十七批 630，候選 1371、1387、1383、1381、1382；使用者 2026-11-07 指定從「景點地圖」獨立）：
@@ -35,6 +35,103 @@ const OPENED: PointsOverlayDef = {
   },
 };
 const empty = { zh: '這個指標只有點，國家不上色', en: 'This indicator shows points only' };
+
+/** 樂園的面積與園內的雲霄飛車（第二十七批 634，OSM 畫成面的 tourism=theme_park，1 公頃以上） */
+const C = MAP_TOKENS.categorical;
+const parkName = (p: PointRecord) => {
+  const zh = typeof p.zh === 'string' && p.zh ? p.zh : null;
+  const name = typeof p.name === 'string' && p.name ? p.name : null;
+  return (getLang() === 'zh' ? zh ?? name : name ?? zh) ?? tr({ zh: '（沒有名稱）', en: '(unnamed)' });
+};
+const areaText = (ha: unknown) =>
+  typeof ha === 'number' ? tr({ zh: `${fixed(ha, ha < 10 ? 1 : 0)} 公頃`, en: `${fixed(ha, ha < 10 ? 1 : 0)} ha` }) : '';
+const coasterText = (n: unknown) =>
+  typeof n === 'number' && n > 0 ? tr({ zh: `園內 ${n} 座雲霄飛車`, en: n === 1 ? '1 roller coaster' : `${n} roller coasters` }) : tr({ zh: '園內沒有標雲霄飛車', en: 'no roller coaster mapped' });
+const AREA: PointsOverlayDef = {
+  kind: 'points',
+  id: 'park-area',
+  file: 'park-area.json',
+  label: { zh: 'OSM 畫成面的樂園', en: 'Parks mapped as areas in OSM' },
+  indicators: ['park-size'],
+  radius: { field: 'ha', stops: [[1, 1.8], [10, 2.8], [50, 4.5], [200, 7], [1000, 10]] },
+  color: {
+    field: 'rc',
+    title: { zh: '園內的雲霄飛車', en: 'Roller coasters inside' },
+    thresholds: [0.5, 1.5, 4.5, 9.5],
+    classes: [
+      { color: MAP_TOKENS.categoricalOther, label: { zh: '沒有', en: 'None' } },
+      { color: C[0], label: { zh: '1 座', en: '1' } },
+      { color: C[1], label: { zh: '2–4 座', en: '2–4' } },
+      { color: C[2], label: { zh: '5–9 座', en: '5–9' } },
+      { color: C[3], label: { zh: '10 座以上', en: '10 or more' } },
+    ],
+  },
+  sortField: 'rc',
+  tooltip: (p, ctx) => ({
+    title: parkName(p),
+    detail: [areaText(p.ha), coasterText(p.rc), typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null].filter(Boolean).join(' · '),
+  }),
+};
+/** 左邊的清單：這一國的樂園，依園內雲霄飛車多寡、再依面積（沒選國家時只列有雲霄飛車的） */
+const AREA_LIST: ListPanelDef = {
+  label: { zh: '樂園的大小', en: 'Park sizes' },
+  tabLabel: { zh: '大小', en: 'Size' },
+  indicators: ['park-size'],
+  file: 'park-area.json',
+  countryField: 'iso3',
+  empty: { zh: '這裡沒有 OSM 畫成面的樂園', en: 'No parks mapped as areas here' },
+  rows: (points, { countryName }) => {
+    const n = (v: unknown) => (typeof v === 'number' ? v : 0);
+    const list = points.length > 800 ? points.filter((p) => n(p.rc) > 0) : points;
+    return [...list]
+      .sort((a, b) => n(b.rc) - n(a.rc) || n(b.ha) - n(a.ha))
+      .map((p, i): ListRow => ({
+        key: `${p.osm}-${i}`,
+        title: parkName(p),
+        lines: [[areaText(p.ha), coasterText(p.rc)].join(' · '), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''],
+        target: { lon: p.lon as number, lat: p.lat as number, zoom: 14 },
+        link: typeof p.osm === 'string' ? { href: `https://www.openstreetmap.org/${p.osm[0] === 'w' ? 'way' : 'relation'}/${p.osm.slice(1)}`, label: 'OpenStreetMap' } : undefined,
+      }));
+  },
+};
+
+/** 已關閉的樂園（第二十七批 634，英文維基「List of defunct amusement parks」） */
+const DEFUNCT: PointsOverlayDef = {
+  kind: 'points',
+  id: 'defunct-parks',
+  file: 'defunct.json',
+  label: { zh: '已關閉的樂園', en: 'Defunct parks' },
+  indicators: ['defunct'],
+  radius: 3.5,
+  color: {
+    field: 'c',
+    title: { zh: '關園的年代', en: 'Closed' },
+    thresholds: [1, 1950, 1990, 2010],
+    classes: [
+      { color: MAP_TOKENS.categoricalOther, label: { zh: '年份不詳', en: 'Year unknown' } },
+      { color: C[4], label: { zh: '1950 年以前', en: 'Before 1950' } },
+      { color: C[5], label: { zh: '1950–1989', en: '1950–1989' } },
+      { color: C[6], label: { zh: '1990–2009', en: '1990–2009' } },
+      { color: C[7], label: { zh: '2010 年以後', en: '2010 or later' } },
+    ],
+  },
+  tooltip: (p, ctx) => {
+    const o = typeof p.o === 'number' ? p.o : null;
+    const c = typeof p.c === 'number' && p.c > 0 ? p.c : null;
+    const years = o || c ? `${o ?? '?'}–${c ?? '?'}` : null;
+    return {
+      title: parkName(p),
+      detail: [
+        years ? tr({ zh: `${years} 年`, en: years }) : null,
+        p.ct === 1 ? tr({ zh: '位置是城市', en: 'city location' }) : null,
+        typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      properNoun: getLang() === 'zh' && typeof p.zh === 'string' && p.zh ? String(p.name) : undefined,
+    };
+  },
+};
 
 /** 單一樂園 2024 年人次 ÷ 2019 年（第二十七批 631）：發散色，100% 附近是中間的淡色 */
 const D = MAP_TOKENS.diverging;
@@ -93,14 +190,19 @@ export const themeParks: TopicDefinition = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
     },
     ...BRAND_SOURCES,
+    {
+      name: { zh: '英文維基百科「List of defunct amusement parks」（已關閉的樂園）', en: 'English Wikipedia, “List of defunct amusement parks”' },
+      url: 'https://en.wikipedia.org/wiki/List_of_defunct_amusement_parks?oldid=1374461581',
+      license: 'CC BY-SA 4.0',
+    },
   ],
   note: {
     zh: '樂園的點是 Wikidata 的主題樂園、遊樂園與雲霄飛車（景點地圖的同一份），各國收錄程度差很多，只畫點、不算各國數量。各國的座數改用 OpenStreetMap 的 tourism=theme_park：OSM 標得很寬（伊朗、俄羅斯多半是城市裡的小遊樂場），也在量 OSM 畫得多完整，所以不能當「主題樂園排名」，每百萬人只替 OSM 覆蓋良好的國家上色。開園年份是 Wikidata 的創立時間（P571），只有約三成的樂園有，有時是公司成立年。人次是 TEA／AECOM 的估計（英文維基轉載），台灣是觀光署的數字。台灣的票價是觀光署資料裡的最後一次更新（多半是 2018 年），不是現價。',
     en: 'Park dots are Wikidata theme parks, amusement parks and roller coasters (the same data as Attractions); Wikidata coverage varies widely by country, so parks are drawn but not counted there. Country counts use OpenStreetMap’s tourism=theme_park, which is applied loosely (most in Iran and Russia are small urban fairgrounds) and also measures how completely OSM is mapped, so it is not a ranking of theme parks; parks per million people are shown only for countries well covered by OSM. Opening years are Wikidata inception dates (P571), available for only about 30% of parks and sometimes the company’s founding year. Attendance is TEA/AECOM estimates as reproduced on English Wikipedia, and Tourism Administration figures for Taiwan. Taiwan ticket prices are the last update in the Tourism Administration data (mostly 2018), not current prices.',
   },
   panelExtra: () => import('./panels/ThemeParksPanel'),
-  overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY, ...BRAND_OVERLAYS],
-  listPanel: [PARK_LIST, BRAND_LIST],
+  overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY, ...BRAND_OVERLAYS, AREA, DEFUNCT],
+  listPanel: [PARK_LIST, BRAND_LIST, AREA_LIST],
   indicators: [
     {
       id: 'parks',
@@ -222,5 +324,40 @@ export const themeParks: TopicDefinition = {
     },
     // 2026-11-08（製作手冊第二十七批 632）樂園品牌的據點
     BRAND_INDICATOR,
+    // 2026-11-08（製作手冊第二十七批 634）樂園的面積與園內雲霄飛車、已關閉的樂園
+    {
+      id: 'park-size',
+      label: { zh: '樂園有多大、園內有幾座雲霄飛車', en: 'Park size and roller coasters inside' },
+      description: {
+        zh: 'OpenStreetMap 上畫成面的樂園（tourism=theme_park，1 公頃以上，137 國 5,143 座）：點的大小是面積，顏色是園內有名稱的雲霄飛車有幾座（落在樂園的面裡的 attraction=roller_coaster，依名稱算）。有雲霄飛車的 447 座、共 1,445 座；最多的是德國 Europa-Park 27 座、波蘭 Energylandia 22 座、美國 Cedar Point 19 座。台灣：六福村 42.4 公頃 4 座，劍湖山 43.1 公頃、遠雄海洋公園 13.7 公頃、臺北兒童新樂園 3.8 公頃各 1 座。OSM 的邊界畫法不一致（迪士尼世界 7,420 公頃是整個度假區，有的只畫核心區），面積不能拿來排名；同一座雲霄飛車的不同部分取了不同名稱時會多算。左邊的清單列這一國的樂園。',
+        en: 'Parks mapped as areas in OpenStreetMap (tourism=theme_park, 1 hectare or more; 5,143 in 137 countries): dot size shows area and colour the number of named roller coasters inside (attraction=roller_coaster features within the park area, counted by name). 447 parks have roller coasters, 1,445 in all; Europa-Park in Germany has the most (27), followed by Energylandia in Poland (22) and Cedar Point in the US (19). Taiwan: Leofoo Village (42.4 ha) has 4, and Janfusun Fancyworld (43.1 ha), Farglory Ocean Park (13.7 ha) and Taipei Children’s Amusement Park (3.8 ha) 1 each. OSM boundaries are drawn inconsistently (Walt Disney World’s 7,420 ha is the whole resort, while some parks only include the core), so areas cannot be ranked; a coaster whose parts carry different names is counted more than once. The list on the left shows a country’s parks.',
+      },
+      unit: '',
+      file: '../attractions/visitors.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      timeless: true,
+      missing: empty,
+    },
+    {
+      id: 'defunct',
+      label: { zh: '已關閉的樂園', en: 'Defunct amusement parks' },
+      description: {
+        zh: '英文維基「List of defunct amusement parks」列的已關閉、拆除或廢棄的樂園，依國家加總（327 座、53 國；美國另有一份獨立的清單，這裡沒收）。澳洲 63 座最多，日本、英國各 30 座，加拿大 29 座；有關園年份的 252 座裡，2000 年代關了 71 座、2010 年代 51 座、1990 年代 50 座。台灣 6 座，包括 2015 年關閉的八仙樂園（Formosa Fun Coast）。點的顏色是關園的年代，位置是樂園在 Wikidata 的座標，沒有的用城市。清單多寡反映維基編者的關注，不是各國實際關了多少座。',
+        en: 'Closed, demolished or abandoned amusement parks listed in the English Wikipedia “List of defunct amusement parks”, counted by country (327 parks in 53 countries; the US has a separate list that is not included). Australia has the most (63), followed by Japan and the UK (30 each) and Canada (29); of the 252 with a closing year, 71 closed in the 2000s, 51 in the 2010s and 50 in the 1990s. Taiwan has 6, including Formosa Fun Coast, closed in 2015. Dot colour shows when the park closed; locations are the park’s Wikidata coordinates, or the city’s when there are none. The list reflects what Wikipedia editors have recorded, not how many parks actually closed in each country.',
+      },
+      unit: { zh: '座', en: 'parks' },
+      file: 'defunct-count.json',
+      layer: { kind: 'bubble', legendValues: [1, 10, 50] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: v === 1 ? '1 park' : `${fixed(v, 0)} parks` }),
+      formatTick: (v) => fixed(v, 0),
+      missing: { zh: '清單上沒有這國已關閉的樂園', en: 'No defunct park listed here' },
+      noValue: { USA: { zh: '美國另有獨立的清單，這裡沒收', en: 'The US has a separate list, not included here' } },
+    },
   ],
 };
