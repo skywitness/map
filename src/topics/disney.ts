@@ -836,8 +836,8 @@ export const disney: TopicDefinition = {
     },
   ],
   note: {
-    zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
-    en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
+    zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。跟環球影城在同一座城市的樂園，對照在「樂園」主題的「同一座城市的兩家樂園」。',
+    en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call. Where Disney and Universal share a city, see “Two park brands in the same city” in the Theme parks topic.',
   },
   overlays: [RESORT_RINGS, SITES, PLANNED, PARK_VISITS, PARK_RIDES, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS, FILMING_REGIONS, FILMING, SETTINGS_REGIONS, SETTINGS, FRANCE, STORES],
   listPanel: [PARK_LIST, VISIT_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST, PLUS_LIST, FILMING_LIST, SETTINGS_LIST, FRANCE_LIST, STORE_LIST],

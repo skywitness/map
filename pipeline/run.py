@@ -379,6 +379,7 @@ STEPS = {
     "universal-other": "topics.universal_other",  # 2026-11-08 第二十八批 683：樂園之外的環球（白名單 pipeline/data/universal/other.csv；要先有 universal）
     "universal-media": "topics.universal_media",  # 2026-11-08 第二十八批 684：環球母公司的影視據點（白名單 pipeline/data/universal/media.csv）
     "universal-film": "topics.universal_film",  # 2026-11-08 第二十八批 685：環球的片、拍攝地、Peacock、台灣的票房（要先有 disney-plus 的程式；票房跟 box-office-tw 共用下載）
+    "park-twin-cities": "topics.park_twin_cities",  # 2026-11-08 第二十八批 686：同一座城市的兩家樂園（樂園主題的共用指標；要先有 disney-visits、universal-visits）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",
     "roller-coasters": "topics.roller_coasters",

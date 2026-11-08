@@ -577,8 +577,8 @@ export const universal: TopicDefinition = {
     },
   ],
   note: {
-    zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是環球影城或它的母公司提供的。度假區（例如奧蘭多）與裡面的樂園是兩層，「幾座樂園」只算營運中的主題樂園與水上樂園。台灣沒有環球的樂園。',
-    en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by Universal or its parent company. Resorts (such as Orlando) and the parks inside them are two levels, and park counts include open theme and water parks only. Taiwan has no Universal park.',
+    zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是環球影城或它的母公司提供的。度假區（例如奧蘭多）與裡面的樂園是兩層，「幾座樂園」只算營運中的主題樂園與水上樂園。台灣沒有環球的樂園。跟迪士尼在同一座城市的樂園，對照在「樂園」主題的「同一座城市的兩家樂園」。',
+    en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by Universal or its parent company. Resorts (such as Orlando) and the parks inside them are two levels, and park counts include open theme and water parks only. Taiwan has no Universal park. Where Universal and Disney share a city, see “Two park brands in the same city” in the Theme parks topic.',
   },
   overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, OTHER, OTHER_PLANNED, MEDIA, PARK_VISITS, FILMING_REGIONS, FILMING],
   listPanel: [PARK_LIST, VISIT_LIST, OTHER_LIST, OWN_LIST, MEDIA_LIST, FILMING_LIST, DECADE_LIST, PEACOCK_LIST, TW_FILMS_LIST],

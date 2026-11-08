@@ -4,6 +4,7 @@ import { MAP_TOKENS } from '../theme/tokens';
 import { parksOverlay } from './attractions';
 import { PARK_LIST, PARK_VISITORS } from './attractions-extra';
 import { BRAND_INDICATOR, BRAND_LIST, BRAND_OVERLAYS, BRAND_SOURCES } from './park-brands';
+import { TWIN_INDICATOR, TWIN_LIST } from './park-twin-cities';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
@@ -202,7 +203,7 @@ export const themeParks: TopicDefinition = {
   },
   panelExtra: () => import('./panels/ThemeParksPanel'),
   overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY, ...BRAND_OVERLAYS, AREA, DEFUNCT],
-  listPanel: [PARK_LIST, BRAND_LIST, AREA_LIST],
+  listPanel: [PARK_LIST, BRAND_LIST, AREA_LIST, TWIN_LIST],
   indicators: [
     {
       id: 'parks',
@@ -324,6 +325,8 @@ export const themeParks: TopicDefinition = {
     },
     // 2026-11-08（製作手冊第二十七批 632）樂園品牌的據點
     BRAND_INDICATOR,
+    // 2026-11-08（製作手冊第二十八批 686）同一座城市的兩家樂園
+    TWIN_INDICATOR,
     // 2026-11-08（製作手冊第二十七批 634）樂園的面積與園內雲霄飛車、已關閉的樂園
     {
       id: 'park-size',
