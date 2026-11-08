@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 217;
-export const INDICATOR_COUNT = 1723;
+export const INDICATOR_COUNT = 1724;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","developers","innovation","publications","research-orgs","eu-research","digital","submarine-cables","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","museums","roller-coasters","tourism","lodging","nobel","sports","esports","game-companies","anime","online-video","record-labels","culture","dining"]},
@@ -371,6 +371,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Pew Research Center，〈Polygamy is rare around the world and mostly confined to a few regions〉（2020，摘錄）","en":"Pew Research Center, “Polygamy is rare around the world and mostly confined to a few regions” (2020, excerpts)"},"url":"https://www.pewresearch.org/short-reads/2020/12/07/polygamy-is-rare-around-the-world-and-mostly-confined-to-a-few-regions/","licenses":[{"zh":"Pew 使用條款（只能摘錄）","en":"Pew Research Center terms of use (excerpts only)"}],"topics":["marriage"]},
   {"name":{"zh":"Piel 等 2013〈Global Burden of Sickle Cell Anaemia in Children under Five, 2010–2050〉，PLoS Medicine 10(7):e1001484，Table S2","en":"Piel et al. 2013, “Global Burden of Sickle Cell Anaemia in Children under Five, 2010–2050”, PLoS Medicine 10(7):e1001484, Table S2"},"url":"https://doi.org/10.1371/journal.pmed.1001484","licenses":["CC BY 4.0"],"topics":["red-cell-traits"]},
   {"name":{"zh":"Ramsar Sites Information Service（拉姆薩濕地的中心點）","en":"Ramsar Sites Information Service (site centroids)"},"url":"https://rsis.ramsar.org/","licenses":["CC BY 4.0"],"topics":["world-heritage"]},
+  {"name":{"zh":"re3data.org（研究資料典藏庫的登錄，2026-11-08 逐筆抓的 3,541 筆）","en":"re3data.org (registry of research data repositories; 3,541 records fetched on 8 Nov 2026)"},"url":"https://doi.org/10.17616/R3D","licenses":["CC0"],"topics":["research-orgs"]},
   {"name":{"zh":"Reuters Institute《Digital News Report 2026》（新聞 podcast、AI 聊天機器人、信任、付費、社群與影音平台的觸達；DOI 10.60625/risj-4vgf-s811）","en":"Reuters Institute, Digital News Report 2026 (news podcasts, AI chatbots, trust, payment, social and video platform reach; DOI 10.60625/risj-4vgf-s811)"},"url":"https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026","licenses":["CC BY 4.0"],"topics":["reads"]},
   {"name":{"zh":"Richter 等 2024，Spatial Database of Planted Trees（SDPT 2.0），World Resources Institute","en":"Richter et al. 2024, Spatial Database of Planted Trees (SDPT Version 2.0), World Resources Institute"},"url":"https://data.globalforestwatch.org/","licenses":["CC BY 4.0"],"topics":["forest"]},
   {"name":{"zh":"ROR（Research Organization Registry）v2.15，2026-10-20 的資料傾印（Zenodo）","en":"ROR (Research Organization Registry) v2.15 data dump, 20 Oct 2026 (Zenodo)"},"url":"https://doi.org/10.5281/zenodo.23500708","licenses":["CC0"],"topics":["research-orgs"]},

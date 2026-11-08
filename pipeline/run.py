@@ -337,6 +337,7 @@ STEPS = {
     "ict-sector": "topics.ict_sector",
     # 全世界的研究機構在哪裡（第二十七批 597）：ROR v2.15 的 Zenodo 傾印
     "research-orgs": "topics.research_orgs",
+    "research-repos": "topics.research_repos",  # 2026-11-08 第二十七批 597 的候選 1324：re3data 的研究資料典藏庫（map-plan data/re3data/ 的 zip 複製到 .cache/re3data/）
     # 開放取用期刊（第二十七批 599）：DOAJ 的期刊 CSV
     "oa-journals": "topics.oa_journals",
     "scientist-mobility": "topics.scientist_mobility",

@@ -7,17 +7,23 @@
 """
 from __future__ import annotations
 
+import hashlib
 import re
 import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 
 from common import CACHE_DIR, USER_AGENT, download
 
 BASE = "https://www.re3data.org/api/v1"
 NS = {"r3d": "http://www.re3data.org/schema/2-2"}
 CACHE = CACHE_DIR / "re3data"
+# 本機 session 2026-11-08 照 robots.txt 允許的逐筆 API 抓好、打包放在 map-plan 的 data/re3data/（README 有抓法與檢查）；
+# 重跑前把 zip 複製到 pipeline/.cache/re3data/
+ZIP = CACHE / "re3data-repositories.zip"
+ZIP_SHA256 = "1ebb8e1e9f3e4adfe42c19da24e448c84e692473b09e73ce97dd9bec31a8dc82"
 
 
 def ids() -> list[str]:
@@ -57,19 +63,34 @@ def fetch_all(delay: float = 2.0) -> int:
     return len(todo)
 
 
-def records() -> list[dict]:
-    """每一筆：id、name、type（可能多個）、countries（營運機構的國家，ISO3）、start（年）、subjects（DFG 第一層學科名）"""
-    out = []
+def _sources():
+    """(id, XML bytes)：有本機 session 打包的 zip 就讀 zip（map-plan 的 data/re3data/，2026-11-08 抓的 3,541 筆），
+    沒有就讀 fetch_all() 逐筆存的快取"""
+    if ZIP.exists():
+        if hashlib.sha256(ZIP.read_bytes()).hexdigest() != ZIP_SHA256:
+            raise RuntimeError(f"{ZIP} 的 SHA-256 跟 map-plan 的 README 不一樣，檔案可能換了版本，先看過再改 ZIP_SHA256")
+        with zipfile.ZipFile(ZIP) as z:
+            for name in sorted(z.namelist()):
+                if re.fullmatch(r"r3d\d+\.xml", name):
+                    yield name[:-4], z.read(name)
+        return
     for path in sorted(CACHE.glob("r3d*.xml")):
-        root = ET.fromstring(path.read_bytes())
+        yield path.stem, path.read_bytes()
+
+
+def records() -> list[dict]:
+    """每一筆：id、name、type（可能多個）、countries（營運機構的國家，ISO3）、start（年）、subjects（DFG 學科，碼的位數是層級）"""
+    out = []
+    for rid, data in _sources():
+        root = ET.fromstring(data)
         repo = root.find("r3d:repository", NS)
         if repo is None:
             continue
         get = lambda tag: [e.text.strip() for e in repo.findall(tag, NS) if e.text and e.text.strip()]  # noqa: E731
         start = (get("r3d:startDate") or [""])[0]
         out.append({
-            "id": path.stem,
-            "name": (get("r3d:repositoryName") or [path.stem])[0],
+            "id": rid,
+            "name": (get("r3d:repositoryName") or [rid])[0],
             "type": get("r3d:type"),
             "countries": sorted({c for c in get("r3d:institution/r3d:institutionCountry") if re.fullmatch(r"[A-Z]{3}", c)}),
             "start": int(start[:4]) if re.match(r"\d{4}", start) else None,
