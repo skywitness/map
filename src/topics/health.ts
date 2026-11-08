@@ -324,8 +324,8 @@ const healthOwn: TopicDefinition = {
       id: 'physicians',
       label: { zh: '每千人醫師數（醫病比）', en: 'Physicians per 1,000 people' },
       description: {
-        zh: '常說的「醫病比」：每 1,000 人有幾位醫師（西醫，含一般科與專科，不含中醫等傳統醫學）。例如每千人 2.5 位，等於每位醫師服務 400 人。很多國家不是每年都有統計。',
-        en: 'The doctor-to-population ratio: medical doctors per 1,000 people (generalists and specialists, excluding traditional medicine). 2.5 per 1,000, for example, means 400 people per doctor. Many countries do not report every year.',
+        zh: '常說的「醫病比」：每 1,000 人有幾位醫師（西醫，含一般科與專科，不含中醫等傳統醫學）。例如每千人 2.5 位，等於每位醫師服務 400 人。很多國家不是每年都有統計。WHO 另有「傳統與輔助醫學專業人員數」，但只在 GHO 資料庫、WHO 資料平臺（data.who.int）沒有這個指標，依本站的規則不用；台灣的中醫師人數見「台灣的中醫」主題（2025 年底 8,234 人，是西醫師的 14.6%）。',
+        en: 'The doctor-to-population ratio: medical doctors per 1,000 people (generalists and specialists, excluding traditional medicine). 2.5 per 1,000, for example, means 400 people per doctor. Many countries do not report every year. WHO also publishes a count of traditional and complementary medicine professionals, but only in the GHO database and not on the WHO Data platform (data.who.int), so under this site’s rules it is not used; for Taiwan’s Chinese medicine physicians see the Chinese medicine in Taiwan topic (8,234 at the end of 2025, 14.6% as many as Western medicine physicians).',
       },
       unit: PER_1000,
       file: 'physicians.json',

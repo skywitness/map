@@ -6188,6 +6188,7 @@ pipeline/
       - **清單的點**：每一國一個代表點（geoindex 國界最大一塊的頂點平均），一國的每一種一列。
       - **授權**：WCVP 的 `eml.xml` 寫 CC BY 3.0（`wcvp.license_text()` 每次印出來）；藥典是衛福部全球資訊網的檔，〈政府網站資料開放宣告〉採政府資料開放授權條款第 1 版，只用品項與基原這種事實；TDWG 的 wgsrpd 版本庫沒有寫授權，只用代碼對照。
     - **693 貿易加四種中藥材的原料（擴充 `trade`，候選 1588–1591）**（`pipeline/topics/trade_goods.py` 的 `GOODS` 與 `build_tcm()`、`pipeline/topics/trade_tcm.py`〔步驟 `trade-tcm`，讀一次 BACI HS92 約 2.4 GB、4 分鐘〕、`src/topics/trade.ts` 的 `GOODS_RAW`）：植物萃取物只取 130212、130213、130219（不含鴉片汁 130211 與果膠、瓊脂；手冊的「1302 四位碼 83.95 億」是 Atlas 的四位碼合計，這裡 2024 年 43.5 億美元）、製藥用動物原料 HS 0510（6.4 億，出口巴西 40.7%、進口香港 46.3%）、燕窩所在的 HS 0410（9.4 億，印尼 63.1%＋馬來西亞 22.2% → 中國 66.8%）、角與鹿茸 050790（不含象牙 050710；1.7 億，紐西蘭 41.8% → 中國 40.6%、南韓 20.4%）。都跟 HS 1211 依章節註解互斥；數字一律用 BACI（手冊的是 Atlas，會不一樣）。附註的商品數改成 35 種。
+    - **694 不做（候選 1572、1573）**：WHO 的「Traditional and Complementary Medicine Professionals (number)」（`HWF_0023`）只在 GHO（指標頁在 www.who.int/data/gho），data.who.int 找不到這個指標（搜尋與整檔 CSV 的網址都沒有），依使用者 2026-11-03 的規則（第 367 點）不用；分母的醫師人數也就不必抓。醫師數的說明（`health.ts` 的 `physicians`）加一句原因，並指向「台灣的中醫」的中醫師人數。
 
 ## 9. 之後可以做的
 
