@@ -465,6 +465,7 @@ STEPS = {
     "organizations": "topics.organizations",
     "who-regions": "topics.who_regions",  # 國際組織的 WHO 區域（WHO 官網的會員國名單與國家參照資料，第二十批 305）
     "who-wla": "topics.who_wla",  # 國際組織的 WHO 藥政成熟度 ML3／ML4 與過渡期認可機關（WHO 的兩份 PDF，名單寫在程式裡，第二十批 328）
+    "who-tcm-centres": "topics.who_tcm_centres",  # 國際組織的 WHO 傳統醫學合作中心（WHO 團隊頁，名單寫在程式裡，第二十九批 707）
     "un-votes": "topics.un_votes",
     "conflict": "topics.conflict",
     "nobel": "topics.nobel",  # 約 25 次 API 與 Wikidata 查詢；每年 10 月公布新得主後要加 --refresh

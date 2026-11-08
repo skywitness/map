@@ -1,6 +1,7 @@
-import { tr, type Text } from '../i18n/lang';
+import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { CategoryDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 國際組織（pipeline/topics/organizations.py；成員與日期是 pipeline/sources/igo_members.py 手工整理的表）。
@@ -310,6 +311,42 @@ const WHO_NO_VALUE: Record<string, Text> = {
   ...Object.fromEntries('ALA ATF IOT _IOT SGS UMI BVT HMD'.split(' ').map((id) => [id, WHO_PART_OF])),
 };
 
+// WHO 的傳統、輔助與整合醫學合作中心（2026-11-08，製作手冊第二十九批 707；pipeline/topics/who_tcm_centres.py）
+const tcmName = (p: PointRecord) => String((getLang() === 'zh' ? p.name : p.nameEn) ?? '');
+const TCM_CENTRES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'who-tcm-centres',
+  file: 'who-tcm-centres-points.json',
+  label: { zh: 'WHO 傳統醫學合作中心', en: 'WHO collaborating centres for traditional medicine' },
+  indicators: ['who-tcm-centres'],
+  radius: 4,
+  color: MAP_TOKENS.categorical[0],
+  tooltip: (p, { countryName }) => ({
+    title: tcmName(p),
+    detail: [String(p.ref ?? ''), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    properNoun: getLang() === 'zh' ? undefined : String(p.nameEn ?? ''),
+  }),
+};
+const TCM_CENTRE_LIST: ListPanelDef = {
+  label: { zh: 'WHO 傳統醫學合作中心', en: 'WHO collaborating centres for traditional medicine' },
+  tabLabel: { zh: '合作中心', en: 'Centres' },
+  indicators: ['who-tcm-centres'],
+  file: 'who-tcm-centres-points.json',
+  countryField: 'iso3',
+  empty: { zh: '這裡沒有 WHO 的傳統醫學合作中心', en: 'No WHO collaborating centre for traditional medicine here' },
+  rows: (points: PointRecord[]) =>
+    [...points]
+      .sort((a, b) => String(a.ref).localeCompare(String(b.ref)))
+      .map((p, i): ListRow => ({
+        key: `whocc-${i}`,
+        title: tcmName(p),
+        titleProper: getLang() !== 'zh',
+        properNoun: getLang() === 'zh' ? String(p.nameEn ?? '') : undefined,
+        lines: [tr({ zh: `WHO 編號 ${p.ref}`, en: `WHO ref. ${p.ref}` })],
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+      })),
+};
+
 export const organizations: TopicDefinition = {
   id: 'organizations',
   title: { zh: '國際組織', en: 'International organisations' },
@@ -346,6 +383,19 @@ export const organizations: TopicDefinition = {
       },
       url: 'https://cdn.who.int/media/docs/default-source/medicines/regulatory-systems/wla/list-of-nras-operating-at-ml3-and-ml4.pdf',
       license: { zh: '事實自行整理', en: 'facts compiled by hand' },
+    },
+    {
+      name: {
+        zh: 'WHO, WHO Collaborating Centres for Traditional, Complementary and Integrative Medicine（2023-03-29 更新；事實自行整理，中文名稱自譯）',
+        en: 'WHO, WHO Collaborating Centres for Traditional, Complementary and Integrative Medicine (updated 29 March 2023; facts compiled)',
+      },
+      url: 'https://www.who.int/teams/integrated-health-services/traditional-complementary-and-integrative-medicine/who-collaborating-centres-for-traditional-complementary-and-integrative-medicine',
+      license: { zh: 'WHO 網站使用條款（非商業、註明出處）', en: 'WHO website terms of use (non-commercial, with acknowledgement)' },
+    },
+    {
+      name: { zh: 'Wikidata（合作中心的位置，經英文維基條目）', en: 'Wikidata (centre locations, via English Wikipedia articles)' },
+      url: 'https://www.wikidata.org/',
+      license: 'CC0',
     },
   ],
   // 頁尾要短：英文版在 1280×800 太長會把地圖擠扁（細節在指標說明、側欄與 DESIGN.md）
@@ -391,6 +441,8 @@ export const organizations: TopicDefinition = {
     },
   },
   panelExtra: () => import('./panels/OrganizationsPanel'),
+  overlays: [TCM_CENTRES],
+  listPanel: [TCM_CENTRE_LIST],
   indicators: [
     {
       id: 'membership',
@@ -445,6 +497,21 @@ export const organizations: TopicDefinition = {
       format: (v) => tr(WHO_MATURITY.find((c) => c.value === v)?.label ?? ''),
       unranked: true,
       noValue: { TWN: { zh: '台灣不是 WHO 會員，不在 WHO 的名單上', en: 'Taiwan is not a WHO member and is not on WHO’s lists' } },
+    },
+    {
+      id: 'who-tcm-centres',
+      label: { zh: 'WHO 的傳統醫學合作中心', en: 'WHO collaborating centres for traditional medicine' },
+      description: {
+        zh: 'WHO 指定的傳統、輔助與整合醫學合作中心（WHO Collaborating Centres）：26 個，在 13 個國家與香港、澳門。中國 8 個（中國中醫科學院 3 個所、上海中醫藥大學、南京中醫藥大學、復旦大學上海醫學院、中國醫學科學院藥用植物研究所、中檢院中藥民族藥檢定所），另有香港衛生署中醫藥規管辦公室、澳門衛生局各 1 個；南韓 3 個、日本 2、印度 2，美國、祕魯、義大利、挪威、英國、泰國、北韓、馬來西亞、越南各 1。合作中心是 WHO 指定來協助它的工作的機構，不是各國政府自己設的主管機關（那些在「傳統醫學的制度」主題）。WHO 的頁面寫「2023 年 3 月 29 日更新」，之後新指定的還沒有列進去；香港、澳門在 WHO 的頁面掛在中國底下，這裡照網站的慣例各自一列。台灣不是 WHO 會員國，沒有合作中心。',
+        en: 'WHO Collaborating Centres for traditional, complementary and integrative medicine: 26 centres in 13 countries plus Hong Kong and Macao. China has 8 (three institutes of the China Academy of Chinese Medical Sciences, Shanghai and Nanjing universities of Chinese medicine, Fudan University’s Shanghai Medical College, the Institute of Medicinal Plant Development and the National Institutes for Food and Drug Control), with one each at the Hong Kong Department of Health’s Chinese Medicine Regulatory Office and Macao’s Health Bureau; South Korea has 3, Japan 2, India 2, and the US, Peru, Italy, Norway, the UK, Thailand, North Korea, Malaysia and Viet Nam 1 each. These are institutions designated by WHO to support its work, not the national authorities set up by governments (see the topic on traditional medicine policy). WHO’s page says it was updated on 29 March 2023, so later designations are not included; Hong Kong and Macao are listed under China on WHO’s page and are shown separately here, as elsewhere on this site. Taiwan is not a WHO Member State and has no collaborating centre.',
+      },
+      unit: { zh: '個', en: 'centres' },
+      file: 'who-tcm-centres.json',
+      layer: { kind: 'bubble', legendValues: [1, 3, 8] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 個`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'centre' : 'centres'}` }),
+      formatTick: (v) => fixed(v, 0),
     },
   ],
 };

@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import urllib.error
 import urllib.parse
 
 from common import download
@@ -19,7 +20,12 @@ from zh_names import wikidata_zh
 def resolve(title: str) -> str:
     """轉址的條目 → 目標條目（讀 /wiki/ 的頁面；快取在 .cache/wikipedia/）"""
     name = re.sub(r"[^A-Za-z0-9]+", "-", title)[:80]
-    path = download(f"https://en.wikipedia.org/wiki/{urllib.parse.quote(title.replace(' ', '_'))}", "wikipedia", f"page-{name}.html")
+    try:
+        path = download(f"https://en.wikipedia.org/wiki/{urllib.parse.quote(title.replace(' ', '_'))}", "wikipedia", f"page-{name}.html")
+    except urllib.error.HTTPError as e:
+        if e.code == 404:  # 沒有這個條目（呼叫的一方另有備用的條目，例如機構找不到就用城市）
+            return title
+        raise
     m = re.search(r'"wgPageName":"((?:[^"\\]|\\.)*)"', path.read_text(encoding="utf-8"))
     return json.loads(f'"{m.group(1)}"').replace("_", " ") if m else title
 

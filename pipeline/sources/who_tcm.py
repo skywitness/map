@@ -13,9 +13,11 @@
 """
 from __future__ import annotations
 
+import csv
 import re
 import subprocess
 import time
+from pathlib import Path
 
 from common import download
 from sources import countries
@@ -39,6 +41,7 @@ NAMES = {
     "Netherlands (Kingdom of the)": "NLD", "Netherlands": "NLD", "North Macedonia": "MKD", "Czechia": "CZE", "Eswatini": "SWZ",
     "Timor-Leste": "TLS", "Brunei Darussalam": "BRN", "Saint Kitts and Nevis": "KNA", "Saint Lucia": "LCA",
     "Saint Vincent and the Grenadines": "VCT", "São Tomé and Principe": "STP", "Sao Tome and Principe": "STP",
+    "Andora": "AND",  # 2019 年報告第 5 章的拼字
 }
 
 
@@ -52,6 +55,80 @@ def _pdf_text(url: str, name: str) -> str:
 
 def report_2019() -> str:
     return _pdf_text(REPORT_2019, "report-2019")
+
+
+def report_2019_raw() -> list[tuple[int, str]]:
+    """2019 年報告不加 -layout 的文字（照閱讀順序，國家段落用這個），[(印刷頁碼, 一行)]"""
+    path = download(REPORT_2019, "who-tcm", "report-2019.pdf")
+    txt = path.with_name("report-2019-raw.txt")
+    if not txt.exists() or txt.stat().st_mtime < path.stat().st_mtime:
+        subprocess.run(["pdftotext", str(path), str(txt)], check=True)
+    pages = txt.read_text(encoding="utf-8").split("\f")
+    lines = [(pi + 1, ln) for pi, page in enumerate(pages) for ln in page.split("\n")]
+    # PDF 頁 → 印刷頁碼：表 5.1 印在第 60 頁（前一頁有單獨一行的「59」）
+    pg = next(p for p, ln in lines if ln.startswith("Table 5.1. WHO African Region"))
+    if not any(ln.strip() == "59" for p, ln in lines if p == pg - 1):
+        raise RuntimeError("2019 年報告的頁碼對不上（表 5.1 應該在第 60 頁），版本可能換了")
+    return [(p + 60 - pg, ln) for p, ln in lines]
+
+
+# 第 5 章三個英國海外領地（5.7 Other territories 的條列，不是會員國，不算進分區對帳）
+TERRITORIES = {"Bermuda": "BMU", "Cayman Islands": "CYM", "Turks and Caicos Islands": "TCA"}
+
+
+def country_blocks() -> list[dict]:
+    """2019 年報告第 5 章的國家段落：[{n, name, iso3, region, pages, text}]；149 個會員國依編號＋3 個英國海外領地（n 是 0）。
+    每一國從「n. 國名」那一行到下一國之前；區域的開頭（5.x WHO … Region 與區域表）不算進前一國。"""
+    lines = report_2019_raw()
+    start = next(i for i, (_, ln) in enumerate(lines) if ln.startswith("Table 5.1. WHO African Region"))
+    end = next(i for i, (_, ln) in enumerate(lines) if i > start and ln.strip() == "5.7 Other territories")
+    head = re.compile(r"^(\d{1,3})\. (\S.{2,60})$")
+    region = "AFR"
+    heads = []
+    for i in range(start, end):
+        s = lines[i][1].strip()
+        m = re.match(r"^5\.([1-6]) WHO ", s)
+        if m:
+            region = REGIONS[f"5.{m.group(1)}"]
+        m = head.match(s)
+        if not m:
+            continue
+        nxt = " ".join(lines[j][1].strip() for j in range(i + 1, min(i + 3, end)))
+        n = int(m.group(1))
+        # 國家的標題後面接「National policy on T&CM」或「X did not reply…」；菲律賓段落裡的 1.–10. 是藥品分類的清單
+        if "National policy on T&CM" in nxt[:40] or "did not reply" in nxt or "national policy" in nxt.lower()[:90] or "response" in nxt[:120]:
+            if heads and n <= 10 and heads[-1]["n"] > 100:
+                continue
+            heads.append({"n": n, "name": m.group(2).strip(), "region": region, "i": i})
+    blocks = []
+    for k, h in enumerate(heads):
+        j = heads[k + 1]["i"] if k + 1 < len(heads) else end
+        body, pages, last = [], [], None
+        for p, ln in lines[h["i"]:j]:
+            if p != last:
+                body.append(f"[p. {p}]")
+                last = p
+            body.append(ln)
+        text = "\n".join(body)
+        cut = re.search(r"\n(\[p\. \d+\]\n)?(COUNTRY SUMMARIES\n+)?5\.\d WHO [^\n]*\n", text)
+        if cut:
+            text = text[: cut.start()]
+        pages = sorted({int(x) for x in re.findall(r"\[p\. (\d+)\]", text)})
+        blocks.append({"n": h["n"], "name": h["name"], "iso3": iso3(h["name"]), "region": h["region"], "pages": pages, "text": text})
+    nums = [b["n"] for b in blocks]
+    if nums != list(range(1, 150)) and sorted(nums) != list(range(1, 150)):
+        raise RuntimeError(f"2019 年報告第 5 章的國家段落不是 1–149：少了 {sorted(set(range(1, 150)) - set(nums))}")
+    # 5.7 的三個屬地：「• 名稱: 內容」（pdftotext 會把開頭的字母拆開，例如「•B\n ermuda:」）
+    tail = "\n".join(ln for _, ln in lines[end:end + 60])
+    tail = tail[: tail.index("REFERENCES")] if "REFERENCES" in tail else tail
+    flat = re.sub(r"•\s*([A-Z])\s*\n[\s\x07]*", r"• \1", tail.replace("\x07", ""))  # 「•B\n\x07 ermuda:」
+    page = next(p for p, ln in lines[end:end + 5] if ln.strip())
+    for name, code in TERRITORIES.items():
+        m = re.search(r"•\s*" + re.escape(name) + r":(.*?)(?=\n\s*•|\n\s*\d{3}\s*\n|$)", flat, re.S)
+        if not m:
+            raise RuntimeError(f"2019 年報告 5.7 找不到 {name}")
+        blocks.append({"n": 0, "name": name, "iso3": code, "region": "territory", "pages": [page], "text": f"[p. {page}]\n{name}:{m.group(1)}"})
+    return blocks
 
 
 def report_2024() -> str:
@@ -136,4 +213,64 @@ def regional_tables() -> dict[str, dict[str, tuple[int | None, int]]]:
         got = sum(rows[label][1] for rows in out.values())
         if got != expected:
             raise RuntimeError(f"分區對帳不對：{label} 六區相加 {got}，報告的全球數 {expected}；不出資料檔")
+    return out
+
+
+# ---- 順序 704：第 5 章國家段落的逐國抽取（手工整理的資料檔，逐列附出處） ----
+CURATED = Path(__file__).resolve().parent.parent / "data" / "who-tcm" / "countries-2019.csv"
+REGION_N = {"AFR": 47, "AMR": 35, "EMR": 21, "EUR": 53, "SEAR": 11, "WPR": 27}  # 各區的會員國數（區域表的 N）
+TABLE_ROWS = {"policy": "National policy on T&CM", "law": "Laws or regulations on T&CM", "programme": "National programme on T&CM",
+              "office": "National office for T&CM", "committee": "Expert committee on T&CM", "institute": "National research institute for T&CM",
+              "herbal_reg": "Regulation of herbal medicines", "registration": "Registration of herbal medicines"}
+# 2019 年報告正文的全球數（2018 年；沒有區域表的項目）：保險給付 45、從業人員受法規管 78、基本藥物清單收草藥 34。
+# 「要不要執照」（報告 70 國）沒有收進資料檔：抽取時把「要登記」也算進去，抽到 75 國，對不上
+# 藥典、GMP、上市後監視、教育在報告裡只有 2012 年的數（段落另外寫到 2016–18 的更新），沒有可以對的數，只靠逐列的引文
+GLOBAL_TEXT = {"insurance": (45, "45 Member States reported the coverage of T&CM by health insurance"),
+               "provider_reg": (78, "78 Member States reported regulation of T&CM providers as at 2018"),
+               "neml": (34, "As of 2018, 34 Member States replied in the affirmative to having herbal medicines included in their NEML")}
+VALUES = {"yes", "no", "developing", "unknown"}
+ITEM_FIELDS = ("pharmacopoeia", "monographs", "gmp", "surveillance", "neml", "provider_reg", "education", "insurance")
+
+
+def _norm_text(s: str) -> str:
+    return "".join(ch for ch in s.lower() if ch.isalnum())
+
+
+def curated() -> dict[str, dict]:
+    """{iso3: {region, block, name, fields: {欄位: (值, 頁碼, 引文)}, extra: {名稱欄位: 文字}}}。
+    檢查（不過就報錯、不出資料檔）：每一句引文都要逐字出現在那一國的段落裡、頁碼在段落的頁碼範圍內；
+    分區對帳：每一區每一項「有」的國數不超過區域表的國數、「沒有」的國數不超過區域表以外的國數（區域表也算了沒有段落的國家，
+    段落本身也不完整，所以只能檢查不矛盾，不會剛好相等）；沒有區域表的保險給付、從業人員法規、執照、基本藥物清單對全球數。"""
+    blocks = {b["iso3"]: b for b in country_blocks()}
+    flat = re.sub(r"\s+", " ", "\n".join(ln for _, ln in report_2019_raw()))
+    tables = regional_tables()
+    out: dict[str, dict] = {}
+    with CURATED.open(encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            c = out.setdefault(r["iso3"], {"region": r["region"], "block": int(r["block"]), "name": r["country"], "fields": {}, "extra": {}})
+            if r["field"] in TABLE_ROWS or r["field"] in ITEM_FIELDS:
+                if r["value"] not in VALUES:
+                    raise ValueError(f"{CURATED.name}：{r['iso3']} {r['field']} 的值 {r['value']!r} 不對")
+                if r["value"] != "unknown":
+                    b = blocks.get(r["iso3"])
+                    if not b or _norm_text(r["quote"]) not in _norm_text(b["text"]) or int(r["page"]) not in b["pages"]:
+                        raise RuntimeError(f"{CURATED.name}：{r['iso3']} {r['field']} 的引文不在段落裡（或頁碼不對）：{r['quote'][:80]!r}")
+                c["fields"][r["field"]] = (r["value"], int(r["page"]) if r["page"] else None, r["quote"])
+            else:
+                c["extra"][r["field"]] = r["value"]
+    members = {k: v for k, v in out.items() if v["region"] in REGION_N}
+    if len(members) != 149 or len(out) != 152:
+        raise RuntimeError(f"{CURATED.name} 應該有 149 個會員國與 3 個屬地，現在是 {len(members)}／{len(out) - len(members)}")
+    for region, n in REGION_N.items():
+        for f, label in TABLE_ROWS.items():
+            vals = [v["fields"][f][0] for v in members.values() if v["region"] == region]
+            yes, no, t = vals.count("yes"), vals.count("no"), tables[region][label][1]
+            if yes > t or no > n - t:
+                raise RuntimeError(f"分區對帳不對：{region} {label} 段落抽到有 {yes}、沒有 {no}；區域表 {t}／{n}；不出資料檔")
+    for f, (t, sentence) in GLOBAL_TEXT.items():
+        if sentence not in flat:
+            raise RuntimeError(f"2019 年報告找不到「{sentence}」，版本可能換了")
+        vals = [v["fields"][f][0] for v in members.values()]
+        if vals.count("yes") > t or vals.count("no") > 194 - t:
+            raise RuntimeError(f"全球對帳不對：{f} 段落抽到有 {vals.count('yes')}、沒有 {vals.count('no')}；報告的全球數 {t}／194；不出資料檔")
     return out
