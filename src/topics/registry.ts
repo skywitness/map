@@ -182,18 +182,20 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
   {
     // 2026-11-07 製作手冊第二十七批 536：休閒（24 個主題、只有 3 個小類）拆成旅遊與休閒兩類，旅遊排在地理與休閒之間。
     // 景點整組搬過來；觀光從國際・往來、旅行實用從地理・國家、旅遊警示從國際・安全、護照與簽證從國際・往來、
-    // 鈔票從休閒・日常休閒搬過來（主題 id 都沒改）。樂園小類等順序 630–636 的樂園主題做出來再開（順序 637）
+    // 鈔票從休閒・日常休閒搬過來（主題 id 都沒改）。樂園小類在順序 637 開（2026-11-08）
     id: 'trips',
     label: { zh: '旅遊', en: 'Travel' },
     sections: [
       // 地下觀光 2026-11-07 從社會的「生活與文化」搬過來（製作手冊第二十六批 534），跟景點地圖一組
-      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'theme-parks', 'amusement-industry', 'roller-coasters', 'water-parks', 'show-caves', 'oldest-universities', 'skyscrapers'] },
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'show-caves', 'oldest-universities', 'skyscrapers'] },
+      // 2026-11-08 製作手冊第二十七批 637：樂園小類（使用者 2026-11-07 核准），四個樂園主題從景點搬過來，主題 id 不變
+      { label: { zh: '樂園', en: 'Theme parks' }, topics: ['theme-parks', 'amusement-industry', 'roller-coasters', 'water-parks'] },
       { label: { zh: '觀光', en: 'Tourism' }, topics: ['tourism', 'travel-habits'] },
       // 鈔票：使用者 2026-11-07 指定放這裡（跟插頭、電壓、紙張大小同一類「出國會遇到的東西」）
       { label: { zh: '旅行實用', en: 'Travel basics' }, topics: ['travel', 'travel-advisories', 'passport', 'banknotes'] },
     ],
-    // 左：景點；右：觀光、旅行實用
-    columns: [1, 2],
+    // 左：景點；中：樂園；右：觀光、旅行實用
+    columns: [1, 1, 2],
   },
   {
     // 2026-11-03 使用者要求：地理的「景點」與社會的「獎項與運動」獨立成一類（景點原本的夜間燈光搬到社會的人口與家庭）；
