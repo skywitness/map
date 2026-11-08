@@ -1,5 +1,5 @@
 import { getLang, tr, type Text } from '../i18n/lang';
-import { fixed } from '../lib/format';
+import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
@@ -188,6 +188,82 @@ const PARK_LIST: ListPanelDef = {
       }),
 };
 
+
+// ── 人次與恢復率（2026-11-08，製作手冊第二十八批 682，候選 1524；pipeline/topics/universal_visits.py） ──
+// 2009–2024 是維基的單園表（TEA／AECOM 的轉引），維基表沒有的與 2025 年用 Wikidata P1174；集團的數字只寫在說明。
+const VISIT_YEARS = Array.from({ length: 17 }, (_, i) => 2009 + i);
+const visitsText = (v: number) => tr({ zh: `${formatLargeNumber(v)} 人次`, en: `${formatLargeNumber(v)} visitors` });
+const clampYear = (y: number) => Math.min(2025, Math.max(2009, y));
+function visitFacts(p: PointRecord): string[] {
+  const v19 = num(p, 'v2019');
+  const v24 = num(p, 'v2024');
+  const v25 = num(p, 'v2025');
+  const out: string[] = [];
+  if (v25) out.push(tr({ zh: `2025 年 ${visitsText(v25)}`, en: `${visitsText(v25)} in 2025` }) + (p.qid === 'Q66085108' ? tr({ zh: '（5 月 22 日開幕，不是整年）', en: ' (opened 22 May, part year)' }) : ''));
+  if (v24 && v19) out.push(tr({ zh: `2024 年是 2019 年的 ${fixed((v24 / v19) * 100, 0)}%`, en: `2024 was ${fixed((v24 / v19) * 100, 0)}% of 2019` }));
+  out.push(p.src === 1 ? tr({ zh: '維基的單園表，2025 年是 Wikidata', en: 'Wikipedia’s park table; 2025 from Wikidata' }) : tr({ zh: '維基的單園表沒有，用 Wikidata', en: 'Not in Wikipedia’s park table; from Wikidata' }));
+  return out;
+}
+const PARK_VISITS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'universal-park-visits',
+  file: 'park-visits.json',
+  label: { zh: '環球樂園的人次', en: 'Universal park attendance' },
+  indicators: ['visitors', 'recovery'],
+  epochs: { years: VISIT_YEARS, values: (p, y) => ({ vv: num(p, `v${y}`) }) },
+  radius: { field: 'vv', stops: [[1e6, 3], [5e6, 6], [10e6, 9], [16e6, 12]] },
+  color: C[0],
+  sortField: 'vv',
+  tooltip: (p, { countryName, year }) => {
+    const { title, proper } = universalName(p);
+    const y = clampYear(year ?? 2025);
+    const v = num(p, `v${y}`);
+    return {
+      title,
+      detail: [tr(at(UNIVERSAL_SITES, p.resort)), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      extra: [v ? tr({ zh: `${y} 年 ${visitsText(v)}`, en: `${visitsText(v)} in ${y}` }) : tr({ zh: `${y} 年沒有人次`, en: `No figure for ${y}` }), ...visitFacts(p)],
+      properNoun: proper,
+    };
+  },
+};
+const VISIT_LIST: ListPanelDef = {
+  label: { zh: '環球樂園的人次', en: 'Universal park attendance' },
+  tabLabel: { zh: '人次', en: 'Attendance' },
+  indicators: ['visitors', 'recovery'],
+  file: 'park-visits.json',
+  countryField: 'iso3',
+  sorts: [
+    { id: 'visitors', label: { zh: '依 2025 年人次', en: 'By 2025 attendance' } },
+    { id: 'recovery', label: { zh: '依恢復率', en: 'By recovery' } },
+  ],
+  rows: (points, { countryName, sort }) => {
+    const rec = (p: PointRecord) => (num(p, 'v2019') && num(p, 'v2024') ? (num(p, 'v2024') as number) / (num(p, 'v2019') as number) : -1);
+    return points
+      .slice()
+      .sort((a, b) => (sort === 'recovery' ? rec(b) - rec(a) : (num(b, 'v2025') ?? 0) - (num(a, 'v2025') ?? 0)))
+      .map((p, i): ListRow => {
+        const { title, proper } = universalName(p);
+        // 長條只畫 2009–2025 每年都有人次的樂園（缺的年份畫成 0 會被看成關園）
+        const full = VISIT_YEARS.every((y) => num(p, `v${y}`) !== null);
+        return {
+          key: String(p.qid),
+          title: `${i + 1}. ${title}`,
+          properNoun: proper,
+          lines: [[tr(at(UNIVERSAL_SITES, p.resort)), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '), ...visitFacts(p)],
+          ...(full && {
+            bars: {
+              values: VISIT_YEARS.map((y) => num(p, `v${y}`) ?? 0),
+              highlight: [VISIT_YEARS.indexOf(2020)],
+              labels: ['2009', '2025'],
+              aria: tr({ zh: '2009–2025 年的人次', en: 'Attendance 2009–2025' }),
+            },
+          }),
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+        };
+      });
+  },
+};
+
 export const universal: TopicDefinition = {
   id: 'universal',
   title: { zh: '環球影城在哪裡：樂園與度假區', en: 'Where Universal is: parks and resorts' },
@@ -215,6 +291,14 @@ export const universal: TopicDefinition = {
     },
     {
       name: {
+        zh: '英文維基百科「List of amusement park rankings」（樂園與集團的人次，數字原本來自 TEA／AECOM）與 Wikidata 的年人次（P1174）',
+        en: 'English Wikipedia, “List of amusement park rankings” (park and group attendance, originally from TEA/AECOM) and Wikidata annual attendance (P1174)',
+      },
+      url: 'https://en.wikipedia.org/wiki/List_of_amusement_park_rankings?oldid=1377863670',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
         zh: '英文維基百科「Universal Destinations & Experiences」（revid 1382726905，開幕與關閉的日期）',
         en: 'English Wikipedia, “Universal Destinations & Experiences” (revid 1382726905: opening and closing dates)',
       },
@@ -226,8 +310,8 @@ export const universal: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是環球影城或它的母公司提供的。度假區（例如奧蘭多）與裡面的樂園是兩層，「幾座樂園」只算營運中的主題樂園與水上樂園。台灣沒有環球的樂園。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by Universal or its parent company. Resorts (such as Orlando) and the parks inside them are two levels, and park counts include open theme and water parks only. Taiwan has no Universal park.',
   },
-  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED],
-  listPanel: [PARK_LIST],
+  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, PARK_VISITS],
+  listPanel: [PARK_LIST, VISIT_LIST],
   indicators: [
     {
       id: 'parks',
@@ -243,6 +327,35 @@ export const universal: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       integer: true,
       overlayTime: 'cumulative',
+    },
+    {
+      id: 'visitors',
+      label: { zh: '環球樂園的人次', en: 'Universal park attendance' },
+      description: {
+        zh: '各國環球樂園一年的人次合計（比例圓，2009–2025）。2009–2024 是英文維基「List of amusement park rankings」的單園表（數字原本來自 TEA／AECOM），維基表沒有的新加坡、史詩宇宙、水上樂園 Volcano Bay 與 2025 年用 Wikidata；只算那一年有值的樂園，所以新加坡 2024 年以前、Volcano Bay 2018–2022 年是空的。2025 年：日本 1,604 萬、北京 980 萬、佛羅里達 930 萬、冒險島 920 萬、好萊塢 800 萬、新加坡 419 萬、史詩宇宙 400 萬（5 月 22 日才開幕，不是整年）、Volcano Bay 160 萬。集團合計（同一篇維基的集團表，含水上樂園）2009 年 2,370 萬、2019 年 5,124 萬、2024 年 5,898 萬，表上沒有 2020、2021 年。',
+        en: 'Total annual attendance at Universal parks in each country (proportional circles, 2009–2025). 2009–2024 comes from the single-park table in English Wikipedia’s “List of amusement park rankings” (figures originally from TEA/AECOM); Singapore, Epic Universe and the Volcano Bay water park, which are not in that table, and all of 2025 come from Wikidata. Only parks with a figure for the year are counted, so Singapore before 2024 and Volcano Bay in 2018–2022 are blank. In 2025: Japan 16.04 million, Beijing 9.80 million, Florida 9.3 million, Islands of Adventure 9.2 million, Hollywood 8.0 million, Singapore 4.19 million, Epic Universe 4.0 million (opened on 22 May, so part of the year) and Volcano Bay 1.6 million. The group as a whole (the group table in the same article, water parks included) had 23.7 million in 2009, 51.24 million in 2019 and 58.98 million in 2024; the table has no 2020 or 2021.',
+      },
+      unit: { zh: '人次', en: 'visits' },
+      file: 'visitors.json',
+      layer: { kind: 'bubble', legendValues: [5e6, 1.5e7, 3e7] },
+      format: visitsText,
+      formatTick: (v) => formatLargeNumber(v),
+      integer: true,
+      defaultYear: 2025,
+    },
+    {
+      id: 'recovery',
+      label: { zh: '環球樂園的疫情恢復率', en: 'Universal park recovery from the pandemic' },
+      description: {
+        zh: '2024 年的人次是 2019 年的幾 %（只算兩年都有人次的樂園）：日本 110.3%，美國 90.8%（好萊塢、佛羅里達、冒險島三座合計）；北京 2021 年才開、新加坡的數字 2024 年才有，沒有基期。集團合計 2024 年是 2019 年的 115.1%，比單園高，因為多了 2021 年開的北京，恢復率混著新開的樂園，不能說成觀光復甦。2020 年各園都關過一段時間（好萊塢只有 130 萬人次），不拿來當基期。',
+        en: '2024 attendance as a percentage of 2019, for parks with both figures: Japan 110.3% and the US 90.8% (Hollywood, Florida and Islands of Adventure combined); Beijing opened in 2021 and Singapore’s figures start in 2024, so they have no baseline. The group as a whole reached 115.1%, higher than the single parks because it adds Beijing, opened in 2021; the rate mixes in new parks and should not be read as a tourism recovery. Every park closed for part of 2020 (Hollywood had only 1.3 million visits), so 2020 is not used as a baseline.',
+      },
+      unit: '%',
+      file: 'recovery.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [70, 85, 95, 105, 115, 130] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
     },
   ],
 };
