@@ -701,6 +701,7 @@ STEPS = {
     "artificial-islands": "topics.artificial_islands",
     "mountain-passes": "topics.mountain_passes",
     "mountain-people": "topics.mountain_people",
+    "land-motion": "topics.land_motion",  # 2026-11-08 第二十七批 547（候選 1234）：NGL 的 MIDAS 速度場
     "wetlands": "topics.wetlands",
     "fish-jobs": "topics.fish_jobs",
     "language-wals": "topics.language_wals",

@@ -1,6 +1,7 @@
 import { getLang, tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatPercent } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { LAND_MOTION_INDICATOR, LAND_MOTION_SOURCES, LAND_MOTION_STATIONS } from './land-motion';
 import type { ColorClasses, IndicatorDef, PointRecord, Text, TopicDefinition } from './types';
 
 const M = { zh: '公尺', en: 'm' };
@@ -124,6 +125,7 @@ export const elevation: TopicDefinition = {
       url: 'https://github.com/tilezen/joerd/blob/master/docs/attribution.md',
       license: { zh: '依各資料來源標示', en: 'attribution per data source' },
     },
+    ...LAND_MOTION_SOURCES,
   ],
   note: {
     zh: '統計用 GMTED2010 的 1 公里網格（主要來自 2000 年的 SRTM 雷達測高，量的是地表，含樹冠與建築），每格依緯度換算成實際面積；國界是地圖用的 Natural Earth 1:50m 簡化國界，法國海外省等依聯合國的劃分分開計算。網格會把山頂平均掉，所以最高點優先用 Wikidata 的標高（DEM 對得上才採用）。沿海低地是海拔低於 5 公尺、而且跟海相連的陸地，裏海窪地這類內陸窪地不算。',
@@ -183,6 +185,8 @@ export const elevation: TopicDefinition = {
       tooltip: landformTooltip,
       indicators: ['landforms'],
     },
+    // 2026-11-08（製作手冊第二十七批 547，候選 1234）：GNSS 測站的垂直速度（land-motion.ts）
+    LAND_MOTION_STATIONS,
   ],
   panelExtra: () => import('./panels/ElevationPanel'),
   indicators: [
@@ -267,6 +271,8 @@ export const elevation: TopicDefinition = {
       format: metres,
       formatTick: (v) => fixed(v, 0),
     },
+    // 2026-11-08（製作手冊第二十七批 547，候選 1234）：國土一年升降幾公釐（pipeline/topics/land_motion.py）
+    LAND_MOTION_INDICATOR,
     {
       id: 'rugged',
       label: { zh: '地形崎嶇指數', en: 'Terrain ruggedness' },
