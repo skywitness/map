@@ -211,7 +211,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       // 同一天第二十七批 536：狩獵與釣魚併進休閒運動場地（diving）、旅遊習慣搬到旅遊・觀光、鈔票搬到旅遊・旅行實用
       {
         label: { zh: '日常休閒', en: 'Everyday leisure' },
-        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'gambling', 'holidays', 'time-use', 'culture'],
+        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'gambling', 'holidays', 'time-use', 'online-video', 'culture'],
       },
     ],
     // 左：獎項與運動、遊戲與動漫；右：日常休閒
@@ -408,6 +408,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'amusement-industry': () => import('./amusement-industry'),
   'roller-coasters': () => import('./roller-coasters'),
   'game-companies': () => import('./game-companies'),
+  'online-video': () => import('./online-video'),
   'water-parks': () => import('./water-parks'),
   museums: () => import('./museums'),
   'oldest-universities': () => import('./oldest-universities'),

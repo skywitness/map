@@ -104,6 +104,7 @@ const TOPIC_ICONS = {
   'amusement-industry': 'tickets',
   'roller-coasters': 'spline',
   'game-companies': 'joystick',
+  'online-video': 'monitor-play',
   'water-parks': 'waves-ladder',
   museums: 'frame',
   'energy-jobs': 'id-card-lanyard',
