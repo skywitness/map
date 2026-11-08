@@ -1,0 +1,1 @@
+{"fields":["lon","lat","b","k","s","y","ct","name","zh","city","iso3","src"],"scale":{"lon":0.0001,"lat":0.0001,"b":1,"k":1,"s":1,"y":1,"ct":1},"delta":[],"columns":[[],[],[],[],[],[],[],[],[],[],[],[]],"strings":{"fields":["city","iso3"],"table":[""]}}

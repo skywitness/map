@@ -3,6 +3,7 @@ import { fixed, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { parksOverlay } from './attractions';
 import { PARK_LIST, PARK_VISITORS } from './attractions-extra';
+import { BRAND_INDICATOR, BRAND_LIST, BRAND_OVERLAYS, BRAND_SOURCES } from './park-brands';
 import type { PointsOverlayDef, TopicDefinition } from './types';
 
 /**
@@ -91,14 +92,15 @@ export const themeParks: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/38257',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, Taiwan, v1' },
     },
+    ...BRAND_SOURCES,
   ],
   note: {
     zh: '樂園的點是 Wikidata 的主題樂園、遊樂園與雲霄飛車（景點地圖的同一份），各國收錄程度差很多，只畫點、不算各國數量。各國的座數改用 OpenStreetMap 的 tourism=theme_park：OSM 標得很寬（伊朗、俄羅斯多半是城市裡的小遊樂場），也在量 OSM 畫得多完整，所以不能當「主題樂園排名」，每百萬人只替 OSM 覆蓋良好的國家上色。開園年份是 Wikidata 的創立時間（P571），只有約三成的樂園有，有時是公司成立年。人次是 TEA／AECOM 的估計（英文維基轉載），台灣是觀光署的數字。台灣的票價是觀光署資料裡的最後一次更新（多半是 2018 年），不是現價。',
     en: 'Park dots are Wikidata theme parks, amusement parks and roller coasters (the same data as Attractions); Wikidata coverage varies widely by country, so parks are drawn but not counted there. Country counts use OpenStreetMap’s tourism=theme_park, which is applied loosely (most in Iran and Russia are small urban fairgrounds) and also measures how completely OSM is mapped, so it is not a ranking of theme parks; parks per million people are shown only for countries well covered by OSM. Opening years are Wikidata inception dates (P571), available for only about 30% of parks and sometimes the company’s founding year. Attendance is TEA/AECOM estimates as reproduced on English Wikipedia, and Tourism Administration figures for Taiwan. Taiwan ticket prices are the last update in the Tourism Administration data (mostly 2018), not current prices.',
   },
   panelExtra: () => import('./panels/ThemeParksPanel'),
-  overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY],
-  listPanel: [PARK_LIST],
+  overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY, ...BRAND_OVERLAYS],
+  listPanel: [PARK_LIST, BRAND_LIST],
   indicators: [
     {
       id: 'parks',
@@ -218,5 +220,7 @@ export const themeParks: TopicDefinition = {
       timeless: true,
       missing: empty,
     },
+    // 2026-11-08（製作手冊第二十七批 632）樂園品牌的據點
+    BRAND_INDICATOR,
   ],
 };

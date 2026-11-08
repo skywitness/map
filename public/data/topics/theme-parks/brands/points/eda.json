@@ -1,0 +1,1 @@
+{"fields":["lon","lat","b","k","s","y","ct","name","zh","city","iso3","src"],"scale":{"lon":0.0001,"lat":0.0001,"b":1,"k":1,"s":1,"y":1,"ct":1},"delta":[],"columns":[[1204067],[227286],[20],[1],[1],[2010],[0],["E-DA Theme Park"],["義大遊樂世界"],[1],[2],["https://en.wikipedia.org/wiki/E-DA_Theme_Park?oldid=1364350581"]],"strings":{"fields":["city","iso3"],"table":["","Dashu","TWN"]}}

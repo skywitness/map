@@ -1,0 +1,1 @@
+{"fields":["lon","lat","b","k","s","y","ct","name","zh","city","iso3","src"],"scale":{"lon":0.0001,"lat":0.0001,"b":1,"k":1,"s":1,"y":1,"ct":1},"delta":[],"columns":[[1206956],[243225],[19],[1],[1],[1998],[0],["Lihpao Land"],["麗寶樂園"],[1],[2],["https://en.wikipedia.org/wiki/Lihpao_Land?oldid=1364353276"]],"strings":{"fields":["city","iso3"],"table":["","Houli","TWN"]}}

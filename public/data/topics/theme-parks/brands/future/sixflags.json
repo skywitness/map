@@ -1,0 +1,1 @@
+{"fields":["lon","lat","b","k","s","y","ct","name","zh","city","iso3","src"],"scale":{"lon":0.0001,"lat":0.0001,"b":1,"k":1,"s":1,"y":1,"ct":1},"delta":[],"columns":[[462833],[245702],[5],[2],[2],[2026],[1],["Aquarabia Qiddiya City"],[null],[1],[2],["https://en.wikipedia.org/wiki/Six_Flags?oldid=1384317096"]],"strings":{"fields":["city","iso3"],"table":["","Qiddiya City","SAU"]}}
