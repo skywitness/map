@@ -17,6 +17,7 @@ import { withParts } from './parts';
 import { hostOnly } from './merge';
 import { coalPhaseoutPart } from './energy-policy';
 import { coalTypesPart } from './coal-types';
+import { fuelTradePart } from './fuel-trade';
 import { fuelUsesPart } from './fuel-uses';
 import { reservesRatioPart } from './reserves-ratio';
 
@@ -898,4 +899,4 @@ const fossilFuelsOwn: TopicDefinition = {
  * 石油、天然氣與煤（2026-11-04，主題整併 併1）：能源政策的燃煤退場兩個指標（燃煤發電的退場年份、棄用煤炭發電聯盟）
  * 併進來，資料照舊在 energy-policy/（topics/merge.ts），舊網址 t/energy-policy/?ind=coal-phaseout 轉到這裡（redirects.ts）
  */
-export const fossilFuels: TopicDefinition = withParts(hostOnly(fossilFuelsOwn), coalPhaseoutPart, coalTypesPart, fuelUsesPart, reservesRatioPart);
+export const fossilFuels: TopicDefinition = withParts(hostOnly(fossilFuelsOwn), coalPhaseoutPart, coalTypesPart, fuelUsesPart, reservesRatioPart, fuelTradePart);
