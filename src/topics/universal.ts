@@ -264,6 +264,94 @@ const VISIT_LIST: ListPanelDef = {
   },
 };
 
+
+// ── 樂園之外的環球（2026-11-08，製作手冊第二十八批 683，候選 1527、1528、1529、1530、1537；pipeline/topics/universal_other.py） ──
+// CityWalk、奧蘭多的直營飯店、Horror Unleashed、曾經是環球的與取消的；IP 主題園區只進清單（座標大多沒有）。
+// IP 名稱（哈利波特、超級任天堂）是別人的商標，只當事實指稱，不放圖、不寫劇情。
+const OTHER_KINDS: { label: Text; color: string }[] = [
+  { label: { zh: 'CityWalk（園外的餐廳與商店）', en: 'CityWalk (dining and shops outside the gates)' }, color: C[2] },
+  { label: { zh: '直營飯店', en: 'Universal-run hotels' }, color: C[3] },
+  { label: { zh: 'Horror Unleashed（樂園以外的體驗館）', en: 'Horror Unleashed (venue outside the parks)' }, color: C[5] },
+  { label: { zh: '曾經是環球的', en: 'Formerly Universal' }, color: MAP_TOKENS.categoricalOther },
+  { label: { zh: '取消的計畫', en: 'Cancelled project' }, color: MAP_TOKENS.categoricalOther },
+  { label: { zh: 'IP 主題園區（在樂園裡）', en: 'IP-themed lands (inside parks)' }, color: C[0] },
+];
+function dateText(v: number | null): string {
+  if (!v) return '';
+  const s = String(v);
+  if (s.length === 4) return tr({ zh: `${s} 年`, en: s });
+  return tr({ zh: `${s.slice(0, 4)} 年 ${Number(s.slice(4, 6))} 月 ${Number(s.slice(6))} 日`, en: `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6)}` });
+}
+function otherFacts(p: PointRecord): string[] {
+  const out: string[] = [];
+  const d = num(p, 'd');
+  if (p.status === 2) out.push(tr({ zh: '在建，沒有開幕日', en: 'Under construction, no opening date' }));
+  else if (p.status === 4) out.push(tr({ zh: '取消的計畫', en: 'Cancelled project' }));
+  else if (d) out.push(p.status === 3 ? tr({ zh: `環球 ${dateText(d)}買進`, en: `Universal bought in ${dateText(d)}` }) : tr({ zh: `${dateText(d)}開幕`, en: `Opened ${dateText(d)}` }));
+  const rooms = num(p, 'rooms');
+  if (rooms) out.push(tr({ zh: `${fixed(rooms, 0)} 間房`, en: `${fixed(rooms, 0)} rooms` }));
+  if (getLang() === 'zh' && typeof p.note === 'string' && p.note) out.push(p.note);
+  return out;
+}
+const otherTooltip = (p: PointRecord, { countryName }: { countryName: (iso3: string) => string }) => ({
+  title: String(p.en ?? ''),
+  properNoun: String(p.en ?? ''),
+  detail: [tr(at(OTHER_KINDS, p.k).label), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+  extra: otherFacts(p),
+});
+const OTHER: PointsOverlayDef = {
+  kind: 'points',
+  id: 'universal-other',
+  file: 'other.json',
+  label: { zh: '樂園之外：CityWalk、直營飯店、Horror Unleashed、曾經是環球的', en: 'Beyond the parks: CityWalk, hotels, Horror Unleashed, former sites' },
+  indicators: ['parks'],
+  radius: 4,
+  color: {
+    field: 'k',
+    title: { zh: '種類', en: 'Type' },
+    thresholds: [1.5, 2.5, 3.5],
+    classes: OTHER_KINDS.slice(0, 4).map(({ label, color }) => ({ label, color })),
+  },
+  tooltip: otherTooltip,
+};
+const OTHER_PLANNED: PointsOverlayDef = {
+  kind: 'points',
+  id: 'universal-other-planned',
+  file: 'other-planned.json',
+  label: { zh: '在建與取消的（空心）', en: 'Under construction and cancelled (hollow)' },
+  indicators: ['parks'],
+  radius: 4,
+  look: 'hollow',
+  color: MAP_TOKENS.categoricalOther,
+  tooltip: otherTooltip,
+};
+const OTHER_LIST: ListPanelDef = {
+  label: { zh: '樂園之外的環球', en: 'Universal beyond the parks' },
+  tabLabel: { zh: '樂園之外', en: 'Beyond parks' },
+  indicators: ['parks'],
+  file: 'other-all.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    points
+      .slice()
+      .sort((a, b) => (num(a, 'k') ?? 9) - (num(b, 'k') ?? 9) || String(a.en).localeCompare(String(b.en)) || (num(a, 'd') ?? 0) - (num(b, 'd') ?? 0))
+      .map(
+        (p): ListRow => ({
+          key: String(p.key),
+          title: String(p.en ?? ''),
+          titleProper: true,
+          group: tr(at(OTHER_KINDS, p.k).label),
+          muted: p.status !== 1,
+          lines: [
+            [p.resort ? tr(at(UNIVERSAL_SITES, p.resort)) : '', typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '),
+            otherFacts(p).join(tr({ zh: '；', en: '; ' })),
+          ],
+          link: { href: String(p.src ?? ''), label: tr({ zh: '資料出處', en: 'Source' }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 15 },
+        }),
+      ),
+};
+
 export const universal: TopicDefinition = {
   id: 'universal',
   title: { zh: '環球影城在哪裡：樂園與度假區', en: 'Where Universal is: parks and resorts' },
@@ -299,6 +387,14 @@ export const universal: TopicDefinition = {
     },
     {
       name: {
+        zh: '英文維基百科「Universal Orlando」（revid 1384195678，飯店的開幕日與房間數）、「Universal Horror Unleashed」（revid 1376754925）與 IP 主題園區的條目',
+        en: 'English Wikipedia, “Universal Orlando” (revid 1384195678: hotel opening dates and rooms), “Universal Horror Unleashed” (revid 1376754925) and the articles on IP-themed lands',
+      },
+      url: 'https://en.wikipedia.org/wiki/Universal_Orlando?oldid=1384195678',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: {
         zh: '英文維基百科「Universal Destinations & Experiences」（revid 1382726905，開幕與關閉的日期）',
         en: 'English Wikipedia, “Universal Destinations & Experiences” (revid 1382726905: opening and closing dates)',
       },
@@ -310,15 +406,15 @@ export const universal: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是環球影城或它的母公司提供的。度假區（例如奧蘭多）與裡面的樂園是兩層，「幾座樂園」只算營運中的主題樂園與水上樂園。台灣沒有環球的樂園。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by Universal or its parent company. Resorts (such as Orlando) and the parks inside them are two levels, and park counts include open theme and water parks only. Taiwan has no Universal park.',
   },
-  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, PARK_VISITS],
-  listPanel: [PARK_LIST, VISIT_LIST],
+  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, OTHER, OTHER_PLANNED, PARK_VISITS],
+  listPanel: [PARK_LIST, VISIT_LIST, OTHER_LIST],
   indicators: [
     {
       id: 'parks',
       label: { zh: '環球的樂園', en: 'Universal parks' },
       description: {
-        zh: '各國那一年有幾座環球經營的樂園（比例圓，含水上樂園；拖時間軸看 1964 年好萊塢開始怎麼擴張）。2026 年營運中的是 9 座：美國 6 座（好萊塢 1 座，奧蘭多的佛羅里達環球影城 1990、冒險島樂園 1999、水上樂園 Volcano Bay 2017、史詩宇宙 2025 共 4 座，德州 Frisco 2026 年 7 月開的兒童度假村 1 座），日本（大阪，2001）、新加坡（2011）、中國（北京，2021）各 1 座；度假區與在建的不算。最新的史詩宇宙 2025 年 5 月 22 日開幕，是奧蘭多的第三座主題樂園。奧蘭多的 Wet \'n Wild 是 1977 年別人開的水上樂園，環球 1998 年買下、2016 年底關閉。英國 Bedford 的樂園在建，宣布的目標是 2031 年，那是目標不是事實，所以不給開幕年、另外畫成空心的點。開幕日期依英文維基的固定版本；新加坡 2010 年 3 月試營運、2011 年 5 月正式開幕，這裡用 2011 年。放大看得到 OpenStreetMap 畫的園區邊界；面積把 OSM 的邊界與維基的數字並列、不排名，因為畫法差很多：好萊塢的 OSM 邊界只有 17.5 公頃，維基寫整個片廠約 168 公頃。園內的雲霄飛車是落在邊界裡、有名稱的 OSM 雲霄飛車，佛羅里達環球影城算出 0 座（維基寫 3 座），清單寫成「OSM 沒有標」。台灣沒有環球的樂園。',
-        en: 'How many Universal-run parks each country had in each year (proportional circles, water parks included; drag the timeline to watch the expansion from Hollywood in 1964). In 2026 there are 9 open: 6 in the US (Hollywood; in Orlando, Universal Studios Florida 1990, Islands of Adventure 1999, the Volcano Bay water park 2017 and Epic Universe 2025; and Universal Kids Resort in Frisco, Texas, opened July 2026) and 1 each in Japan (Osaka, 2001), Singapore (2011) and China (Beijing, 2021); resorts and parks under construction are not counted. The newest, Epic Universe, opened on 22 May 2025 as Orlando’s third theme park. Wet ’n Wild in Orlando was a water park opened by others in 1977, bought by Universal in 1998 and closed at the end of 2016. A park in Bedford, England, is under construction with a target of 2031; that is a target rather than a fact, so it has no opening year and is drawn as a hollow dot. Opening dates follow a fixed revision of English Wikipedia; Singapore had a soft opening in March 2010 and a grand opening in May 2011, and 2011 is used here. Zoom in to see park outlines drawn on OpenStreetMap; areas from OSM and Wikipedia are shown side by side and not ranked, because outlines differ widely: Hollywood’s OSM outline is only 17.5 ha, while Wikipedia gives about 168 ha for the whole studio lot. Roller coasters are named OSM coasters inside each outline; Universal Studios Florida comes out at 0 (Wikipedia says 3), which the list shows as “none tagged on OSM”. Taiwan has no Universal park.',
+        zh: '各國那一年有幾座環球經營的樂園（比例圓，含水上樂園；拖時間軸看 1964 年好萊塢開始怎麼擴張）。2026 年營運中的是 9 座：美國 6 座（好萊塢 1 座，奧蘭多的佛羅里達環球影城 1990、冒險島樂園 1999、水上樂園 Volcano Bay 2017、史詩宇宙 2025 共 4 座，德州 Frisco 2026 年 7 月開的兒童度假村 1 座），日本（大阪，2001）、新加坡（2011）、中國（北京，2021）各 1 座；度假區與在建的不算。最新的史詩宇宙 2025 年 5 月 22 日開幕，是奧蘭多的第三座主題樂園。奧蘭多的 Wet \'n Wild 是 1977 年別人開的水上樂園，環球 1998 年買下、2016 年底關閉。英國 Bedford 的樂園在建，宣布的目標是 2031 年，那是目標不是事實，所以不給開幕年、另外畫成空心的點。開幕日期依英文維基的固定版本；新加坡 2010 年 3 月試營運、2011 年 5 月正式開幕，這裡用 2011 年。放大看得到 OpenStreetMap 畫的園區邊界；面積把 OSM 的邊界與維基的數字並列、不排名，因為畫法差很多：好萊塢的 OSM 邊界只有 17.5 公頃，維基寫整個片廠約 168 公頃。園內的雲霄飛車是落在邊界裡、有名稱的 OSM 雲霄飛車，佛羅里達環球影城算出 0 座（維基寫 3 座），清單寫成「OSM 沒有標」。地圖上另外畫了樂園之外的環球：4 處 CityWalk（好萊塢 1993、奧蘭多 1999、大阪 2001、北京），奧蘭多的 11 家直營飯店（1999 年的 Portofino Bay 到 2025 年的 Helios Grand，合計 11,000 間房，房間數依英文維基；其他度假區沒有直營飯店），2025 年在拉斯維加斯開的 Horror Unleashed（芝加哥的在建），以及 1998–2004 年有持股、現在已經不是環球的 PortAventura 與取消的杜拜計畫；左邊的清單另列 IP 主題園區（哈利波特 6 處、超級任天堂 3 處）。台灣沒有環球的樂園。',
+        en: 'How many Universal-run parks each country had in each year (proportional circles, water parks included; drag the timeline to watch the expansion from Hollywood in 1964). In 2026 there are 9 open: 6 in the US (Hollywood; in Orlando, Universal Studios Florida 1990, Islands of Adventure 1999, the Volcano Bay water park 2017 and Epic Universe 2025; and Universal Kids Resort in Frisco, Texas, opened July 2026) and 1 each in Japan (Osaka, 2001), Singapore (2011) and China (Beijing, 2021); resorts and parks under construction are not counted. The newest, Epic Universe, opened on 22 May 2025 as Orlando’s third theme park. Wet ’n Wild in Orlando was a water park opened by others in 1977, bought by Universal in 1998 and closed at the end of 2016. A park in Bedford, England, is under construction with a target of 2031; that is a target rather than a fact, so it has no opening year and is drawn as a hollow dot. Opening dates follow a fixed revision of English Wikipedia; Singapore had a soft opening in March 2010 and a grand opening in May 2011, and 2011 is used here. Zoom in to see park outlines drawn on OpenStreetMap; areas from OSM and Wikipedia are shown side by side and not ranked, because outlines differ widely: Hollywood’s OSM outline is only 17.5 ha, while Wikipedia gives about 168 ha for the whole studio lot. Roller coasters are named OSM coasters inside each outline; Universal Studios Florida comes out at 0 (Wikipedia says 3), which the list shows as “none tagged on OSM”. The map also shows Universal beyond the parks: 4 CityWalks (Hollywood 1993, Orlando 1999, Osaka 2001 and Beijing), the 11 Universal-run hotels in Orlando (from Portofino Bay in 1999 to Helios Grand in 2025, 11,000 rooms in all according to English Wikipedia; the other resorts have no Universal-run hotels), Horror Unleashed in Las Vegas (opened 2025; Chicago under construction), and PortAventura, in which Universal held a stake in 1998–2004 and which is no longer Universal’s, plus the cancelled Dubai project; the list also shows the IP-themed lands (6 Wizarding Worlds of Harry Potter and 3 Super Nintendo Worlds). Taiwan has no Universal park.',
       },
       unit: { zh: '座', en: 'parks' },
       file: 'parks.json',
