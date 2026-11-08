@@ -74,6 +74,7 @@ const TOPIC_ICONS = {
   'taiwan-medicines': 'package-open',
   // 2026-11-08 第二十九批 688（傳統醫學）
   'alt-medicine': 'clover',
+  'taiwan-tcm': 'flower',
   'antimicrobial-resistance': 'bug',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',
