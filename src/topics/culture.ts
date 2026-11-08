@@ -1,6 +1,7 @@
-import { tr } from '../i18n/lang';
+import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { TopicDefinition } from './types';
+import { MAP_TOKENS } from '../theme/tokens';
+import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { boxOfficeTw } from './box-office-tw';
@@ -17,6 +18,69 @@ const UIS = {
   license: 'CC BY-SA 4.0',
 };
 
+const eur = (v: number) => tr({ zh: v >= 100 ? `${fixed(v / 100, 1)} 億歐元` : `${fixed(v * 100, 0)} 萬歐元`, en: `€${fixed(v, 1)} million` });
+
+// 2026-11-08（製作手冊第二十七批 661，候選 1447）：電影院的點圖層（OSM amenity=cinema；台灣換成文化部 2025 年的 107 家，有廳數）
+const str = (v: unknown) => (typeof v === 'string' && v ? v : null);
+const cinemaName = (p: PointRecord) =>
+  (getLang() === 'zh' ? (str(p.nz) ?? str(p.n) ?? str(p.ne)) : (str(p.ne) ?? str(p.n))) ?? tr({ zh: '（沒有名稱）', en: '(unnamed)' });
+const cinemaProper = (p: PointRecord) => (getLang() === 'en' && !str(p.ne) && str(p.n) ? String(p.n) : undefined);
+const CINEMA_SRC: Text[] = [
+  { zh: 'OpenStreetMap', en: 'OpenStreetMap' },
+  { zh: '文化部影視局（2025 年）', en: 'Ministry of Culture (2025)' },
+];
+const WHERE: Text[] = [
+  { zh: '', en: '' },
+  { zh: '位置是鄉鎮市區的代表點', en: 'Placed at the township centre' },
+  { zh: '位置只知道縣市', en: 'Placed at the county centre' },
+];
+const cinemaLines = (p: PointRecord) =>
+  [
+    typeof p.s === 'number' ? tr({ zh: `${p.s} 廳`, en: `${p.s} ${p.s === 1 ? 'screen' : 'screens'}` }) : null,
+    str(p.t),
+    Number(p.a) ? tr(WHERE[Number(p.a)]) : null,
+    tr(CINEMA_SRC[(Number(p.k) || 1) - 1]),
+  ].filter(Boolean) as string[];
+const CINEMAS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'cinema-points',
+  file: 'cinema-points.json',
+  label: { zh: '電影院（OSM；台灣用文化部的名單）', en: 'Cinemas (OSM; Taiwan from the Ministry of Culture list)' },
+  indicators: ['cinemas-osm-per', 'cinemas-osm'],
+  radius: 2.5,
+  color: {
+    field: 'k',
+    title: { zh: '來源', en: 'Source' },
+    thresholds: [1.5],
+    classes: CINEMA_SRC.map((label, i) => ({ color: [MAP_TOKENS.categorical[5], MAP_TOKENS.categorical[1]][i], label })),
+  },
+  sortField: 's',
+  tooltip: (p, { countryName }) => ({
+    title: cinemaName(p),
+    detail: typeof p.iso3 === 'string' ? countryName(p.iso3) : '',
+    extra: cinemaLines(p),
+    properNoun: cinemaProper(p),
+  }),
+};
+const CINEMA_LIST: ListPanelDef = {
+  label: { zh: '這一國的電影院', en: 'Cinemas here' },
+  tabLabel: { zh: '電影院', en: 'Cinemas' },
+  indicators: ['cinemas-osm-per', 'cinemas-osm'],
+  file: 'cinema-points.json',
+  countryField: 'iso3',
+  empty: { zh: 'OpenStreetMap 上這裡沒有標成電影院的地方', en: 'No places tagged as cinemas here in OpenStreetMap' },
+  rows: (points) =>
+    [...points]
+      .sort((a, b) => (Number(b.s) || 0) - (Number(a.s) || 0) || cinemaName(a).localeCompare(cinemaName(b)))
+      .map((p, i): ListRow => ({
+        key: `cin-${i}`,
+        title: cinemaName(p),
+        properNoun: cinemaProper(p),
+        lines: [cinemaLines(p).join(' · ')],
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+      })),
+};
+
 const cultureOwn: TopicDefinition = {
   id: 'culture',
   title: { zh: '文化：電影院、出版、文化工作者與遺產保存', en: 'Culture: cinemas, books, cultural jobs and heritage' },
@@ -25,9 +89,26 @@ const cultureOwn: TopicDefinition = {
   defaultYear: 2017,
   // 2026-11-07（製作手冊 556）：政府的文化、廣播與出版支出的側欄（COFOG 08 的分項長條）
   panelExtra: () => import('./panels/Cofog08Panel'),
+  overlays: [CINEMAS],
+  listPanel: [CINEMA_LIST],
   sources: [
     UIS,
-    { name: { zh: 'OpenStreetMap（amenity=theatre、arts_centre，經 QLever 查詢）', en: 'OpenStreetMap (amenity=theatre and arts_centre, via QLever)' }, url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0' },
+    { name: { zh: 'OpenStreetMap（amenity=theatre、arts_centre、cinema，經 QLever 查詢）', en: 'OpenStreetMap (amenity=theatre, arts_centre and cinema, via QLever)' }, url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0' },
+    {
+      name: { zh: '文化部：文創產業家數與營業額統計資訊（data.gov.tw 103019，2008–2023 年）', en: 'Ministry of Culture (Taiwan): creative industry establishments and turnover (data.gov.tw 103019, 2008–2023)' },
+      url: 'https://data.gov.tw/dataset/103019',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
+      name: { zh: '文化部文化統計網：文化參與率（電影、表演藝術，2013–2024 年）', en: 'Ministry of Culture (Taiwan) cultural statistics: participation rates (film and performing arts, 2013–2024)' },
+      url: 'https://stat.moc.gov.tw/',
+      license: { zh: '文化部網站著作權聲明（以文化部名義發表的著作，合理範圍內可重製、公開傳輸，需註明出處）；只用最近一年的參與率', en: 'Ministry of Culture website copyright notice (its own works may be reproduced within reasonable limits with attribution); only the latest participation rates are used' },
+    },
+    {
+      name: { zh: '文化部影視及流行音樂產業局：全國電影院資料（data.gov.tw 22213，2025 年）', en: 'Ministry of Culture Bureau of Audiovisual and Music Industry Development: cinemas in Taiwan (data.gov.tw 22213, 2025)' },
+      url: 'https://data.gov.tw/dataset/22213',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
     {
       name: { zh: 'Eurostat：一般政府依職能分類的支出（gov_10a_exp，COFOG 08）與 GDP（nama_10_gdp）', en: 'Eurostat: general government expenditure by function (gov_10a_exp, COFOG 08) and GDP (nama_10_gdp)' },
       url: 'https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table',
@@ -48,6 +129,11 @@ const cultureOwn: TopicDefinition = {
       url: 'https://stat.moc.gov.tw/HS_UserCatalogView.aspx',
       license: { zh: '文化部網站著作權聲明（以文化部名義發表的著作，合理範圍內可重製、公開傳輸，需註明出處）；只用逐年的家數', en: 'Ministry of Culture website copyright notice (its own works may be reproduced within reasonable limits with attribution); only annual counts are used' },
     },
+    {
+      name: { zh: 'Eurostat：文化部門企業（cult_ent_val）、文化就業（cult_emp_art）、EU-SILC 文化參與（ilc_scp03）', en: 'Eurostat: cultural enterprises (cult_ent_val), cultural employment (cult_emp_art) and EU-SILC cultural participation (ilc_scp03)' },
+      url: 'https://ec.europa.eu/eurostat/web/culture/database',
+      license: 'CC BY 4.0',
+    },
     { name: { zh: 'UN World Population Prospects 2024（人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],
   note: {
@@ -55,6 +141,36 @@ const cultureOwn: TopicDefinition = {
     en: 'All from the UNESCO Institute for Statistics (CC BY-SA 4.0; data files are shared under the same licence). Reporting years vary a lot: cinemas up to 2017 (UIS stopped collecting them; Taiwan uses Ministry of Culture figures to 2025), cultural employment 2010–2016 and heritage spending 2017–2024; where a year is missing, the most recent earlier value is used (hover for the year). Books are those received in 2022 by national libraries (legal deposit repositories), from the World Intellectual Property Organization’s publishing report (CC BY 4.0); whether e-books must be deposited varies a lot, so treat comparisons as approximate; China and Italy are not in the table. This is an adaptation: the Secretariat of WIPO assumes no liability or responsibility with regard to the transformation or translation of the original content. Taiwan’s figure is new-book ISBNs registered with the National Central Library in 2024 and 2025, not deposits. Cinemas are indoor cinema venues, each multiplex counting once, not screens. Cultural employment is the share of jobs in cultural occupations (artists, designers, librarians, craftspeople and so on); occupational detail differs by country, and figures for low-income countries may be high. Heritage spending is government spending on cultural and natural heritage (museums, monuments, nature reserves and so on), per person in PPP dollars. Taiwan is not in the UNESCO data.',
   },
   indicators: [
+    // 2026-11-08（製作手冊第二十七批 661，候選 1447）電影院（OSM 現況；UNESCO 的電影院數只到 2017 年）
+    {
+      id: 'cinemas-osm-per',
+      label: { zh: '每十萬人有幾家電影院（OSM）', en: 'Cinemas per 100,000 people (OSM)' },
+      description: {
+        zh: 'OpenStreetMap 上標成電影院（amenity=cinema）的地方 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。冰島每十萬人 4.58 家最多，捷克 3.83、法國 3.22、瑞士 3.04、希臘 2.96、挪威 2.85；義大利 2.46、德國 1.72、美國 1.59、英國 1.20、南韓 1.09、台灣 0.56、日本 0.42。一家影城算一家、不管有幾廳，所以多廳影城多的國家（日本、南韓、台灣）會偏低；密度也在量 OSM 畫得多完整。點圖層的台灣換成文化部 2025 年的 107 家電影院（932 廳）。',
+        en: 'Places tagged as cinemas (amenity=cinema) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Iceland has the most per 100,000 people (4.58), followed by Czechia (3.83), France (3.22), Switzerland (3.04), Greece (2.96) and Norway (2.85); Italy has 2.46, Germany 1.72, the US 1.59, the UK 1.20, South Korea 1.09, Taiwan 0.56 and Japan 0.42. Each multiplex counts once however many screens it has, so countries with many multiplexes (Japan, South Korea, Taiwan) come out low, and densities also reflect how completely OSM is mapped. On the point layer, Taiwan uses the Ministry of Culture’s 2025 list of 107 cinemas (932 screens).',
+      },
+      unit: { zh: '家／十萬人', en: 'per 100,000' },
+      file: 'cinemas-osm-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.25, 0.5, 1, 1.5, 2, 3] } },
+      timeless: true,
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, 2)} 家`, en: `${fixed(v, 2)} per 100,000` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'cinemas-osm',
+      label: { zh: '電影院家數（OSM）', en: 'Cinemas (OSM)' },
+      description: {
+        zh: 'OpenStreetMap 上標成電影院的地方：31,657 處、197 國。美國 5,489 處最多，印度 2,209、法國 2,144、俄羅斯 1,965、義大利 1,459、德國 1,458、中國 1,378、英國 832；台灣 131 處（文化部 2025 年的名單是 107 家、932 廳）。印度多半是單廳戲院，跟美國的多廳影城不能直接比；OSM 標了廳數（screen）的只有兩成多。',
+        en: 'Places tagged as cinemas in OpenStreetMap: 31,657 in 197 countries. The US has the most (5,489), followed by India (2,209), France (2,144), Russia (1,965), Italy (1,459), Germany (1,458), China (1,378) and the UK (832); Taiwan has 131 (the Ministry of Culture’s 2025 list has 107 cinemas with 932 screens). India’s are mostly single-screen cinemas, not comparable with US multiplexes; only about a fifth of OSM cinemas are tagged with a screen count.',
+      },
+      unit: { zh: '家', en: 'cinemas' },
+      file: 'cinemas-osm.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 5000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+    },
     // 2026-11-08（製作手冊第二十七批 641）劇院與藝文中心（OSM）
     {
       id: 'theatres-per',
@@ -223,6 +339,109 @@ const cultureOwn: TopicDefinition = {
       file: 'books-digital-share.json',
       defaultYear: 2025,
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 40, 60, 80] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    // 2026-11-08（製作手冊第二十七批 661，候選 1448）：去電影院與看現場表演的比例（EU-SILC）
+    {
+      id: 'attend-cinema',
+      label: { zh: '一年去過電影院的人（歐洲）', en: 'Went to the cinema in the past year (Europe)' },
+      description: {
+        zh: '16 歲以上的人過去 12 個月至少去過一次電影院的比例（Eurostat EU-SILC 的文化參與調查，2006、2015、2022 三波，地圖用各國最近一波；冰島、德國、北馬其頓最新是 2015 年）。冰島 69.0% 最高（2015），丹麥 52.4%、盧森堡 49.2%、德國 46.6%（2015）、挪威 45.8%、荷蘭 44.5%；羅馬尼亞 14.5%、拉脫維亞 14.4%、土耳其 14.3%、北馬其頓 13.1%（2015）、保加利亞 13.0% 最低。2022 年有些國家還在疫情尾聲。台灣不在 EU-SILC，滑過台灣看文化部文化參與調查的數字（2024/2025 年 33.5%，問法不同、不能直接比）。',
+        en: 'Share of people aged 16 and over who went to the cinema at least once in the past 12 months (Eurostat EU-SILC cultural participation, waves 2006, 2015 and 2022; the map uses each country’s latest wave, 2015 for Iceland, Germany and North Macedonia). Iceland is highest at 69.0% (2015), then Denmark 52.4%, Luxembourg 49.2%, Germany 46.6% (2015), Norway 45.8% and the Netherlands 44.5%; Romania 14.5%, Latvia 14.4%, Turkey 14.3%, North Macedonia 13.1% (2015) and Bulgaria 13.0% are lowest. Some countries were still emerging from the pandemic in 2022. Taiwan is not in EU-SILC; hover over it for the Ministry of Culture’s participation survey (33.5% in 2024/2025, a different survey that is not directly comparable).',
+      },
+      unit: '%',
+      file: 'attend-cinema.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [15, 20, 25, 30, 40, 50] } },
+      defaultYear: 2022,
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    {
+      id: 'attend-live',
+      label: { zh: '一年看過現場表演的人（歐洲）', en: 'Saw a live performance in the past year (Europe)' },
+      description: {
+        zh: '16 歲以上的人過去 12 個月至少看過一次現場表演（戲劇、音樂會、芭蕾）的比例（同一份調查）。冰島 73.5% 最高（2015），德國 48.6%（2015）、盧森堡 48.5%、瑞士 46.6%、丹麥 45.7%、挪威 41.8%；保加利亞 10.7%、羅馬尼亞 10.4%、土耳其 6.2% 最低。台灣用文化部調查的表演藝術（含流行音樂）參與率：2024/2025 年 38.2%（滑過台灣看）。',
+        en: 'Share of people aged 16 and over who saw a live performance (theatre, concert or ballet) at least once in the past 12 months (same survey). Iceland is highest at 73.5% (2015), then Germany 48.6% (2015), Luxembourg 48.5%, Switzerland 46.6%, Denmark 45.7% and Norway 41.8%; Bulgaria 10.7%, Romania 10.4% and Turkey 6.2% are lowest. For Taiwan, hover for the Ministry of Culture’s performing arts participation rate (including pop music): 38.2% in 2024/2025.',
+      },
+      unit: '%',
+      file: 'attend-live.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 15, 20, 30, 40, 50] } },
+      defaultYear: 2022,
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    // 2026-11-08（製作手冊第二十七批 662，候選 1450、1457、1458、1459）
+    {
+      id: 'industry',
+      label: { zh: '文化產業的營業額（歐洲）', en: 'Cultural industry turnover (Europe)' },
+      description: {
+        zh: '文化相關行業的企業一年營業額（Eurostat 文化部門企業統計，各國最近一年，多半是 2020 年，資料到 2020 年為止），子項目切換行業。影視與音樂製作：德國 109 億歐元、法國 83 億、西班牙 44 億、荷蘭 43 億；廣播：法國 225 億、德國 106 億、義大利 73 億；書籍出版：法國 61 億、德國 57 億；報紙：德國 128 億、法國 38 億；期刊：德國 64 億、法國 38 億；書店零售：德國 36 億、法國 22 億；影音零售只剩幾千萬歐元（義大利 5,170 萬最多）。英國照網站的 Eurostat 規則不收；遊戲出版在「遊戲與電競」。台灣不在 Eurostat，滑過台灣看文化部文創產業統計最接近的細類（2023 年，新台幣，分類不同）。',
+        en: 'Annual turnover of enterprises in culture-related industries (Eurostat statistics on cultural enterprises, each country’s latest year, mostly 2020, when the series ends); sub-items switch industries. Film, video and music production: Germany €10.9 billion, France €8.3 billion, Spain €4.4 billion and the Netherlands €4.3 billion; broadcasting: France €22.5 billion, Germany €10.6 billion and Italy €7.3 billion; book publishing: France €6.1 billion and Germany €5.7 billion; newspapers: Germany €12.8 billion and France €3.8 billion; magazines: Germany €6.4 billion and France €3.8 billion; bookshops: Germany €3.6 billion and France €2.2 billion; music and video retail is down to tens of millions (Italy highest at €51.7 million). The UK is excluded under this site’s Eurostat rule; game publishing is in Games and esports. Taiwan is not in Eurostat; hover over it for the closest sub-categories in the Ministry of Culture’s creative industry statistics (2023, NT dollars, different classification).',
+      },
+      unit: { zh: '百萬歐元', en: '€ million' },
+      file: 'industry/{item}.json',
+      dimension: {
+        label: { zh: '行業', en: 'Industry' },
+        options: [
+          { id: 'film-music', label: { zh: '影視與音樂製作（J59）', en: 'Film, video and music production (J59)' } },
+          { id: 'broadcasting', label: { zh: '廣播與電視台（J60）', en: 'Broadcasting (J60)' } },
+          { id: 'books', label: { zh: '書籍出版（J58.11）', en: 'Book publishing (J58.11)' } },
+          { id: 'newspapers', label: { zh: '報紙出版（J58.13）', en: 'Newspaper publishing (J58.13)' } },
+          { id: 'magazines', label: { zh: '期刊出版（J58.14）', en: 'Magazine publishing (J58.14)' } },
+          { id: 'bookshops', label: { zh: '書店零售（G47.61）', en: 'Bookshops (G47.61)' } },
+          { id: 'music-video-retail', label: { zh: '影音零售（G47.63）', en: 'Music and video retail (G47.63)' } },
+        ],
+        defaultOption: 'film-music',
+      },
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      timeless: true,
+      format: eur,
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: false,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    {
+      id: 'artists',
+      label: { zh: '藝術家、作家與記者（歐洲）', en: 'Artists, writers and journalists (Europe)' },
+      description: {
+        zh: '創作與表演藝術家、作家、記者與語言工作者的人數（Eurostat 文化就業統計，千人，2011–2025）。2025 年德國約 37.6 萬人最多，法國約 29.7 萬、義大利約 16.4 萬、西班牙約 15.6 萬、土耳其約 15 萬、荷蘭約 14.4 萬。這是 Eurostat 的職業定義，跟上面 UIS 的「文化工作者占就業」不是同一個算法。',
+        en: 'Number of creative and performing artists, authors, journalists and linguists (Eurostat cultural employment statistics, thousands, 2011–2025). In 2025 Germany had the most (about 376,000), followed by France (297,000), Italy (164,000), Spain (156,000), Turkey (150,000) and the Netherlands (144,000). This uses Eurostat’s occupational definition, not the same as UIS’s cultural employment share above.',
+      },
+      unit: { zh: '千人', en: 'thousand people' },
+      file: 'artists.json',
+      layer: { kind: 'bubble', legendValues: [10, 100, 300] },
+      defaultYear: 2025,
+      format: (v) => tr({ zh: `${fixed(v * 1000, 0)} 人`, en: `${fixed(v * 1000, 0)} people` }),
+      formatTick: (v) => fixed(v, 0),
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    {
+      id: 'domains',
+      label: { zh: '文化工作者在哪個領域', en: 'Cultural workers by domain' },
+      description: {
+        zh: '文化職業的就業裡，各個文化領域占多少（UNESCO UIS，2010–2016 年，各國最近一年，約 55 國），子項目切換七個領域。分母是文化職業就業，不是總就業，只能看結構。書籍與報刊：盧森堡 49.6%、瑞典 28.1%；影視與互動媒體：玻利維亞 17.5%、法國 14.0%；視覺藝術與工藝：烏干達 92.0%、斯里蘭卡 91.8%（多半是工藝）；設計與創意服務：馬利 79.6%、瑞士 43.3%、比利時 42.0%；文化教育與訓練：馬爾他 27.1%、南韓 25.8%。UIS 不收台灣。',
+        en: 'How cultural employment is split across cultural domains (UNESCO UIS, 2010–2016, each country’s latest year, about 55 countries); sub-items switch between the seven domains. The denominator is employment in cultural occupations, not total employment, so this shows structure only. Books and press: Luxembourg 49.6% and Sweden 28.1%; audiovisual and interactive media: Bolivia 17.5% and France 14.0%; visual arts and crafts: Uganda 92.0% and Sri Lanka 91.8% (mostly crafts); design and creative services: Mali 79.6%, Switzerland 43.3% and Belgium 42.0%; cultural education and training: Malta 27.1% and South Korea 25.8%. UIS does not cover Taiwan.',
+      },
+      unit: '%',
+      file: 'domains/{item}.json',
+      dimension: {
+        label: { zh: '領域', en: 'Domain' },
+        options: [
+          { id: 'd1', label: { zh: '文化與自然遺產', en: 'Cultural and natural heritage' } },
+          { id: 'd2', label: { zh: '表演與慶典', en: 'Performance and celebration' } },
+          { id: 'd3', label: { zh: '視覺藝術與工藝', en: 'Visual arts and crafts' } },
+          { id: 'd4', label: { zh: '書籍與報刊', en: 'Books and press' } },
+          { id: 'd5', label: { zh: '影視與互動媒體', en: 'Audiovisual and interactive media' } },
+          { id: 'd6', label: { zh: '設計與創意服務', en: 'Design and creative services' } },
+          { id: 'd7', label: { zh: '文化教育與訓練', en: 'Cultural education and training' } },
+        ],
+        defaultOption: 'd5',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 20, 30, 50] } },
+      defaultYear: 2016,
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,
     },

@@ -293,8 +293,8 @@ const newsPart: TopicPart = {
   sources: [
     {
       name: {
-        zh: 'Reuters Institute《Digital News Report 2026》（新聞 podcast、AI 聊天機器人；DOI 10.60625/risj-4vgf-s811）',
-        en: 'Reuters Institute, Digital News Report 2026 (news podcasts, AI chatbots; DOI 10.60625/risj-4vgf-s811)',
+        zh: 'Reuters Institute《Digital News Report 2026》（新聞 podcast、AI 聊天機器人、信任、付費、社群與影音平台的觸達；DOI 10.60625/risj-4vgf-s811）',
+        en: 'Reuters Institute, Digital News Report 2026 (news podcasts, AI chatbots, trust, payment, social and video platform reach; DOI 10.60625/risj-4vgf-s811)',
       },
       url: 'https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026',
       license: 'CC BY 4.0',
@@ -376,6 +376,57 @@ const newsPart: TopicPart = {
       formatTick: (v) => fixed(v, 0),
       defaultYear: 2026,
       missing: { zh: '不在數位新聞報告的市場裡，或那一頁沒有付費的數字', en: 'Not covered, or no payment figure for this market' },
+    },
+    // 2026-11-08（製作手冊第二十七批 658，候選 1440）：每個市場頁的平台觸達表
+    {
+      id: 'social-reach',
+      label: { zh: '每週用社群與影音平台的人', en: 'Weekly use of social and video platforms' },
+      description: {
+        zh: '每週用這個平台做任何事的人的比例（Reuters Institute《Digital News Report 2026》每個市場頁的平台表，48 個市場；樣本是上網的人）。子項目切換平台。YouTube 48 個市場都有，肯亞 84% 最高，塞爾維亞、南韓、香港 80%、台灣 79%，丹麥 53% 最低；Facebook 菲律賓 84% 最高，日本 18%、南韓 27% 最低，台灣 72%；Instagram 奈及利亞 73% 最高、泰國 34% 最低，台灣 47%；TikTok 有 45 個市場，肯亞 79%、泰國與祕魯 71% 最高，丹麥 16% 最低，台灣 25%。表只列每個市場前幾名的平台，沒列的不畫。',
+        en: 'Share who used the platform for any purpose in the last week (the platform table on each market page of the Reuters Institute Digital News Report 2026, 48 markets; samples are internet users). Sub-items switch platforms. YouTube covers all 48 markets: Kenya is highest at 84%, Serbia, South Korea and Hong Kong 80% and Taiwan 79%, with Denmark lowest at 53%; Facebook is highest in the Philippines (84%) and lowest in Japan (18%) and South Korea (27%), with Taiwan at 72%; Instagram is highest in Nigeria (73%) and lowest in Thailand (34%), with Taiwan at 47%; TikTok has 45 markets, highest in Kenya (79%) and Thailand and Peru (71%), lowest in Denmark (16%), with Taiwan at 25%. Each table lists only a market’s top platforms; unlisted ones are not shown.',
+      },
+      unit: '%',
+      file: 'social-reach/{item}.json',
+      dimension: {
+        label: { zh: '平台', en: 'Platform' },
+        options: [
+          { id: 'youtube', label: 'YouTube' },
+          { id: 'facebook', label: 'Facebook' },
+          { id: 'instagram', label: 'Instagram' },
+          { id: 'tiktok', label: 'TikTok' },
+        ],
+        defaultOption: 'youtube',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [20, 30, 40, 50, 60, 70] } },
+      format: (v) => `${fixed(v, 0)}%`,
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2026,
+      missing: { zh: '不在數位新聞報告的市場裡，或這個平台不在那一國的表上', en: 'Not covered, or the platform is not in this market’s table' },
+    },
+    {
+      id: 'social-news',
+      label: { zh: '每週在社群與影音平台看新聞的人', en: 'Weekly news use on social and video platforms' },
+      description: {
+        zh: '每週在這個平台看新聞的人的比例（同一張表的「看新聞」欄）。YouTube 肯亞 66%、南韓 61%、印度 58% 最高，台灣 48%、美國 33%、日本 30%、英國 16%；Facebook 菲律賓 72%、泰國 69% 最高，台灣 47%，日本 5% 最低；Instagram 奈及利亞 50%、巴西 49%、土耳其 48% 最高，台灣與南韓 19%；TikTok 肯亞 58%、泰國 55% 最高，台灣 11%，日本、德國、英國 7%。',
+        en: 'Share who used the platform for news in the last week (the “for news” column of the same table). YouTube is highest in Kenya (66%), South Korea (61%) and India (58%), with Taiwan at 48%, the US 33%, Japan 30% and the UK 16%; Facebook is highest in the Philippines (72%) and Thailand (69%), with Taiwan at 47% and Japan lowest at 5%; Instagram is highest in Nigeria (50%), Brazil (49%) and Turkey (48%), with Taiwan and South Korea at 19%; TikTok is highest in Kenya (58%) and Thailand (55%), with Taiwan at 11% and Japan, Germany and the UK at 7%.',
+      },
+      unit: '%',
+      file: 'social-news/{item}.json',
+      dimension: {
+        label: { zh: '平台', en: 'Platform' },
+        options: [
+          { id: 'youtube', label: 'YouTube' },
+          { id: 'facebook', label: 'Facebook' },
+          { id: 'instagram', label: 'Instagram' },
+          { id: 'tiktok', label: 'TikTok' },
+        ],
+        defaultOption: 'youtube',
+      },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 30, 40, 50, 60] } },
+      format: (v) => `${fixed(v, 0)}%`,
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2026,
+      missing: { zh: '不在數位新聞報告的市場裡，或這個平台不在那一國的表上', en: 'Not covered, or the platform is not in this market’s table' },
     },
   ],
 };

@@ -222,8 +222,11 @@ export const RELATED: Record<string, string[]> = {
   'amusement-industry': ['theme-parks', 'tourism', 'retail'],
   'roller-coasters': ['theme-parks', 'attractions', 'amusement-industry'],
   'water-parks': ['theme-parks', 'roller-coasters', 'tourism'],
-  'game-companies': ['esports', 'developers', 'companies'],
-  'online-video': ['time-use', 'esports', 'digital'],
+  'game-companies': ['esports', 'anime', 'developers'],
+  'online-video': ['time-use', 'tv-series', 'esports'],
+  anime: ['comics', 'tv-series', 'game-companies'],
+  comics: ['anime', 'reads', 'tv-series'],
+  'tv-series': ['anime', 'online-video', 'culture'],
   museums: ['attractions', 'world-heritage', 'castles'],
   'night-lights': ['cities', 'power-plants', 'population'],
 };
