@@ -130,3 +130,19 @@ def load() -> list[Port]:
         if key not in best or (best[key].size, best[key].type != UNKNOWN_TYPE) < (p.size, p.type != UNKNOWN_TYPE):
             best[key] = p
     return list(best.values())
+
+
+def raw_rows() -> dict[tuple[int, float, float], dict[str, str]]:
+    """每個港口的原始欄位（值去掉前後空白；空白欄位是一個空格，變成空字串），key 跟 load() 去重複用的一樣：
+    (編號, 緯度到 0.001, 經度到 0.001)。同一個 key 有兩列時（冰島 Seydisfjordur）留非空白欄位多的那列。
+    2026-11-08（製作手冊第二十七批 580，候選 1301）港口設施用。"""
+    path = _download()
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.DictReader(f))
+    out: dict[tuple[int, float, float], dict[str, str]] = {}
+    for r in rows:
+        clean = {k: (v or "").strip() for k, v in r.items()}
+        key = (int(float(clean["World Port Index Number"])), round(float(clean["Latitude"]), 3), round(float(clean["Longitude"]), 3))
+        if key not in out or sum(bool(v) for v in out[key].values()) < sum(bool(v) for v in clean.values()):
+            out[key] = clean
+    return out

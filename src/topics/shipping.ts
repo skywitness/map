@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { ferriesExtra } from './ferries';
 import { withParts } from './parts';
+import { portFacilitiesPart } from './port-facilities';
 import { portCallsPart, portCargoTypesPart } from './port-activity';
 import { seaPassengersPart } from './sea-passengers';
 import { shippingEfficiencyPart } from './shipping-efficiency';
@@ -501,4 +502,4 @@ export const shipping: TopicDefinition = withParts({
       },
     },
   ],
-}, shippingEfficiencyPart, portCallsPart, portCargoTypesPart, seaPassengersPart, shipyardsPart);
+}, shippingEfficiencyPart, portCallsPart, portCargoTypesPart, portFacilitiesPart, seaPassengersPart, shipyardsPart);

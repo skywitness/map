@@ -305,6 +305,7 @@ STEPS = {
     "bus-stations": "topics.bus_stations",
     "port-calls": "topics.port_calls",
     "port-cargo-types": "topics.port_cargo_types",
+    "port-facilities": "topics.port_facilities",  # 2026-11-08 第二十七批 580 候選 1301：WPI 的設施欄位（本機給的 CSV，map-plan data/nga/）
     "sea-passengers": "topics.sea_passengers",
     "shipyards": "topics.shipyards",
     "inland-fleet": "topics.inland_fleet",
