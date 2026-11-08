@@ -164,6 +164,66 @@ const NEAR_LIST: ListPanelDef = {
     }),
 };
 
+// ── 2026-11-08（製作手冊第二十七批 643）台灣的有形文化資產（文化資產局） ──
+const TW_HERITAGE_KINDS: Text[] = [
+  { zh: '國定古蹟', en: 'National monument' },
+  { zh: '直轄市定古蹟', en: 'Special municipality monument' },
+  { zh: '縣（市）定古蹟', en: 'County or city monument' },
+  { zh: '歷史建築', en: 'Historic building' },
+  { zh: '聚落建築群、紀念建築', en: 'Settlement or memorial building' },
+  { zh: '考古遺址', en: 'Archaeological site' },
+  { zh: '文化景觀', en: 'Cultural landscape' },
+];
+const TC = MAP_TOKENS.categorical;
+const twKind = (p: PointRecord) => tr(TW_HERITAGE_KINDS[(Number(p.k) || 1) - 1]);
+const TW_HERITAGE: PointsOverlayDef = {
+  kind: 'points',
+  id: 'taiwan-heritage',
+  file: 'taiwan-heritage.json',
+  label: { zh: '台灣的有形文化資產（文化資產局）', en: 'Taiwan’s designated heritage (Bureau of Cultural Heritage)' },
+  indicators: ['taiwan-heritage'],
+  radius: { field: 'k', stops: [[1, 4.5], [3, 3], [4, 2.4], [7, 2.8]] },
+  color: {
+    field: 'k',
+    title: { zh: '類別', en: 'Type' },
+    thresholds: [1.5, 2.5, 3.5, 4.5, 5.5, 6.5],
+    classes: TW_HERITAGE_KINDS.map((label, i) => ({ color: [TC[3], TC[1], TC[0], TC[2], TC[5], TC[4], TC[6]][i], label })),
+  },
+  sortField: 'k',
+  timeField: 'y',
+  tooltip: (p) => ({
+    title: String(p.name ?? ''),
+    detail: [twKind(p), typeof p.type === 'string' ? p.type : null, typeof p.county === 'string' ? p.county : null].filter(Boolean).join(' · '),
+    extra: typeof p.y === 'number' ? [tr({ zh: `${p.y} 年公告`, en: `designated ${p.y}` })] : [],
+  }),
+};
+const TW_HERITAGE_LIST: ListPanelDef = {
+  label: { zh: '台灣的有形文化資產', en: 'Taiwan’s designated heritage' },
+  tabLabel: { zh: '台灣', en: 'Taiwan' },
+  indicators: ['taiwan-heritage'],
+  file: 'taiwan-heritage.json',
+  rows: (points) => {
+    const by = new Map<string, PointRecord[]>();
+    for (const p of points) by.set(String(p.county ?? ''), [...(by.get(String(p.county ?? '')) ?? []), p]);
+    const rows: ListRow[] = [];
+    for (const [county, list] of [...by.entries()].sort((a, b) => b[1].length - a[1].length)) {
+      list
+        .sort((a, b) => Number(a.k) - Number(b.k))
+        .forEach((p, i) => {
+          rows.push({
+            key: `twh-${county}-${i}`,
+            title: String(p.name ?? ''),
+            lines: [[twKind(p), typeof p.type === 'string' ? p.type : null, typeof p.y === 'number' ? tr({ zh: `${p.y} 年公告`, en: `designated ${p.y}` }) : null].filter(Boolean).join(' · ')],
+            group: tr({ zh: `${county || '縣市不詳'}（${list.length}）`, en: `${county || 'Unknown'} (${list.length})` }),
+            target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 15 },
+            link: typeof p.url === 'string' ? { href: p.url, label: tr({ zh: '國家文化資產網', en: 'National Cultural Heritage Database' }) } : undefined,
+          });
+        });
+    }
+    return rows;
+  },
+};
+
 const countText = (v: number) => tr({ zh: `名單上 ${fixed(v, 0)} 座`, en: `${fixed(v, 0)} listed` });
 
 export const castles: TopicDefinition = {
@@ -206,8 +266,8 @@ export const castles: TopicDefinition = {
       'The time slider shows founding years (some approximate, marked “c.”); 1,629 have no founding year and appear only at 2026. Chinese names come from Wikidata (about a third have one); others show the English name. World Heritage status and yearly visitors follow Wikidata; a missing statement does not mean no. ' +
       'Countries are assigned by location (England, Scotland, Wales and Northern Ireland count as the UK). Countries are not coloured: the list is curated, so counts reflect how much Wikipedia covers a country (Western Europe most); the “Statistics” tab on the left puts each country’s count next to its Wikidata total. Photos load from Wikimedia Commons on hover (they are not stored on this site), with the photographer and licence under each one; click (or long-press) a dot for a link to its Wikipedia article. Taiwan has 20, all fortresses, batteries and ruins.',
   },
-  overlays: [CASTLES_OVERLAY],
-  listPanel: [FAMOUS_LIST, NEAR_LIST],
+  overlays: [CASTLES_OVERLAY, TW_HERITAGE],
+  listPanel: [FAMOUS_LIST, NEAR_LIST, TW_HERITAGE_LIST],
   worldPanel: { title: { zh: '統計', en: 'Statistics' }, load: () => import('./panels/CastlesWorld') },
   indicators: [
     {
@@ -229,6 +289,39 @@ export const castles: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       timeAxis: { label: { zh: '建造的年份', en: 'Founding year' }, year: eraYear, tick: eraTick },
       missing: { zh: '名單上沒有這一國的', en: 'None listed in this country' },
+    },
+    // 2026-11-08（製作手冊第二十七批 643）台灣的有形文化資產、Wikidata 各國的法定文化資產筆數
+    {
+      id: 'taiwan-heritage',
+      label: { zh: '台灣的有形文化資產', en: 'Taiwan’s designated heritage' },
+      description: { zh: '文化部文化資產局公告的有形文化資產 3,037 處裡有座標的 3,006 處：國定古蹟 110、直轄市定古蹟 522、縣（市）定古蹟 427、歷史建築 1,768、聚落建築群與紀念建築 45、考古遺址 55、文化景觀 79。拖時間軸看依公告年份累積：1980 年代 213 處、1990 年代 164、2000 年代 1,195、2010 年代 1,006、2020 年起 428。臺北市 576 處最多，金門縣 251、臺南市 244、臺中市 194；類別以宅第 828、其他設施 705、寺廟 255 最多。左邊的清單依縣市列出，連到國家文化資產網。', en: 'The 3,006 of 3,037 tangible heritage sites designated by Taiwan’s Bureau of Cultural Heritage that have coordinates: 110 national monuments, 522 special municipality monuments, 427 county or city monuments, 1,768 historic buildings, 45 settlements and memorial buildings, 55 archaeological sites and 79 cultural landscapes. Drag the time slider to see them accumulate by year of designation: 213 in the 1980s, 164 in the 1990s, 1,195 in the 2000s, 1,006 in the 2010s and 428 since 2020. Taipei has the most (576), followed by Kinmen (251), Tainan (244) and Taichung (194); the most common types are residences (828), other facilities (705) and temples (255). The list on the left groups them by county and links to the National Cultural Heritage Database.' },
+      unit: '',
+      file: 'heritage-years.json',
+      layer: { kind: 'none' },
+      overlayTime: 'cumulative',
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      defaultYear: 2026,
+      focus: [119.3, 21.8, 122.1, 25.4],
+      missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
+    },
+    {
+      id: 'heritage-wikidata',
+      label: { zh: 'Wikidata 上的法定文化資產筆數', en: 'Designated heritage entries in Wikidata' },
+      description: { zh: 'Wikidata 上有法定文化資產登錄（P1435）、座標與國家的項目，依國家數：210 國合計 2,057,290 筆。英國 544,648 筆最多，德國 480,027、瑞典 152,756、美國 93,191、波蘭 89,569、俄羅斯 88,449、西班牙 73,558、法國 73,338、義大利 61,953；台灣 858 筆（文化資產局公告的有 3,037 處）。數字是各國把官方清冊匯進 Wikidata 的程度（英國、德國把每一棟登錄建築都匯進去），不能跨國比較，所以國家不上色，滑過國家看筆數。', en: 'Wikidata items with a heritage designation (P1435), coordinates and a country, counted by country: 2,057,290 entries in 210 countries. The UK has the most (544,648), followed by Germany (480,027), Sweden (152,756), the US (93,191), Poland (89,569), Russia (88,449), Spain (73,558), France (73,338) and Italy (61,953); Taiwan has 858 (its Bureau of Cultural Heritage lists 3,037). The numbers reflect how far each country’s official register has been imported into Wikidata (the UK and Germany imported every listed building), so they cannot be compared across countries; countries are not coloured; hover over one to see its count.' },
+      unit: { zh: '筆', en: 'entries' },
+      file: 'heritage-wikidata.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `Wikidata 上 ${fixed(v, 0)} 筆`, en: `${fixed(v, 0)} entries in Wikidata` }),
+      formatTick: (v) => fixed(v, 0),
+      missing: { zh: 'Wikidata 上沒有這國的法定文化資產', en: 'No designated heritage from here in Wikidata' },
     },
   ],
 };
