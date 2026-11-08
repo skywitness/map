@@ -161,10 +161,16 @@ const tourismOwn: TopicDefinition = {
       url: 'https://population.un.org/wpp/',
       license: 'CC BY 3.0 IGO',
     },
+    // 2026-11-08（製作手冊第二十七批 668）：放在最後，HABIT_SOURCES 的索引不變
+    {
+      name: { zh: 'OECD 觀光統計：Key tourism economic indicators、Receipts and expenditure', en: 'OECD tourism statistics: key tourism economic indicators, and receipts and expenditure' },
+      url: 'https://data-explorer.oecd.org/',
+      license: { zh: 'OECD 資料條款（可轉載、改作，需註明出處）', en: 'OECD Terms and Conditions (reuse with attribution)' },
+    },
   ],
   note: {
-    zh: '國際旅客、觀光收入與觀光收入占出口只到 2020 年：UN Tourism 之後的資料不開放轉載。旅行收入與旅行收入占出口是世界銀行轉載的 IMF 國際收支，到最新一年；IMF 的「旅行」不含國際客運（觀光收入含付給本國航空公司的機票錢），兩者不能直接接起來比。旅客人次有些國家只算過夜旅客、有些含當日來回的旅客，跨國比較時要留意。2020 年起受疫情影響大幅減少。旅客的來源與去向（2026-11 加）：歐洲是 Eurostat 的旅宿業到達人次（一個人住兩家旅館算兩次，跟入境人次不同）與居民一夜以上的出國旅次，只有有名字的 42 個來源國、29 個出發國；台灣是觀光署的來臺旅客（依居住地，港澳合在一起）與國人出國的首站抵達地（轉機的算第一站）。',
-    en: 'International arrivals, tourism receipts and their share of exports end in 2020 because later UN Tourism data may not be republished. Travel receipts and their share of exports come from IMF balance-of-payments data republished by the World Bank and run to the latest year; IMF "travel" excludes international passenger transport (tourism receipts include fares paid to national carriers), so the two series cannot be joined directly. Some countries count only overnight visitors and others include same-day visitors, so compare with care. Figures drop sharply from 2020 because of the pandemic. Visitor origins and destinations (added November 2026): for Europe, Eurostat arrivals at tourist accommodation (someone staying at two hotels counts twice, unlike border arrivals) and residents’ trips abroad of one night or more, with only the 42 named source countries and 29 reporting countries; for Taiwan, Tourism Administration arrivals by country of residence (Hong Kong and Macao combined) and the first destination of departures (a connecting stop counts as the destination).',
+    zh: '國際旅客、觀光收入與觀光收入占出口只到 2020 年：UN Tourism 之後的資料不開放轉載。旅行收入與旅行收入占出口是世界銀行轉載的 IMF 國際收支，到最新一年；IMF 的「旅行」不含國際客運（觀光收入含付給本國航空公司的機票錢），兩者不能直接接起來比。旅客人次有些國家只算過夜旅客、有些含當日來回的旅客，跨國比較時要留意。2020 年起受疫情影響大幅減少。旅客的來源與去向（2026-11 加）：歐洲是 Eurostat 的旅宿業到達人次（一個人住兩家旅館算兩次，跟入境人次不同）與居民一夜以上的出國旅次，只有有名字的 42 個來源國、29 個出發國；台灣是觀光署的來臺旅客（依居住地，港澳合在一起）與國人出國的首站抵達地（轉機的算第一站）；歐洲以外的 21 國是 OECD 觀光統計的入境過夜旅客主要來源（入境人次，跟旅宿到達人次口徑不同；同一國的需求面與供給面兩套數字只用一套）。',
+    en: 'International arrivals, tourism receipts and their share of exports end in 2020 because later UN Tourism data may not be republished. Travel receipts and their share of exports come from IMF balance-of-payments data republished by the World Bank and run to the latest year; IMF "travel" excludes international passenger transport (tourism receipts include fares paid to national carriers), so the two series cannot be joined directly. Some countries count only overnight visitors and others include same-day visitors, so compare with care. Figures drop sharply from 2020 because of the pandemic. Visitor origins and destinations (added November 2026): for Europe, Eurostat arrivals at tourist accommodation (someone staying at two hotels counts twice, unlike border arrivals) and residents’ trips abroad of one night or more, with only the 42 named source countries and 29 reporting countries; for Taiwan, Tourism Administration arrivals by country of residence (Hong Kong and Macao combined) and the first destination of departures (a connecting stop counts as the destination); for 21 countries outside Europe, OECD tourism statistics on inbound overnight visitors by main market (border arrivals, unlike accommodation arrivals; where a country reports both demand-side and supply-side figures, only one set is used).',
   },
   indicators: [
     {
@@ -259,8 +265,8 @@ const tourismOwn: TopicDefinition = {
       id: 'visitors-from',
       label: { zh: '流向：旅客從哪裡來', en: 'Flows: where visitors come from' },
       description: {
-        zh: '點選國家，弧線連到它前 15 大的旅客來源國（歐洲 36 國用旅宿業的到達人次、台灣用來臺旅客人次，依居住地）。2024 年西班牙的國外旅客英國人 1,442 萬人次最多、德國 983 萬、法國 861 萬、美國 512 萬；克羅埃西亞以德國人 307 萬最多；台灣是日本 132 萬、港澳 131 萬、南韓 100 萬、美國 65 萬。顏色是國外客人次。',
-        en: 'Click a country to draw arcs to its top 15 source countries of visitors (accommodation arrivals for 36 European countries, border arrivals for Taiwan, by country of residence). In 2024 Spain’s foreign guests were led by the UK with 14.42 million arrivals, then Germany 9.83 million, France 8.61 million and the US 5.12 million; Croatia’s by Germany with 3.07 million; Taiwan’s by Japan 1.32 million, Hong Kong and Macao 1.31 million, South Korea 1.00 million and the US 0.65 million. Colour shows foreign arrivals.',
+        zh: '點選國家，弧線連到它前 15 大的旅客來源國（歐洲 36 國用旅宿業的到達人次、台灣用來臺旅客人次，依居住地；2026-11-08 加 OECD 的入境過夜旅客主要來源，日本、南韓、美國、加拿大、墨西哥、澳洲等 21 個歐洲以外的國家，這幾國沒有顏色、點了一樣有弧線）。2024 年西班牙的國外旅客英國人 1,442 萬人次最多、德國 983 萬、法國 861 萬、美國 512 萬；克羅埃西亞以德國人 307 萬最多；台灣是日本 132 萬、港澳 131 萬、南韓 100 萬、美國 65 萬。2025 年日本的旅客南韓 946 萬、中國 910 萬、台灣 676 萬；南韓是中國 548 萬、日本 365 萬、台灣 189 萬；2024 年美國是加拿大 2,024 萬、墨西哥 1,699 萬。顏色是國外客人次。',
+        en: 'Click a country to draw arcs to its top 15 source countries of visitors (accommodation arrivals for 36 European countries, border arrivals for Taiwan, by country of residence; since 8 November 2026 also OECD inbound overnight visitors by main market for 21 countries outside Europe, including Japan, South Korea, the US, Canada, Mexico and Australia, which are not coloured but can still be clicked). In 2024 Spain’s foreign guests were led by the UK with 14.42 million arrivals, then Germany 9.83 million, France 8.61 million and the US 5.12 million; Croatia’s by Germany with 3.07 million; Taiwan’s by Japan 1.32 million, Hong Kong and Macao 1.31 million, South Korea 1.00 million and the US 0.65 million. In 2025 Japan’s visitors were led by South Korea 9.46 million, China 9.10 million and Taiwan 6.76 million, and South Korea’s by China 5.48 million, Japan 3.65 million and Taiwan 1.89 million; in 2024 the US’s were led by Canada 20.24 million and Mexico 16.99 million. Colour shows foreign arrivals.',
       },
       unit: ARRIVALS,
       file: 'foreign-arrivals.json',
@@ -269,7 +275,7 @@ const tourismOwn: TopicDefinition = {
         file: 'flows/visitors/{year}.json',
         direction: 'import',
         labels: VISITOR_LABELS,
-        pickPartners: { zh: '點選國家（歐洲 36 國或台灣），查看它的旅客從哪裡來', en: 'Click a country (36 in Europe, or Taiwan) to see where its visitors come from' },
+        pickPartners: { zh: '點選國家（歐洲 36 國、台灣與 OECD 的 21 國），查看它的旅客從哪裡來', en: 'Click a country (36 in Europe, Taiwan or 21 other OECD reporters) to see where its visitors come from' },
         legendKey: { zh: '由來源國（淺）到目的地（深）', en: 'From origin (light) to destination (dark)' },
       },
       format: (v) => `${formatLargeNumber(v)} ${tr(ARRIVALS)}`,
@@ -555,6 +561,63 @@ const tourismOwn: TopicDefinition = {
       defaultYear: 2025,
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
       format: (v) => tr({ zh: `${formatLargeNumber(v * 1000)} 人`, en: `${formatLargeNumber(v * 1000)} people` }),
+    },
+    // 2026-11-08（製作手冊第二十七批 668，候選 1471、1472；pipeline/topics/tourism_oecd.py）
+    {
+      id: 'tsa-jobs',
+      label: { zh: '觀光業占就業', en: 'Tourism share of employment' },
+      description: {
+        zh: '觀光特徵產業（住宿、餐飲、客運、旅行社、文化娛樂等）的就業占總就業（OECD 觀光衛星帳，2008–2025，各國最近一年差很多，滑過看年份）。馬爾他 19.1%（2024）、冰島 15.7%（2025）、希臘 14.4%、西班牙 13.4%、菲律賓 12.8%（2016）、葡萄牙 12.1%、愛爾蘭 11.7%、匈牙利 9.4%、日本 9.1%（2023）；丹麥 3.4%、以色列與加拿大 3.3%、瑞典 2.6%、南韓 1.6% 最低。跟上面的「住宿及餐飲業的就業比例」口徑不同：這裡含客運與旅行社，但只算跟觀光有關的部分。台灣不在 OECD 的觀光衛星帳裡。',
+        en: 'Employment in tourism characteristic industries (accommodation, food, passenger transport, travel agencies, culture and recreation) as a share of total employment (OECD tourism satellite accounts, 2008–2025; latest years differ a lot, hover for the year). Malta 19.1% (2024), Iceland 15.7% (2025), Greece 14.4%, Spain 13.4%, the Philippines 12.8% (2016), Portugal 12.1%, Ireland 11.7%, Hungary 9.4% and Japan 9.1% (2023); Denmark 3.4%, Israel and Canada 3.3%, Sweden 2.6% and South Korea 1.6% are lowest. This differs from the accommodation and food services share above: it includes passenger transport and travel agencies but only the tourism-related part. Taiwan is not in the OECD tourism satellite accounts.',
+      },
+      unit: '%',
+      file: 'tsa-jobs.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [3, 5, 7, 9, 12, 15] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'tsa-gdp',
+      label: { zh: '觀光業直接占 GDP', en: 'Tourism direct share of GDP' },
+      description: {
+        zh: '觀光直接創造的 GDP 占全國 GDP（OECD 觀光衛星帳的 TDGDP）。克羅埃西亞 12.2%（2022）、冰島 8.8%（2025）、菲律賓 8.6%（2016）、墨西哥 8.1%、摩洛哥 7.3%、西班牙 6.0%、義大利 5.0%；日本 1.9%、南韓 1.7%、比利時 1.5%、波蘭 1.2%（2015）、盧森堡 0.8%。只算直接效果，不含供應鏈帶動的部分。',
+        en: 'GDP directly generated by tourism as a share of total GDP (TDGDP in OECD tourism satellite accounts). Croatia 12.2% (2022), Iceland 8.8% (2025), the Philippines 8.6% (2016), Mexico 8.1%, Morocco 7.3%, Spain 6.0% and Italy 5.0%; Japan 1.9%, South Korea 1.7%, Belgium 1.5%, Poland 1.2% (2015) and Luxembourg 0.8%. Direct effects only, not supply-chain spillovers.',
+      },
+      unit: '%',
+      file: 'tsa-gdp.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1.5, 2.5, 3.5, 5, 7, 10] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'tsa-gva',
+      label: { zh: '觀光業直接占附加價值', en: 'Tourism direct share of gross value added' },
+      description: {
+        zh: '觀光直接創造的附加價值占全國附加價值（TDGVA；分母跟上一個不同，不能直接比）。奧地利 11.8%（2024）、克羅埃西亞 11.6%、墨西哥 8.7%、葡萄牙 8.1%、冰島 7.4%、希臘 7.3%、摩洛哥 6.8%、西班牙 6.2%；以色列 1.9%、加拿大 1.8%、比利時 1.5%、盧森堡 0.8%。',
+        en: 'Gross value added directly generated by tourism as a share of total GVA (TDGVA; a different denominator from the GDP share, so not directly comparable). Austria 11.8% (2024), Croatia 11.6%, Mexico 8.7%, Portugal 8.1%, Iceland 7.4%, Greece 7.3%, Morocco 6.8% and Spain 6.2%; Israel 1.9%, Canada 1.8%, Belgium 1.5% and Luxembourg 0.8%.',
+      },
+      unit: '%',
+      file: 'tsa-gva.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 3, 4, 6, 8, 10] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+    },
+    {
+      id: 'travel-balance',
+      label: { zh: '觀光的收支比', en: 'Travel receipts to spending ratio' },
+      description: {
+        zh: '國際收支的旅行收入 ÷ 旅行支出（OECD，各國本國幣；台灣用中央銀行國際收支）。大於 1 是外國旅客來花的比本國人出國花的多。希臘 7.70、土耳其 7.63、克羅埃西亞 6.22、葡萄牙 4.05、日本 3.29（2025）、西班牙 3.26、紐西蘭 2.25；愛爾蘭 0.55、香港 0.55（2021）、台灣 0.49（2025）、挪威 0.43、比利時 0.35、德國 0.34（德國人出國花的是外國人來德國花的三倍）。只算旅行，不含國際機票（客運跟著航空公司的國籍走）。',
+        en: 'Travel credits divided by travel debits in the balance of payments (OECD, in national currency; Taiwan from its central bank). Above 1 means foreign visitors spend more in the country than residents spend abroad. Greece 7.70, Turkey 7.63, Croatia 6.22, Portugal 4.05, Japan 3.29 (2025), Spain 3.26 and New Zealand 2.25; Ireland 0.55, Hong Kong 0.55 (2021), Taiwan 0.49 (2025), Norway 0.43, Belgium 0.35 and Germany 0.34 (Germans spend three times as much abroad as visitors spend in Germany). Travel only, excluding international fares (which follow the airline’s nationality).',
+      },
+      unit: { zh: '倍', en: '×' },
+      file: 'travel-balance.json',
+      defaultYear: 2025,
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [0.4, 0.6, 0.85, 1.15, 2, 4] } },
+      format: (v) => tr({ zh: `${fixed(v, 2)} 倍`, en: `${fixed(v, 2)}×` }),
+      formatTick: (v) => `${v}`,
     },
   ],
 };

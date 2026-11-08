@@ -8,6 +8,8 @@
 - 台灣：交通部觀光署觀光統計資料庫的開放資料（政府資料開放授權條款）：/data/opendata/7「來臺旅客按居住地」
   （不是 /11 的國籍）與 /1「國人出國按首站抵達地」，2002 年起。「香港.澳門」合在一起，算香港；首站抵達地不是
   最終目的地（轉機的算第一站）。
+- 歐洲以外（2026-11-08，製作手冊第二十七批 669）：OECD 觀光統計的入境旅客主要來源（TOP_MKT，過夜旅客，見 _oecd_visitors），
+  日本、南韓、美國、加拿大、墨西哥、澳洲等；這是入境人次，跟 Eurostat 的旅宿到達人次口徑不同，總數用列出的來源加總。
 - 輸出：flows/visitors/<年>.json（import：來源國）、flows/trips/<年>.json（export：目的地），每國前 15 個；
   foreign-arrivals.json（國外客的旅宿到達人次，台灣用來臺旅客人次）、outbound-trips.json（出國旅次，台灣用出國人次）、
   foreign-share.json（國外客占旅宿到達人次的比例，台灣沒有）。
@@ -80,6 +82,38 @@ def _taiwan(n: int) -> dict[str, dict[int, float]]:
     return out
 
 
+INBOUND = "OECD.CFE.TOU,DSD_TOURISM_INTER@DF_INBOUND,"
+
+
+def _oecd_visitors(skip: set[str]) -> dict[int, dict[str, dict[str, float]]]:
+    """OECD 觀光統計的入境旅客主要來源（MEASURE=TOP_MKT、VISITOR_TYPE=OVERNIGHT，OECD 資料條款可轉載改作）：
+    {年: {目的地: {來源: 人}}}。同一國有需求面調查（TDS）與供給面統計（TSS）兩套、數字不同（土耳其 2024 年的德國客 649 萬對
+    854 萬），每個目的地只用筆數多的那一套；來源的彙總代碼（A3、E_O、W 等）由 to_iso3 篩掉，CHE_LIE 算瑞士。
+    skip 是已經有 Eurostat 或觀光署資料的目的地（歐洲與台灣），不重複。"""
+    from sources import oecd
+    from sources.countries import to_iso3
+
+    raw: dict[str, dict[str, dict[int, dict[str, float]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    for r in oecd.rows(INBOUND):
+        if r["MEASURE"] != "TOP_MKT" or r["VISITOR_TYPE"] != "OVERNIGHT" or not r["OBS_VALUE"]:
+            continue
+        dest = to_iso3(r["REF_AREA"])
+        origin = to_iso3("CHE" if r["COUNTERPART_AREA"] == "CHE_LIE" else r["COUNTERPART_AREA"])
+        if not dest or not origin or dest in skip or origin == dest:
+            continue
+        raw[dest][r["SOURCE"]][int(r["TIME_PERIOD"][:4])][origin] = float(r["OBS_VALUE"]) * 10 ** int(r["UNIT_MULT"] or 0)
+    out: dict[int, dict[str, dict[str, float]]] = defaultdict(dict)
+    for dest, by_source in raw.items():
+        best = max(by_source, key=lambda src: sum(len(v) for v in by_source[src].values()))
+        for y, origins in by_source[best].items():
+            out[y][dest] = origins
+    last = {d: max(y for y in out if d in out[y]) for d in raw}
+    print(f"  OECD 入境旅客來源：{len(raw)} 個歐洲以外的目的地；" + "、".join(
+        f"{d} {y}：" + "、".join(f"{o} {v / 1e4:.0f} 萬" for o, v in sorted(out[y][d].items(), key=lambda kv: -kv[1])[:3])
+        for d, y in sorted(last.items()) if d in ("JPN", "KOR", "USA", "AUS", "MEX", "CAN")))
+    return out
+
+
 def _write_flows(path, item: str, year: int, direction: str, pairs: dict[str, dict[str, float]], totals: dict[str, float]) -> None:
     entries = {}
     for country, partners in sorted(pairs.items()):
@@ -118,6 +152,11 @@ def build() -> None:
             if y in dom[dest]:
                 foreign[dest][y] = v - dom[dest][y]
     share = {d: {y: foreign[d][y] / world[d][y] * 100 for y in foreign[d] if world[d].get(y)} for d in foreign}
+    # 2026-11-08（製作手冊第二十七批 669）：歐洲以外的目的地用 OECD 的入境旅客主要來源（TOP_MKT，過夜旅客）
+    for y, dests in _oecd_visitors(set(world) | {"TWN"}).items():
+        if y >= FIRST:
+            for dest, origins in dests.items():
+                visitors[y][dest].update(origins)
     tw_in = _taiwan(7)
     for y, v in tw_in["_TOTAL"].items():
         if y >= FIRST:
