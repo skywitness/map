@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 221;
-export const INDICATOR_COUNT = 1743;
+export const INDICATOR_COUNT = 1744;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","developers","innovation","publications","research-orgs","eu-research","digital","submarine-cables","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","museums","roller-coasters","tourism","lodging","nobel","sports","esports","game-companies","anime","online-video","record-labels","culture","dining"]},
@@ -442,6 +442,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata 的觀光洞穴（Q2232001）與觀光礦坑（Q1506469），經 QLever","en":"Wikidata show caves (Q2232001) and show mines (Q1506469), via QLever"},"url":"https://www.wikidata.org/wiki/Q2232001","licenses":[{"zh":"CC0","en":"CC0"}],"topics":["show-caves"]},
   {"name":{"zh":"Wikidata 的賽馬場（horse racing venue 與子類別；用 QLever 查詢）","en":"Wikidata horse racing venues and subclasses (queried via QLever)"},"url":"https://www.wikidata.org/wiki/Q11822917","licenses":["CC0"],"topics":["horses"]},
   {"name":{"zh":"Wikidata：ccTLD 的啟用日期（P571）","en":"Wikidata: ccTLD inception dates (P571)"},"url":"https://www.wikidata.org/wiki/Q42032","licenses":["CC0"],"topics":["submarine-cables"]},
+  {"name":{"zh":"Wikidata：CITES 附錄（P7603）與 IUCN 紅皮書等級（P141），經 QLever 查詢","en":"Wikidata: CITES appendix (P7603) and IUCN Red List status (P141), via QLever"},"url":"https://www.wikidata.org/wiki/Property:P7603","licenses":["CC0"],"topics":["tcm-herbs"]},
   {"name":{"zh":"Wikidata：UNESCO 世界記憶國際名錄（P1435 = Q16024238）與收藏地","en":"Wikidata: UNESCO Memory of the World International Register (P1435 = Q16024238) and holding institutions"},"url":"https://www.wikidata.org/wiki/Q16024238","licenses":["CC0"],"topics":["world-heritage"]},
   {"name":{"zh":"Wikidata：YouTuber（Q17125263）、實況主（Q152859）、VTuber（Q55155641）（經 QLever 查詢）","en":"Wikidata: YouTubers (Q17125263), streamers (Q152859) and VTubers (Q55155641) (via QLever)"},"url":"https://www.wikidata.org/wiki/Q17125263","licenses":["CC0"],"topics":["online-video"]},
   {"name":{"zh":"Wikidata：動畫工作室（Q1107679）、動畫電影（Q202866）、電視動畫（Q63952888）、聲優與配音員（Q622807、Q2405480）、奧斯卡最佳動畫長片（Q106800）（經 QLever 查詢）","en":"Wikidata: animation studios (Q1107679), animated films (Q202866), anime television series (Q63952888), voice actors and seiyū (Q2405480, Q622807) and the Academy Award for Best Animated Feature (Q106800) (via QLever)"},"url":"https://www.wikidata.org/wiki/Q1107679","licenses":["CC0"],"topics":["anime"]},

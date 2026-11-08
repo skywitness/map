@@ -10,10 +10,26 @@ const str = (v: unknown) => (typeof v === 'string' && v ? v : '');
 const countries = (n: unknown) =>
   Number(n) === 1 ? tr({ zh: '只原生在這一國', en: 'Native only here' }) : tr({ zh: `原生在 ${n} 個國家或地區`, en: `Native to ${n} countries and territories` });
 
+const IUCN: Record<string, { zh: string; en: string }> = {
+  LC: { zh: '無危', en: 'Least concern' },
+  NT: { zh: '近危', en: 'Near threatened' },
+  VU: { zh: '易危', en: 'Vulnerable' },
+  EN: { zh: '瀕危', en: 'Endangered' },
+  CR: { zh: '極危', en: 'Critically endangered' },
+  DD: { zh: '數據缺乏', en: 'Data deficient' },
+  EW: { zh: '野外滅絕', en: 'Extinct in the wild' },
+  EX: { zh: '滅絕', en: 'Extinct' },
+};
+const status = (p: PointRecord) =>
+  [
+    p.cites ? tr({ zh: `CITES 附錄 ${['', 'I', 'II', 'III'][Number(p.cites)]}`, en: `CITES Appendix ${['', 'I', 'II', 'III'][Number(p.cites)]}` }) : '',
+    str(p.iucn) && IUCN[str(p.iucn)] ? tr({ zh: `IUCN：${IUCN[str(p.iucn)].zh}（轉錄自 Wikidata）`, en: `IUCN: ${IUCN[str(p.iucn)].en} (via Wikidata)` }) : '',
+  ].filter(Boolean);
+
 const SPECIES_LIST: ListPanelDef = {
   label: { zh: '原生的藥典基原植物', en: 'Native pharmacopoeia plants' },
   tabLabel: { zh: '植物', en: 'Plants' },
-  indicators: ['native', 'endemic'],
+  indicators: ['native', 'endemic', 'cites'],
   file: 'species.json',
   countryField: 'iso3',
   empty: { zh: '這裡沒有原生的藥典基原植物', en: 'No native pharmacopoeia plants here' },
@@ -25,7 +41,7 @@ const SPECIES_LIST: ListPanelDef = {
         title: getLang() === 'zh' ? str(p.zh) : str(p.sci),
         titleProper: getLang() !== 'zh',
         properNoun: getLang() === 'zh' ? str(p.sci) : undefined,
-        lines: [countries(p.n)],
+        lines: [countries(p.n), ...status(p)],
         target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 4 },
       })),
 };
@@ -54,6 +70,11 @@ export const tcmHerbs: TopicDefinition = {
       license: 'CC BY 3.0',
     },
     {
+      name: { zh: 'Wikidata：CITES 附錄（P7603）與 IUCN 紅皮書等級（P141），經 QLever 查詢', en: 'Wikidata: CITES appendix (P7603) and IUCN Red List status (P141), via QLever' },
+      url: 'https://www.wikidata.org/wiki/Property:P7603',
+      license: 'CC0',
+    },
+    {
       name: { zh: 'TDWG World Geographical Scheme for Recording Plant Distributions（地區對國家）', en: 'TDWG World Geographical Scheme for Recording Plant Distributions (regions to countries)' },
       url: 'https://github.com/tdwg/wgsrpd',
       license: { zh: 'TDWG 標準（只用地區代碼與國家代碼的對照）', en: 'TDWG standard (only the region-to-country code correspondence)' },
@@ -72,6 +93,21 @@ export const tcmHerbs: TopicDefinition = {
       unit: { zh: '種', en: 'species' },
       file: 'native.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 25, 50, 100, 200] } },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} species` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'cites',
+      label: { zh: '受 CITES 管制的原生藥材植物', en: 'Native CITES-listed medicinal plants' },
+      description: {
+        zh: '350 種藥典基原植物裡，Wikidata 標了 CITES 附錄的有 7 種，都在附錄 II：沉香、白及（兩種）、狗脊、天麻、人參、西洋參。各國原生的有幾種：中國 6 種、日本 4、台灣 3（白及兩種之一、狗脊、天麻）、南北韓與緬甸各 3，共 21 國。CITES 管的是國際貿易，附錄 II 是要許可證才能進出口，不是禁止使用，也不等於瀕危；人參只有俄羅斯的族群列入。台灣不是 CITES 締約方，但進出口照名錄管理。清單另寫 IUCN 紅皮書的等級（轉錄自 Wikidata，350 種裡只有 79 種有值；IUCN 的網站與資料不能用）：沉香、杜仲、川貝母、天麻是易危，厚朴與黃連的一種是瀕危。',
+        en: 'Of the 350 pharmacopoeia source plants, Wikidata records a CITES appendix for 7, all Appendix II: agarwood, two Bletilla species, Cibotium barometz, Gastrodia elata, Asian ginseng and American ginseng. Number native to each country: China 6, Japan 4, Taiwan 3 (one Bletilla, Cibotium and Gastrodia), the two Koreas and Myanmar 3 each; 21 countries in all. CITES regulates international trade: Appendix II requires permits for import and export, which is not a ban on use and does not mean endangered; only the Russian population of Asian ginseng is listed. Taiwan is not a CITES party but manages imports and exports by the CITES lists. The list also gives the IUCN Red List category (via Wikidata, available for only 79 of the 350 species; the IUCN site and data cannot be used): agarwood, eucommia, Fritillaria cirrhosa and Gastrodia elata are vulnerable, and magnolia bark and one Coptis species endangered.',
+      },
+      unit: { zh: '種', en: 'species' },
+      file: 'cites.json',
+      layer: { kind: 'bubble', legendValues: [1, 3, 6] },
       timeless: true,
       integer: true,
       format: (v) => tr({ zh: `${fixed(v, 0)} 種`, en: `${fixed(v, 0)} species` }),
