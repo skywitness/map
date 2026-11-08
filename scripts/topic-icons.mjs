@@ -109,6 +109,7 @@ const TOPIC_ICONS = {
   comics: 'book-open-text',
   'tv-series': 'tv',
   'record-labels': 'disc-3',
+  lodging: 'bed-double',
   'water-parks': 'waves-ladder',
   museums: 'frame',
   'energy-jobs': 'id-card-lanyard',

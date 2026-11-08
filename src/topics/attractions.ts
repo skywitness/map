@@ -285,6 +285,59 @@ const PLANET_LIST: ListPanelDef = {
 };
 
 /**
+ * 遊客中心與旅遊辦事處（2026-11-08，製作手冊第二十七批 672，候選 1475；pipeline/topics/visitor_centres.py）：
+ * OSM information=office，台灣另畫觀光署的旅遊服務站點（遊客中心與借問站分開上色）
+ */
+const INFO_KINDS: Text[] = [
+  { zh: '遊客中心與旅遊辦事處（OSM）', en: 'Visitor centre or tourist office (OSM)' },
+  { zh: '觀光署的遊客中心與旅遊服務中心', en: 'Visitor centre (Taiwan Tourism Administration)' },
+  { zh: '觀光署的借問站與其他服務點', en: 'Information point, mostly in shops (Taiwan Tourism Administration)' },
+];
+const infoName = (p: PointRecord) =>
+  String((getLang() === 'zh' ? p.nz || p.n : p.ne || p.n) ?? '') || tr({ zh: '（沒有名稱的遊客中心）', en: '(unnamed tourist office)' });
+const INFO: PointsOverlayDef = {
+  kind: 'points',
+  id: 'info-offices',
+  file: 'info-offices-points.json',
+  label: { zh: '遊客中心與旅遊服務站', en: 'Visitor centres and tourist offices' },
+  indicators: ['info-offices-per', 'info-offices'],
+  radius: 2.6,
+  color: {
+    field: 'k',
+    title: { zh: '種類', en: 'Type' },
+    thresholds: [1.5, 2.5],
+    classes: INFO_KINDS.map((label, i) => ({ color: [C[0], C[6], C[2]][i], label })),
+  },
+  tooltip: (p, { countryName }) => {
+    const title = infoName(p);
+    return {
+      title,
+      detail: [tr(INFO_KINDS[(Number(p.k) || 1) - 1]), typeof p.t === 'string' ? p.t : typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      properNoun: getLang() === 'en' && typeof p.n === 'string' && p.n !== title ? p.n : undefined,
+    };
+  },
+};
+const INFO_LIST: ListPanelDef = {
+  label: { zh: '遊客中心與旅遊服務站', en: 'Visitor centres and tourist offices' },
+  tabLabel: { zh: '遊客中心', en: 'Visitor centres' },
+  indicators: ['info-offices-per', 'info-offices'],
+  file: 'info-offices-points.json',
+  countryField: 'iso3',
+  empty: { zh: '這裡沒有有名稱的遊客中心', en: 'No named visitor centres here' },
+  rows: (points, { countryName }) =>
+    points
+      .filter((p) => p.n || p.nz || p.ne)
+      .map((p, i): ListRow => ({
+        key: `info-${i}`,
+        title: infoName(p),
+        properNoun: getLang() === 'en' && typeof p.n === 'string' && p.n !== infoName(p) ? p.n : undefined,
+        lines: [[tr(INFO_KINDS[(Number(p.k) || 1) - 1]), typeof p.t === 'string' ? p.t : null].filter(Boolean).join(' · ')],
+        group: typeof p.iso3 === 'string' ? countryName(p.iso3) : undefined,
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 15 },
+      })),
+};
+
+/**
  * 歐洲文化之都、歐洲遺產標章（2026-11-08，製作手冊第二十七批 648，候選 1419、1421；pipeline/topics/euro_culture.py）：
  * 英文維基的名單（固定版本），座標與中文名稱用 Wikidata；台灣的觀光工廠（650，候選 1423；pipeline/topics/tw_factories.py）。
  */
@@ -447,6 +500,8 @@ const MENU_GROUPS: MenuGroup[] = [
   [{ zh: '看風景與公共空間', en: 'Views and public spaces' }, ['viewpoints-per', 'viewpoints', 'artworks-osm-per', 'artworks-osm', 'taiwan-public-art', 'urban-parks-per', 'urban-parks']],
   // 2026-11-08（製作手冊第二十七批 646）OSM 的購物中心與百貨公司
   [{ zh: '購物中心與百貨公司', en: 'Malls and department stores' }, ['malls-osm-per', 'malls-osm', 'department-stores-per', 'department-stores']],
+  // 2026-11-08（製作手冊第二十七批 672）遊客中心
+  [{ zh: '遊客中心', en: 'Visitor centres' }, ['info-offices-per', 'info-offices']],
   [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
   [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos', 'capitals-of-culture', 'heritage-label']],
 ];
@@ -474,8 +529,8 @@ const attractionsBase: TopicDefinition = {
     // 2026-11-08（製作手冊第二十七批 645–647）
     {
       name: {
-        zh: 'OpenStreetMap（tourism=viewpoint、artwork、attraction，amenity=planetarium，shop=mall、department_store，leisure=park，經 QLever 查詢）',
-        en: 'OpenStreetMap (tourism=viewpoint, artwork and attraction, amenity=planetarium, shop=mall and department_store, leisure=park, via QLever)',
+        zh: 'OpenStreetMap（tourism=viewpoint、artwork、attraction，amenity=planetarium，shop=mall、department_store，leisure=park，information=office，經 QLever 查詢）',
+        en: 'OpenStreetMap (tourism=viewpoint, artwork and attraction, amenity=planetarium, shop=mall and department_store, leisure=park, information=office, via QLever)',
       },
       url: 'https://www.openstreetmap.org/copyright',
       license: 'ODbL 1.0',
@@ -522,11 +577,12 @@ const attractionsBase: TopicDefinition = {
     TW_ART,
     ATTR_GRID,
     PLANETARIUMS,
+    INFO,
     CAPITALS,
     LABEL_SITES,
     FACTORIES,
   ],
-  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST, PLANET_LIST, CAPITALS_LIST, LABEL_LIST, FACTORY_LIST],
+  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST, PLANET_LIST, INFO_LIST, CAPITALS_LIST, LABEL_LIST, FACTORY_LIST],
   indicators: [
     {
       id: 'attractions',
@@ -671,6 +727,37 @@ const attractionsBase: TopicDefinition = {
       timeless: true,
       integer: true,
       format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    // 2026-11-08（製作手冊第二十七批 672）遊客中心與旅遊辦事處
+    {
+      id: 'info-offices-per',
+      label: { zh: '每百萬人有幾處遊客中心（OSM）', en: 'Tourist offices per million people (OSM)' },
+      description: {
+        zh: 'OpenStreetMap 上標成有人服務的旅遊辦事處（information=office）的地方 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。冰島每百萬人 153 處最多，克羅埃西亞 98.8、蒙特內哥羅 84.6、奧地利 75.1、斯洛維尼亞 68.0、捷克 66.0；法國 58.6、德國 39.9、台灣 17.0、英國 14.4、日本 11.1、美國 10.8、南韓 6.8。台灣另畫觀光署的 797 處旅遊服務站點（遊客中心與旅遊服務中心 166 處，其他 631 處多半是借問站：店家代為提供諮詢），跟 OSM 的不是同一個東西，分開上色、不相加。觀景台見上面的「觀景點」。',
+        en: 'Places tagged as staffed tourist offices (information=office) in OpenStreetMap divided by 2024 population, shaded only for the 93 countries well covered by OSM. Iceland has the most per million people (153), followed by Croatia (98.8), Montenegro (84.6), Austria (75.1), Slovenia (68.0) and Czechia (66.0); France has 58.6, Germany 39.9, Taiwan 17.0, the UK 14.4, Japan 11.1, the US 10.8 and South Korea 6.8. Taiwan also shows the Tourism Administration’s 797 tourist service points (166 visitor centres and service centres; most of the other 631 are information points run by shops), which are not the same thing as the OSM tag and are coloured separately rather than added. For viewing platforms see Viewpoints above.',
+      },
+      unit: { zh: '處／百萬人', en: 'per million people' },
+      file: 'info-offices-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 60, 100] } },
+      timeless: true,
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, 1)} 處`, en: `${fixed(v, 1)} per million` }),
+      formatTick: (v) => `${v}`,
+    },
+    {
+      id: 'info-offices',
+      label: { zh: '遊客中心的處數（OSM）', en: 'Tourist offices (OSM)' },
+      description: {
+        zh: 'OpenStreetMap 上標成遊客中心與旅遊辦事處的地方：32,611 處、192 國。法國 3,898 處最多，美國 3,742、德國 3,374、西班牙 2,163、義大利 1,988、日本 1,377、中國 1,021、英國 993；台灣 395 處。法國多半是各地社群標得細，不是遊客中心真的比較多。',
+        en: 'Places tagged as visitor centres and tourist offices in OpenStreetMap: 32,611 in 192 countries. France has the most (3,898), followed by the US (3,742), Germany (3,374), Spain (2,163), Italy (1,988), Japan (1,377), China (1,021) and the UK (993); Taiwan has 395. France’s lead mostly reflects detailed local mapping rather than more offices.',
+      },
+      unit: { zh: '處', en: 'offices' },
+      file: 'info-offices.json',
+      layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 處`, en: fixed(v, 0) }),
       formatTick: (v) => fixed(v, 0),
       shareOfWorld: true,
     },
