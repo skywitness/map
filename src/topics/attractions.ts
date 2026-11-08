@@ -284,6 +284,123 @@ const PLANET_LIST: ListPanelDef = {
       }),
 };
 
+/**
+ * 歐洲文化之都、歐洲遺產標章（2026-11-08，製作手冊第二十七批 648，候選 1419、1421；pipeline/topics/euro_culture.py）：
+ * 英文維基的名單（固定版本），座標與中文名稱用 Wikidata；台灣的觀光工廠（650，候選 1423；pipeline/topics/tw_factories.py）。
+ */
+const euroName = (p: PointRecord) => String((getLang() === 'zh' ? p.zh || p.en : p.en) ?? '');
+const euroProper = (p: PointRecord) => (getLang() === 'zh' && typeof p.zh === 'string' && typeof p.en === 'string' ? p.en : undefined);
+const CAPITALS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'capitals-of-culture',
+  file: 'capitals-of-culture.json',
+  label: { zh: '歐洲文化之都', en: 'European Capitals of Culture' },
+  indicators: ['capitals-of-culture'],
+  radius: 4,
+  color: C[6],
+  timeField: 'y',
+  tooltip: (p, { countryName }) => ({
+    title: euroName(p),
+    detail: [tr({ zh: `${p.y} 年歐洲文化之都`, en: `European Capital of Culture ${p.y}` }), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    extra: Number(p.y) > 2026 ? [tr({ zh: '已決定、還沒舉辦', en: 'Designated, not yet held' })] : [],
+    properNoun: euroProper(p),
+  }),
+};
+const CAPITALS_LIST: ListPanelDef = {
+  label: { zh: '歐洲文化之都（依年份）', en: 'European Capitals of Culture (by year)' },
+  tabLabel: { zh: '文化之都', en: 'Capitals of Culture' },
+  indicators: ['capitals-of-culture'],
+  file: 'capitals-of-culture.json',
+  countryField: 'iso3',
+  empty: { zh: '這一國沒有當過歐洲文化之都', en: 'No European Capitals of Culture here' },
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => Number(a.y) - Number(b.y))
+      .map((p, i): ListRow => ({
+        key: `ecoc-${i}`,
+        title: euroName(p),
+        properNoun: euroProper(p),
+        lines: [[String(p.y), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · ')],
+        muted: Number(p.y) > 2026,
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+      })),
+};
+const LABEL_SITES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'heritage-label',
+  file: 'heritage-label.json',
+  label: { zh: '歐洲遺產標章', en: 'European Heritage Label' },
+  indicators: ['heritage-label'],
+  radius: 4,
+  color: C[3],
+  tooltip: (p, { countryName }) => ({
+    title: euroName(p),
+    detail: [tr({ zh: '歐洲遺產標章', en: 'European Heritage Label' }), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    properNoun: euroProper(p),
+  }),
+};
+const LABEL_LIST: ListPanelDef = {
+  label: { zh: '歐洲遺產標章', en: 'European Heritage Label' },
+  tabLabel: { zh: '遺產標章', en: 'Heritage Label' },
+  indicators: ['heritage-label'],
+  file: 'heritage-label.json',
+  countryField: 'iso3',
+  empty: { zh: '這一國沒有畫在地圖上的歐洲遺產標章', en: 'No European Heritage Label sites drawn here' },
+  rows: (points, { countryName }) =>
+    points.map(
+      (p, i): ListRow => ({
+        key: `ehl-${i}`,
+        title: euroName(p),
+        properNoun: euroProper(p),
+        lines: [typeof p.iso3 === 'string' ? countryName(p.iso3) : ''],
+        group: typeof p.iso3 === 'string' ? countryName(p.iso3) : undefined,
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 13 },
+      }),
+    ),
+};
+const FACTORIES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'tw-factories',
+  file: 'tw-factories.json',
+  label: { zh: '台灣的觀光工廠（經濟部產業發展署）', en: 'Taiwan’s tourism factories (Industrial Development Administration)' },
+  indicators: ['tw-factories'],
+  radius: 3.4,
+  color: {
+    field: 'a',
+    title: { zh: '位置', en: 'Location' },
+    thresholds: [0.5],
+    classes: [
+      { color: C[2], label: { zh: '對到 OpenStreetMap 的地點', en: 'Matched to OpenStreetMap' } },
+      { color: MAP_TOKENS.categoricalOther, label: { zh: '只知道鄉鎮市區（畫在中心）', en: 'Township only (drawn at its centre)' } },
+    ],
+  },
+  tooltip: (p) => ({
+    title: String(p.name ?? ''),
+    detail: [tr({ zh: '觀光工廠', en: 'Tourism factory' }), [p.county, p.town].filter((x) => typeof x === 'string').join('')].filter(Boolean).join(' · '),
+    extra: p.a === 1 ? [tr({ zh: '位置是鄉鎮市區的中心，不是工廠本身', en: 'Location is the township centre, not the factory itself' })] : [],
+  }),
+};
+const FACTORY_LIST: ListPanelDef = {
+  label: { zh: '台灣的觀光工廠', en: 'Taiwan’s tourism factories' },
+  tabLabel: { zh: '觀光工廠', en: 'Factories' },
+  indicators: ['tw-factories'],
+  file: 'tw-factories.json',
+  rows: (points) => {
+    const count = new Map<string, number>();
+    for (const p of points) count.set(String(p.county ?? ''), (count.get(String(p.county ?? '')) ?? 0) + 1);
+    return [...points]
+      .sort((a, b) => (count.get(String(b.county ?? '')) ?? 0) - (count.get(String(a.county ?? '')) ?? 0) || String(a.county).localeCompare(String(b.county)))
+      .map((p, i): ListRow => ({
+        key: `twf-${i}`,
+        title: String(p.name ?? ''),
+        lines: [[p.county, p.town].filter((x) => typeof x === 'string').join('')],
+        group: tr({ zh: `${p.county ?? ''}（${count.get(String(p.county ?? '')) ?? 0}）`, en: `${p.county ?? ''} (${count.get(String(p.county ?? '')) ?? 0})` }),
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: p.a === 1 ? 12 : 16 },
+        link: typeof p.url === 'string' ? { href: p.url, label: tr({ zh: '官方網站', en: 'Website' }) } : undefined,
+      }));
+  },
+};
+
 /** 附近最多列幾處（歐洲的城市 30 公里內博物館上千座） */
 const NEAR_MAX = 300;
 
@@ -323,7 +440,7 @@ const NEAR_LIST: ListPanelDef = {
  * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組（645 開始）
  */
 const MENU_GROUPS: MenuGroup[] = [
-  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'taiwan-sites', 'osm-attractions-per', 'osm-attractions', 'planetariums']],
+  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'taiwan-sites', 'tw-factories', 'osm-attractions-per', 'osm-attractions', 'planetariums']],
   // 2026-11-08（製作手冊第二十七批 642）OSM 的動物園與水族館
   [{ zh: '動物園與水族館', en: 'Zoos and aquariums' }, ['zoos-osm', 'zoos-osm-per', 'aquariums-osm', 'aquariums-osm-per']],
   // 2026-11-08（製作手冊第二十七批 645）觀景點與公共藝術
@@ -331,7 +448,7 @@ const MENU_GROUPS: MenuGroup[] = [
   // 2026-11-08（製作手冊第二十七批 646）OSM 的購物中心與百貨公司
   [{ zh: '購物中心與百貨公司', en: 'Malls and department stores' }, ['malls-osm-per', 'malls-osm', 'department-stores-per', 'department-stores']],
   [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
-  [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos']],
+  [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos', 'capitals-of-culture', 'heritage-label']],
 ];
 
 const attractionsBase: TopicDefinition = {
@@ -365,6 +482,16 @@ const attractionsBase: TopicDefinition = {
     },
     { name: { zh: '陸地面積：FAOSTAT 土地利用', en: 'Land area: FAOSTAT land use' }, url: 'https://www.fao.org/faostat/en/#data/RL', license: 'CC BY 4.0' },
     {
+      name: { zh: '英文維基百科「European Capital of Culture」（revid 1381273561）、「European Heritage Label」（revid 1350786905）；座標與中文名稱用 Wikidata（CC0，經 QLever）', en: 'English Wikipedia: European Capital of Culture (revid 1381273561) and European Heritage Label (revid 1350786905); coordinates and Chinese names from Wikidata (CC0, via QLever)' },
+      url: 'https://en.wikipedia.org/w/index.php?title=European_Capital_of_Culture&oldid=1381273561',
+      license: { zh: 'CC BY-SA 4.0（引用事實）', en: 'CC BY-SA 4.0 (facts cited)' },
+    },
+    {
+      name: { zh: '經濟部產業發展署「觀光工廠名錄」（data.gov.tw 6848）；鄉鎮市區界：國土測繪中心', en: 'Industrial Development Administration (Taiwan): tourism factory register (data.gov.tw 6848); township boundaries: National Land Surveying and Mapping Center' },
+      url: 'https://data.gov.tw/dataset/6848',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
       name: { zh: '文化部「查詢單一類別文化設施資料」：公共藝術（mainType=8）', en: 'Taiwan Ministry of Culture cultural facilities data: public art (mainType=8)' },
       url: 'https://data.gov.tw/dataset/10046',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
@@ -395,8 +522,11 @@ const attractionsBase: TopicDefinition = {
     TW_ART,
     ATTR_GRID,
     PLANETARIUMS,
+    CAPITALS,
+    LABEL_SITES,
+    FACTORIES,
   ],
-  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST, PLANET_LIST],
+  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST, PLANET_LIST, CAPITALS_LIST, LABEL_LIST, FACTORY_LIST],
   indicators: [
     {
       id: 'attractions',
@@ -640,6 +770,59 @@ const attractionsBase: TopicDefinition = {
       format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: fixed(v, 0) }),
       formatTick: (v) => fixed(v, 0),
       shareOfWorld: true,
+    },
+    // 2026-11-08（製作手冊第二十七批 648）歐洲文化之都、歐洲遺產標章
+    {
+      id: 'capitals-of-culture',
+      label: { zh: '歐洲文化之都', en: 'European Capitals of Culture' },
+      description: {
+        zh: '英文維基「European Capital of Culture」的名單（固定版本）：1985 年雅典是第一個（當時叫「歐洲文化城市」），到 2026 年共 76 個城市、32 國，連已決定的到 2031 年共 87 個。國家的值是當過幾次（累計）：到 2026 年義大利 5 次最多，希臘、德國、法國、西班牙、比利時各 4 次。2000 年有 9 個城市同時當選；1988 年的西柏林算德國；2025 年新戈里察與哥里加是斯洛維尼亞與義大利跨國合辦。拖時間軸看依年份出現。台灣與歐洲以外沒有。',
+        en: 'English Wikipedia’s list of European Capitals of Culture (a fixed revision): Athens was the first in 1985 (then called European City of Culture); by 2026 there have been 76 cities in 32 countries, and 87 including those designated up to 2031. A country’s value is how many times it has held the title (cumulative): by 2026 Italy leads with 5, followed by Greece, Germany, France, Spain and Belgium with 4 each. Nine cities shared the title in 2000; West Berlin (1988) counts as Germany; in 2025 Nova Gorica and Gorizia shared it across Slovenia and Italy. Drag the time slider to see them appear by year. Taiwan and countries outside Europe have none.',
+      },
+      unit: { zh: '次', en: 'times' },
+      file: 'capitals-of-culture-count.json',
+      layer: { kind: 'bubble', legendValues: [1, 3, 5] },
+      overlayTime: 'cumulative',
+      format: (v) => tr({ zh: `${fixed(v, 0)} 次`, en: `${fixed(v, 0)} ${Math.round(v) === 1 ? 'time' : 'times'}` }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: false,
+      missing: { zh: '只有歐洲的城市', en: 'European cities only' },
+    },
+    {
+      id: 'heritage-label',
+      label: { zh: '歐洲遺產標章', en: 'European Heritage Label' },
+      description: {
+        zh: '歐盟的歐洲遺產標章：英文維基條目（固定版本）依國家列出 60 處、21 國，44 處對得到座標畫成點（其餘是條約、文獻、跨國站點，或條目沒有座標）。波蘭 6 處最多，比利時、法國、荷蘭各 5 處。名單沒有獲得年份，跨國站點（例如 Colonies of Benevolence、Werkbund Estates）在每一國各算一處，所以國家不上色，滑過國家看處數。',
+        en: 'The EU’s European Heritage Label: English Wikipedia’s article (a fixed revision) lists 60 sites in 21 countries by country, and the 44 that can be located are drawn (the rest are treaties, documents, transnational sites or articles without coordinates). Poland has the most (6), followed by Belgium, France and the Netherlands with 5 each. The list has no award years, and transnational sites (such as the Colonies of Benevolence and the Werkbund Estates) count once in each country, so countries are not coloured; hover over one to see its count.',
+      },
+      unit: '',
+      file: 'heritage-label-count.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false as const,
+      panelChart: false as const,
+      timeless: true,
+      format: () => '',
+      missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
+    },
+    // 2026-11-08（製作手冊第二十七批 650）台灣的觀光工廠
+    {
+      id: 'tw-factories',
+      label: { zh: '台灣的觀光工廠', en: 'Taiwan’s tourism factories' },
+      description: {
+        zh: '經濟部產業發展署「觀光工廠名錄」158 家：中部 55、南部 44、北部 39、東部 20；桃園市、臺南市各 22 家最多，宜蘭縣 16、彰化縣 15、新北市與南投縣各 13。名錄沒有經緯度：46 家用名稱對到 OpenStreetMap 的地點，其餘 112 家畫在地址所在鄉鎮市區的中心（另一個顏色），只看得出大概在哪一區。左邊依縣市列出，連到工廠的網站。',
+        en: 'The 158 tourism factories in the Industrial Development Administration’s register: 55 in central Taiwan, 44 in the south, 39 in the north and 20 in the east; Taoyuan and Tainan have the most (22 each), followed by Yilan (16), Changhua (15), and New Taipei and Nantou (13 each). The register has no coordinates: 46 were matched by name to OpenStreetMap, and the other 112 are drawn at the centre of their township (in another colour), so only the district is reliable. The list on the left groups them by county and links to each factory’s website.',
+      },
+      unit: '',
+      file: 'tw-factories-map.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false as const,
+      panelChart: false as const,
+      timeless: true,
+      format: () => '',
+      focus: [119.3, 21.8, 122.1, 25.4],
+      missing: { zh: '國家不上色，只有台灣的觀光工廠', en: 'Countries are not coloured; Taiwan’s tourism factories only' },
     },
   ],
 };
