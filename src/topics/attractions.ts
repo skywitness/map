@@ -6,6 +6,7 @@ import { attractionsExtra } from './attractions-extra';
 import { attractionsVisitors } from './attractions-visitors';
 import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 import { withMenuGroups, type MenuGroup } from './menu-groups';
+import { osmGrid } from './osm-grid';
 
 /**
  * 景點地圖（pipeline/topics/attractions.py）：世界的博物館、動物園與水族館、主題樂園與雲霄飛車，每一處一個點，三個圖層；
@@ -130,6 +131,103 @@ export const museumsOverlay = (indicators: string[]): PointsOverlayDef => ({
   indicators,
 });
 
+/**
+ * 動物園的面積、物種數、人次（2026-11-08，製作手冊第二十七批 642，候選 1407）：Wikidata 有其中一項的動物園不多，
+ * 手冊說只做清單、不上色
+ */
+const VP_T = [1, 5, 10, 25, 50, 100];
+const AR_T = [10, 25, 50, 100, 250, 500];
+
+const ZOO_FACTS: ListPanelDef = {
+  label: { zh: '動物園的面積、物種數與人次（Wikidata）', en: 'Zoo areas, species and visitors (Wikidata)' },
+  tabLabel: { zh: '動物園', en: 'Zoos' },
+  indicators: ['zoos-osm', 'zoos-osm-per'],
+  file: 'zoo-facts.json',
+  countryField: 'iso3',
+  empty: { zh: 'Wikidata 上這裡的動物園沒有這些資料', en: 'No zoo data here in Wikidata' },
+  rows: (points, { countryName }) =>
+    [...points]
+      .sort((a, b) => (Number(b.v) || 0) - (Number(a.v) || 0) || (Number(b.sp) || 0) - (Number(a.sp) || 0))
+      .map((p, i): ListRow => ({
+        key: `zoo-${i}-${p.en}`,
+        title: placeName(p),
+        lines: [
+          [
+            typeof p.ha === 'number' ? tr({ zh: `${fixed(p.ha, p.ha < 10 ? 1 : 0)} 公頃`, en: `${fixed(p.ha, p.ha < 10 ? 1 : 0)} ha` }) : null,
+            typeof p.sp === 'number' ? tr({ zh: `Wikidata 列了 ${fixed(p.sp, 0)} 種動物`, en: `${fixed(p.sp, 0)} species listed in Wikidata` }) : null,
+            typeof p.v === 'number' ? tr({ zh: `一年 ${fixed(p.v, 0)} 人次`, en: `${fixed(p.v, 0)} visitors a year` }) : null,
+          ]
+            .filter(Boolean)
+            .join(' · '),
+          typeof p.iso3 === 'string' ? countryName(p.iso3) : '',
+        ],
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+      })),
+};
+
+/**
+ * 觀景點與公共藝術（2026-11-08，製作手冊第二十七批 645，候選 1413、1414；pipeline/topics/viewpoints_art.py）：
+ * OSM 的 tourism=viewpoint、tourism=artwork 分國計數與 0.1° 網格；台灣另有文化部的公共藝術清冊（點，依設置年份累積）。
+ * 兩份是不同的清單，台灣的數字不相加。
+ */
+const VIEW_GRID = osmGrid(
+  'viewpoints-grid',
+  'viewpoints-grid.json',
+  { zh: '觀景點（約 10 公里的網格）', en: 'Viewpoints (about 10 km grid)' },
+  ['viewpoints-per', 'viewpoints'],
+  { zh: '觀景點', en: 'viewpoints' },
+);
+const ART_GRID = osmGrid(
+  'artworks-grid',
+  'artworks-grid.json',
+  { zh: '公共藝術（約 10 公里的網格）', en: 'Public art (about 10 km grid)' },
+  ['artworks-osm-per', 'artworks-osm'],
+  { zh: '公共藝術', en: 'artworks' },
+);
+const TW_ART: PointsOverlayDef = {
+  kind: 'points',
+  id: 'taiwan-public-art',
+  file: 'taiwan-public-art.json',
+  label: { zh: '台灣的公共藝術（文化部）', en: 'Taiwan’s public art (Ministry of Culture)' },
+  indicators: ['taiwan-public-art'],
+  radius: 2.6,
+  color: C[4],
+  timeField: 'y',
+  tooltip: (p) => ({
+    title: String(p.name ?? '') || tr({ zh: '公共藝術', en: 'Public artwork' }),
+    detail: [tr({ zh: '公共藝術（文化部）', en: 'Public art (Ministry of Culture)' }), typeof p.county === 'string' ? p.county : null].filter(Boolean).join(' · '),
+    extra: [
+      typeof p.y === 'number' ? tr({ zh: `${p.y} 年設置`, en: `installed ${p.y}` }) : null,
+      typeof p.mat === 'string' ? tr({ zh: `材質：${p.mat}`, en: `Material: ${p.mat}` }) : null,
+    ].filter((x): x is string => Boolean(x)),
+  }),
+};
+const TW_ART_LIST: ListPanelDef = {
+  label: { zh: '台灣的公共藝術（文化部）', en: 'Taiwan’s public art (Ministry of Culture)' },
+  tabLabel: { zh: '台灣', en: 'Taiwan' },
+  indicators: ['taiwan-public-art'],
+  file: 'taiwan-public-art.json',
+  rows: (points) => {
+    const by = new Map<string, PointRecord[]>();
+    for (const p of points) by.set(String(p.county ?? ''), [...(by.get(String(p.county ?? '')) ?? []), p]);
+    const rows: ListRow[] = [];
+    for (const [county, list] of [...by.entries()].sort((a, b) => b[1].length - a[1].length)) {
+      list
+        .sort((a, b) => (Number(b.y) || 0) - (Number(a.y) || 0))
+        .forEach((p, i) => {
+          rows.push({
+            key: `twart-${county}-${i}`,
+            title: String(p.name ?? '') || tr({ zh: '公共藝術', en: 'Public artwork' }),
+            lines: [[typeof p.y === 'number' ? tr({ zh: `${p.y} 年設置`, en: `installed ${p.y}` }) : null, typeof p.mat === 'string' ? p.mat : null].filter(Boolean).join(' · ')],
+            group: tr({ zh: `${county || '縣市不詳'}（${list.length}）`, en: `${county || 'Unknown'} (${list.length})` }),
+            target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 16 },
+          });
+        });
+    }
+    return rows;
+  },
+};
+
 /** 附近最多列幾處（歐洲的城市 30 公里內博物館上千座） */
 const NEAR_MAX = 300;
 
@@ -166,10 +264,14 @@ const NEAR_LIST: ListPanelDef = {
 /**
  * 指標選單的分組（2026-11-07，製作手冊第二十七批 537）：景點地圖改定位成「其他景點與世界的紀錄」的總覽，
  * 十件不相干的事分組。博物館的指標在順序 638 搬到「博物館與美術館」、樂園的在順序 630–636 搬到樂園的主題；
- * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組
+ * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組（645 開始）
  */
 const MENU_GROUPS: MenuGroup[] = [
   [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'taiwan-sites']],
+  // 2026-11-08（製作手冊第二十七批 642）OSM 的動物園與水族館
+  [{ zh: '動物園與水族館', en: 'Zoos and aquariums' }, ['zoos-osm', 'zoos-osm-per', 'aquariums-osm', 'aquariums-osm-per']],
+  // 2026-11-08（製作手冊第二十七批 645）觀景點與公共藝術
+  [{ zh: '看風景與公共空間', en: 'Views and public spaces' }, ['viewpoints-per', 'viewpoints', 'artworks-osm-per', 'artworks-osm', 'taiwan-public-art']],
   [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
   [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos']],
 ];
@@ -194,6 +296,18 @@ const attractionsBase: TopicDefinition = {
     },
     ...attractionsExtra.sources,
     ...attractionsVisitors.sources,
+    // 2026-11-08（製作手冊第二十七批 645）
+    {
+      name: { zh: 'OpenStreetMap（tourism=viewpoint、artwork，經 QLever 查詢）', en: 'OpenStreetMap (tourism=viewpoint and artwork, via QLever)' },
+      url: 'https://www.openstreetmap.org/copyright',
+      license: 'ODbL 1.0',
+    },
+    { name: { zh: '陸地面積：FAOSTAT 土地利用', en: 'Land area: FAOSTAT land use' }, url: 'https://www.fao.org/faostat/en/#data/RL', license: 'CC BY 4.0' },
+    {
+      name: { zh: '文化部「查詢單一類別文化設施資料」：公共藝術（mainType=8）', en: 'Taiwan Ministry of Culture cultural facilities data: public art (mainType=8)' },
+      url: 'https://data.gov.tw/dataset/10046',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
   ],
   note: {
     zh:
@@ -215,8 +329,11 @@ const attractionsBase: TopicDefinition = {
     overlay(LAYERS[3], [[0, 10], [3, 3], [5, 0]]),
     ...attractionsExtra.overlays,
     ...attractionsVisitors.overlays,
+    VIEW_GRID,
+    ART_GRID,
+    TW_ART,
   ],
-  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel],
+  listPanel: [NEAR_LIST, ...[attractionsExtra.listPanel ?? []].flat(), ...attractionsVisitors.listPanel, ZOO_FACTS, TW_ART_LIST],
   indicators: [
     {
       id: 'attractions',
@@ -236,6 +353,120 @@ const attractionsBase: TopicDefinition = {
     },
     ...attractionsExtra.indicators,
     ...attractionsVisitors.indicators,
+    // 2026-11-08（製作手冊第二十七批 642）OSM 的動物園與水族館
+    {
+      id: 'zoos-osm',
+      label: { zh: '各國有幾座動物園（OSM）', en: 'Zoos by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成動物園（tourism=zoo）的地方：9,330 處、163 國。德國 1,226 處最多，美國 707、荷蘭 687、俄羅斯 528、法國 430、中國 383、日本 369；台灣 53 處。包括野生動物園、小型的動物角與鳥園，跟地圖上 Wikidata 的動物園（點）是不同的來源。左邊的清單是 Wikidata 上有面積、物種數或人次的動物園（資料很少，只列不比較）。', en: 'Places tagged as zoos (tourism=zoo) in OpenStreetMap: 9,330 in 163 countries. Germany has the most (1,226), followed by the US (707), the Netherlands (687), Russia (528), France (430), China (383) and Japan (369); Taiwan has 53. They include safari parks, petting zoos and bird parks, and are a different source from the Wikidata zoos drawn as dots. The list on the left shows zoos with an area, species count or visitor figure in Wikidata (few have any, so they are listed, not compared).' },
+      unit: { zh: '座', en: 'zoos' },
+      file: 'zoos-osm.json',
+      layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: `${fixed(v, 0)} zoos` }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'zoos-osm-per',
+      label: { zh: '每千萬人有幾座動物園（OSM）', en: 'Zoos per 10 million people (OSM)' },
+      description: { zh: 'OSM 的動物園處數 ÷ 2024 年人口，數量少所以用每千萬人，只替 OSM 覆蓋良好的 93 國上色。荷蘭每千萬人 377 處最多，拉脫維亞 224、奧地利 183；德國 145、法國 65、英國 41、日本 30、台灣 23、南韓 22、美國 20。', en: 'OSM zoos divided by 2024 population, per 10 million people because numbers are small, shown only for the 93 countries well covered by OSM. The Netherlands has the most (377), followed by Latvia (224) and Austria (183); Germany has 145, France 65, the UK 41, Japan 30, Taiwan 23, South Korea 22 and the US 20.' },
+      unit: { zh: '座/千萬人', en: 'per 10 million people' },
+      file: 'zoos-osm-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 20, 40, 80, 160] } },
+      timeless: true,
+      format: (v) => tr({ zh: `每千萬人 ${fixed(v, 1)} 座`, en: `${fixed(v, 1)} per 10 million` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'aquariums-osm',
+      label: { zh: '各國有幾座水族館（OSM）', en: 'Aquariums by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成水族館（tourism=aquarium）的地方：1,698 處、108 國。美國 200 處最多，印度 193、日本 160、中國 88、巴西 59；台灣 15 處。', en: 'Places tagged as aquariums (tourism=aquarium) in OpenStreetMap: 1,698 in 108 countries. The US has the most (200), followed by India (193), Japan (160), China (88) and Brazil (59); Taiwan has 15.' },
+      unit: { zh: '座', en: 'aquariums' },
+      file: 'aquariums-osm.json',
+      layer: { kind: 'bubble', legendValues: [5, 50, 200] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 座`, en: `${fixed(v, 0)} aquariums` }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'aquariums-osm-per',
+      label: { zh: '每千萬人有幾座水族館（OSM）', en: 'Aquariums per 10 million people (OSM)' },
+      description: { zh: 'OSM 的水族館處數 ÷ 2024 年人口（每千萬人），只替 OSM 覆蓋良好的 93 國上色。克羅埃西亞每千萬人 147 處最多，馬爾地夫 76；日本 12.9、法國 7.8、英國 7.1、台灣 6.5、南韓 6.4、德國 5.8、美國 5.8。', en: 'OSM aquariums divided by 2024 population (per 10 million people), shown only for the 93 countries well covered by OSM. Croatia has the most (147), followed by the Maldives (76); Japan has 12.9, France 7.8, the UK 7.1, Taiwan 6.5, South Korea 6.4, Germany 5.8 and the US 5.8.' },
+      unit: { zh: '座/千萬人', en: 'per 10 million people' },
+      file: 'aquariums-osm-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 5, 10, 20, 40] } },
+      timeless: true,
+      format: (v) => tr({ zh: `每千萬人 ${fixed(v, 1)} 座`, en: `${fixed(v, 1)} per 10 million` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    // 2026-11-08（製作手冊第二十七批 645）觀景點與公共藝術
+    {
+      id: 'viewpoints-per',
+      label: { zh: '每千平方公里有幾處觀景點（OSM）', en: 'Viewpoints per 1,000 km² (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成觀景點（tourism=viewpoint）的處數 ÷ 陸地面積（FAOSTAT），只替 OSM 覆蓋良好、陸地 1,000 平方公里以上的 87 國上色。盧森堡每千平方公里 160 處最多，瑞士 113、德國 90、斯洛伐克 83、捷克 69，台灣 66 排第六；義大利 52、法國 37、南韓 25、英國 21、日本 20、美國 2.4。各國標觀景點的門檻不同（德國連林間空地都標），密度也在量 OSM 畫得多完整。地圖上的點是約 10 公里的網格，一格一個點。', en: 'Places tagged as viewpoints (tourism=viewpoint) in OpenStreetMap divided by land area (FAOSTAT), shown only for the 87 countries well covered by OSM with at least 1,000 km² of land. Luxembourg has the most per 1,000 km² (160), followed by Switzerland (113), Germany (90), Slovakia (83) and Czechia (69), with Taiwan sixth (66); Italy has 52, France 37, South Korea 25, the UK 21, Japan 20 and the US 2.4. The threshold for tagging a viewpoint differs by country (in Germany even forest clearings are tagged), so densities also reflect how completely OSM is mapped. Dots on the map are a grid of about 10 km, one dot per cell.' },
+      unit: { zh: '處／千平方公里', en: 'per 1,000 km²' },
+      file: 'viewpoints-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: VP_T } },
+      timeless: true,
+      format: (v) => tr({ zh: `每千平方公里 ${fixed(v, v < 10 ? 1 : 0)} 處`, en: `${fixed(v, v < 10 ? 1 : 0)} per 1,000 km²` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'viewpoints',
+      label: { zh: '各國有幾處觀景點（OSM）', en: 'Viewpoints by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成觀景點的地方：263,972 處、212 國。德國 31,386 處最多，美國 22,265、法國 19,898、義大利 15,396、西班牙 13,333、俄羅斯 9,762；台灣 2,338 處。地圖上的點是約 10 公里的網格。', en: 'Places tagged as viewpoints in OpenStreetMap: 263,972 in 212 countries. Germany has the most (31,386), followed by the US (22,265), France (19,898), Italy (15,396), Spain (13,333) and Russia (9,762); Taiwan has 2,338. Dots on the map are a grid of about 10 km.' },
+      unit: { zh: '處', en: 'viewpoints' },
+      file: 'viewpoints.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 處`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'artworks-osm-per',
+      label: { zh: '每百萬人有幾件公共藝術（OSM）', en: 'Public artworks per million people (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成公共藝術（tourism=artwork）的件數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。捷克每百萬人 1,114 件最多，冰島 1,091、挪威 905、拉脫維亞 831、丹麥 745；德國 560、法國 398、英國 232、日本 117、美國 110、台灣 94、南韓 29。OSM 的公共藝術定義很寬，含雕像、壁畫、塗鴉、裝置與噴泉；密度也在量 OSM 畫得多完整。地圖上的點是約 10 公里的網格。', en: 'Public artworks (tourism=artwork) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Czechia has the most per million people (1,114), followed by Iceland (1,091), Norway (905), Latvia (831) and Denmark (745); Germany has 560, France 398, the UK 232, Japan 117, the US 110, Taiwan 94 and South Korea 29. OSM defines public art broadly, including statues, murals, graffiti, installations and fountains, and densities also reflect how completely OSM is mapped. Dots on the map are a grid of about 10 km.' },
+      unit: { zh: '件／百萬人', en: 'per million people' },
+      file: 'artworks-osm-per.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: AR_T } },
+      timeless: true,
+      format: (v) => tr({ zh: `每百萬人 ${fixed(v, 0)} 件`, en: `${fixed(v, 0)} per million` }),
+      formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'artworks-osm',
+      label: { zh: '各國有幾件公共藝術（OSM）', en: 'Public artworks by country (OSM)' },
+      description: { zh: 'OpenStreetMap 上標成公共藝術的件數：367,192 件、202 國。德國 47,327 件最多，美國 38,032、法國 26,479、義大利 17,720、英國 16,044、波蘭 15,147、日本 14,441；台灣 2,178 件（文化部的清冊另有 6,337 件，兩份是不同的清單，不相加）。', en: 'Public artworks tagged in OpenStreetMap: 367,192 in 202 countries. Germany has the most (47,327), followed by the US (38,032), France (26,479), Italy (17,720), the UK (16,044), Poland (15,147) and Japan (14,441); Taiwan has 2,178 (the Ministry of Culture’s register lists 6,337; they are separate lists and are not added together).' },
+      unit: { zh: '件', en: 'artworks' },
+      file: 'artworks-osm.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
+      timeless: true,
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 件`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
+    {
+      id: 'taiwan-public-art',
+      label: { zh: '台灣的公共藝術（文化部）', en: 'Taiwan’s public art (Ministry of Culture)' },
+      description: { zh: '文化部「文化設施」開放資料裡的公共藝術 6,337 件，有座標而且在台灣範圍的 6,171 件畫成點，拖時間軸看依設置年份累積：1990 年代 92 件、2000 年代 1,687、2010 年代 3,359、2020 年起 1,033。臺北市 992 件最多，高雄市 750、臺中市 716、新北市 668、臺南市 456。同一棟建築的作品常共用一個座標，地圖上排成一小圈。作者是個人姓名，不列出；這份跟 OSM 的公共藝術是不同的清單，不相加。', en: 'The 6,337 public artworks in Taiwan’s Ministry of Culture open data on cultural facilities; the 6,171 with coordinates within Taiwan are drawn as dots. Drag the time slider to see them accumulate by year of installation: 92 in the 1990s, 1,687 in the 2000s, 3,359 in the 2010s and 1,033 since 2020. Taipei has the most (992), followed by Kaohsiung (750), Taichung (716), New Taipei (668) and Tainan (456). Works at the same building often share one coordinate and are arranged in a small ring on the map. Artists are individuals and are not listed; this is a separate list from OSM’s public art and the two are not added together.' },
+      unit: '',
+      file: 'public-art-years.json',
+      layer: { kind: 'none' },
+      overlayTime: 'cumulative',
+      unranked: true,
+      rankingBars: false as const,
+      panelChart: false as const,
+      format: () => '',
+      defaultYear: 2026,
+      focus: [119.2, 21.8, 122.2, 25.4],
+      missing: { zh: '國家不上色，只有台灣的公共藝術', en: 'Countries are not coloured; Taiwan’s public art only' },
+    },
   ],
 };
 
