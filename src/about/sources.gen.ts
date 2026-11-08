@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 213;
-export const INDICATOR_COUNT = 1643;
+export const INDICATOR_COUNT = 1644;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","companies","china-lending","empires","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","museums","oldest-universities","skyscrapers","theme-parks","roller-coasters","water-parks","nobel","sports","racing","dining"]},
@@ -770,6 +770,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"農業部林業及自然保育署 全國森林資源調查","en":"Forestry and Nature Conservation Agency (Taiwan), national forest resource inventories"},"url":"https://www.forest.gov.tw/0000052","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["forest"]},
   {"name":{"zh":"農業部林業及自然保育署 林業保育統計年報（森林災害）","en":"Forestry and Nature Conservation Agency (Taiwan), annual forestry statistics (forest damage)"},"url":"https://www.forest.gov.tw/0000574","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["wildfires"]},
   {"name":{"zh":"農業部林業及自然保育署 臺灣國家保護區系統面積統計表","en":"Forestry and Nature Conservation Agency (Taiwan), protected area statistics"},"url":"https://www.forest.gov.tw/total","licenses":[{"zh":"政府網站資料開放宣告（無償、非專屬、得再授權，應註明出處）","en":"Government website open data declaration (free, non-exclusive, sublicensable, with attribution)"}],"topics":["national-parks"]},
+  {"name":{"zh":"農業部林業及自然保育署：森林遊樂區範圍界、基本資料、票價（data.gov.tw 9931、37675、37641）","en":"Forestry and Nature Conservation Agency (Taiwan): forest recreation area boundaries, basic data and fares (data.gov.tw 9931, 37675, 37641)"},"url":"https://data.gov.tw/dataset/37641","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["national-parks"]},
   {"name":{"zh":"農業部林業及自然保育署：森林遊樂區範圍界（data.gov.tw 9931）、所轄森林遊樂區基本資料（37675）","en":"Forestry and Nature Conservation Agency (Taiwan): forest recreation area boundaries (data.gov.tw 9931) and basic data (37675)"},"url":"https://data.gov.tw/dataset/9931","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["trails"]},
   {"name":{"zh":"農業部漁業署《漁業統計年報》（台灣的對照數字）","en":"Fisheries Agency (Taiwan), Fisheries Statistical Yearbook (for comparison)"},"url":"https://www.fa.gov.tw/list.php?theme=FS_AR","licenses":[{"zh":"引用統計數字並註明出處","en":"figures cited with source"}],"topics":["oceans"]},
   {"name":{"zh":"運動部：中央與地方政府機關體育運動經費占 GDP 比例（data.gov.tw 104905）","en":"Sports Administration (Taiwan): central and local sports budgets as a share of GDP (data.gov.tw 104905)"},"url":"https://data.gov.tw/dataset/104905","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["sports"]},

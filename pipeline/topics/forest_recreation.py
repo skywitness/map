@@ -25,6 +25,8 @@ from common import OUT_DIR, download, lines_file, points_file, write_json, write
 OUT = OUT_DIR / "topics" / "trails"
 AREAS_URL = "https://data.moa.gov.tw/OpenData/GetOpenDataFile.aspx?id=155&FileType=KML&RID=74545"
 BASIC_URL = "https://data.moa.gov.tw//Service/OpenData/ForestAmusementParkData.aspx?IsTransData=1&UnitId=757"
+# 2026-11-08（製作手冊第二十七批 651）票價（data.gov.tw 37641）：每處取「全票」的平日與假日價格，給「國家公園」主題的清單用
+FARE_URL = "https://data.moa.gov.tw/Service/OpenData/ForestAmusementParkFareInfo.aspx?IsTransData=1&UnitId=733"
 SIMPLIFY = 0.0002  # 度，約 20 公尺
 
 
@@ -52,6 +54,22 @@ def _rings(placemark: str) -> list[list[tuple[float, float]]]:
 
 def build() -> None:
     basic = {r["RA_name"]: r for r in json.loads(download(BASIC_URL, "forestry", "recreation-areas-37675.json").read_text(encoding="utf-8"))}
+    fares: dict[str, dict[str, int]] = {}
+    fare_rows = json.loads(download(FARE_URL, "forestry", "recreation-fares-37641.json").read_text(encoding="utf-8"))
+    # 只有 0 元的票（合歡山「免票」、觀霧「無區分」）算免費
+    prices: dict[str, list[int]] = {}
+    for r in fare_rows:
+        if str(r.get("price") or "").strip().isdigit():
+            prices.setdefault((r.get("RA_name") or "").strip(), []).append(int(r["price"]))
+    for name, ps in prices.items():
+        if ps and max(ps) == 0:
+            fares[name] = {"fw": 0, "fh": 0}
+    for r in fare_rows:
+        name, fee = (r.get("RA_name") or "").strip(), (r.get("fee_name") or "").strip()
+        if "全票" not in fee or not str(r.get("price") or "").strip().isdigit():
+            continue
+        key = "fh" if "假日" in fee else "fw"
+        fares.setdefault(name, {}).setdefault(key, int(r["price"]))
     lines, records, points = [], [], []
     for pm in re.findall(r"<Placemark.*?</Placemark>", _kml(), re.S):
         name = re.search(r"<name>([^<]*)</name>", pm).group(1).strip()
@@ -71,14 +89,15 @@ def build() -> None:
             lines.append([(round(x, 5), round(y, 5)) for x, y in ring])
             records.append(rec | {"f": 1})  # f：前端畫成半透明的面
         pt = shape.representative_point()
-        points.append({"lon": round(pt.x, 4), "lat": round(pt.y, 4)} | rec)
+        f = fares.get(name, {})
+        points.append({"lon": round(pt.x, 4), "lat": round(pt.y, 4)} | rec | {"fw": f.get("fw"), "fh": f.get("fh", f.get("fw"))})  # 只有假日全票的（大雪山、奧萬大、墾丁）平日留空
     fields = ["n", "e", "ha", "alt", "mgr", "adm"]
     write_json(OUT / "forest-areas.json", lines_file(lines, 0.0001, records=records, record_fields=fields + ["f"],
                                                      record_scale={"ha": 1, "f": 1}, record_strings=("mgr",)))
-    write_json(OUT / "forest-area-points.json", points_file(points, ["lon", "lat"] + fields,
-                                                            {"lon": 0.0001, "lat": 0.0001, "ha": 1}, strings=("mgr",)))
+    write_json(OUT / "forest-area-points.json", points_file(points, ["lon", "lat"] + fields + ["fw", "fh"],
+                                                            {"lon": 0.0001, "lat": 0.0001, "ha": 1, "fw": 1, "fh": 1}, strings=("mgr",)))
     write_manifest_part(OUT, "trails", "forest-recreation", {"sources": [
         "https://data.gov.tw/dataset/9931（農業部林業及自然保育署，政府資料開放授權條款第 1 版）",
-        "https://data.gov.tw/dataset/37675（同上）"]})
+        "https://data.gov.tw/dataset/37675（同上）", "https://data.gov.tw/dataset/37641（同上，票價）"]})
     print(f"  森林遊樂區 {len(points)} 處、外框 {len(lines)} 條；基本資料對到 {sum(1 for p in points if p['alt'])} 處："
           f"{[(p['n'], p['ha'], p['alt']) for p in points]}")

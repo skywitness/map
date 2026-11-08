@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ColorClasses, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { ColorClasses, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 國家公園（pipeline/topics/national_parks.py）：Wikidata 的國家公園的點，依設立年份累積出現；各國陸域保護區占國土的比例
@@ -64,6 +64,72 @@ function parksLayer(id: string, file: string, label: Text, dated: boolean): Poin
   };
 }
 
+/**
+ * 台灣的國家森林遊樂區（2026-11-08，製作手冊第二十七批 651，候選 1424）：範圍與點是「長途步道」主題第二十四批 417 補強
+ * 做的同一份檔（pipeline/topics/forest_recreation.py，輸出 topics/trails/），這裡另畫一層、點的大小是面積，清單多票價。
+ */
+const FOREST = MAP_TOKENS.categorical[3];
+const forestName = (p: PointRecord) => (getLang() === 'zh' || typeof p.e !== 'string' ? String(p.n ?? '') : p.e);
+const fareText = (p: PointRecord) => {
+  if (p.fw === 0 && p.fh === 0) return tr({ zh: '免費', en: 'Free' });
+  const parts = [
+    typeof p.fw === 'number' ? tr({ zh: `平日全票 ${p.fw} 元`, en: `weekday NT$${p.fw}` }) : null,
+    typeof p.fh === 'number' ? tr({ zh: `假日全票 ${p.fh} 元`, en: `weekend NT$${p.fh}` }) : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(' · ') : null;
+};
+const forestFacts = (p: PointRecord) =>
+  [
+    typeof p.ha === 'number' ? tr({ zh: `${fixed(p.ha, 0)} 公頃`, en: `${fixed(p.ha, 0)} ha` }) : null,
+    typeof p.alt === 'string' ? tr({ zh: `海拔 ${p.alt} 公尺`, en: `${p.alt} m above sea level` }) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+const TW_FOREST_AREAS: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'tw-forest-areas',
+  file: '../trails/forest-areas.json',
+  label: { zh: '森林遊樂區的範圍', en: 'Forest recreation area boundaries' },
+  width: 1,
+  color: FOREST,
+  fill: { field: 'f', value: 1, opacity: 0.25, darkOpacity: 0.3 },
+  tooltip: (p) => ({ title: forestName(p), detail: forestFacts(p) }),
+  indicators: ['tw-forest-recreation'],
+};
+const TW_FOREST: PointsOverlayDef = {
+  kind: 'points',
+  id: 'tw-forest-points',
+  file: '../trails/forest-area-points.json',
+  label: { zh: '台灣的森林遊樂區（點的大小是面積）', en: 'Taiwan’s forest recreation areas (dot size shows area)' },
+  indicators: ['tw-forest-recreation'],
+  radius: { field: 'ha', stops: [[50, 3], [500, 5], [3000, 8], [13000, 12]] },
+  color: FOREST,
+  sortField: 'ha',
+  tooltip: (p) => ({
+    title: forestName(p),
+    detail: forestFacts(p),
+    extra: [fareText(p), typeof p.mgr === 'string' ? tr({ zh: `管理：${p.mgr}`, en: `Managed by: ${p.mgr}` }) : null].filter((x): x is string => Boolean(x)),
+    properNoun: getLang() === 'zh' && typeof p.e === 'string' ? p.e : undefined,
+  }),
+};
+const TW_FOREST_LIST: ListPanelDef = {
+  label: { zh: '台灣的森林遊樂區（依面積）', en: 'Taiwan’s forest recreation areas (by area)' },
+  tabLabel: { zh: '森林遊樂區', en: 'Forest areas' },
+  indicators: ['tw-forest-recreation'],
+  file: '../trails/forest-area-points.json',
+  rows: (points) =>
+    [...points]
+      .sort((a, b) => (Number(b.ha) || 0) - (Number(a.ha) || 0))
+      .map(
+        (p, i): ListRow => ({
+          key: `twfr-${i}`,
+          title: forestName(p),
+          lines: [forestFacts(p), fareText(p) ?? tr({ zh: '票價資料沒有這一處', en: 'No fare data' })],
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 12 },
+        }),
+      ),
+};
+
 export const nationalParks: TopicDefinition = {
   id: 'national-parks',
   title: { zh: '國家公園', en: 'National parks' },
@@ -81,6 +147,11 @@ export const nationalParks: TopicDefinition = {
       name: { zh: '農業部林業及自然保育署 臺灣國家保護區系統面積統計表', en: 'Forestry and Nature Conservation Agency (Taiwan), protected area statistics' },
       url: 'https://www.forest.gov.tw/total',
       license: { zh: '政府網站資料開放宣告（無償、非專屬、得再授權，應註明出處）', en: 'Government website open data declaration (free, non-exclusive, sublicensable, with attribution)' },
+    },
+    {
+      name: { zh: '農業部林業及自然保育署：森林遊樂區範圍界、基本資料、票價（data.gov.tw 9931、37675、37641）', en: 'Forestry and Nature Conservation Agency (Taiwan): forest recreation area boundaries, basic data and fares (data.gov.tw 9931, 37675, 37641)' },
+      url: 'https://data.gov.tw/dataset/37641',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     {
       name: { zh: '內政部 土地面積（台灣的分母）', en: 'Ministry of the Interior (Taiwan), land area (denominator for Taiwan)' },
@@ -102,7 +173,10 @@ export const nationalParks: TopicDefinition = {
   overlays: [
     parksLayer('parks', 'parks.json', { zh: '國家公園（依設立年份）', en: 'National parks (by year established)' }, true),
     parksLayer('parks-undated', 'parks-undated.json', { zh: '設立年份不詳的國家公園（預設關閉）', en: 'National parks, year unknown (off by default)' }, false),
+    TW_FOREST_AREAS,
+    TW_FOREST,
   ],
+  listPanel: [TW_FOREST_LIST],
   indicators: [
     {
       id: 'parks-map',
@@ -135,6 +209,25 @@ export const nationalParks: TopicDefinition = {
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${fixed(v, 0)}%`,
       compareWorld: true,
+    },
+    // 2026-11-08（製作手冊第二十七批 651）
+    {
+      id: 'tw-forest-recreation',
+      label: { zh: '台灣的國家森林遊樂區', en: 'Taiwan’s national forest recreation areas' },
+      description: {
+        zh: '林業及自然保育署的森林遊樂區：19 處國家森林遊樂區，加上退輔會的明池、棲蘭與中興大學的惠蓀林場，共 22 處，畫出範圍，點的大小是面積。太平山 12,930 公頃最大，大雪山 3,968、武陵 3,714、奧萬大 2,787、八仙山 2,452 公頃；墾丁 75、拉拉山 82 公頃最小。海拔從知本的 110 公尺到武陵的 3,886 公尺。假日全票阿里山 300 元最貴，太平山、大雪山、奧萬大 200 元，合歡山、向陽、觀霧免費。森林遊樂區是買票進去的景點，不是保護區，跟上面的保護區占國土是不同的東西。',
+        en: 'Forest recreation areas run by the Forestry and Nature Conservation Agency: 19 national forest recreation areas plus Mingchi and Qilan (Veterans Affairs Council) and Huisun (National Chung Hsing University), 22 in all, drawn with their boundaries and dots sized by area. Taipingshan is the largest at 12,930 ha, followed by Dasyueshan (3,968), Wuling (3,714), Aowanda (2,787) and Baxianshan (2,452); Kenting (75) and Lalashan (82) are the smallest. Elevations range from 110 m at Zhiben to 3,886 m at Wuling. Weekend adult tickets cost most at Alishan (NT$300), followed by Taipingshan, Dasyueshan and Aowanda (NT$200); Hehuanshan, Xiangyang and Guanwu are free. These are ticketed attractions, not protected areas, so they differ from the protected-land indicator above.',
+      },
+      unit: '',
+      file: 'parks-map.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      timeless: true,
+      format: () => '',
+      focus: [119.9, 21.8, 122.1, 25.4],
+      missing: { zh: '國家不上色，只有台灣的森林遊樂區', en: 'Countries are not coloured; Taiwan’s forest recreation areas only' },
     },
   ],
 };
