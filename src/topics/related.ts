@@ -60,7 +60,7 @@ export const RELATED: Record<string, string[]> = {
   diving: ['oceans', 'national-parks', 'tourism'],
   gambling: ['laws', 'tobacco-alcohol', 'tourism'],
   'time-use': ['wages', 'gender', 'happiness'],
-  esports: ['sports', 'internet-speed', 'digital'],
+  esports: ['sports', 'game-companies', 'internet-speed', 'digital'],
   horses: ['agriculture', 'sports', 'gambling'],
   'origin-names': ['diet', 'agriculture', 'tobacco-alcohol'],
   cuisines: ['diet', 'dining', 'origin-names'],
@@ -222,6 +222,7 @@ export const RELATED: Record<string, string[]> = {
   'amusement-industry': ['theme-parks', 'tourism', 'retail'],
   'roller-coasters': ['theme-parks', 'attractions', 'amusement-industry'],
   'water-parks': ['theme-parks', 'roller-coasters', 'tourism'],
+  'game-companies': ['esports', 'developers', 'companies'],
   museums: ['attractions', 'world-heritage', 'castles'],
   'night-lights': ['cities', 'power-plants', 'population'],
 };

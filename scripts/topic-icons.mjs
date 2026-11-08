@@ -103,6 +103,7 @@ const TOPIC_ICONS = {
   'theme-parks': 'roller-coaster',
   'amusement-industry': 'tickets',
   'roller-coasters': 'spline',
+  'game-companies': 'joystick',
   'water-parks': 'waves-ladder',
   museums: 'frame',
   'energy-jobs': 'id-card-lanyard',
