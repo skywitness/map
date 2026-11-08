@@ -48,10 +48,19 @@ def _per_country(rows) -> dict[str, tuple[float, int]]:
     return out
 
 
+def _length(kind: str, extra: str, name: str) -> dict[str, tuple[float, int]]:
+    """各國的長度（公里）與段數；子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）"""
+    totals = _per_country(osm_qlever.query(_length_query(kind, extra), name))
+    subs = osm_qlever.sub_objects(f'?x osmkey:railway "{kind}" ; {LENGTH} ?len . {extra}', name, ("len",))
+    km = osm_qlever.split({c: v[0] for c, v in totals.items()}, [{**s, "len": float(s["len"]) / 1000} for s in subs], "len")
+    n = osm_qlever.split({c: v[1] for c, v in totals.items()}, subs)
+    return {c: (km[c], int(round(n.get(c, 0)))) for c in km}
+
+
 def build() -> None:
     cov, covered = osm_coverage.coverage(), osm_coverage.well_covered()
-    lengths = {k: _per_country(osm_qlever.query(_length_query(k), f"rail-{k}-length")) for k in KINDS}
-    trails = _per_country(osm_qlever.query(_length_query("abandoned", "?x osmkey:highway ?h ."), "rail-abandoned-highway-length"))
+    lengths = {k: _length(k, "", f"rail-{k}-length") for k in KINDS}
+    trails = _length("abandoned", "?x osmkey:highway ?h .", "rail-abandoned-highway-length")
 
     for kind in KINDS:
         data = lengths[kind]
@@ -82,6 +91,21 @@ def build() -> None:
             if iso3 and name:
                 per.setdefault(iso3, {})
                 per[iso3][name] = per[iso3].get(name, 0.0) + float(r["m"]["value"]) / 1000
+        # 子屬地分開、從母國減掉（製作手冊 1-f）
+        for sub in osm_qlever.sub_objects(f'?x osmkey:railway "{kind}" ; osmkey:name ?name ; {LENGTH} ?len .', f"rail-{kind}-names",
+                                          ("name", "len")):
+            name, km = sub["name"].strip(), float(sub["len"]) / 1000
+            if not name:
+                continue
+            per.setdefault(sub["sub"], {})[name] = per.get(sub["sub"], {}).get(name, 0.0) + km
+            if sub["mother"]:
+                left = per[sub["mother"]][name] - km
+                if left < -1e-6:
+                    raise RuntimeError(f"{sub['mother']} 的 {name} 減掉子屬地後變成負的")
+                if left > 1e-6:
+                    per[sub["mother"]][name] = left
+                else:
+                    del per[sub["mother"]][name]
         totals[kind] = sum(len(v) for v in per.values())
         for c, d in per.items():
             top = sorted(d.items(), key=lambda kv: -kv[1])[:TOP_NAMES]

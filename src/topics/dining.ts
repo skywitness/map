@@ -2,6 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, IndicatorDef, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /** 米其林三星餐廳（2026-11-04，製作手冊第二十一批 368；pipeline/topics/michelin.py）：英文維基的清單，位置用 Wikidata */
 const MICHELIN: PointsOverlayDef = {
@@ -136,17 +137,17 @@ export const dining: TopicDefinition = {
       license: { zh: '政府資料開放授權條款', en: 'Open Government Data License, Taiwan' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '店數是 OpenStreetMap 上標成餐廳（restaurant）、速食（fast_food）、咖啡館（cafe）、酒吧（bar）、酒館（pub）、冰淇淋店（ice_cream）的地點（2026-11-06 加手搖飲、茶館、茶葉行、咖啡豆行），2026 年 11 月的快照（© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），不是官方的店家普查；只算固定店面，夜市與攤販不算。OSM 是志願者畫的，各國畫得完不完整差很多：印度、奈及利亞每十萬人只有個位數，不是現實。所以只替 OSM 覆蓋良好的國家上色：OSM 上的餐飲店除以那一國住宿及餐飲業的就業人數（ILO、加拿大統計局、主計總處），每千名就業者 20 家以上才畫（一家店大約對 10–20 名就業者），其他國家滑過去看原因。覆蓋良好的國家之間也還有差別，只能看大概。餐廳與速食的界線各國的繪圖者判斷不一，所以預設看兩者合計；酒吧（bar）與酒館（pub）是文化性的標籤（日本的居酒屋常標成 pub），合在一起算。人口不到 10 萬的地方不畫。',
     en: 'Counts are places tagged on OpenStreetMap as restaurant, fast_food, cafe, bar, pub or ice_cream (plus bubble tea, tea houses, tea shops and coffee bean shops since 6 November 2026), as of November 2026 (© OpenStreetMap contributors; the data files are shared under ODbL 1.0), not an official business census; only fixed premises count, not night markets or street stalls. OpenStreetMap is mapped by volunteers and completeness varies a lot: India and Nigeria show single-digit figures per 100,000, which is not reality. So only countries where OSM is reasonably complete are coloured: OSM food and drink places divided by employment in accommodation and food services (ILO, Statistics Canada, DGBAS) must be at least 20 per 1,000 workers (a place typically has 10–20 workers); hover over other countries for the reason. Even among those countries completeness differs, so treat comparisons as approximate. Mappers draw the line between restaurants and fast food differently, so the default combines both; bar and pub are culturally loaded tags (Japanese izakaya are often tagged as pubs), so they are combined too. Places with fewer than 100,000 people are not shown.',
-  },
+  }),
   indicators: [
     indicator(
       'eat-out',
       { zh: '餐廳與速食店', en: 'Restaurants and fast food' },
       {
-        zh: '每十萬人有幾家餐廳加速食店（OpenStreetMap）。奧地利 276.8 家最多，瑞士、馬爾他、盧森堡、蒙特內哥羅、希臘、葡萄牙都超過 200；台灣 185.8 家（餐廳 38,058、速食 4,696），比法國 190.8 略少、比德國 175.6、南韓 160.8、義大利 156.3 多；英國 119.1、美國 112.5、日本 110.1。只畫 OSM 覆蓋良好的 93 國。',
-        en: 'Restaurants plus fast-food outlets per 100,000 people (OpenStreetMap). Austria leads with 276.8, and Switzerland, Malta, Luxembourg, Montenegro, Greece and Portugal all exceed 200; Taiwan has 185.8 (38,058 restaurants and 4,696 fast-food outlets), slightly below France 190.8 and above Germany 175.6, South Korea 160.8 and Italy 156.3; the UK 119.1, the US 112.5 and Japan 110.1. Only the 93 countries where OSM is reasonably complete are shown.',
+        zh: '每十萬人有幾家餐廳加速食店（OpenStreetMap）。觀光客多的阿魯巴 424.4 家、庫拉索 307.9 家最多，其次是奧地利 276.8；瑞士、馬爾他、盧森堡、蒙特內哥羅、希臘、葡萄牙都超過 200；台灣 185.8 家（餐廳 38,058、速食 4,696），比法國 188.9 略少、比德國 175.6、南韓 160.8、義大利 156.3 多；英國 119.1、美國 111.5、日本 110.1。只畫 OSM 覆蓋良好的 96 個國家或地區。',
+        en: 'Restaurants plus fast-food outlets per 100,000 people (OpenStreetMap). Aruba (424.4) and Curaçao (307.9), islands with many tourists, lead, followed by Austria 276.8; Switzerland, Malta, Luxembourg, Montenegro, Greece and Portugal all exceed 200; Taiwan has 185.8 (38,058 restaurants and 4,696 fast-food outlets), slightly below France 188.9 and above Germany 175.6, South Korea 160.8 and Italy 156.3; the UK 119.1, the US 111.5 and Japan 110.1. Only the 96 countries and territories where OSM is reasonably complete are shown.',
       },
       [25, 50, 100, 150, 200],
     ),
@@ -154,8 +155,8 @@ export const dining: TopicDefinition = {
       'restaurants',
       { zh: '餐廳', en: 'Restaurants' },
       {
-        zh: '每十萬人有幾家餐廳（不含速食）。奧地利 229.5、瑞士 205.7、盧森堡 194.2 最多，台灣 165.4 家（38,058 家）、南韓 151.9，日本 90.0、美國 65.5、英國 53.3：英美的外食多半在速食店與酒館。',
-        en: 'Restaurants (excluding fast food) per 100,000 people. Austria 229.5, Switzerland 205.7 and Luxembourg 194.2 lead; Taiwan has 165.4 (38,058 restaurants) and South Korea 151.9, while Japan has 90.0, the US 65.5 and the UK 53.3, where much eating out happens in fast-food outlets and pubs.',
+        zh: '每十萬人有幾家餐廳（不含速食）。觀光客多的阿魯巴 337.5、庫拉索 271.8 最多，其次是奧地利 229.5、瑞士 205.7、盧森堡 194.2；台灣 165.4 家（38,058 家）、南韓 151.9，日本 90.0、美國 64.9、英國 53.3：英美的外食多半在速食店與酒館。',
+        en: 'Restaurants (excluding fast food) per 100,000 people. Aruba (337.5) and Curaçao (271.8), islands with many tourists, lead, followed by Austria 229.5, Switzerland 205.7 and Luxembourg 194.2; Taiwan has 165.4 (38,058 restaurants) and South Korea 151.9, while Japan has 90.0, the US 64.9 and the UK 53.3, where much eating out happens in fast-food outlets and pubs.',
       },
       [20, 50, 100, 150, 200],
     ),
@@ -163,8 +164,8 @@ export const dining: TopicDefinition = {
       'fast-food',
       { zh: '速食店', en: 'Fast food' },
       {
-        zh: '每十萬人有幾家速食店（OpenStreetMap 的 fast_food，含漢堡、披薩外帶、烤肉串等）。丹麥 103.1 最多，冰島 84.3、紐西蘭 73.2、英國 65.8，加拿大 56.9、德國 52.8、美國 46.9；台灣 20.4、日本 20.1、南韓 8.9。',
-        en: 'Fast-food outlets per 100,000 people (OpenStreetMap’s fast_food, including burgers, takeaway pizza, kebabs and so on). Denmark leads with 103.1, followed by Iceland 84.3, New Zealand 73.2 and the UK 65.8; Canada 56.9, Germany 52.8 and the US 46.9; Taiwan 20.4, Japan 20.1 and South Korea 8.9.',
+        zh: '每十萬人有幾家速食店（OpenStreetMap 的 fast_food，含漢堡、披薩外帶、烤肉串等）。丹麥 103.1 最多，阿魯巴 86.9、冰島 84.3、紐西蘭 73.2、英國 65.8，加拿大 56.9、德國 52.8、美國 46.6；台灣 20.4、日本 20.1、南韓 8.9。',
+        en: 'Fast-food outlets per 100,000 people (OpenStreetMap’s fast_food, including burgers, takeaway pizza, kebabs and so on). Denmark leads with 103.1, followed by Aruba 86.9, Iceland 84.3, New Zealand 73.2 and the UK 65.8; Canada 56.9, Germany 52.8 and the US 46.6; Taiwan 20.4, Japan 20.1 and South Korea 8.9.',
       },
       [5, 10, 20, 40, 60],
     ),
@@ -181,8 +182,8 @@ export const dining: TopicDefinition = {
       'bars',
       { zh: '酒吧與酒館', en: 'Bars and pubs' },
       {
-        zh: '每十萬人有幾家酒吧（bar）加酒館（pub）。愛爾蘭 98.2、西班牙 87.2、斯洛伐克 80.6、捷克 66.3、英國 65.7 多；日本 30.1（居酒屋常標成 pub）；台灣只有 2.2 家、南韓 8.5、美國 11.2：台灣喝酒多半在餐廳與熱炒店，不是獨立的酒吧。伊斯蘭國家幾乎沒有。',
-        en: 'Bars plus pubs per 100,000 people. Ireland 98.2, Spain 87.2, Slovakia 80.6, Czechia 66.3 and the UK 65.7 are high; Japan has 30.1 (izakaya are often tagged as pubs); Taiwan only 2.2, South Korea 8.5 and the US 11.2: in Taiwan drinking mostly happens in restaurants and stir-fry joints rather than stand-alone bars. Muslim-majority countries have almost none.',
+        zh: '每十萬人有幾家酒吧（bar）加酒館（pub）。愛爾蘭 98.2、西班牙 87.2、斯洛伐克 80.6、捷克 66.3、英國 65.7 多；日本 30.1（居酒屋常標成 pub）；台灣只有 2.2 家、南韓 8.5、美國 11.1：台灣喝酒多半在餐廳與熱炒店，不是獨立的酒吧。伊斯蘭國家幾乎沒有。',
+        en: 'Bars plus pubs per 100,000 people. Ireland 98.2, Spain 87.2, Slovakia 80.6, Czechia 66.3 and the UK 65.7 are high; Japan has 30.1 (izakaya are often tagged as pubs); Taiwan only 2.2, South Korea 8.5 and the US 11.1: in Taiwan drinking mostly happens in restaurants and stir-fry joints rather than stand-alone bars. Muslim-majority countries have almost none.',
       },
       [2, 5, 10, 25, 50],
     ),
@@ -190,8 +191,8 @@ export const dining: TopicDefinition = {
       'ice-cream',
       { zh: '冰淇淋店', en: 'Ice-cream shops' },
       {
-        zh: '每十萬人有幾家冰淇淋店。冰島 11.2、斯洛伐克 11.1、義大利 10.4（gelato）、克羅埃西亞 9.2、丹麥 8.7 最多；美國 3.7、台灣 2.0、南韓 1.2、日本 0.8。',
-        en: 'Ice-cream shops per 100,000 people. Iceland 11.2, Slovakia 11.1, Italy 10.4 (gelato), Croatia 9.2 and Denmark 8.7 lead; the US 3.7, Taiwan 2.0, South Korea 1.2 and Japan 0.8.',
+        zh: '每十萬人有幾家冰淇淋店。冰島 11.2、斯洛伐克 11.1、義大利 10.4（gelato）、克羅埃西亞 9.2、阿魯巴 9.2、丹麥 8.7 最多；美國 3.6、台灣 2.0、南韓 1.2、日本 0.8。',
+        en: 'Ice-cream shops per 100,000 people. Iceland 11.2, Slovakia 11.1, Italy 10.4 (gelato), Croatia 9.2, Aruba 9.2 and Denmark 8.7 lead; the US 3.6, Taiwan 2.0, South Korea 1.2 and Japan 0.8.',
       },
       [0.5, 1, 2, 4, 8],
     ),
@@ -209,8 +210,8 @@ export const dining: TopicDefinition = {
       'karaoke-per',
       { zh: '卡拉OK包廂', en: 'Karaoke boxes' },
       {
-        zh: '每百萬人有幾家包廂式卡拉OK（OpenStreetMap 的 amenity=karaoke_box），點是每一家。全球 2,886 處、64 國：日本 1,494、南韓 320、中國 245、印尼 130、美國 98、台灣 89、越南 88 最多。每百萬人日本 12.1、南韓 6.2、不丹 5.1、台灣 3.8、蒙古 2.6；法國 0.5、美國 0.3、英國 0.1。幾乎只有東亞與東南亞上色。歐美的卡拉OK酒吧多半標成酒吧加 karaoke=yes、台灣很多 KTV 標成夜店，都不在這裡，所以歐美與台灣都低估。',
-        en: 'Box-style karaoke venues per million people (OpenStreetMap’s amenity=karaoke_box); dots show each one. There are 2,886 in 64 countries, led by Japan (1,494), South Korea (320), China (245), Indonesia (130), the US (98), Taiwan (89) and Vietnam (88). Per million people: Japan 12.1, South Korea 6.2, Bhutan 5.1, Taiwan 3.8 and Mongolia 2.6; France 0.5, the US 0.3 and the UK 0.1. Almost only East and Southeast Asia is shaded. Karaoke bars in Europe and America are usually tagged as bars with karaoke=yes, and many KTVs in Taiwan as nightclubs, so neither is counted here and both are undercounted.',
+        zh: '每百萬人有幾家包廂式卡拉OK（OpenStreetMap 的 amenity=karaoke_box），點是每一家。全球 2,886 處、65 個國家或地區：日本 1,494、南韓 320、中國 243、印尼 130、美國 98、台灣 89、越南 88 最多。每百萬人日本 12.1、南韓 6.2、不丹 5.1、台灣 3.8、蒙古 2.6；法國 0.5、美國 0.3、英國 0.1。幾乎只有東亞與東南亞上色。歐美的卡拉OK酒吧多半標成酒吧加 karaoke=yes、台灣很多 KTV 標成夜店，都不在這裡，所以歐美與台灣都低估。',
+        en: 'Box-style karaoke venues per million people (OpenStreetMap’s amenity=karaoke_box); dots show each one. There are 2,886 in 65 countries and territories, led by Japan (1,494), South Korea (320), China (243), Indonesia (130), the US (98), Taiwan (89) and Vietnam (88). Per million people: Japan 12.1, South Korea 6.2, Bhutan 5.1, Taiwan 3.8 and Mongolia 2.6; France 0.5, the US 0.3 and the UK 0.1. Almost only East and Southeast Asia is shaded. Karaoke bars in Europe and America are usually tagged as bars with karaoke=yes, and many KTVs in Taiwan as nightclubs, so neither is counted here and both are undercounted.',
       },
       [0.1, 0.5, 1, 2, 5],
     ),
@@ -218,8 +219,8 @@ export const dining: TopicDefinition = {
       id: 'karaoke',
       label: { zh: '卡拉OK包廂的家數', en: 'Karaoke boxes (count)' },
       description: {
-        zh: 'OpenStreetMap 上包廂式卡拉OK的家數（比例圓，不看 OSM 覆蓋）：日本 1,494、南韓 320、中國 245、印尼 130、美國 98、台灣 89、越南 88、菲律賓 59、馬來西亞 35、法國 34。',
-        en: 'Number of box-style karaoke venues in OpenStreetMap (bubbles, regardless of OSM coverage): Japan 1,494, South Korea 320, China 245, Indonesia 130, the US 98, Taiwan 89, Vietnam 88, the Philippines 59, Malaysia 35 and France 34.',
+        zh: 'OpenStreetMap 上包廂式卡拉OK的家數（比例圓，不看 OSM 覆蓋）：日本 1,494、南韓 320、中國 243、印尼 130、美國 98、台灣 89、越南 88、菲律賓 59、馬來西亞 35、法國 34。',
+        en: 'Number of box-style karaoke venues in OpenStreetMap (bubbles, regardless of OSM coverage): Japan 1,494, South Korea 320, China 243, Indonesia 130, the US 98, Taiwan 89, Vietnam 88, the Philippines 59, Malaysia 35 and France 34.',
       },
       unit: { zh: '家', en: 'venues' },
       file: 'karaoke.json',
@@ -234,8 +235,8 @@ export const dining: TopicDefinition = {
       'bubble-tea',
       { zh: '手搖飲店', en: 'Bubble tea shops' },
       {
-        zh: '每百萬人有幾家手搖飲店（OpenStreetMap 的 cuisine=bubble_tea）。台灣 104.1 家（2,395 家）世界第一，是第二名新加坡 33.5 的三倍，汶萊 31.9、加拿大 19.1、紐西蘭 15.5、澳洲 14.7；美國 7.3、南韓 3.3、日本 0.7。台灣第一同時反映台灣真的多，跟台灣的 OSM 志願者愛標手搖飲。中國實際上有十幾萬家，但 OSM 上標的很少，也不在覆蓋良好的名單裡，沒有上色。有些手搖飲同時標成咖啡館，跟「咖啡館」會重複算。台灣的官方對照：經濟部商業登記的「飲料店業」核准設立 48,779 家（只含獨資、合夥商號、不含公司，所有飲料店都算），OSM 標到的只是一部分，滑過台灣看縣市。',
-        en: 'Bubble tea shops per million people (OpenStreetMap’s cuisine=bubble_tea). Taiwan leads with 104.1 (2,395 shops), three times second-placed Singapore at 33.5, followed by Brunei 31.9, Canada 19.1, New Zealand 15.5 and Australia 14.7; the US 7.3, South Korea 3.3 and Japan 0.7. Taiwan’s lead reflects both how many shops there are and how keen Taiwan’s OSM volunteers are to map them. China has well over a hundred thousand in reality but few are mapped, and it is not among the well-covered countries, so it is not shaded. Some shops are also tagged as cafés and so counted under Cafés as well. For an official comparison, Taiwan’s business registry lists 48,779 beverage shops in operation (sole proprietorships and partnerships only, not companies, and all kinds of beverage shop), so OSM captures only part of them; hover over Taiwan for the largest municipalities.',
+        zh: '每百萬人有幾家手搖飲店（OpenStreetMap 的 cuisine=bubble_tea）。台灣 104.1 家（2,395 家）世界第一，是第二名新加坡 33.5 的三倍，汶萊 31.9、阿魯巴 27.7、加拿大 19.1、紐西蘭 15.5、澳洲 14.7；美國 7.3、南韓 3.3、日本 0.7。台灣第一同時反映台灣真的多，跟台灣的 OSM 志願者愛標手搖飲。中國實際上有十幾萬家，但 OSM 上標的很少，也不在覆蓋良好的名單裡，沒有上色。有些手搖飲同時標成咖啡館，跟「咖啡館」會重複算。台灣的官方對照：經濟部商業登記的「飲料店業」核准設立 48,779 家（只含獨資、合夥商號、不含公司，所有飲料店都算），OSM 標到的只是一部分，滑過台灣看縣市。',
+        en: 'Bubble tea shops per million people (OpenStreetMap’s cuisine=bubble_tea). Taiwan leads with 104.1 (2,395 shops), three times second-placed Singapore at 33.5, followed by Brunei 31.9, Aruba 27.7, Canada 19.1, New Zealand 15.5 and Australia 14.7; the US 7.3, South Korea 3.3 and Japan 0.7. Taiwan’s lead reflects both how many shops there are and how keen Taiwan’s OSM volunteers are to map them. China has well over a hundred thousand in reality but few are mapped, and it is not among the well-covered countries, so it is not shaded. Some shops are also tagged as cafés and so counted under Cafés as well. For an official comparison, Taiwan’s business registry lists 48,779 beverage shops in operation (sole proprietorships and partnerships only, not companies, and all kinds of beverage shop), so OSM captures only part of them; hover over Taiwan for the largest municipalities.',
       },
       [1, 2, 5, 10, 20],
     ),
@@ -261,8 +262,8 @@ export const dining: TopicDefinition = {
       'coffee-shops',
       { zh: '咖啡豆與器材行', en: 'Coffee bean shops' },
       {
-        zh: '每百萬人有幾家賣咖啡豆與咖啡器材的店（OpenStreetMap 的 shop=coffee，不是坐下來喝的咖啡館）。阿爾巴尼亞 49.8、希臘 26.4、科威特 25.7、阿曼 21.2、賽普勒斯 21.0、奧地利 19.2 多；台灣 7.9（181 家）、美國 5.2、日本 4.8。',
-        en: 'Shops selling coffee beans and equipment per million people (OpenStreetMap’s shop=coffee, not sit-down cafés). Albania 49.8, Greece 26.4, Kuwait 25.7, Oman 21.2, Cyprus 21.0 and Austria 19.2 are high; Taiwan 7.9 (181 shops), the US 5.2 and Japan 4.8.',
+        zh: '每百萬人有幾家賣咖啡豆與咖啡器材的店（OpenStreetMap 的 shop=coffee，不是坐下來喝的咖啡館）。阿爾巴尼亞 49.8、希臘 26.4、科威特 25.7、阿曼 21.2、賽普勒斯 21.0、奧地利 19.2 多；台灣 7.9（181 家）、美國 5.1、日本 4.8。',
+        en: 'Shops selling coffee beans and equipment per million people (OpenStreetMap’s shop=coffee, not sit-down cafés). Albania 49.8, Greece 26.4, Kuwait 25.7, Oman 21.2, Cyprus 21.0 and Austria 19.2 are high; Taiwan 7.9 (181 shops), the US 5.1 and Japan 4.8.',
       },
       [2, 5, 10, 15, 20],
     ),

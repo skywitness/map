@@ -5,6 +5,7 @@ import { nearText } from '../lib/near';
 import { MAP_TOKENS } from '../theme/tokens';
 import { osmGrid } from './osm-grid';
 import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 城堡與要塞（新主題，2026-11-06，參考 thecastlemap.com，使用者選「城1–城7 都做」；pipeline/topics/castles.py）：
@@ -298,7 +299,7 @@ export const castles: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
   ],
-  note: {
+  note: withTerritories({
     zh:
       '城堡、要塞、宮殿與遺址來自 Castle Map 的資料集（CC0）：它從 Wikidata 挑出有真的照片、精確座標、維基百科條目，而且有夠多語言版維基百科的，所以是挑過的名單，不是全部（法國在 Wikidata 就有兩萬多項城堡、要塞、城館與宮殿，名單收 782 座）；日本的「日本 100 名城」「續日本 100 名城」不看語言版數全部收。' +
       '類型照它的規則：維基百科的首段寫只剩遺跡的是遺址，其次看名稱（「某某要塞」就是要塞），再看 Wikidata 的類別與英文說明；有人住又可以防守的是城堡，駐軍用的是要塞（含砲台），不是為了防守的大宅是宮殿。知名度依維基百科的語言版數與近 60 天的瀏覽量排名。' +
@@ -309,7 +310,7 @@ export const castles: TopicDefinition = {
       'Types follow its rules: a Wikipedia lead that describes only remains makes a ruin; otherwise an unambiguous word in the name wins (“X Fortress” is a fortress), then the Wikidata class and English description. A fortified residence is a castle, a garrison work (including batteries) is a fortress, and a grand residence not built for defence is a palace. Fame ranks blend the number of Wikipedia language editions with page views over the last 60 days. ' +
       'The time slider shows founding years (some approximate, marked “c.”); 1,629 have no founding year and appear only at 2026. Chinese names come from Wikidata (about a third have one); others show the English name. World Heritage status and yearly visitors follow Wikidata; a missing statement does not mean no. ' +
       'Countries are assigned by location (England, Scotland, Wales and Northern Ireland count as the UK). Countries are not coloured: the list is curated, so counts reflect how much Wikipedia covers a country (Western Europe most); the “Statistics” tab on the left puts each country’s count next to its Wikidata total. Photos load from Wikimedia Commons on hover (they are not stored on this site), with the photographer and licence under each one; click (or long-press) a dot for a link to its Wikipedia article. Taiwan has 20, all fortresses, batteries and ruins.',
-  },
+  }),
   overlays: [CASTLES_OVERLAY, TW_HERITAGE, FORTS_GRID, RUINS_GRID, MONUMENTS_GRID, ARCH_GRID],
   listPanel: [FAMOUS_LIST, NEAR_LIST, TW_HERITAGE_LIST],
   worldPanel: { title: { zh: '統計', en: 'Statistics' }, load: () => import('./panels/CastlesWorld') },
@@ -371,7 +372,7 @@ export const castles: TopicDefinition = {
     {
       id: 'forts-osm-per',
       label: { zh: '每萬平方公里有幾座城堡、莊園與要塞（OSM）', en: 'Castles, manors and forts per 10,000 km² (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成城堡（historic=castle）、莊園（manor）與要塞（fort）的處數合計 ÷ 陸地面積（FAOSTAT），只替 OSM 覆蓋良好、陸地 1,000 平方公里以上的 87 國上色。比利時每萬平方公里 778 處最多，盧森堡 388、法國 369、荷蘭 265、義大利 253、瑞士 248；德國 209、西班牙 126、英國 113、日本 33、南韓 26、台灣 20、美國 2.9。OSM 的城堡含遺跡、水城與城跡，地圖上約 10 公里的網格是全部；第一個指標的 9,040 座是 Castle Map 挑過的有名的，兩者不相加。', en: 'Places tagged as castles (historic=castle), manors (manor) and forts (fort) in OpenStreetMap divided by land area (FAOSTAT), shown only for the 87 countries well covered by OSM with at least 1,000 km² of land. Belgium has the most per 10,000 km² (778), followed by Luxembourg (388), France (369), the Netherlands (265), Italy (253) and Switzerland (248); Germany has 209, Spain 126, the UK 113, Japan 33, South Korea 26, Taiwan 20 and the US 2.9. OSM castles include ruins, moated castles and castle sites, and the grid of about 10 km on the map shows all of them; the 9,040 in the first indicator are Castle Map’s curated notable ones, and the two are not added together.' },
+      description: { zh: 'OpenStreetMap 上標成城堡（historic=castle）、莊園（manor）與要塞（fort）的處數合計 ÷ 陸地面積（FAOSTAT），只替 OSM 覆蓋良好、陸地 1,000 平方公里以上的 88 個國家或地區上色。比利時每萬平方公里 778 處最多，盧森堡 388、法國 369、義大利 253、瑞士 248、荷蘭 235；德國 209、西班牙 126、英國 113、日本 33、南韓 26、台灣 20、美國 2.9。OSM 的城堡含遺跡、水城與城跡，地圖上約 10 公里的網格是全部；第一個指標的 9,040 座是 Castle Map 挑過的有名的，兩者不相加。', en: 'Places tagged as castles (historic=castle), manors (manor) and forts (fort) in OpenStreetMap divided by land area (FAOSTAT), shown only for the 88 countries and territories well covered by OSM with at least 1,000 km² of land. Belgium has the most per 10,000 km² (778), followed by Luxembourg (388), France (369), Italy (253), Switzerland (248) and the Netherlands (235); Germany has 209, Spain 126, the UK 113, Japan 33, South Korea 26, Taiwan 20 and the US 2.9. OSM castles include ruins, moated castles and castle sites, and the grid of about 10 km on the map shows all of them; the 9,040 in the first indicator are Castle Map’s curated notable ones, and the two are not added together.' },
       unit: { zh: '處／萬平方公里', en: 'per 10,000 km²' },
       file: 'forts-osm-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 20, 50, 100, 200, 400] } },
@@ -382,7 +383,7 @@ export const castles: TopicDefinition = {
     {
       id: 'forts-osm',
       label: { zh: '各國有幾座城堡、莊園與要塞（OSM）', en: 'Castles, manors and forts by country (OSM)' },
-      description: { zh: 'OpenStreetMap 上的城堡 54,334 處（177 國）、莊園 20,501 處（130 國）、要塞 9,374 處（157 國），合計 84,209 處、199 國。法國 19,911 處最多（其中城堡 15,896），義大利 7,470、德國 7,318、西班牙 6,318、波蘭 3,999、英國 2,723、美國 2,693（其中要塞 1,836）；台灣 70 處（城堡 32、莊園 13、要塞 25）。', en: 'OpenStreetMap has 54,334 castles (177 countries), 20,501 manors (130) and 9,374 forts (157), 84,209 in all across 199 countries. France has the most (19,911, including 15,896 castles), followed by Italy (7,470), Germany (7,318), Spain (6,318), Poland (3,999), the UK (2,723) and the US (2,693, including 1,836 forts); Taiwan has 70 (32 castles, 13 manors and 25 forts).' },
+      description: { zh: 'OpenStreetMap 上的城堡 54,334 處（185 個國家或地區）、莊園 20,501 處（135 個）、要塞 9,374 處（170 個），合計 84,209 處、214 個國家或地區。法國 19,897 處最多（其中城堡 15,891），義大利 7,470、德國 7,318、西班牙 6,318、波蘭 3,999、英國 2,723、美國 2,658（其中要塞 1,821）；台灣 70 處（城堡 32、莊園 13、要塞 25）。', en: 'OpenStreetMap has 54,334 castles (185 countries and territories), 20,501 manors (135) and 9,374 forts (170), 84,209 in all across 214 countries and territories. France has the most (19,897, including 15,891 castles), followed by Italy (7,470), Germany (7,318), Spain (6,318), Poland (3,999), the UK (2,723) and the US (2,658, including 1,821 forts); Taiwan has 70 (32 castles, 13 manors and 25 forts).' },
       unit: { zh: '處', en: 'sites' },
       file: 'forts-osm.json',
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
@@ -395,7 +396,7 @@ export const castles: TopicDefinition = {
     {
       id: 'ruins-osm-per',
       label: { zh: '每萬平方公里有幾處廢墟（OSM）', en: 'Ruins per 10,000 km² (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成廢墟（historic=ruins）的處數 ÷ 陸地面積，只替 OSM 覆蓋良好的 87 國上色。全世界 186,694 處：英國 26,764 處最多，每萬平方公里 1,106 處；盧森堡 610、瑞士 588、以色列 472、義大利 421；台灣 852 處、每萬平方公里 241，跟法國（243）差不多。歐洲的廢墟含大量農舍與小屋的遺跡；賴索托的 9,877 處是單一專案匯入（賴索托不在上色的國家裡）。地圖上是約 10 公里的網格。', en: 'Places tagged as ruins (historic=ruins) in OpenStreetMap divided by land area, shown only for the 87 countries well covered by OSM. There are 186,694 worldwide: the UK has the most (26,764), or 1,106 per 10,000 km², followed by Luxembourg (610), Switzerland (588), Israel (472) and Italy (421); Taiwan has 852, or 241 per 10,000 km², about the same as France (243). European ruins include many remains of farmhouses and huts, and Lesotho’s 9,877 come from a single import project (Lesotho is not among the coloured countries). The map shows a grid of about 10 km.' },
+      description: { zh: 'OpenStreetMap 上標成廢墟（historic=ruins）的處數 ÷ 陸地面積，只替 OSM 覆蓋良好的 88 個國家或地區上色。全世界 186,694 處：英國 26,764 處最多，每萬平方公里 1,106 處；盧森堡 610、瑞士 588、以色列 472、義大利 421；台灣 852 處、每萬平方公里 241，跟法國（238）差不多。歐洲的廢墟含大量農舍與小屋的遺跡；賴索托的 9,877 處是單一專案匯入（賴索托不在上色的國家裡）。地圖上是約 10 公里的網格。', en: 'Places tagged as ruins (historic=ruins) in OpenStreetMap divided by land area, shown only for the 88 countries and territories well covered by OSM. There are 186,694 worldwide: the UK has the most (26,764), or 1,106 per 10,000 km², followed by Luxembourg (610), Switzerland (588), Israel (472) and Italy (421); Taiwan has 852, or 241 per 10,000 km², about the same as France (238). European ruins include many remains of farmhouses and huts, and Lesotho’s 9,877 come from a single import project (Lesotho is not among the coloured countries). The map shows a grid of about 10 km.' },
       unit: { zh: '處／萬平方公里', en: 'per 10,000 km²' },
       file: 'ruins-osm-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 25, 50, 100, 250, 500] } },
@@ -406,7 +407,7 @@ export const castles: TopicDefinition = {
     {
       id: 'monuments-osm-per',
       label: { zh: '每萬平方公里有幾座紀念碑（OSM）', en: 'Monuments per 10,000 km² (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成紀念碑（historic=monument）的處數 ÷ 陸地面積，只替覆蓋良好的 87 國上色。全世界 71,775 處，美國 8,430 處最多，義大利 6,952、巴西 3,793；每萬平方公里義大利 235 最多，比利時 216、斯洛維尼亞 185、賽普勒斯 166、英國 125，台灣 108（382 處）、南韓 100、日本 52、美國 9.2。多半是戰爭紀念碑與名牌的 historic=memorial（約 52 萬個）照手冊不收。地圖上是約 10 公里的網格。', en: 'Places tagged as monuments (historic=monument) in OpenStreetMap divided by land area, shown only for the 87 well-covered countries. There are 71,775 worldwide; the US has the most (8,430), followed by Italy (6,952) and Brazil (3,793). Per 10,000 km², Italy leads (235), followed by Belgium (216), Slovenia (185), Cyprus (166) and the UK (125); Taiwan has 108 (382 in all), South Korea 100, Japan 52 and the US 9.2. Memorials (historic=memorial, about 520,000, mostly war memorials and plaques) are deliberately left out. The map shows a grid of about 10 km.' },
+      description: { zh: 'OpenStreetMap 上標成紀念碑（historic=monument）的處數 ÷ 陸地面積，只替覆蓋良好的 88 個國家或地區上色。全世界 71,775 處，美國 8,219 處最多，義大利 6,952、巴西 3,793；每萬平方公里義大利 235 最多，波多黎各 217、比利時 216、斯洛維尼亞 185、賽普勒斯 166、英國 125，台灣 108（382 處）、南韓 100、日本 52、美國 9.0。多半是戰爭紀念碑與名牌的 historic=memorial（約 52 萬個）照手冊不收。地圖上是約 10 公里的網格。', en: 'Places tagged as monuments (historic=monument) in OpenStreetMap divided by land area, shown only for the 88 well-covered countries and territories. There are 71,775 worldwide; the US has the most (8,219), followed by Italy (6,952) and Brazil (3,793). Per 10,000 km², Italy leads (235), followed by Puerto Rico (217), Belgium (216), Slovenia (185), Cyprus (166) and the UK (125); Taiwan has 108 (382 in all), South Korea 100, Japan 52 and the US 9.0. Memorials (historic=memorial, about 520,000, mostly war memorials and plaques) are deliberately left out. The map shows a grid of about 10 km.' },
       unit: { zh: '處／萬平方公里', en: 'per 10,000 km²' },
       file: 'monuments-osm-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [5, 10, 25, 50, 100, 200] } },
@@ -417,7 +418,7 @@ export const castles: TopicDefinition = {
     {
       id: 'archaeology-osm',
       label: { zh: 'OSM 的考古遺址', en: 'Archaeological sites in OSM' },
-      description: { zh: 'OpenStreetMap 上標成考古遺址（historic=archaeological_site）的地方：229,563 處、185 國，地圖上是約 10 公里的網格。阿爾及利亞 45,253 處最多，丹麥 26,468、愛爾蘭 25,154、英國 15,655、德國 12,969、西班牙 11,713、法國 9,779；台灣 41 處（文化資產局公告的考古遺址 58 處）。阿爾及利亞與查德（6,284）多是岩畫點的單一專案匯入，丹麥、愛爾蘭是國家遺址資料庫整批匯入，數字反映匯入而不是遺址真的最多，所以國家不上色，滑過國家看處數。', en: 'Places tagged as archaeological sites (historic=archaeological_site) in OpenStreetMap: 229,563 in 185 countries, shown as a grid of about 10 km. Algeria has the most (45,253), followed by Denmark (26,468), Ireland (25,154), the UK (15,655), Germany (12,969), Spain (11,713) and France (9,779); Taiwan has 41 (its Bureau of Cultural Heritage designates 58). Most of Algeria’s and Chad’s (6,284) are rock-art sites from single import projects, and Denmark’s and Ireland’s come from bulk imports of national site registers, so the numbers reflect imports rather than where most sites are; countries are not coloured, so hover over one to see its count.' },
+      description: { zh: 'OpenStreetMap 上標成考古遺址（historic=archaeological_site）的地方：229,563 處、197 個國家或地區，地圖上是約 10 公里的網格。阿爾及利亞 45,253 處最多，丹麥 26,468、愛爾蘭 25,154、英國 15,655、德國 12,969、西班牙 11,713、法國 9,676；台灣 41 處（文化資產局公告的考古遺址 58 處）。阿爾及利亞與查德（6,284）多是岩畫點的單一專案匯入，丹麥、愛爾蘭是國家遺址資料庫整批匯入，數字反映匯入而不是遺址真的最多，所以國家不上色，滑過國家看處數。', en: 'Places tagged as archaeological sites (historic=archaeological_site) in OpenStreetMap: 229,563 in 197 countries and territories, shown as a grid of about 10 km. Algeria has the most (45,253), followed by Denmark (26,468), Ireland (25,154), the UK (15,655), Germany (12,969), Spain (11,713) and France (9,676); Taiwan has 41 (its Bureau of Cultural Heritage designates 58). Most of Algeria’s and Chad’s (6,284) are rock-art sites from single import projects, and Denmark’s and Ireland’s come from bulk imports of national site registers, so the numbers reflect imports rather than where most sites are; countries are not coloured, so hover over one to see its count.' },
       unit: '',
       file: 'archaeology-osm.json',
       layer: { kind: 'none' },

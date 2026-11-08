@@ -45,6 +45,15 @@ def _per_country(rows) -> dict[str, tuple[float, int]]:
     return out
 
 
+def _area(extra: str, name: str) -> dict[str, tuple[float, int]]:
+    """各國機場的面積（平方公里）與個數；子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）"""
+    totals = _per_country(osm_qlever.query(_area_query(extra), name))
+    subs = osm_qlever.sub_objects(f'?x osmkey:aeroway "aerodrome" ; {AREA} ?a . {extra}', name, extra=("a",))
+    a = osm_qlever.split({c: v[0] for c, v in totals.items()}, [{**s, "a": float(s["a"]) / 1e6} for s in subs], "a")
+    n = osm_qlever.split({c: v[1] for c, v in totals.items()}, subs)
+    return {c: (a[c], int(round(n.get(c, 0)))) for c in a}
+
+
 def _eurostat_airports() -> list[dict]:
     path = download(eurostat.URL.format(dataset="avia_if_typ"), "eurostat", "avia_if_typ.tsv.gz")
     data: dict[str, dict[str, dict[int, float]]] = {}
@@ -94,10 +103,9 @@ def build() -> None:
 
     cov, covered = osm_coverage.coverage(), osm_coverage.well_covered()
     gates = osm_qlever.counts("aeroway", "gate")
-    area = _per_country(osm_qlever.query(_area_query(), "aerodrome-area"))
-    military = _per_country(osm_qlever.query(_area_query(
-        '{ ?x osmkey:military "airfield" } UNION { ?x <https://www.openstreetmap.org/wiki/Key:aerodrome:type> "military" }'),
-        "aerodrome-area-military"))
+    area = _area("", "aerodrome-area")
+    military = _area('{ ?x osmkey:military "airfield" } UNION { ?x <https://www.openstreetmap.org/wiki/Key:aerodrome:type> "military" }',
+                     "aerodrome-area-military")
 
     def write(name: str, unit: str, values: dict[str, float], hint, digits: int, restrict: bool = True) -> None:
         v, hints, hints_en, nv, nv_en = {}, {}, {}, {}, {}

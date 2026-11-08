@@ -7,6 +7,7 @@ import { railSafety } from './rail-safety';
 import { railStations } from './rail-stations';
 import { transportExtra } from './rail-extra';
 import type { CategoryDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 const KM = { zh: '公里', en: 'km' };
 const KM_PER_1000 = { zh: '公里/千平方公里', en: 'km per 1,000 km²' };
@@ -69,7 +70,7 @@ export const transport: TopicDefinition = {
     ...railSafety.sources,
     ...railGoods.sources,
   ],
-  note: {
+  note: withTerritories({
     zh:
       '鐵路取自 Natural Earth 1:10m 地圖資料並經簡化，可能缺少支線；北美只收主要幹線，美國、加拿大的鐵路長度明顯偏低。高鐵、地鐵見「高鐵」「地鐵與城市軌道」主題，機場見「機場與旅客」主題，港口與海運見「航運與港口」主題。' +
       '軌距取自 CIA 世界概況的各軌距公里數，資料年份各國不同（2008–2023 年）；2023 年起歐洲各國、俄羅斯、德國、義大利等只列鐵路總長，改用 2022 年 12 月的版本。' +
@@ -78,7 +79,7 @@ export const transport: TopicDefinition = {
       'Railways come from simplified Natural Earth 1:10m map data and may miss branch lines; North America includes main lines only, so rail lengths for the US and Canada are clearly too low. For high-speed lines and metros see the High-speed rail and Metro and urban rail topics; for airports, the Airports and passengers topic; for ports and sea transport, the Shipping and ports topic. ' +
       'Track gauges come from the kilometres of each gauge in the CIA World Factbook, with data years varying by country (2008–2023); from 2023 the Factbook gives only total length for the European countries, Russia, Germany, Italy and others, so the December 2022 edition is used for them. ' +
       'Neither edition covers Armenia or South Sudan, whose gauges come from English Wikipedia, without lengths. A few obvious Factbook typos (the gauges of Switzerland, South Africa and Algeria) have been corrected. ',
-  },
+  }),
   overlays: [
     // 機場的圖層與航空的指標 2026-10-30 搬到航空主題（aviation.ts，第十一批起叫機場與旅客）
     { id: 'railways', file: 'railways.json', indicators: ['network', 'rail-length', 'rail-density', 'gauge', 'standard-share'] },

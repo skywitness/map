@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 唱片公司與錄音室在哪裡（新主題，2026-11-08，製作手冊第二十七批 664，候選 1453、1454；pipeline/topics/record_labels.py）：
@@ -134,10 +135,10 @@ export const recordLabels: TopicDefinition = {
     { name: { zh: 'OpenStreetMap（studio=audio、radio、television、video，經 QLever 查詢）', en: 'OpenStreetMap (studio=audio, radio, television and video, via QLever)' }, url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0' },
     { name: { zh: '聯合國《世界人口展望 2024》（每百萬人的家數）', en: 'UN World Population Prospects 2024 (per million people)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],
-  note: {
+  note: withTerritories({
     zh: '唱片公司是 Wikidata 上類別（含子類別）是唱片公司的項目，國家用 Wikidata 的「國家」，點用公司本身或總部的座標；有解散日期的算已解散，國家的家數不算它們。大集團底下的子廠牌各算一家（還在營運的有 840 家寫了母公司）。Wikidata 的收錄偏歐美與獨立小廠，北歐特別多，亞洲、非洲明顯低估，家數反映的是 Wikidata 寫得多完整，不是唱片業的規模；IFPI 與 CISAC 的市場數字不准轉載，所以沒有營收。錄音室與攝影棚只算 OpenStreetMap 上有 studio=* 子標籤的：很多國家把攝影館、舞蹈教室也標成 amenity=studio，所以沒有子標籤的不算；數量也在量 OSM 畫得多完整。',
     en: 'Record labels are Wikidata items classed (including subclasses) as record labels. Countries are Wikidata’s “country”, and dots use the label’s own or its headquarters’ coordinates; labels with a dissolution date count as defunct and are left out of country counts. Sub-labels of the big groups each count as one (840 active labels have a parent company recorded). Wikidata favours Western and independent labels, with the Nordic countries especially well covered and Asia and Africa clearly undercounted, so counts reflect how complete Wikidata is, not the size of the record industry; IFPI and CISAC market figures may not be reproduced, so there is no revenue. Studios count only places with a studio=* subtag in OpenStreetMap: in many countries photo studios and dance schools are also tagged amenity=studio, so places without a subtag are left out, and counts also reflect how completely OSM is mapped.',
-  },
+  }),
   overlays: [LABELS, STUDIOS],
   listPanel: [LABEL_LIST, STUDIO_LIST],
   indicators: [
@@ -175,8 +176,8 @@ export const recordLabels: TopicDefinition = {
       id: 'studios',
       label: { zh: '錄音室與攝影棚（OSM）', en: 'Studios (OSM)' },
       description: {
-        zh: 'OpenStreetMap 上有種類子標籤的錄音室與攝影棚，子項目切換種類。錄音室（studio=audio）2,014 處、120 國：美國 372、德國 211、英國 145、法國 128、義大利 90、日本 89；台灣 6。廣播電台 5,396 處：美國 863、巴西 434、阿根廷 318、菲律賓 279；台灣 23。電視攝影棚 3,298 處：美國 542、巴西 229、中國 218、日本 182；台灣 20。影片攝影棚 2,340 處：美國 508、英國 231、德國 186；台灣 11。',
-        en: 'Studios with a type subtag in OpenStreetMap; sub-items switch the type. Recording studios (studio=audio): 2,014 in 120 countries, led by the US (372), Germany (211), the UK (145), France (128), Italy (90) and Japan (89); Taiwan has 6. Radio studios: 5,396, led by the US (863), Brazil (434), Argentina (318) and the Philippines (279); Taiwan has 23. Television studios: 3,298, led by the US (542), Brazil (229), China (218) and Japan (182); Taiwan has 20. Video studios: 2,340, led by the US (508), the UK (231) and Germany (186); Taiwan has 11.',
+        zh: 'OpenStreetMap 上有種類子標籤的錄音室與攝影棚，子項目切換種類。錄音室（studio=audio）2,014 處、123 個國家或地區：美國 370、德國 211、英國 145、法國 128、義大利 90、日本 89；台灣 6。廣播電台 5,396 處：美國 844、巴西 434、阿根廷 318、菲律賓 279；台灣 23。電視攝影棚 3,298 處：美國 532、巴西 229、中國 212、日本 182；台灣 20。影片攝影棚 2,340 處：美國 506、英國 231、德國 186；台灣 11。',
+        en: 'Studios with a type subtag in OpenStreetMap; sub-items switch the type. Recording studios (studio=audio): 2,014 in 123 countries and territories, led by the US (370), Germany (211), the UK (145), France (128), Italy (90) and Japan (89); Taiwan has 6. Radio studios: 5,396, led by the US (844), Brazil (434), Argentina (318) and the Philippines (279); Taiwan has 23. Television studios: 3,298, led by the US (532), Brazil (229), China (212) and Japan (182); Taiwan has 20. Video studios: 2,340, led by the US (506), the UK (231) and Germany (186); Taiwan has 11.',
       },
       unit: { zh: '處', en: 'studios' },
       file: 'studios/{item}.json',

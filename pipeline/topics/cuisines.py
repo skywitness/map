@@ -5,7 +5,7 @@
   拆開來比對，一家店寫了兩國菜就兩邊各算一次。
 - 只收有明確單一原產國的菜系（CUISINES：chinese→中國、italian→義大利…）；pizza、sushi、kebab、burger、asian 這類
   不是國名的不算（披薩、壽司走得再遠，標籤上也分不出是不是「義大利菜」「日本菜」）。
-- 台灣、香港、澳門標 chinese 的中式餐廳與北韓的朝鮮菜不算「外國菜」（HOMES），也不算中國菜、韓國菜「流到國外」的店。
+- 台灣、香港、澳門標 chinese 的中式餐廳、北韓的朝鮮菜與法國海外屬地的法國菜不算「外國菜」（HOMES），也不算中國菜、韓國菜、法國菜「流到國外」的店。
 - 原產國本國常常不標（在義大利，義大利菜是預設，沒人標 cuisine=italian），所以本國的數字偏低、「流到國外的比例」
   會偏高，地圖只畫外國的店數與密度，說明寫明。
 - 每百萬人只替 OSM 覆蓋良好的國家上色（sources/osm_coverage.py）；占比（這國有標菜系的店裡某菜系占幾成）只畫
@@ -33,8 +33,10 @@ CUISINES = {
     "taiwanese": "TWN", "malaysian": "MYS", "moroccan": "MAR", "russian": "RUS", "pakistani": "PAK",
     "polish": "POL", "argentinian": "ARG", "syrian": "SYR", "ukrainian": "UKR",
 }
-# 同一個飲食圈、不算「外國菜」的地方：台灣、香港、澳門標 chinese 的中式餐廳，北韓的朝鮮菜
-HOMES = {"chinese": {"CHN", "HKG", "MAC", "TWN"}, "korean": {"KOR", "PRK"}}
+# 同一個飲食圈、不算「外國菜」的地方：台灣、香港、澳門標 chinese 的中式餐廳，北韓的朝鮮菜；
+# 法國的海外屬地（2026-11-08 起從法國分出來算，製作手冊 1-f）標 french 的也不算國外
+HOMES = {"chinese": {"CHN", "HKG", "MAC", "TWN"}, "korean": {"KOR", "PRK"},
+         "french": {"FRA", "NCL", "PYF", "WLF", "MAF", "BLM", "SPM", "ATF"}}
 QUERY = """SELECT ?iso ?c (COUNT(DISTINCT ?x) AS ?n) WHERE {
   %s
   ?x osmkey:cuisine ?c .
@@ -54,6 +56,16 @@ def build() -> None:
         for token in {t.strip().lower() for t in r["c"]["value"].split(";")}:
             if token in CUISINES:
                 n[iso3][token] += k
+    # 子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）
+    for s in osm_qlever.sub_objects("?x osmkey:cuisine ?c .", "cuisine", ("c",)):
+        tokens = {t.strip().lower() for t in s["c"].split(";")} & set(CUISINES)
+        for c, d in ((s["sub"], 1), (s["mother"], -1)):
+            if c:
+                tagged[c] += d
+                for token in tokens:
+                    n[c][token] += d
+    if any(v < 0 for v in tagged.values()) or any(v < 0 for cnt in n.values() for v in cnt.values()):
+        raise RuntimeError("菜系：母國減掉子屬地後變成負的")
 
     pop = {c: s[YEAR] for c, s in wpp.demographic(["TPopulation1July"], last_year=YEAR)["TPopulation1July"].items() if YEAR in s}
     cov, covered = osm_coverage.coverage(), osm_coverage.well_covered()

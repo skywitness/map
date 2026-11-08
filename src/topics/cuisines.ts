@@ -1,6 +1,7 @@
 import { tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { FlowLabels, IndicatorDef, ScaleSpec, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 菜系走到哪裡（新主題，2026-11-07，製作手冊第二十四批 431；pipeline/topics/cuisines.py）：
@@ -146,8 +147,8 @@ const indicators: IndicatorDef[] = [
     id: 'abroad',
     label: { zh: '這國的菜在國外', en: 'Its cuisine abroad' },
     description: {
-      zh: `OpenStreetMap 上標成這國菜系、開在國外的店有幾家（點選國家，畫出它的菜在哪些國家）：義大利菜 64,495 家、中國菜 63,851、墨西哥菜 42,082、印度菜 29,374、日本菜 28,916、泰國菜 17,694、越南菜 12,917、希臘菜 12,360、土耳其菜 9,968、韓國菜 9,692。墨西哥菜有 32,519 家在美國，占全世界標成墨西哥菜的 68%；印度菜在英國 7,539 家最多。台灣菜在國外 732 家：美國 174、日本 124、中國大陸 75、新加坡 52。${CAVEAT.zh}`,
-      en: `Places tagged on OpenStreetMap with a country’s cuisine outside that country (select a country to draw where its cuisine is served): Italian 64,495, Chinese 63,851, Mexican 42,082, Indian 29,374, Japanese 28,916, Thai 17,694, Vietnamese 12,917, Greek 12,360, Turkish 9,968 and Korean 9,692. 32,519 Mexican places are in the US, 68% of all Mexican places worldwide; Indian is most common in the UK, with 7,539. Taiwanese cuisine has 732 places abroad: the US 174, Japan 124, mainland China 75 and Singapore 52. ${CAVEAT.en}`,
+      zh: `OpenStreetMap 上標成這國菜系、開在國外的店有幾家（點選國家，畫出它的菜在哪些國家）：義大利菜 64,495 家、中國菜 63,851、墨西哥菜 42,082、印度菜 29,374、日本菜 28,916、泰國菜 17,694、越南菜 12,917、希臘菜 12,360、土耳其菜 9,968、韓國菜 9,692。墨西哥菜有 32,369 家在美國，占全世界標成墨西哥菜的 68%；印度菜在英國 7,539 家最多。台灣菜在國外 732 家：美國 174、日本 124、新加坡 52、香港 41、中國大陸 30。${CAVEAT.zh}`,
+      en: `Places tagged on OpenStreetMap with a country’s cuisine outside that country (select a country to draw where its cuisine is served): Italian 64,495, Chinese 63,851, Mexican 42,082, Indian 29,374, Japanese 28,916, Thai 17,694, Vietnamese 12,917, Greek 12,360, Turkish 9,968 and Korean 9,692. 32,369 Mexican places are in the US, 68% of all Mexican places worldwide; Indian is most common in the UK, with 7,539. Taiwanese cuisine has 732 places abroad: the US 174, Japan 124, Singapore 52, Hong Kong 41 and mainland China 30. ${CAVEAT.en}`,
     },
     unit: PLACES,
     file: 'abroad.json',
@@ -161,8 +162,8 @@ const indicators: IndicatorDef[] = [
     id: 'foreign',
     label: { zh: '外國菜的比例', en: 'Share of foreign cuisines' },
     description: {
-      zh: `OpenStreetMap 上有標菜系的店裡，外國菜（32 個有原產國的菜系，不含本國）占幾成；點選國家，畫出它的外國菜從哪些國家來。只畫有標菜系的店至少 200 家的國家。盧森堡 59.9% 最高，汶萊 46.8%、新加坡 46.0%、紐西蘭 41.7%；英國 34.7%、德國 33.3%、美國 24.3%、法國 20.9%、日本 17.9%、南韓 12.7%、台灣 11.6%（標中式的不算外國菜）；義大利 7.4%、中國 5.9%、土耳其 4.6% 最低。分母含披薩、漢堡、咖啡這類不分國家的標籤。`,
-      en: `Of the places with a cuisine tag on OpenStreetMap, the share serving a foreign national cuisine (among the 32 covered, excluding the country’s own); select a country to draw where its foreign cuisines come from. Only countries with at least 200 tagged places are shaded. Luxembourg is highest at 59.9%, then Brunei 46.8%, Singapore 46.0% and New Zealand 41.7%; the UK 34.7%, Germany 33.3%, the US 24.3%, France 20.9%, Japan 17.9%, South Korea 12.7% and Taiwan 11.6% (places tagged Chinese are not counted as foreign); Italy 7.4%, China 5.9% and Türkiye 4.6% are lowest. The denominator includes tags without a country, such as pizza, burger or coffee shop.`,
+      zh: `OpenStreetMap 上有標菜系的店裡，外國菜（32 個有原產國的菜系，不含本國）占幾成；點選國家，畫出它的外國菜從哪些國家來。只畫有標菜系的店至少 200 家的國家。盧森堡 59.9% 最高，汶萊 46.8%、新加坡 46.0%、紐西蘭 41.7%；英國 34.7%、德國 33.3%、美國 24.3%、法國 21.0%、日本 17.9%、南韓 12.7%、台灣 11.6%（標中式的不算外國菜）；義大利 7.4%、土耳其 4.6%、中國 4.2% 最低。分母含披薩、漢堡、咖啡這類不分國家的標籤。`,
+      en: `Of the places with a cuisine tag on OpenStreetMap, the share serving a foreign national cuisine (among the 32 covered, excluding the country’s own); select a country to draw where its foreign cuisines come from. Only countries with at least 200 tagged places are shaded. Luxembourg is highest at 59.9%, then Brunei 46.8%, Singapore 46.0% and New Zealand 41.7%; the UK 34.7%, Germany 33.3%, the US 24.3%, France 21.0%, Japan 17.9%, South Korea 12.7% and Taiwan 11.6% (places tagged Chinese are not counted as foreign); Italy 7.4%, Türkiye 4.6% and China 4.2% are lowest. The denominator includes tags without a country, such as pizza, burger or coffee shop.`,
     },
     unit: '%',
     file: 'foreign.json',
@@ -190,8 +191,8 @@ const indicators: IndicatorDef[] = [
     id: 'cuisine-share',
     label: { zh: '占有標菜系的店幾成', en: 'Share of tagged places' },
     description: {
-      zh: '選一個菜系，看它占各國有標菜系的店幾成（只畫有標菜系的店至少 200 家的國家）。比每百萬人少受 OSM 畫得完不完整的影響，但一樣受「本國不標」的影響。例如中國菜在中國 27.4%、千里達 20.7%、馬來西亞 19.0%，台灣 10.8%；日本菜在日本 21.2%、新加坡 8.3%、台灣 5.3%；墨西哥菜在墨西哥 28.8%、美國 8.8%。',
-      en: 'Pick a cuisine to see its share of places with a cuisine tag (countries with at least 200 tagged places). This is less sensitive to how completely OSM is mapped than the per-million rate, but still affected by home countries not tagging. Chinese: China 27.4%, Trinidad and Tobago 20.7%, Malaysia 19.0% and Taiwan 10.8%; Japanese: Japan 21.2%, Singapore 8.3% and Taiwan 5.3%; Mexican: Mexico 28.8% and the US 8.8%.',
+      zh: '選一個菜系，看它占各國有標菜系的店幾成（只畫有標菜系的店至少 200 家的國家）。比每百萬人少受 OSM 畫得完不完整的影響，但一樣受「本國不標」的影響。例如中國菜在中國 28.4%、千里達 20.7%、馬來西亞 19.0%，台灣 10.8%；日本菜在日本 21.2%、新加坡 8.3%、香港 7.9%、台灣 5.3%；墨西哥菜在墨西哥 28.8%、美國 8.8%。',
+      en: 'Pick a cuisine to see its share of places with a cuisine tag (countries with at least 200 tagged places). This is less sensitive to how completely OSM is mapped than the per-million rate, but still affected by home countries not tagging. Chinese: China 28.4%, Trinidad and Tobago 20.7%, Malaysia 19.0% and Taiwan 10.8%; Japanese: Japan 21.2%, Singapore 8.3%, Hong Kong 7.9% and Taiwan 5.3%; Mexican: Mexico 28.8% and the US 8.8%.',
     },
     unit: '%',
     file: 'share/{item}.json',
@@ -217,13 +218,13 @@ export const cuisines: TopicDefinition = {
       license: { zh: 'ODbL 1.0，© OpenStreetMap 貢獻者', en: 'ODbL 1.0, © OpenStreetMap contributors' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '資料是 OpenStreetMap 上餐廳、小吃店等標的 cuisine（菜系），2026 年 11 月的快照（© OpenStreetMap contributors），只收 32 個有明確原產國的菜系；披薩、壽司、烤肉串、漢堡、「亞洲菜」這類標籤分不出國家，不算。一家店標了好幾個菜系（「italian;pizza」）就每個各算一次。台灣、香港、澳門標中式的與北韓的朝鮮菜算同一個飲食圈，不算外國菜，也不算中國菜、韓國菜流到國外。' +
       CAVEAT.zh +
       '美國的墨西哥菜裡有很多是德州墨西哥菜與連鎖店，在美國的「墨西哥菜」跟在墨西哥的意思不一樣。這是標籤的計數，不是正式的餐廳普查。',
     en: 'The data are the cuisine tags on restaurants, eateries and similar places on OpenStreetMap, a November 2026 snapshot (© OpenStreetMap contributors), limited to 32 cuisines with a clear country of origin; tags such as pizza, sushi, kebab, burger or “Asian” cannot be assigned to a country and are left out. A place with several cuisines (“italian;pizza”) counts once for each. Places tagged Chinese in Taiwan, Hong Kong and Macao and Korean places in North Korea count as the same food culture, not as foreign cuisines and not as Chinese or Korean cuisine abroad. ' +
       CAVEAT.en +
       ' Many Mexican places in the US are Tex-Mex or chains, so “Mexican” means something different there. These are tag counts, not an official restaurant census.',
-  },
+  }),
   indicators,
 };

@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick, formatSignedPercent } from '
 import { MAP_TOKENS } from '../theme/tokens';
 import type { DimensionDef, PointsOverlayDef, TopicDefinition } from './types';
 import { topicPart } from './merge';
+import { withTerritories } from './osm-territories';
 
 const percent = (v: number) => `${fixed(v, 1)}%`;
 const percentTick = (v: number) => `${v}%`;
@@ -128,7 +129,7 @@ const waterForestOwn: TopicDefinition = {
       license: 'CC BY 4.0',
     },
   ],
-  note: {
+  note: withTerritories({
     zh:
       '人均水資源是 FAO AQUASTAT 的總可再生水資源（長期平均）除以聯合國的年中人口；水資源壓力用世界銀行轉載的 AQUASTAT（到 2022 年），' +
       '取用量很多國家隔幾年才更新，中間的年份是 FAO 的推估，明顯的錯值已經排除（見各國附註）。' +
@@ -147,7 +148,7 @@ const waterForestOwn: TopicDefinition = {
       'computes withdrawals as a share of available water per river basin, weighted by each country’s water use into a 0–5 ' +
       'score, for the 1979–2019 baseline and 2030, 2050 and 2080 under three CMIP6 scenarios. It is defined differently from ' +
       'SDG 6.4.2, so the numbers will not match, and Taiwan is not in its rankings.',
-  },
+  }),
   overlays: [WASTEWATER_PLANTS],
   indicators: [
     {

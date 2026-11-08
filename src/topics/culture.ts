@@ -5,6 +5,7 @@ import type { CategoryDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef,
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { boxOfficeTw } from './box-office-tw';
+import { withTerritories } from './osm-territories';
 
 /**
  * 文化：電影院、出版、文化工作者、遺產保存的公共支出（2026-11-04，製作手冊第二十一批 371、372、374、375；pipeline/topics/culture.py）：
@@ -171,18 +172,18 @@ const cultureOwn: TopicDefinition = {
     },
     { name: { zh: 'UN World Population Prospects 2024（人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],
-  note: {
+  note: withTerritories({
     zh: '都是 UNESCO 統計研究所的資料（CC BY-SA 4.0，資料檔同樣授權），各國回報的年份差很多：電影院到 2017 年（之後 UIS 沒有再收；台灣用文化部的統計，到 2025 年），文化工作者 2010–2016 年，遺產保存支出 2017–2024 年；某一年沒有資料時用前幾年最近的值（滑過國家看年份）。出版是世界智慧財產權組織（WIPO）出版業報告裡各國國家圖書館（法定送存機構）2022 年收到的書（CC BY 4.0），有沒有強制送存電子書差很多，只能看大概；中國、義大利不在表裡；這是改作過的內容，WIPO 秘書處不對改作或翻譯負任何責任。台灣用國家圖書館 ISBN 中心一年登記的新書 ISBN 數（2024、2025 年），不是送存件數。電影院是「室內電影院」的家數，一家影城算一家、不是銀幕數。文化工作者是文化職業（藝術家、設計師、圖書館員、手工藝師等）占全部就業的比例，各國的職業分類細度不同、低所得國家的數字可能偏高。遺產保存支出是政府花在文化與自然遺產（博物館、古蹟、自然保護區等）的錢，每人、購買力平價美元。台灣不在 UNESCO 的資料裡。',
     en: 'All from the UNESCO Institute for Statistics (CC BY-SA 4.0; data files are shared under the same licence). Reporting years vary a lot: cinemas up to 2017 (UIS stopped collecting them; Taiwan uses Ministry of Culture figures to 2025), cultural employment 2010–2016 and heritage spending 2017–2024; where a year is missing, the most recent earlier value is used (hover for the year). Books are those received in 2022 by national libraries (legal deposit repositories), from the World Intellectual Property Organization’s publishing report (CC BY 4.0); whether e-books must be deposited varies a lot, so treat comparisons as approximate; China and Italy are not in the table. This is an adaptation: the Secretariat of WIPO assumes no liability or responsibility with regard to the transformation or translation of the original content. Taiwan’s figure is new-book ISBNs registered with the National Central Library in 2024 and 2025, not deposits. Cinemas are indoor cinema venues, each multiplex counting once, not screens. Cultural employment is the share of jobs in cultural occupations (artists, designers, librarians, craftspeople and so on); occupational detail differs by country, and figures for low-income countries may be high. Heritage spending is government spending on cultural and natural heritage (museums, monuments, nature reserves and so on), per person in PPP dollars. Taiwan is not in the UNESCO data.',
-  },
+  }),
   indicators: [
     // 2026-11-08（製作手冊第二十七批 661，候選 1447）電影院（OSM 現況；UNESCO 的電影院數只到 2017 年）
     {
       id: 'cinemas-osm-per',
       label: { zh: '每十萬人有幾家電影院（OSM）', en: 'Cinemas per 100,000 people (OSM)' },
       description: {
-        zh: 'OpenStreetMap 上標成電影院（amenity=cinema）的地方 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。冰島每十萬人 4.58 家最多，捷克 3.83、法國 3.22、瑞士 3.04、希臘 2.96、挪威 2.85；義大利 2.46、德國 1.72、美國 1.59、英國 1.20、南韓 1.09、台灣 0.56、日本 0.42。一家影城算一家、不管有幾廳，所以多廳影城多的國家（日本、南韓、台灣）會偏低；密度也在量 OSM 畫得多完整。點圖層的台灣換成文化部 2025 年的 107 家電影院（932 廳）。',
-        en: 'Places tagged as cinemas (amenity=cinema) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Iceland has the most per 100,000 people (4.58), followed by Czechia (3.83), France (3.22), Switzerland (3.04), Greece (2.96) and Norway (2.85); Italy has 2.46, Germany 1.72, the US 1.59, the UK 1.20, South Korea 1.09, Taiwan 0.56 and Japan 0.42. Each multiplex counts once however many screens it has, so countries with many multiplexes (Japan, South Korea, Taiwan) come out low, and densities also reflect how completely OSM is mapped. On the point layer, Taiwan uses the Ministry of Culture’s 2025 list of 107 cinemas (932 screens).',
+        zh: 'OpenStreetMap 上標成電影院（amenity=cinema）的地方 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。阿魯巴每十萬人 5.55 家最多，冰島 4.58、捷克 3.83、法國 3.20、瑞士 3.04、希臘 2.96、挪威 2.85；義大利 2.46、德國 1.72、美國 1.57、英國 1.20、南韓 1.09、台灣 0.56、日本 0.42。一家影城算一家、不管有幾廳，所以多廳影城多的國家（日本、南韓、台灣）會偏低；密度也在量 OSM 畫得多完整。點圖層的台灣換成文化部 2025 年的 107 家電影院（932 廳）。',
+        en: 'Places tagged as cinemas (amenity=cinema) in OpenStreetMap divided by 2024 population, shown only for the 96 countries and territories well covered by OSM. Aruba has the most per 100,000 people (5.55), followed by Iceland (4.58), Czechia (3.83), France (3.20), Switzerland (3.04), Greece (2.96) and Norway (2.85); Italy has 2.46, Germany 1.72, the US 1.57, the UK 1.20, South Korea 1.09, Taiwan 0.56 and Japan 0.42. Each multiplex counts once however many screens it has, so countries with many multiplexes (Japan, South Korea, Taiwan) come out low, and densities also reflect how completely OSM is mapped. On the point layer, Taiwan uses the Ministry of Culture’s 2025 list of 107 cinemas (932 screens).',
       },
       unit: { zh: '家／十萬人', en: 'per 100,000' },
       file: 'cinemas-osm-per.json',
@@ -195,8 +196,8 @@ const cultureOwn: TopicDefinition = {
       id: 'cinemas-osm',
       label: { zh: '電影院家數（OSM）', en: 'Cinemas (OSM)' },
       description: {
-        zh: 'OpenStreetMap 上標成電影院的地方：31,657 處、197 國。美國 5,489 處最多，印度 2,209、法國 2,144、俄羅斯 1,965、義大利 1,459、德國 1,458、中國 1,378、英國 832；台灣 131 處（文化部 2025 年的名單是 107 家、932 廳）。印度多半是單廳戲院，跟美國的多廳影城不能直接比；OSM 標了廳數（screen）的只有兩成多。',
-        en: 'Places tagged as cinemas in OpenStreetMap: 31,657 in 197 countries. The US has the most (5,489), followed by India (2,209), France (2,144), Russia (1,965), Italy (1,459), Germany (1,458), China (1,378) and the UK (832); Taiwan has 131 (the Ministry of Culture’s 2025 list has 107 cinemas with 932 screens). India’s are mostly single-screen cinemas, not comparable with US multiplexes; only about a fifth of OSM cinemas are tagged with a screen count.',
+        zh: 'OpenStreetMap 上標成電影院的地方：31,657 處、214 個國家或地區。美國 5,433 處最多，印度 2,209、法國 2,129、俄羅斯 1,965、義大利 1,459、德國 1,458、中國 1,314、英國 832；台灣 131 處（文化部 2025 年的名單是 107 家、932 廳）。印度多半是單廳戲院，跟美國的多廳影城不能直接比；OSM 標了廳數（screen）的只有兩成多。',
+        en: 'Places tagged as cinemas in OpenStreetMap: 31,657 in 214 countries and territories. The US has the most (5,433), followed by India (2,209), France (2,129), Russia (1,965), Italy (1,459), Germany (1,458), China (1,314) and the UK (832); Taiwan has 131 (the Ministry of Culture’s 2025 list has 107 cinemas with 932 screens). India’s are mostly single-screen cinemas, not comparable with US multiplexes; only about a fifth of OSM cinemas are tagged with a screen count.',
       },
       unit: { zh: '家', en: 'cinemas' },
       file: 'cinemas-osm.json',
@@ -210,7 +211,7 @@ const cultureOwn: TopicDefinition = {
     {
       id: 'theatres-per',
       label: { zh: '每十萬人有幾家劇院（OSM）', en: 'Theatres per 100,000 people (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成劇院（amenity=theatre）的家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。拉脫維亞每十萬人 8.4 家最多，希臘 7.7、賽普勒斯 7.3、芬蘭 7.3；法國 5.2、德國 3.7、美國 3.2、英國 2.3、南韓 2.0、日本 1.1、台灣 0.7。劇院包括小劇場與社區劇場，密度也在量 OSM 畫得多完整。', en: 'Places tagged as theatres (amenity=theatre) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Latvia has the most per 100,000 people (8.4), followed by Greece (7.7), Cyprus (7.3) and Finland (7.3); France has 5.2, Germany 3.7, the US 3.2, the UK 2.3, South Korea 2.0, Japan 1.1 and Taiwan 0.7. Theatres include small and community stages, and densities also reflect how completely OSM is mapped.' },
+      description: { zh: 'OpenStreetMap 上標成劇院（amenity=theatre）的家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。拉脫維亞每十萬人 8.4 家最多，希臘 7.7、賽普勒斯 7.3、芬蘭 7.3；法國 5.2、德國 3.7、美國 3.1、英國 2.3、南韓 2.0、日本 1.1、台灣 0.7。劇院包括小劇場與社區劇場，密度也在量 OSM 畫得多完整。', en: 'Places tagged as theatres (amenity=theatre) in OpenStreetMap divided by 2024 population, shown only for the 96 countries and territories well covered by OSM. Latvia has the most per 100,000 people (8.4), followed by Greece (7.7), Cyprus (7.3) and Finland (7.3); France has 5.2, Germany 3.7, the US 3.1, the UK 2.3, South Korea 2.0, Japan 1.1 and Taiwan 0.7. Theatres include small and community stages, and densities also reflect how completely OSM is mapped.' },
       unit: { zh: '家／十萬人', en: 'per 100,000' },
       file: 'theatres-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 4, 8, 16] } },
@@ -221,7 +222,7 @@ const cultureOwn: TopicDefinition = {
     {
       id: 'theatres',
       label: { zh: '劇院家數（OSM）', en: 'Theatres (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成劇院的地方：53,349 家、185 國。美國 10,964 家最多，法國 3,451、義大利 3,214、德國 3,114、西班牙 2,188、俄羅斯 1,984；台灣 160 家。', en: 'Places tagged as theatres in OpenStreetMap: 53,349 in 185 countries. The US has the most (10,964), followed by France (3,451), Italy (3,214), Germany (3,114), Spain (2,188) and Russia (1,984); Taiwan has 160.' },
+      description: { zh: 'OpenStreetMap 上標成劇院的地方：53,349 家、198 個國家或地區。美國 10,862 家最多，法國 3,439、義大利 3,214、德國 3,114、西班牙 2,188、俄羅斯 1,984；台灣 160 家。', en: 'Places tagged as theatres in OpenStreetMap: 53,349 in 198 countries and territories. The US has the most (10,862), followed by France (3,439), Italy (3,214), Germany (3,114), Spain (2,188) and Russia (1,984); Taiwan has 160.' },
       unit: { zh: '家', en: 'theatres' },
       file: 'theatres.json',
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
@@ -234,8 +235,8 @@ const cultureOwn: TopicDefinition = {
       id: 'theatre-genre',
       label: { zh: '表演場館最多的類型（OSM）', en: 'Most common venue genre (OSM)' },
       description: {
-        zh: 'OpenStreetMap 上標了表演類型（theatre:genre）的場館 1,469 處、77 國，地圖畫每一國最多的類型，只替至少 10 處的 28 國上色（多重類型各算一次）。古典音樂廳是 16 國最多的類型（波蘭、奧地利、義大利、西班牙、加拿大等）；德國（246 處裡 74 處）、美國、法國、英國是喜劇、綜藝與歌舞秀；俄羅斯是馬戲；捷克、喬治亞是偶戲；瑞典、愛爾蘭是話劇；日本是能、歌舞伎等傳統戲劇（100 處裡 43 處）。台灣只有 5 處標了類型。全部場館裡古典音樂 413 處、喜劇綜藝 343、話劇 156、馬戲 156、音樂劇 137、偶戲 116、歌劇芭蕾 105。標了類型的只占劇院的一小部分，偏德語區、俄羅斯與日本，只能看大概。',
-        en: 'OpenStreetMap has 1,469 venues tagged with a performance genre (theatre:genre) in 77 countries; the map shows each country’s most common genre, shaded only for the 28 countries with at least 10 such venues (venues with several genres count for each). Classical concert halls are the most common type in 16 countries (including Poland, Austria, Italy, Spain and Canada); Germany (74 of 246), the US, France and the UK are led by comedy, variety and cabaret; Russia by circus; Czechia and Georgia by puppetry; Sweden and Ireland by drama; and Japan by noh, kabuki and other traditional theatre (43 of 100). Only 5 venues in Taiwan have a genre. Across all venues: classical music 413, comedy and variety 343, drama 156, circus 156, musicals 137, puppetry 116, and opera and ballet 105. Venues with a genre are only a small share of theatres and are concentrated in German-speaking countries, Russia and Japan, so treat this as approximate.',
+        zh: 'OpenStreetMap 上標了表演類型（theatre:genre）的場館 1,469 處、79 個國家或地區，地圖畫每一國最多的類型，只替至少 10 處的 28 國上色（多重類型各算一次）。古典音樂廳是 16 國最多的類型（波蘭、奧地利、義大利、西班牙、加拿大等）；德國（246 處裡 74 處）、美國、法國、英國是喜劇、綜藝與歌舞秀；俄羅斯是馬戲；捷克、喬治亞是偶戲；瑞典、愛爾蘭是話劇；日本是能、歌舞伎等傳統戲劇（100 處裡 43 處）。台灣只有 5 處標了類型。全部場館裡古典音樂 413 處、喜劇綜藝 343、話劇 156、馬戲 156、音樂劇 137、偶戲 116、歌劇芭蕾 105。標了類型的只占劇院的一小部分，偏德語區、俄羅斯與日本，只能看大概。',
+        en: 'OpenStreetMap has 1,469 venues tagged with a performance genre (theatre:genre) in 79 countries and territories; the map shows each country’s most common genre, shaded only for the 28 countries with at least 10 such venues (venues with several genres count for each). Classical concert halls are the most common type in 16 countries (including Poland, Austria, Italy, Spain and Canada); Germany (74 of 246), the US, France and the UK are led by comedy, variety and cabaret; Russia by circus; Czechia and Georgia by puppetry; Sweden and Ireland by drama; and Japan by noh, kabuki and other traditional theatre (43 of 100). Only 5 venues in Taiwan have a genre. Across all venues: classical music 413, comedy and variety 343, drama 156, circus 156, musicals 137, puppetry 116, and opera and ballet 105. Venues with a genre are only a small share of theatres and are concentrated in German-speaking countries, Russia and Japan, so treat this as approximate.',
       },
       unit: '',
       file: 'theatre-genre.json',
@@ -247,7 +248,7 @@ const cultureOwn: TopicDefinition = {
     {
       id: 'arts-centres-per',
       label: { zh: '每十萬人有幾家藝文中心（OSM）', en: 'Arts centres per 100,000 people (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成藝文中心（amenity=arts_centre）的家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。盧森堡每十萬人 9.1 家最多，法國 4.5、比利時 3.8、奧地利 3.7；德國 2.8、南韓 1.6、英國 1.1、美國 0.9、台灣 0.8、日本 0.2。各國把什麼標成藝文中心不太一樣。', en: 'Places tagged as arts centres (amenity=arts_centre) in OpenStreetMap divided by 2024 population, shown only for the 93 countries well covered by OSM. Luxembourg has the most per 100,000 people (9.1), followed by France (4.5), Belgium (3.8) and Austria (3.7); Germany has 2.8, South Korea 1.6, the UK 1.1, the US 0.9, Taiwan 0.8 and Japan 0.2. What gets tagged as an arts centre varies by country.' },
+      description: { zh: 'OpenStreetMap 上標成藝文中心（amenity=arts_centre）的家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。盧森堡每十萬人 9.1 家最多，法國 4.5、比利時 3.8、奧地利 3.7；德國 2.8、南韓 1.6、英國 1.1、美國 0.9、台灣 0.8、日本 0.2。各國把什麼標成藝文中心不太一樣。', en: 'Places tagged as arts centres (amenity=arts_centre) in OpenStreetMap divided by 2024 population, shown only for the 96 countries and territories well covered by OSM. Luxembourg has the most per 100,000 people (9.1), followed by France (4.5), Belgium (3.8) and Austria (3.7); Germany has 2.8, South Korea 1.6, the UK 1.1, the US 0.9, Taiwan 0.8 and Japan 0.2. What gets tagged as an arts centre varies by country.' },
       unit: { zh: '家／十萬人', en: 'per 100,000' },
       file: 'arts-centres-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 4, 8, 16] } },
@@ -258,7 +259,7 @@ const cultureOwn: TopicDefinition = {
     {
       id: 'arts-centres',
       label: { zh: '藝文中心家數（OSM）', en: 'Arts centres (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成藝文中心的地方：28,528 家、186 國。法國 3,007 家最多，美國 2,966、德國 2,328、俄羅斯 2,312、巴西 1,842、波蘭 1,310；台灣 189 家。', en: 'Places tagged as arts centres in OpenStreetMap: 28,528 in 186 countries. France has the most (3,007), followed by the US (2,966), Germany (2,328), Russia (2,312), Brazil (1,842) and Poland (1,310); Taiwan has 189.' },
+      description: { zh: 'OpenStreetMap 上標成藝文中心的地方：28,528 家、198 個國家或地區。法國 2,975 家最多，美國 2,959、德國 2,328、俄羅斯 2,312、巴西 1,842、波蘭 1,310；台灣 189 家。', en: 'Places tagged as arts centres in OpenStreetMap: 28,528 in 198 countries and territories. France has the most (2,975), followed by the US (2,959), Germany (2,328), Russia (2,312), Brazil (1,842) and Poland (1,310); Taiwan has 189.' },
       unit: { zh: '家', en: 'arts centres' },
       file: 'arts-centres.json',
       layer: { kind: 'bubble', legendValues: [100, 1000, 3000] },

@@ -132,8 +132,8 @@ export const WATER_PARKS_PER_100K: IndicatorDef = {
       id: 'water-parks',
       label: { zh: '水上樂園（OpenStreetMap）', en: 'Water parks (OpenStreetMap)' },
       description: {
-        zh: 'OpenStreetMap 上標成水上樂園的地方，全世界 13,330 處、162 國：德國 3,159 處最多，美國 1,533、奧地利 640、巴西 526、法國 474、墨西哥 431；台灣 22 處。每十萬人奧地利 7.0 處最多，德國 3.8、匈牙利 2.4、捷克 2.0；台灣 0.095。各國把什麼標成水上樂園不太一樣（室內的滑水道泳池、戶外的大型樂園都有），只能看大概；只替 OSM 覆蓋良好的國家上色。',
-        en: 'Places tagged as water parks on OpenStreetMap: 13,330 in 162 countries. Germany has the most at 3,159, followed by the US 1,533, Austria 640, Brazil 526, France 474 and Mexico 431; Taiwan has 22. Per 100,000 people Austria leads with 7.0, then Germany 3.8, Hungary 2.4 and Czechia 2.0; Taiwan 0.095. What gets tagged as a water park varies (from indoor pools with slides to large outdoor parks), so treat comparisons as approximate; only countries where OSM is reasonably complete are shaded.',
+        zh: 'OpenStreetMap 上標成水上樂園的地方，全世界 13,330 處、171 個國家或地區：德國 3,159 處最多，美國 1,511、奧地利 640、巴西 526、法國 470、墨西哥 431；台灣 22 處。每十萬人奧地利 7.0 處最多，阿魯巴 4.6、德國 3.8、匈牙利 2.4、捷克 2.0；台灣 0.095。各國把什麼標成水上樂園不太一樣（室內的滑水道泳池、戶外的大型樂園都有），只能看大概；只替 OSM 覆蓋良好的國家上色。',
+        en: 'Places tagged as water parks on OpenStreetMap: 13,330 in 171 countries and territories. Germany has the most at 3,159, followed by the US 1,511, Austria 640, Brazil 526, France 470 and Mexico 431; Taiwan has 22. Per 100,000 people Austria leads with 7.0, then Aruba 4.6, Germany 3.8, Hungary 2.4 and Czechia 2.0; Taiwan 0.095. What gets tagged as a water park varies (from indoor pools with slides to large outdoor parks), so treat comparisons as approximate; only countries where OSM is reasonably complete are shaded.',
       },
       unit: { zh: '處／十萬人', en: 'per 100,000 people' },
       file: 'water-parks.json',

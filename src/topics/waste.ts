@@ -2,6 +2,7 @@ import { tr } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import type { TopicPart } from './parts';
 import type { IndicatorDef } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 都市垃圾（2026-11-04，主題盤點的擴4；pipeline/topics/waste.py，資料在 public/data/topics/waste/）：
@@ -40,10 +41,10 @@ export const wastePart: TopicPart = {
       license: 'CC BY 4.0',
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '都市垃圾是家戶、商店、機關等產生、由地方政府負責的垃圾（不含工業、營建、農業廢棄物），各國的定義與量法不同，每個國家的資料年份也不同（2003–2025 年，寫在附註）。處理方式是占產生量的比例，只有各國有報的項目：報的項目加起來不到 95%，或「其他」「不明」加起來三成以上的國家不畫；其他國家沒報的項目當成 0，但回收、堆肥一項都沒報的國家（例如中國）回收的比例是沒有資料。只算正式處理的都市垃圾，拾荒、資源回收業收走的不在裡面。台灣是環境部 2023 年的數字。',
     en: 'Municipal solid waste is waste from households, shops, offices and similar sources that local governments are responsible for (not industrial, construction or agricultural waste); definitions and measurement differ between countries, and so do the data years (2003–2025, given in each country’s note). Treatment shares are percentages of waste generated, using only the categories each country reports: countries whose reported categories add up to less than 95%, or whose “other” and “unaccounted” together reach 30%, are not shown; for the rest, unreported categories count as zero, except that countries reporting no recycling or composting at all (China, for example) have no recycling figure. Only formally managed municipal waste is included, not material taken by waste pickers or the recycling trade. Taiwan’s figures are from its Ministry of Environment for 2023.',
-  },
+  }),
   indicators: [
     {
       id: 'msw-per-capita',

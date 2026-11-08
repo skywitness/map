@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 雲霄飛車地圖（新主題，2026-11-08，製作手冊第二十七批 635，候選 1376、1377、1388、1380；pipeline/topics/roller_coasters.py）：
@@ -166,10 +167,10 @@ export const rollerCoasters: TopicDefinition = {
     { name: { zh: 'Wikidata（製造商、紀錄表上樂園的位置）', en: 'Wikidata (manufacturers, locations of parks in the record tables)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
     { name: { zh: '聯合國《世界人口展望 2024》（人口）', en: 'UN World Population Prospects 2024 (population)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],
-  note: {
+  note: withTerritories({
     zh: '各國的雲霄飛車只用 OpenStreetMap：一座雲霄飛車的軌道常畫成好幾段，同一國、同名、相距 3 公里內的併成一座，沒有名稱的各算一座；美國、歐洲畫得特別細，座數也在量 OSM 畫得多完整，每百萬人只替 OSM 覆蓋良好的國家上色。OSM 沒有啟用年份，做不了時間軸。世界紀錄是英文維基的排行榜（底層是 Roller Coaster DataBase，這裡只透過維基引用數字），鋼製與木製分開排，梭子式另列不排名。製造商是 Wikidata 的 P176，只有一部分雲霄飛車有，美國的收錄比別國完整；國家是製造商在 Wikidata 的國家（Intamin 在列支敦斯登註冊、瑞士營運，Wikidata 寫瑞士）。滑水道在 OSM 是一條滑道一條線，一座水上樂園有十幾條，不是設施數。',
     en: 'Country counts use OpenStreetMap only: a coaster’s track is often drawn in several pieces, so pieces with the same name within 3 km in the same country are merged into one, and unnamed ones count individually. The US and Europe are mapped in particular detail, so counts also reflect how completely OSM is mapped; per-million rates are shown only for countries well covered by OSM. OSM has no opening years, so there is no timeline. Records come from the English Wikipedia rankings (based on the Roller Coaster DataBase, cited here only through Wikipedia), with steel and wooden coasters ranked separately and shuttle coasters listed but unranked. Manufacturers are Wikidata’s P176, available for only some coasters and more complete for the US; the country is the manufacturer’s country in Wikidata (Intamin is registered in Liechtenstein and operates from Switzerland; Wikidata gives Switzerland). In OSM each water slide is a separate line, and a water park has a dozen or more, so these are not counts of facilities.',
-  },
+  }),
   overlays: [OSM, RECORDS, MAKER_POINTS],
   listPanel: [RECORD_LIST],
   indicators: [
@@ -177,8 +178,8 @@ export const rollerCoasters: TopicDefinition = {
       id: 'count',
       label: { zh: '各國有幾座雲霄飛車（OSM）', en: 'Roller coasters by country (OSM)' },
       description: {
-        zh: 'OpenStreetMap 上標成雲霄飛車（attraction=roller_coaster）的 2,482 個物件，同一座的幾段軌道併起來是 2,211 座、在 86 國。美國 659 座最多，中國 176、法國 169、德國 167、日本 149、英國 128；台灣 10 座。美國、歐洲畫得特別細，座數也在量 OSM 畫得多完整。',
-        en: '2,482 OpenStreetMap features tagged as roller coasters (attraction=roller_coaster), which merge into 2,211 coasters in 86 countries once the pieces of one track are combined. The US has the most (659), followed by China (176), France (169), Germany (167), Japan (149) and the UK (128); Taiwan has 10. The US and Europe are mapped in particular detail, so counts also reflect how completely OSM is mapped.',
+        zh: 'OpenStreetMap 上標成雲霄飛車（attraction=roller_coaster）的 2,482 個物件，同一座的幾段軌道併起來是 2,211 座、在 87 個國家或地區。美國 659 座最多，法國 169、中國 168、德國 167、日本 149、英國 128；台灣 10 座。美國、歐洲畫得特別細，座數也在量 OSM 畫得多完整。',
+        en: '2,482 OpenStreetMap features tagged as roller coasters (attraction=roller_coaster), which merge into 2,211 coasters in 87 countries and territories once the pieces of one track are combined. The US has the most (659), followed by France (169), China (168), Germany (167), Japan (149) and the UK (128); Taiwan has 10. The US and Europe are mapped in particular detail, so counts also reflect how completely OSM is mapped.',
       },
       unit: { zh: '座', en: 'coasters' },
       file: 'count.json',
@@ -193,8 +194,8 @@ export const rollerCoasters: TopicDefinition = {
       id: 'per-million',
       label: { zh: '每百萬人有幾座雲霄飛車', en: 'Roller coasters per million people' },
       description: {
-        zh: 'OSM 的雲霄飛車座數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。丹麥每百萬人 7.53 座最多，芬蘭 4.27、挪威 3.59、比利時 2.90、荷蘭 2.63、法國 2.54；美國 1.91、日本 1.20、台灣 0.43、南韓 0.17。',
-        en: 'OSM roller coasters divided by 2024 population, shown only for the 93 countries well covered by OSM. Denmark has the most per million people (7.53), followed by Finland (4.27), Norway (3.59), Belgium (2.90), the Netherlands (2.63) and France (2.54); the US has 1.91, Japan 1.20, Taiwan 0.43 and South Korea 0.17.',
+        zh: 'OSM 的雲霄飛車座數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。丹麥每百萬人 7.53 座最多，芬蘭 4.27、挪威 3.59、比利時 2.90、荷蘭 2.63、法國 2.54；美國 1.91、日本 1.20、台灣 0.43、南韓 0.17。',
+        en: 'OSM roller coasters divided by 2024 population, shown only for the 96 countries and territories well covered by OSM. Denmark has the most per million people (7.53), followed by Finland (4.27), Norway (3.59), Belgium (2.90), the Netherlands (2.63) and France (2.54); the US has 1.91, Japan 1.20, Taiwan 0.43 and South Korea 0.17.',
       },
       unit: { zh: '座/百萬人', en: 'per million people' },
       file: 'per-million.json',
@@ -240,8 +241,8 @@ export const rollerCoasters: TopicDefinition = {
       id: 'rides',
       label: { zh: '其他遊樂設施（OSM）', en: 'Other rides (OSM)' },
       description: {
-        zh: 'OpenStreetMap 上各國有幾個摩天輪、旋轉木馬、滑水道與其他遊樂設施（用上面的選單換）。摩天輪 1,287 個：俄羅斯 242、中國 234、美國 120、日本 71，台灣 15；旋轉木馬 3,498 個：美國 514、法國 505、俄羅斯 349，台灣 11；滑水道 27,300 條（一條滑道算一個，不是水上樂園數）：美國 8,183、德國 2,648，台灣 27；其他遊樂設施 8,084 個，台灣 50。',
-        en: 'How many Ferris wheels, carousels, water slides and other rides each country has in OpenStreetMap (switch with the menu above). Ferris wheels: 1,287, with Russia 242, China 234, the US 120, Japan 71 and Taiwan 15. Carousels: 3,498, with the US 514, France 505, Russia 349 and Taiwan 11. Water slides: 27,300 (each slide counts, not each water park), with the US 8,183, Germany 2,648 and Taiwan 27. Other rides: 8,084, with Taiwan 50.',
+        zh: 'OpenStreetMap 上各國有幾個摩天輪、旋轉木馬、滑水道與其他遊樂設施（用上面的選單換）。摩天輪 1,287 個：俄羅斯 242、中國 230、美國 119、日本 71，台灣 15；旋轉木馬 3,498 個：美國 513、法國 504、俄羅斯 349，台灣 11；滑水道 27,300 條（一條滑道算一個，不是水上樂園數）：美國 8,178、德國 2,648，台灣 27；其他遊樂設施 8,084 個，台灣 50。',
+        en: 'How many Ferris wheels, carousels, water slides and other rides each country has in OpenStreetMap (switch with the menu above). Ferris wheels: 1,287, with Russia 242, China 230, the US 119, Japan 71 and Taiwan 15. Carousels: 3,498, with the US 513, France 504, Russia 349 and Taiwan 11. Water slides: 27,300 (each slide counts, not each water park), with the US 8,178, Germany 2,648 and Taiwan 27. Other rides: 8,084, with Taiwan 50.',
       },
       unit: { zh: '個', en: 'features' },
       file: 'rides/{item}.json',

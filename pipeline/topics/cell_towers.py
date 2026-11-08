@@ -36,7 +36,9 @@ def _mobile() -> dict[str, int]:
     for r in rows:
         if (c := from_alpha2(r["iso"]["value"])):
             out[c] += int(r["n"]["value"])
-    return out
+    # 子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）
+    subs = osm_qlever.sub_objects(f'?x {MOBILE} "yes" .', "communication_mobile_phone-yes")
+    return {c: int(round(v)) for c, v in osm_qlever.split(out, subs).items()}
 
 
 def _operators() -> dict[str, list[tuple[str, int]]]:
@@ -48,6 +50,14 @@ def _operators() -> dict[str, list[tuple[str, int]]]:
     for r in rows:
         if (c := from_alpha2(r["iso"]["value"])):
             out[c][r["op"]["value"].strip()] += int(r["n"]["value"])
+    for sub in osm_qlever.sub_objects(f'?x {MOBILE} "yes" ; osmkey:operator ?op .', "operators-communication_mobile_phone-yes", ("op",)):
+        op = sub["op"].strip()
+        out[sub["sub"]][op] += 1
+        if sub["mother"]:
+            out[sub["mother"]][op] -= 1
+            if out[sub["mother"]][op] < 0:
+                raise RuntimeError(f"{sub['mother']} 的 {op} 減掉子屬地後變成負的")
+    out = {c: {op: n for op, n in ops.items() if n > 0} for c, ops in out.items()}
     return {c: sorted(ops.items(), key=lambda x: -x[1])[:TOP_OPERATORS] for c, ops in out.items()}
 
 

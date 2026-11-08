@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef } from './types';
 import type { TopicPart } from './parts';
+import { withTerritories } from './osm-territories';
 
 /**
  * 菸酒的擴充：酒廠與葡萄酒產區（2026-11-07，製作手冊第二十四批 429）。
@@ -192,8 +193,8 @@ const INDICATORS: IndicatorDef[] = [
     id: 'distilleries-per-million',
     label: { zh: '蒸餾廠', en: 'Distilleries' },
     description: {
-      zh: 'OpenStreetMap 上的蒸餾廠，全世界 3,016 處、105 國：美國 634、德國 527、法國 274、英國 273、西班牙 101、加拿大 94、義大利 94；台灣 11 處（金車威士忌酒廠、南投威士忌蒸餾工場、埔里、嘉義、馬祖、東引酒廠等）。國家的顏色是每百萬人幾處，只替 OSM 覆蓋良好的國家上色：斯洛伐克 12.5 最多，奧地利 9.7、盧森堡 8.7、丹麥 7.5、匈牙利 7.1、德國 6.3；愛爾蘭 5.2、法國 4.1、英國 3.9、美國 1.8、日本 0.52、台灣 0.48。大廠、農家的小蒸餾室與酒廠博物館混在一起，墨西哥、中國、印度明顯是沒人畫，只能看大概。台灣另有財政部國庫署的統計：2026 年 9 月有酒類製造執照的業者 316 家，2025 年國產蒸餾酒 28,497 公噸、進口 24,640 公噸。',
-      en: 'Distilleries on OpenStreetMap: 3,016 in 105 countries. The US has 634, Germany 527, France 274, the UK 273, Spain 101, Canada 94 and Italy 94; Taiwan has 11 (including Kavalan’s whisky distillery, Nantou whisky distillery and the Puli, Chiayi, Matsu and Dongyin distilleries). Countries are shaded by distilleries per million people, only where OSM is reasonably complete: Slovakia leads with 12.5, followed by Austria 9.7, Luxembourg 8.7, Denmark 7.5, Hungary 7.1 and Germany 6.3; Ireland 5.2, France 4.1, the UK 3.9, the US 1.8, Japan 0.52 and Taiwan 0.48. Large plants, small farm stills and distillery museums are mixed together, and Mexico, China and India are clearly under-mapped, so treat comparisons as approximate. Taiwan’s National Treasury Administration counts 316 licensed alcohol makers in September 2026; in 2025 Taiwan made 28,497 tonnes of spirits and imported 24,640 tonnes.',
+      zh: 'OpenStreetMap 上的蒸餾廠，全世界 3,016 處、108 個國家或地區：美國 633、德國 527、英國 273、法國 270、西班牙 101、加拿大 94、義大利 94；台灣 11 處（金車威士忌酒廠、南投威士忌蒸餾工場、埔里、嘉義、馬祖、東引酒廠等）。國家的顏色是每百萬人幾處，只替 OSM 覆蓋良好的國家上色：斯洛伐克 12.5 最多，奧地利 9.7、盧森堡 8.7、丹麥 7.5、匈牙利 7.1、德國 6.3；愛爾蘭 5.2、法國 4.0、英國 3.9、美國 1.8、日本 0.52、台灣 0.48。大廠、農家的小蒸餾室與酒廠博物館混在一起，墨西哥、中國、印度明顯是沒人畫，只能看大概。台灣另有財政部國庫署的統計：2026 年 9 月有酒類製造執照的業者 316 家，2025 年國產蒸餾酒 28,497 公噸、進口 24,640 公噸。',
+      en: 'Distilleries on OpenStreetMap: 3,016 in 108 countries and territories. The US has 633, Germany 527, the UK 273, France 270, Spain 101, Canada 94 and Italy 94; Taiwan has 11 (including Kavalan’s whisky distillery, Nantou whisky distillery and the Puli, Chiayi, Matsu and Dongyin distilleries). Countries are shaded by distilleries per million people, only where OSM is reasonably complete: Slovakia leads with 12.5, followed by Austria 9.7, Luxembourg 8.7, Denmark 7.5, Hungary 7.1 and Germany 6.3; Ireland 5.2, France 4.0, the UK 3.9, the US 1.8, Japan 0.52 and Taiwan 0.48. Large plants, small farm stills and distillery museums are mixed together, and Mexico, China and India are clearly under-mapped, so treat comparisons as approximate. Taiwan’s National Treasury Administration counts 316 licensed alcohol makers in September 2026; in 2025 Taiwan made 28,497 tonnes of spirits and imported 24,640 tonnes.',
     },
     unit: { zh: '處／百萬人', en: 'per million' },
     file: 'distilleries-per-million.json',
@@ -207,8 +208,8 @@ const INDICATORS: IndicatorDef[] = [
     id: 'wineries-per-million',
     label: { zh: '酒莊', en: 'Wineries' },
     description: {
-      zh: 'OpenStreetMap 上的酒莊（多半是葡萄酒莊），全世界 17,541 處、114 國：法國 3,162、德國 2,797、美國 2,201、義大利 1,751、西班牙 1,464、奧地利 627、澳洲 611；台灣 9 處。每百萬人奧地利 68.9 最多，匈牙利 51.9、盧森堡 49.5、法國 47.4、克羅埃西亞 37.9、捷克 37.9；義大利 29.7、美國 6.3、日本 0.66、台灣 0.39。只替 OSM 覆蓋良好的國家上色；點跟蒸餾廠畫在一起。',
-      en: 'Wineries on OpenStreetMap (mostly wine estates): 17,541 in 114 countries. France has 3,162, Germany 2,797, the US 2,201, Italy 1,751, Spain 1,464, Austria 627 and Australia 611; Taiwan has 9. Per million people Austria leads with 68.9, followed by Hungary 51.9, Luxembourg 49.5, France 47.4, Croatia 37.9 and Czechia 37.9; Italy 29.7, the US 6.3, Japan 0.66 and Taiwan 0.39. Only countries where OSM is reasonably complete are shaded; the dots are shown with the distilleries.',
+      zh: 'OpenStreetMap 上的酒莊（多半是葡萄酒莊），全世界 17,541 處、119 個國家或地區：法國 3,159、德國 2,797、美國 2,199、義大利 1,751、西班牙 1,464、奧地利 627、澳洲 610；台灣 9 處。每百萬人奧地利 68.9 最多，匈牙利 51.9、盧森堡 49.5、法國 47.3、克羅埃西亞 37.9、捷克 37.9；義大利 29.7、美國 6.3、日本 0.66、台灣 0.39。只替 OSM 覆蓋良好的國家上色；點跟蒸餾廠畫在一起。',
+      en: 'Wineries on OpenStreetMap (mostly wine estates): 17,541 in 119 countries and territories. France has 3,159, Germany 2,797, the US 2,199, Italy 1,751, Spain 1,464, Austria 627 and Australia 610; Taiwan has 9. Per million people Austria leads with 68.9, followed by Hungary 51.9, Luxembourg 49.5, France 47.3, Croatia 37.9 and Czechia 37.9; Italy 29.7, the US 6.3, Japan 0.66 and Taiwan 0.39. Only countries where OSM is reasonably complete are shaded; the dots are shown with the distilleries.',
     },
     unit: { zh: '處／百萬人', en: 'per million' },
     file: 'wineries-per-million.json',
@@ -276,10 +277,10 @@ export const wineMakersPart: TopicPart = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '蒸餾廠與酒莊是 OpenStreetMap 上標成 craft=distillery、craft=winery 的地方（2026 年 11 月的快照，© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），只替 OSM 覆蓋良好的國家上色。威士忌蒸餾廠與清酒酒藏是 Wikidata 收錄、有座標的項目（含子類別），有解散日期的算已關閉；清酒酒藏 Wikidata 只收了一部分，只畫點。葡萄酒法定產區是歐盟的登記制度，範圍用鄉鎮界拼成，有些每公頃最高產量明顯是錯字（6,635 公石）沒有畫。',
     en: 'Distilleries and wineries are places tagged craft=distillery and craft=winery on OpenStreetMap (a November 2026 snapshot, © OpenStreetMap contributors; the data files are shared under ODbL 1.0); only countries where OSM is reasonably complete are shaded. Whisky distilleries and sake breweries are Wikidata items with coordinates (including subclasses); those with a dissolution date count as closed, and Wikidata covers only some sake breweries, so they are shown as dots only. Wine PDOs follow the EU register, with areas built from municipal boundaries; a few maximum yields that are clearly typos (6,635 hl) are not shown.',
-  },
+  }),
   overlays: [MAKER_POINTS, WHISKY_POINTS, PDO_AREAS],
   listPanel: [MAKER_LIST, WHISKY_LIST, PDO_LIST],
   indicators: INDICATORS,

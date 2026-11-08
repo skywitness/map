@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import { museumsOverlay } from './attractions';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 博物館與美術館（新主題，2026-11-08，製作手冊第二十七批 638；使用者 2026-11-07 核准從景點地圖拆出來；
@@ -317,10 +318,10 @@ export const museums: TopicDefinition = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '全世界沒有官方的「各國有幾座博物館」：各國的座數與密度用 OpenStreetMap 標成博物館（tourism=museum）的地方，地圖上的點則是 Wikidata 的博物館（景點地圖的同一份），兩份是各自獨立的來源，數字不能混著比。OSM 也有遊客中心、私人收藏室標成博物館，密度同時在量 OSM 畫得多完整，所以每十萬人只替 OSM 覆蓋良好的國家上色。開館年份、人次、館藏量、國立或地方都是 Wikidata 的欄位：成立時間常是建築落成的年份，不一定是開館；人次的年份各館不同；館藏量各館的算法不同（一片陶片算一件或一箱算一件），都不能直接排名。照片沒有放：照片的攝影者與授權要從 Wikimedia Commons 的程式介面讀，那個路徑在 robots.txt 不准程式抓。',
     en: 'There is no official count of museums by country. Country counts and densities use places tagged as museums (tourism=museum) in OpenStreetMap, while the dots on the map are Wikidata museums (the same data as Attractions); the two sources are independent and their numbers should not be compared. OSM also tags visitor centres and private collections as museums, and densities also reflect how completely OSM is mapped, so rates per 100,000 people are shown only for countries well covered by OSM. Founding years, visitors, collection sizes and the national or local class all come from Wikidata: the founding date is often when the building was completed rather than when the museum opened, visitor figures are for different years, and collection sizes are counted differently by each museum (one potsherd or one box as an item), so none of these can be ranked directly. Photos are not shown: photographers and licences would have to be read from the Wikimedia Commons API, whose path robots.txt does not allow programs to fetch.',
-  },
+  }),
   panelExtra: () => import('./panels/AttractionsPanel'),
   overlays: [museumsOverlay(['count', 'per-100k']), OPENED, VISITORS, COLLECTION, KINDS, LARGEST, CITY_VISITORS, TW_CULTURE],
   listPanel: [VISITOR_LIST, LARGEST_LIST, TW_LIST],
@@ -328,7 +329,7 @@ export const museums: TopicDefinition = {
     {
       id: 'count',
       label: { zh: '各國有幾座博物館（OSM）', en: 'Museums by country (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成博物館的地方：全世界 111,345 座、213 國。美國 14,945 座最多，德國 9,529、日本 6,757、義大利 6,552、俄羅斯 5,921、法國 5,219、中國 5,111；台灣 724 座。點是 Wikidata 的博物館（顏色是類型，縮小時只畫有名的），跟 OSM 的座數是不同來源。', en: 'Places tagged as museums in OpenStreetMap: 111,345 in 213 countries. The US has the most (14,945), followed by Germany (9,529), Japan (6,757), Italy (6,552), Russia (5,921), France (5,219) and China (5,111); Taiwan has 724. The dots are Wikidata museums (coloured by type; only well-known ones when zoomed out), a different source from the OSM counts.' },
+      description: { zh: 'OpenStreetMap 上標成博物館的地方：全世界 111,345 座、232 個國家或地區。美國 14,813 座最多，德國 9,529、日本 6,757、義大利 6,552、俄羅斯 5,921、法國 5,165、中國 4,993；台灣 724 座。點是 Wikidata 的博物館（顏色是類型，縮小時只畫有名的），跟 OSM 的座數是不同來源。', en: 'Places tagged as museums in OpenStreetMap: 111,345 in 232 countries and territories. The US has the most (14,813), followed by Germany (9,529), Japan (6,757), Italy (6,552), Russia (5,921), France (5,165) and China (4,993); Taiwan has 724. The dots are Wikidata museums (coloured by type; only well-known ones when zoomed out), a different source from the OSM counts.' },
       unit: { zh: '座', en: 'museums' },
       file: 'count.json',
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
@@ -341,7 +342,7 @@ export const museums: TopicDefinition = {
     {
       id: 'per-100k',
       label: { zh: '每十萬人有幾座博物館（OSM）', en: 'Museums per 100,000 people (OSM)' },
-      description: { zh: 'OSM 的博物館座數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。冰島每十萬人 43.2 座最多，愛沙尼亞 25.7、挪威 22.3、芬蘭 22.1；德國 11.3、法國 7.8、日本 5.5、英國 4.5、美國 4.3、台灣 3.1、南韓 3.1。', en: 'OSM museums divided by 2024 population, shown only for the 93 countries well covered by OSM. Iceland has the most per 100,000 people (43.2), followed by Estonia (25.7), Norway (22.3) and Finland (22.1); Germany has 11.3, France 7.8, Japan 5.5, the UK 4.5, the US 4.3, Taiwan 3.1 and South Korea 3.1.' },
+      description: { zh: 'OSM 的博物館座數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。冰島每十萬人 43.2 座最多，愛沙尼亞 25.7、挪威 22.3、芬蘭 21.4；德國 11.3、法國 7.8、日本 5.5、英國 4.5、美國 4.3、台灣 3.1、南韓 3.1。', en: 'OSM museums divided by 2024 population, shown only for the 96 countries and territories well covered by OSM. Iceland has the most per 100,000 people (43.2), followed by Estonia (25.7), Norway (22.3) and Finland (21.4); Germany has 11.3, France 7.8, Japan 5.5, the UK 4.5, the US 4.3, Taiwan 3.1 and South Korea 3.1.' },
       unit: { zh: '座/十萬人', en: 'per 100,000 people' },
       file: 'per-100k.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.5, 1, 2, 5, 10, 20] } },
@@ -388,7 +389,7 @@ export const museums: TopicDefinition = {
     {
       id: 'galleries',
       label: { zh: '畫廊（OSM）', en: 'Art galleries (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成畫廊（tourism=gallery）的地方：22,426 家、176 國。美國 4,498 家最多，法國 2,377、德國 2,342、英國 1,270、澳洲 713、加拿大 638、日本 621；台灣 102 家。多半是商業畫廊，跟博物館圖層裡 Wikidata 的美術館不是同一種。', en: 'Places tagged as art galleries (tourism=gallery) in OpenStreetMap: 22,426 in 176 countries. The US has the most (4,498), followed by France (2,377), Germany (2,342), the UK (1,270), Australia (713), Canada (638) and Japan (621); Taiwan has 102. Most are commercial galleries, unlike the Wikidata art museums in the museum layer.' },
+      description: { zh: 'OpenStreetMap 上標成畫廊（tourism=gallery）的地方：22,426 家、185 個國家或地區。美國 4,483 家最多，法國 2,374、德國 2,342、英國 1,270、澳洲 712、加拿大 638、日本 621；台灣 102 家。多半是商業畫廊，跟博物館圖層裡 Wikidata 的美術館不是同一種。', en: 'Places tagged as art galleries (tourism=gallery) in OpenStreetMap: 22,426 in 185 countries and territories. The US has the most (4,483), followed by France (2,374), Germany (2,342), the UK (1,270), Australia (712), Canada (638) and Japan (621); Taiwan has 102. Most are commercial galleries, unlike the Wikidata art museums in the museum layer.' },
       unit: { zh: '家', en: 'galleries' },
       file: 'galleries.json',
       layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
@@ -401,7 +402,7 @@ export const museums: TopicDefinition = {
     {
       id: 'galleries-per-million',
       label: { zh: '每百萬人有幾家畫廊（OSM）', en: 'Art galleries per million people (OSM)' },
-      description: { zh: 'OSM 的畫廊家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。冰島每百萬人 76.3 家最多，挪威 49.0、愛沙尼亞 44.8、丹麥 42.5；法國 35.7、德國 27.7、英國 18.4、美國 13.0、南韓 9.2、日本 5.0、台灣 4.4。', en: 'OSM art galleries divided by 2024 population, shown only for the 93 countries well covered by OSM. Iceland has the most per million people (76.3), followed by Norway (49.0), Estonia (44.8) and Denmark (42.5); France has 35.7, Germany 27.7, the UK 18.4, the US 13.0, South Korea 9.2, Japan 5.0 and Taiwan 4.4.' },
+      description: { zh: 'OSM 的畫廊家數 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。冰島每百萬人 76.3 家最多，挪威 49.0、愛沙尼亞 44.8、庫拉索 43.1、丹麥 42.5；法國 35.7、德國 27.7、英國 18.4、美國 13.0、南韓 9.2、日本 5.0、台灣 4.4。', en: 'OSM art galleries divided by 2024 population, shown only for the 96 countries and territories well covered by OSM. Iceland has the most per million people (76.3), followed by Norway (49.0), Estonia (44.8), Curaçao (43.1) and Denmark (42.5); France has 35.7, Germany 27.7, the UK 18.4, the US 13.0, South Korea 9.2, Japan 5.0 and Taiwan 4.4.' },
       unit: { zh: '家/百萬人', en: 'per million people' },
       file: 'galleries-per-million.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 20, 40, 80] } },

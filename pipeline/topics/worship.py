@@ -40,6 +40,14 @@ def build() -> None:
         iso3 = from_alpha2(r["iso"]["value"])
         if iso3:
             by_rel[iso3][r["rel"]["value"].strip().lower()] += int(r["n"]["value"])
+    # 子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）
+    for s in osm_qlever.sub_objects('?x osmkey:amenity "place_of_worship" ; osmkey:religion ?rel .', "worship-religion", ("rel",)):
+        rel = s["rel"].strip().lower()
+        by_rel[s["sub"]][rel] += 1
+        if s["mother"]:
+            by_rel[s["mother"]][rel] -= 1
+            if by_rel[s["mother"]][rel] < 0:
+                raise RuntimeError(f"{s['mother']} 的 {rel} 減掉子屬地後變成負的")
     pop = {c: s[YEAR] for c, s in wpp.demographic(["TPopulation1July"], last_year=YEAR)["TPopulation1July"].items() if YEAR in s}
     cov, covered = osm_coverage.coverage(), osm_coverage.well_covered()
 

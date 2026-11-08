@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 長途客運站與公車站（新主題，2026-11-07，製作手冊第二十七批 576，候選 1292；pipeline/topics/bus_stations.py）。
@@ -71,7 +72,7 @@ export const busStations: TopicDefinition = {
       license: 'ODbL',
     },
   ],
-  note: OSM_NOTE,
+  note: withTerritories(OSM_NOTE),
   overlays: [STATIONS],
   listPanel: LIST,
   indicators: [
@@ -79,8 +80,8 @@ export const busStations: TopicDefinition = {
       id: 'bus-stations',
       label: { zh: '客運站與公車總站', en: 'Bus stations and terminals' },
       description: {
-        zh: `OpenStreetMap 上標成客運站（amenity=bus_station：長途客運站與公車總站）的地點，圓是各國座數、點是每一個客運站，左邊的清單列出有名稱的。全世界 197 國 67,798 座：中國 7,697、印度 6,243、巴西 4,438、俄羅斯 2,778、美國 2,270、墨西哥 2,192、菲律賓 1,653、印尼 1,427、德國 1,324、日本 1,278；台灣 280、南韓 895、新加坡 73。南蘇丹有 1,060 座，多半是把小站也標成客運站。長途客運是交通主題裡還沒有的運具，這裡看的是「客運站在哪裡」，不是住得離站多近。${tr(OSM_NOTE, 'zh')}`,
-        en: `Places tagged on OpenStreetMap as bus stations (amenity=bus_station: intercity coach stations and bus terminals); circles show each country’s count, points each station, and the list on the left the named ones. Worldwide 67,798 in 197 countries: China 7,697, India 6,243, Brazil 4,438, Russia 2,778, the US 2,270, Mexico 2,192, the Philippines 1,653, Indonesia 1,427, Germany 1,324 and Japan 1,278; Taiwan 280, South Korea 895 and Singapore 73. South Sudan has 1,060, mostly small stops tagged as stations. Intercity coaches are a mode the transport topics did not cover yet; this shows where the stations are, not how close people live to them. ${tr(OSM_NOTE, 'en')}`,
+        zh: `OpenStreetMap 上標成客運站（amenity=bus_station：長途客運站與公車總站）的地點，圓是各國座數、點是每一個客運站，左邊的清單列出有名稱的。全世界 209 個國家或地區 67,798 座：中國 7,228、印度 6,243、巴西 4,438、俄羅斯 2,778、墨西哥 2,192、美國 2,190、菲律賓 1,653、印尼 1,427、德國 1,324、日本 1,278；台灣 280、南韓 895、新加坡 73。南蘇丹有 1,060 座，多半是把小站也標成客運站。長途客運是交通主題裡還沒有的運具，這裡看的是「客運站在哪裡」，不是住得離站多近。${tr(OSM_NOTE, 'zh')}`,
+        en: `Places tagged on OpenStreetMap as bus stations (amenity=bus_station: intercity coach stations and bus terminals); circles show each country’s count, points each station, and the list on the left the named ones. Worldwide 67,798 in 209 countries and territories: China 7,228, India 6,243, Brazil 4,438, Russia 2,778, Mexico 2,192, the US 2,190, the Philippines 1,653, Indonesia 1,427, Germany 1,324 and Japan 1,278; Taiwan 280, South Korea 895 and Singapore 73. South Sudan has 1,060, mostly small stops tagged as stations. Intercity coaches are a mode the transport topics did not cover yet; this shows where the stations are, not how close people live to them. ${tr(OSM_NOTE, 'en')}`,
       },
       unit: { zh: '座', en: 'stations' },
       file: 'stations-count.json',
@@ -93,8 +94,8 @@ export const busStations: TopicDefinition = {
       id: 'bus-stops',
       label: { zh: '公車站牌的密度', en: 'Bus stops per 1,000 people' },
       description: {
-        zh: `每千人有幾個公車站牌（OpenStreetMap 的 highway=bus_stop，人口是 UN WPP 2024），照網站的規則只替 OpenStreetMap 覆蓋良好的國家上色。全世界 203 國 4,182,156 個：德國 411,170、中國 345,380、美國 336,195、英國 286,674、法國 259,553、俄羅斯 201,355、日本 178,674；台灣 49,013。每千人芬蘭 16.79、挪威 15.85、愛沙尼亞 13.08 最多，德國 4.92、瑞士 4.20、英國 4.10、法國 3.89、荷蘭 2.33、台灣 2.13、南韓 2.04、日本 1.46，美國與新加坡 0.96（新加坡 5,651 個明顯偏低，站牌的完整度各國差很多）。`,
-        en: `Bus stops per 1,000 people (OpenStreetMap highway=bus_stop; population from UN WPP 2024), shaded only for countries where OpenStreetMap is well mapped, following the site’s rule. Worldwide 4,182,156 in 203 countries: Germany 411,170, China 345,380, the US 336,195, the UK 286,674, France 259,553, Russia 201,355 and Japan 178,674; Taiwan 49,013. Per 1,000 people Finland (16.79), Norway (15.85) and Estonia (13.08) lead, then Germany 4.92, Switzerland 4.20, the UK 4.10, France 3.89, the Netherlands 2.33, Taiwan 2.13, South Korea 2.04 and Japan 1.46, with the US and Singapore at 0.96 (Singapore’s 5,651 is clearly low; completeness varies widely).`,
+        zh: `每千人有幾個公車站牌（OpenStreetMap 的 highway=bus_stop，人口是 UN WPP 2024），照網站的規則只替 OpenStreetMap 覆蓋良好的國家上色。全世界 219 個國家或地區 4,182,156 個：德國 411,170、美國 334,332、中國 334,081、英國 286,674、法國 258,278、俄羅斯 201,355、日本 178,674；台灣 49,013。每千人芬蘭 16.69、挪威 15.85、愛沙尼亞 13.08 最多，德國 4.92、瑞士 4.20、英國 4.10、法國 3.87、荷蘭 2.26、台灣 2.13、南韓 2.04、日本 1.46，美國與新加坡 0.96（新加坡 5,651 個明顯偏低，站牌的完整度各國差很多）。`,
+        en: `Bus stops per 1,000 people (OpenStreetMap highway=bus_stop; population from UN WPP 2024), shaded only for countries where OpenStreetMap is well mapped, following the site’s rule. Worldwide 4,182,156 in 219 countries and territories: Germany 411,170, the US 334,332, China 334,081, the UK 286,674, France 258,278, Russia 201,355 and Japan 178,674; Taiwan 49,013. Per 1,000 people Finland (16.69), Norway (15.85) and Estonia (13.08) lead, then Germany 4.92, Switzerland 4.20, the UK 4.10, France 3.87, the Netherlands 2.26, Taiwan 2.13, South Korea 2.04 and Japan 1.46, with the US and Singapore at 0.96 (Singapore’s 5,651 is clearly low; completeness varies widely).`,
       },
       unit: { zh: '個／千人', en: 'per 1,000' },
       file: 'bus-stops.json',

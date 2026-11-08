@@ -54,8 +54,10 @@ SELECT ?x ?iso ?name ?namezh ?cent WHERE {{
     seen: set[str] = set()
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
     out = []
+    # 子屬地分開（製作手冊 1-f，sources/osm_qlever.py）
+    where = {s["osm"]: s["sub"] for s in osm_qlever.sub_objects('?x osmkey:attraction "roller_coaster" .', "attraction-roller_coaster")}
     for r in rows:
-        iso3 = from_alpha2(r["iso"]["value"])
+        iso3 = where.get(r["x"]["value"]) or from_alpha2(r["iso"]["value"])
         m = re.match(r"POINT\(([-\d.eE]+) ([-\d.eE]+)\)", r["cent"]["value"], re.I)
         x = r["x"]["value"]
         if not iso3 or not m or x in seen:

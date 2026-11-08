@@ -5,6 +5,7 @@ import type { PointRecord, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly } from './merge';
 import { lawsGamblingPart } from './laws';
+import { withTerritories } from './osm-territories';
 
 /**
  * 博弈：賭場、彩券行與投注站（2026-11-04，製作手冊第二十一批 369；pipeline/topics/gambling.py）：
@@ -37,10 +38,10 @@ const gamblingOwn: TopicDefinition = {
       license: 'ODbL',
     },
   ],
-  note: {
+  note: withTerritories({
     zh: 'OpenStreetMap 上標成賭場（amenity=casino）、彩券行（shop=lottery）、投注站與吃角子老虎店（amenity=gambling）的地方，2026 年 11 月的快照（© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），不是官方名錄，各國的標法也不一樣：德國把吃角子老虎店（Spielhalle）也標成賭場；英國的彩券在便利商店賣、標成商店的附屬服務，所以彩券行很少，不是英國人不買彩券；西班牙、匈牙利、台灣、阿根廷真的有很多專賣彩券的店。賭場依點的位置分國，澳門的賭場算澳門；台灣沒有合法賭場，OSM 上 5 處標成賭場的是電子遊戲場與餐廳，伊拉克的 303 處名稱多是咖啡館、茶館，這兩國都不算。彩券行、投注站的每十萬人只替 OSM 覆蓋良好的國家上色（判準跟「外食與喝一杯」相同）。各國哪些博弈合法，見「法律與制度」主題的「博弈的合法性」。',
     en: 'Places tagged on OpenStreetMap as casinos (amenity=casino), lottery shops (shop=lottery) or betting shops and gaming halls (amenity=gambling), as of November 2026 (© OpenStreetMap contributors; the data files are shared under ODbL 1.0). This is not an official register, and tagging differs by country: Germany also tags slot-machine halls (Spielhallen) as casinos; in the UK lottery tickets are sold in convenience stores and tagged as a shop service, so there are very few lottery shops, which does not mean Britons do not play; Spain, Hungary, Taiwan and Argentina really do have many lottery-only shops. Casinos are assigned to countries by location, so Macau’s count as Macau. Taiwan has no legal casinos, and the 5 places tagged as casinos there are amusement arcades and a restaurant; Iraq’s 303 are mostly cafés and tea houses by name; neither is counted. Lottery and betting shops per 100,000 people are shown only where OSM is reasonably complete (the same test as the Eating out topic). For which kinds of gambling are legal, see “Legality of gambling” in the Laws and institutions topic.',
-  },
+  }),
   overlays: [
     {
       kind: 'points',
@@ -74,8 +75,8 @@ const gamblingOwn: TopicDefinition = {
       id: 'lottery',
       label: { zh: '彩券行', en: 'Lottery shops' },
       description: {
-        zh: 'OpenStreetMap 上的彩券行，每十萬人。馬爾他 7.3、匈牙利 6.6、西班牙 5.2、阿根廷 4.4 最多，台灣 2.8（645 家）排第五；日本 0.5、美國與英國幾乎是 0（彩券在便利商店、加油站賣，不是專門的店）。',
-        en: 'Lottery shops on OpenStreetMap per 100,000 people. Malta 7.3, Hungary 6.6, Spain 5.2 and Argentina 4.4 have the most, with Taiwan fifth at 2.8 (645 shops); Japan 0.5, and the US and the UK almost none (tickets are sold in convenience stores and petrol stations, not dedicated shops).',
+        zh: 'OpenStreetMap 上的彩券行，每十萬人。庫拉索 47.5、阿魯巴 12.9 遠高於其他地方，其次是馬爾他 7.3、匈牙利 6.6、西班牙 5.2、阿根廷 4.4，台灣 2.8（645 家）排第七；日本 0.5、美國與英國幾乎是 0（彩券在便利商店、加油站賣，不是專門的店）。',
+        en: 'Lottery shops on OpenStreetMap per 100,000 people. Curaçao 47.5 and Aruba 12.9 are far ahead, followed by Malta 7.3, Hungary 6.6, Spain 5.2 and Argentina 4.4, with Taiwan seventh at 2.8 (645 shops); Japan 0.5, and the US and the UK almost none (tickets are sold in convenience stores and petrol stations, not dedicated shops).',
       },
       unit: { zh: '家／十萬人', en: 'per 100,000' },
       file: 'lottery.json',

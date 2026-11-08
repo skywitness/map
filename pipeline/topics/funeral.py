@@ -60,6 +60,10 @@ def build() -> None:
         iso3 = from_alpha2(r["iso"]["value"])
         if iso3:
             funeral[iso3] = funeral.get(iso3, 0) + int(r["n"]["value"])
+    # 子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）
+    subs = osm_qlever.sub_objects('{ ?x osmkey:shop "funeral_directors" } UNION { ?x osmkey:office "funeral_directors" }',
+                                  "funeral-directors")
+    funeral = {c: int(round(v)) for c, v in osm_qlever.split(funeral, subs).items()}
 
     # 火葬場的點
     rows, seen = [], set()

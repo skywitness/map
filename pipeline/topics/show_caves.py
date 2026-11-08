@@ -143,9 +143,12 @@ def build() -> None:
     # OSM 標成景點的洞口
     osm_rows = osm_qlever.query(OSM_QUERY, "cave-entrance-attraction")
     osm: dict[str, dict] = {}
+    # 子屬地分開（製作手冊 1-f，sources/osm_qlever.py）
+    where = {s["osm"]: s["sub"] for s in osm_qlever.sub_objects(
+        '?x osmkey:natural "cave_entrance" ; osmkey:tourism "attraction" .', "cave-entrance-attraction")}
     for r in osm_rows:
         pt = _point(r["wkt"]["value"])
-        iso3 = from_alpha2(r["iso"]["value"])
+        iso3 = where.get(r["x"]["value"]) or from_alpha2(r["iso"]["value"])
         if not pt or not iso3:
             continue
         osm.setdefault(r["x"]["value"], {"lon": pt[0], "lat": pt[1], "iso3": iso3,

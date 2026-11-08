@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ColorClasses, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 馬與賽馬場（新主題，2026-11-07，製作手冊第二十四批 427；pipeline/topics/horses.py）。
@@ -99,7 +100,7 @@ export const horses: TopicDefinition = {
       license: { zh: 'ODbL 1.0，© OpenStreetMap 貢獻者', en: 'ODbL 1.0, © OpenStreetMap contributors' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh:
       '馬匹頭數是 FAOSTAT 的在養頭數（農業普查與 FAO 的估計），不分賽馬、騎乘、役用與馬奶馬肉用的馬，所以不能當成馬術運動有多普遍。FAO 標成「外部機構提供」（Flag X）的數字依第三方資料的條款不畫（多半是 1990 年以前的零星年份）；蘇聯、南斯拉夫等已解體的國家不畫。比利時、奧地利、瑞典、西班牙等國 FAOSTAT 的數字只到 2017 年，德國、義大利到 2022–2023 年，最近幾年是灰色（滑過看最後一年）。每千人幾匹馬用人口主題的聯合國人口推估。' +
       '賽馬場是 Wikidata 收錄的 horse racing venue 與它的子類別（含輕駕車賽場與古代的競技場），有座標的畫點、國家依座標；有關閉日期或標成停用、拆除的算已關閉，名稱看得出是古希臘羅馬或拜占庭城市的競技場遺址（君士坦丁堡、奧林匹亞、德爾斐…）也算。各國個數反映 Wikidata 的收錄，不是正式的統計。台灣沒有合法的賽馬，Wikidata 也沒有台灣的賽馬場。' +
@@ -108,7 +109,7 @@ export const horses: TopicDefinition = {
       'Horse numbers are FAOSTAT stocks (agricultural censuses and FAO estimates) and do not distinguish racehorses, riding horses, working animals or horses kept for milk and meat, so the map is not a measure of equestrian sport. Figures FAO flags as from an external organisation (Flag X) are not shown under its third-party data terms (mostly scattered years before 1990), and dissolved states such as the USSR and Yugoslavia are not shown. FAOSTAT figures for Belgium, Austria, Sweden, Spain and others end in 2017, and for Germany and Italy in 2022–2023, so recent years are grey (hover for the last year). Horses per 1,000 people use the UN population estimates from the population topic. ' +
       'Racecourses are Wikidata horse racing venues and subclasses (including harness tracks and ancient hippodromes); those with coordinates are drawn as dots, assigned to countries by location, and those with a closing date or marked disused or demolished count as closed, as do ancient Greek, Roman and Byzantine hippodrome sites identifiable by name (Constantinople, Olympia, Delphi…). Counts reflect Wikidata’s coverage, not an official tally. Horse racing is not legal in Taiwan, and Wikidata lists no racecourse there. ' +
       'Riding centres are places tagged leisure=horse_riding on OpenStreetMap; mapping detail varies widely, so only countries where OSM is reasonably complete are shaded.',
-  },
+  }),
   overlays: [RACECOURSES],
   listPanel: RACECOURSE_LIST,
   indicators: [
@@ -160,8 +161,8 @@ export const horses: TopicDefinition = {
       id: 'riding-centres',
       label: { zh: '騎馬場（OpenStreetMap）', en: 'Riding centres (OpenStreetMap)' },
       description: {
-        zh: 'OpenStreetMap 標成 leisure=horse_riding 的馬術中心與騎馬場：全世界 21,859 處、144 國。德國 5,093 處最多，其次是法國 3,232、英國 2,825、美國 1,665、波蘭 856、義大利 846、奧地利 824；台灣 5 處。各國的差距有一部分是測繪的細緻程度，所以只替 OSM 覆蓋良好的 86 國上色。',
-        en: 'Equestrian and riding centres tagged leisure=horse_riding on OpenStreetMap: 21,859 in 144 countries. Germany leads with 5,093, followed by France 3,232, the UK 2,825, the US 1,665, Poland 856, Italy 846 and Austria 824; Taiwan has 5. Part of the difference between countries is mapping detail, so only the 86 countries where OSM is reasonably complete are shaded.',
+        zh: 'OpenStreetMap 標成 leisure=horse_riding 的馬術中心與騎馬場：全世界 21,859 處、152 個國家或地區。德國 5,093 處最多，其次是法國 3,215、英國 2,825、美國 1,662、波蘭 856、義大利 846、奧地利 824；台灣 5 處。各國的差距有一部分是測繪的細緻程度，所以只替 OSM 覆蓋良好的 88 個國家或地區上色。',
+        en: 'Equestrian and riding centres tagged leisure=horse_riding on OpenStreetMap: 21,859 in 152 countries and territories. Germany leads with 5,093, followed by France 3,215, the UK 2,825, the US 1,662, Poland 856, Italy 846 and Austria 824; Taiwan has 5. Part of the difference between countries is mapping detail, so only the 88 countries and territories where OSM is reasonably complete are shaded.',
       },
       unit: { zh: '處', en: 'centres' },
       file: 'riding-centres.json',

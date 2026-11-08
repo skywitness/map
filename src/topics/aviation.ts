@@ -9,6 +9,7 @@ import { aviationNavaids } from './aviation-navaids';
 import { aviationRunways } from './aviation-runways';
 import { AIRPORTS_ZH } from './longest-flights-names';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 機場與旅客（主題 id 照舊是 aviation）：第七批 117（2026-10-30）把交通的機場、航空旅客指標（連同機場的疊加圖層）、
@@ -142,7 +143,7 @@ export const aviation: TopicDefinition = {
     ...aviationFlights.sources,
     ...airportNames.sources,
   ],
-  note: {
+  note: withTerritories({
     zh:
       '機場只含大型機場與有定期航班的中型機場（OurAirports）。' +
       '航空旅客量是世界銀行（來源 ICAO）各國註冊的航空公司一年載運的旅客（國內線加國際線），算在航空公司的註冊國，不是機場所在的國家或乘客的國籍：' +
@@ -159,7 +160,7 @@ export const aviation: TopicDefinition = {
       'The busiest airports follow English Wikipedia as of 20 October 2026, whose figures are Airports Council International (ACI) preliminary statistics and may differ from the airports’ own; only the top 50 of each year are listed, and years before 2020 are in other articles and not included. The data files are shared under Wikipedia’s CC BY-SA 4.0. ' +
       'Total runway length and runways of 3,000 m or more count only airports with scheduled flights (OurAirports); lengths are as recorded by OurAirports and may be out of date (Taoyuan’s 05R is listed at 3,350 m, against 3,800 m from Taiwan’s Civil Aeronautics Administration), and Taiwan’s side panel shows the official figures. The share of paved airports comes from the December 2022 CIA World Factbook (all airports, mostly 2021), a different basis from the runway figures. ' +
       'For airlines and the longest flights see the Air routes and airlines topic; for railways, the Railways topic.',
-  },
+  }),
   panelExtra: () => import('./panels/AviationPanel'),
   listPanel: [PAX_LIST, CARGO_LIST, aviationRunways.listPanel, airportNames.listPanel],
   overlays: [

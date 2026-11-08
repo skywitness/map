@@ -6,6 +6,7 @@ import { PARK_LIST, PARK_VISITORS } from './attractions-extra';
 import { BRAND_INDICATOR, BRAND_LIST, BRAND_OVERLAYS, BRAND_SOURCES } from './park-brands';
 import { TWIN_INDICATOR, TWIN_LIST } from './park-twin-cities';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 樂園（新主題，2026-11-08，製作手冊第二十七批 630，候選 1371、1387、1383、1381、1382；使用者 2026-11-07 指定從「景點地圖」獨立）：
@@ -197,10 +198,10 @@ export const themeParks: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '樂園的點是 Wikidata 的主題樂園、遊樂園與雲霄飛車（景點地圖的同一份），各國收錄程度差很多，只畫點、不算各國數量。各國的座數改用 OpenStreetMap 的 tourism=theme_park：OSM 標得很寬（伊朗、俄羅斯多半是城市裡的小遊樂場），也在量 OSM 畫得多完整，所以不能當「主題樂園排名」，每百萬人只替 OSM 覆蓋良好的國家上色。開園年份是 Wikidata 的創立時間（P571），只有約三成的樂園有，有時是公司成立年。人次是 TEA／AECOM 的估計（英文維基轉載），台灣是觀光署的數字。台灣的票價是觀光署資料裡的最後一次更新（多半是 2018 年），不是現價。',
     en: 'Park dots are Wikidata theme parks, amusement parks and roller coasters (the same data as Attractions); Wikidata coverage varies widely by country, so parks are drawn but not counted there. Country counts use OpenStreetMap’s tourism=theme_park, which is applied loosely (most in Iran and Russia are small urban fairgrounds) and also measures how completely OSM is mapped, so it is not a ranking of theme parks; parks per million people are shown only for countries well covered by OSM. Opening years are Wikidata inception dates (P571), available for only about 30% of parks and sometimes the company’s founding year. Attendance is TEA/AECOM estimates as reproduced on English Wikipedia, and Tourism Administration figures for Taiwan. Taiwan ticket prices are the last update in the Tourism Administration data (mostly 2018), not current prices.',
-  },
+  }),
   panelExtra: () => import('./panels/ThemeParksPanel'),
   overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY, ...BRAND_OVERLAYS, AREA, DEFUNCT],
   listPanel: [PARK_LIST, BRAND_LIST, AREA_LIST, TWIN_LIST],
@@ -243,8 +244,8 @@ export const themeParks: TopicDefinition = {
       id: 'osm-count',
       label: { zh: 'OpenStreetMap 上的樂園', en: 'Parks on OpenStreetMap' },
       description: {
-        zh: 'OpenStreetMap 標成 tourism=theme_park 的地方有幾處（158 國、11,158 處）：中國 1,609、俄羅斯 1,022、美國 880、伊朗 593、法國 521、德國 500、日本 403、波蘭 386、巴西 310、南韓 302、義大利 298；台灣 95。OSM 的這個標籤用得很寬，伊朗、俄羅斯多半是城市裡的小型遊樂場，不是主題樂園，而且也在量 OSM 畫得多完整，不能當排名。',
-        en: 'Places tagged tourism=theme_park on OpenStreetMap (11,158 in 158 countries): China 1,609, Russia 1,022, the US 880, Iran 593, France 521, Germany 500, Japan 403, Poland 386, Brazil 310, South Korea 302 and Italy 298; Taiwan 95. The tag is used loosely (most in Iran and Russia are small urban fairgrounds, not theme parks) and also reflects how completely OSM is mapped, so this is not a ranking.',
+        zh: 'OpenStreetMap 標成 tourism=theme_park 的地方有幾處（164 個國家或地區、11,158 處）：中國 1,602、俄羅斯 1,022、美國 862、伊朗 593、法國 519、德國 500、日本 403、波蘭 386、巴西 310、南韓 302、義大利 298；台灣 95。OSM 的這個標籤用得很寬，伊朗、俄羅斯多半是城市裡的小型遊樂場，不是主題樂園，而且也在量 OSM 畫得多完整，不能當排名。',
+        en: 'Places tagged tourism=theme_park on OpenStreetMap (11,158 in 164 countries and territories): China 1,602, Russia 1,022, the US 862, Iran 593, France 519, Germany 500, Japan 403, Poland 386, Brazil 310, South Korea 302 and Italy 298; Taiwan 95. The tag is used loosely (most in Iran and Russia are small urban fairgrounds, not theme parks) and also reflects how completely OSM is mapped, so this is not a ranking.',
       },
       unit: { zh: '處', en: 'places' },
       file: 'osm-count.json',
@@ -260,8 +261,8 @@ export const themeParks: TopicDefinition = {
       id: 'osm-per-million',
       label: { zh: '每百萬人有幾處樂園（OSM）', en: 'Parks per million people (OSM)' },
       description: {
-        zh: 'OpenStreetMap 的 tourism=theme_park 每百萬人幾處，只替 OSM 覆蓋良好的 93 國上色（用餐飲店對照住宿餐飲業的就業人數判斷，同其他 OSM 密度圖）。奧地利 11.5、丹麥 10.9、愛沙尼亞 10.3、波蘭 10.0、拉脫維亞 9.6、捷克 9.4、法國 7.8；德國 5.9、南韓 5.8、荷蘭 4.1、台灣 4.1、日本 3.3、英國 2.8、美國 2.6。數字跟各國怎麼標「樂園」有關，只看大概。',
-        en: 'OpenStreetMap tourism=theme_park places per million people, shown only for the 93 countries OSM covers well (judged by food outlets against hospitality employment, as in other OSM density maps). Austria 11.5, Denmark 10.9, Estonia 10.3, Poland 10.0, Latvia 9.6, Czechia 9.4 and France 7.8; Germany 5.9, South Korea 5.8, the Netherlands 4.1, Taiwan 4.1, Japan 3.3, the UK 2.8 and the US 2.6. The figures depend on how each country tags parks, so treat them as rough.',
+        zh: 'OpenStreetMap 的 tourism=theme_park 每百萬人幾處，只替 OSM 覆蓋良好的 96 個國家或地區上色（用餐飲店對照住宿餐飲業的就業人數判斷，同其他 OSM 密度圖）。奧地利 11.5、丹麥 10.9、愛沙尼亞 10.3、波蘭 10.0、拉脫維亞 9.6、捷克 9.4、法國 7.8；德國 5.9、南韓 5.8、荷蘭 4.1、台灣 4.1、日本 3.3、英國 2.8、美國 2.5。數字跟各國怎麼標「樂園」有關，只看大概。',
+        en: 'OpenStreetMap tourism=theme_park places per million people, shown only for the 96 countries and territories OSM covers well (judged by food outlets against hospitality employment, as in other OSM density maps). Austria 11.5, Denmark 10.9, Estonia 10.3, Poland 10.0, Latvia 9.6, Czechia 9.4 and France 7.8; Germany 5.9, South Korea 5.8, the Netherlands 4.1, Taiwan 4.1, Japan 3.3, the UK 2.8 and the US 2.5. The figures depend on how each country tags parks, so treat them as rough.',
       },
       unit: { zh: '處/百萬人', en: 'per million' },
       file: 'osm-per-million.json',
@@ -332,8 +333,8 @@ export const themeParks: TopicDefinition = {
       id: 'park-size',
       label: { zh: '樂園有多大、園內有幾座雲霄飛車', en: 'Park size and roller coasters inside' },
       description: {
-        zh: 'OpenStreetMap 上畫成面的樂園（tourism=theme_park，1 公頃以上，137 國 5,143 座）：點的大小是面積，顏色是園內有名稱的雲霄飛車有幾座（落在樂園的面裡的 attraction=roller_coaster，依名稱算）。有雲霄飛車的 447 座、共 1,445 座；最多的是德國 Europa-Park 27 座、波蘭 Energylandia 22 座、美國 Cedar Point 19 座。台灣：六福村 42.4 公頃 4 座，劍湖山 43.1 公頃、遠雄海洋公園 13.7 公頃、臺北兒童新樂園 3.8 公頃各 1 座。OSM 的邊界畫法不一致（迪士尼世界 7,420 公頃是整個度假區，有的只畫核心區），面積不能拿來排名；同一座雲霄飛車的不同部分取了不同名稱時會多算。左邊的清單列這一國的樂園。',
-        en: 'Parks mapped as areas in OpenStreetMap (tourism=theme_park, 1 hectare or more; 5,143 in 137 countries): dot size shows area and colour the number of named roller coasters inside (attraction=roller_coaster features within the park area, counted by name). 447 parks have roller coasters, 1,445 in all; Europa-Park in Germany has the most (27), followed by Energylandia in Poland (22) and Cedar Point in the US (19). Taiwan: Leofoo Village (42.4 ha) has 4, and Janfusun Fancyworld (43.1 ha), Farglory Ocean Park (13.7 ha) and Taipei Children’s Amusement Park (3.8 ha) 1 each. OSM boundaries are drawn inconsistently (Walt Disney World’s 7,420 ha is the whole resort, while some parks only include the core), so areas cannot be ranked; a coaster whose parts carry different names is counted more than once. The list on the left shows a country’s parks.',
+        zh: 'OpenStreetMap 上畫成面的樂園（tourism=theme_park，1 公頃以上，140 個國家或地區 5,143 座）：點的大小是面積，顏色是園內有名稱的雲霄飛車有幾座（落在樂園的面裡的 attraction=roller_coaster，依名稱算）。有雲霄飛車的 447 座、共 1,445 座；最多的是德國 Europa-Park 27 座、波蘭 Energylandia 22 座、美國 Cedar Point 19 座。台灣：六福村 42.4 公頃 4 座，劍湖山 43.1 公頃、遠雄海洋公園 13.7 公頃、臺北兒童新樂園 3.8 公頃各 1 座。OSM 的邊界畫法不一致（迪士尼世界 7,420 公頃是整個度假區，有的只畫核心區），面積不能拿來排名；同一座雲霄飛車的不同部分取了不同名稱時會多算。左邊的清單列這一國的樂園。',
+        en: 'Parks mapped as areas in OpenStreetMap (tourism=theme_park, 1 hectare or more; 5,143 in 140 countries and territories): dot size shows area and colour the number of named roller coasters inside (attraction=roller_coaster features within the park area, counted by name). 447 parks have roller coasters, 1,445 in all; Europa-Park in Germany has the most (27), followed by Energylandia in Poland (22) and Cedar Point in the US (19). Taiwan: Leofoo Village (42.4 ha) has 4, and Janfusun Fancyworld (43.1 ha), Farglory Ocean Park (13.7 ha) and Taipei Children’s Amusement Park (3.8 ha) 1 each. OSM boundaries are drawn inconsistently (Walt Disney World’s 7,420 ha is the whole resort, while some parks only include the core), so areas cannot be ranked; a coaster whose parts carry different names is counted more than once. The list on the left shows a country’s parks.',
       },
       unit: '',
       file: '../attractions/visitors.json',

@@ -99,6 +99,10 @@ def theatre_genres() -> None:
             c = GENRE_OF.get(g, 9)
             if c not in d["classes"]:
                 d["classes"].append(c)
+    # 子屬地分開（製作手冊 1-f，sources/osm_qlever.py）
+    for sub in osm_qlever.sub_objects("?x <https://www.openstreetmap.org/wiki/Key:theatre:genre> ?g .", "theatre-genre"):
+        if sub["osm"] in venues:
+            venues[sub["osm"]]["iso3"] = sub["sub"]
     by_country: dict[str, Counter] = {}
     points = []
     for d in venues.values():

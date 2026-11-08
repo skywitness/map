@@ -5,6 +5,7 @@ import type { CategoryDef, IndicatorDef, ListPanelDef, ListRow, PointsOverlayDef
 import { withParts } from './parts';
 import { travelFeesPart } from './travel-fees';
 import { travelHealthPart } from './travel-health';
+import { withTerritories } from './osm-territories';
 
 /**
  * 旅行實用（pipeline/topics/travel.py）：跟台灣的時差、行車方向、插頭類型、電壓與頻率，
@@ -494,10 +495,10 @@ const travelOwn: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '時差是標準時間（不含夏令時間）跟台灣（UTC+8）差幾小時，用首都所在的時區；跨好幾個時區、或有夏令時間的國家，側欄與附註會寫出來。插頭與電壓依英文維基百科「Mains electricity by country」的表格（2026 年 10 月 19 日的版本，CC BY-SA 4.0），地圖用表格列出的第一個電壓；這個主題的插頭、電壓資料檔也依 CC BY-SA 4.0 分享。緊急電話依英文維基百科「List of emergency telephone numbers」（2026 年 10 月 16 日的版本，CC BY-SA 4.0），資料檔同樣依 CC BY-SA 4.0 分享。生活格式（一週的第一天、週末、12／24 小時制、日期寫法、小數點、度量衡、紙張、曆法，以及量體重、報身高、路程、氣溫、風速、氣壓、油耗、室內面積用什麼單位）依 Unicode CLDR 49，是軟體顯示日期、數字時用的慣例；日期寫法與小數點依人口比例最高的官方語言，多語國家（瑞士、比利時、加拿大、印度…）只代表其中一種語言。出發前請再查最新的官方資訊。',
     en: 'Time difference is standard time (without daylight saving) relative to Taiwan (UTC+8), using the capital’s time zone; countries with several time zones or daylight saving time are noted in the side panel. Plugs and voltage follow the Wikipedia table “Mains electricity by country” (revision of 19 October 2026, CC BY-SA 4.0), and the map uses the first voltage listed; the plug and voltage data files of this topic are shared under CC BY-SA 4.0. Emergency numbers follow the Wikipedia article “List of emergency telephone numbers” (revision of 16 October 2026, CC BY-SA 4.0), and those data files are shared under CC BY-SA 4.0 as well. Local formats (first day of the week, weekend, 12/24-hour clock, date format, decimal separator, measurement system, paper size, calendars, and the units used for body weight, height, road distance, air temperature, wind speed, air pressure, fuel economy and floor area) follow Unicode CLDR 49, the conventions software uses to display dates and numbers; date format and decimal separator follow the most widely spoken official language, so for multilingual countries (Switzerland, Belgium, Canada, India…) they reflect only one language. Floor numbering follows a world map drawn by a Wikimedia Commons user (CC BY-SA 4.0, September 2023 version) and shows each country’s general practice; buildings within a country often differ, and Hong Kong is changed to the European scheme following Wikipedia’s “Storey”. That data file is shared under CC BY-SA 4.0. Check current official information before you travel.',
-  },
+  }),
   panelExtra: () => import('./panels/TravelPanel'),
   overlays: [REST_AREAS],
   listPanel: TW_SERVICE_AREAS,
@@ -520,8 +521,8 @@ const travelOwn: TopicDefinition = {
       id: 'driving',
       label: { zh: '行車方向', en: 'Driving side' },
       description: {
-        zh: '車輛靠道路的哪一邊行駛。台灣靠右；日本、英國、香港、澳門、東南亞與南亞的許多國家、澳洲、紐西蘭、南部非洲靠左。地圖上的點是 OpenStreetMap 的服務區（橘，3.3 萬個：中國 7,565、美國 3,113、義大利 3,085；台灣 37）與休息區（藍，放大才畫，4.2 萬個：德國 2,931、澳洲 2,669；台灣 45）。各國標法不同、同一個服務區兩個方向常畫成兩個點，點的多寡也在量各國畫得多完整，不要拿來排名；左邊的清單是高速公路局的台灣國道服務區。',
-        en: 'Which side of the road traffic keeps to. Taiwan drives on the right; Japan, the UK, Hong Kong, Macau, much of South and Southeast Asia, Australia, New Zealand and southern Africa drive on the left. The dots are OpenStreetMap service areas (orange, 33,000: China 7,565, the US 3,113, Italy 3,085; Taiwan 37) and rest areas (blue, drawn when zoomed in; 42,000: Germany 2,931, Australia 2,669; Taiwan 45). Countries tag them differently and the two directions of one service area are often mapped as two points, so the counts also reflect how completely each country is mapped and should not be ranked; the list on the left shows Taiwan’s freeway service areas from the Freeway Bureau.',
+        zh: '車輛靠道路的哪一邊行駛。台灣靠右；日本、英國、香港、澳門、東南亞與南亞的許多國家、澳洲、紐西蘭、南部非洲靠左。地圖上的點是 OpenStreetMap 的服務區（橘，3.3 萬個：中國 7,564、美國 3,110、義大利 3,085；台灣 37）與休息區（藍，放大才畫，4.2 萬個：德國 2,931、澳洲 2,669；台灣 45）。各國標法不同、同一個服務區兩個方向常畫成兩個點，點的多寡也在量各國畫得多完整，不要拿來排名；左邊的清單是高速公路局的台灣國道服務區。',
+        en: 'Which side of the road traffic keeps to. Taiwan drives on the right; Japan, the UK, Hong Kong, Macau, much of South and Southeast Asia, Australia, New Zealand and southern Africa drive on the left. The dots are OpenStreetMap service areas (orange, 33,000: China 7,564, the US 3,110, Italy 3,085; Taiwan 37) and rest areas (blue, drawn when zoomed in; 42,000: Germany 2,931, Australia 2,669; Taiwan 45). Countries tag them differently and the two directions of one service area are often mapped as two points, so the counts also reflect how completely each country is mapped and should not be ranked; the list on the left shows Taiwan’s freeway service areas from the Freeway Bureau.',
       },
       unit: '',
       file: 'driving.json',

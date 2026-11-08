@@ -43,6 +43,9 @@ def _counts(rows, key="n") -> dict[str, int]:
 def build() -> None:
     all_stations = osm_qlever.counts("railway", "station")
     subway = _counts(osm_qlever.query(SUBWAY_STATIONS, "rail-stations-subway"))
+    # 子屬地分開、從母國減掉（製作手冊 1-f，sources/osm_qlever.py）
+    subway = {c: int(round(v)) for c, v in osm_qlever.split(
+        subway, osm_qlever.sub_objects('?x osmkey:railway "station" ; osmkey:station "subway" .', "rail-stations-subway")).items()}
     stations = {c: n - subway.get(c, 0) for c, n in all_stations.items()}
     halts = osm_qlever.counts("railway", "halt")
     wheel: dict[str, dict[str, int]] = defaultdict(dict)
@@ -50,6 +53,13 @@ def build() -> None:
         iso3 = from_alpha2(r["iso"]["value"])
         if iso3:
             wheel[iso3][r["w"]["value"]] = wheel[iso3].get(r["w"]["value"], 0) + int(r["n"]["value"])
+    for s in osm_qlever.sub_objects('?x osmkey:railway "station" ; osmkey:wheelchair ?w . FILTER(?w IN ("yes", "no", "limited"))',
+                                    "rail-stations-wheelchair", ("w",)):
+        wheel[s["sub"]][s["w"]] = wheel[s["sub"]].get(s["w"], 0) + 1
+        if s["mother"]:
+            wheel[s["mother"]][s["w"]] -= 1
+            if wheel[s["mother"]][s["w"]] < 0:
+                raise RuntimeError(f"{s['mother']} 的無障礙車站減掉子屬地後變成負的")
     pop = {c: s[YEAR] for c, s in wpp.demographic(["TPopulation1July"], last_year=YEAR)["TPopulation1July"].items() if YEAR in s}
     cov, covered = osm_coverage.coverage(), osm_coverage.well_covered()
 

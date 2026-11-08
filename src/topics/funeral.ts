@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 喪葬與墓地（新主題，2026-11-07，製作手冊第二十七批 555，候選 1250、1251；pipeline/topics/funeral.py）：
@@ -73,10 +74,10 @@ export const funeral: TopicDefinition = {
       license: 'CC BY 3.0 IGO',
     },
   ],
-  note: {
+  note: withTerritories({
     zh: 'OpenStreetMap 上標成墓地（landuse=cemetery）、墓園（amenity=grave_yard，多半在教堂、寺院旁）、火葬場（amenity=crematorium）與殯葬業者（shop=funeral_directors 或 office=funeral_directors）的地方，2026 年 11 月的快照（© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），不是官方名錄。墓地與墓園是兩個標籤，同一處可能兩個都標，所以不相加；處數也不是面積。東亞的家族墓、納骨塔多半沒畫進 OpenStreetMap，台灣一定低估。火葬場也不全：日本畫了 307 座、實際有 1,400 多處，台灣畫了 22 座、實際有 30 多座公立火化場，有的火化場把每一座爐、甚至金爐各標一個；只能看各國之間的大致差異，不能當設施普查。墓地、墓園與殯葬業的每十萬人只替 OpenStreetMap 覆蓋良好的國家上色（判準跟「外食與喝一杯」相同）。各國的火葬率沒有可以轉載的資料（火葬協會的統計禁止轉載），這裡用火葬場對墓地的比值看大概的方向。',
     en: 'Places tagged on OpenStreetMap as cemeteries (landuse=cemetery), graveyards (amenity=grave_yard, mostly beside a church or temple), crematoria (amenity=crematorium) and funeral directors (shop=funeral_directors or office=funeral_directors), as of November 2026 (© OpenStreetMap contributors; the data files are shared under ODbL 1.0). This is not an official register. Cemeteries and graveyards are separate tags, and one place may carry both, so they are not added together; counts are not areas either. Family tombs and columbaria in East Asia are mostly not mapped, so Taiwan is certainly undercounted. Crematoria are incomplete too: Japan has 307 on the map against more than 1,400 in reality, and Taiwan 22 against more than 30 public crematoria, while some sites tag each furnace, or even a joss-paper burner, separately. Use them for broad differences between countries, not as a facility census. Cemeteries, graveyards and funeral directors per 100,000 people are shown only where OpenStreetMap is reasonably complete (the same test as the Eating out topic). Cremation rates by country are not available under terms that allow republishing (the Cremation Society’s statistics may not be reproduced), so the ratio of crematoria to cemeteries is used as a rough guide instead.',
-  },
+  }),
   listPanel: LIST,
   overlays: [
     {
@@ -100,8 +101,8 @@ export const funeral: TopicDefinition = {
       description: join(
         OSM_NOTE,
         {
-          zh: '墓地是 landuse=cemetery，全世界 OpenStreetMap 上約 60.2 萬處：美國 13.5 萬、法國 4.1 萬、俄羅斯 3.6 萬、德國 3.3 萬、烏克蘭 2.7 萬、日本 2.1 萬。每十萬人波士尼亞與赫塞哥維納 144、拉脫維亞 139、白俄羅斯 124、蒙特內哥羅 120、立陶宛 108 最多，法國 62、德國 39、美國 39、南韓 29、義大利 27、日本 17、英國 11、台灣 10（2,369 處）、瑞典 9.0，新加坡 0.4。',
-          en: 'Cemeteries are landuse=cemetery; OpenStreetMap has about 602,000 worldwide: 135,000 in the US, 41,000 in France, 36,000 in Russia, 33,000 in Germany, 27,000 in Ukraine and 21,000 in Japan. Per 100,000 people Bosnia and Herzegovina (144), Latvia (139), Belarus (124), Montenegro (120) and Lithuania (108) have the most, followed by France 62, Germany 39, the US 39, South Korea 29, Italy 27, Japan 17, the UK 11, Taiwan 10 (2,369 cemeteries), Sweden 9.0 and Singapore 0.4.',
+          zh: '墓地是 landuse=cemetery，全世界 OpenStreetMap 上約 60.2 萬處：美國 13.5 萬、法國 4.1 萬、俄羅斯 3.6 萬、德國 3.3 萬、烏克蘭 2.7 萬、日本 2.1 萬。每十萬人波士尼亞與赫塞哥維納 144、拉脫維亞 139、白俄羅斯 124、蒙特內哥羅 120、立陶宛 108 最多，法國 61、德國 39、美國 39、南韓 29、義大利 27、日本 17、英國 11、台灣 10（2,369 處）、瑞典 9.0，新加坡 0.4。',
+          en: 'Cemeteries are landuse=cemetery; OpenStreetMap has about 602,000 worldwide: 135,000 in the US, 41,000 in France, 36,000 in Russia, 33,000 in Germany, 27,000 in Ukraine and 21,000 in Japan. Per 100,000 people Bosnia and Herzegovina (144), Latvia (139), Belarus (124), Montenegro (120) and Lithuania (108) have the most, followed by France 61, Germany 39, the US 39, South Korea 29, Italy 27, Japan 17, the UK 11, Taiwan 10 (2,369 cemeteries), Sweden 9.0 and Singapore 0.4.',
         },
         COVERAGE_NOTE,
       ),
@@ -145,8 +146,8 @@ export const funeral: TopicDefinition = {
       id: 'crematoria-ratio',
       label: { zh: '每 100 處墓地有幾座火葬場', en: 'Crematoria per 100 cemeteries' },
       description: join(OSM_NOTE, {
-        zh: '火葬場的座數除以墓地的處數（× 100），看一國的喪葬偏火葬還是土葬；同一國兩個標籤畫得一樣完整時，比值比各自的密度穩定，所以不套覆蓋度的規則，改成 OpenStreetMap 上墓地至少 200 處才畫（108 國）。全世界是 0.60。泰國 115（火葬場比墓地還多），印度 19、緬甸 6.8、英國 3.9、斯里蘭卡 3.2、荷蘭 2.7、瑞典 2.2、中國大陸 1.8、日本 1.5、台灣 0.93，法國 0.57、德國 0.43、義大利 0.31、美國 0.17、南韓 0.17、俄羅斯 0.12。土耳其、埃及、伊拉克、以色列、塞爾維亞、喬治亞等 31 國一座都沒有（伊斯蘭、猶太教的傳統與東正教會都反對火葬）。日本、台灣、南韓實際上九成以上火化，比值低是因為火葬場集中、少而大，墓地也包括納骨的靈園，所以這不是火葬率。',
-        en: 'The number of crematoria divided by the number of cemeteries (× 100), a rough sign of whether a country leans towards cremation or burial. Where both tags are mapped about equally well within a country, the ratio is steadier than either density, so the coverage rule is not applied; instead countries need at least 200 cemeteries on OpenStreetMap (108 countries). The world figure is 0.60. Thailand has 115 (more crematoria than cemeteries), India 19, Myanmar 6.8, the UK 3.9, Sri Lanka 3.2, the Netherlands 2.7, Sweden 2.2, mainland China 1.8, Japan 1.5 and Taiwan 0.93; France 0.57, Germany 0.43, Italy 0.31, the US 0.17, South Korea 0.17 and Russia 0.12. Thirty-one countries, including Türkiye, Egypt, Iraq, Israel, Serbia and Georgia, have none (Islamic and Jewish tradition and the Orthodox Church oppose cremation). Japan, Taiwan and South Korea in fact cremate more than 90% of their dead; their ratios are low because crematoria there are few and large, and cemeteries include columbarium parks, so this is not a cremation rate.',
+        zh: '火葬場的座數除以墓地的處數（× 100），看一國的喪葬偏火葬還是土葬；同一國兩個標籤畫得一樣完整時，比值比各自的密度穩定，所以不套覆蓋度的規則，改成 OpenStreetMap 上墓地至少 200 處才畫（110 個國家或地區）。全世界是 0.60。泰國 115（火葬場比墓地還多），印度 19、緬甸 6.8、英國 3.9、斯里蘭卡 3.2、荷蘭 2.7、瑞典 2.2、中國大陸 2.1、日本 1.5、台灣 0.93，法國 0.58、德國 0.43、義大利 0.31、美國 0.17、南韓 0.17、俄羅斯 0.12。土耳其、埃及、伊拉克、以色列、塞爾維亞、喬治亞等 31 國一座都沒有（伊斯蘭、猶太教的傳統與東正教會都反對火葬）。日本、台灣、南韓實際上九成以上火化，比值低是因為火葬場集中、少而大，墓地也包括納骨的靈園，所以這不是火葬率。',
+        en: 'The number of crematoria divided by the number of cemeteries (× 100), a rough sign of whether a country leans towards cremation or burial. Where both tags are mapped about equally well within a country, the ratio is steadier than either density, so the coverage rule is not applied; instead countries need at least 200 cemeteries on OpenStreetMap (110 countries and territories). The world figure is 0.60. Thailand has 115 (more crematoria than cemeteries), India 19, Myanmar 6.8, the UK 3.9, Sri Lanka 3.2, the Netherlands 2.7, Sweden 2.2, mainland China 2.1, Japan 1.5 and Taiwan 0.93; France 0.58, Germany 0.43, Italy 0.31, the US 0.17, South Korea 0.17 and Russia 0.12. Thirty-one countries, including Türkiye, Egypt, Iraq, Israel, Serbia and Georgia, have none (Islamic and Jewish tradition and the Orthodox Church oppose cremation). Japan, Taiwan and South Korea in fact cremate more than 90% of their dead; their ratios are low because crematoria there are few and large, and cemeteries include columbarium parks, so this is not a cremation rate.',
       }),
       unit: { zh: '座／百處墓地', en: 'per 100 cemeteries' },
       file: 'crematoria-ratio.json',
@@ -164,8 +165,8 @@ export const funeral: TopicDefinition = {
       description: join(
         OSM_NOTE,
         {
-          zh: '殯葬業者是 shop=funeral_directors 或 office=funeral_directors（同一處只算一次），全世界約 3.5 萬家：美國 5,750、德國 3,829、法國 3,422、英國 3,021、日本 2,528。每十萬人愛爾蘭 5.5、白俄羅斯 5.2、法國 5.1、德國 4.6、英國 4.3、比利時 4.2 最多，義大利 2.3、日本 2.1、美國 1.7，台灣 0.4（89 家）、南韓 0.4：台灣的禮儀社在 OpenStreetMap 上畫得很少。',
-          en: 'Funeral directors are shop=funeral_directors or office=funeral_directors (each place counted once); OpenStreetMap has about 35,000 worldwide: 5,750 in the US, 3,829 in Germany, 3,422 in France, 3,021 in the UK and 2,528 in Japan. Per 100,000 people Ireland (5.5), Belarus (5.2), France (5.1), Germany (4.6), the UK (4.3) and Belgium (4.2) have the most, followed by Italy 2.3, Japan 2.1 and the US 1.7; Taiwan 0.4 (89) and South Korea 0.4. Few of Taiwan’s funeral parlours are on OpenStreetMap.',
+          zh: '殯葬業者是 shop=funeral_directors 或 office=funeral_directors（同一處只算一次），全世界約 3.5 萬家：美國 5,702、德國 3,829、法國 3,406、英國 3,021、日本 2,528。每十萬人愛爾蘭 5.5、白俄羅斯 5.2、法國 5.1、阿魯巴 4.6、德國 4.6、英國 4.3、比利時 4.2 最多，義大利 2.3、日本 2.1、美國 1.7，台灣 0.4（89 家）、南韓 0.4：台灣的禮儀社在 OpenStreetMap 上畫得很少。',
+          en: 'Funeral directors are shop=funeral_directors or office=funeral_directors (each place counted once); OpenStreetMap has about 35,000 worldwide: 5,702 in the US, 3,829 in Germany, 3,406 in France, 3,021 in the UK and 2,528 in Japan. Per 100,000 people Ireland (5.5), Belarus (5.2), France (5.1), Aruba (4.6), Germany (4.6), the UK (4.3) and Belgium (4.2) have the most, followed by Italy 2.3, Japan 2.1 and the US 1.7; Taiwan 0.4 (89) and South Korea 0.4. Few of Taiwan’s funeral parlours are on OpenStreetMap.',
         },
         COVERAGE_NOTE,
       ),

@@ -5,6 +5,7 @@ import type { IndicatorDef, LinesOverlayDef, ListPanelDef, PointRecord, PointsOv
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { cycling } from './cycling';
+import { withTerritories } from './osm-territories';
 
 /**
  * 長途步道（pipeline/topics/trails.py，DESIGN.md 第 8 節第 149 點）：OpenStreetMap 的國際級、國家級步道路線
@@ -181,8 +182,8 @@ const indicators: IndicatorDef[] = [
     id: 'huts-count',
     label: { zh: '山屋與避難小屋', en: 'Mountain huts' },
     description: {
-      zh: 'OpenStreetMap 上的山屋（tourism=alpine_hut，有人管理、多半可以過夜用餐）加避難小屋（wilderness_hut，沒有人管理），全球 30,925 處。山屋 13,995 處：義大利 1,900、奧地利 1,440、法國 700、瑞士 653、日本 525、紐西蘭 484；避難小屋 16,930 處：俄羅斯 2,452、義大利 1,491、紐西蘭 1,470、法國 1,191。台灣山屋 97 處（排雲山莊、嘉明湖避難山屋都在裡面，也混了幾個民宿與涼亭）、避難小屋 17 處。兩類的界線各國畫法不同（阿爾卑斯有些山屋是山上的餐廳，北歐有些避難小屋是沒人管的空屋），所以個數用兩類合計，點分兩色。面量圖只替 OSM 覆蓋良好的 82 國上色，點全部畫。',
-      en: 'Alpine huts (tourism=alpine_hut, staffed and usually offering beds and meals) plus wilderness huts (wilderness_hut, unstaffed) on OpenStreetMap: 30,925 worldwide. Alpine huts number 13,995: Italy 1,900, Austria 1,440, France 700, Switzerland 653, Japan 525 and New Zealand 484; wilderness huts 16,930: Russia 2,452, Italy 1,491, New Zealand 1,470 and France 1,191. Taiwan has 97 alpine huts (including Paiyun Lodge and the Jiaming Lake cabin, plus a few guesthouses and pavilions) and 17 wilderness huts. Mappers draw the line between the two differently (some Alpine huts are mountain restaurants, some Nordic wilderness huts are empty cabins), so counts combine both and the dots use two colours. The choropleth covers only the 82 countries where OSM is reasonably complete; all dots are shown.',
+      zh: 'OpenStreetMap 上的山屋（tourism=alpine_hut，有人管理、多半可以過夜用餐）加避難小屋（wilderness_hut，沒有人管理），全球 30,925 處。山屋 13,995 處：義大利 1,900、奧地利 1,440、法國 681、瑞士 653、日本 525、紐西蘭 484；避難小屋 16,930 處：俄羅斯 2,453、義大利 1,491、紐西蘭 1,470、法國 1,137。台灣山屋 97 處（排雲山莊、嘉明湖避難山屋都在裡面，也混了幾個民宿與涼亭）、避難小屋 17 處。兩類的界線各國畫法不同（阿爾卑斯有些山屋是山上的餐廳，北歐有些避難小屋是沒人管的空屋），所以個數用兩類合計，點分兩色。面量圖只替 OSM 覆蓋良好的 82 國上色，點全部畫。',
+      en: 'Alpine huts (tourism=alpine_hut, staffed and usually offering beds and meals) plus wilderness huts (wilderness_hut, unstaffed) on OpenStreetMap: 30,925 worldwide. Alpine huts number 13,995: Italy 1,900, Austria 1,440, France 681, Switzerland 653, Japan 525 and New Zealand 484; wilderness huts 16,930: Russia 2,453, Italy 1,491, New Zealand 1,470 and France 1,137. Taiwan has 97 alpine huts (including Paiyun Lodge and the Jiaming Lake cabin, plus a few guesthouses and pavilions) and 17 wilderness huts. Mappers draw the line between the two differently (some Alpine huts are mountain restaurants, some Nordic wilderness huts are empty cabins), so counts combine both and the dots use two colours. The choropleth covers only the 82 countries where OSM is reasonably complete; all dots are shown.',
     },
     unit: { zh: '處', en: 'huts' },
     file: 'huts-count.json',
@@ -195,8 +196,8 @@ const indicators: IndicatorDef[] = [
     id: 'huts-density',
     label: { zh: '山屋的密度', en: 'Hut density' },
     description: {
-      zh: '每萬平方公里陸地有幾處山屋與避難小屋（陸地面積用 FAOSTAT）。瑞士 225.8 處最多，奧地利 192.0、斯洛維尼亞 121.7、義大利 114.7、斯洛伐克 76.3、紐西蘭 74.2；台灣 32.2 處，在上色的 82 國裡排第 12，比挪威 26.9、德國 20.0、日本 19.0 多；美國 1.2。',
-      en: 'Alpine and wilderness huts per 10,000 km² of land (land area from FAOSTAT). Switzerland leads with 225.8, followed by Austria 192.0, Slovenia 121.7, Italy 114.7, Slovakia 76.3 and New Zealand 74.2; Taiwan has 32.2, 12th of the 82 countries shaded, ahead of Norway 26.9, Germany 20.0 and Japan 19.0; the US 1.2.',
+      zh: '每萬平方公里陸地有幾處山屋與避難小屋（陸地面積用 FAOSTAT）。瑞士 225.8 處最多，奧地利 192.0、斯洛維尼亞 121.7、義大利 114.7、斯洛伐克 76.3、紐西蘭 74.2；台灣 32.2 處，在上色的 83 個國家或地區裡排第 13，比挪威 26.9、德國 20.0、日本 19.0 多；美國 1.2。',
+      en: 'Alpine and wilderness huts per 10,000 km² of land (land area from FAOSTAT). Switzerland leads with 225.8, followed by Austria 192.0, Slovenia 121.7, Italy 114.7, Slovakia 76.3 and New Zealand 74.2; Taiwan has 32.2, 13th of the 83 countries and territories shaded, ahead of Norway 26.9, Germany 20.0 and Japan 19.0; the US 1.2.',
     },
     unit: { zh: '處／萬平方公里', en: 'per 10,000 km²' },
     file: 'huts-density.json',
@@ -266,10 +267,10 @@ const trailsOwn: TopicDefinition = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh: 'OSM 的路線由每條路線的 way 依端點接成線，簡化到約 300 公尺（世界全圖再簡化到約 1 公里）；長度用簡化前的路線算。同一段路屬於好幾條路線時只算給一條（國際級優先）。路線分到國家依每一段的中點。台灣在 OSM 有 38 條標成國家級的路線（八通關古道、淡蘭國家級綠道等，也有國家公園裡的短步道），另用觀光署「步道」開放資料補上 OSM 沒有的 18 條（多是林業保育署的國家步道，線有一半以上落在 OSM 路線 200 公尺內的算 OSM 已經有），長度是觀光署寫的。',
     en: 'OSM routes are joined from their ways and simplified to about 300 m (about 1 km on the world map); lengths use the unsimplified routes. A section shared by several routes is counted for one only (international first). Routes are split between countries by the midpoint of each section. Taiwan has 38 routes tagged as national in OSM (such as the Batongguan Historic Trail and the Tamsui-Kavalan trails, plus some short trails in national parks); 18 more that OSM lacks, mostly national trails of the Forestry and Nature Conservation Agency, are added from the Tourism Administration’s open trail data with their published lengths (a trail with more than half its length within 200 m of an OSM route counts as already in OSM).',
-  },
+  }),
   panelExtra: () => import('./panels/TrailsPanel'),
   listPanel: LIST,
   overlays: [TRAILS, HUTS, FOREST_AREAS, FOREST_POINTS],

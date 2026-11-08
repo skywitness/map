@@ -2,6 +2,7 @@ import { tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 旅館、民宿與旅行社（新主題，2026-11-08，製作手冊第二十七批 670、671，候選 1473、1474；pipeline/topics/lodging.py）：
@@ -87,17 +88,17 @@ export const lodging: TopicDefinition = {
     },
     { name: { zh: '聯合國《世界人口展望 2024》（每十萬人）', en: 'UN World Population Prospects 2024 (per 100,000 people)' }, url: 'https://population.un.org/wpp/', license: 'CC BY 3.0 IGO' },
   ],
-  note: {
-    zh: '旅館與民宿是 OpenStreetMap 上標成 tourism=hotel、tourism=guest_house 的地方（2026 年 11 月的快照，© OpenStreetMap contributors），不是官方的登記名錄；每十萬人只替 OSM 覆蓋良好的 93 國上色，數量也在量 OSM 畫得多完整（台灣 OSM 上的旅館 2,297 家，觀光署登記的旅館是 3,272 家、民宿 12,393 家）。各國把什麼叫 guest house 差很多（義大利、波蘭的 B&B、古巴的 casa particular 都算），兩者的界線不一。全球 45 萬家旅館的點太多，只畫台灣：觀光署「旅館民宿－觀光資訊資料庫」的 15,665 家（國際觀光旅館、一般觀光旅館、一般旅館、民宿），點的大小依類別、tooltip 有房間數。旅行社是 OECD 觀光統計的旅行社與旅遊業者（各國最近一年差很多），台灣用觀光署旅行業名錄的總公司數。',
-    en: 'Hotels and guest houses are places tagged tourism=hotel and tourism=guest_house in OpenStreetMap (a November 2026 snapshot, © OpenStreetMap contributors), not official registers; per-100,000 rates are shaded only for the 93 countries well covered by OSM, and counts also reflect how completely OSM is mapped (Taiwan has 2,297 hotels in OSM, against 3,272 registered hotels and 12,393 registered B&Bs). What counts as a guest house differs a lot (Italian and Polish B&Bs and Cuban casas particulares all count), and the line between the two tags varies. The 455,000 hotels worldwide are too many to draw, so only Taiwan has dots: the Tourism Administration’s 15,665 registered hotels and B&Bs (international tourist hotels, standard tourist hotels, hotels and minsu), sized by type, with room counts in the tooltip. Travel agencies come from OECD tourism statistics (latest years differ a lot), with Taiwan’s figure from the Tourism Administration register of head offices.',
-  },
+  note: withTerritories({
+    zh: '旅館與民宿是 OpenStreetMap 上標成 tourism=hotel、tourism=guest_house 的地方（2026 年 11 月的快照，© OpenStreetMap contributors），不是官方的登記名錄；每十萬人只替 OSM 覆蓋良好的 96 個國家或地區上色，數量也在量 OSM 畫得多完整（台灣 OSM 上的旅館 2,297 家，觀光署登記的旅館是 3,272 家、民宿 12,393 家）。各國把什麼叫 guest house 差很多（義大利、波蘭的 B&B、古巴的 casa particular 都算），兩者的界線不一。全球 45 萬家旅館的點太多，只畫台灣：觀光署「旅館民宿－觀光資訊資料庫」的 15,665 家（國際觀光旅館、一般觀光旅館、一般旅館、民宿），點的大小依類別、tooltip 有房間數。旅行社是 OECD 觀光統計的旅行社與旅遊業者（各國最近一年差很多），台灣用觀光署旅行業名錄的總公司數。',
+    en: 'Hotels and guest houses are places tagged tourism=hotel and tourism=guest_house in OpenStreetMap (a November 2026 snapshot, © OpenStreetMap contributors), not official registers; per-100,000 rates are shaded only for the 96 countries and territories well covered by OSM, and counts also reflect how completely OSM is mapped (Taiwan has 2,297 hotels in OSM, against 3,272 registered hotels and 12,393 registered B&Bs). What counts as a guest house differs a lot (Italian and Polish B&Bs and Cuban casas particulares all count), and the line between the two tags varies. The 455,000 hotels worldwide are too many to draw, so only Taiwan has dots: the Tourism Administration’s 15,665 registered hotels and B&Bs (international tourist hotels, standard tourist hotels, hotels and minsu), sized by type, with room counts in the tooltip. Travel agencies come from OECD tourism statistics (latest years differ a lot), with Taiwan’s figure from the Tourism Administration register of head offices.',
+  }),
   overlays: [TAIWAN],
   listPanel: [TAIWAN_LIST],
   indicators: [
     {
       id: 'hotels-per',
       label: { zh: '每十萬人有幾家旅館（OSM）', en: 'Hotels per 100,000 people (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成旅館的地方 ÷ 2024 年人口，只替 OSM 覆蓋良好的 93 國上色。觀光小國最多：塞席爾、馬爾地夫每十萬人約 102 家，蒙特內哥羅 94.8、希臘 91.9、冰島 80.6、奧地利 71.2、喬治亞 60.5；德國 29.5、法國 29.2、英國 16.8、美國 13.4、日本 12.1、台灣 9.9、南韓 5.3。點是台灣觀光署登記的每一家旅館與民宿。', en: 'Places tagged as hotels in OpenStreetMap divided by 2024 population, shaded only for the 93 countries well covered by OSM. Small tourist countries lead: Seychelles and the Maldives have about 102 per 100,000 people, Montenegro 94.8, Greece 91.9, Iceland 80.6, Austria 71.2 and Georgia 60.5; Germany has 29.5, France 29.2, the UK 16.8, the US 13.4, Japan 12.1, Taiwan 9.9 and South Korea 5.3. Dots are every hotel and B&B registered with Taiwan’s Tourism Administration.' },
+      description: { zh: 'OpenStreetMap 上標成旅館的地方 ÷ 2024 年人口，只替 OSM 覆蓋良好的 96 個國家或地區上色。觀光小國最多：塞席爾、馬爾地夫每十萬人約 102 家，蒙特內哥羅 94.8、希臘 91.9、阿魯巴 85.1、冰島 80.6、奧地利 71.2、喬治亞 60.5；德國 29.5、法國 28.6、英國 16.8、美國 13.3、日本 12.1、台灣 9.9、南韓 5.3。點是台灣觀光署登記的每一家旅館與民宿。', en: 'Places tagged as hotels in OpenStreetMap divided by 2024 population, shaded only for the 96 countries and territories well covered by OSM. Small tourist places lead: Seychelles and the Maldives have about 102 per 100,000 people, Montenegro 94.8, Greece 91.9, Aruba 85.1, Iceland 80.6, Austria 71.2 and Georgia 60.5; Germany has 29.5, France 28.6, the UK 16.8, the US 13.3, Japan 12.1, Taiwan 9.9 and South Korea 5.3. Dots are every hotel and B&B registered with Taiwan’s Tourism Administration.' },
       unit: { zh: '家／十萬人', en: 'per 100,000' },
       file: 'hotels-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [2, 5, 10, 20, 40, 80] } },
@@ -108,7 +109,7 @@ export const lodging: TopicDefinition = {
     {
       id: 'hotels',
       label: { zh: '旅館家數（OSM）', en: 'Hotels (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成旅館的地方：455,068 處、212 國。美國 46,279 處最多，德國 24,898、義大利 23,501、中國 19,617、法國 19,413、俄羅斯 17,150、印度 16,184、西班牙 14,949、日本 14,916；台灣 2,297 處（觀光署登記的旅館 3,272 家：國際觀光旅館 71、一般觀光旅館 45、一般旅館 3,156）。', en: 'Places tagged as hotels in OpenStreetMap: 455,068 in 212 countries. The US has the most (46,279), followed by Germany (24,898), Italy (23,501), China (19,617), France (19,413), Russia (17,150), India (16,184), Spain (14,949) and Japan (14,916); Taiwan has 2,297 (against 3,272 hotels registered with the Tourism Administration: 71 international tourist hotels, 45 standard tourist hotels and 3,156 hotels).' },
+      description: { zh: 'OpenStreetMap 上標成旅館的地方：455,068 處、231 個國家或地區。美國 45,990 處最多，德國 24,898、義大利 23,501、中國 19,164、法國 19,019、俄羅斯 17,150、印度 16,184、西班牙 14,949、日本 14,916；台灣 2,297 處（觀光署登記的旅館 3,272 家：國際觀光旅館 71、一般觀光旅館 45、一般旅館 3,156）。', en: 'Places tagged as hotels in OpenStreetMap: 455,068 in 231 countries and territories. The US has the most (45,990), followed by Germany (24,898), Italy (23,501), China (19,164), France (19,019), Russia (17,150), India (16,184), Spain (14,949) and Japan (14,916); Taiwan has 2,297 (against 3,272 hotels registered with the Tourism Administration: 71 international tourist hotels, 45 standard tourist hotels and 3,156 hotels).' },
       unit: { zh: '家', en: 'hotels' },
       file: 'hotels.json',
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },
@@ -121,7 +122,7 @@ export const lodging: TopicDefinition = {
     {
       id: 'guest-houses-per',
       label: { zh: '每十萬人有幾家民宿（OSM）', en: 'Guest houses per 100,000 people (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成民宿（guest house，含 B&B）的地方 ÷ 2024 年人口。塞席爾每十萬人 239 家最多，冰島 100.9、奧地利 71.4、蒙特內哥羅 66.1、聖露西亞 52.9、馬爾地夫 49.1、克羅埃西亞 47.3；德國 16.4、法國 14.4、英國 11.9、南韓 5.0、日本 2.4、台灣 2.1、美國 1.4。台灣觀光署登記的民宿有 12,393 家，OSM 上只標了 495 處。', en: 'Places tagged as guest houses (including B&Bs) in OpenStreetMap divided by 2024 population. Seychelles has the most per 100,000 people (239), followed by Iceland (100.9), Austria (71.4), Montenegro (66.1), Saint Lucia (52.9), the Maldives (49.1) and Croatia (47.3); Germany has 16.4, France 14.4, the UK 11.9, South Korea 5.0, Japan 2.4, Taiwan 2.1 and the US 1.4. Taiwan’s Tourism Administration registers 12,393 B&Bs, but only 495 are tagged in OSM.' },
+      description: { zh: 'OpenStreetMap 上標成民宿（guest house，含 B&B）的地方 ÷ 2024 年人口。塞席爾每十萬人 239 家最多，阿魯巴 236.9、冰島 100.9、奧地利 71.4、蒙特內哥羅 66.1、聖露西亞 52.9、馬爾地夫 49.1、克羅埃西亞 47.3；德國 16.4、法國 13.9、英國 11.9、南韓 5.0、日本 2.4、台灣 2.1、美國 1.3。台灣觀光署登記的民宿有 12,393 家，OSM 上只標了 495 處。', en: 'Places tagged as guest houses (including B&Bs) in OpenStreetMap divided by 2024 population. Seychelles has the most per 100,000 people (239), followed by Aruba (236.9), Iceland (100.9), Austria (71.4), Montenegro (66.1), Saint Lucia (52.9), the Maldives (49.1) and Croatia (47.3); Germany has 16.4, France 13.9, the UK 11.9, South Korea 5.0, Japan 2.4, Taiwan 2.1 and the US 1.3. Taiwan’s Tourism Administration registers 12,393 B&Bs, but only 495 are tagged in OSM.' },
       unit: { zh: '家／十萬人', en: 'per 100,000' },
       file: 'guest-houses-per.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 5, 10, 20, 40] } },
@@ -132,7 +133,7 @@ export const lodging: TopicDefinition = {
     {
       id: 'guest-houses',
       label: { zh: '民宿家數（OSM）', en: 'Guest houses (OSM)' },
-      description: { zh: 'OpenStreetMap 上標成民宿的地方：201,272 處、210 國。義大利 14,012 處最多，德國 13,866、波蘭 9,678、法國 9,607、俄羅斯 8,835、英國 8,234、奧地利 6,510、古巴 6,050（民宿之國：casa particular）；台灣 495 處。', en: 'Places tagged as guest houses in OpenStreetMap: 201,272 in 210 countries. Italy has the most (14,012), followed by Germany (13,866), Poland (9,678), France (9,607), Russia (8,835), the UK (8,234), Austria (6,510) and Cuba (6,050, home of the casa particular); Taiwan has 495.' },
+      description: { zh: 'OpenStreetMap 上標成民宿的地方：201,272 處、225 個國家或地區。義大利 14,012 處最多，德國 13,866、波蘭 9,678、法國 9,271、俄羅斯 8,835、英國 8,234、奧地利 6,510、古巴 6,050（民宿之國：casa particular）；台灣 495 處。', en: 'Places tagged as guest houses in OpenStreetMap: 201,272 in 225 countries and territories. Italy has the most (14,012), followed by Germany (13,866), Poland (9,678), France (9,271), Russia (8,835), the UK (8,234), Austria (6,510) and Cuba (6,050, home of the casa particular); Taiwan has 495.' },
       unit: { zh: '家', en: 'guest houses' },
       file: 'guest-houses.json',
       layer: { kind: 'bubble', legendValues: [100, 1000, 10000] },

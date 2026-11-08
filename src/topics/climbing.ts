@@ -2,6 +2,7 @@ import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 攀岩場（2026-11-04，製作手冊第二十一批 363；pipeline/topics/climbing.py）：
@@ -61,10 +62,10 @@ export const climbing: TopicDefinition = {
       license: 'ODbL',
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '點是 OpenStreetMap 上標成岩場（climbing=crag，一片可以攀登的岩壁或岩區）的地方，2026 年 11 月的快照（© OpenStreetMap contributors，資料檔依 ODbL 1.0 分享），不是官方名錄：有人畫才有。不用更寬的「攀岩」標籤（sport=climbing）畫主圖，因為它同時標在每一條攀岩路線與室內攀岩館上，各國的畫法差太多（捷克把每條路線都畫進去，有 21,897 個，是美國的近 4 倍）；各國的個數寫在 tooltip。台灣沒有任何標成岩場的地方，另外畫台灣標成攀岩的 52 個點（龍洞的各個岩區、山上的個別路線與各地的攀岩館混在一起），口徑不同。畫成面或線的取中心當點。各國岩場數的面量圖只替 OSM 覆蓋良好的國家上色（判準跟「外食與喝一杯」相同），岩場地圖同時在量德語區與捷克的繪圖社群多活躍，只能看大概。這是攀岩的場地，跟「海拔」「山脈」的地形不同。',
     en: 'Dots are places tagged on OpenStreetMap as crags (climbing=crag, a rock face or area that can be climbed), as of November 2026 (© OpenStreetMap contributors; the data files are shared under ODbL 1.0), not an official directory: only what volunteers have mapped is shown. The broader climbing tag (sport=climbing) is not used for the main map because it is also put on every single route and on indoor gyms, and mapping practice varies too much (Czechia maps every route, with 21,897 features, nearly four times the US); the counts are in the tooltip. Taiwan has no features tagged as crags, so its 52 climbing features (Longdong’s climbing areas, individual mountain routes and gyms mixed together) are drawn as a separate layer, on a different basis. Areas and lines are drawn at their centre. The country choropleth only colours countries where OSM is reasonably complete (the same test as the Eating out topic); the crag map also reflects how active the German-speaking and Czech mapping communities are, so treat comparisons as approximate. These are places people climb, unlike the terrain shown in the Elevation and Mountain ranges topics.',
-  },
+  }),
   listPanel: LIST,
   overlays: [
     {
@@ -85,8 +86,8 @@ export const climbing: TopicDefinition = {
       id: 'crag-count',
       label: { zh: '岩場', en: 'Crags' },
       description: {
-        zh: 'OpenStreetMap 上的岩場，全球 11,610 個、70 國：捷克 2,364 個最多（北波希米亞的砂岩塔），美國 1,334、法國 1,317、德國 1,205、奧地利 1,202、加拿大 752、義大利 732、挪威 452、西班牙 321、英國 233、瑞士 213、希臘 204；比利時 73、日本 3、南韓 0。台灣沒有標成岩場的地方（地圖上另外畫台灣標成攀岩的 52 個點）。面量圖只替 OSM 覆蓋良好的國家上色，點全部畫。',
-        en: 'Crags on OpenStreetMap: 11,610 in 70 countries worldwide. Czechia has the most at 2,364 (the sandstone towers of northern Bohemia), followed by the US 1,334, France 1,317, Germany 1,205, Austria 1,202, Canada 752, Italy 732, Norway 452, Spain 321, the UK 233, Switzerland 213 and Greece 204; Belgium 73, Japan 3 and South Korea 0. Taiwan has none tagged as crags (its 52 climbing features are drawn as a separate layer). The choropleth colours only countries where OSM is reasonably complete; all dots are shown.',
+        zh: 'OpenStreetMap 上的岩場，全球 11,610 個、71 個國家或地區：捷克 2,364 個最多（北波希米亞的砂岩塔），美國 1,334、法國 1,317、德國 1,205、奧地利 1,202、加拿大 752、義大利 732、挪威 452、西班牙 321、英國 233、瑞士 213、希臘 204；比利時 73、日本 3、南韓 0。台灣沒有標成岩場的地方（地圖上另外畫台灣標成攀岩的 52 個點）。面量圖只替 OSM 覆蓋良好的國家上色，點全部畫。',
+        en: 'Crags on OpenStreetMap: 11,610 in 71 countries and territories worldwide. Czechia has the most at 2,364 (the sandstone towers of northern Bohemia), followed by the US 1,334, France 1,317, Germany 1,205, Austria 1,202, Canada 752, Italy 732, Norway 452, Spain 321, the UK 233, Switzerland 213 and Greece 204; Belgium 73, Japan 3 and South Korea 0. Taiwan has none tagged as crags (its 52 climbing features are drawn as a separate layer). The choropleth colours only countries where OSM is reasonably complete; all dots are shown.',
       },
       unit: { zh: '個', en: 'count' },
       file: 'crag-count.json',

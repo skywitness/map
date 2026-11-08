@@ -2,6 +2,7 @@ import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import { withTerritories } from './osm-territories';
 
 /**
  * 地下觀光：觀光洞穴、觀光礦坑與地下景點（新主題，2026-11-07，製作手冊第二十四批 438；pipeline/topics/show_caves.py）。
@@ -126,10 +127,10 @@ export const showCaves: TopicDefinition = {
       license: { zh: 'ODbL 1.0（© OpenStreetMap contributors；點的資料檔同樣用 ODbL 分享）', en: 'ODbL 1.0 (© OpenStreetMap contributors; the point file is shared under the ODbL)' },
     },
   ],
-  note: {
+  note: withTerritories({
     zh: '各國的數量取自 showcaves.com：德國的 Jochen Duckeck 從 1990 年代起整理的觀光洞穴與地下景點目錄，分七類（觀光洞穴是對外開放、有導覽的；非商業洞穴、岩溶地形、岩溶泉、峽谷是地景）。目錄偏重站長走過與讀者回報的地方，各國收錄的完整程度不同，數字只能看大概；站方寫約 75 處已關閉但仍列入。玩笑條目（Matrix、Middle-Earth、Molvanîa）不算。地圖上的點是 Wikidata 收錄、有座標的觀光洞穴與觀光礦坑（大小是有幾種語言的維基百科條目），加上 OpenStreetMap 同時標成洞口與景點的地方（灰橘色的小點；OSM 的洞口多半是洞穴探勘社團畫的，國家之間差很多，所以只畫點、不比國家）。台灣不在 showcaves.com 與 Wikidata 的觀光洞穴裡；OSM 上台灣標成景點的 15 個洞口（例如澎湖的小門鯨魚洞、獅頭山的靈霞洞與覺王洞）多半是免費參觀的海蝕洞與洞窟廟，不是售票導覽的觀光洞穴。',
     en: 'Country counts come from showcaves.com, the directory of show caves and underground sights that Jochen Duckeck of Germany has kept since the 1990s, in seven categories (show caves are open to the public with guided tours; non-commercial caves, karst features, karst springs and gorges are natural sights). It favours places the author has visited or readers have reported, so coverage varies by country and the numbers are only indicative; the site notes that about 75 listed places have closed. Joke entries (Matrix, Middle-Earth, Molvanîa) are excluded. Dots on the map are the show caves and show mines in Wikidata with coordinates (sized by the number of Wikipedia language editions), plus places OpenStreetMap tags as both a cave entrance and an attraction (small grey-orange dots; OSM cave entrances are mostly mapped by caving clubs and vary greatly between countries, so they are only drawn, not counted). Taiwan is not in showcaves.com or among Wikidata’s show caves; its 15 OSM cave entrances tagged as attractions (such as the Whale Cave at Xiaomen, Penghu, and the Lingxia and Juewang cave temples on Shitoushan) are mostly free sea caves and cave temples rather than ticketed show caves.',
-  },
+  }),
   overlays: [WIKIDATA, OSM],
   listPanel: LIST,
   indicators: [

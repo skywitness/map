@@ -50,8 +50,10 @@ SELECT ?x ?iso ?name ?namezh ?area ?cent (COUNT(DISTINCT ?cname) AS ?coasters) W
   OPTIONAL {{ ?x ogc:sfContains ?c . ?c osmkey:attraction "roller_coaster" ; osmkey:name ?cname }}
 }} GROUP BY ?x ?iso ?name ?namezh ?area ?cent""", "theme-park-areas-named-coasters")
     out: dict[str, dict] = {}
+    # 子屬地分開（製作手冊 1-f，sources/osm_qlever.py）
+    where = {s["osm"]: s["sub"] for s in osm_qlever.sub_objects('?x osmkey:tourism "theme_park" .', "tourism-theme_park")}
     for r in rows:
-        iso3 = from_alpha2(r["iso"]["value"])
+        iso3 = where.get(r["x"]["value"]) or from_alpha2(r["iso"]["value"])
         m = re.match(r"POINT\(([-\d.eE]+) ([-\d.eE]+)\)", r.get("cent", {}).get("value", ""), re.I)
         if not iso3 or not m:
             continue
