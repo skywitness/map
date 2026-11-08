@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { DimensionDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 迪士尼（新主題，2026-11-08，製作手冊第二十八批 673，候選 1478、1484、1492；旅遊・樂園；pipeline/topics/disney.py）。
@@ -161,6 +161,131 @@ const PARK_LIST: ListPanelDef = {
       }),
 };
 
+// ── 郵輪（2026-11-08，製作手冊第二十八批 674，候選 1479、1495、1490；pipeline/topics/disney_cruise.py） ──
+// 「航程」畫不出來（手冊：迪士尼官網的條款禁止編成資料庫、OSM 與 PortWatch 都沒有郵輪的航線），改成母港點＋船籍線，
+// 加上船隊從 1998 到 2029 年的噸位與載客量（清單）。
+
+const CRUISE_INDICATORS = ['cruise'];
+/** 港口的代碼（pipeline 的 PORTS 同樣的順序） */
+const PORT_NAMES: Text[] = [
+  { zh: '卡納維拉爾港', en: 'Port Canaveral' },
+  { zh: '大沼澤港', en: 'Port Everglades' },
+  { zh: '新加坡', en: 'Singapore' },
+  { zh: '東京', en: 'Tokyo' },
+  { zh: 'Castaway Cay', en: 'Castaway Cay' },
+  { zh: '拿索', en: 'Nassau' },
+];
+const PORT_KINDS: { label: Text; color: string }[] = [
+  { label: { zh: '母港', en: 'Home port' }, color: C[0] },
+  { label: { zh: '將來的母港', en: 'Future home port' }, color: C[2] },
+  { label: { zh: '私人島', en: 'Private island' }, color: C[1] },
+  { label: { zh: '船籍登記港', en: 'Port of registry' }, color: C[5] },
+];
+const SHIP_CLASSES = ['Magic', 'Dream', 'Wish', 'Global'];
+const gtText = (v: number) => tr({ zh: `${fixed(v, 0)} 總噸`, en: `${fixed(v, 0)} GT` });
+
+const CRUISE_ITEMS: DimensionDef = {
+  label: { zh: '看什麼', en: 'Show' },
+  options: [
+    { id: 'homeport', label: { zh: '以這國為母港', en: 'Based here:' } },
+    { id: 'flag', label: { zh: '掛這國旗（船籍）', en: 'Flagged here:' } },
+  ],
+  defaultOption: 'homeport',
+};
+
+const CRUISE_PORTS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-cruise-ports',
+  file: 'cruise-ports.json',
+  label: { zh: '母港、私人島與船籍登記港', en: 'Home ports, private island and port of registry' },
+  indicators: CRUISE_INDICATORS,
+  radius: { field: 'kind', stops: [[1, 7], [2, 6], [3, 5], [4, 4]] },
+  color: {
+    field: 'kind',
+    title: { zh: '種類', en: 'Type' },
+    thresholds: [1.5, 2.5, 3.5],
+    classes: PORT_KINDS.map(({ label, color }) => ({ label, color })),
+  },
+  tooltip: (p, { countryName }) => {
+    const extra: string[] = [];
+    if (typeof p.ships === 'number') {
+      // names 是 pipeline 用「, 」接起來的船名（英文專有名詞）
+      extra.push(tr({ zh: `現役 ${p.ships} 艘：${String(p.names ?? '')}`, en: `${p.ships} ships in service: ${String(p.names ?? '')}` }));
+      if (typeof p.gt === 'number') extra.push(tr({ zh: `合計 ${gtText(p.gt)}、最多 ${fixed(Number(p.cap), 0)} 名乘客`, en: `${gtText(p.gt)} in all, up to ${fixed(Number(p.cap), 0)} passengers` }));
+    }
+    if (p.kind === 2) extra.push(tr({ zh: 'Disney Imagination 預定 2029 年以這裡為母港（東方樂園公司擁有與營運）', en: 'Disney Imagination is due to be based here from 2029 (owned and operated by Oriental Land)' }));
+    if (p.kind === 3) extra.push(tr({ zh: '1997 年向巴哈馬政府租下（租約到 2096 年），全島約 1,000 英畝、約 55 英畝在使用', en: 'Leased from the Bahamas in 1997 (until 2096); about 55 of roughly 1,000 acres are in use' }));
+    if (p.kind === 4) extra.push(tr({ zh: '現役 8 艘全部登記在這裡', en: 'All 8 ships in service are registered here' }));
+    return {
+      title: tr({ zh: String(p.zh ?? ''), en: String(p.en ?? '') }),
+      detail: [tr(at(PORT_KINDS, p.kind).label), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      extra,
+    };
+  },
+};
+
+const CRUISE_LINES: LinesOverlayDef = {
+  kind: 'lines',
+  id: 'disney-cruise-flag-lines',
+  file: 'cruise-lines.json',
+  label: { zh: '船籍線：母港到船籍登記港（拿索）', en: 'Flag lines: home port to port of registry (Nassau)' },
+  indicators: CRUISE_INDICATORS,
+  width: { field: 'ships', stops: [[1, 1.2], [4, 3]] },
+  color: C[5],
+  tooltip: (p) => ({
+    title: tr({ zh: `${tr(at(PORT_NAMES, p.from))} → 拿索`, en: `${tr(at(PORT_NAMES, p.from))} → Nassau` }),
+    extra: [tr({ zh: `在這裡上船的 ${fixed(Number(p.ships), 0)} 艘船都登記在巴哈馬拿索（母港跟船籍是兩件事）`, en: `The ${fixed(Number(p.ships), 0)} ships based here are all registered in Nassau, Bahamas (home port and flag are different things)` })],
+  }),
+};
+
+function shipGroup(p: PointRecord): { order: number; label: string } {
+  if (p.fut === 1) return { order: 9, label: tr({ zh: '將交船（預定，沒有確定的日期）', en: 'On order (planned, no firm dates)' }) };
+  const home = num(p, 'home');
+  if (!home) return { order: 8, label: tr({ zh: '條目沒有寫固定母港（依季節部署）', en: 'No fixed home port given (seasonal deployments)' }) };
+  return { order: home, label: tr(at(PORT_NAMES, home)) };
+}
+
+const SHIP_LIST: ListPanelDef = {
+  label: { zh: '迪士尼的郵輪', en: 'Disney cruise ships' },
+  tabLabel: { zh: '郵輪', en: 'Ships' },
+  indicators: CRUISE_INDICATORS,
+  file: 'cruise-ships.json',
+  rows: (points) =>
+    points
+      .map((p) => ({ p, g: shipGroup(p) }))
+      .sort((a, b) => a.g.order - b.g.order || (num(b.p, 'y') ?? 0) - (num(a.p, 'y') ?? 0))
+      .map(({ p, g }, i): ListRow => {
+        const name = typeof p.name === 'string' && p.name ? p.name : tr({ zh: '還沒命名', en: 'Unnamed' });
+        const cls = num(p, 'cls');
+        const y = num(p, 'y');
+        const facts = [
+          cls ? tr({ zh: `${SHIP_CLASSES[cls - 1]} 級`, en: `${SHIP_CLASSES[cls - 1]} class` }) : '',
+          num(p, 'gt') ? gtText(num(p, 'gt') as number) + (p.fut === 1 ? tr({ zh: '（計畫值）', en: ' (planned)' }) : '') : '',
+          num(p, 'cap') ? tr({ zh: `最多 ${fixed(num(p, 'cap') as number, 0)} 名乘客`, en: `up to ${fixed(num(p, 'cap') as number, 0)} passengers` }) : '',
+          num(p, 'cabins') ? tr({ zh: `${fixed(num(p, 'cabins') as number, 0)} 間客房`, en: `${fixed(num(p, 'cabins') as number, 0)} cabins` }) : '',
+        ].filter(Boolean);
+        return {
+          key: `${name}-${i}`,
+          title: name,
+          titleProper: typeof p.name === 'string',
+          group: g.label,
+          muted: p.fut === 1,
+          lines: [
+            facts.join(tr({ zh: '、', en: ', ' })),
+            [
+              y ? (p.fut === 1 ? tr({ zh: `預定 ${y} 年`, en: `planned for ${y}` }) : tr({ zh: `${y} 年入役`, en: `in service ${y}` })) : '',
+              typeof p.yard === 'string' ? tr({ zh: `船廠 ${p.yard}`, en: `built by ${p.yard}` }) : '',
+              p.flag === 'BHS' ? tr({ zh: '船籍巴哈馬', en: 'Bahamas flag' }) : p.flag === 'JPN' ? tr({ zh: '船籍日本（東方樂園公司擁有與營運）', en: 'Japanese flag (owned and operated by Oriental Land)' }) : '',
+            ]
+              .filter(Boolean)
+              .join(tr({ zh: '，', en: ', ' })),
+          ],
+          link: { href: 'https://en.wikipedia.org/wiki/Disney_Cruise_Line?oldid=1384145065', label: tr({ zh: '資料出處 英文維基百科', en: 'Source: English Wikipedia' }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 9 },
+        };
+      }),
+};
+
 export const disney: TopicDefinition = {
   id: 'disney',
   title: { zh: '迪士尼在哪裡：樂園、郵輪、飯店與影視部門', en: 'Where Disney is: parks, cruise ships, hotels and studios' },
@@ -189,13 +314,23 @@ export const disney: TopicDefinition = {
       url: 'https://en.wikipedia.org/wiki/List_of_amusement_park_rankings?oldid=1377863670',
       license: 'CC BY-SA 4.0',
     },
+    {
+      name: { zh: '英文維基百科「Disney Cruise Line」（revid 1384145065，船隊、母港與船籍）', en: 'English Wikipedia, “Disney Cruise Line” (revid 1384145065: fleet, home ports and flag)' },
+      url: 'https://en.wikipedia.org/wiki/Disney_Cruise_Line?oldid=1384145065',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: 'IMF PortWatch 港口資料庫（新加坡、東京、拿索的座標）', en: 'IMF PortWatch ports database (coordinates of Singapore, Tokyo and Nassau)' },
+      url: 'https://portwatch.imf.org/',
+      license: { zh: 'IMF 的資料條款（註明出處）', en: 'IMF data terms (with attribution)' },
+    },
   ],
   note: {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
   },
-  overlays: [RESORT_RINGS, SITES, PLANNED],
-  listPanel: PARK_LIST,
+  overlays: [RESORT_RINGS, SITES, PLANNED, CRUISE_LINES, CRUISE_PORTS],
+  listPanel: [PARK_LIST, SHIP_LIST],
   indicators: [
     {
       id: 'parks',
@@ -211,6 +346,23 @@ export const disney: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       integer: true,
       overlayTime: 'cumulative',
+    },
+    {
+      id: 'cruise',
+      // 卡片與圖例的標題是子項目接指標名稱：「以這國為母港的迪士尼郵輪」
+      label: { zh: '的迪士尼郵輪', en: 'Disney cruise ships' },
+      description: {
+        zh: '迪士尼郵輪的現役 8 艘船以哪一國為母港、掛哪一國的旗（英文維基「Disney Cruise Line」固定版本 1384145065）。母港：美國 5 艘（卡納維拉爾港的 Magic、Fantasy、Wish、Treasure，大沼澤港的 Destiny）、新加坡 1 艘（2026 年 3 月入役的 Adventure，20.8 萬總噸、最多 6,700 名乘客，是船隊裡最大的，也是第一艘常駐亞洲的）；Wonder 與 Dream 條目沒有寫固定母港（依季節部署）。船籍：8 艘全部登記在巴哈馬的拿索，跟母港是兩件事；2029 年的 Disney Imagination 例外，由東方樂園公司擁有與營運、以東京為母港並登記在東京。船從 1998 年 Magic 的 8.4 萬總噸、2011 年 Dream 的 13.0 萬、2022 年 Wish 的 14.4 萬長到 2026 年 Adventure 的 20.8 萬（左邊的清單依母港分組，看噸位、載客與入役年）；另外 5 艘將交船的噸位是計畫值。地圖上的點是母港、私人島 Castaway Cay 與船籍港拿索，線從母港連到拿索。航程畫不出來：迪士尼官網的條款不准把內容編成資料庫，OpenStreetMap 與 IMF PortWatch 也沒有郵輪的航線。另一座私人島 Lookout Cay 在 Wikidata 上沒有自己的項目，不畫。台灣沒有迪士尼郵輪的母港，條目裡也沒有停靠台灣。',
+        en: 'Where the 8 Disney Cruise Line ships in service are based and which flag they fly (English Wikipedia, “Disney Cruise Line”, revision 1384145065). Home ports: the US has 5 (Magic, Fantasy, Wish and Treasure at Port Canaveral; Destiny at Port Everglades) and Singapore 1 (Adventure, in service since March 2026: 208,000 GT and up to 6,700 passengers, the largest in the fleet and the first based in Asia); the article gives no fixed home port for Wonder and Dream (seasonal deployments). Flag: all 8 are registered in Nassau, Bahamas, which is not the same as their home port; the exception will be Disney Imagination (2029), owned and operated by Oriental Land, based in and registered in Tokyo. The ships grew from 84,000 GT (Magic, 1998) to 130,000 (Dream, 2011), 144,000 (Wish, 2022) and 208,000 (Adventure, 2026); the list on the left groups them by home port with tonnage, capacity and year, and the 5 ships on order show planned figures. Points are home ports, the private island Castaway Cay and the port of registry, Nassau; lines link home ports to Nassau. Itineraries cannot be mapped: Disney’s terms forbid compiling its content into a database, and neither OpenStreetMap nor IMF PortWatch has cruise routes. The other private island, Lookout Cay, has no Wikidata item of its own and is not shown. Taiwan has no Disney home port, and the article lists no Taiwanese calls.',
+      },
+      unit: { zh: '艘', en: 'ships' },
+      file: 'cruise/{item}.json',
+      dimension: CRUISE_ITEMS,
+      layer: { kind: 'bubble', legendValues: [1, 5, 8] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 艘`, en: `${fixed(v, 0)} ${v === 1 ? 'ship' : 'ships'}` }),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2026,
     },
   ],
 };

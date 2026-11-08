@@ -367,6 +367,7 @@ STEPS = {
     "theme-park-groups": "topics.theme_park_groups",
     "park-brands": "topics.park_brands",
     "disney": "topics.disney",  # 2026-11-08 第二十八批 673：迪士尼（要先有 attractions-extra 的 park-visitors.json）
+    "disney-cruise": "topics.disney_cruise",  # 2026-11-08 第二十八批 674：迪士尼郵輪（要先有 port-calls 的 PortWatch 快取）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",
     "roller-coasters": "topics.roller_coasters",
