@@ -22,7 +22,7 @@ import openpyxl
 
 from common import OUT_DIR, indicator_file, points_file, write_json, write_points
 from geoindex import countries_at
-from sources import mohw_tables, osm_qlever
+from sources import mohw_tables, osm_coverage, osm_qlever, wpp
 
 OUT = OUT_DIR / "topics" / "alt-medicine"
 YEAR = 2026
@@ -39,6 +39,8 @@ KINDS = [  # (代號, speciality 的值)
 OTHER = len(KINDS) + 1  # 其他或沒寫
 MIN_MAIN = 10  # 「以哪一種為主」：七類合計至少幾處才上色
 MIN_PHARMACIES = 200
+MIN_CARE = 300  # 比例的分母（診所＋藥局）至少幾處
+MIN_PER = 10  # 每百萬人：至少幾處才上色
 REGEX = "chinese_medicine|oriental_medicine|korean_medicine|tuina|acupuncture|chiropractic|osteopathy|homeopathy|naturopathy|ayurveda"
 
 
@@ -163,6 +165,46 @@ def build() -> None:
         hints_en[c] = f"{total:,} places in the seven types; the largest is {counts[best] / total:.0%}"
     write_json(OUT / "main-kind.json", indicator_file("main-kind", "類", [YEAR], main, noValue=nv, noValueEn=nv_en, hints=hints,
                                                       hintsEn=hints_en, license="ODbL 1.0"))
+    # 第二十九批 699：每一種的分國計數（子項目）
+    for i, (name, _) in enumerate(KINDS, 1):
+        write_json(OUT / "kinds" / f"{name}.json", indicator_file(f"kind-{name}", "處", [YEAR], {c: [v] for c, v in sorted(by[i].items())},
+                                                                  license="ODbL 1.0"))
+    # 第二十九批 698：占診所＋藥局的比例（分母至少 MIN_CARE 處）、每百萬人（只替 OSM 覆蓋良好、至少 MIN_PER 處的國家上色）
+    clinics = osm_qlever.counts("amenity", "clinic")
+    pharmacies = osm_qlever.counts("amenity", "pharmacy")
+    share, snv, snv_en, sh, sh_en = {}, {}, {}, {}, {}
+    for c in sorted(set(allc) | set(clinics) | set(pharmacies)):
+        care = clinics.get(c, 0) + pharmacies.get(c, 0)
+        if care < MIN_CARE:
+            if allc.get(c):
+                snv[c] = f"OpenStreetMap 上的診所加藥局只有 {care} 處（不到 {MIN_CARE} 處），比例不穩，不畫"
+                snv_en[c] = f"Only {care} clinics and pharmacies on OpenStreetMap (fewer than {MIN_CARE}), too few for a stable ratio, so not shown"
+            continue
+        share[c] = [round(allc.get(c, 0) / care * 100, 1)]
+        sh[c] = f"傳統與替代醫學 {allc.get(c, 0):,} 處；診所 {clinics.get(c, 0):,}、藥局 {pharmacies.get(c, 0):,} 處"
+        sh_en[c] = f"{allc.get(c, 0):,} traditional and alternative medicine places; {clinics.get(c, 0):,} clinics, {pharmacies.get(c, 0):,} pharmacies"
+    write_json(OUT / "share-of-care.json", indicator_file("share-of-care", "%", [YEAR], share, noValue=snv, noValueEn=snv_en, hints=sh,
+                                                          hintsEn=sh_en, license="ODbL 1.0"))
+    pop = {c: s[2024] for c, s in wpp.demographic(["TPopulation1July"], last_year=2024)["TPopulation1July"].items() if s.get(2024)}
+    cov, covered = osm_coverage.coverage(), osm_coverage.well_covered()
+    per, pnv, pnv_en = {}, {}, {}
+    for c in sorted(set(allc) | covered):
+        if c not in pop:
+            continue
+        if c not in covered:
+            pnv[c], pnv_en[c] = osm_coverage.reason(c, cov.get(c))
+        elif allc.get(c, 0) < MIN_PER:
+            pnv[c] = f"OpenStreetMap 上只有 {allc.get(c, 0)} 處（不到 {MIN_PER} 處），不畫"
+            pnv_en[c] = f"Only {allc.get(c, 0)} places on OpenStreetMap (fewer than {MIN_PER}), so not shown"
+        else:
+            per[c] = [round(allc[c] / (pop[c] * 1000) * 1e6, 1)]
+    write_json(OUT / "per-million.json", indicator_file("per-million", "處/百萬人", [YEAR], per, noValue=pnv, noValueEn=pnv_en, license="ODbL 1.0"))
+    rs = sorted(share.items(), key=lambda kv: -kv[1][0])
+    print(f"  占診所＋藥局（分母 ≥{MIN_CARE} 的 {len(share)} 國）：" + "、".join(f"{c} {v[0]}" for c, v in rs[:18]) + " … "
+          + "、".join(f"{c} {share[c][0]}" for c in ("TWN", "CHN", "JPN", "KOR", "ITA", "BRA", "RUS", "DEU", "USA") if c in share))
+    rp = sorted(per.items(), key=lambda kv: -kv[1][0])
+    print(f"  每百萬人（覆蓋良好且 ≥{MIN_PER} 處的 {len(per)} 國）：" + "、".join(f"{c} {v[0]}" for c, v in rp[:15]) + " … "
+          + "、".join(f"{c} {per[c][0]}" for c in ("TWN", "CHN", "JPN", "KOR", "DEU", "USA", "FRA", "IND") if c in per))
     pts.sort(key=lambda p: (p["k"], p["iso3"], p["lon"]))
     write_points(OUT / "places.json", points_file(pts, ["lon", "lat", "k", "iso3", "n", "nz", "ne"], {"lon": 0.0001, "lat": 0.0001, "k": 1},
                                                   strings=("iso3",)), ("n", "nz", "ne"))
