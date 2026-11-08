@@ -465,6 +465,7 @@ STEPS = {
     # 15–49 歲女性有偶或同居的比例（婚姻與家庭）：聯合國人口司的 xlsx（約 10 MB），讀一次約 5 秒
     "union-women": "topics.union_women",
     "laws": "topics.laws",  # 自行整理的表，不必下載
+    "minor-social-media": "topics.minor_social_media",
     # GHSL Urban Centre Database 2025 與各國城鄉人口（約 43 MB）、Wikidata 的地點（兩次查詢約 1 分鐘）與中文名稱
     # （約 130 次查詢）、內政部戶政司的縣市人口；之後用快取約 30 秒
     "cities": "topics.cities",

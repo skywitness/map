@@ -170,6 +170,25 @@ const GAMBLING_NOTE = {
   en: 'The legality of gambling is classified from the age column of the Wikipedia article “Gambling age” (October 2026, CC BY-SA 4.0, and the data file is shared under CC BY-SA 4.0 as well): entries such as “illegal for all ages (casinos), 18 (lotteries)” count as lotteries or licensed betting only, and entries giving only an age count as casinos legal (the article does not separate casinos from lotteries, and whether casinos actually operate was not checked country by country); non-profit bingo and raffles are ignored. Taiwan, Hong Kong, Japan, India, Malaysia, the US and Macao are classified from their laws or the article’s notes, as given in the panel notes. ',
 };
 
+/** 未成年人用社群平台的年齡限制（2026-11-08，製作手冊第二十七批 660，候選 1446；pipeline/topics/minor_social_media.py） */
+const MINOR_SOCIAL: CategoryDef[] = [
+  { value: 1, label: { zh: '禁止某年齡以下開帳號（已實施）', en: 'Ban below an age (in force)' } },
+  { value: 2, label: { zh: '某年齡以下要父母同意（已實施）', en: 'Parental consent below an age (in force)' } },
+  { value: 3, label: { zh: '已立法、還沒生效', en: 'Passed, not yet in force' } },
+  { value: 4, label: { zh: '政府已宣布或國會審議中', en: 'Announced or before parliament' } },
+  { value: 5, label: { zh: '研議或提案', en: 'Under discussion or proposed' } },
+  { value: 6, label: { zh: '不禁帳號，限制時段與時數', en: 'No ban; limits on hours and time' } },
+  { value: 7, label: { zh: '不採用禁令或被判違憲', en: 'Ban rejected or struck down' } },
+];
+const MINOR_SOCIAL_SOURCE = {
+  name: {
+    zh: '英文維基百科「Online age verification laws by country」（固定版本 1383775966，各國段落自行分類）',
+    en: 'English Wikipedia, “Online age verification laws by country” (revision 1383775966, classified from the country sections)',
+  },
+  url: 'https://en.wikipedia.org/wiki/Online_age_verification_laws_by_country?oldid=1383775966',
+  license: 'CC BY-SA 4.0',
+};
+
 const lawsOwn: TopicDefinition = {
   id: 'laws',
   title: { zh: '法律與制度', en: 'Laws and institutions' },
@@ -260,6 +279,7 @@ const lawsOwn: TopicDefinition = {
       url: 'https://data.gov.tw/dataset/9123',
       license: OPEN_DATA_TW,
     },
+    MINOR_SOCIAL_SOURCE,
   ],
   tooltipLines,
   note: {
@@ -479,6 +499,20 @@ const lawsOwn: TopicDefinition = {
       },
       CRIMINAL,
     ),
+    {
+      id: 'minor-social-media',
+      label: { zh: '未成年人用社群平台的年齡限制', en: 'Age limits for children on social media' },
+      description: {
+        zh: '各國對未成年人開社群平台帳號的規定，2026 年 11 月的現況，依英文維基百科「Online age verification laws by country」各國的段落自行分類（滑過國家看年齡與日期）。已實施禁令的有澳洲（16 歲以下，2025 年 12 月起，全世界第一個）、印尼與馬來西亞（16 歲以下）、土耳其（15 歲以下，2026 年 11 月起）；巴西是 16 歲以下要跟父母的帳號綁定；英國（16 歲，2027 年 3 月）與希臘（15 歲，2027 年 1 月）已立法還沒生效；丹麥、葡萄牙、阿聯、紐西蘭、挪威、西班牙、加拿大、菲律賓等已宣布或在國會審議；中國不禁帳號，用「未成年模式」限制時段與時數；法國的 15 歲禁令 2026 年 8 月被憲法委員會宣告違憲，義大利、日本、香港等表明不採用。條目沒寫的國家沒有顏色（包括台灣）；美國聯邦沒有法律，佛羅里達等州已經實施。',
+        en: 'Rules on children opening social media accounts, as of November 2026, classified from the country sections of the English Wikipedia article “Online age verification laws by country” (hover for ages and dates). Bans are in force in Australia (under 16, since December 2025, the first in the world), Indonesia and Malaysia (under 16) and Turkey (under 15, since November 2026); Brazil requires under-16s to have accounts linked to a parent; the UK (16, March 2027) and Greece (15, January 2027) have passed laws not yet in force; Denmark, Portugal, the UAE, New Zealand, Norway, Spain, Canada and the Philippines have announced bans or have bills before parliament; China has no account ban but limits hours and daily time through its Minor Mode; France’s under-15 ban was struck down by the Constitutional Council in August 2026, and Italy, Japan, Hong Kong and others have said they will not adopt bans. Countries the article does not cover are left blank, including Taiwan; the US has no federal law, but some states, such as Florida, enforce their own.',
+      },
+      unit: '',
+      file: 'minor-social-media.json',
+      layer: { kind: 'categorical', categories: MINOR_SOCIAL },
+      format: (v) => tr(MINOR_SOCIAL.find((c) => c.value === v)?.label ?? { zh: '', en: '' }),
+      defaultYear: 2026,
+      unranked: true,
+    },
   ],
 };
 
