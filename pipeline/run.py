@@ -374,6 +374,7 @@ STEPS = {
     "disney-plus": "topics.disney_plus",  # 2026-11-08 第二十八批 678：Disney+ 在哪些國家看得到、迪士尼片庫的拍攝地與故事場景地
     "disney-france": "topics.disney_france",  # 2026-11-08 第二十八批 679：迪士尼在法國的法人（白名單 pipeline/data/disney/france.csv）與迪士尼商店（OSM；要先有 amusement-industry）
     "universal": "topics.universal",  # 2026-11-08 第二十八批 680：環球影城（白名單 pipeline/data/universal/places.csv）
+    "universal-area": "topics.universal_area",  # 2026-11-08 第二十八批 681：環球的園區多邊形、面積、園內雲霄飛車、維基的設施數（要先有 universal）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",
     "roller-coasters": "topics.roller_coasters",
