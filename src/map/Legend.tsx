@@ -239,7 +239,7 @@ export function BubbleLegend({ indicator, title, radius, tokens, pieShown = true
           ))}
         </ul>
       )}
-      <NoDataKey />
+      <NoDataKey label={indicator.missing} />
     </div>
   );
 }
@@ -308,7 +308,7 @@ export function ColumnLegend({ indicator, title, max, color, tokens }: ColumnLeg
         ))}
         <line x1={0} x2={width} y1={baseline + 0.5} y2={baseline + 0.5} stroke={tokens.axis} />
       </svg>
-      <NoDataKey />
+      <NoDataKey label={indicator.missing} />
     </div>
   );
 }

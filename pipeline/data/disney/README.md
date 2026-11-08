@@ -18,3 +18,16 @@ QID 來自 map-plan 的 research/brands/W1.md 第二節 1478；座標、面積�
 | `note` | 說明（中文） |
 
 度假區與樂園是兩層，**不要混算**：「迪士尼有幾座樂園」只算 `kind=park`、`status=open` 的 12 座。
+
+# 迪士尼在法國的法人白名單（`france.csv`）
+
+順序 679（候選 1483）用，`pipeline/topics/disney_france.py` 讀這個檔。2026-11-08 用法國政府的公司查詢 API
+（recherche-entreprises.api.gouv.fr）搜「euro disney」「walt disney」，人工挑出名稱與行業確定是迪士尼的法人；排掉員工福利委員會與它的
+社團、只是名稱裡有 Disney 的無關公司、沒有總部位置的外國公司登記。數字（營業額、淨利、員工級距）每次重跑從 API 更新，出處是 INSEE 的
+Base Sirene 與 INPI 的財報申報（data.gouv.fr，Licence Ouverte 2.0）。
+
+| 欄位 | 說明 |
+|---|---|
+| `siren` | 法國的企業編號（9 碼） |
+| `group` | `resort` 迪士尼巴黎（營運、套裝行程、工程設計）、`media` 影視、授權與消費品、`holding` 控股公司 |
+| `note` | 這個法人是做什麼的（中文，自己寫的） |

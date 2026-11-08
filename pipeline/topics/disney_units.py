@@ -12,6 +12,7 @@
   的 P625。**總部是整個國家的丟掉**（Illumination 的 P159 是美國，會落在堪薩斯州中間）：P159 有 P297（ISO 國碼）的就是國家。
   精度欄 `prec`：1 自己的座標、2 總部或所在地的城市。沒有座標的只進清單（國家依 P17，點放在國家的標籤點，`prec` 3）。
 - 同一個座標（小數 3 位）有好幾個單位時（伯班克一地就有七八個），照「大企業的據點」的寫法排成半徑 0.025° 的小圓。
+- 員工數（2026-11-08 加，第二十八批 679 的候選 1491）：Wikidata P1128，只有少數幾個單位有，取 P585 最新的一筆，只寫在說明。
 - 國家：有座標的依座標（geoindex），沒有的依 P17。台灣在這條鏈裡 0 筆（Disney Channel (Taiwan) Q3030388 不在鏈上、
   也沒有座標），noValue 寫原因。
 """
@@ -30,8 +31,8 @@ OUT = OUT_DIR / "topics" / "disney"
 CSV = ROOT / "pipeline" / "data" / "disney" / "units.csv"
 YEAR = 2026
 GROUPS = ["studio", "broadcast", "streaming", "publishing", "company"]  # 前端 disney.ts 的 UNIT_GROUPS（代碼是索引 + 1）
-FIELDS = ["lon", "lat", "qid", "en", "iso3", "g", "prec", "y", "city"]
-SCALE = {"lon": 0.0001, "lat": 0.0001, "g": 1, "prec": 1, "y": 1}
+FIELDS = ["lon", "lat", "qid", "en", "iso3", "g", "prec", "y", "city", "emp", "empy"]
+SCALE = {"lon": 0.0001, "lat": 0.0001, "g": 1, "prec": 1, "y": 1, "emp": 1, "empy": 1}
 SPREAD = 0.025
 
 
@@ -79,6 +80,20 @@ def build() -> None:
             if y and (o.get("y") is None or y < o["y"]):
                 o["y"] = y
 
+    # 員工數（P1128，候選 1491）：只有少數幾個單位有，取最新的一筆（P585 時間；沒有時間的排最後）
+    emps = wd.cached("disney-units-employees", """SELECT ?item ?n ?t WHERE {
+  VALUES ?item { %s }
+  ?item p:P1128 ?st . ?st ps:P1128 ?n . OPTIONAL { ?st pq:P585 ?t }
+}""" % values)
+    for b in emps:
+        q = b["item"]["value"].rsplit("/", 1)[1]
+        t = b.get("t", {}).get("value", "")[:4]
+        key = (t if t.isdigit() else "0000")
+        if key >= meta[q].get("_empt", ""):
+            meta[q]["_empt"] = key
+            meta[q]["emp"] = int(float(b["n"]["value"]))
+            meta[q]["empy"] = int(t) if t.isdigit() else None
+
     from topics.reads import label_points
 
     labels = label_points()
@@ -99,7 +114,8 @@ def build() -> None:
             lon, lat = labels[iso3]
             prec = 3
         out.append({"lon": lon, "lat": lat, "qid": q, "en": m.get("en", q), "g": g, "prec": prec, "y": m.get("y"),
-                    "city": city, "iso3": from_alpha2(m.get("iso2")) if prec == 3 else None})
+                    "city": city, "iso3": from_alpha2(m.get("iso2")) if prec == 3 else None,
+                    "emp": m.get("emp"), "empy": m.get("empy")})
     located = [o for o in out if o["prec"] < 3]
     for o, c in zip(located, geoindex.countries_at([o["lon"] for o in located], [o["lat"] for o in located])):
         o["iso3"] = c or from_alpha2(meta[o["qid"]].get("iso2"))
@@ -131,4 +147,5 @@ def build() -> None:
     counts = Counter(o["iso3"] for o in out if o["iso3"])
     print(f"  迪士尼的單位：白名單 {len(groups)}，有位置 {len(out)}（自己的座標 {sum(o['prec'] == 1 for o in out)}、總部或所在地 "
           f"{sum(o['prec'] == 2 for o in out)}、只有國家 {sum(o['prec'] == 3 for o in out)}），沒有位置也沒有國家 {len(no_place)}；"
-          f"{len(counts)} 國，前幾名 {counts.most_common(10)}；各組 {Counter(o['g'] for o in out)}")
+          f"{len(counts)} 國，前幾名 {counts.most_common(10)}；各組 {Counter(o['g'] for o in out)}；"
+          f"有員工數 {[(o['en'], o['emp'], o['empy']) for o in out if o['emp']]}")

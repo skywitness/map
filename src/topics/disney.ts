@@ -402,6 +402,10 @@ function unitFacts(p: PointRecord): string[] {
   if (y) out.push(tr({ zh: `${y} 年成立`, en: `Founded ${y}` }));
   const city = typeof p.city === 'string' && p.city ? p.city : '';
   out.push(tr(at(PRECISION, p.prec)) + (city ? tr({ zh: `（${city}）`, en: ` (${city})` }) : ''));
+  // 員工數（Wikidata P1128，第二十八批 679）：只有少數幾個單位有
+  const emp = num(p, 'emp');
+  const empy = num(p, 'empy');
+  if (emp) out.push(tr({ zh: `員工 ${fixed(emp, 0)} 人（Wikidata${empy ? `，${empy} 年` : ''}）`, en: `${fixed(emp, 0)} employees (Wikidata${empy ? `, ${empy}` : ''})` }));
   return out;
 }
 
@@ -709,6 +713,143 @@ function placeList(file: string, label: Text, tabLabel: Text, indicator: string)
 const FILMING_LIST = placeList('filming-all.json', { zh: '迪士尼片庫的拍攝地', en: 'Filming locations of the Disney library' }, { zh: '拍攝地', en: 'Filming' }, 'filming');
 const SETTINGS_LIST = placeList('settings-all.json', { zh: '迪士尼片庫的故事場景地', en: 'Story settings of the Disney library' }, { zh: '場景地', en: 'Settings' }, 'settings');
 
+// ── 法國的法人、員工數與迪士尼商店（2026-11-08，製作手冊第二十八批 679，候選 1483、1496、1491、1489；pipeline/topics/disney_france.py） ──
+// 法人是 SIREN 的白名單（pipeline/data/disney/france.csv），數字是 INSEE Base Sirene 與 INPI 財報申報（lov2）。營運公司與
+// 套裝行程公司之間有集團內買賣，不加總。迪士尼商店是 OSM 的品牌標籤，嚴重偏向北美，不上色、不排名。專利（1498）照手冊不做。
+
+const FR_INDICATORS = ['france-revenue'];
+const FR_GROUPS: Text[] = [
+  { zh: '迪士尼巴黎（營運、套裝行程、工程設計）', en: 'Disneyland Paris (operations, packages, engineering)' },
+  { zh: '影視、授權與消費品', en: 'Film, licensing and consumer products' },
+  { zh: '控股公司', en: 'Holding companies' },
+];
+/** 法國的行業碼 NAF rev. 2（只寫確定的；舊版 NAF 的碼照寫代碼） */
+const NAF: Record<string, Text> = {
+  '93.21Z': { zh: '遊樂園與主題樂園', en: 'amusement and theme parks' },
+  '79.12Z': { zh: '旅遊業者（套裝行程）', en: 'tour operator' },
+  '71.12B': { zh: '工程與技術研究', en: 'engineering and technical studies' },
+  '70.22Z': { zh: '企業管理顧問', en: 'business and management consultancy' },
+  '64.20Z': { zh: '控股公司', en: 'holding company' },
+  '64.30Z': { zh: '投資基金與類似的金融實體', en: 'trusts, funds and similar financial entities' },
+  '77.40Z': { zh: '智慧財產的授權', en: 'leasing of intellectual property' },
+  '59.11C': { zh: '電影製作', en: 'film production' },
+};
+function euroText(v: number): string {
+  if (Math.abs(v) >= 1e8) return tr({ zh: `${fixed(v / 1e8, 2)} 億歐元`, en: `€${fixed(v / 1e6, 0)} million` });
+  if (Math.abs(v) >= 1e6) return tr({ zh: `${fixed(v / 1e6, 1)} 百萬歐元`, en: `€${fixed(v / 1e6, 1)} million` });
+  return tr({ zh: `${fixed(v, 0)} 歐元`, en: `€${fixed(v, 0)}` });
+}
+function frFacts(p: PointRecord): string[] {
+  const out: string[] = [];
+  const naf = typeof p.naf === 'string' ? p.naf : '';
+  if (naf) out.push(NAF[naf] ? `${naf} ${tr(NAF[naf])}` : tr({ zh: `舊版行業碼 ${naf}`, en: `former industry code ${naf}` }));
+  const y = num(p, 'y');
+  const yc = num(p, 'yc');
+  if (y) out.push(p.act === 1 ? tr({ zh: `${y} 年設立`, en: `registered ${y}` }) : tr({ zh: `${y}–${yc ?? ''} 年（已註銷）`, en: `${y}–${yc ?? ''} (closed)` }));
+  const fy = num(p, 'fy');
+  const ca = num(p, 'ca');
+  const net = num(p, 'net');
+  if (fy && (ca !== null || net !== null))
+    out.push(
+      tr({ zh: `${fy} 會計年度：`, en: `Financial year ${fy}: ` }) +
+        [ca !== null ? tr({ zh: `營業額 ${euroText(ca)}`, en: `turnover ${euroText(ca)}` }) : '', net !== null ? tr({ zh: `淨利 ${euroText(net)}`, en: `net income ${euroText(net)}` }) : '']
+          .filter(Boolean)
+          .join(tr({ zh: '、', en: ', ' })),
+    );
+  if (typeof p.emp === 'string' && p.emp) out.push(tr({ zh: `員工 ${p.emp} 人（${String(p.empy ?? '')} 年的級距）`, en: `${p.emp} employees (${String(p.empy ?? '')} band)` }));
+  if (getLang() === 'zh' && typeof p.note === 'string' && p.note) out.push(p.note);
+  return out;
+}
+const FRANCE: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-france',
+  file: 'france.json',
+  label: { zh: '迪士尼在法國的法人（總部的位置）', en: 'Disney companies in France (registered offices)' },
+  indicators: FR_INDICATORS,
+  radius: { field: 'act', stops: [[0, 3.5], [1, 6]] },
+  color: {
+    field: 'act',
+    title: { zh: '狀態', en: 'Status' },
+    thresholds: [0.5],
+    classes: [
+      { label: { zh: '已註銷', en: 'Closed' }, color: MAP_TOKENS.categoricalOther },
+      { label: { zh: '營運中', en: 'Active' }, color: C[0] },
+    ],
+  },
+  sortField: 'act',
+  tooltip: (p) => ({
+    title: String(p.name ?? ''),
+    properNoun: String(p.name ?? ''),
+    detail: [tr(at(FR_GROUPS, p.g)), typeof p.city === 'string' ? p.city : null].filter(Boolean).join(' · '),
+    extra: frFacts(p),
+  }),
+};
+const FRANCE_LIST: ListPanelDef = {
+  label: { zh: '迪士尼在法國的法人', en: 'Disney companies in France' },
+  tabLabel: { zh: '法國的法人', en: 'France' },
+  indicators: FR_INDICATORS,
+  file: 'france.json',
+  countryField: 'iso3',
+  rows: (points) =>
+    points
+      .slice()
+      // 營運中依營業額由大到小，已註銷依設立年
+      .sort((a, b) => (num(b, 'act') ?? 0) - (num(a, 'act') ?? 0) || (a.act === 1 ? (num(b, 'ca') ?? -1) - (num(a, 'ca') ?? -1) : (num(a, 'y') ?? 0) - (num(b, 'y') ?? 0)))
+      .map(
+        (p): ListRow => ({
+          key: String(p.siren),
+          title: String(p.name ?? ''),
+          titleProper: true,
+          group: p.act === 1 ? tr({ zh: '營運中（依營業額）', en: 'Active (by turnover)' }) : tr({ zh: '已註銷（依設立年）', en: 'Closed (by year registered)' }),
+          muted: p.act !== 1,
+          lines: [[tr(at(FR_GROUPS, p.g)), typeof p.city === 'string' ? p.city : ''].filter(Boolean).join(' · '), frFacts(p).join(tr({ zh: '；', en: '; ' }))],
+          link: {
+            href: `https://annuaire-entreprises.data.gouv.fr/entreprise/${String(p.siren)}`,
+            label: tr({ zh: `資料出處 法國公司登記 SIREN ${String(p.siren)}`, en: `Source: French company register, SIREN ${String(p.siren)}` }),
+          },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 13 },
+        }),
+      ),
+};
+
+const STORES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-stores',
+  file: 'stores.json',
+  label: { zh: 'OpenStreetMap 上標了的迪士尼商店', en: 'Disney Stores mapped on OpenStreetMap' },
+  indicators: ['stores'],
+  radius: 4,
+  color: C[3],
+  tooltip: (p, { countryName }) => ({
+    title: typeof p.name === 'string' && p.name ? p.name : 'Disney Store',
+    properNoun: typeof p.name === 'string' && p.name ? p.name : 'Disney Store',
+    detail: [typeof p.city === 'string' ? p.city : null, typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    extra: [tr({ zh: `OpenStreetMap ${String(p.osm)}`, en: `OpenStreetMap ${String(p.osm)}` })],
+  }),
+};
+const STORE_LIST: ListPanelDef = {
+  label: { zh: 'OpenStreetMap 上標了的迪士尼商店', en: 'Disney Stores mapped on OpenStreetMap' },
+  tabLabel: { zh: '商店', en: 'Stores' },
+  indicators: ['stores'],
+  file: 'stores.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    points
+      .slice()
+      .sort((a, b) => countryName(String(a.iso3)).localeCompare(countryName(String(b.iso3))) || String(a.city ?? '').localeCompare(String(b.city ?? '')))
+      .map(
+        (p): ListRow => ({
+          key: String(p.osm),
+          title: typeof p.name === 'string' && p.name ? p.name : 'Disney Store',
+          titleProper: true,
+          group: typeof p.iso3 === 'string' ? countryName(p.iso3) : '',
+          lines: [typeof p.city === 'string' ? p.city : ''].filter(Boolean),
+          link: { href: `https://www.openstreetmap.org/${String(p.osm)}`, label: tr({ zh: '資料出處 OpenStreetMap', en: 'Source: OpenStreetMap' }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 16 },
+        }),
+      ),
+};
+
 export const disney: TopicDefinition = {
   id: 'disney',
   title: { zh: '迪士尼在哪裡：樂園、郵輪、飯店與影視部門', en: 'Where Disney is: parks, cruise ships, hotels and studios' },
@@ -753,6 +894,19 @@ export const disney: TopicDefinition = {
       license: 'CC0',
     },
     {
+      name: {
+        zh: 'INSEE Base Sirene 與 INPI 財報申報（法國公司登記的開放資料，data.gouv.fr；經 recherche-entreprises.api.gouv.fr 查詢）',
+        en: 'INSEE Base Sirene and INPI filed accounts (French company register open data, data.gouv.fr; looked up via recherche-entreprises.api.gouv.fr)',
+      },
+      url: 'https://www.data.gouv.fr/datasets/base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret/',
+      license: 'Licence Ouverte 2.0',
+    },
+    {
+      name: { zh: 'OpenStreetMap（迪士尼商店的品牌標籤，經 QLever 查詢）', en: 'OpenStreetMap (Disney Store brand tags, via QLever)' },
+      url: 'https://www.openstreetmap.org/copyright',
+      license: 'ODbL 1.0',
+    },
+    {
       name: { zh: 'IMF PortWatch 港口資料庫（新加坡、東京、拿索的座標）', en: 'IMF PortWatch ports database (coordinates of Singapore, Tokyo and Nassau)' },
       url: 'https://portwatch.imf.org/',
       license: { zh: 'IMF 的資料條款（註明出處）', en: 'IMF data terms (with attribution)' },
@@ -762,8 +916,8 @@ export const disney: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
   },
-  overlays: [RESORT_RINGS, SITES, PLANNED, PARK_VISITS, PARK_RIDES, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS, FILMING_REGIONS, FILMING, SETTINGS_REGIONS, SETTINGS],
-  listPanel: [PARK_LIST, VISIT_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST, PLUS_LIST, FILMING_LIST, SETTINGS_LIST],
+  overlays: [RESORT_RINGS, SITES, PLANNED, PARK_VISITS, PARK_RIDES, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS, FILMING_REGIONS, FILMING, SETTINGS_REGIONS, SETTINGS, FRANCE, STORES],
+  listPanel: [PARK_LIST, VISIT_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST, PLUS_LIST, FILMING_LIST, SETTINGS_LIST, FRANCE_LIST, STORE_LIST],
   indicators: [
     {
       id: 'parks',
@@ -916,6 +1070,39 @@ export const disney: TopicDefinition = {
       format: (v) => worksCount(v),
       formatTick: (v) => fixed(v, 0),
       integer: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'france-revenue',
+      label: { zh: '迪士尼巴黎營運公司的營業額', en: 'Turnover of Disneyland Paris’s operating company' },
+      description: {
+        zh: '法國的公司登記是開放資料，給得出迪士尼巴黎的公司層級數字：營運公司 EURO DISNEY ASSOCIES SAS（SIREN 397471822，行業碼 93.21Z 遊樂園與主題樂園）2025 會計年度營業額 26.83 億歐元、淨利 2.6 億歐元，員工在 INSEE 最高的一級「10,000 人以上」（2024 年）。這個行業碼就是「樂園業」主題用的 Eurostat R9321，法國 2024 年整個行業的淨營業額約 5,663 百萬歐元，這一家約占 47%；但年份差一年，法國的 R9321 也含很多流動遊樂場，只能說「約」，也不能說法國的樂園業就是迪士尼。套裝行程公司 EURO DISNEY VACANCES SAS 2025 年營業額 18.07 億歐元，跟營運公司之間有大量集團內的買賣（套裝行程裡有門票與住宿），所以不加總。左邊的清單是 18 個有總部位置的迪士尼法人（營運中 6 個、已註銷 12 個，包括曾經上市的 Euro Disney S.C.A.）。這些是公司申報給法國工業產權局（INPI）的財報，不是迪士尼集團財報裡的部門營收，不能直接比。其他國家沒有開放授權的公司層級營業額：香港的數字在立法會文件裡、這裡連不上，上海的營運公司沒有上市，東京的東方樂園是上市公司但這次沒有取得財報，美國證管會的財報連不上、而且只有整個樂園部門。',
+        en: 'France’s company register is open data and gives company-level figures for Disneyland Paris: the operating company, EURO DISNEY ASSOCIES SAS (SIREN 397471822, industry code 93.21Z, amusement and theme parks), had turnover of €2,683 million and net income of €260 million in financial year 2025, and is in INSEE’s top employee band, “10,000 or more” (2024). The same industry code is Eurostat’s R9321 used in “The amusement park industry”: France’s whole industry had net turnover of about €5,663 million in 2024, so this one company is about 47%. The years differ by one, and France’s R9321 also includes many travelling fairs, so the share is approximate and does not mean France’s park industry is Disney. The package-holiday company EURO DISNEY VACANCES SAS had turnover of €1,807 million in 2025; it buys and sells heavily with the operating company (packages include tickets and hotels), so the two are not added together. The list shows the 18 Disney companies with a registered office (6 active, 12 closed, including the once-listed Euro Disney S.C.A.). These are accounts filed with France’s industrial property office (INPI), not the segment revenue in Disney’s group accounts, so the two cannot be compared directly. No other country has openly licensed company-level revenue: Hong Kong’s figures are in Legislative Council papers that could not be reached, Shanghai’s operating company is not listed, Tokyo’s Oriental Land is listed but its reports could not be retrieved this time, and US SEC filings could not be reached and only cover the whole parks segment.',
+      },
+      unit: { zh: '百萬歐元', en: '€ million' },
+      file: 'france-revenue.json',
+      layer: { kind: 'bubble', legendValues: [500, 2683] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 百萬歐元`, en: `€${fixed(v, 0)} million` }),
+      formatTick: (v) => fixed(v, 0),
+      missing: { zh: '這一國的公司登記資料沒有開放授權的營業額', en: 'No openly licensed company revenue for this country' },
+      unranked: true,
+      defaultYear: 2025,
+    },
+    {
+      id: 'stores',
+      label: { zh: 'OpenStreetMap 上標了的迪士尼商店', en: 'Disney Stores mapped on OpenStreetMap' },
+      description: {
+        zh: 'OpenStreetMap 上用品牌標籤（brand:wikidata=Q1047009，Disney Store）標出來的店，共 57 家：美國 43、加拿大 4、日本 3、法國 2、波多黎各 2，西班牙、愛爾蘭、菲律賓各 1。這是 OSM 志工畫了多少，各國的完整度差很多，不是實際的店數，所以國家不上色、也不排名，只畫點。只算有品牌標籤的，不用名稱比對（名稱裡有 Disney 的店不一定是迪士尼開的）。台灣在 OSM 上沒有標迪士尼商店。',
+        en: 'Shops tagged on OpenStreetMap with the Disney Store brand (brand:wikidata=Q1047009): 57 in all, with 43 in the US, 4 in Canada, 3 in Japan, 2 each in France and Puerto Rico, and 1 each in Spain, Ireland and the Philippines. This reflects how much volunteers have mapped, which varies greatly by country, not the real number of stores, so countries are not coloured or ranked; only the dots are shown. Only brand-tagged shops are counted, not name matches (a shop with Disney in its name is not necessarily Disney’s). No Disney Store is mapped in Taiwan.',
+      },
+      unit: { zh: '家', en: 'stores' },
+      file: 'stores-count.json',
+      layer: { kind: 'none' },
+      format: (v) => tr({ zh: `OSM 上標了 ${fixed(v, 0)} 家`, en: `${fixed(v, 0)} mapped on OSM` }),
+      formatTick: (v) => fixed(v, 0),
+      missing: { zh: 'OpenStreetMap 上沒有標', en: 'None mapped on OpenStreetMap' },
+      unranked: true,
+      rankingBars: false,
       defaultYear: 2026,
     },
   ],

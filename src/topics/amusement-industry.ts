@@ -44,8 +44,8 @@ export const amusementIndustry: TopicDefinition = {
       id: 'turnover',
       label: { zh: '營業額', en: 'Turnover' },
       description: {
-        zh: '遊樂園與主題樂園業一年的淨營業額（百萬歐元）。2024 年法國 5,663 百萬歐元最多，德國 2,971、荷蘭 1,249、西班牙 1,055、義大利 651、丹麥 519、比利時 504；南韓 2022 年約 1,258（OECD，韓元換算）、英國 2019 年約 1,119（OECD，英鎊換算）。',
-        en: 'Annual net turnover of the amusement and theme park industry (€ million). In 2024 France had the most (€5,663 million), followed by Germany (2,971), the Netherlands (1,249), Spain (1,055), Italy (651), Denmark (519) and Belgium (504); Korea had about 1,258 in 2022 and the UK about 1,119 in 2019 (OECD, converted from won and pounds).',
+        zh: '遊樂園與主題樂園業一年的淨營業額（百萬歐元）。2024 年法國 5,663 百萬歐元最多，德國 2,971、荷蘭 1,249、西班牙 1,055、義大利 651、丹麥 519、比利時 504；南韓 2022 年約 1,258（OECD，韓元換算）、英國 2019 年約 1,119（OECD，英鎊換算）。法國的數字約有 47% 是迪士尼巴黎的營運公司一家（法國公司登記的 2025 會計年度營業額 2,683 百萬歐元，年份差一年；見「迪士尼」主題）。',
+        en: 'Annual net turnover of the amusement and theme park industry (€ million). In 2024 France had the most (€5,663 million), followed by Germany (2,971), the Netherlands (1,249), Spain (1,055), Italy (651), Denmark (519) and Belgium (504); Korea had about 1,258 in 2022 and the UK about 1,119 in 2019 (OECD, converted from won and pounds). About 47% of France’s figure is a single company, Disneyland Paris’s operator (€2,683 million of turnover in financial year 2025 in the French company register, one year later; see the Disney topic).',
       },
       unit: { zh: '百萬歐元', en: '€ million' },
       file: 'turnover.json',
