@@ -137,7 +137,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '化石燃料', en: 'Fossil fuels' }, topics: ['fossil-fuels', 'fossil-infrastructure'] },
       { label: { zh: '再生能源', en: 'Renewables' }, topics: ['renewables', 'renewable-heat', 'biofuels-hydrogen'] },
       // 2026-11-07（第二十五批 523）：第一個主題「各部門的最終能源消費」做好，開這個小類
-      { label: { zh: '能源的使用與政策', en: 'Energy use & policy' }, topics: ['energy-use', 'household-energy', 'energy-poverty', 'energy-market', 'energy-taxes'] },
+      { label: { zh: '能源的使用與政策', en: 'Energy use & policy' }, topics: ['energy-use', 'household-energy', 'energy-poverty', 'energy-market', 'energy-taxes', 'energy-jobs'] },
     ],
     // 左：電力、核能；中：化石燃料、再生能源；右：能源的使用與政策
     columns: [2, 2, 1],
@@ -324,6 +324,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'env-taxes': () => import('./env-taxes'),
   cctld: () => import('./cctld'),
   'energy-use': () => import('./energy-use'),
+  'energy-jobs': () => import('./energy-jobs'),
   'household-energy': () => import('./household-energy'),
   'energy-poverty': () => import('./energy-poverty'),
   'energy-market': () => import('./energy-market'),

@@ -51,6 +51,7 @@ export const RELATED: Record<string, string[]> = {
   'transport-investment': ['household-transport', 'transport', 'road-safety'],
   'household-transport': ['transport-investment', 'fuel-tax', 'prices'],
   'transport-jobs': ['transport-investment', 'employment', 'shipping'],
+  'energy-jobs': ['energy-use', 'fossil-fuels', 'transport-jobs'],
   'fuel-tax': ['energy-prices', 'energy-taxes', 'household-transport'],
   'city-traffic': ['cities', 'air-quality', 'fuel-tax'],
   'bus-stations': ['transport', 'metro', 'road-safety'],

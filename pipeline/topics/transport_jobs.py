@@ -2,7 +2,7 @@
 輸出 topics/transport-jobs/）。
 
 - ILOSTAT SDMX `DF_EMP_TEMP_SEX_ECO_NB`（就業人數依經濟活動，千人，CC BY 4.0）：ECO_ISIC4_H（運輸與倉儲，含郵政與快遞 H53）
-  與 ECO_ISIC4_TOTAL，男女合計，2000 年起。key 要 5 段（`.A..SEX_T.<ECO>`）。sdmx.ilo.org 偶爾回 403，等一下再試。
+  與 ECO_ISIC4_TOTAL，男女合計，2000 年起。key 要 5 段（`.A..SEX_T.<ECO>`）。sdmx.ilo.org 偶爾回 403 或 504，等一下再試。
   OBS_STATUS 是 U（不可靠）的不收。比例 = H ÷ TOTAL，同一年都有才算。各國最近一年不同（latestWithin 5）。
 - 台灣：ILO 只到 2020 年（主計總處人力資源調查），改用主計總處 A040103050「就業者－按行業分」（跟 `osm_coverage.py` 共用快取）
   的「運輸及倉儲業」與「總計」，年平均，只收已過完的年份；2016 年以前接 ILO 的值（也是人力資源調查）。
@@ -28,7 +28,7 @@ def _ilo(eco: str) -> dict[str, dict[int, float]]:
             path = download(URL.format(eco=eco), "ilostat", f"EMP_TEMP_SEX_ECO_NB-{eco}-2000.csv")
             break
         except urllib.error.HTTPError as e:
-            if e.code != 403 or attempt == 3:
+            if e.code not in (403, 502, 503, 504) or attempt == 3:
                 raise
             time.sleep(15 * (attempt + 1))
     out: dict[str, dict[int, float]] = {}
