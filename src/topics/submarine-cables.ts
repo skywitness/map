@@ -2,6 +2,10 @@ import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { IndicatorDef, PointRecord, TopicDefinition } from './types';
+import { cctld } from './cctld';
+import { ipAddresses } from './ip-addresses';
+import { hostOnly, topicPart } from './merge';
+import { withParts } from './parts';
 
 /**
  * 海底電纜（pipeline/topics/submarine_cables.py，資料是 TeleGeography Submarine Cable Map 2022 年 11 月以 CC BY-NC-SA 3.0
@@ -143,7 +147,7 @@ const indicators: IndicatorDef[] = [
   },
 ];
 
-export const submarineCables: TopicDefinition = {
+const submarineCablesOwn: TopicDefinition = {
   id: 'submarine-cables',
   title: { zh: '海底電纜', en: 'Submarine cables' },
   shortTitle: { zh: '海底電纜', en: 'Cables' },
@@ -195,3 +199,17 @@ export const submarineCables: TopicDefinition = {
   ],
   indicators,
 };
+
+/**
+ * 網路的骨幹（2026-11-08 使用者要求「網路與連線」併成更少的主題（9 個併成 4 個），放到科技的「太空」下面；併進來的主題的定義檔照舊留著，舊網址由 redirects.ts 轉過來）：
+ * 海底電纜（主體）＋網路位址 IPv4 與 IPv6（ip-addresses.ts）＋國家網域 ccTLD（cctld.ts），資料照舊在各自的資料夾
+ */
+export const submarineCables: TopicDefinition = withParts(
+  {
+    ...hostOnly(submarineCablesOwn),
+    title: { zh: '網路的骨幹：海底電纜、IP 位址與國家網域', en: 'The internet’s backbone: submarine cables, IP addresses and country domains' },
+    shortTitle: { zh: '網路的骨幹', en: 'Internet backbone' },
+  },
+  topicPart(ipAddresses),
+  topicPart(cctld),
+);

@@ -116,14 +116,16 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 電價與油價、能源政策、核廢料做好時照手冊的表放進對應的欄
     // 2026-11-07（第二十五批 439）：能源升成自己的大類；「研發與太空」拆出太空（太空、Starlink），原小類改名「研發與創新」
     sections: [
-      // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」，兩個小類疊在左欄
-      { label: { zh: '網路與連線', en: 'Internet & connectivity' }, topics: ['digital', 'internet-speed', 'submarine-cables', 'cctld', 'digital-trade', 'ip-addresses', 'cell-towers', 'internet-freedom', 'web-platforms'] },
+      // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」
       { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'developers', 'chip-materials'] },
       { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'research-orgs', 'oa-journals', 'scientist-mobility'] },
       { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
+      // 2026-11-08 使用者要求：網路與連線從 9 個主題併成 4 個（網速、基地台併進網路普及；IP 位址、國家網域併進海底電纜；
+      // 數位貿易併進上網用什麼），放到太空下面。併進來的主題 id 由 redirects.ts 轉到新的位置
+      { label: { zh: '網路與連線', en: 'Internet & connectivity' }, topics: ['digital', 'submarine-cables', 'web-platforms', 'internet-freedom'] },
     ],
-    // 左：網路與連線＋運算與晶片；中：研發與創新；右：太空
-    columns: [2, 1, 1],
+    // 左：運算與晶片；中：研發與創新；右：太空、網路與連線
+    columns: [1, 1, 2],
   },
   {
     // 2026-11-07（製作手冊第二十五批 439，使用者 2026-11-05 核准）：能源從科技分出來成為大類。手冊的五個小類裡核能只有一個主題，
@@ -150,8 +152,9 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       { label: { zh: '鐵道', en: 'Rail' }, topics: ['transport', 'high-speed-rail', 'metro', 'heritage-railways'] },
       { label: { zh: '航空', en: 'Air' }, topics: ['aviation', 'air-routes', 'airspace'] },
-      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'bus-stations', 'cabotage', 'ride-hailing'] },
+      // 2026-11-08 使用者要求：水運放到航空下面（同一欄）
       { label: { zh: '水運', en: 'Sea' }, topics: ['shipping', 'logbooks'] },
+      { label: { zh: '道路', en: 'Road' }, topics: ['road-safety', 'ev', 'bus-stations', 'cabotage', 'ride-hailing'] },
       // 2026-11-07（第二十七批 585）：交通基礎建設投資、家庭交通支出、運輸業就業三個新主題，加上從電價與油價搬來的燃料稅、
       // 從城市搬來的低排放區與塞車費
       {
@@ -159,8 +162,8 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
         topics: ['transport-investment', 'household-transport', 'transport-jobs', 'fuel-tax', 'city-traffic'],
       },
     ],
-    // 每個小類各占一欄（2026-11-05 使用者要求，水運放最右邊；2026-11-07 交通政策與投資再放在水運右邊）
-    columns: [1, 1, 1, 1, 1],
+    // 鐵道｜航空、水運｜道路｜交通政策與投資（2026-11-08 使用者要求水運放到航空下面；之前每個小類各占一欄）
+    columns: [1, 2, 1, 1],
   },
   {
     id: 'geo',
@@ -175,9 +178,9 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       { label: { zh: '水與冰', en: 'Water & ice' }, topics: ['rivers', 'wetlands', 'oceans', 'antarctica'] },
       { label: { zh: '天空', en: 'Sky' }, topics: ['daylight', 'eclipses', 'aurora', 'magnetic', 'antipodes'] },
     ],
-    // 左：國家；中：地形、地質與地震；右：水與冰、天空（天空留在最右欄：2026-11-03 使用者要求從左欄搬到右欄；
-    // 原本右欄的景點搬到「休閒」）
-    columns: [1, 2, 2],
+    // 國家、地形｜地質與地震｜水與冰｜天空（2026-11-08 使用者要求：地形放到最左欄國家下面，天空自己一欄排第四；
+    // 2026-11-03 天空從左欄搬到右欄，原本右欄的景點搬到「休閒」）
+    columns: [2, 1, 1, 1],
   },
   {
     // 2026-11-07 製作手冊第二十七批 536：休閒（24 個主題、只有 3 個小類）拆成旅遊與休閒兩類，旅遊排在地理與休閒之間。
@@ -205,19 +208,22 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '休閒', en: 'Leisure' },
     sections: [
       { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'horses'] },
-      // 2026-11-08 製作手冊第二十七批 652 開「遊戲與動漫」小類，653 把電競搬進來，654–656 加動畫、漫畫、電視劇
-      { label: { zh: '遊戲與動漫', en: 'Games & anime' }, topics: ['esports', 'game-companies', 'anime', 'comics', 'tv-series'] },
+      // 2026-11-08 製作手冊第二十七批 652 開「遊戲與動漫」小類，653 把電競搬進來，654–655 加動畫、漫畫
+      // （656 電視劇同一天依使用者要求搬到影音與文化）
+      { label: { zh: '遊戲與動漫', en: 'Games & anime' }, topics: ['esports', 'game-companies', 'anime', 'comics'] },
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）。
       // 2026-11-07 從社會的「生活與文化」搬過來的菜系走到哪裡、原產地名稱接在外食後面（製作手冊第二十六批 534）；
       // 同一天第二十七批 536：狩獵與釣魚併進休閒運動場地（diving）、旅遊習慣搬到旅遊・觀光、鈔票搬到旅遊・旅行實用
       // 2026-11-08 第二十七批 664：唱片公司與錄音室接在上網看影片後面
-      {
-        label: { zh: '日常休閒', en: 'Everyday leisure' },
-        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'gambling', 'holidays', 'time-use', 'online-video', 'record-labels', 'culture'],
-      },
+      // 2026-11-08 使用者要求：日常休閒（10 個主題）拆成影音與文化、飲食、休閒場所、假期與時間四個小類，主題 id 都沒改；
+      // 電視劇從遊戲與動漫搬到影音與文化
+      { label: { zh: '影音與文化', en: 'Media & culture' }, topics: ['online-video', 'tv-series', 'record-labels', 'culture'] },
+      { label: { zh: '飲食', en: 'Food & drink' }, topics: ['dining', 'cuisines', 'origin-names'] },
+      { label: { zh: '休閒場所', en: 'Leisure venues' }, topics: ['diving', 'gambling'] },
+      { label: { zh: '假期與時間', en: 'Holidays & time' }, topics: ['holidays', 'time-use'] },
     ],
-    // 左：獎項與運動、遊戲與動漫；右：日常休閒
-    columns: [2, 1],
+    // 獎項與運動｜遊戲與動漫｜影音與文化｜飲食、休閒場所、假期與時間（2026-11-08 使用者要求排成四欄）
+    columns: [1, 1, 1, 3],
   },
 ];
 
@@ -246,10 +252,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   funeral: () => import('./funeral'),
   independence: () => import('./independence'),
   cabotage: () => import('./cabotage'),
-  'digital-trade': () => import('./digital-trade'),
-  'ip-addresses': () => import('./ip-addresses'),
   'web-platforms': () => import('./web-platforms'),
-  'cell-towers': () => import('./cell-towers'),
   'internet-freedom': () => import('./internet-freedom'),
   'chip-materials': () => import('./chip-materials'),
   'research-orgs': () => import('./research-orgs'),
@@ -328,7 +331,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   materials: () => import('./materials'),
   'land-use': () => import('./land-use'),
   'env-taxes': () => import('./env-taxes'),
-  cctld: () => import('./cctld'),
   'energy-use': () => import('./energy-use'),
   'energy-jobs': () => import('./energy-jobs'),
   'household-energy': () => import('./household-energy'),
@@ -384,7 +386,6 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   ai: () => import('./ai'),
   semiconductors: () => import('./semiconductors'),
   digital: () => import('./digital'),
-  'internet-speed': () => import('./internet-speed'),
   developers: () => import('./developers'),
   innovation: () => import('./innovation'),
   publications: () => import('./publications'),

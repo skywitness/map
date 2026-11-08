@@ -19,6 +19,12 @@ export interface TopicRedirect {
 
 /** 舊主題 id → 新主題（整個主題併進別的主題） */
 export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
+  // 2026-11-08 使用者要求「網路與連線」從 9 個主題併成 4 個，指標 id 不變
+  'internet-speed': { topic: 'digital', indicator: 'download' },
+  'cell-towers': { topic: 'digital', indicator: 'towers-density' },
+  'ip-addresses': { topic: 'submarine-cables', indicator: 'ipv4-per-person' },
+  cctld: { topic: 'submarine-cables', indicator: 'borrowed' },
+  'digital-trade': { topic: 'web-platforms', indicator: 'dstri' },
   // 南極（第七批 116）：研究站、企鵝、冰下湖合成一個主題，指標 id 不變
   'antarctic-stations': { topic: 'antarctica', indicator: 'operating' },
   penguins: { topic: 'antarctica', indicator: 'species' },

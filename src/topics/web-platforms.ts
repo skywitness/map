@@ -2,6 +2,9 @@ import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
 import type { CategoryDef, TopicDefinition } from './types';
+import { digitalTrade } from './digital-trade';
+import { hostOnly, topicPart } from './merge';
+import { withParts } from './parts';
 
 /**
  * 上網用什麼：搜尋引擎、瀏覽器與作業系統（新主題，2026-11-07，製作手冊第二十七批 587，候選 1307、1308；
@@ -43,7 +46,7 @@ const label = (cats: CategoryDef[]) => (v: number) => {
 };
 const MISSING = { zh: '人口太少或 StatCounter 沒有資料', en: 'Too few people or no StatCounter data' };
 
-export const webPlatforms: TopicDefinition = {
+const webPlatformsOwn: TopicDefinition = {
   id: 'web-platforms',
   title: { zh: '上網用什麼：搜尋引擎、瀏覽器與作業系統', en: 'How the world goes online: search engines, browsers and operating systems' },
   shortTitle: { zh: '上網用什麼', en: 'Search, browsers and OS' },
@@ -118,3 +121,16 @@ export const webPlatforms: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 上網用什麼與數位貿易（2026-11-08 使用者要求「網路與連線」併成更少的主題（9 個併成 4 個），放到科技的「太空」下面；併進來的主題的定義檔照舊留著，舊網址由 redirects.ts 轉過來）：
+ * 搜尋引擎、瀏覽器與作業系統（主體）＋數位貿易的壁壘（digital-trade.ts，資料照舊在 digital-trade/）
+ */
+export const webPlatforms: TopicDefinition = withParts(
+  {
+    ...hostOnly(webPlatformsOwn),
+    title: { zh: '上網用什麼與數位貿易：搜尋引擎、瀏覽器與資料出境', en: 'Platforms and digital trade: search engines, browsers and data flows' },
+    shortTitle: { zh: '上網用什麼與數位貿易', en: 'Platforms and digital trade' },
+  },
+  topicPart(digitalTrade),
+);

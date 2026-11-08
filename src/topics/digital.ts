@@ -1,6 +1,10 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import type { CategoryDef, DimensionDef, IndicatorDef, Text, TopicDefinition } from './types';
+import { cellTowers } from './cell-towers';
+import { internetSpeed } from './internet-speed';
+import { hostOnly, topicPart } from './merge';
+import { withParts } from './parts';
 
 const PER_100 = { zh: '門/百人', en: 'per 100 people' };
 
@@ -80,7 +84,7 @@ const PRICE_BASKETS = {
   defaultOption: 'mobile-data',
 };
 
-export const digital: TopicDefinition = {
+const digitalOwn: TopicDefinition = {
   id: 'digital',
   title: { zh: '各國網路與通訊普及', en: 'Internet and telecoms by country' },
   shortTitle: { zh: '數位', en: 'Digital' },
@@ -533,3 +537,17 @@ export const digital: TopicDefinition = {
     },
   ],
 };
+
+/**
+ * 網路普及與速度（2026-11-08 使用者要求「網路與連線」併成更少的主題（9 個併成 4 個），放到科技的「太空」下面；併進來的主題的定義檔照舊留著，舊網址由 redirects.ts 轉過來）：
+ * 各國網路與通訊普及（主體）＋網路速度（internet-speed.ts，資料照舊在 internet-speed/）＋通訊塔與基地台（cell-towers.ts）
+ */
+export const digital: TopicDefinition = withParts(
+  {
+    ...hostOnly(digitalOwn),
+    title: { zh: '網路普及與速度：上網的人、網速與基地台', en: 'Internet access and speed: users, speeds and towers' },
+    shortTitle: { zh: '網路普及與速度', en: 'Internet access' },
+  },
+  topicPart(internetSpeed),
+  topicPart(cellTowers),
+);
