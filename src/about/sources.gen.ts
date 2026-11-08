@@ -5,8 +5,8 @@
  */
 import type { AboutSource } from './sources';
 
-export const TOPIC_COUNT = 221;
-export const INDICATOR_COUNT = 1756;
+export const TOPIC_COUNT = 222;
+export const INDICATOR_COUNT = 1759;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","developers","innovation","publications","research-orgs","eu-research","digital","submarine-cables","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","museums","roller-coasters","tourism","lodging","nobel","sports","esports","game-companies","anime","online-video","record-labels","culture","dining"]},
@@ -64,6 +64,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"JRC GHS-POP R2023A（各板塊的人口、各國跨幾塊板塊、住在火山旁邊的人）","en":"JRC GHS-POP R2023A (population by plate; plates per country; people near volcanoes)"},"url":"https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE","licenses":["CC BY 4.0"],"topics":["elevation","earthquakes"]},
   {"name":{"zh":"Natural Earth 1:10m 第一級行政區","en":"Natural Earth 1:10m Admin 1"},"url":"https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/","licenses":[{"zh":"公有領域","en":"public domain"},{"zh":"公有領域","en":"Public domain"}],"topics":["map","night-lights"]},
   {"name":{"zh":"OECD：產品市場管制指標（PMR，2018、2023 年）","en":"OECD, Product Market Regulation indicators (PMR, 2018 and 2023)"},"url":"https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_PMR%40DF_PMR&df[ag]=OECD.ECO.GCRD","licenses":["CC BY 4.0"],"topics":["market-regulation","energy-market"]},
+  {"name":{"zh":"OpenAlex（Priem, Piwowar & Orr 2022）","en":"OpenAlex (Priem, Piwowar & Orr 2022)"},"url":"https://openalex.org/","licenses":["CC0","CC0 1.0"],"topics":["tcm-research","publications"]},
   {"name":{"zh":"PB2002 板塊邊界（Bird 2003；Hugo Ahlenius、Nordpil 整理）","en":"PB2002 plate boundaries (Bird 2003; compiled by Hugo Ahlenius, Nordpil)"},"url":"https://github.com/fraxen/tectonicplates","licenses":["ODC-By 1.0"],"topics":["plates","earthquakes"]},
   {"name":{"zh":"Python 套件 holidays 0.108（Open World Holidays Framework）","en":"Python package holidays 0.108 (Open World Holidays Framework)"},"url":"https://github.com/vacanza/holidays","licenses":["MIT",{"zh":"MIT 授權（© vacanza 與貢獻者）","en":"MIT License (© vacanza and contributors)"}],"topics":["festivals","holidays"]},
   {"name":{"zh":"The Growth Lab at Harvard University, Atlas of Economic Complexity（HS92 四位碼，1995–2024）","en":"The Growth Lab at Harvard University, Atlas of Economic Complexity (HS92 four-digit, 1995–2024)"},"url":"https://doi.org/10.7910/DVN/T4CHWJ","licenses":["CC0 1.0","CC0"],"topics":["industry","semiconductors"]},
@@ -358,7 +359,6 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Oliveira Aguiar 等（2022）歐洲葡萄酒 PDO 的地理與法規資料，Scientific Data 9, 394","en":"Oliveira Aguiar et al. (2022), a geospatial inventory of regulatory information for wine PDOs in Europe, Scientific Data 9, 394"},"url":"https://doi.org/10.6084/m9.figshare.c.5877659","licenses":["CC0 1.0"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Open Brewery DB（啤酒廠清冊；Copyright (c) 2025 Open Brewery DB）","en":"Open Brewery DB (brewery list; Copyright (c) 2025 Open Brewery DB)"},"url":"https://github.com/openbrewerydb/openbrewerydb","licenses":["MIT"],"topics":["tobacco-alcohol"]},
   {"name":{"zh":"Open-Meteo Flood API（GloFAS v4 再分析，2015–2024 年的每日流量，算成月平均）","en":"Open-Meteo Flood API (GloFAS v4 reanalysis, daily flow 2015–2024, averaged by month)"},"url":"https://open-meteo.com/","licenses":[{"zh":"CC BY 4.0（免費 API 只准非商業使用）","en":"CC BY 4.0 (free API for non-commercial use only)"}],"topics":["rivers"]},
-  {"name":{"zh":"OpenAlex（Priem, Piwowar & Orr 2022）","en":"OpenAlex (Priem, Piwowar & Orr 2022)"},"url":"https://openalex.org/","licenses":["CC0 1.0"],"topics":["publications"]},
   {"name":{"zh":"openFDA drug/enforcement（美國 FDA 的藥品回收，2012 年起）","en":"openFDA drug/enforcement (US FDA drug recalls, from 2012)"},"url":"https://open.fda.gov/apis/drug/enforcement/","licenses":["CC0 1.0"],"topics":["medicines"]},
   {"name":{"zh":"openFDA drug/shortages（美國 FDA 的缺藥資料庫）","en":"openFDA drug/shortages (US FDA drug shortages)"},"url":"https://open.fda.gov/apis/drug/drugshortages/","licenses":["CC0 1.0"],"topics":["medicines"]},
   {"name":"OpenFreeMap","url":"https://openfreemap.org/","licenses":[{"zh":"免費使用","en":"free to use"}],"topics":["map"]},

@@ -77,6 +77,7 @@ const TOPIC_ICONS = {
   'taiwan-tcm': 'flower',
   'tcm-systems': 'file-check',
   'tcm-herbs': 'shrub',
+  'tcm-research': 'notebook-pen',
   'antimicrobial-resistance': 'bug',
   'tobacco-alcohol': 'wine',
   education: 'graduation-cap',

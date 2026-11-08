@@ -31,6 +31,7 @@ export const RELATED: Record<string, string[]> = {
   'taiwan-tcm': ['alt-medicine', 'health-care', 'taiwan-medicines'],
   'tcm-systems': ['alt-medicine', 'taiwan-tcm', 'organizations'],
   'tcm-herbs': ['taiwan-tcm', 'agriculture', 'trade'],
+  'tcm-research': ['publications', 'alt-medicine', 'innovation'],
   'tobacco-alcohol': ['health', 'disease'],
   diet: ['agriculture', 'health', 'lactase'],
   banknotes: ['profiles', 'prices', 'democracy'],
@@ -177,7 +178,7 @@ export const RELATED: Record<string, string[]> = {
   developers: ['ai', 'publications', 'innovation'],
   'submarine-cables': ['digital', 'oceans', 'starlink'],
   innovation: ['publications', 'developers', 'nobel'],
-  publications: ['innovation', 'nobel', 'pisa'],
+  publications: ['innovation', 'nobel', 'pisa', 'tcm-research'],
   space: ['military', 'aurora', 'eclipses'],
   // 交通
   transport: ['high-speed-rail', 'metro', 'heritage-railways'],
