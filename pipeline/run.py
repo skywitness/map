@@ -360,6 +360,7 @@ STEPS = {
     "theme-parks": "topics.theme_parks",
     "theme-park-groups": "topics.theme_park_groups",
     "park-brands": "topics.park_brands",
+    "amusement-industry": "topics.amusement_industry",
     "web-platforms": "topics.web_platforms",
     # 機隊的規模與年齡（第二十三批 400）：Factbook 2022 年版的機隊與航空公司、Eurostat 的機齡、民航局的國籍航空器登記
     "air-fleet": "topics.air_fleet",

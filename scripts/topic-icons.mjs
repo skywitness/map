@@ -101,6 +101,7 @@ const TOPIC_ICONS = {
   'biofuels-hydrogen': 'flask-round',
   'nuclear-reactors': 'orbit',
   'theme-parks': 'roller-coaster',
+  'amusement-industry': 'tickets',
   'energy-jobs': 'id-card-lanyard',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
