@@ -42,8 +42,10 @@ EMPLOYEES = {"00": "0", "01": "1–2", "02": "3–5", "03": "6–9", "11": "10�
 OPERATOR = "397471822"  # 迪士尼巴黎的營運公司（EURO DISNEY ASSOCIES SAS）
 SPREAD = 0.006
 NO_VALUE = {
-    "HKG": ("香港迪士尼營運公司的營收只在立法會文件裡，這裡連不上立法會網站；旅發局的資料不能用、data.gov.hk 沒有",
-            "Hong Kong Disneyland’s revenue appears only in Legislative Council papers, which could not be reached; no open dataset has it"),
+    # 使用者 2026-11-08：本機 session 取得了立法會文件（map-plan data/legco/），但版權告示只准個人或機構內部使用，不用
+    "HKG": ("香港迪士尼營運公司的營收只在立法會文件裡，立法會的版權告示只准個人或機構內部使用、沒有准公開轉載；旅發局的資料不能用、data.gov.hk 沒有",
+            "Hong Kong Disneyland’s revenue appears only in Legislative Council papers, whose copyright notice allows only personal or internal use; "
+            "no open dataset has it"),
     "CHN": ("上海迪士尼的營運公司不是上市公司，沒有公開的營業額", "Shanghai Disney Resort’s operating company is not listed and publishes no revenue"),
     "USA": ("美國證管會（SEC）的財報從這裡連不上；迪士尼的財報也只有整個樂園部門的數字，沒有各樂園",
             "SEC filings could not be reached from here, and Disney reports only its whole parks segment, not individual parks"),

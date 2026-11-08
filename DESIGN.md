@@ -5786,7 +5786,8 @@ pipeline/
       - **出處與授權**（手冊）：營業額與淨利是 INPI 的財報申報、員工級距是 INSEE 的 Base Sirene，兩者在 data.gouv.fr 都是 Licence Ouverte 2.0；查詢 API 在 api.gouv.fr 的授權欄是「未填」，只當找 SIREN 的工具，來源寫 lov2 的資料集。財報資料集在 data.economie.gouv.fr，**那個網站的 robots.txt 不准 `/api/`**，所以不直接下載。法人的負責人等個人資料不收。
       - **員工級距代碼**：INSEE 的 52＝5,000–9,999 人、**53＝10,000 人以上**（API Entreprise 的 INSEE 欄位說明，2026-11-08）；手冊寫 53＝5,000–9,999 是錯的。迪士尼巴黎的營運公司是 53（2024 年）。
       - **數字**：營運公司 EURO DISNEY ASSOCIES SAS 2025 會計年度營業額 26.83 億歐元、淨利 2.6 億；套裝行程公司 EURO DISNEY VACANCES SAS 18.07 億（手冊沒列，是這次發現的）；THE WALT DISNEY COMPANY (FRANCE) 3.75 億。營運公司與套裝行程公司之間有集團內買賣，**不加總**，指標只放營運公司一家。跟 633 並列：法國 R9321 2024 年約 5,663 百萬歐元，營運公司約占 47%（年份差一年、R9321 含流動遊樂場），`amusement-industry.ts` 的營業額說明也補一句，兩邊數字一致。
-      - **其他國家**：指標的 `missing` 寫「這一國的公司登記資料沒有開放授權的營業額」，香港（立法會連不上）、中國（上海的營運公司沒上市）、日本（東方樂園的財報沒取得）、美國（SEC 連不上、只有部門數字）、台灣另寫原因。香港立法會與台灣的公司登記已經請本機 session 查，還沒有結果。
+      - **其他國家**：指標的 `missing` 寫「這一國的公司登記資料沒有開放授權的營業額」，香港（立法會的版權告示只准個人或機構內部使用）、中國（上海的營運公司沒上市）、日本（東方樂園的財報沒取得）、美國（SEC 連不上、只有部門數字）、台灣另寫原因。台灣的公司登記已經請本機 session 查，還沒有結果。
+      - **香港（2026-11-08）**：本機 session 照一般方式驗證憑證，拿到了立法會經濟發展事務委員會的兩份背景資料（map-plan 的 `data/legco/`：2009–2025 年度的收入與淨利、2006–2025 年度的入場人次）。但立法會的 Copyright Notice 只准「personal or internal use within an organisation」的複製，沒有准公開轉載，數字原本又出自香港迪士尼的業務回顧（第三方版權）。使用者決定**不用**，跟旅發局的資料一樣，只把香港的失敗原因改成條款。
       - **員工數**（1491，手冊：當說明、不做指標）：`disney_units.py` 多查 Wikidata P1128（取 P585 最新的一筆），11 個單位有（20th Century Studios 2,300、Pixar 1,233……），寫在單位的說明；法國法人的員工級距寫在法人的說明。
       - **迪士尼商店**（1489）：OSM `brand:wikidata=Q1047009` 57 個（美國 43、加拿大 4、日本 3、法國 2、波多黎各 2、西班牙、愛爾蘭、菲律賓各 1），國家依座標（QLever 的 `ogc:sfContains` 回 400，查詢不用 `osm_qlever.COUNTRIES`）。手冊：嚴重偏向北美，指標 `layer: none`、`unranked`，只畫點；不用名稱比對。
     - **第二十八批 678 Disney+ 在哪些國家看得到、迪士尼片庫的拍攝地與故事場景地（擴充 `disney`，候選 1482、1487、1488）**（新的 `pipeline/topics/disney_plus.py`〔步驟 `disney-plus`〕、`pipeline/sources/rollout.py`、`disney.ts`）：
