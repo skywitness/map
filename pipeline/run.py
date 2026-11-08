@@ -306,6 +306,7 @@ STEPS = {
     "port-calls": "topics.port_calls",
     "port-cargo-types": "topics.port_cargo_types",
     "port-facilities": "topics.port_facilities",  # 2026-11-08 第二十七批 580 候選 1301：WPI 的設施欄位（本機給的 CSV，map-plan data/nga/）
+    "eu-research": "topics.eu_research",  # 2026-11-08 第二十七批 598：使用者用瀏覽器下載的 CORDIS zip（map-plan data/cordis/）
     "sea-passengers": "topics.sea_passengers",
     "shipyards": "topics.shipyards",
     "inland-fleet": "topics.inland_fleet",

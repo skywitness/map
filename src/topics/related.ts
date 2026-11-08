@@ -40,6 +40,7 @@ export const RELATED: Record<string, string[]> = {
   'internet-freedom': ['democracy', 'web-platforms', 'news'],
   'chip-materials': ['semiconductors', 'minerals', 'wafer-fabs'],
   'research-orgs': ['publications', 'innovation', 'oldest-universities'],
+  'eu-research': ['innovation', 'research-orgs', 'scientist-mobility'],
   'oa-journals': ['publications', 'research-orgs', 'reads'],
   'scientist-mobility': ['publications', 'education', 'migration'],
   hvdc: ['electricity', 'power-plants', 'submarine-cables'],

@@ -88,6 +88,7 @@ const TOPIC_ICONS = {
   'internet-freedom': 'shield-ban',
   'chip-materials': 'gem',
   'research-orgs': 'library-big',
+  'eu-research': 'euro',
   'oa-journals': 'lock-open',
   'scientist-mobility': 'arrow-right-left',
   hvdc: 'unplug',

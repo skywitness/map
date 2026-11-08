@@ -118,7 +118,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     sections: [
       // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」
       { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'developers', 'chip-materials'] },
-      { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'research-orgs', 'oa-journals', 'scientist-mobility'] },
+      { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'research-orgs', 'eu-research', 'oa-journals', 'scientist-mobility'] },
       { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
       // 2026-11-08 使用者要求：網路與連線從 9 個主題併成 4 個（網速、基地台併進網路普及；IP 位址、國家網域併進海底電纜；
       // 數位貿易併進上網用什麼），放到太空下面。併進來的主題 id 由 redirects.ts 轉到新的位置
@@ -259,6 +259,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'internet-freedom': () => import('./internet-freedom'),
   'chip-materials': () => import('./chip-materials'),
   'research-orgs': () => import('./research-orgs'),
+  'eu-research': () => import('./eu-research'),
   'oa-journals': () => import('./oa-journals'),
   'scientist-mobility': () => import('./scientist-mobility'),
   hvdc: () => import('./hvdc'),
