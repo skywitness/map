@@ -152,5 +152,41 @@ export const portCargoTypesPart: TopicPart = {
       formatTick: (v) => `${v}%`,
       defaultYear: 2024,
     },
+    // 2026-11-08（製作手冊第二十七批 580 補做）：mar_mg_am_cwhg 的第一大貨類
+    {
+      id: 'port-main-goods',
+      label: { zh: '港口的第一大貨類', en: 'Main goods group at ports' },
+      description: {
+        zh: '主要港口裝卸的貨物（公噸）裡最多的一種 NST 2007 貨類群（Eurostat，2024 年，只有歐洲；不算不明貨物與「其他」），滑過看占比。19 國裡 9 國是煤、原油與天然氣（德國、法國、荷蘭、西班牙、波蘭、土耳其等），4 國是焦炭與石油製品（芬蘭、瑞典、葡萄牙、賽普勒斯），挪威與蒙特內哥羅是金屬礦與其他礦產，拉脫維亞與羅馬尼亞是農林漁產品，馬爾他是木材與紙，義大利是併裝的雜貨。不明貨物（多半是貨櫃裡沒申報品項的貨）超過四成的愛爾蘭（89%）、比利時（48%）、希臘（44%）、斯洛維尼亞（43%）、丹麥（42%）與只有不明貨物的愛沙尼亞不畫。',
+        en: 'The largest NST 2007 goods group in the tonnage handled by main ports (Eurostat, 2024, Europe only; excluding unidentified and other goods); hover for its share. Of 19 countries, 9 are led by coal, crude oil and natural gas (including Germany, France, the Netherlands, Spain, Poland and Turkey), 4 by coke and refined petroleum products (Finland, Sweden, Portugal and Cyprus), Norway and Montenegro by metal ores and other mining products, Latvia and Romania by agricultural, forestry and fishery products, Malta by wood and paper, and Italy by grouped goods. Countries where unidentified goods (mostly undeclared goods in containers) exceed 40% are not shown: Ireland (89%), Belgium (48%), Greece (44%), Slovenia (43%) and Denmark (42%), plus Estonia, which reports only unidentified goods.',
+      },
+      unit: '',
+      file: 'port-main-goods.json',
+      layer: {
+        kind: 'categorical',
+        categories: [
+          { value: 1, label: { zh: '煤、原油與天然氣', en: 'Coal, crude oil and natural gas' } },
+          { value: 2, label: { zh: '焦炭與石油製品', en: 'Coke and refined petroleum products' } },
+          { value: 3, label: { zh: '金屬礦與其他礦產', en: 'Metal ores and other mining products' } },
+          { value: 4, label: { zh: '農林漁產品', en: 'Agricultural, forestry and fishery products' } },
+          { value: 5, label: { zh: '木材與紙', en: 'Wood and paper products' } },
+          { value: 6, label: { zh: '併裝的雜貨', en: 'Grouped goods' } },
+        ],
+      },
+      format: (v) =>
+        tr(
+          [
+            { zh: '煤、原油與天然氣', en: 'Coal, crude oil and natural gas' },
+            { zh: '焦炭與石油製品', en: 'Coke and refined petroleum products' },
+            { zh: '金屬礦與其他礦產', en: 'Metal ores and other mining products' },
+            { zh: '農林漁產品', en: 'Agricultural, forestry and fishery products' },
+            { zh: '木材與紙', en: 'Wood and paper products' },
+            { zh: '併裝的雜貨', en: 'Grouped goods' },
+          ][v - 1] ?? { zh: '', en: '' },
+        ),
+      defaultYear: 2024,
+      unranked: true,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
   ],
 };
