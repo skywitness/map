@@ -813,6 +813,7 @@ STEPS = {
     # 南極研究站：Wikidata 的研究站，跟 COMNAP 2024 的名單核對（只用核對結果）；幾秒
     "antarctic-stations": "topics.antarctic_stations",
     "antarctic-tourism": "topics.antarctic_tourism",
+    "antarctic-treaty": "topics.antarctic_treaty",  # 2026-11-08 第二十七批 551：使用者用瀏覽器存的 ATS 締約國表（map-plan data/ats/）
     "show-caves": "topics.show_caves",
     "hunting-fishing": "topics.hunting_fishing",
     # MAPPPD v5.0 的全部普查 CSV（2.1 MB，不必登入），不到 1 秒

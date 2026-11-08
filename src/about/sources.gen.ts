@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 214;
-export const INDICATOR_COUNT = 1697;
+export const INDICATOR_COUNT = 1699;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","developers","innovation","publications","research-orgs","digital","submarine-cables","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","museums","roller-coasters","tourism","lodging","nobel","sports","esports","game-companies","anime","online-video","record-labels","culture","dining"]},
@@ -562,6 +562,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"勞動部 基本工資與最低工資","en":"Ministry of Labor (Taiwan), basic wage and minimum wage"},"url":"https://www.mol.gov.tw/1607/28162/28166/28180/99861/28184/29016/","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["wages"]},
   {"name":{"zh":"勞動部（產業及社福移工人數）、主計總處（人力資源調查）","en":"Ministry of Labor (migrant workers) and DGBAS (Manpower Survey), Taiwan"},"url":"https://data.gov.tw/dataset/41881","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["migration"]},
   {"name":{"zh":"南極條約秘書處，電子資訊交換系統（EIES）「Most Visited Sites」報表（船載觀光，2007/08–2025/26 季）","en":"Antarctic Treaty Secretariat, Electronic Information Exchange System (EIES) “Most Visited Sites” report (ship-based tourism, 2007/08–2025/26)"},"url":"https://eies.ats.aq/","licenses":[{"zh":"CC BY 4.0（註明出處即可使用）","en":"CC BY 4.0 (may be used with the source indicated)"}],"topics":["antarctica"]},
+  {"name":{"zh":"南極條約秘書處（Secretariat of the Antarctic Treaty）「Parties」締約國表（2026-11-08 使用者用瀏覽器存下）","en":"Secretariat of the Antarctic Treaty, “Parties” table (saved in a browser on 8 November 2026)"},"url":"https://www.ats.aq/devAS/Parties?lang=e","licenses":[{"zh":"註明出處即可使用（ATS 的著作權聲明）","en":"may be used with the source indicated (ATS copyright notice)"}],"topics":["antarctica"]},
   {"name":{"zh":"台灣：交通部觀光署「步道」開放資料（OSM 沒有的國家步道）","en":"Taiwan: Tourism Administration, “Trails” open data (national trails missing from OSM)"},"url":"https://data.gov.tw/dataset/41653","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License, version 1.0"}],"topics":["trails"]},
   {"name":{"zh":"台灣的核電重啟：核能安全委員會、中央選舉委員會的公告（中央社 2026-08-28、08-31 報導）","en":"Taiwan’s nuclear restart: Nuclear Safety Commission and Central Election Commission announcements (as reported by CNA, 28 and 31 Aug 2026)"},"url":"https://www.cna.com.tw/news/afe/202608310275.aspx","licenses":[{"zh":"引用事實並註明出處","en":"facts cited with sources"}],"topics":["nuclear"]},
   {"name":{"zh":"台灣自來水公司：近年漏水率、近年水價資料表","en":"Taiwan Water Corporation: leakage rates and water prices"},"url":"https://data.gov.tw/dataset/22263","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["water-forest"]},
