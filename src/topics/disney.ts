@@ -449,6 +449,107 @@ const UNIT_LIST: ListPanelDef = {
       })),
 };
 
+// ── 人次與恢復率、園內設施（2026-11-08，製作手冊第二十八批 677，候選 1485、1486；pipeline/topics/disney_visits.py） ──
+// 候選 1497（樂園交通）照手冊的建議不做。
+
+const VISIT_YEARS = Array.from({ length: 16 }, (_, i) => 2009 + i);
+const RIDE_KINDS: { label: Text; color: string }[] = [
+  { label: { zh: '遊樂設施', en: 'Rides' }, color: C[0] },
+  { label: { zh: '主題園區', en: 'Themed areas' }, color: C[2] },
+  { label: { zh: '餐廳與商店', en: 'Restaurants and shops' }, color: C[1] },
+  { label: { zh: '表演與活動', en: 'Shows and events' }, color: C[3] },
+];
+const clampYear = (y: number) => Math.min(2024, Math.max(2009, y));
+
+function visitFacts(p: PointRecord): string[] {
+  const v19 = num(p, 'v2019');
+  const v20 = num(p, 'v2020');
+  const v24 = num(p, 'v2024');
+  const out: string[] = [];
+  if (v24 && v19) out.push(tr({ zh: `2024 年 ${visitorsText(v24)}，是 2019 年的 ${fixed((v24 / v19) * 100, 0)}%`, en: `${visitorsText(v24)} in 2024, ${fixed((v24 / v19) * 100, 0)}% of 2019` }));
+  if (v20) out.push(tr({ zh: `2020 年谷底 ${visitorsText(v20)}`, en: `2020 low: ${visitorsText(v20)}` }));
+  const parts = [
+    num(p, 'n1') ? tr({ zh: `遊樂設施 ${num(p, 'n1')}`, en: `${num(p, 'n1')} rides` }) : '',
+    num(p, 'n2') ? tr({ zh: `主題園區 ${num(p, 'n2')}`, en: `${num(p, 'n2')} themed areas` }) : '',
+  ].filter(Boolean);
+  if (parts.length) out.push(tr({ zh: `Wikidata 上隸屬這座樂園的：${parts.join('、')}`, en: `On Wikidata as part of this park: ${parts.join(', ')}` }));
+  return out;
+}
+
+const PARK_VISITS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-park-visits',
+  file: 'park-visits.json',
+  label: { zh: '迪士尼樂園的人次', en: 'Disney park attendance' },
+  indicators: ['visitors', 'recovery'],
+  epochs: { years: VISIT_YEARS, values: (p, y) => ({ vv: num(p, `v${y}`) }) },
+  radius: { field: 'vv', stops: [[1e6, 3], [5e6, 6], [10e6, 9], [20e6, 13]] },
+  color: C[0],
+  sortField: 'vv',
+  tooltip: (p, { countryName, year }) => {
+    const { title, proper } = disneyName(p);
+    const y = clampYear(year ?? 2024);
+    const v = num(p, `v${y}`);
+    return {
+      title,
+      detail: [tr(at(RESORTS, p.resort).label), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+      extra: [v ? tr({ zh: `${y} 年 ${visitorsText(v)}`, en: `${visitorsText(v)} in ${y}` }) : '', ...visitFacts(p)].filter(Boolean),
+      properNoun: proper,
+    };
+  },
+};
+
+const PARK_RIDES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-park-rides',
+  file: 'park-rides.json',
+  label: { zh: '園內的設施與主題園區（Wikidata，放大才畫）', en: 'Rides and themed areas (Wikidata; shown when zoomed in)' },
+  indicators: ['parks', 'visitors'],
+  minZoom: 12,
+  radius: 3,
+  color: {
+    field: 'k',
+    title: { zh: '種類', en: 'Type' },
+    thresholds: [1.5, 2.5, 3.5],
+    classes: RIDE_KINDS.map(({ label, color }) => ({ label, color })),
+  },
+  tooltip: (p) => ({ title: String(p.en ?? ''), properNoun: String(p.en ?? ''), detail: tr(at(RIDE_KINDS, p.k).label) }),
+};
+
+const VISIT_LIST: ListPanelDef = {
+  label: { zh: '迪士尼樂園的人次', en: 'Disney park attendance' },
+  tabLabel: { zh: '人次', en: 'Attendance' },
+  indicators: ['visitors', 'recovery'],
+  file: 'park-visits.json',
+  countryField: 'iso3',
+  sorts: [
+    { id: 'visitors', label: { zh: '依 2024 年人次', en: 'By 2024 attendance' } },
+    { id: 'recovery', label: { zh: '依恢復率', en: 'By recovery' } },
+  ],
+  rows: (points, { countryName, sort }) => {
+    const rec = (p: PointRecord) => (num(p, 'v2024') ?? 0) / (num(p, 'v2019') ?? 1);
+    return points
+      .slice()
+      .sort((a, b) => (sort === 'recovery' ? rec(b) - rec(a) : (num(b, 'v2024') ?? 0) - (num(a, 'v2024') ?? 0)))
+      .map((p, i): ListRow => {
+        const { title, proper } = disneyName(p);
+        return {
+          key: String(p.qid),
+          title: `${i + 1}. ${title}`,
+          properNoun: proper,
+          lines: [[tr(at(RESORTS, p.resort).label), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '), ...visitFacts(p)],
+          bars: {
+            values: VISIT_YEARS.map((y) => num(p, `v${y}`) ?? 0),
+            highlight: [VISIT_YEARS.indexOf(2020)],
+            labels: ['2009', '2024'],
+            aria: tr({ zh: '2009–2024 年的人次', en: 'Attendance 2009–2024' }),
+          },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
+        };
+      });
+  },
+};
+
 export const disney: TopicDefinition = {
   id: 'disney',
   title: { zh: '迪士尼在哪裡：樂園、郵輪、飯店與影視部門', en: 'Where Disney is: parks, cruise ships, hotels and studios' },
@@ -492,8 +593,8 @@ export const disney: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
   },
-  overlays: [RESORT_RINGS, SITES, PLANNED, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS],
-  listPanel: [PARK_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST],
+  overlays: [RESORT_RINGS, SITES, PLANNED, PARK_VISITS, PARK_RIDES, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS],
+  listPanel: [PARK_LIST, VISIT_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST],
   indicators: [
     {
       id: 'parks',
@@ -558,6 +659,35 @@ export const disney: TopicDefinition = {
       formatTick: (v) => fixed(v, 0),
       integer: true,
       defaultYear: 2026,
+    },
+    {
+      id: 'visitors',
+      label: { zh: '迪士尼樂園的人次', en: 'Disney park attendance' },
+      description: {
+        zh: '各國迪士尼主題樂園一年的人次合計（比例圓，2009–2024 年；英文維基「List of amusement park rankings」，數字原本來自 TEA／AECOM）。12 座樂園都在全世界前 25 名的表上：2019 年合計 1.518 億人次，2020 年疫情掉到 4,321 萬，2024 年回到 1.425 億（2019 年的 93.9%）。2024 年最多的是佛羅里達的神奇王國 1,784 萬、加州的迪士尼樂園 1,734 萬、東京迪士尼樂園 1,510 萬。拖時間軸看每座樂園一年一年的變化；左邊的清單有每座的 16 年長條（強調的那一根是 2020 年）。放大到樂園看 Wikidata 上隸屬這座樂園的遊樂設施、主題園區、餐廳與表演（有座標的 173 個）。台灣沒有迪士尼的樂園。',
+        en: 'Total annual attendance at Disney theme parks in each country (proportional circles, 2009–2024; English Wikipedia “List of amusement park rankings”, figures originally from TEA/AECOM). All 12 parks are in the global top 25: together they had 151.8 million visits in 2019, fell to 43.2 million in 2020 and were back to 142.5 million in 2024 (93.9% of 2019). The busiest in 2024 were Magic Kingdom in Florida (17.84 million), Disneyland in California (17.34 million) and Tokyo Disneyland (15.10 million). Drag the timeline to follow each park year by year; the list on the left shows a 16-year bar chart for each (2020 highlighted). Zoom into a park to see the rides, themed areas, restaurants and shows that Wikidata records as part of it (173 with coordinates). Taiwan has no Disney park.',
+      },
+      unit: { zh: '人次', en: 'visits' },
+      file: 'visitors.json',
+      layer: { kind: 'bubble', legendValues: [1e7, 3e7, 8e7] },
+      format: visitorsText,
+      formatTick: (v) => formatLargeNumber(v),
+      integer: true,
+      defaultYear: 2024,
+    },
+    {
+      id: 'recovery',
+      label: { zh: '迪士尼樂園的疫情恢復率', en: 'Disney park recovery from the pandemic' },
+      description: {
+        zh: '各國迪士尼樂園 2024 年的人次是 2019 年的幾 %（同一張維基表）。12 座合計 93.9%；香港 139%、上海 131% 比疫情前還多，法國 106%，美國 88%、日本 85% 還沒回來；單座最低是動物王國 63%。迪士尼樂園事業整體（含水上樂園）2024 年 1.452 億人次、2019 年 1.560 億，約 93%（樂園的「樂園集團的年人次」有集團的數字）。',
+        en: 'Disney park attendance in 2024 as a percentage of 2019 (same Wikipedia table). The 12 parks together reached 93.9%; Hong Kong (139%) and Shanghai (131%) are above pre-pandemic levels, France is at 106%, while the US (88%) and Japan (85%) have not recovered; the lowest single park is Animal Kingdom at 63%. Disney’s parks business as a whole (including water parks) had 145.2 million visits in 2024 against 156.0 million in 2019, about 93% (see the theme park groups indicator in Theme parks).',
+      },
+      unit: '%',
+      file: 'recovery.json',
+      layer: { kind: 'choropleth', scale: { type: 'diverging', thresholds: [70, 85, 95, 105, 115, 130] } },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      defaultYear: 2024,
     },
   ],
 };

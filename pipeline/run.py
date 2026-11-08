@@ -370,6 +370,7 @@ STEPS = {
     "disney-cruise": "topics.disney_cruise",  # 2026-11-08 第二十八批 674：迪士尼郵輪（要先有 port-calls 的 PortWatch 快取）
     "disney-hotels": "topics.disney_hotels",  # 2026-11-08 第二十八批 675：迪士尼的飯店（白名單 pipeline/data/disney/hotels.csv）
     "disney-units": "topics.disney_units",  # 2026-11-08 第二十八批 676：迪士尼的影視部門、頻道與分公司（白名單 pipeline/data/disney/units.csv）
+    "disney-visits": "topics.disney_visits",  # 2026-11-08 第二十八批 677：迪士尼樂園的人次與恢復率、園內設施（要先有 disney 與 attractions-extra）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",
     "roller-coasters": "topics.roller_coasters",
