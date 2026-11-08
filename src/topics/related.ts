@@ -220,6 +220,7 @@ export const RELATED: Record<string, string[]> = {
   skyscrapers: ['cities', 'attractions'],
   'theme-parks': ['amusement-industry', 'attractions', 'tourism'],
   'amusement-industry': ['theme-parks', 'tourism', 'retail'],
+  'roller-coasters': ['theme-parks', 'attractions', 'amusement-industry'],
   'night-lights': ['cities', 'power-plants', 'population'],
 };
 

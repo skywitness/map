@@ -102,6 +102,7 @@ const TOPIC_ICONS = {
   'nuclear-reactors': 'orbit',
   'theme-parks': 'roller-coaster',
   'amusement-industry': 'tickets',
+  'roller-coasters': 'spline',
   'energy-jobs': 'id-card-lanyard',
   'transport-investment': 'construction',
   'household-transport': 'car-front',
