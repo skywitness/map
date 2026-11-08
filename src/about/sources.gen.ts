@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 206;
-export const INDICATOR_COUNT = 1562;
+export const INDICATOR_COUNT = 1563;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","digital","ip-addresses","developers","innovation","publications","research-orgs","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","tourism","nobel","sports","esports","dining","culture"]},
@@ -53,6 +53,7 @@ export const SOURCES: AboutSource[] = [
   {"name":"FAO, FAOSTAT","url":"https://www.fao.org/faostat/","licenses":["CC BY 4.0"],"topics":["diet","agriculture"]},
   {"name":{"zh":"FAO, FAOSTAT 農作物與畜產品生產（QCL）：馬的在養頭數","en":"FAO, FAOSTAT Crops and livestock products (QCL): horse stocks"},"url":"https://www.fao.org/faostat/en/#data/QCL","licenses":["CC BY 4.0"],"topics":["tobacco-alcohol","horses"]},
   {"name":{"zh":"GHSL Urban Centre Database（部分大樓的城市名稱，同城市主題）","en":"GHSL Urban Centre Database (city names for some buildings, as in the Cities topic)"},"url":"https://human-settlement.emergency.copernicus.eu/ghs_ucdb_2024.php","licenses":["CC BY 4.0 / CC0","CC BY 4.0"],"topics":["cities","skyscrapers"]},
+  {"name":{"zh":"Global Energy Monitor：Global Nuclear Power Tracker（2026 年 8 月版，SMR 與微型反應爐的計畫）","en":"Global Energy Monitor: Global Nuclear Power Tracker (August 2026; SMR and microreactor projects)"},"url":"https://globalenergymonitor.org/projects/global-nuclear-power-tracker/","licenses":["CC BY 4.0"],"topics":["nuclear","nuclear-reactors"]},
   {"name":"Harvard Growth Lab, Atlas of Economic Complexity","url":"https://atlas.hks.harvard.edu/","licenses":["CC0"],"topics":["industry","semiconductors"]},
   {"name":{"zh":"IANA 時區資料庫（tzdata 2026f）","en":"IANA Time Zone Database (tzdata 2026f)"},"url":"https://www.iana.org/time-zones","licenses":[{"zh":"公有領域","en":"public domain"}],"topics":["daylight","travel"]},
   {"name":{"zh":"JRC GHS-POP R2023A（各板塊的人口、各國跨幾塊板塊、住在火山旁邊的人）","en":"JRC GHS-POP R2023A (population by plate; plates per country; people near volcanoes)"},"url":"https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE","licenses":["CC BY 4.0"],"topics":["elevation","earthquakes"]},
@@ -214,7 +215,6 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Global Energy Monitor：Global Bioenergy Power Tracker（2026 年 9 月版）","en":"Global Energy Monitor: Global Bioenergy Power Tracker (September 2026 release)"},"url":"https://globalenergymonitor.org/projects/global-bioenergy-power-tracker/","licenses":["CC BY 4.0"],"topics":["power-plants"]},
   {"name":{"zh":"Global Energy Monitor：Global Gas Infrastructure Tracker、Global Oil Infrastructure Tracker、Global Oil and Gas Extraction Tracker、Global Coal Mine Tracker、Global Integrated Power Tracker","en":"Global Energy Monitor: Global Gas Infrastructure Tracker, Global Oil Infrastructure Tracker, Global Oil and Gas Extraction Tracker, Global Coal Mine Tracker, Global Integrated Power Tracker"},"url":"https://globalenergymonitor.org/","licenses":["CC BY 4.0"],"topics":["fossil-infrastructure"]},
   {"name":{"zh":"Global Energy Monitor：Global Iron and Steel Tracker（2026 年 9 月版）、Global Cement and Concrete Tracker（2026 年 7 月版）","en":"Global Energy Monitor: Global Iron and Steel Tracker (September 2026), Global Cement and Concrete Tracker (July 2026)"},"url":"https://globalenergymonitor.org/projects/global-iron-steel-tracker/","licenses":["CC BY 4.0"],"topics":["industry"]},
-  {"name":{"zh":"Global Energy Monitor：Global Nuclear Power Tracker（2026 年 8 月版）、Global Integrated Power Tracker（2026 年 9 月版，併網年份）","en":"Global Energy Monitor: Global Nuclear Power Tracker (August 2026), Global Integrated Power Tracker (September 2026, grid connection years)"},"url":"https://globalenergymonitor.org/projects/global-nuclear-power-tracker/","licenses":["CC BY 4.0"],"topics":["nuclear-reactors"]},
   {"name":"Global Gas Infrastructure Tracker, Global Energy Monitor, November 2025 (pipelines) and October 2026 (LNG terminals)","url":"https://globalenergymonitor.org/projects/global-gas-infrastructure-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
   {"name":"Global Oil and Gas Extraction Tracker, Global Energy Monitor, March 2026 release","url":"https://globalenergymonitor.org/projects/global-oil-gas-extraction-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
   {"name":"Global Oil Infrastructure Tracker, Global Energy Monitor, June 2026 release","url":"https://globalenergymonitor.org/projects/global-oil-infrastructure-tracker/","licenses":["CC BY 4.0"],"topics":["fossil-fuels"]},
