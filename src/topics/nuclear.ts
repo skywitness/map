@@ -1,6 +1,7 @@
 import { nuclearPolicyPart } from './energy-policy';
 import { hostOnly, topicPart } from './merge';
 import { nuclearAccidents } from './nuclear-accidents';
+import { fuelCyclePart } from './nuclear-fuel-cycle';
 import { nuclearWaste } from './nuclear-waste';
 import { withParts } from './parts';
 import { powerPlants } from './power-plants';
@@ -35,4 +36,6 @@ export const nuclear: TopicDefinition = withParts(
   topicPart(nuclearWaste, { rename: { map: 'repositories' } }),
   // 2026-11-07（製作手冊第二十五批 532）小型模組化反應爐的設計案
   smrPart,
+  // 2026-11-08（製作手冊第二十七批 624）核燃料循環
+  fuelCyclePart,
 );

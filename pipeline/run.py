@@ -347,6 +347,7 @@ STEPS = {
     "biofuels-hydrogen": "topics.biofuels_hydrogen",
     "nuclear-reactors": "topics.nuclear_reactors",
     "nuclear-retired": "topics.nuclear_retired",
+    "nuclear-fuel-cycle": "topics.nuclear_fuel_cycle",
     "fossil-infrastructure": "topics.fossil_infrastructure",
     "coal-types": "topics.coal_types",
     "fuel-uses": "topics.fuel_uses",
