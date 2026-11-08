@@ -126,6 +126,14 @@ export const taiwanTcm: TopicDefinition = {
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     {
+      name: {
+        zh: '衛生福利部中央健康保險署：114 年中醫門診總額整體性醫療品質資訊公開報告（專業版，115 年 7 月）指標 1',
+        en: 'National Health Insurance Administration: 2025 quality report on the Chinese medicine outpatient global budget (professional edition, July 2026), indicator 1',
+      },
+      url: 'https://www.nhi.gov.tw/ch/dl-100462-1eff42ec96f442deba2b97dbbf263323-1.pdf',
+      license: { zh: '健保署政府網站資料開放宣告（註明出處）', en: 'NHIA website open data declaration (attribution)' },
+    },
+    {
       name: { zh: '內政部國土測繪中心：鄉鎮市區界線（鄉鎮市區的位置）', en: 'Ministry of the Interior, National Land Surveying and Mapping Center: township boundaries (township locations)' },
       url: 'https://data.gov.tw/dataset/7441',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
@@ -194,7 +202,7 @@ export const taiwanTcm: TopicDefinition = {
     {
       id: 'patients',
       label: { zh: '一年看過中醫的人', en: 'People using Chinese medicine in a year' },
-      description: { zh: '一年裡在健保看過中醫門診的人數（中醫總額的申報）：2016 年 661 萬人，2021 年最少 554 萬人，2023 年最多 693 萬人，2024 年 638 萬人。2024 年女性占 61%，平均每人看 6.67 次。', en: 'People with at least one National Health Insurance Chinese medicine outpatient visit in the year (claims under the Chinese medicine budget): 6.61 million in 2016, a low of 5.54 million in 2021, a high of 6.93 million in 2023 and 6.38 million in 2024. In 2024, 61% were women, and each person averaged 6.67 visits.' },
+      description: { zh: '一年裡在健保看過中醫門診的人數（中醫總額的申報）：2016 年 661 萬人，2021 年最少 554 萬人，2023 年最多 693 萬人，2024 年 638 萬人。2024 年女性占 61%，平均每人看 6.67 次。健保署的醫療品質報告用另一個口徑（只算診察費大於 0 的案件）：2024 年 6.56 次、2025 年 6.69 次。', en: 'People with at least one National Health Insurance Chinese medicine outpatient visit in the year (claims under the Chinese medicine budget): 6.61 million in 2016, a low of 5.54 million in 2021, a high of 6.93 million in 2023 and 6.38 million in 2024. In 2024, 61% were women, and each person averaged 6.67 visits. The National Health Insurance Administration’s quality report uses a narrower definition (only claims with a consultation fee): 6.56 visits in 2024 and 6.69 in 2025.' },
       unit: { zh: '人', en: 'people' },
       file: 'patients.json',
       layer: { kind: 'bubble', legendValues: [3e6, 6e6] },
