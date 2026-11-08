@@ -1,5 +1,7 @@
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { energyLossesPart } from './energy-losses';
+import { withParts } from './parts';
 import type { Text, TopicDefinition } from './types';
 
 /**
@@ -22,7 +24,7 @@ const pct = (v: number) => `${fixed(v, 1)}%`;
 const pctTick = (v: number) => `${v}%`;
 const pj = (v: number) => `${fixed(v, v < 10 ? 2 : v < 100 ? 1 : 0)} PJ`;
 
-export const energyUse: TopicDefinition = {
+export const energyUse: TopicDefinition = withParts({
   id: 'energy-use',
   title: { zh: '各部門的最終能源消費：工業、運輸、住宅、服務業、農業', en: 'Final energy use by sector: industry, transport, homes, services, farming' },
   shortTitle: { zh: '能源用在哪裡', en: 'Energy use by sector' },
@@ -121,4 +123,4 @@ export const energyUse: TopicDefinition = {
       noValue: { TWN: { zh: '沒有資料（能源署沒有分住宅的燃料別）', en: 'No data (the Energy Administration does not break down household fuels)' } },
     },
   ],
-};
+}, energyLossesPart);

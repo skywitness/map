@@ -221,6 +221,7 @@ STEPS = {
     "electricity-renewables-extra": "topics.electricity_renewables_extra",
     "renewables-final": "topics.renewables_final",
     "energy-use": "topics.energy_use",
+    "energy-losses": "topics.energy_losses",
     "household-energy": "topics.household_energy",
     "energy-poverty": "topics.energy_poverty",
     "energy-wholesale": "topics.energy_wholesale",
