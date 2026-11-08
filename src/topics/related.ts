@@ -218,6 +218,7 @@ export const RELATED: Record<string, string[]> = {
   'amusement-industry': ['theme-parks', 'tourism', 'retail'],
   'roller-coasters': ['theme-parks', 'attractions', 'amusement-industry'],
   'water-parks': ['theme-parks', 'roller-coasters', 'tourism'],
+  disney: ['theme-parks', 'amusement-industry', 'tv-series'],
   'game-companies': ['esports', 'anime', 'developers'],
   'record-labels': ['online-video', 'festivals', 'culture'],
   lodging: ['tourism', 'travel-habits', 'attractions'],

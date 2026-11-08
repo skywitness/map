@@ -99,6 +99,8 @@ const TOPIC_ICONS = {
   'biofuels-hydrogen': 'flask-round',
   'nuclear-reactors': 'orbit',
   'theme-parks': 'roller-coaster',
+  // 迪士尼：手冊的商標規則，不用城堡這類會讓人聯想到品牌標誌的圖示
+  disney: 'balloon',
   'amusement-industry': 'tickets',
   'roller-coasters': 'spline',
   'game-companies': 'joystick',
