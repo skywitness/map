@@ -1,7 +1,7 @@
-import { tr } from '../i18n/lang';
+import { getLang, tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { CategoryDef, IndicatorDef, PointsOverlayDef, TopicDefinition } from './types';
+import type { CategoryDef, IndicatorDef, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /** 米其林三星餐廳（2026-11-04，製作手冊第二十一批 368；pipeline/topics/michelin.py）：英文維基的清單，位置用 Wikidata */
 const MICHELIN: PointsOverlayDef = {
@@ -22,6 +22,25 @@ const MICHELIN: PointsOverlayDef = {
       p.e === 1 ? '' : tr({ zh: '位置是所在城市', en: 'Placed at its city' }),
     ].filter(Boolean),
     properNoun: String(p.n ?? ''),
+  }),
+};
+
+/** 卡拉OK包廂（2026-11-08，製作手冊第二十七批 665，候選 1455；pipeline/topics/ent_venues.py 的 karaoke）：OSM amenity=karaoke_box */
+const kStr = (v: unknown) => (typeof v === 'string' && v ? v : null);
+const karaokeName = (p: PointRecord) =>
+  (getLang() === 'zh' ? (kStr(p.nz) ?? kStr(p.n) ?? kStr(p.ne)) : (kStr(p.ne) ?? kStr(p.n))) ?? tr({ zh: '（沒有名稱的卡拉OK）', en: '(unnamed karaoke)' });
+const KARAOKE: PointsOverlayDef = {
+  kind: 'points',
+  id: 'karaoke',
+  file: 'karaoke-points.json',
+  indicators: ['karaoke-per', 'karaoke'],
+  label: { zh: '卡拉OK包廂（OSM）', en: 'Karaoke boxes (OSM)' },
+  radius: 2.6,
+  color: MAP_TOKENS.categorical[4],
+  tooltip: (p, { countryName }) => ({
+    title: karaokeName(p),
+    detail: typeof p.iso3 === 'string' ? countryName(p.iso3) : '',
+    properNoun: getLang() === 'en' && !kStr(p.ne) && kStr(p.n) ? String(p.n) : undefined,
   }),
 };
 
@@ -185,6 +204,31 @@ export const dining: TopicDefinition = {
       },
       [0.25, 0.5, 1, 2, 3],
     ),
+    // 第二十七批 665（2026-11-08）：卡拉OK包廂
+    indicatorPerMillion(
+      'karaoke-per',
+      { zh: '卡拉OK包廂', en: 'Karaoke boxes' },
+      {
+        zh: '每百萬人有幾家包廂式卡拉OK（OpenStreetMap 的 amenity=karaoke_box），點是每一家。全球 2,886 處、64 國：日本 1,494、南韓 320、中國 245、印尼 130、美國 98、台灣 89、越南 88 最多。每百萬人日本 12.1、南韓 6.2、不丹 5.1、台灣 3.8、蒙古 2.6；法國 0.5、美國 0.3、英國 0.1。幾乎只有東亞與東南亞上色。歐美的卡拉OK酒吧多半標成酒吧加 karaoke=yes、台灣很多 KTV 標成夜店，都不在這裡，所以歐美與台灣都低估。',
+        en: 'Box-style karaoke venues per million people (OpenStreetMap’s amenity=karaoke_box); dots show each one. There are 2,886 in 64 countries, led by Japan (1,494), South Korea (320), China (245), Indonesia (130), the US (98), Taiwan (89) and Vietnam (88). Per million people: Japan 12.1, South Korea 6.2, Bhutan 5.1, Taiwan 3.8 and Mongolia 2.6; France 0.5, the US 0.3 and the UK 0.1. Almost only East and Southeast Asia is shaded. Karaoke bars in Europe and America are usually tagged as bars with karaoke=yes, and many KTVs in Taiwan as nightclubs, so neither is counted here and both are undercounted.',
+      },
+      [0.1, 0.5, 1, 2, 5],
+    ),
+    {
+      id: 'karaoke',
+      label: { zh: '卡拉OK包廂的家數', en: 'Karaoke boxes (count)' },
+      description: {
+        zh: 'OpenStreetMap 上包廂式卡拉OK的家數（比例圓，不看 OSM 覆蓋）：日本 1,494、南韓 320、中國 245、印尼 130、美國 98、台灣 89、越南 88、菲律賓 59、馬來西亞 35、法國 34。',
+        en: 'Number of box-style karaoke venues in OpenStreetMap (bubbles, regardless of OSM coverage): Japan 1,494, South Korea 320, China 245, Indonesia 130, the US 98, Taiwan 89, Vietnam 88, the Philippines 59, Malaysia 35 and France 34.',
+      },
+      unit: { zh: '家', en: 'venues' },
+      file: 'karaoke.json',
+      layer: { kind: 'bubble', legendValues: [10, 100, 1000] },
+      integer: true,
+      format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: fixed(v, 0) }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: true,
+    },
     // 第二十四批 414（2026-11-06）：不賣酒的飲料店依「賣什麼」分，每百萬人
     indicatorPerMillion(
       'bubble-tea',
@@ -262,5 +306,5 @@ export const dining: TopicDefinition = {
       formatTick: (v) => `${v}`,
     },
   ],
-  overlays: [MICHELIN],
+  overlays: [MICHELIN, KARAOKE],
 };

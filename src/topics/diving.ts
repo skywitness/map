@@ -7,6 +7,7 @@ import { hostOnly, topicPart } from './merge';
 import { climbing } from './climbing';
 import { leisureVenuesPart } from './leisure-venues';
 import { huntingFishing } from './hunting-fishing';
+import { indoorFunPart } from './indoor-fun';
 
 /**
  * 潛水中心與潛點（2026-11-04，製作手冊第二十一批 343；pipeline/topics/diving.py）：
@@ -123,14 +124,16 @@ const divingOwn: TopicDefinition = {
  * 標題改成「休閒運動場地」。
  * 2026-11-07（製作手冊第二十七批 536，使用者照研究報告 P2 的建議決定）：獵人高台與釣魚點併進來，資料照舊在 hunting-fishing/，
  * 舊網址 t/hunting-fishing/ 轉到這裡（redirects.ts）
+ * 2026-11-08（製作手冊第二十七批 666）：接上電子遊樂場、密室逃脫、彈跳床樂園（indoor-fun.ts），標題加「室內娛樂」
  */
 export const diving: TopicDefinition = withParts(
   {
     ...hostOnly(divingOwn),
-    title: { zh: '休閒運動場地：潛水、攀岩、三溫暖、滑冰、海水浴場與狩獵釣魚', en: 'Leisure venues: diving, climbing, saunas, ice rinks, beaches, hunting and fishing' },
+    title: { zh: '休閒運動場地：潛水、攀岩、三溫暖、滑冰、海水浴場、狩獵釣魚與室內娛樂', en: 'Leisure venues: diving, climbing, saunas, ice rinks, beaches, hunting, fishing and indoor fun' },
     shortTitle: { zh: '休閒運動場地', en: 'Leisure venues' },
   },
   topicPart(climbing),
   leisureVenuesPart,
   topicPart(huntingFishing),
+  indoorFunPart,
 );

@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { CategoryDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 import { withParts } from './parts';
 import { hostOnly, topicPart } from './merge';
 import { boxOfficeTw } from './box-office-tw';
@@ -81,6 +81,41 @@ const CINEMA_LIST: ListPanelDef = {
       })),
 };
 
+// 2026-11-08（製作手冊第二十七批 667，候選 1461）：表演場館的類型（OSM theatre:genre，pipeline/topics/ent_venues.py）
+const GENRES: CategoryDef[] = [
+  { value: 1, label: { zh: '古典音樂（交響樂、室內樂）', en: 'Classical music (orchestral, chamber)' } },
+  { value: 2, label: { zh: '歌劇與芭蕾', en: 'Opera and ballet' } },
+  { value: 3, label: { zh: '話劇', en: 'Drama' } },
+  { value: 4, label: { zh: '音樂劇', en: 'Musicals' } },
+  { value: 5, label: { zh: '喜劇、綜藝與歌舞秀', en: 'Comedy, variety and cabaret' } },
+  { value: 6, label: { zh: '馬戲', en: 'Circus' } },
+  { value: 7, label: { zh: '偶戲', en: 'Puppetry' } },
+  { value: 8, label: { zh: '能、歌舞伎等東亞傳統戲劇', en: 'Noh, kabuki and other East Asian traditional theatre' } },
+];
+const GENRE_OTHER: CategoryDef = { value: 9, label: { zh: '其他', en: 'Other' } };
+const genreText = (k: unknown) => tr([...GENRES, GENRE_OTHER].find((c) => c.value === k)?.label ?? GENRE_OTHER.label);
+const THEATRE_GENRES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'theatre-genres',
+  file: 'theatre-genre-points.json',
+  label: { zh: '標了類型的表演場館（OSM）', en: 'Venues with a genre (OSM)' },
+  indicators: ['theatre-genre'],
+  radius: 3,
+  color: {
+    field: 'k',
+    title: { zh: '類型', en: 'Genre' },
+    thresholds: [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5],
+    classes: [...GENRES.map((c, i) => ({ color: MAP_TOKENS.categorical[i], label: c.label })), { color: MAP_TOKENS.categoricalOther, label: GENRE_OTHER.label }],
+  },
+  sortField: 'k',
+  tooltip: (p, { countryName }) => ({
+    title: cinemaName(p),
+    detail: [genreText(p.k), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    extra: str(p.g) ? [`theatre:genre = ${p.g}`] : [],
+    properNoun: cinemaProper(p),
+  }),
+};
+
 const cultureOwn: TopicDefinition = {
   id: 'culture',
   title: { zh: '文化：電影院、出版、文化工作者與遺產保存', en: 'Culture: cinemas, books, cultural jobs and heritage' },
@@ -89,11 +124,11 @@ const cultureOwn: TopicDefinition = {
   defaultYear: 2017,
   // 2026-11-07（製作手冊 556）：政府的文化、廣播與出版支出的側欄（COFOG 08 的分項長條）
   panelExtra: () => import('./panels/Cofog08Panel'),
-  overlays: [CINEMAS],
+  overlays: [CINEMAS, THEATRE_GENRES],
   listPanel: [CINEMA_LIST],
   sources: [
     UIS,
-    { name: { zh: 'OpenStreetMap（amenity=theatre、arts_centre、cinema，經 QLever 查詢）', en: 'OpenStreetMap (amenity=theatre, arts_centre and cinema, via QLever)' }, url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0' },
+    { name: { zh: 'OpenStreetMap（amenity=theatre、arts_centre、cinema 與 theatre:genre，經 QLever 查詢）', en: 'OpenStreetMap (amenity=theatre, arts_centre and cinema, and theatre:genre, via QLever)' }, url: 'https://www.openstreetmap.org/copyright', license: 'ODbL 1.0' },
     {
       name: { zh: '文化部：文創產業家數與營業額統計資訊（data.gov.tw 103019，2008–2023 年）', en: 'Ministry of Culture (Taiwan): creative industry establishments and turnover (data.gov.tw 103019, 2008–2023)' },
       url: 'https://data.gov.tw/dataset/103019',
@@ -194,6 +229,20 @@ const cultureOwn: TopicDefinition = {
       integer: true,
       format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: fixed(v, 0) }),
       formatTick: (v) => fixed(v, 0),
+    },
+    {
+      id: 'theatre-genre',
+      label: { zh: '表演場館最多的類型（OSM）', en: 'Most common venue genre (OSM)' },
+      description: {
+        zh: 'OpenStreetMap 上標了表演類型（theatre:genre）的場館 1,469 處、77 國，地圖畫每一國最多的類型，只替至少 10 處的 28 國上色（多重類型各算一次）。古典音樂廳是 16 國最多的類型（波蘭、奧地利、義大利、西班牙、加拿大等）；德國（246 處裡 74 處）、美國、法國、英國是喜劇、綜藝與歌舞秀；俄羅斯是馬戲；捷克、喬治亞是偶戲；瑞典、愛爾蘭是話劇；日本是能、歌舞伎等傳統戲劇（100 處裡 43 處）。台灣只有 5 處標了類型。全部場館裡古典音樂 413 處、喜劇綜藝 343、話劇 156、馬戲 156、音樂劇 137、偶戲 116、歌劇芭蕾 105。標了類型的只占劇院的一小部分，偏德語區、俄羅斯與日本，只能看大概。',
+        en: 'OpenStreetMap has 1,469 venues tagged with a performance genre (theatre:genre) in 77 countries; the map shows each country’s most common genre, shaded only for the 28 countries with at least 10 such venues (venues with several genres count for each). Classical concert halls are the most common type in 16 countries (including Poland, Austria, Italy, Spain and Canada); Germany (74 of 246), the US, France and the UK are led by comedy, variety and cabaret; Russia by circus; Czechia and Georgia by puppetry; Sweden and Ireland by drama; and Japan by noh, kabuki and other traditional theatre (43 of 100). Only 5 venues in Taiwan have a genre. Across all venues: classical music 413, comedy and variety 343, drama 156, circus 156, musicals 137, puppetry 116, and opera and ballet 105. Venues with a genre are only a small share of theatres and are concentrated in German-speaking countries, Russia and Japan, so treat this as approximate.',
+      },
+      unit: '',
+      file: 'theatre-genre.json',
+      layer: { kind: 'categorical', categories: GENRES },
+      timeless: true,
+      format: (v) => genreText(v),
+      unranked: true,
     },
     {
       id: 'arts-centres-per',

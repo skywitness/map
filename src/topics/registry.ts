@@ -209,9 +209,10 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）。
       // 2026-11-07 從社會的「生活與文化」搬過來的菜系走到哪裡、原產地名稱接在外食後面（製作手冊第二十六批 534）；
       // 同一天第二十七批 536：狩獵與釣魚併進休閒運動場地（diving）、旅遊習慣搬到旅遊・觀光、鈔票搬到旅遊・旅行實用
+      // 2026-11-08 第二十七批 664：唱片公司與錄音室接在上網看影片後面
       {
         label: { zh: '日常休閒', en: 'Everyday leisure' },
-        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'gambling', 'holidays', 'time-use', 'online-video', 'culture'],
+        topics: ['dining', 'cuisines', 'origin-names', 'diving', 'gambling', 'holidays', 'time-use', 'online-video', 'record-labels', 'culture'],
       },
     ],
     // 左：獎項與運動、遊戲與動漫；右：日常休閒
@@ -408,6 +409,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'amusement-industry': () => import('./amusement-industry'),
   'roller-coasters': () => import('./roller-coasters'),
   'game-companies': () => import('./game-companies'),
+  'record-labels': () => import('./record-labels'),
   'online-video': () => import('./online-video'),
   anime: () => import('./anime'),
   comics: () => import('./comics'),

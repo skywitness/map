@@ -108,6 +108,7 @@ const TOPIC_ICONS = {
   anime: 'clapperboard',
   comics: 'book-open-text',
   'tv-series': 'tv',
+  'record-labels': 'disc-3',
   'water-parks': 'waves-ladder',
   museums: 'frame',
   'energy-jobs': 'id-card-lanyard',
