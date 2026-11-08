@@ -20,8 +20,8 @@ function parkName(p: PointRecord): { title: string; proper?: string } {
   return getLang() === 'zh' && zh ? { title: zh, proper: en } : { title: en || zh || '' };
 }
 
-// ── 水上樂園 ──
-const WATER_VISITORS: PointsOverlayDef = {
+// ── 水上樂園（2026-11-08 製作手冊第二十七批 636 搬到「水上樂園」主題 water-parks.ts，資料照舊在景點地圖的資料夾） ──
+export const WATER_VISITORS: PointsOverlayDef = {
   kind: 'points',
   id: 'water-park-visitors',
   file: 'water-park-visitors.json',
@@ -45,7 +45,7 @@ const WATER_VISITORS: PointsOverlayDef = {
   },
 };
 
-const WATER_LIST: ListPanelDef = {
+export const WATER_LIST: ListPanelDef = {
   label: { zh: '最多人造訪的水上樂園', en: 'Most-visited water parks' },
   tabLabel: { zh: '水上樂園', en: 'Water parks' },
   indicators: ['visitors'],
@@ -127,6 +127,22 @@ const TW_LIST: ListPanelDef = {
   },
 };
 
+/** OSM 的水上樂園（每十萬人），2026-11-08 搬到「水上樂園」主題 */
+export const WATER_PARKS_PER_100K: IndicatorDef = {
+      id: 'water-parks',
+      label: { zh: '水上樂園（OpenStreetMap）', en: 'Water parks (OpenStreetMap)' },
+      description: {
+        zh: 'OpenStreetMap 上標成水上樂園的地方，全世界 13,330 處、162 國：德國 3,159 處最多，美國 1,533、奧地利 640、巴西 526、法國 474、墨西哥 431；台灣 22 處。每十萬人奧地利 7.0 處最多，德國 3.8、匈牙利 2.4、捷克 2.0；台灣 0.095。各國把什麼標成水上樂園不太一樣（室內的滑水道泳池、戶外的大型樂園都有），只能看大概；只替 OSM 覆蓋良好的國家上色。',
+        en: 'Places tagged as water parks on OpenStreetMap: 13,330 in 162 countries. Germany has the most at 3,159, followed by the US 1,533, Austria 640, Brazil 526, France 474 and Mexico 431; Taiwan has 22. Per 100,000 people Austria leads with 7.0, then Germany 3.8, Hungary 2.4 and Czechia 2.0; Taiwan 0.095. What gets tagged as a water park varies (from indoor pools with slides to large outdoor parks), so treat comparisons as approximate; only countries where OSM is reasonably complete are shaded.',
+      },
+      unit: { zh: '處／十萬人', en: 'per 100,000 people' },
+      file: 'water-parks.json',
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.25, 0.5, 1, 2, 4] } },
+      format: (v) => tr({ zh: `每十萬人 ${fixed(v, v < 1 ? 2 : 1)} 處`, en: `${fixed(v, v < 1 ? 2 : 1)} per 100,000` }),
+      formatTick: (v) => fixed(v, v < 1 ? 2 : 0),
+      panelChart: false,
+    };
+
 export const attractionsVisitors: { sources: SourceDef[]; overlays: PointsOverlayDef[]; indicators: IndicatorDef[]; listPanel: ListPanelDef[] } = {
   sources: [
     {
@@ -134,14 +150,9 @@ export const attractionsVisitors: { sources: SourceDef[]; overlays: PointsOverla
       url: 'https://data.gov.tw/dataset/7777',
       license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
-    {
-      name: { zh: 'OpenStreetMap 的水上樂園（leisure=water_park），經 QLever，2026 年 11 月', en: 'OpenStreetMap water parks (leisure=water_park), via QLever, November 2026' },
-      url: 'https://www.openstreetmap.org/copyright',
-      license: { zh: 'ODbL 1.0，© OpenStreetMap 貢獻者', en: 'ODbL 1.0, © OpenStreetMap contributors' },
-    },
   ],
-  overlays: [WATER_VISITORS, TW_SITES],
-  listPanel: [WATER_LIST, TW_LIST],
+  overlays: [TW_SITES],
+  listPanel: [TW_LIST],
   indicators: [
     {
       id: 'taiwan-sites',
@@ -160,20 +171,6 @@ export const attractionsVisitors: { sources: SourceDef[]; overlays: PointsOverla
       format: () => '',
       defaultYear: 2024,
       missing: { zh: '國家不上色，看地圖上的點', en: 'Countries are not coloured; see the dots on the map' },
-    },
-    {
-      id: 'water-parks',
-      label: { zh: '水上樂園（OpenStreetMap）', en: 'Water parks (OpenStreetMap)' },
-      description: {
-        zh: 'OpenStreetMap 上標成水上樂園的地方，全世界 13,330 處、162 國：德國 3,159 處最多，美國 1,533、奧地利 640、巴西 526、法國 474、墨西哥 431；台灣 22 處。每十萬人奧地利 7.0 處最多，德國 3.8、匈牙利 2.4、捷克 2.0；台灣 0.095。各國把什麼標成水上樂園不太一樣（室內的滑水道泳池、戶外的大型樂園都有），只能看大概；只替 OSM 覆蓋良好的國家上色。',
-        en: 'Places tagged as water parks on OpenStreetMap: 13,330 in 162 countries. Germany has the most at 3,159, followed by the US 1,533, Austria 640, Brazil 526, France 474 and Mexico 431; Taiwan has 22. Per 100,000 people Austria leads with 7.0, then Germany 3.8, Hungary 2.4 and Czechia 2.0; Taiwan 0.095. What gets tagged as a water park varies (from indoor pools with slides to large outdoor parks), so treat comparisons as approximate; only countries where OSM is reasonably complete are shaded.',
-      },
-      unit: { zh: '處／十萬人', en: 'per 100,000 people' },
-      file: 'water-parks.json',
-      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [0.1, 0.25, 0.5, 1, 2, 4] } },
-      format: (v) => tr({ zh: `每十萬人 ${fixed(v, v < 1 ? 2 : 1)} 處`, en: `${fixed(v, v < 1 ? 2 : 1)} per 100,000` }),
-      formatTick: (v) => fixed(v, v < 1 ? 2 : 0),
-      panelChart: false,
     },
   ],
 };

@@ -192,6 +192,7 @@ export const TOPIC_ICONS: Record<string, string> = {
   "theme-parks": "M6 19V5M10 19V6.8M14 19v-7.8M18 5v4M18 19v-6M22 19V9M2 19V9a4 4 0 0 1 4-4c2 0 4 1.33 6 4s4 4 6 4a4 4 0 1 0-3-6.65", // roller-coaster
   "amusement-industry": "M0 0m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8M6 10V8M6 14v1M6 19v2M4 8h16a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2z", // tickets
   "roller-coasters": "M17 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M3 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M5 17A12 12 0 0 1 17 5", // spline
+  "water-parks": "M19 5a2 2 0 0 0-2 2v11M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M7 13h10M7 9h10M9 5a2 2 0 0 0-2 2v11", // waves-ladder
   "show-caves": "M12 13v1M17 2a1 1 0 0 1 1 1v4a3 3 0 0 1-.6 1.8l-.6.8A4 4 0 0 0 16 12v8a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-8a4 4 0 0 0-.8-2.4l-.6-.8A3 3 0 0 1 6 7V3a1 1 0 0 1 1-1zM6 6h12", // flashlight
   "oldest-universities": "M14 21v-3a2 2 0 0 0-4 0v3M18 12h.01M18 16h.01M22 7a1 1 0 0 0-1-1h-2a2 2 0 0 1-1.143-.359L13.143 2.36a2 2 0 0 0-2.286-.001L6.143 5.64A2 2 0 0 1 5 6H3a1 1 0 0 0-1 1v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2zM6 12h.01M6 16h.01M10 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", // university
   "skyscrapers": "M12 10h.01M12 14h.01M12 6h.01M16 10h.01M16 14h.01M16 6h.01M8 10h.01M8 14h.01M8 6h.01M9 22v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-16a2 2 0 0 1 2 -2z", // building

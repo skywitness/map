@@ -161,7 +161,7 @@ const NEAR_LIST: ListPanelDef = {
  * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組
  */
 const MENU_GROUPS: MenuGroup[] = [
-  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'visitors', 'water-parks', 'taiwan-sites']],
+  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'visitors', 'taiwan-sites']],
   [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
   [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos']],
 ];

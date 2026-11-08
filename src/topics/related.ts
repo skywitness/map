@@ -221,6 +221,7 @@ export const RELATED: Record<string, string[]> = {
   'theme-parks': ['amusement-industry', 'attractions', 'tourism'],
   'amusement-industry': ['theme-parks', 'tourism', 'retail'],
   'roller-coasters': ['theme-parks', 'attractions', 'amusement-industry'],
+  'water-parks': ['theme-parks', 'roller-coasters', 'tourism'],
   'night-lights': ['cities', 'power-plants', 'population'],
 };
 

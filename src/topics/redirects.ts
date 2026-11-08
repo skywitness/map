@@ -100,6 +100,8 @@ export const TOPIC_REDIRECTS: Record<string, TopicRedirect> = {
  * 例如交通的航空旅客量搬到航空：t/transport/?ind=air-passengers 轉到 t/aviation/?ind=air-passengers
  */
 export const INDICATOR_MOVES: Record<string, Record<string, TopicRedirect>> = {
+  // 水上樂園（2026-11-08，第二十七批 636）：景點地圖的 OSM 水上樂園搬到「水上樂園」主題，指標 id 不變
+  attractions: { 'water-parks': { topic: 'water-parks' } },
   // 化石燃料的基礎建設（2026-11-07，第二十七批 613）：石油、天然氣與煤的煉油能力搬過去，指標 id 不變
   'fossil-fuels': { 'refining-capacity': { topic: 'fossil-infrastructure' } },
   // 交通政策與投資（2026-11-07，第二十七批 585 開小類）：電價與油價的 4 個燃料稅指標搬到「油價裡的燃料稅」，
