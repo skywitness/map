@@ -35,6 +35,47 @@ const OPENED: PointsOverlayDef = {
 };
 const empty = { zh: '這個指標只有點，國家不上色', en: 'This indicator shows points only' };
 
+/** 單一樂園 2024 年人次 ÷ 2019 年（第二十七批 631）：發散色，100% 附近是中間的淡色 */
+const D = MAP_TOKENS.diverging;
+const RECOVERY: PointsOverlayDef = {
+  kind: 'points',
+  id: 'park-recovery',
+  file: 'park-recovery.json',
+  label: { zh: '樂園人次恢復到 2019 年的多少', en: 'Park attendance recovery against 2019' },
+  indicators: ['recovery'],
+  radius: { field: 'v2024', stops: [[1e5, 2.5], [1e6, 4], [5e6, 6.5], [18e6, 10]] },
+  color: {
+    field: 'r',
+    title: { zh: '2024 年 ÷ 2019 年', en: '2024 vs 2019' },
+    thresholds: [80, 95, 105, 120],
+    classes: [
+      { color: D[0], label: { zh: '不到 80%', en: 'Under 80%' } },
+      { color: D[1], label: { zh: '80–95%', en: '80–95%' } },
+      { color: D[3], label: { zh: '95–105%（差不多）', en: '95–105% (about the same)' } },
+      { color: D[5], label: { zh: '105–120%', en: '105–120%' } },
+      { color: D[6], label: { zh: '120% 以上', en: '120% or more' } },
+    ],
+  },
+  sortField: 'v2024',
+  tooltip: (p, ctx) => {
+    const zh = typeof p.zh === 'string' && p.zh ? p.zh : null;
+    const en = typeof p.en === 'string' && p.en ? p.en : null;
+    const title = (getLang() === 'zh' ? zh ?? en : en ?? zh) ?? '';
+    const n = (v: unknown) => (typeof v === 'number' ? fixed(v, 0) : '');
+    return {
+      title: `${title} · ${typeof p.r === 'number' ? `${fixed(p.r, 0)}%` : ''}`,
+      detail: [
+        tr({ zh: `2019 年 ${n(p.v2019)}、2024 年 ${n(p.v2024)} 人次`, en: `${n(p.v2019)} in 2019, ${n(p.v2024)} in 2024` }),
+        typeof p.iso3 === 'string' ? ctx.countryName(p.iso3) : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      properNoun: getLang() === 'zh' && zh && en && en !== zh ? en : undefined,
+      extra: p.src === 2 ? [tr({ zh: '觀光署的數字', en: 'Tourism Administration figure' })] : [],
+    };
+  },
+};
+
 export const themeParks: TopicDefinition = {
   id: 'theme-parks',
   title: { zh: '樂園：主題樂園與遊樂園', en: 'Theme and amusement parks' },
@@ -56,7 +97,7 @@ export const themeParks: TopicDefinition = {
     en: 'Park dots are Wikidata theme parks, amusement parks and roller coasters (the same data as Attractions); Wikidata coverage varies widely by country, so parks are drawn but not counted there. Country counts use OpenStreetMap’s tourism=theme_park, which is applied loosely (most in Iran and Russia are small urban fairgrounds) and also measures how completely OSM is mapped, so it is not a ranking of theme parks; parks per million people are shown only for countries well covered by OSM. Opening years are Wikidata inception dates (P571), available for only about 30% of parks and sometimes the company’s founding year. Attendance is TEA/AECOM estimates as reproduced on English Wikipedia, and Tourism Administration figures for Taiwan. Taiwan ticket prices are the last update in the Tourism Administration data (mostly 2018), not current prices.',
   },
   panelExtra: () => import('./panels/ThemeParksPanel'),
-  overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED],
+  overlays: [parksOverlay(['parks']), { ...PARK_VISITORS }, OPENED, RECOVERY],
   listPanel: [PARK_LIST],
   indicators: [
     {
@@ -143,6 +184,39 @@ export const themeParks: TopicDefinition = {
       overlayTime: 'cumulative',
       defaultYear: 2026,
       missing: { zh: 'Wikidata 沒有有開園年份的樂園', en: 'No park with an opening year in Wikidata' },
+    },
+    // 2026-11-08（製作手冊第二十七批 631）集團的人次、單一樂園的恢復率
+    {
+      id: 'groups',
+      label: { zh: '樂園集團的人次（依總部國家）', en: 'Theme park groups’ attendance (by headquarters)' },
+      description: {
+        zh: '前 10 大樂園集團的年人次，依總部所在的國家加總（百萬人次；TEA／AECOM 的數字經英文維基轉載，2009–2019 與 2022–2024 年）；點國家看這國的集團。2024 年迪士尼 1.452 億人次、華強方特 8,717 萬（2012 年只有 919 萬）、默林 6,280 萬、環球 5,898 萬、Six Flags 5,030 萬、華僑城 4,110 萬、長隆 3,937 萬、United Parks 2,295 萬、海昌 2,259 萬、Parques Reunidos 1,940 萬。名單每年不同：Six Flags Entertainment 是 2024 年 Cedar Fair 與舊 Six Flags 合併成的，表上只有 2023、2024 年；集團人次含水上樂園與其他設施。',
+        en: 'Annual attendance of the top 10 theme park groups, summed by headquarters country (millions; TEA/AECOM figures as reproduced on English Wikipedia, 2009–2019 and 2022–2024); select a country for its groups. In 2024 Disney had 145.2 million visitors, Fantawild 87.2 million (only 9.2 million in 2012), Merlin 62.8 million, Universal 59.0 million, Six Flags 50.3 million, OCT 41.1 million, Chimelong 39.4 million, United Parks 22.9 million, Haichang 22.6 million and Parques Reunidos 19.4 million. The list changes from year to year: Six Flags Entertainment was formed by the 2024 merger of Cedar Fair and the old Six Flags and appears only for 2023 and 2024; group totals include water parks and other attractions.',
+      },
+      unit: { zh: '百萬人次', en: 'million visitors' },
+      file: 'group-visitors.json',
+      layer: { kind: 'bubble', legendValues: [20, 100, 250] },
+      format: (v) => tr({ zh: `${fixed(v, 1)} 百萬人次`, en: `${fixed(v, 1)} million` }),
+      formatTick: (v) => fixed(v, 0),
+      defaultYear: 2024,
+      missing: { zh: '沒有總部在這裡的前 10 大集團', en: 'No top-10 group headquartered here' },
+    },
+    {
+      id: 'recovery',
+      label: { zh: '樂園人次恢復到疫情前多少', en: 'Theme park attendance recovery since the pandemic' },
+      description: {
+        zh: '單一樂園 2024 年的人次 ÷ 2019 年（TEA 排行榜上兩年都有的 58 座，含台灣觀光署的 5 座）；顏色是恢復率、大小是 2024 年人次。中位數 95%，低於 100% 的 33 座：香港迪士尼 139%、上海迪士尼 131%、法國 Parc Astérix 122% 最高；迪士尼動物王國 63%、阿根廷 Parque de la Costa 66% 最低。台灣：麗寶 110%、劍湖山 85%、小人國 84%、六福村 82%、九族 71%。集團層級：華強方特 173%、環球 115%、長隆 106%、United Parks 101%、默林 94%、迪士尼 93%、Parques Reunidos 87%、華僑城 76%。恢復率混著新開園與擴建，不等於觀光的復甦。',
+        en: 'Each park’s 2024 attendance divided by 2019 (the 58 parks with both years in the TEA rankings, including 5 in Taiwan from the Tourism Administration); colour shows recovery and size 2024 attendance. The median is 95%, with 33 below 100%: Hong Kong Disneyland (139%), Shanghai Disneyland (131%) and Parc Astérix in France (122%) are highest, and Disney’s Animal Kingdom (63%) and Parque de la Costa in Argentina (66%) lowest. Taiwan: Lihpao 110%, Janfusun 85%, Window on China 84%, Leofoo 82% and Formosan Aboriginal Culture Village 71%. For groups: Fantawild 173%, Universal 115%, Chimelong 106%, United Parks 101%, Merlin 94%, Disney 93%, Parques Reunidos 87% and OCT 76%. Recovery mixes in new openings and expansions, so it is not the same as a tourism recovery.',
+      },
+      unit: '',
+      file: '../attractions/visitors.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      timeless: true,
+      missing: empty,
     },
   ],
 };
