@@ -1,6 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { OWNERSHIP, OWNERSHIP_COLORS, ownershipText } from './park-ownership';
 import type { LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
@@ -32,6 +33,8 @@ const STATUS: Text[] = [
   { zh: '已關閉', en: 'Closed' },
   { zh: '在建', en: 'Under construction' },
 ];
+
+const UNIVERSAL_PARENT: Text = { zh: 'NBCUniversal（Comcast）', en: 'NBCUniversal (Comcast)' };
 
 const num = (p: PointRecord, f: string) => (typeof p[f] === 'number' ? (p[f] as number) : null);
 const at = <T,>(list: T[], code: unknown) => list[(typeof code === 'number' ? code : 1) - 1] ?? list[0];
@@ -83,6 +86,8 @@ function facts(p: PointRecord): string[] {
   const out: string[] = [];
   if (y) out.push(yc ? tr({ zh: `環球經營 ${y}–${yc} 年`, en: `Run by Universal ${y}–${yc}` }) : tr({ zh: `${y} 年開幕`, en: `Opened ${y}` }));
   else out.push(tr({ zh: '在建，還沒有開幕年', en: 'Under construction, no opening year yet' }));
+  const own = ownershipText(p, UNIVERSAL_PARENT);
+  if (own) out.push(own);
   out.push(...sizeFacts(p));
   if (getLang() === 'zh' && typeof p.note === 'string' && p.note) out.push(p.note);
   return out;
@@ -96,21 +101,16 @@ function tooltip(p: PointRecord, { countryName }: { countryName: (iso3: string) 
   return { title, detail, extra: facts(p), properNoun: proper };
 }
 
-const KIND_COLORS = {
-  field: 'kind',
-  title: { zh: '類型', en: 'Type' },
-  thresholds: [1.5],
-  classes: [KINDS[0], KINDS[1]].map(({ label, color }) => ({ label, color })),
-};
 
 const SITES: PointsOverlayDef = {
   kind: 'points',
   id: 'universal-sites',
   file: 'sites.json',
-  label: { zh: '環球的樂園（依開幕年出現，已關閉的在關閉之後消失）', en: 'Universal parks (appear in their opening year; closed ones disappear)' },
+  label: { zh: '環球的樂園（依開幕年出現，已關閉的在關閉之後消失；顏色是所有權）', en: 'Universal parks (appear in their opening year; closed ones disappear; colour shows ownership)' },
   indicators: ['parks'],
+  // 主題樂園與水上樂園用點的大小分，顏色是四種所有權關係（第二十八批 684）
   radius: { field: 'kind', stops: [[1, 6], [2, 4]] },
-  color: KIND_COLORS,
+  color: OWNERSHIP_COLORS,
   timeField: 'y',
   endField: 'yc',
   sortField: 'kind',
@@ -352,6 +352,90 @@ const OTHER_LIST: ListPanelDef = {
       ),
 };
 
+
+// ── 誰擁有哪一座、母公司的影視據點（2026-11-08，製作手冊第二十八批 684，候選 1531、1532；pipeline/topics/universal_media.py） ──
+// 四種所有權關係跟「迪士尼」共用（park-ownership.ts）。影視據點是手工白名單：有自己座標的建築畫點，總部只到城市的只進清單。
+const MEDIA_ROLES: Text[] = [
+  { zh: '總部', en: 'Headquarters' },
+  { zh: '辦公大樓', en: 'Offices' },
+  { zh: '片廠與電影', en: 'Studios and film' },
+  { zh: '電視', en: 'Television' },
+  { zh: '樂園部門', en: 'Parks division' },
+  { zh: '串流', en: 'Streaming' },
+];
+const MEDIA: PointsOverlayDef = {
+  kind: 'points',
+  id: 'universal-media',
+  file: 'media.json',
+  label: { zh: '母公司 NBCUniversal（Comcast）的總部、片廠與電視大樓', en: 'Parent NBCUniversal (Comcast): headquarters, studios and TV buildings' },
+  indicators: ['parks'],
+  radius: 4,
+  look: 'faint',
+  color: MAP_TOKENS.categoricalOther,
+  tooltip: (p, { countryName }) => ({
+    title: String(p.en ?? ''),
+    properNoun: String(p.en ?? ''),
+    detail: [tr(at(MEDIA_ROLES, p.role)), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    extra: getLang() === 'zh' && typeof p.note === 'string' ? [p.note] : [],
+  }),
+};
+const MEDIA_LIST: ListPanelDef = {
+  label: { zh: '母公司的影視據點', en: 'Parent company sites' },
+  tabLabel: { zh: '母公司', en: 'Parent' },
+  indicators: ['parks'],
+  file: 'media-all.json',
+  rows: (points, { countryName }) =>
+    points
+      .slice()
+      .sort((a, b) => (num(b, 'mapped') ?? 0) - (num(a, 'mapped') ?? 0) || (num(a, 'role') ?? 9) - (num(b, 'role') ?? 9))
+      .map(
+        (p): ListRow => ({
+          key: String(p.qid),
+          title: String(p.en ?? ''),
+          titleProper: true,
+          group: p.mapped === 1 ? tr({ zh: '有自己的座標（畫在地圖上）', en: 'With own coordinates (on the map)' }) : tr({ zh: '總部只寫到城市（不畫點）', en: 'Headquarters given only as a city (not mapped)' }),
+          muted: p.mapped !== 1,
+          lines: [
+            [tr(at(MEDIA_ROLES, p.role)), typeof p.iso3 === 'string' ? countryName(p.iso3) : '', typeof p.city === 'string' ? p.city : ''].filter(Boolean).join(' · '),
+            getLang() === 'zh' && typeof p.note === 'string' ? p.note : '',
+          ].filter(Boolean),
+          link: { href: `https://www.wikidata.org/wiki/${String(p.qid)}`, label: tr({ zh: `資料出處 Wikidata ${String(p.qid)}`, en: `Source: Wikidata ${String(p.qid)}` }) },
+          target: typeof p.lon === 'number' ? { lon: Number(p.lon), lat: Number(p.lat), zoom: p.mapped === 1 ? 15 : 9 } : { box: [-170, -55, 170, 72] },
+        }),
+      ),
+};
+const OWN_SOURCES: Record<number, string> = {
+  2: 'https://en.wikipedia.org/wiki/Universal_Studios_Japan?oldid=1384197462',
+  3: 'https://en.wikipedia.org/wiki/Universal_Beijing_Resort?oldid=1381734293',
+  4: 'https://en.wikipedia.org/wiki/Universal_Destinations_%26_Experiences?oldid=1382726905',
+};
+const OWN_LIST: ListPanelDef = {
+  label: { zh: '誰擁有哪一座', en: 'Who owns which park' },
+  tabLabel: { zh: '所有權', en: 'Ownership' },
+  indicators: ['parks'],
+  file: 'places-area.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    points
+      .filter((p) => p.kind !== 3)
+      .slice()
+      .sort((a, b) => (num(a, 'own') ?? 9) - (num(b, 'own') ?? 9) || (num(a, 'y') ?? 9999) - (num(b, 'y') ?? 9999))
+      .map((p): ListRow => {
+        const { title, proper } = universalName(p);
+        const own = num(p, 'own') ?? 1;
+        return {
+          key: String(p.qid),
+          title,
+          properNoun: proper,
+          group: tr(OWNERSHIP[own - 1].label),
+          muted: p.status !== 1,
+          lines: [[tr(at(UNIVERSAL_SITES, p.resort)), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '), ownershipText(p, UNIVERSAL_PARENT) ?? ''],
+          link: { href: OWN_SOURCES[own] ?? `https://www.wikidata.org/wiki/${String(p.qid)}`, label: tr({ zh: '資料出處', en: 'Source' }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 13 },
+        };
+      }),
+};
+
 export const universal: TopicDefinition = {
   id: 'universal',
   title: { zh: '環球影城在哪裡：樂園與度假區', en: 'Where Universal is: parks and resorts' },
@@ -406,15 +490,15 @@ export const universal: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是環球影城或它的母公司提供的。度假區（例如奧蘭多）與裡面的樂園是兩層，「幾座樂園」只算營運中的主題樂園與水上樂園。台灣沒有環球的樂園。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by Universal or its parent company. Resorts (such as Orlando) and the parks inside them are two levels, and park counts include open theme and water parks only. Taiwan has no Universal park.',
   },
-  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, OTHER, OTHER_PLANNED, PARK_VISITS],
-  listPanel: [PARK_LIST, VISIT_LIST, OTHER_LIST],
+  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, OTHER, OTHER_PLANNED, MEDIA, PARK_VISITS],
+  listPanel: [PARK_LIST, VISIT_LIST, OTHER_LIST, OWN_LIST, MEDIA_LIST],
   indicators: [
     {
       id: 'parks',
       label: { zh: '環球的樂園', en: 'Universal parks' },
       description: {
-        zh: '各國那一年有幾座環球經營的樂園（比例圓，含水上樂園；拖時間軸看 1964 年好萊塢開始怎麼擴張）。2026 年營運中的是 9 座：美國 6 座（好萊塢 1 座，奧蘭多的佛羅里達環球影城 1990、冒險島樂園 1999、水上樂園 Volcano Bay 2017、史詩宇宙 2025 共 4 座，德州 Frisco 2026 年 7 月開的兒童度假村 1 座），日本（大阪，2001）、新加坡（2011）、中國（北京，2021）各 1 座；度假區與在建的不算。最新的史詩宇宙 2025 年 5 月 22 日開幕，是奧蘭多的第三座主題樂園。奧蘭多的 Wet \'n Wild 是 1977 年別人開的水上樂園，環球 1998 年買下、2016 年底關閉。英國 Bedford 的樂園在建，宣布的目標是 2031 年，那是目標不是事實，所以不給開幕年、另外畫成空心的點。開幕日期依英文維基的固定版本；新加坡 2010 年 3 月試營運、2011 年 5 月正式開幕，這裡用 2011 年。放大看得到 OpenStreetMap 畫的園區邊界；面積把 OSM 的邊界與維基的數字並列、不排名，因為畫法差很多：好萊塢的 OSM 邊界只有 17.5 公頃，維基寫整個片廠約 168 公頃。園內的雲霄飛車是落在邊界裡、有名稱的 OSM 雲霄飛車，佛羅里達環球影城算出 0 座（維基寫 3 座），清單寫成「OSM 沒有標」。地圖上另外畫了樂園之外的環球：4 處 CityWalk（好萊塢 1993、奧蘭多 1999、大阪 2001、北京），奧蘭多的 11 家直營飯店（1999 年的 Portofino Bay 到 2025 年的 Helios Grand，合計 11,000 間房，房間數依英文維基；其他度假區沒有直營飯店），2025 年在拉斯維加斯開的 Horror Unleashed（芝加哥的在建），以及 1998–2004 年有持股、現在已經不是環球的 PortAventura 與取消的杜拜計畫；左邊的清單另列 IP 主題園區（哈利波特 6 處、超級任天堂 3 處）。台灣沒有環球的樂園。',
-        en: 'How many Universal-run parks each country had in each year (proportional circles, water parks included; drag the timeline to watch the expansion from Hollywood in 1964). In 2026 there are 9 open: 6 in the US (Hollywood; in Orlando, Universal Studios Florida 1990, Islands of Adventure 1999, the Volcano Bay water park 2017 and Epic Universe 2025; and Universal Kids Resort in Frisco, Texas, opened July 2026) and 1 each in Japan (Osaka, 2001), Singapore (2011) and China (Beijing, 2021); resorts and parks under construction are not counted. The newest, Epic Universe, opened on 22 May 2025 as Orlando’s third theme park. Wet ’n Wild in Orlando was a water park opened by others in 1977, bought by Universal in 1998 and closed at the end of 2016. A park in Bedford, England, is under construction with a target of 2031; that is a target rather than a fact, so it has no opening year and is drawn as a hollow dot. Opening dates follow a fixed revision of English Wikipedia; Singapore had a soft opening in March 2010 and a grand opening in May 2011, and 2011 is used here. Zoom in to see park outlines drawn on OpenStreetMap; areas from OSM and Wikipedia are shown side by side and not ranked, because outlines differ widely: Hollywood’s OSM outline is only 17.5 ha, while Wikipedia gives about 168 ha for the whole studio lot. Roller coasters are named OSM coasters inside each outline; Universal Studios Florida comes out at 0 (Wikipedia says 3), which the list shows as “none tagged on OSM”. The map also shows Universal beyond the parks: 4 CityWalks (Hollywood 1993, Orlando 1999, Osaka 2001 and Beijing), the 11 Universal-run hotels in Orlando (from Portofino Bay in 1999 to Helios Grand in 2025, 11,000 rooms in all according to English Wikipedia; the other resorts have no Universal-run hotels), Horror Unleashed in Las Vegas (opened 2025; Chicago under construction), and PortAventura, in which Universal held a stake in 1998–2004 and which is no longer Universal’s, plus the cancelled Dubai project; the list also shows the IP-themed lands (6 Wizarding Worlds of Harry Potter and 3 Super Nintendo Worlds). Taiwan has no Universal park.',
+        zh: '各國那一年有幾座環球經營的樂園（比例圓，含水上樂園；拖時間軸看 1964 年好萊塢開始怎麼擴張）。2026 年營運中的是 9 座：美國 6 座（好萊塢 1 座，奧蘭多的佛羅里達環球影城 1990、冒險島樂園 1999、水上樂園 Volcano Bay 2017、史詩宇宙 2025 共 4 座，德州 Frisco 2026 年 7 月開的兒童度假村 1 座），日本（大阪，2001）、新加坡（2011）、中國（北京，2021）各 1 座；度假區與在建的不算。最新的史詩宇宙 2025 年 5 月 22 日開幕，是奧蘭多的第三座主題樂園。奧蘭多的 Wet \'n Wild 是 1977 年別人開的水上樂園，環球 1998 年買下、2016 年底關閉。英國 Bedford 的樂園在建，宣布的目標是 2031 年，那是目標不是事實，所以不給開幕年、另外畫成空心的點。開幕日期依英文維基的固定版本；新加坡 2010 年 3 月試營運、2011 年 5 月正式開幕，這裡用 2011 年。放大看得到 OpenStreetMap 畫的園區邊界；面積把 OSM 的邊界與維基的數字並列、不排名，因為畫法差很多：好萊塢的 OSM 邊界只有 17.5 公頃，維基寫整個片廠約 168 公頃。園內的雲霄飛車是落在邊界裡、有名稱的 OSM 雲霄飛車，佛羅里達環球影城算出 0 座（維基寫 3 座），清單寫成「OSM 沒有標」。點的顏色是誰擁有：全資 6 座（好萊塢、奧蘭多 4 座、德州），日本由全資子公司 USJ 合同会社經營，北京是合資、NBCUniversal 只占 30%（首寰文化旅遊投資 70%），新加坡是雲頂擁有與經營、環球只授權不持股。地圖上另外畫了樂園之外的環球：4 處 CityWalk（好萊塢 1993、奧蘭多 1999、大阪 2001、北京），奧蘭多的 11 家直營飯店（1999 年的 Portofino Bay 到 2025 年的 Helios Grand，合計 11,000 間房，房間數依英文維基；其他度假區沒有直營飯店），2025 年在拉斯維加斯開的 Horror Unleashed（芝加哥的在建），1998–2004 年有持股、現在已經不是環球的 PortAventura 與取消的杜拜計畫，以及母公司 NBCUniversal（Comcast）的總部、片廠與電視大樓 8 處；左邊的清單另列 IP 主題園區（哈利波特 6 處、超級任天堂 3 處）。台灣沒有環球的樂園。',
+        en: 'How many Universal-run parks each country had in each year (proportional circles, water parks included; drag the timeline to watch the expansion from Hollywood in 1964). In 2026 there are 9 open: 6 in the US (Hollywood; in Orlando, Universal Studios Florida 1990, Islands of Adventure 1999, the Volcano Bay water park 2017 and Epic Universe 2025; and Universal Kids Resort in Frisco, Texas, opened July 2026) and 1 each in Japan (Osaka, 2001), Singapore (2011) and China (Beijing, 2021); resorts and parks under construction are not counted. The newest, Epic Universe, opened on 22 May 2025 as Orlando’s third theme park. Wet ’n Wild in Orlando was a water park opened by others in 1977, bought by Universal in 1998 and closed at the end of 2016. A park in Bedford, England, is under construction with a target of 2031; that is a target rather than a fact, so it has no opening year and is drawn as a hollow dot. Opening dates follow a fixed revision of English Wikipedia; Singapore had a soft opening in March 2010 and a grand opening in May 2011, and 2011 is used here. Zoom in to see park outlines drawn on OpenStreetMap; areas from OSM and Wikipedia are shown side by side and not ranked, because outlines differ widely: Hollywood’s OSM outline is only 17.5 ha, while Wikipedia gives about 168 ha for the whole studio lot. Roller coasters are named OSM coasters inside each outline; Universal Studios Florida comes out at 0 (Wikipedia says 3), which the list shows as “none tagged on OSM”. Dot colours show ownership: 6 are wholly owned (Hollywood, the 4 in Orlando and Texas), Japan is run by a wholly owned subsidiary (USJ LLC), Beijing is a joint venture in which NBCUniversal holds only 30% (Beijing Shouhuan Cultural Tourism Investment holds 70%), and Singapore is owned and run by Genting under licence, with no Universal stake. The map also shows Universal beyond the parks: 4 CityWalks (Hollywood 1993, Orlando 1999, Osaka 2001 and Beijing), the 11 Universal-run hotels in Orlando (from Portofino Bay in 1999 to Helios Grand in 2025, 11,000 rooms in all according to English Wikipedia; the other resorts have no Universal-run hotels), Horror Unleashed in Las Vegas (opened 2025; Chicago under construction), and PortAventura, in which Universal held a stake in 1998–2004 and which is no longer Universal’s, the cancelled Dubai project, and 8 headquarters, studio and TV buildings of the parent NBCUniversal (Comcast); the list also shows the IP-themed lands (6 Wizarding Worlds of Harry Potter and 3 Super Nintendo Worlds). Taiwan has no Universal park.',
       },
       unit: { zh: '座', en: 'parks' },
       file: 'parks.json',

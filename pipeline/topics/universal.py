@@ -20,6 +20,7 @@ import geoindex
 from common import OUT_DIR, ROOT, indicator_file, points_file, write_json
 from sources import qlever_wikidata as wd
 from topics.disney import UNIT_KM2, _km
+from topics.park_ownership import UNIVERSAL as OWNERSHIP
 
 OUT = OUT_DIR / "topics" / "universal"
 CSV = ROOT / "pipeline" / "data" / "universal" / "places.csv"
@@ -29,8 +30,8 @@ STATUS = {"open": 1, "closed": 2, "planned": 3}
 RESORTS = ["hollywood", "orlando", "japan", "singapore", "beijing", "frisco", "uk"]  # 前端 universal.ts 的 RESORTS（代碼是索引 + 1）
 RESORT_ZH = {"hollywood": "好萊塢", "orlando": "奧蘭多", "japan": "大阪", "singapore": "新加坡", "beijing": "北京",
              "frisco": "德州 Frisco", "uk": "英國 Bedford"}
-FIELDS = ["lon", "lat", "qid", "en", "zh", "iso3", "kind", "resort", "status", "y", "yc", "area", "note"]
-SCALE = {"lon": 0.0001, "lat": 0.0001, "kind": 1, "resort": 1, "status": 1, "y": 1, "yc": 1, "area": 0.001}
+FIELDS = ["lon", "lat", "qid", "en", "zh", "iso3", "kind", "resort", "status", "y", "yc", "area", "note", "own", "share", "ownnote"]
+SCALE = {"lon": 0.0001, "lat": 0.0001, "kind": 1, "resort": 1, "status": 1, "y": 1, "yc": 1, "area": 0.001, "own": 1, "share": 1}
 
 
 def read_places() -> list[dict]:
@@ -89,6 +90,8 @@ def build() -> None:
             "kind": KINDS[p["kind"]], "resort": RESORTS.index(p["resort"]) + 1, "status": STATUS[p["status"]],
             "y": int(p["opened"]) if p["opened"] else None, "yc": int(p["closed"]) if p["closed"] else None,
             "area": round(area, 3) if area else None, "note": p["note"] or None,
+            # 四種所有權關係（第二十八批 684，topics/park_ownership.py）
+            "own": OWNERSHIP[p["resort"]][0], "share": OWNERSHIP[p["resort"]][1], "ownnote": OWNERSHIP[p["resort"]][2],
         })
     for r, c in zip(rows, geoindex.countries_at([r["lon"] for r in rows], [r["lat"] for r in rows])):
         r["iso3"] = c

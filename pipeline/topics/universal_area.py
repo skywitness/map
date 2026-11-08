@@ -137,9 +137,9 @@ SELECT ?x ?q ?area ?wkt (COUNT(DISTINCT ?cname) AS ?coasters) (GROUP_CONCAT(DIST
             p["wiki_ha"] = _area_ha(_param(text, "area"))
             p["areas_n"] = _int(_param(text, "theme_areas"))
 
-    fields = ["lon", "lat", "qid", "en", "zh", "iso3", "kind", "resort", "status", "y", "yc", "note",
+    fields = ["lon", "lat", "qid", "en", "zh", "iso3", "kind", "resort", "status", "y", "yc", "note", "own", "share", "ownnote",
               "osm_ha", "osm", "osm_n", "rc", "rides", "wc", "wr", "wiki_ha", "areas_n", "rev"]
-    scale = {"lon": 0.0001, "lat": 0.0001, "kind": 1, "resort": 1, "status": 1, "y": 1, "yc": 1, "osm_ha": 0.1, "osm_n": 1,
+    scale = {"lon": 0.0001, "lat": 0.0001, "kind": 1, "resort": 1, "status": 1, "y": 1, "yc": 1, "own": 1, "share": 1, "osm_ha": 0.1, "osm_n": 1,
              "rc": 1, "rides": 1, "wc": 1, "wr": 1, "wiki_ha": 0.1, "areas_n": 1, "rev": 1}
     write_json(OUT / "places-area.json", points_file(places, fields, scale))
     # 地圖上的點也帶面積與座數（滑過的說明用）：照 universal 步驟同樣的分層重寫

@@ -21,6 +21,7 @@ from collections import Counter, defaultdict
 import geoindex
 from common import OUT_DIR, ROOT, indicator_file, load_points_json, points_file, read_points_file, write_json
 from sources import qlever_wikidata as wd
+from topics.park_ownership import DISNEY as OWNERSHIP
 
 OUT = OUT_DIR / "topics" / "disney"
 CSV = ROOT / "pipeline" / "data" / "disney" / "places.csv"
@@ -31,8 +32,8 @@ RESORTS = ["wdw", "dlr", "tdr", "dlp", "hkdr", "shdr", "adr"]  # 前端 disney.t
 RESORT_ZH = {"wdw": "華特迪士尼世界", "dlr": "加州迪士尼樂園度假區", "tdr": "東京迪士尼度假區", "dlp": "巴黎迪士尼樂園度假區",
              "hkdr": "香港迪士尼樂園度假區", "shdr": "上海迪士尼度假區", "adr": "阿布達比"}
 UNIT_KM2 = {"Q712226": 1.0, "Q25343": 1e-6, "Q81292": 0.00404686, "Q35852": 0.01}
-FIELDS = ["lon", "lat", "qid", "en", "zh", "iso3", "kind", "resort", "status", "y", "yc", "area", "v2019", "v2024", "note"]
-SCALE = {"lon": 0.0001, "lat": 0.0001, "kind": 1, "resort": 1, "status": 1, "y": 1, "yc": 1, "area": 0.001, "v2019": 1, "v2024": 1}
+FIELDS = ["lon", "lat", "qid", "en", "zh", "iso3", "kind", "resort", "status", "y", "yc", "area", "v2019", "v2024", "note", "own", "share", "ownnote"]
+SCALE = {"lon": 0.0001, "lat": 0.0001, "kind": 1, "resort": 1, "status": 1, "y": 1, "yc": 1, "area": 0.001, "v2019": 1, "v2024": 1, "own": 1, "share": 1}
 
 
 def read_places() -> list[dict]:
@@ -123,6 +124,8 @@ def build() -> None:
             "kind": KINDS[p["kind"]], "resort": RESORTS.index(p["resort"]) + 1, "status": STATUS[p["status"]],
             "y": int(p["opened"]) if p["opened"] else None, "yc": int(p["closed"]) if p["closed"] else None,
             "area": round(area, 3) if area else None, "v2019": v2019, "v2024": v2024, "note": note or None,
+            # 四種所有權關係（第二十八批 684，topics/park_ownership.py）
+            "own": OWNERSHIP[p["resort"]][0], "share": OWNERSHIP[p["resort"]][1], "ownnote": OWNERSHIP[p["resort"]][2],
         })
     iso = geoindex.countries_at([r["lon"] for r in rows], [r["lat"] for r in rows])
     for r, c in zip(rows, iso):

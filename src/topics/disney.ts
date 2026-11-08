@@ -1,6 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { OWNERSHIP_COLORS, ownershipText } from './park-ownership';
 import type { CategoryDef, DimensionDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
@@ -34,6 +35,8 @@ const STATUS: Text[] = [
   { zh: '已宣布', en: 'Announced' },
 ];
 
+const DISNEY_PARENT: Text = { zh: '華特迪士尼公司', en: 'The Walt Disney Company' };
+
 const num = (p: PointRecord, f: string) => (typeof p[f] === 'number' ? (p[f] as number) : null);
 const at = <T,>(list: T[], code: unknown) => list[(typeof code === 'number' ? code : 1) - 1] ?? list[0];
 
@@ -59,6 +62,8 @@ function facts(p: PointRecord): string[] {
   else out.push(tr({ zh: '還沒有開幕年', en: 'No opening year yet' }));
   if (v24) out.push(tr({ zh: `2024 年 ${visitorsText(v24)}`, en: `${visitorsText(v24)} in 2024` }) + (v19 ? tr({ zh: `（2019 年 ${formatLargeNumber(v19)}）`, en: ` (2019: ${formatLargeNumber(v19)})` }) : ''));
   if (area) out.push(tr({ zh: `面積 ${areaText(area)}（Wikidata）`, en: `Area ${areaText(area)} (Wikidata)` }));
+  const own = ownershipText(p, DISNEY_PARENT);
+  if (own) out.push(own);
   if (getLang() === 'zh' && typeof p.note === 'string' && p.note) out.push(p.note);
   return out;
 }
@@ -71,22 +76,16 @@ function tooltip(p: PointRecord, { countryName }: { countryName: (iso3: string) 
   return { title, detail, extra: facts(p), properNoun: proper };
 }
 
-/** 樂園那一層的點沒有度假區（度假區另一層畫大圈），所以只分主題樂園、水上樂園、其他（代碼 4） */
-const KIND_COLORS = {
-  field: 'kind',
-  title: { zh: '類型', en: 'Type' },
-  thresholds: [1.5, 2.5],
-  classes: [KINDS[0], KINDS[1], KINDS[3]].map(({ label, color }) => ({ label, color })),
-};
 
 const SITES: PointsOverlayDef = {
   kind: 'points',
   id: 'disney-sites',
   file: 'sites.json',
-  label: { zh: '迪士尼的樂園（依開幕年出現，已關閉的在關閉那年消失）', en: 'Disney parks (appear in their opening year; closed ones disappear)' },
+  label: { zh: '迪士尼的樂園（依開幕年出現，已關閉的在關閉那年消失；顏色是所有權）', en: 'Disney parks (appear in their opening year; closed ones disappear; colour shows ownership)' },
   indicators: ['parks'],
+  // 主題樂園、水上樂園、其他用點的大小分，顏色是四種所有權關係（第二十八批 684）
   radius: { field: 'kind', stops: [[1, 6], [2, 4], [4, 3]] },
-  color: KIND_COLORS,
+  color: OWNERSHIP_COLORS,
   timeField: 'y',
   endField: 'yc',
   sortField: 'kind',
@@ -148,6 +147,7 @@ const PARK_LIST: ListPanelDef = {
           muted: p.status !== 1,
           lines: [
             [tr(at(KINDS, p.kind).label), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '),
+            ownershipText(p, DISNEY_PARENT) ?? '',
             [
               y ? (yc ? tr({ zh: `${y}–${yc} 年`, en: `${y}–${yc}` }) : tr({ zh: `${y} 年開幕`, en: `opened ${y}` })) : tr(STATUS[2]),
               v24 ? tr({ zh: `2024 年 ${visitorsText(v24)}`, en: `${visitorsText(v24)} in 2024` }) : '',
@@ -923,8 +923,8 @@ export const disney: TopicDefinition = {
       id: 'parks',
       label: { zh: '迪士尼的主題樂園', en: 'Disney theme parks' },
       description: {
-        zh: '各國營運中的迪士尼主題樂園數（比例圓），拖時間軸看 1955 年加州的迪士尼樂園到 2016 年上海怎麼一座座開起來。2026 年共 12 座、在 6 個度假區：美國 6 座（佛羅里達的華特迪士尼世界 4 座：神奇王國 1971、艾波卡特 1982、好萊塢夢工場 1989、動物王國 1998；加州 2 座：迪士尼樂園 1955、加州冒險 2001）、日本 2 座（東京迪士尼樂園 1983、東京迪士尼海洋 2001）、法國 2 座（1992、2002）、香港 1 座（2005）、上海 1 座（2016）；第七個度假區阿布達比已宣布，還沒有開幕年（空心的點）。地圖上的大圈是度假區，小點是樂園、水上樂園與已關閉的地方（River Country 1976–2001、Discovery Island 1974–1999、DisneyQuest 1998–2017）。台灣沒有迪士尼的樂園，最近的是香港與上海。',
-        en: 'Number of Disney theme parks open in each country (proportional circles); drag the timeline to watch them open one by one, from Disneyland in California in 1955 to Shanghai in 2016. In 2026 there are 12 parks at 6 resorts: the US has 6 (4 at Walt Disney World in Florida: Magic Kingdom 1971, Epcot 1982, Hollywood Studios 1989, Animal Kingdom 1998; 2 in California: Disneyland 1955, California Adventure 2001), Japan 2 (Tokyo Disneyland 1983, Tokyo DisneySea 2001), France 2 (1992, 2002), Hong Kong 1 (2005) and Shanghai 1 (2016); a seventh resort in Abu Dhabi has been announced with no opening year (hollow point). Large rings are resorts; small points are parks, water parks and closed sites (River Country 1976–2001, Discovery Island 1974–1999, DisneyQuest 1998–2017). Taiwan has no Disney park; the nearest are Hong Kong and Shanghai.',
+        zh: '各國營運中的迪士尼主題樂園數（比例圓），拖時間軸看 1955 年加州的迪士尼樂園到 2016 年上海怎麼一座座開起來。2026 年共 12 座、在 6 個度假區：美國 6 座（佛羅里達的華特迪士尼世界 4 座：神奇王國 1971、艾波卡特 1982、好萊塢夢工場 1989、動物王國 1998；加州 2 座：迪士尼樂園 1955、加州冒險 2001）、日本 2 座（東京迪士尼樂園 1983、東京迪士尼海洋 2001）、法國 2 座（1992、2002）、香港 1 座（2005）、上海 1 座（2016）；第七個度假區阿布達比已宣布，還沒有開幕年（空心的點）。地圖上的大圈是度假區，小點是樂園、水上樂園與已關閉的地方（River Country 1976–2001、Discovery Island 1974–1999、DisneyQuest 1998–2017）。樂園的點的顏色是誰擁有（跟「環球影城」同一套分類）：全資 6 座（佛羅里達 4 座、加州 2 座），巴黎 2 座由全資子公司 Euro Disney 經營（2017 年迪士尼買下全部股份），香港（港府 52%、迪士尼 48%）與上海（申迪集團 57%、迪士尼 43%）是合資、迪士尼是小股東，東京 2 座是東方樂園公司擁有與經營、迪士尼只授權，阿布達比也是授權。台灣沒有迪士尼的樂園，最近的是香港與上海。',
+        en: 'Number of Disney theme parks open in each country (proportional circles); drag the timeline to watch them open one by one, from Disneyland in California in 1955 to Shanghai in 2016. In 2026 there are 12 parks at 6 resorts: the US has 6 (4 at Walt Disney World in Florida: Magic Kingdom 1971, Epcot 1982, Hollywood Studios 1989, Animal Kingdom 1998; 2 in California: Disneyland 1955, California Adventure 2001), Japan 2 (Tokyo Disneyland 1983, Tokyo DisneySea 2001), France 2 (1992, 2002), Hong Kong 1 (2005) and Shanghai 1 (2016); a seventh resort in Abu Dhabi has been announced with no opening year (hollow point). Large rings are resorts; small points are parks, water parks and closed sites (River Country 1976–2001, Discovery Island 1974–1999, DisneyQuest 1998–2017). Park dots are coloured by ownership (the same classes as the Universal topic): 6 are wholly owned (4 in Florida, 2 in California); the 2 in Paris are run by the wholly owned subsidiary Euro Disney (Disney bought all remaining shares in 2017); Hong Kong (government 52%, Disney 48%) and Shanghai (Shendi Group 57%, Disney 43%) are joint ventures with Disney as the minority partner; the 2 in Tokyo are owned and run by Oriental Land under licence; Abu Dhabi will also be licensed. Taiwan has no Disney park; the nearest are Hong Kong and Shanghai.',
       },
       unit: { zh: '座', en: 'parks' },
       file: 'parks.json',
