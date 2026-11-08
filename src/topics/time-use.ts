@@ -118,6 +118,16 @@ export const timeUse: TopicDefinition = {
       },
       [110, 120, 130, 140],
     ),
+    // 2026-11-08（製作手冊第二十七批 653，候選 1431）
+    minutes(
+      'gaming',
+      { zh: '一天打電玩（歐洲）', en: 'Video games a day (Europe)' },
+      {
+        zh: '一天玩電腦、主機與手機遊戲的時間，全部人口的平均（不玩的人算 0）。挪威 23 分鐘最多，芬蘭 19、德國 17，荷蘭、愛沙尼亞、奧地利 12；克羅埃西亞 4 分鐘最少。只有 11 國。',
+        en: 'Time spent playing computer, console and mobile games a day, averaged over the whole population (non-players count as zero). Norway is highest at 23 minutes, then Finland 19 and Germany 17, with the Netherlands, Estonia and Austria at 12; Croatia is lowest at 4 minutes. 11 countries only.',
+      },
+      [5, 10, 15, 20],
+    ),
     {
       id: 'time-off',
       label: { zh: '自己的時間', en: 'Time off' },

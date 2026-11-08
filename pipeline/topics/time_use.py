@@ -25,7 +25,8 @@ TIME_USE = "OECD.WISE.INE,DSD_TIME_USE@DF_TIME_USE,1.0"
 HSL = "OECD.WISE.WDP,DSD_HSL@DF_HSL_CWB,1.0"
 HETUS = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/tus_20age/?format=TSV&compressed=true"
 OECD_MEASURES = {"leisure": "LEI", "personal-care": "PCA", "unpaid-work": "UPW"}
-HETUS_ACTS = {"sleep": "AC01", "commute": "AC910", "tv": "AC821"}
+# 2026-11-08（製作手冊第二十七批 653，候選 1431）加打遊戲（電腦、主機、手機遊戲）
+HETUS_ACTS = {"sleep": "AC01", "commute": "AC910", "tv": "AC821", "gaming": "AC733-735"}
 HSL_MEASURES = {"time-off": "4_1", "time-satisfaction": "4_4", "social-time": "7_2"}
 NO_TAIWAN = {"TWN": "台灣的時間運用調查（主計總處）最近一次是 2004 年，之後沒有再辦"}
 NO_TAIWAN_EN = {"TWN": "Taiwan’s last time-use survey (DGBAS) was in 2004"}

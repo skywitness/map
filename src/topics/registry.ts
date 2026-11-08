@@ -203,9 +203,9 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     id: 'leisure',
     label: { zh: '休閒', en: 'Leisure' },
     sections: [
-      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'esports', 'horses'] },
+      { label: { zh: '獎項與運動', en: 'Prizes & sports' }, topics: ['nobel', 'sports', 'racing', 'horses'] },
       // 2026-11-08 製作手冊第二十七批 652 開「遊戲與動漫」小類（656 再把電競、動畫、漫畫、電視劇放進來）
-      { label: { zh: '遊戲與動漫', en: 'Games & anime' }, topics: ['game-companies'] },
+      { label: { zh: '遊戲與動漫', en: 'Games & anime' }, topics: ['esports', 'game-companies'] },
       // 2026-11-04 製作手冊第二十一批（休閒的追加主題；社會已經有「生活與文化」，這裡叫日常休閒）。
       // 2026-11-07 從社會的「生活與文化」搬過來的菜系走到哪裡、原產地名稱接在外食後面（製作手冊第二十六批 534）；
       // 同一天第二十七批 536：狩獵與釣魚併進休閒運動場地（diving）、旅遊習慣搬到旅遊・觀光、鈔票搬到旅遊・旅行實用

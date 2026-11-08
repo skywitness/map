@@ -1,6 +1,6 @@
 import { tr } from '../i18n/lang';
 import { fixed } from '../lib/format';
-import type { CategoryDef, TopicDefinition } from './types';
+import type { CategoryDef, ListPanelDef, ListRow, TopicDefinition } from './types';
 
 /**
  * 電競獎金總額與選手數（2026-11-04，製作手冊第二十一批 348；pipeline/topics/esports.py）：
@@ -18,6 +18,40 @@ const GAMES: CategoryDef[] = [
   { value: 8, label: { zh: '其他遊戲', en: 'Other games' } },
 ];
 
+/**
+ * 2026-11-08（製作手冊第二十七批 653，候選 1427、1429、1430）：主題改名「遊戲與電競」、搬到休閒的「遊戲與動漫」；
+ * 加遊戲出版的營業額（Eurostat cult_ent_val）、誰在玩（16–24 歲對 65–74 歲）、台灣上市過的遊戲（遊戲軟體分級的統計）。
+ */
+const TW_GROUPS: Record<string, { zh: string; en: string }> = {
+  p: { zh: '依平台', en: 'By platform' },
+  r: { zh: '依分級', en: 'By rating' },
+  y: { zh: '依上市年份', en: 'By release year' },
+};
+// 鍵是資料裡的級別
+const RATING_EN: Record<string, string> = {
+  普: 'General', // i18n-ignore
+  護: 'Protected (6+)', // i18n-ignore
+  輔12: 'Parental guidance 12+', // i18n-ignore
+  輔15: 'Parental guidance 15+', // i18n-ignore
+  限: 'Restricted (18+)', // i18n-ignore
+};
+const TW_RATINGS: ListPanelDef = {
+  label: { zh: '台灣上市過的遊戲（遊戲軟體分級）', en: 'Games released in Taiwan (rating records)' },
+  tabLabel: { zh: '台灣', en: 'Taiwan' },
+  indicators: ['taiwan-ratings'],
+  file: 'taiwan-ratings.json',
+  rows: (points) =>
+    points.map(
+      (p, i): ListRow => ({
+        key: `twr-${i}`,
+        title: p.g === 'r' ? tr({ zh: String(p.name), en: RATING_EN[String(p.name)] ?? String(p.name) }) : String(p.name),
+        lines: [tr({ zh: `${fixed(Number(p.n), 0)} 款`, en: `${fixed(Number(p.n), 0)} titles` })],
+        group: tr(TW_GROUPS[String(p.g)] ?? { zh: '', en: '' }),
+        target: { box: [119.3, 21.8, 122.1, 25.4] },
+      }),
+    ),
+};
+
 const usd = (v: number) =>
   tr({
     zh: v >= 1e8 ? `${fixed(v / 1e8, 2)} 億美元` : `${fixed(v / 1e4, v >= 1e6 ? 0 : 1)} 萬美元`,
@@ -26,8 +60,8 @@ const usd = (v: number) =>
 
 export const esports: TopicDefinition = {
   id: 'esports',
-  title: { zh: '電競獎金與選手', en: 'Esports prize money and players' },
-  shortTitle: { zh: '電競', en: 'Esports' },
+  title: { zh: '遊戲與電競：電競獎金、誰在玩、遊戲產業', en: 'Games and esports: prize money, players and the game industry' },
+  shortTitle: { zh: '遊戲與電競', en: 'Games & esports' },
   defaultIndicator: 'prize',
   defaultYear: 2026,
   timeless: true,
@@ -41,6 +75,16 @@ export const esports: TopicDefinition = {
       name: { zh: 'Eurostat 上網活動（isoc_ci_ac_i）、網購的商品與服務（isoc_ec_ibgs）', en: 'Eurostat internet activities (isoc_ci_ac_i) and internet purchases (isoc_ec_ibgs)' },
       url: 'https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_ac_i/default/table',
       license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Eurostat 文化部門企業的附加價值與營業額（cult_ent_val，NACE J58.21 遊戲出版）', en: 'Eurostat value added and turnover of cultural enterprises (cult_ent_val, NACE J58.21 game publishing)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/cult_ent_val/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: '數位發展部數位產業署「遊戲軟體分級」（data.gov.tw 6400）', en: 'Ministry of Digital Affairs (Taiwan), game software ratings (data.gov.tw 6400)' },
+      url: 'https://data.gov.tw/dataset/6400',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
     },
     {
       name: { zh: 'UN World Population Prospects 2024（每百萬人用的人口）', en: 'UN World Population Prospects 2024 (population for per-million figures)' },
@@ -135,5 +179,65 @@ export const esports: TopicDefinition = {
       formatTick: (v) => `${v}%`,
       missing: { zh: '只有歐洲有資料', en: 'Europe only' },
     },
+    // 2026-11-08（製作手冊第二十七批 653）
+    {
+      id: 'gaming-age',
+      label: { zh: '誰在玩遊戲：年輕人與長輩（歐洲）', en: 'Who plays games: young and old (Europe)' },
+      description: {
+        zh: '上網玩或下載遊戲的比例，依年齡分（Eurostat，2024 年，歐洲 35 國；冰島、北馬其頓等幾國是 2020 年）。16–24 歲：希臘 88.0% 最高，賽普勒斯 81.4%、挪威 78.2%、芬蘭 77.3%、丹麥 77.0%；克羅埃西亞 43.2%、保加利亞 44.0% 最低。65–74 歲：荷蘭 37.4% 最高，丹麥 31.3%、比利時 24.6%；保加利亞 1.7%、波赫 1.9%、捷克 2.3% 最低。希臘的年輕人幾乎都玩、長輩幾乎不玩，荷蘭、丹麥兩代的差距最小。',
+        en: 'Share of people who played or downloaded games online, by age (Eurostat, 2024, 35 European countries; a few such as Iceland and North Macedonia are 2020). Ages 16–24: Greece is highest at 88.0%, then Cyprus 81.4%, Norway 78.2%, Finland 77.3% and Denmark 77.0%; Croatia 43.2% and Bulgaria 44.0% are lowest. Ages 65–74: the Netherlands is highest at 37.4%, then Denmark 31.3% and Belgium 24.6%; Bulgaria 1.7%, Bosnia and Herzegovina 1.9% and Czechia 2.3% are lowest. Almost all young Greeks play while few older Greeks do; the gap between generations is smallest in the Netherlands and Denmark.',
+      },
+      unit: '%',
+      file: 'gaming-age/{item}.json',
+      dimension: {
+        label: { zh: '年齡', en: 'Age' },
+        options: [
+          { id: 'young', label: { zh: '16–24 歲', en: '16–24' } },
+          { id: 'old', label: { zh: '65–74 歲', en: '65–74' } },
+        ],
+        defaultOption: 'young',
+      },
+      layer: {
+        kind: 'choropleth',
+        scale: { type: 'sequential', thresholds: [50, 60, 65, 70, 75, 80] },
+        itemScales: { old: { type: 'sequential', thresholds: [3, 5, 10, 15, 20, 30] } },
+      },
+      format: (v) => `${fixed(v, 1)}%`,
+      formatTick: (v) => `${v}%`,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    {
+      id: 'game-publishing',
+      label: { zh: '遊戲出版的營業額（歐洲）', en: 'Game publishing turnover (Europe)' },
+      description: {
+        zh: '電腦遊戲出版業（NACE J58.21）企業一年的營業額（Eurostat 文化部門企業統計，2020 年，歐洲 31 國；資料到 2020 年為止）。法國 34.8 億歐元最多，芬蘭 22.1 億、瑞典 21.1 億、賽普勒斯 18.8 億、德國 7.9 億、西班牙 3.9 億、丹麥 3.0 億、波蘭 2.1 億。賽普勒斯排很前面，手冊提醒是公司登記地的效應，不代表當地做遊戲的規模。J58.21 只算遊戲出版，遊戲程式設計算在其他行業，所以會低估；英國照網站的 Eurostat 規則不收，台灣與歐洲以外沒有。',
+        en: 'Annual turnover of computer game publishers (NACE J58.21) from Eurostat’s statistics on cultural enterprises (2020, 31 European countries; the series ends in 2020). France has the most (€3.48 billion), followed by Finland (€2.21 billion), Sweden (€2.11 billion), Cyprus (€1.88 billion), Germany (€0.79 billion), Spain (€0.39 billion), Denmark (€0.30 billion) and Poland (€0.21 billion). Cyprus’s high rank reflects where companies are registered rather than how many games are made there. J58.21 covers game publishing only, while game programming falls under other industries, so it understates the sector; the UK is excluded under this site’s Eurostat rule, and Taiwan and countries outside Europe have no data.',
+      },
+      unit: { zh: '百萬歐元', en: '€ million' },
+      file: 'game-publishing.json',
+      layer: { kind: 'bubble', legendValues: [100, 1000, 3000] },
+      format: (v) => tr({ zh: v >= 100 ? `${fixed(v / 100, 1)} 億歐元` : `${fixed(v * 100, 0)} 萬歐元`, en: `€${fixed(v, 1)} million` }),
+      formatTick: (v) => fixed(v, 0),
+      shareOfWorld: false,
+      missing: { zh: '只有歐洲有資料', en: 'Europe only' },
+    },
+    {
+      id: 'taiwan-ratings',
+      label: { zh: '台灣上市過的遊戲', en: 'Games released in Taiwan' },
+      description: {
+        zh: '數位發展部「遊戲軟體分級」的 11,219 筆：平台以手機遊戲 2,632 款最多，PC 單機 1,709、PS3 1,141、PC 線上 943、Xbox 360 900、PS4 777；分級是輔 12 共 3,217、普 2,299、輔 15 共 2,231、限 1,821、護 1,651；上市日期從 1981 年到 2018 年，2013 年 1,416 款最多。2019 年以後幾乎沒有新資料，年份只算到 2018 年。廠商欄是台灣的代理商，不是原開發商。左邊的清單依平台、分級與上市年份統計，國家不上色。',
+        en: 'The 11,219 records in Taiwan’s game software ratings (Ministry of Digital Affairs): mobile games are the largest platform (2,632), followed by PC (1,709), PS3 (1,141), online PC (943), Xbox 360 (900) and PS4 (777); ratings are Parental guidance 12+ 3,217, General 2,299, Parental guidance 15+ 2,231, Restricted 1,821 and Protected 1,651; release dates run from 1981 to 2018, peaking in 2013 with 1,416 titles. There are almost no records after 2018, so years stop there. The company field is the Taiwanese distributor, not the original developer. The list on the left counts titles by platform, rating and release year; countries are not coloured.',
+      },
+      unit: '',
+      file: 'taiwan-ratings-map.json',
+      layer: { kind: 'none' },
+      unranked: true,
+      rankingBars: false,
+      panelChart: false,
+      format: () => '',
+      focus: [119.3, 21.8, 122.1, 25.4],
+      missing: { zh: '國家不上色，看左邊的台灣清單', en: 'Countries are not coloured; see the Taiwan list on the left' },
+    },
   ],
+  listPanel: [TW_RATINGS],
 };
