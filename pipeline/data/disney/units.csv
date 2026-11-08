@@ -1,0 +1,580 @@
+qid,group,label_en
+Q634019,1,
+Q108661198,1,20th Century Fox International Television
+Q2717612,1,20th Century Fox Television
+Q434841,1,20th Century Studios
+Q2084961,1,20th Century Studios Home Entertainment
+Q2814799,1,20th Television
+Q2818996,1,ABC Circle Films
+Q3600483,1,ABC Family Worldwide
+Q287218,1,ABC Signature
+Q78793577,1,ABC Signature Studios
+Q169889,1,American Broadcasting Company
+Q86750090,1,Authentic Entertainment
+Q2719775,1,BVS Entertainment
+Q5376047,1,Banijay UK
+Q885885,1,Blue Sky Studios
+Q2927617,1,Buena Vista
+Q515708,1,DIC Entertainment Corporation
+Q908662,1,Dimension Films
+Q178837,1,Disney Channel
+Q3030368,1,Disney Channel
+Q6739276,1,Disney Digital Network
+Q3565607,1,Disney Educational Productions
+Q919514,1,Disney Studios Australia
+Q63893295,1,Disney Television Studios
+Q2081339,1,Disneytoon Studios
+Q3039254,1,Dream Quest Images
+Q851184,1,Endemol
+Q121035081,1,Endemol Entertainment
+Q3053983,1,Endemol France
+Q141006432,1,Endemol Portugal
+Q23837644,1,Endemol Shine Group
+Q47481944,1,Endemol Shine Israel
+Q77205820,1,Endemol Shine Italy
+Q651228,1,FX
+Q11950961,1,FX Productions
+Q1118859,1,Fox Crime
+Q626178,1,Fox Kids
+Q3080179,1,Fox Kids France
+Q495107,1,Fox Life
+Q386442,1,Fox Networks Group
+Q644469,1,Fox Retro
+Q46578,1,Fox Sports Networks
+Q2734852,1,GMTV
+Q2882505,1,Gestmusic
+Q5604071,1,Greengrass Productions
+Q1348264,1,Hollywood Pictures
+Q2405352,1,ImageMovers Digital
+Q746676,1,Industrial Light & Magic
+Q912601,1,It's a Laugh Productions
+Q27186707,1,Jumbo Pictures
+Q121036063,1,Lion Television
+Q242446,1,Lucasfilm
+Q367466,1,Marvel Studios
+Q6794184,1,Maverick Television
+Q465449,1,Miramax
+Q3315911,1,Miravista Films
+Q15264650,1,MundoFox (Latin America)
+Q157118,1,National Geographic
+Q6984198,1,Neal Street Productions
+Q137711350,1,Netherlands FOX Film Corporation
+Q9049760,1,New Regency Productions
+Q113146825,1,Onyx Collective
+Q127552,1,Pixar
+Q135191260,1,RDF Television
+Q466459,1,Regency Enterprises
+Q953040,1,Searchlight Pictures
+Q3053982,1,Shine Fiction
+Q7497366,1,Shine Group
+Q130750860,1,Spotlight Animation Studios
+Q124758774,1,Star Crime
+Q124444213,1,Star Life
+Q5476977,1,Star Studio18
+Q7628195,1,Studio Lambert
+Q5476988,1,TIS Productions
+Q3282004,1,Tiger Aspect Productions
+Q497155,1,Touchstone Pictures
+Q136350529,1,Twentieth Century-Fox Korea
+Q3547550,1,UTV Motion Pictures
+Q17592311,1,Vice Films
+Q3563296,1,Voyage
+Q1047410,1,Walt Disney Animation Studios
+Q3565603,1,Walt Disney Core Studios
+Q191224,1,Walt Disney Pictures
+Q2078595,1,Walt Disney Studios
+Q2216535,1,Walt Disney Studios
+Q47695407,1,Walt Disney Studios Motion Pictures International
+Q8069350,1,Zeppotron
+Q21030951,2,
+Q21031002,2,
+Q25393919,2,
+Q3046140,2,
+Q3046147,2,
+Q3063478,2,
+Q3547537,2,
+Q738088,2,24Kitchen
+Q277561,2,A&E
+Q10365532,2,ABC Audio
+Q287171,2,ABC News
+Q2819007,2,ABC News Live
+Q2818990,2,ABC1
+Q43371319,2,ACC Network
+Q3595710,2,Asianet
+Q12417117,2,Asianet Plus
+Q2878050,2,BabyFirst
+Q2014847,2,BabyTV
+Q124652935,2,Boyz/Girlz Channel
+Q2937387,2,Capital Disney
+Q1723567,2,Channel 31
+Q306585,2,Channel V
+Q5072463,2,Channel V Philippines
+Q21479523,2,Che
+Q462106,2,Das Vierte
+Q16835461,2,Disney Channel
+Q2378052,2,Disney Channel
+Q2542090,2,Disney Channel
+Q2566240,2,Disney Channel
+Q2592540,2,Disney Channel
+Q2745038,2,Disney Channel
+Q2889685,2,Disney Channel
+Q2912731,2,Disney Channel
+Q3030367,2,Disney Channel
+Q3030369,2,Disney Channel
+Q3030374,2,Disney Channel
+Q3030381,2,Disney Channel
+Q3030385,2,Disney Channel
+Q3030390,2,Disney Channel
+Q334671,2,Disney Channel
+Q3503597,2,Disney Channel
+Q3544840,2,Disney Channel
+Q3627221,2,Disney Channel
+Q5282415,2,Disney Channel
+Q5282417,2,Disney Channel
+Q5282418,2,Disney Channel
+Q1368786,2,Disney Channel Asia
+Q3030371,2,Disney Channel India
+Q2260281,2,Disney Channel Italy
+Q5282427,2,Disney Channel Malaysia
+Q3030393,2,Disney Channel USA
+Q19885846,2,Disney Cinema
+Q2053525,2,Disney Cinemagic
+Q3030399,2,Disney Cinemagic
+Q3030401,2,Disney Cinemagic
+Q635278,2,Disney Cinemagic
+Q16991842,2,Disney Jr.
+Q18351979,2,Disney Jr.
+Q2376669,2,Disney Jr.
+Q3030440,2,Disney Jr.
+Q3030441,2,Disney Jr.
+Q313621,2,Disney Jr.
+Q3299645,2,Disney Jr.
+Q5282460,2,Disney Jr.
+Q124632242,2,Disney Junior
+Q16250601,2,Disney Junior
+Q16835471,2,Disney Junior
+Q3030434,2,Disney Junior
+Q5282458,2,Disney Junior
+Q130809,2,Disney Networks Group Asia Pacific
+Q131765770,2,Disney XD
+Q13573631,2,Disney XD
+Q1858139,2,Disney XD
+Q19868095,2,Disney XD
+Q2377604,2,Disney XD
+Q2622728,2,Disney XD
+Q3030490,2,Disney XD
+Q3137592,2,Disney XD
+Q4817764,2,Disney XD
+Q65089865,2,Disney XD
+Q6856780,2,Disney XD
+Q9287715,2,Disney XD
+Q752030,2,Ducktv
+Q217776,2,ESPN
+Q2422424,2,ESPN (Latin America)
+Q5816263,2,ESPN 2 (Andino)
+Q1648304,2,ESPN 2 (Latin America)
+Q16558744,2,ESPN 3 (Brasil)
+Q5816271,2,ESPN 3 (Latinoamérica)
+Q3046139,2,ESPN 3D
+Q110702183,2,ESPN 4 (Brasil)
+Q704806,2,ESPN America
+Q20014911,2,ESPN Caribbean
+Q3046148,2,ESPN Classic
+Q689039,2,ESPN Classic
+Q542618,2,ESPN Deportes
+Q3046154,2,ESPN Deportes Radio
+Q3046149,2,ESPN Extra
+Q37672192,2,ESPN Premium Argentina
+Q109901944,2,ESPN Premium Chile
+Q5324283,2,ESPN Xtra
+Q46996011,2,ESPN+
+Q8771352,2,ESPN+ (Latin America)
+Q2566015,2,ESPN2
+Q109748859,2,ESPN4
+Q3046165,2,ESPNU
+Q3046143,2,ESPNews
+Q17994474,2,FOX Life
+Q124750562,2,FX
+Q2679822,2,FX
+Q3737417,2,FX
+Q5427397,2,FX
+Q5427403,2,FX Australia
+Q16839471,2,FX Latin America
+Q5476806,2,FX Life
+Q110407550,2,FXM
+Q11681754,2,FXX
+Q15985284,2,FXX (Canada)
+Q17265718,2,Fox
+Q247498,2,Fox
+Q3244518,2,Fox
+Q5476545,2,Fox
+Q5476561,2,Fox
+Q5476608,2,Fox Action Movies
+Q19945981,2,Fox Africa
+Q18417971,2,Fox Comedy
+Q5476678,2,Fox Crime Asia
+Q5476691,2,Fox Family Movies
+Q5476702,2,Fox Filipino
+Q3749166,2,Fox Life
+Q3080181,2,Fox Life France
+Q56219086,2,Fox Life HD
+Q5270612,2,Fox Life India
+Q10279075,2,Fox Movies
+Q48902018,2,Fox Movies
+Q5476819,2,Fox Movies
+Q5476840,2,Fox Movies Premium
+Q23012801,2,Fox Networks Group Latin America
+Q5476929,2,Fox Soccer Plus
+Q5864523,2,Fox Sports 2
+Q5476936,2,Fox Sports Asia
+Q5476940,2,Fox Sports Brasil
+Q23037283,2,Fox Sports Colombia
+Q11199711,2,Fox Sports Japan
+Q43774968,2,Fox Sports Peru
+Q8565226,2,Fox Sports Türkiye
+Q287149,2,Freeform
+Q9004339,2,History en Español
+Q107156219,2,Hulu + Live TV
+Q986349,2,Hungama TV
+Q6126989,2,Jalsha Movies
+Q156073,2,Jetix
+Q7827886,2,Jetix
+Q55830205,2,Jetix CEE
+Q3177801,2,Jetix International
+Q104771849,2,Jetix Italy
+Q2591815,2,Jetix Play
+Q2833486,2,Jetix Scandinavia
+Q5930877,2,Jetix Spain
+Q1637969,2,K2
+Q3191359,2,KESN
+Q605758,2,KRDC
+Q3191501,2,KSPN
+Q1319610,2,Lifetime
+Q3029957,2,Localish
+Q3259110,2,Longhorn Network
+Q6714030,2,MAA TV
+Q16271976,2,Movies OK
+Q471265,2,Muz-TV
+Q109927609,2,NOST: The Nostalgia Network
+Q4710305,2,NOW
+Q124356134,2,NOW (Turkey)
+Q30492190,2,Nat Geo Kids
+Q3336287,2,Nat Geo Music
+Q138709,2,Nat Geo Wild
+Q3336288,2,Nat Geo Wild
+Q3336878,2,National Geographic
+Q6972876,2,National Geographic Channel
+Q2299634,2,National Geographic People
+Q170149,2,Playhouse Disney
+Q17625387,2,Playhouse Disney
+Q54857,2,Radio Disney
+Q15679550,2,SEC Network
+Q715030,2,STAR Chinese Channel
+Q715035,2,STAR Chinese Movies
+Q3631491,2,STAR Gold
+Q22079631,2,STAR Movies Action
+Q124217683,2,STAR Mundo
+Q18207757,2,STAR Sports 2
+Q3521261,2,STAR Vijay
+Q2273453,2,STAR World
+Q7394683,2,STAR World India
+Q7394684,2,STAR World Philippines
+Q17145072,2,STAR World Premiere
+Q7426051,2,Satellite News Channel
+Q3483420,2,Semyorka
+Q387755,2,Soapnet
+Q19769290,2,Sony ESPN
+Q104439173,2,Star
+Q39058665,2,Star Bharat
+Q115572139,2,Star Channel
+Q124466156,2,Star Channel
+Q2377451,2,Star Channel
+Q5476558,2,Star Channel
+Q5476802,2,Star Channel
+Q92998625,2,Star Channel
+Q60766202,2,Star Channels
+Q19844314,2,Star Cinema
+Q19844315,2,Star Classics
+Q19844313,2,Star Comedy
+Q5427400,2,Star Comedy
+Q19844341,2,Star Fun
+Q123292376,2,Star Gold Network
+Q17632460,2,Star Life
+Q715045,2,Star Movies
+Q3631478,2,Star Plus
+Q19844347,2,Star Series
+Q3046173,2,Star Sports
+Q60520993,2,Star Sports
+Q23022746,2,Star Utsav Movies
+Q13668758,2,SuomiTV
+Q20715648,2,Super Hungama
+Q684994,2,Super RTL
+Q313173,2,Toon Disney
+Q6148912,2,Toon Disney
+Q3531984,2,Toon Disney (France)
+Q4533457,2,Tv channel Ю
+Q3547552,2,UTV Movies
+Q16219254,2,UTV Stars
+Q10388504,2,Utilísima
+Q105284555,2,Utsav Plus
+Q3556742,2,Viajar
+Q23022864,2,Viceland
+Q7947553,2,WBYU
+Q99436706,2,WENR
+Q3564667,2,WEPN
+Q7949486,2,WFRO
+Q3564732,2,WMVP
+Q7954965,2,WRDZ
+Q22079560,2,YourTV
+Q17014745,3,BabyZone.com
+Q2118845,3,Cricinfo
+Q5282441,3,Disney D23
+Q54958752,3,Disney+
+Q3030465,3,Disney.com
+Q132645157,3,ESPN
+Q3046181,3,ESPN FC
+Q3046137,3,ESPN.com
+Q2887818,3,ESPN3
+Q108409114,3,FX on Hulu
+Q97574581,3,FXNOW
+Q22908382,3,Fightland
+Q600669,3,FiveThirtyEight
+Q16911414,3,Grantland
+Q1630304,3,Hulu
+Q125176733,3,Hulu on Disney+
+Q3150870,3,Infoseek
+Q6167975,3,Jayski's Silly Season Site
+Q19758675,3,JioHotstar
+Q3195479,3,Kerpoof
+Q30737517,3,Molotov TV
+Q6398245,3,Movies Anywhere
+Q7307207,3,Refinery29
+Q7534755,3,Sketchfab
+Q3968343,3,Star Wars Databank
+Q104146224,3,Star+
+Q27887873,3,StarWars.com
+Q124467353,3,Venu Sports
+Q249838,3,Vice
+Q18155506,3,Vice News
+Q7973037,3,WatchESPN
+Q3109525,3,go.com
+Q24258919,3,marvel.com
+Q17082860,3,spoonful.com
+Q140421724,4,
+Q16683410,4,
+Q23795630,4,
+Q4051528,4,
+Q6778174,4,
+Q739711,4,
+Q1780995,4,20th Century Fox Records
+Q58802260,4,"ABC Records, Inc."
+Q452873,4,Amalgam Comics
+Q65157836,4,Aquiris Game Studio
+Q672664,4,Black Rock Studio
+Q4947547,4,Bossa Studios
+Q3565616,4,Buena Vista Records
+Q5068045,4,Chair Entertainment
+Q1141129,4,CrossGen
+Q56640681,4,DMG Nashville
+Q742886,4,Disney Comics
+Q3030411,4,Disney Editions
+Q76302236,4,Disney Electronic Content
+Q1229035,4,Disney Interactive Studios
+Q111658973,4,Disney Mobile Games Studio
+Q2104471,4,Disney Music Group
+Q3030460,4,Disney Press
+Q7888605,4,Disney Publishing Worldwide
+Q134076864,4,Disney-Hyperion
+Q3710134,4,Disneyland Records
+Q2465548,4,Epic Comics
+Q17747126,4,Fox Digital Entertainment
+Q3094998,4,Gamestar
+Q2607531,4,Harmonix Music Systems
+Q387539,4,Hollywood Records
+Q56448478,4,ILMxLAB
+Q2482589,4,Icon Comics
+Q3189994,4,Junction Point Studios
+Q216611,4,Lucasfilm Games
+Q3269698,4,Lyric Street Records
+Q1414981,4,Malibu Comics
+Q173496,4,Marvel Comics
+Q2050824,4,Marvel Comics 2
+Q64918019,4,Marvel Games
+Q928358,4,Marvel Knights
+Q39072101,4,Marvel Music
+Q6778183,4,Marvel Press
+Q3841218,4,Max
+Q15070396,4,Mediatonic
+Q15070400,4,Mind's Eye Productions
+Q3315870,4,Miramax Books
+Q131440517,4,Miramax Records
+Q111513151,4,Miss America Publishing Corporation
+Q1189112,4,Nat Geo Music
+Q57155167,4,National Geographic Partners
+Q1799063,4,People Can Fly
+Q637851,4,Playdom
+Q3026228,4,Propaganda Games
+Q18345499,4,Psyonix
+Q94000089,4,Rick Riordan Presents
+Q2703822,4,Skywalker Sound
+Q7600903,4,Star Song Communications
+Q3504245,4,Super Giant Scrooge
+Q3515535,4,Tapulous
+Q4358070,4,Timely Comics
+Q902959,4,Times Square Studios
+Q1890491,4,Ultimate Marvel
+Q123858033,4,Ultimate Universe
+Q54860,4,Walt Disney Records
+Q25379121,4,Welsh Publishing
+Q1417011,4,Wideload Games
+Q122761212,5,
+Q126870229,5,
+Q2825394,5,
+Q30753124,5,
+Q30753558,5,
+Q3565606,5,
+Q8565195,5,20th Digital Studio
+Q109621910,5,20th Television
+Q65090044,5,20th Television Animation
+Q83723,5,A+E Global Media
+Q2819002,5,ABC Entertainment
+Q2819003,5,ABC Pictures
+Q122576719,5,ABC Scenic and Wildlife Attractions
+Q4698482,5,Aircel Comics
+Q2845123,5,Anaheim Sports
+Q11853770,5,BVS Entertainment
+Q2037777,5,Blip
+Q724613,5,Buena Vista International Television
+Q2927613,5,Buena Vista Productions
+Q2932058,5,CTV Specialty Television
+Q111511196,5,Capturing Reality
+Q2714773,5,Caravan Pictures
+Q2973320,5,Circle 7 Animation
+Q114094724,5,Coca-Cola Bottling Midwest
+Q3030355,5,Disney Artist
+Q5282435,5,Disney Character Voices International
+Q3030410,5,Disney Consumer Products
+Q420947,5,Disney Cruise Line
+Q3030425,5,Disney English
+Q50574942,5,"Disney Enterprises, Inc."
+Q654073,5,Disney Entertainment Television
+Q1431781,5,Disney Experiences
+Q3030432,5,Disney Games
+Q108607904,5,Disney General Entertainment Content
+Q3030423,5,Disney Hachette Presse
+Q3030429,5,Disney Institute
+Q1111443,5,Disney Kids & Family
+Q105303210,5,Disney Media and Entertainment Distribution
+Q3030458,5,Disney Mobile
+Q60332052,5,Disney Music Publishing
+Q3338959,5,Disney Online Studios Canada
+Q3030445,5,Disney Platform Distribution
+Q17177263,5,Disney Regional Entertainment
+Q1047009,5,Disney Store
+Q29015971,5,Disney Streaming
+Q1392453,5,Disney Television Animation
+Q4132994,5,Disney Theatrical Group
+Q3030479,5,Disney Transport
+Q3030475,5,Disney UTV Digital
+Q50840363,5,Disney Worldwide Services
+Q3030499,5,"Disneyland, Inc."
+Q2501552,5,Disneynature
+Q2737435,5,Disney–ABC Domestic Television
+Q5324239,5,ESPN Films
+Q3046158,5,ESPN International
+Q613623,5,ESPN Plus
+Q17085515,5,"ESPN, LLC"
+Q3047658,5,Editoria Disney
+Q7497363,5,Endemol Shine Australia
+Q4047803,5,Epic Games Tools
+Q10277770,5,Eternity Comics
+Q2340292,5,Euro Disney S.C.A.
+Q110565573,5,FX Networks
+Q3064766,5,Fall Line Studios
+Q5434435,5,Fanzter
+Q64572603,5,Fox 2000 Pictures
+Q5476590,5,Fox 21
+Q3080177,5,Fox Animation Studios
+Q2295089,5,Fox Atomic
+Q3749167,5,Fox International Channels Italy
+Q5476759,5,Fox International Channels Portugal
+Q16937124,5,Fox Lab
+Q5476820,5,Fox Movie Channel
+Q75776,5,Fox Sports
+Q28408034,5,Fubo
+Q3099448,5,Gaumont Buena Vista International
+Q113445295,5,"HJ Holdings, Inc."
+Q3100510,5,Hong Kong International Theme Parks
+Q2562640,5,Indiana Jones
+Q56584991,5,Industrial Light & Magic (United Kingdom)
+Q3177799,5,Jetix Europe
+Q5919785,5,JioStar
+Q138775543,5,Little Dot Studios
+Q65247596,5,Lucas Digital
+Q1169075,5,Lucasfilm Animation
+Q4043490,5,MTM Enterprises
+Q2425877,5,Marvel Animation
+Q104643359,5,Marvel Cinematic Universe Phase Five
+Q62604229,5,Marvel Cinematic Universe Phase Four
+Q51963292,5,Marvel Cinematic Universe Phase One
+Q113281347,5,Marvel Cinematic Universe Phase Six
+Q51963836,5,Marvel Cinematic Universe Phase Three
+Q51963356,5,Marvel Cinematic Universe Phase Two
+Q1200552,5,Marvel Entertainment
+Q3296046,5,Marvel Productions
+Q6778202,5,Marvel Television
+Q50991720,5,MovieCo
+Q5476721,5,Nat Geo/Fox HD
+Q7075073,5,Objective Media Group
+Q3359797,5,POW! Entertainment
+Q2944088,5,Pixar Canada
+Q7244786,5,Princess Productions
+Q17183023,5,"Radio Disney Group, LLC"
+Q7299658,5,Razorline
+Q7306770,5,Reedy Creek Energy Services
+Q134705350,5,Remarkable Entertainment
+Q111084251,5,Searchlight Television
+Q462,5,Star Wars
+Q3497261,5,Starwave
+Q111170417,5,Storyliving by Disney
+Q3518953,5,Tata Play
+Q63405798,5,The Infinity Saga
+Q113292798,5,The Multiverse Saga
+Q3327964,5,The Muppets Studio
+Q25384903,5,The Walt Disney Company (China)
+Q3565621,5,The Walt Disney Company (Japan)
+Q25377492,5,The Walt Disney Company Australia
+Q3523271,5,The Walt Disney Company CIS
+Q3523270,5,The Walt Disney Company France
+Q16679850,5,The Walt Disney Company Germany
+Q6145466,5,The Walt Disney Company Iberia
+Q27902882,5,"The Walt Disney Company Iberia, S.L."
+Q3523273,5,The Walt Disney Company India
+Q14928314,5,The Walt Disney Company Latin America
+Q17639984,5,The Walt Disney Company Limited
+Q105871995,5,The Walt Disney Company Portugal
+Q3523272,5,The Walt Disney Company Southeast Asia
+Q112782269,5,Tonic Games
+Q8962119,5,Touchstone Television
+Q3296048,5,Toy Biz
+Q3547543,5,UTV Global Broadcasting
+Q1657624,5,UTV Ignition Games
+Q3547545,5,UTV Indiagames
+Q3547553,5,UTV Software Communications
+Q94537801,5,Vice Indonesia
+Q18395343,5,Vice Media Group
+Q27151437,5,Walt Disney Animation Canada
+Q3565599,5,Walt Disney Animation France
+Q180298,5,Walt Disney Animation Japan
+Q43304737,5,Walt Disney Attractions Japan
+Q54958626,5,Walt Disney Direct-to-Consumer & International
+Q2140930,5,Walt Disney Imagineering
+Q1233073,5,Walt Disney Motion Pictures Group
+Q3565637,5,Walt Disney Parks and Resorts U.S.
+Q54958623,5,"Walt Disney Parks, Experiences and Consumer Products"
+Q3053254,5,Walt Disney Studios Home Entertainment
+Q1323594,5,Walt Disney Studios Motion Pictures
+Q3565642,5,Walt Disney Television
+Q4017851,5,Walt Disney Television Italia
+Q3565632,5,Walt Disney Travel Company
+Q25005976,5,runDisney

@@ -373,6 +373,82 @@ const HOTEL_LIST: ListPanelDef = {
   },
 };
 
+// ── 影視部門、電視頻道與各國分公司（2026-11-08，製作手冊第二十八批 676，候選 1481、1493、1494；pipeline/topics/disney_units.py） ──
+// Wikidata 所有權鏈（一到兩跳連到華特迪士尼公司）固定成白名單的 579 個單位，排掉美國專利、作品與節目時段。
+// 座標有一大半是總部或所在城市的（prec 2），同一城市的排成小圓；沒有位置的只進清單（prec 3）。
+
+const UNIT_INDICATORS = ['units'];
+export const UNIT_GROUPS: { id: string; label: Text; color: string }[] = [
+  { id: 'studio', label: { zh: '影視（片廠、動畫、製作、發行）', en: 'Film and TV (studios, animation, production, distribution)' }, color: C[0] },
+  { id: 'broadcast', label: { zh: '電視與廣播（頻道、電視網、電台）', en: 'Broadcasting (channels, networks, radio)' }, color: C[1] },
+  { id: 'streaming', label: { zh: '串流與網站', en: 'Streaming and websites' }, color: C[2] },
+  { id: 'publishing', label: { zh: '遊戲、唱片與出版', en: 'Games, music and publishing' }, color: C[3] },
+  { id: 'company', label: { zh: '公司與各國分公司', en: 'Companies and national subsidiaries' }, color: C[4] },
+];
+const UNIT_ITEMS: DimensionDef = {
+  label: { zh: '單位', en: 'Unit' },
+  options: [{ id: 'all', label: { zh: '全部', en: 'All' } }, ...UNIT_GROUPS.map((g) => ({ id: g.id, label: g.label }))],
+  defaultOption: 'all',
+};
+const PRECISION: Text[] = [
+  { zh: '座標是這個單位自己的', en: 'Own coordinates' },
+  { zh: '座標是總部或所在城市的', en: 'Coordinates of its headquarters or city' },
+  { zh: 'Wikidata 沒有位置，只知道國家', en: 'No location on Wikidata, country only' },
+];
+
+function unitFacts(p: PointRecord): string[] {
+  const out: string[] = [];
+  const y = num(p, 'y');
+  if (y) out.push(tr({ zh: `${y} 年成立`, en: `Founded ${y}` }));
+  const city = typeof p.city === 'string' && p.city ? p.city : '';
+  out.push(tr(at(PRECISION, p.prec)) + (city ? tr({ zh: `（${city}）`, en: ` (${city})` }) : ''));
+  return out;
+}
+
+const UNITS: PointsOverlayDef = {
+  kind: 'points',
+  id: 'disney-units',
+  file: 'units.json',
+  label: { zh: '影視部門、頻道與分公司（Wikidata 的所有權鏈）', en: 'Studios, channels and subsidiaries (Wikidata ownership chain)' },
+  indicators: UNIT_INDICATORS,
+  radius: 3,
+  color: {
+    field: 'g',
+    title: { zh: '類型', en: 'Type' },
+    thresholds: [1.5, 2.5, 3.5, 4.5],
+    classes: UNIT_GROUPS.map(({ label, color }) => ({ label, color })),
+  },
+  tooltip: (p, { countryName }) => ({
+    title: String(p.en ?? ''),
+    properNoun: String(p.en ?? ''),
+    detail: [tr(at(UNIT_GROUPS, p.g).label), typeof p.iso3 === 'string' ? countryName(p.iso3) : null].filter(Boolean).join(' · '),
+    extra: unitFacts(p),
+  }),
+};
+
+const UNIT_LIST: ListPanelDef = {
+  label: { zh: '迪士尼的影視部門、頻道與分公司', en: 'Disney studios, channels and subsidiaries' },
+  tabLabel: { zh: '單位', en: 'Units' },
+  indicators: UNIT_INDICATORS,
+  file: 'units-all.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, item }) =>
+    points
+      .filter((p) => !item || item === 'all' || UNIT_GROUPS[(num(p, 'g') ?? 1) - 1]?.id === item)
+      .slice()
+      .sort((a, b) => (num(a, 'g') ?? 9) - (num(b, 'g') ?? 9) || (num(a, 'y') ?? 9999) - (num(b, 'y') ?? 9999) || String(a.en).localeCompare(String(b.en)))
+      .map((p): ListRow => ({
+        key: String(p.qid),
+        title: String(p.en ?? ''),
+        titleProper: true,
+        group: tr(at(UNIT_GROUPS, p.g).label),
+        muted: p.prec === 3,
+        lines: [typeof p.iso3 === 'string' ? countryName(p.iso3) : '', unitFacts(p).join(tr({ zh: '；', en: '; ' }))].filter(Boolean),
+        link: { href: `https://www.wikidata.org/wiki/${String(p.qid)}`, label: tr({ zh: `資料出處 Wikidata ${String(p.qid)}`, en: `Source: Wikidata ${String(p.qid)}` }) },
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: p.prec === 3 ? 4 : 11 },
+      })),
+};
+
 export const disney: TopicDefinition = {
   id: 'disney',
   title: { zh: '迪士尼在哪裡：樂園、郵輪、飯店與影視部門', en: 'Where Disney is: parks, cruise ships, hotels and studios' },
@@ -416,8 +492,8 @@ export const disney: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
   },
-  overlays: [RESORT_RINGS, SITES, PLANNED, CRUISE_LINES, CRUISE_PORTS, HOTELS],
-  listPanel: [PARK_LIST, SHIP_LIST, HOTEL_LIST],
+  overlays: [RESORT_RINGS, SITES, PLANNED, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS],
+  listPanel: [PARK_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST],
   indicators: [
     {
       id: 'parks',
@@ -462,6 +538,23 @@ export const disney: TopicDefinition = {
       file: 'hotels-count.json',
       layer: { kind: 'bubble', legendValues: [2, 7, 26] },
       format: (v) => tr({ zh: `${fixed(v, 0)} 家`, en: `${fixed(v, 0)} ${v === 1 ? 'hotel' : 'hotels'}` }),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'units',
+      // 卡片與圖例的標題是子項目接指標名稱：「影視（片廠、動畫、製作、發行）的迪士尼單位」
+      label: { zh: '的迪士尼單位', en: 'Disney units' },
+      description: {
+        zh: '迪士尼的影視部門、電視頻道與各國分公司在哪一國（比例圓）。名單是 Wikidata 上所有權（擁有者、母公司、隸屬、營運者）一到兩層連到華特迪士尼公司的項目，2026 年 11 月固定下來：1,096 個項目排掉 225 筆美國專利、作品與虛構角色、節目時段，以及樂園、飯店、郵輪這些已經畫在別的指標的據點，留下 579 個單位，分成五類：電視與廣播 240、公司與分公司 151、影視 87、遊戲唱片與出版 67、串流與網站 34。有位置的 493 個在 43 國：美國 257 個最多（Pixar 在 Emeryville、Lucasfilm 在舊金山、Walt Disney Imagineering 在 Glendale、ESPN 在 Bristol），其次英國 41、印度 30、法國 19、西班牙 14、香港 12。Wikidata 上自己有座標的只有 17 個，大多數畫在總部或所在城市（同一城市的排成小圓），只知道國家的 142 個只列在清單、不畫點，另有 86 個連國家都沒有。這是 Wikidata 的所有權鏈，不等於迪士尼百分之百持股（有合資、也有已經賣掉的）。台灣在這條鏈裡 0 個；Disney Channel (Taiwan) 在 Wikidata 上不連到迪士尼、也沒有位置。',
+        en: 'Which countries host Disney’s studios, TV channels and national subsidiaries (proportional circles). The list is the set of Wikidata items linked to The Walt Disney Company within one or two steps of ownership (owner, parent, part of, operator), fixed in November 2026: of 1,096 items, 225 US patents, works and fictional characters, programme blocks, and the parks, hotels and ships shown under other indicators were removed, leaving 579 units in five groups: broadcasting 240, companies and subsidiaries 151, film and TV 87, games, music and publishing 67, streaming and websites 34. The 493 with a location are in 43 countries: the US has the most at 257 (Pixar in Emeryville, Lucasfilm in San Francisco, Walt Disney Imagineering in Glendale, ESPN in Bristol), followed by the UK 41, India 30, France 19, Spain 14 and Hong Kong 12. Only 17 have their own coordinates on Wikidata; most are placed at their headquarters or city (several in one city are spread in a small circle), the 142 known only by country are listed but not mapped, and 86 have no country at all. This is Wikidata’s ownership chain, not a statement of 100% ownership (it includes joint ventures and past holdings). Taiwan has none in the chain; Disney Channel (Taiwan) is not linked to Disney on Wikidata and has no location.',
+      },
+      unit: { zh: '個', en: 'units' },
+      file: 'units/{item}.json',
+      dimension: UNIT_ITEMS,
+      layer: { kind: 'bubble', legendValues: [5, 40, 250] },
+      format: (v) => tr({ zh: `${fixed(v, 0)} 個`, en: `${fixed(v, 0)} ${v === 1 ? 'unit' : 'units'}` }),
       formatTick: (v) => fixed(v, 0),
       integer: true,
       defaultYear: 2026,
