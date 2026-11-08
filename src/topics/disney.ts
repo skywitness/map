@@ -1,7 +1,7 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
-import type { DimensionDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { CategoryDef, DimensionDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 迪士尼（新主題，2026-11-08，製作手冊第二十八批 673，候選 1478、1484、1492；旅遊・樂園；pipeline/topics/disney.py）。
@@ -550,6 +550,165 @@ const VISIT_LIST: ListPanelDef = {
   },
 };
 
+// ── Disney+、拍攝地與故事場景地（2026-11-08，製作手冊第二十八批 678，候選 1482、1487、1488；pipeline/topics/disney_plus.py） ──
+// Disney+ 的上線表是英文維基「Disney+」固定版本 1383663039（解析器 pipeline/sources/rollout.py 跟順序 685 共用），表上沒有的
+// 國家＝看不到 Disney+（missing）。印度與東南亞是另外的品牌，分開畫。拍攝地與故事場景地是 Wikidata 的 P915、P840：製作、發行或
+// 製片掛在迪士尼系十家片廠的作品（現在的片庫，不是「迪士尼拍的」）；虛構的地點只進清單，不塞到現實的國家。
+
+const PLUS_REV = 'https://en.wikipedia.org/wiki/Disney%2B?oldid=1383663039';
+const PLUS_INDICATORS = ['disneyplus', 'disneyplus-launch'];
+const PLUS_BRANDS: CategoryDef[] = [
+  { value: 1, label: { zh: 'Disney+', en: 'Disney+' } },
+  { value: 2, label: { zh: 'Disney+ Hotstar（印度與東南亞的另一個品牌）', en: 'Disney+ Hotstar (a separate brand in India and Southeast Asia)' } },
+  { value: 3, label: { zh: 'JioHotstar（印度，2025 年起迪士尼不是控股方）', en: 'JioHotstar (India; not controlled by Disney since 2025)' } },
+];
+const PLUS_LAUNCH: CategoryDef[] = [2019, 2020, 2021, 2022].map((y) => ({ value: y, label: { zh: `${y} 年`, en: String(y) } }));
+const PLUS_MISSING: Text = { zh: '看不到 Disney+（英文維基的上線表沒有這一國）', en: 'No Disney+ (not in the English Wikipedia launch table)' };
+const categoryText = (cats: CategoryDef[]) => (v: number) => tr(cats.find((c) => c.value === v)?.label ?? { zh: '', en: '' });
+/** 20211112 → 「2021 年 11 月 12 日」 */
+function ymdText(v: number): string {
+  const s = String(v);
+  return tr({ zh: `${s.slice(0, 4)} 年 ${Number(s.slice(4, 6))} 月 ${Number(s.slice(6))} 日`, en: `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6)}` });
+}
+
+function plusFacts(p: PointRecord): string[] {
+  const d = num(p, 'd') ?? 0;
+  const first = num(p, 'first');
+  const out: string[] = [];
+  if (p.iso3 === 'IND')
+    out.push(tr({ zh: '2020 年 4 月 3 日起是 Disney+ Hotstar；2025 年 2 月 14 日跟 JioCinema 合併成 JioHotstar，迪士尼不再是控股方', en: 'Disney+ Hotstar from 2020-04-03; merged with JioCinema into JioHotstar on 2025-02-14, no longer controlled by Disney' }));
+  else if (first) out.push(tr({ zh: `${ymdText(first)}先以 Disney+ Hotstar 上線，${ymdText(d)}改名 Disney+`, en: `Launched as Disney+ Hotstar on ${ymdText(first)}; renamed Disney+ on ${ymdText(d)}` }));
+  else out.push(tr({ zh: `${ymdText(d)}上線`, en: `Launched ${ymdText(d)}` }));
+  if (typeof p.partners === 'string' && p.partners) out.push(tr({ zh: `上線時搭配的電信或平台：${p.partners}`, en: `Launch partners: ${p.partners}` }));
+  const has = (f: string) => (p[f] === 1 ? true : p[f] === 0 ? false : null);
+  const hulu = has('hulu');
+  const espn = has('espn');
+  if (hulu !== null && espn !== null)
+    out.push(
+      tr({
+        zh: `現在（這個維基版本）${hulu ? '有' : '沒有'} Hulu 的內容、${espn ? '有' : '沒有'} ESPN`,
+        en: `Now (this Wikipedia revision): ${hulu ? 'with' : 'without'} Hulu content, ${espn ? 'with' : 'without'} ESPN`,
+      }),
+    );
+  return out;
+}
+
+const PLUS_LIST: ListPanelDef = {
+  label: { zh: 'Disney+ 的上線時程', en: 'Disney+ launch timeline' },
+  tabLabel: { zh: '上線時程', en: 'Launches' },
+  indicators: PLUS_INDICATORS,
+  file: 'plus.json',
+  countryField: 'iso3',
+  rows: (points, { countryName, country }) => {
+    const wave = (p: PointRecord) => num(p, 'first') ?? num(p, 'd') ?? 0;
+    const size = new Map<number, number>();
+    for (const p of points) size.set(wave(p), (size.get(wave(p)) ?? 0) + String(p.iso3 ?? '').split(',').length);
+    return points
+      .slice()
+      .sort((a, b) => wave(a) - wave(b) || String(a.name).localeCompare(String(b.name)))
+      .map((p): ListRow => {
+        const isos = String(p.iso3 ?? '').split(',');
+        const title = isos.length > 1 ? (getLang() === 'zh' && typeof p.zh === 'string' && p.zh ? p.zh : String(p.name)) : countryName(isos[0]);
+        const n = size.get(wave(p)) ?? 1;
+        return {
+          key: String(p.name),
+          title,
+          group: country ? ymdText(wave(p)) : tr({ zh: `${ymdText(wave(p))}（${n} 個國家或地區）`, en: `${ymdText(wave(p))} (${n} ${n === 1 ? 'country or territory' : 'countries or territories'})` }),
+          muted: p.b === 3,
+          lines: [tr(PLUS_BRANDS[(num(p, 'b') ?? 1) - 1].label), ...plusFacts(p)],
+          link: { href: PLUS_REV, label: tr({ zh: '資料出處 英文維基百科', en: 'Source: English Wikipedia' }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 4 },
+        };
+      });
+  },
+};
+
+/** 地點的種類（pipeline 的 PLACE_KIND，代碼是索引 + 1） */
+const PLACE_KINDS: Text[] = [
+  { zh: '有座標的地點', en: 'Places with coordinates' },
+  { zh: '只寫到國家', en: 'Country only' },
+  { zh: '跨國的地區（洲、海洋、山脈……；不算進任何一國）', en: 'Areas spanning countries (continents, oceans, mountain ranges…; not counted for any country)' },
+  { zh: '虛構的地點', en: 'Fictional places' },
+  { zh: '沒有座標（太空、行星、神話裡的地方……）', en: 'No coordinates (space, planets, mythical places…)' },
+  { zh: '大的地區（州、省；點是地區的中心）', en: 'Large areas (states, provinces; the dot is the centre of the area)' },
+];
+const PLACE_ORDER = [1, 6, 2, 3, 4, 5];
+
+function placeName(p: PointRecord): { title: string; proper?: string } {
+  const en = String(p.en ?? '');
+  return getLang() === 'zh' && typeof p.zh === 'string' && p.zh ? { title: p.zh, proper: en } : { title: en };
+}
+/** 作品名單（pipeline 用「|」接起來、依年份排好），最多列 limit 部 */
+function worksText(p: PointRecord, limit: number): string {
+  const all = String((getLang() === 'zh' ? p.wz : p.we) ?? '')
+    .split('|')
+    .filter(Boolean);
+  const shown = all.slice(0, limit).join(tr({ zh: '、', en: '; ' }));
+  // 共幾部用 n（沒有英文標籤的作品不列名字，但照樣算）
+  const n = num(p, 'n') ?? all.length;
+  return n > Math.min(limit, all.length) ? shown + tr({ zh: `……共 ${n} 部`, en: `… ${n} in all` }) : shown;
+}
+const worksCount = (n: number) => tr({ zh: `${fixed(n, 0)} 部作品`, en: `${fixed(n, 0)} ${n === 1 ? 'title' : 'titles'}` });
+
+function placeLayer(id: string, file: string, label: Text, indicator: string, color: string, regions: boolean): PointsOverlayDef {
+  return {
+    kind: 'points',
+    id,
+    file,
+    label,
+    indicators: [indicator],
+    radius: { field: 'n', stops: regions ? [[1, 6], [20, 11], [100, 18]] : [[1, 2.5], [10, 5], [50, 9], [200, 14]] },
+    ...(regions && { look: 'hollow' as const }),
+    color,
+    sortField: 'n',
+    tooltip: (p, { countryName }) => {
+      const { title, proper } = placeName(p);
+      return {
+        title,
+        properNoun: proper,
+        detail: [worksCount(num(p, 'n') ?? 0), typeof p.iso3 === 'string' ? countryName(p.iso3) : null, regions ? tr(PLACE_KINDS[5]) : null].filter(Boolean).join(' · '),
+        extra: [worksText(p, 8)],
+      };
+    },
+  };
+}
+const FILMING = placeLayer('disney-filming', 'filming.json', { zh: '迪士尼片庫的拍攝地', en: 'Filming locations of the Disney library' }, 'filming', C[0], false);
+const FILMING_REGIONS = placeLayer('disney-filming-regions', 'filming-regions.json', { zh: '只寫到州、省的拍攝地（空心）', en: 'Filming locations given only as a state or province (hollow)' }, 'filming', C[0], true);
+const SETTINGS = placeLayer('disney-settings', 'settings.json', { zh: '迪士尼片庫的故事場景地', en: 'Story settings of the Disney library' }, 'settings', C[1], false);
+const SETTINGS_REGIONS = placeLayer('disney-settings-regions', 'settings-regions.json', { zh: '只寫到州、省的場景地（空心）', en: 'Settings given only as a state or province (hollow)' }, 'settings', C[1], true);
+
+function placeList(file: string, label: Text, tabLabel: Text, indicator: string): ListPanelDef {
+  return {
+    label,
+    tabLabel,
+    indicators: [indicator],
+    file,
+    countryField: 'iso3',
+    rows: (points, { countryName }) =>
+      points
+        .slice()
+        .sort((a, b) => PLACE_ORDER.indexOf(num(a, 'k') ?? 1) - PLACE_ORDER.indexOf(num(b, 'k') ?? 1) || (num(b, 'n') ?? 0) - (num(a, 'n') ?? 0))
+        .map((p): ListRow => {
+          // 只寫到國家的用網站的國名（Wikidata 台灣的 zh-tw 標籤是「中華民國」）
+          const { title, proper } = p.k === 2 && typeof p.iso3 === 'string' ? { title: countryName(p.iso3), proper: undefined } : placeName(p);
+          const hasPlace = typeof p.lon === 'number' && typeof p.lat === 'number';
+          return {
+            key: String(p.qid),
+            title,
+            properNoun: proper,
+            group: tr(PLACE_KINDS[(num(p, 'k') ?? 1) - 1]),
+            muted: p.k === 3 || p.k === 4 || p.k === 5,
+            lines: [[worksCount(num(p, 'n') ?? 0), typeof p.iso3 === 'string' ? countryName(p.iso3) : ''].filter(Boolean).join(' · '), worksText(p, 6)],
+            link: { href: `https://www.wikidata.org/wiki/${String(p.qid)}`, label: tr({ zh: `資料出處 Wikidata ${String(p.qid)}`, en: `Source: Wikidata ${String(p.qid)}` }) },
+            // 沒有座標的（跨國、虛構、太空）點了看全世界
+            target: hasPlace ? { lon: Number(p.lon), lat: Number(p.lat), zoom: p.k === 2 ? 4 : p.k === 6 ? 6 : 10 } : { box: [-170, -55, 170, 72] },
+          };
+        }),
+  };
+}
+const FILMING_LIST = placeList('filming-all.json', { zh: '迪士尼片庫的拍攝地', en: 'Filming locations of the Disney library' }, { zh: '拍攝地', en: 'Filming' }, 'filming');
+const SETTINGS_LIST = placeList('settings-all.json', { zh: '迪士尼片庫的故事場景地', en: 'Story settings of the Disney library' }, { zh: '場景地', en: 'Settings' }, 'settings');
+
 export const disney: TopicDefinition = {
   id: 'disney',
   title: { zh: '迪士尼在哪裡：樂園、郵輪、飯店與影視部門', en: 'Where Disney is: parks, cruise ships, hotels and studios' },
@@ -584,6 +743,16 @@ export const disney: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
     {
+      name: { zh: '英文維基百科「Disney+」（revid 1383663039，上線時程表）', en: 'English Wikipedia, “Disney+” (revid 1383663039: launch table)' },
+      url: 'https://en.wikipedia.org/wiki/Disney%2B?oldid=1383663039',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: 'Wikidata（迪士尼系片廠作品的拍攝地 P915 與故事場景地 P840，經 QLever 查詢）', en: 'Wikidata (filming locations P915 and narrative locations P840 of Disney studio titles, via QLever)' },
+      url: 'https://www.wikidata.org/wiki/Property:P840',
+      license: 'CC0',
+    },
+    {
       name: { zh: 'IMF PortWatch 港口資料庫（新加坡、東京、拿索的座標）', en: 'IMF PortWatch ports database (coordinates of Singapore, Tokyo and Nassau)' },
       url: 'https://portwatch.imf.org/',
       license: { zh: 'IMF 的資料條款（註明出處）', en: 'IMF data terms (with attribution)' },
@@ -593,8 +762,8 @@ export const disney: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是迪士尼公司提供的。度假區（例如華特迪士尼世界）與裡面的主題樂園是兩層，「幾座樂園」只算主題樂園。台灣沒有迪士尼的樂園、飯店或郵輪靠港。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by The Walt Disney Company. Resorts (such as Walt Disney World) and the theme parks inside them are two levels, and park counts include theme parks only. Taiwan has no Disney park, hotel or cruise call.',
   },
-  overlays: [RESORT_RINGS, SITES, PLANNED, PARK_VISITS, PARK_RIDES, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS],
-  listPanel: [PARK_LIST, VISIT_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST],
+  overlays: [RESORT_RINGS, SITES, PLANNED, PARK_VISITS, PARK_RIDES, CRUISE_LINES, CRUISE_PORTS, HOTELS, UNITS, FILMING_REGIONS, FILMING, SETTINGS_REGIONS, SETTINGS],
+  listPanel: [PARK_LIST, VISIT_LIST, SHIP_LIST, HOTEL_LIST, UNIT_LIST, PLUS_LIST, FILMING_LIST, SETTINGS_LIST],
   indicators: [
     {
       id: 'parks',
@@ -688,6 +857,66 @@ export const disney: TopicDefinition = {
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,
       defaultYear: 2024,
+    },
+    {
+      id: 'disneyplus',
+      label: { zh: '看得到 Disney+ 的國家', en: 'Where Disney+ is available' },
+      description: {
+        zh: '每年年底在哪些國家看得到 Disney+（類別圖，2019–2026；英文維基「Disney+」固定版本 1383663039 的上線時程表，137 列）。2019 年 11 月 12 日美國、加拿大、荷蘭首發，2020 年 3 月 24 日歐洲 7 國，2020 年 11 月 17 日拉丁美洲與加勒比海一次 41 個，2022 年 6 月中東北非 16 個、中東歐與英法屬地等 35 個兩波，到 2026 年共 141 個國家或地區（含英、法、荷的海外屬地）。印度與東南亞是另外的品牌：印度 2020 年起是 Disney+ Hotstar，2025 年 2 月 14 日跟 JioCinema 合併成 JioHotstar，迪士尼不再是控股方；印尼、馬來西亞、泰國先以 Disney+ Hotstar 上線，2025 年 10 月 8 日改名 Disney+。台灣 2021 年 11 月 12 日跟南韓同一天上線。沒有顏色的是表上沒有的國家，就是看不到 Disney+：中國、俄羅斯、越南，非洲 54 個國家只有 7 個看得到（南非、埃及、摩洛哥、阿爾及利亞、突尼西亞、利比亞、模里西斯）。滑過國家看上線日期與上線時搭配的電信或平台。官網的國家清單受使用條款限制不能抓，所以只用維基；各國的訂閱價格不做。',
+        en: 'Where Disney+ was available at the end of each year (categorical, 2019–2026; the launch table of the English Wikipedia article “Disney+”, revision 1383663039, 137 rows). It launched in the US, Canada and the Netherlands on 12 November 2019, in seven European countries on 24 March 2020, in 41 Latin American and Caribbean countries and territories at once on 17 November 2020, and in two waves in June 2022 (16 in the Middle East and North Africa, 35 in Central and Eastern Europe, Turkey and British and French territories), reaching 141 countries and territories by 2026 (including British, French and Dutch overseas territories). India and Southeast Asia had a separate brand: India has had Disney+ Hotstar since 2020, which merged with JioCinema into JioHotstar on 14 February 2025, no longer controlled by Disney; Indonesia, Malaysia and Thailand launched as Disney+ Hotstar and were renamed Disney+ on 8 October 2025. Taiwan launched on 12 November 2021, the same day as South Korea. Uncoloured countries are not in the table, meaning no Disney+: China, Russia, Vietnam, and 47 of Africa’s 54 countries (only South Africa, Egypt, Morocco, Algeria, Tunisia, Libya and Mauritius have it). Hover for the launch date and the telecoms or platforms that partnered at launch. Disney’s own country list cannot be scraped under its terms of use, so only Wikipedia is used; prices are not shown.',
+      },
+      unit: '',
+      file: 'disneyplus.json',
+      layer: { kind: 'categorical', categories: PLUS_BRANDS },
+      format: categoryText(PLUS_BRANDS),
+      missing: PLUS_MISSING,
+      unranked: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'disneyplus-launch',
+      label: { zh: 'Disney+ 哪一年上線', en: 'Year Disney+ launched' },
+      description: {
+        zh: '第一次看得到迪士尼經營的串流（Disney+ 或 Disney+ Hotstar）是哪一年（類別圖，越早越深；同一張維基表）：2019 年 6 個（美國、加拿大、荷蘭、澳洲、紐西蘭、波多黎各）、2020 年 75 個、2021 年 6 個（新加坡、南韓、台灣、香港、馬來西亞、泰國）、2022 年 54 個。印度算 2020 年（Disney+ Hotstar），印尼 2020 年、馬來西亞與泰國 2021 年也是 Disney+ Hotstar 上線的年份。2023 年以後沒有新的國家：條目寫原本預計 2023 年底超過 160 國，結果那一年一個都沒有增加；2025 年 10 月東南亞那一次只是改名。',
+        en: 'The year a Disney-run streaming service (Disney+ or Disney+ Hotstar) first became available (categorical, darker is earlier; same Wikipedia table): 6 in 2019 (US, Canada, Netherlands, Australia, New Zealand, Puerto Rico), 75 in 2020, 6 in 2021 (Singapore, South Korea, Taiwan, Hong Kong, Malaysia, Thailand) and 54 in 2022. India counts as 2020 (Disney+ Hotstar), and 2020 for Indonesia and 2021 for Malaysia and Thailand are also Disney+ Hotstar launches. No country has been added since: the article notes that the service was expected in more than 160 countries by the end of 2023, but none were added that year, and the October 2025 change in Southeast Asia was only a rename.',
+      },
+      unit: '',
+      file: 'disneyplus-launch.json',
+      layer: { kind: 'categorical', categories: PLUS_LAUNCH, ordinal: true },
+      format: categoryText(PLUS_LAUNCH),
+      missing: PLUS_MISSING,
+      unranked: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'filming',
+      label: { zh: '在這裡取景的迪士尼片庫作品', en: 'Disney library titles filmed here' },
+      description: {
+        zh: '迪士尼片庫的作品有幾部在這一國取景（比例圓；Wikidata 的拍攝地 P915）。片庫是製作、發行或製片掛在迪士尼系十家片廠（Walt Disney Pictures、Marvel Studios、Lucasfilm、Walt Disney Animation Studios、Pixar、20th Century Studios、Searchlight、Touchstone、Walt Disney Studios、Walt Disney Studios Motion Pictures）的作品，包括 20 世紀福斯併進迪士尼以前的舊片與只是發行的片，所以這是「迪士尼現在擁有的片庫」，不是「迪士尼拍的」。有拍攝地的 1,247 部、770 處地點、79 國：美國 783 部、加拿大 157、英國 109、法國 43、西班牙 38、墨西哥 31、義大利 29、德國 27、澳洲 25、紐西蘭 20。最多的地點是洛杉磯 162 部、紐約 138、溫哥華 71、英國的松林製片廠 55。台灣 3 部：1966 年的 The Sand Pebbles 與 2012 年的《少年Pi的奇幻漂流》（20 世紀福斯製作）、2013 年的《天台》（發行）。只寫到州或省的（加州 141 部最多）畫成空心的大圈，因為那一點只是州的中心。Wikidata 偏向有名的大片與歐美的外景，沒寫拍攝地的作品不在裡面。',
+        en: 'How many titles in the Disney library were filmed in each country (proportional circles; Wikidata filming location, P915). The library is every title produced, distributed or co-produced by ten Disney studios (Walt Disney Pictures, Marvel Studios, Lucasfilm, Walt Disney Animation Studios, Pixar, 20th Century Studios, Searchlight, Touchstone, Walt Disney Studios and Walt Disney Studios Motion Pictures), including older 20th Century Fox films and titles Disney only distributed, so it is what Disney owns now, not what Disney made. 1,247 titles have a filming location: 770 places in 79 countries; the US has 783 titles, Canada 157, the UK 109, France 43, Spain 38, Mexico 31, Italy 29, Germany 27, Australia 25 and New Zealand 20. The top places are Los Angeles (162), New York (138), Vancouver (71) and Pinewood Studios in England (55). Taiwan has 3: The Sand Pebbles (1966) and Life of Pi (2012), both made by 20th Century Fox, and The Rooftop (2013, distributed). Places given only as a state or province (California has the most, 141) are drawn as hollow circles, because the dot is just the centre of the state. Wikidata favours well-known films and Western locations; titles without a filming location are not counted.',
+      },
+      unit: { zh: '部', en: 'titles' },
+      file: 'filming-count.json',
+      layer: { kind: 'bubble', legendValues: [5, 50, 500] },
+      format: (v) => worksCount(v),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'settings',
+      label: { zh: '故事設定在這裡的迪士尼片庫作品', en: 'Disney library titles set here' },
+      description: {
+        zh: '迪士尼片庫的作品有幾部的故事設定在這一國（比例圓；Wikidata 的故事場景地 P840，同一個片庫）。有場景地的 2,162 部、633 處地點、99 國：美國 1,212 部、英國 240、法國 112、義大利 57、加拿大 47、德國 45、印度 37、墨西哥 36、俄羅斯 34、日本 26。城市是紐約 296 部最多，倫敦與洛杉磯各 148、巴黎 67。台灣 3 部，都是 20 世紀福斯在台灣發行的國片：《天邊一朵雲》（2005）、《那些年，我們一起追的女孩》（2011）、《天台》（2013）。這裡量的是「設定在哪裡」，不是「取材自哪裡」。虛構的地點 134 處不畫在地圖上、只進清單（《辛普森家庭》的 Springfield 36 部最多，還有《星際大戰》的 Tatooine、漫威的 Wakanda、《冰雪奇緣》的 Arendelle、2019 年《獅子王》的 Pride Lands）；寫成洲、海洋或「中國」這種文化地區的 28 處不算進任何一國，1998 年的《花木蘭》寫的就是「中國」這個文化地區、不是中華人民共和國，所以不算進中國。',
+        en: 'How many titles in the Disney library are set in each country (proportional circles; Wikidata narrative location, P840, same library). 2,162 titles have a setting: 633 places in 99 countries; the US has 1,212, the UK 240, France 112, Italy 57, Canada 47, Germany 45, India 37, Mexico 36, Russia 34 and Japan 26. New York is the top city (296), then London and Los Angeles (148 each) and Paris (67). Taiwan has 3, all Taiwanese films distributed in Taiwan by 20th Century Fox: The Wayward Cloud (2005), You Are the Apple of My Eye (2011) and The Rooftop (2013). This measures where a story is set, not where it was drawn from. The 134 fictional places are listed but not mapped (The Simpsons’ Springfield has the most, 36, followed by Star Wars’ Tatooine, Marvel’s Wakanda, Frozen’s Arendelle and the Pride Lands of the 2019 Lion King); 28 places given as a continent, an ocean or a cultural region such as “China” are not counted for any country: Mulan (1998) is set in “China” the cultural region, not the People’s Republic, so it does not count for China.',
+      },
+      unit: { zh: '部', en: 'titles' },
+      file: 'settings-count.json',
+      layer: { kind: 'bubble', legendValues: [5, 50, 500] },
+      format: (v) => worksCount(v),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2026,
     },
   ],
 };

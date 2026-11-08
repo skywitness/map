@@ -2418,6 +2418,7 @@ export function WorldMap(props: WorldMapProps) {
             onPreview={setPreviewCategory}
             pinned={pinnedCategory}
             onPin={setPinnedCategory}
+            missing={indicator.missing}
             paletteKind={
               indicator.layer.kind === 'categorical'
                 ? indicator.layer.diverging

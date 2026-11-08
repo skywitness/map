@@ -431,10 +431,12 @@ interface CategoricalLegendProps {
   onPin: (index: number | null) => void;
   /** 有強弱的類別（ordinal、diverging）用分級色、正負色，標題旁放「配色」按鈕 */
   paletteKind?: 'sequential' | 'diverging';
+  /** 取代灰色那一格的「無資料」（指標的 missing，2026-11-08 起，例如「看不到 Disney+」） */
+  missing?: string;
 }
 
 /** 類別圖：色塊與名稱，沒有數值刻度。滑過、點選某一類時地圖上只突顯那一類的國家 */
-export function CategoricalLegend({ title, scale, values, highlight, onPreview, pinned, onPin, paletteKind }: CategoricalLegendProps) {
+export function CategoricalLegend({ title, scale, values, highlight, onPreview, pinned, onPin, paletteKind, missing }: CategoricalLegendProps) {
   const t = useT();
   const { items, columns } = categoricalLegendModel(scale, values);
   return (
@@ -468,7 +470,7 @@ export function CategoricalLegend({ title, scale, values, highlight, onPreview, 
           </li>
         ))}
       </ul>
-      <NoDataKey />
+      <NoDataKey label={missing} />
     </div>
   );
 }
