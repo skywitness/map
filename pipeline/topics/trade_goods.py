@@ -37,6 +37,12 @@ GOODS: list[tuple[str, str, str, tuple[str, ...], bool]] = [
     ("pharma", "藥品（HS 3004）", "HS92", ("3004",), False),
     # 第二十批 307（2026-11-04）：藥用、香料、殺蟲用的植物（含古柯葉、罌粟稈；不等於中藥材）
     ("medicinal-plants", "藥用植物（HS 1211）", "HS92", ("1211",), False),
+    # 第二十九批 693（2026-11-08）：中藥材散在的其他章節，跟 1211 依 HS 章節註解互斥。植物萃取只取 130212（甘草）、130213（蛇麻）、
+    # 130219（其他），不含鴉片汁 130211 與果膠、瓊脂這些食品添加物；角與鹿茸只取 050790（不含象牙 050710）；步驟 trade-tcm
+    ("plant-extracts", "植物萃取物（HS 130212、130213、130219）", "HS92", ("130212", "130213", "130219"), False),
+    ("animal-pharma", "製藥用動物原料（HS 0510）", "HS92", ("0510",), False),
+    ("bird-nests", "燕窩與其他可食動物產品（HS 0410）", "HS92", ("0410",), False),
+    ("horns-antlers", "角、鹿茸與其他未加工動物材料（HS 050790）", "HS92", ("050790",), False),
     ("toys", "玩具（HS 9501–9503）", "HS92", ("9501", "9502", "9503"), False),
     # 第二十四批 413（2026-11-06）：HS 第 95 章的鄰居，運動器材（不含運動服、運動鞋、自行車）與遊戲用品（實體的遊戲機、
     # 牌、桌遊，數位下載的遊戲不在貿易統計裡）；步驟 trade-leisure
@@ -186,3 +192,11 @@ def build_medicinal_plants() -> None:
     manifest["items"] = [i for i in manifest.get("items", []) if i["id"] != gid] + [{"id": gid, "label": label, "source": f"BACI {hs}"}]
     manifest["generatedAt"] = now_iso()
     write_json(path, manifest)
+
+
+TCM_GOODS = ["plant-extracts", "animal-pharma", "bird-nests", "horns-antlers"]
+
+
+def build_tcm() -> None:
+    """只做第二十九批 693 的四種（讀一次 BACI HS92）"""
+    build_some(TCM_GOODS)

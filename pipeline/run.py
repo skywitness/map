@@ -134,6 +134,7 @@ STEPS = {
     "tax-refund": "topics.tax_refund",
     "travel-health": "topics.travel_health",
     "trade-medicinal-plants": "topics.trade_medicinal_plants",  # 只更新藥用植物（HS 1211，BACI HS92 約 2.4 GB，幾分鐘）
+    "trade-tcm": "topics.trade_tcm",  # 2026-11-08 第二十九批 693：植物萃取物、製藥用動物原料、燕窩（HS 0410）、角與鹿茸（BACI HS92 約 2.4 GB，幾分鐘）
     # 1962 年起的長期貿易流向與出口組成：Harvard Atlas 的 SITC（約 55 MB，貿易與工業兩個主題）
     "atlas-sitc": "topics.atlas_sitc",
     "services-trade": "topics.services_trade",  # 服務出口的組成（WDI、央行國際收支），輸出到 topics/trade/
