@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 207;
-export const INDICATOR_COUNT = 1567;
+export const INDICATOR_COUNT = 1568;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"聯合國《世界人口展望》（人口）","en":"UN World Population Prospects (population)"},"url":"https://population.un.org/wpp/","licenses":["CC BY 3.0 IGO"],"topics":["population","fertility","marriage","night-lights","funeral","reads","crime","health","health-care","vaccination","covid","height","antimicrobial-resistance","chain-stores","migration","china-lending","conflict","climate","air-quality","water-forest","digital","ip-addresses","developers","innovation","publications","research-orgs","district-heating","fossil-fuels","aviation","road-safety","ev","profiles","oceans","castles","tourism","nobel","sports","esports","dining","culture"]},
@@ -145,6 +145,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Eurostat：Construction producer prices or costs, new residential buildings - annual data（sts_copi_a）","en":"Eurostat: Construction producer prices or costs, new residential buildings - annual data (sts_copi_a)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sts_copi_a/default/table","licenses":["CC BY 4.0"],"topics":["property-costs"]},
   {"name":{"zh":"Eurostat：Enterprises by detailed NACE Rev. 2 activity and special aggregates（sbs_ovw_act，G47 零售業）","en":"Eurostat: Enterprises by detailed NACE Rev. 2 activity and special aggregates (sbs_ovw_act, G47 retail trade)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sbs_ovw_act/default/table","licenses":["CC BY 4.0"],"topics":["retail"]},
   {"name":{"zh":"Eurostat：EU-SILC 家裡沒辦法保持足夠溫暖的人口（sdg_07_60）、欠繳水電瓦斯帳單的人口（ilc_mdes07）","en":"Eurostat, EU-SILC: population unable to keep home adequately warm (sdg_07_60) and in arrears on utility bills (ilc_mdes07)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/sdg_07_60/default/table","licenses":["CC BY 4.0"],"topics":["energy-poverty"]},
+  {"name":{"zh":"Eurostat：EU-SILC 過去五年住的房子做過節能改善的人口（ilc_enevh_01）","en":"Eurostat, EU-SILC: persons living in dwellings with energy efficiency improvements in the last five years (ilc_enevh_01)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/ilc_enevh_01/default/table","licenses":["CC BY 4.0"],"topics":["energy-poverty"]},
   {"name":{"zh":"Eurostat：Final consumption expenditure of households by consumption purpose（nama_10_co3_p3）","en":"Eurostat: Final consumption expenditure of households by consumption purpose (nama_10_co3_p3)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/nama_10_co3_p3/default/table","licenses":["CC BY 4.0"],"topics":["household-transport"]},
   {"name":{"zh":"Eurostat：Harmonised European Time Use Surveys 2020 波次（tus_20age）","en":"Eurostat: Harmonised European Time Use Surveys, 2020 wave (tus_20age)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/tus_20age/default/table","licenses":["CC BY 4.0"],"topics":["time-use"]},
   {"name":{"zh":"Eurostat：House sales - number and index（prc_hpi_hsna）","en":"Eurostat: House sales - number and index (prc_hpi_hsna)"},"url":"https://ec.europa.eu/eurostat/databrowser/view/prc_hpi_hsna/default/table","licenses":["CC BY 4.0"],"topics":["housing-market"]},

@@ -12,6 +12,17 @@ export const GROUPS = [
   { id: 'non-poor', label: { zh: '貧窮線以上', en: 'Above the poverty line' } },
 ];
 
+/** 節能改造（第二十七批 628）的子項目：全部與自住／租屋、獨棟／公寓、貧窮或社會排除風險的拆解 */
+export const RETROFIT_GROUPS = [
+  { id: 'all', label: { zh: '全部人口', en: 'Everyone' } },
+  { id: 'owners', label: { zh: '住自己的房子', en: 'Owners' } },
+  { id: 'renters', label: { zh: '租屋', en: 'Renters' } },
+  { id: 'houses', label: { zh: '住獨棟或連棟住宅', en: 'Living in houses' } },
+  { id: 'flats', label: { zh: '住公寓', en: 'Living in flats' } },
+  { id: 'at-risk', label: { zh: '有貧窮或社會排除風險', en: 'At risk of poverty or social exclusion' } },
+  { id: 'not-at-risk', label: { zh: '沒有貧窮或社會排除風險', en: 'Not at risk of poverty or social exclusion' } },
+];
+
 const pct = (v: number) => `${fixed(v, 1)}%`;
 const pctTick = (v: number) => `${v}%`;
 const common: Pick<IndicatorDef, 'unit' | 'dimension' | 'format' | 'formatTick' | 'lowerIsBetter' | 'defaultYear' | 'noValue'> = {
@@ -39,6 +50,11 @@ export const energyPoverty: TopicDefinition = {
         en: 'Eurostat, EU-SILC: population unable to keep home adequately warm (sdg_07_60) and in arrears on utility bills (ilc_mdes07)',
       },
       url: 'https://ec.europa.eu/eurostat/databrowser/view/sdg_07_60/default/table',
+      license: 'CC BY 4.0',
+    },
+    {
+      name: { zh: 'Eurostat：EU-SILC 過去五年住的房子做過節能改善的人口（ilc_enevh_01）', en: 'Eurostat, EU-SILC: persons living in dwellings with energy efficiency improvements in the last five years (ilc_enevh_01)' },
+      url: 'https://ec.europa.eu/eurostat/databrowser/view/ilc_enevh_01/default/table',
       license: 'CC BY 4.0',
     },
   ],
@@ -69,6 +85,25 @@ export const energyPoverty: TopicDefinition = {
       },
       file: 'arrears/{item}.json',
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [3, 5, 8, 12, 18, 25] } },
+    },
+    // 2026-11-08（製作手冊第二十七批 628）：有沒有去改善（結果之外的行動）
+    {
+      id: 'retrofit',
+      label: { zh: '過去五年家裡做過節能改造的人口比例', en: 'Living in a home with energy efficiency improvements in the last five years' },
+      description: {
+        zh: '住的房子在過去五年做過節能改善（換窗、加保溫、換鍋爐等，受訪者自己認定）的人口比例（EU-SILC，只有 2023 與 2025 兩期；子項目是族群）。2025 年荷蘭 60.5% 最高，丹麥 34.0%、法國 33.3%、斯洛維尼亞 33.3%、葡萄牙 32.8%、奧地利 31.5%、瑞典 31.5%；義大利只有 2.6%、土耳其 3.8%、馬爾他 7.8%、希臘 9.5%、挪威 14.3%。自住的比租屋的高（荷蘭 69.7% 比 39.9%），有貧窮風險的比較低（荷蘭 45.3%）。各國差到二十幾倍，可能有問卷執行的差異。',
+        en: 'Share of people whose home had energy efficiency improvements in the last five years (new windows, insulation, a new boiler and so on, as reported by respondents; EU-SILC, only 2023 and 2025; sub-items are groups). In 2025 the Netherlands was highest at 60.5%, then Denmark 34.0%, France 33.3%, Slovenia 33.3%, Portugal 32.8%, Austria 31.5% and Sweden 31.5%; Italy had only 2.6%, Türkiye 3.8%, Malta 7.8%, Greece 9.5% and Norway 14.3%. Owners report more than renters (69.7% vs 39.9% in the Netherlands) and people at risk of poverty less (45.3% in the Netherlands). Countries differ more than twentyfold, which may partly reflect how the survey was carried out.',
+      },
+      unit: '%',
+      file: 'retrofit/{item}.json',
+      dimension: { label: { zh: '族群', en: 'Group' }, options: RETROFIT_GROUPS, defaultOption: 'all' },
+      layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [10, 20, 25, 30, 40] } },
+      format: pct,
+      formatTick: pctTick,
+      defaultYear: 2025,
+      noValue: {
+        TWN: { zh: '沒有：台灣沒有對應的調查', en: 'None: Taiwan has no comparable survey' },
+      },
     },
   ],
 };

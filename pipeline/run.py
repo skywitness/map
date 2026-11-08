@@ -223,6 +223,7 @@ STEPS = {
     "energy-use": "topics.energy_use",
     "energy-losses": "topics.energy_losses",
     "energy-jobs": "topics.energy_jobs",
+    "energy-retrofit": "topics.energy_retrofit",
     "household-energy": "topics.household_energy",
     "energy-poverty": "topics.energy_poverty",
     "energy-wholesale": "topics.energy_wholesale",
