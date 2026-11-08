@@ -122,6 +122,14 @@ export const parksOverlay = (indicators: string[]): PointsOverlayDef => ({
   indicators,
 });
 
+/** 博物館的點給「博物館與美術館」主題用（2026-11-08，製作手冊第二十七批 638）：同一個檔，景點地圖的總覽照樣畫 */
+export const museumsOverlay = (indicators: string[]): PointsOverlayDef => ({
+  ...overlay(LAYERS[0], [[0, 40], [3, 20], [5, MUSEUM_MIN_SL], [7, 0]]),
+  id: 'museum-points',
+  file: '../attractions/museums.json',
+  indicators,
+});
+
 /** 附近最多列幾處（歐洲的城市 30 公里內博物館上千座） */
 const NEAR_MAX = 300;
 
@@ -161,7 +169,7 @@ const NEAR_LIST: ListPanelDef = {
  * 順序 642–650 的觀景點、公共藝術、都市公園再開「看風景與公共空間」一組
  */
 const MENU_GROUPS: MenuGroup[] = [
-  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'visitors', 'taiwan-sites']],
+  [{ zh: '其他景點', en: 'Other attractions' }, ['attractions', 'taiwan-sites']],
   [{ zh: '人造的地標', en: 'Built landmarks' }, ['landmarks']],
   [{ zh: '世界的紀錄與榮銜', en: 'World lists and titles' }, ['world-wonders', 'creative', 'expos']],
 ];

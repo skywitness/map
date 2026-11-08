@@ -24,25 +24,7 @@ const PARK_YEARS = Array.from({ length: 16 }, (_, i) => 2009 + i);
 
 // ── 人次 ──
 
-const MUSEUM_VISITORS: PointsOverlayDef = {
-  kind: 'points',
-  id: 'museum-visitors',
-  file: 'museum-visitors.json',
-  label: { zh: '最多人造訪的博物館（一年人次）', en: 'Most-visited museums (visitors a year)' },
-  indicators: ['visitors'],
-  radius: { field: 'v', stops: [[1.25e6, 3], [3e6, 5], [6e6, 8], [9e6, 10]] },
-  color: C[7],
-  sortField: 'v',
-  sizeLegend: { title: { zh: '一年的人次', en: 'Visitors a year' }, values: [2e6, 5e6, 9e6], format: visitorsText },
-  tooltip: (p, { countryName }) => {
-    const { title, proper } = names(p);
-    const extra = [tr({ zh: `${p.vy} 年 ${visitorsText(Number(p.v))}`, en: `${visitorsText(Number(p.v))} in ${p.vy}` })];
-    if (typeof p.tw === 'number' && p.src !== 2) extra.push(tr({ zh: `觀光署 2024 年 ${visitorsText(p.tw)}`, en: `Tourism Administration 2024: ${visitorsText(p.tw)}` }));
-    if (p.src === 2) extra.push(tr({ zh: '觀光署的數字（英文維基的表沒有）', en: 'Tourism Administration figure (not in the Wikipedia list)' }));
-    return { title, detail: [tr({ zh: '博物館', en: 'Museum' }), country(p, countryName)].filter(Boolean).join(' · '), extra, properNoun: proper };
-  },
-};
-
+// 博物館的人次（MUSEUM_VISITORS、MUSEUM_LIST、指標 visitors）2026-11-08 搬到「博物館與美術館」主題（museums.ts）
 /** 2026-11-08（製作手冊第二十七批 630）搬到「樂園」主題（theme-parks.ts），資料照舊在景點地圖的資料夾 */
 export const PARK_VISITORS: PointsOverlayDef = {
   kind: 'points',
@@ -66,35 +48,6 @@ export const PARK_VISITORS: PointsOverlayDef = {
     if (p.src === 2) extra.push(tr({ zh: `觀光署的數字${str(p.note) ? `（${p.note}）` : ''}，跟 TEA 的估計不能直接比`, en: 'Tourism Administration figure; not directly comparable with TEA estimates' }));
     return { title, detail: [tr({ zh: '主題樂園', en: 'Theme park' }), country(p, countryName)].filter(Boolean).join(' · '), extra: extra.filter(Boolean), properNoun: proper };
   },
-};
-
-/**
- * 最多人造訪的博物館、主題樂園（第十二批 201）：「博物館與樂園的人次」指標的兩個清單（清單上面的分頁切換），依人次；
- * 每列：名次與名稱、國家、人次與資料年份（主題樂園跟時間軸的年份，2009–2024）。資料沒有城市欄，只寫國家
- */
-const MUSEUM_LIST: ListPanelDef = {
-  label: { zh: '最多人造訪的博物館', en: 'Most-visited museums' },
-  tabLabel: { zh: '博物館', en: 'Museums' },
-  indicators: ['visitors'],
-  file: 'museum-visitors.json',
-  countryField: 'iso3',
-  rows: (points, { countryName }) =>
-    [...points]
-      .sort((a, b) => Number(b.v) - Number(a.v))
-      .map((p, i): ListRow => {
-        const { title, proper } = names(p);
-        return {
-          key: `${p.en ?? p.zh}-${i}`,
-          title: `${i + 1}. ${title}`,
-          properNoun: proper,
-          lines: [
-            country(p, countryName) ?? '',
-            tr({ zh: `${p.vy} 年 ${visitorsText(Number(p.v))}`, en: `${visitorsText(Number(p.v))} in ${p.vy}` }) +
-              (p.src === 2 ? tr({ zh: '（觀光署）', en: ' (Tourism Administration)' }) : ''),
-          ].filter(Boolean),
-          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 14 },
-        };
-      }),
 };
 
 export const PARK_LIST: ListPanelDef = {
@@ -285,26 +238,9 @@ export const attractionsExtra: { sources: SourceDef[]; overlays: PointsOverlayDe
     },
   ],
   // 主題樂園的人次（PARK_VISITORS、PARK_LIST）2026-11-08 搬到「樂園」主題
-  overlays: [MUSEUM_VISITORS, FERRIS, MALLS, WONDERS, CREATIVE, EXPOS],
-  listPanel: [MUSEUM_LIST],
+  overlays: [FERRIS, MALLS, WONDERS, CREATIVE, EXPOS],
+  listPanel: [],
   indicators: [
-    {
-      id: 'visitors',
-      label: { zh: '博物館的人次', en: 'Museum visitors' },
-      description: {
-        zh: '最多人造訪的博物館，點的大小是一年的人次（主題樂園、水上樂園的人次 2026-11-08 搬到「樂園」與「水上樂園」主題）。博物館是英文維基「最多人造訪的博物館」表上一年 125 萬人次以上的（各館自己公布的數字，年份不一），羅浮宮 2025 年 900 萬第一，中國國家博物館 703 萬、梵蒂岡博物館 693 萬；台灣的 4 館另附觀光署 2024 年的數字，並補上表上沒有的海科館、科教館。左邊的清單依人次列出。',
-        en: 'The most-visited museums, sized by visitors a year (theme park and water park visitors moved to the Theme parks and Water parks topics on 8 November 2026). Museums are those in English Wikipedia’s list of most-visited museums with over 1.25 million visitors (each museum’s own figures, for varying years): the Louvre led with 9.0 million in 2025, ahead of the National Museum of China (7.03 million) and the Vatican Museums (6.93 million); Taiwan’s four also show the Tourism Administration’s 2024 figure, and two missing from the list (the National Museum of Marine Science and Technology and the National Taiwan Science Education Center) are added from it. The list on the left ranks them by visitors.',
-      },
-      unit: '',
-      file: 'visitors.json',
-      layer: { kind: 'none' },
-      unranked: true,
-      rankingBars: false,
-      panelChart: false,
-      format: () => '',
-      defaultYear: 2024,
-      missing: empty,
-    },
     {
       // 2026-11-07（製作手冊第二十七批 537）世界奇觀拆成自己的指標（world-wonders），這裡只剩摩天輪與購物中心
       id: 'landmarks',

@@ -187,7 +187,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     label: { zh: '旅遊', en: 'Travel' },
     sections: [
       // 地下觀光 2026-11-07 從社會的「生活與文化」搬過來（製作手冊第二十六批 534），跟景點地圖一組
-      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'show-caves', 'oldest-universities', 'skyscrapers'] },
+      { label: { zh: '景點', en: 'Places to see' }, topics: ['world-heritage', 'castles', 'national-parks', 'trails', 'attractions', 'museums', 'show-caves', 'oldest-universities', 'skyscrapers'] },
       // 2026-11-08 製作手冊第二十七批 637：樂園小類（使用者 2026-11-07 核准），四個樂園主題從景點搬過來，主題 id 不變
       { label: { zh: '樂園', en: 'Theme parks' }, topics: ['theme-parks', 'amusement-industry', 'roller-coasters', 'water-parks'] },
       { label: { zh: '觀光', en: 'Tourism' }, topics: ['tourism', 'travel-habits'] },
@@ -406,6 +406,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'amusement-industry': () => import('./amusement-industry'),
   'roller-coasters': () => import('./roller-coasters'),
   'water-parks': () => import('./water-parks'),
+  museums: () => import('./museums'),
   'oldest-universities': () => import('./oldest-universities'),
   antarctica: () => import('./antarctica'),
   'national-parks': () => import('./national-parks'),
