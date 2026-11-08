@@ -1,8 +1,9 @@
 import { getLang, tr, type Text } from '../i18n/lang';
 import { fixed, formatLargeNumber } from '../lib/format';
 import { MAP_TOKENS } from '../theme/tokens';
+import { placeLayer, placeList, worksCount } from './film-places';
 import { OWNERSHIP, OWNERSHIP_COLORS, ownershipText } from './park-ownership';
-import type { LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
+import type { CategoryDef, LinesOverlayDef, ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinition } from './types';
 
 /**
  * 環球影城（新主題，2026-11-08，製作手冊第二十八批 680，候選 1521、1522、1525；旅遊・樂園；pipeline/topics/universal.py）。
@@ -436,6 +437,85 @@ const OWN_LIST: ListPanelDef = {
       }),
 };
 
+
+// ── 環球的片、拍攝地、Peacock、台灣的票房（2026-11-08，製作手冊第二十八批 685，候選 1534、1535、1536、1540；
+// pipeline/topics/universal_film.py；1539 新加坡的樂園業沒做） ──
+const FILMING = placeLayer('universal-filming', 'filming.json', { zh: '環球影業的片的拍攝地', en: 'Filming locations of Universal Pictures titles' }, 'filming', C[0], false);
+const FILMING_REGIONS = placeLayer('universal-filming-regions', 'filming-regions.json', { zh: '只寫到州、省的拍攝地（空心）', en: 'Filming locations given only as a state or province (hollow)' }, 'filming', C[0], true);
+const FILMING_LIST = placeList('filming-all.json', { zh: '環球影業的片的拍攝地', en: 'Filming locations of Universal Pictures titles' }, { zh: '拍攝地', en: 'Filming' }, 'filming');
+
+const PEACOCK_KINDS: CategoryDef[] = [
+  { value: 1, label: { zh: 'Peacock 自己的訂閱服務', en: 'Peacock’s own subscription service' } },
+  { value: 2, label: { zh: '環球的內容放在別家的平台', en: 'Universal content on another platform' } },
+];
+const ymd = (v: number) => {
+  const s = String(v);
+  return tr({ zh: `${s.slice(0, 4)} 年 ${Number(s.slice(4, 6))} 月 ${Number(s.slice(6))} 日`, en: `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6)}` });
+};
+const PEACOCK_LIST: ListPanelDef = {
+  label: { zh: 'Peacock 與環球內容的上線時程', en: 'Peacock and Universal content launches' },
+  tabLabel: { zh: 'Peacock', en: 'Peacock' },
+  indicators: ['peacock'],
+  file: 'peacock-list.json',
+  countryField: 'iso3',
+  rows: (points, { countryName }) =>
+    points
+      .slice()
+      .sort((a, b) => (num(a, 'd') ?? 0) - (num(b, 'd') ?? 0))
+      .map(
+        (p): ListRow => ({
+          key: String(p.iso3),
+          title: countryName(String(p.iso3)),
+          group: ymd(num(p, 'd') ?? 0),
+          lines: [
+            p.own === 1 ? tr(PEACOCK_KINDS[0].label) : tr({ zh: `放在 ${String(p.partners ?? '')}`, en: `On ${String(p.partners ?? '')}` }),
+          ],
+          link: { href: 'https://en.wikipedia.org/wiki/Peacock_(streaming_service)?oldid=1383883074', label: tr({ zh: '資料出處 英文維基百科', en: 'Source: English Wikipedia' }) },
+          target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 4 },
+        }),
+      ),
+};
+
+const TW_FILMS_LIST: ListPanelDef = {
+  label: { zh: '環球台灣分公司發行的片（票房）', en: 'Films released in Taiwan by Universal’s Taiwan branch (box office)' },
+  tabLabel: { zh: '台灣的票房', en: 'Taiwan box office' },
+  indicators: ['tw-box-office'],
+  file: 'tw-films.json',
+  rows: (points) =>
+    points.map(
+      (p, i): ListRow => ({
+        key: `${String(p.name)}-${i}`,
+        title: `${i + 1}. ${String(p.name ?? '')}`,
+        titleProper: true,
+        lines: [
+          tr({ zh: `${ymd(num(p, 'date') ?? 0)}上映`, en: `Released ${ymd(num(p, 'date') ?? 0)}` }),
+          tr({ zh: `${formatLargeNumber(num(p, 'amount') ?? 0)} 元、${formatLargeNumber(num(p, 'tickets') ?? 0)} 張票`, en: `NT$${formatLargeNumber(num(p, 'amount') ?? 0)}, ${formatLargeNumber(num(p, 'tickets') ?? 0)} tickets` }),
+        ],
+        link: { href: 'https://data.gov.tw/dataset/94224', label: tr({ zh: '資料出處 全國電影票房統計數據', en: 'Source: Taiwan national box office data' }) },
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 6 },
+      }),
+    ),
+};
+
+const DECADE_LIST: ListPanelDef = {
+  label: { zh: '跟環球影業有關的片，每十年幾部', en: 'Universal Pictures titles per decade' },
+  tabLabel: { zh: '每十年的片數', en: 'Titles per decade' },
+  indicators: ['filming'],
+  file: 'films-decades.json',
+  rows: (points) =>
+    points.map((p): ListRow => {
+      const d = num(p, 'd') ?? 0;
+      const years = String(p.years ?? '').split(',').map(Number);
+      return {
+        key: String(d),
+        title: tr({ zh: `${d} 年代`, en: `${d}s` }),
+        lines: [worksCount(num(p, 'n') ?? 0)],
+        bars: { values: years, labels: [String(d), String(d + 9)], aria: tr({ zh: `${d} 年代每年的片數`, en: `Titles per year in the ${d}s` }) },
+        target: { lon: Number(p.lon), lat: Number(p.lat), zoom: 10 },
+      };
+    }),
+};
+
 export const universal: TopicDefinition = {
   id: 'universal',
   title: { zh: '環球影城在哪裡：樂園與度假區', en: 'Where Universal is: parks and resorts' },
@@ -478,6 +558,16 @@ export const universal: TopicDefinition = {
       license: 'CC BY-SA 4.0',
     },
     {
+      name: { zh: '英文維基百科「Peacock (streaming service)」（revid 1383883074，上線表）', en: 'English Wikipedia, “Peacock (streaming service)” (revid 1383883074: launch table)' },
+      url: 'https://en.wikipedia.org/wiki/Peacock_(streaming_service)?oldid=1383883074',
+      license: 'CC BY-SA 4.0',
+    },
+    {
+      name: { zh: '國家電影及視聽文化中心「全國電影票房統計數據」（政府資料開放平臺 94224）', en: 'Taiwan Film and Audiovisual Institute, national box office data (data.gov.tw 94224)' },
+      url: 'https://data.gov.tw/dataset/94224',
+      license: { zh: '政府資料開放授權條款第 1 版', en: 'Open Government Data License, version 1.0' },
+    },
+    {
       name: {
         zh: '英文維基百科「Universal Destinations & Experiences」（revid 1382726905，開幕與關閉的日期）',
         en: 'English Wikipedia, “Universal Destinations & Experiences” (revid 1382726905: opening and closing dates)',
@@ -490,8 +580,8 @@ export const universal: TopicDefinition = {
     zh: '這個主題整理的是 Wikidata、OpenStreetMap 與維基百科上的公開資料，不是環球影城或它的母公司提供的。度假區（例如奧蘭多）與裡面的樂園是兩層，「幾座樂園」只算營運中的主題樂園與水上樂園。台灣沒有環球的樂園。',
     en: 'This topic compiles public data from Wikidata, OpenStreetMap and Wikipedia; it is not provided by Universal or its parent company. Resorts (such as Orlando) and the parks inside them are two levels, and park counts include open theme and water parks only. Taiwan has no Universal park.',
   },
-  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, OTHER, OTHER_PLANNED, MEDIA, PARK_VISITS],
-  listPanel: [PARK_LIST, VISIT_LIST, OTHER_LIST, OWN_LIST, MEDIA_LIST],
+  overlays: [OUTLINES, RESORT_RINGS, SITES, PLANNED, OTHER, OTHER_PLANNED, MEDIA, PARK_VISITS, FILMING_REGIONS, FILMING],
+  listPanel: [PARK_LIST, VISIT_LIST, OTHER_LIST, OWN_LIST, MEDIA_LIST, FILMING_LIST, DECADE_LIST, PEACOCK_LIST, TW_FILMS_LIST],
   indicators: [
     {
       id: 'parks',
@@ -536,6 +626,52 @@ export const universal: TopicDefinition = {
       format: (v) => `${fixed(v, 1)}%`,
       formatTick: (v) => `${v}%`,
       defaultYear: 2024,
+    },
+    {
+      id: 'filming',
+      label: { zh: '在這裡取景的環球影業的片', en: 'Universal Pictures titles filmed here' },
+      description: {
+        zh: '跟環球影業有關的片（Wikidata 上製作或發行是 Universal Pictures 的，共 3,522 部；只在某些地區發行的也算，所以是「跟環球有關」不是「環球拍的」）有幾部在這一國取景（比例圓；Wikidata 的拍攝地 P915，做法跟「迪士尼」的拍攝地一樣）。有拍攝地的 672 部、500 處地點、64 國：美國 428 部、英國 91、加拿大 71、法國 20、德國 16、西班牙 15、澳洲與義大利各 14、摩洛哥 10。最多的地點是洛杉磯 80 部、紐約 79、英國的松林製片廠 37、倫敦 33。台灣 1 部（2012 年的《十二生肖》，只寫到國家）。左邊的清單另有每十年的片數：有上映年的 3,476 部，1910 年代 548 部最多，1970 年代 152 部最少；Wikidata 偏英語片與近年，早年的數字會偏低。',
+        en: 'How many titles linked to Universal Pictures (produced or distributed by it on Wikidata, 3,522 in all; titles it only distributed in some regions count too, so this is “linked to Universal”, not “made by Universal”) were filmed in each country (proportional circles; Wikidata filming location, P915, done the same way as for Disney). 672 titles have a filming location: 500 places in 64 countries, with 428 titles in the US, 91 in the UK, 71 in Canada, 20 in France, 16 in Germany, 15 in Spain, 14 each in Australia and Italy and 10 in Morocco. The top places are Los Angeles (80), New York (79), Pinewood Studios in England (37) and London (33). Taiwan has 1 (Chinese Zodiac, 2012, given at country level). The list also shows titles per decade: 3,476 have a release year, with the most in the 1910s (548) and the fewest in the 1970s (152); Wikidata favours English-language and recent films, so early decades are undercounted.',
+      },
+      unit: { zh: '部', en: 'titles' },
+      file: 'filming-count.json',
+      layer: { kind: 'bubble', legendValues: [5, 50, 400] },
+      format: (v) => worksCount(v),
+      formatTick: (v) => fixed(v, 0),
+      integer: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'peacock',
+      label: { zh: 'Peacock 與環球的串流內容', en: 'Peacock and Universal streaming content' },
+      description: {
+        zh: '只有美國是 Peacock 自己的訂閱服務（2020 年 7 月 15 日上線）；其他 58 個國家或地區看得到的是放在別家平台上的環球內容（英國、愛爾蘭、德語區與義大利的 Sky，北歐、荷蘭、東歐與伊比利的 SkyShowtime，拉丁美洲的 Universal+ 與 HBO Max，法國的 Universal+，印度的 JioHotstar，東南亞與台灣、香港的 HBO Max），不是能去訂 Peacock 的國家。台灣 2024 年 11 月 19 日起在 HBO Max 上看得到。資料是英文維基「Peacock (streaming service)」固定版本 1383883074 的上線表（59 個國家或地區）；表上的「撒哈拉以南非洲」（Showmax，2024 年 2 月）是區域，不上色。同一個條目的 infobox 跟表格寫的不一樣，這裡以表格為準。',
+        en: 'Only the US has Peacock’s own subscription service (launched 15 July 2020); the other 58 countries and territories get Universal content on someone else’s platform (Sky in the UK, Ireland, German-speaking Europe and Italy; SkyShowtime in the Nordics, the Netherlands, Eastern Europe and Iberia; Universal+ and HBO Max in Latin America; Universal+ in France; JioHotstar in India; HBO Max in Southeast Asia, Taiwan and Hong Kong), so these are not countries where you can subscribe to Peacock. Taiwan has had it on HBO Max since 19 November 2024. Data: the launch table in English Wikipedia’s “Peacock (streaming service)”, revision 1383883074 (59 countries and territories); “Sub-Saharan Africa” (Showmax, February 2024) is a region and is not coloured. The article’s infobox disagrees with its table; the table is used here.',
+      },
+      unit: '',
+      file: 'peacock.json',
+      layer: { kind: 'categorical', categories: PEACOCK_KINDS },
+      format: (v) => tr(PEACOCK_KINDS.find((c) => c.value === v)?.label ?? { zh: '', en: '' }),
+      missing: { zh: '英文維基的上線表沒有這一國', en: 'Not in the English Wikipedia launch table' },
+      unranked: true,
+      defaultYear: 2026,
+    },
+    {
+      id: 'tw-box-office',
+      label: { zh: '環球台灣分公司發行的片的票房', en: 'Box office of films released by Universal’s Taiwan branch' },
+      description: {
+        zh: '只有台灣有開放授權的逐片票房（國家電影及視聽文化中心「全國電影票房統計數據」，2016 年 1 月 1 日到 2026 年 11 月 1 日上映、上映滿 7 天的片）。發行單位是「美商美國環球影片股份有限公司台灣分公司」（另有 2 部登記成「股份公司」，合併算）的片共 165 部、93.93 億元、3,714 萬張票，占同期全台票房 828.35 億元的 11.3%。這是發行商口徑：環球台灣分公司發行的片，不是「環球電影在台灣的票房」。最高的是 2017 年的《玩命關頭8》6.51 億元、2018 年的《侏羅紀世界:殞落國度》6.22 億元、2026 年的《奧德賽》4.57 億元。其他國家的逐片票房沒有可用的授權。',
+        en: 'Only Taiwan has openly licensed film-by-film box office (Taiwan Film and Audiovisual Institute, national box office data: films released 1 January 2016 to 1 November 2026 and shown for at least 7 days). Films distributed by Universal’s Taiwan branch (two registered names, combined) number 165, taking NT$9.39 billion from 37.14 million tickets, 11.3% of Taiwan’s NT$82.84 billion box office over the period. This counts films released by the Taiwan branch, not Universal films in Taiwan as such. The top three are Fast & Furious 8 (2017, NT$651 million), Jurassic World: Fallen Kingdom (2018, NT$622 million) and The Odyssey (2026, NT$457 million). No other country’s film-by-film box office has a usable licence.',
+      },
+      unit: { zh: '元', en: 'NT$' },
+      file: 'tw-box-office.json',
+      layer: { kind: 'bubble', legendValues: [9.39e9] },
+      format: (v) => tr({ zh: `${formatLargeNumber(v)} 元`, en: `NT$${formatLargeNumber(v)}` }),
+      formatTick: (v) => formatLargeNumber(v),
+      missing: { zh: '只有台灣有開放授權的逐片票房', en: 'Only Taiwan has openly licensed film-by-film box office' },
+      unranked: true,
+      defaultYear: 2026,
     },
   ],
 };

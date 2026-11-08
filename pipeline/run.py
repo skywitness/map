@@ -378,6 +378,7 @@ STEPS = {
     "universal-visits": "topics.universal_visits",  # 2026-11-08 第二十八批 682：環球的年人次與恢復率（要先有 universal-area、attractions-extra、theme-park-groups）
     "universal-other": "topics.universal_other",  # 2026-11-08 第二十八批 683：樂園之外的環球（白名單 pipeline/data/universal/other.csv；要先有 universal）
     "universal-media": "topics.universal_media",  # 2026-11-08 第二十八批 684：環球母公司的影視據點（白名單 pipeline/data/universal/media.csv）
+    "universal-film": "topics.universal_film",  # 2026-11-08 第二十八批 685：環球的片、拍攝地、Peacock、台灣的票房（要先有 disney-plus 的程式；票房跟 box-office-tw 共用下載）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",
     "roller-coasters": "topics.roller_coasters",

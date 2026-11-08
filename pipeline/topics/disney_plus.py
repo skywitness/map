@@ -166,19 +166,19 @@ def _place_zh(name: str | None) -> str | None:
     return re.sub(r"\s\([^)]*\)$", "", name).replace("鬆", "松").replace("佈雷", "布雷")
 
 
-def _works_places(prop: str) -> tuple[dict, dict, list]:
+def _works_places(prop: str, studios: list[str] = STUDIOS, prefix: str = "disney") -> tuple[dict, dict, list]:
     """(作品, 地點, 配對)：作品 {qid: {en, zh, y}}、地點 {qid: {...}}、配對 [(作品, 地點)]"""
-    studios = " ".join(f"wd:{q}" for q in STUDIOS)
-    base = "VALUES ?studio { %s } ?work wdt:P272|wdt:P750|wdt:P162 ?studio . ?work wdt:%s ?place ." % (studios, prop)
-    pairs = wd.cached(f"disney-{prop.lower()}-pairs", "SELECT DISTINCT ?work ?place WHERE { %s }" % base)
-    works = wd.cached(f"disney-{prop.lower()}-works", """SELECT ?work (SAMPLE(?en) AS ?wen) (SAMPLE(?tw) AS ?wtw) (SAMPLE(?ht) AS ?wht) (MIN(?py) AS ?y) WHERE {
+    studio_values = " ".join(f"wd:{q}" for q in studios)
+    base = "VALUES ?studio { %s } ?work wdt:P272|wdt:P750|wdt:P162 ?studio . ?work wdt:%s ?place ." % (studio_values, prop)
+    pairs = wd.cached(f"{prefix}-{prop.lower()}-pairs", "SELECT DISTINCT ?work ?place WHERE { %s }" % base)
+    works = wd.cached(f"{prefix}-{prop.lower()}-works", """SELECT ?work (SAMPLE(?en) AS ?wen) (SAMPLE(?tw) AS ?wtw) (SAMPLE(?ht) AS ?wht) (MIN(?py) AS ?y) WHERE {
   { SELECT DISTINCT ?work WHERE { %s } }
   OPTIONAL { ?work rdfs:label ?en FILTER(LANG(?en)="en") }
   OPTIONAL { ?work rdfs:label ?tw FILTER(LANG(?tw)="zh-tw") }
   OPTIONAL { ?work rdfs:label ?ht FILTER(LANG(?ht)="zh-hant") }
   OPTIONAL { ?work wdt:P577 ?pub BIND(YEAR(?pub) AS ?py) }
 } GROUP BY ?work""" % base)
-    places = wd.cached(f"disney-{prop.lower()}-places", """SELECT ?place (SAMPLE(?en) AS ?pen) (SAMPLE(?tw) AS ?ptw) (SAMPLE(?ht) AS ?pht) (SAMPLE(?zh) AS ?pzh)
+    places = wd.cached(f"{prefix}-{prop.lower()}-places", """SELECT ?place (SAMPLE(?en) AS ?pen) (SAMPLE(?tw) AS ?ptw) (SAMPLE(?ht) AS ?pht) (SAMPLE(?zh) AS ?pzh)
   (SAMPLE(?coord) AS ?c) (SAMPLE(?iso) AS ?iso2) (COUNT(DISTINCT ?p17) AS ?n17) (SAMPLE(?p17iso) AS ?c17) (MAX(?f) AS ?fict)
   (GROUP_CONCAT(DISTINCT ?tl; SEPARATOR="|") AS ?types) WHERE {
   { SELECT DISTINCT ?place WHERE { %s } }
@@ -192,7 +192,7 @@ def _works_places(prop: str) -> tuple[dict, dict, list]:
   OPTIONAL { ?place wdt:P31/wdt:P279* wd:Q14897293 . BIND(1 AS ?f) }
   OPTIONAL { ?place wdt:P31 ?type . ?type rdfs:label ?tl FILTER(LANG(?tl)="en") }
 } GROUP BY ?place""" % base)
-    areas = wd.cached(f"disney-{prop.lower()}-areas", wd.PREFIXES + """PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+    areas = wd.cached(f"{prefix}-{prop.lower()}-areas", wd.PREFIXES + """PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 SELECT DISTINCT ?place ?area ?unit WHERE {
   { SELECT DISTINCT ?place WHERE { %s } }
   ?place p:P2046/psv:P2046 ?av . ?av wikibase:quantityAmount ?area ; wikibase:quantityUnit ?unit .
@@ -226,8 +226,10 @@ SELECT DISTINCT ?place ?area ?unit WHERE {
     return w, p, [(q(b, "work"), q(b, "place")) for b in pairs]
 
 
-def places_layer(prop: str, key: str, ind_id: str, what_zh: str, what_en: str) -> None:
-    works, places, pairs = _works_places(prop)
+def places_layer(prop: str, key: str, ind_id: str, what_zh: str, what_en: str, studios: list[str] = STUDIOS,
+                 out_dir=OUT, prefix: str = "disney", lib_zh: str = "迪士尼片庫", lib_en: str = "the Disney library") -> None:
+    """拍攝地或故事場景地的點與各國作品數；環球（第二十八批 685）換 studios、out_dir、prefix 共用"""
+    works, places, pairs = _works_places(prop, studios, prefix)
     for qid, o in places.items():
         if o["iso3"]:
             o["kind"] = PLACE_KIND["country"]
@@ -289,9 +291,9 @@ def places_layer(prop: str, key: str, ind_id: str, what_zh: str, what_en: str) -
     out.sort(key=lambda r: (r["k"], -r["n"], r["en"]))
     fields = ["lon", "lat", "qid", "en", "zh", "iso3", "k", "n", "wz", "we"]
     scale = {"lon": 0.001, "lat": 0.001, "k": 1, "n": 1}
-    write_json(OUT / f"{key}-all.json", points_file(out, fields, scale))
-    write_json(OUT / f"{key}.json", points_file([r for r in out if r["k"] == PLACE_KIND["point"]], fields, scale))
-    write_json(OUT / f"{key}-regions.json", points_file([r for r in out if r["k"] == PLACE_KIND["region"]], fields, scale))
+    write_json(out_dir / f"{key}-all.json", points_file(out, fields, scale))
+    write_json(out_dir / f"{key}.json", points_file([r for r in out if r["k"] == PLACE_KIND["point"]], fields, scale))
+    write_json(out_dir / f"{key}-regions.json", points_file([r for r in out if r["k"] == PLACE_KIND["region"]], fields, scale))
 
     counts = {c: [len(ws)] for c, ws in sorted(by_country.items())}
     hints = {}
@@ -303,9 +305,9 @@ def places_layer(prop: str, key: str, ind_id: str, what_zh: str, what_en: str) -
         only = len(country_only.get(c, ()))
         hints[c] = "；".join(filter(None, [f"最多的地點：{part}" if part else "", f"只寫到國家的 {only} 部" if only else ""]))
         hints_en[c] = "; ".join(filter(None, [f"Top places: {part_en}" if part_en else "", f"{only} given at country level only" if only else ""]))
-    no_value = {} if "TWN" in counts else {"TWN": f"Wikidata 上沒有迪士尼片庫的作品寫{what_zh}在台灣"}
-    no_value_en = {} if "TWN" in counts else {"TWN": f"No title in the Disney library on Wikidata is {what_en} in Taiwan"}
-    write_json(OUT / f"{key}-count.json", indicator_file(
+    no_value = {} if "TWN" in counts else {"TWN": f"Wikidata 上沒有{lib_zh}的作品寫{what_zh}在台灣"}
+    no_value_en = {} if "TWN" in counts else {"TWN": f"No title in {lib_en} on Wikidata is {what_en} in Taiwan"}
+    write_json(out_dir / f"{key}-count.json", indicator_file(
         ind_id, "部", [2026], counts, hints=hints or None, hintsEn=hints_en or None, noValue=no_value or None,
         noValueEn=no_value_en or None, license="Wikidata（CC0）"))
     kinds = Counter(places[pq]["kind"] for pq in by_place)
