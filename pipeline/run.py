@@ -388,6 +388,7 @@ STEPS = {
     "tcm-systems": "topics.tcm_systems",  # 2026-11-08 第二十九批 691：傳統醫學的制度（WHO 2019、2024 年報告的 PDF，CC BY-NC-SA 3.0 IGO；分區對帳不對就報錯）
     "tcm-herbs": "topics.tcm_herbs",  # 2026-11-08 第二十九批 692：中藥材從哪裡來（臺灣中藥典第四版英文版 × Kew WCVP 的原生分布，WCVP 約 88 MB）
     "tcm-research": "topics.tcm_research",  # 中醫的研究（OpenAlex 的群組查詢，讀 map-plan 的 data/openalex-tcm/，不連網；第二十九批 700、709）
+    "tcm-trials": "topics.tcm_trials",  # 中醫的研究的臨床試驗（讀 map-plan 的 data/clinicaltrials/ 兩個瀏覽器下載的 CSV，先複製到 .cache/clinicaltrials/；不連網）
     "park-twin-cities": "topics.park_twin_cities",  # 2026-11-08 第二十八批 686：同一座城市的兩家樂園（樂園主題的共用指標；要先有 disney-visits、universal-visits）
     "amusement-industry": "topics.amusement_industry",
     "theme-park-area": "topics.theme_park_area",
