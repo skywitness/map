@@ -309,21 +309,67 @@ button {
     display: none;
   }
 
-  .stage.is-map > .map-dock > .time-slider {
+  .stage.is-map > .map-dock .time-slider {
     padding: 6px 0;
   }
 
   /* 資料來源可能好幾行：卡片裡最多約 6 行，再多在裡面捲動 */
-  .stage.is-map > .map-dock > .footer {
+  .stage.is-map > .map-dock .footer {
     max-height: 7.5rem;
     overflow-y: auto;
-    padding: 6px 0;
+    /* 右邊留出收起鈕伸進來的 16px，第一行的字才不會被它蓋住 */
+    padding: 6px 16px 6px 0;
     border-top: 0;
     font-size: 12px;
   }
 
-  .stage.is-map > .map-dock > .time-slider:not([hidden]) + .footer {
+  /* 時間軸、資料來源各一段（app/MapDockToggles.tsx 的 DockPart，2026-11-10）：右上角跟圖例一樣的收起鈕，
+     一半在卡片的上緣（第二段是分隔線）外；圓鈕的右緣離卡片的邊 8px，跟圖例一樣 */
+  .map-dock-part {
+    position: relative;
+  }
+
+  .map-dock-part:not([hidden]) ~ .map-dock-part {
     border-top: 1px solid var(--grid);
+  }
+
+  .map-dock-part > .map-legend-toggle {
+    right: -6px;
+  }
+
+  /* 收起來的那一段：卡片右上角、收起鈕的左邊一顆「時間軸 ˄」「資料來源 ˄」，跟收起鈕一樣一半在卡片外
+     （放左上角會壓到時間軸的播放鈕） */
+  .map-dock-pills {
+    position: absolute;
+    top: -11px;
+    right: 34px;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+  }
+
+  .map-dock-pills > .map-legend-toggle {
+    position: static;
+    padding: 0 8px;
+  }
+
+  /* 兩段都收起：跟收起的圖例一樣只剩那幾顆，在卡片原本的左下角（right: auto 才不會擋住地圖） */
+  .stage.is-map > .map-dock.is-collapsed {
+    right: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .map-dock.is-collapsed > .map-dock-pills {
+    position: static;
+  }
+
+  .map-dock.is-collapsed > .map-dock-pills > .map-legend-toggle {
+    height: 28px;
+    padding: 0 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
 
   .stage.is-map .map-bottom {

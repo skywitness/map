@@ -142,6 +142,9 @@ export const zh = {
   showSources: '顯示資料來源',
   hideSources: '隱藏資料來源',
   mapDockToggles: '地圖下方：時間軸、資料來源與國界聲明',
+  /** 地圖下方卡片收起來的時間軸、資料來源：圖例收起時那樣的一顆鈕上的字 */
+  dockTime: '時間軸',
+  dockSources: '資料來源',
   playSettings: '播放設定：速度、循環、播放的年份',
   playSpeed: '速度',
   playLoop: '循環播放',

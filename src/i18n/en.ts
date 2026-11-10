@@ -120,6 +120,8 @@ export const en: Messages = {
   showSources: 'Show sources',
   hideSources: 'Hide sources',
   mapDockToggles: 'Bottom of the map: timeline, sources and borders disclaimer',
+  dockTime: 'Timeline',
+  dockSources: 'Sources',
   playSettings: 'Playback: speed, loop, years',
   playSpeed: 'Speed',
   playLoop: 'Loop',
