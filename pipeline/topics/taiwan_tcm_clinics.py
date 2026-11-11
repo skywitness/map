@@ -6,13 +6,17 @@
   （cloud 連不上健保署的平台）；重跑前把它複製到 .cache/nhi-tcm/clinics.csv。授權：政府資料開放授權條款第 1 版。
 - 只算現在特約的：「終止合約或歇業日期」早於資料產生當天的不算（本機 session 查過：那些列的科別與服務項目都是空的）。
 - 三類：中醫醫院（型態別「中醫醫院」）、中醫診所（型態別是中醫的診所）、醫院的中醫科（西醫醫院的診療科別有中醫一般科）。
-- **位置**（使用者 2026-11-09 選：不用 TGOS，改用 OpenStreetMap）：清單沒有座標，地址先比對內政部的鄉鎮市區名稱
-  （divisions 步驟的 TWN.json 的 u2），再依序找：
-  1. 名稱一樣、在同一個鄉鎮市區的 OSM 院所（名稱含「中醫」的點與 way；幾個點相距不到約 300 公尺才用平均）；
-  2. 地址的路（含段）在同一個鄉鎮市區的 OSM 道路中點的中位數；
-  3. 同一條路不分段；
-  4. 都找不到就放在鄉鎮市區的標籤點。
-  每一家記下是哪一層（q）。OSM 的兩張表由本機 session 從 Geofabrik 的台灣檔（2026-11-08T21:21Z）取出，放在 map-plan 的
+- **位置**：清單沒有座標，地址先比對內政部的鄉鎮市區名稱（divisions 步驟的 TWN.json 的 u2），再依序找：
+  1. TGOS 的門牌座標（2026-11-11 起；使用者用瀏覽器上傳地址到 TGOS「批次門牌地址比對服務」，本機 session 整理成 map-plan 的
+     data/nhi-tcm/geocoded.csv，重跑前複製到 .cache/nhi-tcm/）：回傳的門牌跟地址一樣的；
+  2. TGOS 回了同一條路（含段、巷）的附近門牌（號碼差 10 號以內）：只回一個的，或回了好幾個、相距 200 公尺以內的
+     （取平均，至少一個是附近門牌）；
+  3. 名稱一樣、在同一個鄉鎮市區的 OSM 院所（名稱含「中醫」的點與 way；幾個點相距不到約 300 公尺才用平均）；
+  4. 地址的路（含段）在同一個鄉鎮市區的 OSM 道路中點的中位數；
+  5. 同一條路不分段；
+  6. 都找不到就放在鄉鎮市區的標籤點。
+  3–6 是使用者 2026-11-09 選的「OSM 店名＋路段＋鄉鎮市區」（那時 TGOS 還沒有結果）。每一家記下是哪一層（q）。
+  TGOS 的授權是內政部「政府網站資料開放宣告」（無償、可再授權，要註明出處）。OSM 的兩張表由本機 session 從 Geofabrik 的台灣檔（2026-11-08T21:21Z）取出，放在 map-plan 的
   data/osm-tw/（roads.csv.gz、tcm-pois.csv），重跑前複製到 .cache/osm-tw/；鄉鎮市區的界線用內政部 1140318 版
   （.cache/nlsc/town-1140318.zip，divisions 步驟下載的）。座標是 OSM 的衍生資料庫，照 ODbL 1.0 提供。
   同一個位置有好幾家（同一段路）時，依序錯開約 15 公尺，地圖上才點得到每一家。
@@ -35,6 +39,8 @@ from common import CACHE_DIR, OUT_DIR, indicator_file, points_file, write_json, 
 
 OUT = OUT_DIR / "topics" / "taiwan-tcm"
 SRC = CACHE_DIR / "nhi-tcm" / "clinics.csv"
+GEO = CACHE_DIR / "nhi-tcm" / "geocoded.csv"
+GEO_SRC = OUT_DIR.parent.parent.parent / "map-plan" / "data" / "nhi-tcm" / "geocoded.csv"
 HOSPITAL, CLINIC, DEPARTMENT = 1, 2, 3  # src/topics/taiwan-tcm.ts 的 KINDS
 # 清單的縣市順序（直轄市、省轄市、縣，最後是金門、連江）
 COUNTY_ORDER = ["臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市", "基隆市", "新竹市", "嘉義市", "新竹縣", "苗栗縣", "彰化縣", "南投縣",
@@ -45,7 +51,8 @@ OSM_SRC = OUT_DIR.parent.parent.parent / "map-plan" / "data" / "osm-tw"
 TOWN_ZIP = CACHE_DIR / "nlsc" / "town-1140318.zip"
 NOT_ROADS = {"footway", "path", "steps", "cycleway", "bridleway", "corridor", "proposed", "construction", "platform", "elevator"}
 CN = "零一二三四五六七八九十"
-ON_POI, ON_SECTION, ON_ROAD, ON_TOWN = 1, 2, 3, 4  # src/topics/taiwan-tcm.ts 的 PRECISION
+ON_DOOR, ON_NEAR, ON_POI, ON_SECTION, ON_ROAD, ON_TOWN = 1, 2, 3, 4, 5, 6  # src/topics/taiwan-tcm.ts 的 PRECISION
+NEAR_NUMBERS = 10  # TGOS 回了同一條路的別的門牌：號碼差這麼多以內才用
 TCM_TYPES = {"中醫醫院": HOSPITAL, "中醫綜合醫院": HOSPITAL, "中醫一般診所": CLINIC, "中醫診所": CLINIC, "中醫專科診所": CLINIC,
              "中醫醫務室": CLINIC}
 
@@ -66,11 +73,11 @@ def _norm(s: str) -> str:
 
 
 def _sections(name: str) -> str:
-    """「八德路4段」→「八德路四段」"""
+    """路名、段的數字寫成國字：「八德路4段」→「八德路四段」、「中華2路」→「中華二路」、「大墩11街」→「大墩十一街」"""
     def cn(m):
         n = int(m.group(1))
-        return (CN[n] if n <= 10 else "十" + CN[n - 10] if n < 20 else m.group(1)) + "段"
-    return re.sub(r"(\d+)段", cn, name)
+        return (CN[n] if n <= 10 else "十" + CN[n - 10] if n < 20 else m.group(1)) + m.group(2)
+    return re.sub(r"(\d+)(段|路|街)", cn, name)
 
 
 def _road(addr: str, area: str) -> tuple[str | None, str | None]:
@@ -98,8 +105,41 @@ def _copy(name: str):
     return target
 
 
+def _near_door(sent: str, got: str) -> bool:
+    """TGOS 回的門牌（got）跟上傳的（sent）是不是同一條路（含段、巷）、號碼差 NEAR_NUMBERS 以內"""
+    m = re.match(r"^(.*?)(\d+)(?:之\d+)?號(?:之\d+)?$", _sections(_norm(got.split("鄰")[-1])))
+    if not m:
+        return False
+    a = _sections(_norm(sent))
+    for prefix in (m.group(1), m.group(1) + "里", m.group(1) + "村"):  # 「太康201號」＝「太康里201號」
+        hit = re.search(re.escape(prefix) + r"(\d+)", a)
+        if hit and abs(int(hit.group(1)) - int(m.group(2))) <= NEAR_NUMBERS:
+            return True
+    return False
+
+
+def _tgos() -> dict[str, tuple[float, float, int]]:
+    """醫事機構代碼 → (經度, 緯度, 層)；本機 session 更新 map-plan 的檔（第二輪）時跟著換"""
+    if GEO_SRC.exists() and (not GEO.exists() or GEO.read_bytes() != GEO_SRC.read_bytes()):
+        GEO.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(GEO_SRC, GEO)
+    if not GEO.exists():
+        raise RuntimeError(f"沒有 {GEO}：請把 map-plan 的 data/nhi-tcm/geocoded.csv 複製到這裡")
+    out, kinds = {}, Counter()
+    with GEO.open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            res = r["比對結果"]
+            near = any(_near_door(r["上傳的地址"], got) for got in r["TGOS回傳地址"].split(";"))
+            level = ON_DOOR if res == "門牌相同" else ON_NEAR if near and (res == "門牌不同" or res.startswith("多筆候選，取平均")) else None
+            kinds[(res, level)] += 1
+            if level and r["經度"]:
+                out[r["醫事機構代碼"]] = (float(r["經度"]), float(r["緯度"]), level)
+    print("  TGOS（含已終止合約的）：" + "、".join(f"{res}{'（不用）' if not lv else ''} {n}" for (res, lv), n in kinds.most_common()))
+    return out
+
+
 def _locate(rows: list[dict]) -> Counter:
-    """依店名、路段、路名找每一家的位置，寫進 lon、lat、q；回傳各層的家數"""
+    """依 TGOS 門牌、OSM 的店名、路段、路名找每一家的位置，寫進 lon、lat、q；回傳各層的家數"""
     import numpy as np
     import shapefile
     from shapely import STRtree, points
@@ -123,14 +163,21 @@ def _locate(rows: list[dict]) -> Counter:
             out[i] = keys[j]
         return out
 
-    # 1. OSM 的中醫院所
+    # 1、2. TGOS 的門牌座標：落在別的鄉鎮市區的（模糊比對到別處）不用
+    geo = _tgos()
+    codes = [r["_id"] for r in rows if r["_id"] in geo]
+    where = dict(zip(codes, towns_of([geo[c][0] for c in codes], [geo[c][1] for c in codes])))
+    away = [r for r in rows if r["_id"] in where and r["_ct"][1] and where[r["_id"]] != r["_ct"]]
+    print(f"  TGOS 的座標落在別的鄉鎮市區（不用）{len(away)} 家：" + "、".join(f"{r['addr']}→{where[r['_id']]}" for r in away[:8]))
+    away_ids = {r["_id"] for r in away}
+    # 3. OSM 的中醫院所
     poi: dict[tuple, list] = defaultdict(list)
     with _copy("tcm-pois.csv").open(encoding="utf-8", newline="") as fh:
         prow = list(csv.DictReader(fh))
     for r, t in zip(prow, towns_of([float(r["lon"]) for r in prow], [float(r["lat"]) for r in prow])):
         if t:
             poi[(*t, _norm(r["name"]))].append((float(r["lon"]), float(r["lat"])))
-    # 2、3. 道路：只留地址用得到的路名
+    # 4、5. 道路：只留地址用得到的路名
     want: set[str] = set()
     for r in rows:
         base, full = _road(r["addr"], r["area"])
@@ -143,25 +190,36 @@ def _locate(rows: list[dict]) -> Counter:
         if t:
             road[(*t, _sections(_norm(r["name"])))].append((float(r["lon"]), float(r["lat"])))
     q = Counter()
-    check: dict[int, list[float]] = defaultdict(list)  # 對到 OSM 院所的，路段、路名中間差多遠（公里）
+    check: dict[int, list[float]] = defaultdict(list)  # 門牌相同的：假如改用 OSM 的各層，差多遠（公里）
+
+    def km(a, b):
+        return math.hypot((a[0] - b[0]) * 111.32 * math.cos(math.radians(b[1])), (a[1] - b[1]) * 110.57)
+
     for r in rows:
         county, town = r["_ct"]
         base, full = r.pop("_road")
-        got, level = None, ON_TOWN
+        got, level, door = None, ON_TOWN, None
+        g = geo.get(r["_id"])
+        if g and r["_id"] not in away_ids:
+            got, level = (g[0], g[1]), g[2]
+            if level == ON_DOOR:
+                door = got
         pts = poi.get((county, town, _norm(r["name"])), []) if town else []
         if pts:
             mx, my = sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)
             if all(math.hypot(p[0] - mx, p[1] - my) < 0.003 for p in pts):
-                got, level = (mx, my), ON_POI
+                if got is None:
+                    got, level = (mx, my), ON_POI
+                elif door:
+                    check[ON_POI].append(km((mx, my), door))
         for name, lv in ((full, ON_SECTION), (base, ON_ROAD)):
             if name and town and road.get((county, town, name)):
                 pts = road[(county, town, name)]
                 mid = (median(p[0] for p in pts), median(p[1] for p in pts))
                 if got is None:
                     got, level = mid, lv
-                elif level == ON_POI:
-                    dx = (mid[0] - got[0]) * 111.32 * math.cos(math.radians(got[1]))
-                    check[lv].append(math.hypot(dx, (mid[1] - got[1]) * 110.57))
+                elif door:
+                    check[lv].append(km(mid, door))
         if got:
             r["lon"], r["lat"] = round(got[0], 5), round(got[1], 5)
         r["q"] = level
@@ -175,10 +233,10 @@ def _locate(rows: list[dict]) -> Counter:
             ang, rad = i * 2.39996, 0.00014 * math.sqrt(i)
             r["lon"] = round(r["lon"] + rad * math.cos(ang), 5)
             r["lat"] = round(r["lat"] + rad * math.sin(ang), 5)
-    for lv, label in ((ON_SECTION, "路段"), (ON_ROAD, "路名")):
+    for lv, label in ((ON_POI, "OSM 的同名院所"), (ON_SECTION, "路段中間"), (ON_ROAD, "路名中間")):
         d = sorted(check[lv])
         if d:
-            print(f"  驗證（對到 OSM 院所的 {len(d)} 家，假如改用{label}中間）：差距中位數 {d[len(d) // 2]:.2f} 公里、"
+            print(f"  驗證（TGOS 門牌相同的 {len(d)} 家，假如改用{label}）：差距中位數 {d[len(d) // 2]:.2f} 公里、"
                   f"75% {d[len(d) * 3 // 4]:.2f}、90% {d[len(d) * 9 // 10]:.2f}、最大 {d[-1]:.2f}；1 公里以內 {sum(x <= 1 for x in d) / len(d):.0%}")
     return q
 
@@ -220,20 +278,23 @@ def build() -> None:
                 # 地址沒寫鄉鎮市區（「新竹市西門街…」）：放在縣市的標籤點，鄉鎮市區留白
                 county_only.append(r["地址"])
                 rows.append({"lon": cu[7][0], "lat": cu[7][1], "iso3": "TWN", "k": _kind(r), "t": cu[0], "name": r["醫事機構名稱"],
-                             "addr": addr_show, "area": county, "areaEn": cu[2], "o": COUNTY_ORDER.index(county), "_ct": (county, None)})
+                             "addr": addr_show, "area": county, "areaEn": cu[2], "o": COUNTY_ORDER.index(county), "_ct": (county, None),
+                             "_id": r["醫事機構代碼"]})
                 continue
             rows.append({"lon": town[7][0], "lat": town[7][1], "iso3": "TWN", "k": _kind(r), "t": town[0],
                          "name": r["醫事機構名稱"], "addr": addr_show, "area": f"{county}{town[1]}", "areaEn": f"{town[2]}, {counties[town[8]][2]}",
-                         "o": COUNTY_ORDER.index(county), "_ct": (county, town[1])})
+                         "o": COUNTY_ORDER.index(county), "_ct": (county, town[1]), "_id": r["醫事機構代碼"]})
     if unmatched:
         raise RuntimeError(f"有 {len(unmatched)} 個地址對不到鄉鎮市區：{unmatched[:10]}")
     rows.sort(key=lambda r: (r["o"], r["t"], r["k"], r["name"]))
     q = _locate(rows)
     data = points_file(rows, ["lon", "lat", "iso3", "k", "q", "name", "addr", "area", "areaEn"],
                        {"lon": 0.00001, "lat": 0.00001, "k": 1, "q": 1}, strings=("iso3",))
-    data["license"] = "ODbL 1.0（座標，© OpenStreetMap contributors）；名單：政府資料開放授權條款第 1 版（健保署）"
+    data["license"] = ("名單：政府資料開放授權條款第 1 版（健保署）；門牌座標：內政部 TGOS 批次門牌地址比對服務（政府網站資料開放宣告）；"
+                       "其他座標：ODbL 1.0（© OpenStreetMap contributors）")
     write_points(OUT / "nhi-clinics.json", data, ("name", "addr", "area", "areaEn"))
-    print(f"  位置：OSM 院所 {q[ON_POI]}、路段 {q[ON_SECTION]}、路名 {q[ON_ROAD]}、只到鄉鎮市區 {q[ON_TOWN]}")
+    print(f"  位置：TGOS 門牌 {q[ON_DOOR]}、附近門牌 {q[ON_NEAR]}、OSM 院所 {q[ON_POI]}、路段 {q[ON_SECTION]}、路名 {q[ON_ROAD]}、"
+          f"只到鄉鎮市區 {q[ON_TOWN]}")
     # 各鄉鎮市區的家數（印出來給說明用）
     per: dict[str, Counter] = defaultdict(Counter)
     for r in rows:
@@ -248,7 +309,8 @@ def build() -> None:
         "nhi-clinics", "家", [int(today[:4])], {"TWN": [len(rows)]},
         hints={"TWN": f"中醫醫院 {kinds[HOSPITAL]}、中醫診所 {kinds[CLINIC]}、設有中醫科的醫院 {kinds[DEPARTMENT]}"},
         hintsEn={"TWN": f"{kinds[HOSPITAL]} Chinese medicine hospitals, {kinds[CLINIC]} clinics, {kinds[DEPARTMENT]} hospitals with a Chinese medicine department"},
-        license="名單：政府資料開放授權條款第 1 版（衛生福利部中央健康保險署）；座標：ODbL 1.0（© OpenStreetMap contributors）"))
+        license="名單：政府資料開放授權條款第 1 版（衛生福利部中央健康保險署）；門牌座標：內政部 TGOS 批次門牌地址比對服務"
+                "（政府網站資料開放宣告）；其他座標：ODbL 1.0（© OpenStreetMap contributors）"))
     print(f"  健保特約的中醫院所 {len(rows)} 家（不算已終止合約的 {skipped} 列）：中醫醫院 {kinds[HOSPITAL]}、中醫診所 {kinds[CLINIC]}、"
           f"醫院的中醫科 {kinds[DEPARTMENT]}；地址沒寫鄉鎮市區、放在縣市的 {len(county_only)}：{county_only}")
     print(f"    {len(town_rows)} 個鄉鎮市區有：" + "、".join(f"{r['c']} {r['n']}" for r in town_rows[:12]))

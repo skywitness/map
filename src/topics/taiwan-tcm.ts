@@ -7,7 +7,7 @@ import type { ListPanelDef, ListRow, PointRecord, PointsOverlayDef, TopicDefinit
  * 台灣的中醫（新主題，2026-11-08，製作手冊第二十九批 689，候選 866、1575；pipeline/topics/taiwan_tcm.py）：
  * 衛福部統計處的統計表。全國的中醫醫院與診所（1989–2025）、門診人數與件數（2016–2024）只有台灣一個值，畫成台灣上的比例圓、
  * 拖時間軸看變化；中醫師與中藥販賣業有縣市別，畫成各縣市的比例圓（縣市的標籤點），左邊列出縣市。
- * 健保特約的中醫院所（2026-11-08、11-09 使用者要求）每一家一個點，位置用 OpenStreetMap 分四層找。
+ * 健保特約的中醫院所（2026-11-08、11-09 使用者要求）每一家一個點，位置用 TGOS 的門牌座標（2026-11-11 起），對不到的用 OpenStreetMap 分層找。
  */
 const C = MAP_TOKENS.categorical;
 /** 台灣、金門、馬祖都在畫面裡 */
@@ -57,7 +57,7 @@ const COUNTY_LIST: ListPanelDef = {
 };
 
 // 健保特約的中醫院所（2026-11-08 使用者要求；pipeline/topics/taiwan_tcm_clinics.py）：2026-11-09 起每一家一個點，
-// 位置依 OpenStreetMap 分四層（q）：1 名稱對到 OSM 上的院所、2 地址的路段中間、3 路名中間、4 只到鄉鎮市區
+// 位置分六層（q）：1 TGOS 門牌、2 TGOS 附近門牌、3 名稱對到 OSM 上的院所、4 地址的路段中間、5 路名中間、6 只到鄉鎮市區
 const KINDS = [
   { zh: '中醫醫院', en: 'Chinese medicine hospital' },
   { zh: '中醫診所', en: 'Chinese medicine clinic' },
@@ -66,14 +66,16 @@ const KINDS = [
 const kindOf = (p: PointRecord) => tr(KINDS[Number(p.k) - 1] ?? KINDS[1]);
 const area = (p: PointRecord) => (getLang() === 'zh' ? String(p.area ?? '') : String(p.areaEn ?? p.area ?? ''));
 const PRECISION = [
+  { zh: '位置：門牌（TGOS）', en: 'Location: street address (TGOS)' },
+  { zh: '位置：附近的門牌（TGOS）', en: 'Location: a nearby street address (TGOS)' },
   { zh: '位置：OpenStreetMap 上的這一家', en: 'Location: this provider on OpenStreetMap' },
   { zh: '位置：地址那一段路的中間（約略）', en: 'Location: middle of the road section in the address (approximate)' },
   { zh: '位置：地址那條路的中間（約略）', en: 'Location: middle of the road in the address (approximate)' },
   { zh: '位置：只到鄉鎮市區', en: 'Location: township only' },
 ];
-const precisionOf = (p: PointRecord) => tr(PRECISION[Number(p.q) - 1] ?? PRECISION[3]);
+const precisionOf = (p: PointRecord) => tr(PRECISION[Number(p.q) - 1] ?? PRECISION[5]);
 /** 點一家時放大到哪裡：位置越粗放得越小 */
-const ZOOM_BY_PRECISION = [16, 15, 14, 12];
+const ZOOM_BY_PRECISION = [17, 16, 16, 15, 14, 12];
 const CLINICS: PointsOverlayDef = {
   kind: 'points',
   id: 'nhi-providers',
@@ -155,8 +157,16 @@ export const taiwanTcm: TopicDefinition = {
     },
     {
       name: {
-        zh: 'OpenStreetMap 貢獻者：Geofabrik 的台灣檔（2026-11-08）裡的中醫院所與道路（院所的位置）',
-        en: 'OpenStreetMap contributors: Chinese medicine places and roads in the Geofabrik Taiwan extract (2026-11-08) (provider locations)',
+        zh: '門牌坐標：內政部 內政地理資訊圖資雲整合服務平台（TGOS）批次門牌地址比對服務（院所的位置）',
+        en: 'Street-address coordinates: Ministry of the Interior, TGOS (Taiwan Geospatial One Stop) batch address matching service (provider locations)',
+      },
+      url: 'https://www.tgos.tw/TGOS/Addr/Compare',
+      license: { zh: 'TGOS 政府網站資料開放宣告（註明出處）', en: 'TGOS government website open data declaration (attribution)' },
+    },
+    {
+      name: {
+        zh: 'OpenStreetMap 貢獻者：Geofabrik 的台灣檔（2026-11-08）裡的中醫院所與道路（對不到門牌的院所的位置）',
+        en: 'OpenStreetMap contributors: Chinese medicine places and roads in the Geofabrik Taiwan extract (2026-11-08) (locations of providers without a matched address)',
       },
       url: 'https://www.openstreetmap.org/copyright',
       license: { zh: 'ODbL 1.0（© OpenStreetMap contributors）', en: 'ODbL 1.0 (© OpenStreetMap contributors)' },
@@ -168,8 +178,8 @@ export const taiwanTcm: TopicDefinition = {
     },
   ],
   note: {
-    zh: '衛生福利部統計處的統計表。全國的數字只有台灣一個值，地圖上是台灣上的一個圓，拖時間軸看變化，點台灣看歷年的折線；中醫師與中藥販賣業依縣市畫圓，左邊列出各縣市；健保特約的中醫院所每一家一個點，位置依 OpenStreetMap 找，標出精確到哪一層。門診的人數與件數是健保中醫總額的申報，不含自費；2015 年以前的表沒有人數，從 2016 年畫起。世界各國的中醫據點與草藥店見「傳統與替代醫學的據點」主題。',
-    en: 'Tables from Taiwan’s Ministry of Health and Welfare, Department of Statistics. National figures have a single value for Taiwan, shown as one circle over Taiwan: drag the timeline to see the change, or click Taiwan for the line chart. Chinese medicine physicians and herbal medicine dealers are drawn as circles by county, with the counties listed on the left; NHI-contracted Chinese medicine providers are one point each, located with OpenStreetMap and labelled with how precise the location is. Outpatient people and visits are National Health Insurance claims under the Chinese medicine budget, excluding private payments; tables before 2016 have no head counts, so those series start in 2016. Chinese medicine places and herbalists around the world are in the Traditional and alternative medicine topic.',
+    zh: '衛生福利部統計處的統計表。全國的數字只有台灣一個值，地圖上是台灣上的一個圓，拖時間軸看變化，點台灣看歷年的折線；中醫師與中藥販賣業依縣市畫圓，左邊列出各縣市；健保特約的中醫院所每一家一個點，位置用內政部 TGOS 的門牌比對，對不到的用 OpenStreetMap，標出精確到哪一層。門診的人數與件數是健保中醫總額的申報，不含自費；2015 年以前的表沒有人數，從 2016 年畫起。世界各國的中醫據點與草藥店見「傳統與替代醫學的據點」主題。',
+    en: 'Tables from Taiwan’s Ministry of Health and Welfare, Department of Statistics. National figures have a single value for Taiwan, shown as one circle over Taiwan: drag the timeline to see the change, or click Taiwan for the line chart. Chinese medicine physicians and herbal medicine dealers are drawn as circles by county, with the counties listed on the left; NHI-contracted Chinese medicine providers are one point each, located by street address with the Ministry of the Interior’s TGOS service, or with OpenStreetMap where the address could not be matched, and labelled with how precise the location is. Outpatient people and visits are National Health Insurance claims under the Chinese medicine budget, excluding private payments; tables before 2016 have no head counts, so those series start in 2016. Chinese medicine places and herbalists around the world are in the Traditional and alternative medicine topic.',
   },
   overlays: [countyOverlay('county-physicians', 'dr', 'physicians', C[0], [[0, 3], [100, 6], [500, 12], [1700, 22]]),
     countyOverlay('county-herb', 'herb', 'herb-dealers', C[3], [[0, 3], [100, 6], [500, 12], [1400, 20]]), CLINICS],
@@ -257,8 +267,8 @@ export const taiwanTcm: TopicDefinition = {
       id: 'nhi-clinics',
       label: { zh: '健保特約的中醫院所', en: 'NHI-contracted Chinese medicine providers' },
       description: {
-        zh: '健保署公開的特約醫事機構名單裡現在特約的中醫院所 4,230 家：中醫診所 4,074 家、中醫醫院 3 家（三義慈濟、高雄市立、天心；美德中醫醫院的合約日期已過，不算）、設有中醫科的西醫醫院 153 家。地圖上每一家一個點，依類型上色，縮小時聚成一區一個圓。368 個鄉鎮市區裡 287 個至少有一家，新北市板橋區 119 家最多，其次是臺中市北屯區 114、臺北市大安區 109、桃園市桃園區 101、高雄市三民區 90；連江縣的四個鄉都沒有。縣市是臺中市 816 家最多，新北市 582、臺北市 577、高雄市 517。名單只有地址、沒有座標，位置用 OpenStreetMap 找，分四層，每一家都標出是哪一層：名稱對到 OpenStreetMap 上同一個鄉鎮市區的院所 514 家，用它的位置；對不到的放在地址那一段路的中間 968 家、那條路的中間 2,641 家；路名也對不到的 107 家只到鄉鎮市區。路段、路名的中間是約略的位置：拿對得到 OpenStreetMap 的幾百家來比，改放路段或路名中間時差距的中位數約 0.3–0.4 公里，九成在 1 公里以內，最遠差到約 2.8 公里（這幾百家多在市區，鄉間的長路可能差更多）；放在同一點的幾家錯開約 15 公尺。左邊的清單列出每一家的名稱、地址、類型與位置是哪一層（依鄉鎮市區分組，可以搜尋），不列電話與醫師。衛福部統計處 2025 年底的中醫診所是 4,270 家，比健保特約的多，因為不是每一家都跟健保簽約。',
-        en: 'NHI-contracted Chinese medicine providers currently under contract in the National Health Insurance Administration’s open list: 4,230 in all, comprising 4,074 Chinese medicine clinics, 3 Chinese medicine hospitals (Sanyi Tzu Chi, Kaohsiung Municipal and Tianxin; Meide’s contract date has passed and it is not counted) and 153 Western hospitals with a Chinese medicine department. Each provider is a point on the map, coloured by type, grouped into one circle per area when zoomed out. 287 of 368 townships have at least one, led by Banqiao District, New Taipei (119), followed by Beitun District, Taichung (114), Da’an District, Taipei (109), Taoyuan District (101) and Sanmin District, Kaohsiung (90); none of the four townships of Lienchiang County has one. By county, Taichung has the most (816), followed by New Taipei (582), Taipei (577) and Kaohsiung (517). The list has addresses but no coordinates, so locations come from OpenStreetMap in four tiers, and each provider shows its tier: 514 match a place of the same name in the same township on OpenStreetMap and use its position; the rest are placed at the middle of the road section in their address (968) or of the road (2,641); 107 whose road cannot be found are placed at their township only. Road-section and road midpoints are approximate: tested on the few hundred providers that do match OpenStreetMap, the midpoint is a median of about 0.3–0.4 km away, within 1 km for nine in ten, and up to about 2.8 km (these are mostly urban; long rural roads may be further off). Providers placed at the same point are spread about 15 m apart. The list on the left gives each provider’s name, address, type and location tier (grouped by township and searchable), without phone numbers or physicians. The Ministry of Health and Welfare counted 4,270 Chinese medicine clinics at the end of 2025, more than contract with National Health Insurance.',
+        zh: '健保署公開的特約醫事機構名單裡現在特約的中醫院所 4,230 家：中醫診所 4,074 家、中醫醫院 3 家（三義慈濟、高雄市立、天心；美德中醫醫院的合約日期已過，不算）、設有中醫科的西醫醫院 153 家。地圖上每一家一個點，依類型上色，縮小時聚成一區一個圓。368 個鄉鎮市區裡 287 個至少有一家，新北市板橋區 119 家最多，其次是臺中市北屯區 114、臺北市大安區 109、桃園市桃園區 101、高雄市三民區 90；連江縣的四個鄉都沒有。縣市是臺中市 816 家最多，新北市 582、臺北市 577、高雄市 517。名單只有地址、沒有座標，位置依序這樣找，每一家都標出是哪一層：地址送內政部 TGOS 的批次門牌比對，回來的門牌一樣的 4,046 家用門牌的位置，回了同一條路附近門牌（號碼差 10 號以內）的 54 家用附近門牌的位置；其餘的用 OpenStreetMap：名稱對到同一個鄉鎮市區的院所 24 家，放在地址那一段路的中間 18 家、那條路的中間 57 家，都對不到的 31 家只到鄉鎮市區（TGOS 的座標落在別的鄉鎮市區的 2 家也改用 OpenStreetMap）。路段、路名的中間是約略的位置：拿門牌對得到的幾千家來比，改放路段或路名中間時差距的中位數約 0.3 公里，九成在 1 公里以內，最遠差到約 9.5 公里。放在同一點的幾家（例如同一棟樓）錯開約 15 公尺。左邊的清單列出每一家的名稱、地址、類型與位置是哪一層（依鄉鎮市區分組，可以搜尋），不列電話與醫師。衛福部統計處 2025 年底的中醫診所是 4,270 家，比健保特約的多，因為不是每一家都跟健保簽約。',
+        en: 'NHI-contracted Chinese medicine providers currently under contract in the National Health Insurance Administration’s open list: 4,230 in all, comprising 4,074 Chinese medicine clinics, 3 Chinese medicine hospitals (Sanyi Tzu Chi, Kaohsiung Municipal and Tianxin; Meide’s contract date has passed and it is not counted) and 153 Western hospitals with a Chinese medicine department. Each provider is a point on the map, coloured by type, grouped into one circle per area when zoomed out. 287 of 368 townships have at least one, led by Banqiao District, New Taipei (119), followed by Beitun District, Taichung (114), Da’an District, Taipei (109), Taoyuan District (101) and Sanmin District, Kaohsiung (90); none of the four townships of Lienchiang County has one. By county, Taichung has the most (816), followed by New Taipei (582), Taipei (577) and Kaohsiung (517). The list has addresses but no coordinates, so locations are found in this order, and each provider shows its tier: the addresses were sent to the Ministry of the Interior’s TGOS batch address matching service, and 4,046 whose returned address is the same use that address’s position, while 54 matched to a nearby number on the same road (within 10 numbers) use that position; the rest use OpenStreetMap: 24 match a place of the same name in the same township, 18 are placed at the middle of the road section in their address and 57 at the middle of the road, and 31 that cannot be matched at all are placed at their township only (2 whose TGOS position falls in another township also use OpenStreetMap). Road-section and road midpoints are approximate: tested on the thousands of providers matched by address, the midpoint is a median of about 0.3 km away, within 1 km for nine in ten, and up to about 9.5 km. Providers placed at the same point (in the same building, for example) are spread about 15 m apart. The list on the left gives each provider’s name, address, type and location tier (grouped by township and searchable), without phone numbers or physicians. The Ministry of Health and Welfare counted 4,270 Chinese medicine clinics at the end of 2025, more than contract with National Health Insurance.',
       },
       unit: { zh: '家', en: 'providers' },
       file: 'nhi-clinics-total.json',
