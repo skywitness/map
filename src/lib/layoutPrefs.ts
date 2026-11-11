@@ -3,7 +3,8 @@ import { useCallback, useState } from 'react';
 /**
  * 版面的偏好（2026-10-30，頂列的「版面」選單 LayoutMenu.tsx）：時間軸、頁尾的資料來源與說明可以分別關掉，
  * 讓地圖大一點。存在這台裝置（localStorage），不寫進網址：分享出去的連結、嵌入的地圖照樣都有。
- * 寬螢幕的地圖檢視裡，時間軸、資料來源（含國界聲明）在地圖下方的卡片裡，ⓘ 左邊的兩顆鈕也是開關這兩項（app/MapDockToggles.tsx）
+ * 寬螢幕的地圖檢視裡，時間軸、資料來源（含國界聲明）在地圖下方的卡片裡，ⓘ 左邊的兩顆鈕、每一段右上角跟圖例一樣的收起鈕
+ * 也是開關這兩項（app/MapDockToggles.tsx）
  */
 export interface LayoutPrefs {
   /** 時間軸（年份的拉桿、播放；時刻主題是日期與時間的控制） */

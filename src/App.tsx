@@ -94,7 +94,7 @@ import { worldTrend } from './app/trend';
 import { MapFallback } from './app/GlobePlaceholder';
 import { TopBar } from './app/TopBar';
 import { Footer } from './app/Footer';
-import { MapDockToggles } from './app/MapDockToggles';
+import { DockPart, MapDockPills, MapDockToggles } from './app/MapDockToggles';
 
 // 國家側欄（含圖表）點國家時才載入，地圖可以先出來（2026-10-29 以前側欄的 ECharts 壓縮後約 180 KB）
 const CountryPanel = lazy(() => import('./panels/CountryPanel').then((m) => ({ default: m.CountryPanel })));
@@ -1434,9 +1434,19 @@ export function App() {
             <>
               {/* 地圖下方的卡片：時間軸、資料來源與說明、國界聲明（各自開關，全關時整張不畫，CSS 的 :has）；
                   data-occludes-map：選國家、搜尋地點時地圖扣掉被它蓋住的地方（map/focus.ts） */}
-              <div className="map-dock" ref={dockRef} data-occludes-map="">
-                {timeControl}
-                {footer}
+              <div className={`map-dock${(timeControl && showTime) || footer ? '' : ' is-collapsed'}`} ref={dockRef} data-occludes-map="">
+                {/* 每一段右上角跟圖例一樣的收起鈕，收起來的變成卡片左上角的「時間軸 ˄」「資料來源 ˄」（MapDockToggles.tsx，2026-11-10） */}
+                {!state.embed && <MapDockPills prefs={layout} hasTime={hasTime} onChange={setLayout} />}
+                {timeControl && (
+                  <DockPart part="time" open={showTime} collapsible={!state.embed} onHide={() => setLayout({ time: false })}>
+                    {timeControl}
+                  </DockPart>
+                )}
+                {footer && (
+                  <DockPart part="sources" open collapsible={!state.embed} onHide={() => setLayout({ sources: false })}>
+                    {footer}
+                  </DockPart>
+                )}
               </div>
               {!state.embed && <MapDockToggles prefs={layout} hasTime={hasTime} onChange={setLayout} />}
             </>
