@@ -145,5 +145,29 @@ def build() -> None:
         print(f"  {iso}：" + "、".join(f"{A.SEGMENTS[s - 1][1]} {k}" for s, k in seg_of[iso].most_common()))
     for item, *_ in A.SEGMENTS:
         print(f"  {item}：{sum(by[item].values())} 家；" + "、".join(f"{k} {v}" for k, v in by[item].most_common(5)))
+    build_sites({c["id"]: c for c in roster})
     cities = Counter((r["city"], r["iso3"]) for r in rows)
     print("  城市：" + "、".join(f"{c}（{i}）{n}" for (c, i), n in cities.most_common(12)))
+
+
+KINDS = ["science-park", "fab", "packaging", "server-cluster", "research", "port"]  # src/topics/ai-chain.ts 的 SITE_KINDS
+
+
+def build_sites(names: dict[str, dict]) -> None:
+    """台灣 AI 供應鏈據點（ai-chain 的 taiwan/sites.yaml，23 個）：科學園區、晶圓廠、封測廠、伺服器聚落、研究機構、港口。
+    座標照 ai-chain 寫的出處：維基百科（CC BY-SA）或 OpenStreetMap Nominatim（ODbL），每一點記下是哪一個（cs）"""
+    rows = []
+    for x in A.load("src/data/taiwan/sites.yaml")["sites"]:
+        m = re.search(r"座標[：:]([^。]*)。?$", x["note"].strip())
+        if not m:
+            raise RuntimeError(f"{x['id']} 的 note 沒寫座標出處")
+        cs = 1 if "維基百科" in m.group(1) else 2 if "OpenStreetMap" in m.group(1) else 0
+        cos = [names[c] for c in x["companies"]]
+        rows.append({"lon": round(x["lon"], 5), "lat": round(x["lat"], 5), "iso3": "TWN", "k": KINDS.index(x["kind"]) + 1, "cs": cs,
+                     "name": x["name"], "nameEn": x["nameEn"], "city": x["city"], "note": x["note"][:m.start()].strip(),
+                     "cos": "、".join(c["nameZh"] for c in cos) or None, "cosEn": ", ".join(c["name"] for c in cos) or None})
+    write_points(OUT / "taiwan-sites.json", {**points_file(
+        rows, ["lon", "lat", "iso3", "k", "cs", "name", "nameEn", "city", "note", "cos", "cosEn"],
+        {"lon": 0.00001, "lat": 0.00001, "k": 1, "cs": 1}, strings=("iso3",)),
+        "license": A.LICENSE + "；座標：維基百科（CC BY-SA 4.0）、OpenStreetMap Nominatim（ODbL 1.0）"}, ("name", "nameEn", "city", "note", "cos", "cosEn"))
+    print(f"  台灣據點 {len(rows)} 個：" + str(Counter(KINDS[r['k'] - 1] for r in rows)) + "；座標 " + str(Counter(r["cs"] for r in rows)))

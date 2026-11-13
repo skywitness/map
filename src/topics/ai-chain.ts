@@ -91,6 +91,43 @@ const COMPANIES: PointsOverlayDef = {
   },
 };
 
+
+/** 台灣 AI 供應鏈據點（ai-chain 的 taiwan/sites.yaml；k 是種類，cs 是座標出處：1 維基百科、2 OpenStreetMap） */
+const SITE_KINDS = [
+  { zh: '科學園區', en: 'Science park' },
+  { zh: '晶圓廠', en: 'Wafer fab' },
+  { zh: '先進封裝與封測', en: 'Packaging & testing' },
+  { zh: '伺服器聚落與資料中心', en: 'Server cluster & data centre' },
+  { zh: '研究機構', en: 'Research institute' },
+  { zh: '港口與機場', en: 'Port & airport' },
+];
+const TAIWAN_SITES: PointsOverlayDef = {
+  kind: 'points',
+  id: 'taiwan-sites',
+  file: 'taiwan-sites.json',
+  label: { zh: '台灣 AI 供應鏈據點（三角形）', en: 'Taiwan AI supply-chain sites (triangles)' },
+  shape: 'triangle',
+  radius: 6,
+  // 單色（種類寫在 tooltip）：依種類上色的圖例有 6 行，會把左邊的公司清單擠掉
+  color: MAP_TOKENS.ink,
+  tooltip: (p) => {
+    const zh = getLang() === 'zh';
+    const kind = SITE_KINDS[Number(p.k) - 1];
+    return {
+      title: zh ? String(p.name ?? '') : String(p.nameEn ?? p.name ?? ''),
+      detail: [kind ? tr(kind) : null, zh ? str(p.city) : null].filter(Boolean).join(SEP),
+      extra: [
+        (zh ? str(p.cos) : str(p.cosEn)) ? tr({ zh: `名冊裡的公司：${p.cos}`, en: `Companies in the roster: ${p.cosEn}` }) : '',
+        zh ? (str(p.note) ?? '') : '',
+        p.cs === 1
+          ? tr({ zh: '座標：維基百科', en: 'Coordinates: Wikipedia' })
+          : tr({ zh: '座標：OpenStreetMap', en: 'Coordinates: OpenStreetMap' }),
+      ].filter(Boolean),
+      properNoun: zh ? undefined : String(p.nameEn ?? ''),
+    };
+  },
+};
+
 /** 左邊的清單：依環節分組（由下而上），組內一線在前；跟選取的國家連動 */
 const LIST: ListPanelDef = {
   label: { zh: 'AI 產業鏈的公司', en: 'AI supply-chain companies' },
@@ -128,13 +165,18 @@ export const aiChain: TopicDefinition = {
       license: { zh: 'CC BY 4.0（同一作者）', en: 'CC BY 4.0 (same author)' },
     },
     { name: { zh: 'Wikidata（總部城市的位置）', en: 'Wikidata (HQ city locations)' }, url: 'https://www.wikidata.org/', license: 'CC0' },
+    {
+      name: { zh: 'AI 產業鏈全景：台灣 AI 供應鏈地圖的據點（座標出自維基百科與 OpenStreetMap）', en: 'AI Chain (AI 產業鏈全景): Taiwan AI supply-chain sites (coordinates from Wikipedia and OpenStreetMap)' }, // i18n-ignore（網站的中文名稱是專有名詞）
+      url: 'https://skywitness.github.io/ai-chain/taiwan/',
+      license: { zh: 'CC BY 4.0（同一作者）；座標 CC BY-SA 4.0（維基百科）、ODbL 1.0（OpenStreetMap）', en: 'CC BY 4.0 (same author); coordinates CC BY-SA 4.0 (Wikipedia), ODbL 1.0 (OpenStreetMap)' },
+    },
   ],
   note: {
-    zh: '「AI 產業鏈全景」是同一作者的網站，把 AI 產業鏈由下而上分成 5 層、14 個環節，整理全球 710 家一線、二線、三線與新創公司，每家只算一個主要環節（例如三星算記憶體、Tesla 算實體 AI）。這是編者挑選的名冊，不是完整的產業普查，台灣公司收得比較多。總部只到城市：位置是那個城市在 Wikidata 的座標，同一個城市的公司錯開排開，放大才看得到每一家；6 個城市對不到 Wikidata，沿用網站上的座標。點一家公司看它的環節、等級與一句定位，左邊的清單依環節分組。',
-    en: 'AI Chain (AI 產業鏈全景) is a site by the same author that splits the AI supply chain, bottom up, into 5 layers and 14 segments and profiles 710 tier-1, tier-2, tier-3 and start-up companies worldwide, each counted under one main segment (Samsung under memory, Tesla under physical AI). It is an editor’s selection rather than a full census, and it covers Taiwanese firms in more depth. Headquarters are given only to the city: points use the city’s Wikidata coordinates, with firms in the same city spread apart so that each can be seen when zoomed in; 6 cities with no Wikidata match keep the site’s own coordinates. Click a company for its segment and tier; the list on the left is grouped by segment.', // i18n-ignore（網站的中文名稱是專有名詞）
+    zh: '「AI 產業鏈全景」是同一作者的網站，把 AI 產業鏈由下而上分成 5 層、14 個環節，整理全球 710 家一線、二線、三線與新創公司，每家只算一個主要環節（例如三星算記憶體、Tesla 算實體 AI）。這是編者挑選的名冊，不是完整的產業普查，台灣公司收得比較多。總部只到城市：位置是那個城市在 Wikidata 的座標，同一個城市的公司錯開排開，放大才看得到每一家；6 個城市對不到 Wikidata，沿用網站上的座標。點一家公司看它的環節、等級與一句定位，左邊的清單依環節分組。三角形是網站的台灣 AI 供應鏈地圖的 23 個據點：科學園區、晶圓廠、先進封裝、伺服器聚落、研究機構與港口，座標出自維基百科或 OpenStreetMap。',
+    en: 'AI Chain (AI 產業鏈全景) is a site by the same author that splits the AI supply chain, bottom up, into 5 layers and 14 segments and profiles 710 tier-1, tier-2, tier-3 and start-up companies worldwide, each counted under one main segment (Samsung under memory, Tesla under physical AI). It is an editor’s selection rather than a full census, and it covers Taiwanese firms in more depth. Headquarters are given only to the city: points use the city’s Wikidata coordinates, with firms in the same city spread apart so that each can be seen when zoomed in; 6 cities with no Wikidata match keep the site’s own coordinates. Click a company for its segment and tier; the list on the left is grouped by segment. Triangles are the 23 sites on the site’s Taiwan AI supply-chain map: science parks, wafer fabs, advanced packaging, server clusters, research institutes and ports, with coordinates from Wikipedia or OpenStreetMap.', // i18n-ignore（網站的中文名稱是專有名詞）
   },
   listPanel: LIST,
-  overlays: [COMPANIES],
+  overlays: [COMPANIES, TAIWAN_SITES],
   indicators: [
     {
       id: 'companies',
