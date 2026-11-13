@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { heatRamp } from './heatRamps';
 import { ISOBATH_COLOR } from './isobathStyle';
 import { tr, useLang, useT, type Text } from '../i18n';
+import { saveClusterPref } from '../lib/clusterPref';
 import { fixed } from '../lib/format';
 import type { PointsOverlay } from '../topics/types';
 import { setClassGridOnly } from './classGridHighlight';
@@ -326,7 +327,7 @@ export function overlayKey(o: OverlayLayer, tokens?: Tokens, darkMap = false): O
 
 /** 圖層的圖例：畫面上的開關與匯出的圖片共用 */
 export interface LayerKey {
-  key: Exclude<keyof LayerVisibility, 'extra' | 'hiddenClasses'>;
+  key: Exclude<keyof LayerVisibility, 'extra' | 'hiddenClasses' | 'clusters'>;
   /** relief：只有地形圖（海拔主題的 kind 'terrain' 指標）才有的 */
   source: 'railways' | 'airports' | 'terrain' | 'relief' | 'satellite' | 'satelliteExtra' | 'isobaths';
   label: Text;
@@ -448,6 +449,9 @@ interface LayerControlsProps {
 }
 
 const SHOW_DETAILS: Text = { zh: '顯示細項', en: 'More details' };
+/** 點圖層縮小時聚成圓環的開關（LayerVisibility.clusters，2026-11-13 使用者要求可以取消） */
+const CLUSTERS: Text = { zh: '縮小時聚成圓環', en: 'Group into rings when zoomed out' };
+const CLUSTERS_HINT: Text = { zh: '取消後縮小時也一個個點畫出來', en: 'When off, points are drawn one by one at every zoom' };
 const HIDE_DETAILS: Text = { zh: '收起細項', en: 'Fewer details' };
 /** 手機上圖層開關下面的分級說明（震源深度、規模、邊界類型）預設收起，否則蓋住一半的地圖 */
 const NARROW = '(max-width: 768px)';
@@ -569,6 +573,20 @@ export function LayerControls({
           </div>
         );
       })}
+      {overlays.some((o) => o.kind === 'points' && o.visible && (o.def.cluster || o.unclustered)) && (
+        <label className="map-layer-option" title={tr(CLUSTERS_HINT, lang)}>
+          <input
+            type="checkbox"
+            checked={layers.clusters !== false}
+            onChange={() => {
+              const on = layers.clusters === false;
+              saveClusterPref(on);
+              onChange({ ...layers, clusters: on });
+            }}
+          />
+          {tr(CLUSTERS, lang)}
+        </label>
+      )}
       {hasDetails && (
         <button type="button" className="map-layer-toggle" aria-expanded={allShown} onClick={() => setDetailLevel(allShown ? 'none' : 'all')}>
           {tr(allShown ? HIDE_DETAILS : SHOW_DETAILS, lang)}

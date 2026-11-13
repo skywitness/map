@@ -2405,6 +2405,12 @@ kbd {
   gap: 8px;
 }
 
+.map-layer-option {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
 .map-layer-toggle {
   justify-self: start;
   padding: 0;

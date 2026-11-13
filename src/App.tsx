@@ -33,6 +33,7 @@ import { fetchGridMeta, gridEpoch, gridLabels, useGridMeta, type GridLayer } fro
 import { countryLocator, type CountryFeature } from './map/geometry';
 import { BASEMAP_ATTRIBUTION, defaultBasemap, getBasemap, readStoredBasemap, storeBasemap } from './map/basemaps';
 import { flowText, useFlowSelection } from './map/flows';
+import { readClusterPref } from './lib/clusterPref';
 import { DEFAULT_LAYERS, type LayerVisibility, type OverlayLayer } from './map/overlayData';
 import { buildPlaceIndex, searchPlaces as findPlaces, type PlaceEntry, type PlaceLayer } from './lib/placeSearch';
 import type { ComboTarget, PlaceOption } from './controls/searchGroups';
@@ -441,7 +442,7 @@ export function App() {
   const setThreeD = useCallback((threeD: boolean) => update({ threeD }), [update]);
 
   const boxResult = useBoxEstimate(topic, item, state.box, features, year);
-  const [layers, setLayers] = useState<LayerVisibility>(DEFAULT_LAYERS);
+  const [layers, setLayers] = useState<LayerVisibility>(() => ({ ...DEFAULT_LAYERS, clusters: readClusterPref() }));
   // 舊網址轉到合併後的主題，要一起打開某個圖層（唐人街併進移民與難民）：打開那個主題時打開一次
   useEffect(() => {
     const layer = takeRedirectLayer(topic.id);

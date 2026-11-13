@@ -1127,24 +1127,7 @@ export function syncOverlays(
         // 連成線的點（trails.ts）畫在疊在地圖上的 canvas，不加圓點的圖層
       } else if (o.kind === 'points') {
         if (o.def.shape === 'triangle') addTriangleIcons(map, pointColors(o.def));
-        const layer = pointLayer(o.def);
-        map.addLayer(layer, before(POINTS_BEFORE));
-        // 聚成甜甜圈的（cluster）：maxZoom 以下畫聚合 source 上沒聚在一起的點（原本的點圖層的複本），原本的從 maxZoom + 1 起畫
-        if (o.def.cluster) {
-          const from = o.def.cluster.maxZoom + 1;
-          const notClustered: FilterSpecification = ['!', ['has', 'point_count']];
-          map.addLayer(
-            {
-              ...layer,
-              id: id + CLUSTER_SUFFIX,
-              source: id + CLUSTER_SUFFIX,
-              maxzoom: from,
-              filter: 'filter' in layer && layer.filter ? ['all', notClustered, layer.filter] : notClustered,
-            } as LayerSpecification,
-            before(POINTS_BEFORE),
-          );
-          map.setLayerZoomRange(id, Math.max(from, o.def.minZoom ?? 0), 24);
-        }
+        map.addLayer(pointLayer(o.def), before(POINTS_BEFORE));
         // 文字放在最上面：MapLibre 依圖層由上往下排字，放在底圖地名的下面時會被國名、城市名擋掉
         if (o.def.pointLabel) map.addLayer(pointLabelLayer(o.def, dark, labelFont(map, /place|country|city/)));
         // 熱度圖畫在點的下面（applyTimeFilters 依時間模式打開）
@@ -1156,6 +1139,28 @@ export function syncOverlays(
         const at = o.def.under ? before('data-fill') : before(LINES_BEFORE);
         for (const { layer } of lineLayers(o.def, dark, font)) map.addLayer(layer, at);
       }
+    }
+    if (o.kind === 'points' && !o.def.trail && map.getLayer(id)) {
+      // 聚成甜甜圈的（cluster）：maxZoom 以下畫聚合 source 上沒聚在一起的點（原本的點圖層的複本），原本的從 maxZoom + 1 起畫。
+      // 使用者在圖例取消圓環時（LayerVisibility.clusters）def 沒有 cluster：拿掉複本（source 不在 wanted，上面已經拿掉）、
+      // 原本的圖層從頭畫；再打開時加回複本
+      const from = o.def.cluster ? o.def.cluster.maxZoom + 1 : 0;
+      if (o.def.cluster && !map.getLayer(id + CLUSTER_SUFFIX)) {
+        const layer = pointLayer(o.def);
+        const notClustered: FilterSpecification = ['!', ['has', 'point_count']];
+        map.addLayer(
+          {
+            ...layer,
+            id: id + CLUSTER_SUFFIX,
+            source: id + CLUSTER_SUFFIX,
+            maxzoom: from,
+            filter: 'filter' in layer && layer.filter ? ['all', notClustered, layer.filter] : notClustered,
+          } as LayerSpecification,
+          map.getLayer(id) ? id : before(POINTS_BEFORE),
+        );
+      }
+      const min = Math.max(from, o.def.minZoom ?? 0);
+      if ((map.getLayer(id)?.minzoom ?? 0) !== min) map.setLayerZoomRange(id, min, 24);
     }
     if (o.kind === 'points') {
       const epoch = overlayEpoch(o.def, year);

@@ -135,12 +135,15 @@ export function useOverlays(
       if (yearly && raw.get(path)) lastYearly.set(key, raw.get(path));
       // 即時資料的點（PointsOverlayDef.fromLive，此刻世界的新聞熱點）：每份即時資料算一次
       const hidden = def.kind === 'points' ? layers.hiddenClasses?.[def.id] : undefined;
-      if (def.kind === 'points' && def.fromLive) return { kind: 'points', def, visible, points: livePoints(def, live), hidden };
-      if (def.kind === 'points' && def.liveFeed) return { kind: 'points', def, visible, points: feedPoints(def, def.liveFeed === feedDef ? feed.data : null), hidden };
       if (def.kind === 'points') {
+        // 使用者取消了縮小時的圓環（LayerVisibility.clusters）：換成拿掉 cluster 的複本，一律畫一個個點
+        const unclustered = Boolean(def.cluster && layers.clusters === false) || undefined;
+        const pdef = unclustered ? withoutCluster(def) : def;
+        if (pdef.fromLive) return { kind: 'points', def: pdef, visible, points: livePoints(pdef, live), hidden, unclustered };
+        if (pdef.liveFeed) return { kind: 'points', def: pdef, visible, points: feedPoints(pdef, pdef.liveFeed === feedDef ? feed.data : null), hidden, unclustered };
         const base = data ? decodedPoints(data as PointsData) : null;
-        const rest = def.more ? (more.get(moreFile(path)) as PointsData | undefined) : undefined;
-        return { kind: 'points', def, visible, points: base && rest ? joinedPoints(base, decodedPoints(rest)) : base, hidden, partial: Boolean(def.more && !rest) };
+        const rest = pdef.more ? (more.get(moreFile(path)) as PointsData | undefined) : undefined;
+        return { kind: 'points', def: pdef, visible, points: base && rest ? joinedPoints(base, decodedPoints(rest)) : base, hidden, partial: Boolean(pdef.more && !rest), unclustered };
       }
       if (def.local) return { kind: 'lines', def, visible, lines: localLines?.get(def.id) ?? null };
       // 在瀏覽器裡算的線（從台北看世界的航線、距離圈）：依中心與讀到的材料，同一個中心、同一份材料不重算
@@ -155,8 +158,16 @@ export function useOverlays(
         : [];
       return { kind: 'lines', def, visible, lines: data ? mergedLines(data as LinesData, loaded) : null };
     });
-  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center, feedDef, feed.data, layers.hiddenClasses]);
+  }, [generic, raw, tiles, tilePaths, more, live, grids, localLines, center, feedDef, feed.data, layers.hiddenClasses, layers.clusters]);
   return { railways, airports, overlays: result };
+}
+
+/** 拿掉 cluster 的點圖層設定（同一個設定拿同一個複本，地圖才不會每次重建圖層） */
+const unclusteredDefs = new WeakMap<object, object>();
+function withoutCluster<T extends { cluster?: unknown }>(def: T): T {
+  let copy = unclusteredDefs.get(def) as T | undefined;
+  if (!copy) unclusteredDefs.set(def, (copy = { ...def, cluster: undefined }));
+  return copy;
 }
 
 /** LinesOverlayDef.generate 算出的線：依圖層記下最近一次的（中心與材料都一樣就拿同一個物件，地圖不重送） */

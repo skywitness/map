@@ -27,6 +27,11 @@ export interface LayerVisibility {
    * ColorClasses 裡第幾類（0 起）；沒有記錄是全部都畫
    */
   hiddenClasses?: Record<string, number[]>;
+  /**
+   * 縮小時聚成圓環（PointsOverlayDef.cluster，2026-11-13 使用者要求可以取消）：false 是不聚、一律畫一個個點；
+   * 沒有記錄是聚。存在這台裝置（lib/clusterPref.ts），所有主題共用
+   */
+  clusters?: boolean;
 }
 
 // 中型機場有兩千多座，世界全圖時會蓋住鐵路，預設關閉
@@ -153,7 +158,16 @@ export type OverlayLayer =
    * hidden：圖例裡關掉的類別（LayerVisibility.hiddenClasses）；partial：分層的點檔（more）還只讀了重要的那一份，
    * 圖層開關旁不寫件數（寫了會比實際少，城堡在世界全圖時只有前 1,100 座）
    */
-  | { kind: 'points'; def: PointsOverlay; visible: boolean; points: PointRecord[] | null; hidden?: number[]; partial?: boolean }
+  | {
+      kind: 'points';
+      def: PointsOverlay;
+      visible: boolean;
+      points: PointRecord[] | null;
+      hidden?: number[];
+      partial?: boolean;
+      /** 主題設了 cluster、使用者取消了圓環（LayerVisibility.clusters 是 false）：def 是拿掉 cluster 的複本 */
+      unclustered?: boolean;
+    }
   | { kind: 'lines'; def: LinesOverlay; visible: boolean; lines: DecodedLines | null }
   /** 晝夜（時刻主題）：沒有資料檔，依時刻畫（nightLayer.ts） */
   | { kind: 'night'; def: NightOverlay; visible: boolean }
