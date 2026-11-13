@@ -3,6 +3,7 @@ import { fixed, formatLargeNumber, formatLargeTick } from '../lib/format';
 import { businessAiPart } from './business-ai';
 import { withParts } from './parts';
 import { cloudRegionsPart } from './cloud-regions';
+import { aiDatacentersPart } from './ai-datacenters';
 import type { TopicDefinition } from './types';
 
 const pct = (v: number) => `${fixed(v, v < 1 ? 2 : 1)}%`;
@@ -136,4 +137,4 @@ export const ai: TopicDefinition = withParts({
       formatTick: (v) => `${v}%`,
     },
   ],
-}, cloudRegionsPart, businessAiPart);
+}, cloudRegionsPart, businessAiPart, aiDatacentersPart);

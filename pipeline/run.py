@@ -389,6 +389,7 @@ STEPS = {
     "tcm-herbs": "topics.tcm_herbs",  # 2026-11-08 第二十九批 692：中藥材從哪裡來（臺灣中藥典第四版英文版 × Kew WCVP 的原生分布，WCVP 約 88 MB）
     "tcm-research": "topics.tcm_research",  # 中醫的研究（OpenAlex 的群組查詢，讀 map-plan 的 data/openalex-tcm/，不連網；第二十九批 700、709）
     "ai-chain": "topics.ai_chain",  # AI 產業鏈的公司（skywitness/ai-chain 固定 commit 的 YAML；總部座標查 Wikidata；2026-11-13 使用者要求）
+    "ai-datacenters": "topics.ai_datacenters",  # 各國 AI 發展的前沿 AI 資料中心（Epoch AI；美國地址用 Census Geocoder，其他用 ai-chain 或 Wikidata 的座標）
     "tcm-trials": "topics.tcm_trials",  # 中醫的研究的臨床試驗（讀 map-plan 的 data/clinicaltrials/ 兩個瀏覽器下載的 CSV，先複製到 .cache/clinicaltrials/；不連網）
     "park-twin-cities": "topics.park_twin_cities",  # 2026-11-08 第二十八批 686：同一座城市的兩家樂園（樂園主題的共用指標；要先有 disney-visits、universal-visits）
     "amusement-industry": "topics.amusement_industry",

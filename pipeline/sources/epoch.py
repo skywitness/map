@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import csv
+import re
 from datetime import date
 from typing import NamedTuple
 
@@ -74,3 +75,37 @@ def operational_at(all_clusters: list[Cluster], when: date) -> list[Cluster]:
     live = [c for c in all_clusters if c.start <= when]
     names = {c.name for c in live}
     return [c for c in live if not (c.superseded_by and c.superseded_by in names)]
+
+
+# 前沿 AI 資料中心（Frontier Data Centers，2026-11-13 加；https://epoch.ai/data/ai-data-centers）：用衛星影像、許可文件與
+# 公開資訊估計的大型 AI 資料中心，每一個有逐期的電力（timelines，含依許可與公告推估的未來）；只有地址、沒有座標。
+DATA_CENTERS_URL = "https://epoch.ai/data/data_centers/data_centers.csv"
+DATA_CENTER_TIMELINES_URL = "https://epoch.ai/data/data_centers/data_center_timelines.csv"
+
+
+def _tagless(text: str) -> str:
+    """去掉 Epoch 在名稱後面標的把握程度（「Oracle #confident」→「Oracle」）"""
+    return re.sub(r"\s*#\w+", "", text or "").strip()
+
+
+def data_centers() -> list[dict]:
+    """[{name, country（ISO3）, address, owner, users, timeline: [(日期, IT 電力 MW, 電力 MW)]}]"""
+    path = download(DATA_CENTERS_URL, "epoch", "data_centers.csv")
+    tpath = download(DATA_CENTER_TIMELINES_URL, "epoch", "data_center_timelines.csv")
+    timeline: dict[str, list] = {}
+    with open(tpath, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            when = _date(row["Date"])
+            if when:
+                timeline.setdefault(row["Data center"], []).append((when, float(row["IT power (MW)"] or 0), float(row["Power (MW)"] or 0)))
+    out = []
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            iso3 = from_name(row["Country"])
+            if not iso3:
+                raise RuntimeError(f"Epoch 資料中心的國家對不到：{row['Country']}")
+            out.append({"name": row["Name"].strip(), "country": iso3, "address": row["Address"].strip(),
+                        "owner": ", ".join(_tagless(x) for x in row["Owner"].split(",") if _tagless(x)),
+                        "users": ", ".join(_tagless(x) for x in row["Users"].split(",") if _tagless(x)),
+                        "timeline": sorted(timeline.get(row["Name"], []))})
+    return out
