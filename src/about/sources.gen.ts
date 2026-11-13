@@ -6,7 +6,7 @@
 import type { AboutSource } from './sources';
 
 export const TOPIC_COUNT = 223;
-export const INDICATOR_COUNT = 1768;
+export const INDICATOR_COUNT = 1769;
 
 export const SOURCES: AboutSource[] = [
   {"name":{"zh":"Wikidata（位置）","en":"Wikidata (locations)"},"url":"https://www.wikidata.org/","licenses":["CC0 1.0","CC0"],"topics":["map","cities","festivals","reads","diet","alt-medicine","companies","china-lending","empires","organizations","ai-chain","wafer-fabs","rd-companies","science-facilities","nuclear","fossil-fuels","high-speed-rail","metro","heritage-railways","air-routes","shipping","profiles","flags","taipei-view","elevation","special-landforms","antarctica","daylight","aurora","magnetic","antipodes","world-heritage","castles","national-parks","trails","attractions","museums","oldest-universities","skyscrapers","theme-parks","roller-coasters","water-parks","disney","universal","nobel","sports","racing","dining"]},
@@ -97,6 +97,7 @@ export const SOURCES: AboutSource[] = [
   {"name":{"zh":"財政部（台灣 HS 3915 的對照）","en":"Ministry of Finance, Taiwan (HS 3915 comparison)"},"url":"https://web02.mof.gov.tw/njswww/WebMain.aspx?sys=100&funid=defjsptgl","licenses":[{"zh":"政府資料開放授權條款","en":"Open Government Data License, Taiwan"}],"topics":["plastic","semiconductors"]},
   {"name":{"zh":"領事事務局免簽證名單（台灣護照的比對）","en":"BOCA visa list (Taiwan passport comparison)"},"url":"https://data.gov.tw/dataset/30749","licenses":[{"zh":"政府資料開放授權條款第 1 版","en":"Open Government Data License 1.0"}],"topics":["taiwan-diplomacy","passport"]},
   {"name":{"zh":"AI 產業鏈全景：公司名冊（資料基準日 2026-10-06）","en":"AI Chain (AI 產業鏈全景): company roster (as of 6 Oct 2026)"},"url":"https://skywitness.github.io/ai-chain/companies/","licenses":[{"zh":"CC BY 4.0（同一作者）","en":"CC BY 4.0 (same author)"}],"topics":["ai-chain"]},
+  {"name":{"zh":"AI 產業鏈全景：記憶體與儲存的廠（查核日 2026-10-23）","en":"AI Chain (AI 產業鏈全景): memory and storage fabs (checked 23 Oct 2026)"},"url":"https://skywitness.github.io/ai-chain/memory/","licenses":[{"zh":"CC BY 4.0（同一作者）","en":"CC BY 4.0 (same author)"}],"topics":["wafer-fabs"]},
   {"name":{"zh":"AI 產業鏈全景：資料中心園區的座標（OpenStreetMap Nominatim）","en":"AI Chain (AI 產業鏈全景): campus coordinates (OpenStreetMap Nominatim)"},"url":"https://skywitness.github.io/ai-chain/","licenses":["ODbL 1.0"],"topics":["ai"]},
   {"name":{"zh":"AidData, China’s Global Loans and Grants Dataset, Version 1.0（2025 年 11 月 18 日發布；William & Mary）","en":"AidData, China’s Global Loans and Grants Dataset, Version 1.0 (released 18 November 2025; William & Mary)"},"url":"https://www.aiddata.org/data/chinas-global-loans-and-grants-dataset-1-0","licenses":["ODC-By 1.0"],"topics":["china-lending"]},
   {"name":"Alken, P. et al. (2024). International Geomagnetic Reference Field: the fourteenth generation (IGRF-14) coefficients, IAGA","url":"https://doi.org/10.5281/zenodo.14012302","licenses":["CC BY 4.0"],"topics":["magnetic"]},

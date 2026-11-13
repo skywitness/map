@@ -788,6 +788,7 @@ STEPS = {
     "science-facilities": "topics.science_facilities",
     "starlink": "topics.starlink",
     "wafer-fabs": "topics.wafer_fabs",
+    "memory-fabs": "topics.memory_fabs",  # 晶圓廠地圖的記憶體廠（AI 產業鏈全景 skywitness/ai-chain 的 memory/fabs.yaml，2026-11-13）
     "rd-companies": "topics.rd_companies",
     # 航空的擴充（第十批 175）：最繁忙的航線、航空貨運、貨運機場、聯盟、廉價航空
     "aviation-extra": "topics.aviation_extra",
