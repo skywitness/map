@@ -119,7 +119,7 @@ export const TOPIC_GROUP_SPECS: TopicGroupSpec[] = [
     // 2026-11-07（第二十五批 439）：能源升成自己的大類；「研發與太空」拆出太空（太空、Starlink），原小類改名「研發與創新」
     sections: [
       // 2026-11-07（製作手冊第二十五批 502）「數位」拆成「網路與連線」與「運算與晶片」
-      { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'semiconductors', 'wafer-fabs', 'developers', 'chip-materials'] },
+      { label: { zh: '運算與晶片', en: 'Computing & chips' }, topics: ['ai', 'ai-chain', 'semiconductors', 'wafer-fabs', 'developers', 'chip-materials'] },
       { label: { zh: '研發與創新', en: 'Research & innovation' }, topics: ['innovation', 'rd-companies', 'publications', 'science-facilities', 'research-orgs', 'eu-research', 'oa-journals', 'scientist-mobility'] },
       { label: { zh: '太空', en: 'Space' }, topics: ['space', 'starlink'] },
       // 2026-11-08 使用者要求：網路與連線從 9 個主題併成 4 個（網速、基地台併進網路普及；IP 位址、國家網域併進海底電纜；
@@ -385,6 +385,7 @@ export const TOPIC_MODULES: Record<string, () => Promise<Record<string, unknown>
   'science-facilities': () => import('./science-facilities'),
   starlink: () => import('./starlink'),
   'wafer-fabs': () => import('./wafer-fabs'),
+  'ai-chain': () => import('./ai-chain'),
   'rd-companies': () => import('./rd-companies'),
   renewables: () => import('./renewables'),
   'renewable-heat': () => import('./renewable-heat'),

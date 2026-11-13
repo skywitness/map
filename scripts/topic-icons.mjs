@@ -217,6 +217,7 @@ const TOPIC_ICONS = {
   'science-facilities': 'atom',
   starlink: 'satellite-dish',
   'wafer-fabs': 'microchip',
+  'ai-chain': 'network',
   'oldest-universities': 'university',
   'rd-companies': 'flask-conical',
   renewables: 'solar-panel',

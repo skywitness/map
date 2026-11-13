@@ -172,7 +172,8 @@ export const RELATED: Record<string, string[]> = {
   'water-forest': ['forest', 'rivers', 'agriculture'],
   wildfires: ['forest', 'air-quality', 'temperature'],
   // 科技
-  ai: ['semiconductors', 'developers', 'digital'],
+  ai: ['ai-chain', 'semiconductors', 'developers', 'digital'],
+  'ai-chain': ['ai', 'wafer-fabs', 'semiconductors'],
   semiconductors: ['ai', 'industry', 'trade'],
   digital: ['submarine-cables', 'web-platforms', 'reads'],
   developers: ['ai', 'publications', 'innovation'],
