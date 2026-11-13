@@ -449,6 +449,15 @@ interface LayerControlsProps {
 }
 
 const SHOW_DETAILS: Text = { zh: '顯示細項', en: 'More details' };
+/** 分級說明有這麼多列以上時排成兩欄（2026-11-13，使用者要求圖例佔的版面縮小） */
+const TWO_COLUMNS = 4;
+/** 主題自己的圖層細項超過這麼多列時，預設收起（LayerControls 的 autoLevel） */
+const MAX_DETAIL_LINES = 12;
+/** 一段細項在圖例裡佔幾列：標題一列，兩欄的列數減半，大小圖例約兩列 */
+function detailLines(d: OverlayKey['details'][number]): number {
+  const rows = d.layout === 'sizes' ? 2 : d.layout === 'chips' ? Math.ceil(d.rows.length / 4) : d.rows.length >= TWO_COLUMNS ? Math.ceil(d.rows.length / 2) : d.rows.length;
+  return rows + (d.title ? 1 : 0);
+}
 /** 點圖層縮小時聚成圓環的開關（LayerVisibility.clusters，2026-11-13 使用者要求可以取消） */
 const CLUSTERS: Text = { zh: '縮小時聚成圓環', en: 'Group into rings when zoomed out' };
 const CLUSTERS_HINT: Text = { zh: '取消後縮小時也一個個點畫出來', en: 'When off, points are drawn one by one at every zoom' };
@@ -492,9 +501,17 @@ export function LayerControls({
   const extraKeys = overlayKeys(overlays, tokens, darkMap);
   // 分級說明顯示到哪裡：none（手機預設）、own（主題自己的圖層，桌機預設）、all（含從圖層選單加上的別的主題的圖層，
   // 2026-10-31：加了好幾個時卡片會蓋住半張地圖，預設只列名稱與符號）
-  const [detailLevel, setDetailLevel] = useState<'none' | 'own' | 'all'>(() =>
-    typeof matchMedia === 'function' && matchMedia(NARROW).matches ? 'none' : 'own',
-  );
+  // 2026-11-13（使用者要求圖例佔的版面縮小）：主題自己的圖層細項加起來超過 MAX_DETAIL_LINES 列時（地震與火山），
+  // 桌機也預設收起，按「顯示細項」再打開；換主題（圖層換了一組）時回到預設
+  const ownLines = overlays
+    .filter((o) => o.visible && !('added' in o.def && o.def.added))
+    .reduce((n, o) => n + extraKeys.get(o)!.details.reduce((m, d) => m + detailLines(d), 0), 0);
+  const autoLevel: 'none' | 'own' =
+    (typeof matchMedia === 'function' && matchMedia(NARROW).matches) || ownLines > MAX_DETAIL_LINES ? 'none' : 'own';
+  const [chosenLevel, setDetailLevel] = useState<'none' | 'own' | 'all' | null>(null);
+  const overlayIds = overlays.map((o) => o.def.id).join(',');
+  useEffect(() => setDetailLevel(null), [overlayIds]);
+  const detailLevel = chosenLevel ?? autoLevel;
   const showsDetails = (o: OverlayLayer) => detailLevel === 'all' || (detailLevel === 'own' && !('added' in o.def && o.def.added));
   const withDetails = overlays.filter((o) => o.visible && extraKeys.get(o)!.details.length > 0);
   const hasDetails = withDetails.length > 0;
@@ -545,7 +562,7 @@ export function LayerControls({
                   className={`map-layer-detail${d.layout === 'sizes' ? ' is-sizes' : d.layout === 'chips' ? ' is-chips' : ''}`}
                 >
                   {d.title && <div className="legend-note">{d.title}</div>}
-                  <div className="map-layer-rows">
+                  <div className={`map-layer-rows${d.layout === 'rows' && d.rows.length >= TWO_COLUMNS ? ' is-two-columns' : ''}`}>
                     {d.rows.map((r) =>
                       r.pointClass !== undefined && o.kind === 'points' ? (
                         <ClassToggle
@@ -573,6 +590,7 @@ export function LayerControls({
           </div>
         );
       })}
+      <div className="map-layer-footer">
       {overlays.some((o) => o.kind === 'points' && o.visible && (o.def.cluster || o.unclustered)) && (
         <label className="map-layer-option" title={tr(CLUSTERS_HINT, lang)}>
           <input
@@ -592,6 +610,7 @@ export function LayerControls({
           {tr(allShown ? HIDE_DETAILS : SHOW_DETAILS, lang)}
         </button>
       )}
+      </div>
     </fieldset>
   );
 }
@@ -605,7 +624,9 @@ function ClassToggle({ row, count, hidden, onToggle }: { row: OverlayKey['detail
   return (
     <button type="button" className={`map-layer-class${hidden ? ' is-off' : ''}`} aria-pressed={!hidden} title={tr(hidden ? SHOW_CLASS : HIDE_CLASS, lang)} onClick={onToggle}>
       <Swatch swatch={row} />
-      {row.label}
+      <span className="map-layer-label" title={row.label}>
+        {row.label}
+      </span>
       {count !== undefined && <span className="map-layer-count">{fixed(count, 0)}</span>}
     </button>
   );

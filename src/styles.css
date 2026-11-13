@@ -2286,7 +2286,7 @@ kbd {
 }
 
 .map-legend > .legend ~ .legend {
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--grid);
 }
 
@@ -2294,7 +2294,7 @@ kbd {
   margin: 0;
   pointer-events: auto;
   display: grid;
-  gap: 4px;
+  gap: 3px;
   font-size: 12px;
 }
 
@@ -2351,7 +2351,7 @@ kbd {
 
 /* 一般疊加圖層（地震、火山…）打開時，下面列出顏色分級與大小 */
 .map-layer-detail {
-  margin: 2px 0 2px 19px;
+  margin: 1px 0 1px 19px;
 }
 
 .map-layer-detail .legend-note {
@@ -2368,6 +2368,28 @@ kbd {
   align-items: center;
   gap: 6px;
   color: var(--ink-secondary);
+}
+
+/* 分級說明有 4 列以上時排成兩欄（2026-11-13，使用者要求圖例佔的版面縮小）：名稱太長的截掉，滑過看全名 */
+.map-layer-rows.is-two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 10px;
+  font-size: 11px;
+}
+
+.map-layer-rows.is-two-columns > * {
+  min-width: 0;
+}
+
+.map-layer-rows.is-two-columns .map-layer-count {
+  padding-left: 4px;
+}
+
+.map-layer-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 點圖層的一類（城3）：按一下隱藏、再按一下顯示；關掉的淡掉、名稱加刪除線 */
@@ -2405,9 +2427,21 @@ kbd {
   gap: 8px;
 }
 
+/* 圖例最後一列：「縮小時聚成圓環」與「收起細項」放同一列 */
+.map-layer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 10px;
+}
+
+.map-layer-footer:empty {
+  display: none;
+}
+
 .map-layer-option {
-  margin-top: 2px;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink-secondary);
 }
 
@@ -3142,8 +3176,8 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 8px 10px;
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   border: 1px solid var(--border);

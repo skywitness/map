@@ -5,7 +5,7 @@ import { ranking } from '../panels/stats';
 import type { Indicator } from '../topics/types';
 
 /** 各列幾個國家 */
-const COUNT = 5;
+const COUNT = 3; // 2026-11-13 從 5 改成 3：使用者要求圖例佔的版面縮小（完整的排名在「排名表」）
 
 interface ExtremesProps {
   indicator: Indicator;
