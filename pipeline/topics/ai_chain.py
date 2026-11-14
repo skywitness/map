@@ -107,10 +107,14 @@ def build() -> None:
                      "cityEn": h["city"], "role": c["role"].strip(), "id": c["id"]})
     _spread(rows, 0.006)
     rows.sort(key=lambda r: (r["t"], r["s"], r["name"].lower()))
-    write_points(OUT / "companies.json", {**points_file(
-        rows, ["lon", "lat", "iso3", "s", "l", "t", "w", "o", "f", "q", "id", "name", "zh", "city", "cityEn", "role"],
-        {"lon": 0.00001, "lat": 0.00001, "s": 1, "l": 1, "t": 1, "w": 1, "o": 1, "f": 1, "q": 1}, strings=("iso3",)),
-        "license": A.LICENSE + "；總部座標：Wikidata（CC0）"}, ("id", "name", "zh", "city", "cityEn", "role"))
+    # 總部點與左邊的清單：全部（all）與 14 個環節各一個檔（2026-11-14 使用者回報選了環節點與清單沒變，前端讀 companies/{item}.json）
+    (OUT / "companies").mkdir(exist_ok=True)
+    for item in ["all", *(s[0] for s in A.SEGMENTS)]:
+        part = rows if item == "all" else [r for r in rows if A.SEGMENTS[r["s"] - 1][0] == item]
+        write_points(OUT / "companies" / f"{item}.json", {**points_file(
+            part, ["lon", "lat", "iso3", "s", "l", "t", "w", "o", "f", "q", "id", "name", "zh", "city", "cityEn", "role"],
+            {"lon": 0.00001, "lat": 0.00001, "s": 1, "l": 1, "t": 1, "w": 1, "o": 1, "f": 1, "q": 1}, strings=("iso3",)),
+            "license": A.LICENSE + "；總部座標：Wikidata（CC0）"}, ("id", "name", "zh", "city", "cityEn", "role"), quiet=True)
     # 各國的公司數：全部與 14 個環節
     (OUT / "count").mkdir(exist_ok=True)
     year = [int(A.AS_OF[:4])]
@@ -134,10 +138,15 @@ def build() -> None:
         write_json(OUT / "count" / f"{item}.json", indicator_file(
             "ai-chain-companies", "家", year, {k: [v] for k, v in sorted(cnt.items())}, hints=hints, hintsEn=hints_en,
             license=A.LICENSE), quiet=True)
+    # 一線公司：全部與 14 個環節（跟公司數同一組子項目，換指標時環節不變）
+    (OUT / "tier1").mkdir(exist_ok=True)
+    for item in ["all", *(s[0] for s in A.SEGMENTS)]:
+        part = [r for r in rows if r["t"] == 1 and (item == "all" or A.SEGMENTS[r["s"] - 1][0] == item)]
+        cnt = Counter(r["iso3"] for r in part)
+        hints = {iso: "、".join(r["name"] for r in part if r["iso3"] == iso) for iso in cnt}
+        write_json(OUT / "tier1" / f"{item}.json", indicator_file("ai-chain-tier1", "家", year, {k: [v] for k, v in sorted(cnt.items())},
+                                                                  hints=hints, hintsEn=hints, license=A.LICENSE), quiet=True)
     t1 = Counter(r["iso3"] for r in rows if r["t"] == 1)
-    hints = {iso: "、".join(r["name"] for r in rows if r["iso3"] == iso and r["t"] == 1) for iso in t1}
-    write_json(OUT / "tier1.json", indicator_file("ai-chain-tier1", "家", year, {k: [v] for k, v in sorted(t1.items())},
-                                                  hints=hints, hintsEn=hints, license=A.LICENSE))
     print(f"  {len(rows)} 家、{len(by['all'])} 國：" + "、".join(f"{k} {v}" for k, v in by["all"].most_common(14)))
     print("  一線 " + str(sum(t1.values())) + "：" + "、".join(f"{k} {v}" for k, v in t1.most_common(10)))
     print("  等級：" + str(Counter(r["t"] for r in rows)) + "；所有權：" + str(Counter(r["o"] for r in rows)))

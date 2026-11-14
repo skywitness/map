@@ -73,7 +73,7 @@ function lines(p: PointRecord, countryName: (iso3: string) => string): string[] 
 const COMPANIES: PointsOverlayDef = {
   kind: 'points',
   id: 'companies',
-  file: 'companies.json',
+  file: 'companies/{item}.json',
   label: { zh: 'AI 產業鏈公司的總部', en: 'AI supply-chain company headquarters' },
   radius: { field: 'w', stops: [[1, 3], [3, 6]] },
   color: LAYERS,
@@ -132,7 +132,7 @@ const TAIWAN_SITES: PointsOverlayDef = {
 const LIST: ListPanelDef = {
   label: { zh: 'AI 產業鏈的公司', en: 'AI supply-chain companies' },
   tabLabel: { zh: '公司', en: 'Companies' },
-  file: 'companies.json',
+  file: 'companies/{item}.json',
   countryField: 'iso3',
   empty: { zh: '這個國家沒有收錄的公司', en: 'No companies listed for this country' },
   rows: (points, { countryName }) =>
@@ -182,8 +182,8 @@ export const aiChain: TopicDefinition = {
       id: 'companies',
       label: { zh: '各國的 AI 產業鏈公司', en: 'AI supply-chain companies by country' },
       description: {
-        zh: '總部在這個國家的公司數。710 家分布在 26 國：美國 278 家最多，台灣 125、中國 109、日本 48、南韓 28、德國 21。各國的強項不一樣：台灣以伺服器與系統 37 家最多（美國 11），晶圓代工與先進封裝 15 家也是第一；日本的 48 家裡 23 家是半導體設備與材料（全部 88 家的第一）；美國在應用、開發工具、基礎模型與資料中心都最多；中國以實體 AI 24 家、基礎模型 17 家、AI 晶片 14 家最多。用「環節」切換 14 個環節。',
-        en: 'Number of companies headquartered in each country. The 710 are spread across 26 countries: the US has the most with 278, followed by Taiwan 125, China 109, Japan 48, South Korea 28 and Germany 21. Strengths differ: Taiwan leads in servers and systems with 37 (the US has 11) and in foundry and advanced packaging with 15; 23 of Japan’s 48 are in semiconductor equipment and materials, the most of any country among the 88; the US leads in applications, developer tools, foundation models and data centres; China’s largest groups are physical AI (24), foundation models (17) and AI chips (14). Switch among the 14 segments with the segment menu.',
+        zh: '總部在這個國家的公司數。710 家分布在 26 國：美國 278 家最多，台灣 125、中國 109、日本 48、南韓 28、德國 21。各國的強項不一樣：台灣以伺服器與系統 37 家最多（美國 11），晶圓代工與先進封裝 15 家也是第一；日本的 48 家裡 23 家是半導體設備與材料（全部 88 家的第一）；美國在應用、開發工具、基礎模型與資料中心都最多；中國以實體 AI 24 家、基礎模型 17 家、AI 晶片 14 家最多。用「環節」切換 14 個環節，地圖上的總部點與左邊的清單也只列那個環節的公司。',
+        en: 'Number of companies headquartered in each country. The 710 are spread across 26 countries: the US has the most with 278, followed by Taiwan 125, China 109, Japan 48, South Korea 28 and Germany 21. Strengths differ: Taiwan leads in servers and systems with 37 (the US has 11) and in foundry and advanced packaging with 15; 23 of Japan’s 48 are in semiconductor equipment and materials, the most of any country among the 88; the US leads in applications, developer tools, foundation models and data centres; China’s largest groups are physical AI (24), foundation models (17) and AI chips (14). Switch among the 14 segments with the segment menu; the headquarters on the map and the list on the left then show only that segment.',
       },
       unit: { zh: '家', en: 'companies' },
       file: 'count/{item}.json',
@@ -199,11 +199,12 @@ export const aiChain: TopicDefinition = {
       id: 'tier1',
       label: { zh: '一線公司', en: 'Tier-1 companies' },
       description: {
-        zh: '編者列為「一線」、對 AI 產業鏈有決定性影響的 103 家公司，依總部所在國：美國 56、台灣 15、中國 12、日本 8，德國、荷蘭、南韓、法國各 2，英國、香港、愛爾蘭、以色列各 1。滑過國家看是哪幾家。',
-        en: 'The 103 companies the editors rank as tier 1, with decisive influence on the AI supply chain, by headquarters country: the US 56, Taiwan 15, China 12, Japan 8, Germany, the Netherlands, South Korea and France 2 each, and the UK, Hong Kong, Ireland and Israel 1 each. Hover over a country to see which.',
+        zh: '編者列為「一線」、對 AI 產業鏈有決定性影響的 103 家公司，依總部所在國：美國 56、台灣 15、中國 12、日本 8，德國、荷蘭、南韓、法國各 2，英國、香港、愛爾蘭、以色列各 1。滑過國家看是哪幾家；用「環節」只看一個環節的一線公司。',
+        en: 'The 103 companies the editors rank as tier 1, with decisive influence on the AI supply chain, by headquarters country: the US 56, Taiwan 15, China 12, Japan 8, Germany, the Netherlands, South Korea and France 2 each, and the UK, Hong Kong, Ireland and Israel 1 each. Hover over a country to see which; the segment menu narrows them to one segment.',
       },
       unit: { zh: '家', en: 'companies' },
-      file: 'tier1.json',
+      file: 'tier1/{item}.json',
+      dimension: { label: { zh: '環節', en: 'Segment' }, options: SEGMENT_OPTIONS, defaultOption: 'all' },
       layer: { kind: 'choropleth', scale: { type: 'sequential', thresholds: [1, 2, 5, 10, 20, 50] } },
       integer: true,
       timeless: true,
